@@ -423,6 +423,9 @@ int RunMediaServerApplication(int argc, char** argv) {
         event_clip_deriver = std::make_shared<recording::GStreamerEventClipDeriver>();
         recording::CatalogEventRecordingBridge::Options bridge_options;
         bridge_options.output_root = recording_root;
+        bridge_options.resolve_recording_channel = [&recording_sessions](const std::string& key) {
+            return recording_sessions.ResolveRecordingChannel(key);
+        };
         bridge_options.finalization_grace_ms =
             static_cast<std::int64_t>(config.recording_segment_duration_seconds) * 1000 + 1000;
         event_recording_bridge =

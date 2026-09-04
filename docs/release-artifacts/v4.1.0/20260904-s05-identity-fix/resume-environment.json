@@ -1,0 +1,39 @@
+{
+  "stage": "environment",
+  "startedAt": "2026-09-04T14:18:14.964Z",
+  "commands": [
+    {
+      "file": "/bin/bash",
+      "args": [
+        "-c",
+        "set -euo pipefail\nsource scripts/internal/env_common.sh\nmedia_server_apply_homebrew_gst_env\nfor tool in node bash c++ cmake make pkg-config brew python3 tee mktemp rm; do command -v \"$tool\"; done\nnode --version\nbrew --prefix\npkg-config --modversion sqlite3 openssl libsodium pangocairo gstreamer-1.0 gstreamer-app-1.0 gstreamer-rtsp-server-1.0 gstreamer-sdp-1.0 gstreamer-webrtc-1.0 gstreamer-video-1.0\ntest -x \"$GST_PLUGIN_SCANNER_1_0\"\ntest \"$GST_REGISTRY_1_0\" = \"$MEDIA_SERVER_GST_CACHE_DIR/registry.bin\"\n"
+      ],
+      "exit": 0,
+      "signal": null,
+      "elapsedMs": 178,
+      "stdout": "<기존 HOME>/.nvm/versions/node/v24.13.0/bin/node\n/bin/bash\n/usr/bin/c++\n/opt/homebrew/bin/cmake\n/usr/bin/make\n/opt/homebrew/bin/pkg-config\n/opt/homebrew/bin/brew\n/opt/homebrew/bin/python3\n/usr/bin/tee\n/usr/bin/mktemp\n/bin/rm\nv24.13.0\n/opt/homebrew\n3.51.0\n3.6.2\n1.0.21\n1.57.0\n1.28.1\n1.28.1\n1.28.1\n1.28.1\n1.28.1\n1.28.1\n",
+      "stderr": "",
+      "error": null
+    }
+  ],
+  "tokens": {
+    "start": null,
+    "end": null,
+    "consumed": null,
+    "source": "계측값 미제공"
+  },
+  "environment": {
+    "homePresent": true,
+    "homeUnchanged": true,
+    "pathUnchanged": true,
+    "digest": "ab409c4bbe2a1e6d1446a824b84afa840f058fee1b7a6b42ef08826b029d36ef",
+    "frozenFiles": 1035,
+    "sourceDigest": "d1f9cc319ffc760376eeb6462ed2feb44fb7aaae73a541a87a40a67a6aa1726b"
+  },
+  "frozenSourcesUnchanged": true,
+  "ok": true,
+  "root": "/private/tmp/media-server-s05-resume.kYnhd1",
+  "elapsedMs": 302,
+  "scriptSha256": "fae3570778ce5aa602aa25f6761e7e347ab5de56efec614d0dfd1718050bb9b4",
+  "unitSha256": "3f43808d6b3af591a7d75545a90d797cd42a28d953befc58b3a18b7599ac3560"
+}

@@ -5,6 +5,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <unordered_map>
 
@@ -36,6 +37,8 @@ public:
     bool StopChannel(const std::string& channel_id);
     void StopAll();
     std::size_t ActiveChannelCount() const;
+    // 시작 완료된 유일한 녹화 채널만 반환한다. handle/epoch는 외부에 노출하지 않는다.
+    std::optional<std::string> ResolveRecordingChannel(const std::string& stream_key) const;
 
 private:
     struct ChannelState;

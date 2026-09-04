@@ -2,7 +2,12 @@
 
 ## 문서 상태
 
-- 상태: 2026-09-02 사용자 승인 완료. 2026-09-04 S00~S05 local 구현·검증 완료.
+- 상태: 2026-09-02 사용자 승인 완료. 2026-09-04 S00~S04 local 구현·검증 완료.
+  S05 실제 등록 숫자 ID↔stream key 연결 RED 뒤 최소 매핑 구현·focused 13개 GREEN을
+  확인했다. PATH 보존과 등록기 단위 입력 결합 보완 뒤 S05 27개·계약 45개·build를
+  재통과했다. 첫 실제 foreground의 없는 SQL source_id 참조 false FAIL은 원본 보존하고,
+  2026-09-05 정식 payload 판독 단위 12/0과 별도 실제 foreground 22/0을 확인했다.
+  제품/DB 추가 수정은 없다. 상세는 release-test-records에 보존한다.
   S05 개별 등록 누락 FAIL은 보정·재실행·독립 재결속으로 해소했다. 릴리즈 완료는 아니다.
   S06~S09 구현·테스트와 v4.1.0 릴리즈 완료 증거가 아님
 - 현재 작성 브랜치: `v4.1.0`
@@ -155,7 +160,7 @@ major 변경이 확인될 때만 별도로 설계한다. 현재 목표를 이유
 | 2 | V410-S02 | P0 | 채널별 opt-in 연속 세그먼트 recorder, keyframe 경계, atomic finalize, 재시작 복구 |
 | 3 | V410-S03 | P0 | SQLite 메타데이터 카탈로그와 append-only JSONL 복구 저널, SQLite 미사용 fallback |
 | 4 | V410-S04 | P0 | 완료: 상시/이벤트 용량·기간 분리, oldest-first 순환 삭제, pin·hold·tombstone, 채널별 pending 복구, dirfd 결박 unlink/truncate, 실제 쓰기량 정산, 채널 간 in-flight disk reserve·writer admission, 내구 cleanup 마커 재시작 복구 |
-| 5 | V410-S05 | P0 | local 완료: finalized 원본 연결, 명시적 PTS/UTC 시간축, 비동기 H.264/MP4→MPEG-TS remux, 실측 범위, fallback, quota·hold, UUID v2 partial·재시작 복구. 개별 ID 27개·check 89개 등록. 실제 EventStorage JSONL 비활성·큐 퇴출·새 프로세스 journal 복구·실제 파생 통합 검증 및 focused·기존 단계 회귀·독립 검토 통과 |
+| 5 | V410-S05 | P0 | 구현 완료·실제 foreground PASS: finalized 원본 연결, 명시적 PTS/UTC 시간축, 비동기 H.264/MP4→MPEG-TS remux, 실측 범위, fallback, quota·hold, UUID v2 partial·재시작 복구. 개별 ID 27개·check 89개 유지, 단위 34·S05 27·계약 45·build 통과. 2026-09-05 정식 payload 판독 단위 12/0과 실제 foreground 22/0 통과; 제품·DB 추가 수정 없음 |
 | 6 | V410-S06 | P0 | event > continuous 우선 조회·재생 계약, timeline API와 Ops UI 표출 |
 | 7 | V410-S07 | P1 | event/track 경계·요약과 설정 주기 대표 관측 저장, 정확한 frame seek 기반 |
 | 8 | V410-S08 | P0 | crash/disk-full/corrupt catalog/gap/migration/호환성 검증과 문서·evidence 연결 |

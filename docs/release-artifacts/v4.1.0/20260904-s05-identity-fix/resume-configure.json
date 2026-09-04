@@ -1,0 +1,38 @@
+{
+  "stage": "configure",
+  "startedAt": "2026-09-04T14:22:13.649Z",
+  "commands": [
+    {
+      "file": "cmake",
+      "args": [
+        "-S",
+        "/Users/dhseo/Workspace/mediaServer",
+        "-B",
+        "/Users/dhseo/Workspace/mediaServer/build-gst-onnx",
+        "-DMEDIA_SERVER_USE_GSTREAMER=ON",
+        "-DMEDIA_SERVER_USE_ONNXRUNTIME=ON",
+        "-DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0",
+        "-DMEDIA_SERVER_ONNXRUNTIME_ROOT=/opt/homebrew/opt/onnxruntime"
+      ],
+      "exit": 0,
+      "signal": null,
+      "elapsedMs": 108,
+      "stdout": "-- Configuring done (0.1s)\n-- Generating done (0.0s)\n-- Build files have been written to: <기존 HOME>/Workspace/mediaServer/build-gst-onnx\n",
+      "stderr": "",
+      "error": null
+    }
+  ],
+  "tokens": {
+    "start": null,
+    "end": null,
+    "consumed": null,
+    "source": "계측값 미제공"
+  },
+  "environmentDigest": "ab409c4bbe2a1e6d1446a824b84afa840f058fee1b7a6b42ef08826b029d36ef",
+  "frozenSourcesUnchanged": true,
+  "ok": true,
+  "root": "/private/tmp/media-server-s05-resume.kYnhd1",
+  "elapsedMs": 249,
+  "scriptSha256": "fae3570778ce5aa602aa25f6761e7e347ab5de56efec614d0dfd1718050bb9b4",
+  "unitSha256": "3064fce3fec108af5c52f5c5ba3c484578e4d490f3f1d4803c3982379ad232a0"
+}

@@ -45,10 +45,41 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | 역사적 canonical ID | 986 |
 | S05 개별 action ID | 27 |
 | GStreamer 환경 개별 action ID | 13 |
-| 현재 등록 총계 | 1026 |
+| 녹화 ID 매핑 개별 action ID | 13 |
+| 현재 등록 총계 | 1039 |
 
 이는 등록 합계이지 전 제품 발견·실행 완료 선언이 아니다. S01~S04의 신규 등록 정합성은
 이번 S05 보정에서 전수 감사하지 않았다.
+
+S05 등록기의 변형 단위 시험은 가변적인 현재 총계나 다른 등록군 이름에 결합하지 않는다.
+실제 문서 검증은 유지하고, 합계·중복·잘못된 수의 시험 입력만 독립 literal fixture로
+구성한다. 이는 기존 검증기 시험의 보완으로 새 제품 ID를 추가하지 않으며,
+`release-test-records.md`의 INV-BASE/EXTEND/MULTI/MULTI-WRONG/NEGATIVE에 실행 전 등록했다.
+안정화 영역 대상이고 30분·120분·UI는 이 단위 시험 자체에는 비대상이다.
+제품 ID 매핑 보완의 기존 장시간 테스트 판정은 별개로 유지한다.
+
+## V410-IDMAP 개별 동작 등록
+
+실제 숫자 source ID와 runtime stream key 연결 보완이다. 기존 canonical 986개 및 S05
+27개와 별도 등록하며 기존 고정 verifier를 완화하지 않는다. 구현·회귀와 실제 서비스
+foreground GREEN은 2026-09-05 evidence로 확인했다. 30분·120분·UI 및 다른 실행 방식은
+이 안정화 결과로 대체하지 않는다.
+
+| ID | 동작 | 구현 경계 | 테스트 | 안정화 테스트 | 30분 테스트 | 120분 테스트 | UI 테스트 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| V410-IDMAP-I01 | 신규 숫자 link 접수 | `CatalogEventRecordingBridge::TryResolve` | `recording_identity_smoke.cpp` I01, `verify_recording_identity.sh` | 대상: focused | 대상: 별도 승인 연속 녹화 | 조건부: 별도 승인 누수·복구 | 비대상: UI 없어야 정상 |
+| V410-IDMAP-I02 | 원본 EventRecord·epoch 유지 | `CatalogEventRecordingBridge::TryResolve` | `recording_identity_smoke.cpp` I02, `verify_recording_identity.sh` | 대상: focused | 대상: 별도 승인 연속 녹화 | 조건부: 별도 승인 누수·복구 | 비대상: UI 없어야 정상 |
+| V410-IDMAP-I03 | 미등록 매핑 거부 | `CatalogEventRecordingBridge::TryResolve` | `recording_identity_smoke.cpp` I03, `verify_recording_identity.sh` | 대상: focused | 대상: 별도 승인 연속 녹화 | 조건부: 별도 승인 누수·복구 | 비대상: UI 없어야 정상 |
+| V410-IDMAP-I04 | stream key 우선순위 | `CatalogEventRecordingBridge::TryResolve` | `recording_identity_smoke.cpp` I04, `verify_recording_identity.sh` | 대상: focused | 대상: 별도 승인 연속 녹화 | 조건부: 별도 승인 누수·복구 | 비대상: UI 없어야 정상 |
+| V410-IDMAP-I05 | 정지 후 durable retry | `CatalogEventRecordingBridge::TryResolve` | `recording_identity_smoke.cpp` I05, `verify_recording_identity.sh` | 대상: focused | 대상: 별도 승인 연속 녹화 | 조건부: 별도 승인 누수·복구 | 비대상: UI 없어야 정상 |
+| V410-IDMAP-I06 | 재시작 durable 복구 | `CatalogEventRecordingBridge::TryResolve` | `recording_identity_smoke.cpp` I06, `verify_recording_identity.sh` | 대상: focused | 대상: 별도 승인 연속 녹화 | 조건부: 별도 승인 누수·복구 | 비대상: UI 없어야 정상 |
+| V410-IDMAP-I07 | resolver 없는 fixture 호환 | `CatalogEventRecordingBridge::TryResolve` | `recording_identity_smoke.cpp` I07, `verify_recording_identity.sh` | 대상: focused | 대상: 별도 승인 연속 녹화 | 조건부: 별도 승인 누수·복구 | 비대상: UI 없어야 정상 |
+| V410-IDMAP-I08 | actual stream key 게시 | `RecordingSessionService::ResolveRecordingChannel` | `recording_identity_smoke.cpp` I08, `verify_recording_identity.sh` | 대상: focused | 대상: 별도 승인 연속 녹화 | 조건부: 별도 승인 누수·복구 | 비대상: UI 없어야 정상 |
+| V410-IDMAP-I09 | 복수 채널 모호성 거부 | `RecordingSessionService::ResolveRecordingChannel` | `recording_identity_smoke.cpp` I09, `verify_recording_identity.sh` | 대상: focused | 대상: 별도 승인 연속 녹화 | 조건부: 별도 승인 누수·복구 | 비대상: UI 없어야 정상 |
+| V410-IDMAP-I10 | StartAux 완료 전 비공개 | `RecordingSessionService::StartChannel` | `recording_identity_smoke.cpp` I10, `verify_recording_identity.sh` | 대상: focused | 대상: 별도 승인 연속 녹화 | 조건부: 별도 승인 누수·복구 | 비대상: UI 없어야 정상 |
+| V410-IDMAP-I11 | 시작 실패 매핑 제거 | `RecordingSessionService::ResolveRecordingChannel` | `recording_identity_smoke.cpp` I11, `verify_recording_identity.sh` | 대상: focused | 대상: 별도 승인 연속 녹화 | 조건부: 별도 승인 누수·복구 | 비대상: UI 없어야 정상 |
+| V410-IDMAP-I12 | 정지 후 조회 거부 | `RecordingSessionService::ResolveRecordingChannel` | `recording_identity_smoke.cpp` I12, `verify_recording_identity.sh` | 대상: focused | 대상: 별도 승인 연속 녹화 | 조건부: 별도 승인 누수·복구 | 비대상: UI 없어야 정상 |
+| V410-IDMAP-I13 | 녹화 I/O 중 조회 비차단 | `RecordingSessionService::ResolveRecordingChannel` | `recording_identity_smoke.cpp` I13, `verify_recording_identity.sh` | 대상: writer latch | 대상: 별도 승인 연속 녹화 | 조건부: 별도 승인 누수·복구 | 비대상: UI 없어야 정상 |
 
 ## V410-S05 개별 동작 등록
 

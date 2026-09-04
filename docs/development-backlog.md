@@ -20,7 +20,11 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 - 현재 source 개발 로드맵: [`v4.1.0 Recording Foundation`](./v410-v49-recording-search-roadmap.md).
   2026-09-02 사용자 설계 승인, 2026-09-03 S00 조사·설계 차단선, S01 녹화 v1 계약,
   S02 채널별 상시녹화 recorder, S03 JSONL/SQLite catalog·supervisor,
-  S04 등급별 순환 보존과 disk reserve, S05 이벤트 녹화 연결·파생 clip local 완료.
+  S04 등급별 순환 보존과 disk reserve local 완료. S05 실제 등록 숫자 ID↔stream key
+  연결 RED 뒤 최소 보완·focused 13개 GREEN을 확인했다. 이후 격리 PATH 보존과 등록기
+  단위 입력 결합을 보완해 S05 27개·v1 계약 45개·build를 재통과했다. 첫 actual의
+  없는 SQL source_id 참조 false FAIL은 원본 보존하고, 2026-09-05 정식 payload
+  판독 단위 12/0과 별도 실제 foreground 22/0을 확인했다. 제품/DB 추가 수정은 없다.
   S05 개별 등록 누락 FAIL 보정·재실행·독립 결속 검증도 완료했다.
   S06~S09는 미구현
 - 상세 구현계획:
@@ -399,7 +403,7 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
 | V410-S02 | Continuous segment recorder | P0 | 완료 | 채널별 opt-in, Recorder subscriber, H.264/MP4·VP8/WebM keyframe segment, atomic finalize, PTS rollback epoch |
 | V410-S03 | Catalog and recovery journal | P0 | 완료 | fsync append-only JSONL, SQLite primary/rebuild, in-memory fallback, 손상 격리, source policy supervisor |
 | V410-S04 | Retention coordinator | P0 | 완료 | continuous/event 등급별 quota·기간, `(end_utc_ms, segment_id)` oldest-first, pin·hold, journal 선행 tombstone/채널별 pending 복구, dirfd 결박 unlink, 채널 간 in-flight disk reserve·실제 쓰기 정산과 writer admission |
-| V410-S05 | Event recording linker | P0 | local 완료 | finalized 원본 연결, 명시적 시간축, 비동기 무재인코딩 remux, fallback, Event quota·hold·재시작 멱등성. 개별 등록 27개·check 89개, 실제 EventStorage 비활성·큐 퇴출·journal 새 프로세스 복구·파생 통합, focused·회귀·독립 검토 통과 |
+| V410-S05 | Event recording linker | P0 | 구현 완료·실제 foreground PASS | finalized 원본 연결, 명시적 시간축, 비동기 무재인코딩 remux, fallback, Event quota·hold·재시작 멱등성. 개별 등록 27개·check 89개 유지, 단위 34·S05 27·계약 45·build 통과. 2026-09-05 L11을 정식 payload exact 판독으로 보완해 단위 12/0·실제 foreground 22/0 통과. 제품·DB 추가 수정 없음 |
 | V410-S06 | Priority timeline | P0 | 미구현 | event > continuous 조회·재생 API와 Ops UI |
 | V410-S07 | Search-ready metadata | P1 | 미구현 | event/track summary와 bounded representative observations, exact frame locator |
 | V410-S08 | Recovery/compatibility gate | P0 | 미구현 | crash/disk-full/gap/corruption/migration/fixture verifier |
@@ -588,6 +592,18 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
   실장비 disk-full field smoke, published metadata, PR/main merge/tag/GitHub Release.
 
 ### v4.1.0 S05 개발 기록
+
+- 실제 서비스 ID 연결 보완(2026-09-04): 기존 fixture PASS는 아래 역사로 보존한다.
+  실제 foreground의 숫자 녹화 channel과 path형 EventRecord 사이 내구 link 누락 RED를
+  확인했다. 사용자 승인으로 `RecordingSessionService`의 actual stream key 게시·조회와
+  `CatalogEventRecordingBridge::TryResolve`의 신규 link 한정 매핑을 구현했다.
+  기존 EventRecord/schema·epoch는 유지한다. focused 13개 GREEN 뒤 Node 경로 누락과
+  등록기 단위 입력 결합을 보완해 S05·contract·build를 재통과했다. 실제 서비스는
+  숫자 link 접수 뒤 L11 검증기가 JSON 내부 source_id를 SQL 열로 오인해 낸
+  false FAIL은 원본 evidence로 보존했다. 2026-09-05 정식 v1 payload exact 판독기와
+  12개 양·음성 시험을 추가하고 별도 runner로 실제 foreground 22/0을 확인했다.
+  제품·DB 추가 수정은 없으며 파생 clip 전체 coverage PASS로 확대하지 않는다.
+  상세 개별 항목·최초 RED는 `release-test-records.md`의 V410-IDMAP 등록군에 기록한다.
 
 - 후속 환경 보완(2026-09-04): `env_common.sh`·`gst_plugin_cache.py`에 프로젝트 한정
   headless 검색/캐시, 실행 wrapper에 환경 전달을 추가하고 **수정·제한 범위 재검증 통과**.

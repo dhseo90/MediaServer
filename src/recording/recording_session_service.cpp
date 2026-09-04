@@ -3,6 +3,7 @@
 #include "recording/recording_session_service.h"
 
 #include <chrono>
+#include <atomic>
 #include <vector>
 
 namespace recording {
@@ -12,10 +13,12 @@ struct RecordingSessionService::ChannelState {
     std::string channel_id;
     std::string stream_epoch_id;
     std::string subscriber_id;
+    // 서비스 mu_ 아래에서만 게시·조회한다. 시작 중인 handle을 조회하지 않는다.
+    std::string published_stream_key;
     core::SessionManager::AuxiliaryStreamHandle handle;
     std::unique_ptr<SegmentWriter> writer;
     bool writer_started{false};
-    bool stopping{false};
+    std::atomic<bool> stopping{false};
 };
 
 RecordingSessionService::RecordingSessionService(core::SessionManager& session_manager,
@@ -81,6 +84,13 @@ RecordingSessionService::StartResult RecordingSessionService::StartChannel(
         return {.ok = false,
                 .message = source_error.empty() ? "recording source 시작 실패" : source_error};
     }
+    {
+        std::lock_guard lock(mu_);
+        const auto current = channels_.find(channel_id);
+        if (!closing_ && current != channels_.end() && current->second == state) {
+            state->published_stream_key = state->handle.stream_key;
+        }
+    }
     return {.ok = true, .started = true, .message = "ok"};
 }
 
@@ -144,6 +154,22 @@ void RecordingSessionService::StopAll() {
 std::size_t RecordingSessionService::ActiveChannelCount() const {
     std::lock_guard lock(mu_);
     return channels_.size();
+}
+
+std::optional<std::string> RecordingSessionService::ResolveRecordingChannel(
+    const std::string& stream_key) const {
+    if (stream_key.empty()) return std::nullopt;
+    std::lock_guard lock(mu_);
+    if (closing_) return std::nullopt;
+    std::optional<std::string> channel;
+    for (const auto& [channel_id, state] : channels_) {
+        if (state->published_stream_key != stream_key) continue;
+        // writer Push/Finalize가 보유한 state mu_를 기다리지 않는다.
+        if (state->stopping.load()) continue;
+        if (channel.has_value()) return std::nullopt;
+        channel = channel_id;
+    }
+    return channel;
 }
 
 }  // namespace recording

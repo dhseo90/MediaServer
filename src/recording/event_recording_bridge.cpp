@@ -427,6 +427,17 @@ analysis::EventRecordingBridgeResult CatalogEventRecordingBridge::TryResolve(
         return ToResult(*existing);
     }
     if (!range_valid) return {false, false, {}, {}, {}, range_reason};
+    if (options_.resolve_recording_channel) {
+        const auto& stream_key = !effective.stream_id.empty() ? effective.stream_id
+            : (!result.source_key.empty() ? result.source_key : effective.channel_id);
+        const auto channel = options_.resolve_recording_channel(stream_key);
+        if (!channel.has_value() || channel->empty()) {
+            return {false, false, {}, {}, {}, "활성 녹화 채널 매핑이 없거나 모호함"};
+        }
+        // 원본 EventRecord와 shared stream 정체성은 보존하고 catalog용 복사본만 변환한다.
+        effective.channel_id = *channel;
+        effective.stream_id = *channel;
+    }
     EventRecordingLinkV1 link;
     link.link_id = link_id;
     link.event_id = effective.event_id;

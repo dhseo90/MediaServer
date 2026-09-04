@@ -1,0 +1,198 @@
+{
+  "schema": "media-server.s05.actual-identity-reproduction.v1",
+  "mode": "foreground",
+  "root": "/private/tmp/media-server-s05-identity.aeCDdY",
+  "rows": [
+    {
+      "id": "S05-I27-L01",
+      "result": "pass",
+      "detail": {
+        "launchctlExit": 113,
+        "serviceAbsent": true,
+        "stateFilesAbsent": 6,
+        "portsFree": [
+          18765,
+          18766
+        ],
+        "originalFileNames": [
+          ".media_server.analysis_registry.json",
+          ".media_server.sources.json",
+          ".media_server.test",
+          ".media_server.views.json"
+        ]
+      },
+      "elapsedMs": 71
+    },
+    {
+      "id": "S05-I27-L02",
+      "result": "pass",
+      "detail": {
+        "dataRoot": "/private/tmp/media-server-s05-identity.aeCDdY",
+        "disabledBootstrapSourceId": "9100",
+        "actualSourceCreation": "POST API 예정",
+        "inputBytes": 17071018
+      },
+      "elapsedMs": 82
+    },
+    {
+      "id": "S05-I27-L03",
+      "result": "fail",
+      "detail": {
+        "command": "./server.sh foreground",
+        "pid": 8659,
+        "processCreated": true,
+        "processExit": 1,
+        "correction": "최초 spawn 직후 pass를 출력했으나 실제 기동은 health 전 exit 1이므로 fail로 정정"
+      },
+      "elapsedMs": 82
+    },
+    {
+      "id": "S05-I27-L04",
+      "result": "fail",
+      "detail": {
+        "method": "GET",
+        "path": "/health",
+        "status": null,
+        "message": "서비스 조기 종료: {\"code\":1,\"signal\":null}"
+      },
+      "elapsedMs": 593
+    },
+    {
+      "id": "S05-I27-L13",
+      "result": "fail",
+      "detail": {
+        "earlyExit": {
+          "code": 1,
+          "signal": null
+        }
+      },
+      "elapsedMs": 594
+    },
+    {
+      "id": "S05-I27-L14",
+      "result": "pass",
+      "detail": {
+        "portState": [
+          {
+            "port": 18765,
+            "pids": []
+          },
+          {
+            "port": 18766,
+            "pids": []
+          }
+        ]
+      },
+      "elapsedMs": 682
+    },
+    {
+      "id": "S05-I27-L15",
+      "result": "pass",
+      "detail": {
+        "originalFileNames": [
+          ".media_server.analysis_registry.json",
+          ".media_server.sources.json",
+          ".media_server.test",
+          ".media_server.views.json"
+        ],
+        "unchanged": true
+      },
+      "elapsedMs": 682
+    },
+    {
+      "id": "S05-I27-L16",
+      "result": "pass",
+      "detail": {
+        "path": "/private/tmp/media-server-s05-identity.aeCDdY",
+        "files": 6,
+        "bytes": 17221235,
+        "action": "삭제",
+        "removed": true
+      },
+      "elapsedMs": 683
+    }
+  ],
+  "env": {
+    "PATH": "/Users/dhseo/.grok/bin:/Users/dhseo/.local/bin:/Users/dhseo/.nvm/versions/node/v24.13.0/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/Applications/VMware Fusion.app/Contents/Public:/Users/dhseo/.codex/tmp/arg0/codex-arg0E6oLip:/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/Users/dhseo/.grok/bin:/Users/dhseo/.local/bin:/Users/dhseo/.nvm/versions/node/v24.13.0/bin:/Users/dhseo/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback:/Applications/ChatGPT.app/Contents/Resources",
+    "TMPDIR": "/private/tmp/media-server-s05-identity.aeCDdY",
+    "MEDIA_SERVER_SKIP_LOCAL_ENV": "1",
+    "MEDIA_SERVER_SKIP_BUILD": "1",
+    "MEDIA_SERVER_ENABLE_AI": "1",
+    "MEDIA_SERVER_BUILD_DIR": "/Users/dhseo/Workspace/mediaServer/build-gst-onnx",
+    "MEDIA_SERVER_LISTEN_ADDRESS": "127.0.0.1",
+    "MEDIA_SERVER_HTTP_LISTEN_ADDRESS": "127.0.0.1",
+    "MEDIA_SERVER_LISTEN_PORT": "18765",
+    "MEDIA_SERVER_HTTP_LISTEN_PORT": "18766",
+    "MEDIA_SERVER_AUTH_MODE": "off",
+    "MEDIA_SERVER_ENABLE_LAB": "1",
+    "MEDIA_SERVER_ENABLE_OPS": "1",
+    "MEDIA_SERVER_FILE_ROOT": "/private/tmp/media-server-s05-identity.aeCDdY/input",
+    "MEDIA_SERVER_DEFAULT_FILE": "/private/tmp/media-server-s05-identity.aeCDdY/input/identity.mp4",
+    "MEDIA_SERVER_AUTH_USERS_FILE": "/private/tmp/media-server-s05-identity.aeCDdY/data/users.json",
+    "MEDIA_SERVER_SOURCE_REGISTRY": "/private/tmp/media-server-s05-identity.aeCDdY/data/sources.json",
+    "MEDIA_SERVER_PUBLISHED_VIEWS": "/private/tmp/media-server-s05-identity.aeCDdY/data/views.json",
+    "MEDIA_SERVER_ANALYSIS_REGISTRY": "/private/tmp/media-server-s05-identity.aeCDdY/data/analysis.json",
+    "MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_ENABLED": "1",
+    "MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_PATH": "/private/tmp/media-server-s05-identity.aeCDdY/events/events.jsonl",
+    "MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_HOOK_ENABLED": "0",
+    "MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_DIR": "/private/tmp/media-server-s05-identity.aeCDdY/events/snapshots",
+    "MEDIA_SERVER_ANALYSIS_EVENT_CLIP_HOOK_ENABLED": "1",
+    "MEDIA_SERVER_ANALYSIS_EVENT_CLIP_DIR": "/private/tmp/media-server-s05-identity.aeCDdY/events/clips",
+    "MEDIA_SERVER_ANALYSIS_EVENT_PRE_EVENT_MS": "500",
+    "MEDIA_SERVER_ANALYSIS_EVENT_POST_EVENT_MS": "500",
+    "MEDIA_SERVER_ANALYSIS_EVENT_CLIP_BUFFER_MS": "3000",
+    "MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED": "0",
+    "MEDIA_SERVER_RECORDING_ENABLED": "1",
+    "MEDIA_SERVER_RECORDING_STORAGE_ROOT": "/private/tmp/media-server-s05-identity.aeCDdY/recordings",
+    "MEDIA_SERVER_RECORDING_SEGMENT_DURATION_SECONDS": "2",
+    "MEDIA_SERVER_RECORDING_RESERVED_FREE_BYTES": "67108864",
+    "MEDIA_SERVER_RECORDING_RETENTION_INTERVAL_MS": "1000",
+    "MEDIA_SERVER_GST_CACHE_DIR": "/private/tmp/media-server-s05-identity.aeCDdY/cache",
+    "GST_REGISTRY": "/private/tmp/media-server-s05-identity.aeCDdY/cache/registry.bin",
+    "GST_REGISTRY_1_0": "/private/tmp/media-server-s05-identity.aeCDdY/cache/registry.bin",
+    "MEDIA_SERVER_ANALYSIS_MODEL": "/Users/dhseo/Workspace/mediaServer/models/yolo11n.onnx",
+    "MEDIA_SERVER_ANALYSIS_LABELS": "/Users/dhseo/Workspace/mediaServer/models/coco.names",
+    "MEDIA_SERVER_ANALYSIS_DETECTOR": "yolo",
+    "MEDIA_SERVER_ANALYSIS_FPS": "8",
+    "MEDIA_SERVER_ANALYSIS_CONFIDENCE": "0.25",
+    "MEDIA_SERVER_ANALYSIS_ADAPTIVE": "0"
+  },
+  "pid": 8659,
+  "unexpectedFailure": true,
+  "corrections": [
+    "부모의 기동 PASS 보완 요청이 최초 실행 호출 뒤 도착했다. 보완 전 실행했으며 최초 출력의 L03 pass는 실제 기동 fail로 정정했다.",
+    "원본 wrapper가 health 전에 exit 1했다. ID 연결 결함의 재현 RED가 아니다.",
+    "재현 자식 env에서 HOME와 HOMEBREW_PREFIX가 누락됐다. 공통 환경 함수의 brew --prefix는 실패 시 즉시 return 1하며 설치된 brew는 HOME 없을 때 exit 1한다. 관찰된 조기 종료와 일치하는 재현 harness 필수 환경 누락이며 실행 trace는 미수집이다.",
+    "부모가 처음 축약 전달한 .analysis_registry.json/.views.json이 아닌 실제 .media_server.analysis_registry.json/.media_server.views.json은 snapshot에 포함됐다. 해당 파일 누락 주장을 정정하며 L15 확인 범위는 실제 표기 파일에 한정한다."
+  ],
+  "outcome": "선행조건 실패",
+  "failure": "서비스 조기 종료: {\"code\":1,\"signal\":null}",
+  "processExit": {
+    "code": 1,
+    "signal": null
+  },
+  "elapsedMs": 682,
+  "tokens": {
+    "start": null,
+    "end": null,
+    "consumed": null,
+    "source": "계측값 미제공"
+  },
+  "serverLogSummary": {
+    "bytes": 91,
+    "gtkWarningCount": 0,
+    "criticalCount": 0,
+    "lastLines": [
+      "[env] skipped local override: /Users/dhseo/Workspace/mediaServer/scripts/.media_server.env",
+      ""
+    ]
+  },
+  "cleanup": {
+    "path": "/private/tmp/media-server-s05-identity.aeCDdY",
+    "files": 6,
+    "bytes": 17221235,
+    "action": "삭제",
+    "removed": true
+  },
+  "reproductionScriptSha256": "6c9e4581f15ae2407b493dd97c1a8df76afa4c018fd93295c931c89afb986a30"
+}

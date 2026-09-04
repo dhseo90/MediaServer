@@ -7,6 +7,7 @@
 #include <condition_variable>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
@@ -28,6 +29,8 @@ public:
                            const std::filesystem::path&,
                            std::string*)> remove_media_file;
         std::function<bool(std::string*)> terminal_release_guard;
+        // production은 active session 조회를 주입한다. 실패 시 신규 link를 접수하지 않는다.
+        std::function<std::optional<std::string>(const std::string&)> resolve_recording_channel;
         std::int64_t finalization_grace_ms{0};
         std::int64_t mapping_retry_ms{250};
         std::size_t max_pending_jobs{256};

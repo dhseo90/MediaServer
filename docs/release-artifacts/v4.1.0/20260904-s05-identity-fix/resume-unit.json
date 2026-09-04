@@ -1,0 +1,31 @@
+{
+  "stage": "unit",
+  "startedAt": "2026-09-04T14:20:25.188Z",
+  "commands": [
+    {
+      "file": "node",
+      "args": [
+        "scripts/internal/v410_s05_inventory.test.mjs"
+      ],
+      "exit": 0,
+      "signal": null,
+      "elapsedMs": 125,
+      "stdout": "[등록기 단위 테스트] PASS 정상 정식 등록 27개\n[등록기 단위 테스트] PASS 다른 등록군 추가와 일관된 총계 허용\n[등록기 단위 테스트] PASS 전체 총계 불일치 거부\n[등록기 단위 테스트] PASS canonical 등록 수 변경 거부\n[등록기 단위 테스트] PASS S05 등록 수 변경 거부\n[등록기 단위 테스트] PASS 등록군 중복 거부\n[등록기 단위 테스트] PASS 음수 등록 수 거부\n[등록기 단위 테스트] PASS 소수 등록 수 거부\n[등록기 단위 테스트] PASS 등록 범위 표 누락 거부\n[등록기 단위 테스트] PASS 누락 ID\n[등록기 단위 테스트] PASS 중복 ID\n[등록기 단위 테스트] PASS 추가 ID\n[등록기 단위 테스트] PASS 빈 테스트 영역\n[등록기 단위 테스트] PASS 없는 구현 심볼\n[등록기 단위 테스트] PASS 없는 테스트 함수\n[등록기 단위 테스트] PASS 없는 check\n[등록기 단위 테스트] PASS 중복 check ID\n[등록기 단위 테스트] PASS 문서 행 누락\n[등록기 단위 테스트] PASS 실행 소비자 정상 합성 입력\n[등록기 단위 테스트] PASS 실제 check 결과 누락\n[등록기 단위 테스트] PASS EOS assertion 제거와 감소한 summary도 거부\n[등록기 단위 테스트] PASS 실패 summary\n[등록기 단위 테스트] PASS 성공 summary만으로 PASS 금지\n[등록기 단위 테스트] PASS 중복 application 결과\n[등록기 단위 테스트] PASS runtime 로그 전체 누락\n[등록기 단위 테스트] PASS runtime 시나리오 누락\n[등록기 단위 테스트] PASS runtime assertion 누락 및 감소 summary\n[등록기 단위 테스트] PASS runtime assertion 중복 및 증가 summary\n[등록기 단위 테스트] PASS runtime summary 실패\n[등록기 단위 테스트] PASS runtime summary 중복\n[등록기 단위 테스트] PASS runtime failure marker\n[등록기 단위 테스트] PASS runtime mutation 결과 누락\n[등록기 단위 테스트] PASS runtime mutation 결과 중복\n[등록기 단위 테스트] PASS runtime negative summary 실패\n[v410-s05-inventory-unit] pass=34 fail=0\n",
+      "stderr": "",
+      "error": null
+    }
+  ],
+  "tokens": {
+    "start": null,
+    "end": null,
+    "consumed": null,
+    "source": "계측값 미제공"
+  },
+  "environmentDigest": "ab409c4bbe2a1e6d1446a824b84afa840f058fee1b7a6b42ef08826b029d36ef",
+  "frozenSourcesUnchanged": true,
+  "ok": true,
+  "root": "/private/tmp/media-server-s05-resume.kYnhd1",
+  "elapsedMs": 249,
+  "scriptSha256": "fae3570778ce5aa602aa25f6761e7e347ab5de56efec614d0dfd1718050bb9b4",
+  "unitSha256": "3064fce3fec108af5c52f5c5ba3c484578e4d490f3f1d4803c3982379ad232a0"
+}

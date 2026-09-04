@@ -16,6 +16,1015 @@
 - 테스트 결과표의 `결과`는 `pass` 또는 `fail`만 사용합니다. 실행하지 않은 항목,
   사용자가 제외한 항목, 외부 조건이 없어 제외한 항목은 별도 미실행/제외 표에 둡니다.
 
+## v4.1.0 S05 L11 검증기 보완 및 실제 foreground 재검증 (2026-09-05)
+
+사용자 승인 범위는 2026-09-04 실제 실행에서 잘못 읽은 L11 catalog 판독기와 그
+음성 시험, 실제 foreground 1회 재검증이다. 제품 C++·DB schema·S05 등록 기준은
+변경하지 않고, 이전 FAIL runner와 보고서는 원래 SHA로 보존한다. 새 runner는 별도
+디렉터리에서 판독기 import·새 보고서 경로·L11 호출만 바꾸며 다른 실제 실행 절차는
+동일하게 유지한다. S06, nohup/launchd 실행, SSIM 원인 확인, 커밋·푸시는 범위 밖이다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | L11 false FAIL 재현과 정식 payload 판독, 실제 foreground 재실행 | `verify-actual-link-reader.test.mjs`, S05-I27-L11 | 이번 승인·실행 |
+| 30분 | 진행 대상 | 기존 ID 매핑 보완의 연속 녹화 판정 유지 | V410-S05-I03 | 미승인·이번 미실행 |
+| 120분 | 진행 대상 | 기존 TryResolve 변경의 누수·복구 매핑 판정 유지 | V410-S05-I03 | 미승인·이번 미실행 |
+| UI 풀테스트 | 미진행 | 검증기만 변경했고 제품 UI 변경 없음 | 기존 release UI 필수 blocker 유지 | 미승인·이번 범위 밖 |
+
+### 구현·명령 결과
+
+- RED: `node .../verify-actual-link-reader.test.mjs` exit 1. 정식 판독기 모듈이 없어
+  `실제 catalog 연결 판독기를 불러오지 못함` assertion으로 실패했다.
+- GREEN: 같은 명령 exit 0, `pass=12 fail=0`. 실측 SQLite 10열 행을 literal로 사용하고
+  `missing_ranges_json`의 `media-server.event-recording-link.v1`에서 event/link/source/channel을
+  함께 대조한다. 손상 JSON과 schema·ID·source·channel 불일치, 중복 exact match는 거부한다.
+- 실제: `node .../20260905-s05-identity-actual-rerun/verify-actual-rerun.mjs
+  /private/tmp/media-server-s05-identity.YLZpyl` exit 0, `22 pass / 0 fail`, 15,917ms.
+  이벤트 4개는 원본 path형 stream/channel을 유지했고 각 `recordingLinkId`는 catalog의
+  유일한 행 및 정식 payload의 숫자 source/channel `9101`과 일치했다.
+- 실제 finalized continuous MP4 1개는 4,096,788byte였다. 이 실행은 내구 접수 판정이며
+  `requested_range=null`인 이벤트의 파생 clip 완성·전체 구간 coverage PASS로 확대하지 않는다.
+- PID 19843은 SIGTERM 뒤 exit 0, RTSP 18765/HTTP 18766 listener는 없고 실행 바이너리
+  SHA-256 `4630191f072b109dc0c26a2726527cd94642a12c014e4be781d5b46ec898116d`와
+  mtime은 전후 일치했다. 첫 sandbox 내부 `ps`는 권한 거부였고 동일 읽기 전용 조회를
+  승인된 외부 경계에서 다시 실행해 PID 부재를 확인했다.
+- 전용 root 429파일 74,556,325byte는 runner가 삭제했고 후속 부재를 확인했다.
+  원본 사용자 파일과 이전 FAIL evidence는 삭제하지 않았다.
+
+### 판독기 단위 개별 결과
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LINK-READER-01 | 실제 SQLite 행과 정식 payload 일치 승인 | pass | 실측 10열 구조 literal |
+| LINK-READER-02 | 가짜 상위 source_id가 맞고 payload source가 다른 입력 거부 | pass | 없는 SQL 열 재의존 방지 |
+| LINK-READER-03 | 손상 payload JSON 거부 | pass | fail-closed |
+| LINK-READER-04 | 다른 payload schema 거부 | pass | v1만 승인 |
+| LINK-READER-05 | 다른 SQL event ID 거부 | pass | event 결속 |
+| LINK-READER-06 | 다른 SQL link ID 거부 | pass | link 결속 |
+| LINK-READER-07 | 다른 SQL channel ID 거부 | pass | projection 결속 |
+| LINK-READER-08 | payload와 SQL의 event ID 불일치 거부 | pass | 양면 대조 |
+| LINK-READER-09 | payload와 SQL의 link ID 불일치 거부 | pass | 양면 대조 |
+| LINK-READER-10 | 다른 payload channel ID 거부 | pass | canonical channel 대조 |
+| LINK-READER-11 | exact match 중복 거부 | pass | 정확히 한 행만 허용 |
+| LINK-READER-12 | 빈 EventRecord recordingLinkId 거부 | pass | fail-closed |
+
+### 실제 foreground 개별 결과
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| S05-I27-G02 | HOME 누락 2개 입력의 spawn 차단 | pass | spawn 0회 |
+| S05-I27-G03 | 실제 HOME 보존·환경 freeze | pass | 기존 서비스 config 미상속 |
+| S05-I27-L01 | launchd/state/포트 선행 충돌 부재 | pass | 18765·18766 free |
+| S05-I27-L02 | 전용 입력·data·event·recording root 구성 | pass | API source 생성 전 상태 |
+| S05-I27-G04 | 동일 환경 Homebrew prefix 확인 | pass | `/opt/homebrew` |
+| S05-I27-G05 | 공통 GStreamer 환경 적용 | pass | stderr 없음 |
+| S05-I27-G06 | registry/plugin mirror/scanner provenance 격리 | pass | 설치본 read-only 사용 |
+| S05-I27-L03 | 실제 foreground 기동·health | pass | PID 19843, HTTP 200 |
+| S05-I27-L04 | RTSP/HTTP listener의 child PID 소유 | pass | 두 포트 동일 PID |
+| S05-I27-L05 | 숫자 source 9101 API 생성 | pass | HTTP 201 |
+| S05-I27-L06 | source와 recording policy readback | pass | recording enabled |
+| S05-I27-L07 | 숫자 channel finalized continuous MP4 | pass | 4,096,788byte |
+| S05-I27-L08 | 실제 분석 rule 생성 | pass | HTTP 200 |
+| S05-I27-L09 | 실제 분석 tap 생성 | pass | path형 stream key |
+| S05-I27-L10 | 실제 presence EventRecord 수집 | pass | 이벤트 4개 |
+| S05-I27-L11 | 원본 ID 보존·numeric catalog link 내구 접수 | pass | 정식 payload exact 대조 |
+| S05-I27-L12 | 실제 tap 삭제 | pass | HTTP 200 |
+| S05-I27-L13 | 소유 PID 정상 종료 | pass | exit 0 |
+| S05-I27-L14 | 두 listener 종료 | pass | PID 없음 |
+| S05-I27-L15 | 기존 repo runtime 상태 파일 불변 | pass | 전후 digest 일치 |
+| S05-I27-G07 | 실행 바이너리 불변 | pass | SHA/mtime 일치 |
+| S05-I27-L16 | 전용 임시 root 정리 | pass | 삭제 후 부재 |
+
+### 보존 evidence
+
+| 파일 | SHA-256 | 용도 |
+| --- | --- | --- |
+| `20260904-s05-identity-fix/verify-actual.mjs` | `dfa43d418f298fd81038267593efd2583542b37f748cd29218372196d68b5100` | 원본 FAIL runner 보존 |
+| `20260904-s05-identity-fix/actual-foreground.json` | `36164a8b5d18153f8bd86efb9767c16d8b058ae96fd033c0ea3a45265505c19e` | 원본 21 pass/1 fail 보존 |
+| `20260904-s05-identity-fix/verify-actual-link-reader.mjs` | `6629b50fe944c30a3c49c828fdb3f0567ce7269610e7264ae958a628f9204110` | 정식 payload 판독기 |
+| `20260904-s05-identity-fix/verify-actual-link-reader.test.mjs` | `b26a9265c9de38370259075edaeb12ef8b70ceccd74890db357094714a4c336e` | 12개 양·음성 시험 |
+| `20260905-s05-identity-actual-rerun/verify-actual-rerun.mjs` | `0628b00fc2d5a2b48928ed77a7c9c9e1f00e07ef574b4a36c544cc0fe36b2e8c` | 별도 재실행 runner |
+| `20260905-s05-identity-actual-rerun/actual-foreground-rerun.json` | `f6dee9cd328a5d15748eb194ff75686c9dabb4b73632f9c9b7ccd6b97457c36c` | 22/0 실제 결과 |
+
+이번 보완은 새 제품 기능 ID를 추가하지 않는다. 제품/DB/S05 본체에 새 수정이 없으므로
+이미 통과한 S05·v1 계약·build를 반복 실행하지 않았고 2026-09-04 evidence를 그대로
+결속한다. 서브에이전트는 사용하지 않았다. 커밋·푸시는 수행하지 않았다.
+
+## v4.1.0 S05 등록기 입력 결합 해소 및 재검증 — 실제 판정 오류로 중단 (2026-09-04)
+
+사용자는 현재 문서 총계에 결합된 단위 테스트의 입력만 독립시키고, 환경 보완 뒤
+S05 → v1 계약 → 빌드 → 실제 foreground 재검증을 진행하도록 승인했다.
+제품 코드, 등록 검증기 본체, canonical 986개 및 S05 exact 27개는 변경하지 않는다.
+총계 1026을 1039로 치환하는 보정이 아니라, 합계 변형 시험에 독립적인 literal 입력을
+사용한다. 실제 문서 검증과 기존 누락·중복·오류 거부 시험은 유지한다.
+원래 단위 테스트의 알려진 assertion 실패 1회를 TDD RED로 먼저 기록한다.
+예상 밖 실패는 후속 단계를 중단하며, 커밋·푸시·S06 구현은 승인 범위가 아니다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 등록기 보완 및 이전 ID 매핑 보완의 승인된 회귀 재개 | `v410_s05_inventory.test.mjs`, 아래 INV 항목, IDMAP-V01~V04, IDMAP-A01 | 이번 승인 |
+| 30분 | 진행 대상 | 기존 ID 매핑 보완의 연속 녹화 판정 유지 | V410-S05-I03 | 미승인·이번 미실행 |
+| 120분 | 진행 대상 | 기존 TryResolve 변경의 누수·복구 매핑 판정 유지 | V410-S05-I03 | 미승인·이번 미실행 |
+| UI 풀테스트 | 미진행 | 이번 보완은 단위 시험 입력과 실행 환경이며 UI 변경 없음 | 기존 release UI 필수 blocker는 유지 | 미승인·이번 범위 밖 |
+
+### 테스트 항목 상세 기록
+
+다음 INV 항목은 기존 S05 등록기 단위 시험의 보완이며 새 제품 기능 ID가 아니다.
+아래 항목은 실행 전에 등록했으며, 기존 상세 시험·IDMAP-A01 실제 실행의 개별 항목 정의도 유지한다.
+실행 후 결과는 이어지는 결과 절에 구분해 기록한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| INV-RED | 기존 총계 결합 재현 | 원래 단위 시험 exit 1 및 `확장 시험의 치환 대상 누락` assertion 확인 | v4.1.0 |
+| INV-LIVE | 실제 등록 문서 검증 유지 | 현재 문서의 exact S05 27개와 동적 총계를 기존 본체로 검증 | v4.1.0 |
+| INV-BASE | 독립 기본 요약 입력 | canonical 986 + S05 27 = 1013 literal 입력 허용 | v4.1.0 |
+| INV-EXTEND | 독립 추가 등록군 | 가상 등록군에 항목 2개 추가 시 합계 1015 허용 | v4.1.0 |
+| INV-MULTI | 복수 후속 등록군 | 가상 등록 수 7과 11 추가 시 합계 1031 허용 | v4.1.0 |
+| INV-MULTI-WRONG | 확장 뒤 잘못된 총계 | 위 입력의 잘못된 합계 1030 거부 | v4.1.0 |
+| INV-NEGATIVE | 기존 등록기 거부 조건 유지 | 총계 불일치·canonical 변경·S05 변경·등록군 중복·음수·소수·표 누락, 기존 manifest 및 실행 결과 거부 시험 모두 실행 | v4.1.0 |
+| RESUME-ENV | 동일 실행 환경 사전 확인 | HOME/PATH 보존, Node·C++·CMake·pkg-config·brew·Python 및 필수 개발 모듈, 전용 cache/registry 확인 | v4.1.0 |
+| RESUME-FREEZE | 비대상 코드 불변 | 제품 src/include·기존 내부 검증기·fixture의 실행 전후 SHA-256 대조; 수정 대상 단위 파일만 제외 | v4.1.0 |
+| RESUME-CONFIGURE | 자동 cache 초기화 전 독립 설정 | 기존 ONNX/GStreamer 설정과 같은 CMake 인자로 구성하며 실패 시 원본 build wrapper 실행 금지 | v4.1.0 |
+| RESUME-CLEANUP | 실행용 임시 파일 정리 | 소유 root만 크기 측정 후 삭제·부재 확인, 최소 결과 JSON은 저장소 보존 | v4.1.0 |
+
+
+### 재검증 결과 및 실제 실행 중단
+
+등록기 입력 결합 보완 후 unit 34/34, S05 exact 27/27, C++ 140/140,
+애플리케이션 경계 7/7, runtime 20개 및 mutation 2개, v1 계약 45/45와 build는 통과했다.
+제품 소스·기존 verifier·fixture 1035개는 시작 시 SHA-256과 매 단계/종료 시 직접 대조하여 불변이었다.
+단, 실제 foreground는 L11 판정 오류로 exit 1이며 전체 실제 검증은 완료가 아니다.
+
+원인: `verify-actual.mjs` L11이 `SELECT * FROM recording_event_links` 행의
+`l.source_id`를 읽지만 `recording_catalog.cpp`의 SQLite schema에는 해당 열이 없다.
+`source_id`는 `missing_ranges_json`에 직렬화한 EventRecordingLinkV1 본문에 있다.
+보존 결과의 관찰 이벤트 4개는 원본 stream/channel을 유지했고 각각 유일한 SQL row와
+link/event ID가 일치하며 본문의 source/channel은 9101이다. 제품 회귀가 아닌 검증기
+판정 오류라는 읽기 전용 진단이며, 원본 L11 FAIL을 사후 PASS로 덮어쓰지 않는다.
+제품·DB schema 또는 실제 검증기 판정 코드는 이 실패 뒤 추가 수정하지 않았다.
+
+관찰된 최초 finalized segment PTS 0~8300ms와 이벤트 요청 PTS 8566~9566ms는
+겹치지 않는다. `requested_range=null`, `pending` 및 `time-basis-ambiguous`는
+미매핑 PTS 상태이며 내구 접수 실패와 구분한다. 이번 실행은 파생 clip 완성 또는
+전체 구간 coverage PASS 근거가 아니다.
+
+단위 보완은 기존 서브에이전트 `gpt-5.6-sol` high 1개가 수행했고 부모가 diff를 검토하고
+모든 테스트를 단독 실행했다. 하위 에이전트는 만들지 않았다. 동일 에이전트의 독립
+저장 구조 대조도 L11의 잘못된 열 참조를 확인했다. 부모와 검토자 모두 이 열 구조를
+실행 전에 대조하지 못한 책임이 있다.
+
+### 버전별 명령 결과 기록
+
+명령들은 `resume-verification.mjs`가 현재 HOME/PATH를 보존한 같은 child environment
+(digest `ab409c4bbe2a1e6d1446a824b84afa840f058fee1b7a6b42ef08826b029d36ef`)에서
+순서대로 호출했다. root는 `/private/tmp/media-server-s05-resume.kYnhd1`이고 현재는 삭제됐다.
+각 JSON의 `commands`에 실제 executable/args, exit, stdout/stderr, elapsed가 보존돼 있다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 환경 확인 | 동일 env의 bash + env_common + 도구·개발 라이브러리 조회; exit 0, 302ms; [결과](release-artifacts/v4.1.0/20260904-s05-identity-fix/resume-environment.json) | pass |
+| 원래 총계 결합 RED | node scripts/internal/v410_s05_inventory.test.mjs; child exit 1, 167ms; 확장 시험의 치환 대상 누락; [결과](release-artifacts/v4.1.0/20260904-s05-identity-fix/resume-red.json) | fail |
+| 등록기 GREEN | node scripts/internal/v410_s05_inventory.test.mjs; exit 0, 34/0, 249ms; [결과](release-artifacts/v4.1.0/20260904-s05-identity-fix/resume-unit.json) | pass |
+| S05 전체 회귀 | ./server.sh verify-v410-event-recording; exit 0, 28630ms; 아래 개별 결과; [결과](release-artifacts/v4.1.0/20260904-s05-identity-fix/resume-s05.json) | pass |
+| 녹화 v1 계약 | ./server.sh verify-v410-recording-contracts; exit 0, 45/0, 1316ms; [결과](release-artifacts/v4.1.0/20260904-s05-identity-fix/resume-contracts.json) | pass |
+| 독립 CMake 구성 | cmake -S <repo> -B <repo>/build-gst-onnx -DMEDIA_SERVER_USE_GSTREAMER=ON -DMEDIA_SERVER_USE_ONNXRUNTIME=ON -DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0 -DMEDIA_SERVER_ONNXRUNTIME_ROOT=/opt/homebrew/opt/onnxruntime; exit 0, 249ms; [결과](release-artifacts/v4.1.0/20260904-s05-identity-fix/resume-configure.json) | pass |
+| 제품 build | ./server.sh build; exit 0, 39852ms; cache reset 발생 없음, compiler stderr 없음; [결과](release-artifacts/v4.1.0/20260904-s05-identity-fix/resume-build.json) | pass |
+| 실제 foreground | node docs/release-artifacts/v4.1.0/20260904-s05-identity-fix/verify-actual.mjs /private/tmp/media-server-s05-identity.w9WV7X; exit 1, 16491ms; 21 pass / L11 1 fail; [결과](release-artifacts/v4.1.0/20260904-s05-identity-fix/actual-foreground.json) | fail |
+| 부모 provenance/cleanup 대조 | build 직후 SHA/mtime과 actual before/after 일치, 관련 PID·열린 파일·두 listener 없음; 조회 명령 exit 0; [결과](release-artifacts/v4.1.0/20260904-s05-identity-fix/parent-readback.json) | pass |
+| 임시 root 정리 | resume-verification.mjs cleanup; exit 0, 134ms, 281파일 1718447byte 삭제; [결과](release-artifacts/v4.1.0/20260904-s05-identity-fix/resume-cleanup.json) | pass |
+
+### 최종 문서·보존 결과 확인
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| IDMAP-V04 | `git diff --check`, exit 0, 출력 없음 | pass | 변경 파일 목록·stat도 확인; 커밋 없음 |
+| 부모 보존 결과 결속 | Node 읽기 전용 대조 exit 0: unit GREEN SHA 유지, 실제 runner SHA 유지, build provenance의 7개 결과 SHA 및 실행 binary before/after 일치 | pass | 실행 실패 L11 1개를 그대로 보존; 새 실제 실행 PASS 아님 |
+| 정리 후 부재 | 두 전용 root 모두 filesystem 부재 | pass | 이전 lsof·process·port 부재 및 삭제 기록에 후속 대조 |
+| 신규 결과 링크 | 이 절이 참조한 실제 보존 파일 모두 존재, undefined 내용 없음 | pass | 전체 문서 verifier 또는 release gate PASS 아님 |
+
+위 최종 읽기 전용 확인의 elapsed는 개별 계측하지 않았다. 도구 exit 0을 직접 확인했으며
+토큰 수는 계측값 미제공으로 미집계다. 문서에 최종 결과를 반영한 뒤 whitespace를 다시 확인한다.
+
+### 등록기 개별 결과
+
+34개 기존 시험 이름과 거부 조건을 유지한다. 각 행은 직접 unit 실행과 S05 내부 재실행에서 모두 통과했다.
+추가 등록군 시험 안에서 1013, 1015, 1031 세 literal 입력을 검사하며 잘못된 1030은 별도 기존 거부 시험으로 확인한다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| 정상 정식 등록 27개 | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| 다른 등록군 추가와 일관된 총계 허용 | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 최초 live 총계 치환 RED → 독립 입력 보완 후 GREEN |
+| 전체 총계 불일치 거부 | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| canonical 등록 수 변경 거부 | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| S05 등록 수 변경 거부 | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| 등록군 중복 거부 | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| 음수 등록 수 거부 | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| 소수 등록 수 거부 | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| 등록 범위 표 누락 거부 | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| 누락 ID | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| 중복 ID | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| 추가 ID | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| 빈 테스트 영역 | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| 없는 구현 심볼 | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| 없는 테스트 함수 | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| 없는 check | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| 중복 check ID | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| 문서 행 누락 | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| 실행 소비자 정상 합성 입력 | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| 실제 check 결과 누락 | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| EOS assertion 제거와 감소한 summary도 거부 | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| 실패 summary | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| 성공 summary만으로 PASS 금지 | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| 중복 application 결과 | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| runtime 로그 전체 누락 | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| runtime 시나리오 누락 | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| runtime assertion 누락 및 감소 summary | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| runtime assertion 중복 및 증가 summary | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| runtime summary 실패 | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| runtime summary 중복 | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| runtime failure marker | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| runtime mutation 결과 누락 | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| runtime mutation 결과 중복 | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| runtime negative summary 실패 | 직접 unit 및 S05 내부 unit 실행 성공 | pass | 기존 시험 보존 |
+| INV-BASE | 독립 literal 986 + 27 = 1013 허용 | pass | 추가 등록군 시험의 첫 입력 |
+| INV-EXTEND | 가상 등록 수 2 추가, literal 총계 1015 허용 | pass | 추가 등록군 시험의 두 번째 입력 |
+| INV-MULTI | 가상 등록 수 7 및 11 추가, literal 총계 1031 허용 | pass | 추가 등록군 시험의 세 번째 입력 |
+| INV-MULTI-WRONG | 동일 확장 입력의 잘못된 총계 1030 거부 | pass | 전체 총계 불일치 거부 시험 |
+
+### S05 C++ 개별 assertion 결과
+
+아래 번호는 이번 stdout의 실행 순서이며 새로운 기능 ID가 아니다.
+`[s05-assert]`의 문자열이 ‘실패’를 포함해도 이는 assertion label 원문이며,
+성공 후에만 출력된 140개 기록이다. 전체 exit 0, pass 140 / fail 0.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| S05 C++ 실행 001 | 기본 pending event link가 유효해야 함:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 002 | terminal 대기 UTC 확장 요청은 additive 계약으로 round-trip해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 003 | terminal 대기 요청이 현재 범위를 축소하면 거부해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 004 | 미해석 후속 PTS는 기존 UTC 범위와 별도 field로 round-trip해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 005 | 미해석 후속 PTS를 소비하지 않은 terminal 상태를 거부해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 006 | 서로 겹치는 ordered overlap을 거부해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 007 | overlap/missing이 requested range를 정확히 분할하지 않으면 거부해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 008 | unknown link status를 영속 계약으로 허용하면 안 됨 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 009 | locator 없는 fallback evidence를 거부해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 010 | journal open 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 011 | catalog open 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 012 | event link 갱신은 SQLite primary projection에서 검증해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 013 | segment finalize 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 014 | segment finalize 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 015 | segment finalize 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 016 | segment finalize 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 017 | segment finalize 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 018 | retention policy 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 019 | 이벤트 저장 worker를 막지 않고 파생 job을 pending으로 enqueue해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 020 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 021 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 022 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 023 | 완전한 archive 파생 완료 뒤 ready clip을 반환해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 024 | event link ID와 derived clip path가 반환되어야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 025 | 반개구간 overlap은 맞닿기만 한 segment를 제외해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 026 | media PTS event 범위가 segment epoch 기준 UTC로 변환되어야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 027 | overlap segment가 UTC 순서로 전달되어야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 028 | 파생 성공 link가 catalog complete로 저장되어야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 029 | 파생 완료 뒤 원본 hold가 해제되어야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 030 | 파생 완료 뒤 원본 hold가 해제되어야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 031 | 파생 완료 뒤 원본 hold가 해제되어야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 032 | 같은 event update는 파생 clip을 중복 생성하지 않아야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 033 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 034 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 035 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 036 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 037 | 완료 event의 더 넓은 update는 range별 결정 ID로 다시 파생해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 038 | segment finalize 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 039 | segment finalize 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 040 | cam-b policy 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 041 | archive gap이 있으면 complete로 표시하면 안 됨 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 042 | link가 정확한 missing UTC range를 보존해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 043 | frame-buffer fallback 뒤 같은 link가 fallback evidence로 갱신되어야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 044 | 같은 event link의 overlap/fallback 갱신 뒤에도 SQLite projection을 유지해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 045 | cam-late policy 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 046 | segment finalize 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 047 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 048 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 049 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 050 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 051 | anchor 없는 PTS를 finalized segment의 실제 PTS/UTC mapping으로 복구해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 052 | PTS epoch anchor가 없으면 임의 UTC 연결이나 파생을 하면 안 됨 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 053 | anchor 없는 PTS는 UTC field가 아니라 재해석 가능한 PTS range로 보존해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 054 | 같은 긴 prefix의 event ID도 SHA-256 기반 결정 ID가 충돌하면 안 됨 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 055 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 056 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 057 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 058 | 확장 회귀 journal open 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 059 | 확장 회귀 initial catalog open 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 060 | segment finalize 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 061 | cleanup 확장 fixture 저장 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 062 | cleanup 확장 fixture 저장 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 063 | 확장 회귀 restart catalog open 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 064 | 확장 policy 실패 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 065 | cleanup 확장 remux 실패는 한 번만 실행되어야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 066 | 실패/Partial도 보류 확장 요청을 현재 범위로 소비해 보존해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 067 | 실패/Partial도 보류 확장 요청을 현재 범위로 소비해 보존해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 068 | PTS 확장은 다른 범위 ID를 사용해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 069 | 미해석 PTS 확장을 이전 complete clip으로 응답하면 안 됨 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 070 | segment finalize 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 071 | PTS 확장 2회는 최초 포함 총 3회 파생해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 072 | quota journal open 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 073 | quota catalog open 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 074 | segment finalize 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 075 | segment finalize 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 076 | quota policy 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 077 | event quota는 oldest event를 정리해 새 event write를 허용해야 함: ok | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 078 | event quota 충족을 위해 continuous를 삭제하면 안 됨 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 079 | event quota는 oldest eligible event를 삭제해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 080 | policy 재등록 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 081 | policy 제거가 진행 중 event reservation을 지우면 안 됨 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 082 | 명시적 complete 뒤 event reservation ID를 재사용할 수 있어야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 083 | queue journal open 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 084 | queue catalog open 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 085 | segment finalize 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 086 | queue policy 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 087 | bounded queue 밖 durable pending도 완료 뒤 다시 흡수해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 088 | 긴 event remux가 다른 이벤트의 durable link admission을 동기 차단하면 안 됨 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 089 | cleanup 실패 시 source hold와 event reservation을 성공처럼 해제하면 안 됨 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 090 | terminal marker unlink 실패 시 source/output hold를 유지해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 091 | terminal marker unlink 실패 시 event reservation을 유지해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 092 | marker 복구 중 event/fallback 갱신은 자원·단계를 보존하고 확장 요청을 내구 대기해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 093 | terminal hold 해제 실패를 Complete로 기록하면 안 됨 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 094 | terminal 복구 중 event/fallback 갱신이 release 단계를 덮어쓰면 안 됨 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 095 | 복구 완료 뒤 내구 대기한 범위 확장은 같은 source epoch의 새 segment로 파생해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 096 | terminal complete commit retry fixture 저장 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 097 | complete commit 재시도는 다른 pending event의 source hold를 해제하면 안 됨 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 098 | overflow fixture 이전 hold_count가 저장 범위를 넘으면 안 됨 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 099 | hold overflow fixture 준비 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 100 | event source lease hold_count overflow를 사전에 거부해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 101 | hold fixture journal open 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 102 | hold fixture catalog open 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 103 | segment finalize 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 104 | segment finalize 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 105 | hold pending link 저장 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 106 | hold replay journal open 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 107 | hold replay catalog open 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 108 | 재시작 replay가 terminal 전 output/source hold를 함께 복원해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 109 | terminal stage fixture event link 조회 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 110 | terminal stage fixture 저장 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 111 | terminal stage replay journal open:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 112 | terminal stage catalog open:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 113 | complete commit 단계 재시작은 이미 해제된 output/source hold를 복원하면 안 됨 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 114 | terminal Complete 기록 전 source 삭제 요청을 차단해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 115 | terminal Complete 기록 전 output 삭제 요청을 차단해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 116 | restart journal open 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 117 | restart catalog open 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 118 | segment finalize 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 119 | segment finalize 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 120 | restart pending link 저장 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 121 | 재시작은 이미 finalized된 결정적 event segment를 재파생 없이 연결해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 122 | 재시작 복구에서 event clip을 중복 파생하면 안 됨 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 123 | segment finalize 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 124 | conflict pending link 저장 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 125 | 다른 channel/class의 동일 segment ID를 event 결과로 오인하면 안 됨 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 126 | segment ID conflict에서 파생을 실행하면 안 됨 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 127 | 실제 H264/MP4 source를 video 재인코딩 없이 remux해야 함:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 128 | remux 결과 파일과 size가 일치해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 129 | event clip actual range는 keyframe 확대를 측정해 requested range와 분리해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 130 | event clip이 source segment 전체 단순 연결보다 작아야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 131 | remux 결과 checksum과 crash cleanup marker를 남겨야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 132 | 동일 final은 소유 artifact가 없는 terminal 충돌로 거부하고 기존 clip을 보존해야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 133 | 파생 H264/MP4 clip이 끝까지 demux/parse 가능해야 함:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 134 | nonce partial은 foreign 고정 partial을 보존하면서 독립 파생되어야 함 | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 135 | event remux recovery journal open 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 136 | 재시작은 marker nonce와 일치하는 owned crash partial만 정리해야 함:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 137 | owned crash partial 복구 뒤 동일 event clip 재파생이 성공해야 함:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 138 | VP8/WebM test source 생성 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 139 | VP8/WebM test source demux 실패:  | pass | 실제 assertion 성공 출력 |
+| S05 C++ 실행 140 | 검증되지 않은 VP8/WebM event remux는 산출물 없이 fail-closed해야 함 | pass | 실제 assertion 성공 출력 |
+
+### S05 애플리케이션 경계 결과
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| S05 애플리케이션 1 | 표준 라이브러리 전용 DTO와 기본값 | pass | 원본 check 이름은 resume-s05.json에 보존; 7/0 |
+| S05 애플리케이션 2 | canonical 필드 매핑 및 출력 덮어쓰기 의미 | pass | 원본 check 이름은 resume-s05.json에 보존; 7/0 |
+| S05 애플리케이션 3 | transport 우회 없음 및 projection/호출 순서 | pass | 원본 check 이름은 resume-s05.json에 보존; 7/0 |
+| S05 애플리케이션 4 | bounded 큐 퇴출 이전 내구 연결 접수 | pass | 원본 check 이름은 resume-s05.json에 보존; 7/0 |
+| S05 애플리케이션 5 | fd 결속 및 no-replace 게시 전 크기 측정 | pass | 원본 check 이름은 resume-s05.json에 보존; 7/0 |
+| S05 애플리케이션 6 | 컴파일한 canonical 대역으로 필드·실패·null·lifecycle 확인 | pass | 원본 check 이름은 resume-s05.json에 보존; 7/0 |
+| S05 애플리케이션 7 | ingress 이전 bridge 시작 및 storage 뒤 drain | pass | 원본 check 이름은 resume-s05.json에 보존; 7/0 |
+
+### S05 runtime 개별 결과
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| disabled-admit 실행 1 | 실제 EventStorage worker 진입을 관찰한다 | pass | 실제 EventStorage 프로세스 assertion |
+| disabled-admit 실행 2 | worker 처리 전에 첫 이벤트 연결이 내구 접수된다 | pass | 실제 EventStorage 프로세스 assertion |
+| disabled-admit 실행 3 | 실제 저장 큐 크기 2에서 다섯 접수 중 두 이벤트가 퇴출된다 | pass | 실제 EventStorage 프로세스 assertion |
+| disabled-admit 실행 4 | 퇴출 이벤트를 포함한 다섯 PTS 연결이 worker 해제 전에 보존된다 | pass | 실제 EventStorage 프로세스 assertion |
+| disabled-admit 실행 5 | 저장 worker drain 뒤에도 다섯 연결과 시간축이 보존된다 | pass | 실제 EventStorage 프로세스 assertion |
+| disabled-admit 실행 6 | JSONL 설정에 따른 실제 저장 수와 빈 큐를 확인한다 | pass | 실제 EventStorage 프로세스 assertion |
+| disabled-admit 실행 7 | JSONL 비활성은 파일 없음이고 활성은 생존 이벤트 세 개와 link ID가 일치한다 | pass | 실제 EventStorage 프로세스 assertion |
+| disabled-recover 실행 8 | 새 프로세스의 빈 SQLite를 journal로 재구축해 다섯 PTS 연결을 복구한다 | pass | 실제 EventStorage 프로세스 assertion |
+| disabled-recover 실행 9 | 퇴출 이벤트까지 UTC 매핑 후 다섯 실제 H264 파생 파일이 완료된다 | pass | 실제 EventStorage 프로세스 assertion |
+| disabled-recover 실행 10 | 같은 이벤트 재접수는 복구된 다섯 clip ID를 바꾸거나 추가하지 않는다 | pass | 실제 EventStorage 프로세스 assertion |
+| enabled-admit 실행 11 | 실제 EventStorage worker 진입을 관찰한다 | pass | 실제 EventStorage 프로세스 assertion |
+| enabled-admit 실행 12 | worker 처리 전에 첫 이벤트 연결이 내구 접수된다 | pass | 실제 EventStorage 프로세스 assertion |
+| enabled-admit 실행 13 | 실제 저장 큐 크기 2에서 다섯 접수 중 두 이벤트가 퇴출된다 | pass | 실제 EventStorage 프로세스 assertion |
+| enabled-admit 실행 14 | 퇴출 이벤트를 포함한 다섯 PTS 연결이 worker 해제 전에 보존된다 | pass | 실제 EventStorage 프로세스 assertion |
+| enabled-admit 실행 15 | 저장 worker drain 뒤에도 다섯 연결과 시간축이 보존된다 | pass | 실제 EventStorage 프로세스 assertion |
+| enabled-admit 실행 16 | JSONL 설정에 따른 실제 저장 수와 빈 큐를 확인한다 | pass | 실제 EventStorage 프로세스 assertion |
+| enabled-admit 실행 17 | JSONL 비활성은 파일 없음이고 활성은 생존 이벤트 세 개와 link ID가 일치한다 | pass | 실제 EventStorage 프로세스 assertion |
+| enabled-recover 실행 18 | 새 프로세스의 빈 SQLite를 journal로 재구축해 다섯 PTS 연결을 복구한다 | pass | 실제 EventStorage 프로세스 assertion |
+| enabled-recover 실행 19 | 퇴출 이벤트까지 UTC 매핑 후 다섯 실제 H264 파생 파일이 완료된다 | pass | 실제 EventStorage 프로세스 assertion |
+| enabled-recover 실행 20 | 같은 이벤트 재접수는 복구된 다섯 clip ID를 바꾸거나 추가하지 않는다 | pass | 실제 EventStorage 프로세스 assertion |
+| disabled-guard 오류 주입 | 임시 복사 source의 guard를 변경했을 때 지정한 실제 worker assertion이 exit 1로 거부 | pass | 기존 mutation 검증의 기대 RED |
+| prequeue-admission 오류 주입 | 임시 복사 source의 사전 내구 접수를 제거했을 때 지정 assertion이 exit 1로 거부 | pass | 기존 mutation 검증의 기대 RED |
+
+### S05 정식 action/check 결속 결과
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| V410-S05-I01 | V410-S05-I01-C01: 1회 성공, V410-S05-I01-C02: 1회 성공, V410-S05-I01-C03: 1회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I02 | V410-S05-I02-C01: 1회 성공, V410-S05-I02-C02: 1회 성공, V410-S05-I02-C03: 1회 성공, V410-S05-I02-C04: 1회 성공, V410-S05-I02-C05: 1회 성공, V410-S05-I02-C06: 1회 성공, V410-S05-I02-C07: 1회 성공, V410-S05-I02-C08: 1회 성공, V410-S05-I02-C09: 1회 성공, V410-S05-I02-C10: 1회 성공, V410-S05-I02-C11: 1회 성공, V410-S05-I02-C12: 1회 성공, V410-S05-I02-C13: 1회 성공, V410-S05-I02-C14: 1회 성공, V410-S05-I02-C15: 1회 성공, V410-S05-I02-C16: 1회 성공, V410-S05-I02-C17: 1회 성공, V410-S05-I02-C18: 1회 성공, V410-S05-I02-C19: 1회 성공, V410-S05-I02-C20: 1회 성공, V410-S05-I02-C21: 1회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I03 | V410-S05-I03-C01: 1회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I04 | V410-S05-I04-C01: 1회 성공, V410-S05-I04-C02: 1회 성공, V410-S05-I04-C03: 1회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I05 | V410-S05-I05-C01: 1회 성공, V410-S05-I05-C02: 1회 성공, V410-S05-I05-C03: 1회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I06 | V410-S05-I06-C01: 1회 성공, V410-S05-I06-C02: 1회 성공, V410-S05-I06-C03: 1회 성공, V410-S05-I06-C04: 1회 성공, V410-S05-I06-C05: 1회 성공, V410-S05-I06-C06: 1회 성공, V410-S05-I06-C07: 1회 성공, V410-S05-I06-C08: 1회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I07 | V410-S05-I07-C01: 1회 성공, V410-S05-I07-C02: 1회 성공, V410-S05-I07-C03: 1회 성공, V410-S05-I07-C04: 1회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I08 | V410-S05-I08-C01: 14회 성공, V410-S05-I08-C02: 3회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I09 | V410-S05-I09-C01: 1회 성공, V410-S05-I09-C02: 1회 성공, V410-S05-I09-C03: 1회 성공, V410-S05-I09-C04: 1회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I10 | V410-S05-I10-C01: 1회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I11 | V410-S05-I11-C01: 1회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I12 | V410-S05-I12-C01: 1회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I13 | V410-S05-I13-C01: 1회 성공, V410-S05-I13-C02: 1회 성공, V410-S05-I13-C03: 1회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I14 | V410-S05-I14-C01: 1회 성공, V410-S05-I14-C02: 1회 성공, V410-S05-I14-C03: 1회 성공, V410-S05-I14-C04: 1회 성공, V410-S05-I14-C05: 1회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I15 | V410-S05-I15-C01: 1회 성공, V410-S05-I15-C02: 1회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I16 | V410-S05-I16-C01: 1회 성공, V410-S05-I16-C02: 1회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I17 | V410-S05-I17-C01: 1회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I18 | V410-S05-I18-C01: 1회 성공, V410-S05-I18-C02: 1회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I19 | V410-S05-I19-C01: 1회 성공, V410-S05-I19-C02: 1회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I20 | V410-S05-I20-C01: 1회 성공, V410-S05-I20-C02: 1회 성공, V410-S05-I20-C03: 1회 성공, V410-S05-I20-C04: 1회 성공, V410-S05-I20-C05: 1회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I21 | V410-S05-I21-C01: 1회 성공, V410-S05-I21-C02: 2회 성공, V410-S05-I21-C03: 1회 성공, V410-S05-I21-C04: 1회 성공, V410-S05-I21-C05: 1회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I22 | V410-S05-I22-C01: 1회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I23 | V410-S05-I23-C01: 1회 성공, V410-S05-I23-C02: 1회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I24 | V410-S05-I24-C01: 1회 성공, V410-S05-I24-C02: 1회 성공, V410-S05-I24-C03: 1회 성공, V410-S05-I24-C04: 1회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I25 | V410-S05-I25-C01: 1회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I26 | V410-S05-I26-C01: 1회 성공 | pass | 27개 exact ID 유지 |
+| V410-S05-I27 | V410-S05-I27-C01: 1회 성공 | pass | 27개 exact ID 유지 |
+
+### v1 계약 개별 항목 대조
+
+기존 계약 실행기는 성공 label을 개별 출력하지 않고 전체 45/0을 출력한다.
+아래는 `recording_contract_smoke.cpp` 실행 경로와 고정 fixture 행 수(2/1/1/1)를
+45/0 결과에 대조한 항목이다. 독립 개별 성공 로그가 있는 것으로 표현하지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| v1 계약 01 | opaque ID 허용 | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 02 | 빈 opaque ID 거부 | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 03 | path opaque ID 거부 | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 04 | SQLite rowid 형태 opaque ID 거부 | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 05 | 반개구간 겹침 | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 06 | 맞닿은 반개구간 비겹침 | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 07 | 빈 반개구간 거부 | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 08 | segments 최초 읽기 EOF | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 09 | segments 최초 읽기 비어 있지 않음 | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 10 | unknown optional field segment parse | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 11 | known ID 보존 | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 12 | PTS/timebase exact 보존 | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 13 | public JSON filesystem path 비노출 | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 14 | segment canonical 재parse | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 15 | PTS/timebase round-trip | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 16 | unknown lifecycle 호환 parse | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 17 | Unknown lifecycle 보존 | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 18 | unknown lifecycle 비재생 | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 19 | segments round-trip 읽기 EOF | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 20 | segments round-trip 읽기 비어 있지 않음 | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 21 | segments parse[0] | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 22 | segments canonical parse[0] | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 23 | segments canonical parity[0] | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 24 | segments parse[1] | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 25 | segments canonical parse[1] | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 26 | segments canonical parity[1] | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 27 | event-links round-trip 읽기 EOF | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 28 | event-links round-trip 읽기 비어 있지 않음 | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 29 | event-links parse[0] | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 30 | event-links canonical parse[0] | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 31 | event-links canonical parity[0] | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 32 | observations round-trip 읽기 EOF | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 33 | observations round-trip 읽기 비어 있지 않음 | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 34 | observations parse[0] | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 35 | observations canonical parse[0] | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 36 | observations canonical parity[0] | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 37 | tombstones round-trip 읽기 EOF | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 38 | tombstones round-trip 읽기 비어 있지 않음 | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 39 | tombstones parse[0] | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 40 | tombstones canonical parse[0] | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 41 | tombstones canonical parity[0] | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 42 | tombstones 재사용 검사 읽기 EOF | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 43 | tombstones 재사용 검사 읽기 비어 있지 않음 | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 44 | tombstone segment ID 재사용 거부 | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+| v1 계약 45 | 새 segment ID 허용 | pass | exit 0·45/0 및 고정 실행 경로 대조 |
+
+### 실제 foreground 개별 결과
+
+이 실행의 최종 판정은 fail이다. L11은 원본 FAIL을 보존하며 나머지 개별 PASS로
+전체 실제 실행 PASS를 대신하지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| S05-I27-G02 | HOME 누락/빈 값 2회 모두 spawn 없이 거부 | pass | 해당 관찰 범위만 확인 |
+| S05-I27-G03 | 기존 HOME 동일 전달, child env frozen, 기존 MEDIA_SERVER 설정 미상속 | pass | 해당 관찰 범위만 확인 |
+| S05-I27-L01 | launchctl 113 부재, 상태 파일 6개 부재, 18765/18766 비사용 및 원본 설정 SHA 기록 | pass | 해당 관찰 범위만 확인 |
+| S05-I27-L02 | 전용 root에 입력 17071018byte 복사·disabled bootstrap·data/cache/event/recording 격리 | pass | 해당 관찰 범위만 확인 |
+| S05-I27-G04 | 동일 child env의 brew --prefix exit 0, /opt/homebrew | pass | 해당 관찰 범위만 확인 |
+| S05-I27-G05 | 동일 child env의 원본 env_common helper exit 0 | pass | 해당 관찰 범위만 확인 |
+| S05-I27-G06 | 전용 registry와 plugin mirror, 설치 scanner realpath, 빈 system plugin path 확인 | pass | 해당 관찰 범위만 확인 |
+| S05-I27-L03 | 원본 ./server.sh foreground PID 13341, health 200 후 기동 판정 | pass | 해당 관찰 범위만 확인 |
+| S05-I27-L04 | GET /health 200, RTSP 18765·HTTP 18766 listener 소유 PID 13341 | pass | 해당 관찰 범위만 확인 |
+| S05-I27-L05 | POST /ops/api/sources 201, sourceId 9101, created | pass | 해당 관찰 범위만 확인 |
+| S05-I27-L06 | GET /ops/api/sources 200, numeric 9101, recording.enabled=true | pass | 해당 관찰 범위만 확인 |
+| S05-I27-L07 | read-only SQLite의 numeric 9101 finalized continuous MP4 4096788byte 및 실파일 확인 | pass | 해당 관찰 범위만 확인 |
+| S05-I27-L08 | PUT /lab/analysis/rules/9101 200, person presence rule 생성 | pass | 해당 관찰 범위만 확인 |
+| S05-I27-L09 | POST /lab/analysis/taps 200, analysis-tap-1, 실제 file stream key | pass | 해당 관찰 범위만 확인 |
+| S05-I27-L10 | GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 200, 관찰 presence 4개 및 linkId 존재 | pass | 해당 관찰 범위만 확인 |
+| S05-I27-L11 | 원본 stream/channel 유지; 관찰 4개 link와 catalog 연결 존재하나 verifier가 없는 SQL source_id 열을 비교하여 false FAIL | fail | 후속 실행 중단·제품 추가 수정 없음 |
+| S05-I27-L12 | DELETE /lab/analysis/taps/analysis-tap-1 200 | pass | 해당 관찰 범위만 확인 |
+| S05-I27-L13 | 실행 경로 소유 확인 후 PID 13341에 SIGTERM, exit 0 | pass | 해당 관찰 범위만 확인 |
+| S05-I27-L14 | 18765/18766 listener 없음 | pass | 해당 관찰 범위만 확인 |
+| S05-I27-L15 | 원본 source/analysis/views 설정 SHA 및 부재 상태 전후 동일 | pass | 해당 관찰 범위만 확인 |
+| S05-I27-G07 | build 직후 및 실행 before/after SHA 4630191f072b…·mtime 동일, 부모도 교차 확인 | pass | 해당 관찰 범위만 확인 |
+| S05-I27-L16 | 전용 root 439파일 75398531byte 측정 뒤 삭제, 부재 확인 | pass | 해당 관찰 범위만 확인 |
+
+### 보조 실행기 검토 및 부모 운용 경계
+
+- actual runner는 standalone으로 성공한 build를 결속하지 않는다. 이번에는
+  [build-provenance.json](release-artifacts/v4.1.0/20260904-s05-identity-fix/build-provenance.json)과
+  [parent-readback.json](release-artifacts/v4.1.0/20260904-s05-identity-fix/parent-readback.json)으로 선행 결과/source/binary를 부모가 별도 결속했다.
+- resume runner의 timeout은 직접 자식만 종료한다. 이번 정상 종료 경로에서는
+  cleanup 전 부모가 관련 process와 열린 파일 0개를 확인했다. timeout/강제중단 경로는
+  시험하지 않았으며, 손자 프로세스 종료 확인 없이 자동 cleanup하거나 standalone 안전 완료를 주장하면 안 된다.
+- source frozen 1035개와 unit 이외 제품/기존 검증기는 이번 수정 전후 동일하다.
+  단위 fixture 보완이 제품 코드 변경을 유발하지 않았으며, 새 실제 FAIL을 해결한다며
+  제품 계약·DB 열을 바꾸지 않았다.
+
+### 임시 산출물 및 증거 보존
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| `/private/tmp/media-server-s05-identity.w9WV7X` | 실제 녹화·입력·fallback·registry·log | 439파일, 75398531byte | 자기 PID 정상 종료 후 삭제 | 삭제·부재 확인 | actual-foreground.json, parent-readback.json |
+| `/private/tmp/media-server-s05-resume.kYnhd1` | 캐시·고정 SHA·환경·xcrun 임시 파일 | 281파일, 1718447byte; du 1668KiB | 관련 process/open file 없음 확인 후 삭제 | 삭제·부재 확인 | resume-cleanup.json |
+| 위 root 내부 `media_server_s05_storage_runtime_Lh4QVh` | runtime C++ binary·mutation source·파생 파일 | 41파일, 9668817byte | 기존 runtime runner의 자체 정리 | removed=true | resume-s05.json |
+| 기존 S05/app/contract wrapper의 내부 임시 파일 | 독립 빌드·catalog·remux | 자체 삭제 이전 크기 미수집 | 원본 wrapper 정리 후 부모 root 항목 대조 | 잔여 작업 디렉터리 없음 | parent-readback.json의 rootEntries |
+
+실행 결과 JSON은 오류 진단과 개별 assertion을 보존하기 위한 최소 텍스트 evidence다.
+원본 보고서의 인증 정보는 없고, 경로는 격리된 검증 입력 또는 기존 파일 SHA 식별용이다.
+raw 영상·MP4·snapshot은 저장소에 보존하지 않는다. 신규 JSON의 크기·SHA 목록은
+별도 보존 목록으로 확인한다. 기존 RED/focused 기록은 덮어쓰지 않았다.
+
+### 미실행·후속 조건
+
+| 항목 | 상태 | 사유 | 완료 evidence 사용 |
+| --- | --- | --- | --- |
+| L11 판정 보완 및 실제 재실행 | 미실행 | 잘못된 SQL 열 참조를 먼저 보고; 추가 수정 승인 필요 | 불가 |
+| 실제 nohup·launchd 및 서버 재시작 | 건너뜀 | foreground 최종 실패 뒤 순차 중단 | 불가 |
+| SSIM blacklist 원인 확인 | 건너뜀 | 실제 실행 선행 항목 미완료 | 불가 |
+| S06 구현 | 미진행 | 승인 범위 밖 | 불가 |
+| 30분·120분·UI 풀테스트 | 미실행 | 실행 승인 없음; 기존 release blocker 유지 | 불가 |
+| 커밋·푸시 | 미수행 | 최신 승인 없음; 실제 검증 미완료 | 불가 |
+
+토큰: start/end/consumed 모두 미집계(계측값 미제공). elapsed는 각 명령 결과 JSON의
+실측 밀리초를 사용한다. 실제 foreground rows의 cleanup 완료 시각은 16510ms,
+상위 elapsed는 cleanup 전 측정값 16491ms로 기록되어 있으며 두 값을 혼동하지 않는다.
+
+
+### 이번 실행 보존 파일 목록
+
+아래 파일은 이번 수정·실패 진단의 재현 source와 최소 텍스트 결과다. 영상 데이터는 포함하지 않는다.
+
+| 파일 | 크기(byte) | SHA-256 |
+| --- | ---: | --- |
+| [actual-foreground.json](release-artifacts/v4.1.0/20260904-s05-identity-fix/actual-foreground.json) | 59227 | `36164a8b5d18153f8bd86efb9767c16d8b058ae96fd033c0ea3a45265505c19e` |
+| [build-provenance.json](release-artifacts/v4.1.0/20260904-s05-identity-fix/build-provenance.json) | 2415 | `1ab003de62447b7ae269acc0a64a967b5635d2b9539e758a32238d786891973a` |
+| [parent-readback.json](release-artifacts/v4.1.0/20260904-s05-identity-fix/parent-readback.json) | 744 | `48df119ff915280698ed7dd00adf9d2ee6267805249ecbfcb5f306b56f06b0d2` |
+| [resume-build.json](release-artifacts/v4.1.0/20260904-s05-identity-fix/resume-build.json) | 12980 | `7bced9b625de5694eeda661484aff2673373aeb822201d85f7ba35401d2bb09e` |
+| [resume-cleanup.json](release-artifacts/v4.1.0/20260904-s05-identity-fix/resume-cleanup.json) | 724 | `42887c34e1a4cb43cb722dae8929d730ace1acecdef9224271747e4fe6d9ad6a` |
+| [resume-configure.json](release-artifacts/v4.1.0/20260904-s05-identity-fix/resume-configure.json) | 1262 | `279606eea6e582f9f2fde7d2047f2fbe5414155acf07ec8a93b6d489067e4440` |
+| [resume-contracts.json](release-artifacts/v4.1.0/20260904-s05-identity-fix/resume-contracts.json) | 943 | `98c4240171c3aac9309bcf6f4c501d45b524b447dbed89266dd0e25876c479e7` |
+| [resume-environment.json](release-artifacts/v4.1.0/20260904-s05-identity-fix/resume-environment.json) | 1876 | `48056f7cc4655db3c708dc25139becfe05cba8e4e9af907eb57ab273ef87bc48` |
+| [resume-red.json](release-artifacts/v4.1.0/20260904-s05-identity-fix/resume-red.json) | 1757 | `72db8243415192721f573cf7f840438e8ac1d6c5b7126f642e7e8198ea44163a` |
+| [resume-s05.json](release-artifacts/v4.1.0/20260904-s05-identity-fix/resume-s05.json) | 25482 | `a0643207c763054ce730b88784532a781f60045798cc666d216d5117b06aa445` |
+| [resume-unit.json](release-artifacts/v4.1.0/20260904-s05-identity-fix/resume-unit.json) | 2978 | `61b4647384b15a5c25a98c44c1dcf79001fc9398d75c04f5d5b79ea35d18fd41` |
+| [resume-verification.mjs](release-artifacts/v4.1.0/20260904-s05-identity-fix/resume-verification.mjs) | 7735 | `fae3570778ce5aa602aa25f6761e7e347ab5de56efec614d0dfd1718050bb9b4` |
+
+## v4.1.0 실제 녹화 ID 연결 최소 보완 — focused GREEN 후 S05 실행 환경 실패로 중단 (2026-09-04)
+
+사용자는 실제 recording session의 stream key→등록 channel ID 매핑, 미등록·모호한
+매핑 거부, 기존 EventRecord/저장 schema 보존을 승인했다. 기존 실제 RED와 HOME
+실패 이력은 아래에 보존한다. 최소 제품 수정과 focused 13개 GREEN은 확인했지만,
+기존 S05 명령의 격리 PATH에서 node를 찾지 못해 exit 127로 중단했다. 제품 수정 완료,
+전체 S05 회귀 통과 또는 실제 서비스 해결을 선언하지 않는다. TDD와 writing-good-tests
+기준으로 최초 내구 접수 RED, writer 잠금 RED, 같은 기대값의 GREEN을 분리 기록한다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | session 게시/조회, 신규 bridge 내구 접수, 기존 retry/recovery 경계 | `recording_session_service.cpp` ResolveRecordingChannel, `event_recording_bridge.cpp` TryResolve, V410-IDMAP-I01~I13 | focused·기존 S05·contract·build 승인 |
+| 30분 | 진행 대상 | 녹화 연속 운용 gate에 TryResolve 변경 연결 | `project-feature-test-inventory.md` V410-S05-I03 및 V410-IDMAP-I01~I13 | 미승인·이번 미실행 |
+| 120분 | 진행 대상 | 수정 TryResolve가 기존 누수·복구 장시간 관찰 대상에 직접 연결됨; source lifecycle 자체는 변경하지 않음 | `project-feature-test-inventory.md` V410-S05-I03 | 미승인·이번 미실행 |
+| UI 풀테스트 | 미진행 | 신규 UI/schema 없음; 기존 release UI 필수 판정은 유지 | V410-IDMAP-I01~I13 UI 비대상 | 미승인·이번 범위 밖 |
+
+120분 판정 정정: 초기 준비에서 조건부로 표현했으나, 이번 수정 함수 TryResolve가
+V410-S05-I03의 120분 영역에 직접 매핑됨을 확인해 `진행 대상`으로 정정했다.
+실행 승인은 없으므로 이번에는 실행하지 않았으며, 이는 120분 PASS나 생략 허용이 아니다.
+
+### 테스트 항목 상세 기록
+
+각 I01~I13은 `scripts/internal/recording_identity_smoke.cpp`의 독립 identity 등록군이다.
+실행 명령은 `bash scripts/internal/verify_recording_identity.sh`이며 실제 catalog와
+bridge를 검증한다. session 경계에는 실제 SessionManager/SharedStream을 사용하고,
+외부 입력과 writer 시작 실패·Push latch만 test double로 통제한다. 기존 S05 27개 ID는 변경하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| V410-IDMAP-I01 | path stream key의 신규 link 내구 접수 | source/channel 모두 숫자 9101; RED는 기존 API의 실제 접수 실패 | v4.1.0 |
+| V410-IDMAP-I02 | 원본 EventRecord·epoch 보존 | 원본 stream/channel 유지, link epoch 덮어쓰기 없음 | v4.1.0 |
+| V410-IDMAP-I03 | resolver 미등록/빈 결과 | 신규 link 없음, 임의 channel fallback 금지 | v4.1.0 |
+| V410-IDMAP-I04 | resolver 키 우선순위 | record.stream_id 우선, 없으면 result.source_key, 최후 record.channel_id | v4.1.0 |
+| V410-IDMAP-I05 | durable link 재접수 | active 매핑 소멸 후에도 기존 numeric link 유지·범위 갱신 | v4.1.0 |
+| V410-IDMAP-I06 | durable link 재시작 복구 | 새 bridge에서 resolver 실패해도 기존 link 조회 유지 | v4.1.0 |
+| V410-IDMAP-I07 | resolver 없는 기존 fixture | 기존 numeric ID 접수 호환 | v4.1.0 |
+| V410-IDMAP-I08 | 실제 auxiliary stream 게시 | StartAux 성공 뒤 unique stream key만 channel로 해석 | v4.1.0 |
+| V410-IDMAP-I09 | 같은 stream 복수 채널 | ambiguous 거부, 한 채널 정지 후 unique 해석 | v4.1.0 |
+| V410-IDMAP-I10 | 시작 중 게시 경계 | source Start 미완료 동안 lookup 없음; 완료 뒤 게시 | v4.1.0 |
+| V410-IDMAP-I11 | source/writer 시작 실패 | 실패·stopping 상태 매핑 없음 | v4.1.0 |
+| V410-IDMAP-I12 | 정지/StopAll 경계 | 정지한 channel lookup 없음, epoch 재정의 없음 | v4.1.0 |
+| V410-IDMAP-I13 | writer I/O 중 ID 조회 비차단 | 통제 writer Push latch가 유지된 상태에서 lookup 100ms 내 완료; 실패 여부와 무관하게 latch 해제·future 회수 후 판정 | v4.1.0 |
+| IDMAP-V01 | 기존 S05 회귀 | `./server.sh verify-v410-event-recording`, 기존 exact 27 및 assertions 유지 | v4.1.0 |
+| IDMAP-V02 | v1 계약 회귀 | `./server.sh verify-v410-recording-contracts`, slash reference 거부 유지 | v4.1.0 |
+| IDMAP-V03 | 제품 증분 build | `./server.sh build`, exit 0 | v4.1.0 |
+| IDMAP-V04 | 문서 whitespace | `git diff --check`, exit 0 | v4.1.0 |
+| IDMAP-A01 | 원본 foreground 실제 보완 검증 | 부모 소유 새 `verify-actual.mjs`, GO 후 실행; EventRecord 불변·numeric link 내구 접수·실행 binary SHA/mtime 전후 동일·원본 SHA·소유 cleanup; 파생 coverage 별도 | v4.1.0 |
+
+### 최초 focused RED 및 문법 확인 결과
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| V410-IDMAP-I01 RED | `bash scripts/internal/verify_recording_identity.sh`, compile 성공 후 exit 1, `숫자 channel의 신규 내구 link 없음: event recording link 기본 field가 유효하지 않음` | fail | 승인된 TDD RED; 아래 동일 기대값 GREEN 이력과 함께 보존 |
+| V410-IDMAP-I13 RED | 같은 명령 compile 성공, I01~I12 pass 후 I13 fail, exit 1; writer Push latch 중 lookup이 100ms 내 완료하지 못함 | fail | state mutex가 writer I/O를 기다리는 경로 확인. latch 해제·future 회수·StopAll 후 atomic stopping 최소 보완 |
+| IDMAP-A01-G01 | 부모 실행 `node --check docs/release-artifacts/v4.1.0/20260904-s05-identity-fix/verify-actual.mjs`, 최초·L12 DELETE 200 확인 보완 후 모두 exit 0, 출력 없음 | pass | 실제 서버 실행 아님 |
+
+### focused 최종 개별 결과 및 중단
+
+아래 13개는 같은 `bash scripts/internal/verify_recording_identity.sh` 실행에서
+compile·binary exit 0으로 확인했다. 실제 GStreamer/ONNX 서비스 검증이 아니며,
+13개 assertion과 정리 결과의 최소 evidence는
+[focused.json](release-artifacts/v4.1.0/20260904-s05-identity-fix/focused.json)에 보존한다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| V410-IDMAP-I01 | 실제 catalog의 신규 link source/channel=9101 | pass | 최초 path ID 거부 RED 후 GREEN |
+| V410-IDMAP-I02 | 원본 stream/channel 유지, 원본·link epoch 빈 값 유지 | pass | epoch 강제 복사 없음 |
+| V410-IDMAP-I03 | resolver nullopt·빈 값에서 신규 link 미접수 | pass | 임의 숫자 fallback 없음 |
+| V410-IDMAP-I04 | 서로 다른 record/result key에서 record 우선, stream 빈 값이면 result, 둘 다 비면 channel | pass | 실제 TryResolve 호출별 key 확인 |
+| V410-IDMAP-I05 | 매핑 소멸 후 기존 numeric link 재접수, PTS end=3300 갱신 | pass | active resolver 이전 기존 durable 분기 |
+| V410-IDMAP-I06 | 새 bridge의 기존 durable link 조회·link ID 유지 | pass | 동일 SQLite catalog, 새 프로세스 복구 시험은 아님 |
+| V410-IDMAP-I07 | resolver 없는 기존 numeric fixture 접수 | pass | 기존 fixture 호환 |
+| V410-IDMAP-I08 | real SessionManager/SharedStream 시작 뒤 actual RTSP key→9101 | pass | 외부 source I/O는 test double |
+| V410-IDMAP-I09 | 동일 stream 2채널에서 거부, 9102 정지 뒤 9101 해석 | pass | 모호성 fail closed |
+| V410-IDMAP-I10 | source Start latch 중 미게시, 성공 뒤 9103 조회 | pass | handle 직접 조회 없음 |
+| V410-IDMAP-I11 | source Start 실패·writer Start 실패 후 조회 없음 | pass | writer stopping 반영 |
+| V410-IDMAP-I12 | StopChannel·StopAll 뒤 조회 없음 및 새 Start 거부 | pass | 기존 lifecycle 순서 유지 |
+| V410-IDMAP-I13 | writer Push latch 중 lookup 100ms 내 9110 반환 | pass | state mutex timeout RED 후 atomic stopping GREEN |
+| IDMAP-V01 | 격리 env의 `./server.sh verify-v410-event-recording` dispatch/internal wrapper 진입 후 12행 Node 등록검증 단계 `node: command not found`, exit 127 | fail | 제품 C++/runtime 본문 미착수; 환경 준비 누락으로 즉시 중단 |
+| IDMAP-V04 | 기록 정리 후 `git diff --check`, exit 0, 출력 없음 | pass | 문서 whitespace만 확인; S05·build 실패/미실행을 대체하지 않음 |
+
+실패 명령의 자식 환경은 `env -i HOME="$HOME" PATH=/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin TMPDIR="$task_root/" MEDIA_SERVER_GST_CACHE_DIR="$task_root/cache" GST_REGISTRY_1_0="$task_root/registry.bin" ./server.sh verify-v410-event-recording`이다.
+`task_root`는 실행 직전 생성한 `/private/tmp/media-server-idmap-s05.CjMBxq`였다.
+기존 HOME 값을 그대로 전달했으며 실제 값·credential은 기록하지 않는다. read-only
+`command -v node`는 `/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node`를 반환했다.
+제한 PATH에 이 nvm bin이 없어 Node를 찾지 못했다. 앞선 HOME 누락 자체는 재발하지
+않았지만 **검증용 환경의 필수 실행 경로 누락이 다시 발생한 것**이며 준비 오류를 숨기지 않는다.
+원인은 제품 ID 매핑 회귀가 아니다. 사용자 선보고 후 보완·재실행하지 않았다.
+최소 후속안은 Node 실행 경로를 명시적으로 resolve하고 동일 불변 환경에서 Node 등
+필수 명령 가용성을 사전 검사한 후 별도 승인으로 같은 S05부터 재개하는 것이다.
+동일 환경의 Node binary 존재·실행 검사를 추가하기 전에는 재실행하지 않는다.
+
+| 대상 | 정리 전 크기 | 수행 | 결과 | 보존 | 사유 |
+| --- | --- | --- | --- | --- | --- |
+| focused RED root `/private/tmp/media-server-identity-unit.igvIh2` | 5파일, du 2,136KiB; 정확 byte 미계측 | 자신이 mktemp 생성한 root만 삭제 | 부재 확인 | 이 표의 명령·오류 | 실행 바이너리·SQLite는 재생성 가능 |
+| I13 RED root `media-server-identity-unit.bYGyhN` (OS TMPDIR) | 5파일, 3,494,087byte | 자신의 root 삭제 | 부재 확인 | I01~I12 pass·I13 fail 기록 | writer latch 해제 후 바이너리·SQLite 정리 |
+| focused GREEN root `media-server-identity-unit.gFsOIQ` (OS TMPDIR) | 5파일, 3,742,373byte | 자신의 root 삭제 | 부재 확인 | focused.json 및 13개 결과 | 바이너리·SQLite 재생성 가능 |
+| S05 실패 root `/private/tmp/media-server-idmap-s05.CjMBxq` | 1파일, 41,588byte(일반 파일 기준) | 자신의 cache root 삭제 | 부재 확인 | 명령·exit·오류·환경 키 기록 | 새 서비스 기동 없음 |
+
+새 보존 source/evidence: `recording_identity_smoke.cpp` 13,070byte,
+`verify_recording_identity.sh` 1,849byte, `focused.json` 7,159byte,
+부모 작성 `verify-actual.mjs` 20,814byte다. 재현성과 최소 결과 보존 목적이며 raw media나
+credential은 포함하지 않는다. 각 source SHA는 focused.json에 기록했다.
+기존 실제 RED source SHA `633a714475ca8aad920df8ad2e7ab75536f51017ab215817cbd53ca2545de7df`는 그대로다.
+
+| 제목 | 수행내용 | 미실행/제외 사유 | 완료 evidence 여부 |
+| --- | --- | --- | --- |
+| 기존 S05 본문 | 기존 exact27, C++140, application/runtime·mutation 검증 | wrapper Node 부재로 미진입 | 불가; 과거 PASS를 이번 PASS로 대체하지 않음 |
+| IDMAP-V02 | v1 contract 회귀 | V01 실패 이후 건너뜀 | 불가 |
+| IDMAP-V03 | 제품 build | V01 실패 이후 건너뜀 | 불가; 실행 binary는 수정 전 것일 수 있음 |
+| IDMAP-A01 runtime | 실제 원본 foreground 녹화·이벤트 연결·binary hash | V01 실패 이후 건너뜀; runner 문법만 확인 | 불가 |
+| foreground 재시작·nohup·launchd | 원래 요청 실행 방식별 검증 | ID 보완 실제 GREEN 전 중단 | 불가 |
+| SSIM 조사 | 2번 blacklist 원인·영향 조사 | 1번 중단 후 건너뜀 | 불가 |
+| S06 구현 | timeline/API/UI | 승인 범위 밖·미착수 | 불가 |
+| 30분·120분·UI 풀테스트·verify-predev | 장시간·전체 UI·개발 전 검증 | 미승인 | 불가 |
+| stage·commit·push | 저장소 이력·원격 변경 | 미승인, 단계 미완료 | 불가 |
+
+변경 경계: `recording_session_service.h/.cpp`에 actual stream key의 안전한 게시·유일
+channel 조회 및 I/O 비차단 stopping 조회, `event_recording_bridge.h/.cpp`에 신규 내구
+접수 한정 resolver, `media_server_application.cpp`에 production callback을 연결했다.
+원본 EventRecord/schema·reference ID 검증·epoch·source lifecycle 순서는 변경하지 않았다.
+신규 fixture·runner와 inventory 13개·이 문서·roadmap/backlog만 함께 보강했다.
+커밋/푸시 가능 여부는 **아니오**이며 stage·commit·push는 수행하지 않았다.
+토큰 start/end/consumed는 모두 미계측(런타임 계측값 미제공)이다. focused 각 실행과
+S05 실패의 전체 elapsed도 별도 미계측이다. 비동기 tool의 개별 대기시간을 전체 실행
+경과시간으로 대체하지 않았다. 부모의 actual runner 문법 검증 tool wall time은 최초
+0.0025초, L12 보완 후 0.002375초이며 actual 서버 duration이 아니다.
+
+## v4.1.0 S06 전 실제 서비스 검증 준비 — 사전 코드 검토 중단 (2026-09-04)
+
+### HOME 누락 재발 방지 후 동일 재현 재개 — 실행 전 등록
+
+#### 최신 실행 결과 — 실제 연결 부재 RED, 수정 전 대기
+
+부모의 전문 검토와 GO 후
+`node docs/release-artifacts/v4.1.0/20260904-s05-identity-red/reproduce.mjs /private/tmp/media-server-s05-identity.c4mai6`
+를 권한 확장 승인으로 실행했다. 명령 exit 1은 **실제 이벤트와 녹화 사이 link 부재를
+관찰한 예상 RED**다. 이전 HOME 누락은 재발하지 않았고 brew/helper 사전검증·실제
+foreground 기동·health가 통과했다. 제품 수정·추가 실행 방식·2번 조사는 진행하지 않았다.
+
+보존 자료: [실행 source](release-artifacts/v4.1.0/20260904-s05-identity-red/reproduce.mjs),
+[실제 재현 결과](release-artifacts/v4.1.0/20260904-s05-identity-red/reproduction-home-guard.json).
+source SHA-256은 `633a714475ca8aad920df8ad2e7ab75536f51017ab215817cbd53ca2545de7df`다.
+같은 frozen child env의 digest는 `7a59d74bad7b545c0f8db4632ee70efe2a09a03c41f2482a13afb689bb2e1e5e`이며
+실제 HOME 값은 출력하지 않았다. parent process HOME/USER/LOGNAME 값은 변경하지 않았다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| S05-I27-G01 | `node --check` 보존 reproduce.mjs, exit 0, 출력 없음 | pass | 실제 실행 전 부모도 독립 문법 확인 |
+| S05-I27-G02 | HOME 누락/빈 값 2case 각각 명시 오류, spawn count 0 | pass | 잘못된 환경으로 brew·서버를 다시 기동하지 않음 |
+| S05-I27-G03 | 기존 HOME 동일 전달, frozen env, 기존 MEDIA_SERVER 설정 미상속 | pass | HOME 값 비공개 |
+| S05-I27-G04 | 같은 child env의 `/opt/homebrew/bin/brew --prefix`, exit 0, `/opt/homebrew`, stderr 없음 | pass | 이전 HOME 누락 선행조건 해소 |
+| S05-I27-G05 | 같은 child env의 원본 env_common source/helper, exit 0, stderr 없음 | pass | 제품 공통 함수 수정 없음 |
+| S05-I27-G06 | 전용 root의 registry·2개 plugin mirror, 빈 system path, 실행 가능한 설치본 scanner realpath 확인 | pass | scanner는 전용 root가 아닌 설치본 read-only |
+| S05-I27-L01 | launchctl exit 113 부재, 고정 6파일 부재, 18765/18766 lsof·bind 비사용, 원본 파일 SHA 기록 | pass | 기동 직전 같은 조건 다시 확인 |
+| S05-I27-L02 | 전용 root의 입력 17,071,018byte 복사, disabled bootstrap 9100, data/cache/event/recording 격리 | pass | 실제 녹화 source는 API 생성 |
+| S05-I27-L03 | 원본 `./server.sh foreground`, PID 9317, health 200 후 기동 판정 | pass | 최초 HOME 누락 시도 fail 뒤 이번 pass; 원본 실패 이력 유지 |
+| S05-I27-L04 | GET `/health` 200, 18765/18766 listener PID 모두 9317 | pass | wrapper와 실제 제품 소유 확인 |
+| S05-I27-L05 | POST `/ops/api/sources` 201, `created`, `ok=true`, sourceId 9101 | pass | DB/ID 주입 없음 |
+| S05-I27-L06 | GET `/ops/api/sources` 200, file identity.mp4, numeric 9101, recording enabled/revision 1 readback | pass | 양쪽 quota 268435456, age 3600000ms |
+| S05-I27-L07 | read-only catalog에 source/channel 9101 finalized continuous MP4 4,096,788byte 및 실제 파일 존재 | pass | stream epoch `epoch-9101-1-1788527596271` |
+| S05-I27-L08 | PUT `/lab/analysis/rules/9101` 200, `created` | pass | person presence polygon, 외부 POST disabled |
+| S05-I27-L09 | POST `/lab/analysis/taps` 200, analysis-tap-1, 실제 `file::…/identity.mp4` stream key | pass | 동일 입력 파일 |
+| S05-I27-L10 | GET `/lab/analysis/taps/analysis-tap-1/events?dispatch=1` 200, 실제 presence EventRecord 4개 JSONL 저장 | pass | fallback manifest 4개 존재; MP4 파생 clip 완성 주장 아님 |
+| S05-I27-L11 | EventRecord channel/stream=`file::…/identity.mp4`, segment channel=`9101`, recordingLinkId/completeness 빈 값, catalog event links 0 | fail | 연결 내구 접수 누락의 예상 RED; 정확한 bridge 거부 error는 미수집 |
+| S05-I27-L12 | DELETE `/lab/analysis/taps/analysis-tap-1` 200 | pass | 자기 생성 tap만 정리 |
+| S05-I27-L13 | 자기 소유 PID 9317 실행경로 확인 후 SIGTERM, exit 0 | pass | 정상 종료 17초 이내 |
+| S05-I27-L14 | 종료 후 18765/18766 listener 모두 없음 | pass | 타 PID 종료 없음 |
+| S05-I27-L15 | source/analysis/views SHA 및 부재 상태 전후 동일 | pass | JSON에 실제 파일명별 before/after 보존 |
+| S05-I27-L16 | 자기 root 438파일·55,994,613byte 측정 후 삭제·부재 확인 | pass | raw media·fallback·cache·registry·log 삭제 |
+| S05-I27-L17 | `git diff --check`, exit 0, 출력 없음 | pass | 문서 whitespace 검증만 해당 |
+
+시간 경계는 별도로 보존했다. 최초 관찰 segment는 PTS 0~8,300ms이고,
+이벤트 start/update=9,066ms, end=0, pre/post=500ms(요청 8,566~9,566ms), timeBasis=media-pts-ms,
+anchor=0, event epoch는 빈 값이다. 따라서 이 실행만으로 해당 이벤트 구간의 finalized
+segment coverage 또는 파생 MP4 성공을 주장하지 않는다. 직접 확인한 실패는 유효
+EventRecord·녹화가 존재하지만 event link 접수가 없다는 것이다. ID 변환 부재 및
+path형 reference ID 검증은 앞선 정적 근거이며, 런타임의 명시적 bridge 거부 사유는
+기록되지 않아 별도 미수집으로 남긴다. Pending link는 segment 시간 매핑 전에 내구
+접수되는 정적 경로이므로 이 관찰과 ID 검증 후보가 일치하지만, 파생 clip coverage를
+확인한 것은 아니다. 부모에게 시간·coverage 경계와 함께 즉시 보고했다.
+server log tail에는 테스트 영상의 tracking diagnostic warning이 관찰됐으며,
+warning 0·UI 풀테스트·장시간 안정화 PASS로 확대하지 않는다.
+
+| 항목 | 상태 | 사유 | 완료 evidence 사용 가능 여부 |
+| --- | --- | --- | --- |
+| ID 매핑 제품 수정 | 미실행 | 실제 RED 보고 후 설계 검토 대기 | 불가 |
+| foreground 재시작·nohup·launchd | 미실행 | ID 연결 실패 해결 전 후속 진행 금지 | 불가 |
+| bridge 명시 거부 사유·종료 후 catalog | 미수집 | 이번 보존 값은 종료 전 catalog와 정상 종료 결과 | 불가 |
+| 2번 SSIM 조사·S06 구현 | 미실행 | 지정 순서 및 범위 유지 | 불가 |
+| 30분·120분·UI·verify-predev | 미실행 | 이번 승인 범위 밖; 기존 release 판정 유지 | 불가 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| `/private/tmp/media-server-s05-identity.c4mai6` | 입력·녹화·fallback·캐시·config·log | 438파일, 55,994,613byte | 삭제 | 부재 확인 | 실행 결과 cleanup |
+| `docs/release-artifacts/v4.1.0/20260904-s05-identity-red/reproduce.mjs` | 재현 실행 source | 19,905byte | 보존 | 제품 변경 없이 재실행 가능; secret 없음 | 실행 SHA 기록 |
+| `docs/release-artifacts/v4.1.0/20260904-s05-identity-red/reproduction-home-guard.json` | 실제 재현·환경·cleanup 증거 | 22,451byte | 보존 | HOME 값·credential·사용자 source URL 없음 | 전용 테스트 source만 포함 |
+
+token start/end/consumed 미집계(계측값 미제공), elapsed 17,068ms,
+source=재현 Node 타이머. 커밋·stage·푸시 없음. 1번은 연결 실패로 미완료이고,
+커밋 가능·푸시 가능 상태가 아니다.
+
+최신 사용자 `시작. 단, 동일검증 진행시 동일한 이슈가 나오면 안됨`에 따라 재현 환경만
+보완한다. 이전 실행 실패와 보존 JSON은 유지한다. 아래 사전검증은 안정화 영역이며
+4영역 판정·미승인 장시간/UI 범위는 변경하지 않는다. 제품 코드·공통 환경 함수·패키지는
+수정하지 않는다. 부모의 스크립트 전문 검토와 GO 전에는 runtime/preflight를 실행하지
+않고 문법검증만 허용한다. 실제 실행 source는 재현성을 위해 보존한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S05-I27-G01 구문 | 보존 재현 스크립트 문법 | `node --check docs/release-artifacts/v4.1.0/20260904-s05-identity-red/reproduce.mjs`; 실제 서버 미실행 | v4.1.0 |
+| S05-I27-G02 HOME guard 음성 | 누락·빈 HOME에서 spawn 차단 | 순수 guard에 HOME 미설정/빈 값 두 입력과 spawn 계수 observer 전달; 둘 다 명시 오류이며 spawn 호출 0; brew/실서버를 누락 환경으로 실행하지 않음 | v4.1.0 |
+| S05-I27-G03 HOME 전달 | 기존 HOME 값 보존 | 부모 `process.env.HOME` 비어 있지 않음 확인 뒤 동일 값을 child env에 전달, equality 확인; 실제 경로 출력 금지 | v4.1.0 |
+| S05-I27-G04 brew 동일환경 | 정확히 동일한 불변 child env 확인 | `/opt/homebrew/bin/brew --prefix` exit 0, prefix `/opt/homebrew`; stderr 숨기지 않고 민감값 제거 후 기록 | v4.1.0 |
+| S05-I27-G05 공통 환경 동일환경 | 원본 helper 직접 초기화 | 같은 child env에서 Bash가 `env_common.sh` source 후 `media_server_apply_homebrew_gst_env` 호출; exit 0 | v4.1.0 |
+| S05-I27-G06 경로 격리 | registry·plugin mirror·scanner 대조 | registry/mirror는 realpath 전용 root 내부, system plugin path 빈 값, scanner는 설치본 `/opt/homebrew/opt/gstreamer/...` 실행 가능 realpath 일치; scanner 원본 read-only | v4.1.0 |
+
+이어 기존 L01~L17을 재실행한다. L03 기동 PASS는 L04 health 200·PID listener 소유
+확인 뒤에만 기록한다. 각 API는 응답 status와 필수 field를 확인하고 다음 단계로 간다.
+source/rule/tap 결과는 실제 호출 응답만 사용하며 DB/정체성 주입으로 대체하지 않는다.
+실제 ID RED 확보 시 결과를 먼저 보고하고 제품 수정 전 대기한다. 예상 밖 선행조건 또는
+cleanup 실패는 AGENTS 규칙에 따라 중단한다. 부모의 기존 OS HOME/USER/LOGNAME은
+값을 변경하지 않고 전달하며 기존 MEDIA_SERVER 설정·토큰·credential은 상속하지 않는다.
+
+### 재개 승인 및 실제 정체성 재현 항목 — 실행 전 등록
+
+재개 실행 결과: **foreground wrapper 선행조건 실패로 다시 중단**.
+명령 `node /private/tmp/media-server-s05-identity.aeCDdY/reproduce.mjs`는 권한 확장
+승인으로 실행됐고 exit 2였다. 원본 `./server.sh foreground`의 PID 8659가 health
+확인 전 exit 1로 조기 종료했다. 제품 바이너리 도달은 미확인이고 ID 연결의 예상 RED는
+재현하지 못했다. 후속 실행·제품 수정은 중단했다.
+보존 증거: [재현 시도 JSON](release-artifacts/v4.1.0/20260904-s05-identity-red/reproduction.json).
+디렉터리명의 `red`는 재현 의도이며 이 실행의 ID 결함 재현 성공을 뜻하지 않는다.
+
+최초 로그 91byte는 local env override를 건너뛰었다는 1줄뿐이다. 재현 harness의 자식
+환경에 `HOME`·`HOMEBREW_PREFIX`가 없다. `scripts/internal/env_common.sh:79`는
+`brew --prefix 2>/dev/null` 실패 시 즉시 return 1하며, 설치된 `/opt/homebrew/bin/brew:32`
+이하에서 HOME이 없으면 exit 1한다. 정적 코드 경로가 관찰된 silent early exit와 일치하므로
+**재현 harness의 필수 환경 누락**으로 분리한다. 실행 trace 자체는 미수집이다.
+제품 ID 결함이나 제품 기동 회귀로 확정하지 않는다. 재실행·제품 수정은 하지 않았다.
+
+부모의 기동 판정 보완 요청이 실행 호출 뒤 도착해 반영 전 실행된 사실을 남긴다.
+최초 L03 spawn 직후 PASS 출력은 실제 기동 PASS가 아니므로 FAIL로 정정했다.
+또한 부모가 축약 전달한 `.analysis_registry.json`/`.views.json`은 실제 존재하지 않고,
+정확한 `.media_server.analysis_registry.json`/`.media_server.views.json`은 snapshot에
+이미 포함되어 있었다. 앞선 사전 hash 누락 주장을 정정한다. 기본
+`.media_server.users.json`도 존재하지 않음을 읽기 전용으로 확인했다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| 재현 스크립트 구문 | `node --check /private/tmp/media-server-s05-identity.aeCDdY/reproduce.mjs`, exit 0, 출력 없음 | pass | L02 준비 보조 확인; 제품 기동 evidence 아님 |
+| 재현 실행 명령 | `node /private/tmp/media-server-s05-identity.aeCDdY/reproduce.mjs`, exit 2, elapsed 682ms | fail | foreground 선행조건 실패, 기대한 ID RED 아님 |
+| S05-I27-L01 | launchctl print exit 113 service 부재, 고정 6파일 부재, loopback 18765/18766 lsof·bind 확인 | pass | 기존 서비스 종료 없음 |
+| S05-I27-L02 | 전용 root의 input/config/cache 디렉터리, disabled bootstrap 숫자 9100 준비; 입력 17,071,018byte 복사 | pass | 실제 녹화 source API 생성은 미도달 |
+| S05-I27-L03 | 원본 `./server.sh foreground` PID 8659 생성 후 exit 1 | fail | 최초 spawn PASS 출력을 정정; 실제 기동 PASS 아님 |
+| S05-I27-L04 | GET `/health` polling 시도; HTTP 200·listener 소유 검증 미도달 | fail | wrapper 조기 종료로 중단 |
+| S05-I27-L13 | process 종료 관찰 `code=1, signal=null`; 정상 SIGTERM 절차 미도달 | fail | 이미 종료돼 타 PID에 signal을 보내지 않음 |
+| S05-I27-L14 | lsof 확인에서 18765/18766 listener 모두 없음 | pass | 포트 정리 직접 확인 |
+| S05-I27-L15 | `.media_server.analysis_registry.json`/`.media_server.sources.json`/`.media_server.views.json` SHA와 `.media_server.test` 유형 전후 동일 | pass | 실제 열거 파일 확인 범위; 그 밖의 데이터 전수 보존 주장 아님 |
+| S05-I27-L16 | 전용 root 6파일·17,221,235byte 측정 후 삭제, 경로 부재 확인 | pass | raw media/config/log/임시 스크립트 제거 |
+
+| 제목 | 수행내용 | 미실행 사유 | 완료 evidence 사용 가능 여부 |
+| --- | --- | --- | --- |
+| S05-I27-L05 | POST numeric source 생성 | wrapper 선행조건 실패 후 건너뜀 | 불가 |
+| S05-I27-L06 | source readback | L05 미도달 | 불가 |
+| S05-I27-L07 | finalized 숫자채널 segment 확인 | 실제 source 미생성 | 불가 |
+| S05-I27-L08 | presence rule 저장 | 선행 실패 후 건너뜀 | 불가 |
+| S05-I27-L09 | 실제 analysis tap 생성 | 선행 실패 후 건너뜀 | 불가 |
+| S05-I27-L10 | EventRecord dispatch·저장 | tap 미생성 | 불가 |
+| S05-I27-L11 | ID 연결 RED | 녹화·이벤트 선행조건 미도달 | 불가 |
+| S05-I27-L12 | tap DELETE | tap 생성 없음 | 불가 |
+| nohup·launchd·재시작 | 나머지 1번 실제 서비스 검증 | foreground 선행 실패 후 건너뜀 | 불가 |
+| 2번·S06 구현 | SSIM 조사·S06 개발 | 중단 유지 | 불가 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| `/private/tmp/media-server-s05-identity.aeCDdY` | 입력 미디어·config·log·임시 재현 스크립트 | 6파일, 17,221,235byte | 자기 생성 root 삭제 | 부재 확인 | 재현 JSON cleanup |
+| `docs/release-artifacts/v4.1.0/20260904-s05-identity-red/reproduction.json` | 실패·cleanup 최소 증거 | 8,153byte | 보존 | secret/credential/사용자 source URL 없음 | 전용 설정과 실패 이력 보존 목적 |
+
+최종 문서 검증: `git diff --check` exit 0, 출력 없음(S05-I27-L17 pass).
+이는 문서 whitespace 검증에 한정되며 실패한 foreground 실행을 통과로 바꾸지 않는다.
+
+토큰 start/end/consumed 미집계(계측값 미제공), 실행 elapsed 682ms,
+source=재현 Node `Date.now()` 차이. 원본 C++/공통 wrapper는 수정하지 않았으며,
+커밋·stage·푸시는 하지 않았다. 최초 기동 실패를 숨기거나 ID 결함으로 대체하지 않는다.
+다음 재개 조건은 기존 HOME 값을 바꾸지 않고 자식에 전달하거나 확인된
+HOMEBREW_PREFIX를 명시하는 harness 보완 후 같은 항목을 다시 실행하는 것이다.
+제품 기능·패키지를 바꾸는 조치는 아니다. 현재 실행은 여기서 중단한다.
+
+사용자 `응 진행`으로 정체성 후보의 실제 재현을 승인했다. 아래 항목은 기존
+ENV-09/10·V410-S05-I27의 실제 서비스 확인을 세분화하며 신규 제품 기능이 아니다.
+현재 단계는 원본 foreground 서비스의 재현까지다. 재현 뒤 수정 설계를 검토하기 전에는
+제품 수정·nohup/launchd 후속 실행·2번·S06 구현을 진행하지 않는다.
+상기 중단 기록은 최초 이력으로 보존하며 현재 결과로 소급 덮어쓰지 않는다.
+4영역 판정은 아래 기존 표를 유지한다. 단기 bounded deadline 안에서만 실행한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S05-I27-L01 사전 소유권 | 기존 서비스·상태 파일 확인 | 고정 6파일 부재, launchctl print의 service 부재, loopback 18765/18766 비사용을 재확인; 기존 root 데이터 SHA 목록화 | v4.1.0 |
+| S05-I27-L02 격리 준비 | 원본 입력 복사와 전용 config | mkdtemp 아래 input/cache/registry/auth/events/recordings 격리, disabled 숫자 bootstrap은 외부 default seed 방지용이며 실제 녹화 source는 API 생성 | v4.1.0 |
+| S05-I27-L03 기동 | 실제 원본 foreground wrapper | SKIP_LOCAL_ENV=1·SKIP_BUILD=1·loopback·auth-off 전용 인스턴스·녹화 enabled; 30초 health deadline | v4.1.0 |
+| S05-I27-L04 health | GET /health | HTTP 200 및 소유 PID의 loopback listen 확인 | v4.1.0 |
+| S05-I27-L05 source 생성 | POST /ops/api/sources | numeric sourceId 9101·file identity.mp4·recording enabled; HTTP 성공 및 실제 registry 반영 확인 | v4.1.0 |
+| S05-I27-L06 source readback | GET /ops/api/sources | numeric 9101과 녹화 enabled·file token 유지 확인 | v4.1.0 |
+| S05-I27-L07 녹화 선행조건 | read-only SQLite segment 조회 | 30초 이내 finalized continuous·channelId 9101·비어 있지 않은 실제 MP4 존재; 실패 시 ID 재현 아닌 선행조건 실패 | v4.1.0 |
+| S05-I27-L08 rule 생성 | PUT /lab/analysis/rules/9101 | 기존 presence person polygon rule와 외부 post disabled 저장; HTTP 성공 확인 | v4.1.0 |
+| S05-I27-L09 tap 생성 | POST /lab/analysis/taps | 동일 identity.mp4에 va=1/fps=8 tap 생성; 실제 tapId 및 stream key 수집 | v4.1.0 |
+| S05-I27-L10 이벤트 dispatch | GET /lab/analysis/taps/{id}/events?dispatch=1 | 45초 이내 실제 presence 이벤트 및 EventRecord JSONL 저장; 이벤트 미발생은 ID 재현 아닌 선행조건 실패 | v4.1.0 |
+| S05-I27-L11 정체성 연결 RED | EventRecord와 catalog 대조 | 유효 실제 이벤트와 finalized numeric-channel segment가 있는데 recording link가 없거나 ID 거부가 관찰되면 예상 RED; 실제 이벤트 channel/stream ID, recordingLinkId, fallback clip 존재를 별도 기록 | v4.1.0 |
+| S05-I27-L12 tap 정리 | DELETE /lab/analysis/taps/{id} | 생성한 tap만 삭제하고 HTTP 응답 기록 | v4.1.0 |
+| S05-I27-L13 정상 종료 | 자기 소유 PID SIGTERM | 실행경로·포트 소유 확인 후 종료, 15초 이내 exit 0; 실패 시 별도 cleanup failure | v4.1.0 |
+| S05-I27-L14 port 확인 | 종료 후 listener 검사 | 18765/18766 listener 부재 확인; 다른 PID 종료 금지 | v4.1.0 |
+| S05-I27-L15 원본 보존 | root 데이터 hash 재대조 | 기존 파일 SHA 불변 및 wrapper 고정 상태파일 미생성 확인 | v4.1.0 |
+| S05-I27-L16 임시 정리 | 산출물 크기·삭제·부재 | 자기 소유 run root의 파일 수/byte 측정, 필요한 sanitized 결과만 repo 보존 후 미디어/cache/config/log 삭제 및 부재 확인 | v4.1.0 |
+| S05-I27-L17 문서 검증 | git diff --check | 실제 exit code 기록; 제품 PASS 대체 금지 | v4.1.0 |
+
+테스트의 실패 조건은 실제 숫자 채널 녹화와 동일 영상 이벤트 사이 정체성 매핑이
+없어 녹화 link를 만들지 못하는 것이다. DB/ID 주입이나 fixture 결과로 이 조건을
+대체하지 않는다. 토큰 자동 계측은 미제공이며 실행 elapsed만 타이머로 기록한다.
+
+### 최초 사전 검토 이력 — 재개 승인 전
+
+아래는 실제 wrapper 실행 전의 역사적 상태다. 최신 실행 결과는 위 재개 결과를 따른다.
+
+상태: **높은 우선순위 통합 결함 후보 발견, 실제 서비스 재현 미실행**.
+이 기록은 서비스 실행 PASS/FAIL 결과가 아니다. 기존 S05 및 ENV fixture PASS를 취소하지
+않으며, 그 결과를 실제 foreground/nohup/launchd 제품 서비스 PASS로 확대하지 않는다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | foreground·nohup·launchd 실제 제품 기동, 녹화 생성, 이벤트 연결, 정상 종료·재시작 검증 | 사전 검토 중단 | 이벤트와 녹화의 정체성 연결 결함 후보를 먼저 보고; 실제 기동 없음 | 아래 코드 흐름 근거표 |
+| 2 | libgstvalidatessim.dylib blacklist 원인·영향 조사 | 건너뜀 | 1번 관련 이슈 보고 뒤 중단; 패키지 삭제·임의 제외 없음 | 순차 진행 및 문제 우선 보고 지시 |
+| 3 | 이후 S06 진행 준비와 보고 | 구현 미착수 | 준비 검토는 부모 담당; 이 기록은 S06 착수 또는 준비 완료 evidence가 아님 | 지정 범위 이탈 금지 |
+| 4 | 추천 모델의 서브 에이전트 1개로 순차 진행, 하위 재위임 금지 | 준수 | 동일 서브 에이전트가 1번 사전 검토만 수행; 하위 위임 없음 | 실제 작업 범위 |
+| 5 | 1~2번 관련 이슈 발생 시 먼저 보고 | 수행 | fixed label 사전조건 및 정체성 결함 후보를 부모에게 즉시 보고; 부모가 사용자에게 선보고 | 아래 정정·중단 경계 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 사용자가 1번 실제 실행 검증을 지시 | ENV-09/10, V410-S05-I27 | 범위 승인; 사전 검토 후보 발견으로 실행 전 중단 |
+| 30분 테스트 | 미진행 | 이번 단기 검증 범위 밖 | AGENTS 7.6.2·7.7 | 미승인; 기존 릴리즈 미실행 필수 blocker 판정 유지 |
+| 120분 테스트 | 미진행 | 이번 요청은 120분 실행을 포함하지 않으며 이번 제품 변경 없음 | AGENTS 7.6.2·7.7 | 미승인; 기존 S05/릴리즈 판정 변경 없음 |
+| UI 풀테스트 | 미진행 | 이번 실제 서비스 lifecycle 검증과 별도 영역 | AGENTS 7.6.2·7.9 | 미승인; 기존 릴리즈 미실행 필수 blocker 판정 유지 |
+
+### 안전 사전조건과 코드 검토 후보 구분
+
+처음 확인한 start wrapper의 고정 label·상태 경로는 현재 기능 실패로 확정하지 않는다.
+부모의 읽기 전용 확인에서 `.media_server.pid`, `.media_server.address`,
+`.media_server.port`, `.media_server.log`, `.media_server.mode`,
+`.media_server.launchd.plist` 6개는 모두 부재했고,
+`launchctl print gui/501/com.dhseo.mediaserver`는 exit 113과 `Could not find service`를
+반환했다. 이는 **기존 서비스 부재 확인**이며 테스트 FAIL이 아니다. 실제 충돌은
+확인되지 않았고, 원본 wrapper 실행 직전 다시 부재를 확인할 조건으로 정정한다.
+기존 서비스 종료·기존 상태 파일 삭제·함수 추출 대체 harness 실행은 하지 않았다.
+
+아래는 실행 결과가 아닌 읽기 전용 코드 추적이다. 부모가 추가 추적한
+stream/tap/AnalysisResult 경계에서도 별도 등록 채널 ID 매핑을 발견하지 못했다.
+미발견을 코드 전역의 부재 증명 또는 실행으로 확정된 장애로 표현하지 않는다.
+
+| 확인 대상 | 직접 코드 근거 | 확인 내용 | 판단 경계 |
+| --- | --- | --- | --- |
+| 등록 source 정체성 | `src/ingress/source_view_registry.cpp:754` | `sourceId`는 numeric registry ID 필수 | 실제 API 생성 미실행 |
+| 녹화 채널 정체성 | `src/recording/recording_supervisor.cpp:102` | `StartChannel(source.source_id, ...)`로 등록 ID 전달 | 원본 코드 직접 확인 |
+| 미디어 stream key | `src/core/stream_key.cpp:154` | kind + `::` + canonical URI | 원본 코드 직접 확인 |
+| 분석 tap 연결 | `src/analysis/analysis_session_service.cpp:200` | `stream_handle.stream_key`를 `AttachStream`에 전달 | 부모의 직접 읽기 확인 |
+| 분석 결과 | `src/analysis/analysis_manager.cpp:617` | `result.source_key = tap->stream_key` | 부모의 직접 읽기 확인 |
+| EventRecord | `src/analysis/event_storage.cpp:101`, `:146` | source key를 channelId 및 streamId로 사용 | 등록 ID 변환을 이 경계에서 발견하지 못함 |
+| 이벤트 녹화 링크 | `src/recording/event_recording_bridge.cpp:433` | streamId/channelId를 링크의 sourceId/channelId로 무변환 복사 | 원본 코드 직접 확인 |
+| 링크 ID 유효성 | `src/recording/recording_contracts.cpp:343`, `:530` | sourceId/channelId의 `/` 또는 `\`를 거부 | path형 stream key는 링크 생성 거부 가능성 |
+| 녹화 segment 연결 | `src/recording/event_recording_bridge.cpp:709` | segment/link channelId 일치가 후보 조건 | 숫자 등록 ID와 stream key 불일치 시 연결 제외 가능성 |
+| 기존 fixture의 범위 | `scripts/internal/event_storage_recording_runtime_smoke.cpp:90`, `:181` | 분석 source key와 segment sourceId/channelId를 모두 `cam-runtime`으로 설정 | 실제 registry ID↔stream key 경계 미검증; 기존 fixture PASS 범위 유지 |
+
+확인한 흐름은 등록 sourceId → recorder channelId와 canonical stream key → tap →
+AnalysisResult → EventRecord → event-recording link로 갈라진다. 이 두 정체성을 연결하는
+보정 경로는 확인한 범위에서 발견되지 않았다. 따라서 같은 실제 미디어의 녹화와 이벤트가
+연결되지 않거나 path형 ID 검증에서 링크가 거부될 **통합 결함 후보**다.
+실제 실행·DB·EventRecord 증거는 없으므로 재현 확정 FAIL이 아니다.
+
+### 미실행/제외 기록
+
+| 제목 | 수행내용 | 미실행/제외 사유 | 완료 evidence 사용 가능 여부 |
+| --- | --- | --- | --- |
+| ENV-09 foreground 실제 서비스 | 기동·녹화 생성·이벤트 연결·정상 종료·재시작·cleanup | 실행 전 코드 검토 후보 발견, 중단 지시 | 불가 |
+| ENV-10 nohup 실제 서비스 | 기동·녹화 생성·이벤트 연결·정상 종료·재시작·cleanup | foreground 선행 검증 미실행 | 불가 |
+| ENV-10 launchd 실제 서비스 | 기동·녹화 생성·이벤트 연결·정상 종료·재시작·cleanup | 앞 방식 선행 검증 미실행 | 불가 |
+| V410-S05-I27 실제 composition | 이벤트 bridge 접수·저장소 drain·재시작 복구의 실제 서버 확인 | 실제 서비스 기동 미실행 | 불가 |
+| 2번 SSIM blacklist | 원인·영향 조사 | 1번 관련 후보 보고 후 순차 중단 | 불가 |
+| 30분·verify-predev | 장시간 안정화 | 범위 밖·미승인 | 불가 |
+| 120분 | 장시간 누수·drift | 범위 밖·미승인 | 불가 |
+| UI 풀테스트 | 실제 브라우저 조작 및 시각 확인 | 범위 밖·미승인 | 불가 |
+
+제품·API·schema·공통 환경·inventory·승인 manifest·로드맵은 변경하지 않았다.
+이번 변경 대상은 이 중단 기록뿐이다. 제품 테스트 결과표에 PASS 행을 만들지 않는다.
+문서 검증은 `git diff --check`만 실행했다. 결과는 exit 0, 출력 없음이다.
+이는 문서 whitespace 검증이며 제품 서비스 또는 녹화·이벤트 연결 PASS가 아니다.
+커밋·stage·푸시는 수행하지 않는다. 서비스 검증 미완료이므로 1번 커밋 가능 상태가 아니다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| 없음 | 임시 산출물·테스트 서비스 | 0 | cleanup 불필요 | 생성·기동 없음 | 읽기 전용 사전 검토와 본 문서 편집만 수행 |
+
+토큰 기록: `token start`, `token end`, `token consumed`는 미집계이며 자동 사용량
+계측값이 제공되지 않았다. `elapsed`도 별도 실행 타이머가 없어 미집계다.
+`source`: 도구별 읽기 명령 및 부모의 직접 확인 전달; 제품 테스트 실행 계측 아님.
+
+후속 검증 제안은 사용자 재개 승인 후 원본 서비스와 전용 데이터/캐시/포트에서 숫자
+sourceId를 등록하고 같은 파일의 tap을 연결하여, registry ID·stream key·EventRecord
+channelId·catalog segment/link를 직접 대조하는 것이다. 임의로 sourceId를 stream key로
+맞추거나 DB/결과를 주입하지 않는다. 제품 수정이 필요하면 그 범위는 별도 승인을 받는다.
+
 ## v4.1.0 GStreamer 공통 실행 환경 보완 (2026-09-04)
 
 사용자 `진행` 승인 범위: 검증한 GTK/Python 검색 경로 분리를 프로젝트 공통 실행·검증

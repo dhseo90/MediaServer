@@ -12,23 +12,48 @@ let passed = 0;
 function test(name, fn) { fn(); ++passed; console.log(`[등록기 단위 테스트] PASS ${name}`); }
 const validate = (m = manifest, text = inventoryText) => validateS05Registration({ rootDir, manifest: m, inventoryText: text });
 test("정상 정식 등록 27개", () => assert.equal(validate().length, 27));
+
+// 실제 문서 검증은 위에서 유지한다. 합계 변형시험은 현재 총계나 제품 등록군을
+// 치환하지 않고 독립 literal 입력을 사용한다. S05 상세 연결 행만 실제 문서에서 가져온다.
+const actionRows = inventoryText.split("\n").filter(line => /^\| V410-S05-I\d+ \|/.test(line)).join("\n");
+const summaryFixture = summary => `${summary}\n${actionRows}\n`;
+const baseSummary = `| 현재 등록 범위 | 수 |
+| --- | ---: |
+| 역사적 canonical ID | 986 |
+| S05 개별 action ID | 27 |
+| 현재 등록 총계 | 1013 |
+`;
+const oneGroupSummary = `| 현재 등록 범위 | 수 |
+| --- | ---: |
+| 역사적 canonical ID | 986 |
+| S05 개별 action ID | 27 |
+| 합성 등록군 A | 2 |
+| 현재 등록 총계 | 1015 |
+`;
+const multiGroupSummary = `| 현재 등록 범위 | 수 |
+| --- | ---: |
+| 역사적 canonical ID | 986 |
+| S05 개별 action ID | 27 |
+| 합성 등록군 A | 7 |
+| 합성 등록군 B | 11 |
+| 현재 등록 총계 | 1031 |
+`;
 test("다른 등록군 추가와 일관된 총계 허용", () => {
-  assert(inventoryText.includes("| 현재 등록 총계 | 1026 |"), "확장 시험의 치환 대상 누락");
-  const extended = inventoryText.replace("| 현재 등록 총계 | 1026 |",
-    "| 후속 검증용 등록군 | 2 |\n| 현재 등록 총계 | 1028 |");
-  assert.equal(validate(manifest, extended).length, 27);
+  for (const summary of [baseSummary, oneGroupSummary, multiGroupSummary]) {
+    assert.equal(validate(manifest, summaryFixture(summary)).length, 27);
+  }
 });
 for (const [name, before, after, reason] of [
-  ["전체 총계 불일치 거부", "| 현재 등록 총계 | 1026 |", "| 현재 등록 총계 | 1025 |", /총계/],
+  ["전체 총계 불일치 거부", "| 현재 등록 총계 | 1031 |", "| 현재 등록 총계 | 1030 |", /총계/],
   ["canonical 등록 수 변경 거부", "| 역사적 canonical ID | 986 |", "| 역사적 canonical ID | 985 |", /canonical/],
   ["S05 등록 수 변경 거부", "| S05 개별 action ID | 27 |", "| S05 개별 action ID | 26 |", /S05/],
-  ["등록군 중복 거부", "| GStreamer 환경 개별 action ID | 13 |", "| GStreamer 환경 개별 action ID | 13 |\n| GStreamer 환경 개별 action ID | 0 |", /중복/],
-  ["음수 등록 수 거부", "| GStreamer 환경 개별 action ID | 13 |", "| GStreamer 환경 개별 action ID | -13 |", /등록 수/],
-  ["소수 등록 수 거부", "| GStreamer 환경 개별 action ID | 13 |", "| GStreamer 환경 개별 action ID | 13.0 |", /등록 수/],
+  ["등록군 중복 거부", "| 합성 등록군 A | 7 |", "| 합성 등록군 A | 7 |\n| 합성 등록군 A | 0 |", /중복/],
+  ["음수 등록 수 거부", "| 합성 등록군 A | 7 |", "| 합성 등록군 A | -7 |", /등록 수/],
+  ["소수 등록 수 거부", "| 합성 등록군 A | 7 |", "| 합성 등록군 A | 7.0 |", /등록 수/],
   ["등록 범위 표 누락 거부", "| 현재 등록 범위 | 수 |", "| 잘못된 표 | 수 |", /등록 범위/],
 ]) test(name, () => {
-  assert(inventoryText.includes(before), `${name}: mutation 대상 누락`);
-  assert.throws(() => validate(manifest, inventoryText.replace(before, after)), reason);
+  assert(multiGroupSummary.includes(before), `${name}: mutation 대상 누락`);
+  assert.throws(() => validate(manifest, summaryFixture(multiGroupSummary.replace(before, after))), reason);
 });
 for (const [name, mutate] of [
   ["누락 ID", m => m.rows.pop()],

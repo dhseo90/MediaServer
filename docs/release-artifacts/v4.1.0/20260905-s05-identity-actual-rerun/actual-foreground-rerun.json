@@ -1,0 +1,953 @@
+{
+  "schema": "media-server.s05.actual-identity-verification.v1",
+  "mode": "foreground",
+  "rows": [
+    {
+      "id": "S05-I27-G02",
+      "result": "pass",
+      "detail": {
+        "cases": 2,
+        "rejected": 2,
+        "spawnCount": 0,
+        "diagnostic": "HOME 누락: 프로세스를 생성하지 않음"
+      },
+      "elapsedMs": 1
+    },
+    {
+      "id": "S05-I27-G03",
+      "result": "pass",
+      "detail": {
+        "homePresent": true,
+        "homeUnchanged": true,
+        "childEnvFrozen": true,
+        "osIdentityKeys": [
+          "HOME",
+          "USER",
+          "LOGNAME"
+        ],
+        "priorServiceConfigInherited": false
+      },
+      "elapsedMs": 4
+    },
+    {
+      "id": "S05-I27-L01",
+      "result": "pass",
+      "detail": {
+        "launchctlExit": 113,
+        "serviceAbsent": true,
+        "stateFilesAbsent": 6,
+        "portsFree": [
+          18765,
+          18766
+        ],
+        "originalFiles": {
+          ".analysis_registry.json": "absent",
+          ".media_server.analysis_registry.json": "919b19086bc03aa135cc0b966e349ad0e9ccbf29292c3edadd1ddbd8b5f8c73c",
+          ".media_server.sources.json": "d698a3093e1bb6fea2612ba5b098fcf3f3e72d672009e636a46eecb71b975295",
+          ".media_server.test": "directory",
+          ".media_server.users.json": "absent",
+          ".media_server.views.json": "b89b1199446d7911213b239d41bd9eed6008c91b895a896da89ed071a570d7cd",
+          ".views.json": "absent",
+          "scripts/.media_server.env": "absent"
+        }
+      },
+      "elapsedMs": 67
+    },
+    {
+      "id": "S05-I27-L02",
+      "result": "pass",
+      "detail": {
+        "root": "/private/tmp/media-server-s05-identity.YLZpyl",
+        "inputBytes": 17071018,
+        "bootstrapDisabled": true,
+        "actualSourceCreation": "POST API 예정"
+      },
+      "elapsedMs": 72
+    },
+    {
+      "id": "S05-I27-G04",
+      "result": "pass",
+      "detail": {
+        "command": "/opt/homebrew/bin/brew --prefix",
+        "exit": 0,
+        "prefix": "/opt/homebrew",
+        "stderr": ""
+      },
+      "elapsedMs": 87
+    },
+    {
+      "id": "S05-I27-G05",
+      "result": "pass",
+      "detail": {
+        "command": "동일 child env: source env_common.sh; media_server_apply_homebrew_gst_env",
+        "exit": 0,
+        "stderr": ""
+      },
+      "elapsedMs": 229
+    },
+    {
+      "id": "S05-I27-G06",
+      "result": "pass",
+      "detail": {
+        "gst": {
+          "HOMEBREW_PREFIX": "/opt/homebrew",
+          "GST_PLUGIN_SCANNER_1_0": "/opt/homebrew/opt/gstreamer/libexec/gstreamer-1.0/gst-plugin-scanner",
+          "GST_PLUGIN_PATH_1_0": "/private/tmp/media-server-s05-identity.YLZpyl/cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000:/private/tmp/media-server-s05-identity.YLZpyl/cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0001",
+          "GST_PLUGIN_SYSTEM_PATH_1_0": "",
+          "GST_REGISTRY_1_0": "/private/tmp/media-server-s05-identity.YLZpyl/cache/registry.bin"
+        },
+        "registryInRoot": true,
+        "pluginMirrorsInRoot": true,
+        "scannerInstalledReadOnly": true,
+        "sameInputEnvDigest": "79c531b6793ec339931ab9418090ec8f883357d7a07cb15e5233d98da8427c58"
+      },
+      "elapsedMs": 229
+    },
+    {
+      "id": "S05-I27-L03",
+      "result": "pass",
+      "detail": {
+        "command": "./server.sh foreground",
+        "pid": 19843,
+        "healthStatus": 200,
+        "childEnvUnchanged": true
+      },
+      "elapsedMs": 1898
+    },
+    {
+      "id": "S05-I27-L04",
+      "result": "pass",
+      "detail": {
+        "method": "GET",
+        "path": "/health",
+        "status": 200,
+        "ownedPorts": [
+          {
+            "port": 18765,
+            "pids": [
+              19843
+            ]
+          },
+          {
+            "port": 18766,
+            "pids": [
+              19843
+            ]
+          }
+        ]
+      },
+      "elapsedMs": 1898
+    },
+    {
+      "id": "S05-I27-L05",
+      "result": "pass",
+      "detail": {
+        "method": "POST",
+        "path": "/ops/api/sources",
+        "status": 201,
+        "responseStatus": "created",
+        "requestedSourceId": "9101"
+      },
+      "elapsedMs": 1970
+    },
+    {
+      "id": "S05-I27-L06",
+      "result": "pass",
+      "detail": {
+        "method": "GET",
+        "path": "/ops/api/sources",
+        "status": 200,
+        "source": {
+          "sourceId": "9101",
+          "kind": "file",
+          "file": "identity.mp4",
+          "recording": {
+            "enabled": true,
+            "revision": 1,
+            "continuousMaxBytes": 268435456,
+            "continuousMaxAgeMs": 3600000,
+            "eventMaxBytes": 268435456,
+            "eventMaxAgeMs": 3600000,
+            "storagePath": ""
+          }
+        }
+      },
+      "elapsedMs": 1971
+    },
+    {
+      "id": "S05-I27-L07",
+      "result": "pass",
+      "detail": {
+        "readonlySql": true,
+        "segments": [
+          {
+            "segment_id": "seg-9101-1788560545356-1",
+            "source_id": "9101",
+            "channel_id": "9101",
+            "stream_epoch_id": "epoch-9101-1-1788560545286",
+            "start_utc_ms": 1788560545356,
+            "end_utc_ms": 1788560553660,
+            "start_pts": 0,
+            "end_pts": 8300000000,
+            "time_base_num": 1,
+            "time_base_den": 1000000000,
+            "size_bytes": 4096788,
+            "retention_class": "continuous",
+            "lifecycle": "finalized",
+            "media_relpath": "9101/seg-9101-1788560545356-1.mp4"
+          }
+        ]
+      },
+      "elapsedMs": 10651
+    },
+    {
+      "id": "S05-I27-L08",
+      "result": "pass",
+      "detail": {
+        "method": "PUT",
+        "path": "/lab/analysis/rules/9101",
+        "status": 200,
+        "responseStatus": "created"
+      },
+      "elapsedMs": 10656
+    },
+    {
+      "id": "S05-I27-L09",
+      "result": "pass",
+      "detail": {
+        "method": "POST",
+        "path": "/lab/analysis/taps",
+        "status": 200,
+        "tap": {
+          "tapId": "analysis-tap-1",
+          "streamKey": "file::/private/tmp/media-server-s05-identity.YLZpyl/input/identity.mp4"
+        }
+      },
+      "elapsedMs": 10700
+    },
+    {
+      "id": "S05-I27-L10",
+      "result": "pass",
+      "detail": {
+        "method": "GET",
+        "path": "/lab/analysis/taps/analysis-tap-1/events?dispatch=1",
+        "status": 200,
+        "events": [
+          {
+            "eventId": "evt_1788560554609_4",
+            "eventType": "presence",
+            "channelId": "file::/private/tmp/media-server-s05-identity.YLZpyl/input/identity.mp4",
+            "streamId": "file::/private/tmp/media-server-s05-identity.YLZpyl/input/identity.mp4",
+            "startTime": 9033,
+            "updateTime": 9033,
+            "endTime": 0,
+            "timeBasis": "media-pts-ms",
+            "timeAnchorUtcMs": 0,
+            "timeAnchorPtsMs": 0,
+            "streamEpochId": "",
+            "preEventMs": 500,
+            "postEventMs": 500,
+            "recordingLinkId": "event-link-sha256-a8c18e7f1c468fc613a75ed90f7aa07974955200ce8c0c6988c50140ce826591",
+            "recordingCompleteness": "time-basis-ambiguous",
+            "fallbackPath": "/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560554609_4.clip/manifest.json",
+            "fallbackPathExists": true
+          },
+          {
+            "eventId": "evt_1788560554609_6",
+            "eventType": "presence",
+            "channelId": "file::/private/tmp/media-server-s05-identity.YLZpyl/input/identity.mp4",
+            "streamId": "file::/private/tmp/media-server-s05-identity.YLZpyl/input/identity.mp4",
+            "startTime": 9033,
+            "updateTime": 9033,
+            "endTime": 0,
+            "timeBasis": "media-pts-ms",
+            "timeAnchorUtcMs": 0,
+            "timeAnchorPtsMs": 0,
+            "streamEpochId": "",
+            "preEventMs": 500,
+            "postEventMs": 500,
+            "recordingLinkId": "event-link-sha256-25027b35a4d2bae00976bb424a3197b540b8ad52357e4ef4ce26ddef51c26ca1",
+            "recordingCompleteness": "time-basis-ambiguous",
+            "fallbackPath": "/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560554609_6.clip/manifest.json",
+            "fallbackPathExists": true
+          },
+          {
+            "eventId": "evt_1788560554624_7",
+            "eventType": "presence",
+            "channelId": "file::/private/tmp/media-server-s05-identity.YLZpyl/input/identity.mp4",
+            "streamId": "file::/private/tmp/media-server-s05-identity.YLZpyl/input/identity.mp4",
+            "startTime": 9033,
+            "updateTime": 9033,
+            "endTime": 0,
+            "timeBasis": "media-pts-ms",
+            "timeAnchorUtcMs": 0,
+            "timeAnchorPtsMs": 0,
+            "streamEpochId": "",
+            "preEventMs": 500,
+            "postEventMs": 500,
+            "recordingLinkId": "event-link-sha256-a1f95f1d7bfcf98af3ab651416e0a5de52f7a42cd0a46f92ff93ae1e8313a239",
+            "recordingCompleteness": "time-basis-ambiguous",
+            "fallbackPath": "/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560554624_7.clip/manifest.json",
+            "fallbackPathExists": true
+          },
+          {
+            "eventId": "evt_1788560554624_8",
+            "eventType": "presence",
+            "channelId": "file::/private/tmp/media-server-s05-identity.YLZpyl/input/identity.mp4",
+            "streamId": "file::/private/tmp/media-server-s05-identity.YLZpyl/input/identity.mp4",
+            "startTime": 9033,
+            "updateTime": 9033,
+            "endTime": 0,
+            "timeBasis": "media-pts-ms",
+            "timeAnchorUtcMs": 0,
+            "timeAnchorPtsMs": 0,
+            "streamEpochId": "",
+            "preEventMs": 500,
+            "postEventMs": 500,
+            "recordingLinkId": "event-link-sha256-40e69b200b9902de8c2ab5ad01fd7e683ad1a77648b44e4e504cd1582af8b9ae",
+            "recordingCompleteness": "time-basis-ambiguous",
+            "fallbackPath": "/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560554624_8.clip/manifest.json",
+            "fallbackPathExists": true
+          }
+        ]
+      },
+      "elapsedMs": 12249
+    },
+    {
+      "id": "S05-I27-L11",
+      "result": "pass",
+      "detail": {
+        "expected": "원본 EventRecord stream/channel 불변, recordingLinkId와 numeric source/channel 9101 catalog 일치",
+        "originalIdentityPreserved": true,
+        "eventChannelIds": [
+          "file::/private/tmp/media-server-s05-identity.YLZpyl/input/identity.mp4",
+          "file::/private/tmp/media-server-s05-identity.YLZpyl/input/identity.mp4",
+          "file::/private/tmp/media-server-s05-identity.YLZpyl/input/identity.mp4",
+          "file::/private/tmp/media-server-s05-identity.YLZpyl/input/identity.mp4"
+        ],
+        "segmentChannelIds": [
+          "9101"
+        ],
+        "links": [
+          {
+            "link_id": "event-link-sha256-25027b35a4d2bae00976bb424a3197b540b8ad52357e4ef4ce26ddef51c26ca1",
+            "event_id": "evt_1788560554609_6",
+            "channel_id": "9101",
+            "requested_start_ms": 0,
+            "requested_end_ms": 0,
+            "derived_segment_id": "",
+            "fallback_ref": "fallback-sha256-25027b35a4d2bae00976bb424a3197b540b8ad52357e4ef4ce26ddef51c26ca1",
+            "completeness": "pending",
+            "missing_ranges_json": "{\"schema\":\"media-server.event-recording-link.v1\",\"link_id\":\"event-link-sha256-25027b35a4d2bae00976bb424a3197b540b8ad52357e4ef4ce26ddef51c26ca1\",\"event_id\":\"evt_1788560554609_6\",\"source_id\":\"9101\",\"channel_id\":\"9101\",\"requested_range\":null,\"media_pts_range_ms\":{\"start_ms\":8533,\"end_ms\":9533},\"ordered_overlaps\":[],\"derived_segment_id\":null,\"fallback_evidence_id\":\"fallback-sha256-25027b35a4d2bae00976bb424a3197b540b8ad52357e4ef4ce26ddef51c26ca1\",\"fallback_media_locator\":\"/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560554609_6.clip/manifest.json\",\"missing_ranges\":[],\"time_basis\":\"media-pts-ms\",\"completeness_reason\":\"pending-with-provisional-frame-buffer-fallback\",\"status\":\"pending\",\"created_at_ms\":1788560554624,\"updated_at_ms\":1788560555286}",
+            "display_priority": 0
+          },
+          {
+            "link_id": "event-link-sha256-a1f95f1d7bfcf98af3ab651416e0a5de52f7a42cd0a46f92ff93ae1e8313a239",
+            "event_id": "evt_1788560554624_7",
+            "channel_id": "9101",
+            "requested_start_ms": 0,
+            "requested_end_ms": 0,
+            "derived_segment_id": "",
+            "fallback_ref": "fallback-sha256-a1f95f1d7bfcf98af3ab651416e0a5de52f7a42cd0a46f92ff93ae1e8313a239",
+            "completeness": "pending",
+            "missing_ranges_json": "{\"schema\":\"media-server.event-recording-link.v1\",\"link_id\":\"event-link-sha256-a1f95f1d7bfcf98af3ab651416e0a5de52f7a42cd0a46f92ff93ae1e8313a239\",\"event_id\":\"evt_1788560554624_7\",\"source_id\":\"9101\",\"channel_id\":\"9101\",\"requested_range\":null,\"media_pts_range_ms\":{\"start_ms\":8533,\"end_ms\":9533},\"ordered_overlaps\":[],\"derived_segment_id\":null,\"fallback_evidence_id\":\"fallback-sha256-a1f95f1d7bfcf98af3ab651416e0a5de52f7a42cd0a46f92ff93ae1e8313a239\",\"fallback_media_locator\":\"/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560554624_7.clip/manifest.json\",\"missing_ranges\":[],\"time_basis\":\"media-pts-ms\",\"completeness_reason\":\"pending-with-provisional-frame-buffer-fallback\",\"status\":\"pending\",\"created_at_ms\":1788560554624,\"updated_at_ms\":1788560555414}",
+            "display_priority": 0
+          },
+          {
+            "link_id": "event-link-sha256-40e69b200b9902de8c2ab5ad01fd7e683ad1a77648b44e4e504cd1582af8b9ae",
+            "event_id": "evt_1788560554624_8",
+            "channel_id": "9101",
+            "requested_start_ms": 0,
+            "requested_end_ms": 0,
+            "derived_segment_id": "",
+            "fallback_ref": "fallback-sha256-40e69b200b9902de8c2ab5ad01fd7e683ad1a77648b44e4e504cd1582af8b9ae",
+            "completeness": "pending",
+            "missing_ranges_json": "{\"schema\":\"media-server.event-recording-link.v1\",\"link_id\":\"event-link-sha256-40e69b200b9902de8c2ab5ad01fd7e683ad1a77648b44e4e504cd1582af8b9ae\",\"event_id\":\"evt_1788560554624_8\",\"source_id\":\"9101\",\"channel_id\":\"9101\",\"requested_range\":null,\"media_pts_range_ms\":{\"start_ms\":8533,\"end_ms\":9533},\"ordered_overlaps\":[],\"derived_segment_id\":null,\"fallback_evidence_id\":\"fallback-sha256-40e69b200b9902de8c2ab5ad01fd7e683ad1a77648b44e4e504cd1582af8b9ae\",\"fallback_media_locator\":\"/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560554624_8.clip/manifest.json\",\"missing_ranges\":[],\"time_basis\":\"media-pts-ms\",\"completeness_reason\":\"pending-with-provisional-frame-buffer-fallback\",\"status\":\"pending\",\"created_at_ms\":1788560554625,\"updated_at_ms\":1788560555544}",
+            "display_priority": 0
+          },
+          {
+            "link_id": "event-link-sha256-a8c18e7f1c468fc613a75ed90f7aa07974955200ce8c0c6988c50140ce826591",
+            "event_id": "evt_1788560554609_4",
+            "channel_id": "9101",
+            "requested_start_ms": 0,
+            "requested_end_ms": 0,
+            "derived_segment_id": "",
+            "fallback_ref": "fallback-sha256-a8c18e7f1c468fc613a75ed90f7aa07974955200ce8c0c6988c50140ce826591",
+            "completeness": "pending",
+            "missing_ranges_json": "{\"schema\":\"media-server.event-recording-link.v1\",\"link_id\":\"event-link-sha256-a8c18e7f1c468fc613a75ed90f7aa07974955200ce8c0c6988c50140ce826591\",\"event_id\":\"evt_1788560554609_4\",\"source_id\":\"9101\",\"channel_id\":\"9101\",\"requested_range\":null,\"media_pts_range_ms\":{\"start_ms\":8533,\"end_ms\":9533},\"ordered_overlaps\":[],\"derived_segment_id\":null,\"fallback_evidence_id\":\"fallback-sha256-a8c18e7f1c468fc613a75ed90f7aa07974955200ce8c0c6988c50140ce826591\",\"fallback_media_locator\":\"/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560554609_4.clip/manifest.json\",\"missing_ranges\":[],\"time_basis\":\"media-pts-ms\",\"completeness_reason\":\"time-basis-awaiting-segment-map\",\"status\":\"pending\",\"created_at_ms\":1788560554609,\"updated_at_ms\":1788560555631}",
+            "display_priority": 0
+          },
+          {
+            "link_id": "event-link-sha256-6b613ab91fdb0b84f9e9440665d279dfbc63d194283d842b41a437f3d7f4439e",
+            "event_id": "evt_1788560555126_13",
+            "channel_id": "9101",
+            "requested_start_ms": 0,
+            "requested_end_ms": 0,
+            "derived_segment_id": "",
+            "fallback_ref": "fallback-sha256-6b613ab91fdb0b84f9e9440665d279dfbc63d194283d842b41a437f3d7f4439e",
+            "completeness": "pending",
+            "missing_ranges_json": "{\"schema\":\"media-server.event-recording-link.v1\",\"link_id\":\"event-link-sha256-6b613ab91fdb0b84f9e9440665d279dfbc63d194283d842b41a437f3d7f4439e\",\"event_id\":\"evt_1788560555126_13\",\"source_id\":\"9101\",\"channel_id\":\"9101\",\"requested_range\":null,\"media_pts_range_ms\":{\"start_ms\":8533,\"end_ms\":10066},\"ordered_overlaps\":[],\"derived_segment_id\":null,\"fallback_evidence_id\":\"fallback-sha256-6b613ab91fdb0b84f9e9440665d279dfbc63d194283d842b41a437f3d7f4439e\",\"fallback_media_locator\":\"/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560555126_13.clip/manifest.json\",\"missing_ranges\":[],\"time_basis\":\"media-pts-ms\",\"completeness_reason\":\"pending-with-provisional-frame-buffer-fallback\",\"status\":\"pending\",\"created_at_ms\":1788560555127,\"updated_at_ms\":1788560555730}",
+            "display_priority": 0
+          },
+          {
+            "link_id": "event-link-sha256-7674432cefadd03e36765cd3fc488543e2466c27d4d4807e905bb600501a464b",
+            "event_id": "evt_1788560555127_14",
+            "channel_id": "9101",
+            "requested_start_ms": 0,
+            "requested_end_ms": 0,
+            "derived_segment_id": "",
+            "fallback_ref": "fallback-sha256-7674432cefadd03e36765cd3fc488543e2466c27d4d4807e905bb600501a464b",
+            "completeness": "pending",
+            "missing_ranges_json": "{\"schema\":\"media-server.event-recording-link.v1\",\"link_id\":\"event-link-sha256-7674432cefadd03e36765cd3fc488543e2466c27d4d4807e905bb600501a464b\",\"event_id\":\"evt_1788560555127_14\",\"source_id\":\"9101\",\"channel_id\":\"9101\",\"requested_range\":null,\"media_pts_range_ms\":{\"start_ms\":8533,\"end_ms\":10066},\"ordered_overlaps\":[],\"derived_segment_id\":null,\"fallback_evidence_id\":\"fallback-sha256-7674432cefadd03e36765cd3fc488543e2466c27d4d4807e905bb600501a464b\",\"fallback_media_locator\":\"/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560555127_14.clip/manifest.json\",\"missing_ranges\":[],\"time_basis\":\"media-pts-ms\",\"completeness_reason\":\"pending-with-provisional-frame-buffer-fallback\",\"status\":\"pending\",\"created_at_ms\":1788560555127,\"updated_at_ms\":1788560555913}",
+            "display_priority": 0
+          },
+          {
+            "link_id": "event-link-sha256-64886043b1fb287bc62631000bf0edeaaa524ca72b4a834d2ab4ba5196174e5c",
+            "event_id": "evt_1788560555127_15",
+            "channel_id": "9101",
+            "requested_start_ms": 0,
+            "requested_end_ms": 0,
+            "derived_segment_id": "",
+            "fallback_ref": "fallback-sha256-64886043b1fb287bc62631000bf0edeaaa524ca72b4a834d2ab4ba5196174e5c",
+            "completeness": "pending",
+            "missing_ranges_json": "{\"schema\":\"media-server.event-recording-link.v1\",\"link_id\":\"event-link-sha256-64886043b1fb287bc62631000bf0edeaaa524ca72b4a834d2ab4ba5196174e5c\",\"event_id\":\"evt_1788560555127_15\",\"source_id\":\"9101\",\"channel_id\":\"9101\",\"requested_range\":null,\"media_pts_range_ms\":{\"start_ms\":8533,\"end_ms\":10066},\"ordered_overlaps\":[],\"derived_segment_id\":null,\"fallback_evidence_id\":\"fallback-sha256-64886043b1fb287bc62631000bf0edeaaa524ca72b4a834d2ab4ba5196174e5c\",\"fallback_media_locator\":\"/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560555127_15.clip/manifest.json\",\"missing_ranges\":[],\"time_basis\":\"media-pts-ms\",\"completeness_reason\":\"pending-with-provisional-frame-buffer-fallback\",\"status\":\"pending\",\"created_at_ms\":1788560555127,\"updated_at_ms\":1788560556094}",
+            "display_priority": 0
+          },
+          {
+            "link_id": "event-link-sha256-9030c9b4a80719253b9cb40bca72292834f898da5df334c0572b95699fdb4c19",
+            "event_id": "evt_1788560555128_16",
+            "channel_id": "9101",
+            "requested_start_ms": 0,
+            "requested_end_ms": 0,
+            "derived_segment_id": "",
+            "fallback_ref": "fallback-sha256-9030c9b4a80719253b9cb40bca72292834f898da5df334c0572b95699fdb4c19",
+            "completeness": "pending",
+            "missing_ranges_json": "{\"schema\":\"media-server.event-recording-link.v1\",\"link_id\":\"event-link-sha256-9030c9b4a80719253b9cb40bca72292834f898da5df334c0572b95699fdb4c19\",\"event_id\":\"evt_1788560555128_16\",\"source_id\":\"9101\",\"channel_id\":\"9101\",\"requested_range\":null,\"media_pts_range_ms\":{\"start_ms\":8533,\"end_ms\":10066},\"ordered_overlaps\":[],\"derived_segment_id\":null,\"fallback_evidence_id\":\"fallback-sha256-9030c9b4a80719253b9cb40bca72292834f898da5df334c0572b95699fdb4c19\",\"fallback_media_locator\":\"/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560555128_16.clip/manifest.json\",\"missing_ranges\":[],\"time_basis\":\"media-pts-ms\",\"completeness_reason\":\"pending-with-provisional-frame-buffer-fallback\",\"status\":\"pending\",\"created_at_ms\":1788560555128,\"updated_at_ms\":1788560556274}",
+            "display_priority": 0
+          },
+          {
+            "link_id": "event-link-sha256-b7c3ff34680279d2713e435d308f76614db1c536c6e2614846a21fd9619f9ac6",
+            "event_id": "evt_1788560555631_25",
+            "channel_id": "9101",
+            "requested_start_ms": 0,
+            "requested_end_ms": 0,
+            "derived_segment_id": "",
+            "fallback_ref": "fallback-sha256-b7c3ff34680279d2713e435d308f76614db1c536c6e2614846a21fd9619f9ac6",
+            "completeness": "pending",
+            "missing_ranges_json": "{\"schema\":\"media-server.event-recording-link.v1\",\"link_id\":\"event-link-sha256-b7c3ff34680279d2713e435d308f76614db1c536c6e2614846a21fd9619f9ac6\",\"event_id\":\"evt_1788560555631_25\",\"source_id\":\"9101\",\"channel_id\":\"9101\",\"requested_range\":null,\"media_pts_range_ms\":{\"start_ms\":8533,\"end_ms\":10600},\"ordered_overlaps\":[],\"derived_segment_id\":null,\"fallback_evidence_id\":\"fallback-sha256-b7c3ff34680279d2713e435d308f76614db1c536c6e2614846a21fd9619f9ac6\",\"fallback_media_locator\":\"/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560555631_25.clip/manifest.json\",\"missing_ranges\":[],\"time_basis\":\"media-pts-ms\",\"completeness_reason\":\"pending-with-provisional-frame-buffer-fallback\",\"status\":\"pending\",\"created_at_ms\":1788560555631,\"updated_at_ms\":1788560556456}",
+            "display_priority": 0
+          },
+          {
+            "link_id": "event-link-sha256-1c1ec1394a5801d81e78402626fdeb9845922debff6995bb37654960e3d0b1b6",
+            "event_id": "evt_1788560555631_27",
+            "channel_id": "9101",
+            "requested_start_ms": 0,
+            "requested_end_ms": 0,
+            "derived_segment_id": "",
+            "fallback_ref": "fallback-sha256-1c1ec1394a5801d81e78402626fdeb9845922debff6995bb37654960e3d0b1b6",
+            "completeness": "pending",
+            "missing_ranges_json": "{\"schema\":\"media-server.event-recording-link.v1\",\"link_id\":\"event-link-sha256-1c1ec1394a5801d81e78402626fdeb9845922debff6995bb37654960e3d0b1b6\",\"event_id\":\"evt_1788560555631_27\",\"source_id\":\"9101\",\"channel_id\":\"9101\",\"requested_range\":null,\"media_pts_range_ms\":{\"start_ms\":8533,\"end_ms\":10600},\"ordered_overlaps\":[],\"derived_segment_id\":null,\"fallback_evidence_id\":\"fallback-sha256-1c1ec1394a5801d81e78402626fdeb9845922debff6995bb37654960e3d0b1b6\",\"fallback_media_locator\":\"/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560555631_27.clip/manifest.json\",\"missing_ranges\":[],\"time_basis\":\"media-pts-ms\",\"completeness_reason\":\"pending-with-provisional-frame-buffer-fallback\",\"status\":\"pending\",\"created_at_ms\":1788560555632,\"updated_at_ms\":1788560556818}",
+            "display_priority": 0
+          },
+          {
+            "link_id": "event-link-sha256-c43b5ceee42e8485e19f0ad252082e037d3a546c497026b4135592fa0898a961",
+            "event_id": "evt_1788560555631_26",
+            "channel_id": "9101",
+            "requested_start_ms": 0,
+            "requested_end_ms": 0,
+            "derived_segment_id": "",
+            "fallback_ref": "fallback-sha256-c43b5ceee42e8485e19f0ad252082e037d3a546c497026b4135592fa0898a961",
+            "completeness": "pending",
+            "missing_ranges_json": "{\"schema\":\"media-server.event-recording-link.v1\",\"link_id\":\"event-link-sha256-c43b5ceee42e8485e19f0ad252082e037d3a546c497026b4135592fa0898a961\",\"event_id\":\"evt_1788560555631_26\",\"source_id\":\"9101\",\"channel_id\":\"9101\",\"requested_range\":null,\"media_pts_range_ms\":{\"start_ms\":8533,\"end_ms\":10600},\"ordered_overlaps\":[],\"derived_segment_id\":null,\"fallback_evidence_id\":\"fallback-sha256-c43b5ceee42e8485e19f0ad252082e037d3a546c497026b4135592fa0898a961\",\"fallback_media_locator\":\"/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560555631_26.clip/manifest.json\",\"missing_ranges\":[],\"time_basis\":\"media-pts-ms\",\"completeness_reason\":\"time-basis-awaiting-segment-map\",\"status\":\"pending\",\"created_at_ms\":1788560555631,\"updated_at_ms\":1788560556819}",
+            "display_priority": 0
+          },
+          {
+            "link_id": "event-link-sha256-ea2e7fd4c4fa3005fa52bd4b48aa4a6b51c0f0e3881db4339421f9d7c1d89064",
+            "event_id": "evt_1788560555632_28",
+            "channel_id": "9101",
+            "requested_start_ms": 0,
+            "requested_end_ms": 0,
+            "derived_segment_id": "",
+            "fallback_ref": "fallback-sha256-ea2e7fd4c4fa3005fa52bd4b48aa4a6b51c0f0e3881db4339421f9d7c1d89064",
+            "completeness": "pending",
+            "missing_ranges_json": "{\"schema\":\"media-server.event-recording-link.v1\",\"link_id\":\"event-link-sha256-ea2e7fd4c4fa3005fa52bd4b48aa4a6b51c0f0e3881db4339421f9d7c1d89064\",\"event_id\":\"evt_1788560555632_28\",\"source_id\":\"9101\",\"channel_id\":\"9101\",\"requested_range\":null,\"media_pts_range_ms\":{\"start_ms\":8533,\"end_ms\":10600},\"ordered_overlaps\":[],\"derived_segment_id\":null,\"fallback_evidence_id\":\"fallback-sha256-ea2e7fd4c4fa3005fa52bd4b48aa4a6b51c0f0e3881db4339421f9d7c1d89064\",\"fallback_media_locator\":\"/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560555632_28.clip/manifest.json\",\"missing_ranges\":[],\"time_basis\":\"media-pts-ms\",\"completeness_reason\":\"time-basis-awaiting-segment-map\",\"status\":\"pending\",\"created_at_ms\":1788560555632,\"updated_at_ms\":1788560558140}",
+            "display_priority": 0
+          }
+        ],
+        "scope": "내구 접수 검증이며 finalized 구간 coverage·파생 clip 완성 PASS가 아님",
+        "fallbackPathExists": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "elapsedMs": 14755
+    },
+    {
+      "id": "S05-I27-L12",
+      "result": "pass",
+      "detail": {
+        "method": "DELETE",
+        "path": "/lab/analysis/taps/analysis-tap-1",
+        "status": 200
+      },
+      "elapsedMs": 14847
+    },
+    {
+      "id": "S05-I27-L13",
+      "result": "pass",
+      "detail": {
+        "pid": 19843,
+        "signal": "SIGTERM",
+        "exit": {
+          "code": 0,
+          "signal": null
+        }
+      },
+      "elapsedMs": 15854
+    },
+    {
+      "id": "S05-I27-L14",
+      "result": "pass",
+      "detail": {
+        "ports": [
+          {
+            "port": 18765,
+            "pids": []
+          },
+          {
+            "port": 18766,
+            "pids": []
+          }
+        ]
+      },
+      "elapsedMs": 15910
+    },
+    {
+      "id": "S05-I27-L15",
+      "result": "pass",
+      "detail": {
+        "before": {
+          ".analysis_registry.json": "absent",
+          ".media_server.analysis_registry.json": "919b19086bc03aa135cc0b966e349ad0e9ccbf29292c3edadd1ddbd8b5f8c73c",
+          ".media_server.sources.json": "d698a3093e1bb6fea2612ba5b098fcf3f3e72d672009e636a46eecb71b975295",
+          ".media_server.test": "directory",
+          ".media_server.users.json": "absent",
+          ".media_server.views.json": "b89b1199446d7911213b239d41bd9eed6008c91b895a896da89ed071a570d7cd",
+          ".views.json": "absent",
+          "scripts/.media_server.env": "absent"
+        },
+        "after": {
+          ".analysis_registry.json": "absent",
+          ".media_server.analysis_registry.json": "919b19086bc03aa135cc0b966e349ad0e9ccbf29292c3edadd1ddbd8b5f8c73c",
+          ".media_server.sources.json": "d698a3093e1bb6fea2612ba5b098fcf3f3e72d672009e636a46eecb71b975295",
+          ".media_server.test": "directory",
+          ".media_server.users.json": "absent",
+          ".media_server.views.json": "b89b1199446d7911213b239d41bd9eed6008c91b895a896da89ed071a570d7cd",
+          ".views.json": "absent",
+          "scripts/.media_server.env": "absent"
+        }
+      },
+      "elapsedMs": 15911
+    },
+    {
+      "id": "S05-I27-G07",
+      "result": "pass",
+      "detail": {
+        "binary": {
+          "path": "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server",
+          "before": {
+            "sha256": "4630191f072b109dc0c26a2726527cd94642a12c014e4be781d5b46ec898116d",
+            "mtimeMs": 1788531780868.6682
+          },
+          "after": {
+            "sha256": "4630191f072b109dc0c26a2726527cd94642a12c014e4be781d5b46ec898116d",
+            "mtimeMs": 1788531780868.6682
+          }
+        },
+        "criterion": "검증 중 실행 바이너리 SHA/mtime 불변"
+      },
+      "elapsedMs": 15917
+    },
+    {
+      "id": "S05-I27-L16",
+      "result": "pass",
+      "detail": {
+        "path": "/private/tmp/media-server-s05-identity.YLZpyl",
+        "files": 429,
+        "bytes": 74556325,
+        "action": "삭제",
+        "removed": true
+      },
+      "elapsedMs": 15937
+    }
+  ],
+  "childEnvKeys": [
+    "PATH",
+    "HOME",
+    "TMPDIR",
+    "USER",
+    "LOGNAME",
+    "MEDIA_SERVER_SKIP_LOCAL_ENV",
+    "MEDIA_SERVER_SKIP_BUILD",
+    "MEDIA_SERVER_ENABLE_AI",
+    "MEDIA_SERVER_BUILD_DIR",
+    "MEDIA_SERVER_LISTEN_ADDRESS",
+    "MEDIA_SERVER_HTTP_LISTEN_ADDRESS",
+    "MEDIA_SERVER_LISTEN_PORT",
+    "MEDIA_SERVER_HTTP_LISTEN_PORT",
+    "MEDIA_SERVER_AUTH_MODE",
+    "MEDIA_SERVER_ENABLE_LAB",
+    "MEDIA_SERVER_ENABLE_OPS",
+    "MEDIA_SERVER_FILE_ROOT",
+    "MEDIA_SERVER_DEFAULT_FILE",
+    "MEDIA_SERVER_AUTH_USERS_FILE",
+    "MEDIA_SERVER_SOURCE_REGISTRY",
+    "MEDIA_SERVER_PUBLISHED_VIEWS",
+    "MEDIA_SERVER_ANALYSIS_REGISTRY",
+    "MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_ENABLED",
+    "MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_PATH",
+    "MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_HOOK_ENABLED",
+    "MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_DIR",
+    "MEDIA_SERVER_ANALYSIS_EVENT_CLIP_HOOK_ENABLED",
+    "MEDIA_SERVER_ANALYSIS_EVENT_CLIP_DIR",
+    "MEDIA_SERVER_ANALYSIS_EVENT_PRE_EVENT_MS",
+    "MEDIA_SERVER_ANALYSIS_EVENT_POST_EVENT_MS",
+    "MEDIA_SERVER_ANALYSIS_EVENT_CLIP_BUFFER_MS",
+    "MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED",
+    "MEDIA_SERVER_RECORDING_ENABLED",
+    "MEDIA_SERVER_RECORDING_STORAGE_ROOT",
+    "MEDIA_SERVER_RECORDING_SEGMENT_DURATION_SECONDS",
+    "MEDIA_SERVER_RECORDING_RESERVED_FREE_BYTES",
+    "MEDIA_SERVER_RECORDING_RETENTION_INTERVAL_MS",
+    "MEDIA_SERVER_GST_CACHE_DIR",
+    "MEDIA_SERVER_ANALYSIS_MODEL",
+    "MEDIA_SERVER_ANALYSIS_LABELS",
+    "MEDIA_SERVER_ANALYSIS_DETECTOR",
+    "MEDIA_SERVER_ANALYSIS_FPS",
+    "MEDIA_SERVER_ANALYSIS_CONFIDENCE",
+    "MEDIA_SERVER_ANALYSIS_ADAPTIVE",
+    "GST_REGISTRY_1_0",
+    "GST_REGISTRY"
+  ],
+  "childEnvDigest": "79c531b6793ec339931ab9418090ec8f883357d7a07cb15e5233d98da8427c58",
+  "binary": {
+    "path": "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server",
+    "before": {
+      "sha256": "4630191f072b109dc0c26a2726527cd94642a12c014e4be781d5b46ec898116d",
+      "mtimeMs": 1788531780868.6682
+    },
+    "after": {
+      "sha256": "4630191f072b109dc0c26a2726527cd94642a12c014e4be781d5b46ec898116d",
+      "mtimeMs": 1788531780868.6682
+    }
+  },
+  "pid": 19843,
+  "source": {
+    "sourceId": "9101",
+    "kind": "file",
+    "file": "identity.mp4",
+    "recording": {
+      "enabled": true,
+      "revision": 1,
+      "continuousMaxBytes": 268435456,
+      "continuousMaxAgeMs": 3600000,
+      "eventMaxBytes": 268435456,
+      "eventMaxAgeMs": 3600000,
+      "storagePath": ""
+    }
+  },
+  "segments": [
+    {
+      "segment_id": "seg-9101-1788560545356-1",
+      "source_id": "9101",
+      "channel_id": "9101",
+      "stream_epoch_id": "epoch-9101-1-1788560545286",
+      "start_utc_ms": 1788560545356,
+      "end_utc_ms": 1788560553660,
+      "start_pts": 0,
+      "end_pts": 8300000000,
+      "time_base_num": 1,
+      "time_base_den": 1000000000,
+      "size_bytes": 4096788,
+      "retention_class": "continuous",
+      "lifecycle": "finalized",
+      "media_relpath": "9101/seg-9101-1788560545356-1.mp4"
+    }
+  ],
+  "tap": {
+    "tapId": "analysis-tap-1",
+    "streamKey": "file::/private/tmp/media-server-s05-identity.YLZpyl/input/identity.mp4"
+  },
+  "events": [
+    {
+      "eventId": "evt_1788560554609_4",
+      "eventType": "presence",
+      "channelId": "file::/private/tmp/media-server-s05-identity.YLZpyl/input/identity.mp4",
+      "streamId": "file::/private/tmp/media-server-s05-identity.YLZpyl/input/identity.mp4",
+      "startTime": 9033,
+      "updateTime": 9033,
+      "endTime": 0,
+      "timeBasis": "media-pts-ms",
+      "timeAnchorUtcMs": 0,
+      "timeAnchorPtsMs": 0,
+      "streamEpochId": "",
+      "preEventMs": 500,
+      "postEventMs": 500,
+      "recordingLinkId": "event-link-sha256-a8c18e7f1c468fc613a75ed90f7aa07974955200ce8c0c6988c50140ce826591",
+      "recordingCompleteness": "time-basis-ambiguous",
+      "fallbackPath": "/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560554609_4.clip/manifest.json",
+      "fallbackPathExists": true
+    },
+    {
+      "eventId": "evt_1788560554609_6",
+      "eventType": "presence",
+      "channelId": "file::/private/tmp/media-server-s05-identity.YLZpyl/input/identity.mp4",
+      "streamId": "file::/private/tmp/media-server-s05-identity.YLZpyl/input/identity.mp4",
+      "startTime": 9033,
+      "updateTime": 9033,
+      "endTime": 0,
+      "timeBasis": "media-pts-ms",
+      "timeAnchorUtcMs": 0,
+      "timeAnchorPtsMs": 0,
+      "streamEpochId": "",
+      "preEventMs": 500,
+      "postEventMs": 500,
+      "recordingLinkId": "event-link-sha256-25027b35a4d2bae00976bb424a3197b540b8ad52357e4ef4ce26ddef51c26ca1",
+      "recordingCompleteness": "time-basis-ambiguous",
+      "fallbackPath": "/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560554609_6.clip/manifest.json",
+      "fallbackPathExists": true
+    },
+    {
+      "eventId": "evt_1788560554624_7",
+      "eventType": "presence",
+      "channelId": "file::/private/tmp/media-server-s05-identity.YLZpyl/input/identity.mp4",
+      "streamId": "file::/private/tmp/media-server-s05-identity.YLZpyl/input/identity.mp4",
+      "startTime": 9033,
+      "updateTime": 9033,
+      "endTime": 0,
+      "timeBasis": "media-pts-ms",
+      "timeAnchorUtcMs": 0,
+      "timeAnchorPtsMs": 0,
+      "streamEpochId": "",
+      "preEventMs": 500,
+      "postEventMs": 500,
+      "recordingLinkId": "event-link-sha256-a1f95f1d7bfcf98af3ab651416e0a5de52f7a42cd0a46f92ff93ae1e8313a239",
+      "recordingCompleteness": "time-basis-ambiguous",
+      "fallbackPath": "/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560554624_7.clip/manifest.json",
+      "fallbackPathExists": true
+    },
+    {
+      "eventId": "evt_1788560554624_8",
+      "eventType": "presence",
+      "channelId": "file::/private/tmp/media-server-s05-identity.YLZpyl/input/identity.mp4",
+      "streamId": "file::/private/tmp/media-server-s05-identity.YLZpyl/input/identity.mp4",
+      "startTime": 9033,
+      "updateTime": 9033,
+      "endTime": 0,
+      "timeBasis": "media-pts-ms",
+      "timeAnchorUtcMs": 0,
+      "timeAnchorPtsMs": 0,
+      "streamEpochId": "",
+      "preEventMs": 500,
+      "postEventMs": 500,
+      "recordingLinkId": "event-link-sha256-40e69b200b9902de8c2ab5ad01fd7e683ad1a77648b44e4e504cd1582af8b9ae",
+      "recordingCompleteness": "time-basis-ambiguous",
+      "fallbackPath": "/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560554624_8.clip/manifest.json",
+      "fallbackPathExists": true
+    }
+  ],
+  "links": [
+    {
+      "link_id": "event-link-sha256-25027b35a4d2bae00976bb424a3197b540b8ad52357e4ef4ce26ddef51c26ca1",
+      "event_id": "evt_1788560554609_6",
+      "channel_id": "9101",
+      "requested_start_ms": 0,
+      "requested_end_ms": 0,
+      "derived_segment_id": "",
+      "fallback_ref": "fallback-sha256-25027b35a4d2bae00976bb424a3197b540b8ad52357e4ef4ce26ddef51c26ca1",
+      "completeness": "pending",
+      "missing_ranges_json": "{\"schema\":\"media-server.event-recording-link.v1\",\"link_id\":\"event-link-sha256-25027b35a4d2bae00976bb424a3197b540b8ad52357e4ef4ce26ddef51c26ca1\",\"event_id\":\"evt_1788560554609_6\",\"source_id\":\"9101\",\"channel_id\":\"9101\",\"requested_range\":null,\"media_pts_range_ms\":{\"start_ms\":8533,\"end_ms\":9533},\"ordered_overlaps\":[],\"derived_segment_id\":null,\"fallback_evidence_id\":\"fallback-sha256-25027b35a4d2bae00976bb424a3197b540b8ad52357e4ef4ce26ddef51c26ca1\",\"fallback_media_locator\":\"/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560554609_6.clip/manifest.json\",\"missing_ranges\":[],\"time_basis\":\"media-pts-ms\",\"completeness_reason\":\"pending-with-provisional-frame-buffer-fallback\",\"status\":\"pending\",\"created_at_ms\":1788560554624,\"updated_at_ms\":1788560555286}",
+      "display_priority": 0
+    },
+    {
+      "link_id": "event-link-sha256-a1f95f1d7bfcf98af3ab651416e0a5de52f7a42cd0a46f92ff93ae1e8313a239",
+      "event_id": "evt_1788560554624_7",
+      "channel_id": "9101",
+      "requested_start_ms": 0,
+      "requested_end_ms": 0,
+      "derived_segment_id": "",
+      "fallback_ref": "fallback-sha256-a1f95f1d7bfcf98af3ab651416e0a5de52f7a42cd0a46f92ff93ae1e8313a239",
+      "completeness": "pending",
+      "missing_ranges_json": "{\"schema\":\"media-server.event-recording-link.v1\",\"link_id\":\"event-link-sha256-a1f95f1d7bfcf98af3ab651416e0a5de52f7a42cd0a46f92ff93ae1e8313a239\",\"event_id\":\"evt_1788560554624_7\",\"source_id\":\"9101\",\"channel_id\":\"9101\",\"requested_range\":null,\"media_pts_range_ms\":{\"start_ms\":8533,\"end_ms\":9533},\"ordered_overlaps\":[],\"derived_segment_id\":null,\"fallback_evidence_id\":\"fallback-sha256-a1f95f1d7bfcf98af3ab651416e0a5de52f7a42cd0a46f92ff93ae1e8313a239\",\"fallback_media_locator\":\"/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560554624_7.clip/manifest.json\",\"missing_ranges\":[],\"time_basis\":\"media-pts-ms\",\"completeness_reason\":\"pending-with-provisional-frame-buffer-fallback\",\"status\":\"pending\",\"created_at_ms\":1788560554624,\"updated_at_ms\":1788560555414}",
+      "display_priority": 0
+    },
+    {
+      "link_id": "event-link-sha256-40e69b200b9902de8c2ab5ad01fd7e683ad1a77648b44e4e504cd1582af8b9ae",
+      "event_id": "evt_1788560554624_8",
+      "channel_id": "9101",
+      "requested_start_ms": 0,
+      "requested_end_ms": 0,
+      "derived_segment_id": "",
+      "fallback_ref": "fallback-sha256-40e69b200b9902de8c2ab5ad01fd7e683ad1a77648b44e4e504cd1582af8b9ae",
+      "completeness": "pending",
+      "missing_ranges_json": "{\"schema\":\"media-server.event-recording-link.v1\",\"link_id\":\"event-link-sha256-40e69b200b9902de8c2ab5ad01fd7e683ad1a77648b44e4e504cd1582af8b9ae\",\"event_id\":\"evt_1788560554624_8\",\"source_id\":\"9101\",\"channel_id\":\"9101\",\"requested_range\":null,\"media_pts_range_ms\":{\"start_ms\":8533,\"end_ms\":9533},\"ordered_overlaps\":[],\"derived_segment_id\":null,\"fallback_evidence_id\":\"fallback-sha256-40e69b200b9902de8c2ab5ad01fd7e683ad1a77648b44e4e504cd1582af8b9ae\",\"fallback_media_locator\":\"/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560554624_8.clip/manifest.json\",\"missing_ranges\":[],\"time_basis\":\"media-pts-ms\",\"completeness_reason\":\"pending-with-provisional-frame-buffer-fallback\",\"status\":\"pending\",\"created_at_ms\":1788560554625,\"updated_at_ms\":1788560555544}",
+      "display_priority": 0
+    },
+    {
+      "link_id": "event-link-sha256-a8c18e7f1c468fc613a75ed90f7aa07974955200ce8c0c6988c50140ce826591",
+      "event_id": "evt_1788560554609_4",
+      "channel_id": "9101",
+      "requested_start_ms": 0,
+      "requested_end_ms": 0,
+      "derived_segment_id": "",
+      "fallback_ref": "fallback-sha256-a8c18e7f1c468fc613a75ed90f7aa07974955200ce8c0c6988c50140ce826591",
+      "completeness": "pending",
+      "missing_ranges_json": "{\"schema\":\"media-server.event-recording-link.v1\",\"link_id\":\"event-link-sha256-a8c18e7f1c468fc613a75ed90f7aa07974955200ce8c0c6988c50140ce826591\",\"event_id\":\"evt_1788560554609_4\",\"source_id\":\"9101\",\"channel_id\":\"9101\",\"requested_range\":null,\"media_pts_range_ms\":{\"start_ms\":8533,\"end_ms\":9533},\"ordered_overlaps\":[],\"derived_segment_id\":null,\"fallback_evidence_id\":\"fallback-sha256-a8c18e7f1c468fc613a75ed90f7aa07974955200ce8c0c6988c50140ce826591\",\"fallback_media_locator\":\"/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560554609_4.clip/manifest.json\",\"missing_ranges\":[],\"time_basis\":\"media-pts-ms\",\"completeness_reason\":\"time-basis-awaiting-segment-map\",\"status\":\"pending\",\"created_at_ms\":1788560554609,\"updated_at_ms\":1788560555631}",
+      "display_priority": 0
+    },
+    {
+      "link_id": "event-link-sha256-6b613ab91fdb0b84f9e9440665d279dfbc63d194283d842b41a437f3d7f4439e",
+      "event_id": "evt_1788560555126_13",
+      "channel_id": "9101",
+      "requested_start_ms": 0,
+      "requested_end_ms": 0,
+      "derived_segment_id": "",
+      "fallback_ref": "fallback-sha256-6b613ab91fdb0b84f9e9440665d279dfbc63d194283d842b41a437f3d7f4439e",
+      "completeness": "pending",
+      "missing_ranges_json": "{\"schema\":\"media-server.event-recording-link.v1\",\"link_id\":\"event-link-sha256-6b613ab91fdb0b84f9e9440665d279dfbc63d194283d842b41a437f3d7f4439e\",\"event_id\":\"evt_1788560555126_13\",\"source_id\":\"9101\",\"channel_id\":\"9101\",\"requested_range\":null,\"media_pts_range_ms\":{\"start_ms\":8533,\"end_ms\":10066},\"ordered_overlaps\":[],\"derived_segment_id\":null,\"fallback_evidence_id\":\"fallback-sha256-6b613ab91fdb0b84f9e9440665d279dfbc63d194283d842b41a437f3d7f4439e\",\"fallback_media_locator\":\"/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560555126_13.clip/manifest.json\",\"missing_ranges\":[],\"time_basis\":\"media-pts-ms\",\"completeness_reason\":\"pending-with-provisional-frame-buffer-fallback\",\"status\":\"pending\",\"created_at_ms\":1788560555127,\"updated_at_ms\":1788560555730}",
+      "display_priority": 0
+    },
+    {
+      "link_id": "event-link-sha256-7674432cefadd03e36765cd3fc488543e2466c27d4d4807e905bb600501a464b",
+      "event_id": "evt_1788560555127_14",
+      "channel_id": "9101",
+      "requested_start_ms": 0,
+      "requested_end_ms": 0,
+      "derived_segment_id": "",
+      "fallback_ref": "fallback-sha256-7674432cefadd03e36765cd3fc488543e2466c27d4d4807e905bb600501a464b",
+      "completeness": "pending",
+      "missing_ranges_json": "{\"schema\":\"media-server.event-recording-link.v1\",\"link_id\":\"event-link-sha256-7674432cefadd03e36765cd3fc488543e2466c27d4d4807e905bb600501a464b\",\"event_id\":\"evt_1788560555127_14\",\"source_id\":\"9101\",\"channel_id\":\"9101\",\"requested_range\":null,\"media_pts_range_ms\":{\"start_ms\":8533,\"end_ms\":10066},\"ordered_overlaps\":[],\"derived_segment_id\":null,\"fallback_evidence_id\":\"fallback-sha256-7674432cefadd03e36765cd3fc488543e2466c27d4d4807e905bb600501a464b\",\"fallback_media_locator\":\"/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560555127_14.clip/manifest.json\",\"missing_ranges\":[],\"time_basis\":\"media-pts-ms\",\"completeness_reason\":\"pending-with-provisional-frame-buffer-fallback\",\"status\":\"pending\",\"created_at_ms\":1788560555127,\"updated_at_ms\":1788560555913}",
+      "display_priority": 0
+    },
+    {
+      "link_id": "event-link-sha256-64886043b1fb287bc62631000bf0edeaaa524ca72b4a834d2ab4ba5196174e5c",
+      "event_id": "evt_1788560555127_15",
+      "channel_id": "9101",
+      "requested_start_ms": 0,
+      "requested_end_ms": 0,
+      "derived_segment_id": "",
+      "fallback_ref": "fallback-sha256-64886043b1fb287bc62631000bf0edeaaa524ca72b4a834d2ab4ba5196174e5c",
+      "completeness": "pending",
+      "missing_ranges_json": "{\"schema\":\"media-server.event-recording-link.v1\",\"link_id\":\"event-link-sha256-64886043b1fb287bc62631000bf0edeaaa524ca72b4a834d2ab4ba5196174e5c\",\"event_id\":\"evt_1788560555127_15\",\"source_id\":\"9101\",\"channel_id\":\"9101\",\"requested_range\":null,\"media_pts_range_ms\":{\"start_ms\":8533,\"end_ms\":10066},\"ordered_overlaps\":[],\"derived_segment_id\":null,\"fallback_evidence_id\":\"fallback-sha256-64886043b1fb287bc62631000bf0edeaaa524ca72b4a834d2ab4ba5196174e5c\",\"fallback_media_locator\":\"/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560555127_15.clip/manifest.json\",\"missing_ranges\":[],\"time_basis\":\"media-pts-ms\",\"completeness_reason\":\"pending-with-provisional-frame-buffer-fallback\",\"status\":\"pending\",\"created_at_ms\":1788560555127,\"updated_at_ms\":1788560556094}",
+      "display_priority": 0
+    },
+    {
+      "link_id": "event-link-sha256-9030c9b4a80719253b9cb40bca72292834f898da5df334c0572b95699fdb4c19",
+      "event_id": "evt_1788560555128_16",
+      "channel_id": "9101",
+      "requested_start_ms": 0,
+      "requested_end_ms": 0,
+      "derived_segment_id": "",
+      "fallback_ref": "fallback-sha256-9030c9b4a80719253b9cb40bca72292834f898da5df334c0572b95699fdb4c19",
+      "completeness": "pending",
+      "missing_ranges_json": "{\"schema\":\"media-server.event-recording-link.v1\",\"link_id\":\"event-link-sha256-9030c9b4a80719253b9cb40bca72292834f898da5df334c0572b95699fdb4c19\",\"event_id\":\"evt_1788560555128_16\",\"source_id\":\"9101\",\"channel_id\":\"9101\",\"requested_range\":null,\"media_pts_range_ms\":{\"start_ms\":8533,\"end_ms\":10066},\"ordered_overlaps\":[],\"derived_segment_id\":null,\"fallback_evidence_id\":\"fallback-sha256-9030c9b4a80719253b9cb40bca72292834f898da5df334c0572b95699fdb4c19\",\"fallback_media_locator\":\"/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560555128_16.clip/manifest.json\",\"missing_ranges\":[],\"time_basis\":\"media-pts-ms\",\"completeness_reason\":\"pending-with-provisional-frame-buffer-fallback\",\"status\":\"pending\",\"created_at_ms\":1788560555128,\"updated_at_ms\":1788560556274}",
+      "display_priority": 0
+    },
+    {
+      "link_id": "event-link-sha256-b7c3ff34680279d2713e435d308f76614db1c536c6e2614846a21fd9619f9ac6",
+      "event_id": "evt_1788560555631_25",
+      "channel_id": "9101",
+      "requested_start_ms": 0,
+      "requested_end_ms": 0,
+      "derived_segment_id": "",
+      "fallback_ref": "fallback-sha256-b7c3ff34680279d2713e435d308f76614db1c536c6e2614846a21fd9619f9ac6",
+      "completeness": "pending",
+      "missing_ranges_json": "{\"schema\":\"media-server.event-recording-link.v1\",\"link_id\":\"event-link-sha256-b7c3ff34680279d2713e435d308f76614db1c536c6e2614846a21fd9619f9ac6\",\"event_id\":\"evt_1788560555631_25\",\"source_id\":\"9101\",\"channel_id\":\"9101\",\"requested_range\":null,\"media_pts_range_ms\":{\"start_ms\":8533,\"end_ms\":10600},\"ordered_overlaps\":[],\"derived_segment_id\":null,\"fallback_evidence_id\":\"fallback-sha256-b7c3ff34680279d2713e435d308f76614db1c536c6e2614846a21fd9619f9ac6\",\"fallback_media_locator\":\"/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560555631_25.clip/manifest.json\",\"missing_ranges\":[],\"time_basis\":\"media-pts-ms\",\"completeness_reason\":\"pending-with-provisional-frame-buffer-fallback\",\"status\":\"pending\",\"created_at_ms\":1788560555631,\"updated_at_ms\":1788560556456}",
+      "display_priority": 0
+    },
+    {
+      "link_id": "event-link-sha256-1c1ec1394a5801d81e78402626fdeb9845922debff6995bb37654960e3d0b1b6",
+      "event_id": "evt_1788560555631_27",
+      "channel_id": "9101",
+      "requested_start_ms": 0,
+      "requested_end_ms": 0,
+      "derived_segment_id": "",
+      "fallback_ref": "fallback-sha256-1c1ec1394a5801d81e78402626fdeb9845922debff6995bb37654960e3d0b1b6",
+      "completeness": "pending",
+      "missing_ranges_json": "{\"schema\":\"media-server.event-recording-link.v1\",\"link_id\":\"event-link-sha256-1c1ec1394a5801d81e78402626fdeb9845922debff6995bb37654960e3d0b1b6\",\"event_id\":\"evt_1788560555631_27\",\"source_id\":\"9101\",\"channel_id\":\"9101\",\"requested_range\":null,\"media_pts_range_ms\":{\"start_ms\":8533,\"end_ms\":10600},\"ordered_overlaps\":[],\"derived_segment_id\":null,\"fallback_evidence_id\":\"fallback-sha256-1c1ec1394a5801d81e78402626fdeb9845922debff6995bb37654960e3d0b1b6\",\"fallback_media_locator\":\"/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560555631_27.clip/manifest.json\",\"missing_ranges\":[],\"time_basis\":\"media-pts-ms\",\"completeness_reason\":\"pending-with-provisional-frame-buffer-fallback\",\"status\":\"pending\",\"created_at_ms\":1788560555632,\"updated_at_ms\":1788560556818}",
+      "display_priority": 0
+    },
+    {
+      "link_id": "event-link-sha256-c43b5ceee42e8485e19f0ad252082e037d3a546c497026b4135592fa0898a961",
+      "event_id": "evt_1788560555631_26",
+      "channel_id": "9101",
+      "requested_start_ms": 0,
+      "requested_end_ms": 0,
+      "derived_segment_id": "",
+      "fallback_ref": "fallback-sha256-c43b5ceee42e8485e19f0ad252082e037d3a546c497026b4135592fa0898a961",
+      "completeness": "pending",
+      "missing_ranges_json": "{\"schema\":\"media-server.event-recording-link.v1\",\"link_id\":\"event-link-sha256-c43b5ceee42e8485e19f0ad252082e037d3a546c497026b4135592fa0898a961\",\"event_id\":\"evt_1788560555631_26\",\"source_id\":\"9101\",\"channel_id\":\"9101\",\"requested_range\":null,\"media_pts_range_ms\":{\"start_ms\":8533,\"end_ms\":10600},\"ordered_overlaps\":[],\"derived_segment_id\":null,\"fallback_evidence_id\":\"fallback-sha256-c43b5ceee42e8485e19f0ad252082e037d3a546c497026b4135592fa0898a961\",\"fallback_media_locator\":\"/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560555631_26.clip/manifest.json\",\"missing_ranges\":[],\"time_basis\":\"media-pts-ms\",\"completeness_reason\":\"time-basis-awaiting-segment-map\",\"status\":\"pending\",\"created_at_ms\":1788560555631,\"updated_at_ms\":1788560556819}",
+      "display_priority": 0
+    },
+    {
+      "link_id": "event-link-sha256-ea2e7fd4c4fa3005fa52bd4b48aa4a6b51c0f0e3881db4339421f9d7c1d89064",
+      "event_id": "evt_1788560555632_28",
+      "channel_id": "9101",
+      "requested_start_ms": 0,
+      "requested_end_ms": 0,
+      "derived_segment_id": "",
+      "fallback_ref": "fallback-sha256-ea2e7fd4c4fa3005fa52bd4b48aa4a6b51c0f0e3881db4339421f9d7c1d89064",
+      "completeness": "pending",
+      "missing_ranges_json": "{\"schema\":\"media-server.event-recording-link.v1\",\"link_id\":\"event-link-sha256-ea2e7fd4c4fa3005fa52bd4b48aa4a6b51c0f0e3881db4339421f9d7c1d89064\",\"event_id\":\"evt_1788560555632_28\",\"source_id\":\"9101\",\"channel_id\":\"9101\",\"requested_range\":null,\"media_pts_range_ms\":{\"start_ms\":8533,\"end_ms\":10600},\"ordered_overlaps\":[],\"derived_segment_id\":null,\"fallback_evidence_id\":\"fallback-sha256-ea2e7fd4c4fa3005fa52bd4b48aa4a6b51c0f0e3881db4339421f9d7c1d89064\",\"fallback_media_locator\":\"/private/tmp/media-server-s05-identity.YLZpyl/events/clips/evt_1788560555632_28.clip/manifest.json\",\"missing_ranges\":[],\"time_basis\":\"media-pts-ms\",\"completeness_reason\":\"time-basis-awaiting-segment-map\",\"status\":\"pending\",\"created_at_ms\":1788560555632,\"updated_at_ms\":1788560558140}",
+      "display_priority": 0
+    }
+  ],
+  "outcome": "실제 이벤트 원본 ID 보존 및 numeric 채널 녹화 연결 내구 접수 성공",
+  "failure": "",
+  "processExit": {
+    "code": 0,
+    "signal": null
+  },
+  "elapsedMs": 15917,
+  "tokens": {
+    "start": null,
+    "end": null,
+    "consumed": null,
+    "source": "계측값 미제공"
+  },
+  "scriptSha256": "0628b00fc2d5a2b48928ed77a7c9c9e1f00e07ef574b4a36c544cc0fe36b2e8c",
+  "serverLog": {
+    "bytes": 2911,
+    "lastLines": [
+      "[gst] forcing RTSP lower transport to TCP only",
+      "[gst] forcing RTSP lower transport to TCP only",
+      "[gst] forcing RTSP lower transport to TCP only",
+      "[gst] forcing RTSP lower transport to TCP only",
+      "[gst] forcing RTSP lower transport to TCP only",
+      "gstreamer rtsp server started: yes",
+      "webrtc http server started: yes",
+      "listen: rtsp://127.0.0.1:18765/dhseo",
+      "ops console: http://127.0.0.1:18766/ops/home",
+      "client live: http://127.0.0.1:18766/client/live",
+      "recording catalog: sqlite-primary (enabled=yes)",
+      "file test url: rtsp://127.0.0.1:18765/dhseo?file=identity.mp4",
+      "running... (SIGINT/SIGTERM to stop)",
+      "[tracking-issue] stream=file::<run-root>/input/identity.mp4 channel=file::<run-root>/input/identity.mp4 track=3 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=1",
+      "[tracking-issue] stream=file::<run-root>/input/identity.mp4 channel=file::<run-root>/input/identity.mp4 track=3 type=unstable-track severity=warning association=0 missed=1 overlap=0 directionChanges=1",
+      "[tracking-issue] stream=file::<run-root>/input/identity.mp4 channel=file::<run-root>/input/identity.mp4 track=3 type=reacquired severity=info association=0.537879 missed=0 overlap=0 directionChanges=2",
+      "[tracking-issue] stream=file::<run-root>/input/identity.mp4 channel=file::<run-root>/input/identity.mp4 track=3 type=reacquired severity=info association=0.537879 missed=0 overlap=0 directionChanges=0",
+      "[tracking-issue] stream=file::<run-root>/input/identity.mp4 channel=file::<run-root>/input/identity.mp4 track=3 type=direction-change-spike severity=warning association=0.854864 missed=0 overlap=0 directionChanges=3",
+      "[tracking-issue] stream=file::<run-root>/input/identity.mp4 channel=file::<run-root>/input/identity.mp4 track=1 type=unstable-track severity=warning association=0.960515 missed=0 overlap=0.0386001 directionChanges=0",
+      ""
+    ]
+  },
+  "cleanup": {
+    "path": "/private/tmp/media-server-s05-identity.YLZpyl",
+    "files": 429,
+    "bytes": 74556325,
+    "action": "삭제",
+    "removed": true
+  }
+}

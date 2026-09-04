@@ -1,0 +1,24 @@
+{
+  "stage": "cleanup",
+  "startedAt": "2026-09-04T14:26:22.647Z",
+  "commands": [],
+  "tokens": {
+    "start": null,
+    "end": null,
+    "consumed": null,
+    "source": "계측값 미제공"
+  },
+  "environmentDigest": "ab409c4bbe2a1e6d1446a824b84afa840f058fee1b7a6b42ef08826b029d36ef",
+  "cleanup": {
+    "path": "/private/tmp/media-server-s05-resume.kYnhd1",
+    "files": 281,
+    "bytes": 1718447,
+    "removed": true
+  },
+  "frozenSourcesUnchanged": true,
+  "ok": true,
+  "root": "/private/tmp/media-server-s05-resume.kYnhd1",
+  "elapsedMs": 134,
+  "scriptSha256": "fae3570778ce5aa602aa25f6761e7e347ab5de56efec614d0dfd1718050bb9b4",
+  "unitSha256": "3064fce3fec108af5c52f5c5ba3c484578e4d490f3f1d4803c3982379ad232a0"
+}

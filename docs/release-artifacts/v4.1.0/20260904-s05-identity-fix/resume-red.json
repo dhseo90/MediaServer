@@ -1,0 +1,32 @@
+{
+  "stage": "red",
+  "startedAt": "2026-09-04T14:18:22.172Z",
+  "commands": [
+    {
+      "file": "node",
+      "args": [
+        "scripts/internal/v410_s05_inventory.test.mjs"
+      ],
+      "exit": 1,
+      "signal": null,
+      "elapsedMs": 35,
+      "stdout": "[등록기 단위 테스트] PASS 정상 정식 등록 27개\n",
+      "stderr": "node:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: 확장 시험의 치환 대상 누락\n    at file://<기존 HOME>/Workspace/mediaServer/scripts/internal/v410_s05_inventory.test.mjs:16:3\n    at test (file://<기존 HOME>/Workspace/mediaServer/scripts/internal/v410_s05_inventory.test.mjs:12:27)\n    at file://<기존 HOME>/Workspace/mediaServer/scripts/internal/v410_s05_inventory.test.mjs:15:1\n    at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v24.13.0\n",
+      "error": null
+    }
+  ],
+  "tokens": {
+    "start": null,
+    "end": null,
+    "consumed": null,
+    "source": "계측값 미제공"
+  },
+  "environmentDigest": "ab409c4bbe2a1e6d1446a824b84afa840f058fee1b7a6b42ef08826b029d36ef",
+  "expectedRed": true,
+  "frozenSourcesUnchanged": true,
+  "ok": true,
+  "root": "/private/tmp/media-server-s05-resume.kYnhd1",
+  "elapsedMs": 167,
+  "scriptSha256": "fae3570778ce5aa602aa25f6761e7e347ab5de56efec614d0dfd1718050bb9b4",
+  "unitSha256": "3f43808d6b3af591a7d75545a90d797cd42a28d953befc58b3a18b7599ac3560"
+}

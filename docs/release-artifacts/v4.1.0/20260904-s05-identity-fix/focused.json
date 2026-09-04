@@ -1,0 +1,238 @@
+{
+  "schema": "media-server.recording-identity-focused.v1",
+  "date": "2026-09-04",
+  "branch": "v4.1.0",
+  "baseCommit": "c2c8bd9",
+  "status": "focused GREEN 후 기존 S05 실행 환경 실패로 중단",
+  "files": {
+    "fixture": {
+      "path": "scripts/internal/recording_identity_smoke.cpp",
+      "sha256": "fa3ee0483441c03a4062a7f564e9aa257d5180496047318fe4d44d9014c1dbc2"
+    },
+    "runner": {
+      "path": "scripts/internal/verify_recording_identity.sh",
+      "sha256": "156616f45ee4cb0912eaeee2486a25374988f03b19fe8d652af8a73447cb259b"
+    },
+    "originalActualRed": {
+      "path": "docs/release-artifacts/v4.1.0/20260904-s05-identity-red/reproduce.mjs",
+      "sha256": "633a714475ca8aad920df8ad2e7ab75536f51017ab215817cbd53ca2545de7df",
+      "modified": false
+    },
+    "actualGreenRunner": {
+      "path": "docs/release-artifacts/v4.1.0/20260904-s05-identity-fix/verify-actual.mjs",
+      "sha256": "dfa43d418f298fd81038267593efd2583542b37f748cd29218372196d68b5100",
+      "syntaxExit": 0,
+      "runtimeExecuted": false
+    }
+  },
+  "runs": [
+    {
+      "id": "identity-initial-red",
+      "command": "bash scripts/internal/verify_recording_identity.sh",
+      "exitCode": 1,
+      "compilePassed": true,
+      "expectedFailure": true,
+      "results": [
+        {
+          "id": "V410-IDMAP-I01",
+          "result": "fail",
+          "error": "숫자 channel의 신규 내구 link 없음: event recording link 기본 field가 유효하지 않음"
+        }
+      ],
+      "cleanup": {
+        "path": "/private/tmp/media-server-identity-unit.igvIh2",
+        "files": 5,
+        "bytes": null,
+        "diskUsageKiB": 2136,
+        "absent": true
+      },
+      "elapsedMs": null,
+      "elapsedReason": "전체 실행 경과시간을 별도 계측하지 않았으며 분할 tool 대기 시간을 총 실행시간으로 대체하지 않음"
+    },
+    {
+      "id": "writer-mutex-red",
+      "command": "bash scripts/internal/verify_recording_identity.sh",
+      "exitCode": 1,
+      "compilePassed": true,
+      "expectedFailure": true,
+      "results": [
+        {
+          "id": "V410-IDMAP-I01",
+          "result": "pass"
+        },
+        {
+          "id": "V410-IDMAP-I02",
+          "result": "pass"
+        },
+        {
+          "id": "V410-IDMAP-I03",
+          "result": "pass"
+        },
+        {
+          "id": "V410-IDMAP-I04",
+          "result": "pass"
+        },
+        {
+          "id": "V410-IDMAP-I05",
+          "result": "pass"
+        },
+        {
+          "id": "V410-IDMAP-I06",
+          "result": "pass"
+        },
+        {
+          "id": "V410-IDMAP-I07",
+          "result": "pass"
+        },
+        {
+          "id": "V410-IDMAP-I08",
+          "result": "pass"
+        },
+        {
+          "id": "V410-IDMAP-I09",
+          "result": "pass"
+        },
+        {
+          "id": "V410-IDMAP-I10",
+          "result": "pass"
+        },
+        {
+          "id": "V410-IDMAP-I11",
+          "result": "pass"
+        },
+        {
+          "id": "V410-IDMAP-I12",
+          "result": "pass"
+        },
+        {
+          "id": "V410-IDMAP-I13",
+          "result": "fail"
+        }
+      ],
+      "cleanup": {
+        "path": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-identity-unit.bYGyhN",
+        "files": 5,
+        "bytes": 3494087,
+        "absent": true
+      },
+      "latchReleasedBeforeFailure": true,
+      "elapsedMs": null,
+      "elapsedReason": "전체 실행 경과시간을 별도 계측하지 않았으며 분할 tool 대기 시간을 총 실행시간으로 대체하지 않음"
+    },
+    {
+      "id": "identity-final-green",
+      "command": "bash scripts/internal/verify_recording_identity.sh",
+      "exitCode": 0,
+      "compilePassed": true,
+      "results": [
+        {
+          "id": "V410-IDMAP-I01",
+          "result": "pass"
+        },
+        {
+          "id": "V410-IDMAP-I02",
+          "result": "pass"
+        },
+        {
+          "id": "V410-IDMAP-I03",
+          "result": "pass"
+        },
+        {
+          "id": "V410-IDMAP-I04",
+          "result": "pass"
+        },
+        {
+          "id": "V410-IDMAP-I05",
+          "result": "pass"
+        },
+        {
+          "id": "V410-IDMAP-I06",
+          "result": "pass"
+        },
+        {
+          "id": "V410-IDMAP-I07",
+          "result": "pass"
+        },
+        {
+          "id": "V410-IDMAP-I08",
+          "result": "pass"
+        },
+        {
+          "id": "V410-IDMAP-I09",
+          "result": "pass"
+        },
+        {
+          "id": "V410-IDMAP-I10",
+          "result": "pass"
+        },
+        {
+          "id": "V410-IDMAP-I11",
+          "result": "pass"
+        },
+        {
+          "id": "V410-IDMAP-I12",
+          "result": "pass"
+        },
+        {
+          "id": "V410-IDMAP-I13",
+          "result": "pass"
+        }
+      ],
+      "cleanup": {
+        "path": "/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-identity-unit.gFsOIQ",
+        "files": 5,
+        "bytes": 3742373,
+        "absent": true
+      },
+      "scope": "실제 catalog/bridge/SessionManager/SharedStream, 외부 source 및 writer 시작실패·Push latch만 통제; actual GStreamer 서비스/파생 완료 대체 아님",
+      "elapsedMs": null,
+      "elapsedReason": "전체 실행 경과시간을 별도 계측하지 않았으며 분할 tool 대기 시간을 총 실행시간으로 대체하지 않음"
+    },
+    {
+      "id": "existing-s05-startup-failure",
+      "command": "env -i HOME=\"$HOME\" PATH=/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin TMPDIR=\"$task_root/\" MEDIA_SERVER_GST_CACHE_DIR=\"$task_root/cache\" GST_REGISTRY_1_0=\"$task_root/registry.bin\" ./server.sh verify-v410-event-recording",
+      "exitCode": 127,
+      "expectedFailure": false,
+      "error": "scripts/internal/verify_v410_event_recording.sh: line 12: node: command not found",
+      "cause": "격리 PATH에 현재 nvm Node 설치 bin 누락",
+      "dispatch": "server.sh와 internal S05 wrapper에는 진입했으나 wrapper 12행 Node 등록검증에서 실패하여 제품 C++/runtime 본문은 미착수",
+      "home": "기존 부모 HOME 값 그대로 전달, 값 비공개",
+      "actualNodePath": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node",
+      "productSmokeExecuted": false,
+      "cleanup": {
+        "path": "/private/tmp/media-server-idmap-s05.CjMBxq",
+        "files": 1,
+        "bytes": 41588,
+        "absent": true
+      },
+      "elapsedMs": null,
+      "elapsedReason": "전체 실행 경과시간을 별도 계측하지 않았으며 분할 tool 대기 시간을 총 실행시간으로 대체하지 않음"
+    }
+  ],
+  "notRun": [
+    "기존 S05 제품 테스트 본문",
+    "contract",
+    "build",
+    "actual foreground",
+    "foreground restart",
+    "nohup",
+    "launchd",
+    "SSIM 조사",
+    "S06 구현",
+    "30분",
+    "120분",
+    "UI 풀테스트",
+    "verify-predev",
+    "stage",
+    "commit",
+    "push"
+  ],
+  "tokens": {
+    "start": null,
+    "end": null,
+    "consumed": null,
+    "reason": "런타임 토큰 계측값이 제공되지 않음"
+  },
+  "commitReady": false,
+  "pushReady": false
+}

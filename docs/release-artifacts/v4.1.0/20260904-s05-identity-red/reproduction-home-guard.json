@@ -1,0 +1,633 @@
+{
+  "schema": "media-server.s05.actual-identity-reproduction.v2",
+  "mode": "foreground",
+  "rows": [
+    {
+      "id": "S05-I27-G02",
+      "result": "pass",
+      "detail": {
+        "cases": 2,
+        "rejected": 2,
+        "spawnCount": 0,
+        "diagnostic": "HOME 누락: 프로세스를 생성하지 않음"
+      },
+      "elapsedMs": 0
+    },
+    {
+      "id": "S05-I27-G03",
+      "result": "pass",
+      "detail": {
+        "homePresent": true,
+        "homeUnchanged": true,
+        "childEnvFrozen": true,
+        "osIdentityKeys": [
+          "HOME",
+          "USER",
+          "LOGNAME"
+        ],
+        "priorServiceConfigInherited": false
+      },
+      "elapsedMs": 1
+    },
+    {
+      "id": "S05-I27-L01",
+      "result": "pass",
+      "detail": {
+        "launchctlExit": 113,
+        "serviceAbsent": true,
+        "stateFilesAbsent": 6,
+        "portsFree": [
+          18765,
+          18766
+        ],
+        "originalFiles": {
+          ".analysis_registry.json": "absent",
+          ".media_server.analysis_registry.json": "919b19086bc03aa135cc0b966e349ad0e9ccbf29292c3edadd1ddbd8b5f8c73c",
+          ".media_server.sources.json": "d698a3093e1bb6fea2612ba5b098fcf3f3e72d672009e636a46eecb71b975295",
+          ".media_server.test": "directory",
+          ".media_server.users.json": "absent",
+          ".media_server.views.json": "b89b1199446d7911213b239d41bd9eed6008c91b895a896da89ed071a570d7cd",
+          ".views.json": "absent",
+          "scripts/.media_server.env": "absent"
+        }
+      },
+      "elapsedMs": 60
+    },
+    {
+      "id": "S05-I27-L02",
+      "result": "pass",
+      "detail": {
+        "root": "/private/tmp/media-server-s05-identity.c4mai6",
+        "inputBytes": 17071018,
+        "bootstrapDisabled": true,
+        "actualSourceCreation": "POST API 예정"
+      },
+      "elapsedMs": 64
+    },
+    {
+      "id": "S05-I27-G04",
+      "result": "pass",
+      "detail": {
+        "command": "/opt/homebrew/bin/brew --prefix",
+        "exit": 0,
+        "prefix": "/opt/homebrew",
+        "stderr": ""
+      },
+      "elapsedMs": 78
+    },
+    {
+      "id": "S05-I27-G05",
+      "result": "pass",
+      "detail": {
+        "command": "동일 child env: source env_common.sh; media_server_apply_homebrew_gst_env",
+        "exit": 0,
+        "stderr": ""
+      },
+      "elapsedMs": 205
+    },
+    {
+      "id": "S05-I27-G06",
+      "result": "pass",
+      "detail": {
+        "gst": {
+          "HOMEBREW_PREFIX": "/opt/homebrew",
+          "GST_PLUGIN_SCANNER_1_0": "/opt/homebrew/opt/gstreamer/libexec/gstreamer-1.0/gst-plugin-scanner",
+          "GST_PLUGIN_PATH_1_0": "/private/tmp/media-server-s05-identity.c4mai6/cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0000:/private/tmp/media-server-s05-identity.c4mai6/cache/v1-d92853ce03738291feaa55a35ffe575057932db40ba4ea18267fc78150035b43/plugins/0001",
+          "GST_PLUGIN_SYSTEM_PATH_1_0": "",
+          "GST_REGISTRY_1_0": "/private/tmp/media-server-s05-identity.c4mai6/cache/registry.bin"
+        },
+        "registryInRoot": true,
+        "pluginMirrorsInRoot": true,
+        "scannerInstalledReadOnly": true,
+        "sameInputEnvDigest": "7a59d74bad7b545c0f8db4632ee70efe2a09a03c41f2482a13afb689bb2e1e5e"
+      },
+      "elapsedMs": 205
+    },
+    {
+      "id": "S05-I27-L03",
+      "result": "pass",
+      "detail": {
+        "command": "./server.sh foreground",
+        "pid": 9317,
+        "healthStatus": 200,
+        "childEnvUnchanged": true
+      },
+      "elapsedMs": 2873
+    },
+    {
+      "id": "S05-I27-L04",
+      "result": "pass",
+      "detail": {
+        "method": "GET",
+        "path": "/health",
+        "status": 200,
+        "ownedPorts": [
+          {
+            "port": 18765,
+            "pids": [
+              9317
+            ]
+          },
+          {
+            "port": 18766,
+            "pids": [
+              9317
+            ]
+          }
+        ]
+      },
+      "elapsedMs": 2873
+    },
+    {
+      "id": "S05-I27-L05",
+      "result": "pass",
+      "detail": {
+        "method": "POST",
+        "path": "/ops/api/sources",
+        "status": 201,
+        "responseStatus": "created",
+        "requestedSourceId": "9101"
+      },
+      "elapsedMs": 2948
+    },
+    {
+      "id": "S05-I27-L06",
+      "result": "pass",
+      "detail": {
+        "method": "GET",
+        "path": "/ops/api/sources",
+        "status": 200,
+        "source": {
+          "sourceId": "9101",
+          "kind": "file",
+          "file": "identity.mp4",
+          "recording": {
+            "enabled": true,
+            "revision": 1,
+            "continuousMaxBytes": 268435456,
+            "continuousMaxAgeMs": 3600000,
+            "eventMaxBytes": 268435456,
+            "eventMaxAgeMs": 3600000,
+            "storagePath": ""
+          }
+        }
+      },
+      "elapsedMs": 2949
+    },
+    {
+      "id": "S05-I27-L07",
+      "result": "pass",
+      "detail": {
+        "readonlySql": true,
+        "segments": [
+          {
+            "segment_id": "seg-9101-1788527596343-1",
+            "source_id": "9101",
+            "channel_id": "9101",
+            "stream_epoch_id": "epoch-9101-1-1788527596271",
+            "start_utc_ms": 1788527596343,
+            "end_utc_ms": 1788527604651,
+            "start_pts": 0,
+            "end_pts": 8300000000,
+            "time_base_num": 1,
+            "time_base_den": 1000000000,
+            "size_bytes": 4096788,
+            "retention_class": "continuous",
+            "lifecycle": "finalized",
+            "media_relpath": "9101/seg-9101-1788527596343-1.mp4"
+          }
+        ]
+      },
+      "elapsedMs": 11648
+    },
+    {
+      "id": "S05-I27-L08",
+      "result": "pass",
+      "detail": {
+        "method": "PUT",
+        "path": "/lab/analysis/rules/9101",
+        "status": 200,
+        "responseStatus": "created"
+      },
+      "elapsedMs": 11653
+    },
+    {
+      "id": "S05-I27-L09",
+      "result": "pass",
+      "detail": {
+        "method": "POST",
+        "path": "/lab/analysis/taps",
+        "status": 200,
+        "tap": {
+          "tapId": "analysis-tap-1",
+          "streamKey": "file::/private/tmp/media-server-s05-identity.c4mai6/input/identity.mp4"
+        }
+      },
+      "elapsedMs": 11702
+    },
+    {
+      "id": "S05-I27-L10",
+      "result": "pass",
+      "detail": {
+        "method": "GET",
+        "path": "/lab/analysis/taps/analysis-tap-1/events?dispatch=1",
+        "status": 200,
+        "events": [
+          {
+            "eventId": "evt_1788527605622_4",
+            "eventType": "presence",
+            "channelId": "file::/private/tmp/media-server-s05-identity.c4mai6/input/identity.mp4",
+            "streamId": "file::/private/tmp/media-server-s05-identity.c4mai6/input/identity.mp4",
+            "startTime": 9066,
+            "updateTime": 9066,
+            "endTime": 0,
+            "timeBasis": "media-pts-ms",
+            "timeAnchorUtcMs": 0,
+            "timeAnchorPtsMs": 0,
+            "streamEpochId": "",
+            "preEventMs": 500,
+            "postEventMs": 500,
+            "recordingLinkId": "",
+            "recordingCompleteness": "",
+            "fallbackPath": "/private/tmp/media-server-s05-identity.c4mai6/events/clips/evt_1788527605622_4.clip/manifest.json",
+            "fallbackPathExists": true
+          },
+          {
+            "eventId": "evt_1788527605622_5",
+            "eventType": "presence",
+            "channelId": "file::/private/tmp/media-server-s05-identity.c4mai6/input/identity.mp4",
+            "streamId": "file::/private/tmp/media-server-s05-identity.c4mai6/input/identity.mp4",
+            "startTime": 9066,
+            "updateTime": 9066,
+            "endTime": 0,
+            "timeBasis": "media-pts-ms",
+            "timeAnchorUtcMs": 0,
+            "timeAnchorPtsMs": 0,
+            "streamEpochId": "",
+            "preEventMs": 500,
+            "postEventMs": 500,
+            "recordingLinkId": "",
+            "recordingCompleteness": "",
+            "fallbackPath": "/private/tmp/media-server-s05-identity.c4mai6/events/clips/evt_1788527605622_5.clip/manifest.json",
+            "fallbackPathExists": true
+          },
+          {
+            "eventId": "evt_1788527605622_6",
+            "eventType": "presence",
+            "channelId": "file::/private/tmp/media-server-s05-identity.c4mai6/input/identity.mp4",
+            "streamId": "file::/private/tmp/media-server-s05-identity.c4mai6/input/identity.mp4",
+            "startTime": 9066,
+            "updateTime": 9066,
+            "endTime": 0,
+            "timeBasis": "media-pts-ms",
+            "timeAnchorUtcMs": 0,
+            "timeAnchorPtsMs": 0,
+            "streamEpochId": "",
+            "preEventMs": 500,
+            "postEventMs": 500,
+            "recordingLinkId": "",
+            "recordingCompleteness": "",
+            "fallbackPath": "/private/tmp/media-server-s05-identity.c4mai6/events/clips/evt_1788527605622_6.clip/manifest.json",
+            "fallbackPathExists": true
+          },
+          {
+            "eventId": "evt_1788527605622_7",
+            "eventType": "presence",
+            "channelId": "file::/private/tmp/media-server-s05-identity.c4mai6/input/identity.mp4",
+            "streamId": "file::/private/tmp/media-server-s05-identity.c4mai6/input/identity.mp4",
+            "startTime": 9066,
+            "updateTime": 9066,
+            "endTime": 0,
+            "timeBasis": "media-pts-ms",
+            "timeAnchorUtcMs": 0,
+            "timeAnchorPtsMs": 0,
+            "streamEpochId": "",
+            "preEventMs": 500,
+            "postEventMs": 500,
+            "recordingLinkId": "",
+            "recordingCompleteness": "",
+            "fallbackPath": "/private/tmp/media-server-s05-identity.c4mai6/events/clips/evt_1788527605622_7.clip/manifest.json",
+            "fallbackPathExists": true
+          }
+        ]
+      },
+      "elapsedMs": 13230
+    },
+    {
+      "id": "S05-I27-L11",
+      "result": "fail",
+      "detail": {
+        "expected": "동일 실제 영상의 numeric channel 9101 녹화 연결",
+        "eventChannelIds": [
+          "file::/private/tmp/media-server-s05-identity.c4mai6/input/identity.mp4",
+          "file::/private/tmp/media-server-s05-identity.c4mai6/input/identity.mp4",
+          "file::/private/tmp/media-server-s05-identity.c4mai6/input/identity.mp4",
+          "file::/private/tmp/media-server-s05-identity.c4mai6/input/identity.mp4"
+        ],
+        "segmentChannelIds": [
+          "9101"
+        ],
+        "links": [],
+        "rejectionReason": "명시적 거부 로그가 없다면 원인 추정과 구분",
+        "fallbackPathExists": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "elapsedMs": 15736
+    },
+    {
+      "id": "S05-I27-L12",
+      "result": "pass",
+      "detail": {
+        "method": "DELETE",
+        "path": "/lab/analysis/taps/analysis-tap-1",
+        "status": 200
+      },
+      "elapsedMs": 15785
+    },
+    {
+      "id": "S05-I27-L13",
+      "result": "pass",
+      "detail": {
+        "pid": 9317,
+        "signal": "SIGTERM",
+        "exit": {
+          "code": 0,
+          "signal": null
+        }
+      },
+      "elapsedMs": 17000
+    },
+    {
+      "id": "S05-I27-L14",
+      "result": "pass",
+      "detail": {
+        "ports": [
+          {
+            "port": 18765,
+            "pids": []
+          },
+          {
+            "port": 18766,
+            "pids": []
+          }
+        ]
+      },
+      "elapsedMs": 17068
+    },
+    {
+      "id": "S05-I27-L15",
+      "result": "pass",
+      "detail": {
+        "before": {
+          ".analysis_registry.json": "absent",
+          ".media_server.analysis_registry.json": "919b19086bc03aa135cc0b966e349ad0e9ccbf29292c3edadd1ddbd8b5f8c73c",
+          ".media_server.sources.json": "d698a3093e1bb6fea2612ba5b098fcf3f3e72d672009e636a46eecb71b975295",
+          ".media_server.test": "directory",
+          ".media_server.users.json": "absent",
+          ".media_server.views.json": "b89b1199446d7911213b239d41bd9eed6008c91b895a896da89ed071a570d7cd",
+          ".views.json": "absent",
+          "scripts/.media_server.env": "absent"
+        },
+        "after": {
+          ".analysis_registry.json": "absent",
+          ".media_server.analysis_registry.json": "919b19086bc03aa135cc0b966e349ad0e9ccbf29292c3edadd1ddbd8b5f8c73c",
+          ".media_server.sources.json": "d698a3093e1bb6fea2612ba5b098fcf3f3e72d672009e636a46eecb71b975295",
+          ".media_server.test": "directory",
+          ".media_server.users.json": "absent",
+          ".media_server.views.json": "b89b1199446d7911213b239d41bd9eed6008c91b895a896da89ed071a570d7cd",
+          ".views.json": "absent",
+          "scripts/.media_server.env": "absent"
+        }
+      },
+      "elapsedMs": 17068
+    },
+    {
+      "id": "S05-I27-L16",
+      "result": "pass",
+      "detail": {
+        "path": "/private/tmp/media-server-s05-identity.c4mai6",
+        "files": 438,
+        "bytes": 55994613,
+        "action": "삭제",
+        "removed": true
+      },
+      "elapsedMs": 17086
+    }
+  ],
+  "childEnvKeys": [
+    "PATH",
+    "HOME",
+    "TMPDIR",
+    "USER",
+    "LOGNAME",
+    "MEDIA_SERVER_SKIP_LOCAL_ENV",
+    "MEDIA_SERVER_SKIP_BUILD",
+    "MEDIA_SERVER_ENABLE_AI",
+    "MEDIA_SERVER_BUILD_DIR",
+    "MEDIA_SERVER_LISTEN_ADDRESS",
+    "MEDIA_SERVER_HTTP_LISTEN_ADDRESS",
+    "MEDIA_SERVER_LISTEN_PORT",
+    "MEDIA_SERVER_HTTP_LISTEN_PORT",
+    "MEDIA_SERVER_AUTH_MODE",
+    "MEDIA_SERVER_ENABLE_LAB",
+    "MEDIA_SERVER_ENABLE_OPS",
+    "MEDIA_SERVER_FILE_ROOT",
+    "MEDIA_SERVER_DEFAULT_FILE",
+    "MEDIA_SERVER_AUTH_USERS_FILE",
+    "MEDIA_SERVER_SOURCE_REGISTRY",
+    "MEDIA_SERVER_PUBLISHED_VIEWS",
+    "MEDIA_SERVER_ANALYSIS_REGISTRY",
+    "MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_ENABLED",
+    "MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_PATH",
+    "MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_HOOK_ENABLED",
+    "MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_DIR",
+    "MEDIA_SERVER_ANALYSIS_EVENT_CLIP_HOOK_ENABLED",
+    "MEDIA_SERVER_ANALYSIS_EVENT_CLIP_DIR",
+    "MEDIA_SERVER_ANALYSIS_EVENT_PRE_EVENT_MS",
+    "MEDIA_SERVER_ANALYSIS_EVENT_POST_EVENT_MS",
+    "MEDIA_SERVER_ANALYSIS_EVENT_CLIP_BUFFER_MS",
+    "MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED",
+    "MEDIA_SERVER_RECORDING_ENABLED",
+    "MEDIA_SERVER_RECORDING_STORAGE_ROOT",
+    "MEDIA_SERVER_RECORDING_SEGMENT_DURATION_SECONDS",
+    "MEDIA_SERVER_RECORDING_RESERVED_FREE_BYTES",
+    "MEDIA_SERVER_RECORDING_RETENTION_INTERVAL_MS",
+    "MEDIA_SERVER_GST_CACHE_DIR",
+    "MEDIA_SERVER_ANALYSIS_MODEL",
+    "MEDIA_SERVER_ANALYSIS_LABELS",
+    "MEDIA_SERVER_ANALYSIS_DETECTOR",
+    "MEDIA_SERVER_ANALYSIS_FPS",
+    "MEDIA_SERVER_ANALYSIS_CONFIDENCE",
+    "MEDIA_SERVER_ANALYSIS_ADAPTIVE",
+    "GST_REGISTRY_1_0",
+    "GST_REGISTRY"
+  ],
+  "childEnvDigest": "7a59d74bad7b545c0f8db4632ee70efe2a09a03c41f2482a13afb689bb2e1e5e",
+  "pid": 9317,
+  "source": {
+    "sourceId": "9101",
+    "kind": "file",
+    "file": "identity.mp4",
+    "recording": {
+      "enabled": true,
+      "revision": 1,
+      "continuousMaxBytes": 268435456,
+      "continuousMaxAgeMs": 3600000,
+      "eventMaxBytes": 268435456,
+      "eventMaxAgeMs": 3600000,
+      "storagePath": ""
+    }
+  },
+  "segments": [
+    {
+      "segment_id": "seg-9101-1788527596343-1",
+      "source_id": "9101",
+      "channel_id": "9101",
+      "stream_epoch_id": "epoch-9101-1-1788527596271",
+      "start_utc_ms": 1788527596343,
+      "end_utc_ms": 1788527604651,
+      "start_pts": 0,
+      "end_pts": 8300000000,
+      "time_base_num": 1,
+      "time_base_den": 1000000000,
+      "size_bytes": 4096788,
+      "retention_class": "continuous",
+      "lifecycle": "finalized",
+      "media_relpath": "9101/seg-9101-1788527596343-1.mp4"
+    }
+  ],
+  "tap": {
+    "tapId": "analysis-tap-1",
+    "streamKey": "file::/private/tmp/media-server-s05-identity.c4mai6/input/identity.mp4"
+  },
+  "events": [
+    {
+      "eventId": "evt_1788527605622_4",
+      "eventType": "presence",
+      "channelId": "file::/private/tmp/media-server-s05-identity.c4mai6/input/identity.mp4",
+      "streamId": "file::/private/tmp/media-server-s05-identity.c4mai6/input/identity.mp4",
+      "startTime": 9066,
+      "updateTime": 9066,
+      "endTime": 0,
+      "timeBasis": "media-pts-ms",
+      "timeAnchorUtcMs": 0,
+      "timeAnchorPtsMs": 0,
+      "streamEpochId": "",
+      "preEventMs": 500,
+      "postEventMs": 500,
+      "recordingLinkId": "",
+      "recordingCompleteness": "",
+      "fallbackPath": "/private/tmp/media-server-s05-identity.c4mai6/events/clips/evt_1788527605622_4.clip/manifest.json",
+      "fallbackPathExists": true
+    },
+    {
+      "eventId": "evt_1788527605622_5",
+      "eventType": "presence",
+      "channelId": "file::/private/tmp/media-server-s05-identity.c4mai6/input/identity.mp4",
+      "streamId": "file::/private/tmp/media-server-s05-identity.c4mai6/input/identity.mp4",
+      "startTime": 9066,
+      "updateTime": 9066,
+      "endTime": 0,
+      "timeBasis": "media-pts-ms",
+      "timeAnchorUtcMs": 0,
+      "timeAnchorPtsMs": 0,
+      "streamEpochId": "",
+      "preEventMs": 500,
+      "postEventMs": 500,
+      "recordingLinkId": "",
+      "recordingCompleteness": "",
+      "fallbackPath": "/private/tmp/media-server-s05-identity.c4mai6/events/clips/evt_1788527605622_5.clip/manifest.json",
+      "fallbackPathExists": true
+    },
+    {
+      "eventId": "evt_1788527605622_6",
+      "eventType": "presence",
+      "channelId": "file::/private/tmp/media-server-s05-identity.c4mai6/input/identity.mp4",
+      "streamId": "file::/private/tmp/media-server-s05-identity.c4mai6/input/identity.mp4",
+      "startTime": 9066,
+      "updateTime": 9066,
+      "endTime": 0,
+      "timeBasis": "media-pts-ms",
+      "timeAnchorUtcMs": 0,
+      "timeAnchorPtsMs": 0,
+      "streamEpochId": "",
+      "preEventMs": 500,
+      "postEventMs": 500,
+      "recordingLinkId": "",
+      "recordingCompleteness": "",
+      "fallbackPath": "/private/tmp/media-server-s05-identity.c4mai6/events/clips/evt_1788527605622_6.clip/manifest.json",
+      "fallbackPathExists": true
+    },
+    {
+      "eventId": "evt_1788527605622_7",
+      "eventType": "presence",
+      "channelId": "file::/private/tmp/media-server-s05-identity.c4mai6/input/identity.mp4",
+      "streamId": "file::/private/tmp/media-server-s05-identity.c4mai6/input/identity.mp4",
+      "startTime": 9066,
+      "updateTime": 9066,
+      "endTime": 0,
+      "timeBasis": "media-pts-ms",
+      "timeAnchorUtcMs": 0,
+      "timeAnchorPtsMs": 0,
+      "streamEpochId": "",
+      "preEventMs": 500,
+      "postEventMs": 500,
+      "recordingLinkId": "",
+      "recordingCompleteness": "",
+      "fallbackPath": "/private/tmp/media-server-s05-identity.c4mai6/events/clips/evt_1788527605622_7.clip/manifest.json",
+      "fallbackPathExists": true
+    }
+  ],
+  "links": [],
+  "outcome": "기대 RED: 실제 이벤트와 finalized numeric 채널 녹화가 있으나 link 없음",
+  "failure": "",
+  "expectedRed": true,
+  "processExit": {
+    "code": 0,
+    "signal": null
+  },
+  "elapsedMs": 17068,
+  "tokens": {
+    "start": null,
+    "end": null,
+    "consumed": null,
+    "source": "계측값 미제공"
+  },
+  "scriptSha256": "633a714475ca8aad920df8ad2e7ab75536f51017ab215817cbd53ca2545de7df",
+  "serverLog": {
+    "bytes": 4592,
+    "lastLines": [
+      "webrtc http server started: yes",
+      "listen: rtsp://127.0.0.1:18765/dhseo",
+      "ops console: http://127.0.0.1:18766/ops/home",
+      "client live: http://127.0.0.1:18766/client/live",
+      "recording catalog: sqlite-primary (enabled=yes)",
+      "file test url: rtsp://127.0.0.1:18765/dhseo?file=identity.mp4",
+      "running... (SIGINT/SIGTERM to stop)",
+      "[tracking-issue] stream=file::<run-root>/input/identity.mp4 channel=file::<run-root>/input/identity.mp4 track=5 type=unstable-track severity=warning association=1 missed=0 overlap=0.667779 directionChanges=0",
+      "[tracking-issue] stream=file::<run-root>/input/identity.mp4 channel=file::<run-root>/input/identity.mp4 track=5 type=overlap-risk severity=warning association=1 missed=0 overlap=0.667779 directionChanges=0",
+      "[tracking-issue] stream=file::<run-root>/input/identity.mp4 channel=file::<run-root>/input/identity.mp4 track=3 type=unstable-track severity=warning association=0.847212 missed=0 overlap=0.667779 directionChanges=1",
+      "[tracking-issue] stream=file::<run-root>/input/identity.mp4 channel=file::<run-root>/input/identity.mp4 track=3 type=overlap-risk severity=warning association=0.847212 missed=0 overlap=0.667779 directionChanges=1",
+      "[tracking-issue] stream=file::<run-root>/input/identity.mp4 channel=file::<run-root>/input/identity.mp4 track=5 type=unstable-track severity=warning association=1 missed=0 overlap=0.667779 directionChanges=0",
+      "[tracking-issue] stream=file::<run-root>/input/identity.mp4 channel=file::<run-root>/input/identity.mp4 track=5 type=overlap-risk severity=warning association=1 missed=0 overlap=0.667779 directionChanges=0",
+      "[tracking-issue] stream=file::<run-root>/input/identity.mp4 channel=file::<run-root>/input/identity.mp4 track=3 type=unstable-track severity=warning association=0.847212 missed=0 overlap=0.667779 directionChanges=0",
+      "[tracking-issue] stream=file::<run-root>/input/identity.mp4 channel=file::<run-root>/input/identity.mp4 track=3 type=overlap-risk severity=warning association=0.847212 missed=0 overlap=0.667779 directionChanges=0",
+      "[tracking-issue] stream=file::<run-root>/input/identity.mp4 channel=file::<run-root>/input/identity.mp4 track=3 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=1",
+      "[tracking-issue] stream=file::<run-root>/input/identity.mp4 channel=file::<run-root>/input/identity.mp4 track=3 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=0",
+      "[tracking-issue] stream=file::<run-root>/input/identity.mp4 channel=file::<run-root>/input/identity.mp4 track=3 type=lost severity=warning association=0 missed=15 overlap=0 directionChanges=1",
+      "[tracking-issue] stream=file::<run-root>/input/identity.mp4 channel=file::<run-root>/input/identity.mp4 track=1 type=unstable-track severity=warning association=0.952008 missed=0 overlap=0.031303 directionChanges=0",
+      ""
+    ]
+  },
+  "cleanup": {
+    "path": "/private/tmp/media-server-s05-identity.c4mai6",
+    "files": 438,
+    "bytes": 55994613,
+    "action": "삭제",
+    "removed": true
+  }
+}
