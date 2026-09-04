@@ -32,6 +32,8 @@ Usage:
 개발/검증 명령:
   foreground     서버를 foreground로 실행합니다. 개발 중 로그를 바로 볼 때 사용합니다.
   test           기본값은 --basic입니다. 기본/풀/외부 통합 테스트를 한글 리포트로 실행합니다.
+  verify-gst-environment
+                GStreamer 검색·캐시·실행 환경 전달을 격리 fixture로 검증합니다.
   verify-codecs  file/RTSP/WebRTC source와 codec route matrix를 자동 검증합니다.
   verify-webrtc-ice
                  WebRTC STUN/TURN/ICE policy와 candidate 수집 상태를 검증합니다.
@@ -1461,7 +1463,21 @@ if [[ -z "${cmd}" || "${cmd}" == "help" || "${cmd}" == "-h" || "${cmd}" == "--he
 fi
 shift || true
 
+# 현재 녹화 focused 검증에만 적용한다. 문서/help/알 수 없는 명령은 GST에 의존하지 않는다.
 case "${cmd}" in
+  verify-v410-recording-recorder|verify-v410-recording-catalog|verify-v410-recording-retention|verify-v410-event-recording)
+    if [[ $# -eq 0 ]]; then
+      source "${INTERNAL_DIR}/env_common.sh"
+      media_server_apply_homebrew_gst_env
+    fi
+    ;;
+esac
+
+case "${cmd}" in
+  verify-gst-environment)
+    require_internal verify_gst_environment.sh
+    exec "${INTERNAL_DIR}/verify_gst_environment.sh" "$@"
+    ;;
   install)
     require_internal install_deps.sh
     exec "${INTERNAL_DIR}/install_deps.sh" "$@"

@@ -6,7 +6,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPTS_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 source "${SCRIPT_DIR}/env_common.sh"
-media_server_apply_homebrew_gst_env
 
 ENV_FILE="${SCRIPTS_DIR}/.media_server.env"
 if [[ -f "${ENV_FILE}" && "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" != "1" ]]; then
@@ -17,6 +16,8 @@ if [[ -f "${ENV_FILE}" && "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" != "1" ]]; then
 elif [[ "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" == "1" ]]; then
   echo "[env] skipped local override: ${ENV_FILE}"
 fi
+
+media_server_apply_homebrew_gst_env
 
 # Basic/full regression suite는 제품 UI와 현재 API를 검증한다.
 # 다른 auth 구성을 의도적으로 검증하는 경우가 아니면 명시적으로 auth-off mode를 유지한다.

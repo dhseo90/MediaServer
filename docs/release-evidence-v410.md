@@ -4,6 +4,26 @@
 PASS는 UI 풀테스트, 30분/120분 장시간 테스트, PR/main merge, tag, GitHub Release 또는
 published metadata 완료를 뜻하지 않는다.
 
+## S05 후속 GStreamer 환경 보완 — 수정·제한 범위 재검증 통과
+
+2026-09-04 최초 환경 검증의 17개 중 runner 12개 실패 후 사용자 승인으로 수정·재개했다.
+`env_common.sh`의 Bash 3.2 빈 배열·상속 경로 치환, `gst_environment_test.py`의 실경로와
+원인별 거부 검증, `gst_plugin_cache.py`의 `.so` 보존·root 순서를 보완했다.
+`server.sh`의 환경 초기화는 S02~S05 녹화 검증으로 한정했다. S05 등록기의 고정 총계
+오류도 별도 승인 후 수정해 기존 canonical 986개/S05 27개 검증과 환경 13개를 분리했다.
+
+최종 환경 단위 20/0, 실제 macOS cold/warm 1525 features 일치·stderr 0, 필수 factory
+44개 생성·WebRTC READY·무음 H264 decode·동일 basename plugin 우선순위가 통과했다.
+S05는 C++ 140/0, application 7/0, runtime 20/0, mutation 2/0, 등록기 34/0,
+action 27/0(check 89개), 제품 증분 build가 통과했다. 소스 감사 51/0·기존 승인 986개,
+중앙 inventory 18/0, script inventory 11/0, 문서 링크·asset 검증도 통과했다.
+
+이는 한 대의 macOS arm64에서 수행한 제한 범위 검증이다. 실제 Linux/Intel/다른 PC 설치,
+launchd 서비스·브라우저·장시간 검증은 미실행이다. SSIM blacklist 1개의 원인은 미확인으로
+남긴다. GTK/GI 경고 해소를 모든 플러그인·모든 PC 호환성 완료로 확대하지 않는다.
+최초 실패·수정 파일/함수·개별 실행·cleanup은 [저장소 테스트 기록](release-test-records.md)에
+보존했다. 패키지/전역 설정·C++ 녹화 로직·S06 이후는 변경하지 않았으며 커밋·푸시는 미수행이다.
+
 ## V410-S05 이벤트 녹화 연결과 파생 clip
 
 ### 테스트 범위와 승인 경계

@@ -25,7 +25,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 ## Summary
 
-아래 요약은 역사적 canonical 986개 ID의 고정 집합이다. S05 신규 등록은 별도 고정 ID로
+아래 요약은 역사적 canonical 986개 ID의 고정 집합이다. S05와 GStreamer 환경 신규 등록은 별도 고정 ID로
 관리하며 이 집합이나 historical UI 424개를 재번호화하지 않는다.
 
 | 항목 | 수 |
@@ -44,7 +44,8 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | --- | ---: |
 | 역사적 canonical ID | 986 |
 | S05 개별 action ID | 27 |
-| 현재 등록 총계 | 1013 |
+| GStreamer 환경 개별 action ID | 13 |
+| 현재 등록 총계 | 1026 |
 
 이는 등록 합계이지 전 제품 발견·실행 완료 선언이 아니다. S01~S04의 신규 등록 정합성은
 이번 S05 보정에서 전수 감사하지 않았다.
@@ -90,6 +91,27 @@ application-only check 및 실제 저장 큐 네 프로세스 결과를 모두 �
 | V410-S05-I25 | 전송 DTO 경계 | `src/ingress/webrtc_http_server_ops_incidents.cpp` · `ProjectEventStorageDispatchRequest` | `transport has zero canonical bypass and exact projection/call ordering` · V410-S05-I25-C01 | 전송 DTO 우회·필드 누락·잘못된 호출 순서 거부 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
 | V410-S05-I26 | 출력 fd 검증 계약 | `src/recording/event_clip_deriver.cpp` · `Derive` | `event clip output remains fd-bound and measured before no-replace publication` · V410-S05-I26-C01 | fd 결박·timestamp 측정·no-replace 출판의 정적 경계 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
 | V410-S05-I27 | 제품 시작·종료 순서 | `src/application/media_server_application.cpp` · `RunMediaServerApplication` | `S05 composition starts the bridge before ingress and drains it after storage` · V410-S05-I27-C01 | ingress 전 bridge 등록·정상 및 시작 실패 경로에서 storage 뒤 bridge drain | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+
+## V410 GStreamer 실행 환경 개별 동작 등록
+
+S05 후속 환경 보완이며 녹화 로직·UI 변경은 아니다. 실행 전 등록이며 결과는
+`docs/release-test-records.md`에 별도 기록한다. fixture는 다른 OS 실측을 대체하지 않는다.
+
+| 기능 ID | 개별 동작 | 구현·검증 연결 | 안정화 테스트 | 30분 테스트 | 120분 테스트 | UI 테스트·UI 존재 |
+| --- | --- | --- | --- | --- | --- | --- |
+| V410-ENV-01 | Linux 환경 불변 | env_common.sh / test_linux_unchanged | 대상 | 미진행: 이번 변경 비대상 | 미진행: 직접 경로 변경 없음 | 비대상: UI 없어야 정상 |
+| V410-ENV-02 | Homebrew prefix·scanner 탐색 | env_common.sh / test_prefix_discovery, test_explicit_prefix | 대상 | 미진행 | 미진행 | 비대상: UI 없어야 정상 |
+| V410-ENV-03 | GTK·Python만 제외 | gst_plugin_cache.py / test_filter | 대상 | 미진행 | 미진행 | 비대상: UI 없어야 정상 |
+| V410-ENV-04 | 사용자 플러그인·공백 경로·우선순위 보존 | gst_plugin_cache.py / test_custom_paths, test_custom_so_plugins | 대상 | 미진행 | 미진행 | 비대상: UI 없어야 정상 |
+| V410-ENV-05 | 캐시 재사용·갱신·동시 생성·상속 후 경로 추가 | gst_plugin_cache.py, env_common.sh / test_reapply, test_upgrade, test_concurrent, test_inherited_custom_paths | 대상 | 미진행 | 미진행 | 비대상: UI 없어야 정상 |
+| V410-ENV-06 | 변조·잘못된 캐시 거부 | gst_plugin_cache.py / test_unsafe_cache, test_tampered_cache | 대상 | 미진행 | 미진행 | 비대상: UI 없어야 정상 |
+| V410-ENV-07 | 전용 registry·명시 registry 유지 | env_common.sh / test_registry | 대상 | 미진행 | 미진행 | 비대상: UI 없어야 정상 |
+| V410-ENV-08 | system 진단 모드·잘못된 모드 거부 | env_common.sh / test_system_profile, test_invalid_profile | 대상 | 미진행 | 미진행 | 비대상: UI 없어야 정상 |
+| V410-ENV-09 | 로컬 설정 뒤 환경 적용 | build/start/foreground/test_all / test_override_order | 대상 | 미진행 | 미진행 | 비대상: UI 없어야 정상 |
+| V410-ENV-10 | nohup·launchd 빈 환경값 전달 | start_server.sh / test_nohup_environment, test_launchd_environment | 대상 | 미진행 | 미진행 | 비대상: UI 없어야 정상 |
+| V410-ENV-11 | 녹화 검증 명령 공통 적용·비미디어 CLI 무부작용 | server.sh, verify_v410_event_recording.sh / test_dispatch_environment, test_cli_no_gst_side_effects | 대상 | 미진행 | 미진행 | 비대상: UI 없어야 정상 |
+| V410-ENV-12 | 실제 cold/warm 검색·44 factory·READY·무음 H264 | 공통 환경 적용 후 별도 실제 GStreamer 프로세스; fixture verifier와 구분 | 대상 | 미진행 | 미진행 | 비대상: UI 없어야 정상 |
+| V410-ENV-13 | S05·빌드·등록·문서 회귀 | verify-v410-event-recording, v410_s05_inventory.test.mjs의 등록군 확장·총계/canonical/S05/중복/음수/소수/표 누락 검사, build, 문서/인벤토리 검증 | 대상 | 미진행: 기존 릴리즈 gate 유지 | 미진행: 기존 S05 판정 유지 | 비대상: 신규 UI 없음, 기존 릴리즈 gate 유지 |
 
 ## Current Coverage Status
 

@@ -12,6 +12,24 @@ let passed = 0;
 function test(name, fn) { fn(); ++passed; console.log(`[등록기 단위 테스트] PASS ${name}`); }
 const validate = (m = manifest, text = inventoryText) => validateS05Registration({ rootDir, manifest: m, inventoryText: text });
 test("정상 정식 등록 27개", () => assert.equal(validate().length, 27));
+test("다른 등록군 추가와 일관된 총계 허용", () => {
+  assert(inventoryText.includes("| 현재 등록 총계 | 1026 |"), "확장 시험의 치환 대상 누락");
+  const extended = inventoryText.replace("| 현재 등록 총계 | 1026 |",
+    "| 후속 검증용 등록군 | 2 |\n| 현재 등록 총계 | 1028 |");
+  assert.equal(validate(manifest, extended).length, 27);
+});
+for (const [name, before, after, reason] of [
+  ["전체 총계 불일치 거부", "| 현재 등록 총계 | 1026 |", "| 현재 등록 총계 | 1025 |", /총계/],
+  ["canonical 등록 수 변경 거부", "| 역사적 canonical ID | 986 |", "| 역사적 canonical ID | 985 |", /canonical/],
+  ["S05 등록 수 변경 거부", "| S05 개별 action ID | 27 |", "| S05 개별 action ID | 26 |", /S05/],
+  ["등록군 중복 거부", "| GStreamer 환경 개별 action ID | 13 |", "| GStreamer 환경 개별 action ID | 13 |\n| GStreamer 환경 개별 action ID | 0 |", /중복/],
+  ["음수 등록 수 거부", "| GStreamer 환경 개별 action ID | 13 |", "| GStreamer 환경 개별 action ID | -13 |", /등록 수/],
+  ["소수 등록 수 거부", "| GStreamer 환경 개별 action ID | 13 |", "| GStreamer 환경 개별 action ID | 13.0 |", /등록 수/],
+  ["등록 범위 표 누락 거부", "| 현재 등록 범위 | 수 |", "| 잘못된 표 | 수 |", /등록 범위/],
+]) test(name, () => {
+  assert(inventoryText.includes(before), `${name}: mutation 대상 누락`);
+  assert.throws(() => validate(manifest, inventoryText.replace(before, after)), reason);
+});
 for (const [name, mutate] of [
   ["누락 ID", m => m.rows.pop()],
   ["중복 ID", m => { m.rows[1].id = m.rows[0].id; }],

@@ -65,7 +65,24 @@ export function validateS05Registration({ rootDir, manifest, inventoryText }) {
       checkIds.add(check.id); messages.add(messageKey);
     }
   }
-  assert(inventoryText.includes("| 현재 등록 총계 | 1013 |"), "legacy 986 + S05 27 총계 불일치");
+  // S05 이후 등록군이 늘어도 S05의 exact ID/check 계약은 유지한다.
+  // 다른 등록군의 실제 coverage는 각 담당 검증기의 책임이며 여기서는 요약 산술만 대조한다.
+  const summary = inventoryText.match(/^\| 현재 등록 범위 \| 수 \|\n\|[^\n]+\|\n((?:\|[^\n]+\|\n)+)/m);
+  assert(summary, "현재 등록 범위 표 누락");
+  const counts = new Map();
+  for (const line of summary[1].trim().split("\n")) {
+    const cells = line.split("|").slice(1, -1).map(c => c.trim());
+    assert.equal(cells.length, 2, "등록 범위 표 형식 오류");
+    const [name, count] = cells;
+    assert(name && !counts.has(name), "등록군 이름 누락/중복");
+    assert(/^(0|[1-9]\d*)$/.test(count) && Number.isSafeInteger(Number(count)), "등록 수 형식 오류");
+    counts.set(name, Number(count));
+  }
+  assert.equal(counts.get("역사적 canonical ID"), 986, "canonical 등록 수 불일치");
+  assert.equal(counts.get("S05 개별 action ID"), ids.length, "S05 등록 수 불일치");
+  const total = [...counts].filter(([name]) => name !== "현재 등록 총계").reduce((sum, [, count]) => sum + count, 0);
+  assert(Number.isSafeInteger(total), "현재 등록 총계 범위 초과");
+  assert.equal(counts.get("현재 등록 총계"), total, "현재 등록 총계 불일치");
   return manifest.rows;
 }
 

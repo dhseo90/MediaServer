@@ -53,70 +53,101 @@ media_server_resolve_project_path() {
   esac
 }
 
+media_server_prepend_env_path() {
+  local name="$1" addition="$2" current
+  current="${!name:-}"
+  case ":${current}:" in
+    *":${addition}:"*) ;;
+    *) printf -v "${name}" '%s' "${addition}${current:+:${current}}" ;;
+  esac
+  export "${name}"
+}
+
 media_server_apply_homebrew_gst_env() {
-  local brew_prefix="${HOMEBREW_PREFIX:-/opt/homebrew}"
-
-  if [[ ! -d "${brew_prefix}" ]]; then
-    return 0
+  # Linux의 distro GStreamer·LD_LIBRARY_PATH는 변경하지 않는다.
+  [[ "$(uname -s)" == "Darwin" ]] || return 0
+  local profile="${MEDIA_SERVER_GST_PLUGIN_PROFILE:-headless}"
+  case "${profile}" in
+    headless|system) ;;
+    *) echo "[gstreamer 환경 오류] profile은 headless 또는 system이어야 합니다" >&2; return 1 ;;
+  esac
+  if [[ "${profile}" == "system" && -n "${MEDIA_SERVER_GST_MANAGED_PLUGIN_PATH:-}" ]]; then
+    echo "[gstreamer 환경 오류] system 진단 모드는 공통 환경 적용 전 새 셸에서 지정하세요" >&2
+    return 1
   fi
-
+  local brew_prefix="${HOMEBREW_PREFIX:-}"
+  if [[ -z "${brew_prefix}" ]] && media_server_has_cmd brew; then
+    brew_prefix="$(brew --prefix 2>/dev/null)" || return 1
+  fi
+  if [[ -z "${brew_prefix}" ]]; then
+    local candidate
+    for candidate in /opt/homebrew /usr/local; do
+      if [[ -d "${candidate}/lib/gstreamer-1.0" ]]; then brew_prefix="${candidate}"; break; fi
+    done
+  fi
+  [[ -n "${brew_prefix}" && -d "${brew_prefix}/lib/gstreamer-1.0" ]] || return 0
   export HOMEBREW_PREFIX="${brew_prefix}"
-  export PATH="${brew_prefix}/bin:${PATH}"
+  media_server_prepend_env_path PATH "${brew_prefix}/bin"
+  media_server_prepend_env_path PKG_CONFIG_PATH "${brew_prefix}/lib/pkgconfig:${brew_prefix}/share/pkgconfig"
+  if [[ -d "${brew_prefix}/lib/girepository-1.0" ]]; then
+    media_server_prepend_env_path GI_TYPELIB_PATH "${brew_prefix}/lib/girepository-1.0"
+  fi
+  media_server_prepend_env_path DYLD_FALLBACK_LIBRARY_PATH "${brew_prefix}/lib:/usr/local/lib:/usr/lib"
+  media_server_prepend_env_path DYLD_LIBRARY_PATH "${brew_prefix}/lib:/usr/local/lib:/usr/lib"
+  # 전체 패키지를 살펴보는 명시적 진단 모드는 GST 검색/registry 설정을 덮어쓰지 않는다.
+  [[ "${profile}" == "headless" ]] || return 0
 
-  local pkg_path="${brew_prefix}/lib/pkgconfig:${brew_prefix}/share/pkgconfig"
-  if [[ -n "${PKG_CONFIG_PATH:-}" ]]; then
-    export PKG_CONFIG_PATH="${pkg_path}:${PKG_CONFIG_PATH}"
-  else
-    export PKG_CONFIG_PATH="${pkg_path}"
+  local scanner="${GST_PLUGIN_SCANNER_1_0:-${GST_PLUGIN_SCANNER:-}}"
+  if [[ -z "${scanner}" ]]; then
+    for candidate in "${brew_prefix}/opt/gstreamer/libexec/gstreamer-1.0/gst-plugin-scanner" \
+                     "${brew_prefix}/libexec/gstreamer-1.0/gst-plugin-scanner"; do
+      if [[ -x "${candidate}" ]]; then scanner="${candidate}"; break; fi
+    done
   fi
-
-  local typelib_path="${brew_prefix}/lib/girepository-1.0"
-  if [[ -d "${typelib_path}" ]]; then
-    if [[ -n "${GI_TYPELIB_PATH:-}" ]]; then
-      export GI_TYPELIB_PATH="${typelib_path}:${GI_TYPELIB_PATH}"
-    else
-      export GI_TYPELIB_PATH="${typelib_path}"
-    fi
+  if [[ -z "${scanner}" || ! -x "${scanner}" ]] || ! media_server_has_cmd python3; then
+    echo "[gstreamer 환경 오류] 실행 가능한 gst-plugin-scanner와 python3가 필요합니다" >&2
+    return 1
   fi
-
-  local scanner_path=""
-  if [[ -x "${brew_prefix}/libexec/gstreamer-1.0/gst-plugin-scanner" ]]; then
-    scanner_path="${brew_prefix}/libexec/gstreamer-1.0/gst-plugin-scanner"
-  else
-    scanner_path="$(find "${brew_prefix}/Cellar/gstreamer" -path '*libexec/gstreamer-1.0/gst-plugin-scanner' 2>/dev/null | tail -n 1)"
+  local input="${GST_PLUGIN_PATH_1_0-${GST_PLUGIN_PATH:-}}" item
+  if [[ -n "${MEDIA_SERVER_GST_MANAGED_PLUGIN_PATH:-}" ]]; then
+    # 부모가 적용한 경로 앞/뒤에 사용자 root를 추가한 경우에도 관리 캐시를 다시 수집하지 않는다.
+    local managed_pattern=":${MEDIA_SERVER_GST_MANAGED_PLUGIN_PATH}:"
+    local original_replacement=":${MEDIA_SERVER_GST_INPUT_PLUGIN_PATH:-}:"
+    input=":${input}:"
+    input="${input//"${managed_pattern}"/${original_replacement}}"
+    input="${input#:}"
+    input="${input%:}"
   fi
-  if [[ -n "${scanner_path}" && -x "${scanner_path}" ]]; then
-    export GST_PLUGIN_SCANNER="${scanner_path}"
+  local -a plugin_paths=() extra_paths=()
+  IFS=: read -r -a extra_paths <<< "${input}"
+  # Bash 3.2는 set -u에서 비어 있는 배열도 미정의로 취급한다.
+  for item in "${extra_paths[@]-}" "${brew_prefix}/lib/gstreamer-1.0" \
+              "${brew_prefix}/opt/libnice-gstreamer/libexec/gstreamer-1.0"; do
+    [[ -d "${item}" ]] && plugin_paths+=("${item}")
+  done
+  local common_dir project_root bundle registry
+  common_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  project_root="$(cd "${common_dir}/../.." && pwd)"
+  bundle="$(python3 "${common_dir}/gst_plugin_cache.py" \
+    "${MEDIA_SERVER_GST_CACHE_DIR:-${project_root}/.media_server.gstreamer}" \
+    "${scanner}" "${plugin_paths[@]}")" || return 1
+  registry="${GST_REGISTRY_1_0-${GST_REGISTRY:-}}"
+  if [[ -z "${registry}" || "${registry}" == "${MEDIA_SERVER_GST_MANAGED_REGISTRY:-}" ]]; then
+    registry="${bundle}/registry.bin"
+    export MEDIA_SERVER_GST_MANAGED_REGISTRY="${registry}"
   fi
-
-  local plugin_paths=()
-  if [[ -d "${brew_prefix}/lib/gstreamer-1.0" ]]; then
-    plugin_paths+=("${brew_prefix}/lib/gstreamer-1.0")
-  fi
-  if [[ -d "${brew_prefix}/opt/libnice-gstreamer/libexec/gstreamer-1.0" ]]; then
-    plugin_paths+=("${brew_prefix}/opt/libnice-gstreamer/libexec/gstreamer-1.0")
-  fi
-  if [[ ${#plugin_paths[@]} -gt 0 ]]; then
-    local joined
-    joined="$(IFS=:; printf '%s' "${plugin_paths[*]}")"
-    if [[ -n "${GST_PLUGIN_PATH:-}" ]]; then
-      export GST_PLUGIN_PATH="${joined}:${GST_PLUGIN_PATH}"
-    else
-      export GST_PLUGIN_PATH="${joined}"
-    fi
-  fi
-
-  local dyld_path="${brew_prefix}/lib:/usr/local/lib:/usr/lib"
-  if [[ -n "${DYLD_FALLBACK_LIBRARY_PATH:-}" ]]; then
-    export DYLD_FALLBACK_LIBRARY_PATH="${dyld_path}:${DYLD_FALLBACK_LIBRARY_PATH}"
-  else
-    export DYLD_FALLBACK_LIBRARY_PATH="${dyld_path}"
-  fi
-  if [[ -n "${DYLD_LIBRARY_PATH:-}" ]]; then
-    export DYLD_LIBRARY_PATH="${dyld_path}:${DYLD_LIBRARY_PATH}"
-  else
-    export DYLD_LIBRARY_PATH="${dyld_path}"
-  fi
+  local -a mirror_paths=()
+  for item in "${bundle}/plugins/"*; do
+    [[ -d "${item}" ]] && mirror_paths+=("${item}")
+  done
+  local joined
+  joined="$(IFS=:; printf '%s' "${mirror_paths[*]}")"
+  export MEDIA_SERVER_GST_INPUT_PLUGIN_PATH="${input}"
+  export MEDIA_SERVER_GST_MANAGED_PLUGIN_PATH="${joined}"
+  export GST_PLUGIN_PATH_1_0="${joined}" GST_PLUGIN_PATH="${joined}"
+  export GST_PLUGIN_SYSTEM_PATH_1_0='' GST_PLUGIN_SYSTEM_PATH=''
+  export GST_PLUGIN_SCANNER_1_0="${scanner}" GST_PLUGIN_SCANNER="${scanner}"
+  export GST_REGISTRY_1_0="${registry}" GST_REGISTRY="${registry}"
 }
 
 media_server_is_tcp_listening() {

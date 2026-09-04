@@ -1,0 +1,3320 @@
+{
+  "cleanup": {"removed":true,"exitCode":0,"openHandlesBeforeRemoval":0,"root":"/private/tmp/media-server-gst-packaging-resume.9NfixH","files":682,"symlinks":559,"bytes":7714945,"retainedBuild":"build-gst-onnx는 승인된 제품 빌드 산출물로 유지; 임시 검사 root와 구분"},
+  "started": "2026-09-04T11:19:21.138Z",
+  "node": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node",
+  "platform": "darwin",
+  "arch": "arm64",
+  "cases": [
+    {
+      "id": "PKG-NODE",
+      "command": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node",
+      "args": [
+        "-p",
+        "JSON.stringify({version:process.version,exe:process.execPath})"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 19,
+      "stdout": "{\"version\":\"v24.13.0\",\"exe\":\"/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node\"}\n",
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "bd63f2a7a594a13f1addee998b2983412ca730590851134b7ea13f083a63fde4",
+      "stdoutBytes": 81
+    },
+    {
+      "id": "PKG-02-prepare",
+      "command": "/bin/bash",
+      "args": [
+        "-c",
+        "source \"$1\"; media_server_apply_homebrew_gst_env; exec \"$2\" -e \"$3\"",
+        "media-server-env-capture",
+        "/Users/dhseo/Workspace/mediaServer/scripts/internal/env_common.sh",
+        "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node",
+        "process.stdout.write(JSON.stringify(Object.fromEntries(Object.entries(process.env).filter(([k])=>/^(GST_|GI_|DYLD_|PKG_CONFIG_PATH$|HOMEBREW_PREFIX$|PATH$)/.test(k)))))"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 53,
+      "stdout": "{\"GST_PLUGIN_SCANNER\":\"/opt/homebrew/Cellar/gstreamer/1.28.1/libexec/gstreamer-1.0/gst-plugin-scanner\",\"DYLD_FALLBACK_LIBRARY_PATH\":\"/opt/homebrew/lib:/usr/local/lib:/usr/lib\",\"PATH\":\"/opt/homebrew/bin:/Users/dhseo/.nvm/versions/node/v24.13.0/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin\",\"HOMEBREW_PREFIX\":\"/opt/homebrew\",\"DYLD_LIBRARY_PATH\":\"/opt/homebrew/lib:/usr/local/lib:/usr/lib\",\"GST_PLUGIN_PATH\":\"/opt/homebrew/lib/gstreamer-1.0:/opt/homebrew/opt/libnice-gstreamer/libexec/gstreamer-1.0\",\"PKG_CONFIG_PATH\":\"/opt/homebrew/lib/pkgconfig:/opt/homebrew/share/pkgconfig\",\"GI_TYPELIB_PATH\":\"/opt/homebrew/lib/girepository-1.0\"}",
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "88f484defc58726cdece6b692d6a8a2d1946d63efddda99c1815e85567fee43e",
+      "stdoutBytes": 637
+    },
+    {
+      "id": "PKG-01",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 1189,
+      "stdout": [
+        "Total count: 281 plugins (2 blacklist entries not shown), 1527 features"
+      ],
+      "stderr": "\n(gst-plugin-scanner:1228): GLib-GIRepository-WARNING **: 20:19:21.732: Failed to load shared library 'libgobject-2.0.0.dylib' referenced by the typelib: dlopen(libgobject-2.0.0.dylib, 0x0009): tried: 'libgobject-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibgobject-2.0.0.dylib' (no such file), '/usr/lib/libgobject-2.0.0.dylib' (no such file, not in dyld cache), 'libgobject-2.0.0.dylib' (no such file)\n\n(gst-plugin-scanner:1228): GLib-GIRepository-WARNING **: 20:19:21.732: Failed to load shared library 'libglib-2.0.0.dylib' referenced by the typelib: dlopen(libglib-2.0.0.dylib, 0x0009): tried: 'libglib-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibglib-2.0.0.dylib' (no such file), '/usr/lib/libglib-2.0.0.dylib' (no such file, not in dyld cache), 'libglib-2.0.0.dylib' (no such file)\n\n** (gst-plugin-scanner:1228): CRITICAL **: 20:19:21.733: can't find gi.repository.Gst\nobjc[1228]: Class ResultReceiver is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10a4c1748) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11a982b70). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.\nobjc[1228]: Class GtkApplicationQuartzDelegate is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10a4c1770) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11a982b98). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.\nobjc[1228]: Class GNSMenuItem is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10a4c17c0) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11a982c38). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.\nobjc[1228]: Class GNSMenu is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10a4c17e8) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11a982c60). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.\nobjc[1228]: Class FilterComboBox is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10a4c1860) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11a982cd8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.\nobjc[1228]: Class gdkCoreCursor is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgdk-3.0.dylib (0x109915258) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11a982d28). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.\n",
+      "gtkDuplicates": 6,
+      "giMessages": 3,
+      "warningLines": [
+        "(gst-plugin-scanner:1228): GLib-GIRepository-WARNING **: 20:19:21.732: Failed to load shared library 'libgobject-2.0.0.dylib' referenced by the typelib: dlopen(libgobject-2.0.0.dylib, 0x0009): tried: 'libgobject-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibgobject-2.0.0.dylib' (no such file), '/usr/lib/libgobject-2.0.0.dylib' (no such file, not in dyld cache), 'libgobject-2.0.0.dylib' (no such file)",
+        "(gst-plugin-scanner:1228): GLib-GIRepository-WARNING **: 20:19:21.732: Failed to load shared library 'libglib-2.0.0.dylib' referenced by the typelib: dlopen(libglib-2.0.0.dylib, 0x0009): tried: 'libglib-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibglib-2.0.0.dylib' (no such file), '/usr/lib/libglib-2.0.0.dylib' (no such file, not in dyld cache), 'libglib-2.0.0.dylib' (no such file)",
+        "** (gst-plugin-scanner:1228): CRITICAL **: 20:19:21.733: can't find gi.repository.Gst",
+        "objc[1228]: Class ResultReceiver is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10a4c1748) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11a982b70). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.",
+        "objc[1228]: Class GtkApplicationQuartzDelegate is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10a4c1770) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11a982b98). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.",
+        "objc[1228]: Class GNSMenuItem is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10a4c17c0) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11a982c38). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.",
+        "objc[1228]: Class GNSMenu is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10a4c17e8) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11a982c60). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.",
+        "objc[1228]: Class FilterComboBox is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10a4c1860) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11a982cd8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.",
+        "objc[1228]: Class gdkCoreCursor is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgdk-3.0.dylib (0x109915258) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11a982d28). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed."
+      ],
+      "stdoutSha256": "bc1d52db2dae97b6387edd4676500e06e5c64901214300282d880ef1c4cf81f9",
+      "stdoutBytes": 73291
+    },
+    {
+      "id": "PKG-02",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 1420,
+      "stdout": [
+        "Total count: 281 plugins (1 blacklist entry not shown), 1527 features"
+      ],
+      "stderr": "objc[1232]: Class ResultReceiver is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x108a5d748) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11946eb70). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.\nobjc[1232]: Class GtkApplicationQuartzDelegate is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x108a5d770) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11946eb98). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.\nobjc[1232]: Class GNSMenuItem is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x108a5d7c0) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11946ec38). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.\nobjc[1232]: Class GNSMenu is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x108a5d7e8) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11946ec60). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.\nobjc[1232]: Class FilterComboBox is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x108a5d860) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11946ecd8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.\nobjc[1232]: Class gdkCoreCursor is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgdk-3.0.dylib (0x107eb1258) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11946ed28). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.\n",
+      "gtkDuplicates": 6,
+      "giMessages": 0,
+      "warningLines": [
+        "objc[1232]: Class ResultReceiver is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x108a5d748) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11946eb70). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.",
+        "objc[1232]: Class GtkApplicationQuartzDelegate is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x108a5d770) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11946eb98). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.",
+        "objc[1232]: Class GNSMenuItem is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x108a5d7c0) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11946ec38). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.",
+        "objc[1232]: Class GNSMenu is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x108a5d7e8) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11946ec60). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.",
+        "objc[1232]: Class FilterComboBox is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x108a5d860) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11946ecd8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.",
+        "objc[1232]: Class gdkCoreCursor is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgdk-3.0.dylib (0x107eb1258) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11946ed28). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed."
+      ],
+      "stdoutSha256": "19dfde953739cc5fb1396b9b00baadad6c5caa42cb5bbd0e51108f6f496597bb",
+      "stdoutBytes": 73289
+    },
+    {
+      "id": "PKG-03",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 1111,
+      "stdout": [
+        "Total count: 278 plugins (2 blacklist entries not shown), 1525 features"
+      ],
+      "stderr": "\n(gst-plugin-scanner:1234): GLib-GIRepository-WARNING **: 20:19:24.331: Failed to load shared library 'libgobject-2.0.0.dylib' referenced by the typelib: dlopen(libgobject-2.0.0.dylib, 0x0009): tried: 'libgobject-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibgobject-2.0.0.dylib' (no such file), '/usr/lib/libgobject-2.0.0.dylib' (no such file, not in dyld cache), 'libgobject-2.0.0.dylib' (no such file)\n\n(gst-plugin-scanner:1234): GLib-GIRepository-WARNING **: 20:19:24.331: Failed to load shared library 'libglib-2.0.0.dylib' referenced by the typelib: dlopen(libglib-2.0.0.dylib, 0x0009): tried: 'libglib-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibglib-2.0.0.dylib' (no such file), '/usr/lib/libglib-2.0.0.dylib' (no such file, not in dyld cache), 'libglib-2.0.0.dylib' (no such file)\n\n** (gst-plugin-scanner:1234): CRITICAL **: 20:19:24.331: can't find gi.repository.Gst\n",
+      "gtkDuplicates": 0,
+      "giMessages": 3,
+      "warningLines": [
+        "(gst-plugin-scanner:1234): GLib-GIRepository-WARNING **: 20:19:24.331: Failed to load shared library 'libgobject-2.0.0.dylib' referenced by the typelib: dlopen(libgobject-2.0.0.dylib, 0x0009): tried: 'libgobject-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibgobject-2.0.0.dylib' (no such file), '/usr/lib/libgobject-2.0.0.dylib' (no such file, not in dyld cache), 'libgobject-2.0.0.dylib' (no such file)",
+        "(gst-plugin-scanner:1234): GLib-GIRepository-WARNING **: 20:19:24.331: Failed to load shared library 'libglib-2.0.0.dylib' referenced by the typelib: dlopen(libglib-2.0.0.dylib, 0x0009): tried: 'libglib-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibglib-2.0.0.dylib' (no such file), '/usr/lib/libglib-2.0.0.dylib' (no such file, not in dyld cache), 'libglib-2.0.0.dylib' (no such file)",
+        "** (gst-plugin-scanner:1234): CRITICAL **: 20:19:24.331: can't find gi.repository.Gst"
+      ],
+      "stdoutSha256": "028a99e218ef82787480ec6b123c02e5b4cfbbfccc53a999919bc79730939484",
+      "stdoutBytes": 73214
+    },
+    {
+      "id": "PKG-04",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 1007,
+      "stdout": [
+        "Total count: 277 plugins (1 blacklist entry not shown), 1525 features"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "7ed5c24644b50914b77d3c66a73f66fbdd3c8d5c7c8a18035eb4b592cbf39d78",
+      "stdoutBytes": 73212
+    },
+    {
+      "id": "PKG-05",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 58,
+      "stdout": [
+        "Total count: 277 plugins (1 blacklist entry not shown), 1525 features"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "7ed5c24644b50914b77d3c66a73f66fbdd3c8d5c7c8a18035eb4b592cbf39d78",
+      "stdoutBytes": 73212
+    },
+    {
+      "id": "PKG-F-appsrc",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "appsrc"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 48,
+      "stdout": [
+        "  Long-name                AppSrc",
+        "  Name                     app",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstapp.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "3619d9f891dd8a6fab7b078ef398dccd5deb019ebdf84d995e3f9915d408f6a3",
+      "stdoutBytes": 9791
+    },
+    {
+      "id": "PKG-F-appsink",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "appsink"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 48,
+      "stdout": [
+        "  Long-name                AppSink",
+        "  Name                     app",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstapp.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "a387438f4655496b307071a3bda625122261c8eb8edfcac1eeafcb6b58bd49e9",
+      "stdoutBytes": 9947
+    },
+    {
+      "id": "PKG-F-filesrc",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "filesrc"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 45,
+      "stdout": [
+        "  Long-name                File Source",
+        "  Name                     coreelements",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstcoreelements.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "fe0baed110868a0d54b3f32136530a3d167205b7167785840e6f83bf45217ef1",
+      "stdoutBytes": 2917
+    },
+    {
+      "id": "PKG-F-filesink",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "filesink"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 46,
+      "stdout": [
+        "  Long-name                File Sink",
+        "  Name                     coreelements",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstcoreelements.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "046a598a1aad172f127844774f81957243b8e4d6cef1771c95a226a1682e498f",
+      "stdoutBytes": 6336
+    },
+    {
+      "id": "PKG-F-fdsink",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "fdsink"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 45,
+      "stdout": [
+        "  Long-name                Filedescriptor Sink",
+        "  Name                     coreelements",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstcoreelements.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "c55fa00f16b5ba983a59498d33e5c4a96773211fd1d21dd834afda3ec23ea1c9",
+      "stdoutBytes": 4669
+    },
+    {
+      "id": "PKG-F-queue",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "queue"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 49,
+      "stdout": [
+        "  Long-name                Queue",
+        "  Name                     coreelements",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstcoreelements.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "4cf60145d27bd4d5f0bcb02b9c380e21df71b035d36c2d1856b8739d10bb383c",
+      "stdoutBytes": 5518
+    },
+    {
+      "id": "PKG-F-identity",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "identity"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 49,
+      "stdout": [
+        "  Long-name                Identity",
+        "  Name                     coreelements",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstcoreelements.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "76505438c2a70bb51e445a6fd89799216a843a7608fb023a524fdba6c15be8a0",
+      "stdoutBytes": 6516
+    },
+    {
+      "id": "PKG-F-fakesink",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "fakesink"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 51,
+      "stdout": [
+        "  Long-name                Fake Sink",
+        "  Name                     coreelements",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstcoreelements.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "9ddeec933529c34f753e1c32f951a05adba10cedee0bc42e0566d8e78d0d0d11",
+      "stdoutBytes": 7142
+    },
+    {
+      "id": "PKG-F-concat",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "concat"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 46,
+      "stdout": [
+        "  Long-name                Concat",
+        "  Name                     coreelements",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstcoreelements.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "0c9c0e35a5430a3c85f2b23a0958e2916236d513a41968f588b8bd09396c4397",
+      "stdoutBytes": 2039
+    },
+    {
+      "id": "PKG-F-qtdemux",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "qtdemux"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 50,
+      "stdout": [
+        "  Long-name                QuickTime demuxer",
+        "  Name                     isomp4",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstisomp4.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "65eb623c8daadff0357d2d37bfce7c337620a893a5a5a67bfd144535e98a9de5",
+      "stdoutBytes": 2569
+    },
+    {
+      "id": "PKG-F-qtmux",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "qtmux"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 51,
+      "stdout": [
+        "  Long-name                QuickTime Muxer",
+        "  Name                     isomp4",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstisomp4.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "edab2bd70bd536b18149ab5e9b3b0373f91b7abf657e91d076f55db2fab51982",
+      "stdoutBytes": 20807
+    },
+    {
+      "id": "PKG-F-mp4mux",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "mp4mux"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 51,
+      "stdout": [
+        "  Long-name                MP4 Muxer",
+        "  Name                     isomp4",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstisomp4.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "cfa1d3a962b43a3aed66690106f8041ec1434bc67e6fde43e081883c2640a0dd",
+      "stdoutBytes": 16606
+    },
+    {
+      "id": "PKG-F-matroskamux",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "matroskamux"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 53,
+      "stdout": [
+        "  Long-name                Matroska muxer",
+        "  Name                     matroska",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstmatroska.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "db991af543a410daab7bacdd6c01d70f48dd861b579b0b5babfccf60889f8302",
+      "stdoutBytes": 16593
+    },
+    {
+      "id": "PKG-F-matroskademux",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "matroskademux"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 51,
+      "stdout": [
+        "  Long-name                Matroska demuxer",
+        "  Name                     matroska",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstmatroska.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "ce33d682fdb5f1c9986bff5cf790fb757b3e1772a8a8f57bdd7b671243860530",
+      "stdoutBytes": 3386
+    },
+    {
+      "id": "PKG-F-h264parse",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "h264parse"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 47,
+      "stdout": [
+        "  Long-name                H.264 parser",
+        "  Name                     videoparsersbad",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstvideoparsersbad.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "b345986b1da43a2544660f066f773d5ddf529a7e6e92d054a2968e8a90d4edee",
+      "stdoutBytes": 3119
+    },
+    {
+      "id": "PKG-F-mpegtsmux",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "mpegtsmux"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 51,
+      "stdout": [
+        "  Long-name                MPEG Transport Stream Muxer",
+        "  Name                     mpegtsmux",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstmpegtsmux.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "52c4708817d64b13130cba2b8604dc0aae7c40f1be8872e8cb14f90058a584d7",
+      "stdoutBytes": 11152
+    },
+    {
+      "id": "PKG-F-tsdemux",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "tsdemux"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 50,
+      "stdout": [
+        "  Long-name                MPEG transport stream demuxer",
+        "  Name                     mpegtsdemux",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstmpegtsdemux.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "52465de9350796d5f7d7a2399f345c03d0cce3c77c1e695f9bf24a1804b8d5f2",
+      "stdoutBytes": 5322
+    },
+    {
+      "id": "PKG-F-avdec_h264",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "avdec_h264"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 59,
+      "stdout": [
+        "  Long-name                libav H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10 decoder",
+        "  Name                     libav",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstlibav.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "338d511fe7634bc164b1b660be4f93fdb2fa20d5d77f912f6649f52e4c45b01f",
+      "stdoutBytes": 9176
+    },
+    {
+      "id": "PKG-F-videoconvert",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "videoconvert"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 48,
+      "stdout": [
+        "  Long-name                Video colorspace converter",
+        "  Name                     videoconvertscale",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstvideoconvertscale.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "f0214c661d0eaa595df4ffd607ee47cdd54fc2e73f2e2b5dcfb6547a5d0409a9",
+      "stdoutBytes": 18425
+    },
+    {
+      "id": "PKG-F-videoscale",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "videoscale"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 50,
+      "stdout": [
+        "  Long-name                Video scaler",
+        "  Name                     videoconvertscale",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstvideoconvertscale.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "5a89a25be79f793166a3df0c28ec79148cc2971ec5e98f8cd336cf0b8f4fdeac",
+      "stdoutBytes": 18512
+    },
+    {
+      "id": "PKG-F-videorate",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "videorate"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 53,
+      "stdout": [
+        "  Long-name                Video rate adjuster",
+        "  Name                     videorate",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstvideorate.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "823288c8e6f6d3dbda07c8b8d06e3056d0569a3bb23f2ab028cf3154c93e0f9e",
+      "stdoutBytes": 5164
+    },
+    {
+      "id": "PKG-F-jpegenc",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "jpegenc"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 47,
+      "stdout": [
+        "  Long-name                JPEG image encoder",
+        "  Name                     jpeg",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstjpeg.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "8f98bd04ac684a6baad4e78bf82858d1d4657420a545829c0a9aa9c2ea48f896",
+      "stdoutBytes": 3795
+    },
+    {
+      "id": "PKG-F-rtspsrc",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "rtspsrc"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 63,
+      "stdout": [
+        "  Long-name                RTSP packet receiver",
+        "  Name                     rtsp",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstrtsp.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "7b84d3382dd24370fa164c0297883480de91c0d94fb67fea6baa583a37089872",
+      "stdoutBytes": 20402
+    },
+    {
+      "id": "PKG-F-rtph264pay",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "rtph264pay"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 57,
+      "stdout": [
+        "  Long-name                RTP H264 payloader",
+        "  Name                     rtp",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstrtp.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "0d8dcea42f6af2f4ce3f27719906e84fe65fd2ef1f212f35cf69f6e9eb130399",
+      "stdoutBytes": 7949
+    },
+    {
+      "id": "PKG-F-rtph264depay",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "rtph264depay"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 50,
+      "stdout": [
+        "  Long-name                RTP H264 depayloader",
+        "  Name                     rtp",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstrtp.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "b04a135e49ef81f5efec3cb4c70ef817e31b80a40c732204a5357231290042af",
+      "stdoutBytes": 4999
+    },
+    {
+      "id": "PKG-F-rtph265pay",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "rtph265pay"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 46,
+      "stdout": [
+        "  Long-name                RTP H265 payloader",
+        "  Name                     rtp",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstrtp.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "299a49d9046a015ccbb631013b3bfbcd7c9bcdda73c60a4cfeb9dd708841260f",
+      "stdoutBytes": 7742
+    },
+    {
+      "id": "PKG-F-rtph265depay",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "rtph265depay"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 46,
+      "stdout": [
+        "  Long-name                RTP H265 depayloader",
+        "  Name                     rtp",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstrtp.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "c90ae0fa118ffa478f57333577fe05deccf6c4494ce9ca9d7a6e28a236ee7d24",
+      "stdoutBytes": 5005
+    },
+    {
+      "id": "PKG-F-h265parse",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "h265parse"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 45,
+      "stdout": [
+        "  Long-name                H.265 parser",
+        "  Name                     videoparsersbad",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstvideoparsersbad.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "bcb450e4b05c439a4769c0609052adb21d37ac22cac5a26ef03c29a75fa2c6c5",
+      "stdoutBytes": 2747
+    },
+    {
+      "id": "PKG-F-webrtcbin",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "webrtcbin"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 51,
+      "stdout": [
+        "  Long-name                WebRTC Bin",
+        "  Name                     webrtc",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstwebrtc.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "00b4dd54fdf585da6939c3c3f439fb2c8808f1ab03d7dc3e1312dd26e5c87bbe",
+      "stdoutBytes": 15904
+    },
+    {
+      "id": "PKG-F-nicesrc",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "nicesrc"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 49,
+      "stdout": [
+        "  Long-name                ICE source",
+        "  Name                     nice",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstnice.dylib",
+        "  Version                  0.1.23"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "47aad118a3e40b4f7ee4ee51c1d87be0355aad5ed4512f45d763c4bc80489e8e",
+      "stdoutBytes": 2975
+    },
+    {
+      "id": "PKG-F-nicesink",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "nicesink"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 48,
+      "stdout": [
+        "  Long-name                ICE sink",
+        "  Name                     nice",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstnice.dylib",
+        "  Version                  0.1.23"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "81881d7f6c9b6800f0c9c5384148b73402e4ac7e89cde0bed510b1fb58ac9c95",
+      "stdoutBytes": 4699
+    },
+    {
+      "id": "PKG-F-dtlsenc",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "dtlsenc"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 45,
+      "stdout": [
+        "  Long-name                DTLS Encoder",
+        "  Name                     dtls",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstdtls.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "a343e4450267c62ebcdf9dbc85963c912b9ab04d8d6cf710608ea029a5af877a",
+      "stdoutBytes": 3484
+    },
+    {
+      "id": "PKG-F-dtlsdec",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "dtlsdec"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 50,
+      "stdout": [
+        "  Long-name                DTLS Decoder",
+        "  Name                     dtls",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstdtls.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "ed59f01d97062e4b80f1e3860f620f5690dcda68bcba3426669565b186e445f5",
+      "stdoutBytes": 4023
+    },
+    {
+      "id": "PKG-F-srtpenc",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "srtpenc"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 46,
+      "stdout": [
+        "  Long-name                SRTP encoder",
+        "  Name                     srtp",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstsrtp.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "5e696d40d8a0cb4d89c97aa685be9acc9fe0e7aac732ac25d6a72ed5bef50400",
+      "stdoutBytes": 5805
+    },
+    {
+      "id": "PKG-F-srtpdec",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "srtpdec"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 46,
+      "stdout": [
+        "  Long-name                SRTP decoder",
+        "  Name                     srtp",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstsrtp.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "1cbe753939b382b098433dfdbae81797060a034cbd66c5ceefaa9a10e5998dcb",
+      "stdoutBytes": 3486
+    },
+    {
+      "id": "PKG-F-rtpbin",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "rtpbin"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 48,
+      "stdout": [
+        "  Long-name                RTP Bin",
+        "  Name                     rtpmanager",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstrtpmanager.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "997e8c3ec6632c435c2120803b4650b6c4cf383d1dd9071c2f40d8cc7d5ca593",
+      "stdoutBytes": 19361
+    },
+    {
+      "id": "PKG-F-vp8enc",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "vp8enc"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 48,
+      "stdout": [
+        "  Long-name                On2 VP8 Encoder",
+        "  Name                     vpx",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstvpx.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "87f72fa369d460bd745cde05fcf5f650a67579b8e7cc2f986b3ddd5673a54ddf",
+      "stdoutBytes": 13112
+    },
+    {
+      "id": "PKG-F-vp8dec",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "vp8dec"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 46,
+      "stdout": [
+        "  Long-name                On2 VP8 Decoder",
+        "  Name                     vpx",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstvpx.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "615a517b298db90c3ac305ff65ef7906683ad4e2f67a14489d047836fd566c29",
+      "stdoutBytes": 4811
+    },
+    {
+      "id": "PKG-F-opusenc",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "opusenc"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 47,
+      "stdout": [
+        "  Long-name                Opus audio encoder",
+        "  Name                     opus",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstopus.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "809b03dd94b5a14f7d5534f629c9fdb996d702cc7011eeded141cf8d2dc1f24d",
+      "stdoutBytes": 6431
+    },
+    {
+      "id": "PKG-F-opusdec",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "opusdec"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 50,
+      "stdout": [
+        "  Long-name                Opus audio decoder",
+        "  Name                     opus",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstopus.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "5294d19d809824c58cbfc312f4bd772d8c2ba16b2a6089c9c700ac875c85c37a",
+      "stdoutBytes": 4665
+    },
+    {
+      "id": "PKG-F-audioconvert",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "audioconvert"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 47,
+      "stdout": [
+        "  Long-name                Audio converter",
+        "  Name                     audioconvert",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstaudioconvert.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "5500a09b764d7bff5f93d53a2a93b689313a9ede961e3d35a4db1cc2cf5927e9",
+      "stdoutBytes": 6761
+    },
+    {
+      "id": "PKG-F-audioresample",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "audioresample"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 47,
+      "stdout": [
+        "  Long-name                Audio resampler",
+        "  Name                     audioresample",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstaudioresample.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "762aea40e39d69d8dfbf36b1bb1099fda1c6c40f307fc29825665294d1814045",
+      "stdoutBytes": 5597
+    },
+    {
+      "id": "PKG-F-rtpopuspay",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "rtpopuspay"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 46,
+      "stdout": [
+        "  Long-name                RTP Opus payloader",
+        "  Name                     rtp",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstrtp.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "790a3c33896147e2e900abda1f00a5c5f01fab01d93c0f86d43071878edce6a8",
+      "stdoutBytes": 7239
+    },
+    {
+      "id": "PKG-F-rtpopusdepay",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [
+        "rtpopusdepay"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 46,
+      "stdout": [
+        "  Long-name                RTP Opus packet depayloader",
+        "  Name                     rtp",
+        "  Filename                 /private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces/libgstrtp.dylib",
+        "  Version                  1.28.1"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "dbb7cbb07eff8f47a2ae3e39f7227fbbf1a941ead32486347f43781951b6806c",
+      "stdoutBytes": 4581
+    },
+    {
+      "id": "PKG-probe-flags",
+      "command": "/opt/homebrew/bin/pkg-config",
+      "args": [
+        "--cflags",
+        "--libs",
+        "gstreamer-1.0"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 11,
+      "stdout": "-I/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0 -I/opt/homebrew/Cellar/glib/2.86.4/include -I/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi -I/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0 -I/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include -I/opt/homebrew/opt/gettext/include -I/opt/homebrew/Cellar/pcre2/10.47_1/include -L/opt/homebrew/Cellar/gstreamer/1.28.1/lib -lgstreamer-1.0 -Wl,-rpath,/opt/homebrew/Cellar/gstreamer/1.28.1/lib -L/opt/homebrew/Cellar/glib/2.86.4/lib -lgobject-2.0 -lglib-2.0 -L/opt/homebrew/opt/gettext/lib -lintl\n",
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "6df55103fa0407a9cc2c169944a0521e62f82babc32ffca2a55ca8dcfb32c3d3",
+      "stdoutBytes": 582
+    },
+    {
+      "id": "PKG-probe-build",
+      "command": "/usr/bin/c++",
+      "args": [
+        "-std=c++17",
+        "/private/tmp/media-server-gst-packaging-resume.9NfixH/probe.cpp",
+        "-I/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0",
+        "-I/opt/homebrew/Cellar/glib/2.86.4/include",
+        "-I/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi",
+        "-I/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0",
+        "-I/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include",
+        "-I/opt/homebrew/opt/gettext/include",
+        "-I/opt/homebrew/Cellar/pcre2/10.47_1/include",
+        "-L/opt/homebrew/Cellar/gstreamer/1.28.1/lib",
+        "-lgstreamer-1.0",
+        "-Wl,-rpath,/opt/homebrew/Cellar/gstreamer/1.28.1/lib",
+        "-L/opt/homebrew/Cellar/glib/2.86.4/lib",
+        "-lgobject-2.0",
+        "-lglib-2.0",
+        "-L/opt/homebrew/opt/gettext/lib",
+        "-lintl",
+        "-o",
+        "/private/tmp/media-server-gst-packaging-resume.9NfixH/probe"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 282,
+      "stdout": "",
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0
+    },
+    {
+      "id": "PKG-factory-create",
+      "command": "/private/tmp/media-server-gst-packaging-resume.9NfixH/probe",
+      "args": [
+        "appsrc",
+        "appsink",
+        "filesrc",
+        "filesink",
+        "fdsink",
+        "queue",
+        "identity",
+        "fakesink",
+        "concat",
+        "qtdemux",
+        "qtmux",
+        "mp4mux",
+        "matroskamux",
+        "matroskademux",
+        "h264parse",
+        "mpegtsmux",
+        "tsdemux",
+        "avdec_h264",
+        "videoconvert",
+        "videoscale",
+        "videorate",
+        "jpegenc",
+        "rtspsrc",
+        "rtph264pay",
+        "rtph264depay",
+        "rtph265pay",
+        "rtph265depay",
+        "h265parse",
+        "webrtcbin",
+        "nicesrc",
+        "nicesink",
+        "dtlsenc",
+        "dtlsdec",
+        "srtpenc",
+        "srtpdec",
+        "rtpbin",
+        "vp8enc",
+        "vp8dec",
+        "opusenc",
+        "opusdec",
+        "audioconvert",
+        "audioresample",
+        "rtpopuspay",
+        "rtpopusdepay"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 506,
+      "stdout": "{\"factory\":\"appsrc\",\"created\":true}\n{\"factory\":\"appsink\",\"created\":true}\n{\"factory\":\"filesrc\",\"created\":true}\n{\"factory\":\"filesink\",\"created\":true}\n{\"factory\":\"fdsink\",\"created\":true}\n{\"factory\":\"queue\",\"created\":true}\n{\"factory\":\"identity\",\"created\":true}\n{\"factory\":\"fakesink\",\"created\":true}\n{\"factory\":\"concat\",\"created\":true}\n{\"factory\":\"qtdemux\",\"created\":true}\n{\"factory\":\"qtmux\",\"created\":true}\n{\"factory\":\"mp4mux\",\"created\":true}\n{\"factory\":\"matroskamux\",\"created\":true}\n{\"factory\":\"matroskademux\",\"created\":true}\n{\"factory\":\"h264parse\",\"created\":true}\n{\"factory\":\"mpegtsmux\",\"created\":true}\n{\"factory\":\"tsdemux\",\"created\":true}\n{\"factory\":\"avdec_h264\",\"created\":true}\n{\"factory\":\"videoconvert\",\"created\":true}\n{\"factory\":\"videoscale\",\"created\":true}\n{\"factory\":\"videorate\",\"created\":true}\n{\"factory\":\"jpegenc\",\"created\":true}\n{\"factory\":\"rtspsrc\",\"created\":true}\n{\"factory\":\"rtph264pay\",\"created\":true}\n{\"factory\":\"rtph264depay\",\"created\":true}\n{\"factory\":\"rtph265pay\",\"created\":true}\n{\"factory\":\"rtph265depay\",\"created\":true}\n{\"factory\":\"h265parse\",\"created\":true}\n{\"factory\":\"webrtcbin\",\"created\":true}\n{\"id\":\"PKG-07\",\"ready\":true}\n{\"factory\":\"nicesrc\",\"created\":true}\n{\"factory\":\"nicesink\",\"created\":true}\n{\"factory\":\"dtlsenc\",\"created\":true}\n{\"factory\":\"dtlsdec\",\"created\":true}\n{\"factory\":\"srtpenc\",\"created\":true}\n{\"factory\":\"srtpdec\",\"created\":true}\n{\"factory\":\"rtpbin\",\"created\":true}\n{\"factory\":\"vp8enc\",\"created\":true}\n{\"factory\":\"vp8dec\",\"created\":true}\n{\"factory\":\"opusenc\",\"created\":true}\n{\"factory\":\"opusdec\",\"created\":true}\n{\"factory\":\"audioconvert\",\"created\":true}\n{\"factory\":\"audioresample\",\"created\":true}\n{\"factory\":\"rtpopuspay\",\"created\":true}\n{\"factory\":\"rtpopusdepay\",\"created\":true}\n",
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "710e1417d9b4fe8bbed0dda2869406a310fdeceea0009b021fbcfdb51524c57c",
+      "stdoutBytes": 1716
+    },
+    {
+      "id": "PKG-08",
+      "command": "/opt/homebrew/bin/gst-launch-1.0",
+      "args": [
+        "-q",
+        "filesrc",
+        "location=/Users/dhseo/Workspace/mediaServer/video/sample_h264_video_only.mp4",
+        "!",
+        "qtdemux",
+        "!",
+        "h264parse",
+        "!",
+        "avdec_h264",
+        "!",
+        "fakesink",
+        "sync=false"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 471,
+      "stdout": "",
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0
+    },
+    {
+      "id": "PKG-09",
+      "command": "./server.sh",
+      "args": [
+        "verify-v410-event-recording"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 25210,
+      "stdout": [
+        "[v410-s05-inventory-unit] pass=26 fail=0",
+        "[verify-v410-event-recording] pass=140 fail=0",
+        "- summary: pass=7 fail=0",
+        "[s05-runtime-summary] case=disabled-admit pass=7 fail=0",
+        "[s05-runtime-summary] case=disabled-recover pass=3 fail=0",
+        "[s05-runtime-summary] case=enabled-admit pass=7 fail=0",
+        "[s05-runtime-summary] case=enabled-recover pass=3 fail=0",
+        "[s05-runtime-negative] pass=2 fail=0 elapsedMs=14733",
+        "[S05 개별 실행] pass=27 fail=0"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "f38f25b939d1dfad36e42cdeb8d61af8f8bad94719e9b91e01ae2e00aa3df1ec",
+      "stdoutBytes": 22335
+    },
+    {
+      "id": "PKG-10",
+      "command": "./server.sh",
+      "args": [
+        "build"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 36819,
+      "stdout": [
+        "[env] local override skipped",
+        "[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)",
+        "-- Configuring done (0.1s)",
+        "-- Generating done (0.0s)",
+        "[ 98%] Built target media_server_runtime",
+        "[100%] Built target media_server",
+        "[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server"
+      ],
+      "stderr": "",
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [],
+      "stdoutSha256": "95d568ea88116795599945e446c9de893c8a08d15e54aefdf71e8f56a2faf33f",
+      "stdoutBytes": 12060
+    }
+  ],
+  "excluded": {
+    "no-gtk": [
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstgtk.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstgtk4.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/validate/libgstvalidategtk.dylib"
+    ],
+    "no-gtk-python": [
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstgtk.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstgtk4.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstpython.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/validate/libgstvalidategtk.dylib"
+    ]
+  },
+  "environment": {
+    "PATH": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+    "HOME": "/Users/dhseo",
+    "LANG": "en_US.UTF-8",
+    "TMPDIR": "/private/tmp/media-server-gst-packaging-resume.9NfixH",
+    "XDG_CACHE_HOME": "/private/tmp/media-server-gst-packaging-resume.9NfixH/xdg-cache",
+    "MEDIA_SERVER_SKIP_LOCAL_ENV": "1"
+  },
+  "preservation": [
+    {
+      "path": "/Users/dhseo/Workspace/mediaServer/video/sample_h264_video_only.mp4",
+      "before": "b1d90231de3c6b816e58715c9b12ba54bd31583301d08e943e678e46b02ad18b",
+      "after": "b1d90231de3c6b816e58715c9b12ba54bd31583301d08e943e678e46b02ad18b",
+      "unchanged": true
+    },
+    {
+      "path": "/Users/dhseo/.cache/gstreamer-1.0/registry.aarch64.bin",
+      "before": "26dfd301fee0f2cd5935c96595811064853a6326ddb9a76ca10837bdd35c0de4",
+      "after": "26dfd301fee0f2cd5935c96595811064853a6326ddb9a76ca10837bdd35c0de4",
+      "unchanged": true
+    },
+    {
+      "path": "/opt/homebrew/lib/gstreamer-1.0/libgstgtk.dylib",
+      "before": "1253d26477c27edfb5676eb5b5d2cd371b5ea62b85212a3e0a79ed010f828925",
+      "after": "1253d26477c27edfb5676eb5b5d2cd371b5ea62b85212a3e0a79ed010f828925",
+      "unchanged": true
+    },
+    {
+      "path": "/opt/homebrew/lib/gstreamer-1.0/libgstgtk4.dylib",
+      "before": "33c231ab3c7ea8a667e41382df12e039e46bca3b1421f0ff30062c2fe9ac8fb0",
+      "after": "33c231ab3c7ea8a667e41382df12e039e46bca3b1421f0ff30062c2fe9ac8fb0",
+      "unchanged": true
+    },
+    {
+      "path": "/opt/homebrew/lib/gstreamer-1.0/libgstpython.dylib",
+      "before": "46ba5e8149b924d255eff589d00c6fbfdccf41dff6348cca2cbc29d04c9cc257",
+      "after": "46ba5e8149b924d255eff589d00c6fbfdccf41dff6348cca2cbc29d04c9cc257",
+      "unchanged": true
+    }
+  ],
+  "commonEnvironment": {
+    "GST_PLUGIN_SCANNER": "/opt/homebrew/Cellar/gstreamer/1.28.1/libexec/gstreamer-1.0/gst-plugin-scanner",
+    "DYLD_FALLBACK_LIBRARY_PATH": "/opt/homebrew/lib:/usr/local/lib:/usr/lib",
+    "PATH": "/opt/homebrew/bin:/Users/dhseo/.nvm/versions/node/v24.13.0/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+    "HOMEBREW_PREFIX": "/opt/homebrew",
+    "DYLD_LIBRARY_PATH": "/opt/homebrew/lib:/usr/local/lib:/usr/lib",
+    "GST_PLUGIN_PATH": "/opt/homebrew/lib/gstreamer-1.0:/opt/homebrew/opt/libnice-gstreamer/libexec/gstreamer-1.0",
+    "PKG_CONFIG_PATH": "/opt/homebrew/lib/pkgconfig:/opt/homebrew/share/pkgconfig",
+    "GI_TYPELIB_PATH": "/opt/homebrew/lib/girepository-1.0"
+  },
+  "candidateEnvironment": {
+    "PATH": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+    "HOME": "/Users/dhseo",
+    "LANG": "en_US.UTF-8",
+    "TMPDIR": "/private/tmp/media-server-gst-packaging-resume.9NfixH",
+    "XDG_CACHE_HOME": "/private/tmp/media-server-gst-packaging-resume.9NfixH/xdg-cache",
+    "MEDIA_SERVER_SKIP_LOCAL_ENV": "1",
+    "GST_PLUGIN_PATH_1_0": "/private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python plugins with spaces",
+    "GST_PLUGIN_SYSTEM_PATH_1_0": "",
+    "GST_PLUGIN_SCANNER_1_0": "/opt/homebrew/opt/gstreamer/libexec/gstreamer-1.0/gst-plugin-scanner",
+    "GST_REGISTRY_1_0": "/private/tmp/media-server-gst-packaging-resume.9NfixH/no-gtk-python registry with spaces.bin"
+  },
+  "featureComparison": {
+    "baseline": 1527,
+    "common": 1527,
+    "noGtk": 1525,
+    "candidate": 1525,
+    "removed": [
+      "gtk4:  gtk4paintablesink: GTK 4 Paintable Sink",
+      "gtk:  gtksink: Gtk Video Sink"
+    ],
+    "added": [],
+    "typefindIncluded": true,
+    "countsMatchGstSummary": true
+  },
+  "spacePath": {
+    "id": "PKG-06",
+    "pass": true
+  },
+  "environmentComplete": true,
+  "updated": "2026-09-04T11:22:30.959Z",
+  "factoryCreation": [
+    {
+      "factory": "appsrc",
+      "created": true
+    },
+    {
+      "factory": "appsink",
+      "created": true
+    },
+    {
+      "factory": "filesrc",
+      "created": true
+    },
+    {
+      "factory": "filesink",
+      "created": true
+    },
+    {
+      "factory": "fdsink",
+      "created": true
+    },
+    {
+      "factory": "queue",
+      "created": true
+    },
+    {
+      "factory": "identity",
+      "created": true
+    },
+    {
+      "factory": "fakesink",
+      "created": true
+    },
+    {
+      "factory": "concat",
+      "created": true
+    },
+    {
+      "factory": "qtdemux",
+      "created": true
+    },
+    {
+      "factory": "qtmux",
+      "created": true
+    },
+    {
+      "factory": "mp4mux",
+      "created": true
+    },
+    {
+      "factory": "matroskamux",
+      "created": true
+    },
+    {
+      "factory": "matroskademux",
+      "created": true
+    },
+    {
+      "factory": "h264parse",
+      "created": true
+    },
+    {
+      "factory": "mpegtsmux",
+      "created": true
+    },
+    {
+      "factory": "tsdemux",
+      "created": true
+    },
+    {
+      "factory": "avdec_h264",
+      "created": true
+    },
+    {
+      "factory": "videoconvert",
+      "created": true
+    },
+    {
+      "factory": "videoscale",
+      "created": true
+    },
+    {
+      "factory": "videorate",
+      "created": true
+    },
+    {
+      "factory": "jpegenc",
+      "created": true
+    },
+    {
+      "factory": "rtspsrc",
+      "created": true
+    },
+    {
+      "factory": "rtph264pay",
+      "created": true
+    },
+    {
+      "factory": "rtph264depay",
+      "created": true
+    },
+    {
+      "factory": "rtph265pay",
+      "created": true
+    },
+    {
+      "factory": "rtph265depay",
+      "created": true
+    },
+    {
+      "factory": "h265parse",
+      "created": true
+    },
+    {
+      "factory": "webrtcbin",
+      "created": true
+    },
+    {
+      "id": "PKG-07",
+      "ready": true
+    },
+    {
+      "factory": "nicesrc",
+      "created": true
+    },
+    {
+      "factory": "nicesink",
+      "created": true
+    },
+    {
+      "factory": "dtlsenc",
+      "created": true
+    },
+    {
+      "factory": "dtlsdec",
+      "created": true
+    },
+    {
+      "factory": "srtpenc",
+      "created": true
+    },
+    {
+      "factory": "srtpdec",
+      "created": true
+    },
+    {
+      "factory": "rtpbin",
+      "created": true
+    },
+    {
+      "factory": "vp8enc",
+      "created": true
+    },
+    {
+      "factory": "vp8dec",
+      "created": true
+    },
+    {
+      "factory": "opusenc",
+      "created": true
+    },
+    {
+      "factory": "opusdec",
+      "created": true
+    },
+    {
+      "factory": "audioconvert",
+      "created": true
+    },
+    {
+      "factory": "audioresample",
+      "created": true
+    },
+    {
+      "factory": "rtpopuspay",
+      "created": true
+    },
+    {
+      "factory": "rtpopusdepay",
+      "created": true
+    }
+  ],
+  "mediaComplete": true,
+  "s05Complete": true,
+  "buildComplete": true,
+  "s05": {
+    "cppAssertions": [
+      {
+        "id": "S05-CPP-001",
+        "message": "기본 pending event link가 유효해야 함: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-002",
+        "message": "terminal 대기 UTC 확장 요청은 additive 계약으로 round-trip해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-003",
+        "message": "terminal 대기 요청이 현재 범위를 축소하면 거부해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-004",
+        "message": "미해석 후속 PTS는 기존 UTC 범위와 별도 field로 round-trip해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-005",
+        "message": "미해석 후속 PTS를 소비하지 않은 terminal 상태를 거부해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-006",
+        "message": "서로 겹치는 ordered overlap을 거부해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-007",
+        "message": "overlap/missing이 requested range를 정확히 분할하지 않으면 거부해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-008",
+        "message": "unknown link status를 영속 계약으로 허용하면 안 됨",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-009",
+        "message": "locator 없는 fallback evidence를 거부해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-010",
+        "message": "journal open 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-011",
+        "message": "catalog open 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-012",
+        "message": "event link 갱신은 SQLite primary projection에서 검증해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-013",
+        "message": "segment finalize 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-014",
+        "message": "segment finalize 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-015",
+        "message": "segment finalize 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-016",
+        "message": "segment finalize 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-017",
+        "message": "segment finalize 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-018",
+        "message": "retention policy 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-019",
+        "message": "이벤트 저장 worker를 막지 않고 파생 job을 pending으로 enqueue해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-020",
+        "message": "파생 중 원본 segment hold가 유지되어야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-021",
+        "message": "파생 중 원본 segment hold가 유지되어야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-022",
+        "message": "파생 중 원본 segment hold가 유지되어야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-023",
+        "message": "완전한 archive 파생 완료 뒤 ready clip을 반환해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-024",
+        "message": "event link ID와 derived clip path가 반환되어야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-025",
+        "message": "반개구간 overlap은 맞닿기만 한 segment를 제외해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-026",
+        "message": "media PTS event 범위가 segment epoch 기준 UTC로 변환되어야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-027",
+        "message": "overlap segment가 UTC 순서로 전달되어야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-028",
+        "message": "파생 성공 link가 catalog complete로 저장되어야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-029",
+        "message": "파생 완료 뒤 원본 hold가 해제되어야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-030",
+        "message": "파생 완료 뒤 원본 hold가 해제되어야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-031",
+        "message": "파생 완료 뒤 원본 hold가 해제되어야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-032",
+        "message": "같은 event update는 파생 clip을 중복 생성하지 않아야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-033",
+        "message": "파생 중 원본 segment hold가 유지되어야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-034",
+        "message": "파생 중 원본 segment hold가 유지되어야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-035",
+        "message": "파생 중 원본 segment hold가 유지되어야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-036",
+        "message": "파생 중 원본 segment hold가 유지되어야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-037",
+        "message": "완료 event의 더 넓은 update는 range별 결정 ID로 다시 파생해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-038",
+        "message": "segment finalize 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-039",
+        "message": "segment finalize 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-040",
+        "message": "cam-b policy 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-041",
+        "message": "archive gap이 있으면 complete로 표시하면 안 됨",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-042",
+        "message": "link가 정확한 missing UTC range를 보존해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-043",
+        "message": "frame-buffer fallback 뒤 같은 link가 fallback evidence로 갱신되어야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-044",
+        "message": "같은 event link의 overlap/fallback 갱신 뒤에도 SQLite projection을 유지해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-045",
+        "message": "cam-late policy 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-046",
+        "message": "segment finalize 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-047",
+        "message": "파생 중 원본 segment hold가 유지되어야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-048",
+        "message": "파생 중 원본 segment hold가 유지되어야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-049",
+        "message": "파생 중 원본 segment hold가 유지되어야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-050",
+        "message": "파생 중 원본 segment hold가 유지되어야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-051",
+        "message": "anchor 없는 PTS를 finalized segment의 실제 PTS/UTC mapping으로 복구해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-052",
+        "message": "PTS epoch anchor가 없으면 임의 UTC 연결이나 파생을 하면 안 됨",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-053",
+        "message": "anchor 없는 PTS는 UTC field가 아니라 재해석 가능한 PTS range로 보존해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-054",
+        "message": "같은 긴 prefix의 event ID도 SHA-256 기반 결정 ID가 충돌하면 안 됨",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-055",
+        "message": "파생 중 원본 segment hold가 유지되어야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-056",
+        "message": "파생 중 원본 segment hold가 유지되어야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-057",
+        "message": "파생 중 원본 segment hold가 유지되어야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-058",
+        "message": "확장 회귀 journal open 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-059",
+        "message": "확장 회귀 initial catalog open 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-060",
+        "message": "segment finalize 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-061",
+        "message": "cleanup 확장 fixture 저장 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-062",
+        "message": "cleanup 확장 fixture 저장 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-063",
+        "message": "확장 회귀 restart catalog open 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-064",
+        "message": "확장 policy 실패",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-065",
+        "message": "cleanup 확장 remux 실패는 한 번만 실행되어야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-066",
+        "message": "실패/Partial도 보류 확장 요청을 현재 범위로 소비해 보존해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-067",
+        "message": "실패/Partial도 보류 확장 요청을 현재 범위로 소비해 보존해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-068",
+        "message": "PTS 확장은 다른 범위 ID를 사용해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-069",
+        "message": "미해석 PTS 확장을 이전 complete clip으로 응답하면 안 됨",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-070",
+        "message": "segment finalize 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-071",
+        "message": "PTS 확장 2회는 최초 포함 총 3회 파생해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-072",
+        "message": "quota journal open 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-073",
+        "message": "quota catalog open 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-074",
+        "message": "segment finalize 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-075",
+        "message": "segment finalize 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-076",
+        "message": "quota policy 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-077",
+        "message": "event quota는 oldest event를 정리해 새 event write를 허용해야 함: ok",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-078",
+        "message": "event quota 충족을 위해 continuous를 삭제하면 안 됨",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-079",
+        "message": "event quota는 oldest eligible event를 삭제해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-080",
+        "message": "policy 재등록 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-081",
+        "message": "policy 제거가 진행 중 event reservation을 지우면 안 됨",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-082",
+        "message": "명시적 complete 뒤 event reservation ID를 재사용할 수 있어야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-083",
+        "message": "queue journal open 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-084",
+        "message": "queue catalog open 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-085",
+        "message": "segment finalize 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-086",
+        "message": "queue policy 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-087",
+        "message": "bounded queue 밖 durable pending도 완료 뒤 다시 흡수해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-088",
+        "message": "긴 event remux가 다른 이벤트의 durable link admission을 동기 차단하면 안 됨",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-089",
+        "message": "cleanup 실패 시 source hold와 event reservation을 성공처럼 해제하면 안 됨",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-090",
+        "message": "terminal marker unlink 실패 시 source/output hold를 유지해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-091",
+        "message": "terminal marker unlink 실패 시 event reservation을 유지해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-092",
+        "message": "marker 복구 중 event/fallback 갱신은 자원·단계를 보존하고 확장 요청을 내구 대기해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-093",
+        "message": "terminal hold 해제 실패를 Complete로 기록하면 안 됨",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-094",
+        "message": "terminal 복구 중 event/fallback 갱신이 release 단계를 덮어쓰면 안 됨",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-095",
+        "message": "복구 완료 뒤 내구 대기한 범위 확장은 같은 source epoch의 새 segment로 파생해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-096",
+        "message": "terminal complete commit retry fixture 저장 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-097",
+        "message": "complete commit 재시도는 다른 pending event의 source hold를 해제하면 안 됨",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-098",
+        "message": "overflow fixture 이전 hold_count가 저장 범위를 넘으면 안 됨",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-099",
+        "message": "hold overflow fixture 준비 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-100",
+        "message": "event source lease hold_count overflow를 사전에 거부해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-101",
+        "message": "hold fixture journal open 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-102",
+        "message": "hold fixture catalog open 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-103",
+        "message": "segment finalize 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-104",
+        "message": "segment finalize 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-105",
+        "message": "hold pending link 저장 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-106",
+        "message": "hold replay journal open 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-107",
+        "message": "hold replay catalog open 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-108",
+        "message": "재시작 replay가 terminal 전 output/source hold를 함께 복원해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-109",
+        "message": "terminal stage fixture event link 조회",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-110",
+        "message": "terminal stage fixture 저장 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-111",
+        "message": "terminal stage replay journal open: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-112",
+        "message": "terminal stage catalog open: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-113",
+        "message": "complete commit 단계 재시작은 이미 해제된 output/source hold를 복원하면 안 됨",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-114",
+        "message": "terminal Complete 기록 전 source 삭제 요청을 차단해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-115",
+        "message": "terminal Complete 기록 전 output 삭제 요청을 차단해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-116",
+        "message": "restart journal open 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-117",
+        "message": "restart catalog open 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-118",
+        "message": "segment finalize 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-119",
+        "message": "segment finalize 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-120",
+        "message": "restart pending link 저장 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-121",
+        "message": "재시작은 이미 finalized된 결정적 event segment를 재파생 없이 연결해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-122",
+        "message": "재시작 복구에서 event clip을 중복 파생하면 안 됨",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-123",
+        "message": "segment finalize 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-124",
+        "message": "conflict pending link 저장 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-125",
+        "message": "다른 channel/class의 동일 segment ID를 event 결과로 오인하면 안 됨",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-126",
+        "message": "segment ID conflict에서 파생을 실행하면 안 됨",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-127",
+        "message": "실제 H264/MP4 source를 video 재인코딩 없이 remux해야 함: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-128",
+        "message": "remux 결과 파일과 size가 일치해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-129",
+        "message": "event clip actual range는 keyframe 확대를 측정해 requested range와 분리해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-130",
+        "message": "event clip이 source segment 전체 단순 연결보다 작아야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-131",
+        "message": "remux 결과 checksum과 crash cleanup marker를 남겨야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-132",
+        "message": "동일 final은 소유 artifact가 없는 terminal 충돌로 거부하고 기존 clip을 보존해야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-133",
+        "message": "파생 H264/MP4 clip이 끝까지 demux/parse 가능해야 함: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-134",
+        "message": "nonce partial은 foreign 고정 partial을 보존하면서 독립 파생되어야 함",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-135",
+        "message": "event remux recovery journal open 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-136",
+        "message": "재시작은 marker nonce와 일치하는 owned crash partial만 정리해야 함: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-137",
+        "message": "owned crash partial 복구 뒤 동일 event clip 재파생이 성공해야 함: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-138",
+        "message": "VP8/WebM test source 생성 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-139",
+        "message": "VP8/WebM test source demux 실패: ",
+        "status": "pass"
+      },
+      {
+        "id": "S05-CPP-140",
+        "message": "검증되지 않은 VP8/WebM event remux는 산출물 없이 fail-closed해야 함",
+        "status": "pass"
+      }
+    ],
+    "registrationUnits": [
+      {
+        "id": "S05-UNIT-01",
+        "message": "정상 정식 등록 27개",
+        "status": "pass"
+      },
+      {
+        "id": "S05-UNIT-02",
+        "message": "누락 ID",
+        "status": "pass"
+      },
+      {
+        "id": "S05-UNIT-03",
+        "message": "중복 ID",
+        "status": "pass"
+      },
+      {
+        "id": "S05-UNIT-04",
+        "message": "추가 ID",
+        "status": "pass"
+      },
+      {
+        "id": "S05-UNIT-05",
+        "message": "빈 테스트 영역",
+        "status": "pass"
+      },
+      {
+        "id": "S05-UNIT-06",
+        "message": "없는 구현 심볼",
+        "status": "pass"
+      },
+      {
+        "id": "S05-UNIT-07",
+        "message": "없는 테스트 함수",
+        "status": "pass"
+      },
+      {
+        "id": "S05-UNIT-08",
+        "message": "없는 check",
+        "status": "pass"
+      },
+      {
+        "id": "S05-UNIT-09",
+        "message": "중복 check ID",
+        "status": "pass"
+      },
+      {
+        "id": "S05-UNIT-10",
+        "message": "문서 행 누락",
+        "status": "pass"
+      },
+      {
+        "id": "S05-UNIT-11",
+        "message": "실행 소비자 정상 합성 입력",
+        "status": "pass"
+      },
+      {
+        "id": "S05-UNIT-12",
+        "message": "실제 check 결과 누락",
+        "status": "pass"
+      },
+      {
+        "id": "S05-UNIT-13",
+        "message": "EOS assertion 제거와 감소한 summary도 거부",
+        "status": "pass"
+      },
+      {
+        "id": "S05-UNIT-14",
+        "message": "실패 summary",
+        "status": "pass"
+      },
+      {
+        "id": "S05-UNIT-15",
+        "message": "성공 summary만으로 PASS 금지",
+        "status": "pass"
+      },
+      {
+        "id": "S05-UNIT-16",
+        "message": "중복 application 결과",
+        "status": "pass"
+      },
+      {
+        "id": "S05-UNIT-17",
+        "message": "runtime 로그 전체 누락",
+        "status": "pass"
+      },
+      {
+        "id": "S05-UNIT-18",
+        "message": "runtime 시나리오 누락",
+        "status": "pass"
+      },
+      {
+        "id": "S05-UNIT-19",
+        "message": "runtime assertion 누락 및 감소 summary",
+        "status": "pass"
+      },
+      {
+        "id": "S05-UNIT-20",
+        "message": "runtime assertion 중복 및 증가 summary",
+        "status": "pass"
+      },
+      {
+        "id": "S05-UNIT-21",
+        "message": "runtime summary 실패",
+        "status": "pass"
+      },
+      {
+        "id": "S05-UNIT-22",
+        "message": "runtime summary 중복",
+        "status": "pass"
+      },
+      {
+        "id": "S05-UNIT-23",
+        "message": "runtime failure marker",
+        "status": "pass"
+      },
+      {
+        "id": "S05-UNIT-24",
+        "message": "runtime mutation 결과 누락",
+        "status": "pass"
+      },
+      {
+        "id": "S05-UNIT-25",
+        "message": "runtime mutation 결과 중복",
+        "status": "pass"
+      },
+      {
+        "id": "S05-UNIT-26",
+        "message": "runtime negative summary 실패",
+        "status": "pass"
+      }
+    ],
+    "application": [
+      {
+        "id": "S05-APP-1",
+        "message": "application header is standard-only with exact DTO/default manifests",
+        "status": "pass"
+      },
+      {
+        "id": "S05-APP-2",
+        "message": "application source owns exact canonical mapping and overwrite semantics",
+        "status": "pass"
+      },
+      {
+        "id": "S05-APP-3",
+        "message": "transport has zero canonical bypass and exact projection/call ordering",
+        "status": "pass"
+      },
+      {
+        "id": "S05-APP-4",
+        "message": "recording link is durably admitted before the bounded storage queue can drop an event",
+        "status": "pass"
+      },
+      {
+        "id": "S05-APP-5",
+        "message": "event clip output remains fd-bound and measured before no-replace publication",
+        "status": "pass"
+      },
+      {
+        "id": "S05-APP-6",
+        "message": "compiled fake canonical matrix preserves all fields failure/null outputs and lifecycle order",
+        "status": "pass"
+      },
+      {
+        "id": "S05-APP-7",
+        "message": "S05 composition starts the bridge before ingress and drains it after storage",
+        "status": "pass"
+      }
+    ],
+    "runtime": [
+      {
+        "case": "disabled-admit",
+        "message": "실제 EventStorage worker 진입을 관찰한다",
+        "status": "pass"
+      },
+      {
+        "case": "disabled-admit",
+        "message": "worker 처리 전에 첫 이벤트 연결이 내구 접수된다",
+        "status": "pass"
+      },
+      {
+        "case": "disabled-admit",
+        "message": "실제 저장 큐 크기 2에서 다섯 접수 중 두 이벤트가 퇴출된다",
+        "status": "pass"
+      },
+      {
+        "case": "disabled-admit",
+        "message": "퇴출 이벤트를 포함한 다섯 PTS 연결이 worker 해제 전에 보존된다",
+        "status": "pass"
+      },
+      {
+        "case": "disabled-admit",
+        "message": "저장 worker drain 뒤에도 다섯 연결과 시간축이 보존된다",
+        "status": "pass"
+      },
+      {
+        "case": "disabled-admit",
+        "message": "JSONL 설정에 따른 실제 저장 수와 빈 큐를 확인한다",
+        "status": "pass"
+      },
+      {
+        "case": "disabled-admit",
+        "message": "JSONL 비활성은 파일 없음이고 활성은 생존 이벤트 세 개와 link ID가 일치한다",
+        "status": "pass"
+      },
+      {
+        "case": "disabled-recover",
+        "message": "새 프로세스의 빈 SQLite를 journal로 재구축해 다섯 PTS 연결을 복구한다",
+        "status": "pass"
+      },
+      {
+        "case": "disabled-recover",
+        "message": "퇴출 이벤트까지 UTC 매핑 후 다섯 실제 H264 파생 파일이 완료된다",
+        "status": "pass"
+      },
+      {
+        "case": "disabled-recover",
+        "message": "같은 이벤트 재접수는 복구된 다섯 clip ID를 바꾸거나 추가하지 않는다",
+        "status": "pass"
+      },
+      {
+        "case": "enabled-admit",
+        "message": "실제 EventStorage worker 진입을 관찰한다",
+        "status": "pass"
+      },
+      {
+        "case": "enabled-admit",
+        "message": "worker 처리 전에 첫 이벤트 연결이 내구 접수된다",
+        "status": "pass"
+      },
+      {
+        "case": "enabled-admit",
+        "message": "실제 저장 큐 크기 2에서 다섯 접수 중 두 이벤트가 퇴출된다",
+        "status": "pass"
+      },
+      {
+        "case": "enabled-admit",
+        "message": "퇴출 이벤트를 포함한 다섯 PTS 연결이 worker 해제 전에 보존된다",
+        "status": "pass"
+      },
+      {
+        "case": "enabled-admit",
+        "message": "저장 worker drain 뒤에도 다섯 연결과 시간축이 보존된다",
+        "status": "pass"
+      },
+      {
+        "case": "enabled-admit",
+        "message": "JSONL 설정에 따른 실제 저장 수와 빈 큐를 확인한다",
+        "status": "pass"
+      },
+      {
+        "case": "enabled-admit",
+        "message": "JSONL 비활성은 파일 없음이고 활성은 생존 이벤트 세 개와 link ID가 일치한다",
+        "status": "pass"
+      },
+      {
+        "case": "enabled-recover",
+        "message": "새 프로세스의 빈 SQLite를 journal로 재구축해 다섯 PTS 연결을 복구한다",
+        "status": "pass"
+      },
+      {
+        "case": "enabled-recover",
+        "message": "퇴출 이벤트까지 UTC 매핑 후 다섯 실제 H264 파생 파일이 완료된다",
+        "status": "pass"
+      },
+      {
+        "case": "enabled-recover",
+        "message": "같은 이벤트 재접수는 복구된 다섯 clip ID를 바꾸거나 추가하지 않는다",
+        "status": "pass"
+      }
+    ],
+    "mutations": [
+      "[s05-runtime-mutation] disabled-guard: PASS (실제 assertion의 RED 확인)",
+      "[s05-runtime-mutation] prequeue-admission: PASS (실제 assertion의 RED 확인)"
+    ],
+    "actions": [
+      {
+        "id": "V410-S05-I01",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I01-C01",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I01-C02",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I01-C03",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I02",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I02-C01",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I02-C02",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I02-C03",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I02-C04",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I02-C05",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I02-C06",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I02-C07",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I02-C08",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I02-C09",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I02-C10",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I02-C11",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I02-C12",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I02-C13",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I02-C14",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I02-C15",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I02-C16",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I02-C17",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I02-C18",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I02-C19",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I02-C20",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I02-C21",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I03",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I03-C01",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I04",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I04-C01",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I04-C02",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I04-C03",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I05",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I05-C01",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I05-C02",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I05-C03",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I06",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I06-C01",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I06-C02",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I06-C03",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I06-C04",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I06-C05",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I06-C06",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I06-C07",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I06-C08",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I07",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I07-C01",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I07-C02",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I07-C03",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I07-C04",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I08",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I08-C01",
+            "status": "PASS",
+            "executions": 14
+          },
+          {
+            "id": "V410-S05-I08-C02",
+            "status": "PASS",
+            "executions": 3
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I09",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I09-C01",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I09-C02",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I09-C03",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I09-C04",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I10",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I10-C01",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I11",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I11-C01",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I12",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I12-C01",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I13",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I13-C01",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I13-C02",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I13-C03",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I14",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I14-C01",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I14-C02",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I14-C03",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I14-C04",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I14-C05",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I15",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I15-C01",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I15-C02",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I16",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I16-C01",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I16-C02",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I17",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I17-C01",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I18",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I18-C01",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I18-C02",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I19",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I19-C01",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I19-C02",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I20",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I20-C01",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I20-C02",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I20-C03",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I20-C04",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I20-C05",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I21",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I21-C01",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I21-C02",
+            "status": "PASS",
+            "executions": 2
+          },
+          {
+            "id": "V410-S05-I21-C03",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I21-C04",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I21-C05",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I22",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I22-C01",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I23",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I23-C01",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I23-C02",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I24",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I24-C01",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I24-C02",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I24-C03",
+            "status": "PASS",
+            "executions": 1
+          },
+          {
+            "id": "V410-S05-I24-C04",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I25",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I25-C01",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I26",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I26-C01",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      },
+      {
+        "id": "V410-S05-I27",
+        "status": "PASS",
+        "checks": [
+          {
+            "id": "V410-S05-I27-C01",
+            "status": "PASS",
+            "executions": 1
+          }
+        ]
+      }
+    ],
+    "cleanup": {
+      "path": "/private/tmp/media-server-gst-packaging-resume.9NfixH/media_server_s05_storage_runtime_G73peG",
+      "files": 41,
+      "bytes": 9740816,
+      "removed": true
+    },
+    "summaries": [
+      "[v410-s05-inventory-unit] pass=26 fail=0",
+      "[verify-v410-event-recording] pass=140 fail=0",
+      "- summary: pass=7 fail=0",
+      "[s05-runtime-summary] case=disabled-admit pass=7 fail=0",
+      "[s05-runtime-summary] case=disabled-recover pass=3 fail=0",
+      "[s05-runtime-summary] case=enabled-admit pass=7 fail=0",
+      "[s05-runtime-summary] case=enabled-recover pass=3 fail=0",
+      "[s05-runtime-negative] pass=2 fail=0 elapsedMs=14733",
+      "[S05 개별 실행] pass=27 fail=0"
+    ]
+  },
+  "initialTwoSpaceLineComparison": {
+    "baseline": 1364,
+    "common": 1364,
+    "noGtk": 1362,
+    "candidate": 1362,
+    "removed": [
+      "gtk4:  gtk4paintablesink: GTK 4 Paintable Sink",
+      "gtk:  gtksink: Gtk Video Sink"
+    ],
+    "added": []
+  },
+  "blacklist": {
+    "id": "PKG-BL",
+    "command": "/opt/homebrew/bin/gst-inspect-1.0 -b",
+    "exitCode": 0,
+    "stderr": "",
+    "files": [
+      "libgstvalidatessim.dylib"
+    ],
+    "meaning": "GstValidate의 영상 프레임 비교용 플러그인. 실제 blacklist 원인은 이 검증에서 확정하지 않음.",
+    "source": "https://gstreamer.freedesktop.org/documentation/gst-devtools/plugins/ssim.html"
+  },
+  "measure": {
+    "root": "/private/tmp/media-server-gst-packaging-resume.9NfixH",
+    "files": 682,
+    "symlinks": 559,
+    "bytes": 7714945
+  },
+  "sourceSha256": {
+    "scripts/internal/env_common.sh": "aeabeb7363148e8bfa2d172706bd6579dcf58ba62cbc06590fff30e363c0f74c",
+    "scripts/internal/verify_v410_event_recording.sh": "ffb090fdf4271811f57f3d70d8aa44f3ee38ec77c2a1404f21001b1f6ccc3d75",
+    "scripts/internal/verify_v410_event_storage_recording_runtime.mjs": "968c292da9d3725c62099f0d6225cde4ea51c00ca709a2ad70e7ecfe5cf94c8b",
+    "scripts/internal/event_recording_link_smoke.cpp": "42d19b9893d9ae131b2db169e4cafd17fe77fb023c6096abe3256a4e638652b5",
+    "scripts/internal/event_storage_recording_runtime_smoke.cpp": "f81908ee4e8581dcf55b2182a5d228d811eeb69448322e76283ddd5b5da30412",
+    "test/fixtures/recording/v1/s05-action-inventory.json": "a2c6ab8b5848c84e01b37a062ad32d6edefc9d5785ed72dd185b74a1b2b464b2",
+    "src/recording/event_clip_deriver.cpp": "d1b5968ca1d85a298ede228bc48ecf221cd4084d3384d888b2c2b21ffab63c9b",
+    "src/recording/event_recording_bridge.cpp": "b4a571e2d79ede965c3f05c069cdc9da92cf8cae87e7ec8df073e7f498ed264f"
+  },
+  "diagnosticSha256": {
+    "runner": "d74ae3bbf9efa9aab70b5f69e6c27c441c6d69d3597ac8030d97923701e67a77",
+    "probe": "13deeb227f1097f861671c7aa4a5261d222a4dd58cf35d8495c4f08799531687"
+  },
+  "tokenUsage": {
+    "start": null,
+    "end": null,
+    "consumed": null,
+    "source": "goal 기반 계측 없음. 값 추정하지 않음"
+  },
+  "measuredCommandElapsedMs": 70311,
+  "collected": "2026-09-04T11:24:42.631Z",
+  "status": "승인된 로컬 후보 검증 통과. 제품 기본값 미적용, 다른 PC/OS 미확인",
+  "notRun": [
+    "다른 PC 신규 설치",
+    "macOS Intel",
+    "Linux",
+    "브라우저 ICE/offer-answer 연결",
+    "외부 RTSP 카메라",
+    "30분",
+    "120분",
+    "UI 풀테스트",
+    "verify-predev"
+  ]
+}

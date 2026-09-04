@@ -16,6 +16,470 @@
 - 테스트 결과표의 `결과`는 `pass` 또는 `fail`만 사용합니다. 실행하지 않은 항목,
   사용자가 제외한 항목, 외부 조건이 없어 제외한 항목은 별도 미실행/제외 표에 둡니다.
 
+## v4.1.0 GStreamer 공통 실행 환경 보완 (2026-09-04)
+
+사용자 `진행` 승인 범위: 검증한 GTK/Python 검색 경로 분리를 프로젝트 공통 실행·검증
+환경에 적용한다. 패키지 삭제·전역 환경 변경·S06 개발·커밋·푸시는 제외한다.
+이 절의 실행 결과는 앞선 진단 후보 결과와 구분한다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 공통 검색·캐시·환경 전달 보완 | V410-ENV-01~13 | 이번 개발 범위 승인 |
+| 30분 테스트 | 미진행 | 이번 단기 환경 보완 범위 밖 | AGENTS 7.7 | 별도 승인 없음, 릴리즈 필수 blocker 유지 |
+| 120분 테스트 | 미진행 | C++ media path·녹화 로직 변경 없음 | V410-ENV-01~13 | 별도 승인 없음, 기존 S05 판정 변경 없음 |
+| UI 풀테스트 | 미진행 | UI 변경 없음 | AGENTS 7.9 | 별도 승인 없음, 릴리즈 필수 blocker 유지 |
+
+### 테스트 항목 상세 기록 — 구현 전 등록
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| ENV-01 | Linux no-op | uname fixture Linux에서 기존 GST/PATH 변하지 않음 | v4.1.0 |
+| ENV-02 | brew prefix/scanner | 명시 prefix 및 PATH brew --prefix fixture, stable opt scanner 선택 | v4.1.0 |
+| ENV-03 | 제외 집합 | GTK3/GTK4/Python/GTK validate 제외, 나머지 파일 보존 | v4.1.0 |
+| ENV-04 | 사용자 플러그인 | 추가 경로·공백·같은 파일명 다른 root 보존 | v4.1.0 |
+| ENV-05 | 캐시 수명 | 재적용 멱등성, 설치 파일 변경 뒤 새 cache/registry, 동시 생성 일치 | v4.1.0 |
+| ENV-06 | 캐시 안전성 | symlink/공용 쓰기 root·변조 링크·추가 plugin 거부; 원본 무변경 | v4.1.0 |
+| ENV-07 | registry | 기본 프로젝트 캐시, 명시 GST_REGISTRY_1_0 또는 GST_REGISTRY 보존 | v4.1.0 |
+| ENV-08 | 진단 opt-out | system 최초 적용 시 필터 미적용, 잘못된 profile 및 실행 도중 profile 전환 명시 거부 | v4.1.0 |
+| ENV-09 | 실행 순서 | build/start/foreground/test_all의 로컬 override 뒤 공통 환경 적용 확인 | v4.1.0 |
+| ENV-10 | background 전달 | 실제 start_detached/write_launchd_plist 함수 fixture로 nohup 자식 env와 launchd XML의 빈 system path·versioned GST 변수 readback | v4.1.0 |
+| ENV-11 | 검증 dispatch | 실제 server.sh dispatch와 직접 S05 wrapper 환경 적용, 공개 환경 verifier 실행 | v4.1.0 |
+| ENV-12 cold/warm | 실제 새 캐시 검색 | 공통 구현 적용 후 GTK/GI stderr 0 및 동일 1525 features. 기존 SSIM blacklist는 별도 관찰 | v4.1.0 |
+| ENV-12 factory | 필수 44개 각각 조회·생성 | 앞선 PKG-F에 전수 등록한 factory 각각 inspect 및 실제 객체 생성, 개별 결과 행 보존 | v4.1.0 |
+| ENV-12 READY/decode | webrtcbin READY·H264 무음 디코드 | 실제 객체 상태 전환 및 gst-launch EOS. 브라우저 ICE 성공으로 확대하지 않음 | v4.1.0 |
+| ENV-13 S05 | 정식 녹화 회귀 | verify-v410-event-recording의 모든 개별 assertion/action 기록 | v4.1.0 |
+| ENV-13 build | 제품 빌드 | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build | v4.1.0 |
+| ENV-13 등록/문서 | 인벤토리·문서 연결 | 승인된 manifest 공식 재적용(기존 semantic 불변인 경우만), project/script inventory, docs links/assets, git diff --check | v4.1.0 |
+| ENV-13 cleanup | 임시 산출물 정리 | 전용 root 크기·삭제 후 부재 및 원본 SHA 불변 | v4.1.0 |
+
+TDD의 구현 전 예상 실패(RED)는 회귀 검출 증거로 별도 기록한다. 구현 뒤 안정화에서
+예상하지 못한 실패가 나면 AGENTS 중단 규칙을 따른다. 등록표 자체는 PASS evidence가 아니다.
+
+### 버전별 테스트 결과 — 구현 후 실패로 중단
+
+최신 재개 결과는 아래 `재개 최종 검증` 절을 따른다. 이 절의 최초 FAIL/미실행 표는
+당시 이력이며 삭제하거나 소급해서 PASS로 바꾸지 않는다.
+
+2026-09-04 재개 승인: 사용자 `수정 후 재검증 진행`. 앞선 실패 이력은 보존한다.
+동일 V410-ENV-01~13 범위로 진행하며 안정화만 승인됐다. 30분/120분/UI 판정과
+실행 승인 경계는 위 표 및 기존 S05 기준을 유지한다. 검증 세분화: ENV-06·08은
+단순 nonzero 대신 원인별 오류 메시지를 대조하고, ENV-04·07 fixture 경로는 실제
+파일 시스템 경로로 정규화한다. ENV-05의 Bash 빈 배열 실패는 같은 정상 경로 검사를
+통해 재검증한다. 새 fixture verifier는 failfast로 후속 case를 중단하고 cleanup에 실제
+절대 경로를 함께 기록한다. 수정 전 강화된 negative 검사의 예상 RED를 먼저 확인한다.
+
+독립 읽기 검토에서 ENV-04의 `.so` 사용자 플러그인 누락·검색 root 순서 미보장,
+ENV-05의 상속된 검색 경로 앞/뒤 추가 시 캐시 겹침 거부 경로를 확인했다.
+실행 전 추가 세분화: `test_custom_so_plugins`는 정상 `.so`를 보존하고 GTK/Python
+네 이름의 `.so` 변형을 제외하는지 확인한다. `test_custom_paths`는 명시적 GST root 목록의
+첫 경로가 custom root인지 확인한다. `test_inherited_custom_paths`는 기존 관리 경로
+앞/뒤에 custom root를 추가해도 원본 경로로 환원되어 중복 없이 재적용되는지 확인한다.
+이는 위 ENV-04·05의 계약 검증이며 다른 제품 기능 추가가 아니다. 공식
+[GStreamer registry 소스](https://raw.githubusercontent.com/GStreamer/gstreamer/main/subprojects/gstreamer/gst/gstregistry.c)의
+macOS 확장자와 검색 경로 처리 규칙을 직접 확인했다. 코드 복사나 새 패키지 추가는 없다.
+
+ENV-11 추가 실행 전 정의: `test_cli_no_gst_side_effects`는 유효하지 않은 GST profile에서도
+문서 verifier `--help`가 정상 표시되고 알 수 없는 명령이 원래 오류를 반환하며 캐시를
+만들지 않는지 확인한다. 공통 초기화는 현재 v4.1 녹화 focused 명령에 한정한다.
+비미디어 verifier와 알려지지 않은 명령에 GST 의존성을 강제하지 않는다.
+
+ENV-04 실제 선택 검증도 실행 전 등록한다: 임시 디렉터리 두 곳에 같은 basename의
+테스트용 `.so` 플러그인을 직접 컴파일하고 서로 다른 factory 이름을 등록한다.
+사용자 root A:B 순서의 공통 환경으로 새 registry를 생성해 A의 factory만 나타나는지
+실제 `gst-inspect-1.0` 결과로 확인한다. 플러그인 원본/실제 설치는 변경하지 않으며
+테스트용 소스·바이너리는 실행 후 삭제한다. ENV-12의 cold/warm·44 factory·READY·H264,
+ENV-13 S05/build는 앞선 등록과 동일하게 실제 명령별 exit/stdout/stderr를 보존한다.
+
+재개 2 승인: 실제 환경 재검증에서 100개 명령과 51개 assertion은 통과했으나 S05 최초
+등록 대조가 `legacy 986 + S05 27 총계 불일치`로 exit 1했다. build 이후를 중단·보고한 뒤
+사용자가 `수정 후 재검증 계속`을 승인했다. ENV-13 실행 전 추가 정의는 다음과 같다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| ENV-13 등록군 확장 | S05 외 등록군의 합산 허용 | 후속 등록군 2개와 전체 총계 1028이 일관되면 S05 27개 반환 | v4.1.0 |
+| ENV-13 총계 오염 | 전체 총계 불일치 거부 | 1026을 1025로 바꾸면 총계 오류 | v4.1.0 |
+| ENV-13 canonical 수 | 역사적 986 유지 | canonical 요약을 985로 바꾸면 canonical 오류 | v4.1.0 |
+| ENV-13 S05 수 | S05 27 유지 | S05 요약을 26으로 바꾸면 S05 오류; 기존 exact ID/check 검사는 그대로 유지 | v4.1.0 |
+| ENV-13 등록군 중복 | 같은 이름 중복 거부 | GStreamer 등록군을 0개로 추가해도 중복 오류 | v4.1.0 |
+| ENV-13 음수 | 음수 수량 거부 | GStreamer 수량 -13은 등록 수 오류 | v4.1.0 |
+| ENV-13 소수 | 소수 수량 거부 | GStreamer 수량 13.0은 등록 수 오류 | v4.1.0 |
+| ENV-13 표 누락 | 등록 범위 표 필수 | 등록 범위 헤더가 없으면 표 누락 오류 | v4.1.0 |
+
+S05 검증기는 선언된 다른 등록군의 총계 산술 일관성만 확인하며 그 기능들의 실제 구현·
+실행 PASS를 부여하지 않는다. S05 27 ID/89 check 및 기존 986 범위는 축소하지 않는다.
+
+상태: **환경 보완 개발 FAIL, 미커밋**. 앞선 후보 환경 진단 PASS를 이번 구현의 PASS로
+재사용하지 않는다. C++/API/UI/녹화 로직은 변경하지 않았으나 공통 환경 초기화가 실패하므로
+현재 미커밋 상태의 build/start/foreground/verify 경로를 정상 동작한다고 보장할 수 없다.
+
+구현 위치(추가됐지만 검증 완료 아님):
+
+- `scripts/internal/env_common.sh`의 `media_server_apply_homebrew_gst_env`:
+  macOS 분기, prefix/scanner 탐색, headless/system profile, 사용자 플러그인 입력,
+  전용 registry와 버전별 GST 환경변수. `media_server_prepend_env_path`는 반복 prepend를 억제한다.
+- `scripts/internal/gst_plugin_cache.py`의 `prepare`/`private_directory`:
+  4개 GTK/Python dylib 제외, 플러그인 원본 링크, 설치 파일 stat 기반 캐시 키,
+  atomic publish와 캐시 소유·권한·링크 대조. 원본 패키지 삭제 로직은 없다.
+- `build_server.sh`, `start_server.sh`, `run_server_foreground.sh`, `test_all.sh`:
+  로컬 설정 파일을 읽은 뒤 공통 환경 적용. `start_detached`는 빈 값 및 버전별 GST 변수를
+  nohup/launchd 공통 환경 배열에 전달한다.
+- `server.sh`: 공개 verify 명령의 공통 환경 적용과 새 `verify-gst-environment` dispatch.
+  `verify_v410_event_recording.sh`: 직접 실행 시에도 공통 환경 적용.
+- `verify_gst_environment.sh`, `gst_environment_test.py`: 실제 Bash 함수와 격리 fixture를
+  실행하는 17개 회귀 테스트. 실제 launchd 서비스/제품 서버/다른 OS를 실행한 것은 아니다.
+- `.gitignore`: 프로젝트 전용 `.media_server.gstreamer` 캐시 제외.
+  `docs/project-feature-test-inventory.md`: V410-ENV-01~13 실행 전 등록.
+
+확인된 실패 원인:
+
+1. `/bin/bash --version`: GNU bash 3.2.57(1)-release, arm64-apple-darwin25.
+   `env_common.sh`의 빈 `extra_paths` 배열을 `set -u` 상태로 펼치면
+   `extra_paths[@]: unbound variable`로 종료한다. 정상 headless 경로 11개 테스트가 이 지점에서
+   차단됐으며 실제 GTK 검색 이전의 신규 구현 결함이다. 오류 출력의 line 66과 별개로
+   현재 파일상 해당 배열 확장은 117행이다.
+2. `test_custom_paths`는 실제 링크 target을 `/private/var/...`로 resolve했지만 기대값은
+   `/var/...`로 비교했다. 출력상 사용자 플러그인 자체는 보존됐으나 경로 비교가 실패했다.
+3. `test_invalid_profile`/`test_unsafe_cache`는 단순 nonzero만 검사하여 위 배열 오류로도
+   통과할 수 있다. runner의 ok를 해당 거부 정책 검증 PASS로 인정하지 않는다.
+   재개 시 오류 원인까지 대조하고 정상 경로와 함께 다시 검증해야 한다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| TDD RED 1차 linux | `python3 scripts/internal/gst_environment_test.py EnvironmentTests.test_linux_unchanged EnvironmentTests.test_explicit_prefix EnvironmentTests.test_override_order`; exit 1, 3 tests/3 failures, 0.020초. linux 환경 준비에서 exit 1 | fail | fixture에 기존 scanner 탐색 경로가 없어 의도한 assertion까지 도달하지 못함 |
+| TDD RED 1차 prefix | 같은 명령; prefix 환경 준비에서 exit 1 | fail | 동일 fixture 문제. 제품 수정 전 fixture 보완 |
+| TDD RED 1차 override | 같은 명령; 공통 함수 호출 위치 279가 override source 위치 480보다 앞섬 | fail | 예상한 순서 회귀 검출 |
+| TDD RED 2차 linux | 같은 명령; exit 1, 3 tests/3 failures, 0.060초. Linux fixture의 PATH/GST가 변경됨 | fail | 기존 scanner fixture 보완 후 의도한 불변 assertion 실패 |
+| TDD RED 2차 prefix | 같은 명령; GST_PLUGIN_SCANNER_1_0은 None, 기대값은 opt scanner | fail | 의도한 버전별 환경 누락 검출 |
+| TDD RED 2차 override | 같은 명령; 공통 환경이 로컬 설정보다 앞서 적용됨 | fail | 의도한 순서 회귀 검출 |
+| 환경 verifier 전체 | `./server.sh verify-gst-environment`; exit 1, 17 tests, runner ok 5/failures 12, 3.200초 | fail | 구현 후 최초 실행. 아래 17개 개별 결과 전수 기록; 이후 단계 중단 |
+| test_concurrent | 4개 동시 Bash 호출; 빈 배열 unbound variable | fail | 캐시 동시 생성 검증에 도달하지 못함 |
+| test_custom_paths | 사용자 libgstnice 포함 실제 링크 목록 조회; /var와 /private/var 기대 경로 불일치 | fail | 테스트 경로 정규화 결함 |
+| test_dispatch_environment | 실제 server.sh를 fixture root에서 실행; 환경 초기화 exit 1 | fail | 빈 배열 오류 |
+| test_explicit_prefix | 명시 prefix 환경 초기화 exit 1 | fail | 빈 배열 오류; RED 이후 최종 PASS 없음 |
+| test_filter | headless 초기화 exit 1 | fail | 제외 집합·원본 불변 검증까지 도달하지 못함 |
+| test_invalid_profile | runner ok; invalid profile와 전환 검사 nonzero 관찰 | fail | 후반 검사는 빈 배열 오류로 조기 종료해 의도한 전환 거부를 입증하지 못함 |
+| test_launchd_environment | 실제 함수 fixture 준비 시 exit 1 | fail | 빈 배열 오류; XML 환경 readback 미도달 |
+| test_linux_unchanged | Linux uname fixture에서 선택 환경값 불변, 캐시 생성 없음 | pass | TDD RED 이후 해당 fixture만 통과. 실제 Linux 실행 아님 |
+| test_nohup_environment | 실제 함수 fixture 준비 시 exit 1 | fail | 빈 배열 오류; 자식 환경 readback 미도달 |
+| test_override_order | build/start/foreground/test_all 4개 source 순서 assertion 통과 | pass | TDD RED 이후 정적 순서만 확인; 실제 서버 실행 아님 |
+| test_prefix_discovery | brew --prefix fixture 뒤 초기화 exit 1 | fail | 빈 배열 오류 |
+| test_reapply | 첫 환경 초기화 exit 1 | fail | 멱등성 미검증 |
+| test_registry | 첫 환경 초기화 exit 1 | fail | 전용/명시 registry 미검증 |
+| test_system_profile | system 최초 적용 시 cache 없음·GST system/registry 미설정 | pass | fixture 범위만 통과 |
+| test_tampered_cache | 정상 캐시 준비에서 exit 1 | fail | 변조 거부 검증 미도달 |
+| test_unsafe_cache | runner ok; symlink/cache 권한 검사 nonzero 관찰 | fail | 빈 배열 오류로 조기 종료하여 helper의 해당 거부 정책을 입증하지 못함 |
+| test_upgrade | 첫 환경 초기화 exit 1 | fail | 설치 변경 뒤 캐시 갱신 미검증 |
+| fixture cleanup | RED 두 실행 6개 root 및 구현 후 17개 root를 TemporaryDirectory cleanup 후 부재 assertion | pass | 개별 file/byte 결과 아래 기록. 공통 프로젝트 캐시 및 실제 미디어는 생성하지 않음 |
+| 변경 기록 형식 | `git diff --check`; exit 0. `git status --short --branch`로 환경 코드·테스트·문서 변경 목록 확인 | pass | 제품 실행 성공을 의미하지 않음. stage/commit/push 미수행 |
+
+runner 표면 집계 5/12와 실제 검증 범위 판정 3/14는 구분한다. 서로 다른 원인으로
+nonzero가 발생한 두 negative case를 거짓 PASS로 사용하지 않는다.
+
+| 미실행 항목 | 사유 | 완료 evidence 사용 |
+| --- | --- | --- |
+| 실제 cold/warm 및 44 factory/READY/H264 | fixture 실패 이후 건너뜀 | 불가 |
+| 정식 S05 회귀 및 제품 build | fixture 실패 이후 건너뜀 | 불가 |
+| 승인된 manifest 재적용·project/script inventory·docs links/assets | 실패 이후 건너뜀. inventory 문서 SHA 변경에 따른 결속 갱신도 아직 미수행 | 불가 |
+| 독립 코드 검토 | 구현 검증 미통과, 서브 에이전트 사용 안 함 | 불가 |
+| 30분/120분/UI 풀테스트 | 별도 승인 없음, 기존 릴리즈 blocker·S05 판정 유지 | 불가 |
+| 다른 PC/macOS Intel/Linux 실측 | 해당 환경에서 실행하지 않음 | 불가 |
+| 커밋/푸시/S06 이후 | 최신 승인 범위 밖이며 이번 개발 FAIL | 불가 |
+
+### 임시 산출물 정리
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| 시스템 TMPDIR의 이번 `media_server_gst_env_` 전용 23개 root | fixture·링크 캐시·스크립트 사본 | RED 1차 30파일/1,004B, RED 2차 33파일/1,061B, 구현 후 201파일/223,134B | 각 테스트 tearDown에서 자신이 만든 TemporaryDirectory만 삭제 | 23개 모두 부재 assertion 통과 | 아래 개별 cleanup 출력. 모든 root 절대 경로명은 출력하지 않아 미보존 |
+| 프로젝트 `.media_server.gstreamer` | 실제 실행용 캐시 | 생성 안 함 | 없음 | 이번 fixture는 전용 TMPDIR 캐시만 사용 | 공개 환경 verifier는 전역 초기화 hook 제외 |
+| 이전 `20260904-gst-packaging` 증거물 | 앞선 진단 JSON/Markdown | 기존 파일 유지 | 보존 | 이번 제품 구현 PASS로 사용 안 함 | 이전 진단 이력 보존 |
+
+구현 후 cleanup 개별 출력(파일 수/바이트, 전부 removed=true):
+concurrent 11/354, custom_paths 17/2416, dispatch_environment 15/213693,
+explicit_prefix 11/354, filter 11/354, invalid_profile 11/354,
+launchd_environment 13/1212, linux_unchanged 11/353, nohup_environment 13/1212,
+override_order 11/354, prefix_discovery 11/354, reapply 11/354, registry 11/354,
+system_profile 11/354, tampered_cache 11/354, unsafe_cache 11/354, upgrade 11/354.
+RED 1차 linux/prefix/override는 각각 10/334, 10/335, 10/335;
+RED 2차는 각각 11/353, 11/354, 11/354다.
+
+token start/end/consumed: 미집계(이 작업에 goal 기반 계측 없음).
+elapsed/source: unittest가 기록한 RED 0.020초/0.060초, 구현 후 3.200초이며 전체 작업 경과
+시간을 의미하지 않는다. 커밋 메시지·해시 없음, 푸시 미수행·불가.
+재개 조건: 사용자 승인 후 Bash 3.2 빈 배열 처리·경로 정규화·negative 원인 검증을 보완하고
+같은 환경 verifier부터 재실행한다. 실패 지점 이후 단계로 먼저 넘어가지 않는다.
+
+### 재개 최종 검증
+
+요청은 `수정 후 재검증 진행`이며, 도중 S05 등록 대조에서 중단한 뒤 사용자가
+`수정 후 재검증 계속`을 명시 승인했다. 환경/녹화/증분 빌드와 문서·인벤토리 대조는
+아래 직접 범위에서 통과했다. 다른 PC·실제 서비스·UI·장시간은 미확인/미실행이다.
+커밋·푸시는 승인하지 않았고 수행하지 않았다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 수정 후 재검증 진행 | 환경 보완·실측 검증 수행 | fixture 20개, 실제 필수 factory 44개 및 H264/READY 통과 | unit-results.json, runtime-results.json |
+| 2 | S05 총계 보완 후 재검증 계속 | 보완 후 재실행 | 등록기 34개, S05 전체·build 통과 | s05-build-results.json |
+
+수정 내용:
+
+- `env_common.sh`: Bash 3.2 빈 배열 확장의 기본값, 상속된 관리 경로를 원래 입력으로
+  환원할 때의 Bash 3.2 문자열 치환, root별 명시적 순서 전달을 보완했다.
+- `gst_plugin_cache.py`: macOS가 허용하는 `.so`와 `.dylib`를 보존하며 GTK3/GTK4/
+  Python/GTK validate 네 이름의 두 확장자만 제외한다. 원본은 삭제/복사하지 않고 링크한다.
+- `gst_environment_test.py`: `/var` 경로 정규화, 원인별 거부 assertion, 실제 cleanup 경로,
+  사용자 root 순서·`.so`·상속·CLI 무부작용을 검사한다. 총 20개이며 failfast를 적용했다.
+- `server.sh`: 모든 verify 명령에 적용하던 초기화를 현재 S02~S05 녹화 focused 명령으로
+  좁혀 문서/help/알 수 없는 명령의 새 GST 의존성을 제거했다.
+- `v410_s05_inventory.mjs`: S05 exact 27 ID/89 check 검증은 그대로 유지하면서
+  canonical 986/S05 27 고정값과 등록군 합산 총계를 대조한다. 다른 등록군 구현의 PASS는
+  부여하지 않는다. 신규 8개 양성/negative 단위 검사를 추가해 34개로 보강했다.
+- `scripts/.media_server.env.example`: headless/system, 캐시, 명시 registry와 custom root,
+  로컬 설정 적용 범위 및 symlink 하위 디렉터리 제한을 한글로 설명했다.
+
+#### 최초 실패와 수정 이력
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| 강화된 cache 거부 RED | `python3 scripts/internal/gst_environment_test.py EnvironmentTests.test_unsafe_cache`; exit 1, 0.439초. 의도한 cache 거부 대신 빈 배열 오류임을 검출 | fail | 오류 원인 미검증 false positive를 보완. 이후 같은 항목 pass |
+| 기존 세 결함 재검증 | unsafe_cache/invalid_profile/custom_paths 명시 실행; 3개/0, 0.647초 | pass | Bash 기본값·경로 정규화·원인별 오류 대조 |
+| custom .so RED | test_custom_so_plugins; exit 1, 0.329초, 실제 []/기대 libgstcustom.so | fail | .so 수집 보완 후 1개/0, 0.325초 pass |
+| root 순서 RED | test_custom_paths; exit 1, 0.288초, root 1개/기대 3개 | fail | root별 콜론 목록으로 수정 후 pass |
+| 상속 경로 RED | test_inherited_custom_paths; exit 1, 0.261초, 원본/캐시 겹침 거부 | fail | 상속된 관리 경로 환원 처리 추가 |
+| 상속 경로 개발 중 재검증 | custom_paths는 pass, inherited_custom_paths는 fail; 2개/1, 0.659초. 새 custom 경로 누락 | fail | Bash 3.2 치환 결과에 따옴표가 붙는 최소 재현 확인. 별도 replacement 변수로 수정 |
+| 상속 경로 수정 검증 | inherited_custom_paths/reapply/upgrade; 3개/0, 1.100초 | pass | 앞/뒤 추가·멱등·설치 변경 검증 |
+| 비미디어 CLI RED | test_cli_no_gst_side_effects; exit 1, 0.428초. docs help가 잘못된 GST profile에 차단됨 | fail | 초기화 적용 명령을 좁힌 뒤 CLI/dispatch 2개/0, 0.967초 pass |
+| S05 실제 재개 최초 | 정식 verify-v410-event-recording; exit 1, 220ms, 총계 1013 고정 검사 실패 | fail | 실제 C++ 실행 전 중단. 승인 후 총계 검사 보완·재실행 |
+| S05 등록기 RED | node scripts/internal/v410_s05_inventory.test.mjs; exit 1, 정상 등록에서도 동일 총계 오류 | fail | 34개로 보강 후 pass |
+| manifest 차이 자체 진단 | 상단 inventorySha256만 변경된다는 assertion; exit 1, 실제 items도 변경 | fail | 잘못된 진단 전제. 정식 source audit와 아래 전수 비교로 locator·파생 digest만 변경됨을 확인 |
+
+#### 직접 결과와 증거물
+
+각 command/factory/assertion/action/check/cleanup의 생략 없는 표는 다음 저장소 보존
+문서에 분리한다. 이 절이 색인이며 JSON 원문과 개별 표를 함께 evidence로 사용한다.
+
+- [환경 20개·실제 명령 101개·assertion 51개 전수](release-artifacts/v4.1.0/20260904-gst-env-fix/individual-results.md)
+- [S05 재개 개별 assertion/action/check 전수](release-artifacts/v4.1.0/20260904-gst-env-fix/s05-individual-results.md)
+- [환경 verifier 원문](release-artifacts/v4.1.0/20260904-gst-env-fix/unit-results.json)
+- [실제 macOS 원문 및 최초 S05 실패](release-artifacts/v4.1.0/20260904-gst-env-fix/runtime-results.json)
+- [S05 및 build 재개 원문](release-artifacts/v4.1.0/20260904-gst-env-fix/s05-build-results.json)
+- [최종 등록·문서 개별 결과](release-artifacts/v4.1.0/20260904-gst-env-fix/final-metadata-results.md)
+- [최종 등록·문서 원문 및 manifest 차이 진단](release-artifacts/v4.1.0/20260904-gst-env-fix/final-metadata-results.json)
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 환경 fixture | ./server.sh verify-gst-environment; 20개 통과, 5.758초 | pass |
+| 실제 cold/warm | stderr 0, 1525 features 전수 일치, 각각 1103/88ms | pass |
+| 필수 44 factory | 각각 gst-inspect 및 C++ factory_make 성공, stderr 0 | pass |
+| WebRTC READY | 실제 객체 READY 전환, exit 0, 39ms | pass |
+| 무음 H264 | 실제 sample MP4 decode EOS, exit 0, 129ms, stderr 0 | pass |
+| 실제 root 우선순위 | 동일 basename .so 두 개 중 첫 root factory만 선택, stderr 0 | pass |
+| S05 최종 | exit 0, 26827ms; C++ 140, application 7, runtime 20, mutation 2, 등록기 34, action 27/check 89, stderr 0 | pass |
+| 제품 build | exit 0, 604ms, 기존 build-gst-onnx 증분 빌드, stderr 0 | pass |
+| 최신 등록기 단독 재검증 | node scripts/internal/v410_s05_inventory.test.mjs; 34/0, 양성 mutation 치환 대상 존재 확인도 포함 | pass |
+| 정식 소스 감사·manifest 반영 | ./server.sh verify-v390-review4-feature-semantic-source-audit --apply-approved-manifest; 51/0, 승인 986개·미해결 0 | pass |
+| 중앙 인벤토리 | ./server.sh verify-project-inventory; 986행, summary 18/0. 최초 도구 출력 잘림으로 재실행하여 개별 986행의 5개 검사 결과 보존 | pass |
+| 스크립트 인벤토리 | ./server.sh verify-script-inventory; 11/0, dispatch·실행권한·문서 참조 확인 | pass |
+| 문서 링크 | ./server.sh verify-docs-links; 최종 결과표 추가 전 221문서·1003링크·22이미지·100anchor·실패 0 | pass |
+| 최종 문서 링크 재검증 | ./server.sh verify-docs-links; 최종 결과표 추가 후 222문서·1005링크·22이미지·100anchor·실패 0 | pass |
+| 문서 asset | ./server.sh verify-docs-ui-assets; 10/0. 현재 UI 실제 열람/촬영 증거는 아님 | pass |
+| 최종 변경 점검 | git diff --check; exit 0. git status --short --branch로 변경 파일 전수 확인, staged diff 없음 | pass |
+
+인벤토리 증적 `project_feature_implementation_evidence.json`은 정식 승인 manifest 적용
+경로로 갱신했다. 기존 승인·ID·순서·sourceFlowDigest 및 나머지 값은 그대로이며,
+server.sh locator 이동 971개(+16행), 15개(+2행)와 파생 digest·상단 inventory hash만
+변경됐다(5917 leaf). 현재 source line/context, proof의 edge SHA256 986개, 두 semantic
+digest의 결속을 전수 대조했고 읽기 전용 독립 검토자 1명도 같은 결론이었다. 새 기능의
+승인을 생성하거나 기존 UI/실행 evidence를 PASS로 바꾸지 않았다.
+
+영향 범위는 macOS Homebrew의 프로세스 환경·캐시, 실행 wrapper, 검증기·문서다.
+C++ 녹화/media path·API/schema·UI는 변경하지 않았다. Python3/scanner 존재, 캐시 경로
+권한, 사용자 plugin root·registry 상속이 환경 회귀 위험이므로 양성/거부 fixture와
+실제 macOS 검색/객체 생성으로 확인했다. 모든 OS·서비스 실행의 호환성 보증은 아니다.
+
+현재 S05 후속 환경 보완의 제한 범위 수정·재검증 기록은 갖췄으므로 커밋 승인 요청이
+가능한 상태다. 최신 요청에 커밋·푸시 승인이 없어 둘 다 미수행이며 커밋 메시지/해시는
+없다. 미커밋 변경을 원격에 반영할 수 없으므로 현재 푸시 진행은 불가다. S06 이후는
+미진행이며 다른 PC 실측·SSIM 원인 진단도 이번 결과로 완료 처리하지 않는다.
+
+#### 범위와 미실행
+
+- 실제 실행 플랫폼은 macOS arm64 한 대다. Linux no-op 및 prefix 선택은 fixture이며
+  Linux/macOS Intel/다른 PC 신규 설치 PASS가 아니다.
+- 실제 launchd 서비스·제품 foreground/nohup 서버·브라우저 ICE/UI는 실행하지 않았다.
+  환경 전달은 원래 Bash 함수의 자식 env/launchd plist readback으로 확인했다.
+- 하위 symlink 디렉터리는 따라가지 않는다. 해당 실경로를 명시 root 목록에 추가해야 한다.
+  녹화 focused verify는 기존대로 local env 파일을 자동 로드하지 않고 명시한 셸 환경을 쓴다.
+- SSIM blacklist 1개는 여전히 관찰되며 원인은 미확인이다. GTK/GI 경고 해결과 구분하고
+  필수 44개 factory 성공을 전체 플러그인 정상 선언으로 확대하지 않는다.
+- 30분/120분/UI/verify-predev는 별도 승인 부재로 미실행이다. 기존 릴리즈 blocker·S05
+  장시간 판정을 변경하지 않는다. S06 이후, PR/main merge/tag/release는 미수행이다.
+
+#### cleanup 및 계측
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| 환경 verifier 전용 TMPDIR root 20개 | fixture | 315파일 / 487,037B | 각 소유 root 삭제 | 모두 부재 assertion | individual-results.md의 20개 절대 경로 |
+| /private/tmp/media-server-gst-env-recheck.YEjVi4 | 실제 plugin·registry·probe | 566파일 / 3,303,755B | 전용 root 삭제 | 부재 확인 | runtime-results.json |
+| /private/tmp/media-server-gst-s05-recheck.tapUz9 | S05/build 외부 runner·cache 잔여물 | 280파일 / 1,596,295B | 전용 root 삭제 | 부재 확인 | s05-build-results.json |
+| build-gst-onnx | 정상 제품 빌드 산출물 | 기존 디렉터리, 별도 크기 미집계 | 보존 | 요청한 제품 빌드 결과 | build exit 0 |
+| docs/release-artifacts/v4.1.0/20260904-gst-env-fix | JSON·개별 결과표 7개 | 816,890B | 보존 | 원문/개별 실행 증명 목적 | JSON 파싱 정상, secret 유사 패턴 미검출, raw media 없음 |
+| docs/release-artifacts/v4.1.0/20260904-gst-packaging | 선행 진단 evidence 3개 | 209,110B | 보존 | 최초 경고 및 실패 이력 | 기존 진단 내용 유지, JSON 파싱 정상, secret 유사 패턴 미검출 |
+
+최종 확인에서 환경 단위 root 20개와 두 실제 검증 전용 root는 모두 부재였으며,
+프로젝트 기본 `.media_server.gstreamer`도 생성하지 않았다. 위 크기는 일반 파일 논리
+크기의 합이다. 개발 중 RED/GREEN 부분 실행도 각 TemporaryDirectory cleanup 및 부재
+assertion으로 종료했으며, 해당 부분 실행의 삭제량은 위 최종 20개 합계에 더하지 않았다.
+원본/사용자 파일 삭제는 없고, 삭제한 것은 재생성 가능한 테스트 전용 캐시·probe·fixture다.
+
+S05 내부 runner가 먼저 삭제한 바이너리/녹화 파일의 삭제 전 크기는 별도 미집계다.
+환경 실제 검증 전후 원본 sample·사용자 registry·GTK3/GTK4/Python 플러그인 SHA 5개는
+모두 같았다. token start/end/consumed는 goal 계측 부재로 미집계다. 실제 macOS 실행은
+2026-09-04T12:00:05.678Z~12:00:15.298Z, S05/build는 해당 JSON의 시작/종료 및 명령별
+elapsedMs를 사용하며 전체 대화 소요 시간으로 확대하지 않는다.
+
+## v4.1.0 GStreamer 패키징 환경 검증 (2026-09-04)
+
+사용자 지시: 다른 PC에서 패키징 때문에 발생할 수 있는 문제를 고려하여 검증을 시작한다.
+제품 코드·설치 패키지·전역 설정은 변경하지 않는다. 아래 임시 실행 환경 비교는
+macOS arm64 한 대의 새 캐시/최소 환경 실측이며 다른 OS·CPU·새 PC 설치 성공을 뜻하지 않는다.
+GTK와 Python 플러그인 제외는 진단용 후보일 뿐 제품 기본값으로 적용하지 않는다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 사용자 패키징 검증 지시 | env_common.sh, V410-S05-I01~I27 | 이번 제한 범위 승인 |
+| 30분 테스트 | 미진행 | 단기 패키징 검증 범위 밖 | AGENTS 7.7 | 별도 승인 없음, 릴리즈 필수 blocker 유지 |
+| 120분 테스트 | 미진행 | 이번에는 제품 media path 변경 없음 | AGENTS 7.6.2 | 별도 승인 없음, 앞선 S05 장시간 판정은 변경하지 않음 |
+| UI 풀테스트 | 미진행 | 패키지 검색과 단기 녹화 검증 범위 밖 | AGENTS 7.9 | 별도 승인 없음, 릴리즈 필수 blocker 유지 |
+
+### 테스트 항목 상세 기록 — 실행 전 정의
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| PKG-01 기본 새 캐시 | 최소 환경으로 전체 플러그인 검색 | gst-inspect-1.0 종료 코드·GTK 중복·GI/Python 경고·플러그인/feature 목록 기록. 알려진 경고 재현 관찰은 무경고 통과와 구분 | v4.1.0 |
+| PKG-02 공통 환경 새 캐시 | 기존 env_common.sh 적용 후 비교 | 동일 바이너리·새 registry, 선택 환경변수만 수집. DYLD/GI 설정이 경고에 미치는 영향 비교 | v4.1.0 |
+| PKG-03 GTK만 제외 | 임시 플러그인 검색 경로 분리 | GTK3·GTK4·GTK validate만 제외하고 Python은 유지. 시스템 기본 경로를 비워 재유입 방지, 경고 종류 기록 | v4.1.0 |
+| PKG-04 GTK/Python 제외 | 진단 후보에서 새 캐시 검색 | GTK 및 gst-python을 제외한 임시 링크 디렉터리. stderr 경고/critical/error 없음, 등록 feature 차이 전수 기록 | v4.1.0 |
+| PKG-05 후보 재실행 | 같은 임시 registry 재사용 | 새 프로세스에서 동일 feature 목록 및 경고 0 확인 | v4.1.0 |
+| PKG-06 공백 경로 | 공백이 포함된 임시 plugin/registry 경로 | 후보 자체를 공백 경로에 만들며 문자열 분할로 필수 플러그인이 누락되지 않는지 확인 | v4.1.0 |
+| PKG-F 각 필수 factory | 개별 gst-inspect 및 실제 factory 생성 | appsrc, appsink, filesrc, filesink, fdsink, queue, identity, fakesink, concat, qtdemux, qtmux, mp4mux, matroskamux, matroskademux, h264parse, mpegtsmux, tsdemux, avdec_h264, videoconvert, videoscale, videorate, jpegenc, rtspsrc, rtph264pay, rtph264depay, rtph265pay, rtph265depay, h265parse, webrtcbin, nicesrc, nicesink, dtlsenc, dtlsdec, srtpenc, srtpdec, rtpbin, vp8enc, vp8dec, opusenc, opusdec, audioconvert, audioresample, rtpopuspay, rtpopusdepay를 각각 독립 결과 행으로 기록 | v4.1.0 |
+| PKG-07 WebRTC 준비 | webrtcbin READY 전환 | 실제 객체 생성 및 상태 전환 성공 확인. 브라우저 offer/answer·ICE 연결·외부 TURN 성공으로 확대하지 않음 | v4.1.0 |
+| PKG-08 실제 디코드 | 기존 H264 무음 MP4를 디코드 | filesrc → qtdemux → h264parse → avdec_h264 → fakesink의 EOS/종료 0 확인 | v4.1.0 |
+| PKG-09 S05 회귀 | 후보 환경에서 정식 S05 dispatch 실행 | ./server.sh verify-v410-event-recording; 기존 27 action/89 check, C++ 140, application 7, runtime 20, mutation 2, 등록기 26 전수 결과 보존 | v4.1.0 |
+| PKG-10 제품 빌드 | 기존 빌드 명령 실행 | ./server.sh build; local override 제외. 빌드는 런타임 경고/다른 플랫폼 통과 증거가 아님 | v4.1.0 |
+| PKG-11 변경 경계 | 문서 diff 및 제품 불변 확인 | git diff --check, git status 및 src/include/scripts 변경 없음 확인 | v4.1.0 |
+| PKG-12 임시 파일 정리 | registry·링크·바이너리·미디어 정리 | 원본 미디어·Homebrew 플러그인·사용자 registry 해시 불변, 전용 root 크기·삭제·부재 기록 | v4.1.0 |
+
+### 버전별 테스트 결과 기록
+
+2026-09-04 재개 승인: 실제 Node 경로 기반으로 임시 진단 도구를 수정하고 위와 동일한
+안정화 범위를 다시 실행한다. Node 위치는 `process.execPath`로 얻어 하위 PATH에도
+반영한다. PKG-NODE는 기존 잘못된 경로의 실패 이력과 수정 후 실제 Node 버전/환경
+수집 성공을 비교하는 진단 도구 회귀 확인이다. PKG-01도 새 캐시로 다시 실행하며,
+이전 실패 이력과 아래 당시 미실행 표는 덮어쓰지 않고 재개 결과를 별도 기록한다.
+PKG-BL은 검색 출력에 남은 blacklist의 실제 플러그인 이름을 `gst-inspect-1.0 -b`로
+조회하는 관찰 항목이다. blacklist 존재만으로 필수 미디어 실패/통과를 판단하지 않는다.
+feature 비교는 공백 두 개 형식의 factory 행뿐 아니라 공백 한 개 형식의 typefind까지
+포함하고, 실제 출력의 Total count와 개별 행 수가 일치하는지 확인한다.
+
+1차 실행 당시 상태: **부분 수행 후 중단**. 아래 이력은 보존하며 최신 상태는 다음 재개 결과를 따른다.
+[개별 실행 기록](release-artifacts/v4.1.0/20260904-gst-packaging/individual-results.json)에
+실제 종료 코드·시간·stderr·원본 SHA를 보존한다. 실행 OS는 macOS 26.6.2/arm64,
+GStreamer 1.28.1이며 다른 PC나 OS에서 실행한 것은 아니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| PKG-01 샌드박스 새 캐시 검색 | 최소 환경 + 새 GST_REGISTRY_1_0으로 gst-inspect-1.0 실행. 60,007ms 뒤 ETIMEDOUT/SIGTERM | fail | macOS hiservices-xpcservice 연결 오류. 제품 녹화 실패로 단정하지 않음 |
+| PKG-01 권한 조정 후 재실행 | 동일 명령을 승인된 비샌드박스 경로에서 실행. exit 0, 2,384ms, 281 plugins/1527 features/blacklist 2 | pass | 검색 명령 실행만 pass. GTK 클래스 중복 6건, GI 라이브러리 로딩 경고 2건, Gst Python 초기화 critical 1건이 재현돼 무경고 환경은 아님 |
+| PKG-02 공통 환경 수집 준비 | 임시 진단 스크립트가 /opt/homebrew/bin/node를 실행했으나 파일 없음, 내부 명령 exit 127, 전체 runner exit 1 | fail | 에이전트가 만든 진단 스크립트의 경로 가정 오류. 실제 Node는 /Users/dhseo/.nvm/versions/node/v24.13.0/bin/node. 제품 env_common.sh의 오류로 바꾸어 해석하지 않음 |
+| PKG-11 변경 경계 | git diff --check exit 0, git status에서 테스트 기록과 개별 JSON만 변경/생성 | pass | 제품 src/include/scripts 변경 없음. S05나 제품 빌드 성공을 의미하지 않음 |
+| PKG-12 원본 보존과 cleanup | 원본 5개 SHA 일치, 임시 root 열린 파일 없음, rm 및 부재 검사 exit 0. 개별 JSON parse 및 결과 2회 보존 검사 exit 0 | pass | 8개/1,679,308바이트 삭제, 최종 JSON 10,573바이트만 증거로 보존 |
+
+새 캐시에서도 GTK/GI 경고가 재현되어 기존 사용자 registry에만 국한된 문제는 아니다.
+같은 패키징·OS 조건에서 재현 가능성이 있다는 근거이나 다른 PC에서 발생한다고 확정하지 않는다.
+임시 진단 경로 수정 및 재개 승인을 요청했으며, 실패 이후 후보 비교·S05·빌드는 실행하지 않았다.
+
+| 미실행 항목 | 사유 | 완료 evidence 사용 |
+| --- | --- | --- |
+| PKG-02 실제 공통 환경 검색 | 준비 명령 실패 이후 중단 | 불가 |
+| PKG-03 GTK 제외 비교 | 선행 실패로 건너뜀 | 불가 |
+| PKG-04 GTK/Python 제외 비교 | 선행 실패로 건너뜀 | 불가 |
+| PKG-05 후보 캐시 재사용 | 선행 실패로 건너뜀 | 불가 |
+| PKG-06 공백 경로 확인 | 선행 실패로 건너뜀 | 불가 |
+| PKG-F 사전 정의된 44개 factory 각각의 조회와 생성 | 선행 실패로 건너뜀, 개별 명칭은 사전 정의 행에 전수 기재 | 불가 |
+| PKG-07 WebRTC READY | 선행 실패로 건너뜀 | 불가 |
+| PKG-08 실제 H264 디코드 | 선행 실패로 건너뜀 | 불가 |
+| PKG-09 정식 S05 회귀 | 선행 실패로 건너뜀 | 불가 |
+| PKG-10 제품 빌드 | 선행 실패로 건너뜀 | 불가 |
+| 30분/120분/verify-predev | 이번 요청 범위 밖, 명시 승인 없음 | 불가 |
+| UI 풀테스트/실제 브라우저 | 이번 요청 범위 밖, 명시 승인 없음 | 불가 |
+| macOS Intel/Linux/별도 PC 신규 설치 | 별도 실행 환경 미제공 | 불가 |
+
+token start/end/consumed: 미집계(이번 작업에 goal 기반 토큰 계측 없음).
+elapsed/source: 실행 시작 2026-09-04 20:09:11 KST, 실제 명령별 시간은 개별 JSON 참조.
+원본 무음 H264 sample·사용자 registry·GTK3/GTK4/Python plugin SHA는 실행 전후 모두 일치했다.
+제품 코드/API/UI/media path 및 전역 패키지는 변경하지 않았고 커밋·푸시는 미수행이다.
+
+중단 정리: `git diff --check` exit 0. 제품 src/include/scripts 변경 없음.
+테스트 기록 문서와 개별 결과 JSON만 변경/생성했다. 새 제품 커밋·푸시 대상은 없으며,
+검증 미완료 상태라 패키징 수정 완료/푸시 가능으로 보고하지 않는다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/tmp/media-server-gst-packaging.fNb7Tz | 새 registry·진단 소스·중간 출력 8개 | 1,679,308바이트 | 필요한 실행 결과만 JSON으로 보존 후 전용 root 삭제 | 삭제 완료, 기존 사용자 registry·Homebrew 패키지 불변 | lsof 열린 파일 없음, rm exit 0, test ! -e exit 0, 원본 SHA 전후 일치 |
+| docs/release-artifacts/v4.1.0/20260904-gst-packaging/individual-results.json | 최종 실패/재현 evidence | 10,573바이트 | 저장소 보존 | 재현 경고·명령 종료 코드·원본 SHA·cleanup 기록 보존 | 인증정보/이벤트 원문/영상 없음, GTK/GI 환경 경고와 로컬 경로만 포함 |
+
+### 재개 검증 결과 — 로컬 후보 검증 통과, 제품 기본값 미적용
+
+사용자의 재개 승인 후 임시 도구의 Node 경로를 `process.execPath`와 그 디렉터리의
+PATH로 수정했다. 실제 Node 실행과 기존 `env_common.sh` 환경 수집이 모두 성공했다.
+제품 실행 스크립트·설치 패키지는 변경하지 않았다. 최초 Node 경로 오류 및 sandbox
+실패 이력은 위 표와 최초 JSON에 그대로 보존한다.
+
+[모든 개별 결과 표](release-artifacts/v4.1.0/20260904-gst-packaging/resume-results.md)와
+[재개 결과 JSON](release-artifacts/v4.1.0/20260904-gst-packaging/resume-results.json)에
+실제 명령 57개, factory 생성 44개, WebRTC READY, 원본 SHA 및 S05의 모든 개별
+assertion/action/check를 기록한다. action/check는 같은 C++/runtime 결과의 등록 매핑이며
+서로 독립인 테스트 수처럼 합산하지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| PKG-NODE / PKG-02 준비 재실행 | 실제 Node 실행 exit 0/19ms, 공통 환경 수집 exit 0/53ms | pass | 이전 /opt/homebrew/bin/node 가정 실패를 수정한 뒤 pass |
+| PKG-01 기본 새 캐시 | exit 0/1189ms, 281 plugins/1527 features | pass | 관찰 명령만 pass: GTK 중복 6건/GI·Python 경고 3건 재현 |
+| PKG-02 기존 공통 환경 | exit 0/1420ms, 281 plugins/1527 features | pass | GI·Python 경고 0, GTK 중복 6건은 남음 |
+| PKG-03 GTK만 제외 | exit 0/1111ms, 278 plugins/1525 features | pass | GTK 중복 0, GI·Python 경고 3건은 남음 |
+| PKG-04 GTK/Python 제외 | exit 0/1007ms, 277 plugins/1525 features | pass | 진단 후보에서 GTK/GI 경고 0. 설치 파일 삭제 아님 |
+| PKG-05/06 캐시 재사용·공백 경로 | exit 0/58ms, 같은 feature 목록·경고 0, 공백 포함 registry 생성 확인 | pass | 기존 사용자 registry 미사용 |
+| feature 전수 비교 | typefind까지 포함하여 실제 Total count 1527/1525와 개별 행 수 일치 | pass | 누락은 gtksink와 gtk4paintablesink 두 개뿐, 추가 0. 초기 두 공백 형식 부분 집계 1364/1362는 별도 보존 |
+| 필수 factory 44개 | 각각 gst-inspect exit 0, 실제 factory_make 44개 생성·해제 성공, stderr 경고 0 | pass | 모든 명칭별 조회·생성 결과는 개별 표에 독립 행으로 보존 |
+| PKG-07 WebRTC 준비 | 실제 webrtcbin READY 전환과 상태 확인 성공 | pass | 브라우저 offer/answer·ICE·외부 TURN 연결 검증 아님 |
+| PKG-08 H264 디코드 | 기존 무음 MP4 → qtdemux/h264parse/avdec_h264/fakesink, exit 0/471ms | pass | 실제 디코드 완료; 화면 육안 재생 검증 아님 |
+| PKG-09 S05 정식 회귀 | ./server.sh verify-v410-event-recording, exit 0/25210ms | pass | C++ 140/0, application 7/0, runtime 20/0, mutation 2/0, 등록기 26/0, action 27/0/check 89개. stderr 경고 0 |
+| PKG-10 제품 빌드 | ./server.sh build, local override 제외, exit 0/36819ms | pass | AI=1/YouTube=0, media_server_runtime 및 media_server 100%, stderr 경고 0 |
+| PKG-BL blacklist 관찰 | gst-inspect-1.0 -b, exit 0, libgstvalidatessim.dylib 1개 | pass | 이름 조회만 pass. 필수 44개 밖의 프레임 비교용 GstValidate 플러그인, blacklist 원인은 미확인 |
+| PKG-11/12 기록·변경 경계·cleanup | git diff --check, 원본 5개 해시 대조, 자체 temp 삭제 및 부재 확인 | pass | 제품 src/include/scripts/CMakeLists.txt 변경 없음; 기존 사용자 캐시/패키지 불변 |
+
+판단: GTK3/GTK4 동시 검색과 GI/Python 라이브러리 검색 환경 문제를 분리하여 재현했고,
+진단 후보에서는 필수 녹화 기능을 유지하면서 두 경고를 없앨 수 있음을 현재 PC에서 확인했다.
+제품 기본값에 적용한 것은 아니므로 일반 서버 실행 환경의 경고 해결 완료라고 보고하지 않는다.
+libgstvalidatessim의 역할은 [공식 문서](https://gstreamer.freedesktop.org/documentation/gst-devtools/plugins/ssim.html)로
+확인했으며 해당 blacklist 원인은 별도 미확인으로 남긴다.
+
+재개 이후 미실행: 다른 PC 신규 설치, macOS Intel, Linux, 실제 브라우저 ICE 연결,
+외부 RTSP 카메라, 30분, 120분, UI 풀테스트, verify-predev. 모두 완료 evidence로 사용할 수 없다.
+30분/UI 릴리즈 필수 blocker와 기존 S05 장시간 테스트 판정은 바꾸지 않았다.
+
+token start/end/consumed는 goal 계측이 없어 미집계다. 실제 실행 시작 2026-09-04T11:19:21.138Z,
+마지막 명령 완료 갱신 2026-09-04T11:22:30.959Z, 명령별 elapsedMs 합계 70,311ms다.
+토큰 추정값을 만들지 않았고 도구 대기/보고 작성 시간을 명령 실측 시간에 섞지 않았다.
+제품 코드 변경·커밋·푸시·S06 이후 개발·릴리즈 작업은 미수행이다. 기록 커밋은 사용자 별도 승인 전이다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/tmp/media-server-gst-packaging-resume.9NfixH | registry·진단 소스/바이너리·중간 로그·559개 링크, 총 682개 파일/링크 | 7,714,945바이트 | 원본 출력의 개별 결과와 SHA를 저장소에 보존 후 전용 root 삭제 | 삭제 완료, symlink 대상 원본은 유지 | lsof 열린 파일 없음, rm exit 0, test ! -e exit 0 |
+| 위 root 아래 media_server_s05_storage_runtime_G73peG | S05 임시 미디어·SQLite·mutation 바이너리 41개 | 9,740,816바이트 | 기존 runtime verifier finally 정리 | removed=true, 상위 root 부재도 확인 | 실제 S05 cleanup 출력 보존 |
+| build-gst-onnx | 요청한 제품 빌드 산출물 | 미집계 | 유지 | 제품 실행에 쓰는 정상 build 결과이며 일회용 진단 root와 구분 | 빌드 exit 0, 대상 경로 직접 확인 |
+| release-artifacts/v4.1.0/20260904-gst-packaging/resume-results.json 및 .md | 최종 개별 검증 evidence | 저장소 파일 실측 | 보존 | 인증정보·이벤트 원문·미디어 없음. 로컬 경로·명령·경고·SHA·개별 assertion/결과만 보존 | JSON/표 전수 대조 및 파일 크기 확인 |
+
 ## v4.1.0 S05 실제 저장 큐 통합 보강 (2026-09-04)
 
 `d7ee14a1` 선행 커밋 이후 사용자가 승인한 S05 잔여 통합 검증이다. 제품 API/UI와

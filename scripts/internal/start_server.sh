@@ -6,7 +6,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPTS_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 source "${SCRIPT_DIR}/env_common.sh"
-media_server_apply_homebrew_gst_env
 
 ENV_FILE="${SCRIPTS_DIR}/.media_server.env"
 if [[ -f "${ENV_FILE}" && "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" != "1" ]]; then
@@ -18,6 +17,8 @@ if [[ -f "${ENV_FILE}" && "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" != "1" ]]; then
 elif [[ "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" == "1" ]]; then
   echo "[1/3] skipped env override: ${ENV_FILE}"
 fi
+
+media_server_apply_homebrew_gst_env
 
 PID_FILE="${ROOT_DIR}/.media_server.pid"
 ADDRESS_FILE="${ROOT_DIR}/.media_server.address"
@@ -298,8 +299,12 @@ start_detached() {
     env_vars+=("${name}=${!name}")
   done < <(env)
 
-  for passthrough in HOMEBREW_PREFIX PATH PKG_CONFIG_PATH GI_TYPELIB_PATH GST_PLUGIN_SCANNER GST_PLUGIN_PATH DYLD_FALLBACK_LIBRARY_PATH DYLD_LIBRARY_PATH LD_LIBRARY_PATH; do
-    if [[ -n "${!passthrough:-}" ]]; then
+  for passthrough in HOMEBREW_PREFIX PATH PKG_CONFIG_PATH GI_TYPELIB_PATH \
+      GST_PLUGIN_SCANNER GST_PLUGIN_SCANNER_1_0 GST_PLUGIN_PATH GST_PLUGIN_PATH_1_0 \
+      GST_PLUGIN_SYSTEM_PATH GST_PLUGIN_SYSTEM_PATH_1_0 GST_REGISTRY GST_REGISTRY_1_0 \
+      DYLD_FALLBACK_LIBRARY_PATH DYLD_LIBRARY_PATH LD_LIBRARY_PATH; do
+    # 빈 system path도 의미가 있다. launchd/nohup 모두 설정된 빈 문자열을 전달한다.
+    if [[ "${!passthrough+x}" == "x" ]]; then
       env_vars+=("${passthrough}=${!passthrough}")
     fi
   done

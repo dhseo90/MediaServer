@@ -161,6 +161,15 @@ major 변경이 확인될 때만 별도로 설계한다. 현재 목표를 이유
 | 8 | V410-S08 | P0 | crash/disk-full/corrupt catalog/gap/migration/호환성 검증과 문서·evidence 연결 |
 | 9 | V410-S09 | P0 | 사용자 승인 범위의 안정화·UI·장시간 녹화·release readiness 판정 |
 
+S05 후속 환경 보완(2026-09-04)은 **수정·제한 범위 재검증 통과**다. `env_common.sh`·
+`gst_plugin_cache.py`의 프로젝트 한정 플러그인 검색/캐시와 wrapper 환경 전달을 추가했다.
+최초 Bash 3.2·fixture 실패 뒤 상속 경로·`.so`·root 순서·CLI 초기화 범위도 보완해 환경
+20/0을 확인했다. macOS arm64 실제 cold/warm 1525 features 일치·필수 factory 44개·
+READY·무음 H264·plugin 우선순위, S05 전체와 증분 build를 재검증했다. S05 등록기 총계는
+별도 승인 후 보완했으며 기존 986개/S05 27개 검증을 유지한다. 다른 PC·실제 launchd/UI·
+장시간은 미실행, SSIM blacklist 원인은 미확인이다. 커밋·푸시는 하지 않았다.
+파일·함수·개별 결과·최초 실패는 `docs/release-test-records.md`에 보존한다.
+
 V410-S00 완료: 공개 표준과 라이선스 metadata, 특정 특허 상세를 반입하지 않는 IP
 clean-room 차단선, source `4.1.0` baseline을 고정했다. V410-S01 완료: segment/frame/
 event link/analysis observation/tombstone v1 계약과 golden JSONL 호환 경계를 고정했다.

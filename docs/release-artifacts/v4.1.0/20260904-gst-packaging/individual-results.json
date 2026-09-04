@@ -1,0 +1,126 @@
+{
+  "cleanup": {
+    "root": "/private/tmp/media-server-gst-packaging.fNb7Tz",
+    "files": 8,
+    "bytes": 1679308,
+    "removed": true,
+    "openHandlesBeforeRemoval": 0,
+    "retainedReason": "실제 명령 종료 코드, 최초 실패, 재현 경고와 원본 파일 SHA만 저장소 JSON에 보존"
+  },
+  "environment": {
+    "os": "macOS 26.6.2 (25G83)",
+    "gstreamer": "1.28.1",
+    "gtk3": "3.24.51",
+    "gtk4": "4.22.1",
+    "inheritedGstGiDyldVariables": false,
+    "registry": "각 시도에 전용 GST_REGISTRY_1_0 설정, 기존 사용자 registry 미사용"
+  },
+  "started": "2026-09-04T11:09:11.120Z",
+  "platform": "darwin",
+  "arch": "arm64",
+  "cases": [
+    {
+      "id": "PKG-01",
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [],
+      "exitCode": null,
+      "signal": "SIGTERM",
+      "error": "spawnSync /opt/homebrew/bin/gst-inspect-1.0 ETIMEDOUT",
+      "elapsedMs": 60007,
+      "gtkDuplicates": 0,
+      "giMessages": 0,
+      "warningLines": [
+        "2026-09-04 20:09:11.208 gst-inspect-1.0[98602:12376103] Connection Invalid error for service com.apple.hiservices-xpcservice.",
+        "2026-09-04 20:09:11.208 gst-inspect-1.0[98602:12376102] Error received in message reply handler: Connection invalid"
+      ],
+      "stdout": [],
+      "stderr": "2026-09-04 20:09:11.147 gst-inspect-1.0[98602:12376102] Failure on line 688 in function id scheduleApplicationNotification(LSNotificationCode, NSWorkspaceNotificationCenter *): noErr == _LSModifyNotification(notificationID, 1, &code, 0, NULL, NULL, NULL)\n2026-09-04 20:09:11.208 gst-inspect-1.0[98602:12376103] Connection Invalid error for service com.apple.hiservices-xpcservice.\n2026-09-04 20:09:11.208 gst-inspect-1.0[98602:12376102] Error received in message reply handler: Connection invalid\n"
+    },
+    {
+      "id": "PKG-01",
+      "attempt": 2,
+      "command": "/opt/homebrew/bin/gst-inspect-1.0",
+      "args": [],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 2384,
+      "gtkDuplicates": 6,
+      "giMessages": 3,
+      "warningLines": [
+        "(gst-plugin-scanner:98644): GLib-GIRepository-WARNING **: 20:10:44.481: Failed to load shared library 'libgobject-2.0.0.dylib' referenced by the typelib: dlopen(libgobject-2.0.0.dylib, 0x0009): tried: 'libgobject-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibgobject-2.0.0.dylib' (no such file), '/usr/lib/libgobject-2.0.0.dylib' (no such file, not in dyld cache), 'libgobject-2.0.0.dylib' (no such file)",
+        "(gst-plugin-scanner:98644): GLib-GIRepository-WARNING **: 20:10:44.482: Failed to load shared library 'libglib-2.0.0.dylib' referenced by the typelib: dlopen(libglib-2.0.0.dylib, 0x0009): tried: 'libglib-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibglib-2.0.0.dylib' (no such file), '/usr/lib/libglib-2.0.0.dylib' (no such file, not in dyld cache), 'libglib-2.0.0.dylib' (no such file)",
+        "** (gst-plugin-scanner:98644): CRITICAL **: 20:10:44.483: can't find gi.repository.Gst",
+        "objc[98644]: Class ResultReceiver is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x108a99748) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x118f76b70). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.",
+        "objc[98644]: Class GtkApplicationQuartzDelegate is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x108a99770) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x118f76b98). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.",
+        "objc[98644]: Class GNSMenuItem is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x108a997c0) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x118f76c38). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.",
+        "objc[98644]: Class GNSMenu is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x108a997e8) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x118f76c60). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.",
+        "objc[98644]: Class FilterComboBox is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x108a99860) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x118f76cd8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.",
+        "objc[98644]: Class gdkCoreCursor is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgdk-3.0.dylib (0x107af5258) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x118f76d28). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed."
+      ],
+      "stdout": [
+        "Total count: 281 plugins (2 blacklist entries not shown), 1527 features"
+      ],
+      "stderr": "\n(gst-plugin-scanner:98644): GLib-GIRepository-WARNING **: 20:10:44.481: Failed to load shared library 'libgobject-2.0.0.dylib' referenced by the typelib: dlopen(libgobject-2.0.0.dylib, 0x0009): tried: 'libgobject-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibgobject-2.0.0.dylib' (no such file), '/usr/lib/libgobject-2.0.0.dylib' (no such file, not in dyld cache), 'libgobject-2.0.0.dylib' (no such file)\n\n(gst-plugin-scanner:98644): GLib-GIRepository-WARNING **: 20:10:44.482: Failed to load shared library 'libglib-2.0.0.dylib' referenced by the typelib: dlopen(libglib-2.0.0.dylib, 0x0009): tried: 'libglib-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibglib-2.0.0.dylib' (no such file), '/usr/lib/libglib-2.0.0.dylib' (no such file, not in dyld cache), 'libglib-2.0.0.dylib' (no such file)\n\n** (gst-plugin-scanner:98644): CRITICAL **: 20:10:44.483: can't find gi.repository.Gst\nobjc[98644]: Class ResultReceiver is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x108a99748) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x118f76b70). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.\nobjc[98644]: Class GtkApplicationQuartzDelegate is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x108a99770) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x118f76b98). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.\nobjc[98644]: Class GNSMenuItem is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x108a997c0) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x118f76c38). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.\nobjc[98644]: Class GNSMenu is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x108a997e8) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x118f76c60). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.\nobjc[98644]: Class FilterComboBox is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x108a99860) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x118f76cd8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.\nobjc[98644]: Class gdkCoreCursor is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgdk-3.0.dylib (0x107af5258) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x118f76d28). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.\n"
+    }
+  ],
+  "excluded": {},
+  "preservation": [
+    {
+      "path": "/Users/dhseo/Workspace/mediaServer/video/sample_h264_video_only.mp4",
+      "before": "b1d90231de3c6b816e58715c9b12ba54bd31583301d08e943e678e46b02ad18b",
+      "after": "b1d90231de3c6b816e58715c9b12ba54bd31583301d08e943e678e46b02ad18b",
+      "unchanged": true
+    },
+    {
+      "path": "/Users/dhseo/.cache/gstreamer-1.0/registry.aarch64.bin",
+      "before": "26dfd301fee0f2cd5935c96595811064853a6326ddb9a76ca10837bdd35c0de4",
+      "after": "26dfd301fee0f2cd5935c96595811064853a6326ddb9a76ca10837bdd35c0de4",
+      "unchanged": true
+    },
+    {
+      "path": "/opt/homebrew/lib/gstreamer-1.0/libgstgtk.dylib",
+      "before": "1253d26477c27edfb5676eb5b5d2cd371b5ea62b85212a3e0a79ed010f828925",
+      "after": "1253d26477c27edfb5676eb5b5d2cd371b5ea62b85212a3e0a79ed010f828925",
+      "unchanged": true
+    },
+    {
+      "path": "/opt/homebrew/lib/gstreamer-1.0/libgstgtk4.dylib",
+      "before": "33c231ab3c7ea8a667e41382df12e039e46bca3b1421f0ff30062c2fe9ac8fb0",
+      "after": "33c231ab3c7ea8a667e41382df12e039e46bca3b1421f0ff30062c2fe9ac8fb0",
+      "unchanged": true
+    },
+    {
+      "path": "/opt/homebrew/lib/gstreamer-1.0/libgstpython.dylib",
+      "before": "46ba5e8149b924d255eff589d00c6fbfdccf41dff6348cca2cbc29d04c9cc257",
+      "after": "46ba5e8149b924d255eff589d00c6fbfdccf41dff6348cca2cbc29d04c9cc257",
+      "unchanged": true
+    }
+  ],
+  "failure": "AssertionError [ERR_ASSERTION]: 공통 환경 수집 실패: /bin/bash: /opt/homebrew/bin/node: No such file or directory\n\n\n127 !== 0\n\n    at file:///private/tmp/media-server-gst-packaging.fNb7Tz/check.mjs:75:12\n    at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)",
+  "tempMeasure": {
+    "root": "/private/tmp/media-server-gst-packaging.fNb7Tz",
+    "files": 8,
+    "bytes": 1679308
+  },
+  "finished": "2026-09-04T11:12:09.871Z",
+  "status": "중단: 임시 진단 스크립트 Node 경로 가정 오류, 사용자 승인 후 재개",
+  "nodeExecutable": "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node",
+  "commandPreparation": {
+    "id": "PKG-02",
+    "exitCode": 127,
+    "stderr": "/bin/bash: /opt/homebrew/bin/node: No such file or directory"
+  },
+  "notRun": [
+    "PKG-02 실제 검색",
+    "PKG-03",
+    "PKG-04",
+    "PKG-05",
+    "PKG-06",
+    "PKG-F 44개 조회/생성",
+    "PKG-07",
+    "PKG-08",
+    "PKG-09",
+    "PKG-10"
+  ]
+}

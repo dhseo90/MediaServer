@@ -589,6 +589,14 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
 
 ### v4.1.0 S05 개발 기록
 
+- 후속 환경 보완(2026-09-04): `env_common.sh`·`gst_plugin_cache.py`에 프로젝트 한정
+  headless 검색/캐시, 실행 wrapper에 환경 전달을 추가하고 **수정·제한 범위 재검증 통과**.
+  최초 17개 중 runner 12개 실패는 보존하고, Bash 3.2·fixture·상속·`.so`·root 순서·CLI
+  무부작용을 보완해 환경 20/0을 확인했다. 실제 macOS cold/warm 1525 features 일치,
+  필수 factory 44개·READY·무음 H264·plugin 우선순위와 S05·증분 build도 통과했다.
+  승인 후 S05 등록기 총계를 보완해 단위 34/0, 기존 986개/S05 27개 판정은 유지했다.
+  SSIM blacklist 원인·다른 PC·실제 launchd/UI·장시간은 미확인/미실행이며,
+  개별 결과와 최초 실패는 `release-test-records.md`에 기록했다. 커밋·푸시는 미수행이다.
 - 잔여 통합 검증 종료: 선행 `d7ee14a1` 이후 제품 로직 변경 없이 실제 EventStorage
   비활성/활성 큐 포화와 journal 기반 별도 프로세스 복구를 추가했다.
   `event_storage_recording_runtime_smoke.cpp`·runtime runner가 실제 H264 파생까지 확인하고,

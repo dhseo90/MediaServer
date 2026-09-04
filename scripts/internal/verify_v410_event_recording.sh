@@ -3,6 +3,8 @@
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+source "${SCRIPT_DIR}/env_common.sh"
+media_server_apply_homebrew_gst_env
 BUILD_DIR="$(mktemp -d "${TMPDIR:-/tmp}/media_server_v410_event_recording.XXXXXX")"
 CXX_BIN="${CXX:-c++}"
 cleanup() { rm -rf -- "${BUILD_DIR}"; }
