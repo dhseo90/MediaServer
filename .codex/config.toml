@@ -1,0 +1,17 @@
+# MediaServer 프로젝트 전용 기본값. 다른 저장소의 전역 설정은 변경하지 않는다.
+# 적용 시점은 새 세션의 설정 로딩이며, 기존 작업의 모델 선택을 강제로 바꾸지 않는다.
+model = "gpt-6-astra"
+model_reasoning_effort = "xhigh"
+
+# 한글 AGENTS.md 전체를 읽을 수 있도록 프로젝트 지침 누적 한도를 128 KiB로 둔다.
+project_doc_max_bytes = 131072
+
+[agents]
+# 메인을 제외한 동시 서브에이전트 상한. 기존 한 개를 순차 재사용한다.
+max_concurrent_threads_per_session = 1
+# 위임 깊이는 메인 → 서브에이전트 한 단계로 제한한다.
+# 설치된 Codex 0.153.1의 설정 로딩을 확인했으며, 실제 중첩 호출 차단은 별도 미검증이다.
+max_depth = 1
+
+# 서브에이전트 모델·추론 수준은 고정하지 않고 AGENTS.md 1.3·13장에 따라 위임 시 지정한다.
+# 이 설정은 도구 지원 여부나 AGENTS.md의 하위 에이전트 생성 금지 지침을 대체하지 않는다.
