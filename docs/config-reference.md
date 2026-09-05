@@ -348,6 +348,8 @@ Ops audit trail:
 | `./server.sh rc-artifact-archive --source-dir ... --destination-dir ...` | RC gate artifact를 외부 보관소 directory로 복사하고 checksum/index 생성 |
 | `MEDIA_SERVER_PORT_CANDIDATES` | script default | 대체 RTSP port 목록 |
 | `MEDIA_SERVER_START_MODE` | `nohup` | `nohup` 또는 macOS `launchd` 실행 방식 |
+| `MEDIA_SERVER_STATE_DIR` | 저장소 루트 | start/stop/status/diagnose가 공유하는 PID·주소·포트·로그·mode·launchd plist 전용 디렉터리. 지정할 때는 미리 만든 절대경로, 현재 사용자 소유, 비-symlink 디렉터리여야 함 |
+| `MEDIA_SERVER_LAUNCHD_LABEL` | `com.dhseo.mediaserver` | launchd job label. 영숫자로 시작하고 영숫자·`.`·`-`만 사용하며 최대 128자. 전용 상태에서 같은 exact label이 이미 등록됐으면 기존 job을 내리지 않고 start가 실패하므로 실행마다 고유 label 사용 |
 | `MEDIA_SERVER_SKIP_ENV_CHECK` | unset | pkg-config 등 환경 점검 생략 |
 | `HOMEBREW_PREFIX` | system default | Homebrew prefix override |
 

@@ -37,6 +37,70 @@ media_server_has_cmd() {
   command -v "$1" >/dev/null 2>&1
 }
 
+media_server_configure_runtime_state() {
+  local root_dir="$1"
+  local state_dir="${MEDIA_SERVER_STATE_DIR:-${root_dir}}"
+  local launchd_label="${MEDIA_SERVER_LAUNCHD_LABEL:-com.dhseo.mediaserver}"
+  local state_owner=""
+  local state_leaf=""
+  local platform=""
+
+  MEDIA_SERVER_STATE_DIR_IS_EXPLICIT=0
+  if [[ -n "${MEDIA_SERVER_STATE_DIR:-}" ]]; then
+    MEDIA_SERVER_STATE_DIR_IS_EXPLICIT=1
+  fi
+
+  case "${state_dir}" in
+    /*) ;;
+    *)
+      echo "[state] MEDIA_SERVER_STATE_DIR는 절대경로여야 합니다: ${state_dir}" >&2
+      return 1
+      ;;
+  esac
+  if [[ -L "${state_dir}" ]]; then
+    echo "[state] MEDIA_SERVER_STATE_DIR는 심볼릭 링크일 수 없습니다: ${state_dir}" >&2
+    return 1
+  fi
+  if [[ ! -d "${state_dir}" ]]; then
+    echo "[state] MEDIA_SERVER_STATE_DIR는 존재하는 디렉터리여야 합니다: ${state_dir}" >&2
+    return 1
+  fi
+  state_dir="$(cd "${state_dir}" && pwd -P)"
+  platform="$(uname -s)"
+  if [[ "${platform}" == "Darwin" ]]; then
+    state_owner="$(stat -f '%u' "${state_dir}" 2>/dev/null || true)"
+  else
+    state_owner="$(stat -c '%u' "${state_dir}" 2>/dev/null || true)"
+  fi
+  if [[ -z "${state_owner}" || "${state_owner}" != "$(id -u)" ]]; then
+    echo "[state] MEDIA_SERVER_STATE_DIR는 현재 사용자 소유여야 합니다: ${state_dir}" >&2
+    return 1
+  fi
+
+  if [[ "${MEDIA_SERVER_STATE_DIR_IS_EXPLICIT}" == "1" ]]; then
+    for state_leaf in \
+      .media_server.pid \
+      .media_server.address \
+      .media_server.port \
+      .media_server.log \
+      .media_server.mode \
+      .media_server.launchd.plist; do
+      if [[ -L "${state_dir}/${state_leaf}" ]]; then
+        echo "[state] state leaf는 심볼릭 링크일 수 없습니다: ${state_dir}/${state_leaf}" >&2
+        return 1
+      fi
+    done
+  fi
+
+  if [[ ${#launchd_label} -gt 128 || ! "${launchd_label}" =~ ^[A-Za-z0-9][A-Za-z0-9.-]*$ ]]; then
+    echo "[state] MEDIA_SERVER_LAUNCHD_LABEL 형식이 올바르지 않습니다" >&2
+    return 1
+  fi
+
+  MEDIA_SERVER_RESOLVED_STATE_DIR="${state_dir}"
+  MEDIA_SERVER_RESOLVED_LAUNCHD_LABEL="${launchd_label}"
+}
+
 media_server_resolve_project_path() {
   local root_dir="$1"
   local value="$2"

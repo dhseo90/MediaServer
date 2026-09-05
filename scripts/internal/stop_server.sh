@@ -8,19 +8,25 @@ ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 source "${SCRIPT_DIR}/env_common.sh"
 
 ENV_FILE="${SCRIPTS_DIR}/.media_server.env"
-if [[ -f "${ENV_FILE}" ]]; then
+if [[ -f "${ENV_FILE}" && "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" != "1" ]]; then
   set -a
   # shellcheck disable=SC1090
   source "${ENV_FILE}"
   set +a
+elif [[ "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" == "1" ]]; then
+  echo "[env] skipped local override: ${ENV_FILE}"
 fi
 
-PID_FILE="${ROOT_DIR}/.media_server.pid"
-MODE_FILE="${ROOT_DIR}/.media_server.mode"
-PORT_FILE="${ROOT_DIR}/.media_server.port"
-ADDRESS_FILE="${ROOT_DIR}/.media_server.address"
-LOG_FILE="${ROOT_DIR}/.media_server.log"
-PLIST_FILE="${ROOT_DIR}/.media_server.launchd.plist"
+media_server_configure_runtime_state "${ROOT_DIR}"
+STATE_DIR="${MEDIA_SERVER_RESOLVED_STATE_DIR}"
+EXPLICIT_STATE_DIR="${MEDIA_SERVER_STATE_DIR_IS_EXPLICIT}"
+LAUNCHD_LABEL="${MEDIA_SERVER_RESOLVED_LAUNCHD_LABEL}"
+PID_FILE="${STATE_DIR}/.media_server.pid"
+MODE_FILE="${STATE_DIR}/.media_server.mode"
+PORT_FILE="${STATE_DIR}/.media_server.port"
+ADDRESS_FILE="${STATE_DIR}/.media_server.address"
+LOG_FILE="${STATE_DIR}/.media_server.log"
+PLIST_FILE="${STATE_DIR}/.media_server.launchd.plist"
 STD_AFX="${ROOT_DIR}/include/stdafx.h"
 
 cleanup_state_files() {
@@ -31,14 +37,22 @@ stop_launchd_job() {
   if ! media_server_has_cmd launchctl; then
     return 1
   fi
+  if [[ "${EXPLICIT_STATE_DIR}" == "1" ]]; then
+    if launchctl print "gui/$(id -u)/${LAUNCHD_LABEL}" >/dev/null 2>&1; then
+      echo "unloading launchd job: ${LAUNCHD_LABEL}"
+      launchctl bootout "gui/$(id -u)/${LAUNCHD_LABEL}" >/dev/null 2>&1 || true
+      return 0
+    fi
+    return 1
+  fi
   if [[ -f "${PLIST_FILE}" ]]; then
     echo "unloading launchd job: ${PLIST_FILE}"
     launchctl bootout "gui/$(id -u)" "${PLIST_FILE}" >/dev/null 2>&1 || true
     return 0
   fi
-  if launchctl print "gui/$(id -u)/com.dhseo.mediaserver" >/dev/null 2>&1; then
-    echo "unloading launchd job: com.dhseo.mediaserver"
-    launchctl bootout "gui/$(id -u)/com.dhseo.mediaserver" >/dev/null 2>&1 || true
+  if launchctl print "gui/$(id -u)/${LAUNCHD_LABEL}" >/dev/null 2>&1; then
+    echo "unloading launchd job: ${LAUNCHD_LABEL}"
+    launchctl bootout "gui/$(id -u)/${LAUNCHD_LABEL}" >/dev/null 2>&1 || true
     return 0
   fi
   return 1
@@ -73,12 +87,14 @@ collect_ports() {
       add_port "$(media_server_trim "${p}")"
     done
   fi
-  add_port "${std_rtsp:-8554}"
-  add_port 8555
-  add_port 8556
   add_port "${MEDIA_SERVER_HTTP_LISTEN_PORT:-}"
-  add_port "${std_http:-8080}"
-  add_port 8081
+  if [[ "${EXPLICIT_STATE_DIR}" != "1" ]]; then
+    add_port "${std_rtsp:-8554}"
+    add_port 8555
+    add_port 8556
+    add_port "${std_http:-8080}"
+    add_port 8081
+  fi
 }
 
 find_media_server_listener_pids() {
@@ -89,6 +105,20 @@ find_media_server_listener_pids() {
   { lsof -nP -a -iTCP:"${port}" -sTCP:LISTEN -Fp -c media_server 2>/dev/null || true; } \
     | sed -n 's/^p//p' \
     | sort -u
+}
+
+pid_owns_scoped_listener() {
+  local expected_pid="$1"
+  local pid port
+  [[ -n "${expected_pid}" && "${expected_pid}" =~ ^[0-9]+$ ]] || return 1
+  for port in "${PORTS[@]}"; do
+    while IFS= read -r pid; do
+      if [[ "${pid}" == "${expected_pid}" ]]; then
+        return 0
+      fi
+    done < <(find_media_server_listener_pids "${port}")
+  done
+  return 1
 }
 
 stop_pid() {
@@ -139,7 +169,9 @@ if stop_launchd_job; then
 fi
 if [[ -f "${PID_FILE}" ]]; then
   PID="$(cat "${PID_FILE}")"
-  if stop_pid "${PID}" "media_server"; then
+  if [[ "${EXPLICIT_STATE_DIR}" == "1" ]] && kill -0 "${PID}" 2>/dev/null && ! pid_owns_scoped_listener "${PID}"; then
+    echo "ignoring stale scoped PID without a matching media_server listener: ${PID}"
+  elif stop_pid "${PID}" "media_server"; then
     STOPPED=0
   fi
 fi

@@ -4,6 +4,29 @@
 PASS는 UI 풀테스트, 30분/120분 장시간 테스트, PR/main merge, tag, GitHub Release 또는
 published metadata 완료를 뜻하지 않는다.
 
+## S05 종료 선행 1/3 — 운영 실행 상태 격리
+
+`env_common.sh`의 `media_server_configure_runtime_state`가 선택형
+`MEDIA_SERVER_STATE_DIR`와 `MEDIA_SERVER_LAUNCHD_LABEL`을 검증하고,
+`start_server.sh`·`stop_server.sh`·`check_server.sh`·`diagnose_media_server.sh`가 같은
+상태 namespace를 사용하도록 연결했다. 전용 상태 디렉터리는 절대경로·현재 사용자
+소유·비-symlink여야 하고 6개 상태 leaf의 symlink를 접근 전에 거부한다. 전용 stop은
+exact label과 설정/기록 포트의 `media_server` listener에 결속된 PID만 종료하며 기본
+포트·고정 label·plist 경로 fallback을 사용하지 않는다. 기본 상태 경로의 기존 동작은
+호환 유지하고 launchd mode는 더 이상 `detached`로 덮이지 않는다.
+
+TDD RED에서 상태/label 무시, unsafe 입력, leaf symlink, unrelated PID signal,
+legacy fallback, launchd mode 덮어쓰기를 재현했다. 후속 독립 검토에서는 전용 label이
+이미 등록됐을 때 start가 선제 bootout하는 경계를 RED로 재현하고, 기존 exact label을
+종료하지 않은 채 fail-closed하도록 보강했다. 최소 구현 뒤
+`python3 scripts/internal/server_state_isolation_test.py` 13/0,
+`./server.sh verify-gst-environment` 20/0, S05 등록 34/0, 프로젝트 인벤토리 18/0,
+문서 링크 실패 0건, S05 회귀 140/0+7/0+20/0+2/0+27/0, 제품 build 100%, 관련
+Bash syntax와 `git diff --check`를 통과했다. 이 결과는 실제 제품 서버를 띄운 것이
+아니며 nohup/launchd 녹화·이벤트 연결·
+재시작·정상 종료, SSIM blacklist 원인, 다른 PC 패키징, UI·30분·120분 PASS가 아니다.
+S06은 시작하지 않았다.
+
 ## S05 후속 GStreamer 환경 보완 — 수정·제한 범위 재검증 통과
 
 2026-09-04 최초 환경 검증의 17개 중 runner 12개 실패 후 사용자 승인으로 수정·재개했다.

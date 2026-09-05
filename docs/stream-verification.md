@@ -38,6 +38,7 @@
 | --- | --- | --- |
 | V410-S00 | `./server.sh verify-v410-research-gate`, `./server.sh verify-v410-entry-baseline` | 공개 자료 provenance/IP clean-room 차단선과 source `4.1.0`/published `v4.0.0` 분리 기준. 녹화 구현 PASS가 아님 |
 | V410-S01 | `./server.sh verify-v410-recording-contracts` | 실제 C++로 opaque ID, UTC 반개구간, PTS/timebase, unknown optional field/lifecycle, segment/event link/observation/tombstone v1 JSONL round-trip과 tombstone ID 재사용 거부를 검증. 실제 recorder/store/catalog/retention/timeline/UI/장시간 테스트 PASS가 아님 |
+| V410-S05 종료 선행 운영 격리 | `python3 scripts/internal/server_state_isolation_test.py` | 실제 제품 서버를 띄우지 않고 전용 상태 namespace, 고유 launchd label, 기존 exact label 비간섭, scoped stop, 상태 leaf symlink 거부, launchd mode 보존을 13개 실행 기반 fixture로 확인. 실제 nohup/launchd 녹화·이벤트·재시작 PASS가 아님 |
 
 ## 과거 v2.5.0 verifier
 

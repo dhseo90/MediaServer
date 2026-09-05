@@ -7,7 +7,9 @@
   확인했다. PATH 보존과 등록기 단위 입력 결합 보완 뒤 S05 27개·계약 45개·build를
   재통과했다. 첫 실제 foreground의 없는 SQL source_id 참조 false FAIL은 원본 보존하고,
   2026-09-05 정식 payload 판독 단위 12/0과 별도 실제 foreground 22/0을 확인했다.
-  제품/DB 추가 수정은 없다. 상세는 release-test-records에 보존한다.
+  제품/DB 추가 수정은 없다. 이어서 S06 전 운영 격리의 상태 namespace·고유
+  launchd label·scoped stop·mode 보존을 구현하고 실행 기반 13/0과 기존 환경 20/0을
+  확인했다. 상세는 release-test-records에 보존한다.
   S05 개별 등록 누락 FAIL은 보정·재실행·독립 재결속으로 해소했다. 릴리즈 완료는 아니다.
   S06~S09 구현·테스트와 v4.1.0 릴리즈 완료 증거가 아님
 - 현재 작성 브랜치: `v4.1.0`
@@ -171,8 +173,13 @@ S05 후속 환경 보완(2026-09-04)은 **수정·제한 범위 재검증 통과
 최초 Bash 3.2·fixture 실패 뒤 상속 경로·`.so`·root 순서·CLI 초기화 범위도 보완해 환경
 20/0을 확인했다. macOS arm64 실제 cold/warm 1525 features 일치·필수 factory 44개·
 READY·무음 H264·plugin 우선순위, S05 전체와 증분 build를 재검증했다. S05 등록기 총계는
-별도 승인 후 보완했으며 기존 986개/S05 27개 검증을 유지한다. 다른 PC·실제 launchd/UI·
-장시간은 미실행, SSIM blacklist 원인은 미확인이다. 커밋·푸시는 하지 않았다.
+별도 승인 후 보완했으며 기존 986개/S05 27개 검증을 유지한다. 다른 PC·실제
+nohup/launchd/UI·장시간은 미실행, SSIM blacklist 원인은 미확인이다. S06 전 종료 범위
+격리를 위해 `MEDIA_SERVER_STATE_DIR`와 고유 `MEDIA_SERVER_LAUNCHD_LABEL`을 추가했다.
+명시 상태에서는 exact label·설정/기록 포트의 listener PID만 종료하고 기본 포트·label
+fallback을 사용하지 않는다. start도 이미 등록된 exact label을 선제 종료하지 않고
+fail-closed한다. 13개 실행 기반 fixture와 기존 환경 20개가 통과했지만 실제
+서비스 lifecycle PASS는 아니다.
 파일·함수·개별 결과·최초 실패는 `docs/release-test-records.md`에 보존한다.
 
 V410-S00 완료: 공개 표준과 라이선스 metadata, 특정 특허 상세를 반입하지 않는 IP

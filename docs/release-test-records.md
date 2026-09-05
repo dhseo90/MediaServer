@@ -1025,6 +1025,30 @@ sourceId를 등록하고 같은 파일의 tap을 연결하여, registry ID·stre
 channelId·catalog segment/link를 직접 대조하는 것이다. 임의로 sourceId를 stream key로
 맞추거나 DB/결과를 주입하지 않는다. 제품 수정이 필요하면 그 범위는 별도 승인을 받는다.
 
+## v4.1.0 S06 전 운영 실행 상태 격리 (2026-09-05)
+
+사용자 지시의 `S05 기능 완료 → 운영 격리 보완 → nohup/launchd 실제 검증 → SSIM
+패키징 확인 → S05 완전 종료` 순서 중 첫 항목이다. S06 구현은 범위 밖이며 시작하지 않았다.
+
+| 항목 | 구현·검증 내용 | 결과 |
+| --- | --- | --- |
+| 운영 격리 TDD RED | `python3 scripts/internal/server_state_isolation_test.py`의 집중 4개에서 하위 실패 11건으로 전용 상태/label 무시, unsafe 상태 경로, 6개 leaf symlink, unrelated PID signal, 기본 포트·고정 label/plist fallback, launchd mode 덮어쓰기를 재현 | 예상 실패 확인 |
+| 공통 상태 설정 | `env_common.sh::media_server_configure_runtime_state`가 절대경로·현재 사용자 소유·비-symlink 디렉터리, 6개 leaf, 최대 128자의 영숫자/점/하이픈 label을 검증 | PASS |
+| launcher 연결 | start/stop/check/diagnose가 같은 상태 namespace를 사용하고 stop도 `MEDIA_SERVER_SKIP_LOCAL_ENV=1`을 존중 | PASS |
+| scoped stop | 명시 상태에서는 exact label과 설정/기록 포트의 `media_server` listener PID만 종료. unrelated PID·기본 포트·고정 label·plist 경로 fallback은 사용하지 않음 | PASS |
+| mode 보존 | launchd 성공 뒤 `.media_server.mode`와 출력이 `launchd`를 유지 | PASS |
+| 기존 label 비간섭 TDD | 전용 launchd label이 이미 등록된 조건에서 선제 `bootout`을 확인해 RED. exact label `print` 뒤 즉시 실패하고 `bootout`·`bootstrap`·제품 실행을 하지 않도록 보강 | RED 후 PASS |
+| 집중 회귀 | `python3 scripts/internal/server_state_isolation_test.py` | 13/0 PASS |
+| 기존 환경 회귀 | `./server.sh verify-gst-environment` | 20/0 PASS |
+| S05·인벤토리 회귀 | 등록기 34/0, S05 140/0+7/0+20/0+2/0+27/0, 프로젝트 인벤토리 18/0 | PASS |
+| 문서·빌드 마감 | 문서 링크 실패 0건, 관련 6개 shell의 `bash -n`, 제품 build 100%, `git diff --check`, 저장소 root 상태 잔여 검사 | PASS |
+
+실제 제품 서버, nohup/launchd job, 녹화/이벤트 연결, restart는 이 항목에서 실행하지
+않았다. 전용 상태의 PID는 `lsof`로 exact listener 소유가 확인되지 않으면 안전 우선으로
+직접 종료하지 않는다. 30분·120분·UI·field·release 검증도 미실행이며 위 PASS로 대체하지
+않는다. 테스트용 임시 디렉터리는 각 case 종료 시 정리됐고 저장소 root 상태 파일은
+생성되지 않았다. 제품 C++·API/schema·RTSP/WebRTC media path와 S06은 변경하지 않았다.
+
 ## v4.1.0 GStreamer 공통 실행 환경 보완 (2026-09-04)
 
 사용자 `진행` 승인 범위: 검증한 GTK/Python 검색 경로 분리를 프로젝트 공통 실행·검증

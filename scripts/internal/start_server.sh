@@ -20,14 +20,7 @@ fi
 
 media_server_apply_homebrew_gst_env
 
-PID_FILE="${ROOT_DIR}/.media_server.pid"
-ADDRESS_FILE="${ROOT_DIR}/.media_server.address"
-PORT_FILE="${ROOT_DIR}/.media_server.port"
-LOG_FILE="${ROOT_DIR}/.media_server.log"
-MODE_FILE="${ROOT_DIR}/.media_server.mode"
-PLIST_FILE="${ROOT_DIR}/.media_server.launchd.plist"
 STD_AFX="${ROOT_DIR}/include/stdafx.h"
-
 DEFAULT_RTSP_PORT="$(sed -nE 's/.*kRtspListenPort = ([0-9]+).*/\1/p' "${STD_AFX}" | head -n1)"
 DEFAULT_HTTP_PORT="$(sed -nE 's/.*kHttpListenPort = ([0-9]+).*/\1/p' "${STD_AFX}" | head -n1)"
 DEFAULT_ROUTE="$(media_server_read_const_charp "${STD_AFX}" "kStreamRoute" || true)"
@@ -52,7 +45,16 @@ MEDIA_SERVER_SKIP_BUILD="${MEDIA_SERVER_SKIP_BUILD:-0}"
 MEDIA_SERVER_SKIP_ENV_CHECK="${MEDIA_SERVER_SKIP_ENV_CHECK:-0}"
 MEDIA_SERVER_START_STABILITY_WAIT_S="${MEDIA_SERVER_START_STABILITY_WAIT_S:-1}"
 MEDIA_SERVER_START_MODE="${MEDIA_SERVER_START_MODE:-nohup}"
-LAUNCHD_LABEL="com.dhseo.mediaserver"
+
+media_server_configure_runtime_state "${ROOT_DIR}"
+STATE_DIR="${MEDIA_SERVER_RESOLVED_STATE_DIR}"
+PID_FILE="${STATE_DIR}/.media_server.pid"
+ADDRESS_FILE="${STATE_DIR}/.media_server.address"
+PORT_FILE="${STATE_DIR}/.media_server.port"
+LOG_FILE="${STATE_DIR}/.media_server.log"
+MODE_FILE="${STATE_DIR}/.media_server.mode"
+PLIST_FILE="${STATE_DIR}/.media_server.launchd.plist"
+LAUNCHD_LABEL="${MEDIA_SERVER_RESOLVED_LAUNCHD_LABEL}"
 
 client_host() {
   local value="$1"
@@ -154,8 +156,15 @@ EOF_PLIST
 
 start_with_launchd() {
   local domain="gui/$(id -u)"
+  if [[ "${MEDIA_SERVER_STATE_DIR_IS_EXPLICIT}" == "1" ]] &&
+      launchctl print "${domain}/${LAUNCHD_LABEL}" >/dev/null 2>&1; then
+    echo "[start] launchd label이 이미 등록되어 있습니다: ${LAUNCHD_LABEL}" >&2
+    return 1
+  fi
   write_launchd_plist
-  launchctl bootout "${domain}" "${PLIST_FILE}" >/dev/null 2>&1 || true
+  if [[ "${MEDIA_SERVER_STATE_DIR_IS_EXPLICIT}" != "1" ]]; then
+    launchctl bootout "${domain}" "${PLIST_FILE}" >/dev/null 2>&1 || true
+  fi
   if launchctl bootstrap "${domain}" "${PLIST_FILE}" >/dev/null 2>&1; then
     NEW_PID=""
     echo "launchd" > "${MODE_FILE}"
@@ -409,7 +418,11 @@ fi
 echo "${NEW_PID}" > "${PID_FILE}"
 echo "${FOUND_PORT}" > "${PORT_FILE}"
 echo "${MEDIA_SERVER_LISTEN_ADDRESS}" > "${ADDRESS_FILE}"
-echo "detached" > "${MODE_FILE}"
+STARTED_MODE="detached"
+if [[ "${MEDIA_SERVER_START_MODE}" == "launchd" ]]; then
+  STARTED_MODE="launchd"
+fi
+echo "${STARTED_MODE}" > "${MODE_FILE}"
 
 H264_FILE_TOKEN="sample_h264.mp4"
 H265_FILE_TOKEN="sample_h265.mp4"
@@ -422,7 +435,7 @@ LOCAL_RTSP_HOST="$(client_host "${MEDIA_SERVER_LISTEN_ADDRESS}")"
 LOCAL_HTTP_HOST="$(client_host "${MEDIA_SERVER_HTTP_LISTEN_ADDRESS}")"
 
 echo "started: pid=${NEW_PID}"
-echo "mode: detached"
+echo "mode: ${STARTED_MODE}"
 echo "ai: ${MEDIA_SERVER_ENABLE_AI}"
 echo "build: ${BUILD_DIR}"
 echo "log: ${LOG_FILE}"

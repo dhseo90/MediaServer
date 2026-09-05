@@ -613,6 +613,15 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
   승인 후 S05 등록기 총계를 보완해 단위 34/0, 기존 986개/S05 27개 판정은 유지했다.
   SSIM blacklist 원인·다른 PC·실제 launchd/UI·장시간은 미확인/미실행이며,
   개별 결과와 최초 실패는 `release-test-records.md`에 기록했다. 커밋·푸시는 미수행이다.
+- S06 전 운영 격리(2026-09-05): `MEDIA_SERVER_STATE_DIR`와
+  `MEDIA_SERVER_LAUNCHD_LABEL`을 start/stop/check/diagnose 공통 경계에 연결했다. 전용
+  상태의 unsafe 경로·state leaf symlink·잘못된 label을 실행 전 거부하고, stop은 exact
+  label과 설정/기록 포트 listener에 결속된 PID만 종료한다. 기본 포트·고정 label fallback은
+  전용 상태에서 사용하지 않으며, start도 이미 등록된 exact label을 선제 종료하지 않고
+  fail-closed한다. 기존 기본 실행은 호환 유지한다. TDD RED 뒤 실행 기반 13/0, 기존
+  GStreamer 환경 20/0, Bash syntax와 diff check가 통과했다. 실제
+  nohup/launchd·재시작·녹화·이벤트 연결과 SSIM 원인 판정은 다음 선행 항목으로 미실행이며
+  S06은 시작하지 않았다.
 - 잔여 통합 검증 종료: 선행 `d7ee14a1` 이후 제품 로직 변경 없이 실제 EventStorage
   비활성/활성 큐 포화와 journal 기반 별도 프로세스 복구를 추가했다.
   `event_storage_recording_runtime_smoke.cpp`·runtime runner가 실제 H264 파생까지 확인하고,
