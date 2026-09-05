@@ -9,7 +9,7 @@ const fixture = "test/fixtures/recording/v1/s05-action-inventory.json";
 const cppFile = "scripts/internal/event_recording_link_smoke.cpp";
 const appFile = "scripts/internal/verify_v390_event_storage_application_boundary.mjs";
 const runtimeFile = "scripts/internal/event_storage_recording_runtime_smoke.cpp";
-const runtimeCases = ["disabled-admit", "enabled-admit", "disabled-recover", "enabled-recover"];
+const runtimeCases = ["disabled-admit", "enabled-admit", "disabled-recover", "enabled-recover", "shutdown-cancel"];
 
 export function validateS05Registration({ rootDir, manifest, inventoryText }) {
   const read = p => fs.readFileSync(path.join(rootDir, p), "utf8");

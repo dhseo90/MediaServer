@@ -27,6 +27,54 @@ Bash syntax와 `git diff --check`를 통과했다. 이 결과는 실제 제품 �
 재시작·정상 종료, SSIM blacklist 원인, 다른 PC 패키징, UI·30분·120분 PASS가 아니다.
 S06은 시작하지 않았다.
 
+## S05 종료 선행 2/3 — 실제 lifecycle과 종료 drain 보완
+
+실제 `nohup` 재시작에서 기존 PID가 정상 종료 제한 안에 끝나지 않아 SIGKILL로 넘어가는
+FAIL을 재현했다. PID는 zombie가 아니었고 `/usr/bin/sample`에서 main thread가
+`RunMediaServerApplication → StopEventStorage → EventStorageDispatcher::Stop → join`,
+storage worker가 `ApplyMediaHooks → FileEventClipHook::CaptureClip → FramesForClip`의 미래
+post-event frame 조건 대기 중임을 확인했다. 재시작 직전 tap을 닫아 새 frame이 올 수 없는
+종료 경계가 직접 원인이며, timeout 값은 늘리지 않았다.
+
+`src/analysis/event_storage.cpp`의 `EventFrameBuffer::CancelPostEventWaits`가 종료 시 미래
+frame 대기만 깨우고 `EventStorageDispatcher::Stop`은 이미 접수된 EventRecord의 JSONL
+저장을 계속 drain한 뒤 join한다. 두 번째 정적 소멸 호출은 종료·join 완료 상태에서 즉시
+반환해 frame buffer 소멸 순서를 다시 건드리지 않는다.
+
+TDD에서 3초 post-event 대기에 실제 worker가 진입한 뒤 `StopEventStorage()`가 1초 안에
+끝나고 queue 0·stored 1을 유지하는 `shutdown-cancel`을 RED→GREEN으로 추가했다. 기존
+`V410-S05-I27`에 C02~C04로 등록해 새 action ID를 만들지 않았다. 정식 S05 결과는 등록기
+35/0, C++ 140/0, application 7/0, runtime 23/0, mutation 2/0, action 27/0(check 92)이고
+제품 build도 통과했다.
+
+수정 바이너리의 실제 `nohup`과 `launchd` lifecycle은 각각 29/0이다. 두 mode 모두 첫
+segment, 실제 EventRecord와 catalog exact link, 재시작 source/catalog, 새 segment/event/link,
+강제 종료 0회, 정상 stop과 PID·포트·label·state·임시 root 정리를 확인했다. `nohup`은
+재시작 old PID 약 2.0초·최종 stop 약 1.3초, `launchd`는 약 1.3초·1.5초에 종료됐다.
+[실패·sample·최종 실제 결과](release-artifacts/v4.1.0/20260905-s05-service-lifecycle/README.md)를
+소급 삭제하지 않고 보존한다.
+
+종료 로직 변경 뒤 프로젝트 인벤토리가 `EVT-008/009`의 stored blob trust drift를
+fail-closed로 탐지했다. 오래된 proof locator까지 보정한 뒤 독립 검토가 두 행의 bounded
+함수 본문과 source-flow 불변을 확인했다. 공식 migration은 984행 동등 이관과 2행 독립
+승인을 분리해 audit·approval·implementation manifest를 재결속했다. 독립 approval
+986/986, 구현 증적 986/986·negative 15/15, 프로젝트 인벤토리 18/0이며 상세 판정은
+[의미 증적 재결속 기록](release-artifacts/v4.1.0/20260905-s05-semantic-trust-rebind/README.md)에
+보존한다.
+
+## S05 종료 선행 3/3 — SSIM blacklist 분류
+
+`libgstvalidatessim.dylib`은 별도 GTK 설치물이 아니라 Homebrew `gstreamer 1.28.1` formula에
+포함된 GstValidate 전용 모듈이다. 일반 GStreamer scanner가 이를 읽을 때 upstream
+`gst_validate_ssim_init`은 GstValidate가 초기화되지 않았으면 `FALSE`를 반환하므로 registry에
+blacklist로 기록된다. dylib 직접 `dlopen`, 의존 라이브러리와 arm64 형식은 정상이었다.
+
+의도된 `GST_VALIDATE_PLUGIN_PATH`와 `gst-validate-1.0`에서는 같은 파일이 실제 PNG를 만들고
+종료 코드 0·issue 0으로 동작했다. 제품 소스의 validate/SSIM 호출과 제품 binary 동적 링크는
+각각 0건이다. 따라서 설치 패키지 삭제, 전역 설정 변경 또는 제품 필수 plugin 제외는 하지
+않는다. 다른 PC의 필수 조건은 GStreamer와 제품이 사용하는 44개 factory이며, 이 전용
+검증 모듈의 일반 registry blacklist 유무가 아니다. 근거와 설치 파일 SHA는 위 증적에 남겼다.
+
 ## S05 후속 GStreamer 환경 보완 — 수정·제한 범위 재검증 통과
 
 2026-09-04 최초 환경 검증의 17개 중 runner 12개 실패 후 사용자 승인으로 수정·재개했다.
@@ -42,8 +90,9 @@ action 27/0(check 89개), 제품 증분 build가 통과했다. 소스 감사 51/
 중앙 inventory 18/0, script inventory 11/0, 문서 링크·asset 검증도 통과했다.
 
 이는 한 대의 macOS arm64에서 수행한 제한 범위 검증이다. 실제 Linux/Intel/다른 PC 설치,
-launchd 서비스·브라우저·장시간 검증은 미실행이다. SSIM blacklist 1개의 원인은 미확인으로
-남긴다. GTK/GI 경고 해소를 모든 플러그인·모든 PC 호환성 완료로 확대하지 않는다.
+브라우저·장시간 검증은 미실행이다. 이 절 당시 미확인이던 SSIM blacklist는 위 2026-09-05
+후속 조사에서 GstValidate 전용 초기화 경계로 분류했다. GTK/GI 경고 해소를 모든
+플러그인·모든 PC 호환성 완료로 확대하지 않는다.
 최초 실패·수정 파일/함수·개별 실행·cleanup은 [저장소 테스트 기록](release-test-records.md)에
 보존했다. 패키지/전역 설정·C++ 녹화 로직·S06 이후는 변경하지 않았으며 커밋·푸시는 미수행이다.
 

@@ -752,28 +752,28 @@
           "file": "src/analysis/event_storage.cpp",
           "symbol": "CompactEventRecords",
           "anchor": "bool CompactEventRecords(const EventRecordQueryOptions& options,",
-          "line": 3318,
+          "line": 3403,
           "contextSha256": "a103fc7e9a264182105244d2ce1ee3b6ee8727fe367ac79a0b1070bfaa3e77c2"
         },
         "dispatch": {
           "file": "src/analysis/event_storage.cpp",
           "symbol": "CompactEventRecords",
           "anchor": "*result = EventRecordCompactionResult{};",
-          "line": 3327,
+          "line": 3412,
           "contextSha256": "e4ebb4f24861cdb0a902d07f018d80317b4fb969de5b155a0025219ee73a2fe9"
         },
         "action": {
           "file": "src/analysis/event_storage.cpp",
           "symbol": "CompactEventRecords",
           "anchor": "std::ofstream output(compacted_path, std::ios::out | std::ios::trunc);",
-          "line": 3350,
+          "line": 3435,
           "contextSha256": "e0ad96fe4e8fb79e610568e394a56597cd932223cde0c02aaef9a62101fa3e4c"
         },
         "state": {
           "file": "src/analysis/event_storage.cpp",
           "symbol": "CompactEventRecords",
           "anchor": "result->compacted_path = compacted_path.string();",
-          "line": 3391,
+          "line": 3476,
           "contextSha256": "e589a66c16e0205ac4b3a454a120f3932999aee5c7a08b0b13d748229665be81"
         },
         "readback": {
@@ -787,7 +787,7 @@
           "file": "server.sh",
           "symbol": "server.sh:verify-ops-event-records-scope",
           "anchor": "verify-ops-event-records-scope)",
-          "line": 1537,
+          "line": 1661,
           "contextSha256": "204197f31a910beb8ed35afae65633e36b0fdc2027ac4a1e7ebdf21fe2228f73"
         }
       },
@@ -797,31 +797,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "The actual product/storage owner contains the feature input dispatch.",
-          "source": "src/analysis/event_storage.cpp:3318",
-          "target": "src/analysis/event_storage.cpp:3327"
+          "source": "src/analysis/event_storage.cpp:3403",
+          "target": "src/analysis/event_storage.cpp:3412"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "The dispatch reaches the feature-specific action or projection builder.",
-          "source": "src/analysis/event_storage.cpp:3327",
-          "target": "src/analysis/event_storage.cpp:3350"
+          "source": "src/analysis/event_storage.cpp:3412",
+          "target": "src/analysis/event_storage.cpp:3435"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "The action writes the authoritative state, reject, or schema projection.",
-          "source": "src/analysis/event_storage.cpp:3350",
-          "target": "src/analysis/event_storage.cpp:3391"
+          "source": "src/analysis/event_storage.cpp:3435",
+          "target": "src/analysis/event_storage.cpp:3476"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "Canonical functional verifier directly observes/asserts compacted_path.",
-          "source": "src/analysis/event_storage.cpp:3391",
+          "source": "src/analysis/event_storage.cpp:3476",
           "target": "scripts/internal/verify_ops_event_records_scope.mjs:151"
         },
         {
@@ -830,7 +830,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-event-records-scope",
           "source": "scripts/internal/verify_ops_event_records_scope.mjs:151",
-          "target": "server.sh:1537"
+          "target": "server.sh:1661"
         }
       ],
       "rationale": "EVT-008 is authored from actual product/event storage flow and a feature-specific independent assertion."
@@ -852,28 +852,28 @@
           "file": "src/analysis/event_storage.cpp",
           "symbol": "ListCompactedEventRecordFiles",
           "anchor": "bool ListCompactedEventRecordFiles(EventRecordCompactedFileListResult* result,",
-          "line": 3467,
+          "line": 3483,
           "contextSha256": "20f50583f25b66b381e7cbd79481a3f6ad7072cc58dc0577133999f28595c9d0"
         },
         "dispatch": {
           "file": "src/analysis/event_storage.cpp",
           "symbol": "ListCompactedEventRecordFiles",
           "anchor": "*result = EventRecordCompactedFileListResult{};",
-          "line": 3475,
+          "line": 3491,
           "contextSha256": "6dfc375100eb7feb39a0d4c3ea4e56cfbce6771c03adc39c6cd69036558a575d"
         },
         "action": {
           "file": "src/analysis/event_storage.cpp",
           "symbol": "ListCompactedEventRecordFiles",
           "anchor": "for (const auto& entry : std::filesystem::directory_iterator(parent, ec)) {",
-          "line": 3496,
+          "line": 3512,
           "contextSha256": "a4643331f6381abab22916013bd15f104348b7897cd74332efa4cdc0d7bd2327"
         },
         "state": {
           "file": "src/analysis/event_storage.cpp",
           "symbol": "ListCompactedEventRecordFiles",
           "anchor": "result->files.push_back(std::move(info));",
-          "line": 3520,
+          "line": 3536,
           "contextSha256": "e0039c5ba07f72f410b096fad1315bf89b76edfac0231d82b5d5ece51719f4f5"
         },
         "readback": {
@@ -887,7 +887,7 @@
           "file": "server.sh",
           "symbol": "server.sh:verify-ops-event-records-scope",
           "anchor": "verify-ops-event-records-scope)",
-          "line": 1645,
+          "line": 1661,
           "contextSha256": "204197f31a910beb8ed35afae65633e36b0fdc2027ac4a1e7ebdf21fe2228f73"
         }
       },
@@ -897,31 +897,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "The actual product/storage owner contains the feature input dispatch.",
-          "source": "src/analysis/event_storage.cpp:3467",
-          "target": "src/analysis/event_storage.cpp:3475"
+          "source": "src/analysis/event_storage.cpp:3483",
+          "target": "src/analysis/event_storage.cpp:3491"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "The dispatch reaches the feature-specific action or projection builder.",
-          "source": "src/analysis/event_storage.cpp:3475",
-          "target": "src/analysis/event_storage.cpp:3496"
+          "source": "src/analysis/event_storage.cpp:3491",
+          "target": "src/analysis/event_storage.cpp:3512"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "The action writes the authoritative state, reject, or schema projection.",
-          "source": "src/analysis/event_storage.cpp:3496",
-          "target": "src/analysis/event_storage.cpp:3520"
+          "source": "src/analysis/event_storage.cpp:3512",
+          "target": "src/analysis/event_storage.cpp:3536"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "Canonical functional verifier directly observes/asserts files. compaction list schema 확인",
-          "source": "src/analysis/event_storage.cpp:3520",
+          "source": "src/analysis/event_storage.cpp:3536",
           "target": "scripts/internal/verify_ops_event_records_scope.mjs:151"
         },
         {
@@ -930,7 +930,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-event-records-scope",
           "source": "scripts/internal/verify_ops_event_records_scope.mjs:151",
-          "target": "server.sh:1645"
+          "target": "server.sh:1661"
         }
       ],
       "rationale": "EVT-009 is authored from actual product/event storage flow and a feature-specific independent assertion."
@@ -952,28 +952,28 @@
           "file": "src/analysis/event_storage.cpp",
           "symbol": "CleanupCompactedEventRecordFiles",
           "anchor": "bool CleanupCompactedEventRecordFiles(std::size_t keep_newest,",
-          "line": 3593,
+          "line": 3609,
           "contextSha256": "8bbc94f6776d1270ab27b9f1fd447b164447c707a30b111bc0a674aa93d40e0b"
         },
         "dispatch": {
           "file": "src/analysis/event_storage.cpp",
           "symbol": "CleanupCompactedEventRecordFiles",
           "anchor": "*result = EventRecordCompactedFileCleanupResult{};",
-          "line": 3602,
+          "line": 3618,
           "contextSha256": "c26d7bf676869b37ca4188d08367eaeae8c3789dd7df259b0896de02e19a7993"
         },
         "action": {
           "file": "src/analysis/event_storage.cpp",
           "symbol": "CleanupCompactedEventRecordFiles",
           "anchor": "if (!ListCompactedEventRecordFiles(&list, error_message)) {",
-          "line": 3605,
+          "line": 3621,
           "contextSha256": "24767c1b4948e2069da7edebd8eacf955dbf434a9a6fdd2f2f9f7b58adc7b94f"
         },
         "state": {
           "file": "src/analysis/event_storage.cpp",
           "symbol": "CleanupCompactedEventRecordFiles",
           "anchor": "++result->deleted_count;",
-          "line": 3616,
+          "line": 3632,
           "contextSha256": "e083de51c0bf61a61f90b385d09fd819844d582806268fedbe5cc94a36bdac96"
         },
         "readback": {
@@ -987,7 +987,7 @@
           "file": "server.sh",
           "symbol": "server.sh:verify-ops-event-records-scope",
           "anchor": "verify-ops-event-records-scope)",
-          "line": 1645,
+          "line": 1661,
           "contextSha256": "204197f31a910beb8ed35afae65633e36b0fdc2027ac4a1e7ebdf21fe2228f73"
         }
       },
@@ -997,31 +997,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "The actual product/storage owner contains the feature input dispatch.",
-          "source": "src/analysis/event_storage.cpp:3593",
-          "target": "src/analysis/event_storage.cpp:3602"
+          "source": "src/analysis/event_storage.cpp:3609",
+          "target": "src/analysis/event_storage.cpp:3618"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "The dispatch reaches the feature-specific action or projection builder.",
-          "source": "src/analysis/event_storage.cpp:3602",
-          "target": "src/analysis/event_storage.cpp:3605"
+          "source": "src/analysis/event_storage.cpp:3618",
+          "target": "src/analysis/event_storage.cpp:3621"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "The action writes the authoritative state, reject, or schema projection.",
-          "source": "src/analysis/event_storage.cpp:3605",
-          "target": "src/analysis/event_storage.cpp:3616"
+          "source": "src/analysis/event_storage.cpp:3621",
+          "target": "src/analysis/event_storage.cpp:3632"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "Canonical functional verifier directly observes/asserts deleted.",
-          "source": "src/analysis/event_storage.cpp:3616",
+          "source": "src/analysis/event_storage.cpp:3632",
           "target": "scripts/internal/verify_ops_event_records_scope.mjs:168"
         },
         {
@@ -1030,7 +1030,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-event-records-scope",
           "source": "scripts/internal/verify_ops_event_records_scope.mjs:168",
-          "target": "server.sh:1645"
+          "target": "server.sh:1661"
         }
       ],
       "rationale": "EVT-010 is authored from actual product/event storage flow and a feature-specific independent assertion."
@@ -1052,28 +1052,28 @@
           "file": "src/analysis/event_storage.cpp",
           "symbol": "ResolveCompactedEventRecordFile",
           "anchor": "bool ResolveCompactedEventRecordFile(const std::string& file_name,",
-          "line": 3534,
+          "line": 3550,
           "contextSha256": "8621a06bc4d649025c6a842d2231685dd3836ada915bfea59a0b897a9ca5017a"
         },
         "dispatch": {
           "file": "src/analysis/event_storage.cpp",
           "symbol": "ResolveCompactedEventRecordFile",
           "anchor": "const std::filesystem::path requested(file_name);",
-          "line": 3543,
+          "line": 3559,
           "contextSha256": "450662ccab9032cf91fec9811892f6104139e8223a44d5bc2d4e123a2370728e"
         },
         "action": {
           "file": "src/analysis/event_storage.cpp",
           "symbol": "ResolveCompactedEventRecordFile",
           "anchor": "if (!ListCompactedEventRecordFiles(&list, error_message)) {",
-          "line": 3551,
+          "line": 3567,
           "contextSha256": "24767c1b4948e2069da7edebd8eacf955dbf434a9a6fdd2f2f9f7b58adc7b94f"
         },
         "state": {
           "file": "src/analysis/event_storage.cpp",
           "symbol": "ResolveCompactedEventRecordFile",
           "anchor": "*result = file;",
-          "line": 3556,
+          "line": 3572,
           "contextSha256": "4ed45b0bac5456921e9e8c69b31fc979d7bf3283fa18a6b741583cba7e9cd25f"
         },
         "readback": {
@@ -1087,7 +1087,7 @@
           "file": "server.sh",
           "symbol": "server.sh:verify-ops-event-records-scope",
           "anchor": "verify-ops-event-records-scope)",
-          "line": 1645,
+          "line": 1661,
           "contextSha256": "204197f31a910beb8ed35afae65633e36b0fdc2027ac4a1e7ebdf21fe2228f73"
         }
       },
@@ -1097,31 +1097,31 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "The actual product/storage owner contains the feature input dispatch.",
-          "source": "src/analysis/event_storage.cpp:3534",
-          "target": "src/analysis/event_storage.cpp:3543"
+          "source": "src/analysis/event_storage.cpp:3550",
+          "target": "src/analysis/event_storage.cpp:3559"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "The dispatch reaches the feature-specific action or projection builder.",
-          "source": "src/analysis/event_storage.cpp:3543",
-          "target": "src/analysis/event_storage.cpp:3551"
+          "source": "src/analysis/event_storage.cpp:3559",
+          "target": "src/analysis/event_storage.cpp:3567"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "The action writes the authoritative state, reject, or schema projection.",
-          "source": "src/analysis/event_storage.cpp:3551",
-          "target": "src/analysis/event_storage.cpp:3556"
+          "source": "src/analysis/event_storage.cpp:3567",
+          "target": "src/analysis/event_storage.cpp:3572"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "Canonical functional verifier directly observes/asserts file.",
-          "source": "src/analysis/event_storage.cpp:3556",
+          "source": "src/analysis/event_storage.cpp:3572",
           "target": "scripts/internal/verify_ops_event_records_scope.mjs:156"
         },
         {
@@ -1130,7 +1130,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-event-records-scope",
           "source": "scripts/internal/verify_ops_event_records_scope.mjs:156",
-          "target": "server.sh:1645"
+          "target": "server.sh:1661"
         }
       ],
       "rationale": "EVT-011 is authored from actual product/event storage flow and a feature-specific independent assertion."

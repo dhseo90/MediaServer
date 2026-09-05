@@ -73,7 +73,7 @@ test("문서 행 누락", () => assert.throws(() => validate(manifest, inventory
 const checks = manifest.rows.flatMap(row => row.checks.map(check => ({ ...check, testFile: check.testFile ?? row.testFile })));
 const cppMessages = checks.filter(c => c.testFile.endsWith("/event_recording_link_smoke.cpp")).map(c => c.message);
 const appMessages = checks.filter(c => c.testFile.endsWith(".mjs")).map(c => c.message);
-const runtimeLog = ["disabled-admit", "enabled-admit", "disabled-recover", "enabled-recover"].map(runtimeCase => {
+const runtimeLog = ["disabled-admit", "enabled-admit", "disabled-recover", "enabled-recover", "shutdown-cancel"].map(runtimeCase => {
   const messages = checks.filter(c => c.runtimeCase === runtimeCase).map(c => c.message);
   return messages.map(message => "[s05-runtime-assert] " + JSON.stringify({ case: runtimeCase, message })).join("\n") +
     `\n[s05-runtime-summary] case=${runtimeCase} pass=${messages.length} fail=0\n`;
@@ -101,6 +101,7 @@ test("중복 application 결과", () => assert.throws(() => execute(cppLog, "- P
 for (const [name, mutate] of [
   ["runtime 로그 전체 누락", () => ""],
   ["runtime 시나리오 누락", log => log.split("\n").filter(l => !l.includes("enabled-recover")).join("\n")],
+  ["종료 취소 runtime 시나리오 누락", log => log.split("\n").filter(l => !l.includes("shutdown-cancel")).join("\n")],
   ["runtime assertion 누락 및 감소 summary", log => log.replace(/^\[s05-runtime-assert\].*\n/, "").replace("pass=7", "pass=6")],
   ["runtime assertion 중복 및 증가 summary", log => log.split("\n")[0] + "\n" + log.replace("pass=7", "pass=8")],
   ["runtime summary 실패", log => log.replace("fail=0", "fail=1")],

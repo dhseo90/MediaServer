@@ -2218,6 +2218,9 @@ public:
 
         std::unique_lock lock(mu_);
         cv_.wait_until(lock, deadline, [&] {
+            if (post_event_wait_cancelled_) {
+                return true;
+            }
             const auto* frames = FramesLocked(record);
             return frames != nullptr && !frames->empty() && frames->back().timestamp_ms >= end_ms;
         });
@@ -2259,6 +2262,12 @@ public:
         return selected;
     }
 
+    void CancelPostEventWaits() {
+        std::lock_guard lock(mu_);
+        post_event_wait_cancelled_ = true;
+        cv_.notify_all();
+    }
+
 private:
     const std::deque<BufferedEventFrame>* FramesLocked(const EventRecord& record) const {
         auto it = buffers_.find(FrameBufferKey(record.stream_id, record.channel_id));
@@ -2275,6 +2284,7 @@ private:
     mutable std::mutex mu_;
     std::condition_variable cv_;
     std::unordered_map<std::string, std::deque<BufferedEventFrame>> buffers_;
+    bool post_event_wait_cancelled_{false};
 };
 
 EventFrameBuffer& RecorderFrameBuffer() {
@@ -2826,9 +2836,15 @@ public:
     void Stop() {
         {
             std::lock_guard lock(mu_);
+            if (stop_ && !worker_.joinable()) {
+                return;
+            }
             stop_ = true;
             cv_.notify_all();
         }
+        // 분석 source가 먼저 닫힌 종료 경로에서는 미래 post-event 프레임이 더 이상
+        // 들어오지 않는다. 대기만 취소하고 이미 접수된 EventRecord 저장은 worker가 drain한다.
+        RecorderFrameBuffer().CancelPostEventWaits();
         if (worker_.joinable()) {
             worker_.join();
         }

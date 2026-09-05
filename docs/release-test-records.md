@@ -16,6 +16,111 @@
 - 테스트 결과표의 `결과`는 `pass` 또는 `fail`만 사용합니다. 실행하지 않은 항목,
   사용자가 제외한 항목, 외부 조건이 없어 제외한 항목은 별도 미실행/제외 표에 둡니다.
 
+## v4.1.0 S05 실제 nohup·launchd 종료 보완과 SSIM 분류 (2026-09-05)
+
+사용자 승인 범위는 S06 전에 실제 `nohup`/`launchd`의 녹화·이벤트 연결·재시작·정상
+종료를 닫고, `libgstvalidatessim.dylib` blacklist의 원인과 제품 영향을 확인하는 것이다.
+종료 timeout 확대, 패키지 삭제, 전역 GStreamer 변경, S06 구현, 푸시는 범위 밖이다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 실제 lifecycle과 종료 drain 수정 | ENV-09/10, V410-S05-I27 | 실행 완료 |
+| 30분 | 진행 대상 | v4.1.0 릴리즈 장시간 녹화 gate | 기존 S05 판정 유지 | 미승인·미실행 |
+| 120분 | 진행 대상 | worker 종료·drain 경계 변경 | V410-S05-I27 | 미승인·미실행 |
+| UI 풀테스트 | 진행 대상 | S06 전 기존 릴리즈 blocker 유지 | 기존 UI gate | 미승인·미실행 |
+
+### 구현 위치와 회귀 방어
+
+| 파일·함수 | 추가·변경 로직 | 개별 검증 |
+| --- | --- | --- |
+| `src/analysis/event_storage.cpp` · `EventFrameBuffer::FramesForClip`, `CancelPostEventWaits` | source가 닫힌 종료 경계에서 미래 post-event frame 대기만 깨움 | `shutdown-cancel` C02·C03 |
+| `src/analysis/event_storage.cpp` · `EventStorageDispatcher::Stop` | 접수 EventRecord drain·join 유지, 두 번째 종료 호출 멱등 반환 | `shutdown-cancel` C03·C04, 정적 소멸 crash 재발 없음 |
+| `scripts/internal/event_storage_recording_runtime_smoke.cpp` · `VerifyShutdownCancellation` | 3초 대기에 worker가 실제 진입한 뒤 stop 1초 미만·queue 0·stored 1 확인 | V410-S05-I27-C02~C04 |
+| `scripts/internal/v410_s05_inventory.mjs`와 manifest·inventory | 기존 I27 안에 다섯 번째 runtime 시나리오와 세 assertion exact 등록 | 등록기 35/0, action 27/0/check 92 |
+| `verify_v410_s05_service_lifecycle.mjs` | 두 mode의 실제 wrapper·segment·event/link·restart·PID/port/label/state/root를 fail-fast 검증 | fixture 4/0, 실제 각 29/0 |
+
+### 최초 실패·원인·수정
+
+- 최초 실제 runner는 재시작 후 진단 RTSP probe timeout으로 FAIL했고 후속 stage를
+  건너뛰었다. runner가 성공한 restart를 진단 결과와 섞은 문제를 분리한 뒤 재실행했다.
+- 다음 `nohup`은 `stop_server.sh`가 정상 종료 대신 SIGKILL을 사용해 FAIL했다. PID 상태
+  표본은 zombie가 아니었고 강제 종료 전까지 R/S/U 상태였다.
+- `/usr/bin/sample` 800개 표본에서 main은 800/800
+  `StopEventStorage → EventStorageDispatcher::Stop → join`, storage worker는 798/800
+  `FramesForClip` 안에 있었고 그중 657/800이 미래 post-event frame 조건 대기였다.
+  재시작 직전 tap을 닫아 해당 frame이 더 이상 들어오지 않는 것이 직접 원인이다.
+- 3초 대기 fixture는 수정 전 1초 종료 assertion에서 RED였다. 대기 취소를 추가한 뒤
+  세 assertion이 GREEN이 됐다. 첫 GREEN 전체 묶음은 process 정적 소멸 때 두 번째 Stop이
+  이미 소멸한 frame mutex를 만져 `mutex lock failed`로 종료했다. 종료·join 완료 멱등
+  반환을 추가한 뒤 같은 공식 묶음이 통과했다.
+- 새 runtime summary가 기존 4개 exact 목록에 없어 공식 묶음 마지막 등록 대조가 FAIL했다.
+  action ID는 늘리지 않고 I27 C02~C04로 등록했으며, 등록기 자체의 5번째 시나리오 누락
+  거부를 RED→GREEN으로 추가했다.
+
+### 최종 실행 결과
+
+| 제목 | 명령·범위 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| 등록기 단위 | `node scripts/internal/v410_s05_inventory.test.mjs` | pass | 35/0, 종료 취소 시나리오 누락 거부 포함 |
+| 정식 S05 | `./scripts/internal/verify_v410_event_recording.sh` | pass | C++ 140/0, application 7/0, runtime 23/0, mutation 2/0, action 27/0/check 92 |
+| 제품 build | `./server.sh build` | pass | 변경된 `event_storage.cpp` 재빌드, 제품 100% |
+| 실제 nohup | lifecycle runner `--mode nohup` | pass | 29/0, restart 강제 종료 0, old PID 약 2.0초, 최종 stop 약 1.3초 |
+| 실제 launchd | lifecycle runner `--mode launchd` | pass | 29/0, exact label, 강제 종료 0, old PID 약 1.3초, 최종 stop 약 1.5초 |
+| lifecycle fixture | fake nohup/launchd·payload fail-fast·invalid mode | pass | 4/0, 실제 제품 PASS 대체 아님 |
+
+두 실제 mode는 각각 숫자 source 9101의 finalized continuous MP4, path형 EventRecord와 숫자
+catalog payload의 exact link, 재시작 전후 source/catalog/새 segment/event/link, 정상 종료와
+PID·두 포트·label·상태 파일 부재를 확인했다. 전용 root는 `nohup` 61,093,552byte,
+`launchd` 28,496,668byte의 일반 파일을 측정한 뒤 각 runner가 삭제하고 부재를 확인했다.
+제품 binary SHA/mtime과 repo runtime state digest도 실행 전후 일치했다.
+
+### SSIM 원인과 영향
+
+Homebrew `gstreamer 1.28.1`의 파일 목록이 `gst-validate-1.0`, validate library와
+`libgstvalidatessim.dylib`을 한 formula에 포함한다. SSIM dylib은 arm64이며 직접 `dlopen`과
+모든 Mach-O dependency가 정상이었다. 일반 scanner 단독 로드 로그는 entry function 호출
+뒤 `plugin failed to initialise`와 blacklist 등록을 보였다.
+
+[GStreamer 1.28.1 원본](https://gitlab.freedesktop.org/gstreamer/gstreamer/-/raw/1.28.1/subprojects/gst-devtools/validate/plugins/ssim/gstvalidatessim.c)의
+`gst_validate_ssim_init`은 `gst_validate_is_initialized()`가 거짓이면 `FALSE`를 반환한다.
+반대로 의도된 `GST_VALIDATE_PLUGIN_PATH`와 `gst-validate-1.0`에서는 같은 dylib이 PNG 한 장을
+생성하고 exit 0·issue 0이었다. 제품 소스 호출 0건, 제품 binary validate/SSIM link 0건이므로
+필수 녹화·RTSP·WebRTC plugin 실패가 아니다. 패키지 삭제나 임의 제외는 하지 않았다.
+
+### 의미 증적 fail-closed와 재결속
+
+종료 대기 취소로 `event_storage.cpp` blob이 바뀌어 최초 프로젝트 인벤토리는 17/1
+FAIL했다. `EVT-008`, `EVT-009`의 기존 source-flow는 유지됐지만 stored trust binding은
+현재 파일을 승인할 수 없었다. 위치 proof도 순서대로 `EVT-009`, 같은 중복 anchor를 쓰는
+`EVT-010/011`, 독립 검토가 찾아낸 `EVT-008`의 오래된 locator를 현재 소스에 맞게
+보정했다. 최종 fresh candidate는 기존과 같은 digest, 986/986 resolved다.
+
+공식 migration contract는 984행 strict-equivalent 이관과 EVT-008/009 두 행 독립 검토
+필요를 정확히 분리했다. 첫 독립 검토에서 EVT-008 proof 불일치가 발견돼 거부했고, 보정 후
+같은 독립 검토자가 두 행 모두 의미 불변을 확인해 승인했다. migration-aware producer는
+audit·approval·implementation manifest·native exact manifest를 원자적으로 적용했다.
+최종 독립 approval 986/986, 구현 증적 986/986·validation 0·REVIEW4 global error 0·negative
+15/15, 프로젝트 인벤토리 18/0, 기능 coverage 986/986·8/0이다. 최종 묶음에서 lifecycle
+fixture 4/0, script inventory 11/0, release evidence index 8/0, 문서 링크 225개·실패 0,
+정식 S05 140/0+7/0+23/0+2/0·action 27/0와 제품 build 100%를 다시 확인했다.
+[독립 검토와 적용 증적](release-artifacts/v4.1.0/20260905-s05-semantic-trust-rebind/README.md)을
+보존한다. 이 정적 의미 검증과 제한 실행은 UI·30분·120분 PASS가 아니다.
+
+### 증적·cleanup·미실행
+
+[실패 이력, sample call chain, 최종 JSON SHA와 SSIM 상세](release-artifacts/v4.1.0/20260905-s05-service-lifecycle/README.md)를
+보존한다. 종료 sample 원문 646,728byte와 SSIM probe 두 root의 일반 파일 4개
+1,526,447byte는 내용을 이관한 뒤 삭제한다. Homebrew 설치 파일과 사용자 registry는
+삭제·수정하지 않는다.
+
+| 항목 | 상태 | 완료 evidence 사용 가능 여부 |
+| --- | --- | --- |
+| 다른 PC·macOS Intel·Linux 실제 설치 | 미실행 | 불가 |
+| 파생 event clip 전체 구간 coverage | 미실행 | 불가 |
+| 30분·120분 | 미실행 | 불가 |
+| UI 풀테스트·브라우저 | 미실행 | 불가 |
+| S06 구현·릴리즈 action·푸시 | 미실행 | 불가 |
+
 ## v4.1.0 S05 L11 검증기 보완 및 실제 foreground 재검증 (2026-09-05)
 
 사용자 승인 범위는 2026-09-04 실제 실행에서 잘못 읽은 L11 catalog 판독기와 그

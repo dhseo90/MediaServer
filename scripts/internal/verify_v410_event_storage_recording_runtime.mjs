@@ -1,4 +1,4 @@
-// 파일 용도: 실제 EventStorage 통합 시험 네 프로세스와 두 source mutation 음성 대조를 실행한다.
+// 파일 용도: 실제 EventStorage 통합 시험 다섯 프로세스와 두 source mutation 음성 대조를 실행한다.
 // 임시 source 변경은 자체 mkdtemp 안에서만 수행하고 제품 source/DB/미디어는 수정하지 않는다.
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -51,6 +51,12 @@ try {
       if (result.stderr) process.stderr.write(result.stderr);
       assert.equal(result.status, 0, `${mode}-${phase} 실행 실패`);
     }
+  }
+  {
+    const result = run(binary, ["shutdown-cancel", path.join(temp, "shutdown-cancel"), sample], 10000);
+    process.stdout.write(result.stdout);
+    if (result.stderr) process.stderr.write(result.stderr);
+    assert.equal(result.status, 0, "shutdown-cancel 실행 실패");
   }
   const original = fs.readFileSync(originalFile, "utf8");
   const guard = "if (!config.analysis_event_storage_enabled && !recording_bridge)";

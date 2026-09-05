@@ -1,0 +1,401 @@
+{
+  "schema": "media-server.v410-s05-service-lifecycle.v1",
+  "release": "v4.1.0",
+  "mode": "nohup",
+  "scope": "durable-link-and-fallback-boundary; derived clip full coverage 아님",
+  "stages": [
+    {
+      "id": "preflight",
+      "result": "pass",
+      "detail": {
+        "label": "com.dhseo.mediaserver.v410s05.nohup.09cd1d03c236",
+        "rtspPort": 63849,
+        "httpPort": 63850,
+        "legacyStateAbsent": 6,
+        "repoSha256": "3bbc159f4af21141aa5a088fe8972399a2cdab54d84ef7f27a87ee59ff7a9fef"
+      },
+      "elapsedMs": 138
+    },
+    {
+      "id": "isolated-config",
+      "result": "pass",
+      "detail": {
+        "stateDir": "<run-root>/state",
+        "dataDir": "<run-root>/data",
+        "eventDir": "<run-root>/events",
+        "recordingDir": "<run-root>/recordings",
+        "gstCacheDir": "<run-root>/gst-cache",
+        "authFile": "<run-root>/data/users.json",
+        "sourceFile": "<run-root>/data/sources.json"
+      },
+      "elapsedMs": 146
+    },
+    {
+      "id": "start",
+      "result": "pass",
+      "detail": {
+        "command": "start_server.sh",
+        "exit": 0,
+        "stdoutTail": [
+          "[1/3] skipped env override: <home>/Workspace/mediaServer/scripts/.media_server.env",
+          "[2/3] build skipped: MEDIA_SERVER_SKIP_BUILD=1",
+          "[3/3] start: 127.0.0.1:63849, http 127.0.0.1:63850",
+          "started: pid=56275",
+          "mode: detached",
+          "ai: 1",
+          "build: <home>/Workspace/mediaServer/build-gst-onnx",
+          "log: <run-root>/state/.media_server.log",
+          "local ops: http://127.0.0.1:63850/ops/home",
+          "local h264: rtsp://127.0.0.1:63849/dhseo?file=sample_h264.mp4",
+          "local h265: rtsp://127.0.0.1:63849/dhseo/h265?file=sample_h265.mp4",
+          "external bind: rtsp://127.0.0.1:63849/dhseo",
+          "external bind: http://127.0.0.1:63850/ops/home",
+          "stop: ./server.sh stop"
+        ],
+        "stderrTail": [
+          ""
+        ],
+        "pid": 56275,
+        "ports": [
+          {
+            "port": 63849,
+            "pids": [
+              56275
+            ]
+          },
+          {
+            "port": 63850,
+            "pids": [
+              56275
+            ]
+          }
+        ]
+      },
+      "elapsedMs": 2111
+    },
+    {
+      "id": "environment-handoff",
+      "result": "pass",
+      "detail": {
+        "mode": "nohup",
+        "behavioralReadback": "후속 격리 data/event/recording 생성으로 확인"
+      },
+      "elapsedMs": 2111
+    },
+    {
+      "id": "health",
+      "result": "pass",
+      "detail": {
+        "status": 200,
+        "pid": 56275
+      },
+      "elapsedMs": 2124
+    },
+    {
+      "id": "source-create",
+      "result": "pass",
+      "detail": {
+        "status": 201,
+        "sourceId": "9101"
+      },
+      "elapsedMs": 2197
+    },
+    {
+      "id": "source-readback",
+      "result": "pass",
+      "detail": {
+        "status": 200,
+        "sourceId": "9101",
+        "recordingEnabled": true
+      },
+      "elapsedMs": 2199
+    },
+    {
+      "id": "first-segment",
+      "result": "pass",
+      "detail": {
+        "segments": [
+          {
+            "segmentId": "seg-9101-1788568836180-1",
+            "channelId": "9101",
+            "sizeBytes": 4096788,
+            "lifecycle": "finalized"
+          }
+        ]
+      },
+      "elapsedMs": 10778
+    },
+    {
+      "id": "rule-create",
+      "result": "pass",
+      "detail": {
+        "status": 200,
+        "ruleId": "9101"
+      },
+      "elapsedMs": 10785
+    },
+    {
+      "id": "first-tap",
+      "result": "pass",
+      "detail": {
+        "tapId": "analysis-tap-1",
+        "streamKey": "file::<run-root>/input/identity.mp4"
+      },
+      "elapsedMs": 10852
+    },
+    {
+      "id": "first-event",
+      "result": "pass",
+      "detail": {
+        "eventId": "evt_1788568845107_2",
+        "recordingLinkId": "event-link-sha256-36aa5853e71b1f9ef7c1df5998b61cbe3701917e3238787b325cff682506da28",
+        "channelId": "file::<run-root>/input/identity.mp4"
+      },
+      "elapsedMs": 11381
+    },
+    {
+      "id": "first-event-link",
+      "result": "pass",
+      "detail": {
+        "eventId": "evt_1788568845107_2",
+        "rows": 8,
+        "exact": true,
+        "scope": "durable-link-and-fallback-boundary; derived clip full coverage 아님"
+      },
+      "elapsedMs": 11384
+    },
+    {
+      "id": "restart",
+      "result": "fail",
+      "detail": {
+        "message": "bash exit=1: <home>/Workspace/mediaServer/scripts/internal/diagnose_media_server.sh: line 305: 56789 Killed: 9               ( ffprobe -v error -rw_timeout \"${DIAG_FFPROBE_TIMEOUT_US}\" -rtsp_transport tcp -show_streams \"${url}\" > \"${probe_out}\" 2>&1; echo $? > \"${probe_rc}\" ) > /dev/null 2>&1\n[env] skipped local override: <home>/Workspace/mediaServer/scripts/.media_server.env\nstopping media_server (pid=56275)\nstopped\nlog: <run-root>/state/.media_server.log\n[1/3] skipped env override: <home>/Workspace/mediaServer/scripts/.media_server.env\n[2/3] build skipped: MEDIA_SERVER_SKIP_BUILD=1\n[3/3] start: 127.0.0.1:63849, http 127.0.0.1:63850\nstarted: pid=56694\nmode: detached\nai: 1\nbuild: <home>/Workspace/mediaServer/build-gst-onnx\nlog: <run-root>/state/.media_server.log\nlocal ops: http://127.0.0.1:63850/ops/home\nlocal h264: rtsp://127.0.0.1:63849/dhseo?file=sample_h264.mp4\nlocal h265: rtsp://127.0.0.1:63849/dhseo/h265?file=sample_h265.mp4\nexternal bind: rtsp://127.0.0.1:63849/dhseo\nexternal bind: http://127.0.0.1:63850/ops/home\nstop: ./server.sh stop\n[restart] start succeeded\n[env] skipped local override: <home>/Workspace/mediaServer/scripts/.media_server.env\n[INFO] Config:\n  [INFO] address=127.0.0.1 port=63849 route=dhseo\n  [INFO] http_address=127.0.0.1 http_port=63850\n  [INFO] file_root=<home>/Workspace/mediaServer/video\n  [INFO] default_file=<home>/Workspace/mediaServer/video/sample_h264.mp4\n  [INFO] h264_url=rtsp://127.0.0.1:63849/dhseo?file=sample_h264.mp4\n  [INFO] h265_url=rtsp://127.0.0.1:63849/dhseo/h265?file=sample_h265.mp4\n[PASS] default sample exists\n[PASS] sample_h264.mp4 exists\n[PASS] sample_h265.mp4 exists\n[INFO] experimental source=youtube and lab YouTube import are disabled or excluded from this build\n\n[INFO] Process status:\n  [INFO] pid file exists (pid=56694)\n[PASS] process alive\n\n[PASS] TCP 63849 is listening\n[PASS] HTTP 63850 is listening\n[PASS] HTTP health check passed (/health)\n\n[INFO] Recent log (<run-root>/state/.media_server.log):\n[PASS] no bind-related errors in recent log\n    media-server skeleton (C++)\n    default route: /dhseo\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n\n[INFO] TCP probe bind skipped because 127.0.0.1:63849 is already listening\n  [TIP] 이미 리슨 중인 포트는 재바인딩할 수 없으므로 권한 문제로 판정하지 않습니다.\n\n[INFO] External RTSP preflight skipped\n  [TIP] set MEDIA_SERVER_DIAG_INCLUDE_EXTERNAL=1 or MEDIA_SERVER_DIAG_RTSP_URL=rtsp://... to test external reachability\n\n[FAIL] h264 RTSP probe timeout\n\n[FAIL] h265 RTSP probe timeout\n\n[FAIL] diagnosis: issues found\n\n=== recommendations ===\n[TIP] 포트는 열렸으나 미디어 라우팅이 실패했습니다. URL 경로 (/dhseo, /dhseo/h265) 및 파일 권한을 점검하세요."
+      },
+      "elapsedMs": 47290
+    },
+    {
+      "id": "old-pid-exit",
+      "result": "skipped",
+      "detail": {
+        "reason": "선행 실패: bash exit=1: <home>/Workspace/mediaServer/scripts/internal/diagnose_media_server.sh: line 305: 56789 Killed: 9               ( ffprobe -v error -rw_timeout \"${DIAG_FFPROBE_TIMEOUT_US}\" -rtsp_transport tcp -show_streams \"${url}\" > \"${probe_out}\" 2>&1; echo $? > \"${probe_rc}\" ) > /dev/null 2>&1\n[env] skipped local override: <home>/Workspace/mediaServer/scripts/.media_server.env\nstopping media_server (pid=56275)\nstopped\nlog: <run-root>/state/.media_server.log\n[1/3] skipped env override: <home>/Workspace/mediaServer/scripts/.media_server.env\n[2/3] build skipped: MEDIA_SERVER_SKIP_BUILD=1\n[3/3] start: 127.0.0.1:63849, http 127.0.0.1:63850\nstarted: pid=56694\nmode: detached\nai: 1\nbuild: <home>/Workspace/mediaServer/build-gst-onnx\nlog: <run-root>/state/.media_server.log\nlocal ops: http://127.0.0.1:63850/ops/home\nlocal h264: rtsp://127.0.0.1:63849/dhseo?file=sample_h264.mp4\nlocal h265: rtsp://127.0.0.1:63849/dhseo/h265?file=sample_h265.mp4\nexternal bind: rtsp://127.0.0.1:63849/dhseo\nexternal bind: http://127.0.0.1:63850/ops/home\nstop: ./server.sh stop\n[restart] start succeeded\n[env] skipped local override: <home>/Workspace/mediaServer/scripts/.media_server.env\n[INFO] Config:\n  [INFO] address=127.0.0.1 port=63849 route=dhseo\n  [INFO] http_address=127.0.0.1 http_port=63850\n  [INFO] file_root=<home>/Workspace/mediaServer/video\n  [INFO] default_file=<home>/Workspace/mediaServer/video/sample_h264.mp4\n  [INFO] h264_url=rtsp://127.0.0.1:63849/dhseo?file=sample_h264.mp4\n  [INFO] h265_url=rtsp://127.0.0.1:63849/dhseo/h265?file=sample_h265.mp4\n[PASS] default sample exists\n[PASS] sample_h264.mp4 exists\n[PASS] sample_h265.mp4 exists\n[INFO] experimental source=youtube and lab YouTube import are disabled or excluded from this build\n\n[INFO] Process status:\n  [INFO] pid file exists (pid=56694)\n[PASS] process alive\n\n[PASS] TCP 63849 is listening\n[PASS] HTTP 63850 is listening\n[PASS] HTTP health check passed (/health)\n\n[INFO] Recent log (<run-root>/state/.media_server.log):\n[PASS] no bind-related errors in recent log\n    media-server skeleton (C++)\n    default route: /dhseo\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n\n[INFO] TCP probe bind skipped because 127.0.0.1:63849 is already listening\n  [TIP] 이미 리슨 중인 포트는 재바인딩할 수 없으므로 권한 문제로 판정하지 않습니다.\n\n[INFO] External RTSP preflight skipped\n  [TIP] set MEDIA_SERVER_DIAG_INCLUDE_EXTERNAL=1 or MEDIA_SERVER_DIAG_RTSP_URL=rtsp://... to test external reachability\n\n[FAIL] h264 RTSP probe timeout\n\n[FAIL] h265 RTSP probe timeout\n\n[FAIL] diagnosis: issues found\n\n=== recommendations ===\n[TIP] 포트는 열렸으나 미디어 라우팅이 실패했습니다. URL 경로 (/dhseo, /dhseo/h265) 및 파일 권한을 점검하세요."
+      },
+      "elapsedMs": 47290
+    },
+    {
+      "id": "new-pid-health",
+      "result": "skipped",
+      "detail": {
+        "reason": "선행 실패: bash exit=1: <home>/Workspace/mediaServer/scripts/internal/diagnose_media_server.sh: line 305: 56789 Killed: 9               ( ffprobe -v error -rw_timeout \"${DIAG_FFPROBE_TIMEOUT_US}\" -rtsp_transport tcp -show_streams \"${url}\" > \"${probe_out}\" 2>&1; echo $? > \"${probe_rc}\" ) > /dev/null 2>&1\n[env] skipped local override: <home>/Workspace/mediaServer/scripts/.media_server.env\nstopping media_server (pid=56275)\nstopped\nlog: <run-root>/state/.media_server.log\n[1/3] skipped env override: <home>/Workspace/mediaServer/scripts/.media_server.env\n[2/3] build skipped: MEDIA_SERVER_SKIP_BUILD=1\n[3/3] start: 127.0.0.1:63849, http 127.0.0.1:63850\nstarted: pid=56694\nmode: detached\nai: 1\nbuild: <home>/Workspace/mediaServer/build-gst-onnx\nlog: <run-root>/state/.media_server.log\nlocal ops: http://127.0.0.1:63850/ops/home\nlocal h264: rtsp://127.0.0.1:63849/dhseo?file=sample_h264.mp4\nlocal h265: rtsp://127.0.0.1:63849/dhseo/h265?file=sample_h265.mp4\nexternal bind: rtsp://127.0.0.1:63849/dhseo\nexternal bind: http://127.0.0.1:63850/ops/home\nstop: ./server.sh stop\n[restart] start succeeded\n[env] skipped local override: <home>/Workspace/mediaServer/scripts/.media_server.env\n[INFO] Config:\n  [INFO] address=127.0.0.1 port=63849 route=dhseo\n  [INFO] http_address=127.0.0.1 http_port=63850\n  [INFO] file_root=<home>/Workspace/mediaServer/video\n  [INFO] default_file=<home>/Workspace/mediaServer/video/sample_h264.mp4\n  [INFO] h264_url=rtsp://127.0.0.1:63849/dhseo?file=sample_h264.mp4\n  [INFO] h265_url=rtsp://127.0.0.1:63849/dhseo/h265?file=sample_h265.mp4\n[PASS] default sample exists\n[PASS] sample_h264.mp4 exists\n[PASS] sample_h265.mp4 exists\n[INFO] experimental source=youtube and lab YouTube import are disabled or excluded from this build\n\n[INFO] Process status:\n  [INFO] pid file exists (pid=56694)\n[PASS] process alive\n\n[PASS] TCP 63849 is listening\n[PASS] HTTP 63850 is listening\n[PASS] HTTP health check passed (/health)\n\n[INFO] Recent log (<run-root>/state/.media_server.log):\n[PASS] no bind-related errors in recent log\n    media-server skeleton (C++)\n    default route: /dhseo\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n\n[INFO] TCP probe bind skipped because 127.0.0.1:63849 is already listening\n  [TIP] 이미 리슨 중인 포트는 재바인딩할 수 없으므로 권한 문제로 판정하지 않습니다.\n\n[INFO] External RTSP preflight skipped\n  [TIP] set MEDIA_SERVER_DIAG_INCLUDE_EXTERNAL=1 or MEDIA_SERVER_DIAG_RTSP_URL=rtsp://... to test external reachability\n\n[FAIL] h264 RTSP probe timeout\n\n[FAIL] h265 RTSP probe timeout\n\n[FAIL] diagnosis: issues found\n\n=== recommendations ===\n[TIP] 포트는 열렸으나 미디어 라우팅이 실패했습니다. URL 경로 (/dhseo, /dhseo/h265) 및 파일 권한을 점검하세요."
+      },
+      "elapsedMs": 47290
+    },
+    {
+      "id": "source-recovery",
+      "result": "skipped",
+      "detail": {
+        "reason": "선행 실패: bash exit=1: <home>/Workspace/mediaServer/scripts/internal/diagnose_media_server.sh: line 305: 56789 Killed: 9               ( ffprobe -v error -rw_timeout \"${DIAG_FFPROBE_TIMEOUT_US}\" -rtsp_transport tcp -show_streams \"${url}\" > \"${probe_out}\" 2>&1; echo $? > \"${probe_rc}\" ) > /dev/null 2>&1\n[env] skipped local override: <home>/Workspace/mediaServer/scripts/.media_server.env\nstopping media_server (pid=56275)\nstopped\nlog: <run-root>/state/.media_server.log\n[1/3] skipped env override: <home>/Workspace/mediaServer/scripts/.media_server.env\n[2/3] build skipped: MEDIA_SERVER_SKIP_BUILD=1\n[3/3] start: 127.0.0.1:63849, http 127.0.0.1:63850\nstarted: pid=56694\nmode: detached\nai: 1\nbuild: <home>/Workspace/mediaServer/build-gst-onnx\nlog: <run-root>/state/.media_server.log\nlocal ops: http://127.0.0.1:63850/ops/home\nlocal h264: rtsp://127.0.0.1:63849/dhseo?file=sample_h264.mp4\nlocal h265: rtsp://127.0.0.1:63849/dhseo/h265?file=sample_h265.mp4\nexternal bind: rtsp://127.0.0.1:63849/dhseo\nexternal bind: http://127.0.0.1:63850/ops/home\nstop: ./server.sh stop\n[restart] start succeeded\n[env] skipped local override: <home>/Workspace/mediaServer/scripts/.media_server.env\n[INFO] Config:\n  [INFO] address=127.0.0.1 port=63849 route=dhseo\n  [INFO] http_address=127.0.0.1 http_port=63850\n  [INFO] file_root=<home>/Workspace/mediaServer/video\n  [INFO] default_file=<home>/Workspace/mediaServer/video/sample_h264.mp4\n  [INFO] h264_url=rtsp://127.0.0.1:63849/dhseo?file=sample_h264.mp4\n  [INFO] h265_url=rtsp://127.0.0.1:63849/dhseo/h265?file=sample_h265.mp4\n[PASS] default sample exists\n[PASS] sample_h264.mp4 exists\n[PASS] sample_h265.mp4 exists\n[INFO] experimental source=youtube and lab YouTube import are disabled or excluded from this build\n\n[INFO] Process status:\n  [INFO] pid file exists (pid=56694)\n[PASS] process alive\n\n[PASS] TCP 63849 is listening\n[PASS] HTTP 63850 is listening\n[PASS] HTTP health check passed (/health)\n\n[INFO] Recent log (<run-root>/state/.media_server.log):\n[PASS] no bind-related errors in recent log\n    media-server skeleton (C++)\n    default route: /dhseo\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n\n[INFO] TCP probe bind skipped because 127.0.0.1:63849 is already listening\n  [TIP] 이미 리슨 중인 포트는 재바인딩할 수 없으므로 권한 문제로 판정하지 않습니다.\n\n[INFO] External RTSP preflight skipped\n  [TIP] set MEDIA_SERVER_DIAG_INCLUDE_EXTERNAL=1 or MEDIA_SERVER_DIAG_RTSP_URL=rtsp://... to test external reachability\n\n[FAIL] h264 RTSP probe timeout\n\n[FAIL] h265 RTSP probe timeout\n\n[FAIL] diagnosis: issues found\n\n=== recommendations ===\n[TIP] 포트는 열렸으나 미디어 라우팅이 실패했습니다. URL 경로 (/dhseo, /dhseo/h265) 및 파일 권한을 점검하세요."
+      },
+      "elapsedMs": 47290
+    },
+    {
+      "id": "catalog-recovery",
+      "result": "skipped",
+      "detail": {
+        "reason": "선행 실패: bash exit=1: <home>/Workspace/mediaServer/scripts/internal/diagnose_media_server.sh: line 305: 56789 Killed: 9               ( ffprobe -v error -rw_timeout \"${DIAG_FFPROBE_TIMEOUT_US}\" -rtsp_transport tcp -show_streams \"${url}\" > \"${probe_out}\" 2>&1; echo $? > \"${probe_rc}\" ) > /dev/null 2>&1\n[env] skipped local override: <home>/Workspace/mediaServer/scripts/.media_server.env\nstopping media_server (pid=56275)\nstopped\nlog: <run-root>/state/.media_server.log\n[1/3] skipped env override: <home>/Workspace/mediaServer/scripts/.media_server.env\n[2/3] build skipped: MEDIA_SERVER_SKIP_BUILD=1\n[3/3] start: 127.0.0.1:63849, http 127.0.0.1:63850\nstarted: pid=56694\nmode: detached\nai: 1\nbuild: <home>/Workspace/mediaServer/build-gst-onnx\nlog: <run-root>/state/.media_server.log\nlocal ops: http://127.0.0.1:63850/ops/home\nlocal h264: rtsp://127.0.0.1:63849/dhseo?file=sample_h264.mp4\nlocal h265: rtsp://127.0.0.1:63849/dhseo/h265?file=sample_h265.mp4\nexternal bind: rtsp://127.0.0.1:63849/dhseo\nexternal bind: http://127.0.0.1:63850/ops/home\nstop: ./server.sh stop\n[restart] start succeeded\n[env] skipped local override: <home>/Workspace/mediaServer/scripts/.media_server.env\n[INFO] Config:\n  [INFO] address=127.0.0.1 port=63849 route=dhseo\n  [INFO] http_address=127.0.0.1 http_port=63850\n  [INFO] file_root=<home>/Workspace/mediaServer/video\n  [INFO] default_file=<home>/Workspace/mediaServer/video/sample_h264.mp4\n  [INFO] h264_url=rtsp://127.0.0.1:63849/dhseo?file=sample_h264.mp4\n  [INFO] h265_url=rtsp://127.0.0.1:63849/dhseo/h265?file=sample_h265.mp4\n[PASS] default sample exists\n[PASS] sample_h264.mp4 exists\n[PASS] sample_h265.mp4 exists\n[INFO] experimental source=youtube and lab YouTube import are disabled or excluded from this build\n\n[INFO] Process status:\n  [INFO] pid file exists (pid=56694)\n[PASS] process alive\n\n[PASS] TCP 63849 is listening\n[PASS] HTTP 63850 is listening\n[PASS] HTTP health check passed (/health)\n\n[INFO] Recent log (<run-root>/state/.media_server.log):\n[PASS] no bind-related errors in recent log\n    media-server skeleton (C++)\n    default route: /dhseo\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n\n[INFO] TCP probe bind skipped because 127.0.0.1:63849 is already listening\n  [TIP] 이미 리슨 중인 포트는 재바인딩할 수 없으므로 권한 문제로 판정하지 않습니다.\n\n[INFO] External RTSP preflight skipped\n  [TIP] set MEDIA_SERVER_DIAG_INCLUDE_EXTERNAL=1 or MEDIA_SERVER_DIAG_RTSP_URL=rtsp://... to test external reachability\n\n[FAIL] h264 RTSP probe timeout\n\n[FAIL] h265 RTSP probe timeout\n\n[FAIL] diagnosis: issues found\n\n=== recommendations ===\n[TIP] 포트는 열렸으나 미디어 라우팅이 실패했습니다. URL 경로 (/dhseo, /dhseo/h265) 및 파일 권한을 점검하세요."
+      },
+      "elapsedMs": 47290
+    },
+    {
+      "id": "second-segment",
+      "result": "skipped",
+      "detail": {
+        "reason": "선행 실패: bash exit=1: <home>/Workspace/mediaServer/scripts/internal/diagnose_media_server.sh: line 305: 56789 Killed: 9               ( ffprobe -v error -rw_timeout \"${DIAG_FFPROBE_TIMEOUT_US}\" -rtsp_transport tcp -show_streams \"${url}\" > \"${probe_out}\" 2>&1; echo $? > \"${probe_rc}\" ) > /dev/null 2>&1\n[env] skipped local override: <home>/Workspace/mediaServer/scripts/.media_server.env\nstopping media_server (pid=56275)\nstopped\nlog: <run-root>/state/.media_server.log\n[1/3] skipped env override: <home>/Workspace/mediaServer/scripts/.media_server.env\n[2/3] build skipped: MEDIA_SERVER_SKIP_BUILD=1\n[3/3] start: 127.0.0.1:63849, http 127.0.0.1:63850\nstarted: pid=56694\nmode: detached\nai: 1\nbuild: <home>/Workspace/mediaServer/build-gst-onnx\nlog: <run-root>/state/.media_server.log\nlocal ops: http://127.0.0.1:63850/ops/home\nlocal h264: rtsp://127.0.0.1:63849/dhseo?file=sample_h264.mp4\nlocal h265: rtsp://127.0.0.1:63849/dhseo/h265?file=sample_h265.mp4\nexternal bind: rtsp://127.0.0.1:63849/dhseo\nexternal bind: http://127.0.0.1:63850/ops/home\nstop: ./server.sh stop\n[restart] start succeeded\n[env] skipped local override: <home>/Workspace/mediaServer/scripts/.media_server.env\n[INFO] Config:\n  [INFO] address=127.0.0.1 port=63849 route=dhseo\n  [INFO] http_address=127.0.0.1 http_port=63850\n  [INFO] file_root=<home>/Workspace/mediaServer/video\n  [INFO] default_file=<home>/Workspace/mediaServer/video/sample_h264.mp4\n  [INFO] h264_url=rtsp://127.0.0.1:63849/dhseo?file=sample_h264.mp4\n  [INFO] h265_url=rtsp://127.0.0.1:63849/dhseo/h265?file=sample_h265.mp4\n[PASS] default sample exists\n[PASS] sample_h264.mp4 exists\n[PASS] sample_h265.mp4 exists\n[INFO] experimental source=youtube and lab YouTube import are disabled or excluded from this build\n\n[INFO] Process status:\n  [INFO] pid file exists (pid=56694)\n[PASS] process alive\n\n[PASS] TCP 63849 is listening\n[PASS] HTTP 63850 is listening\n[PASS] HTTP health check passed (/health)\n\n[INFO] Recent log (<run-root>/state/.media_server.log):\n[PASS] no bind-related errors in recent log\n    media-server skeleton (C++)\n    default route: /dhseo\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n\n[INFO] TCP probe bind skipped because 127.0.0.1:63849 is already listening\n  [TIP] 이미 리슨 중인 포트는 재바인딩할 수 없으므로 권한 문제로 판정하지 않습니다.\n\n[INFO] External RTSP preflight skipped\n  [TIP] set MEDIA_SERVER_DIAG_INCLUDE_EXTERNAL=1 or MEDIA_SERVER_DIAG_RTSP_URL=rtsp://... to test external reachability\n\n[FAIL] h264 RTSP probe timeout\n\n[FAIL] h265 RTSP probe timeout\n\n[FAIL] diagnosis: issues found\n\n=== recommendations ===\n[TIP] 포트는 열렸으나 미디어 라우팅이 실패했습니다. URL 경로 (/dhseo, /dhseo/h265) 및 파일 권한을 점검하세요."
+      },
+      "elapsedMs": 47290
+    },
+    {
+      "id": "second-tap",
+      "result": "skipped",
+      "detail": {
+        "reason": "선행 실패: bash exit=1: <home>/Workspace/mediaServer/scripts/internal/diagnose_media_server.sh: line 305: 56789 Killed: 9               ( ffprobe -v error -rw_timeout \"${DIAG_FFPROBE_TIMEOUT_US}\" -rtsp_transport tcp -show_streams \"${url}\" > \"${probe_out}\" 2>&1; echo $? > \"${probe_rc}\" ) > /dev/null 2>&1\n[env] skipped local override: <home>/Workspace/mediaServer/scripts/.media_server.env\nstopping media_server (pid=56275)\nstopped\nlog: <run-root>/state/.media_server.log\n[1/3] skipped env override: <home>/Workspace/mediaServer/scripts/.media_server.env\n[2/3] build skipped: MEDIA_SERVER_SKIP_BUILD=1\n[3/3] start: 127.0.0.1:63849, http 127.0.0.1:63850\nstarted: pid=56694\nmode: detached\nai: 1\nbuild: <home>/Workspace/mediaServer/build-gst-onnx\nlog: <run-root>/state/.media_server.log\nlocal ops: http://127.0.0.1:63850/ops/home\nlocal h264: rtsp://127.0.0.1:63849/dhseo?file=sample_h264.mp4\nlocal h265: rtsp://127.0.0.1:63849/dhseo/h265?file=sample_h265.mp4\nexternal bind: rtsp://127.0.0.1:63849/dhseo\nexternal bind: http://127.0.0.1:63850/ops/home\nstop: ./server.sh stop\n[restart] start succeeded\n[env] skipped local override: <home>/Workspace/mediaServer/scripts/.media_server.env\n[INFO] Config:\n  [INFO] address=127.0.0.1 port=63849 route=dhseo\n  [INFO] http_address=127.0.0.1 http_port=63850\n  [INFO] file_root=<home>/Workspace/mediaServer/video\n  [INFO] default_file=<home>/Workspace/mediaServer/video/sample_h264.mp4\n  [INFO] h264_url=rtsp://127.0.0.1:63849/dhseo?file=sample_h264.mp4\n  [INFO] h265_url=rtsp://127.0.0.1:63849/dhseo/h265?file=sample_h265.mp4\n[PASS] default sample exists\n[PASS] sample_h264.mp4 exists\n[PASS] sample_h265.mp4 exists\n[INFO] experimental source=youtube and lab YouTube import are disabled or excluded from this build\n\n[INFO] Process status:\n  [INFO] pid file exists (pid=56694)\n[PASS] process alive\n\n[PASS] TCP 63849 is listening\n[PASS] HTTP 63850 is listening\n[PASS] HTTP health check passed (/health)\n\n[INFO] Recent log (<run-root>/state/.media_server.log):\n[PASS] no bind-related errors in recent log\n    media-server skeleton (C++)\n    default route: /dhseo\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n\n[INFO] TCP probe bind skipped because 127.0.0.1:63849 is already listening\n  [TIP] 이미 리슨 중인 포트는 재바인딩할 수 없으므로 권한 문제로 판정하지 않습니다.\n\n[INFO] External RTSP preflight skipped\n  [TIP] set MEDIA_SERVER_DIAG_INCLUDE_EXTERNAL=1 or MEDIA_SERVER_DIAG_RTSP_URL=rtsp://... to test external reachability\n\n[FAIL] h264 RTSP probe timeout\n\n[FAIL] h265 RTSP probe timeout\n\n[FAIL] diagnosis: issues found\n\n=== recommendations ===\n[TIP] 포트는 열렸으나 미디어 라우팅이 실패했습니다. URL 경로 (/dhseo, /dhseo/h265) 및 파일 권한을 점검하세요."
+      },
+      "elapsedMs": 47290
+    },
+    {
+      "id": "second-event",
+      "result": "skipped",
+      "detail": {
+        "reason": "선행 실패: bash exit=1: <home>/Workspace/mediaServer/scripts/internal/diagnose_media_server.sh: line 305: 56789 Killed: 9               ( ffprobe -v error -rw_timeout \"${DIAG_FFPROBE_TIMEOUT_US}\" -rtsp_transport tcp -show_streams \"${url}\" > \"${probe_out}\" 2>&1; echo $? > \"${probe_rc}\" ) > /dev/null 2>&1\n[env] skipped local override: <home>/Workspace/mediaServer/scripts/.media_server.env\nstopping media_server (pid=56275)\nstopped\nlog: <run-root>/state/.media_server.log\n[1/3] skipped env override: <home>/Workspace/mediaServer/scripts/.media_server.env\n[2/3] build skipped: MEDIA_SERVER_SKIP_BUILD=1\n[3/3] start: 127.0.0.1:63849, http 127.0.0.1:63850\nstarted: pid=56694\nmode: detached\nai: 1\nbuild: <home>/Workspace/mediaServer/build-gst-onnx\nlog: <run-root>/state/.media_server.log\nlocal ops: http://127.0.0.1:63850/ops/home\nlocal h264: rtsp://127.0.0.1:63849/dhseo?file=sample_h264.mp4\nlocal h265: rtsp://127.0.0.1:63849/dhseo/h265?file=sample_h265.mp4\nexternal bind: rtsp://127.0.0.1:63849/dhseo\nexternal bind: http://127.0.0.1:63850/ops/home\nstop: ./server.sh stop\n[restart] start succeeded\n[env] skipped local override: <home>/Workspace/mediaServer/scripts/.media_server.env\n[INFO] Config:\n  [INFO] address=127.0.0.1 port=63849 route=dhseo\n  [INFO] http_address=127.0.0.1 http_port=63850\n  [INFO] file_root=<home>/Workspace/mediaServer/video\n  [INFO] default_file=<home>/Workspace/mediaServer/video/sample_h264.mp4\n  [INFO] h264_url=rtsp://127.0.0.1:63849/dhseo?file=sample_h264.mp4\n  [INFO] h265_url=rtsp://127.0.0.1:63849/dhseo/h265?file=sample_h265.mp4\n[PASS] default sample exists\n[PASS] sample_h264.mp4 exists\n[PASS] sample_h265.mp4 exists\n[INFO] experimental source=youtube and lab YouTube import are disabled or excluded from this build\n\n[INFO] Process status:\n  [INFO] pid file exists (pid=56694)\n[PASS] process alive\n\n[PASS] TCP 63849 is listening\n[PASS] HTTP 63850 is listening\n[PASS] HTTP health check passed (/health)\n\n[INFO] Recent log (<run-root>/state/.media_server.log):\n[PASS] no bind-related errors in recent log\n    media-server skeleton (C++)\n    default route: /dhseo\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n\n[INFO] TCP probe bind skipped because 127.0.0.1:63849 is already listening\n  [TIP] 이미 리슨 중인 포트는 재바인딩할 수 없으므로 권한 문제로 판정하지 않습니다.\n\n[INFO] External RTSP preflight skipped\n  [TIP] set MEDIA_SERVER_DIAG_INCLUDE_EXTERNAL=1 or MEDIA_SERVER_DIAG_RTSP_URL=rtsp://... to test external reachability\n\n[FAIL] h264 RTSP probe timeout\n\n[FAIL] h265 RTSP probe timeout\n\n[FAIL] diagnosis: issues found\n\n=== recommendations ===\n[TIP] 포트는 열렸으나 미디어 라우팅이 실패했습니다. URL 경로 (/dhseo, /dhseo/h265) 및 파일 권한을 점검하세요."
+      },
+      "elapsedMs": 47291
+    },
+    {
+      "id": "second-event-link",
+      "result": "skipped",
+      "detail": {
+        "reason": "선행 실패: bash exit=1: <home>/Workspace/mediaServer/scripts/internal/diagnose_media_server.sh: line 305: 56789 Killed: 9               ( ffprobe -v error -rw_timeout \"${DIAG_FFPROBE_TIMEOUT_US}\" -rtsp_transport tcp -show_streams \"${url}\" > \"${probe_out}\" 2>&1; echo $? > \"${probe_rc}\" ) > /dev/null 2>&1\n[env] skipped local override: <home>/Workspace/mediaServer/scripts/.media_server.env\nstopping media_server (pid=56275)\nstopped\nlog: <run-root>/state/.media_server.log\n[1/3] skipped env override: <home>/Workspace/mediaServer/scripts/.media_server.env\n[2/3] build skipped: MEDIA_SERVER_SKIP_BUILD=1\n[3/3] start: 127.0.0.1:63849, http 127.0.0.1:63850\nstarted: pid=56694\nmode: detached\nai: 1\nbuild: <home>/Workspace/mediaServer/build-gst-onnx\nlog: <run-root>/state/.media_server.log\nlocal ops: http://127.0.0.1:63850/ops/home\nlocal h264: rtsp://127.0.0.1:63849/dhseo?file=sample_h264.mp4\nlocal h265: rtsp://127.0.0.1:63849/dhseo/h265?file=sample_h265.mp4\nexternal bind: rtsp://127.0.0.1:63849/dhseo\nexternal bind: http://127.0.0.1:63850/ops/home\nstop: ./server.sh stop\n[restart] start succeeded\n[env] skipped local override: <home>/Workspace/mediaServer/scripts/.media_server.env\n[INFO] Config:\n  [INFO] address=127.0.0.1 port=63849 route=dhseo\n  [INFO] http_address=127.0.0.1 http_port=63850\n  [INFO] file_root=<home>/Workspace/mediaServer/video\n  [INFO] default_file=<home>/Workspace/mediaServer/video/sample_h264.mp4\n  [INFO] h264_url=rtsp://127.0.0.1:63849/dhseo?file=sample_h264.mp4\n  [INFO] h265_url=rtsp://127.0.0.1:63849/dhseo/h265?file=sample_h265.mp4\n[PASS] default sample exists\n[PASS] sample_h264.mp4 exists\n[PASS] sample_h265.mp4 exists\n[INFO] experimental source=youtube and lab YouTube import are disabled or excluded from this build\n\n[INFO] Process status:\n  [INFO] pid file exists (pid=56694)\n[PASS] process alive\n\n[PASS] TCP 63849 is listening\n[PASS] HTTP 63850 is listening\n[PASS] HTTP health check passed (/health)\n\n[INFO] Recent log (<run-root>/state/.media_server.log):\n[PASS] no bind-related errors in recent log\n    media-server skeleton (C++)\n    default route: /dhseo\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n\n[INFO] TCP probe bind skipped because 127.0.0.1:63849 is already listening\n  [TIP] 이미 리슨 중인 포트는 재바인딩할 수 없으므로 권한 문제로 판정하지 않습니다.\n\n[INFO] External RTSP preflight skipped\n  [TIP] set MEDIA_SERVER_DIAG_INCLUDE_EXTERNAL=1 or MEDIA_SERVER_DIAG_RTSP_URL=rtsp://... to test external reachability\n\n[FAIL] h264 RTSP probe timeout\n\n[FAIL] h265 RTSP probe timeout\n\n[FAIL] diagnosis: issues found\n\n=== recommendations ===\n[TIP] 포트는 열렸으나 미디어 라우팅이 실패했습니다. URL 경로 (/dhseo, /dhseo/h265) 및 파일 권한을 점검하세요."
+      },
+      "elapsedMs": 47291
+    },
+    {
+      "id": "normal-stop",
+      "result": "skipped",
+      "detail": {
+        "reason": "선행 실패: bash exit=1: <home>/Workspace/mediaServer/scripts/internal/diagnose_media_server.sh: line 305: 56789 Killed: 9               ( ffprobe -v error -rw_timeout \"${DIAG_FFPROBE_TIMEOUT_US}\" -rtsp_transport tcp -show_streams \"${url}\" > \"${probe_out}\" 2>&1; echo $? > \"${probe_rc}\" ) > /dev/null 2>&1\n[env] skipped local override: <home>/Workspace/mediaServer/scripts/.media_server.env\nstopping media_server (pid=56275)\nstopped\nlog: <run-root>/state/.media_server.log\n[1/3] skipped env override: <home>/Workspace/mediaServer/scripts/.media_server.env\n[2/3] build skipped: MEDIA_SERVER_SKIP_BUILD=1\n[3/3] start: 127.0.0.1:63849, http 127.0.0.1:63850\nstarted: pid=56694\nmode: detached\nai: 1\nbuild: <home>/Workspace/mediaServer/build-gst-onnx\nlog: <run-root>/state/.media_server.log\nlocal ops: http://127.0.0.1:63850/ops/home\nlocal h264: rtsp://127.0.0.1:63849/dhseo?file=sample_h264.mp4\nlocal h265: rtsp://127.0.0.1:63849/dhseo/h265?file=sample_h265.mp4\nexternal bind: rtsp://127.0.0.1:63849/dhseo\nexternal bind: http://127.0.0.1:63850/ops/home\nstop: ./server.sh stop\n[restart] start succeeded\n[env] skipped local override: <home>/Workspace/mediaServer/scripts/.media_server.env\n[INFO] Config:\n  [INFO] address=127.0.0.1 port=63849 route=dhseo\n  [INFO] http_address=127.0.0.1 http_port=63850\n  [INFO] file_root=<home>/Workspace/mediaServer/video\n  [INFO] default_file=<home>/Workspace/mediaServer/video/sample_h264.mp4\n  [INFO] h264_url=rtsp://127.0.0.1:63849/dhseo?file=sample_h264.mp4\n  [INFO] h265_url=rtsp://127.0.0.1:63849/dhseo/h265?file=sample_h265.mp4\n[PASS] default sample exists\n[PASS] sample_h264.mp4 exists\n[PASS] sample_h265.mp4 exists\n[INFO] experimental source=youtube and lab YouTube import are disabled or excluded from this build\n\n[INFO] Process status:\n  [INFO] pid file exists (pid=56694)\n[PASS] process alive\n\n[PASS] TCP 63849 is listening\n[PASS] HTTP 63850 is listening\n[PASS] HTTP health check passed (/health)\n\n[INFO] Recent log (<run-root>/state/.media_server.log):\n[PASS] no bind-related errors in recent log\n    media-server skeleton (C++)\n    default route: /dhseo\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n\n[INFO] TCP probe bind skipped because 127.0.0.1:63849 is already listening\n  [TIP] 이미 리슨 중인 포트는 재바인딩할 수 없으므로 권한 문제로 판정하지 않습니다.\n\n[INFO] External RTSP preflight skipped\n  [TIP] set MEDIA_SERVER_DIAG_INCLUDE_EXTERNAL=1 or MEDIA_SERVER_DIAG_RTSP_URL=rtsp://... to test external reachability\n\n[FAIL] h264 RTSP probe timeout\n\n[FAIL] h265 RTSP probe timeout\n\n[FAIL] diagnosis: issues found\n\n=== recommendations ===\n[TIP] 포트는 열렸으나 미디어 라우팅이 실패했습니다. URL 경로 (/dhseo, /dhseo/h265) 및 파일 권한을 점검하세요."
+      },
+      "elapsedMs": 47291
+    },
+    {
+      "id": "cleanup-service",
+      "result": "pass",
+      "detail": {
+        "needed": true,
+        "exit": 0
+      },
+      "elapsedMs": 48476
+    },
+    {
+      "id": "cleanup-label",
+      "result": "pass",
+      "detail": {
+        "label": "com.dhseo.mediaserver.v410s05.nohup.09cd1d03c236",
+        "absent": true
+      },
+      "elapsedMs": 48480
+    },
+    {
+      "id": "cleanup-pids-ports",
+      "result": "pass",
+      "detail": {
+        "checkedPids": [
+          56275,
+          56694
+        ],
+        "ports": [
+          {
+            "port": 63849,
+            "pids": []
+          },
+          {
+            "port": 63850,
+            "pids": []
+          }
+        ]
+      },
+      "elapsedMs": 48544
+    },
+    {
+      "id": "cleanup-state",
+      "result": "pass",
+      "detail": {
+        "residue": []
+      },
+      "elapsedMs": 48544
+    },
+    {
+      "id": "binary-invariant",
+      "result": "pass",
+      "detail": {
+        "checked": true,
+        "before": {
+          "sha256": "4630191f072b109dc0c26a2726527cd94642a12c014e4be781d5b46ec898116d",
+          "mtimeMs": 1788531780868.6682
+        },
+        "after": {
+          "sha256": "4630191f072b109dc0c26a2726527cd94642a12c014e4be781d5b46ec898116d",
+          "mtimeMs": 1788531780868.6682
+        }
+      },
+      "elapsedMs": 48553
+    },
+    {
+      "id": "repo-invariant",
+      "result": "pass",
+      "detail": {
+        "checked": true,
+        "beforeSha256": "3bbc159f4af21141aa5a088fe8972399a2cdab54d84ef7f27a87ee59ff7a9fef",
+        "afterSha256": "3bbc159f4af21141aa5a088fe8972399a2cdab54d84ef7f27a87ee59ff7a9fef"
+      },
+      "elapsedMs": 48553
+    },
+    {
+      "id": "cleanup-root",
+      "result": "pass",
+      "detail": {
+        "root": "<run-root>",
+        "sizes": {
+          "recordings": {
+            "files": 11,
+            "bytes": 27069087
+          },
+          "events": {
+            "files": 61,
+            "bytes": 7479965
+          },
+          "gst-cache": {
+            "files": 278,
+            "bytes": 62691
+          },
+          "state": {
+            "files": 0,
+            "bytes": 0
+          },
+          "log": {
+            "files": 1,
+            "bytes": 1164
+          }
+        },
+        "removed": true
+      },
+      "elapsedMs": 48572
+    }
+  ],
+  "outcome": "fail",
+  "binary": {
+    "path": "<home>/Workspace/mediaServer/build-gst-onnx/media_server",
+    "before": {
+      "sha256": "4630191f072b109dc0c26a2726527cd94642a12c014e4be781d5b46ec898116d",
+      "mtimeMs": 1788531780868.6682
+    }
+  },
+  "preflight": {
+    "label": "com.dhseo.mediaserver.v410s05.nohup.09cd1d03c236",
+    "rtspPort": 63849,
+    "httpPort": 63850,
+    "legacyStateAbsent": 6,
+    "repoSha256": "3bbc159f4af21141aa5a088fe8972399a2cdab54d84ef7f27a87ee59ff7a9fef"
+  },
+  "firstTapStreamKey": "file::<run-root>/input/identity.mp4",
+  "cleanup": {
+    "root": "<run-root>",
+    "sizes": {
+      "recordings": {
+        "files": 11,
+        "bytes": 27069087
+      },
+      "events": {
+        "files": 61,
+        "bytes": 7479965
+      },
+      "gst-cache": {
+        "files": 278,
+        "bytes": 62691
+      },
+      "state": {
+        "files": 0,
+        "bytes": 0
+      },
+      "log": {
+        "files": 1,
+        "bytes": 1164
+      }
+    },
+    "removed": true
+  },
+  "failure": "bash exit=1: <home>/Workspace/mediaServer/scripts/internal/diagnose_media_server.sh: line 305: 56789 Killed: 9               ( ffprobe -v error -rw_timeout \"${DIAG_FFPROBE_TIMEOUT_US}\" -rtsp_transport tcp -show_streams \"${url}\" > \"${probe_out}\" 2>&1; echo $? > \"${probe_rc}\" ) > /dev/null 2>&1\n[env] skipped local override: <home>/Workspace/mediaServer/scripts/.media_server.env\nstopping media_server (pid=56275)\nstopped\nlog: <run-root>/state/.media_server.log\n[1/3] skipped env override: <home>/Workspace/mediaServer/scripts/.media_server.env\n[2/3] build skipped: MEDIA_SERVER_SKIP_BUILD=1\n[3/3] start: 127.0.0.1:63849, http 127.0.0.1:63850\nstarted: pid=56694\nmode: detached\nai: 1\nbuild: <home>/Workspace/mediaServer/build-gst-onnx\nlog: <run-root>/state/.media_server.log\nlocal ops: http://127.0.0.1:63850/ops/home\nlocal h264: rtsp://127.0.0.1:63849/dhseo?file=sample_h264.mp4\nlocal h265: rtsp://127.0.0.1:63849/dhseo/h265?file=sample_h265.mp4\nexternal bind: rtsp://127.0.0.1:63849/dhseo\nexternal bind: http://127.0.0.1:63850/ops/home\nstop: ./server.sh stop\n[restart] start succeeded\n[env] skipped local override: <home>/Workspace/mediaServer/scripts/.media_server.env\n[INFO] Config:\n  [INFO] address=127.0.0.1 port=63849 route=dhseo\n  [INFO] http_address=127.0.0.1 http_port=63850\n  [INFO] file_root=<home>/Workspace/mediaServer/video\n  [INFO] default_file=<home>/Workspace/mediaServer/video/sample_h264.mp4\n  [INFO] h264_url=rtsp://127.0.0.1:63849/dhseo?file=sample_h264.mp4\n  [INFO] h265_url=rtsp://127.0.0.1:63849/dhseo/h265?file=sample_h265.mp4\n[PASS] default sample exists\n[PASS] sample_h264.mp4 exists\n[PASS] sample_h265.mp4 exists\n[INFO] experimental source=youtube and lab YouTube import are disabled or excluded from this build\n\n[INFO] Process status:\n  [INFO] pid file exists (pid=56694)\n[PASS] process alive\n\n[PASS] TCP 63849 is listening\n[PASS] HTTP 63850 is listening\n[PASS] HTTP health check passed (/health)\n\n[INFO] Recent log (<run-root>/state/.media_server.log):\n[PASS] no bind-related errors in recent log\n    media-server skeleton (C++)\n    default route: /dhseo\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n    [gst] forcing RTSP lower transport to TCP only\n\n[INFO] TCP probe bind skipped because 127.0.0.1:63849 is already listening\n  [TIP] 이미 리슨 중인 포트는 재바인딩할 수 없으므로 권한 문제로 판정하지 않습니다.\n\n[INFO] External RTSP preflight skipped\n  [TIP] set MEDIA_SERVER_DIAG_INCLUDE_EXTERNAL=1 or MEDIA_SERVER_DIAG_RTSP_URL=rtsp://... to test external reachability\n\n[FAIL] h264 RTSP probe timeout\n\n[FAIL] h265 RTSP probe timeout\n\n[FAIL] diagnosis: issues found\n\n=== recommendations ===\n[TIP] 포트는 열렸으나 미디어 라우팅이 실패했습니다. URL 경로 (/dhseo, /dhseo/h265) 및 파일 권한을 점검하세요.",
+  "elapsedMs": 48572,
+  "stageSummary": {
+    "pass": 19,
+    "fail": 1,
+    "skipped": 9
+  }
+}

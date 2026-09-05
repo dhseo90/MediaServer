@@ -1,0 +1,59 @@
+{
+  "schema": "media-server.v390-review4-semantic-independent-review-package.v1",
+  "reviewer": "codex-independent-review-agent-review_gst_environment",
+  "reviewerIsCandidateGenerator": false,
+  "reviewedAt": "2026-09-05",
+  "verdict": "approved",
+  "candidate": {
+    "candidateDigest": "648b9c8acb115fde2953fecf1aa3a30dc861ebaf23ed0fa3bf4ac038fd689e47",
+    "rows": 986,
+    "unresolved": 0
+  },
+  "reviewScope": {
+    "changedIds": [
+      "EVT-008",
+      "EVT-009"
+    ],
+    "carryForwardRows": 984,
+    "trustOnlyRows": 2,
+    "changedVerifierRows": [],
+    "boundary": "S05 종료 대기 취소 변경에 따른 EVT-008·EVT-009 소스 trust 재결속 승인. UI·장시간·release 실행 승인이 아니다."
+  },
+  "bindings": {
+    "stagedEquivalentTreeOid": "146997c3799b70917f04cfa6f6c5ff00db1ccf35",
+    "trackedWorktreeDiffSha256": "b59fe2f58fce39b281eac89161878f6c7b62dd7e322d6ac92b749a7dac986958",
+    "changedFiles": [
+      "docs/project-feature-test-inventory.md",
+      "docs/release-evidence-v410.md",
+      "docs/release-test-records.md",
+      "docs/v410-v49-recording-search-roadmap.md",
+      "scripts/internal/event_storage_recording_runtime_smoke.cpp",
+      "scripts/internal/v410_s05_inventory.mjs",
+      "scripts/internal/v410_s05_inventory.test.mjs",
+      "scripts/internal/verify_v410_event_storage_recording_runtime.mjs",
+      "src/analysis/event_storage.cpp",
+      "test/fixtures/recording/v1/s05-action-inventory.json",
+      "test/fixtures/v390_review4_semantic_proofs_evt_client_media_lab.json"
+    ]
+  },
+  "inputs": {
+    "prior-audit.json": "cd78bcc3fe2a5d254082afa214e42e76144bfc3c376f9a6cb4502d5cedec977b",
+    "prior-approvals.json": "1dee8ae5f6600438835fc1228f21e497ac4b7e9c2e64c548933f46ab02b74c38",
+    "fresh-audit.json": "ff8a7b57610265325dd78f8771f62a4eaf2c2219b58066943ccfd998a981d6a9",
+    "migration-evidence.json": "bbdbef8faf45d8841238fbbfdb7296bfd29341e691f278601e247247f3ad4d13"
+  },
+  "trustRebindRows": [
+    {
+      "id": "EVT-008",
+      "featureContractSha256": "493fcfabc6f0fdba7798b4abb5e1cbff548ada7deb41ae09681b850b2d419cc3",
+      "sourceFlowDigest": "a41cce1c7bea9f921f1f9d7dc6221a24eb1089a471f592d150dd51bfeddb4f93",
+      "currentTrustBindingsSha256": "2ca956d8dcbdc523fb309fe26d8643d58f36e7e128624a63817a1d760608120f"
+    },
+    {
+      "id": "EVT-009",
+      "featureContractSha256": "2003c8835c1f67a4159bab20c722dbd13cf6dd5f5f8e8ade12a650e661ee1845",
+      "sourceFlowDigest": "3cb4f43d1129d0cc7bf9b381405c9eee3aeefd39ad2c680a3fc3532ece29dac9",
+      "currentTrustBindingsSha256": "02928963d8fc3ca29918045dac2075dd249befef41368f65b1fc22a7c289809a"
+    }
+  ]
+}

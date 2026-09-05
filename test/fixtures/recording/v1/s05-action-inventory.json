@@ -814,9 +814,30 @@
         {
           "id": "V410-S05-I27-C01",
           "message": "S05 composition starts the bridge before ingress and drains it after storage"
+        },
+        {
+          "id": "V410-S05-I27-C02",
+          "message": "post-event frame 대기 중인 실제 storage worker를 관찰한다",
+          "testFile": "scripts/internal/event_storage_recording_runtime_smoke.cpp",
+          "testSymbol": "VerifyShutdownCancellation",
+          "runtimeCase": "shutdown-cancel"
+        },
+        {
+          "id": "V410-S05-I27-C03",
+          "message": "종료 신호가 post-event frame 대기를 깨워 1초 안에 worker를 drain한다",
+          "testFile": "scripts/internal/event_storage_recording_runtime_smoke.cpp",
+          "testSymbol": "VerifyShutdownCancellation",
+          "runtimeCase": "shutdown-cancel"
+        },
+        {
+          "id": "V410-S05-I27-C04",
+          "message": "frame 대기 취소 뒤에도 EventRecord JSONL을 유실하지 않는다",
+          "testFile": "scripts/internal/event_storage_recording_runtime_smoke.cpp",
+          "testSymbol": "VerifyShutdownCancellation",
+          "runtimeCase": "shutdown-cancel"
         }
       ],
-      "criterion": "ingress 전 bridge 등록·정상 및 시작 실패 경로에서 storage 뒤 bridge drain",
+      "criterion": "ingress 전 bridge 등록·storage의 미래 frame 대기 취소·접수 기록 drain 뒤 bridge drain",
       "stability": "대상",
       "soak30": "대상: 별도 승인 후 녹화 연속 운용",
       "soak120": "대상: 별도 승인 후 누수·복구 장시간 관찰",

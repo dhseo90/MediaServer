@@ -121,7 +121,7 @@ application-only check 및 실제 저장 큐 네 프로세스 결과를 모두 �
 | V410-S05-I24 | terminal replay 및 삭제 차단 | `src/recording/recording_catalog.cpp` · `RequestDeletion` | `VerifyPendingDerivedHoldRecovery` · V410-S05-I24-C01, V410-S05-I24-C02, V410-S05-I24-C03, V410-S05-I24-C04 | 단계별 hold 복원·hold 0이어도 terminal 전 삭제 거부 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
 | V410-S05-I25 | 전송 DTO 경계 | `src/ingress/webrtc_http_server_ops_incidents.cpp` · `ProjectEventStorageDispatchRequest` | `transport has zero canonical bypass and exact projection/call ordering` · V410-S05-I25-C01 | 전송 DTO 우회·필드 누락·잘못된 호출 순서 거부 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
 | V410-S05-I26 | 출력 fd 검증 계약 | `src/recording/event_clip_deriver.cpp` · `Derive` | `event clip output remains fd-bound and measured before no-replace publication` · V410-S05-I26-C01 | fd 결박·timestamp 측정·no-replace 출판의 정적 경계 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
-| V410-S05-I27 | 제품 시작·종료 순서 | `src/application/media_server_application.cpp` · `RunMediaServerApplication` | `S05 composition starts the bridge before ingress and drains it after storage` · V410-S05-I27-C01 | ingress 전 bridge 등록·정상 및 시작 실패 경로에서 storage 뒤 bridge drain | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I27 | 제품 시작·종료 순서 | `src/application/media_server_application.cpp` · `RunMediaServerApplication`; `src/analysis/event_storage.cpp` · `EventStorageDispatcher::Stop`, `EventFrameBuffer::CancelPostEventWaits` | `S05 composition starts the bridge before ingress and drains it after storage`, `VerifyShutdownCancellation` · V410-S05-I27-C01, V410-S05-I27-C02, V410-S05-I27-C03, V410-S05-I27-C04 | ingress 전 bridge 등록·storage의 미래 frame 대기 취소·접수 기록 drain 뒤 bridge drain | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
 
 ## V410 GStreamer 실행 환경 개별 동작 등록
 
@@ -139,7 +139,7 @@ S05 후속 환경 보완이며 녹화 로직·UI 변경은 아니다. 실행 전
 | V410-ENV-07 | 전용 registry·명시 registry 유지 | env_common.sh / test_registry | 대상 | 미진행 | 미진행 | 비대상: UI 없어야 정상 |
 | V410-ENV-08 | system 진단 모드·잘못된 모드 거부 | env_common.sh / test_system_profile, test_invalid_profile | 대상 | 미진행 | 미진행 | 비대상: UI 없어야 정상 |
 | V410-ENV-09 | 로컬 설정 뒤 환경 적용 | build/start/foreground/test_all / test_override_order | 대상 | 미진행 | 미진행 | 비대상: UI 없어야 정상 |
-| V410-ENV-10 | nohup·launchd 빈 환경값 전달 | start_server.sh / test_nohup_environment, test_launchd_environment | 대상 | 미진행 | 미진행 | 비대상: UI 없어야 정상 |
+| V410-ENV-10 | nohup·launchd 환경 전달과 실제 lifecycle | start_server.sh / test_nohup_environment, test_launchd_environment; verify_v410_s05_service_lifecycle.mjs / 실제 녹화·event link·restart·normal stop·cleanup | 대상 | 미진행 | 미진행 | 비대상: UI 없어야 정상 |
 | V410-ENV-11 | 녹화 검증 명령 공통 적용·비미디어 CLI 무부작용 | server.sh, verify_v410_event_recording.sh / test_dispatch_environment, test_cli_no_gst_side_effects | 대상 | 미진행 | 미진행 | 비대상: UI 없어야 정상 |
 | V410-ENV-12 | 실제 cold/warm 검색·44 factory·READY·무음 H264 | 공통 환경 적용 후 별도 실제 GStreamer 프로세스; fixture verifier와 구분 | 대상 | 미진행 | 미진행 | 비대상: UI 없어야 정상 |
 | V410-ENV-13 | S05·빌드·등록·문서 회귀 | verify-v410-event-recording, v410_s05_inventory.test.mjs의 등록군 확장·총계/canonical/S05/중복/음수/소수/표 누락 검사, build, 문서/인벤토리 검증 | 대상 | 미진행: 기존 릴리즈 gate 유지 | 미진행: 기존 S05 판정 유지 | 비대상: 신규 UI 없음, 기존 릴리즈 gate 유지 |

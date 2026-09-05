@@ -233,6 +233,32 @@ void VerifyRecovery(recording::RecordingCatalog& catalog,
     }
     Expect(unchanged, "같은 이벤트 재접수는 복구된 다섯 clip ID를 바꾸거나 추가하지 않는다");
 }
+
+void VerifyShutdownCancellation() {
+    analysis::SetEventRecordingBridge(nullptr);
+    analysis::DispatchEventRecords(Result(), {Event(0)});
+    const auto worker_deadline = std::chrono::steady_clock::now() + std::chrono::seconds(1);
+    bool worker_entered = false;
+    while (std::chrono::steady_clock::now() < worker_deadline) {
+        const auto snapshot = analysis::GetEventStorageSnapshot();
+        if (snapshot.enqueued_count == 1 && snapshot.queue_size == 0) {
+            worker_entered = true;
+            break;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    Expect(worker_entered, "post-event frame 대기 중인 실제 storage worker를 관찰한다");
+    const auto started = std::chrono::steady_clock::now();
+    analysis::StopEventStorage();
+    const auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                                std::chrono::steady_clock::now() - started)
+                                .count();
+    const auto drained = analysis::GetEventStorageSnapshot();
+    Expect(elapsed_ms < 1000,
+           "종료 신호가 post-event frame 대기를 깨워 1초 안에 worker를 drain한다");
+    Expect(drained.queue_size == 0 && drained.stored_count == 1,
+           "frame 대기 취소 뒤에도 EventRecord JSONL을 유실하지 않는다");
+}
 }  // namespace
 
 namespace core {
@@ -241,18 +267,21 @@ const AnalysisRuntimeConfig& GetAnalysisRuntimeConfig() { return config; }
 
 int main(int argc, char** argv) {
     try {
-        Require(argc == 4, "사용법: runtime-smoke disabled-admit|enabled-admit|disabled-recover|enabled-recover root sample");
+        Require(argc == 4, "사용법: runtime-smoke disabled-admit|enabled-admit|disabled-recover|enabled-recover|shutdown-cancel root sample");
         scenario = argv[1];
         const bool recover = scenario == "disabled-recover" || scenario == "enabled-recover";
-        Require(recover || scenario == "disabled-admit" || scenario == "enabled-admit", "알 수 없는 시나리오");
+        const bool shutdown_cancel = scenario == "shutdown-cancel";
+        Require(recover || shutdown_cancel || scenario == "disabled-admit" || scenario == "enabled-admit", "알 수 없는 시나리오");
         const std::filesystem::path root = std::filesystem::absolute(argv[2]);
-        config.analysis_event_storage_enabled = scenario == "enabled-admit";
+        config.analysis_event_storage_enabled = scenario == "enabled-admit" || shutdown_cancel;
         config.analysis_event_storage_path = (root / "events.jsonl").string();
         config.analysis_event_storage_max_queue = 2;
         config.analysis_event_snapshot_hook_enabled = false;
-        config.analysis_event_clip_hook_enabled = false;
+        config.analysis_event_clip_hook_enabled = shutdown_cancel;
+        config.analysis_event_clip_dir = (root / "clips").string();
         config.analysis_event_pre_event_ms = 100;
-        config.analysis_event_post_event_ms = 100;
+        config.analysis_event_post_event_ms = shutdown_cancel ? 3000 : 100;
+        config.analysis_event_clip_buffer_ms = shutdown_cancel ? 3000 : 0;
         recording::RecordingJournal journal(root / "recording-mutations.jsonl");
         std::string error;
         Require(journal.Open(&error), "journal open: " + error);
@@ -273,7 +302,8 @@ int main(int argc, char** argv) {
         policy.continuous_max_bytes = policy.event_max_bytes = 1024ULL * 1024ULL * 1024ULL;
         policy.continuous_max_age_ms = policy.event_max_age_ms = 1000000;
         Require(retention.UpdateChannelPolicy("cam-runtime", policy, &error), "policy: " + error);
-        if (recover) VerifyRecovery(catalog, retention, root, argv[3]);
+        if (shutdown_cancel) VerifyShutdownCancellation();
+        else if (recover) VerifyRecovery(catalog, retention, root, argv[3]);
         else VerifyAdmission(catalog, retention, root, config.analysis_event_storage_enabled);
         std::cout << "[s05-runtime-summary] case=" << scenario << " pass=" << passed << " fail=0\n";
         return 0;

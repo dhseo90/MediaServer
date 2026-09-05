@@ -9,7 +9,11 @@
   2026-09-05 정식 payload 판독 단위 12/0과 별도 실제 foreground 22/0을 확인했다.
   제품/DB 추가 수정은 없다. 이어서 S06 전 운영 격리의 상태 namespace·고유
   launchd label·scoped stop·mode 보존을 구현하고 실행 기반 13/0과 기존 환경 20/0을
-  확인했다. 상세는 release-test-records에 보존한다.
+  확인했다. 이어 실제 `nohup` 종료 지연을 EventStorage의 미래 post-event frame 대기로
+  계측하고, 종료 시 대기만 취소하면서 접수 EventRecord는 drain하도록 수정했다. 정식 S05
+  140/0+7/0+23/0+2/0, 등록기 35/0, 제품 build와 실제 `nohup`/`launchd` lifecycle 각
+  29/0을 확인했다. SSIM blacklist도 GstValidate 전용 모듈의 의도된 초기화 경계로
+  확정했으며 패키지 삭제·전역 설정 변경은 하지 않았다. 상세는 release-test-records에 보존한다.
   S05 개별 등록 누락 FAIL은 보정·재실행·독립 재결속으로 해소했다. 릴리즈 완료는 아니다.
   S06~S09 구현·테스트와 v4.1.0 릴리즈 완료 증거가 아님
 - 현재 작성 브랜치: `v4.1.0`
@@ -162,7 +166,7 @@ major 변경이 확인될 때만 별도로 설계한다. 현재 목표를 이유
 | 2 | V410-S02 | P0 | 채널별 opt-in 연속 세그먼트 recorder, keyframe 경계, atomic finalize, 재시작 복구 |
 | 3 | V410-S03 | P0 | SQLite 메타데이터 카탈로그와 append-only JSONL 복구 저널, SQLite 미사용 fallback |
 | 4 | V410-S04 | P0 | 완료: 상시/이벤트 용량·기간 분리, oldest-first 순환 삭제, pin·hold·tombstone, 채널별 pending 복구, dirfd 결박 unlink/truncate, 실제 쓰기량 정산, 채널 간 in-flight disk reserve·writer admission, 내구 cleanup 마커 재시작 복구 |
-| 5 | V410-S05 | P0 | 구현 완료·실제 foreground PASS: finalized 원본 연결, 명시적 PTS/UTC 시간축, 비동기 H.264/MP4→MPEG-TS remux, 실측 범위, fallback, quota·hold, UUID v2 partial·재시작 복구. 개별 ID 27개·check 89개 유지, 단위 34·S05 27·계약 45·build 통과. 2026-09-05 정식 payload 판독 단위 12/0과 실제 foreground 22/0 통과; 제품·DB 추가 수정 없음 |
+| 5 | V410-S05 | P0 | 구현 완료·실제 foreground/nohup/launchd PASS: finalized 원본 연결, 명시적 PTS/UTC 시간축, 비동기 H.264/MP4→MPEG-TS remux, 실측 범위, fallback, quota·hold, UUID v2 partial·재시작 복구. 종료 시 미래 post-event frame 대기만 취소하고 접수 EventRecord를 drain한다. 개별 ID 27개·check 92개, 등록기 35·C++ 140·application 7·runtime 23·mutation 2·계약 45·build 통과. 정식 payload 판독 12/0, foreground 22/0, 실제 nohup/launchd 각 29/0 통과 |
 | 6 | V410-S06 | P0 | event > continuous 우선 조회·재생 계약, timeline API와 Ops UI 표출 |
 | 7 | V410-S07 | P1 | event/track 경계·요약과 설정 주기 대표 관측 저장, 정확한 frame seek 기반 |
 | 8 | V410-S08 | P0 | crash/disk-full/corrupt catalog/gap/migration/호환성 검증과 문서·evidence 연결 |
@@ -173,13 +177,16 @@ S05 후속 환경 보완(2026-09-04)은 **수정·제한 범위 재검증 통과
 최초 Bash 3.2·fixture 실패 뒤 상속 경로·`.so`·root 순서·CLI 초기화 범위도 보완해 환경
 20/0을 확인했다. macOS arm64 실제 cold/warm 1525 features 일치·필수 factory 44개·
 READY·무음 H264·plugin 우선순위, S05 전체와 증분 build를 재검증했다. S05 등록기 총계는
-별도 승인 후 보완했으며 기존 986개/S05 27개 검증을 유지한다. 다른 PC·실제
-nohup/launchd/UI·장시간은 미실행, SSIM blacklist 원인은 미확인이다. S06 전 종료 범위
+별도 승인 후 보완했으며 기존 986개/S05 27개 검증을 유지한다. 다른 PC·UI·장시간은
+미실행이다. SSIM blacklist는 Homebrew GStreamer에 포함된 GstValidate 전용 모듈을 일반
+plugin scanner가 validate 초기화 전에 읽을 때의 의도된 실패로 확정했고, 제품은 해당
+모듈을 링크·호출하지 않는다. S06 전 종료 범위
 격리를 위해 `MEDIA_SERVER_STATE_DIR`와 고유 `MEDIA_SERVER_LAUNCHD_LABEL`을 추가했다.
 명시 상태에서는 exact label·설정/기록 포트의 listener PID만 종료하고 기본 포트·label
 fallback을 사용하지 않는다. start도 이미 등록된 exact label을 선제 종료하지 않고
-fail-closed한다. 13개 실행 기반 fixture와 기존 환경 20개가 통과했지만 실제
-서비스 lifecycle PASS는 아니다.
+fail-closed한다. 13개 실행 기반 fixture와 기존 환경 20개, 실제 nohup/launchd lifecycle
+각 29개가 통과했다. 실제 검증은 격리된 로컬 macOS arm64 한 대의 결과이며 다른 PC나
+장시간 운용 PASS가 아니다.
 파일·함수·개별 결과·최초 실패는 `docs/release-test-records.md`에 보존한다.
 
 V410-S00 완료: 공개 표준과 라이선스 metadata, 특정 특허 상세를 반입하지 않는 IP
@@ -214,7 +221,8 @@ terminal resource-release pending을 기록하고 source/output hold와 reservat
 고정 설정·시각·가용량과 latch를 제외한 실제 EventStorage·catalog·journal·bridge·deriver를 실행한다.
 JSONL 활성/비활성 모두 queue=2/enqueued=5/dropped=2와 연결 5개 보존, 별도 프로세스에서
 새 SQLite 재구축·후행 H264 source 연결·파생 5개·재접수 ID 불변을 확인했다.
-runtime check 20개와 source mutation 2개를 기존 S05 gate에 필수 연결했으며,
+기존 runtime check 20개와 source mutation 2개에 종료 취소 check 3개를 더해 S05 gate에
+필수 연결했으며,
 이는 HTTP/전체 서버 재시작, 장시간/UI/field smoke를 대체하지 않는다.
 terminal complete 기록 전까지 catalog가 참조 source/output의 삭제를 차단하며, 복구 중
 후속 event/fallback 갱신은 단계를 보존하고 UTC 확장은 내구 대기 후 순서대로 파생한다.
