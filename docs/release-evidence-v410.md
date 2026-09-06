@@ -4,6 +4,20 @@
 PASS는 UI 풀테스트, 30분/120분 장시간 테스트, PR/main merge, tag, GitHub Release 또는
 published metadata 완료를 뜻하지 않는다.
 
+## S06 포트 정리 판정 보완 확인·제품 구현 미착수 (2026-09-06)
+
+승인 범위는 Task 6 개발이며 커밋·푸시·S07 이후는 포함하지 않는다. S06 개별 기능 ID 34개를
+project-feature-test-inventory와 release-test-records에 실행 전 등록하고 Sol xhigh 한 개를
+구현 담당자로 지정했다. Astra 메인은 계약·안전 경계·diff·증적·최종 판정을 맡는다.
+첫 focused는 loopback bind EPERM, 다음 재개는 포트 확인의 반환값 누락·cleanup PASS
+불일치로 각각 중단했다. 추가 승인 후 메인이 `verify_v410_recording_ui_contract.mjs`의
+성공 증거 반환과 소비자의 미확인 증거 거부를 보완했다. 내부 H01~H03 및 H03-R01/R02
+5개·40검사 통과, 같은 I01 focused에서 상태 API 404 예상 RED와 서버 정상 종료·두 포트
+ECONNREFUSED·격리 root 삭제를 확인했다. 두 실패 이력과 최신 명령·개별 결과·정리는
+`release-test-records.md`의 S06 절에 보존한다. 이 결과는 포트 정리 판정 보완의 증거이며
+제품 API·UI PASS가 아니다. I27·제품 구현·build·인증·관련 제품 회귀는 미실행이고,
+제품 코드·CMake·server.sh는 변경하지 않았다. S06 완료·커밋 가능 상태로 보지 않는다.
+
 ## S05 종료 선행 1/3 — 운영 실행 상태 격리
 
 `env_common.sh`의 `media_server_configure_runtime_state`가 선택형

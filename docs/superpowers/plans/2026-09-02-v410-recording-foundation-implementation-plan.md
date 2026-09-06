@@ -850,6 +850,21 @@ git commit -m "feat: 이벤트 녹화 연결과 파생 clip 추가"
 
 ## Task 6: V410-S06 event 우선 timeline API, Range 재생과 Ops UI
 
+**현재 상태(2026-09-06): 포트 정리 판정 보완 확인·제품 구현 미착수.** 개별 ID 34개를 사전 등록하고
+단일 Sol xhigh 담당자가 verifier 초안 2개를 작성했다. 첫 focused 실행은 서버 시작 전
+loopback bind EPERM으로 실패해 예상된 RED로 인정하지 않고 중단했다. 메인은 임시 root
+삭제·부재와 초안의 RED·PASS·정리 판정 보완 사항을 확인했다. 구현·회귀·UI 풀테스트는
+미실행이며 커밋·푸시도 하지 않았다. 실제 명령과 실패 기록은 release-test-records의 S06 절을 따른다.
+이후 사용자가 초안 보완·동일 focused 재개를 승인했다. 내부 보조 H01~H03으로 판정·정리
+회귀를 등록하고 기존 단일 담당자와 재개한다. 제품 구현이나 S06 통과를 뜻하지 않는다.
+재개 결과 H01~H03 3개·12검사 통과, 실제 I01 status 404에 도달했다. 그러나 port 확인
+반환값 누락과 최종 성공 조건 누락으로 cleanup PASS/closed false 불일치가 발생해 중단했다.
+당시 실제 PID·port·root 부재는 별도 확인했다. 이후 추가 승인으로 메인이 반환값과
+미확인 증거 거부를 보완했다. H01~H03/H03-R01/R02 5개·40검사 통과, 같은 I01에서
+HTTP 404 예상 RED와 정상 종료·두 포트 ECONNREFUSED·root 삭제를 확인했다.
+이전 두 실패 이력은 유지한다. I27·제품 구현·제품 build·인증·관련 제품 회귀는 미실행이며
+현재 보완을 S06 기능 PASS로 확대하지 않는다.
+
 **수정 파일:**
 
 - 생성: `include/recording/recording_read_service.h`

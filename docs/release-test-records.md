@@ -16,6 +16,374 @@
 - 테스트 결과표의 `결과`는 `pass` 또는 `fail`만 사용합니다. 실행하지 않은 항목,
   사용자가 제외한 항목, 외부 조건이 없어 제외한 항목은 별도 미실행/제외 표에 둡니다.
 
+## v4.1.0 S06 개발 — 검증 도구 보완과 구현 전 RED (2026-09-06)
+
+사용자 요청은 AGENTS.md 기준 S06 개발이다. 커밋·푸시·S07 이후·30분/120분·UI 풀테스트는
+이번 실행 승인이 없다. 단일 Sol xhigh 구현 담당자와 Astra xhigh 메인 검토로 진행한다.
+아래 34개는 실행 전 기능 정의이며 실제 PASS가 아니다. 신규 세부 assertion을 추가할 때도
+실행 전에 해당 ID/확인 방법을 먼저 갱신한다.
+첫 실행은 포트 예약의 `EPERM`으로 실패해 중단했으며 예상된 TDD RED가 아니다.
+이후 사용자가 초안 보완과 같은 focused 검증의 권한 승인 절차를 통한 재개를 승인했다.
+보완 후 내부 회귀 3개는 통과했고 실제 상태 API의 미구현 404까지 도달했으나,
+정리 결과의 포트 증적 불일치로 다시 중단했다. 추가 승인 뒤 메인이 반환 계약과 미확인
+PASS 차단을 보완했다. 현재는 **포트 반환·정리 판정 보완 확인·제품 구현 미착수**이며,
+최초 EPERM 및 정리 판정 결함의 실패 이력은 모두 유지한다. 최신 직접 결과는 아래
+`메인 회수 후 GREEN과 동일 I01 focused 결과`를 따른다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | S06 API·전송·UI 구현과 연결된 단기 회귀 | AGENTS.md 7.2, Task 6, V410-S06-I01~I34 | 현재 단계 개발 범위. 인증 verifier는 필수 비밀번호 환경변수 설정 전 실행 금지 |
+| 30분 테스트 | 진행 대상 | 버전 종료 시 녹화 연속 운용 필수, 기존 판정 유지 | AGENTS.md 7.6.2, S06 inventory | 미승인·미실행, 이번 단계에서 자동 실행하지 않음 |
+| 120분 테스트 | 진행 대상 | HTTP 파일 전송·read lease와 disconnect 정리 lifecycle | V410-S06-I19/I24/I25/I26 | 미승인·미실행 |
+| UI 풀테스트 | 진행 대상 | 신규 /ops/events 필터·timeline·재생 control | V410-S06-I27~I34, Task 6 Step 5 | 별도 승인 전 미실행. 정적 UI contract와 분리 |
+
+### 테스트 항목 상세 기록
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| V410-S06-I01 녹화 상태 조회 | status API | 전역 opt-in·catalog degraded·채널 상태를 실제 서비스 값으로 반환; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I02 상태 조회 범위 제한 | status API 권한 투영 | 허용 채널만 반환하고 내부 경로·source URL·진단 원문을 숨김; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I03 채널·UTC 반개구간 조회 | timeline read service | 지정 채널의 [start,end) 교집합만 반환하고 인접 경계와 다른 채널을 제외; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I04 잘못된 조회 인자 거부 | timeline API validation | 누락·음수·overflow·역전 시간·잘못된 offset/limit을 거부; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I05 안정 정렬과 페이지 | timeline read service | startTimeMs DESC, displayPriority DESC, segmentId ASC 정렬 후 offset/limit 적용; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I06 이벤트 우선 표시 계약 | timeline read service | 같은 시간의 event 200과 continuous 100을 반환하고 event 우선 순서를 유지; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I07 원본과 이벤트 교차 참조 | timeline read service | 겹치는 정확한 event ID만 supersededByEventIds에 중복 없이 반환; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I08 미완성·삭제 lifecycle 거부 | timeline/media read service | writing·corrupt·deletion_pending·deleted는 재생 허용하지 않음; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I09 누락·비정상 미디어 거부 | media resolver | 파일 없음·비일반 파일·크기 불일치를 정상 playable로 반환하지 않음; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I10 파생 이벤트 범위·완전성 | event read model | 요청 범위와 실제 파생 범위를 혼동하지 않고 partial/complete 상태 보존; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I11 fallback과 파생 우선순위 | event read model/media resolver | 완료 derived 우선, fallback은 내구 참조와 허용 root 확인 후 사용하며 불가 사유 표출; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I12 관리자 녹화 접근 | 녹화 API role/scope guard | admin의 허용 범위 status/timeline/media 요청을 허용; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I13 운영자 녹화 접근 | 녹화 API role/scope guard | operator의 허용 범위 status/timeline/media 요청을 허용; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I14 viewer 녹화 접근 거부 | 녹화 API role guard | viewer의 세 endpoint 접근을 거부; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I15 미인증 녹화 접근 거부 | 녹화 API auth guard | 미인증 요청에 제품 auth 정책을 적용하고 미디어 byte를 전송하지 않음; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I16 채널 scope 없는 접근 거부 | 녹화 API scope guard | 조회 및 opaque ID 직접 접근으로 채널 scope를 우회할 수 없음; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I17 opaque ID와 path 입력 거부 | media endpoint | 미등록 ID·절대경로·..·인코딩 traversal을 거부하고 파일 경로를 JSON에 넣지 않음; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I18 symlink 경로 탈출 거부 | media resolver | root·중간 경로·leaf symlink 탈출을 거부; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I19 검사 이후 파일 교체 방어 | fd-bound media read | 열린 일반 파일 fd에 전송을 결박하고 경로 교체가 다른 파일 전송으로 이어지지 않음; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I20 닫힌 byte Range | HTTP direct sender | bytes=시작-끝 요청에 206·Content-Range·Accept-Ranges·정확한 byte 반환; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I21 열린·suffix byte Range | HTTP direct sender | bytes=시작- 및 bytes=-길이에 파일 크기 경계를 적용해 정확한 byte 반환; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I22 비정상 byte Range | HTTP direct sender | 잘못된 범위·overflow·파일 끝 초과·지원하지 않는 다중 범위를 일관되게 거부; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I23 HEAD 미디어 응답 | HTTP direct sender | GET과 맞는 길이·형식·Range header를 반환하되 body는 전송하지 않음; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I24 대용량 bounded 전송 | HTTP direct sender | 전체 파일을 HttpResponse body에 넣지 않고 최대 256KiB 읽기로 전송; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I25 재생 lease와 순환 삭제 | catalog lease/retention | 삭제 요청과 원자적으로 lease를 취득하고 전송 중 삭제를 차단, 해제 후 허용; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I26 전송 오류·연결 종료 정리 | HTTP sender/lease lifecycle | 실패·disconnect·정상 종료에서 fd와 lease가 누수되지 않음; planned-command verify-v410-recording-timeline의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I27 채널·시간 필터 조작 | /ops/events 녹화 필터 | 선택·입력·조회 후 요청 범위에 맞는 목록과 빈 결과 상태 반영; planned-command verify-v410-recording-ui-contract (정적 보조) + 승인된 실제 UI의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I28 이벤트 기본 선택 | /ops/events timeline | event badge·종류·시간을 표시하고 겹치는 이벤트를 기본 재생 대상으로 선택; planned-command verify-v410-recording-ui-contract (정적 보조) + 승인된 실제 UI의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I29 상시녹화 원본 보기 | /ops/events 원본 보기 | continuous 원본 펼침·선택이 해당 미디어로 연결되고 event 원본 관계 보존; planned-command verify-v410-recording-ui-contract (정적 보조) + 승인된 실제 UI의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I30 녹화 영상 재생 컨트롤 | /ops/events video | controls/preload=metadata, 선택 영상·Range 재생 반영; 실제 codec/container 재생은 브라우저 확인 필요; planned-command verify-v410-recording-ui-contract (정적 보조) + 승인된 실제 UI의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I31 비재생·불완전 상태 UI | /ops/events status | 삭제·손상·작성 중·공백·partial·오류 상태를 구분하고 불가 항목 재생 차단; planned-command verify-v410-recording-ui-contract (정적 보조) + 승인된 실제 UI의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I32 용량·녹화 상태 UI | /ops/events status card | continuous/event quota와 storage-blocked 상태를 실제 조회 값으로 표시; planned-command verify-v410-recording-ui-contract (정적 보조) + 승인된 실제 UI의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I33 S06 화면 범위 유지 | /ops/events navigation | 새 primary nav·자연어/vector 검색 입력을 추가하지 않고 기존 테마·배치 유지; planned-command verify-v410-recording-ui-contract (정적 보조) + 승인된 실제 UI의 개별 ID 결과로 연결 | v4.1.0 |
+| V410-S06-I34 화면 권한·정보 비노출 | /ops/events role/redaction | viewer 접근 제한, 내부 경로·source URL·raw debug 미노출, responsive/theme 상태 확인; planned-command verify-v410-recording-ui-contract (정적 보조) + 승인된 실제 UI의 개별 ID 결과로 연결 | v4.1.0 |
+
+### 실행 기록과 미실행 경계
+
+- 실행 전 특정한 RED 1: 신규 harness의 `./server.sh verify-v410-recording-timeline --red-http-baseline`이
+  현재 서버에 요청한 status API의 I01 `expected HTTP 200, actual 404` assertion 실패.
+- 실행 전 특정한 RED 2: 신규 harness의 `./server.sh verify-v410-recording-ui-contract --red-http-baseline`이
+  실제 HTTP `/ops/events` 응답을 파싱한 I27 신규 channel/time filter·timeline root 부재 assertion 실패.
+  둘 모두 예정된 RED이며 실제 결과는 실행 후 아래에 기록한다. 환경·빌드 오류는 이 RED가 아니다.
+- GREEN 이후 관련 회귀는 S03 catalog·S04 retention·S05 event 연결, 제품 build, AGENTS.md 7.2의
+  auth bootstrap/users/routes·ops-client-ui·screenshots·rule-ui와 diff 검사다. 각 실제 명령과
+  개별 결과는 실행 후 보존한다. S06 UI contract는 실제 HTTP-rendered 화면의 정적 보조이며
+  UI 풀테스트 대체가 아니다. 별도 전 제품/릴리즈 gate는 이번 요청으로 확대 실행하지 않는다.
+- 인증 회귀용 MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD, MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD,
+  MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD, MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE,
+  MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO는 존재 여부만 확인했으며 모두 미설정이다.
+  값을 출력하거나 기본 비밀번호를 생성하지 않았다. 사용자에게 실행 환경 설정을 요청했다.
+- 이후 사용자 지시에 따라 대화 입력값은 테스트에 사용하거나 저장하지 않는다. 인증 검증은
+  별도 난수 5개를 프로세스 환경으로 전달하고 저장소·.env·출력에는 남기지 않는다.
+  기존 인증 verifier의 격리 임시 요청 파일에도 사용자 입력값은 넣지 않으며 종료 cleanup을 확인한다.
+- token start/end/consumed: 미집계(작업별 정확한 토큰 계량 도구 없음). elapsed/source는 실제 실행 결과에서 기록한다.
+- 테스트 임시 산출물: 첫 실행에서 생성한 빈 root를 삭제했고 메인이 부재를 직접 확인했다. 상세는 아래 정리 기록을 따른다.
+
+### 구현 전 확정한 읽기·재생 안전 경계
+
+- 기존 QuerySegments/S05 link/영속 녹화 형식은 보존한다. S06 read model에서 승인된 정렬과 표시를 구성한다.
+- fallback root는 서버 설정의 recording root·event clip root로 제한하고 요청값이나 journal 경로로 확대하지 않는다.
+  opaque fallback ID는 durable event/channel 참조를 확인하며 충돌·탈출·미등록은 거부한다.
+- `playable`은 서버가 lifecycle·integrity·권한·허용 locator 조건으로 media를 읽어 제공할 수 있음을 뜻한다.
+  브라우저 decode 지원이나 실제 영상 재생 PASS가 아니다. MIME/container, canPlayType와 실제 media error를
+  별도로 처리하며 미지원 사유와 원본 보기 접근을 제공한다. MPEG-TS를 MP4로 위장하거나 자동 대체하지 않는다.
+- S05 MPEG-TS 파생 영상의 실제 브라우저 재생 호환은 미확인이다. S06 정적/HTTP 검증으로 닫지 않고
+  별도 승인된 UI 실행에서 확인한다. 저장 형식 변경이나 새 변환·캐시 계층은 이번 승인에 자동 포함하지 않는다.
+
+### 사전 문서 검증 결과
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| S06 사전 등록 diff 검사 | `git diff --check`, exit 0, 출력 오류 없음 | pass |
+| S06 사전 등록 문서 링크 | `./server.sh verify-docs-links`, exit 0, markdown 225·local links 1040·images 22·anchors 101·indexed 76·exclusions 141·failures 0 | pass |
+
+위 결과는 기능 등록 문서만 검사했으며 S06 제품 구현 PASS가 아니다. 별도 테스트 임시 산출물은 없었다.
+elapsed는 명령별 도구 측정 약 0.002초이며 source는 exec_command다. token start/end/consumed는 작업별 계량 부재로 미집계다.
+
+### 첫 focused 실행 실패와 중단 판정
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| V410-S06-I01 구현 전 focused 실행 | 실제 명령 `bash scripts/internal/verify_v410_recording_timeline.sh --red-http-baseline`, exit 1. `node:net`의 `listen EPERM: operation not permitted 127.0.0.1`. 서버 시작·HTTP 요청·I01 assertion 이전에 중단되어 제품 PASS 0, 제품 assertion 도달 0 | fail |
+| S06 중단 기록 diff 검사 | `git diff --check`, exit 0, 출력 오류 없음. 중단 기록 문서의 공백 검사이며 제품 테스트 재개·PASS가 아님 | pass |
+
+- 계획의 `./server.sh` dispatch는 아직 추가하지 않았다. 위 직접 Bash 호출이 실제 실행 명령이다.
+- 확인된 원인은 해당 실행 환경에서 loopback port bind가 거부된 것이다. 제품 서버는 시작하지 않았다.
+  권한 제한의 구체적 계층과 권한을 달리한 실행 결과는 미확인이다. 제품 회귀나 GTK 문제로 판정하지 않는다.
+- AGENTS.md 3.1.1·8에 따라 예상된 RED로 인정하지 않고 즉시 중단했다. timeout 증가,
+  패키지 삭제, S05 재수정, 권한 변경 재실행은 하지 않았다.
+- 실행 날짜: 2026-09-06 KST. elapsed: 미집계(담당자 실행 보고에 정확한 소요 시간 없음).
+  token start/end/consumed: 미집계(작업별 계량 부재). source: 단일 담당자의 명령 결과·실행 보고,
+  메인의 코드·git diff·임시 root 부재 직접 확인. 메인은 실패 명령을 재실행하지 않았다.
+- 인증 verifier와 별도 난수 비밀번호 생성은 미실행이다. 대화에 입력된 비밀번호 원문은
+  파일·명령·테스트·에이전트 전달에 사용하지 않았다. 커밋·푸시는 하지 않았다.
+- 중단 기록 diff 검사의 elapsed는 exec_command 도구 측정 약 0.003초다. token start/end/consumed는
+  작업별 계량 부재로 미집계다. stage된 파일은 없고 로컬 upstream 기준 ahead/behind는 0/0이다.
+  원격 fetch 없이 확인한 tracking 상태이며 이번 작업에서 원격 변경은 하지 않았다.
+
+### 초안 보완 재개 — 실행 전 등록
+
+이번 체크포인트는 verifier 초안 보완과 동일 focused 검증 재실행이다. 제품 코드·S05·
+패키징·전역 환경은 변경하지 않는다. 기존 단일 담당자 gpt-5.6-sol/xhigh를 재사용하며
+점수는 영향 2·불확실성 1·검증 난이도 2·변경 범위 1=6이다. 판정·초기화·정리 경계의
+교차 확인을 위해 기존 설정을 유지한다. 메인 gpt-6-astra/xhigh는 사용자 지정 유지로
+승인 범위·판정 기준·실행 권한·반환 diff와 결과를 직접 확인한다. 추가 에이전트는 없다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 초안 판정·정리 결함 보완 후 동일 focused 재개 승인 | V410-S06-H01~H03, I01/I27; 초안 보완 재개 요청 | 좁은 harness 회귀와 동일 focused 실행 승인. 포트 사용은 권한 승인 도구 경유 |
+| 30분 테스트 | 진행 대상 | 버전 종료 필수 gate라는 기존 판정 유지 | AGENTS.md 7.6.2, S06 inventory | 이번 체크포인트 미승인·미실행 |
+| 120분 테스트 | 진행 대상 | S06 전송 lifecycle의 기존 판정 유지 | V410-S06-I19/I24/I25/I26 | 이번 체크포인트 미승인·미실행 |
+| UI 풀테스트 | 진행 대상 | 실제 UI 동작 확인의 기존 판정 유지 | V410-S06-I27~I34 | 이번 체크포인트 미승인·미실행 |
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| V410-S06-H01 검증 도구 정리 실패 보존 | 초기화·정리 경계의 동작 회귀 | 실제 임시 파일/root를 만들고 첫 cleanup 실패 뒤 나머지 정리도 수행하며 최초 오류 보존 확인. 수정 전 예상 RED는 후속 root 삭제 누락 assertion | v4.1.0 |
+| V410-S06-H02 검증 도구 강제 종료 판정 | stop helper의 정상·강제 종료 구분 | 정상 SIGTERM 종료를 확인하고, timeout 뒤 SIGKILL을 성공 반환하지 않는지 검사. 수정 전 예상 RED는 강제 종료를 실패로 반환해야 한다는 assertion | v4.1.0 |
+| V410-S06-H03 검증 도구 포트 부재 판정 | closed helper의 거부·확인 불가 구분 | 실제 helper에 외부 socket 결과 EPERM·timeout·ECONNREFUSED를 주입해 대조. 수정 전 예상 RED는 EPERM을 closed 성공으로 처리하는 assertion; 실제 port 부재는 뒤 제품 focused cleanup에서 별도 확인 | v4.1.0 |
+
+위 H01~H03은 검증 도구 내부 보조 항목이며 제품 기능 I26이나 S06 action 34개 PASS를
+대체하지 않는다. 각 RED 실행 명령은 `node scripts/internal/verify_v410_recording_harness.test.mjs H01`,
+`node scripts/internal/verify_v410_recording_harness.test.mjs H02`,
+`node scripts/internal/verify_v410_recording_harness.test.mjs H03`이다. GREEN은 같은 파일의 `all` mode다.
+수정 전 import/export 오류는 RED로 인정하지 않는다. entrypoint guard/export·기존 cleanup
+함수 추출은 동작 보존적으로 먼저 하고, 실제 기존 helper의 assertion 실패를 확인한 뒤 보완한다.
+최초 환경 실패를 반복하지 않도록 포트 사용 실행은 권한 승인 절차로 진행한다.
+
+제품 focused의 예상 RED는 여전히 I01 HTTP 200 요구에서 actual 404,
+I27 실제 `/ops/events` 응답의 필수 control 존재 요구에서 누락 assertion이다.
+각각 `bash scripts/internal/verify_v410_recording_timeline.sh --red-http-baseline`,
+`node scripts/internal/verify_v410_recording_ui_contract.mjs --red-http-baseline`로 실행하며
+서버 정상 종료와 임시 root 정리가 함께 입증돼야 예상된 RED로 인정한다.
+token start/end/consumed는 작업별 계량 부재로 미집계이며 elapsed/source와 실행 결과는 후속 기록한다.
+
+#### 보조 회귀 RED 직접 실행
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| V410-S06-H01 수정 전 RED | `node scripts/internal/verify_v410_recording_harness.test.mjs H01`, exit 1, 후속 port 정리 호출 actual 1 / expected 2 assertion 실패 | fail |
+| V410-S06-H02 수정 전 RED | `node scripts/internal/verify_v410_recording_harness.test.mjs H02`, exit 1, 실제 Node child 정상 exit 확인 후 SIGKILL failure의 `Missing expected rejection` assertion 실패 | fail |
+| V410-S06-H03 수정 전 RED | `node scripts/internal/verify_v410_recording_harness.test.mjs H03`, exit 1, EPERM 결과 actual fulfilled / expected rejected assertion 실패 | fail |
+
+세 명령 모두 메인이 권한 승인 도구로 실행했다. 사전 지정한 미구현 보완 요구의 assertion과
+일치하므로 예상된 RED이며 import·환경 오류가 아니다. 아직 GREEN이나 제품 PASS 증거가 아니다.
+H01 test-owned root는 테스트 finally에서 정리했고 H02 실제 child는 exit 0을 관찰했다.
+source: exec_command 직접 출력, Node.js v24.13.0. elapsed: 도구 wall_time_seconds가 각
+마이크로초 단위로 반환돼 실제 Node 실행 소요 시간 근거로 사용할 수 없어 미집계로 기록한다.
+token start/end/consumed: 작업별 계량 도구 부재로 미집계.
+
+GREEN 실행 전 H02 확인 방법에 이미 signal 종료된 child의 비정상 종료 거부를 추가했다.
+이는 동일 stop helper의 종료 관찰 경계이며 새 제품 기능이 아니다. H01 실제 test-owned 파일/root
+정리와 H02 정상 child 종료, H03 socket 결과 주입은 제품 녹화·HTTP lifecycle PASS로 확대하지 않는다.
+메인 정적 검토에서 예상 RED 때도 cleanup 결과를 남기는 것과 자체 선언 marker를 동작 연결
+증거로 쓰지 않는 것을 보완 조건으로 확정했다. 실제 UI 동작·상태 전이 검증 범위는 확대하지 않는다.
+
+#### 보완 후 실행 결과와 두 번째 중단
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| V410-S06-H01 수정 후 GREEN | `node scripts/internal/verify_v410_recording_harness.test.mjs all`의 H01, 4 checks, elapsed 1ms. 최초 cleanup 오류 보존·후속 정리·실제 root 부재 확인. 최초 RED fail 뒤 이 범위 pass | pass |
+| V410-S06-H02 수정 후 GREEN | 같은 all 실행의 H02, 5 checks, elapsed 25ms. 실제 Node child PID 3930 exit 0/signal null/graceful true, 강제 종료·이미 signal 종료된 child 거부. 최초 RED fail 뒤 이 범위 pass | pass |
+| V410-S06-H03 수정 후 GREEN | 같은 all 실행의 H03, 3 checks, elapsed 0ms. EPERM/timeout reject와 ECONNREFUSED fulfilled를 확인. 반환 객체 내용·최종 cleanup 보고 일치까지 검사하지 않음. 최초 RED fail 뒤 이 범위만 pass | pass |
+| S06 I01 실제 focused 재실행 | `bash scripts/internal/verify_v410_recording_timeline.sh --red-http-baseline`, exit 1, verifier elapsed 3106ms. 서버 정상 기동 후 `expected HTTP 200, actual 404` assertion 도달. 그러나 cleanup PASS/failureCount 0과 두 port의 closed false/unconfirmed가 충돌해 실행 전체는 예상 RED 적격으로 승인하지 않음 | fail |
+
+all 실행의 합계는 cases 3/checks 12/fail 0, exit 0, elapsed 26ms다. 실제 focused의 404는
+사전에 지정한 미구현 요구와 일치하고 이전 loopback bind EPERM도 재발하지 않았다. 다만
+도구 내부 보조 회귀 통과를 최종 정리 판정의 신뢰성까지 확대하지 않는다.
+
+직접 원인과 검증 누락:
+
+- `verify_v410_recording_ui_contract.mjs`의 `assertPortClosed`는 내부 Promise를 await하지만
+  resolve된 `{closed: true, evidence: ECONNREFUSED}` 객체를 함수에서 return하지 않는다.
+  호출자는 undefined를 받아 closed false/unconfirmed로 기록한다.
+- `cleanupHarnessResources`는 해당 반환 객체의 성공 조건을 assertion으로 강제하지 않아
+  failureCount가 0인 채 PASS를 출력할 수 있다.
+- H03은 Promise의 fulfilled/rejected만 검사해 반환 객체와 최종 cleanup 출력의 일치를 놓쳤다.
+  메인 사전 검토에서도 이 생산자·소비자 반환 계약 누락을 잡지 못했다.
+- 이 발견 후 I27·제품 구현·후속 검증을 중단했다. 함수 반환값, 최종 성공 판정,
+  이를 직접 검사하는 H03 회귀 보완은 아직 수정·재실행하지 않았다.
+
+실제 자원 상태의 읽기 전용 후확인:
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| S06 실제 root 부재 | 이번 실제 root Y4wWwk 및 H01 root VeUYC1의 동일 절대경로 존재 검사, exit 0, 둘 다 부재 | pass |
+| S06 테스트 PID 부재 | 권한 승인 환경 `ps -p 3937,3930 -o pid=,stat=,comm=`, exit 1/출력 없음으로 두 PID 부재 확인. sandbox 최초 ps 조회는 차단되어 근거로 쓰지 않음 | pass |
+| S06 테스트 listener 부재 | 권한 승인 환경 `lsof -nP -iTCP:55748 -iTCP:55749 -sTCP:LISTEN`, exit 1/출력 없음으로 두 listener 부재 확인 | pass |
+| S06 두 번째 중단 기록 diff 검사 | `git diff --check`, exit 0/출력 없음. 중단 상태 문서의 공백 검사이며 제품 검증 재개·PASS가 아님 | pass |
+
+후확인은 실제 자원 부재 증거일 뿐 결함 있는 cleanup PASS를 소급 승인하지 않는다.
+source: 메인 exec_command/write_stdin 직접 출력, elapsed는 verifier 내부 Date.now 측정값이다.
+token start/end/consumed는 작업별 계량 도구 부재로 미집계다. I27·일반 S06 GREEN·제품 build·
+인증·S03/S04/S05 회귀는 뒤 단계로 건너뛰었고, 30분·120분·UI 풀테스트는 미승인·미실행이다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| `$TMPDIR/media-server-v410-s06-h01-VeUYC1` | H01 소유 파일/root | 107B, 2 entries | helper 및 test finally에서 삭제 | root 부재 직접 확인 | H01 cleanup 출력·메인 경로 검사 |
+| `$TMPDIR/media-server-v410-s06-Y4wWwk` | 실제 focused의 격리 sample 복사본·state·GST cache | 1,866,907B, 300 entries | 종료 후 root 삭제 | root 부재 직접 확인, 원본 sample·설치 패키지 미변경 | cleanup 출력·메인 경로 검사 |
+
+크기는 lstat size 합계(디렉터리 포함)이며 할당 디스크 용량과 다르다. 실제 root의 symlink
+277개는 대상을 추적하지 않고 링크 자체만 집계·삭제했다. 제거된 임시 데이터는 재검증 시
+재생성 가능하며 별도 산출물을 저장소에 보존하지 않았다. 최초 RED H01 root의 사전 크기는
+미집계였으나 finally 뒤 같은 prefix의 잔존 디렉터리가 없음을 메인이 확인했다.
+
+### 포트 반환·정리 판정의 좁은 보완 — 실행 전 등록
+
+사용자가 두 번째 중단 뒤 반환값·미확인 상태의 PASS 차단·해당 회귀 검사 보완과 재검증을
+승인했다. Codex 메인 gpt-6-astra/xhigh가 직접 회수한다. 영향 2·불확실성 1·검증 난이도 1·
+변경 범위 1=5점이며, 검증 판정의 생산자·소비자 경계를 다시 확인하는 회수 사유다.
+기존 Sol/xhigh 담당자는 완료·대기 상태이고 추가 위임은 없다. brainstorming의 bounded
+수정으로 기존 승인 설계를 유지하며 systematic-debugging과 TDD를 적용한다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 반환 계약·미확인 PASS 차단 보완 및 동일 focused 재검증 승인 | V410-S06-H03-R01/R02, H01~H03, I01 | 이번 범위 승인. 실제 포트 사용은 권한 승인 도구 경유 |
+| 30분 테스트 | 진행 대상 | 버전 종료 필수 gate의 기존 판정 유지 | AGENTS.md 7.6.2 | 이번 좁은 보완에서는 미승인·미실행 |
+| 120분 테스트 | 진행 대상 | 제품 S06 전송 lifecycle의 기존 판정 유지; harness 수정 자체의 요구가 아님 | V410-S06-I19/I24/I25/I26 | 이번 좁은 보완에서는 미승인·미실행 |
+| UI 풀테스트 | 진행 대상 | 제품 S06 UI의 기존 판정 유지; harness 수정 자체의 요구가 아님 | V410-S06-I27~I34 | 이번 좁은 보완에서는 미승인·미실행 |
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| V410-S06-H03-R01 포트 성공 증거 전달 | 실제 closed helper → cleanup 보고의 반환 계약 | socket 경계에 ECONNREFUSED만 주입하고 실제 helper 반환값과 두 포트의 최종 보고를 literal 객체로 대조한다. 수정 전 예상 RED는 반환값 undefined와 기대 객체의 deepEqual assertion 실패 | v4.1.0 |
+| V410-S06-H03-R02 미확인 포트 PASS 차단 | cleanup 소비자의 불완전 반환 거부 | undefined·빈 객체·closed false·evidence 누락·unconfirmed 증거 다섯 경우를 각각 주입한다. 두 포트 모두 시도하고 AggregateError/failureCount 2/두 포트 closed false·unconfirmed를 확인한다. 수정 전 예상 RED는 undefined가 성공 반환되어 Missing expected rejection assertion 실패 | v4.1.0 |
+
+H03-R01/R02는 기존 H03의 내부 회귀 세부 항목이며 제품 action ID와 총계는 늘리지 않는다.
+실행 명령은 각각 `node scripts/internal/verify_v410_recording_harness.test.mjs H03-R01`,
+`node scripts/internal/verify_v410_recording_harness.test.mjs H03-R02`다. 수정 후 같은 파일의
+`all`로 H01~H03 및 두 세부 항목을 실행한다. H01의 정상 두 번째 포트 fixture는 실제 성공
+계약의 전체 객체를 반환하도록 명시한다. 기존 실패 보존·후속 정리 검사는 줄이지 않는다.
+이어 `bash scripts/internal/verify_v410_recording_timeline.sh --red-http-baseline`의 I01
+HTTP 200 요구/actual 404 예상 RED와 실제 정상 종료·두 포트 ECONNREFUSED·root 부재를
+함께 확인한다. 환경·다른 회귀·cleanup 실패는 예상 RED로 바꾸지 않는다.
+I27·제품 구현·제품 build·인증·S03/S04/S05 회귀는 이번 좁은 범위에서 실행하지 않는다.
+token start/end/consumed는 작업별 계량 도구 부재로 미집계이며 elapsed와 source는 결과에 남긴다.
+
+#### 메인 회수 후 사전 지정 RED 결과
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| V410-S06-H03-R01 수정 전 RED | `node scripts/internal/verify_v410_recording_harness.test.mjs H03-R01`, exit 1. 실제 helper 반환값 undefined / 기대 `{closed:true,evidence:ECONNREFUSED}`의 deepStrictEqual assertion 실패 | fail |
+| V410-S06-H03-R02 수정 전 RED | `node scripts/internal/verify_v410_recording_harness.test.mjs H03-R02`, exit 1. undefined 반환 입력에서 `Missing expected rejection` assertion 실패 | fail |
+
+두 결과는 실행 전 지정한 assertion과 일치한다. 임시 파일·실제 socket·서버 프로세스를
+만들지 않은 결정적 회귀이며 환경 실패가 아니다. source는 메인 exec_command 직접 출력,
+Node.js v24.13.0이다. 실패 시 runner가 elapsed를 출력하지 않아 실제 elapsed는 미집계다.
+token start/end/consumed는 작업별 계량 도구 부재로 미집계다. 이 RED는 제품 PASS가 아니다.
+
+#### 메인 회수 후 GREEN과 동일 I01 focused 결과
+
+수정 위치는 `scripts/internal/verify_v410_recording_ui_contract.mjs`의 `assertPortClosed`
+반환문과 `cleanupHarnessResources`의 RTSP/HTTP 성공 조건이다. `{closed:true,
+evidence:ECONNREFUSED}`를 반환하고 소비자는 두 필드가 모두 확정되어야 성공 보고에
+반영한다. 증거가 누락되거나 불완전하면 해당 포트를 실패 집계에 넣고 나머지 정리는
+계속한다. `verify_v410_recording_harness.test.mjs`의 H03-R01/R02가 이 계약을 실제 helper로
+검사하며 기존 H01~H03 검사를 유지한다. timeout·제품 코드·영속 저장·권한·media 계약은
+변경하지 않았다. 메인이 변경 부분과 반환값→집계→출력 흐름을 직접 검토했다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| V410-S06-H01 유지 회귀 | `node scripts/internal/verify_v410_recording_harness.test.mjs all`의 H01, 4 checks, elapsed 1ms. 첫 오류 보존·후속 포트 확인·실제 root 삭제 유지 | pass |
+| V410-S06-H02 유지 회귀 | 같은 all 실행의 H02, 5 checks, elapsed 25ms. 실제 Node PID 4993 exit 0/signal null/graceful true, 강제 종료 및 이미 signal 종료된 child 거부 유지 | pass |
+| V410-S06-H03 유지 회귀 | 같은 all 실행의 H03, 3 checks, elapsed 0ms. EPERM·timeout 거부, ECONNREFUSED 수용 유지 | pass |
+| V410-S06-H03-R01 수정 후 GREEN | 같은 all 실행의 H03-R01, 3 checks, elapsed 1ms. 실제 closed helper 반환 객체와 두 포트의 최종 cleanup 증거 일치. 사전 지정 RED fail 뒤 pass | pass |
+| V410-S06-H03-R02 수정 후 GREEN | 같은 all 실행의 H03-R02, 25 checks, elapsed 0ms. 다섯 불완전 반환 각각 AggregateError·실패 2건·두 포트 확인·미확인 상태 보존. 사전 지정 RED fail 뒤 pass | pass |
+| S06 I01 정상 정리를 동반한 구현 전 RED | `bash scripts/internal/verify_v410_recording_timeline.sh --red-http-baseline`, exit 1, elapsed 2217ms. `/ops/api/recordings/status` expected HTTP 200/actual 404 assertion만 실패. 아래 cleanup은 pass여서 이번 실행은 사전 지정 RED로 인정하되 I01 제품 결과는 fail 유지 | fail |
+| S06 I01 실제 서버 정상 종료 | 같은 focused 실행의 PID 5098, exitCode 0/signalCode null/graceful true. 강제 종료 없음 | pass |
+| S06 I01 RTSP 포트 부재 | 같은 focused 실행의 56092, closed true/evidence ECONNREFUSED. 과거 closed false와 cleanup PASS 불일치 재발 없음 | pass |
+| S06 I01 HTTP 포트 부재 | 같은 focused 실행의 56093, closed true/evidence ECONNREFUSED. 과거 closed false와 cleanup PASS 불일치 재발 없음 | pass |
+| S06 I01 실제 격리 root 삭제 | 같은 focused 실행의 rootAbsent true, attempted 6/failureCount 0, cleanup elapsed 964ms. 메인의 두 테스트 root 동일 절대경로 부재 검사도 exit 0 | pass |
+
+all 실행은 exit 0/cases 5/checks 40/fail 0/elapsed 27ms다. 하위 항목을 추가한 것이므로
+제품 action 총계나 I26 제품 PASS를 늘리지 않는다. 실제 focused는 권한 승인 도구로 실행했고
+EPERM 및 포트 판정 불일치가 재발하지 않았다. 기존 두 실패 실행은 소급 PASS로 바꾸지 않는다.
+source: 메인 exec_command 직접 출력, Node.js v24.13.0, elapsed는 verifier 내부 Date.now다.
+token start/end/consumed는 작업별 계량 도구 부재로 미집계다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| `$TMPDIR/media-server-v410-s06-h01-XQdDpi` | H01 소유 파일/root | 107B, 2 entries | helper 및 test finally 삭제 | 부재 직접 확인 | H01 출력·메인 동일 절대경로 검사 |
+| `$TMPDIR/media-server-v410-s06-zAYUTX` | I01 격리 sample 복사본·state·GST cache | 1,866,907B, 300 entries | 서버 종료 후 root 삭제 | 부재 직접 확인 | 실제 cleanup 출력·메인 동일 절대경로 검사 |
+
+크기는 디렉터리를 포함한 lstat size 합계다. 실제 root의 symlink 277개는 대상을 추적하지
+않았고 원본 sample·설치 패키지는 변경하지 않았다. 삭제한 임시 데이터는 재실행 시 재생성
+가능하다. 필요한 값은 이 표에 보존했고 별도 raw media·로그·보고 파일은 보존하지 않았다.
+H03-R01/R02는 실제 파일·socket을 만들지 않았다.
+
+현재 완료 범위는 포트 반환·정리 판정 결함의 좁은 보완이다. I27·제품 구현·제품 build·
+인증·S03/S04/S05 회귀는 이번 체크포인트에서 미실행이다. 30분·120분·UI 풀테스트도
+미승인·미실행이며, S06 기능 완료·커밋 가능 판정·릴리즈 PASS로 확대하지 않는다.
+대화에 입력된 비밀번호는 파일·명령·환경변수·에이전트 전달에 사용하지 않았고 인증
+테스트도 실행하지 않았다. 커밋·푸시는 최신 명시 승인이 없어 수행하지 않았다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| S06 좁은 보완 문서 공백 검사 | `git diff --check`, exit 0/출력 없음. 제품·UI 검증이 아닌 변경 공백 검사 | pass |
+| S06 좁은 보완 문서 링크 검사 | `./server.sh verify-docs-links`, exit 0, markdown 225/local links 1040/images 22/anchors 101/indexed docs 76/exclusions 141/failures 0 | pass |
+
+문서 검사의 source는 메인 exec_command 직접 출력이다. elapsed는 별도 실측하지 않았고,
+도구의 마이크로초 단위 값은 실행 소요 시간 근거로 사용하지 않는다. token start/end/consumed는
+작업별 계량 도구 부재로 미집계다. 두 문서 명령은 별도 임시 산출물을 만들지 않았다.
+
+### 테스트 초안 직접 검토 — 재개 전 보완 대상
+
+`scripts/internal/verify_v410_recording_timeline.sh`와
+`scripts/internal/verify_v410_recording_ui_contract.mjs`는 실행 가능한 완료 verifier가 아닌 초안이다.
+아래는 실제 포트 실패의 원인과 별개인 정적 검토 결과이며, 중단 후 코드를 수정하거나 재검증하지 않았다.
+
+| 위치 | 직접 확인한 결함 | 재개 시 완료 조건 |
+| --- | --- | --- |
+| UI verifier의 RED 분기 | 404·신규 selector 부재를 성공 assertion으로 처리한다. 사전 등록한 기능 요구 assertion 실패와 다름 | HTTP 200·필수 control 존재라는 기능 요구가 미구현 때문에 실패하는 실제 RED를 확인 |
+| root 생성·port 예약·finally | port 예약이 try 바깥이고 정리 중 앞선 오류가 뒤 root 삭제를 건너뛸 수 있음 | 초기화 실패·각 정리 실패에도 나머지 정리를 시도하고 실패를 보존 |
+| stopServer·assertPortClosed | SIGKILL 사용, 연결 timeout·임의 error가 정상 정리 성공으로 처리될 수 있음 | 강제 종료와 확인 불가를 PASS로 처리하지 않고 정상 종료·port 부재를 별도 입증 |
+| UI verifier full 결과 출력 | 일부 HTML 문자열 확인만으로 I27~I34 전체 PASS를 출력하며 I32·I34 등의 개별 oracle 누락 | 실제 검사한 ID만 결과를 출력하고 미검증 항목·실제 UI 실행을 분리 |
+| input/sample.mp4 준비 | 실제 MP4 대신 텍스트를 기록함 | 유효한 기존 미디어 fixture 또는 미디어가 필요 없는 명시적 격리 기동 조건 사용 |
+
+### 미실행/제외
+
+| 제목 | 수행내용 | 사유·완료 evidence 경계 |
+| --- | --- | --- |
+| V410-S06-I27 두 번째 RED | HTTP /ops/events 신규 control 요구 assertion | 첫 환경 실패 뒤 건너뜀. PASS 근거 아님 |
+| V410-S06-I01~I34 GREEN | 새 조회·전송·UI 기능 개별 검증 | 제품 구현 미착수·첫 실패 뒤 건너뜀. PASS 근거 아님 |
+| S03/S04/S05 관련 회귀 | catalog·retention·event 연결 focused 검증 | 첫 실패 뒤 건너뜀. 기존 S05 증적을 이번 변경 PASS로 대체하지 않음 |
+| 제품 빌드 | ./server.sh build | 첫 실패 뒤 건너뜀 |
+| 인증 bootstrap | ./server.sh verify-auth-bootstrap | 첫 실패 뒤 건너뜀, 인증용 환경변수 미설정 |
+| 인증 사용자 | ./server.sh verify-auth-users | 첫 실패 뒤 건너뜀, 인증용 환경변수 미설정 |
+| 인증 route | ./server.sh verify-auth-routes | 첫 실패 뒤 건너뜀, 인증용 환경변수 미설정 |
+| Ops/Client 정적 UI | ./server.sh verify-ops-client-ui | 첫 실패 뒤 건너뜀 |
+| Ops/Client screenshot 보조 | ./server.sh verify-ops-client-ui --screenshots | 첫 실패 뒤 건너뜀, UI 풀테스트 대체 아님 |
+| Rule UI 회귀 | ./server.sh verify-rule-ui | 첫 실패 뒤 건너뜀 |
+| 30분 테스트 | verify-predev --soak-minutes 30 | 별도 승인 없음·미실행, 버전 종료 필수 blocker 유지 |
+| 120분 테스트 | 승인된 120분 명령 | 별도 승인 없음·미실행, 기존 판정 유지 |
+| UI 풀테스트 | S06 실제 control·재생·시각·role 확인 | 별도 승인 없음·미실행, 버전 종료 필수 blocker 유지 |
+
+### 임시 산출물 정리
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| `$TMPDIR/media-server-v410-s06-p91I3d` (이번 실행의 격리 root 식별자이며 최종 증거 링크 아님) | 서버 시작 전 생성한 빈 디렉터리 | 0B | 담당자가 exact 경로 rmdir | 삭제 완료, 메인이 동일 절대경로 부재 확인 | 담당자 크기·rmdir·test exit 0, 메인 존재 여부 검사 exit 0 |
+
+제품 코드·CMake·server.sh는 변경하지 않았다. 사전 등록 문서 5개와 미완성 verifier 초안 2개만
+미커밋 상태로 보존한다. 재개 시 초안 판정·정리 경계를 먼저 보완하고 허용된 실행 환경에서
+동일 focused 요구를 확인해야 한다. S06 완료·커밋 가능·푸시 가능 상태가 아니다.
+
 ## v4.1.0 S05 실제 nohup·launchd 종료 보완과 SSIM 분류 (2026-09-05)
 
 사용자 승인 범위는 S06 전에 실제 `nohup`/`launchd`의 녹화·이벤트 연결·재시작·정상

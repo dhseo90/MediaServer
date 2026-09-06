@@ -167,7 +167,7 @@ major 변경이 확인될 때만 별도로 설계한다. 현재 목표를 이유
 | 3 | V410-S03 | P0 | SQLite 메타데이터 카탈로그와 append-only JSONL 복구 저널, SQLite 미사용 fallback |
 | 4 | V410-S04 | P0 | 완료: 상시/이벤트 용량·기간 분리, oldest-first 순환 삭제, pin·hold·tombstone, 채널별 pending 복구, dirfd 결박 unlink/truncate, 실제 쓰기량 정산, 채널 간 in-flight disk reserve·writer admission, 내구 cleanup 마커 재시작 복구 |
 | 5 | V410-S05 | P0 | 구현 완료·실제 foreground/nohup/launchd PASS: finalized 원본 연결, 명시적 PTS/UTC 시간축, 비동기 H.264/MP4→MPEG-TS remux, 실측 범위, fallback, quota·hold, UUID v2 partial·재시작 복구. 종료 시 미래 post-event frame 대기만 취소하고 접수 EventRecord를 drain한다. 개별 ID 27개·check 92개, 등록기 35·C++ 140·application 7·runtime 23·mutation 2·계약 45·build 통과. 정식 payload 판독 12/0, foreground 22/0, 실제 nohup/launchd 각 29/0 통과 |
-| 6 | V410-S06 | P0 | event > continuous 우선 조회·재생 계약, timeline API와 Ops UI 표출 |
+| 6 | V410-S06 | P0 | 포트 정리 판정 보완 확인·제품 구현 미착수: event > continuous 우선 조회·재생 계약, timeline API와 Ops UI 표출 예정. 개별 ID 34개 사전 등록. EPERM·정리 판정 실패 이력 보존. 추가 승인 뒤 반환·미확인 PASS 차단을 보완해 내부 5개·40검사와 실제 I01 HTTP 404 예상 RED·정상 정리를 확인. I27·제품 구현 미실행이며 제품 PASS 아님. 상세는 release-test-records의 S06 절 |
 | 7 | V410-S07 | P1 | event/track 경계·요약과 설정 주기 대표 관측 저장, 정확한 frame seek 기반 |
 | 8 | V410-S08 | P0 | crash/disk-full/corrupt catalog/gap/migration/호환성 검증과 문서·evidence 연결 |
 | 9 | V410-S09 | P0 | 사용자 승인 범위의 안정화·UI·장시간 녹화·release readiness 판정 |

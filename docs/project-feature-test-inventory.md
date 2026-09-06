@@ -26,7 +26,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 ## Summary
 
 아래 요약은 역사적 canonical 986개 ID의 고정 집합이다. S05와 GStreamer 환경 신규 등록은 별도 고정 ID로
-관리하며 이 집합이나 historical UI 424개를 재번호화하지 않는다.
+관리하며 이 집합이나 historical UI 424개를 재번호화하지 않는다. S06 신규 34개도 별도 등록한다.
 
 | 항목 | 수 |
 | --- | ---: |
@@ -46,7 +46,8 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | S05 개별 action ID | 27 |
 | GStreamer 환경 개별 action ID | 13 |
 | 녹화 ID 매핑 개별 action ID | 13 |
-| 현재 등록 총계 | 1039 |
+| S06 개별 action ID | 34 |
+| 현재 등록 총계 | 1073 |
 
 이는 등록 합계이지 전 제품 발견·실행 완료 선언이 아니다. S01~S04의 신규 등록 정합성은
 이번 S05 보정에서 전수 감사하지 않았다.
@@ -57,6 +58,57 @@ S05 등록기의 변형 단위 시험은 가변적인 현재 총계나 다른 �
 `release-test-records.md`의 INV-BASE/EXTEND/MULTI/MULTI-WRONG/NEGATIVE에 실행 전 등록했다.
 안정화 영역 대상이고 30분·120분·UI는 이 단위 시험 자체에는 비대상이다.
 제품 ID 매핑 보완의 기존 장시간 테스트 판정은 별개로 유지한다.
+
+## V410-S06 개별 동작 등록
+
+2026-09-06 S06 구현·테스트 실행 전에 등록한 34개 고정 ID다. 아래는 기능 정의이며
+구현·실행 완료 evidence가 아니다. 실제 명령·개별 결과·RED 이력·미실행은
+`release-test-records.md`의 S06 절에 기록한다. UI contract 자동 검사는 브라우저
+재생·시각 검수·UI 풀테스트를 대체하지 않는다. 기존 canonical/S05/ENV/IDMAP ID는 유지한다.
+
+검증 도구 자체의 정리 실패 보존·강제 종료 거부·포트 부재 판정은 내부 보조 항목
+`V410-S06-H01~H03`으로 release-test-records에 실행 전에 등록한다. 안정화 내부 harness
+회귀이며 제품 action 총계에는 추가하지 않는다. 30분·120분·UI는 이 도구 동작 자체에는
+비대상이고, 제품 I01~I34의 기존 네 영역 판정을 변경하거나 제품 PASS를 대체하지 않는다.
+H03의 반환 객체 전달·미확인 성공 거부는 같은 내부 항목의 H03-R01/R02로 세분화한다.
+실행 전 정의와 실제 결과는 release-test-records에 보존하며 제품 action 총계는 유지한다.
+
+| 기능 ID | 개별 동작 | 구현 경계 | PASS 출력/판정 | 안정화 테스트 | 30분 테스트 | 120분 테스트 | UI 테스트·UI 존재 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| V410-S06-I01 | 녹화 상태 조회 | status API (S06 구현 예정) | 전역 opt-in·catalog degraded·채널 상태를 실제 서비스 값으로 반환 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I02 | 상태 조회 범위 제한 | status API 권한 투영 (S06 구현 예정) | 허용 채널만 반환하고 내부 경로·source URL·진단 원문을 숨김 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I03 | 채널·UTC 반개구간 조회 | timeline read service (S06 구현 예정) | 지정 채널의 [start,end) 교집합만 반환하고 인접 경계와 다른 채널을 제외 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I04 | 잘못된 조회 인자 거부 | timeline API validation (S06 구현 예정) | 누락·음수·overflow·역전 시간·잘못된 offset/limit을 거부 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I05 | 안정 정렬과 페이지 | timeline read service (S06 구현 예정) | startTimeMs DESC, displayPriority DESC, segmentId ASC 정렬 후 offset/limit 적용 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I06 | 이벤트 우선 표시 계약 | timeline read service (S06 구현 예정) | 같은 시간의 event 200과 continuous 100을 반환하고 event 우선 순서를 유지 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I07 | 원본과 이벤트 교차 참조 | timeline read service (S06 구현 예정) | 겹치는 정확한 event ID만 supersededByEventIds에 중복 없이 반환 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I08 | 미완성·삭제 lifecycle 거부 | timeline/media read service (S06 구현 예정) | writing·corrupt·deletion_pending·deleted는 재생 허용하지 않음 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I09 | 누락·비정상 미디어 거부 | media resolver (S06 구현 예정) | 파일 없음·비일반 파일·크기 불일치를 정상 playable로 반환하지 않음 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I10 | 파생 이벤트 범위·완전성 | event read model (S06 구현 예정) | 요청 범위와 실제 파생 범위를 혼동하지 않고 partial/complete 상태 보존 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I11 | fallback과 파생 우선순위 | event read model/media resolver (S06 구현 예정) | 완료 derived 우선, fallback은 내구 참조와 허용 root 확인 후 사용하며 불가 사유 표출 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I12 | 관리자 녹화 접근 | 녹화 API role/scope guard (S06 구현 예정) | admin의 허용 범위 status/timeline/media 요청을 허용 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I13 | 운영자 녹화 접근 | 녹화 API role/scope guard (S06 구현 예정) | operator의 허용 범위 status/timeline/media 요청을 허용 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I14 | viewer 녹화 접근 거부 | 녹화 API role guard (S06 구현 예정) | viewer의 세 endpoint 접근을 거부 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I15 | 미인증 녹화 접근 거부 | 녹화 API auth guard (S06 구현 예정) | 미인증 요청에 제품 auth 정책을 적용하고 미디어 byte를 전송하지 않음 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I16 | 채널 scope 없는 접근 거부 | 녹화 API scope guard (S06 구현 예정) | 조회 및 opaque ID 직접 접근으로 채널 scope를 우회할 수 없음 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I17 | opaque ID와 path 입력 거부 | media endpoint (S06 구현 예정) | 미등록 ID·절대경로·..·인코딩 traversal을 거부하고 파일 경로를 JSON에 넣지 않음 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I18 | symlink 경로 탈출 거부 | media resolver (S06 구현 예정) | root·중간 경로·leaf symlink 탈출을 거부 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I19 | 검사 이후 파일 교체 방어 | fd-bound media read (S06 구현 예정) | 열린 일반 파일 fd에 전송을 결박하고 경로 교체가 다른 파일 전송으로 이어지지 않음 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 대상: 전송·lease lifecycle, 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I20 | 닫힌 byte Range | HTTP direct sender (S06 구현 예정) | bytes=시작-끝 요청에 206·Content-Range·Accept-Ranges·정확한 byte 반환 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I21 | 열린·suffix byte Range | HTTP direct sender (S06 구현 예정) | bytes=시작- 및 bytes=-길이에 파일 크기 경계를 적용해 정확한 byte 반환 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I22 | 비정상 byte Range | HTTP direct sender (S06 구현 예정) | 잘못된 범위·overflow·파일 끝 초과·지원하지 않는 다중 범위를 일관되게 거부 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I23 | HEAD 미디어 응답 | HTTP direct sender (S06 구현 예정) | GET과 맞는 길이·형식·Range header를 반환하되 body는 전송하지 않음 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I24 | 대용량 bounded 전송 | HTTP direct sender (S06 구현 예정) | 전체 파일을 HttpResponse body에 넣지 않고 최대 256KiB 읽기로 전송 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 대상: 전송·lease lifecycle, 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I25 | 재생 lease와 순환 삭제 | catalog lease/retention (S06 구현 예정) | 삭제 요청과 원자적으로 lease를 취득하고 전송 중 삭제를 차단, 해제 후 허용 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 대상: 전송·lease lifecycle, 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I26 | 전송 오류·연결 종료 정리 | HTTP sender/lease lifecycle (S06 구현 예정) | 실패·disconnect·정상 종료에서 fd와 lease가 누수되지 않음 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 대상: 전송·lease lifecycle, 별도 승인 | 비대상: UI 없어야 정상 |
+| V410-S06-I27 | 채널·시간 필터 조작 | /ops/events 녹화 필터 (S06 구현 예정) | 선택·입력·조회 후 요청 범위에 맞는 목록과 빈 결과 상태 반영 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 대상: /ops/events 실제 브라우저, 별도 승인 |
+| V410-S06-I28 | 이벤트 기본 선택 | /ops/events timeline (S06 구현 예정) | event badge·종류·시간을 표시하고 겹치는 이벤트를 기본 재생 대상으로 선택 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 대상: /ops/events 실제 브라우저, 별도 승인 |
+| V410-S06-I29 | 상시녹화 원본 보기 | /ops/events 원본 보기 (S06 구현 예정) | continuous 원본 펼침·선택이 해당 미디어로 연결되고 event 원본 관계 보존 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 대상: /ops/events 실제 브라우저, 별도 승인 |
+| V410-S06-I30 | 녹화 영상 재생 컨트롤 | /ops/events video (S06 구현 예정) | controls/preload=metadata, 선택 영상·Range 재생 반영; 실제 codec/container 재생은 브라우저 확인 필요 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 대상: /ops/events 실제 브라우저, 별도 승인 |
+| V410-S06-I31 | 비재생·불완전 상태 UI | /ops/events status (S06 구현 예정) | 삭제·손상·작성 중·공백·partial·오류 상태를 구분하고 불가 항목 재생 차단 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 대상: /ops/events 실제 브라우저, 별도 승인 |
+| V410-S06-I32 | 용량·녹화 상태 UI | /ops/events status card (S06 구현 예정) | continuous/event quota와 storage-blocked 상태를 실제 조회 값으로 표시 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 대상: /ops/events 실제 브라우저, 별도 승인 |
+| V410-S06-I33 | S06 화면 범위 유지 | /ops/events navigation (S06 구현 예정) | 새 primary nav·자연어/vector 검색 입력을 추가하지 않고 기존 테마·배치 유지 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 대상: /ops/events 실제 브라우저, 별도 승인 |
+| V410-S06-I34 | 화면 권한·정보 비노출 | /ops/events role/redaction (S06 구현 예정) | viewer 접근 제한, 내부 경로·source URL·raw debug 미노출, responsive/theme 상태 확인 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 대상: /ops/events 실제 브라우저, 별도 승인 |
 
 ## V410-IDMAP 개별 동작 등록
 
