@@ -14,7 +14,7 @@
 
 namespace {
 // 실제 HTTP Range byte 대조용: 제품 journal API로 생성하며 원본 sample을 복사한다.
-int SeedHttp(const std::filesystem::path& root, const std::filesystem::path& input) {
+int SeedHttp(const std::filesystem::path& root, const std::filesystem::path& input, bool ui = false) {
     std::filesystem::create_directories(root / "channel-1");
     recording::RecordingJournal journal(root / "recording-mutations.jsonl");
     recording::RecordingCatalog catalog(journal, {root / "recording-catalog.sqlite3", root, true});
@@ -44,12 +44,49 @@ int SeedHttp(const std::filesystem::path& root, const std::filesystem::path& inp
     link.ordered_overlaps = {{"http-continuous", {2000, 8000}}}; link.derived_segment_id = "http-event";
     link.status = recording::EventRecordingLinkStatus::Complete;
     link.created_at_ms = 10000; link.updated_at_ms = 10000;
-    return catalog.PutEventLink(link, &error) ? 0 : 2;
+    if (!catalog.PutEventLink(link, &error)) return 2;
+    if (ui) {
+        const auto baseline = catalog.FindSegmentById("http-continuous");
+        if (!baseline) return 2;
+        for (int index = 0; index < 101; ++index) {
+            auto extra = *baseline;
+            extra.segment_id = index == 0 ? "ui-partial" : index == 1 ? "ui-short-source" : "ui-page-" + std::to_string(index);
+            extra.retention_class = index == 0 ? recording::RecordingRetentionClass::Event : recording::RecordingRetentionClass::Continuous;
+            if (index == 1) extra.end = {4000, 3000000000, 1, 1000000000};
+            const auto target = root / "channel-1" / (extra.segment_id + ".mp4");
+            std::filesystem::copy_file(input, target);
+            if (!catalog.FinalizeSegment(extra, target.string(), &error)) {
+                std::cerr << "UI segment fixture 실패: " << error << '\n'; return 2;
+            }
+        }
+        auto partial = link;
+        partial.link_id = "ui-partial-link"; partial.event_id = "ui-partial-event";
+        partial.derived_segment_id = "ui-partial";
+        partial.status = recording::EventRecordingLinkStatus::Partial;
+        partial.ordered_overlaps = {{"ui-short-source", {2000, 4000}}};
+        partial.missing_ranges = {{4000, 8000}};
+        if (!catalog.PutEventLink(partial, &error)) {
+            std::cerr << "UI partial fixture 실패: " << error << '\n'; return 2;
+        }
+        recording::EventRecordingLinkV1 missing;
+        missing.link_id = "ui-missing-link"; missing.event_id = "ui-missing-event";
+        missing.source_id = "1"; missing.channel_id = "1";
+        missing.requested_range = recording::UtcRangeV1{2000, 8000};
+        missing.time_basis = "utc-ms"; missing.status = recording::EventRecordingLinkStatus::Failed;
+        missing.fallback_evidence_id = "ui-missing";
+        missing.fallback_media_locator = (root.parent_path() / "events/clips/ui-missing.json").string();
+        missing.created_at_ms = 10000; missing.updated_at_ms = 10000;
+        if (!catalog.PutEventLink(missing, &error)) {
+            std::cerr << "UI missing fixture 실패: " << error << '\n'; return 2;
+        }
+    }
+    return 0;
 }
 }  // namespace
 
 int main(int argc, char** argv) {
-    if (argc == 4 && std::string(argv[2]) == "--seed-http") return SeedHttp(argv[1], argv[3]);
+    if (argc == 4 && (std::string(argv[2]) == "--seed-http" || std::string(argv[2]) == "--seed-ui"))
+        return SeedHttp(argv[1], argv[3], std::string(argv[2]) == "--seed-ui");
     if (argc != 2 && argc != 3) return 2;
     const bool sqlite = argc == 3 && std::string(argv[2]) == "--sqlite";
     const std::filesystem::path root(argv[1]);

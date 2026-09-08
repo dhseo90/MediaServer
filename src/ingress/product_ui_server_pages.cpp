@@ -1549,6 +1549,28 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <p id="eventExportPolicyText">증거 export와 삭제 권한을 확인합니다.</p>
         </section>
       </div>
+      <section class="section-card ops-workspace-wide ops-recording-timeline" data-testid="ops-recording-timeline">
+        <h3>녹화 타임라인</h3>
+        <div id="opsRecordingStatusBadges" class="badge-row"><span class="chip">상태 확인 중</span></div>
+        <p id="opsRecordingStatusText" role="status">녹화 상태를 불러오는 중입니다.</p>
+        <form id="opsRecordingFilterForm" class="actions ops-recording-filters">
+          <label>채널<select id="opsRecordingChannelFilter" required><option value="">채널 선택</option></select></label>
+          <label>시작 시간 (브라우저 현지 시간)<input id="opsRecordingStartTime" type="datetime-local" required /></label>
+          <label>종료 시간 (브라우저 현지 시간)<input id="opsRecordingEndTime" type="datetime-local" required /></label>
+          <button id="opsRecordingLoad" type="submit">조회</button>
+        </form>
+        <label class="ops-recording-original"><input id="opsRecordingOriginalView" type="checkbox" /> 이벤트와 겹치는 상시녹화 원본 보기</label>
+        <p id="opsRecordingListStatus" role="status">채널과 시간 범위를 선택하세요.</p>
+        <div id="opsRecordingTimelineRows" class="ops-recording-rows" aria-label="녹화 구간"></div>
+        <div class="actions">
+          <button id="opsRecordingPrevious" type="button" class="button-secondary" disabled>이전</button>
+          <button id="opsRecordingNext" type="button" class="button-secondary" disabled>다음</button>
+        </div>
+        <div class="badge-row"><span id="opsRecordingKindBadge" class="chip">선택 없음</span><span id="opsRecordingCompleteness" class="chip">구간 미선택</span></div>
+        <video id="opsRecordingPlayer" controls preload="metadata" playsinline aria-label="선택한 녹화영상"></video>
+        <p id="opsRecordingPlaybackSupport" role="status">브라우저의 형식·코덱 지원에 따라 재생이 제한될 수 있습니다.</p>
+        <p id="opsRecordingPlaybackStatus" role="status">재생할 구간을 선택하세요.</p>
+      </section>
       <section class="section-card ops-workspace-wide incident-memory-search" data-testid="ops-events-semantic-search" data-incident-memory-search="local-index">
         <div class="toolbar">
           <div>

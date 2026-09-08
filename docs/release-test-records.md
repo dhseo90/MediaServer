@@ -1,5 +1,66 @@
 # Release Test Records
 
+## S06 잔여 3번: 실제 화면 검증 결과 (2026-09-08)
+
+최신 사용자가 3~5번 범위의 실패를 수정하고 계속하도록 승인했다. 앞선 seed 실패를 보존하고,
+부분 원본 ui-short-source의 실제 종료를4000ms로 구성해 정확한 overlap2000~4000ms,
+missing4000~8000ms를 등록했다. catalog 계약은 변경하지 않았다.
+product_ui_server_pages.cpp의 녹화 타임라인 section과 product_ui_page_scripts.cpp의
+조회·원본 전환·선택·재생·상태 처리, --seed-ui 전용 fixture를 이 단계에서 반영한다.
+스크립트 정적 검사는 실제 UI를 대체하지 않는다. 6번 전체 문서 종료는 미진행이다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | S06 UI와 fixture 변경 | I27~I34 | 3~5번 승인 |
+| UI 풀테스트 | 진행 대상 | S06 대상 직접 UI 범위만 실행 | I27~I34 | 3번 승인, 버전 전체 아님 |
+| 30분 테스트 | 미진행 | 이번 단계 실행 범위 밖 | AGENTS 7.7 | 승인 없음 |
+| 120분 테스트 | 미진행 | 이번 단계 실행 범위 밖 | AGENTS 7.7 | 승인 없음 |
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| UI fixture | --ui-direct seed 성공, 실제 서버 기동 | pass | 최초 seed exit2 뒤 수정·재실행 성공, 제품 계약 유지 |
+| 시간 조회 | 현지1970-01-01 09:00~09:01 입력·조회,104개 중99개 표시 | pass | 실제 UI, 초기 최근1시간 빈 결과와 구분 |
+| 이벤트 우선 | normal event 기본 선택, media/http-event 및 이벤트 우선 badge | pass | missing event는 기본 선택 제외 |
+| 영상 재생 | Space 실제 조작, paused=false/currentTime6.76277/duration10,1280x720 영상 표시 | pass | 직접 화면의 동영상/네이티브 controls 확인 |
+| 일시정지 | Space 재조작 paused=true/time8.49119 | pass | 재생 전후 상태 대조 |
+| 탐색 | ArrowLeft 실제 조작 time8.49119→8.39119 | pass | DOM 읽기만으로 관찰, play/seek 호출 위조 없음 |
+| 원본 전환 | 원본 checkbox 선택,99→100개 표시 | pass | 실제 change/render |
+| 부분 구간 | 일부 구간 event 클릭, badge 일부 구간/src media/ui-partial | pass | 실제 link partial fixture |
+| 파일 누락 | 재생 불가 event 클릭,src=null/삭제·미완성·파일 누락 안내 | pass | 존재하지 않는 fallback manifest |
+| 다음 페이지 | 다음 클릭101~104번째4개 표시 | pass |104개 실제 catalog |
+| 이전 페이지 | 이전 클릭1~100번째100개 표시 | pass | 실제 버튼 |
+| 빈 채널 | channel2 선택·조회,해당 시간 녹화 없음 | pass | src 해제 |
+| 잘못된 시간 | 시작09:02/종료09:01 조회,올바른 시간 안내 | pass | 역전 범위 |
+| 상태·용량 | 채널1 녹화중아님/상시13705094·이벤트271388 bytes,채널2 0bytes | pass | storageBlocked=true/실제 recorder 활성은 이 UI fixture 비대상 |
+| 320 dark | 전체 날짜·checkbox·빈 상태·버튼 직접 화면 확인 | pass | 잘림 없음 |
+| 320 light | theme 버튼 전환 후 같은 controls 확인 | pass | 대비·focus 확인 |
+| 390 light | viewport 변경 후 controls 확인 | pass | 잘림 없음 |
+| 390 dark | theme 전환 후 controls 확인 | pass | 잘림 없음 |
+| 760 dark | viewport 변경 후 controls 확인 | pass | 잘림 없음 |
+| 760 light | theme 전환 후 controls 확인 | pass | 잘림 없음 |
+| 1180 light | 채널·날짜 가로 배치·원본 checkbox 확인 | pass | 잘림 없음 |
+| 1180 dark | theme 전환 후 controls·전체 video viewport 확인 | pass | 직접 영상 표시, control 보존 |
+| 콘솔 | 실제 브라우저 error/warn 로그 조회 [] | pass | 서버 종료 전 |
+| 서버 중단 | 종료 뒤 조회,권한·서버 상태 확인 오류 안내 | pass | 의도한 연결 실패, PASS로 오류 은폐 안 함 |
+| 정적 계약 | node scripts/internal/verify_v410_recording_ui_contract.mjs exit0,8/0 | pass | UI 행동 미검증 한계 출력 유지 |
+| 변경 공백 | git diff --check exit0 | pass | 커밋 전 확인 |
+
+초기 UI 도구에서 존재하지 않는 selector와 렌더 후 분리된 AX node를 조회한 두 번의 도구
+실패는 제품 실패가 아니다. 실제 DOM에서 selector/버튼 이름을 다시 확인한 뒤 조작했다.
+UI evidence mode는 direct-browser이며 위 개별 조작만 완료다. role/scope는 기존 HTTP auth37
+증거와 구분하며 버전 전체 UI PASS/30분/120분 PASS를 선언하지 않는다.
+메인 회수 유지(Codex 사용자 설정 유지,2/1/2/1=6,자동 상향 없음).
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| read root YFQMFu | UI seed 컴파일 |1636 KiB | 삭제 | 부재 | wrapper PASS |
+| HTTP root NcbfgC | UI용 영상/catalog/서버 |16299864 bytes | 삭제 | PID36355 exit0,53027/53028 거부,rootAbsent | cleanup6/failure0,369ms |
+| HTTP root MCpukZ | 정적 계약 서버 |1866907 bytes | 삭제 | PID36591 exit0,53244/53245 거부,rootAbsent | cleanup6/failure0,995ms |
+| CUA tab3 | 검증 브라우저 | 해당 없음 | 닫기 | viewport reset·dark 복구 후 닫음 | 실제 CUA 결과 |
+
+token start/end/consumed 미집계(활성 goal 없음), elapsed UI434749ms/static2255ms,
+source 실제 명령·CUA 출력. 스크린샷은 대화에서 직접 검수했으며 저장소 PNG 보존을 주장하지 않는다.
+
 ## S06 잔여 2번: 전송·삭제·종료 경계 확인 (2026-09-08)
 
 승인된 2번 구현·검증을 마쳤다. 이 커밋은 기존 미커밋 S06 read service/application DTO,

@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MODE="${1:-}"
 
 case "$MODE" in
-  --read-model|--seed-http)
+  --read-model|--seed-http|--seed-ui)
     # 부분 검증 모드다. HTTP/인증/Range/UI 전체 PASS를 의미하지 않는다.
     ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
     RUN_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/media-server-s06-read.XXXXXX")"
@@ -41,8 +41,8 @@ case "$MODE" in
       "$ROOT_DIR/src/recording/recording_contracts.cpp" \
       "$ROOT_DIR/src/domain/strict_json.cpp" \
       ${SQLITE_LIBS[*]-} -o "$RUN_ROOT/read-smoke"
-    if [[ "$MODE" == "--seed-http" ]]; then
-      "$RUN_ROOT/read-smoke" "$2" --seed-http "$3"
+    if [[ "$MODE" == "--seed-http" || "$MODE" == "--seed-ui" ]]; then
+      "$RUN_ROOT/read-smoke" "$2" "$MODE" "$3"
     else
       "$RUN_ROOT/read-smoke" "$RUN_ROOT/fixture"
       "$RUN_ROOT/read-smoke" "$RUN_ROOT/sqlite-fixture" --sqlite

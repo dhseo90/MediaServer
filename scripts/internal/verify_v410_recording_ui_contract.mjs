@@ -572,7 +572,7 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
     fs.writeFileSync(path.join(root, "data/sources.json"), JSON.stringify({ sources }));
     fs.writeFileSync(path.join(root, "data/views.json"), JSON.stringify({ views: [] }));
     if (mode === '--http-api' || mode === '--http-auth' || mode === '--ui-direct' || mode === '--http-lifecycle') {
-      execFileSync('bash', [path.join(repo, 'scripts/internal/verify_v410_recording_timeline.sh'), '--seed-http', path.join(root, 'recordings'), fixture], { cwd: repo, stdio: 'inherit' });
+      execFileSync('bash', [path.join(repo, 'scripts/internal/verify_v410_recording_timeline.sh'), mode === '--ui-direct' ? '--seed-ui' : '--seed-http', path.join(root, 'recordings'), fixture], { cwd: repo, stdio: 'inherit' });
     }
     rtspPort = await reservePort();
     httpPort = await reservePort();
