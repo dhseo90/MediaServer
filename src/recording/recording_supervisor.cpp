@@ -26,6 +26,12 @@ RecordingSupervisor::RecordingSupervisor(const core::RecordingRuntimeConfigData&
 RecordingSupervisor::~RecordingSupervisor() { Stop(); }
 
 bool RecordingSupervisor::Start(std::string* error) {
+    // 녹화 opt-out은 registry 읽기 실패를 서버 전체의 시작 실패로 전파하지 않는다.
+    // 기존 운영 API가 손상 registry를 500으로 거부하고 원본을 보존할 수 있어야 한다.
+    if (!config_.recording_enabled) {
+        if (error != nullptr) error->clear();
+        return true;
+    }
     {
         std::lock_guard lock(wait_mu_);
         if (running_) return true;

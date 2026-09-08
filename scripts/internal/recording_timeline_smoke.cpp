@@ -287,6 +287,23 @@ int main(int argc, char** argv) {
     expect(!reader.ResolveMedia("1", "fallback-one"), "I17 다른 채널 fallback ID 충돌도 거부");
     expect(reader.QueryTimeline({"1", 1000, 2000}, &result, &error) && result.total == 1,
            "I03 기존 숫자형 channel ID 유지");
+    recording::RecordingTombstoneV1 tombstone;
+    tombstone.tombstone_id = "collision-tombstone";
+    tombstone.segment_id = collision.segment_id;
+    tombstone.source_id = collision.source_id;
+    tombstone.channel_id = collision.channel_id;
+    tombstone.recorded_range = {collision.start.utc_ms, collision.end.utc_ms};
+    tombstone.checksum_sha256 = collision.checksum_sha256;
+    tombstone.retention_class = collision.retention_class;
+    tombstone.deletion_reason = "quota";
+    tombstone.deleted_at_ms = 3000;
+    if (!catalog.RequestDeletion(collision.segment_id, "quota", &error) ||
+        !catalog.CompleteDeletion(tombstone, &error)) {
+        std::cerr << "fixture 실패: " << error << '\n'; return 2;
+    }
+    { std::ofstream out(fallback_video); out << "webm-fixture"; }
+    expect(!reader.ResolveMedia("channel-one", "fallback-one"),
+           "I08/I17 삭제 완료 ID의 fallback 재사용 거부");
     const auto range = ingress::ParseRecordingByteRange("bytes=2-5", 12);
     expect(range && range->partial && range->first == 2 && range->length == 4,
            "I20 closed Range 시작과 길이");

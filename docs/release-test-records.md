@@ -1,5 +1,334 @@
 # Release Test Records
 
+## S06 잔여 5번: 최종 회귀 및 변경 검토 결과 (2026-09-08)
+
+독자·보존 주기: S06 개발 담당자의 단계별 실행 증적. 작업 규칙은 AGENTS.md, 이 절은 실제 결과만 보존한다.
+범위: 승인된 잔여 3~5번 중 5번. 6번 전체 문서 정합성 마감, 푸시, S07은 진행하지 않았다.
+
+### 구현과 실패 이력
+
+- `RecordingCatalog::IsDeletedSegmentId`와 `RecordingReadService::ResolveMedia`에서 tombstone/Deleted ID의 fallback 재사용을 거부한다. segment 스냅샷 뒤 tombstone을 확인한다. 공개 schema·payload·저장 형식은 변경하지 않았다.
+- `recording_timeline_smoke.cpp`의 I08/I17 사전 등록 assertion은 JSONL에서 예상 RED 1건(기존 75건 통과)을 확인했다. SQLite는 당시 fail-fast로 미실행했다. 보완 후 최종 JSONL/SQLite 각각 76건 통과했다.
+- 최초 인증 회귀는 bootstrap/users 통과 후 routes의 malformed source registry 재시작에서 실패했다. 녹화 global off인데 supervisor가 registry Snapshot 오류를 서버 시작 실패로 전파한 것이 원인이었다.
+- `RecordingSupervisor::Start`는 녹화 global off에서 시작 작업을 생략한다. global on의 엄격한 registry 확인은 유지한다. 수정 후 routes 전체와 최종 인증 3개 명령 모두 통과했다. 손상 registry API 500·원본 보존을 실제 확인했다.
+- UI 회귀 첫 실행은 격리 환경의 Lab 비활성 때문에 Rules 기능을 검증할 수 없었다. 제품 설정 대신 `--ui-direct` 전용 환경에 Lab 활성화를 추가하고 새 객체로 구성한 뒤 재실행했다. auth 모드와 다른 실행 모드는 변경하지 않았다.
+
+### 테스트 필요성 및 실행 경계
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 5번 최종 회귀 및 변경 안전성 | I08/I17, supervisor global off, AGENTS 7.2 | 3~5번 완료 지시 범위 |
+| 30분 테스트 | 미진행 | 이번 단계 범위 밖 | AGENTS 7.7 | 승인 없음 |
+| 120분 테스트 | 조건부 진행 | 종료·전송 경계의 장시간 판정은 별도 | S06 lifecycle, AGENTS 7.6.2 | 승인 없음, 미실행 |
+| UI 풀테스트 | 미진행 | 버전 전체 실행은 이번 범위 밖 | AGENTS 7.6.3 | 범위 한정 직접 UI만 실행 |
+
+### 최종 명령 결과
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| 빌드 | `./server.sh build`, exit 0, media_server 100% | pass | supervisor 보완까지 반영한 최종 바이너리 |
+| S06 | `./server.sh verify-v410-recording-timeline`, exit 0; focused 152/0, HTTP 31/0, auth 37/0, lifecycle 10/0 | pass | 삭제 ID 예상 RED 후 GREEN; 64MiB hash·256KiB Range·hold·disconnect·shutdown 포함 |
+| S03 | `./server.sh verify-v410-recording-catalog`, exit 0; 45/0 및 정적·순서 9건, 2603ms | pass | catalog 변경 영향 |
+| S04 | `./server.sh verify-v410-recording-retention`, exit 0; 56/0, 2536ms | pass | 보존·삭제 계약 회귀 |
+| S05 | `./server.sh verify-v410-event-recording`, exit 0; inventory 35/0, S05 27 ID, 27818ms | pass | application/runtime/negative consumer 포함 |
+| 인증 bootstrap | `./server.sh verify-auth-bootstrap`, exit 0; 19/0, 4842ms | pass | 새 process-only 무작위 env 사용 |
+| 인증 users | `./server.sh verify-auth-users`, exit 0; 72/0, 5336ms | pass | 비밀번호 원문 보존 없음 |
+| 인증 routes | `./server.sh verify-auth-routes`, exit 0; 148/0, 10600ms | pass | 최초 registry startup 실패 후 보완·재검증 |
+| Ops/Client | `./server.sh verify-ops-client-ui --http-base http://127.0.0.1:54410 --in-app-evidence docs/release-artifacts/v4.1.0/s06-final-ui/evidence.json`, exit 0; 34/0 | pass | 직접 관찰 증거와 정적/API 검사 |
+| screenshot 참조 | 위 명령에 `--screenshots`, exit 0; 34/0 및 참조 검사 19/0 | pass | 19개 독립 화면 시각 검수가 아니라 참조 검사 |
+| Rules | `./server.sh verify-rule-ui --in-app-evidence docs/release-artifacts/v4.1.0/s06-final-ui/evidence.json`, exit 0; 4건 | pass | 실제 VA 이벤트 발생·전체 UI 대체 아님 |
+| harness | `node scripts/internal/verify_v410_recording_harness.test.mjs all`, exit 0; 5 cases/40 checks/0 fail, 28ms | pass | 격리·cleanup 내부 검증 |
+| 인증 포트 정리 | assertPortClosed(8091), assertPortClosed(8565), exit 0 | pass | 둘 다 ECONNREFUSED, closed=true |
+| diff | `git diff --check`, exit 0 | pass | 단계 기록 반영 뒤 재확인 |
+
+### 직접 UI evidence 범위
+
+[직접 UI 관찰 기록](release-artifacts/v4.1.0/s06-final-ui/evidence.json)을 보존했다(5025 bytes).
+Codex 인앱 브라우저 direct-browser, 1280×720 dark, 격리 auth-off 개발 admin 및 Client Preview다.
+10개 route와 생성 ID·사용자 scope 선택·Rules review loop의 실제 조작 결과를 JSON 개별 행으로 기록했다.
+Client 3개 화면의 visible text에서 금지 정보 목록을 확인했고 console error/warning은 관찰되지 않았다.
+hidden input 값은 직접 가시 증거로 확인하지 않았으며 일치 여부를 주장하지 않는다.
+대표 화면 screenshot은 도구 inline 관찰이며 JSON의 설명은 로컬 PNG 경로가 아니다.
+모든 스크롤 위치/19개 세부 section/실제 Client Live 재생/VA EventRecord 발생을 확인한 것은 아니다.
+`uiFulltestPass=false`이며 Policy v4 적격 자동화 또는 버전 전체 UI 풀테스트 PASS로 사용하지 않는다.
+S06 재생·페이지·오류·320/390/760/1180 light/dark 직접 UI 증거는 앞선 3번 기록에 별도로 보존했다.
+
+### 정리 및 보존
+
+아래 임시 run 경로는 실행 중 식별자이며 최종 evidence 링크가 아니다. 필요한 결과를 이 문서로 이관했다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| S06 focused arbOh7 | 예상 RED compile root | 1748KiB | 삭제 | 부재 확인 | RED 뒤 정리 |
+| S06 focused ipRzKP | GREEN compile root | 1992KiB | 삭제 | 부재 확인 | focused 종료 |
+| s06-regression-WEUASA | S03~S05 격리 root | 최종 잔여 0 entries | 삭제 | 부재 확인 | 순차 wrapper cleanup |
+| s06-auth-regression-GkBRRr / 5cT7rN / 0Parcg | 최초 실패·수정 후·최종 인증 임시 파일 | 미집계 | 삭제 | rootAbsent=true | 최종 포트 8091/8565 해제 별도 확인 |
+| S06 auth MXFbFh | 최종 auth run | 2413112B | 삭제 | cleanup 6/0 | PID40455 exit0, 포트54303/54304 해제, 406ms |
+| S06 lifecycle 8n0mY0 | 대용량 임시 media | 203196166B | 삭제 | cleanup 6/0 | PID40530 exit0, 포트54350/54351 해제, 28ms |
+| UI d1MejH | Lab 비활성 첫 실행 | 16299864B | 삭제 | cleanup 6/0 | PID39282 exit0, 포트53948/53949 해제 |
+| UI sIr2cN | 최종 직접 UI run | 16302067B | 삭제 | cleanup 6/0 | PID40650 exit0, 포트54409/54410 해제, 759ms |
+| NJJ4Lw / xHenSk / KRDIoF | seed compile root | 각각 1640KiB | 삭제 | 부재 확인 | 각 wrapper 종료 |
+| media-server-v410-s06-h01-52wKOr | harness 임시 root | 107B | 삭제 | 부재 확인 | H01 2 entries 제거 |
+| 인앱 브라우저 tab 4/5/6/7 | 검증 탭 | 비대상 | 닫기·viewport 초기화 | 닫음 | 직접 도구 실행 |
+| docs/release-artifacts/v4.1.0/s06-final-ui/evidence.json | 최소 관찰 증적 | 5025B | 보존 | 원문 credential/session/raw media 없음 | 재실행 결과·한계 기록 |
+
+### 메인 최종 검토와 제한
+
+메인이 실제 diff 및 증거를 확인했다. opaque ID/UTC 계약, 권한 확인 뒤 미디어 해석,
+O_NOFOLLOW/root containment/정규 파일 검사, 제한된 pread 전송, catalog mutex 안 hold,
+전송 취소·Close→Drain 순서와 자원 해제를 검토했다. 공개 schema/payload·auth 정책은 변경하지 않았다.
+정식 보안 감사, 디스크 장애 주입, 전체 HTTP 스레드 수명 검증을 수행했다고 주장하지 않는다.
+담당은 Codex 메인 직접(기존 담당자 가용성 제한으로 회수), 실제 사용자 모델 설정 유지.
+선정 점수 영향도2/불확실성2/검증난이도2/변경범위2=8, 자동 추론 상향 없음.
+token start/end/consumed: 미집계(활성 goal 자동 집계 없음); source: 실제 명령 출력과 직접 브라우저 관찰.
+elapsed는 위 개별 명령의 실측값만 기록하며 전체 작업 시간은 미집계다.
+
+### 최종 인증 개별 assertion
+
+아래는 최종 3개 명령의 실제 pass 행 239개다. HTTP 상태·정책 판정 문자열은 실행 출력이며 원문 비밀번호는 포함하지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| verify-auth-bootstrap 1 | server health ok (http://127.0.0.1:8091) | pass | 최종 검증 |
+| verify-auth-bootstrap 2 | missing users root redirect: 302:/setup | pass | 최종 검증 |
+| verify-auth-bootstrap 3 | setup auth shell selectors | pass | 최종 검증 |
+| verify-auth-bootstrap 4 | server health ok (http://127.0.0.1:8091) | pass | 최종 검증 |
+| verify-auth-bootstrap 5 | existing users file with hashless admin redirects to setup: 302:/setup | pass | 최종 검증 |
+| verify-auth-bootstrap 6 | hashless admin login blocked by setup gate: 403 | pass | 최종 검증 |
+| verify-auth-bootstrap 7 | server health ok (http://127.0.0.1:8091) | pass | 최종 검증 |
+| verify-auth-bootstrap 8 | weak admin password rejected: 400 | pass | 최종 검증 |
+| verify-auth-bootstrap 9 | initial admin password setup: 302 | pass | 최종 검증 |
+| verify-auth-bootstrap 10 | auth users file owner-only mode: 600 | pass | 최종 검증 |
+| verify-auth-bootstrap 11 | setup blocked after completion: 302:/login | pass | 최종 검증 |
+| verify-auth-bootstrap 12 | unauthenticated root redirect: 302:/login | pass | 최종 검증 |
+| verify-auth-bootstrap 13 | login auth shell selectors | pass | 최종 검증 |
+| verify-auth-bootstrap 14 | client access request auth shell selectors | pass | 최종 검증 |
+| verify-auth-bootstrap 15 | passwordless admin login rejected: 401 | pass | 최종 검증 |
+| verify-auth-bootstrap 16 | admin login landing: 302:/ops/home | pass | 최종 검증 |
+| verify-auth-bootstrap 17 | admin whoami username and role | pass | 최종 검증 |
+| verify-auth-bootstrap 18 | logout redirects to login landing: 302:/login | pass | 최종 검증 |
+| verify-auth-bootstrap 19 | logout invalidates session: 401 | pass | 최종 검증 |
+| verify-auth-users 20 | server health ok (http://127.0.0.1:8091) | pass | 최종 검증 |
+| verify-auth-users 21 | weak admin password rejected: 400 | pass | 최종 검증 |
+| verify-auth-users 22 | initial admin password setup: 302 | pass | 최종 검증 |
+| verify-auth-users 23 | auth users file owner-only mode: 600 | pass | 최종 검증 |
+| verify-auth-users 24 | setup blocked after completion: 302:/login | pass | 최종 검증 |
+| verify-auth-users 25 | admin login landing: 302:/ops/home | pass | 최종 검증 |
+| verify-auth-users 26 | admin whoami username and role | pass | 최종 검증 |
+| verify-auth-users 27 | ops users access request selectors | pass | 최종 검증 |
+| verify-auth-users 28 | permissive auth users file re-hardened: 600 | pass | 최종 검증 |
+| verify-auth-users 29 | viewer view scope assigned | pass | 최종 검증 |
+| verify-auth-users 30 | viewer privileged scopes blocked | pass | 최종 검증 |
+| verify-auth-users 31 | user API hash redaction | pass | 최종 검증 |
+| verify-auth-users 32 | viewer custom privileged scope rejected: 400 | pass | 최종 검증 |
+| verify-auth-users 33 | integrator live view scope rejected: 400 | pass | 최종 검증 |
+| verify-auth-users 34 | viewer login: 302 | pass | 최종 검증 |
+| verify-auth-users 35 | viewer ops forbidden: 403 | pass | 최종 검증 |
+| verify-auth-users 36 | admin reset password: 200 | pass | 최종 검증 |
+| verify-auth-users 37 | admin reset revokes existing viewer session: 401 | pass | 최종 검증 |
+| verify-auth-users 38 | admin reset forces next-login password change | pass | 최종 검증 |
+| verify-auth-users 39 | mustChangePassword landing: 302:/password/change | pass | 최종 검증 |
+| verify-auth-users 40 | password change auth shell selectors | pass | 최종 검증 |
+| verify-auth-users 41 | password change to temporary password succeeds: 302 | pass | 최종 검증 |
+| verify-auth-users 42 | temporary password login succeeds: 302 | pass | 최종 검증 |
+| verify-auth-users 43 | password_history original password immediate history reuse rejected: 400 | pass | 최종 검증 |
+| verify-auth-users 44 | password history count rotation succeeds: 302 | pass | 최종 검증 |
+| verify-auth-users 45 | history rotation password login succeeds: 302 | pass | 최종 검증 |
+| verify-auth-users 46 | original password restored after history count rotation: 302 | pass | 최종 검증 |
+| verify-auth-users 47 | SaveUsersFile-backed password change lifecycle final login succeeds: 302 | pass | 최종 검증 |
+| verify-auth-users 48 | admin disables viewer: 200 | pass | 최종 검증 |
+| verify-auth-users 49 | disabled user login rejected: 401 | pass | 최종 검증 |
+| verify-auth-users 50 | admin restores viewer: 200 | pass | 최종 검증 |
+| verify-auth-users 51 | restored viewer login succeeds: 302 | pass | 최종 검증 |
+| verify-auth-users 52 | last active admin disable rejected: 409 | pass | 최종 검증 |
+| verify-auth-users 53 | last active admin role downgrade rejected: 409 | pass | 최종 검증 |
+| verify-auth-users 54 | login lockout stored | pass | 최종 검증 |
+| verify-auth-users 55 | invite token issued once | pass | 최종 검증 |
+| verify-auth-users 56 | invite expiry and setup URL visible once | pass | 최종 검증 |
+| verify-auth-users 57 | invite list API exposes issued invite summary | pass | 최종 검증 |
+| verify-auth-users 58 | invite list API redacts token material | pass | 최종 검증 |
+| verify-auth-users 59 | users-only save after pending invite: 200 | pass | 최종 검증 |
+| verify-auth-users 60 | pending invite preserved across users save | pass | 최종 검증 |
+| verify-auth-users 61 | invite setup HTTP response renders required form | pass | 최종 검증 |
+| verify-auth-users 62 | invite setup auth shell selectors | pass | 최종 검증 |
+| verify-auth-users 63 | invite password setup: 302 | pass | 최종 검증 |
+| verify-auth-users 64 | invited viewer login: 302 | pass | 최종 검증 |
+| verify-auth-users 65 | invite.used consumed/expired token runtime status split: 401:410 | pass | 최종 검증 |
+| verify-auth-users 66 | existing invite target baseline login: 302 | pass | 최종 검증 |
+| verify-auth-users 67 | existing invite baseline scope visible | pass | 최종 검증 |
+| verify-auth-users 68 | pending invite keeps existing session: 200 | pass | 최종 검증 |
+| verify-auth-users 69 | pending invite does not change existing role/scope | pass | 최종 검증 |
+| verify-auth-users 70 | pending invite future scope not applied | pass | 최종 검증 |
+| verify-auth-users 71 | existing invite accepted: 302 | pass | 최종 검증 |
+| verify-auth-users 72 | accepted invite revokes previous session: 401 | pass | 최종 검증 |
+| verify-auth-users 73 | existing invite new password login: 302 | pass | 최종 검증 |
+| verify-auth-users 74 | accepted invite applies role/scope | pass | 최종 검증 |
+| verify-auth-users 75 | duplicate pending access request rejected: 409 | pass | 최종 검증 |
+| verify-auth-users 76 | access request unsafe viewId rejected: 400 | pass | 최종 검증 |
+| verify-auth-users 77 | oversized access request body rejected: 413 | pass | 최종 검증 |
+| verify-auth-users 78 | access request rate budget allows fourth counted attempt | pass | 최종 검증 |
+| verify-auth-users 79 | access request rate budget allows fifth counted attempt: 201 | pass | 최종 검증 |
+| verify-auth-users 80 | access request per-peer rate limit enforced: 429 | pass | 최종 검증 |
+| verify-auth-users 81 | ops users access request reject API: 200 | pass | 최종 검증 |
+| verify-auth-users 82 | rejected access request visible in ops API | pass | 최종 검증 |
+| verify-auth-users 83 | pending access request form and pending-state copy | pass | 최종 검증 |
+| verify-auth-users 84 | pending form submission remains denied login before approval: 401 | pass | 최종 검증 |
+| verify-auth-users 85 | approved request invite expiry visible once | pass | 최종 검증 |
+| verify-auth-users 86 | approved request keeps user pending until invite setup | pass | 최종 검증 |
+| verify-auth-users 87 | users-only save after approved request: 200 | pass | 최종 검증 |
+| verify-auth-users 88 | approved request preserved across users save | pass | 최종 검증 |
+| verify-auth-users 89 | approved request invite preserved across users save | pass | 최종 검증 |
+| verify-auth-users 90 | approved request password setup: 302 | pass | 최종 검증 |
+| verify-auth-users 91 | approved request viewer login: 302 | pass | 최종 검증 |
+| verify-auth-routes 92 | server health ok (http://127.0.0.1:8091) | pass | 최종 검증 |
+| verify-auth-routes 93 | setup required root: 302:/setup | pass | 최종 검증 |
+| verify-auth-routes 94 | weak admin password rejected: 400 | pass | 최종 검증 |
+| verify-auth-routes 95 | initial admin password setup: 302 | pass | 최종 검증 |
+| verify-auth-routes 96 | auth users file owner-only mode: 600 | pass | 최종 검증 |
+| verify-auth-routes 97 | setup blocked after completion: 302:/login | pass | 최종 검증 |
+| verify-auth-routes 98 | logout root: 302:/login | pass | 최종 검증 |
+| verify-auth-routes 99 | admin login landing: 302:/ops/home | pass | 최종 검증 |
+| verify-auth-routes 100 | admin whoami username and role | pass | 최종 검증 |
+| verify-auth-routes 101 | admin root: 302:/ops/home | pass | 최종 검증 |
+| verify-auth-routes 102 | SourceRegistry API field/type freeze SHA-256=d6db4f603fbde478e5a4097daa8f5da4ba41e7cbdb42dea26bbda0546380763f | pass | 최종 검증 |
+| verify-auth-routes 103 | operator login route: 302:/ops/home | pass | 최종 검증 |
+| verify-auth-routes 104 | AUTH-029 operator with source write scope sees enabled source write UI | pass | 최종 검증 |
+| verify-auth-routes 105 | readonly operator login route: 302:/ops/home | pass | 최종 검증 |
+| verify-auth-routes 106 | Set-Cookie session viewer login route: 302:/client/live | pass | 최종 검증 |
+| verify-auth-routes 107 | integrator login keeps API-only landing: 302:/auth/whoami | pass | 최종 검증 |
+| verify-auth-routes 108 | viewer ops denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 109 | viewer VLM install/connection UI denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 110 | undefined route BuildHttpResponse returns 404: 404 | pass | 최종 검증 |
+| verify-auth-routes 111 | legacy /lab product UI BuildHttpResponse returns 404: 404 | pass | 최종 검증 |
+| verify-auth-routes 112 | unauth ops sources API denied: 401 | pass | 최종 검증 |
+| verify-auth-routes 113 | unauth ops views API denied: 401 | pass | 최종 검증 |
+| verify-auth-routes 114 | unauth ops runtime API denied: 401 | pass | 최종 검증 |
+| verify-auth-routes 115 | unauth ops rules catalog API denied: 401 | pass | 최종 검증 |
+| verify-auth-routes 116 | unauth ops events API denied: 401 | pass | 최종 검증 |
+| verify-auth-routes 117 | unauth ops ONVIF import draft API denied: 401 | pass | 최종 검증 |
+| verify-auth-routes 118 | unauth ops ONVIF probe draft API denied: 401 | pass | 최종 검증 |
+| verify-auth-routes 119 | unauth ops users API denied: 401 | pass | 최종 검증 |
+| verify-auth-routes 120 | unauth ops invites API denied: 401 | pass | 최종 검증 |
+| verify-auth-routes 121 | unauth ops access requests API denied: 401 | pass | 최종 검증 |
+| verify-auth-routes 122 | viewer ops sources API denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 123 | viewer ops views API denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 124 | viewer ops runtime API denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 125 | viewer ops ONVIF import draft API denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 126 | viewer ops ONVIF probe draft API denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 127 | viewer ops users API denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 128 | viewer ops invites API denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 129 | viewer ops access requests API denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 130 | readonly operator ops read allowed: 200 | pass | 최종 검증 |
+| verify-auth-routes 131 | ops runtime API read allowed: 200 | pass | 최종 검증 |
+| verify-auth-routes 132 | ops rules catalog API read allowed: 200 | pass | 최종 검증 |
+| verify-auth-routes 133 | ops events status API read allowed: 200 | pass | 최종 검증 |
+| verify-auth-routes 134 | AUTH-028 readonly operator sees ops sources UI with source write lock policy | pass | 최종 검증 |
+| verify-auth-routes 135 | readonly operator admin users API denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 136 | readonly operator invite API denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 137 | readonly operator invite list API denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 138 | readonly operator access requests API denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 139 | source write scope required for view create: 403 | pass | 최종 검증 |
+| verify-auth-routes 140 | source write scope required for ONVIF import draft: 403 | pass | 최종 검증 |
+| verify-auth-routes 141 | source write scope required for ONVIF probe draft: 403 | pass | 최종 검증 |
+| verify-auth-routes 142 | source write scope required for view update: 403 | pass | 최종 검증 |
+| verify-auth-routes 143 | source write scope required for source update: 403 | pass | 최종 검증 |
+| verify-auth-routes 144 | rule write scope required for lab rule write: 403 | pass | 최종 검증 |
+| verify-auth-routes 145 | rule write scope required for lab vaRule write: 403 | pass | 최종 검증 |
+| verify-auth-routes 146 | rule write scope required for lab profile write: 403 | pass | 최종 검증 |
+| verify-auth-routes 147 | unauth VLM profile API denied: 401 | pass | 최종 검증 |
+| verify-auth-routes 148 | viewer VLM profile API denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 149 | readonly operator VLM profile read allowed: 200 | pass | 최종 검증 |
+| verify-auth-routes 150 | rule write scope required for VLM profile write: 403 | pass | 최종 검증 |
+| verify-auth-routes 151 | invalid VLM profile fixture rejected: 400 | pass | 최종 검증 |
+| verify-auth-routes 152 | VLM profile write creates storage document | pass | 최종 검증 |
+| verify-auth-routes 153 | VLM profile read lists stored profile with canonical evaluation status | pass | 최종 검증 |
+| verify-auth-routes 154 | VLM profile delete allowed for admin: 200 | pass | 최종 검증 |
+| verify-auth-routes 155 | VLM profile delete readback confirms vlm-route-smoke absence | pass | 최종 검증 |
+| verify-auth-routes 156 | AUTH-029 operator source write scope creates source | pass | 최종 검증 |
+| verify-auth-routes 157 | AUTH-029 operator rule write scope saves profile: 200 | pass | 최종 검증 |
+| verify-auth-routes 158 | ONVIF import draft API allowed for source writer | pass | 최종 검증 |
+| verify-auth-routes 159 | ONVIF import draft redacts credential reference and endpoint | pass | 최종 검증 |
+| verify-auth-routes 160 | ONVIF probe draft API allowed for source writer | pass | 최종 검증 |
+| verify-auth-routes 161 | ONVIF probe draft redacts credential reference and endpoint | pass | 최종 검증 |
+| verify-auth-routes 162 | WHEP source registry create allowed | pass | 최종 검증 |
+| verify-auth-routes 163 | WHEP source canonical duplicate denied: 409 | pass | 최종 검증 |
+| verify-auth-routes 164 | WHEP source visible to ops API | pass | 최종 검증 |
+| verify-auth-routes 165 | integrator client shell denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 166 | unauth client views API denied: 401 | pass | 최종 검증 |
+| verify-auth-routes 167 | unauth client live layout preference API denied: 401 | pass | 최종 검증 |
+| verify-auth-routes 168 | unauth client dashboard API denied: 401 | pass | 최종 검증 |
+| verify-auth-routes 169 | unauth client WebRTC wrapper denied: 401 | pass | 최종 검증 |
+| verify-auth-routes 170 | public access request API remains unauthenticated: 201 | pass | 최종 검증 |
+| verify-auth-routes 171 | Client PublishedView projection field/type freeze SHA-256=f289c7a2e21e47ca7439ecdf12949cc106c9aa2b6e1b80eeaab4327980bc6d62 | pass | 최종 검증 |
+| verify-auth-routes 172 | viewer assigned view visible in client API | pass | 최종 검증 |
+| verify-auth-routes 173 | SRC-022 viewer client API keeps PublishedView allowedRuleIds list | pass | 최종 검증 |
+| verify-auth-routes 174 | SRC-022 viewer client API omits unassigned vaRule from allowedRuleIds | pass | 최종 검증 |
+| verify-auth-routes 175 | SRC-022 viewer client detail API keeps PublishedView allowedRuleIds list | pass | 최종 검증 |
+| verify-auth-routes 176 | viewer unassigned view hidden from client API | pass | 최종 검증 |
+| verify-auth-routes 177 | viewer client live layout preference separates user and role presets | pass | 최종 검증 |
+| verify-auth-routes 178 | viewer client live layout preference save allowed: 200 | pass | 최종 검증 |
+| verify-auth-routes 179 | viewer client live layout preference rejects source URL material: 400 | pass | 최종 검증 |
+| verify-auth-routes 180 | viewer cross-view dashboard denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 181 | viewer cross-view WebRTC wrapper denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 182 | integrator client views list omits live views | pass | 최종 검증 |
+| verify-auth-routes 183 | integrator event scope allowed: 200 | pass | 최종 검증 |
+| verify-auth-routes 184 | unauth scoped event search denied: 401 | pass | 최종 검증 |
+| verify-auth-routes 185 | viewer scoped event search role denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 186 | integrator scoped event search allowed: 200 | pass | 최종 검증 |
+| verify-auth-routes 187 | integrator scoped event search cross-view denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 188 | integrator metadata scope allowed: 200 | pass | 최종 검증 |
+| verify-auth-routes 189 | integrator dashboard scope denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 190 | unauth generic WebRTC denied: 401 | pass | 최종 검증 |
+| verify-auth-routes 191 | viewer generic WebRTC denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 192 | unauth WHEP denied: 401 | pass | 최종 검증 |
+| verify-auth-routes 193 | viewer WHEP denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 194 | unauth WHIP publish denied: 401 | pass | 최종 검증 |
+| verify-auth-routes 195 | viewer WHIP publish denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 196 | unauth metadata websocket denied: 401 | pass | 최종 검증 |
+| verify-auth-routes 197 | viewer metadata websocket denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 198 | plain request omits CORS allow origin:  | pass | 최종 검증 |
+| verify-auth-routes 199 | cross-origin actual request denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 200 | cross-origin response omits CORS allow origin:  | pass | 최종 검증 |
+| verify-auth-routes 201 | same-origin actual reflects origin: http://127.0.0.1:8091 | pass | 최종 검증 |
+| verify-auth-routes 202 | cross-origin preflight denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 203 | same-origin preflight allowed: 204 | pass | 최종 검증 |
+| verify-auth-routes 204 | same-origin preflight reflects origin: http://127.0.0.1:8091 | pass | 최종 검증 |
+| verify-auth-routes 205 | invalid content-length rejected: 400 | pass | 최종 검증 |
+| verify-auth-routes 206 | server survives invalid content-length: 200 | pass | 최종 검증 |
+| verify-auth-routes 207 | oversized content-length rejected: 413 | pass | 최종 검증 |
+| verify-auth-routes 208 | server survives oversized content-length: 200 | pass | 최종 검증 |
+| verify-auth-routes 209 | WebRTC session id uses random token shape | pass | 최종 검증 |
+| verify-auth-routes 210 | WebRTC session capability issued | pass | 최종 검증 |
+| verify-auth-routes 211 | unauth session follow-up denied: 401 | pass | 최종 검증 |
+| verify-auth-routes 212 | viewer session follow-up denied: 403 | pass | 최종 검증 |
+| verify-auth-routes 213 | session capability follow-up allowed: 200 | pass | 최종 검증 |
+| verify-auth-routes 214 | session capability delete allowed: 200 | pass | 최종 검증 |
+| verify-auth-routes 215 | client WebRTC wrapper returns client session alias | pass | 최종 검증 |
+| verify-auth-routes 216 | client WebRTC wrapper hides internal signaling detail | pass | 최종 검증 |
+| verify-auth-routes 217 | client PublishedView maxTiles enforced: 409 | pass | 최종 검증 |
+| verify-auth-routes 218 | client WebRTC wrapper source override denied: 400 | pass | 최종 검증 |
+| verify-auth-routes 219 | client alias rejected on generic session route: 404 | pass | 최종 검증 |
+| verify-auth-routes 220 | client wrapper ICE allowed: 200 | pass | 최종 검증 |
+| verify-auth-routes 221 | client wrapper delete allowed: 200 | pass | 최종 검증 |
+| verify-auth-routes 222 | client vaRule matching PublishedView source allowed | pass | 최종 검증 |
+| verify-auth-routes 223 | client vaRule wrapper delete allowed: 200 | pass | 최종 검증 |
+| verify-auth-routes 224 | client vaRule source mismatch denied: 400 | pass | 최종 검증 |
+| verify-auth-routes 225 | server health ok (http://127.0.0.1:8091) | pass | 최종 검증 |
+| verify-auth-routes 226 | admin login landing: 302:/ops/home | pass | 최종 검증 |
+| verify-auth-routes 227 | admin whoami username and role | pass | 최종 검증 |
+| verify-auth-routes 228 | malformed source registry fail closed: 500 | pass | 최종 검증 |
+| verify-auth-routes 229 | malformed source registry not overwritten | pass | 최종 검증 |
+| verify-auth-routes 230 | server health ok (http://127.0.0.1:8091) | pass | 최종 검증 |
+| verify-auth-routes 231 | admin login landing: 302:/ops/home | pass | 최종 검증 |
+| verify-auth-routes 232 | admin whoami username and role | pass | 최종 검증 |
+| verify-auth-routes 233 | malformed published view registry fail closed: 500 | pass | 최종 검증 |
+| verify-auth-routes 234 | malformed published view registry not overwritten | pass | 최종 검증 |
+| verify-auth-routes 235 | server health ok (http://127.0.0.1:8091) | pass | 최종 검증 |
+| verify-auth-routes 236 | token mode unauthenticated request denied: 401 | pass | 최종 검증 |
+| verify-auth-routes 237 | server health ok (http://127.0.0.1:8091) | pass | 최종 검증 |
+| verify-auth-routes 238 | auth off root redirects to ops: 302:/ops/home | pass | 최종 검증 |
+| verify-auth-routes 239 | auth off development admin accesses users API: 200 | pass | 최종 검증 |
+
 ## S06 잔여 4번: 정식 검증 명령 연결 결과 (2026-09-08)
 
 server.sh help/dispatch에 verify-v410-recording-timeline과 verify-v410-recording-ui-contract를

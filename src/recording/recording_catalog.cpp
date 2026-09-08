@@ -792,6 +792,14 @@ std::optional<std::filesystem::path> RecordingCatalog::FindSegmentMediaPath(
     return contained;
 }
 
+bool RecordingCatalog::IsDeletedSegmentId(
+    const std::string& segment_id) const {
+    std::lock_guard lock(mu_);
+    const auto segment = segments_.find(segment_id);
+    return tombstones_.find(segment_id) != tombstones_.end() ||
+        (segment != segments_.end() && segment->second.lifecycle == RecordingLifecycle::Deleted);
+}
+
 std::optional<std::pair<std::filesystem::path, std::filesystem::path>>
 RecordingCatalog::FindSegmentMediaLocation(const std::string& segment_id) const {
     std::lock_guard lock(mu_);

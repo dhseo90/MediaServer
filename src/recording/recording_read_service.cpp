@@ -75,7 +75,8 @@ std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveMedia(
     const EventRecordingLinkV1* derived = nullptr;
     for (const auto& link : links) {
         if (link.fallback_evidence_id == segment_id) {
-            if (fallback || segment) return {};
+            // segment 스냅샷 뒤 tombstone 확인: 두 조회 사이 삭제 완료도 재사용하지 않는다.
+            if (fallback || segment || catalog_.IsDeletedSegmentId(segment_id)) return {};
             fallback = &link;
         }
         if (link.derived_segment_id == segment_id) {

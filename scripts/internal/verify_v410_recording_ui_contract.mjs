@@ -585,7 +585,9 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
     const isolatedEnv = isolatedEnvironment(root, binary, rtspPort, httpPort);
     const env = mode === '--http-auth'
       ? Object.freeze({ ...isolatedEnv, MEDIA_SERVER_AUTH_MODE: 'auto' })
-      : isolatedEnv;
+      : mode === '--ui-direct'
+        ? Object.freeze({ ...isolatedEnv, MEDIA_SERVER_ENABLE_LAB: '1' })
+        : isolatedEnv;
     const logState = { lineCount: 0, processErrorCode: "" };
     child = spawn("./server.sh", ["foreground"], {
       cwd: repo,

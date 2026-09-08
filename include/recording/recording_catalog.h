@@ -72,6 +72,8 @@ public:
         const std::string& event_id) const;
     std::optional<RecordingSegmentV1> FindSegmentById(
         const std::string& segment_id) const;
+    // 조회에서 숨긴 삭제 ID도 재생용 fallback ID로 재사용할 수 없다.
+    bool IsDeletedSegmentId(const std::string& segment_id) const;
     std::optional<std::filesystem::path> FindSegmentMediaPath(
         const std::string& segment_id) const;
     // transport 내부 전용: symlink를 따라 정규화하지 않은 root/상대경로.
