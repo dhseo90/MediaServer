@@ -4,7 +4,37 @@
 PASS는 UI 풀테스트, 30분/120분 장시간 테스트, PR/main merge, tag, GitHub Release 또는
 published metadata 완료를 뜻하지 않는다.
 
-## S06 포트 정리 판정 보완 확인·제품 구현 미착수 (2026-09-06)
+## S06 구현·단계 검증 완료 (2026-09-08)
+
+S06 조회·재생 API와 Ops 화면, 잔여 1~5번의 수정·검증을 완료했다.
+구현은 afb6c5a3, 9de62e0e, f03ec0a6, a4a02991, 4da626e6으로 분할 커밋했다.
+현재 문서 마감은 잔여 6번이며 S07·릴리즈 action은 포함하지 않는다.
+
+- 구현: RecordingReadService의 event 우선 조회·안전한 fd 해석,
+  RecordingApplicationService의 권한별 status/timeline 응답,
+  HTTP runtime의 GET/HEAD·Range·bounded 전송·종료 gate, Ops events 필터·목록·player.
+- 최종 검증: build, focused 152, HTTP 31, S06 auth 37, lifecycle 10,
+  인증 회귀 239, S03/S04/S05 및 범위 한정 직접 UI 검증 통과.
+- 실패 수정: Range 헤더 조회, frozen 환경·source/partial fixture,
+  날짜 배치, 삭제 ID fallback 재사용, 녹화 global off의 registry 기동 실패.
+- 개별 실행·실패·수정·cleanup의 source-of-truth는
+  [release-test-records.md](release-test-records.md)의 S06 잔여 3~6번 기록이다.
+- 버전 전체 UI 풀테스트·30분·120분은 미실행이다. 이 단계의 완료를 v4.1.0 출시 가능이나
+  전체 UI PASS로 확대하지 않는다. S07 이후 개발과 버전 종료 판정은 별도다.
+
+아래는 당시 승인·검증 준비 이력이며 현재 미완료 상태나 새 실행 권한으로 해석하지 않는다.
+
+### 전체 구현 재개 승인 이력 (2026-09-06)
+
+검증 준비 체크포인트 `de84cca6ee262d76c882650c266ce8bbb56add37`를 커밋·푸시한 뒤,
+사용자가 S06 전체 구현·안정화·분할/최종 커밋·푸시와 실패 수정 후 계속 진행을 승인했다.
+당시 Sol/xhigh 담당자 설정은 2026-09-08 AGENTS.md의 medium 기본 정책으로 대체됐다.
+Astra/medium 담당자 생성이 thread limit으로 거부되고 이전 담당자가 Sol/xhigh로 확인되어
+메인이 구현을 회수했다. 상태·timeline·권한·파일/lease·Range/HEAD·Ops 화면이 이번 범위다.
+완료 여부는 release-test-records의 이번 재개 결과로 판정하며 S07·릴리즈 action·
+30분/120분·실제 UI 풀테스트는 자동 포함하지 않는다. 아래 준비 이력은 과거 실행 기록이다.
+
+### S06 검증 도구 보완 이력
 
 승인 범위는 Task 6 개발이며 커밋·푸시·S07 이후는 포함하지 않는다. S06 개별 기능 ID 34개를
 project-feature-test-inventory와 release-test-records에 실행 전 등록하고 Sol xhigh 한 개를

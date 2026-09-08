@@ -749,6 +749,30 @@ POST URL 자체는 rule output 설정에서 관리합니다. 외부 이벤트 JS
 
 ## Recording env
 
+### 녹화 조회재생 API (v4.1.0 S06)
+
+기본 인증 모드는 `auto`다. 아래 API는 Ops 접근 권한과 채널별 `source:read:<channelId>`
+범위를 적용한다. viewer는 접근할 수 없으며 내부 파일 경로를 공개하지 않는다.
+
+| 요청 | 입력·결과 |
+| --- | --- |
+| `GET /ops/api/recordings/status` | 전역 enabled, catalogMode/degraded/recovery, 허용 channels의 enabled/active/storageBlocked 및 상시·이벤트 사용량/상한 |
+| `GET /ops/api/recordings/timeline` | 필수 channelId/startTimeMs/endTimeMs, 선택 offset(기본 0)/limit(기본 100, 1~1000). UTC epoch 밀리초 반개구간 조회, total/offset/limit/items 반환 |
+| `GET /ops/api/recordings/media/<opaqueId>` | 조회 결과의 playbackUrl로 접근. 전체 200 또는 단일 byte Range 206, 잘못된 범위 416 |
+| `HEAD /ops/api/recordings/media/<opaqueId>` | GET과 같은 미디어 길이·형식·Range 헤더, 본문 없음 |
+
+timeline은 startTimeMs 내림차순, displayPriority 내림차순, segmentId 오름차순이다.
+event 우선순위는 200, continuous는 100이며 원본과 이벤트 관계는 supersededByEventIds로
+표시한다. requestedRange와 actualRange, completeness, playable은 서로 다른 정보다.
+playable=false 항목이나 삭제·미완성·손상·누락 파일을 정상 영상으로 제공하지 않는다.
+미디어를 사용할 수 없거나 채널 권한이 없으면 media API는 404로 처리한다.
+허용되지 않은 timeline 채널은 403, 잘못된 조회 인자는 400이다.
+
+실제 파일을 열린 fd에 결박하고 최대 256KiB 단위로 전송한다. catalog 영상의 전송 중 hold는
+순환 삭제와 원자적으로 조정한다. fallback은 내구 manifest와 실제 영상 파일을 검증하며
+manifest JSON 자체를 영상으로 반환하지 않는다.
+화면 사용법은 [UI 가이드](ui-guide.md#녹화-조회와-재생-v410-s06)를 따른다.
+
 상시녹화는 전역과 채널을 모두 명시적으로 켜야 시작합니다. source 자체가 disabled이면
 채널 recording policy가 enabled여도 recorder를 만들지 않습니다.
 

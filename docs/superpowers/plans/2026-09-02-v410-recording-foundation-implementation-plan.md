@@ -70,8 +70,8 @@ verifier.
 | 환경변수 | 기본값 | 의미 |
 | --- | --- | --- |
 | `MEDIA_SERVER_RECORDING_ENABLED` | `0` | 녹화 subsystem 전역 opt-in |
-| `MEDIA_SERVER_RECORDING_ROOT` | `.media_server.recordings` | 영상·journal·catalog root |
-| `MEDIA_SERVER_RECORDING_SEGMENT_DURATION_MS` | `10000` | 목표 segment 길이. 실제 분할은 다음 keyframe까지 연장 가능 |
+| `MEDIA_SERVER_RECORDING_STORAGE_ROOT` | `.media_server/recordings` | S01~S05 실제 구현의 영상·journal·catalog root. 운영 계약은 config-reference.md를 따름 |
+| `MEDIA_SERVER_RECORDING_SEGMENT_DURATION_SECONDS` | `10` | S01~S05 실제 구현의 목표 segment 길이(초). 실제 분할은 다음 keyframe까지 연장 가능 |
 | `MEDIA_SERVER_RECORDING_RESERVED_FREE_BYTES` | `1073741824` | 쓰기 전에 남겨야 하는 store 여유 공간 |
 | `MEDIA_SERVER_RECORDING_OBSERVATION_INTERVAL_MS` | `1000` | 대표 중간 관측 기본 간격 |
 | `MEDIA_SERVER_RECORDING_RETENTION_INTERVAL_MS` | `5000` | quota·기간·reserve 정리 주기 |
@@ -850,7 +850,25 @@ git commit -m "feat: 이벤트 녹화 연결과 파생 clip 추가"
 
 ## Task 6: V410-S06 event 우선 timeline API, Range 재생과 Ops UI
 
-**현재 상태(2026-09-06): 포트 정리 판정 보완 확인·제품 구현 미착수.** 개별 ID 34개를 사전 등록하고
+**현재 상태(2026-09-08): S06 구현·단계 검증 완료, 잔여 6번 문서 마감.**
+
+event 우선 읽기 서비스·권한별 상태/timeline·opaque media 해석·GET/HEAD Range·전송 gate와
+Ops 필터/목록/재생 UI를 구현했다. 잔여 1~5번은 afb6c5a3, 9de62e0e, f03ec0a6,
+a4a02991, 4da626e6으로 분할 커밋했다. 제품/검증 구현 위치와 개별 결과는
+[실행 기록](../../release-test-records.md)의 S06 잔여 3~6번을 따른다.
+1970은 검증 fixture의 epoch 시간이며 운영 녹화 시간은 변경하지 않았다.
+S06 범위 직접 UI와 관련 회귀 통과는 버전 전체 UI·30분/120분 PASS가 아니다.
+S07과 릴리즈 action은 이번 문서 마감 범위 밖이다.
+
+다음 승인·RED·준비 설명은 과거 이력이며 현재 작업 상태가 아니다.
+
+**2026-09-06 재개 승인 이력:** 사용자가 S06 구현·안정화·분할/최종 커밋·푸시와
+실패 수정 후 계속 진행을 승인했다. `de84cca6ee262d76c882650c266ce8bbb56add37`의 검증 준비
+체크포인트에서 기존 단일 Sol/xhigh 담당자를 재사용한다. 실제 UI 풀테스트와 30분/120분은
+별도 승인 전 실행하지 않는다. 상태·timeline → 권한·opaque ID → fd/lease → Range/HEAD →
+Ops UI 순서로 구현하고 기존 S01~S05 계약을 유지한다. 다음은 이전 실행 이력이다.
+
+**이전 검증 준비:** 개별 ID 34개를 사전 등록하고
 단일 Sol xhigh 담당자가 verifier 초안 2개를 작성했다. 첫 focused 실행은 서버 시작 전
 loopback bind EPERM으로 실패해 예상된 RED로 인정하지 않고 중단했다. 메인은 임시 root
 삭제·부재와 초안의 RED·PASS·정리 판정 보완 사항을 확인했다. 구현·회귀·UI 풀테스트는
@@ -884,7 +902,8 @@ HTTP 404 예상 RED와 정상 종료·두 포트 ECONNREFUSED·root 삭제를 �
 - 생성: `scripts/internal/verify_v410_recording_ui_contract.mjs`
 - 수정: `CMakeLists.txt`
 - 수정: `server.sh`
-- 수정: `docs/http-api.md`
+- 수정: `docs/config-reference.md` (녹화 API 계약; 계획의 `docs/http-api.md`는 실제 부재)
+- 수정: `docs/ui-guide.md` (기존 Ops 이벤트 직접 route의 녹화 사용 흐름)
 - 수정: `docs/release-evidence-v410.md`
 
 ### Step 1: RED read/API/UI contract test를 작성한다

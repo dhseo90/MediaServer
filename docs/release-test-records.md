@@ -1,5 +1,66 @@
 # Release Test Records
 
+## S06 잔여 6번: 문서 마감 (2026-09-08)
+
+사용자가 문서 정합성 보완·별도 커밋·누적 커밋 푸시를 승인했다. 이번에는 제품 코드 변경 없이
+이전 1~5번 결과를 반영한다. 아래 과거 실행 절의 '현재/최신/미완료'는 각 실행 당시의 상태이며,
+현재 S06 상태는 이 절과 잔여 5번 최종 결과를 기준으로 읽는다. 실패 이력은 삭제하지 않는다.
+
+| 문서 | 조치·확인 범위 |
+| --- | --- |
+| AGENTS.md | 이미 승인된 Astra medium 기본·단일 담당자·사용자 상향 정책 변경을 확인, 제품 설정 변경 아님 |
+| release-evidence-v410.md | 과거 중단 상태를 S06 구현·단계 검증 완료로 갱신, 상세 실패 이력은 이 문서 참조 |
+| v410-v49-recording-search-roadmap.md | S06 구현 위치·검증 상태 반영, S07 이후 상태는 변경하지 않음 |
+| superpowers/plans/2026-09-02-v410-recording-foundation-implementation-plan.md | Task 6 상태·실제 env 이름·문서 경로 정합성, 이전 실행은 역사로 구분 |
+| release-test-records.md | 미커밋 사전 등록·실패·재검증 기록 보존, 현재 상태와 당시 상태 분리 |
+| project-feature-test-inventory.md | I01~I34의 구현 예정 표기 갱신, ID·합격 기준·테스트 영역 유지 |
+| config-reference.md | 실제 status/timeline/media API·권한·UTC·Range 설명 추가 |
+| ui-guide.md | 기존 /ops/events의 녹화 조회·원본·재생·상태 사용법 추가 |
+
+정정: 잔여 5번 표의 120분 '조건부 진행'은 이번 실행 승인 경계와 필요성 판정을 섞은 표현이다.
+I19/I24/I25/I26이 120분에 직접 매핑되어 있으므로 버전 종료 관점의 '진행 대상·별도 승인 전
+미실행' 판정을 유지한다. 이번 문서 전용 작업에서 새로 실행하지 않는다. 이전 단기 PASS나
+문서 커밋으로 장시간·버전 전체 UI 미실행을 해소한 것으로 보지 않는다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 문서 전용 검증 | AGENTS 7.1, 변경 문서 8개 | 문서 검증 승인 |
+| 30분 테스트 | 미진행 | 이번 문서 전용 범위 밖; 버전 종료 필수 미실행 상태 유지 | AGENTS 7.7 | 실행 승인 없음 |
+| 120분 테스트 | 미진행 | 이번 문서 전용 범위 밖; 위 버전 종료 판정 유지 | I19/I24/I25/I26 | 실행 승인 없음 |
+| UI 풀테스트 | 미진행 | 이번 문서 전용 범위 밖; 버전 종료 필수 미실행 상태 유지 | AGENTS 7.9 | 실행 승인 없음 |
+
+실행 전 등록: git diff --check, ./server.sh verify-docs-links,
+./server.sh verify-docs-ui-assets. 각각 실제 exit·검사 수를 실행 후 기록한다.
+제품 빌드·auth·S06·S03~S05는 코드/환경을 변경하지 않았으므로 유효한 직전 증거를 사용한다.
+문서 8개 전체의 모든 과거 내용을 재감사했다는 의미가 아니라 변경 부분과 연결 계약을 대조했다.
+담당은 Codex 메인 직접, 사용자 설정 유지(영향1/불확실성1/검증1/범위1=4).
+기존 결과를 통합·판정하는 국소 문서 정리로 새 담당자를 만들지 않았으며 자동 상향 없음.
+token start/end/consumed: 미집계(활성 goal 없음), elapsed는 실행별 도구 실측값,
+source는 명령 출력. 임시 산출물은 생성 여부를 실행 뒤 확인한다.
+
+### 문서 마감 검증 결과
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| 로컬 링크 최초 | ./server.sh verify-docs-links, exit 1, failures 1 | fail | 새 API 제목의 가운데점과 링크 앵커 불일치, 제품 영향 없음 |
+| 로컬 링크 재검증 | ./server.sh verify-docs-links, exit 0; Markdown 225, 링크 1045, 이미지 22, 앵커 103, 색인 76, 제외 141, failures 0 | pass | 제목·링크 정합성 수정 후 동일 명령 재실행 |
+| 대표 이미지 참조 | verify-docs-ui-assets: README 대표 이미지 | pass | 전체 명령 exit 0, 10/0 |
+| 영문 이미지 참조 | verify-docs-ui-assets: 영문 README 이미지 | pass | 기존 의도된 공개 영문 문서 유지 |
+| UI guide asset | verify-docs-ui-assets: 공통 이미지 집합 | pass | 새 이미지 생성 없음 |
+| 캡처 정책 | verify-docs-ui-assets: 정책 문서 | pass | 실제 브라우저 재검수 대체 아님 |
+| manifest 완전성 | verify-docs-ui-assets: 관리 목록 | pass | 정적 검사 |
+| 캡처 소유권 | verify-docs-ui-assets: capture script 목록 | pass | 정적 검사 |
+| 캡처 대상 | verify-docs-ui-assets: 현재 screenshot 대상 | pass | 정적 검사 |
+| 오래된 참조 | verify-docs-ui-assets: stale baseline 참조 | pass | 정적 검사 |
+| PNG 파일 | verify-docs-ui-assets: 관리 asset 파일 | pass | 파일 존재 검사 |
+| VA 프레임 경계 | verify-docs-ui-assets: 문서 이미지 경계 계약 | pass | 이번에 새 이미지 시각 검수는 하지 않음 |
+| 최종 diff | git diff --check, exit 0 | pass | 문서 외 제품 변경 없음 |
+
+임시 산출물: 없음. 문서 검증기는 기존 파일을 읽고 표준 출력으로 결과를 반환했다.
+elapsed는 각각 도구 실행 반환 기준 0.01초 미만이며 전체 작업 시간은 미집계다.
+S06 구현·단계 검증과 문서 마감을 완료했다. 커밋·푸시의 실제 해시/결과는 git와 최종 보고로
+확인하며, 완료 전부터 푸시 성공을 기록하지 않는다. S07·PR/merge/tag/release는 미실행이다.
+
 ## S06 잔여 5번: 최종 회귀 및 변경 검토 결과 (2026-09-08)
 
 독자·보존 주기: S06 개발 담당자의 단계별 실행 증적. 작업 규칙은 AGENTS.md, 이 절은 실제 결과만 보존한다.
@@ -329,6 +390,34 @@ elapsed는 위 개별 명령의 실측값만 기록하며 전체 작업 시간�
 | verify-auth-routes 238 | auth off root redirects to ops: 302:/ops/home | pass | 최종 검증 |
 | verify-auth-routes 239 | auth off development admin accesses users API: 200 | pass | 최종 검증 |
 
+
+## S06 잔여 5번: 최종 회귀·검토 사전 등록 (2026-09-08)
+
+인증 회귀에서 bootstrap/users 통과 후 routes의 malformed source registry 재시작이 실패했다.
+RecordingSupervisor::Start가 global recording off에서도 Snapshot 실패를 서버 시작 실패로
+전파하는 기존 경계를 직접 확인했다. 기존 auth route 요구는 서버가 살아 있고 해당 registry
+API만500으로 fail-closed하는 것이다. global off에서는 supervisor를 시작하지 않도록 보완하고
+동일 routes 전체를 재실행한다. global on의 엄격한 시작 조건은 유지한다. 이 검사는 기존
+malformed source/view registry·원본 미덮어쓰기 assertion에 이미 등록되어 있다.
+
+승인된 5번 안정화: build, S03 catalog, S04 retention, S05 event, S06 변경 영향 focused,
+auth bootstrap/users/routes, Ops/Client·Rules 범위 검증, diff check. 30분/120분/버전 전체 UI는 제외한다.
+최종 검토에서 삭제된 segment ID와 fallback ID 충돌의 차단 누락 가능성을 확인했다.
+I08/I17 기존 계약을 보강하는 focused RED를 먼저 실행한다: 다른 채널 segment 삭제 완료 후
+동일 ID fallback의 ResolveMedia는 반드시 실패해야 한다. 예상 실패는 이 assertion 하나뿐이며
+기존 baseline의 다른 실패는 RED로 바꾸지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| I08/I17 삭제 ID 충돌 | tombstone과 fallback 동일 ID | JSONL/SQLite ResolveMedia 거부 | v4.1.0 |
+| 최종 제품 빌드 | ./server.sh build | exit0 | v4.1.0 |
+| S03 회귀 | verify-v410-recording-catalog | 기존 catalog와 시작/종료 순서 | v4.1.0 |
+| S04 회귀 | verify-v410-recording-retention | 보존/hold/삭제 | v4.1.0 |
+| S05 회귀 | verify-v410-event-recording | 기존27ID·실제 assertion·런타임 경계 | v4.1.0 |
+| 인증 회귀 | verify-auth-bootstrap/users/routes | 격리 env와 새 임시 비밀번호, 기존 role/route/policy | v4.1.0 |
+| 화면 회귀 | verify-ops-client-ui 및 --screenshots,verify-rule-ui | 인앱 증거 조건을 확인하고 실제 실행 범위만 판정 | v4.1.0 |
+| 최종 변경 검사 | git diff --check | 계약·민감 정보·변경 범위 직접 검토 | v4.1.0 |
+
 ## S06 잔여 4번: 정식 검증 명령 연결 결과 (2026-09-08)
 
 server.sh help/dispatch에 verify-v410-recording-timeline과 verify-v410-recording-ui-contract를
@@ -372,6 +461,23 @@ token start/end/consumed 미집계(활성 goal 없음), source 실제 명령 출
 elapsed 최초API5223/auth5267ms, 재API5233/auth5262/lifecycle5278ms, UI2301ms.
 개별 API/assertion의 정의와 기존 결과표는 같은 문서 S06 기록을 유지한다.
 이 단계는 검증 진입점 완료이며 5번 최종 회귀·검토와 6번 전체 문서 종료는 별도다.
+
+## S06 잔여 4번: 정식 검증 명령 사전 등록 (2026-09-08)
+
+기존 shell 기본 실행이 exit64 준비 안내로 끝나고 server.sh dispatch가 없었던 미완성 경계를
+보완한다. 새 제품 기능이나 UI 전체 PASS 범위를 추가하지 않는다. 테스트 범위는 3번 표의
+안정화 내부 I01~I34로 유지하며 30분/120분/버전 전체 UI는 실행하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S06 정식 명령 구문 | bash -n server.sh 및 timeline wrapper | 구문 exit0 | v4.1.0 |
+| S06 인증 누락 차단 | 정식 timeline 명령 기본 실행 | 5개 env 미설정이면 실행 전 exit1, 값 출력 없음 | v4.1.0 |
+| S06 전체 scoped dispatch | 정식 timeline 기본 실행 | read-model150/API31/auth37/lifecycle10, 각각 cleanup | v4.1.0 |
+| S06 UI 정적 dispatch | 정식 ui-contract 기본 실행 | 정적8검사와 실제UI NOT_RUN 경계, cleanup | v4.1.0 |
+| S06 help 등록 | server.sh help | 두 정식 명령과 한계 표시 | v4.1.0 |
+
+인증 검증값은 crypto.randomBytes로 매 실행 새로 만든 process env만 사용한다.
+대화에서 받은 문자열과 무관하며 값은 출력·소스·문서·git에 넣지 않는다.
 
 ## S06 잔여 3번: 실제 화면 검증 결과 (2026-09-08)
 
@@ -433,6 +539,43 @@ UI evidence mode는 direct-browser이며 위 개별 조작만 완료다. role/sc
 
 token start/end/consumed 미집계(활성 goal 없음), elapsed UI434749ms/static2255ms,
 source 실제 명령·CUA 출력. 스크린샷은 대화에서 직접 검수했으며 저장소 PNG 보존을 주장하지 않는다.
+
+## S06 잔여 3번: 직접 UI 확대 검증 등록 (2026-09-08, 과거 실행)
+
+**현재 결과: fixture 생성 실패로 중단, 3번 미커밋.** `node scripts/internal/verify_v410_recording_ui_contract.mjs --ui-direct`
+exit1. 내부 `bash .../verify_v410_recording_timeline.sh --seed-ui <격리 recording root> <sample>`가
+exit2를 반환했다. 서버 미시작(pid=null/notStarted=true), UI 조작 미실행. 상세 catalog error를
+seed가 출력하지 않아 첫 로그는 명령 실패까지만 기록했다. 예상 RED로 분류하지 않는다.
+
+읽기 대조로 fixture 계약 불일치를 확인했다. partial link는 http-continuous 실제1000~10000ms,
+요청2000~8000ms에 대해 overlap2000~4000ms를 선언했다. 기존
+ValidateEventLinkReferencesLocked는 정확한 교집합2000~8000ms를 요구하므로 이 입력은
+거부된다. S03/S05 제품 계약이 아니라 새 UI fixture가 잘못됐다. 다음 승인 재개 시
+부분 구간 전용 source segment를 실제 범위로 만들어 overlap/missing을 정확히 구성하고,
+seed의 실패 단계·안전한 error 출력도 보완해야 한다. 계약 검증을 완화하거나 우회하지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| UI 확대 fixture | --seed-ui exit2, 상위 --ui-direct exit1 | fail | 서버 시작 전, 원본 UI 회귀 판정 아님 |
+| fixture 정리 | root 삭제·부재, 서버 미시작 | pass | cleanup3/failure0 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| read root K8o1Qd | seed 컴파일 | 1636 KiB | 삭제 | 부재 | wrapper cleanup PASS |
+| HTTP root 7xaUVQ | UI용 영상·catalog | 14,686,162 bytes | 실패 후 삭제 | rootAbsent=true, pid=null, 포트 미할당 | cleanup3/failure0,5ms |
+
+token start/end/consumed 미집계(활성 goal 없음), elapsed2993ms, source실제 명령 출력.
+1번 afb6c5a3·2번 9de62e0e 커밋 유지. 4·5는 실패 뒤 건너뜀, 6·푸시는 최신 승인 범위 밖으로
+미실행. 이번 필수 실패 기록은 6번 문서 전체 종료와 구분한다.
+1번 stage 과정에서 대형 기록 파일의 Node 기본 출력 buffer 초과가 있었으나 index 변경 전
+실패였고, 해당 신규 기록 hunk만 stage하는 방식으로 복구했다. 제품/검증 결과 변경은 없었다.
+
+기존 I27~I34 범위에서 --ui-direct 전용 seed를 보강한다. 정상event/원본·partial event·
+fallback 파일 누락과 101개 이상 페이지를 실제 catalog/journal로 만든다. API 응답 mock이나
+브라우저 DOM 조작으로 상태를 위조하지 않는다. 일반 HTTP/auth/lifecycle fixture는 변경하지 않는다.
+확인 순서: 조회/event 기본 선택 → 재생·일시정지·탐색 → 원본 → partial/비재생 →
+페이지 다음/이전 → 빈 채널·잘못된 시간 → 320/390/760/1180 light/dark 표시·비노출.
+서버 종료 후 조회 실패 문구도 직접 확인하고 기존 harness cleanup을 확인한다.
 
 ## S06 잔여 2번: 전송·삭제·종료 경계 확인 (2026-09-08)
 
@@ -504,6 +647,25 @@ C++ 실험과 직접 코드 검토로 확인했다. 디스크 고장 주입·장
 token start/end/consumed 미집계(활성 goal 없음), HTTP elapsed5165ms, source실제 명령 출력.
 6번·푸시 미실행. S06 전체 완료가 아니다.
 
+## S06 잔여 2번: 전송 수명 검증 사전 등록 (2026-09-08)
+
+승인된 안정화 범위 I24~I26. --http-lifecycle은 64MiB 바이트 fixture를 사용하며 실제
+codec 재생 검사와 구분한다. 원본 sample 반복 데이터의 정확한 전송·크기만 검사한다.
+제품 상태 변경은 격리 catalog/서버에 한정하며 사용자 파일·영속 registry는 사용하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| I24 큰 파일 응답 | 64MiB 전체 수신 | HTTP200/길이/SHA256을 fixture와 대조, client도 streaming hash | v4.1.0 |
+| I24 buffer 경계 | 256KiB 경계 Range | 경계를 가로지르는206 byte 대조 | v4.1.0 |
+| I25 완료 hold 반환 | 정상 전송 뒤 조회 | 실제 SQLite hold_count=0 | v4.1.0 |
+| I26 중단 전 hold | TCP 수신을 일시 중지 | 미디어 요청 중 hold_count=1 확인 | v4.1.0 |
+| I26 disconnect 반환 | 수신 중 socket.destroy | bounded polling으로 hold_count=0, 서버 health200 확인 | v4.1.0 |
+| I26 종료 전 hold | 새 수신 중지 요청 | hold_count=1 확인 | v4.1.0 |
+| I26 종료 drain | 활성 요청 중 SIGTERM | 기존 stopServer 정상 종료 기준 유지, exit0·hold0·포트폐쇄 | v4.1.0 |
+| I25 동시 삭제 경쟁 | 16개 독립 segment에서 resolve와 RequestDeletion 동시 시작 | 두 결과가 동시에 성공하지 않고 하나만 성공. JSONL/SQLite 각각 확인 | v4.1.0 |
+| I26 fd 반환 | 동시 경쟁에서 반환된 lease 해제 | 열린 fd를 fcntl로 확인 후 reset 뒤 EBADF 확인. 삭제 선행이면 media 미반환 | v4.1.0 |
+
+
 ## S06 잔여 1번: 날짜·원본 보기 배치 수정 (2026-09-08)
 
 사용자 승인 범위는 잔여1~5 순차 실행·분할 커밋이며 6번 문서 전체 종료와 푸시는 제외한다.
@@ -550,7 +712,442 @@ Auth/Ops 회귀는 이 CSS 국소 수정에서 미실행, 2~5 진행 전 현재 
 - 테스트 결과표의 `결과`는 `pass` 또는 `fail`만 사용합니다. 실행하지 않은 항목,
   사용자가 제외한 항목, 외부 조건이 없어 제외한 항목은 별도 미실행/제외 표에 둡니다.
 
-## v4.1.0 S06 개발 — 검증 도구 보완과 구현 전 RED (2026-09-06)
+## v4.1.0 S06 조회 기반 수정 재개 (2026-09-08, 과거 실행)
+
+### S06 종료 검증 등록 (2026-09-08)
+
+최신 결과: --read-model exit0, 기존 개별43검사 JSONL/SQLite 각각86/0 재통과.
+--ui-direct exit0는 fixture 준비·cleanup만 뜻하며 실제 UI는 아래 시각 결함으로 중단했다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| I27 기본 빈 결과 | 인앱 /ops/events 최근1시간, 데이터 없음 표시 | pass | epoch fixture는 범위 밖 |
+| I27 시간 조회 | 시작1970-01-01T09:00/끝09:01 입력·조회, 전체2개 | pass | 실제 입력·버튼 조작 |
+| I28 기본 선택 | event1개 표시·선택, 이벤트 우선 badge | pass | 실제 UI 상태 |
+| I29 원본 펼침 | checkbox 클릭 후 event/continuous2개 | pass | 실제 UI 상태 |
+| I29 원본 선택 | continuous 클릭 후 상시녹화 원본 badge·첫 frame 표시 | pass | 실제 UI 상태 |
+| I30 재생 컨트롤 | 실제 sample 첫 frame·0:00/0:10 표시, 재생 시간 진행 미검증 | fail | 전체 재생 PASS 아님 |
+| I34 시각 배치 | 768px 캡처에서 datetime1970 앞자리 잘림·checkbox와 설명 과도한 간격 | fail | CSS basis180px/checkbox 전용 폭 제약 없음. 수정 전 중단 |
+
+1970은 SeedHttp UTC1000~10000ms의 의도된 값이며 실제 제품 시간 변경이 아니다.
+사용자 질문에 이 경계를 설명했다. 실제 recording_session_service는 system_clock을 사용한다.
+UI 다른 상태·반응형/테마 전수·로그 상관·최종 회귀·dispatch·제품 문서 종료는 미완료.
+실패 뒤 제품 수정·커밋·푸시·S07은 건너뛰었다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| read root rr18Z5 | focused 바이너리 | 1740 KiB | 삭제 | 부재 | wrapper cleanup PASS |
+| read root wKEkDt | UI seed 바이너리 | 1564 KiB | 삭제 | 부재 | wrapper cleanup PASS |
+| HTTP root ePPMm5 | UI 서버·영상 fixture | 2,409,370 bytes | stdin 종료 후 삭제 | PID34491 exit0, RTSP52299/HTTP52300 ECONNREFUSED, rootAbsent=true | cleanup6/failure0, 74ms; 전체82200ms |
+| 인앱 탭1 | 검증용 생성 탭 | 비파일 | close | 도구 성공 | 사용자 기존 탭 아님 |
+
+token start/end/consumed 미집계(활성 goal 없음), elapsed82200ms, source실제 도구 출력·인앱
+AX/screenshot. 스크린샷은 직접 관찰했으며 저장소 이미지 파일로 보존하지 않았다.
+
+사용자가 S06 마무리·분할 커밋·푸시를 승인했다. 안정화는 S06 focused/build 및 관련 회귀,
+실제 화면은 I27~I34의 범위만 확인한다. 버전 전체 UI 풀테스트와 30분/120분은 미실행이다.
+`--ui-direct`는 동일 격리 fixture를 실제 브라우저에 제공하고 종료 입력 또는 15분 제한 후
+기존 cleanup을 적용한다. 자체 PASS는 출력하지 않으며 각 조작 결과를 별도로 기록한다.
+기존 auth off는 이 명시 검증 모드에만 사용하고 제품 기본 auto는 유지한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S06 직접 UI fixture | --ui-direct 격리 서버 준비·종료 | 정확한 비활성 채널1·2와 실제 영상 seed, stdin 종료 뒤 pid/port/temp cleanup. I27~I34 직접 조작은 별도 기록 | v4.1.0 |
+
+**최신 상태: focused86 재통과, 실제 UI 배치 결함으로 중단. S06 전체는 미완료.** 읽기 서비스뿐 아니라
+`recording_application_service.cpp`에 status/timeline JSON·숫자/Range 파서·권한 필터,
+`recording_request_gate.h`에 admission/Close/Drain, HTTP runtime에 세 route와 bounded
+sender, composition에 실제 status 공급을 추가했다. session writer 시작 상태는 atomic
+조회로 노출한다. Ops events의 HTML/CSS/JS에 채널·시간·페이지·이벤트 우선·원본·player를
+추가했다. 문서/HTTP 전체 검증 및 커밋·푸시는 아직 끝나지 않았다.
+
+### 인증 fixture 수정 재검증 통과 (2026-09-08)
+
+사용자 재검증 승인에 따라 서버 기동 전에 비활성 source 1·2를 서로 다른 파일 경로로
+구성하고 POST 중복 생성은 제거했다. 기본 seed와 canonical source 중복을 예방했으며
+제품의 source 생성·권한 정책은 변경하지 않았다. 기존 409 실패를 PASS로 치환하지 않고
+아래 새 실행으로 분리한다. 앞선 테스트 판정표의 동일 안정화 범위만 재실행했다.
+
+명령: 앞선 Node 임시 난수 환경변수 5개 구성 후 runVerifier("--http-auth"), exit0,
+checks=37/fail=0. setup/admin 로그인과 검증용 사용자 생성·로그인도 정상 진행했다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 관리자 status | GET /ops/api/recordings/status, HTTP200 | pass |
+| 관리자 채널 필터 | channels=1,2 | pass |
+| 관리자 녹화 상태 | 반환 채널 active=false/enabled=false; 빈 배열은 채널 부재 판정 | pass |
+| 관리자 status 비노출 | passwordHash/passwordHistory/tokenHash/mediaRelpath/absolutePath 없음 | pass |
+| 관리자 timeline | GET /ops/api/recordings/timeline, HTTP200 | pass |
+| 관리자 timeline 비노출 | passwordHash/passwordHistory/tokenHash/mediaRelpath/absolutePath 없음 | pass |
+| 관리자 media/http-event | GET /ops/api/recordings/media/http-event, HTTP200 | pass |
+| 운영자 status | GET /ops/api/recordings/status, HTTP200 | pass |
+| 운영자 채널 필터 | channels=1 | pass |
+| 운영자 녹화 상태 | 반환 채널 active=false/enabled=false; 빈 배열은 채널 부재 판정 | pass |
+| 운영자 status 비노출 | passwordHash/passwordHistory/tokenHash/mediaRelpath/absolutePath 없음 | pass |
+| 운영자 timeline | GET /ops/api/recordings/timeline, HTTP200 | pass |
+| 운영자 timeline 비노출 | passwordHash/passwordHistory/tokenHash/mediaRelpath/absolutePath 없음 | pass |
+| 운영자 media/http-event | GET /ops/api/recordings/media/http-event, HTTP200 | pass |
+| viewer status | GET /ops/api/recordings/status, HTTP403 | pass |
+| viewer status 비노출 | passwordHash/passwordHistory/tokenHash/mediaRelpath/absolutePath 없음 | pass |
+| viewer timeline | GET /ops/api/recordings/timeline, HTTP403 | pass |
+| viewer timeline 비노출 | passwordHash/passwordHistory/tokenHash/mediaRelpath/absolutePath 없음 | pass |
+| viewer media/http-event | GET /ops/api/recordings/media/http-event, HTTP403 | pass |
+| source scope 없음 status | GET /ops/api/recordings/status, HTTP200 | pass |
+| source scope 없음 채널 필터 | channels=빈 배열 | pass |
+| source scope 없음 녹화 상태 | 반환 채널 active=false/enabled=false; 빈 배열은 채널 부재 판정 | pass |
+| source scope 없음 status 비노출 | passwordHash/passwordHistory/tokenHash/mediaRelpath/absolutePath 없음 | pass |
+| source scope 없음 timeline | GET /ops/api/recordings/timeline, HTTP403 | pass |
+| source scope 없음 timeline 비노출 | passwordHash/passwordHistory/tokenHash/mediaRelpath/absolutePath 없음 | pass |
+| source scope 없음 media/http-event | GET /ops/api/recordings/media/http-event, HTTP404 | pass |
+| ops scope 없음 status | GET /ops/api/recordings/status, HTTP403 | pass |
+| ops scope 없음 status 비노출 | passwordHash/passwordHistory/tokenHash/mediaRelpath/absolutePath 없음 | pass |
+| ops scope 없음 timeline | GET /ops/api/recordings/timeline, HTTP403 | pass |
+| ops scope 없음 timeline 비노출 | passwordHash/passwordHistory/tokenHash/mediaRelpath/absolutePath 없음 | pass |
+| ops scope 없음 media/http-event | GET /ops/api/recordings/media/http-event, HTTP403 | pass |
+| 미인증 status | GET /ops/api/recordings/status HTTP401 | pass |
+| 미인증 timeline | GET /ops/api/recordings/timeline HTTP401 | pass |
+| 미인증 media/http-event | GET /ops/api/recordings/media/http-event HTTP401 | pass |
+| 타 채널 거부 | 운영자 channelId=2 timeline HTTP403 | pass |
+| viewer 화면 거부 | GET /ops/events HTTP403, 녹화 section 없음; 실제 브라우저 조작 아님 | pass |
+| 평문 비밀번호 부재 | 임시 users.json에 이번 난수 비밀번호 5개 원문 없음 | pass |
+
+실제 UI 조작·UI 풀테스트·30분/120분·S06 최종 회귀는 이번 재검증에서 미실행이다.
+S06 전체 완료가 아니며 커밋·푸시 미수행이다. 제품 코드는 이번 턴에 수정하지 않았다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| read root kl5pUE | seed 컴파일 | 1564 KiB | 삭제 | root 부재 | wrapper cleanup PASS |
+| HTTP root 6CAkWp | 인증 서버·미디어·계정 fixture | 2,413,112 bytes | 삭제 | rootAbsent=true, PID33787 exit0, RTSP52137/HTTP52138 ECONNREFUSED | cleanup6/failure0, 431ms; 전체5118ms |
+
+root 접미사는 삭제 이력이며 증거 파일 링크가 아니다. 계정·로그·미디어 보존 없음.
+token start/end/consumed 미집계(활성 goal 자동 집계 없음), elapsed5118ms, source실제 도구 출력.
+
+### 인증 환경 구성 수정 재개 (2026-09-08, 이전 실패 이력)
+
+사용자 승인 후 메인이 검증 도구의 frozen 환경 대입만 수정했다. 기존 allowlist 환경을
+복사한 새 객체에 auth mode를 지정한 뒤 다시 freeze하며, 비인증 경로는 기존 객체를 유지한다.
+제품 코드·권한 계약 변경 없음. 소규모 직접 수정 예외 적용(영향1/불확실성0/검증1/범위0=2,
+Codex 메인 사용자 설정 유지, 모델 상향·새 서브에이전트 생성 없음).
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 사용자 동일 인증 검증 재개 승인 | S06 인증 fixture/--http-auth | 승인 |
+| 30분 테스트 | 미진행 | 이번 재개 범위 밖 | AGENTS 7.7 | 미승인 |
+| 120분 테스트 | 미진행 | 이번 도구 수정 재개 범위 밖 | AGENTS 7.7 | 미승인 |
+| UI 풀테스트 | 미진행 | 이번 재개 범위 밖 | AGENTS 7.9 | 미승인 |
+
+실행 명령: 이전과 동일하게 Node 프로세스에서 crypto.randomBytes로 서로 다른 비밀번호
+환경변수 5개를 생성하고 runVerifier("--http-auth") 호출. 비밀번호 값은 출력·문서화하지 않았다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| frozen 환경 구성 재검증 | 기존 TypeError 없이 격리 서버 PID32981 기동 | pass |
+| 인증 fixture setup | POST /setup HTTP302 | pass |
+| 인증 fixture admin 로그인 | POST /login HTTP302, 메모리에 session cookie 존재 | pass |
+| 인증 fixture source 등록 | POST /ops/api/sources HTTP409, 전체 명령 exit1 | fail |
+| 인증 종료 정리 | 서버 exit0/signal null/graceful, 포트 두 개 닫힘, root 부재 | pass |
+
+실패 후 읽기 확인: source_view_registry.cpp는 빈 sources에 기본 sourceId 1·2 등을 seed하며,
+기존 ID 생성 시 409를 반환한다. 도구는 빈 목록을 유지한다고 가정하고 ID1·2를 POST한다.
+응답 body는 이번 도구에서 보존하지 않았으므로 409 상세 문자열은 미확인이다.
+role별 15개 route 검사와 status scope·비노출 검사는 아직 시작하지 않았다.
+동일 오류를 무시하거나 409를 PASS로 바꾸지 않는다. 다음 승인 시 fixture를 서버 기동 전에
+정확히 구성하여 기본 seed·canonical source 중복까지 제거하고 동일 인증 검증을 재개한다.
+제품 source 생성 정책은 변경하지 않는다. 실패 후 추가 수정·재실행·커밋·푸시 미수행.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| read root rN6xGX | seed 컴파일 | 1564 KiB | 삭제 | root 부재 | wrapper cleanup PASS |
+| HTTP root UYVLno | 인증 서버·fixture | 2,141,731 bytes | 실패 후 삭제 | rootAbsent=true, PID32981 exit0, RTSP51566/HTTP51567 ECONNREFUSED | cleanup6/failure0, 913ms; 전체5600ms |
+
+위 접미사는 삭제 이력이며 최종 증거 경로가 아니다. raw 로그·미디어·계정 파일 보존 없음.
+token start/end/consumed 미집계(활성 goal 집계 없음), elapsed 5600ms, source 실제 도구 출력.
+
+### Range 수정 재검증 및 인증 도구 중단 (이전 이력)
+
+사용자 재개 승인 후 HTTP runtime의 헤더 조회를 기존 case-insensitive `HeaderValue`로
+교체했다. `./server.sh build` exit 0. `node scripts/internal/verify_v410_recording_ui_contract.mjs --http-api`
+exit 0, 아래 31검사 통과(auth off). 앞선 Range 실패 이력은 유지하며 해당 경계의 수정 후 PASS다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| I01 상태 | enabled=true, catalogMode=sqlite-primary, channels 배열 | pass |
+| I03/I06 타임라인 | HTTP200, total=2, event 우선 | pass |
+| I07 연결 | 원본 supersededByEventIds=http-event-id | pass |
+| I17 비노출 | absolutePath/mediaRelpath/저장소 경로 없음 | pass |
+| I04 필수 누락 | HTTP400 | pass |
+| I04 음수 | HTTP400 | pass |
+| I04 시간 역전 | HTTP400 | pass |
+| I04 정수 overflow | HTTP400 | pass |
+| I04 limit=0 | HTTP400 | pass |
+| I20 Range 상태 | HTTP206 | pass |
+| I20 Range 헤더 | Content-Range=bytes 2-5/135694 | pass |
+| I20 Range 본문 | sample의 2~5 byte와 정확히 일치, 4 bytes | pass |
+| I20 range 상태 | HTTP206 | pass |
+| I20 range 헤더 | Content-Range=bytes 2-5/135694 | pass |
+| I20 range 본문 | sample의 2~5 byte와 정확히 일치, 4 bytes | pass |
+| I20 rAnGe 상태 | HTTP206 | pass |
+| I20 rAnGe 헤더 | Content-Range=bytes 2-5/135694 | pass |
+| I20 rAnGe 본문 | sample의 2~5 byte와 정확히 일치, 4 bytes | pass |
+| I20/I21 bytes=2-5 | HTTP206, Content-Range/Accept-Ranges 및 실제 sample byte 일치 | pass |
+| I20/I21 bytes=10- | HTTP206, Content-Range/Accept-Ranges 및 실제 sample byte 일치 | pass |
+| I20/I21 bytes=-7 | HTTP206, Content-Range/Accept-Ranges 및 실제 sample byte 일치 | pass |
+| I24 전체 | HTTP200, video/mp4, sample 135694 bytes 일치 | pass |
+| I22 bytes=1-0 | HTTP416, Content-Range=bytes */135694 | pass |
+| I22 bytes=-0 | HTTP416, Content-Range=bytes */135694 | pass |
+| I22 bytes=0-1,3-4 | HTTP416, Content-Range=bytes */135694 | pass |
+| I22 bytes=18446744073709551616- | HTTP416, Content-Range=bytes */135694 | pass |
+| I22 bytes=0-135694 | HTTP416, Content-Range=bytes */135694 | pass |
+| I22 invalid | HTTP416, Content-Range=bytes */135694 | pass |
+| I23 HEAD 전체 | HTTP200, Content-Length=135694, body=0 | pass |
+| I23 HEAD Range | HTTP206, Content-Length=4, body=0 | pass |
+| I17 없는 ID | HTTP404 | pass |
+| 인증 검증 도구 시작 | 임시 난수 5개를 프로세스 환경에서 생성해 runVerifier("--http-auth") 실행, exit 1. isolatedEnvironment의 Object.freeze 반환값에 MEDIA_SERVER_AUTH_MODE를 대입하여 TypeError | fail |
+
+인증 실패는 서버 시작 전 도구 구성 결함이다. 제품 auth/role 검사는 미실행이며 PASS가 아니다.
+비밀번호 값은 출력·문서·저장소에 기록하지 않았고 사용자 대화의 비밀번호는 사용하지 않았다.
+서버 미시작(pid=null/notStarted=true), 계정 생성 미실행. 다음 승인 재개에서는 격리 환경의
+허용 목록과 freeze를 유지하면서 새 객체에 auth mode를 구성해야 한다. 전역 환경 전체 복사나
+freeze 제거로 우회하지 않는다. 실패 후 인증 재실행·UI·최종 회귀·커밋·푸시는 중단했다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| read root GsAgim | HTTP seed 컴파일 | 1564 KiB | 삭제 | root 부재 | wrapper cleanup PASS |
+| HTTP root 3MEu7Y | API 격리 서버·fixture | 2,140,926 bytes | 삭제 | rootAbsent=true, PID31803 exit0, ports50830/50831 ECONNREFUSED | cleanup6/failure0, 919ms; 전체5802ms |
+| read root kVfppt | 인증 seed 컴파일 | 1564 KiB | 삭제 | root 부재 | wrapper cleanup PASS |
+| HTTP root F8AE3e | 인증 격리 fixture | 525,483 bytes | 실패 뒤 삭제 | rootAbsent=true, 서버 미시작, ports50929/50930 ECONNREFUSED | cleanup5/failure0, 5ms; 전체2841ms |
+
+root 접미사는 삭제 이력이며 최종 증거 링크가 아니다. 원본 로그·미디어는 보존하지 않았다.
+token start/end/consumed: 미집계(활성 goal 자동 집계 없음). elapsed: 위 실행별 값, source: 실제 도구 출력.
+
+### 조회 이후 통합 검증 결과 (앞선 실행 이력)
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 제품 build | `./server.sh build` exit 0, read service 및 HTTP/UI 통합 단계별 빌드 통과, 최종 target 100% | pass |
+| S03 catalog 회귀 | `bash scripts/internal/verify_v410_recording_catalog.sh` exit 0, C++ 45/0 및 기존 source/revision/reconcile/start/stop 정적 검사 9개 통과. 이후 HTTP/session 변경 전 결과 | pass |
+| S04 retention 회귀 | `bash scripts/internal/verify_v410_recording_retention.sh` exit 0, 56/0. 이후 HTTP/session 변경 전 결과 | pass |
+| I20 Range 파서 | bytes=2-5 → first 2/length 4/partial true. 초기 미구현 nullopt RED exit 1 후 GREEN, 두 catalog mode | pass |
+| I26 admission | 열린 gate flight 생성, 초기 stub RED exit 1 후 GREEN, 두 mode | pass |
+| I26 신규 거부 | Close 후 Cancelled true, Begin 거부 | pass |
+| I26 drain 대기 | active flight 중 20ms future timeout으로 조기 완료 없음 | pass |
+| I26 drain 완료 | 마지막 flight 반환 뒤 1초 안 future ready | pass |
+| I26 socket 취소 | socketpair 실제 shutdown 후 상대 recv EOF | pass |
+| I01 실제 status 기본 HTTP | `bash scripts/internal/verify_v410_recording_timeline.sh --red-http-baseline` exit 0, HTTP 200. 세부 투영은 다음 실행에서 대조 | pass |
+| I27 UI markup | `node scripts/internal/verify_v410_recording_ui_contract.mjs --full` exit 0, channel/start/end/rows/player 존재 | pass |
+| I28 UI markup | kind badge host 존재. event 기본 선택 행동 미검증 | pass |
+| I29 UI markup | original-view control 존재. 클릭 미검증 | pass |
+| I30 UI markup | video controls/preload 및 지원 상태 존재. decode 미검증 | pass |
+| I31 UI markup | completeness/playback 상태 control 존재 | pass |
+| I32 UI markup | quota/status placeholder 존재. 실제 표시 미검증 | pass |
+| I33 UI markup | 녹화 section에 신규 자연어/vector input 및 primary nav 없음 | pass |
+| I34 UI markup | 내부 source/path/debug field 없음. role/responsive/theme 미검증 | pass |
+| I01 HTTP status 투영 | `node scripts/internal/verify_v410_recording_ui_contract.mjs --http-api`: enabled true, sqlite-primary, channels array | pass |
+| I03/I06 HTTP timeline | 실제 sample을 제품 journal API로 seed, HTTP200/total2/event 우선 | pass |
+| I07 HTTP 연결 | 원본의 정확한 http-event-id 참조 | pass |
+| I17 HTTP 비노출 | timeline JSON에 repo path/absolutePath/mediaRelpath 없음 | pass |
+| I04 HTTP 누락 | 필수 query 누락 HTTP400 | pass |
+| I04 HTTP 음수 | 음수 시작 HTTP400 | pass |
+| I04 HTTP 역전 | 역전 시간 HTTP400 | pass |
+| I04 HTTP overflow | uint64 초과 시간 HTTP400 | pass |
+| I04 HTTP limit | limit 0 HTTP400 | pass |
+| I20/I21 실제 첫 Range | 같은 `--http-api` exit 1, bytes=2-5의 206/header/byte 묶음 assertion 실패. 실제 응답 세부 값은 첫 runner가 출력하지 않아 미확인 | fail |
+
+실패 후 읽기 확인으로 원인을 좁혔다. `ReadHttpRequest`는 header key 대소문자를 보존한다.
+새 media route의 `request.headers.find("range")`는 `Range`를 찾지 못한다. 기존
+`HeaderValue(request, "Range")`는 case-insensitive 조회를 제공한다. 후속 승인 재개 시
+그 조회를 사용하고 대소문자 변형별 실제 응답을 개별 확인한다. 현재는 수정하지 않았으며
+실패를 예상 RED로 바꾸지 않는다. 이후 Range/HEAD, auth role, 실제 UI, 최종 회귀는 건너뛰었다.
+
+추가 focused GREEN은 두 mode 각각 43개(기존 37 + Range 1 + gate 5) 통과다.
+contentType/HTTP/UI 최종 변경 뒤 해당 focused 최종 재실행은 아직 안 했다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| read wrapper krfJ8V / 9wYXfN / xzg6Sx / qzrOER / JW0TuW | Range RED/GREEN·gate RED/GREEN·HTTP seed 바이너리 | 1464 / 1636 / 1504 / 1740 / 1564 KiB | wrapper 삭제 | 모두 root 부재 | cleanup PASS 출력 |
+| HTTP root PlwHOa | status 서버 격리 root | 1,866,907 bytes | 삭제 | PID30492 exit0/null, ports50560/50561 ECONNREFUSED, rootAbsent true | cleanup6/failure0, 970ms, 전체4052ms |
+| HTTP root J8OWSU | UI markup 격리 root | 1,866,907 bytes | 삭제 | PID30831 exit0/null, ports50649/50650 ECONNREFUSED, rootAbsent true | cleanup6/failure0, 999ms, 전체2872ms |
+| HTTP root hzM1g4 | 실제 API·seed 격리 root | 2,140,926 bytes | 실패 뒤 삭제 | PID31111 exit0/null, ports50725/50726 ECONNREFUSED, rootAbsent true | cleanup6/failure0, 933ms, 전체5733ms |
+| S03/S04 기본 tmp prefix | 회귀 바이너리/fixture | 미집계 | 기존 EXIT trap 삭제 | 해당 prefix 잔여 경로 없음 확인 | /private/tmp의 catalog/retention prefix 읽기 확인 |
+
+위 root 접미사는 재현 이력이며 최종 증거 파일 경로가 아니다. 서버 raw log·영상 fixture는
+보존하지 않았다. token start/end/consumed·전체 elapsed 미집계(활성 goal 없음).
+
+사용자가 컴파일 실패 보완과 동일 검증 재개를 승인했다. 미사용 스텁 참조와 SQLite
+탐지/링크 옵션을 보완했다. Werror는 유지하며 기존 catalog 함수는 삭제하지 않았다.
+조회 서비스가 catalog를 읽도록 구현했고, root/상대경로를 내부에서만 가져와 각 경로
+구성요소에 `openat(O_NOFOLLOW)`를 적용한다. 재생 hold는 기존 finalized 원자 판정과
+삭제 mutex를 공유하는 `AdjustHoldCount`로 취득하며 fd 소멸 뒤 해제한다.
+
+추가된 실행 명령 `bash scripts/internal/verify_v410_recording_timeline.sh --read-model`은
+S06 읽기 서비스 단기 부분 검증이다. 기존 사전 등록 I03~I11/I16~I19/I25의 catalog,
+half-open, 인자, 정렬/페이지, 이벤트 연결, 실제/요청 범위, 파일·manifest 검증,
+fd 교체 및 read hold 반환을 실행한다. API 인증·HTTP Range·shutdown·UI 검증을 대체하지
+않으며 기본 verifier는 여전히 전체 미구현을 exit 64로 보고한다.
+세부 검사에는 숫자형 채널 유지, fallback 영상 byte(비 JSON), partial 표기, duplicate key,
+event 바인딩/byteSize 타입/64KiB 상한/leaf symlink/크기/ID 충돌이 포함된다.
+
+HTTP/UI 추가 구현의 실행 전 세부 등록:
+- I20~I23: closed/open/suffix/전체 범위, zero suffix, 다중 범위, 역전, 끝 초과,
+  숫자 overflow를 개별 assertion으로 검사하고 실제 HTTP 200/206/416 및 HEAD body를 별도 대조한다.
+- I26: gate admission, Close 후 신규 거부, active flight 중 Drain 미완료, 마지막
+  flight 반환 후 완료, socketpair 상대 EOF를 개별 검사한다. 실제 HTTP Stop 연결은 별도 검증한다.
+- I27: 채널 선택, 시작·종료 현지 시간 입력, 조회 submit, 이전/다음 페이지, 범위 오류,
+  빈 결과·실패 표시 및 빠른 변경의 stale 응답 차단을 각각 확인한다.
+- I28/I29: playable event 기본 선택, 겹치는 continuous 원본 숨김/펼침, 삭제·미완성
+  event가 원본 선택을 가리지 않는지 확인한다.
+- I30/I31: video controls/preload, 실제 MIME canPlayType, media error 표시,
+  partial/missing/실제 구간 미확인 표시를 구분한다.
+- I32/I34: 허용 채널별 실제 writer 시작 상태·용량·storageBlocked와 응답 경로 비노출,
+  light/dark와 좁은 폭, aria 상태와 키보드 접근을 확인한다.
+
+같은 smoke는 SQLite primary와 JSONL fallback을 각각 별도 fixture로 실행하여 동일 조회와
+read hold 정책을 확인한다. fixture 삭제 전 크기와 삭제 후 부재를 wrapper가 기록한다.
+
+### 읽기 서비스 focused 결과
+
+`bash scripts/internal/verify_v410_recording_timeline.sh --read-model` exit 0.
+SQLite primary와 JSONL fallback 각각 아래 37개 검사 pass(총 74개). 구현 전 I03 빈 목록,
+I09 finalized 재생 불가, I07 이벤트 ID 연결 누락/I10 요청 범위 누락, I11 fallback fd 부재를
+각각 exit 1의 예상 RED로 확인하고 구현 후 같은 assertion GREEN을 확인했다.
+최초 Werror 컴파일 실패는 과거 절에 그대로 보존하며 RED로 바꾸지 않는다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| I03 catalog 항목 반환 | 실제 finalize 항목 ID 확인, 두 catalog mode 동일 | pass |
+| I09 opaque 재생 URL | 내부 경로 대신 media ID URL | pass |
+| I03 인접 경계 | end=start인 요청에서 제외 | pass |
+| I03 다른 채널 | 타 채널 결과 없음 | pass |
+| I04 음수 시간 | 음수 시작 거부 | pass |
+| I04 역전 시간 | end<start 거부 | pass |
+| I04 빈 limit | limit 0 거부 | pass |
+| I04 과대 limit | limit 1001 거부 | pass |
+| I05 offset overflow | size_t 최대 offset에서 total 유지·빈 페이지 | pass |
+| I16 media 채널 경계 | 다른 채널의 ID resolve 거부, HTTP auth 검증은 별도 미실행 | pass |
+| I17 path ID | ../ ID 거부 | pass |
+| I09 fd 메타데이터 | 실제 fd size 12와 video/mp4 MIME | pass |
+| I25 hold 삭제 차단 | 열린 media lease 중 RequestDeletion 거부 | pass |
+| I19 fd 고정 | 경로 교체 뒤 원래 12 byte 유지 | pass |
+| I18 leaf symlink | leaf를 외부 파일 symlink로 바꾸면 거부 | pass |
+| I09 누락 | 파일 삭제 후 resolve 거부 | pass |
+| I09 크기 | 파일 축소 후 resolve 거부 | pass |
+| I09 비일반 파일 | 디렉터리 resolve 거부 | pass |
+| I06 event 우선 | 같은 시작 시간의 event 200, continuous 100 순서 | pass |
+| I07 정확한 ID | derived event ID와 원본의 supersededByEventIds 대조 | pass |
+| I10 시간 구분 | 실제 시작 1000과 요청 시작 1100 분리 | pass |
+| I05 정렬 후 페이지 | offset 1/limit 1에서 원본 반환 | pass |
+| I25 실패 해제 | 실패한 resolve 경로의 hold 반환 후 삭제 요청 허용 | pass |
+| I08 pending resolve | deletion_pending 직접 재생 거부 | pass |
+| I08 pending timeline | 목록 항목은 남되 playable false | pass |
+| I11 fallback fd | 검증한 manifest의 실제 video/webm fd | pass |
+| I11 비 JSON byte | manifest가 아닌 영상 fixture byte 읽기 | pass |
+| I11 partial 표기 | fallback timeline을 complete로 승격하지 않음 | pass |
+| I11 중복 key | duplicate eventId manifest 거부 | pass |
+| I11 바인딩 불일치 | 다른 eventId manifest 거부 | pass |
+| I11 타입 | 문자열 byteSize 거부 | pass |
+| I11 상한 | 65537 byte manifest 거부 | pass |
+| I18 fallback symlink | fallback media symlink 거부 | pass |
+| I09 fallback 크기 | manifest byteSize와 실제 파일 불일치 거부 | pass |
+| I19 fallback fd 고정 | 경로 교체 후 원래 byte 유지 | pass |
+| I17 ID 충돌 | 다른 채널 segment와 fallback ID 충돌 거부 | pass |
+| I03 숫자 채널 | 기존 channel ID `1` 허용 | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| wrapper root `media-server-s06-read.oZyJK5` | 바이너리·두 catalog fixture | 1608 KiB | wrapper EXIT 삭제 | 부재 확인 | wrapper exit 0·cleanup 출력 |
+| 수동 focused roots RR4jsO/iPhhPv/5rVNuB/fHU1E7/ohIByK | 초기 RED/GREEN fixture | 각 8 KiB | 명시 경로 삭제 | 모두 부재 확인 | du -sk, 삭제 후 test ! -e |
+| 수동 focused roots trLufO/UBg68X | event RED/GREEN fixture | 각 12 KiB | 명시 경로 삭제 | 모두 부재 확인 | 동일 |
+| 수동 focused roots gOwpH9/dYssDr | fallback RED/GREEN fixture | 각 20 KiB | 명시 경로 삭제 | 모두 부재 확인 | 동일 |
+| 수동 focused root 6ovAjh | fallback 부정 검사 fixture | 32 KiB | 명시 경로 삭제 | 부재 확인 | 동일 |
+| 수동 `media-server-s06-read-smoke` | focused 바이너리 | 1432 KiB | 명시 경로 삭제 | 부재 확인 | 동일 |
+
+수동 roots는 모두 `/private/tmp/media-server-s06-read.<접미사>`이며 최종 증거 링크가 아니다.
+원시 media fixture는 보존하지 않고 위 실제 결과만 저장소에 기록했다.
+token start/end/consumed·elapsed: 미집계(활성 goal 없음), source: 실행 도구 exit/output.
+이 결과는 재생 가능한 codec decoding, HTTP 인증/Range/종료, Ops UI 또는 S06 전체 PASS가 아니다.
+
+## v4.1.0 S06 조회 기반 재개 중단 (2026-09-08, 과거 실행)
+
+사용자는 S06 잔여 구현·검증 후 분할 커밋·푸시를 승인했다. Astra/medium 단일 담당자
+생성은 도구의 `agent thread limit reached`로 거부되었다. 이전 담당자는 재사용 가능하나
+Sol/xhigh 설정 유지로 확인되어 구현을 맡기지 않고 메인이 회수했다. 모델 판단 점수는
+영향도/불확실성/검증 난이도/변경 범위 2/2/2/2이며 자동 추론 상향은 하지 않았다.
+
+조회 DTO와 `RecordingReadService::QueryTimeline` 미구현 스텁, 실제 catalog를 사용하는
+`scripts/internal/recording_timeline_smoke.cpp`의 I03 assertion을 추가했다. 현재 스텁은
+빈 결과를 반환하며 제품 빌드나 HTTP에 연결하지 않았다. S06 기능 완료가 아니다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| V410-S06-I03 focused 컴파일 | `c++ -std=c++17 -Wall -Wextra -Werror -pthread -Iinclude -DMEDIA_SERVER_USE_SQLITE3=0 scripts/internal/recording_timeline_smoke.cpp src/recording/recording_read_service.cpp src/recording/recording_journal.cpp src/recording/recording_catalog.cpp src/recording/retention_coordinator.cpp src/recording/recording_contracts.cpp src/domain/strict_json.cpp -o /private/tmp/media-server-s06-read-smoke`, exit 1. 스텁의 `catalog_` 미사용 필드와 SQLite 비활성 분기의 기존 LifecycleName/RetentionName/EventStatusName 미사용 함수가 Werror로 실패 | fail |
+
+이는 예상 I03 assertion RED가 아니라 컴파일 실패이므로 테스트 실행·GREEN 구현·후속 검증·
+커밋·푸시를 중단했다. 다음 수정은 스텁의 의존성 참조를 명시하고 기존 S03과 동일한
+SQLite 탐지/링크 옵션을 사용한 뒤 동일 focused를 재개하는 것이다. 제품 경고를 숨기는
+Werror 해제나 기존 catalog 코드 삭제로 처리하지 않는다.
+
+임시 실행 파일 `/private/tmp/media-server-s06-read-smoke`는 생성되지 않았으며 부재를 확인했다.
+smoke 자체는 실행하지 않아 media/journal fixture, 서버, 포트 등 임시 자원은 생성되지 않았다.
+token start/end/consumed: 미집계(활성 goal 없음), elapsed: 미집계, source: 실행 도구 결과.
+
+## v4.1.0 S06 전체 구현 재개 (2026-09-06, 과거 실행)
+
+사용자가 S06 구현·안정화 이후 분할/최종 커밋·푸시와 실패 수정 후 계속 진행을 승인했다.
+기준 커밋은 `de84cca6ee262d76c882650c266ce8bbb56add37`이며 기존 단일 Sol/xhigh 담당자를
+재사용한다. 아래 과거 실패와 RED 기록은 보존하며, 이 승인이 과거 미실행을 PASS로 바꾸지 않는다.
+S07 이후·PR/merge/tag/release·30분/120분·UI 풀테스트는 자동 진행하지 않는다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 승인된 S06 구현·단기 회귀 | Task 6, I01~I34, AGENTS 7.2 | S06 focused·build·S03/S04/S05·auth/ops/rule·문서/diff 승인 |
+| 30분 테스트 | 진행 대상 | 기존 버전 종료 필수 판정 유지 | AGENTS 7.6.2, S06 inventory | 별도 승인 전 미실행 |
+| 120분 테스트 | 진행 대상 | HTTP 전송·read lease·disconnect lifecycle | I19/I24/I25/I26 | 별도 승인 전 미실행 |
+| UI 풀테스트 | 진행 대상 | 실제 필터·목록·재생·시각 품질 | I27~I34, Task 6 Step 5 | 별도 승인 전 미실행; 정적 계약 검사로 대체하지 않음 |
+
+34개 기능의 사전 정의와 예상 RED는 아래 기존 표를 유지한다. 이번 실행의 더 세부적인 assertion도
+실행 전에 기록한다. I01의 404와 정상 cleanup이 확인된 유효 RED는 인계만을 이유로 반복하지 않는다.
+I27은 실제 `/ops/events` HTML의 신규 필터 부재 assertion을 구현 전에 확인한다.
+인증 검증에는 사용자 대화 입력을 쓰지 않고 별도 난수 5개를 해당 프로세스 환경에만 전달한다.
+비밀번호 값은 저장소·문서·출력·커밋에 남기지 않는다.
+token start: 활성 goal 기준 40172; token end/consumed와 elapsed는 이번 실행 종료 시 기록한다.
+source: Codex goal usage(전체 목표 집계이며 테스트만의 사용량으로 해석하지 않음).
+
+### 이번 전체 구현 재개의 실행 전 세부 assertion
+
+- `V410-S06-I09/I11/I17/I18`: fallback opaque ID는 catalog의 정확히 한 event link에만
+  결박되어야 한다. 최대 64 KiB의 configured event clip root 내부 manifest를 fd로 읽고,
+  중복 JSON key가 없으며 top-level `schema/eventId/streamId/channelId/encodedClip`의 타입과
+  값이 durable link와 일치하는지 확인한다. nested `encodedClip`도 정확한 schema,
+  `status=completed`, `format=webm`, `contentType=video/webm`, 양의 `byteSize`, 문자열
+  `mediaPath`를 요구한다. encoded media도 같은 configured root 안에서 symlink 없는
+  component별 fd open을 통과하고 `fstat` regular/size가 manifest와 일치해야 한다.
+  manifest 원문·절대경로·source 정보는 응답하지 않는다. ID 충돌, oversized/duplicate-key/
+  wrong-type/wrong-binding manifest, root 탈출, 삭제 중 open 실패, size 불일치는 fail-closed다.
+- `V410-S06-I19`: fallback encoded media fd를 확보한 뒤 같은 경로가 삭제·교체되어도
+  이미 열린 fd의 기존 byte만 읽는지 확인한다. fallback에는 존재하지 않는 catalog hold를
+  주장하지 않으며 fd 소유권만 수명 보장 근거로 삼는다.
+- `V410-S06-I26`: S06 전용 request gate가 shutdown 시작과 동시에 신규 status/timeline/media
+  flight를 거부하고, 진행 중 media socket을 취소한다. media fd와 catalog read lease가 먼저
+  정리되고 flight가 마지막에 해제된 뒤 drain이 반환하는지 확인한다. Stop이 active flight를
+  남기고 timeout 성공 처리하거나 catalog 파괴 뒤 service를 역참조하는 경로는 허용하지 않는다.
+- 신규 backend focused smoke의 예상 RED는 동작 보존용 API surface를 먼저 연결한 상태에서
+  `V410-S06-I03 event/continuous timeline item을 구성하지 못함` assertion의 `exit 1`이다.
+  컴파일/import/환경 오류는 예상 RED로 인정하지 않는다. 동일 smoke GREEN에서 I01~I26을
+  개별 assertion으로 다시 확인한다.
+
+### 이번 전체 구현 재개의 구현 전 RED
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| V410-S06-I01 상태 API 구현 전 RED | 이전 승인 실행에서 `GET /ops/api/recordings/status`가 expected 200, actual 404였고 정상 종료·두 포트 ECONNREFUSED·임시 root 삭제가 확인됨. 인계만으로 재실행하지 않음 | fail |
+| V410-S06-I27 녹화 control 구현 전 RED | `node scripts/internal/verify_v410_recording_ui_contract.mjs --red-http-baseline`, 승인된 격리 실행 exit 1. 실제 `/ops/events`에서 timeline root와 channel/start/end/rows/player 6개 필수 control 누락 assertion에 도달했으며 환경 오류 없음 | fail |
+
+I27 RED cleanup은 PID 6447의 exit 0/signal null/graceful 종료, RTSP 56543·HTTP 56544의
+`ECONNREFUSED`, 임시 root `media-server-v410-s06-tGndzd`의 삭제 전 1,866,907 bytes/
+300 entries/277 symlinks(추적하지 않음), 삭제 뒤 root 부재로 확인했다. cleanup은 961 ms,
+전체 실행은 2,226 ms, cleanup attempted 6/failure 0이다. 임시 산출물은 남기지 않았다.
+
+## v4.1.0 S06 개발 — 검증 도구 보완과 구현 전 RED (2026-09-06, 과거 실행)
 
 사용자 요청은 AGENTS.md 기준 S06 개발이다. 커밋·푸시·S07 이후·30분/120분·UI 풀테스트는
 이번 실행 승인이 없다. 단일 Sol xhigh 구현 담당자와 Astra xhigh 메인 검토로 진행한다.
