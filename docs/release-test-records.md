@@ -1,5 +1,49 @@
 # Release Test Records
 
+## S06 잔여 4번: 정식 검증 명령 연결 결과 (2026-09-08)
+
+server.sh help/dispatch에 verify-v410-recording-timeline과 verify-v410-recording-ui-contract를
+연결했다. shell 기본 exit64 stub을 read-model→HTTP API→auth→전송 수명 순서로 교체했다.
+auth env5개 미설정은 실행 전에 exit1로 거부하며 UI/장시간 미실행 경계를 출력한다.
+S06 node harness가 foreground의 격리 환경을 구성하므로 별도 전역 GST 환경 주입은 추가하지 않았다.
+메인 직접(기존 담당 회수 유지), Codex 사용자 설정 유지,1/1/1/1=4,자동 상향 없음.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| shell 구문 | bash -n server.sh scripts/internal/verify_v410_recording_timeline.sh exit0 | pass | 신규 dispatch |
+| help | ./server.sh help,두 명령·필수 env·UI 비대체 설명 존재 | pass | 읽기 출력 |
+| 인증 미설정 | 5개 env 제거 후 정식 timeline exit1,변수 이름만 출력 | pass | 의도한 음수 검사 |
+| 최초 scoped 실행 | 조회150/API31 통과 뒤 사용자 생성 HTTP400으로 auth 중단 | fail | lifecycle 미실행,원문 비밀번호·응답 미보존 |
+| 재실행 read-model | 정식 timeline 내부 JSONL75/SQLite75 exit0 | pass |150개 |
+| 재실행 HTTP API | 정식 timeline 내부 --http-api exit0,31/0 | pass | role 검사는 별도 |
+| 재실행 auth | 정식 timeline 내부 --http-auth exit0,37/0 | pass | 최초400 후 입력 생성 방식 보완 |
+| 재실행 전송 수명 | 정식 timeline 내부 --http-lifecycle exit0,10/0 | pass |64MiB SHA256/Range/hold/종료 |
+| 정식 timeline 종료 | ./server.sh verify-v410-recording-timeline exit0 | pass | 네 하위 실행 모두 완료 |
+| 정식 UI 계약 | ./server.sh verify-v410-recording-ui-contract exit0,8/0 | pass |actualUiActions=NOT_RUN 명시 |
+| 공백 | git diff --check exit0 | pass | 커밋 전 |
+
+첫 입력은 무작위 base64url32자로, 제품이 금지하는 반복3자/연속숫자4자/키보드4자 패턴을
+배제하지 못하는 실행 준비 결함이 있었다. 400의 세부 메시지와 당시 원문은 보존하지 않았으므로
+어떤 패턴이 거부됐는지는 확정하지 않는다. 재실행은 crypto.randomInt로 대문자·소문자·숫자·
+기호를 교대로8회 선택한 매번 다른32자 process env5개를 생성해 해당 패턴을 구조적으로 배제했다.
+고정 기본 비밀번호·제품 정책 완화는 없다. 이 입력으로 같은 전체 묶음이 통과했다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| read4BJgLb/i297Ua | focused | 각각1988 KiB | 삭제 | 부재 | wrapper |
+| read8kaMEF/ZP31rg/7JYYKt/IkzCtL/JYCUb2 | seed | 각각1636 KiB | 삭제 | 부재 | wrapper |
+| HTTP X9a2WB | 최초API |2140926 bytes | 삭제 | PID36859 exit0,53308/53309 닫힘 | cleanup6/0,982ms |
+| HTTP05iHqd | 최초auth |2411649 bytes | 삭제 | PID36936 exit0,53349/53350 닫힘 | cleanup6/0,629ms |
+| HTTP RPL373 | UI정적 |1866907 bytes | 삭제 | PID36983 exit0,53368/53369 닫힘 | cleanup6/0,946ms |
+| HTTP VO49X9 | 재API |2140926 bytes | 삭제 | PID37116 exit0,53413/53414 닫힘 | cleanup6/0,982ms |
+| HTTP EyRMfV | 재auth |2413112 bytes | 삭제 | PID37193 exit0,53453/53454 닫힘 | cleanup6/0,450ms |
+| HTTP VZiJC2 | lifecycle |203196166 bytes | 삭제 | PID37270 exit0,53501/53502 닫힘 | cleanup6/0,23ms |
+
+token start/end/consumed 미집계(활성 goal 없음), source 실제 명령 출력.
+elapsed 최초API5223/auth5267ms, 재API5233/auth5262/lifecycle5278ms, UI2301ms.
+개별 API/assertion의 정의와 기존 결과표는 같은 문서 S06 기록을 유지한다.
+이 단계는 검증 진입점 완료이며 5번 최종 회귀·검토와 6번 전체 문서 종료는 별도다.
+
 ## S06 잔여 3번: 실제 화면 검증 결과 (2026-09-08)
 
 최신 사용자가 3~5번 범위의 실패를 수정하고 계속하도록 승인했다. 앞선 seed 실패를 보존하고,

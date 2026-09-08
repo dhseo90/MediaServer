@@ -56,11 +56,22 @@ case "$MODE" in
     exec node "$SCRIPT_DIR/verify_v410_recording_harness.test.mjs" all
     ;;
   "")
-    echo "V410-S06-I01~I26 timeline/API verifier requires the S06 smoke binary" >&2
-    exit 64
+    # 미설정 인증값은 실행 전에 거부한다. 값 자체는 출력하거나 저장하지 않는다.
+    for suffix in TEST_PASSWORD PREVIOUS_PASSWORD SECOND_PREVIOUS_PASSWORD WRONG_PASSWORD_ONE WRONG_PASSWORD_TWO; do
+      variable="MEDIA_SERVER_VERIFY_AUTH_${suffix}"
+      if [[ -z "${!variable:-}" ]]; then
+        echo "[fail] 필수 인증 환경변수 미설정: ${variable}" >&2
+        exit 1
+      fi
+    done
+    bash "$0" --read-model
+    node "$SCRIPT_DIR/verify_v410_recording_ui_contract.mjs" --http-api
+    node "$SCRIPT_DIR/verify_v410_recording_ui_contract.mjs" --http-auth
+    node "$SCRIPT_DIR/verify_v410_recording_ui_contract.mjs" --http-lifecycle
+    echo "[pass] S06 조회/API/인증/전송 수명 검증 완료. 실제 UI·장시간 테스트는 미실행."
     ;;
   *)
-    echo "사용법: verify_v410_recording_timeline.sh [--read-model|--red-http-baseline|--harness-self-test]" >&2
+    echo "사용법: verify_v410_recording_timeline.sh [--read-model|--red-http-baseline|--harness-self-test|--seed-http ROOT MEDIA|--seed-ui ROOT MEDIA]" >&2
     exit 64
     ;;
 esac

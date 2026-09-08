@@ -1219,6 +1219,10 @@ Usage:
                  v4.1.0 상시/이벤트 분리 보존, oldest-first 삭제와 disk reserve 경계를 검증합니다.
   verify-v410-event-recording
                  v4.1.0 이벤트-상시녹화 연결, 비동기 remux, fallback과 event quota 경계를 검증합니다.
+  verify-v410-recording-timeline
+                 S06 조회·Range·인증·전송 수명을 검증합니다. 인증 환경변수 5개와 빌드된 서버가 필요합니다.
+  verify-v410-recording-ui-contract
+                 S06 화면 정적 계약을 검증합니다. 실제 UI 풀테스트 PASS를 뜻하지 않습니다.
   verify-post-release-reconciliation
                  post-release smoke 기록이 통과/미실행/미확인을 분리하는지 검증합니다.
   verify-release-closeout-helper
@@ -3065,6 +3069,14 @@ case "${cmd}" in
   verify-v410-event-recording)
     require_internal verify_v410_event_recording.sh
     exec "${INTERNAL_DIR}/verify_v410_event_recording.sh" "$@"
+    ;;
+  verify-v410-recording-timeline)
+    require_internal verify_v410_recording_timeline.sh
+    exec bash "${INTERNAL_DIR}/verify_v410_recording_timeline.sh" "$@"
+    ;;
+  verify-v410-recording-ui-contract)
+    require_internal verify_v410_recording_ui_contract.mjs
+    exec node "${INTERNAL_DIR}/verify_v410_recording_ui_contract.mjs" "$@"
     ;;
   verify-v400-user-review-gate)
     require_internal verify_v400_user_review_gate.mjs
