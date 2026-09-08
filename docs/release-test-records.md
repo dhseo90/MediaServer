@@ -1,5 +1,35 @@
 # Release Test Records
 
+## S06 잔여 1번: 날짜·원본 보기 배치 수정 (2026-09-08)
+
+사용자 승인 범위는 잔여1~5 순차 실행·분할 커밋이며 6번 문서 전체 종료와 푸시는 제외한다.
+1번 제품 변경은 product_ui_css.cpp의 S06 전용 selector 9줄이다. 날짜 label basis/최소폭280px
+(좁은 화면에서는 부모100%), checkbox 폭·높이·min-height18px 및 flex 고정으로 공통 input
+100%/최소높이 상속을 제한했다. 다른 화면 CSS·API·시간/권한 계약은 변경하지 않았다.
+기존 S06 미커밋 화면 구현 위에서 검증했으며 이 CSS 커밋만으로 S06 기능 완료를 뜻하지 않는다.
+메인 직접 소규모 수정, Codex 사용자 설정 유지, 점수1/0/1/0=2, 상향·추가 위임 없음.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| 빌드 | ./server.sh build exit0, 최종 target100% | pass | 최종 min-height 보완 뒤 재빌드 포함 |
+| I34 768px 날짜 | 실제 인앱에서 1970-01-01 09:00~09:01 입력·조회, 연도·시분 전체 표시 | pass | 이전 날짜 잘림 fail 후 수정 pass |
+| I34 768px 원본 | 원본 보기 클릭, checkbox18px 및 설명 인접 배치, 목록2개 | pass | 이전 간격 fail 후 수정 pass |
+| I34 320px 날짜 | 실제 조회 클릭, 두 날짜·시간 모두 잘림 없음 | pass | 좁은 화면 줄바꿈 |
+| I34 320px 원본 | checkbox·설명과 전체2개 목록 표시 | pass | 다크 테마 |
+| I34 320px 라이트 | 테마 전환·조회 클릭, 날짜와 checkbox 배치 유지 | pass | 종료 전 다크 복원 |
+| diff 공백 | git diff --check exit0 | pass | 해당 수정과 현 작업 트리 |
+| 정리 | --ui-direct stdin 종료 exit0, PID35264 exit0, RTSP52511/HTTP52512 ECONNREFUSED | pass | UI 전체 PASS 아님 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| read root XBGTmF | seed 컴파일 | 1564 KiB | 삭제 | root 부재 | wrapper cleanup PASS |
+| HTTP root wy3tTB | UI 서버·영상 | 2,409,370 bytes | 삭제 | rootAbsent=true | cleanup6/failure0,101ms |
+| 인앱 탭2 | 검증 탭 | 비파일 | viewport reset·close | 성공 | 실제 도구 결과 |
+
+token start/end/consumed 미집계(활성 goal 없음), elapsed112056ms, source직접 도구 출력·AX·화면.
+증거는 위 저장소 기록으로 보존하며 별도 임시 이미지 파일 없음. 30분/120분·UI 전체·다른
+Auth/Ops 회귀는 이 CSS 국소 수정에서 미실행, 2~5 진행 전 현재 1번 결과만 통과로 판정한다.
+
 이 문서는 릴리즈 테스트의 저장소 보존형 기록입니다. `docs/release-evidence-index.md`는
 색인이고, 실제 테스트 항목 상세/버전별 결과는 이 문서를 기준으로 갱신합니다.
 

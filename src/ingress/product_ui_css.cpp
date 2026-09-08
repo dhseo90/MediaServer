@@ -5671,6 +5671,15 @@ std::string ProductUiCss() {
         overflow-wrap: anywhere;
       }
     }
+    .ops-recording-filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+    .ops-recording-filters label { display: grid; gap: 6px; flex: 1 1 280px; min-width: min(100%, 280px); }
+    .ops-recording-filters :is(input, select) { width: 100%; min-width: 0; box-sizing: border-box; }
+    .ops-recording-original { display: flex; align-items: center; gap: 8px; margin-block: 12px; }
+    .ops-recording-original input[type="checkbox"] { width: 18px; height: 18px; min-width: 18px; min-height: 18px; flex: 0 0 18px; margin: 0; padding: 0; }
+    .ops-recording-rows { display: grid; gap: 8px; margin-block: 12px; }
+    .ops-recording-rows button { text-align: start; white-space: normal; overflow-wrap: anywhere; }
+    .ops-recording-rows button[aria-pressed="true"] { outline: 2px solid var(--color-border-strong); }
+    #opsRecordingPlayer { display: block; width: 100%; max-height: 65vh; aspect-ratio: 16 / 9; object-fit: contain; background: var(--color-surface-muted); margin-top: 12px; }
   </style>
 )CSS";
 }
