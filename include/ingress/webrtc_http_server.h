@@ -14,13 +14,15 @@
 #include "ingress/webrtc_http_runtime_config.h"
 
 namespace ingress {
+class RecordingApplicationService;
 
 class WebRtcHttpServer {
 public:
     WebRtcHttpServer(WebRtcMediaApplicationService& media_sessions,
                      AnalysisSessionLifecycleApplicationService& analysis_session_lifecycle,
                      AnalysisSessionReadApplicationService& analysis_session_reads,
-                     const WebRtcHttpRuntimeConfig& runtime_config);
+                     const WebRtcHttpRuntimeConfig& runtime_config,
+                     RecordingApplicationService* recording_service = nullptr);
     ~WebRtcHttpServer();
 
     bool Start(const std::string& listen_address, std::uint16_t port, std::string* error_message);

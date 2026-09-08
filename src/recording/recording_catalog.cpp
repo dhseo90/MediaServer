@@ -792,6 +792,16 @@ std::optional<std::filesystem::path> RecordingCatalog::FindSegmentMediaPath(
     return contained;
 }
 
+std::optional<std::pair<std::filesystem::path, std::filesystem::path>>
+RecordingCatalog::FindSegmentMediaLocation(const std::string& segment_id) const {
+    std::lock_guard lock(mu_);
+    const auto segment = segments_.find(segment_id);
+    const auto path = media_relpaths_.find(segment_id);
+    if (segment == segments_.end() || path == media_relpaths_.end() ||
+        segment->second.lifecycle != RecordingLifecycle::Finalized) return std::nullopt;
+    return std::make_pair(options_.media_root, std::filesystem::path(path->second));
+}
+
 std::vector<EventRecordingLinkV1> RecordingCatalog::ListEventLinks(
     EventRecordingLinkStatus status) const {
     std::lock_guard lock(mu_);

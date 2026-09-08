@@ -1715,13 +1715,15 @@ std::optional<HttpRequest> ReadHttpRequest(int client_fd, HttpResponse* error_re
 WebRtcHttpServer::WebRtcHttpServer(WebRtcMediaApplicationService& media_sessions,
                                    AnalysisSessionLifecycleApplicationService& analysis_session_lifecycle,
                                    AnalysisSessionReadApplicationService& analysis_session_reads,
-                                   const WebRtcHttpRuntimeConfig& runtime_config)
+                                   const WebRtcHttpRuntimeConfig& runtime_config,
+                                   RecordingApplicationService* recording_service)
     : media_sessions_(media_sessions),
       analysis_session_lifecycle_(analysis_session_lifecycle),
       analysis_session_reads_(analysis_session_reads),
       runtime_config_(runtime_config),
       impl_(std::make_unique<Impl>(
           media_sessions, analysis_session_lifecycle, analysis_session_reads)) {
+    impl_->recording_service = recording_service;
     const AnalysisRuleApplicationCallbacks analysis_rule_callbacks{
         &WebRtcHttpAnalysisProfileDocumentsSnapshotBackend,
         &WebRtcHttpAnalysisRuleDocumentsSnapshotBackend,

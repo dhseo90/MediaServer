@@ -4,7 +4,8 @@ import fs from "node:fs";
 import net from "node:net";
 import os from "node:os";
 import path from "node:path";
-import { spawn } from "node:child_process";
+import crypto from "node:crypto";
+import { spawn, execFileSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -355,11 +356,186 @@ function verifyRecordingUiStaticContract(html) {
   return 8;
 }
 
+async function verifyRecordingHttpApi(baseUrl, fixture) {
+  let checks = 0;
+  const check = (condition, label) => { assert(condition, label); checks += 1; console.log(`[http-subcheck] PASS ${label}`); };
+  const expected = fs.readFileSync(fixture);
+  const status = await fetch(`${baseUrl}/ops/api/recordings/status`).then(response => response.json());
+  check(status.enabled === true && status.catalogMode === 'sqlite-primary' && Array.isArray(status.channels), 'I01 실제 status projection');
+  const timelinePath = '/ops/api/recordings/timeline?channelId=1&startTimeMs=1000&endTimeMs=10000';
+  const timelineResponse = await fetch(`${baseUrl}${timelinePath}`);
+  const timeline = await timelineResponse.json();
+  check(timelineResponse.status === 200 && timeline.total === 2 && timeline.items[0].segmentId === 'http-event', 'I03/I06 실제 HTTP event 우선 timeline');
+  check(timeline.items[1].supersededByEventIds.join(',') === 'http-event-id', 'I07 HTTP 원본 이벤트 ID 연결');
+  check(!JSON.stringify(timeline).includes('absolutePath') && !JSON.stringify(timeline).includes(repo) && !JSON.stringify(timeline).includes('mediaRelpath'), 'I17 HTTP 내부 path 비노출');
+  for (const query of ['', '?channelId=1&startTimeMs=-1&endTimeMs=10000', '?channelId=1&startTimeMs=10000&endTimeMs=1000', '?channelId=1&startTimeMs=1&endTimeMs=18446744073709551616', '?channelId=1&startTimeMs=1&endTimeMs=10000&limit=0']) {
+    const response = await fetch(`${baseUrl}/ops/api/recordings/timeline${query}`);
+    check(response.status === 400, `I04 HTTP 잘못된 query 거부 ${checks}`);
+    await response.arrayBuffer();
+  }
+  const url = `${baseUrl}/ops/api/recordings/media/http-event`;
+  for (const name of ['Range', 'range', 'rAnGe']) {
+    const response = await fetch(url, { headers: { [name]: 'bytes=2-5' } });
+    const body = Buffer.from(await response.arrayBuffer());
+    check(response.status === 206, `I20 ${name} status expected=206 actual=${response.status}`);
+    check(response.headers.get('content-range') === `bytes 2-5/${expected.length}`, `I20 ${name} Content-Range 일치`);
+    check(body.equals(expected.subarray(2, 6)), `I20 ${name} body expected=4 actual=${body.length} byte 일치`);
+  }
+  for (const [range, start, end] of [['bytes=2-5', 2, 6], ['bytes=10-', 10, expected.length], ['bytes=-7', expected.length - 7, expected.length]]) {
+    const response = await fetch(url, { headers: { Range: range } });
+    const body = Buffer.from(await response.arrayBuffer());
+    check(response.status === 206 && response.headers.get('content-range') === `bytes ${start}-${end - 1}/${expected.length}` && response.headers.get('accept-ranges') === 'bytes' && body.equals(expected.subarray(start, end)), `I20/I21 실제 Range ${range}`);
+  }
+  const full = await fetch(url);
+  check(full.status === 200 && full.headers.get('content-type') === 'video/mp4' && Buffer.from(await full.arrayBuffer()).equals(expected), 'I24 HTTP 전체 byte 일치');
+  for (const range of ['bytes=1-0', 'bytes=-0', 'bytes=0-1,3-4', 'bytes=18446744073709551616-', `bytes=0-${expected.length}`, 'invalid']) {
+    const response = await fetch(url, { headers: { Range: range } });
+    check(response.status === 416 && response.headers.get('content-range') === `bytes */${expected.length}`, `I22 HTTP 범위 거부 ${range}`);
+    await response.arrayBuffer();
+  }
+  for (const range of ['', 'bytes=2-5']) {
+    const response = await fetch(url, { method: 'HEAD', headers: range ? { Range: range } : {} });
+    check(response.status === (range ? 206 : 200) && Number(response.headers.get('content-length')) === (range ? 4 : expected.length) && (await response.arrayBuffer()).byteLength === 0, `I23 실제 HEAD ${range || 'full'}`);
+  }
+  const missing = await fetch(`${baseUrl}/ops/api/recordings/media/not-found`);
+  check(missing.status === 404, 'I17 HTTP 없는 opaque ID 거부');
+  await missing.arrayBuffer();
+  console.log(`[S06 HTTP API] checks=${checks} fail=0 authMode=off roleTests=NOT_RUN`);
+}
+
+const authPasswordNames = ['MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD', 'MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD', 'MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD', 'MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE', 'MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO'];
+function authPasswords() {
+  const values = authPasswordNames.map(name => process.env[name]);
+  assert(values.every(value => typeof value === 'string' && value.length >= 12) && new Set(values).size === 5,
+    '인증 검증은 서로 다른 password 환경변수 5개가 필요함. 값은 출력하지 않음');
+  return values;
+}
+
+async function verifyRecordingHttpAuth(baseUrl, root) {
+  const passwords = authPasswords();
+  let checks = 0;
+  const check = (condition, label) => { assert(condition, label); checks += 1; console.log(`[auth-subcheck] PASS ${label}`); };
+  const call = (route, options = {}) => fetch(`${baseUrl}${route}`, { redirect: 'manual', signal: AbortSignal.timeout(5000), ...options });
+  const form = async (route, values) => call(route, { method: 'POST', body: new URLSearchParams(values) });
+  const setup = await form('/setup', { username: 'admin', password: passwords[0], confirm: passwords[0] });
+  assert(setup.status === 302, `인증 fixture setup 실패 status=${setup.status}`);
+  await setup.arrayBuffer();
+  const login = async (username, password) => {
+    const response = await form('/login', { username, password });
+    assert(response.status === 302, `인증 fixture login 실패 status=${response.status}`);
+    const cookie = response.headers.getSetCookie().map(value => value.split(';', 1)[0]).join('; ');
+    await response.arrayBuffer();
+    assert(cookie.length > 0, '인증 fixture session cookie 누락');
+    return cookie;
+  };
+  const admin = await login('admin', passwords[0]);
+  const jsonPost = async (route, body) => {
+    const response = await call(route, { method: 'POST', headers: { Cookie: admin, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    assert(response.ok, `인증 fixture POST 실패 route=${route} status=${response.status}`);
+    await response.arrayBuffer();
+  };
+  const users = [
+    ['s06-operator', 'operator', ['ops:read', 'source:read:1']],
+    ['s06-viewer', 'viewer', ['view:read:1']],
+    ['s06-no-source', 'operator', ['ops:read']],
+    ['s06-no-ops', 'operator', ['source:read:1']],
+  ];
+  const cookies = [admin];
+  for (const [index, [username, role, scopes]] of users.entries()) {
+    await jsonPost('/ops/api/users', { username, displayName: username, role, scopes, password: passwords[index + 1], enabled: true, mustChangePassword: false });
+    cookies.push(await login(username, passwords[index + 1]));
+  }
+  const routes = ['/ops/api/recordings/status', '/ops/api/recordings/timeline?channelId=1&startTimeMs=1000&endTimeMs=10000', '/ops/api/recordings/media/http-event'];
+  for (const [index, cookie] of cookies.entries()) {
+    for (const [routeIndex, route] of routes.entries()) {
+      const expectedStatus = index <= 1 ? 200 : index === 3 ? [200, 403, 404][routeIndex] : 403;
+      const response = await call(route, { headers: { Cookie: cookie } });
+      const body = Buffer.from(await response.arrayBuffer());
+      check(response.status === expectedStatus, `I12~I16 principal ${index} route ${routeIndex} expected=${expectedStatus} actual=${response.status}`);
+      if (routeIndex === 0 && response.status === 200) {
+        const status = JSON.parse(body.toString());
+        const expectedChannels = index === 0 ? ['1', '2'] : index === 1 ? ['1'] : [];
+        check(JSON.stringify(status.channels.map(channel => channel.channelId).sort()) === JSON.stringify(expectedChannels), `I02 principal ${index} 허용 채널만 status 반환`);
+        check(status.channels.every(channel => channel.active === false && channel.enabled === false), `I01 principal ${index} 실제 비녹화 상태`);
+      }
+      if (routeIndex < 2) check(!/passwordHash|passwordHistory|tokenHash|mediaRelpath|absolutePath/.test(body.toString()), `I02/I17 principal ${index} route ${routeIndex} 민감 field 비노출`);
+    }
+  }
+  for (const route of routes) {
+    const response = await call(route);
+    check(response.status === 401, `I15 미인증 API expected=401 actual=${response.status}`);
+    await response.arrayBuffer();
+  }
+  const deniedChannel = await call('/ops/api/recordings/timeline?channelId=2&startTimeMs=1000&endTimeMs=10000', { headers: { Cookie: cookies[1] } });
+  check(deniedChannel.status === 403, 'I16 operator의 다른 채널 조회 거부');
+  await deniedChannel.arrayBuffer();
+  const page = await call('/ops/events', { headers: { Cookie: cookies[2] } });
+  check(page.status !== 200 && !(await page.text()).includes('ops-recording-timeline'), `I34 viewer 녹화 화면 거부 status=${page.status}`);
+  const store = fs.readFileSync(path.join(root, 'data/users.json'), 'utf8');
+  check(passwords.every(value => !store.includes(value)), 'I17 인증 fixture plaintext 저장 없음');
+  console.log(`[S06 HTTP AUTH] checks=${checks} fail=0 actualUiActions=NOT_RUN`);
+}
+
+async function verifyRecordingHttpLifecycle(baseUrl, fixture, root, child) {
+  let checks = 0;
+  const check = (condition, label) => { assert(condition, label); checks++; console.log(`[lifecycle-subcheck] PASS ${label}`); };
+  const url = `${baseUrl}/ops/api/recordings/media/http-event`;
+  const database = path.join(root, 'recordings/recording-catalog.sqlite3');
+  const hold = () => Number(execFileSync('/usr/bin/sqlite3', ['-readonly', database,
+    "SELECT hold_count FROM recording_segments WHERE segment_id='http-event';"], { encoding: 'utf8' }).trim());
+  const waitHold = async expected => {
+    for (let n = 0; n < 100; n++) {
+      if (hold() === expected) return true;
+      await new Promise(resolve => setTimeout(resolve, 20));
+    }
+    return false;
+  };
+  const expectedHash = crypto.createHash('sha256');
+  for await (const chunk of fs.createReadStream(fixture)) expectedHash.update(chunk);
+  const expectedSize = fs.statSync(fixture).size;
+  const response = await fetch(url, { signal: AbortSignal.timeout(15000) });
+  check(response.status === 200 && Number(response.headers.get('content-length')) === expectedSize, 'I24 큰 파일 status/길이');
+  const actualHash = crypto.createHash('sha256');
+  let bytes = 0;
+  for await (const chunk of response.body) { bytes += chunk.length; actualHash.update(chunk); }
+  check(bytes === expectedSize && actualHash.digest('hex') === expectedHash.digest('hex'), 'I24 64MiB 전체 streaming hash 일치');
+  check(await waitHold(0), 'I25 전체 응답 뒤 hold0');
+  const first = 256 * 1024 - 8, last = first + 31;
+  const ranged = await fetch(url, { headers: { Range: `bytes=${first}-${last}` }, signal: AbortSignal.timeout(5000) });
+  const expected = Buffer.alloc(32), fd = fs.openSync(fixture, 'r');
+  try { assert(fs.readSync(fd, expected, 0, 32, first) === 32, 'fixture Range read'); } finally { fs.closeSync(fd); }
+  check(ranged.status === 206 && Buffer.from(await ranged.arrayBuffer()).equals(expected), 'I24 256KiB 경계 Range byte 일치');
+  const sockets = new Set();
+  const pausedRequest = () => new Promise((resolve, reject) => {
+    const parsed = new URL(url);
+    const socket = net.createConnection({ host: parsed.hostname, port: Number(parsed.port) });
+    sockets.add(socket);
+    const timer = setTimeout(() => { socket.destroy(); reject(new Error('느린 수신 fixture 시작 시간 초과')); }, 5000);
+    socket.on('error', error => { clearTimeout(timer); reject(error); });
+    socket.once('connect', () => socket.write(`GET ${parsed.pathname} HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n`));
+    socket.once('data', () => { clearTimeout(timer); socket.pause(); resolve(socket); });
+  });
+  try {
+    const interrupted = await pausedRequest();
+    check(await waitHold(1), 'I26 disconnect 전 실제 hold1');
+    interrupted.destroy();
+    check(await waitHold(0), 'I26 disconnect 뒤 실제 hold0');
+    check((await fetch(`${baseUrl}/health`, { signal: AbortSignal.timeout(3000) })).status === 200, 'I26 disconnect 뒤 서버 health200');
+    await pausedRequest();
+    check(await waitHold(1), 'I26 서버 종료 전 실제 hold1');
+    const stopped = await stopServer(child);
+    check(stopped.exited && !stopped.forced && stopped.exitCode === 0, 'I26 활성 전송 중 정상 종료');
+    check(hold() === 0, 'I26 정상 종료 후 영속 hold0');
+  } finally { for (const socket of sockets) socket.destroy(); }
+  console.log(`[S06 HTTP lifecycle] checks=${checks} fail=0 codecPlayback=NOT_RUN`);
+}
+
 export async function runVerifier(requestedMode = process.argv[2] || "--full") {
   const startedAt = Date.now();
   const mode = requestedMode;
-  const allowedModes = new Set(["--red-status", "--red-http-baseline", "--full"]);
+  const allowedModes = new Set(["--red-status", "--red-http-baseline", "--full", "--http-api", "--http-auth", "--ui-direct", "--http-lifecycle"]);
   if (!allowedModes.has(mode)) throw new Error(`지원하지 않는 mode: ${mode}`);
+  if (mode === '--http-auth') authPasswords();
 
   let root = "";
   let rtspPort = 0;
@@ -376,11 +552,28 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
     for (const directory of ["data", "input", "events/clips", "events/snapshots", "recordings", "tmp", "gst-cache"]) {
       fs.mkdirSync(path.join(root, directory), { recursive: true });
     }
-    const fixture = path.join(repo, "video/sample_h264_video_only.mp4");
+    let fixture = path.join(repo, "video/sample_h264_video_only.mp4");
     assert(fs.statSync(fixture).isFile(), `유효 media fixture가 없음: ${fixture}`);
     fs.copyFileSync(fixture, path.join(root, "input/sample_h264_video_only.mp4"));
-    fs.writeFileSync(path.join(root, "data/sources.json"), JSON.stringify({ sources: [] }));
+    if (mode === '--http-lifecycle') {
+      const block = fs.readFileSync(fixture);
+      fixture = path.join(root, 'input/large-byte-fixture.mp4');
+      const fd = fs.openSync(fixture, 'wx');
+      try {
+        for (let offset = 0; offset < 64 * 1024 * 1024;) {
+          offset += fs.writeSync(fd, block, 0, Math.min(block.length, 64 * 1024 * 1024 - offset));
+        }
+      } finally { fs.closeSync(fd); }
+    }
+    const sources = (mode === '--http-auth' || mode === '--ui-direct')
+      ? ['1', '2'].map(id => ({ sourceId: id, displayName: `S06 channel ${id}`, kind: 'file', file: `s06-channel-${id}.mp4`, enabled: false, recording: { enabled: false } }))
+      : [];
+    for (const source of sources) fs.copyFileSync(fixture, path.join(root, 'input', source.file));
+    fs.writeFileSync(path.join(root, "data/sources.json"), JSON.stringify({ sources }));
     fs.writeFileSync(path.join(root, "data/views.json"), JSON.stringify({ views: [] }));
+    if (mode === '--http-api' || mode === '--http-auth' || mode === '--ui-direct' || mode === '--http-lifecycle') {
+      execFileSync('bash', [path.join(repo, 'scripts/internal/verify_v410_recording_timeline.sh'), '--seed-http', path.join(root, 'recordings'), fixture], { cwd: repo, stdio: 'inherit' });
+    }
     rtspPort = await reservePort();
     httpPort = await reservePort();
 
@@ -389,7 +582,10 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
       `기존 baseline binary가 없음: ${binary}`);
     assert(fs.realpathSync(binary) === path.join(repo, "build-gst-onnx/media_server"),
       "검증 binary가 고정 제품 경로와 다름");
-    const env = isolatedEnvironment(root, binary, rtspPort, httpPort);
+    const isolatedEnv = isolatedEnvironment(root, binary, rtspPort, httpPort);
+    const env = mode === '--http-auth'
+      ? Object.freeze({ ...isolatedEnv, MEDIA_SERVER_AUTH_MODE: 'auto' })
+      : isolatedEnv;
     const logState = { lineCount: 0, processErrorCode: "" };
     child = spawn("./server.sh", ["foreground"], {
       cwd: repo,
@@ -425,7 +621,30 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
     const baseUrl = `http://127.0.0.1:${httpPort}`;
     await waitReady(baseUrl, child, logState);
 
-    if (mode === "--red-status") {
+    if (mode === '--http-lifecycle') {
+      await verifyRecordingHttpLifecycle(baseUrl, fixture, root, child);
+    } else if (mode === '--ui-direct') {
+      console.log(`[S06 UI direct 준비] ${baseUrl}/ops/events ; 종료 시 stdin에 줄바꿈. UI PASS를 자동 판정하지 않음.`);
+      await new Promise((resolve, reject) => {
+        const finish = error => {
+          clearTimeout(timer);
+          process.stdin.removeListener('data', onData);
+          process.stdin.removeListener('end', onEnd);
+          process.stdin.pause();
+          if (error) reject(error); else resolve();
+        };
+        const onData = () => finish();
+        const onEnd = () => finish(new Error('UI 확인 종료 입력 전 stdin 종료'));
+        const timer = setTimeout(() => finish(new Error('UI 확인 15분 제한 도달')), 15 * 60 * 1000);
+        process.stdin.once('data', onData);
+        process.stdin.once('end', onEnd);
+        process.stdin.resume();
+      });
+    } else if (mode === '--http-auth') {
+      await verifyRecordingHttpAuth(baseUrl, root);
+    } else if (mode === '--http-api') {
+      await verifyRecordingHttpApi(baseUrl, fixture);
+    } else if (mode === "--red-status") {
       const response = await fetch(`${baseUrl}/ops/api/recordings/status`, {
         signal: AbortSignal.timeout(3000),
       });

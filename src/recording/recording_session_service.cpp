@@ -17,7 +17,7 @@ struct RecordingSessionService::ChannelState {
     std::string published_stream_key;
     core::SessionManager::AuxiliaryStreamHandle handle;
     std::unique_ptr<SegmentWriter> writer;
-    bool writer_started{false};
+    std::atomic<bool> writer_started{false};
     std::atomic<bool> stopping{false};
 };
 
@@ -154,6 +154,13 @@ void RecordingSessionService::StopAll() {
 std::size_t RecordingSessionService::ActiveChannelCount() const {
     std::lock_guard lock(mu_);
     return channels_.size();
+}
+
+bool RecordingSessionService::IsChannelRecording(const std::string& channel_id) const {
+    std::lock_guard lock(mu_);
+    const auto found = channels_.find(channel_id);
+    return !closing_ && found != channels_.end() && !found->second->stopping.load() &&
+           found->second->writer_started.load();
 }
 
 std::optional<std::string> RecordingSessionService::ResolveRecordingChannel(

@@ -1,0 +1,267 @@
+// 운영 timeline의 조회 전용 투영.
+#include "recording/recording_read_service.h"
+#include <algorithm>
+#include <charconv>
+#include <cerrno>
+#include "domain/strict_json.h"
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+namespace recording {
+namespace {
+// 루트부터 각 구성요소를 fd로 고정한다. FIFO도 block하지 않고 fstat에서 거부한다.
+int OpenMedia(const std::filesystem::path& root, const std::filesystem::path& relative) {
+    if (relative.empty() || relative.is_absolute()) return -1;
+    for (const auto& part : relative) {
+        if (part == ".." || part == "." || part.empty()) return -1;
+    }
+    std::error_code ec;
+    const auto absolute_root = std::filesystem::absolute(root, ec);
+    if (ec) return -1;
+    int current = ::open("/", O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+    if (current < 0) return -1;
+    auto descend = [&](const std::filesystem::path& part, bool directory) {
+        const int next = ::openat(current, part.c_str(), O_RDONLY | O_NOFOLLOW |
+                                 O_CLOEXEC | O_NONBLOCK | (directory ? O_DIRECTORY : 0));
+        ::close(current);
+        current = next;
+        return next >= 0;
+    };
+    for (const auto& part : absolute_root.relative_path()) {
+        if (part == "." || part.empty()) continue;
+        if (part == "..") { ::close(current); return -1; }
+        if (!descend(part, true)) return -1;
+    }
+    for (auto it = relative.begin(); it != relative.end(); ++it) {
+        auto next = it; ++next;
+        if (!descend(*it, next != relative.end())) return -1;
+    }
+    return current;
+}
+
+std::vector<EventRecordingLinkV1> AllLinks(RecordingCatalog& catalog) {
+    std::vector<EventRecordingLinkV1> result;
+    for (const auto status : {EventRecordingLinkStatus::Pending, EventRecordingLinkStatus::Complete,
+                              EventRecordingLinkStatus::Partial, EventRecordingLinkStatus::Failed}) {
+        for (auto& link : catalog.ListEventLinks(status)) result.push_back(std::move(link));
+    }
+    return result;
+}
+
+std::filesystem::path RelativeLocator(const std::filesystem::path& root,
+                                      const std::string& locator) {
+    if (root.empty() || locator.empty() || locator.find('\0') != std::string::npos) return {};
+    std::error_code ec;
+    const auto absolute_root = std::filesystem::absolute(root, ec);
+    if (ec) return {};
+    const auto absolute_path = std::filesystem::absolute(locator, ec);
+    if (ec) return {};
+    return absolute_path.lexically_relative(absolute_root);
+}
+}  // namespace
+
+ResolvedRecordingMedia::~ResolvedRecordingMedia() {
+    if (fd_ >= 0) ::close(fd_);
+    if (catalog_) catalog_->AdjustHoldCount(segment_id_, -1, nullptr);
+}
+
+std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveMedia(
+    const std::string& channel_id, const std::string& segment_id) const {
+    if (!ValidateOpaqueId(segment_id, nullptr)) return {};
+    const auto segment = catalog_.FindSegmentById(segment_id);
+    const auto links = AllLinks(catalog_);
+    const EventRecordingLinkV1* fallback = nullptr;
+    const EventRecordingLinkV1* derived = nullptr;
+    for (const auto& link : links) {
+        if (link.fallback_evidence_id == segment_id) {
+            if (fallback || segment) return {};
+            fallback = &link;
+        }
+        if (link.derived_segment_id == segment_id) {
+            if (derived) return {};
+            derived = &link;
+        }
+    }
+    if (fallback) {
+        if (derived || fallback->channel_id != channel_id || !fallback->fallback_media_locator) return {};
+        auto manifest = std::unique_ptr<ResolvedRecordingMedia>(new ResolvedRecordingMedia);
+        manifest->fd_ = OpenMedia(event_root_, RelativeLocator(event_root_, *fallback->fallback_media_locator));
+        struct stat info {};
+        if (manifest->fd_ < 0 || ::fstat(manifest->fd_, &info) != 0 || !S_ISREG(info.st_mode) ||
+            info.st_size <= 0 || info.st_size > 65536) return {};
+        std::string json(static_cast<std::size_t>(info.st_size), '\0');
+        std::size_t offset = 0;
+        while (offset < json.size()) {
+            const auto n = ::pread(manifest->fd_, json.data() + offset, json.size() - offset,
+                                   static_cast<off_t>(offset));
+            if (n < 0 && errno == EINTR) continue;
+            if (n <= 0) return {};
+            offset += static_cast<std::size_t>(n);
+        }
+        ingress::StrictJsonObjectDocument doc, encoded;
+        if (!ingress::ParseStrictJsonObjectDocument(json, &doc, nullptr) ||
+            ingress::StrictJsonStringField(doc, "schema") != "media-server.va.event-clip-hook.v1" ||
+            ingress::StrictJsonStringField(doc, "eventId") != fallback->event_id ||
+            ingress::StrictJsonStringField(doc, "streamId") != fallback->source_id ||
+            ingress::StrictJsonStringField(doc, "channelId") != channel_id) return {};
+        const auto nested = ingress::StrictJsonObjectField(doc, "encodedClip");
+        if (!nested || !ingress::ParseStrictJsonObjectDocument(*nested, &encoded, nullptr) ||
+            ingress::StrictJsonStringField(encoded, "schema") != "media-server.encoded-event-clip-contract.v1" ||
+            ingress::StrictJsonStringField(encoded, "status") != "completed" ||
+            ingress::StrictJsonStringField(encoded, "format") != "webm" ||
+            ingress::StrictJsonStringField(encoded, "contentType") != "video/webm") return {};
+        const auto codec = ingress::StrictJsonStringField(encoded, "codec");
+        const auto path = ingress::StrictJsonStringField(encoded, "mediaPath");
+        const auto* size = encoded.Find("byteSize");
+        if (!path || (codec != "vp8" && codec != "vp9") || !size ||
+            size->type != ingress::StrictJsonType::Number) return {};
+        std::uint64_t bytes = 0;
+        const auto parsed = std::from_chars(size->raw.data(), size->raw.data() + size->raw.size(), bytes);
+        if (parsed.ec != std::errc{} || parsed.ptr != size->raw.data() + size->raw.size() || bytes == 0) return {};
+        auto media = std::unique_ptr<ResolvedRecordingMedia>(new ResolvedRecordingMedia);
+        media->fd_ = OpenMedia(event_root_, RelativeLocator(event_root_, *path));
+        if (media->fd_ < 0 || ::fstat(media->fd_, &info) != 0 || !S_ISREG(info.st_mode) ||
+            info.st_size <= 0 || static_cast<std::uint64_t>(info.st_size) != bytes) return {};
+        media->size_bytes_ = bytes;
+        media->content_type_ = "video/webm";
+        return media;
+    }
+    if (!segment || segment->channel_id != channel_id || !IsPlayable(segment->lifecycle)) return {};
+    if (segment->retention_class == RecordingRetentionClass::Event &&
+        (!derived || derived->channel_id != channel_id || derived->source_id != segment->source_id ||
+         !derived->derived_actual_range || derived->derived_actual_range->start_ms != segment->start.utc_ms ||
+         derived->derived_actual_range->end_ms != segment->end.utc_ms ||
+         (derived->status != EventRecordingLinkStatus::Complete &&
+          derived->status != EventRecordingLinkStatus::Partial))) return {};
+    auto media = std::unique_ptr<ResolvedRecordingMedia>(new ResolvedRecordingMedia);
+    // AdjustHoldCount는 finalized 판정과 증가를 RequestDeletion과 같은 mutex에서 처리한다.
+    if (!catalog_.AdjustHoldCount(segment_id, 1, nullptr)) return {};
+    media->catalog_ = &catalog_;
+    media->segment_id_ = segment_id;
+    const auto location = catalog_.FindSegmentMediaLocation(segment_id);
+    if (!location) return {};
+    media->fd_ = OpenMedia(location->first, location->second);
+    struct stat info {};
+    if (media->fd_ < 0 || ::fstat(media->fd_, &info) != 0 || !S_ISREG(info.st_mode) ||
+        info.st_size <= 0 || static_cast<std::uint64_t>(info.st_size) != segment->size_bytes) return {};
+    if (segment->container == "mp4") media->content_type_ = "video/mp4";
+    else if (segment->container == "webm") media->content_type_ = "video/webm";
+    else if (segment->container == "mpegts" || segment->container == "ts") media->content_type_ = "video/mp2t";
+    else return {};
+    media->size_bytes_ = segment->size_bytes;
+    return media;
+}
+
+bool RecordingReadService::QueryTimeline(const RecordingTimelineQuery& query,
+                                         RecordingTimelineResult* result,
+                                         std::string* error) const {
+    if (!result) {
+        if (error) *error = "timeline result is required";
+        return false;
+    }
+    *result = {};
+    // channel ID는 opaque media ID가 아니다. 기존 숫자형 채널 식별자를 유지한다.
+    if (query.channel_id.empty() || query.channel_id.size() > 256 ||
+        query.channel_id.find('\0') != std::string::npos || query.start_ms < 0 ||
+        query.end_ms <= query.start_ms || query.limit == 0 || query.limit > 1000) {
+        if (error) *error = "invalid timeline query";
+        return false;
+    }
+    const auto segments = catalog_.QuerySegments(query.channel_id, query.start_ms, query.end_ms);
+    std::vector<EventRecordingLinkV1> links;
+    for (auto& link : AllLinks(catalog_))
+        if (link.channel_id == query.channel_id) links.push_back(std::move(link));
+    for (const auto& segment : segments) {
+        RecordingTimelineItem item;
+        item.segment_id = segment.segment_id;
+        item.channel_id = segment.channel_id;
+        const bool event = segment.retention_class == RecordingRetentionClass::Event;
+        item.kind = event ? "event" : "continuous";
+        item.display_priority = event ? 200 : 100;
+        item.start_ms = segment.start.utc_ms;
+        item.end_ms = segment.end.utc_ms;
+        item.actual_range = UtcRangeV1{item.start_ms, item.end_ms};
+        item.completeness = IsPlayable(segment.lifecycle) ? "complete" : "missing";
+        const auto resolved = ResolveMedia(query.channel_id, segment.segment_id);
+        item.playable = static_cast<bool>(resolved);
+        if (resolved) item.content_type = resolved->content_type();
+        if (event) {
+            const EventRecordingLinkV1* binding = nullptr;
+            bool ambiguous = false;
+            for (const auto& link : links) {
+                if (link.derived_segment_id != segment.segment_id) continue;
+                if (binding) { ambiguous = true; break; }
+                binding = &link;
+            }
+            if (!binding || ambiguous || binding->source_id != segment.source_id ||
+                !binding->derived_actual_range ||
+                binding->derived_actual_range->start_ms != segment.start.utc_ms ||
+                binding->derived_actual_range->end_ms != segment.end.utc_ms) {
+                item.playable = false;
+                item.completeness = "missing";
+            } else {
+                item.event_id = binding->event_id;
+                item.requested_range = binding->requested_range;
+                item.completeness = binding->status == EventRecordingLinkStatus::Complete ? "complete" :
+                    binding->status == EventRecordingLinkStatus::Partial ? "partial" : "missing";
+                if (binding->status != EventRecordingLinkStatus::Complete &&
+                    binding->status != EventRecordingLinkStatus::Partial) item.playable = false;
+            }
+        } else {
+            for (const auto& link : links) {
+                if (!link.requested_range) continue;
+                for (const auto& overlap : link.ordered_overlaps) {
+                    if (overlap.segment_id == segment.segment_id &&
+                        HalfOpenRangesOverlap(overlap.range.start_ms, overlap.range.end_ms,
+                                              query.start_ms, query.end_ms)) {
+                        item.superseded_by_event_ids.push_back(link.event_id);
+                    }
+                }
+            }
+            auto& ids = item.superseded_by_event_ids;
+            std::sort(ids.begin(), ids.end());
+            ids.erase(std::unique(ids.begin(), ids.end()), ids.end());
+        }
+        if (item.playable) item.playback_url = "/ops/api/recordings/media/" + item.segment_id;
+        result->items.push_back(std::move(item));
+    }
+    for (const auto& link : links) {
+        if (!link.fallback_evidence_id || !link.requested_range ||
+            !HalfOpenRangesOverlap(link.requested_range->start_ms, link.requested_range->end_ms,
+                                   query.start_ms, query.end_ms)) continue;
+        if (link.derived_segment_id && ResolveMedia(query.channel_id, *link.derived_segment_id)) continue;
+        RecordingTimelineItem item;
+        item.segment_id = *link.fallback_evidence_id;
+        item.channel_id = query.channel_id;
+        item.kind = "event";
+        item.display_priority = 200;
+        item.start_ms = link.requested_range->start_ms;
+        item.end_ms = link.requested_range->end_ms;
+        item.requested_range = link.requested_range;
+        item.event_id = link.event_id;
+        item.range_basis = "requested-fallback";
+        const auto resolved = ResolveMedia(query.channel_id, item.segment_id);
+        item.playable = static_cast<bool>(resolved);
+        if (resolved) item.content_type = resolved->content_type();
+        // fallback frame buffer 영상의 전체 요청 구간 충족 여부는 아직 보장하지 않는다.
+        item.completeness = item.playable ? "partial" : "missing";
+        if (item.playable) item.playback_url = "/ops/api/recordings/media/" + item.segment_id;
+        result->items.push_back(std::move(item));
+    }
+    std::sort(result->items.begin(), result->items.end(), [](const auto& a, const auto& b) {
+        if (a.start_ms != b.start_ms) return a.start_ms > b.start_ms;
+        if (a.display_priority != b.display_priority) return a.display_priority > b.display_priority;
+        return a.segment_id < b.segment_id;
+    });
+    result->total = result->items.size();
+    const auto begin = std::min(query.offset, result->total);
+    const auto count = std::min(query.limit, result->total - begin);
+    std::vector<RecordingTimelineItem> page;
+    page.reserve(count);
+    for (std::size_t i = 0; i < count; ++i) page.push_back(std::move(result->items[begin + i]));
+    result->items = std::move(page);
+    if (error) error->clear();
+    return true;
+}
+}  // namespace recording

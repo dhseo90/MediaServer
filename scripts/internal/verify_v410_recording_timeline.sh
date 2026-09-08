@@ -5,6 +5,49 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MODE="${1:-}"
 
 case "$MODE" in
+  --read-model|--seed-http)
+    # 부분 검증 모드다. HTTP/인증/Range/UI 전체 PASS를 의미하지 않는다.
+    ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+    RUN_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/media-server-s06-read.XXXXXX")"
+    RUN_ROOT="$(cd "$RUN_ROOT" && pwd -P)"
+    cleanup_read_model() {
+      local result=$?
+      trap - EXIT
+      du -sk "$RUN_ROOT"
+      rm -rf -- "$RUN_ROOT" || result=1
+      if [[ -e "$RUN_ROOT" || -L "$RUN_ROOT" ]]; then
+        echo "[fail] read-model 임시 root 삭제 실패" >&2
+        result=1
+      else
+        echo "[pass] read-model 임시 root 삭제 확인: $RUN_ROOT"
+      fi
+      exit "$result"
+    }
+    trap cleanup_read_model EXIT
+    SQLITE_CFLAGS=()
+    SQLITE_LIBS=(-lsqlite3)
+    if command -v pkg-config >/dev/null 2>&1 && pkg-config --exists sqlite3; then
+      read -r -a SQLITE_CFLAGS <<<"$(pkg-config --cflags sqlite3)"
+      read -r -a SQLITE_LIBS <<<"$(pkg-config --libs sqlite3)"
+    fi
+    "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$ROOT_DIR/include" \
+      ${SQLITE_CFLAGS[*]-} -DMEDIA_SERVER_USE_SQLITE3=1 \
+      "$SCRIPT_DIR/recording_timeline_smoke.cpp" \
+      "$ROOT_DIR/src/recording/recording_read_service.cpp" \
+      "$ROOT_DIR/src/ingress/recording_application_service.cpp" \
+      "$ROOT_DIR/src/recording/recording_journal.cpp" \
+      "$ROOT_DIR/src/recording/recording_catalog.cpp" \
+      "$ROOT_DIR/src/recording/retention_coordinator.cpp" \
+      "$ROOT_DIR/src/recording/recording_contracts.cpp" \
+      "$ROOT_DIR/src/domain/strict_json.cpp" \
+      ${SQLITE_LIBS[*]-} -o "$RUN_ROOT/read-smoke"
+    if [[ "$MODE" == "--seed-http" ]]; then
+      "$RUN_ROOT/read-smoke" "$2" --seed-http "$3"
+    else
+      "$RUN_ROOT/read-smoke" "$RUN_ROOT/fixture"
+      "$RUN_ROOT/read-smoke" "$RUN_ROOT/sqlite-fixture" --sqlite
+    fi
+    ;;
   --red-http-baseline)
     # 이름은 TDD 실행 단계 표식이며 성공 조건은 실제 기능 요구인 HTTP 200이다.
     exec node "$SCRIPT_DIR/verify_v410_recording_ui_contract.mjs" --red-status
@@ -17,7 +60,7 @@ case "$MODE" in
     exit 64
     ;;
   *)
-    echo "사용법: verify_v410_recording_timeline.sh [--red-http-baseline|--harness-self-test]" >&2
+    echo "사용법: verify_v410_recording_timeline.sh [--read-model|--red-http-baseline|--harness-self-test]" >&2
     exit 64
     ;;
 esac

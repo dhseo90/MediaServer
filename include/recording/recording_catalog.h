@@ -74,6 +74,9 @@ public:
         const std::string& segment_id) const;
     std::optional<std::filesystem::path> FindSegmentMediaPath(
         const std::string& segment_id) const;
+    // transport 내부 전용: symlink를 따라 정규화하지 않은 root/상대경로.
+    std::optional<std::pair<std::filesystem::path, std::filesystem::path>>
+        FindSegmentMediaLocation(const std::string& segment_id) const;
     std::vector<EventRecordingLinkV1> ListEventLinks(
         EventRecordingLinkStatus status) const;
     bool AcquireEventSourceLease(const std::string& channel_id,

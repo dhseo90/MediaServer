@@ -377,6 +377,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
     impl_->listen_address = listen_address;
     impl_->port = port;
+    impl_->recording_gate = std::make_shared<RecordingRequestGate>();
     running_.store(true);
 
     // 간단한 내장 HTTP 서버다. 연결마다 thread를 만들되 parser timeout과 동시 연결 상한을 둔다.
@@ -405,7 +406,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                 continue;
             }
 
-            std::thread([this, client_fd] {
+            const auto recording_gate = impl_->recording_gate;
+            auto* const recording_service = impl_->recording_service;
+            std::thread([this, client_fd, recording_gate, recording_service] {
                 struct ActiveConnectionGuard {
                     std::atomic<int>& active_connections;
                     ~ActiveConnectionGuard() {
@@ -416,6 +419,10 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                 SetHttpSocketTimeouts(client_fd);
                 HttpResponse response;
                 auto request_opt = ReadHttpRequest(client_fd, &response);
+                const bool recording_request = request_opt &&
+                    request_opt->path.compare(0, 20, "/ops/api/recordings/") == 0;
+                std::unique_ptr<RecordingRequestGate::Flight> recording_flight;
+                if (recording_request) recording_flight = recording_gate->Begin(client_fd);
                 bool response_sent = false;
                 if (!request_opt.has_value()) {
                     if (response.body.empty()) {
@@ -424,6 +431,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                 } else {
                     const HttpRequest& request = *request_opt;
                     response = [&]() -> HttpResponse {
+                        if (recording_request && !recording_flight)
+                            return JsonResponse(503, "Service Unavailable", "{\"error\":\"recording shutdown\"}");
                         if (request.method == "OPTIONS") {
                             return CorsPreflightResponse(request);
                         }
@@ -728,6 +737,69 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             return std::nullopt;
                         };
+                        if (recording_request) {
+                            if (const auto denied = require_ops_principal()) return *denied;
+                            if (!recording_service)
+                                return JsonResponse(503, "Service Unavailable", "{\"error\":\"recording unavailable\"}");
+                            const auto authorize_channel = [&](const std::string& channel) {
+                                return auth::RequireScope(principal_result.principal, "source:read:" + channel);
+                            };
+                            const auto api_response = [](const ApplicationServiceResult& result) {
+                                auto response = JsonResponse(result.status, result.status_text, result.body);
+                                response.headers["Cache-Control"] = "no-store";
+                                return response;
+                            };
+                            if (request.method == "GET" && request.path == "/ops/api/recordings/status")
+                                return api_response(recording_service->Status(authorize_channel));
+                            if (request.method == "GET" && request.path == "/ops/api/recordings/timeline")
+                                return api_response(recording_service->Timeline(query, authorize_channel));
+                            const std::string media_prefix = "/ops/api/recordings/media/";
+                            if ((request.method == "GET" || request.method == "HEAD") &&
+                                request.path.compare(0, media_prefix.size(), media_prefix) == 0) {
+                                auto media = recording_service->Media(request.path.substr(media_prefix.size()), authorize_channel);
+                                if (!media) return JsonResponse(404, "Not Found", "{\"error\":\"recording media unavailable\"}");
+                                const auto range = ParseRecordingByteRange(
+                                    HeaderValue(request, "Range"), media->size_bytes());
+                                if (!range) {
+                                    auto invalid = JsonResponse(416, "Range Not Satisfiable", "{\"error\":\"invalid recording range\"}");
+                                    invalid.headers["Content-Range"] = "bytes */" + std::to_string(media->size_bytes());
+                                    invalid.headers["Accept-Ranges"] = "bytes";
+                                    return invalid;
+                                }
+                                HttpResponse wire;
+                                wire.status = range->partial ? 206 : 200;
+                                wire.status_text = range->partial ? "Partial Content" : "OK";
+                                wire.content_type = media->content_type();
+                                wire.headers["Accept-Ranges"] = "bytes";
+                                wire.headers["Cache-Control"] = "no-store";
+                                wire.headers["X-Content-Type-Options"] = "nosniff";
+                                if (range->partial) wire.headers["Content-Range"] =
+                                    "bytes " + std::to_string(range->first) + "-" +
+                                    std::to_string(range->first + range->length - 1) + "/" + std::to_string(media->size_bytes());
+                                AddCorsHeadersForRequest(&request, &wire);
+                                std::ostringstream headers;
+                                headers << "HTTP/1.1 " << wire.status << ' ' << wire.status_text << "\r\nContent-Type: "
+                                        << wire.content_type << "\r\nContent-Length: " << range->length << "\r\nConnection: close\r\n";
+                                for (const auto& header : wire.headers) headers << header.first << ": " << header.second << "\r\n";
+                                headers << "\r\n";
+                                response_sent = true;
+                                SuppressSocketSigPipe(client_fd);
+                                if (!recording_gate->Cancelled() && SendAll(client_fd, headers.str()) && request.method != "HEAD") {
+                                    std::array<char, 256 * 1024> buffer{};
+                                    std::uint64_t sent = 0;
+                                    while (sent < range->length && !recording_gate->Cancelled()) {
+                                        const auto count = static_cast<std::size_t>(std::min<std::uint64_t>(buffer.size(), range->length - sent));
+                                        const auto n = ::pread(media->fd(), buffer.data(), count, static_cast<off_t>(range->first + sent));
+                                        if (n < 0 && errno == EINTR) continue;
+                                        if (n <= 0 || !SendAll(client_fd, std::string(buffer.data(), static_cast<std::size_t>(n)))) break;
+                                        sent += static_cast<std::uint64_t>(n);
+                                    }
+                                }
+                                // media fd·hold가 flight보다 먼저 해제된다.
+                                return wire;
+                            }
+                            return JsonResponse(405, "Method Not Allowed", "{\"error\":\"unsupported recording request\"}");
+                        }
                         auto require_admin_principal = [&]() -> std::optional<HttpResponse> {
                             if (!config.enable_ops) {
                                 return route_disabled_response("ops");
@@ -4975,6 +5047,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                     const std::string encoded = BuildHttpResponse(response, request_for_headers);
                     (void)SendAll(client_fd, encoded);
                 }
+                recording_flight.reset();
                 close(client_fd);
             }).detach();
         }
@@ -4989,6 +5062,8 @@ void WebRtcHttpServer::Stop() {
         return;
     }
 
+    impl_->recording_gate->Close();
+
     if (impl_->listen_fd >= 0) {
         shutdown(impl_->listen_fd, SHUT_RDWR);
         close(impl_->listen_fd);
@@ -4997,6 +5072,7 @@ void WebRtcHttpServer::Stop() {
     if (impl_->accept_thread.joinable()) {
         impl_->accept_thread.join();
     }
+    impl_->recording_gate->Drain();
 
     std::vector<Impl::SessionEntry> sessions;
     std::vector<Impl::SourceSessionEntry> source_sessions;

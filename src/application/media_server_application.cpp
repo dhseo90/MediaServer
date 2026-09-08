@@ -2,6 +2,8 @@
 // 동작 요약: 설정, registry/session, RTSP/HTTP 서버를 조립하고 기존 시작·정리 순서를 보존한다.
 
 #include "application/media_server_application.h"
+#include "ingress/recording_application_service.h"
+#include <limits>
 
 #include <algorithm>
 #include <atomic>
@@ -409,11 +411,39 @@ int RunMediaServerApplication(int argc, char** argv) {
     // 두 transport와 runtime accounting은 같은 analysis service를 공유해 tap 수명과 source fan-out을 일치시킨다.
     ingress::GStreamerRtspServer gst_rtsp_server(session_manager, analysis_sessions);
     const auto webrtc_http_runtime_config = BuildWebRtcHttpRuntimeConfig(config);
+    recording::RecordingReadService recording_reads(recording_catalog, config.analysis_event_clip_dir);
+    ingress::RecordingApplicationService recording_api(
+        recording_reads, recording_catalog, config.recording_enabled,
+        [&recording_catalog, &recording_sessions, &recording_retention](auto* output) {
+            std::vector<ingress::SourceViewApplicationService::SourceRecord> sources;
+            std::vector<ingress::SourceViewApplicationService::PublishedViewRecord> views;
+            if (!ingress::SourceViewApplicationService::Instance().Snapshot(&sources, &views, nullptr)) return false;
+            const auto snapshot = recording_catalog.RetentionSnapshot();
+            for (const auto& source : sources) {
+                ingress::RecordingChannelStatus status;
+                status.channel_id = source.source_id;
+                status.display_name = source.display_name;
+                status.enabled = source.enabled && source.recording.enabled;
+                status.active = recording_sessions.IsChannelRecording(source.source_id);
+                status.storage_blocked = recording_retention.ChannelStatus(source.source_id).storage_blocked;
+                status.continuous_max_bytes = source.recording.continuous_max_bytes;
+                status.event_max_bytes = source.recording.event_max_bytes;
+                for (const auto& candidate : snapshot.candidates) {
+                    if (candidate.segment.channel_id != source.source_id) continue;
+                    auto& bytes = candidate.segment.retention_class == recording::RecordingRetentionClass::Event
+                                      ? status.event_bytes : status.continuous_bytes;
+                    bytes += std::min(candidate.segment.size_bytes, std::numeric_limits<std::uint64_t>::max() - bytes);
+                }
+                output->push_back(std::move(status));
+            }
+            return true;
+        });
     ingress::WebRtcHttpServer webrtc_http_server(
         *webrtc_media_sessions,
         *analysis_session_lifecycle,
         *analysis_session_reads,
-        webrtc_http_runtime_config);
+        webrtc_http_runtime_config,
+        &recording_api);
 
     // 외부 ingress를 열기 전에 recording bridge를 등록해야 시작 직후 이벤트도
     // bounded EventStorage queue보다 먼저 durable link를 얻는다.

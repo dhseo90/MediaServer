@@ -1,5 +1,75 @@
 # Release Test Records
 
+## S06 잔여 2번: 전송·삭제·종료 경계 확인 (2026-09-08)
+
+승인된 2번 구현·검증을 마쳤다. 이 커밋은 기존 미커밋 S06 read service/application DTO,
+fd/hold resolver·manifest·HTTP Range·admission/drain과 이를 빌드하는 composition/CMake,
+검증 도구를 함께 보존한다. 화면 HTML/JS 및 6번 전체 문서 종료는 포함하지 않는다.
+JSON path 비노출·role/scope·UTC/ID·기존 S03~S05 영속 형식은 유지했다.
+메인이 기존 담당 설정/도구 제한으로 회수해 직접 확인했다. Codex 사용자 설정 유지,
+점수2/1/2/2=7, 자동 상향 없음. 최종 교차 회귀 판정은 승인된 5번에 남는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| 수명 검사 1 | 큰 파일 HTTP200/67108864 길이 | pass | --http-lifecycle exit0, 10/0 |
+| 수명 검사 2 | 64MiB streaming SHA256 일치 | pass | --http-lifecycle exit0, 10/0 |
+| 수명 검사 3 | 전체 응답 뒤 hold0 | pass | --http-lifecycle exit0, 10/0 |
+| 수명 검사 4 | 256KiB 경계 Range206/32byte 일치 | pass | --http-lifecycle exit0, 10/0 |
+| 수명 검사 5 | disconnect 전 hold1 | pass | --http-lifecycle exit0, 10/0 |
+| 수명 검사 6 | disconnect 후 hold0 | pass | --http-lifecycle exit0, 10/0 |
+| 수명 검사 7 | disconnect 후 health200 | pass | --http-lifecycle exit0, 10/0 |
+| 수명 검사 8 | 서버 종료 전 hold1 | pass | --http-lifecycle exit0, 10/0 |
+| 수명 검사 9 | 활성 전송 중 exit0/강제종료없음 | pass | --http-lifecycle exit0, 10/0 |
+| 수명 검사 10 | 종료 후 SQLite hold0 | pass | --http-lifecycle exit0, 10/0 |
+| 삭제 경쟁 0 | JSONL/SQLite 각각 동시에 resolve/RequestDeletion 실행, 둘 중 하나만 성공 | pass | 실제 스레드 경쟁 |
+| fd 반환 0 | JSONL/SQLite 각각 lease 반환 뒤 fcntl EBADF, 삭제 선행 시 media 미반환 | pass | 열린 fd 검사 후 해제 |
+| 삭제 경쟁 1 | JSONL/SQLite 각각 동시에 resolve/RequestDeletion 실행, 둘 중 하나만 성공 | pass | 실제 스레드 경쟁 |
+| fd 반환 1 | JSONL/SQLite 각각 lease 반환 뒤 fcntl EBADF, 삭제 선행 시 media 미반환 | pass | 열린 fd 검사 후 해제 |
+| 삭제 경쟁 2 | JSONL/SQLite 각각 동시에 resolve/RequestDeletion 실행, 둘 중 하나만 성공 | pass | 실제 스레드 경쟁 |
+| fd 반환 2 | JSONL/SQLite 각각 lease 반환 뒤 fcntl EBADF, 삭제 선행 시 media 미반환 | pass | 열린 fd 검사 후 해제 |
+| 삭제 경쟁 3 | JSONL/SQLite 각각 동시에 resolve/RequestDeletion 실행, 둘 중 하나만 성공 | pass | 실제 스레드 경쟁 |
+| fd 반환 3 | JSONL/SQLite 각각 lease 반환 뒤 fcntl EBADF, 삭제 선행 시 media 미반환 | pass | 열린 fd 검사 후 해제 |
+| 삭제 경쟁 4 | JSONL/SQLite 각각 동시에 resolve/RequestDeletion 실행, 둘 중 하나만 성공 | pass | 실제 스레드 경쟁 |
+| fd 반환 4 | JSONL/SQLite 각각 lease 반환 뒤 fcntl EBADF, 삭제 선행 시 media 미반환 | pass | 열린 fd 검사 후 해제 |
+| 삭제 경쟁 5 | JSONL/SQLite 각각 동시에 resolve/RequestDeletion 실행, 둘 중 하나만 성공 | pass | 실제 스레드 경쟁 |
+| fd 반환 5 | JSONL/SQLite 각각 lease 반환 뒤 fcntl EBADF, 삭제 선행 시 media 미반환 | pass | 열린 fd 검사 후 해제 |
+| 삭제 경쟁 6 | JSONL/SQLite 각각 동시에 resolve/RequestDeletion 실행, 둘 중 하나만 성공 | pass | 실제 스레드 경쟁 |
+| fd 반환 6 | JSONL/SQLite 각각 lease 반환 뒤 fcntl EBADF, 삭제 선행 시 media 미반환 | pass | 열린 fd 검사 후 해제 |
+| 삭제 경쟁 7 | JSONL/SQLite 각각 동시에 resolve/RequestDeletion 실행, 둘 중 하나만 성공 | pass | 실제 스레드 경쟁 |
+| fd 반환 7 | JSONL/SQLite 각각 lease 반환 뒤 fcntl EBADF, 삭제 선행 시 media 미반환 | pass | 열린 fd 검사 후 해제 |
+| 삭제 경쟁 8 | JSONL/SQLite 각각 동시에 resolve/RequestDeletion 실행, 둘 중 하나만 성공 | pass | 실제 스레드 경쟁 |
+| fd 반환 8 | JSONL/SQLite 각각 lease 반환 뒤 fcntl EBADF, 삭제 선행 시 media 미반환 | pass | 열린 fd 검사 후 해제 |
+| 삭제 경쟁 9 | JSONL/SQLite 각각 동시에 resolve/RequestDeletion 실행, 둘 중 하나만 성공 | pass | 실제 스레드 경쟁 |
+| fd 반환 9 | JSONL/SQLite 각각 lease 반환 뒤 fcntl EBADF, 삭제 선행 시 media 미반환 | pass | 열린 fd 검사 후 해제 |
+| 삭제 경쟁 10 | JSONL/SQLite 각각 동시에 resolve/RequestDeletion 실행, 둘 중 하나만 성공 | pass | 실제 스레드 경쟁 |
+| fd 반환 10 | JSONL/SQLite 각각 lease 반환 뒤 fcntl EBADF, 삭제 선행 시 media 미반환 | pass | 열린 fd 검사 후 해제 |
+| 삭제 경쟁 11 | JSONL/SQLite 각각 동시에 resolve/RequestDeletion 실행, 둘 중 하나만 성공 | pass | 실제 스레드 경쟁 |
+| fd 반환 11 | JSONL/SQLite 각각 lease 반환 뒤 fcntl EBADF, 삭제 선행 시 media 미반환 | pass | 열린 fd 검사 후 해제 |
+| 삭제 경쟁 12 | JSONL/SQLite 각각 동시에 resolve/RequestDeletion 실행, 둘 중 하나만 성공 | pass | 실제 스레드 경쟁 |
+| fd 반환 12 | JSONL/SQLite 각각 lease 반환 뒤 fcntl EBADF, 삭제 선행 시 media 미반환 | pass | 열린 fd 검사 후 해제 |
+| 삭제 경쟁 13 | JSONL/SQLite 각각 동시에 resolve/RequestDeletion 실행, 둘 중 하나만 성공 | pass | 실제 스레드 경쟁 |
+| fd 반환 13 | JSONL/SQLite 각각 lease 반환 뒤 fcntl EBADF, 삭제 선행 시 media 미반환 | pass | 열린 fd 검사 후 해제 |
+| 삭제 경쟁 14 | JSONL/SQLite 각각 동시에 resolve/RequestDeletion 실행, 둘 중 하나만 성공 | pass | 실제 스레드 경쟁 |
+| fd 반환 14 | JSONL/SQLite 각각 lease 반환 뒤 fcntl EBADF, 삭제 선행 시 media 미반환 | pass | 열린 fd 검사 후 해제 |
+| 삭제 경쟁 15 | JSONL/SQLite 각각 동시에 resolve/RequestDeletion 실행, 둘 중 하나만 성공 | pass | 실제 스레드 경쟁 |
+| fd 반환 15 | JSONL/SQLite 각각 lease 반환 뒤 fcntl EBADF, 삭제 선행 시 media 미반환 | pass | 열린 fd 검사 후 해제 |
+| 기존 focused | 기존 개별43검사를 JSONL/SQLite 각각 재실행 | pass | 신규32개와 합쳐 모드별75개, 총150/0, exit0 |
+
+정상 완료·연결 중단·서버 종료에서 hold0를 실제 SQLite로 확인했다. 64MiB 반복 바이트
+fixture는 transport 검사이며 codec 재생 PASS가 아니다. 저수준 파일 close와 삭제 mutex 경계는
+C++ 실험과 직접 코드 검토로 확인했다. 디스크 고장 주입·장시간 leak 검사는 이번 범위 증거가 아니다.
+제품 빌드는 1번 최종 빌드가 같은 backend 코드에서 exit0이며 이후 제품 backend 변경 없음.
+앞선 HTTP31/auth37은 동일 backend의 유효 범위 증거로 유지한다. UI 실제 재생은 3번 대상이다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| read root b9cddm | 큰 파일 seed 바이너리 | 1564 KiB | 삭제 | 부재 | wrapper PASS |
+| HTTP root uvT7ca | 64MiB fixture·서버 | 203,196,166 bytes | 삭제 | PID35559 exit0, RTSP52682/HTTP52683 ECONNREFUSED, rootAbsent=true | cleanup6/failure0,28ms |
+| read root ba6vGs | 경쟁 focused | 1964 KiB | 삭제 | 부재 | wrapper PASS |
+
+token start/end/consumed 미집계(활성 goal 없음), HTTP elapsed5165ms, source실제 명령 출력.
+6번·푸시 미실행. S06 전체 완료가 아니다.
+
 ## S06 잔여 1번: 날짜·원본 보기 배치 수정 (2026-09-08)
 
 사용자 승인 범위는 잔여1~5 순차 실행·분할 커밋이며 6번 문서 전체 종료와 푸시는 제외한다.
