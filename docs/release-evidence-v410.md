@@ -4,7 +4,20 @@
 PASS는 UI 풀테스트, 30분/120분 장시간 테스트, PR/main merge, tag, GitHub Release 또는
 published metadata 완료를 뜻하지 않는다.
 
-## S08 부분 구현: A V1 호환성 기준과 B1 원장 꼬리 복구 (2026-09-09)
+## S08 부분 구현: A·B1·B2a 기반 (2026-09-09)
+
+B2a는 `recording_catalog.h/.cpp`의 `MarkSegmentCorrupt`에 알려진 finalized segment의
+손상 상태를 원장→메모리→SQLite에 반영하는 내부 진입점을 추가했다. 사용 중 hold와
+pending event 참조는 거부하고 삭제 대기·삭제 완료를 우선한다. 동일 ID의 finalized
+재등장은 최초 메타데이터를 바꾸거나 손상 상태를 취소하지 못한다. SQL 재구축은
+실제로 수용한 상태 mutation의 내용과 원장 순서를 함께 대조한다. 공개 V1과 실제
+영상 파일은 바꾸지 않는다.
+
+`recording_corruption_smoke.cpp`와 `verify-v410-recording-corruption`에서 focused92개,
+B1·S03·S07·A 회귀 및 전체 build가 통과했다. 최초 86/4 실패는 새 관측 fixture의 위치
+해석 누락으로, 제품 S07 코드를 변경하지 않고 실제 Resolve 후 저장하도록 보완했다.
+개별 결과·최초 실패·cleanup은 `release-test-records.md`의 S08-B2a를 따른다.
+자동 파일 손상 검사·startup 복구 연결과 S08 전체 완료는 아직 아니다.
 
 B1은 `recording_journal.cpp`의 Open/Append/Replay에 파일·상위 디렉터리 inode 확인과
 미commit 꼬리 원본 격리→truncate/fsync→새 append를 추가했다. 격리 실패 또는 16MiB

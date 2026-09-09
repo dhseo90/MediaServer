@@ -1,5 +1,560 @@
 # Release Test Records
 
+## v4.1.0 S08-B2a 재개 후 검증 (2026-09-09)
+
+메인 직접 build 확인: `./server.sh build` exit0, configure 및 media_server_runtime/media_server 100%. 관측 상한42900ms는 메인 exec시작~완료확인 뒤 계측으로 도구왕복/읽기를 포함하며 순수 build시간은 미계측. 메인 token 자동집계 없음. 기존 build-gst-onnx 제품 빌드 산출물만 갱신했고 서버 기동·포트·새 임시dir 없음. 담당자의 재실행/직접관측으로 바꾸어 보고하지 않는다.
+
+사용자 재개 승인 후 **관측 fixture만** `ResolveObservationV2(o)`→segment-base/UTC1500/PTS500000000 literal assertion→Put 순서로 보완했다. 기존 초기 locator 존재 및 Corrupt revoke assertion은 유지했다. 제품 S07/catalog 정책은 이번 재개에서 수정하지 않았다. 앞선 86/4 실패는 아래 중단 기록으로 유지하며 최종 92/0으로 재검증했다(추가 literal assertion 2개).
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 메인 전체 build | 메인 직접 `./server.sh build` exit0, configure/runtime/server 100%, 관측 상한42900ms | pass |
+| 메인 문서 링크 | 메인 직접 `./server.sh verify-docs-links` exit0: md226/links1049/images22/anchors103/index76/exclusion142/fail0; 새 임시산출물 없음 | pass |
+| 메인 diff 확인 | 메인 직접 `git diff --check` exit0 | pass |
+| B2a focused | `./server.sh verify-v410-recording-corruption` exit 0; 92/0; elapsed 2586ms | pass |
+| B1 recovery | `./server.sh verify-v410-recording-recovery` exit 0; 40/0; elapsed 2598ms | pass |
+| S03 catalog | `MEDIA_SERVER_VERIFY_V410_RECORDING_CATALOG_BUILD_DIR=/private/tmp/media-server-s08-b2a-catalog-20260909 ./server.sh verify-v410-recording-catalog` exit 0; 45/0 및 정적 wiring9; elapsed 2453ms | pass |
+| S07 observations | `./server.sh verify-v410-recording-observations` exit 0; core71/time snapshot10/cleanup1; failures0; elapsed 4086ms | pass |
+| A compatibility | `./server.sh verify-v410-recording-fixture-compatibility` exit 0; digest4/reader89/0; elapsed 1283ms | pass |
+| diff check | `git diff --check` exit0 | pass |
+| 기존 cleanup 후확인 | S03 명시 BUILD_DIR 및 S07 run root에 `test ! -e` exit0 | pass |
+
+elapsed는 Date.now 도구 호출 전후 실제시간(왕복 포함), token start/end/consumed는 서브에이전트 usage 집계 API 없음으로 미집계. scope는 known segment 손상 **상태 적용 기반**만이며 자동파일검출/startup/readyticket/전체S08 완료가 아니다. 전체 build는 제품 동결 후 메인 별도 수행, 장시간/UI/B2b는 미실행이다. 커밋·푸시는 담당자 미수행이다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/tmp/media-server-s08-b2a-yoDRSd | focused binary/fixture | 1862631 bytes | EXIT cleanup | removed=true | 실제 stdout |
+| /private/tmp/media-server-s08-b1-YaaSnU | B1 binary/fixture | 20010103 bytes | EXIT cleanup | removed=true | 실제 stdout |
+| /private/tmp/media-server-s08-b2a-catalog-20260909 | S03 binary/fixture | 미계측: 기존 EXIT trap 즉시삭제 | EXIT cleanup | 부재 직접확인 exit0 | test ! -e |
+| OS TMPDIR/media-server-s07.859Rit | S07 binary/fixture | 2720 KiB allocated(2785280 bytes, du -sk); payload byte합 아님 | EXIT cleanup | script 및 후속 부재 확인 | 실제 stdout 및 test ! -e |
+| OS TMPDIR/s08-a-reader-iKORtw | A C++ binary | 478064 bytes | finally cleanup | removed=true | 실제 stdout |
+
+### B2a 최종 개별 결과
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| B2a-final-01 | journal open | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-02 | catalog seed open | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-03 | seed finalized | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-04 | corruption durable append | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-05 | catalog replay open | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-06 | corruption replay lifecycle is Corrupt | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-07 | fallback journal open | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-08 | fallback catalog open | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-09 | fallback seed base | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-10 | fallback resolved locator literal segment UTC PTS | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-11 | fallback observation stored before corruption | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-12 | fallback observation locator initially available | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-13 | fallback unknown ID and reason refused noappend | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-14 | fallback acquire hold | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-15 | fallback held corruption refused noappend | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-16 | fallback release hold | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-17 | fallback mark corruption | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-18 | fallback repeat corruption noappend | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-19 | fallback only lifecycle changed bytes identity preserved | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-20 | fallback corrupt media location blocked | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-21 | fallback V2 locator revoked | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-22 | fallback pending link segments seed | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-23 | fallback pending link seed | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-24 | fallback pending source output refused noappend | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-25 | fallback event link metadata preserved | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-26 | fallback deletion-pending deletion seed | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-27 | fallback deletion-pending mark rejected noappend | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-28 | fallback deletion-done deletion seed | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-29 | fallback tombstone seed | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-30 | fallback deletion-done mark rejected noappend | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-31 | fallback identical finalized replay seed | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-32 | fallback conflicting finalized seed | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-33 | fallback entity mismatch seed | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-34 | fallback invalid first valid later same mutation ID seed | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-35 | fallback malformed and deletion-priority seed | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-36 | fallback same mutation ID different payload seed | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-37 | fallback restart | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-38 | fallback restart never resurrects corrupt identity | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-39 | fallback query keeps corrupt pending excludes deleted | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-40 | fallback deletion priority and unknown no creation | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-41 | fallback invalid mutations diagnosed exact count | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-42 | sqlite journal open | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-43 | sqlite catalog open | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-44 | sqlite seed base | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-45 | sqlite resolved locator literal segment UTC PTS | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-46 | sqlite observation stored before corruption | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-47 | sqlite observation locator initially available | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-48 | sqlite unknown ID and reason refused noappend | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-49 | sqlite acquire hold | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-50 | sqlite held corruption refused noappend | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-51 | sqlite release hold | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-52 | sqlite mark corruption | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-53 | sqlite repeat corruption noappend | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-54 | sqlite only lifecycle changed bytes identity preserved | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-55 | sqlite corrupt media location blocked | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-56 | sqlite V2 locator revoked | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-57 | sqlite SQL lifecycle corrupt | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-58 | sqlite SQL codecs_json original metadata | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-59 | sqlite pending link segments seed | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-60 | sqlite pending link seed | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-61 | sqlite pending source output refused noappend | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-62 | sqlite event link metadata preserved | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-63 | sqlite deletion-pending deletion seed | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-64 | sqlite deletion-pending mark rejected noappend | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-65 | sqlite deletion-done deletion seed | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-66 | sqlite tombstone seed | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-67 | sqlite deletion-done mark rejected noappend | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-68 | sqlite identical finalized replay seed | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-69 | sqlite conflicting finalized seed | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-70 | sqlite entity mismatch seed | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-71 | sqlite invalid first valid later same mutation ID seed | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-72 | sqlite malformed and deletion-priority seed | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-73 | sqlite same mutation ID different payload seed | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-74 | sqlite restart | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-75 | sqlite restart never resurrects corrupt identity | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-76 | sqlite query keeps corrupt pending excludes deleted | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-77 | sqlite deletion priority and unknown no creation | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-78 | sqlite invalid mutations diagnosed exact count | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-79 | sqlite restart SQL lifecycle parity | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-80 | sqlite SQL deletion precedence | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-81 | sqlite rebuild excludes rejected envelopes | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-82 | sqlite invalid first valid later SQL exact binding | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-83 | sqlite projection failover seed | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-84 | sqlite SQLite failure trigger | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-85 | sqlite projection failure keeps durable memory state | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-86 | sqlite remove projection trigger | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-87 | sqlite fallback restart SQL repaired | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-88 | order journal open | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-89 | order corruption-before-create-after seed | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-90 | order catalog open | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-91 | order memory corrupt | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+| B2a-final-92 | identical envelope accepted ordinal SQL parity | pass | 초기 locator/revoke 4항목 최초 fail→이번 pass; suite92/0 |
+
+### B1 회귀 개별 결과
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| B1-regression-01 | truncated open | pass | 이번 실행 stdout |
+| B1-regression-02 | truncated uncommitted before append | pass | 이번 실행 stdout |
+| B1-regression-03 | truncated append: | pass | 이번 실행 stdout |
+| B1-regression-04 | truncated valid2 and next ID preserved | pass | 이번 실행 stdout |
+| B1-regression-05 | truncated quarantine byte exact | pass | 이번 실행 stdout |
+| B1-regression-06 | truncated restart no mutation | pass | 이번 실행 stdout |
+| B1-regression-07 | truncated second append retained | pass | 이번 실행 stdout |
+| B1-regression-08 | truncated no redundant archive | pass | 이번 실행 stdout |
+| B1-regression-09 | complete-no-lf open | pass | 이번 실행 stdout |
+| B1-regression-10 | complete-no-lf uncommitted before append | pass | 이번 실행 stdout |
+| B1-regression-11 | complete-no-lf append: | pass | 이번 실행 stdout |
+| B1-regression-12 | complete-no-lf valid2 and next ID preserved | pass | 이번 실행 stdout |
+| B1-regression-13 | complete-no-lf quarantine byte exact | pass | 이번 실행 stdout |
+| B1-regression-14 | complete-no-lf restart no mutation | pass | 이번 실행 stdout |
+| B1-regression-15 | complete-no-lf second append retained | pass | 이번 실행 stdout |
+| B1-regression-16 | complete-no-lf no redundant archive | pass | 이번 실행 stdout |
+| B1-regression-17 | empty journal is valid | pass | 이번 실행 stdout |
+| B1-regression-18 | empty append retained | pass | 이번 실행 stdout |
+| B1-regression-19 | large newline prefix byte preserved | pass | 이번 실행 stdout |
+| B1-regression-20 | middle corrupt line preserved and valid entries read | pass | 이번 실행 stdout |
+| B1-regression-21 | directory quarantine journal open | pass | 이번 실행 stdout |
+| B1-regression-22 | directory quarantine failure original unchanged | pass | 이번 실행 stdout |
+| B1-regression-23 | symlink quarantine journal open | pass | 이번 실행 stdout |
+| B1-regression-24 | symlink quarantine failure original unchanged | pass | 이번 실행 stdout |
+| B1-regression-25 | hardlink quarantine journal open | pass | 이번 실행 stdout |
+| B1-regression-26 | hardlink quarantine failure original unchanged | pass | 이번 실행 stdout |
+| B1-regression-27 | exact quarantine journal open | pass | 이번 실행 stdout |
+| B1-regression-28 | existing exact quarantine restart reuse | pass | 이번 실행 stdout |
+| B1-regression-29 | journal symlink refused | pass | 이번 실행 stdout |
+| B1-regression-30 | journal hardlink refused | pass | 이번 실행 stdout |
+| B1-regression-31 | inode pin open | pass | 이번 실행 stdout |
+| B1-regression-32 | replacement inode append/reopen/replay refused | pass | 이번 실행 stdout |
+| B1-regression-33 | catalog refuses failed journal Replay | pass | 이번 실행 stdout |
+| B1-regression-34 | user parent symlink refused | pass | 이번 실행 stdout |
+| B1-regression-35 | parent traversal refused | pass | 이번 실행 stdout |
+| B1-regression-36 | deleted journal initial open | pass | 이번 실행 stdout |
+| B1-regression-37 | deleted journal reopen does not recreate | pass | 이번 실행 stdout |
+| B1-regression-38 | deleted parent reopen does not recreate | pass | 이번 실행 stdout |
+| B1-regression-39 | macOS tmp system alias allowed | pass | 이번 실행 stdout |
+| B1-regression-40 | oversized tail fails closed with original bytes | pass | 이번 실행 stdout |
+
+### S03 회귀 개별 결과
+
+기존 S03의 45개 성공명은 개별 stdout가 아니라 SQLite-enabled assertion 정의와 이번 45/0 집계를 대조했다. wiring9개는 별도 정적 검사이며 제품 동작검사를 대체하지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| S03-regression-01 | journal open: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-02 | fallback catalog open: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-03 | SQLite off mode 표시 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-04 | segment finalize journal+projection: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-05 | fallback range query | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-06 | event link FK 위반 거부 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-07 | FK 위반 transaction/journal 전체 rollback | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-08 | 최초 durable mutation 1개 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-09 | 동일 mutation 중복 append | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-10 | 손상 사이 정상 durable mutation 보존 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-11 | 중간 corrupt line count | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-12 | 마지막 truncated line skip | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-13 | fallback replay open | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-14 | 같은 mutation idempotent replay | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-15 | 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-16 | 중복 replay row/합계 불증가 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-17 | 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-18 | writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-19 | v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-20 | SQLite catalog open/rebuild: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-21 | SQLite primary mode 표시 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-22 | SQLite on/off range query ID·순서 parity | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-23 | journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-24 | journal 없는 손상 media orphan 구분 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-25 | projection failover journal open: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-26 | projection failover catalog open: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-27 | 실제 SQLite INSERT 실패 trigger 설치 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-28 | SQLite 투영 실패 뒤 journal+memory finalize 유지: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-29 | SQLite 투영 실패 즉시 JSONL fallback 전환 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-30 | 재시작 rebuild 전 실패 trigger 제거 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-31 | 투영 실패 직후 in-memory query 정합성 유지 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-32 | projection failover 재시작 journal rebuild: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-33 | 재시작 후 journal에서 누락 SQLite projection 복구 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-34 | 재시작 후 SQLite primary 복귀 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-35 | 재시작 journal rebuild가 실제 SQLite row 복원 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-36 | tombstone journal open: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-37 | tombstone catalog open: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-38 | tombstone 대상 segment finalize: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-39 | tombstone 대상 deletion request: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-40 | tombstone 완료 기록: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-41 | catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-42 | 손상 SQLite 격리 후 journal rebuild: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-43 | 손상 SQLite 원본 격리 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-44 | 격리 SQLite 파일 보존 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-regression-45 | 격리 후 journal rebuild 결과 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| S03-wiring-01 | source 저장 callback reconcile 연결 | pass | 이번 정적 wiring stdout |
+| S03-wiring-02 | policy revision idempotency | pass | 이번 정적 wiring stdout |
+| S03-wiring-03 | 5초 safety reconcile | pass | 이번 정적 wiring stdout |
+| S03-wiring-04 | composition root journal 선행 open | pass | 이번 정적 wiring stdout |
+| S03-wiring-05 | composition root catalog rebuild/open | pass | 이번 정적 wiring stdout |
+| S03-wiring-06 | 서버 전 supervisor 시작 | pass | 이번 정적 wiring stdout |
+| S03-wiring-07 | ingress 전 event bridge 등록 | pass | 이번 정적 wiring stdout |
+| S03-wiring-08 | ingress 종료 뒤 recorder finalize | pass | 이번 정적 wiring stdout |
+| S03-wiring-09 | composition root 시작/종료 순서 | pass | 이번 정적 wiring stdout |
+
+### S07 회귀 개별 결과
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| S07-regression-01 | mutation-v2 | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-02 | null-roundtrip | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-03 | reference-roundtrip | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-04 | negative-created-time | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-05 | negative-reason | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-06 | negative-summary | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-07 | negative-observation-range | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-08 | negative-bbox | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-09 | journal-open | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-10 | catalog-open | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-11 | null-put | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-12 | gap-null | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-13 | missing-provenance-null | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-14 | segment-finalize | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-15 | pending-resolve | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-16 | located-roundtrip | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-17 | negative-locator-pts | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-18 | locator-put-reject | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-19 | located-put | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-20 | identity-put-reject | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-21 | identity-restore | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-22 | event-put | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-23 | reasons-merge | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-24 | missing-media-null | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-25 | v1-roundtrip | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-26 | deletion-request | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-27 | deleted-null | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-28 | sqlite-reopen | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-29 | journal-replay | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-30 | jsonl-parity | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-31 | sqlite-projection | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-32 | sqlite-payload-parity | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-33 | sampling-journal-open | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-34 | sampling-catalog-open | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-35 | stop-duration | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-36 | sampling-start | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-37 | sampling-60s-bound | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-38 | stop-once | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-39 | drain-bounded | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-40 | jobs-journal-open | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-41 | jobs-catalog-open | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-42 | ended-state-reuse | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-43 | pending-unrelated-finalize | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-44 | tracker-start | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-45 | runtime-journal-open | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-46 | runtime-catalog-open | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-47 | tracker-terminated-copy | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-48 | tracker-terminated-once | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-49 | observer-tracker-start-event-end | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-50 | observer-event-provenance | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-51 | late-journal-open | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-52 | late-catalog-open | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-53 | delayed-event-before-latest | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-54 | delayed-event-after-end | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-55 | config-zero-reject | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-56 | config-positive | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-57 | critical-overload-visible | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-58 | queue-cap | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-59 | concurrent-stop | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-60 | multi-namespace | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-61 | bounded-id | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-62 | storage-failure-counter | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-63 | pending-segment-finalize | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-64 | pending-finalize-automatic | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-65 | ambiguous-segment-finalize | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-66 | ambiguous-null | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-67 | corrupt-null | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-68 | reference-overflow-visible | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-69 | replay-identity-open | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-70 | replay-identity-memory | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-71 | replay-identity-sqlite | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-72 | 입력 전 위치 없음 | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-73 | 수락 packet anchor | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-74 | 동일 epoch 범위 확장 | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-75 | 캡처된 사본 불변 | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-76 | accepted-pts-exact-membership | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-77 | PTS 되감기 차단 | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-78 | 모호성 이후 추정 복원 금지 | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-79 | epoch 변경 차단 | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-80 | 종료 사본 차단 | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-81 | accepted-pts-history-bound | pass | core71+snapshot10+cleanup1 실제 stdout |
+| S07-regression-82 | S07 temporary cleanup | pass | core71+snapshot10+cleanup1 실제 stdout |
+
+### A 호환 gate reader 개별 결과
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| A-regression-01 | opaque ID 허용 | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-02 | 빈 opaque ID 거부 | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-03 | path opaque ID 거부 | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-04 | SQLite rowid 형태 opaque ID 거부 | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-05 | 반개구간 겹침 | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-06 | 맞닿은 반개구간 비겹침 | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-07 | 빈 반개구간 거부 | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-08 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-09 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-10 | V1 segment golden row count | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-11 | unknown optional field를 포함한 segment parse: | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-12 | segment provenance semantic | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-13 | segment UTC/end PTS semantic | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-14 | segment media/checksum semantic | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-15 | segment lifecycle/retention semantic | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-16 | unknown optional field 뒤 known ID 보존 | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-17 | PTS/timebase exact 보존 | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-18 | public JSON에 filesystem path 비노출 | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-19 | segment canonical 재parse | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-20 | PTS/timebase round-trip | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-21 | unknown lifecycle를 호환 parse | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-22 | unknown lifecycle를 Unknown으로 보존 | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-23 | unknown lifecycle 비재생 | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-24 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-25 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-26 | segments.jsonl parse[0]: | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-27 | segments.jsonl additive optional known semantic parity[0] | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-28 | V1 schema probe anchor | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-29 | segments.jsonl changed schema rejected | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-30 | required ID probe anchor | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-31 | segments.jsonl missing required ID rejected | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-32 | segments.jsonl canonical parse[0]: | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-33 | segments.jsonl canonical parity[0] | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-34 | segments.jsonl parse[1]: | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-35 | segments.jsonl additive optional known semantic parity[1] | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-36 | V1 schema probe anchor | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-37 | segments.jsonl changed schema rejected | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-38 | required ID probe anchor | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-39 | segments.jsonl missing required ID rejected | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-40 | segments.jsonl canonical parse[1]: | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-41 | segments.jsonl canonical parity[1] | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-42 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-43 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-44 | event-links.jsonl parse[0]: | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-45 | event-links.jsonl additive optional known semantic parity[0] | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-46 | V1 schema probe anchor | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-47 | event-links.jsonl changed schema rejected | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-48 | required ID probe anchor | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-49 | event-links.jsonl missing required ID rejected | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-50 | event-links.jsonl canonical parse[0]: | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-51 | event-links.jsonl canonical parity[0] | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-52 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-53 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-54 | observations.jsonl parse[0]: | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-55 | observations.jsonl additive optional known semantic parity[0] | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-56 | V1 schema probe anchor | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-57 | observations.jsonl changed schema rejected | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-58 | required ID probe anchor | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-59 | observations.jsonl missing required ID rejected | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-60 | observations.jsonl canonical parse[0]: | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-61 | observations.jsonl canonical parity[0] | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-62 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-63 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-64 | tombstones.jsonl parse[0]: | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-65 | tombstones.jsonl additive optional known semantic parity[0] | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-66 | V1 schema probe anchor | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-67 | tombstones.jsonl changed schema rejected | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-68 | required ID probe anchor | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-69 | tombstones.jsonl missing required ID rejected | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-70 | tombstones.jsonl canonical parse[0]: | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-71 | tombstones.jsonl canonical parity[0] | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-72 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-73 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-74 | link ID/provenance semantic | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-75 | link requested range/status semantic | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-76 | link overlap/missing semantic | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-77 | link fallback/time semantic | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-78 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-79 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-80 | observation ID/provenance semantic | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-81 | observation exact locator semantic | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-82 | observation detection semantic | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-83 | observation association/time semantic | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-84 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-85 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-86 | tombstone ID/provenance semantic | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-87 | tombstone range/checksum/legacy retention semantic | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-88 | tombstone segment ID 재사용 거부 | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+| A-regression-89 | 새 segment ID 허용 | pass | 이번 실제 stdout, 별도 digest4/0 포함 |
+
+
+## v4.1.0 S08-B2a 중단 기록 (2026-09-09)
+
+상태: 구현 중/실제 focused 실패로 중단. 자동 파일 손상 검출·전체 S08 완료가 아니다. 기존 public V1/golden 원본, writer/startup/읽기UI/retention 정책은 변경하지 않았다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 기존 no-op 예상 RED | `./server.sh verify-v410-recording-corruption --red` exit 1; [recording-corruption] pass=5 fail=1; elapsed 2790ms | fail |
+| ordinal 예상 RED | `./server.sh verify-v410-recording-corruption --red-order` exit 1; [recording-corruption] pass=4 fail=1; elapsed 2434ms | fail |
+| 전체 focused 실제 실패 | `./server.sh verify-v410-recording-corruption` exit 1; [recording-corruption] pass=86 fail=4; elapsed 2509ms | fail |
+
+첫 예상 RED는 pass5/fail1(no-op lifecycle), 추가 예상 RED는 pass4/fail1(SQL accepted ordinal parity)로 사전 명시한 assertion과 일치했다. ordinal 수정 후 전체 focused는 pass86/fail4이며 아래 4개 실패를 예상 RED로 재분류하지 않는다. 예상 RED 두 assertion은 전체 실행에서 pass했지만 suite는 실패다.
+
+확인된 원인: 테스트가 locator 없는 ObservationV2를 PutObservationV2에 저장한 뒤 locator 자동생성을 기대했다. 실제 catalog.cpp PutObservationV2는 입력 locator가 있으면 검증하며 null이면 그대로 저장하고, QueryObservationsV2는 기존 locator만 revoke한다. 최초 locator부터 없던 fixture 구성 오류로 확인했으며 제품 corruption 회귀로 단정하지 않는다. 수정·재실행은 수행하지 않았고 재개 시 실제 ResolveObservationV2 결과를 확인한 뒤 저장하도록 fixture를 보완해야 한다.
+
+이후 B1/S03/S07 observations/A gate/diff/build는 건너뜀. 기존 A/B1 PASS를 이번 B2a 회귀 PASS로 대신하지 않는다. token start/end/consumed 미집계(서브 usage 집계 API 없음), elapsed source: Date.now 도구 호출 전후 실제시간. manifest 14개는 정의 검증이며 실제 assertion90개와 구분한다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/tmp/media-server-s08-b2a-M9LD49 | 최초 RED binary/fixtures | 1477057 bytes | EXIT cleanup | removed=true | 실제 stdout |
+| /private/tmp/media-server-s08-b2a-HJCAF2 | ordinal RED binary/fixtures | 1679836 bytes | EXIT cleanup | removed=true | 실제 stdout |
+| /private/tmp/media-server-s08-b2a-wLCOd6 | focused binary/fixtures | 1862245 bytes | EXIT cleanup | removed=true | 실제 stdout |
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| B2a-01 | journal open | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-02 | catalog seed open | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-03 | seed finalized | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-04 | corruption durable append | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-05 | catalog replay open | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-06 | corruption replay lifecycle is Corrupt | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-07 | fallback journal open | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-08 | fallback catalog open | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-09 | fallback seed base | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-10 | fallback observation stored before corruption | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-11 | fallback observation locator initially available | fail | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-12 | fallback unknown ID and reason refused noappend | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-13 | fallback acquire hold | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-14 | fallback held corruption refused noappend | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-15 | fallback release hold | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-16 | fallback mark corruption | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-17 | fallback repeat corruption noappend | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-18 | fallback only lifecycle changed bytes identity preserved | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-19 | fallback corrupt media location blocked | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-20 | fallback V2 locator revoked | fail | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-21 | fallback pending link segments seed | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-22 | fallback pending link seed | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-23 | fallback pending source output refused noappend | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-24 | fallback event link metadata preserved | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-25 | fallback deletion-pending deletion seed | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-26 | fallback deletion-pending mark rejected noappend | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-27 | fallback deletion-done deletion seed | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-28 | fallback tombstone seed | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-29 | fallback deletion-done mark rejected noappend | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-30 | fallback identical finalized replay seed | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-31 | fallback conflicting finalized seed | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-32 | fallback entity mismatch seed | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-33 | fallback invalid first valid later same mutation ID seed | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-34 | fallback malformed and deletion-priority seed | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-35 | fallback same mutation ID different payload seed | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-36 | fallback restart | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-37 | fallback restart never resurrects corrupt identity | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-38 | fallback query keeps corrupt pending excludes deleted | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-39 | fallback deletion priority and unknown no creation | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-40 | fallback invalid mutations diagnosed exact count | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-41 | sqlite journal open | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-42 | sqlite catalog open | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-43 | sqlite seed base | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-44 | sqlite observation stored before corruption | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-45 | sqlite observation locator initially available | fail | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-46 | sqlite unknown ID and reason refused noappend | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-47 | sqlite acquire hold | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-48 | sqlite held corruption refused noappend | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-49 | sqlite release hold | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-50 | sqlite mark corruption | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-51 | sqlite repeat corruption noappend | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-52 | sqlite only lifecycle changed bytes identity preserved | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-53 | sqlite corrupt media location blocked | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-54 | sqlite V2 locator revoked | fail | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-55 | sqlite SQL lifecycle corrupt | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-56 | sqlite SQL codecs_json original metadata | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-57 | sqlite pending link segments seed | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-58 | sqlite pending link seed | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-59 | sqlite pending source output refused noappend | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-60 | sqlite event link metadata preserved | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-61 | sqlite deletion-pending deletion seed | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-62 | sqlite deletion-pending mark rejected noappend | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-63 | sqlite deletion-done deletion seed | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-64 | sqlite tombstone seed | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-65 | sqlite deletion-done mark rejected noappend | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-66 | sqlite identical finalized replay seed | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-67 | sqlite conflicting finalized seed | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-68 | sqlite entity mismatch seed | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-69 | sqlite invalid first valid later same mutation ID seed | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-70 | sqlite malformed and deletion-priority seed | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-71 | sqlite same mutation ID different payload seed | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-72 | sqlite restart | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-73 | sqlite restart never resurrects corrupt identity | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-74 | sqlite query keeps corrupt pending excludes deleted | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-75 | sqlite deletion priority and unknown no creation | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-76 | sqlite invalid mutations diagnosed exact count | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-77 | sqlite restart SQL lifecycle parity | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-78 | sqlite SQL deletion precedence | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-79 | sqlite rebuild excludes rejected envelopes | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-80 | sqlite invalid first valid later SQL exact binding | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-81 | sqlite projection failover seed | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-82 | sqlite SQLite failure trigger | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-83 | sqlite projection failure keeps durable memory state | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-84 | sqlite remove projection trigger | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-85 | sqlite fallback restart SQL repaired | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-86 | order journal open | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-87 | order corruption-before-create-after seed | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-88 | order catalog open | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-89 | order memory corrupt | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+| B2a-90 | identical envelope accepted ordinal SQL parity | pass | 실제 focused exit1 내 개별 결과; suite PASS 아님 |
+
+커밋 미수행, 푸시 가능: 아니오(실제 focused 실패 및 미커밋 구현). 푸시 미수행. 메인 안전 검토에 따라 accepted canonical envelope 외 최초 수용 replay ordinal도 적용했으며 runtime 일반 sequence API를 확장하지 않았다.
+
+
+## v4.1.0 S08-B2a 사전 등록
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| V410-S08-B2a-01 | 기존 corruption replay finalized→Corrupt | 실제 catalog/journal/SQLite 및 파일 bytes 대조 | v4.1.0 |
+| V410-S08-B2a-02 | Mark 정상 전이·반복 noappend | 실제 catalog/journal/SQLite 및 파일 bytes 대조 | v4.1.0 |
+| V410-S08-B2a-03 | 없는ID/잘못된reason/pending/deleted 거부 noappend | 실제 catalog/journal/SQLite 및 파일 bytes 대조 | v4.1.0 |
+| V410-S08-B2a-04 | held segment 변경 거부 | 실제 catalog/journal/SQLite 및 파일 bytes 대조 | v4.1.0 |
+| V410-S08-B2a-05 | Pending link source/output 변경 거부 | 실제 catalog/journal/SQLite 및 파일 bytes 대조 | v4.1.0 |
+| V410-S08-B2a-06 | 실제 SQLite lifecycle/원본 codecs_json 구분 | 실제 catalog/journal/SQLite 및 파일 bytes 대조 | v4.1.0 |
+| V410-S08-B2a-07 | SQLite-on/off 및 재시작 parity | 실제 catalog/journal/SQLite 및 파일 bytes 대조 | v4.1.0 |
+| V410-S08-B2a-08 | 동일metadata finalized 재등장 no-op | 실제 catalog/journal/SQLite 및 파일 bytes 대조 | v4.1.0 |
+| V410-S08-B2a-09 | 다른metadata/path/envelopeentity finalized 거부 | 실제 catalog/journal/SQLite 및 파일 bytes 대조 | v4.1.0 |
+| V410-S08-B2a-10 | pending/deleted corruption replay 우선순위 | 실제 catalog/journal/SQLite 및 파일 bytes 대조 | v4.1.0 |
+| V410-S08-B2a-11 | unknown/malformed mutation 진단·재생성 금지 | 실제 catalog/journal/SQLite 및 파일 bytes 대조 | v4.1.0 |
+| V410-S08-B2a-12 | V2 locator revoke·media location 차단 | Put 전 ResolveObservationV2 결과 segment-base/UTC1500/PTS500000000 literal assertion; 기존 초기 존재/revoke assertion 유지. 2026-09-09 재개 실행 전 추가 등록 | v4.1.0 |
+| V410-S08-B2a-13 | SQLite 투영 실패 fallback 상태 보존 | 실제 catalog/journal/SQLite 및 파일 bytes 대조 | v4.1.0 |
+| V410-S08-B2a-14 | 동일 envelope의 replay 위치 | corruption M→finalized S→동일 M에서 memory/SQL 모두 Corrupt | v4.1.0 |
+
+추가 예상 RED: `./server.sh verify-v410-recording-corruption --red-order`에서 memory Corrupt는 참이지만 `identical envelope accepted ordinal SQL parity`가 finalized 때문에 실패한다. canonical envelope map만으로 최초거부행과뒤수용행을구분못하는 원인. compile/env오류는 RED가 아니다.
+
+예상 RED: `./server.sh verify-v410-recording-corruption --red`는 기존 CorruptionDetected 원장행을 실제 catalog로 replay한 뒤 `corruption replay lifecycle is Corrupt` assertion에서 실패해야 한다. 기존 API만 사용하며 missing method/import/compile 실패는 RED가 아니다. 자동파일탐지/startup/읽기UI/삭제정책은 범위 밖이다.
+
 ## v4.1.0 S08-B1 실제 실행 결과 (2026-09-09)
 
 범위: Journal 마지막 LF 뒤 미commit 꼬리 내구격리→truncate/fsync→새 append; Replay I/O 오류를 catalog Open 및 SQLite rebuild DELETE 전에 거부. macOS 시스템 `/tmp`·`/var` leading alias만 플랫폼 고정 치환하며 사용자 parent symlink와 `..`는 거부한다. 정상 Append는 마지막 1byte LF 검사, tail만 chunk 탐색하며 **16MiB 초과 tail은 원본을 보존하고 Append 실패**한다.

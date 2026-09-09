@@ -277,10 +277,17 @@ bool RecordingCatalog::Open(std::string* error) {
     if (replay.io_error_count != 0) return Fail(error, "journal replay I/O 오류로 catalog open 거부");
     recovery_report_.corrupt_line_count = replay.corrupt_line_count;
     recovery_report_.truncated_tail_count = replay.truncated_tail_count;
-    for (const auto& mutation : replay.mutations) {
+    for (std::size_t ordinal = 0; ordinal < replay.mutations.size(); ++ordinal) {
+        const auto& mutation = replay.mutations[ordinal];
+        const bool already_applied = mutation_ids_.count(mutation.mutation_id) != 0;
         std::string apply_error;
         if (!ApplyMutationLocked(mutation, true, &apply_error)) ++recovery_report_.projection_error_count;
-        else ++recovery_report_.replayed_mutation_count;
+        else {
+            ++recovery_report_.replayed_mutation_count;
+            if (!already_applied && (mutation.mutation_type == RecordingMutationType::SegmentFinalized ||
+                mutation.mutation_type == RecordingMutationType::CorruptionDetected))
+                accepted_segment_state_replay_ordinals_.insert(ordinal);
+        }
     }
     if (options_.prefer_sqlite && OpenSqliteLocked(error)) {
         catalog_mode_ = "sqlite-primary";
@@ -440,7 +447,15 @@ bool RecordingCatalog::RecoverWriterCleanupMarkersLocked(std::string* error) {
 bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                                            bool count_duplicate,
                                            std::string* error) {
+    const bool segment_state = mutation.mutation_type == RecordingMutationType::SegmentFinalized ||
+                               mutation.mutation_type == RecordingMutationType::CorruptionDetected;
     if (!mutation_ids_.insert(mutation.mutation_id).second) {
+        if (segment_state) {
+            const auto accepted = accepted_segment_state_mutations_.find(mutation.mutation_id);
+            if (accepted == accepted_segment_state_mutations_.end() ||
+                accepted->second != SerializeRecordingMutationV1(mutation))
+                return Fail(error, "segment state mutation ID envelope 불일치");
+        }
         if (count_duplicate) ++recovery_report_.duplicate_mutation_count;
         if (error != nullptr) error->clear();
         return true;
@@ -453,13 +468,32 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
             RecordingSegmentV1 segment;
             ok = segment_json && relpath && IsSafeMediaRelpath(*relpath) &&
                  ParseRecordingSegmentV1(*segment_json, &segment, error);
+            if (ok && (segment.segment_id != mutation.entity_id ||
+                       segment.lifecycle != RecordingLifecycle::Finalized)) {
+                ok = Fail(error, "finalized envelope entity/lifecycle 불일치");
+            }
             if (!ok && error != nullptr && error->empty()) {
                 *error = "recording mediaRelpath가 안전한 상대 경로가 아님";
             }
             if (ok && tombstones_.find(segment.segment_id) != tombstones_.end()) {
                 ok = Fail(error, "tombstone segment ID 재사용 금지");
             }
-            if (ok) { segments_[segment.segment_id] = segment; media_relpaths_[segment.segment_id] = *relpath; }
+            if (ok) {
+                const auto existing = segments_.find(segment.segment_id);
+                if (existing != segments_.end()) {
+                    auto identity = existing->second;
+                    identity.lifecycle = RecordingLifecycle::Finalized;
+                    const auto path = media_relpaths_.find(segment.segment_id);
+                    if (path == media_relpaths_.end() || path->second != *relpath ||
+                        SerializeRecordingSegmentV1(identity) != SerializeRecordingSegmentV1(segment)) {
+                        ok = Fail(error, "finalized segment 최초 identity 불일치");
+                    }
+                    // 동일 identity는 재등록하지 않아 Corrupt/DeletionPending을 되살리지 않는다.
+                } else {
+                    segments_[segment.segment_id] = segment;
+                    media_relpaths_[segment.segment_id] = *relpath;
+                }
+            }
             break;
         }
         case RecordingMutationType::EventLinkCreated: {
@@ -527,14 +561,26 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
             }
             break;
         }
-        case RecordingMutationType::CorruptionDetected:
-            ok = true;
+        case RecordingMutationType::CorruptionDetected: {
+            const auto reason = StringField(mutation.payload_json, "reason");
+            const auto it = segments_.find(mutation.entity_id);
+            ok = reason && (*reason == "missing-media" || *reason == "checksum-mismatch" ||
+                            *reason == "container-invalid" || *reason == "derived-media-missing") &&
+                 it != segments_.end();
+            if (!ok) Fail(error, "corruption known entity/reason 오류");
+            else if (it->second.lifecycle == RecordingLifecycle::Finalized) {
+                it->second.lifecycle = RecordingLifecycle::Corrupt;
+            }
+            // 이미 Corrupt와 삭제 pending/completed 상태는 단조적으로 보존한다.
             break;
+        }
         case RecordingMutationType::Unknown:
             ok = Fail(error, "unknown mutation");
             break;
     }
     if (!ok) mutation_ids_.erase(mutation.mutation_id);
+    else if (segment_state) accepted_segment_state_mutations_.emplace(
+        mutation.mutation_id, SerializeRecordingMutationV1(mutation));
     return ok;
 }
 
@@ -560,6 +606,37 @@ bool RecordingCatalog::FinalizeSegment(const RecordingSegmentV1& segment,
                                        std::string* error) {
     std::lock_guard lock(mu_);
     return FinalizeSegmentLocked(segment, media_path, false, error);
+}
+
+bool RecordingCatalog::MarkSegmentCorrupt(const std::string& segment_id,
+                                         const std::string& reason,
+                                         std::string* error) {
+    std::lock_guard lock(mu_);
+    if (!opened_) return Fail(error, "catalog가 열리지 않음");
+    if (reason != "missing-media" && reason != "checksum-mismatch" &&
+        reason != "container-invalid" && reason != "derived-media-missing")
+        return Fail(error, "지원하지 않는 corruption reason");
+    const auto segment = segments_.find(segment_id);
+    if (segment == segments_.end()) return Fail(error, "corruption 대상 segment가 없음");
+    if (segment->second.lifecycle == RecordingLifecycle::Corrupt) {
+        if (error) error->clear();
+        return true;
+    }
+    if (segment->second.lifecycle != RecordingLifecycle::Finalized)
+        return Fail(error, "corruption 대상 finalized 상태가 아님");
+    const auto hold = hold_counts_.find(segment_id);
+    if (hold != hold_counts_.end() && hold->second > 0) return Fail(error, "held segment corruption 변경 거부");
+    for (const auto& [_, link] : event_links_) {
+        if (link.status != EventRecordingLinkStatus::Pending) continue;
+        if (link.derived_segment_id == segment_id || std::any_of(link.ordered_overlaps.begin(),
+            link.ordered_overlaps.end(), [&](const auto& overlap) { return overlap.segment_id == segment_id; }))
+            return Fail(error, "pending event source/output corruption 변경 거부");
+    }
+    RecordingMutationV1 mutation;
+    mutation.mutation_type = RecordingMutationType::CorruptionDetected;
+    mutation.entity_id = segment_id;
+    mutation.payload_json = "{\"reason\":\"" + reason + "\"}";
+    return AppendAndApplyLocked(std::move(mutation), error);
 }
 
 bool RecordingCatalog::FinalizeSegmentWithHold(const RecordingSegmentV1& segment,
@@ -1221,7 +1298,17 @@ bool RecordingCatalog::RebuildSqliteLocked(std::string* error) {
     const auto replay = journal_.Replay();
     if (replay.io_error_count != 0) return Fail(error, "journal replay I/O 오류로 SQLite rebuild 거부");
     if (!Exec(sqlite_db_, "BEGIN; DELETE FROM recording_event_link_segments; DELETE FROM recording_event_links; DELETE FROM recording_observations; DELETE FROM recording_observations_v2; DELETE FROM recording_segments; DELETE FROM recording_tombstones; DELETE FROM recording_mutations; COMMIT;", error)) return false;
-    for (const auto& mutation : replay.mutations) if (!ProjectMutationSqliteLocked(mutation, error)) return false;
+    for (std::size_t ordinal = 0; ordinal < replay.mutations.size(); ++ordinal) {
+        const auto& mutation = replay.mutations[ordinal];
+        if (mutation.mutation_type == RecordingMutationType::SegmentFinalized ||
+            mutation.mutation_type == RecordingMutationType::CorruptionDetected) {
+            const auto accepted = accepted_segment_state_mutations_.find(mutation.mutation_id);
+            if (accepted_segment_state_replay_ordinals_.count(ordinal) == 0 ||
+                accepted == accepted_segment_state_mutations_.end() ||
+                accepted->second != SerializeRecordingMutationV1(mutation)) continue;
+        }
+        if (!ProjectMutationSqliteLocked(mutation, error)) return false;
+    }
     return true;
 #endif
 }
@@ -1250,7 +1337,7 @@ bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mu
         const auto relpath = StringField(mutation.payload_json, "mediaRelpath");
         RecordingSegmentV1 s;
         if (!segment_json || !relpath || !ParseRecordingSegmentV1(*segment_json, &s, error)) { Exec(sqlite_db_, "ROLLBACK", nullptr); return false; }
-        const char* sql = "INSERT OR REPLACE INTO recording_segments VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0,?,?,?)";
+        const char* sql = "INSERT OR IGNORE INTO recording_segments VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0,?,?,?)";
         if (sqlite3_prepare_v2(sqlite_db_, sql, -1, &statement, nullptr) != SQLITE_OK) { Exec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, sqlite3_errmsg(sqlite_db_)); }
         int i=1; BindText(statement,i++,s.segment_id); BindText(statement,i++,s.source_id); BindText(statement,i++,s.channel_id); BindText(statement,i++,s.stream_epoch_id);
         sqlite3_bind_int64(statement,i++,s.start.utc_ms); sqlite3_bind_int64(statement,i++,s.end.utc_ms); sqlite3_bind_int64(statement,i++,s.start.pts); sqlite3_bind_int64(statement,i++,s.end.pts); sqlite3_bind_int(statement,i++,s.start.time_base_num); sqlite3_bind_int(statement,i++,s.start.time_base_den);
@@ -1319,6 +1406,18 @@ bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mu
         BindText(statement, i++, observation.event_ids.empty() ? "" : observation.event_ids.front());
         BindText(statement, i++, observation.selection_reason);
         BindText(statement, i++, *observation_json);
+        if (sqlite3_step(statement) != SQLITE_DONE) {
+            const std::string message = sqlite3_errmsg(sqlite_db_);
+            sqlite3_finalize(statement); Exec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, message);
+        }
+        sqlite3_finalize(statement);
+    } else if (mutation.mutation_type == RecordingMutationType::CorruptionDetected) {
+        if (sqlite3_prepare_v2(sqlite_db_,
+            "UPDATE recording_segments SET lifecycle='corrupt' WHERE segment_id=? AND lifecycle='finalized'",
+            -1, &statement, nullptr) != SQLITE_OK) {
+            Exec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, sqlite3_errmsg(sqlite_db_));
+        }
+        BindText(statement, 1, mutation.entity_id);
         if (sqlite3_step(statement) != SQLITE_DONE) {
             const std::string message = sqlite3_errmsg(sqlite_db_);
             sqlite3_finalize(statement); Exec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, message);

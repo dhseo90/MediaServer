@@ -1,5 +1,24 @@
 # Project Feature Test Inventory
 
+## V410 S08-B2a 손상 상태 적용 (실행 전 등록)
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
+| --- | --- | --- | --- | --- | --- |
+| V410-S08-B2a-01 | 기존 corruption replay finalized→Corrupt | corruption focused | 비대상 | 비대상 | 비대상: 내부 상태 적용 |
+| V410-S08-B2a-02 | Mark 정상 전이·반복 noappend | corruption focused | 비대상 | 비대상 | 비대상: 내부 상태 적용 |
+| V410-S08-B2a-03 | 없는ID/잘못된reason/pending/deleted 거부 noappend | corruption focused | 비대상 | 비대상 | 비대상: 내부 상태 적용 |
+| V410-S08-B2a-04 | held segment 변경 거부 | corruption focused | 비대상 | 비대상 | 비대상: 내부 상태 적용 |
+| V410-S08-B2a-05 | Pending link source/output 변경 거부 | corruption focused | 비대상 | 비대상 | 비대상: 내부 상태 적용 |
+| V410-S08-B2a-06 | 실제 SQLite lifecycle/원본 codecs_json 구분 | corruption focused | 비대상 | 비대상 | 비대상: 내부 상태 적용 |
+| V410-S08-B2a-07 | SQLite-on/off 및 재시작 parity | corruption focused | 비대상 | 비대상 | 비대상: 내부 상태 적용 |
+| V410-S08-B2a-08 | 동일metadata finalized 재등장 no-op | corruption focused | 비대상 | 비대상 | 비대상: 내부 상태 적용 |
+| V410-S08-B2a-09 | 다른metadata/path/envelopeentity finalized 거부 | corruption focused | 비대상 | 비대상 | 비대상: 내부 상태 적용 |
+| V410-S08-B2a-10 | pending/deleted corruption replay 우선순위 | corruption focused | 비대상 | 비대상 | 비대상: 내부 상태 적용 |
+| V410-S08-B2a-11 | unknown/malformed mutation 진단·재생성 금지 | corruption focused | 비대상 | 비대상 | 비대상: 내부 상태 적용 |
+| V410-S08-B2a-12 | Resolve 후 segment-base/UTC1500/PTS500000000 literal 확인, 초기 locator 유지·Corrupt revoke·media location 차단 | corruption focused | 비대상 | 비대상 | 비대상: 내부 상태 적용 |
+| V410-S08-B2a-13 | SQLite 투영 실패 fallback 상태 보존 | corruption focused | 비대상 | 비대상 | 비대상: 내부 상태 적용 |
+| V410-S08-B2a-14 | 동일 corruption envelope 생성전거부/생성후수용 SQL순서 | corruption focused | 비대상 | 비대상 | 비대상: 내부 상태 적용 |
+
 ## V410 S08-B1 journal tail 복구 (실행 전 등록)
 
 | 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
@@ -101,7 +120,8 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | V410 S07 관측 신규 개별 ID | 10 |
 | V410 S08-A V1 호환 신규 개별 ID | 8 |
 | V410 S08-B1 journal 신규 개별 ID | 17 |
-| 현재 등록 총계 | 1108 |
+| V410 S08-B2a 상태 적용 신규 ID | 14 |
+| 현재 등록 총계 | 1122 |
 
 이는 등록 합계이지 전 제품 발견·실행 완료 선언이 아니다. S01~S04의 신규 등록 정합성은
 이번 S05 보정에서 전수 감사하지 않았다.

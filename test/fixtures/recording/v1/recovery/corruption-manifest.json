@@ -1,0 +1,76 @@
+{
+  "schema": "media-server.recording-corruption-test-manifest.v1",
+  "scope": "S08-B2a 상태 적용 기반만. 자동 파일 손상 탐지·startup·삭제 미포함",
+  "cases": [
+    {
+      "id": "V410-S08-B2a-01",
+      "lastSuccessfulStep": "known segment finalized 원장/메타데이터 저장",
+      "expectedOutcome": "기존 corruption replay finalized→Corrupt"
+    },
+    {
+      "id": "V410-S08-B2a-02",
+      "lastSuccessfulStep": "known segment finalized 원장/메타데이터 저장",
+      "expectedOutcome": "Mark 정상 전이·반복 noappend"
+    },
+    {
+      "id": "V410-S08-B2a-03",
+      "lastSuccessfulStep": "known segment finalized 원장/메타데이터 저장",
+      "expectedOutcome": "없는ID/잘못된reason/pending/deleted 거부 noappend"
+    },
+    {
+      "id": "V410-S08-B2a-04",
+      "lastSuccessfulStep": "known segment finalized 원장/메타데이터 저장",
+      "expectedOutcome": "held segment 변경 거부"
+    },
+    {
+      "id": "V410-S08-B2a-05",
+      "lastSuccessfulStep": "known segment finalized 원장/메타데이터 저장",
+      "expectedOutcome": "Pending link source/output 변경 거부"
+    },
+    {
+      "id": "V410-S08-B2a-06",
+      "lastSuccessfulStep": "known segment finalized 원장/메타데이터 저장",
+      "expectedOutcome": "실제 SQLite lifecycle/원본 codecs_json 구분"
+    },
+    {
+      "id": "V410-S08-B2a-07",
+      "lastSuccessfulStep": "known segment finalized 원장/메타데이터 저장",
+      "expectedOutcome": "SQLite-on/off 및 재시작 parity"
+    },
+    {
+      "id": "V410-S08-B2a-08",
+      "lastSuccessfulStep": "known segment finalized 원장/메타데이터 저장",
+      "expectedOutcome": "동일metadata finalized 재등장 no-op"
+    },
+    {
+      "id": "V410-S08-B2a-09",
+      "lastSuccessfulStep": "known segment finalized 원장/메타데이터 저장",
+      "expectedOutcome": "다른metadata/path/envelopeentity finalized 거부"
+    },
+    {
+      "id": "V410-S08-B2a-10",
+      "lastSuccessfulStep": "known segment finalized 원장/메타데이터 저장",
+      "expectedOutcome": "pending/deleted corruption replay 우선순위"
+    },
+    {
+      "id": "V410-S08-B2a-11",
+      "lastSuccessfulStep": "known segment finalized 원장/메타데이터 저장",
+      "expectedOutcome": "unknown/malformed mutation 진단·재생성 금지"
+    },
+    {
+      "id": "V410-S08-B2a-12",
+      "lastSuccessfulStep": "known segment finalized 원장/메타데이터 저장",
+      "expectedOutcome": "V2 locator revoke·media location 차단"
+    },
+    {
+      "id": "V410-S08-B2a-13",
+      "lastSuccessfulStep": "known segment finalized 원장/메타데이터 저장",
+      "expectedOutcome": "SQLite 투영 실패 fallback 상태 보존"
+    },
+    {
+      "id": "V410-S08-B2a-14",
+      "lastSuccessfulStep": "동일 corruption envelope 첫거부 뒤 finalized 생성",
+      "expectedOutcome": "후속 실제수용 ordinal만 SQL투영하여 Corrupt parity"
+    }
+  ]
+}

@@ -1106,8 +1106,14 @@ S08-A는 실행 속성 누락을 보완하고 Node9개, golden4개, 실제 C++ r
 B1은 `RecordingJournal::Append`의 미commit 꼬리 원본 내구 격리와 안전한 후속 append,
 `Replay` I/O 실패 구분 및 catalog Open/rebuild 거부를 구현했다. focused40개, S03
 catalog45개·wiring9개, S01 및 A 회귀와 전체 build가 통과했다. 상세 기록은
-release-test-records의 S08-B1을 따른다. 영상 복구·손상 상태 반영·종합 검증(B 잔여)은
+release-test-records의 S08-B1을 따른다. 실제 영상 검사·복구와 종합 검증(B 잔여)은
 남아 있어 S08 전체는 미완료다.
+B2a는 `RecordingCatalog::MarkSegmentCorrupt`와 replay/SQLite 상태 전이를 구현했다.
+최초 focused 86 pass/4 fail은 새 관측 fixture의 위치 해석 누락이었으며, 사용자 승인 후
+실제 Resolve 결과를 저장하도록 테스트만 보완했다. S07의 조회 시 새 locator를 추정하지
+않는 계약은 유지했다. 재검증은 focused92개, B1·S03·S07·A 회귀 및 전체 build가
+통과했다. 손상 상태 유지·중복 원장 순서·삭제 우선순위·사용 중 대상 거부가 이번
+완료 범위이며 자동 파일 손상 검사나 startup 복구 연결은 아직 미구현이다.
 기존 V1 golden fixture 호환성 검증(A)을 먼저 고정하고 복구 구현·통합 검증(B)을 이어간다.
 A 통과만으로 S08 전체 완료를 뜻하지 않는다. 사용자 승인 범위는 S08 개발·단계 검증과
 필요 시 분할 커밋이며, 푸시·S09·릴리즈 action·장시간/UI 풀테스트는 포함하지 않는다.
@@ -1150,6 +1156,13 @@ planned-command verify-v410-recording-fixture-compatibility
 ```
 
 ### Step 2: 시작 복구 state machine을 구현한다
+
+B 구현은 회귀 경계를 나누어 진행한다. B1은 원장 꼬리 복구, B2a는 알려진 segment의
+손상 상태를 원장·메모리·SQLite에 동일하게 반영하는 기반이다. B2a에서는 파일 검사나
+시작 경로를 아직 연결하지 않는다. 사용 중인 hold 및 pending event 참조 대상은 상태
+변경을 거부하고 삭제 대기·삭제 완료를 우선한다. 기존 ID의 finalized 재등장도 최초
+메타데이터를 바꾸거나 손상 판정을 취소하지 못하게 한다. 각 묶음 통과 뒤에만 다음
+통합을 진행하며, 기반 검증을 자동 손상 검출 또는 S08 전체 완료로 확대하지 않는다.
 
 S07까지의 실제 writer는 final rename 뒤 callback에서 journal을 기록한다. 파일명이나
 cleanup marker의 partial leaf만으로 source/channel/epoch/시간을 복원할 수는 없다.

@@ -99,6 +99,10 @@ public:
     bool PutEventLink(const EventRecordingLinkV1& link, std::string* error) override;
     bool PutObservation(const AnalysisObservationV1& observation, std::string* error) override;
     bool PutObservationV2(AnalysisObservationV2 observation, std::string* error);
+    // 파일 검출/삭제가 아닌 known segment의 내부 durable 상태 전이.
+    bool MarkSegmentCorrupt(const std::string& segment_id,
+                            const std::string& reason,
+                            std::string* error);
     std::vector<AnalysisObservationV2> QueryObservationsV2(const std::string& channel_id) const;
     // 내부 검색 관측 전용. epoch 미확정이면 locator를 추정하지 않는다.
     AnalysisObservationV2 ResolveObservationV2(AnalysisObservationV2 observation) const;
@@ -136,6 +140,9 @@ private:
     std::string catalog_mode_{"jsonl-fallback"};
     RecordingCatalogRecoveryReport recovery_report_;
     std::unordered_set<std::string> mutation_ids_;
+    // 이 두 상태 mutation은 메모리가 실제 수용한 최초 envelope만 SQL로 재생한다.
+    std::unordered_map<std::string, std::string> accepted_segment_state_mutations_;
+    std::unordered_set<std::size_t> accepted_segment_state_replay_ordinals_;
     std::unordered_map<std::string, RecordingSegmentV1> segments_;
     std::unordered_map<std::string, std::string> media_relpaths_;
     std::unordered_map<std::string, std::uint64_t> hold_counts_;
