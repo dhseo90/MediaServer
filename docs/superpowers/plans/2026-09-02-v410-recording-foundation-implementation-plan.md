@@ -1100,6 +1100,14 @@ git commit -m "feat: 녹화 검색용 분석 관측 저장 추가"
 
 ## Task 8: V410-S08 crash 복구, 손상 격리와 후속 버전 호환성 gate
 
+**현재 상태(2026-09-09): 부분 구현.** 기준 S07 완료 커밋 `ea9f11e4`다.
+S08-A는 실행 속성 누락을 보완하고 Node9개, golden4개, 실제 C++ reader89개와
+기존 계약89개 검증을 통과했다. 실패·재검증 상세는 release-test-records의 S08-A를 따른다.
+복구 구현·통합 검증(B)은 남아 있어 S08 전체는 미완료다.
+기존 V1 golden fixture 호환성 검증(A)을 먼저 고정하고 복구 구현·통합 검증(B)을 이어간다.
+A 통과만으로 S08 전체 완료를 뜻하지 않는다. 사용자 승인 범위는 S08 개발·단계 검증과
+필요 시 분할 커밋이며, 푸시·S09·릴리즈 action·장시간/UI 풀테스트는 포함하지 않는다.
+
 **수정 파일:**
 
 - 생성: `include/recording/recording_recovery.h`
@@ -1138,6 +1146,15 @@ planned-command verify-v410-recording-fixture-compatibility
 ```
 
 ### Step 2: 시작 복구 state machine을 구현한다
+
+S07까지의 실제 writer는 final rename 뒤 callback에서 journal을 기록한다. 파일명이나
+cleanup marker의 partial leaf만으로 source/channel/epoch/시간을 복원할 수는 없다.
+따라서 복구용 내구 정보가 없는 이전 orphan은 채널·시간을 추정해 정상 등록하지 않는다.
+최종화가 끝난 소유 partial의 메타데이터와 checksum을 rename 전에 내구 저장하고,
+재시작 시 journal/tombstone을 먼저 대조하는 방식으로 이 공백을 보완한다.
+기존 S04/S05 v2 cleanup marker가 소유한 미완성 partial 정리 규칙은 유지한다.
+복구 성공은 단순 container magic 판정이 아니라 실제 완결성·checksum·범위·소유권으로
+확인하며, 새 ID 발급도 삭제된 원본 ID의 재생성 우회 수단으로 사용하지 않는다.
 
 복구는 journal replay를 먼저 수행하고 filesystem scan을 대조한다. `.partial`은 container
 검사가 안전하게 완료 가능한 경우에만 새 ID로 publish하고, 아니면 `corrupt` record와

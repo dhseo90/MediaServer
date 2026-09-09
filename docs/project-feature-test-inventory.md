@@ -1,5 +1,18 @@
 # Project Feature Test Inventory
 
+## V410 S08-A V1 호환 gate (실행 전 등록)
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
+| --- | --- | --- | --- | --- | --- |
+| V410-S08-A-01 | digest manifest 누락 거부 | Node gate test | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S08-A-02 | golden 바이트 변조 거부 | Node gate test | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S08-A-03 | 4개 고정 digest와 정상 reader 통과 | 새 gate, 계약 smoke | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S08-A-04 | fixture 누락 거부 | Node gate test | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S08-A-05 | manifest 이상·digest 교체·추가/누락 entry 거부 | Node gate test | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S08-A-06 | 실제 C++ reader의 V1 필수 의미 보존 | 계약 smoke | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S08-A-07 | 실제 reader unknown optional additive 수용·기존 의미 보존 | 계약 smoke | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S08-A-08 | 실제 reader schema 변경·필수 ID 누락 거부 | 계약 smoke | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+
 ## V410 S07 관측 개별 항목 (실행 전 등록)
 
 | 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
@@ -64,7 +77,8 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | 녹화 ID 매핑 개별 action ID | 13 |
 | S06 개별 action ID | 34 |
 | V410 S07 관측 신규 개별 ID | 10 |
-| 현재 등록 총계 | 1083 |
+| V410 S08-A V1 호환 신규 개별 ID | 8 |
+| 현재 등록 총계 | 1091 |
 
 이는 등록 합계이지 전 제품 발견·실행 완료 선언이 아니다. S01~S04의 신규 등록 정합성은
 이번 S05 보정에서 전수 감사하지 않았다.

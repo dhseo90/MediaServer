@@ -4,6 +4,18 @@
 PASS는 UI 풀테스트, 30분/120분 장시간 테스트, PR/main merge, tag, GitHub Release 또는
 published metadata 완료를 뜻하지 않는다.
 
+## S08 부분 구현: A V1 호환성 기준 (2026-09-09)
+
+`compatibility-manifest.json`과 `verify_v410_recording_fixture_compatibility.mjs`에 기존
+V1 golden4개 SHA-256을 고정했다. digest 자동 갱신 없이 누락·바이트 변조·manifest 교체를
+거부한다. `recording_contract_smoke.cpp`는 실제 C++ reader의 필수 의미, unknown optional,
+schema 변경·필수 ID 누락 거부를 검사한다. `server.sh`에 정식 실행 진입점을 등록했다.
+기존 golden4개와 제품 reader 코드는 변경하지 않았다.
+
+Node9개, 고정digest4개, 실제 reader89개 및 기존계약89개가 통과했다. 최초 진입점의
+실행 속성 누락과 수정 후 통과 이력·임시 파일 정리는 release-test-records의 S08-A에
+보존했다. 이는 A만의 완료이며 crash 복구·손상 격리·SQLite parity·S08 전체 완료는 아니다.
+
 ## S07 구현·단계 검증 완료 (2026-09-09)
 
 S06 마감 기준 `db308d4d` 위에서 검색용 분석 관측을 추가한다. 아래 S06 절의 승인·현재

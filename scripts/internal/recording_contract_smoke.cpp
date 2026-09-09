@@ -17,6 +17,7 @@ int passes = 0;
 void Expect(bool condition, const std::string& label) {
     if (condition) {
         ++passes;
+        std::cout << "[pass] " << label << '\n';
         return;
     }
     ++failures;
@@ -51,6 +52,25 @@ void ExpectCanonicalRoundTrip(const std::filesystem::path& path,
             continue;
         }
         const std::string canonical = serializer(first);
+        T additive;
+        const std::string extended = "{\"s08_future_optional\":{\"nested\":[1,true,null]}," + lines[index].substr(1);
+        const bool extended_ok = parser(extended, &additive, &error);
+        Expect(extended_ok && serializer(additive) == canonical,
+               path.filename().string() + " additive optional known semantic parity[" + std::to_string(index) + "]");
+        std::string wrong_schema = lines[index];
+        const auto version = wrong_schema.find(".v1\"");
+        Expect(version != std::string::npos, "V1 schema probe anchor");
+        if (version != std::string::npos) wrong_schema.replace(version, 4, ".v9\"");
+        T invalid;
+        Expect(!parser(wrong_schema, &invalid, &error), path.filename().string() + " changed schema rejected");
+        std::string missing_id = lines[index];
+        const std::string id_key = path.filename() == "segments.jsonl" ? "\"segment_id\"" :
+            path.filename() == "event-links.jsonl" ? "\"link_id\"" :
+            path.filename() == "observations.jsonl" ? "\"observation_id\"" : "\"tombstone_id\"";
+        const auto id_pos = missing_id.find(id_key);
+        Expect(id_pos != std::string::npos, "required ID probe anchor");
+        if (id_pos != std::string::npos) missing_id.replace(id_pos, id_key.size(), "\"unknown_removed_id\"");
+        Expect(!parser(missing_id, &invalid, &error), path.filename().string() + " missing required ID rejected");
         T second;
         error.clear();
         const bool reparsed = parser(canonical, &second, &error);
@@ -83,11 +103,24 @@ int main(int argc, char** argv) {
     Expect(!recording::HalfOpenRangesOverlap(1000, 1000, 1000, 2000), "빈 반개구간 거부");
 
     const auto segment_lines = ReadJsonLines(root / "segments.jsonl");
+    Expect(segment_lines.size() == 2, "V1 segment golden row count");
     if (!segment_lines.empty()) {
         recording::RecordingSegmentV1 segment;
         const bool parsed = recording::ParseRecordingSegmentV1(segment_lines.front(), &segment, &error);
         Expect(parsed, "unknown optional field를 포함한 segment parse: " + error);
         if (parsed) {
+            Expect(segment.source_id == "source-1" && segment.channel_id == "channel-1" &&
+                segment.stream_epoch_id == "epoch-alpha-1", "segment provenance semantic");
+            Expect(segment.start.utc_ms == 1767225600000LL && segment.end.utc_ms == 1767225605000LL &&
+                segment.end.pts == 540000 && segment.end.time_base_num == 1 && segment.end.time_base_den == 90000,
+                "segment UTC/end PTS semantic");
+            Expect(segment.container == "mp4" && segment.video_codecs == std::vector<std::string>{"h264"} &&
+                segment.audio_codecs.empty() && segment.audio_omitted_reason == "source-no-audio" &&
+                segment.size_bytes == 1048576 && segment.checksum_sha256 == std::string(64, '1'), "segment media/checksum semantic");
+            Expect(segment.retention_class == recording::RecordingRetentionClass::Continuous &&
+                segment.lifecycle == recording::RecordingLifecycle::Finalized && !segment.pinned &&
+                segment.created_at_ms == 1767225600000LL && segment.finalized_at_ms == 1767225605100LL,
+                "segment lifecycle/retention semantic");
             Expect(segment.segment_id == "seg-alpha-0001", "unknown optional field 뒤 known ID 보존");
             Expect(segment.start.pts == 90000 && segment.start.time_base_num == 1 &&
                        segment.start.time_base_den == 90000,
@@ -128,9 +161,52 @@ int main(int argc, char** argv) {
         recording::SerializeRecordingTombstoneV1);
 
     recording::RecordingTombstoneV1 tombstone;
+    const auto links = ReadJsonLines(root / "event-links.jsonl");
+    recording::EventRecordingLinkV1 link;
+    if (links.size() == 1 && recording::ParseEventRecordingLinkV1(links[0], &link, &error)) {
+        Expect(link.link_id == "link-event-0001" && link.event_id == "event-0001" &&
+            link.source_id == "source-1" && link.channel_id == "channel-1", "link ID/provenance semantic");
+        Expect(link.requested_range && link.requested_range->start_ms == 1767225601000LL &&
+            link.requested_range->end_ms == 1767225606000LL && link.time_basis == "utc-ms" &&
+            link.status == recording::EventRecordingLinkStatus::Partial, "link requested range/status semantic");
+        Expect(link.ordered_overlaps.size() == 2 && link.ordered_overlaps[0].segment_id == "seg-alpha-0001" &&
+            link.ordered_overlaps[1].segment_id == "seg-event-0001" && link.missing_ranges.size() == 1 &&
+            link.missing_ranges[0].start_ms == 1767225605000LL && link.missing_ranges[0].end_ms == 1767225606000LL,
+            "link overlap/missing semantic");
+        Expect(link.derived_segment_id == "seg-event-0001" && link.fallback_evidence_id == "evidence-0001" &&
+            link.fallback_media_locator == "/evidence/event-0001/manifest.json" &&
+            link.created_at_ms == 1767225606100LL && link.updated_at_ms == 1767225606200LL, "link fallback/time semantic");
+    } else Expect(false, "link golden parse/count");
+    const auto observations = ReadJsonLines(root / "observations.jsonl");
+    recording::AnalysisObservationV1 observation;
+    if (observations.size() == 1 && recording::ParseAnalysisObservationV1(observations[0], &observation, &error)) {
+        Expect(observation.observation_id == "observation-0001" && observation.source_id == "source-1" &&
+            observation.channel_id == "channel-1" && observation.frame_locator.segment_id == "seg-alpha-0001",
+            "observation ID/provenance semantic");
+        const auto& frame = observation.frame_locator;
+        Expect(frame.frame.utc_ms == 1767225602500LL && frame.frame.pts == 315000 &&
+            frame.frame.time_base_num == 1 && frame.frame.time_base_den == 90000 &&
+            frame.frame_index == 75 && frame.keyframe_pts == 270000, "observation exact locator semantic");
+        Expect(observation.track_id == "track-0001" && observation.class_label == "person" &&
+            observation.confidence == 0.93 && observation.bbox.x == 0.1 && observation.bbox.y == 0.2 &&
+            observation.bbox.width == 0.3 && observation.bbox.height == 0.4, "observation detection semantic");
+        Expect(observation.zone_ids == std::vector<std::string>{"zone-entrance"} && observation.line_ids.empty() &&
+            observation.rule_ids == std::vector<std::string>{"rule-loitering"} &&
+            observation.scenario_ids == std::vector<std::string>{"scenario-vehicle-nearby"} &&
+            observation.event_ids == std::vector<std::string>{"event-0001"} &&
+            observation.selection_reason == "event-boundary" && observation.created_at_ms == 1767225602510LL,
+            "observation association/time semantic");
+    } else Expect(false, "observation golden parse/count");
     const auto tombstone_lines = ReadJsonLines(root / "tombstones.jsonl");
     if (!tombstone_lines.empty() &&
         recording::ParseRecordingTombstoneV1(tombstone_lines.front(), &tombstone, &error)) {
+        Expect(tombstone.tombstone_id == "tombstone-0001" && tombstone.segment_id == "seg-deleted-0001" &&
+            tombstone.source_id == "source-1" && tombstone.channel_id == "channel-1", "tombstone ID/provenance semantic");
+        Expect(tombstone.recorded_range.start_ms == 1767139200000LL && tombstone.recorded_range.end_ms == 1767139205000LL &&
+            tombstone.checksum_sha256 == std::string(64, '3') &&
+            tombstone.retention_class == recording::RecordingRetentionClass::Unknown &&
+            tombstone.deletion_reason == "continuous-quota-oldest-first" && tombstone.deleted_at_ms == 1767225607000LL,
+            "tombstone range/checksum/legacy retention semantic");
         Expect(!recording::CanCreateSegmentId(tombstone.segment_id, {tombstone}, &error),
                "tombstone segment ID 재사용 거부");
         Expect(recording::CanCreateSegmentId("seg-new-0002", {tombstone}, &error),

@@ -1,5 +1,165 @@
 # Release Test Records
 
+### S08-A 재개 결과 (2026-09-09)
+
+사용자 재개 승인 후 메인이 새 `.mjs`에 node shebang과 실행 bit를 추가했다. require_internal 안전 조건은 유지했다. 최초 진입점 exit 1은 삭제하거나 예상 RED로 재분류하지 않는다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 정식 호환 gate 재실행 | `./server.sh verify-v410-recording-fixture-compatibility` exit 0; golden digest 4/0, 실제 C++ reader 89/0, cleanup removed=true | pass |
+| 기존 녹화 계약 | `MEDIA_SERVER_VERIFY_V410_RECORDING_CONTRACTS_BUILD_DIR=/private/tmp/media-server-s08-a-contracts-20260909 ./server.sh verify-v410-recording-contracts` exit 0; C++ 89/0 | pass |
+| cleanup 후확인 | `test ! -e /private/tmp/media-server-s08-a-contracts-20260909 && test ! -e /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s08-a-reader-5vzxzw` exit 0 | pass |
+| diff check | `git diff --check` exit 0 | pass |
+| golden 원본 불변 | `git diff --exit-code -- test/fixtures/recording/v1/segments.jsonl test/fixtures/recording/v1/event-links.jsonl test/fixtures/recording/v1/observations.jsonl test/fixtures/recording/v1/tombstones.jsonl` exit 0 | pass |
+| 메인 문서 확인 | 메인 직접 보고: docs-links exit 0, 226md/1049links/22images/103anchors/exclusions142/fail0. 담당자 재실행 아님 | pass |
+
+Node 9/0와 최초 예상 RED 2개는 의미 변경이 없어 재실행하지 않았다. 새 gate 도구 대기 시간 1.004255083초, 기존 계약 1.001318667초(도구 대기 합이며 polling 사이 간격을 포함한 전체 elapsed는 미계측). token start/end/consumed는 앞서 기록한 사유로 미집계. 안정화 범위의 이번 검사만 통과이며 S08 전체 복구/parity, 제품 build, 30분/120분/UI는 미실행이고 완료 evidence가 아니다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| OS TMPDIR/s08-a-reader-5vzxzw | 새 gate C++ binary | 478064 bytes | finally 삭제 | removed=true 및 후속 test 부재 확인 | cleanupOwned 출력 |
+| /private/tmp/media-server-s08-a-contracts-20260909 | 기존 계약 C++ binary | 미계측: 기존 shell trap 즉시 삭제 | 기존 EXIT trap 삭제 | 후속 test 부재 확인 exit 0 | 기존 script cleanup 및 직접 부재 확인 |
+
+아래는 두 명령의 실제 stdout 89개 check를 동일 순서로 전수 이관한 표다. 동일 label이 반복되어도 각각 별도 실행 assertion이다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| C++ 01 | opaque ID 허용 | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 02 | 빈 opaque ID 거부 | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 03 | path opaque ID 거부 | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 04 | SQLite rowid 형태 opaque ID 거부 | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 05 | 반개구간 겹침 | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 06 | 맞닿은 반개구간 비겹침 | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 07 | 빈 반개구간 거부 | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 08 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 09 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 10 | V1 segment golden row count | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 11 | unknown optional field를 포함한 segment parse: | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 12 | segment provenance semantic | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 13 | segment UTC/end PTS semantic | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 14 | segment media/checksum semantic | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 15 | segment lifecycle/retention semantic | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 16 | unknown optional field 뒤 known ID 보존 | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 17 | PTS/timebase exact 보존 | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 18 | public JSON에 filesystem path 비노출 | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 19 | segment canonical 재parse | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 20 | PTS/timebase round-trip | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 21 | unknown lifecycle를 호환 parse | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 22 | unknown lifecycle를 Unknown으로 보존 | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 23 | unknown lifecycle 비재생 | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 24 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 25 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 26 | segments.jsonl parse[0]: | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 27 | segments.jsonl additive optional known semantic parity[0] | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 28 | V1 schema probe anchor | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 29 | segments.jsonl changed schema rejected | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 30 | required ID probe anchor | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 31 | segments.jsonl missing required ID rejected | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 32 | segments.jsonl canonical parse[0]: | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 33 | segments.jsonl canonical parity[0] | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 34 | segments.jsonl parse[1]: | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 35 | segments.jsonl additive optional known semantic parity[1] | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 36 | V1 schema probe anchor | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 37 | segments.jsonl changed schema rejected | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 38 | required ID probe anchor | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 39 | segments.jsonl missing required ID rejected | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 40 | segments.jsonl canonical parse[1]: | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 41 | segments.jsonl canonical parity[1] | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 42 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 43 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 44 | event-links.jsonl parse[0]: | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 45 | event-links.jsonl additive optional known semantic parity[0] | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 46 | V1 schema probe anchor | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 47 | event-links.jsonl changed schema rejected | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 48 | required ID probe anchor | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 49 | event-links.jsonl missing required ID rejected | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 50 | event-links.jsonl canonical parse[0]: | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 51 | event-links.jsonl canonical parity[0] | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 52 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 53 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 54 | observations.jsonl parse[0]: | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 55 | observations.jsonl additive optional known semantic parity[0] | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 56 | V1 schema probe anchor | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 57 | observations.jsonl changed schema rejected | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 58 | required ID probe anchor | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 59 | observations.jsonl missing required ID rejected | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 60 | observations.jsonl canonical parse[0]: | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 61 | observations.jsonl canonical parity[0] | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 62 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 63 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 64 | tombstones.jsonl parse[0]: | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 65 | tombstones.jsonl additive optional known semantic parity[0] | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 66 | V1 schema probe anchor | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 67 | tombstones.jsonl changed schema rejected | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 68 | required ID probe anchor | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 69 | tombstones.jsonl missing required ID rejected | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 70 | tombstones.jsonl canonical parse[0]: | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 71 | tombstones.jsonl canonical parity[0] | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 72 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 73 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 74 | link ID/provenance semantic | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 75 | link requested range/status semantic | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 76 | link overlap/missing semantic | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 77 | link fallback/time semantic | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 78 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 79 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 80 | observation ID/provenance semantic | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 81 | observation exact locator semantic | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 82 | observation detection semantic | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 83 | observation association/time semantic | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 84 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 85 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 86 | tombstone ID/provenance semantic | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 87 | tombstone range/checksum/legacy retention semantic | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 88 | tombstone segment ID 재사용 거부 | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+| C++ 89 | 새 segment ID 허용 | pass | 새 gate/기존 계약 명령 양쪽 동일 관측 |
+
+담당자 S08-A 구현/승인된 검증 반환 완료. 메인 최종 통합 판정 전이며 커밋·푸시는 미수행. 삭제전 크기 미계측 한계는 위 표대로 보존한다.
+
+## v4.1.0 S08-A V1 호환 gate (2026-09-09, 실행 전 등록)
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| V410-S08-A-01 | manifest 누락 | validation 호출 후 manifest 오류 assertion | v4.1.0 |
+| V410-S08-A-02 | golden 변조 | 복사본 바이트 변경 후 digest 거부 | v4.1.0 |
+| V410-S08-A-03 | 정상 golden | 4개 SHA256 고정 및 실제 reader 실행 | v4.1.0 |
+| V410-S08-A-04 | fixture 누락 | 복사본 삭제 후 거부 | v4.1.0 |
+| V410-S08-A-05 | manifest 변조 | 잘못된 JSON/schema/digest/entry를 거부 | v4.1.0 |
+| V410-S08-A-06 | 필수 의미 | 실제 C++ parser 결과를 literal ID/시간/checksum/상태와 대조 | v4.1.0 |
+| V410-S08-A-07 | additive optional | 각 V1 행에 unknown optional 추가 후 canonical known 필드 동일 | v4.1.0 |
+| V410-S08-A-08 | schema/필수 ID | 각 V1 schema 변경 및 필수 ID 이름 변경을 실제 reader 거부 | v4.1.0 |
+
+예상 RED: `node --test scripts/internal/verify_v410_recording_fixture_compatibility.test.mjs`의 01/02가 validation 스캐폴드의 거부 누락 때문에 `Missing expected exception` assertion으로 실패한다. import/compile/환경 오류는 예상 RED가 아니다. 이 묶음은 복구/parity를 검사하지 않는다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| S08-A 예상 RED | 위 Node 명령 exit 1, 정확히 missing manifest/변조 거부 assertion 2개 실패(0/2); 예상 RED이며 완료 evidence 아님 | fail |
+| V410-S08-A-01 | 같은 Node 명령 GREEN exit 0, manifest 누락 거부 | pass |
+| V410-S08-A-02 | GREEN golden 바이트 변조 거부; 최초 예상 RED 이력 유지 | pass |
+| V410-S08-A-03 바이트 검사 | GREEN 정상 고정 digest 4개; 실제 reader 실행과 구분 | pass |
+| V410-S08-A-04 | GREEN fixture 누락 거부 | pass |
+| V410-S08-A-05 JSON | GREEN malformed manifest JSON 거부 | pass |
+| V410-S08-A-05 schema | GREEN manifest schema 변조 거부 | pass |
+| V410-S08-A-05 digest | GREEN manifest digest 교체 거부 | pass |
+| V410-S08-A-05 extra | GREEN manifest 추가 entry 거부 | pass |
+| V410-S08-A-05 missing | GREEN manifest entry 누락 거부 | pass |
+| 새 gate 실행 | `./server.sh verify-v410-recording-fixture-compatibility` exit 1, `missing internal script`; server.sh require_internal의 -x 검사와 새 mjs mode 0644 불일치. C++ 시작 전 실제 실패, 중단 | fail |
+
+Node GREEN 총 9 pass/0 fail, elapsed 37.229083ms. token start/end/consumed 미집계(서브에이전트 turn별 usage API 없음), source: 실제 Node stdout/도구 exit. 실제 제품 reader/계약 smoke/diff check는 실패 이후 건너뜀. 30분/120분/UI/build는 승인 범위 밖 미실행이며 완료 evidence 아님.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| OS TMPDIR/s08-a-fixtures-A9vw2Z | manifest 누락 복사본 | 38908 | 삭제 | removed=true | cleanupOwned existsSync 확인 |
+| OS TMPDIR/s08-a-fixtures-qoAHXh | golden 변조 복사본 | 39365 | 삭제 | removed=true | 동일 |
+| OS TMPDIR/s08-a-fixtures-Ofc7uF | fixture 누락 복사본 | 38692 | 삭제 | removed=true | 동일 |
+| OS TMPDIR/s08-a-fixtures-AM1RiR | JSON 변조 복사본 | 38909 | 삭제 | removed=true | 동일 |
+| OS TMPDIR/s08-a-fixtures-njOEpR | schema 변조 복사본 | 39278 | 삭제 | removed=true | 동일 |
+| OS TMPDIR/s08-a-fixtures-sOpIuu | digest 변조 복사본 | 39327 | 삭제 | removed=true | 동일 |
+| OS TMPDIR/s08-a-fixtures-FO81Sj | 추가 entry 복사본 | 39406 | 삭제 | removed=true | 동일 |
+| OS TMPDIR/s08-a-fixtures-4VO8wR | 누락 entry 복사본 | 39243 | 삭제 | removed=true | 동일 |
+
+위 OS TMPDIR는 `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T`이며 최종 artifact 링크가 아닌 삭제 대상 식별 기록이다. 최초 예상 RED의 2개 복사본은 finally rmSync 수행했으나 당시 크기/삭제후 부재 로그 미수집으로 cleanup 증거 제한이 있다. 새 gate 실패는 temp 생성 전이다. S08-A 상태: 중단/미완료, 커밋·푸시 미수행.
+
 ## S07 독립 승인 이관 후 최종 마감 (2026-09-09)
 
 아래 이전 실패·차단 기록은 당시 이력으로 보존한다. 사용자는 후보 생성에 관여하지 않은
