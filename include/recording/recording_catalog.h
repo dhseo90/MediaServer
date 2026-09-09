@@ -98,6 +98,10 @@ public:
                                  std::string* error);
     bool PutEventLink(const EventRecordingLinkV1& link, std::string* error) override;
     bool PutObservation(const AnalysisObservationV1& observation, std::string* error) override;
+    bool PutObservationV2(AnalysisObservationV2 observation, std::string* error);
+    std::vector<AnalysisObservationV2> QueryObservationsV2(const std::string& channel_id) const;
+    // 내부 검색 관측 전용. epoch 미확정이면 locator를 추정하지 않는다.
+    AnalysisObservationV2 ResolveObservationV2(AnalysisObservationV2 observation) const;
     bool RequestDeletion(const std::string& segment_id,
                          const std::string& reason,
                          std::string* error) override;
@@ -123,6 +127,7 @@ private:
     bool ValidateEventLinkReferencesLocked(const EventRecordingLinkV1& link,
                                            std::string* error) const;
     void CloseSqliteLocked();
+    void ResolveObservationV2Locked(AnalysisObservationV2* observation) const;
 
     RecordingJournal& journal_;
     Options options_;
@@ -137,6 +142,7 @@ private:
     std::unordered_map<std::string, std::string> deletion_reasons_;
     std::unordered_map<std::string, EventRecordingLinkV1> event_links_;
     std::unordered_map<std::string, AnalysisObservationV1> observations_;
+    std::unordered_map<std::string, AnalysisObservationV2> observations_v2_;
     std::unordered_map<std::string, RecordingTombstoneV1> tombstones_;
     sqlite3* sqlite_db_{nullptr};
 };

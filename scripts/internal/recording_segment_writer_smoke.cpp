@@ -261,9 +261,17 @@ int main(int argc, char** argv) {
         auto delta = packets.front();
         delta.is_key_frame = false;
         writer.Push(delta, 1000);
+        Expect(!writer.TimeSnapshot(), codec_name + " S07 delta 미수락 시간 위치 없음");
         Expect(CountSuffix(codec_root, ".partial") == 0, codec_name + " delta-start 차단");
         const auto base_pts = packets.front().pts;
         for (const auto& packet : packets) writer.Push(packet, 1000 + (packet.pts - base_pts) / 1000000);
+        const auto time_snapshot = writer.TimeSnapshot();
+        Expect(time_snapshot && time_snapshot->channel_id == "channel-1" &&
+                   time_snapshot->stream_epoch_id == "epoch-1" &&
+                   time_snapshot->first_pts == base_pts &&
+                   time_snapshot->last_pts == packets.back().pts &&
+                   time_snapshot->Contains(base_pts) && time_snapshot->Contains(packets.back().pts),
+               codec_name + " S07 수락 시간 epoch와 PTS 일치");
         Expect(CountSuffix(codec_root, ".partial") == 1, codec_name + " 열린 segment는 partial 한 개");
         const auto active_marker = FindSuffix(codec_root, ".cleanup-pending");
         Expect(!active_marker.empty() &&
@@ -271,9 +279,21 @@ int main(int argc, char** argv) {
                        "recording-cleanup-pending-v2\npartial=", 0) == 0,
                codec_name + " 열린 segment marker는 소유 partial nonce를 결박");
         writer.Stop();
+        Expect(!writer.TimeSnapshot(), codec_name + " S07 종료 시간 위치 없음");
         const std::string extension = codec == media::CodecId::H264 ? ".mp4" : ".webm";
         Expect(CountSuffix(codec_root, extension) >= 2, codec_name + " 10초 뒤 다음 keyframe 분할");
         Expect(finalized.size() >= 2, codec_name + " finalized callback");
+        if (codec == media::CodecId::VP8) {
+            recording::GStreamerSegmentWriter rewind({root / "vp8-time-rollback", 60000});
+            const bool opened = rewind.Start("channel-vp8-time", "epoch-vp8-time", descriptor,
+                [](recording::RecordingSegmentV1, std::string, std::string*) { return true; }, &error);
+            for (const auto& packet : packets) rewind.Push(packet, 1000 + (packet.pts - base_pts) / 1000000);
+            auto first = packets.front();
+            first.pts = 0; first.dts = 0;
+            rewind.Push(first, 20000);
+            Expect(opened && !rewind.TimeSnapshot(), "VP8 S07 rollback 모호한 시간 위치 없음");
+            rewind.Stop();
+        }
         if (codec == media::CodecId::H264) {
             const auto foreign_partial_root = root / "foreign-fixed-partial";
             const auto foreign_partial = foreign_partial_root / "channel-foreign" /
@@ -317,6 +337,7 @@ int main(int argc, char** argv) {
             rollback_key.dts = 0;
             rollback_key.is_key_frame = true;
             rollback_writer.Push(rollback_key, 20000);
+            Expect(!rollback_writer.TimeSnapshot(), "S07 rollback 모호한 시간 위치 없음");
             rollback_writer.Stop();
             Expect(epochs.size() >= 2 && epochs.back().find("-r1") != std::string::npos,
                    "PTS rollback 시 새 stream epoch");

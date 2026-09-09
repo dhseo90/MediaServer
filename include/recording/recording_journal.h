@@ -14,6 +14,7 @@ enum class RecordingMutationType {
     SegmentFinalized,
     EventLinkCreated,
     ObservationPut,
+    ObservationV2Put,
     DeletionRequested,
     DeletionCompleted,
     CorruptionDetected,

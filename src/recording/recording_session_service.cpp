@@ -15,6 +15,7 @@ struct RecordingSessionService::ChannelState {
     std::string subscriber_id;
     // 서비스 mu_ 아래에서만 게시·조회한다. 시작 중인 handle을 조회하지 않는다.
     std::string published_stream_key;
+    bool time_ambiguous{false};
     core::SessionManager::AuxiliaryStreamHandle handle;
     std::unique_ptr<SegmentWriter> writer;
     std::atomic<bool> writer_started{false};
@@ -89,6 +90,8 @@ RecordingSessionService::StartResult RecordingSessionService::StartChannel(
         const auto current = channels_.find(channel_id);
         if (!closing_ && current != channels_.end() && current->second == state) {
             state->published_stream_key = state->handle.stream_key;
+            state->time_ambiguous = time_key_capacity_exceeded_ ||
+                retired_time_keys_.count(state->published_stream_key) != 0;
         }
     }
     return {.ok = true, .started = true, .message = "ok"};
@@ -110,7 +113,16 @@ void RecordingSessionService::OnPacket(const std::shared_ptr<ChannelState>& stat
                 [this](RecordingSegmentV1 segment,
                        std::string media_path,
                        std::string* finalize_error) {
-                    return store_.FinalizeSegment(segment, media_path, finalize_error);
+                    const bool finalized = store_.FinalizeSegment(segment, media_path, finalize_error);
+                    if (finalized) {
+                        const auto observer = std::atomic_load(&finalized_observer_);
+                        if (observer && *observer) {
+                            try { (*observer)(); } catch (...) {
+                                // 보조 분석 실패는 이미 확정된 녹화를 실패로 바꾸지 않는다.
+                            }
+                        }
+                    }
+                    return finalized;
                 },
                 &error)) {
             state->stopping = true;
@@ -128,6 +140,10 @@ bool RecordingSessionService::StopChannel(const std::string& channel_id) {
         const auto it = channels_.find(channel_id);
         if (it == channels_.end()) return false;
         state = it->second;
+        if (!state->published_stream_key.empty()) {
+            if (retired_time_keys_.size() < 4096) retired_time_keys_.insert(state->published_stream_key);
+            else time_key_capacity_exceeded_ = true;
+        }
         channels_.erase(it);
     }
     {
@@ -177,6 +193,31 @@ std::optional<std::string> RecordingSessionService::ResolveRecordingChannel(
         channel = channel_id;
     }
     return channel;
+}
+
+std::optional<RecordingTimeSnapshot> RecordingSessionService::ResolveRecordingTime(
+    const std::string& stream_key, std::int64_t pts) const {
+    if (stream_key.empty() || pts < 0) return std::nullopt;
+    // 종료/finalize 경합에서는 기다리는 대신 미확인 위치로 남긴다.
+    std::unique_lock lock(mu_, std::try_to_lock);
+    if (!lock.owns_lock() || closing_ || time_key_capacity_exceeded_) return std::nullopt;
+    std::shared_ptr<ChannelState> selected;
+    for (const auto& [_, state] : channels_) {
+        if (state->published_stream_key != stream_key || state->stopping.load()) continue;
+        if (selected || state->time_ambiguous) return std::nullopt;
+        selected = state;
+    }
+    if (!selected || !selected->writer_started.load()) return std::nullopt;
+    const auto snapshot = selected->writer->TimeSnapshot();
+    if (!snapshot || snapshot->channel_id != selected->channel_id ||
+        pts < snapshot->first_pts || pts > snapshot->last_pts || !snapshot->Contains(pts))
+        return std::nullopt;
+    return *snapshot;
+}
+
+void RecordingSessionService::SetFinalizedObserver(std::function<void()> observer) {
+    std::atomic_store(&finalized_observer_,
+        std::make_shared<const std::function<void()>>(std::move(observer)));
 }
 
 }  // namespace recording

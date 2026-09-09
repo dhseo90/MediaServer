@@ -55,6 +55,33 @@ std::string NextMutationId() {
     return "mut-" + std::to_string(NowMs()) + "-" + std::to_string(++sequence);
 }
 
+bool MergeObservation(const AnalysisObservationV2& previous, AnalysisObservationV2* next,
+                      std::string* error) {
+    if (previous.source_id != next->source_id || previous.channel_id != next->channel_id ||
+        previous.analysis_namespace != next->analysis_namespace || previous.track_id != next->track_id ||
+        previous.stream_epoch_id != next->stream_epoch_id || previous.pts != next->pts)
+        return Fail(error, "observation-v2-identity-mismatch");
+    const auto merge = [](const auto& first, auto* second) {
+        auto values = first;
+        for (const auto& value : *second)
+            if (std::find(values.begin(), values.end(), value) == values.end()) values.push_back(value);
+        *second = std::move(values);
+    };
+    merge(previous.selection_reasons, &next->selection_reasons);
+    merge(previous.event_ids, &next->event_ids);
+    merge(previous.zone_ids, &next->zone_ids); merge(previous.line_ids, &next->line_ids);
+    merge(previous.rule_ids, &next->rule_ids); merge(previous.scenario_ids, &next->scenario_ids);
+    if (previous.duration_ns && !next->duration_ns) {
+        next->duration_ns = previous.duration_ns;
+        next->ended_reason = previous.ended_reason;
+        next->first_seen_pts = previous.first_seen_pts;
+        next->last_seen_pts = previous.last_seen_pts;
+    }
+    next->created_at_ms = previous.created_at_ms;
+    AnalysisObservationV2 validated;
+    return ParseAnalysisObservationV2(SerializeAnalysisObservationV2(*next), &validated, error);
+}
+
 std::optional<std::string> ObjectField(const std::string& json, const std::string& key) {
     ingress::StrictJsonObjectDocument document;
     std::string error;
@@ -186,6 +213,7 @@ bool ResolveContainedMediaPath(const std::filesystem::path& root,
     return true;
 }
 
+#if MEDIA_SERVER_USE_SQLITE3
 std::string LifecycleName(RecordingLifecycle value) {
     switch (value) {
         case RecordingLifecycle::Writing: return "writing";
@@ -218,7 +246,6 @@ std::string EventStatusName(EventRecordingLinkStatus value) {
     return "unknown";
 }
 
-#if MEDIA_SERVER_USE_SQLITE3
 bool Exec(sqlite3* db, const std::string& sql, std::string* error) {
     char* raw_error = nullptr;
     const int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &raw_error);
@@ -461,6 +488,18 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
             if (ok) observations_[observation.observation_id] = observation;
             break;
         }
+        case RecordingMutationType::ObservationV2Put: {
+            const auto json = ObjectField(mutation.payload_json, "observation");
+            AnalysisObservationV2 observation;
+            ok = json && ParseAnalysisObservationV2(*json, &observation, error);
+            if (ok && observation.observation_id != mutation.entity_id)
+                ok = Fail(error, "observation-v2-entity-mismatch");
+            const auto previous = observations_v2_.find(observation.observation_id);
+            if (ok && previous != observations_v2_.end())
+                ok = MergeObservation(previous->second, &observation, error);
+            if (ok) observations_v2_[observation.observation_id] = std::move(observation);
+            break;
+        }
         case RecordingMutationType::DeletionRequested: {
             const auto it = segments_.find(mutation.entity_id);
             const auto reason = StringField(mutation.payload_json, "reason");
@@ -689,6 +728,101 @@ bool RecordingCatalog::RequestDeletion(const std::string& segment_id,
     mutation.entity_id = segment_id;
     mutation.payload_json = "{\"reason\":\"" + Escape(reason) + "\"}";
     return AppendAndApplyLocked(std::move(mutation), error);
+}
+
+void RecordingCatalog::ResolveObservationV2Locked(AnalysisObservationV2* o) const {
+    const auto original = o->frame_locator;
+    o->frame_locator.reset();
+    if (o->stream_epoch_id.empty()) {
+        if (o->locator_reason != "ambiguous-epoch") o->locator_reason = "missing-provenance";
+        return;
+    }
+    if (original && tombstones_.count(original->segment_id)) {
+        o->locator_reason = "deleted";
+        return;
+    }
+    const RecordingSegmentV1* selected = nullptr;
+    for (const auto& pair : segments_) {
+        const auto& s = pair.second;
+        if (s.channel_id != o->channel_id || s.source_id != o->source_id ||
+            s.stream_epoch_id != o->stream_epoch_id || s.retention_class != RecordingRetentionClass::Continuous ||
+            s.start.time_base_num != 1 || s.start.time_base_den != 1000000000 ||
+            s.end.time_base_num != 1 || s.end.time_base_den != 1000000000 ||
+            o->pts < s.start.pts || o->pts >= s.end.pts) continue;
+        if (selected) { o->locator_reason = "ambiguous-epoch"; return; }
+        selected = &s;
+    }
+    if (!selected) { o->locator_reason = "gap"; return; }
+    const auto& s = *selected;
+    if (s.lifecycle == RecordingLifecycle::Deleted || s.lifecycle == RecordingLifecycle::DeletionPending) {
+        o->locator_reason = "deleted"; return;
+    }
+    if (s.lifecycle == RecordingLifecycle::Corrupt) { o->locator_reason = "corrupt"; return; }
+    if (s.lifecycle != RecordingLifecycle::Finalized) { o->locator_reason = "pending"; return; }
+    const auto relative = media_relpaths_.find(s.segment_id);
+    std::filesystem::path contained;
+    std::error_code media_error;
+    if (relative == media_relpaths_.end() ||
+        !ResolveContainedMediaPath(options_.media_root, relative->second, &contained) ||
+        !std::filesystem::is_regular_file(contained, media_error) || media_error ||
+        std::filesystem::file_size(contained, media_error) != s.size_bytes || media_error) {
+        o->locator_reason = "missing-media"; return;
+    }
+    if (!IsRecognizedMedia(contained)) { o->locator_reason = "corrupt"; return; }
+    const std::int64_t delta_ms = (o->pts - s.start.pts) / 1000000;
+    if (delta_ms > std::numeric_limits<std::int64_t>::max() - s.start.utc_ms) {
+        o->locator_reason = "out-of-range"; return;
+    }
+    const auto utc = s.start.utc_ms + delta_ms;
+    if (utc < s.start.utc_ms || utc >= s.end.utc_ms) { o->locator_reason = "out-of-range"; return; }
+    FrameLocatorV1 locator;
+    locator.segment_id = s.segment_id;
+    locator.frame = {utc, o->pts, 1, 1000000000};
+    locator.keyframe_pts = s.start.pts;
+    o->frame_locator = std::move(locator);
+    o->locator_reason.clear();
+}
+
+AnalysisObservationV2 RecordingCatalog::ResolveObservationV2(AnalysisObservationV2 observation) const {
+    std::lock_guard lock(mu_);
+    ResolveObservationV2Locked(&observation);
+    return observation;
+}
+
+bool RecordingCatalog::PutObservationV2(AnalysisObservationV2 observation, std::string* error) {
+    // 검증과 segment lifecycle 확인 및 journal append를 동일 catalog lock 아래 수행한다.
+    std::lock_guard lock(mu_);
+    AnalysisObservationV2 checked;
+    if (!ParseAnalysisObservationV2(SerializeAnalysisObservationV2(observation), &checked, error)) return false;
+    const auto previous = observations_v2_.find(observation.observation_id);
+    if (previous != observations_v2_.end() && !MergeObservation(previous->second, &observation, error)) return false;
+    if (observation.frame_locator) {
+        ResolveObservationV2Locked(&checked);
+        if (!checked.frame_locator ||
+            SerializeFrameLocatorV1(*checked.frame_locator) != SerializeFrameLocatorV1(*observation.frame_locator))
+            return Fail(error, "observation-v2-locator-mismatch");
+    }
+    RecordingMutationV1 mutation;
+    mutation.mutation_type = RecordingMutationType::ObservationV2Put;
+    mutation.entity_id = observation.observation_id;
+    mutation.payload_json = "{\"observation\":" + SerializeAnalysisObservationV2(observation) + "}";
+    return AppendAndApplyLocked(std::move(mutation), error);
+}
+
+std::vector<AnalysisObservationV2> RecordingCatalog::QueryObservationsV2(const std::string& channel_id) const {
+    std::lock_guard lock(mu_);
+    std::vector<AnalysisObservationV2> output;
+    for (const auto& pair : observations_v2_) {
+        if (pair.second.channel_id != channel_id) continue;
+        auto observation = pair.second;
+        // 조회는 기존 locator를 revoke할 수 있지만 미확정 관측의 provenance를 새로 추정하지 않는다.
+        if (observation.frame_locator) ResolveObservationV2Locked(&observation);
+        output.push_back(std::move(observation));
+    }
+    std::sort(output.begin(), output.end(), [](const auto& a, const auto& b) {
+        return a.observation_id < b.observation_id;
+    });
+    return output;
 }
 
 bool RecordingCatalog::CompleteDeletion(const RecordingTombstoneV1& tombstone, std::string* error) {
@@ -1067,6 +1201,7 @@ CREATE TABLE IF NOT EXISTS recording_segments(segment_id TEXT PRIMARY KEY, sourc
 CREATE TABLE IF NOT EXISTS recording_event_links(link_id TEXT PRIMARY KEY, event_id TEXT UNIQUE NOT NULL, channel_id TEXT NOT NULL, requested_start_ms INTEGER NOT NULL, requested_end_ms INTEGER NOT NULL, derived_segment_id TEXT, fallback_ref TEXT, completeness TEXT NOT NULL, missing_ranges_json TEXT NOT NULL, display_priority INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE IF NOT EXISTS recording_event_link_segments(link_id TEXT NOT NULL REFERENCES recording_event_links(link_id) ON DELETE CASCADE, segment_id TEXT NOT NULL REFERENCES recording_segments(segment_id), overlap_start_ms INTEGER NOT NULL, overlap_end_ms INTEGER NOT NULL, PRIMARY KEY(link_id, segment_id));
 CREATE TABLE IF NOT EXISTS recording_observations(observation_id TEXT PRIMARY KEY, channel_id TEXT NOT NULL, segment_id TEXT NOT NULL REFERENCES recording_segments(segment_id), utc_ms INTEGER NOT NULL, pts INTEGER NOT NULL, track_id TEXT, class_id TEXT, class_name TEXT, confidence REAL, bbox_json TEXT, event_id TEXT, selection_reason TEXT, payload_json TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS recording_observations_v2(observation_id TEXT PRIMARY KEY, channel_id TEXT NOT NULL, segment_id TEXT, pts INTEGER NOT NULL, payload_json TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS recording_tombstones(entity_id TEXT PRIMARY KEY, entity_kind TEXT NOT NULL, channel_id TEXT, start_utc_ms INTEGER, end_utc_ms INTEGER, deleted_at_ms INTEGER, reason TEXT, retention_class TEXT, checksum_sha256 TEXT);
 CREATE INDEX IF NOT EXISTS idx_recording_segments_channel_range ON recording_segments(channel_id,start_utc_ms,end_utc_ms);
 CREATE INDEX IF NOT EXISTS idx_recording_segments_retention_end ON recording_segments(retention_class,end_utc_ms);
@@ -1082,7 +1217,7 @@ bool RecordingCatalog::RebuildSqliteLocked(std::string* error) {
 #if !MEDIA_SERVER_USE_SQLITE3
     (void)error; return true;
 #else
-    if (!Exec(sqlite_db_, "BEGIN; DELETE FROM recording_event_link_segments; DELETE FROM recording_event_links; DELETE FROM recording_observations; DELETE FROM recording_segments; DELETE FROM recording_tombstones; DELETE FROM recording_mutations; COMMIT;", error)) return false;
+    if (!Exec(sqlite_db_, "BEGIN; DELETE FROM recording_event_link_segments; DELETE FROM recording_event_links; DELETE FROM recording_observations; DELETE FROM recording_observations_v2; DELETE FROM recording_segments; DELETE FROM recording_tombstones; DELETE FROM recording_mutations; COMMIT;", error)) return false;
     const auto replay = journal_.Replay();
     for (const auto& mutation : replay.mutations) if (!ProjectMutationSqliteLocked(mutation, error)) return false;
     return true;
@@ -1128,6 +1263,32 @@ bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mu
         if(sqlite3_step(statement)!=SQLITE_DONE){const std::string message=sqlite3_errmsg(sqlite_db_);sqlite3_finalize(statement);Exec(sqlite_db_,"ROLLBACK",nullptr);return Fail(error,message);} sqlite3_finalize(statement);
         if(sqlite3_prepare_v2(sqlite_db_,"DELETE FROM recording_event_link_segments WHERE link_id=?",-1,&statement,nullptr)!=SQLITE_OK){Exec(sqlite_db_,"ROLLBACK",nullptr);return Fail(error,sqlite3_errmsg(sqlite_db_));}BindText(statement,1,link.link_id);if(sqlite3_step(statement)!=SQLITE_DONE){const std::string message=sqlite3_errmsg(sqlite_db_);sqlite3_finalize(statement);Exec(sqlite_db_,"ROLLBACK",nullptr);return Fail(error,message);}sqlite3_finalize(statement);
         for(const auto& overlap:link.ordered_overlaps){sqlite3_prepare_v2(sqlite_db_,"INSERT INTO recording_event_link_segments VALUES(?,?,?,?)",-1,&statement,nullptr);BindText(statement,1,link.link_id);BindText(statement,2,overlap.segment_id);sqlite3_bind_int64(statement,3,overlap.range.start_ms);sqlite3_bind_int64(statement,4,overlap.range.end_ms);if(sqlite3_step(statement)!=SQLITE_DONE){const std::string message=sqlite3_errmsg(sqlite_db_);sqlite3_finalize(statement);Exec(sqlite_db_,"ROLLBACK",nullptr);return Fail(error,message);}sqlite3_finalize(statement);}
+    } else if (mutation.mutation_type == RecordingMutationType::ObservationV2Put) {
+        const auto json = ObjectField(mutation.payload_json, "observation");
+        AnalysisObservationV2 observation;
+        if (!json || !ParseAnalysisObservationV2(*json, &observation, error)) {
+            Exec(sqlite_db_, "ROLLBACK", nullptr); return false;
+        }
+        // V2 projection은 Apply가 identity검증·사유병합을 마친 유효상태에서만 생성한다.
+        // 재구축 중 거부된 원장행을 다시 신뢰해 memory와 다른 SQLite행을 만들지 않는다.
+        const auto valid = observations_v2_.find(mutation.entity_id);
+        if (valid == observations_v2_.end()) {
+            return Exec(sqlite_db_, "COMMIT", error);
+        }
+        observation = valid->second;
+        if (sqlite3_prepare_v2(sqlite_db_, "INSERT OR REPLACE INTO recording_observations_v2 VALUES(?,?,?,?,?)", -1,
+                              &statement, nullptr) != SQLITE_OK) {
+            Exec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, sqlite3_errmsg(sqlite_db_));
+        }
+        BindText(statement, 1, observation.observation_id);
+        BindText(statement, 2, observation.channel_id);
+        if (observation.frame_locator) BindText(statement, 3, observation.frame_locator->segment_id);
+        else sqlite3_bind_null(statement, 3);
+        sqlite3_bind_int64(statement, 4, observation.pts);
+        BindText(statement, 5, SerializeAnalysisObservationV2(observation));
+        const bool ok = sqlite3_step(statement) == SQLITE_DONE;
+        sqlite3_finalize(statement); statement = nullptr;
+        if (!ok) { Exec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, sqlite3_errmsg(sqlite_db_)); }
     } else if (mutation.mutation_type == RecordingMutationType::ObservationPut) {
         const auto observation_json = ObjectField(mutation.payload_json, "observation");
         AnalysisObservationV1 observation;

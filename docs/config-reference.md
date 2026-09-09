@@ -785,6 +785,18 @@ manifest JSON 자체를 영상으로 반환하지 않는다.
 | `MEDIA_SERVER_RECORDING_DEFAULT_RETENTION_DAYS` | `7` | 기존 source policy와 새 등급별 최대 기간의 호환 기본값 |
 | `MEDIA_SERVER_RECORDING_RESERVED_FREE_BYTES` | `1073741824` | 새 segment를 열기 전에 store 전체에 남겨야 하는 최소 여유 공간 |
 | `MEDIA_SERVER_RECORDING_RETENTION_INTERVAL_MS` | `5000` | supervisor의 policy reconcile과 주기 보존 정리 간격 |
+| `MEDIA_SERVER_RECORDING_OBSERVATION_INTERVAL_MS` | `1000` | S07 분석 대표 관측의 전역 저장 주기(ms), 양수. track 시작·종료·이벤트 관측은 주기와 무관하게 저장 대상으로 선정 |
+
+S07 분석 관측은 녹화와 분석이 함께 활성화된 채널에서 생성한다. 원본 frame 전체를 저장하는
+방식이 아니라 객체의 시작·주기 관측·이벤트·종료 요약을 별도 `AnalysisObservationV2`로
+저장한다. 기존 V1과 영상 형식은 바꾸지 않는다. SQLite projection은 JSONL 원장에서 재구축한다.
+이 설정은 전역 환경변수이며 source policy에 채널별 주기 필드를 추가하지 않는다.
+
+영상 위치는 최근 실제 녹화 수락 PTS 최대 256개의 목록과 epoch를 분석 입력 시점에 확보하고,
+범위 안이더라도 수락 목록에 없는 PTS는 연결하지 않는다. finalize 이후 catalog의
+파일·시간 범위와 대조한다. 입력 되감기 또는 같은 입력의 녹화 재시작으로 epoch가 모호하면
+위치를 추정하지 않고 `frameLocator=null`과 사유를 남긴다. 분석 기록은 남지만 해당 관측을
+재생 가능한 위치로 간주하지 않는다. 이후 검색 기능·자연어 질의 UI는 이번 단계에 포함하지 않는다.
 
 운영 source의 `recording` 객체는 다음 등급별 정책을 저장합니다.
 

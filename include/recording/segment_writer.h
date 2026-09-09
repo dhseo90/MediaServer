@@ -8,6 +8,7 @@
 
 #include "media_types.h"
 #include "recording/recording_contracts.h"
+#include "recording/recording_time_snapshot.h"
 
 namespace recording {
 
@@ -40,6 +41,8 @@ public:
                        std::string* error) = 0;
     virtual void Push(const media::Packet& packet, std::int64_t observed_utc_ms) = 0;
     virtual void Stop() = 0;
+    // 기존 writer 구현은 provenance를 제공하지 않아도 된다. 추정값을 만들지 않는다.
+    virtual std::shared_ptr<const RecordingTimeSnapshot> TimeSnapshot() const { return {}; }
 };
 
 }  // namespace recording

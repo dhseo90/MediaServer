@@ -3,6 +3,7 @@
 
 #include "ingress/application_service_result.h"
 #include "recording/recording_read_service.h"
+#include "recording/analysis_observation_projector.h"
 #include <functional>
 #include <unordered_map>
 
@@ -33,11 +34,14 @@ class RecordingApplicationService {
 public:
     using ChannelAuthorizer = std::function<bool(const std::string&)>;
     using StatusProvider = std::function<bool(std::vector<RecordingChannelStatus>*)>;
+    using ObservationStatusProvider = std::function<recording::AnalysisObservationProjector::Status()>;
     RecordingApplicationService(recording::RecordingReadService& reader,
                                 recording::RecordingCatalog& catalog,
-                                bool enabled, StatusProvider status_provider)
-        : reader_(reader), catalog_(catalog), enabled_(enabled), status_provider_(std::move(status_provider)) {}
-    ApplicationServiceResult Status(const ChannelAuthorizer& authorize) const;
+                                bool enabled, StatusProvider status_provider,
+                                ObservationStatusProvider observation_status_provider = {})
+        : reader_(reader), catalog_(catalog), enabled_(enabled), status_provider_(std::move(status_provider)),
+          observation_status_provider_(std::move(observation_status_provider)) {}
+    ApplicationServiceResult Status(const ChannelAuthorizer& authorize, bool include_global_observations = false) const;
     ApplicationServiceResult Timeline(const std::unordered_map<std::string, std::string>& query,
                                       const ChannelAuthorizer& authorize) const;
     std::unique_ptr<recording::ResolvedRecordingMedia> Media(const std::string& opaque_id,
@@ -47,5 +51,6 @@ private:
     recording::RecordingCatalog& catalog_;
     bool enabled_;
     StatusProvider status_provider_;
+    ObservationStatusProvider observation_status_provider_;
 };
 }  // namespace ingress

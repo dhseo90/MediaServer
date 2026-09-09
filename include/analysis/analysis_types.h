@@ -396,6 +396,13 @@ struct AnalysisMetricsReport {
     std::vector<AnalysisChannelMetrics> channels;
 };
 
+struct AnalysisObservationContext {
+    std::string source_id;
+    std::string channel_id;
+    std::string stream_epoch_id;
+    std::string locator_reason{"missing-provenance"};
+};
+
 struct AnalysisResult {
     std::string source_key;
     std::string profile_key;
@@ -406,6 +413,10 @@ struct AnalysisResult {
     int frame_height{0};
     std::vector<Detection> detections;
     std::vector<Track> tracks;
+    // 녹화 검색 관측 내부 계약. 기존 metadata/EventRecord serializer에는 추가하지 않는다.
+    std::vector<Track> terminated_tracks;
+    AnalysisObservationContext observation_context;
+    std::string observation_namespace;
     std::vector<CloseObjectAssociationDiagnostic> close_object_diagnostics;
     std::vector<PoseKeypoint> pose_keypoints;
     bool debug_state_requested{false};
@@ -413,6 +424,14 @@ struct AnalysisResult {
     bool metrics_report_requested{false};
     std::optional<AnalysisDebugState> debug_state;
     std::optional<AnalysisMetricsReport> metrics_report;
+};
+
+class AnalysisResultObserver {
+public:
+    virtual ~AnalysisResultObserver() = default;
+    virtual AnalysisObservationContext CaptureContext(const std::string& stream_key, std::int64_t pts) = 0;
+    virtual void OnResult(const AnalysisResult& result) = 0;
+    virtual void OnStopped(const std::string& observation_namespace, const std::string& reason) = 0;
 };
 
 }  // namespace analysis

@@ -4,6 +4,37 @@
 PASS는 UI 풀테스트, 30분/120분 장시간 테스트, PR/main merge, tag, GitHub Release 또는
 published metadata 완료를 뜻하지 않는다.
 
+## S07 구현·단계 검증 완료 (2026-09-09)
+
+S06 마감 기준 `db308d4d` 위에서 검색용 분석 관측을 추가한다. 아래 S06 절의 승인·현재
+상태 설명은 해당 실행 당시 기록이며, 이번 승인 범위는 S07 마감·커밋·푸시다.
+S08은 설명만 하고 개발하지 않는다. 상세 개별 결과와 최초 실패·수정·재검증 이력은
+`release-test-records.md`의 S07 절이 source-of-truth다.
+
+| 구현 위치 | 추가 로직과 유지 경계 |
+| --- | --- |
+| `recording_contracts`, `recording_journal`, `recording_catalog` | 기존 V1 유지, nullable 위치·선정 사유·실제 이벤트 참조·track 요약을 가진 V2 별도 저장/재구축 |
+| `analysis_observation_projector` | start/interval/event/end 선정, bounded 비동기 저장, pending finalize 재해석, 실패·포화 진단 |
+| `analysis_manager`, `object_tracker`, `event_storage` | 입력 시점 provenance, 내부 종료 track 사본, 실제 EventRecord 생성 후 관측 통지. 공개 metadata 직렬화 유지 |
+| `recording_time_snapshot`, `gstreamer_segment_writer`, `recording_session_service` | 실제 수락 PTS 사본과 유일 채널 조회, finalize 알림 예외 격리. 모호한 epoch는 null |
+| `media_server_application`, `recording_application_service` | 분석·녹화 수명 연결, 전역 권한에 한정된 안전한 관측 통계. 새 검색 UI 없음 |
+| `recording_observation_smoke`, `recording_observation_runtime_smoke`, 시간·writer·identity 검증 | 신규 계약·실제 decoder/manager·이벤트·시간/종료 경계 및 기존 단계 회귀 |
+
+검증: S07 core 71개·시간 사본 10개, 실제 H.264/VP8 writer 79개, 세션/ID 23개 통과.
+S06 읽기 모델 152개·HTTP 31개·인증 40개·lifecycle 10개, 일반 인증 239개,
+분석 상태 181개와 S01/S03/S04/S05 관련 회귀도 통과했다.
+중앙 인벤토리 최초 17 pass/1 fail의 승인 증적 불일치는 사용자 승인 범위에서 해소했다.
+위치를 교정하고 후보 생성에 관여하지 않은 독립 검토자가 299개를 검토했으며,
+687개는 strict-equivalence로 이관했다. 정식 원장 이관과 승인 986개 검증이 통과했다.
+최종 구현 증적 986개·부정 fixture 15/15·오류0, 중앙 인벤토리 18/0,
+script inventory 12/0이다. 최초 실패·승인 차단·수정·재검증은 테스트 기록의
+`S07 독립 승인 이관 후 최종 마감` 및 이전 이력에 보존한다.
+이는 S07 단계 완료이며 S08/S09, 버전 전체 UI·장시간 검증이나 릴리즈 완료는 아니다.
+writer의 최근 수락 PTS 256개에 없는 frame은 범위 안이어도 locator에 연결하지 않는다.
+전역 관측 통계는 전역 source 읽기 권한에만 반환하며 제한 권한에서는 생략한다.
+직접 내부 recorder 스크립트 실행 시의 GI/GTK 환경 경고와 정식 server.sh 실행에서 경고 없이
+통과한 결과는 구분한다. 패키지 삭제·전역 환경 변경은 수행하지 않았다.
+
 ## S06 구현·단계 검증 완료 (2026-09-08)
 
 S06 조회·재생 API와 Ops 화면, 잔여 1~5번의 수정·검증을 완료했다.

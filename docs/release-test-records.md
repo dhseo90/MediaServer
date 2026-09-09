@@ -1,5 +1,1643 @@
 # Release Test Records
 
+## S07 독립 승인 이관 후 최종 마감 (2026-09-09)
+
+아래 이전 실패·차단 기록은 당시 이력으로 보존한다. 사용자는 후보 생성에 관여하지 않은
+독립 검토자 한 명으로 교체하여 검토·최종 검증·커밋·푸시를 이어가도록 승인했다.
+새 검토자 `s07_independent_review`가 299개 기존 source-flow를 독립 검토했고 687개는
+정식 strict-equivalence 비교로 이관했다. 모델은 Codex Astra/medium, 영향도/불확실성/
+검증 난이도/변경 범위 2/2/2/0=6이며 자동 상향·하위 에이전트 생성은 없었다.
+
+첫 producer 시도는 임시 helper 삭제와 Git 스캔이 겹쳐 원장 교체 전에 exit1이었다.
+`.superpowers` 전체가 제외된다는 메인의 판단도 잘못됐다. 실제 제외는 `.superpowers/sdd`이며
+새 작업 폴더를 저장소 밖으로 옮겼다. 독립 검토자가 같은 후보·판정을 유지하고 새 트리를
+결속한 뒤 producer 재실행은 exit0, audit/approval/implementation/native 원자적 readback 오류0이다.
+새 tree는 `1d0f8defe4833b28fdbfda3327f4bc60292984d1`, 최종 후보 digest는
+`46b99819c163277cf8421c058880d20ca4d32b8d2c4ba3cdbcff98099d1bdf59`다.
+native 자료는 증적 digest와 위치 context만 변경됐으며 기능 case/action/허용 상태를 바꾸지 않았다.
+
+보존 증적은 실제 독립 검토자의 원본이다. source/contract/locator와 판정만 포함하며
+비밀번호·세션·원시 영상은 없다. 신규 제품 기능·UI·장시간 PASS를 대신하지 않는다.
+
+- [독립 검토 보고](release-artifacts/v4.1.0/20260909-s07-final/REPORT.md)
+- [검토 패키지](release-artifacts/v4.1.0/20260909-s07-final/review-package.json): SHA256 `d74119bbac434a10f6dfe6541acc396cfc27866eb2308d68053966f2d014ec70`
+- [독립 판정](release-artifacts/v4.1.0/20260909-s07-final/independent-decisions.json): SHA256 `591ad001d3440fefcd810a74ad2aadf4a190a1393b58db4f62d85bfae8cdd8e6`
+- [동등성 이관 자료](release-artifacts/v4.1.0/20260909-s07-final/migration-evidence.json)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 독립 원장 이관 | 정식 migration-aware producer; carry687/independent299, 원자적 교체4개, exit0/오류0 | pass | 최초 임시 파일 race exit1 뒤 위치 분리·재결속 후 통과 |
+| 독립 승인 검증 | `verify-v390-review4-feature-semantic-source-approvals`; audit986/approval986, exit0/오류0, 14402ms | pass | 현재 소스와 승인 결속; 제품 실행 PASS 아님 |
+| 구현 증적 최종 검증 | `./server.sh verify-feature-implementation-evidence`; 986개 전수, 부정 fixture15/15, validation/global 오류0, exit0, 412176ms | pass | 정적 증적 검증이며 actual UI 실행 증거가 아님 |
+| 중앙 인벤토리 최종 검증 | `./server.sh verify-project-inventory`; featureRows986, 18 pass/0 fail, exit0, 25970ms | pass | 최초17/1 이후 독립 승인 이관으로 해소 |
+
+명령별 전체 출력·exit·elapsed는 같은 보존 디렉터리의 `verify-*.json` 3개에 보존한다.
+S07 구현·단계 검증은 완료했다. S08/S09 및 버전 전체 UI·30분/120분·릴리즈 action은
+수행하지 않았고 그 완료 evidence로 사용하지 않는다. S07 범위 잔여 이슈는 없다.
+
+최종 문서 검사: `./server.sh verify-docs-links` exit0(226문서/1049링크/22이미지/
+103anchor/오류0), `./server.sh verify-docs-ui-assets` exit0(10 pass/0 fail),
+`git diff --check`와 `git diff --cached --check` exit0. 이미지 검사는 실제 UI 실행을 대체하지 않는다.
+
+정리 표의 `SDD`는 `.superpowers/sdd/2026-09-02-v410-recording-foundation-implementation-plan/`이다.
+아래 재생성 가능한 임시 파일은 삭제 후 경로 부재를 확인했다. 이전 인계용 보존 기록을 대체한다.
+
+| 경로 | 종류 | 삭제 전 크기(bytes) | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| SDD/s07-final-trust-report.json | 조사 출력 | 76133 | 삭제 | 부재 확인 | 핵심 값 본문 이관 |
+| SDD/s07-final-trust-report.mjs | 일회성 helper | 5719 | 삭제 | 부재 확인 | 작업 종료 |
+| SDD/s07-locator-patch.mjs | 일회성 helper | 3648 | 삭제 | 부재 확인 | proof 변경 보존 |
+| SDD/s07-locator-report-evt_client_media_lab.json | 중간 조사 | 24554 | 삭제 | 부재 확인 | 최종 승인 보존 |
+| SDD/s07-locator-report-safe_ops.json | 중간 조사 | 3600 | 삭제 | 부재 확인 | 최종 승인 보존 |
+| SDD/s07-locator-report-ui_auth_src_rule.json | 중간 조사 | 12915 | 삭제 | 부재 확인 | 최종 승인 보존 |
+| SDD/s07-locator-report-v2-ui_auth_src_rule.json | 중간 조사 | 12893 | 삭제 | 부재 확인 | 최종 승인 보존 |
+| SDD/s07-trust-immutable-final-v2.json | 이관 후보 | 7719322 | 삭제 | 부재 확인 | 실제 원장·후보 digest 보존 |
+| /private/tmp/media-server-s07-final-LxmnlL | 검토/실행 작업 폴더 | 14719811 | 삭제 | 부재 확인 | 독립 원본 4개 저장소 이관 |
+| /private/tmp/s07-final-verify-feature-implementation-evidence.json | 검증 출력 | 1311 | 이관 후 삭제 | 부재 확인 | 동일 이름에서 s07-final- 제외해 보존 |
+| /private/tmp/s07-final-verify-project-inventory.json | 검증 출력 | 215460 | 이관 후 삭제 | 부재 확인 | 동일 이름에서 s07-final- 제외해 보존 |
+| /private/tmp/s07-final-verify-v390-review4-feature-semantic-source-approvals.json | 검증 출력 | 413 | 이관 후 삭제 | 부재 확인 | 동일 이름에서 s07-final- 제외해 보존 |
+
+보존 위치는 `docs/release-artifacts/v4.1.0/20260909-s07-final/`이며 독립 원본과
+정적 검증 출력만 포함한다. 원시 영상·비밀번호·세션은 보존하지 않는다.
+
+제품 테스트는 앞선 S07의 동일 코드·환경 실행 증거를 재사용하며 인계만을 이유로 반복하지 않는다.
+새 실행의 token start/end/consumed는 자동 집계 수단이 없어 미집계다.
+명령별 elapsed는 실제 수집값을 사용하고 전체 시간은 추정하지 않는다.
+
+## S07 승인 증적 재정비 실행 계획 (2026-09-09)
+
+### 실행 결과와 독립 승인 차단
+
+27개 ID의 32개 locator를 교정했다. 24개는 anchor/context 동일 위치 이동,
+6개는 같은 anchor의 인접 녹화 코드 context 변경, 2개는 요청 thread 캡처 변경이다.
+메인 검토에서 중간 후보 UI-005/018의 dispatch가 thread411 대신 변수선언410을
+가리킨 오류를 발견해 반려했고 정확한 thread anchor로 교정했다. 최초 오류를 숨기지 않는다.
+최종 후보 digest `46b99819c163277cf8421c058880d20ca4d32b8d2c4ba3cdbcff98099d1bdf59`,
+파일 SHA256 `c34222c100f0a7b9533dd265b8b63be3e110c0cc5e41a81d7c23dafffde161ae`이며
+986 resolved, 5946 role의 실제 line/anchor/context 불일치 0이다. 후보 해석 성공은 승인이 아니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 승인 이관 분할 | 기존 semantic-migration-contract delta 모드 exit0; 986개 중 strict carry687, 독립 검토299 | pass | 초기 hard-changed308 중 위치 보정9개가 동등 상태로 복귀 |
+| positive/negative bindings | 기존 명령의 9개 binding 검사 | pass | 기준 변경 없음 |
+| trust-only bindings | 기존 명령의 6개 trust-only 검사 | pass | 기준 변경 없음 |
+| transaction bindings | 기존 명령의 2개 atomic 교체 검사 | pass | 실제 원장 교체 실행 아님 |
+| input-path bindings | 기존 명령의 5개 입력 경로 검사 | pass | 기준 변경 없음 |
+| producer negative smoke | 기존 명령의 1개 부정 진입 검사 | pass | 기준 변경 없음 |
+| reviewedOn | 기존 명령의 날짜 정규화 검사 1개 | pass | 기준 변경 없음 |
+| snapshot/trust preflight | 기존 명령의 snapshot/trust 사전 검사 6개 | pass | 기준 변경 없음 |
+
+메인은 이전 승인 commit `37e11e1a`부터 현재까지 HTTP runtime·ProductUiCss의 실제 diff를
+읽고, 전체 후보에서 trust를 제외한 의미 필드 차이가 UI-005/018 thread anchor 2개뿐임을
+직접 대조했다. 나머지 297개는 trust-only 변경이다. 하지만 메인도 앞선 진단 후보 생성에
+관여했으므로 이 검토를 독립 승인으로 직렬화하려는 명령이 자동 안전심사에서 거부됐다.
+거부 사유는 독립 검토자 표기에 따른 승인 증적 위조·잘못된 완료 판정 위험이다.
+명령은 실행되지 않았고 approval/audit/applied manifest 교체 및 커밋·푸시는 하지 않았다.
+실행되지 않은 판정 생성 helper는 삭제했으며 우회 실행하지 않는다.
+후보 생성에 관여하지 않은 검토자가 필요한 상태다. 기존 단일 담당자 교체 승인 전에는
+후속 승인 readback·구현 manifest·중앙 인벤토리 최종 재검증을 완료로 보고하지 않는다.
+
+정리: 임시 delta 510975 bytes, migration 370247 bytes 및 폐기된 중간 후보 3개
+(7538768/7719304/7719304 bytes)를 삭제하고 각 경로 부재를 확인했다.
+일회성 parser 재현 helper도 삭제했으며 4입력 회귀는 정식 verifier에 보존돼 있다.
+후속 독립 검토 인계용 최종 후보(7719322 bytes)와 조사 보고(76133 bytes)는
+gitignored `.superpowers/sdd/2026-09-02-v410-recording-foundation-implementation-plan/`에
+작업 중 자료로 유지한다. 공개 승인 증적이나 최종 완료 evidence는 아니며 커밋 대상에 넣지 않는다.
+
+
+스크립트 인벤토리 최초 재개는 9 pass/2 fail(exit1): interpreter dispatch 미인식과 문서 명령
+마침표/help, `scripts/internal/v410_s05_service_lifecycle.test.mjs` 참조 누락을 확인했다.
+parser 보정 전에 실제 함수를 VM에서 실행하는 bare/bash/node/미지원 interpreter 4개 회귀를
+등록한다. 예상 RED는 bash/node만 미인식이며 bare와 미지원 interpreter 거부는 유지한다.
+이는 verifier 내부 parser 검사로 제품 기능 ID를 새로 만들지 않는다.
+기존 `scripts/internal/v410_s05_service_lifecycle.test.mjs`는 S05 launcher의 fake binary/tool
+lifecycle 회귀 파일이다. 이번에는 참조 누락만 복구하며 해당 테스트를 재실행했다고 쓰지 않는다.
+parser 회귀 최초 2 pass/2 fail(exit1)에서 보정 뒤 4 pass/0 fail(exit0)을 확인했다.
+동일 4입력 검사는 정식 스크립트 인벤토리 내부에도 보존한다.
+
+`./server.sh verify-script-inventory` 재검증 exit0,12 pass/0 fail. 임시 파일을 만들지 않는 정적 검사다.
+token start/end/consumed와 전체 elapsed는 미집계이며 source는 실제 명령 출력이다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| interpreter parser | bare/bash/node 인식·python 미지원 4입력 | pass | 최초 bash/node RED 뒤 보정 |
+| dispatch target | server.sh target 존재·실행권한 | pass | 최초도 통과 |
+| documented commands | 문서 명령과 dispatch·직접 help 처리 대조 | pass | 최초 fail 뒤 parser·문서 마침표 보정 |
+| tracked scripts | 추적 스크립트 분류·참조 | pass | 최초 S05 lifecycle test 참조 누락 fail 뒤 보정 |
+| script boundary | 기능 인벤토리의 script 전용 검사 위임 | pass | 최초도 통과 |
+| verifier families | dispatch 상세 중복 없이 verifier family 매핑 | pass | 최초도 통과 |
+| CMake registry | 별도 미등록 CTest 없음 | pass | 최초도 통과 |
+| test_all reachability | 테스트 진입 스크립트 연결 | pass | 최초도 통과 |
+| auth password | 고정 기본 테스트 비밀번호 없음 | pass | 최초도 통과 |
+| EventRecord poll dispatch | 각 poll 실제 dispatch 및 조기 실패 경계 | pass | 최초도 통과 |
+| pass wording | 중요 verifier의 묶음 PASS 문구 방지 | pass | 최초도 통과 |
+| JS option guard | 사용자 노출 JS의 알 수 없는 옵션 거부 | pass | 최초도 통과 |
+
+사용자가 기존 Auth/UI/Media 승인 증적 정비까지 범위를 확장하고 최종 커밋·푸시를 승인했다.
+제품 소스는 동결하고 과거 proof의 동일 의미 위치만 보정한다. 단일 담당자는 후보 생성,
+메인은 독립 source-flow 검토를 수행한다. 후보 생성자는 승인하지 않는다.
+재정비가 완료되기 전에는 아래 계획을 통과 기록으로 사용하지 않는다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 최종 실패 증적 정비와 커밋 마감 승인 | S07 중앙 인벤토리 실패 및 아래 기존 명령 | 승인됨 |
+| 30분 테스트 | 미진행 | 이번 증적 보정은 제품 소스 무변경; 버전 전체 마감 아님 | AGENTS.md 7.6.2 | 실행 승인 없음; 버전 전체 릴리즈 시 필수 |
+| 120분 테스트 | 미진행 | 이번 증적 보정은 lifecycle 추가 변경 없음; 기존 S07 장시간 판정을 대체하지 않음 | AGENTS.md 7.6.2 | 실행 승인 없음 |
+| UI 풀테스트 | 미진행 | source-flow 승인 정합성과 실제 UI 실행은 별개 | AGENTS.md 7.6.3 | 실행 승인 없음; 버전 전체 릴리즈 시 필수 |
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S07 승인 이관 분할 | 기존 audit와 최종 후보 비교 | 기존 `verify-v390-review4-semantic-migration-contract` delta 모드로 strict carry와 독립 검토 ID 전수 분리; 음성 binding 검사도 기존 명령 그대로 수행 | v4.1.0 마감 적용 |
+| S07 독립 승인 readback | 기존 승인 검증 | `verify-v390-review4-feature-semantic-source-approvals`로 후보와 승인 ledger 결속 확인 | v4.1.0 마감 적용 |
+| S07 구현 증적 readback | 구현 manifest 검증 | `verify-feature-implementation-evidence`의 전체 매핑과 부정 입력 검증 결과 확인 | v4.1.0 마감 적용 |
+| S07 중앙 인벤토리 재검증 | 최초 실패 명령 재실행 | `verify-project-inventory`의 기존 986행과 전체 등록 합계·승인 결속 확인 | v4.1.0 마감 적용 |
+| S07 스크립트 인벤토리 | 기존 마감 검증 | `verify-script-inventory`의 dispatch·파일·문서·실행권한 확인 | v4.1.0 마감 적용 |
+| S07 문서 최종 확인 | 문서 변경 후 링크와 공백 검사 | `verify-docs-links`, `verify-docs-ui-assets`, `git diff --check`, staged diff 검사 | v4.1.0 마감 적용 |
+
+
+## S07 최종 문서 검증과 승인 증적 장애 (2026-09-09)
+
+S07 제품 구현 및 아래에 기록된 단계 회귀와 별개로 최종 중앙 인벤토리 검증이 실패했다.
+S07 전체 완료·커밋·푸시로 승격하지 않는다. 실패 뒤 스크립트 인벤토리 검증은 건너뛰었다.
+token start/end/consumed는 집계 인터페이스가 없어 미집계, 전체 elapsed도 미집계다.
+근거 source는 메인의 실제 명령 출력과 담당 에이전트의 읽기 전용 Git/해시 비교다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| S07 최종 staged 공백 검사 | `git diff --cached --check`, exit 0 | pass |
+| S07 최종 문서 링크 | `./server.sh verify-docs-links`, exit 0; 문서 225, 로컬 링크 1045, 이미지 22, 앵커 103, 색인 76, 제외 141, 실패 0 | pass |
+| S07 최종 문서 이미지 | `./server.sh verify-docs-ui-assets`, exit 0; 10 pass/0 fail. 실제 제품 UI 실행을 대체하지 않음 | pass |
+| S07 최종 중앙 인벤토리 | `./server.sh verify-project-inventory`, exit 1; 17 pass/1 fail. inventorySha256 및 REVIEW4 source trust binding 불일치. 출력의 첫 상세 5건은 inventory SHA와 UI-001 owner/dispatch/action, UI-002 owner | fail |
+
+| 미실행 항목 | 사유 | 완료 evidence 사용 |
+| --- | --- | --- |
+| `./server.sh verify-script-inventory` | 앞선 중앙 인벤토리 실패 뒤 건너뜀 | 불가 |
+| 승인 이관·독립 재검토·커밋·푸시 | 기존 Auth/UI/Media 등 증적 재정비 범위 판단 필요. 승인 값을 자동 작성하지 않음 | 불가 |
+
+읽기 전용 비교에서 S07 시작 기준 `db308d4d`의 inventory 해시도 저장된 manifest와
+이미 달랐으며 UI-001/002의 `WebRtcHttpServer::Start` 본문 trust도 이미 달랐다.
+canonical 986행은 기준과 현재 동일하지만 전체 inventory 파일 및 현재 소스는 추가 변경됐다.
+따라서 기존 실패라는 사실만으로 현재 검증을 면제하거나 해시만 교체할 수 없다.
+
+현재 후보 생성 명령
+`node scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs --emit-candidate <임시 후보 파일>`은
+exit 0으로 986개 후보를 만들었으나, 이는 승인 또는 검증 PASS가 아니다.
+후보 digest는 `b8279c305c493f390e6f98c07686236fbeb5d908ea09d62ac32afb531ec1f0ac`이다.
+`review4HardCandidateItems`와 `stableStringify`를 이용해 기존 audit과 비교한 결과
+308개가 달랐고 27개는 unresolved였다. 이 숫자를 제품 고장 개수로 해석하지 않는다.
+미해결 ID는 UI-005, UI-018, AUTH-024, AUTH-029, AUTH-041, SRC-001, SRC-038,
+EVT-009, EVT-010, EVT-011, EVT-016, EVT-060, CLIENT-002, CLIENT-028, CLIENT-029,
+MEDIA-003, MEDIA-007, MEDIA-016, MEDIA-019, LAB-015, LAB-021, LAB-025, LAB-026,
+LAB-027, SAFE-020, SAFE-069, SAFE-084다.
+직접 확인한 UI-005 원인은 reviewed-proof-invalid이며 dispatch/action의 기존
+anchor·line·context가 현재 소스와 맞지 않았다. 나머지를 같은 원인으로 단정하지 않는다.
+공식 migration-aware producer는 unresolved 0 및 변경 항목별 독립 판정이 필요하므로 실행하지 않았다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| `/private/tmp/media-server-s07-final-trust-candidate.json` | 재생성 가능한 읽기 전용 조사 후보 | 7538768 bytes | 요약과 digest를 본 절에 보존 후 삭제 | 삭제 후 exists=false 확인 | 최종 승인 증적 아님 |
+
+
+S07 메인 최종 포트 회귀: `bash scripts/internal/verify_recording_identity.sh`
+exit0,23pass0fail(기존22+accepted-gap-null), 5files3664579bytes 삭제·identity-unit.JDGaNu부재.
+`./server.sh verify-v410-recording-recorder` exit0,79pass0fail·경고0(수락목록조건강화).
+두 명령 전체elapsed는 미집계이며 최종poll값을 전체시간으로 사용하지 않는다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| S07-time-session-accepted-gap-null | 100/200수락 뒤150 null; 메인 identity23개 전체exit0 | pass |
+| 최종 identity23 | 기존22 및 신규gap1 실제통과; cleanup3664579bytes | pass |
+| 최종 recorder79 | 기존79의수락조건Contains강화후전체통과;경고0 | pass |
+
+## S07 수락 PTS exact membership 최종 재검증
+
+메인 시간 snapshot은 최근 수락PTS 최대256개만 보존하고 Session resolver는 Contains(pts)일 때만
+context를 반환한다. range 안이라도 실제 수락기록이 없는PTS와 오래된PTS는 null로 실패안전 처리한다.
+helper 최초RED2 exit1,0.512초,72KiB cleanup→GREEN10 exit0,.440초,88KiB cleanup(메인).
+그 뒤 실제 최종 소스에서 ./server.sh build exit0(runtime/archive/executable100%).
+최종 focused core71+helper10 exit0,4.012초,2664KiB 삭제·부재;
+최종 runtime13 exit0,1.546초,4396KiB 삭제·부재. git diff --check exit0.
+no-SQLite 빌드는 앞서 실제 미링크 통과했고 이번 변경은 SQLite와 무관한 동일 header-only helper이므로
+기존 미링크+이번helper10 근거를 구분하며 미링크 재실행했다고 쓰지 않는다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| final-core: mutation-v2 | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: null-roundtrip | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: reference-roundtrip | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: negative-created-time | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: negative-reason | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: negative-summary | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: negative-observation-range | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: negative-bbox | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: journal-open | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: catalog-open | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: null-put | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: gap-null | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: missing-provenance-null | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: segment-finalize | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: pending-resolve | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: located-roundtrip | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: negative-locator-pts | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: locator-put-reject | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: located-put | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: identity-put-reject | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: identity-restore | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: event-put | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: reasons-merge | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: missing-media-null | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: v1-roundtrip | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: deletion-request | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: deleted-null | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: sqlite-reopen | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: journal-replay | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: jsonl-parity | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: sqlite-projection | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: sqlite-payload-parity | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: sampling-journal-open | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: sampling-catalog-open | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: stop-duration | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: sampling-start | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: sampling-60s-bound | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: stop-once | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: drain-bounded | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: jobs-journal-open | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: jobs-catalog-open | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: ended-state-reuse | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: pending-unrelated-finalize | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: tracker-start | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: runtime-journal-open | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: runtime-catalog-open | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: tracker-terminated-copy | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: tracker-terminated-once | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: observer-tracker-start-event-end | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: observer-event-provenance | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: late-journal-open | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: late-catalog-open | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: delayed-event-before-latest | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: delayed-event-after-end | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: config-zero-reject | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: config-positive | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: critical-overload-visible | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: queue-cap | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: concurrent-stop | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: multi-namespace | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: bounded-id | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: storage-failure-counter | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: pending-segment-finalize | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: pending-finalize-automatic | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: ambiguous-segment-finalize | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: ambiguous-null | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: corrupt-null | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: reference-overflow-visible | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: replay-identity-open | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: replay-identity-memory | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: replay-identity-sqlite | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: 입력 전 위치 없음 | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: 수락 packet anchor | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: 동일 epoch 범위 확장 | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: 캡처된 사본 불변 | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: accepted-pts-exact-membership | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: PTS 되감기 차단 | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: 모호성 이후 추정 복원 금지 | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: epoch 변경 차단 | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: 종료 사본 차단 | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: accepted-pts-history-bound | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-core: S07 temporary cleanup | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-runtime: runtime-configured-interval | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-runtime: runtime-status-limited-scope | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-runtime: runtime-status-global-scope | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-runtime: runtime-real-vp8-fixture | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-runtime: runtime-attach | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-runtime: runtime-observer-exception-isolation | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-runtime: runtime-tap-lock-reentry | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-runtime: runtime-live-fanout-unblocked | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-runtime: runtime-captured-provenance-immutable | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-runtime: runtime-tracking-disabled-independent | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-runtime: runtime-built-event-record-observer | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-runtime: runtime-tap-stop-once | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-runtime: runtime-subscriber-cleanup | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+| final-runtime: runtime temporary cleanup | 최종 수락PTS 변경 후 실제 assertion 충족 | pass |
+
+
+S07-time-session-accepted-gap-null 실행 전 등록: 실제 session에서100/200수락 확인 뒤
+중간150은 null이어야 한다. 기존 writer H264/VP8의 수락시간 검사에는 Contains(first,last)를
+강화한다(기존 제목·총79개 유지). 메인 재검증 예정이다.
+
+S07 시간 포트 실행 전 추가등록(메인): accepted-pts-exact-membership은100/200 수락 후
+150null·100/200true 확인(현재 range-only라 예상RED), accepted-pts-history-bound는
+256개 초과 수락 뒤 오래된PTS null·최근PTS true를 확인한다. 실행 전 예상RED 정정:
+새 Contains stub=false이므로 exact-membership/history-bound 두 assertion 실패 예상.
+메인이 snapshot/identity/writer를
+재검증하고 그 뒤 서브가 최종 build/runtime만 재검증한다.
+
+## S07 status scope 실제 HTTP 보완 결과
+
+`node scripts/internal/verify_v410_recording_ui_contract.mjs --http-auth` 최종 exit0,
+40pass0fail, 5.206초. 제품코드 변경 없이 기존37+신규3 assertion을 실행했다.
+난수env5개·격리registry/recordings·운영env미로드·loopback서버를 사용했다.
+임시seed1760KiB와 fixture2435632bytes306entries 삭제·부재 확인;
+process exit0, RTSP58570/HTTP58571 closed=true. wrapper잔여0KiB 삭제.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| HTTP-scope-1:  I12~I16 principal 0 route 0 expected=200 actual=200 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-2:  I02 principal 0 허용 채널만 status 반환 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-3:  I01 principal 0 실제 비녹화 상태 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-4:  S07-http-observations-global | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-5:  I02/I17 principal 0 route 0 민감 field 비노출 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-6:  I12~I16 principal 0 route 1 expected=200 actual=200 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-7:  I02/I17 principal 0 route 1 민감 field 비노출 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-8:  I12~I16 principal 0 route 2 expected=200 actual=200 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-9:  I12~I16 principal 1 route 0 expected=200 actual=200 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-10:  I02 principal 1 허용 채널만 status 반환 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-11:  I01 principal 1 실제 비녹화 상태 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-12:  S07-http-observations-limited principal 1 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-13:  I02/I17 principal 1 route 0 민감 field 비노출 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-14:  I12~I16 principal 1 route 1 expected=200 actual=200 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-15:  I02/I17 principal 1 route 1 민감 field 비노출 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-16:  I12~I16 principal 1 route 2 expected=200 actual=200 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-17:  I12~I16 principal 2 route 0 expected=403 actual=403 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-18:  I02/I17 principal 2 route 0 민감 field 비노출 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-19:  I12~I16 principal 2 route 1 expected=403 actual=403 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-20:  I02/I17 principal 2 route 1 민감 field 비노출 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-21:  I12~I16 principal 2 route 2 expected=403 actual=403 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-22:  I12~I16 principal 3 route 0 expected=200 actual=200 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-23:  I02 principal 3 허용 채널만 status 반환 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-24:  I01 principal 3 실제 비녹화 상태 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-25:  S07-http-observations-limited principal 3 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-26:  I02/I17 principal 3 route 0 민감 field 비노출 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-27:  I12~I16 principal 3 route 1 expected=403 actual=403 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-28:  I02/I17 principal 3 route 1 민감 field 비노출 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-29:  I12~I16 principal 3 route 2 expected=404 actual=404 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-30:  I12~I16 principal 4 route 0 expected=403 actual=403 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-31:  I02/I17 principal 4 route 0 민감 field 비노출 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-32:  I12~I16 principal 4 route 1 expected=403 actual=403 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-33:  I02/I17 principal 4 route 1 민감 field 비노출 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-34:  I12~I16 principal 4 route 2 expected=403 actual=403 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-35:  I15 미인증 API expected=401 actual=401 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-36:  I15 미인증 API expected=401 actual=401 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-37:  I15 미인증 API expected=401 actual=401 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-38:  I16 operator의 다른 채널 조회 거부 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-39:  I34 viewer 녹화 화면 거부 status=403 | 실제 HTTP 응답 subcheck 충족 | pass |
+| HTTP-scope-40:  I17 인증 fixture plaintext 저장 없음 | 실제 HTTP 응답 subcheck 충족 | pass |
+
+
+S07-08 HTTP scope 추가 실행 전 등록: S07-http-observations-global은 admin 실제 status응답의
+observations 객체 존재, S07-http-observations-limited는 제한 source scope 및 source없는
+operator의 실제 status응답에서 객체 부재를 확인한다. 기존 S06 --http-auth harness에
+추가하며 제품코드 변경 없이 동일 인증검사1회 실행한다. 기존 구현 검증이므로 예상RED라 주장하지 않는다.
+
+### S06 HTTP 실제 개별 결과
+
+`verify-v410-recording-timeline` 최종 exit0; API31/auth37/lifecycle10. 실제 브라우저 조작은 미실행.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| S06 HTTP I01 실제 status projection | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I03/I06 실제 HTTP event 우선 timeline | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I07 HTTP 원본 이벤트 ID 연결 | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I17 HTTP 내부 path 비노출 | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I04 HTTP 잘못된 query 거부 4 | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I04 HTTP 잘못된 query 거부 5 | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I04 HTTP 잘못된 query 거부 6 | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I04 HTTP 잘못된 query 거부 7 | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I04 HTTP 잘못된 query 거부 8 | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I20 Range status expected=206 actual=206 | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I20 Range Content-Range 일치 | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I20 Range body expected=4 actual=4 byte 일치 | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I20 range status expected=206 actual=206 | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I20 range Content-Range 일치 | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I20 range body expected=4 actual=4 byte 일치 | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I20 rAnGe status expected=206 actual=206 | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I20 rAnGe Content-Range 일치 | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I20 rAnGe body expected=4 actual=4 byte 일치 | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I20/I21 실제 Range bytes=2-5 | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I20/I21 실제 Range bytes=10- | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I20/I21 실제 Range bytes=-7 | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I24 HTTP 전체 byte 일치 | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I22 HTTP 범위 거부 bytes=1-0 | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I22 HTTP 범위 거부 bytes=-0 | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I22 HTTP 범위 거부 bytes=0-1,3-4 | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I22 HTTP 범위 거부 bytes=18446744073709551616- | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I22 HTTP 범위 거부 bytes=0-135694 | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I22 HTTP 범위 거부 invalid | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I23 실제 HEAD full | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I23 실제 HEAD bytes=2-5 | 실제 HTTP subcheck 충족 | pass |
+| S06 HTTP I17 HTTP 없는 opaque ID 거부 | 실제 HTTP subcheck 충족 | pass |
+| S06 auth principal0 route0 | expected=200 actual=200 | pass |
+| S06 auth principal0 허용 채널만 status | 반환 채널 제한 확인 | pass |
+| S06 auth principal0 실제 비녹화 상태 | status 실제 상태 확인 | pass |
+| S06 auth principal0 route0 민감 field 비노출 | 실제 body 확인 | pass |
+| S06 auth principal0 route1 | expected=200 actual=200 | pass |
+| S06 auth principal0 route1 민감 field 비노출 | 실제 body 확인 | pass |
+| S06 auth principal0 route2 | expected=200 actual=200 | pass |
+| S06 auth principal1 route0 | expected=200 actual=200 | pass |
+| S06 auth principal1 허용 채널만 status | 반환 채널 제한 확인 | pass |
+| S06 auth principal1 실제 비녹화 상태 | status 실제 상태 확인 | pass |
+| S06 auth principal1 route0 민감 field 비노출 | 실제 body 확인 | pass |
+| S06 auth principal1 route1 | expected=200 actual=200 | pass |
+| S06 auth principal1 route1 민감 field 비노출 | 실제 body 확인 | pass |
+| S06 auth principal1 route2 | expected=200 actual=200 | pass |
+| S06 auth principal2 route0 | expected=403 actual=403 | pass |
+| S06 auth principal2 route0 민감 field 비노출 | 실제 body 확인 | pass |
+| S06 auth principal2 route1 | expected=403 actual=403 | pass |
+| S06 auth principal2 route1 민감 field 비노출 | 실제 body 확인 | pass |
+| S06 auth principal2 route2 | expected=403 actual=403 | pass |
+| S06 auth principal3 route0 | expected=200 actual=200 | pass |
+| S06 auth principal3 허용 채널만 status | 반환 채널 제한 확인 | pass |
+| S06 auth principal3 실제 비녹화 상태 | status 실제 상태 확인 | pass |
+| S06 auth principal3 route0 민감 field 비노출 | 실제 body 확인 | pass |
+| S06 auth principal3 route1 | expected=403 actual=403 | pass |
+| S06 auth principal3 route1 민감 field 비노출 | 실제 body 확인 | pass |
+| S06 auth principal3 route2 | expected=404 actual=404 | pass |
+| S06 auth principal4 route0 | expected=403 actual=403 | pass |
+| S06 auth principal4 route0 민감 field 비노출 | 실제 body 확인 | pass |
+| S06 auth principal4 route1 | expected=403 actual=403 | pass |
+| S06 auth principal4 route1 민감 field 비노출 | 실제 body 확인 | pass |
+| S06 auth principal4 route2 | expected=403 actual=403 | pass |
+| S06 auth 미인증 route0 | expected=401 actual=401 | pass |
+| S06 auth 미인증 route1 | expected=401 actual=401 | pass |
+| S06 auth 미인증 route2 | expected=401 actual=401 | pass |
+| S06 auth operator의 다른 채널 조회 거부 | 실제 subcheck 충족 | pass |
+| S06 auth viewer 녹화 화면 거부 status403 | 실제 subcheck 충족 | pass |
+| S06 auth 인증 fixture plaintext 저장 없음 | 실제 subcheck 충족 | pass |
+| S06 lifecycle 큰 파일 status/길이 | 실제 HTTP/socket/catalog 확인 | pass |
+| S06 lifecycle 64MiB 전체 streaming hash 일치 | 실제 HTTP/socket/catalog 확인 | pass |
+| S06 lifecycle 전체 응답 뒤 hold0 | 실제 HTTP/socket/catalog 확인 | pass |
+| S06 lifecycle 256KiB 경계 Range byte 일치 | 실제 HTTP/socket/catalog 확인 | pass |
+| S06 lifecycle disconnect 전 실제 hold1 | 실제 HTTP/socket/catalog 확인 | pass |
+| S06 lifecycle disconnect 뒤 실제 hold0 | 실제 HTTP/socket/catalog 확인 | pass |
+| S06 lifecycle disconnect 뒤 서버 health200 | 실제 HTTP/socket/catalog 확인 | pass |
+| S06 lifecycle 서버 종료 전 실제 hold1 | 실제 HTTP/socket/catalog 확인 | pass |
+| S06 lifecycle 활성 전송 중 정상 종료 | 실제 HTTP/socket/catalog 확인 | pass |
+| S06 lifecycle 정상 종료 후 영속 hold0 | 실제 HTTP/socket/catalog 확인 | pass |
+
+### S07 미실행/제외 및 범위 경계
+
+| 제목 | 수행내용 | 사유 및 완료 evidence 경계 |
+| --- | --- | --- |
+| 30분 / verify-predev | 장시간 soak | S07 승인 범위 밖, 별도 승인 전 미실행; 버전/릴리즈 완료 evidence 아님 |
+| 120분 | lifecycle·fanout 장시간 누수 | 진행 대상 판단과 실행 승인은 구분; 별도 승인 전 미실행 |
+| UI 풀테스트 / screenshots / rule-ui | 실제 제품 브라우저 조작 | 신규 UI 없음; 이번 승인 범위 밖. 버전전체UI 미실행 필수 blocker 유지 |
+| verify-webrtc-va-metadata | 실제 Chrome/WebRTC 영상 metadata | 운영 서버 사용 위험과 브라우저 범위로 미실행; compiled metadata/tracker 회귀로 이 명령 PASS 대체하지 않음 |
+| verify-tracker-stability | 기본 운영 env·실제서버 | 운영환경 미접촉을 위해 미실행; actual ObjectTracker focused/analysis-state만 검증 |
+| Ops static 전용 명령 | verify-ops-client-ui --browser-mode static | 별도 실행하지 않음; 일반 auth에서 shell/selector/role 경계 확인한 범위만 기록 |
+| 외부 provider/ONVIF 실기기 | 외부 endpoint 호출 | 승인 범위 밖, 미실행/완료 evidence 아님 |
+| 메인 최종문서 검사 | diff/docs/inventory/script 검증 | 기록 인계 뒤 메인 실행 예정; 이 인계의 최종 PASS로 기재하지 않음 |
+
+S01/S03/S04 및 recorder의 기존 성공 assertion은 기존 verifier가 개별 성공 출력을 하지 않아
+각 정의 파일의 검사와 실제0fail summary를 근거로 한다. 가상의 개별 출력이나 미실행 추가검사를 만들지 않는다.
+
+
+### S07 메인 시간 포트 및 기존 회귀 개별 근거
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| h264 S07 delta 미수락 시간 위치 없음 | 메인 canonical recorder exit0/79pass0fail; 기존71+신규8; 정의 recording_segment_writer_smoke.cpp | pass |
+| h264 S07 수락 시간 epoch와 PTS 일치 | 메인 canonical recorder exit0/79pass0fail; 기존71+신규8; 정의 recording_segment_writer_smoke.cpp | pass |
+| h264 S07 종료 시간 위치 없음 | 메인 canonical recorder exit0/79pass0fail; 기존71+신규8; 정의 recording_segment_writer_smoke.cpp | pass |
+| S07 rollback 모호한 시간 위치 없음 | 메인 canonical recorder exit0/79pass0fail; 기존71+신규8; 정의 recording_segment_writer_smoke.cpp | pass |
+| vp8 S07 delta 미수락 시간 위치 없음 | 메인 canonical recorder exit0/79pass0fail; 기존71+신규8; 정의 recording_segment_writer_smoke.cpp | pass |
+| vp8 S07 수락 시간 epoch와 PTS 일치 | 메인 canonical recorder exit0/79pass0fail; 기존71+신규8; 정의 recording_segment_writer_smoke.cpp | pass |
+| vp8 S07 종료 시간 위치 없음 | 메인 canonical recorder exit0/79pass0fail; 기존71+신규8; 정의 recording_segment_writer_smoke.cpp | pass |
+| VP8 S07 rollback 모호한 시간 위치 없음 | 메인 canonical recorder exit0/79pass0fail; 기존71+신규8; 정의 recording_segment_writer_smoke.cpp | pass |
+| V410-IDMAP-I01 | 메인 verify-recording-identity 실제 pass 출력 | pass |
+| V410-IDMAP-I02 | 메인 verify-recording-identity 실제 pass 출력 | pass |
+| V410-IDMAP-I03 | 메인 verify-recording-identity 실제 pass 출력 | pass |
+| V410-IDMAP-I04 | 메인 verify-recording-identity 실제 pass 출력 | pass |
+| V410-IDMAP-I05 | 메인 verify-recording-identity 실제 pass 출력 | pass |
+| V410-IDMAP-I06 | 메인 verify-recording-identity 실제 pass 출력 | pass |
+| V410-IDMAP-I07 | 메인 verify-recording-identity 실제 pass 출력 | pass |
+| V410-IDMAP-I08 | 메인 verify-recording-identity 실제 pass 출력 | pass |
+| V410-IDMAP-I09 | 메인 verify-recording-identity 실제 pass 출력 | pass |
+| V410-IDMAP-I10 | 메인 verify-recording-identity 실제 pass 출력 | pass |
+| V410-IDMAP-I11 | 메인 verify-recording-identity 실제 pass 출력 | pass |
+| V410-IDMAP-I12 | 메인 verify-recording-identity 실제 pass 출력 | pass |
+| V410-IDMAP-I13 | 메인 verify-recording-identity 실제 pass 출력 | pass |
+| S07-time-session-start | 메인 verify-recording-identity 실제 pass 출력 | pass |
+| S07-time-session-input | 메인 verify-recording-identity 실제 pass 출력 | pass |
+| S07-time-session-range | 메인 verify-recording-identity 실제 pass 출력 | pass |
+| S07-time-session-ambiguous-channel | 메인 verify-recording-identity 실제 pass 출력 | pass |
+| S07-time-session-restart | 메인 verify-recording-identity 실제 pass 출력 | pass |
+| S07-time-session-restart-null | 메인 verify-recording-identity 실제 pass 출력 | pass |
+| S07-time-finalize-success-observer-exception-isolated | 메인 verify-recording-identity 실제 pass 출력 | pass |
+| S07-time-finalize-failure-no-observer-stop-null | 메인 verify-recording-identity 실제 pass 출력 | pass |
+| S07-time-session-blocked-writer-null-nonblocking | 메인 verify-recording-identity 실제 pass 출력 | pass |
+
+Auth 수량 해석: shell 요약은19+72+146=237이지만 실제 pass 출력은239개다.
+verify_auth_workflow.sh의 SourceRegistry API field/type freeze 및 Client PublishedView projection
+field/type freeze는 Python helper의 별도 pass 출력이며 shell counter에 포함되지 않는다.
+기존 S06의239개 제목과 이번239개를 직접 대조해 onlyNow/onlyOld 모두0을 확인했다.
+
+신규 observation status의 limited/global guard는 runtime 함수-level assertion으로 검증했다.
+HTTP route가 RequireScope(source:read:*)를 해당 bool로 전달하는 diff를 확인했고 기존 HTTP auth37과
+일반 auth239개 출력은 통과했다. 이 시점에는 신규 counter의 HTTP 직접검증이 없었고,
+이후 위 S07 status scope 실제 HTTP 보완40개에서 global1/limited2 응답을 직접 확인했다.
+
+### S05 실제 개별 출력
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| S05-1 | [등록기 단위 테스트] PASS 정상 정식 등록 27개 | pass |
+| S05-2 | [등록기 단위 테스트] PASS 다른 등록군 추가와 일관된 총계 허용 | pass |
+| S05-3 | [등록기 단위 테스트] PASS 전체 총계 불일치 거부 | pass |
+| S05-4 | [등록기 단위 테스트] PASS canonical 등록 수 변경 거부 | pass |
+| S05-5 | [등록기 단위 테스트] PASS S05 등록 수 변경 거부 | pass |
+| S05-6 | [등록기 단위 테스트] PASS 등록군 중복 거부 | pass |
+| S05-7 | [등록기 단위 테스트] PASS 음수 등록 수 거부 | pass |
+| S05-8 | [등록기 단위 테스트] PASS 소수 등록 수 거부 | pass |
+| S05-9 | [등록기 단위 테스트] PASS 등록 범위 표 누락 거부 | pass |
+| S05-10 | [등록기 단위 테스트] PASS 누락 ID | pass |
+| S05-11 | [등록기 단위 테스트] PASS 중복 ID | pass |
+| S05-12 | [등록기 단위 테스트] PASS 추가 ID | pass |
+| S05-13 | [등록기 단위 테스트] PASS 빈 테스트 영역 | pass |
+| S05-14 | [등록기 단위 테스트] PASS 없는 구현 심볼 | pass |
+| S05-15 | [등록기 단위 테스트] PASS 없는 테스트 함수 | pass |
+| S05-16 | [등록기 단위 테스트] PASS 없는 check | pass |
+| S05-17 | [등록기 단위 테스트] PASS 중복 check ID | pass |
+| S05-18 | [등록기 단위 테스트] PASS 문서 행 누락 | pass |
+| S05-19 | [등록기 단위 테스트] PASS 실행 소비자 정상 합성 입력 | pass |
+| S05-20 | [등록기 단위 테스트] PASS 실제 check 결과 누락 | pass |
+| S05-21 | [등록기 단위 테스트] PASS EOS assertion 제거와 감소한 summary도 거부 | pass |
+| S05-22 | [등록기 단위 테스트] PASS 실패 summary | pass |
+| S05-23 | [등록기 단위 테스트] PASS 성공 summary만으로 PASS 금지 | pass |
+| S05-24 | [등록기 단위 테스트] PASS 중복 application 결과 | pass |
+| S05-25 | [등록기 단위 테스트] PASS runtime 로그 전체 누락 | pass |
+| S05-26 | [등록기 단위 테스트] PASS runtime 시나리오 누락 | pass |
+| S05-27 | [등록기 단위 테스트] PASS 종료 취소 runtime 시나리오 누락 | pass |
+| S05-28 | [등록기 단위 테스트] PASS runtime assertion 누락 및 감소 summary | pass |
+| S05-29 | [등록기 단위 테스트] PASS runtime assertion 중복 및 증가 summary | pass |
+| S05-30 | [등록기 단위 테스트] PASS runtime summary 실패 | pass |
+| S05-31 | [등록기 단위 테스트] PASS runtime summary 중복 | pass |
+| S05-32 | [등록기 단위 테스트] PASS runtime failure marker | pass |
+| S05-33 | [등록기 단위 테스트] PASS runtime mutation 결과 누락 | pass |
+| S05-34 | [등록기 단위 테스트] PASS runtime mutation 결과 중복 | pass |
+| S05-35 | [등록기 단위 테스트] PASS runtime negative summary 실패 | pass |
+| S05-36 | [s05-assert] "기본 pending event link가 유효해야 함: " | pass |
+| S05-37 | [s05-assert] "terminal 대기 UTC 확장 요청은 additive 계약으로 round-trip해야 함" | pass |
+| S05-38 | [s05-assert] "terminal 대기 요청이 현재 범위를 축소하면 거부해야 함" | pass |
+| S05-39 | [s05-assert] "미해석 후속 PTS는 기존 UTC 범위와 별도 field로 round-trip해야 함" | pass |
+| S05-40 | [s05-assert] "미해석 후속 PTS를 소비하지 않은 terminal 상태를 거부해야 함" | pass |
+| S05-41 | [s05-assert] "서로 겹치는 ordered overlap을 거부해야 함" | pass |
+| S05-42 | [s05-assert] "overlap/missing이 requested range를 정확히 분할하지 않으면 거부해야 함" | pass |
+| S05-43 | [s05-assert] "unknown link status를 영속 계약으로 허용하면 안 됨" | pass |
+| S05-44 | [s05-assert] "locator 없는 fallback evidence를 거부해야 함" | pass |
+| S05-45 | [s05-assert] "journal open 실패: " | pass |
+| S05-46 | [s05-assert] "catalog open 실패: " | pass |
+| S05-47 | [s05-assert] "event link 갱신은 SQLite primary projection에서 검증해야 함" | pass |
+| S05-48 | [s05-assert] "segment finalize 실패: " | pass |
+| S05-49 | [s05-assert] "segment finalize 실패: " | pass |
+| S05-50 | [s05-assert] "segment finalize 실패: " | pass |
+| S05-51 | [s05-assert] "segment finalize 실패: " | pass |
+| S05-52 | [s05-assert] "segment finalize 실패: " | pass |
+| S05-53 | [s05-assert] "retention policy 실패: " | pass |
+| S05-54 | [s05-assert] "이벤트 저장 worker를 막지 않고 파생 job을 pending으로 enqueue해야 함" | pass |
+| S05-55 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| S05-56 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| S05-57 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| S05-58 | [s05-assert] "완전한 archive 파생 완료 뒤 ready clip을 반환해야 함" | pass |
+| S05-59 | [s05-assert] "event link ID와 derived clip path가 반환되어야 함" | pass |
+| S05-60 | [s05-assert] "반개구간 overlap은 맞닿기만 한 segment를 제외해야 함" | pass |
+| S05-61 | [s05-assert] "media PTS event 범위가 segment epoch 기준 UTC로 변환되어야 함" | pass |
+| S05-62 | [s05-assert] "overlap segment가 UTC 순서로 전달되어야 함" | pass |
+| S05-63 | [s05-assert] "파생 성공 link가 catalog complete로 저장되어야 함" | pass |
+| S05-64 | [s05-assert] "파생 완료 뒤 원본 hold가 해제되어야 함" | pass |
+| S05-65 | [s05-assert] "파생 완료 뒤 원본 hold가 해제되어야 함" | pass |
+| S05-66 | [s05-assert] "파생 완료 뒤 원본 hold가 해제되어야 함" | pass |
+| S05-67 | [s05-assert] "같은 event update는 파생 clip을 중복 생성하지 않아야 함" | pass |
+| S05-68 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| S05-69 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| S05-70 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| S05-71 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| S05-72 | [s05-assert] "완료 event의 더 넓은 update는 range별 결정 ID로 다시 파생해야 함" | pass |
+| S05-73 | [s05-assert] "segment finalize 실패: " | pass |
+| S05-74 | [s05-assert] "segment finalize 실패: " | pass |
+| S05-75 | [s05-assert] "cam-b policy 실패: " | pass |
+| S05-76 | [s05-assert] "archive gap이 있으면 complete로 표시하면 안 됨" | pass |
+| S05-77 | [s05-assert] "link가 정확한 missing UTC range를 보존해야 함" | pass |
+| S05-78 | [s05-assert] "frame-buffer fallback 뒤 같은 link가 fallback evidence로 갱신되어야 함" | pass |
+| S05-79 | [s05-assert] "같은 event link의 overlap/fallback 갱신 뒤에도 SQLite projection을 유지해야 함" | pass |
+| S05-80 | [s05-assert] "cam-late policy 실패: " | pass |
+| S05-81 | [s05-assert] "segment finalize 실패: " | pass |
+| S05-82 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| S05-83 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| S05-84 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| S05-85 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| S05-86 | [s05-assert] "anchor 없는 PTS를 finalized segment의 실제 PTS/UTC mapping으로 복구해야 함" | pass |
+| S05-87 | [s05-assert] "PTS epoch anchor가 없으면 임의 UTC 연결이나 파생을 하면 안 됨" | pass |
+| S05-88 | [s05-assert] "anchor 없는 PTS는 UTC field가 아니라 재해석 가능한 PTS range로 보존해야 함" | pass |
+| S05-89 | [s05-assert] "같은 긴 prefix의 event ID도 SHA-256 기반 결정 ID가 충돌하면 안 됨" | pass |
+| S05-90 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| S05-91 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| S05-92 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| S05-93 | [s05-assert] "확장 회귀 journal open 실패: " | pass |
+| S05-94 | [s05-assert] "확장 회귀 initial catalog open 실패: " | pass |
+| S05-95 | [s05-assert] "segment finalize 실패: " | pass |
+| S05-96 | [s05-assert] "cleanup 확장 fixture 저장 실패: " | pass |
+| S05-97 | [s05-assert] "cleanup 확장 fixture 저장 실패: " | pass |
+| S05-98 | [s05-assert] "확장 회귀 restart catalog open 실패: " | pass |
+| S05-99 | [s05-assert] "확장 policy 실패" | pass |
+| S05-100 | [s05-assert] "cleanup 확장 remux 실패는 한 번만 실행되어야 함" | pass |
+| S05-101 | [s05-assert] "실패/Partial도 보류 확장 요청을 현재 범위로 소비해 보존해야 함" | pass |
+| S05-102 | [s05-assert] "실패/Partial도 보류 확장 요청을 현재 범위로 소비해 보존해야 함" | pass |
+| S05-103 | [s05-assert] "PTS 확장은 다른 범위 ID를 사용해야 함" | pass |
+| S05-104 | [s05-assert] "미해석 PTS 확장을 이전 complete clip으로 응답하면 안 됨" | pass |
+| S05-105 | [s05-assert] "segment finalize 실패: " | pass |
+| S05-106 | [s05-assert] "PTS 확장 2회는 최초 포함 총 3회 파생해야 함" | pass |
+| S05-107 | [s05-assert] "quota journal open 실패: " | pass |
+| S05-108 | [s05-assert] "quota catalog open 실패: " | pass |
+| S05-109 | [s05-assert] "segment finalize 실패: " | pass |
+| S05-110 | [s05-assert] "segment finalize 실패: " | pass |
+| S05-111 | [s05-assert] "quota policy 실패: " | pass |
+| S05-112 | [s05-assert] "event quota는 oldest event를 정리해 새 event write를 허용해야 함: ok" | pass |
+| S05-113 | [s05-assert] "event quota 충족을 위해 continuous를 삭제하면 안 됨" | pass |
+| S05-114 | [s05-assert] "event quota는 oldest eligible event를 삭제해야 함" | pass |
+| S05-115 | [s05-assert] "policy 재등록 실패: " | pass |
+| S05-116 | [s05-assert] "policy 제거가 진행 중 event reservation을 지우면 안 됨" | pass |
+| S05-117 | [s05-assert] "명시적 complete 뒤 event reservation ID를 재사용할 수 있어야 함" | pass |
+| S05-118 | [s05-assert] "queue journal open 실패: " | pass |
+| S05-119 | [s05-assert] "queue catalog open 실패: " | pass |
+| S05-120 | [s05-assert] "segment finalize 실패: " | pass |
+| S05-121 | [s05-assert] "queue policy 실패: " | pass |
+| S05-122 | [s05-assert] "bounded queue 밖 durable pending도 완료 뒤 다시 흡수해야 함" | pass |
+| S05-123 | [s05-assert] "긴 event remux가 다른 이벤트의 durable link admission을 동기 차단하면 안 됨" | pass |
+| S05-124 | [s05-assert] "cleanup 실패 시 source hold와 event reservation을 성공처럼 해제하면 안 됨" | pass |
+| S05-125 | [s05-assert] "terminal marker unlink 실패 시 source/output hold를 유지해야 함" | pass |
+| S05-126 | [s05-assert] "terminal marker unlink 실패 시 event reservation을 유지해야 함" | pass |
+| S05-127 | [s05-assert] "marker 복구 중 event/fallback 갱신은 자원·단계를 보존하고 확장 요청을 내구 대기해야 함" | pass |
+| S05-128 | [s05-assert] "terminal hold 해제 실패를 Complete로 기록하면 안 됨" | pass |
+| S05-129 | [s05-assert] "terminal 복구 중 event/fallback 갱신이 release 단계를 덮어쓰면 안 됨" | pass |
+| S05-130 | [s05-assert] "복구 완료 뒤 내구 대기한 범위 확장은 같은 source epoch의 새 segment로 파생해야 함" | pass |
+| S05-131 | [s05-assert] "terminal complete commit retry fixture 저장 실패: " | pass |
+| S05-132 | [s05-assert] "complete commit 재시도는 다른 pending event의 source hold를 해제하면 안 됨" | pass |
+| S05-133 | [s05-assert] "overflow fixture 이전 hold_count가 저장 범위를 넘으면 안 됨" | pass |
+| S05-134 | [s05-assert] "hold overflow fixture 준비 실패: " | pass |
+| S05-135 | [s05-assert] "event source lease hold_count overflow를 사전에 거부해야 함" | pass |
+| S05-136 | [s05-assert] "hold fixture journal open 실패: " | pass |
+| S05-137 | [s05-assert] "hold fixture catalog open 실패: " | pass |
+| S05-138 | [s05-assert] "segment finalize 실패: " | pass |
+| S05-139 | [s05-assert] "segment finalize 실패: " | pass |
+| S05-140 | [s05-assert] "hold pending link 저장 실패: " | pass |
+| S05-141 | [s05-assert] "hold replay journal open 실패: " | pass |
+| S05-142 | [s05-assert] "hold replay catalog open 실패: " | pass |
+| S05-143 | [s05-assert] "재시작 replay가 terminal 전 output/source hold를 함께 복원해야 함" | pass |
+| S05-144 | [s05-assert] "terminal stage fixture event link 조회" | pass |
+| S05-145 | [s05-assert] "terminal stage fixture 저장 실패: " | pass |
+| S05-146 | [s05-assert] "terminal stage replay journal open: " | pass |
+| S05-147 | [s05-assert] "terminal stage catalog open: " | pass |
+| S05-148 | [s05-assert] "complete commit 단계 재시작은 이미 해제된 output/source hold를 복원하면 안 됨" | pass |
+| S05-149 | [s05-assert] "terminal Complete 기록 전 source 삭제 요청을 차단해야 함" | pass |
+| S05-150 | [s05-assert] "terminal Complete 기록 전 output 삭제 요청을 차단해야 함" | pass |
+| S05-151 | [s05-assert] "restart journal open 실패: " | pass |
+| S05-152 | [s05-assert] "restart catalog open 실패: " | pass |
+| S05-153 | [s05-assert] "segment finalize 실패: " | pass |
+| S05-154 | [s05-assert] "segment finalize 실패: " | pass |
+| S05-155 | [s05-assert] "restart pending link 저장 실패: " | pass |
+| S05-156 | [s05-assert] "재시작은 이미 finalized된 결정적 event segment를 재파생 없이 연결해야 함" | pass |
+| S05-157 | [s05-assert] "재시작 복구에서 event clip을 중복 파생하면 안 됨" | pass |
+| S05-158 | [s05-assert] "segment finalize 실패: " | pass |
+| S05-159 | [s05-assert] "conflict pending link 저장 실패: " | pass |
+| S05-160 | [s05-assert] "다른 channel/class의 동일 segment ID를 event 결과로 오인하면 안 됨" | pass |
+| S05-161 | [s05-assert] "segment ID conflict에서 파생을 실행하면 안 됨" | pass |
+| S05-162 | [s05-assert] "실제 H264/MP4 source를 video 재인코딩 없이 remux해야 함: " | pass |
+| S05-163 | [s05-assert] "remux 결과 파일과 size가 일치해야 함" | pass |
+| S05-164 | [s05-assert] "event clip actual range는 keyframe 확대를 측정해 requested range와 분리해야 함" | pass |
+| S05-165 | [s05-assert] "event clip이 source segment 전체 단순 연결보다 작아야 함" | pass |
+| S05-166 | [s05-assert] "remux 결과 checksum과 crash cleanup marker를 남겨야 함" | pass |
+| S05-167 | [s05-assert] "동일 final은 소유 artifact가 없는 terminal 충돌로 거부하고 기존 clip을 보존해야 함" | pass |
+| S05-168 | [s05-assert] "파생 H264/MP4 clip이 끝까지 demux/parse 가능해야 함: " | pass |
+| S05-169 | [s05-assert] "nonce partial은 foreign 고정 partial을 보존하면서 독립 파생되어야 함" | pass |
+| S05-170 | [s05-assert] "event remux recovery journal open 실패: " | pass |
+| S05-171 | [s05-assert] "재시작은 marker nonce와 일치하는 owned crash partial만 정리해야 함: " | pass |
+| S05-172 | [s05-assert] "owned crash partial 복구 뒤 동일 event clip 재파생이 성공해야 함: " | pass |
+| S05-173 | [s05-assert] "VP8/WebM test source 생성 실패: " | pass |
+| S05-174 | [s05-assert] "VP8/WebM test source demux 실패: " | pass |
+| S05-175 | [s05-assert] "검증되지 않은 VP8/WebM event remux는 산출물 없이 fail-closed해야 함" | pass |
+| S05-176 | - PASS: application header is standard-only with exact DTO/default manifests | pass |
+| S05-177 | - PASS: application source owns exact canonical mapping and overwrite semantics | pass |
+| S05-178 | - PASS: transport has zero canonical bypass and exact projection/call ordering | pass |
+| S05-179 | - PASS: recording link is durably admitted before the bounded storage queue can drop an event | pass |
+| S05-180 | - PASS: event clip output remains fd-bound and measured before no-replace publication | pass |
+| S05-181 | - PASS: compiled fake canonical matrix preserves all fields failure/null outputs and lifecycle order | pass |
+| S05-182 | - PASS: S05 composition starts the bridge before ingress and drains it after storage | pass |
+| S05-183 | [s05-runtime-assert] {"case":"disabled-admit","message":"실제 EventStorage worker 진입을 관찰한다"} | pass |
+| S05-184 | [s05-runtime-assert] {"case":"disabled-admit","message":"worker 처리 전에 첫 이벤트 연결이 내구 접수된다"} | pass |
+| S05-185 | [s05-runtime-assert] {"case":"disabled-admit","message":"실제 저장 큐 크기 2에서 다섯 접수 중 두 이벤트가 퇴출된다"} | pass |
+| S05-186 | [s05-runtime-assert] {"case":"disabled-admit","message":"퇴출 이벤트를 포함한 다섯 PTS 연결이 worker 해제 전에 보존된다"} | pass |
+| S05-187 | [s05-runtime-assert] {"case":"disabled-admit","message":"저장 worker drain 뒤에도 다섯 연결과 시간축이 보존된다"} | pass |
+| S05-188 | [s05-runtime-assert] {"case":"disabled-admit","message":"JSONL 설정에 따른 실제 저장 수와 빈 큐를 확인한다"} | pass |
+| S05-189 | [s05-runtime-assert] {"case":"disabled-admit","message":"JSONL 비활성은 파일 없음이고 활성은 생존 이벤트 세 개와 link ID가 일치한다"} | pass |
+| S05-190 | [s05-runtime-assert] {"case":"disabled-recover","message":"새 프로세스의 빈 SQLite를 journal로 재구축해 다섯 PTS 연결을 복구한다"} | pass |
+| S05-191 | [s05-runtime-assert] {"case":"disabled-recover","message":"퇴출 이벤트까지 UTC 매핑 후 다섯 실제 H264 파생 파일이 완료된다"} | pass |
+| S05-192 | [s05-runtime-assert] {"case":"disabled-recover","message":"같은 이벤트 재접수는 복구된 다섯 clip ID를 바꾸거나 추가하지 않는다"} | pass |
+| S05-193 | [s05-runtime-assert] {"case":"enabled-admit","message":"실제 EventStorage worker 진입을 관찰한다"} | pass |
+| S05-194 | [s05-runtime-assert] {"case":"enabled-admit","message":"worker 처리 전에 첫 이벤트 연결이 내구 접수된다"} | pass |
+| S05-195 | [s05-runtime-assert] {"case":"enabled-admit","message":"실제 저장 큐 크기 2에서 다섯 접수 중 두 이벤트가 퇴출된다"} | pass |
+| S05-196 | [s05-runtime-assert] {"case":"enabled-admit","message":"퇴출 이벤트를 포함한 다섯 PTS 연결이 worker 해제 전에 보존된다"} | pass |
+| S05-197 | [s05-runtime-assert] {"case":"enabled-admit","message":"저장 worker drain 뒤에도 다섯 연결과 시간축이 보존된다"} | pass |
+| S05-198 | [s05-runtime-assert] {"case":"enabled-admit","message":"JSONL 설정에 따른 실제 저장 수와 빈 큐를 확인한다"} | pass |
+| S05-199 | [s05-runtime-assert] {"case":"enabled-admit","message":"JSONL 비활성은 파일 없음이고 활성은 생존 이벤트 세 개와 link ID가 일치한다"} | pass |
+| S05-200 | [s05-runtime-assert] {"case":"enabled-recover","message":"새 프로세스의 빈 SQLite를 journal로 재구축해 다섯 PTS 연결을 복구한다"} | pass |
+| S05-201 | [s05-runtime-assert] {"case":"enabled-recover","message":"퇴출 이벤트까지 UTC 매핑 후 다섯 실제 H264 파생 파일이 완료된다"} | pass |
+| S05-202 | [s05-runtime-assert] {"case":"enabled-recover","message":"같은 이벤트 재접수는 복구된 다섯 clip ID를 바꾸거나 추가하지 않는다"} | pass |
+| S05-203 | [s05-runtime-assert] {"case":"shutdown-cancel","message":"post-event frame 대기 중인 실제 storage worker를 관찰한다"} | pass |
+| S05-204 | [s05-runtime-assert] {"case":"shutdown-cancel","message":"종료 신호가 post-event frame 대기를 깨워 1초 안에 worker를 drain한다"} | pass |
+| S05-205 | [s05-runtime-assert] {"case":"shutdown-cancel","message":"frame 대기 취소 뒤에도 EventRecord JSONL을 유실하지 않는다"} | pass |
+| S05-206 | [s05-runtime-mutation] disabled-guard: PASS (실제 assertion의 RED 확인) | pass |
+| S05-207 | [s05-runtime-mutation] prequeue-admission: PASS (실제 assertion의 RED 확인) | pass |
+
+### S06 read-model 실제 개별 결과
+
+동일 코드의 최종 재검증에서도 각 모드76개 통과했다. 아래 이름은 JSONL/SQLite 각각 독립 실행한 결과다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| S06-read-1 | V410-S06-I03 catalog timeline item 반환; JSONL | pass |
+| S06-read-2 | I09 opaque 재생 URL; JSONL | pass |
+| S06-read-3 | I03 끝 경계 인접 제외; JSONL | pass |
+| S06-read-4 | I03 다른 채널 제외; JSONL | pass |
+| S06-read-5 | I04 음수 시간 거부; JSONL | pass |
+| S06-read-6 | I04 역전 시간 거부; JSONL | pass |
+| S06-read-7 | I04 빈 페이지 제한 거부; JSONL | pass |
+| S06-read-8 | I04 과대 페이지 거부; JSONL | pass |
+| S06-read-9 | I05 큰 offset overflow 없이 빈 페이지; JSONL | pass |
+| S06-read-10 | I16 다른 채널 media 거부; JSONL | pass |
+| S06-read-11 | I17 경로형 ID 거부; JSONL | pass |
+| S06-read-12 | I09 fd 크기 MIME 확인; JSONL | pass |
+| S06-read-13 | I25 재생 hold 중 삭제 거부; JSONL | pass |
+| S06-read-14 | I19 경로 교체 뒤 열린 fd 기존 byte 유지; JSONL | pass |
+| S06-read-15 | I18 leaf symlink 거부; JSONL | pass |
+| S06-read-16 | I09 누락 파일 거부; JSONL | pass |
+| S06-read-17 | I09 크기 불일치 거부; JSONL | pass |
+| S06-read-18 | I09 비일반 파일 거부; JSONL | pass |
+| S06-read-19 | I06 같은 시간 event 우선; JSONL | pass |
+| S06-read-20 | I07 정확한 이벤트 ID 연결; JSONL | pass |
+| S06-read-21 | I10 실제 범위와 요청 범위 분리; JSONL | pass |
+| S06-read-22 | I05 정렬 뒤 페이지 적용; JSONL | pass |
+| S06-read-23 | I25 모든 실패 경로 hold 반환 후 삭제 허용; JSONL | pass |
+| S06-read-24 | I08 deletion pending 거부; JSONL | pass |
+| S06-read-25 | I08 pending timeline 재생 불가; JSONL | pass |
+| S06-read-26 | I11 검증한 fallback 영상 fd 제공; JSONL | pass |
+| S06-read-27 | I11 JSON이 아닌 실제 media byte 반환; JSONL | pass |
+| S06-read-28 | I11 fallback timeline을 complete로 과장하지 않음; JSONL | pass |
+| S06-read-29 | I11 중복 key manifest 거부; JSONL | pass |
+| S06-read-30 | I11 event 바인딩 불일치 거부; JSONL | pass |
+| S06-read-31 | I11 byteSize 문자열 타입 거부; JSONL | pass |
+| S06-read-32 | I11 64KiB 초과 manifest 거부; JSONL | pass |
+| S06-read-33 | I18 fallback media symlink 거부; JSONL | pass |
+| S06-read-34 | I09 fallback media 크기 불일치 거부; JSONL | pass |
+| S06-read-35 | I19 fallback 교체 뒤 기존 fd byte 유지; JSONL | pass |
+| S06-read-36 | I17 다른 채널 fallback ID 충돌도 거부; JSONL | pass |
+| S06-read-37 | I03 기존 숫자형 channel ID 유지; JSONL | pass |
+| S06-read-38 | I08/I17 삭제 완료 ID의 fallback 재사용 거부; JSONL | pass |
+| S06-read-39 | I20 closed Range 시작과 길이; JSONL | pass |
+| S06-read-40 | I26 열린 gate 신규 요청 admission; JSONL | pass |
+| S06-read-41 | I26 닫힌 gate 신규 요청 거부; JSONL | pass |
+| S06-read-42 | I26 active flight 이전 drain 완료 금지; JSONL | pass |
+| S06-read-43 | I26 마지막 flight 해제 뒤 drain 완료; JSONL | pass |
+| S06-read-44 | I26 활성 socket shutdown 확인; JSONL | pass |
+| S06-read-45 | I25 동시 삭제 경쟁 0; JSONL | pass |
+| S06-read-46 | I26 경쟁 뒤 fd 반환 0; JSONL | pass |
+| S06-read-47 | I25 동시 삭제 경쟁 1; JSONL | pass |
+| S06-read-48 | I26 경쟁 뒤 fd 반환 1; JSONL | pass |
+| S06-read-49 | I25 동시 삭제 경쟁 2; JSONL | pass |
+| S06-read-50 | I26 경쟁 뒤 fd 반환 2; JSONL | pass |
+| S06-read-51 | I25 동시 삭제 경쟁 3; JSONL | pass |
+| S06-read-52 | I26 경쟁 뒤 fd 반환 3; JSONL | pass |
+| S06-read-53 | I25 동시 삭제 경쟁 4; JSONL | pass |
+| S06-read-54 | I26 경쟁 뒤 fd 반환 4; JSONL | pass |
+| S06-read-55 | I25 동시 삭제 경쟁 5; JSONL | pass |
+| S06-read-56 | I26 경쟁 뒤 fd 반환 5; JSONL | pass |
+| S06-read-57 | I25 동시 삭제 경쟁 6; JSONL | pass |
+| S06-read-58 | I26 경쟁 뒤 fd 반환 6; JSONL | pass |
+| S06-read-59 | I25 동시 삭제 경쟁 7; JSONL | pass |
+| S06-read-60 | I26 경쟁 뒤 fd 반환 7; JSONL | pass |
+| S06-read-61 | I25 동시 삭제 경쟁 8; JSONL | pass |
+| S06-read-62 | I26 경쟁 뒤 fd 반환 8; JSONL | pass |
+| S06-read-63 | I25 동시 삭제 경쟁 9; JSONL | pass |
+| S06-read-64 | I26 경쟁 뒤 fd 반환 9; JSONL | pass |
+| S06-read-65 | I25 동시 삭제 경쟁 10; JSONL | pass |
+| S06-read-66 | I26 경쟁 뒤 fd 반환 10; JSONL | pass |
+| S06-read-67 | I25 동시 삭제 경쟁 11; JSONL | pass |
+| S06-read-68 | I26 경쟁 뒤 fd 반환 11; JSONL | pass |
+| S06-read-69 | I25 동시 삭제 경쟁 12; JSONL | pass |
+| S06-read-70 | I26 경쟁 뒤 fd 반환 12; JSONL | pass |
+| S06-read-71 | I25 동시 삭제 경쟁 13; JSONL | pass |
+| S06-read-72 | I26 경쟁 뒤 fd 반환 13; JSONL | pass |
+| S06-read-73 | I25 동시 삭제 경쟁 14; JSONL | pass |
+| S06-read-74 | I26 경쟁 뒤 fd 반환 14; JSONL | pass |
+| S06-read-75 | I25 동시 삭제 경쟁 15; JSONL | pass |
+| S06-read-76 | I26 경쟁 뒤 fd 반환 15; JSONL | pass |
+| S06-read-77 | V410-S06-I03 catalog timeline item 반환; SQLite | pass |
+| S06-read-78 | I09 opaque 재생 URL; SQLite | pass |
+| S06-read-79 | I03 끝 경계 인접 제외; SQLite | pass |
+| S06-read-80 | I03 다른 채널 제외; SQLite | pass |
+| S06-read-81 | I04 음수 시간 거부; SQLite | pass |
+| S06-read-82 | I04 역전 시간 거부; SQLite | pass |
+| S06-read-83 | I04 빈 페이지 제한 거부; SQLite | pass |
+| S06-read-84 | I04 과대 페이지 거부; SQLite | pass |
+| S06-read-85 | I05 큰 offset overflow 없이 빈 페이지; SQLite | pass |
+| S06-read-86 | I16 다른 채널 media 거부; SQLite | pass |
+| S06-read-87 | I17 경로형 ID 거부; SQLite | pass |
+| S06-read-88 | I09 fd 크기 MIME 확인; SQLite | pass |
+| S06-read-89 | I25 재생 hold 중 삭제 거부; SQLite | pass |
+| S06-read-90 | I19 경로 교체 뒤 열린 fd 기존 byte 유지; SQLite | pass |
+| S06-read-91 | I18 leaf symlink 거부; SQLite | pass |
+| S06-read-92 | I09 누락 파일 거부; SQLite | pass |
+| S06-read-93 | I09 크기 불일치 거부; SQLite | pass |
+| S06-read-94 | I09 비일반 파일 거부; SQLite | pass |
+| S06-read-95 | I06 같은 시간 event 우선; SQLite | pass |
+| S06-read-96 | I07 정확한 이벤트 ID 연결; SQLite | pass |
+| S06-read-97 | I10 실제 범위와 요청 범위 분리; SQLite | pass |
+| S06-read-98 | I05 정렬 뒤 페이지 적용; SQLite | pass |
+| S06-read-99 | I25 모든 실패 경로 hold 반환 후 삭제 허용; SQLite | pass |
+| S06-read-100 | I08 deletion pending 거부; SQLite | pass |
+| S06-read-101 | I08 pending timeline 재생 불가; SQLite | pass |
+| S06-read-102 | I11 검증한 fallback 영상 fd 제공; SQLite | pass |
+| S06-read-103 | I11 JSON이 아닌 실제 media byte 반환; SQLite | pass |
+| S06-read-104 | I11 fallback timeline을 complete로 과장하지 않음; SQLite | pass |
+| S06-read-105 | I11 중복 key manifest 거부; SQLite | pass |
+| S06-read-106 | I11 event 바인딩 불일치 거부; SQLite | pass |
+| S06-read-107 | I11 byteSize 문자열 타입 거부; SQLite | pass |
+| S06-read-108 | I11 64KiB 초과 manifest 거부; SQLite | pass |
+| S06-read-109 | I18 fallback media symlink 거부; SQLite | pass |
+| S06-read-110 | I09 fallback media 크기 불일치 거부; SQLite | pass |
+| S06-read-111 | I19 fallback 교체 뒤 기존 fd byte 유지; SQLite | pass |
+| S06-read-112 | I17 다른 채널 fallback ID 충돌도 거부; SQLite | pass |
+| S06-read-113 | I03 기존 숫자형 channel ID 유지; SQLite | pass |
+| S06-read-114 | I08/I17 삭제 완료 ID의 fallback 재사용 거부; SQLite | pass |
+| S06-read-115 | I20 closed Range 시작과 길이; SQLite | pass |
+| S06-read-116 | I26 열린 gate 신규 요청 admission; SQLite | pass |
+| S06-read-117 | I26 닫힌 gate 신규 요청 거부; SQLite | pass |
+| S06-read-118 | I26 active flight 이전 drain 완료 금지; SQLite | pass |
+| S06-read-119 | I26 마지막 flight 해제 뒤 drain 완료; SQLite | pass |
+| S06-read-120 | I26 활성 socket shutdown 확인; SQLite | pass |
+| S06-read-121 | I25 동시 삭제 경쟁 0; SQLite | pass |
+| S06-read-122 | I26 경쟁 뒤 fd 반환 0; SQLite | pass |
+| S06-read-123 | I25 동시 삭제 경쟁 1; SQLite | pass |
+| S06-read-124 | I26 경쟁 뒤 fd 반환 1; SQLite | pass |
+| S06-read-125 | I25 동시 삭제 경쟁 2; SQLite | pass |
+| S06-read-126 | I26 경쟁 뒤 fd 반환 2; SQLite | pass |
+| S06-read-127 | I25 동시 삭제 경쟁 3; SQLite | pass |
+| S06-read-128 | I26 경쟁 뒤 fd 반환 3; SQLite | pass |
+| S06-read-129 | I25 동시 삭제 경쟁 4; SQLite | pass |
+| S06-read-130 | I26 경쟁 뒤 fd 반환 4; SQLite | pass |
+| S06-read-131 | I25 동시 삭제 경쟁 5; SQLite | pass |
+| S06-read-132 | I26 경쟁 뒤 fd 반환 5; SQLite | pass |
+| S06-read-133 | I25 동시 삭제 경쟁 6; SQLite | pass |
+| S06-read-134 | I26 경쟁 뒤 fd 반환 6; SQLite | pass |
+| S06-read-135 | I25 동시 삭제 경쟁 7; SQLite | pass |
+| S06-read-136 | I26 경쟁 뒤 fd 반환 7; SQLite | pass |
+| S06-read-137 | I25 동시 삭제 경쟁 8; SQLite | pass |
+| S06-read-138 | I26 경쟁 뒤 fd 반환 8; SQLite | pass |
+| S06-read-139 | I25 동시 삭제 경쟁 9; SQLite | pass |
+| S06-read-140 | I26 경쟁 뒤 fd 반환 9; SQLite | pass |
+| S06-read-141 | I25 동시 삭제 경쟁 10; SQLite | pass |
+| S06-read-142 | I26 경쟁 뒤 fd 반환 10; SQLite | pass |
+| S06-read-143 | I25 동시 삭제 경쟁 11; SQLite | pass |
+| S06-read-144 | I26 경쟁 뒤 fd 반환 11; SQLite | pass |
+| S06-read-145 | I25 동시 삭제 경쟁 12; SQLite | pass |
+| S06-read-146 | I26 경쟁 뒤 fd 반환 12; SQLite | pass |
+| S06-read-147 | I25 동시 삭제 경쟁 13; SQLite | pass |
+| S06-read-148 | I26 경쟁 뒤 fd 반환 13; SQLite | pass |
+| S06-read-149 | I25 동시 삭제 경쟁 14; SQLite | pass |
+| S06-read-150 | I26 경쟁 뒤 fd 반환 14; SQLite | pass |
+| S06-read-151 | I25 동시 삭제 경쟁 15; SQLite | pass |
+| S06-read-152 | I26 경쟁 뒤 fd 반환 15; SQLite | pass |
+
+
+## V410 S07 최초 실패·수정 이력 및 회귀 명령
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| V2 parser stub RED | exit1; 예상8fail;2.118초;1556KiB cleanup | fail |
+| V2 parser GREEN | exit0;24pass;2.053초;1556KiB cleanup | pass |
+| identity/media/reasons/parity RED | exit1;예상4fail;2.155초;1580KiB cleanup | fail |
+| core 보완 GREEN | exit0;31pass;2.167초;1584KiB cleanup | pass |
+| projector stub RED | exit1;예상3fail;2.443초;1624KiB cleanup | fail |
+| projector GREEN | exit0;38pass;2.643초;1796KiB cleanup | pass |
+| ended state/unrelated finalize RED | exit1;예상2fail;2.652초;1816KiB cleanup | fail |
+| ended state/unrelated finalize GREEN | exit0;2.594초;1868KiB cleanup | pass |
+| tracker termination RED | exit1;예상1fail;3.180초;2144KiB cleanup | fail |
+| tracker termination GREEN | exit0;3.073초;2140KiB cleanup | pass |
+| observer adapter stub RED | exit1;예상2fail;3.183초;2144KiB cleanup | fail |
+| observer adapter 최초 구현 | exit1;실제2fail;3.166초;2168KiB cleanup. 숫자만인 track ID가 opaque 계약에서 거부됨 | fail |
+| observer adapter 수정 | track- prefix로 기존 opaque 계약 유지;exit0;3.159초;2164KiB cleanup | pass |
+| status scope RED | exit1;limited-scope 예상1fail;1.628초;4396KiB cleanup | fail |
+| status scope GREEN | exit0;runtime13pass;1.624초;4396KiB cleanup | pass |
+| delayed event GREEN | 기존 RED2 후 독립 event enqueue;exit0;3.809초;2240KiB cleanup | pass |
+| corrupt fixture 보완 GREEN | 기존 실제fail1 후 실제 헤더손상검증;exit0;3.796초;2508KiB cleanup | pass |
+| 악성 V2 SQLite replay RED | exit1;SQLite payload 예상1fail;3.327초;2576KiB cleanup | fail |
+| 악성 V2 SQLite replay GREEN | 거부 raw mutation 대신 최종 유효 V2 집합 투영;exit0;3.603초;2652KiB cleanup | pass |
+| 최종 build | ./server.sh build;exit0;media_server runtime/archive 및 executable 100%;전체 elapsed 미집계(비동기 start/end 미계측) | pass |
+| S01 계약 | ./server.sh verify-v410-recording-contracts;exit0;45pass0fail;0.993초 | pass |
+| S03 catalog | ./server.sh verify-v410-recording-catalog;exit0;45pass0fail+composition정적9;2.266초 | pass |
+| S04 retention | ./server.sh verify-v410-recording-retention;exit0;56pass0fail;2.249초 | pass |
+| S05 event | ./server.sh verify-v410-event-recording;exit0;등록기35/compiled140/application7/runtime23/negative2/등록연결27 전부pass;전체 elapsed 미집계 | pass |
+| S06 최초 sandbox | ./server.sh verify-v410-recording-timeline;exit1;read-model76×2 통과 후 listen EPERM;5.916초;각 root cleanup 확인 | fail |
+| S06 재검증 | 동일 난수env5·격리저장소, loopback 허용;exit0;read-model76×2/HTTP31/auth37/lifecycle10;18.590초;모든 server·port·temp cleanup | pass |
+| S02 recorder 메인 | ./server.sh verify-v410-recording-recorder;최종79pass0fail exit0;canonical 환경 경고0;전체 elapsed/삭제전크기 미집계 | pass |
+| identity 메인 | bash scripts/internal/verify_recording_identity.sh;최종22pass0fail exit0;전체 elapsed 미집계;5files3649985bytes cleanup | pass |
+
+위 cleanup은 모두 스크립트 trap/존재 검사로 임시 root 부재를 확인했다. S05 runtime은
+47files/10685350bytes 삭제. S06 재검증 API2163446bytes/auth2435632bytes/lifecycle203218686bytes
+삭제, 각 process exit0 및 RTSP/HTTP closed=true. 최초 S06 환경실패는 서버 시작 전 실패로
+541867bytes 삭제하고 외부 wrapper 잔여4KiB도 삭제했다. 메인 recorder는
+`/tmp/media_server_v410_recording_recorder-*` 직접 조회0건; 최초 raw 직접실행은78pass와 GI/GTK
+경고가 있었고 canonical 환경78pass/경고0 후 VP8 rollback 추가 최종79pass다.
+identity 최초FAIL은 신규채널에도 기존 cachedGOP가 재전달되는 동작을 fixture 기대치가 놓친 것으로,
+채널 stop 전후+1 비교로 수정했다. 최초5files3521387bytes, 중간3530462bytes도 삭제·부재 확인.
+
+각 RED는 완료 evidence가 아니다. 최초 parser/catalog의 TDD 절차 한계는 앞의 사전등록 절에
+그대로 유지한다. 기존 V1/segment/event replay 의미는 바꾸지 않고 V2 projection만 보완했다.
+
+
+## V410 S07 영향 회귀 개별 출력
+
+아래는 최종 실제 실행 출력의 모든 `[pass]` assertion을 옮긴 것이다.
+analysis-state는 mock metadata·compiled VA 계층 및 실제 bounded clip encoding 검사이며,
+실제 브라우저/장시간/외부 provider 통과를 뜻하지 않는다. Auth는 운영 설정을 읽지 않는
+임시 registry·users·recording root 및 프로세스 전용 난수 env5개로 실행했다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| analysis-state-1: appearance hook dependency scan omits TensorRT references | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-2: appearance hook dependency scan omits OpenVINO references | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-3: ObjectTracker creates first track id | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-4: ObjectTracker preserves immature direction-history track | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-5: ObjectTracker direction score selects continuing movement | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-6: ObjectTracker association confidence is exposed | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-7: ObjectTracker class consistency blocks id stealing | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-8: ObjectTracker vehicle category keeps jittered labels stable | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-9: ObjectTracker lost buffer reacquires short gap | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-10: ObjectTracker reacquired state clears after stable observation | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-11: ObjectTracker motion prediction reacquires fast moving track | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-12: Kalman-lite tracker reacquires short-gap predicted track | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-13: Kalman-lite tracker filters bbox center | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-14: ByteTrack hides low-confidence association from public metadata | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-15: ByteTrack preserves id through low-confidence association | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-16: ByteTrack blocks new public id from low-confidence detection | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-17: ByteTrack lost buffer floor reacquires short detection gap | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-18: TrackHealth uses tracker associationConfidence metadata | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-19: TrackStateManager keeps same numeric track id per channel | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-20: TrackStateManager preserves stream channel separation | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-21: TrackStateManager caps observation history | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-22: TrackStateManager caps trajectory history | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-23: TrackStateManager retains first seen timestamp | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-24: TrackStateManager retains last seen timestamp | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-25: TrackStateManager transitions active track to lost | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-26: TrackStateManager records lost since timestamp | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-27: TrackHealth records missed frame state | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-28: TrackHealth records lost state | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-29: TrackingIssueReport records missed-frame spike | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-30: TrackingIssueReport records lost track issue | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-31: TrackingIssueReport explains lost-track scenario impact | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-32: TrackStateManager transitions lost track to terminated | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-33: TrackStateManager cleans expired terminated tracks | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-34: TrackStateManager preserves other channel active tracks during cleanup | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-35: TrackStateManager enforces max active tracks per stream | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-36: TrackHealth flags overlap risk | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-37: TrackHealth marks overlap risk as unstable | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-38: TrackingIssueReport records overlap risk | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-39: TrackingIssueReport explains overlap operator action | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-40: TrackHealth records direction instability | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-41: TrackingIssueReport records instability issue | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-42: TrackingIssueReport explains instability impact | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-43: TrackStateManager exposes lost to reacquired lifecycle | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-44: TrackStateManager metrics count reacquired tracks | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-45: TrackingIssueReport records reacquired transition | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-46: TrackingIssueReport explains reacquired review action | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-47: TrackingIssueReport serializes v1 schema | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-48: TrackingIssueReport omits raw counter-only wording | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-49: NoOpAppearanceExtractor leaves appearance profile absent | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-50: NoOpAppearanceExtractor reports disabled runtime state | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-51: NoOp fallback leaves worker queue and crop counters at zero | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-52: NoOpAppearanceExtractor does not call real model | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-53: TrackStateManager passes bounded RGB bbox crop | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-54: TrackStateManager attaches appearance embedding | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-55: TrackStateManager records appearance extractor completion | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-56: Appearance policy enforces per stream Re-ID rate limit | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-57: Missing Re-ID model path falls back to NoOp | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-58: Re-ID model without checksum gate falls back to NoOp | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-59: Invalid Re-ID model checksum falls back to NoOp | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-60: Missing Re-ID model provenance falls back to NoOp | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-61: Mismatched Re-ID model checksum falls back to NoOp | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-62: TrackStateManager calculates ground plane speed | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-63: TrackStateManager records ground plane speed units | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-64: SceneContextBuilder includes active track | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-65: SceneContextBuilder calculates current zone | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-66: SceneContextBuilder detects restricted zone membership | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-67: SceneContextBuilder calculates dwell time | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-68: SceneContextBuilder uses bbox bottom center foot point | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-69: SceneContextBuilder projects foot point to ground plane | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-70: SceneContextBuilder projects trajectory ground points | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-71: SceneContextBuilder calculates ground plane speed | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-72: SceneContextBuilder falls back when homography is unavailable | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-73: SceneContextBuilder calculates line crossing state | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-74: SceneContextBuilder keeps channel scoped geometry | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-75: SceneContextBuilder keeps vaRule scoped geometry | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-76: EventManager emits confirmed active candidate | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-77: EventManager suppresses duplicate candidate during cooldown | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-78: EventManager emits candidate after cooldown | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-79: EventManager records emitted lifecycle counter | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-80: EventManager records suppressed lifecycle counter | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-81: EventManager clears inactive candidate state | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-82: EventManager cleans expired lifecycle state | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-83: ScenarioEngine emits intrusion dwell candidate | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-84: IntrusionDwellScenario emits enter phase | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-85: IntrusionDwellScenario emits dwell phase | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-86: IntrusionDwellScenario suppresses duplicate dwell event | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-87: IntrusionDwellScenario emits re-entry phase | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-88: IntrusionDwellScenario cleans stale track state | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-89: ScenarioEngine keeps scenario output stable | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-90: ReEntryScenario records exit observation | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-91: ReEntryScenario emits re-entry candidate | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-92: ReEntryScenario enforces cooldown | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-93: ReEntryScenario enforces re-entry window | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-94: ReEntryScenario emits configured cross-zone re-entry candidate | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-95: ReEntryScenario filters configured cross-zone destinations | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-96: WrongDirectionScenario accepts allowed direction | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-97: WrongDirectionScenario emits wrong direction candidate | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-98: WrongDirectionScenario records raw direction | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-99: WrongDirectionScenario enforces cooldown | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-100: IntrusionAfterLineCrossingScenario records line crossing | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-101: IntrusionAfterLineCrossingScenario requires zone entry | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-102: IntrusionAfterLineCrossingScenario requires dwell time | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-103: IntrusionAfterLineCrossingScenario suppresses duplicate event | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-104: IntrusionAfterLineCrossingScenario enforces crossing window | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-105: LoiteringScenario requires dwell time | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-106: LoiteringScenario tracks trajectory duration | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-107: LoiteringScenario enforces movement radius | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-108: LoiteringScenario suppresses duplicate event | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-109: LoiteringScenario clears state after exit | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-110: ZoneOccupancyScenario counts occupancy | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-111: ZoneOccupancyScenario requires dwell time | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-112: ZoneOccupancyScenario selects representative track | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-113: ZoneOccupancyScenario suppresses duplicate event | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-114: ZoneOccupancyScenario filters by zone | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-115: EventStorage writes event record | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-116: EventStorage queries event records | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-117: EventStorage filters archive records | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-118: EventStorage compacts archived records | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-119: EventStorage preserves active record count | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-120: VLM observation store writes side storage | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-121: VLM observation query correlates EventRecord by eventId | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-122: VLM observation correlation report preserves event payload boundary | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-123: VLM summary search returns sidecar candidates | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-124: VLM summary search preserves EventRecord correlation boundary | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-125: VLM rule suggestion returns manual-save candidates | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-126: VLM rule suggestion preserves no-auto-apply boundary | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-127: V300 S04 background feature queue enqueues evidence tasks | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-128: V300 S04 queue worker stores structured FeatureSet revision | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-129: V300 S04 lazy trigger runs without default-on provider behavior | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-130: V300 S04 missing-runtime stays VLM-only | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-131: V300 S04 timeout drops VLM task without media backpressure | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-132: V300 S04 invalid output is discarded without FeatureSet retention | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-133: V300 S05 stores feature-only revision without raw prompt or response | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-134: V300 S05 rejects raw prompt retention material | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-135: V300 S05 rejects raw provider response retention material | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-136: V300 S05 rejects raw evidence reference retention material | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-137: V300 S05 rejects raw provider request bodies with whitespace | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-138: V300 S05 reanalysis creates a new revision without provider replay | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-139: V300 S05 previous revision is preserved for review history | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-140: V300 S05 stale reanalysis revision is rejected | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-141: V300 S06 natural language query converts to constrained Search DSL | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-142: V300 S06 text tags and filters match event documents | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-143: V300 S06 rejects identity or watchlist search | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-144: V300 S06 preserves provider/schema/media boundary invariants | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-145: V300 S07 indexes EventRecord FeatureSet EvidenceManifest and review state | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-146: V300 S07 indexes only latest FeatureSet revision | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-147: V300 S07 skips orphan and privacy rejected records | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-148: V300 S07 rebuild clears stale search results | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-149: V300 S07 preserves provider/schema/media/UI boundary invariants | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-150: V310 S07 keeps optional vector search default-off | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-151: V310 S07 indexes only explicit non-identifying quality embeddings | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-152: V310 S07 ranks optional vector results without provider calls | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-153: V310 S07 rebuild clears stale vector entries | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-154: V310 S07 preserves schema/media/client boundaries | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-155: V300 S09 dry-run selects expired non-pinned events only | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-156: V300 S09 pin exclusion preserves pinned evidence | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-157: V300 S09 apply deletes evidence feature and search lifecycle together | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-158: V310 S08 apply deletes encoded clip lifecycle entries with event retention cleanup | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-159: V300 S09 audit trail records dry-run and apply cleanup boundaries | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-160: V300 S09 preserves provider/schema/media/viewer boundary invariants | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-161: Event recorder writes snapshot media | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-162: Event recorder writes bbox crop media | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-163: Event recorder writes clip media | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-164: Event recorder encodes bounded event clip media | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-165: Event recorder records encoded clip queue status | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-166: Event recorder writes V300 evidence manifest | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-167: Event recorder writes pre-event-post frame bundle manifest | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-168: SAFE-083 continuousRecording/archiveApi encoded clip preserves schema and client boundaries | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-169: SAFE-084 eventFrame evidence manifest preserves required fields and raw-material boundary | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-170: Event recorder records snapshot evidence path | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-171: Event recorder records VLM evidence refs | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-172: Event recorder records clip evidence path | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-173: VaRuntimeMetadata builder emits schema | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-174: VaRuntimeMetadata builder emits frame identity | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-175: VaRuntimeMetadata builder emits tracked objects | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-176: VaRuntimeMetadata builder emits scenario states | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-177: VaRuntimeMetadata builder preserves WebRTC compatibility | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-178: VaMetadata subscription filters by channel | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-179: VaMetadata subscription filters by stream | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-180: VaMetadata subscription filters by rule | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-181: VaMetadata subscription filters by scenario | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-182: Rule-level tracking policy resolves profile tracker | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-183: Rule-level tracking policy resolves profile Re-ID mode | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-184: SAFE-083 compiled encoded clip readback | 실제 assertion 충족; 명령 exit 0 | pass |
+| analysis-state-185: SAFE-084 compiled evidence manifest readback | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-1: server health ok (http://127.0.0.1:8091) | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-2: missing users root redirect: 302:/setup | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-3: setup auth shell selectors | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-4: server health ok (http://127.0.0.1:8091) | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-5: existing users file with hashless admin redirects to setup: 302:/setup | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-6: hashless admin login blocked by setup gate: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-7: server health ok (http://127.0.0.1:8091) | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-8: weak admin password rejected: 400 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-9: initial admin password setup: 302 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-10: auth users file owner-only mode: 600 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-11: setup blocked after completion: 302:/login | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-12: unauthenticated root redirect: 302:/login | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-13: login auth shell selectors | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-14: client access request auth shell selectors | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-15: passwordless admin login rejected: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-16: admin login landing: 302:/ops/home | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-17: admin whoami username and role | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-18: logout redirects to login landing: 302:/login | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-19: logout invalidates session: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-20: server health ok (http://127.0.0.1:8091) | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-21: weak admin password rejected: 400 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-22: initial admin password setup: 302 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-23: auth users file owner-only mode: 600 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-24: setup blocked after completion: 302:/login | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-25: admin login landing: 302:/ops/home | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-26: admin whoami username and role | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-27: ops users access request selectors | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-28: permissive auth users file re-hardened: 600 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-29: viewer view scope assigned | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-30: viewer privileged scopes blocked | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-31: user API hash redaction | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-32: viewer custom privileged scope rejected: 400 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-33: integrator live view scope rejected: 400 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-34: viewer login: 302 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-35: viewer ops forbidden: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-36: admin reset password: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-37: admin reset revokes existing viewer session: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-38: admin reset forces next-login password change | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-39: mustChangePassword landing: 302:/password/change | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-40: password change auth shell selectors | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-41: password change to temporary password succeeds: 302 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-42: temporary password login succeeds: 302 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-43: password_history original password immediate history reuse rejected: 400 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-44: password history count rotation succeeds: 302 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-45: history rotation password login succeeds: 302 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-46: original password restored after history count rotation: 302 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-47: SaveUsersFile-backed password change lifecycle final login succeeds: 302 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-48: admin disables viewer: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-49: disabled user login rejected: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-50: admin restores viewer: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-51: restored viewer login succeeds: 302 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-52: last active admin disable rejected: 409 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-53: last active admin role downgrade rejected: 409 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-54: login lockout stored | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-55: invite token issued once | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-56: invite expiry and setup URL visible once | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-57: invite list API exposes issued invite summary | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-58: invite list API redacts token material | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-59: users-only save after pending invite: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-60: pending invite preserved across users save | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-61: invite setup HTTP response renders required form | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-62: invite setup auth shell selectors | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-63: invite password setup: 302 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-64: invited viewer login: 302 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-65: invite.used consumed/expired token runtime status split: 401:410 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-66: existing invite target baseline login: 302 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-67: existing invite baseline scope visible | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-68: pending invite keeps existing session: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-69: pending invite does not change existing role/scope | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-70: pending invite future scope not applied | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-71: existing invite accepted: 302 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-72: accepted invite revokes previous session: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-73: existing invite new password login: 302 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-74: accepted invite applies role/scope | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-75: duplicate pending access request rejected: 409 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-76: access request unsafe viewId rejected: 400 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-77: oversized access request body rejected: 413 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-78: access request rate budget allows fourth counted attempt | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-79: access request rate budget allows fifth counted attempt: 201 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-80: access request per-peer rate limit enforced: 429 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-81: ops users access request reject API: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-82: rejected access request visible in ops API | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-83: pending access request form and pending-state copy | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-84: pending form submission remains denied login before approval: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-85: approved request invite expiry visible once | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-86: approved request keeps user pending until invite setup | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-87: users-only save after approved request: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-88: approved request preserved across users save | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-89: approved request invite preserved across users save | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-90: approved request password setup: 302 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-91: approved request viewer login: 302 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-92: server health ok (http://127.0.0.1:8091) | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-93: setup required root: 302:/setup | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-94: weak admin password rejected: 400 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-95: initial admin password setup: 302 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-96: auth users file owner-only mode: 600 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-97: setup blocked after completion: 302:/login | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-98: logout root: 302:/login | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-99: admin login landing: 302:/ops/home | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-100: admin whoami username and role | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-101: admin root: 302:/ops/home | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-102: SourceRegistry API field/type freeze SHA-256=d6db4f603fbde478e5a4097daa8f5da4ba41e7cbdb42dea26bbda0546380763f | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-103: operator login route: 302:/ops/home | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-104: AUTH-029 operator with source write scope sees enabled source write UI | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-105: readonly operator login route: 302:/ops/home | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-106: Set-Cookie session viewer login route: 302:/client/live | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-107: integrator login keeps API-only landing: 302:/auth/whoami | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-108: viewer ops denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-109: viewer VLM install/connection UI denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-110: undefined route BuildHttpResponse returns 404: 404 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-111: legacy /lab product UI BuildHttpResponse returns 404: 404 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-112: unauth ops sources API denied: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-113: unauth ops views API denied: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-114: unauth ops runtime API denied: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-115: unauth ops rules catalog API denied: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-116: unauth ops events API denied: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-117: unauth ops ONVIF import draft API denied: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-118: unauth ops ONVIF probe draft API denied: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-119: unauth ops users API denied: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-120: unauth ops invites API denied: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-121: unauth ops access requests API denied: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-122: viewer ops sources API denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-123: viewer ops views API denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-124: viewer ops runtime API denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-125: viewer ops ONVIF import draft API denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-126: viewer ops ONVIF probe draft API denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-127: viewer ops users API denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-128: viewer ops invites API denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-129: viewer ops access requests API denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-130: readonly operator ops read allowed: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-131: ops runtime API read allowed: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-132: ops rules catalog API read allowed: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-133: ops events status API read allowed: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-134: AUTH-028 readonly operator sees ops sources UI with source write lock policy | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-135: readonly operator admin users API denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-136: readonly operator invite API denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-137: readonly operator invite list API denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-138: readonly operator access requests API denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-139: source write scope required for view create: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-140: source write scope required for ONVIF import draft: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-141: source write scope required for ONVIF probe draft: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-142: source write scope required for view update: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-143: source write scope required for source update: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-144: rule write scope required for lab rule write: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-145: rule write scope required for lab vaRule write: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-146: rule write scope required for lab profile write: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-147: unauth VLM profile API denied: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-148: viewer VLM profile API denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-149: readonly operator VLM profile read allowed: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-150: rule write scope required for VLM profile write: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-151: invalid VLM profile fixture rejected: 400 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-152: VLM profile write creates storage document | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-153: VLM profile read lists stored profile with canonical evaluation status | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-154: VLM profile delete allowed for admin: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-155: VLM profile delete readback confirms vlm-route-smoke absence | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-156: AUTH-029 operator source write scope creates source | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-157: AUTH-029 operator rule write scope saves profile: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-158: ONVIF import draft API allowed for source writer | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-159: ONVIF import draft redacts credential reference and endpoint | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-160: ONVIF probe draft API allowed for source writer | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-161: ONVIF probe draft redacts credential reference and endpoint | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-162: WHEP source registry create allowed | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-163: WHEP source canonical duplicate denied: 409 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-164: WHEP source visible to ops API | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-165: integrator client shell denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-166: unauth client views API denied: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-167: unauth client live layout preference API denied: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-168: unauth client dashboard API denied: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-169: unauth client WebRTC wrapper denied: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-170: public access request API remains unauthenticated: 201 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-171: Client PublishedView projection field/type freeze SHA-256=f289c7a2e21e47ca7439ecdf12949cc106c9aa2b6e1b80eeaab4327980bc6d62 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-172: viewer assigned view visible in client API | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-173: SRC-022 viewer client API keeps PublishedView allowedRuleIds list | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-174: SRC-022 viewer client API omits unassigned vaRule from allowedRuleIds | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-175: SRC-022 viewer client detail API keeps PublishedView allowedRuleIds list | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-176: viewer unassigned view hidden from client API | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-177: viewer client live layout preference separates user and role presets | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-178: viewer client live layout preference save allowed: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-179: viewer client live layout preference rejects source URL material: 400 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-180: viewer cross-view dashboard denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-181: viewer cross-view WebRTC wrapper denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-182: integrator client views list omits live views | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-183: integrator event scope allowed: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-184: unauth scoped event search denied: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-185: viewer scoped event search role denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-186: integrator scoped event search allowed: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-187: integrator scoped event search cross-view denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-188: integrator metadata scope allowed: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-189: integrator dashboard scope denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-190: unauth generic WebRTC denied: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-191: viewer generic WebRTC denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-192: unauth WHEP denied: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-193: viewer WHEP denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-194: unauth WHIP publish denied: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-195: viewer WHIP publish denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-196: unauth metadata websocket denied: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-197: viewer metadata websocket denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-198: plain request omits CORS allow origin:  | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-199: cross-origin actual request denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-200: cross-origin response omits CORS allow origin:  | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-201: same-origin actual reflects origin: http://127.0.0.1:8091 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-202: cross-origin preflight denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-203: same-origin preflight allowed: 204 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-204: same-origin preflight reflects origin: http://127.0.0.1:8091 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-205: invalid content-length rejected: 400 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-206: server survives invalid content-length: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-207: oversized content-length rejected: 413 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-208: server survives oversized content-length: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-209: WebRTC session id uses random token shape | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-210: WebRTC session capability issued | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-211: unauth session follow-up denied: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-212: viewer session follow-up denied: 403 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-213: session capability follow-up allowed: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-214: session capability delete allowed: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-215: client WebRTC wrapper returns client session alias | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-216: client WebRTC wrapper hides internal signaling detail | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-217: client PublishedView maxTiles enforced: 409 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-218: client WebRTC wrapper source override denied: 400 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-219: client alias rejected on generic session route: 404 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-220: client wrapper ICE allowed: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-221: client wrapper delete allowed: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-222: client vaRule matching PublishedView source allowed | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-223: client vaRule wrapper delete allowed: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-224: client vaRule source mismatch denied: 400 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-225: server health ok (http://127.0.0.1:8091) | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-226: admin login landing: 302:/ops/home | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-227: admin whoami username and role | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-228: malformed source registry fail closed: 500 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-229: malformed source registry not overwritten | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-230: server health ok (http://127.0.0.1:8091) | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-231: admin login landing: 302:/ops/home | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-232: admin whoami username and role | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-233: malformed published view registry fail closed: 500 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-234: malformed published view registry not overwritten | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-235: server health ok (http://127.0.0.1:8091) | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-236: token mode unauthenticated request denied: 401 | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-237: server health ok (http://127.0.0.1:8091) | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-238: auth off root redirects to ops: 302:/ops/home | 실제 assertion 충족; 명령 exit 0 | pass |
+| auth-239: auth off development admin accesses users API: 200 | 실제 assertion 충족; 명령 exit 0 | pass |
+
+Auth 최종 command elapsed: bootstrap19/0 3.824초, users72/0 5.330초, routes146/0 9.609초.
+전체18.768초, 임시184KiB 삭제·부재 확인. 최초 bootstrap19/0 후 users exit9는
+난수 첫 '-'가 node 옵션으로 파싱된 테스트 입력 실패였고 routes는 건너뛰었다.
+최초5.170초/160KiB cleanup. 안전한 prefix를 붙인 fresh 난수로 3개 재검증했고
+실패한 테스트 전용 난수는 보존하지 않았다. user 제공 비밀번호는 사용하지 않았다.
+analysis-state 최종181/0(+dependency2/readback2),9.590초,4804KiB 및 dep-scan0byte 삭제 확인.
+기존 예상172가 아니라 실제 현재 compiled summary는181이다.
+
+
+S07 메인 최종 문서 검증 사전등록: `git diff --check`,
+`./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`,
+`./server.sh verify-project-inventory`, `./server.sh verify-script-inventory`.
+기록 인계 후 메인이 실제 존재를 확인하고 실행·결과를 기록한다. 현재 미실행.
+
+## V410 S07 최종 개별 실행 결과 (2026-09-09)
+
+각 행은 실제 명령 출력의 독립 assertion이다. core는 `./server.sh verify-v410-recording-observations`
+exit 0, 3.811초, 임시 2644KiB 삭제·부재 확인. runtime은
+`bash scripts/internal/verify_v410_recording_observation_runtime.sh` exit 0, 1.550초,
+임시 4396KiB 삭제·부재 확인. UI 직접 검증을 의미하지 않는다.
+
+token start/end/consumed: 미집계(서브에이전트 집계 API 없음); source=실제 exec 결과.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| mutation-v2 | core의 실제 assertion 충족; exit 0 | pass |
+| null-roundtrip | core의 실제 assertion 충족; exit 0 | pass |
+| reference-roundtrip | core의 실제 assertion 충족; exit 0 | pass |
+| negative-created-time | core의 실제 assertion 충족; exit 0 | pass |
+| negative-reason | core의 실제 assertion 충족; exit 0 | pass |
+| negative-summary | core의 실제 assertion 충족; exit 0 | pass |
+| negative-observation-range | core의 실제 assertion 충족; exit 0 | pass |
+| negative-bbox | core의 실제 assertion 충족; exit 0 | pass |
+| journal-open | core의 실제 assertion 충족; exit 0 | pass |
+| catalog-open | core의 실제 assertion 충족; exit 0 | pass |
+| null-put | core의 실제 assertion 충족; exit 0 | pass |
+| gap-null | core의 실제 assertion 충족; exit 0 | pass |
+| missing-provenance-null | core의 실제 assertion 충족; exit 0 | pass |
+| segment-finalize | core의 실제 assertion 충족; exit 0 | pass |
+| pending-resolve | core의 실제 assertion 충족; exit 0 | pass |
+| located-roundtrip | core의 실제 assertion 충족; exit 0 | pass |
+| negative-locator-pts | core의 실제 assertion 충족; exit 0 | pass |
+| locator-put-reject | core의 실제 assertion 충족; exit 0 | pass |
+| located-put | core의 실제 assertion 충족; exit 0 | pass |
+| identity-put-reject | core의 실제 assertion 충족; exit 0 | pass |
+| identity-restore | core의 실제 assertion 충족; exit 0 | pass |
+| event-put | core의 실제 assertion 충족; exit 0 | pass |
+| reasons-merge | core의 실제 assertion 충족; exit 0 | pass |
+| missing-media-null | core의 실제 assertion 충족; exit 0 | pass |
+| v1-roundtrip | core의 실제 assertion 충족; exit 0 | pass |
+| deletion-request | core의 실제 assertion 충족; exit 0 | pass |
+| deleted-null | core의 실제 assertion 충족; exit 0 | pass |
+| sqlite-reopen | core의 실제 assertion 충족; exit 0 | pass |
+| journal-replay | core의 실제 assertion 충족; exit 0 | pass |
+| jsonl-parity | core의 실제 assertion 충족; exit 0 | pass |
+| sqlite-projection | core의 실제 assertion 충족; exit 0 | pass |
+| sqlite-payload-parity | core의 실제 assertion 충족; exit 0 | pass |
+| sampling-journal-open | core의 실제 assertion 충족; exit 0 | pass |
+| sampling-catalog-open | core의 실제 assertion 충족; exit 0 | pass |
+| stop-duration | core의 실제 assertion 충족; exit 0 | pass |
+| sampling-start | core의 실제 assertion 충족; exit 0 | pass |
+| sampling-60s-bound | core의 실제 assertion 충족; exit 0 | pass |
+| stop-once | core의 실제 assertion 충족; exit 0 | pass |
+| drain-bounded | core의 실제 assertion 충족; exit 0 | pass |
+| jobs-journal-open | core의 실제 assertion 충족; exit 0 | pass |
+| jobs-catalog-open | core의 실제 assertion 충족; exit 0 | pass |
+| ended-state-reuse | core의 실제 assertion 충족; exit 0 | pass |
+| pending-unrelated-finalize | core의 실제 assertion 충족; exit 0 | pass |
+| tracker-start | core의 실제 assertion 충족; exit 0 | pass |
+| runtime-journal-open | core의 실제 assertion 충족; exit 0 | pass |
+| runtime-catalog-open | core의 실제 assertion 충족; exit 0 | pass |
+| tracker-terminated-copy | core의 실제 assertion 충족; exit 0 | pass |
+| tracker-terminated-once | core의 실제 assertion 충족; exit 0 | pass |
+| observer-tracker-start-event-end | core의 실제 assertion 충족; exit 0 | pass |
+| observer-event-provenance | core의 실제 assertion 충족; exit 0 | pass |
+| late-journal-open | core의 실제 assertion 충족; exit 0 | pass |
+| late-catalog-open | core의 실제 assertion 충족; exit 0 | pass |
+| delayed-event-before-latest | core의 실제 assertion 충족; exit 0 | pass |
+| delayed-event-after-end | core의 실제 assertion 충족; exit 0 | pass |
+| config-zero-reject | core의 실제 assertion 충족; exit 0 | pass |
+| config-positive | core의 실제 assertion 충족; exit 0 | pass |
+| critical-overload-visible | core의 실제 assertion 충족; exit 0 | pass |
+| queue-cap | core의 실제 assertion 충족; exit 0 | pass |
+| concurrent-stop | core의 실제 assertion 충족; exit 0 | pass |
+| multi-namespace | core의 실제 assertion 충족; exit 0 | pass |
+| bounded-id | core의 실제 assertion 충족; exit 0 | pass |
+| storage-failure-counter | core의 실제 assertion 충족; exit 0 | pass |
+| pending-segment-finalize | core의 실제 assertion 충족; exit 0 | pass |
+| pending-finalize-automatic | core의 실제 assertion 충족; exit 0 | pass |
+| ambiguous-segment-finalize | core의 실제 assertion 충족; exit 0 | pass |
+| ambiguous-null | core의 실제 assertion 충족; exit 0 | pass |
+| corrupt-null | core의 실제 assertion 충족; exit 0 | pass |
+| reference-overflow-visible | core의 실제 assertion 충족; exit 0 | pass |
+| replay-identity-open | core의 실제 assertion 충족; exit 0 | pass |
+| replay-identity-memory | core의 실제 assertion 충족; exit 0 | pass |
+| replay-identity-sqlite | core의 실제 assertion 충족; exit 0 | pass |
+| 입력 전 위치 없음 | core의 실제 assertion 충족; exit 0 | pass |
+| 수락 packet anchor | core의 실제 assertion 충족; exit 0 | pass |
+| 동일 epoch 범위 확장 | core의 실제 assertion 충족; exit 0 | pass |
+| 캡처된 사본 불변 | core의 실제 assertion 충족; exit 0 | pass |
+| PTS 되감기 차단 | core의 실제 assertion 충족; exit 0 | pass |
+| 모호성 이후 추정 복원 금지 | core의 실제 assertion 충족; exit 0 | pass |
+| epoch 변경 차단 | core의 실제 assertion 충족; exit 0 | pass |
+| 종료 사본 차단 | core의 실제 assertion 충족; exit 0 | pass |
+| S07 temporary cleanup | core의 실제 assertion 충족; exit 0 | pass |
+| runtime-configured-interval | runtime의 실제 assertion 충족; exit 0 | pass |
+| runtime-status-limited-scope | runtime의 실제 assertion 충족; exit 0 | pass |
+| runtime-status-global-scope | runtime의 실제 assertion 충족; exit 0 | pass |
+| runtime-real-vp8-fixture | runtime의 실제 assertion 충족; exit 0 | pass |
+| runtime-attach | runtime의 실제 assertion 충족; exit 0 | pass |
+| runtime-observer-exception-isolation | runtime의 실제 assertion 충족; exit 0 | pass |
+| runtime-tap-lock-reentry | runtime의 실제 assertion 충족; exit 0 | pass |
+| runtime-live-fanout-unblocked | runtime의 실제 assertion 충족; exit 0 | pass |
+| runtime-captured-provenance-immutable | runtime의 실제 assertion 충족; exit 0 | pass |
+| runtime-tracking-disabled-independent | runtime의 실제 assertion 충족; exit 0 | pass |
+| runtime-built-event-record-observer | runtime의 실제 assertion 충족; exit 0 | pass |
+| runtime-tap-stop-once | runtime의 실제 assertion 충족; exit 0 | pass |
+| runtime-subscriber-cleanup | runtime의 실제 assertion 충족; exit 0 | pass |
+| runtime temporary cleanup | runtime의 실제 assertion 충족; exit 0 | pass |
+
+SQLite 미사용 빌드: `./server.sh verify-v410-recording-observations --no-sqlite` 최종 exit 0,
+3.568초, 2348KiB 삭제·부재 확인. `MEDIA_SERVER_USE_SQLITE3=0`으로 실제 미링크 빌드.
+SQLite projection/payload/악성 replay의 SQLite 조회는 이 모드에서 미실행이며 JSONL 결과만 검증한다.
+`sqlite-reopen` 출력은 이 모드에서는 요청 옵션의 fallback catalog open을 뜻하며 SQLite 실행 증거가 아니다.
+
+최종 시간관계 보완은 negative-observation-range 예상 RED 1개(exit1,3.347초,2600KiB cleanup)
+후 first_seen_pts<=pts<=last_seen_pts 검사로 통과했다. 종료 summary는 실제 last_seen_pts로 생성하며
+동일 PTS 늦은 event 병합은 summary를 보존한다.
+
+SQLite 없는 빌드 최초 결과는 예상 RED가 아닌 실제 compile fail(exit1,2.468초,0KiB cleanup).
+기존 SQLite 전용 문자열 helper 세 개가 미사용 -Werror가 되어 정의를 SQLite 조건부 안으로 옮겼다.
+Bash 3.2 empty-array set-u 경계는 안전한 optional expansion으로 변경했다.
+
+
+S07 최종 보완 실행 전 등록: negative-observation-range는 관측 PTS가 track의
+first_seen_pts~last_seen_pts 밖이면 strict parser 거부를 확인한다(현재 허용으로 예상 RED).
+no-sqlite-build는 `verify-v410-recording-observations --no-sqlite`로 SQLite 미링크
+실제 빌드와 JSONL 관측·시간 helper 실행을 확인하며 SQLite 검사 미실행을 구분한다.
+
+## V410 S07 실행 전 상세 등록 (2026-09-08)
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| V410-S07-01 | V1/V2 계약 | 실제 parser/serializer에 null/located/invalid 입력과 V1 fixture roundtrip | v4.1.0 |
+| V410-S07-02 | 영속 projection | 실제 journal append/reopen, SQLite 및 JSONL 조회 대조 | v4.1.0 |
+| V410-S07-03 | sampling | 실제 projector에 60초 30fps 단일 track 입력, interval 저장 수 상한 확인 | v4.1.0 |
+| V410-S07-04 | 사유·summary | start/event/end 동일PTS 병합 및 종료 summary 한 번 확인 | v4.1.0 |
+| V410-S07-05 | lifecycle | stop/rollback/multi-tap track namespace 분리 확인 | v4.1.0 |
+| V410-S07-06 | locator | writing pending→finalized 실제 UTC/PTS/keyframe anchor 확인 | v4.1.0 |
+| V410-S07-07 | 실패안전 | gap/deleted/corrupt/ambiguous epoch locator null reason 확인 | v4.1.0 |
+| V410-S07-08 | 자원 상한 | queue/state/pending 포화, interval drop 및 critical 거부 counters 확인 | v4.1.0 |
+| V410-S07-09 | 실행 격리 | 실제 observer 호출 경로의 tap lock 해제, 실패 및 비동기 지연 격리 | v4.1.0 |
+| V410-S07-10 | composition | 실제 event ID 전달 및 production observer 연결, recording off 독립 | v4.1.0 |
+
+예상 RED: `recording_observation_smoke`의 V2 mutation 이름 파싱 assertion은 미구현인
+`observation_v2_put`이 Unknown으로 해석되어 실패할 예정이다. 빌드·환경 오류는 RED가 아니다.
+상세 결과는 실행 후 이 절에 기록한다. token start/end/consumed는 집계 도구 부재로 미집계,
+source=Codex 서브에이전트 도구 실행; elapsed는 명령별 실제 실행 시간을 기록한다.
+
+최초 실제 RED: `bash scripts/internal/verify_v410_recording_observations.sh`, exit 1,
+elapsed 1.358초. V2 mutation Unknown assertion 예상 RED와 일치. 임시 root
+`media-server-s07.nuKDM7` 376 KiB 삭제 완료(trap에서 삭제 후 존재하지 않음 확인).
+다음 실행은 mutation dispatch만 exit 0, elapsed 1.186초, 임시400KiB 삭제 완료.
+V2 parser/catalog 코드는 개별 behavior RED 전에 작성하여 해당 부분은 TDD 선행 미준수다.
+mutation RED 하나를 parser/catalog 전체 TDD evidence로 확대하지 않는다.
+
+Core 개별 assertion 실행 전 등록: mutation-v2, null-roundtrip, located-roundtrip,
+negative-created-time, negative-reason, negative-summary, negative-bbox,
+negative-locator-pts, reference-roundtrip, v1-roundtrip, journal-replay,
+sqlite-projection, jsonl-parity, pending-resolve, gap-null, deleted-null,
+ambiguous-null, missing-provenance-null, locator-put-reject.
+각 이름은 `recording_observation_smoke`의 독립 결과 행이다.
+
+추가 core regression 사전 등록: identity-put-reject(동일 ID 다른 track 갱신 거부),
+missing-media-null(파일 누락 시 locator null), sqlite-payload-parity(실제 DB JSON 전체 필드),
+sqlite-reopen(기존 SQLite 재구축), reasons-merge(동일 PTS start/event 병합).
+예상 RED는 현재 identity 갱신 허용, media 누락 확인 부재, 사유 덮어쓰기에 따른 assertion 실패다.
+
+Projector 실행 전 사전 등록: sampling-start, sampling-60s-bound, stop-once,
+stop-duration, drain-bounded. 초기 컴파일 가능 미구현 Submit stub이 저장하지 않아
+sampling-start/sampling-60s-bound/stop-once가 실패할 것을 예상한다.
+
+Projector 보완 사전등록: ended-state-reuse(종료 track을 정리해 max_tracks 이후 새 track 수락),
+pending-unrelated-finalize(다른 segment finalize 신호 뒤 미해결 pending 유지),
+critical-overload-visible(critical-only 포화에서 거부 count와 queue 상한),
+multi-namespace(동일track/PTS namespace분리), event-start-merge(실제 저장이 먼저끝난 뒤 event사유병합).
+예상 RED는 현 구현의 ended map 누적과 unrelated finalize pending 유실 assertion 실패다.
+
+Tracker 사전등록: tracker-start, tracker-terminated-copy, tracker-terminated-once.
+예상 RED는 max_missed=1 초과 제거시 현 tracker가 종료객체를 전달하지 않아
+tracker-terminated-copy가 실패하는 것이다. 기존 tracks/detections 의미는 그대로 유지한다.
+
+Tracker 최초 실행은 RED가 아닌 실제 compile FAIL(exit1,2.430초)이다. 테스트의
+ObjectTrackerOptions/Detection label·score 명칭 오류 및 기존 tracker의 unused capture,
+aggregate missing-field 경고가 -Werror와 충돌했다. 테스트 API 명칭을 고치고 두 기존경고만
+focused compiler에서 비활성화했다. 기존 tracker 동작코드는 이 오류 때문에 수정하지 않았다.
+임시 root media-server-s07.5ALy7C 0KiB 삭제·부재 확인. 수정 후 같은 S07 focused 재실행한다.
+
+Observer adapter 사전등록: observer-tracker-start-event-end(실제 tracker 출력의 start/event/end 동일PTS 병합),
+observer-event-provenance(event ID·zone·line·rule·scenario 참조 저장).
+예상 RED는 OnResult/OnEvent stub이 저장하지 않아 두 assertion이 실패하는 것이다.
+
+V410-S07-06 snapshot helper 실행 전 사전등록(`scripts/internal/recording_time_snapshot_smoke.cpp`):
+입력전null, 수락packetanchor, 동일epoch범위확장, 캡처사본불변, PTSrollback차단,
+모호성후추정복원금지, epoch변경차단, 종료차단. 예상 RED는 현재 stub의
+수락anchor/범위확장/사본불변 세 assertion 실패다. 담당 메인이 실행·결과를 전달한다.
+
+Snapshot helper 실제 결과(메인): RED exit1 예상3실패 elapsed0.428초, 임시40KiB 삭제 확인;
+GREEN exit0 8pass0fail elapsed0.505초, 임시56KiB 삭제 확인. token미집계.
+
+Session/writer 추가 실행 전 사전등록(메인 담당):
+S07-time-session 수락PTS범위, 범위밖null, 중복채널null, 재시작null, StopAllnull,
+blockedwriter조회100ms내복귀. S07-time-writer H264 delta미수락null, H264 수락epoch+PTS일치,
+H264 Stopnull, H264 rollbacknull, VP8 delta미수락null, VP8 수락epoch+PTS일치,
+VP8 Stopnull, VP8 rollbacknull. finalize성공observer, 실패noobserver, observerthrow격리.
+실행 묶음은 `verify-recording-identity`, `verify-v410-recording-recorder`이며 agent는 중복실행하지 않는다.
+
+Runtime 실행 전 등록(`verify_v410_recording_observation_runtime.sh`): runtime-configured-interval,
+runtime-real-vp8-fixture, runtime-attach, runtime-observer-exception-isolation, runtime-tap-lock-reentry,
+runtime-live-fanout-unblocked, runtime-captured-provenance-immutable, runtime-tracking-disabled-independent,
+runtime-built-event-record-observer, runtime-tap-stop-once, runtime-subscriber-cleanup.
+실제 SharedStream·VP8 decode·manager worker·EventRecord 생성 코드를 실행하며 dummy detector는
+원래 detection을 생성하지 않는다. 객체 관측 자체는 별도 실제 ObjectTracker→Projector 테스트로 검증한다.
+
+Status 권한 보완 사전등록: runtime-status-limited-scope(default권한에서는 observations객체생략),
+runtime-status-global-scope(명시전역권한에만 criticalRejected/안전reason코드노출).
+예상 RED는 현재 Status가권한 bool을 적용하지 않아 limited-scope assertion실패다.
+
+지연 event 사전등록: delayed-event-before-latest, delayed-event-after-end. 실제 캡처 PTS1의
+event가 PTS2관측 이후 및 track-end 이후 도착해도 동일ID에 event사유·실제ID가 저장되어야 한다.
+예상 RED: 현 Submit의 과거PTS거부/ended-key조기성공반환 때문에 두event ID가 누락된다.
+
+Canonical dispatch 최초실행은 require_internal의 executable비트조건 누락으로 exit1
+`missing internal script` 실제FAIL. 파일은존재했고 새shell2개에 +x 반영후 다시실행했다.
+재실행은 delayed-event 2개 예상RED(exit1,3.180초), 임시2176KiB삭제확인.
+
+남은 경계 개별 실행 전 등록: critical-overload-visible, queue-cap,
+multi-namespace, bounded-id, storage-failure-counter, pending-finalize-automatic,
+corrupt-null, ambiguous-null, config-zero-reject, config-positive,
+reference-overflow-visible, concurrent-stop. 이미 구현된 경계의 회귀확인이며 이 부분은 신규RED로 주장하지 않는다.
+
+경계회귀 최초FAIL: corrupt-null만실패(exit1,3.301초), 임시2440KiB삭제.
+원인: 테스트가 현 CorruptionDetected mutation의 진단-only/no-op 의미를 lifecycle전환으로 잘못 가정했다.
+기존 mutation 의미는 변경하지 않고 실제media파일12byte헤더손상 fixture로 교체했다.
+locator는 파일누락과 손상헤더를 missing-media/corrupt로 구분하도록 보완하고 동일범위 재실행한다.
+
+원장 보완 사전등록: replay-identity-memory/replay-identity-sqlite. 유효관측 저장 후 동일ID
+다른track의 V2 mutation을 원장에 직접 추가하고 재open한다. memory는유효행보존,
+SQLite실제payload도같은기존track이어야한다. 예상RED는 SQLite가거부mutation을재투영하는 것이다.
+
+
 ## S06 잔여 6번: 문서 마감 (2026-09-08)
 
 사용자가 문서 정합성 보완·별도 커밋·누적 커밋 푸시를 승인했다. 이번에는 제품 코드 변경 없이
@@ -30,7 +1668,7 @@ I19/I24/I25/I26이 120분에 직접 매핑되어 있으므로 버전 종료 관�
 | UI 풀테스트 | 미진행 | 이번 문서 전용 범위 밖; 버전 종료 필수 미실행 상태 유지 | AGENTS 7.9 | 실행 승인 없음 |
 
 실행 전 등록: git diff --check, ./server.sh verify-docs-links,
-./server.sh verify-docs-ui-assets. 각각 실제 exit·검사 수를 실행 후 기록한다.
+`./server.sh verify-docs-ui-assets`. 각각 실제 exit·검사 수를 실행 후 기록한다.
 제품 빌드·auth·S06·S03~S05는 코드/환경을 변경하지 않았으므로 유효한 직전 증거를 사용한다.
 문서 8개 전체의 모든 과거 내용을 재감사했다는 의미가 아니라 변경 부분과 연결 계약을 대조했다.
 담당은 Codex 메인 직접, 사용자 설정 유지(영향1/불확실성1/검증1/범위1=4).

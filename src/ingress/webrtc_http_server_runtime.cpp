@@ -750,7 +750,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 return response;
                             };
                             if (request.method == "GET" && request.path == "/ops/api/recordings/status")
-                                return api_response(recording_service->Status(authorize_channel));
+                                return api_response(recording_service->Status(authorize_channel,
+                                    auth::RequireScope(principal_result.principal, "source:read:*")));
                             if (request.method == "GET" && request.path == "/ops/api/recordings/timeline")
                                 return api_response(recording_service->Timeline(query, authorize_channel));
                             const std::string media_prefix = "/ops/api/recordings/media/";

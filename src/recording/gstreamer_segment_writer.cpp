@@ -130,6 +130,7 @@ public:
         if (!started || packet.kind != media::MediaKind::Video || packet.codec != video_track.codec) return;
 #if MEDIA_SERVER_USE_GSTREAMER
         if (has_last_pts && packet.pts < last_pts) {
+            time_snapshot.Invalidate();
             FinalizeLocked();
             ++epoch_revision;
             epoch_id = base_epoch_id + "-r" + std::to_string(epoch_revision);
@@ -164,10 +165,15 @@ public:
 
     void Stop() {
         std::lock_guard lock(mu);
+        time_snapshot.Invalidate();
 #if MEDIA_SERVER_USE_GSTREAMER
         FinalizeLocked();
 #endif
         started = false;
+    }
+
+    std::shared_ptr<const RecordingTimeSnapshot> TimeSnapshot() const {
+        return time_snapshot.Get();
     }
 
 private:
@@ -327,6 +333,8 @@ private:
         current.end.pts = packet.pts;
         current.end.time_base_num = 1;
         current.end.time_base_den = 1000000000;
+        // appsrc가 수락한 실제 packet만 게시한다. finalize mutex를 조회자가 기다리지 않는다.
+        time_snapshot.Publish(channel_id, epoch_id, packet.pts, utc_ms);
     }
 
     void FinalizeLocked() {
@@ -459,6 +467,7 @@ private:
 #endif
 
     Options options;
+    RecordingTimeSnapshotPublisher time_snapshot;
     std::mutex mu;
     bool started{false};
     [[maybe_unused]] bool segment_open{false};
@@ -511,5 +520,9 @@ void GStreamerSegmentWriter::Push(const media::Packet& packet, std::int64_t obse
 }
 
 void GStreamerSegmentWriter::Stop() { impl_->Stop(); }
+
+std::shared_ptr<const RecordingTimeSnapshot> GStreamerSegmentWriter::TimeSnapshot() const {
+    return impl_->TimeSnapshot();
+}
 
 }  // namespace recording

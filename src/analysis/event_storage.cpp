@@ -38,6 +38,8 @@ constexpr std::size_t kMaxEventRecordLineBytes = 1024 * 1024;
 
 std::mutex g_event_recording_bridge_mu;
 std::shared_ptr<EventRecordingBridge> g_event_recording_bridge;
+std::mutex g_event_observation_mu;
+EventObservationObserver g_event_observation_observer;
 
 std::shared_ptr<EventRecordingBridge> EventRecordingBridgeSnapshot() {
     std::lock_guard lock(g_event_recording_bridge_mu);
@@ -3165,7 +3167,11 @@ void DispatchEventRecords(const AnalysisResult& result, const std::vector<Analys
         return;
     }
     for (const auto& event : events) {
-        Dispatcher().Enqueue(result, BuildEventRecord(result, event));
+        auto record = BuildEventRecord(result, event);
+        EventObservationObserver observer;
+        { std::lock_guard lock(g_event_observation_mu); observer = g_event_observation_observer; }
+        if (observer) { try { observer(result, record, event); } catch (...) {} }
+        Dispatcher().Enqueue(result, std::move(record));
     }
 }
 
@@ -3645,6 +3651,10 @@ void StopEventStorage() {
 void SetEventRecordingBridge(std::shared_ptr<EventRecordingBridge> bridge) {
     std::lock_guard lock(g_event_recording_bridge_mu);
     g_event_recording_bridge = std::move(bridge);
+}
+void SetEventObservationObserver(EventObservationObserver observer) {
+    std::lock_guard lock(g_event_observation_mu);
+    g_event_observation_observer = std::move(observer);
 }
 
 }  // namespace analysis

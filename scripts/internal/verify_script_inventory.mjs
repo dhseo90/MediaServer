@@ -32,6 +32,15 @@ const checks = [];
 const projectInventory = readText(path.join(rootDir, "docs/project-feature-test-inventory.md"));
 const cmake = readText(path.join(rootDir, "CMakeLists.txt"));
 
+check("dispatch parser recognizes explicit bash and node interpreters", () => {
+  for (const [interpreter, expected] of [["", 1], ["bash ", 1], ["node ", 1], ["python ", 0]]) {
+    const source = '  verify-example)\n    require_internal example.sh\n    exec ' + interpreter + '"${INTERNAL_DIR}/example.sh" "$@"\n    ;;';
+    const actual = parseServerDispatches(source);
+    assert(actual.length === expected && (!expected || actual[0].command === "verify-example" && actual[0].script === "example.sh"),
+      `dispatch interpreter recognition failed: ${interpreter || "direct"}`);
+  }
+});
+
 check("server.sh dispatch targets exist and are executable", () => {
   const dispatches = parseServerDispatches();
   assert(dispatches.length > 0, "server.sh dispatch command not found");
@@ -45,6 +54,9 @@ check("server.sh dispatch targets exist and are executable", () => {
 
 check("documented server.sh commands resolve to dispatch table", () => {
   const commands = new Set(parseServerDispatches().map(item => item.command));
+  // help는 내부 script dispatch가 아니라 server.sh 자체가 직접 처리한다.
+  const server = readText(path.join(rootDir, "server.sh"));
+  if (/"\$\{cmd\}" == "help"[^\n]*\]\]; then\n\s+usage\n/.test(server)) commands.add("help");
   const files = walkDocsAndScripts();
   const misses = [];
   for (const file of files) {
@@ -682,10 +694,9 @@ function fileExists(file) {
   return fs.existsSync(path.join(rootDir, file));
 }
 
-function parseServerDispatches() {
-  const server = readText(path.join(rootDir, "server.sh"));
+function parseServerDispatches(server = readText(path.join(rootDir, "server.sh"))) {
   const dispatches = [];
-  const regex = /^\s{2}([a-zA-Z0-9_.|-]+)\)\n\s+require_internal [^\n]+\n\s+exec "\$\{INTERNAL_DIR\}\/([^"\n]+)"/gm;
+  const regex = /^\s{2}([a-zA-Z0-9_.|-]+)\)\n\s+require_internal [^\n]+\n\s+exec (?:bash |node )?"\$\{INTERNAL_DIR\}\/([^"\n]+)"/gm;
   let match;
   while ((match = regex.exec(server)) !== null) {
     for (const command of match[1].split("|")) {

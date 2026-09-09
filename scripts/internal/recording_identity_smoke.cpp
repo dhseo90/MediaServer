@@ -64,6 +64,43 @@ private:
     bool block_;
 };
 
+class TimeWriter final : public recording::SegmentWriter {
+public:
+    bool Start(const std::string& channel, const std::string& epoch,
+               const media::StreamDescriptor&, FinalizedCallback callback, std::string*) override {
+        channel_ = channel; epoch_ = epoch; callback_ = std::move(callback); return true;
+    }
+    void Push(const media::Packet& packet, std::int64_t utc_ms) override {
+        publisher_.Publish(channel_, epoch_, packet.pts, utc_ms);
+    }
+    void Stop() override {
+        publisher_.Invalidate();
+        if (callback_) {
+            std::string error;
+            callback_({}, {}, &error);
+            callback_ = {};
+        }
+    }
+    std::shared_ptr<const recording::RecordingTimeSnapshot> TimeSnapshot() const override {
+        return publisher_.Get();
+    }
+private:
+    std::string channel_, epoch_;
+    FinalizedCallback callback_;
+    recording::RecordingTimeSnapshotPublisher publisher_;
+};
+
+class TimeStore final : public recording::RecordingStorePort {
+public:
+    bool finalized{true};
+    bool FinalizeSegment(const recording::RecordingSegmentV1&, const std::string&, std::string*) override { return finalized; }
+    bool PutEventLink(const recording::EventRecordingLinkV1&, std::string*) override { return false; }
+    bool PutObservation(const recording::AnalysisObservationV1&, std::string*) override { return false; }
+    bool RequestDeletion(const std::string&, const std::string&, std::string*) override { return false; }
+    bool CompleteDeletion(const recording::RecordingTombstoneV1&, std::string*) override { return false; }
+    std::vector<recording::RecordingSegmentV1> QuerySegments(const std::string&, std::int64_t, std::int64_t) const override { return {}; }
+};
+
 media::IngressRequest Request(const std::string& suffix) {
     media::IngressRequest request;
     request.path = "/" + app::GetAppConfig().stream_route;
@@ -76,10 +113,62 @@ void Check(bool value, const std::string& id) {
     std::cout << "[identity-pass] " << id << '\n';
 }
 
+void VerifyTimeSessions(core::SessionManager& manager) {
+    TimeStore store;
+    recording::RecordingSessionService service(manager, store, [] { return std::make_unique<TimeWriter>(); });
+    std::atomic<int> notifications{0};
+    service.SetFinalizedObserver([&] { ++notifications; throw std::runtime_error("관측 실패 격리 시험"); });
+    const auto request = Request("s07-time");
+    const std::string key = "rtsp::rtsp://127.0.0.1/s07-time";
+    Check(service.StartChannel("time-channel", "time-epoch", request, true).ok, "S07-time-session-start");
+    auto handle = manager.AcquireAuxiliaryStream(request);
+    Check(handle.ok, "S07-time-session-input");
+    media::Packet packet;
+    packet.kind = media::MediaKind::Video;
+    packet.is_key_frame = true;
+    packet.pts = 100;
+    handle.stream->FanOut(packet);
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(1);
+    std::optional<recording::RecordingTimeSnapshot> captured;
+    do { captured = service.ResolveRecordingTime(key, 100); std::this_thread::yield(); }
+    while (!captured && std::chrono::steady_clock::now() < deadline);
+    Check(captured && captured->stream_epoch_id == "time-epoch" &&
+          !service.ResolveRecordingTime(key, 99) && !service.ResolveRecordingTime(key, 101),
+          "S07-time-session-range");
+    packet.pts = 200;
+    handle.stream->FanOut(packet);
+    const auto accepted_deadline = std::chrono::steady_clock::now() + std::chrono::seconds(1);
+    while (!service.ResolveRecordingTime(key, 200) && std::chrono::steady_clock::now() < accepted_deadline)
+        std::this_thread::yield();
+    Check(service.ResolveRecordingTime(key, 100) && service.ResolveRecordingTime(key, 200) &&
+          !service.ResolveRecordingTime(key, 150), "S07-time-session-accepted-gap-null");
+    Check(service.StartChannel("time-other", "other-epoch", request, true).ok &&
+          !service.ResolveRecordingTime(key, 200), "S07-time-session-ambiguous-channel");
+    service.StopChannel("time-other");
+    const auto before_primary_stop = notifications.load();
+    Check(service.StopChannel("time-channel") && notifications == before_primary_stop + 1,
+          "S07-time-finalize-success-observer-exception-isolated");
+    Check(service.StartChannel("time-channel", "new-epoch", request, true).ok,
+          "S07-time-session-restart");
+    handle.stream->FanOut(packet);
+    const auto restart_deadline = std::chrono::steady_clock::now() + std::chrono::seconds(1);
+    while (!service.IsChannelRecording("time-channel") && std::chrono::steady_clock::now() < restart_deadline)
+        std::this_thread::yield();
+    Check(service.IsChannelRecording("time-channel") && !service.ResolveRecordingTime(key, 200),
+          "S07-time-session-restart-null");
+    store.finalized = false;
+    const auto before_failed_finalize = notifications.load();
+    service.StopAll();
+    Check(notifications == before_failed_finalize && !service.ResolveRecordingTime(key, 100),
+          "S07-time-finalize-failure-no-observer-stop-null");
+    manager.DiscardAuxiliaryStream(handle);
+}
+
 void VerifySessions(recording::RecordingCatalog& catalog) {
     core::StreamRegistry registry;
     core::ResourceGuard guard(10, 10);
     core::SessionManager manager(registry, guard);
+    VerifyTimeSessions(manager);
     recording::RecordingSessionService sessions(manager, catalog, [] {
         return std::make_unique<ControlledWriter>(false);
     });
@@ -153,17 +242,23 @@ void VerifySessions(recording::RecordingCatalog& catalog) {
     auto lookup = std::async(std::launch::async, [&] {
         return blocked_writer.ResolveRecordingChannel("rtsp::rtsp://127.0.0.1/io");
     });
+    auto time_lookup = std::async(std::launch::async, [&] {
+        return blocked_writer.ResolveRecordingTime("rtsp::rtsp://127.0.0.1/io", 0);
+    });
     const bool nonblocking = lookup.wait_for(std::chrono::milliseconds(100)) == std::future_status::ready;
+    const bool time_nonblocking = time_lookup.wait_for(std::chrono::milliseconds(100)) == std::future_status::ready;
     {
         std::lock_guard lock(writer_mu);
         writer_released = true;
         writer_cv.notify_all();
     }
     const auto mapped = lookup.get();
+    const auto time_mapped = time_lookup.get();
     manager.DiscardAuxiliaryStream(io_handle);
     blocked_writer.StopAll();
     Check(push_entered && nonblocking && mapped == std::optional<std::string>("9110"),
           "V410-IDMAP-I13");
+    Check(push_entered && time_nonblocking && !time_mapped, "S07-time-session-blocked-writer-null-nonblocking");
 }
 }  // namespace identity_test
 

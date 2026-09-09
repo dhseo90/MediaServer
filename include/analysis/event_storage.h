@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -252,6 +253,8 @@ void RecordEventFrame(const std::string& stream_id,
                       const std::string& channel_id,
                       const RawVideoFrame& frame);
 void SetEventRecordingBridge(std::shared_ptr<EventRecordingBridge> bridge);
+using EventObservationObserver = std::function<void(const AnalysisResult&,const EventRecord&,const AnalysisEvent&)>;
+void SetEventObservationObserver(EventObservationObserver observer);
 void StopEventStorage();
 
 }  // namespace analysis

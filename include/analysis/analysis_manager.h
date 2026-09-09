@@ -118,7 +118,7 @@ public:
         std::optional<AnalysisResult> result;
     };
 
-    AnalysisManager() = default;
+    explicit AnalysisManager(std::shared_ptr<AnalysisResultObserver> observer = {}) : observer_(std::move(observer)) {}
     ~AnalysisManager();
 
     AnalysisManager(const AnalysisManager&) = delete;
@@ -151,9 +151,15 @@ private:
         struct QueuedFrame {
             RawVideoFrame frame;
             std::chrono::steady_clock::time_point enqueued_at;
+            AnalysisObservationContext observation_context;
         };
 
         std::string tap_id;
+        std::shared_ptr<AnalysisResultObserver> observer;
+        std::string observation_namespace;
+        std::uint64_t observation_generation{0};
+        std::int64_t observation_last_frame_pts{-1};
+        bool observation_ambiguous{false};
         core::StreamKey stream_key;
         AnalysisContext context;
         AnalysisProfile profile;
@@ -230,6 +236,7 @@ private:
     static media::TrackInfo ResolveVideoTrack(const std::shared_ptr<AnalysisTap>& tap, const media::Packet& packet);
 
     mutable std::mutex mu_;
+    std::shared_ptr<AnalysisResultObserver> observer_;
     std::unordered_map<std::string, std::shared_ptr<AnalysisTap>> taps_;
     std::unordered_map<std::string, std::string> reuse_key_to_tap_id_;
     std::atomic<std::uint64_t> next_tap_id_{1};

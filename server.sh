@@ -1221,6 +1221,8 @@ Usage:
                  v4.1.0 이벤트-상시녹화 연결, 비동기 remux, fallback과 event quota 경계를 검증합니다.
   verify-v410-recording-timeline
                  S06 조회·Range·인증·전송 수명을 검증합니다. 인증 환경변수 5개와 빌드된 서버가 필요합니다.
+  verify-v410-recording-observations
+                 S07 V2 관측·sampling·종료·시간 snapshot focused 검증을 실행합니다.
   verify-v410-recording-ui-contract
                  S06 화면 정적 계약을 검증합니다. 실제 UI 풀테스트 PASS를 뜻하지 않습니다.
   verify-post-release-reconciliation
@@ -3073,6 +3075,10 @@ case "${cmd}" in
   verify-v410-recording-timeline)
     require_internal verify_v410_recording_timeline.sh
     exec bash "${INTERNAL_DIR}/verify_v410_recording_timeline.sh" "$@"
+    ;;
+  verify-v410-recording-observations)
+    require_internal verify_v410_recording_observations.sh
+    exec bash "${INTERNAL_DIR}/verify_v410_recording_observations.sh" "$@"
     ;;
   verify-v410-recording-ui-contract)
     require_internal verify_v410_recording_ui_contract.mjs

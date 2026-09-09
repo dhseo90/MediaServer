@@ -39,6 +39,7 @@
 #include "recording/event_clip_deriver.h"
 #include "recording/event_recording_bridge.h"
 #include "recording/recording_catalog.h"
+#include "recording/analysis_observation_projector.h"
 #include "recording/recording_journal.h"
 #include "recording/recording_session_service.h"
 #include "recording/recording_supervisor.h"
@@ -399,7 +400,39 @@ int RunMediaServerApplication(int argc, char** argv) {
         return 1;
     }
 
-    analysis::AnalysisSessionService analysis_sessions(session_manager);
+    std::shared_ptr<recording::AnalysisObservationProjector> observation_projector;
+    if (config.recording_enabled) {
+        recording::AnalysisObservationProjector::Options options;
+        options.interval_ms = config.recording_observation_interval_ms;
+        options.resolve_context = [&recording_sessions](const std::string& stream_key, std::int64_t pts) {
+            analysis::AnalysisObservationContext context;
+            const auto mapping = recording_sessions.ResolveRecordingTime(stream_key, pts);
+            if (mapping) {
+                context.source_id = mapping->channel_id;
+                context.channel_id = mapping->channel_id;
+                context.stream_epoch_id = mapping->stream_epoch_id;
+                context.locator_reason = "pending";
+            } else if (const auto channel = recording_sessions.ResolveRecordingChannel(stream_key)) {
+                context.source_id = *channel;
+                context.channel_id = *channel;
+            }
+            return context;
+        };
+        observation_projector = std::make_shared<recording::AnalysisObservationProjector>(recording_catalog, std::move(options));
+        std::weak_ptr<recording::AnalysisObservationProjector> weak = observation_projector;
+        recording_sessions.SetFinalizedObserver([weak] { if (auto projector = weak.lock()) projector->NotifyFinalized(); });
+        analysis::SetEventObservationObserver([weak](const auto& result, const auto& record, const auto& event) {
+            if (auto projector = weak.lock())
+                projector->OnEvent(result, record.event_id, record.track_id, record.zone_id, record.line_id,
+                                   event.rule_id, ""); // scenario_name은 scenario ID로 추정하지 않는다.
+        });
+    }
+    analysis::AnalysisSessionService analysis_sessions(session_manager, observation_projector);
+    const auto stop_observations = [&] {
+        analysis::SetEventObservationObserver({});
+        recording_sessions.SetFinalizedObserver({});
+        if (observation_projector) observation_projector->StopAndDrain();
+    };
     auto analysis_session_lifecycle =
         ingress::MakeAnalysisSessionLifecycleApplicationAdapter(analysis_sessions);
     auto analysis_session_reads =
@@ -437,6 +470,8 @@ int RunMediaServerApplication(int argc, char** argv) {
                 output->push_back(std::move(status));
             }
             return true;
+        }, [observation_projector] {
+            return observation_projector ? observation_projector->GetStatus() : recording::AnalysisObservationProjector::Status{};
         });
     ingress::WebRtcHttpServer webrtc_http_server(
         *webrtc_media_sessions,
@@ -471,9 +506,11 @@ int RunMediaServerApplication(int argc, char** argv) {
         std::cerr << "gstreamer rtsp server started: no\n";
         std::cerr << "reason: " << server_error << "\n";
         recording_supervisor.Stop();
+        analysis_sessions.Shutdown();
         analysis::StopEventStorage();
         if (event_recording_bridge) event_recording_bridge->StopAndDrain();
         analysis::SetEventRecordingBridge(nullptr);
+        stop_observations();
         return 1;
     }
 
@@ -484,9 +521,11 @@ int RunMediaServerApplication(int argc, char** argv) {
         std::cerr << "reason: " << http_error << "\n";
         gst_rtsp_server.Stop();
         recording_supervisor.Stop();
+        analysis_sessions.Shutdown();
         analysis::StopEventStorage();
         if (event_recording_bridge) event_recording_bridge->StopAndDrain();
         analysis::SetEventRecordingBridge(nullptr);
+        stop_observations();
         return 1;
     }
 
@@ -512,9 +551,11 @@ int RunMediaServerApplication(int argc, char** argv) {
     webrtc_http_server.Stop();
     gst_rtsp_server.Stop();
     recording_supervisor.Stop();
+    analysis_sessions.Shutdown();
     analysis::StopEventStorage();
     if (event_recording_bridge) event_recording_bridge->StopAndDrain();
     analysis::SetEventRecordingBridge(nullptr);
+    stop_observations();
     session_manager.SetAuxiliaryStreamRuntimeProvider({});
     return 0;
 }

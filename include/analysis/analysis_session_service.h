@@ -35,8 +35,10 @@ public:
         std::size_t ref_count{0};
     };
 
-    explicit AnalysisSessionService(core::SessionManager& session_manager);
+    explicit AnalysisSessionService(core::SessionManager& session_manager,
+                                    std::shared_ptr<AnalysisResultObserver> observer = {});
     ~AnalysisSessionService() override;
+    void Shutdown();
 
     AnalysisSessionService(const AnalysisSessionService&) = delete;
     AnalysisSessionService& operator=(const AnalysisSessionService&) = delete;

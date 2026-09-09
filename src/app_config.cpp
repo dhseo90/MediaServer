@@ -636,6 +636,8 @@ app::AppConfig LoadAppConfig() {
         kEnvRecordingReservedFreeBytes, config.recording_reserved_free_bytes);
     config.recording_retention_interval_ms = ReadIntEnv(
         kEnvRecordingRetentionIntervalMs, config.recording_retention_interval_ms);
+    config.recording_observation_interval_ms = ReadIntEnv(
+        "MEDIA_SERVER_RECORDING_OBSERVATION_INTERVAL_MS", config.recording_observation_interval_ms);
     config.webrtc_va_metadata_channel_enabled =
         ReadBoolEnv(kEnvWebRtcVaMetadataChannelEnabled, config.webrtc_va_metadata_channel_enabled);
     config.webrtc_va_metadata_channel_label =

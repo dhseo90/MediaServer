@@ -37,6 +37,7 @@ public:
                std::string* error) override;
     void Push(const media::Packet& packet, std::int64_t observed_utc_ms) override;
     void Stop() override;
+    std::shared_ptr<const RecordingTimeSnapshot> TimeSnapshot() const override;
 
 private:
     class Impl;

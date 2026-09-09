@@ -1,5 +1,21 @@
 # Project Feature Test Inventory
 
+## V410 S07 관측 개별 항목 (실행 전 등록)
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
+| --- | --- | --- | --- | --- | --- |
+| V410-S07-01 | V1 계약 유지, V2 null/located strict roundtrip | S07 focused | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S07-02 | V2 JSONL replay와 SQLite projection 동일 | S07 focused, S03 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S07-03 | 60초 30fps 단일 track 1초 sampling bounded | S07 focused | 진행 대상·별도 승인 전 미실행 | 진행 대상·별도 승인 전 미실행 | 비대상: UI 없어야 정상 |
+| V410-S07-04 | start/event/end 동일 PTS reasons 병합·한 번 summary | S07 focused | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S07-05 | stop/rollback/multi-tap namespace 분리 | S07 focused | 진행 대상·별도 승인 전 미실행 | 진행 대상·별도 승인 전 미실행 | 비대상: UI 없어야 정상 |
+| V410-S07-06 | writing pending finalize 실제 UTC/PTS/keyframe 해석 | S07 focused | 진행 대상·별도 승인 전 미실행 | 진행 대상·별도 승인 전 미실행 | 비대상: UI 없어야 정상 |
+| V410-S07-07 | gap/deleted/corrupt/ambiguous epoch null 실패안전 | S07 focused | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S07-08 | queue/state/pending 상한, interval 우선 drop, critical rejection 상태 | S07 focused | 진행 대상·별도 승인 전 미실행 | 진행 대상·별도 승인 전 미실행 | 비대상: 신규 화면 없음 |
+| V410-S07-09 | observer 실패·지연 비전파, tap lock 밖 enqueue | S07 focused, build | 진행 대상·별도 승인 전 미실행 | 진행 대상·별도 승인 전 미실행 | 비대상: UI 없어야 정상 |
+| V410-S07-10 | 실제 event ID와 production observer wiring·recording off 독립 | S07 focused, S05 | 비대상 | 비대상 | 비대상: 기존 serializer 불변 |
+
+
 이 문서는 현재 release 목표 `v4.1.0` 기준의 기능별 테스트 분류 기준표입니다.
 독자는 개발/테스트 에이전트이며, lifecycle은 active release target 동안 유지되는 test inventory입니다.
 AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, 이 문서는 기능 ID와 테스트 영역만 관리합니다.
@@ -47,7 +63,8 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | GStreamer 환경 개별 action ID | 13 |
 | 녹화 ID 매핑 개별 action ID | 13 |
 | S06 개별 action ID | 34 |
-| 현재 등록 총계 | 1073 |
+| V410 S07 관측 신규 개별 ID | 10 |
+| 현재 등록 총계 | 1083 |
 
 이는 등록 합계이지 전 제품 발견·실행 완료 선언이 아니다. S01~S04의 신규 등록 정합성은
 이번 S05 보정에서 전수 감사하지 않았다.

@@ -59,6 +59,7 @@ std::string RecordingMutationTypeName(RecordingMutationType type) {
         case RecordingMutationType::SegmentFinalized: return "segment_finalized";
         case RecordingMutationType::EventLinkCreated: return "event_link_created";
         case RecordingMutationType::ObservationPut: return "observation_put";
+        case RecordingMutationType::ObservationV2Put: return "observation_v2_put";
         case RecordingMutationType::DeletionRequested: return "deletion_requested";
         case RecordingMutationType::DeletionCompleted: return "deletion_completed";
         case RecordingMutationType::CorruptionDetected: return "corruption_detected";
@@ -71,6 +72,7 @@ RecordingMutationType ParseRecordingMutationType(const std::string& value) {
     if (value == "segment_finalized") return RecordingMutationType::SegmentFinalized;
     if (value == "event_link_created") return RecordingMutationType::EventLinkCreated;
     if (value == "observation_put") return RecordingMutationType::ObservationPut;
+    if (value == "observation_v2_put") return RecordingMutationType::ObservationV2Put;
     if (value == "deletion_requested") return RecordingMutationType::DeletionRequested;
     if (value == "deletion_completed") return RecordingMutationType::DeletionCompleted;
     if (value == "corruption_detected") return RecordingMutationType::CorruptionDetected;

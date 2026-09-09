@@ -2,9 +2,10 @@
 
 ## 문서 상태
 
-이 명세는 2026-09-02에 사용자와 합의하고 승인한 아키텍처 방향을 기록한다. 2026-09-03
-`V410-S00`~`V410-S05`의 조사·계약·segment recorder·catalog/journal·순환 보존·이벤트
-연결을 구현했다. S06~S09 timeline·검색 관측·안정화와 릴리즈 완료 증거는 아니다. 공개 버전 순서는
+이 명세는 2026-09-02에 사용자와 합의하고 승인한 아키텍처 방향을 기록한다.
+`V410-S00`~`V410-S06`의 조사·계약·segment recorder·catalog/journal·순환 보존·이벤트
+연결·timeline/재생을 구현했다. S07 분석 관측은 구현·단계 검증을 완료했다. 이 명세 자체는
+S08~S09 안정화와 릴리즈 완료 증거가 아니다. 공개 버전 순서는
 [`docs/v410-v49-recording-search-roadmap.md`](../../v410-v49-recording-search-roadmap.md)에
 요약한다. 단계별 파일·인터페이스·검증 순서는
 [`2026-09-02-v410-recording-foundation-implementation-plan.md`](../plans/2026-09-02-v410-recording-foundation-implementation-plan.md)에
@@ -141,6 +142,13 @@ public identity로 filesystem path를 노출하지 않고 같은 frame을 결정
 v4.1.0은 모든 event·track의 시작, 종료와 요약을 저장한다. 중간 observation은 대표
 frame 또는 설정 interval로 sampling한다. 분석되는 모든 frame을 제한 없이 저장하는
 방식은 허용하지 않는다.
+
+S07 구현 시 기존 V1의 필수 locator/FK 의미를 유지한다. 영상 연결이 아직 없거나
+손상·삭제·모호한 시간축인 관측까지 기록하기 위해 별도 `AnalysisObservationV2`를 추가한다.
+V2는 원본 분석 PTS와 tracker namespace, 선정 사유 배열, 요약과 nullable locator 및
+연결 불가 사유를 분리한다. 기존 V1 fixture와 reader를 변경하는 migration은 하지 않는다.
+유한 대기열의 과부하에서는 주기 관측을 먼저 줄이고 중요 관측 거부도 명시적으로 집계한다.
+저장 장애·무제한 입력 상황을 무손실 보존 성공으로 표시하지 않는다.
 
 #### `RecordingTombstoneV1`
 

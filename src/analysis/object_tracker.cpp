@@ -763,6 +763,11 @@ void ObjectTracker::Update(AnalysisResult* result) {
         tracks_[track_index].last_update_low_confidence = false;
     }
 
+    result->terminated_tracks.clear();
+    for (const auto& track : tracks_) {
+        if (track.public_track.missed > options_.max_missed_frames)
+            result->terminated_tracks.push_back(track.public_track);
+    }
     tracks_.erase(std::remove_if(tracks_.begin(),
                                  tracks_.end(),
                                  [&](const ActiveTrack& track) {

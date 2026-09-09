@@ -8,6 +8,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "core/session_manager.h"
 #include "recording/recording_store_port.h"
@@ -40,6 +41,10 @@ public:
     bool IsChannelRecording(const std::string& channel_id) const;
     // 시작 완료된 유일한 녹화 채널만 반환한다. handle/epoch는 외부에 노출하지 않는다.
     std::optional<std::string> ResolveRecordingChannel(const std::string& stream_key) const;
+    std::optional<RecordingTimeSnapshot> ResolveRecordingTime(
+        const std::string& stream_key, std::int64_t pts) const;
+    // 성공한 finalize 뒤 빠른 알림 전용. 콜백은 DB 작업이나 drain을 기다리지 않는다.
+    void SetFinalizedObserver(std::function<void()> observer);
 
 private:
     struct ChannelState;
@@ -52,6 +57,9 @@ private:
     mutable std::mutex mu_;
     bool closing_{false};
     std::unordered_map<std::string, std::shared_ptr<ChannelState>> channels_;
+    std::unordered_set<std::string> retired_time_keys_;
+    bool time_key_capacity_exceeded_{false};
+    std::shared_ptr<const std::function<void()>> finalized_observer_;
 };
 
 }  // namespace recording

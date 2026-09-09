@@ -983,6 +983,33 @@ git commit -m "feat: 이벤트 우선 녹화 timeline과 재생 추가"
 
 ## Task 7: V410-S07 검색-ready 분석 관측과 FrameLocator
 
+**현재 상태(2026-09-09): 구현·단계 검증 완료.** S06 마감 기준 db308d4d 위에서 구현했다.
+실제 구현 위치·검증 결과는 `docs/release-evidence-v410.md` S07 절과
+`docs/release-test-records.md` 최종 마감 기록을 따른다. S08은 미착수다.
+사용자 승인 범위는 S07 구현·발견 문제 수정·단계 검증·문서 마감·커밋/푸시이며,
+S08은 종료 보고에서 설명만 한다. 새 검색 UI·외부 저장소 의존성·장시간 검증은 포함하지 않는다.
+
+### 실제 코드에 따른 안전 계약 보완
+
+- 기존 AnalysisObservationV1은 frame_locator object가 필수이고 segment FK를 요구한다.
+  기존 parser/serializer/fixture를 유지하고, 다중 선정 사유·track 요약·null locator는
+  별도 AnalysisObservationV2 schema와 catalog/journal projection으로 추가한다.
+- 같은 channel/track 번호라도 독립 tap/profile 또는 재시작이면 다른 객체다.
+  내부 tracker namespace/generation과 stream epoch로 충돌을 막는다.
+- decoded PTS를 처리 완료 wall clock이나 현재 epoch에 임의 결박하지 않는다.
+  실제 keyframe 매핑·epoch·범위가 유일하게 검증될 때만 locator를 생성한다.
+  모호함·공백은 null locator와 이유로 남긴다. 임의 frame index는 만들지 않는다.
+- bounded 대기열에서 interval을 먼저 제거해 start/event/end를 우선한다.
+  중요 관측만으로도 포화되면 명시적인 거부 수와 안전한 오류 코드를 기록한다.
+  무제한 입력·저장 장애에도 nonblocking과 무손실을 동시에 보장한다고 주장하지 않는다.
+- actual event_id는 EventRecord 생성 이후 narrow 내부 observer로 전달한다.
+  기존 EventRecord/Event POST/SSE/WS/DataChannel 직렬화 계약은 변경하지 않는다.
+- finalize callback은 빠른 알림만 전달하며 projector 쓰기·DB 조회를 동기 실행하지 않는다.
+  종료 시 입력 해제·분석 종료·finalize·관측 drain의 수명을 직접 검증한다.
+
+위 보완은 승인된 검색용 녹화 provenance 범위 안의 구현 결정이다.
+실행 전 개별 항목과 RED/GREEN·실패/복구는 release-test-records에 등록·보존한다.
+
 **수정 파일:**
 
 - 수정: `include/analysis/analysis_types.h`
@@ -1026,7 +1053,10 @@ fan-out을 막지 않도록 bounded queue를 가진 `AnalysisObservationProjecto
 
 ### Step 3: sampling과 summary를 구현한다
 
-projector key는 `{channel_id, track_id, stream_epoch_id}`다.
+projector key는 `{channel_id, tracker_namespace, track_id, stream_epoch_id}`다.
+
+주기는 전역 `MEDIA_SERVER_RECORDING_OBSERVATION_INTERVAL_MS`(기본 1000ms, 양수)로
+설정한다. 이번 단계에서 기존 SourceRegistry policy와 hash 계약을 확장하지 않는다.
 
 - 첫 confirmed/tentative track: start observation
 - configured interval 경과: representative observation
@@ -1035,8 +1065,9 @@ projector key는 `{channel_id, track_id, stream_epoch_id}`다.
 - process/channel stop: `endedReason=stream-stopped`로 열린 track summary flush
 
 동일 PTS에 여러 사유가 겹치면 하나만 저장하고 selection reason 배열에 모두 기록한다.
-queue가 가득 차면 interval observation을 먼저 drop하고 start/event/end는 보존한다. drop
-count와 마지막 오류를 status에 노출한다.
+queue가 가득 차면 interval observation을 먼저 drop하고 start/event/end를 우선 보존한다.
+중요 관측만 남은 포화 상태에서는 명시 거부하고 interval drop/critical rejection과
+안전한 마지막 오류 코드를 status에 노출한다. 내부 경로나 오류 원문을 공개하지 않는다.
 
 ### Step 4: FrameLocator를 catalog로 해석한다
 
@@ -1044,6 +1075,11 @@ PTS와 stream epoch가 포함된 finalized segment를 찾고 keyframe anchor를 
 writing인 segment의 observation은 pending queue에 두었다가 finalize callback에서 resolve한다.
 segment가 corrupt/deleted면 observation은 남길 수 있지만 `frameLocator=null`과 reason을
 기록한다.
+
+구현 시 안전 경계: writer가 실제 수락한 최근 PTS 최대 256개의 불변 시간 사본을 사용하며,
+시작·끝 범위 안이더라도 실제 수락 목록에 없는 PTS는 연결하지 않는다.
+writer/decoded PTS rollback 또는 같은 stream key 녹화 재시작 후 모호한 epoch는
+보수적으로 locator 미확정 상태를 유지한다. 지연 분석 결과에 최신 epoch를 덧씌우지 않는다.
 
 ### Step 5: GREEN과 문서 기록
 

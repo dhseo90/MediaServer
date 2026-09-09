@@ -112,12 +112,18 @@ std::string BuildAnalysisReuseKey(const core::StreamKey& stream_key, const Analy
 
 }  // namespace
 
-AnalysisSessionService::AnalysisSessionService(core::SessionManager& session_manager)
-    : session_manager_(session_manager) {}
+AnalysisSessionService::AnalysisSessionService(core::SessionManager& session_manager,
+                                             std::shared_ptr<AnalysisResultObserver> observer)
+    : session_manager_(session_manager), analysis_manager_(std::move(observer)) {}
 
 AnalysisSessionService::~AnalysisSessionService() {
+    Shutdown();
+}
+
+void AnalysisSessionService::Shutdown() {
     {
         std::lock_guard lock(mu_);
+        if (closing_) return;
         closing_ = true;
     }
     session_manager_.SetAuxiliaryStreamRuntimeProvider({});

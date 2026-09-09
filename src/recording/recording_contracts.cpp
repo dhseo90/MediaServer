@@ -934,6 +934,129 @@ std::string SerializeRecordingTombstoneV1(const RecordingTombstoneV1& value) {
     return output.str();
 }
 
+std::string SerializeAnalysisObservationV2(const AnalysisObservationV2& v) {
+    std::ostringstream out;
+    out << "{\"schema\":" << Quote(v.schema)
+        << ",\"observation_id\":" << Quote(v.observation_id)
+        << ",\"source_id\":" << Quote(v.source_id)
+        << ",\"channel_id\":" << Quote(v.channel_id)
+        << ",\"analysis_namespace\":" << Quote(v.analysis_namespace)
+        << ",\"stream_epoch_id\":" << Quote(v.stream_epoch_id)
+        << ",\"pts\":" << v.pts
+        << ",\"frame_locator\":" << (v.frame_locator ? SerializeFrameLocatorV1(*v.frame_locator) : "null")
+        << ",\"locator_reason\":" << Quote(v.locator_reason)
+        << ",\"track_id\":" << Quote(v.track_id)
+        << ",\"class_label\":" << Quote(v.class_label)
+        << ",\"confidence\":" << SerializeDouble(v.confidence)
+        << ",\"bbox\":{\"x\":" << SerializeDouble(v.bbox.x)
+        << ",\"y\":" << SerializeDouble(v.bbox.y)
+        << ",\"width\":" << SerializeDouble(v.bbox.width)
+        << ",\"height\":" << SerializeDouble(v.bbox.height) << '}'
+        << ",\"selection_reasons\":" << SerializeStringArray(v.selection_reasons)
+        << ",\"event_ids\":" << SerializeStringArray(v.event_ids)
+        << ",\"zone_ids\":" << SerializeStringArray(v.zone_ids)
+        << ",\"line_ids\":" << SerializeStringArray(v.line_ids)
+        << ",\"rule_ids\":" << SerializeStringArray(v.rule_ids)
+        << ",\"scenario_ids\":" << SerializeStringArray(v.scenario_ids)
+        << ",\"first_seen_pts\":" << v.first_seen_pts
+        << ",\"last_seen_pts\":" << v.last_seen_pts
+        << ",\"duration_ns\":" << (v.duration_ns ? std::to_string(*v.duration_ns) : "null")
+        << ",\"ended_reason\":" << Quote(v.ended_reason)
+        << ",\"created_at_ms\":" << v.created_at_ms << '}';
+    return out.str();
+}
+
+bool ParseAnalysisObservationV2(const std::string& json, AnalysisObservationV2* value,
+                                std::string* error) {
+    if (!value) return Fail(error, "observation-v2-output-null");
+    AnalysisObservationV2 v;
+    Document doc, box;
+    std::string box_json;
+    if (!ParseDocument(json, &doc, error) ||
+        !RequiredString(doc, "schema", &v.schema, error) ||
+        !RequiredString(doc, "observation_id", &v.observation_id, error) ||
+        !RequiredString(doc, "source_id", &v.source_id, error) ||
+        !RequiredString(doc, "channel_id", &v.channel_id, error) ||
+        !RequiredString(doc, "analysis_namespace", &v.analysis_namespace, error) ||
+        !RequiredString(doc, "stream_epoch_id", &v.stream_epoch_id, error) ||
+        !RequiredInteger(doc, "pts", &v.pts, error) ||
+        !RequiredString(doc, "locator_reason", &v.locator_reason, error) ||
+        !RequiredString(doc, "track_id", &v.track_id, error) ||
+        !RequiredString(doc, "class_label", &v.class_label, error) ||
+        !RequiredDouble(doc, "confidence", &v.confidence, error) ||
+        !RequiredObject(doc, "bbox", &box_json, error) ||
+        !ParseDocument(box_json, &box, error) ||
+        !RequiredDouble(box, "x", &v.bbox.x, error) ||
+        !RequiredDouble(box, "y", &v.bbox.y, error) ||
+        !RequiredDouble(box, "width", &v.bbox.width, error) ||
+        !RequiredDouble(box, "height", &v.bbox.height, error) ||
+        !ParseStringArray(doc, "selection_reasons", &v.selection_reasons, error) ||
+        !ParseStringArray(doc, "event_ids", &v.event_ids, error) ||
+        !ParseStringArray(doc, "zone_ids", &v.zone_ids, error) ||
+        !ParseStringArray(doc, "line_ids", &v.line_ids, error) ||
+        !ParseStringArray(doc, "rule_ids", &v.rule_ids, error) ||
+        !ParseStringArray(doc, "scenario_ids", &v.scenario_ids, error) ||
+        !RequiredInteger(doc, "first_seen_pts", &v.first_seen_pts, error) ||
+        !RequiredInteger(doc, "last_seen_pts", &v.last_seen_pts, error) ||
+        !RequiredString(doc, "ended_reason", &v.ended_reason, error) ||
+        !RequiredInteger(doc, "created_at_ms", &v.created_at_ms, error)) return false;
+    const auto* locator = doc.Find("frame_locator");
+    const auto* duration = doc.Find("duration_ns");
+    if (!locator || !duration) return Fail(error, "observation-v2-missing-nullable");
+    if (locator->type != Type::Null) {
+        FrameLocatorV1 parsed;
+        if (locator->type != Type::Object || !ParseFrameLocatorV1(locator->raw, &parsed, error)) return false;
+        v.frame_locator = std::move(parsed);
+    }
+    if (duration->type != Type::Null) {
+        std::int64_t parsed;
+        if (duration->type != Type::Number || !ParseIntegerRaw(duration->raw, &parsed))
+            return Fail(error, "observation-v2-duration");
+        v.duration_ns = parsed;
+    }
+    if (v.schema != "media-server.analysis-observation.v2" ||
+        !ValidateOpaqueId(v.observation_id, error) ||
+        !ValidateReferenceId(v.source_id, "source_id", error) ||
+        !ValidateReferenceId(v.channel_id, "channel_id", error) ||
+        !ValidateOpaqueId(v.analysis_namespace, error) || !ValidateOpaqueId(v.track_id, error) ||
+        (!v.stream_epoch_id.empty() && !ValidateOpaqueId(v.stream_epoch_id, error))) return false;
+    if (v.created_at_ms < 0 || v.pts < 0 || v.first_seen_pts < 0 || v.last_seen_pts < v.first_seen_pts ||
+        v.pts < v.first_seen_pts || v.pts > v.last_seen_pts ||
+        v.class_label.empty() || v.class_label.size() > 128 || v.confidence < 0 || v.confidence > 1 ||
+        v.bbox.x < 0 || v.bbox.y < 0 || v.bbox.width < 0 || v.bbox.height < 0 ||
+        v.bbox.x + v.bbox.width > 1 || v.bbox.y + v.bbox.height > 1 ||
+        v.selection_reasons.empty() || v.selection_reasons.size() > 4 || v.event_ids.size() > 64)
+        return Fail(error, "observation-v2-invalid-fields");
+    std::unordered_set<std::string> seen;
+    for (const auto& reason : v.selection_reasons) {
+        if ((reason != "track-start" && reason != "interval" && reason != "event" && reason != "track-end") ||
+            !seen.insert(reason).second) return Fail(error, "observation-v2-selection");
+    }
+    for (const auto& id : v.event_ids) if (!ValidateOpaqueId(id, error)) return false;
+    for (const auto* refs : {&v.zone_ids, &v.line_ids, &v.rule_ids, &v.scenario_ids}) {
+        if (refs->size() > 64) return Fail(error, "observation-v2-reference-limit");
+        for (const auto& id : *refs) if (!ValidateReferenceId(id, "reference", error)) return false;
+    }
+    const bool ended = seen.count("track-end") != 0;
+    if (ended != v.duration_ns.has_value() || (ended &&
+        (*v.duration_ns != v.last_seen_pts - v.first_seen_pts ||
+         (v.ended_reason != "tracker-terminated" && v.ended_reason != "stream-stopped" &&
+          v.ended_reason != "pts-rollback"))) || (!ended && !v.ended_reason.empty()))
+        return Fail(error, "observation-v2-summary");
+    const std::unordered_set<std::string> reasons{"unresolved", "pending", "gap", "deleted", "corrupt",
+        "ambiguous-epoch", "missing-provenance", "out-of-range", "stream-stopped", "missing-media"};
+    if (v.frame_locator) {
+        if (!v.locator_reason.empty() || v.stream_epoch_id.empty() ||
+            v.frame_locator->frame.pts != v.pts || v.frame_locator->frame_index ||
+            !v.frame_locator->keyframe_pts || v.frame_locator->frame.time_base_num != 1 ||
+            v.frame_locator->frame.time_base_den != 1000000000)
+            return Fail(error, "observation-v2-locator");
+    } else if (!reasons.count(v.locator_reason)) return Fail(error, "observation-v2-null-reason");
+    *value = std::move(v);
+    ClearError(error);
+    return true;
+}
+
 bool ParseRecordingTombstoneV1(const std::string& json,
                                RecordingTombstoneV1* value,
                                std::string* error) {

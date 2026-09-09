@@ -808,16 +808,16 @@
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
-          "anchor": "std::thread([this, client_fd] {",
-          "line": 408,
-          "contextSha256": "ee48618cd22678ba67bd2f944cac2b1b0e779b70fc879bccd2b1ecb4635f6d5e"
+          "anchor": "std::thread([this, client_fd, recording_gate, recording_service] {",
+          "line": 411,
+          "contextSha256": "aacd6adaf967702a3e7d2a63beea0934aa8bf059cab1ac1962dbb1db128717fb"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "response = [&]() -> HttpResponse {",
-          "line": 426,
-          "contextSha256": "7b1b30eccf7c292a252e94fd841d67325c26c338e84af00cb5acf336ba084700"
+          "line": 433,
+          "contextSha256": "a32bb47e8efd1a2cf15f9df7f5c0972a682df9b0cbe336fcfa65e9f3e363c0f4"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
@@ -848,22 +848,22 @@
           "kind": "function-containment",
           "witness": "WebRtcHttpServer::Start contains POST /logout session destruction",
           "source": "src/ingress/webrtc_http_server_runtime.cpp:333",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:408"
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:411"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "logout destroys server auth session",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:408",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:426"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:411",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:433"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "logout redirect branch invokes destroy_auth_session",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:426",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:433",
           "target": "src/ingress/webrtc_http_server_runtime.cpp:1087"
         },
         {
@@ -2082,16 +2082,16 @@
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "client-request-thread",
-          "anchor": "std::thread([this, client_fd] {",
-          "line": 408,
-          "contextSha256": "ee48618cd22678ba67bd2f944cac2b1b0e779b70fc879bccd2b1ecb4635f6d5e"
+          "anchor": "std::thread([this, client_fd, recording_gate, recording_service] {",
+          "line": 411,
+          "contextSha256": "aacd6adaf967702a3e7d2a63beea0934aa8bf059cab1ac1962dbb1db128717fb"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "request-dispatch-lambda",
           "anchor": "response = [&]() -> HttpResponse {",
-          "line": 426,
-          "contextSha256": "7b1b30eccf7c292a252e94fd841d67325c26c338e84af00cb5acf336ba084700"
+          "line": 433,
+          "contextSha256": "a32bb47e8efd1a2cf15f9df7f5c0972a682df9b0cbe336fcfa65e9f3e363c0f4"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
@@ -2122,22 +2122,22 @@
           "kind": "function-containment",
           "witness": "WebRtcHttpServer::Start owns the accepted-client request thread",
           "source": "src/ingress/webrtc_http_server_runtime.cpp:333",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:408"
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:411"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "the accepted-client thread contains the HTTP request dispatch lambda",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:408",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:426"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:411",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:433"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "the request dispatch lambda falls through unmatched product routes to the explicit 404 response",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:426",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:433",
           "target": "src/ingress/webrtc_http_server_runtime.cpp:4967"
         },
         {
@@ -14003,8 +14003,8 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "require_admin_principal",
           "anchor": "auto require_admin_principal = [&]() -> std::optional<HttpResponse> {",
-          "line": 731,
-          "contextSha256": "c8fb529df21432c557530890ea8c2fb891955772daeaca62db88a6c73a243ec2"
+          "line": 804,
+          "contextSha256": "f88ef41513c7a5ff9b1b296ed6d4e21f00fd85bc676add53eef9dee2fd808a82"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
@@ -14043,14 +14043,14 @@
           "kind": "direct-callsite",
           "witness": "route calls require_admin_principal",
           "source": "src/ingress/webrtc_http_server_runtime.cpp:1161",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:731"
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:804"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "guard checks IsAdmin before user management",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:731",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:804",
           "target": "src/ingress/webrtc_http_server_runtime.cpp:738"
         },
         {
@@ -14484,8 +14484,8 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "response = [&]() -> HttpResponse {",
-          "line": 426,
-          "contextSha256": "7b1b30eccf7c292a252e94fd841d67325c26c338e84af00cb5acf336ba084700"
+          "line": 433,
+          "contextSha256": "a32bb47e8efd1a2cf15f9df7f5c0972a682df9b0cbe336fcfa65e9f3e363c0f4"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
@@ -14529,7 +14529,7 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "owner state return require_scope_principal(\"source:write\" reaches executable dispatch",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:426",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:433",
           "target": "src/ingress/webrtc_http_server_runtime.cpp:771"
         },
         {
@@ -15676,15 +15676,15 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "response = [&]() -> HttpResponse {",
-          "line": 426,
-          "contextSha256": "7b1b30eccf7c292a252e94fd841d67325c26c338e84af00cb5acf336ba084700"
+          "line": 433,
+          "contextSha256": "a32bb47e8efd1a2cf15f9df7f5c0972a682df9b0cbe336fcfa65e9f3e363c0f4"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "auto require_admin_principal = [&]() -> std::optional<HttpResponse> {",
-          "line": 731,
-          "contextSha256": "c8fb529df21432c557530890ea8c2fb891955772daeaca62db88a6c73a243ec2"
+          "line": 804,
+          "contextSha256": "f88ef41513c7a5ff9b1b296ed6d4e21f00fd85bc676add53eef9dee2fd808a82"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
@@ -15721,15 +15721,15 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "owner state return JsonResponse(403 reaches executable dispatch",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:426",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:731"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:433",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:804"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "dispatch reaches require_ops_principal",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:731",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:804",
           "target": "src/ingress/webrtc_http_server_runtime.cpp:738"
         },
         {
@@ -15881,7 +15881,7 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.method == \"POST\") {",
-          "line": 3095,
+          "line": 3168,
           "contextSha256": "05ed0dd4b9c221ba22cd11fdb803bd90410c0dc6471d1794bc415a2e97caf613"
         },
         "action": {
@@ -15920,14 +15920,14 @@
           "kind": "branch-containment",
           "witness": "the exact /ops/api/sources route contains the POST dispatch",
           "source": "src/ingress/webrtc_http_server_runtime.cpp:3088",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:3095"
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:3168"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "branch-containment",
           "witness": "the POST dispatch invokes SourceViewApplicationService::CreateSource",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:3095",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:3168",
           "target": "src/ingress/webrtc_http_server_runtime.cpp:3101"
         },
         {
@@ -19547,7 +19547,7 @@
           "file": "src/ingress/webrtc_http_server.cpp",
           "symbol": "ClientViewEventsJson",
           "anchor": "AppendClientSafeSourceStatusDigestJson(source_status_digest_out, source_status_digest);",
-          "line": 3435,
+          "line": 3437,
           "contextSha256": "0541a15e5e9a5343fa93a6ae7b1273e21c9ebddfb4fadcd33c04fb3983f6b9ed"
         },
         "action": {
@@ -19586,14 +19586,14 @@
           "kind": "function-containment",
           "witness": "client view events producer appends scoped source status digest",
           "source": "src/ingress/webrtc_http_server.cpp:3427",
-          "target": "src/ingress/webrtc_http_server.cpp:3435"
+          "target": "src/ingress/webrtc_http_server.cpp:3437"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "events producer directly calls digest serializer",
-          "source": "src/ingress/webrtc_http_server.cpp:3435",
+          "source": "src/ingress/webrtc_http_server.cpp:3437",
           "target": "src/ingress/webrtc_http_server.cpp:2438"
         },
         {

@@ -23,6 +23,7 @@ struct RecordingRuntimeConfigData {
         recording_runtime_defaults::kReservedFreeBytes};
     int recording_retention_interval_ms{
         recording_runtime_defaults::kRetentionIntervalMs};
+    int recording_observation_interval_ms{1000};
 };
 
 inline bool ValidateRecordingRuntimeConfig(const RecordingRuntimeConfigData& value,
@@ -37,6 +38,7 @@ inline bool ValidateRecordingRuntimeConfig(const RecordingRuntimeConfigData& val
     if (value.recording_retention_interval_ms <= 0) {
         return fail("retention interval은 양수여야 함");
     }
+    if (value.recording_observation_interval_ms <= 0) return fail("observation interval은 양수여야 함");
     if (value.recording_enabled && value.recording_default_channel_quota_bytes == 0) {
         return fail("녹화 활성화 시 기본 channel quota는 0일 수 없음");
     }

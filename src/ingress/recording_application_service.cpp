@@ -51,7 +51,7 @@ std::optional<RecordingByteRange> ParseRecordingByteRange(const std::string& hea
     return RecordingByteRange{start, end - start + 1, true};
 }
 
-ApplicationServiceResult RecordingApplicationService::Status(const ChannelAuthorizer& authorize) const {
+ApplicationServiceResult RecordingApplicationService::Status(const ChannelAuthorizer& authorize, bool include_global_observations) const {
     std::vector<RecordingChannelStatus> channels;
     if (!authorize || !status_provider_ || !status_provider_(&channels))
         return {503, "Service Unavailable", "{\"error\":\"recording status unavailable\"}"};
@@ -75,7 +75,17 @@ ApplicationServiceResult RecordingApplicationService::Status(const ChannelAuthor
             << ",\"continuousMaxBytes\":" << channel.continuous_max_bytes
             << ",\"eventMaxBytes\":" << channel.event_max_bytes << '}';
     }
-    out << "]}";
+    out << ']';
+    if (include_global_observations && observation_status_provider_) {
+        const auto status = observation_status_provider_();
+        out << ",\"observations\":{\"queued\":" << status.queued << ",\"pending\":" << status.pending
+            << ",\"activeTracks\":" << status.tracks << ",\"stored\":" << status.stored
+            << ",\"intervalDropped\":" << status.interval_dropped
+            << ",\"criticalRejected\":" << status.critical_rejected
+            << ",\"storageErrors\":" << status.storage_errors
+            << ",\"lastError\":" << Quote(status.last_error) << '}';
+    }
+    out << '}';
     return {200, "OK", out.str()};
 }
 

@@ -126,6 +126,38 @@ struct RecordingTombstoneV1 {
     std::int64_t deleted_at_ms{0};
 };
 
+// V1 locator 필수 계약과 분리된 검색 관측 envelope. 원본 PTS는 locator가 없어도 보존한다.
+struct AnalysisObservationV2 {
+    std::string schema{"media-server.analysis-observation.v2"};
+    std::string observation_id;
+    std::string source_id;
+    std::string channel_id;
+    std::string analysis_namespace;
+    std::string stream_epoch_id;
+    std::int64_t pts{0};
+    std::optional<FrameLocatorV1> frame_locator;
+    std::string locator_reason{"unresolved"};
+    std::string track_id;
+    std::string class_label;
+    double confidence{0.0};
+    NormalizedBoundingBoxV1 bbox;
+    std::vector<std::string> selection_reasons;
+    std::vector<std::string> event_ids;
+    std::vector<std::string> zone_ids;
+    std::vector<std::string> line_ids;
+    std::vector<std::string> rule_ids;
+    std::vector<std::string> scenario_ids;
+    std::int64_t first_seen_pts{0};
+    std::int64_t last_seen_pts{0};
+    std::optional<std::int64_t> duration_ns;
+    std::string ended_reason;
+    std::int64_t created_at_ms{0};
+};
+
+std::string SerializeAnalysisObservationV2(const AnalysisObservationV2& value);
+bool ParseAnalysisObservationV2(const std::string& json, AnalysisObservationV2* value,
+                                std::string* error);
+
 bool ValidateOpaqueId(const std::string& value, std::string* error);
 bool ValidateMediaTime(const MediaTimeV1& value, std::string* error);
 bool ValidateRecordingSegmentV1(const RecordingSegmentV1& value, std::string* error);

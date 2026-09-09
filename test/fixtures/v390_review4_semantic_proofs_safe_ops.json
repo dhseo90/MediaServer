@@ -17161,7 +17161,7 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "require_ops_principal",
           "anchor": "403,",
-          "line": 725,
+          "line": 734,
           "contextSha256": "99272dbf7a796d7e9d218b82ba9cfed04498284c5cf25190b4b30fdb4ba09a9e"
         },
         "readback": {
@@ -17202,14 +17202,14 @@
           "kind": "function-containment",
           "witness": "SAFE-020 action-state",
           "source": "src/ingress/webrtc_http_server_runtime.cpp:715",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:725"
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:734"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "SAFE-020 state-readback",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:725",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:734",
           "target": "scripts/internal/verify_auth_workflow.sh:1882"
         },
         {
@@ -21971,7 +21971,7 @@
           "file": "src/ingress/webrtc_http_server.cpp",
           "symbol": "AppendClientSafeFollowUpDigestJson",
           "anchor": "<< \"\\\"rawEvidenceIncluded\\\":false,\"",
-          "line": 3196,
+          "line": 3198,
           "contextSha256": "1bdb845581afedced1b4f2251598a2379c3622f23efd8731a2150250902fbe01"
         },
         "readback": {
@@ -22012,14 +22012,14 @@
           "kind": "function-containment",
           "witness": "SAFE-069 action-state",
           "source": "src/ingress/webrtc_http_server.cpp:3191",
-          "target": "src/ingress/webrtc_http_server.cpp:3196"
+          "target": "src/ingress/webrtc_http_server.cpp:3198"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "SAFE-069 state-readback",
-          "source": "src/ingress/webrtc_http_server.cpp:3196",
+          "source": "src/ingress/webrtc_http_server.cpp:3198",
           "target": "scripts/internal/verify_auth_workflow.sh:1130"
         },
         {
@@ -23456,7 +23456,7 @@
           "file": "src/analysis/event_storage.cpp",
           "symbol": "WriteEvidenceManifest",
           "anchor": "std::ofstream manifest(manifest_path, std::ios::out | std::ios::trunc);",
-          "line": 2068,
+          "line": 2070,
           "contextSha256": "f567029619a492ffbaed59ce17ccdc5030c462601363fa88df7856ed08b1adbd"
         },
         "action": {
@@ -23495,14 +23495,14 @@
           "kind": "function-containment",
           "witness": "SAFE-084 owner-dispatch",
           "source": "src/analysis/event_storage.cpp:2052",
-          "target": "src/analysis/event_storage.cpp:2068"
+          "target": "src/analysis/event_storage.cpp:2070"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "SAFE-084 dispatch-action",
-          "source": "src/analysis/event_storage.cpp:2068",
+          "source": "src/analysis/event_storage.cpp:2070",
           "target": "src/analysis/event_storage.cpp:2077"
         },
         {

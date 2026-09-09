@@ -457,6 +457,11 @@ async function verifyRecordingHttpAuth(baseUrl, root) {
         const expectedChannels = index === 0 ? ['1', '2'] : index === 1 ? ['1'] : [];
         check(JSON.stringify(status.channels.map(channel => channel.channelId).sort()) === JSON.stringify(expectedChannels), `I02 principal ${index} 허용 채널만 status 반환`);
         check(status.channels.every(channel => channel.active === false && channel.enabled === false), `I01 principal ${index} 실제 비녹화 상태`);
+        if (index === 0) {
+          check(status.observations !== null && typeof status.observations === 'object', 'S07-http-observations-global');
+        } else {
+          check(!Object.hasOwn(status, 'observations'), `S07-http-observations-limited principal ${index}`);
+        }
       }
       if (routeIndex < 2) check(!/passwordHash|passwordHistory|tokenHash|mediaRelpath|absolutePath/.test(body.toString()), `I02/I17 principal ${index} route ${routeIndex} 민감 field 비노출`);
     }
