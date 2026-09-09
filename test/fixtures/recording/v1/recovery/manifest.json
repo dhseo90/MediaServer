@@ -1,0 +1,91 @@
+{
+  "schema": "media-server.recording-recovery-test-manifest.v1",
+  "scope": "S08-B1 미커밋 journal 꼬리 한정, 테스트 생성 입력 정의. golden V1 원본 대체 아님",
+  "cases": [
+  {
+    "id": "V410-S08-B1-01",
+    "lastSuccessfulStep": "원장 Open",
+    "expectedOutcome": "빈 원장 Append/Replay"
+  },
+  {
+    "id": "V410-S08-B1-02",
+    "lastSuccessfulStep": "완결행 LF fsync",
+    "expectedOutcome": "newline 원장 prefix 바이트 보존"
+  },
+  {
+    "id": "V410-S08-B1-03",
+    "lastSuccessfulStep": "정상행 fsync 후 꼬리 partial write",
+    "expectedOutcome": "truncated tail 격리 뒤 valid2"
+  },
+  {
+    "id": "V410-S08-B1-04",
+    "lastSuccessfulStep": "JSON bytes 기록, LF 미기록",
+    "expectedOutcome": "완결 JSON noLF 미승격"
+  },
+  {
+    "id": "V410-S08-B1-05",
+    "lastSuccessfulStep": "tail 격리 및 새행 fsync",
+    "expectedOutcome": "연속 재시작/추가 append 멱등"
+  },
+  {
+    "id": "V410-S08-B1-06",
+    "lastSuccessfulStep": "격리 payload만 fsync",
+    "expectedOutcome": "격리 payload byte exact·재사용"
+  },
+  {
+    "id": "V410-S08-B1-07",
+    "lastSuccessfulStep": "정상 prefix와 tail 기록",
+    "expectedOutcome": "격리 실패 원본 불변"
+  },
+  {
+    "id": "V410-S08-B1-08",
+    "lastSuccessfulStep": "중간 corrupt line 뒤 정상 LF 기록",
+    "expectedOutcome": "중간 corrupt line 보존·정상행 replay"
+  },
+  {
+    "id": "V410-S08-B1-09",
+    "lastSuccessfulStep": "symlink 생성",
+    "expectedOutcome": "journal symlink 거부"
+  },
+  {
+    "id": "V410-S08-B1-10",
+    "lastSuccessfulStep": "hardlink 생성",
+    "expectedOutcome": "journal hardlink 거부"
+  },
+  {
+    "id": "V410-S08-B1-11",
+    "lastSuccessfulStep": "원장 Open inode pin",
+    "expectedOutcome": "Open 후 inode 교체 거부"
+  },
+  {
+    "id": "V410-S08-B1-12",
+    "lastSuccessfulStep": "사용자 parent symlink 생성",
+    "expectedOutcome": "내부 parent symlink 거부"
+  },
+  {
+    "id": "V410-S08-B1-13",
+    "lastSuccessfulStep": "OS tmp alias 확인",
+    "expectedOutcome": "macOS 시스템 alias 정상 허용"
+  },
+  {
+    "id": "V410-S08-B1-14",
+    "lastSuccessfulStep": "격리 경로 link 존재",
+    "expectedOutcome": "quarantine symlink/hardlink 거부"
+  },
+  {
+    "id": "V410-S08-B1-15",
+    "lastSuccessfulStep": "16MiB 초과 미commit tail 기록",
+    "expectedOutcome": "16MiB 초과 꼬리 원본보존"
+  },
+  {
+    "id": "V410-S08-B1-16",
+    "lastSuccessfulStep": "원장 Open 뒤 inode교체",
+    "expectedOutcome": "Replay I/O 오류 catalog Open 거부"
+  },
+  {
+    "id": "V410-S08-B1-17",
+    "lastSuccessfulStep": "원장 Open 뒤 파일/parent 삭제",
+    "expectedOutcome": "삭제 원장/parent 재Open 부재 유지"
+  }
+]
+}

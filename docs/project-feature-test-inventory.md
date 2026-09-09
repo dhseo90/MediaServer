@@ -1,5 +1,27 @@
 # Project Feature Test Inventory
 
+## V410 S08-B1 journal tail 복구 (실행 전 등록)
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
+| --- | --- | --- | --- | --- | --- |
+| V410-S08-B1-01 | 빈 원장 Append/Replay | recovery focused | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S08-B1-02 | newline 원장 prefix 바이트 보존 | recovery focused | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S08-B1-03 | truncated tail 격리 뒤 valid2 | recovery focused | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S08-B1-04 | 완결 JSON noLF 미승격 | recovery focused | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S08-B1-05 | 연속 재시작/추가 append 멱등 | recovery focused | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S08-B1-06 | 격리 payload byte exact·재사용 | recovery focused | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S08-B1-07 | 격리 실패 원본 불변 | recovery focused | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S08-B1-08 | 중간 corrupt line 보존·정상행 replay | recovery focused | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S08-B1-09 | journal symlink 거부 | recovery focused | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S08-B1-10 | journal hardlink 거부 | recovery focused | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S08-B1-11 | Open 후 inode 교체 거부 | recovery focused | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S08-B1-12 | 내부 parent symlink 거부 | recovery focused | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S08-B1-13 | macOS 시스템 alias 정상 허용 | recovery focused | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S08-B1-14 | quarantine symlink/hardlink 거부 | recovery focused | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S08-B1-15 | 16MiB 초과 꼬리 원본보존 거부 | recovery focused | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S08-B1-16 | Replay I/O오류 catalog Open 거부 | recovery focused, S03 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| V410-S08-B1-17 | 삭제 journal/parent 재Open 거부·재생성 금지 | recovery focused | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+
 ## V410 S08-A V1 호환 gate (실행 전 등록)
 
 | 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
@@ -78,7 +100,8 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | S06 개별 action ID | 34 |
 | V410 S07 관측 신규 개별 ID | 10 |
 | V410 S08-A V1 호환 신규 개별 ID | 8 |
-| 현재 등록 총계 | 1091 |
+| V410 S08-B1 journal 신규 개별 ID | 17 |
+| 현재 등록 총계 | 1108 |
 
 이는 등록 합계이지 전 제품 발견·실행 완료 선언이 아니다. S01~S04의 신규 등록 정합성은
 이번 S05 보정에서 전수 감사하지 않았다.

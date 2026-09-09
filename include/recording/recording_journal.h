@@ -34,6 +34,7 @@ struct RecordingJournalReplayResult {
     std::vector<RecordingMutationV1> mutations;
     std::size_t corrupt_line_count{0};
     std::size_t truncated_tail_count{0};
+    std::size_t io_error_count{0};  // 안전한 원본 FD를 읽지 못함; 정상 빈 원장과 구분.
 };
 
 std::string RecordingMutationTypeName(RecordingMutationType type);
@@ -55,6 +56,8 @@ private:
     std::filesystem::path path_;
     mutable std::mutex mu_;
     bool opened_{false};
+    std::filesystem::path io_path_;
+    std::uint64_t device_{0}, inode_{0}, parent_device_{0}, parent_inode_{0};
 };
 
 }  // namespace recording

@@ -274,6 +274,7 @@ bool RecordingCatalog::Open(std::string* error) {
     std::lock_guard lock(mu_);
     if (opened_) return true;
     const auto replay = journal_.Replay();
+    if (replay.io_error_count != 0) return Fail(error, "journal replay I/O 오류로 catalog open 거부");
     recovery_report_.corrupt_line_count = replay.corrupt_line_count;
     recovery_report_.truncated_tail_count = replay.truncated_tail_count;
     for (const auto& mutation : replay.mutations) {
@@ -1217,8 +1218,9 @@ bool RecordingCatalog::RebuildSqliteLocked(std::string* error) {
 #if !MEDIA_SERVER_USE_SQLITE3
     (void)error; return true;
 #else
-    if (!Exec(sqlite_db_, "BEGIN; DELETE FROM recording_event_link_segments; DELETE FROM recording_event_links; DELETE FROM recording_observations; DELETE FROM recording_observations_v2; DELETE FROM recording_segments; DELETE FROM recording_tombstones; DELETE FROM recording_mutations; COMMIT;", error)) return false;
     const auto replay = journal_.Replay();
+    if (replay.io_error_count != 0) return Fail(error, "journal replay I/O 오류로 SQLite rebuild 거부");
+    if (!Exec(sqlite_db_, "BEGIN; DELETE FROM recording_event_link_segments; DELETE FROM recording_event_links; DELETE FROM recording_observations; DELETE FROM recording_observations_v2; DELETE FROM recording_segments; DELETE FROM recording_tombstones; DELETE FROM recording_mutations; COMMIT;", error)) return false;
     for (const auto& mutation : replay.mutations) if (!ProjectMutationSqliteLocked(mutation, error)) return false;
     return true;
 #endif

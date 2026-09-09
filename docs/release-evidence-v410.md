@@ -4,7 +4,16 @@
 PASS는 UI 풀테스트, 30분/120분 장시간 테스트, PR/main merge, tag, GitHub Release 또는
 published metadata 완료를 뜻하지 않는다.
 
-## S08 부분 구현: A V1 호환성 기준 (2026-09-09)
+## S08 부분 구현: A V1 호환성 기준과 B1 원장 꼬리 복구 (2026-09-09)
+
+B1은 `recording_journal.cpp`의 Open/Append/Replay에 파일·상위 디렉터리 inode 확인과
+미commit 꼬리 원본 격리→truncate/fsync→새 append를 추가했다. 격리 실패 또는 16MiB
+초과 꼬리는 원장을 보존하고 쓰기를 거부한다. `recording_catalog.cpp`의 Open 및
+RebuildSqliteLocked는 Replay I/O 실패를 정상 빈 원장으로 처리하지 않는다.
+새 recovery smoke 40개, S03 catalog45개·wiring9개, 계약89개, A digest4개·reader89개,
+전체 서버 build가 통과했다. 상세 예상 RED·개별 결과·cleanup·미검증 경계는
+`release-test-records.md`의 S08-B1에 보존했다. B1은 영상 파일 복구·손상 상태 반영이나
+S08 전체 완료가 아니며, 공개 V1 및 스트리밍·권한 계약은 바꾸지 않았다.
 
 `compatibility-manifest.json`과 `verify_v410_recording_fixture_compatibility.mjs`에 기존
 V1 golden4개 SHA-256을 고정했다. digest 자동 갱신 없이 누락·바이트 변조·manifest 교체를

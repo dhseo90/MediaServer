@@ -1,5 +1,264 @@
 # Release Test Records
 
+## v4.1.0 S08-B1 실제 실행 결과 (2026-09-09)
+
+범위: Journal 마지막 LF 뒤 미commit 꼬리 내구격리→truncate/fsync→새 append; Replay I/O 오류를 catalog Open 및 SQLite rebuild DELETE 전에 거부. macOS 시스템 `/tmp`·`/var` leading alias만 플랫폼 고정 치환하며 사용자 parent symlink와 `..`는 거부한다. 정상 Append는 마지막 1byte LF 검사, tail만 chunk 탐색하며 **16MiB 초과 tail은 원본을 보존하고 Append 실패**한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| tail 예상 RED | `./server.sh verify-v410-recording-recovery --red-tail` exit 1, pass6/fail2; truncated/complete-noLF의 valid2+nextID assertion 정확히 실패. elapsed 1889ms | fail |
+| IO consumer 예상 RED | `./server.sh verify-v410-recording-recovery --red-io` exit 1, pass1/fail1; catalog failed Replay 거부 assertion 정확히 실패. elapsed 2388ms | fail |
+| B1 focused GREEN | `./server.sh verify-v410-recording-recovery` exit 0, 40/0. elapsed 2637ms. 두 예상 RED의 동일 assertion 최종 pass | pass |
+| S03 catalog 회귀 | `MEDIA_SERVER_VERIFY_V410_RECORDING_CATALOG_BUILD_DIR=/private/tmp/media-server-s08-b1-catalog-20260909 ./server.sh verify-v410-recording-catalog` exit 0, C++45/0 및 wiring9/0. elapsed 2540ms | pass |
+| S01 contracts 회귀 | `MEDIA_SERVER_VERIFY_V410_RECORDING_CONTRACTS_BUILD_DIR=/private/tmp/media-server-s08-b1-contracts-20260909 ./server.sh verify-v410-recording-contracts` exit 0, C++89/0. elapsed 1162ms | pass |
+| A 호환 gate 회귀 | `./server.sh verify-v410-recording-fixture-compatibility` exit 0, 고정digest4/0 및 C++89/0. elapsed 1189ms | pass |
+| diff check | `git diff --check` exit 0 | pass |
+| 기존 회귀 cleanup 후확인 | 두 명시 BUILD_DIR에 `test ! -e` 수행 exit 0 | pass |
+| B1 제품 전체 빌드 | `./server.sh build` exit 0, configure 및 `media_server_runtime`·`media_server` 100% 완료. 기존 `build-gst-onnx` 개발 산출물 갱신, 임시 서버/포트 생성 없음 | pass |
+| B1 문서 연결 | `./server.sh verify-docs-links` exit 0, 문서226·링크1049·이미지22·앵커103, 실패0. 임시 산출물 없음 | pass |
+
+elapsed source는 담당자 Date.now() 실행 전후 차이(도구 왕복 포함), token start/end/consumed는 서브에이전트 usage 집계 API 부재로 미집계다. manifest 17행은 ID/마지막 성공 단계/예상 상태 **정의 검증**이며 실제 제품 assertion40개와 다르다. 검사 기대값은 manifest 문장을 실행 oracle로 자동변환하지 않는다.
+
+안전 I/O의 EINTR/부분write retry, fsync 순서, SQLite rebuild DELETE전 io guard는 직접 코드 검토했다. OS write/fsync fault injection 및 비협력 same-user race 전체 방어는 검증하지 않았고 PASS로 주장하지 않는다. 실제 I/O거부 소비자는 catalog Open을 검사했으며 rebuild 중간 inode교체 오류 강제실행은 미실행이다. 메인 전체 build는 통과했다. 빌드 시작부터 완료 확인 후 계측까지 30822ms(도구 왕복·후속 읽기 포함 상한)이며 순수 빌드 시간은 미계측, 메인 token start/end/consumed도 집계 API 부재로 미집계다. B2 조회/parity/삭제복구/상태corruption/readyticket, 30분/120분/UI는 이 묶음에서 미실행이다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/tmp/media-server-s08-b1-63iHvn | tail RED binary/fixture | 436506 bytes | EXIT cleanup | removed=true | cleanup stdout |
+| /private/tmp/media-server-s08-b1-muWh5Y | io RED binary/fixture | 1460691 bytes | EXIT cleanup | removed=true | cleanup stdout |
+| /private/tmp/media-server-s08-b1-IfyuK3 | GREEN binary/17-case fixture | 19972487 bytes | EXIT cleanup | removed=true | cleanup stdout |
+| /private/tmp/media-server-s08-b1-catalog-20260909 | S03 binary/fixtures | 미계측: 기존 trap 즉시 삭제 | EXIT cleanup | 부재 직접확인 exit0 | test ! -e |
+| /private/tmp/media-server-s08-b1-contracts-20260909 | S01 binary | 미계측: 기존 trap 즉시 삭제 | EXIT cleanup | 부재 직접확인 exit0 | test ! -e |
+| OS TMPDIR/s08-a-reader-sgWDsA | A gate binary | 478064 bytes | finally cleanup | removed=true | cleanup stdout |
+
+### B1 focused 개별 실행
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| B1-01 | truncated open | pass | 실제 stdout; exit0 |
+| B1-02 | truncated uncommitted before append | pass | 실제 stdout; exit0 |
+| B1-03 | truncated append: | pass | 실제 stdout; exit0 |
+| B1-04 | truncated valid2 and next ID preserved | pass | 실제 stdout; exit0 |
+| B1-05 | truncated quarantine byte exact | pass | 실제 stdout; exit0 |
+| B1-06 | truncated restart no mutation | pass | 실제 stdout; exit0 |
+| B1-07 | truncated second append retained | pass | 실제 stdout; exit0 |
+| B1-08 | truncated no redundant archive | pass | 실제 stdout; exit0 |
+| B1-09 | complete-no-lf open | pass | 실제 stdout; exit0 |
+| B1-10 | complete-no-lf uncommitted before append | pass | 실제 stdout; exit0 |
+| B1-11 | complete-no-lf append: | pass | 실제 stdout; exit0 |
+| B1-12 | complete-no-lf valid2 and next ID preserved | pass | 실제 stdout; exit0 |
+| B1-13 | complete-no-lf quarantine byte exact | pass | 실제 stdout; exit0 |
+| B1-14 | complete-no-lf restart no mutation | pass | 실제 stdout; exit0 |
+| B1-15 | complete-no-lf second append retained | pass | 실제 stdout; exit0 |
+| B1-16 | complete-no-lf no redundant archive | pass | 실제 stdout; exit0 |
+| B1-17 | empty journal is valid | pass | 실제 stdout; exit0 |
+| B1-18 | empty append retained | pass | 실제 stdout; exit0 |
+| B1-19 | large newline prefix byte preserved | pass | 실제 stdout; exit0 |
+| B1-20 | middle corrupt line preserved and valid entries read | pass | 실제 stdout; exit0 |
+| B1-21 | directory quarantine journal open | pass | 실제 stdout; exit0 |
+| B1-22 | directory quarantine failure original unchanged | pass | 실제 stdout; exit0 |
+| B1-23 | symlink quarantine journal open | pass | 실제 stdout; exit0 |
+| B1-24 | symlink quarantine failure original unchanged | pass | 실제 stdout; exit0 |
+| B1-25 | hardlink quarantine journal open | pass | 실제 stdout; exit0 |
+| B1-26 | hardlink quarantine failure original unchanged | pass | 실제 stdout; exit0 |
+| B1-27 | exact quarantine journal open | pass | 실제 stdout; exit0 |
+| B1-28 | existing exact quarantine restart reuse | pass | 실제 stdout; exit0 |
+| B1-29 | journal symlink refused | pass | 실제 stdout; exit0 |
+| B1-30 | journal hardlink refused | pass | 실제 stdout; exit0 |
+| B1-31 | inode pin open | pass | 실제 stdout; exit0 |
+| B1-32 | replacement inode append/reopen/replay refused | pass | 실제 stdout; exit0 |
+| B1-33 | catalog refuses failed journal Replay | pass | 실제 stdout; exit0 |
+| B1-34 | user parent symlink refused | pass | 실제 stdout; exit0 |
+| B1-35 | parent traversal refused | pass | 실제 stdout; exit0 |
+| B1-36 | deleted journal initial open | pass | 실제 stdout; exit0 |
+| B1-37 | deleted journal reopen does not recreate | pass | 실제 stdout; exit0 |
+| B1-38 | deleted parent reopen does not recreate | pass | 실제 stdout; exit0 |
+| B1-39 | macOS tmp system alias allowed | pass | 실제 stdout; exit0 |
+| B1-40 | oversized tail fails closed with original bytes | pass | 실제 stdout; exit0 |
+
+### S03 개별 회귀
+
+기존 smoke는 성공 label을 출력하지 않고 45/0을 집계한다. 아래 45개 이름은 실제 컴파일한 SQLite-enabled assertion 정의와 집계45/0을 대조한 것이며 개별 stdout 출력으로 주장하지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| S03-01 | journal open: | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-02 | fallback catalog open: | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-03 | SQLite off mode 표시 | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-04 | segment finalize journal+projection: | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-05 | fallback range query | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-06 | event link FK 위반 거부 | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-07 | FK 위반 transaction/journal 전체 rollback | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-08 | 최초 durable mutation 1개 | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-09 | 동일 mutation 중복 append | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-10 | 손상 사이 정상 durable mutation 보존 | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-11 | 중간 corrupt line count | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-12 | 마지막 truncated line skip | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-13 | fallback replay open | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-14 | 같은 mutation idempotent replay | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-15 | 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-16 | 중복 replay row/합계 불증가 | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-17 | 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구: | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-18 | writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-19 | v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-20 | SQLite catalog open/rebuild: | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-21 | SQLite primary mode 표시 | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-22 | SQLite on/off range query ID·순서 parity | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-23 | journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-24 | journal 없는 손상 media orphan 구분 | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-25 | projection failover journal open: | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-26 | projection failover catalog open: | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-27 | 실제 SQLite INSERT 실패 trigger 설치 | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-28 | SQLite 투영 실패 뒤 journal+memory finalize 유지: | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-29 | SQLite 투영 실패 즉시 JSONL fallback 전환 | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-30 | 재시작 rebuild 전 실패 trigger 제거 | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-31 | 투영 실패 직후 in-memory query 정합성 유지 | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-32 | projection failover 재시작 journal rebuild: | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-33 | 재시작 후 journal에서 누락 SQLite projection 복구 | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-34 | 재시작 후 SQLite primary 복귀 | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-35 | 재시작 journal rebuild가 실제 SQLite row 복원 | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-36 | tombstone journal open: | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-37 | tombstone catalog open: | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-38 | tombstone 대상 segment finalize: | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-39 | tombstone 대상 deletion request: | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-40 | tombstone 완료 기록: | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-41 | catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-42 | 손상 SQLite 격리 후 journal rebuild: | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-43 | 손상 SQLite 원본 격리 | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-44 | 격리 SQLite 파일 보존 | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-45 | 격리 후 journal rebuild 결과 | pass | 실제 집계45/0+assertion 정의 대조 |
+| S03-wiring-01 | source 저장 callback reconcile 연결 | pass | 실제 정적 wiring stdout; 제품 행위검증 대체 아님 |
+| S03-wiring-02 | policy revision idempotency | pass | 실제 정적 wiring stdout; 제품 행위검증 대체 아님 |
+| S03-wiring-03 | 5초 safety reconcile | pass | 실제 정적 wiring stdout; 제품 행위검증 대체 아님 |
+| S03-wiring-04 | composition root journal 선행 open | pass | 실제 정적 wiring stdout; 제품 행위검증 대체 아님 |
+| S03-wiring-05 | composition root catalog rebuild/open | pass | 실제 정적 wiring stdout; 제품 행위검증 대체 아님 |
+| S03-wiring-06 | 서버 전 supervisor 시작 | pass | 실제 정적 wiring stdout; 제품 행위검증 대체 아님 |
+| S03-wiring-07 | ingress 전 event bridge 등록 | pass | 실제 정적 wiring stdout; 제품 행위검증 대체 아님 |
+| S03-wiring-08 | ingress 종료 뒤 recorder finalize | pass | 실제 정적 wiring stdout; 제품 행위검증 대체 아님 |
+| S03-wiring-09 | composition root 시작/종료 순서 | pass | 실제 정적 wiring stdout; 제품 행위검증 대체 아님 |
+
+### S01 및 A gate 개별 reader 회귀
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| S01-A-01 | opaque ID 허용 | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-02 | 빈 opaque ID 거부 | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-03 | path opaque ID 거부 | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-04 | SQLite rowid 형태 opaque ID 거부 | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-05 | 반개구간 겹침 | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-06 | 맞닿은 반개구간 비겹침 | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-07 | 빈 반개구간 거부 | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-08 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-09 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-10 | V1 segment golden row count | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-11 | unknown optional field를 포함한 segment parse: | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-12 | segment provenance semantic | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-13 | segment UTC/end PTS semantic | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-14 | segment media/checksum semantic | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-15 | segment lifecycle/retention semantic | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-16 | unknown optional field 뒤 known ID 보존 | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-17 | PTS/timebase exact 보존 | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-18 | public JSON에 filesystem path 비노출 | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-19 | segment canonical 재parse | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-20 | PTS/timebase round-trip | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-21 | unknown lifecycle를 호환 parse | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-22 | unknown lifecycle를 Unknown으로 보존 | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-23 | unknown lifecycle 비재생 | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-24 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-25 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-26 | segments.jsonl parse[0]: | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-27 | segments.jsonl additive optional known semantic parity[0] | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-28 | V1 schema probe anchor | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-29 | segments.jsonl changed schema rejected | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-30 | required ID probe anchor | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-31 | segments.jsonl missing required ID rejected | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-32 | segments.jsonl canonical parse[0]: | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-33 | segments.jsonl canonical parity[0] | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-34 | segments.jsonl parse[1]: | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-35 | segments.jsonl additive optional known semantic parity[1] | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-36 | V1 schema probe anchor | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-37 | segments.jsonl changed schema rejected | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-38 | required ID probe anchor | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-39 | segments.jsonl missing required ID rejected | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-40 | segments.jsonl canonical parse[1]: | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-41 | segments.jsonl canonical parity[1] | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-42 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-43 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-44 | event-links.jsonl parse[0]: | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-45 | event-links.jsonl additive optional known semantic parity[0] | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-46 | V1 schema probe anchor | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-47 | event-links.jsonl changed schema rejected | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-48 | required ID probe anchor | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-49 | event-links.jsonl missing required ID rejected | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-50 | event-links.jsonl canonical parse[0]: | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-51 | event-links.jsonl canonical parity[0] | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-52 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-53 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-54 | observations.jsonl parse[0]: | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-55 | observations.jsonl additive optional known semantic parity[0] | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-56 | V1 schema probe anchor | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-57 | observations.jsonl changed schema rejected | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-58 | required ID probe anchor | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-59 | observations.jsonl missing required ID rejected | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-60 | observations.jsonl canonical parse[0]: | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-61 | observations.jsonl canonical parity[0] | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-62 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-63 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-64 | tombstones.jsonl parse[0]: | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-65 | tombstones.jsonl additive optional known semantic parity[0] | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-66 | V1 schema probe anchor | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-67 | tombstones.jsonl changed schema rejected | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-68 | required ID probe anchor | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-69 | tombstones.jsonl missing required ID rejected | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-70 | tombstones.jsonl canonical parse[0]: | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-71 | tombstones.jsonl canonical parity[0] | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-72 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-73 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-74 | link ID/provenance semantic | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-75 | link requested range/status semantic | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-76 | link overlap/missing semantic | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-77 | link fallback/time semantic | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-78 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-79 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-80 | observation ID/provenance semantic | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-81 | observation exact locator semantic | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-82 | observation detection semantic | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-83 | observation association/time semantic | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-84 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-85 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-86 | tombstone ID/provenance semantic | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-87 | tombstone range/checksum/legacy retention semantic | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-88 | tombstone segment ID 재사용 거부 | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+| S01-A-89 | 새 segment ID 허용 | pass | 이번 S01 및 A 양쪽 stdout 동일 pass; exit0 |
+
+담당자 제품 수정·승인된 실행 반환. 최종 통합/커밋은 메인 책임이며 담당자 커밋·푸시 없음. B2는 미착수다.
+
+
+## v4.1.0 S08-B1 journal tail 복구 (실행 전 등록)
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| V410-S08-B1-01 | 빈 원장 Append/Replay | 실제 RecordingJournal Open/Append/Replay 및 OS 파일 상태 대조 | v4.1.0 |
+| V410-S08-B1-02 | newline 원장 prefix 바이트 보존 | 실제 RecordingJournal Open/Append/Replay 및 OS 파일 상태 대조 | v4.1.0 |
+| V410-S08-B1-03 | truncated tail 격리 뒤 valid2 | 실제 RecordingJournal Open/Append/Replay 및 OS 파일 상태 대조 | v4.1.0 |
+| V410-S08-B1-04 | 완결 JSON noLF 미승격 | 실제 RecordingJournal Open/Append/Replay 및 OS 파일 상태 대조 | v4.1.0 |
+| V410-S08-B1-05 | 연속 재시작/추가 append 멱등 | 실제 RecordingJournal Open/Append/Replay 및 OS 파일 상태 대조 | v4.1.0 |
+| V410-S08-B1-06 | 격리 payload byte exact·재사용 | 실제 RecordingJournal Open/Append/Replay 및 OS 파일 상태 대조 | v4.1.0 |
+| V410-S08-B1-07 | 격리 실패 원본 불변 | 실제 RecordingJournal Open/Append/Replay 및 OS 파일 상태 대조 | v4.1.0 |
+| V410-S08-B1-08 | 중간 corrupt line 보존·정상행 replay | 실제 RecordingJournal Open/Append/Replay 및 OS 파일 상태 대조 | v4.1.0 |
+| V410-S08-B1-09 | journal symlink 거부 | 실제 RecordingJournal Open/Append/Replay 및 OS 파일 상태 대조 | v4.1.0 |
+| V410-S08-B1-10 | journal hardlink 거부 | 실제 RecordingJournal Open/Append/Replay 및 OS 파일 상태 대조 | v4.1.0 |
+| V410-S08-B1-11 | Open 후 inode 교체 거부 | 실제 RecordingJournal Open/Append/Replay 및 OS 파일 상태 대조 | v4.1.0 |
+| V410-S08-B1-12 | 내부 parent symlink 거부 | 실제 RecordingJournal Open/Append/Replay 및 OS 파일 상태 대조 | v4.1.0 |
+| V410-S08-B1-13 | macOS 시스템 alias 정상 허용 | 실제 RecordingJournal Open/Append/Replay 및 OS 파일 상태 대조 | v4.1.0 |
+| V410-S08-B1-14 | quarantine symlink/hardlink 거부 | 실제 RecordingJournal Open/Append/Replay 및 OS 파일 상태 대조 | v4.1.0 |
+| V410-S08-B1-15 | 16MiB 초과 꼬리 | 실제 Append 거부 및 원본byte불변 | v4.1.0 |
+| V410-S08-B1-16 | Replay I/O 오류 소비 | 실제 catalog Open 거부; Rebuild는 DELETE전 guard 코드검토+S03 | v4.1.0 |
+| V410-S08-B1-17 | 삭제 뒤 재Open | journal/parent 삭제 후 실패 및 부재 유지 | v4.1.0 |
+
+추가 예상 RED: `./server.sh verify-v410-recording-recovery --red-io`에서 journal inode교체 후 `catalog refuses failed journal Replay` assertion 실패(기존 catalog는 빈 replay를 성공으로 취급). 이후 최소 consumer guard 구현. 정상 largeprefix bytes/사용자 ..거부도 기존02/12 safety case 안에서 확인한다.
+
+예상 RED: `./server.sh verify-v410-recording-recovery --red-tail`에서 기존 valid1+truncated suffix 뒤 Append(next)가 성공하지만 Replay valid2 assertion은 실제 valid1로 실패한다. 완결 JSON noLF 사례도 동일하게 valid2/new ID 보존 assertion 실패가 예상된다. compile/import/환경 오류는 예상 RED가 아니다. 이후 전체 focused와 S03 catalog/S01 contracts/A 호환 gate/diff만 승인되었다. 원본 V1 schema 및 golden4는 불변이며 B2 복구는 범위 밖이다.
+
 ### S08-A 재개 결과 (2026-09-09)
 
 사용자 재개 승인 후 메인이 새 `.mjs`에 node shebang과 실행 bit를 추가했다. require_internal 안전 조건은 유지했다. 최초 진입점 exit 1은 삭제하거나 예상 RED로 재분류하지 않는다.

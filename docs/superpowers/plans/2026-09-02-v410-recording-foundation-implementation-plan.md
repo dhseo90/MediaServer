@@ -1103,7 +1103,11 @@ git commit -m "feat: 녹화 검색용 분석 관측 저장 추가"
 **현재 상태(2026-09-09): 부분 구현.** 기준 S07 완료 커밋 `ea9f11e4`다.
 S08-A는 실행 속성 누락을 보완하고 Node9개, golden4개, 실제 C++ reader89개와
 기존 계약89개 검증을 통과했다. 실패·재검증 상세는 release-test-records의 S08-A를 따른다.
-복구 구현·통합 검증(B)은 남아 있어 S08 전체는 미완료다.
+B1은 `RecordingJournal::Append`의 미commit 꼬리 원본 내구 격리와 안전한 후속 append,
+`Replay` I/O 실패 구분 및 catalog Open/rebuild 거부를 구현했다. focused40개, S03
+catalog45개·wiring9개, S01 및 A 회귀와 전체 build가 통과했다. 상세 기록은
+release-test-records의 S08-B1을 따른다. 영상 복구·손상 상태 반영·종합 검증(B 잔여)은
+남아 있어 S08 전체는 미완료다.
 기존 V1 golden fixture 호환성 검증(A)을 먼저 고정하고 복구 구현·통합 검증(B)을 이어간다.
 A 통과만으로 S08 전체 완료를 뜻하지 않는다. 사용자 승인 범위는 S08 개발·단계 검증과
 필요 시 분할 커밋이며, 푸시·S09·릴리즈 action·장시간/UI 풀테스트는 포함하지 않는다.

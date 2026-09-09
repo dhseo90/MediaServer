@@ -6,12 +6,14 @@
 #include <cstring>
 #include <fstream>
 #include <sstream>
+#include <sys/stat.h>
 
 #include "domain/strict_json.h"
 #include "recording/recording_contracts.h"
 
 #if !defined(_WIN32)
 #include <fcntl.h>
+#include <sys/file.h>
 #include <unistd.h>
 #endif
 
@@ -37,6 +39,139 @@ bool Fail(std::string* error, const std::string& message) {
     if (error != nullptr) *error = message;
     return false;
 }
+
+#if !defined(_WIN32)
+struct OwnedFd {
+    int value;
+    explicit OwnedFd(int fd) : value(fd) {}
+    ~OwnedFd() { if (value >= 0) ::close(value); }
+    OwnedFd(const OwnedFd&) = delete;
+    OwnedFd& operator=(const OwnedFd&) = delete;
+};
+bool Sync(int fd) {
+    int result;
+    do { result = ::fsync(fd); } while (result < 0 && errno == EINTR);
+    return result == 0;
+}
+bool WriteAll(int fd, const std::string& bytes) {
+    std::size_t offset = 0;
+    while (offset < bytes.size()) {
+        const auto count = ::write(fd, bytes.data() + offset, bytes.size() - offset);
+        if (count < 0 && errno == EINTR) continue;
+        if (count <= 0) return false;
+        offset += static_cast<std::size_t>(count);
+    }
+    return true;
+}
+bool ReadAt(int fd, off_t start, std::string* bytes) {
+    std::size_t offset = 0;
+    while (offset < bytes->size()) {
+        const auto count = ::pread(fd, bytes->data() + offset, bytes->size() - offset,
+                                   start + static_cast<off_t>(offset));
+        if (count < 0 && errno == EINTR) continue;
+        if (count <= 0) return false;
+        offset += static_cast<std::size_t>(count);
+    }
+    return true;
+}
+bool SafePath(const std::filesystem::path& input, std::filesystem::path* output) {
+    // 사용자 ..와 임의 symlink canonicalization을 허용하지 않는다.
+    for (const auto& part : input) if (part == "..") return false;
+    std::error_code error;
+    *output = std::filesystem::absolute(input, error).lexically_normal();
+    if (error || output->filename().empty()) return false;
+#if defined(__APPLE__)
+    // macOS root-owned OS aliases만 고정 치환한다. 그 아래는 nofollow walk.
+    const std::string path = output->string();
+    if (path.rfind("/tmp/", 0) == 0 || path.rfind("/var/", 0) == 0) {
+        *output = std::filesystem::path("/private" + path);
+    }
+#endif
+    return true;
+}
+int OpenParent(const std::filesystem::path& path, bool create) {
+    int fd = ::open("/", O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+    if (fd < 0) return -1;
+    for (const auto& component : path.parent_path().relative_path()) {
+        if (component == ".") continue;
+        int next = ::openat(fd, component.c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+        if (next < 0 && errno == ENOENT && create) {
+            if (::mkdirat(fd, component.c_str(), 0750) != 0 && errno != EEXIST) { ::close(fd); return -1; }
+            if (!Sync(fd)) { ::close(fd); return -1; }
+            next = ::openat(fd, component.c_str(), O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
+        }
+        ::close(fd); fd = next;
+        if (fd < 0) return -1;
+    }
+    return fd;
+}
+bool Regular(int fd, struct stat* status) {
+    return ::fstat(fd, status) == 0 && S_ISREG(status->st_mode) && status->st_nlink == 1;
+}
+bool Same(int parent, const std::string& name, int fd, const struct stat& bound) {
+    struct stat current {}, named {};
+    return Regular(fd, &current) && ::fstatat(parent, name.c_str(), &named, AT_SYMLINK_NOFOLLOW) == 0 &&
+        S_ISREG(named.st_mode) && named.st_nlink == 1 && current.st_dev == bound.st_dev &&
+        current.st_ino == bound.st_ino && named.st_dev == current.st_dev && named.st_ino == current.st_ino;
+}
+bool Lock(int fd, int operation) {
+    int result;
+    do { result = ::flock(fd, operation); } while (result < 0 && errno == EINTR);
+    return result == 0;
+}
+bool PreserveTail(int parent, const std::string& name, off_t prefix, const std::string& tail) {
+    // slot 충돌은 원본 byte 비교로 재사용하며 crash 중 partial격리본은 덮어쓰지 않는다.
+    for (unsigned slot = 0; slot < 1024; ++slot) {
+        const std::string archive = name + ".tail-" + std::to_string(prefix) + "-" +
+            std::to_string(tail.size()) + "-" + std::to_string(slot);
+        int fd = ::openat(parent, archive.c_str(), O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, 0600);
+        const bool fresh = fd >= 0;
+        if (!fresh) {
+            if (errno != EEXIST) return false;
+            fd = ::openat(parent, archive.c_str(), O_RDWR | O_NOFOLLOW | O_CLOEXEC | O_NONBLOCK);
+        }
+        OwnedFd owned(fd); struct stat status {};
+        if (fd < 0 || !Regular(fd, &status)) return false;
+        if (fresh) {
+            if (!WriteAll(fd, tail)) return false;
+        } else {
+            if (status.st_size != static_cast<off_t>(tail.size())) continue;
+            std::string existing(tail.size(), '\0');
+            if (!ReadAt(fd, 0, &existing)) return false;
+            if (existing != tail) continue;
+        }
+        return Sync(fd) && Same(parent, archive, fd, status) && Sync(parent);
+    }
+    return false;
+}
+bool RepairTail(int parent, const std::string& name, int fd, const struct stat& status) {
+    if (status.st_size == 0) return Same(parent, name, fd, status);
+    std::string last(1, '\0');
+    if (!ReadAt(fd, status.st_size - 1, &last)) return false;
+    if (last[0] == '\n') return Same(parent, name, fd, status);
+    constexpr off_t max_tail = 16 * 1024 * 1024;
+    off_t prefix = status.st_size;
+    std::string block;
+    while (prefix > 0) {
+        const off_t begin = prefix > 4096 ? prefix - 4096 : 0;
+        block.assign(static_cast<std::size_t>(prefix - begin), '\0');
+        if (!ReadAt(fd, begin, &block)) return false;
+        const auto lf = block.rfind('\n');
+        if (lf != std::string::npos) { prefix = begin + static_cast<off_t>(lf) + 1; break; }
+        prefix = begin;
+        if (status.st_size - prefix > max_tail) return false;
+    }
+    if (prefix == status.st_size) return Same(parent, name, fd, status);
+    if (status.st_size - prefix > max_tail) return false;
+    std::string tail(static_cast<std::size_t>(status.st_size - prefix), '\0');
+    if (!ReadAt(fd, prefix, &tail) || !PreserveTail(parent, name, prefix, tail)) return false;
+    struct stat current {};
+    if (!Same(parent, name, fd, status) || ::fstat(fd, &current) != 0 || current.st_size != status.st_size) return false;
+    int result;
+    do { result = ::ftruncate(fd, prefix); } while (result < 0 && errno == EINTR);
+    return result == 0 && Sync(fd);
+}
+#endif
 
 std::optional<std::int64_t> Int64Field(const ingress::StrictJsonObjectDocument& document,
                                        const std::string& key) {
@@ -119,12 +254,29 @@ RecordingJournal::RecordingJournal(std::filesystem::path path) : path_(std::move
 
 bool RecordingJournal::Open(std::string* error) {
     std::lock_guard lock(mu_);
+#if !defined(_WIN32)
+    if (!SafePath(path_, &io_path_)) return Fail(error, "journal path 거부");
+    OwnedFd parent(OpenParent(io_path_, !opened_));
+    if (parent.value < 0) return Fail(error, "journal parent 안전 open 실패");
+    OwnedFd fd(::openat(parent.value, io_path_.filename().c_str(),
+                       O_RDWR | O_APPEND | (opened_ ? 0 : O_CREAT) | O_NOFOLLOW | O_CLOEXEC | O_NONBLOCK, 0640));
+    struct stat status {}, directory {};
+    if (fd.value < 0 || !Regular(fd.value, &status) || ::fstat(parent.value, &directory) != 0 ||
+        !Same(parent.value, io_path_.filename().string(), fd.value, status)) return Fail(error, "journal regular inode 확인 실패");
+    if (opened_ && (device_ != static_cast<std::uint64_t>(status.st_dev) || inode_ != status.st_ino ||
+        parent_device_ != static_cast<std::uint64_t>(directory.st_dev) || parent_inode_ != directory.st_ino))
+        return Fail(error, "journal inode 교체 거부");
+    if (!Sync(fd.value) || !Sync(parent.value)) return Fail(error, "journal open fsync 실패");
+    device_ = status.st_dev; inode_ = status.st_ino;
+    parent_device_ = directory.st_dev; parent_inode_ = directory.st_ino;
+#else
     std::error_code fs_error;
     if (!path_.parent_path().empty()) std::filesystem::create_directories(path_.parent_path(), fs_error);
     if (fs_error) return Fail(error, "journal directory 생성 실패: " + fs_error.message());
     std::ofstream probe(path_, std::ios::binary | std::ios::app);
     if (!probe) return Fail(error, "journal open 실패");
     probe.close();
+#endif
     opened_ = true;
     if (error != nullptr) error->clear();
     return true;
@@ -138,24 +290,20 @@ bool RecordingJournal::Append(const RecordingMutationV1& mutation, std::string* 
     if (!ParseRecordingMutationV1(line, &parsed, error)) return false;
     const std::string durable = line + "\n";
 #if !defined(_WIN32)
-    const int fd = ::open(path_.c_str(), O_WRONLY | O_APPEND | O_CREAT, 0640);
-    if (fd < 0) return Fail(error, "journal fd open 실패: " + std::string(std::strerror(errno)));
-    std::size_t offset = 0;
-    while (offset < durable.size()) {
-        const auto written = ::write(fd, durable.data() + offset, durable.size() - offset);
-        if (written <= 0) {
-            const std::string message = std::strerror(errno);
-            ::close(fd);
-            return Fail(error, "journal write 실패: " + message);
-        }
-        offset += static_cast<std::size_t>(written);
-    }
-    if (::fsync(fd) != 0) {
-        const std::string message = std::strerror(errno);
-        ::close(fd);
-        return Fail(error, "journal fsync 실패: " + message);
-    }
-    ::close(fd);
+    OwnedFd parent(OpenParent(io_path_, false));
+    struct stat directory {};
+    if (parent.value < 0 || ::fstat(parent.value, &directory) != 0 ||
+        parent_device_ != static_cast<std::uint64_t>(directory.st_dev) || parent_inode_ != directory.st_ino)
+        return Fail(error, "journal parent 교체 거부");
+    const std::string name = io_path_.filename().string();
+    OwnedFd fd(::openat(parent.value, name.c_str(), O_RDWR | O_APPEND | O_NOFOLLOW | O_CLOEXEC | O_NONBLOCK));
+    struct stat status {};
+    if (fd.value < 0 || !Lock(fd.value, LOCK_EX) || !Regular(fd.value, &status) ||
+        device_ != static_cast<std::uint64_t>(status.st_dev) || inode_ != status.st_ino)
+        return Fail(error, "journal inode 교체/unsafe fd 거부");
+    if (!RepairTail(parent.value, name, fd.value, status)) return Fail(error, "journal tail 내구격리/복구 실패");
+    if (!Same(parent.value, name, fd.value, status)) return Fail(error, "journal append inode 재대조 실패");
+    if (!WriteAll(fd.value, durable) || !Sync(fd.value)) return Fail(error, "journal write/fsync 실패");
 #else
     std::ofstream output(path_, std::ios::binary | std::ios::app);
     output << durable;
@@ -169,11 +317,29 @@ bool RecordingJournal::Append(const RecordingMutationV1& mutation, std::string* 
 RecordingJournalReplayResult RecordingJournal::Replay() const {
     std::lock_guard lock(mu_);
     RecordingJournalReplayResult result;
+#if !defined(_WIN32)
+    if (!opened_) { ++result.io_error_count; return result; }
+    OwnedFd parent(OpenParent(io_path_, false));
+    struct stat directory {};
+    if (parent.value < 0 || ::fstat(parent.value, &directory) != 0 ||
+        parent_device_ != static_cast<std::uint64_t>(directory.st_dev) || parent_inode_ != directory.st_ino) {
+        ++result.io_error_count; return result;
+    }
+    const std::string name = io_path_.filename().string();
+    OwnedFd fd(::openat(parent.value, name.c_str(), O_RDONLY | O_NOFOLLOW | O_CLOEXEC | O_NONBLOCK));
+    struct stat status {};
+    if (fd.value < 0 || !Lock(fd.value, LOCK_SH) || !Regular(fd.value, &status) ||
+        device_ != static_cast<std::uint64_t>(status.st_dev) || inode_ != status.st_ino ||
+        !Same(parent.value, name, fd.value, status)) { ++result.io_error_count; return result; }
+    std::string bytes(static_cast<std::size_t>(status.st_size), '\0');
+    if (!ReadAt(fd.value, 0, &bytes)) { ++result.io_error_count; return result; }
+#else
     std::ifstream input(path_, std::ios::binary);
     if (!input) return result;
     std::ostringstream buffer;
     buffer << input.rdbuf();
     const std::string bytes = buffer.str();
+#endif
     std::size_t start = 0;
     while (start < bytes.size()) {
         const auto newline = bytes.find('\n', start);

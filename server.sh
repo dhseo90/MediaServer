@@ -3052,6 +3052,10 @@ case "${cmd}" in
     require_internal verify_v410_entry_baseline.sh
     exec "${INTERNAL_DIR}/verify_v410_entry_baseline.sh" "$@"
     ;;
+  verify-v410-recording-recovery)
+    require_internal verify_v410_recording_recovery.sh
+    exec "${INTERNAL_DIR}/verify_v410_recording_recovery.sh" "$@"
+    ;;
   verify-v410-recording-fixture-compatibility)
     require_internal verify_v410_recording_fixture_compatibility.mjs
     exec node "${INTERNAL_DIR}/verify_v410_recording_fixture_compatibility.mjs" "$@"
