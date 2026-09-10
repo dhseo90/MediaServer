@@ -3056,6 +3056,15 @@ case "${cmd}" in
     require_internal "verify_v410_recording_media_inspector.sh"
     exec "${INTERNAL_DIR}/verify_v410_recording_media_inspector.sh" "$@"
     ;;
+  verify-v410-recording-startup)
+    if [[ "${1:-}" == "--unit" ]]; then
+      shift
+      require_internal "verify_v410_recording_startup.sh"
+      exec "${INTERNAL_DIR}/verify_v410_recording_startup.sh" "$@"
+    fi
+    require_internal "verify_v410_recording_startup.mjs"
+    exec node "$ROOT_DIR/scripts/internal/verify_v410_recording_startup.mjs" "$@"
+    ;;
   verify-v410-recording-finalize-recovery)
     require_internal "verify_v410_recording_finalize_recovery.sh"
     exec "${INTERNAL_DIR}/verify_v410_recording_finalize_recovery.sh" "$@"

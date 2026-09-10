@@ -39,6 +39,7 @@
 #include "recording/event_clip_deriver.h"
 #include "recording/event_recording_bridge.h"
 #include "recording/recording_catalog.h"
+#include "recording/recording_startup_recovery.h"
 #include "recording/analysis_observation_projector.h"
 #include "recording/recording_journal.h"
 #include "recording/recording_session_service.h"
@@ -355,6 +356,19 @@ int RunMediaServerApplication(int argc, char** argv) {
             return recording::RemoveContainedMediaFile(recording_root, path, error);
         },
         retention_options);
+    recording::RecordingStartupRecoveryReport startup_recovery;
+    const auto recovery_now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+    if (!recording::RecoverRecordingAtStartup(recording_catalog, recording_retention,
+            recording_root, recovery_now_ms, &startup_recovery, &recording_error)) {
+        // 외부 URL이나 파일 경로를 노출하지 않는 고정 단계 진단.
+        std::cerr << "recording startup recovery failed: stage=" << startup_recovery.failed_stage << "\n";
+        return 1;
+    }
+    std::cout << "recording startup recovery complete: deleted=" << startup_recovery.deletions_completed
+              << " recovered=" << startup_recovery.ready.recovered
+              << " inspected=" << startup_recovery.inspected
+              << " corrupt=" << startup_recovery.corrupt << "\n";
     recording::RecordingSessionService recording_sessions(
         session_manager,
         recording_catalog,

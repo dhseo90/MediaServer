@@ -39,6 +39,10 @@
 | V410-S00 | `./server.sh verify-v410-research-gate`, `./server.sh verify-v410-entry-baseline` | 공개 자료 provenance/IP clean-room 차단선과 source `4.1.0`/published `v4.0.0` 분리 기준. 녹화 구현 PASS가 아님 |
 | V410-S01 | `./server.sh verify-v410-recording-contracts` | 실제 C++로 opaque ID, UTC 반개구간, PTS/timebase, unknown optional field/lifecycle, segment/event link/observation/tombstone v1 JSONL round-trip과 tombstone ID 재사용 거부를 검증. 실제 recorder/store/catalog/retention/timeline/UI/장시간 테스트 PASS가 아님 |
 | V410-S05 종료 선행 운영 격리 | `python3 scripts/internal/server_state_isolation_test.py` | 실제 제품 서버를 띄우지 않고 전용 상태 namespace, 고유 launchd label, 기존 exact label 비간섭, scoped stop, 상태 leaf symlink 거부, launchd mode 보존을 13개 실행 기반 fixture로 확인. 실제 nohup/launchd 녹화·이벤트·재시작 PASS가 아님 |
+| V410-S08 원장·호환성 | `./server.sh verify-v410-recording-recovery`, `./server.sh verify-v410-recording-fixture-compatibility` | 원장 꼬리 복구와 기존 V1 golden digest·reader 의미를 확인. 영상 복구 전수나 장시간 실행을 대체하지 않음 |
+| V410-S08 손상 검사 | `./server.sh verify-v410-recording-corruption`, `./server.sh verify-v410-recording-media-inspector` | 알려진 자료의 상태 전이·재생 배제 및 실제 SHA/container 검사. inspector의 `--boundaries`, `--limits`는 별도 경계 검사이며 전체 codec decode가 아님 |
+| V410-S08 최종화 복구 | `./server.sh verify-v410-recording-finalize-recovery` | ready ticket·원래 ID·소유 경로의 복구. `--integration`은 실제 writer/event 연결, `--integration --root-only`는 root 안전성 검사 |
+| V410-S08 시작 복구 | `./server.sh verify-v410-recording-startup --unit`, `./server.sh verify-v410-recording-startup --app` | 동기 삭제 대기→ready→Finalized 검사, 실제 격리 앱의 정상/실패/재시작·녹화 활성·Range 및 종료·포트·임시 root 정리. UI 풀테스트·장시간·외부 실기기 실행이 아님 |
 
 ## 과거 v2.5.0 verifier
 

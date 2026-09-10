@@ -1122,10 +1122,17 @@ S08은 단기·관련 회귀로 닫고, 장시간·UI 검증은 S09 통합 구�
    내구 ticket으로 저장한다. 기존 cleanup이 ready partial을 먼저 삭제하지 못하게 한다.
    provenance 없는 orphan을 추정 등록하지 않으며 동일 ID와 tombstone을 우선한다.
    이벤트 MPEG-TS와 Pending link/source/output 결속도 포함한다.
-2. **미구현** — 시작 복구 연결: 원장 복원 후 ready 복구·known media 검사·삭제 대기 처리를 수행하고
-   결과를 확인한 뒤 녹화를 시작한다. 기존 event hold/terminal release 계약을 유지한다.
-3. **시작 연결 후 미실행** — 종합 검증: crash 지점·손상·디스크 실패·중복 재시작과 S01~S07 관련 회귀, V1
-   golden 호환성 및 실제 시작 연결을 확인하고 구현 위치·실행 기록을 대조한다.
+2. **구현·단계 검증 완료 (2026-09-11)** — 시작 복구 연결: 원장 복원과 retention 구성 후 기존 내구 삭제 대기를
+   먼저 수렴시키고, ready 복구와 known Finalized media 검사를 마친 뒤 녹화를 시작한다.
+   새 용량 정책에 따른 삭제는 이 시작 복구에 끼워 넣지 않는다. 삭제 복구 오류·ready 충돌·
+   검사 불가·보호된 손상의 상태 반영 실패는 시작 실패로 남기며, 기존 event hold/terminal
+   release 계약을 유지한다. 단위44·실제 앱144개와 별도 seed cleanup1이 통과했다.
+   녹화 off 복구와 유효 local source opt-in/녹화 on 정상 생성·복구 실패 시 생성 차단을 대조했다.
+3. **종합 검증·근거 대조 완료 (2026-09-11)** — 종합 검증: crash 지점·손상·디스크 실패·중복
+   재시작과 S01~S07 관련 회귀, V1 golden 호환성 및 실제 시작 연결의 기록을 대조했다.
+   무변경 로직의 유효 증거는 재사용하고 startup 영향 회귀는 재실행했다. 메인 docs-links는
+   226문서/1051링크/실패0, 임시root24개 부재 직접대조를 확인했다. 승인된 커밋·푸시는
+   별도 실제 결과로 보고한다. S08 단계 완료이며 S09·버전 전체·릴리즈 완료는 아니다.
 
 1번 구현 위치는 `recording_finalize_recovery.h/.cpp`, writer, event deriver/bridge,
 catalog cleanup/recovery API, inspector MPEG-TS 연결이다. 기본20·통합140·root5와
@@ -1220,6 +1227,12 @@ A 통과만으로 S08 전체 완료를 뜻하지 않는다. 당시 승인 범위
 - 수정: `docs/release-evidence-v410.md`
 
 ### Step 1: crash-point fixture를 먼저 만든다
+
+실제 구현은 초기 단일 `recording_recovery.h/.cpp` 구상 대신 원장(B1), 손상 상태(B2a),
+`recording_media_inspector`, `recording_finalize_recovery`, `recording_startup_recovery`로
+분리했다. 시작 연결은 `media_server_application.cpp`의 supervisor 생성 전에 두므로
+`recording_supervisor.cpp` 자체를 변경하지 않는다. 초기 파일 목록이 별도 미구현
+recovery 모듈을 추가하라는 뜻은 아니며, 각 구현·fixture·결과는 아래 단계와 중앙 기록에 대응한다.
 
 각 fixture는 마지막 성공 단계와 예상 복구 상태를 manifest로 가진다.
 

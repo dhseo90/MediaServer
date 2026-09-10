@@ -1,5 +1,26 @@
 # Project Feature Test Inventory
 
+## V410 S08 startup 복구 사전 등록
+
+ST13 검증기 경계: seed/read-model shell 조기실패(CXX 실패 포함)는 nonzero로 전파하고 전용 build root 정리. ST14는 실제 local sample source opt-in과 녹화 enabled=1에서 정상 신규 segment 및 복구 실패 시 worker 부작용 부재를 대조한다.
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
+| --- | --- | --- | --- | --- | --- |
+| V410-S08-ST-01 | 실제 앱 recording off에서도 missing finalized를 Corrupt로 내구 반영한 뒤 HTTP 시작 | startup focused·실제 격리 앱 및 승인 영향 회귀 | 미진행: 버전 최종코드 별도 승인 | 진행 대상: 최종코드 기존 승인 predev120, 이번 실행 없음 | 비대상: 내부 startup; UI 풀테스트 대체 아님 |
+| V410-S08-ST-02 | 실제 healthy archive 시작·재시작 metadata와 journal byte noappend | startup focused·실제 격리 앱 및 승인 영향 회귀 | 미진행: 버전 최종코드 별도 승인 | 진행 대상: 최종코드 기존 승인 predev120, 이번 실행 없음 | 비대상: 내부 startup; UI 풀테스트 대체 아님 |
+| V410-S08-ST-03 | ready 원래 ID 복구가 HTTP 시작 전에 완료·반복 noappend | startup focused·실제 격리 앱 및 승인 영향 회귀 | 미진행: 버전 최종코드 별도 승인 | 진행 대상: 최종코드 기존 승인 predev120, 이번 실행 없음 | 비대상: 내부 startup; UI 풀테스트 대체 아님 |
+| V410-S08-ST-04 | durable pending 삭제 존재/이미 unlink 상태를 tombstone으로 수렴·재시작 멱등 | startup focused·실제 격리 앱 및 승인 영향 회귀 | 미진행: 버전 최종코드 별도 승인 | 진행 대상: 최종코드 기존 승인 predev120, 이번 실행 없음 | 비대상: 내부 startup; UI 풀테스트 대체 아님 |
+| V410-S08-ST-05 | pending+stale ready는 삭제 완료 뒤 ready 충돌로 시작 거부 | startup focused·실제 격리 앱 및 승인 영향 회귀 | 미진행: 버전 최종코드 별도 승인 | 진행 대상: 최종코드 기존 승인 predev120, 이번 실행 없음 | 비대상: 내부 startup; UI 풀테스트 대체 아님 |
+| V410-S08-ST-06 | pending unlink 실패 원본/원장 보존 및 worker·HTTP 미시작 | startup focused·실제 격리 앱 및 승인 영향 회귀 | 미진행: 버전 최종코드 별도 승인 | 진행 대상: 최종코드 기존 승인 predev120, 이번 실행 없음 | 비대상: 내부 startup; UI 풀테스트 대체 아님 |
+| V410-S08-ST-07 | ready 충돌 원본 보존 및 worker·HTTP 미시작 | startup focused·실제 격리 앱 및 승인 영향 회귀 | 미진행: 버전 최종코드 별도 승인 | 진행 대상: 최종코드 기존 승인 predev120, 이번 실행 없음 | 비대상: 내부 startup; UI 풀테스트 대체 아님 |
+| V410-S08-ST-08 | checksum 계산불가/권한/파일변경·경로 검사불가 시작 거부·정상으로 무시 금지 | startup focused·실제 격리 앱 및 승인 영향 회귀 | 미진행: 버전 최종코드 별도 승인 | 진행 대상: 최종코드 기존 승인 predev120, 이번 실행 없음 | 비대상: 내부 startup; UI 풀테스트 대체 아님 |
+| V410-S08-ST-09 | Pending event hold/source-output 손상 적용거부·원본 보존·미시작 | startup focused·실제 격리 앱 및 승인 영향 회귀 | 미진행: 버전 최종코드 별도 승인 | 진행 대상: 최종코드 기존 승인 predev120, 이번 실행 없음 | 비대상: 내부 startup; UI 풀테스트 대체 아님 |
+| V410-S08-ST-10 | 기존 Corrupt 자료를 검사 재등록·정상 승격하지 않음 | startup focused·실제 격리 앱 및 승인 영향 회귀 | 미진행: 버전 최종코드 별도 승인 | 진행 대상: 최종코드 기존 승인 predev120, 이번 실행 없음 | 비대상: 내부 startup; UI 풀테스트 대체 아님 |
+| V410-S08-ST-11 | 실제 memory/SQLite/fallback lifecycle 및 restart parity | startup focused·실제 격리 앱 및 승인 영향 회귀 | 미진행: 버전 최종코드 별도 승인 | 진행 대상: 최종코드 기존 승인 predev120, 이번 실행 없음 | 비대상: 내부 startup; UI 풀테스트 대체 아님 |
+| V410-S08-ST-12 | 경로 해석 실패 Finalized도 전체 snapshot에 포함·시작 거부 | startup focused·실제 격리 앱 및 승인 영향 회귀 | 미진행: 버전 최종코드 별도 승인 | 진행 대상: 최종코드 기존 승인 predev120, 이번 실행 없음 | 비대상: 내부 startup; UI 풀테스트 대체 아님 |
+| V410-S08-ST-13 | 실제 S06 HTTP seed SHA 정확성 및 startup 뒤 Range bytes 유지 | startup focused·실제 격리 앱 및 승인 영향 회귀 | 미진행: 버전 최종코드 별도 승인 | 진행 대상: 최종코드 기존 승인 predev120, 이번 실행 없음 | 비대상: 내부 startup; UI 풀테스트 대체 아님 |
+| V410-S08-ST-14 | 실제 enabled local source 신규 segment 정상 생성·종료; 동일 설정 복구 실패 시 신규segment/partial/원장추가 없음 | startup active app | 미진행: 최종코드 별도 승인 | 진행 대상: 최종코드 기존 승인 predev120, 이번 미실행 | 비대상: 내부 startup |
+
 ## V410 S08 finalize 복구 사전 등록
 
 | 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
@@ -168,7 +189,8 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | V410 S08-B2a 상태 적용 신규 ID | 14 |
 | V410 S08-B2b media 검사 신규 ID | 18 |
 | V410 S08 finalize 복구 신규 ID | 16 |
-| 현재 등록 총계 | 1156 |
+| V410 S08 startup 복구 신규 ID | 14 |
+| 현재 등록 총계 | 1170 |
 
 이는 등록 합계이지 전 제품 발견·실행 완료 선언이 아니다. S01~S04의 신규 등록 정합성은
 이번 S05 보정에서 전수 감사하지 않았다.

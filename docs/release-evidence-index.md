@@ -33,6 +33,13 @@
   `source: manual-not-available`과 함께 미집계 사유를 적습니다.
 - tag, push, GitHub Release 생성은 사용자 명시 승인 전에는 완료로 기록하지 않습니다.
 
+## v4.1.0 S08 단계 증거 연결 (2026-09-11)
+
+S08의 구현 위치·현재 단계 상태는 [release-evidence-v410.md](./release-evidence-v410.md),
+개별 검사·최초 실패·수정·재검증·cleanup은 [release-test-records.md](./release-test-records.md)의
+S08 startup/finalize/B2b/B2a/B1/A 절을 따른다. 원장·손상·최종화·실제 시작 연결 증거를
+서로 구분하며, 이 색인 자체는 S09·버전 전체 완료·UI·장시간·릴리즈 실행 증거가 아니다.
+
 ## v4.0.0 release baseline 상태 (2026-09-02)
 
 - current source: `v4.0.0` (`VERSION=4.0.0`)

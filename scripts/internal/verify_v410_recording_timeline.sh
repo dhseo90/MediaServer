@@ -10,8 +10,10 @@ case "$MODE" in
     ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
     RUN_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/media-server-s06-read.XXXXXX")"
     RUN_ROOT="$(cd "$RUN_ROOT" && pwd -P)"
+    READ_MODEL_COMPLETED=0
     cleanup_read_model() {
       local result=$?
+      if [[ "$READ_MODEL_COMPLETED" != 1 && "$result" == 0 ]]; then result=1; fi
       trap - EXIT
       du -sk "$RUN_ROOT"
       rm -rf -- "$RUN_ROOT" || result=1
@@ -26,12 +28,18 @@ case "$MODE" in
     trap cleanup_read_model EXIT
     SQLITE_CFLAGS=()
     SQLITE_LIBS=(-lsqlite3)
+    CRYPTO_FLAGS=()
+    SEED_FLAGS=()
+    if [[ "$MODE" == "--seed-http" || "$MODE" == "--seed-ui" ]]; then
+      read -r -a CRYPTO_FLAGS <<<"$(pkg-config --cflags --libs openssl)"
+      SEED_FLAGS=(-DRECORDING_HTTP_SEED=1)
+    fi
     if command -v pkg-config >/dev/null 2>&1 && pkg-config --exists sqlite3; then
       read -r -a SQLITE_CFLAGS <<<"$(pkg-config --cflags sqlite3)"
       read -r -a SQLITE_LIBS <<<"$(pkg-config --libs sqlite3)"
     fi
     "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$ROOT_DIR/include" \
-      ${SQLITE_CFLAGS[*]-} -DMEDIA_SERVER_USE_SQLITE3=1 \
+      ${SQLITE_CFLAGS[*]-} ${SEED_FLAGS[*]-} -DMEDIA_SERVER_USE_SQLITE3=1 \
       "$SCRIPT_DIR/recording_timeline_smoke.cpp" \
       "$ROOT_DIR/src/recording/recording_read_service.cpp" \
       "$ROOT_DIR/src/ingress/recording_application_service.cpp" \
@@ -42,13 +50,14 @@ case "$MODE" in
       "$ROOT_DIR/src/recording/retention_coordinator.cpp" \
       "$ROOT_DIR/src/recording/recording_contracts.cpp" \
       "$ROOT_DIR/src/domain/strict_json.cpp" \
-      ${SQLITE_LIBS[*]-} -o "$RUN_ROOT/read-smoke"
+      ${SQLITE_LIBS[*]-} ${CRYPTO_FLAGS[*]-} -o "$RUN_ROOT/read-smoke"
     if [[ "$MODE" == "--seed-http" || "$MODE" == "--seed-ui" ]]; then
       "$RUN_ROOT/read-smoke" "$2" "$MODE" "$3"
     else
       "$RUN_ROOT/read-smoke" "$RUN_ROOT/fixture"
       "$RUN_ROOT/read-smoke" "$RUN_ROOT/sqlite-fixture" --sqlite
     fi
+    READ_MODEL_COMPLETED=1
     ;;
   --red-http-baseline)
     # 이름은 TDD 실행 단계 표식이며 성공 조건은 실제 기능 요구인 HTTP 200이다.

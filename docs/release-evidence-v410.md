@@ -4,6 +4,30 @@
 PASS는 UI 풀테스트, 30분/120분 장시간 테스트, PR/main merge, tag, GitHub Release 또는
 published metadata 완료를 뜻하지 않는다.
 
+## S08 시작 복구 구현·단계 검증 완료 (2026-09-11)
+
+`4b7639db`의 최종화 복구 위에 `recording_startup_recovery.h/.cpp`와 application 초기화
+연결을 구현했다. 원장·catalog를 연 뒤 기존 삭제 대기→ready 복구→전체 Finalized
+검사를 동기로 수행하고, 복구 오류·검사 불가·보호된 손상의 상태 적용 실패는
+recorder/supervisor·event bridge·HTTP 시작 전에 반환한다. 새 quota 삭제 정책이나
+공개 V1·권한·스트리밍 계약을 추가하지 않는다. 이미 Corrupt인 자료는 재승격하지 않는다.
+
+`FinalizedSegmentsForStartup`은 경로 해석 실패 자료도 검사에서 빠지지 않도록 내부
+metadata 사본을 반환한다. S06 HTTP 실영상 seed는 실제 SHA를 사용하도록 보완하며,
+순수 read-model의 기존 의존성은 유지한다. startup verifier와 기존 seed wrapper의
+비정상 종료·cleanup 결과도 성공으로 숨기지 않도록 확인한다.
+
+메인 전체 build exit0, startup 단위44개·실제 앱144개(별도 nested seed cleanup1)가
+통과했다. 실제 앱21회 시작/오류/재시작과 예약42포트 부재, 활성 녹화 생성/오류시 차단을
+확인했다. finalize20·retention56·catalog45와 wiring9·corruption92·V1 golden4와 reader89·
+S06 read-model152와 cleanup1도 통과했다. 무변경 writer/event/inspector/observations/B1의
+직전 유효 회귀는 재사용했다. 임시 root24개는 담당자와 메인이 각각 부재를 대조했다.
+
+최초 환경 오류·예상 RED·fixture 오류·stdout 관측 오류·Bash 오류와 수정 이력은
+`release-test-records.md`가 source-of-truth다. 메인 문서 링크 검사와 종합 근거 대조까지
+마쳐 S08 단계 완료로 판정한다. 승인된 커밋·푸시는 실제 결과로 별도 보고하며,
+S09·버전 전체 완료를 뜻하지 않는다. 장시간·UI 실행 시점과 승인 경계는 아래 최신 목표를 따른다.
+
 ## S08 최종화 복구 구현·단계 검증 완료 (2026-09-11)
 
 기준 커밋은 `f3736adf`이며, 이번 묶음은 S08 잔여 1번 최종화 복구다.

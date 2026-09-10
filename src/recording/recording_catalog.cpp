@@ -1008,6 +1008,18 @@ std::vector<RecordingSegmentV1> RecordingCatalog::QuerySegments(const std::strin
     return result;
 }
 
+std::vector<RecordingSegmentV1> RecordingCatalog::FinalizedSegmentsForStartup() const {
+    std::lock_guard lock(mu_);
+    std::vector<RecordingSegmentV1> result;
+    for (const auto& [_, segment] : segments_) {
+        if (segment.lifecycle == RecordingLifecycle::Finalized) result.push_back(segment);
+    }
+    std::sort(result.begin(), result.end(), [](const auto& left, const auto& right) {
+        return left.segment_id < right.segment_id;
+    });
+    return result;
+}
+
 RetentionSnapshot RecordingCatalog::RetentionSnapshot() const {
     std::lock_guard lock(mu_);
     struct RetentionSnapshot snapshot;

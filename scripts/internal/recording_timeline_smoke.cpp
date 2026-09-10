@@ -11,8 +11,37 @@
 #include <chrono>
 #include <fcntl.h>
 #include <cerrno>
+#if RECORDING_HTTP_SEED
+#include <openssl/evp.h>
+#include <array>
+#include <iomanip>
+#include <sstream>
+#endif
 
 namespace {
+#if RECORDING_HTTP_SEED
+// HTTP 실미디어 fixture만 실제 바이트 SHA256을 사용한다. 합성 read-model 계약은 유지한다.
+std::string FixtureSha256(const std::filesystem::path& file) {
+    std::ifstream input(file, std::ios::binary);
+    EVP_MD_CTX* context = EVP_MD_CTX_new();
+    if (!input || !context) { EVP_MD_CTX_free(context); return {}; }
+    bool ok = EVP_DigestInit_ex(context, EVP_sha256(), nullptr) == 1;
+    std::array<char, 65536> chunk{};
+    while (ok && input) {
+        input.read(chunk.data(), chunk.size());
+        if (input.gcount() > 0)
+            ok = EVP_DigestUpdate(context, chunk.data(), static_cast<std::size_t>(input.gcount())) == 1;
+    }
+    unsigned char digest[EVP_MAX_MD_SIZE]{};
+    unsigned int length = 0;
+    ok = ok && input.eof() && EVP_DigestFinal_ex(context, digest, &length) == 1 && length == 32;
+    EVP_MD_CTX_free(context);
+    if (!ok) return {};
+    std::ostringstream result;
+    for (unsigned int i = 0; i < length; ++i)
+        result << std::hex << std::setfill('0') << std::setw(2) << static_cast<unsigned int>(digest[i]);
+    return result.str();
+}
 // 실제 HTTP Range byte 대조용: 제품 journal API로 생성하며 원본 sample을 복사한다.
 int SeedHttp(const std::filesystem::path& root, const std::filesystem::path& input, bool ui = false) {
     std::filesystem::create_directories(root / "channel-1");
@@ -30,7 +59,8 @@ int SeedHttp(const std::filesystem::path& root, const std::filesystem::path& inp
         segment.container = "mp4"; segment.video_codecs = {"h264"};
         segment.audio_omitted_reason = "source-no-audio";
         segment.size_bytes = std::filesystem::file_size(file);
-        segment.checksum_sha256 = std::string(64, 'a');
+        segment.checksum_sha256 = FixtureSha256(file);
+        if (segment.checksum_sha256.empty()) return 2;
         segment.retention_class = std::string(id) == "http-event" ? recording::RecordingRetentionClass::Event : recording::RecordingRetentionClass::Continuous;
         segment.lifecycle = recording::RecordingLifecycle::Finalized;
         segment.created_at_ms = 1000; segment.finalized_at_ms = 10000;
@@ -82,11 +112,14 @@ int SeedHttp(const std::filesystem::path& root, const std::filesystem::path& inp
     }
     return 0;
 }
+#endif
 }  // namespace
 
 int main(int argc, char** argv) {
+#if RECORDING_HTTP_SEED
     if (argc == 4 && (std::string(argv[2]) == "--seed-http" || std::string(argv[2]) == "--seed-ui"))
         return SeedHttp(argv[1], argv[3], std::string(argv[2]) == "--seed-ui");
+#endif
     if (argc != 2 && argc != 3) return 2;
     const bool sqlite = argc == 3 && std::string(argv[2]) == "--sqlite";
     const std::filesystem::path root(argv[1]);

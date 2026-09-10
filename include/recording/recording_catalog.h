@@ -65,6 +65,8 @@ public:
     RecordingCatalogRecoveryReport recovery_report() const;
     RecordingOrphanReport InspectOrphans() const;
     RetentionSnapshot RetentionSnapshot() const;
+    // startup 내부 전용: 경로 유효성과 무관하게 모든 Finalized metadata의 잠금 snapshot.
+    std::vector<RecordingSegmentV1> FinalizedSegmentsForStartup() const;
     bool AdjustHoldCount(const std::string& segment_id,
                          std::int64_t delta,
                          std::string* error);

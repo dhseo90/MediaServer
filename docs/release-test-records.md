@@ -1,5 +1,848 @@
 # Release Test Records
 
+## v4.1.0 S08 startup 연결 최종 실행 기록 (2026-09-11)
+
+메인 마감 대조: `./server.sh verify-docs-links` exit0, markdown226/local links1051/images22/
+anchors103/indexed76/exclusions142/failures0. 새 명령 문서의 startup `--unit` 및 finalize
+`--integration --root-only`는 실제 dispatch/인자와 직접 대조했다. cleanup 표의24경로를
+메인이 별도 fs.existsSync 읽기로 재확인하여 checked24/present[]/exit0을 확인했다.
+토큰 start/end/consumed는 이 하위 작업별 집계값 부재로 미집계, 문서 검사 elapsed는
+별도 미계측이다. 신규 임시 산출물은 없고 build34231은 기존 build 디렉터리만 갱신했다.
+
+범위는 startup 묶음2: Journal/Catalog.Open→RetentionCoordinator→기존 durable 삭제 복구→ready 복구→전체 Finalized metadata 검사→session/supervisor/bridge/HTTP이다. 검사불가·삭제복구 실패·ready 충돌·hold/Pending 때문에 손상 상태 적용 불가는 시작 실패이다. 녹화 off archive도 동일하며 Corrupt는 무승격이다. `Catalog.Open`에 heavy 검사를 추가하지 않았고 공개 schema/auth/event/streaming 정책은 변경하지 않았다.
+
+최종 앱144개는 startup harness 자체 집계이며, nested S06 seed cleanup1은 별도다(콘솔 pass행 합계145). 앱은 21회 정상/오류 시작 및 재시작을 수행했고 마지막 예약42포트가 모두 닫혔다. ST14에서는 실제 opt-in file source로 새 finalized segment를 관찰했으며 동일 enabled 설정 복구 실패에서는 새 media/partial/원장 변경이 없었다. 일반 source=[] 실패시험만으로 worker 비시작을 과장하지 않는다. stdout은 종료·close 뒤 recovery offset530<HTTP offset1069로 대조했으며, 처음 health 직후 mutation 존재만 본 ST01 중간실행과 구분한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 최초 환경 실패 | --red-app sandbox listen EPERM, exit1, 제품 assertion 전 오류(예상 RED 아님) | fail |
+| TDD 예상 RED | --red-app 실제 앱 health200지만 missing CorruptionDetected 없음, exit1/2pass1fail, session42981 | fail |
+| 첫 GREEN | --red-app 구현 후 exit0/5pass0fail, session76100 | pass |
+| unit 최초 실제 실패 | --unit exit1/37pass7fail: 아래 7개 fixture 기대 오류. 후속 앱 미실행 후 수정 | fail |
+| unit fixture 정정 | --unit exit0/44pass0fail, session29516; 이후 최종 wrapper·포맷 반영 재검증44/0(session77676) | pass |
+| 실제 앱 중간 | --app exit0/98pass0fail, session81588; 당시 활성source·정상exit code 추가검사 전 범위 | pass |
+| 추가 앱 최초 실패 | --extra-app session98574 exit1/20pass2fail 원출력. stdout 순서 assertion1+catch 중복집계1이며 기능실패2개 아님 | fail |
+| 추가 앱 재검증 | --extra-app session60499 exit0/22pass0fail, stop뒤 full stdout530<1069. close·exit추가검사 포함 최종 --app도 통과 | pass |
+| read-model 최초 실제 실패 | CRYPTO_FLAGS[@] unbound, 제품시험 미실행인데 기존 trap exit0 반환. 오류출력 때문에 FAIL; Bash3.2 안전확장과 완료flag 보완 | fail |
+| read-model 첫 수정 | --read-model session57163 exit0/152 assertions+cleanup1, seed-only OpenSSL 분리; 최종 flag 포함 재검증 아래 표 | pass |
+| 활성 녹화 별도 | --active-app session80679 exit0/14pass0fail, 새 segment/time/size/SHA 및 실패 무부작용; 최종 정상exit0 확인 추가 후 --app 재검증 | pass |
+| ST13 timeline wrapper 음성 | CXX=false ./server.sh verify-v410-recording-timeline --read-model 실제 exit1, 임시root0KiB 삭제·부재 | pass |
+| ST13 startup wrapper 음성 | CXX=false ./server.sh verify-v410-recording-startup --unit 실제 exit1, 임시root0bytes 삭제·부재 | pass |
+| 메인 별도 build | ./server.sh build session34231 exit0, media_server100%. 이후 제품 의미변경 없음(주석/포맷만). 담당자 빌드로 이름 바꾸지 않음 | pass |
+| inventory 등록 검증 | node scripts/internal/v410_s05_inventory.mjs exit0, S05 27연결 확인 및 현재1170 등록계수 정합; 제품 실행 증거 아님 | pass |
+
+### 최초 unit 실패 7개 원인
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| fallback ST11 mode | 잘못된 jsonl-memory-fallback 기대, 실제 catalog.cpp298 jsonl-fallback. fixture만 정정 후 pass | fail |
+| fallback ST11 missing playable excluded | QuerySegments empty를 잘못 기대. catalog.cpp1006의 기존 Corrupt 반환과 B2a media location 차단 계약대로 query size1/lifecycleCorrupt+location없음으로 수정 후 pass | fail |
+| fallback ST11 checksum playable excluded | QuerySegments empty를 잘못 기대. catalog.cpp1006의 기존 Corrupt 반환과 B2a media location 차단 계약대로 query size1/lifecycleCorrupt+location없음으로 수정 후 pass | fail |
+| fallback ST11 size playable excluded | QuerySegments empty를 잘못 기대. catalog.cpp1006의 기존 Corrupt 반환과 B2a media location 차단 계약대로 query size1/lifecycleCorrupt+location없음으로 수정 후 pass | fail |
+| sqlite ST11 missing playable excluded | QuerySegments empty를 잘못 기대. catalog.cpp1006의 기존 Corrupt 반환과 B2a media location 차단 계약대로 query size1/lifecycleCorrupt+location없음으로 수정 후 pass | fail |
+| sqlite ST11 checksum playable excluded | QuerySegments empty를 잘못 기대. catalog.cpp1006의 기존 Corrupt 반환과 B2a media location 차단 계약대로 query size1/lifecycleCorrupt+location없음으로 수정 후 pass | fail |
+| sqlite ST11 size playable excluded | QuerySegments empty를 잘못 기대. catalog.cpp1006의 기존 Corrupt 반환과 B2a media location 차단 계약대로 query size1/lifecycleCorrupt+location없음으로 수정 후 pass | fail |
+
+### 개별 결과 전수
+
+같은 명령 내부의 중복 label도 출력 순번으로 분리했다. 각 표의 실제 출력 label은 실행에서 관찰한 assertion이며, 최초 실패 원인은 위 이력과 함께 보존한다. token start/end/consumed는 서브에이전트 자동 집계 접근 부재로 미집계다. app elapsed는 Node Date.now 내부 계측; C++ wrapper elapsed는 호출 전~완료 확인 후 Date.now 관측 상한(도구 왕복·읽기 지연 포함), 순수 실행 시간이 아니다. 초기 unit 및 즉시 negative/env 실행 일부는 elapsed 별도 미계측이며 시간 PASS를 주장하지 않는다.
+
+#### startup-unit 최종
+
+실제 명령: `./server.sh verify-v410-recording-startup --unit`, exit0. 개별 pass 출력 44행. elapsed 14750ms.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| startup-unit 최종 1 | fallback ST02 healthy noappend | pass |
+| startup-unit 최종 2 | fallback ST11 actual mode | pass |
+| startup-unit 최종 3 | fallback ST01/11 missing Corrupt memory | pass |
+| startup-unit 최종 4 | fallback ST11 missing query Corrupt and media location blocked | pass |
+| startup-unit 최종 5 | fallback ST10/11 missing restart no resurrection/append | pass |
+| startup-unit 최종 6 | fallback ST01/11 checksum Corrupt memory | pass |
+| startup-unit 최종 7 | fallback ST11 checksum query Corrupt and media location blocked | pass |
+| startup-unit 최종 8 | fallback ST10/11 checksum restart no resurrection/append | pass |
+| startup-unit 최종 9 | fallback ST01/11 size Corrupt memory | pass |
+| startup-unit 최종 10 | fallback ST11 size query Corrupt and media location blocked | pass |
+| startup-unit 최종 11 | fallback ST10/11 size restart no resurrection/append | pass |
+| startup-unit 최종 12 | fallback ST09 held corruption fails startup/noappend | pass |
+| startup-unit 최종 13 | fallback ST09 Pending source restart protects corruption | pass |
+| startup-unit 최종 14 | fallback ST09 Pending link unchanged | pass |
+| startup-unit 최종 15 | fallback ST09 Pending output restart protects corruption | pass |
+| startup-unit 최종 16 | fallback ST09 Pending link unchanged | pass |
+| startup-unit 최종 17 | fallback ST08 unavailable timeout noappend | pass |
+| startup-unit 최종 18 | fallback ST12 unsafe path remains in metadata snapshot | pass |
+| startup-unit 최종 19 | fallback ST12 unsafe path startup fails | pass |
+| startup-unit 최종 20 | sqlite ST02 healthy noappend | pass |
+| startup-unit 최종 21 | sqlite ST11 actual mode | pass |
+| startup-unit 최종 22 | sqlite ST01/11 missing Corrupt memory | pass |
+| startup-unit 최종 23 | sqlite ST11 missing query Corrupt and media location blocked | pass |
+| startup-unit 최종 24 | sqlite ST11 missing SQL actual lifecycle | pass |
+| startup-unit 최종 25 | sqlite ST11 original codec metadata preserved | pass |
+| startup-unit 최종 26 | sqlite ST10/11 missing restart no resurrection/append | pass |
+| startup-unit 최종 27 | sqlite ST01/11 checksum Corrupt memory | pass |
+| startup-unit 최종 28 | sqlite ST11 checksum query Corrupt and media location blocked | pass |
+| startup-unit 최종 29 | sqlite ST11 checksum SQL actual lifecycle | pass |
+| startup-unit 최종 30 | sqlite ST11 original codec metadata preserved | pass |
+| startup-unit 최종 31 | sqlite ST10/11 checksum restart no resurrection/append | pass |
+| startup-unit 최종 32 | sqlite ST01/11 size Corrupt memory | pass |
+| startup-unit 최종 33 | sqlite ST11 size query Corrupt and media location blocked | pass |
+| startup-unit 최종 34 | sqlite ST11 size SQL actual lifecycle | pass |
+| startup-unit 최종 35 | sqlite ST11 original codec metadata preserved | pass |
+| startup-unit 최종 36 | sqlite ST10/11 size restart no resurrection/append | pass |
+| startup-unit 최종 37 | sqlite ST09 held corruption fails startup/noappend | pass |
+| startup-unit 최종 38 | sqlite ST09 Pending source restart protects corruption | pass |
+| startup-unit 최종 39 | sqlite ST09 Pending link unchanged | pass |
+| startup-unit 최종 40 | sqlite ST09 Pending output restart protects corruption | pass |
+| startup-unit 최종 41 | sqlite ST09 Pending link unchanged | pass |
+| startup-unit 최종 42 | sqlite ST08 unavailable timeout noappend | pass |
+| startup-unit 최종 43 | sqlite ST12 unsafe path remains in metadata snapshot | pass |
+| startup-unit 최종 44 | sqlite ST12 unsafe path startup fails | pass |
+
+#### startup 실제 앱 최종
+
+실제 명령: `./server.sh verify-v410-recording-startup --app`, exit0. 개별 pass 출력 145행. elapsed 29169ms.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| startup 실제 앱 최종 1 | ST01 recording off 실제 앱 HTTP 시작 전 missing segment Corrupt mutation | pass |
+| startup 실제 앱 최종 2 | ST01 실제 정상 종료 exit0 | pass |
+| startup 실제 앱 최종 3 | ST01 실제 앱 종료 후 RTSP/HTTP 포트 부재 | pass |
+| startup 실제 앱 최종 4 | ST01 선행 검증 통과 | pass |
+| startup 실제 앱 최종 5 | ST01 SQLite lifecycle Corrupt 실제 투영 | pass |
+| startup 실제 앱 최종 6 | ST10 existing Corrupt restart 실제 health200 | pass |
+| startup 실제 앱 최종 7 | ST10 existing Corrupt restart HTTP 준비 시 동기 복구 완료 로그 존재 | pass |
+| startup 실제 앱 최종 8 | ST10 existing Corrupt restart 실제 정상 종료 exit0 | pass |
+| startup 실제 앱 최종 9 | ST10 existing Corrupt restart 종료 포트 부재 | pass |
+| startup 실제 앱 최종 10 | ST10 Corrupt 재시작 무승격/noappend | pass |
+| startup 실제 앱 최종 11 | ST02 healthy 0 실제 health200 | pass |
+| startup 실제 앱 최종 12 | ST02 healthy 0 HTTP 준비 시 동기 복구 완료 로그 존재 | pass |
+| startup 실제 앱 최종 13 | ST02 healthy 0 실제 정상 종료 exit0 | pass |
+| startup 실제 앱 최종 14 | ST02 healthy 0 종료 포트 부재 | pass |
+| startup 실제 앱 최종 15 | ST02 healthy 1 실제 health200 | pass |
+| startup 실제 앱 최종 16 | ST02 healthy 1 HTTP 준비 시 동기 복구 완료 로그 존재 | pass |
+| startup 실제 앱 최종 17 | ST02 healthy 1 실제 정상 종료 exit0 | pass |
+| startup 실제 앱 최종 18 | ST02 healthy 1 종료 포트 부재 | pass |
+| startup 실제 앱 최종 19 | ST02 healthy journal byte 불변·SQL finalized | pass |
+| startup 실제 앱 최종 20 | ST03 ready 실제 health200 | pass |
+| startup 실제 앱 최종 21 | ST03 ready HTTP 준비 시 동기 복구 완료 로그 존재 | pass |
+| startup 실제 앱 최종 22 | ST03 ready 실제 정상 종료 exit0 | pass |
+| startup 실제 앱 최종 23 | ST03 ready 종료 포트 부재 | pass |
+| startup 실제 앱 최종 24 | ST03 원래 ID 단일 finalized | pass |
+| startup 실제 앱 최종 25 | ST03 실제 media byte·ticket cleanup | pass |
+| startup 실제 앱 최종 26 | ST03 ready restart 실제 health200 | pass |
+| startup 실제 앱 최종 27 | ST03 ready restart HTTP 준비 시 동기 복구 완료 로그 존재 | pass |
+| startup 실제 앱 최종 28 | ST03 ready restart 실제 정상 종료 exit0 | pass |
+| startup 실제 앱 최종 29 | ST03 ready restart 종료 포트 부재 | pass |
+| startup 실제 앱 최종 30 | ST03 재시작 noappend | pass |
+| startup 실제 앱 최종 31 | ST04 pending missing=false 실제 health200 | pass |
+| startup 실제 앱 최종 32 | ST04 pending missing=false HTTP 준비 시 동기 복구 완료 로그 존재 | pass |
+| startup 실제 앱 최종 33 | ST04 pending missing=false 실제 정상 종료 exit0 | pass |
+| startup 실제 앱 최종 34 | ST04 pending missing=false 종료 포트 부재 | pass |
+| startup 실제 앱 최종 35 | ST04 unlink/tombstone 완료 | pass |
+| startup 실제 앱 최종 36 | ST04 pending restart false 실제 health200 | pass |
+| startup 실제 앱 최종 37 | ST04 pending restart false HTTP 준비 시 동기 복구 완료 로그 존재 | pass |
+| startup 실제 앱 최종 38 | ST04 pending restart false 실제 정상 종료 exit0 | pass |
+| startup 실제 앱 최종 39 | ST04 pending restart false 종료 포트 부재 | pass |
+| startup 실제 앱 최종 40 | ST04 tombstone 중복 없음 | pass |
+| startup 실제 앱 최종 41 | ST04 pending missing=true 실제 health200 | pass |
+| startup 실제 앱 최종 42 | ST04 pending missing=true HTTP 준비 시 동기 복구 완료 로그 존재 | pass |
+| startup 실제 앱 최종 43 | ST04 pending missing=true 실제 정상 종료 exit0 | pass |
+| startup 실제 앱 최종 44 | ST04 pending missing=true 종료 포트 부재 | pass |
+| startup 실제 앱 최종 45 | ST04 unlink/tombstone 완료 | pass |
+| startup 실제 앱 최종 46 | ST04 pending restart true 실제 health200 | pass |
+| startup 실제 앱 최종 47 | ST04 pending restart true HTTP 준비 시 동기 복구 완료 로그 존재 | pass |
+| startup 실제 앱 최종 48 | ST04 pending restart true 실제 정상 종료 exit0 | pass |
+| startup 실제 앱 최종 49 | ST04 pending restart true 종료 포트 부재 | pass |
+| startup 실제 앱 최종 50 | ST04 tombstone 중복 없음 | pass |
+| startup 실제 앱 최종 51 | ST05 stale ready 실제 exit1 HTTP 미시작 | pass |
+| startup 실제 앱 최종 52 | ST05 stale ready 실패 단계 finalize-ready | pass |
+| startup 실제 앱 최종 53 | ST05 stale ready RTSP/HTTP bind 없음 | pass |
+| startup 실제 앱 최종 54 | ST05 ready 실패 전에 durable 삭제 수렴 | pass |
+| startup 실제 앱 최종 55 | ST05 충돌 ready 보존 | pass |
+| startup 실제 앱 최종 56 | ST06 unlink nonregular 실제 exit1 HTTP 미시작 | pass |
+| startup 실제 앱 최종 57 | ST06 unlink nonregular 실패 단계 pending-deletion | pass |
+| startup 실제 앱 최종 58 | ST06 unlink nonregular RTSP/HTTP bind 없음 | pass |
+| startup 실제 앱 최종 59 | ST06 원본/원장 불변 | pass |
+| startup 실제 앱 최종 60 | ST07 metadata conflict 실제 exit1 HTTP 미시작 | pass |
+| startup 실제 앱 최종 61 | ST07 metadata conflict 실패 단계 finalize-ready | pass |
+| startup 실제 앱 최종 62 | ST07 metadata conflict RTSP/HTTP bind 없음 | pass |
+| startup 실제 앱 최종 63 | ST07 충돌 보존/noappend | pass |
+| startup 실제 앱 최종 64 | ST08/ST12 missing-parent 실제 exit1 HTTP 미시작 | pass |
+| startup 실제 앱 최종 65 | ST08/ST12 missing-parent 실패 단계 media-inspection | pass |
+| startup 실제 앱 최종 66 | ST08/ST12 missing-parent RTSP/HTTP bind 없음 | pass |
+| startup 실제 앱 최종 67 | ST08/ST12 missing-parent noappend | pass |
+| startup 실제 앱 최종 68 | ST08/ST12 symlink 실제 exit1 HTTP 미시작 | pass |
+| startup 실제 앱 최종 69 | ST08/ST12 symlink 실패 단계 media-inspection | pass |
+| startup 실제 앱 최종 70 | ST08/ST12 symlink RTSP/HTTP bind 없음 | pass |
+| startup 실제 앱 최종 71 | ST08/ST12 symlink noappend | pass |
+| startup 실제 앱 최종 72 | ST08/ST12 permission 실제 exit1 HTTP 미시작 | pass |
+| startup 실제 앱 최종 73 | ST08/ST12 permission 실패 단계 media-inspection | pass |
+| startup 실제 앱 최종 74 | ST08/ST12 permission RTSP/HTTP bind 없음 | pass |
+| startup 실제 앱 최종 75 | ST08/ST12 permission noappend | pass |
+| startup 실제 앱 최종 76 | ST09 실제 Pending source 실제 exit1 HTTP 미시작 | pass |
+| startup 실제 앱 최종 77 | ST09 실제 Pending source 실패 단계 corruption-apply | pass |
+| startup 실제 앱 최종 78 | ST09 실제 Pending source RTSP/HTTP bind 없음 | pass |
+| startup 실제 앱 최종 79 | ST09 실제 앱 Pending 보호 noappend | pass |
+| startup 실제 앱 최종 80 | ST09 실제 SQL source/output finalized 보존 | pass |
+| startup 실제 앱 최종 81 | ST09 실제 Pending output 실제 exit1 HTTP 미시작 | pass |
+| startup 실제 앱 최종 82 | ST09 실제 Pending output 실패 단계 corruption-apply | pass |
+| startup 실제 앱 최종 83 | ST09 실제 Pending output RTSP/HTTP bind 없음 | pass |
+| startup 실제 앱 최종 84 | ST09 실제 앱 Pending 보호 noappend | pass |
+| startup 실제 앱 최종 85 | ST09 실제 SQL source/output finalized 보존 | pass |
+| startup 실제 앱 최종 86 | read-model 임시 root 삭제 확인: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.UHvwYz | pass |
+| startup 실제 앱 최종 87 | ST13 HTTP fixture 실제 SHA256 | pass |
+| startup 실제 앱 최종 88 | ST13 실제 healthy archive HTTP200 | pass |
+| startup 실제 앱 최종 89 | ST13 실제 HTTP Range206 원본 bytes 2~5 | pass |
+| startup 실제 앱 최종 90 | ST13 실제 정상 종료 exit0 | pass |
+| startup 실제 앱 최종 91 | ST01/ST13 실제 stdout 복구완료→HTTP시작 순서 | pass |
+| startup 실제 앱 최종 92 | ST13 정상 fixture startup noappend | pass |
+| startup 실제 앱 최종 93 | ST14 enabled opt-in local source healthy200 | pass |
+| startup 실제 앱 최종 94 | ST14 실제 worker 신규 finalized segment | pass |
+| startup 실제 앱 최종 95 | ST14 실제 정상 종료 exit0 | pass |
+| startup 실제 앱 최종 96 | ST14 신규 segment 실제 source/time/size/SHA256 | pass |
+| startup 실제 앱 최종 97 | ST14 정상 종료 partial/ready/marker 없음 | pass |
+| startup 실제 앱 최종 98 | ST14 정상 종료 두 포트 부재 | pass |
+| startup 실제 앱 최종 99 | ST14 같은 enabled source 복구실패 exit1 | pass |
+| startup 실제 앱 최종 100 | ST14 실패 시 worker 신규 원장추가 없음 | pass |
+| startup 실제 앱 최종 101 | ST14 실패 시 신규 media/partial/marker 없음 | pass |
+| startup 실제 앱 최종 102 | ST14 실패 두 포트 미시작 | pass |
+| startup 실제 앱 최종 103 | cleanup reserved port=58583 absent | pass |
+| startup 실제 앱 최종 104 | cleanup reserved port=58584 absent | pass |
+| startup 실제 앱 최종 105 | cleanup reserved port=58611 absent | pass |
+| startup 실제 앱 최종 106 | cleanup reserved port=58612 absent | pass |
+| startup 실제 앱 최종 107 | cleanup reserved port=58621 absent | pass |
+| startup 실제 앱 최종 108 | cleanup reserved port=58622 absent | pass |
+| startup 실제 앱 최종 109 | cleanup reserved port=58650 absent | pass |
+| startup 실제 앱 최종 110 | cleanup reserved port=58651 absent | pass |
+| startup 실제 앱 최종 111 | cleanup reserved port=58660 absent | pass |
+| startup 실제 앱 최종 112 | cleanup reserved port=58661 absent | pass |
+| startup 실제 앱 최종 113 | cleanup reserved port=58688 absent | pass |
+| startup 실제 앱 최종 114 | cleanup reserved port=58689 absent | pass |
+| startup 실제 앱 최종 115 | cleanup reserved port=58699 absent | pass |
+| startup 실제 앱 최종 116 | cleanup reserved port=58700 absent | pass |
+| startup 실제 앱 최종 117 | cleanup reserved port=58727 absent | pass |
+| startup 실제 앱 최종 118 | cleanup reserved port=58728 absent | pass |
+| startup 실제 앱 최종 119 | cleanup reserved port=58737 absent | pass |
+| startup 실제 앱 최종 120 | cleanup reserved port=58738 absent | pass |
+| startup 실제 앱 최종 121 | cleanup reserved port=58765 absent | pass |
+| startup 실제 앱 최종 122 | cleanup reserved port=58766 absent | pass |
+| startup 실제 앱 최종 123 | cleanup reserved port=58775 absent | pass |
+| startup 실제 앱 최종 124 | cleanup reserved port=58776 absent | pass |
+| startup 실제 앱 최종 125 | cleanup reserved port=58784 absent | pass |
+| startup 실제 앱 최종 126 | cleanup reserved port=58785 absent | pass |
+| startup 실제 앱 최종 127 | cleanup reserved port=58792 absent | pass |
+| startup 실제 앱 최종 128 | cleanup reserved port=58793 absent | pass |
+| startup 실제 앱 최종 129 | cleanup reserved port=58800 absent | pass |
+| startup 실제 앱 최종 130 | cleanup reserved port=58801 absent | pass |
+| startup 실제 앱 최종 131 | cleanup reserved port=58808 absent | pass |
+| startup 실제 앱 최종 132 | cleanup reserved port=58809 absent | pass |
+| startup 실제 앱 최종 133 | cleanup reserved port=58816 absent | pass |
+| startup 실제 앱 최종 134 | cleanup reserved port=58817 absent | pass |
+| startup 실제 앱 최종 135 | cleanup reserved port=58824 absent | pass |
+| startup 실제 앱 최종 136 | cleanup reserved port=58825 absent | pass |
+| startup 실제 앱 최종 137 | cleanup reserved port=58851 absent | pass |
+| startup 실제 앱 최종 138 | cleanup reserved port=58852 absent | pass |
+| startup 실제 앱 최종 139 | cleanup reserved port=58859 absent | pass |
+| startup 실제 앱 최종 140 | cleanup reserved port=58860 absent | pass |
+| startup 실제 앱 최종 141 | cleanup reserved port=58887 absent | pass |
+| startup 실제 앱 최종 142 | cleanup reserved port=58888 absent | pass |
+| startup 실제 앱 최종 143 | cleanup reserved port=58926 absent | pass |
+| startup 실제 앱 최종 144 | cleanup reserved port=58927 absent | pass |
+| startup 실제 앱 최종 145 | cleanup path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-startup-MTCm1r bytes=17244274 removed=true | pass |
+
+#### finalize 회귀
+
+실제 명령: `./server.sh verify-v410-recording-finalize-recovery`, exit0. 개별 pass 출력 20행. elapsed 15431ms.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| finalize 회귀 1 | ready partial recovers original segment ID | pass |
+| finalize 회귀 2 | FR02 interrupted publish converges: final only | pass |
+| finalize 회귀 3 | FR02 repeated recovery no duplicate mutation | pass |
+| finalize 회귀 4 | FR02 interrupted publish converges: owned two links | pass |
+| finalize 회귀 5 | FR02 repeated recovery no duplicate mutation | pass |
+| finalize 회귀 6 | FR03 catalog commit before cleanup does not append or replace | pass |
+| finalize 회귀 7 | FR04 invalid version preserves original without publication | pass |
+| finalize 회귀 8 | FR04 invalid duplicate preserves original without publication | pass |
+| finalize 회귀 9 | FR04 invalid nonce preserves original without publication | pass |
+| finalize 회귀 10 | FR04 invalid escape preserves original without publication | pass |
+| finalize 회귀 11 | FR04 invalid identity preserves original without publication | pass |
+| finalize 회귀 12 | FR05 symlink ticket rejected and external target untouched | pass |
+| finalize 회귀 13 | FR05 foreign hardlink rejected without unlink | pass |
+| finalize 회귀 14 | FR05 actual unreadable ticket preserves media | pass |
+| finalize 회귀 15 | FR06 corrupt unknown isolated in place without finalized mutation | pass |
+| finalize 회귀 16 | FR06 repeated corruption recovery converges without resurrection | pass |
+| finalize 회귀 17 | FR07 pending takes precedence over ready publication | pass |
+| finalize 회귀 18 | FR07 deleted takes precedence over ready publication | pass |
+| finalize 회귀 19 | FR07 conflict takes precedence over ready publication | pass |
+| finalize 회귀 20 | FR08 orphan not inferred and legacy owned partial cleaned | pass |
+
+#### retention 회귀
+
+실제 명령: `./server.sh verify-v410-recording-retention`, exit0. 개별 pass 출력 56행. elapsed 19927ms.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| retention 회귀 1 | continuous quota는 end_utc_ms, segment_id oldest-first | pass |
+| retention 회귀 2 | continuous/event quota가 자기 등급 artifact만 선택 | pass |
+| retention 회귀 3 | continuous/event 보존 기간을 독립적으로 적용 | pass |
+| retention 회귀 4 | continuous 보존 기간은 event와 독립적으로 적용 | pass |
+| retention 회귀 5 | event 보존 기간은 continuous와 독립적으로 적용 | pass |
+| retention 회귀 6 | 새 segment 예상 용량까지 continuous quota에 선반영 | pass |
+| retention 회귀 7 | pinned event와 hold_count>0 continuous 자동 삭제 제외 | pass |
+| retention 회귀 8 | disk reserve 부족은 eligible continuous부터 정리 | pass |
+| retention 회귀 9 | journal 실패 시 media unlink와 tombstone 중단 | pass |
+| retention 회귀 10 | unlink 실패는 deletion_pending 유지, 회수 byte 0 | pass |
+| retention 회귀 11 | tombstone journal 실패는 pending으로 남겨 다음 tick 복구 | pass |
+| retention 회귀 12 | channel retention policy 등록:  | pass |
+| retention 회귀 13 | 삭제 불가 시 해당 channel writer만 storage-blocked | pass |
+| retention 회귀 14 | 공간 회복 뒤 새 keyframe용 epoch 재발급 신호 | pass |
+| retention 회귀 15 | 다중 channel reserve policy 등록 | pass |
+| retention 회귀 16 | 동시 channel admission이 물리 여유 공간을 중복 예약하지 않음 | pass |
+| retention 회귀 17 | segment finalize 후 in-flight reserve 반환으로 다른 channel 재개 | pass |
+| retention 회귀 18 | segment hard bound policy 등록 | pass |
+| retention 회귀 19 | 최소 packet보다 작은 continuous quota는 쓰기 전에 차단 | pass |
+| retention 회귀 20 | 진행량 정산 policy 등록 | pass |
+| retention 회귀 21 | 물리 free에 반영된 partial 쓰기량은 예약에서 이중 차감하지 않음 | pass |
+| retention 회귀 22 | 실제 동시 admission policy 등록 | pass |
+| retention 회귀 23 | 두 실제 thread의 동시 admission 중 하나만 reserve 획득 | pass |
+| retention 회귀 24 | cleanup 미해결 reservation policy 등록 | pass |
+| retention 회귀 25 | cleanup 미해결 channel 재활성화 policy 등록 | pass |
+| retention 회귀 26 | 정책 비활성·재활성 뒤에도 미해결 파일 reservation을 유지해 fail-closed | pass |
+| retention 회귀 27 | stale free-space policy 등록 | pass |
+| retention 회귀 28 | unlink 뒤에도 filesystem 여유 공간이 부족하면 회수량을 추정해 허용하지 않음 | pass |
+| retention 회귀 29 | 통합 journal open:  | pass |
+| retention 회귀 30 | 통합 catalog open:  | pass |
+| retention 회귀 31 | 통합 segment finalize:  | pass |
+| retention 회귀 32 | tombstone은 남고 media path와 원본 bytes는 제거 | pass |
+| retention 회귀 33 | hold overflow segment finalize:  | pass |
+| retention 회귀 34 | hold_count int64 최댓값 저장:  | pass |
+| retention 회귀 35 | hold_count int64 오버플로 거부 | pass |
+| retention 회귀 36 | hold race segment finalize:  | pass |
+| retention 회귀 37 | hold_count 획득:  | pass |
+| retention 회귀 38 | 계획 뒤 획득된 hold도 삭제 transition에서 재검증 | pass |
+| retention 회귀 39 | pending recovery segment finalize:  | pass |
+| retention 회귀 40 | pending recovery 삭제 요청:  | pass |
+| retention 회귀 41 | pending recovery media 사전 제거 | pass |
+| retention 회귀 42 | unlink 뒤 tombstone 실패 상태를 다음 tick에서 idempotent 재완료 | pass |
+| retention 회귀 43 | pending 복구 격리 policy 등록 | pass |
+| retention 회귀 44 | 한 channel의 pending 복구 실패가 다른 channel admission/tick을 차단하지 않음 | pass |
+| retention 회귀 45 | 정책이 없거나 비활성인 channel의 pending도 주기적으로 tombstone 완료 | pass |
+| retention 회귀 46 | event 압력 독립 policy 등록 | pass |
+| retention 회귀 47 | event 예상 회수량을 제외하고 continuous만으로 reserve와 admission 처리 | pass |
+| retention 회귀 48 | malicious journal open:  | pass |
+| retention 회귀 49 | malicious mutation append:  | pass |
+| retention 회귀 50 | malicious catalog open:  | pass |
+| retention 회귀 51 | journal mediaRelpath가 root 밖이면 retention 후보에서 격리 | pass |
+| retention 회귀 52 | unlink 직전 symlink 전환 준비 | pass |
+| retention 회귀 53 | unlink 직전 root 밖 symlink 생성 | pass |
+| retention 회귀 54 | journal 이후 unlink 직전 canonical root containment 재검증 | pass |
+| retention 회귀 55 | dirfd에 결박된 unlink는 검증 뒤 상위 경로 교체에도 외부 파일을 보호 | pass |
+| retention 회귀 56 | storage root가 비어 있으면 안전 unlink를 fail-closed | pass |
+
+#### catalog 회귀
+
+실제 명령: `./server.sh verify-v410-recording-catalog`, exit0. 개별 pass 출력 54행. elapsed 24266ms.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| catalog 회귀 1 | journal open:  | pass |
+| catalog 회귀 2 | fallback catalog open:  | pass |
+| catalog 회귀 3 | SQLite off mode 표시 | pass |
+| catalog 회귀 4 | segment finalize journal+projection:  | pass |
+| catalog 회귀 5 | fallback range query | pass |
+| catalog 회귀 6 | event link FK 위반 거부 | pass |
+| catalog 회귀 7 | FK 위반 transaction/journal 전체 rollback | pass |
+| catalog 회귀 8 | 최초 durable mutation 1개 | pass |
+| catalog 회귀 9 | 동일 mutation 중복 append | pass |
+| catalog 회귀 10 | 손상 사이 정상 durable mutation 보존 | pass |
+| catalog 회귀 11 | 중간 corrupt line count | pass |
+| catalog 회귀 12 | 마지막 truncated line skip | pass |
+| catalog 회귀 13 | fallback replay open | pass |
+| catalog 회귀 14 | 같은 mutation idempotent replay | pass |
+| catalog 회귀 15 | 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | pass |
+| catalog 회귀 16 | 중복 replay row/합계 불증가 | pass |
+| catalog 회귀 17 | 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구:  | pass |
+| catalog 회귀 18 | writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | pass |
+| catalog 회귀 19 | v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | pass |
+| catalog 회귀 20 | SQLite catalog open/rebuild:  | pass |
+| catalog 회귀 21 | SQLite primary mode 표시 | pass |
+| catalog 회귀 22 | SQLite on/off range query ID·순서 parity | pass |
+| catalog 회귀 23 | journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | pass |
+| catalog 회귀 24 | journal 없는 손상 media orphan 구분 | pass |
+| catalog 회귀 25 | projection failover journal open:  | pass |
+| catalog 회귀 26 | projection failover catalog open:  | pass |
+| catalog 회귀 27 | 실제 SQLite INSERT 실패 trigger 설치 | pass |
+| catalog 회귀 28 | SQLite 투영 실패 뒤 journal+memory finalize 유지:  | pass |
+| catalog 회귀 29 | SQLite 투영 실패 즉시 JSONL fallback 전환 | pass |
+| catalog 회귀 30 | 재시작 rebuild 전 실패 trigger 제거 | pass |
+| catalog 회귀 31 | 투영 실패 직후 in-memory query 정합성 유지 | pass |
+| catalog 회귀 32 | projection failover 재시작 journal rebuild:  | pass |
+| catalog 회귀 33 | 재시작 후 journal에서 누락 SQLite projection 복구 | pass |
+| catalog 회귀 34 | 재시작 후 SQLite primary 복귀 | pass |
+| catalog 회귀 35 | 재시작 journal rebuild가 실제 SQLite row 복원 | pass |
+| catalog 회귀 36 | tombstone journal open:  | pass |
+| catalog 회귀 37 | tombstone catalog open:  | pass |
+| catalog 회귀 38 | tombstone 대상 segment finalize:  | pass |
+| catalog 회귀 39 | tombstone 대상 deletion request:  | pass |
+| catalog 회귀 40 | tombstone 완료 기록:  | pass |
+| catalog 회귀 41 | catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | pass |
+| catalog 회귀 42 | 손상 SQLite 격리 후 journal rebuild:  | pass |
+| catalog 회귀 43 | 손상 SQLite 원본 격리 | pass |
+| catalog 회귀 44 | 격리 SQLite 파일 보존 | pass |
+| catalog 회귀 45 | 격리 후 journal rebuild 결과 | pass |
+| catalog 회귀 46 | source 저장 callback reconcile 연결 | pass |
+| catalog 회귀 47 | policy revision idempotency | pass |
+| catalog 회귀 48 | 5초 safety reconcile | pass |
+| catalog 회귀 49 | composition root journal 선행 open | pass |
+| catalog 회귀 50 | composition root catalog rebuild/open | pass |
+| catalog 회귀 51 | 서버 전 supervisor 시작 | pass |
+| catalog 회귀 52 | ingress 전 event bridge 등록 | pass |
+| catalog 회귀 53 | ingress 종료 뒤 recorder finalize | pass |
+| catalog 회귀 54 | composition root 시작/종료 순서 | pass |
+
+#### corruption 회귀
+
+실제 명령: `./server.sh verify-v410-recording-corruption`, exit0. 개별 pass 출력 92행. elapsed 39542ms.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| corruption 회귀 1 | journal open | pass |
+| corruption 회귀 2 | catalog seed open | pass |
+| corruption 회귀 3 | seed finalized | pass |
+| corruption 회귀 4 | corruption durable append | pass |
+| corruption 회귀 5 | catalog replay open | pass |
+| corruption 회귀 6 | corruption replay lifecycle is Corrupt | pass |
+| corruption 회귀 7 | fallback journal open | pass |
+| corruption 회귀 8 | fallback catalog open | pass |
+| corruption 회귀 9 | fallback seed base | pass |
+| corruption 회귀 10 | fallback resolved locator literal segment UTC PTS | pass |
+| corruption 회귀 11 | fallback observation stored before corruption | pass |
+| corruption 회귀 12 | fallback observation locator initially available | pass |
+| corruption 회귀 13 | fallback unknown ID and reason refused noappend | pass |
+| corruption 회귀 14 | fallback acquire hold | pass |
+| corruption 회귀 15 | fallback held corruption refused noappend | pass |
+| corruption 회귀 16 | fallback release hold | pass |
+| corruption 회귀 17 | fallback mark corruption | pass |
+| corruption 회귀 18 | fallback repeat corruption noappend | pass |
+| corruption 회귀 19 | fallback only lifecycle changed bytes identity preserved | pass |
+| corruption 회귀 20 | fallback corrupt media location blocked | pass |
+| corruption 회귀 21 | fallback V2 locator revoked | pass |
+| corruption 회귀 22 | fallback pending link segments seed | pass |
+| corruption 회귀 23 | fallback pending link seed | pass |
+| corruption 회귀 24 | fallback pending source output refused noappend | pass |
+| corruption 회귀 25 | fallback event link metadata preserved | pass |
+| corruption 회귀 26 | fallback deletion-pending deletion seed | pass |
+| corruption 회귀 27 | fallback deletion-pending mark rejected noappend | pass |
+| corruption 회귀 28 | fallback deletion-done deletion seed | pass |
+| corruption 회귀 29 | fallback tombstone seed | pass |
+| corruption 회귀 30 | fallback deletion-done mark rejected noappend | pass |
+| corruption 회귀 31 | fallback identical finalized replay seed | pass |
+| corruption 회귀 32 | fallback conflicting finalized seed | pass |
+| corruption 회귀 33 | fallback entity mismatch seed | pass |
+| corruption 회귀 34 | fallback invalid first valid later same mutation ID seed | pass |
+| corruption 회귀 35 | fallback malformed and deletion-priority seed | pass |
+| corruption 회귀 36 | fallback same mutation ID different payload seed | pass |
+| corruption 회귀 37 | fallback restart | pass |
+| corruption 회귀 38 | fallback restart never resurrects corrupt identity | pass |
+| corruption 회귀 39 | fallback query keeps corrupt pending excludes deleted | pass |
+| corruption 회귀 40 | fallback deletion priority and unknown no creation | pass |
+| corruption 회귀 41 | fallback invalid mutations diagnosed exact count | pass |
+| corruption 회귀 42 | sqlite journal open | pass |
+| corruption 회귀 43 | sqlite catalog open | pass |
+| corruption 회귀 44 | sqlite seed base | pass |
+| corruption 회귀 45 | sqlite resolved locator literal segment UTC PTS | pass |
+| corruption 회귀 46 | sqlite observation stored before corruption | pass |
+| corruption 회귀 47 | sqlite observation locator initially available | pass |
+| corruption 회귀 48 | sqlite unknown ID and reason refused noappend | pass |
+| corruption 회귀 49 | sqlite acquire hold | pass |
+| corruption 회귀 50 | sqlite held corruption refused noappend | pass |
+| corruption 회귀 51 | sqlite release hold | pass |
+| corruption 회귀 52 | sqlite mark corruption | pass |
+| corruption 회귀 53 | sqlite repeat corruption noappend | pass |
+| corruption 회귀 54 | sqlite only lifecycle changed bytes identity preserved | pass |
+| corruption 회귀 55 | sqlite corrupt media location blocked | pass |
+| corruption 회귀 56 | sqlite V2 locator revoked | pass |
+| corruption 회귀 57 | sqlite SQL lifecycle corrupt | pass |
+| corruption 회귀 58 | sqlite SQL codecs_json original metadata | pass |
+| corruption 회귀 59 | sqlite pending link segments seed | pass |
+| corruption 회귀 60 | sqlite pending link seed | pass |
+| corruption 회귀 61 | sqlite pending source output refused noappend | pass |
+| corruption 회귀 62 | sqlite event link metadata preserved | pass |
+| corruption 회귀 63 | sqlite deletion-pending deletion seed | pass |
+| corruption 회귀 64 | sqlite deletion-pending mark rejected noappend | pass |
+| corruption 회귀 65 | sqlite deletion-done deletion seed | pass |
+| corruption 회귀 66 | sqlite tombstone seed | pass |
+| corruption 회귀 67 | sqlite deletion-done mark rejected noappend | pass |
+| corruption 회귀 68 | sqlite identical finalized replay seed | pass |
+| corruption 회귀 69 | sqlite conflicting finalized seed | pass |
+| corruption 회귀 70 | sqlite entity mismatch seed | pass |
+| corruption 회귀 71 | sqlite invalid first valid later same mutation ID seed | pass |
+| corruption 회귀 72 | sqlite malformed and deletion-priority seed | pass |
+| corruption 회귀 73 | sqlite same mutation ID different payload seed | pass |
+| corruption 회귀 74 | sqlite restart | pass |
+| corruption 회귀 75 | sqlite restart never resurrects corrupt identity | pass |
+| corruption 회귀 76 | sqlite query keeps corrupt pending excludes deleted | pass |
+| corruption 회귀 77 | sqlite deletion priority and unknown no creation | pass |
+| corruption 회귀 78 | sqlite invalid mutations diagnosed exact count | pass |
+| corruption 회귀 79 | sqlite restart SQL lifecycle parity | pass |
+| corruption 회귀 80 | sqlite SQL deletion precedence | pass |
+| corruption 회귀 81 | sqlite rebuild excludes rejected envelopes | pass |
+| corruption 회귀 82 | sqlite invalid first valid later SQL exact binding | pass |
+| corruption 회귀 83 | sqlite projection failover seed | pass |
+| corruption 회귀 84 | sqlite SQLite failure trigger | pass |
+| corruption 회귀 85 | sqlite projection failure keeps durable memory state | pass |
+| corruption 회귀 86 | sqlite remove projection trigger | pass |
+| corruption 회귀 87 | sqlite fallback restart SQL repaired | pass |
+| corruption 회귀 88 | order journal open | pass |
+| corruption 회귀 89 | order corruption-before-create-after seed | pass |
+| corruption 회귀 90 | order catalog open | pass |
+| corruption 회귀 91 | order memory corrupt | pass |
+| corruption 회귀 92 | identical envelope accepted ordinal SQL parity | pass |
+
+#### V1 호환 회귀
+
+실제 명령: `./server.sh verify-v410-recording-fixture-compatibility`, exit0. 개별 pass 출력 89행. elapsed 21077ms. 별도 golden-integrity4/0도 통과.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| V1 호환 회귀 1 | opaque ID 허용 | pass |
+| V1 호환 회귀 2 | 빈 opaque ID 거부 | pass |
+| V1 호환 회귀 3 | path opaque ID 거부 | pass |
+| V1 호환 회귀 4 | SQLite rowid 형태 opaque ID 거부 | pass |
+| V1 호환 회귀 5 | 반개구간 겹침 | pass |
+| V1 호환 회귀 6 | 맞닿은 반개구간 비겹침 | pass |
+| V1 호환 회귀 7 | 빈 반개구간 거부 | pass |
+| V1 호환 회귀 8 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass |
+| V1 호환 회귀 9 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass |
+| V1 호환 회귀 10 | V1 segment golden row count | pass |
+| V1 호환 회귀 11 | unknown optional field를 포함한 segment parse:  | pass |
+| V1 호환 회귀 12 | segment provenance semantic | pass |
+| V1 호환 회귀 13 | segment UTC/end PTS semantic | pass |
+| V1 호환 회귀 14 | segment media/checksum semantic | pass |
+| V1 호환 회귀 15 | segment lifecycle/retention semantic | pass |
+| V1 호환 회귀 16 | unknown optional field 뒤 known ID 보존 | pass |
+| V1 호환 회귀 17 | PTS/timebase exact 보존 | pass |
+| V1 호환 회귀 18 | public JSON에 filesystem path 비노출 | pass |
+| V1 호환 회귀 19 | segment canonical 재parse | pass |
+| V1 호환 회귀 20 | PTS/timebase round-trip | pass |
+| V1 호환 회귀 21 | unknown lifecycle를 호환 parse | pass |
+| V1 호환 회귀 22 | unknown lifecycle를 Unknown으로 보존 | pass |
+| V1 호환 회귀 23 | unknown lifecycle 비재생 | pass |
+| V1 호환 회귀 24 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass |
+| V1 호환 회귀 25 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass |
+| V1 호환 회귀 26 | segments.jsonl parse[0]:  | pass |
+| V1 호환 회귀 27 | segments.jsonl additive optional known semantic parity[0] | pass |
+| V1 호환 회귀 28 | V1 schema probe anchor | pass |
+| V1 호환 회귀 29 | segments.jsonl changed schema rejected | pass |
+| V1 호환 회귀 30 | required ID probe anchor | pass |
+| V1 호환 회귀 31 | segments.jsonl missing required ID rejected | pass |
+| V1 호환 회귀 32 | segments.jsonl canonical parse[0]:  | pass |
+| V1 호환 회귀 33 | segments.jsonl canonical parity[0] | pass |
+| V1 호환 회귀 34 | segments.jsonl parse[1]:  | pass |
+| V1 호환 회귀 35 | segments.jsonl additive optional known semantic parity[1] | pass |
+| V1 호환 회귀 36 | V1 schema probe anchor | pass |
+| V1 호환 회귀 37 | segments.jsonl changed schema rejected | pass |
+| V1 호환 회귀 38 | required ID probe anchor | pass |
+| V1 호환 회귀 39 | segments.jsonl missing required ID rejected | pass |
+| V1 호환 회귀 40 | segments.jsonl canonical parse[1]:  | pass |
+| V1 호환 회귀 41 | segments.jsonl canonical parity[1] | pass |
+| V1 호환 회귀 42 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass |
+| V1 호환 회귀 43 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass |
+| V1 호환 회귀 44 | event-links.jsonl parse[0]:  | pass |
+| V1 호환 회귀 45 | event-links.jsonl additive optional known semantic parity[0] | pass |
+| V1 호환 회귀 46 | V1 schema probe anchor | pass |
+| V1 호환 회귀 47 | event-links.jsonl changed schema rejected | pass |
+| V1 호환 회귀 48 | required ID probe anchor | pass |
+| V1 호환 회귀 49 | event-links.jsonl missing required ID rejected | pass |
+| V1 호환 회귀 50 | event-links.jsonl canonical parse[0]:  | pass |
+| V1 호환 회귀 51 | event-links.jsonl canonical parity[0] | pass |
+| V1 호환 회귀 52 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass |
+| V1 호환 회귀 53 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass |
+| V1 호환 회귀 54 | observations.jsonl parse[0]:  | pass |
+| V1 호환 회귀 55 | observations.jsonl additive optional known semantic parity[0] | pass |
+| V1 호환 회귀 56 | V1 schema probe anchor | pass |
+| V1 호환 회귀 57 | observations.jsonl changed schema rejected | pass |
+| V1 호환 회귀 58 | required ID probe anchor | pass |
+| V1 호환 회귀 59 | observations.jsonl missing required ID rejected | pass |
+| V1 호환 회귀 60 | observations.jsonl canonical parse[0]:  | pass |
+| V1 호환 회귀 61 | observations.jsonl canonical parity[0] | pass |
+| V1 호환 회귀 62 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass |
+| V1 호환 회귀 63 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass |
+| V1 호환 회귀 64 | tombstones.jsonl parse[0]:  | pass |
+| V1 호환 회귀 65 | tombstones.jsonl additive optional known semantic parity[0] | pass |
+| V1 호환 회귀 66 | V1 schema probe anchor | pass |
+| V1 호환 회귀 67 | tombstones.jsonl changed schema rejected | pass |
+| V1 호환 회귀 68 | required ID probe anchor | pass |
+| V1 호환 회귀 69 | tombstones.jsonl missing required ID rejected | pass |
+| V1 호환 회귀 70 | tombstones.jsonl canonical parse[0]:  | pass |
+| V1 호환 회귀 71 | tombstones.jsonl canonical parity[0] | pass |
+| V1 호환 회귀 72 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass |
+| V1 호환 회귀 73 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass |
+| V1 호환 회귀 74 | link ID/provenance semantic | pass |
+| V1 호환 회귀 75 | link requested range/status semantic | pass |
+| V1 호환 회귀 76 | link overlap/missing semantic | pass |
+| V1 호환 회귀 77 | link fallback/time semantic | pass |
+| V1 호환 회귀 78 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass |
+| V1 호환 회귀 79 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass |
+| V1 호환 회귀 80 | observation ID/provenance semantic | pass |
+| V1 호환 회귀 81 | observation exact locator semantic | pass |
+| V1 호환 회귀 82 | observation detection semantic | pass |
+| V1 호환 회귀 83 | observation association/time semantic | pass |
+| V1 호환 회귀 84 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass |
+| V1 호환 회귀 85 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass |
+| V1 호환 회귀 86 | tombstone ID/provenance semantic | pass |
+| V1 호환 회귀 87 | tombstone range/checksum/legacy retention semantic | pass |
+| V1 호환 회귀 88 | tombstone segment ID 재사용 거부 | pass |
+| V1 호환 회귀 89 | 새 segment ID 허용 | pass |
+
+#### S06 read-model 최종
+
+실제 명령: `./server.sh verify-v410-recording-timeline --read-model`, exit0. 개별 pass 출력 153행. elapsed 34756ms.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| S06 read-model 최종 1 | V410-S06-I03 catalog timeline item 반환 | pass |
+| S06 read-model 최종 2 | I09 opaque 재생 URL | pass |
+| S06 read-model 최종 3 | I03 끝 경계 인접 제외 | pass |
+| S06 read-model 최종 4 | I03 다른 채널 제외 | pass |
+| S06 read-model 최종 5 | I04 음수 시간 거부 | pass |
+| S06 read-model 최종 6 | I04 역전 시간 거부 | pass |
+| S06 read-model 최종 7 | I04 빈 페이지 제한 거부 | pass |
+| S06 read-model 최종 8 | I04 과대 페이지 거부 | pass |
+| S06 read-model 최종 9 | I05 큰 offset overflow 없이 빈 페이지 | pass |
+| S06 read-model 최종 10 | I16 다른 채널 media 거부 | pass |
+| S06 read-model 최종 11 | I17 경로형 ID 거부 | pass |
+| S06 read-model 최종 12 | I09 fd 크기 MIME 확인 | pass |
+| S06 read-model 최종 13 | I25 재생 hold 중 삭제 거부 | pass |
+| S06 read-model 최종 14 | I19 경로 교체 뒤 열린 fd 기존 byte 유지 | pass |
+| S06 read-model 최종 15 | I18 leaf symlink 거부 | pass |
+| S06 read-model 최종 16 | I09 누락 파일 거부 | pass |
+| S06 read-model 최종 17 | I09 크기 불일치 거부 | pass |
+| S06 read-model 최종 18 | I09 비일반 파일 거부 | pass |
+| S06 read-model 최종 19 | I06 같은 시간 event 우선 | pass |
+| S06 read-model 최종 20 | I07 정확한 이벤트 ID 연결 | pass |
+| S06 read-model 최종 21 | I10 실제 범위와 요청 범위 분리 | pass |
+| S06 read-model 최종 22 | I05 정렬 뒤 페이지 적용 | pass |
+| S06 read-model 최종 23 | I25 모든 실패 경로 hold 반환 후 삭제 허용 | pass |
+| S06 read-model 최종 24 | I08 deletion pending 거부 | pass |
+| S06 read-model 최종 25 | I08 pending timeline 재생 불가 | pass |
+| S06 read-model 최종 26 | I11 검증한 fallback 영상 fd 제공 | pass |
+| S06 read-model 최종 27 | I11 JSON이 아닌 실제 media byte 반환 | pass |
+| S06 read-model 최종 28 | I11 fallback timeline을 complete로 과장하지 않음 | pass |
+| S06 read-model 최종 29 | I11 중복 key manifest 거부 | pass |
+| S06 read-model 최종 30 | I11 event 바인딩 불일치 거부 | pass |
+| S06 read-model 최종 31 | I11 byteSize 문자열 타입 거부 | pass |
+| S06 read-model 최종 32 | I11 64KiB 초과 manifest 거부 | pass |
+| S06 read-model 최종 33 | I18 fallback media symlink 거부 | pass |
+| S06 read-model 최종 34 | I09 fallback media 크기 불일치 거부 | pass |
+| S06 read-model 최종 35 | I19 fallback 교체 뒤 기존 fd byte 유지 | pass |
+| S06 read-model 최종 36 | I17 다른 채널 fallback ID 충돌도 거부 | pass |
+| S06 read-model 최종 37 | I03 기존 숫자형 channel ID 유지 | pass |
+| S06 read-model 최종 38 | I08/I17 삭제 완료 ID의 fallback 재사용 거부 | pass |
+| S06 read-model 최종 39 | I20 closed Range 시작과 길이 | pass |
+| S06 read-model 최종 40 | I26 열린 gate 신규 요청 admission | pass |
+| S06 read-model 최종 41 | I26 닫힌 gate 신규 요청 거부 | pass |
+| S06 read-model 최종 42 | I26 active flight 이전 drain 완료 금지 | pass |
+| S06 read-model 최종 43 | I26 마지막 flight 해제 뒤 drain 완료 | pass |
+| S06 read-model 최종 44 | I26 활성 socket shutdown 확인 | pass |
+| S06 read-model 최종 45 | I25 동시 삭제 경쟁 0 | pass |
+| S06 read-model 최종 46 | I26 경쟁 뒤 fd 반환 0 | pass |
+| S06 read-model 최종 47 | I25 동시 삭제 경쟁 1 | pass |
+| S06 read-model 최종 48 | I26 경쟁 뒤 fd 반환 1 | pass |
+| S06 read-model 최종 49 | I25 동시 삭제 경쟁 2 | pass |
+| S06 read-model 최종 50 | I26 경쟁 뒤 fd 반환 2 | pass |
+| S06 read-model 최종 51 | I25 동시 삭제 경쟁 3 | pass |
+| S06 read-model 최종 52 | I26 경쟁 뒤 fd 반환 3 | pass |
+| S06 read-model 최종 53 | I25 동시 삭제 경쟁 4 | pass |
+| S06 read-model 최종 54 | I26 경쟁 뒤 fd 반환 4 | pass |
+| S06 read-model 최종 55 | I25 동시 삭제 경쟁 5 | pass |
+| S06 read-model 최종 56 | I26 경쟁 뒤 fd 반환 5 | pass |
+| S06 read-model 최종 57 | I25 동시 삭제 경쟁 6 | pass |
+| S06 read-model 최종 58 | I26 경쟁 뒤 fd 반환 6 | pass |
+| S06 read-model 최종 59 | I25 동시 삭제 경쟁 7 | pass |
+| S06 read-model 최종 60 | I26 경쟁 뒤 fd 반환 7 | pass |
+| S06 read-model 최종 61 | I25 동시 삭제 경쟁 8 | pass |
+| S06 read-model 최종 62 | I26 경쟁 뒤 fd 반환 8 | pass |
+| S06 read-model 최종 63 | I25 동시 삭제 경쟁 9 | pass |
+| S06 read-model 최종 64 | I26 경쟁 뒤 fd 반환 9 | pass |
+| S06 read-model 최종 65 | I25 동시 삭제 경쟁 10 | pass |
+| S06 read-model 최종 66 | I26 경쟁 뒤 fd 반환 10 | pass |
+| S06 read-model 최종 67 | I25 동시 삭제 경쟁 11 | pass |
+| S06 read-model 최종 68 | I26 경쟁 뒤 fd 반환 11 | pass |
+| S06 read-model 최종 69 | I25 동시 삭제 경쟁 12 | pass |
+| S06 read-model 최종 70 | I26 경쟁 뒤 fd 반환 12 | pass |
+| S06 read-model 최종 71 | I25 동시 삭제 경쟁 13 | pass |
+| S06 read-model 최종 72 | I26 경쟁 뒤 fd 반환 13 | pass |
+| S06 read-model 최종 73 | I25 동시 삭제 경쟁 14 | pass |
+| S06 read-model 최종 74 | I26 경쟁 뒤 fd 반환 14 | pass |
+| S06 read-model 최종 75 | I25 동시 삭제 경쟁 15 | pass |
+| S06 read-model 최종 76 | I26 경쟁 뒤 fd 반환 15 | pass |
+| S06 read-model 최종 77 | V410-S06-I03 catalog timeline item 반환 | pass |
+| S06 read-model 최종 78 | I09 opaque 재생 URL | pass |
+| S06 read-model 최종 79 | I03 끝 경계 인접 제외 | pass |
+| S06 read-model 최종 80 | I03 다른 채널 제외 | pass |
+| S06 read-model 최종 81 | I04 음수 시간 거부 | pass |
+| S06 read-model 최종 82 | I04 역전 시간 거부 | pass |
+| S06 read-model 최종 83 | I04 빈 페이지 제한 거부 | pass |
+| S06 read-model 최종 84 | I04 과대 페이지 거부 | pass |
+| S06 read-model 최종 85 | I05 큰 offset overflow 없이 빈 페이지 | pass |
+| S06 read-model 최종 86 | I16 다른 채널 media 거부 | pass |
+| S06 read-model 최종 87 | I17 경로형 ID 거부 | pass |
+| S06 read-model 최종 88 | I09 fd 크기 MIME 확인 | pass |
+| S06 read-model 최종 89 | I25 재생 hold 중 삭제 거부 | pass |
+| S06 read-model 최종 90 | I19 경로 교체 뒤 열린 fd 기존 byte 유지 | pass |
+| S06 read-model 최종 91 | I18 leaf symlink 거부 | pass |
+| S06 read-model 최종 92 | I09 누락 파일 거부 | pass |
+| S06 read-model 최종 93 | I09 크기 불일치 거부 | pass |
+| S06 read-model 최종 94 | I09 비일반 파일 거부 | pass |
+| S06 read-model 최종 95 | I06 같은 시간 event 우선 | pass |
+| S06 read-model 최종 96 | I07 정확한 이벤트 ID 연결 | pass |
+| S06 read-model 최종 97 | I10 실제 범위와 요청 범위 분리 | pass |
+| S06 read-model 최종 98 | I05 정렬 뒤 페이지 적용 | pass |
+| S06 read-model 최종 99 | I25 모든 실패 경로 hold 반환 후 삭제 허용 | pass |
+| S06 read-model 최종 100 | I08 deletion pending 거부 | pass |
+| S06 read-model 최종 101 | I08 pending timeline 재생 불가 | pass |
+| S06 read-model 최종 102 | I11 검증한 fallback 영상 fd 제공 | pass |
+| S06 read-model 최종 103 | I11 JSON이 아닌 실제 media byte 반환 | pass |
+| S06 read-model 최종 104 | I11 fallback timeline을 complete로 과장하지 않음 | pass |
+| S06 read-model 최종 105 | I11 중복 key manifest 거부 | pass |
+| S06 read-model 최종 106 | I11 event 바인딩 불일치 거부 | pass |
+| S06 read-model 최종 107 | I11 byteSize 문자열 타입 거부 | pass |
+| S06 read-model 최종 108 | I11 64KiB 초과 manifest 거부 | pass |
+| S06 read-model 최종 109 | I18 fallback media symlink 거부 | pass |
+| S06 read-model 최종 110 | I09 fallback media 크기 불일치 거부 | pass |
+| S06 read-model 최종 111 | I19 fallback 교체 뒤 기존 fd byte 유지 | pass |
+| S06 read-model 최종 112 | I17 다른 채널 fallback ID 충돌도 거부 | pass |
+| S06 read-model 최종 113 | I03 기존 숫자형 channel ID 유지 | pass |
+| S06 read-model 최종 114 | I08/I17 삭제 완료 ID의 fallback 재사용 거부 | pass |
+| S06 read-model 최종 115 | I20 closed Range 시작과 길이 | pass |
+| S06 read-model 최종 116 | I26 열린 gate 신규 요청 admission | pass |
+| S06 read-model 최종 117 | I26 닫힌 gate 신규 요청 거부 | pass |
+| S06 read-model 최종 118 | I26 active flight 이전 drain 완료 금지 | pass |
+| S06 read-model 최종 119 | I26 마지막 flight 해제 뒤 drain 완료 | pass |
+| S06 read-model 최종 120 | I26 활성 socket shutdown 확인 | pass |
+| S06 read-model 최종 121 | I25 동시 삭제 경쟁 0 | pass |
+| S06 read-model 최종 122 | I26 경쟁 뒤 fd 반환 0 | pass |
+| S06 read-model 최종 123 | I25 동시 삭제 경쟁 1 | pass |
+| S06 read-model 최종 124 | I26 경쟁 뒤 fd 반환 1 | pass |
+| S06 read-model 최종 125 | I25 동시 삭제 경쟁 2 | pass |
+| S06 read-model 최종 126 | I26 경쟁 뒤 fd 반환 2 | pass |
+| S06 read-model 최종 127 | I25 동시 삭제 경쟁 3 | pass |
+| S06 read-model 최종 128 | I26 경쟁 뒤 fd 반환 3 | pass |
+| S06 read-model 최종 129 | I25 동시 삭제 경쟁 4 | pass |
+| S06 read-model 최종 130 | I26 경쟁 뒤 fd 반환 4 | pass |
+| S06 read-model 최종 131 | I25 동시 삭제 경쟁 5 | pass |
+| S06 read-model 최종 132 | I26 경쟁 뒤 fd 반환 5 | pass |
+| S06 read-model 최종 133 | I25 동시 삭제 경쟁 6 | pass |
+| S06 read-model 최종 134 | I26 경쟁 뒤 fd 반환 6 | pass |
+| S06 read-model 최종 135 | I25 동시 삭제 경쟁 7 | pass |
+| S06 read-model 최종 136 | I26 경쟁 뒤 fd 반환 7 | pass |
+| S06 read-model 최종 137 | I25 동시 삭제 경쟁 8 | pass |
+| S06 read-model 최종 138 | I26 경쟁 뒤 fd 반환 8 | pass |
+| S06 read-model 최종 139 | I25 동시 삭제 경쟁 9 | pass |
+| S06 read-model 최종 140 | I26 경쟁 뒤 fd 반환 9 | pass |
+| S06 read-model 최종 141 | I25 동시 삭제 경쟁 10 | pass |
+| S06 read-model 최종 142 | I26 경쟁 뒤 fd 반환 10 | pass |
+| S06 read-model 최종 143 | I25 동시 삭제 경쟁 11 | pass |
+| S06 read-model 최종 144 | I26 경쟁 뒤 fd 반환 11 | pass |
+| S06 read-model 최종 145 | I25 동시 삭제 경쟁 12 | pass |
+| S06 read-model 최종 146 | I26 경쟁 뒤 fd 반환 12 | pass |
+| S06 read-model 최종 147 | I25 동시 삭제 경쟁 13 | pass |
+| S06 read-model 최종 148 | I26 경쟁 뒤 fd 반환 13 | pass |
+| S06 read-model 최종 149 | I25 동시 삭제 경쟁 14 | pass |
+| S06 read-model 최종 150 | I26 경쟁 뒤 fd 반환 14 | pass |
+| S06 read-model 최종 151 | I25 동시 삭제 경쟁 15 | pass |
+| S06 read-model 최종 152 | I26 경쟁 뒤 fd 반환 15 | pass |
+| S06 read-model 최종 153 | read-model 임시 root 삭제 확인: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.0EkKde | pass |
+
+## v4.1.0 S08 startup cleanup·사전 정의와 실패 이력 (2026-09-11)
+
+### 임시 산출물 전수 정리
+
+아래24개 run root는 실행시 정리 로그와 마지막 fs.existsSync 전수 재대조(checked24/present[]/exit0) 모두 확인했다. 부분 fixture를 의도적으로 지운 행위는 시험입력 조작이며 이 표의 종료 cleanup과 구분한다. 저장소 보존이 필요한 대용량 media/trace/log 없음. 원문 임시 로그는 최종 증거 링크로 사용하지 않고 필요한 값을 위 전수표와 아래에 이관했다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/tmp/media-server-startup-kq0lla | 환경실패 전용root | 922 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| /private/tmp/media-server-startup-bZtc9D | 예상RED 전용root | 1725102 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-startup-jTOG3R | 첫GREEN 전용root | 1737461 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-startup-unit.voLlvs | unit실패 전용root | 4837191 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-startup-unit.NSPK6f | unit정정 전용root | 4837191 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-startup-As4IQ3 | 앱98 전용root | 10807389 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-startup-TGJANH | 추가앱실패 전용root | 4222265 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.PeOpL6 | 실패앱 nestedseed 전용root | 1932 KiB(du 할당량) | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-startup-IGhAyc | 추가앱22 전용root | 4222265 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.GsdZAq | 추가앱 nestedseed 전용root | 1932 KiB(du 할당량) | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.CgkqG9 | shell오류 전용root | 0 KiB(du 할당량) | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.taWiE2 | readmodel정정 전용root | 2276 KiB(du 할당량) | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-startup-ljJJe7 | 활성앱14 전용root | 2214925 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.Wx4stK | CXX음성 전용root | 0 KiB(du 할당량) | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| /private/tmp/media-server-finalize-6tn4do | finalize 전용root | 2540881 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| /tmp/media_server_v410_recording_retention-98278 | retention 전용root | 2086236 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| /tmp/media_server_v410_recording_catalog-98317 | catalog 전용root | 1933937 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| /private/tmp/media-server-s08-b2a-MgiRgA | corruption 전용root | 1978695 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-startup-unit.my8uVM | unit CXX음성 전용root | 0 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-startup-unit.wIgVCx | unit최종 전용root | 4837191 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-startup-MTCm1r | 앱최종144 전용root | 17244274 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.UHvwYz | 최종앱 nestedseed 전용root | 1932 KiB(du 할당량) | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s08-a-reader-GGCGMP | V1 reader 전용root | 478064 bytes | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.0EkKde | readmodel최종 전용root | 2276 KiB(du 할당량) | 종료후 삭제 | 부재 확인 | 실제 cleanup 출력+최종 재대조 |
+
+### 미실행·재사용 경계
+
+문서 마감 실패 이력: 전수표 생성문장7개 끝 공백으로 `git diff --check` exit2가 발생했으며 해당 공백만 제거 후 동일검사 exit0. 제품 코드/테스트 결과 영향 없음.
+
+| 제목 | 수행내용 | 사유/완료 evidence 경계 |
+| --- | --- | --- |
+| 30분·UI 풀테스트 | 미실행 | 버전 최종코드 별도 승인·실행 대상, 이번 단기 PASS로 대체하지 않음 |
+| predev120·녹화 직접120 | 이번 미실행 | 기존 predev120 승인은 최종코드 시점으로 연기; 녹화 직접120은 별도 승인 대기 |
+| 외부호출·실기기 | 미실행 | 이번 범위 밖, 완료 evidence 아님 |
+| writer/event/inspector/observations/B1 | 이번 재실행하지 않음 | 무변경 로직과 직전4b7639db의 유효 회귀 증거를 메인 승인으로 재사용 |
+| docs-links | 담당자 미실행 | 메인 최종문서 검증으로 별도 기록 예정 |
+| commit/push | 담당자 미수행 | 메인 소유, 현재 미커밋 파일 있으므로 담당자 푸시 가능 보고는 아니오 |
+
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| V410-S08-ST-14 | 녹화 enabled=1·local sample source opt-in 시작 | 격리 실제 서버 healthy 뒤 새 segment의 파일/SHA/시간 검사 및 정상 종료; 같은 설정 복구 실패 시 exit1·새segment/partial/원장추가 없음 | v4.1.0 |
+| V410-S08-ST-13 검증기 오류 전파 | shell/compiler 오류를 PASS로 반환 금지 | CXX=false 음성 실행은 nonzero와 cleanup 부재를 확인; 검증본문 끝 도달 flag 없으면 trap exit1 | v4.1.0 |
+
+ST13 오류전파 대상은 기존 timeline wrapper와 신규 startup unit wrapper 두 개로 한정한다. 각각 CXX=false 실제 exit1/전용root 정리, 정상본문 완료/cleanup 성공 시만 exit0. cleanup 실패는 원래 성공코드를 nonzero로 바꾼다.
+
+추가 실패 이력: --extra-app session98574 원출력20pass2fail(실제 stdout 순서 assertion1+catch 중복집계1), HTTP healthy/Range206는 통과. application547 실제 label과 일치하나 pipe stdout 버퍼가 종료 전에 미수신. stop 뒤 전체 로그로 대조한 session60499는22/0 exit0, recovery offset530/http1069, elapsed7488ms. 후속 close까지 bounded 대기 보강. --read-model 최초 출력 CRYPTO_FLAGS[@] unbound가 발생했지만 기존 trap exit0을 반환하여 FAIL로 기록(CgkqG9 0KiB 정리). Bash3.2 빈배열 안전확장으로 수정한 session57163은153개 pass/exit0, taWiE2 2276KiB 정리. 정상끝 flag로 향후 false exit0을 차단한다.
+
+후속 실제 결과: 승격 RED session42981 exit1/ST01 mutation 누락1 fail+cleanup/포트2 pass, temp bZtc9D 1725102 bytes 삭제부재, elapsed3356ms. 구현 후 메인 build34231 exit0/100%media_server. ST01 GREEN session76100 exit0/5pass0fail, temp jTOG3R 1737461 bytes 삭제부재/예약포트57851·57852 부재, elapsed2764ms. 첫 unit session36498 exit1/37pass7fail: fallback mode 기대값1개가 실제 jsonl-fallback과 불일치; fallback·sqlite 각각 missing/checksum/size 3개씩(총6)이 QuerySegments empty를 잘못 기대했다. 기존 QuerySegments는 Corrupt 상태를 반환하고 media location만 차단하므로 fixture를 이에 맞게 정정(제품정책 변경 없음). unit temp voLlvs 4837191 bytes 삭제부재. 뒤 app suite는 이 실패 해결 전 미실행. token 전부 미집계, 첫 unit elapsed 별도 미계측.
+
+첫 실행 이력: `./server.sh verify-v410-recording-startup --red-app` exit1, loopback listen EPERM(sandbox)으로 제품 assertion 전 환경 실패. 예상 RED 아님. cleanup `/private/tmp/media-server-startup-kq0lla` 922 bytes 삭제·부재 pass, elapsed5ms(Date.now), token 미집계. 승인된 격리 서버를 권한 승격으로 재시도한다.
+
+범위: 기존 durable 삭제 복구→ready 복구→known Finalized 검사. worker/bridge/HTTP 시작 전 실패를 전파한다. Catalog.Open heavy 검사·공개 schema·보존 정책 변경 없음. 단일 담당자 Astra medium(2/1/2/2=7), 하위 위임 없음.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| V410-S08-ST-01 | 실제 앱 recording off에서도 missing finalized를 Corrupt로 내구 반영한 뒤 HTTP 시작 | 신규 startup helper 실제 파일/원장 및 격리 서버로 상태·exit·HTTP·cleanup 확인 | v4.1.0 |
+| V410-S08-ST-02 | 실제 healthy archive 시작·재시작 metadata와 journal byte noappend | 신규 startup helper 실제 파일/원장 및 격리 서버로 상태·exit·HTTP·cleanup 확인 | v4.1.0 |
+| V410-S08-ST-03 | ready 원래 ID 복구가 HTTP 시작 전에 완료·반복 noappend | 신규 startup helper 실제 파일/원장 및 격리 서버로 상태·exit·HTTP·cleanup 확인 | v4.1.0 |
+| V410-S08-ST-04 | durable pending 삭제 존재/이미 unlink 상태를 tombstone으로 수렴·재시작 멱등 | 신규 startup helper 실제 파일/원장 및 격리 서버로 상태·exit·HTTP·cleanup 확인 | v4.1.0 |
+| V410-S08-ST-05 | pending+stale ready는 삭제 완료 뒤 ready 충돌로 시작 거부 | 신규 startup helper 실제 파일/원장 및 격리 서버로 상태·exit·HTTP·cleanup 확인 | v4.1.0 |
+| V410-S08-ST-06 | pending unlink 실패 원본/원장 보존 및 worker·HTTP 미시작 | 신규 startup helper 실제 파일/원장 및 격리 서버로 상태·exit·HTTP·cleanup 확인 | v4.1.0 |
+| V410-S08-ST-07 | ready 충돌 원본 보존 및 worker·HTTP 미시작 | 신규 startup helper 실제 파일/원장 및 격리 서버로 상태·exit·HTTP·cleanup 확인 | v4.1.0 |
+| V410-S08-ST-08 | checksum 계산불가/권한/파일변경·경로 검사불가 시작 거부·정상으로 무시 금지 | 신규 startup helper 실제 파일/원장 및 격리 서버로 상태·exit·HTTP·cleanup 확인 | v4.1.0 |
+| V410-S08-ST-09 | Pending event hold/source-output 손상 적용거부·원본 보존·미시작 | 신규 startup helper 실제 파일/원장 및 격리 서버로 상태·exit·HTTP·cleanup 확인 | v4.1.0 |
+| V410-S08-ST-10 | 기존 Corrupt 자료를 검사 재등록·정상 승격하지 않음 | 신규 startup helper 실제 파일/원장 및 격리 서버로 상태·exit·HTTP·cleanup 확인 | v4.1.0 |
+| V410-S08-ST-11 | 실제 memory/SQLite/fallback lifecycle 및 restart parity | 신규 startup helper 실제 파일/원장 및 격리 서버로 상태·exit·HTTP·cleanup 확인 | v4.1.0 |
+| V410-S08-ST-12 | 경로 해석 실패 Finalized도 전체 snapshot에 포함·시작 거부 | 신규 startup helper 실제 파일/원장 및 격리 서버로 상태·exit·HTTP·cleanup 확인 | v4.1.0 |
+| V410-S08-ST-13 | 실제 S06 HTTP seed SHA 정확성 및 startup 뒤 Range bytes 유지 | 신규 startup helper 실제 파일/원장 및 격리 서버로 상태·exit·HTTP·cleanup 확인 | v4.1.0 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | startup 연결 및 영향 회귀 승인 | ST01~13 | focused/격리 앱/build/문서검증 승인 |
+| 30분 | 미진행 | 버전 최종코드 실행시점 분리 | progress 최신 지시 | 이번 미승인 |
+| 120분 | 진행 대상 | startup/cleanup lifecycle 영향, 최종코드로 연기 | ST startup | 기존 predev120 승인 있으나 이번 실행 금지 |
+| UI 풀테스트 | 미진행 | 내부 startup 단계이며 버전 최종 UI 별도 | ST01~13 | 이번 미승인 |
+
+예상 RED: `./server.sh verify-v410-recording-startup --red-app`에서 실제 기존 앱이 missing finalized를 열고 HTTP를 시작하지만 CorruptionDetected mutation이 없어 ST01 assertion 실패. spawn/compile/환경 오류는 RED가 아니다. token start/end/consumed는 자동 집계 API 없어 미집계; elapsed는 실제 실행 계측하며 순수 코드 시간이 아닌 도구 관측값이면 구분한다.
+
 ## v4.1.0 S08 finalize 복구 최신 검증 (2026-09-11)
 
 최종 담당자 읽기 검증: 기록된 정규화 run root 39개를 fs.existsSync로 전수 대조하여 present=[]/exit0 확인. 보존한 임시 산출물 없음. git diff --check exit0 및 변경 파일 전수 목록 확인. 메인 소유 plan/evidence와 담당자 소유 제품/test/records 변경을 분리했으며 commit/push는 담당자가 수행하지 않았다.
