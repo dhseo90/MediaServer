@@ -1,5 +1,552 @@
 # Release Test Records
 
+## B2b callback 상한 추가 사전 등록 (2026-09-10)
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| V410-S08-B2b-18 | 실제 FD/appsrc를 사용한 callback 직접 경계 | --limits 전용 TU에 inspector.cpp 직접 include(중복링크 없음); 16MiB+1 요청 request_limit=true/noioerror/offset0/EOS, 이미 지난 deadline expired=true/EOS, seek 범위밖 거부 및 EOF/0 offset 반영. 실제 container 큰 요청 발생 검증과 구분 | v4.1.0 |
+
+제품파일 동결 유지. --limits만 새 실행하며 기존53/13 및 회귀는 재실행하지 않는다. 실제 assert 실패/환경 실패면 즉시 중단한다. 아래 기존 request-limit 미검증 기록은 추가 실행 이전 시점의 이력이다.
+
+### callback 직접 경계 최종 실행
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B2b limits 명령 | `./server.sh verify-v410-recording-media-inspector --limits` exit0, pass15/fail0, elapsed5833ms | pass |
+| limits cleanup | /private/tmp/media-server-inspector-WHMVWF, 삭제 전1503345 bytes, EXIT cleanup removed=true | pass |
+| 메인 기존 cleanup 재확인 | 메인이 기존8개 임시경로 fs.existsSync 직접검사 checked8/present[] exit0. 별도 메인 관측이며 limits 경로는 이8개에 포함되지 않음 | pass |
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| B2b-limits-01 | limits real file descriptor opened | pass | 실제 FD/GstAppSrc 및 callback 직접 호출 |
+| B2b-limits-02 | limits real pipeline elements available | pass | 실제 FD/GstAppSrc 및 callback 직접 호출 |
+| B2b-limits-03 | limits pipeline playing | pass | 실제 FD/GstAppSrc 및 callback 직접 호출 |
+| B2b-limits-04 | oversized callback request limit no IO no offset advance | pass | 실제 FD/GstAppSrc 및 callback 직접 호출 |
+| B2b-limits-05 | oversized callback actual EOS | pass | 실제 FD/GstAppSrc 및 callback 직접 호출 |
+| B2b-limits-06 | seek beyond size refused offset unchanged | pass | 실제 FD/GstAppSrc 및 callback 직접 호출 |
+| B2b-limits-07 | seek valid EOF offset accepted | pass | 실제 FD/GstAppSrc 및 callback 직접 호출 |
+| B2b-limits-08 | seek valid zero offset accepted | pass | 실제 FD/GstAppSrc 및 callback 직접 호출 |
+| B2b-limits-09 | limits real pipeline elements available | pass | 실제 FD/GstAppSrc 및 callback 직접 호출 |
+| B2b-limits-10 | limits pipeline playing | pass | 실제 FD/GstAppSrc 및 callback 직접 호출 |
+| B2b-limits-11 | expired callback flags no IO no offset advance | pass | 실제 FD/GstAppSrc 및 callback 직접 호출 |
+| B2b-limits-12 | expired callback actual EOS | pass | 실제 FD/GstAppSrc 및 callback 직접 호출 |
+| B2b-limits-13 | seek beyond size refused offset unchanged | pass | 실제 FD/GstAppSrc 및 callback 직접 호출 |
+| B2b-limits-14 | seek valid EOF offset accepted | pass | 실제 FD/GstAppSrc 및 callback 직접 호출 |
+| B2b-limits-15 | seek valid zero offset accepted | pass | 실제 FD/GstAppSrc 및 callback 직접 호출 |
+
+elapsed는 Date.now 실행 전~완료확인(도구왕복 포함), token start/end/consumed는 집계API 부재로 미집계. 제품코드 변경 없음. 요청상한/expired/seek 분기는 실제 callback 단위 실행으로 검증했으며, 실제 MP4/WebM이 16MiB 초과 요청을 발생시키는 통합 재현은 수행하지 않았다. 이전53/13 assertions와 회귀/build는 재실행하지 않았다. 추가 실제 실패 없음. 신규 runner/테스트/기능 총계1140, 최종 diff 확인 후 동결. task-8-report의 이전 총계1139·request-limit 미검증 표기는 이 추가검사 이전 시점이며 최신 근거는 본 절이다.
+
+
+## v4.1.0 S08-B2b 최종 검사·회귀 결과 (2026-09-10)
+
+범위는 명시적 known finalized media 검사와 확정 손상 상태 적용이다. startup/재생 자동검사, orphan publish, ready-ticket, 삭제·이동, decoder 전프레임 검증은 구현하지 않았다. H264/MP4·VP8/WebM만 지원하고 64hex SHA256을 검증한다. OS I/O stall의 hard realtime 상한 및 같은권한 비협력 외부 변경의 원자적 배제는 보장하지 않는다. demux 단일 요청 16MiB 초과는 request-limit/Unavailable이며 해당 크기의 실제 demux 요청 유발은 미검증이다.
+
+최초 예상 RED 0/1은 위 기록 그대로 유지하며 같은 malformed assertion이 이번 GREEN에서 pass되었다. 실제 실패 없음. 메인 추가 리뷰에 따른 plugin/권한/audio-only 3경계는 신규 ID15~17을 실행 전에 등록하고 별도 --boundaries로 13개 assertion을 검사했다. 기존 53개 focused와 회귀는 단순 인계를 이유로 반복하지 않았다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B2b 명령 | `./server.sh verify-v410-recording-media-inspector` exit0; Gst52/noGst1, fail0; elapsed6239ms | pass |
+| B2b-boundaries 명령 | `./server.sh verify-v410-recording-media-inspector --boundaries` exit0; 13/0; elapsed5095ms | pass |
+| B2a 명령 | `./server.sh verify-v410-recording-corruption` exit0; 92/0; manifest14 정의 확인; elapsed6575ms | pass |
+| B1 명령 | `./server.sh verify-v410-recording-recovery` exit0; 40/0; manifest17 정의 확인; elapsed6853ms | pass |
+| S03-wiring 명령 | `MEDIA_SERVER_VERIFY_V410_RECORDING_CATALOG_BUILD_DIR=/private/tmp/media-server-inspector-catalog-UWtkJj ./server.sh verify-v410-recording-catalog` exit0; 45/0+wiring9; elapsed5910ms | pass |
+| S07 명령 | `./server.sh verify-v410-recording-observations` exit0; core71/time10/cleanup1, fail0; elapsed14253ms | pass |
+| A 명령 | `./server.sh verify-v410-recording-fixture-compatibility` exit0; golden4/reader89, fail0; elapsed8265ms | pass |
+| 메인 전체 build | 메인 직접 `./server.sh build` exit0, configure/runtime98%/server100%; start~완료확인10842ms(도구왕복 포함). 기존 build-gst-onnx 산출물 갱신, 서버/포트/새temp 없음 | pass |
+| 메인 문서 링크 | 메인 직접 `./server.sh verify-docs-links` exit0; md226/links1049/images22/anchors103/index76/exclusion142/failures0; elapsed별도미계측, token미집계, 새임시산출물 없음 | pass |
+| diff | `git diff --check` exit0 | pass |
+| 기존 cleanup 부재확인 | S03 명시 BUILD_DIR 및 S07 root에 test ! -e 확인 exit0 | pass |
+
+모든 elapsed는 Date.now 도구호출 전후 실측(순수 command CPU/실행시간 아님). token start/end/consumed는 사용량 집계 API 없음으로 미집계(source: 서브에이전트 Date.now/명령 stdout, build는 메인 별도 보고). 장시간30/120, UI, verify-predev 미실행이며 이번 한정 요청 밖이다. 커밋/푸시 담당자 미수행, 전체 S08/릴리즈 완료 evidence가 아니다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/tmp/media-server-inspector-RvQxcY | RED binary/fixture | 1477092 bytes | EXIT cleanup | removed=true | 실제 stdout |
+| /private/tmp/media-server-inspector-JNmdfF | GREEN binary/실제 media/32MiB 변경 fixture | 35462362 bytes | EXIT cleanup | removed=true | 실제 stdout |
+| /private/tmp/media-server-inspector-jIj9fJ | 추가 boundary binary/MP4/audio fixture | 1634355 bytes | EXIT cleanup | removed=true | 실제 stdout |
+| /private/tmp/media-server-s08-b2a-U4otVB | B2a binary/fixtures | 1862631 bytes | EXIT cleanup | removed=true | 실제 stdout |
+| /private/tmp/media-server-s08-b1-vYOOsY | B1 binary/fixtures | 20010103 bytes | EXIT cleanup | removed=true | 실제 stdout |
+| /private/tmp/media-server-inspector-catalog-UWtkJj | S03 binary/fixtures | 미계측: 기존 trap 즉시삭제 | EXIT cleanup | test ! -e exit0 | 명시 mktemp 경로 전달 |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s07.sPaHiM | S07 binary/fixtures | 2720 KiB allocated, 2785280 bytes; payload byte합 아님 | EXIT cleanup | script+test ! -e exit0 | du -sk 실제 stdout |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s08-a-reader-qo3rm2 | A reader binary | 478064 bytes | finally cleanup | removed=true | 실제 stdout |
+
+### B2b 실행별 assertion 전수
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| B2b-01 | malformed matching size/hash is Corrupt | pass | 최초 예상 RED fail→GREEN pass |
+| B2b-02 | real MP4 fixture generation EOS | pass | 실제 이번 stdout |
+| B2b-03 | real WebM fixture generation EOS | pass | 실제 이번 stdout |
+| B2b-04 | MP4 expected H264 pad buffers EOS healthy | pass | 실제 이번 stdout |
+| B2b-05 | WebM expected VP8 pad buffers EOS healthy | pass | 실제 이번 stdout |
+| B2b-06 | container metadata mismatch never healthy | pass | 실제 이번 stdout |
+| B2b-07 | same size changed bytes checksum mismatch | pass | 실제 이번 stdout |
+| B2b-08 | symlink.mp4 unavailable | pass | 실제 이번 stdout |
+| B2b-09 | hardlink.mp4 unavailable | pass | 실제 이번 stdout |
+| B2b-10 | parent symlink unavailable | pass | 실제 이번 stdout |
+| B2b-11 | root symlink unavailable | pass | 실제 이번 stdout |
+| B2b-12 | relative escape unavailable | pass | 실제 이번 stdout |
+| B2b-13 | absolute relative path unavailable | pass | 실제 이번 stdout |
+| B2b-14 | FIFO fixture create | pass | 실제 이번 stdout |
+| B2b-15 | nonregular FIFO unavailable without blocking | pass | 실제 이번 stdout |
+| B2b-16 | missing root unavailable | pass | 실제 이번 stdout |
+| B2b-17 | missing parent unavailable | pass | 실제 이번 stdout |
+| B2b-18 | safe existing parent missing leaf confirmed | pass | 실제 이번 stdout |
+| B2b-19 | unsupported metadata variant 0 | pass | 실제 이번 stdout |
+| B2b-20 | unsupported metadata variant 1 | pass | 실제 이번 stdout |
+| B2b-21 | unsupported metadata variant 2 | pass | 실제 이번 stdout |
+| B2b-22 | overflow budget unavailable | pass | 실제 이번 stdout |
+| B2b-23 | concurrent real file writes detected unavailable | pass | 실제 이번 stdout |
+| B2b-24 | catalog journal open | pass | 실제 이번 stdout |
+| B2b-25 | catalog open without auto inspection | pass | 실제 이번 stdout |
+| B2b-26 | healthy finalized seed | pass | 실제 이번 stdout |
+| B2b-27 | healthy catalog inspection noappend | pass | 실제 이번 stdout |
+| B2b-28 | timeout noappend | pass | 실제 이번 stdout |
+| B2b-29 | held finalized seed | pass | 실제 이번 stdout |
+| B2b-30 | held lease acquire | pass | 실제 이번 stdout |
+| B2b-31 | held observation Corrupt apply refused noappend | pass | 실제 이번 stdout |
+| B2b-32 | held lease release | pass | 실제 이번 stdout |
+| B2b-33 | size corruption applied after lease release | pass | 실제 이번 stdout |
+| B2b-34 | applied corrupt excluded media location | pass | 실제 이번 stdout |
+| B2b-35 | missing finalized seed | pass | 실제 이번 stdout |
+| B2b-36 | missing leaf applied | pass | 실제 이번 stdout |
+| B2b-37 | derived finalized seed | pass | 실제 이번 stdout |
+| B2b-38 | derived missing mapping applied | pass | 실제 이번 stdout |
+| B2b-39 | pending-source finalized seed | pass | 실제 이번 stdout |
+| B2b-40 | pending-output finalized seed | pass | 실제 이번 stdout |
+| B2b-41 | pending link seed | pass | 실제 이번 stdout |
+| B2b-42 | pending-source apply refused noappend | pass | 실제 이번 stdout |
+| B2b-43 | pending-output apply refused noappend | pass | 실제 이번 stdout |
+| B2b-44 | deletion-pending finalized seed | pass | 실제 이번 stdout |
+| B2b-45 | deletion-pending deletion request | pass | 실제 이번 stdout |
+| B2b-46 | deletion-pending inspection refused noappend | pass | 실제 이번 stdout |
+| B2b-47 | deleted finalized seed | pass | 실제 이번 stdout |
+| B2b-48 | deleted deletion request | pass | 실제 이번 stdout |
+| B2b-49 | deleted tombstone seed | pass | 실제 이번 stdout |
+| B2b-50 | deleted inspection refused noappend | pass | 실제 이번 stdout |
+| B2b-51 | catalog replay reopen | pass | 실제 이번 stdout |
+| B2b-52 | durable corruption replay lifecycle | pass | 실제 이번 stdout |
+| B2b-53 | no GStreamer build never healthy | pass | 실제 이번 stdout |
+| B2b-boundaries-01 | boundary MP4 fixture generation EOS | pass | 실제 이번 stdout |
+| B2b-boundaries-02 | boundary journal open | pass | 실제 이번 stdout |
+| B2b-boundaries-03 | boundary catalog open | pass | 실제 이번 stdout |
+| B2b-boundaries-04 | boundary finalized seed | pass | 실제 이번 stdout |
+| B2b-boundaries-05 | qtdemux registry fixture available | pass | 실제 이번 stdout |
+| B2b-boundaries-06 | missing demux plugin unavailable noappend | pass | 실제 이번 stdout |
+| B2b-boundaries-07 | qtdemux registry restored | pass | 실제 이번 stdout |
+| B2b-boundaries-08 | permission fixture mode zero | pass | 실제 이번 stdout |
+| B2b-boundaries-09 | permission fixture actual EACCES | pass | 실제 이번 stdout |
+| B2b-boundaries-10 | permission denied unavailable noappend | pass | 실제 이번 stdout |
+| B2b-boundaries-11 | permission mode restored | pass | 실제 이번 stdout |
+| B2b-boundaries-12 | audio-only MP4 fixture generation EOS | pass | 실제 이번 stdout |
+| B2b-boundaries-13 | audio-only container cannot satisfy expected video | pass | 실제 이번 stdout |
+| B2a-01 | journal open | pass | 실제 이번 stdout |
+| B2a-02 | catalog seed open | pass | 실제 이번 stdout |
+| B2a-03 | seed finalized | pass | 실제 이번 stdout |
+| B2a-04 | corruption durable append | pass | 실제 이번 stdout |
+| B2a-05 | catalog replay open | pass | 실제 이번 stdout |
+| B2a-06 | corruption replay lifecycle is Corrupt | pass | 실제 이번 stdout |
+| B2a-07 | fallback journal open | pass | 실제 이번 stdout |
+| B2a-08 | fallback catalog open | pass | 실제 이번 stdout |
+| B2a-09 | fallback seed base | pass | 실제 이번 stdout |
+| B2a-10 | fallback resolved locator literal segment UTC PTS | pass | 실제 이번 stdout |
+| B2a-11 | fallback observation stored before corruption | pass | 실제 이번 stdout |
+| B2a-12 | fallback observation locator initially available | pass | 실제 이번 stdout |
+| B2a-13 | fallback unknown ID and reason refused noappend | pass | 실제 이번 stdout |
+| B2a-14 | fallback acquire hold | pass | 실제 이번 stdout |
+| B2a-15 | fallback held corruption refused noappend | pass | 실제 이번 stdout |
+| B2a-16 | fallback release hold | pass | 실제 이번 stdout |
+| B2a-17 | fallback mark corruption | pass | 실제 이번 stdout |
+| B2a-18 | fallback repeat corruption noappend | pass | 실제 이번 stdout |
+| B2a-19 | fallback only lifecycle changed bytes identity preserved | pass | 실제 이번 stdout |
+| B2a-20 | fallback corrupt media location blocked | pass | 실제 이번 stdout |
+| B2a-21 | fallback V2 locator revoked | pass | 실제 이번 stdout |
+| B2a-22 | fallback pending link segments seed | pass | 실제 이번 stdout |
+| B2a-23 | fallback pending link seed | pass | 실제 이번 stdout |
+| B2a-24 | fallback pending source output refused noappend | pass | 실제 이번 stdout |
+| B2a-25 | fallback event link metadata preserved | pass | 실제 이번 stdout |
+| B2a-26 | fallback deletion-pending deletion seed | pass | 실제 이번 stdout |
+| B2a-27 | fallback deletion-pending mark rejected noappend | pass | 실제 이번 stdout |
+| B2a-28 | fallback deletion-done deletion seed | pass | 실제 이번 stdout |
+| B2a-29 | fallback tombstone seed | pass | 실제 이번 stdout |
+| B2a-30 | fallback deletion-done mark rejected noappend | pass | 실제 이번 stdout |
+| B2a-31 | fallback identical finalized replay seed | pass | 실제 이번 stdout |
+| B2a-32 | fallback conflicting finalized seed | pass | 실제 이번 stdout |
+| B2a-33 | fallback entity mismatch seed | pass | 실제 이번 stdout |
+| B2a-34 | fallback invalid first valid later same mutation ID seed | pass | 실제 이번 stdout |
+| B2a-35 | fallback malformed and deletion-priority seed | pass | 실제 이번 stdout |
+| B2a-36 | fallback same mutation ID different payload seed | pass | 실제 이번 stdout |
+| B2a-37 | fallback restart | pass | 실제 이번 stdout |
+| B2a-38 | fallback restart never resurrects corrupt identity | pass | 실제 이번 stdout |
+| B2a-39 | fallback query keeps corrupt pending excludes deleted | pass | 실제 이번 stdout |
+| B2a-40 | fallback deletion priority and unknown no creation | pass | 실제 이번 stdout |
+| B2a-41 | fallback invalid mutations diagnosed exact count | pass | 실제 이번 stdout |
+| B2a-42 | sqlite journal open | pass | 실제 이번 stdout |
+| B2a-43 | sqlite catalog open | pass | 실제 이번 stdout |
+| B2a-44 | sqlite seed base | pass | 실제 이번 stdout |
+| B2a-45 | sqlite resolved locator literal segment UTC PTS | pass | 실제 이번 stdout |
+| B2a-46 | sqlite observation stored before corruption | pass | 실제 이번 stdout |
+| B2a-47 | sqlite observation locator initially available | pass | 실제 이번 stdout |
+| B2a-48 | sqlite unknown ID and reason refused noappend | pass | 실제 이번 stdout |
+| B2a-49 | sqlite acquire hold | pass | 실제 이번 stdout |
+| B2a-50 | sqlite held corruption refused noappend | pass | 실제 이번 stdout |
+| B2a-51 | sqlite release hold | pass | 실제 이번 stdout |
+| B2a-52 | sqlite mark corruption | pass | 실제 이번 stdout |
+| B2a-53 | sqlite repeat corruption noappend | pass | 실제 이번 stdout |
+| B2a-54 | sqlite only lifecycle changed bytes identity preserved | pass | 실제 이번 stdout |
+| B2a-55 | sqlite corrupt media location blocked | pass | 실제 이번 stdout |
+| B2a-56 | sqlite V2 locator revoked | pass | 실제 이번 stdout |
+| B2a-57 | sqlite SQL lifecycle corrupt | pass | 실제 이번 stdout |
+| B2a-58 | sqlite SQL codecs_json original metadata | pass | 실제 이번 stdout |
+| B2a-59 | sqlite pending link segments seed | pass | 실제 이번 stdout |
+| B2a-60 | sqlite pending link seed | pass | 실제 이번 stdout |
+| B2a-61 | sqlite pending source output refused noappend | pass | 실제 이번 stdout |
+| B2a-62 | sqlite event link metadata preserved | pass | 실제 이번 stdout |
+| B2a-63 | sqlite deletion-pending deletion seed | pass | 실제 이번 stdout |
+| B2a-64 | sqlite deletion-pending mark rejected noappend | pass | 실제 이번 stdout |
+| B2a-65 | sqlite deletion-done deletion seed | pass | 실제 이번 stdout |
+| B2a-66 | sqlite tombstone seed | pass | 실제 이번 stdout |
+| B2a-67 | sqlite deletion-done mark rejected noappend | pass | 실제 이번 stdout |
+| B2a-68 | sqlite identical finalized replay seed | pass | 실제 이번 stdout |
+| B2a-69 | sqlite conflicting finalized seed | pass | 실제 이번 stdout |
+| B2a-70 | sqlite entity mismatch seed | pass | 실제 이번 stdout |
+| B2a-71 | sqlite invalid first valid later same mutation ID seed | pass | 실제 이번 stdout |
+| B2a-72 | sqlite malformed and deletion-priority seed | pass | 실제 이번 stdout |
+| B2a-73 | sqlite same mutation ID different payload seed | pass | 실제 이번 stdout |
+| B2a-74 | sqlite restart | pass | 실제 이번 stdout |
+| B2a-75 | sqlite restart never resurrects corrupt identity | pass | 실제 이번 stdout |
+| B2a-76 | sqlite query keeps corrupt pending excludes deleted | pass | 실제 이번 stdout |
+| B2a-77 | sqlite deletion priority and unknown no creation | pass | 실제 이번 stdout |
+| B2a-78 | sqlite invalid mutations diagnosed exact count | pass | 실제 이번 stdout |
+| B2a-79 | sqlite restart SQL lifecycle parity | pass | 실제 이번 stdout |
+| B2a-80 | sqlite SQL deletion precedence | pass | 실제 이번 stdout |
+| B2a-81 | sqlite rebuild excludes rejected envelopes | pass | 실제 이번 stdout |
+| B2a-82 | sqlite invalid first valid later SQL exact binding | pass | 실제 이번 stdout |
+| B2a-83 | sqlite projection failover seed | pass | 실제 이번 stdout |
+| B2a-84 | sqlite SQLite failure trigger | pass | 실제 이번 stdout |
+| B2a-85 | sqlite projection failure keeps durable memory state | pass | 실제 이번 stdout |
+| B2a-86 | sqlite remove projection trigger | pass | 실제 이번 stdout |
+| B2a-87 | sqlite fallback restart SQL repaired | pass | 실제 이번 stdout |
+| B2a-88 | order journal open | pass | 실제 이번 stdout |
+| B2a-89 | order corruption-before-create-after seed | pass | 실제 이번 stdout |
+| B2a-90 | order catalog open | pass | 실제 이번 stdout |
+| B2a-91 | order memory corrupt | pass | 실제 이번 stdout |
+| B2a-92 | identical envelope accepted ordinal SQL parity | pass | 실제 이번 stdout |
+| B1-01 | truncated open | pass | 실제 이번 stdout |
+| B1-02 | truncated uncommitted before append | pass | 실제 이번 stdout |
+| B1-03 | truncated append:  | pass | 실제 이번 stdout |
+| B1-04 | truncated valid2 and next ID preserved | pass | 실제 이번 stdout |
+| B1-05 | truncated quarantine byte exact | pass | 실제 이번 stdout |
+| B1-06 | truncated restart no mutation | pass | 실제 이번 stdout |
+| B1-07 | truncated second append retained | pass | 실제 이번 stdout |
+| B1-08 | truncated no redundant archive | pass | 실제 이번 stdout |
+| B1-09 | complete-no-lf open | pass | 실제 이번 stdout |
+| B1-10 | complete-no-lf uncommitted before append | pass | 실제 이번 stdout |
+| B1-11 | complete-no-lf append:  | pass | 실제 이번 stdout |
+| B1-12 | complete-no-lf valid2 and next ID preserved | pass | 실제 이번 stdout |
+| B1-13 | complete-no-lf quarantine byte exact | pass | 실제 이번 stdout |
+| B1-14 | complete-no-lf restart no mutation | pass | 실제 이번 stdout |
+| B1-15 | complete-no-lf second append retained | pass | 실제 이번 stdout |
+| B1-16 | complete-no-lf no redundant archive | pass | 실제 이번 stdout |
+| B1-17 | empty journal is valid | pass | 실제 이번 stdout |
+| B1-18 | empty append retained | pass | 실제 이번 stdout |
+| B1-19 | large newline prefix byte preserved | pass | 실제 이번 stdout |
+| B1-20 | middle corrupt line preserved and valid entries read | pass | 실제 이번 stdout |
+| B1-21 | directory quarantine journal open | pass | 실제 이번 stdout |
+| B1-22 | directory quarantine failure original unchanged | pass | 실제 이번 stdout |
+| B1-23 | symlink quarantine journal open | pass | 실제 이번 stdout |
+| B1-24 | symlink quarantine failure original unchanged | pass | 실제 이번 stdout |
+| B1-25 | hardlink quarantine journal open | pass | 실제 이번 stdout |
+| B1-26 | hardlink quarantine failure original unchanged | pass | 실제 이번 stdout |
+| B1-27 | exact quarantine journal open | pass | 실제 이번 stdout |
+| B1-28 | existing exact quarantine restart reuse | pass | 실제 이번 stdout |
+| B1-29 | journal symlink refused | pass | 실제 이번 stdout |
+| B1-30 | journal hardlink refused | pass | 실제 이번 stdout |
+| B1-31 | inode pin open | pass | 실제 이번 stdout |
+| B1-32 | replacement inode append/reopen/replay refused | pass | 실제 이번 stdout |
+| B1-33 | catalog refuses failed journal Replay | pass | 실제 이번 stdout |
+| B1-34 | user parent symlink refused | pass | 실제 이번 stdout |
+| B1-35 | parent traversal refused | pass | 실제 이번 stdout |
+| B1-36 | deleted journal initial open | pass | 실제 이번 stdout |
+| B1-37 | deleted journal reopen does not recreate | pass | 실제 이번 stdout |
+| B1-38 | deleted parent reopen does not recreate | pass | 실제 이번 stdout |
+| B1-39 | macOS tmp system alias allowed | pass | 실제 이번 stdout |
+| B1-40 | oversized tail fails closed with original bytes | pass | 실제 이번 stdout |
+| S03-wiring-01 | source 저장 callback reconcile 연결 | pass | 실제 이번 stdout |
+| S03-wiring-02 | policy revision idempotency | pass | 실제 이번 stdout |
+| S03-wiring-03 | 5초 safety reconcile | pass | 실제 이번 stdout |
+| S03-wiring-04 | composition root journal 선행 open | pass | 실제 이번 stdout |
+| S03-wiring-05 | composition root catalog rebuild/open | pass | 실제 이번 stdout |
+| S03-wiring-06 | 서버 전 supervisor 시작 | pass | 실제 이번 stdout |
+| S03-wiring-07 | ingress 전 event bridge 등록 | pass | 실제 이번 stdout |
+| S03-wiring-08 | ingress 종료 뒤 recorder finalize | pass | 실제 이번 stdout |
+| S03-wiring-09 | composition root 시작/종료 순서 | pass | 실제 이번 stdout |
+| S07-01 | mutation-v2 | pass | 실제 이번 stdout |
+| S07-02 | null-roundtrip | pass | 실제 이번 stdout |
+| S07-03 | reference-roundtrip | pass | 실제 이번 stdout |
+| S07-04 | negative-created-time | pass | 실제 이번 stdout |
+| S07-05 | negative-reason | pass | 실제 이번 stdout |
+| S07-06 | negative-summary | pass | 실제 이번 stdout |
+| S07-07 | negative-observation-range | pass | 실제 이번 stdout |
+| S07-08 | negative-bbox | pass | 실제 이번 stdout |
+| S07-09 | journal-open | pass | 실제 이번 stdout |
+| S07-10 | catalog-open | pass | 실제 이번 stdout |
+| S07-11 | null-put | pass | 실제 이번 stdout |
+| S07-12 | gap-null | pass | 실제 이번 stdout |
+| S07-13 | missing-provenance-null | pass | 실제 이번 stdout |
+| S07-14 | segment-finalize | pass | 실제 이번 stdout |
+| S07-15 | pending-resolve | pass | 실제 이번 stdout |
+| S07-16 | located-roundtrip | pass | 실제 이번 stdout |
+| S07-17 | negative-locator-pts | pass | 실제 이번 stdout |
+| S07-18 | locator-put-reject | pass | 실제 이번 stdout |
+| S07-19 | located-put | pass | 실제 이번 stdout |
+| S07-20 | identity-put-reject | pass | 실제 이번 stdout |
+| S07-21 | identity-restore | pass | 실제 이번 stdout |
+| S07-22 | event-put | pass | 실제 이번 stdout |
+| S07-23 | reasons-merge | pass | 실제 이번 stdout |
+| S07-24 | missing-media-null | pass | 실제 이번 stdout |
+| S07-25 | v1-roundtrip | pass | 실제 이번 stdout |
+| S07-26 | deletion-request | pass | 실제 이번 stdout |
+| S07-27 | deleted-null | pass | 실제 이번 stdout |
+| S07-28 | sqlite-reopen | pass | 실제 이번 stdout |
+| S07-29 | journal-replay | pass | 실제 이번 stdout |
+| S07-30 | jsonl-parity | pass | 실제 이번 stdout |
+| S07-31 | sqlite-projection | pass | 실제 이번 stdout |
+| S07-32 | sqlite-payload-parity | pass | 실제 이번 stdout |
+| S07-33 | sampling-journal-open | pass | 실제 이번 stdout |
+| S07-34 | sampling-catalog-open | pass | 실제 이번 stdout |
+| S07-35 | stop-duration | pass | 실제 이번 stdout |
+| S07-36 | sampling-start | pass | 실제 이번 stdout |
+| S07-37 | sampling-60s-bound | pass | 실제 이번 stdout |
+| S07-38 | stop-once | pass | 실제 이번 stdout |
+| S07-39 | drain-bounded | pass | 실제 이번 stdout |
+| S07-40 | jobs-journal-open | pass | 실제 이번 stdout |
+| S07-41 | jobs-catalog-open | pass | 실제 이번 stdout |
+| S07-42 | ended-state-reuse | pass | 실제 이번 stdout |
+| S07-43 | pending-unrelated-finalize | pass | 실제 이번 stdout |
+| S07-44 | tracker-start | pass | 실제 이번 stdout |
+| S07-45 | runtime-journal-open | pass | 실제 이번 stdout |
+| S07-46 | runtime-catalog-open | pass | 실제 이번 stdout |
+| S07-47 | tracker-terminated-copy | pass | 실제 이번 stdout |
+| S07-48 | tracker-terminated-once | pass | 실제 이번 stdout |
+| S07-49 | observer-tracker-start-event-end | pass | 실제 이번 stdout |
+| S07-50 | observer-event-provenance | pass | 실제 이번 stdout |
+| S07-51 | late-journal-open | pass | 실제 이번 stdout |
+| S07-52 | late-catalog-open | pass | 실제 이번 stdout |
+| S07-53 | delayed-event-before-latest | pass | 실제 이번 stdout |
+| S07-54 | delayed-event-after-end | pass | 실제 이번 stdout |
+| S07-55 | config-zero-reject | pass | 실제 이번 stdout |
+| S07-56 | config-positive | pass | 실제 이번 stdout |
+| S07-57 | critical-overload-visible | pass | 실제 이번 stdout |
+| S07-58 | queue-cap | pass | 실제 이번 stdout |
+| S07-59 | concurrent-stop | pass | 실제 이번 stdout |
+| S07-60 | multi-namespace | pass | 실제 이번 stdout |
+| S07-61 | bounded-id | pass | 실제 이번 stdout |
+| S07-62 | storage-failure-counter | pass | 실제 이번 stdout |
+| S07-63 | pending-segment-finalize | pass | 실제 이번 stdout |
+| S07-64 | pending-finalize-automatic | pass | 실제 이번 stdout |
+| S07-65 | ambiguous-segment-finalize | pass | 실제 이번 stdout |
+| S07-66 | ambiguous-null | pass | 실제 이번 stdout |
+| S07-67 | corrupt-null | pass | 실제 이번 stdout |
+| S07-68 | reference-overflow-visible | pass | 실제 이번 stdout |
+| S07-69 | replay-identity-open | pass | 실제 이번 stdout |
+| S07-70 | replay-identity-memory | pass | 실제 이번 stdout |
+| S07-71 | replay-identity-sqlite | pass | 실제 이번 stdout |
+| S07-72 | 입력 전 위치 없음 | pass | 실제 이번 stdout |
+| S07-73 | 수락 packet anchor | pass | 실제 이번 stdout |
+| S07-74 | 동일 epoch 범위 확장 | pass | 실제 이번 stdout |
+| S07-75 | 캡처된 사본 불변 | pass | 실제 이번 stdout |
+| S07-76 | accepted-pts-exact-membership | pass | 실제 이번 stdout |
+| S07-77 | PTS 되감기 차단 | pass | 실제 이번 stdout |
+| S07-78 | 모호성 이후 추정 복원 금지 | pass | 실제 이번 stdout |
+| S07-79 | epoch 변경 차단 | pass | 실제 이번 stdout |
+| S07-80 | 종료 사본 차단 | pass | 실제 이번 stdout |
+| S07-81 | accepted-pts-history-bound | pass | 실제 이번 stdout |
+| S07-82 | S07 temporary cleanup | pass | 실제 이번 stdout |
+| A-01 | opaque ID 허용 | pass | 실제 이번 stdout |
+| A-02 | 빈 opaque ID 거부 | pass | 실제 이번 stdout |
+| A-03 | path opaque ID 거부 | pass | 실제 이번 stdout |
+| A-04 | SQLite rowid 형태 opaque ID 거부 | pass | 실제 이번 stdout |
+| A-05 | 반개구간 겹침 | pass | 실제 이번 stdout |
+| A-06 | 맞닿은 반개구간 비겹침 | pass | 실제 이번 stdout |
+| A-07 | 빈 반개구간 거부 | pass | 실제 이번 stdout |
+| A-08 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 이번 stdout |
+| A-09 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 이번 stdout |
+| A-10 | V1 segment golden row count | pass | 실제 이번 stdout |
+| A-11 | unknown optional field를 포함한 segment parse:  | pass | 실제 이번 stdout |
+| A-12 | segment provenance semantic | pass | 실제 이번 stdout |
+| A-13 | segment UTC/end PTS semantic | pass | 실제 이번 stdout |
+| A-14 | segment media/checksum semantic | pass | 실제 이번 stdout |
+| A-15 | segment lifecycle/retention semantic | pass | 실제 이번 stdout |
+| A-16 | unknown optional field 뒤 known ID 보존 | pass | 실제 이번 stdout |
+| A-17 | PTS/timebase exact 보존 | pass | 실제 이번 stdout |
+| A-18 | public JSON에 filesystem path 비노출 | pass | 실제 이번 stdout |
+| A-19 | segment canonical 재parse | pass | 실제 이번 stdout |
+| A-20 | PTS/timebase round-trip | pass | 실제 이번 stdout |
+| A-21 | unknown lifecycle를 호환 parse | pass | 실제 이번 stdout |
+| A-22 | unknown lifecycle를 Unknown으로 보존 | pass | 실제 이번 stdout |
+| A-23 | unknown lifecycle 비재생 | pass | 실제 이번 stdout |
+| A-24 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 이번 stdout |
+| A-25 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 이번 stdout |
+| A-26 | segments.jsonl parse[0]:  | pass | 실제 이번 stdout |
+| A-27 | segments.jsonl additive optional known semantic parity[0] | pass | 실제 이번 stdout |
+| A-28 | V1 schema probe anchor | pass | 실제 이번 stdout |
+| A-29 | segments.jsonl changed schema rejected | pass | 실제 이번 stdout |
+| A-30 | required ID probe anchor | pass | 실제 이번 stdout |
+| A-31 | segments.jsonl missing required ID rejected | pass | 실제 이번 stdout |
+| A-32 | segments.jsonl canonical parse[0]:  | pass | 실제 이번 stdout |
+| A-33 | segments.jsonl canonical parity[0] | pass | 실제 이번 stdout |
+| A-34 | segments.jsonl parse[1]:  | pass | 실제 이번 stdout |
+| A-35 | segments.jsonl additive optional known semantic parity[1] | pass | 실제 이번 stdout |
+| A-36 | V1 schema probe anchor | pass | 실제 이번 stdout |
+| A-37 | segments.jsonl changed schema rejected | pass | 실제 이번 stdout |
+| A-38 | required ID probe anchor | pass | 실제 이번 stdout |
+| A-39 | segments.jsonl missing required ID rejected | pass | 실제 이번 stdout |
+| A-40 | segments.jsonl canonical parse[1]:  | pass | 실제 이번 stdout |
+| A-41 | segments.jsonl canonical parity[1] | pass | 실제 이번 stdout |
+| A-42 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 이번 stdout |
+| A-43 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 이번 stdout |
+| A-44 | event-links.jsonl parse[0]:  | pass | 실제 이번 stdout |
+| A-45 | event-links.jsonl additive optional known semantic parity[0] | pass | 실제 이번 stdout |
+| A-46 | V1 schema probe anchor | pass | 실제 이번 stdout |
+| A-47 | event-links.jsonl changed schema rejected | pass | 실제 이번 stdout |
+| A-48 | required ID probe anchor | pass | 실제 이번 stdout |
+| A-49 | event-links.jsonl missing required ID rejected | pass | 실제 이번 stdout |
+| A-50 | event-links.jsonl canonical parse[0]:  | pass | 실제 이번 stdout |
+| A-51 | event-links.jsonl canonical parity[0] | pass | 실제 이번 stdout |
+| A-52 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 이번 stdout |
+| A-53 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 이번 stdout |
+| A-54 | observations.jsonl parse[0]:  | pass | 실제 이번 stdout |
+| A-55 | observations.jsonl additive optional known semantic parity[0] | pass | 실제 이번 stdout |
+| A-56 | V1 schema probe anchor | pass | 실제 이번 stdout |
+| A-57 | observations.jsonl changed schema rejected | pass | 실제 이번 stdout |
+| A-58 | required ID probe anchor | pass | 실제 이번 stdout |
+| A-59 | observations.jsonl missing required ID rejected | pass | 실제 이번 stdout |
+| A-60 | observations.jsonl canonical parse[0]:  | pass | 실제 이번 stdout |
+| A-61 | observations.jsonl canonical parity[0] | pass | 실제 이번 stdout |
+| A-62 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 이번 stdout |
+| A-63 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 이번 stdout |
+| A-64 | tombstones.jsonl parse[0]:  | pass | 실제 이번 stdout |
+| A-65 | tombstones.jsonl additive optional known semantic parity[0] | pass | 실제 이번 stdout |
+| A-66 | V1 schema probe anchor | pass | 실제 이번 stdout |
+| A-67 | tombstones.jsonl changed schema rejected | pass | 실제 이번 stdout |
+| A-68 | required ID probe anchor | pass | 실제 이번 stdout |
+| A-69 | tombstones.jsonl missing required ID rejected | pass | 실제 이번 stdout |
+| A-70 | tombstones.jsonl canonical parse[0]:  | pass | 실제 이번 stdout |
+| A-71 | tombstones.jsonl canonical parity[0] | pass | 실제 이번 stdout |
+| A-72 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 이번 stdout |
+| A-73 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 이번 stdout |
+| A-74 | link ID/provenance semantic | pass | 실제 이번 stdout |
+| A-75 | link requested range/status semantic | pass | 실제 이번 stdout |
+| A-76 | link overlap/missing semantic | pass | 실제 이번 stdout |
+| A-77 | link fallback/time semantic | pass | 실제 이번 stdout |
+| A-78 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 이번 stdout |
+| A-79 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 이번 stdout |
+| A-80 | observation ID/provenance semantic | pass | 실제 이번 stdout |
+| A-81 | observation exact locator semantic | pass | 실제 이번 stdout |
+| A-82 | observation detection semantic | pass | 실제 이번 stdout |
+| A-83 | observation association/time semantic | pass | 실제 이번 stdout |
+| A-84 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 이번 stdout |
+| A-85 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 이번 stdout |
+| A-86 | tombstone ID/provenance semantic | pass | 실제 이번 stdout |
+| A-87 | tombstone range/checksum/legacy retention semantic | pass | 실제 이번 stdout |
+| A-88 | tombstone segment ID 재사용 거부 | pass | 실제 이번 stdout |
+| A-89 | 새 segment ID 허용 | pass | 실제 이번 stdout |
+
+### S03 C++ 전수 대조
+
+기존 S03은 성공 assertion 이름을 stdout에 출력하지 않으므로 실제 이번 45/0 집계와 변경 없는 assertion 정의/분기(이번 SQLite 지원 빌드)를 대조했다. 45개를 개별 출력으로 관측했다고 주장하지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| B2b-S03-01 | journal open: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-02 | fallback catalog open: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-03 | SQLite off mode 표시 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-04 | segment finalize journal+projection: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-05 | fallback range query | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-06 | event link FK 위반 거부 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-07 | FK 위반 transaction/journal 전체 rollback | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-08 | 최초 durable mutation 1개 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-09 | 동일 mutation 중복 append | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-10 | 손상 사이 정상 durable mutation 보존 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-11 | 중간 corrupt line count | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-12 | 마지막 truncated line skip | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-13 | fallback replay open | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-14 | 같은 mutation idempotent replay | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-15 | 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-16 | 중복 replay row/합계 불증가 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-17 | 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-18 | writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-19 | v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-20 | SQLite catalog open/rebuild: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-21 | SQLite primary mode 표시 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-22 | SQLite on/off range query ID·순서 parity | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-23 | journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-24 | journal 없는 손상 media orphan 구분 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-25 | projection failover journal open: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-26 | projection failover catalog open: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-27 | 실제 SQLite INSERT 실패 trigger 설치 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-28 | SQLite 투영 실패 뒤 journal+memory finalize 유지: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-29 | SQLite 투영 실패 즉시 JSONL fallback 전환 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-30 | 재시작 rebuild 전 실패 trigger 제거 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-31 | 투영 실패 직후 in-memory query 정합성 유지 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-32 | projection failover 재시작 journal rebuild: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-33 | 재시작 후 journal에서 누락 SQLite projection 복구 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-34 | 재시작 후 SQLite primary 복귀 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-35 | 재시작 journal rebuild가 실제 SQLite row 복원 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-36 | tombstone journal open: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-37 | tombstone catalog open: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-38 | tombstone 대상 segment finalize: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-39 | tombstone 대상 deletion request: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-40 | tombstone 완료 기록: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-41 | catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-42 | 손상 SQLite 격리 후 journal rebuild: | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-43 | 손상 SQLite 원본 격리 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-44 | 격리 SQLite 파일 보존 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+| B2b-S03-45 | 격리 후 journal rebuild 결과 | pass | 이번 45/0 집계+실제 assertion정의 대조 |
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| A-golden-segments | segments.jsonl 현재 바이트 SHA256 고정 manifest 대조 | pass | 이번 golden-integrity4/0; 원본 golden 수정 없음 |
+| A-golden-event-links | event-links.jsonl 현재 바이트 SHA256 고정 manifest 대조 | pass | 이번 golden-integrity4/0; 원본 golden 수정 없음 |
+| A-golden-observations | observations.jsonl 현재 바이트 SHA256 고정 manifest 대조 | pass | 이번 golden-integrity4/0; 원본 golden 수정 없음 |
+| A-golden-tombstones | tombstones.jsonl 현재 바이트 SHA256 고정 manifest 대조 | pass | 이번 golden-integrity4/0; 원본 golden 수정 없음 |
+
+
+## v4.1.0 S08-B2b 검사 사전 등록 (2026-09-10)
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| V410-S08-B2b-01 | 실제 H264/MP4·VP8/WebM healthy noappend | 실제 고정FD/media fixture/결과상태 및 journal 변화 대조 | v4.1.0 |
+| V410-S08-B2b-02 | 안전 parent의 leaf ENOENT 확정 missing | 실제 고정FD/media fixture/결과상태 및 journal 변화 대조 | v4.1.0 |
+| V410-S08-B2b-03 | size mismatch detail→checksum-mismatch | 실제 고정FD/media fixture/결과상태 및 journal 변화 대조 | v4.1.0 |
+| V410-S08-B2b-04 | 동일size 바이트 SHA256 불일치 | 실제 고정FD/media fixture/결과상태 및 journal 변화 대조 | v4.1.0 |
+| V410-S08-B2b-05 | size/hash 일치 malformed container 거부 | 실제 고정FD/media fixture/결과상태 및 journal 변화 대조 | v4.1.0 |
+| V410-S08-B2b-06 | symlink/hardlink/rootescape/nonregular unavailable | 실제 고정FD/media fixture/결과상태 및 journal 변화 대조 | v4.1.0 |
+| V410-S08-B2b-07 | missing root/parent unavailable | 실제 고정FD/media fixture/결과상태 및 journal 변화 대조 | v4.1.0 |
+| V410-S08-B2b-08 | 전체시간예산 초과 unavailable noappend | 0 및 milliseconds 최대값 입력은 Unavailable; 60초 상한. demux 단일 요청 16MiB 초과는 request-limit 검사불가(손상 아님), 실제 초과 요청 유발은 미검증으로 별도 남김 | v4.1.0 |
+| V410-S08-B2b-09 | 파일 변경 감지 unavailable | 실제 고정FD/media fixture/결과상태 및 journal 변화 대조 | v4.1.0 |
+| V410-S08-B2b-10 | held/pending/deleted 상태 적용 거부 | 실제 고정FD/media fixture/결과상태 및 journal 변화 대조 | v4.1.0 |
+| V410-S08-B2b-11 | 확정손상 적용·replay Corrupt | 실제 고정FD/media fixture/결과상태 및 journal 변화 대조 | v4.1.0 |
+| V410-S08-B2b-12 | 지원외container/codec/잘못된checksum metadata unavailable | AVI/unknown codec/bad checksum 각 변형 검사. H264/MP4·VP8/WebM만 지원, request-limit도 검사불가이지 손상 아님 | v4.1.0 |
+| V410-S08-B2b-13 | 예상영상stream/buffer/EOS 확인·metadata mismatch | 실제 고정FD/media fixture/결과상태 및 journal 변화 대조 | v4.1.0 |
+| V410-S08-B2b-14 | GStreamer 없는 빌드 unavailable | 실제 고정FD/media fixture/결과상태 및 journal 변화 대조 | v4.1.0 |
+| V410-S08-B2b-15 | plugin 부재 직접 검사 | --boundaries에서 MP4 fixture/catalog seed→qtdemux registry feature 제거→Unavailable/plugin-unavailable/noappend→feature 복원 | v4.1.0 |
+| V410-S08-B2b-16 | 읽기 권한 거부 직접 검사 | chmod000→실제 open EACCES→Unavailable/noappend→0600 복원. root 권한으로 EACCES 불가이면 미확인이지 PASS 아님 | v4.1.0 |
+| V410-S08-B2b-17 | 기대영상 없는 실제 container 검사 | audiotestsrc/avenc_aac/mp4mux로 audio-only MP4를 생성하여 EOS 확인 후 expected-video-missing-or-mismatched Corrupt 대조 | v4.1.0 |
+
+예상 RED: `./server.sh verify-v410-recording-media-inspector --red`에서 size/SHA256 일치하지만 ftyp만 있는 malformed MP4에 대해 최소 컴파일 가능한 stub이 Healthy를 반환하여 `malformed matching size/hash is Corrupt` assertion만 실패한다. compile/env/plugin 오류는 RED가 아니다. healthy는 신뢰된 SHA256 및 container demux 검사이며 전체 frame decode 보장이 아니다. startup/재생 자동연결, 이동/삭제는 하지 않는다.
+
+### B2b 최초 예상 RED 실행
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B2b 최초 RED 명령 | `./server.sh verify-v410-recording-media-inspector --red` exit1, pass0/fail1; compile/env 오류 없음; elapsed12259ms | fail |
+| malformed matching size/hash is Corrupt | 미구현 stub Healthy로 사전 지정 assertion 실패. GREEN 전 완료 evidence 아님 | fail |
+| RED cleanup | /private/tmp/media-server-inspector-RvQxcY, 삭제 전1477092 bytes, EXIT cleanup removed=true | pass |
+
+elapsed는 Date.now 실행 전~완료확인(도구왕복 포함). token start/end/consumed는 subagent 사용량 API 없음으로 미집계. raw 임시파일 보존 없음. 첫 GREEN 전 실제 MP4/WebM generation EOS, expected video pad/buffer/EOS, same-size hash변조, leaf/root/parent symlink, hardlink, 상대escape/절대상대경로, FIFO, root/parent/leaf 부재, concurrent32MiB파일쓰기, catalog healthy/timeout noappend, hold acquire/release, Pending source/output, deletion-pending/deleted, missing/derived 및 reopen lifecycle assertions를 사전 정의했다. 테스트가 생성하는 fixture seed/상태전이 준비 assertion도 전수 결과로 남긴다.
+
 ## v4.1.0 S08-B2a 재개 후 검증 (2026-09-09)
 
 메인 직접 build 확인: `./server.sh build` exit0, configure 및 media_server_runtime/media_server 100%. 관측 상한42900ms는 메인 exec시작~완료확인 뒤 계측으로 도구왕복/읽기를 포함하며 순수 build시간은 미계측. 메인 token 자동집계 없음. 기존 build-gst-onnx 제품 빌드 산출물만 갱신했고 서버 기동·포트·새 임시dir 없음. 담당자의 재실행/직접관측으로 바꾸어 보고하지 않는다.

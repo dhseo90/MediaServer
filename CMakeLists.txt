@@ -93,6 +93,7 @@ add_library(media_server_runtime STATIC
     src/recording/event_recording_bridge.cpp
     src/recording/gstreamer_segment_writer.cpp
     src/recording/recording_journal.cpp
+    src/recording/recording_media_inspector.cpp
     src/recording/recording_catalog.cpp
     src/recording/analysis_observation_projector.cpp
     src/recording/recording_read_service.cpp

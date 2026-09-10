@@ -4,6 +4,31 @@
 PASS는 UI 풀테스트, 30분/120분 장시간 테스트, PR/main merge, tag, GitHub Release 또는
 published metadata 완료를 뜻하지 않는다.
 
+## S08-B2b 실제 파일 검사 구현·검증 (2026-09-10)
+
+다음 잔여 이슈인 known segment 실제 파일 검사기를 추가했다. 크기·SHA-256과
+MP4/WebM demux 검사 결과를 정상/확정 손상/검사 불가로 분리하고 기존 B2a 상태
+적용과 연결한다. 모든 프레임 디코딩, orphan 복구·publish, startup 자동 연결은
+이 항목에 포함하지 않는다.
+`recording_media_inspector.h/.cpp`의 `InspectRecordingMedia`는 고정 FD에서 검사하고,
+`InspectAndMarkRecordingMedia`는 확정 손상만 기존 `MarkSegmentCorrupt`로 전달한다.
+검사 결과와 durable 적용 결과를 분리하며 hold·Pending·삭제 보호는 변경하지 않았다.
+`server.sh verify-v410-recording-media-inspector`와 CMake에 검사기·검증 명령을 연결했다.
+실제 media focused 52개·no-GStreamer 1개·추가 경계 13개·콜백 상한 15개,
+기존 B2a 92개·B1 40개·
+S03 catalog45개와 wiring9개·S07 core71개와 시간10개 및 cleanup·A digest4개와
+reader89개, 전체 build가 통과했다. 최초 예상 RED 및 개별 결과·cleanup은
+`release-test-records.md`의 B2b 기록을 따른다.
+
+검사 범위는 H264/MP4·VP8/WebM의 신뢰된 checksum 일치 및 demux 정상 여부다.
+전체 프레임 decode, 비협력 외부 writer와의 원자적 배제는 보장하지 않는다.
+예산은 최대60초, demux 단일 요청은 최대16MiB이며 초과는 검사 불가다.
+16MiB 초과·시간 초과·seek 경계는 실제 appsrc와 내부 콜백을 연결한 단위 검증을
+통과했다. 실제 컨테이너가 과대 요청을 발생시키는 통합 경로나 OS I/O 정체 유발을
+확인한 것은 아니며 그 범위의 정상 판정 증거로 확대하지 않는다.
+검사기 기반 추가는 startup 복구·orphan publish 또는 S08 전체 완료를 뜻하지 않는다.
+최신 지시에는 커밋·푸시가 없으며 기존 A·B1·B2a는 `e03a9a6b`까지 원격 반영됐다.
+
 ## S08 부분 구현: A·B1·B2a 기반 (2026-09-09)
 
 B2a는 `recording_catalog.h/.cpp`의 `MarkSegmentCorrupt`에 알려진 finalized segment의

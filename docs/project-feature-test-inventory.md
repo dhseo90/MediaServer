@@ -1,5 +1,28 @@
 # Project Feature Test Inventory
 
+## V410 S08-B2b 실제 media 검사 (실행 전 등록)
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
+| --- | --- | --- | --- | --- | --- |
+| V410-S08-B2b-01 | 실제 H264/MP4·VP8/WebM healthy noappend | media inspector focused | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
+| V410-S08-B2b-02 | 안전 parent의 leaf ENOENT 확정 missing | media inspector focused | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
+| V410-S08-B2b-03 | size mismatch detail→checksum-mismatch | media inspector focused | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
+| V410-S08-B2b-04 | 동일size 바이트 SHA256 불일치 | media inspector focused | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
+| V410-S08-B2b-05 | size/hash 일치 malformed container 거부 | media inspector focused | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
+| V410-S08-B2b-06 | symlink/hardlink/rootescape/nonregular unavailable | media inspector focused | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
+| V410-S08-B2b-07 | missing root/parent unavailable | media inspector focused | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
+| V410-S08-B2b-08 | 전체시간예산 초과 unavailable noappend; 0/overflow 예산 거부, demux 단일 요청 16MiB 상한 | media inspector focused | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
+| V410-S08-B2b-09 | 파일 변경 감지 unavailable | media inspector focused | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
+| V410-S08-B2b-10 | held/pending/deleted 상태 적용 거부 | media inspector focused | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
+| V410-S08-B2b-11 | 확정손상 적용·replay Corrupt | media inspector focused | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
+| V410-S08-B2b-12 | 지원외container/codec/잘못된checksum metadata unavailable; H264/MP4·VP8/WebM만 지원, request-limit은 손상 아님 | media inspector focused | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
+| V410-S08-B2b-13 | 예상영상stream/buffer/EOS 확인·metadata mismatch | media inspector focused | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
+| V410-S08-B2b-14 | GStreamer 없는 빌드 unavailable | media inspector focused | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
+| V410-S08-B2b-15 | qtdemux registry 제거 시 Unavailable/noappend, 복원 확인 | media inspector --boundaries | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
+| V410-S08-B2b-16 | chmod000 실제 EACCES 및 Unavailable/noappend, 권한 복원 | media inspector --boundaries | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
+| V410-S08-B2b-17 | 실제 audio-only MP4는 expected video 부재로 Corrupt | media inspector --boundaries | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
+| V410-S08-B2b-18 | 실제 FD/appsrc callback에서 16MiB+1 request-limit/noIO/EOS, expired/EOS, seek 범위/offset 검사 | media inspector --limits 직접 callback 단위 경계 | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
+
 ## V410 S08-B2a 손상 상태 적용 (실행 전 등록)
 
 | 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
@@ -121,7 +144,8 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | V410 S08-A V1 호환 신규 개별 ID | 8 |
 | V410 S08-B1 journal 신규 개별 ID | 17 |
 | V410 S08-B2a 상태 적용 신규 ID | 14 |
-| 현재 등록 총계 | 1122 |
+| V410 S08-B2b media 검사 신규 ID | 14 |
+| 현재 등록 총계 | 1140 |
 
 이는 등록 합계이지 전 제품 발견·실행 완료 선언이 아니다. S01~S04의 신규 등록 정합성은
 이번 S05 보정에서 전수 감사하지 않았다.
