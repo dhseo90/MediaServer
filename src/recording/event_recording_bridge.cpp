@@ -884,6 +884,19 @@ void CatalogEventRecordingBridge::Process(PendingJob job) {
         return;
     }
 
+    link.derived_segment_id=output_segment_id;
+    link.completeness_reason="event-catalog-finalize-recovery-pending";
+    link.updated_at_ms=options_.now_ms();
+    if(!catalog_.PutEventLink(link,&error)){
+        retention_.CompleteEventWrite(reservation_id,0);
+        catalog_.ReleaseEventSourceLease(lease,nullptr);
+        return;
+    }
+    request.output_epoch_id="event-epoch-sha256-"+epoch_token;
+    request.created_at_ms=options_.now_ms();
+    request.ready_link=link;
+    request.max_output_bytes=admission.reserved_bytes;
+
     // 실제 remux는 오래 걸릴 수 있으므로 다른 event의 선행 durable link admission을
     // 막지 않는다. 완료 뒤 같은 event range가 바뀌었는지 다시 확인한다.
     resolution_lock.unlock();
@@ -896,6 +909,11 @@ void CatalogEventRecordingBridge::Process(PendingJob job) {
         latest->requested_range->start_ms == requested.start_ms &&
         latest->requested_range->end_ms == requested.end_ms &&
         (latest->stream_epoch_id.empty() || latest->stream_epoch_id == link.stream_epoch_id);
+    if(derived.ready_ticket&&(!derived.ok||!same_request||derived.size_bytes>admission.reserved_bytes)){
+        std::lock_guard lock(mu_);
+        deferred_until_restart_.insert(link.event_id);
+        return;
+    }
     if (!same_request) {
         bool cleanup_ok = derived.cleanup_complete;
         if (derived.ok) {
@@ -958,6 +976,7 @@ void CatalogEventRecordingBridge::Process(PendingJob job) {
     link.completeness_reason = "event-catalog-finalize-recovery-pending";
     link.updated_at_ms = options_.now_ms();
     if (!catalog_.PutEventLink(link, &error)) {
+        if(derived.ready_ticket){std::lock_guard lock(mu_);deferred_until_restart_.insert(link.event_id);return;}
         bool cleanup_ok = true;
         if (!derived.media_path.empty()) cleanup_ok = options_.remove_media_file(
             options_.output_root, derived.media_path, nullptr) && cleanup_ok;
@@ -975,27 +994,9 @@ void CatalogEventRecordingBridge::Process(PendingJob job) {
         return;
     }
 
-    RecordingSegmentV1 segment;
-    segment.segment_id = output_segment_id;
-    segment.source_id = link.source_id;
-    segment.channel_id = link.channel_id;
-    segment.stream_epoch_id = "event-epoch-sha256-" + epoch_token;
-    segment.start.utc_ms = derived.actual_range.start_ms;
-    segment.start.pts = 0;
-    segment.end.utc_ms = derived.actual_range.end_ms;
-    segment.end.pts = std::max<std::int64_t>(1, ClampInt64(
-        static_cast<__int128>(derived.actual_range.end_ms - derived.actual_range.start_ms) * 1000000));
-    segment.container = derived.container;
-    segment.video_codecs = derived.video_codecs;
-    segment.audio_codecs = derived.audio_codecs;
-    segment.audio_omitted_reason = derived.audio_omitted_reason;
-    segment.size_bytes = derived.size_bytes;
-    segment.checksum_sha256 = derived.checksum_sha256;
-    segment.retention_class = RecordingRetentionClass::Event;
-    segment.lifecycle = RecordingLifecycle::Finalized;
-    segment.created_at_ms = options_.now_ms();
-    segment.finalized_at_ms = segment.created_at_ms;
+    const auto segment=BuildEventClipSegment(request,derived);
     if (!catalog_.FinalizeSegmentWithHold(segment, derived.media_path.string(), &error)) {
+        if(derived.ready_ticket){std::lock_guard lock(mu_);deferred_until_restart_.insert(link.event_id);return;}
         bool cleanup_ok = options_.remove_media_file(
             options_.output_root, derived.media_path, nullptr);
         if (!derived.cleanup_marker_path.empty()) cleanup_ok = options_.remove_media_file(
@@ -1026,7 +1027,11 @@ void CatalogEventRecordingBridge::Process(PendingJob job) {
         deferred_until_restart_.insert(link.event_id);
         return;
     }
-    if (!derived.cleanup_marker_path.empty()) {
+    if(derived.ready_ticket){
+        if(!ClearFinalizeReady(options_.output_root,*derived.ready_ticket,&error)){
+            std::lock_guard lock(mu_);deferred_until_restart_.insert(link.event_id);return;
+        }
+    } else if (!derived.cleanup_marker_path.empty()) {
         if (!options_.remove_media_file(
                 options_.output_root, derived.cleanup_marker_path, nullptr)) {
             std::lock_guard lock(mu_);

@@ -4,6 +4,41 @@
 PASS는 UI 풀테스트, 30분/120분 장시간 테스트, PR/main merge, tag, GitHub Release 또는
 published metadata 완료를 뜻하지 않는다.
 
+## S08 최종화 복구 구현·단계 검증 완료 (2026-09-11)
+
+기준 커밋은 `f3736adf`이며, 이번 묶음은 S08 잔여 1번 최종화 복구다.
+서버 시작 시 자동 복구 연결과 S08 전체 완료는 별도다. 아래 과거 절의 승인·미푸시
+설명은 각 실행 당시 기록이며, 현재 목표는 S08 잔여 완료·커밋·푸시 후 S09 진행이다.
+
+| 구현 위치 | 추가 로직과 유지 경계 |
+| --- | --- |
+| `recording_finalize_recovery.h/.cpp` | 원래 ID·V1 metadata·소유 경로의 내구 ready ticket, no-replace publish, 재연결, 동일 파일 binding의 원위치 손상 진단. 삭제 ID·충돌·검사 불가는 원본 보존 |
+| `gstreamer_segment_writer.cpp` | ready 전 invalid V1 정리, ready 이후 불확실·콜백 실패 보존, 같은 Push의 새 admission까지 차단 |
+| `event_clip_deriver.cpp`, `event_recording_bridge.cpp` | 실제 MPEG-TS 출력의 ready, 선행 Pending, 출력 예약 상한, 복구 후 원래 이벤트 연결과 terminal hold 해제 |
+| `recording_catalog.cpp` | ready partial cleanup 보존, 기존 ID/path 불변, 신규 이벤트 output에만 source/output hold 복원 |
+| focused·integration smoke와 각 wrapper | 실제 파일·writer·remux·bridge·SQLite/fallback·실패 재시작 검증, 새 링크 의존성 및 개별 결과 기록 |
+
+최신 기록: 기본20·통합140·root5, recorder93, event 등록35/C++140/application7/
+runtime23/negative2/action27, catalog45+연결9, retention56, B1 40, B2a92,
+inspector53+13+15, V1 golden4+reader89, S07 82, S06 읽기모델153, S01 89가 통과했다.
+범위별 개별 assertion, 최초 실패·수정·재검증·미실행·cleanup의 source-of-truth는
+`release-test-records.md`의 S08 finalize 최신 검증이다. 같은 증거를 인계만을 이유로
+재실행하지 않았으며, 변경 영향을 받은 경계는 다시 검사했다.
+
+메인 직접 확인: 최종 제품 빌드 `./server.sh build` 세션24545 exit0,
+`git diff --check` exit0, 문서 링크226md/1049links/22images/103anchors/
+76indexed/142excluded/0fail. 기록된 임시경로 중 /tmp·/private/tmp31개를 직접 대조해
+present[]를 확인했다. 담당자의 정규화 run root39개 전수 대조도 present[]/exit0이며
+임시 산출물 보존은 없다. 두 대조의 범위를 구분한다. 메인 elapsed/token은 별도
+집계하지 않았으며 담당자 측정치로 대체하지 않는다.
+
+단일packet 시간구간·Push 실패 후 재admission, 잘못된 TS 손상 기대값,
+인벤토리 요약 산술 및 내부 runtime 링크 누락의 최초 실패를 모두 보존했다.
+공개 V1/이벤트 payload·권한·기존 재생 계약은 변경하지 않았다.
+장시간·UI는 S09 최종 코드에서 실행한다. 30분/UI/녹화 전용120분은 아직 실행
+승인이 없고 predev120분 기존 승인은 녹화 직접 관찰을 대신하지 않는다.
+
+
 ## S08-B2b 실제 파일 검사 구현·검증 (2026-09-10)
 
 다음 잔여 이슈인 known segment 실제 파일 검사기를 추가했다. 크기·SHA-256과

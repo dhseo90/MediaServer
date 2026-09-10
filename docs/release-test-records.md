@@ -1,5 +1,1596 @@
 # Release Test Records
 
+## v4.1.0 S08 finalize 복구 최신 검증 (2026-09-11)
+
+최종 담당자 읽기 검증: 기록된 정규화 run root 39개를 fs.existsSync로 전수 대조하여 present=[]/exit0 확인. 보존한 임시 산출물 없음. git diff --check exit0 및 변경 파일 전수 목록 확인. 메인 소유 plan/evidence와 담당자 소유 제품/test/records 변경을 분리했으며 commit/push는 담당자가 수행하지 않았다.
+
+### 중간 실행 시간 계측 보존
+
+token start/end/consumed는 모든 아래 실행에서 자동 집계 API 부재로 미집계. elapsed는 Date.now 호출 전~종료 확인 후 관측값이며 도구왕복·결과확인 지연을 포함한 상한이고 순수 프로그램 시간은 아니다. 최초 event inventory 즉시 실패는 elapsed별도 미계측이다.
+
+| 실행 | elapsed(ms) | source |
+| --- | ---: | --- |
+| 최초 단일 재검증 | 23079 | Date.now / 실제 명령 결과 |
+| 첫 integration82 | 15058 | Date.now / 실제 명령 결과 |
+| FR10 강화 실제실패 | 16371 | Date.now / 실제 명령 결과 |
+| FR10 수정100 | 25051 | Date.now / 실제 명령 결과 |
+| TS 기대실패126 | 18116 | Date.now / 실제 명령 결과 |
+| TS 진단재현126 | 6444 | Date.now / 실제 명령 결과 |
+| TS bus 단독진단 | 15499 | Date.now / 실제 명령 결과 |
+| integration128 | 29751 | Date.now / 실제 명령 결과 |
+| Corrupt path RED | 19265 | Date.now / 실제 명령 결과 |
+| Corrupt path GREEN | 55068 | Date.now / 실제 명령 결과 |
+| singlepacket RED | 40270 | Date.now / 실제 명령 결과 |
+| singlepacket GREEN | 9395 | Date.now / 실제 명령 결과 |
+| root entry RED | 21678 | Date.now / 실제 명령 결과 |
+| root entry GREEN | 25025 | Date.now / 실제 명령 결과 |
+| root entry 후 기본20 | 24598 | Date.now / 실제 명령 결과 |
+| 최초 기본17/3 | 15277 | Date.now / 실제 명령 결과 |
+| 기본fixture수정20 | 14109 | Date.now / 실제 명령 결과 |
+| 최초recorder77/2 | 31327 | Date.now / 실제 명령 결과 |
+| event link누락실패 | 22437 | Date.now / 실제 명령 결과 |
+
+범위: S08 잔여 1번 finalize 복구만. Startup 자동 연결/전체 S08/S09 완료가 아니며, 30분·120분·UI·verify-predev는 이번 단기 실행에 포함하지 않았다. 기존 predev120 실행 시점은 최종 버전 코드 이후이며 녹화 전용 장시간/30분/UI 승인을 대신하지 않는다. 커밋·푸시는 담당자 미수행, 메인 최종 판정 대상이다.
+
+메인 별도 검증: 최신 `./server.sh build` 세션24545 exit0/100% media_server, `git diff --check` exit0. 이전 build17971/80533/27574는 후속 제품 guard 추가 전 이력이며 최신 build를 대신하지 않는다. 메인 `verify-docs-links` exit0:226md/1049links/22images/103anchors/76indexed/142excluded/0fail. 메인 source의 elapsed/token은 별도 집계하지 않았으며 담당자 실행으로 바꾸지 않는다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/tmp/media-server-finalize-GrBPZ3 | 초기 단일 assertion 재검증 | 1648975 bytes | EXIT cleanup | removed=true | exit0 pass1, 논리 격리 재설계 전 |
+| /private/tmp/media-server-finalize-82tdvu | 첫 integration | 3475848 bytes | EXIT cleanup | removed=true | exit0 pass82, 강화 FR10 전 |
+| /private/tmp/media-server-finalize-YiMMgp | root guard 예상 RED | 2474907 bytes | EXIT cleanup | removed=true | exit1 pass2/fail1, 정확 사전 assertion |
+| /private/tmp/media-server-finalize-4pB3Yh | root guard GREEN | 2474907 bytes | EXIT cleanup | removed=true | exit0 pass5/fail0 |
+| /private/tmp/media-server-finalize-jbOri4 | root guard 후 기본 재검증 | 2535249 bytes | EXIT cleanup | removed=true | exit0 기본1+boundary19, 앞 기본20개와 동일 개별 assertions |
+
+나머지 모든 실행별 경로/크기/부재는 아래 각 명령과 실패 이력에 보존한다. 테스트 fixture 안에서 의도적으로 삭제한 파일은 각 안전 삭제 assertion 대상이며, 위 cleanup은 최종 run root 잔여 산출물 정리이다. 임시 미디어·로그 보존 없음.
+
+### inspector 기본 회귀
+
+`./server.sh verify-v410-recording-media-inspector` exit0, 출력 pass53/fail0, elapsed33106ms. token start/end/consumed 미집계; source=실제 stdout/Date.now(도구왕복 포함). Cleanup: [cleanup] path=/private/tmp/media-server-inspector-tLGJwF bytes=35556314 removed=true. S06/S07의 du 값은 할당 KiB이며 payload bytes 합계가 아니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| inspector 기본 001 | malformed matching size/hash is Corrupt | pass | 실제 실행 |
+| inspector 기본 002 | real MP4 fixture generation EOS | pass | 실제 실행 |
+| inspector 기본 003 | real WebM fixture generation EOS | pass | 실제 실행 |
+| inspector 기본 004 | MP4 expected H264 pad buffers EOS healthy | pass | 실제 실행 |
+| inspector 기본 005 | WebM expected VP8 pad buffers EOS healthy | pass | 실제 실행 |
+| inspector 기본 006 | container metadata mismatch never healthy | pass | 실제 실행 |
+| inspector 기본 007 | same size changed bytes checksum mismatch | pass | 실제 실행 |
+| inspector 기본 008 | symlink.mp4 unavailable | pass | 실제 실행 |
+| inspector 기본 009 | hardlink.mp4 unavailable | pass | 실제 실행 |
+| inspector 기본 010 | parent symlink unavailable | pass | 실제 실행 |
+| inspector 기본 011 | root symlink unavailable | pass | 실제 실행 |
+| inspector 기본 012 | relative escape unavailable | pass | 실제 실행 |
+| inspector 기본 013 | absolute relative path unavailable | pass | 실제 실행 |
+| inspector 기본 014 | FIFO fixture create | pass | 실제 실행 |
+| inspector 기본 015 | nonregular FIFO unavailable without blocking | pass | 실제 실행 |
+| inspector 기본 016 | missing root unavailable | pass | 실제 실행 |
+| inspector 기본 017 | missing parent unavailable | pass | 실제 실행 |
+| inspector 기본 018 | safe existing parent missing leaf confirmed | pass | 실제 실행 |
+| inspector 기본 019 | unsupported metadata variant 0 | pass | 실제 실행 |
+| inspector 기본 020 | unsupported metadata variant 1 | pass | 실제 실행 |
+| inspector 기본 021 | unsupported metadata variant 2 | pass | 실제 실행 |
+| inspector 기본 022 | overflow budget unavailable | pass | 실제 실행 |
+| inspector 기본 023 | concurrent real file writes detected unavailable | pass | 실제 실행 |
+| inspector 기본 024 | catalog journal open | pass | 실제 실행 |
+| inspector 기본 025 | catalog open without auto inspection | pass | 실제 실행 |
+| inspector 기본 026 | healthy finalized seed | pass | 실제 실행 |
+| inspector 기본 027 | healthy catalog inspection noappend | pass | 실제 실행 |
+| inspector 기본 028 | timeout noappend | pass | 실제 실행 |
+| inspector 기본 029 | held finalized seed | pass | 실제 실행 |
+| inspector 기본 030 | held lease acquire | pass | 실제 실행 |
+| inspector 기본 031 | held observation Corrupt apply refused noappend | pass | 실제 실행 |
+| inspector 기본 032 | held lease release | pass | 실제 실행 |
+| inspector 기본 033 | size corruption applied after lease release | pass | 실제 실행 |
+| inspector 기본 034 | applied corrupt excluded media location | pass | 실제 실행 |
+| inspector 기본 035 | missing finalized seed | pass | 실제 실행 |
+| inspector 기본 036 | missing leaf applied | pass | 실제 실행 |
+| inspector 기본 037 | derived finalized seed | pass | 실제 실행 |
+| inspector 기본 038 | derived missing mapping applied | pass | 실제 실행 |
+| inspector 기본 039 | pending-source finalized seed | pass | 실제 실행 |
+| inspector 기본 040 | pending-output finalized seed | pass | 실제 실행 |
+| inspector 기본 041 | pending link seed | pass | 실제 실행 |
+| inspector 기본 042 | pending-source apply refused noappend | pass | 실제 실행 |
+| inspector 기본 043 | pending-output apply refused noappend | pass | 실제 실행 |
+| inspector 기본 044 | deletion-pending finalized seed | pass | 실제 실행 |
+| inspector 기본 045 | deletion-pending deletion request | pass | 실제 실행 |
+| inspector 기본 046 | deletion-pending inspection refused noappend | pass | 실제 실행 |
+| inspector 기본 047 | deleted finalized seed | pass | 실제 실행 |
+| inspector 기본 048 | deleted deletion request | pass | 실제 실행 |
+| inspector 기본 049 | deleted tombstone seed | pass | 실제 실행 |
+| inspector 기본 050 | deleted inspection refused noappend | pass | 실제 실행 |
+| inspector 기본 051 | catalog replay reopen | pass | 실제 실행 |
+| inspector 기본 052 | durable corruption replay lifecycle | pass | 실제 실행 |
+| inspector 기본 053 | no GStreamer build never healthy | pass | 실제 실행 |
+
+### inspector boundaries 회귀
+
+`./server.sh verify-v410-recording-media-inspector --boundaries` exit0, 출력 pass13/fail0, elapsed15202ms. token start/end/consumed 미집계; source=실제 stdout/Date.now(도구왕복 포함). Cleanup: [cleanup] path=/private/tmp/media-server-inspector-ytrK5i bytes=1726755 removed=true. S06/S07의 du 값은 할당 KiB이며 payload bytes 합계가 아니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| inspector boundaries 001 | boundary MP4 fixture generation EOS | pass | 실제 실행 |
+| inspector boundaries 002 | boundary journal open | pass | 실제 실행 |
+| inspector boundaries 003 | boundary catalog open | pass | 실제 실행 |
+| inspector boundaries 004 | boundary finalized seed | pass | 실제 실행 |
+| inspector boundaries 005 | qtdemux registry fixture available | pass | 실제 실행 |
+| inspector boundaries 006 | missing demux plugin unavailable noappend | pass | 실제 실행 |
+| inspector boundaries 007 | qtdemux registry restored | pass | 실제 실행 |
+| inspector boundaries 008 | permission fixture mode zero | pass | 실제 실행 |
+| inspector boundaries 009 | permission fixture actual EACCES | pass | 실제 실행 |
+| inspector boundaries 010 | permission denied unavailable noappend | pass | 실제 실행 |
+| inspector boundaries 011 | permission mode restored | pass | 실제 실행 |
+| inspector boundaries 012 | audio-only MP4 fixture generation EOS | pass | 실제 실행 |
+| inspector boundaries 013 | audio-only container cannot satisfy expected video | pass | 실제 실행 |
+
+### inspector limits 회귀
+
+`./server.sh verify-v410-recording-media-inspector --limits` exit0, 출력 pass15/fail0, elapsed20374ms. token start/end/consumed 미집계; source=실제 stdout/Date.now(도구왕복 포함). Cleanup: [cleanup] path=/private/tmp/media-server-inspector-bpze09 bytes=1596289 removed=true. S06/S07의 du 값은 할당 KiB이며 payload bytes 합계가 아니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| inspector limits 001 | limits real file descriptor opened | pass | 실제 실행 |
+| inspector limits 002 | limits real pipeline elements available | pass | 실제 실행 |
+| inspector limits 003 | limits pipeline playing | pass | 실제 실행 |
+| inspector limits 004 | oversized callback request limit no IO no offset advance | pass | 실제 실행 |
+| inspector limits 005 | oversized callback actual EOS | pass | 실제 실행 |
+| inspector limits 006 | seek beyond size refused offset unchanged | pass | 실제 실행 |
+| inspector limits 007 | seek valid EOF offset accepted | pass | 실제 실행 |
+| inspector limits 008 | seek valid zero offset accepted | pass | 실제 실행 |
+| inspector limits 009 | limits real pipeline elements available | pass | 실제 실행 |
+| inspector limits 010 | limits pipeline playing | pass | 실제 실행 |
+| inspector limits 011 | expired callback flags no IO no offset advance | pass | 실제 실행 |
+| inspector limits 012 | expired callback actual EOS | pass | 실제 실행 |
+| inspector limits 013 | seek beyond size refused offset unchanged | pass | 실제 실행 |
+| inspector limits 014 | seek valid EOF offset accepted | pass | 실제 실행 |
+| inspector limits 015 | seek valid zero offset accepted | pass | 실제 실행 |
+
+### A 호환 회귀
+
+`./server.sh verify-v410-recording-fixture-compatibility` exit0, 출력 pass89/fail0, elapsed11130ms. 별도 golden-integrity pass4/fail0 포함. token start/end/consumed 미집계; source=실제 stdout/Date.now(도구왕복 포함). Cleanup: [cleanup] path=/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s08-a-reader-QEXXAL bytes=478064 removed=true. S06/S07의 du 값은 할당 KiB이며 payload bytes 합계가 아니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| A 호환 001 | opaque ID 허용 | pass | 실제 실행 |
+| A 호환 002 | 빈 opaque ID 거부 | pass | 실제 실행 |
+| A 호환 003 | path opaque ID 거부 | pass | 실제 실행 |
+| A 호환 004 | SQLite rowid 형태 opaque ID 거부 | pass | 실제 실행 |
+| A 호환 005 | 반개구간 겹침 | pass | 실제 실행 |
+| A 호환 006 | 맞닿은 반개구간 비겹침 | pass | 실제 실행 |
+| A 호환 007 | 빈 반개구간 거부 | pass | 실제 실행 |
+| A 호환 008 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 실행 |
+| A 호환 009 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 실행 |
+| A 호환 010 | V1 segment golden row count | pass | 실제 실행 |
+| A 호환 011 | unknown optional field를 포함한 segment parse:  | pass | 실제 실행 |
+| A 호환 012 | segment provenance semantic | pass | 실제 실행 |
+| A 호환 013 | segment UTC/end PTS semantic | pass | 실제 실행 |
+| A 호환 014 | segment media/checksum semantic | pass | 실제 실행 |
+| A 호환 015 | segment lifecycle/retention semantic | pass | 실제 실행 |
+| A 호환 016 | unknown optional field 뒤 known ID 보존 | pass | 실제 실행 |
+| A 호환 017 | PTS/timebase exact 보존 | pass | 실제 실행 |
+| A 호환 018 | public JSON에 filesystem path 비노출 | pass | 실제 실행 |
+| A 호환 019 | segment canonical 재parse | pass | 실제 실행 |
+| A 호환 020 | PTS/timebase round-trip | pass | 실제 실행 |
+| A 호환 021 | unknown lifecycle를 호환 parse | pass | 실제 실행 |
+| A 호환 022 | unknown lifecycle를 Unknown으로 보존 | pass | 실제 실행 |
+| A 호환 023 | unknown lifecycle 비재생 | pass | 실제 실행 |
+| A 호환 024 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 실행 |
+| A 호환 025 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 실행 |
+| A 호환 026 | segments.jsonl parse[0]:  | pass | 실제 실행 |
+| A 호환 027 | segments.jsonl additive optional known semantic parity[0] | pass | 실제 실행 |
+| A 호환 028 | V1 schema probe anchor | pass | 실제 실행 |
+| A 호환 029 | segments.jsonl changed schema rejected | pass | 실제 실행 |
+| A 호환 030 | required ID probe anchor | pass | 실제 실행 |
+| A 호환 031 | segments.jsonl missing required ID rejected | pass | 실제 실행 |
+| A 호환 032 | segments.jsonl canonical parse[0]:  | pass | 실제 실행 |
+| A 호환 033 | segments.jsonl canonical parity[0] | pass | 실제 실행 |
+| A 호환 034 | segments.jsonl parse[1]:  | pass | 실제 실행 |
+| A 호환 035 | segments.jsonl additive optional known semantic parity[1] | pass | 실제 실행 |
+| A 호환 036 | V1 schema probe anchor | pass | 실제 실행 |
+| A 호환 037 | segments.jsonl changed schema rejected | pass | 실제 실행 |
+| A 호환 038 | required ID probe anchor | pass | 실제 실행 |
+| A 호환 039 | segments.jsonl missing required ID rejected | pass | 실제 실행 |
+| A 호환 040 | segments.jsonl canonical parse[1]:  | pass | 실제 실행 |
+| A 호환 041 | segments.jsonl canonical parity[1] | pass | 실제 실행 |
+| A 호환 042 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 실행 |
+| A 호환 043 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 실행 |
+| A 호환 044 | event-links.jsonl parse[0]:  | pass | 실제 실행 |
+| A 호환 045 | event-links.jsonl additive optional known semantic parity[0] | pass | 실제 실행 |
+| A 호환 046 | V1 schema probe anchor | pass | 실제 실행 |
+| A 호환 047 | event-links.jsonl changed schema rejected | pass | 실제 실행 |
+| A 호환 048 | required ID probe anchor | pass | 실제 실행 |
+| A 호환 049 | event-links.jsonl missing required ID rejected | pass | 실제 실행 |
+| A 호환 050 | event-links.jsonl canonical parse[0]:  | pass | 실제 실행 |
+| A 호환 051 | event-links.jsonl canonical parity[0] | pass | 실제 실행 |
+| A 호환 052 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 실행 |
+| A 호환 053 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 실행 |
+| A 호환 054 | observations.jsonl parse[0]:  | pass | 실제 실행 |
+| A 호환 055 | observations.jsonl additive optional known semantic parity[0] | pass | 실제 실행 |
+| A 호환 056 | V1 schema probe anchor | pass | 실제 실행 |
+| A 호환 057 | observations.jsonl changed schema rejected | pass | 실제 실행 |
+| A 호환 058 | required ID probe anchor | pass | 실제 실행 |
+| A 호환 059 | observations.jsonl missing required ID rejected | pass | 실제 실행 |
+| A 호환 060 | observations.jsonl canonical parse[0]:  | pass | 실제 실행 |
+| A 호환 061 | observations.jsonl canonical parity[0] | pass | 실제 실행 |
+| A 호환 062 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 실행 |
+| A 호환 063 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 실행 |
+| A 호환 064 | tombstones.jsonl parse[0]:  | pass | 실제 실행 |
+| A 호환 065 | tombstones.jsonl additive optional known semantic parity[0] | pass | 실제 실행 |
+| A 호환 066 | V1 schema probe anchor | pass | 실제 실행 |
+| A 호환 067 | tombstones.jsonl changed schema rejected | pass | 실제 실행 |
+| A 호환 068 | required ID probe anchor | pass | 실제 실행 |
+| A 호환 069 | tombstones.jsonl missing required ID rejected | pass | 실제 실행 |
+| A 호환 070 | tombstones.jsonl canonical parse[0]:  | pass | 실제 실행 |
+| A 호환 071 | tombstones.jsonl canonical parity[0] | pass | 실제 실행 |
+| A 호환 072 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 실행 |
+| A 호환 073 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 실행 |
+| A 호환 074 | link ID/provenance semantic | pass | 실제 실행 |
+| A 호환 075 | link requested range/status semantic | pass | 실제 실행 |
+| A 호환 076 | link overlap/missing semantic | pass | 실제 실행 |
+| A 호환 077 | link fallback/time semantic | pass | 실제 실행 |
+| A 호환 078 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 실행 |
+| A 호환 079 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 실행 |
+| A 호환 080 | observation ID/provenance semantic | pass | 실제 실행 |
+| A 호환 081 | observation exact locator semantic | pass | 실제 실행 |
+| A 호환 082 | observation detection semantic | pass | 실제 실행 |
+| A 호환 083 | observation association/time semantic | pass | 실제 실행 |
+| A 호환 084 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 실행 |
+| A 호환 085 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 실행 |
+| A 호환 086 | tombstone ID/provenance semantic | pass | 실제 실행 |
+| A 호환 087 | tombstone range/checksum/legacy retention semantic | pass | 실제 실행 |
+| A 호환 088 | tombstone segment ID 재사용 거부 | pass | 실제 실행 |
+| A 호환 089 | 새 segment ID 허용 | pass | 실제 실행 |
+
+### S07 observations 회귀
+
+`./server.sh verify-v410-recording-observations` exit0, 출력 pass82/fail0, elapsed14551ms. token start/end/consumed 미집계; source=실제 stdout/Date.now(도구왕복 포함). Cleanup: 2816	/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-s07.Gg3TY9; [pass] S07 temporary cleanup. S06/S07의 du 값은 할당 KiB이며 payload bytes 합계가 아니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| S07 observations 001 | mutation-v2 | pass | 실제 실행 |
+| S07 observations 002 | null-roundtrip | pass | 실제 실행 |
+| S07 observations 003 | reference-roundtrip | pass | 실제 실행 |
+| S07 observations 004 | negative-created-time | pass | 실제 실행 |
+| S07 observations 005 | negative-reason | pass | 실제 실행 |
+| S07 observations 006 | negative-summary | pass | 실제 실행 |
+| S07 observations 007 | negative-observation-range | pass | 실제 실행 |
+| S07 observations 008 | negative-bbox | pass | 실제 실행 |
+| S07 observations 009 | journal-open | pass | 실제 실행 |
+| S07 observations 010 | catalog-open | pass | 실제 실행 |
+| S07 observations 011 | null-put | pass | 실제 실행 |
+| S07 observations 012 | gap-null | pass | 실제 실행 |
+| S07 observations 013 | missing-provenance-null | pass | 실제 실행 |
+| S07 observations 014 | segment-finalize | pass | 실제 실행 |
+| S07 observations 015 | pending-resolve | pass | 실제 실행 |
+| S07 observations 016 | located-roundtrip | pass | 실제 실행 |
+| S07 observations 017 | negative-locator-pts | pass | 실제 실행 |
+| S07 observations 018 | locator-put-reject | pass | 실제 실행 |
+| S07 observations 019 | located-put | pass | 실제 실행 |
+| S07 observations 020 | identity-put-reject | pass | 실제 실행 |
+| S07 observations 021 | identity-restore | pass | 실제 실행 |
+| S07 observations 022 | event-put | pass | 실제 실행 |
+| S07 observations 023 | reasons-merge | pass | 실제 실행 |
+| S07 observations 024 | missing-media-null | pass | 실제 실행 |
+| S07 observations 025 | v1-roundtrip | pass | 실제 실행 |
+| S07 observations 026 | deletion-request | pass | 실제 실행 |
+| S07 observations 027 | deleted-null | pass | 실제 실행 |
+| S07 observations 028 | sqlite-reopen | pass | 실제 실행 |
+| S07 observations 029 | journal-replay | pass | 실제 실행 |
+| S07 observations 030 | jsonl-parity | pass | 실제 실행 |
+| S07 observations 031 | sqlite-projection | pass | 실제 실행 |
+| S07 observations 032 | sqlite-payload-parity | pass | 실제 실행 |
+| S07 observations 033 | sampling-journal-open | pass | 실제 실행 |
+| S07 observations 034 | sampling-catalog-open | pass | 실제 실행 |
+| S07 observations 035 | stop-duration | pass | 실제 실행 |
+| S07 observations 036 | sampling-start | pass | 실제 실행 |
+| S07 observations 037 | sampling-60s-bound | pass | 실제 실행 |
+| S07 observations 038 | stop-once | pass | 실제 실행 |
+| S07 observations 039 | drain-bounded | pass | 실제 실행 |
+| S07 observations 040 | jobs-journal-open | pass | 실제 실행 |
+| S07 observations 041 | jobs-catalog-open | pass | 실제 실행 |
+| S07 observations 042 | ended-state-reuse | pass | 실제 실행 |
+| S07 observations 043 | pending-unrelated-finalize | pass | 실제 실행 |
+| S07 observations 044 | tracker-start | pass | 실제 실행 |
+| S07 observations 045 | runtime-journal-open | pass | 실제 실행 |
+| S07 observations 046 | runtime-catalog-open | pass | 실제 실행 |
+| S07 observations 047 | tracker-terminated-copy | pass | 실제 실행 |
+| S07 observations 048 | tracker-terminated-once | pass | 실제 실행 |
+| S07 observations 049 | observer-tracker-start-event-end | pass | 실제 실행 |
+| S07 observations 050 | observer-event-provenance | pass | 실제 실행 |
+| S07 observations 051 | late-journal-open | pass | 실제 실행 |
+| S07 observations 052 | late-catalog-open | pass | 실제 실행 |
+| S07 observations 053 | delayed-event-before-latest | pass | 실제 실행 |
+| S07 observations 054 | delayed-event-after-end | pass | 실제 실행 |
+| S07 observations 055 | config-zero-reject | pass | 실제 실행 |
+| S07 observations 056 | config-positive | pass | 실제 실행 |
+| S07 observations 057 | critical-overload-visible | pass | 실제 실행 |
+| S07 observations 058 | queue-cap | pass | 실제 실행 |
+| S07 observations 059 | concurrent-stop | pass | 실제 실행 |
+| S07 observations 060 | multi-namespace | pass | 실제 실행 |
+| S07 observations 061 | bounded-id | pass | 실제 실행 |
+| S07 observations 062 | storage-failure-counter | pass | 실제 실행 |
+| S07 observations 063 | pending-segment-finalize | pass | 실제 실행 |
+| S07 observations 064 | pending-finalize-automatic | pass | 실제 실행 |
+| S07 observations 065 | ambiguous-segment-finalize | pass | 실제 실행 |
+| S07 observations 066 | ambiguous-null | pass | 실제 실행 |
+| S07 observations 067 | corrupt-null | pass | 실제 실행 |
+| S07 observations 068 | reference-overflow-visible | pass | 실제 실행 |
+| S07 observations 069 | replay-identity-open | pass | 실제 실행 |
+| S07 observations 070 | replay-identity-memory | pass | 실제 실행 |
+| S07 observations 071 | replay-identity-sqlite | pass | 실제 실행 |
+| S07 observations 072 | 입력 전 위치 없음 | pass | 실제 실행 |
+| S07 observations 073 | 수락 packet anchor | pass | 실제 실행 |
+| S07 observations 074 | 동일 epoch 범위 확장 | pass | 실제 실행 |
+| S07 observations 075 | 캡처된 사본 불변 | pass | 실제 실행 |
+| S07 observations 076 | accepted-pts-exact-membership | pass | 실제 실행 |
+| S07 observations 077 | PTS 되감기 차단 | pass | 실제 실행 |
+| S07 observations 078 | 모호성 이후 추정 복원 금지 | pass | 실제 실행 |
+| S07 observations 079 | epoch 변경 차단 | pass | 실제 실행 |
+| S07 observations 080 | 종료 사본 차단 | pass | 실제 실행 |
+| S07 observations 081 | accepted-pts-history-bound | pass | 실제 실행 |
+| S07 observations 082 | S07 temporary cleanup | pass | 실제 실행 |
+
+### S06 read model 회귀
+
+`./server.sh verify-v410-recording-timeline --read-model` exit0, 출력 pass153/fail0, elapsed22550ms. 부분 read-model 실행이며 HTTP/auth/UI 전체 실행이 아님. token start/end/consumed 미집계; source=실제 stdout/Date.now(도구왕복 포함). Cleanup: 2276	/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.fKoKIh; [pass] read-model 임시 root 삭제 확인: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.fKoKIh. S06/S07의 du 값은 할당 KiB이며 payload bytes 합계가 아니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| S06 read model 001 | V410-S06-I03 catalog timeline item 반환 | pass | 실제 실행 |
+| S06 read model 002 | I09 opaque 재생 URL | pass | 실제 실행 |
+| S06 read model 003 | I03 끝 경계 인접 제외 | pass | 실제 실행 |
+| S06 read model 004 | I03 다른 채널 제외 | pass | 실제 실행 |
+| S06 read model 005 | I04 음수 시간 거부 | pass | 실제 실행 |
+| S06 read model 006 | I04 역전 시간 거부 | pass | 실제 실행 |
+| S06 read model 007 | I04 빈 페이지 제한 거부 | pass | 실제 실행 |
+| S06 read model 008 | I04 과대 페이지 거부 | pass | 실제 실행 |
+| S06 read model 009 | I05 큰 offset overflow 없이 빈 페이지 | pass | 실제 실행 |
+| S06 read model 010 | I16 다른 채널 media 거부 | pass | 실제 실행 |
+| S06 read model 011 | I17 경로형 ID 거부 | pass | 실제 실행 |
+| S06 read model 012 | I09 fd 크기 MIME 확인 | pass | 실제 실행 |
+| S06 read model 013 | I25 재생 hold 중 삭제 거부 | pass | 실제 실행 |
+| S06 read model 014 | I19 경로 교체 뒤 열린 fd 기존 byte 유지 | pass | 실제 실행 |
+| S06 read model 015 | I18 leaf symlink 거부 | pass | 실제 실행 |
+| S06 read model 016 | I09 누락 파일 거부 | pass | 실제 실행 |
+| S06 read model 017 | I09 크기 불일치 거부 | pass | 실제 실행 |
+| S06 read model 018 | I09 비일반 파일 거부 | pass | 실제 실행 |
+| S06 read model 019 | I06 같은 시간 event 우선 | pass | 실제 실행 |
+| S06 read model 020 | I07 정확한 이벤트 ID 연결 | pass | 실제 실행 |
+| S06 read model 021 | I10 실제 범위와 요청 범위 분리 | pass | 실제 실행 |
+| S06 read model 022 | I05 정렬 뒤 페이지 적용 | pass | 실제 실행 |
+| S06 read model 023 | I25 모든 실패 경로 hold 반환 후 삭제 허용 | pass | 실제 실행 |
+| S06 read model 024 | I08 deletion pending 거부 | pass | 실제 실행 |
+| S06 read model 025 | I08 pending timeline 재생 불가 | pass | 실제 실행 |
+| S06 read model 026 | I11 검증한 fallback 영상 fd 제공 | pass | 실제 실행 |
+| S06 read model 027 | I11 JSON이 아닌 실제 media byte 반환 | pass | 실제 실행 |
+| S06 read model 028 | I11 fallback timeline을 complete로 과장하지 않음 | pass | 실제 실행 |
+| S06 read model 029 | I11 중복 key manifest 거부 | pass | 실제 실행 |
+| S06 read model 030 | I11 event 바인딩 불일치 거부 | pass | 실제 실행 |
+| S06 read model 031 | I11 byteSize 문자열 타입 거부 | pass | 실제 실행 |
+| S06 read model 032 | I11 64KiB 초과 manifest 거부 | pass | 실제 실행 |
+| S06 read model 033 | I18 fallback media symlink 거부 | pass | 실제 실행 |
+| S06 read model 034 | I09 fallback media 크기 불일치 거부 | pass | 실제 실행 |
+| S06 read model 035 | I19 fallback 교체 뒤 기존 fd byte 유지 | pass | 실제 실행 |
+| S06 read model 036 | I17 다른 채널 fallback ID 충돌도 거부 | pass | 실제 실행 |
+| S06 read model 037 | I03 기존 숫자형 channel ID 유지 | pass | 실제 실행 |
+| S06 read model 038 | I08/I17 삭제 완료 ID의 fallback 재사용 거부 | pass | 실제 실행 |
+| S06 read model 039 | I20 closed Range 시작과 길이 | pass | 실제 실행 |
+| S06 read model 040 | I26 열린 gate 신규 요청 admission | pass | 실제 실행 |
+| S06 read model 041 | I26 닫힌 gate 신규 요청 거부 | pass | 실제 실행 |
+| S06 read model 042 | I26 active flight 이전 drain 완료 금지 | pass | 실제 실행 |
+| S06 read model 043 | I26 마지막 flight 해제 뒤 drain 완료 | pass | 실제 실행 |
+| S06 read model 044 | I26 활성 socket shutdown 확인 | pass | 실제 실행 |
+| S06 read model 045 | I25 동시 삭제 경쟁 0 | pass | 실제 실행 |
+| S06 read model 046 | I26 경쟁 뒤 fd 반환 0 | pass | 실제 실행 |
+| S06 read model 047 | I25 동시 삭제 경쟁 1 | pass | 실제 실행 |
+| S06 read model 048 | I26 경쟁 뒤 fd 반환 1 | pass | 실제 실행 |
+| S06 read model 049 | I25 동시 삭제 경쟁 2 | pass | 실제 실행 |
+| S06 read model 050 | I26 경쟁 뒤 fd 반환 2 | pass | 실제 실행 |
+| S06 read model 051 | I25 동시 삭제 경쟁 3 | pass | 실제 실행 |
+| S06 read model 052 | I26 경쟁 뒤 fd 반환 3 | pass | 실제 실행 |
+| S06 read model 053 | I25 동시 삭제 경쟁 4 | pass | 실제 실행 |
+| S06 read model 054 | I26 경쟁 뒤 fd 반환 4 | pass | 실제 실행 |
+| S06 read model 055 | I25 동시 삭제 경쟁 5 | pass | 실제 실행 |
+| S06 read model 056 | I26 경쟁 뒤 fd 반환 5 | pass | 실제 실행 |
+| S06 read model 057 | I25 동시 삭제 경쟁 6 | pass | 실제 실행 |
+| S06 read model 058 | I26 경쟁 뒤 fd 반환 6 | pass | 실제 실행 |
+| S06 read model 059 | I25 동시 삭제 경쟁 7 | pass | 실제 실행 |
+| S06 read model 060 | I26 경쟁 뒤 fd 반환 7 | pass | 실제 실행 |
+| S06 read model 061 | I25 동시 삭제 경쟁 8 | pass | 실제 실행 |
+| S06 read model 062 | I26 경쟁 뒤 fd 반환 8 | pass | 실제 실행 |
+| S06 read model 063 | I25 동시 삭제 경쟁 9 | pass | 실제 실행 |
+| S06 read model 064 | I26 경쟁 뒤 fd 반환 9 | pass | 실제 실행 |
+| S06 read model 065 | I25 동시 삭제 경쟁 10 | pass | 실제 실행 |
+| S06 read model 066 | I26 경쟁 뒤 fd 반환 10 | pass | 실제 실행 |
+| S06 read model 067 | I25 동시 삭제 경쟁 11 | pass | 실제 실행 |
+| S06 read model 068 | I26 경쟁 뒤 fd 반환 11 | pass | 실제 실행 |
+| S06 read model 069 | I25 동시 삭제 경쟁 12 | pass | 실제 실행 |
+| S06 read model 070 | I26 경쟁 뒤 fd 반환 12 | pass | 실제 실행 |
+| S06 read model 071 | I25 동시 삭제 경쟁 13 | pass | 실제 실행 |
+| S06 read model 072 | I26 경쟁 뒤 fd 반환 13 | pass | 실제 실행 |
+| S06 read model 073 | I25 동시 삭제 경쟁 14 | pass | 실제 실행 |
+| S06 read model 074 | I26 경쟁 뒤 fd 반환 14 | pass | 실제 실행 |
+| S06 read model 075 | I25 동시 삭제 경쟁 15 | pass | 실제 실행 |
+| S06 read model 076 | I26 경쟁 뒤 fd 반환 15 | pass | 실제 실행 |
+| S06 read model 077 | V410-S06-I03 catalog timeline item 반환 | pass | 실제 실행 |
+| S06 read model 078 | I09 opaque 재생 URL | pass | 실제 실행 |
+| S06 read model 079 | I03 끝 경계 인접 제외 | pass | 실제 실행 |
+| S06 read model 080 | I03 다른 채널 제외 | pass | 실제 실행 |
+| S06 read model 081 | I04 음수 시간 거부 | pass | 실제 실행 |
+| S06 read model 082 | I04 역전 시간 거부 | pass | 실제 실행 |
+| S06 read model 083 | I04 빈 페이지 제한 거부 | pass | 실제 실행 |
+| S06 read model 084 | I04 과대 페이지 거부 | pass | 실제 실행 |
+| S06 read model 085 | I05 큰 offset overflow 없이 빈 페이지 | pass | 실제 실행 |
+| S06 read model 086 | I16 다른 채널 media 거부 | pass | 실제 실행 |
+| S06 read model 087 | I17 경로형 ID 거부 | pass | 실제 실행 |
+| S06 read model 088 | I09 fd 크기 MIME 확인 | pass | 실제 실행 |
+| S06 read model 089 | I25 재생 hold 중 삭제 거부 | pass | 실제 실행 |
+| S06 read model 090 | I19 경로 교체 뒤 열린 fd 기존 byte 유지 | pass | 실제 실행 |
+| S06 read model 091 | I18 leaf symlink 거부 | pass | 실제 실행 |
+| S06 read model 092 | I09 누락 파일 거부 | pass | 실제 실행 |
+| S06 read model 093 | I09 크기 불일치 거부 | pass | 실제 실행 |
+| S06 read model 094 | I09 비일반 파일 거부 | pass | 실제 실행 |
+| S06 read model 095 | I06 같은 시간 event 우선 | pass | 실제 실행 |
+| S06 read model 096 | I07 정확한 이벤트 ID 연결 | pass | 실제 실행 |
+| S06 read model 097 | I10 실제 범위와 요청 범위 분리 | pass | 실제 실행 |
+| S06 read model 098 | I05 정렬 뒤 페이지 적용 | pass | 실제 실행 |
+| S06 read model 099 | I25 모든 실패 경로 hold 반환 후 삭제 허용 | pass | 실제 실행 |
+| S06 read model 100 | I08 deletion pending 거부 | pass | 실제 실행 |
+| S06 read model 101 | I08 pending timeline 재생 불가 | pass | 실제 실행 |
+| S06 read model 102 | I11 검증한 fallback 영상 fd 제공 | pass | 실제 실행 |
+| S06 read model 103 | I11 JSON이 아닌 실제 media byte 반환 | pass | 실제 실행 |
+| S06 read model 104 | I11 fallback timeline을 complete로 과장하지 않음 | pass | 실제 실행 |
+| S06 read model 105 | I11 중복 key manifest 거부 | pass | 실제 실행 |
+| S06 read model 106 | I11 event 바인딩 불일치 거부 | pass | 실제 실행 |
+| S06 read model 107 | I11 byteSize 문자열 타입 거부 | pass | 실제 실행 |
+| S06 read model 108 | I11 64KiB 초과 manifest 거부 | pass | 실제 실행 |
+| S06 read model 109 | I18 fallback media symlink 거부 | pass | 실제 실행 |
+| S06 read model 110 | I09 fallback media 크기 불일치 거부 | pass | 실제 실행 |
+| S06 read model 111 | I19 fallback 교체 뒤 기존 fd byte 유지 | pass | 실제 실행 |
+| S06 read model 112 | I17 다른 채널 fallback ID 충돌도 거부 | pass | 실제 실행 |
+| S06 read model 113 | I03 기존 숫자형 channel ID 유지 | pass | 실제 실행 |
+| S06 read model 114 | I08/I17 삭제 완료 ID의 fallback 재사용 거부 | pass | 실제 실행 |
+| S06 read model 115 | I20 closed Range 시작과 길이 | pass | 실제 실행 |
+| S06 read model 116 | I26 열린 gate 신규 요청 admission | pass | 실제 실행 |
+| S06 read model 117 | I26 닫힌 gate 신규 요청 거부 | pass | 실제 실행 |
+| S06 read model 118 | I26 active flight 이전 drain 완료 금지 | pass | 실제 실행 |
+| S06 read model 119 | I26 마지막 flight 해제 뒤 drain 완료 | pass | 실제 실행 |
+| S06 read model 120 | I26 활성 socket shutdown 확인 | pass | 실제 실행 |
+| S06 read model 121 | I25 동시 삭제 경쟁 0 | pass | 실제 실행 |
+| S06 read model 122 | I26 경쟁 뒤 fd 반환 0 | pass | 실제 실행 |
+| S06 read model 123 | I25 동시 삭제 경쟁 1 | pass | 실제 실행 |
+| S06 read model 124 | I26 경쟁 뒤 fd 반환 1 | pass | 실제 실행 |
+| S06 read model 125 | I25 동시 삭제 경쟁 2 | pass | 실제 실행 |
+| S06 read model 126 | I26 경쟁 뒤 fd 반환 2 | pass | 실제 실행 |
+| S06 read model 127 | I25 동시 삭제 경쟁 3 | pass | 실제 실행 |
+| S06 read model 128 | I26 경쟁 뒤 fd 반환 3 | pass | 실제 실행 |
+| S06 read model 129 | I25 동시 삭제 경쟁 4 | pass | 실제 실행 |
+| S06 read model 130 | I26 경쟁 뒤 fd 반환 4 | pass | 실제 실행 |
+| S06 read model 131 | I25 동시 삭제 경쟁 5 | pass | 실제 실행 |
+| S06 read model 132 | I26 경쟁 뒤 fd 반환 5 | pass | 실제 실행 |
+| S06 read model 133 | I25 동시 삭제 경쟁 6 | pass | 실제 실행 |
+| S06 read model 134 | I26 경쟁 뒤 fd 반환 6 | pass | 실제 실행 |
+| S06 read model 135 | I25 동시 삭제 경쟁 7 | pass | 실제 실행 |
+| S06 read model 136 | I26 경쟁 뒤 fd 반환 7 | pass | 실제 실행 |
+| S06 read model 137 | I25 동시 삭제 경쟁 8 | pass | 실제 실행 |
+| S06 read model 138 | I26 경쟁 뒤 fd 반환 8 | pass | 실제 실행 |
+| S06 read model 139 | I25 동시 삭제 경쟁 9 | pass | 실제 실행 |
+| S06 read model 140 | I26 경쟁 뒤 fd 반환 9 | pass | 실제 실행 |
+| S06 read model 141 | I25 동시 삭제 경쟁 10 | pass | 실제 실행 |
+| S06 read model 142 | I26 경쟁 뒤 fd 반환 10 | pass | 실제 실행 |
+| S06 read model 143 | I25 동시 삭제 경쟁 11 | pass | 실제 실행 |
+| S06 read model 144 | I26 경쟁 뒤 fd 반환 11 | pass | 실제 실행 |
+| S06 read model 145 | I25 동시 삭제 경쟁 12 | pass | 실제 실행 |
+| S06 read model 146 | I26 경쟁 뒤 fd 반환 12 | pass | 실제 실행 |
+| S06 read model 147 | I25 동시 삭제 경쟁 13 | pass | 실제 실행 |
+| S06 read model 148 | I26 경쟁 뒤 fd 반환 13 | pass | 실제 실행 |
+| S06 read model 149 | I25 동시 삭제 경쟁 14 | pass | 실제 실행 |
+| S06 read model 150 | I26 경쟁 뒤 fd 반환 14 | pass | 실제 실행 |
+| S06 read model 151 | I25 동시 삭제 경쟁 15 | pass | 실제 실행 |
+| S06 read model 152 | I26 경쟁 뒤 fd 반환 15 | pass | 실제 실행 |
+| S06 read model 153 | read-model 임시 root 삭제 확인: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.fKoKIh | pass | 실제 실행 |
+
+### S01 contracts 회귀
+
+`./server.sh verify-v410-recording-contracts` exit0, 출력 pass89/fail0, elapsed23483ms. token start/end/consumed 미집계; source=실제 stdout/Date.now(도구왕복 포함). Cleanup: [cleanup] path=/private/tmp/media-server-fr-contracts-m7kDqG bytes=478072 removed=true. S06/S07의 du 값은 할당 KiB이며 payload bytes 합계가 아니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| S01 contracts 001 | opaque ID 허용 | pass | 실제 실행 |
+| S01 contracts 002 | 빈 opaque ID 거부 | pass | 실제 실행 |
+| S01 contracts 003 | path opaque ID 거부 | pass | 실제 실행 |
+| S01 contracts 004 | SQLite rowid 형태 opaque ID 거부 | pass | 실제 실행 |
+| S01 contracts 005 | 반개구간 겹침 | pass | 실제 실행 |
+| S01 contracts 006 | 맞닿은 반개구간 비겹침 | pass | 실제 실행 |
+| S01 contracts 007 | 빈 반개구간 거부 | pass | 실제 실행 |
+| S01 contracts 008 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 실행 |
+| S01 contracts 009 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 실행 |
+| S01 contracts 010 | V1 segment golden row count | pass | 실제 실행 |
+| S01 contracts 011 | unknown optional field를 포함한 segment parse:  | pass | 실제 실행 |
+| S01 contracts 012 | segment provenance semantic | pass | 실제 실행 |
+| S01 contracts 013 | segment UTC/end PTS semantic | pass | 실제 실행 |
+| S01 contracts 014 | segment media/checksum semantic | pass | 실제 실행 |
+| S01 contracts 015 | segment lifecycle/retention semantic | pass | 실제 실행 |
+| S01 contracts 016 | unknown optional field 뒤 known ID 보존 | pass | 실제 실행 |
+| S01 contracts 017 | PTS/timebase exact 보존 | pass | 실제 실행 |
+| S01 contracts 018 | public JSON에 filesystem path 비노출 | pass | 실제 실행 |
+| S01 contracts 019 | segment canonical 재parse | pass | 실제 실행 |
+| S01 contracts 020 | PTS/timebase round-trip | pass | 실제 실행 |
+| S01 contracts 021 | unknown lifecycle를 호환 parse | pass | 실제 실행 |
+| S01 contracts 022 | unknown lifecycle를 Unknown으로 보존 | pass | 실제 실행 |
+| S01 contracts 023 | unknown lifecycle 비재생 | pass | 실제 실행 |
+| S01 contracts 024 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 실행 |
+| S01 contracts 025 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | pass | 실제 실행 |
+| S01 contracts 026 | segments.jsonl parse[0]:  | pass | 실제 실행 |
+| S01 contracts 027 | segments.jsonl additive optional known semantic parity[0] | pass | 실제 실행 |
+| S01 contracts 028 | V1 schema probe anchor | pass | 실제 실행 |
+| S01 contracts 029 | segments.jsonl changed schema rejected | pass | 실제 실행 |
+| S01 contracts 030 | required ID probe anchor | pass | 실제 실행 |
+| S01 contracts 031 | segments.jsonl missing required ID rejected | pass | 실제 실행 |
+| S01 contracts 032 | segments.jsonl canonical parse[0]:  | pass | 실제 실행 |
+| S01 contracts 033 | segments.jsonl canonical parity[0] | pass | 실제 실행 |
+| S01 contracts 034 | segments.jsonl parse[1]:  | pass | 실제 실행 |
+| S01 contracts 035 | segments.jsonl additive optional known semantic parity[1] | pass | 실제 실행 |
+| S01 contracts 036 | V1 schema probe anchor | pass | 실제 실행 |
+| S01 contracts 037 | segments.jsonl changed schema rejected | pass | 실제 실행 |
+| S01 contracts 038 | required ID probe anchor | pass | 실제 실행 |
+| S01 contracts 039 | segments.jsonl missing required ID rejected | pass | 실제 실행 |
+| S01 contracts 040 | segments.jsonl canonical parse[1]:  | pass | 실제 실행 |
+| S01 contracts 041 | segments.jsonl canonical parity[1] | pass | 실제 실행 |
+| S01 contracts 042 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 실행 |
+| S01 contracts 043 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 실행 |
+| S01 contracts 044 | event-links.jsonl parse[0]:  | pass | 실제 실행 |
+| S01 contracts 045 | event-links.jsonl additive optional known semantic parity[0] | pass | 실제 실행 |
+| S01 contracts 046 | V1 schema probe anchor | pass | 실제 실행 |
+| S01 contracts 047 | event-links.jsonl changed schema rejected | pass | 실제 실행 |
+| S01 contracts 048 | required ID probe anchor | pass | 실제 실행 |
+| S01 contracts 049 | event-links.jsonl missing required ID rejected | pass | 실제 실행 |
+| S01 contracts 050 | event-links.jsonl canonical parse[0]:  | pass | 실제 실행 |
+| S01 contracts 051 | event-links.jsonl canonical parity[0] | pass | 실제 실행 |
+| S01 contracts 052 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 실행 |
+| S01 contracts 053 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 실행 |
+| S01 contracts 054 | observations.jsonl parse[0]:  | pass | 실제 실행 |
+| S01 contracts 055 | observations.jsonl additive optional known semantic parity[0] | pass | 실제 실행 |
+| S01 contracts 056 | V1 schema probe anchor | pass | 실제 실행 |
+| S01 contracts 057 | observations.jsonl changed schema rejected | pass | 실제 실행 |
+| S01 contracts 058 | required ID probe anchor | pass | 실제 실행 |
+| S01 contracts 059 | observations.jsonl missing required ID rejected | pass | 실제 실행 |
+| S01 contracts 060 | observations.jsonl canonical parse[0]:  | pass | 실제 실행 |
+| S01 contracts 061 | observations.jsonl canonical parity[0] | pass | 실제 실행 |
+| S01 contracts 062 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 실행 |
+| S01 contracts 063 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 실행 |
+| S01 contracts 064 | tombstones.jsonl parse[0]:  | pass | 실제 실행 |
+| S01 contracts 065 | tombstones.jsonl additive optional known semantic parity[0] | pass | 실제 실행 |
+| S01 contracts 066 | V1 schema probe anchor | pass | 실제 실행 |
+| S01 contracts 067 | tombstones.jsonl changed schema rejected | pass | 실제 실행 |
+| S01 contracts 068 | required ID probe anchor | pass | 실제 실행 |
+| S01 contracts 069 | tombstones.jsonl missing required ID rejected | pass | 실제 실행 |
+| S01 contracts 070 | tombstones.jsonl canonical parse[0]:  | pass | 실제 실행 |
+| S01 contracts 071 | tombstones.jsonl canonical parity[0] | pass | 실제 실행 |
+| S01 contracts 072 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 실행 |
+| S01 contracts 073 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | pass | 실제 실행 |
+| S01 contracts 074 | link ID/provenance semantic | pass | 실제 실행 |
+| S01 contracts 075 | link requested range/status semantic | pass | 실제 실행 |
+| S01 contracts 076 | link overlap/missing semantic | pass | 실제 실행 |
+| S01 contracts 077 | link fallback/time semantic | pass | 실제 실행 |
+| S01 contracts 078 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 실행 |
+| S01 contracts 079 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | pass | 실제 실행 |
+| S01 contracts 080 | observation ID/provenance semantic | pass | 실제 실행 |
+| S01 contracts 081 | observation exact locator semantic | pass | 실제 실행 |
+| S01 contracts 082 | observation detection semantic | pass | 실제 실행 |
+| S01 contracts 083 | observation association/time semantic | pass | 실제 실행 |
+| S01 contracts 084 | fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 실행 |
+| S01 contracts 085 | fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | pass | 실제 실행 |
+| S01 contracts 086 | tombstone ID/provenance semantic | pass | 실제 실행 |
+| S01 contracts 087 | tombstone range/checksum/legacy retention semantic | pass | 실제 실행 |
+| S01 contracts 088 | tombstone segment ID 재사용 거부 | pass | 실제 실행 |
+| S01 contracts 089 | 새 segment ID 허용 | pass | 실제 실행 |
+
+### S03 catalog 회귀
+
+`./server.sh verify-v410-recording-catalog` exit0, elapsed55999ms. [cleanup] path=/private/tmp/media-server-fr-catalog-KW2tNn bytes=1911790 removed=true. token start/end/consumed 미집계, source=stdout/Date.now(도구왕복 포함). Manifest 정의 확인은 제품 assertions와 구분한다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| S03 catalog 001 | journal open:  | pass | 실제 실행 |
+| S03 catalog 002 | fallback catalog open:  | pass | 실제 실행 |
+| S03 catalog 003 | SQLite off mode 표시 | pass | 실제 실행 |
+| S03 catalog 004 | segment finalize journal+projection:  | pass | 실제 실행 |
+| S03 catalog 005 | fallback range query | pass | 실제 실행 |
+| S03 catalog 006 | event link FK 위반 거부 | pass | 실제 실행 |
+| S03 catalog 007 | FK 위반 transaction/journal 전체 rollback | pass | 실제 실행 |
+| S03 catalog 008 | 최초 durable mutation 1개 | pass | 실제 실행 |
+| S03 catalog 009 | 동일 mutation 중복 append | pass | 실제 실행 |
+| S03 catalog 010 | 손상 사이 정상 durable mutation 보존 | pass | 실제 실행 |
+| S03 catalog 011 | 중간 corrupt line count | pass | 실제 실행 |
+| S03 catalog 012 | 마지막 truncated line skip | pass | 실제 실행 |
+| S03 catalog 013 | fallback replay open | pass | 실제 실행 |
+| S03 catalog 014 | 같은 mutation idempotent replay | pass | 실제 실행 |
+| S03 catalog 015 | 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | pass | 실제 실행 |
+| S03 catalog 016 | 중복 replay row/합계 불증가 | pass | 실제 실행 |
+| S03 catalog 017 | 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구:  | pass | 실제 실행 |
+| S03 catalog 018 | writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | pass | 실제 실행 |
+| S03 catalog 019 | v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | pass | 실제 실행 |
+| S03 catalog 020 | SQLite catalog open/rebuild:  | pass | 실제 실행 |
+| S03 catalog 021 | SQLite primary mode 표시 | pass | 실제 실행 |
+| S03 catalog 022 | SQLite on/off range query ID·순서 parity | pass | 실제 실행 |
+| S03 catalog 023 | journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | pass | 실제 실행 |
+| S03 catalog 024 | journal 없는 손상 media orphan 구분 | pass | 실제 실행 |
+| S03 catalog 025 | projection failover journal open:  | pass | 실제 실행 |
+| S03 catalog 026 | projection failover catalog open:  | pass | 실제 실행 |
+| S03 catalog 027 | 실제 SQLite INSERT 실패 trigger 설치 | pass | 실제 실행 |
+| S03 catalog 028 | SQLite 투영 실패 뒤 journal+memory finalize 유지:  | pass | 실제 실행 |
+| S03 catalog 029 | SQLite 투영 실패 즉시 JSONL fallback 전환 | pass | 실제 실행 |
+| S03 catalog 030 | 재시작 rebuild 전 실패 trigger 제거 | pass | 실제 실행 |
+| S03 catalog 031 | 투영 실패 직후 in-memory query 정합성 유지 | pass | 실제 실행 |
+| S03 catalog 032 | projection failover 재시작 journal rebuild:  | pass | 실제 실행 |
+| S03 catalog 033 | 재시작 후 journal에서 누락 SQLite projection 복구 | pass | 실제 실행 |
+| S03 catalog 034 | 재시작 후 SQLite primary 복귀 | pass | 실제 실행 |
+| S03 catalog 035 | 재시작 journal rebuild가 실제 SQLite row 복원 | pass | 실제 실행 |
+| S03 catalog 036 | tombstone journal open:  | pass | 실제 실행 |
+| S03 catalog 037 | tombstone catalog open:  | pass | 실제 실행 |
+| S03 catalog 038 | tombstone 대상 segment finalize:  | pass | 실제 실행 |
+| S03 catalog 039 | tombstone 대상 deletion request:  | pass | 실제 실행 |
+| S03 catalog 040 | tombstone 완료 기록:  | pass | 실제 실행 |
+| S03 catalog 041 | catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | pass | 실제 실행 |
+| S03 catalog 042 | 손상 SQLite 격리 후 journal rebuild:  | pass | 실제 실행 |
+| S03 catalog 043 | 손상 SQLite 원본 격리 | pass | 실제 실행 |
+| S03 catalog 044 | 격리 SQLite 파일 보존 | pass | 실제 실행 |
+| S03 catalog 045 | 격리 후 journal rebuild 결과 | pass | 실제 실행 |
+| S03 catalog 046 | source 저장 callback reconcile 연결 | pass | 실제 실행 |
+| S03 catalog 047 | policy revision idempotency | pass | 실제 실행 |
+| S03 catalog 048 | 5초 safety reconcile | pass | 실제 실행 |
+| S03 catalog 049 | composition root journal 선행 open | pass | 실제 실행 |
+| S03 catalog 050 | composition root catalog rebuild/open | pass | 실제 실행 |
+| S03 catalog 051 | 서버 전 supervisor 시작 | pass | 실제 실행 |
+| S03 catalog 052 | ingress 전 event bridge 등록 | pass | 실제 실행 |
+| S03 catalog 053 | ingress 종료 뒤 recorder finalize | pass | 실제 실행 |
+| S03 catalog 054 | composition root 시작/종료 순서 | pass | 실제 실행 |
+
+### S04 retention 회귀
+
+`./server.sh verify-v410-recording-retention` exit0, elapsed33016ms. [cleanup] path=/private/tmp/media-server-fr-retention-TegiF4 bytes=2064054 removed=true. token start/end/consumed 미집계, source=stdout/Date.now(도구왕복 포함). Manifest 정의 확인은 제품 assertions와 구분한다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| S04 retention 001 | continuous quota는 end_utc_ms, segment_id oldest-first | pass | 실제 실행 |
+| S04 retention 002 | continuous/event quota가 자기 등급 artifact만 선택 | pass | 실제 실행 |
+| S04 retention 003 | continuous/event 보존 기간을 독립적으로 적용 | pass | 실제 실행 |
+| S04 retention 004 | continuous 보존 기간은 event와 독립적으로 적용 | pass | 실제 실행 |
+| S04 retention 005 | event 보존 기간은 continuous와 독립적으로 적용 | pass | 실제 실행 |
+| S04 retention 006 | 새 segment 예상 용량까지 continuous quota에 선반영 | pass | 실제 실행 |
+| S04 retention 007 | pinned event와 hold_count>0 continuous 자동 삭제 제외 | pass | 실제 실행 |
+| S04 retention 008 | disk reserve 부족은 eligible continuous부터 정리 | pass | 실제 실행 |
+| S04 retention 009 | journal 실패 시 media unlink와 tombstone 중단 | pass | 실제 실행 |
+| S04 retention 010 | unlink 실패는 deletion_pending 유지, 회수 byte 0 | pass | 실제 실행 |
+| S04 retention 011 | tombstone journal 실패는 pending으로 남겨 다음 tick 복구 | pass | 실제 실행 |
+| S04 retention 012 | channel retention policy 등록:  | pass | 실제 실행 |
+| S04 retention 013 | 삭제 불가 시 해당 channel writer만 storage-blocked | pass | 실제 실행 |
+| S04 retention 014 | 공간 회복 뒤 새 keyframe용 epoch 재발급 신호 | pass | 실제 실행 |
+| S04 retention 015 | 다중 channel reserve policy 등록 | pass | 실제 실행 |
+| S04 retention 016 | 동시 channel admission이 물리 여유 공간을 중복 예약하지 않음 | pass | 실제 실행 |
+| S04 retention 017 | segment finalize 후 in-flight reserve 반환으로 다른 channel 재개 | pass | 실제 실행 |
+| S04 retention 018 | segment hard bound policy 등록 | pass | 실제 실행 |
+| S04 retention 019 | 최소 packet보다 작은 continuous quota는 쓰기 전에 차단 | pass | 실제 실행 |
+| S04 retention 020 | 진행량 정산 policy 등록 | pass | 실제 실행 |
+| S04 retention 021 | 물리 free에 반영된 partial 쓰기량은 예약에서 이중 차감하지 않음 | pass | 실제 실행 |
+| S04 retention 022 | 실제 동시 admission policy 등록 | pass | 실제 실행 |
+| S04 retention 023 | 두 실제 thread의 동시 admission 중 하나만 reserve 획득 | pass | 실제 실행 |
+| S04 retention 024 | cleanup 미해결 reservation policy 등록 | pass | 실제 실행 |
+| S04 retention 025 | cleanup 미해결 channel 재활성화 policy 등록 | pass | 실제 실행 |
+| S04 retention 026 | 정책 비활성·재활성 뒤에도 미해결 파일 reservation을 유지해 fail-closed | pass | 실제 실행 |
+| S04 retention 027 | stale free-space policy 등록 | pass | 실제 실행 |
+| S04 retention 028 | unlink 뒤에도 filesystem 여유 공간이 부족하면 회수량을 추정해 허용하지 않음 | pass | 실제 실행 |
+| S04 retention 029 | 통합 journal open:  | pass | 실제 실행 |
+| S04 retention 030 | 통합 catalog open:  | pass | 실제 실행 |
+| S04 retention 031 | 통합 segment finalize:  | pass | 실제 실행 |
+| S04 retention 032 | tombstone은 남고 media path와 원본 bytes는 제거 | pass | 실제 실행 |
+| S04 retention 033 | hold overflow segment finalize:  | pass | 실제 실행 |
+| S04 retention 034 | hold_count int64 최댓값 저장:  | pass | 실제 실행 |
+| S04 retention 035 | hold_count int64 오버플로 거부 | pass | 실제 실행 |
+| S04 retention 036 | hold race segment finalize:  | pass | 실제 실행 |
+| S04 retention 037 | hold_count 획득:  | pass | 실제 실행 |
+| S04 retention 038 | 계획 뒤 획득된 hold도 삭제 transition에서 재검증 | pass | 실제 실행 |
+| S04 retention 039 | pending recovery segment finalize:  | pass | 실제 실행 |
+| S04 retention 040 | pending recovery 삭제 요청:  | pass | 실제 실행 |
+| S04 retention 041 | pending recovery media 사전 제거 | pass | 실제 실행 |
+| S04 retention 042 | unlink 뒤 tombstone 실패 상태를 다음 tick에서 idempotent 재완료 | pass | 실제 실행 |
+| S04 retention 043 | pending 복구 격리 policy 등록 | pass | 실제 실행 |
+| S04 retention 044 | 한 channel의 pending 복구 실패가 다른 channel admission/tick을 차단하지 않음 | pass | 실제 실행 |
+| S04 retention 045 | 정책이 없거나 비활성인 channel의 pending도 주기적으로 tombstone 완료 | pass | 실제 실행 |
+| S04 retention 046 | event 압력 독립 policy 등록 | pass | 실제 실행 |
+| S04 retention 047 | event 예상 회수량을 제외하고 continuous만으로 reserve와 admission 처리 | pass | 실제 실행 |
+| S04 retention 048 | malicious journal open:  | pass | 실제 실행 |
+| S04 retention 049 | malicious mutation append:  | pass | 실제 실행 |
+| S04 retention 050 | malicious catalog open:  | pass | 실제 실행 |
+| S04 retention 051 | journal mediaRelpath가 root 밖이면 retention 후보에서 격리 | pass | 실제 실행 |
+| S04 retention 052 | unlink 직전 symlink 전환 준비 | pass | 실제 실행 |
+| S04 retention 053 | unlink 직전 root 밖 symlink 생성 | pass | 실제 실행 |
+| S04 retention 054 | journal 이후 unlink 직전 canonical root containment 재검증 | pass | 실제 실행 |
+| S04 retention 055 | dirfd에 결박된 unlink는 검증 뒤 상위 경로 교체에도 외부 파일을 보호 | pass | 실제 실행 |
+| S04 retention 056 | storage root가 비어 있으면 안전 unlink를 fail-closed | pass | 실제 실행 |
+
+### S08 B1 회귀
+
+`./server.sh verify-v410-recording-recovery` exit0, elapsed15748ms. [cleanup] path=/private/tmp/media-server-s08-b1-NjU9D6 bytes=20104263 removed=true. token start/end/consumed 미집계, source=stdout/Date.now(도구왕복 포함). Manifest 정의 확인은 제품 assertions와 구분한다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| S08 B1 001 | truncated open | pass | 실제 실행 |
+| S08 B1 002 | truncated uncommitted before append | pass | 실제 실행 |
+| S08 B1 003 | truncated append:  | pass | 실제 실행 |
+| S08 B1 004 | truncated valid2 and next ID preserved | pass | 실제 실행 |
+| S08 B1 005 | truncated quarantine byte exact | pass | 실제 실행 |
+| S08 B1 006 | truncated restart no mutation | pass | 실제 실행 |
+| S08 B1 007 | truncated second append retained | pass | 실제 실행 |
+| S08 B1 008 | truncated no redundant archive | pass | 실제 실행 |
+| S08 B1 009 | complete-no-lf open | pass | 실제 실행 |
+| S08 B1 010 | complete-no-lf uncommitted before append | pass | 실제 실행 |
+| S08 B1 011 | complete-no-lf append:  | pass | 실제 실행 |
+| S08 B1 012 | complete-no-lf valid2 and next ID preserved | pass | 실제 실행 |
+| S08 B1 013 | complete-no-lf quarantine byte exact | pass | 실제 실행 |
+| S08 B1 014 | complete-no-lf restart no mutation | pass | 실제 실행 |
+| S08 B1 015 | complete-no-lf second append retained | pass | 실제 실행 |
+| S08 B1 016 | complete-no-lf no redundant archive | pass | 실제 실행 |
+| S08 B1 017 | empty journal is valid | pass | 실제 실행 |
+| S08 B1 018 | empty append retained | pass | 실제 실행 |
+| S08 B1 019 | large newline prefix byte preserved | pass | 실제 실행 |
+| S08 B1 020 | middle corrupt line preserved and valid entries read | pass | 실제 실행 |
+| S08 B1 021 | directory quarantine journal open | pass | 실제 실행 |
+| S08 B1 022 | directory quarantine failure original unchanged | pass | 실제 실행 |
+| S08 B1 023 | symlink quarantine journal open | pass | 실제 실행 |
+| S08 B1 024 | symlink quarantine failure original unchanged | pass | 실제 실행 |
+| S08 B1 025 | hardlink quarantine journal open | pass | 실제 실행 |
+| S08 B1 026 | hardlink quarantine failure original unchanged | pass | 실제 실행 |
+| S08 B1 027 | exact quarantine journal open | pass | 실제 실행 |
+| S08 B1 028 | existing exact quarantine restart reuse | pass | 실제 실행 |
+| S08 B1 029 | journal symlink refused | pass | 실제 실행 |
+| S08 B1 030 | journal hardlink refused | pass | 실제 실행 |
+| S08 B1 031 | inode pin open | pass | 실제 실행 |
+| S08 B1 032 | replacement inode append/reopen/replay refused | pass | 실제 실행 |
+| S08 B1 033 | catalog refuses failed journal Replay | pass | 실제 실행 |
+| S08 B1 034 | user parent symlink refused | pass | 실제 실행 |
+| S08 B1 035 | parent traversal refused | pass | 실제 실행 |
+| S08 B1 036 | deleted journal initial open | pass | 실제 실행 |
+| S08 B1 037 | deleted journal reopen does not recreate | pass | 실제 실행 |
+| S08 B1 038 | deleted parent reopen does not recreate | pass | 실제 실행 |
+| S08 B1 039 | macOS tmp system alias allowed | pass | 실제 실행 |
+| S08 B1 040 | oversized tail fails closed with original bytes | pass | 실제 실행 |
+
+### S08 B2a 회귀
+
+`./server.sh verify-v410-recording-corruption` exit0, elapsed28166ms. [cleanup] path=/private/tmp/media-server-s08-b2a-uptvEb bytes=1956567 removed=true. token start/end/consumed 미집계, source=stdout/Date.now(도구왕복 포함). Manifest 정의 확인은 제품 assertions와 구분한다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| S08 B2a 001 | journal open | pass | 실제 실행 |
+| S08 B2a 002 | catalog seed open | pass | 실제 실행 |
+| S08 B2a 003 | seed finalized | pass | 실제 실행 |
+| S08 B2a 004 | corruption durable append | pass | 실제 실행 |
+| S08 B2a 005 | catalog replay open | pass | 실제 실행 |
+| S08 B2a 006 | corruption replay lifecycle is Corrupt | pass | 실제 실행 |
+| S08 B2a 007 | fallback journal open | pass | 실제 실행 |
+| S08 B2a 008 | fallback catalog open | pass | 실제 실행 |
+| S08 B2a 009 | fallback seed base | pass | 실제 실행 |
+| S08 B2a 010 | fallback resolved locator literal segment UTC PTS | pass | 실제 실행 |
+| S08 B2a 011 | fallback observation stored before corruption | pass | 실제 실행 |
+| S08 B2a 012 | fallback observation locator initially available | pass | 실제 실행 |
+| S08 B2a 013 | fallback unknown ID and reason refused noappend | pass | 실제 실행 |
+| S08 B2a 014 | fallback acquire hold | pass | 실제 실행 |
+| S08 B2a 015 | fallback held corruption refused noappend | pass | 실제 실행 |
+| S08 B2a 016 | fallback release hold | pass | 실제 실행 |
+| S08 B2a 017 | fallback mark corruption | pass | 실제 실행 |
+| S08 B2a 018 | fallback repeat corruption noappend | pass | 실제 실행 |
+| S08 B2a 019 | fallback only lifecycle changed bytes identity preserved | pass | 실제 실행 |
+| S08 B2a 020 | fallback corrupt media location blocked | pass | 실제 실행 |
+| S08 B2a 021 | fallback V2 locator revoked | pass | 실제 실행 |
+| S08 B2a 022 | fallback pending link segments seed | pass | 실제 실행 |
+| S08 B2a 023 | fallback pending link seed | pass | 실제 실행 |
+| S08 B2a 024 | fallback pending source output refused noappend | pass | 실제 실행 |
+| S08 B2a 025 | fallback event link metadata preserved | pass | 실제 실행 |
+| S08 B2a 026 | fallback deletion-pending deletion seed | pass | 실제 실행 |
+| S08 B2a 027 | fallback deletion-pending mark rejected noappend | pass | 실제 실행 |
+| S08 B2a 028 | fallback deletion-done deletion seed | pass | 실제 실행 |
+| S08 B2a 029 | fallback tombstone seed | pass | 실제 실행 |
+| S08 B2a 030 | fallback deletion-done mark rejected noappend | pass | 실제 실행 |
+| S08 B2a 031 | fallback identical finalized replay seed | pass | 실제 실행 |
+| S08 B2a 032 | fallback conflicting finalized seed | pass | 실제 실행 |
+| S08 B2a 033 | fallback entity mismatch seed | pass | 실제 실행 |
+| S08 B2a 034 | fallback invalid first valid later same mutation ID seed | pass | 실제 실행 |
+| S08 B2a 035 | fallback malformed and deletion-priority seed | pass | 실제 실행 |
+| S08 B2a 036 | fallback same mutation ID different payload seed | pass | 실제 실행 |
+| S08 B2a 037 | fallback restart | pass | 실제 실행 |
+| S08 B2a 038 | fallback restart never resurrects corrupt identity | pass | 실제 실행 |
+| S08 B2a 039 | fallback query keeps corrupt pending excludes deleted | pass | 실제 실행 |
+| S08 B2a 040 | fallback deletion priority and unknown no creation | pass | 실제 실행 |
+| S08 B2a 041 | fallback invalid mutations diagnosed exact count | pass | 실제 실행 |
+| S08 B2a 042 | sqlite journal open | pass | 실제 실행 |
+| S08 B2a 043 | sqlite catalog open | pass | 실제 실행 |
+| S08 B2a 044 | sqlite seed base | pass | 실제 실행 |
+| S08 B2a 045 | sqlite resolved locator literal segment UTC PTS | pass | 실제 실행 |
+| S08 B2a 046 | sqlite observation stored before corruption | pass | 실제 실행 |
+| S08 B2a 047 | sqlite observation locator initially available | pass | 실제 실행 |
+| S08 B2a 048 | sqlite unknown ID and reason refused noappend | pass | 실제 실행 |
+| S08 B2a 049 | sqlite acquire hold | pass | 실제 실행 |
+| S08 B2a 050 | sqlite held corruption refused noappend | pass | 실제 실행 |
+| S08 B2a 051 | sqlite release hold | pass | 실제 실행 |
+| S08 B2a 052 | sqlite mark corruption | pass | 실제 실행 |
+| S08 B2a 053 | sqlite repeat corruption noappend | pass | 실제 실행 |
+| S08 B2a 054 | sqlite only lifecycle changed bytes identity preserved | pass | 실제 실행 |
+| S08 B2a 055 | sqlite corrupt media location blocked | pass | 실제 실행 |
+| S08 B2a 056 | sqlite V2 locator revoked | pass | 실제 실행 |
+| S08 B2a 057 | sqlite SQL lifecycle corrupt | pass | 실제 실행 |
+| S08 B2a 058 | sqlite SQL codecs_json original metadata | pass | 실제 실행 |
+| S08 B2a 059 | sqlite pending link segments seed | pass | 실제 실행 |
+| S08 B2a 060 | sqlite pending link seed | pass | 실제 실행 |
+| S08 B2a 061 | sqlite pending source output refused noappend | pass | 실제 실행 |
+| S08 B2a 062 | sqlite event link metadata preserved | pass | 실제 실행 |
+| S08 B2a 063 | sqlite deletion-pending deletion seed | pass | 실제 실행 |
+| S08 B2a 064 | sqlite deletion-pending mark rejected noappend | pass | 실제 실행 |
+| S08 B2a 065 | sqlite deletion-done deletion seed | pass | 실제 실행 |
+| S08 B2a 066 | sqlite tombstone seed | pass | 실제 실행 |
+| S08 B2a 067 | sqlite deletion-done mark rejected noappend | pass | 실제 실행 |
+| S08 B2a 068 | sqlite identical finalized replay seed | pass | 실제 실행 |
+| S08 B2a 069 | sqlite conflicting finalized seed | pass | 실제 실행 |
+| S08 B2a 070 | sqlite entity mismatch seed | pass | 실제 실행 |
+| S08 B2a 071 | sqlite invalid first valid later same mutation ID seed | pass | 실제 실행 |
+| S08 B2a 072 | sqlite malformed and deletion-priority seed | pass | 실제 실행 |
+| S08 B2a 073 | sqlite same mutation ID different payload seed | pass | 실제 실행 |
+| S08 B2a 074 | sqlite restart | pass | 실제 실행 |
+| S08 B2a 075 | sqlite restart never resurrects corrupt identity | pass | 실제 실행 |
+| S08 B2a 076 | sqlite query keeps corrupt pending excludes deleted | pass | 실제 실행 |
+| S08 B2a 077 | sqlite deletion priority and unknown no creation | pass | 실제 실행 |
+| S08 B2a 078 | sqlite invalid mutations diagnosed exact count | pass | 실제 실행 |
+| S08 B2a 079 | sqlite restart SQL lifecycle parity | pass | 실제 실행 |
+| S08 B2a 080 | sqlite SQL deletion precedence | pass | 실제 실행 |
+| S08 B2a 081 | sqlite rebuild excludes rejected envelopes | pass | 실제 실행 |
+| S08 B2a 082 | sqlite invalid first valid later SQL exact binding | pass | 실제 실행 |
+| S08 B2a 083 | sqlite projection failover seed | pass | 실제 실행 |
+| S08 B2a 084 | sqlite SQLite failure trigger | pass | 실제 실행 |
+| S08 B2a 085 | sqlite projection failure keeps durable memory state | pass | 실제 실행 |
+| S08 B2a 086 | sqlite remove projection trigger | pass | 실제 실행 |
+| S08 B2a 087 | sqlite fallback restart SQL repaired | pass | 실제 실행 |
+| S08 B2a 088 | order journal open | pass | 실제 실행 |
+| S08 B2a 089 | order corruption-before-create-after seed | pass | 실제 실행 |
+| S08 B2a 090 | order catalog open | pass | 실제 실행 |
+| S08 B2a 091 | order memory corrupt | pass | 실제 실행 |
+| S08 B2a 092 | identical envelope accepted ordinal SQL parity | pass | 실제 실행 |
+
+### FR05 root gate 회귀
+
+`./server.sh verify-v410-recording-finalize-recovery --integration --root-only` exit0, elapsed25025ms. [cleanup] path=/private/tmp/media-server-finalize-4pB3Yh bytes=2474907 removed=true. token start/end/consumed 미집계, source=stdout/Date.now(도구왕복 포함). Manifest 정의 확인은 제품 assertions와 구분한다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| FR05 root gate 001 | FR05 empty root journal | pass | 실제 실행 |
+| FR05 root gate 002 | FR05 empty real root catalog | pass | 실제 실행 |
+| FR05 root gate 003 | FR05 empty symlink root rejected without external mutation | pass | 실제 실행 |
+| FR05 root gate 004 | FR05 empty normalized root rejected | pass | 실제 실행 |
+| FR05 root gate 005 | FR05 actual empty directory accepted | pass | 실제 실행 |
+
+### S05 event 회귀 최종
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| event mutation disabled-guard | 실제 guard 제거 변이의 assertion RED 확인 | pass | 제품 원본은 수정하지 않는 negative 검증 |
+| event mutation prequeue-admission | 실제 선행 접수 제거 변이의 assertion RED 확인 | pass | 제품 원본은 수정하지 않는 negative 검증 |
+
+명령 `./server.sh verify-v410-event-recording` exit0, elapsed58419ms. 등록기35/0, C++140/0, application7/0, runtime23/0, negative2/0, action27/0. 최초 inventory 산술/링크 실패는 중간 이력에 보존. token start/end/consumed 미집계, source=실제 stdout 및 Date.now.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| event 001 | 정상 정식 등록 27개 | pass | 등록기 단위 검증 |
+| event 002 | 다른 등록군 추가와 일관된 총계 허용 | pass | 등록기 단위 검증 |
+| event 003 | 전체 총계 불일치 거부 | pass | 등록기 단위 검증 |
+| event 004 | canonical 등록 수 변경 거부 | pass | 등록기 단위 검증 |
+| event 005 | S05 등록 수 변경 거부 | pass | 등록기 단위 검증 |
+| event 006 | 등록군 중복 거부 | pass | 등록기 단위 검증 |
+| event 007 | 음수 등록 수 거부 | pass | 등록기 단위 검증 |
+| event 008 | 소수 등록 수 거부 | pass | 등록기 단위 검증 |
+| event 009 | 등록 범위 표 누락 거부 | pass | 등록기 단위 검증 |
+| event 010 | 누락 ID | pass | 등록기 단위 검증 |
+| event 011 | 중복 ID | pass | 등록기 단위 검증 |
+| event 012 | 추가 ID | pass | 등록기 단위 검증 |
+| event 013 | 빈 테스트 영역 | pass | 등록기 단위 검증 |
+| event 014 | 없는 구현 심볼 | pass | 등록기 단위 검증 |
+| event 015 | 없는 테스트 함수 | pass | 등록기 단위 검증 |
+| event 016 | 없는 check | pass | 등록기 단위 검증 |
+| event 017 | 중복 check ID | pass | 등록기 단위 검증 |
+| event 018 | 문서 행 누락 | pass | 등록기 단위 검증 |
+| event 019 | 실행 소비자 정상 합성 입력 | pass | 등록기 단위 검증 |
+| event 020 | 실제 check 결과 누락 | pass | 등록기 단위 검증 |
+| event 021 | EOS assertion 제거와 감소한 summary도 거부 | pass | 등록기 단위 검증 |
+| event 022 | 실패 summary | pass | 등록기 단위 검증 |
+| event 023 | 성공 summary만으로 PASS 금지 | pass | 등록기 단위 검증 |
+| event 024 | 중복 application 결과 | pass | 등록기 단위 검증 |
+| event 025 | runtime 로그 전체 누락 | pass | 등록기 단위 검증 |
+| event 026 | runtime 시나리오 누락 | pass | 등록기 단위 검증 |
+| event 027 | 종료 취소 runtime 시나리오 누락 | pass | 등록기 단위 검증 |
+| event 028 | runtime assertion 누락 및 감소 summary | pass | 등록기 단위 검증 |
+| event 029 | runtime assertion 중복 및 증가 summary | pass | 등록기 단위 검증 |
+| event 030 | runtime summary 실패 | pass | 등록기 단위 검증 |
+| event 031 | runtime summary 중복 | pass | 등록기 단위 검증 |
+| event 032 | runtime failure marker | pass | 등록기 단위 검증 |
+| event 033 | runtime mutation 결과 누락 | pass | 등록기 단위 검증 |
+| event 034 | runtime mutation 결과 중복 | pass | 등록기 단위 검증 |
+| event 035 | runtime negative summary 실패 | pass | 등록기 단위 검증 |
+| event 036 | 기본 pending event link가 유효해야 함:  | pass | 실제 C++ |
+| event 037 | terminal 대기 UTC 확장 요청은 additive 계약으로 round-trip해야 함 | pass | 실제 C++ |
+| event 038 | terminal 대기 요청이 현재 범위를 축소하면 거부해야 함 | pass | 실제 C++ |
+| event 039 | 미해석 후속 PTS는 기존 UTC 범위와 별도 field로 round-trip해야 함 | pass | 실제 C++ |
+| event 040 | 미해석 후속 PTS를 소비하지 않은 terminal 상태를 거부해야 함 | pass | 실제 C++ |
+| event 041 | 서로 겹치는 ordered overlap을 거부해야 함 | pass | 실제 C++ |
+| event 042 | overlap/missing이 requested range를 정확히 분할하지 않으면 거부해야 함 | pass | 실제 C++ |
+| event 043 | unknown link status를 영속 계약으로 허용하면 안 됨 | pass | 실제 C++ |
+| event 044 | locator 없는 fallback evidence를 거부해야 함 | pass | 실제 C++ |
+| event 045 | journal open 실패:  | pass | 실제 C++ |
+| event 046 | catalog open 실패:  | pass | 실제 C++ |
+| event 047 | event link 갱신은 SQLite primary projection에서 검증해야 함 | pass | 실제 C++ |
+| event 048 | segment finalize 실패:  | pass | 실제 C++ |
+| event 049 | segment finalize 실패:  | pass | 실제 C++ |
+| event 050 | segment finalize 실패:  | pass | 실제 C++ |
+| event 051 | segment finalize 실패:  | pass | 실제 C++ |
+| event 052 | segment finalize 실패:  | pass | 실제 C++ |
+| event 053 | retention policy 실패:  | pass | 실제 C++ |
+| event 054 | 이벤트 저장 worker를 막지 않고 파생 job을 pending으로 enqueue해야 함 | pass | 실제 C++ |
+| event 055 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 C++ |
+| event 056 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 C++ |
+| event 057 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 C++ |
+| event 058 | 완전한 archive 파생 완료 뒤 ready clip을 반환해야 함 | pass | 실제 C++ |
+| event 059 | event link ID와 derived clip path가 반환되어야 함 | pass | 실제 C++ |
+| event 060 | 반개구간 overlap은 맞닿기만 한 segment를 제외해야 함 | pass | 실제 C++ |
+| event 061 | media PTS event 범위가 segment epoch 기준 UTC로 변환되어야 함 | pass | 실제 C++ |
+| event 062 | overlap segment가 UTC 순서로 전달되어야 함 | pass | 실제 C++ |
+| event 063 | 파생 성공 link가 catalog complete로 저장되어야 함 | pass | 실제 C++ |
+| event 064 | 파생 완료 뒤 원본 hold가 해제되어야 함 | pass | 실제 C++ |
+| event 065 | 파생 완료 뒤 원본 hold가 해제되어야 함 | pass | 실제 C++ |
+| event 066 | 파생 완료 뒤 원본 hold가 해제되어야 함 | pass | 실제 C++ |
+| event 067 | 같은 event update는 파생 clip을 중복 생성하지 않아야 함 | pass | 실제 C++ |
+| event 068 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 C++ |
+| event 069 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 C++ |
+| event 070 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 C++ |
+| event 071 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 C++ |
+| event 072 | 완료 event의 더 넓은 update는 range별 결정 ID로 다시 파생해야 함 | pass | 실제 C++ |
+| event 073 | segment finalize 실패:  | pass | 실제 C++ |
+| event 074 | segment finalize 실패:  | pass | 실제 C++ |
+| event 075 | cam-b policy 실패:  | pass | 실제 C++ |
+| event 076 | archive gap이 있으면 complete로 표시하면 안 됨 | pass | 실제 C++ |
+| event 077 | link가 정확한 missing UTC range를 보존해야 함 | pass | 실제 C++ |
+| event 078 | frame-buffer fallback 뒤 같은 link가 fallback evidence로 갱신되어야 함 | pass | 실제 C++ |
+| event 079 | 같은 event link의 overlap/fallback 갱신 뒤에도 SQLite projection을 유지해야 함 | pass | 실제 C++ |
+| event 080 | cam-late policy 실패:  | pass | 실제 C++ |
+| event 081 | segment finalize 실패:  | pass | 실제 C++ |
+| event 082 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 C++ |
+| event 083 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 C++ |
+| event 084 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 C++ |
+| event 085 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 C++ |
+| event 086 | anchor 없는 PTS를 finalized segment의 실제 PTS/UTC mapping으로 복구해야 함 | pass | 실제 C++ |
+| event 087 | PTS epoch anchor가 없으면 임의 UTC 연결이나 파생을 하면 안 됨 | pass | 실제 C++ |
+| event 088 | anchor 없는 PTS는 UTC field가 아니라 재해석 가능한 PTS range로 보존해야 함 | pass | 실제 C++ |
+| event 089 | 같은 긴 prefix의 event ID도 SHA-256 기반 결정 ID가 충돌하면 안 됨 | pass | 실제 C++ |
+| event 090 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 C++ |
+| event 091 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 C++ |
+| event 092 | 파생 중 원본 segment hold가 유지되어야 함 | pass | 실제 C++ |
+| event 093 | 확장 회귀 journal open 실패:  | pass | 실제 C++ |
+| event 094 | 확장 회귀 initial catalog open 실패:  | pass | 실제 C++ |
+| event 095 | segment finalize 실패:  | pass | 실제 C++ |
+| event 096 | cleanup 확장 fixture 저장 실패:  | pass | 실제 C++ |
+| event 097 | cleanup 확장 fixture 저장 실패:  | pass | 실제 C++ |
+| event 098 | 확장 회귀 restart catalog open 실패:  | pass | 실제 C++ |
+| event 099 | 확장 policy 실패 | pass | 실제 C++ |
+| event 100 | cleanup 확장 remux 실패는 한 번만 실행되어야 함 | pass | 실제 C++ |
+| event 101 | 실패/Partial도 보류 확장 요청을 현재 범위로 소비해 보존해야 함 | pass | 실제 C++ |
+| event 102 | 실패/Partial도 보류 확장 요청을 현재 범위로 소비해 보존해야 함 | pass | 실제 C++ |
+| event 103 | PTS 확장은 다른 범위 ID를 사용해야 함 | pass | 실제 C++ |
+| event 104 | 미해석 PTS 확장을 이전 complete clip으로 응답하면 안 됨 | pass | 실제 C++ |
+| event 105 | segment finalize 실패:  | pass | 실제 C++ |
+| event 106 | PTS 확장 2회는 최초 포함 총 3회 파생해야 함 | pass | 실제 C++ |
+| event 107 | quota journal open 실패:  | pass | 실제 C++ |
+| event 108 | quota catalog open 실패:  | pass | 실제 C++ |
+| event 109 | segment finalize 실패:  | pass | 실제 C++ |
+| event 110 | segment finalize 실패:  | pass | 실제 C++ |
+| event 111 | quota policy 실패:  | pass | 실제 C++ |
+| event 112 | event quota는 oldest event를 정리해 새 event write를 허용해야 함: ok | pass | 실제 C++ |
+| event 113 | event quota 충족을 위해 continuous를 삭제하면 안 됨 | pass | 실제 C++ |
+| event 114 | event quota는 oldest eligible event를 삭제해야 함 | pass | 실제 C++ |
+| event 115 | policy 재등록 실패:  | pass | 실제 C++ |
+| event 116 | policy 제거가 진행 중 event reservation을 지우면 안 됨 | pass | 실제 C++ |
+| event 117 | 명시적 complete 뒤 event reservation ID를 재사용할 수 있어야 함 | pass | 실제 C++ |
+| event 118 | queue journal open 실패:  | pass | 실제 C++ |
+| event 119 | queue catalog open 실패:  | pass | 실제 C++ |
+| event 120 | segment finalize 실패:  | pass | 실제 C++ |
+| event 121 | queue policy 실패:  | pass | 실제 C++ |
+| event 122 | bounded queue 밖 durable pending도 완료 뒤 다시 흡수해야 함 | pass | 실제 C++ |
+| event 123 | 긴 event remux가 다른 이벤트의 durable link admission을 동기 차단하면 안 됨 | pass | 실제 C++ |
+| event 124 | cleanup 실패 시 source hold와 event reservation을 성공처럼 해제하면 안 됨 | pass | 실제 C++ |
+| event 125 | terminal marker unlink 실패 시 source/output hold를 유지해야 함 | pass | 실제 C++ |
+| event 126 | terminal marker unlink 실패 시 event reservation을 유지해야 함 | pass | 실제 C++ |
+| event 127 | marker 복구 중 event/fallback 갱신은 자원·단계를 보존하고 확장 요청을 내구 대기해야 함 | pass | 실제 C++ |
+| event 128 | terminal hold 해제 실패를 Complete로 기록하면 안 됨 | pass | 실제 C++ |
+| event 129 | terminal 복구 중 event/fallback 갱신이 release 단계를 덮어쓰면 안 됨 | pass | 실제 C++ |
+| event 130 | 복구 완료 뒤 내구 대기한 범위 확장은 같은 source epoch의 새 segment로 파생해야 함 | pass | 실제 C++ |
+| event 131 | terminal complete commit retry fixture 저장 실패:  | pass | 실제 C++ |
+| event 132 | complete commit 재시도는 다른 pending event의 source hold를 해제하면 안 됨 | pass | 실제 C++ |
+| event 133 | overflow fixture 이전 hold_count가 저장 범위를 넘으면 안 됨 | pass | 실제 C++ |
+| event 134 | hold overflow fixture 준비 실패:  | pass | 실제 C++ |
+| event 135 | event source lease hold_count overflow를 사전에 거부해야 함 | pass | 실제 C++ |
+| event 136 | hold fixture journal open 실패:  | pass | 실제 C++ |
+| event 137 | hold fixture catalog open 실패:  | pass | 실제 C++ |
+| event 138 | segment finalize 실패:  | pass | 실제 C++ |
+| event 139 | segment finalize 실패:  | pass | 실제 C++ |
+| event 140 | hold pending link 저장 실패:  | pass | 실제 C++ |
+| event 141 | hold replay journal open 실패:  | pass | 실제 C++ |
+| event 142 | hold replay catalog open 실패:  | pass | 실제 C++ |
+| event 143 | 재시작 replay가 terminal 전 output/source hold를 함께 복원해야 함 | pass | 실제 C++ |
+| event 144 | terminal stage fixture event link 조회 | pass | 실제 C++ |
+| event 145 | terminal stage fixture 저장 실패:  | pass | 실제 C++ |
+| event 146 | terminal stage replay journal open:  | pass | 실제 C++ |
+| event 147 | terminal stage catalog open:  | pass | 실제 C++ |
+| event 148 | complete commit 단계 재시작은 이미 해제된 output/source hold를 복원하면 안 됨 | pass | 실제 C++ |
+| event 149 | terminal Complete 기록 전 source 삭제 요청을 차단해야 함 | pass | 실제 C++ |
+| event 150 | terminal Complete 기록 전 output 삭제 요청을 차단해야 함 | pass | 실제 C++ |
+| event 151 | restart journal open 실패:  | pass | 실제 C++ |
+| event 152 | restart catalog open 실패:  | pass | 실제 C++ |
+| event 153 | segment finalize 실패:  | pass | 실제 C++ |
+| event 154 | segment finalize 실패:  | pass | 실제 C++ |
+| event 155 | restart pending link 저장 실패:  | pass | 실제 C++ |
+| event 156 | 재시작은 이미 finalized된 결정적 event segment를 재파생 없이 연결해야 함 | pass | 실제 C++ |
+| event 157 | 재시작 복구에서 event clip을 중복 파생하면 안 됨 | pass | 실제 C++ |
+| event 158 | segment finalize 실패:  | pass | 실제 C++ |
+| event 159 | conflict pending link 저장 실패:  | pass | 실제 C++ |
+| event 160 | 다른 channel/class의 동일 segment ID를 event 결과로 오인하면 안 됨 | pass | 실제 C++ |
+| event 161 | segment ID conflict에서 파생을 실행하면 안 됨 | pass | 실제 C++ |
+| event 162 | 실제 H264/MP4 source를 video 재인코딩 없이 remux해야 함:  | pass | 실제 C++ |
+| event 163 | remux 결과 파일과 size가 일치해야 함 | pass | 실제 C++ |
+| event 164 | event clip actual range는 keyframe 확대를 측정해 requested range와 분리해야 함 | pass | 실제 C++ |
+| event 165 | event clip이 source segment 전체 단순 연결보다 작아야 함 | pass | 실제 C++ |
+| event 166 | remux 결과 checksum과 crash cleanup marker를 남겨야 함 | pass | 실제 C++ |
+| event 167 | 동일 final은 소유 artifact가 없는 terminal 충돌로 거부하고 기존 clip을 보존해야 함 | pass | 실제 C++ |
+| event 168 | 파생 H264/MP4 clip이 끝까지 demux/parse 가능해야 함:  | pass | 실제 C++ |
+| event 169 | nonce partial은 foreign 고정 partial을 보존하면서 독립 파생되어야 함 | pass | 실제 C++ |
+| event 170 | event remux recovery journal open 실패:  | pass | 실제 C++ |
+| event 171 | 재시작은 marker nonce와 일치하는 owned crash partial만 정리해야 함:  | pass | 실제 C++ |
+| event 172 | owned crash partial 복구 뒤 동일 event clip 재파생이 성공해야 함:  | pass | 실제 C++ |
+| event 173 | VP8/WebM test source 생성 실패:  | pass | 실제 C++ |
+| event 174 | VP8/WebM test source demux 실패:  | pass | 실제 C++ |
+| event 175 | 검증되지 않은 VP8/WebM event remux는 산출물 없이 fail-closed해야 함 | pass | 실제 C++ |
+| event 176 | application header is standard-only with exact DTO/default manifests | pass | application 경계 |
+| event 177 | application source owns exact canonical mapping and overwrite semantics | pass | application 경계 |
+| event 178 | transport has zero canonical bypass and exact projection/call ordering | pass | application 경계 |
+| event 179 | recording link is durably admitted before the bounded storage queue can drop an event | pass | application 경계 |
+| event 180 | event clip output remains fd-bound and measured before no-replace publication | pass | application 경계 |
+| event 181 | compiled fake canonical matrix preserves all fields failure/null outputs and lifecycle order | pass | application 경계 |
+| event 182 | S05 composition starts the bridge before ingress and drains it after storage | pass | application 경계 |
+| event 183 | 실제 EventStorage worker 진입을 관찰한다 | pass | disabled-admit |
+| event 184 | worker 처리 전에 첫 이벤트 연결이 내구 접수된다 | pass | disabled-admit |
+| event 185 | 실제 저장 큐 크기 2에서 다섯 접수 중 두 이벤트가 퇴출된다 | pass | disabled-admit |
+| event 186 | 퇴출 이벤트를 포함한 다섯 PTS 연결이 worker 해제 전에 보존된다 | pass | disabled-admit |
+| event 187 | 저장 worker drain 뒤에도 다섯 연결과 시간축이 보존된다 | pass | disabled-admit |
+| event 188 | JSONL 설정에 따른 실제 저장 수와 빈 큐를 확인한다 | pass | disabled-admit |
+| event 189 | JSONL 비활성은 파일 없음이고 활성은 생존 이벤트 세 개와 link ID가 일치한다 | pass | disabled-admit |
+| event 190 | 새 프로세스의 빈 SQLite를 journal로 재구축해 다섯 PTS 연결을 복구한다 | pass | disabled-recover |
+| event 191 | 퇴출 이벤트까지 UTC 매핑 후 다섯 실제 H264 파생 파일이 완료된다 | pass | disabled-recover |
+| event 192 | 같은 이벤트 재접수는 복구된 다섯 clip ID를 바꾸거나 추가하지 않는다 | pass | disabled-recover |
+| event 193 | 실제 EventStorage worker 진입을 관찰한다 | pass | enabled-admit |
+| event 194 | worker 처리 전에 첫 이벤트 연결이 내구 접수된다 | pass | enabled-admit |
+| event 195 | 실제 저장 큐 크기 2에서 다섯 접수 중 두 이벤트가 퇴출된다 | pass | enabled-admit |
+| event 196 | 퇴출 이벤트를 포함한 다섯 PTS 연결이 worker 해제 전에 보존된다 | pass | enabled-admit |
+| event 197 | 저장 worker drain 뒤에도 다섯 연결과 시간축이 보존된다 | pass | enabled-admit |
+| event 198 | JSONL 설정에 따른 실제 저장 수와 빈 큐를 확인한다 | pass | enabled-admit |
+| event 199 | JSONL 비활성은 파일 없음이고 활성은 생존 이벤트 세 개와 link ID가 일치한다 | pass | enabled-admit |
+| event 200 | 새 프로세스의 빈 SQLite를 journal로 재구축해 다섯 PTS 연결을 복구한다 | pass | enabled-recover |
+| event 201 | 퇴출 이벤트까지 UTC 매핑 후 다섯 실제 H264 파생 파일이 완료된다 | pass | enabled-recover |
+| event 202 | 같은 이벤트 재접수는 복구된 다섯 clip ID를 바꾸거나 추가하지 않는다 | pass | enabled-recover |
+| event 203 | post-event frame 대기 중인 실제 storage worker를 관찰한다 | pass | shutdown-cancel |
+| event 204 | 종료 신호가 post-event frame 대기를 깨워 1초 안에 worker를 drain한다 | pass | shutdown-cancel |
+| event 205 | frame 대기 취소 뒤에도 EventRecord JSONL을 유실하지 않는다 | pass | shutdown-cancel |
+| event 206 | [s05-runtime-negative] pass=2 fail=0 elapsedMs=18465 | pass | mutation negative 개별 2건은 아래 원본 결과에 보존 |
+
+실제 요약/cleanup:
+
+```text
+[등록기 단위 테스트] PASS EOS assertion 제거와 감소한 summary도 거부
+[등록기 단위 테스트] PASS 실패 summary
+[등록기 단위 테스트] PASS 성공 summary만으로 PASS 금지
+[등록기 단위 테스트] PASS runtime assertion 누락 및 감소 summary
+[등록기 단위 테스트] PASS runtime assertion 중복 및 증가 summary
+[등록기 단위 테스트] PASS runtime summary 실패
+[등록기 단위 테스트] PASS runtime summary 중복
+[등록기 단위 테스트] PASS runtime negative summary 실패
+[v410-s05-inventory-unit] pass=35 fail=0
+[verify-v410-event-recording] pass=140 fail=0
+- summary: pass=7 fail=0
+[s05-runtime-summary] case=disabled-admit pass=7 fail=0
+[s05-runtime-summary] case=disabled-recover pass=3 fail=0
+[s05-runtime-summary] case=enabled-admit pass=7 fail=0
+[s05-runtime-summary] case=enabled-recover pass=3 fail=0
+[s05-runtime-summary] case=shutdown-cancel pass=3 fail=0
+[s05-runtime-negative] pass=2 fail=0 elapsedMs=18465
+[s05-runtime-cleanup] {"path":"/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_s05_storage_runtime_jH5SnJ","files":47,"bytes":10922208,"removed":true}
+[S05 개별 실행] pass=27 fail=0
+[cleanup] path=/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media_server_v410_event_recording.tVMy4x bytes=3357039 removed=true
+```
+
+
+### FR 기본 최신
+
+명령 `./server.sh verify-v410-recording-finalize-recovery` exit0, pass20/fail0; elapsed9374ms. [cleanup] path=/private/tmp/media-server-finalize-KyAsBn bytes=2535249 removed=true. token start/end/consumed 미집계(자동 집계 부재); elapsed=Date.now 도구왕복 포함 관측.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| FR 기본 최신 001 | ready partial recovers original segment ID | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 기본 최신 002 | FR02 interrupted publish converges: final only | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 기본 최신 003 | FR02 repeated recovery no duplicate mutation | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 기본 최신 004 | FR02 interrupted publish converges: owned two links | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 기본 최신 005 | FR02 repeated recovery no duplicate mutation | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 기본 최신 006 | FR03 catalog commit before cleanup does not append or replace | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 기본 최신 007 | FR04 invalid version preserves original without publication | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 기본 최신 008 | FR04 invalid duplicate preserves original without publication | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 기본 최신 009 | FR04 invalid nonce preserves original without publication | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 기본 최신 010 | FR04 invalid escape preserves original without publication | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 기본 최신 011 | FR04 invalid identity preserves original without publication | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 기본 최신 012 | FR05 symlink ticket rejected and external target untouched | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 기본 최신 013 | FR05 foreign hardlink rejected without unlink | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 기본 최신 014 | FR05 actual unreadable ticket preserves media | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 기본 최신 015 | FR06 corrupt unknown isolated in place without finalized mutation | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 기본 최신 016 | FR06 repeated corruption recovery converges without resurrection | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 기본 최신 017 | FR07 pending takes precedence over ready publication | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 기본 최신 018 | FR07 deleted takes precedence over ready publication | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 기본 최신 019 | FR07 conflict takes precedence over ready publication | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 기본 최신 020 | FR08 orphan not inferred and legacy owned partial cleaned | pass | 최초 실패 및 수정 이력 별도 보존 |
+
+### FR 통합 최신
+
+명령 `./server.sh verify-v410-recording-finalize-recovery --integration` exit0, pass140/fail0; elapsed13394ms. [cleanup] path=/private/tmp/media-server-finalize-Kl0FTF bytes=4232102 removed=true. token start/end/consumed 미집계(자동 집계 부재); elapsed=Date.now 도구왕복 포함 관측.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| FR 통합 최신 001 | FR09 actual H264 packet fixture | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 002 | FR09 writer start | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 003 | FR09 callback observes durable ready | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 004 | FR09 callback observes owned marker | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 005 | FR09 exact final bytes metadata | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 006 | FR09 completion actual bytes | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 007 | FR09 exactly one finalized callback | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 008 | FR09 successful cleanup and reservation completion | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 009 | FR09 writer start | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 010 | FR09 callback observes durable ready | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 011 | FR09 callback observes owned marker | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 012 | FR09 exact final bytes metadata | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 013 | FR10 failure occurs during Push and blocks later packet admission before Stop | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 014 | FR10 repeated Push while started cannot bypass recovery pending | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 015 | FR09 exactly one finalized callback | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 016 | FR10 failure blocks repeat admission and reservation release | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 017 | FR10 Stop preserves media ready marker | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 018 | FR10 recovery journal | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 019 | FR10 recovery Open preserves ready | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 020 | FR10 restart recovers callback failure original ID | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 021 | FR06 known journal | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 022 | FR06 known catalog | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 023 | FR06 known original metadata | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 024 | FR06 known ready | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 025 | FR06 temporary hold fixture | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 026 | FR06 durable diagnostic before rejected Mark preserves journal | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 027 | FR06 release fixture hold | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 028 | FR06 before Mark restart journal | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 029 | FR06 before Mark restart catalog | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 030 | FR06 diagnostic before Mark crash converges to Corrupt | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 031 | FR06 after Mark restart journal | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 032 | FR06 after Mark restart catalog | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 033 | FR06 after Mark crash repeat no append | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 034 | FR06 diagnostic conflict preserves original and journal | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 035 | FR16 event journal open | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 036 | FR16 event catalog open | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 037 | FR16 actual catalog mode | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 038 | FR12 original source registered | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 039 | FR12 durable Pending precedes remux | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 040 | FR11 actual MPEGTS remux ready | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 041 | FR11 actual tsdemux healthy | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 042 | FR12 ready contains derived epoch fixture | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 043 | FR12 raw mismatched event epoch recovery rejects without registration | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 044 | FR13 new event output recovered | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 045 | FR13 source and new output holds exactly once | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 046 | FR16 query contains source and recovered output | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 047 | FR14 recreate exact postcommit stale ready | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 048 | FR14 restart journal | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 049 | FR14 restart catalog | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 050 | FR14 Open restores source output holds | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 051 | FR14 committed replay no journal append | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 052 | FR14 committed recovery no duplicate holds | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 053 | FR15 bridge quota policy | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 054 | FR14 existing output terminal recovery no remux | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 055 | FR14 existing terminal releases all restored holds | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 056 | FR15 production bridge accepts event | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 057 | FR15 every actual bridge request carries ready metadata and reservation | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 058 | FR15 actual production bridge remux completes | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 059 | FR15 production bridge clears ready before terminal | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 060 | FR15 reservation exceed before ready emission | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 061 | FR15 reservation exceed cleans owned output only | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 062 | FR16 event journal open | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 063 | FR16 event catalog open | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 064 | FR16 actual catalog mode | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 065 | FR12 original source registered | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 066 | FR12 durable Pending precedes remux | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 067 | FR11 actual MPEGTS remux ready | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 068 | FR11 actual tsdemux healthy | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 069 | FR12 ready contains derived epoch fixture | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 070 | FR12 raw mismatched event epoch recovery rejects without registration | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 071 | FR13 new event output recovered | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 072 | FR13 source and new output holds exactly once | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 073 | FR16 query contains source and recovered output | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 074 | FR16 direct SQLite open | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 075 | FR16 direct SQLite prepare | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 076 | FR16 actual SQL lifecycle and exact codec metadata projection | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 077 | FR14 recreate exact postcommit stale ready | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 078 | FR14 restart journal | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 079 | FR14 restart catalog | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 080 | FR14 Open restores source output holds | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 081 | FR14 committed replay no journal append | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 082 | FR14 committed recovery no duplicate holds | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 083 | FR15 bridge quota policy | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 084 | FR14 existing output terminal recovery no remux | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 085 | FR14 existing terminal releases all restored holds | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 086 | FR15 production bridge accepts event | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 087 | FR15 every actual bridge request carries ready metadata and reservation | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 088 | FR15 actual production bridge remux completes | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 089 | FR15 production bridge clears ready before terminal | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 090 | FR15 reservation exceed before ready emission | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 091 | FR15 reservation exceed cleans owned output only | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 092 | FR15 failure journal | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 093 | FR15 failure catalog | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 094 | FR15 failure source | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 095 | FR15 failure quota policy | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 096 | FR15 failure request accepted | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 097 | FR15 failed Pending append prevents remux and releases source lease | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 098 | FR15 failed Pending append leaves original and replacement journal unchanged | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 099 | FR15 failed Pending append creates no ready | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 100 | FR15 failed Pending append released exact reservation for readmission | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 101 | FR06 size ready fixture | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 102 | FR06 size journal fixture | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 103 | FR06 size catalog fixture | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 104 | FR06 size definite corruption never finalized | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 105 | FR06 size corrupt original and ticket retained | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 106 | FR06 size repeat logical quarantine converges | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 107 | FR06 container ready fixture | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 108 | FR06 container journal fixture | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 109 | FR06 container catalog fixture | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 110 | FR06 container definite corruption never finalized | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 111 | FR06 container corrupt original and ticket retained | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 112 | FR06 container repeat logical quarantine converges | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 113 | FR06 two-links ready fixture | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 114 | FR06 two-links journal fixture | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 115 | FR06 two-links catalog fixture | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 116 | FR06 two-links definite corruption never finalized | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 117 | FR06 two-links corrupt original and ticket retained | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 118 | FR06 two-links repeat logical quarantine converges | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 119 | FR12 missing link journal | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 120 | FR12 missing link catalog | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 121 | FR12 missing link source | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 122 | FR12 missing durable link actual remux fixture | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 123 | FR12 missing durable Pending prevents inferred event registration | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 124 | FR12 mismatched durable event fixture | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 125 | FR12 mismatched durable event preserves output and journal | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 126 | FR11 unsupported MPEGTS codec metadata unavailable | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 127 | FR11 actual MPEGTS changed bytes definitely corrupt | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 128 | FR11 unclassified MPEGTS error unavailable preserves bytes and journal | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 129 | FR06 path journal | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 130 | FR06 path catalog | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 131 | FR06 path known corrupt fixture | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 132 | FR06 path foreign relative ready fixture | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 133 | FR06 known Corrupt same metadata different stored path rejected | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 134 | FR09 single packet writer start | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 135 | FR09 single packet cleanup returns actual bytes | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 136 | FR09 single packet invalid interval cleans before ready without callback | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 137 | FR09 restart after incomplete single packet | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 138 | FR09 recovered positive interval callback valid V1 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 139 | FR09 single packet cleanup returns actual bytes | pass | 최초 실패 및 수정 이력 별도 보존 |
+| FR 통합 최신 140 | FR09 positive interval after incomplete packet finalizes normally | pass | 최초 실패 및 수정 이력 별도 보존 |
+
+### recorder 회귀 최신
+
+명령 `./server.sh verify-v410-recording-recorder` exit0, pass93/fail0; elapsed12786ms. [cleanup] path=/private/tmp/media-server-fr-recorder-62zQmh bytes=3196603 removed=true. token start/end/consumed 미집계(자동 집계 부재); elapsed=Date.now 도구왕복 포함 관측.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| recorder 회귀 최신 001 | 기본 녹화 설정 유효 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 002 | disk reserve와 retention 주기 기본값 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 003 | 활성화+quota 0 거부 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 004 | 녹화/media root 중복 거부 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 005 | global/source/channel opt-in 삼중 경계 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 006 | Recorder subscriber 추가 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 007 | 역할별 subscriber 계수 분리 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 008 | client 추가 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 009 | 느린 recorder 추가 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 010 | recorder overflow가 client queue를 차단하지 않음 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 011 | source policy 저장 성공 뒤 reconcile callback | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 012 | source policy snapshot | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 013 | source policy create/save/load/snapshot round-trip | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 014 | legacy source policy 호환 저장 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 015 | legacy source policy snapshot | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 016 | legacy quotaBytes/retentionDays를 분리 정책으로 이행 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 017 | eventMaxBytes 0 저장 실패 시 callback 미호출 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 018 | 음수 continuousMaxAgeMs 저장 거부 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 019 | 음수 continuousMaxBytes 명시 입력을 default로 대체하지 않고 거부 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 020 | 형식이 잘못된 continuousMaxBytes 명시 입력 거부 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 021 | 형식이 잘못된 continuousMaxAgeMs 명시 입력 거부 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 022 | 음수 legacy quotaBytes 명시 입력 거부 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 023 | viewer-safe client view에 quota/storage path 비노출 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 024 | application DTO snapshot | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 025 | application DTO recording policy 보존 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 026 | h264 fixture encode | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 027 | h264 writer 시작:  | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 028 | h264 S07 delta 미수락 시간 위치 없음 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 029 | h264 delta-start 차단 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 030 | callback finalized V1 양수 시간구간 검증 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 031 | callback 시 final 파일 존재 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 032 | callback 시 partial 제거 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 033 | h264 S07 수락 시간 epoch와 PTS 일치 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 034 | h264 열린 segment는 partial 한 개 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 035 | h264 열린 segment marker는 소유 partial nonce를 결박 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 036 | callback finalized V1 양수 시간구간 검증 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 037 | callback 시 final 파일 존재 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 038 | callback 시 partial 제거 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 039 | h264 S07 종료 시간 위치 없음 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 040 | h264 10초 뒤 다음 keyframe 분할 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 041 | h264 finalized callback | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 042 | foreign 고정 partial 보존 writer 시작 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 043 | nonce partial은 기존 고정 foreign partial을 덮어쓰거나 삭제하면 안 됨 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 044 | rollback writer 시작 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 045 | rollback finalized V1과 실제 파일 크기 일치 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 046 | S07 rollback 모호한 시간 위치 없음 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 047 | rollback finalized V1과 실제 파일 크기 일치 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 048 | PTS rollback 시 새 stream epoch | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 049 | writer admission 시작 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 050 | storage-blocked 뒤 다음 keyframe에서 새 epoch로 재개 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 051 | admission reserve를 segment finalize 실제 용량으로 반환 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 052 | partial/finalized 실제 파일 크기를 admission 진행량으로 보고 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 053 | 실제 파일 예약 초과 writer 시작 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 054 | 실제 파일 예약 초과는 catalog callback 전 제거·high-water 반환 후 새 epoch 재개 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 055 | writer 예약 hard bound 시작 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 056 | bounded finalized V1과 실제 파일 예약 상한 검증 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 057 | bounded finalized V1과 실제 파일 예약 상한 검증 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 058 | bounded finalized V1과 실제 파일 예약 상한 검증 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 059 | bounded finalized V1과 실제 파일 예약 상한 검증 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 060 | bounded finalized V1과 실제 파일 예약 상한 검증 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 061 | bounded finalized V1과 실제 파일 예약 상한 검증 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 062 | bounded finalized V1과 실제 파일 예약 상한 검증 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 063 | bounded finalized V1과 실제 파일 예약 상한 검증 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 064 | 예약 payload 상한 도달 시 keyframe 경계 재개와 실제 파일 크기 상한 유지 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 065 | catalog finalize 실패 writer 시작 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 066 | catalog journal/finalize 실패는 ready와 final을 보존하고 예약 유지 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 067 | cleanup marker symlink 선점 공격 writer 시작 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 068 | cleanup marker symlink 선점 fixture 생성 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 069 | cleanup marker symlink 선점 시 root 밖/공유 inode 내용을 truncate하지 않음 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 070 | cleanup marker hardlink 선점 공격 writer 시작 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 071 | cleanup marker hardlink 선점 fixture 생성 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 072 | cleanup marker hardlink 선점 시 root 밖/공유 inode 내용을 truncate하지 않음 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 073 | catalog 성공 뒤 marker 제거 실패 writer 시작 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 074 | catalog 성공 뒤 marker 제거 실패 시 예약과 marker를 유지 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 075 | final media cleanup 실패 writer 시작 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 076 | final media 제거 실패 시 durable marker를 남기고 예약을 반환하지 않음 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 077 | vp8 fixture encode | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 078 | vp8 writer 시작:  | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 079 | vp8 S07 delta 미수락 시간 위치 없음 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 080 | vp8 delta-start 차단 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 081 | callback finalized V1 양수 시간구간 검증 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 082 | callback 시 final 파일 존재 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 083 | callback 시 partial 제거 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 084 | vp8 S07 수락 시간 epoch와 PTS 일치 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 085 | vp8 열린 segment는 partial 한 개 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 086 | vp8 열린 segment marker는 소유 partial nonce를 결박 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 087 | callback finalized V1 양수 시간구간 검증 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 088 | callback 시 final 파일 존재 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 089 | callback 시 partial 제거 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 090 | vp8 S07 종료 시간 위치 없음 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 091 | vp8 10초 뒤 다음 keyframe 분할 | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 092 | vp8 finalized callback | pass | 최초 실패 및 수정 이력 별도 보존 |
+| recorder 회귀 최신 093 | VP8 S07 rollback 모호한 시간 위치 없음 | pass | 최초 실패 및 수정 이력 별도 보존 |
+
+## v4.1.0 S08 finalize 복구 사전 등록 (2026-09-10)
+
+최초 RED 실행: `./server.sh verify-v410-recording-finalize-recovery` exit1, `[fail] ready partial recovers original segment ID` 단일 예상 assertion 실패. 실제 MP4 fixture EOS/컴파일 정상. elapsed7968ms(Date.now 도구왕복 포함), token start/end/consumed 집계API 부재로 미집계. cleanup `/private/tmp/media-server-finalize-O2dAI6` 삭제 전1481237 bytes, removed=true; 임시원본 보존 없음. GREEN 전 완료 evidence가 아니다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| V410-S08-FR-01 | ready partial을 기존 cleanup이 보존하고 원래ID로 복구 | 실제 파일/내구ticket/Journal/Catalog/미디어로 상태·바이트·원장변화 대조 | v4.1.0 |
+| V410-S08-FR-02 | publish 전후 final/partial 및 동일inode nlink2 crash 멱등 | 실제 파일/내구ticket/Journal/Catalog/미디어로 상태·바이트·원장변화 대조 | v4.1.0 |
+| V410-S08-FR-03 | catalog commit 뒤 ticket 잔여 재시작 noappend/identity 보존 | 실제 파일/내구ticket/Journal/Catalog/미디어로 상태·바이트·원장변화 대조 | v4.1.0 |
+| V410-S08-FR-04 | ticket version/중복키/metadata/nonce/path strict 거부 및 원본보존 | 실제 파일/내구ticket/Journal/Catalog/미디어로 상태·바이트·원장변화 대조 | v4.1.0 |
+| V410-S08-FR-05 | symlink/hardlink/경로escape/권한I/O 검사불가 보존 | 실제 파일/내구ticket/Journal/Catalog/미디어로 상태·바이트·원장변화 대조 | v4.1.0 |
+| V410-S08-FR-06 | size/checksum/container 손상 확정 원위치 논리 격리 및 정상등록 금지 | 정확한 ticket/media binding 내구 진단→known MarkCorrupt 전후 crash/restart 반복 수렴. unknown 정상등록 금지, ready/marker/media 보존, 진단 충돌/검사불가 오류. known Corrupt 동일metadata 다른stored path 거부. 물리 이동/삭제 없음 | v4.1.0 |
+| V410-S08-FR-07 | tombstone/DeletionPending/Corrupt 우선 및 동일ID 충돌 거부 | 실제 파일/내구ticket/Journal/Catalog/미디어로 상태·바이트·원장변화 대조 | v4.1.0 |
+| V410-S08-FR-08 | provenance없는 orphan 등록금지 및 ticket없는 기존cleanup 유지 | 실제 파일/내구ticket/Journal/Catalog/미디어로 상태·바이트·원장변화 대조 | v4.1.0 |
+| V410-S08-FR-09 | continuous 실제writer ready 순서/성공정리/reservation | 실제 파일/내구ticket/Journal/Catalog/미디어로 상태·바이트·원장변화 대조. 단일packet start=end invalid는 ready 전 callback0/marker0/ready0/예약반환, 다음 양수구간 정상 재개; finalized callback V1 및 실제size≤예약 검증 | v4.1.0 |
+| V410-S08-FR-10 | ready 이후 callback실패 보존/반복write차단/Stop무삭제 | 실제 파일/내구ticket/Journal/Catalog/미디어로 상태·바이트·원장변화 대조 | v4.1.0 |
+| V410-S08-FR-11 | 실제 MPEGTS tsdemux 검사 및 container손상/codec 일치 | 실제 TS Healthy, 생성 TS checksum 변조는 확정 Corrupt, VP8 기대 metadata는 Unavailable. x2048 TS 일반 GST_STREAM_ERROR_FAILED는 Unavailable/demux-error-unclassified 및 파일·journal 무변경(진단 후 메인 승인 정정, 최초 실패 보존) | v4.1.0 |
+| V410-S08-FR-12 | event source/link/output/epoch/요청범위 strict provenance | 실제 파일/내구ticket/Journal/Catalog/미디어로 상태·바이트·원장변화 대조 | v4.1.0 |
+| V410-S08-FR-13 | event 새output recovery output/sourcehold 재구성·재시작중복금지 | 실제 파일/내구ticket/Journal/Catalog/미디어로 상태·바이트·원장변화 대조 | v4.1.0 |
+| V410-S08-FR-14 | event 기존output Open복원hold 추가취득금지·terminalrelease | 실제 파일/내구ticket/Journal/Catalog/미디어로 상태·바이트·원장변화 대조 | v4.1.0 |
+| V410-S08-FR-15 | Pending 선행기록실패 lease/reservation 정리 및 remux 금지 | 실제 파일/내구ticket/Journal/Catalog/미디어로 상태·바이트·원장변화 대조 | v4.1.0 |
+| V410-S08-FR-15-reservation | ready 전 event reservation 초과 거부 | production bridge가 max_output_bytes를 전달하고 실제 output이 상한 초과면 ticket/publish 없이 기존 cleanup 및 event-reservation-exceeded 유지. 모든 production request ready provenance 존재도 검사 | v4.1.0 |
+| V410-S08-FR-16 | SQLite/fallback 복구parity 및 repeat crash identity/digest불변 | 실제 파일/내구ticket/Journal/Catalog/미디어로 상태·바이트·원장변화 대조 | v4.1.0 |
+
+최초 예상 RED: `./server.sh verify-v410-recording-finalize-recovery`는 실제 H264/MP4 nonce partial+전체metadata 수기ticket+v2 cleanup marker를 준비하고 Catalog.Open→RecoverFinalizeReadyTickets 경로에서 `ready partial recovers original segment ID` assertion 실패를 예상한다. 미구현 recovery stub 및 기존 cleanup의 partial삭제가 원인이다. fixture EOS/compile/env 실패는 RED가 아니다. 사용자 goal의 AGENTS3.3에 따라 실제실패도 기록→동일단계수정·재검증하며 뒤단계는 통과전 실행하지 않는다.
+
+### 최초 단일 assertion 실행 이력
+
+단일packet 예상 RED 사전 지정: `./server.sh verify-v410-recording-finalize-recovery --integration --single-only`의 `FR09 single packet invalid interval cleans before ready without callback`이 실패할 것으로 예상한다. start=end invalid V1을 ready쓰기 전 incomplete로 정리하지 않고 recovery_pending으로 보존/차단하는 현재 로직이 원인이다. 실제 recorder 회귀77 pass/2 fail(rollback 새epoch 및 최소예약 분할)의 같은 시간범위 결함을 별도 focused로 재현하며, 환경/빌드 실패는 RED가 아니다.
+
+추가 path guard 예상 RED 사전 지정: `./server.sh verify-v410-recording-finalize-recovery --integration --path-only`의 `FR06 known Corrupt same metadata different stored path rejected`가 실패할 것으로 예상한다. 기존 Corrupt 재격리 분기에서 finalized 전용 path 검사를 건너뛰어 다른 디렉터리 ready를 수용하는 미구현 guard가 원인이다. 컴파일/환경/다른 assertion 오류는 예상 RED가 아니다.
+
+### FR integration 중간 128개 실행 결과 (path/singlepacket 보완 전)
+
+명령 `./server.sh verify-v410-recording-finalize-recovery --integration`, exit0, pass128/fail0, elapsed29751ms. cleanup /private/tmp/media-server-finalize-tEPRym 삭제 전3933679 bytes, removed=true. token start/end/consumed 미집계(집계API 부재), source=실제 command stdout/Date.now. 아래 모든 행은 이 최종 동결 제품/fixture 실행 결과이며 이전 실패 이력은 별도로 보존한다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| FR integration 001 | FR09 actual H264 packet fixture | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 002 | FR09 writer start | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 003 | FR09 callback observes durable ready | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 004 | FR09 callback observes owned marker | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 005 | FR09 exact final bytes metadata | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 006 | FR09 completion actual bytes | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 007 | FR09 exactly one finalized callback | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 008 | FR09 successful cleanup and reservation completion | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 009 | FR09 writer start | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 010 | FR09 callback observes durable ready | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 011 | FR09 callback observes owned marker | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 012 | FR09 exact final bytes metadata | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 013 | FR10 failure occurs during Push and blocks later packet admission before Stop | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 014 | FR10 repeated Push while started cannot bypass recovery pending | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 015 | FR09 exactly one finalized callback | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 016 | FR10 failure blocks repeat admission and reservation release | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 017 | FR10 Stop preserves media ready marker | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 018 | FR10 recovery journal | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 019 | FR10 recovery Open preserves ready | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 020 | FR10 restart recovers callback failure original ID | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 021 | FR06 known journal | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 022 | FR06 known catalog | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 023 | FR06 known original metadata | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 024 | FR06 known ready | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 025 | FR06 temporary hold fixture | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 026 | FR06 durable diagnostic before rejected Mark preserves journal | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 027 | FR06 release fixture hold | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 028 | FR06 before Mark restart journal | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 029 | FR06 before Mark restart catalog | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 030 | FR06 diagnostic before Mark crash converges to Corrupt | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 031 | FR06 after Mark restart journal | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 032 | FR06 after Mark restart catalog | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 033 | FR06 after Mark crash repeat no append | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 034 | FR06 diagnostic conflict preserves original and journal | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 035 | FR16 event journal open | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 036 | FR16 event catalog open | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 037 | FR16 actual catalog mode | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 038 | FR12 original source registered | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 039 | FR12 durable Pending precedes remux | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 040 | FR11 actual MPEGTS remux ready | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 041 | FR11 actual tsdemux healthy | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 042 | FR12 ready contains derived epoch fixture | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 043 | FR12 raw mismatched event epoch recovery rejects without registration | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 044 | FR13 new event output recovered | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 045 | FR13 source and new output holds exactly once | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 046 | FR16 query contains source and recovered output | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 047 | FR14 recreate exact postcommit stale ready | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 048 | FR14 restart journal | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 049 | FR14 restart catalog | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 050 | FR14 Open restores source output holds | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 051 | FR14 committed replay no journal append | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 052 | FR14 committed recovery no duplicate holds | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 053 | FR15 bridge quota policy | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 054 | FR14 existing output terminal recovery no remux | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 055 | FR14 existing terminal releases all restored holds | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 056 | FR15 production bridge accepts event | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 057 | FR15 every actual bridge request carries ready metadata and reservation | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 058 | FR15 actual production bridge remux completes | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 059 | FR15 production bridge clears ready before terminal | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 060 | FR15 reservation exceed before ready emission | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 061 | FR15 reservation exceed cleans owned output only | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 062 | FR16 event journal open | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 063 | FR16 event catalog open | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 064 | FR16 actual catalog mode | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 065 | FR12 original source registered | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 066 | FR12 durable Pending precedes remux | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 067 | FR11 actual MPEGTS remux ready | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 068 | FR11 actual tsdemux healthy | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 069 | FR12 ready contains derived epoch fixture | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 070 | FR12 raw mismatched event epoch recovery rejects without registration | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 071 | FR13 new event output recovered | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 072 | FR13 source and new output holds exactly once | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 073 | FR16 query contains source and recovered output | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 074 | FR16 direct SQLite open | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 075 | FR16 direct SQLite prepare | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 076 | FR16 actual SQL lifecycle and exact codec metadata projection | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 077 | FR14 recreate exact postcommit stale ready | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 078 | FR14 restart journal | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 079 | FR14 restart catalog | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 080 | FR14 Open restores source output holds | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 081 | FR14 committed replay no journal append | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 082 | FR14 committed recovery no duplicate holds | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 083 | FR15 bridge quota policy | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 084 | FR14 existing output terminal recovery no remux | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 085 | FR14 existing terminal releases all restored holds | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 086 | FR15 production bridge accepts event | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 087 | FR15 every actual bridge request carries ready metadata and reservation | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 088 | FR15 actual production bridge remux completes | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 089 | FR15 production bridge clears ready before terminal | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 090 | FR15 reservation exceed before ready emission | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 091 | FR15 reservation exceed cleans owned output only | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 092 | FR15 failure journal | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 093 | FR15 failure catalog | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 094 | FR15 failure source | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 095 | FR15 failure quota policy | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 096 | FR15 failure request accepted | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 097 | FR15 failed Pending append prevents remux and releases source lease | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 098 | FR15 failed Pending append leaves original and replacement journal unchanged | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 099 | FR15 failed Pending append creates no ready | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 100 | FR15 failed Pending append released exact reservation for readmission | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 101 | FR06 size ready fixture | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 102 | FR06 size journal fixture | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 103 | FR06 size catalog fixture | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 104 | FR06 size definite corruption never finalized | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 105 | FR06 size corrupt original and ticket retained | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 106 | FR06 size repeat logical quarantine converges | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 107 | FR06 container ready fixture | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 108 | FR06 container journal fixture | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 109 | FR06 container catalog fixture | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 110 | FR06 container definite corruption never finalized | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 111 | FR06 container corrupt original and ticket retained | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 112 | FR06 container repeat logical quarantine converges | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 113 | FR06 two-links ready fixture | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 114 | FR06 two-links journal fixture | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 115 | FR06 two-links catalog fixture | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 116 | FR06 two-links definite corruption never finalized | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 117 | FR06 two-links corrupt original and ticket retained | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 118 | FR06 two-links repeat logical quarantine converges | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 119 | FR12 missing link journal | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 120 | FR12 missing link catalog | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 121 | FR12 missing link source | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 122 | FR12 missing durable link actual remux fixture | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 123 | FR12 missing durable Pending prevents inferred event registration | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 124 | FR12 mismatched durable event fixture | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 125 | FR12 mismatched durable event preserves output and journal | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 126 | FR11 unsupported MPEGTS codec metadata unavailable | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 127 | FR11 actual MPEGTS changed bytes definitely corrupt | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+| FR integration 128 | FR11 unclassified MPEGTS error unavailable preserves bytes and journal | pass | FR10 최초 실패 후 수정, TS 분류 정정 이력 위에 보존 |
+
+### FR 최초 및 중간 실행 이력
+
+FR05 root 예상 RED 사전등록: `./server.sh verify-v410-recording-finalize-recovery --integration --root-only`에서 `FR05 empty symlink root rejected without external mutation` 실패를 예상한다. ticket이 없는 symlink root에 현재 recovery가 성공0을 반환하는 strict root 검증 누락이며, 실제 외부 쓰기/등록 유출은 없다. empty normalized root 거부와 실제 빈 directory 허용도 함께 검증한다. 정상 root 입력 회귀 근거는 이 guard와 분리한다.
+
+event 두 번째 시도: 등록기35/0, C++140/0, application7/0까지 통과 후 내부 `verify_v410_event_storage_recording_runtime.mjs` compile에서 ClearFinalizeReady/WriteFinalizeReadyTicket/PreserveFinalizeReadyPartial undefined symbol로 전체 exit1. 이 실제 링크 실패는 신규 cpp 두 개의 nested wrapper 의존성 누락이며 common compile source에 recovery/inspector를 추가한다. runtime fixture 미실행, 이후 회귀 건너뜀. cleanup runtime `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_s05_storage_runtime_pasBw4` 0bytes removed=true, outer `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v410_event_recording.QIaVRX` 3353355bytes removed=true.
+
+event 회귀 첫 시도: `./server.sh verify-v410-event-recording` exit1, 제품 실행 전 S05 inventory 산술 gate에서 `1156 !== 1136` 실패. 모든 신규 ID는 이미 사전등록됐으나 summary의 B2b14가 실제18로 갱신되지 않았고 FR16 summary행이 빠졌다. B2b18/FR16으로 요약만 정정하며 verifier는 변경하지 않는다. cleanup /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v410_event_recording.yKG3C2 삭제 전0bytes removed=true. 후속 event 제품/assertions 및 뒤 회귀는 이 시도에서 건너뜀.
+
+recorder 최초 회귀: 명시 BUILD_DIR=/private/tmp/media-server-fr-recorder-jZnJQT로 `./server.sh verify-v410-recording-recorder` exit1, pass77/fail2. `PTS rollback 시 새 stream epoch`와 `예약 payload 상한 도달 시 keyframe 경계 재개와 실제 파일 크기 상한 유지` 실패. 각각 단일packet/최소payload 예약 fixture가 start=end invalid V1에도 true callback을 반환하던 문제를 확인했다. ready 작성 전 V1 invalid는 기존 incomplete cleanup/예약반환 처리로 수정하고, 기존 fixture는 두 packet 이상 양수구간 및 callback V1·실제size≤예약 검증으로 강화했다. cleanup 삭제 전3153518 bytes removed=true. 후속 회귀는 이 최초 run 뒤 건너뜀.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| Corrupt path 예상 RED | --integration --path-only exit1, pass12/fail1, 사전 지정 stored path assertion 일치. cleanup /private/tmp/media-server-finalize-h9rQH6 2800467 bytes removed=true | fail |
+| Corrupt path GREEN | FindSegmentMediaPath/Root exact guard 뒤 같은 명령 exit0 pass13/fail0. cleanup /private/tmp/media-server-finalize-2oSnmx 2799535 bytes removed=true | pass |
+| singlepacket 예상 RED | --integration --single-only exit1, pass9/fail1, 사전 지정 ready전 incomplete 정리 assertion 일치. cleanup /private/tmp/media-server-finalize-NQT1oP 2603943 bytes removed=true | fail |
+| singlepacket GREEN | ready쓰기 전 V1 invalid 정리 뒤 같은 명령 exit0 pass15/fail0. cleanup /private/tmp/media-server-finalize-BejYc3 2607014 bytes removed=true | pass |
+
+TS 원인 진단: 같은 integration의 진단 재현 exit1 pass126/fail1, 실제 `state=2`(Unavailable), `detail=demux-error-unclassified`. cleanup /private/tmp/media-server-finalize-xrZNhG 3933559 bytes removed=true. 좁은 `--integration --ts-probe` exit0에서 실제 filesrc→tsdemux bus `gst-stream-error-quark`, code1, `Internal data stream error.` 관측. 로컬 gsterror.h의 GST_STREAM_ERROR_FAILED 일반오류이므로 확정손상 allowlist(DEMUX/FORMAT) 밖이며 제품 Unavailable 계약은 맞다. 이 진단 exit0은 정상 미디어 PASS가 아니다. probe cleanup /private/tmp/media-server-finalize-2PclwE 2434312 bytes removed=true.
+
+FR10 OpenLocked 입구 guard 수정 뒤 integration100 pass/0 fail(exit0), cleanup /private/tmp/media-server-finalize-qR4Wnz 3537528 bytes removed=true. 기본 FR07 fixture의 initial final 작성→catalog seed→final 제거 순서를 메인이 수정한 뒤 focused20 pass/0 fail(exit0), cleanup /private/tmp/media-server-finalize-wwtG2O 2534177 bytes removed=true. 두 최초 실패를 최종 결과로 덮어쓰지 않는다.
+
+FR11 추가 integration 실제 실패: `./server.sh verify-v410-recording-finalize-recovery --integration` exit1, pass126/fail1. `FR11 hash matching malformed MPEGTS rejected by actual demux`에서 2048개 `x` 바이트와 일치하는 SHA/size를 가진 TS가 Corrupt로 판정되지 않았다. state/detail은 해당 최초 실행에서 출력하지 않아 원인 미확인; 진단 출력으로 재현 후 판정한다. cleanup /private/tmp/media-server-finalize-9VCqKs 삭제 전3933557 bytes, removed=true. 관련 회귀 미실행 유지.
+
+FR10 강화 integration 실제 실패: `./server.sh verify-v410-recording-finalize-recovery --integration` exit1, pass12/fail1, `FR10 failure occurs during Push and blocks later packet admission before Stop`. Push의 분할 FinalizeLocked가 recovery_pending을 설정해도 같은 호출에서 OpenLocked를 다시 실행하여 admission이 추가되는 제품 결함을 확인했다. OpenLocked 입구에 같은 guard를 적용한 뒤 동일 단계 재검증한다. cleanup /private/tmp/media-server-finalize-pWZgw2, 삭제 전2567355 bytes, removed=true. 뒤 integration 항목/회귀는 해당 run에서 건너뜀. 최초 integration82 pass는 Stop에서만 callback 실패를 발생시킨 이전 fixture 범위이며 이 Push 분기 통과 evidence가 아니다.
+
+기본 FR 경계 확장 첫 실행은 `./server.sh verify-v410-recording-finalize-recovery` exit1: 기본1 pass + boundary16 pass/3 fail. FR07 pending/deleted/conflict 세 항목 모두 fixture catalog 등록 중 `media path가 recording root 밖이거나 파일이 없음`으로 실패했다. 이는 예상 RED가 아닌 실제 fixture 실패다. 해당 단계 수정·재검증 전 integration/회귀는 건너뜀. cleanup `/private/tmp/media-server-finalize-Uj9J4J` 삭제 전2514073 bytes, removed=true. FR01 강화 편집과 compile 시작이 겹쳐 이 실행이 강화 assertion까지 포함했는지는 미확인; 최신 동결본으로 재검증한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| FR 최초 RED | `./server.sh verify-v410-recording-finalize-recovery` exit1, `ready partial recovers original segment ID` fail1/pass0, 예상된 미구현 assertion. elapsed7968ms | fail |
+| FR 최초 GREEN | 같은 명령 exit0, 같은 assertion pass1/fail0, elapsed14573ms. 후속 quarantine binding 및 reservation 상한 보완 이전 코드의 단일 경로만 확인 | pass |
+| RED cleanup | /private/tmp/media-server-finalize-O2dAI6, 삭제 전1481237 bytes, removed=true | pass |
+| GREEN cleanup | /private/tmp/media-server-finalize-MdQr6l, 삭제 전1648959 bytes, removed=true | pass |
+
+token start/end/consumed는 집계 API 부재로 미집계. elapsed는 Date.now 실행 전~완료 확인(도구 왕복 포함). 위 임시 경로는 삭제 증적 식별값이지 최종 evidence 링크가 아니다. 최초 GREEN은 FR 전수 완료가 아니며, 후속 변경 재검증 및 FR02~16/관련 회귀는 아직 미실행이다.
+
+
 ## B2b callback 상한 추가 사전 등록 (2026-09-10)
 
 | 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |

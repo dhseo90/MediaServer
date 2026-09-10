@@ -117,7 +117,7 @@ bool MetadataSupported(const RecordingSegmentV1& segment) {
             return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
         })) return false;
     return segment.video_codecs.size() == 1 &&
-        ((segment.container == "mp4" && segment.video_codecs.front() == "h264") ||
+        (((segment.container == "mp4" || segment.container == "mpegts") && segment.video_codecs.front() == "h264") ||
          (segment.container == "webm" && segment.video_codecs.front() == "vp8"));
 }
 struct DemuxContext {
@@ -195,7 +195,8 @@ MediaInspectionResult Demux(Binding& binding, const RecordingSegmentV1& segment,
     if (!gst_init_check(nullptr,nullptr,&init_error)) { if (init_error) g_error_free(init_error); return Unavailable("gstreamer-init"); }
     GstElement* pipeline = gst_pipeline_new(nullptr);
     GstElement* source = gst_element_factory_make("appsrc",nullptr);
-    GstElement* demux = gst_element_factory_make(segment.container == "mp4" ? "qtdemux" : "matroskademux",nullptr);
+    GstElement* demux = gst_element_factory_make(segment.container == "mpegts" ? "tsdemux" :
+        (segment.container == "mp4" ? "qtdemux" : "matroskademux"),nullptr);
     if (!pipeline || !source || !demux) {
         if (pipeline) gst_object_unref(pipeline);
         if (source) gst_object_unref(source);
@@ -203,7 +204,7 @@ MediaInspectionResult Demux(Binding& binding, const RecordingSegmentV1& segment,
         return Unavailable("plugin-unavailable");
     }
     DemuxContext context{binding.file_fd.value,static_cast<guint64>(binding.file_stat.st_size),0,deadline,pipeline,
-        segment.container == "mp4" ? "video/x-h264" : "video/x-vp8",{}};
+        segment.container == "webm" ? "video/x-vp8" : "video/x-h264",{}};
     GstAppSrcCallbacks callbacks{}; callbacks.need_data = NeedData; callbacks.seek_data = SeekData;
     gst_app_src_set_callbacks(GST_APP_SRC(source),&callbacks,&context,nullptr);
     gst_app_src_set_stream_type(GST_APP_SRC(source),GST_APP_STREAM_TYPE_RANDOM_ACCESS);

@@ -17,6 +17,8 @@ fi
   "${ROOT_DIR}/src/recording/recording_journal.cpp" \
   "${ROOT_DIR}/src/recording/recording_contracts.cpp" \
   "${ROOT_DIR}/src/recording/recording_catalog.cpp" \
+ "${ROOT_DIR}/src/recording/recording_finalize_recovery.cpp" \
+ "${ROOT_DIR}/src/recording/recording_media_inspector.cpp" \
   "${ROOT_DIR}/src/recording/analysis_observation_projector.cpp" \
   "${ROOT_DIR}/src/analysis/object_tracker.cpp" \
   "${ROOT_DIR}/src/analysis/category_tokens.cpp" \

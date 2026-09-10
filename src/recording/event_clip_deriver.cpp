@@ -565,10 +565,31 @@ EventClipDeriveResult GStreamerEventClipDeriver::Derive(
             event_fd.value, partial_name, marker_name);
         return result;
     }
+    result.size_bytes = static_cast<std::uint64_t>(output_status.st_size);
+    result.actual_range = {measured_start, measured_end};
+    result.container = "mpegts";
+    result.video_codecs = first.video_codecs;
+    result.audio_codecs = first.audio_codecs;
+    result.audio_omitted_reason = first.audio_omitted_reason;
+    if(request.max_output_bytes>0&&result.size_bytes>request.max_output_bytes){
+        result.error="event-reservation-exceeded";
+        result.cleanup_complete=CleanupUnpublishedOutput(event_fd.value,partial_name,marker_name);
+        return result;
+    }
+    if(request.ready_link){
+        result.ready_ticket=FinalizeReadyTicket{BuildEventClipSegment(request,result),
+            result.partial_path.lexically_relative(request.output_root),
+            result.media_path.lexically_relative(request.output_root),request.ready_link};
+        if(!WriteFinalizeReadyTicket(request.output_root,*result.ready_ticket,&result.error)){
+            result.cleanup_complete=false;
+            return result;
+        }
+    }
     if (::linkat(event_fd.value, partial_name.c_str(),
                  event_fd.value, final_name.c_str(), 0) != 0) {
         // EEXIST 등 no-replace 실패 시 기존 final은 이 호출 소유가 아니므로 삭제하지 않는다.
         result.error = "event remux final no-replace publish 실패";
+        if(result.ready_ticket){result.cleanup_complete=false;return result;}
         result.cleanup_complete = CleanupUnpublishedOutput(
             event_fd.value, partial_name, marker_name);
         return result;
@@ -577,6 +598,7 @@ EventClipDeriveResult GStreamerEventClipDeriver::Derive(
         ::unlinkat(event_fd.value, partial_name.c_str(), 0) != 0 ||
         ::fsync(event_fd.value) != 0) {
         result.error = "event remux publish fsync 또는 partial 정리 실패";
+        if(result.ready_ticket){result.cleanup_complete=false;return result;}
         result.cleanup_complete = CleanupFailedOutput(
             event_fd.value, final_name, partial_name, marker_name);
         return result;
@@ -592,6 +614,31 @@ EventClipDeriveResult GStreamerEventClipDeriver::Derive(
     result.ok = true;
     return result;
 #endif
+}
+
+RecordingSegmentV1 BuildEventClipSegment(const EventClipDeriveRequest& request,
+                                       const EventClipDeriveResult& result) {
+    RecordingSegmentV1 segment;
+    segment.segment_id=request.output_segment_id;
+    segment.source_id=request.source_id;
+    segment.channel_id=request.channel_id;
+    segment.stream_epoch_id=request.output_epoch_id;
+    segment.start.utc_ms=result.actual_range.start_ms;
+    segment.start.pts=0;
+    segment.end.utc_ms=result.actual_range.end_ms;
+    const __int128 duration=(static_cast<__int128>(result.actual_range.end_ms)-result.actual_range.start_ms)*1000000;
+    segment.end.pts=static_cast<std::int64_t>(std::max<__int128>(1,std::min<__int128>(duration,std::numeric_limits<std::int64_t>::max())));
+    segment.container=result.container;
+    segment.video_codecs=result.video_codecs;
+    segment.audio_codecs=result.audio_codecs;
+    segment.audio_omitted_reason=result.audio_omitted_reason;
+    segment.size_bytes=result.size_bytes;
+    segment.checksum_sha256=result.checksum_sha256;
+    segment.retention_class=RecordingRetentionClass::Event;
+    segment.lifecycle=RecordingLifecycle::Finalized;
+    segment.created_at_ms=request.created_at_ms;
+    segment.finalized_at_ms=request.created_at_ms;
+    return segment;
 }
 
 }  // namespace recording

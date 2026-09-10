@@ -22,6 +22,8 @@ read -r -a PKG_LIBS <<<"$(pkg-config --libs sqlite3 openssl)"
   "${ROOT_DIR}/src/recording/event_clip_deriver.cpp" \
   "${ROOT_DIR}/src/recording/recording_journal.cpp" \
   "${ROOT_DIR}/src/recording/recording_catalog.cpp" \
+ "${ROOT_DIR}/src/recording/recording_finalize_recovery.cpp" \
+ "${ROOT_DIR}/src/recording/recording_media_inspector.cpp" \
   "${ROOT_DIR}/src/recording/retention_coordinator.cpp" \
   "${ROOT_DIR}/src/recording/recording_contracts.cpp" \
   "${ROOT_DIR}/src/domain/strict_json.cpp" \

@@ -1100,6 +1100,51 @@ git commit -m "feat: 녹화 검색용 분석 관측 저장 추가"
 
 ## Task 8: V410-S08 crash 복구, 손상 격리와 후속 버전 호환성 gate
 
+### S08 잔여 전체 실행 승인 (2026-09-10)
+
+**최신 목표로 갱신:** S08 잔여 전체 완료 후 커밋·푸시하고 S09도 진행한다.
+이 목표의 실패는 AGENTS.md 3.3에 따라 기록 후 동일 단계에서 수정·재검증하며,
+통과 전에 뒤 단계로 넘어가지 않는다. 아래 최초 승인 기록보다 최신 목표를 우선한다.
+120분 검증 질문에 대한 사용자 `진행`에 따라
+`verify-predev --soak-minutes 120` 실행은 승인됐다. 2026-09-11 실행 시점 정정:
+S08은 단기·관련 회귀로 닫고, 장시간·UI 검증은 S09 통합 구현 후 최종 코드에서
+수행한다. 동일 코드·환경·범위의 유효한 증거는 릴리즈 시 중복 실행하지 않는다.
+기존 predev 장시간 검사는 녹화 직접 관찰을 대체하지 않는다. 녹화 전용 120분,
+30분·UI 풀테스트 및 PR/main merge/tag/release는 아직 별도 명시 승인되지 않았다.
+사용자의 실행 이유 질문은 새 테스트 실행 승인으로 해석하지 않는다.
+
+사용자 `S08 잔여이슈 다 끝내고 보고`에 따라 기준 `f3736adf`에서 다음 세 묶음을
+순차 개발·검증한다. 기존 B2b는 완료·푸시된 기준이며 재구현하지 않는다.
+이 최초 승인에는 commit/push, S09 또는 버전 전체 장시간/UI 풀테스트가 포함되지
+않았으나, 현재 권한과 실행 시점은 위 최신 목표 및 정정을 따른다.
+
+1. **구현·단계 검증 완료 (2026-09-11)** — 최종화 복구: 완결된 media의 정확한 V1 metadata·checksum·소유 경로를 publish 전에
+   내구 ticket으로 저장한다. 기존 cleanup이 ready partial을 먼저 삭제하지 못하게 한다.
+   provenance 없는 orphan을 추정 등록하지 않으며 동일 ID와 tombstone을 우선한다.
+   이벤트 MPEG-TS와 Pending link/source/output 결속도 포함한다.
+2. **미구현** — 시작 복구 연결: 원장 복원 후 ready 복구·known media 검사·삭제 대기 처리를 수행하고
+   결과를 확인한 뒤 녹화를 시작한다. 기존 event hold/terminal release 계약을 유지한다.
+3. **시작 연결 후 미실행** — 종합 검증: crash 지점·손상·디스크 실패·중복 재시작과 S01~S07 관련 회귀, V1
+   golden 호환성 및 실제 시작 연결을 확인하고 구현 위치·실행 기록을 대조한다.
+
+1번 구현 위치는 `recording_finalize_recovery.h/.cpp`, writer, event deriver/bridge,
+catalog cleanup/recovery API, inspector MPEG-TS 연결이다. 기본20·통합140·root5와
+S01~S07 관련 회귀·전체 build·문서 링크·diff 검사가 통과했다. 개별 결과와 최초 실패
+수정 이력, 임시 root39개 정리는 `release-test-records.md`의 S08 finalize 최신 검증을
+따른다. 공개 V1·이벤트 payload·권한·기존 재생 계약은 변경하지 않았다.
+이는 1번 묶음의 분할 커밋 조건이며, startup 미구현을 S08 전체 완료로 확대하지 않는다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | S08 잔여 전체 개발·검증 지시 | Task 8 Step 1~5, 사전 등록할 finalize/startup case | 현재 개발 범위 focused·관련 회귀·전체 build |
+| 30분 테스트 | 미진행 | 이번 요청은 S08 개발이며 버전 전체 close-out은 아님 | AGENTS.md 7.6.2·7.7 | 별도 실행 승인 없음; 버전 완료 필수 blocker는 유지 |
+| 120분 테스트 | 진행 대상 | writer publish 및 시작·cleanup lifecycle을 직접 변경 예정 | gstreamer_segment_writer.cpp, media_server_application.cpp, AGENTS.md 7.6.2 조건4 | S09 최종 코드에서 실행; predev 승인됨, 녹화 전용 검사 미승인. S08 중간 단계에서 중복 실행하지 않음 |
+| UI 풀테스트 | 미진행 | 이번 변경은 내부 복구이며 새 UI control 없음 | Task 8 구현 경계 | 별도 실행 승인 없음; 버전 완료 필수 blocker는 유지 |
+
+Codex 담당은 기존 단일 `gpt-6-astra` / `medium` 재사용이다. 최종화는2/2/2/2=8,
+startup은2/1/2/2=7, 종합 대조는2/1/2/1=6점이며 자동 상향하지 않는다.
+메인은 계약·diff·완료 판정을 담당하고 하위 에이전트 생성을 금지한다.
+
 ### 2026-09-10 착수 범위: B2b 실제 파일 검사
 
 최신 지시 `다음 진행할 이슈 개발 시작`은 다음 잔여 항목인 실제 영상 손상 검사에
@@ -1212,10 +1257,18 @@ cleanup marker의 partial leaf만으로 source/channel/epoch/시간을 복원할
 복구 성공은 단순 container magic 판정이 아니라 실제 완결성·checksum·범위·소유권으로
 확인하며, 새 ID 발급도 삭제된 원본 ID의 재생성 우회 수단으로 사용하지 않는다.
 
-복구는 journal replay를 먼저 수행하고 filesystem scan을 대조한다. `.partial`은 container
-검사가 안전하게 완료 가능한 경우에만 새 ID로 publish하고, 아니면 `corrupt` record와
-격리 경로만 남긴다. final orphan은 checksum/container/range를 검증한 뒤 recovered
-mutation을 쓴다.
+복구는 journal replay를 먼저 수행하고 filesystem scan을 대조한다. 완결된 `.partial`과
+final orphan은 유효한 내구 ticket의 원래 ID·메타데이터·소유 경로가 확인되고
+checksum/container/range 검사를 통과할 때만 no-replace publish 및 catalog 반영을 한다.
+새 ID를 추정 발급하지 않는다. ticket 없는 orphan은 정상 등록하지 않는다.
+손상이 확정된 미등록 파일은 정상 등록을 거치지 않고 격리 증거를 남기며,
+이미 등록된 파일의 손상 상태 전이는 기존 hold·Pending 보호를 따른다.
+검사 불가나 provenance 충돌은 손상 확정으로 대체하지 않고 원본 보존·오류로 구분한다.
+격리는 원위치 논리 격리로 수행한다. 정확한 ticket·파일 binding에 대한 내구 손상
+진단을 보존하고 정상 등록·재생을 차단한다. 진단 저장과 known ID 손상 상태 기록
+사이에서 중단돼도 동일 정보로 재시작이 수렴해야 하며, 파일 이동 도중의 영구 복구
+오류를 합격으로 처리하지 않는다. ready/cleanup marker는 보존하여 완성된 partial의
+기존 cleanup 삭제를 막는다. 충돌·검사 불가·보호된 Pending 참조는 오류로 구분한다.
 
 `deletion_pending`은 media 존재 여부에 따라 unlink 재시도 또는 tombstone completion으로
 수렴한다. 삭제 완료 뒤 같은 ID media를 다시 생성하지 않는다.

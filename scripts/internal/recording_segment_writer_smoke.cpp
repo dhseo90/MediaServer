@@ -30,7 +30,7 @@ int failures = 0;
 int passes = 0;
 
 void Expect(bool condition, const std::string& label) {
-    if (condition) ++passes;
+    if (condition) { ++passes; std::cout << "[pass] " << label << '\n'; }
     else { ++failures; std::cerr << "[fail] " << label << '\n'; }
 }
 
@@ -253,6 +253,7 @@ int main(int argc, char** argv) {
                                 std::string path,
                                 std::string*) {
                                 const std::filesystem::path final_path(path);
+                                Expect(recording::ValidateRecordingSegmentV1(segment, nullptr), "callback finalized V1 양수 시간구간 검증");
                                 Expect(std::filesystem::exists(final_path), "callback 시 final 파일 존재");
                                 Expect(!std::filesystem::exists(final_path.string() + ".partial"), "callback 시 partial 제거");
                                 finalized.push_back(std::move(segment));
@@ -325,8 +326,11 @@ int main(int argc, char** argv) {
             std::vector<std::string> epochs;
             Expect(rollback_writer.Start("channel-2", "epoch-base", descriptor,
                                          [&](recording::RecordingSegmentV1 segment,
-                                             std::string,
+                                             std::string path,
                                              std::string*) {
+                                             Expect(recording::ValidateRecordingSegmentV1(segment, nullptr) &&
+                                                        std::filesystem::file_size(path) == segment.size_bytes,
+                                                    "rollback finalized V1과 실제 파일 크기 일치");
                                              epochs.push_back(segment.stream_epoch_id);
                                              return true;
                                          },
@@ -338,6 +342,10 @@ int main(int argc, char** argv) {
             rollback_key.is_key_frame = true;
             rollback_writer.Push(rollback_key, 20000);
             Expect(!rollback_writer.TimeSnapshot(), "S07 rollback 모호한 시간 위치 없음");
+            auto rollback_delta = packets[1];
+            rollback_delta.pts = packets[1].pts - base_pts;
+            rollback_delta.dts = rollback_delta.pts;
+            rollback_writer.Push(rollback_delta, 20000 + rollback_delta.pts / 1000000);
             rollback_writer.Stop();
             Expect(epochs.size() >= 2 && epochs.back().find("-r1") != std::string::npos,
                    "PTS rollback 시 새 stream epoch");
@@ -452,10 +460,13 @@ int main(int argc, char** argv) {
             std::vector<std::uint64_t> bounded_reservations;
             std::vector<std::uint64_t> bounded_actual_bytes;
             std::size_t bounded_finalized_count = 0;
+            std::uint64_t largest_packet = 0;
+            for (const auto& packet : packets) largest_packet = std::max<std::uint64_t>(largest_packet, packet.payload.size());
             bounded_options.admit_segment =
                 [&](const std::string&, std::uint64_t minimum_bytes) {
-                    bounded_reservations.push_back(minimum_bytes);
-                    return recording::SegmentAdmissionDecision{true, false, minimum_bytes};
+                    const auto reservation = std::max(minimum_bytes, bounded_options.container_overhead_reservation_bytes + 2 * largest_packet);
+                    bounded_reservations.push_back(reservation);
+                    return recording::SegmentAdmissionDecision{true, false, reservation};
                 };
             bounded_options.complete_segment =
                 [&](const std::string&, std::uint64_t actual_bytes) {
@@ -464,9 +475,13 @@ int main(int argc, char** argv) {
             recording::GStreamerSegmentWriter bounded_writer(bounded_options);
             Expect(bounded_writer.Start(
                        "channel-bounded", "epoch-bounded", descriptor,
-                       [&](recording::RecordingSegmentV1,
-                           std::string,
+                       [&](recording::RecordingSegmentV1 segment,
+                           std::string path,
                            std::string*) {
+                           Expect(recording::ValidateRecordingSegmentV1(segment, nullptr) &&
+                                      std::filesystem::file_size(path) == segment.size_bytes &&
+                                      segment.size_bytes <= bounded_reservations.back(),
+                                  "bounded finalized V1과 실제 파일 예약 상한 검증");
                            ++bounded_finalized_count;
                            return true;
                        }, &error),
@@ -523,11 +538,13 @@ int main(int argc, char** argv) {
             }
             catalog_failure_writer.Stop();
             Expect(catalog_failure_callbacks == 1 &&
-                       catalog_failure_completions == 1 &&
-                       catalog_failure_actual_bytes > 0 &&
-                       CountSuffix(catalog_failure_root, ".mp4") == 0 &&
+                       catalog_failure_completions == 0 &&
+                       catalog_failure_actual_bytes == 0 &&
+                       CountSuffix(catalog_failure_root, ".mp4") == 1 &&
+                       CountSuffix(catalog_failure_root, ".finalize-ready") == 1 &&
+                       CountSuffix(catalog_failure_root, ".cleanup-pending") == 1 &&
                        CountSuffix(catalog_failure_root, ".partial") == 0,
-                   "catalog journal/finalize 실패 파일을 제거하고 실제 크기로 예약 반환");
+                   "catalog journal/finalize 실패는 ready와 final을 보존하고 예약 유지");
 
             for (const bool use_symlink : {true, false}) {
                 const std::string attack_kind = use_symlink ? "symlink" : "hardlink";

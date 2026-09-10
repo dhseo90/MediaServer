@@ -12,6 +12,8 @@ trap cleanup EXIT
 "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"${ROOT_DIR}/include" \
   "${SCRIPT_DIR}/recording_recovery_smoke.cpp" "${ROOT_DIR}/src/recording/recording_journal.cpp" \
   "${ROOT_DIR}/src/recording/recording_catalog.cpp" "${ROOT_DIR}/src/recording/retention_coordinator.cpp" \
+ "${ROOT_DIR}/src/recording/recording_finalize_recovery.cpp" \
+ "${ROOT_DIR}/src/recording/recording_media_inspector.cpp" \
   -DMEDIA_SERVER_USE_SQLITE3=0 \
   "${ROOT_DIR}/src/recording/recording_contracts.cpp" "${ROOT_DIR}/src/domain/strict_json.cpp" \
   -o "${BUILD_DIR}/recording_recovery_smoke"

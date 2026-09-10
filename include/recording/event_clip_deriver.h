@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "recording/recording_contracts.h"
+#include "recording/recording_finalize_recovery.h"
 
 namespace recording {
 
@@ -26,6 +27,10 @@ struct EventClipDeriveRequest {
     UtcRangeV1 requested_range;
     std::vector<EventClipSource> sources;
     std::filesystem::path output_root;
+    std::string output_epoch_id;
+    std::int64_t created_at_ms{0};
+    std::optional<EventRecordingLinkV1> ready_link;
+    std::uint64_t max_output_bytes{0}; // 0은 standalone remux 호출의 기존 무상한 의미.
 };
 
 struct EventClipDeriveResult {
@@ -43,7 +48,11 @@ struct EventClipDeriveResult {
     std::uint64_t size_bytes{0};
     std::string checksum_sha256;
     std::string error;
+    std::optional<FinalizeReadyTicket> ready_ticket;
 };
+
+RecordingSegmentV1 BuildEventClipSegment(const EventClipDeriveRequest& request,
+                                       const EventClipDeriveResult& result);
 
 class EventClipDeriver {
 public:

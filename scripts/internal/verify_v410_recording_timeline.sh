@@ -37,6 +37,8 @@ case "$MODE" in
       "$ROOT_DIR/src/ingress/recording_application_service.cpp" \
       "$ROOT_DIR/src/recording/recording_journal.cpp" \
       "$ROOT_DIR/src/recording/recording_catalog.cpp" \
+ "$ROOT_DIR/src/recording/recording_finalize_recovery.cpp" \
+ "$ROOT_DIR/src/recording/recording_media_inspector.cpp" \
       "$ROOT_DIR/src/recording/retention_coordinator.cpp" \
       "$ROOT_DIR/src/recording/recording_contracts.cpp" \
       "$ROOT_DIR/src/domain/strict_json.cpp" \

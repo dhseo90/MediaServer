@@ -96,6 +96,11 @@ public:
     bool FinalizeSegmentWithHold(const RecordingSegmentV1& segment,
                                  const std::string& media_path,
                                  std::string* error);
+    // Open 후 생산자 시작 전 ready 복구 전용. existing output hold는 재취득하지 않는다.
+    bool RecoverFinalizedSegment(const RecordingSegmentV1& segment,const std::string& media_path,
+                                 const std::optional<EventRecordingLinkV1>& event_link,bool* inserted,std::string* error);
+    bool ValidateFinalizeRecovery(const RecordingSegmentV1& segment,const std::string& media_path,
+                                  const std::optional<EventRecordingLinkV1>& event_link,std::string* error) const;
     bool PutEventLink(const EventRecordingLinkV1& link, std::string* error) override;
     bool PutObservation(const AnalysisObservationV1& observation, std::string* error) override;
     bool PutObservationV2(AnalysisObservationV2 observation, std::string* error);

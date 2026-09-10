@@ -1,5 +1,27 @@
 # Project Feature Test Inventory
 
+## V410 S08 finalize 복구 사전 등록
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
+| --- | --- | --- | --- | --- | --- |
+| V410-S08-FR-01 | ready partial을 기존 cleanup이 보존하고 원래ID로 복구 | finalize recovery focused 및 승인회귀 | 비대상: 이번단계 | 비대상: 별도승인분리 | 비대상: 내부복구 |
+| V410-S08-FR-02 | publish 전후 final/partial 및 동일inode nlink2 crash 멱등 | finalize recovery focused 및 승인회귀 | 비대상: 이번단계 | 비대상: 별도승인분리 | 비대상: 내부복구 |
+| V410-S08-FR-03 | catalog commit 뒤 ticket 잔여 재시작 noappend/identity 보존 | finalize recovery focused 및 승인회귀 | 비대상: 이번단계 | 비대상: 별도승인분리 | 비대상: 내부복구 |
+| V410-S08-FR-04 | ticket version/중복키/metadata/nonce/path strict 거부 및 원본보존 | finalize recovery focused 및 승인회귀 | 비대상: 이번단계 | 비대상: 별도승인분리 | 비대상: 내부복구 |
+| V410-S08-FR-05 | symlink/hardlink/경로escape/권한I/O 검사불가 보존 | finalize recovery focused 및 승인회귀 | 비대상: 이번단계 | 비대상: 별도승인분리 | 비대상: 내부복구 |
+| V410-S08-FR-06 | size/checksum/container 손상 확정 시 원위치 논리 격리, binding 내구진단→Mark 전후 재시작 수렴 및 정상등록 금지 | finalize recovery focused 및 승인회귀 | 비대상: 이번단계 | 비대상: 별도승인분리 | 비대상: 내부복구 |
+| V410-S08-FR-07 | tombstone/DeletionPending/Corrupt 우선 및 동일ID 충돌 거부 | finalize recovery focused 및 승인회귀 | 비대상: 이번단계 | 비대상: 별도승인분리 | 비대상: 내부복구 |
+| V410-S08-FR-08 | provenance없는 orphan 등록금지 및 ticket없는 기존cleanup 유지 | finalize recovery focused 및 승인회귀 | 비대상: 이번단계 | 비대상: 별도승인분리 | 비대상: 내부복구 |
+| V410-S08-FR-09 | continuous 실제writer ready 순서/성공정리/reservation; 단일packet invalid ready전 정리 및 다음 양수구간 재개 | finalize recovery focused 및 승인회귀 | 비대상: 이번단계 | 진행 대상: 버전 최종코드에서 기존 승인 predev120, 녹화 직접관찰 묶음 별도승인 대기 | 비대상: 내부복구 |
+| V410-S08-FR-10 | ready 이후 callback실패 보존/반복write차단/Stop무삭제 | finalize recovery focused 및 승인회귀 | 비대상: 이번단계 | 진행 대상: 버전 최종코드에서 기존 승인 predev120, 녹화 직접관찰 묶음 별도승인 대기 | 비대상: 내부복구 |
+| V410-S08-FR-11 | 실제 MPEGTS tsdemux Healthy·checksum 변조 Corrupt·지원외 codec 및 일반 demux 오류 Unavailable/원본 보존 | finalize recovery focused 및 승인회귀 | 비대상: 이번단계 | 비대상: 별도승인분리 | 비대상: 내부복구 |
+| V410-S08-FR-12 | event source/link/output/epoch/요청범위 strict provenance | finalize recovery focused 및 승인회귀 | 비대상: 이번단계 | 비대상: 별도승인분리 | 비대상: 내부복구 |
+| V410-S08-FR-13 | event 새output recovery output/sourcehold 재구성·재시작중복금지 | finalize recovery focused 및 승인회귀 | 비대상: 이번단계 | 비대상: 별도승인분리 | 비대상: 내부복구 |
+| V410-S08-FR-14 | event 기존output Open복원hold 추가취득금지·terminalrelease | finalize recovery focused 및 승인회귀 | 비대상: 이번단계 | 비대상: 별도승인분리 | 비대상: 내부복구 |
+| V410-S08-FR-15 | Pending 선행기록실패 lease/reservation 정리 및 remux 금지 | finalize recovery focused 및 승인회귀 | 비대상: 이번단계 | 비대상: 별도승인분리 | 비대상: 내부복구 |
+| V410-S08-FR-16 | SQLite/fallback 복구parity 및 repeat crash identity/digest불변 | finalize recovery focused 및 승인회귀 | 비대상: 이번단계 | 비대상: 별도승인분리 | 비대상: 내부복구 |
+
+
 ## V410 S08-B2b 실제 media 검사 (실행 전 등록)
 
 | 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
@@ -15,7 +37,7 @@
 | V410-S08-B2b-09 | 파일 변경 감지 unavailable | media inspector focused | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
 | V410-S08-B2b-10 | held/pending/deleted 상태 적용 거부 | media inspector focused | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
 | V410-S08-B2b-11 | 확정손상 적용·replay Corrupt | media inspector focused | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
-| V410-S08-B2b-12 | 지원외container/codec/잘못된checksum metadata unavailable; H264/MP4·VP8/WebM만 지원, request-limit은 손상 아님 | media inspector focused | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
+| V410-S08-B2b-12 | 지원외container/codec/잘못된checksum metadata unavailable; H264/MP4·H264/MPEGTS·VP8/WebM 지원, request-limit은 손상 아님 | media inspector focused 및 FR11 | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
 | V410-S08-B2b-13 | 예상영상stream/buffer/EOS 확인·metadata mismatch | media inspector focused | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
 | V410-S08-B2b-14 | GStreamer 없는 빌드 unavailable | media inspector focused | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
 | V410-S08-B2b-15 | qtdemux registry 제거 시 Unavailable/noappend, 복원 확인 | media inspector --boundaries | 비대상 | 비대상 | 비대상: 명시 내부 검사 |
@@ -144,8 +166,9 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | V410 S08-A V1 호환 신규 개별 ID | 8 |
 | V410 S08-B1 journal 신규 개별 ID | 17 |
 | V410 S08-B2a 상태 적용 신규 ID | 14 |
-| V410 S08-B2b media 검사 신규 ID | 14 |
-| 현재 등록 총계 | 1140 |
+| V410 S08-B2b media 검사 신규 ID | 18 |
+| V410 S08 finalize 복구 신규 ID | 16 |
+| 현재 등록 총계 | 1156 |
 
 이는 등록 합계이지 전 제품 발견·실행 완료 선언이 아니다. S01~S04의 신규 등록 정합성은
 이번 S05 보정에서 전수 감사하지 않았다.

@@ -16,7 +16,7 @@ struct MediaInspectionResult {
     bool applied{false};
     std::string apply_error;
 };
-// Healthy는 stored SHA256 및 예상 video buffer를 포함한 MP4/WebM demux 정상만 뜻한다.
+// Healthy는 stored SHA256 및 예상 video buffer를 포함한 MP4/WebM/MPEGTS demux 정상만 뜻한다.
 // 전체 codec decode 또는 같은권한 비협력 프로세스의 동시write 원자성을 보장하지 않는다.
 MediaInspectionResult InspectRecordingMedia(const std::filesystem::path& root,
     const std::filesystem::path& relative, const RecordingSegmentV1& segment,

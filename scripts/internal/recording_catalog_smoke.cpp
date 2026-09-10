@@ -21,7 +21,7 @@ int passes = 0;
 int failures = 0;
 
 void Expect(bool condition, const std::string& label) {
-    if (condition) ++passes;
+    if (condition) { ++passes; std::cout << "[pass] " << label << '\n'; }
     else { ++failures; std::cerr << "[fail] " << label << '\n'; }
 }
 

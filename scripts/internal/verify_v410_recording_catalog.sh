@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 BUILD_DIR="${MEDIA_SERVER_VERIFY_V410_RECORDING_CATALOG_BUILD_DIR:-/tmp/media_server_v410_recording_catalog-$$}"
 CXX_BIN="${CXX:-c++}"
-cleanup() { rm -rf "${BUILD_DIR}"; }
+cleanup() { node -e 'const f=require("fs"),p=require("path"),r=process.argv[1];function size(x){const s=f.lstatSync(x);return s.isDirectory()?f.readdirSync(x).reduce((n,k)=>n+size(p.join(x,k)),0):s.size}const bytes=f.existsSync(r)?size(r):0;f.rmSync(r,{recursive:true,force:true});if(f.existsSync(r))process.exit(1);console.log(`[cleanup] path=${r} bytes=${bytes} removed=true`)' "$BUILD_DIR"; }
 trap cleanup EXIT
 mkdir -p "${BUILD_DIR}"
 SQLITE_CFLAGS=()
@@ -21,6 +21,8 @@ fi
   "${SCRIPT_DIR}/recording_catalog_smoke.cpp" \
   "${ROOT_DIR}/src/recording/recording_journal.cpp" \
   "${ROOT_DIR}/src/recording/recording_catalog.cpp" \
+ "${ROOT_DIR}/src/recording/recording_finalize_recovery.cpp" \
+ "${ROOT_DIR}/src/recording/recording_media_inspector.cpp" \
   "${ROOT_DIR}/src/recording/retention_coordinator.cpp" \
   "${ROOT_DIR}/src/recording/recording_contracts.cpp" \
   "${ROOT_DIR}/src/domain/strict_json.cpp" \

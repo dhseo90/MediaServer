@@ -2,6 +2,8 @@
 // 동작 요약: partial 파일을 EOS까지 닫은 뒤 rename하고 finalized metadata를 callback한다.
 #include "recording/gstreamer_segment_writer.h"
 #include "recording/retention_coordinator.h"
+#include "recording/recording_finalize_recovery.h"
+#include <iostream>
 
 #include <chrono>
 #include <algorithm>
@@ -44,22 +46,30 @@ std::string SafeToken(std::string value) {
 }
 
 std::string FileSha256(const std::filesystem::path& path) {
-    std::ifstream input(path, std::ios::binary);
+    const int fd=::open(path.c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC);
+    struct stat before{},after{};
+    if(fd<0)return {};
+    if(::fstat(fd,&before)!=0||!S_ISREG(before.st_mode)||before.st_nlink!=1){::close(fd);return {};}
     GChecksum* checksum = g_checksum_new(G_CHECKSUM_SHA256);
     char buffer[64 * 1024];
-    while (input.good()) {
-        input.read(buffer, sizeof(buffer));
-        const auto count = input.gcount();
+    bool ok=true;
+    for (;;) {
+        const auto count=::read(fd,buffer,sizeof(buffer));
+        if(count<0&&errno==EINTR)continue;
+        if(count<0){ok=false;break;}
+        if(count==0)break;
         if (count > 0) {
             g_checksum_update(checksum,
                               reinterpret_cast<const guchar*>(buffer),
                               static_cast<gssize>(count));
         }
     }
+    ok=ok&&::fstat(fd,&after)==0&&before.st_dev==after.st_dev&&before.st_ino==after.st_ino&&before.st_size==after.st_size;
+    ::close(fd);
     const char* digest = g_checksum_get_string(checksum);
     const std::string result = digest != nullptr ? digest : std::string(64, '0');
     g_checksum_free(checksum);
-    return result;
+    return ok?result:std::string();
 }
 
 bool WriteCleanupMarkerDurably(const std::filesystem::path& storage_root,
@@ -127,6 +137,7 @@ public:
 
     void Push(const media::Packet& packet, std::int64_t utc_ms) {
         std::lock_guard lock(mu);
+        if (recovery_pending) return;
         if (!started || packet.kind != media::MediaKind::Video || packet.codec != video_track.codec) return;
 #if MEDIA_SERVER_USE_GSTREAMER
         if (has_last_pts && packet.pts < last_pts) {
@@ -184,6 +195,7 @@ private:
 
 #if MEDIA_SERVER_USE_GSTREAMER
     bool OpenLocked(const media::Packet& first, std::int64_t utc_ms) {
+        if (recovery_pending) return false;
         if (options.admit_segment) {
             SegmentAdmissionDecision decision;
             const std::uint64_t minimum_segment_bytes =
@@ -364,20 +376,10 @@ private:
             AbortSegmentFileLocked(partial_path, 0);
             return;
         }
-        std::error_code fs_error;
-        std::filesystem::rename(partial_path, final_path, fs_error);
-        if (fs_error) {
-            AbortSegmentFileLocked(partial_path, 0);
-            return;
-        }
-        current.size_bytes = std::filesystem::file_size(final_path, fs_error);
-        if (fs_error) {
-            AbortSegmentFileLocked(final_path, 0);
-            return;
-        }
+        current.size_bytes = static_cast<std::uint64_t>(output_status.st_size);
         if (reservation_active && current_reserved_bytes > 0 &&
             current.size_bytes > current_reserved_bytes) {
-            AbortSegmentFileLocked(final_path, current.size_bytes);
+            AbortSegmentFileLocked(partial_path, current.size_bytes);
             return;
         }
         if (options.report_segment_progress && reservation_active &&
@@ -388,9 +390,23 @@ private:
             } catch (...) {
             }
         }
-        current.checksum_sha256 = FileSha256(final_path);
+        current.checksum_sha256 = FileSha256(partial_path);
         current.lifecycle = RecordingLifecycle::Finalized;
         current.finalized_at_ms = NowMs();
+        if(current.checksum_sha256.size()!=64){AbortSegmentFileLocked(partial_path,current.size_bytes);return;}
+        // 양수 시간구간이 없는 단일 packet은 ready 작성 전의 미완결 출력이다.
+        // ticket 작성을 시도한 이후의 불확실 보존/차단 경계와 구분한다.
+        if (!ValidateRecordingSegmentV1(current, nullptr)) {
+            AbortSegmentFileLocked(partial_path, current.size_bytes);
+            return;
+        }
+        FinalizeReadyTicket ready{current,partial_path.lexically_relative(options.storage_root),final_path.lexically_relative(options.storage_root),std::nullopt};
+        std::string ready_error;
+        if(!WriteFinalizeReadyTicket(options.storage_root,ready,&ready_error)||
+           !PublishFinalizeReady(options.storage_root,ready,&ready_error)){
+            BlockForRecoveryLocked();
+            return;
+        }
         bool finalized = true;
         if (callback) {
             std::string callback_error;
@@ -401,16 +417,22 @@ private:
             }
         }
         if (!finalized) {
-            AbortSegmentFileLocked(final_path, current.size_bytes);
+            BlockForRecoveryLocked();
             return;
         }
-        if (!ClearCleanupMarkerLocked()) {
-            admission_blocked = true;
-            segment_open = false;
+        if (!ClearFinalizeReady(options.storage_root,ready,&ready_error)) {
+            BlockForRecoveryLocked();
             return;
         }
         ReleaseReservationLocked(current.size_bytes);
         segment_open = false;
+    }
+
+    void BlockForRecoveryLocked() {
+        recovery_pending=true;
+        admission_blocked=true;
+        segment_open=false;
+        std::cerr<<"[recording] finalize recovery pending; writer admission blocked until restart\n";
     }
 
     bool ClearCleanupMarkerLocked() {
@@ -473,6 +495,7 @@ private:
     [[maybe_unused]] bool segment_open{false};
     [[maybe_unused]] bool has_last_pts{false};
     [[maybe_unused]] bool admission_blocked{false};
+    [[maybe_unused]] bool recovery_pending{false};
     [[maybe_unused]] bool reservation_active{false};
     [[maybe_unused]] std::uint64_t sequence{0};
     [[maybe_unused]] std::uint64_t epoch_revision{0};

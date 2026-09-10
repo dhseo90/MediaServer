@@ -9,7 +9,7 @@ BUILD_DIR="${MEDIA_SERVER_VERIFY_V410_RECORDING_CONTRACTS_BUILD_DIR:-/tmp/media_
 CXX_BIN="${CXX:-c++}"
 
 cleanup() {
-  rm -rf "${BUILD_DIR}"
+  node -e 'const f=require("fs"),p=require("path"),r=process.argv[1];function size(x){const s=f.lstatSync(x);return s.isDirectory()?f.readdirSync(x).reduce((n,k)=>n+size(p.join(x,k)),0):s.size}const bytes=f.existsSync(r)?size(r):0;f.rmSync(r,{recursive:true,force:true});if(f.existsSync(r))process.exit(1);console.log(`[cleanup] path=${r} bytes=${bytes} removed=true`)' "$BUILD_DIR"
 }
 trap cleanup EXIT
 

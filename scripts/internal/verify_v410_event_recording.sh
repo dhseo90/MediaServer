@@ -7,7 +7,7 @@ source "${SCRIPT_DIR}/env_common.sh"
 media_server_apply_homebrew_gst_env
 BUILD_DIR="$(mktemp -d "${TMPDIR:-/tmp}/media_server_v410_event_recording.XXXXXX")"
 CXX_BIN="${CXX:-c++}"
-cleanup() { rm -rf -- "${BUILD_DIR}"; }
+cleanup() { node -e 'const f=require("fs"),p=require("path"),r=process.argv[1];function size(x){const s=f.lstatSync(x);return s.isDirectory()?f.readdirSync(x).reduce((n,k)=>n+size(p.join(x,k)),0):s.size}const bytes=f.existsSync(r)?size(r):0;f.rmSync(r,{recursive:true,force:true});if(f.existsSync(r))process.exit(1);console.log(`[cleanup] path=${r} bytes=${bytes} removed=true`)' "$BUILD_DIR"; }
 trap cleanup EXIT
 node "${SCRIPT_DIR}/v410_s05_inventory.mjs"
 node "${SCRIPT_DIR}/v410_s05_inventory.test.mjs"
@@ -23,9 +23,9 @@ fi
 GST_CFLAGS=()
 GST_LIBS=()
 GST_DEFINE=0
-if command -v pkg-config >/dev/null 2>&1 && pkg-config --exists gstreamer-1.0; then
-  read -r -a GST_CFLAGS <<<"$(pkg-config --cflags gstreamer-1.0)"
-  read -r -a GST_LIBS <<<"$(pkg-config --libs gstreamer-1.0)"
+if command -v pkg-config >/dev/null 2>&1 && pkg-config --exists gstreamer-1.0 gstreamer-app-1.0; then
+  read -r -a GST_CFLAGS <<<"$(pkg-config --cflags gstreamer-1.0 gstreamer-app-1.0)"
+  read -r -a GST_LIBS <<<"$(pkg-config --libs gstreamer-1.0 gstreamer-app-1.0)"
   GST_DEFINE=1
 fi
 OPENSSL_CFLAGS=()
@@ -44,6 +44,8 @@ fi
   "${ROOT_DIR}/src/recording/event_clip_deriver.cpp" \
   "${ROOT_DIR}/src/recording/recording_journal.cpp" \
   "${ROOT_DIR}/src/recording/recording_catalog.cpp" \
+ "${ROOT_DIR}/src/recording/recording_finalize_recovery.cpp" \
+ "${ROOT_DIR}/src/recording/recording_media_inspector.cpp" \
   "${ROOT_DIR}/src/recording/retention_coordinator.cpp" \
   "${ROOT_DIR}/src/recording/recording_contracts.cpp" \
   "${ROOT_DIR}/src/domain/strict_json.cpp" \

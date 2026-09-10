@@ -3053,8 +3053,12 @@ case "${cmd}" in
     exec "${INTERNAL_DIR}/verify_v410_entry_baseline.sh" "$@"
     ;;
   verify-v410-recording-media-inspector)
-    require_internal verify_v410_recording_media_inspector.sh
+    require_internal "verify_v410_recording_media_inspector.sh"
     exec "${INTERNAL_DIR}/verify_v410_recording_media_inspector.sh" "$@"
+    ;;
+  verify-v410-recording-finalize-recovery)
+    require_internal "verify_v410_recording_finalize_recovery.sh"
+    exec "${INTERNAL_DIR}/verify_v410_recording_finalize_recovery.sh" "$@"
     ;;
   verify-v410-recording-corruption)
     require_internal verify_v410_recording_corruption.sh

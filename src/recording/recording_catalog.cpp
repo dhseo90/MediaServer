@@ -1,6 +1,7 @@
 // 파일 요약: 녹화 JSONL mutation을 memory/SQLite projection에 적용한다.
 // 동작 요약: idempotent replay, FK 검증, 손상 DB 격리와 range query parity를 구현한다.
 #include "recording/recording_catalog.h"
+#include "recording/recording_finalize_recovery.h"
 
 #include <algorithm>
 #include <atomic>
@@ -418,6 +419,13 @@ bool RecordingCatalog::RecoverWriterCleanupMarkersLocked(std::string* error) {
             ++recovery_report_.writer_cleanup_error_count;
             return Fail(error, "writer cleanup marker 내용 또는 소유권이 유효하지 않음");
         }
+        bool preserve_ready = false;
+        if (!PreserveFinalizeReadyPartial(options_.media_root, relative_final,
+                                          marker_binding.partial_name, &preserve_ready, error)) {
+            ++recovery_report_.writer_cleanup_error_count;
+            return false;
+        }
+        if (preserve_ready) continue;
         std::string cleanup_error;
         if (marker_binding.ownership == CleanupMarkerOwnership::OwnedPartial) {
             const auto owned_partial = marker.parent_path() / marker_binding.partial_name;
@@ -644,6 +652,78 @@ bool RecordingCatalog::FinalizeSegmentWithHold(const RecordingSegmentV1& segment
                                                std::string* error) {
     std::lock_guard lock(mu_);
     return FinalizeSegmentLocked(segment, media_path, true, error);
+}
+
+bool RecordingCatalog::ValidateFinalizeRecovery(const RecordingSegmentV1& segment,
+    const std::string& media_path,const std::optional<EventRecordingLinkV1>& event_link,std::string* error) const {
+    std::lock_guard lock(mu_);
+    if (!opened_ || !ValidateRecordingSegmentV1(segment,error) ||
+        segment.lifecycle != RecordingLifecycle::Finalized || tombstones_.count(segment.segment_id))
+        return Fail(error,"ready 복구 catalog/identity/삭제 경계 거부");
+    const auto known=segments_.find(segment.segment_id);
+    auto root=std::filesystem::absolute(options_.media_root).lexically_normal();
+    auto path=std::filesystem::absolute(media_path).lexically_normal();
+#ifdef __APPLE__
+    for(auto* value:{&root,&path}){const auto text=value->string();
+        if(text=="/tmp"||text.rfind("/tmp/",0)==0||text=="/var"||text.rfind("/var/",0)==0)*value="/private"+text;}
+#endif
+    const auto relative=path.lexically_relative(root).generic_string();
+    if (!IsSafeMediaRelpath(relative)) return Fail(error,"ready 복구 상대경로 거부");
+    if (known!=segments_.end()) {
+        const auto path=media_relpaths_.find(segment.segment_id);
+        if (known->second.lifecycle!=RecordingLifecycle::Finalized ||
+            SerializeRecordingSegmentV1(known->second)!=SerializeRecordingSegmentV1(segment) ||
+            path==media_relpaths_.end() || path->second!=relative)
+            return Fail(error,"ready 복구 기존 segment 충돌");
+    }
+    if (segment.retention_class==RecordingRetentionClass::Event) {
+        if (!event_link) return Fail(error,"ready event link 없음");
+        const auto entry=event_links_.find(event_link->link_id);
+        if (entry==event_links_.end()) return Fail(error,"ready durable event link 없음");
+        const auto& actual=entry->second;const auto& expected=*event_link;
+        auto canonical=actual;
+        // fallback 갱신/terminal release 단계는 독립 진행하되 provenance 필드는 정확히 보존한다.
+        canonical.updated_at_ms=expected.updated_at_ms;
+        canonical.completeness_reason=expected.completeness_reason;
+        canonical.derived_actual_range=expected.derived_actual_range;
+        canonical.derivation_mode=expected.derivation_mode;
+        canonical.fallback_evidence_id=expected.fallback_evidence_id;
+        canonical.fallback_media_locator=expected.fallback_media_locator;
+        if (actual.status!=EventRecordingLinkStatus::Pending ||
+            actual.derived_segment_id!=std::optional<std::string>(segment.segment_id) ||
+            SerializeEventRecordingLinkV1(canonical)!=SerializeEventRecordingLinkV1(expected) ||
+            !ValidateEventLinkReferencesLocked(actual,error))
+            return Fail(error,"ready event provenance/참조 충돌");
+        for (const auto& overlap:actual.ordered_overlaps) {
+            const auto hold=hold_counts_.find(overlap.segment_id);
+            if (hold!=hold_counts_.end() && hold->second>=static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max()))
+                return Fail(error,"ready event hold overflow");
+        }
+    } else if (event_link) return Fail(error,"continuous ready에 event provenance 혼입");
+    return true;
+}
+
+bool RecordingCatalog::RecoverFinalizedSegment(const RecordingSegmentV1& segment,
+    const std::string& media_path,const std::optional<EventRecordingLinkV1>& event_link,bool* inserted,std::string* error) {
+    if (inserted) *inserted=false;
+    if (!ValidateFinalizeRecovery(segment,media_path,event_link,error)) return false;
+    // 호출 계약은 Open 직후 단일 startup coordinator이며 runtime 생산자가 아직 없다.
+    if (FindSegmentById(segment.segment_id)) return true;
+    if (!event_link) {
+        const bool ok=FinalizeSegment(segment,media_path,error);
+        if (inserted) *inserted=ok;
+        return ok;
+    }
+    std::vector<std::string> source_ids;
+    for (const auto& overlap:event_link->ordered_overlaps) source_ids.push_back(overlap.segment_id);
+    EventSourceLease lease;
+    if (!AcquireEventSourceLease(event_link->channel_id,event_link->stream_epoch_id,source_ids,&lease,error)) return false;
+    if (!FinalizeSegmentWithHold(segment,media_path,error)) {
+        ReleaseEventSourceLease(lease,nullptr);
+        return false;
+    }
+    if (inserted) *inserted=true;
+    return true;
 }
 
 bool RecordingCatalog::FinalizeSegmentLocked(const RecordingSegmentV1& segment,
