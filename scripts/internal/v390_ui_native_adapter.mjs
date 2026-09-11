@@ -1138,11 +1138,15 @@ export function createNativeRequestLifecycleLedger({
         afterSeal: afterSealDiagnostics,
         requests: snapshot.requests.map(item => {
           const stamp = entry => ({ sequence: entry.sequence, timestamp: entry.timestamp });
+          const pathOmitted = /\b(?:password|authorization|cookie)\b/i.test(item.path) ||
+            item.path.includes("correlationId") || item.path.includes("raw-request-object") ||
+            item.path.includes("raw-response-object");
           return {
             requestIdentity: item.objectIdentity,
             legacyRequestId: legacyDiagnosticIds.get(item.requestObject) || "",
             method: ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"].includes(item.method) ? item.method : "OTHER",
-            path: item.path,
+            path: pathOmitted ? "" : item.path,
+            pathOmitted,
             start: stamp(item),
             responses: snapshot.responses.filter(entry => entry.responseRequestObject === item.requestObject)
               .map(entry => ({ ...stamp(entry), status: entry.status })),

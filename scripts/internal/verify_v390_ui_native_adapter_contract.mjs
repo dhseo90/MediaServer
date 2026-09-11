@@ -4,6 +4,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import os from "node:os";
+import { createHash } from "node:crypto";
+import { createNativeExactCaseChildSummary, validateCanonicalParentChildSummary } from "./v390_ui_native_exact_cases_lib.mjs";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
@@ -74,6 +77,77 @@ const docs = [
   readText("docs/release-evidence-index.md"),
 ].join("\n");
 const checks = [];
+// PATH-01/02 사전 명세: diagnostic path만 생략하며 부모 민감자료 거부와 authoritative 판정은 유지한다.
+for (const [label, pathname, omitted] of [
+  ["auth", "/ops/api/auth/password", true],
+  ["case-variants", "/ops/PASSWORD/Authorization/COOKIE", true],
+  ["correlation", "/ops/correlationId", true],
+  ["raw-request", "/ops/raw-request-object", true],
+  ["raw-response", "/ops/raw-response-object", true],
+  ["normal", "/ops/api/site-operations/runbook-instance-ledger", false],
+]) {
+  check(`LD-path-${label} diagnostic path omission preserves authoritative evaluation`, () => {
+    const ledger = nativeAdapterModule.createNativeRequestLifecycleLedger({ caseId: "PATH" });
+    const request = fakeLifecycleRequest(`http://runtime.invalid${pathname}`);
+    ledger.requestLifecycleRecorder.recordRequest(request);
+    ledger.bindLegacyRequestDiagnostic(request, "native-request-58");
+    ledger.sealRequestLifecycleLedger();
+    const before = ledger.evaluateRequestLifecycleLedger();
+    const row = ledger.safeRequestLifecycleProjection().diagnostics.requests[0];
+    assert(row.path === (omitted ? "" : pathname) && row.pathOmitted === omitted,
+      "diagnostic path omission contract missing");
+    assert(row.legacyRequestId === "native-request-58" && row.requestIdentity && row.start.sequence > 0 &&
+      before === ledger.evaluateRequestLifecycleLedger() && before.failures.some(item => item.code === "RESPONSE_MISSING"),
+    "path omission changed authoritative evidence");
+  });
+}
+check("LD-path-parent full child validator accepts omission and rejects raw sensitive path", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "ui-path-parent-"));
+  try {
+    const stable = value => value && typeof value === "object"
+      ? (Array.isArray(value) ? `[${value.map(stable).join(",")}]` : `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${stable(value[key])}`).join(",")}}`)
+      : JSON.stringify(value);
+    const implementationFiles = Object.fromEntries(["runner", "library", "adapter", "recorder", "evaluator"]
+      .map(key => [key, { path: `${key}.mjs`, sha256: "a".repeat(64) }]));
+    const binding = { baselineSourceCommitSha: "a".repeat(40), verificationCommitSha: "b".repeat(40),
+      verificationBranch: "fixture", runnerSchema: "media-server.v390-ui-canonical-parent.v1",
+      manifestSha256: "c".repeat(64), buildSha256: "d".repeat(64), implementationFiles,
+      implementationSha256: createHash("sha256").update(stable(implementationFiles)).digest("hex") };
+    const ledger = nativeAdapterModule.createNativeRequestLifecycleLedger({ caseId: "PATH" });
+    const request = fakeLifecycleRequest("http://runtime.invalid/ops/api/auth/password");
+    const envelope = ledger.requestLifecycleRecorder.recordRequest(request, ledger.captureContext({}));
+    ledger.registerCapturedRequest(envelope, {});
+    ledger.requestLifecycleRecorder.recordResponse(fakeLifecycleResponse(request));
+    ledger.requestLifecycleRecorder.recordRequestFinished(request);
+    ledger.sealRequestLifecycleLedger();
+    const projection = ledger.safeRequestLifecycleProjection();
+    assert(projection.status === "PASS" && projection.failures.length === 0,
+      "parent positive fixture lifecycle must pass");
+    const item = { caseId: "PATH", featureId: "PATH" };
+    const summary = createNativeExactCaseChildSummary({ item, status: "PASS", executionStatus: "fixture-only",
+      sourceBinding: binding, startedAtMs: 1, finishedAtMs: 2,
+      requestLifecycleEvaluation: projection,
+      cleanupAttestation: { schema: "media-server.v390-ui-case-cleanup-attestation.v1", pass: true,
+        primaryFailurePresent: false, primaryFailurePreserved: true, caseRuntimeRestoreAttempted: true,
+        caseRuntimeRestored: true, browserCloseAttempted: true, browserContextClosed: true,
+        cleanupEntryCount: 1, failureCode: "" } });
+    const summaryPath = path.join(root, "summary.json");
+    const validate = () => {
+      fs.writeFileSync(summaryPath, JSON.stringify(summary), { mode: 0o600 });
+      return validateCanonicalParentChildSummary({ summary, item, expectedSourceBinding: binding,
+        exitCode: 0, summaryPath, outputDir: root });
+    };
+    const errors = validate();
+    assert(errors.length === 0, `parent full validation rejected projection: ${errors.join(",")}`);
+    summary.case.requestLifecycleEvaluation.diagnostics.requests[0].path = "/ops/api/auth/password";
+    const rejected = validate();
+    assert(rejected.length === 1 && rejected[0] === "child-summary-sensitive-material", "parent raw sensitive rejection changed");
+  } finally {
+    const bytes = fs.readdirSync(root).reduce((sum, name) => sum + fs.lstatSync(path.join(root, name)).size, 0);
+    fs.rmSync(root, { recursive: true });
+    console.log(`[cleanup] ${root} bytes=${bytes} absent=${!fs.existsSync(root)}`);
+  }
+});
 // LD01~03 사전 명세: 직접 ID 결속, terminal/seal 구분, 비밀 제외 및 판정 불변.
 for (const scenario of ["mapped", "finished", "failed"]) {
   check(`LD-${scenario} lifecycle diagnostic identity terminal and seal evidence`, () => {
