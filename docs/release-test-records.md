@@ -1,5 +1,247 @@
 # Release Test Records
 
+## S09 finalizer 보완 후 실제 UI 재검증 승인
+
+2026-09-11 사용자가 `커밋 후 UI 재검증 진행`을 승인했다. 기존 수정·검증 기록은 분할 커밋하고 `./test_ui.sh`를 같은 canonical424·반응형80·Policy v4·최종 정리 범위로 재실행한다. 푸시는 하지 않는다. 실제 완료 여부는 실행 결과 확인 후 기록하며 기존58281 FAIL을 소급 변경하지 않는다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | UI launcher의 선수 build/preflight 및 기존128개 관련 계약 근거 | test_ui.sh, 아래 finalizer 계약 결과 | 승인됨; 동일 소스 계약 결과는 인계만으로 재실행하지 않음 |
+| UI 풀테스트 | 진행 대상 | 사용자 명시 재검증 승인 | canonical424 및 반응형80; 직전58281 정리 실패 | 승인됨 |
+| 30분 테스트 | 미진행 | 기존 완료 기록 유지, 이번 범위 제외 | S09 52899 | 재실행하지 않음 |
+| 120분 테스트 | 미진행 | 전체 UI 완료 전 후속 실행 안 함 | S09 실행 순서 | 이번 실행 범위 제외 |
+
+테스트 정의는 기존 canonical exact manifest와 이 문서/전용 실행 기록의 개별424·action·반응형80 항목을 재사용한다. 녹화 추가8개ID31action은 이번 launcher에 포함되지 않으므로 이 실행만으로 전체432 UI 또는 S09 완료를 주장하지 않는다. 실행 중 제품 소스·문서를 변경하지 않고, 임시 인증값은 launcher 런타임에서 생성하며 대화 비밀번호를 사용하지 않는다.
+
+## S09 finalizer 스크린샷 중복 정리 보완 — 결과 및 사전 등록
+
+### 보완 후 계약 검증 결과
+
+`scripts/internal/evidence_integrity_lib.mjs`의 `deduplicateFinalizerScreenshots`는 같은 실행 root의 기존 case PNG를 읽기 전용 canonical로 사용하고 finalizer의 새 중복 파일만 삭제한다. 모든 입력 사전검증과 삭제 직전 경로·해시 대조, 기존 case 우선/앞서 보존한 probe 우선 참조로 dangling 참조를 막는다. `run_v390_ui_native_exact_cases.mjs`는 실제 `executeVisualMatrix` 촬영 후 summary·secret scan 확정 전에 호출한다. `verify_v390_finalizer_screenshot_dedup_contract.mjs`와 기존 child-isolation 계약에서 파일·프로세스 경계를 검증했다. 독립 촬영과 측정, 제품 API/auth/media, 기존 case 요약, acceptance 중복 금지 기준은 변경하지 않았다.
+
+최종 원출력은 메인이 개별128행(13+38+60+17)을 직접 읽고 대조했다. 최초 FD08 예상 RED 37pass/1fail 이후 최종 38pass/0fail이며 이력은 유지한다. 메인 검토 중 외부경로 시험이 root 내부만 확인하던 점과 root-symlink 시험이 containment만으로도 거절될 수 있던 점을 보완하고 focused를 다시 실행했다. 이 수정은 시험의 판별력을 보강한 것이며 제품 UI 실제 실행 결과를 만들지 않는다. 이전 full UI 58281은 여전히 최종 FAIL이고, 실제 UI 재검증·녹화 추가 case·녹화 전용120분은 미실행이다.
+
+아래 기술 식별자는 원출력의 개별 검증 제목을 그대로 보존한다. 명령 F=`node scripts/internal/verify_v390_finalizer_screenshot_dedup_contract.mjs`, C=`node scripts/internal/verify_v390_ui_case_child_isolation_contract.mjs`, E=`node scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs`, I=`node scripts/internal/verify_v390_final_evidence_integrity_contract.mjs`이다. 네 명령 모두 최종 exit0이며 각각13/0,38/0,60/0,17/0이다. 원본 임시 로그의 필요한 결과는 아래 표로 이관하며 임시경로를 최종 evidence로 쓰지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| FD01 case canonical survives unchanged and finalizer duplicate is removed | F exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| FD02 three independent finalizer captures retain one nondangling canonical | F exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| FD03 distinct captures remain distinct | F exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| FD04-06 outside input fails before any earlier duplicate mutation | F exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| FD04-06 escape input fails before any earlier duplicate mutation | F exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| FD04-06 symlink input fails before any earlier duplicate mutation | F exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| FD04-06 ancestor input fails before any earlier duplicate mutation | F exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| FD04-06 missing input fails before any earlier duplicate mutation | F exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| FD04-06 directory input fails before any earlier duplicate mutation | F exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| FD04-06 non-png input fails before any earlier duplicate mutation | F exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| FD07 remapped evidence digest matches retained files and whole tree duplicate zero | F exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| FD05 owned root symlink is rejected without mutation | F exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| FD04 external-owned-root PNG is rejected and external bytes preserved | F exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| completed actual case child bypasses the Node worker shutdown deadlock | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| canonical browser children disable concurrent Maglev shutdown work | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| suite finalizer scans success and failure artifacts before secret release | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| production suite-finalizer child writes one attested PASS summary | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| FD08 finalizer subprocess canonicalizes new PNG before summary and secret attestation | C exit0; 해당 assertion 실제 통과 | pass | 최초 예상 RED fail → 최종 pass |
+| production suite-finalizer child writes one safe attested FAIL summary | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| production suite-finalizer child drops tainted probe-secret payload | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| production suite-finalizer child drops tainted adapter-secret payload | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| production suite-finalizer child removes a secret-bearing disk artifact before release | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| pass child writes one attempted PASS summary | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| production case child removes a secret-bearing disk artifact before release | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| callback-capture-error writes a valid one-attempt FAIL summary | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| lifecycle-duplicate-response writes a valid one-attempt FAIL summary | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| dom-assertion-error writes a valid one-attempt FAIL summary | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| api-assertion-error writes a valid one-attempt FAIL summary | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| rejected-promise writes a valid one-attempt FAIL summary | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| timeout-like writes a valid one-attempt FAIL summary | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| cleanup-error-after-assertion writes a valid one-attempt FAIL summary | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| cleanup failure is appended without erasing the primary assertion | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| dom-multi-lifecycle-secret-error preserves the primary and every lifecycle failure in deterministic order | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| api-multi-lifecycle-secret-error preserves the primary and every lifecycle failure in deterministic order | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| subdir-preflight-error still attempts one case and writes a valid FAIL summary | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| adapter-bootstrap-error still attempts one case and writes a valid FAIL summary | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| runtime-bootstrap-error still attempts one case and writes a valid FAIL summary | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| source-binding-error still attempts one case and writes a valid FAIL summary | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| summary-build-error still attempts one case and writes a valid FAIL summary | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| summary-serialize-error still attempts one case and writes a valid FAIL summary | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| release-secrets-error still attempts one case and writes a valid FAIL summary | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| retained-secret fallback discards a tainted lifecycle projection and scans final bytes | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| a throwing retained-secret scanner cannot block or leak the independent summary | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| evaluator throw is exhaustively censused with primary and finalization failures | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| subdir-preflight-error injection traverses and proves the production catch boundary | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| adapter-bootstrap-error injection traverses and proves the production catch boundary | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| runtime-bootstrap-error injection traverses and proves the production catch boundary | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| a failed child does not contaminate the next process | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| only summary write failure uses the dedicated infra-fatal marker | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| an unusable output root is the same dedicated summary-write infrastructure failure | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| selection cardinality failure is not reported as an attempted case | C exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| generated manifest validates against canonical exact ordered 424 | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| event typed fixtures select one row and preserve request-derived identities | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| incident memory search fixtures bind every product filter and searchable query | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| event review seed receipts bind PUT response, storage readback, and EventRecord identity | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| event review authoritative readback selects one exact nested event/review identity | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| EVT-038 binds one dry-run response to one attempt, audit row, and DOM projection | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| event review note evidence survives the production failure rewrap and parent aggregation | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| builder is deterministic and preserves exact case order | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| all 424 completion modes separate document navigation from application requests | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| all 424 failure lifecycles retain the initial manifest navigation binding | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| independent readback passes one coordinator ownership context and always ends it | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| RULE-097 callback receives only its declared explicit argument projection | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| bounded ownership cleanup precedes physical close without changing close truth | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| EVT-004 reuses one document navigation and correlates only the authoritative API fetch | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| canonical and native generator writes are one validated atomic transaction | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| RULE relationship fixtures use one collision-free numeric identity contract | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| workflow distribution is owned by the shared exact 424 contract | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| declared exact runtime seeds materialize through the shared deterministic fixture registry | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| every exact EVT seed.kind has a declarative store and join materializer | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| event review mutation cleanup validates an empty 200 collection and byte restore | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| event review seed keeps the official top-level note schema and uses structured reload | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| records.records fixture family uses product dispatch with exact readback and cleanup | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| fixture-safe incident digests bind one authoritative event to one safe summary | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| EVT-023/026 expected digest binds one materialized EventRecord identity before browser startup | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| EVT-004 diagnostic log evidence is redacted and byte-restored before native execution | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| audited route-local primary controls match their exact runtime oracles | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| endpoint source fixtures intentionally cross the published canonical-media baseline without bypassing sourceId identity | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| inactive-or-equal-before cleanup accepts absent or disabled state and rejects enabled residue | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| non-canonical implementation review metadata does not invalidate the exact 424 manifest | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| exact-case implementation projection drift and whole-file fallback are rejected | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| endpoint action execution inputs retain full runtime values but trace inputs are release-safe digests | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| admin-only ops users cases and runtime role schema stay authoritative | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| API ownership routes normalize to product screens | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| UI-017 binds the client events read model instead of a dashboard-only preset status | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| UI-018 remains a dedicated negative route case | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| SAFE-017 keeps its cross-route negative behavior without changing UI-018 classification | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| MEDIA/SAFE client cases and SAFE-016 negative route use one exact route lifecycle | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| remaining client-safe batch clusters bind dynamic identities and owned lifecycle endpoints | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| actual read-only and hidden-boundary completion requests use exact runtime oracle paths | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| all cases declare native action, oracle seed, and artifact plan | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| REVIEW4-56 requires exact typed product workflows for all 424 cases | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| REVIEW4-56 rejects fallback no-submit generic and self-comparison workflows | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| runner owns native execution, role state, first-fail, and artifact fields | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| self-contained runtime closes invite, auth readback, preference, and visual-session gaps | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| case runtime keeps generated secrets ephemeral and rejects state path escape | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| authoritative cleanup readback restores state after success and failure | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| SRC-010 and SRC-019 use a fresh fixture-scoped viewer and restore auth bytes | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| fresh role session restores login audit writes before a read-only case | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| fresh viewer session uses scope and client view readback instead of a nonexistent whoami viewId | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| canonical requested route and runtime screen route are explicit projections | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| runner and producer share typed capture schema while qualifier is independently implemented | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| missing, reordered, unsupported, API-screen, and field drift are rejected | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| stale implementation binding writes a fail-closed 0/424 pre-execution summary | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| canonical parent bootstrap failure writes a fail-closed 0/424 summary | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| pre-execution failure cannot become UI PASS, Policy v4 eligible, or cleanup evidence | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| raw capture success and UI qualification remain separate lifecycle states | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| evidence producer failure always leaves an exact 424 failure ledger | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| full exact failure ledger preserves the typed EVT-004 lifecycle envelope | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| failed case partial artifacts are referenced, deduplicated, and orphan-free | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| canonical case children bind duplicate screenshots to one prior artifact | E exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| minimal public evidence keeps semantic fields without raw runtime paths | I exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| canonical final integrity binds parent, Policy rows, cleanup, and first failure | I exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| actual verifier CLI validates complete attempted-424 failure binding before remaining ineligible | I exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| actual final integrity consumes canonical parent and independently bound Policy source | I exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| actual final integrity binds the authoritative UI runtime descriptor root | I exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| server dispatch, script inventory, and evidence docs expose final integrity commands | I exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| complete fixture integrity passes only with explicit fixture allowance | I exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| canonical report tampering and temporary final evidence references are rejected | I exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| canonical child evidence byte and hash drift are rejected | I exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| start provenance allows only the canonical artifact root | I exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| duplicate screenshot files are rejected | I exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| video placeholder artifacts are rejected | I exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| failed cleanup and missing source commit are rejected | I exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| current HEAD drift and an unapproved end-state path are rejected | I exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| canonical command substitution and command-set hash mismatch are rejected | I exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| child summary path outside the acceptance artifact root is rejected | I exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| preserved first failure files are required after a recovered retry | I exit0; 해당 assertion 실제 통과 | pass | 계약/fixture 결과, 실제 UI PASS 아님 |
+| evidence_integrity_lib 문법 | node --check scripts/internal/evidence_integrity_lib.mjs; exit0, 출력 없음 | pass | JavaScript 문법만 확인 |
+| runner 문법 | node --check scripts/internal/run_v390_ui_native_exact_cases.mjs; exit0, 출력 없음 | pass | JavaScript 문법만 확인 |
+| focused 검증기 문법 | node --check scripts/internal/verify_v390_finalizer_screenshot_dedup_contract.mjs; exit0, 출력 없음 | pass | JavaScript 문법만 확인 |
+| child-isolation 검증기 문법 | node --check scripts/internal/verify_v390_ui_case_child_isolation_contract.mjs; exit0, 출력 없음 | pass | JavaScript 문법만 확인 |
+| 변경 공백 검사 | git diff --check; exit0, 출력 없음 | pass | 메인 기록 갱신 후 검사 |
+
+token end=7843934, token consumed=98008, elapsed=579초(공유 goal 계량 구간), source=Codex get_goal. 이는 메인·단일 담당자의 조사·구현·문서·검증을 합친 구간이며 테스트 명령별 소비량/실행시간이 아니다. 개별 테스트의 전체 elapsed는 기존 실행 도구가 yield되어 미계측이며 최초 도구 대기시간을 전체시간으로 대체하지 않았다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/finalizer-dedup-CLRgwq | fixture | 85bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/finalizer-dedup-Y0FEBT | fixture | 68bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/finalizer-dedup-11AmyF | fixture | 144bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/finalizer-dedup-UrAY8i | fixture | 204bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/finalizer-dedup-YMVHFB | fixture | 136bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/finalizer-dedup-vjbuxf | fixture | 247bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/finalizer-dedup-3HJS0E | fixture | 237bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/finalizer-dedup-DGKimY | fixture | 136bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/finalizer-dedup-Bj84ha | fixture | 136bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/finalizer-dedup-oOeD2I | fixture | 204bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/finalizer-dedup-HABYHg | fixture | 68bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/finalizer-dedup-HXmF6S | fixture | 139bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/finalizer-external-0WJPzo | fixture | 68bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/finalizer-dedup-54bv4b | fixture | 68bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-9zm6gI | fixture | 3705bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-bmnv30 | fixture | 3705bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-QkU3vW | fixture | 1814bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-pcXo5G | fixture | 1620bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-AuATCS | fixture | 1620bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-G8Fx6P | fixture | 1705bytes | 검사 종료 시 삭제 | absent=true | 원출력 및 메인 부재 대조 |
+| s09-fd-child-final.log | 검증 원출력 | 3718bytes | 전수 결과 이관 후 삭제 | absent=true; SHA256 8defbdb89daafb2ed631e16889c18edeee79be8ef01f270460be092f73f8d22a | 메인 원본 및 삭제 후 부재 대조 |
+| s09-fd-child-green.log | 검증 원출력 | 3718bytes | 전수 결과 이관 후 삭제 | absent=true; SHA256 5fb59765df74bded36850dc8087082d4164fe0b4807b36c97bba11e776fb7f36 | 메인 원본 및 삭제 후 부재 대조 |
+| s09-fd-exact.log | 검증 원출력 | 5370bytes | 전수 결과 이관 후 삭제 | absent=true; SHA256 3c9afb69bc53a0724046490ae435e491a99f4a40a73553d7a3fcba2eaaf2fa58 | 메인 원본 및 삭제 후 부재 대조 |
+| s09-fd-focused-final.log | 검증 원출력 | 2142bytes | 전수 결과 이관 후 삭제 | absent=true; SHA256 67a20e34844439cb0c294213ecc8140a878f094d5065930c1c985505e7a645a9 | 메인 원본 및 삭제 후 부재 대조 |
+| s09-fd-focused-reviewed.log | 검증 원출력 | 2428bytes | 전수 결과 이관 후 삭제 | absent=true; SHA256 343f39e116f7aef4ef9a4110cf1932c28d7479e01ef8e5f512c9f15d5ebbbf42 | 메인 원본 및 삭제 후 부재 대조 |
+| s09-fd-focused.log | 검증 원출력 | 1624bytes | 전수 결과 이관 후 삭제 | absent=true; SHA256 537b5cb8f14526fb9d120a60a3efb7b70b778f93ff1f6e9d1cd1c74a32eca9b3 | 메인 원본 및 삭제 후 부재 대조 |
+| s09-fd-integrity.log | 검증 원출력 | 1414bytes | 전수 결과 이관 후 삭제 | absent=true; SHA256 dc8a5f27682cafbbdf6d20dfb89e03e4249e8b2834569c862a59e57730d57556 | 메인 원본 및 삭제 후 부재 대조 |
+| s09-fd-red.log | 검증 원출력 | 3790bytes | 전수 결과 이관 후 삭제 | absent=true; SHA256 8ab184e1406440a6bdcce04b13bc88532633a4a3dcc9f534fd9550774e0886d3 | 메인 원본 및 삭제 후 부재 대조 |
+
+위 로그 8개는 크기·SHA를 삭제 직전에 재대조한 후 모두 삭제했고 각 경로 absent=true를 직접 확인했다(총24204bytes). 원출력은 재실행으로 생성할 수 있으나 삭제한 파일 자체를 복구하지는 않았다. 중간 focused9/0·12/0 및 child38/38도 실패행 없음 확인 후 정리했다.
+
+기존 exact/final-integrity fixture는 종료 시 자체 cleanup을 수행했고 관련 임시 prefix 잔존 없음 확인을 받았다. 해당 기존 검증기의 개별 suffix·삭제 전 크기는 계측되지 않아 미집계이며 임의값을 만들지 않는다. 위 신규 focused/finalizer fixture의 정확 경로·크기·부재는 원출력으로 대조했다. 기존 S09 진단 보존물은 이번 삭제 대상이 아니다.
+
+### 사전 명세 및 실행 승인
+
+2026-09-11 사용자 `진행` 승인 범위는 58281 실행의 finalizer 중복 PNG 정리 누락 보완과 관련 안정화 회귀다. 제품 API·촬영 횟수·중복 금지·해시·경로·비밀정보 검사 기준은 변경하지 않는다. 기존 case 파일과 요약은 읽기 전용으로 유지하며, finalizer 요약 확정 전에 새 촬영물의 참조만 정리한다. 메인은 계약·최종 검토, 기존 단일 Astra/medium 담당자는 구현·검증을 수행한다(영향도/불확실성/검증 난이도/변경 범위 2/1/2/1=6, 상향 없음). 커밋·푸시는 이번 승인 범위가 아니다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 사용자 승인된 finalizer 보완과 회귀 | FD01~08 및 아래 계약 명령 | 승인됨 |
+| 30분 테스트 | 미진행 | 이번 수정 범위 밖, 기존 기록 유지 | S09 52899 기록 | 추가 실행 안 함 |
+| UI 풀테스트 | 조건부 진행 | 변경 소스 확정 후 실제 최종 정리 재검증 필요, 계약 테스트로 대체 금지 | S09 58281 및 clean source 조건 | 이번에는 계약 검증만 실행 |
+| 120분 테스트 | 미진행 | 전체 UI 완료 전 후속 실행 금지 | S09 실행 순서 | 이번 실행 범위 밖 |
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| FD01 기존 case와 probe 중복 | 기존 case 참조로 결합 | 동일 PNG 두 파일에서 finalizer 파일만 삭제하고 case 파일·기존 summary 해시 불변 확인 | v4.1.0 |
+| FD02 probe 간 중복 | 세 probe의 안정된 canonical 참조 | 처리 순서상 앞서 보존한 파일만 참조하며 삭제된 파일 참조가 없음을 확인 | v4.1.0 |
+| FD03 서로 다른 PNG | 고유 이미지 보존 | 서로 다른 바이트의 파일·probe별 참조 유지 | v4.1.0 |
+| FD04 외부 경로 거부 | 동일 run 소유 root 경계 | 외부 screenshot 입력 거부, 원본 파일과 앞선 probe 변경 없음 | v4.1.0 |
+| FD04 external-owned-root 경로 거부 | 소유 root 자체의 외부 파일 | finalizer 하위 밖이지만 root 안인 입력과 별도로, root 밖 sibling 임시파일을 입력해 거부 및 외부 원본 불변 확인 | v4.1.0 |
+| FD05 symlink 거부 | 파일·조상 경로 검증 | symlink 파일 및 symlink 디렉터리 입력을 거부하고 외부 원본 불변 확인 | v4.1.0 |
+| FD06 missing/nonregular 거부 | 파일 존재·종류 검증 | 누락 파일 및 디렉터리 입력 거부, 사전검증 실패 시 앞선 probe 변경 없음 | v4.1.0 |
+| FD07 최종 무결성 | 참조·해시·중복 0 | scanArtifactTree의 duplicate 0과 모든 최종 참조 파일의 실제 SHA 일치 확인 | v4.1.0 |
+| FD08 실제 finalizer 호출 경계 | runner subprocess fixture 검증 | 실제 suite-finalizer-child 경로가 summary 확정 전에 remap을 수행하는지 확인. 실제 브라우저 PASS는 아님 | v4.1.0 |
+| finalizer 중복 계약 focused | 신규 계약 실행 | node scripts/internal/verify_v390_finalizer_screenshot_dedup_contract.mjs | v4.1.0 |
+| case child 격리 회귀 | finalizer 성공·실패·secret 경계 | node scripts/internal/verify_v390_ui_case_child_isolation_contract.mjs | 기존, v4.1.0 보완 |
+| exact native 계약 회귀 | 기존 case dedup 및 parent 계약 | node scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs | 기존 |
+| 최종 evidence integrity 회귀 | 중복 파일 거부 기준 유지 | node scripts/internal/verify_v390_final_evidence_integrity_contract.mjs | 기존 |
+| 변경 문법·공백 | 변경 JavaScript 문법과 diff | node --check 각 변경 .mjs, git diff --check | 기존 |
+
+예상 RED는 현재 runner가 finalizer 중복 PNG를 남기고 참조를 정리하지 않는 assertion 실패로 한정한다. 없는 export·문법·환경 오류는 RED가 아니다. token start=7745926(공유 goal 누적값), token end/consumed·elapsed는 실행 종료 후 기록한다. source=Codex get_goal 및 실행 도구; 누적값에는 메인·담당자 작업이 포함되어 개별 테스트 소비량으로 해석하지 않는다.
+
+예상 RED 직접 확인: `node scripts/internal/verify_v390_ui_case_child_isolation_contract.mjs`, session61314, exit1, 37pass/1fail(총38). 유일 실패는 FD08의 `finalizer duplicate PNG remains or canonical reference missing`이다. 실제 runner subprocess fixture가 각각 생성한 동일 PNG를 기존 코드가 정리하지 않는 결함을 재현했다. 기존 37개 계약은 통과했으며 이는 새 export 누락이나 문법 오류가 아니다. 메인이 원출력 전수 38행을 직접 대조했다. finalizer fixture 6개 root는 각각3420/3420/1814/1689/1689/1774bytes였고 삭제 후 absent=true다. RED는 최종 통과 근거로 사용하지 않는다.
+
+## S09 UI 재검증 58281 결과 — 개별 통과·최종 정리 실패
+
+명령 ./test_ui.sh; exit1; 1512877ms. 개별424개 통과, Policy v4 qualification stage PASS. 그러나 중복 PNG 정리 실패로 최종 ineligible/uiFulltestPass=false다. UI-004와 EVT-058은 이번 실행에서 통과했으며 과거 실패 이력은 보존한다. [전수 결과](release-artifacts/v4.1.0/s09-ui-baseline-67127/results.md)에424개 summary SHA 대조, 개별action 및80개 반응형 측정 기록을 이관했다. 30분·120분과 녹화추가8개ID31action은 이번 실행 범위가 아니다.
+
+원인 직접 확인: SAFE-138과 visual-UI-014-390-light는 같은 operator /ops/events 390×844 light 화면을 각각 screenshot()으로 촬영했으며 PNG 각57027bytes, SHA256 80a8d6e05938b715683fccf67b84facbb1ee4d43febcbf9340d0b4749c69a57c가 동일하다. runner의 case 정리는 cases subtree에 한정되고 finalizer 분기는 일반 dedup을 지나지 않지만 acceptance cleanup은 runDir 전체 중복0을 요구한다. 촬영 생략이나 중복 허용이 아니라 finalizer 최종 참조·hash 확정 전 공통 소유 root의 중복 참조 정리 보완이 필요하다. 제품 수정·추가검증·커밋·푸시는 하지 않았다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| .media_server.test/v4.1.0/ui-acceptance-current | 실행 생성물4569파일 | 334120734bytes | 최소 결과 이관 후 삭제 | 삭제·부재 확인 | 원본 직접 집계 및 exists=false |
+| 임시 s09-ui-full-EBsDK3 | launcher2파일 | 12980bytes | 시간·종료 결과 이관 후 삭제 | 삭제·부재 확인 | 원본 직접 집계 및 exists=false |
+| 임시 media_server_v390_ui-3mr959 | 서버 runtime | 1613776bytes | runner 삭제 | 부재·PID28701/포트64853·64854 해제 확인 | runner 및 메인 ps/lsof |
+
+이번 사후 파일 정리로 최초 cleanup FAIL을 PASS로 소급하지 않는다. 전체 테스트 완료 판정과 수정 후 재검증은 별도다. token 사용량은 유효 전체구간값 미확보로 미집계이며 원출력 elapsed와 구분한다.
+
 ### 진단 경로 보완 실제 검증 결과
 
 adapter의 safeRequestLifecycleProjection에서 diagnostic path만 생략하도록5줄을 추가하고1줄을 교체했다. parent 차단 검사·제품 API·auth·recorder/evaluator·timeout은 변경하지 않았다. 신규7개 테스트를 구현 전에 추가해 기존5pass/신규7fail(exit1, 예상 RED)을 확인한 뒤 LD12pass/0fail, 전체77pass/0fail(exit0)을 확인했다. 메인 검토에서 parent PASS fixture 내부 lifecycle FAIL 모순을 발견해 실제 request→response→finished·background owner 등록과 projection PASS assertion으로 고쳤고, 다시 LD12/0 및 전체77/0을 실행했다. 이전 fixture 통과를 실제 UI 증거로 사용하지 않는다.

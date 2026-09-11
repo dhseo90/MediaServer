@@ -1,5 +1,1623 @@
 # S09 UI 실행 67127 실패 기록
 
+## 재검증 58281 — 개별424 통과, 정리 실패
+
+명령 ./test_ui.sh; source1b703487; 시작1789115563032 종료1789117075909, elapsed1512877ms, exit1. Canonical424pass/0fail/0notRun. Policy v4 qualification stage PASS이나 최종 cleanup FAIL로 ineligible/uiFulltestPass=false. 전체432 UI 또는 S09 완료 증거가 아니다. UI-004와 EVT-058(131request/131response)은 이번 실행에서 통과했으며 이전 실패 이력은 유지한다.
+
+정리 실패 원인: SAFE-138과 finalizer visual-UI-014-390-light의 독립 촬영 PNG가 동일 SHA256(80a8d6e05938b715683fccf67b84facbb1ee4d43febcbf9340d0b4749c69a57c), 각57027bytes다. 동일 operator /ops/events 390×844 light 화면을 별도로 촬영했다. runner의 case별 dedup은 cases 하위만 확인하고 finalizer 분기는 전체 dedup을 통과하지 않아 sibling 간 중복이 남았다. cleanup은 runDir 전체 중복0을 요구한다. 기준 완화·촬영 생략·제품 변경 없이 원인을 기록한다.
+
+메인 첫 PNG 시각 확인 완료. 서버 PID28701 및 TCP64853/64854는 ps/lsof 결과 없음으로 종료 확인했고 소유 runtime1613776bytes는 runner 삭제·부재 확인. 아래는 원본424개 summary SHA와 실제 action 행을 대조해 보존한 기록이다. 30분·120분과 녹화추가8개ID31action은 이번 범위 제외로 미실행. token start/end/consumed: 실행 시작 당시 goal blocked로 유효 전체구간값이 없어 미집계, elapsed source=launcher exit.json.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| UI-001 | / → /login; anonymous; 390×844 light; exit0 | pass | SHA256 4786c69f3f682caa01aaff68eca531aed4a6e47116de02c002f76e7ca9bd5847 |
+| UI-001 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-001 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-002 | /setup → /setup; anonymous; 390×844 light; exit0 | pass | SHA256 a50197876a7f2533c864bd976e1935473d9c034caee35903ef2b69be8419f61b |
+| UI-002 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-002 action 2 | submit-form; control [data-testid="auth-setup-form"] button[type="submit"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-002 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-003 | /login → /login; anonymous; 390×844 light; exit0 | pass | SHA256 93845517e5b548d3100b79a41df268f631359cdccba573a034e63e9f4f76b555 |
+| UI-003 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-003 action 2 | submit-form; control [data-testid="auth-login-form"] button[type="submit"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-003 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-004 | /password/change → /password/change; operator; 390×844 light; exit0 | pass | SHA256 78fcdc3813124c385305d1a35d2e461ef14a976ef7875ccff0494ecf91897276 |
+| UI-004 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-004 action 2 | submit-form; control [data-testid="auth-password-change-form"] button[type="submit"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-004 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-005 | /logout → /ops/home; operator; 390×844 light; exit0 | pass | SHA256 6cf0b085dddedc7c7c0dcbfd41dbce81745633406b552b25a63951dd86ae6335 |
+| UI-005 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-005 action 2 | submit-form; control form[action="/logout"] button[type="submit"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-005 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-007 | /invite/setup → /invite/setup; anonymous; 390×844 light; exit0 | pass | SHA256 dc8549557d33b54502dbe15d515f7eb5d7cb59f0a46e5cabf1ec1795ab191f4b |
+| UI-007 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-007 action 2 | submit-form; control [data-testid="auth-invite-setup-form"] button[type="submit"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-007 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-008 | /client/request-access → /client/request-access; anonymous; 390×844 light; exit0 | pass | SHA256 1969547ffae6dc8021402548d3c77abb15d8ccc7ce6bada69bca1012965b5916 |
+| UI-008 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-008 action 2 | submit-form; control #request-form button[type="submit"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-008 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-009 | /ops/home → /ops/home; operator; 390×844 light; exit0 | pass | SHA256 9d1ea4e68441818cd6d019e156b6c5af095292483d35d21a94b2e09bcfd4d6fe |
+| UI-009 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-009 action 2 | assert-visible-read-model; control [data-testid="ops-home-page"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-009 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-010 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 c67a4a9262947829a79c2f307709e622fdfce1f0c5b09586f5485fc1a60fe499 |
+| UI-010 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-010 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-011 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 e0d74923a218f9d5d0b566db86e88a678bb542c10a10247be6cd89ebd7df3949 |
+| UI-011 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-011 action 2 | assert-visible-read-model; control [data-testid="source-reliability-search-metrics"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-011 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-012 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 abdab8ed73c8b7795bdfc683349cd7a470c3a675d6236fc7485163a3a150d627 |
+| UI-012 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-012 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-013 | /ops/users → /ops/users; admin; 390×844 light; exit0 | pass | SHA256 2b1222f1ca8381747828a34d6fe60a3215de1acb66cfd0def8eebe63052db6e7 |
+| UI-013 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-013 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-014 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 766f4a86fd91d790aa51140cebf0dbbbd024d698065c0a1662b8743535c0501a |
+| UI-014 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-014 action 2 | fill-control; control #opsIncidentSearchInput; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-014 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-015 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 0405cea75e6275847a1e9a34c3448a6a34c5a21dd1325e8af59f1ee360ce0ab9 |
+| UI-015 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-015 action 2 | assert-visible-read-model; control [data-testid="client-live-action-reduction"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-015 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-016 | /client/dashboard → /client/dashboard; viewer; 390×844 light; exit0 | pass | SHA256 a0705474936d8e4c6b58a3bfe28c4d2ef9479497b0382911c1ea4c0d7bcd7602 |
+| UI-016 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-016 action 2 | assert-visible-read-model; control [data-testid="client-dashboard-shell"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-016 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-017 | /client/events → /client/events; viewer; 390×844 light; exit0 | pass | SHA256 849fb6348d96fe5652b4f5a518ce74a458e5c3b8101553261f622e6eab0d63d3 |
+| UI-017 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-017 action 2 | assert-visible-read-model; control .client-viewer-events; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-017 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-018 | /lab → /lab; operator; 390×844 light; exit0 | pass | SHA256 6c195cf1cbb885665ad4d9ed290ea36292dfa75a03cc23746ad160b7f872b881 |
+| UI-018 action 1 | navigate-negative; control 없음; completion primary-action | pass | 실제 action status PASS |
+| UI-019 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 30c55910d9eaf28d3b4dbfb4a2e2ccb727df9134023c351509a60164de0027cd |
+| UI-019 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-019 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-020 | /ops/dashboard → /ops/dashboard; operator; 1440×900 light; exit0 | pass | SHA256 f8c81e7726d60040594d7e1879f5c5cea68fd13eb46aca71b5a8c551af95325b |
+| UI-020 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-020 action 2 | assert-visible-read-model; control .ops-workspace-diagnostic-grid; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-020 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-021 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 dc4c7e5d26dfa6df2488ae8980e8129a3da168c37b972e6aaec3e292861ed733 |
+| UI-021 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-021 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-022 | /ops/vlm → /ops/vlm; operator; 390×844 light; exit0 | pass | SHA256 ccfd1dcd38b485b659a9cb4a8dfc8ee75c2a5047514c7252b2102d331037347b |
+| UI-022 action 1 | assert-disabled-control; control #opsVlmExternalTransferWarningAck; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-022 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-023 | /ops/vlm → /ops/vlm; operator; 390×844 light; exit0 | pass | SHA256 d3b766486d72276eb5aa2e93f0ea133abf242b0a99f07b4bc079bd465c4e2118 |
+| UI-023 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-023 action 2 | execute-persisted-action; control #opsVlmSaveProfile; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-023 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-024 | /ops/vlm → /ops/vlm; operator; 390×844 light; exit0 | pass | SHA256 e35a0170f5295ab6443f1d0b69bedf4bdf58b1856d1357a0041be4e04ea420b1 |
+| UI-024 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-024 action 2 | assert-visible-read-model; control #opsVlmPrivacyGuardList; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-024 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-025 | /ops/vlm → /ops/vlm; operator; 390×844 light; exit0 | pass | SHA256 924bddd167dfbc37739e12bba4747bc37f3ff992f1328051fb57bc63a59ca1ec |
+| UI-025 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-025 action 2 | fill-control; control #opsVlmDisabledReason; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-025 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-026 | /ops/vlm → /ops/vlm; operator; 390×844 light; exit0 | pass | SHA256 64de309283a736de772b81b2e0a5e7c5ab02e114bae3658a7598883ad8227340 |
+| UI-026 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-026 action 2 | activate-control; control [data-vlm-option-id="local-qwen3-vl-4b"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-026 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-027 | /ops/vlm → /ops/vlm; operator; 390×844 light; exit0 | pass | SHA256 6d01d5f868b9a9055d5d7c1583f58e70dcd89b02f3b038a6276fa9be604f426b |
+| UI-027 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-027 action 2 | assert-visible-read-model; control #opsVlmRuntimeStatusList; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-027 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-028 | /ops/vlm → /ops/vlm; operator; 390×844 light; exit0 | pass | SHA256 4b6150cba2d85191b179f9018984acce16772501fa59ce2c5ae55065f9f2c164 |
+| UI-028 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-028 action 2 | toggle-checkbox; control #opsVlmProfileEnabled; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-028 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-029 | /ops/vlm → /ops/vlm; operator; 390×844 light; exit0 | pass | SHA256 f02926fbe4da1c6a6a759d3333db03eebd6a0662f7ebfdd7ad1d0942815ef691 |
+| UI-029 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-029 action 2 | execute-persisted-action; control [data-delete-vlm-profile="ui-029-review4-fixture"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-029 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-030 | /ops/vlm → /ops/vlm; operator; 390×844 light; exit0 | pass | SHA256 6928a7c5276484b29d45ec17cee2dfef1dc569840686dd779171b4f215c9726c |
+| UI-030 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-030 action 2 | assert-visible-read-model; control #opsVlmEvaluationRows; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-030 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-031 | /ops/vlm → /ops/vlm; operator; 390×844 light; exit0 | pass | SHA256 98903f86e30c1a03b3c903b8e71e7173d56d96823a704446db406ff54d9c34e1 |
+| UI-031 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-031 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-032 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 0d26bddb1f68e949199e36bace0c03ab91bda8f176b6dbfdec9420d53b50be65 |
+| UI-032 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-032 action 2 | fill-control; control #opsIncidentSearchInput; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-032 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-033 | /ops/vlm → /ops/vlm; operator; 390×844 light; exit0 | pass | SHA256 cdf57a15afd7791bfc536493a97c9c24f7ec185f97dfb1fbb44dd142a91e08cb |
+| UI-033 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-033 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-034 | /ops/vlm → /ops/vlm; operator; 390×844 light; exit0 | pass | SHA256 1c725414bec2d817c13bcd67be8178276408d340b3c1c87f0eadabd2e73951fd |
+| UI-034 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-034 action 2 | assert-visible-read-model; control #opsVlmEvaluationRows; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-034 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-035 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 2eafb2bfc699248929318948b401aef5eef34b442587be67adabd485f0114d1f |
+| UI-035 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-035 action 2 | fill-control; control #opsIncidentSearchInput; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-035 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-036 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 e06b7bd7a9104a1cc7807bec9c3b17438e81214959db26d72d6fbc31a48f4cf6 |
+| UI-036 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-036 action 2 | activate-control; control [data-vlm-rule-draft-index]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-036 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-037 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 39c6e9d05662fa29211a76cb2460280264e4a4b06b4f44539d6c1e0603a1b181 |
+| UI-037 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-037 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-038 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 a0ba9fe00d35962046056e600a801187a2991fd64b8c02da6c141cb5d1e10b90 |
+| UI-038 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-038 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-039 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 e8589d1a6892781dcdded7ee1ac40ee51ba22c939a3a1f4ad3d692d16d9cde2b |
+| UI-039 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-039 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-040 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 bd3b2514df738a2213c11e0f6ce13e43f7d27c206623c67d4be7a24c9b8b1fcf |
+| UI-040 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-040 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-041 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 3b77dbd2da178bf3281e67888f4c20eab4f9cf8e99d976ae0c66949e26e2f3ed |
+| UI-041 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-041 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-042 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 216e932bf419c8b374ce746152e1593815e091d2adde1c50c3a0b6ce22c2c630 |
+| UI-042 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-042 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-043 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 d64e166015b9b55287cd0cf76e524ceebfb0dc37cf4e63fdaf673ac0976f69ce |
+| UI-043 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-043 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-044 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 04f9c6440340bb7253a4e7a42ca5ca91cce37402674328a329a3d2c3ad3e288c |
+| UI-044 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-044 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-045 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 3542ce1619753fd129d29033ee90dbfcb8ba658a7b329ede4c2318111cabd719 |
+| UI-045 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-045 action 2 | fill-control; control #opsIncidentSearchInput; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-045 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-046 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 d11b61e05dc85fe2b40923f363e3e7910a235c076fe8836e17ecac4531239090 |
+| UI-046 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-046 action 2 | activate-control; control [data-incident-rule-draft-route]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-046 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-047 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 fb8742307ec6bd665a1b89c6e404201596a27e21438dda497ca04be228d72db4 |
+| UI-047 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-047 action 2 | assert-visible-read-model; control [data-testid="source-backup-recovery-handoff"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-047 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-048 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 107cc3dcc204587ac1bd60d4d428ae26c0ea4a7cb73b5404d6edad317f3b280d |
+| UI-048 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-048 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-049 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 7b4d509333765f5fa896eb5ba92c5b47230549541fd82e0076bb705e8a23bbb3 |
+| UI-049 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-049 action 2 | select-control; control #opsScenarioBuilderType; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-049 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-050 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 a616f8a97d21e0e6f91420a9181bc6c258442d066bd1c62184370d395b9ca0c7 |
+| UI-050 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-050 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-051 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 7dd1d9d53a01bf9e2ef725586d9ba2f2f21c1334f3ee84a66bf9006c91ce984b |
+| UI-051 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-051 action 2 | assert-visible-read-model; control #opsIncidentTriageBoardRows; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-051 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-052 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 3f2366895d37eea793734ec41141f6452c300ece970ff72613a2ee1e5d8a2321 |
+| UI-052 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-052 action 2 | assert-visible-read-model; control [data-testid="ops-operational-action-pack"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-052 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-053 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 cabc1fb6eea7028841254922cad7f5d4449425311ff1a1c5cd7d43780a09bf91 |
+| UI-053 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-053 action 2 | assert-visible-read-model; control [data-testid="ops-rule-what-if-preview"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-053 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-054 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 69e4b0fcb07efd1e7555d2f1bd61c0d8f8bc159ef4eb8b5d01b83d0f64c6e6f9 |
+| UI-054 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-054 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-055 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 ecaa40c50dddfacfc4730d2c041bd4a36c17ff307dd2860fd140da18647b80de |
+| UI-055 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-055 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-056 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 18a3ab1beec1bc6393c544e8f29e73aa245b894be4b790703fec3bc21225e3ae |
+| UI-056 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-056 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-057 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 44c51b271996606cce6468c09f575163e2c7ed55ce433563cd080e6931d5ff1b |
+| UI-057 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-057 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-058 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 3e9b9ec42a17e5ed2e232e3629653428c477881e160393c764c54ebf45a74d36 |
+| UI-058 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-058 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-059 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 f0b0387fd3413dce8dd7e6d08f57e1b8f6f061d657f73e25368691e673f76ccc |
+| UI-059 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-059 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-060 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 57711e364302cbcf7da35ef47e8f3a21765eb24f9883f92e2efc24d5e1d5b17b |
+| UI-060 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-060 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-061 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 e7c153892d560ee3c5dec0a0465abc329b994ccbc6a14319b470762a31ebe59e |
+| UI-061 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-061 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-062 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 79dc25ffccd584cd032338629085d4da511a4d48b098fbd7bc2e9f8be53252ca |
+| UI-062 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-062 action 2 | assert-visible-read-model; control #opsV320ResolutionTimeline; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-062 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-063 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 7fddaeb362ea6835e7526e39cf7bb91b2d0f8742246fea5e14a4ad121ebc99e1 |
+| UI-063 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-063 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-064 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 24692fedeafd3da4595d9b95927cc2787cdbbaeb80a0b1f3f3cb9f9cc0e2ed13 |
+| UI-064 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-064 action 2 | assert-visible-read-model; control #v320SourceReliabilityGrid; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-064 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-065 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 1dedb8402c0473e2ed741789461d32313ac93e6d97555abca9820ed9adc0cd23 |
+| UI-065 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-065 action 2 | assert-visible-read-model; control #v320AiReviewQualityGrid; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-065 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-066 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 4c93e73d876acecb2af2146dbdeb4aeaa8ec6a62b314bd6bda8cb22d463e3ceb |
+| UI-066 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-066 action 2 | assert-visible-read-model; control #v320OperatorResolutionFlowGrid; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-066 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-067 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 effa069496185717db861ff191de8e1a7d0e88975657be8307ce2b46db54f537 |
+| UI-067 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-067 action 2 | assert-visible-read-model; control #v320ActionReadinessChecklistGrid; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-067 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-068 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 0727f5b1d96007cf607a37c7882d99e3d15682100600c63793252fe2956998e8 |
+| UI-068 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-068 action 2 | assert-visible-read-model; control [data-testid="client-safe-resolution-digest"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-068 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-069 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 252755ad34fc2893ed2fd4b68eba307ca8ba30f1b8477505d8d8cdbca669297d |
+| UI-069 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-069 action 2 | assert-visible-read-model; control #v320ResolutionSearchMetricsGrid; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-069 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-070 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 debd09c645d711a511628d645791fc6d2a0512fe7a2e3985f8b805cf03f3c5f2 |
+| UI-070 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-070 action 2 | assert-visible-read-model; control #v330IncidentSourceCorrelationGrid; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-070 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-071 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 2be3aa1511a23c31bc85ec2704a803f375bfbbc5f2fad75dc007b2c39b4b1c11 |
+| UI-071 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-071 action 2 | assert-visible-read-model; control #v330OperatorRecheckRecoveryQueueGrid; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-071 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-072 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 c0b2ad144482dcb7581456c8951a1cd58d014ab7c9c6328badb2d2dbf9cc1e68 |
+| UI-072 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-072 action 2 | assert-visible-read-model; control [data-testid="client-safe-source-status-digest"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-072 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-073 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 c55bc3536a74c971be4ad30a1e107c297a140899b62319e513e6a93bd8e34cd7 |
+| UI-073 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-073 action 2 | assert-visible-read-model; control [data-testid="source-reliability-search-metrics"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-073 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-074 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 bded5ed55426027078bf12f151a781517f40782394fdf8cd908e702971167654 |
+| UI-074 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-074 action 2 | assert-visible-read-model; control [data-testid="source-backup-recovery-handoff"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-074 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-075 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 e28ac8c5465307e5b0524d8cf459346fae4d092008119343dc43365426f12fec |
+| UI-075 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-075 action 2 | assert-visible-read-model; control [data-testid="ops-continuity-drill-workspace"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-075 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-076 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 09545103851f08c4c918042057cc11f328f179a4f163a1ff9d87ee03386658d0 |
+| UI-076 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-076 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-077 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 864f7d0c25442bab050fa26139c27710ecc6ac56dcd7de671d09de3d720bce6c |
+| UI-077 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-077 action 2 | assert-visible-read-model; control [data-testid="client-safe-maintenance-digest"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-077 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-078 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 cd9b14537775d1fc76bbd49c0ee6455e98fa850e24074a33d75f2b5f78c5c132 |
+| UI-078 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-078 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-079 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 3f8d299ffad89793a43f285d5cae1b4ba372ed68585a4b2aadab971dda192c23 |
+| UI-079 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-079 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-080 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 3bc9e440a1120a09b5e5ce5c204993c0a12819e47df5d2e0446293b3d5f6ab48 |
+| UI-080 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-080 action 2 | assert-visible-read-model; control #v350IncidentCommandHandoffGrid; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-080 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-081 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 82bf6195e94f403267a1888965f792c5fc6c51a335545b22ccce5771d277d151 |
+| UI-081 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-081 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-082 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 cdcc24092321099fe3c76d7a47ae96dc1c13a26f409f648f3a9eccdd659e7f03 |
+| UI-082 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-082 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-083 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 22a0b0f993293a4b6a568bd5d44ba2ddcbed7c7e236104361a10ce2a4d52519f |
+| UI-083 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-083 action 2 | assert-visible-read-model; control [data-testid="client-impact-forecast"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-083 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-084 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 be56c15b4c8fa2635bee40476bf6efe7969f03bf21eadc18160aa99413aa79e1 |
+| UI-084 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-084 action 2 | assert-visible-read-model; control [data-testid="client-operations-notice"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-084 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-085 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 05aaa3d3e4e15d415fbe4c80df5ff331ec58670a98858a8ce4b488190efdf6c4 |
+| UI-085 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-085 action 2 | assert-visible-read-model; control #dashCommandWorkspaceExportBundleMap; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-085 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-086 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 b0b316c864eebae1e3a17fe25ef511b692e85081e1250803084a0771ba022106 |
+| UI-086 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-086 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-087 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 9e510aa56bd66fd85eff7ad0c6dd1f82c6b8a609be41b3ad53bf75299f1779b0 |
+| UI-087 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-087 action 2 | assert-visible-read-model; control #dashCommandWorkspaceVlmAssistedExplanation; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-087 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-088 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 c765ca421d971847cd8b4d938fa9a0f745ee340c043d48a8cbf4d185b3e522cc |
+| UI-088 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-088 action 2 | assert-visible-read-model; control [data-v360-simulation-workspace-entry="simulation-route-family"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-088 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-089 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 9cfd4ff58aa1a1867f765ff512bbea1efd47c5713ba416162e14a0b3d5daff92 |
+| UI-089 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-089 action 2 | assert-visible-read-model; control #dashSimulationWorkspaceLedgerList > [data-v360-simulation-run-ledger-entry]:nth-child(2); completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-089 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-090 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 3829c2ef5700991c2bb513d4b5915dca9243d4aade4ba4bb725a5edaba1a7e40 |
+| UI-090 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-090 action 2 | assert-visible-read-model; control #dashSimulationWorkspaceNoticePreviewList > [data-v360-client-notice-preview-entry]:first-child; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-090 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-091 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 35046a35374afa315fd1f2334dc9530e5ddc423d769fe0ca04261f7734af4021 |
+| UI-091 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-091 action 2 | assert-visible-read-model; control #dashSimulationWorkspaceWhatIfReplayList > [data-v360-rule-va-what-if-replay-entry]:first-child; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-091 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-092 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 5507c722bffede2eba2edef1b427d10d9826c808a7bd92f75faff51fa29ef0b2 |
+| UI-092 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-092 action 2 | assert-visible-read-model; control #dashSimulationWorkspaceExportBundleList > [data-v360-simulation-export-bundle-entry]:first-child; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-092 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-093 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 6e3855162ca1946ffa8c3af9f79cce53b2c74ebc94d4201ad2fa1f7796de82b6 |
+| UI-093 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-093 action 2 | assert-visible-read-model; control #dashSimulationWorkspaceFieldEvidenceAdapterList > [data-v360-field-evidence-simulation-adapter-entry]:first-child; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-093 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-094 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 1bfbfdf570ca76f544a388121c280ec005a5ecdc5219abb56060ae53264132ac |
+| UI-094 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-094 action 2 | assert-visible-read-model; control #dashSimulationWorkspaceVlmAssistedExplanationList > [data-v360-vlm-assisted-simulation-explanation-entry]:first-child; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-094 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-095 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 4c5a09b3f4a13700efc3cddffa04d3d8b9892fee6c62c549413ae784d3eb20d0 |
+| UI-095 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-095 action 2 | assert-visible-read-model; control #dashSiteOperationsSiteList > [data-v370-site-operations-workspace-entry]:first-child; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-095 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-096 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 2095b9c64f4c9a9628f44bd410e7dfe3e9f897b92b49847946b4da96cec115a4 |
+| UI-096 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-096 action 2 | assert-visible-read-model; control #dashSiteClientNoticePreviewList > [data-v370-client-notice-by-site-view-group-entry]:first-child; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-096 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-097 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 2c11f7a8f571cbaa0336723d06febe7f719d756d3287640ccdb5ca9493625773 |
+| UI-097 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-097 action 2 | assert-visible-read-model; control #dashSiteRuleVaWhatIfCandidateList > [data-v370-rule-va-what-if-by-site-entry]:first-child; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-097 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-098 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 c1e9279144c74d43d660d85651fe24bdc7da71c8b9e00331ff07ecde1137ee90 |
+| UI-098 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-098 action 2 | assert-visible-read-model; control #dashSiteFieldEvidenceAttachmentList > [data-v370-field-evidence-attachment-entry]:first-child; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-098 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-099 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 74f92b00541d552e72de51c279cf7f5cc6c04e2a61643be1c9b9094c35a5e2b6 |
+| UI-099 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-099 action 2 | assert-visible-read-model; control #dashSiteLimitedSafeExecutionPilotList > [data-v370-limited-safe-execution-pilot-entry]:first-child; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-099 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-100 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 6bd58b514ccddd033482a55c3554cdec90687fcb8c89a9dd8a0cb8913596dc75 |
+| UI-100 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-100 action 2 | assert-visible-read-model; control #dashSiteOutcomeReconciliationSourceList > [data-v370-outcome-reconciliation-entry]:first-child; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-100 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-101 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 b1d75f370e8d41326603dd2f9814e0b78cc1efd520eb269fcc30738961a69667 |
+| UI-101 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-101 action 2 | assert-visible-read-model; control #dashSiteExportHandoffBundleList > [data-v370-export-handoff-bundle-entry]:first-child; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-101 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-102 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 785ac53bbe4d260c3da79c50f580741d27c60acb79266f77c9721191e0f80b79 |
+| UI-102 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-102 action 2 | assert-visible-read-model; control #dashActionControlRequestList > [data-v380-action-control-entry]:first-child; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-102 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-103 | /client/dashboard → /client/dashboard; viewer; 390×844 light; exit0 | pass | SHA256 66dce318b6a97c40741efad4744a2f376ce46d25a4e6904747eaa21e7713852c |
+| UI-103 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-103 action 2 | assert-visible-read-model; control [data-testid="client-action-notice-preview"] .client-action-notice-item:first-child; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-103 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-104 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 2a8188520d5efd3a0802668e92fa33ed1fd42ef2ad9d9921d894b6ed9ce0520b |
+| UI-104 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-104 action 2 | assert-visible-read-model; control #dashActionOutcomeSourceList > [data-v380-outcome-observer-entry]:first-child; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-104 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-105 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 a575e91b2ecca4dbf8f575f9cd44e76e97b38ab401f60109b6f6367c7636ddeb |
+| UI-105 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-105 action 2 | assert-visible-read-model; control #dashActionReceiptBundleList > [data-v380-action-receipt-entry]:first-child; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-105 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-106 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 3e9b80e9881c6c2933c9ec927eb862ac4f2b9d5a423c6d84757b0f8c35741f40 |
+| UI-106 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-106 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-107 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 22a3c2fbf1e9fed1f138b5e9febbc33b0b1ffa81a8e10618072fdbf19f71c6b5 |
+| UI-107 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-107 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-108 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 dc278fe44f672c523c58d6b019c2b2d62cf0e3cd005aa79f339db03ce4e24eb6 |
+| UI-108 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-108 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-109 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 aa9dc8e9475163a86a9584ced46fdd96e67f2a3680b1ca77c9e4c16cf6a621d5 |
+| UI-109 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-109 action 2 | execute-persisted-action; control #channel-save-selected; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-109 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-110 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 0662c7d455bc26811e571327066f59f6c6b1ee2fb86155253b33d2d6ed120849 |
+| UI-110 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-110 action 2 | assert-visible-read-model; control #opsVlmRuleDraftBridgeStatus; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-110 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-111 | /ops/vlm → /ops/vlm; operator; 390×844 light; exit0 | pass | SHA256 72818c46483ccbdd60669d621d226b647d576e06d1e957878e471c453b7ed88a |
+| UI-111 action 1 | assert-disabled-control; control #opsVlmExternalTransferWarningAck; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-111 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-112 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 26d1aae040ff8d9c32281092a58e7004f8c1dc1ffb77d7ff92abd86e4aed6364 |
+| UI-112 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-112 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-113 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 c4aa3283dcdf7d41a1621905075bf076bbdb7de19628fe2bc234919ed4e7eb3d |
+| UI-113 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-113 action 2 | assert-visible-read-model; control #dashActionExecutionDeferralList; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-113 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-114 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 ec7658c1f284f0c8bdef494b9dfe2c7d80d56b6c4fdb507afc175890b5298e70 |
+| UI-114 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| UI-114 action 2 | assert-visible-read-model; control #dashFieldEvidenceBridgeList; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-114 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| UI-115 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 72ec86d3c29ff7d46e4c7a4f9b39d33527cb11015f5febec60c709fefa05a864 |
+| UI-115 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| UI-115 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-004 | /login → /login; anonymous; 390×844 light; exit0 | pass | SHA256 a679e62d9de04a4ed5bf9cb75ae0254573dafe77ead8966a92ffa685fac8d2d5 |
+| AUTH-004 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| AUTH-004 action 2 | submit-form; control [data-testid="auth-login-form"] button[type="submit"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-004 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-005 | /setup → /setup; anonymous; 390×844 light; exit0 | pass | SHA256 e3fd627b6c29241591f7a75ed9745c3f1f479643aea82cc7596a6c4474bb52b8 |
+| AUTH-005 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| AUTH-005 action 2 | submit-form; control [data-testid="auth-setup-form"] button[type="submit"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-005 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-006 | /setup → /setup; anonymous; 390×844 light; exit0 | pass | SHA256 c9e17c992551b628666569bad1c7fee91c5e8bf2ed253be33f1ae7865219911b |
+| AUTH-006 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| AUTH-006 action 2 | submit-form; control [data-testid="auth-setup-form"] button[type="submit"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-006 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-007 | /login → /login; anonymous; 390×844 light; exit0 | pass | SHA256 d12476559f4a462a98c33da1cf7eea1da3922a09baf34d80da9546b3aeb71fdb |
+| AUTH-007 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| AUTH-007 action 2 | submit-form; control [data-testid="auth-login-form"] button[type="submit"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-007 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-012 | /ops/users → /ops/users; admin; 390×844 light; exit0 | pass | SHA256 ad94bbc9b97f6aeb1b978179dda3c5dbbe29a6037c9305cefb2812124a9c68c0 |
+| AUTH-012 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-012 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-013 | /ops/users → /ops/users; admin; 390×844 light; exit0 | pass | SHA256 b6bccd34d26a8944a18c1bcbfb154ab0f9deb2e1d1de0e5bc4c3d723ec74aeb5 |
+| AUTH-013 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-013 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-014 | /login → /ops/users; admin; 390×844 light; exit0 | pass | SHA256 d77cba5902d8fc0a923540ec9a62d4b56e7621c1486f799040626d86dab2717e |
+| AUTH-014 action 1 | navigate-action-route; control 없음; completion setup-navigation | pass | 실제 action status PASS |
+| AUTH-014 action 2 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| AUTH-014 action 3 | submit-form; control #user-save-selected; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-014 action 4 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-015 | /invite/setup → /ops/users; admin; 390×844 light; exit0 | pass | SHA256 5720241352160907cf2d467cd0f62a8ce87c2273f9caa6cb79670658c2033314 |
+| AUTH-015 action 1 | navigate-action-route; control 없음; completion setup-navigation | pass | 실제 action status PASS |
+| AUTH-015 action 2 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| AUTH-015 action 3 | submit-form; control #invite-create-form button[type="submit"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-015 action 4 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-016 | /ops/users → /ops/users; admin; 390×844 light; exit0 | pass | SHA256 48b443550c459a50a59c882a202efe6af4d660342122e77a95380c5cf8ea0998 |
+| AUTH-016 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-016 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-018 | /ops/users → /ops/users; admin; 390×844 light; exit0 | pass | SHA256 707094272528e7f72c5b6a89e4c98e81fa10dd3f7ed69219654f4a52c7e22906 |
+| AUTH-018 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| AUTH-018 action 2 | execute-persisted-action; control #user-save-selected; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-018 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-019 | /ops/users → /ops/users; admin; 390×844 light; exit0 | pass | SHA256 38c022113cb3b36395fb8db609d1d3267c7d42839025d4b7e33088db358877da |
+| AUTH-019 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| AUTH-019 action 2 | execute-persisted-action; control #user-save-selected; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-019 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-020 | /ops/users → /ops/users; admin; 390×844 light; exit0 | pass | SHA256 5da6134ce8330bb172970bbed17b9687fb233660714b05635f01632556152c35 |
+| AUTH-020 action 1 | execute-endpoint-action; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-020 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-021 | /ops/users → /ops/users; admin; 390×844 light; exit0 | pass | SHA256 1efe7a4500fd651fe7441186e56c3242ed3bf8fbe422c71a37f57c6d33b82677 |
+| AUTH-021 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-021 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-022 | /ops/users → /ops/users; admin; 390×844 light; exit0 | pass | SHA256 76913cbf3ccb227e15ad82538a9b5ac8026786c1edcb9dd9996195a279284f57 |
+| AUTH-022 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-022 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-023 | /ops/users → /ops/users; admin; 390×844 light; exit0 | pass | SHA256 7f79ca34697b9488ac0ca582cb5c18f935f665f257c86aa1eb6a748d87b9445a |
+| AUTH-023 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-023 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-024 | /ops/users → /ops/users; admin; 390×844 light; exit0 | pass | SHA256 aab87f5ef97c4c64f321108691a540af7aa642b3c9510c98da9e6c1a546aa803 |
+| AUTH-024 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-024 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-025 | /ops/users → /ops/users; admin; 390×844 light; exit0 | pass | SHA256 f5749a34572c1b10c6fecdc01f64ebbef95902c8188971c950c154b74c95c35f |
+| AUTH-025 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-025 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-026 | /ops/users → /ops/users; admin; 390×844 light; exit0 | pass | SHA256 f4fcb8b97bad427a4ae8f2c1af4c436028815c25ad54eb767e45e32ed4635629 |
+| AUTH-026 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-026 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-027 | /ops/users → /ops/users; admin; 390×844 light; exit0 | pass | SHA256 ac4df467818c1e1d1bf97405310ae740f79313702df8d336091156d4745b200c |
+| AUTH-027 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-027 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-028 | /ops/users → /ops/users; admin; 390×844 light; exit0 | pass | SHA256 8b09b7acc00c8a5e0b7f859725956babbb7cf7934c0b22d24a5f21446bf520e0 |
+| AUTH-028 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-028 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-029 | /ops/users → /ops/users; admin; 390×844 light; exit0 | pass | SHA256 a3e34715f44b5ae530603eb54f02cb57a91de7dcf48f1b0e1d6aa7c4af66c109 |
+| AUTH-029 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-029 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-030 | /ops/users → /ops/users; admin; 390×844 light; exit0 | pass | SHA256 db5c3a8db196b32fdae6bf56ec6aba774851331c4f36bf9abe70842d397f1d25 |
+| AUTH-030 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-030 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-033 | /invite/setup → /ops/users; admin; 390×844 light; exit0 | pass | SHA256 b93b321abb02654648555a9aa10c24d900d8a36d127f35b1e3bddf52b5d5b9a7 |
+| AUTH-033 action 1 | navigate-action-route; control 없음; completion setup-navigation | pass | 실제 action status PASS |
+| AUTH-033 action 2 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| AUTH-033 action 3 | submit-form; control #invite-create-form button[type="submit"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-033 action 4 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-034 | /invite/setup → /invite/setup; anonymous; 390×844 light; exit0 | pass | SHA256 62fff808638c6ca1b8c7903a535071fee3f99ab2dcff1524e4d63ff7aba9f339 |
+| AUTH-034 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| AUTH-034 action 2 | submit-form; control [data-testid="auth-invite-setup-form"] button[type="submit"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-034 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-035 | /invite/setup → /invite/setup; anonymous; 390×844 light; exit0 | pass | SHA256 68638e9440e3dbc8cd67c821da32d057df5628ca914bb449842093ef352a782f |
+| AUTH-035 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| AUTH-035 action 2 | submit-form; control [data-testid="auth-invite-setup-form"] button[type="submit"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-035 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-036 | /login → /client/request-access; anonymous; 390×844 light; exit0 | pass | SHA256 50c7b866fb136e2ff6cf8af729349ca2dfd12f7b2749c7ae9617ec0f9b49859d |
+| AUTH-036 action 1 | navigate-action-route; control 없음; completion setup-navigation | pass | 실제 action status PASS |
+| AUTH-036 action 2 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| AUTH-036 action 3 | submit-form; control #request-form button[type="submit"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-036 action 4 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-037 | /invite/setup → /ops/users; admin; 390×844 light; exit0 | pass | SHA256 70140252d488ac837b1c210f1126971cac85fbc247b87ae8492418958e0b1b13 |
+| AUTH-037 action 1 | navigate-action-route; control 없음; completion setup-navigation | pass | 실제 action status PASS |
+| AUTH-037 action 2 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| AUTH-037 action 3 | execute-persisted-action; control [data-request-approve="auth-037-review4-fixture"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-037 action 4 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-038 | /invite/setup → /ops/users; admin; 390×844 light; exit0 | pass | SHA256 c71a0ba76071744337bb55dac0d9957da032ac9f2a3463bf4e51f061bc9e0c68 |
+| AUTH-038 action 1 | navigate-action-route; control 없음; completion setup-navigation | pass | 실제 action status PASS |
+| AUTH-038 action 2 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| AUTH-038 action 3 | execute-persisted-action; control [data-request-reject="auth-038-review4-fixture"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-038 action 4 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-039 | /ops/users → /client/request-access; anonymous; 390×844 light; exit0 | pass | SHA256 a1f7763a2b5d2b997aef418345669952344d316f72b1529bafb15d01bbdb2317 |
+| AUTH-039 action 1 | navigate-action-route; control 없음; completion setup-navigation | pass | 실제 action status PASS |
+| AUTH-039 action 2 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| AUTH-039 action 3 | execute-persisted-action; control #request-form button[type="submit"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-039 action 4 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| AUTH-040 | /ops/users → /ops/users; admin; 390×844 light; exit0 | pass | SHA256 b01037169c2f708f1e3b566ccce65274ee6fa1d64dbcf66bd3c564a7eac4e2db |
+| AUTH-040 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| AUTH-040 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-001 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 6674dc116a767712ae26b3bd2ee25565ce75723956d96891a2ef5bbb2c9881f8 |
+| SRC-001 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| SRC-001 action 2 | execute-persisted-action; control #channel-save-selected; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-001 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-002 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 f33a276a09c419e8d62b9e108e7ff1998eaa0c6f8260a4eb86ac4d546af45129 |
+| SRC-002 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| SRC-002 action 2 | execute-persisted-action; control #channel-save-selected; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-002 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-003 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 e9b009fd651387f773005aa6926c0d5d78c525011334273328b48d369b45d2e3 |
+| SRC-003 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| SRC-003 action 2 | execute-persisted-action; control #channel-save-selected; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-003 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-004 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 24d40fb5038595cc39cfc74d410e6ce703aa4dee8861685a8d3e5365d19e0658 |
+| SRC-004 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| SRC-004 action 2 | execute-persisted-action; control #channel-save-selected; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-004 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-005 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 b0e0df7d821b18f3e16c3bbdc932f1b9a10015ac078809fee07e66e930ea2272 |
+| SRC-005 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| SRC-005 action 2 | execute-persisted-action; control #channel-save-selected; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-005 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-006 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 0d519cec680c8677b9a6362fe11f741c4614e66519117660bd9d36cbba876d5c |
+| SRC-006 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-006 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-007 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 9e6df0a1bc8e65c5f6d7186a8eff4672c867925347acc41fb2f6fc234e37e41d |
+| SRC-007 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-007 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-008 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 8a10db76a28a0e271569a75a1f2da901b2da030b3a1dd0df0e0270f74826c7b3 |
+| SRC-008 action 1 | execute-endpoint-action; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-008 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-009 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 d3ffb9bdb8c99f99a02d3ad7c5b188ea54a0ccfbce2ed6230764ae43207b4f1f |
+| SRC-009 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| SRC-009 action 2 | execute-persisted-action; control #channel-save-selected; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-009 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-010 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 33d6ccba3fdf8167724152659e11639f3976b6528341450aeda3ef3339a47aaf |
+| SRC-010 action 1 | execute-endpoint-action; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-010 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-011 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 592a655a0106056b9978fcb07ce60c21d50bf72cf14a0f2676039cb7b075a2b9 |
+| SRC-011 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-011 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-012 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 5dae0bfef89cceb0a00158d022a68e6c8a09ecd004b4564397e4592a8c320f4c |
+| SRC-012 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-012 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-014 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 3ea4b0d0ee57cdb58378da47934e4c2bf4def5f13d76ef283772a57fdcd32f17 |
+| SRC-014 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-014 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-016 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 c37e74c80342de4a1a521e6d1723ea1f0e29da97cb0f46db61fe7b6beb952420 |
+| SRC-016 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-016 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-017 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 d174d2874702885132424ff529676234e9f2346c32cea01132de8f8ae653d415 |
+| SRC-017 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| SRC-017 action 2 | execute-persisted-action; control #channel-save-selected; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-017 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-018 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 6ec48aecb00e2bf3e7c1bf708ab5608621c6e112d854d4f6bf55f2823329ad1e |
+| SRC-018 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| SRC-018 action 2 | execute-persisted-action; control #channel-save-selected; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-018 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-019 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 8e89b81a7460d5b99b2a4dd0f3ec2249003bd232c5b11ab3cd0b6ebe8189b1bd |
+| SRC-019 action 1 | execute-endpoint-action; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-019 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-020 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 b3750ef8e4206f1d14cc79921b0a10d235feb7fd159ae116a112178bfa3b8c71 |
+| SRC-020 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-020 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-021 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 6634762c9887cd858ed2bcd4c62441faf1210987baf007c18c11aec4a8d45bfc |
+| SRC-021 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-021 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-022 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 0991bd0b37131a85cafedec6d8ffa8f0b908611db43ba16c76e2e74677f6eef7 |
+| SRC-022 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-022 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-023 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 e3741046ccdfb4b6db115503cbcbd5466b168a5736b69a8d90696229bd6725ef |
+| SRC-023 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-023 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-024 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 3d821484807a171a2a657eefd07df0d1d238bfe64825a62a7847dd358525717b |
+| SRC-024 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| SRC-024 action 2 | activate-control; control #add-channel; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-024 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-025 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 e7ae83964b2f1270ac89361082a2d60fdb5ac90c834bffd5b64c33b838b60ca1 |
+| SRC-025 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-025 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-026 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 4796c8448a324f6e48a25cccba81b6f10d45dcce9efd74667273dee774c9e724 |
+| SRC-026 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-026 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-028 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 2e82b9845bbca220ad560e2894a4acacf48c13d81c779d805b27ba50c0c07662 |
+| SRC-028 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-028 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-029 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 cbaed5f0169a20c6715d56fc21d29d754cd2b05776f9689a5e4c243e855fa8aa |
+| SRC-029 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-029 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-030 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 da96ff4bca6d2191f8b7ad7027e51a33878b83c8a96ccd34941ad5903c1c7743 |
+| SRC-030 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-030 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-031 | /ops/api/onvif/import-draft → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 3eadd3aeb0603f759fce04da08cdd6fab3c1bfb8d79e70aa7ab8cd38392243ea |
+| SRC-031 action 1 | execute-endpoint-action; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-031 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-032 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 e6875e3423959e98dce989b2827ababc18144205939a230c3266e8d94f6a83b8 |
+| SRC-032 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-032 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-034 | /ops/api/source-registry/onboarding-quality → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 aeeee386fad310e0b097fde0db77f93fb6e8866424acf3b24ca518455afdfd9a |
+| SRC-034 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-034 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-035 | /ops/api/source-registry/reliability-timeline → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 35d913063a177ae120eff847c7e7e02388e3e4071dc6e159b0d344f232c82ad6 |
+| SRC-035 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-035 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-036 | /ops/api/events/reviews → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 c1e723c2fc86950284bf063b45e051b9e2e253ba4bdff81e7c07f89990c4c22f |
+| SRC-036 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-036 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-037 | /ops/api/events/reviews → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 2aeffc340a60a24be65dc98f4ec52b5efff2f5dcd82b4ee32c717ecaac696bbf |
+| SRC-037 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-037 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-038 | /client/api/views/{id}/events → /client/events; viewer; 390×844 light; exit0 | pass | SHA256 232f029081d9de2d70fb90a6789588c7df6695cf76730d1d1eb870160b134f82 |
+| SRC-038 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| SRC-038 action 2 | assert-visible-read-model; control [data-testid="client-safe-source-status-digest"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-038 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-039 | /ops/api/source-registry/reliability-search-metrics → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 9bd7abc695e65ca3e304c8d8e9117d044c683ccc0a9b8af3cdd10a7e1e4e3c31 |
+| SRC-039 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-039 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-040 | /ops/api/source-registry/backup-recovery-handoff → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 a2996873599d8edfea84d4fc31ed7eb9910e253082788138e36e14d51b1361f5 |
+| SRC-040 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-040 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-065 | /ops/api/onvif/credential-provider-status → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 b97537b2cef654d17aeeefd56fb2db32db27d3400656e881ae4284acf0427d5c |
+| SRC-065 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-065 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-066 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 6bf500c7615e84a3c13871b7b5f318ab4e7ce138ee2edab7120b529a203e98e5 |
+| SRC-066 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| SRC-066 action 2 | execute-persisted-action; control #channel-save-selected; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-066 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-067 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 b415b5884f050b02d2d2dd82f9e472f3842c49c70d91372ebbc00a90062dcf56 |
+| SRC-067 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-067 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SRC-068 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 c11f0cf3571c87a433a69efb40792a7f43dc2146f72b4ff439097c8e13420fb1 |
+| SRC-068 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SRC-068 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-001 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 468f4c7994e9962d891f77b3b1a59c0ecc50118944ef3dd5290e66cdde23e209 |
+| RULE-001 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-001 action 2 | assert-visible-read-model; control #opsVaRuleRows > tr:first-child; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-001 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-002 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 7812c060a8ad036933a6457bab1bfdfc5f4154692d72048cfedcfa96d964d2b7 |
+| RULE-002 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-002 action 2 | assert-visible-read-model; control #opsEventRuleRows > tr:first-child; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-002 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-003 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 d476b32211baee04442496e9614ceb9961d9574a3236dc71e0439913ba786022 |
+| RULE-003 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-003 action 2 | assert-visible-read-model; control #opsProfileRows > tr:first-child; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-003 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-004 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 48194d88d5d278a305319d32905f184ba0ee0179447e8256835810ff6416c24b |
+| RULE-004 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-004 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-004 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-005 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 48828ca39873af78a2bf73d9888d25c5d208ca65f7bf45ecf3ec7a3188ae2519 |
+| RULE-005 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-005 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-005 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-006 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 9dc2423c390a27c57e5f07cb12bafd445b4bc882b5a55d41d46389cc3233cdc7 |
+| RULE-006 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-006 action 2 | execute-persisted-action; control [data-ops-rule-action="delete-va"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-006 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-007 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 07b0c4af23c464a1135b38a95033691870c2dabff1ca948eb8d59a43f90a1af7 |
+| RULE-007 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-007 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-008 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 bbb6bdbe4c395649f7c6fc6db631f958479a78b3b1857ce324a71ad6995aa3c1 |
+| RULE-008 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-008 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-008 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-009 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 bebc6508e810899d890741fb9e6d3609397470551a87e8617bb595d3280ddfb9 |
+| RULE-009 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-009 action 2 | assert-visible-read-model; control #opsRulesValidationList; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-009 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-010 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 33cc699a7389baac92e51c49557e5b9ff3389d33c509fc0ca9e3f3f79dc74d5b |
+| RULE-010 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-010 action 2 | assert-visible-read-model; control #opsVaRuleTemplateSeedSelect; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-010 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-011 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 ad43e54d175a158e65f1284e2d7d8a96b6c7214492b36a9b73b4d310ca51a6e0 |
+| RULE-011 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-011 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-011 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-012 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 91af9fbf7232ecb2f53e6b31862178628958a3f9e47b325d3e466ecac74fbb05 |
+| RULE-012 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-012 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-012 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-013 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 eeb3b31f3e699822b30de241469cf5f71ed02b88dcaa4d93d2f183adab5acc30 |
+| RULE-013 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-013 action 2 | assert-visible-read-model; control #opsVaRuleGeometrySummary; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-013 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-014 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 029eedbacaca7fca34c8eab0c1fe6f9a653bc4b11620f9cc4fc42bb9260b508b |
+| RULE-014 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-014 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-015 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 5b4236ba05f036f87e8015693d16dddd30cec5d06893241c30143fba94e6aac4 |
+| RULE-015 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-015 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-016 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 2eb714ca47a35835a620538fc270b6d1880a2ca883369229194402c6cebaebe0 |
+| RULE-016 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-016 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-016 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-017 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 7c0573dc03c158d6f31241a7b7fe9701ad7fe3b88d3242af79fb63f50fed9a6d |
+| RULE-017 action 1 | assert-hidden-control; control #opsEventRuleIdInput; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-017 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-018 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 ad278b09d87846c2102be7b1a46fb242a93a36934a90d175abc771484a8c49b4 |
+| RULE-018 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-018 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-018 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-019 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 1bd7e6ce43fc662fb022a616dd21b7ac6d8404b29a90236b3795b2d50ea36af8 |
+| RULE-019 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-019 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-019 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-020 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 501148b0a3a08a16feec0c2143862a588f7c7daa6df86383776f3327c9867e6d |
+| RULE-020 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-020 action 2 | execute-persisted-action; control [data-ops-rule-action="delete-event-template"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-020 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-021 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 14a695a8c3c17ea9f87f3b28e43c64d83a42ccd74f3c1f115803c8f49504ccbd |
+| RULE-021 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-021 action 2 | assert-visible-read-model; control #opsEventRuleDetailSummary; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-021 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-022 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 1db1779269f23828e411e5871e66efc2b2d3c5865920b96360ac163ca7b06c11 |
+| RULE-022 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-022 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-022 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-023 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 f85b44e8f83692b620e02f2863c1f79db40ee2dbc80e37e023b7f0ccb5eb5496 |
+| RULE-023 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-023 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-023 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-024 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 dc565caadfa6b41670c76e054232c2ce634addb409512442eb3d1cd9c1b2ef9d |
+| RULE-024 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-024 action 2 | execute-persisted-action; control [data-ops-rule-action="delete-profile"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-024 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-025 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 f699c44392d760055fc794d4b93c62edf0dab9517d83cb503f348247438f86c6 |
+| RULE-025 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-025 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-026 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 e6b2414717aed163c656d09350eb0d29b5b64d25b4ab8dee938258d143e88bd9 |
+| RULE-026 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-026 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-026 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-027 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 daa5c0a994f102ce312ddfc67b5b3eae818a63492fd259be59eb9311afc89983 |
+| RULE-027 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-027 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-027 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-028 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 cc41bdb358b73b0049b083764820bf00e930731a38d519f6effedb120df0c5d7 |
+| RULE-028 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-028 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-028 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-029 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 29326f262463e20d2e098c14f269e199b60c1f3d79c9b11acb2ce3a652874f0a |
+| RULE-029 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-029 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-029 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-030 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 8dd3f82e32ec1bbe454d5206c818eedd5f907656e13e25e6506010384618ead3 |
+| RULE-030 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-030 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-030 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-031 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 06ebb9fa5841c41678af7e02bd0ebbf2dfb805aa05bc8cfe55b045a24eaf54e3 |
+| RULE-031 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-031 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-031 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-032 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 d12d4e9479e92c826bc1f2bab193ef376c9b8cdfaae3f4b2f71b8cd7e72a5d14 |
+| RULE-032 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-032 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-032 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-033 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 55e308d7fc34dd43ac243fa408c69036d66eea49c040278fc5786a5d7ae13af1 |
+| RULE-033 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-033 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-033 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-034 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 31b49fd72f9b8690a0fed2adfdfef15fd679f430512f0a8d5d7a6938e3d35d98 |
+| RULE-034 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-034 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-034 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-035 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 d8b392f1409afb95f295203ead78d5c24d096320b1029c88ca34c62b5fa46226 |
+| RULE-035 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-035 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-035 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-036 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 1be0cb4b195d08c7b578713380fa1a7140939fbb7f2496783b6495f8b47ea582 |
+| RULE-036 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-036 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-036 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-037 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 c394bfc09078b09e305896b076a090c9a1a7fef172834bb24b980b79034a268a |
+| RULE-037 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-037 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-037 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-038 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 935322071f0440bfca315db3de59470ca6e6e14f67465f03ceafc34ebdec7dd5 |
+| RULE-038 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-038 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-038 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-039 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 3a1828edee92c2f974c271c87dac449faa6eff1208651feec8f652e30b8acf42 |
+| RULE-039 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-039 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-039 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-040 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 28f68bc3e1d673dd83535d858aeaa86714e7b63c17478beafc35238856f80fcc |
+| RULE-040 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-040 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-041 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 14e25f2b9077dc1c6676f50134ddc952921948f3850f736d3d76adca71e87091 |
+| RULE-041 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-041 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-041 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-042 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 c3f3e7579d35024676b74a3e02d1d387c9f1a256da0bcb3b915f89d28731031a |
+| RULE-042 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-042 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-042 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-043 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 4fc8cc4643ff3994acdb465f858453ae9cd1bfbcff6010024ef98951bdfe521e |
+| RULE-043 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-043 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-043 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-044 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 302a4ef205abfe449cbef317e638807cc4078bac254f400f92bfdf3ab95e2272 |
+| RULE-044 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-044 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-044 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-045 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 b3a3254fff0a70cfca740fcf7f49f016262a8d3718067ff0fbecde4dde78b19e |
+| RULE-045 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-045 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-045 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-046 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 77472df7812bb1d78494dd24bed121644380da2b8b52c1eab5a76c59df740727 |
+| RULE-046 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-046 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-046 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-047 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 04de2e0423612250ea046b54544748a0c23de92ef04969943b605d510b85572d |
+| RULE-047 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-047 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-047 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-048 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 60e6e3298e8c004e3352f3eacca6de053d66aeb421fdaecbcbbeed993c61f009 |
+| RULE-048 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-048 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-048 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-049 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 7fa4a091270a9243907108867762e86174d2bcd98832ec98d5ed79b5ea17e44a |
+| RULE-049 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-049 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-049 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-050 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 47b93a1bdb453d6ace5cb456149e450e746d7e181b7855444bc8cf3a5eb08fbb |
+| RULE-050 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-050 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-050 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-051 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 ef62842d94ada288479c21a2c65808c409a027317eff72a035cffb1077b5dd45 |
+| RULE-051 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-051 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-051 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-052 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 2a222782bb013562c170a9fbccfd2aa5c4202a1660ea0d40fa36e8e7ca94efd9 |
+| RULE-052 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-052 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-052 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-053 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 6fc06eb505c1c4764a908dbbd9a8412dbc08b9d4a6a79e63052c0a3e05c8df08 |
+| RULE-053 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-053 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-053 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-054 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 a1fb12755afd01814af50ec37babb328f8153a0841e2cbe9d061bff974351505 |
+| RULE-054 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-054 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-054 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-055 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 c929e8d1d556a2919cf8d93e76c86f48cd2091c1870bb6fecb2bad35130147a0 |
+| RULE-055 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-055 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-055 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-056 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 09a2b001bf621dc5ff3ab896de61b9d892632fabe579efc6c37999f287ab6aa8 |
+| RULE-056 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-056 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-056 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-057 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 edefd82e3594e8dc3aea08726808f192c2762beb28cd3fe212435080187e23c6 |
+| RULE-057 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-057 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-057 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-058 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 b5601fddc769fda330ba202ee2c37ade8af86db270cd20f6c39c10c3c8d46eca |
+| RULE-058 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-058 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-058 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-059 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 3f5f52c7a320cafd82afc89e2afb5edecfab52da19a1446bd18efe2c699b2e29 |
+| RULE-059 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-059 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-059 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-060 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 16ec55980c6bfb8420f116bbc944afff95a20b1ab7ff73c309f637491bb42591 |
+| RULE-060 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-060 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-060 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-061 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 b89dd1fa3096bbe9a25f1c9240a234f65315042b8962db50215c07ce29250af2 |
+| RULE-061 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-061 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-061 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-062 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 036b8119c649b7d9e089a107a77d5b31c12d8acbb07981564948598801035e62 |
+| RULE-062 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-062 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-062 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-063 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 4deb77175b7ceae6b3f9f2df732a6b89b03611ca62d2cb0ead7755fae6fe6d4b |
+| RULE-063 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-063 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-063 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-064 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 4e19760248a521d6aca2c65397182dba8a296b6cab077e8d9306a520625943e3 |
+| RULE-064 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-064 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-064 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-065 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 8a2ce7633ef29b4c20127b84aaeba7629d390e3cb9f52d27455adf15032a59eb |
+| RULE-065 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-065 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-065 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-066 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 298a4b24bda554482a7ad9c02e69e399ded3d6520e97005d93c2c833cff65a52 |
+| RULE-066 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-066 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-066 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-067 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 a80b94783c9387bb3fb70bda620818175a12665d214a81712ead1ee87bd963a0 |
+| RULE-067 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-067 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-067 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-068 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 7414a325d8ea4f7f499da30e67ff753d756b560c4a477b31fa094e09291b7785 |
+| RULE-068 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-068 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-068 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-069 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 6932687cf20836153d2bd9a7dd186560af24347e178d6d2b6834458e3024a3c6 |
+| RULE-069 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-069 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-069 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-070 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 1452e2ca73421597a10ce10b55a6592f3ae2015ead61e6c63cb5301fdc709993 |
+| RULE-070 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-070 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-070 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-071 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 65f7e8ae19a984219c79b12a52dc90ac4be99888cfa03e3dbc37d85cd35e578a |
+| RULE-071 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-071 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-071 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-072 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 45e1836839ed5ceda0728f7144a52c2a5380cce8ab3cae2bed31fc1f4fd63871 |
+| RULE-072 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-072 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-072 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-073 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 cabb1dd1713777c3bfc53f1f78c6fe8479eb65fabd543f34ea4d2c565be627cc |
+| RULE-073 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-073 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-073 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-074 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 f0a4a1adb310a4ddaf6846420f563baa1bc663b2ae05b8d2ba9097d3e4f04496 |
+| RULE-074 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-074 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-074 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-075 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 a64227f09c481901086ad09384504da17e2a26633a09205fad7fe0ea6bc836e4 |
+| RULE-075 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-075 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-075 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-076 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 e6e258b73f17c2e7addfa63ae6909d1806b94a64f194aa71f7bd26687e95dd92 |
+| RULE-076 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-076 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-076 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-077 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 af9653307d9faf1fefa6b43536b7544b7cd998b6e14533f4782267df3e725921 |
+| RULE-077 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-077 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-077 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-078 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 bcadd3d0a07ecf84842ed1b8b5b95e08a395deb89439195d66650ad8c6dfe067 |
+| RULE-078 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-078 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-078 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-079 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 b2ba0011802db787eede364538502a76910c60eda235b2869a4651570c0ccc39 |
+| RULE-079 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-079 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-079 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-080 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 854be43ff56d2c4d70e8fcca60dbb59bfefbe4fb0808359c495c935bdcd677c4 |
+| RULE-080 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-080 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-080 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-081 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 8599f3d14e5c37a49ed114de564a7cc6b4fd3fc66ece670e856ade8cf862ea5f |
+| RULE-081 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-081 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-081 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-082 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 adff23435fb34559a557630a8dd22aad993e1b44913fc30ebec743da954d26be |
+| RULE-082 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-082 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-082 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-083 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 818de3e01fbaabec904072701f6e0418fdf7904c000c0c6bb6a063b53b3b73ff |
+| RULE-083 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-083 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-083 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-084 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 d2351080795849038d3b46bdadc3b5073e8308f2cc3a898942f96053c713b9ae |
+| RULE-084 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-084 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-084 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-085 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 6030fb64f6736646c9bbdbab463086e2103ff45e5f46755f7e38838ff1c5f72d |
+| RULE-085 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-085 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-085 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-086 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 7d6c2ccdf20b6ddf3e9e19b24975e448fef280e86132f693cd540aea343bc6a2 |
+| RULE-086 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-086 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-086 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-087 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 6ee0938d6a099369f6b9bf057b74681ee9cd36dcfe42c495782a8a100f8e0a15 |
+| RULE-087 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-087 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-087 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-088 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 2ec9d7962b5be1b12d93e934c397ed9846c76c5a855c9077efea801903187f18 |
+| RULE-088 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-088 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-088 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-089 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 53eda4be89f7c4376c7db5bd1737616e78a29ef0a94a54ca1b76774b45c5fa40 |
+| RULE-089 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-089 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-089 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-090 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 44ebc75974baa4b069d62405f8d73a5aa818168a8ed1162bced3f5d0bc52f22c |
+| RULE-090 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-090 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-090 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-091 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 7b9fa93a029d4fdbb19c14bee7bf01f832f03ff5315c725f1abed0ab8eef2baa |
+| RULE-091 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-091 action 2 | execute-persisted-action; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-091 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-092 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 1b16534ac83d2d62fd0704bc23b3021999283866ae9e91644065af3005820523 |
+| RULE-092 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-092 action 2 | activate-control; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-092 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-093 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 cb31f17b7e44452523c721827960c83b4b7dbc9aa047eb4d3cc0a3595ffaa8eb |
+| RULE-093 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-093 action 2 | activate-control; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-093 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-094 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 3517b5bd383388b821cd26fdac72b3eb097f9e5f1fa7e01d83a542fe6cc3ea5a |
+| RULE-094 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-094 action 2 | activate-control; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-094 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-095 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 544a8296a4d422931d1b970a696cd0956e60a0ec90bbd5a6e6531767d39f4f1d |
+| RULE-095 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-095 action 2 | activate-control; control #opsRulesRefresh; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-095 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-096 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 b4ba78ec85eb2a7c916160a54ba36526e52429f583cb7ac283d93f96a3131a0c |
+| RULE-096 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-096 action 2 | activate-control; control #opsRulesRefresh; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-096 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-097 | /ops/rules → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 51be32645678df41ab82b10ca58effd6fc002186052b82246b9165a4baa77884 |
+| RULE-097 action 1 | navigate-action-route; control 없음; completion setup-navigation | pass | 실제 action status PASS |
+| RULE-097 action 2 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-097 action 3 | assert-visible-read-model; control [data-testid="client-live-source-tree"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-097 action 4 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-098 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 3c33427a4e741f5f1998d7d8ea3c0225d84bae1f55245465be451b6ddd003b9f |
+| RULE-098 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-098 action 2 | assert-visible-read-model; control #opsRulesValidationList; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-098 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-100 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 67131a9f1f81e69eb775a52227e4e2ea5a83175ac623ea0c43a25a9decb5e34a |
+| RULE-100 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-100 action 2 | activate-control; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-100 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-101 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 93f2f29d2564ebc69ce5293f57cce38c7d47a8b0ad0f48f2671d869b71099dac |
+| RULE-101 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-101 action 2 | activate-control; control #opsRulesComposerSave; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-101 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-102 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 c9274eedb131c30de8e9a37e23894af4a03e6a0d0cf57e3ec71dae77fa335d70 |
+| RULE-102 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-102 action 2 | select-control; control #opsEventRuleTypeSelect; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-102 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-103 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 3ad8d3d7058a6d2a8516b372f9d40e4cbad5e7bf25ff2dfcfddb6c7753d64f96 |
+| RULE-103 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-103 action 2 | activate-control; control #opsRulesRefresh; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-103 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-104 | /ops/rules → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 357ad6b550e40e1ab45043a6b6deaaf20d9c8d2d664dd9c054b85375091b3c3d |
+| RULE-104 action 1 | navigate-action-route; control 없음; completion setup-navigation | pass | 실제 action status PASS |
+| RULE-104 action 2 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-104 action 3 | activate-control; control [data-approval-gated-rule-draft-route]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-104 action 4 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| RULE-111 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 21274f852742a1cc2f268e463f126899d06ab663507cdcbca2e201594978095c |
+| RULE-111 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| RULE-111 action 2 | activate-control; control [data-vlm-rule-draft-index]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| RULE-111 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-001 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 d2f893307026cda3ebb67e6a1e877b61e2b344f52f69b16b4898fe84e4560837 |
+| EVT-001 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| EVT-001 action 2 | assert-visible-read-model; control #dashRuntimeTrendSparkline; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-001 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-003 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 c5fd32622cfd5b93032b583eaaa344f1733af52d551e9506de528dcc9759e6b8 |
+| EVT-003 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| EVT-003 action 2 | assert-visible-read-model; control #dashRootCauseList; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-003 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-004 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 97495dfd3455408d1797616b4798940898109687c472257ce19df4a0b1561d85 |
+| EVT-004 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-004 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-007 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 bc300a5c8fcbf6b164cf3d393dbbe136bd3dc90cbc617b9a3c35e13ffd963666 |
+| EVT-007 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-007 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-016 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 009443c0c8f364a16014623341e3439db43777dc359e6ddd185f1c3931842430 |
+| EVT-016 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| EVT-016 action 2 | assert-visible-read-model; control #opsV320ResolutionTimeline; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-016 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-017 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 36a5132eb93f9ea09ea1288b8a69816acbdd747ccc8c693af72ad2dbb140fde9 |
+| EVT-017 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-017 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-018 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 ed67489d029d5f5fcfd6196f8cdf55efe7005c99f12496a5b669c5111e544f27 |
+| EVT-018 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| EVT-018 action 2 | execute-persisted-action; control #alertDeliveryTest; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-018 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-019 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 519a75f2a157be15044f66c6a37fa3e09aa80f0d6a82f03a3afdb2d188362f51 |
+| EVT-019 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| EVT-019 action 2 | assert-visible-read-model; control [data-testid="ops-vlm-event-review-card"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-019 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-020 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 b773be66b486a96476f9babab5672ba8d051c1a6a12d2cdce3541c909e65ad64 |
+| EVT-020 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-020 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-021 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 32211d4d9ad0daa7044dea8ae1fde560a7e9d1eccd06f204d3a69b8ffc749242 |
+| EVT-021 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| EVT-021 action 2 | execute-persisted-action; control [data-event-review-save]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-021 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-022 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 ffa347ffff53ae750b396cd7d6289416c88c78483a2b2076591e1ed9963c331a |
+| EVT-022 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| EVT-022 action 2 | assert-visible-read-model; control #event-review-audit-list; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-022 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-023 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 f1afc9c3b091104edf556ecff1927235708798757996dd1766912912aef22b3b |
+| EVT-023 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| EVT-023 action 2 | assert-visible-read-model; control #dashCommandWorkspaceLedgerList; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-023 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-024 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 ef23b3aecf398295a4ef239fa0bdf8c807205a1d253207031c418fd8c5a237ec |
+| EVT-024 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| EVT-024 action 2 | assert-visible-read-model; control #dashRuntimeTrendSparkline; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-024 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-025 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 0ca59be6094cc35801e427bd9386b18a1b06e65970e5b7c76f4c0dfef7f52675 |
+| EVT-025 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| EVT-025 action 2 | assert-visible-read-model; control #dashRuntimeTrendSparkline; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-025 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-026 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 19d8923a7335f3e0f6eb64839032fe1e807fa8dd47f7ef8918022dca74b84d8d |
+| EVT-026 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| EVT-026 action 2 | assert-visible-read-model; control #dashRootCauseList; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-026 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-028 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 0347e06c86f97e097da04ea7804d7f2bea45c318d2edefe6d4102b8ec9508769 |
+| EVT-028 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-028 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-030 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 5f405b52bbbb1fd2349fb433964ff0596f77783f406dc15b0d1c4ecdc7763171 |
+| EVT-030 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-030 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-031 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 295d14a788d58775ff846ae8202791eeb4574dec72ad995d4763b41c7deebe92 |
+| EVT-031 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| EVT-031 action 2 | assert-visible-read-model; control [data-testid="ops-vlm-event-review-card"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-031 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-036 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 a95bffc1812bcd38360d34cd122a56c0fe99840ced7210822ab04e4976972037 |
+| EVT-036 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-036 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-037 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 14598665c1ee24e0749557cd4e48e31c92fbda28d6cd7e29ac1f486a7a2326a6 |
+| EVT-037 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| EVT-037 action 2 | execute-persisted-action; control [data-event-review-save]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-037 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-038 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 55bacd57959c6fbaafaeadac747b33d6e9d2a7993ec762e9640928d3dc61d784 |
+| EVT-038 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| EVT-038 action 2 | execute-persisted-action; control #alertDeliveryDryRun; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-038 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-041 | /ops/api/events/reviews → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 4ac8d8a0993355cbcf17a6d40f51ab9f9c4002698005fa492190d0a35063c0d1 |
+| EVT-041 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-041 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-042 | /ops/api/events/reviews → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 b67ae19c39ab09d16b02588614520faf7f3b5f2fa39254c231967a3873215ec6 |
+| EVT-042 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-042 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-043 | /ops/api/events/reviews → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 8f7b343addeecbf537263e22ab38035524de6a6bb37a6e29578ed9ba6a32d935 |
+| EVT-043 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-043 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-044 | /ops/api/events/reviews → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 229bfd73f6d9ab7b51a57e5608482b70e1ce71d14e1eee9987a4b6dd8e859d97 |
+| EVT-044 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-044 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-046 | /ops/api/events/reviews → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 244c201b5ab517cdada61bdcc6cd50c01ce0776080cf52665851690f38b29b1b |
+| EVT-046 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-046 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-047 | /ops/api/events/reviews → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 a68f3529eedd0e0d17cedf3016379ac2e30c3d18bf164a1dbb70792a70a17632 |
+| EVT-047 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-047 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-048 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 8f6debaa378f69e1aa0be467efcc0af3ff3aa2bd5e7f7c7f677a6226e09f493c |
+| EVT-048 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-048 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-049 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 e8f89a76e76ada991010057ca1ec3daeaf104bfea19b0521ca3c8b67a3962d0e |
+| EVT-049 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| EVT-049 action 2 | select-control; control #eventRecordsEvidenceSelect; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-049 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-050 | /ops/api/events/reviews → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 5a04511491a20b7cd6edc5dce7949dc1d4d8370292c3ea2b2839ba09fb5ffbc3 |
+| EVT-050 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-050 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-051 | /ops/api/events/reviews → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 5e65442a68cc6d70ded45a4e592aa936fe0d6a3ab079f5016d2b1936cd7e8053 |
+| EVT-051 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-051 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-052 | /ops/api/events/reviews → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 7aadea144a195b08a32133f090aa1634c3bbb3c025e340c472527a7d3b5dcccc |
+| EVT-052 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-052 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-053 | /ops/api/events/reviews → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 4fa78207549dcdcc128f980c5426d351f036993da4ccd5627e24193a84ae63bb |
+| EVT-053 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-053 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-054 | /ops/api/events/reviews → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 fdcad435fc6cb4482fd59ff5493bf3c49d8c624f0bc0b55475661062c6c94924 |
+| EVT-054 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-054 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-055 | /ops/api/events/reviews → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 4c7d996f5788d4a9005b4b064ea92be4cc41158c98cc9c0c6cee0c4fc2fcb8d0 |
+| EVT-055 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-055 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-056 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 e13f946227d47a8412ce45ed6730edee1ad342ce1fdf0de888a7d08c0b0d36f4 |
+| EVT-056 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| EVT-056 action 2 | assert-visible-read-model; control #opsApprovalGatedRuleDraftReadinessRows; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-056 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-057 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 dd37ed3ba1125e4089787a7656cd62244e926fc51c8265ab59d95c34fbe15cc3 |
+| EVT-057 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-057 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-058 | /ops/dashboard → /ops/dashboard; operator; 390×844 light; exit0 | pass | SHA256 fc5f89ec606a6e3837942ffa3208954cba3840fc83beaba87c27b9f52a7251ca |
+| EVT-058 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| EVT-058 action 2 | assert-visible-read-model; control #dashRuntimeTrendSparkline; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-058 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-061 | /ops/api/events/reviews → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 170683143a81bdaa214d05e463c7ffc27b695b6658b117e6e9236b5da7620f00 |
+| EVT-061 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| EVT-061 action 2 | execute-persisted-action; control [data-event-review-save]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-061 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-064 | /ops/api/events/reviews → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 942ff0fccd01abb82b21eb3e0d6e08aaa1bfbdccfbb4b25937fcc0c76795245f |
+| EVT-064 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-064 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-065 | /ops/api/events/reviews → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 25de63d51bc9ae0066ee6a0d5ec999a627f3e23ec285940150cedb71e121f307 |
+| EVT-065 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-065 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-066 | /ops/api/events/reviews → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 e2d1bade51dfc7b99dffaceb27a55408ba79569bfd3ff7ae32035c465fdf4440 |
+| EVT-066 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-066 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-067 | /ops/api/events/reviews → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 dbfe9628b3cb182aad7add60eed459b13aae5a481fa9fa1a6f7d04ede7fc23cf |
+| EVT-067 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-067 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-068 | /ops/api/events/reviews → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 bbe2afc9b079fdab88a99a3463eb506408a4539bf7524ede698f2c633b60eef1 |
+| EVT-068 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| EVT-068 action 2 | execute-persisted-action; control [data-event-review-save]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-068 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-069 | /ops/api/events/reviews → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 792e147645e6d5b6d536b21808e57ed85f3957bbe3de4f5a533125671402bdf0 |
+| EVT-069 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-069 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-070 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 53ec3e0e11b043d8a8873d4d9e4d0d2eebac8add3213c33afffa740540437631 |
+| EVT-070 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-070 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-071 | /ops/api/events/reviews → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 b09dc5f3a9a1cdb35f4133150616a24bc0f20cf5aa4a4302453c7d98083ab3f0 |
+| EVT-071 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-071 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-072 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 04666e1bb08e7948644e23ce9bd607d826d9a7cbc1f29597342e41acf2f1fbf0 |
+| EVT-072 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-072 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| EVT-075 | /ops/api/events/reviews → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 e99ce3f25b0099bc039a520b82e50810b026efa55ef7ebe91d0af779edf271af |
+| EVT-075 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| EVT-075 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-001 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 0da88769498c50c36f4b3689f5da11a0d321bd6add8de76be1d02e2b9104b825 |
+| CLIENT-001 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-001 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-002 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 e6451f9b82b21acb790e85a9fb43ef6f0ce48fb061becda1b3a9e1320cf1a5af |
+| CLIENT-002 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| CLIENT-002 action 2 | activate-control; control [data-tile="0"] [data-action="toggle-playback"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-002 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-005 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 82428cca42b00be55990e6ace57c4ca0d9acb0bc83aac3936aa61ce635094e0c |
+| CLIENT-005 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| CLIENT-005 action 2 | activate-control; control #liveAllStop; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-005 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-006 | /client/dashboard → /client/dashboard; viewer; 390×844 light; exit0 | pass | SHA256 aedf5d406d46f6ad39d58a59683f9519ea919204436fc27152eda07388506fb6 |
+| CLIENT-006 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-006 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-007 | /client/events → /client/events; viewer; 390×844 light; exit0 | pass | SHA256 b95fc8c2c60ae4d0a1ed36afba1cd04cda55697e083a87237d48defe3a63684a |
+| CLIENT-007 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| CLIENT-007 action 2 | assert-visible-read-model; control .client-viewer-events; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-007 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-009 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 72c16b3b203be23331c280e2721e4c13ac642160cb996b759021476656bf7a42 |
+| CLIENT-009 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| CLIENT-009 action 2 | execute-persisted-action; control #liveSaveLayoutPreference; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-009 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-010 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 7cb6368c060e05a371b854d288020599b37953ff0efaca4211fb6cc6b4eea92b |
+| CLIENT-010 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-010 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-011 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 e0dd94042af5771e5a04824315e67767a242c4b4eed6e6c6544728327a2ce816 |
+| CLIENT-011 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-011 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-012 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 421a6240b4312f642b2a8b44963e9da9a5e4573b0e57c549cc793e4b0521a628 |
+| CLIENT-012 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-012 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-013 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 6a00280128e412b86be7ee8f987fe9c9fb27e1ab32553485e0f2a516b9489ce0 |
+| CLIENT-013 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-013 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-014 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 6b9060bb83878c224cd16c9ce8ace898b5556507c4d2f2b9b0ef81665584e6f0 |
+| CLIENT-014 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-014 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-015 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 700453d4e659291072012bdefdfc6369c65f7a1ccc266c257760d6f07f0f83c3 |
+| CLIENT-015 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-015 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-016 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 b191ee1fd76cf5747e9835d897e7821276cebd8a4b1f2acd82a7047a66055aec |
+| CLIENT-016 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-016 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-017 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 d652738bb959ec410b3ccf0087d32629010ea41dd416d7ecbbd8c27e38eb8c3d |
+| CLIENT-017 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-017 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-018 | /client/live → /client/live; admin; 390×844 light; exit0 | pass | SHA256 a92b33e108a130f14119beb19aacacf9f8f6666e1b61f7717c1ca6200130326d |
+| CLIENT-018 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| CLIENT-018 action 2 | assert-visible-read-model; control .client-preview-redaction-strip; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-018 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-019 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 491255ec02e0a06c36469c01b40af31f28ae7c5ae5f89473f97986ae364a73eb |
+| CLIENT-019 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-019 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-020 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 3703a4ec53febaefad2ee3378e70f140065695688ac42dfa76ebced8027336f6 |
+| CLIENT-020 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-020 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-021 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 b71d2758d0d330f20f135b1b5aeb6dff1633e36368cded36e4f5041788fafbb0 |
+| CLIENT-021 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| CLIENT-021 action 2 | activate-control; control [data-tile="0"] [data-mode-action="va-overlay"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-021 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-022 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 d966495bd6c8f0708177cc288d05e6ec046eb44a70b3f8d5a75d9d1539730bc9 |
+| CLIENT-022 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-022 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-023 | /client/api/views/{id}/events → /client/events; viewer; 390×844 light; exit0 | pass | SHA256 bece3e84348cf29f2142651fcf65959a40c619b038082a15063c422e62497de6 |
+| CLIENT-023 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| CLIENT-023 action 2 | assert-visible-read-model; control [data-testid="client-safe-incident-digest"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-023 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-024 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 a6c7ea9635fc73dcc9ae7897f34facd39e1b76c6f70f27ebeab337aabfc1b8e2 |
+| CLIENT-024 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-024 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-025 | /client/events → /client/events; viewer; 390×844 light; exit0 | pass | SHA256 1d2c883c9931aabdf9480b457b213468bfe153a85fb3487f654e46b87dffaabe |
+| CLIENT-025 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| CLIENT-025 action 2 | assert-visible-read-model; control [data-testid="client-safe-event-digest"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-025 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-027 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 8324e25b7487ae7ad001211507661d019201ccd458ac61e7b563f1d73e9bb3d6 |
+| CLIENT-027 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| CLIENT-027 action 2 | assert-visible-read-model; control [data-testid="client-safe-resolution-digest"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-027 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-028 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 91e27cc101aec05960fa57f8a324632a7337b00f17538db73a512169d87ab2d3 |
+| CLIENT-028 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| CLIENT-028 action 2 | assert-visible-read-model; control [data-testid="client-safe-source-status-digest"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-028 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-029 | /client/api/views/{id}/events → /client/events; viewer; 390×844 light; exit0 | pass | SHA256 c862ed422f25cf02ecae890716b543eeac890cb624f3057383026cdef22ec01b |
+| CLIENT-029 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| CLIENT-029 action 2 | assert-visible-read-model; control [data-testid="client-safe-maintenance-digest"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-029 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-031 | /client/api/views/{id}/events → /client/events; viewer; 390×844 light; exit0 | pass | SHA256 e894a8f62e13cda9ce9f04076303b775a4a93f7ef18777a271a21d47913ce538 |
+| CLIENT-031 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| CLIENT-031 action 2 | assert-visible-read-model; control [data-testid="client-impact-forecast"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-031 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-032 | /client/api/views/{id}/events → /client/events; viewer; 390×844 light; exit0 | pass | SHA256 ffb935857e928e152d67e7ab232babcd690e013a6c951d6d6bef66e50e76b461 |
+| CLIENT-032 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| CLIENT-032 action 2 | assert-visible-read-model; control [data-testid="client-operations-notice"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-032 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-040 | /client/api/views/{id}/events → /client/events; viewer; 390×844 light; exit0 | pass | SHA256 efbd024a7271fe8002c9c62ada088b31249e8a79ab20137a2e91fb4bf364dabf |
+| CLIENT-040 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| CLIENT-040 action 2 | assert-visible-read-model; control [data-testid="client-action-notice-preview"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-040 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-041 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 070aabc5f7b676a7a9c8a2d19cd0b13830b0b152f072c1b47dc9dd96c84c7585 |
+| CLIENT-041 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-041 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| CLIENT-042 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 a117c54e927ac4da53da21f349eb5757bd9fc5ed624d91cebe18c5873b39becd |
+| CLIENT-042 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| CLIENT-042 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| MEDIA-016 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 aea30c89893efa7e4f47630e0c7b1eae1ffc576f92f9e677236bae48a6143118 |
+| MEDIA-016 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| MEDIA-016 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| MEDIA-017 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 27f547d3ef846ab4169f39b5b2883cd9ea3cc92abe8e78fbda365bc14f6e0433 |
+| MEDIA-017 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| MEDIA-017 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-015 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 9ca9748f46da17138bf95a7560f2043a4d986dc26e320c8d796e89b6282e9fe8 |
+| SAFE-015 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-015 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-016 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 5bf1a62199a4f25b0c8027c7a07d84dc0464032c66f35d06439d96d913593590 |
+| SAFE-016 action 1 | navigate-negative; control 없음; completion 없음 | pass | 실제 action status PASS |
+| SAFE-017 | /lab → /ops; operator; 390×844 light; exit0 | pass | SHA256 00856094972afe41eea92d3eb74e50a43b24789a05f0c7271e9771916e180142 |
+| SAFE-017 action 1 | navigate-negative; control 없음; completion 없음 | pass | 실제 action status PASS |
+| SAFE-018 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 cb8995dc6d4c0bdf0b2fddfdcdd433b355a8fa1a1b7998d5dd02adc70f34e099 |
+| SAFE-018 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-018 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-019 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 81a8a0e3f221d87fe7c6471c65d4912fe79cf2ffe1d3d4a28f7db289d50453a5 |
+| SAFE-019 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-019 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-020 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 01d633dec94c75e30a54cebb2b93194bee7d0949a6d6403fd465283d1228a1e5 |
+| SAFE-020 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-020 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-021 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 14ca0a84cfa2a672ab8fb458fed911b4d871884967c2262922136c1aba5358ca |
+| SAFE-021 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-021 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-024 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 e96c50e4cfa206f9b8056e9210b2bf7e1c0b531199e859e4861cec46436660d1 |
+| SAFE-024 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-024 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-028 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 1e245c5a314d953fd8466b93c71447937fbccf4182847b535744856ffc01c996 |
+| SAFE-028 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-028 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-031 | /client/live → /client/live; viewer; 390×844 light; exit0 | pass | SHA256 00917ce1a8ca7a851b5e74c83bd937fcc0220e1fe86d5d804e091d2bcf22e29c |
+| SAFE-031 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-031 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-033 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 89e76d71d1ee3f4fdecb02c3f49c0977cd42fd7a814b05aa87d44d1e919756ee |
+| SAFE-033 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-033 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-038 | /ops/rules → /ops/rules; operator; 390×844 light; exit0 | pass | SHA256 dd850d4112292886cd9835a57e6eadc129e3843d29cf8bf103e751a5cabd5d7e |
+| SAFE-038 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| SAFE-038 action 2 | activate-control; control [data-vlm-rule-draft-index]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-038 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-041 | /ops/api/audit → /ops/users; admin; 390×844 light; exit0 | pass | SHA256 d4830193e4ad4d496e19790e1795587e0c14cd93a4f89df22330ef9c5329a1ab |
+| SAFE-041 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-041 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-042 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 193385f358e8e8abd4f5bff6688ac394f8fb5ebc9c83aafb9388b1094a993ab4 |
+| SAFE-042 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-042 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-045 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 a33edbaeb9b1328899b4578a745055bddaa6e95d226ebd4b5369af812d51296c |
+| SAFE-045 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-045 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-046 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 b98af5ae25362df749287f1152d72f2269033b90a68d9860b355d796ef67308d |
+| SAFE-046 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-046 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-047 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 33946514d25f1d9f37488826054d7692676414b2e36ebc66d6a0cffb621cfc38 |
+| SAFE-047 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-047 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-048 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 e0b28f603e3763e531ca88bbbe423c9c75e3932bf7821a29426112390d4684df |
+| SAFE-048 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-048 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-049 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 d37631803a0ba4e0f5fdc8b2020e21df2c45b75272f8975a0216dc0ba916a436 |
+| SAFE-049 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-049 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-050 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 2da58a65508ac8d5d88f236a2c3bc0bc5b2a659da27639aba780d077afd63dce |
+| SAFE-050 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-050 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-052 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 39d2c5db669c47453f42c0f549378925ea6aa99978b554c70696723713f6f3f0 |
+| SAFE-052 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| SAFE-052 action 2 | fill-control; control #opsIncidentSearchInput; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-052 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-053 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 a1a8ea92ccb99596924be09e72584ae5a3de0275f5b3667cdd3dccbc21d487d8 |
+| SAFE-053 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| SAFE-053 action 2 | assert-visible-read-model; control [data-incident-rule-draft-route]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-053 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-054 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 48ef56d8bdfdc62b04075d03c0583a76fdb6b4169a7f7bd43cee25524dfca8c3 |
+| SAFE-054 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-054 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-055 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 c3ecbd064a0ec2f0d8e4b3ce76b6cc972f219c6a75352205aeb5b77a690b3c6c |
+| SAFE-055 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-055 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-056 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 2e7446ea505268a8ddf702361c0bc8d078ab0d4b091d33228110c8e4cdef0f1b |
+| SAFE-056 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-056 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-058 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 6cc5fd6058f2f7b68d2fafeded5edc6fe93f56caaa48eea1ff132da24b067d82 |
+| SAFE-058 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-058 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-059 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 264619ccdbc58cff08e15e95099d3ee2d927eb4f46c1cfbdfb7dc7f587e78440 |
+| SAFE-059 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-059 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-060 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 94e9bd98fee87ebf562368bb25a30593b8a196df55e6cd2c6a1b71e6df6e9b7c |
+| SAFE-060 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| SAFE-060 action 2 | assert-visible-read-model; control [data-testid="ops-operational-action-pack"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-060 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-061 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 267275cbdf66bd0d8b878efd301b95738f44d3c603927ff6bd5f285727f54524 |
+| SAFE-061 action 1 | wait-visible; control 없음; completion 없음 | pass | 실제 action status PASS |
+| SAFE-061 action 2 | assert-visible-read-model; control [data-testid="ops-rule-what-if-preview"]; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-061 action 3 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-062 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 0e586d6da2cd2bec56c4f205a3ab94e6cc118d9f5f0b5cc813833802c4ffef7b |
+| SAFE-062 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-062 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-065 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 94aafb2cf1e0694163ceb451122376cfca37d0440d20f7b1ba827c72490fe094 |
+| SAFE-065 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-065 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-066 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 dd99a255ec1636c0ae0a432160f59925882101d9e4c2aea6717e11e8e721668e |
+| SAFE-066 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-066 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-067 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 d15f8abeee8439dd2be26396d779da6be4447aefde609752bf6268808b239661 |
+| SAFE-067 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-067 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-068 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 a6b937357d29181d3ee8221b41e1a7e7e51cb1850129ae75e6bae082184ab1bc |
+| SAFE-068 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-068 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-069 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 7834921f357d6984dc46bc6bdcce54e65d13489ac14e7b3d605f07a1858449c8 |
+| SAFE-069 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-069 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-098 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 6b38376b14444dffe893f11a4a6aaebd2e7558f029816a3c952c9a9ccd753cb6 |
+| SAFE-098 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-098 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-104 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 0cd62d45e903e1c440d4d3980db30505cb5083004c7fd4d34b8bfaa6711b2e22 |
+| SAFE-104 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-104 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-105 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 6c5eb5acd3b8dadd941ca1e4a84cf5e71dfc1295d9ad7fbd14da97b35597cdf0 |
+| SAFE-105 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-105 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-106 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 0222e919162a48389a468459bf50e5bdc3ae2ea9de4d4da7d3e202d963139ba6 |
+| SAFE-106 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-106 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-107 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 7aaf96e5b0f36f124a1567d3d194947b1d20102b500b4c45c0444f6334478d7e |
+| SAFE-107 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-107 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-108 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 f94027488b9007f54e4b272f76a4824139d241a534b2c300bea4a3e906ece1b2 |
+| SAFE-108 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-108 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-109 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 35a640b6b3ae7b431dea425faf25f3a810bfbcc05e0222a123c27ef3d90775ef |
+| SAFE-109 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-109 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-110 | /client/api/views/{id}/events → /client/events; viewer; 390×844 light; exit0 | pass | SHA256 a5ed31f3bb26e95f60ea4f1b513c7d0e301b2ac165d078e2c86be9ddfc1876a1 |
+| SAFE-110 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-110 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-111 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 b4bd8df1fc7b82f822b50da51b1d4f5b48eb5fa6e2bfdfeb34eb33215eb424b6 |
+| SAFE-111 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-111 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-117 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 f17b3800a3ac08295f454a764a07ecbe26358bcceab0e692a8c662c434ec32cc |
+| SAFE-117 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-117 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-118 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 abe8a76f0101e0ba4e916b0c844e6634fd69a89b03640b2a4ab5b296d1a9e589 |
+| SAFE-118 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-118 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-119 | /client/api/views/{id}/events → /client/events; viewer; 390×844 light; exit0 | pass | SHA256 8be11339812bb3d4d64f98fc1895ae216acee9f1094c9dc18a16902722125124 |
+| SAFE-119 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-119 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-121 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 d3419b8d4fd1d303279dc883a4cdd9bff29071eae70be86588f1b30f89da71e7 |
+| SAFE-121 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-121 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-122 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 d26f89f307846482074feb7bcf778025adcd6d737bf99664c25cb89f2b3f7546 |
+| SAFE-122 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-122 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-129 | /ops/sources → /ops/sources; operator; 390×844 light; exit0 | pass | SHA256 3a6fd49fb27545e3eb3aa76f7be0e289ca75c0b8df9f25e3bb5680a3caa8386c |
+| SAFE-129 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-129 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-130 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 71f42dcc04f5a12dbf2caa6be2fda062db5e5f89e75647ec1852534a8c26c484 |
+| SAFE-130 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-130 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-131 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 0b0efc68ec4878ca554afec42c294cd5a2288cebc585de5ff08699df460174de |
+| SAFE-131 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-131 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-132 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 30ba351d77c178453361f7af688bbf4c8e6338a2e341924dc19bb3d708f799f4 |
+| SAFE-132 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-132 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-138 | /ops/events → /ops/events; operator; 390×844 light; exit0 | pass | SHA256 0402236535feb0f74ae5c91ee6f459512b72b596a94beb07a4692e5e85d27032 |
+| SAFE-138 action 1 | assert-product-boundary; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-138 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| SAFE-140 | /ops → /ops; operator; 390×844 light; exit0 | pass | SHA256 61caa042d8efc75654604e25ac00c55449efdb74be2170deaebfbe7f42d4345f |
+| SAFE-140 action 1 | assert-product-state; control 없음; completion awaiting-independent-readback | pass | 실제 action status PASS |
+| SAFE-140 action 2 | verify-independent-readback; control 없음; completion independent-readback | pass | 실제 action status PASS |
+| preflight | stage PASS; exit 0 | pass | 미실행은 pass 근거 아님 |
+| build | stage PASS; exit 0 | pass | 미실행은 pass 근거 아님 |
+| feature-gates | stage not-run; exit 없음 | fail | 미실행은 pass 근거 아님 |
+| server-longrun-30 | stage not-run; exit 없음 | fail | 미실행은 pass 근거 아님 |
+| ui-environment-bootstrap | stage PASS; exit 0 | pass | 미실행은 pass 근거 아님 |
+| ui-exact-424 | stage PASS; exit 0 | pass | 미실행은 pass 근거 아님 |
+| ui-server-cleanup | stage PASS; exit 0 | pass | 미실행은 pass 근거 아님 |
+| ui-fulltest-qualification | stage PASS; exit 0 | pass | 미실행은 pass 근거 아님 |
+| longrun-120-decision | stage not-run; exit 없음 | fail | 미실행은 pass 근거 아님 |
+| server-longrun-120 | stage not-run; exit 없음 | fail | 미실행은 pass 근거 아님 |
+| cleanup | stage FAIL; exit 1 | fail | 미실행은 pass 근거 아님 |
+| ui-final-integrity | stage FAIL; exit 1 | fail | 미실행은 pass 근거 아님 |
+| report | stage PASS; exit 0 | pass | 미실행은 pass 근거 아님 |
+| final-integrity | stage not-run; exit 없음 | fail | 미실행은 pass 근거 아님 |
+| visual-UI-009-320-light | /ops/home; operator; 320×844 light; target [data-testid="ops-home-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 5e152429ed87175914df0437e10e9699a27dc2226fd0bd982abff168e87750f0; 전체UI 최종PASS 아님 |
+| visual-UI-009-320-dark | /ops/home; operator; 320×844 dark; target [data-testid="ops-home-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 7e95112d877d1b7e9a29d26c5f4005094f5ef7be88218bb111b49b4d2dd4e08e; 전체UI 최종PASS 아님 |
+| visual-UI-009-390-light | /ops/home; operator; 390×844 light; target [data-testid="ops-home-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 61021c051b55ca51764d42d20e8d1f500f43e22757616c9494703c32c74c0510; 전체UI 최종PASS 아님 |
+| visual-UI-009-390-dark | /ops/home; operator; 390×844 dark; target [data-testid="ops-home-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 1b0934f4a80682c6824b63c267300a71951223edfe720f7f30a2095f87e8b4f1; 전체UI 최종PASS 아님 |
+| visual-UI-009-760-light | /ops/home; operator; 760×844 light; target [data-testid="ops-home-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA ccc3bd9c7556be01c34a836a8ca7800880b3cb23cd027e20f8e7f81ff46b2c2f; 전체UI 최종PASS 아님 |
+| visual-UI-009-760-dark | /ops/home; operator; 760×844 dark; target [data-testid="ops-home-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 87014fabd4ada221e2ac7f0d17b5784da07eb2c12ca12de5b6a1186ae2284a56; 전체UI 최종PASS 아님 |
+| visual-UI-009-1180-light | /ops/home; operator; 1180×844 light; target [data-testid="ops-home-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA a67430ec2431ce59c516e470e903fd63bad16eb23f80a8a1f8974aeb63888fe8; 전체UI 최종PASS 아님 |
+| visual-UI-009-1180-dark | /ops/home; operator; 1180×844 dark; target [data-testid="ops-home-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA a96811b58805fd468ea55c595cb6ae70f4fd9a0fd6e95b6375e2117b8da950ce; 전체UI 최종PASS 아님 |
+| visual-UI-010-320-light | /ops/dashboard; operator; 320×844 light; target [data-testid="ops-dashboard-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 983c5a037fcb6befcba6a87bb2f0458905640cce33c9f544da830a7d2da11580; 전체UI 최종PASS 아님 |
+| visual-UI-010-320-dark | /ops/dashboard; operator; 320×844 dark; target [data-testid="ops-dashboard-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 9a42f93686e751cc8e994c3e9a001438c04374357f6f036e757b844dd6b6d9f9; 전체UI 최종PASS 아님 |
+| visual-UI-010-390-light | /ops/dashboard; operator; 390×844 light; target [data-testid="ops-dashboard-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 5361419154e860645b4d2683a96dbe168c07476ee126634b962c7f564730980c; 전체UI 최종PASS 아님 |
+| visual-UI-010-390-dark | /ops/dashboard; operator; 390×844 dark; target [data-testid="ops-dashboard-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA b5166da9b9eb3b1a77021dd6ee37cf83a0330f5711acc56487a15d3407c56a79; 전체UI 최종PASS 아님 |
+| visual-UI-010-760-light | /ops/dashboard; operator; 760×844 light; target [data-testid="ops-dashboard-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 92f0950fbed24daf5b3e7838f6db4f452b6e03a91c9454e4abec82b9e5966812; 전체UI 최종PASS 아님 |
+| visual-UI-010-760-dark | /ops/dashboard; operator; 760×844 dark; target [data-testid="ops-dashboard-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 41d05a94df610a9c2bc98466c0c2000771cae595e1eb942c26ddb0c84df047ca; 전체UI 최종PASS 아님 |
+| visual-UI-010-1180-light | /ops/dashboard; operator; 1180×844 light; target [data-testid="ops-dashboard-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA cb852a38cbaa89d205817e3a003c586cece69fd9abee8557afb8f12e7514628c; 전체UI 최종PASS 아님 |
+| visual-UI-010-1180-dark | /ops/dashboard; operator; 1180×844 dark; target [data-testid="ops-dashboard-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 0d807c71fbc750f85d959661c0ed0ec0c5691488031a518fcc2e99c7ef917ac0; 전체UI 최종PASS 아님 |
+| visual-UI-011-320-light | /ops/sources; operator; 320×844 light; target [data-testid="ops-sources-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA bcb5235d8ded6dadf550ed0e5895d1b10d1b7d0908114f2faa3432486e717e81; 전체UI 최종PASS 아님 |
+| visual-UI-011-320-dark | /ops/sources; operator; 320×844 dark; target [data-testid="ops-sources-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 16e992f53b1ddd2a2341d0c15491e6a8c438fb72cc20633dfd2617aadab75193; 전체UI 최종PASS 아님 |
+| visual-UI-011-390-light | /ops/sources; operator; 390×844 light; target [data-testid="ops-sources-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 59c9130cde73ed99bcf77e31539ab9e2508171c64e55d6f9318bd705eb6a7e94; 전체UI 최종PASS 아님 |
+| visual-UI-011-390-dark | /ops/sources; operator; 390×844 dark; target [data-testid="ops-sources-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 3bbedfc7ccd422f63ca6d32b30a19ab514216631ad4bd389b8aad4d7299450a3; 전체UI 최종PASS 아님 |
+| visual-UI-011-760-light | /ops/sources; operator; 760×844 light; target [data-testid="ops-sources-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 0c59ff448303f4b185b6c64377d554eb16558a832842a1da8637b91d82a51907; 전체UI 최종PASS 아님 |
+| visual-UI-011-760-dark | /ops/sources; operator; 760×844 dark; target [data-testid="ops-sources-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 353d3fd1595d72bf4cbba5cf6324e43e23dc10cfee7c4f680a33fa3179c44d56; 전체UI 최종PASS 아님 |
+| visual-UI-011-1180-light | /ops/sources; operator; 1180×844 light; target [data-testid="ops-sources-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 6318ee541537abff9583949b540112fc38c4985d858b683fcf2fefcc4a0f4b26; 전체UI 최종PASS 아님 |
+| visual-UI-011-1180-dark | /ops/sources; operator; 1180×844 dark; target [data-testid="ops-sources-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 82d47572e2200420665b0a83b649586bca975afb6195fd7d5f732d1bde211b5f; 전체UI 최종PASS 아님 |
+| visual-UI-012-320-light | /ops/rules; operator; 320×844 light; target [data-testid="ops-rules-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA e3657dfb855af577b596dde11d88ad6284b1bfed6cf8dec025a37d795ffb9e0f; 전체UI 최종PASS 아님 |
+| visual-UI-012-320-dark | /ops/rules; operator; 320×844 dark; target [data-testid="ops-rules-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA ef247b909bbc8c4fab1c18517e428c6dac30fc3026e06bd1a21495bcee383b64; 전체UI 최종PASS 아님 |
+| visual-UI-012-390-light | /ops/rules; operator; 390×844 light; target [data-testid="ops-rules-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 212d88ca123d3c0000434f66a44c773e6aa6dd6f62abd4bbfee035d0da5cf8a9; 전체UI 최종PASS 아님 |
+| visual-UI-012-390-dark | /ops/rules; operator; 390×844 dark; target [data-testid="ops-rules-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 3cec7cefd655f95109311d4c9fd41b09ab51a2ba90fc3e598ea8a7fb3be79a88; 전체UI 최종PASS 아님 |
+| visual-UI-012-760-light | /ops/rules; operator; 760×844 light; target [data-testid="ops-rules-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 2e91149cfd43ca305ad2b067601775e39dbc6fd6a17f3f5cf05c2c0c2610b3b2; 전체UI 최종PASS 아님 |
+| visual-UI-012-760-dark | /ops/rules; operator; 760×844 dark; target [data-testid="ops-rules-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA f965b1c6e382dd34296e20db5660f9ff001612b526e02d7cca4dde1717d99412; 전체UI 최종PASS 아님 |
+| visual-UI-012-1180-light | /ops/rules; operator; 1180×844 light; target [data-testid="ops-rules-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA d97685a41f5185986c233db88849a1eecab382328bd79927156e82309e158b08; 전체UI 최종PASS 아님 |
+| visual-UI-012-1180-dark | /ops/rules; operator; 1180×844 dark; target [data-testid="ops-rules-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA c3a562def83c5279589edc9521dc7c3eee1bbb2e5658feeb3b2ff72b4cef8b7a; 전체UI 최종PASS 아님 |
+| visual-UI-013-320-light | /ops/users; admin; 320×844 light; target [data-testid="ops-users-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 87379a751099137df0a12f127c6579e899757fac727ad6e08a1eb9648bbbc2b4; 전체UI 최종PASS 아님 |
+| visual-UI-013-320-dark | /ops/users; admin; 320×844 dark; target [data-testid="ops-users-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA ddd9a95fa8e7b34078bcb4f6d5ec3607dfbf29a910e38f5ce1cb670133f18d47; 전체UI 최종PASS 아님 |
+| visual-UI-013-390-light | /ops/users; admin; 390×844 light; target [data-testid="ops-users-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 65fb2b3eecb8fb8598a31f6b969ed0e96db32b04a73a720fbdc2ba15bc7be64d; 전체UI 최종PASS 아님 |
+| visual-UI-013-390-dark | /ops/users; admin; 390×844 dark; target [data-testid="ops-users-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 0b8a2677b97a603213ae59e9e21c752e5d72530498b3f05057b5abaf04f6f0d0; 전체UI 최종PASS 아님 |
+| visual-UI-013-760-light | /ops/users; admin; 760×844 light; target [data-testid="ops-users-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA a95dee1711bfeea422b041e7aebc232a556d5deef9ec87feccd0af12d8a3a713; 전체UI 최종PASS 아님 |
+| visual-UI-013-760-dark | /ops/users; admin; 760×844 dark; target [data-testid="ops-users-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA f4c9a24fd0bc379c750198ccf229b4518326d1768695073179eb2b1f6181b3a8; 전체UI 최종PASS 아님 |
+| visual-UI-013-1180-light | /ops/users; admin; 1180×844 light; target [data-testid="ops-users-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 2f60f5a633a8e60e9c7fc9bb880fb4477201d1ba3f2db556acfe9c587b7b4a76; 전체UI 최종PASS 아님 |
+| visual-UI-013-1180-dark | /ops/users; admin; 1180×844 dark; target [data-testid="ops-users-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 5cc6a55ec8df1580e8d73ef2ac7ec106dc50a8a9b12e9f1861cc8a62d3edf8ce; 전체UI 최종PASS 아님 |
+| visual-UI-014-320-light | /ops/events; operator; 320×844 light; target [data-testid="ops-events-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 8d9e9678474d253e80765fed0289708892010bc3b3b797436c9baa534abd1f99; 전체UI 최종PASS 아님 |
+| visual-UI-014-320-dark | /ops/events; operator; 320×844 dark; target [data-testid="ops-events-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 6e036a905031c11cf7d6345a2e45955b091cbf5e1e6a2843dbaea5d35ec1381c; 전체UI 최종PASS 아님 |
+| visual-UI-014-390-light | /ops/events; operator; 390×844 light; target [data-testid="ops-events-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 80a8d6e05938b715683fccf67b84facbb1ee4d43febcbf9340d0b4749c69a57c; 전체UI 최종PASS 아님 |
+| visual-UI-014-390-dark | /ops/events; operator; 390×844 dark; target [data-testid="ops-events-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA b08c64f185111857ca62b8183d205658da1fe5e25d86c804983ee18609f2076f; 전체UI 최종PASS 아님 |
+| visual-UI-014-760-light | /ops/events; operator; 760×844 light; target [data-testid="ops-events-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 393a49a3a082e3bef904698215e3b14a36b9a2707c05dc59a2038103427152ef; 전체UI 최종PASS 아님 |
+| visual-UI-014-760-dark | /ops/events; operator; 760×844 dark; target [data-testid="ops-events-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA b26e6f6bc4259907b7bba0fd5b64386e0332d3737bb3bfd83bf3ca4e6c929f88; 전체UI 최종PASS 아님 |
+| visual-UI-014-1180-light | /ops/events; operator; 1180×844 light; target [data-testid="ops-events-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA f926fb608db7e0bee23464ca13a59d5645687ba1e49dd7d34a65fd9c034fc077; 전체UI 최종PASS 아님 |
+| visual-UI-014-1180-dark | /ops/events; operator; 1180×844 dark; target [data-testid="ops-events-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 5e03d965d4205141551f901ab9a7536a18d75d1a0495a846df47524639446078; 전체UI 최종PASS 아님 |
+| visual-UI-022-320-light | /ops/vlm; operator; 320×844 light; target [data-testid="ops-vlm-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA b6454fa797db542728427f5cb203561c39b9ff442d9b4bd6c41680eb93bc50d2; 전체UI 최종PASS 아님 |
+| visual-UI-022-320-dark | /ops/vlm; operator; 320×844 dark; target [data-testid="ops-vlm-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA b2c654191ec422e0cb0875d7ed55a79290b136ce446ae322960bfade95d40962; 전체UI 최종PASS 아님 |
+| visual-UI-022-390-light | /ops/vlm; operator; 390×844 light; target [data-testid="ops-vlm-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 971fcccf4d20f96f8e80bee7b586e53556832804fc0dc7e58cf42b643d3ad598; 전체UI 최종PASS 아님 |
+| visual-UI-022-390-dark | /ops/vlm; operator; 390×844 dark; target [data-testid="ops-vlm-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA bc3e8ac812016ff2b9760a9c7bed227f75dfbbbf6e56abf0a8bb20bb867528bc; 전체UI 최종PASS 아님 |
+| visual-UI-022-760-light | /ops/vlm; operator; 760×844 light; target [data-testid="ops-vlm-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA ae37ca14389abf16d91d46672f6dfdd42057b5eb19bf727231d43679fa0ffea2; 전체UI 최종PASS 아님 |
+| visual-UI-022-760-dark | /ops/vlm; operator; 760×844 dark; target [data-testid="ops-vlm-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA 63e6ca492f77dd5009ddc490b43207d3ac9c689e8d4544f0b8044bae973667b5; 전체UI 최종PASS 아님 |
+| visual-UI-022-1180-light | /ops/vlm; operator; 1180×844 light; target [data-testid="ops-vlm-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA e5a93ae703f532dcb5cb40d4f8a8b99252a9ba9e74b5f39143e85281f10ef5f2; 전체UI 최종PASS 아님 |
+| visual-UI-022-1180-dark | /ops/vlm; operator; 1180×844 dark; target [data-testid="ops-vlm-page"] > .ops-workspace-hero visible=true | pass | 실제 측정 완료; PNG SHA f360c9b30a64e321eb7d72784191c2a93da324719f31747a86d2d23fd831ebe1; 전체UI 최종PASS 아님 |
+| visual-UI-015-320-light | /client/live; viewer; 320×844 light; target [data-testid="client-live-workspace"] .live-toolbar visible=true | pass | 실제 측정 완료; PNG SHA 37586bd531863d433738774a5febe87fa9d0fe989f2a70ed36df75cbe1e945b4; 전체UI 최종PASS 아님 |
+| visual-UI-015-320-dark | /client/live; viewer; 320×844 dark; target [data-testid="client-live-workspace"] .live-toolbar visible=true | pass | 실제 측정 완료; PNG SHA e1c4eb9e0c1b22d6d47f2b58994a2a188e0de7aa8b78fd98457fa3bf3e7cd01d; 전체UI 최종PASS 아님 |
+| visual-UI-015-390-light | /client/live; viewer; 390×844 light; target [data-testid="client-live-workspace"] .live-toolbar visible=true | pass | 실제 측정 완료; PNG SHA 0117add4f4cdd79d7dcb769d943f877c72282792c8c3c686975819a230306fe4; 전체UI 최종PASS 아님 |
+| visual-UI-015-390-dark | /client/live; viewer; 390×844 dark; target [data-testid="client-live-workspace"] .live-toolbar visible=true | pass | 실제 측정 완료; PNG SHA ae9ccd2f432a8f83265fa7922bb3def381d5b1a827d6d9671c3631f18554f349; 전체UI 최종PASS 아님 |
+| visual-UI-015-760-light | /client/live; viewer; 760×844 light; target [data-testid="client-live-workspace"] .live-toolbar visible=true | pass | 실제 측정 완료; PNG SHA 0bbb9d0f882a5b9872312be01d6dc035231c9f0707aea4a3dee6a8ef8990a4a4; 전체UI 최종PASS 아님 |
+| visual-UI-015-760-dark | /client/live; viewer; 760×844 dark; target [data-testid="client-live-workspace"] .live-toolbar visible=true | pass | 실제 측정 완료; PNG SHA b7e2f96dd7f55b1058a5d89f91b18a861c2ba1a5b373002e27f0b04fa4f196c5; 전체UI 최종PASS 아님 |
+| visual-UI-015-1180-light | /client/live; viewer; 1180×844 light; target [data-testid="client-live-workspace"] .live-toolbar visible=true | pass | 실제 측정 완료; PNG SHA fed2f788979194a6ff6cd4b9532c5a51523514faebbbf1ae5f7f9d9e3093d20c; 전체UI 최종PASS 아님 |
+| visual-UI-015-1180-dark | /client/live; viewer; 1180×844 dark; target [data-testid="client-live-workspace"] .live-toolbar visible=true | pass | 실제 측정 완료; PNG SHA b04f71172c666c819ec0f376378e8aad4d02cbfde2bfba718f4f43f8b75b255d; 전체UI 최종PASS 아님 |
+| visual-UI-016-320-light | /client/dashboard; viewer; 320×844 light; target [data-testid="client-dashboard-shell"] > .client-dashboard-head visible=true | pass | 실제 측정 완료; PNG SHA 3004a3ffb687af9b02a2a8cfb5f1f65a451e6d8e3f672ac29d6a55c9d2386476; 전체UI 최종PASS 아님 |
+| visual-UI-016-320-dark | /client/dashboard; viewer; 320×844 dark; target [data-testid="client-dashboard-shell"] > .client-dashboard-head visible=true | pass | 실제 측정 완료; PNG SHA 75728b9b4a694bb71d84776a7b6783efdd809a40b26841b4225b625e22fa9bc9; 전체UI 최종PASS 아님 |
+| visual-UI-016-390-light | /client/dashboard; viewer; 390×844 light; target [data-testid="client-dashboard-shell"] > .client-dashboard-head visible=true | pass | 실제 측정 완료; PNG SHA 725c3c3035a8b55e030f03d5405efd6e26e551def1f60428bcda17e87007902b; 전체UI 최종PASS 아님 |
+| visual-UI-016-390-dark | /client/dashboard; viewer; 390×844 dark; target [data-testid="client-dashboard-shell"] > .client-dashboard-head visible=true | pass | 실제 측정 완료; PNG SHA 2b3b52e2e2c437115412fee723affd1b520ec17e9d80808707e9bdcec8e01600; 전체UI 최종PASS 아님 |
+| visual-UI-016-760-light | /client/dashboard; viewer; 760×844 light; target [data-testid="client-dashboard-shell"] > .client-dashboard-head visible=true | pass | 실제 측정 완료; PNG SHA 819253e3e4aae31752d3186366c222e6876d951bf7e928202f80aa67c15eacc3; 전체UI 최종PASS 아님 |
+| visual-UI-016-760-dark | /client/dashboard; viewer; 760×844 dark; target [data-testid="client-dashboard-shell"] > .client-dashboard-head visible=true | pass | 실제 측정 완료; PNG SHA 571cf18ed7f507ba825b811c813ba2766c5f084c5fccabf9a509b90886865975; 전체UI 최종PASS 아님 |
+| visual-UI-016-1180-light | /client/dashboard; viewer; 1180×844 light; target [data-testid="client-dashboard-shell"] > .client-dashboard-head visible=true | pass | 실제 측정 완료; PNG SHA 21ab9b59e6c2f647307594e8a93feec79f06ca49be94929f55caf4de80a74430; 전체UI 최종PASS 아님 |
+| visual-UI-016-1180-dark | /client/dashboard; viewer; 1180×844 dark; target [data-testid="client-dashboard-shell"] > .client-dashboard-head visible=true | pass | 실제 측정 완료; PNG SHA 047f96c8dc7c694b0d3955f1407b3edb76fa0b01a6325fbef064332dc1082e3e; 전체UI 최종PASS 아님 |
+| visual-UI-017-320-light | /client/events; viewer; 320×844 light; target .client-viewer-events > .client-events-head visible=true | pass | 실제 측정 완료; PNG SHA 5bc46c0d7f3140f12795a424c22bc2bb9e420adc09c421b7a4c6509d92d420cf; 전체UI 최종PASS 아님 |
+| visual-UI-017-320-dark | /client/events; viewer; 320×844 dark; target .client-viewer-events > .client-events-head visible=true | pass | 실제 측정 완료; PNG SHA d3c848a295963ce2342f2621b7d30ce27102bc0fbb6bac0b3ef82eff57c4ea27; 전체UI 최종PASS 아님 |
+| visual-UI-017-390-light | /client/events; viewer; 390×844 light; target .client-viewer-events > .client-events-head visible=true | pass | 실제 측정 완료; PNG SHA b8c204f1577b084e65cc79260bd1ef44207f50f9f514eab64574759e2f28f63e; 전체UI 최종PASS 아님 |
+| visual-UI-017-390-dark | /client/events; viewer; 390×844 dark; target .client-viewer-events > .client-events-head visible=true | pass | 실제 측정 완료; PNG SHA d6ba33e8de990c6cdf35e1f3faf0d2153b9870dcfb2bfb6af4a4196f184f1b3b; 전체UI 최종PASS 아님 |
+| visual-UI-017-760-light | /client/events; viewer; 760×844 light; target .client-viewer-events > .client-events-head visible=true | pass | 실제 측정 완료; PNG SHA 8cac747fa7cefa880ae40c5c1528e251f0e490cb79a8f411a45429367f99d575; 전체UI 최종PASS 아님 |
+| visual-UI-017-760-dark | /client/events; viewer; 760×844 dark; target .client-viewer-events > .client-events-head visible=true | pass | 실제 측정 완료; PNG SHA 845f9e392873a7c2d3df678320ff9372e318da90e9629d929abbd0fdb01c205e; 전체UI 최종PASS 아님 |
+| visual-UI-017-1180-light | /client/events; viewer; 1180×844 light; target .client-viewer-events > .client-events-head visible=true | pass | 실제 측정 완료; PNG SHA 62853328b330c24b19b03cd120195b6429da40ec80cc4c2f2a2da7ab14a08590; 전체UI 최종PASS 아님 |
+| visual-UI-017-1180-dark | /client/events; viewer; 1180×844 dark; target .client-viewer-events > .client-events-head visible=true | pass | 실제 측정 완료; PNG SHA 0d7a49ae1ef58da725347908da2a6ea685d074494245183f35a367b915c9d018; 전체UI 최종PASS 아님 |
+
 독자: S09 검증 담당자. 수명: 실패 증거 보존. 정책은 AGENTS.md, 결과 색인은 release-test-records.md를 따른다.
 
 명령: `./test_ui.sh`; exit 1; 시작1789104049523, 종료1789105578521; elapsed1528998ms(25분28.998초). 기준commit4ebd2cb2fc73dc1fea3d516cb03a05ec28a2df85.
