@@ -43,6 +43,10 @@
 | V410-S08 손상 검사 | `./server.sh verify-v410-recording-corruption`, `./server.sh verify-v410-recording-media-inspector` | 알려진 자료의 상태 전이·재생 배제 및 실제 SHA/container 검사. inspector의 `--boundaries`, `--limits`는 별도 경계 검사이며 전체 codec decode가 아님 |
 | V410-S08 최종화 복구 | `./server.sh verify-v410-recording-finalize-recovery` | ready ticket·원래 ID·소유 경로의 복구. `--integration`은 실제 writer/event 연결, `--integration --root-only`는 root 안전성 검사 |
 | V410-S08 시작 복구 | `./server.sh verify-v410-recording-startup --unit`, `./server.sh verify-v410-recording-startup --app` | 동기 삭제 대기→ready→Finalized 검사, 실제 격리 앱의 정상/실패/재시작·녹화 활성·Range 및 종료·포트·임시 root 정리. UI 풀테스트·장시간·외부 실기기 실행이 아님 |
+| V410-S09 runtime 부분 통합 | `./server.sh verify-v410-recording-foundation-runtime`, `./server.sh verify-v410-recording-foundation-runtime --oracle-negative` | 실제 로컬 검출용 영상·YOLO·recorder·projector·catalog의 단일 source/녹화, 영상 위치, 종료 정리 확인. warmup 1회 뒤 3회 반복하며 스레드·FD·RSS를 기록한다. 이벤트·HTTP·인증·보존·재시작 전체 통합이나 UI·장시간 검사, S09 전체 완료를 대체하지 않는다 |
+| V410-S09 통합 실행 | `./server.sh verify-v410-recording-foundation --all` | 기본 인자 없음도 동일. 인증 환경변수5개 확인 후 runtime→인증 앱을 순차 실행하며 실패·완료 누락·cleanup 실패를 전파한다. 실제 통합 실행을 확인했으며, 성공 종료도 자원 추세·UI·장시간·버전 완료를 뜻하지 않는다 |
+| V410-S09 앱 부분 통합 | `./server.sh verify-v410-recording-foundation --app-nonauth`, `./server.sh verify-v410-recording-foundation --app-auth` | 실제 이벤트·fallback·파생 영상·Range·보존·재시작을 확인한다. 비인증과 인증 모드의 실행 증거를 구분하며 부분 모드만으로 전체 통합 PASS를 만들지 않는다 |
+| V410-S09 녹화 장시간 관측 | `./server.sh verify-v410-recording-longrun --duration-minutes 120` | 실행 경로 구현·순수 검증 완료, 실제 실행은 별도 승인 전 미검증이다. 두 채널의 녹화 지속·순환 삭제·복구와 PID별 자원 표본을 확인한다. 실행 시간 충족은 자원 안정성 PASS나 predev120·UI·버전 완료를 대체하지 않는다 |
 
 ## 과거 v2.5.0 verifier
 

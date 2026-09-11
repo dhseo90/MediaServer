@@ -1,5 +1,245 @@
 # Project Feature Test Inventory
 
+S09 사전등록 절의 실행 승인·미실행 표기는 등록 당시 이력이다. 현재 사용자 승인과
+실행 결과는 구현 계획의 Task9 판정표 및 `release-test-records.md`를 따른다.
+이 inventory의 기능·검증 기준은 유지하며 과거 승인 제한을 현재 상태로 재해석하지 않는다.
+
+## S09 PE05 PATH 문자열 전수 경계 사전등록
+
+sentinel 실행 존재만으로 PATH 우선순위 보존을 증명하지 않는다. main 직전 설정한 PATH와 predev integrated/initial/refresh 및 test_all run_step에서 sentinel이 읽은 PATH 문자열의 exact 동일성을 추가 확인한다. 기존 로그인셸 코드를 잠시 복원하여 예상 RED를 확인하고 같은3곳 nonlogin fix 후 최종 회귀한다. 호스트profile 변경 없음, 승인 focused 범위만 실행한다.
+
+## S09 PE 로그인 셸 제거 사전등록
+
+PE01 실제 predev run_step의 integrated·initial report 및 refresh에서 PATH앞 sentinel 선택 보존, PE02 실제 test_all run_step PATH보존, PE03 양 경계 BASH_ENV표식 미실행, PE04 기존133개 args/exit/quoting/report 회귀. 기존 fixture main 직전에서만 PATH와 BASH_ENV를 설정하여 호스트profile은 변경하지 않는다. 실제 source 함수 실행, 느린 서버 경계는 기존 stub 유지. 예상 RED는 로그인 셸 PATH 재정의로 sentinel 미실행 또는 BASH_ENV표식 실행. 안정화 focused 대상,30/120/UI 비대체. 명령 `node scripts/internal/recording_predev_failfast.test.mjs`, 이후 `bash -n scripts/internal/verify_predev_stability.sh scripts/internal/test_all.sh` 및 diffcheck. 실제 서버/predev120/커밋/푸시 금지.
+
+## S09 PH15 보존 전용 경로 경계 사전등록
+
+PH15: 같은 bytes/SHA의 `scripts/current.mjs`를 예외로 등록해도 실제 verifier exit1이어야 한다. 현재 예외 경로가 보존 디렉터리로 제한되지 않아 exit0인 예상 RED를 먼저 확인한다. 안정화 focused 대상이며 30/120/UI를 대체하지 않는다. 기존14개 유지, 제품 실행코드에 예외를 확장하지 않는다.
+
+## S09 PH 보존 헤더 예외 사전등록
+
+`recording_preserved_header.test.mjs`는 실제 verifier와 의존 파일을 임시 최소 repo에 복사해 실행한다. 역사6개 원본은 읽기만 하고 fixture 복사본만 변경한다. 예상 RED: PH01 exact6 바이트 일치인데 헤더 누락으로 exit1; 요구 exit0. 사후 오류를 RED로 바꾸지 않는다. 예외는 동결6개 헤더에만 적용하며 영어 검사는 유지한다.
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| S09-PH01 | 정확6개 바이트 일치 헤더 면제 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH02 | 한 바이트 변경 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH03 | 정상 헤더 추가에도 해시 변경 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH04 | 미등록 헤더 누락 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH05 | 일치 해시여도 영어 주석 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH06 | 등록 파일 삭제 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH07 | 중복 경로 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH08 | 잘못된 해시 형식 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH09 | 경로 이탈 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH10 | 파일 심링크 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH11 | 상위 디렉터리 심링크 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH12 | 한글 사유 누락 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH13 | 비정규 경로 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH14 | 예외 배열 형식 오류 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+
+승인 명령: `node scripts/internal/recording_preserved_header.test.mjs --red`, 동일 무인자 GREEN, `./server.sh verify-code-comments`, `./server.sh verify-script-inventory`, `git diff --check`. cleanup 크기/부재와 모든 결과 보존. 서버/장시간/커밋/푸시 금지.
+
+## S09 IR 내부 report-smoke 현재 범위 사전등록
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
+| --- | --- | --- | --- | --- | --- |
+| S09-IR01 | actual test_all report 직전 현재 부분 JSON 생성·한개만 render, 완료문구 없음 | 실제 shell seam TDD | 비대체 | 실행준비만 | 비대상 |
+| S09-IR02 | 최종 JSON에 새 카운터/elapsed 반영, schema/logDir quote 보존 | 기존 print_summary 실제실행 | 비대체 | 실행준비만 | 비대상 |
+| S09-IR03 | 특수 LOG_DIR/decoy제외·보고서 실패 및 첫실패 전파 | 실제 Python renderer/controlled failure | 비대체 | 실행준비만 | 비대상 |
+| S09-IR04 | rendered 부분5/0·최종실패0/1 또는5/1 및status 정확, exactschema counts 누락/문자열/bool/음수 fail·'-'(0치환금지), 기존generic/event/predev/unknown-schema 불변 | actual Python renderer TDD | 비대체 | 실행준비만 | 비대상 |
+
+예상 RED는 현 test_all report argv가 현재 LOG_DIR/test-summary.json 한개가 아닌 것과 조기 부분 JSON 부재다. 기존 PF/PR72개 회귀 포함, 실제 서버/장시간은 실행하지 않는다.
+
+## S09 PD120 기존 predev 이번 실행 범위 사전등록
+
+확정 명령 `./server.sh verify-predev --soak-minutes 120 --fail-fast`. 중앙 `S09 PD120 실제 predev 실행 사전등록`의 PD120-01~14, I01~21, 매반복 S01~05를 기존 정의에 연결한다. 새 제품기능이나 PASS 등록이 아니며 실제 child assertion/반복 전수는 실행 후 보존한다. main env와 cleanup 범위는 실행 전 확정 대상이다.
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
+| --- | --- | --- | --- | --- | --- |
+| S09-PD120 | 기존 predev build/mainserver/integrated21/반복5/queue2/idle/stop/ports/report/cleanup exact 실행 | 선수 결과 별도 | 이번 미실행·비대체 | 기존 승인된120 사전등록, 실제 미실행 | Codex RuleUI 제외; UI풀테스트 별도 미실행 |
+
+외부 TURN/LAN/RTSP/HTTP·HLS 미승인 제외. test_all 내부 report-summary 전체/tmp glob은 IR 보완으로 현재 부분 summary 한개만 읽도록 수정·seam 검증했다. 실제predev은 미실행이다. 녹화직접120/자원추세 정상 판정을 이번 predev으로 대체하지 않는다.
+
+## S09 PR predev 보고서 입력 범위 사전등록
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
+| --- | --- | --- | --- | --- | --- |
+| S09-PR01 | 실제 initial/refresh 호출이 현재 SUMMARY_FILE 한개만 전달 | 기존 PF seam TDD | 실제 미실행·비대체 | 실제 미실행·비대체 | 비대상 |
+| S09-PR02 | 공백/두 종류 따옴표/명령치환 문자가 argv 그대로 유지되고 실행되지 않음 | 실제 shell 경계 검사 | 비대체 | 비대체 | 비대상 |
+| S09-PR03 | 실제 Python summarizer 출력에서 unrelated fixture 제외, initial/refresh 실패 기록과 exit 전파 | 임시 현재/무관 JSON 및 실패경계 | 비대체 | 비대체 | 비대상 |
+| S09-PR04 | summary 이름의 [x]*?를 Python glob에서도 리터럴 처리, 매칭 decoy 제외 | 실제 Python renderer RED→GREEN | 비대체 | 비대체 | 비대상 |
+| S09-PR05 | deprecated: 임시 Python formatter 실패경계 제거, Bash builtin 치환으로 단순화 | 62836 RED 이력 보존; 최종 PR04로 실제 renderer 검증 | 비대체 | 비대체 | 비대상 |
+
+예상 RED: 현재 initial/refresh argv의 첫 입력이 현재 summary와 다르거나 glob인 검사 실패. 공통 summarizer/schema/step counts/기본 fail-fast 변경 없이 호출 입력만 보완한다. pretty report는 전수 증거표를 대체하지 않는다.
+
+## S09 PF predev integrated fail-fast 전달 사전등록
+
+기존 predev 실제 main/run_step을 테스트 전용 서버·네트워크 경계 stub과 실행한다. 예상 RED는 명시 `--fail-fast` 실행의 integrated child argv에서 옵션이 빠지는 assertion이다. 기본 cumulative 동작과 다른 옵션은 유지한다. 서버/장시간 검증이 아니라 실행 인자·실패 전파 계약 검사다.
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
+| --- | --- | --- | --- | --- | --- |
+| S09-PF01 | 명시 fail-fast가 integrated child에 전달, 기본 실행에는 없음 | focused TDD 승인 | 실제 미실행·비대체 | 실제 미실행·비대체 | 비대상: UI 없어야 정상 |
+| S09-PF02 | no-start/external/rules/VA/image/redaction 옵션 보존 | focused 실행 승인 | 비대체 | 비대체 | 비대상 |
+| S09-PF03 | child 실패후 후속 case 차단·기본 cumulative 보존·cleanup | 실제 main 경계 및 기존 failure fixture | 비대체 | 비대체 | 비대상 |
+
+## S09 SI 조건부 dispatch 인식 보완 사전등록
+
+메인 session67480 `./server.sh verify-script-inventory` exit1/11pass1fail: documented commands unknown startup7refs. 초기 '문서오류' 설명은 정정한다. 실제 server.sh3067 조건부 --unit sh 및 기본 mjs 분기는 존재하고 파서가 누락했다. SI01 실제형태 조건부 두target RED, SI02 직선/alias/bash/node/ROOT_DIR 고정path, SI03 외부경로/python/주석/문자열가짜exec/다른case require혼입거부. 임의shell 전체파서 아님. 신규순수검사→동일목록검증만승인; startup/app/GST/auth/장시간실행금지.
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
+| --- | --- | --- | --- | --- | --- |
+| S09-SI01 | 조건부startup두target | 순수TDD/목록검증 승인 | 비대상 | 비대상 | 비대상 |
+| S09-SI02 | 직선·alias·고정canonical path | 순수검사 승인 | 비대상 | 비대상 | 비대상 |
+| S09-SI03 | 가짜exec/외부path/다른case 거부 | 순수음성 승인 | 비대상 | 비대상 | 비대상 |
+
+## S09 LR 실제 경로 구현 사전등록(실제 실행 금지)
+
+TDD 스킬 적용. LR01 명시120분 CLI만 허용·오류temp전거부, LR02 bounded 증분 segment/삭제순서·각채널30초진전·중복/metadata오류거부, LR03 실제revision조회 후 quota128MiB/age3h 및 disable→snapshot→disabled restart→reenable 순서, LR04 PID별5초표본/10000상한/summary reviewRequired·duration증명분리. 예상 RED: parseLongrunArgs(['--duration-minutes','120'])가7200000을 반환하지 못하는 assertion; 이후 진전/삭제/정지 검증의 미구현 assertion. 순수 합성clock/행은 실제녹화PASS가 아니다. 실제앱/GST/build/auth/120분 금지.
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
+| --- | --- | --- | --- | --- | --- |
+| S09-LR01 | 기간/unknown CLI temp전거부 | 순수·CLI음성 승인 | 비대체 | 실행도구 구현만, 실제미실행 | 비대상 |
+| S09-LR02 | 두채널UTC진전/30초 watchdog/삭제상관/ID상한 | 순수단위 승인 | 비대체 | 직접120분 미실행 | 비대상 |
+| S09-LR03 | 정상API revision·disable/restart/reenable·immutable/SHA | 순수계약만 승인 | 미실행 | 실제경로 미실행 | 비대상 |
+| S09-LR04 | PID별표본/요약/실측duration·cleanup | 순수단위 승인 | 미실행 | 자원판정reviewRequired 유지 | 비대상 |
+
+
+## S09 AP10-F seeded source 기대집합 보완 사전등록
+
+실제 GET /ops/api/sources의 sources/sourceId를 초기 독립 기대집합으로 고정하고 성공 POST ID를 추적, 재시작 GET 목록과 exact 대조한다. status 응답 자체로 기대값을 만들지 않는다. 순수 helper 15case: seeded 초기집합, admin seeded 허용, 허용scope 필터, 무관scope빈집합, 누락/중복/잘못ID/권한외extra 거부, 목록형식거부, 초기중복거부, 재시작 동일/누락/extra, POST ID추가, 잘못scope거부. 예상 RED는 sourceRegistryIds가 빈집합을 반환하여 seeded 초기집합 assertion 실패. 실제 앱 재검증 아님.
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
+| --- | --- | --- | --- | --- | --- |
+| S09-AP10-F | 독립 source 초기집합·POST 추적·재시작 exact 대조·scope 누락/중복/권한외 ID 거부 | 진행 대상: 순수15case 승인, 실제앱 재실행 금지 | 기존 필수영역 미실행 | 녹화직접 미실행 | 비대상: 검증기 내부 |
+
+S09-LS03 사전보완: 테스트 check 밖 fixture 예외도 failed1/nonzero로전파하고 기존51case미완주도실패한다. 테스트전용 --fixture-error 음성실행으로비정상exit/본문비노출확인뒤51단위재실행. 안정화한정승인·실제서버/장시간/UI비대체.
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
+| --- | --- | --- | --- | --- | --- |
+| S09-LS01 | PID/start 분리·first/last/max/delta/elapsed·warmup후2표본 미달null | 진행 대상: 순수단위 승인 | 도구준비만·실행미승인 | 도구준비만·실행미승인 | 비대상: UI 없어야 정상 |
+| S09-LS02 | 필수값/시간/identity/cumulative 감소·10000표본/64그룹 상한거부 | 진행 대상: 순수음성단위 승인 | 미실행 | 미실행 | 비대상 |
+| S09-LS03 | gap 실측표시·항상 resourceTrendPass false/reviewRequired true | 진행 대상: 결과한계단위 | 실제longrun대체불가 | 실제longrun대체불가 | 비대상 |
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
+| --- | --- | --- | --- | --- | --- |
+| S09-EQ01 | worker 최초기록 뒤 deadline전 동일event 원장 증가0 | 진행 대상: enqueue focused 승인 | 버전필수·이번 미실행 | retry영향, 이번 미실행 | 비대상: UI 없어야 정상 |
+| S09-EQ02 | 여러 event 각각처리·고유ID/일정 보존 | 진행 대상: 동일 focused | 버전필수·이번 미실행 | 이번 미실행 | 비대상: UI 없어야 정상 |
+| S09-EQ03 | watchdog/StopAndDrain/원 exit/temp부재 | 진행 대상: bridge-only 회귀 | 이번 미실행 | 이번 미실행 | 비대상: UI 없어야 정상 |
+
+S09-EQ01~03 사전등록: 실제 Catalog+Bridge 고정clock/미해석PTS Pending으로 worker 최초 journal 기록을 확인한 뒤 retry deadline 이전 journal 증가0, 두 event 각각 최초처리·ID보존을 검증한다. Enqueue move 후 키 소실이면 retry 일정이 Refill로 당겨져 EQ01 예상 RED. 안정화: --enqueue-only RED/GREEN 및 --bridge-only 관련회귀 승인. 30/120/UI·실제app·외부/GST source 이번 미실행, UI 없어야 정상. bounded watchdog·temp bytes/부재 cleanup 포함.
+
+S09-OBS 실제 실행 사전등록: 승인된 `./server.sh verify-v410-recording-foundation --app-observe` 단기1회에서 native collector compile, 실제 PID별 RSS/thread/FD/startIdentity, 7type·고유ID·UTF8 ID bytes, 동일 archive 새 PID 재시작과 cursor 연속성, 최종 backlog/partial0, 기존 AP 전수 및 프로세스/포트/root/registry/log cleanup을 확인한다. 안정화 진행 대상·이번1회 승인. 30분/UI 미승인 필수 blocker, 직접녹화120 미승인·기존 predev120 비대체. 자원 추세 PASS 또는 전체 S09 완료로 확대하지 않는다.
+
+S09-OBS04 사전등록 보완: 정상 tick의 partial bytes 관측은 허용하지만 최종 close의 partial>0은 거부한다. 앱 종료 미확인/개별실패는 observationCompleted=false이며 실패정리 close(false)는 reader FD를 닫는다. 안정화 단위 승인; 30/120/UI 이번 미실행, UI 없어야 정상.
+
+S09-OBS 사전등록: 5초currentPID collector+증분journal7type·고유mutation/entity ID합100k/UTF8합32MiB bound, 동일livePID start변경거부·새PID그룹분리, 최초journal미생성pending/최종미측정실패, 중복tick금지·stop in-flight대기·오류시앱cleanup유지. 안정화 신규순수/임시파일단위만이번승인, 실제app-observe/30/UI/direct120미승인·predev120비대체. UI없어야정상. 가짜collector 단위는실제녹화PASS아님.
+
+S09-ALL 사전등록: 기본/--all credential guard→고정runtime→고정app-auth 순서, 실패후후속미실행, exitnull/nonzero·summary누락/실패·cleanup누락/실패거부, runtime환경5secret제거·app계승, 출력secret redaction을순수DI로검사한다. 안정화 신규단위+authhelper24회귀만승인. 30/UI버전필수미승인·120기존predev승인과직접녹화미승인분리, 이번모두미실행. UI없어야정상인검증기다.
+
+## S09 증분 journal reader 사전등록
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
+| --- | --- | --- | --- | --- | --- |
+| S09-JR01 | LF완결행·빈파일·append·여러poll 무중복·consumed byte offset | 진행 대상: 신규단위 승인 | 버전필수·이번미실행 | 직접녹화120 미승인·reader준비만 | 비대상: UI 없어야 정상 |
+| S09-JR02 | split UTF8·완성JSON noLF·tail repair 미소비재읽기 | 진행 대상 | 미진행: 단위경계 | 미진행: 단위경계 | 비대상 |
+| S09-JR03 | chunk/poll/backlog/line 상한·초과오류 latch | 진행 대상 | 이번미실행 | 이번미실행 | 비대상 |
+| S09-JR04 | 손상JSON/schema/type/기본필드 거부·7type 양성 | 진행 대상 | 미진행 | 미진행 | 비대상 |
+| S09-JR05 | root containment·symlink·비일반파일·inode교체·prefixtruncate·close 오류 | 진행 대상 | 미진행 | 미진행 | 비대상 |
+| S09-JR06 | 실제임시파일/FD 종료·bytes와부재cleanup | 진행 대상 | 이번미실행 | 이번미실행 | 비대상 |
+
+S09-PM04 사전등록 보완: OS errno6개(EACCES/EPERM/ENOENT/ESRCH/EIO/0) 분류 양성·stage보존을 순수helper에서 검사. 실제Linux권한/PID재활용 재현은 미실행.
+
+## S09 외부 PID collector 사전등록
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
+| --- | --- | --- | --- | --- | --- |
+| S09-PM01 | 실제 별도 child PID/startIdentity와 유효 RSS/FD/thread 측정 | 진행 대상: collector focused 승인 | 진행 대상: 버전 필수·미승인 | 녹화 직접120 측정기 준비·실행 미승인 | 비대상: UI 없어야 정상 |
+| S09-PM02 | child FD16개/thread3개/64MiB 페이지 접근 뒤 실제 증가, 해제 뒤 FD/thread 감소 | 진행 대상 | 실제 장시간 미실행 | 실제 장시간 미실행 | 비대상 |
+| S09-PM03 | 종료 PID/잘못PID/누락/범위 초과는 null·validfalse·nonzero | 진행 대상 | 미진행: 단위 경계 | 미진행: 단위 경계 | 비대상 |
+| S09-PM04 | 숫자·부분 stat/overflow/부분 FD read·포화 판별력 | 진행 대상: 순수 parser | 미진행 | 미진행 | 비대상 |
+| S09-PM05 | child 완전종료·임시binary/root bytes 확인 및 부재 | 진행 대상 | 이번 미실행 | 이번 미실행 | 비대상 |
+
+AP10-D/F 추가: 실제 timeline nonempty9101 전수(옛fallbackID 재표출 요구없음), 공유helper empty/타channel 거부·양성 및 coverage 한개누락 거부·전수양성. 안정화 helper 범위이며 실제auth 미실행.
+
+AP10-F 추가 판별력: Cookie/cookie/Headers의 unauth 제거·Range/Content-Type 보존·중첩 secret 양순서 치환. AP10-D/E는 timeline admin/허용200·unauth401·다른channel/viewer/noops403, status unauth401까지 포함하며 실제auth는 아직 미실행이다.
+
+S09 AP10 auth 구현 사전등록(실제auth 실행금지): AP10-A credential5개string≥12/서로다름·root/GST/app생성전거부; AP10-B setup/login/productionhash·재시작재로그인·메모리cookie; AP10-C 실제continuous/fallback/derived각admin+9101operator Range206 literal; AP10-D unauth401/9201operator media404·timeline403/viewer403/noops403·known/nonexistent응답동일; AP10-E status현재source scope필터·제한계정globalobservations없음·민감정보비노출; AP10-F 순수credential/cookie/redaction helper RED/GREEN 및일회격리cleanup. 안정화영역 구현/단위만이번승인, 실제auth는5env미설정으로미실행. 30/120/UI는기존영역판정유지·대체아님.
+
+S09 AP08 원장진행 TDD 사전등록: AP07 완료 직후cursor/knownIDs 이후 신규9201 continuous Finalized distinct2개를 양수UTC/PTS·size·64lowerhex SHA·finalized_at_ms·시간진행으로 확인한다. 즉시tombstone된자료도 finalized→request→completed순서와실파일부재로검증하되 원장SHA를실파일재검사로표현하지 않는다. quota256복원후신규finalize와정상stop뒤살아있는파일size/SHA를별도확인한다. 단위 oldcursor/다른channel/중복ID/1개/invalidrange/size/sha/순서/Stop-old-only 거부, 실제형태두개즉시삭제인식 기대RED→GREEN. 기존AP08안정화영역이며 실제앱/장시간/UI는이번미실행.
+
+S09 AP08 진단 사전등록: 기존 live-only/10초 predicate는 변경하지 않고 대기 직전·성공/실패 직후 quota PUT 이전offset부터9201 finalized/deletion_requested/completed 순서와 whitelist metadata를 보존한다. GET recordings/status의 해당channel enabled/active/storageBlocked/continuousBytes/quota를 수집하되 active는 subscriber존재이며 packet진행 증거가 아니다. 진단오류와 원래timeout을 모두 보존한다. 안정화 AP08 진단만이며 PASS 승격/장시간/UI 승인은 아니다.
+
+S09 AP06/AP12 입력 보완 사전등록: 실제 retention snow/x264 quant0/keyint30/30fps/120frames는640×360으로 생성하고 sourcePOST 전에 실측96MiB 미만을 요구한다. root448MiB 선제감시/512MiB 한계·180초·합계64MiB초과/각segment64MiB미만/3개이상/15초 관측 기준은 그대로다. 과거1280×720 실패는 중앙기록 역사로 보존한다. 이번 실제 앱은 event→retention→동일archive restart 연속상태 검증 때문에 AP02/03도 재실행하며 별도 unit/build/장시간/UI 승인은 아니다.
+
+S09 AP11 시간 대조 보완 사전등록: 실제 EventRecord 공통 `updateTime`을 응답 PTS의
+밀리초 변환과 정확 비교한다. track-health 메타데이터에는 top-level pts가 없다는
+producer 계약을 반영하며, 기본 event-record 메타데이터는 추가 pts 일치도 확인한다.
+두 실제 schema의 양성, 잘못된 updateTime·알 수 없는 schema·누락 metadata 거부를
+선택기 검사에 추가한다. 기존 old ID·rule·source·track·복수 ID 거부는 유지한다.
+이는 기존 AP11 안정화 범위이며 제품·공개 schema 변경이나 장시간/UI 실행 승인이 아니다.
+
+S09 AP03/AP11 선택 보강 사전등록: eventCase 전 durable ID 전수snapshot, 실제 tap dispatch의 rule/type/track 및 result sourceKey/PTS와 durable stream/channel·updateTime 및 metadata.ruleId tuple 일치, 최초응답 최소track 고정·고유ID 유일성. oldID update/wrongrule/tap/시간/track/복수ID 음성과 정확신규·동일ID 반복 양성을 `--event-selection-negative`로 검사한다. metadata는 위 두 실제 schema만 허용하고 기본 schema의 추가PTS 대조도 유지한다. AP03 새rule9102 전에 실제 latest PTS가 최신finalized.endPTS+750ms를 넘는지 확인하고 rollback/epoch변화는 오류로 보존한다. 기존 AP03/AP11의 안정화 영역 보강이며 30/120/UI 승인·범위는 기존 행 유지.
+
+## V410 S09 fallback identity binding 사전등록
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
+| --- | --- | --- | --- | --- | --- |
+| V410-S09-BF-01 | 실제 bridge→catalog→reader raw/numeric mapped fallback 양성 및 journal reopen | 신규 binding focused 및 승인 S05/S06 short | 진행 대상: 버전 필수, 이번 미실행 | 녹화 영역 대상, 직접검사 미승인·이번 미실행 | 비대상: 내부 결속, UI 대체 아님 |
+| V410-S09-BF-02 | 독립 고정 length-prefix SHA vector와 opaque 길이/문자 | 신규 binding focused 및 승인 S05/S06 short | 진행 대상: 버전 필수, 이번 미실행 | 녹화 영역 대상, 직접검사 미승인·이번 미실행 | 비대상: 내부 결속, UI 대체 아님 |
+| V410-S09-BF-03 | event/rawstream/rawchannel/catalogchannel/catalogsource/link/hash 각각 변조 거부 | 신규 binding focused 및 승인 S05/S06 short | 진행 대상: 버전 필수, 이번 미실행 | 녹화 영역 대상, 직접검사 미승인·이번 미실행 | 비대상: 내부 결속, UI 대체 아님 |
+| V410-S09-BF-04 | malformed bound prefix·noOpenSSL failclosed 및 legacy downgrade 금지 | 신규 binding focused 및 승인 S05/S06 short | 진행 대상: 버전 필수, 이번 미실행 | 녹화 영역 대상, 직접검사 미승인·이번 미실행 | 비대상: 내부 결속, UI 대체 아님 |
+| V410-S09-BF-05 | resolver 실패/다른 채널 및 기존 bound 재결속 거부: ID/locator 원본 보존 | 신규 binding focused 및 승인 S05/S06 short | 진행 대상: 버전 필수, 이번 미실행 | 녹화 영역 대상, 직접검사 미승인·이번 미실행 | 비대상: 내부 결속, UI 대체 아님 |
+| V410-S09-BF-06 | 같은 RecordFallback 반복 ID 안정 및 legacy 자동승격 없음 | 신규 binding focused 및 승인 S05/S06 short | 진행 대상: 버전 필수, 이번 미실행 | 녹화 영역 대상, 직접검사 미승인·이번 미실행 | 비대상: 내부 결속, UI 대체 아님 |
+| V410-S09-BF-07 | legacy exact 양성·legacy mismatch 거부·resolver 없는 exact 경로 | 신규 binding focused 및 승인 S05/S06 short | 진행 대상: 버전 필수, 이번 미실행 | 녹화 영역 대상, 직접검사 미승인·이번 미실행 | 비대상: 내부 결속, UI 대체 아님 |
+| V410-S09-BF-08 | wrongchannel·manifest type/size/symlink/duplicate/tombstone 기존 read guard 유지 | 신규 binding focused 및 승인 S05/S06 short | 진행 대상: 버전 필수, 이번 미실행 | 녹화 영역 대상, 직접검사 미승인·이번 미실행 | 비대상: 내부 결속, UI 대체 아님 |
+| V410-S09-BF-09 | UTF8·빈 rawstream 규칙 및 필수 identity 빈값 거부 | 신규 binding focused 및 승인 S05/S06 short | 진행 대상: 버전 필수, 이번 미실행 | 녹화 영역 대상, 직접검사 미승인·이번 미실행 | 비대상: 내부 결속, UI 대체 아님 |
+| V410-S09-BF-10 | focused 실행 오류전파·mktemp bytes/부재·S05/S06 관련 회귀 | 신규 binding focused 및 승인 S05/S06 short | 진행 대상: 버전 필수, 이번 미실행 | 녹화 영역 대상, 직접검사 미승인·이번 미실행 | 비대상: 내부 결속, UI 대체 아님 |
+
+## V410 S09 실제 앱 통합 사전 등록
+
+AP05 재개 음성 세부항목: 공유 fallbackMedia의 completed encoded 실파일 선택, encoded schema/status/contentType·byteSize·격리경로 변형 거부. AP02는 실제 첫 continuous finalized barrier 뒤 rule/tap으로 양수 PTS를 관측하며 초기 음수 이벤트 이력은 정상 provisional 실패 원인으로 보존한다.
+
+AP13은 실제 초기 provisional event의 manifest identity 관찰만 수행한다. requested_range·fallback 재생 성공/Range 또는 전체 앱 검증의 PASS를 뜻하지 않는다.
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
+| --- | --- | --- | --- | --- | --- |
+| V410-S09-AP-13 | 실제 생성 manifest의 event 일치, stream/channel hash·catalog 일치boolean·encodedClip 필드 관찰 및 종료cleanup | --identity-diagnostic 1회 | 미진행: 진단 자체 비대상 | 미진행: 진단 자체 비대상 | 비대상: 진단 |
+
+oracle 2/3/4와 실제 생성 media의 일부 oracle1을 검증한다. auth 미설정 상태에서는 `--app-nonauth` 부분 실행만 허용하며 전체 foundation/S09 PASS가 아니다. 실제 로컬 source/event를 사용하고 원장/SQLite는 읽기 보조일 뿐 합성 상태로 대체하지 않는다.
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
+| --- | --- | --- | --- | --- | --- |
+| V410-S09-AP-01 | 실제 앱 opt-in source→finalized의 ID·metadata·SHA·UTC/PTS 및 파일크기 대조 | 신규 foundation focused | 진행 대상: 버전 완료 필수, 미승인·이번 미실행 | 120분 영역 대상; 녹화직접검사 미승인, predev120 비대체 | 비대상: API 검증; UI 풀테스트 대체 아님 |
+| V410-S09-AP-02 | 실제 rule/tap EventRecord와 동일 event/link의 frame-buffer fallback 포착 | 신규 foundation focused | 진행 대상: 버전 완료 필수, 미승인·이번 미실행 | 120분 영역 대상; 녹화직접검사 미승인, predev120 비대체 | 비대상: API 검증; UI 풀테스트 대체 아님 |
+| V410-S09-AP-03 | 별도 실제 event의 Complete derived·remux provenance·원본 overlap 결속 | 신규 foundation focused | 진행 대상: 버전 완료 필수, 미승인·이번 미실행 | 120분 영역 대상; 녹화직접검사 미승인, predev120 비대체 | 비대상: API 검증; UI 풀테스트 대체 아님 |
+| V410-S09-AP-04 | timeline event priority200·continuous100·supersededByEventIds 및 요청/실제 범위 | 신규 foundation focused | 진행 대상: 버전 완료 필수, 미승인·이번 미실행 | 120분 영역 대상; 녹화직접검사 미승인, predev120 비대체 | 비대상: API 검증; UI 풀테스트 대체 아님 |
+| V410-S09-AP-05 | derived와 fallback 각각 실제 GET Range206·Content-Range·literal 파일 byte 비교; fallback은 manifest가 아닌 completed encodedClip.mediaPath WebM이며 schema/event/codec/size/containment 확인 | 신규 foundation focused | 진행 대상: 버전 완료 필수, 미승인·이번 미실행 | 120분 영역 대상; 녹화직접검사 미승인, predev120 비대체 | 비대상: API 검증; UI 풀테스트 대체 아님 |
+| V410-S09-AP-06 | 별도 실제 source에서 3개 이상 segment, 각64MiB미만·합계64MiB초과 확보 | 신규 foundation focused | 진행 대상: 버전 완료 필수, 미승인·이번 미실행 | 120분 영역 대상; 녹화직접검사 미승인, predev120 비대체 | 비대상: API 검증; UI 풀테스트 대체 아님 |
+| V410-S09-AP-07 | 유효quota64MiB 하향 뒤 독립 endUTC/ID oldest 삭제요청·완료·tombstone·실파일 부재 | 신규 foundation focused | 진행 대상: 버전 완료 필수, 미승인·이번 미실행 | 120분 영역 대상; 녹화직접검사 미승인, predev120 비대체 | 비대상: API 검증; UI 풀테스트 대체 아님 |
+| V410-S09-AP-08 | retention 뒤 신규 finalized 생성 및 삭제ID 부활 없음 | 신규 foundation focused | 진행 대상: 버전 완료 필수, 미승인·이번 미실행 | 120분 영역 대상; 녹화직접검사 미승인, predev120 비대체 | 비대상: API 검증; UI 풀테스트 대체 아님 |
+| V410-S09-AP-09 | 정상 종료·새PID 동일 archive 재시작, 기존 ID/metadata/SHA/link/관측/tombstone 보존 및 재녹화 | 신규 foundation focused | 진행 대상: 버전 완료 필수, 미승인·이번 미실행 | 120분 영역 대상; 녹화직접검사 미승인, predev120 비대체 | 비대상: API 검증; UI 풀테스트 대체 아님 |
+| V410-S09-AP-10 | 5개 auth env 부재 시 시작금지; nonauth 부분coverage와 전체PASS 분리 | 신규 foundation focused | 미진행: 검증도구 자체 비대상 | 미진행: 검증도구 자체 비대상 | 비대상: API 검증; UI 풀테스트 대체 아님 |
+| V410-S09-AP-11 | literal oracle 음성대조: priority/Range bytes/oldest순서/중복ID 변조 거부 | 신규 foundation focused | 미진행: 검증도구 자체 비대상 | 미진행: 검증도구 자체 비대상 | 비대상: API 검증; UI 풀테스트 대체 아님 |
+| V410-S09-AP-12 | 격리cwd/env/loopback·소유 process 종료·port0·cleanup; 생성 중512MiB 감시와 timeout 실패전파 | 신규 foundation focused | 미진행: 검증도구 자체 비대상 | 미진행: 검증도구 자체 비대상 | 비대상: API 검증; UI 풀테스트 대체 아님 |
+
+
+## V410 S09 실제 runtime 통합 사전 등록
+
+이 묶음은 oracle 1/5/7만 검증한다. warmup 1회 후 3회 반복하며 RSS는 관찰값일 뿐 누수 없음의 판정이 아니다.
+실제 S05 검출용 입력 `video/imports/va_tracking_event_1280x720_30fps_h264.mp4`를 사용한다. RT04는 대기 중 공개 snapshot의 positive detections/tracks/유효 context 누적 관측과 durable locator를 함께 요구하며 loop 뒤 ambiguous epoch를 임의 추정하지 않는다.
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
+| --- | --- | --- | --- | --- | --- |
+| V410-S09-RT-01 | 실제 등록 file source opt-in 뒤 source worker/stream/recorder/subscriber 각각 1 | 신규 runtime focused | 진행 대상: 버전 완료 필수, 미승인·이번 미실행 | 120분 영역 대상; 녹화직접검사 미승인, predev120은 비대체 | 비대상: 내부 통합; UI 풀테스트 대체 아님 |
+| V410-S09-RT-02 | 동일 revision reconcile 반복 및 analysis attach 뒤 recorder/source 비증식 | 신규 runtime focused | 진행 대상: 버전 완료 필수, 미승인·이번 미실행 | 120분 영역 대상; 녹화직접검사 미승인, predev120은 비대체 | 비대상: 내부 통합 |
+| V410-S09-RT-03 | 실제 source packet finalize의 V1/source/channel/epoch/UTC/PTS/파일크기/SHA 정확성 | 신규 runtime focused | 진행 대상: 버전 완료 필수, 미승인·이번 미실행 | 120분 영역 대상; 녹화직접검사 미승인, predev120은 비대체 | 비대상: 내부 통합 |
+| V410-S09-RT-04 | 실제 decoder/tracker→production projector→catalog observation 및 실제 finalized locator 존재 | 신규 runtime focused | 진행 대상: 버전 완료 필수, 미승인·이번 미실행 | 120분 영역 대상; 녹화직접검사 미승인, predev120은 비대체 | 비대상: 내부 통합 |
+| V410-S09-RT-05 | locator 동일 source/channel/epoch, PTS 반개구간 및 UTC 환산 대조 | 신규 runtime focused | 진행 대상: 버전 완료 필수, 미승인·이번 미실행 | 120분 영역 대상; 녹화직접검사 미승인, predev120은 비대체 | 비대상: 내부 통합 |
+| V410-S09-RT-06 | stop/drain 뒤 stream/source/subscriber/recorder/analysis 0, partial/ready/marker 잔여 없음 | 신규 runtime focused | 진행 대상: 버전 완료 필수, 미승인·이번 미실행 | 120분 영역 대상; 녹화직접검사 미승인, predev120은 비대체 | 비대상: 내부 통합 |
+| V410-S09-RT-07 | warmup1+3회 실제 종료 후 thread/FD/RSS 측정 및 내부 owner 0; 전역 pool drift 별도 보고 | 신규 runtime focused | 진행 대상: 버전 완료 필수, 미승인·이번 미실행 | 120분 영역 대상; 녹화직접검사 미승인, predev120은 비대체 | 비대상: 내부 통합 |
+| V410-S09-RT-08 | oracle 음성 대조(중복 count/잘못된 epoch/상한 PTS/UTC 변조/잔여 subscriber) 거부; wrapper 오류전파·cleanup | 신규 runtime focused | 미진행: 도구 자체 비대상 | 미진행: 도구 자체 비대상 | 비대상: 검증 도구 |
+| V410-S09-RT-09 | 실제 source 직후 조기실패·예외/정상 공통 RAII 정리, idle cleanup owner0 뒤 해제; timeout nonzero failclosed | 신규 --fail-after-source 및 정상 runtime | 미진행: 도구 자체 비대상 | 미진행: 도구 자체 비대상 | 비대상: 검증 도구 |
+
 ## V410 S08 startup 복구 사전 등록
 
 ST13 검증기 경계: seed/read-model shell 조기실패(CXX 실패 포함)는 nonzero로 전파하고 전용 build root 정리. ST14는 실제 local sample source opt-in과 녹화 enabled=1에서 정상 신규 segment 및 복구 실패 시 worker 부작용 부재를 대조한다.
@@ -190,7 +430,10 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | V410 S08-B2b media 검사 신규 ID | 18 |
 | V410 S08 finalize 복구 신규 ID | 16 |
 | V410 S08 startup 복구 신규 ID | 14 |
-| 현재 등록 총계 | 1170 |
+| V410 S09 runtime 통합 신규 ID | 9 |
+| V410 S09 실제 앱 통합 신규 ID | 13 |
+| V410 S09 fallback binding 신규 ID | 10 |
+| 현재 등록 총계 | 1202 |
 
 이는 등록 합계이지 전 제품 발견·실행 완료 선언이 아니다. S01~S04의 신규 등록 정합성은
 이번 S05 보정에서 전수 감사하지 않았다.

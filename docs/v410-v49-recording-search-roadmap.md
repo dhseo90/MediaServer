@@ -2,20 +2,11 @@
 
 ## 문서 상태
 
-- 상태: 2026-09-02 사용자 승인 완료. 2026-09-04 S00~S04 local 구현·검증 완료.
-  S05 실제 등록 숫자 ID↔stream key 연결 RED 뒤 최소 매핑 구현·focused 13개 GREEN을
-  확인했다. PATH 보존과 등록기 단위 입력 결합 보완 뒤 S05 27개·계약 45개·build를
-  재통과했다. 첫 실제 foreground의 없는 SQL source_id 참조 false FAIL은 원본 보존하고,
-  2026-09-05 정식 payload 판독 단위 12/0과 별도 실제 foreground 22/0을 확인했다.
-  제품/DB 추가 수정은 없다. 이어서 S06 전 운영 격리의 상태 namespace·고유
-  launchd label·scoped stop·mode 보존을 구현하고 실행 기반 13/0과 기존 환경 20/0을
-  확인했다. 이어 실제 `nohup` 종료 지연을 EventStorage의 미래 post-event frame 대기로
-  계측하고, 종료 시 대기만 취소하면서 접수 EventRecord는 drain하도록 수정했다. 정식 S05
-  140/0+7/0+23/0+2/0, 등록기 35/0, 제품 build와 실제 `nohup`/`launchd` lifecycle 각
-  29/0을 확인했다. SSIM blacklist도 GstValidate 전용 모듈의 의도된 초기화 경계로
-  확정했으며 패키지 삭제·전역 설정 변경은 하지 않았다. 상세는 release-test-records에 보존한다.
-  S05 개별 등록 누락 FAIL은 보정·재실행·독립 재결속으로 해소했다. 릴리즈 완료는 아니다.
-  S06~S09 구현·테스트와 v4.1.0 릴리즈 완료 증거가 아님
+- 상태: 2026-09-02 사용자 설계 승인. 2026-09-11 기준 S00~S08 단계 구현·검증 완료,
+  S09 통합 검증 구현·부분 검증 진행 중이다. S06 조회·재생 UI, S07 검색용 관측·FrameLocator,
+  S08 최종화·손상·시작 복구가 구현됐다. S08은 `11953256`까지 커밋·푸시했다.
+  과거 단계별 실패·수정·개별 테스트 결과는 release-test-records에 보존하며 이 로드맵에
+  반복하지 않는다. S09 통합 검증·버전 전체 UI/장시간·릴리즈 완료를 뜻하지 않는다.
 - 현재 작성 브랜치: `v4.1.0`
 - 공통 반영 시점: v4.1.0을 `main`에 머지할 때 장기 로드맵도 함께 반영
 - 이후 소유 브랜치: `main`. 후속 버전 브랜치는 장기 로드맵이 반영된 최신 `main`에서 생성
@@ -216,8 +207,9 @@ queue보다 link 내구 기록을 먼저 수행하고 queue/worker 포화 pendin
 다시 흡수한다. 실제 remux 중에는 다른 event의 link admission lock을 풀며, marker 제거 뒤
 terminal resource-release pending을 기록하고 source/output hold와 reservation 해제가
 끝난 뒤에만 complete로 승격한다. UUID v2 marker가 지목한 단일-link partial만 재시작
-정리하고 v1/foreign final·partial, tombstone ID 재사용을 보수적으로 거부한다. S06~S09는
-아직 시작하지 않았다. S05의 `event_storage_recording_runtime_smoke.cpp`와 전용 runner는
+정리하고 v1/foreign final·partial, tombstone ID 재사용을 보수적으로 거부한다.
+아래는 S05 단계의 검증 이력이며, 현재 단계 상태는 문서 상단을 따른다.
+S05의 `event_storage_recording_runtime_smoke.cpp`와 전용 runner는
 고정 설정·시각·가용량과 latch를 제외한 실제 EventStorage·catalog·journal·bridge·deriver를 실행한다.
 JSONL 활성/비활성 모두 queue=2/enqueued=5/dropped=2와 연결 5개 보존, 별도 프로세스에서
 새 SQLite 재구축·후행 H264 source 연결·파생 5개·재접수 ID 불변을 확인했다.

@@ -18,15 +18,10 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 - 최신 published baseline: `v4.0.0 Local Operations Policy and Stabilization`
 - 직전 published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
 - 현재 source 개발 로드맵: [`v4.1.0 Recording Foundation`](./v410-v49-recording-search-roadmap.md).
-  2026-09-02 사용자 설계 승인, 2026-09-03 S00 조사·설계 차단선, S01 녹화 v1 계약,
-  S02 채널별 상시녹화 recorder, S03 JSONL/SQLite catalog·supervisor,
-  S04 등급별 순환 보존과 disk reserve local 완료. S05 실제 등록 숫자 ID↔stream key
-  연결 RED 뒤 최소 보완·focused 13개 GREEN을 확인했다. 이후 격리 PATH 보존과 등록기
-  단위 입력 결합을 보완해 S05 27개·v1 계약 45개·build를 재통과했다. 첫 actual의
-  없는 SQL source_id 참조 false FAIL은 원본 보존하고, 2026-09-05 정식 payload
-  판독 단위 12/0과 별도 실제 foreground 22/0을 확인했다. 제품/DB 추가 수정은 없다.
-  S05 개별 등록 누락 FAIL 보정·재실행·독립 결속 검증도 완료했다.
-  S06~S09는 미구현
+  2026-09-11 기준 S00~S08 단계 구현·검증 완료, S09 통합 검증 구현·부분 검증 진행 중이다.
+  S06 조회·재생 UI, S07 분석 관측·FrameLocator, S08 최종화·손상·시작 복구를 포함한다.
+  S08은 `11953256`까지 커밋·푸시했다. 단계별 실패·수정·검증 기록은 전용 evidence와
+  release-test-records를 따르며, 버전 전체 UI·장시간·릴리즈 완료를 뜻하지 않는다.
 - 상세 구현계획:
   [`2026-09-02-v410-recording-foundation-implementation-plan.md`](superpowers/plans/2026-09-02-v410-recording-foundation-implementation-plan.md)
 - 장기 로드맵은 `main` 공통 문서로 관리하고, 각 버전 브랜치는 자신의 버전 단계만
@@ -404,10 +399,10 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
 | V410-S03 | Catalog and recovery journal | P0 | 완료 | fsync append-only JSONL, SQLite primary/rebuild, in-memory fallback, 손상 격리, source policy supervisor |
 | V410-S04 | Retention coordinator | P0 | 완료 | continuous/event 등급별 quota·기간, `(end_utc_ms, segment_id)` oldest-first, pin·hold, journal 선행 tombstone/채널별 pending 복구, dirfd 결박 unlink, 채널 간 in-flight disk reserve·실제 쓰기 정산과 writer admission |
 | V410-S05 | Event recording linker | P0 | 구현 완료·실제 foreground PASS | finalized 원본 연결, 명시적 시간축, 비동기 무재인코딩 remux, fallback, Event quota·hold·재시작 멱등성. 개별 등록 27개·check 89개 유지, 단위 34·S05 27·계약 45·build 통과. 2026-09-05 L11을 정식 payload exact 판독으로 보완해 단위 12/0·실제 foreground 22/0 통과. 제품·DB 추가 수정 없음 |
-| V410-S06 | Priority timeline | P0 | 미구현 | event > continuous 조회·재생 API와 Ops UI |
-| V410-S07 | Search-ready metadata | P1 | 미구현 | event/track summary와 bounded representative observations, exact frame locator |
-| V410-S08 | Recovery/compatibility gate | P0 | 미구현 | crash/disk-full/gap/corruption/migration/fixture verifier |
-| V410-S09 | Stabilization/readiness | P0 | 미구현 | 사용자 승인 범위의 안정화·UI·longrun·release 판정 |
+| V410-S06 | Priority timeline | P0 | 단계 구현·검증 완료 | RecordingReadService·HTTP runtime·Ops events의 event 우선 timeline, GET/HEAD·Range·권한·안전 전송. 버전 전체 UI 풀테스트 완료는 아님 |
+| V410-S07 | Search-ready metadata | P1 | 단계 구현·검증 완료 | AnalysisObservationProjector·catalog V2 관측과 bounded 선정·FrameLocator·이벤트 참조. 실제 검색 엔진 구현은 후속 버전 |
+| V410-S08 | Recovery/compatibility gate | P0 | 단계 구현·검증 완료 | journal 꼬리·corrupt 상태·실제 media 검사·ready 최종화 복구·application 시작 전 동기 복구, V1 golden 호환성. `11953256`까지 푸시 |
+| V410-S09 | Stabilization/readiness | P0 | 구현·부분 검증 중 | 실제 runtime 및 비인증 앱의 source/event/보존/재시작/관측/종료 부분 검증 통과. 인증 실행 준비와 자원·원장 관측기 구현, 기본 통합 실행 연결 진행 중. 실제 인증·장시간 runner 연결과 버전 최종 검증은 미완료. UI·30분·녹화 직접120은 별도 실행 승인 필요 |
 
 ### v4.1.0 선행 인벤토리 정합성 부채 정리
 

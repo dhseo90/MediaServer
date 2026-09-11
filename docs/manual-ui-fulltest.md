@@ -5,14 +5,21 @@
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 삼고, 실행 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md), 결과 기록은
 [manual-ui-result-template.md](./manual-ui-result-template.md)를 사용합니다.
-exact-ID 실행 목록은 `test/fixtures/project_feature_implementation_evidence.json`의
+baseline exact-ID 실행 목록은 `test/fixtures/project_feature_implementation_evidence.json`의
 UI 테스트 영역 424개 `manualUiCaseId`, `uiEvidence.screenRoute`, product UI anchor를
 사용하며 inventory ID와 manifest ID가 다르면 UI 풀테스트를 시작하지 않습니다.
 최신 공개 release 기준은 `v4.0.0 Local Operations Policy and Stabilization`이고
 직전 공개 제품 baseline은 `v3.9.1 Release Correctness and Public Repository Hygiene`입니다.
-현재 소스/UI 문서 기준은
-`v4.0.0 Local Operations Policy and Stabilization`입니다.
-이 문서의 현재 실행 계약은 `v4.0.0 Release Correctness` UI gate입니다.
+현재 소스/UI 실행 기준은 `v4.1.0`이며, `v4.1.0 Release Correctness` 검증에 적용합니다.
+현재 대상은 baseline 424개와 inventory의
+`V410-S06-I27`~`V410-S06-I34` 녹화 8개를 합친 **432개 ID**입니다.
+기존 canonical/native manifest는 변경 없이 보존하며 424 qualifier는 baseline만
+판정합니다. 추가 8개는 결과 템플릿의 action별 행으로 별도 실행합니다.
+432는 ID 수이지 action 수가 아닙니다. 메인은 추가 action 전수 및 AGENTS 7.6.3의
+공통 조건을 포함한 exact 432개 결과로 전체 PASS를 판정합니다.
+기존 S06 과거 PASS를 이번 실행에 재사용하지 않습니다. auth-off `--ui-direct`
+fixture의 준비·종료 성공은 실제 UI action 및 role guard evidence가 아닙니다.
+이하 v4.0.0 Release Correctness 설명은 historical baseline입니다.
 v4.0.0은 previous published v3.9.1의 exact 424-case 제품 baseline을
 상속합니다. Historical v3.9.1 release correction은 `V390-REQ-001`, `V390-REQ-002`,
 `V390-REQ-003` 기준으로 manual UI 기준서 current화, 장시간/UI 테스트 시작 조건

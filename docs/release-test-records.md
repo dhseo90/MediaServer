@@ -1,5 +1,9419 @@
 # Release Test Records
 
+## S09 중간 커밋 전 문서·코드 검토
+
+기능 증거 재검증 session30129: `./server.sh verify-feature-implementation-evidence`
+exit0. expected/inventory/manifest/source/verifier/semanticReviewed/reviewedCallChains는
+각986, uiEvidence441/manualUiCase424, uniqueSemanticDigests986/uniqueReviewReasons986,
+validationErrors0/review4GlobalErrors0, negativeFixtures15/15.
+executionEvidenceStatus는 `not-execution-evidence`로 실제 UI·제품 실행을 대체하지 않는다.
+원본 명령은 읽기 전용·별도 report 인자 없이 실행되어 임시 산출물은 없다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| missing-id | 필수 ID 누락 거부 | pass | session30129 |
+| duplicate-id | 중복 ID 거부 | pass | session30129 |
+| wrong-section-prefix | 잘못된 section prefix 거부 | pass | session30129 |
+| missing-source-file | source 파일 누락 거부 | pass | session30129 |
+| missing-source-anchor | source anchor 누락 거부 | pass | session30129 |
+| missing-ui-control-anchor | UI control anchor 누락 거부 | pass | session30129 |
+| missing-ui-screen-route | UI route 누락 거부 | pass | session30129 |
+| unknown-verifier-command | 알 수 없는 명령 거부 | pass | session30129 |
+| missing-verifier-assertion | verifier assertion 누락 거부 | pass | session30129 |
+| legacy-longrun-command | legacy longrun 명령 거부 | pass | session30129 |
+| inventory-hash-drift | inventory hash 변조 거부 | pass | session30129 |
+| missing-reviewed-call-chain | 검토 call chain 누락 거부 | pass | session30129 |
+| bulk-review-reason | 일괄 review reason 거부 | pass | session30129 |
+| safe-140-unrelated-owner | 무관한 owner 결박 거부 | pass | session30129 |
+| rule-017-generic-json-owner | generic JSON owner 대체 거부 | pass | session30129 |
+
+사용자는 S09 검토·분할커밋 후 UI 재개를 승인했으며 푸시는 하지 않는다.
+기존 단일 Astra/medium 담당자의81개 코드·설정·fixture 대상 검토와 메인 제품
+fallback/Enqueue 및 문서 diff 대조에서 중간 커밋을 막는 중대 결함은 발견하지
+못했다. 전체 재감사나 S09 완료 판정은 아니다. foundation `--all` 뒤 추가 인수를
+무시하는 작은 CLI 제한은 남겼으며 정상 승인 명령에는 영향이 없다.
+
+`verify-docs-links` exit0: markdown233/local links1060/images22/anchors104,
+indexed76/exclusions142/failures0. UI 문서 검증은 현재 gate 문구 누락으로
+24pass/2fail(exit1), checklist 보완 후25pass/1fail, fulltest 기준문구 보완 후
+26pass/0fail(exit0)이다. 중간 두 번째 도구 명령은 뒤 diffcheck 때문에 shell exit0였으나
+verifier의1fail을 그대로 실패로 기록한다. 기대 조건을 제거하지 않았다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| manual UI docs are current release baseline | 동일 문서 검증의 개별 assertion | pass | 최초 fail(현재 gate 문구), 2차 fail(Release Correctness 문구), 최종 pass |
+| manual UI docs pin v3.9 required closeout and coverage bridge | 동일 문서 검증의 개별 assertion | pass | 세 실행 모두 pass |
+| v3.5-v3.8 bridge binds all 36 exact IDs to route/control/action semantic evidence | 동일 문서 검증의 개별 assertion | pass | 세 실행 모두 pass |
+| inventory longrun mapping counts are derived from the current 986-row manifest | 동일 문서 검증의 개별 assertion | pass | 세 실행 모두 pass |
+| manual result template covers required screens | 동일 문서 검증의 개별 assertion | pass | 세 실행 모두 pass |
+| manual result template splits tracker policy results | 동일 문서 검증의 개별 assertion | pass | 세 실행 모두 pass |
+| manual result template splits event template results | 동일 문서 검증의 개별 assertion | pass | 세 실행 모두 pass |
+| manual result template splits scenario preset results | 동일 문서 검증의 개별 assertion | pass | 세 실행 모두 pass |
+| manual result template splits vaRule results | 동일 문서 검증의 개별 assertion | pass | 세 실행 모두 pass |
+| manual result template splits event record keys | 동일 문서 검증의 개별 assertion | pass | 세 실행 모두 pass |
+| manual result template separates qualified UI execution from support smoke | 동일 문서 검증의 개별 assertion | pass | 세 실행 모두 pass |
+| manual UI docs separate script stability tests from UI full test | 동일 문서 검증의 개별 assertion | pass | 세 실행 모두 pass |
+| manual UI docs require native-dialog-free autonomous UI flow | 동일 문서 검증의 개별 assertion | pass | 세 실행 모두 pass |
+| manual result template pins admin preview boundary | 동일 문서 검증의 개별 assertion | pass | 세 실행 모두 pass |
+| manual result template pins client redaction boundary | 동일 문서 검증의 개별 assertion | pass | 세 실행 모두 pass |
+| manual UI docs require operator-provided auth verifier passwords | 동일 문서 검증의 개별 assertion | pass | 세 실행 모두 pass |
+| manual result template records explicit exclusions outside UI verdict | 동일 문서 검증의 개별 assertion | pass | 세 실행 모두 pass |
+| manual UI docs keep rewrite requirements | 동일 문서 검증의 개별 assertion | pass | 세 실행 모두 pass |
+| manual UI docs keep new document requirements | 동일 문서 검증의 개별 assertion | pass | 세 실행 모두 pass |
+| manual UI docs keep merge requirements | 동일 문서 검증의 개별 assertion | pass | 세 실행 모두 pass |
+| manual checklist references UI fulltest document | 동일 문서 검증의 개별 assertion | pass | 세 실행 모두 pass |
+| manual checklist links evidence verifier | 동일 문서 검증의 개별 assertion | pass | 세 실행 모두 pass |
+| manual template links evidence verifier | 동일 문서 검증의 개별 assertion | pass | 세 실행 모두 pass |
+| manual UI docs link v2.2.0 UI Evidence Close-out | 동일 문서 검증의 개별 assertion | pass | 세 실행 모두 pass |
+| roadmap links evidence verifier | 동일 문서 검증의 개별 assertion | pass | 세 실행 모두 pass |
+| current release UI checklist requires direct UI evidence index | 동일 문서 검증의 개별 assertion | pass | 최초 fail(현재 gate 문구), 2차·최종 pass |
+
+위 결과는 `./server.sh verify-manual-ui-evidence`의 템플릿·체크리스트 검증이며
+실제 UI432개 PASS가 아니다. 임시파일 생성 없음. token start/end/consumed는
+도구 미제공으로 미집계다. inventory 현재 승인 상태가 아닌 사전등록 이력임을
+명시했고 canonical986행은 HEAD와 byte-동등한 파싱 결과임을 확인했다.
+이후 inventory 전문SHA만 manifest에 재결속했으며 기능/승인/semantic 값은 재생성하지 않았다.
+
+## S09 UI baseline 실행14128
+
+최종 보존: [14128 사전 검사 실패 전수](release-artifacts/v4.1.0/s09-ui-preflight-14128/results.md),
+27856bytes, SHA256 `8ce5f82a6e17d44cf5f139ca9b1cae6a45539d43efb2124d00fc80122d24295c`.
+메인이 원본16개 파일의 크기·SHA, launcher 계약86pass행의 파일/행/문자열,
+stage14개 이름을 대조하여 누락0을 확인했다. stage3pass/2fail/9not-run은
+UI case 결과가 아니다. 브라우저와 제품 테스트 서버가 생성되지 않은 실행이다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| `/private/tmp/s09-ui-baseline-gGUka4` | 실행 로그 root | 11672B | 삭제 | ENOENT | 원본hash·exact 경로 확인 |
+| `.media_server.test/v4.1.0/ui-acceptance-current` | 실패 보고 root | 78873B | 삭제 | ENOENT | 원본hash·exact 경로 확인 |
+| 위14128 artifact | 실패 증거 | 27856B | 보존 | SHA 유지 | 원본16개/판정전수 보존 |
+
+정리 명령 exit0, 두 root 삭제·잔존0이다. before-temp 이후 추가 경로0도
+확인했다. 임시 파일은 직접 복구 불가하며 필요한 실패 결과는 artifact에 보존했다.
+이 절이 아래의 cleanup 미완료 이력을 갱신한다. 커밋 승인 전 UI 재실행과
+녹화 직접120분은 진행하지 않는다. S09 전체는 미완료다.
+
+실제 종료: exit1/signal null, endedAt1789102061979, elapsed23829ms.
+preflight가 `current final actual acceptance requires a clean worktree; commit
+approved changes before running`으로 거부했다. 실제 브라우저·424개 case 실행 전
+실패다. 이후 final-integrity의 parent/source/policy/runtime 증거 부재 불일치는
+선수 실패 뒤의2차 결과이며 독립 UI 제품 회귀로 단정하지 않는다. compact 결과는
+pass3/fail2/not-run9, runner cleanup 표기는PASS지만 실제 임시 산출물 정리는
+별도 보존·직접 확인 전까지 미완료다. 사용자 현재 승인에는 S09 커밋 자체가
+명시되지 않았으므로 clean gate를 우회하거나 임의 커밋하지 않는다.
+실패 전수 보존은 담당자에게 위임했다. UI·녹화직접120분은 뒤 단계 미실행이다.
+
+30분52899 종료·결과 보존·cleanup 후 승인된 `./test_ui.sh`를 시작했다.
+session14128, launcher PID81565, startedAt1789102038150,
+임시 로그root `/private/tmp/s09-ui-baseline-gGUka4`.
+기존 MEDIA_SERVER/GST 환경을 제거하고 로컬 환경파일 읽기를 비활성화했다.
+로컬 모델·labels SHA와 설치된 Playwright1.62.1/Chrome 존재를 사전 확인했으며
+외부 다운로드/서비스를 승인한 실행이 아니다. launcher 자체 난수 인증 준비를 사용하고
+기존 대화 비밀번호를 전달하지 않았다. baseline424 실행만 대상으로 하며 추가
+녹화8개 ID와31개 action은 이후 별도 확인한다. 종료·실제 case결과·Policy qualifier·
+cleanup은 아직 미확인이다. token start/end/consumed 미집계(도구 제공 없음).
+
+## S09 UI 독립 oracle 결박 재검토
+
+기존 UI-005/UI-018/AUTH-024/AUTH-029의 준비 결함 보완이다. 메인이 source의
+recording_request 조건이 `/ops/api/recordings/` 접두어로 한정됨을 확인했고,
+네 canonical route는 `/logout`, `/lab`, `/ops/users`, `/ops/users`이다.
+admin lambda는275b5f81 대비 byte-exact 동일하다. 담당자의 기대동작·state oracle·
+verifier assertion 불변 대조와 메인의 source 확인을 근거로 기능 기대값은 유지하고
+core projection 고정값만 현재288개 결박으로 갱신한다. 이번 변경은 제품코드·
+권한·manifest를 바꾸지 않는다. 이전 import exit1은 실제 실패로 보존한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S09 UI oracle import 재검증 | 기존 core288개 결박과 catalog 생성 | 동일 adapter import가 drift 없이 완료되는지 확인. 실제 UI PASS 대체 아님 | v4.1.0 |
+| S09 UI oracle 기대값 보존 | 검토한4개 문맥 변경 외 기대값 유지 | diff가 고정 binding값만 변경하는지 확인. 브라우저 actual432개는 후속 실행 | v4.1.0 |
+
+위 항목을 재검증 전에 등록했으며 통과 결과는 실행 후 남긴다. 임시파일·서버 생성은
+없다. token start/end/consumed 미집계(도구 미제공).
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| S09 UI oracle import 재검증 | 동일 Node adapter import 완료, Playwright1.62.1 모듈과 설치된 Chrome 실행파일 존재 확인; launched=false | pass |
+| S09 UI oracle 기대값 보존 | coreBindingSha256 상수1개만 변경, 기대값·manifest·제품코드 변경 없음 | pass |
+| S09 UI 준비 문서 공백 | `git diff --check` exit0 | pass |
+
+최초 import의 drift exit1 → source/manifest 의미 대조 → 결박 상수 보완 → import
+완료 이력을 유지한다. Chrome은 아직 실행하지 않았고 UI432개 실제 검증은 미실행이다.
+
+## S09 PD30 52899 실행 시작
+
+최종 보존·정리: [52899 개별 결과](release-artifacts/v4.1.0/s09-predev30-52899/results.md)
+459153bytes, SHA256 `86226c1ebb4c3a126c80372cb2e2a22ee5b4a220ebfbef1c8a3d943900da8005`.
+메인은 원로그1458개 marker의 파일/행 식별과 outer110개 이름의 보존표 누락0을
+직접 확인했다. 하위1267pass/0fail/191skip와 child21pass/0fail/9skip는 별도
+계층으로 합산하지 않는다. artifact의 미확인14경로는 before목록에 없고
+check_server.sh161/170, diagnose_media_server.sh308/309, test_rule_registry.sh98~189
+및 이번 child7/8/19의 실행 결과와 일치하여 메인이 소유를 확정했다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| `/private/tmp/s09-predev30-jlQoBG` | 실행 root | 16016799B | 삭제 | ENOENT | exact manifest/lstat |
+| `/private/tmp/media_server_predev-1789098915-51091` | runner | 550954B | 삭제 | ENOENT | exact manifest/lstat |
+| `.media_server.test/20260911-125518` | child | 38096B | 삭제 | ENOENT | exact manifest/lstat |
+| artifact의 나머지623개 exact 경로 | 검증 임시 산출물 | 55482630B | 삭제 | 모두 ENOENT | root 중복 제외·생성 경로 대조 |
+| 위52899 artifact | 판정·제외·원본hash·정리목록 | 459153B | 보존 | SHA 유지 | 실행 증적 |
+
+정리 명령 exit0, 총626경로72088479B의 사전 크기 불일치0·삭제 후 잔존0.
+링크277개는 따라가지 않고 링크 자체만 삭제하여 라이브러리 원본을 보존했다.
+임시 파일은 직접 복구 불가하며 필요한 결과는 artifact에 보존했다. artifact의
+삭제 대기는 이관 당시 이력이고 이 절이 최종 cleanup 결과다. `git diff --check`
+결과와 UI 실행 상태는 후속 기록한다. 전체 S09 완료나 UI PASS가 아니다.
+
+최종 종료 확인: session52899 exit0/signal null, endedAt1789101286385,
+elapsed2371260ms(39분31.260초, 통합 준비 포함), runner2370초, 요청soak30분,
+20회 반복. outer109pass/0fail/1skip이며 report도109 안에 포함된다.
+메인 별도 ps에서51091/51139/51141/80666/80668 부재, lsof8081/8555 리스너
+부재를 확인했다(조회 출력 없음). 실제 binary51141/80668의 ledger도
+aliveBefore=true/aliveAfter=false다. 개별 결과·skip·원장 보존은 담당자에게
+위임했고 최종 임시산출물 삭제는 아직 수행하지 않았다. 종료 전의 아래 문장은
+시점별 진행 이력이다. UI 시작은 결과 보존·cleanup 확인 뒤이며 현재 미실행이다.
+
+후속 관찰: 동일session의 integrated-smoke542초 PASS와 soak1~4 runtime-idle
+종료 및5회 진입을 확인했다. 전체30분 종료는 아직 미확정이다.
+
+UI 준비 직접 진단: `models/yolo11n.onnx`와 `models/coco.names`의 SHA256이
+launcher 고정값과 각각 일치했다. 브라우저를 실행하지 않고
+`v390_ui_native_adapter.mjs`의 resolver를 import하려던 Node 진단은 exit1로
+실패했다. 원인은 import되는 `v390_ui_exact_core_oracles.mjs:133`의
+`core canonical/source semantic binding drift` assertion이다. 실제 브라우저
+시작 전이므로 UI PASS가 아니며 현재30분 실행의 제품 회귀로 단정하지 않는다.
+해당 projection은 UI/AUTH/SRC/RULE의 ID·route·role·selector·actionAnchor와
+semantic handler/action/state/verifier 증거를 묶는다. 원인 대조 전 고정 해시를
+갱신하거나 assertion을 제거하지 않는다. 최초 shell glob 및 package.json 조회
+부재는 진단 경로 오류로 분리하며 제품 테스트 실패를 뜻하지 않는다.
+
+원인 범위 축소:288개 core projection의 현재값과 HEAD값은 모두
+`64f441ae53250a422fef39a14c09c7631f7a54b33c1a10bb1e117c1c13123727`로
+동일하다. oracle 최종 변경commit275b5f81의 projection은 고정값
+`ba1b213deb7df36c0615333cf3edbe535a0ac5147d63b079f0b482142f729e9d`와
+일치한다. 차이는 UI-005/UI-018/AUTH-024의 actionHandler.contextSha256과
+AUTH-029의 handler.contextSha256 네 항목이다. 따라서 이번 미커밋 S09 변경이
+만든 projection 차이는 아니며, 기존 커밋에 이미 포함된 source 증거 변경과
+독립 oracle 결박 사이의 불일치다. 의미 변경 여부와 기대값 유효성은 추가
+source/history 대조 전까지 미확인이다. 해시·제품·oracle은 수정하지 않았다.
+
+중간 관찰: session52899의 동일 실행에서 integrated-smoke510초 heartbeat까지
+기존 로컬 codec·VA 검사 순서가 진행됨을 확인했다. 최종 exit나30분 PASS는 아직
+없다. UI 선수 준비에서 기존 exact424 baseline에 녹화UI I27~I34가 없음을
+`manual-ui-fulltest.md`와 inventory의8개 행을 대조해 확인했다. baseline424만으로
+v4.1 UI 전수 PASS 처리하지 않는다. 이8개 direct-browser 증거 연결과 실제
+권한·반응형 확인, launcher의 외부 asset bootstrap 경계를 확정하기 전 UI를
+시작하지 않는다. 제품 실패가 아니라 실행 목록의 준비 간극이며 담당자는 읽기만
+수행했다. 현재30분 실행은 중단·재시작하지 않는다.
+
+사용자가30분 안정화 → UI 풀테스트 → 녹화 직접120분 순서를 승인했다. 메인은
+`./server.sh verify-predev --soak-minutes 30 --fail-fast`를 session52899,
+runner PID51091, startedAt1789098915125로 시작했다. 임시 실행 root는
+`/private/tmp/s09-predev30-jlQoBG`이며 종료 후 결과 이관·정리 대상이다.
+source/views/analysis/users/events/recordings/GStreamer cache를 이 root에 격리했고
+기존 MEDIA_SERVER/GST 환경을 제거한 뒤 명시 경로를 주입했다. auth-off 검증이므로
+비밀번호 환경변수는 전달하지 않았다. 외부 서비스·실기기 검증은 포함하지 않는다.
+build1초 PASS만 확인되었으며 통합·30분 전체 결과와 cleanup은 아직 미확정이다.
+token start/end/consumed 미집계(도구 제공 없음), elapsed는 종료 후 exit.json으로
+확인한다. 새 기능이나 테스트 범위를 추가한 실행이 아니며 기존 등록된 predev 항목을
+사용한다. 공통120분 session96360은 반복하지 않는다. 커밋·푸시 없음.
+
+### S09 PD120 96360 메인 최종 대조·정리
+
+메인은 보존 artifact의 SHA256 `516783b3d44e7d7829c69b48d27fb9732f54de073e665772e4cbd1d5ee8fba46`를 직접 재확인했다. 원로그와 보존표의 canonical 판정은 각각5058행이며 파일별 개수 차이는0이다. 최초 소문자 marker 대조의5049행은 diagnose의 대문자 `[PASS]`9행을 놓친 진단 오류였고, 대소문자 포함 재대조로 해소했다. 제품 테스트를 재실행한 것이 아니다.
+
+정리 전 exact manifest2306경로의 크기는 모두 기록과 일치했다(합계249511853bytes). 첫 안전 진단은 임시 GStreamer 링크를 만나 중단했고, 링크를 따라가지 않는 lstat 방식으로 수정했다. 두 번째 진단의 `(빈값)` suffix 표기 해석 오류는 실제 빈 suffix로 정정했다. 두 진단 중 삭제는 없었다. 임시 링크277개는 링크 자체만 제거했으며 대상 라이브러리는 삭제하지 않았다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| `/private/tmp/s09-predev120-rQnWAb` | 실행 root | 54918497B | 삭제 | ENOENT | exact manifest 및 lstat |
+| `/private/tmp/media_server_predev-1789086596-45840` | runner | 2128447B | 삭제 | ENOENT | exact manifest 및 lstat |
+| `.media_server.test/20260911-093000` | child | 37940B | 삭제 | ENOENT | exact manifest 및 lstat |
+| 보존 artifact의323개 stem/suffix2263경로 및 추가40경로 | 실행 소유 임시 산출물 | 192426969B | 삭제 | 2303경로 모두 ENOENT | exact 경로만 사용, runner 중복 제외 |
+| `docs/release-artifacts/v4.1.0/s09-predev120-96360/results.md` | 판정 전수·정리 manifest | 647254B | 보존 | 기존 SHA 유지 | 판정과 제외 이력 보존, 원로그 대체 최소 기록 |
+
+`ps -p 45840,45887,48426,45889,48429 -o pid=,stat=,comm=`와 포트8081/8555의 `lsof -sTCP:LISTEN` 조회는 출력 없이 종료했다. 검증 프로세스와 리스너 부재를 확인한 뒤 exact 경로만 삭제했다. 정리 명령 exit0, 삭제2306·잔존0이다. 임시 파일은 삭제되어 직접 복구할 수 없으며 필요한 판정은 위 artifact에 보존했다. 아래의 삭제 대기 문장은 이관 당시 이력이며 이 절이 최종 정리 결과다. 토큰 start/end/consumed는 미집계(실행 도구 미제공), source는 메인 진단·삭제 명령 출력이며 삭제 명령 elapsed0.134초다. S09 전체 완료, 자원 안정성, 30분/UI/녹화 직접120분 PASS로 확대하지 않는다.
+
+## S09 PD120 96360 실제120분 실행 결과 이관
+
+메인 실제 명령 `./server.sh verify-predev --soak-minutes 120 --fail-fast`, session96360 exit0/signal null, started1789086596789/ended1789094418692, elapsed7821903ms. UTC2026-09-11T00:29:56.789Z→02:40:18.692Z(KST09:29:56.789→11:40:18.692). runner7821초, 요청soak7200초,80iterations×5case=400. **outer409pass0fail1skip0notRun, report PASS도409 안에 포함**한다. child21pass0fail9skip/555초는 별도 계층이다. 이전89034 code-comments·51874 gi실패→주석 보존예외 및 nonlogin환경 보완→이번통과 이력을 유지한다.
+
+[96360 개별 결과·측정·정리 인계 전수](release-artifacts/v4.1.0/s09-predev120-96360/results.md)는647254bytes, SHA256 `516783b3d44e7d7829c69b48d27fb9732f54de073e665772e4cbd1d5ee8fba46`이다. outer409실행 command/duration/log +skip1, child21command/direct21pass+9skip, canonical하위5058판정(4567pass0fail491skip)을 이관했다. stdout/stderr 중복본과 integrated 재출력은 중복집계하지 않았다. 최초영어marker수집5045행에 한글rules-registry13행을 추가해 원로그 전수5058행과 일치했으며 원문 가림 후 누락0·outer410label존재·rawsource/auth패턴없음을 대조했다. URL과 WebRTC 세션 식별자만 가렸고 판정은 보존했다. 첫 대량JSON 조회 절단은 증거로 사용하지 않고 한정projection을 재수집했다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| predev120 실제 실행 | 위 exact명령 exit0,409/0/1,80회,7821903ms; 각개별결과는 보존표 | pass |
+| ledger 대조 | 80회 각5case=400, outer409·report포함,notRun0 | pass |
+| 결과 이관 대조 | canonical5058행·missing0,outer410행·child21command/30direct행 | pass |
+| 종료 확인 | 메인 binary45889/48429 ps exit1/빈stdout·stderr, ports8081/8555 lsof exit1/빈stdout·stderr | pass |
+| 문서 공백 | `git diff --check` exit0 | pass |
+
+하위 recovery80회는 endpoint 실패·성공counter만 통과하고 EventStorage비활성 recovery policy는 각1skip이다. soakredaction은 live-only3pass/4skip이고 다른redaction기능을 대체하지 않는다. outer skip1은외부gate제외이며 하위491skip와다르다. 30분/UI/녹화직접120·자원추세 및S09전체완료는 이번predevPASS로 대체하지 않는다. token start/end/consumed 미집계(도구 제공없음), source는 기존원로그/summary 및메인종료측정이다.
+
+정리 인계: 실행root54918497B373files,runner2128447B1059files,child37940B24files. 원로그참조323 timestamp-PID prefix의2263entry와 메인추가소유확인41개(기존runner1중복)의 exact stem/suffix/bytes를artifact에보존했다. 신규2304개 차이목록만으로 삭제판정하지않고 실제child/source출력근거를결합했다. 추가image20/launcher6/probe5/rule9/runner1이며 메인의 잘못된19-rule-registry.log ENOENT→19-rules-registry.log 정정은 진단이력(테스트실패아님)이다. **삭제는 아직 미완료·메인대기**, child는 어떤임시파일도삭제하지 않았다. 최종cleanup전 완료보고불가.
+
+새테스트/서버/코드·설정수정/커밋/푸시 없음. 보존문서만 작성했으며 실제120분 실행자는메인이다.
+
+## S09 PD120 96360 재실행 진행 기록
+
+진행 갱신: integrated-smoke가 555초에 실제 PASS했다. 외부 TURN은 기존 승인 범위에
+없어 제외했고, 실제 120분 soak 첫 반복에 진입했다. 첫 반복 va-events34초,
+event-post-schema3초, event-post-recovery4초 PASS 후 redaction 진행 중이다.
+이 부분 결과는 전체 120분 완료 증거가 아니며 최종 전수 결과는 종료 후 이관한다.
+
+후속 직접 확인: integrated180초 heartbeat 이후 실제 stdout에서 파일H264/AAC,
+파일H265/AAC, 로컬RTSP H265/Opus 통과를 확인했다. 다음 로컬RTSP H264/PCMU
+진행 중이며 전체 통합/120분 통과가 아니다. 이전 gi import 실패 지점은 이번
+실행에서 실제 통과했다. child 로그 디렉터리는 `.media_server.test/20260911-093000`이다.
+
+PE 환경보존 검증141/0 후 `./server.sh verify-predev --soak-minutes 120 --fail-fast`를
+새 root `/private/tmp/s09-predev120-rQnWAb`에서 시작했다. session96360,
+runner PID45840, startedAt1789086596789. 기존 격리 설정·테스트 범위를 유지했다.
+build1초와 server-start-queue-256이 통과했고 integrated-smoke는 90초 heartbeat까지
+진행 중이다. 120분 soak 진입/완료는 미확인이다. 토큰 개별 집계는 도구 미제공이며
+elapsed와 최종 결과·cleanup은 종료 후 기록한다. 실행 중 산출물은 아직 삭제하지
+않았으며 최종 evidence가 아니다. 코드/config는 동결, 커밋·푸시 없음.
+
+## S09 PE 비로그인 실행 경계 최종 결과
+
+메인 반환 검토: 새 환경 검사 코드와 세 실행 경계 diff를 직접 읽었다. 최초 cleanup
+대조는 경로 열을 잘못 선택하여 0개를 반환했으므로 cleanup 증거로 쓰지 않았다.
+실행 ID별 정확한 44행으로 다시 선택한 뒤 전부 lstat ENOENT를 확인했다.
+
+실행 수정은 verify_predev_stability.sh run_step/refresh와 test_all.sh run_step 세 곳의 `bash -lc`를 `env -u BASH_ENV bash -c`로 바꾼 것뿐이다. 명시 PATH/환경과 명령 문자열을 유지하고 로그인profile/BASH_ENV 재실행을 막는다. 제품·패키지·사용자profile은 변경하지 않았다. 기존 test seam의 main 직전 환경 설정과 제어 sentinel 파일만 추가했다. 실제 서버 시작/환경 적용 등 기존 느린 경계 대체는 유지하며 fake 서버를 제품 PASS라고 하지 않는다.
+
+모든 명령은 `node scripts/internal/recording_predev_failfast.test.mjs`. 첫 RED는137/2(36000ms), 첫GREEN139/0(35639ms), PATH exact RED137/4(35743ms), 최종GREEN141/0(35741ms). 기존133개에 환경 assertion7개와 cleanup1개가 추가됐다. sentinel 존재만 통과했던 첫 결과는 PATH 순서보존 증거가 아니며 exact readback 보완으로 이를 직접 검사했다. 실제 로그인 셸에서 두PATH exact 및 두BASH_ENV assertion이 실패했고 최소fix후 모두 통과했다.
+
+`bash -n scripts/internal/verify_predev_stability.sh scripts/internal/test_all.sh` exit0, `git diff --check` exit0. 메인 별도 `/bin/bash -c`에서 Python `import gi`, Gst/GstRtspServer require_version/import exit0의 `Gst/GstRtspServer import OK`를 확인했으며 실제 launcher/codec/predev120 재실행 PASS는 아니다. source: 도구 전수 출력 및 메인 직접진단. token start/end/consumed 미집계(계수 미제공), elapsed는 각Node 내부측정이다.
+
+### 83989 BASH_ENV 예상 RED
+
+| 번호 | 원결과 | 결과(pass/fail) |
+| --- | --- | --- |
+| 1 | [pass] PE01 predev integrated PATH sentinel | pass |
+| 2 | [pass] PE01 predev initial and refresh PATH sentinel | pass |
+| 3 | [fail] PE03 predev BASH_ENV never executed | fail |
+| 4 | [pass] PE02 testall PATH sentinel | pass |
+| 5 | [fail] PE03 testall BASH_ENV never executed | fail |
+| 6 | [pass] default integrated argv omits --fail-fast | pass |
+| 7 | [pass] default preserves test | pass |
+| 8 | [pass] default preserves --no-start | pass |
+| 9 | [pass] default preserves --skip-external | pass |
+| 10 | [pass] default preserves --include-rules | pass |
+| 11 | [pass] default preserves --include-va-events | pass |
+| 12 | [pass] default preserves --include-image-analysis | pass |
+| 13 | [pass] default preserves --include-redaction | pass |
+| 14 | [pass] default child failure exits nonzero | pass |
+| 15 | [pass] default child later-case retained | pass |
+| 16 | [pass] default subsequent soak retained | pass |
+| 17 | [pass] default cleanup invoked | pass |
+| 18 | [pass] explicit integrated argv contains --fail-fast | pass |
+| 19 | [pass] explicit preserves test | pass |
+| 20 | [pass] explicit preserves --no-start | pass |
+| 21 | [pass] explicit preserves --skip-external | pass |
+| 22 | [pass] explicit preserves --include-rules | pass |
+| 23 | [pass] explicit preserves --include-va-events | pass |
+| 24 | [pass] explicit preserves --include-image-analysis | pass |
+| 25 | [pass] explicit preserves --include-redaction | pass |
+| 26 | [pass] explicit child failure exits nonzero | pass |
+| 27 | [pass] explicit child later-case blocked | pass |
+| 28 | [pass] explicit subsequent soak blocked | pass |
+| 29 | [pass] explicit cleanup invoked | pass |
+| 30 | [pass] explicit queue case not-run | pass |
+| 31 | [pass] existing first-fail fixture exit1 | pass |
+| 32 | [pass] existing first-fail third case | pass |
+| 33 | [pass] existing cumulative fixture exit1 | pass |
+| 34 | [pass] existing cumulative third case | pass |
+| 35 | [pass] report-normal initial exact current-summary argv | pass |
+| 36 | [pass] report-normal refresh exact current-summary argv | pass |
+| 37 | [pass] report-normal command substitution not executed | pass |
+| 38 | [pass] report-normal exit follows report result | pass |
+| 39 | [pass] report-normal actual Python report contains current source | pass |
+| 40 | [pass] report-normal unrelated fixture excluded | pass |
+| 41 | [pass] report-normal cleanup invoked | pass |
+| 42 | [pass] report-special initial exact current-summary argv | pass |
+| 43 | [pass] report-special refresh exact current-summary argv | pass |
+| 44 | [pass] report-special command substitution not executed | pass |
+| 45 | [pass] report-special exit follows report result | pass |
+| 46 | [pass] report-special actual Python report contains current source | pass |
+| 47 | [pass] report-special unrelated fixture excluded | pass |
+| 48 | [pass] report-special cleanup invoked | pass |
+| 49 | [pass] report-glob initial exact current-summary argv | pass |
+| 50 | [pass] report-glob refresh exact current-summary argv | pass |
+| 51 | [pass] report-glob command substitution not executed | pass |
+| 52 | [pass] report-glob exit follows report result | pass |
+| 53 | [pass] report-glob actual Python report contains current source | pass |
+| 54 | [pass] report-glob unrelated fixture excluded | pass |
+| 55 | [pass] report-glob cleanup invoked | pass |
+| 56 | [pass] report-initial-failure initial exact current-summary argv | pass |
+| 57 | [pass] report-initial-failure refresh exact current-summary argv | pass |
+| 58 | [pass] report-initial-failure command substitution not executed | pass |
+| 59 | [pass] report-initial-failure exit follows report result | pass |
+| 60 | [pass] report-initial-failure exact failed step recorded | pass |
+| 61 | [pass] report-initial-failure cleanup invoked | pass |
+| 62 | [pass] report-refresh-failure initial exact current-summary argv | pass |
+| 63 | [pass] report-refresh-failure refresh exact current-summary argv | pass |
+| 64 | [pass] report-refresh-failure command substitution not executed | pass |
+| 65 | [pass] report-refresh-failure exit follows report result | pass |
+| 66 | [pass] report-refresh-failure exact failed step recorded | pass |
+| 67 | [pass] report-refresh-failure cleanup invoked | pass |
+| 68 | [pass] internal-normal exact current summary argv | pass |
+| 69 | [pass] internal-normal partial counters before report | pass |
+| 70 | [pass] internal-normal final counters | pass |
+| 71 | [pass] internal-normal exit status | pass |
+| 72 | [pass] internal-normal final schema and logDir | pass |
+| 73 | [pass] internal-normal elapsed consistency | pass |
+| 74 | [pass] internal-normal one final conclusion only | pass |
+| 75 | [pass] internal-normal command substitution not executed | pass |
+| 76 | [pass] internal-normal current report rendered | pass |
+| 77 | [pass] internal-normal unrelated excluded | pass |
+| 78 | [pass] internal-normal rendered partial counts and status | pass |
+| 79 | [pass] internal-normal rendered final counts and status | pass |
+| 80 | [pass] internal-normal cleanup invoked | pass |
+| 81 | [pass] internal-special exact current summary argv | pass |
+| 82 | [pass] internal-special partial counters before report | pass |
+| 83 | [pass] internal-special final counters | pass |
+| 84 | [pass] internal-special exit status | pass |
+| 85 | [pass] internal-special final schema and logDir | pass |
+| 86 | [pass] internal-special elapsed consistency | pass |
+| 87 | [pass] internal-special one final conclusion only | pass |
+| 88 | [pass] internal-special command substitution not executed | pass |
+| 89 | [pass] internal-special current report rendered | pass |
+| 90 | [pass] internal-special unrelated excluded | pass |
+| 91 | [pass] internal-special rendered partial counts and status | pass |
+| 92 | [pass] internal-special rendered final counts and status | pass |
+| 93 | [pass] internal-special cleanup invoked | pass |
+| 94 | [pass] internal-report-failure exact current summary argv | pass |
+| 95 | [pass] internal-report-failure partial counters before report | pass |
+| 96 | [pass] internal-report-failure final counters | pass |
+| 97 | [pass] internal-report-failure exit status | pass |
+| 98 | [pass] internal-report-failure final schema and logDir | pass |
+| 99 | [pass] internal-report-failure elapsed consistency | pass |
+| 100 | [pass] internal-report-failure one final conclusion only | pass |
+| 101 | [pass] internal-report-failure command substitution not executed | pass |
+| 102 | [pass] internal-report-failure later status not executed | pass |
+| 103 | [pass] internal-report-failure rendered final counts and status | pass |
+| 104 | [pass] internal-report-failure cleanup invoked | pass |
+| 105 | [pass] internal-first-failure report not reached | pass |
+| 106 | [pass] internal-first-failure final counters | pass |
+| 107 | [pass] internal-first-failure exit status | pass |
+| 108 | [pass] internal-first-failure final schema and logDir | pass |
+| 109 | [pass] internal-first-failure elapsed consistency | pass |
+| 110 | [pass] internal-first-failure one final conclusion only | pass |
+| 111 | [pass] internal-first-failure command substitution not executed | pass |
+| 112 | [pass] internal-first-failure later status not executed | pass |
+| 113 | [pass] internal-first-failure rendered final counts and status | pass |
+| 114 | [pass] internal-first-failure cleanup invoked | pass |
+| 115 | [pass] renderer existing generic unchanged | pass |
+| 116 | [pass] renderer existing event unchanged | pass |
+| 117 | [pass] renderer existing predev unchanged | pass |
+| 118 | [pass] renderer existing generic-info unchanged | pass |
+| 119 | [pass] renderer existing unknown-schema unchanged | pass |
+| 120 | [pass] renderer existing generic-failure unchanged | pass |
+| 121 | [pass] renderer existing event-failure unchanged | pass |
+| 122 | [pass] renderer existing predev-pass unchanged | pass |
+| 123 | [pass] renderer existing test-valid unchanged | pass |
+| 124 | [pass] renderer existing test-failure unchanged | pass |
+| 125 | [pass] renderer existing test-missing unchanged | pass |
+| 126 | [pass] renderer existing test-string unchanged | pass |
+| 127 | [pass] renderer existing test-boolean unchanged | pass |
+| 128 | [pass] renderer existing test-negative unchanged | pass |
+| 129 | [pass] owned temporary path absent | pass |
+| 130 | [pass] owned temporary path absent | pass |
+| 131 | [pass] owned temporary path absent | pass |
+| 132 | [pass] owned temporary path absent | pass |
+| 133 | [pass] owned temporary path absent | pass |
+| 134 | [pass] owned temporary path absent | pass |
+| 135 | [pass] owned temporary path absent | pass |
+| 136 | [pass] owned temporary path absent | pass |
+| 137 | [pass] owned temporary path absent | pass |
+| 138 | [pass] owned temporary path absent | pass |
+| 139 | [pass] owned temporary path absent | pass |
+
+원 summary: `{"passed":137,"failed":2,"elapsedMs":36000,"actualServer":false}`.
+
+### 6044 첫 GREEN: PATH 순서 미검증 제한
+
+| 번호 | 원결과 | 결과(pass/fail) |
+| --- | --- | --- |
+| 1 | [pass] PE01 predev integrated PATH sentinel | pass |
+| 2 | [pass] PE01 predev initial and refresh PATH sentinel | pass |
+| 3 | [pass] PE03 predev BASH_ENV never executed | pass |
+| 4 | [pass] PE02 testall PATH sentinel | pass |
+| 5 | [pass] PE03 testall BASH_ENV never executed | pass |
+| 6 | [pass] default integrated argv omits --fail-fast | pass |
+| 7 | [pass] default preserves test | pass |
+| 8 | [pass] default preserves --no-start | pass |
+| 9 | [pass] default preserves --skip-external | pass |
+| 10 | [pass] default preserves --include-rules | pass |
+| 11 | [pass] default preserves --include-va-events | pass |
+| 12 | [pass] default preserves --include-image-analysis | pass |
+| 13 | [pass] default preserves --include-redaction | pass |
+| 14 | [pass] default child failure exits nonzero | pass |
+| 15 | [pass] default child later-case retained | pass |
+| 16 | [pass] default subsequent soak retained | pass |
+| 17 | [pass] default cleanup invoked | pass |
+| 18 | [pass] explicit integrated argv contains --fail-fast | pass |
+| 19 | [pass] explicit preserves test | pass |
+| 20 | [pass] explicit preserves --no-start | pass |
+| 21 | [pass] explicit preserves --skip-external | pass |
+| 22 | [pass] explicit preserves --include-rules | pass |
+| 23 | [pass] explicit preserves --include-va-events | pass |
+| 24 | [pass] explicit preserves --include-image-analysis | pass |
+| 25 | [pass] explicit preserves --include-redaction | pass |
+| 26 | [pass] explicit child failure exits nonzero | pass |
+| 27 | [pass] explicit child later-case blocked | pass |
+| 28 | [pass] explicit subsequent soak blocked | pass |
+| 29 | [pass] explicit cleanup invoked | pass |
+| 30 | [pass] explicit queue case not-run | pass |
+| 31 | [pass] existing first-fail fixture exit1 | pass |
+| 32 | [pass] existing first-fail third case | pass |
+| 33 | [pass] existing cumulative fixture exit1 | pass |
+| 34 | [pass] existing cumulative third case | pass |
+| 35 | [pass] report-normal initial exact current-summary argv | pass |
+| 36 | [pass] report-normal refresh exact current-summary argv | pass |
+| 37 | [pass] report-normal command substitution not executed | pass |
+| 38 | [pass] report-normal exit follows report result | pass |
+| 39 | [pass] report-normal actual Python report contains current source | pass |
+| 40 | [pass] report-normal unrelated fixture excluded | pass |
+| 41 | [pass] report-normal cleanup invoked | pass |
+| 42 | [pass] report-special initial exact current-summary argv | pass |
+| 43 | [pass] report-special refresh exact current-summary argv | pass |
+| 44 | [pass] report-special command substitution not executed | pass |
+| 45 | [pass] report-special exit follows report result | pass |
+| 46 | [pass] report-special actual Python report contains current source | pass |
+| 47 | [pass] report-special unrelated fixture excluded | pass |
+| 48 | [pass] report-special cleanup invoked | pass |
+| 49 | [pass] report-glob initial exact current-summary argv | pass |
+| 50 | [pass] report-glob refresh exact current-summary argv | pass |
+| 51 | [pass] report-glob command substitution not executed | pass |
+| 52 | [pass] report-glob exit follows report result | pass |
+| 53 | [pass] report-glob actual Python report contains current source | pass |
+| 54 | [pass] report-glob unrelated fixture excluded | pass |
+| 55 | [pass] report-glob cleanup invoked | pass |
+| 56 | [pass] report-initial-failure initial exact current-summary argv | pass |
+| 57 | [pass] report-initial-failure refresh exact current-summary argv | pass |
+| 58 | [pass] report-initial-failure command substitution not executed | pass |
+| 59 | [pass] report-initial-failure exit follows report result | pass |
+| 60 | [pass] report-initial-failure exact failed step recorded | pass |
+| 61 | [pass] report-initial-failure cleanup invoked | pass |
+| 62 | [pass] report-refresh-failure initial exact current-summary argv | pass |
+| 63 | [pass] report-refresh-failure refresh exact current-summary argv | pass |
+| 64 | [pass] report-refresh-failure command substitution not executed | pass |
+| 65 | [pass] report-refresh-failure exit follows report result | pass |
+| 66 | [pass] report-refresh-failure exact failed step recorded | pass |
+| 67 | [pass] report-refresh-failure cleanup invoked | pass |
+| 68 | [pass] internal-normal exact current summary argv | pass |
+| 69 | [pass] internal-normal partial counters before report | pass |
+| 70 | [pass] internal-normal final counters | pass |
+| 71 | [pass] internal-normal exit status | pass |
+| 72 | [pass] internal-normal final schema and logDir | pass |
+| 73 | [pass] internal-normal elapsed consistency | pass |
+| 74 | [pass] internal-normal one final conclusion only | pass |
+| 75 | [pass] internal-normal command substitution not executed | pass |
+| 76 | [pass] internal-normal current report rendered | pass |
+| 77 | [pass] internal-normal unrelated excluded | pass |
+| 78 | [pass] internal-normal rendered partial counts and status | pass |
+| 79 | [pass] internal-normal rendered final counts and status | pass |
+| 80 | [pass] internal-normal cleanup invoked | pass |
+| 81 | [pass] internal-special exact current summary argv | pass |
+| 82 | [pass] internal-special partial counters before report | pass |
+| 83 | [pass] internal-special final counters | pass |
+| 84 | [pass] internal-special exit status | pass |
+| 85 | [pass] internal-special final schema and logDir | pass |
+| 86 | [pass] internal-special elapsed consistency | pass |
+| 87 | [pass] internal-special one final conclusion only | pass |
+| 88 | [pass] internal-special command substitution not executed | pass |
+| 89 | [pass] internal-special current report rendered | pass |
+| 90 | [pass] internal-special unrelated excluded | pass |
+| 91 | [pass] internal-special rendered partial counts and status | pass |
+| 92 | [pass] internal-special rendered final counts and status | pass |
+| 93 | [pass] internal-special cleanup invoked | pass |
+| 94 | [pass] internal-report-failure exact current summary argv | pass |
+| 95 | [pass] internal-report-failure partial counters before report | pass |
+| 96 | [pass] internal-report-failure final counters | pass |
+| 97 | [pass] internal-report-failure exit status | pass |
+| 98 | [pass] internal-report-failure final schema and logDir | pass |
+| 99 | [pass] internal-report-failure elapsed consistency | pass |
+| 100 | [pass] internal-report-failure one final conclusion only | pass |
+| 101 | [pass] internal-report-failure command substitution not executed | pass |
+| 102 | [pass] internal-report-failure later status not executed | pass |
+| 103 | [pass] internal-report-failure rendered final counts and status | pass |
+| 104 | [pass] internal-report-failure cleanup invoked | pass |
+| 105 | [pass] internal-first-failure report not reached | pass |
+| 106 | [pass] internal-first-failure final counters | pass |
+| 107 | [pass] internal-first-failure exit status | pass |
+| 108 | [pass] internal-first-failure final schema and logDir | pass |
+| 109 | [pass] internal-first-failure elapsed consistency | pass |
+| 110 | [pass] internal-first-failure one final conclusion only | pass |
+| 111 | [pass] internal-first-failure command substitution not executed | pass |
+| 112 | [pass] internal-first-failure later status not executed | pass |
+| 113 | [pass] internal-first-failure rendered final counts and status | pass |
+| 114 | [pass] internal-first-failure cleanup invoked | pass |
+| 115 | [pass] renderer existing generic unchanged | pass |
+| 116 | [pass] renderer existing event unchanged | pass |
+| 117 | [pass] renderer existing predev unchanged | pass |
+| 118 | [pass] renderer existing generic-info unchanged | pass |
+| 119 | [pass] renderer existing unknown-schema unchanged | pass |
+| 120 | [pass] renderer existing generic-failure unchanged | pass |
+| 121 | [pass] renderer existing event-failure unchanged | pass |
+| 122 | [pass] renderer existing predev-pass unchanged | pass |
+| 123 | [pass] renderer existing test-valid unchanged | pass |
+| 124 | [pass] renderer existing test-failure unchanged | pass |
+| 125 | [pass] renderer existing test-missing unchanged | pass |
+| 126 | [pass] renderer existing test-string unchanged | pass |
+| 127 | [pass] renderer existing test-boolean unchanged | pass |
+| 128 | [pass] renderer existing test-negative unchanged | pass |
+| 129 | [pass] owned temporary path absent | pass |
+| 130 | [pass] owned temporary path absent | pass |
+| 131 | [pass] owned temporary path absent | pass |
+| 132 | [pass] owned temporary path absent | pass |
+| 133 | [pass] owned temporary path absent | pass |
+| 134 | [pass] owned temporary path absent | pass |
+| 135 | [pass] owned temporary path absent | pass |
+| 136 | [pass] owned temporary path absent | pass |
+| 137 | [pass] owned temporary path absent | pass |
+| 138 | [pass] owned temporary path absent | pass |
+| 139 | [pass] owned temporary path absent | pass |
+
+원 summary: `{"passed":139,"failed":0,"elapsedMs":35639,"actualServer":false}`.
+
+### 65142 PATH exact 추가 예상 RED
+
+| 번호 | 원결과 | 결과(pass/fail) |
+| --- | --- | --- |
+| 1 | [pass] PE01 predev integrated PATH sentinel | pass |
+| 2 | [pass] PE01 predev initial and refresh PATH sentinel | pass |
+| 3 | [fail] PE03 predev BASH_ENV never executed | fail |
+| 4 | [fail] PE05 predev integrated initial refresh exact PATH | fail |
+| 5 | [pass] PE02 testall PATH sentinel | pass |
+| 6 | [fail] PE03 testall BASH_ENV never executed | fail |
+| 7 | [fail] PE05 testall exact PATH | fail |
+| 8 | [pass] default integrated argv omits --fail-fast | pass |
+| 9 | [pass] default preserves test | pass |
+| 10 | [pass] default preserves --no-start | pass |
+| 11 | [pass] default preserves --skip-external | pass |
+| 12 | [pass] default preserves --include-rules | pass |
+| 13 | [pass] default preserves --include-va-events | pass |
+| 14 | [pass] default preserves --include-image-analysis | pass |
+| 15 | [pass] default preserves --include-redaction | pass |
+| 16 | [pass] default child failure exits nonzero | pass |
+| 17 | [pass] default child later-case retained | pass |
+| 18 | [pass] default subsequent soak retained | pass |
+| 19 | [pass] default cleanup invoked | pass |
+| 20 | [pass] explicit integrated argv contains --fail-fast | pass |
+| 21 | [pass] explicit preserves test | pass |
+| 22 | [pass] explicit preserves --no-start | pass |
+| 23 | [pass] explicit preserves --skip-external | pass |
+| 24 | [pass] explicit preserves --include-rules | pass |
+| 25 | [pass] explicit preserves --include-va-events | pass |
+| 26 | [pass] explicit preserves --include-image-analysis | pass |
+| 27 | [pass] explicit preserves --include-redaction | pass |
+| 28 | [pass] explicit child failure exits nonzero | pass |
+| 29 | [pass] explicit child later-case blocked | pass |
+| 30 | [pass] explicit subsequent soak blocked | pass |
+| 31 | [pass] explicit cleanup invoked | pass |
+| 32 | [pass] explicit queue case not-run | pass |
+| 33 | [pass] existing first-fail fixture exit1 | pass |
+| 34 | [pass] existing first-fail third case | pass |
+| 35 | [pass] existing cumulative fixture exit1 | pass |
+| 36 | [pass] existing cumulative third case | pass |
+| 37 | [pass] report-normal initial exact current-summary argv | pass |
+| 38 | [pass] report-normal refresh exact current-summary argv | pass |
+| 39 | [pass] report-normal command substitution not executed | pass |
+| 40 | [pass] report-normal exit follows report result | pass |
+| 41 | [pass] report-normal actual Python report contains current source | pass |
+| 42 | [pass] report-normal unrelated fixture excluded | pass |
+| 43 | [pass] report-normal cleanup invoked | pass |
+| 44 | [pass] report-special initial exact current-summary argv | pass |
+| 45 | [pass] report-special refresh exact current-summary argv | pass |
+| 46 | [pass] report-special command substitution not executed | pass |
+| 47 | [pass] report-special exit follows report result | pass |
+| 48 | [pass] report-special actual Python report contains current source | pass |
+| 49 | [pass] report-special unrelated fixture excluded | pass |
+| 50 | [pass] report-special cleanup invoked | pass |
+| 51 | [pass] report-glob initial exact current-summary argv | pass |
+| 52 | [pass] report-glob refresh exact current-summary argv | pass |
+| 53 | [pass] report-glob command substitution not executed | pass |
+| 54 | [pass] report-glob exit follows report result | pass |
+| 55 | [pass] report-glob actual Python report contains current source | pass |
+| 56 | [pass] report-glob unrelated fixture excluded | pass |
+| 57 | [pass] report-glob cleanup invoked | pass |
+| 58 | [pass] report-initial-failure initial exact current-summary argv | pass |
+| 59 | [pass] report-initial-failure refresh exact current-summary argv | pass |
+| 60 | [pass] report-initial-failure command substitution not executed | pass |
+| 61 | [pass] report-initial-failure exit follows report result | pass |
+| 62 | [pass] report-initial-failure exact failed step recorded | pass |
+| 63 | [pass] report-initial-failure cleanup invoked | pass |
+| 64 | [pass] report-refresh-failure initial exact current-summary argv | pass |
+| 65 | [pass] report-refresh-failure refresh exact current-summary argv | pass |
+| 66 | [pass] report-refresh-failure command substitution not executed | pass |
+| 67 | [pass] report-refresh-failure exit follows report result | pass |
+| 68 | [pass] report-refresh-failure exact failed step recorded | pass |
+| 69 | [pass] report-refresh-failure cleanup invoked | pass |
+| 70 | [pass] internal-normal exact current summary argv | pass |
+| 71 | [pass] internal-normal partial counters before report | pass |
+| 72 | [pass] internal-normal final counters | pass |
+| 73 | [pass] internal-normal exit status | pass |
+| 74 | [pass] internal-normal final schema and logDir | pass |
+| 75 | [pass] internal-normal elapsed consistency | pass |
+| 76 | [pass] internal-normal one final conclusion only | pass |
+| 77 | [pass] internal-normal command substitution not executed | pass |
+| 78 | [pass] internal-normal current report rendered | pass |
+| 79 | [pass] internal-normal unrelated excluded | pass |
+| 80 | [pass] internal-normal rendered partial counts and status | pass |
+| 81 | [pass] internal-normal rendered final counts and status | pass |
+| 82 | [pass] internal-normal cleanup invoked | pass |
+| 83 | [pass] internal-special exact current summary argv | pass |
+| 84 | [pass] internal-special partial counters before report | pass |
+| 85 | [pass] internal-special final counters | pass |
+| 86 | [pass] internal-special exit status | pass |
+| 87 | [pass] internal-special final schema and logDir | pass |
+| 88 | [pass] internal-special elapsed consistency | pass |
+| 89 | [pass] internal-special one final conclusion only | pass |
+| 90 | [pass] internal-special command substitution not executed | pass |
+| 91 | [pass] internal-special current report rendered | pass |
+| 92 | [pass] internal-special unrelated excluded | pass |
+| 93 | [pass] internal-special rendered partial counts and status | pass |
+| 94 | [pass] internal-special rendered final counts and status | pass |
+| 95 | [pass] internal-special cleanup invoked | pass |
+| 96 | [pass] internal-report-failure exact current summary argv | pass |
+| 97 | [pass] internal-report-failure partial counters before report | pass |
+| 98 | [pass] internal-report-failure final counters | pass |
+| 99 | [pass] internal-report-failure exit status | pass |
+| 100 | [pass] internal-report-failure final schema and logDir | pass |
+| 101 | [pass] internal-report-failure elapsed consistency | pass |
+| 102 | [pass] internal-report-failure one final conclusion only | pass |
+| 103 | [pass] internal-report-failure command substitution not executed | pass |
+| 104 | [pass] internal-report-failure later status not executed | pass |
+| 105 | [pass] internal-report-failure rendered final counts and status | pass |
+| 106 | [pass] internal-report-failure cleanup invoked | pass |
+| 107 | [pass] internal-first-failure report not reached | pass |
+| 108 | [pass] internal-first-failure final counters | pass |
+| 109 | [pass] internal-first-failure exit status | pass |
+| 110 | [pass] internal-first-failure final schema and logDir | pass |
+| 111 | [pass] internal-first-failure elapsed consistency | pass |
+| 112 | [pass] internal-first-failure one final conclusion only | pass |
+| 113 | [pass] internal-first-failure command substitution not executed | pass |
+| 114 | [pass] internal-first-failure later status not executed | pass |
+| 115 | [pass] internal-first-failure rendered final counts and status | pass |
+| 116 | [pass] internal-first-failure cleanup invoked | pass |
+| 117 | [pass] renderer existing generic unchanged | pass |
+| 118 | [pass] renderer existing event unchanged | pass |
+| 119 | [pass] renderer existing predev unchanged | pass |
+| 120 | [pass] renderer existing generic-info unchanged | pass |
+| 121 | [pass] renderer existing unknown-schema unchanged | pass |
+| 122 | [pass] renderer existing generic-failure unchanged | pass |
+| 123 | [pass] renderer existing event-failure unchanged | pass |
+| 124 | [pass] renderer existing predev-pass unchanged | pass |
+| 125 | [pass] renderer existing test-valid unchanged | pass |
+| 126 | [pass] renderer existing test-failure unchanged | pass |
+| 127 | [pass] renderer existing test-missing unchanged | pass |
+| 128 | [pass] renderer existing test-string unchanged | pass |
+| 129 | [pass] renderer existing test-boolean unchanged | pass |
+| 130 | [pass] renderer existing test-negative unchanged | pass |
+| 131 | [pass] owned temporary path absent | pass |
+| 132 | [pass] owned temporary path absent | pass |
+| 133 | [pass] owned temporary path absent | pass |
+| 134 | [pass] owned temporary path absent | pass |
+| 135 | [pass] owned temporary path absent | pass |
+| 136 | [pass] owned temporary path absent | pass |
+| 137 | [pass] owned temporary path absent | pass |
+| 138 | [pass] owned temporary path absent | pass |
+| 139 | [pass] owned temporary path absent | pass |
+| 140 | [pass] owned temporary path absent | pass |
+| 141 | [pass] owned temporary path absent | pass |
+
+원 summary: `{"passed":137,"failed":4,"elapsedMs":35743,"actualServer":false}`.
+
+### 80685 최종 GREEN
+
+| 번호 | 원결과 | 결과(pass/fail) |
+| --- | --- | --- |
+| 1 | [pass] PE01 predev integrated PATH sentinel | pass |
+| 2 | [pass] PE01 predev initial and refresh PATH sentinel | pass |
+| 3 | [pass] PE03 predev BASH_ENV never executed | pass |
+| 4 | [pass] PE05 predev integrated initial refresh exact PATH | pass |
+| 5 | [pass] PE02 testall PATH sentinel | pass |
+| 6 | [pass] PE03 testall BASH_ENV never executed | pass |
+| 7 | [pass] PE05 testall exact PATH | pass |
+| 8 | [pass] default integrated argv omits --fail-fast | pass |
+| 9 | [pass] default preserves test | pass |
+| 10 | [pass] default preserves --no-start | pass |
+| 11 | [pass] default preserves --skip-external | pass |
+| 12 | [pass] default preserves --include-rules | pass |
+| 13 | [pass] default preserves --include-va-events | pass |
+| 14 | [pass] default preserves --include-image-analysis | pass |
+| 15 | [pass] default preserves --include-redaction | pass |
+| 16 | [pass] default child failure exits nonzero | pass |
+| 17 | [pass] default child later-case retained | pass |
+| 18 | [pass] default subsequent soak retained | pass |
+| 19 | [pass] default cleanup invoked | pass |
+| 20 | [pass] explicit integrated argv contains --fail-fast | pass |
+| 21 | [pass] explicit preserves test | pass |
+| 22 | [pass] explicit preserves --no-start | pass |
+| 23 | [pass] explicit preserves --skip-external | pass |
+| 24 | [pass] explicit preserves --include-rules | pass |
+| 25 | [pass] explicit preserves --include-va-events | pass |
+| 26 | [pass] explicit preserves --include-image-analysis | pass |
+| 27 | [pass] explicit preserves --include-redaction | pass |
+| 28 | [pass] explicit child failure exits nonzero | pass |
+| 29 | [pass] explicit child later-case blocked | pass |
+| 30 | [pass] explicit subsequent soak blocked | pass |
+| 31 | [pass] explicit cleanup invoked | pass |
+| 32 | [pass] explicit queue case not-run | pass |
+| 33 | [pass] existing first-fail fixture exit1 | pass |
+| 34 | [pass] existing first-fail third case | pass |
+| 35 | [pass] existing cumulative fixture exit1 | pass |
+| 36 | [pass] existing cumulative third case | pass |
+| 37 | [pass] report-normal initial exact current-summary argv | pass |
+| 38 | [pass] report-normal refresh exact current-summary argv | pass |
+| 39 | [pass] report-normal command substitution not executed | pass |
+| 40 | [pass] report-normal exit follows report result | pass |
+| 41 | [pass] report-normal actual Python report contains current source | pass |
+| 42 | [pass] report-normal unrelated fixture excluded | pass |
+| 43 | [pass] report-normal cleanup invoked | pass |
+| 44 | [pass] report-special initial exact current-summary argv | pass |
+| 45 | [pass] report-special refresh exact current-summary argv | pass |
+| 46 | [pass] report-special command substitution not executed | pass |
+| 47 | [pass] report-special exit follows report result | pass |
+| 48 | [pass] report-special actual Python report contains current source | pass |
+| 49 | [pass] report-special unrelated fixture excluded | pass |
+| 50 | [pass] report-special cleanup invoked | pass |
+| 51 | [pass] report-glob initial exact current-summary argv | pass |
+| 52 | [pass] report-glob refresh exact current-summary argv | pass |
+| 53 | [pass] report-glob command substitution not executed | pass |
+| 54 | [pass] report-glob exit follows report result | pass |
+| 55 | [pass] report-glob actual Python report contains current source | pass |
+| 56 | [pass] report-glob unrelated fixture excluded | pass |
+| 57 | [pass] report-glob cleanup invoked | pass |
+| 58 | [pass] report-initial-failure initial exact current-summary argv | pass |
+| 59 | [pass] report-initial-failure refresh exact current-summary argv | pass |
+| 60 | [pass] report-initial-failure command substitution not executed | pass |
+| 61 | [pass] report-initial-failure exit follows report result | pass |
+| 62 | [pass] report-initial-failure exact failed step recorded | pass |
+| 63 | [pass] report-initial-failure cleanup invoked | pass |
+| 64 | [pass] report-refresh-failure initial exact current-summary argv | pass |
+| 65 | [pass] report-refresh-failure refresh exact current-summary argv | pass |
+| 66 | [pass] report-refresh-failure command substitution not executed | pass |
+| 67 | [pass] report-refresh-failure exit follows report result | pass |
+| 68 | [pass] report-refresh-failure exact failed step recorded | pass |
+| 69 | [pass] report-refresh-failure cleanup invoked | pass |
+| 70 | [pass] internal-normal exact current summary argv | pass |
+| 71 | [pass] internal-normal partial counters before report | pass |
+| 72 | [pass] internal-normal final counters | pass |
+| 73 | [pass] internal-normal exit status | pass |
+| 74 | [pass] internal-normal final schema and logDir | pass |
+| 75 | [pass] internal-normal elapsed consistency | pass |
+| 76 | [pass] internal-normal one final conclusion only | pass |
+| 77 | [pass] internal-normal command substitution not executed | pass |
+| 78 | [pass] internal-normal current report rendered | pass |
+| 79 | [pass] internal-normal unrelated excluded | pass |
+| 80 | [pass] internal-normal rendered partial counts and status | pass |
+| 81 | [pass] internal-normal rendered final counts and status | pass |
+| 82 | [pass] internal-normal cleanup invoked | pass |
+| 83 | [pass] internal-special exact current summary argv | pass |
+| 84 | [pass] internal-special partial counters before report | pass |
+| 85 | [pass] internal-special final counters | pass |
+| 86 | [pass] internal-special exit status | pass |
+| 87 | [pass] internal-special final schema and logDir | pass |
+| 88 | [pass] internal-special elapsed consistency | pass |
+| 89 | [pass] internal-special one final conclusion only | pass |
+| 90 | [pass] internal-special command substitution not executed | pass |
+| 91 | [pass] internal-special current report rendered | pass |
+| 92 | [pass] internal-special unrelated excluded | pass |
+| 93 | [pass] internal-special rendered partial counts and status | pass |
+| 94 | [pass] internal-special rendered final counts and status | pass |
+| 95 | [pass] internal-special cleanup invoked | pass |
+| 96 | [pass] internal-report-failure exact current summary argv | pass |
+| 97 | [pass] internal-report-failure partial counters before report | pass |
+| 98 | [pass] internal-report-failure final counters | pass |
+| 99 | [pass] internal-report-failure exit status | pass |
+| 100 | [pass] internal-report-failure final schema and logDir | pass |
+| 101 | [pass] internal-report-failure elapsed consistency | pass |
+| 102 | [pass] internal-report-failure one final conclusion only | pass |
+| 103 | [pass] internal-report-failure command substitution not executed | pass |
+| 104 | [pass] internal-report-failure later status not executed | pass |
+| 105 | [pass] internal-report-failure rendered final counts and status | pass |
+| 106 | [pass] internal-report-failure cleanup invoked | pass |
+| 107 | [pass] internal-first-failure report not reached | pass |
+| 108 | [pass] internal-first-failure final counters | pass |
+| 109 | [pass] internal-first-failure exit status | pass |
+| 110 | [pass] internal-first-failure final schema and logDir | pass |
+| 111 | [pass] internal-first-failure elapsed consistency | pass |
+| 112 | [pass] internal-first-failure one final conclusion only | pass |
+| 113 | [pass] internal-first-failure command substitution not executed | pass |
+| 114 | [pass] internal-first-failure later status not executed | pass |
+| 115 | [pass] internal-first-failure rendered final counts and status | pass |
+| 116 | [pass] internal-first-failure cleanup invoked | pass |
+| 117 | [pass] renderer existing generic unchanged | pass |
+| 118 | [pass] renderer existing event unchanged | pass |
+| 119 | [pass] renderer existing predev unchanged | pass |
+| 120 | [pass] renderer existing generic-info unchanged | pass |
+| 121 | [pass] renderer existing unknown-schema unchanged | pass |
+| 122 | [pass] renderer existing generic-failure unchanged | pass |
+| 123 | [pass] renderer existing event-failure unchanged | pass |
+| 124 | [pass] renderer existing predev-pass unchanged | pass |
+| 125 | [pass] renderer existing test-valid unchanged | pass |
+| 126 | [pass] renderer existing test-failure unchanged | pass |
+| 127 | [pass] renderer existing test-missing unchanged | pass |
+| 128 | [pass] renderer existing test-string unchanged | pass |
+| 129 | [pass] renderer existing test-boolean unchanged | pass |
+| 130 | [pass] renderer existing test-negative unchanged | pass |
+| 131 | [pass] owned temporary path absent | pass |
+| 132 | [pass] owned temporary path absent | pass |
+| 133 | [pass] owned temporary path absent | pass |
+| 134 | [pass] owned temporary path absent | pass |
+| 135 | [pass] owned temporary path absent | pass |
+| 136 | [pass] owned temporary path absent | pass |
+| 137 | [pass] owned temporary path absent | pass |
+| 138 | [pass] owned temporary path absent | pass |
+| 139 | [pass] owned temporary path absent | pass |
+| 140 | [pass] owned temporary path absent | pass |
+| 141 | [pass] owned temporary path absent | pass |
+
+원 summary: `{"passed":141,"failed":0,"elapsedMs":35741,"actualServer":false}`.
+
+### 임시 경로 전수
+
+| 실행 | 경로 | 종류 | 삭제 전 크기 | 조치 | 결과 |
+| --- | --- | --- | ---: | --- | --- |
+| 83989 | /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-predev-failfast-AfKq11 | fixture/runner 산출물 | 683066 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 83989 | /tmp/media_server_predev-1789086236-41874 | fixture/runner 산출물 | 3497 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 83989 | /tmp/media_server_predev-1789086240-42060 | fixture/runner 산출물 | 3409 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 83989 | /tmp/media_server_predev-1789086243-42108 | fixture/runner 산출물 | 4706 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 83989 | /tmp/media_server_predev-1789086245-42160 | fixture/runner 산출물 | 1841 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 83989 | /tmp/media_server_predev-1789086249-42204 | fixture/runner 산출물 | 2183 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 83989 | /tmp/media_server_predev-1789086253-42252 | fixture/runner 산출물 | 3467 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 83989 | /tmp/media_server_predev-1789086256-42313 | fixture/runner 산출물 | 3767 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 83989 | /tmp/media_server_predev-1789086260-42390 | fixture/runner 산출물 | 3517 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 83989 | /tmp/media_server_predev-1789086263-42451 | fixture/runner 산출물 | 3521 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 83989 | /tmp/media_server_predev-1789086266-42509 | fixture/runner 산출물 | 4793 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 6044 | /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-predev-failfast-c1u8sC | fixture/runner 산출물 | 682484 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 6044 | /tmp/media_server_predev-1789086292-42914 | fixture/runner 산출물 | 3497 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 6044 | /tmp/media_server_predev-1789086296-43040 | fixture/runner 산출물 | 3409 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 6044 | /tmp/media_server_predev-1789086299-43082 | fixture/runner 산출물 | 4706 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 6044 | /tmp/media_server_predev-1789086302-43130 | fixture/runner 산출물 | 1841 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 6044 | /tmp/media_server_predev-1789086305-43170 | fixture/runner 산출물 | 2183 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 6044 | /tmp/media_server_predev-1789086309-43212 | fixture/runner 산출물 | 3467 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 6044 | /tmp/media_server_predev-1789086313-43268 | fixture/runner 산출물 | 3767 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 6044 | /tmp/media_server_predev-1789086316-43319 | fixture/runner 산출물 | 3517 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 6044 | /tmp/media_server_predev-1789086319-43372 | fixture/runner 산출물 | 3521 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 6044 | /tmp/media_server_predev-1789086323-43425 | fixture/runner 산출물 | 4793 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 65142 | /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-predev-failfast-GzoPls | fixture/runner 산출물 | 695282 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 65142 | /tmp/media_server_predev-1789086363-43791 | fixture/runner 산출물 | 3497 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 65142 | /tmp/media_server_predev-1789086367-43945 | fixture/runner 산출물 | 3409 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 65142 | /tmp/media_server_predev-1789086371-43993 | fixture/runner 산출물 | 4706 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 65142 | /tmp/media_server_predev-1789086373-44045 | fixture/runner 산출물 | 1841 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 65142 | /tmp/media_server_predev-1789086376-44089 | fixture/runner 산출물 | 2183 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 65142 | /tmp/media_server_predev-1789086381-44137 | fixture/runner 산출물 | 3467 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 65142 | /tmp/media_server_predev-1789086384-44198 | fixture/runner 산출물 | 3767 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 65142 | /tmp/media_server_predev-1789086387-44257 | fixture/runner 산출물 | 3517 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 65142 | /tmp/media_server_predev-1789086391-44318 | fixture/runner 산출물 | 3521 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 65142 | /tmp/media_server_predev-1789086394-44380 | fixture/runner 산출물 | 4793 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 80685 | /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-predev-failfast-j4i0yY | fixture/runner 산출물 | 695712 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 80685 | /tmp/media_server_predev-1789086424-44800 | fixture/runner 산출물 | 3497 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 80685 | /tmp/media_server_predev-1789086428-44919 | fixture/runner 산출물 | 3409 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 80685 | /tmp/media_server_predev-1789086431-44961 | fixture/runner 산출물 | 4706 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 80685 | /tmp/media_server_predev-1789086433-45009 | fixture/runner 산출물 | 1841 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 80685 | /tmp/media_server_predev-1789086437-45049 | fixture/runner 산출물 | 2183 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 80685 | /tmp/media_server_predev-1789086441-45091 | fixture/runner 산출물 | 3467 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 80685 | /tmp/media_server_predev-1789086444-45146 | fixture/runner 산출물 | 3767 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 80685 | /tmp/media_server_predev-1789086448-45203 | fixture/runner 산출물 | 3517 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 80685 | /tmp/media_server_predev-1789086451-45256 | fixture/runner 산출물 | 3521 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+| 80685 | /tmp/media_server_predev-1789086454-45310 | fixture/runner 산출물 | 4793 bytes | fixture 삭제 | absent=true; lstat ENOENT |
+
+전수 560결과행, cleanup44경로. 별도 raw로그 파일 없음(도구 원문 이관). 서버/실제predev120/장시간/UI/빌드/커밋/푸시 미실행. 51874 개선의 실제 통합 재검증은 메인 승인 후 별도다. 현재파일 동결.
+
+## PD120 51874 메인 cleanup 완료 후속
+
+메인이 51874 artifact SHA `b3edd50a81a2756cf63677ad5d4e0233a1bd3eaea6519875d897325071979905` 직접 대조 후 원본9경로를 삭제했다. 위 실행 root1732282/runner28143/child12478bytes와 fixed log6개2194/2/2202/2/2188/199bytes 각각 삭제 후 lstat ENOENT 확인. 이전 삭제대기 표의 상태를 이 후속으로 갱신하며 해시 동결 artifact는 수정하지 않는다. child는 cleanup을 중복 실행하지 않았다.
+
+## S09 PE05 PATH 문자열 전수 경계 사전등록
+
+sentinel 실행 존재만으로 PATH 우선순위 보존을 증명하지 않는다. main 직전 설정한 PATH와 predev integrated/initial/refresh 및 test_all run_step에서 sentinel이 읽은 PATH 문자열의 exact 동일성을 추가 확인한다. 기존 로그인셸 코드를 잠시 복원하여 예상 RED를 확인하고 같은3곳 nonlogin fix 후 최종 회귀한다. 호스트profile 변경 없음, 승인 focused 범위만 실행한다.
+
+## 정정: PD120 outer 집계 89034 및 51874
+
+이전 child 보고와 51874 초안의 `outer 실행6행`, `summary-report 집계 밖`, `steps5pass1fail`은 잘못됐다. 실제 두 실행 summary.steps 모두 build/server-start/ports-clean/summary-report **4pass**와 integrated **1fail**, 실행 총5행이다. notRun6행과 합쳐 steps11행이다. summary-report는 집계에 포함된다. 51874 초안 artifact의 오류문구는 즉시 수정했고 89034 해시 동결 artifact는 변경하지 않고 이 정정으로 해석을 보완한다. 원래 개별 표의 결과와 실제 실행 실패/soak0 판정은 바뀌지 않는다.
+
+## S09 PE 로그인 셸 제거 사전등록
+
+PE01 실제 predev run_step의 integrated·initial report 및 refresh에서 PATH앞 sentinel 선택 보존, PE02 실제 test_all run_step PATH보존, PE03 양 경계 BASH_ENV표식 미실행, PE04 기존133개 args/exit/quoting/report 회귀. 기존 fixture main 직전에서만 PATH와 BASH_ENV를 설정하여 호스트profile은 변경하지 않는다. 실제 source 함수 실행, 느린 서버 경계는 기존 stub 유지. 예상 RED는 로그인 셸 PATH 재정의로 sentinel 미실행 또는 BASH_ENV표식 실행. 안정화 focused 대상,30/120/UI 비대체. 명령 `node scripts/internal/recording_predev_failfast.test.mjs`, 이후 `bash -n scripts/internal/verify_predev_stability.sh scripts/internal/test_all.sh` 및 diffcheck. 실제 서버/predev120/커밋/푸시 금지.
+
+## S09 PD120 51874 실제 재실행 실패 이관
+
+메인 명령 `./server.sh verify-predev --soak-minutes 120 --fail-fast`, session51874 exit1/112200ms. outer4pass1fail0skip6notRun(후처리 report PASS 집계별도), child10pass1fail3skip/94초, soak0분0회. 이전 주석 gate는 이번927files/0/0으로 통과했지만 local RTSP H265/Opus launcher의 `import gi`에서 ModuleNotFoundError로 중단했다.
+
+[51874 전수 결과](release-artifacts/v4.1.0/s09-predev120-51874/results.md)에 outer 실행6행/미실행6행, child direct14행(10pass1fail3skip), 상세71행(41pass1fail29filter/disabled skip), child명령11개와 이후미실행10개를 보존했다. WebRTC session 식별자2개만 가림; raw sourceURL/debug/auth material 미보존. 결과 계층별 중복을 합산하지 않는다. source는 원 summary/각child log/integrated log, token start/end/consumed 미집계(도구 미제공).
+
+메인 원인 진단: nonlogin `/bin/bash -c`의 python3는 /opt/homebrew/bin/python3이고 gi ModuleSpec 존재, login `/bin/bash -lc`는 /usr/bin/python3 및 /Library/Developer/CommandLineTools/usr/bin/python3로 giNone. predev347/863·test_all401의 bash-lc가 격리 PATH를 재정의하는 것을 직접 재현했다. 패키지 설치/삭제는 불필요하며 다음 수정 범위는 메인 확정 대기다. child는 이 진단을 재실행하지 않았다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 결과 |
+| --- | --- | ---: | --- | --- |
+| /private/tmp/s09-predev120-9moPak | 실행산출물 | 1732282 bytes | 메인 삭제 대기 | child 원본 유지 |
+| /private/tmp/media_server_predev-1789085881-39615 | 실행산출물 | 28143 bytes | 메인 삭제 대기 | child 원본 유지 |
+| /Users/dhseo/Workspace/mediaServer/.media_server.test/20260911-091814 | 실행산출물 | 12478 bytes | 메인 삭제 대기 | child 원본 유지 |
+| /private/tmp/media_server_ffprobe.txt | 신규 고정 probe log | 2194 bytes | 메인 삭제 대기 | 원문debug 미이관 |
+| /private/tmp/media_server_probe_h264.rc | 신규 probe exit | 2 bytes | 메인 삭제 대기 | 원값0 |
+| /private/tmp/media_server_probe_h264.txt | 신규 probe log | 2202 bytes | 메인 삭제 대기 | 원문debug 미이관 |
+| /private/tmp/media_server_probe_h265.rc | 신규 probe exit | 2 bytes | 메인 삭제 대기 | 원값0 |
+| /private/tmp/media_server_probe_h265.txt | 신규 probe log | 2188 bytes | 메인 삭제 대기 | 원문debug 미이관 |
+| /private/tmp/rtsp_local_h265_opus.launcher.log | 신규 launcher 실패 | 199 bytes | 메인 삭제 대기 | import gi traceback은 artifact에 보존 |
+
+메인은 before 목록에 위 고정log가 없었음을 확인했고 lsof8080/8081/8554/8555 exit1=리스너없음을 확인했다. binary PID39749 aliveAfter=false/ports-clean PASS. 삭제 완료는 아직 메인 후속 대기이며 child는 삭제하지 않았다. artifact 생성 도구의 후속 bytes 출력에서 TextEncoder 미정의 오류가 있었으나 apply_patch는 완료됐고 실제 파일 stat로17747bytes 확인했다(제품/테스트 실패 아님). 코드수정/재실행/서버/120분진입/커밋/푸시 없음. 30분/UI/녹화직접120·자원추세 PASS 대체 불가.
+
+## S09 PD120 51874 재실행 진행 기록
+
+주석 보완 뒤 같은 승인 범위를 새 격리 root에서 재실행했다. 명령은
+`./server.sh verify-predev --soak-minutes 120 --fail-fast`, session51874,
+runner PID39615, startedAt1789085881272다. 설정은 앞선 PD120과 같으며 auth off,
+loopback8081/8555, 외부 서비스 제외, 비밀번호 환경변수 전달 없음이다.
+실행 root는 `/private/tmp/s09-predev120-9moPak`, runner root는
+`/private/tmp/media_server_predev-1789085881-39615`다. 아직 실행 중이므로
+임시 산출물 삭제는 수행하지 않는다. 종료 후 전수 이관·cleanup이 필요하다.
+
+현재 직접 확인된 실행 결과는 build pass(11초), server-start-queue-256 pass다.
+integrated-smoke는 60초 heartbeat 시 H265 codec 단계 진행 중이며 최종 판정 전이다.
+120분 soak 진입/완료를 확인하지 않았고 S09 완료 또는 120분 PASS 증거가 아니다.
+token start/end/consumed는 실행 도구 미제공으로 미집계, elapsed는 종료 시 확정한다.
+메인의 초기 tail은 통합 후 생성되는 `integrated_smoke.log`를 실행 중 읽어 파일 부재
+exit1이었다. 실제 분리 출력 `integrated_smoke.stdout.log`와 heartbeat로 진행 상태를
+확인했다. 관찰 경로 오류이며 테스트 실패나 프로세스 종료로 해석하지 않았다.
+커밋·푸시 없음.
+
+## S09 PH15 보존 전용 경로 보완 최종 결과
+
+메인 리뷰에 따라 예외 경로를 `docs/release-artifacts/` 아래로 제한했다. 안전한 canonical path는 오류 reasoncode와 함께 출력하고 비정상 path 원문은 출력하지 않는다. 같은 bytes/hash의 현행 scripts 코드 예외 등록이 허용되는 예상 RED14pass1fail→최소 경로 제한→GREEN15pass0fail을 실제 verifier에서 확인했다. 앞선14개 PASS는 당시 범위로 보존한다. 코드/정책 변경은 이 한정 보존 예외뿐이며 역사6개 바이트 불변이다.
+
+명령: `node scripts/internal/recording_preserved_header.test.mjs` RED exit1/473ms, GREEN exit0/473ms. 뒤 `./server.sh verify-code-comments` exit0(files927/headers0/English0), `git diff --check` exit0. script inventory의 기존12/0 증거는 새파일/dispatch 변경이 없어 재사용했다. token start/end/consumed 미집계(도구 미제공).
+
+RED 원출력 전수:
+
+```text
+[pass] PH01 exact six accepted exit=0
+[pass] PH02 one byte rejected exit=1
+[pass] PH03 valid header cannot bypass hash exit=1
+[pass] PH04 unregistered header rejected exit=1
+[pass] PH05 English still checked exit=1
+[pass] PH06 deleted file rejected exit=1
+[pass] PH07 duplicate rejected exit=1
+[pass] PH08 malformed hash rejected exit=1
+[pass] PH09 escape rejected exit=1
+[pass] PH10 leaf symlink rejected exit=1
+[pass] PH11 parent symlink rejected exit=1
+[pass] PH12 missing Korean reason rejected exit=1
+[pass] PH13 noncanonical path rejected exit=1
+[pass] PH14 nonarray rejected exit=1
+[fail] PH15 current code exception rejected exit=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-preserved-header-z7Z9d9 bytes=1278237 absent=true
+{"passed":14,"failed":1,"elapsedMs":473}
+```
+
+GREEN 및 주석 검사 원출력 전수:
+
+```text
+[pass] PH01 exact six accepted exit=0
+[pass] PH02 one byte rejected exit=1
+[pass] PH03 valid header cannot bypass hash exit=1
+[pass] PH04 unregistered header rejected exit=1
+[pass] PH05 English still checked exit=1
+[pass] PH06 deleted file rejected exit=1
+[pass] PH07 duplicate rejected exit=1
+[pass] PH08 malformed hash rejected exit=1
+[pass] PH09 escape rejected exit=1
+[pass] PH10 leaf symlink rejected exit=1
+[pass] PH11 parent symlink rejected exit=1
+[pass] PH12 missing Korean reason rejected exit=1
+[pass] PH13 noncanonical path rejected exit=1
+[pass] PH14 nonarray rejected exit=1
+[pass] PH15 current code exception rejected exit=1
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-preserved-header-7sZ3Vk bytes=1281102 absent=true
+{"passed":15,"failed":0,"elapsedMs":473}
+
+== Code comment policy summary ==
+- files: 927
+- missing headers: 0
+- english-only comments: 0
+```
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-preserved-header-z7Z9d9 | PH15 RED 최소repo | 1278237 bytes | fixture 삭제 | absent=true | lstat ENOENT |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-preserved-header-7sZ3Vk | PH15 GREEN 최소repo | 1281102 bytes | fixture 삭제 | absent=true | lstat ENOENT |
+
+원출력은 중앙에 전수 이관했고 별도 임시 로그 없음. 전체 PD120/서버/장시간/빌드 재실행 없음, 커밋·푸시 없음. 최종 파일 동결.
+
+## S09 PH15 보존 전용 경로 경계 사전등록
+
+PH15: 같은 bytes/SHA의 `scripts/current.mjs`를 예외로 등록해도 실제 verifier exit1이어야 한다. 현재 예외 경로가 보존 디렉터리로 제한되지 않아 exit0인 예상 RED를 먼저 확인한다. 안정화 focused 대상이며 30/120/UI를 대체하지 않는다. 기존14개 유지, 제품 실행코드에 예외를 확장하지 않는다.
+
+## S09 PH 보존 헤더 예외 결과
+
+변경은 config/code_comment_policy.json의 exact6 path/SHA256/한글사유, verify_code_comments.mjs의 개별 예외 검증, recording_preserved_header.test.mjs 및 사전등록 문서다. 역사 source6개는 원바이트 SHA 불변을 직접 확인했다. 디렉터리/확장자 제외를 추가하지 않았다. 예외는 header 조건에만 적용하며 삭제/변조/중복/잘못된 형식/경로이탈/심링크는 헤더 존재와 무관하게 실패한다. 영어 주석 검사는 그대로다. 동시에 외부 프로세스가 경로를 바꾸는 상황의 원자적 보장을 주장하지 않는다.
+
+TDD 스킬에 따라 실제 verifier를 임시 최소 repo로 복사해 실행했다. fixture의 source 복사본만 변형했으며 실제 historical source는 변경하지 않았다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| PH01 예상 RED | `node scripts/internal/recording_preserved_header.test.mjs --red` exit1, 0pass1fail,31ms: exact six accepted가 기존 header 거부 exit1을 관측 | fail |
+| PH 첫 GREEN | 동일 무인자 exit0,14pass0fail,450ms | pass |
+| PH 최종 GREEN | 명시 null을 배열로 취급하지 않도록 default를 undefined에만 적용 후 같은14개 exit0,455ms | pass |
+| 전체 주석 첫 검사 | `./server.sh verify-code-comments` exit0,927files/0headers/0English | pass |
+| 전체 주석 최종 검사 | 동일 명령 exit0,927files/0headers/0English | pass |
+| script inventory | `./server.sh verify-script-inventory` session42548 exit0,12pass0fail | pass |
+| 문서·코드 공백 | `git diff --check` exit0 | pass |
+
+초기 RED 및 두 GREEN은 아래 원결과로 개별 이력을 보존한다. token start/end/consumed 미집계: 도구가 계수를 제공하지 않음. elapsed는 각 Node 내부 Date.now 측정; inventory 전체 elapsed 미계측(분할 toolwall은 전체시간 아님).
+
+```text
+[fail] PH01 exact six accepted exit=1
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-preserved-header-AcopWZ bytes=83564 absent=true
+{"passed":0,"failed":1,"elapsedMs":31}
+```
+
+첫 GREEN 원출력:
+
+```text
+[pass] PH01 exact six accepted exit=0
+[pass] PH02 one byte rejected exit=1
+[pass] PH03 valid header cannot bypass hash exit=1
+[pass] PH04 unregistered header rejected exit=1
+[pass] PH05 English still checked exit=1
+[pass] PH06 deleted file rejected exit=1
+[pass] PH07 duplicate rejected exit=1
+[pass] PH08 malformed hash rejected exit=1
+[pass] PH09 escape rejected exit=1
+[pass] PH10 leaf symlink rejected exit=1
+[pass] PH11 parent symlink rejected exit=1
+[pass] PH12 missing Korean reason rejected exit=1
+[pass] PH13 noncanonical path rejected exit=1
+[pass] PH14 nonarray rejected exit=1
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-preserved-header-GeNmcd bytes=1183812 absent=true
+{"passed":14,"failed":0,"elapsedMs":450}
+```
+
+최종 GREEN 및 전체 주석 원출력:
+
+```text
+[pass] PH01 exact six accepted exit=0
+[pass] PH02 one byte rejected exit=1
+[pass] PH03 valid header cannot bypass hash exit=1
+[pass] PH04 unregistered header rejected exit=1
+[pass] PH05 English still checked exit=1
+[pass] PH06 deleted file rejected exit=1
+[pass] PH07 duplicate rejected exit=1
+[pass] PH08 malformed hash rejected exit=1
+[pass] PH09 escape rejected exit=1
+[pass] PH10 leaf symlink rejected exit=1
+[pass] PH11 parent symlink rejected exit=1
+[pass] PH12 missing Korean reason rejected exit=1
+[pass] PH13 noncanonical path rejected exit=1
+[pass] PH14 nonarray rejected exit=1
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-preserved-header-9ZRFLP bytes=1184484 absent=true
+{"passed":14,"failed":0,"elapsedMs":455}
+
+== Code comment policy summary ==
+- files: 927
+- missing headers: 0
+- english-only comments: 0
+```
+
+script inventory 원출력 전수:
+
+```text
+[pass] dispatch parser recognizes explicit bash and node interpreters
+[pass] server.sh dispatch targets exist and are executable
+[pass] documented server.sh commands resolve to dispatch table
+[pass] tracked scripts are classified and referenced
+[pass] project inventory delegates script file inventory to this verifier
+[pass] project inventory maps verifier families without duplicating dispatch details
+[pass] CMake does not define a separate untracked CTest registry
+[pass] test entry scripts are reachable from test_all
+[pass] auth verifier has no hardcoded test password defaults
+[pass] VA EventRecord dispatch verifier fails early and dispatches every poll by default
+[pass] critical verifier pass output avoids grouped feature-result wording
+[pass] user-facing JS option parsers reject unknown options
+
+== Script inventory verification summary ==
+- pass: 12
+- fail: 0
+```
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-preserved-header-AcopWZ | RED 최소 repo | 83564 | fixture 삭제 | absent=true | lstat ENOENT |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-preserved-header-GeNmcd | 첫 GREEN 최소 repo | 1183812 | fixture 삭제 | absent=true | lstat ENOENT |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-preserved-header-9ZRFLP | 최종 GREEN 최소 repo | 1184484 | fixture 삭제 | absent=true | lstat ENOENT |
+
+신규 로그 파일 없음(도구 출력 전수 이관). 기존 PD120 실패 기록은 유지하며 이번 정적 gate 해소는 실제 predev120 재실행/soak/서버/30분/UI/자원추세 PASS가 아니다. 제품 실행코드 변경·커밋·푸시 없음.
+
+## S09 PH 보존 헤더 예외 사전등록
+
+`recording_preserved_header.test.mjs`는 실제 verifier와 의존 파일을 임시 최소 repo에 복사해 실행한다. 역사6개 원본은 읽기만 하고 fixture 복사본만 변경한다. 예상 RED: PH01 exact6 바이트 일치인데 헤더 누락으로 exit1; 요구 exit0. 사후 오류를 RED로 바꾸지 않는다. 예외는 동결6개 헤더에만 적용하며 영어 검사는 유지한다.
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| S09-PH01 | 정확6개 바이트 일치 헤더 면제 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH02 | 한 바이트 변경 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH03 | 정상 헤더 추가에도 해시 변경 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH04 | 미등록 헤더 누락 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH05 | 일치 해시여도 영어 주석 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH06 | 등록 파일 삭제 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH07 | 중복 경로 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH08 | 잘못된 해시 형식 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH09 | 경로 이탈 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH10 | 파일 심링크 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH11 | 상위 디렉터리 심링크 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH12 | 한글 사유 누락 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH13 | 비정규 경로 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+| S09-PH14 | 예외 배열 형식 오류 거부 | 실제 verifier fixture | 비대체 | 준비 blocker 검사만 | 비대상 |
+
+승인 명령: `node scripts/internal/recording_preserved_header.test.mjs --red`, 동일 무인자 GREEN, `./server.sh verify-code-comments`, `./server.sh verify-script-inventory`, `git diff --check`. cleanup 크기/부재와 모든 결과 보존. 서버/장시간/커밋/푸시 금지.
+
+## S09 PD120 현재 코드 주석 보완 결과
+
+현재 코드65개 상단 용도 표식과 projector 영어주석1개를 한글 주석으로만 보완했다. 적용 첫 시도는 같은 projector 경로를 두 operation으로 작성해 apply_patch가 거부했으며 파일 변경 없이 같은 operation으로 합쳐 적용했다(테스트 실패 아님). 리뷰 반영 스킬에 따라 원파일 첫8줄을 먼저 대조했다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 현재 코드 주석 전용 차이 | 실제65파일에서 추가/수정 주석만 역변환한 SHA256이 수정 전 원문 SHA와 전수 일치, mismatches=[] | pass |
+| 역사6파일 불변 | 수정 전후 원문 SHA256 모두 일치 | pass |
+| diff 공백 검사 | `git diff --check` exit0 | pass |
+| 주석 정책 1회 | `./server.sh verify-code-comments` exit1, files926/missing headers6/english-only0; 승인된 역사6 잔여 실패, 전체PASS 아님 | fail |
+
+주석 검사 원출력(도구 wall0.071592541초, 전체작업 elapsed 미계측; token start/end/consumed 도구 미제공):
+
+```text
+[fail] 상단 용도 주석 누락
+  - docs/release-artifacts/v4.1.0/20260904-s05-identity-fix/resume-verification.mjs
+  - docs/release-artifacts/v4.1.0/20260904-s05-identity-fix/verify-actual-link-reader.mjs
+  - docs/release-artifacts/v4.1.0/20260904-s05-identity-fix/verify-actual-link-reader.test.mjs
+  - docs/release-artifacts/v4.1.0/20260904-s05-identity-fix/verify-actual.mjs
+  - docs/release-artifacts/v4.1.0/20260904-s05-identity-red/reproduce.mjs
+  - docs/release-artifacts/v4.1.0/20260905-s05-identity-actual-rerun/verify-actual-rerun.mjs
+
+== Code comment policy summary ==
+- files: 926
+- missing headers: 6
+- english-only comments: 0
+```
+
+변경 파일 전수(아래65개, 각 상단 주석만; projector에는 영어주석 번역1개 추가):
+
+| 번호 | 파일 | 수정 |
+| --- | --- | --- |
+| 1 | `include/ingress/recording_application_service.h` | 파일 용도 한글 주석 |
+| 2 | `include/ingress/recording_request_gate.h` | 파일 용도 한글 주석 |
+| 3 | `include/recording/analysis_observation_projector.h` | 파일 용도 한글 주석 |
+| 4 | `include/recording/recording_finalize_recovery.h` | 파일 용도 한글 주석 |
+| 5 | `include/recording/recording_media_inspector.h` | 파일 용도 한글 주석 |
+| 6 | `include/recording/recording_read_service.h` | 파일 용도 한글 주석 |
+| 7 | `include/recording/recording_startup_recovery.h` | 파일 용도 한글 주석 |
+| 8 | `include/recording/recording_time_snapshot.h` | 파일 용도 한글 주석 |
+| 9 | `scripts/internal/gst_environment_test.py` | 파일 용도 한글 주석 |
+| 10 | `scripts/internal/gst_plugin_cache.py` | 파일 용도 한글 주석 |
+| 11 | `scripts/internal/recording_corruption_smoke.cpp` | 파일 용도 한글 주석 |
+| 12 | `scripts/internal/recording_fallback_binding_smoke.cpp` | 파일 용도 한글 주석 |
+| 13 | `scripts/internal/recording_finalize_integration_smoke.cpp` | 파일 용도 한글 주석 |
+| 14 | `scripts/internal/recording_finalize_recovery_smoke.cpp` | 파일 용도 한글 주석 |
+| 15 | `scripts/internal/recording_foundation_auth_helpers.mjs` | 파일 용도 한글 주석 |
+| 16 | `scripts/internal/recording_foundation_auth_helpers.test.mjs` | 파일 용도 한글 주석 |
+| 17 | `scripts/internal/recording_foundation_observer.mjs` | 파일 용도 한글 주석 |
+| 18 | `scripts/internal/recording_foundation_observer.test.mjs` | 파일 용도 한글 주석 |
+| 19 | `scripts/internal/recording_foundation_runtime_smoke.cpp` | 파일 용도 한글 주석 |
+| 20 | `scripts/internal/recording_foundation_source_scope.test.mjs` | 파일 용도 한글 주석 |
+| 21 | `scripts/internal/recording_foundation_suite.mjs` | 파일 용도 한글 주석 |
+| 22 | `scripts/internal/recording_foundation_suite.test.mjs` | 파일 용도 한글 주석 |
+| 23 | `scripts/internal/recording_journal_reader.mjs` | 파일 용도 한글 주석 |
+| 24 | `scripts/internal/recording_journal_reader.test.mjs` | 파일 용도 한글 주석 |
+| 25 | `scripts/internal/recording_longrun_progress.mjs` | 파일 용도 한글 주석 |
+| 26 | `scripts/internal/recording_longrun_progress.test.mjs` | 파일 용도 한글 주석 |
+| 27 | `scripts/internal/recording_longrun_summary.mjs` | 파일 용도 한글 주석 |
+| 28 | `scripts/internal/recording_longrun_summary.test.mjs` | 파일 용도 한글 주석 |
+| 29 | `scripts/internal/recording_media_inspector_limits_smoke.cpp` | 파일 용도 한글 주석 |
+| 30 | `scripts/internal/recording_media_inspector_smoke.cpp` | 파일 용도 한글 주석 |
+| 31 | `scripts/internal/recording_observation_runtime_smoke.cpp` | 파일 용도 한글 주석 |
+| 32 | `scripts/internal/recording_observation_smoke.cpp` | 파일 용도 한글 주석 |
+| 33 | `scripts/internal/recording_process_metrics_fixture.cpp` | 파일 용도 한글 주석 |
+| 34 | `scripts/internal/recording_process_metrics.cpp` | 파일 용도 한글 주석 |
+| 35 | `scripts/internal/recording_process_metrics.test.mjs` | 파일 용도 한글 주석 |
+| 36 | `scripts/internal/recording_recovery_smoke.cpp` | 파일 용도 한글 주석 |
+| 37 | `scripts/internal/recording_startup_smoke.cpp` | 파일 용도 한글 주석 |
+| 38 | `scripts/internal/recording_time_snapshot_smoke.cpp` | 파일 용도 한글 주석 |
+| 39 | `scripts/internal/recording_timeline_smoke.cpp` | 파일 용도 한글 주석 |
+| 40 | `scripts/internal/script_dispatch_parser.mjs` | 파일 용도 한글 주석 |
+| 41 | `scripts/internal/script_dispatch_parser.test.mjs` | 파일 용도 한글 주석 |
+| 42 | `scripts/internal/server_state_isolation_test.py` | 파일 용도 한글 주석 |
+| 43 | `scripts/internal/verify_v410_recording_corruption.sh` | 파일 용도 한글 주석 |
+| 44 | `scripts/internal/verify_v410_recording_fallback_binding.sh` | 파일 용도 한글 주석 |
+| 45 | `scripts/internal/verify_v410_recording_finalize_recovery.sh` | 파일 용도 한글 주석 |
+| 46 | `scripts/internal/verify_v410_recording_fixture_compatibility.mjs` | 파일 용도 한글 주석 |
+| 47 | `scripts/internal/verify_v410_recording_fixture_compatibility.test.mjs` | 파일 용도 한글 주석 |
+| 48 | `scripts/internal/verify_v410_recording_foundation_runtime.sh` | 파일 용도 한글 주석 |
+| 49 | `scripts/internal/verify_v410_recording_foundation.mjs` | 파일 용도 한글 주석 |
+| 50 | `scripts/internal/verify_v410_recording_foundation.sh` | 파일 용도 한글 주석 |
+| 51 | `scripts/internal/verify_v410_recording_longrun.sh` | 파일 용도 한글 주석 |
+| 52 | `scripts/internal/verify_v410_recording_media_inspector.sh` | 파일 용도 한글 주석 |
+| 53 | `scripts/internal/verify_v410_recording_observation_runtime.sh` | 파일 용도 한글 주석 |
+| 54 | `scripts/internal/verify_v410_recording_observations.sh` | 파일 용도 한글 주석 |
+| 55 | `scripts/internal/verify_v410_recording_recovery.sh` | 파일 용도 한글 주석 |
+| 56 | `scripts/internal/verify_v410_recording_startup.mjs` | 파일 용도 한글 주석 |
+| 57 | `scripts/internal/verify_v410_recording_startup.sh` | 파일 용도 한글 주석 |
+| 58 | `scripts/internal/verify_v410_recording_timeline.sh` | 파일 용도 한글 주석 |
+| 59 | `scripts/internal/verify_v410_recording_ui_contract.mjs` | 파일 용도 한글 주석 |
+| 60 | `src/ingress/recording_application_service.cpp` | 파일 용도 한글 주석 |
+| 61 | `src/recording/analysis_observation_projector.cpp` | 파일 용도 한글 주석 및 영어주석 번역 |
+| 62 | `src/recording/recording_finalize_recovery.cpp` | 파일 용도 한글 주석 |
+| 63 | `src/recording/recording_media_inspector.cpp` | 파일 용도 한글 주석 |
+| 64 | `src/recording/recording_read_service.cpp` | 파일 용도 한글 주석 |
+| 65 | `src/recording/recording_startup_recovery.cpp` | 파일 용도 한글 주석 |
+
+실행문·schema·테스트 동작·config·verifier·역사6파일은 불변이다. 신규 임시산출물 없음, 원검사 출력은 위에 전수 보존했다. 서버/빌드/장시간/회귀 재실행 안 함. 전체 주석 gate는 잔여6 FAIL로 미해소이며 메인 정책 판단 대기. 커밋·푸시 없음.
+
+### 메인 원 PD120 cleanup 및 대조 이력
+
+메인이 integrated 요약로그3행을 상세목록으로 오인한 최초 대조는 exit1이었다. 이어 실제 child 3-code-comments.log72행과 artifact를 exact 대조하여 exit0으로 정정했다. 제품 테스트 결과 변경이 아닌 증거 대조 진단 실패/해소다. artifact23756bytes SHA256 `2e2b6613b85403b479e299ba486685dad00c25284fc00892d33a7369d223482a`는 수정하지 않고 동결 유지한다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/tmp/s09-predev120-j832NR | 격리 실행 root | 1731334 bytes | 메인 삭제 | lstat ENOENT | 메인 직접 확인 |
+| /tmp/media_server_predev-1789084830-37793 | runner log | 21708 bytes | 메인 삭제 | lstat ENOENT | 메인 직접 확인 |
+| /Users/dhseo/Workspace/mediaServer/.media_server.test/20260911-090034 | child log/summary | 5776 bytes | 메인 삭제 | lstat ENOENT | 메인 직접 확인 |
+
+이 cleanup 후속 기록이 앞 artifact의 삭제 대기 상태를 갱신한다. 보존 artifact는 역사 원문이므로 덮어쓰지 않는다.
+
+## S09 PD120 주석 정책 보완 사전등록
+
+실행 전 등록: 89034 실패 전수 중 역사 artifact6개를 제외한 현재 코드65파일에 상단8줄 `파일 용도:` 주석을 추가하고 projector.cpp 영어주석1개를 같은 의미의 한글로 보완한다. 실행문·테스트 동작·정책/config/verifier·역사6파일은 변경하지 않는다. 검증은 수정 전후 주석 역변환 SHA 대조(65개), 역사6개 SHA 불변, `git diff --check`, `./server.sh verify-code-comments` 1회다. 마지막 명령은 역사6개 잔여 FAIL 예상이며 전체PASS를 주장하지 않는다. 대상 전수는 89034 artifact 번호7~71, 영어주석72행이다. 서버·장시간·재실행·커밋·푸시 없음.
+
+## S09 PD120 89034 최초 실제 실행 실패 이관
+
+메인 실행 `./server.sh verify-predev --soak-minutes 120 --fail-fast`, session 89034, exit1/signal null, 26008ms(1789084830723→1789084856731). 실제 soak 0분/0 iteration: integrated code-comments에서 중단했다. runner 4 pass/1 fail/0 skip/6 notRun, 후처리 summary-report 별도 pass; child 2 pass/1 fail/0 skip. build1초/server-start pass/integrated19초 fail/ports-clean pass/report1초 pass. child는 static pass, script inventory12개 pass, code-comments926파일 중 상단표식71개+영어주석1개 fail이다. 실패 후 후속 direct child18개 및 soak/queue 단계는 미실행이며 120분 PASS가 아니다.
+
+[실제 원결과·71파일 및 영어주석 전수·미실행·cleanup 인계](release-artifacts/v4.1.0/s09-predev120-89034/results.md)에 보존했다. 원로그의 71개 경로+영어주석1개는 원문 순서 유지; inventory12개와 static 원문도 전수 보존했다. 재실행하지 않았고 제품/스크립트 수정 없음. 상단8줄 내 정책 키워드 누락이 직접 원인으로, 기존 한글 설명 유무와 구분한다. 보존 artifact6개는 모두 현재 파일 SHA256이 기존 중앙 기록에 존재함을 읽기로 확인했으며 수정 금지/메인 판단 대기다.
+
+wrapper 시작 PID37841과 binary ledger PID37842는 다르다. binary aliveAfter=false, ports-clean pass, 메인 lsof4포트 부재 확인. root1731334/runner21708/child5776bytes는 메인 측정; 세 경로는 아직 삭제하지 않았다. artifact에는 결과만 보존하고 raw sourceURL/비밀번호/서버 debug 로그는 이관하지 않았다. token start/end/consumed 미집계(도구 계수 미제공), source는 기존 원로그/summary 및 메인 측정이다. 30분/UI/녹화 직접120/자원추세 판정 미실행, 커밋·푸시 없음.
+
+## S09 PD120 실행 환경 확정
+
+실행 명령은 `./server.sh verify-predev --soak-minutes 120 --fail-fast`이며 build를
+생략하지 않는다. root `/private/tmp/s09-predev120-j832NR`는 메인이 mkdtemp로 만들었다.
+포트8081/8555, loopback bind, auth off, local env 읽기 차단, 외부 진단0,
+UI browser mode in-app으로 고정한다. 기존 auth 비밀번호5개와 외부 provider/source/
+endpoint 변수는 전달하지 않는다. 기본 파일 입력은 저장소 video/sample_h264.mp4다.
+
+실행 환경은 PATH/HOME/USER/LOGNAME/LANG/LC_ALL 및 필요한 동적 라이브러리 경로만
+허용하고, STATE_DIR와 AUTH_USERS_FILE/SOURCE_REGISTRY/PUBLISHED_VIEWS/ANALYSIS_REGISTRY는
+root/state 하위로 지정한다. 이벤트 JSONL/snapshot/clip은 root/events, 녹화는
+root/recordings, GST cache와 registry는 root/gst, TMPDIR는 root/tmp에 둔다.
+모든 제품 설정 이름은 MEDIA_SERVER_ 접두사를 사용한다. predev의 summary/report와
+전체 실행 로그는 root 안에 보존한다. predev WORK_DIR 및 test_all 로그 디렉터리는
+도구가 별도로 생성하므로 실제 출력에서 소유 경로를 수집해 종료 후 함께 정리한다.
+이 경로들은 최종 evidence가 아니며 필요한 결과만 저장소에 이관한다.
+
+실행 직전 포트8080/8081/8554/8555에 기존 listener가 있으면 시작하지 않는다.
+실행 전 IR 임시50경로를 메인이 직접 lstat ENOENT로 확인했다.
+token start/end/consumed는 세션별 자동 집계값이 없어 미집계이며 elapsed는 실제
+시작·종료 시각과 runner monotonic duration을 기록한다. 현재 문단 작성 시점에는
+디렉터리만 생성했으며 실제 장시간 검증은 아직 시작하지 않았다.
+
+## S09 IR04 렌더 수치 호환 최종 결과
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| IR 최종 JS 구문 | `node --check scripts/internal/recording_predev_failfast.test.mjs` exit0 | pass |
+| IR 최종 shell 구문 | `bash -n scripts/internal/test_all.sh` exit0 | pass |
+| IR 최종 Python 구문 | `python3 -c "import ast,pathlib; ast.parse(pathlib.Path('scripts/internal/summarize_verification_reports.py').read_text())"` exit0; pycache 생성 없음 | pass |
+| IR 최종 whitespace | `git diff --check` exit0 | pass |
+
+구문/whitespace elapsed 별도미계측(도구wall이 순수elapsed아님), token start/end/consumed 자동값 미제공으로 미집계. 임시산출물 없음.
+
+메인 승인으로 common summarizer의 exact `media-server.test-summary.v1` counts/status 지원만 추가했다. 다른 schema/multi-input 의미는 유지한다. 누락/문자열/bool/음수 계수는 `fail` 상태와 `-/-/-`이며 정상0으로 보정하지 않는다. 실제 generated partial5/0/0 pass, final8/0/14 pass, 실패5/1/0 및0/1/0 fail을 rendered Markdown 행에서 직접 대조했다.
+
+71977 `node scripts/internal/recording_predev_failfast.test.mjs` exit1/118pass6fail/31569ms: 실제렌더6개 예상RED. exactschema 최소보완 후21349 동일명령 exit0/133pass0fail/31618ms. 기존81126 113pass는 파일/JSON/argv부분증거이며 렌더수치 미검증 한계를 삭제하지 않았다. 아래257행을 원출력순서대로 보존했다. label의 renderer existing test-*는 새 exactschema 입력검사명이며 과거지원 또는 기존회귀였다는 뜻이 아니다. generic/event/predev/info/unknown-schema만 기존의미 회귀다. token start/end/consumed 자동값미제공으로 미집계, elapsed harness Date.now.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| IR04 71977-1 | default integrated argv omits --fail-fast | pass |
+| IR04 71977-2 | default preserves test | pass |
+| IR04 71977-3 | default preserves --no-start | pass |
+| IR04 71977-4 | default preserves --skip-external | pass |
+| IR04 71977-5 | default preserves --include-rules | pass |
+| IR04 71977-6 | default preserves --include-va-events | pass |
+| IR04 71977-7 | default preserves --include-image-analysis | pass |
+| IR04 71977-8 | default preserves --include-redaction | pass |
+| IR04 71977-9 | default child failure exits nonzero | pass |
+| IR04 71977-10 | default child later-case retained | pass |
+| IR04 71977-11 | default subsequent soak retained | pass |
+| IR04 71977-12 | default cleanup invoked | pass |
+| IR04 71977-13 | explicit integrated argv contains --fail-fast | pass |
+| IR04 71977-14 | explicit preserves test | pass |
+| IR04 71977-15 | explicit preserves --no-start | pass |
+| IR04 71977-16 | explicit preserves --skip-external | pass |
+| IR04 71977-17 | explicit preserves --include-rules | pass |
+| IR04 71977-18 | explicit preserves --include-va-events | pass |
+| IR04 71977-19 | explicit preserves --include-image-analysis | pass |
+| IR04 71977-20 | explicit preserves --include-redaction | pass |
+| IR04 71977-21 | explicit child failure exits nonzero | pass |
+| IR04 71977-22 | explicit child later-case blocked | pass |
+| IR04 71977-23 | explicit subsequent soak blocked | pass |
+| IR04 71977-24 | explicit cleanup invoked | pass |
+| IR04 71977-25 | explicit queue case not-run | pass |
+| IR04 71977-26 | existing first-fail fixture exit1 | pass |
+| IR04 71977-27 | existing first-fail third case | pass |
+| IR04 71977-28 | existing cumulative fixture exit1 | pass |
+| IR04 71977-29 | existing cumulative third case | pass |
+| IR04 71977-30 | report-normal initial exact current-summary argv | pass |
+| IR04 71977-31 | report-normal refresh exact current-summary argv | pass |
+| IR04 71977-32 | report-normal command substitution not executed | pass |
+| IR04 71977-33 | report-normal exit follows report result | pass |
+| IR04 71977-34 | report-normal actual Python report contains current source | pass |
+| IR04 71977-35 | report-normal unrelated fixture excluded | pass |
+| IR04 71977-36 | report-normal cleanup invoked | pass |
+| IR04 71977-37 | report-special initial exact current-summary argv | pass |
+| IR04 71977-38 | report-special refresh exact current-summary argv | pass |
+| IR04 71977-39 | report-special command substitution not executed | pass |
+| IR04 71977-40 | report-special exit follows report result | pass |
+| IR04 71977-41 | report-special actual Python report contains current source | pass |
+| IR04 71977-42 | report-special unrelated fixture excluded | pass |
+| IR04 71977-43 | report-special cleanup invoked | pass |
+| IR04 71977-44 | report-glob initial exact current-summary argv | pass |
+| IR04 71977-45 | report-glob refresh exact current-summary argv | pass |
+| IR04 71977-46 | report-glob command substitution not executed | pass |
+| IR04 71977-47 | report-glob exit follows report result | pass |
+| IR04 71977-48 | report-glob actual Python report contains current source | pass |
+| IR04 71977-49 | report-glob unrelated fixture excluded | pass |
+| IR04 71977-50 | report-glob cleanup invoked | pass |
+| IR04 71977-51 | report-initial-failure initial exact current-summary argv | pass |
+| IR04 71977-52 | report-initial-failure refresh exact current-summary argv | pass |
+| IR04 71977-53 | report-initial-failure command substitution not executed | pass |
+| IR04 71977-54 | report-initial-failure exit follows report result | pass |
+| IR04 71977-55 | report-initial-failure exact failed step recorded | pass |
+| IR04 71977-56 | report-initial-failure cleanup invoked | pass |
+| IR04 71977-57 | report-refresh-failure initial exact current-summary argv | pass |
+| IR04 71977-58 | report-refresh-failure refresh exact current-summary argv | pass |
+| IR04 71977-59 | report-refresh-failure command substitution not executed | pass |
+| IR04 71977-60 | report-refresh-failure exit follows report result | pass |
+| IR04 71977-61 | report-refresh-failure exact failed step recorded | pass |
+| IR04 71977-62 | report-refresh-failure cleanup invoked | pass |
+| IR04 71977-63 | internal-normal exact current summary argv | pass |
+| IR04 71977-64 | internal-normal partial counters before report | pass |
+| IR04 71977-65 | internal-normal final counters | pass |
+| IR04 71977-66 | internal-normal exit status | pass |
+| IR04 71977-67 | internal-normal final schema and logDir | pass |
+| IR04 71977-68 | internal-normal elapsed consistency | pass |
+| IR04 71977-69 | internal-normal one final conclusion only | pass |
+| IR04 71977-70 | internal-normal command substitution not executed | pass |
+| IR04 71977-71 | internal-normal current report rendered | pass |
+| IR04 71977-72 | internal-normal unrelated excluded | pass |
+| IR04 71977-73 | internal-normal rendered partial counts and status | fail |
+| IR04 71977-74 | internal-normal rendered final counts and status | fail |
+| IR04 71977-75 | internal-normal cleanup invoked | pass |
+| IR04 71977-76 | internal-special exact current summary argv | pass |
+| IR04 71977-77 | internal-special partial counters before report | pass |
+| IR04 71977-78 | internal-special final counters | pass |
+| IR04 71977-79 | internal-special exit status | pass |
+| IR04 71977-80 | internal-special final schema and logDir | pass |
+| IR04 71977-81 | internal-special elapsed consistency | pass |
+| IR04 71977-82 | internal-special one final conclusion only | pass |
+| IR04 71977-83 | internal-special command substitution not executed | pass |
+| IR04 71977-84 | internal-special current report rendered | pass |
+| IR04 71977-85 | internal-special unrelated excluded | pass |
+| IR04 71977-86 | internal-special rendered partial counts and status | fail |
+| IR04 71977-87 | internal-special rendered final counts and status | fail |
+| IR04 71977-88 | internal-special cleanup invoked | pass |
+| IR04 71977-89 | internal-report-failure exact current summary argv | pass |
+| IR04 71977-90 | internal-report-failure partial counters before report | pass |
+| IR04 71977-91 | internal-report-failure final counters | pass |
+| IR04 71977-92 | internal-report-failure exit status | pass |
+| IR04 71977-93 | internal-report-failure final schema and logDir | pass |
+| IR04 71977-94 | internal-report-failure elapsed consistency | pass |
+| IR04 71977-95 | internal-report-failure one final conclusion only | pass |
+| IR04 71977-96 | internal-report-failure command substitution not executed | pass |
+| IR04 71977-97 | internal-report-failure later status not executed | pass |
+| IR04 71977-98 | internal-report-failure rendered final counts and status | fail |
+| IR04 71977-99 | internal-report-failure cleanup invoked | pass |
+| IR04 71977-100 | internal-first-failure report not reached | pass |
+| IR04 71977-101 | internal-first-failure final counters | pass |
+| IR04 71977-102 | internal-first-failure exit status | pass |
+| IR04 71977-103 | internal-first-failure final schema and logDir | pass |
+| IR04 71977-104 | internal-first-failure elapsed consistency | pass |
+| IR04 71977-105 | internal-first-failure one final conclusion only | pass |
+| IR04 71977-106 | internal-first-failure command substitution not executed | pass |
+| IR04 71977-107 | internal-first-failure later status not executed | pass |
+| IR04 71977-108 | internal-first-failure rendered final counts and status | fail |
+| IR04 71977-109 | internal-first-failure cleanup invoked | pass |
+| IR04 71977-110 | renderer existing generic unchanged | pass |
+| IR04 71977-111 | renderer existing event unchanged | pass |
+| IR04 71977-112 | renderer existing predev unchanged | pass |
+| IR04 71977-113 | renderer existing generic-info unchanged | pass |
+| IR04 71977-114 | renderer existing unknown-schema unchanged | pass |
+| IR04 71977-115 | owned temporary path absent | pass |
+| IR04 71977-116 | owned temporary path absent | pass |
+| IR04 71977-117 | owned temporary path absent | pass |
+| IR04 71977-118 | owned temporary path absent | pass |
+| IR04 71977-119 | owned temporary path absent | pass |
+| IR04 71977-120 | owned temporary path absent | pass |
+| IR04 71977-121 | owned temporary path absent | pass |
+| IR04 71977-122 | owned temporary path absent | pass |
+| IR04 71977-123 | owned temporary path absent | pass |
+| IR04 71977-124 | owned temporary path absent | pass |
+| IR04 21349-1 | default integrated argv omits --fail-fast | pass |
+| IR04 21349-2 | default preserves test | pass |
+| IR04 21349-3 | default preserves --no-start | pass |
+| IR04 21349-4 | default preserves --skip-external | pass |
+| IR04 21349-5 | default preserves --include-rules | pass |
+| IR04 21349-6 | default preserves --include-va-events | pass |
+| IR04 21349-7 | default preserves --include-image-analysis | pass |
+| IR04 21349-8 | default preserves --include-redaction | pass |
+| IR04 21349-9 | default child failure exits nonzero | pass |
+| IR04 21349-10 | default child later-case retained | pass |
+| IR04 21349-11 | default subsequent soak retained | pass |
+| IR04 21349-12 | default cleanup invoked | pass |
+| IR04 21349-13 | explicit integrated argv contains --fail-fast | pass |
+| IR04 21349-14 | explicit preserves test | pass |
+| IR04 21349-15 | explicit preserves --no-start | pass |
+| IR04 21349-16 | explicit preserves --skip-external | pass |
+| IR04 21349-17 | explicit preserves --include-rules | pass |
+| IR04 21349-18 | explicit preserves --include-va-events | pass |
+| IR04 21349-19 | explicit preserves --include-image-analysis | pass |
+| IR04 21349-20 | explicit preserves --include-redaction | pass |
+| IR04 21349-21 | explicit child failure exits nonzero | pass |
+| IR04 21349-22 | explicit child later-case blocked | pass |
+| IR04 21349-23 | explicit subsequent soak blocked | pass |
+| IR04 21349-24 | explicit cleanup invoked | pass |
+| IR04 21349-25 | explicit queue case not-run | pass |
+| IR04 21349-26 | existing first-fail fixture exit1 | pass |
+| IR04 21349-27 | existing first-fail third case | pass |
+| IR04 21349-28 | existing cumulative fixture exit1 | pass |
+| IR04 21349-29 | existing cumulative third case | pass |
+| IR04 21349-30 | report-normal initial exact current-summary argv | pass |
+| IR04 21349-31 | report-normal refresh exact current-summary argv | pass |
+| IR04 21349-32 | report-normal command substitution not executed | pass |
+| IR04 21349-33 | report-normal exit follows report result | pass |
+| IR04 21349-34 | report-normal actual Python report contains current source | pass |
+| IR04 21349-35 | report-normal unrelated fixture excluded | pass |
+| IR04 21349-36 | report-normal cleanup invoked | pass |
+| IR04 21349-37 | report-special initial exact current-summary argv | pass |
+| IR04 21349-38 | report-special refresh exact current-summary argv | pass |
+| IR04 21349-39 | report-special command substitution not executed | pass |
+| IR04 21349-40 | report-special exit follows report result | pass |
+| IR04 21349-41 | report-special actual Python report contains current source | pass |
+| IR04 21349-42 | report-special unrelated fixture excluded | pass |
+| IR04 21349-43 | report-special cleanup invoked | pass |
+| IR04 21349-44 | report-glob initial exact current-summary argv | pass |
+| IR04 21349-45 | report-glob refresh exact current-summary argv | pass |
+| IR04 21349-46 | report-glob command substitution not executed | pass |
+| IR04 21349-47 | report-glob exit follows report result | pass |
+| IR04 21349-48 | report-glob actual Python report contains current source | pass |
+| IR04 21349-49 | report-glob unrelated fixture excluded | pass |
+| IR04 21349-50 | report-glob cleanup invoked | pass |
+| IR04 21349-51 | report-initial-failure initial exact current-summary argv | pass |
+| IR04 21349-52 | report-initial-failure refresh exact current-summary argv | pass |
+| IR04 21349-53 | report-initial-failure command substitution not executed | pass |
+| IR04 21349-54 | report-initial-failure exit follows report result | pass |
+| IR04 21349-55 | report-initial-failure exact failed step recorded | pass |
+| IR04 21349-56 | report-initial-failure cleanup invoked | pass |
+| IR04 21349-57 | report-refresh-failure initial exact current-summary argv | pass |
+| IR04 21349-58 | report-refresh-failure refresh exact current-summary argv | pass |
+| IR04 21349-59 | report-refresh-failure command substitution not executed | pass |
+| IR04 21349-60 | report-refresh-failure exit follows report result | pass |
+| IR04 21349-61 | report-refresh-failure exact failed step recorded | pass |
+| IR04 21349-62 | report-refresh-failure cleanup invoked | pass |
+| IR04 21349-63 | internal-normal exact current summary argv | pass |
+| IR04 21349-64 | internal-normal partial counters before report | pass |
+| IR04 21349-65 | internal-normal final counters | pass |
+| IR04 21349-66 | internal-normal exit status | pass |
+| IR04 21349-67 | internal-normal final schema and logDir | pass |
+| IR04 21349-68 | internal-normal elapsed consistency | pass |
+| IR04 21349-69 | internal-normal one final conclusion only | pass |
+| IR04 21349-70 | internal-normal command substitution not executed | pass |
+| IR04 21349-71 | internal-normal current report rendered | pass |
+| IR04 21349-72 | internal-normal unrelated excluded | pass |
+| IR04 21349-73 | internal-normal rendered partial counts and status | pass |
+| IR04 21349-74 | internal-normal rendered final counts and status | pass |
+| IR04 21349-75 | internal-normal cleanup invoked | pass |
+| IR04 21349-76 | internal-special exact current summary argv | pass |
+| IR04 21349-77 | internal-special partial counters before report | pass |
+| IR04 21349-78 | internal-special final counters | pass |
+| IR04 21349-79 | internal-special exit status | pass |
+| IR04 21349-80 | internal-special final schema and logDir | pass |
+| IR04 21349-81 | internal-special elapsed consistency | pass |
+| IR04 21349-82 | internal-special one final conclusion only | pass |
+| IR04 21349-83 | internal-special command substitution not executed | pass |
+| IR04 21349-84 | internal-special current report rendered | pass |
+| IR04 21349-85 | internal-special unrelated excluded | pass |
+| IR04 21349-86 | internal-special rendered partial counts and status | pass |
+| IR04 21349-87 | internal-special rendered final counts and status | pass |
+| IR04 21349-88 | internal-special cleanup invoked | pass |
+| IR04 21349-89 | internal-report-failure exact current summary argv | pass |
+| IR04 21349-90 | internal-report-failure partial counters before report | pass |
+| IR04 21349-91 | internal-report-failure final counters | pass |
+| IR04 21349-92 | internal-report-failure exit status | pass |
+| IR04 21349-93 | internal-report-failure final schema and logDir | pass |
+| IR04 21349-94 | internal-report-failure elapsed consistency | pass |
+| IR04 21349-95 | internal-report-failure one final conclusion only | pass |
+| IR04 21349-96 | internal-report-failure command substitution not executed | pass |
+| IR04 21349-97 | internal-report-failure later status not executed | pass |
+| IR04 21349-98 | internal-report-failure rendered final counts and status | pass |
+| IR04 21349-99 | internal-report-failure cleanup invoked | pass |
+| IR04 21349-100 | internal-first-failure report not reached | pass |
+| IR04 21349-101 | internal-first-failure final counters | pass |
+| IR04 21349-102 | internal-first-failure exit status | pass |
+| IR04 21349-103 | internal-first-failure final schema and logDir | pass |
+| IR04 21349-104 | internal-first-failure elapsed consistency | pass |
+| IR04 21349-105 | internal-first-failure one final conclusion only | pass |
+| IR04 21349-106 | internal-first-failure command substitution not executed | pass |
+| IR04 21349-107 | internal-first-failure later status not executed | pass |
+| IR04 21349-108 | internal-first-failure rendered final counts and status | pass |
+| IR04 21349-109 | internal-first-failure cleanup invoked | pass |
+| IR04 21349-110 | renderer existing generic unchanged | pass |
+| IR04 21349-111 | renderer existing event unchanged | pass |
+| IR04 21349-112 | renderer existing predev unchanged | pass |
+| IR04 21349-113 | renderer existing generic-info unchanged | pass |
+| IR04 21349-114 | renderer existing unknown-schema unchanged | pass |
+| IR04 21349-115 | renderer existing generic-failure unchanged | pass |
+| IR04 21349-116 | renderer existing event-failure unchanged | pass |
+| IR04 21349-117 | renderer existing predev-pass unchanged | pass |
+| IR04 21349-118 | renderer existing test-valid unchanged | pass |
+| IR04 21349-119 | renderer existing test-failure unchanged | pass |
+| IR04 21349-120 | renderer existing test-missing unchanged | pass |
+| IR04 21349-121 | renderer existing test-string unchanged | pass |
+| IR04 21349-122 | renderer existing test-boolean unchanged | pass |
+| IR04 21349-123 | renderer existing test-negative unchanged | pass |
+| IR04 21349-124 | owned temporary path absent | pass |
+| IR04 21349-125 | owned temporary path absent | pass |
+| IR04 21349-126 | owned temporary path absent | pass |
+| IR04 21349-127 | owned temporary path absent | pass |
+| IR04 21349-128 | owned temporary path absent | pass |
+| IR04 21349-129 | owned temporary path absent | pass |
+| IR04 21349-130 | owned temporary path absent | pass |
+| IR04 21349-131 | owned temporary path absent | pass |
+| IR04 21349-132 | owned temporary path absent | pass |
+| IR04 21349-133 | owned temporary path absent | pass |
+
+### IR04 cleanup20경로
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-predev-failfast-mt0Ttr | fixture/script/summary/report/log | 590750 | 삭제 | lstat ENOENT | 71977 absent=true |
+| /tmp/media_server_predev-1789084544-35914 | fixture/script/summary/report/log | 3409 | 삭제 | lstat ENOENT | 71977 absent=true |
+| /tmp/media_server_predev-1789084548-35979 | fixture/script/summary/report/log | 4706 | 삭제 | lstat ENOENT | 71977 absent=true |
+| /tmp/media_server_predev-1789084550-36033 | fixture/script/summary/report/log | 1841 | 삭제 | lstat ENOENT | 71977 absent=true |
+| /tmp/media_server_predev-1789084553-36075 | fixture/script/summary/report/log | 2183 | 삭제 | lstat ENOENT | 71977 absent=true |
+| /tmp/media_server_predev-1789084557-36125 | fixture/script/summary/report/log | 3467 | 삭제 | lstat ENOENT | 71977 absent=true |
+| /tmp/media_server_predev-1789084561-36184 | fixture/script/summary/report/log | 3767 | 삭제 | lstat ENOENT | 71977 absent=true |
+| /tmp/media_server_predev-1789084564-36245 | fixture/script/summary/report/log | 3517 | 삭제 | lstat ENOENT | 71977 absent=true |
+| /tmp/media_server_predev-1789084568-36304 | fixture/script/summary/report/log | 3521 | 삭제 | lstat ENOENT | 71977 absent=true |
+| /tmp/media_server_predev-1789084571-36364 | fixture/script/summary/report/log | 4793 | 삭제 | lstat ENOENT | 71977 absent=true |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-predev-failfast-TvHD8e | fixture/script/summary/report/log | 591388 | 삭제 | lstat ENOENT | 21349 absent=true |
+| /tmp/media_server_predev-1789084621-36741 | fixture/script/summary/report/log | 3409 | 삭제 | lstat ENOENT | 21349 absent=true |
+| /tmp/media_server_predev-1789084624-36806 | fixture/script/summary/report/log | 4706 | 삭제 | lstat ENOENT | 21349 absent=true |
+| /tmp/media_server_predev-1789084627-36860 | fixture/script/summary/report/log | 1841 | 삭제 | lstat ENOENT | 21349 absent=true |
+| /tmp/media_server_predev-1789084630-36902 | fixture/script/summary/report/log | 2183 | 삭제 | lstat ENOENT | 21349 absent=true |
+| /tmp/media_server_predev-1789084634-36953 | fixture/script/summary/report/log | 3467 | 삭제 | lstat ENOENT | 21349 absent=true |
+| /tmp/media_server_predev-1789084637-37012 | fixture/script/summary/report/log | 3767 | 삭제 | lstat ENOENT | 21349 absent=true |
+| /tmp/media_server_predev-1789084641-37073 | fixture/script/summary/report/log | 3517 | 삭제 | lstat ENOENT | 21349 absent=true |
+| /tmp/media_server_predev-1789084644-37132 | fixture/script/summary/report/log | 3521 | 삭제 | lstat ENOENT | 21349 absent=true |
+| /tmp/media_server_predev-1789084648-37192 | fixture/script/summary/report/log | 4793 | 삭제 | lstat ENOENT | 21349 absent=true |
+
+IR 전체5회567개 원결과/cleanup50경로 보존 완료. 서버·GST·네트워크·auth·predev120·30분·UI·전체test_all·상위v390 미실행. 이번 renderer는 pretty 보고서 정확성 검증이며 제품 전체 안정화 PASS가 아니다. 코드 동결, 커밋/푸시 없음.
+
+
+## S09 IR 실행 결과 전수 및 최종 경계
+
+IR04 추가 입력 정의(실행 전): exact schema producer counts 양성/실패, counts 누락·문자열·boolean·음수는 status fail/counts '-'로 관찰(0치환금지). 기존 generic/event의 실패 및 predev 성공 literal도 추가해 기존상태보존 확인한다. 71977 exit1/118pass6fail/31569ms에서 실제 rendered partial/final6개가 예상대로 실패했고 기존generic/event/predev/info/unknown-schema5개는통과했다. 이제 exactschema counts/status만 지원한다.
+
+IR04 사전등록: 메인 리뷰로 common summarizer가 test-summary의 passCount/failCount/skipCount를 인식하지 않고1/0/info로 렌더함을 확인했다. 81126은 argv/파일생성/JSON 수치 검증의 부분증거이고 렌더 수치 정확성은 미검증이었다. actual rendered partial5/0/0 pass 및 final0/1 또는5/1 fail assertion을 예상RED로 추가한다. common summarizer 미변경 계약은 메인 승인으로 exact `media-server.test-summary.v1`의 counts/status 지원에 한해 정정했다. 기존 generic/event/predev/unknown-schema literal 회귀를 동일test에 포함한다. 서버/GST/장시간 실행 없음.
+
+최종 `test_all.sh`는 무출력 write_test_summary를 report-smoke 직전과 기존 print_summary에서 공유한다. 기존JSON11필드 이름/값 의미를 유지하고 Python json.dumps로 logDir 인용을 안전하게 보존한다. elapsed 계산은 helper 결과를 print_summary가 그대로 사용한다. 보고서는 현재 LOG_DIR/test-summary.json 한개를 Bash glob literal+%q로 전달하며 label은 진행 중 부분 summary 렌더 smoke다. 현재 부분5pass 이후 최종8pass로 JSON을 다시 기록함을 확인했다. 실제 test_all 전체 검증은 아니다: env_common의 Homebrew GST환경 적용과 비보고 run_step 명령만 테스트용 stub, report step/JSONwriter/print_summary/failfast/parse/skip 흐름은 실제 코드다. 실제 Python summarizer는 owned fixture 한개만 읽는다.
+
+명령은 모두 `node scripts/internal/recording_predev_failfast.test.mjs`. 최초63766 exit1/77pass7fail/30479ms에서 normal6개 예상실패 뒤 special heredoc JSON 오류가 utility parser예외1개로 발생하여 뒤2scenario가 건너뜀(예상 RED로 승격금지). utility 관찰 보완 후98013 exit1/97pass16fail/30646ms는 전수 예상RED. JSONwriter/current-only 수정 후81126 exit0/113pass0fail/31087ms. PFPR72 및 internal41 포함. token start/end/consumed 자동 미제공으로 미집계; elapsed harness Date.now. 다음310행은 도구 원출력 전수label/순서를 보존한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| IR 63766-1 | default integrated argv omits --fail-fast | pass |
+| IR 63766-2 | default preserves test | pass |
+| IR 63766-3 | default preserves --no-start | pass |
+| IR 63766-4 | default preserves --skip-external | pass |
+| IR 63766-5 | default preserves --include-rules | pass |
+| IR 63766-6 | default preserves --include-va-events | pass |
+| IR 63766-7 | default preserves --include-image-analysis | pass |
+| IR 63766-8 | default preserves --include-redaction | pass |
+| IR 63766-9 | default child failure exits nonzero | pass |
+| IR 63766-10 | default child later-case retained | pass |
+| IR 63766-11 | default subsequent soak retained | pass |
+| IR 63766-12 | default cleanup invoked | pass |
+| IR 63766-13 | explicit integrated argv contains --fail-fast | pass |
+| IR 63766-14 | explicit preserves test | pass |
+| IR 63766-15 | explicit preserves --no-start | pass |
+| IR 63766-16 | explicit preserves --skip-external | pass |
+| IR 63766-17 | explicit preserves --include-rules | pass |
+| IR 63766-18 | explicit preserves --include-va-events | pass |
+| IR 63766-19 | explicit preserves --include-image-analysis | pass |
+| IR 63766-20 | explicit preserves --include-redaction | pass |
+| IR 63766-21 | explicit child failure exits nonzero | pass |
+| IR 63766-22 | explicit child later-case blocked | pass |
+| IR 63766-23 | explicit subsequent soak blocked | pass |
+| IR 63766-24 | explicit cleanup invoked | pass |
+| IR 63766-25 | explicit queue case not-run | pass |
+| IR 63766-26 | existing first-fail fixture exit1 | pass |
+| IR 63766-27 | existing first-fail third case | pass |
+| IR 63766-28 | existing cumulative fixture exit1 | pass |
+| IR 63766-29 | existing cumulative third case | pass |
+| IR 63766-30 | report-normal initial exact current-summary argv | pass |
+| IR 63766-31 | report-normal refresh exact current-summary argv | pass |
+| IR 63766-32 | report-normal command substitution not executed | pass |
+| IR 63766-33 | report-normal exit follows report result | pass |
+| IR 63766-34 | report-normal actual Python report contains current source | pass |
+| IR 63766-35 | report-normal unrelated fixture excluded | pass |
+| IR 63766-36 | report-normal cleanup invoked | pass |
+| IR 63766-37 | report-special initial exact current-summary argv | pass |
+| IR 63766-38 | report-special refresh exact current-summary argv | pass |
+| IR 63766-39 | report-special command substitution not executed | pass |
+| IR 63766-40 | report-special exit follows report result | pass |
+| IR 63766-41 | report-special actual Python report contains current source | pass |
+| IR 63766-42 | report-special unrelated fixture excluded | pass |
+| IR 63766-43 | report-special cleanup invoked | pass |
+| IR 63766-44 | report-glob initial exact current-summary argv | pass |
+| IR 63766-45 | report-glob refresh exact current-summary argv | pass |
+| IR 63766-46 | report-glob command substitution not executed | pass |
+| IR 63766-47 | report-glob exit follows report result | pass |
+| IR 63766-48 | report-glob actual Python report contains current source | pass |
+| IR 63766-49 | report-glob unrelated fixture excluded | pass |
+| IR 63766-50 | report-glob cleanup invoked | pass |
+| IR 63766-51 | report-initial-failure initial exact current-summary argv | pass |
+| IR 63766-52 | report-initial-failure refresh exact current-summary argv | pass |
+| IR 63766-53 | report-initial-failure command substitution not executed | pass |
+| IR 63766-54 | report-initial-failure exit follows report result | pass |
+| IR 63766-55 | report-initial-failure exact failed step recorded | pass |
+| IR 63766-56 | report-initial-failure cleanup invoked | pass |
+| IR 63766-57 | report-refresh-failure initial exact current-summary argv | pass |
+| IR 63766-58 | report-refresh-failure refresh exact current-summary argv | pass |
+| IR 63766-59 | report-refresh-failure command substitution not executed | pass |
+| IR 63766-60 | report-refresh-failure exit follows report result | pass |
+| IR 63766-61 | report-refresh-failure exact failed step recorded | pass |
+| IR 63766-62 | report-refresh-failure cleanup invoked | pass |
+| IR 63766-63 | internal-normal exact current summary argv | fail |
+| IR 63766-64 | internal-normal partial counters before report | fail |
+| IR 63766-65 | internal-normal final counters | fail |
+| IR 63766-66 | internal-normal exit status | fail |
+| IR 63766-67 | internal-normal final schema and logDir | pass |
+| IR 63766-68 | internal-normal elapsed consistency | pass |
+| IR 63766-69 | internal-normal one final conclusion only | pass |
+| IR 63766-70 | internal-normal command substitution not executed | pass |
+| IR 63766-71 | internal-normal current report rendered | fail |
+| IR 63766-72 | internal-normal unrelated excluded | fail |
+| IR 63766-73 | internal-normal cleanup invoked | pass |
+| IR 63766-74 | runner setup/execution completed without unexpected exception | fail |
+| IR 63766-75 | owned temporary path absent | pass |
+| IR 63766-76 | owned temporary path absent | pass |
+| IR 63766-77 | owned temporary path absent | pass |
+| IR 63766-78 | owned temporary path absent | pass |
+| IR 63766-79 | owned temporary path absent | pass |
+| IR 63766-80 | owned temporary path absent | pass |
+| IR 63766-81 | owned temporary path absent | pass |
+| IR 63766-82 | owned temporary path absent | pass |
+| IR 63766-83 | owned temporary path absent | pass |
+| IR 63766-84 | owned temporary path absent | pass |
+| IR 98013-1 | default integrated argv omits --fail-fast | pass |
+| IR 98013-2 | default preserves test | pass |
+| IR 98013-3 | default preserves --no-start | pass |
+| IR 98013-4 | default preserves --skip-external | pass |
+| IR 98013-5 | default preserves --include-rules | pass |
+| IR 98013-6 | default preserves --include-va-events | pass |
+| IR 98013-7 | default preserves --include-image-analysis | pass |
+| IR 98013-8 | default preserves --include-redaction | pass |
+| IR 98013-9 | default child failure exits nonzero | pass |
+| IR 98013-10 | default child later-case retained | pass |
+| IR 98013-11 | default subsequent soak retained | pass |
+| IR 98013-12 | default cleanup invoked | pass |
+| IR 98013-13 | explicit integrated argv contains --fail-fast | pass |
+| IR 98013-14 | explicit preserves test | pass |
+| IR 98013-15 | explicit preserves --no-start | pass |
+| IR 98013-16 | explicit preserves --skip-external | pass |
+| IR 98013-17 | explicit preserves --include-rules | pass |
+| IR 98013-18 | explicit preserves --include-va-events | pass |
+| IR 98013-19 | explicit preserves --include-image-analysis | pass |
+| IR 98013-20 | explicit preserves --include-redaction | pass |
+| IR 98013-21 | explicit child failure exits nonzero | pass |
+| IR 98013-22 | explicit child later-case blocked | pass |
+| IR 98013-23 | explicit subsequent soak blocked | pass |
+| IR 98013-24 | explicit cleanup invoked | pass |
+| IR 98013-25 | explicit queue case not-run | pass |
+| IR 98013-26 | existing first-fail fixture exit1 | pass |
+| IR 98013-27 | existing first-fail third case | pass |
+| IR 98013-28 | existing cumulative fixture exit1 | pass |
+| IR 98013-29 | existing cumulative third case | pass |
+| IR 98013-30 | report-normal initial exact current-summary argv | pass |
+| IR 98013-31 | report-normal refresh exact current-summary argv | pass |
+| IR 98013-32 | report-normal command substitution not executed | pass |
+| IR 98013-33 | report-normal exit follows report result | pass |
+| IR 98013-34 | report-normal actual Python report contains current source | pass |
+| IR 98013-35 | report-normal unrelated fixture excluded | pass |
+| IR 98013-36 | report-normal cleanup invoked | pass |
+| IR 98013-37 | report-special initial exact current-summary argv | pass |
+| IR 98013-38 | report-special refresh exact current-summary argv | pass |
+| IR 98013-39 | report-special command substitution not executed | pass |
+| IR 98013-40 | report-special exit follows report result | pass |
+| IR 98013-41 | report-special actual Python report contains current source | pass |
+| IR 98013-42 | report-special unrelated fixture excluded | pass |
+| IR 98013-43 | report-special cleanup invoked | pass |
+| IR 98013-44 | report-glob initial exact current-summary argv | pass |
+| IR 98013-45 | report-glob refresh exact current-summary argv | pass |
+| IR 98013-46 | report-glob command substitution not executed | pass |
+| IR 98013-47 | report-glob exit follows report result | pass |
+| IR 98013-48 | report-glob actual Python report contains current source | pass |
+| IR 98013-49 | report-glob unrelated fixture excluded | pass |
+| IR 98013-50 | report-glob cleanup invoked | pass |
+| IR 98013-51 | report-initial-failure initial exact current-summary argv | pass |
+| IR 98013-52 | report-initial-failure refresh exact current-summary argv | pass |
+| IR 98013-53 | report-initial-failure command substitution not executed | pass |
+| IR 98013-54 | report-initial-failure exit follows report result | pass |
+| IR 98013-55 | report-initial-failure exact failed step recorded | pass |
+| IR 98013-56 | report-initial-failure cleanup invoked | pass |
+| IR 98013-57 | report-refresh-failure initial exact current-summary argv | pass |
+| IR 98013-58 | report-refresh-failure refresh exact current-summary argv | pass |
+| IR 98013-59 | report-refresh-failure command substitution not executed | pass |
+| IR 98013-60 | report-refresh-failure exit follows report result | pass |
+| IR 98013-61 | report-refresh-failure exact failed step recorded | pass |
+| IR 98013-62 | report-refresh-failure cleanup invoked | pass |
+| IR 98013-63 | internal-normal exact current summary argv | fail |
+| IR 98013-64 | internal-normal partial counters before report | fail |
+| IR 98013-65 | internal-normal final counters | fail |
+| IR 98013-66 | internal-normal exit status | fail |
+| IR 98013-67 | internal-normal final schema and logDir | pass |
+| IR 98013-68 | internal-normal elapsed consistency | pass |
+| IR 98013-69 | internal-normal one final conclusion only | pass |
+| IR 98013-70 | internal-normal command substitution not executed | pass |
+| IR 98013-71 | internal-normal current report rendered | fail |
+| IR 98013-72 | internal-normal unrelated excluded | fail |
+| IR 98013-73 | internal-normal cleanup invoked | pass |
+| IR 98013-74 | internal-special exact current summary argv | fail |
+| IR 98013-75 | internal-special partial counters before report | fail |
+| IR 98013-76 | internal-special final counters | fail |
+| IR 98013-77 | internal-special exit status | fail |
+| IR 98013-78 | internal-special final schema and logDir | fail |
+| IR 98013-79 | internal-special elapsed consistency | fail |
+| IR 98013-80 | internal-special one final conclusion only | pass |
+| IR 98013-81 | internal-special command substitution not executed | pass |
+| IR 98013-82 | internal-special current report rendered | fail |
+| IR 98013-83 | internal-special unrelated excluded | fail |
+| IR 98013-84 | internal-special cleanup invoked | pass |
+| IR 98013-85 | internal-report-failure exact current summary argv | fail |
+| IR 98013-86 | internal-report-failure partial counters before report | fail |
+| IR 98013-87 | internal-report-failure final counters | pass |
+| IR 98013-88 | internal-report-failure exit status | pass |
+| IR 98013-89 | internal-report-failure final schema and logDir | pass |
+| IR 98013-90 | internal-report-failure elapsed consistency | pass |
+| IR 98013-91 | internal-report-failure one final conclusion only | pass |
+| IR 98013-92 | internal-report-failure command substitution not executed | pass |
+| IR 98013-93 | internal-report-failure later status not executed | pass |
+| IR 98013-94 | internal-report-failure cleanup invoked | pass |
+| IR 98013-95 | internal-first-failure report not reached | pass |
+| IR 98013-96 | internal-first-failure final counters | pass |
+| IR 98013-97 | internal-first-failure exit status | pass |
+| IR 98013-98 | internal-first-failure final schema and logDir | pass |
+| IR 98013-99 | internal-first-failure elapsed consistency | pass |
+| IR 98013-100 | internal-first-failure one final conclusion only | pass |
+| IR 98013-101 | internal-first-failure command substitution not executed | pass |
+| IR 98013-102 | internal-first-failure later status not executed | pass |
+| IR 98013-103 | internal-first-failure cleanup invoked | pass |
+| IR 98013-104 | owned temporary path absent | pass |
+| IR 98013-105 | owned temporary path absent | pass |
+| IR 98013-106 | owned temporary path absent | pass |
+| IR 98013-107 | owned temporary path absent | pass |
+| IR 98013-108 | owned temporary path absent | pass |
+| IR 98013-109 | owned temporary path absent | pass |
+| IR 98013-110 | owned temporary path absent | pass |
+| IR 98013-111 | owned temporary path absent | pass |
+| IR 98013-112 | owned temporary path absent | pass |
+| IR 98013-113 | owned temporary path absent | pass |
+| IR 81126-1 | default integrated argv omits --fail-fast | pass |
+| IR 81126-2 | default preserves test | pass |
+| IR 81126-3 | default preserves --no-start | pass |
+| IR 81126-4 | default preserves --skip-external | pass |
+| IR 81126-5 | default preserves --include-rules | pass |
+| IR 81126-6 | default preserves --include-va-events | pass |
+| IR 81126-7 | default preserves --include-image-analysis | pass |
+| IR 81126-8 | default preserves --include-redaction | pass |
+| IR 81126-9 | default child failure exits nonzero | pass |
+| IR 81126-10 | default child later-case retained | pass |
+| IR 81126-11 | default subsequent soak retained | pass |
+| IR 81126-12 | default cleanup invoked | pass |
+| IR 81126-13 | explicit integrated argv contains --fail-fast | pass |
+| IR 81126-14 | explicit preserves test | pass |
+| IR 81126-15 | explicit preserves --no-start | pass |
+| IR 81126-16 | explicit preserves --skip-external | pass |
+| IR 81126-17 | explicit preserves --include-rules | pass |
+| IR 81126-18 | explicit preserves --include-va-events | pass |
+| IR 81126-19 | explicit preserves --include-image-analysis | pass |
+| IR 81126-20 | explicit preserves --include-redaction | pass |
+| IR 81126-21 | explicit child failure exits nonzero | pass |
+| IR 81126-22 | explicit child later-case blocked | pass |
+| IR 81126-23 | explicit subsequent soak blocked | pass |
+| IR 81126-24 | explicit cleanup invoked | pass |
+| IR 81126-25 | explicit queue case not-run | pass |
+| IR 81126-26 | existing first-fail fixture exit1 | pass |
+| IR 81126-27 | existing first-fail third case | pass |
+| IR 81126-28 | existing cumulative fixture exit1 | pass |
+| IR 81126-29 | existing cumulative third case | pass |
+| IR 81126-30 | report-normal initial exact current-summary argv | pass |
+| IR 81126-31 | report-normal refresh exact current-summary argv | pass |
+| IR 81126-32 | report-normal command substitution not executed | pass |
+| IR 81126-33 | report-normal exit follows report result | pass |
+| IR 81126-34 | report-normal actual Python report contains current source | pass |
+| IR 81126-35 | report-normal unrelated fixture excluded | pass |
+| IR 81126-36 | report-normal cleanup invoked | pass |
+| IR 81126-37 | report-special initial exact current-summary argv | pass |
+| IR 81126-38 | report-special refresh exact current-summary argv | pass |
+| IR 81126-39 | report-special command substitution not executed | pass |
+| IR 81126-40 | report-special exit follows report result | pass |
+| IR 81126-41 | report-special actual Python report contains current source | pass |
+| IR 81126-42 | report-special unrelated fixture excluded | pass |
+| IR 81126-43 | report-special cleanup invoked | pass |
+| IR 81126-44 | report-glob initial exact current-summary argv | pass |
+| IR 81126-45 | report-glob refresh exact current-summary argv | pass |
+| IR 81126-46 | report-glob command substitution not executed | pass |
+| IR 81126-47 | report-glob exit follows report result | pass |
+| IR 81126-48 | report-glob actual Python report contains current source | pass |
+| IR 81126-49 | report-glob unrelated fixture excluded | pass |
+| IR 81126-50 | report-glob cleanup invoked | pass |
+| IR 81126-51 | report-initial-failure initial exact current-summary argv | pass |
+| IR 81126-52 | report-initial-failure refresh exact current-summary argv | pass |
+| IR 81126-53 | report-initial-failure command substitution not executed | pass |
+| IR 81126-54 | report-initial-failure exit follows report result | pass |
+| IR 81126-55 | report-initial-failure exact failed step recorded | pass |
+| IR 81126-56 | report-initial-failure cleanup invoked | pass |
+| IR 81126-57 | report-refresh-failure initial exact current-summary argv | pass |
+| IR 81126-58 | report-refresh-failure refresh exact current-summary argv | pass |
+| IR 81126-59 | report-refresh-failure command substitution not executed | pass |
+| IR 81126-60 | report-refresh-failure exit follows report result | pass |
+| IR 81126-61 | report-refresh-failure exact failed step recorded | pass |
+| IR 81126-62 | report-refresh-failure cleanup invoked | pass |
+| IR 81126-63 | internal-normal exact current summary argv | pass |
+| IR 81126-64 | internal-normal partial counters before report | pass |
+| IR 81126-65 | internal-normal final counters | pass |
+| IR 81126-66 | internal-normal exit status | pass |
+| IR 81126-67 | internal-normal final schema and logDir | pass |
+| IR 81126-68 | internal-normal elapsed consistency | pass |
+| IR 81126-69 | internal-normal one final conclusion only | pass |
+| IR 81126-70 | internal-normal command substitution not executed | pass |
+| IR 81126-71 | internal-normal current report rendered | pass |
+| IR 81126-72 | internal-normal unrelated excluded | pass |
+| IR 81126-73 | internal-normal cleanup invoked | pass |
+| IR 81126-74 | internal-special exact current summary argv | pass |
+| IR 81126-75 | internal-special partial counters before report | pass |
+| IR 81126-76 | internal-special final counters | pass |
+| IR 81126-77 | internal-special exit status | pass |
+| IR 81126-78 | internal-special final schema and logDir | pass |
+| IR 81126-79 | internal-special elapsed consistency | pass |
+| IR 81126-80 | internal-special one final conclusion only | pass |
+| IR 81126-81 | internal-special command substitution not executed | pass |
+| IR 81126-82 | internal-special current report rendered | pass |
+| IR 81126-83 | internal-special unrelated excluded | pass |
+| IR 81126-84 | internal-special cleanup invoked | pass |
+| IR 81126-85 | internal-report-failure exact current summary argv | pass |
+| IR 81126-86 | internal-report-failure partial counters before report | pass |
+| IR 81126-87 | internal-report-failure final counters | pass |
+| IR 81126-88 | internal-report-failure exit status | pass |
+| IR 81126-89 | internal-report-failure final schema and logDir | pass |
+| IR 81126-90 | internal-report-failure elapsed consistency | pass |
+| IR 81126-91 | internal-report-failure one final conclusion only | pass |
+| IR 81126-92 | internal-report-failure command substitution not executed | pass |
+| IR 81126-93 | internal-report-failure later status not executed | pass |
+| IR 81126-94 | internal-report-failure cleanup invoked | pass |
+| IR 81126-95 | internal-first-failure report not reached | pass |
+| IR 81126-96 | internal-first-failure final counters | pass |
+| IR 81126-97 | internal-first-failure exit status | pass |
+| IR 81126-98 | internal-first-failure final schema and logDir | pass |
+| IR 81126-99 | internal-first-failure elapsed consistency | pass |
+| IR 81126-100 | internal-first-failure one final conclusion only | pass |
+| IR 81126-101 | internal-first-failure command substitution not executed | pass |
+| IR 81126-102 | internal-first-failure later status not executed | pass |
+| IR 81126-103 | internal-first-failure cleanup invoked | pass |
+| IR 81126-104 | owned temporary path absent | pass |
+| IR 81126-105 | owned temporary path absent | pass |
+| IR 81126-106 | owned temporary path absent | pass |
+| IR 81126-107 | owned temporary path absent | pass |
+| IR 81126-108 | owned temporary path absent | pass |
+| IR 81126-109 | owned temporary path absent | pass |
+| IR 81126-110 | owned temporary path absent | pass |
+| IR 81126-111 | owned temporary path absent | pass |
+| IR 81126-112 | owned temporary path absent | pass |
+| IR 81126-113 | owned temporary path absent | pass |
+
+### IR cleanup30경로
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-predev-failfast-JePyZx | fixture/script/summary/report/log | 508571 | 삭제 | lstat ENOENT | 63766 absent=true |
+| /tmp/media_server_predev-1789084220-33572 | fixture/script/summary/report/log | 3409 | 삭제 | lstat ENOENT | 63766 absent=true |
+| /tmp/media_server_predev-1789084223-33666 | fixture/script/summary/report/log | 4706 | 삭제 | lstat ENOENT | 63766 absent=true |
+| /tmp/media_server_predev-1789084225-33720 | fixture/script/summary/report/log | 1841 | 삭제 | lstat ENOENT | 63766 absent=true |
+| /tmp/media_server_predev-1789084228-33764 | fixture/script/summary/report/log | 2183 | 삭제 | lstat ENOENT | 63766 absent=true |
+| /tmp/media_server_predev-1789084233-33816 | fixture/script/summary/report/log | 3467 | 삭제 | lstat ENOENT | 63766 absent=true |
+| /tmp/media_server_predev-1789084236-33875 | fixture/script/summary/report/log | 3767 | 삭제 | lstat ENOENT | 63766 absent=true |
+| /tmp/media_server_predev-1789084239-33936 | fixture/script/summary/report/log | 3517 | 삭제 | lstat ENOENT | 63766 absent=true |
+| /tmp/media_server_predev-1789084243-33995 | fixture/script/summary/report/log | 3521 | 삭제 | lstat ENOENT | 63766 absent=true |
+| /tmp/media_server_predev-1789084246-34058 | fixture/script/summary/report/log | 4793 | 삭제 | lstat ENOENT | 63766 absent=true |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-predev-failfast-pewJQx | fixture/script/summary/report/log | 579857 | 삭제 | lstat ENOENT | 98013 absent=true |
+| /tmp/media_server_predev-1789084282-34274 | fixture/script/summary/report/log | 3409 | 삭제 | lstat ENOENT | 98013 absent=true |
+| /tmp/media_server_predev-1789084286-34339 | fixture/script/summary/report/log | 4706 | 삭제 | lstat ENOENT | 98013 absent=true |
+| /tmp/media_server_predev-1789084288-34393 | fixture/script/summary/report/log | 1841 | 삭제 | lstat ENOENT | 98013 absent=true |
+| /tmp/media_server_predev-1789084291-34435 | fixture/script/summary/report/log | 2183 | 삭제 | lstat ENOENT | 98013 absent=true |
+| /tmp/media_server_predev-1789084295-34489 | fixture/script/summary/report/log | 3467 | 삭제 | lstat ENOENT | 98013 absent=true |
+| /tmp/media_server_predev-1789084299-34548 | fixture/script/summary/report/log | 3767 | 삭제 | lstat ENOENT | 98013 absent=true |
+| /tmp/media_server_predev-1789084302-34609 | fixture/script/summary/report/log | 3517 | 삭제 | lstat ENOENT | 98013 absent=true |
+| /tmp/media_server_predev-1789084306-34668 | fixture/script/summary/report/log | 3521 | 삭제 | lstat ENOENT | 98013 absent=true |
+| /tmp/media_server_predev-1789084309-34728 | fixture/script/summary/report/log | 4793 | 삭제 | lstat ENOENT | 98013 absent=true |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-predev-failfast-owHVgU | fixture/script/summary/report/log | 590467 | 삭제 | lstat ENOENT | 81126 absent=true |
+| /tmp/media_server_predev-1789084362-35059 | fixture/script/summary/report/log | 3409 | 삭제 | lstat ENOENT | 81126 absent=true |
+| /tmp/media_server_predev-1789084365-35121 | fixture/script/summary/report/log | 4706 | 삭제 | lstat ENOENT | 81126 absent=true |
+| /tmp/media_server_predev-1789084367-35175 | fixture/script/summary/report/log | 1841 | 삭제 | lstat ENOENT | 81126 absent=true |
+| /tmp/media_server_predev-1789084371-35217 | fixture/script/summary/report/log | 2183 | 삭제 | lstat ENOENT | 81126 absent=true |
+| /tmp/media_server_predev-1789084375-35267 | fixture/script/summary/report/log | 3467 | 삭제 | lstat ENOENT | 81126 absent=true |
+| /tmp/media_server_predev-1789084378-35326 | fixture/script/summary/report/log | 3767 | 삭제 | lstat ENOENT | 81126 absent=true |
+| /tmp/media_server_predev-1789084382-35387 | fixture/script/summary/report/log | 3517 | 삭제 | lstat ENOENT | 81126 absent=true |
+| /tmp/media_server_predev-1789084385-35446 | fixture/script/summary/report/log | 3521 | 삭제 | lstat ENOENT | 81126 absent=true |
+| /tmp/media_server_predev-1789084388-35506 | fixture/script/summary/report/log | 4793 | 삭제 | lstat ENOENT | 81126 absent=true |
+
+실제 서버/GST/네트워크/auth/predev120/30분/UI/test_all전체/상위v390전체는 미실행. 보고서 pretty 렌더는 개별 결과 전수표를 대체하지 않는다. PD120-I06 사전등록은 수정된현재명령으로 정정했고 과거실패기록은보존했다. 커밋·푸시 없음.
+
+
+## S09 IR 내부 report-smoke 사전등록
+
+최초63766 exit1/77pass7fail/30479ms: internal-normal의6개 argv/부분JSON/렌더 종속 실패는 예상 범위지만 special LOG_DIR의 기존 heredoc JSON이 깨져 test utility JSON.parse에서 예외가 발생했다. 그 예외1개를 사후 RED로 바꾸지 않는다. 실패원인 `SyntaxError: Expected ',' or '}' after property value in JSON at position 316 (line 10 column 127)` 보존; 후속 report-failure/first-failure는 건너뜀. 잘못된JSON은 null로 관찰해 명시 schema/logDir assertion에서 실패하도록 utility만 보완한 후 동일 RED부터 재개한다. 제품 아직미수정, cleanup10경로 absent. 전수는 IR 실행표에 보존한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S09-IR01 | 실제 test_all 현재 부분 summary만 보고 | actual source 실행·느린 run_step만 :로 대체·보고 step/JSON/최종출력 실제 실행. 현재 argv glob/부분JSON 부재를 예상 RED로 지정 | v4.1.0 |
+| S09-IR02 | 부분/최종 수치·schema·완료출력 | 보고 직전5pass, 최종8pass 및 elapsed 일치, 조기 완료출력0/최종1, JSON logDir 정확일치 | v4.1.0 |
+| S09-IR03 | 특수경로·실패전파 | LOG_DIR 공백/따옴표/glob/명령치환 보존·decoy제외; report실패5pass1fail, 첫step실패0pass1fail 및 후속미실행 | v4.1.0 |
+
+명령 `node scripts/internal/recording_predev_failfast.test.mjs`; 기존72회귀 포함. 실제 test_all 흐름과 보고만 검증하고 서버/GST/미디어단계는 stub이므로 전체제품 PASS가 아니다. 외부 glob파일은 읽지 않는다. token 자동미제공으로 미집계, elapsed harness측정. 실행 전 정의 완료.
+
+## S09 PD120 실제 predev 실행 사전등록 (미실행)
+
+확정 요청 명령: `./server.sh verify-predev --soak-minutes 120 --fail-fast`. 이번 등록은 기존 상세정의 및 v3.9 Evidence14/v4.0 soak별 결과를 현재 runner와 대조한 실행 범위이며 새 PASS가 아니다. 근거: verify_predev_stability.sh main/run_soak_loop, test_all.sh basic-mode 및 실제 run_step. 기존중앙 `soak-1-va-events`/`Evidence 14 first failure` 기록의 기능을 재사용하고 아래 exact case를 이번 v4.1에 고정한다. env 경로/포트/산출물은 메인 작성 중으로 확정값은 실행 직전에 기록한다. 기본값 VA30초/redaction12초, redaction 포함, Codex RuleUI 제외 전제다. 반복 횟수는 미리 추정하지 않고 실제 iteration별5행 전수를 종료 후 보존하며 실패 이후 case/future iterations는 not-run으로 남긴다. 상세 child assertion은 실제 원출력 전수 이관하며 이 command표나 pretty report로 대체하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| PD120-01 build | `cmake --build ${BUILD_DIR}` | 기존 build 디렉터리; skip-build 미지정 | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-02 main server queue256 | `scripts/internal/run_server_foreground.sh` | predev start_server256; health 성공·PID/port 기록 | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-03 integrated-smoke | `./server.sh test --no-start --fail-fast --skip-external --include-rules --include-va-events --include-image-analysis --include-redaction` | Codex RuleUI 제외; 아래21단위 | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-I01 static-scripts | `bash -n server.sh scripts/internal/*.sh` | 실제 현행 호출 그대로 기록 | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-I02 script-inventory | `./server.sh verify-script-inventory` | dispatch/script/option 확인 | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-I03 code-comments | `./server.sh verify-code-comments` | 주석 정책 | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-I04 docs-links | `./server.sh verify-docs-links` | 로컬 문서 링크 | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-I05 config-json | `python3 -m json.tool config/codec_test_sources.json >/dev/null` | JSON 구문 | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-I06 report-summary | `./server.sh summarize-reports <현재 LOG_DIR/test-summary.json> --output <LOG_DIR/verification_report.md> --html-output <LOG_DIR/verification_report.html>` | 진행 중 부분 summary 렌더 smoke; IR 수정 후 current-only/glob literal/quote, 전체 /tmp 입력 제거 | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-I07 status | `./server.sh status` | 기존 서버 readiness | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-I08 diagnose | `./server.sh diagnose` | external 진단 env 비활성 조건 | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-I09 codec-file_local_h264_aac | `MEDIA_SERVER_VERIFY_INCLUDE_EXTERNAL=0 MEDIA_SERVER_VERIFY_SOURCE_FILTER='file_local_h264_aac' ./server.sh verify-codecs` | 로컬 source 선택 | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-I10 codec-file_local_h265_aac | `MEDIA_SERVER_VERIFY_INCLUDE_EXTERNAL=0 MEDIA_SERVER_VERIFY_SOURCE_FILTER='file_local_h265_aac' ./server.sh verify-codecs` | 로컬 source 선택 | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-I11 codec-rtsp_local_h265_opus | `MEDIA_SERVER_VERIFY_INCLUDE_EXTERNAL=0 MEDIA_SERVER_VERIFY_SOURCE_FILTER='rtsp_local_h265_opus' ./server.sh verify-codecs` | 로컬 source 선택 | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-I12 codec-rtsp_local_h264_pcmu | `MEDIA_SERVER_VERIFY_INCLUDE_EXTERNAL=0 MEDIA_SERVER_VERIFY_SOURCE_FILTER='rtsp_local_h264_pcmu' ./server.sh verify-codecs` | 로컬 source 선택 | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-I13 codec-rtsp_local_h264_pcma | `MEDIA_SERVER_VERIFY_INCLUDE_EXTERNAL=0 MEDIA_SERVER_VERIFY_SOURCE_FILTER='rtsp_local_h264_pcma' ./server.sh verify-codecs` | 로컬 source 선택 | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-I14 codec-webrtc_local_publish_h264_opus | `MEDIA_SERVER_VERIFY_INCLUDE_EXTERNAL=0 MEDIA_SERVER_VERIFY_SOURCE_FILTER='webrtc_local_publish_h264_opus' ./server.sh verify-codecs` | 로컬 source 선택 | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-I15 codec-http_local_h264_aac | `MEDIA_SERVER_VERIFY_INCLUDE_EXTERNAL=0 MEDIA_SERVER_VERIFY_SOURCE_FILTER='http_local_h264_aac' ./server.sh verify-codecs` | 로컬 source 선택 | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-I16 codec-http_local_h264_video_only | `MEDIA_SERVER_VERIFY_INCLUDE_EXTERNAL=0 MEDIA_SERVER_VERIFY_SOURCE_FILTER='http_local_h264_video_only' ./server.sh verify-codecs` | 로컬 source 선택 | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-I17 va-overlay | `MEDIA_SERVER_VERIFY_VA_HTTP_BASE=${HTTP_BASE} ./server.sh verify-va` | 로컬 입력·실제 VA | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-I18 redaction | `MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=${HTTP_BASE} ./server.sh verify-redaction --duration 10` | image/live | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-I19 rules-registry | `MEDIA_SERVER_TEST_HTTP_BASE=${HTTP_BASE} bash scripts/internal/test_rule_registry.sh` | 실제 registry API | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-I20 va-tracking-events | `MEDIA_SERVER_VERIFY_VA_HTTP_BASE=${HTTP_BASE} ./server.sh verify-va-events` | 실제 tracking event | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-I21 image-analysis | `MEDIA_SERVER_VERIFY_IMAGE_HTTP_BASE=${HTTP_BASE} ./server.sh verify-image-analysis` | 실제 image/tracking category | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-S01 soak-${iteration}-va-events | `./server.sh verify-va-events --duration 30` | 각 반복, 현재 VA_EVENT_DURATION_S 기본30초 | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-S02 soak-${iteration}-event-post-schema | `./server.sh verify-event-post --mode schema` | 각 반복, loopback receiver | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-S03 soak-${iteration}-event-post-recovery | `./server.sh verify-event-post --mode recovery` | 각 반복, endpoint 실패/복구 | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-S04 soak-${iteration}-redaction | `./server.sh verify-redaction --live-only --duration 12` | 각 반복, 기본12초 | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-S05 soak-${iteration}-runtime-idle | `GET ${HTTP_BASE}/lab/runtime/status` | 각 반복, 실제 idle counters | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-04 main-runtime-idle | `GET ${HTTP_BASE}/lab/runtime/status` | 120분 loop 완료 후 | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-05 main server stop | `predev stop_server` | queue256 PID 종료·ledger | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-06 queue2 server start | `scripts/internal/run_server_foreground.sh` | queue설정2 재시작·health | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-07 event-post-queue | `./server.sh verify-event-post --mode queue` | 실제 queue overload/recovery | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-08 queue-runtime-idle | `GET ${HTTP_BASE}/lab/runtime/status` | queue 검사 후 idle | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-09 final server stop | `predev stop_server + EXIT cleanup` | 서버/래퍼 종료·process ledger | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-10 ports-clean | `lsof -nP -iTCP:${RTSP_PORT/HTTP_PORT} -sTCP:LISTEN` | 선정한 두 port listener 부재 | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-11 summary write | `predev write_summary` | step별 command/exit/log/counter/firstfailure/notRun | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-12 initial summary-report | `./server.sh summarize-reports <current SUMMARY_FILE> --output <REPORT_FILE> --html-output <REPORT_HTML_FILE>` | 현재1입력·glob literal/quote | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-13 refresh summary-report | `동일 current summary만 다시 render` | initial 이후 step 정보 반영 | 기존 predev 기능, v4.1 이번 실행 등록 |
+| PD120-14 evidence cleanup | `이번 owned output/registry/event/media/GST/log 전 경로 size→필요값 이관→삭제→lstat 확인` | runner 자동삭제 없음; 메인 외부 cleanup 확인 | 기존 predev 기능, v4.1 이번 실행 등록 |
+
+### PD120 미실행/제외 및 시작 조건
+
+| 제목 | 수행내용 | 사유·완료 evidence 경계 |
+| --- | --- | --- |
+| Rule/Profile UI | verify-rule-ui | Codex 인앱 환경에서 Chrome override 없이 제외; UI 풀테스트 별도 미실행 필수 blocker |
+| Product UI smoke | verify-ops-client-ui, verify-ops-click-e2e, verify-ops-tables-layout, verify-ops-rules-roundtrip | basic에 포함 안 됨; 실제 UI PASS 대체 금지 |
+| 외부 TURN | verify-webrtc-ice --external-turn | 미승인·기본 flag 없음 |
+| LAN 외부 클라이언트 | test_external_access.sh | --skip-external |
+| 외부 RTSP source | test_external_source_reachability.sh | --skip-external |
+| HLS/외부 HTTP URI | 외부 source codec/verify-uri-longrun | 기본 제외, 실행 승인 없음 |
+| 별도 WebRTC ICE | verify-webrtc-ice | include flag 없음 |
+| integrated event POST | test_all의 schema/recovery 두 단계 | basic INCLUDE_EVENT_POST=0; 별도 soak와queue 단계에서 실제 수행, 중복 포함으로 오기재하지 않음 |
+| child 자동 start/stop | test_all start/stop-after | --no-start, STOP_AFTER=0; 외부 predev가 수명 소유 |
+| S09 녹화직접120/resource-trend/UI/30분 | 별도 도구 및 판정 | 이번 predev120이 대신하지 않음 |
+| env 격리·외부콜 | registry/endpoint/source override 정제 | 메인 실행환경 확정 전 미확인; diagnose external opt-in 값 제거/0 필요 |
+| integrated report 입력 | test_all report-summary 현재 부분summary 한개 | 최초 /tmp 전체glob은 IR 수정으로 제거하고81126 seam검증통과; 실제predev 실행은 미실행 |
+| 산출물 cleanup | WORK_DIR 및 .media_server.test/child 출력 | runner가 모두 자동삭제하지 않음; 메인 owned scope 목록과 정리 계획 확정 필요 |
+
+실제 실행 전 token start/end/consumed 집계 수단이 없으면 미집계 사유, elapsed/source, 모든 경로/크기/PID/port와 cleanup을 기록한다. 이 사전등록 작업은 읽기/문서만 수행했으며 서버·테스트·커밋·푸시는 하지 않았다. 조사 중 diagnose.sh 오경로 읽기 오류를 확인하고 실제 diagnose_media_server.sh의 env29/31 및 외부 수집 분기로 정정했으며 테스트 실패는 아니다.
+
+
+## S09 PR glob 및 formatter 후속 전수 기록
+
+메인 검토: 최종 runner diff와 test 경계, 최종72개 결과행을 직접 확인했다.
+cleanup 대조 첫 명령은 종류 칸을 `fixture`로 시작하는 행만 골라41개를 세어 exit1이었다.
+이는 검사 명령의 선택자 누락이며 기존18행은 `임시 fixture`로 표기되어 있었다.
+동일 PR 섹션의 경로 열 전체를 대조한 후속 명령은59개 모두 lstat ENOENT로 exit0이었다.
+추가 제품 테스트를 실행한 것이 아니며, 이 진단 실패도 보존한다. 개별 시간·토큰은 미집계다.
+
+메인 증적 갱신 후 `git diff --check` 및 `./server.sh verify-docs-links` exit0.
+228문서/1054링크/22이미지/103앵커/76색인/142제외/실패0, 도구 wall0.083020084초.
+추가 임시 산출물 없음. 이 문서 검증은 실제 장시간·UI 검사와 별개다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| PR 최종 JS 구문 | `node --check scripts/internal/recording_predev_failfast.test.mjs` exit0 | pass |
+| PR 최종 shell 구문 | `bash -n scripts/internal/verify_predev_stability.sh` exit0 | pass |
+| PR 최종 whitespace | `git diff --check` exit0 | pass |
+
+구문/whitespace 도구 wall 각각0.000003084/0.000001792/0.001297084초는 순수elapsed가 아니므로 별도미계측; token 자동미제공으로 미집계. 임시산출물 없음.
+
+최종 구현은 **Bash builtin escape + %q**다. Python formatter 추가 버전은 역사이며 최종 코드에는 없다. 30865 예상 RED68/4 → Python escape 초안13324 72/0 → formatter 실패 주입62836 예상 RED75/3 → 의존성 제거 후39789 최종72/0. 동일 명령 `node scripts/internal/recording_predev_failfast.test.mjs`. 아래294행은 각 도구 원출력 pass/fail의 순서·label을 그대로 보존한다. 기존69989/48959의128행과 합쳐 이번 PR검증6회422개 행이다. 원출력 저장은 tool output이며 절단없음; token start/end/consumed 자동값 미제공, elapsed는 harness Date.now. PR05 제거는 요구 완화가 아니라 새 Python formatter 실패 가능한 의존성 자체를 제거한 설계 단순화이며 최종 실제 Python renderer/decoy 결과로 PR04 계약을 유지했다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| PR 30865-1 | default integrated argv omits --fail-fast | pass |
+| PR 30865-2 | default preserves test | pass |
+| PR 30865-3 | default preserves --no-start | pass |
+| PR 30865-4 | default preserves --skip-external | pass |
+| PR 30865-5 | default preserves --include-rules | pass |
+| PR 30865-6 | default preserves --include-va-events | pass |
+| PR 30865-7 | default preserves --include-image-analysis | pass |
+| PR 30865-8 | default preserves --include-redaction | pass |
+| PR 30865-9 | default child failure exits nonzero | pass |
+| PR 30865-10 | default child later-case retained | pass |
+| PR 30865-11 | default subsequent soak retained | pass |
+| PR 30865-12 | default cleanup invoked | pass |
+| PR 30865-13 | explicit integrated argv contains --fail-fast | pass |
+| PR 30865-14 | explicit preserves test | pass |
+| PR 30865-15 | explicit preserves --no-start | pass |
+| PR 30865-16 | explicit preserves --skip-external | pass |
+| PR 30865-17 | explicit preserves --include-rules | pass |
+| PR 30865-18 | explicit preserves --include-va-events | pass |
+| PR 30865-19 | explicit preserves --include-image-analysis | pass |
+| PR 30865-20 | explicit preserves --include-redaction | pass |
+| PR 30865-21 | explicit child failure exits nonzero | pass |
+| PR 30865-22 | explicit child later-case blocked | pass |
+| PR 30865-23 | explicit subsequent soak blocked | pass |
+| PR 30865-24 | explicit cleanup invoked | pass |
+| PR 30865-25 | explicit queue case not-run | pass |
+| PR 30865-26 | existing first-fail fixture exit1 | pass |
+| PR 30865-27 | existing first-fail third case | pass |
+| PR 30865-28 | existing cumulative fixture exit1 | pass |
+| PR 30865-29 | existing cumulative third case | pass |
+| PR 30865-30 | report-normal initial exact current-summary argv | pass |
+| PR 30865-31 | report-normal refresh exact current-summary argv | pass |
+| PR 30865-32 | report-normal command substitution not executed | pass |
+| PR 30865-33 | report-normal exit follows report result | pass |
+| PR 30865-34 | report-normal actual Python report contains current source | pass |
+| PR 30865-35 | report-normal unrelated fixture excluded | pass |
+| PR 30865-36 | report-normal cleanup invoked | pass |
+| PR 30865-37 | report-special initial exact current-summary argv | pass |
+| PR 30865-38 | report-special refresh exact current-summary argv | pass |
+| PR 30865-39 | report-special command substitution not executed | pass |
+| PR 30865-40 | report-special exit follows report result | pass |
+| PR 30865-41 | report-special actual Python report contains current source | pass |
+| PR 30865-42 | report-special unrelated fixture excluded | pass |
+| PR 30865-43 | report-special cleanup invoked | pass |
+| PR 30865-44 | report-glob initial exact current-summary argv | fail |
+| PR 30865-45 | report-glob refresh exact current-summary argv | fail |
+| PR 30865-46 | report-glob command substitution not executed | pass |
+| PR 30865-47 | report-glob exit follows report result | pass |
+| PR 30865-48 | report-glob actual Python report contains current source | fail |
+| PR 30865-49 | report-glob unrelated fixture excluded | fail |
+| PR 30865-50 | report-glob cleanup invoked | pass |
+| PR 30865-51 | report-initial-failure initial exact current-summary argv | pass |
+| PR 30865-52 | report-initial-failure refresh exact current-summary argv | pass |
+| PR 30865-53 | report-initial-failure command substitution not executed | pass |
+| PR 30865-54 | report-initial-failure exit follows report result | pass |
+| PR 30865-55 | report-initial-failure exact failed step recorded | pass |
+| PR 30865-56 | report-initial-failure cleanup invoked | pass |
+| PR 30865-57 | report-refresh-failure initial exact current-summary argv | pass |
+| PR 30865-58 | report-refresh-failure refresh exact current-summary argv | pass |
+| PR 30865-59 | report-refresh-failure command substitution not executed | pass |
+| PR 30865-60 | report-refresh-failure exit follows report result | pass |
+| PR 30865-61 | report-refresh-failure exact failed step recorded | pass |
+| PR 30865-62 | report-refresh-failure cleanup invoked | pass |
+| PR 30865-63 | owned temporary path absent | pass |
+| PR 30865-64 | owned temporary path absent | pass |
+| PR 30865-65 | owned temporary path absent | pass |
+| PR 30865-66 | owned temporary path absent | pass |
+| PR 30865-67 | owned temporary path absent | pass |
+| PR 30865-68 | owned temporary path absent | pass |
+| PR 30865-69 | owned temporary path absent | pass |
+| PR 30865-70 | owned temporary path absent | pass |
+| PR 30865-71 | owned temporary path absent | pass |
+| PR 30865-72 | owned temporary path absent | pass |
+
+실행30865: exit1, 68pass/4fail, elapsed29954ms.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| PR 13324-1 | default integrated argv omits --fail-fast | pass |
+| PR 13324-2 | default preserves test | pass |
+| PR 13324-3 | default preserves --no-start | pass |
+| PR 13324-4 | default preserves --skip-external | pass |
+| PR 13324-5 | default preserves --include-rules | pass |
+| PR 13324-6 | default preserves --include-va-events | pass |
+| PR 13324-7 | default preserves --include-image-analysis | pass |
+| PR 13324-8 | default preserves --include-redaction | pass |
+| PR 13324-9 | default child failure exits nonzero | pass |
+| PR 13324-10 | default child later-case retained | pass |
+| PR 13324-11 | default subsequent soak retained | pass |
+| PR 13324-12 | default cleanup invoked | pass |
+| PR 13324-13 | explicit integrated argv contains --fail-fast | pass |
+| PR 13324-14 | explicit preserves test | pass |
+| PR 13324-15 | explicit preserves --no-start | pass |
+| PR 13324-16 | explicit preserves --skip-external | pass |
+| PR 13324-17 | explicit preserves --include-rules | pass |
+| PR 13324-18 | explicit preserves --include-va-events | pass |
+| PR 13324-19 | explicit preserves --include-image-analysis | pass |
+| PR 13324-20 | explicit preserves --include-redaction | pass |
+| PR 13324-21 | explicit child failure exits nonzero | pass |
+| PR 13324-22 | explicit child later-case blocked | pass |
+| PR 13324-23 | explicit subsequent soak blocked | pass |
+| PR 13324-24 | explicit cleanup invoked | pass |
+| PR 13324-25 | explicit queue case not-run | pass |
+| PR 13324-26 | existing first-fail fixture exit1 | pass |
+| PR 13324-27 | existing first-fail third case | pass |
+| PR 13324-28 | existing cumulative fixture exit1 | pass |
+| PR 13324-29 | existing cumulative third case | pass |
+| PR 13324-30 | report-normal initial exact current-summary argv | pass |
+| PR 13324-31 | report-normal refresh exact current-summary argv | pass |
+| PR 13324-32 | report-normal command substitution not executed | pass |
+| PR 13324-33 | report-normal exit follows report result | pass |
+| PR 13324-34 | report-normal actual Python report contains current source | pass |
+| PR 13324-35 | report-normal unrelated fixture excluded | pass |
+| PR 13324-36 | report-normal cleanup invoked | pass |
+| PR 13324-37 | report-special initial exact current-summary argv | pass |
+| PR 13324-38 | report-special refresh exact current-summary argv | pass |
+| PR 13324-39 | report-special command substitution not executed | pass |
+| PR 13324-40 | report-special exit follows report result | pass |
+| PR 13324-41 | report-special actual Python report contains current source | pass |
+| PR 13324-42 | report-special unrelated fixture excluded | pass |
+| PR 13324-43 | report-special cleanup invoked | pass |
+| PR 13324-44 | report-glob initial exact current-summary argv | pass |
+| PR 13324-45 | report-glob refresh exact current-summary argv | pass |
+| PR 13324-46 | report-glob command substitution not executed | pass |
+| PR 13324-47 | report-glob exit follows report result | pass |
+| PR 13324-48 | report-glob actual Python report contains current source | pass |
+| PR 13324-49 | report-glob unrelated fixture excluded | pass |
+| PR 13324-50 | report-glob cleanup invoked | pass |
+| PR 13324-51 | report-initial-failure initial exact current-summary argv | pass |
+| PR 13324-52 | report-initial-failure refresh exact current-summary argv | pass |
+| PR 13324-53 | report-initial-failure command substitution not executed | pass |
+| PR 13324-54 | report-initial-failure exit follows report result | pass |
+| PR 13324-55 | report-initial-failure exact failed step recorded | pass |
+| PR 13324-56 | report-initial-failure cleanup invoked | pass |
+| PR 13324-57 | report-refresh-failure initial exact current-summary argv | pass |
+| PR 13324-58 | report-refresh-failure refresh exact current-summary argv | pass |
+| PR 13324-59 | report-refresh-failure command substitution not executed | pass |
+| PR 13324-60 | report-refresh-failure exit follows report result | pass |
+| PR 13324-61 | report-refresh-failure exact failed step recorded | pass |
+| PR 13324-62 | report-refresh-failure cleanup invoked | pass |
+| PR 13324-63 | owned temporary path absent | pass |
+| PR 13324-64 | owned temporary path absent | pass |
+| PR 13324-65 | owned temporary path absent | pass |
+| PR 13324-66 | owned temporary path absent | pass |
+| PR 13324-67 | owned temporary path absent | pass |
+| PR 13324-68 | owned temporary path absent | pass |
+| PR 13324-69 | owned temporary path absent | pass |
+| PR 13324-70 | owned temporary path absent | pass |
+| PR 13324-71 | owned temporary path absent | pass |
+| PR 13324-72 | owned temporary path absent | pass |
+
+실행13324: exit0, 72pass/0fail, elapsed30149ms.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| PR 62836-1 | default integrated argv omits --fail-fast | pass |
+| PR 62836-2 | default preserves test | pass |
+| PR 62836-3 | default preserves --no-start | pass |
+| PR 62836-4 | default preserves --skip-external | pass |
+| PR 62836-5 | default preserves --include-rules | pass |
+| PR 62836-6 | default preserves --include-va-events | pass |
+| PR 62836-7 | default preserves --include-image-analysis | pass |
+| PR 62836-8 | default preserves --include-redaction | pass |
+| PR 62836-9 | default child failure exits nonzero | pass |
+| PR 62836-10 | default child later-case retained | pass |
+| PR 62836-11 | default subsequent soak retained | pass |
+| PR 62836-12 | default cleanup invoked | pass |
+| PR 62836-13 | explicit integrated argv contains --fail-fast | pass |
+| PR 62836-14 | explicit preserves test | pass |
+| PR 62836-15 | explicit preserves --no-start | pass |
+| PR 62836-16 | explicit preserves --skip-external | pass |
+| PR 62836-17 | explicit preserves --include-rules | pass |
+| PR 62836-18 | explicit preserves --include-va-events | pass |
+| PR 62836-19 | explicit preserves --include-image-analysis | pass |
+| PR 62836-20 | explicit preserves --include-redaction | pass |
+| PR 62836-21 | explicit child failure exits nonzero | pass |
+| PR 62836-22 | explicit child later-case blocked | pass |
+| PR 62836-23 | explicit subsequent soak blocked | pass |
+| PR 62836-24 | explicit cleanup invoked | pass |
+| PR 62836-25 | explicit queue case not-run | pass |
+| PR 62836-26 | existing first-fail fixture exit1 | pass |
+| PR 62836-27 | existing first-fail third case | pass |
+| PR 62836-28 | existing cumulative fixture exit1 | pass |
+| PR 62836-29 | existing cumulative third case | pass |
+| PR 62836-30 | report-normal initial exact current-summary argv | pass |
+| PR 62836-31 | report-normal refresh exact current-summary argv | pass |
+| PR 62836-32 | report-normal command substitution not executed | pass |
+| PR 62836-33 | report-normal exit follows report result | pass |
+| PR 62836-34 | report-normal actual Python report contains current source | pass |
+| PR 62836-35 | report-normal unrelated fixture excluded | pass |
+| PR 62836-36 | report-normal cleanup invoked | pass |
+| PR 62836-37 | report-special initial exact current-summary argv | pass |
+| PR 62836-38 | report-special refresh exact current-summary argv | pass |
+| PR 62836-39 | report-special command substitution not executed | pass |
+| PR 62836-40 | report-special exit follows report result | pass |
+| PR 62836-41 | report-special actual Python report contains current source | pass |
+| PR 62836-42 | report-special unrelated fixture excluded | pass |
+| PR 62836-43 | report-special cleanup invoked | pass |
+| PR 62836-44 | report-glob initial exact current-summary argv | pass |
+| PR 62836-45 | report-glob refresh exact current-summary argv | pass |
+| PR 62836-46 | report-glob command substitution not executed | pass |
+| PR 62836-47 | report-glob exit follows report result | pass |
+| PR 62836-48 | report-glob actual Python report contains current source | pass |
+| PR 62836-49 | report-glob unrelated fixture excluded | pass |
+| PR 62836-50 | report-glob cleanup invoked | pass |
+| PR 62836-51 | report-initial-failure initial exact current-summary argv | pass |
+| PR 62836-52 | report-initial-failure refresh exact current-summary argv | pass |
+| PR 62836-53 | report-initial-failure command substitution not executed | pass |
+| PR 62836-54 | report-initial-failure exit follows report result | pass |
+| PR 62836-55 | report-initial-failure exact failed step recorded | pass |
+| PR 62836-56 | report-initial-failure cleanup invoked | pass |
+| PR 62836-57 | report-refresh-failure initial exact current-summary argv | pass |
+| PR 62836-58 | report-refresh-failure refresh exact current-summary argv | pass |
+| PR 62836-59 | report-refresh-failure command substitution not executed | pass |
+| PR 62836-60 | report-refresh-failure exit follows report result | pass |
+| PR 62836-61 | report-refresh-failure exact failed step recorded | pass |
+| PR 62836-62 | report-refresh-failure cleanup invoked | pass |
+| PR 62836-63 | report-formatter-failure does not invoke summarizer | pass |
+| PR 62836-64 | report-formatter-failure exits nonzero | fail |
+| PR 62836-65 | report-formatter-failure summary-report recorded | fail |
+| PR 62836-66 | report-formatter-failure summary-report-refresh recorded | fail |
+| PR 62836-67 | report-formatter-failure cleanup invoked | pass |
+| PR 62836-68 | owned temporary path absent | pass |
+| PR 62836-69 | owned temporary path absent | pass |
+| PR 62836-70 | owned temporary path absent | pass |
+| PR 62836-71 | owned temporary path absent | pass |
+| PR 62836-72 | owned temporary path absent | pass |
+| PR 62836-73 | owned temporary path absent | pass |
+| PR 62836-74 | owned temporary path absent | pass |
+| PR 62836-75 | owned temporary path absent | pass |
+| PR 62836-76 | owned temporary path absent | pass |
+| PR 62836-77 | owned temporary path absent | pass |
+| PR 62836-78 | owned temporary path absent | pass |
+
+실행62836: exit1, 75pass/3fail, elapsed33368ms.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| PR 39789-1 | default integrated argv omits --fail-fast | pass |
+| PR 39789-2 | default preserves test | pass |
+| PR 39789-3 | default preserves --no-start | pass |
+| PR 39789-4 | default preserves --skip-external | pass |
+| PR 39789-5 | default preserves --include-rules | pass |
+| PR 39789-6 | default preserves --include-va-events | pass |
+| PR 39789-7 | default preserves --include-image-analysis | pass |
+| PR 39789-8 | default preserves --include-redaction | pass |
+| PR 39789-9 | default child failure exits nonzero | pass |
+| PR 39789-10 | default child later-case retained | pass |
+| PR 39789-11 | default subsequent soak retained | pass |
+| PR 39789-12 | default cleanup invoked | pass |
+| PR 39789-13 | explicit integrated argv contains --fail-fast | pass |
+| PR 39789-14 | explicit preserves test | pass |
+| PR 39789-15 | explicit preserves --no-start | pass |
+| PR 39789-16 | explicit preserves --skip-external | pass |
+| PR 39789-17 | explicit preserves --include-rules | pass |
+| PR 39789-18 | explicit preserves --include-va-events | pass |
+| PR 39789-19 | explicit preserves --include-image-analysis | pass |
+| PR 39789-20 | explicit preserves --include-redaction | pass |
+| PR 39789-21 | explicit child failure exits nonzero | pass |
+| PR 39789-22 | explicit child later-case blocked | pass |
+| PR 39789-23 | explicit subsequent soak blocked | pass |
+| PR 39789-24 | explicit cleanup invoked | pass |
+| PR 39789-25 | explicit queue case not-run | pass |
+| PR 39789-26 | existing first-fail fixture exit1 | pass |
+| PR 39789-27 | existing first-fail third case | pass |
+| PR 39789-28 | existing cumulative fixture exit1 | pass |
+| PR 39789-29 | existing cumulative third case | pass |
+| PR 39789-30 | report-normal initial exact current-summary argv | pass |
+| PR 39789-31 | report-normal refresh exact current-summary argv | pass |
+| PR 39789-32 | report-normal command substitution not executed | pass |
+| PR 39789-33 | report-normal exit follows report result | pass |
+| PR 39789-34 | report-normal actual Python report contains current source | pass |
+| PR 39789-35 | report-normal unrelated fixture excluded | pass |
+| PR 39789-36 | report-normal cleanup invoked | pass |
+| PR 39789-37 | report-special initial exact current-summary argv | pass |
+| PR 39789-38 | report-special refresh exact current-summary argv | pass |
+| PR 39789-39 | report-special command substitution not executed | pass |
+| PR 39789-40 | report-special exit follows report result | pass |
+| PR 39789-41 | report-special actual Python report contains current source | pass |
+| PR 39789-42 | report-special unrelated fixture excluded | pass |
+| PR 39789-43 | report-special cleanup invoked | pass |
+| PR 39789-44 | report-glob initial exact current-summary argv | pass |
+| PR 39789-45 | report-glob refresh exact current-summary argv | pass |
+| PR 39789-46 | report-glob command substitution not executed | pass |
+| PR 39789-47 | report-glob exit follows report result | pass |
+| PR 39789-48 | report-glob actual Python report contains current source | pass |
+| PR 39789-49 | report-glob unrelated fixture excluded | pass |
+| PR 39789-50 | report-glob cleanup invoked | pass |
+| PR 39789-51 | report-initial-failure initial exact current-summary argv | pass |
+| PR 39789-52 | report-initial-failure refresh exact current-summary argv | pass |
+| PR 39789-53 | report-initial-failure command substitution not executed | pass |
+| PR 39789-54 | report-initial-failure exit follows report result | pass |
+| PR 39789-55 | report-initial-failure exact failed step recorded | pass |
+| PR 39789-56 | report-initial-failure cleanup invoked | pass |
+| PR 39789-57 | report-refresh-failure initial exact current-summary argv | pass |
+| PR 39789-58 | report-refresh-failure refresh exact current-summary argv | pass |
+| PR 39789-59 | report-refresh-failure command substitution not executed | pass |
+| PR 39789-60 | report-refresh-failure exit follows report result | pass |
+| PR 39789-61 | report-refresh-failure exact failed step recorded | pass |
+| PR 39789-62 | report-refresh-failure cleanup invoked | pass |
+| PR 39789-63 | owned temporary path absent | pass |
+| PR 39789-64 | owned temporary path absent | pass |
+| PR 39789-65 | owned temporary path absent | pass |
+| PR 39789-66 | owned temporary path absent | pass |
+| PR 39789-67 | owned temporary path absent | pass |
+| PR 39789-68 | owned temporary path absent | pass |
+| PR 39789-69 | owned temporary path absent | pass |
+| PR 39789-70 | owned temporary path absent | pass |
+| PR 39789-71 | owned temporary path absent | pass |
+| PR 39789-72 | owned temporary path absent | pass |
+
+실행39789: exit0, 72pass/0fail, elapsed29958ms.
+
+### PR 후속 임시 산출물41경로
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-predev-failfast-YRzjy8 | fixture/script/summary/report/log | 433482 | 삭제 | lstat ENOENT | 30865 absent=true |
+| /tmp/media_server_predev-1789083546-30833 | fixture/script/summary/report/log | 3409 | 삭제 | lstat ENOENT | 30865 absent=true |
+| /tmp/media_server_predev-1789083549-30899 | fixture/script/summary/report/log | 4706 | 삭제 | lstat ENOENT | 30865 absent=true |
+| /tmp/media_server_predev-1789083551-30954 | fixture/script/summary/report/log | 1841 | 삭제 | lstat ENOENT | 30865 absent=true |
+| /tmp/media_server_predev-1789083555-31000 | fixture/script/summary/report/log | 2183 | 삭제 | lstat ENOENT | 30865 absent=true |
+| /tmp/media_server_predev-1789083559-31050 | fixture/script/summary/report/log | 3467 | 삭제 | lstat ENOENT | 30865 absent=true |
+| /tmp/media_server_predev-1789083562-31109 | fixture/script/summary/report/log | 3767 | 삭제 | lstat ENOENT | 30865 absent=true |
+| /tmp/media_server_predev-1789083566-31170 | fixture/script/summary/report/log | 3481 | 삭제 | lstat ENOENT | 30865 absent=true |
+| /tmp/media_server_predev-1789083569-31229 | fixture/script/summary/report/log | 3521 | 삭제 | lstat ENOENT | 30865 absent=true |
+| /tmp/media_server_predev-1789083572-31289 | fixture/script/summary/report/log | 4793 | 삭제 | lstat ENOENT | 30865 absent=true |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-predev-failfast-QpEVJI | fixture/script/summary/report/log | 435457 | 삭제 | lstat ENOENT | 13324 absent=true |
+| /tmp/media_server_predev-1789083586-31356 | fixture/script/summary/report/log | 3409 | 삭제 | lstat ENOENT | 13324 absent=true |
+| /tmp/media_server_predev-1789083589-31417 | fixture/script/summary/report/log | 4706 | 삭제 | lstat ENOENT | 13324 absent=true |
+| /tmp/media_server_predev-1789083592-31473 | fixture/script/summary/report/log | 1841 | 삭제 | lstat ENOENT | 13324 absent=true |
+| /tmp/media_server_predev-1789083595-31515 | fixture/script/summary/report/log | 2183 | 삭제 | lstat ENOENT | 13324 absent=true |
+| /tmp/media_server_predev-1789083599-31565 | fixture/script/summary/report/log | 3467 | 삭제 | lstat ENOENT | 13324 absent=true |
+| /tmp/media_server_predev-1789083602-31628 | fixture/script/summary/report/log | 3767 | 삭제 | lstat ENOENT | 13324 absent=true |
+| /tmp/media_server_predev-1789083606-31693 | fixture/script/summary/report/log | 3517 | 삭제 | lstat ENOENT | 13324 absent=true |
+| /tmp/media_server_predev-1789083609-31756 | fixture/script/summary/report/log | 3521 | 삭제 | lstat ENOENT | 13324 absent=true |
+| /tmp/media_server_predev-1789083613-31820 | fixture/script/summary/report/log | 4793 | 삭제 | lstat ENOENT | 13324 absent=true |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-predev-failfast-qLe6Rt | fixture/script/summary/report/log | 482400 | 삭제 | lstat ENOENT | 62836 absent=true |
+| /tmp/media_server_predev-1789083642-31910 | fixture/script/summary/report/log | 3409 | 삭제 | lstat ENOENT | 62836 absent=true |
+| /tmp/media_server_predev-1789083645-31977 | fixture/script/summary/report/log | 4706 | 삭제 | lstat ENOENT | 62836 absent=true |
+| /tmp/media_server_predev-1789083647-32033 | fixture/script/summary/report/log | 1841 | 삭제 | lstat ENOENT | 62836 absent=true |
+| /tmp/media_server_predev-1789083651-32075 | fixture/script/summary/report/log | 2183 | 삭제 | lstat ENOENT | 62836 absent=true |
+| /tmp/media_server_predev-1789083655-32125 | fixture/script/summary/report/log | 3467 | 삭제 | lstat ENOENT | 62836 absent=true |
+| /tmp/media_server_predev-1789083658-32190 | fixture/script/summary/report/log | 3767 | 삭제 | lstat ENOENT | 62836 absent=true |
+| /tmp/media_server_predev-1789083662-32253 | fixture/script/summary/report/log | 3517 | 삭제 | lstat ENOENT | 62836 absent=true |
+| /tmp/media_server_predev-1789083665-32318 | fixture/script/summary/report/log | 3521 | 삭제 | lstat ENOENT | 62836 absent=true |
+| /tmp/media_server_predev-1789083668-32380 | fixture/script/summary/report/log | 4793 | 삭제 | lstat ENOENT | 62836 absent=true |
+| /tmp/media_server_predev-1789083672-32446 | fixture/script/summary/report/log | 2751 | 삭제 | lstat ENOENT | 62836 absent=true |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-predev-failfast-w1OMAg | fixture/script/summary/report/log | 436375 | 삭제 | lstat ENOENT | 39789 absent=true |
+| /tmp/media_server_predev-1789083713-32553 | fixture/script/summary/report/log | 3409 | 삭제 | lstat ENOENT | 39789 absent=true |
+| /tmp/media_server_predev-1789083716-32606 | fixture/script/summary/report/log | 4706 | 삭제 | lstat ENOENT | 39789 absent=true |
+| /tmp/media_server_predev-1789083719-32660 | fixture/script/summary/report/log | 1841 | 삭제 | lstat ENOENT | 39789 absent=true |
+| /tmp/media_server_predev-1789083722-32702 | fixture/script/summary/report/log | 2183 | 삭제 | lstat ENOENT | 39789 absent=true |
+| /tmp/media_server_predev-1789083726-32754 | fixture/script/summary/report/log | 3467 | 삭제 | lstat ENOENT | 39789 absent=true |
+| /tmp/media_server_predev-1789083730-32813 | fixture/script/summary/report/log | 3767 | 삭제 | lstat ENOENT | 39789 absent=true |
+| /tmp/media_server_predev-1789083733-32874 | fixture/script/summary/report/log | 3517 | 삭제 | lstat ENOENT | 39789 absent=true |
+| /tmp/media_server_predev-1789083736-32935 | fixture/script/summary/report/log | 3521 | 삭제 | lstat ENOENT | 39789 absent=true |
+| /tmp/media_server_predev-1789083740-32999 | fixture/script/summary/report/log | 4793 | 삭제 | lstat ENOENT | 39789 absent=true |
+
+선행 PR18경로와 합쳐59경로 모두 삭제 후 부재. 별도 실제서버/네트워크/auth/장시간/GST는 시작하지 않았다. 보고서 출력은 전수 결과표 대체가 아니며 환경격리와 공통 summarizer 다중입력 정책은 이번 변경 밖이다.
+
+
+## S09 PR 보고서 scope TDD 실행 결과
+
+PR05 결과62836 exit1/75pass3fail/33368ms: formatter 실패가 빈 명령 성공으로 처리되는 예상 RED 확인. 메인 승인으로 실패 처리 분기를 추가하는 대신 formatter Python subprocess 자체를 제거하고 Bash builtin에서 '['→'[[]', '*'→'[*]', '?'→'[?]' 순서로 치환한다. 최종 test에서 제거된 subprocess 전용 주입은 삭제하고 PR04 실제 Python renderer/decoy 검사 및 기존 실패전파로 재검증한다. PR05를 최종 PASS로 승격하지 않고 deprecated 이력으로 보존한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인방법) | 몇버전부터 deprecated되었는지 |
+| --- | --- | --- | --- |
+| S09-PR05 | 임시 Python formatter 실패 주입 | 62836 예상 RED 보존; Python formatter 의존성 제거로 대상 코드와 전용 주입 삭제, 최종 builtin 경로는 PR04에서 검증 | v4.1.0 개발 중 |
+
+PR05 사전등록: formatter Python 실패가 command substitution의 빈 명령으로 바뀌어 성공으로 처리되는 경계를 실제 main seam에서 검사한다. glob.escape용 `python3 -c`만 실패 주입하고 write_summary Python은 정상 유지한다. 예상 RED: report-formatter-failure exit1 및 initial/refresh 실패 행 부재. fixed failure command와 비밀없는 진단으로 기존 실패 전파를 보존하며 실제 서버는 실행하지 않는다.
+
+PR04 추가 사전등록: 메인 리뷰에서 Python expand_paths가 argv를 다시 glob 해석하므로 Bash quoting만으로 custom summary의 `[x]*?`가 decoy를 매칭할 수 있음을 확인했다. 기존48959 64pass는 기존 경로범위 유효증거지만 이 경계 미검증이었다. 현재 summary 이름 `summary[x]*?.json`, decoy `summaryxdecoyz.json`를 owned root에 생성하고 실제 Python report에 current source만 포함되는지 RED→GREEN 검증한다. 예상 RED: report-glob initial/refresh 리터럴 입력 argv 및 current source/decoy 제외 검사. 공통 summarizer 변경 없이 caller에서 glob.escape를 적용한다.
+
+명령은 두 회 모두 `node scripts/internal/recording_predev_failfast.test.mjs`. 69989 exit1/50pass14fail/26510ms는 사전등록한 현재 summary 입력·quoting 결함의 예상 RED다. argv8건과 그 결과 normal/special 렌더·exit6건 실패이며 PF29건은 통과했다. `summary_report_command`가 bash `%q`로 현재 summary/output 경로를 구성하고 initial/refresh가 공유하도록 수정 후 48959 exit0/64pass0fail/26526ms. 공통 summarizer·step schema·기본 cumulative/PF정책은 변경하지 않았다. 실제 Python summarizer는 정확한 현재 입력을 받은 경우에만 실행하여 외부 /tmp 파일은 읽지 않았다. token start/end/consumed는 자동 집계값 미제공으로 미집계, elapsed source는 harness Date.now. 아래 결과128행은 도구 원출력의 pass/fail 전수를 순서대로 이관했다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| PR 69989-1 | default integrated argv omits --fail-fast | pass |
+| PR 69989-2 | default preserves test | pass |
+| PR 69989-3 | default preserves --no-start | pass |
+| PR 69989-4 | default preserves --skip-external | pass |
+| PR 69989-5 | default preserves --include-rules | pass |
+| PR 69989-6 | default preserves --include-va-events | pass |
+| PR 69989-7 | default preserves --include-image-analysis | pass |
+| PR 69989-8 | default preserves --include-redaction | pass |
+| PR 69989-9 | default child failure exits nonzero | pass |
+| PR 69989-10 | default child later-case retained | pass |
+| PR 69989-11 | default subsequent soak retained | pass |
+| PR 69989-12 | default cleanup invoked | pass |
+| PR 69989-13 | explicit integrated argv contains --fail-fast | pass |
+| PR 69989-14 | explicit preserves test | pass |
+| PR 69989-15 | explicit preserves --no-start | pass |
+| PR 69989-16 | explicit preserves --skip-external | pass |
+| PR 69989-17 | explicit preserves --include-rules | pass |
+| PR 69989-18 | explicit preserves --include-va-events | pass |
+| PR 69989-19 | explicit preserves --include-image-analysis | pass |
+| PR 69989-20 | explicit preserves --include-redaction | pass |
+| PR 69989-21 | explicit child failure exits nonzero | pass |
+| PR 69989-22 | explicit child later-case blocked | pass |
+| PR 69989-23 | explicit subsequent soak blocked | pass |
+| PR 69989-24 | explicit cleanup invoked | pass |
+| PR 69989-25 | explicit queue case not-run | pass |
+| PR 69989-26 | existing first-fail fixture exit1 | pass |
+| PR 69989-27 | existing first-fail third case | pass |
+| PR 69989-28 | existing cumulative fixture exit1 | pass |
+| PR 69989-29 | existing cumulative third case | pass |
+| PR 69989-30 | report-normal initial exact current-summary argv | fail |
+| PR 69989-31 | report-normal refresh exact current-summary argv | fail |
+| PR 69989-32 | report-normal command substitution not executed | pass |
+| PR 69989-33 | report-normal exit follows report result | fail |
+| PR 69989-34 | report-normal actual Python report contains current source | fail |
+| PR 69989-35 | report-normal unrelated fixture excluded | fail |
+| PR 69989-36 | report-normal cleanup invoked | pass |
+| PR 69989-37 | report-special initial exact current-summary argv | fail |
+| PR 69989-38 | report-special refresh exact current-summary argv | fail |
+| PR 69989-39 | report-special command substitution not executed | pass |
+| PR 69989-40 | report-special exit follows report result | fail |
+| PR 69989-41 | report-special actual Python report contains current source | fail |
+| PR 69989-42 | report-special unrelated fixture excluded | fail |
+| PR 69989-43 | report-special cleanup invoked | pass |
+| PR 69989-44 | report-initial-failure initial exact current-summary argv | fail |
+| PR 69989-45 | report-initial-failure refresh exact current-summary argv | fail |
+| PR 69989-46 | report-initial-failure command substitution not executed | pass |
+| PR 69989-47 | report-initial-failure exit follows report result | pass |
+| PR 69989-48 | report-initial-failure exact failed step recorded | pass |
+| PR 69989-49 | report-initial-failure cleanup invoked | pass |
+| PR 69989-50 | report-refresh-failure initial exact current-summary argv | fail |
+| PR 69989-51 | report-refresh-failure refresh exact current-summary argv | fail |
+| PR 69989-52 | report-refresh-failure command substitution not executed | pass |
+| PR 69989-53 | report-refresh-failure exit follows report result | pass |
+| PR 69989-54 | report-refresh-failure exact failed step recorded | pass |
+| PR 69989-55 | report-refresh-failure cleanup invoked | pass |
+| PR 69989-56 | owned temporary path absent | pass |
+| PR 69989-57 | owned temporary path absent | pass |
+| PR 69989-58 | owned temporary path absent | pass |
+| PR 69989-59 | owned temporary path absent | pass |
+| PR 69989-60 | owned temporary path absent | pass |
+| PR 69989-61 | owned temporary path absent | pass |
+| PR 69989-62 | owned temporary path absent | pass |
+| PR 69989-63 | owned temporary path absent | pass |
+| PR 69989-64 | owned temporary path absent | pass |
+| PR 48959-1 | default integrated argv omits --fail-fast | pass |
+| PR 48959-2 | default preserves test | pass |
+| PR 48959-3 | default preserves --no-start | pass |
+| PR 48959-4 | default preserves --skip-external | pass |
+| PR 48959-5 | default preserves --include-rules | pass |
+| PR 48959-6 | default preserves --include-va-events | pass |
+| PR 48959-7 | default preserves --include-image-analysis | pass |
+| PR 48959-8 | default preserves --include-redaction | pass |
+| PR 48959-9 | default child failure exits nonzero | pass |
+| PR 48959-10 | default child later-case retained | pass |
+| PR 48959-11 | default subsequent soak retained | pass |
+| PR 48959-12 | default cleanup invoked | pass |
+| PR 48959-13 | explicit integrated argv contains --fail-fast | pass |
+| PR 48959-14 | explicit preserves test | pass |
+| PR 48959-15 | explicit preserves --no-start | pass |
+| PR 48959-16 | explicit preserves --skip-external | pass |
+| PR 48959-17 | explicit preserves --include-rules | pass |
+| PR 48959-18 | explicit preserves --include-va-events | pass |
+| PR 48959-19 | explicit preserves --include-image-analysis | pass |
+| PR 48959-20 | explicit preserves --include-redaction | pass |
+| PR 48959-21 | explicit child failure exits nonzero | pass |
+| PR 48959-22 | explicit child later-case blocked | pass |
+| PR 48959-23 | explicit subsequent soak blocked | pass |
+| PR 48959-24 | explicit cleanup invoked | pass |
+| PR 48959-25 | explicit queue case not-run | pass |
+| PR 48959-26 | existing first-fail fixture exit1 | pass |
+| PR 48959-27 | existing first-fail third case | pass |
+| PR 48959-28 | existing cumulative fixture exit1 | pass |
+| PR 48959-29 | existing cumulative third case | pass |
+| PR 48959-30 | report-normal initial exact current-summary argv | pass |
+| PR 48959-31 | report-normal refresh exact current-summary argv | pass |
+| PR 48959-32 | report-normal command substitution not executed | pass |
+| PR 48959-33 | report-normal exit follows report result | pass |
+| PR 48959-34 | report-normal actual Python report contains current source | pass |
+| PR 48959-35 | report-normal unrelated fixture excluded | pass |
+| PR 48959-36 | report-normal cleanup invoked | pass |
+| PR 48959-37 | report-special initial exact current-summary argv | pass |
+| PR 48959-38 | report-special refresh exact current-summary argv | pass |
+| PR 48959-39 | report-special command substitution not executed | pass |
+| PR 48959-40 | report-special exit follows report result | pass |
+| PR 48959-41 | report-special actual Python report contains current source | pass |
+| PR 48959-42 | report-special unrelated fixture excluded | pass |
+| PR 48959-43 | report-special cleanup invoked | pass |
+| PR 48959-44 | report-initial-failure initial exact current-summary argv | pass |
+| PR 48959-45 | report-initial-failure refresh exact current-summary argv | pass |
+| PR 48959-46 | report-initial-failure command substitution not executed | pass |
+| PR 48959-47 | report-initial-failure exit follows report result | pass |
+| PR 48959-48 | report-initial-failure exact failed step recorded | pass |
+| PR 48959-49 | report-initial-failure cleanup invoked | pass |
+| PR 48959-50 | report-refresh-failure initial exact current-summary argv | pass |
+| PR 48959-51 | report-refresh-failure refresh exact current-summary argv | pass |
+| PR 48959-52 | report-refresh-failure command substitution not executed | pass |
+| PR 48959-53 | report-refresh-failure exit follows report result | pass |
+| PR 48959-54 | report-refresh-failure exact failed step recorded | pass |
+| PR 48959-55 | report-refresh-failure cleanup invoked | pass |
+| PR 48959-56 | owned temporary path absent | pass |
+| PR 48959-57 | owned temporary path absent | pass |
+| PR 48959-58 | owned temporary path absent | pass |
+| PR 48959-59 | owned temporary path absent | pass |
+| PR 48959-60 | owned temporary path absent | pass |
+| PR 48959-61 | owned temporary path absent | pass |
+| PR 48959-62 | owned temporary path absent | pass |
+| PR 48959-63 | owned temporary path absent | pass |
+| PR 48959-64 | owned temporary path absent | pass |
+
+### PR 임시 산출물 전수 정리
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-predev-failfast-bdElkr | 임시 fixture/script/report/log | 375498 | 삭제 | lstat ENOENT | session69989 absent=true |
+| /tmp/media_server_predev-1789083379-29887 | 임시 fixture/script/report/log | 3279 | 삭제 | lstat ENOENT | session69989 absent=true |
+| /tmp/media_server_predev-1789083382-29944 | 임시 fixture/script/report/log | 4574 | 삭제 | lstat ENOENT | session69989 absent=true |
+| /tmp/media_server_predev-1789083384-29997 | 임시 fixture/script/report/log | 1841 | 삭제 | lstat ENOENT | session69989 absent=true |
+| /tmp/media_server_predev-1789083388-30039 | 임시 fixture/script/report/log | 2183 | 삭제 | lstat ENOENT | session69989 absent=true |
+| /tmp/media_server_predev-1789083392-30089 | 임시 fixture/script/report/log | 4392 | 삭제 | lstat ENOENT | session69989 absent=true |
+| /tmp/media_server_predev-1789083395-30147 | 임시 fixture/script/report/log | 5265 | 삭제 | lstat ENOENT | session69989 absent=true |
+| /tmp/media_server_predev-1789083399-30205 | 임시 fixture/script/report/log | 4473 | 삭제 | lstat ENOENT | session69989 absent=true |
+| /tmp/media_server_predev-1789083402-30262 | 임시 fixture/script/report/log | 4473 | 삭제 | lstat ENOENT | session69989 absent=true |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-predev-failfast-MiLuBY | 임시 fixture/script/report/log | 382786 | 삭제 | lstat ENOENT | session48959 absent=true |
+| /tmp/media_server_predev-1789083424-30329 | 임시 fixture/script/report/log | 3409 | 삭제 | lstat ENOENT | session48959 absent=true |
+| /tmp/media_server_predev-1789083428-30391 | 임시 fixture/script/report/log | 4706 | 삭제 | lstat ENOENT | session48959 absent=true |
+| /tmp/media_server_predev-1789083430-30445 | 임시 fixture/script/report/log | 1841 | 삭제 | lstat ENOENT | session48959 absent=true |
+| /tmp/media_server_predev-1789083433-30491 | 임시 fixture/script/report/log | 2183 | 삭제 | lstat ENOENT | session48959 absent=true |
+| /tmp/media_server_predev-1789083437-30541 | 임시 fixture/script/report/log | 3467 | 삭제 | lstat ENOENT | session48959 absent=true |
+| /tmp/media_server_predev-1789083441-30602 | 임시 fixture/script/report/log | 3767 | 삭제 | lstat ENOENT | session48959 absent=true |
+| /tmp/media_server_predev-1789083444-30663 | 임시 fixture/script/report/log | 3521 | 삭제 | lstat ENOENT | session48959 absent=true |
+| /tmp/media_server_predev-1789083447-30723 | 임시 fixture/script/report/log | 4793 | 삭제 | lstat ENOENT | session48959 absent=true |
+
+전체18경로 정리. 실제 서버/GST/포트/auth/30분/120분/UI/test_all 전체/상위 v390 전체는 미실행이며 pretty report와 본 seam을 전수 제품 검증으로 대체하지 않는다. 실제 runner main/run_step/refresh 호출 경계만 검증했으며 slow 서버 경계는 stub이다. PF 최초90342 utility 실패 및70537 RED는 이전 절에 보존했다. 커밋/푸시 미수행.
+
+
+## S09 PR 보고서 현재 실행 범위 사전등록
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S09-PR01 | initial/refresh 현재 summary 단일 입력 | 기존 실제 main seam에서 refresh stub 제거; child 수신 argvJSON과 현재 경로 exact 대조. 현재 glob 전달이 예상 RED | v4.1.0 |
+| S09-PR02 | 특수 경로 shell quoting | 공백/작은·큰따옴표/명령치환을 summary/report/html 경로에 포함, argv 보존 및 injected marker 부재 | v4.1.0 |
+| S09-PR03 | 렌더 scope·보고 실패 전파 | exact 입력일 때만 실제 Python summarizer를 실행, 무관 JSON 제외; initial/refresh 별도 실패 주입 exit1·실패 행·cleanup 확인 | v4.1.0 |
+
+승인 명령 `node scripts/internal/recording_predev_failfast.test.mjs`; PF 회귀 포함. 서버/GST/장시간/auth 미실행. OLD glob argv를 받은 test boundary는 실제 외부 파일을 읽지 않고 거부한다. token 자동 미제공으로 미집계, elapsed는 harness 측정.
+
+### PF 실행 결과 전수
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| PF 최종 JS 구문 | `node --check scripts/internal/recording_predev_failfast.test.mjs` exit0 | pass |
+| PF 최종 shell 구문 | `bash -n scripts/internal/verify_predev_stability.sh` exit0 | pass |
+| PF 최종 whitespace | `git diff --check` exit0 | pass |
+
+위 구문/whitespace 도구 wall값은 각각0.00000225/0.000002417/0.001701초이며 순수 실행시간이 아니므로 elapsed 별도 미계측; token start/end/consumed 자동값 미제공으로 미집계. 임시 산출물 없음. 파일목록 직접 확인: runner 수정, 새 test-only1파일, inventory/중앙records/report만 이번 변경; 기존 누적 S09 diff는 별도 보존.
+
+세 실행 명령은 모두 `node scripts/internal/recording_predev_failfast.test.mjs`다. 90342 exit1/16pass18fail/11952ms는 utility 실제 실패이며 RED가 아니다. replacer callback 수정 후 70537 exit1/32pass2fail/13181ms는 사전 특정한 전달 누락과 후속 marker의 예상 RED다. 제품 runner 인자 전달 최소 보완 후 88312 exit0/34pass0fail/13197ms. 기본 cumulative 및 기존 predev 두 failure-contract fixture의 실제 실행을 포함한다. child marker는 임시 argv 소비자이며 실제 test_all 전체 실행 PASS가 아니다. 원출력은 도구 세션별 출력으로 전수 확보했으며 아래 102행에 보존한다. 토큰 start/end/consumed: 미집계(도구가 세션별 자동 토큰 계수를 제공하지 않음); elapsed source: 각 Node harness Date.now.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| PF 90342-1 | default integrated argv omits --fail-fast | pass |
+| PF 90342-2 | default preserves test | fail |
+| PF 90342-3 | default preserves --no-start | fail |
+| PF 90342-4 | default preserves --skip-external | fail |
+| PF 90342-5 | default preserves --include-rules | fail |
+| PF 90342-6 | default preserves --include-va-events | fail |
+| PF 90342-7 | default preserves --include-image-analysis | fail |
+| PF 90342-8 | default preserves --include-redaction | fail |
+| PF 90342-9 | default child failure exits nonzero | pass |
+| PF 90342-10 | default child later-case retained | fail |
+| PF 90342-11 | default subsequent soak retained | fail |
+| PF 90342-12 | default cleanup invoked | pass |
+| PF 90342-13 | explicit integrated argv contains --fail-fast | fail |
+| PF 90342-14 | explicit preserves test | fail |
+| PF 90342-15 | explicit preserves --no-start | fail |
+| PF 90342-16 | explicit preserves --skip-external | fail |
+| PF 90342-17 | explicit preserves --include-rules | fail |
+| PF 90342-18 | explicit preserves --include-va-events | fail |
+| PF 90342-19 | explicit preserves --include-image-analysis | fail |
+| PF 90342-20 | explicit preserves --include-redaction | fail |
+| PF 90342-21 | explicit child failure exits nonzero | pass |
+| PF 90342-22 | explicit child later-case blocked | pass |
+| PF 90342-23 | explicit subsequent soak blocked | pass |
+| PF 90342-24 | explicit cleanup invoked | pass |
+| PF 90342-25 | explicit queue case not-run | fail |
+| PF 90342-26 | existing first-fail fixture exit1 | pass |
+| PF 90342-27 | existing first-fail third case | pass |
+| PF 90342-28 | existing cumulative fixture exit1 | pass |
+| PF 90342-29 | existing cumulative third case | pass |
+| PF 90342-30 | owned temporary path absent (순서 1) | pass |
+| PF 90342-31 | owned temporary path absent (순서 2) | pass |
+| PF 90342-32 | owned temporary path absent (순서 3) | pass |
+| PF 90342-33 | owned temporary path absent (순서 4) | pass |
+| PF 90342-34 | owned temporary path absent (순서 5) | pass |
+| PF 70537-1 | default integrated argv omits --fail-fast | pass |
+| PF 70537-2 | default preserves test | pass |
+| PF 70537-3 | default preserves --no-start | pass |
+| PF 70537-4 | default preserves --skip-external | pass |
+| PF 70537-5 | default preserves --include-rules | pass |
+| PF 70537-6 | default preserves --include-va-events | pass |
+| PF 70537-7 | default preserves --include-image-analysis | pass |
+| PF 70537-8 | default preserves --include-redaction | pass |
+| PF 70537-9 | default child failure exits nonzero | pass |
+| PF 70537-10 | default child later-case retained | pass |
+| PF 70537-11 | default subsequent soak retained | pass |
+| PF 70537-12 | default cleanup invoked | pass |
+| PF 70537-13 | explicit integrated argv contains --fail-fast | fail |
+| PF 70537-14 | explicit preserves test | pass |
+| PF 70537-15 | explicit preserves --no-start | pass |
+| PF 70537-16 | explicit preserves --skip-external | pass |
+| PF 70537-17 | explicit preserves --include-rules | pass |
+| PF 70537-18 | explicit preserves --include-va-events | pass |
+| PF 70537-19 | explicit preserves --include-image-analysis | pass |
+| PF 70537-20 | explicit preserves --include-redaction | pass |
+| PF 70537-21 | explicit child failure exits nonzero | pass |
+| PF 70537-22 | explicit child later-case blocked | fail |
+| PF 70537-23 | explicit subsequent soak blocked | pass |
+| PF 70537-24 | explicit cleanup invoked | pass |
+| PF 70537-25 | explicit queue case not-run | pass |
+| PF 70537-26 | existing first-fail fixture exit1 | pass |
+| PF 70537-27 | existing first-fail third case | pass |
+| PF 70537-28 | existing cumulative fixture exit1 | pass |
+| PF 70537-29 | existing cumulative third case | pass |
+| PF 70537-30 | owned temporary path absent (순서 1) | pass |
+| PF 70537-31 | owned temporary path absent (순서 2) | pass |
+| PF 70537-32 | owned temporary path absent (순서 3) | pass |
+| PF 70537-33 | owned temporary path absent (순서 4) | pass |
+| PF 70537-34 | owned temporary path absent (순서 5) | pass |
+| PF 88312-1 | default integrated argv omits --fail-fast | pass |
+| PF 88312-2 | default preserves test | pass |
+| PF 88312-3 | default preserves --no-start | pass |
+| PF 88312-4 | default preserves --skip-external | pass |
+| PF 88312-5 | default preserves --include-rules | pass |
+| PF 88312-6 | default preserves --include-va-events | pass |
+| PF 88312-7 | default preserves --include-image-analysis | pass |
+| PF 88312-8 | default preserves --include-redaction | pass |
+| PF 88312-9 | default child failure exits nonzero | pass |
+| PF 88312-10 | default child later-case retained | pass |
+| PF 88312-11 | default subsequent soak retained | pass |
+| PF 88312-12 | default cleanup invoked | pass |
+| PF 88312-13 | explicit integrated argv contains --fail-fast | pass |
+| PF 88312-14 | explicit preserves test | pass |
+| PF 88312-15 | explicit preserves --no-start | pass |
+| PF 88312-16 | explicit preserves --skip-external | pass |
+| PF 88312-17 | explicit preserves --include-rules | pass |
+| PF 88312-18 | explicit preserves --include-va-events | pass |
+| PF 88312-19 | explicit preserves --include-image-analysis | pass |
+| PF 88312-20 | explicit preserves --include-redaction | pass |
+| PF 88312-21 | explicit child failure exits nonzero | pass |
+| PF 88312-22 | explicit child later-case blocked | pass |
+| PF 88312-23 | explicit subsequent soak blocked | pass |
+| PF 88312-24 | explicit cleanup invoked | pass |
+| PF 88312-25 | explicit queue case not-run | pass |
+| PF 88312-26 | existing first-fail fixture exit1 | pass |
+| PF 88312-27 | existing first-fail third case | pass |
+| PF 88312-28 | existing cumulative fixture exit1 | pass |
+| PF 88312-29 | existing cumulative third case | pass |
+| PF 88312-30 | owned temporary path absent (순서 1) | pass |
+| PF 88312-31 | owned temporary path absent (순서 2) | pass |
+| PF 88312-32 | owned temporary path absent (순서 3) | pass |
+| PF 88312-33 | owned temporary path absent (순서 4) | pass |
+| PF 88312-34 | owned temporary path absent (순서 5) | pass |
+
+### PF 임시 산출물 정리
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-predev-failfast-xF7dtu | fixture script/summary/log | 176334 | 소유 경로 삭제 | lstat ENOENT | 각 실행 cleanup 원출력 absent=true |
+| /tmp/media_server_predev-1789083075-28988 | fixture script/summary/log | 2065 | 소유 경로 삭제 | lstat ENOENT | 각 실행 cleanup 원출력 absent=true |
+| /tmp/media_server_predev-1789083078-29060 | fixture script/summary/log | 2434 | 소유 경로 삭제 | lstat ENOENT | 각 실행 cleanup 원출력 absent=true |
+| /tmp/media_server_predev-1789083080-29102 | fixture script/summary/log | 1841 | 소유 경로 삭제 | lstat ENOENT | 각 실행 cleanup 원출력 absent=true |
+| /tmp/media_server_predev-1789083083-29144 | fixture script/summary/log | 2183 | 소유 경로 삭제 | lstat ENOENT | 각 실행 cleanup 원출력 absent=true |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-predev-failfast-Hg7ENJ | fixture script/summary/log | 180505 | 소유 경로 삭제 | lstat ENOENT | 각 실행 cleanup 원출력 absent=true |
+| /tmp/media_server_predev-1789083114-29228 | fixture script/summary/log | 3277 | 소유 경로 삭제 | lstat ENOENT | 각 실행 cleanup 원출력 absent=true |
+| /tmp/media_server_predev-1789083117-29291 | fixture script/summary/log | 4550 | 소유 경로 삭제 | lstat ENOENT | 각 실행 cleanup 원출력 absent=true |
+| /tmp/media_server_predev-1789083120-29344 | fixture script/summary/log | 1841 | 소유 경로 삭제 | lstat ENOENT | 각 실행 cleanup 원출력 absent=true |
+| /tmp/media_server_predev-1789083123-29386 | fixture script/summary/log | 2183 | 소유 경로 삭제 | lstat ENOENT | 각 실행 cleanup 원출력 absent=true |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-predev-failfast-4Vgqx4 | fixture script/summary/log | 181036 | 소유 경로 삭제 | lstat ENOENT | 각 실행 cleanup 원출력 absent=true |
+| /tmp/media_server_predev-1789083162-29451 | fixture script/summary/log | 3279 | 소유 경로 삭제 | lstat ENOENT | 각 실행 cleanup 원출력 absent=true |
+| /tmp/media_server_predev-1789083165-29515 | fixture script/summary/log | 4574 | 소유 경로 삭제 | lstat ENOENT | 각 실행 cleanup 원출력 absent=true |
+| /tmp/media_server_predev-1789083167-29568 | fixture script/summary/log | 1841 | 소유 경로 삭제 | lstat ENOENT | 각 실행 cleanup 원출력 absent=true |
+| /tmp/media_server_predev-1789083171-29610 | fixture script/summary/log | 2183 | 소유 경로 삭제 | lstat ENOENT | 각 실행 cleanup 원출력 absent=true |
+
+최종 utility는 work 경로가 해당 child PID의 `/tmp/media_server_predev-<timestamp>-<pid>` 일반 디렉터리이며 realpath가 /tmp 정규화와 일치할 때만 정리 대상으로 수용한다. 마지막 main 호출은 정확1회·파일끝 여부를 검사하고 느린 외부 경계만 주입한다. 실제 main/run_step/옵션 구성/후속 not-run/summary는 원본 그대로 실행했다. 외부 서버/GST/포트/auth/30분/120분/UI/test_all 전체/상위 v390 contract 전체는 미실행이며 이 결과로 대체하지 않는다. 보고서 glob·환경격리 정책은 이번 수정에서 변경하지 않았다.
+
+
+## S09 PF predev fail-fast 전달 사전등록
+
+최초 session90342 실제 utility 실패: `node scripts/internal/recording_predev_failfast.test.mjs` exit1,16pass/18fail,11952ms. String.replace의 replacement 문자열이 test-only `$$`를 `$`로 축약하여 live-PID gate에 진입하지 못했다. 예상 RED가 아니며 제품 미수정 상태에서 replacer callback으로 원문을 보존해 동일검사를 재개한다. cleanup5경로 전부 absent: T/s09-predev-failfast-xF7dtu176334bytes, /tmp/media_server_predev-1789083075-28988 2065bytes, -1789083078-29060 2434bytes, -1789083080-29102 1841bytes, -1789083083-29144 2183bytes. 전수결과는 후속 최종표에 함께 보존한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S09-PF01 | integrated fail-fast 인자 | 실제 runner main/run_step을 임시 child 경계로 실행; 명시 flag 전달 누락 assertion을 예상 RED로 확인, 기본 미전달 보존 | v4.1.0 |
+| S09-PF02 | 기존 옵션 보존 | child 수신 argv에서 no-start/skip-external/include-rules/include-va-events/include-image-analysis/include-redaction 확인 | v4.1.0 |
+| S09-PF03 | 실패 전파와 cleanup | 명시 실패후 soak/queue 미실행, 기본 cumulative 후속 실행, cleanup 도달; 기존 first-fail/cumulative fixture 회귀 | v4.1.0 |
+
+승인 명령: `node scripts/internal/recording_predev_failfast.test.mjs`. 테스트 전용 임시 script/경계 stub만 실행하며 실제 서버/포트/GST/장시간/auth는 실행하지 않는다. 최초 예상 RED: `explicit integrated argv contains --fail-fast`. token start/end/consumed는 자동 집계값 미제공으로 미집계하며 elapsed는 실행시 측정한다.
+
+## S09 첫 실제 --all 48365 통합 실행
+
+메인 명시승인 실행명령은 정확히 `./server.sh verify-v410-recording-foundation --all`이다. session48365 exit0, elapsed132661ms. 원로그1553줄164097bytes에서 모든[pass]1054/[fail]0 및[measure]5개를 [48365 원출력 전수표](release-artifacts/v4.1.0/s09-foundation-all-48365/results.md)에순서대로보존했다. 원행↔표1059행 escape복원 exact equality 확인. artifact96723bytes SHA25612b5c19a8544974b4d896da0fd58408283ff929ac439a1599b943eb1a688896d. runtime517+auth535+wrapper2=1054, summary의stage checks는wrapper제외계층이다. 이전독립실행runtime519/auth534와차이는이번실제동적assertion수이며원출력전수대조로누락이아님을확인했다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| ALL48365 runtime stage | 실제 runtime checks517/exit0/cleanuptrue | pass |
+| ALL48365 app-auth stage | 실제 auth checks535/exit0/cleanuptrue; elapsed48643ms,start1789082254826,end1789082303469; authSuiteCompletedtrue/remainingCases[] | pass |
+| ALL48365 integration execution | integrationExecutionPasstrue, suite notRun[]는runtime/auth두stage미실행없음 | pass |
+| ALL48365 전수 보존 |1054pass+5measure=1059표행 exact원문/순서대조 | pass |
+
+fullFoundationPass=false/resourceTrendPass=false. remaining resource-trend/30min/120min/UI는미완료이며notRun[]를전체S09완료로읽지않는다. token start/end/consumed=null: 하위작업별자동집계없음. 임시5개비밀번호환경은메인프로세스만사용; runner credentialValuesPrinted=false/outputOverflow=false. 보존대상행에서 rawURL/file::/Cookie/Bearer/hash credential패턴없음확인. 전체원로그에는sourceURL/debug내용이있으므로그비대상원시줄은증적에보존하지않았다.
+
+| 측정 시점 | thread | FD | RSS bytes | 판정 경계 |
+| --- | ---: | ---: | ---: | --- |
+| before-warmup |3|3|26689536| RSS not-assessed |
+| warmup-stop |10|3|199622656| RSS not-assessed |
+| repeat-stop-1 |10|3|196427776| RSS not-assessed |
+| repeat-stop-2 |10|3|225198080| RSS not-assessed |
+| repeat-stop-3 |10|3|223887360| RSS not-assessed |
+
+초기thread3→10은관측치이며누수해결/정상상한판정불가. FD3고정과반복표본을장시간자원안정성증거로확대하지않는다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 결과·근거 |
+| --- | --- | ---: | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-runtime.gpP2vs | runtime fixture |57326931bytes|wrapper정리|원출력 absent=true |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-7yLNdP | 앱·미디어·인증해시fixture |322688966bytes|wrapper정리|원출력 absent=true |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.hIonO6 | GST registry |62691bytes|wrapper정리|원출력 absent=true |
+| /private/tmp/s09-foundation-all.wSpunQ | 전체원로그 |164097bytes|필수 1059행 메인 전수 대조 후 삭제|unlink 후 부재 확인 완료 |
+
+메인은 보존표 1059행을 원로그와 순서·문자열까지 직접 대조했고 위 artifact 크기와 SHA256을 확인했다. runtime/app/GST 임시 경로 3개도 별도 lstat에서 ENOENT를 확인했다. artifact 안의 ‘메인 확인 후 삭제 대기’는 이관 당시 기록이며, 최종 정리 결과는 이 중앙 기록을 따른다.
+
+증적 정리 후 `git diff --check`와 `./server.sh verify-docs-links`를 실행해 exit0을 확인했다. 링크 검증은 228문서/1054링크/22이미지/103앵커/76색인/142제외/실패0이다. 묶음 도구 wall은 0.088508초이며 개별 명령 시간과 token start/end/consumed는 자동 집계가 없어 미집계다.
+
+app4포트50678/50679/50805/50806부재행은전수표에보존했다. 이번이관담당자는추가실제검증/제품·스크립트수정/커밋푸시없음. 30분/120분/UI/자원최종검토는이번실행의완료evidence아님.
+
+
+메인17599 증적마감: 실행명 오기를 실제 `verify-project-inventory`로 바로잡고
+원출력5081행과 보존표5081행을 전수 대조했다. 임시 원로그210250bytes 삭제·부재
+확인 완료. 이후 `git diff --check` exit0, `verify-docs-links` exit0
+(227문서/1053링크/22이미지/103앵커/76색인/142제외/실패0).
+elapsed는 묶음 도구 wall0.082657초만 있으며 개별 시간·token은 미집계다.
+
+## S09 project inventory17599 및 메인 기준버전 검증
+
+메인86820은17pass1fail/inventorySha256 drift였고 원출력5087줄절단으로당시전수확인주장없음. 앞선메모리986items/review/proof 전수동일 및 hash-only validator오류0 판단뒤 메인이 기존manifest의line5 inventorySha256만수정했다. generic재생성이나독립승인/envelope/policy변경없음. 메인 git diff --unified=0 exit0로exact 한줄확인. 별도gitshow fullJSON deepcompare는 execFileSync maxBuffer16000000이파일26405943bytes보다작아ENOBUFS exit1(SIGTERM git subprocess27331); 진단출력버퍼실패이며제품실패아님. 한줄diff확인으로해소했고사전in-memory동일근거와함께범위를결속한다.
+
+실제 메인 `./server.sh verify-project-inventory` session17599 exit0: 최상위18pass0fail/featureRows986. 원로그5087줄210250bytes 중개별[pass]5081행/[fail]0행을 [17599 원출력 전수표](release-artifacts/v4.1.0/s09-project-inventory-17599/results.md)에그대로보존했다. 원행↔표5081행순서·escape복원exact equality 확인. 내부개별5081행과최상위18check는별도계층이며실제5081제품동작수행주장아님. artifact301302bytes SHA256 df110f72c64aa716216c380a37466dcd9b1adae8d4f347f6c2d86e8836bea256. rawURL/file::/Cookie/Bearer/hash credential패턴없음확인. 독자는개발·검증증적, S09실행보존lifecycle이며중앙에서만링크한다. 원로그 /private/tmp/s09-project-inventory.BviM7E 210250bytes는 메인5081행 전수 대조 후 unlink 및 부재 확인 완료. elapsed/token start/end/consumed 미집계(메인개별시간전달없음·자동토큰집계없음).
+
+메인 추가실행 `./server.sh verify-v410-entry-baseline && ./server.sh verify-release-metadata` exit0, entry33/0 metadata18/0. 도구wall0.034452125초는개별elapsed아님, elapsed/token미집계. source4.1.0/tagv4.1.0/latestpublishedv4.0.0/external-not-checked이며실제원격published확인PASS가아니다. 아래51개는메인이직접전달한원출력각항목이다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 메인 ENTRY-1 | VERSION=4.1.0 | pass |
+| 메인 ENTRY-2 | branch context=v4.1.0 | pass |
+| 메인 ENTRY-3 | CMake source version | pass |
+| 메인 ENTRY-4 | README source version | pass |
+| 메인 ENTRY-5 | README current roadmap | pass |
+| 메인 ENTRY-6 | README published tag | pass |
+| 메인 ENTRY-7 | README published baseline | pass |
+| 메인 ENTRY-8 | English README source version | pass |
+| 메인 ENTRY-9 | English README current roadmap | pass |
+| 메인 ENTRY-10 | docs index source version | pass |
+| 메인 ENTRY-11 | docs index current roadmap | pass |
+| 메인 ENTRY-12 | English docs index source version | pass |
+| 메인 ENTRY-13 | English docs index current roadmap | pass |
+| 메인 ENTRY-14 | versioning policy source version | pass |
+| 메인 ENTRY-15 | versioning policy current roadmap | pass |
+| 메인 ENTRY-16 | release policy source version | pass |
+| 메인 ENTRY-17 | release policy current roadmap | pass |
+| 메인 ENTRY-18 | public review source version | pass |
+| 메인 ENTRY-19 | UI guide source version | pass |
+| 메인 ENTRY-20 | UI assets source version | pass |
+| 메인 ENTRY-21 | UI asset manifest source version | pass |
+| 메인 ENTRY-22 | UI asset manifest published baseline | pass |
+| 메인 ENTRY-23 | UI asset verifier published baseline | pass |
+| 메인 ENTRY-24 | backlog source version | pass |
+| 메인 ENTRY-25 | backlog current roadmap | pass |
+| 메인 ENTRY-26 | roadmap source version | pass |
+| 메인 ENTRY-27 | roadmap S00 status | pass |
+| 메인 ENTRY-28 | latest published baseline remains v4.0.0 | pass |
+| 메인 ENTRY-29 | release evidence exists | pass |
+| 메인 ENTRY-30 | research gate dispatch | pass |
+| 메인 ENTRY-31 | entry baseline dispatch | pass |
+| 메인 ENTRY-32 | release metadata current tag | pass |
+| 메인 ENTRY-33 | release metadata current roadmap | pass |
+| 메인 METADATA-1 | VERSION matches CMake project VERSION | pass |
+| 메인 METADATA-2 | README.md points to the current published release | pass |
+| 메인 METADATA-3 | README.md keeps release source-of-truth links lightweight | pass |
+| 메인 METADATA-4 | README.en.md points to the current published release | pass |
+| 메인 METADATA-5 | README.en.md keeps release source-of-truth links lightweight | pass |
+| 메인 METADATA-6 | historical v2.9 source-of-truth remains distinct from latest published v2.8 | pass |
+| 메인 METADATA-7 | default mode records published metadata verification as external gate | pass |
+| 메인 METADATA-8 | versioning policy separates source version and published release | pass |
+| 메인 METADATA-9 | versioning policy pins semver source fields | pass |
+| 메인 METADATA-10 | release policy separates source version and published release | pass |
+| 메인 METADATA-11 | release policy preserves latest published release note source | pass |
+| 메인 METADATA-12 | release policies require future signed tags | pass |
+| 메인 METADATA-13 | development backlog pins current source roadmap and public release boundary | pass |
+| 메인 METADATA-14 | docs index points to backlog as current release source of truth | pass |
+| 메인 METADATA-15 | public entry docs keep release evidence source-of-truth deduped | pass |
+| 메인 METADATA-16 | public review pins current release wording | pass |
+| 메인 METADATA-17 | UI guide pins current release wording | pass |
+| 메인 METADATA-18 | UI asset policy pins current source and published baseline wording | pass |
+
+| 임시 경로 | 종류 | 삭제 전 크기 | 조치 | 결과 |
+| --- | --- | ---: | --- | --- |
+| /private/tmp/s09-project-inventory.BviM7E | 원로그 |210250bytes|필수전수이관·메인5081행대조후unlink|삭제·부재확인 |
+
+entry/metadata추가임시산출물없음. 이관담당자는새verifier/manifest/제품변경없음. 실제앱/startup/GST/auth/30/120/UI·원격published검증 미실행,커밋푸시없음.
+
+
+## S09 project inventory86820 실패·manifest 읽기 대조
+
+메인 `./server.sh verify-project-inventory` session86820 exit1/17pass1fail. 실패는 `implementation evidence manifest matches all feature rows: inventorySha256 drift; explicitly refresh and review the manifest`. 원출력5087줄이도구에서절단되어최초개별전수확인/완료주장하지않는다. 그외체크통과요약은메인전달범위이며 원개별행미확인. 실제verifier재실행/refresh는이번조사에서금지.
+
+읽기 전용 `generateImplementationManifest({rootDir,inventoryText,rows})` 메모리후보대조(session52901 exit0,26707ms): rows986/olditems986/newitems986, items전체 deep equality=true, 각review전체=true, 각semanticEvidence.review4Proof전체=true, changedItemIds=[]。 HEAD inventory와현재 parseFeatureRows의6필드(id/feature/uiNeed/testNeed/area/pass)986행전수 deep equality=true, changedIds=[]。 본문추가와전체파일hash가달라진것이며 정규986기능행의의미변경은확인되지않았다.
+
+| 대조대상 | 직접 결과 | 경계 |
+| --- | --- | --- |
+| inventorySha256 | old 157cd8c00deccdb7edec95fe5ffc3580951bf3f80a03d812eaa27ccfcd20d05d → current 0db2b49b48f7d2f6d259144fdb8565fd5dc208fe7ed11bde3d983b3dd4f5a9eb | 전체파일hash차이 |
+| generationPolicy | 기존 review4-independent-proof-only → generic reviewed-map-only 문구 | generic 전체쓰기시 독립정책퇴행위험 |
+| semanticClosurePolicy | 기존 external independent ledger 정책 → generic reviewed call-chain 문구 | 기존정책보존필수 |
+| semanticClosureSummary | 기존986/986/986 및 review4ApprovedSourceFlows986 → generic은 마지막필드없음 | 독립승인요약손실 |
+| review4ApprovalEnvelope | 기존객체존재 → generic후보필드없음 | envelope삭제위험·refresh금지 |
+| items/review/proof | 986개전수동일 | 신규독립승인작성·과거판정변경없음 |
+
+기존manifest를structured clone한메모리객체의 inventorySha256만현재값으로대체해 `validateImplementationManifest` 직접호출(session20609 exit0,26745ms): ok=true/errors=[], summary inventoryRows986/manifestRows986/sourceEvidenceRows986/uiEvidenceRows441/verifierEvidenceRows986/manualUiCaseRows424/semanticReviewedRows986/uniqueSemanticDigests986/uniqueReviewReasons986/reviewedCallChains986/errors0. 기존generationPolicy/semanticClosurePolicy/summary/approvalEnvelope 그대로보존. 이는메모리검사이며원장파일수정이나전체verifier실행PASS가아니다.
+
+기존파일SHA256 8e2529ae4ea08bfb05fef891e2d7f61461cb46de01ce7f9b792e9d8b8edf38ac, 두조사모두 bytesUnchanged=true. manifest/generator/제품파일쓰기없음. token start/end/consumed 미집계(명령별자동집계없음). 임시산출물·서버·포트없음,cleanup없음. 커밋/푸시없음.
+
+다음실행capture설계(아직미실행): 메인승인후owned mktemp 로그에stdout/stderr전체redirect, 원exit보존하며동일sessionpoll. 종료후전체line/bytes와18개최상위check+내부개별행census/summary일치확인, secret/rawURL·approval자료노출검토후필요값만중앙이관. 원로그삭제전정확크기·이관완료확인, 삭제후lstat부재기록. max_output_tokens 절단을전수증거로사용하지않는다. 이번결론은hash단일변경만으로validator충족가능하다는읽기근거이며실제수정승인은메인판단대기.
+
+
+## S09 SI 메인67480 원출력 추가수신 및 문서검증
+
+앞선 '최초67480 개별미수신'은 당시상태이며, 이후메인이도구직접원출력12행을전달하여아래전수보존했다. exit1/11pass1fail, elapsed미집계·파일로그없음. startup7refs누락은파서오류였다는정정유지.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| SI67480-1 | dispatch parser recognizes explicit bash and node interpreters; 메인직접실행원출력 | pass |
+| SI67480-2 | server.sh dispatch targets exist and are executable; 메인직접실행원출력 | pass |
+| SI67480-3 | documented server.sh commands resolve to dispatch table — startup7refs unknown; 메인직접실행원출력 | fail |
+| SI67480-4 | tracked scripts are classified and referenced; 메인직접실행원출력 | pass |
+| SI67480-5 | project inventory delegates script file inventory to this verifier; 메인직접실행원출력 | pass |
+| SI67480-6 | project inventory maps verifier families without duplicating dispatch details; 메인직접실행원출력 | pass |
+| SI67480-7 | CMake does not define a separate untracked CTest registry; 메인직접실행원출력 | pass |
+| SI67480-8 | test entry scripts are reachable from test_all; 메인직접실행원출력 | pass |
+| SI67480-9 | auth verifier has no hardcoded test password defaults; 메인직접실행원출력 | pass |
+| SI67480-10 | VA EventRecord dispatch verifier fails early and dispatches every poll by default; 메인직접실행원출력 | pass |
+| SI67480-11 | critical verifier pass output avoids grouped feature-result wording; 메인직접실행원출력 | pass |
+| SI67480-12 | user-facing JS option parsers reject unknown options; 메인직접실행원출력 | pass |
+| 메인 문서 링크 검증 | ./server.sh verify-docs-links exit0: markdown226/localLinks1052/images22/anchors103/indexed76/exclusions142/failures0; toolwall0.00000325초는순수실행시간아님, elapsed/token미집계 | pass |
+
+메인문서검증임시산출물없음. 담당자추가테스트없음, 코드동결유지.
+
+
+## S09 script inventory 조건부 dispatch 최종 결과
+
+메인67480 최초실패 exit1/11pass1fail unknown startup7refs는 문서오류가 아니었다. server.sh --unit sh/default mjs 두실제분기존재를확인했고 기존파서의바로 require+exec 단일패턴누락이었다. 메인의초기문서오류설명을정정한다. 최초67480의원개별12행은담당자미수신, 요약과실패내용만확인했다.
+
+추출한고정dispatch helper순수 RED9/3(exit1,1ms:조건부/ROOTcanonical/escape거부)→12/0(exit0,1ms). 실제71208목록11/1실패:고정 literal exec인자를신규parser가거부해기존2command4refs누락. 전체524쌍대조에서누락2개전부확인후고정옵션인자보완. 추가RED15/2(exit1,2ms)→최종18/0(exit0,3ms). 기존524쌍전부유지/new526/startup2만추가/missing0 invariant통과뒤 실제69024단한번재실행12/0 exit0. elapsed22425ms는 exec시작~최종poll확인관측상한(도구왕복/중간작업포함,순수실행시간별도미계측). token start/end/consumed 미집계: 하위명령별자동집계없음.
+
+검증기파서는고정2-space case/4-space terminator 및인접require/exec의일치target만처리한다. bash/node 또는직접실행, INTERNAL_DIR/ROOT_DIR scripts/internal 고정basename과안전literal옵션만인정한다. 외부path·python interpreter·주석/문자열exec·shell expansion·다른case혼입은거부. 임의shell완전파싱주장없음. 제품/server.sh/startup동작/문서command변경없음.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| SI-unit-1 | [pass] actual conditional both targets | pass |
+| SI-unit-2 | [pass] straight direct | pass |
+| SI-unit-3 | [pass] straight bash  | pass |
+| SI-unit-4 | [pass] straight node  | pass |
+| SI-unit-5 | [pass] aliases | pass |
+| SI-unit-6 | [pass] braced root canonical | pass |
+| SI-unit-7 | [pass] reject external | pass |
+| SI-unit-8 | [pass] reject python | pass |
+| SI-unit-9 | [pass] reject comment | pass |
+| SI-unit-10 | [pass] reject string | pass |
+| SI-unit-11 | [pass] reject escape | pass |
+| SI-unit-12 | [pass] other case require cannot leak | pass |
+| SI-unit-13 | [pass] fixed source region argument | pass |
+| SI-unit-14 | [pass] fixed fixture arguments | pass |
+| SI-unit-15 | [pass] reject shell tail $(evil) | pass |
+| SI-unit-16 | [pass] reject shell tail ; exec anything | pass |
+| SI-unit-17 | [pass] reject shell tail # exec anything | pass |
+| SI-unit-18 | [pass] all old dispatch pairs retained and only startup added | pass |
+| SI71208-1 | dispatch parser recognizes explicit bash and node interpreters — 실제원출력 통과 | pass |
+| SI71208-2 | server.sh dispatch targets exist and are executable — 실제원출력 통과 | pass |
+| SI71208-3 | documented server.sh commands resolve to dispatch table — unknown 기존2command4refs | fail |
+| SI71208-4 | tracked scripts are classified and referenced — 실제원출력 통과 | pass |
+| SI71208-5 | project inventory delegates script file inventory to this verifier — 실제원출력 통과 | pass |
+| SI71208-6 | project inventory maps verifier families without duplicating dispatch details — 실제원출력 통과 | pass |
+| SI71208-7 | CMake does not define a separate untracked CTest registry — 실제원출력 통과 | pass |
+| SI71208-8 | test entry scripts are reachable from test_all — 실제원출력 통과 | pass |
+| SI71208-9 | auth verifier has no hardcoded test password defaults — 실제원출력 통과 | pass |
+| SI71208-10 | VA EventRecord dispatch verifier fails early and dispatches every poll by default — 실제원출력 통과 | pass |
+| SI71208-11 | critical verifier pass output avoids grouped feature-result wording — 실제원출력 통과 | pass |
+| SI71208-12 | user-facing JS option parsers reject unknown options — 실제원출력 통과 | pass |
+| SI69024-1 | dispatch parser recognizes explicit bash and node interpreters — 실제재검증 exit0 | pass |
+| SI69024-2 | server.sh dispatch targets exist and are executable — 실제재검증 exit0 | pass |
+| SI69024-3 | documented server.sh commands resolve to dispatch table — 실제재검증 exit0 | pass |
+| SI69024-4 | tracked scripts are classified and referenced — 실제재검증 exit0 | pass |
+| SI69024-5 | project inventory delegates script file inventory to this verifier — 실제재검증 exit0 | pass |
+| SI69024-6 | project inventory maps verifier families without duplicating dispatch details — 실제재검증 exit0 | pass |
+| SI69024-7 | CMake does not define a separate untracked CTest registry — 실제재검증 exit0 | pass |
+| SI69024-8 | test entry scripts are reachable from test_all — 실제재검증 exit0 | pass |
+| SI69024-9 | auth verifier has no hardcoded test password defaults — 실제재검증 exit0 | pass |
+| SI69024-10 | VA EventRecord dispatch verifier fails early and dispatches every poll by default — 실제재검증 exit0 | pass |
+| SI69024-11 | critical verifier pass output avoids grouped feature-result wording — 실제재검증 exit0 | pass |
+| SI69024-12 | user-facing JS option parsers reject unknown options — 실제재검증 exit0 | pass |
+
+명령: `node scripts/internal/script_dispatch_parser.test.mjs`, `./server.sh verify-script-inventory`. syntax3파일 및gitdiffcheck각exit0. 임시산출물/서버/PID/포트생성없음, cleanup없음. 실제startup/GST/auth/longrun/UI/build미실행. 커밋/푸시없음. 새helper/test와verify_script_inventory.mjs 및inventory/central/taskreport만변경, 최종동결.
+
+
+SI 전수대조 추가 사전등록: 기존정규식 command/target524쌍 전부보존+startup2쌍만추가 invariant. 수정전전수차집합 실제누락2개는 위71208 두command뿐(새파서524=기존522+startup2). 고정인자보완뒤 순수전수누락0 확인전까지 실제목록재실행금지.
+
+SI 회귀실패71208: 새파서가고정 exec인자를거부하여 기존2command(4refs)누락, 실제목록11pass1fail/exit1. 문서문제아님. 사전추가: 실제 --source-region-contract 및 --fixture-matrix --modes off,diagnostic literal인자양성, shell substitution/semicolon/comment거부. 예상RED는고정인자양성누락이며 같은범위보완후재검증.
+
+## S09 SI 조건부 dispatch 인식 보완 사전등록
+
+메인 session67480 `./server.sh verify-script-inventory` exit1/11pass1fail: documented commands unknown startup7refs. 초기 '문서오류' 설명은 정정한다. 실제 server.sh3067 조건부 --unit sh 및 기본 mjs 분기는 존재하고 파서가 누락했다. SI01 실제형태 조건부 두target RED, SI02 직선/alias/bash/node/ROOT_DIR 고정path, SI03 외부경로/python/주석/문자열가짜exec/다른case require혼입거부. 임의shell 전체파서 아님. 신규순수검사→동일목록검증만승인; startup/app/GST/auth/장시간실행금지.
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
+| --- | --- | --- | --- | --- | --- |
+| S09-SI01 | 조건부startup두target | 순수TDD/목록검증 승인 | 비대상 | 비대상 | 비대상 |
+| S09-SI02 | 직선·alias·고정canonical path | 순수검사 승인 | 비대상 | 비대상 | 비대상 |
+| S09-SI03 | 가짜exec/외부path/다른case 거부 | 순수음성 승인 | 비대상 | 비대상 | 비대상 |
+
+## S09 장시간 도구 등록 이후 정적 통합 검증 사전 범위
+
+새 dispatch 및 문서 연결 변경에 따라 기존 `verify-script-inventory`와
+`verify-docs-links`, `git diff --check`를 안정화 영역에서 실행한다. 새 기능 ID가 아니라
+기존 명령의 현재 S09 변경 대조이며 실제 앱·30분·120분·UI는 실행하지 않는다.
+스크립트 inventory의 추적 파일 검사는 미추적 신규 파일의 분류까지 보증하지 않는다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | S09 도구 dispatch·문서 변경 | S09-LR01~04, server.sh, stream-verification.md | S09 개발 범위의 정적 검사 |
+| 30분 | 진행 대상 | 버전 완료 필수 증거 | AGENTS.md 7.6.2 | 추가 승인 질문 응답 전 미실행 |
+| 120분 | 진행 대상 | 녹화·시작·정리 lifecycle 변경 | S09-LR01~04, AGENTS.md 7.6.2 | predev 기존 승인, 녹화 직접 검사는 승인 응답 전 미실행 |
+| UI | 진행 대상 | 버전 완료 필수 증거 | AGENTS.md 7.6.2 | 추가 승인 질문 응답 전 미실행 |
+
+## S09 LR02 최종 물리삭제 보완
+
+메인 리뷰에 따라 phase관측 segment mediaRelpath도32MiB 예산에포함하고 deletion_completed의 batch별목록만반환, 실제app연결에서 relativeMedia 후lstat ENOENT만부재로인정한다. regular/dangling symlink는거부,권한/경로오류는실패다. 과거AP07물리검사로장시간삭제를대체하지않는다. 예상RED36pass1fail/exit1/36ms(completed batch 미반환)→최종 `node scripts/internal/recording_longrun_progress.test.mjs` 43pass0fail/exit0/44ms. 기존reader40/observer33은그모듈·인터페이스불변으로직전증거재사용. 최종고유개별항목116=43+40+33, 이전109전수표는이력보존. syntax helper/foundation·shellserver 및diffcheck각exit0. 새temp없음. 실제app/120분미실행·자원판정미완료·커밋푸시없음.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LR-final-1 | [pass] explicit 120 minutes accepted | pass |
+| LR-final-2 | [pass] invalid CLI [] | pass |
+| LR-final-3 | [pass] invalid CLI ["120"] | pass |
+| LR-final-4 | [pass] invalid CLI ["--duration-minutes","30"] | pass |
+| LR-final-5 | [pass] invalid CLI ["--duration-minutes","120","extra"] | pass |
+| LR-final-6 | [pass] invalid CLI ["--unknown","120"] | pass |
+| LR-final-7 | [pass] two channels progress and ordered deletion | pass |
+| LR-final-8 | [pass] stall rejected | pass |
+| LR-final-9 | [pass] duplicate rejected | pass |
+| LR-final-10 | [pass] UTC regression rejected | pass |
+| LR-final-11 | [pass] completion without request rejected | pass |
+| LR-final-12 | [pass] invalid media metadata rejected | pass |
+| LR-final-13 | [pass] duration cannot be shortened | pass |
+| LR-final-14 | [pass] unknown channel cannot satisfy progress | pass |
+| LR-final-15 | [pass] backward clock rejected | pass |
+| LR-final-16 | [pass] sample continuous accepted | pass |
+| LR-final-17 | [pass] sample gap rejected | pass |
+| LR-final-18 | [pass] sample wrong PID rejected | pass |
+| LR-final-19 | [pass] sample wrong identity rejected | pass |
+| LR-final-20 | [pass] sample missing beginning rejected | pass |
+| LR-final-21 | [pass] sample missing end rejected | pass |
+| LR-final-22 | [pass] sample insufficient rejected | pass |
+| LR-final-23 | [pass] actual golden schema accepted | pass |
+| LR-final-24 | [pass] full duration distributed progress accepted | pass |
+| LR-final-25 | [pass] last moment only cannot pass | pass |
+| LR-final-26 | [pass] ID limit rejected | pass |
+| LR-final-27 | [pass] UTF8 byte limit rejected | pass |
+| LR-final-28 | [pass] queried revision advanced disable | pass |
+| LR-final-29 | [pass] missing source rejected | pass |
+| LR-final-30 | [pass] duplicate source rejected | pass |
+| LR-final-31 | [pass] invalid revision rejected | pass |
+| LR-final-32 | [pass] public CLI rejects [] | pass |
+| LR-final-33 | [pass] public CLI rejects ["120"] | pass |
+| LR-final-34 | [pass] public CLI rejects ["--duration-minutes","30"] | pass |
+| LR-final-35 | [pass] public CLI rejects ["--duration-minutes","120","extra"] | pass |
+| LR-final-36 | [pass] public CLI rejects ["--unknown","120"] | pass |
+| LR-final-37 | [pass] completed batch returns media path once | pass |
+| LR-final-38 | [pass] missing media path rejected | pass |
+| LR-final-39 | [pass] media path byte limit rejected | pass |
+| LR-final-40 | [pass] ENOENT media absent | pass |
+| LR-final-41 | [pass] regular media present rejected | pass |
+| LR-final-42 | [pass] dangling symlink present rejected | pass |
+| LR-final-43 | [pass] media permission error rejected | pass |
+
+
+LR02 부재판정 추가 사전등록: injected lstat ENOENT만부재양성, regular/dangling symlink존재는거부, EACCES는오류전파. 기존lexical relativeMedia와함께사용하며 권한/경로오류를부재PASS로축소하지않는다.
+
+LR02 물리삭제 보완 사전등록: phase내 관측한 mediaRelpath를 경로바이트 포함32MiB예산으로 보존하고 completed batch의 경로만 반환해 실제부재를즉시검사한다. 신규 단위는 완료batch반환·다음batch미반복·경로누락거부·경로bytes상한을검사한다. 예상RED: completed batch가 mediaRelpath를반환하지않음. 실제파일검사는미실행이며 초기AP07부재PASS로장시간을대체하지않는다.
+
+## S09 LR 도구 구현·순수 검증 반환(실제120분 미실행)
+
+새 명령 `./server.sh verify-v410-recording-longrun --duration-minutes 120`와 내부 app-longrun을 연결했다. 기존 단기/인증 흐름을 변경하지 않고 AP09 두 번째PID의 실제새finalized 뒤 longrun전용phase를 넣는다. 실제source GET의 revision을 읽어 양채널 연속/event quota128MiB·age3h로 정상PUT한다. 루프는 기존 bounded reader로 초기prefix최대128poll 후 신규행만 처리하며 최소ID상태100000/32MiB 상한·자동eviction없음, 두채널 UTC진전/30초 watchdog 및 각채널 신규segment의 삭제요청→완료를 요구한다. 처음부터 과거ID맵복사는 하지 않는다. reader는 finally닫는다.5초표본은 phaseAt monotonic기준 PID/startIdentity·첫끝15초·maxgap15초를 검사하고 최대10000을 보존, 기존 summary warmup300000ms를 사용한다. 시간은 monotonic120분/전체guard+180초, root448선제/512MiB 한계와 기존로그상한 유지.
+
+종료는 정상API disabled→stop→전체snapshot 및 살아있는 실제SHA→새PID disabled recovery exact→정상API reenable→두채널새finalized→stop. 기존 validateSegment가 metadata size/SHA와 실제파일을 비교한다. observation 실행완료와 resourceTrendPass=false/reviewRequired=true/predev120미실행을 분리한다. 제품·authhelper·기존reader/observer/summary 코드 미변경. 실제시나리오 연결은 아직 미실행이며 단위로 실제120분완료를 대체하지 않는다.
+
+최초 RED: 신규 duration/progress stub에서5pass10fail/exit1/1ms. 이후 잘못된 합성schema(kind/unix_ms) 기반15/0/1ms가 나왔으나 실제 V1 golden대조에서 오류를 발견해 해당결과를 제품schema증거로 사용하지 않는다. 실제 retention_class/utc_ms/time_base_num·den으로 정정 후 연속표본 미구현 RED21/1/exit1/2ms. 최종실제golden+분산120분합성clock+상한+CLI 포함36/0/38ms. 단위합성clock은 시간경계 판별력이지 실제120분녹화 증거가 아니다.
+
+
+### recording_longrun_progress.test.mjs
+
+명령 `node scripts/internal/recording_longrun_progress.test.mjs`, exit0. [summary] passed=36 failed=0 elapsedMs=38
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| recording_longrun_progress.test.mjs-1 | [pass] explicit 120 minutes accepted | pass |
+| recording_longrun_progress.test.mjs-2 | [pass] invalid CLI [] | pass |
+| recording_longrun_progress.test.mjs-3 | [pass] invalid CLI ["120"] | pass |
+| recording_longrun_progress.test.mjs-4 | [pass] invalid CLI ["--duration-minutes","30"] | pass |
+| recording_longrun_progress.test.mjs-5 | [pass] invalid CLI ["--duration-minutes","120","extra"] | pass |
+| recording_longrun_progress.test.mjs-6 | [pass] invalid CLI ["--unknown","120"] | pass |
+| recording_longrun_progress.test.mjs-7 | [pass] two channels progress and ordered deletion | pass |
+| recording_longrun_progress.test.mjs-8 | [pass] stall rejected | pass |
+| recording_longrun_progress.test.mjs-9 | [pass] duplicate rejected | pass |
+| recording_longrun_progress.test.mjs-10 | [pass] UTC regression rejected | pass |
+| recording_longrun_progress.test.mjs-11 | [pass] completion without request rejected | pass |
+| recording_longrun_progress.test.mjs-12 | [pass] invalid media metadata rejected | pass |
+| recording_longrun_progress.test.mjs-13 | [pass] duration cannot be shortened | pass |
+| recording_longrun_progress.test.mjs-14 | [pass] unknown channel cannot satisfy progress | pass |
+| recording_longrun_progress.test.mjs-15 | [pass] backward clock rejected | pass |
+| recording_longrun_progress.test.mjs-16 | [pass] sample continuous accepted | pass |
+| recording_longrun_progress.test.mjs-17 | [pass] sample gap rejected | pass |
+| recording_longrun_progress.test.mjs-18 | [pass] sample wrong PID rejected | pass |
+| recording_longrun_progress.test.mjs-19 | [pass] sample wrong identity rejected | pass |
+| recording_longrun_progress.test.mjs-20 | [pass] sample missing beginning rejected | pass |
+| recording_longrun_progress.test.mjs-21 | [pass] sample missing end rejected | pass |
+| recording_longrun_progress.test.mjs-22 | [pass] sample insufficient rejected | pass |
+| recording_longrun_progress.test.mjs-23 | [pass] actual golden schema accepted | pass |
+| recording_longrun_progress.test.mjs-24 | [pass] full duration distributed progress accepted | pass |
+| recording_longrun_progress.test.mjs-25 | [pass] last moment only cannot pass | pass |
+| recording_longrun_progress.test.mjs-26 | [pass] ID limit rejected | pass |
+| recording_longrun_progress.test.mjs-27 | [pass] UTF8 byte limit rejected | pass |
+| recording_longrun_progress.test.mjs-28 | [pass] queried revision advanced disable | pass |
+| recording_longrun_progress.test.mjs-29 | [pass] missing source rejected | pass |
+| recording_longrun_progress.test.mjs-30 | [pass] duplicate source rejected | pass |
+| recording_longrun_progress.test.mjs-31 | [pass] invalid revision rejected | pass |
+| recording_longrun_progress.test.mjs-32 | [pass] public CLI rejects [] | pass |
+| recording_longrun_progress.test.mjs-33 | [pass] public CLI rejects ["120"] | pass |
+| recording_longrun_progress.test.mjs-34 | [pass] public CLI rejects ["--duration-minutes","30"] | pass |
+| recording_longrun_progress.test.mjs-35 | [pass] public CLI rejects ["--duration-minutes","120","extra"] | pass |
+| recording_longrun_progress.test.mjs-36 | [pass] public CLI rejects ["--unknown","120"] | pass |
+
+
+
+### recording_journal_reader.test.mjs
+
+명령 `node scripts/internal/recording_journal_reader.test.mjs`, exit0. {"passed":40,"failed":0,"elapsedMs":45,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"하위작업별자동집계없음"}
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| recording_journal_reader.test.mjs-1 | [pass] JR01 complete LF row emitted | pass |
+| recording_journal_reader.test.mjs-2 | [pass] JR01 repeated poll no duplicate | pass |
+| recording_journal_reader.test.mjs-3 | [pass] JR01 byte offset includes UTF8 bytes | pass |
+| recording_journal_reader.test.mjs-4 | [pass] JR01 append next row only | pass |
+| recording_journal_reader.test.mjs-5 | [pass] JR01 empty regular file | pass |
+| recording_journal_reader.test.mjs-6 | [pass] JR02 complete JSON without LF unconsumed | pass |
+| recording_journal_reader.test.mjs-7 | [pass] JR02 tail replacement reread without old concatenation | pass |
+| recording_journal_reader.test.mjs-8 | [pass] JR02 split UTF8 no premature decode | pass |
+| recording_journal_reader.test.mjs-9 | [pass] JR02 split UTF8 append recovered | pass |
+| recording_journal_reader.test.mjs-10 | [pass] JR02 repair after consumed prefix | pass |
+| recording_journal_reader.test.mjs-11 | [pass] JR03 poll byte budget and backlog | pass |
+| recording_journal_reader.test.mjs-12 | [pass] JR03 poll boundary partial distinguished from EOF | pass |
+| recording_journal_reader.test.mjs-13 | [pass] JR03 bounded poll progress and completion | pass |
+| recording_journal_reader.test.mjs-14 | [pass] JR03 bounded multi poll no missing duplicate | pass |
+| recording_journal_reader.test.mjs-15 | [pass] JR03 default 4MiB read ceiling | pass |
+| recording_journal_reader.test.mjs-16 | [pass] JR03 default ceiling complete second batch | pass |
+| recording_journal_reader.test.mjs-17 | [pass] JR03 default line bound | pass |
+| recording_journal_reader.test.mjs-18 | [pass] JR03 line error latched after file repaired | pass |
+| recording_journal_reader.test.mjs-19 | [pass] JR03 invalid limits rejected | pass |
+| recording_journal_reader.test.mjs-20 | [pass] JR04 seven known types accepted | pass |
+| recording_journal_reader.test.mjs-21 | [pass] JR04 json rejected | pass |
+| recording_journal_reader.test.mjs-22 | [pass] JR04 schema rejected | pass |
+| recording_journal_reader.test.mjs-23 | [pass] JR04 type rejected | pass |
+| recording_journal_reader.test.mjs-24 | [pass] JR04 field rejected | pass |
+| recording_journal_reader.test.mjs-25 | [pass] JR04 payload rejected | pass |
+| recording_journal_reader.test.mjs-26 | [pass] JR04 integer rejected | pass |
+| recording_journal_reader.test.mjs-27 | [pass] JR04 invalid UTF8 rejected | pass |
+| recording_journal_reader.test.mjs-28 | [pass] JR05 inode replacement latched | pass |
+| recording_journal_reader.test.mjs-29 | [pass] JR05 consumed prefix truncate rejected | pass |
+| recording_journal_reader.test.mjs-30 | [pass] JR05 truncate latch prevents reset | pass |
+| recording_journal_reader.test.mjs-31 | [pass] JR05 leaf symlink rejected | pass |
+| recording_journal_reader.test.mjs-32 | [pass] JR05 parent symlink rejected | pass |
+| recording_journal_reader.test.mjs-33 | [pass] JR05 symlink root rejected | pass |
+| recording_journal_reader.test.mjs-34 | [pass] JR05 parent replacement rejected | pass |
+| recording_journal_reader.test.mjs-35 | [pass] JR05 root escape rejected | pass |
+| recording_journal_reader.test.mjs-36 | [pass] JR05 nonregular directory rejected | pass |
+| recording_journal_reader.test.mjs-37 | [pass] JR05 absent file rejected | pass |
+| recording_journal_reader.test.mjs-38 | [pass] JR05 hardlink rejected | pass |
+| recording_journal_reader.test.mjs-39 | [pass] JR05 read path error latch | pass |
+| recording_journal_reader.test.mjs-40 | [pass] JR05 closed poll rejected | pass |
+
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-journal-reader-eS3OHn bytes=4545807 absent=true
+
+### recording_foundation_observer.test.mjs
+
+명령 `node scripts/internal/recording_foundation_observer.test.mjs`, exit0. {"passed":33,"failed":0,"elapsedMs":6,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"하위작업별자동집계없음","scope":"observer-unit-only"}
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| recording_foundation_observer.test.mjs-1 | [pass] OBS01 first mutation counted | pass |
+| recording_foundation_observer.test.mjs-2 | [pass] OBS01 no duplicate poll count | pass |
+| recording_foundation_observer.test.mjs-3 | [pass] OBS02 raw rows distinct from unique IDs | pass |
+| recording_foundation_observer.test.mjs-4 | [pass] OBS03 new PID distinct group same cursor | pass |
+| recording_foundation_observer.test.mjs-5 | [pass] OBS01 all seven type counts | pass |
+| recording_foundation_observer.test.mjs-6 | [pass] OBS04 initial absent journal pending not zero | pass |
+| recording_foundation_observer.test.mjs-7 | [pass] OBS04 journal created later observed | pass |
+| recording_foundation_observer.test.mjs-8 | [pass] OBS04 final unmeasured rejected | pass |
+| recording_foundation_observer.test.mjs-9 | [pass] OBS04 final pending rejected | pass |
+| recording_foundation_observer.test.mjs-10 | [pass] OBS02 total ID count bound | pass |
+| recording_foundation_observer.test.mjs-11 | [pass] OBS02 UTF8 byte bound | pass |
+| recording_foundation_observer.test.mjs-12 | [pass] OBS03 missing collector binary fails | pass |
+| recording_foundation_observer.test.mjs-13 | [pass] OBS03 null sample rejected | pass |
+| recording_foundation_observer.test.mjs-14 | [pass] OBS03 invalid sample rejected | pass |
+| recording_foundation_observer.test.mjs-15 | [pass] OBS03 wrongpid sample rejected | pass |
+| recording_foundation_observer.test.mjs-16 | [pass] OBS03 missingfd sample rejected | pass |
+| recording_foundation_observer.test.mjs-17 | [pass] OBS03 rsszero sample rejected | pass |
+| recording_foundation_observer.test.mjs-18 | [pass] OBS03 live identity change rejected | pass |
+| recording_foundation_observer.test.mjs-19 | [pass] OBS03 identity error latched | pass |
+| recording_foundation_observer.test.mjs-20 | [pass] OBS03 reader error not empty archive | pass |
+| recording_foundation_observer.test.mjs-21 | [pass] OBS04 duplicate tick not launched | pass |
+| recording_foundation_observer.test.mjs-22 | [pass] OBS04 pause waits active tick | pass |
+| recording_foundation_observer.test.mjs-23 | [pass] OBS04 measured close returns groups not resource pass | pass |
+| recording_foundation_observer.test.mjs-24 | [pass] OBS04 closed tick rejected | pass |
+| recording_foundation_observer.test.mjs-25 | [pass] OBS04 live partial observed without consuming tail | pass |
+| recording_foundation_observer.test.mjs-26 | [pass] OBS04 final partial rejected and reader closed | pass |
+| recording_foundation_observer.test.mjs-27 | [pass] OBS04 failure cleanup closes reader | pass |
+| recording_foundation_observer.test.mjs-28 | [pass] OBS04 complete observation predicate positive | pass |
+| recording_foundation_observer.test.mjs-29 | [pass] OBS04 failure completion rejected | pass |
+| recording_foundation_observer.test.mjs-30 | [pass] OBS04 process-unclosed completion rejected | pass |
+| recording_foundation_observer.test.mjs-31 | [pass] OBS04 no-final completion rejected | pass |
+| recording_foundation_observer.test.mjs-32 | [pass] OBS04 error completion rejected | pass |
+| recording_foundation_observer.test.mjs-33 | [pass] OBS04 disabled completion rejected | pass |
+
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-observer-BGnFTj bytes=1932 absent=true
+
+
+추가 검증: node --check progress.mjs/progress.test.mjs/foundation.mjs 각각exit0; bash -n foundation.sh/longrun.sh/server.sh 각각exit0. 실제 `./server.sh verify-v410-recording-longrun` 무인자 dispatch는 예상exit2/usage로 temp·서버전 거부. git diff --check exit0. 짧은구문명령 순수elapsed 별도미계측(도구wall 약0.000001초), token start/end/consumed 미집계: 하위작업별 자동집계없음. 순수검사109개(36+40+33) 전수행 보존; 추가 CLI dispatch음성은 서버검사가 아니다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-journal-reader-eS3OHn | 실제임시 JSONL 단위fixture |4545807bytes| 테스트finally정리 | absent=true |원출력 cleanup |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-observer-BGnFTj | 관측기 임시fixture |1932bytes| 테스트finally정리 | absent=true |원출력 cleanup |
+
+LR 순수/CLI는 임시산출물없음. 실제서버·GST미디어·auth·빌드·30분·120분·UI는 이번에 미실행. 커밋/푸시없음. 코드/단위 준비와 실제longrun실행·자원안정성 최종판정을 구분하며 메인리뷰 대기한다.
+
+
+LR02/03 보완 사전등록: 실제 golden segments.jsonl 구조 입력, 전체7200000ms 분산진전 양성·끝순간만consume 거부, ID100000 및UTF8 32MiB 초과거부, source 목록0/2개·revision오류거부·정상disable새revision·quota/age확인. CLI 부정5경로는 실제 public wrapper 실행하되 temp/server생성전 exit2만, 실제120분 실행하지 않는다.
+
+S09 LR04 추가 사전등록: phase 표본 PID/startIdentity 일치, 첫/끝15초 coverage, 인접표본 gap≤15000ms, 최소2표본·최대10000을 검증한다. 실제분류/누수 threshold가 아니라 표본연속성이다. 최초 순수15case RED5/10→GREEN15/0 후 실제 V1 대조에서 초안 kind/unix_ms/timebase 필드 오기 발견: retention_class/utc_ms/time_base_num·den으로 정정. 최초GREEN은 실제schema 증거로 사용하지 않으며 최종재검증 필요.
+
+## S09 LR 실제 경로 구현 사전등록(실제 실행 금지)
+
+TDD 스킬 적용. LR01 명시120분 CLI만 허용·오류temp전거부, LR02 bounded 증분 segment/삭제순서·각채널30초진전·중복/metadata오류거부, LR03 실제revision조회 후 quota128MiB/age3h 및 disable→snapshot→disabled restart→reenable 순서, LR04 PID별5초표본/10000상한/summary reviewRequired·duration증명분리. 예상 RED: parseLongrunArgs(['--duration-minutes','120'])가7200000을 반환하지 못하는 assertion; 이후 진전/삭제/정지 검증의 미구현 assertion. 순수 합성clock/행은 실제녹화PASS가 아니다. 실제앱/GST/build/auth/120분 금지.
+
+| 기능 ID | 동작·PASS 기준 | 안정화 | 30분 | 120분 | UI 존재·UI 테스트 |
+| --- | --- | --- | --- | --- | --- |
+| S09-LR01 | 기간/unknown CLI temp전거부 | 순수·CLI음성 승인 | 비대체 | 실행도구 구현만, 실제미실행 | 비대상 |
+| S09-LR02 | 두채널UTC진전/30초 watchdog/삭제상관/ID상한 | 순수단위 승인 | 비대체 | 직접120분 미실행 | 비대상 |
+| S09-LR03 | 정상API revision·disable/restart/reenable·immutable/SHA | 순수계약만 승인 | 미실행 | 실제경로 미실행 | 비대상 |
+| S09-LR04 | PID별표본/요약/실측duration·cleanup | 순수단위 승인 | 미실행 | 자원판정reviewRequired 유지 | 비대상 |
+
+
+## S09 실제 인증 90713 재검증 — AP10 인증 묶음 통과
+
+메인이 사용자 승인된 임시 무작위 인증값으로 `./server.sh verify-v410-recording-foundation --app-auth`를 실행했다(session90713, exit0). 원로그555줄62453bytes, 개별535pass/0fail=앱534+wrapper1이며 아래535행을 모두 이관했다. 시작1789080336620/종료1789080385605/elapsed48985ms. token start/end/consumed=null: 하위 작업별 자동 집계 없음. 인증값은 프로세스에서만 전달하며 비밀번호 원문을 기록하지 않았다. 이관 전 Cookie/Bearer/passwordHash/tokenHash/raw URL/file:: 노출 패턴 없음 확인. 원로그는 메인 확인 전 삭제하지 않는다.
+
+이전40595는46pass/1fail로 admin status exact source 집합에서 실패했다. 독립 admin GET sources로 seeded 초기 ID를 포함하고 성공 POST ID 추적·재시작 exact 대조하도록 검증기만 보완한 뒤 이번 동일 실제 인증 경로가 통과했다. 이전 실패 이력은 보존한다. 현재 `authAttempted=true`, `authSuiteCompleted=true`, `authRemaining=[]`, `authRemainingCases=[]`다. 실제 생성 continuous/fallback/derived 및 재시작 media/timeline/status의 권한별 검사에 한정하며 `fullFoundationPass=false`, `coverage=app-auth-partial`, `observationCompleted=false`, `resourceTrendPass=false`다. 전체 S09/자원 안정성 완료로 확대하지 않는다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| AUTH90713-001 | [pass] AP12 distinct loopback ports | pass |
+| AUTH90713-002 | [pass] AP12 actual foreground healthy \| pid=21912 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-HdDn0C | pass |
+| AUTH90713-003 | [pass] AP10-B production setup \| status=302 | pass |
+| AUTH90713-004 | [pass] AP10-B production login \| status=302 | pass |
+| AUTH90713-005 | [pass] POST /ops/api/users \| status=201 | pass |
+| AUTH90713-006 | [pass] AP10-B production login \| status=302 | pass |
+| AUTH90713-007 | [pass] POST /ops/api/users \| status=201 | pass |
+| AUTH90713-008 | [pass] AP10-B production login \| status=302 | pass |
+| AUTH90713-009 | [pass] POST /ops/api/users \| status=201 | pass |
+| AUTH90713-010 | [pass] AP10-B production login \| status=302 | pass |
+| AUTH90713-011 | [pass] POST /ops/api/users \| status=201 | pass |
+| AUTH90713-012 | [pass] AP10-B production login \| status=302 | pass |
+| AUTH90713-013 | [pass] AP10-B isolated users no plaintext credential | pass |
+| AUTH90713-014 | [pass] AP10-B accounts bootstrapped through product API | pass |
+| AUTH90713-015 | [pass] GET /ops/api/sources \| status=200 | pass |
+| AUTH90713-016 | [pass] AP10-F independent initial source IDs \| ids=["1","2","3","4","5"] | pass |
+| AUTH90713-017 | [pass] POST /ops/api/sources \| status=201 | pass |
+| AUTH90713-018 | [pass] AP10-F successful POST identity | pass |
+| AUTH90713-019 | [pass] AP01 V1 identity seg-9101-1789080338692-1 | pass |
+| AUTH90713-020 | [pass] AP01 positive UTC/PTS seg-9101-1789080338692-1 | pass |
+| AUTH90713-021 | [pass] AP01 actual bytes SHA seg-9101-1789080338692-1 \| bytes=4096788 sha256=b81a0927084744f10013e4cc2840a72fe7c08b95b5464bf765f5a1b57247e4f7 | pass |
+| AUTH90713-022 | [pass] GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789080338692&endTimeMs=1789080347002 \| status=200 | pass |
+| AUTH90713-023 | [pass] AP10-C actual continuous timeline media | pass |
+| AUTH90713-024 | [pass] AP10-C continuous six byte fixture prefix | pass |
+| AUTH90713-025 | [pass] AP10-C continuous principal0 literal Range206 | pass |
+| AUTH90713-026 | [pass] AP10-C continuous principal1 literal Range206 | pass |
+| AUTH90713-027 | [pass] AP10-D continuous unauth media denied \| status=401 | pass |
+| AUTH90713-028 | [pass] AP10-D continuous unauth no sensitive media response | pass |
+| AUTH90713-029 | [pass] AP10-D continuous other-channel media denied \| status=404 | pass |
+| AUTH90713-030 | [pass] AP10-D continuous other-channel no sensitive media response | pass |
+| AUTH90713-031 | [pass] AP10-D continuous viewer media denied \| status=403 | pass |
+| AUTH90713-032 | [pass] AP10-D continuous viewer no sensitive media response | pass |
+| AUTH90713-033 | [pass] AP10-D continuous no-ops media denied \| status=403 | pass |
+| AUTH90713-034 | [pass] AP10-D continuous no-ops no sensitive media response | pass |
+| AUTH90713-035 | [pass] AP10-D continuous other-channel known nonexistent indistinguishable | pass |
+| AUTH90713-036 | [pass] AP10-D continuous admin timeline200 | pass |
+| AUTH90713-037 | [pass] AP10-D continuous admin timeline channel scope | pass |
+| AUTH90713-038 | [pass] AP10-D continuous allowed timeline200 | pass |
+| AUTH90713-039 | [pass] AP10-D continuous allowed timeline channel scope | pass |
+| AUTH90713-040 | [pass] AP10-D continuous unauth timeline401 | pass |
+| AUTH90713-041 | [pass] AP10-D continuous other-channel timeline403 | pass |
+| AUTH90713-042 | [pass] AP10-D continuous viewer timeline403 | pass |
+| AUTH90713-043 | [pass] AP10-D continuous no-ops timeline403 | pass |
+| AUTH90713-044 | [pass] AP10-E continuous unauth status401 | pass |
+| AUTH90713-045 | [pass] AP10-E continuous status principal0 \| status=200 | pass |
+| AUTH90713-046 | [pass] AP10-E continuous status redaction principal0 | pass |
+| AUTH90713-047 | [pass] AP10-E continuous exact scope channels principal0 \| expected=["1","2","3","4","5","9101"] observed=["1","2","3","4","5","9101"] | pass |
+| AUTH90713-048 | [pass] AP10-E continuous status principal1 \| status=200 | pass |
+| AUTH90713-049 | [pass] AP10-E continuous status redaction principal1 | pass |
+| AUTH90713-050 | [pass] AP10-E continuous exact scope channels principal1 \| expected=["9101"] observed=["9101"] | pass |
+| AUTH90713-051 | [pass] AP10-E continuous no global observations principal1 | pass |
+| AUTH90713-052 | [pass] AP10-E continuous status principal2 \| status=200 | pass |
+| AUTH90713-053 | [pass] AP10-E continuous status redaction principal2 | pass |
+| AUTH90713-054 | [pass] AP10-E continuous exact scope channels principal2 \| expected=[] observed=[] | pass |
+| AUTH90713-055 | [pass] AP10-E continuous no global observations principal2 | pass |
+| AUTH90713-056 | [pass] AP10-E continuous status principal3 \| status=403 | pass |
+| AUTH90713-057 | [pass] AP10-E continuous status redaction principal3 | pass |
+| AUTH90713-058 | [pass] AP10-E continuous status principal4 \| status=403 | pass |
+| AUTH90713-059 | [pass] AP10-E continuous status redaction principal4 | pass |
+| AUTH90713-060 | [pass] AP02 actual finalized barrier before rule and tap | pass |
+| AUTH90713-061 | [pass] PUT /lab/analysis/rules/9101 \| status=200 | pass |
+| AUTH90713-062 | [pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 \| status=200 | pass |
+| AUTH90713-063 | [pass] AP02 actual tap created | pass |
+| AUTH90713-064 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AUTH90713-065 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AUTH90713-066 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AUTH90713-067 | [pass] AP02/03 actual EventRecord identity fallback \| eventId=evt_1789080347464_2 linkId=event-link-sha256-1ae6da0f8d7628c1cebdd62b6a327982231879ef6334ae4fafdc02cd552a1788 | pass |
+| AUTH90713-068 | [pass] AP02/03 actual nonnegative padded event start fallback \| startTime=8333 updateTime=8333 timeBasis=media-pts-ms | pass |
+| AUTH90713-069 | [pass] AP02/03 durable link source fallback | pass |
+| AUTH90713-070 | [pass] GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789080345525&endTimeMs=1789080348541 \| status=200 | pass |
+| AUTH90713-071 | [pass] AP04 fallback event priority | pass |
+| AUTH90713-072 | [pass] AP04 fallback path redaction | pass |
+| AUTH90713-073 | [pass] AP02 fallback remains partial requested-fallback | pass |
+| AUTH90713-074 | [pass] AP02 encoded WebM eventId/encoded contract/size/isolated path | pass |
+| AUTH90713-075 | [pass] AP05 fallback playable local URL | pass |
+| AUTH90713-076 | [pass] AP05 fallback actual file prefix | pass |
+| AUTH90713-077 | [pass] AP05 fallback literal GET Range \| status=206 contentRange=bytes 2-5/23501 bodyHex=dfa30100 | pass |
+| AUTH90713-078 | [pass] AP10-C fallback six byte fixture prefix | pass |
+| AUTH90713-079 | [pass] AP10-C fallback principal0 literal Range206 | pass |
+| AUTH90713-080 | [pass] AP10-C fallback principal1 literal Range206 | pass |
+| AUTH90713-081 | [pass] AP10-D fallback unauth media denied \| status=401 | pass |
+| AUTH90713-082 | [pass] AP10-D fallback unauth no sensitive media response | pass |
+| AUTH90713-083 | [pass] AP10-D fallback other-channel media denied \| status=404 | pass |
+| AUTH90713-084 | [pass] AP10-D fallback other-channel no sensitive media response | pass |
+| AUTH90713-085 | [pass] AP10-D fallback viewer media denied \| status=403 | pass |
+| AUTH90713-086 | [pass] AP10-D fallback viewer no sensitive media response | pass |
+| AUTH90713-087 | [pass] AP10-D fallback no-ops media denied \| status=403 | pass |
+| AUTH90713-088 | [pass] AP10-D fallback no-ops no sensitive media response | pass |
+| AUTH90713-089 | [pass] AP10-D fallback other-channel known nonexistent indistinguishable | pass |
+| AUTH90713-090 | [pass] AP10-D fallback admin timeline200 | pass |
+| AUTH90713-091 | [pass] AP10-D fallback admin timeline channel scope | pass |
+| AUTH90713-092 | [pass] AP10-D fallback allowed timeline200 | pass |
+| AUTH90713-093 | [pass] AP10-D fallback allowed timeline channel scope | pass |
+| AUTH90713-094 | [pass] AP10-D fallback unauth timeline401 | pass |
+| AUTH90713-095 | [pass] AP10-D fallback other-channel timeline403 | pass |
+| AUTH90713-096 | [pass] AP10-D fallback viewer timeline403 | pass |
+| AUTH90713-097 | [pass] AP10-D fallback no-ops timeline403 | pass |
+| AUTH90713-098 | [pass] AP10-E fallback unauth status401 | pass |
+| AUTH90713-099 | [pass] AP10-E fallback status principal0 \| status=200 | pass |
+| AUTH90713-100 | [pass] AP10-E fallback status redaction principal0 | pass |
+| AUTH90713-101 | [pass] AP10-E fallback exact scope channels principal0 \| expected=["1","2","3","4","5","9101"] observed=["1","2","3","4","5","9101"] | pass |
+| AUTH90713-102 | [pass] AP10-E fallback status principal1 \| status=200 | pass |
+| AUTH90713-103 | [pass] AP10-E fallback status redaction principal1 | pass |
+| AUTH90713-104 | [pass] AP10-E fallback exact scope channels principal1 \| expected=["9101"] observed=["9101"] | pass |
+| AUTH90713-105 | [pass] AP10-E fallback no global observations principal1 | pass |
+| AUTH90713-106 | [pass] AP10-E fallback status principal2 \| status=200 | pass |
+| AUTH90713-107 | [pass] AP10-E fallback status redaction principal2 | pass |
+| AUTH90713-108 | [pass] AP10-E fallback exact scope channels principal2 \| expected=[] observed=[] | pass |
+| AUTH90713-109 | [pass] AP10-E fallback no global observations principal2 | pass |
+| AUTH90713-110 | [pass] AP10-E fallback status principal3 \| status=403 | pass |
+| AUTH90713-111 | [pass] AP10-E fallback status redaction principal3 | pass |
+| AUTH90713-112 | [pass] AP10-E fallback status principal4 \| status=403 | pass |
+| AUTH90713-113 | [pass] AP10-E fallback status redaction principal4 | pass |
+| AUTH90713-114 | [pass] DELETE /lab/analysis/taps/analysis-tap-1 \| status=200 | pass |
+| AUTH90713-115 | [pass] AP01 V1 identity seg-9101-1789080338692-1 | pass |
+| AUTH90713-116 | [pass] AP01 positive UTC/PTS seg-9101-1789080338692-1 | pass |
+| AUTH90713-117 | [pass] AP01 actual bytes SHA seg-9101-1789080338692-1 \| bytes=4096788 sha256=b81a0927084744f10013e4cc2840a72fe7c08b95b5464bf765f5a1b57247e4f7 | pass |
+| AUTH90713-118 | [pass] AP01 V1 identity seg-9101-1789080347041-2 | pass |
+| AUTH90713-119 | [pass] AP01 positive UTC/PTS seg-9101-1789080347041-2 | pass |
+| AUTH90713-120 | [pass] AP01 actual bytes SHA seg-9101-1789080347041-2 \| bytes=4813100 sha256=f05493420b2f6080ce6f92511990347a7a820d9f6fb11c32be84a7f2506dc652 | pass |
+| AUTH90713-121 | [pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 \| status=200 | pass |
+| AUTH90713-122 | [pass] AP03 actual tap created | pass |
+| AUTH90713-123 | [pass] AP03 finalized boundary available | pass |
+| AUTH90713-124 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| AUTH90713-125 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| AUTH90713-126 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| AUTH90713-127 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| AUTH90713-128 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| AUTH90713-129 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| AUTH90713-130 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| AUTH90713-131 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| AUTH90713-132 | [pass] PUT /lab/analysis/rules/9102 \| status=200 | pass |
+| AUTH90713-133 | [pass] GET /lab/analysis/taps/analysis-tap-2/events?dispatch=1 \| status=200 | pass |
+| AUTH90713-134 | [pass] AP02/03 actual EventRecord identity derived \| eventId=evt_1789080356330_81 linkId=event-link-sha256-fdaedc8e8845951732451fed98348400f4257a4ab4a830266e10b7b2bd1eb4cf | pass |
+| AUTH90713-135 | [pass] AP02/03 actual nonnegative padded event start derived \| startTime=17433 updateTime=17433 timeBasis=media-pts-ms | pass |
+| AUTH90713-136 | [pass] AP02/03 durable link source derived | pass |
+| AUTH90713-137 | [pass] GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789080354645&endTimeMs=1789080357645 \| status=200 | pass |
+| AUTH90713-138 | [pass] AP04 derived event priority | pass |
+| AUTH90713-139 | [pass] AP04 derived path redaction | pass |
+| AUTH90713-140 | [pass] AP03 actual derived remux metadata | pass |
+| AUTH90713-141 | [pass] AP01 V1 identity event-seg-sha256-577e347a0dfcd7d2281d715ce076469b1338fc3599fc7aeeb16015b5a98c9685 | pass |
+| AUTH90713-142 | [pass] AP01 positive UTC/PTS event-seg-sha256-577e347a0dfcd7d2281d715ce076469b1338fc3599fc7aeeb16015b5a98c9685 | pass |
+| AUTH90713-143 | [pass] AP01 actual bytes SHA event-seg-sha256-577e347a0dfcd7d2281d715ce076469b1338fc3599fc7aeeb16015b5a98c9685 \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| AUTH90713-144 | [pass] AP03 Complete actual overlaps | pass |
+| AUTH90713-145 | [pass] AP04 continuous superseded with priority100 | pass |
+| AUTH90713-146 | [pass] AP05 derived playable local URL | pass |
+| AUTH90713-147 | [pass] AP05 derived actual file prefix | pass |
+| AUTH90713-148 | [pass] AP05 derived literal GET Range \| status=206 contentRange=bytes 2-5/1133076 bodyHex=0032a600 | pass |
+| AUTH90713-149 | [pass] AP10-C derived six byte fixture prefix | pass |
+| AUTH90713-150 | [pass] AP10-C derived principal0 literal Range206 | pass |
+| AUTH90713-151 | [pass] AP10-C derived principal1 literal Range206 | pass |
+| AUTH90713-152 | [pass] AP10-D derived unauth media denied \| status=401 | pass |
+| AUTH90713-153 | [pass] AP10-D derived unauth no sensitive media response | pass |
+| AUTH90713-154 | [pass] AP10-D derived other-channel media denied \| status=404 | pass |
+| AUTH90713-155 | [pass] AP10-D derived other-channel no sensitive media response | pass |
+| AUTH90713-156 | [pass] AP10-D derived viewer media denied \| status=403 | pass |
+| AUTH90713-157 | [pass] AP10-D derived viewer no sensitive media response | pass |
+| AUTH90713-158 | [pass] AP10-D derived no-ops media denied \| status=403 | pass |
+| AUTH90713-159 | [pass] AP10-D derived no-ops no sensitive media response | pass |
+| AUTH90713-160 | [pass] AP10-D derived other-channel known nonexistent indistinguishable | pass |
+| AUTH90713-161 | [pass] AP10-D derived admin timeline200 | pass |
+| AUTH90713-162 | [pass] AP10-D derived admin timeline channel scope | pass |
+| AUTH90713-163 | [pass] AP10-D derived allowed timeline200 | pass |
+| AUTH90713-164 | [pass] AP10-D derived allowed timeline channel scope | pass |
+| AUTH90713-165 | [pass] AP10-D derived unauth timeline401 | pass |
+| AUTH90713-166 | [pass] AP10-D derived other-channel timeline403 | pass |
+| AUTH90713-167 | [pass] AP10-D derived viewer timeline403 | pass |
+| AUTH90713-168 | [pass] AP10-D derived no-ops timeline403 | pass |
+| AUTH90713-169 | [pass] AP10-E derived unauth status401 | pass |
+| AUTH90713-170 | [pass] AP10-E derived status principal0 \| status=200 | pass |
+| AUTH90713-171 | [pass] AP10-E derived status redaction principal0 | pass |
+| AUTH90713-172 | [pass] AP10-E derived exact scope channels principal0 \| expected=["1","2","3","4","5","9101"] observed=["1","2","3","4","5","9101"] | pass |
+| AUTH90713-173 | [pass] AP10-E derived status principal1 \| status=200 | pass |
+| AUTH90713-174 | [pass] AP10-E derived status redaction principal1 | pass |
+| AUTH90713-175 | [pass] AP10-E derived exact scope channels principal1 \| expected=["9101"] observed=["9101"] | pass |
+| AUTH90713-176 | [pass] AP10-E derived no global observations principal1 | pass |
+| AUTH90713-177 | [pass] AP10-E derived status principal2 \| status=200 | pass |
+| AUTH90713-178 | [pass] AP10-E derived status redaction principal2 | pass |
+| AUTH90713-179 | [pass] AP10-E derived exact scope channels principal2 \| expected=[] observed=[] | pass |
+| AUTH90713-180 | [pass] AP10-E derived no global observations principal2 | pass |
+| AUTH90713-181 | [pass] AP10-E derived status principal3 \| status=403 | pass |
+| AUTH90713-182 | [pass] AP10-E derived status redaction principal3 | pass |
+| AUTH90713-183 | [pass] AP10-E derived status principal4 \| status=403 | pass |
+| AUTH90713-184 | [pass] AP10-E derived status redaction principal4 | pass |
+| AUTH90713-185 | [pass] DELETE /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| AUTH90713-186 | [pass] AP02/03 fallback and derived independent events | pass |
+| AUTH90713-187 | [pass] AP06 actual H264 generator \| exit=0 log=Setting pipeline to PAUSED ... Pipeline is PREROLLING ... Redistribute latency... Redistribute latency... Pipeline is PREROLLED ... Setting pipeline to PLAYING ... Redistribute latency... New clock: GstSystemClock Got EOS from element "pipeline0". EOS received - stopping pipeline... Execution ended after 0:00:00.221442042 Setting pipeline to NULL ... Freeing pipeline ...  | pass |
+| AUTH90713-188 | [pass] AP12 generated input bounded \| bytes=62334405 limitBytes=100663296 | pass |
+| AUTH90713-189 | [pass] POST /ops/api/sources \| status=201 | pass |
+| AUTH90713-190 | [pass] AP10-F successful POST identity | pass |
+| AUTH90713-191 | [pass] AP01 V1 identity seg-9201-1789080364436-1 | pass |
+| AUTH90713-192 | [pass] AP01 positive UTC/PTS seg-9201-1789080364436-1 | pass |
+| AUTH90713-193 | [pass] AP01 actual bytes SHA seg-9201-1789080364436-1 \| bytes=15581582 sha256=597460601fdfd9845232532e079fb97771fb457e41303f413ee0a7b3fae0d5b9 | pass |
+| AUTH90713-194 | [pass] AP01 V1 identity seg-9201-1789080365496-2 | pass |
+| AUTH90713-195 | [pass] AP01 positive UTC/PTS seg-9201-1789080365496-2 | pass |
+| AUTH90713-196 | [pass] AP01 actual bytes SHA seg-9201-1789080365496-2 \| bytes=31168171 sha256=742ca854cc86643a2e8f420f64d035771e038fc46ea704cd11997090b91492dc | pass |
+| AUTH90713-197 | [pass] AP01 V1 identity seg-9201-1789080367481-3 | pass |
+| AUTH90713-198 | [pass] AP01 positive UTC/PTS seg-9201-1789080367481-3 | pass |
+| AUTH90713-199 | [pass] AP01 actual bytes SHA seg-9201-1789080367481-3 \| bytes=15586426 sha256=ade5721590128bddedcf9c131b431a7d014f39071c9db87705a7ba342d6606fd | pass |
+| AUTH90713-200 | [pass] AP01 V1 identity seg-9201-1789080368480-4 | pass |
+| AUTH90713-201 | [pass] AP01 positive UTC/PTS seg-9201-1789080368480-4 | pass |
+| AUTH90713-202 | [pass] AP01 actual bytes SHA seg-9201-1789080368480-4 \| bytes=15581582 sha256=bf78957f227e29f03f343f09adfa491757aac51f66876c595772467d3b121e99 | pass |
+| AUTH90713-203 | [pass] AP06 each actual segment below reservation | pass |
+| AUTH90713-204 | [pass] AP06 actual total exceeds future quota \| count=4 bytes=77917761 oldest=seg-9201-1789080364436-1,seg-9201-1789080365496-2,seg-9201-1789080367481-3,seg-9201-1789080368480-4 | pass |
+| AUTH90713-205 | [pass] PUT /ops/api/sources/9201 \| status=200 | pass |
+| AUTH90713-206 | [pass] AP07 oldest deletion request independent order | pass |
+| AUTH90713-207 | [pass] AP07 durable completed seg-9201-1789080364436-1 | pass |
+| AUTH90713-208 | [pass] AP07 physical absent seg-9201-1789080364436-1 | pass |
+| AUTH90713-209 | [pass] AP07 durable completed seg-9201-1789080365496-2 | pass |
+| AUTH90713-210 | [pass] AP07 physical absent seg-9201-1789080365496-2 | pass |
+| AUTH90713-211 | [pass] AP07 durable completed seg-9201-1789080367481-3 | pass |
+| AUTH90713-212 | [pass] AP07 physical absent seg-9201-1789080367481-3 | pass |
+| AUTH90713-213 | [pass] AP07 durable completed seg-9201-1789080368480-4 | pass |
+| AUTH90713-214 | [pass] AP07 physical absent seg-9201-1789080368480-4 | pass |
+| AUTH90713-215 | [pass] AP08 new finalized then ordered deleted physical absence seg-9201-1789080369710-1 | pass |
+| AUTH90713-216 | [pass] AP08 new finalized then ordered deleted physical absence seg-9201-1789080371494-2 | pass |
+| AUTH90713-217 | [pass] AP08 actual recording resumes after quota deletion | pass |
+| AUTH90713-218 | [pass] PUT /ops/api/sources/9201 \| status=200 | pass |
+| AUTH90713-219 | [pass] AP08 restored quota new finalized | pass |
+| AUTH90713-220 | [pass] AP12 app0 exit0 \| exit=0 signal=null | pass |
+| AUTH90713-221 | [pass] AP01 V1 identity seg-9101-1789080338692-1 | pass |
+| AUTH90713-222 | [pass] AP01 positive UTC/PTS seg-9101-1789080338692-1 | pass |
+| AUTH90713-223 | [pass] AP01 actual bytes SHA seg-9101-1789080338692-1 \| bytes=4096788 sha256=b81a0927084744f10013e4cc2840a72fe7c08b95b5464bf765f5a1b57247e4f7 | pass |
+| AUTH90713-224 | [pass] AP01 V1 identity seg-9101-1789080347041-2 | pass |
+| AUTH90713-225 | [pass] AP01 positive UTC/PTS seg-9101-1789080347041-2 | pass |
+| AUTH90713-226 | [pass] AP01 actual bytes SHA seg-9101-1789080347041-2 \| bytes=4813100 sha256=f05493420b2f6080ce6f92511990347a7a820d9f6fb11c32be84a7f2506dc652 | pass |
+| AUTH90713-227 | [pass] AP01 V1 identity seg-9101-1789080355378-3 | pass |
+| AUTH90713-228 | [pass] AP01 positive UTC/PTS seg-9101-1789080355378-3 | pass |
+| AUTH90713-229 | [pass] AP01 actual bytes SHA seg-9101-1789080355378-3 \| bytes=5222837 sha256=fa5a5f87c75db439345e59173e704056d2de7196f111927d85f89869dbece39e | pass |
+| AUTH90713-230 | [pass] AP01 V1 identity event-seg-sha256-80877c8f54f0cec58a2e7fee1f36f591cfd2521d09b2c258a3c5285714333f07 | pass |
+| AUTH90713-231 | [pass] AP01 positive UTC/PTS event-seg-sha256-80877c8f54f0cec58a2e7fee1f36f591cfd2521d09b2c258a3c5285714333f07 | pass |
+| AUTH90713-232 | [pass] AP01 actual bytes SHA event-seg-sha256-80877c8f54f0cec58a2e7fee1f36f591cfd2521d09b2c258a3c5285714333f07 \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| AUTH90713-233 | [pass] AP01 V1 identity event-seg-sha256-81e8f87bf8938349022b5027514a9357400ccaac8726d5ff9df2f82e1adaa883 | pass |
+| AUTH90713-234 | [pass] AP01 positive UTC/PTS event-seg-sha256-81e8f87bf8938349022b5027514a9357400ccaac8726d5ff9df2f82e1adaa883 | pass |
+| AUTH90713-235 | [pass] AP01 actual bytes SHA event-seg-sha256-81e8f87bf8938349022b5027514a9357400ccaac8726d5ff9df2f82e1adaa883 \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| AUTH90713-236 | [pass] AP01 V1 identity event-seg-sha256-c493e6cc52fa5549de478f7bcae5953dac1f23efc27093c6a33081e737a5bc28 | pass |
+| AUTH90713-237 | [pass] AP01 positive UTC/PTS event-seg-sha256-c493e6cc52fa5549de478f7bcae5953dac1f23efc27093c6a33081e737a5bc28 | pass |
+| AUTH90713-238 | [pass] AP01 actual bytes SHA event-seg-sha256-c493e6cc52fa5549de478f7bcae5953dac1f23efc27093c6a33081e737a5bc28 \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| AUTH90713-239 | [pass] AP01 V1 identity event-seg-sha256-1fcd1a7206c78a6bb91e2e8933df84be54654716a04c142261d634027188a2ee | pass |
+| AUTH90713-240 | [pass] AP01 positive UTC/PTS event-seg-sha256-1fcd1a7206c78a6bb91e2e8933df84be54654716a04c142261d634027188a2ee | pass |
+| AUTH90713-241 | [pass] AP01 actual bytes SHA event-seg-sha256-1fcd1a7206c78a6bb91e2e8933df84be54654716a04c142261d634027188a2ee \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| AUTH90713-242 | [pass] AP01 V1 identity event-seg-sha256-0931fa2699ee00d795b35afc53ec7f34496e9b9b8ceb07e34ccd92fff9d97404 | pass |
+| AUTH90713-243 | [pass] AP01 positive UTC/PTS event-seg-sha256-0931fa2699ee00d795b35afc53ec7f34496e9b9b8ceb07e34ccd92fff9d97404 | pass |
+| AUTH90713-244 | [pass] AP01 actual bytes SHA event-seg-sha256-0931fa2699ee00d795b35afc53ec7f34496e9b9b8ceb07e34ccd92fff9d97404 \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| AUTH90713-245 | [pass] AP01 V1 identity event-seg-sha256-577e347a0dfcd7d2281d715ce076469b1338fc3599fc7aeeb16015b5a98c9685 | pass |
+| AUTH90713-246 | [pass] AP01 positive UTC/PTS event-seg-sha256-577e347a0dfcd7d2281d715ce076469b1338fc3599fc7aeeb16015b5a98c9685 | pass |
+| AUTH90713-247 | [pass] AP01 actual bytes SHA event-seg-sha256-577e347a0dfcd7d2281d715ce076469b1338fc3599fc7aeeb16015b5a98c9685 \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| AUTH90713-248 | [pass] AP01 V1 identity event-seg-sha256-d3af0b82686e326475bfd25735fb49a11729c2f0a51b1078f654bd625293e526 | pass |
+| AUTH90713-249 | [pass] AP01 positive UTC/PTS event-seg-sha256-d3af0b82686e326475bfd25735fb49a11729c2f0a51b1078f654bd625293e526 | pass |
+| AUTH90713-250 | [pass] AP01 actual bytes SHA event-seg-sha256-d3af0b82686e326475bfd25735fb49a11729c2f0a51b1078f654bd625293e526 \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| AUTH90713-251 | [pass] AP01 V1 identity event-seg-sha256-6c690d4bc145a083bb2473ee719c19ece1874c9c7bcd6d17645202d707d6b142 | pass |
+| AUTH90713-252 | [pass] AP01 positive UTC/PTS event-seg-sha256-6c690d4bc145a083bb2473ee719c19ece1874c9c7bcd6d17645202d707d6b142 | pass |
+| AUTH90713-253 | [pass] AP01 actual bytes SHA event-seg-sha256-6c690d4bc145a083bb2473ee719c19ece1874c9c7bcd6d17645202d707d6b142 \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| AUTH90713-254 | [pass] AP01 V1 identity seg-9101-1789080363711-4 | pass |
+| AUTH90713-255 | [pass] AP01 positive UTC/PTS seg-9101-1789080363711-4 | pass |
+| AUTH90713-256 | [pass] AP01 actual bytes SHA seg-9101-1789080363711-4 \| bytes=2940815 sha256=859eea135644980b58edbea62b2e6c3a01078a22712a7c965181dc85dfe011b7 | pass |
+| AUTH90713-257 | [pass] AP01 V1 identity seg-9201-1789080372486-3 | pass |
+| AUTH90713-258 | [pass] AP01 positive UTC/PTS seg-9201-1789080372486-3 | pass |
+| AUTH90713-259 | [pass] AP01 actual bytes SHA seg-9201-1789080372486-3 \| bytes=3636041 sha256=b775d4677f177ad683cadda509b2f62aad9995d372845b5de448cab115e917d8 | pass |
+| AUTH90713-260 | [pass] AP01 V1 identity seg-9201-1789080372679-1 | pass |
+| AUTH90713-261 | [pass] AP01 positive UTC/PTS seg-9201-1789080372679-1 | pass |
+| AUTH90713-262 | [pass] AP01 actual bytes SHA seg-9201-1789080372679-1 \| bytes=31167191 sha256=acd3eb868c537b92603713deb2d2ae5402f07a8c604c760c53e51311b075e2de | pass |
+| AUTH90713-263 | [pass] AP01 V1 identity seg-9201-1789080374511-2 | pass |
+| AUTH90713-264 | [pass] AP01 positive UTC/PTS seg-9201-1789080374511-2 | pass |
+| AUTH90713-265 | [pass] AP01 actual bytes SHA seg-9201-1789080374511-2 \| bytes=12465786 sha256=4cebb6c68c05f4f1aa5282435ad7a0f6a57257d4ef50224ba44a3cd1a0a80951 | pass |
+| AUTH90713-266 | [pass] AP01 V1 identity seg-9101-1789080368706-5 | pass |
+| AUTH90713-267 | [pass] AP01 positive UTC/PTS seg-9101-1789080368706-5 | pass |
+| AUTH90713-268 | [pass] AP01 actual bytes SHA seg-9101-1789080368706-5 \| bytes=3109810 sha256=2d4329513cc6036404ba86ef94e20c68e6ef272c273d1da70681fc94d7ff754b | pass |
+| AUTH90713-269 | [pass] AP12 distinct loopback ports | pass |
+| AUTH90713-270 | [pass] AP12 actual foreground healthy \| pid=21932 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-HdDn0C | pass |
+| AUTH90713-271 | [pass] AP10-B production login \| status=302 | pass |
+| AUTH90713-272 | [pass] AP10-B production login \| status=302 | pass |
+| AUTH90713-273 | [pass] AP10-B production login \| status=302 | pass |
+| AUTH90713-274 | [pass] AP10-B production login \| status=302 | pass |
+| AUTH90713-275 | [pass] AP10-B production login \| status=302 | pass |
+| AUTH90713-276 | [pass] AP10-B isolated users no plaintext credential | pass |
+| AUTH90713-277 | [pass] AP10-B restart relogin without setup | pass |
+| AUTH90713-278 | [pass] GET /ops/api/sources \| status=200 | pass |
+| AUTH90713-279 | [pass] AP10-F restart source IDs exact \| expected=["1","2","3","4","5","9101","9201"] observed=["1","2","3","4","5","9101","9201"] | pass |
+| AUTH90713-280 | [pass] AP09 restart actual new PID | pass |
+| AUTH90713-281 | [pass] AP10-C restart-continuous six byte fixture prefix | pass |
+| AUTH90713-282 | [pass] AP10-C restart-continuous principal0 literal Range206 | pass |
+| AUTH90713-283 | [pass] AP10-C restart-continuous principal1 literal Range206 | pass |
+| AUTH90713-284 | [pass] AP10-D restart-continuous unauth media denied \| status=401 | pass |
+| AUTH90713-285 | [pass] AP10-D restart-continuous unauth no sensitive media response | pass |
+| AUTH90713-286 | [pass] AP10-D restart-continuous other-channel media denied \| status=404 | pass |
+| AUTH90713-287 | [pass] AP10-D restart-continuous other-channel no sensitive media response | pass |
+| AUTH90713-288 | [pass] AP10-D restart-continuous viewer media denied \| status=403 | pass |
+| AUTH90713-289 | [pass] AP10-D restart-continuous viewer no sensitive media response | pass |
+| AUTH90713-290 | [pass] AP10-D restart-continuous no-ops media denied \| status=403 | pass |
+| AUTH90713-291 | [pass] AP10-D restart-continuous no-ops no sensitive media response | pass |
+| AUTH90713-292 | [pass] AP10-D restart-continuous other-channel known nonexistent indistinguishable | pass |
+| AUTH90713-293 | [pass] AP10-D restart-continuous admin timeline200 | pass |
+| AUTH90713-294 | [pass] AP10-D restart-continuous admin timeline channel scope | pass |
+| AUTH90713-295 | [pass] AP10-D restart-continuous allowed timeline200 | pass |
+| AUTH90713-296 | [pass] AP10-D restart-continuous allowed timeline channel scope | pass |
+| AUTH90713-297 | [pass] AP10-D restart-continuous unauth timeline401 | pass |
+| AUTH90713-298 | [pass] AP10-D restart-continuous other-channel timeline403 | pass |
+| AUTH90713-299 | [pass] AP10-D restart-continuous viewer timeline403 | pass |
+| AUTH90713-300 | [pass] AP10-D restart-continuous no-ops timeline403 | pass |
+| AUTH90713-301 | [pass] AP10-E restart-continuous unauth status401 | pass |
+| AUTH90713-302 | [pass] AP10-E restart-continuous status principal0 \| status=200 | pass |
+| AUTH90713-303 | [pass] AP10-E restart-continuous status redaction principal0 | pass |
+| AUTH90713-304 | [pass] AP10-E restart-continuous exact scope channels principal0 \| expected=["1","2","3","4","5","9101","9201"] observed=["1","2","3","4","5","9101","9201"] | pass |
+| AUTH90713-305 | [pass] AP10-E restart-continuous status principal1 \| status=200 | pass |
+| AUTH90713-306 | [pass] AP10-E restart-continuous status redaction principal1 | pass |
+| AUTH90713-307 | [pass] AP10-E restart-continuous exact scope channels principal1 \| expected=["9101"] observed=["9101"] | pass |
+| AUTH90713-308 | [pass] AP10-E restart-continuous no global observations principal1 | pass |
+| AUTH90713-309 | [pass] AP10-E restart-continuous status principal2 \| status=200 | pass |
+| AUTH90713-310 | [pass] AP10-E restart-continuous status redaction principal2 | pass |
+| AUTH90713-311 | [pass] AP10-E restart-continuous exact scope channels principal2 \| expected=["9201"] observed=["9201"] | pass |
+| AUTH90713-312 | [pass] AP10-E restart-continuous no global observations principal2 | pass |
+| AUTH90713-313 | [pass] AP10-E restart-continuous status principal3 \| status=403 | pass |
+| AUTH90713-314 | [pass] AP10-E restart-continuous status redaction principal3 | pass |
+| AUTH90713-315 | [pass] AP10-E restart-continuous status principal4 \| status=403 | pass |
+| AUTH90713-316 | [pass] AP10-E restart-continuous status redaction principal4 | pass |
+| AUTH90713-317 | [pass] AP10-C restart-fallback six byte fixture prefix | pass |
+| AUTH90713-318 | [pass] AP10-C restart-fallback principal0 literal Range206 | pass |
+| AUTH90713-319 | [pass] AP10-C restart-fallback principal1 literal Range206 | pass |
+| AUTH90713-320 | [pass] AP10-D restart-fallback unauth media denied \| status=401 | pass |
+| AUTH90713-321 | [pass] AP10-D restart-fallback unauth no sensitive media response | pass |
+| AUTH90713-322 | [pass] AP10-D restart-fallback other-channel media denied \| status=404 | pass |
+| AUTH90713-323 | [pass] AP10-D restart-fallback other-channel no sensitive media response | pass |
+| AUTH90713-324 | [pass] AP10-D restart-fallback viewer media denied \| status=403 | pass |
+| AUTH90713-325 | [pass] AP10-D restart-fallback viewer no sensitive media response | pass |
+| AUTH90713-326 | [pass] AP10-D restart-fallback no-ops media denied \| status=403 | pass |
+| AUTH90713-327 | [pass] AP10-D restart-fallback no-ops no sensitive media response | pass |
+| AUTH90713-328 | [pass] AP10-D restart-fallback other-channel known nonexistent indistinguishable | pass |
+| AUTH90713-329 | [pass] AP10-D restart-fallback admin timeline200 | pass |
+| AUTH90713-330 | [pass] AP10-D restart-fallback admin timeline channel scope | pass |
+| AUTH90713-331 | [pass] AP10-D restart-fallback allowed timeline200 | pass |
+| AUTH90713-332 | [pass] AP10-D restart-fallback allowed timeline channel scope | pass |
+| AUTH90713-333 | [pass] AP10-D restart-fallback unauth timeline401 | pass |
+| AUTH90713-334 | [pass] AP10-D restart-fallback other-channel timeline403 | pass |
+| AUTH90713-335 | [pass] AP10-D restart-fallback viewer timeline403 | pass |
+| AUTH90713-336 | [pass] AP10-D restart-fallback no-ops timeline403 | pass |
+| AUTH90713-337 | [pass] AP10-E restart-fallback unauth status401 | pass |
+| AUTH90713-338 | [pass] AP10-E restart-fallback status principal0 \| status=200 | pass |
+| AUTH90713-339 | [pass] AP10-E restart-fallback status redaction principal0 | pass |
+| AUTH90713-340 | [pass] AP10-E restart-fallback exact scope channels principal0 \| expected=["1","2","3","4","5","9101","9201"] observed=["1","2","3","4","5","9101","9201"] | pass |
+| AUTH90713-341 | [pass] AP10-E restart-fallback status principal1 \| status=200 | pass |
+| AUTH90713-342 | [pass] AP10-E restart-fallback status redaction principal1 | pass |
+| AUTH90713-343 | [pass] AP10-E restart-fallback exact scope channels principal1 \| expected=["9101"] observed=["9101"] | pass |
+| AUTH90713-344 | [pass] AP10-E restart-fallback no global observations principal1 | pass |
+| AUTH90713-345 | [pass] AP10-E restart-fallback status principal2 \| status=200 | pass |
+| AUTH90713-346 | [pass] AP10-E restart-fallback status redaction principal2 | pass |
+| AUTH90713-347 | [pass] AP10-E restart-fallback exact scope channels principal2 \| expected=["9201"] observed=["9201"] | pass |
+| AUTH90713-348 | [pass] AP10-E restart-fallback no global observations principal2 | pass |
+| AUTH90713-349 | [pass] AP10-E restart-fallback status principal3 \| status=403 | pass |
+| AUTH90713-350 | [pass] AP10-E restart-fallback status redaction principal3 | pass |
+| AUTH90713-351 | [pass] AP10-E restart-fallback status principal4 \| status=403 | pass |
+| AUTH90713-352 | [pass] AP10-E restart-fallback status redaction principal4 | pass |
+| AUTH90713-353 | [pass] AP10-C restart-derived six byte fixture prefix | pass |
+| AUTH90713-354 | [pass] AP10-C restart-derived principal0 literal Range206 | pass |
+| AUTH90713-355 | [pass] AP10-C restart-derived principal1 literal Range206 | pass |
+| AUTH90713-356 | [pass] AP10-D restart-derived unauth media denied \| status=401 | pass |
+| AUTH90713-357 | [pass] AP10-D restart-derived unauth no sensitive media response | pass |
+| AUTH90713-358 | [pass] AP10-D restart-derived other-channel media denied \| status=404 | pass |
+| AUTH90713-359 | [pass] AP10-D restart-derived other-channel no sensitive media response | pass |
+| AUTH90713-360 | [pass] AP10-D restart-derived viewer media denied \| status=403 | pass |
+| AUTH90713-361 | [pass] AP10-D restart-derived viewer no sensitive media response | pass |
+| AUTH90713-362 | [pass] AP10-D restart-derived no-ops media denied \| status=403 | pass |
+| AUTH90713-363 | [pass] AP10-D restart-derived no-ops no sensitive media response | pass |
+| AUTH90713-364 | [pass] AP10-D restart-derived other-channel known nonexistent indistinguishable | pass |
+| AUTH90713-365 | [pass] AP10-D restart-derived admin timeline200 | pass |
+| AUTH90713-366 | [pass] AP10-D restart-derived admin timeline channel scope | pass |
+| AUTH90713-367 | [pass] AP10-D restart-derived allowed timeline200 | pass |
+| AUTH90713-368 | [pass] AP10-D restart-derived allowed timeline channel scope | pass |
+| AUTH90713-369 | [pass] AP10-D restart-derived unauth timeline401 | pass |
+| AUTH90713-370 | [pass] AP10-D restart-derived other-channel timeline403 | pass |
+| AUTH90713-371 | [pass] AP10-D restart-derived viewer timeline403 | pass |
+| AUTH90713-372 | [pass] AP10-D restart-derived no-ops timeline403 | pass |
+| AUTH90713-373 | [pass] AP10-E restart-derived unauth status401 | pass |
+| AUTH90713-374 | [pass] AP10-E restart-derived status principal0 \| status=200 | pass |
+| AUTH90713-375 | [pass] AP10-E restart-derived status redaction principal0 | pass |
+| AUTH90713-376 | [pass] AP10-E restart-derived exact scope channels principal0 \| expected=["1","2","3","4","5","9101","9201"] observed=["1","2","3","4","5","9101","9201"] | pass |
+| AUTH90713-377 | [pass] AP10-E restart-derived status principal1 \| status=200 | pass |
+| AUTH90713-378 | [pass] AP10-E restart-derived status redaction principal1 | pass |
+| AUTH90713-379 | [pass] AP10-E restart-derived exact scope channels principal1 \| expected=["9101"] observed=["9101"] | pass |
+| AUTH90713-380 | [pass] AP10-E restart-derived no global observations principal1 | pass |
+| AUTH90713-381 | [pass] AP10-E restart-derived status principal2 \| status=200 | pass |
+| AUTH90713-382 | [pass] AP10-E restart-derived status redaction principal2 | pass |
+| AUTH90713-383 | [pass] AP10-E restart-derived exact scope channels principal2 \| expected=["9201"] observed=["9201"] | pass |
+| AUTH90713-384 | [pass] AP10-E restart-derived no global observations principal2 | pass |
+| AUTH90713-385 | [pass] AP10-E restart-derived status principal3 \| status=403 | pass |
+| AUTH90713-386 | [pass] AP10-E restart-derived status redaction principal3 | pass |
+| AUTH90713-387 | [pass] AP10-E restart-derived status principal4 \| status=403 | pass |
+| AUTH90713-388 | [pass] AP10-E restart-derived status redaction principal4 | pass |
+| AUTH90713-389 | [pass] AP09 immutable segment seg-9101-1789080338692-1 | pass |
+| AUTH90713-390 | [pass] AP09 immutable segment seg-9101-1789080347041-2 | pass |
+| AUTH90713-391 | [pass] AP09 immutable segment seg-9101-1789080355378-3 | pass |
+| AUTH90713-392 | [pass] AP09 immutable segment event-seg-sha256-80877c8f54f0cec58a2e7fee1f36f591cfd2521d09b2c258a3c5285714333f07 | pass |
+| AUTH90713-393 | [pass] AP09 immutable segment event-seg-sha256-81e8f87bf8938349022b5027514a9357400ccaac8726d5ff9df2f82e1adaa883 | pass |
+| AUTH90713-394 | [pass] AP09 immutable segment event-seg-sha256-c493e6cc52fa5549de478f7bcae5953dac1f23efc27093c6a33081e737a5bc28 | pass |
+| AUTH90713-395 | [pass] AP09 immutable segment event-seg-sha256-1fcd1a7206c78a6bb91e2e8933df84be54654716a04c142261d634027188a2ee | pass |
+| AUTH90713-396 | [pass] AP09 immutable segment event-seg-sha256-0931fa2699ee00d795b35afc53ec7f34496e9b9b8ceb07e34ccd92fff9d97404 | pass |
+| AUTH90713-397 | [pass] AP09 immutable segment event-seg-sha256-577e347a0dfcd7d2281d715ce076469b1338fc3599fc7aeeb16015b5a98c9685 | pass |
+| AUTH90713-398 | [pass] AP09 immutable segment event-seg-sha256-d3af0b82686e326475bfd25735fb49a11729c2f0a51b1078f654bd625293e526 | pass |
+| AUTH90713-399 | [pass] AP09 immutable segment event-seg-sha256-6c690d4bc145a083bb2473ee719c19ece1874c9c7bcd6d17645202d707d6b142 | pass |
+| AUTH90713-400 | [pass] AP09 immutable segment seg-9201-1789080364436-1 | pass |
+| AUTH90713-401 | [pass] AP09 immutable segment seg-9201-1789080365496-2 | pass |
+| AUTH90713-402 | [pass] AP09 immutable segment seg-9201-1789080367481-3 | pass |
+| AUTH90713-403 | [pass] AP09 immutable segment seg-9101-1789080363711-4 | pass |
+| AUTH90713-404 | [pass] AP09 immutable segment seg-9201-1789080368480-4 | pass |
+| AUTH90713-405 | [pass] AP09 immutable segment seg-9201-1789080369505-5 | pass |
+| AUTH90713-406 | [pass] AP09 immutable segment seg-9201-1789080369710-1 | pass |
+| AUTH90713-407 | [pass] AP09 immutable segment seg-9201-1789080371494-2 | pass |
+| AUTH90713-408 | [pass] AP09 immutable segment seg-9201-1789080372486-3 | pass |
+| AUTH90713-409 | [pass] AP09 immutable segment seg-9201-1789080372679-1 | pass |
+| AUTH90713-410 | [pass] AP09 immutable segment seg-9201-1789080374511-2 | pass |
+| AUTH90713-411 | [pass] AP09 immutable segment seg-9101-1789080368706-5 | pass |
+| AUTH90713-412 | [pass] AP09 immutable media SHA seg-9101-1789080338692-1 | pass |
+| AUTH90713-413 | [pass] AP09 immutable media SHA seg-9101-1789080347041-2 | pass |
+| AUTH90713-414 | [pass] AP09 immutable media SHA seg-9101-1789080355378-3 | pass |
+| AUTH90713-415 | [pass] AP09 immutable media SHA event-seg-sha256-80877c8f54f0cec58a2e7fee1f36f591cfd2521d09b2c258a3c5285714333f07 | pass |
+| AUTH90713-416 | [pass] AP09 immutable media SHA event-seg-sha256-81e8f87bf8938349022b5027514a9357400ccaac8726d5ff9df2f82e1adaa883 | pass |
+| AUTH90713-417 | [pass] AP09 immutable media SHA event-seg-sha256-c493e6cc52fa5549de478f7bcae5953dac1f23efc27093c6a33081e737a5bc28 | pass |
+| AUTH90713-418 | [pass] AP09 immutable media SHA event-seg-sha256-1fcd1a7206c78a6bb91e2e8933df84be54654716a04c142261d634027188a2ee | pass |
+| AUTH90713-419 | [pass] AP09 immutable media SHA event-seg-sha256-0931fa2699ee00d795b35afc53ec7f34496e9b9b8ceb07e34ccd92fff9d97404 | pass |
+| AUTH90713-420 | [pass] AP09 immutable media SHA event-seg-sha256-577e347a0dfcd7d2281d715ce076469b1338fc3599fc7aeeb16015b5a98c9685 | pass |
+| AUTH90713-421 | [pass] AP09 immutable media SHA event-seg-sha256-d3af0b82686e326475bfd25735fb49a11729c2f0a51b1078f654bd625293e526 | pass |
+| AUTH90713-422 | [pass] AP09 immutable media SHA event-seg-sha256-6c690d4bc145a083bb2473ee719c19ece1874c9c7bcd6d17645202d707d6b142 | pass |
+| AUTH90713-423 | [pass] AP09 immutable media SHA seg-9101-1789080363711-4 | pass |
+| AUTH90713-424 | [pass] AP09 immutable media SHA seg-9201-1789080372486-3 | pass |
+| AUTH90713-425 | [pass] AP09 immutable media SHA seg-9201-1789080372679-1 | pass |
+| AUTH90713-426 | [pass] AP09 immutable media SHA seg-9201-1789080374511-2 | pass |
+| AUTH90713-427 | [pass] AP09 immutable media SHA seg-9101-1789080368706-5 | pass |
+| AUTH90713-428 | [pass] AP09 immutable links evt_1789080347464_2 | pass |
+| AUTH90713-429 | [pass] AP09 immutable links evt_1789080347465_3 | pass |
+| AUTH90713-430 | [pass] AP09 immutable links evt_1789080347466_4 | pass |
+| AUTH90713-431 | [pass] AP09 immutable links evt_1789080347467_5 | pass |
+| AUTH90713-432 | [pass] AP09 immutable links evt_1789080356326_76 | pass |
+| AUTH90713-433 | [pass] AP09 immutable links evt_1789080356327_77 | pass |
+| AUTH90713-434 | [pass] AP09 immutable links evt_1789080356327_78 | pass |
+| AUTH90713-435 | [pass] AP09 immutable links evt_1789080356328_79 | pass |
+| AUTH90713-436 | [pass] AP09 immutable links evt_1789080356329_80 | pass |
+| AUTH90713-437 | [pass] AP09 immutable links evt_1789080356330_81 | pass |
+| AUTH90713-438 | [pass] AP09 immutable links evt_1789080356330_82 | pass |
+| AUTH90713-439 | [pass] AP09 immutable links evt_1789080356330_83 | pass |
+| AUTH90713-440 | [pass] AP09 immutable observations obs-33c185d8c22468392eecf8ff24fe4e9c | pass |
+| AUTH90713-441 | [pass] AP09 immutable observations obs-31909412772c335cc204a6e6bf0174e5 | pass |
+| AUTH90713-442 | [pass] AP09 immutable observations obs-513929ab760cda0fb5ffd17567a123f6 | pass |
+| AUTH90713-443 | [pass] AP09 immutable observations obs-a9cf6e8116e00402e432d00638527aef | pass |
+| AUTH90713-444 | [pass] AP09 immutable observations obs-1633d0d249b8b338ef5801782f264fcd | pass |
+| AUTH90713-445 | [pass] AP09 immutable observations obs-fed26cd82bda024dde583ed270f8dec4 | pass |
+| AUTH90713-446 | [pass] AP09 immutable observations obs-daf347c4731637c6c84ca7513f39df8f | pass |
+| AUTH90713-447 | [pass] AP09 immutable observations obs-1a065272a2c595bbfdee92fc2afe18c6 | pass |
+| AUTH90713-448 | [pass] AP09 immutable observations obs-3e5c18abdabfaddf3c20bfb98d8e9d0c | pass |
+| AUTH90713-449 | [pass] AP09 immutable observations obs-bb1665cb7f80835074c37cd28cee4dcb | pass |
+| AUTH90713-450 | [pass] AP09 immutable observations obs-15442cab203de025833d16fc56db3e86 | pass |
+| AUTH90713-451 | [pass] AP09 immutable observations obs-d1871710e1b1a8eeba73ecf48a01c5ed | pass |
+| AUTH90713-452 | [pass] AP09 immutable observations obs-4ce5bae992914b49db4bf70e8aa024fe | pass |
+| AUTH90713-453 | [pass] AP09 immutable observations obs-eab22f619b69828e3b9add3a97702241 | pass |
+| AUTH90713-454 | [pass] AP09 immutable observations obs-aad6f01cb54567676f0540568744d7f0 | pass |
+| AUTH90713-455 | [pass] AP09 immutable observations obs-193d5c2566b2cf848a2c1ba48106897b | pass |
+| AUTH90713-456 | [pass] AP09 immutable observations obs-45e1cbf9f67f23c293d2acd4ad6cf59d | pass |
+| AUTH90713-457 | [pass] AP09 immutable observations obs-ba79efc301d3c515ec4be650d7cb6ab2 | pass |
+| AUTH90713-458 | [pass] AP09 immutable observations obs-a837a7424cb5f70c8d357193eaa2c303 | pass |
+| AUTH90713-459 | [pass] AP09 immutable observations obs-a59e7480206ea22fbf7d90d19e7604d8 | pass |
+| AUTH90713-460 | [pass] AP09 immutable observations obs-b4a100383a74ffd2ebfa1eae8d5cba6d | pass |
+| AUTH90713-461 | [pass] AP09 immutable observations obs-e05d12186b8f6039940fc508f9dda226 | pass |
+| AUTH90713-462 | [pass] AP09 immutable observations obs-46693e49fcfe56181635a23e6271719f | pass |
+| AUTH90713-463 | [pass] AP09 immutable observations obs-b1468cefa4caeb1fcf29d3870e101188 | pass |
+| AUTH90713-464 | [pass] AP09 immutable observations obs-360e5bea5621418eef64d0f707de04f5 | pass |
+| AUTH90713-465 | [pass] AP09 immutable observations obs-40dec55b03d8552d9f61477cc684068e | pass |
+| AUTH90713-466 | [pass] AP09 immutable observations obs-95ea7c26a5292f67a8b5626f4cf146ec | pass |
+| AUTH90713-467 | [pass] AP09 immutable observations obs-3739b1c67282240ccae3937d94cb087f | pass |
+| AUTH90713-468 | [pass] AP09 immutable observations obs-e07b7f5f0220edf4903e4503991c286b | pass |
+| AUTH90713-469 | [pass] AP09 immutable observations obs-87ae45a6265c8ba19f6b746cbd1251ba | pass |
+| AUTH90713-470 | [pass] AP09 immutable observations obs-ccb79dfd9a6a3967e210abb67651cbdc | pass |
+| AUTH90713-471 | [pass] AP09 immutable observations obs-c9a49efaf92d5b87385c1445fd99b28c | pass |
+| AUTH90713-472 | [pass] AP09 immutable observations obs-62a8cdfd58730aa0e0a9e24e76e0ba73 | pass |
+| AUTH90713-473 | [pass] AP09 immutable observations obs-90c20c05047525501b09fffd0bac7aef | pass |
+| AUTH90713-474 | [pass] AP09 immutable observations obs-1f1146641166f66cb8b410d7f892b337 | pass |
+| AUTH90713-475 | [pass] AP09 immutable observations obs-a35f6215134d5e26694b1424378c53e5 | pass |
+| AUTH90713-476 | [pass] AP09 immutable observations obs-301961cac2ced309fcd6fef1dfe239aa | pass |
+| AUTH90713-477 | [pass] AP09 immutable observations obs-f93c8351d37366bbb0549a2ac364bb50 | pass |
+| AUTH90713-478 | [pass] AP09 immutable observations obs-44bae82c05e3c9153659115dcf1864da | pass |
+| AUTH90713-479 | [pass] AP09 immutable observations obs-3c24d6d7f45cc3062d71477c14b4bea9 | pass |
+| AUTH90713-480 | [pass] AP09 immutable observations obs-99e094df69526eaf70502ea4ee9e3ff8 | pass |
+| AUTH90713-481 | [pass] AP09 immutable observations obs-f52bcf6a8e1420d81cc5e2fb6cc477cf | pass |
+| AUTH90713-482 | [pass] AP09 immutable observations obs-abd2ae13688b66fb7909e1e2fa8156a8 | pass |
+| AUTH90713-483 | [pass] AP09 immutable observations obs-847dddcc468ad6e0c8c418afd80f8dbb | pass |
+| AUTH90713-484 | [pass] AP09 immutable observations obs-c783d8f57c0b7865dce96257ecb7b2d6 | pass |
+| AUTH90713-485 | [pass] AP09 immutable observations obs-ff08fff13ce29d82276496f670bd45d1 | pass |
+| AUTH90713-486 | [pass] AP09 immutable observations obs-54d46ed3d19461581320fded1b1c2f4b | pass |
+| AUTH90713-487 | [pass] AP09 immutable observations obs-60d18b36ddaf2503481c4e0f7889e128 | pass |
+| AUTH90713-488 | [pass] AP09 immutable observations obs-bbb0696d48e6953e695df126f565d7fd | pass |
+| AUTH90713-489 | [pass] AP09 immutable observations obs-124a403fd839f3b1798ce9ea17e06642 | pass |
+| AUTH90713-490 | [pass] AP09 immutable observations obs-e17d83f038eaa644aceeb2a16083f3af | pass |
+| AUTH90713-491 | [pass] AP09 immutable observations obs-15dd467a23741a9b63d4897c887f4ba0 | pass |
+| AUTH90713-492 | [pass] AP09 immutable observations obs-291fde993813bfdedca0826909b4289d | pass |
+| AUTH90713-493 | [pass] AP09 immutable observations obs-e8e815c3f317f3ddc1c6d5225a756576 | pass |
+| AUTH90713-494 | [pass] AP09 immutable observations obs-0b9e54caf0f31a6fa2242ef1ee07c3c0 | pass |
+| AUTH90713-495 | [pass] AP09 immutable observations obs-2ad1367902339ba4dfa73ab1751942a3 | pass |
+| AUTH90713-496 | [pass] AP09 immutable observations obs-455ad5278d9d744582f90e194a7e236a | pass |
+| AUTH90713-497 | [pass] AP09 immutable observations obs-50dd7d39e49691e20fbf02909f3097c5 | pass |
+| AUTH90713-498 | [pass] AP09 immutable observations obs-96b17ec890f64a2295ab2ef06800cedd | pass |
+| AUTH90713-499 | [pass] AP09 immutable observations obs-2d0151c5005682a1ee54d0d3af4f5a16 | pass |
+| AUTH90713-500 | [pass] AP09 immutable observations obs-19d81cf73de404882e7f7ab6d631f017 | pass |
+| AUTH90713-501 | [pass] AP09 immutable observations obs-105c7e25026187dfc5076b6bfb95a338 | pass |
+| AUTH90713-502 | [pass] AP09 immutable observations obs-d1a8c5fbac95a7973df941d54822764c | pass |
+| AUTH90713-503 | [pass] AP09 immutable observations obs-fb84ac4bcb1554dcefbb7b53c49b5c97 | pass |
+| AUTH90713-504 | [pass] AP09 immutable observations obs-7d76f94ac48c00c9d04ca85a080dd77a | pass |
+| AUTH90713-505 | [pass] AP09 immutable observations obs-c5a87f0a4e76e6ee87a873ab4210a735 | pass |
+| AUTH90713-506 | [pass] AP09 immutable observations obs-32fa0602746f6c232213e643417ab234 | pass |
+| AUTH90713-507 | [pass] AP09 immutable observations obs-d35f5adf2b4ddcc86eff313dbc14e4a7 | pass |
+| AUTH90713-508 | [pass] AP09 immutable observations obs-ddb6dc222d89e2e1f3a1178d03828166 | pass |
+| AUTH90713-509 | [pass] AP09 immutable observations obs-fe2d4877448573569f16f91ce62c39c9 | pass |
+| AUTH90713-510 | [pass] AP09 immutable observations obs-2202d1dfd1bf4de6921b4fca8171ba6b | pass |
+| AUTH90713-511 | [pass] AP09 immutable observations obs-f47606d0a4aecacfec6e8b803f4bd0d6 | pass |
+| AUTH90713-512 | [pass] AP09 immutable observations obs-299f3a683f90329c3cfeec21d35ad01d | pass |
+| AUTH90713-513 | [pass] AP09 immutable observations obs-9befc781a640c9ad5e0bfe69d5daaa70 | pass |
+| AUTH90713-514 | [pass] AP09 immutable observations obs-17dfb99b7586141623b98adc4026a3d1 | pass |
+| AUTH90713-515 | [pass] AP09 immutable observations obs-358f0669ed5ead456983c137442ae61a | pass |
+| AUTH90713-516 | [pass] AP09 immutable observations obs-a7a8593b44d21494d09b2741f1f30283 | pass |
+| AUTH90713-517 | [pass] AP09 immutable observations obs-8b3e525cdbb5ca530733b805d482ef3c | pass |
+| AUTH90713-518 | [pass] AP09 immutable tombstones seg-9201-1789080364436-1 | pass |
+| AUTH90713-519 | [pass] AP09 immutable tombstones seg-9201-1789080365496-2 | pass |
+| AUTH90713-520 | [pass] AP09 immutable tombstones seg-9201-1789080367481-3 | pass |
+| AUTH90713-521 | [pass] AP09 immutable tombstones seg-9201-1789080368480-4 | pass |
+| AUTH90713-522 | [pass] AP09 immutable tombstones seg-9201-1789080369505-5 | pass |
+| AUTH90713-523 | [pass] AP09 immutable tombstones seg-9201-1789080369710-1 | pass |
+| AUTH90713-524 | [pass] AP09 immutable tombstones seg-9201-1789080371494-2 | pass |
+| AUTH90713-525 | [pass] AP09 duplicate mutation IDs zero | pass |
+| AUTH90713-526 | [pass] AP09 actual post-restart finalized | pass |
+| AUTH90713-527 | [pass] AP12 app2 exit0 \| exit=0 signal=null | pass |
+| AUTH90713-528 | [pass] AP12 root below 512MiB cap \| bytes=328175375 | pass |
+| AUTH90713-529 | [pass] AP10 required suite coverage complete | pass |
+| AUTH90713-530 | [pass] AP12 port absent 49620 | pass |
+| AUTH90713-531 | [pass] AP12 port absent 49621 | pass |
+| AUTH90713-532 | [pass] AP12 port absent 49756 | pass |
+| AUTH90713-533 | [pass] AP12 port absent 49757 | pass |
+| AUTH90713-534 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-HdDn0C bytes=328175375 absent=true | pass |
+| AUTH90713-535 | [pass] AP wrapper completed and cleanup absent | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-HdDn0C | 격리 앱·인증 해시계정·미디어 | 328175375bytes | 실행 wrapper 정리 | absent=true | 원출력 AP12 root cleanup |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.VGtFrI | GST registry | 62691bytes | 실행 wrapper 정리 | absent=true | 원출력 cleanup |
+| /private/tmp/s09-auth-output.YcGtpu | 인증 실행 원로그 | 62453bytes | 535결과와 보존 행을 메인이 전수 문자열 대조 후 unlink | 삭제 완료, absent=true | exactRowsMatched=535, logDeleted=true |
+
+4포트49620/49621/49756/49757 부재는 위 개별 원출력에 보존했다. 이관 담당자는 새 서버/검증을 실행하지 않았으며 제품·스크립트·장시간 코드는 동결했다.
+
+| 미실행 항목 | 수행내용 | 사유·완료 evidence 사용 여부 |
+| --- | --- | --- |
+| 30분 | 버전 장시간 안정화 | 이번 실행 범위 밖·미실행, 완료 evidence 아님 |
+| 120분 | 녹화 직접/기존 predev 장시간 | 이번 실행 범위 밖·미실행, 완료 evidence 아님 |
+| UI 풀테스트 | 실제 UI 조작/시각 검증 | 이번 API 인증 결과로 대체 불가·미실행 |
+
+
+## S09 AP10-F 순수 검증기 보완 결과
+
+생산 route `src/ingress/webrtc_http_server_runtime.cpp:3161` GET SourcesJson 및 `source_view_registry.cpp:1946` sources/sourceId 목록, numeric sourceId 검증756행을 대조했다. 인증 모드에서 독립 admin source 목록을 초기집합으로 고정하고 성공 POST 응답 ID를 요청과 대조해 추가한다. 재시작은 새 목록으로 기대값을 덮지 않고 exact 비교한다. recording/status 자체를 기대집합으로 쓰지 않으며 권한외/누락/중복 ID는 거부한다. 신규 실제 항목 initial IDs/POST identity/restart exact는 auth 필수 coverage에도 포함했다. 실제 앱은 미실행이므로40595 원인 가설 해소 PASS를 주장하지 않는다.
+
+명령 `node scripts/internal/recording_foundation_source_scope.test.mjs`: RED exit1/7pass8fail/3ms → GREEN exit0/15pass0fail/0ms. 최초8fail은 stub 미구현 요구사항이며 부정case7pass는 단독 완성 근거가 아니다. `node scripts/internal/recording_foundation_auth_helpers.test.mjs` 기존24pass0fail/83ms. JS syntax 및 diffcheck exit0. token start/end/consumed 미집계(개별 명령 자동집계 없음). 실제 앱/GST/빌드/longrun/UI/추가auth 미실행.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| AP10-F seeded initial IDs | RED fail 이후 동일 검사 GREEN pass | pass |
+| AP10-F admin seeded extra allowed | RED fail 이후 동일 검사 GREEN pass | pass |
+| AP10-F allowed scope exact | RED fail 이후 동일 검사 GREEN pass | pass |
+| AP10-F other absent scope empty | RED fail 이후 동일 검사 GREEN pass | pass |
+| AP10-F missing rejected | RED pass 이후 동일 검사 GREEN pass | pass |
+| AP10-F duplicate rejected | RED pass 이후 동일 검사 GREEN pass | pass |
+| AP10-F invalid ID rejected | RED pass 이후 동일 검사 GREEN pass | pass |
+| AP10-F unauthorized extra rejected | RED pass 이후 동일 검사 GREEN pass | pass |
+| AP10-F missing sources rejected | RED fail 이후 동일 검사 GREEN pass | pass |
+| AP10-F duplicate initial IDs rejected | RED fail 이후 동일 검사 GREEN pass | pass |
+| AP10-F restart exact accepted | RED fail 이후 동일 검사 GREEN pass | pass |
+| AP10-F restart missing rejected | RED pass 이후 동일 검사 GREEN pass | pass |
+| AP10-F restart extra rejected | RED pass 이후 동일 검사 GREEN pass | pass |
+| AP10-F successful POST tracked | RED fail 이후 동일 검사 GREEN pass | pass |
+| AP10-F invalid scope rejected | RED pass 이후 동일 검사 GREEN pass | pass |
+| 기존 auth helper missing credentials rejected | 실제 순수 회귀 실행 | pass |
+| 기존 auth helper five distinct valid values | 실제 순수 회귀 실행 | pass |
+| 기존 auth helper rejects missing | 실제 순수 회귀 실행 | pass |
+| 기존 auth helper rejects nonstring | 실제 순수 회귀 실행 | pass |
+| 기존 auth helper rejects short | 실제 순수 회귀 실행 | pass |
+| 기존 auth helper rejects duplicate | 실제 순수 회귀 실행 | pass |
+| 기존 auth helper errors contain no secret | 실제 순수 회귀 실행 | pass |
+| 기존 auth helper explicit cookie replaces ambient cookie | 실제 순수 회귀 실행 | pass |
+| 기존 auth helper explicit unauth removes cookie | 실제 순수 회귀 실행 | pass |
+| 기존 auth helper redirect always manual | 실제 순수 회귀 실행 | pass |
+| 기존 auth helper Range header preserved | 실제 순수 회귀 실행 | pass |
+| 기존 auth helper lowercase cookie removed | 실제 순수 회귀 실행 | pass |
+| 기존 auth helper Headers cookie removed and content type preserved | 실제 순수 회귀 실행 | pass |
+| 기존 auth helper redacts password and cookie | 실제 순수 회귀 실행 | pass |
+| 기존 auth helper overlapping secrets order0 | 실제 순수 회귀 실행 | pass |
+| 기존 auth helper overlapping secrets order1 | 실제 순수 회귀 실행 | pass |
+| 기존 auth helper wrapper missing before GST root or app | 실제 순수 회귀 실행 | pass |
+| 기존 auth helper wrapper short before GST root or app | 실제 순수 회귀 실행 | pass |
+| 기존 auth helper wrapper duplicate before GST root or app | 실제 순수 회귀 실행 | pass |
+| 기존 auth helper timeline allowed nonempty | 실제 순수 회귀 실행 | pass |
+| 기존 auth helper timeline empty denied | 실제 순수 회귀 실행 | pass |
+| 기존 auth helper timeline other channel denied | 실제 순수 회귀 실행 | pass |
+| 기존 auth helper coverage one missing denied | 실제 순수 회귀 실행 | pass |
+| 기존 auth helper coverage complete accepted | 실제 순수 회귀 실행 | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/tmp/s09-auth-output.1l6lqJ | 메인 auth 원로그 | 13931bytes | 전수 이관 후 unlink | absent=true | lstat ENOENT |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-FyHrY7 | 격리 앱/해시계정/미디어 | 23821642bytes | 원래 wrapper 정리 | absent=true 재확인 | lstat ENOENT |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.0720Qg | GST registry | 62691bytes | 원래 wrapper 정리 | absent=true 재확인 | lstat ENOENT |
+
+순수 helper 검사는 추가 임시 산출물 없음. 제품/인증 정책 변경·커밋·푸시 없음.
+
+
+## S09 AP10-F seeded source 기대집합 보완 사전등록
+
+실제 GET /ops/api/sources의 sources/sourceId를 초기 독립 기대집합으로 고정하고 성공 POST ID를 추적, 재시작 GET 목록과 exact 대조한다. status 응답 자체로 기대값을 만들지 않는다. 순수 helper 15case: seeded 초기집합, admin seeded 허용, 허용scope 필터, 무관scope빈집합, 누락/중복/잘못ID/권한외extra 거부, 목록형식거부, 초기중복거부, 재시작 동일/누락/extra, POST ID추가, 잘못scope거부. 예상 RED는 sourceRegistryIds가 빈집합을 반환하여 seeded 초기집합 assertion 실패. 실제 앱 재검증 아님.
+
+
+## S09 실제 인증 40595 실패 보존
+
+메인 실행 `./server.sh verify-v410-recording-foundation --app-auth`, session40595, exit1. 원출력51줄13931bytes, 개별46pass/1fail, elapsed11265ms(start1789079547889/end1789079559154). token start/end/consumed 미집계: 실행별 자동 집계 없음. 비밀번호·Cookie·raw URL 미포함 확인. AP10-E admin status 기대 source 집합에서 seeded ID 누락 가설이며 실제 응답 ID는 로그에 없어 미확인이다. 제품 결함 확정 아님. 앞선 bootstrap/login/continuous 권한 검사만 유효하며 뒤 fallback/derived/retention/restart는 건너뜀. longrun/UI/30/120/추가 앱은 미실행.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| AUTH40595-1 | [pass] AP12 distinct loopback ports | pass |
+| AUTH40595-2 | [pass] AP12 actual foreground healthy \| pid=20898 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-FyHrY7 | pass |
+| AUTH40595-3 | [pass] AP10-B production setup \| status=302 | pass |
+| AUTH40595-4 | [pass] AP10-B production login \| status=302 | pass |
+| AUTH40595-5 | [pass] POST /ops/api/users \| status=201 | pass |
+| AUTH40595-6 | [pass] AP10-B production login \| status=302 | pass |
+| AUTH40595-7 | [pass] POST /ops/api/users \| status=201 | pass |
+| AUTH40595-8 | [pass] AP10-B production login \| status=302 | pass |
+| AUTH40595-9 | [pass] POST /ops/api/users \| status=201 | pass |
+| AUTH40595-10 | [pass] AP10-B production login \| status=302 | pass |
+| AUTH40595-11 | [pass] POST /ops/api/users \| status=201 | pass |
+| AUTH40595-12 | [pass] AP10-B production login \| status=302 | pass |
+| AUTH40595-13 | [pass] AP10-B isolated users no plaintext credential | pass |
+| AUTH40595-14 | [pass] AP10-B accounts bootstrapped through product API | pass |
+| AUTH40595-15 | [pass] POST /ops/api/sources \| status=201 | pass |
+| AUTH40595-16 | [pass] AP01 V1 identity seg-9101-1789079549618-1 | pass |
+| AUTH40595-17 | [pass] AP01 positive UTC/PTS seg-9101-1789079549618-1 | pass |
+| AUTH40595-18 | [pass] AP01 actual bytes SHA seg-9101-1789079549618-1 \| bytes=4096788 sha256=c8f905c7ff5348aff68353d51e6122fa9636c73913d21449e2e702b0035b24f6 | pass |
+| AUTH40595-19 | [pass] GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789079549618&endTimeMs=1789079557919 \| status=200 | pass |
+| AUTH40595-20 | [pass] AP10-C actual continuous timeline media | pass |
+| AUTH40595-21 | [pass] AP10-C continuous six byte fixture prefix | pass |
+| AUTH40595-22 | [pass] AP10-C continuous principal0 literal Range206 | pass |
+| AUTH40595-23 | [pass] AP10-C continuous principal1 literal Range206 | pass |
+| AUTH40595-24 | [pass] AP10-D continuous unauth media denied \| status=401 | pass |
+| AUTH40595-25 | [pass] AP10-D continuous unauth no sensitive media response | pass |
+| AUTH40595-26 | [pass] AP10-D continuous other-channel media denied \| status=404 | pass |
+| AUTH40595-27 | [pass] AP10-D continuous other-channel no sensitive media response | pass |
+| AUTH40595-28 | [pass] AP10-D continuous viewer media denied \| status=403 | pass |
+| AUTH40595-29 | [pass] AP10-D continuous viewer no sensitive media response | pass |
+| AUTH40595-30 | [pass] AP10-D continuous no-ops media denied \| status=403 | pass |
+| AUTH40595-31 | [pass] AP10-D continuous no-ops no sensitive media response | pass |
+| AUTH40595-32 | [pass] AP10-D continuous other-channel known nonexistent indistinguishable | pass |
+| AUTH40595-33 | [pass] AP10-D continuous admin timeline200 | pass |
+| AUTH40595-34 | [pass] AP10-D continuous admin timeline channel scope | pass |
+| AUTH40595-35 | [pass] AP10-D continuous allowed timeline200 | pass |
+| AUTH40595-36 | [pass] AP10-D continuous allowed timeline channel scope | pass |
+| AUTH40595-37 | [pass] AP10-D continuous unauth timeline401 | pass |
+| AUTH40595-38 | [pass] AP10-D continuous other-channel timeline403 | pass |
+| AUTH40595-39 | [pass] AP10-D continuous viewer timeline403 | pass |
+| AUTH40595-40 | [pass] AP10-D continuous no-ops timeline403 | pass |
+| AUTH40595-41 | [pass] AP10-E continuous unauth status401 | pass |
+| AUTH40595-42 | [pass] AP10-E continuous status principal0 \| status=200 | pass |
+| AUTH40595-43 | [pass] AP10-E continuous status redaction principal0 | pass |
+| AUTH40595-44 | [fail] AP10-E continuous exact scope channels principal0 | fail |
+| AUTH40595-45 | [pass] AP12 port absent 49271 | pass |
+| AUTH40595-46 | [pass] AP12 port absent 49272 | pass |
+| AUTH40595-47 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-FyHrY7 bytes=23821642 absent=true | pass |
+
+미완료 필수 목록(원 summary194개; 실패한 exact-scope 1개 포함, 나머지 미실행이며 PASS 근거 아님):
+
+- AP10-B restart relogin without setup
+- AP10-E continuous exact scope channels principal0
+- AP10-E continuous status principal1
+- AP10-E continuous status redaction principal1
+- AP10-E continuous exact scope channels principal1
+- AP10-E continuous no global observations principal1
+- AP10-E continuous status principal2
+- AP10-E continuous status redaction principal2
+- AP10-E continuous exact scope channels principal2
+- AP10-E continuous no global observations principal2
+- AP10-E continuous status principal3
+- AP10-E continuous status redaction principal3
+- AP10-E continuous status principal4
+- AP10-E continuous status redaction principal4
+- AP10-C fallback six byte fixture prefix
+- AP10-C fallback principal0 literal Range206
+- AP10-C fallback principal1 literal Range206
+- AP10-D fallback unauth media denied
+- AP10-D fallback unauth no sensitive media response
+- AP10-D fallback other-channel media denied
+- AP10-D fallback other-channel no sensitive media response
+- AP10-D fallback viewer media denied
+- AP10-D fallback viewer no sensitive media response
+- AP10-D fallback no-ops media denied
+- AP10-D fallback no-ops no sensitive media response
+- AP10-D fallback other-channel known nonexistent indistinguishable
+- AP10-D fallback admin timeline200
+- AP10-D fallback allowed timeline200
+- AP10-D fallback unauth timeline401
+- AP10-D fallback other-channel timeline403
+- AP10-D fallback viewer timeline403
+- AP10-D fallback no-ops timeline403
+- AP10-D fallback admin timeline channel scope
+- AP10-D fallback allowed timeline channel scope
+- AP10-E fallback unauth status401
+- AP10-E fallback status principal0
+- AP10-E fallback status redaction principal0
+- AP10-E fallback exact scope channels principal0
+- AP10-E fallback status principal1
+- AP10-E fallback status redaction principal1
+- AP10-E fallback exact scope channels principal1
+- AP10-E fallback no global observations principal1
+- AP10-E fallback status principal2
+- AP10-E fallback status redaction principal2
+- AP10-E fallback exact scope channels principal2
+- AP10-E fallback no global observations principal2
+- AP10-E fallback status principal3
+- AP10-E fallback status redaction principal3
+- AP10-E fallback status principal4
+- AP10-E fallback status redaction principal4
+- AP10-C derived six byte fixture prefix
+- AP10-C derived principal0 literal Range206
+- AP10-C derived principal1 literal Range206
+- AP10-D derived unauth media denied
+- AP10-D derived unauth no sensitive media response
+- AP10-D derived other-channel media denied
+- AP10-D derived other-channel no sensitive media response
+- AP10-D derived viewer media denied
+- AP10-D derived viewer no sensitive media response
+- AP10-D derived no-ops media denied
+- AP10-D derived no-ops no sensitive media response
+- AP10-D derived other-channel known nonexistent indistinguishable
+- AP10-D derived admin timeline200
+- AP10-D derived allowed timeline200
+- AP10-D derived unauth timeline401
+- AP10-D derived other-channel timeline403
+- AP10-D derived viewer timeline403
+- AP10-D derived no-ops timeline403
+- AP10-D derived admin timeline channel scope
+- AP10-D derived allowed timeline channel scope
+- AP10-E derived unauth status401
+- AP10-E derived status principal0
+- AP10-E derived status redaction principal0
+- AP10-E derived exact scope channels principal0
+- AP10-E derived status principal1
+- AP10-E derived status redaction principal1
+- AP10-E derived exact scope channels principal1
+- AP10-E derived no global observations principal1
+- AP10-E derived status principal2
+- AP10-E derived status redaction principal2
+- AP10-E derived exact scope channels principal2
+- AP10-E derived no global observations principal2
+- AP10-E derived status principal3
+- AP10-E derived status redaction principal3
+- AP10-E derived status principal4
+- AP10-E derived status redaction principal4
+- AP10-C restart-continuous six byte fixture prefix
+- AP10-C restart-continuous principal0 literal Range206
+- AP10-C restart-continuous principal1 literal Range206
+- AP10-D restart-continuous unauth media denied
+- AP10-D restart-continuous unauth no sensitive media response
+- AP10-D restart-continuous other-channel media denied
+- AP10-D restart-continuous other-channel no sensitive media response
+- AP10-D restart-continuous viewer media denied
+- AP10-D restart-continuous viewer no sensitive media response
+- AP10-D restart-continuous no-ops media denied
+- AP10-D restart-continuous no-ops no sensitive media response
+- AP10-D restart-continuous other-channel known nonexistent indistinguishable
+- AP10-D restart-continuous admin timeline200
+- AP10-D restart-continuous allowed timeline200
+- AP10-D restart-continuous unauth timeline401
+- AP10-D restart-continuous other-channel timeline403
+- AP10-D restart-continuous viewer timeline403
+- AP10-D restart-continuous no-ops timeline403
+- AP10-D restart-continuous admin timeline channel scope
+- AP10-D restart-continuous allowed timeline channel scope
+- AP10-E restart-continuous unauth status401
+- AP10-E restart-continuous status principal0
+- AP10-E restart-continuous status redaction principal0
+- AP10-E restart-continuous exact scope channels principal0
+- AP10-E restart-continuous status principal1
+- AP10-E restart-continuous status redaction principal1
+- AP10-E restart-continuous exact scope channels principal1
+- AP10-E restart-continuous no global observations principal1
+- AP10-E restart-continuous status principal2
+- AP10-E restart-continuous status redaction principal2
+- AP10-E restart-continuous exact scope channels principal2
+- AP10-E restart-continuous no global observations principal2
+- AP10-E restart-continuous status principal3
+- AP10-E restart-continuous status redaction principal3
+- AP10-E restart-continuous status principal4
+- AP10-E restart-continuous status redaction principal4
+- AP10-C restart-fallback six byte fixture prefix
+- AP10-C restart-fallback principal0 literal Range206
+- AP10-C restart-fallback principal1 literal Range206
+- AP10-D restart-fallback unauth media denied
+- AP10-D restart-fallback unauth no sensitive media response
+- AP10-D restart-fallback other-channel media denied
+- AP10-D restart-fallback other-channel no sensitive media response
+- AP10-D restart-fallback viewer media denied
+- AP10-D restart-fallback viewer no sensitive media response
+- AP10-D restart-fallback no-ops media denied
+- AP10-D restart-fallback no-ops no sensitive media response
+- AP10-D restart-fallback other-channel known nonexistent indistinguishable
+- AP10-D restart-fallback admin timeline200
+- AP10-D restart-fallback allowed timeline200
+- AP10-D restart-fallback unauth timeline401
+- AP10-D restart-fallback other-channel timeline403
+- AP10-D restart-fallback viewer timeline403
+- AP10-D restart-fallback no-ops timeline403
+- AP10-D restart-fallback admin timeline channel scope
+- AP10-D restart-fallback allowed timeline channel scope
+- AP10-E restart-fallback unauth status401
+- AP10-E restart-fallback status principal0
+- AP10-E restart-fallback status redaction principal0
+- AP10-E restart-fallback exact scope channels principal0
+- AP10-E restart-fallback status principal1
+- AP10-E restart-fallback status redaction principal1
+- AP10-E restart-fallback exact scope channels principal1
+- AP10-E restart-fallback no global observations principal1
+- AP10-E restart-fallback status principal2
+- AP10-E restart-fallback status redaction principal2
+- AP10-E restart-fallback exact scope channels principal2
+- AP10-E restart-fallback no global observations principal2
+- AP10-E restart-fallback status principal3
+- AP10-E restart-fallback status redaction principal3
+- AP10-E restart-fallback status principal4
+- AP10-E restart-fallback status redaction principal4
+- AP10-C restart-derived six byte fixture prefix
+- AP10-C restart-derived principal0 literal Range206
+- AP10-C restart-derived principal1 literal Range206
+- AP10-D restart-derived unauth media denied
+- AP10-D restart-derived unauth no sensitive media response
+- AP10-D restart-derived other-channel media denied
+- AP10-D restart-derived other-channel no sensitive media response
+- AP10-D restart-derived viewer media denied
+- AP10-D restart-derived viewer no sensitive media response
+- AP10-D restart-derived no-ops media denied
+- AP10-D restart-derived no-ops no sensitive media response
+- AP10-D restart-derived other-channel known nonexistent indistinguishable
+- AP10-D restart-derived admin timeline200
+- AP10-D restart-derived allowed timeline200
+- AP10-D restart-derived unauth timeline401
+- AP10-D restart-derived other-channel timeline403
+- AP10-D restart-derived viewer timeline403
+- AP10-D restart-derived no-ops timeline403
+- AP10-D restart-derived admin timeline channel scope
+- AP10-D restart-derived allowed timeline channel scope
+- AP10-E restart-derived unauth status401
+- AP10-E restart-derived status principal0
+- AP10-E restart-derived status redaction principal0
+- AP10-E restart-derived exact scope channels principal0
+- AP10-E restart-derived status principal1
+- AP10-E restart-derived status redaction principal1
+- AP10-E restart-derived exact scope channels principal1
+- AP10-E restart-derived no global observations principal1
+- AP10-E restart-derived status principal2
+- AP10-E restart-derived status redaction principal2
+- AP10-E restart-derived exact scope channels principal2
+- AP10-E restart-derived no global observations principal2
+- AP10-E restart-derived status principal3
+- AP10-E restart-derived status redaction principal3
+- AP10-E restart-derived status principal4
+- AP10-E restart-derived status redaction principal4
+
+cleanup 원출력: 앱 root `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-FyHrY7` 23821642bytes absent=true; GST root `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.0720Qg` 62691bytes absent=true. 로그는 필수 전수 이관 뒤 별도 삭제 확인한다.
+
+
+## S09 임시 인증값 실제 AP10 실행 사전등록
+
+사용자 `임시 비밀번호로 시작` 승인에 따라 실제 `--app-auth` 검증을1회 실행한다.
+기존 AP10 bootstrap/login/users·권한별 continuous/fallback/derived media/timeline/status와
+재시작 재로그인 개별 항목을 그대로 실행한다. 무작위 인증값5개는 실행 프로세스에서만
+생성해 환경변수로 전달하며 원문 파일·대화·Git 저장을 금지한다. 저장소에는 실행범위와
+결과만 남긴다. 제품이 만든 임시 계정 파일의 해시는 격리root와 함께 정리한다.
+기존 foundation 경로는 OBS32023 이후 변경하지 않았고 장시간 구현은 동결했다.
+안정화의 실제 인증 앱만 진행 대상/사용자 승인됨. UI·30분·120분·커밋·푸시는 미진행.
+
+LS03 harness 사전등록: 상위catch가check밖예외를failed0으로삼킬수있는리뷰결함을보완한다. 기존51pass는그실행의실제51결과로유효하지만harness견고성잔여였다. test전용 --fixture-error가check밖예외를발생시키면 failed1/exit1/에러본문미출력이어야하며, 정상경로는정확51case종료를확인한다. 제품summary API/로직변경금지. 승인: 해당음성판별력1회와동일51회귀/syntax/diff만.
+
+## S09 longrun PID 요약 순수단위 결과
+
+메인 리뷰 후 harness 보완: check 밖 예외가 생겨도 catch에서 failed1로 기록하며, 정상종료는 passed===51을 요구한다. 제품summary는변경하지않았다. 테스트전용 --fixture-error를 Node spawnSync(timeout5000)로실행해 child exit1/signalnull/0pass1fail·본문비노출·stderr빈값을assert한 바깥검사 exit0/1pass0fail/20ms. 원문 child결과는 `[fail] LS harness unhandled fixture error` 및 elapsed0ms였다. 뒤에 동일 `node scripts/internal/recording_longrun_summary.test.mjs` exit0/51pass0fail/16ms 재검증. 아래 LS-final-01~51 각각은 최초17ms와최종16ms 두실행에서모두pass였다. 최초51실행은당시결과로유효하되수정전harness견고성을보증하지않는다. node --check test 및git diff --check 각각0. token개별자동집계없음. 제어child는close완료, temp/서버/포트없음.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LS03 주입 child 원결과 | node recording_longrun_summary.test.mjs --fixture-error; check밖예외, exit1/0pass1fail/0ms, 의도적음성 | fail |
+| LS03 실패전파 판별력 | Node spawnSync로 childexit1/signalnull/summary0·1/본문비노출/stderr빈값 직접assert; 바깥exit0/1pass0fail/20ms | pass |
+
+`node scripts/internal/recording_longrun_summary.test.mjs` 최초stub RED exit1/0pass1fail/0ms: separate restart PID groups assertion, 2개기대값에빈배열. 구현후동일명령 exit0/51pass0fail/17ms. 원출력51개pass행과JSONsummary51 일치, 아래전수보존. elapsed source=Node Date.now, token start/end/consumed=null(하위작업별자동집계없음). `node --check scripts/internal/recording_longrun_summary.mjs`, `node --check scripts/internal/recording_longrun_summary.test.mjs`, `git diff --check` 각각exit0; syntax별도elapsed미계측.
+
+명세: 명시warmupMs만허용·샘플시간엄격증가·동일PID startIdentity변경거부·PID별first/last/max/delta/elapsed/maxGapMs. warmup은각PID첫표본기준이며postwarmup2개미달은null/insufficient. global원장카운터는PID전환때도감소거부. 입력상한10000표본/64그룹,원본payload/URL반환없음. resourceTrendPass=false/reviewRequired=true고정,장시간완료flag없음. 모델/서버RSS판정이나적정threshold승인이아니다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LS 예상RED | separate restart PID groups; stub0그룹; exit1/0pass1fail | fail |
+| LS-final-01 | LS01 separate restart PID groups | pass |
+| LS-final-02 | LS01 literal first last max delta elapsed | pass |
+| LS-final-03 | LS01 postwarmup negative rate literal | pass |
+| LS-final-04 | LS01 new PID warmup resets and insufficient null | pass |
+| LS-final-05 | LS01 zero warmup rate separate PIDs | pass |
+| LS-final-06 | LS03 same PID gap explicitly measured | pass |
+| LS-final-07 | LS03 one sample gap and trend insufficient | pass |
+| LS-final-08 | LS02 FD zero valid | pass |
+| LS-final-09 | LS03 no resource or longrun pass | pass |
+| LS-final-10 | LS03 workload delta not reset by PID | pass |
+| LS-final-11 | LS03 raw input excluded from output | pass |
+| LS-final-12 | LS02 missing-rss rejected | pass |
+| LS-final-13 | LS02 zero-rss rejected | pass |
+| LS-final-14 | LS02 negative-rss rejected | pass |
+| LS-final-15 | LS02 infinite-rss rejected | pass |
+| LS-final-16 | LS02 nan-rss rejected | pass |
+| LS-final-17 | LS02 zero-thread rejected | pass |
+| LS-final-18 | LS02 negative-fd rejected | pass |
+| LS-final-19 | LS02 missing-fd rejected | pass |
+| LS-final-20 | LS02 zero-pid rejected | pass |
+| LS-final-21 | LS02 zero-time rejected | pass |
+| LS-final-22 | LS02 invalid-identity rejected | pass |
+| LS-final-23 | LS02 missing-counter rejected | pass |
+| LS-final-24 | LS02 missing-types rejected | pass |
+| LS-final-25 | LS02 pending-journal rejected | pass |
+| LS-final-26 | LS02 duplicate time rejected | pass |
+| LS-final-27 | LS02 backward time rejected | pass |
+| LS-final-28 | LS02 same PID identity change rejected | pass |
+| LS-final-29 | LS02 global counters cannot reset at restart | pass |
+| LS-final-30 | LS02 cumulative segment_finalized decrease rejected | pass |
+| LS-final-31 | LS02 cumulative event_link_created decrease rejected | pass |
+| LS-final-32 | LS02 cumulative observation_put decrease rejected | pass |
+| LS-final-33 | LS02 cumulative observation_v2_put decrease rejected | pass |
+| LS-final-34 | LS02 cumulative deletion_requested decrease rejected | pass |
+| LS-final-35 | LS02 cumulative deletion_completed decrease rejected | pass |
+| LS-final-36 | LS02 cumulative corruption_detected decrease rejected | pass |
+| LS-final-37 | LS02 cumulative mutationCount decrease rejected | pass |
+| LS-final-38 | LS02 cumulative uniqueMutationIds decrease rejected | pass |
+| LS-final-39 | LS02 cumulative uniqueEntityIds decrease rejected | pass |
+| LS-final-40 | LS02 cumulative storedIdCount decrease rejected | pass |
+| LS-final-41 | LS02 cumulative idUtf8Bytes decrease rejected | pass |
+| LS-final-42 | LS02 cumulative consumedOffset decrease rejected | pass |
+| LS-final-43 | LS02 invalid warmup undefined | pass |
+| LS-final-44 | LS02 invalid warmup -1 | pass |
+| LS-final-45 | LS02 invalid warmup 0.5 | pass |
+| LS-final-46 | LS02 invalid warmup Infinity | pass |
+| LS-final-47 | LS02 empty input rejected | pass |
+| LS-final-48 | LS02 10000 samples accepted | pass |
+| LS-final-49 | LS02 over 10000 samples rejected | pass |
+| LS-final-50 | LS02 64 PID groups accepted | pass |
+| LS-final-51 | LS02 over 64 groups rejected | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| 없음 | 순수메모리합성자료 단위 | 0 | 임시파일/자식없음 | 정리대상없음 | summary cleanup=no-temp-no-child |
+
+미실행: 실제서버자료적용/runner연결/실제장시간/collector실행/앱/GST/auth/UI/build/다른회귀·커밋·푸시. 합성자료51pass는실측서버PASS가아니다. 기존5분warmup은후보이며함수가기본값으로승인하지않는다. 반환된workload증가와RSS변화는비교자료일뿐인과/누수판정아님.
+
+## S09 longrun summary 사전등록
+
+LS02/03 사전보완: 반환숫자/PID/identity화이트리스트(rawsource/payload비노출), PID전환에도global원장counter감소거부, maxGapMs숫자보존, 새PID첫sample부터warmup재기산을 검사한다. 최초stub RED는0pass1fail exit1/0ms로 PID두그룹 assertion예상일치.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LS01 PID별 산술 | first/last/max/delta/elapsed 및 서로다른PID 분리 | 첫예상RED 실제함수 groups.length=2 assertion; 독립literal warmup delta/rate | v4.1.0 |
+| LS02 부정 입력 | 누락/0/음수/비유한/중복시간/identity변화/counter감소 | FD0 허용, RSS/thread양수, 동일PID gap 그대로표시, 상한10000표본/64그룹 거부 | v4.1.0 |
+| LS03 판정경계 | warmup명시·미달null/insufficient·누수판정보류 | 항상resourceTrendPass=false/reviewRequired=true; warmup300000ms는후보일뿐 | v4.1.0 |
+
+승인명령 node scripts/internal/recording_longrun_summary.test.mjs 및 syntax/diff만. 최소stub의 groups빈배열 때문에2PID분리 assertion 실패를예상RED로등록한다. 실제서버/외부명령/장시간미실행이며 모든입력은합성단위자료다.
+
+## S09 Enqueue 수정 후 실제 OBS32023 (메인 실행·담당자 기록 이관)
+
+최종정리: 원로그64891bytes unlink 뒤 위 app/GST/log 3경로 lstat checked3/present[] exit0. 모두삭제되었고 임시원로그는보존하지않는다. 추가검증명령은실행하지않았다.
+
+실행주체는 메인이다. 사용자 승인 아래 메인이 `./server.sh verify-v410-recording-foundation --app-observe`를 실행한 세션32023 exit0. 담당자는 추가 실행 없이 종료로그를 읽고 기록·정리만 했다. 전체 stdout/stderr321줄64891bytes, raw290pass0fail=앱JSON289pass0fail+wrapper완료1pass와 일치했다. 첫실패없는 이번실행과 이전 EPERM/권한거부/EQ컴파일·RED 이력은 분리해 보존한다. 이전27991은 raw293=앱292+wrapper1이고 이번290과의3행차이는 동적poll/실제 snapshot별개별assert 수 차이이며 원출력 누락이 아니다. 아래290개가 이번 원문 전수다.
+
+시작1789078602716/종료1789078651795/elapsed49079ms(Node Date.now, wrappercompile제외). token start/end/consumed=null, source=메인/하위작업별명령자동집계없음. URL/raw file::/credential 패턴 검사 발견0. observationCompleted=true, resourceTrendPass=false, fullFoundationPass=false. PID17832(startIdentity macos:1789078602:726447)8표본·재시작PID17947(macos:1789078641:981189)3표본. 각 app close/exit0·동일archive불변·재시작새finalized는 아래 원문 assertion으로 확인했다.
+
+최종cursor747845bytes, partial0/backlog0. mutation708/고유mutation708/고유entity125/저장ID833/UTF8 ID19853bytes. 7type: segment_finalized33/event_link_created484/observation_put0/observation_v2_put177/deletion_requested7/deletion_completed7/corruption_detected0. 이전27991의eventlink46497→484는 건수98.959%감소이며 실행시간도58.678→49.079초로 다르다. 단순 전체기간으로 나눈평균792.409→9.862건/초는참고계산이며 서로동일workload시간통제벤치마크가 아니다. 이번 관측은 Enqueue retry수정의 실앱발행량 감소를지지하지만 남은484건의필요성/무변경비중까지자동승인하지않는다.
+
+첫PID RSS peak416268288bytes는 이전416284672와 유사하다. 재시작PID peak122044416bytes와도 별도측정군이며 합쳐기울기/누수해결을 주장하지 않는다. FD/thread/RSS는 아래 실측값만 보존한다. 5초주기외 launch직후측정도 포함한다. 180초·448MiB선제/512MiB상한·기존입력/quota 유지, cap실패없음. 마지막root322986806bytes는삭제전크기이며원자적peak한계검증이아니다.
+
+| 표본 | PID | sampledAt(ms) | RSSbytes | thread | FD | cursor | partial/backlog bytes | raw/unique mutation/entity | UTF8 ID bytes | 7type(SF/EL/O1/O2/DR/DC/CD) |
+| --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- | ---: | --- |
+| 1 | 17832 | 1789078604808 | 51216384 | 7 | 12 | 0 | 0/0 | 0/0/0 | 0 | 0/0/0/0/0/0/0 |
+| 2 | 17832 | 1789078607728 | 66568192 | 21 | 20 | 0 | 0/0 | 0/0/0 | 0 | 0/0/0/0/0/0/0 |
+| 3 | 17832 | 1789078612732 | 70828032 | 19 | 20 | 0 | 0/0 | 0/0/0 | 0 | 0/0/0/0/0/0/0 |
+| 4 | 17832 | 1789078617729 | 326483968 | 33 | 22 | 100729 | 0/0 | 101/101/25 | 3085 | 1/80/0/20/0/0/0 |
+| 5 | 17832 | 1789078622731 | 334675968 | 33 | 24 | 250369 | 0/953 | 243/243/57 | 7575 | 2/165/0/76/0/0/0 |
+| 6 | 17832 | 1789078627733 | 389103616 | 33 | 22 | 445396 | 0/0 | 435/435/74 | 12219 | 2/340/0/93/0/0/0 |
+| 7 | 17832 | 1789078632741 | 414629888 | 28 | 28 | 704556 | 0/0 | 657/657/104 | 18297 | 12/484/0/161/0/0/0 |
+| 8 | 17832 | 1789078637736 | 416268288 | 27 | 28 | 730815 | 0/0 | 688/688/109 | 19068 | 17/484/0/177/5/5/0 |
+| 9 | 17947 | 1789078642502 | 85966848 | 28 | 28 | 738281 | 0/0 | 698/698/115 | 19422 | 23/484/0/177/7/7/0 |
+| 10 | 17947 | 1789078642738 | 88342528 | 28 | 28 | 738281 | 0/0 | 698/698/115 | 19422 | 23/484/0/177/7/7/0 |
+| 11 | 17947 | 1789078647738 | 122044416 | 24 | 28 | 742100 | 0/0 | 702/702/119 | 19594 | 27/484/0/177/7/7/0 |
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| EQ-OBS-001 | AP12 distinct loopback ports | pass |
+| EQ-OBS-002 | AP12 actual foreground healthy \| pid=17832 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-2hd7oq | pass |
+| EQ-OBS-003 | POST /ops/api/sources \| status=201 | pass |
+| EQ-OBS-004 | AP01 V1 identity seg-9101-1789078604920-1 | pass |
+| EQ-OBS-005 | AP01 positive UTC/PTS seg-9101-1789078604920-1 | pass |
+| EQ-OBS-006 | AP01 actual bytes SHA seg-9101-1789078604920-1 \| bytes=4096788 sha256=827fc16100fe6468df88f3c74cc00ad758c623200715b5864578615ff4329ad7 | pass |
+| EQ-OBS-007 | AP02 actual finalized barrier before rule and tap | pass |
+| EQ-OBS-008 | PUT /lab/analysis/rules/9101 \| status=200 | pass |
+| EQ-OBS-009 | POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 \| status=200 | pass |
+| EQ-OBS-010 | AP02 actual tap created | pass |
+| EQ-OBS-011 | GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| EQ-OBS-012 | GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| EQ-OBS-013 | AP02/03 actual EventRecord identity fallback \| eventId=evt_1789078613546_2 linkId=event-link-sha256-ba7e573d0fcf7b58cdd6d100b142ec5ec8e5128f7eee021d57f0a68b306c8ce3 | pass |
+| EQ-OBS-014 | AP02/03 actual nonnegative padded event start fallback \| startTime=8333 updateTime=8333 timeBasis=media-pts-ms | pass |
+| EQ-OBS-015 | AP02/03 durable link source fallback | pass |
+| EQ-OBS-016 | GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789078611753&endTimeMs=1789078614781 \| status=200 | pass |
+| EQ-OBS-017 | AP04 fallback event priority | pass |
+| EQ-OBS-018 | AP04 fallback path redaction | pass |
+| EQ-OBS-019 | AP02 fallback remains partial requested-fallback | pass |
+| EQ-OBS-020 | AP02 encoded WebM eventId/encoded contract/size/isolated path | pass |
+| EQ-OBS-021 | AP05 fallback playable local URL | pass |
+| EQ-OBS-022 | AP05 fallback actual file prefix | pass |
+| EQ-OBS-023 | AP05 fallback literal GET Range \| status=206 contentRange=bytes 2-5/22905 bodyHex=dfa30100 | pass |
+| EQ-OBS-024 | DELETE /lab/analysis/taps/analysis-tap-1 \| status=200 | pass |
+| EQ-OBS-025 | AP01 V1 identity seg-9101-1789078604920-1 | pass |
+| EQ-OBS-026 | AP01 positive UTC/PTS seg-9101-1789078604920-1 | pass |
+| EQ-OBS-027 | AP01 actual bytes SHA seg-9101-1789078604920-1 \| bytes=4096788 sha256=827fc16100fe6468df88f3c74cc00ad758c623200715b5864578615ff4329ad7 | pass |
+| EQ-OBS-028 | AP01 V1 identity seg-9101-1789078613281-2 | pass |
+| EQ-OBS-029 | AP01 positive UTC/PTS seg-9101-1789078613281-2 | pass |
+| EQ-OBS-030 | AP01 actual bytes SHA seg-9101-1789078613281-2 \| bytes=4813100 sha256=18a9481d215522c53c82b3d694d7d8d9cfcf14f70c4a7d78bfc84415358dea13 | pass |
+| EQ-OBS-031 | POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 \| status=200 | pass |
+| EQ-OBS-032 | AP03 actual tap created | pass |
+| EQ-OBS-033 | AP03 finalized boundary available | pass |
+| EQ-OBS-034 | GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| EQ-OBS-035 | GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| EQ-OBS-036 | GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| EQ-OBS-037 | GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| EQ-OBS-038 | GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| EQ-OBS-039 | GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| EQ-OBS-040 | PUT /lab/analysis/rules/9102 \| status=200 | pass |
+| EQ-OBS-041 | GET /lab/analysis/taps/analysis-tap-2/events?dispatch=1 \| status=200 | pass |
+| EQ-OBS-042 | AP02/03 actual EventRecord identity derived \| eventId=evt_1789078622475_83 linkId=event-link-sha256-1e971c8f85eaa544744cd9111bd2402f79de9a374a74dd51d784419d6cc9fc78 | pass |
+| EQ-OBS-043 | AP02/03 actual nonnegative padded event start derived \| startTime=17433 updateTime=17433 timeBasis=media-pts-ms | pass |
+| EQ-OBS-044 | AP02/03 durable link source derived | pass |
+| EQ-OBS-045 | GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789078620870&endTimeMs=1789078623870 \| status=200 | pass |
+| EQ-OBS-046 | AP04 derived event priority | pass |
+| EQ-OBS-047 | AP04 derived path redaction | pass |
+| EQ-OBS-048 | AP03 actual derived remux metadata | pass |
+| EQ-OBS-049 | AP01 V1 identity event-seg-sha256-eceebd4209e02a2d556a9297aaf3412e3bf92c69647dba5fcc4b905b8d2b3909 | pass |
+| EQ-OBS-050 | AP01 positive UTC/PTS event-seg-sha256-eceebd4209e02a2d556a9297aaf3412e3bf92c69647dba5fcc4b905b8d2b3909 | pass |
+| EQ-OBS-051 | AP01 actual bytes SHA event-seg-sha256-eceebd4209e02a2d556a9297aaf3412e3bf92c69647dba5fcc4b905b8d2b3909 \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| EQ-OBS-052 | AP03 Complete actual overlaps | pass |
+| EQ-OBS-053 | AP04 continuous superseded with priority100 | pass |
+| EQ-OBS-054 | AP05 derived playable local URL | pass |
+| EQ-OBS-055 | AP05 derived actual file prefix | pass |
+| EQ-OBS-056 | AP05 derived literal GET Range \| status=206 contentRange=bytes 2-5/1133076 bodyHex=0032a600 | pass |
+| EQ-OBS-057 | DELETE /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| EQ-OBS-058 | AP02/03 fallback and derived independent events | pass |
+| EQ-OBS-059 | AP06 actual H264 generator \| exit=0 log=Setting pipeline to PAUSED ... Pipeline is PREROLLING ... Redistribute latency... Redistribute latency... Pipeline is PREROLLED ... Setting pipeline to PLAYING ... Redistribute latency... New clock: GstSystemClock Got EOS from element "pipeline0". EOS received - stopping pipeline... Execution ended after 0:00:00.219502583 Setting pipeline to NULL ... Freeing pipeline ...  | pass |
+| EQ-OBS-060 | AP12 generated input bounded \| bytes=62334405 limitBytes=100663296 | pass |
+| EQ-OBS-061 | POST /ops/api/sources \| status=201 | pass |
+| EQ-OBS-062 | AP01 V1 identity seg-9201-1789078630903-1 | pass |
+| EQ-OBS-063 | AP01 positive UTC/PTS seg-9201-1789078630903-1 | pass |
+| EQ-OBS-064 | AP01 actual bytes SHA seg-9201-1789078630903-1 \| bytes=15581582 sha256=9a504a2782306b3a41016e73e3337bb4788e8961e30bc876b3e8150d2dd4f416 | pass |
+| EQ-OBS-065 | AP01 V1 identity seg-9201-1789078631965-2 | pass |
+| EQ-OBS-066 | AP01 positive UTC/PTS seg-9201-1789078631965-2 | pass |
+| EQ-OBS-067 | AP01 actual bytes SHA seg-9201-1789078631965-2 \| bytes=31168171 sha256=c35e047a5b704819efe13b9f9c709273e78e4706b3c4e1f7bff1d7d237393569 | pass |
+| EQ-OBS-068 | AP01 V1 identity seg-9201-1789078633958-3 | pass |
+| EQ-OBS-069 | AP01 positive UTC/PTS seg-9201-1789078633958-3 | pass |
+| EQ-OBS-070 | AP01 actual bytes SHA seg-9201-1789078633958-3 \| bytes=15586426 sha256=3f461f66fbfee7dd4019dd5e1bae3c38f06b7f3add2e1c961eb1b80572e772ef | pass |
+| EQ-OBS-071 | AP01 V1 identity seg-9201-1789078634944-4 | pass |
+| EQ-OBS-072 | AP01 positive UTC/PTS seg-9201-1789078634944-4 | pass |
+| EQ-OBS-073 | AP01 actual bytes SHA seg-9201-1789078634944-4 \| bytes=15581582 sha256=1164390c199f937ee7fe1a38296db8bec72b59680a90a4c508ed422b0e94a6c2 | pass |
+| EQ-OBS-074 | AP06 each actual segment below reservation | pass |
+| EQ-OBS-075 | AP06 actual total exceeds future quota \| count=4 bytes=77917761 oldest=seg-9201-1789078630903-1,seg-9201-1789078631965-2,seg-9201-1789078633958-3,seg-9201-1789078634944-4 | pass |
+| EQ-OBS-076 | PUT /ops/api/sources/9201 \| status=200 | pass |
+| EQ-OBS-077 | AP07 oldest deletion request independent order | pass |
+| EQ-OBS-078 | AP07 durable completed seg-9201-1789078630903-1 | pass |
+| EQ-OBS-079 | AP07 physical absent seg-9201-1789078630903-1 | pass |
+| EQ-OBS-080 | AP07 durable completed seg-9201-1789078631965-2 | pass |
+| EQ-OBS-081 | AP07 physical absent seg-9201-1789078631965-2 | pass |
+| EQ-OBS-082 | AP07 durable completed seg-9201-1789078633958-3 | pass |
+| EQ-OBS-083 | AP07 physical absent seg-9201-1789078633958-3 | pass |
+| EQ-OBS-084 | AP07 durable completed seg-9201-1789078634944-4 | pass |
+| EQ-OBS-085 | AP07 physical absent seg-9201-1789078634944-4 | pass |
+| EQ-OBS-086 | AP08 new finalized then ordered deleted physical absence seg-9201-1789078636187-1 | pass |
+| EQ-OBS-087 | AP08 new finalized then ordered deleted physical absence seg-9201-1789078637965-2 | pass |
+| EQ-OBS-088 | AP08 actual recording resumes after quota deletion | pass |
+| EQ-OBS-089 | PUT /ops/api/sources/9201 \| status=200 | pass |
+| EQ-OBS-090 | AP08 restored quota new finalized | pass |
+| EQ-OBS-091 | AP12 app0 exit0 \| exit=0 signal=null | pass |
+| EQ-OBS-092 | AP01 V1 identity seg-9101-1789078604920-1 | pass |
+| EQ-OBS-093 | AP01 positive UTC/PTS seg-9101-1789078604920-1 | pass |
+| EQ-OBS-094 | AP01 actual bytes SHA seg-9101-1789078604920-1 \| bytes=4096788 sha256=827fc16100fe6468df88f3c74cc00ad758c623200715b5864578615ff4329ad7 | pass |
+| EQ-OBS-095 | AP01 V1 identity seg-9101-1789078613281-2 | pass |
+| EQ-OBS-096 | AP01 positive UTC/PTS seg-9101-1789078613281-2 | pass |
+| EQ-OBS-097 | AP01 actual bytes SHA seg-9101-1789078613281-2 \| bytes=4813100 sha256=18a9481d215522c53c82b3d694d7d8d9cfcf14f70c4a7d78bfc84415358dea13 | pass |
+| EQ-OBS-098 | AP01 V1 identity seg-9101-1789078621603-3 | pass |
+| EQ-OBS-099 | AP01 positive UTC/PTS seg-9101-1789078621603-3 | pass |
+| EQ-OBS-100 | AP01 actual bytes SHA seg-9101-1789078621603-3 \| bytes=5222837 sha256=d61ec509dad11a9352395dd63ee277842b73ee47a4e5d31fdf87ce9d53c81438 | pass |
+| EQ-OBS-101 | AP01 V1 identity event-seg-sha256-8506d5c90ab1cccb9f4d130205e1e3293eb8985725e7c89c3e7546eefcb21271 | pass |
+| EQ-OBS-102 | AP01 positive UTC/PTS event-seg-sha256-8506d5c90ab1cccb9f4d130205e1e3293eb8985725e7c89c3e7546eefcb21271 | pass |
+| EQ-OBS-103 | AP01 actual bytes SHA event-seg-sha256-8506d5c90ab1cccb9f4d130205e1e3293eb8985725e7c89c3e7546eefcb21271 \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| EQ-OBS-104 | AP01 V1 identity event-seg-sha256-ef388e345bdae95ec0b5dafc783818ed7291ebc7417651ef6a0416d54edbd144 | pass |
+| EQ-OBS-105 | AP01 positive UTC/PTS event-seg-sha256-ef388e345bdae95ec0b5dafc783818ed7291ebc7417651ef6a0416d54edbd144 | pass |
+| EQ-OBS-106 | AP01 actual bytes SHA event-seg-sha256-ef388e345bdae95ec0b5dafc783818ed7291ebc7417651ef6a0416d54edbd144 \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| EQ-OBS-107 | AP01 V1 identity event-seg-sha256-0e176f32908cc6680bcdfe23521e589924bc16edb9d2b2f70d30eaa662f26fa9 | pass |
+| EQ-OBS-108 | AP01 positive UTC/PTS event-seg-sha256-0e176f32908cc6680bcdfe23521e589924bc16edb9d2b2f70d30eaa662f26fa9 | pass |
+| EQ-OBS-109 | AP01 actual bytes SHA event-seg-sha256-0e176f32908cc6680bcdfe23521e589924bc16edb9d2b2f70d30eaa662f26fa9 \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| EQ-OBS-110 | AP01 V1 identity event-seg-sha256-12eda7253507a0305af35387c4b6b09f9e53e06e0b7b69d7818dafbe95ef0ae1 | pass |
+| EQ-OBS-111 | AP01 positive UTC/PTS event-seg-sha256-12eda7253507a0305af35387c4b6b09f9e53e06e0b7b69d7818dafbe95ef0ae1 | pass |
+| EQ-OBS-112 | AP01 actual bytes SHA event-seg-sha256-12eda7253507a0305af35387c4b6b09f9e53e06e0b7b69d7818dafbe95ef0ae1 \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| EQ-OBS-113 | AP01 V1 identity event-seg-sha256-b53777dee234b62ec5163d2453c75f8b838533a876fd78c6811a2e9b2c409906 | pass |
+| EQ-OBS-114 | AP01 positive UTC/PTS event-seg-sha256-b53777dee234b62ec5163d2453c75f8b838533a876fd78c6811a2e9b2c409906 | pass |
+| EQ-OBS-115 | AP01 actual bytes SHA event-seg-sha256-b53777dee234b62ec5163d2453c75f8b838533a876fd78c6811a2e9b2c409906 \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| EQ-OBS-116 | AP01 V1 identity event-seg-sha256-cd142a80e6b33f4b681bd20d1277bf8934606496d9019c57e5a9f562882032cb | pass |
+| EQ-OBS-117 | AP01 positive UTC/PTS event-seg-sha256-cd142a80e6b33f4b681bd20d1277bf8934606496d9019c57e5a9f562882032cb | pass |
+| EQ-OBS-118 | AP01 actual bytes SHA event-seg-sha256-cd142a80e6b33f4b681bd20d1277bf8934606496d9019c57e5a9f562882032cb \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| EQ-OBS-119 | AP01 V1 identity event-seg-sha256-d6766c6c92b954aa69802e5fd183f6125c94f0d7809b6e27163812818bad6893 | pass |
+| EQ-OBS-120 | AP01 positive UTC/PTS event-seg-sha256-d6766c6c92b954aa69802e5fd183f6125c94f0d7809b6e27163812818bad6893 | pass |
+| EQ-OBS-121 | AP01 actual bytes SHA event-seg-sha256-d6766c6c92b954aa69802e5fd183f6125c94f0d7809b6e27163812818bad6893 \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| EQ-OBS-122 | AP01 V1 identity event-seg-sha256-eceebd4209e02a2d556a9297aaf3412e3bf92c69647dba5fcc4b905b8d2b3909 | pass |
+| EQ-OBS-123 | AP01 positive UTC/PTS event-seg-sha256-eceebd4209e02a2d556a9297aaf3412e3bf92c69647dba5fcc4b905b8d2b3909 | pass |
+| EQ-OBS-124 | AP01 actual bytes SHA event-seg-sha256-eceebd4209e02a2d556a9297aaf3412e3bf92c69647dba5fcc4b905b8d2b3909 \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| EQ-OBS-125 | AP01 V1 identity seg-9101-1789078629933-4 | pass |
+| EQ-OBS-126 | AP01 positive UTC/PTS seg-9101-1789078629933-4 | pass |
+| EQ-OBS-127 | AP01 actual bytes SHA seg-9101-1789078629933-4 \| bytes=2940815 sha256=97861db14afde9298173cac4b889f9deb0d88de16416ba7d4e44f8fe4e678f33 | pass |
+| EQ-OBS-128 | AP01 V1 identity seg-9201-1789078638952-3 | pass |
+| EQ-OBS-129 | AP01 positive UTC/PTS seg-9201-1789078638952-3 | pass |
+| EQ-OBS-130 | AP01 actual bytes SHA seg-9201-1789078638952-3 \| bytes=2078417 sha256=d080d40be98a275c48589cbf4a0be8005ef12f5572eb916672e9a3d8434e8e81 | pass |
+| EQ-OBS-131 | AP01 V1 identity seg-9201-1789078639052-1 | pass |
+| EQ-OBS-132 | AP01 positive UTC/PTS seg-9201-1789078639052-1 | pass |
+| EQ-OBS-133 | AP01 actual bytes SHA seg-9201-1789078639052-1 \| bytes=31167191 sha256=954c557fa0390b7488ae6756d1f80ac2c02a80209202f25108bfbe5d9477e98a | pass |
+| EQ-OBS-134 | AP01 V1 identity seg-9201-1789078640961-2 | pass |
+| EQ-OBS-135 | AP01 positive UTC/PTS seg-9201-1789078640961-2 | pass |
+| EQ-OBS-136 | AP01 actual bytes SHA seg-9201-1789078640961-2 \| bytes=10907802 sha256=b2a80595541e160eb248b744baefe5c00463f9b373500737f3fb1123dd7c576f | pass |
+| EQ-OBS-137 | AP01 V1 identity seg-9101-1789078634936-5 | pass |
+| EQ-OBS-138 | AP01 positive UTC/PTS seg-9101-1789078634936-5 | pass |
+| EQ-OBS-139 | AP01 actual bytes SHA seg-9101-1789078634936-5 \| bytes=3181336 sha256=374b127ebbef855e85fde8eac63faa71a3b5a4297b78d9592425b8a9dfea21c9 | pass |
+| EQ-OBS-140 | AP12 distinct loopback ports | pass |
+| EQ-OBS-141 | AP12 actual foreground healthy \| pid=17947 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-2hd7oq | pass |
+| EQ-OBS-142 | AP09 restart actual new PID | pass |
+| EQ-OBS-143 | AP09 immutable segment seg-9101-1789078604920-1 | pass |
+| EQ-OBS-144 | AP09 immutable segment seg-9101-1789078613281-2 | pass |
+| EQ-OBS-145 | AP09 immutable segment seg-9101-1789078621603-3 | pass |
+| EQ-OBS-146 | AP09 immutable segment event-seg-sha256-8506d5c90ab1cccb9f4d130205e1e3293eb8985725e7c89c3e7546eefcb21271 | pass |
+| EQ-OBS-147 | AP09 immutable segment event-seg-sha256-ef388e345bdae95ec0b5dafc783818ed7291ebc7417651ef6a0416d54edbd144 | pass |
+| EQ-OBS-148 | AP09 immutable segment event-seg-sha256-0e176f32908cc6680bcdfe23521e589924bc16edb9d2b2f70d30eaa662f26fa9 | pass |
+| EQ-OBS-149 | AP09 immutable segment event-seg-sha256-12eda7253507a0305af35387c4b6b09f9e53e06e0b7b69d7818dafbe95ef0ae1 | pass |
+| EQ-OBS-150 | AP09 immutable segment event-seg-sha256-b53777dee234b62ec5163d2453c75f8b838533a876fd78c6811a2e9b2c409906 | pass |
+| EQ-OBS-151 | AP09 immutable segment event-seg-sha256-cd142a80e6b33f4b681bd20d1277bf8934606496d9019c57e5a9f562882032cb | pass |
+| EQ-OBS-152 | AP09 immutable segment event-seg-sha256-d6766c6c92b954aa69802e5fd183f6125c94f0d7809b6e27163812818bad6893 | pass |
+| EQ-OBS-153 | AP09 immutable segment event-seg-sha256-eceebd4209e02a2d556a9297aaf3412e3bf92c69647dba5fcc4b905b8d2b3909 | pass |
+| EQ-OBS-154 | AP09 immutable segment seg-9201-1789078630903-1 | pass |
+| EQ-OBS-155 | AP09 immutable segment seg-9201-1789078631965-2 | pass |
+| EQ-OBS-156 | AP09 immutable segment seg-9101-1789078629933-4 | pass |
+| EQ-OBS-157 | AP09 immutable segment seg-9201-1789078633958-3 | pass |
+| EQ-OBS-158 | AP09 immutable segment seg-9201-1789078634944-4 | pass |
+| EQ-OBS-159 | AP09 immutable segment seg-9201-1789078635961-5 | pass |
+| EQ-OBS-160 | AP09 immutable segment seg-9201-1789078636187-1 | pass |
+| EQ-OBS-161 | AP09 immutable segment seg-9201-1789078637965-2 | pass |
+| EQ-OBS-162 | AP09 immutable segment seg-9201-1789078638952-3 | pass |
+| EQ-OBS-163 | AP09 immutable segment seg-9201-1789078639052-1 | pass |
+| EQ-OBS-164 | AP09 immutable segment seg-9201-1789078640961-2 | pass |
+| EQ-OBS-165 | AP09 immutable segment seg-9101-1789078634936-5 | pass |
+| EQ-OBS-166 | AP09 immutable media SHA seg-9101-1789078604920-1 | pass |
+| EQ-OBS-167 | AP09 immutable media SHA seg-9101-1789078613281-2 | pass |
+| EQ-OBS-168 | AP09 immutable media SHA seg-9101-1789078621603-3 | pass |
+| EQ-OBS-169 | AP09 immutable media SHA event-seg-sha256-8506d5c90ab1cccb9f4d130205e1e3293eb8985725e7c89c3e7546eefcb21271 | pass |
+| EQ-OBS-170 | AP09 immutable media SHA event-seg-sha256-ef388e345bdae95ec0b5dafc783818ed7291ebc7417651ef6a0416d54edbd144 | pass |
+| EQ-OBS-171 | AP09 immutable media SHA event-seg-sha256-0e176f32908cc6680bcdfe23521e589924bc16edb9d2b2f70d30eaa662f26fa9 | pass |
+| EQ-OBS-172 | AP09 immutable media SHA event-seg-sha256-12eda7253507a0305af35387c4b6b09f9e53e06e0b7b69d7818dafbe95ef0ae1 | pass |
+| EQ-OBS-173 | AP09 immutable media SHA event-seg-sha256-b53777dee234b62ec5163d2453c75f8b838533a876fd78c6811a2e9b2c409906 | pass |
+| EQ-OBS-174 | AP09 immutable media SHA event-seg-sha256-cd142a80e6b33f4b681bd20d1277bf8934606496d9019c57e5a9f562882032cb | pass |
+| EQ-OBS-175 | AP09 immutable media SHA event-seg-sha256-d6766c6c92b954aa69802e5fd183f6125c94f0d7809b6e27163812818bad6893 | pass |
+| EQ-OBS-176 | AP09 immutable media SHA event-seg-sha256-eceebd4209e02a2d556a9297aaf3412e3bf92c69647dba5fcc4b905b8d2b3909 | pass |
+| EQ-OBS-177 | AP09 immutable media SHA seg-9101-1789078629933-4 | pass |
+| EQ-OBS-178 | AP09 immutable media SHA seg-9201-1789078638952-3 | pass |
+| EQ-OBS-179 | AP09 immutable media SHA seg-9201-1789078639052-1 | pass |
+| EQ-OBS-180 | AP09 immutable media SHA seg-9201-1789078640961-2 | pass |
+| EQ-OBS-181 | AP09 immutable media SHA seg-9101-1789078634936-5 | pass |
+| EQ-OBS-182 | AP09 immutable links evt_1789078613546_2 | pass |
+| EQ-OBS-183 | AP09 immutable links evt_1789078613546_3 | pass |
+| EQ-OBS-184 | AP09 immutable links evt_1789078613547_4 | pass |
+| EQ-OBS-185 | AP09 immutable links evt_1789078613548_5 | pass |
+| EQ-OBS-186 | AP09 immutable links evt_1789078622472_76 | pass |
+| EQ-OBS-187 | AP09 immutable links evt_1789078622472_77 | pass |
+| EQ-OBS-188 | AP09 immutable links evt_1789078622473_78 | pass |
+| EQ-OBS-189 | AP09 immutable links evt_1789078622474_79 | pass |
+| EQ-OBS-190 | AP09 immutable links evt_1789078622474_80 | pass |
+| EQ-OBS-191 | AP09 immutable links evt_1789078622475_81 | pass |
+| EQ-OBS-192 | AP09 immutable links evt_1789078622475_82 | pass |
+| EQ-OBS-193 | AP09 immutable links evt_1789078622475_83 | pass |
+| EQ-OBS-194 | AP09 immutable observations obs-b0b613cdb727072cc896187be367e86d | pass |
+| EQ-OBS-195 | AP09 immutable observations obs-0045455bfa42415929f3e193be065484 | pass |
+| EQ-OBS-196 | AP09 immutable observations obs-d9841b9a9ce441caba5484e3108a7ae7 | pass |
+| EQ-OBS-197 | AP09 immutable observations obs-475989521fe8498fe7a0c9aa4581be2e | pass |
+| EQ-OBS-198 | AP09 immutable observations obs-db9b922117e5ea1d58d876a055191e4c | pass |
+| EQ-OBS-199 | AP09 immutable observations obs-c855c26ecf1a235883e74ecc4b60cb15 | pass |
+| EQ-OBS-200 | AP09 immutable observations obs-2e3fd33ef7360b0341def8f98d8178de | pass |
+| EQ-OBS-201 | AP09 immutable observations obs-d113a76b1cf1a746bcdec3942bd62847 | pass |
+| EQ-OBS-202 | AP09 immutable observations obs-777007823dd31ae0e3d68e362658b633 | pass |
+| EQ-OBS-203 | AP09 immutable observations obs-09338d152bca357f898f02c2a0d97c94 | pass |
+| EQ-OBS-204 | AP09 immutable observations obs-559247629387ae96ac8edff0dbdf82e5 | pass |
+| EQ-OBS-205 | AP09 immutable observations obs-29b634ddc01c56a587b1a063e5e008be | pass |
+| EQ-OBS-206 | AP09 immutable observations obs-619920f3e2a23af6dee96aa4cf4cd401 | pass |
+| EQ-OBS-207 | AP09 immutable observations obs-4c8c4fc8ee4a23f15d36d94f49820bae | pass |
+| EQ-OBS-208 | AP09 immutable observations obs-dd7ce91abfc0a0246f30b0d2b3d212cb | pass |
+| EQ-OBS-209 | AP09 immutable observations obs-b8149b4c1715ae4fffc16959be8dc0f0 | pass |
+| EQ-OBS-210 | AP09 immutable observations obs-d76479d15a96056c1a5d1063cf6b81db | pass |
+| EQ-OBS-211 | AP09 immutable observations obs-db7425a34cc91c1fdb0e60fe17440318 | pass |
+| EQ-OBS-212 | AP09 immutable observations obs-523fad9fafa9c5aa06d8d4d47e20284d | pass |
+| EQ-OBS-213 | AP09 immutable observations obs-043b70629b42b1552ffe8f745128e32a | pass |
+| EQ-OBS-214 | AP09 immutable observations obs-b29b93b8d4e36736fe6c8d4e4d3d23ed | pass |
+| EQ-OBS-215 | AP09 immutable observations obs-3126a08044f5c89501c2def2552ffb86 | pass |
+| EQ-OBS-216 | AP09 immutable observations obs-2f1d1dc39f45e974e02456e040342fdf | pass |
+| EQ-OBS-217 | AP09 immutable observations obs-a3358b4d0ea830bb7206d158e8155088 | pass |
+| EQ-OBS-218 | AP09 immutable observations obs-826f0622690758b53ffd4a5682c5da5e | pass |
+| EQ-OBS-219 | AP09 immutable observations obs-f6f6679cf8fac50603ff605556d7ab25 | pass |
+| EQ-OBS-220 | AP09 immutable observations obs-fe252dad97474ba067de272fb8adda23 | pass |
+| EQ-OBS-221 | AP09 immutable observations obs-f4089512d7ab059fb353d95033cee9b4 | pass |
+| EQ-OBS-222 | AP09 immutable observations obs-c03a93e6221aee992b1fde82f0b0687a | pass |
+| EQ-OBS-223 | AP09 immutable observations obs-dcd7a570498ae316b77e6fb0d4bce735 | pass |
+| EQ-OBS-224 | AP09 immutable observations obs-5ef0e07163d4d57c406850171b885677 | pass |
+| EQ-OBS-225 | AP09 immutable observations obs-e14ceb1e5209134f802f3325ee8321a0 | pass |
+| EQ-OBS-226 | AP09 immutable observations obs-66286f64bd399e2d2db7e72f2fbcc2e2 | pass |
+| EQ-OBS-227 | AP09 immutable observations obs-6ba1433e03b625b2efa95ba93540c94d | pass |
+| EQ-OBS-228 | AP09 immutable observations obs-3ce87b16bdfbb9dc92a71a650231c00b | pass |
+| EQ-OBS-229 | AP09 immutable observations obs-17423601a259a4e783a24a23d5900f98 | pass |
+| EQ-OBS-230 | AP09 immutable observations obs-e558f9769cb4b325eb06ac48b866488a | pass |
+| EQ-OBS-231 | AP09 immutable observations obs-bcdcfafd5d56f5a653d7f172652b5719 | pass |
+| EQ-OBS-232 | AP09 immutable observations obs-81443bfd6bbb3e4b8c93dd8bc099a1b4 | pass |
+| EQ-OBS-233 | AP09 immutable observations obs-bcee02b9013b0fec247f6cba752f3d8b | pass |
+| EQ-OBS-234 | AP09 immutable observations obs-267ed0172f6c720b907e75f3bb00ea58 | pass |
+| EQ-OBS-235 | AP09 immutable observations obs-7dd5a8f9aba483803050b04b0c00e72b | pass |
+| EQ-OBS-236 | AP09 immutable observations obs-052e97ecb1418441be48fe6687f53e92 | pass |
+| EQ-OBS-237 | AP09 immutable observations obs-267390a10f4e13463067bb55e7fdd89d | pass |
+| EQ-OBS-238 | AP09 immutable observations obs-fe3711e03a6918e591499bdfa90fe706 | pass |
+| EQ-OBS-239 | AP09 immutable observations obs-e8d6627334fad11a577b5bd59c3ff1b9 | pass |
+| EQ-OBS-240 | AP09 immutable observations obs-bed6a3964377c28b45b4d9ec42ffdf10 | pass |
+| EQ-OBS-241 | AP09 immutable observations obs-57693fc72fdf1210a0449eddb2f339eb | pass |
+| EQ-OBS-242 | AP09 immutable observations obs-397b2e4a1632730f98982655640df638 | pass |
+| EQ-OBS-243 | AP09 immutable observations obs-608db41b614d408034d90d6f88416d97 | pass |
+| EQ-OBS-244 | AP09 immutable observations obs-1027690a647169a5e1880bf1c521abb2 | pass |
+| EQ-OBS-245 | AP09 immutable observations obs-6edbafabd9c98ea6a185f25ff35548b9 | pass |
+| EQ-OBS-246 | AP09 immutable observations obs-df79b7a6048264bfdce1e1320d5a7000 | pass |
+| EQ-OBS-247 | AP09 immutable observations obs-5ee2173adf97cdb47fa711d1cf4d6a13 | pass |
+| EQ-OBS-248 | AP09 immutable observations obs-55db0b2a40e9e761e5d90d9a1bb326a6 | pass |
+| EQ-OBS-249 | AP09 immutable observations obs-1ae796c6cb04b0a6778afb3fff6e8281 | pass |
+| EQ-OBS-250 | AP09 immutable observations obs-cc309a8ee010704eb90a3dcbb9a4d30d | pass |
+| EQ-OBS-251 | AP09 immutable observations obs-5d91384d547fc6b59efcf23e64657796 | pass |
+| EQ-OBS-252 | AP09 immutable observations obs-245e65b10ba8b99cfd8c02c3efd75127 | pass |
+| EQ-OBS-253 | AP09 immutable observations obs-a3e2948dd98dea7b8ba408d9600b3680 | pass |
+| EQ-OBS-254 | AP09 immutable observations obs-462f297287ed18e448539ae07760f75b | pass |
+| EQ-OBS-255 | AP09 immutable observations obs-9e13096fcd7370dfaa6f79faf2c779c8 | pass |
+| EQ-OBS-256 | AP09 immutable observations obs-ba0240207f262cd2dd57c56fddd7aef5 | pass |
+| EQ-OBS-257 | AP09 immutable observations obs-8c35c0cf74b15e05fa84971f511a6032 | pass |
+| EQ-OBS-258 | AP09 immutable observations obs-42a44ca9d3ee25463dd00f1754d2d351 | pass |
+| EQ-OBS-259 | AP09 immutable observations obs-84ee510329848be1fa3a058c1b7bb7e6 | pass |
+| EQ-OBS-260 | AP09 immutable observations obs-8d839b963f2fb34cc1d44397034fdfcb | pass |
+| EQ-OBS-261 | AP09 immutable observations obs-fa171b502558c4bf28a9e6bd8fb57da0 | pass |
+| EQ-OBS-262 | AP09 immutable observations obs-e62402d6da39944090156090a0fb254d | pass |
+| EQ-OBS-263 | AP09 immutable observations obs-9cffa85239c4d1fdeca70f75738715e4 | pass |
+| EQ-OBS-264 | AP09 immutable observations obs-3222a383bbedf56a1b8e6073d197789b | pass |
+| EQ-OBS-265 | AP09 immutable observations obs-06f84dc97326059f5d229de0ac6f87c2 | pass |
+| EQ-OBS-266 | AP09 immutable observations obs-7399fbcff47f2410171b912316e6dae3 | pass |
+| EQ-OBS-267 | AP09 immutable observations obs-d31891c60c6940ffd102e0935ccba1dc | pass |
+| EQ-OBS-268 | AP09 immutable observations obs-422262f9549dfdaeeb0b688fc1fff5d5 | pass |
+| EQ-OBS-269 | AP09 immutable observations obs-e41e80d9c77cc93502e5d8c2b812558e | pass |
+| EQ-OBS-270 | AP09 immutable observations obs-4f30842ad78045c8c2c091bdf1581e33 | pass |
+| EQ-OBS-271 | AP09 immutable observations obs-089077586910688f56e464023df9e7ec | pass |
+| EQ-OBS-272 | AP09 immutable observations obs-1aced02bc7bc289e62b9510480557245 | pass |
+| EQ-OBS-273 | AP09 immutable observations obs-95aa87350145df1de1ad9ea6fb82febe | pass |
+| EQ-OBS-274 | AP09 immutable tombstones seg-9201-1789078630903-1 | pass |
+| EQ-OBS-275 | AP09 immutable tombstones seg-9201-1789078631965-2 | pass |
+| EQ-OBS-276 | AP09 immutable tombstones seg-9201-1789078633958-3 | pass |
+| EQ-OBS-277 | AP09 immutable tombstones seg-9201-1789078634944-4 | pass |
+| EQ-OBS-278 | AP09 immutable tombstones seg-9201-1789078635961-5 | pass |
+| EQ-OBS-279 | AP09 immutable tombstones seg-9201-1789078636187-1 | pass |
+| EQ-OBS-280 | AP09 immutable tombstones seg-9201-1789078637965-2 | pass |
+| EQ-OBS-281 | AP09 duplicate mutation IDs zero | pass |
+| EQ-OBS-282 | AP09 actual post-restart finalized | pass |
+| EQ-OBS-283 | AP12 app2 exit0 \| exit=0 signal=null | pass |
+| EQ-OBS-284 | AP12 root below 512MiB cap \| bytes=322986806 | pass |
+| EQ-OBS-285 | AP12 port absent 65225 | pass |
+| EQ-OBS-286 | AP12 port absent 65226 | pass |
+| EQ-OBS-287 | AP12 port absent 65292 | pass |
+| EQ-OBS-288 | AP12 port absent 65293 | pass |
+| EQ-OBS-289 | AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-2hd7oq bytes=322986806 absent=true | pass |
+| EQ-OBS-290 | AP wrapper completed and cleanup absent | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-2hd7oq | app/media/event/archive | 322986806 | 메인 실행wrapper삭제 | absent=true | AP12원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.9DIIyo | collector/GSTregistry | 143595 | 메인 실행trap삭제 | absent=true | cleanup원출력 |
+| /private/tmp/s09-eq-observe.VaIJi4 | 전체stdout/stderr | 64891 | 전수이관뒤담당자unlink | 최종아래부재대조기록 | 임시로그는보존evidence아님 |
+
+미실행/한계: 담당자 추가검증·서버·빌드·제품수정없음. auth/30/120/UI/외부·운영데이터/커밋/푸시는이번범위아님. 전체S09/장시간자원추세/누수해결PASS가 아니다. 원장관측은 strictduplicate/catalog수용/fsync검증의대체가 아니다. 코드·다른문서는수정하지않았다.
+
+## S09 Enqueue 수정 후 실제 관측 재실행 사전등록
+
+사용자 `승인`에 따라 기존 `./server.sh verify-v410-recording-foundation --app-observe`를
+권한 상승으로 1회 실행한다. 전체 빌드80764 이후 코드·시나리오·상한은 변경하지 않는다.
+기존 OBS 실제 앱 개별 항목과 동일한 녹화·이벤트·보존·재시작·정리 및 PID별 자원/원장
+집계를 확인한다. 이전27991과 유형별 원장 행 수·RSS 표본을 비교하되 단기 관측을
+누수 부재나 장시간 PASS로 확대하지 않는다. 인증·UI·30분·120분·커밋·푸시는 제외한다.
+안정화의 해당 단기 관측만 진행 대상이며 최신 사용자 승인으로 실행한다.
+
+## S09 Enqueue 수정 후 전체 빌드 사전등록
+
+실행 결과80764: `./server.sh build` exit0. Enqueue C++ 객체 재컴파일 →
+`libmedia_server_runtime.a` 재링크 → `[100%] Built target media_server` 확인.
+관측 시작2026-09-10 21:34:58 UTC/종료21:35:03 UTC, 관측 구간5초(초 단위 clock,
+도구 왕복 포함이며 정밀 빌드 시간 아님). token start/end/consumed 미집계,
+source=개별 명령 토큰 집계 없음. 추가 서버 프로세스나 테스트 임시 root는 만들지 않았다.
+기존 build 디렉터리의 실행파일·정적 라이브러리는 후속 재검증용 빌드 산출물로 유지한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| EQ 전체 서버 빌드 | `./server.sh build`, session80764 exit0, runtime·media_server target 완료. 실제 기동/인증/원장 증가율은 미확인 | pass |
+| EQ 변경 형식 | `git diff --check`, exit0, 출력 없음 | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| 없음 | 새 테스트 임시 산출물 | 0 | 삭제 대상 없음 | 별도 테스트 root/서버 미생성 | build 명령 출력 |
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| EQ 전체 서버 빌드 | `./server.sh build` | Enqueue 최소수정이 전체 media_server에 컴파일·링크되는지 종료값과 target 완료 출력 확인. 실제 서버 기동·기능 검증을 대체하지 않음 | v4.1.0 |
+| EQ 변경 형식 | `git diff --check` | 현재 변경의 공백/patch 형식 확인. 기능 회귀 통과로 확대하지 않음 | v4.1.0 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 현재 S09 제품 Enqueue 수정의 전체 링크 확인 | event_recording_bridge.cpp Enqueue, S09-EQ01~03 | S09 개발 범위의 로컬 build·diff만 실행 |
+| 30분 테스트 | 미진행 | 이번 빌드 확인 범위 밖 | AGENTS.md 7.6.2 | 별도 승인 대기, 버전 완료 증거 미확보 |
+| 120분 테스트 | 미진행 | 이번 빌드 확인 범위 밖 | Task9 장시간 검증 | 기존 predev120 승인은 최종 코드 대상, 녹화 직접120 별도 승인 대기 |
+| UI 풀테스트 | 미진행 | 이번 빌드 확인 범위 밖 | AGENTS.md 7.9 | 별도 승인 대기, 버전 완료 증거 미확보 |
+
+실제 앱 재관측의 권한 상승 승인과 인증 환경변수 대기는 별개다. 빌드는 서버를 시작하지 않는다.
+
+## S09 Enqueue retry identity 최소 수정 결과
+
+단독GREEN15 결과를 회귀144 결과와 별도 실행행으로 보존한다(총159개 실행 assertion).
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| EQ-green-01 | "EQ journal open"; session55256 --enqueue-only | pass |
+| EQ-green-02 | "EQ catalog open"; session55256 --enqueue-only | pass |
+| EQ-green-03 | "EQ 실제 pending 등록"; session55256 --enqueue-only | pass |
+| EQ-green-04 | "EQ 각 event 실제 worker 최초 journal 기록 확인"; session55256 --enqueue-only | pass |
+| EQ-green-05 | "EQ deadline 이전 동일 event journal 증가 없음"; session55256 --enqueue-only | pass |
+| EQ-green-06 | "EQ 서로 다른 event link ID 보존"; session55256 --enqueue-only | pass |
+| EQ-green-07 | "EQ 미해석 PTS는 파생 비실행"; session55256 --enqueue-only | pass |
+| EQ-green-08 | "EQ journal open"; session55256 --enqueue-only | pass |
+| EQ-green-09 | "EQ catalog open"; session55256 --enqueue-only | pass |
+| EQ-green-10 | "EQ 실제 pending 등록"; session55256 --enqueue-only | pass |
+| EQ-green-11 | "EQ 실제 pending 등록"; session55256 --enqueue-only | pass |
+| EQ-green-12 | "EQ 각 event 실제 worker 최초 journal 기록 확인"; session55256 --enqueue-only | pass |
+| EQ-green-13 | "EQ deadline 이전 동일 event journal 증가 없음"; session55256 --enqueue-only | pass |
+| EQ-green-14 | "EQ 서로 다른 event link ID 보존"; session55256 --enqueue-only | pass |
+| EQ-green-15 | "EQ 미해석 PTS는 파생 비실행"; session55256 --enqueue-only | pass |
+
+최종cleanup: 원로그9928bytes unlink 후 temp4개+로그 lstat 전수대조 checked5/present[] exit0. 원출력의 /var 경로는 macOS /private/var alias이며 모두삭제됨. 별도 보존산출물 없음.
+
+동일 in-process `bash scripts/internal/verify_v410_event_recording.sh --enqueue-only`:
+- 최초 session37374 exit1: 신규fixture Catalog/Retention 생성자 두컴파일오류. 예상RED가 아니며 API 정정만 수행했다.
+- 기대RED session88698 exit1/4pass1fail: fixedclock10000/deadline10250에서 worker최초기록확인 후 before36→300ms after1779. `EQ deadline 이전 동일 event journal 증가 없음` assertion 실패. 두event case는 미도달이었다.
+- Enqueue move전에 const string event_id를 보존하고 jobs_[event_id]에 저장하는 한지점 최소수정 후 session55256 exit0/15pass0fail: 한event2→2, 두event각2→2. policy/retry250/시간/schema/상태/무변경dedup 정책 수정 없음.
+- `bash scripts/internal/verify_v410_event_recording.sh --bridge-only` session46677 exit0/144pass0fail = 신규15+기존129. 시작1789075885778/종료1789075891672/elapsed5894ms(Node Date.now shell측정, compile포함). 전체148줄9928bytes와assert144/summary144 일치. URL/credential패턴0. 아래 모든 개별행을 이관했다.
+
+처음 컴파일/RED/단독GREEN의 전체elapsed는 미계측이고 테스트의300ms관찰구간과구분한다. token start/end/consumed=null, source=하위작업별자동집계없음. 테스트수명10초watchdog는 비상실패경계이며 강제발동검사PASS로주장하지 않는다. 각이벤트 실제journal2행(등록+처리)이상의동기화가 선행하므로 단순sleep만으로PASS하지 않았다. StopAndDrain 뒤 결과를판정한다. 단일event의 ID비교조건은 비대상조건이고, 두event일때만 서로다름을 실제검사한다.
+
+wrapper 좁은선택은 인수검증을temp/테스트root변경 전에 수행하며 기존기본모드/검사코드는유지했다. bridge-only는 실제remux/VP8/GSTsource와 application/runtime 하위스크립트를 호출하지 않는다. 기존 default verifier 전수·실제 OBS 감소 확인·전체build는 이번미실행이다. 이번제품diff는 기존 BF변경과별개인 Enqueue 두행이며 source whole diff의총량과혼동하지 않는다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| EQ 최초 compile | Catalog/Retention fixture 생성자 인자오류2개; session37374 exit1, assertion미도달 | fail |
+| EQ 예상 RED | 실제worker확인4pass 뒤 same-event deadline전 증가36→1779; session88698 exit1 | fail |
+| EQ-regression-001 | "EQ journal open"; 단독 GREEN15 및 회귀144 두 실행 pass | pass |
+| EQ-regression-002 | "EQ catalog open"; 단독 GREEN15 및 회귀144 두 실행 pass | pass |
+| EQ-regression-003 | "EQ 실제 pending 등록"; 단독 GREEN15 및 회귀144 두 실행 pass | pass |
+| EQ-regression-004 | "EQ 각 event 실제 worker 최초 journal 기록 확인"; 단독 GREEN15 및 회귀144 두 실행 pass | pass |
+| EQ-regression-005 | "EQ deadline 이전 동일 event journal 증가 없음"; 단독 GREEN15 및 회귀144 두 실행 pass | pass |
+| EQ-regression-006 | "EQ 서로 다른 event link ID 보존"; 단독 GREEN15 및 회귀144 두 실행 pass | pass |
+| EQ-regression-007 | "EQ 미해석 PTS는 파생 비실행"; 단독 GREEN15 및 회귀144 두 실행 pass | pass |
+| EQ-regression-008 | "EQ journal open"; 단독 GREEN15 및 회귀144 두 실행 pass | pass |
+| EQ-regression-009 | "EQ catalog open"; 단독 GREEN15 및 회귀144 두 실행 pass | pass |
+| EQ-regression-010 | "EQ 실제 pending 등록"; 단독 GREEN15 및 회귀144 두 실행 pass | pass |
+| EQ-regression-011 | "EQ 실제 pending 등록"; 단독 GREEN15 및 회귀144 두 실행 pass | pass |
+| EQ-regression-012 | "EQ 각 event 실제 worker 최초 journal 기록 확인"; 단독 GREEN15 및 회귀144 두 실행 pass | pass |
+| EQ-regression-013 | "EQ deadline 이전 동일 event journal 증가 없음"; 단독 GREEN15 및 회귀144 두 실행 pass | pass |
+| EQ-regression-014 | "EQ 서로 다른 event link ID 보존"; 단독 GREEN15 및 회귀144 두 실행 pass | pass |
+| EQ-regression-015 | "EQ 미해석 PTS는 파생 비실행"; 단독 GREEN15 및 회귀144 두 실행 pass | pass |
+| EQ-regression-016 | "기본 pending event link가 유효해야 함: " | pass |
+| EQ-regression-017 | "terminal 대기 UTC 확장 요청은 additive 계약으로 round-trip해야 함" | pass |
+| EQ-regression-018 | "terminal 대기 요청이 현재 범위를 축소하면 거부해야 함" | pass |
+| EQ-regression-019 | "미해석 후속 PTS는 기존 UTC 범위와 별도 field로 round-trip해야 함" | pass |
+| EQ-regression-020 | "미해석 후속 PTS를 소비하지 않은 terminal 상태를 거부해야 함" | pass |
+| EQ-regression-021 | "서로 겹치는 ordered overlap을 거부해야 함" | pass |
+| EQ-regression-022 | "overlap/missing이 requested range를 정확히 분할하지 않으면 거부해야 함" | pass |
+| EQ-regression-023 | "unknown link status를 영속 계약으로 허용하면 안 됨" | pass |
+| EQ-regression-024 | "locator 없는 fallback evidence를 거부해야 함" | pass |
+| EQ-regression-025 | "journal open 실패: " | pass |
+| EQ-regression-026 | "catalog open 실패: " | pass |
+| EQ-regression-027 | "event link 갱신은 SQLite primary projection에서 검증해야 함" | pass |
+| EQ-regression-028 | "segment finalize 실패: " | pass |
+| EQ-regression-029 | "segment finalize 실패: " | pass |
+| EQ-regression-030 | "segment finalize 실패: " | pass |
+| EQ-regression-031 | "segment finalize 실패: " | pass |
+| EQ-regression-032 | "segment finalize 실패: " | pass |
+| EQ-regression-033 | "retention policy 실패: " | pass |
+| EQ-regression-034 | "이벤트 저장 worker를 막지 않고 파생 job을 pending으로 enqueue해야 함" | pass |
+| EQ-regression-035 | "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| EQ-regression-036 | "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| EQ-regression-037 | "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| EQ-regression-038 | "완전한 archive 파생 완료 뒤 ready clip을 반환해야 함" | pass |
+| EQ-regression-039 | "event link ID와 derived clip path가 반환되어야 함" | pass |
+| EQ-regression-040 | "반개구간 overlap은 맞닿기만 한 segment를 제외해야 함" | pass |
+| EQ-regression-041 | "media PTS event 범위가 segment epoch 기준 UTC로 변환되어야 함" | pass |
+| EQ-regression-042 | "overlap segment가 UTC 순서로 전달되어야 함" | pass |
+| EQ-regression-043 | "파생 성공 link가 catalog complete로 저장되어야 함" | pass |
+| EQ-regression-044 | "파생 완료 뒤 원본 hold가 해제되어야 함" | pass |
+| EQ-regression-045 | "파생 완료 뒤 원본 hold가 해제되어야 함" | pass |
+| EQ-regression-046 | "파생 완료 뒤 원본 hold가 해제되어야 함" | pass |
+| EQ-regression-047 | "같은 event update는 파생 clip을 중복 생성하지 않아야 함" | pass |
+| EQ-regression-048 | "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| EQ-regression-049 | "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| EQ-regression-050 | "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| EQ-regression-051 | "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| EQ-regression-052 | "완료 event의 더 넓은 update는 range별 결정 ID로 다시 파생해야 함" | pass |
+| EQ-regression-053 | "segment finalize 실패: " | pass |
+| EQ-regression-054 | "segment finalize 실패: " | pass |
+| EQ-regression-055 | "cam-b policy 실패: " | pass |
+| EQ-regression-056 | "archive gap이 있으면 complete로 표시하면 안 됨" | pass |
+| EQ-regression-057 | "link가 정확한 missing UTC range를 보존해야 함" | pass |
+| EQ-regression-058 | "frame-buffer fallback 뒤 같은 link가 fallback evidence로 갱신되어야 함" | pass |
+| EQ-regression-059 | "같은 event link의 overlap/fallback 갱신 뒤에도 SQLite projection을 유지해야 함" | pass |
+| EQ-regression-060 | "cam-late policy 실패: " | pass |
+| EQ-regression-061 | "segment finalize 실패: " | pass |
+| EQ-regression-062 | "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| EQ-regression-063 | "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| EQ-regression-064 | "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| EQ-regression-065 | "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| EQ-regression-066 | "anchor 없는 PTS를 finalized segment의 실제 PTS/UTC mapping으로 복구해야 함" | pass |
+| EQ-regression-067 | "PTS epoch anchor가 없으면 임의 UTC 연결이나 파생을 하면 안 됨" | pass |
+| EQ-regression-068 | "anchor 없는 PTS는 UTC field가 아니라 재해석 가능한 PTS range로 보존해야 함" | pass |
+| EQ-regression-069 | "같은 긴 prefix의 event ID도 SHA-256 기반 결정 ID가 충돌하면 안 됨" | pass |
+| EQ-regression-070 | "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| EQ-regression-071 | "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| EQ-regression-072 | "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| EQ-regression-073 | "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| EQ-regression-074 | "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| EQ-regression-075 | "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| EQ-regression-076 | "확장 회귀 journal open 실패: " | pass |
+| EQ-regression-077 | "확장 회귀 initial catalog open 실패: " | pass |
+| EQ-regression-078 | "segment finalize 실패: " | pass |
+| EQ-regression-079 | "cleanup 확장 fixture 저장 실패: " | pass |
+| EQ-regression-080 | "cleanup 확장 fixture 저장 실패: " | pass |
+| EQ-regression-081 | "확장 회귀 restart catalog open 실패: " | pass |
+| EQ-regression-082 | "확장 policy 실패" | pass |
+| EQ-regression-083 | "cleanup 확장 remux 실패는 한 번만 실행되어야 함" | pass |
+| EQ-regression-084 | "실패/Partial도 보류 확장 요청을 현재 범위로 소비해 보존해야 함" | pass |
+| EQ-regression-085 | "실패/Partial도 보류 확장 요청을 현재 범위로 소비해 보존해야 함" | pass |
+| EQ-regression-086 | "PTS 확장은 다른 범위 ID를 사용해야 함" | pass |
+| EQ-regression-087 | "미해석 PTS 확장을 이전 complete clip으로 응답하면 안 됨" | pass |
+| EQ-regression-088 | "segment finalize 실패: " | pass |
+| EQ-regression-089 | "PTS 확장 2회는 최초 포함 총 3회 파생해야 함" | pass |
+| EQ-regression-090 | "quota journal open 실패: " | pass |
+| EQ-regression-091 | "quota catalog open 실패: " | pass |
+| EQ-regression-092 | "segment finalize 실패: " | pass |
+| EQ-regression-093 | "segment finalize 실패: " | pass |
+| EQ-regression-094 | "quota policy 실패: " | pass |
+| EQ-regression-095 | "event quota는 oldest event를 정리해 새 event write를 허용해야 함: ok" | pass |
+| EQ-regression-096 | "event quota 충족을 위해 continuous를 삭제하면 안 됨" | pass |
+| EQ-regression-097 | "event quota는 oldest eligible event를 삭제해야 함" | pass |
+| EQ-regression-098 | "policy 재등록 실패: " | pass |
+| EQ-regression-099 | "policy 제거가 진행 중 event reservation을 지우면 안 됨" | pass |
+| EQ-regression-100 | "명시적 complete 뒤 event reservation ID를 재사용할 수 있어야 함" | pass |
+| EQ-regression-101 | "queue journal open 실패: " | pass |
+| EQ-regression-102 | "queue catalog open 실패: " | pass |
+| EQ-regression-103 | "segment finalize 실패: " | pass |
+| EQ-regression-104 | "queue policy 실패: " | pass |
+| EQ-regression-105 | "bounded queue 밖 durable pending도 완료 뒤 다시 흡수해야 함" | pass |
+| EQ-regression-106 | "긴 event remux가 다른 이벤트의 durable link admission을 동기 차단하면 안 됨" | pass |
+| EQ-regression-107 | "cleanup 실패 시 source hold와 event reservation을 성공처럼 해제하면 안 됨" | pass |
+| EQ-regression-108 | "terminal marker unlink 실패 시 source/output hold를 유지해야 함" | pass |
+| EQ-regression-109 | "terminal marker unlink 실패 시 event reservation을 유지해야 함" | pass |
+| EQ-regression-110 | "marker 복구 중 event/fallback 갱신은 자원·단계를 보존하고 확장 요청을 내구 대기해야 함" | pass |
+| EQ-regression-111 | "terminal hold 해제 실패를 Complete로 기록하면 안 됨" | pass |
+| EQ-regression-112 | "terminal 복구 중 event/fallback 갱신이 release 단계를 덮어쓰면 안 됨" | pass |
+| EQ-regression-113 | "복구 완료 뒤 내구 대기한 범위 확장은 같은 source epoch의 새 segment로 파생해야 함" | pass |
+| EQ-regression-114 | "terminal complete commit retry fixture 저장 실패: " | pass |
+| EQ-regression-115 | "complete commit 재시도는 다른 pending event의 source hold를 해제하면 안 됨" | pass |
+| EQ-regression-116 | "overflow fixture 이전 hold_count가 저장 범위를 넘으면 안 됨" | pass |
+| EQ-regression-117 | "hold overflow fixture 준비 실패: " | pass |
+| EQ-regression-118 | "event source lease hold_count overflow를 사전에 거부해야 함" | pass |
+| EQ-regression-119 | "hold fixture journal open 실패: " | pass |
+| EQ-regression-120 | "hold fixture catalog open 실패: " | pass |
+| EQ-regression-121 | "segment finalize 실패: " | pass |
+| EQ-regression-122 | "segment finalize 실패: " | pass |
+| EQ-regression-123 | "hold pending link 저장 실패: " | pass |
+| EQ-regression-124 | "hold replay journal open 실패: " | pass |
+| EQ-regression-125 | "hold replay catalog open 실패: " | pass |
+| EQ-regression-126 | "재시작 replay가 terminal 전 output/source hold를 함께 복원해야 함" | pass |
+| EQ-regression-127 | "terminal stage fixture event link 조회" | pass |
+| EQ-regression-128 | "terminal stage fixture 저장 실패: " | pass |
+| EQ-regression-129 | "terminal stage replay journal open: " | pass |
+| EQ-regression-130 | "terminal stage catalog open: " | pass |
+| EQ-regression-131 | "complete commit 단계 재시작은 이미 해제된 output/source hold를 복원하면 안 됨" | pass |
+| EQ-regression-132 | "terminal Complete 기록 전 source 삭제 요청을 차단해야 함" | pass |
+| EQ-regression-133 | "terminal Complete 기록 전 output 삭제 요청을 차단해야 함" | pass |
+| EQ-regression-134 | "restart journal open 실패: " | pass |
+| EQ-regression-135 | "restart catalog open 실패: " | pass |
+| EQ-regression-136 | "segment finalize 실패: " | pass |
+| EQ-regression-137 | "segment finalize 실패: " | pass |
+| EQ-regression-138 | "restart pending link 저장 실패: " | pass |
+| EQ-regression-139 | "재시작은 이미 finalized된 결정적 event segment를 재파생 없이 연결해야 함" | pass |
+| EQ-regression-140 | "재시작 복구에서 event clip을 중복 파생하면 안 됨" | pass |
+| EQ-regression-141 | "segment finalize 실패: " | pass |
+| EQ-regression-142 | "conflict pending link 저장 실패: " | pass |
+| EQ-regression-143 | "다른 channel/class의 동일 segment ID를 event 결과로 오인하면 안 됨" | pass |
+| EQ-regression-144 | "segment ID conflict에서 파생을 실행하면 안 됨" | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v410_event_recording.Uxf9id | 최초compile temp | 0 | trap삭제 | removed=true | wrapper원출력 |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v410_event_recording.hlVUWG | 실제RED native/원장 | 4098341 | trap삭제 | removed=true | wrapper원출력 |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v410_event_recording.QZrfkJ | GREEN15 | 2555109 | trap삭제 | removed=true | wrapper원출력 |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_v410_event_recording.BEFRVu | 기존bridge144 회귀 | 3102811 | trap삭제 | removed=true | wrapper원출력 |
+| /private/tmp/s09-eq-bridge-output.1gs1dm | 전체회귀 stdout/stderr | 9928 | 전수이관뒤삭제 | 최종부재확인별도기록 | 임시로그는최종evidence아님 |
+
+확인범위: 실제 Catalog/Journal/Bridge public경로의 deadline재시도 보존과 두event진행, 기존 in-process129검사. 실미디어소스·서버·loopback·auth·30/120/UI/빌드/커밋/푸시미실행. OBS27991의46497event-link 발행량이 이수정후 감소했는지는 아직미재검증이며 그사실을 제품전체효과로단정하지 않는다. git diff --check exit0.
+
+## S09 Enqueue key 사전등록
+
+최초 실행 실제 컴파일 실패: session37374 exit1, fixture의 Catalog/RetentionCoordinator 생성자 인자 불일치 두 오류. assertion RED가 아니며 제품은 수정하지 않고 실제 공개 생성자에 맞게 fixture만 정정했다. temp Uxf9id 0bytes 삭제. 이후 session88698 실제 예상 RED exit1/4pass1fail: fixedclock10000/deadline10250, worker최초기록확인 뒤 before36→300ms after1779. `EQ deadline 이전 동일 event journal 증가 없음` assertion으로 예상 가설 일치. temp hlVUWG4098341bytes 삭제. 이 근거 뒤에만 Enqueue move전event_id 복사 한지점 최소수정을 시작했다. 두 event 시험은 RED 첫실패 뒤 미실행이다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| EQ01 retry deadline | 실제 Bridge worker 최초기록 이후 fixedclock deadline전 추가기록0 | 실제 Journal.Replay 2행(등록+첫처리) 확인 뒤300ms관찰, before/after2 유지. move후key유실이면 증가 assertion 예상RED | v4.1.0 |
+| EQ02 여러 event | 실제두ID 각각처리·보존 | 각ID journal 2행 이상 최초worker진행 동기화 후 deadline전 각2행 유지 | v4.1.0 |
+| EQ03 수명/회귀 | boundedwatchdog·StopAndDrain·temp cleanup | --enqueue-only→가설일치fix→동일GREEN→--bridge-only. 실제remux/서버/GST source는선택실행에서제외 | v4.1.0 |
+
+예상RED명령 `bash scripts/internal/verify_v410_event_recording.sh --enqueue-only`. 컴파일/환경오류는RED가아니다. 제품수정은 예상 실제retry증폭 assertion 실패 뒤 Enqueue의 move전key보존 한지점만 허용한다. no-op dedup/정책/수치/schema 변경금지.
+
+## S09 OBS 실제 단기 관측 27991 결과
+
+최종 로그정리: /private/tmp/s09-observe-output.tn1KFi 63071bytes를 전수이관 후 unlink, lstat ENOENT absent=true exit0 확인. 원로그는 삭제했고 이 절이 보존 evidence다. 최종 git diff --check exit0.
+
+후처리 추가: app/GST 두경로 lstat 부재 checked2/present[] exit0. 별도 `ps -p 15226,15249 -o pid=,stat=`는 sandbox operation not permitted로 실행 불가였으므로 추가OS PID조회로 부재확인했다고 하지 않는다. 앱PID 종료는 원래 실행의 child close 및 exit0 assertions로 확인한 범위다. ps 조회를 위한 추가 권한상승/재실행 없음.
+
+사용자 `상승` 명시승인 후 `./server.sh verify-v410-recording-foundation --app-observe`를 require_escalated로 실행했다. 세션27991 exit0. 전체stdout/stderr 원로그322줄/63071bytes, 원문pass293/fail0이며 앱 JSON summary292pass0fail + wrapper 완료1pass와 일치한다. 시작1789075029527ms/종료1789075088205ms/elapsed58678ms(Node Date.now, wrapper compile 제외). token start/end/consumed=null, source=하위작업별 자동집계 없음. 앞선 EPERM1/2와 권한거부 이력은 아래 보존했고 이번 승인 뒤 추가 재실행은 없다.
+
+관측완료 observationCompleted=true, resourceTrendPass=false, fullFoundationPass=false. PID15226(startIdentity macos:1789075029:537729)8표본, 새PID15249(macos:1789075068:511790)3표본. 앱 정상 exit0·새PID·기존 archive snapshot 재검증을 아래 개별행으로 확인했다. 5초 주기와 launch 직후 표본이므로 restart 직후표본 사이 간격이5초보다 짧을 수 있다. PID별 측정군을 합쳐 기울기를 계산하지 않았다. 처음 PID RSS51478528→최대416284672bytes와 새PID199999488→223297536bytes는 workload 중 실제 측정값일 뿐 warmup 후 누수판정이 아니다.
+
+최종 consumedOffset=48269484, partialBytes=0, backlogBytes=0/backlog=false. raw mutation46714, unique mutation46714, unique entity121, 저장ID46835/100000, UTF8 ID1068248/33554432bytes. 7type은 segment_finalized33/event_link_created46497/observation_put0/observation_v2_put168/deletion_requested8/deletion_completed8/corruption_detected0. 따라서 이번 원장 증가의 유형별 분포는 event_link_created 위주임을 직접 관측했지만 그 호출 원인·최적화 필요성은 아직 판정하지 않았다. 0인 유형은 유효 원장 표본에서 실제0이며 결측 대체0이 아니다. 중간partial은4MiB poll 경계 포함이므로 EOF미commit으로 일괄 해석하지 않는다. 최종 drain으로 완결 확인했으며 catalog/fsync 수용의 증거로 확대하지 않는다.
+
+실제 이벤트: fallback evt_1789075039958_2는 WebM22905bytes, requested1789075039177~1789075040200, gap1789075039645~1789075039700로 partial/requested-fallback·priority200·Range206. 별도rule9102 evt_1789075049050_82는 requested1789075048330~1789075049330, missing0·complete·TS actual1789075048030~1789075049330·priority200·Range206. 원본 stream/channel의catalog exact 불일치는 기존 bound-ID HTTP양성 경계로 검증했고 원본URL은 로그에 없었다. AP08cursor46695 이후 신규두ID seg-9201-1789075062630-1/seg-9201-1789075064273-2의 Finalized→DeletionRequested→Completed 및 실파일부재로 진행을 확인했다. 이때 physical SHA 재계산은 false(metadataOnly)이며 quota복원뒤 정상stop의 살아있는 media별 size/SHA는 별도 아래 검사다. quota 전 실제5파일77918662bytes, 각파일64MiB미만. 상태active는 subscriber수준 관측이다.
+
+| 표본 | PID | sampledAt(ms) | RSSbytes | thread | FD | cursor | partial/backlog bytes | raw/unique mutation/entity | UTF8 ID bytes | 7type 순서(SF/EL/O1/O2/DR/DC/CD) |
+| --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- | ---: | --- |
+| 1 | 15226 | 1789075031237 | 51478528 | 7 | 12 | 0 | 0/0 | 0/0/0 | 0 | 0/0/0/0/0/0/0 |
+| 2 | 15226 | 1789075034539 | 66961408 | 21 | 20 | 0 | 0/0 | 0/0/0 | 0 | 0/0/0/0/0/0/0 |
+| 3 | 15226 | 1789075039539 | 70991872 | 18 | 20 | 0 | 0/0 | 0/0/0 | 0 | 0/0/0/0/0/0/0 |
+| 4 | 15226 | 1789075044568 | 336429056 | 33 | 22 | 4193655 | 649/10649564 | 4412/4412/13 | 96597 | 1/4403/0/8/0/0/0 |
+| 5 | 15226 | 1789075049570 | 390873088 | 33 | 22 | 8387944 | 15/19324090 | 8336/8336/17 | 183069 | 1/8323/0/12/0/0/0 |
+| 6 | 15226 | 1789075054572 | 403800064 | 33 | 22 | 12581286 | 962/29908790 | 12257/12257/21 | 271733 | 1/12240/0/16/0/0/0 |
+| 7 | 15226 | 1789075059577 | 413646848 | 28 | 28 | 16774748 | 842/31455097 | 16177/16177/29 | 362181 | 1/16152/0/24/0/0/0 |
+| 8 | 15226 | 1789075064575 | 416284672 | 27 | 28 | 20968681 | 371/27286174 | 20097/20097/33 | 452485 | 1/20068/0/28/0/0/0 |
+| 9 | 15249 | 1789075078884 | 199999488 | 29 | 28 | 25162615 | 370/23097898 | 24017/24017/37 | 542789 | 1/23984/0/32/0/0/0 |
+| 10 | 15249 | 1789075079596 | 209551360 | 29 | 28 | 29356505 | 414/18903964 | 28675/28675/62 | 651179 | 2/28589/0/84/0/0/0 |
+| 11 | 15249 | 1789075084599 | 223297536 | 25 | 28 | 33549870 | 939/14713893 | 33016/33016/70 | 751310 | 2/32922/0/92/0/0/0 |
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| OBS-app-001 | AP12 distinct loopback ports | pass |
+| OBS-app-002 | AP12 actual foreground healthy \| pid=15226 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-v1NWnG | pass |
+| OBS-app-003 | POST /ops/api/sources \| status=201 | pass |
+| OBS-app-004 | AP01 V1 identity seg-9101-1789075031344-1 | pass |
+| OBS-app-005 | AP01 positive UTC/PTS seg-9101-1789075031344-1 | pass |
+| OBS-app-006 | AP01 actual bytes SHA seg-9101-1789075031344-1 \| bytes=4096788 sha256=02a622be9a4fac5c1fe4fb3e9060ce8582ee8a10cb817568b555c4c50ba6670f | pass |
+| OBS-app-007 | AP02 actual finalized barrier before rule and tap | pass |
+| OBS-app-008 | PUT /lab/analysis/rules/9101 \| status=200 | pass |
+| OBS-app-009 | POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 \| status=200 | pass |
+| OBS-app-010 | AP02 actual tap created | pass |
+| OBS-app-011 | GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| OBS-app-012 | GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| OBS-app-013 | AP02/03 actual EventRecord identity fallback \| eventId=evt_1789075039958_2 linkId=event-link-sha256-b5927564f9799f39e932e82ddadea506c12e59b3fe90f68b80f368b613275733 | pass |
+| OBS-app-014 | AP02/03 actual nonnegative padded event start fallback \| startTime=8333 updateTime=8333 timeBasis=media-pts-ms | pass |
+| OBS-app-015 | AP02/03 durable link source fallback | pass |
+| OBS-app-016 | GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789075038177&endTimeMs=1789075041200 \| status=200 | pass |
+| OBS-app-017 | AP04 fallback event priority | pass |
+| OBS-app-018 | AP04 fallback path redaction | pass |
+| OBS-app-019 | AP02 fallback remains partial requested-fallback | pass |
+| OBS-app-020 | AP02 encoded WebM eventId/encoded contract/size/isolated path | pass |
+| OBS-app-021 | AP05 fallback playable local URL | pass |
+| OBS-app-022 | AP05 fallback actual file prefix | pass |
+| OBS-app-023 | AP05 fallback literal GET Range \| status=206 contentRange=bytes 2-5/22905 bodyHex=dfa30100 | pass |
+| OBS-app-024 | DELETE /lab/analysis/taps/analysis-tap-1 \| status=200 | pass |
+| OBS-app-025 | AP01 V1 identity seg-9101-1789075031344-1 | pass |
+| OBS-app-026 | AP01 positive UTC/PTS seg-9101-1789075031344-1 | pass |
+| OBS-app-027 | AP01 actual bytes SHA seg-9101-1789075031344-1 \| bytes=4096788 sha256=02a622be9a4fac5c1fe4fb3e9060ce8582ee8a10cb817568b555c4c50ba6670f | pass |
+| OBS-app-028 | AP01 V1 identity seg-9101-1789075039700-2 | pass |
+| OBS-app-029 | AP01 positive UTC/PTS seg-9101-1789075039700-2 | pass |
+| OBS-app-030 | AP01 actual bytes SHA seg-9101-1789075039700-2 \| bytes=4813100 sha256=0f876dade8d07cb7992b568cbd7f94068edf9027c8c79a57494a22efd4870a05 | pass |
+| OBS-app-031 | POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 \| status=200 | pass |
+| OBS-app-032 | AP03 actual tap created | pass |
+| OBS-app-033 | AP03 finalized boundary available | pass |
+| OBS-app-034 | GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| OBS-app-035 | GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| OBS-app-036 | GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| OBS-app-037 | GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| OBS-app-038 | GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| OBS-app-039 | GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| OBS-app-040 | PUT /lab/analysis/rules/9102 \| status=200 | pass |
+| OBS-app-041 | GET /lab/analysis/taps/analysis-tap-2/events?dispatch=1 \| status=200 | pass |
+| OBS-app-042 | AP02/03 actual EventRecord identity derived \| eventId=evt_1789075049050_82 linkId=event-link-sha256-b056bd40622a338def5889c53c41fc53a52eeff04a1cc3f686bc5d3ee754cfad | pass |
+| OBS-app-043 | AP02/03 actual nonnegative padded event start derived \| startTime=17466 updateTime=17466 timeBasis=media-pts-ms | pass |
+| OBS-app-044 | AP02/03 durable link source derived | pass |
+| OBS-app-045 | GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789075047330&endTimeMs=1789075050330 \| status=200 | pass |
+| OBS-app-046 | AP04 derived event priority | pass |
+| OBS-app-047 | AP04 derived path redaction | pass |
+| OBS-app-048 | AP03 actual derived remux metadata | pass |
+| OBS-app-049 | AP01 V1 identity event-seg-sha256-8d4ec3397ac7e3bebedf169435e858b1da3bb2fe298e888b8b5e8501207bdded | pass |
+| OBS-app-050 | AP01 positive UTC/PTS event-seg-sha256-8d4ec3397ac7e3bebedf169435e858b1da3bb2fe298e888b8b5e8501207bdded | pass |
+| OBS-app-051 | AP01 actual bytes SHA event-seg-sha256-8d4ec3397ac7e3bebedf169435e858b1da3bb2fe298e888b8b5e8501207bdded \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| OBS-app-052 | AP03 Complete actual overlaps | pass |
+| OBS-app-053 | AP04 continuous superseded with priority100 | pass |
+| OBS-app-054 | AP05 derived playable local URL | pass |
+| OBS-app-055 | AP05 derived actual file prefix | pass |
+| OBS-app-056 | AP05 derived literal GET Range \| status=206 contentRange=bytes 2-5/1133076 bodyHex=0032a600 | pass |
+| OBS-app-057 | DELETE /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| OBS-app-058 | AP02/03 fallback and derived independent events | pass |
+| OBS-app-059 | AP06 actual H264 generator \| exit=0 log=Setting pipeline to PAUSED ... Pipeline is PREROLLING ... Redistribute latency... Redistribute latency... Pipeline is PREROLLED ... Setting pipeline to PLAYING ... Redistribute latency... New clock: GstSystemClock Got EOS from element "pipeline0". EOS received - stopping pipeline... Execution ended after 0:00:00.221497417 Setting pipeline to NULL ... Freeing pipeline ...  | pass |
+| OBS-app-060 | AP12 generated input bounded \| bytes=62334405 limitBytes=100663296 | pass |
+| OBS-app-061 | POST /ops/api/sources \| status=201 | pass |
+| OBS-app-062 | AP01 V1 identity seg-9201-1789075057226-1 | pass |
+| OBS-app-063 | AP01 positive UTC/PTS seg-9201-1789075057226-1 | pass |
+| OBS-app-064 | AP01 actual bytes SHA seg-9201-1789075057226-1 \| bytes=15581582 sha256=368b7ff94ecb8432d520bf66290cdc9b545621455458b340a7cc3c8552d0e1bf | pass |
+| OBS-app-065 | AP01 V1 identity seg-9201-1789075058271-2 | pass |
+| OBS-app-066 | AP01 positive UTC/PTS seg-9201-1789075058271-2 | pass |
+| OBS-app-067 | AP01 actual bytes SHA seg-9201-1789075058271-2 \| bytes=15586510 sha256=c609cd2ee824a3c4607c713dd9ef7922ece8e318c54d905377ed201cd7859aba | pass |
+| OBS-app-068 | AP01 V1 identity seg-9201-1789075059271-3 | pass |
+| OBS-app-069 | AP01 positive UTC/PTS seg-9201-1789075059271-3 | pass |
+| OBS-app-070 | AP01 actual bytes SHA seg-9201-1789075059271-3 \| bytes=15582562 sha256=3bbefe1de166bee314f3e4eada5a61fa074c54fde4a7e86dad5bfbf80ea51ed2 | pass |
+| OBS-app-071 | AP01 V1 identity seg-9201-1789075060271-4 | pass |
+| OBS-app-072 | AP01 positive UTC/PTS seg-9201-1789075060271-4 | pass |
+| OBS-app-073 | AP01 actual bytes SHA seg-9201-1789075060271-4 \| bytes=15586426 sha256=5b41f53e1254e65d4440c46813002c2717bf2dae42872d0462a2e19d3ed8c25e | pass |
+| OBS-app-074 | AP01 V1 identity seg-9201-1789075061265-5 | pass |
+| OBS-app-075 | AP01 positive UTC/PTS seg-9201-1789075061265-5 | pass |
+| OBS-app-076 | AP01 actual bytes SHA seg-9201-1789075061265-5 \| bytes=15581582 sha256=f4ab316794fb76e1608145e293ab5aa74dc6e9e558146037ec0ea1848e42c328 | pass |
+| OBS-app-077 | AP06 each actual segment below reservation | pass |
+| OBS-app-078 | AP06 actual total exceeds future quota \| count=5 bytes=77918662 oldest=seg-9201-1789075057226-1,seg-9201-1789075058271-2,seg-9201-1789075059271-3,seg-9201-1789075060271-4,seg-9201-1789075061265-5 | pass |
+| OBS-app-079 | PUT /ops/api/sources/9201 \| status=200 | pass |
+| OBS-app-080 | AP07 oldest deletion request independent order | pass |
+| OBS-app-081 | AP07 durable completed seg-9201-1789075057226-1 | pass |
+| OBS-app-082 | AP07 physical absent seg-9201-1789075057226-1 | pass |
+| OBS-app-083 | AP07 durable completed seg-9201-1789075058271-2 | pass |
+| OBS-app-084 | AP07 physical absent seg-9201-1789075058271-2 | pass |
+| OBS-app-085 | AP07 durable completed seg-9201-1789075059271-3 | pass |
+| OBS-app-086 | AP07 physical absent seg-9201-1789075059271-3 | pass |
+| OBS-app-087 | AP07 durable completed seg-9201-1789075060271-4 | pass |
+| OBS-app-088 | AP07 physical absent seg-9201-1789075060271-4 | pass |
+| OBS-app-089 | AP07 durable completed seg-9201-1789075061265-5 | pass |
+| OBS-app-090 | AP07 physical absent seg-9201-1789075061265-5 | pass |
+| OBS-app-091 | AP08 new finalized then ordered deleted physical absence seg-9201-1789075062630-1 | pass |
+| OBS-app-092 | AP08 new finalized then ordered deleted physical absence seg-9201-1789075064273-2 | pass |
+| OBS-app-093 | AP08 actual recording resumes after quota deletion | pass |
+| OBS-app-094 | PUT /ops/api/sources/9201 \| status=200 | pass |
+| OBS-app-095 | AP08 restored quota new finalized | pass |
+| OBS-app-096 | AP12 app0 exit0 \| exit=0 signal=null | pass |
+| OBS-app-097 | AP01 V1 identity seg-9101-1789075031344-1 | pass |
+| OBS-app-098 | AP01 positive UTC/PTS seg-9101-1789075031344-1 | pass |
+| OBS-app-099 | AP01 actual bytes SHA seg-9101-1789075031344-1 \| bytes=4096788 sha256=02a622be9a4fac5c1fe4fb3e9060ce8582ee8a10cb817568b555c4c50ba6670f | pass |
+| OBS-app-100 | AP01 V1 identity seg-9101-1789075039700-2 | pass |
+| OBS-app-101 | AP01 positive UTC/PTS seg-9101-1789075039700-2 | pass |
+| OBS-app-102 | AP01 actual bytes SHA seg-9101-1789075039700-2 \| bytes=4813100 sha256=0f876dade8d07cb7992b568cbd7f94068edf9027c8c79a57494a22efd4870a05 | pass |
+| OBS-app-103 | AP01 V1 identity seg-9101-1789075048030-3 | pass |
+| OBS-app-104 | AP01 positive UTC/PTS seg-9101-1789075048030-3 | pass |
+| OBS-app-105 | AP01 actual bytes SHA seg-9101-1789075048030-3 \| bytes=5222837 sha256=e508dd05f6f357b7ba92f7e00617c1d242d178983619d553743a9a9fb78e7410 | pass |
+| OBS-app-106 | AP01 V1 identity event-seg-sha256-f98e3b764bf0303252185af09390b144199a688391e2d13fae4bc80b247c0e6a | pass |
+| OBS-app-107 | AP01 positive UTC/PTS event-seg-sha256-f98e3b764bf0303252185af09390b144199a688391e2d13fae4bc80b247c0e6a | pass |
+| OBS-app-108 | AP01 actual bytes SHA event-seg-sha256-f98e3b764bf0303252185af09390b144199a688391e2d13fae4bc80b247c0e6a \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| OBS-app-109 | AP01 V1 identity event-seg-sha256-305517a1de5189f044634d3dbbf65e889f48815a5a01c231fade0bace0859c93 | pass |
+| OBS-app-110 | AP01 positive UTC/PTS event-seg-sha256-305517a1de5189f044634d3dbbf65e889f48815a5a01c231fade0bace0859c93 | pass |
+| OBS-app-111 | AP01 actual bytes SHA event-seg-sha256-305517a1de5189f044634d3dbbf65e889f48815a5a01c231fade0bace0859c93 \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| OBS-app-112 | AP01 V1 identity event-seg-sha256-8d4ec3397ac7e3bebedf169435e858b1da3bb2fe298e888b8b5e8501207bdded | pass |
+| OBS-app-113 | AP01 positive UTC/PTS event-seg-sha256-8d4ec3397ac7e3bebedf169435e858b1da3bb2fe298e888b8b5e8501207bdded | pass |
+| OBS-app-114 | AP01 actual bytes SHA event-seg-sha256-8d4ec3397ac7e3bebedf169435e858b1da3bb2fe298e888b8b5e8501207bdded \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| OBS-app-115 | AP01 V1 identity event-seg-sha256-2ddd0aa3dbfca58481805f4350f2c11c37cf20363817d238c6f3c108d94f96b5 | pass |
+| OBS-app-116 | AP01 positive UTC/PTS event-seg-sha256-2ddd0aa3dbfca58481805f4350f2c11c37cf20363817d238c6f3c108d94f96b5 | pass |
+| OBS-app-117 | AP01 actual bytes SHA event-seg-sha256-2ddd0aa3dbfca58481805f4350f2c11c37cf20363817d238c6f3c108d94f96b5 \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| OBS-app-118 | AP01 V1 identity event-seg-sha256-b03094c890101715a82526f721a3def320f18368f35aada5fc6e8342590b1cb6 | pass |
+| OBS-app-119 | AP01 positive UTC/PTS event-seg-sha256-b03094c890101715a82526f721a3def320f18368f35aada5fc6e8342590b1cb6 | pass |
+| OBS-app-120 | AP01 actual bytes SHA event-seg-sha256-b03094c890101715a82526f721a3def320f18368f35aada5fc6e8342590b1cb6 \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| OBS-app-121 | AP01 V1 identity event-seg-sha256-1f00ce28f56f638dfdaff87020d95e3b8b9a4d60332e1f081c16d5429e5bcad9 | pass |
+| OBS-app-122 | AP01 positive UTC/PTS event-seg-sha256-1f00ce28f56f638dfdaff87020d95e3b8b9a4d60332e1f081c16d5429e5bcad9 | pass |
+| OBS-app-123 | AP01 actual bytes SHA event-seg-sha256-1f00ce28f56f638dfdaff87020d95e3b8b9a4d60332e1f081c16d5429e5bcad9 \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| OBS-app-124 | AP01 V1 identity event-seg-sha256-387f7f9b6c704789cca3fff0bf91162d8367b48692896be191dee735372bdcea | pass |
+| OBS-app-125 | AP01 positive UTC/PTS event-seg-sha256-387f7f9b6c704789cca3fff0bf91162d8367b48692896be191dee735372bdcea | pass |
+| OBS-app-126 | AP01 actual bytes SHA event-seg-sha256-387f7f9b6c704789cca3fff0bf91162d8367b48692896be191dee735372bdcea \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| OBS-app-127 | AP01 V1 identity event-seg-sha256-d14344c52074b685c97d716c9b1158a7f197a2a560878ac414c9367d6435fbeb | pass |
+| OBS-app-128 | AP01 positive UTC/PTS event-seg-sha256-d14344c52074b685c97d716c9b1158a7f197a2a560878ac414c9367d6435fbeb | pass |
+| OBS-app-129 | AP01 actual bytes SHA event-seg-sha256-d14344c52074b685c97d716c9b1158a7f197a2a560878ac414c9367d6435fbeb \| bytes=1133076 sha256=c2168f7ab378d263cd8ab16cb5917dc66c6f7f914e3f137bf70e440fb10af359 | pass |
+| OBS-app-130 | AP01 V1 identity seg-9101-1789075056358-4 | pass |
+| OBS-app-131 | AP01 positive UTC/PTS seg-9101-1789075056358-4 | pass |
+| OBS-app-132 | AP01 actual bytes SHA seg-9101-1789075056358-4 \| bytes=2940815 sha256=ff76f4f63d117d445148643f32e3804db2d7dc51c89323ae6924363dff23a78c | pass |
+| OBS-app-133 | AP01 V1 identity seg-9201-1789075065270-3 | pass |
+| OBS-app-134 | AP01 positive UTC/PTS seg-9201-1789075065270-3 | pass |
+| OBS-app-135 | AP01 actual bytes SHA seg-9201-1789075065270-3 \| bytes=7791230 sha256=d476195b9e1699d7ae129235d74a59288dfe99c873228070a706c5af02bae3b5 | pass |
+| OBS-app-136 | AP01 V1 identity seg-9201-1789075065765-1 | pass |
+| OBS-app-137 | AP01 positive UTC/PTS seg-9201-1789075065765-1 | pass |
+| OBS-app-138 | AP01 actual bytes SHA seg-9201-1789075065765-1 \| bytes=31167191 sha256=9f469da44d92923ee69518290f240e0bd8d4dfac0a50c048ad04375aa7ef56e4 | pass |
+| OBS-app-139 | AP01 V1 identity seg-9201-1789075067279-2 | pass |
+| OBS-app-140 | AP01 positive UTC/PTS seg-9201-1789075067279-2 | pass |
+| OBS-app-141 | AP01 actual bytes SHA seg-9201-1789075067279-2 \| bytes=10388875 sha256=04d39854adf45959cc04a3ef477cbefd314694413e852e93921e93adf89b8b0e | pass |
+| OBS-app-142 | AP01 V1 identity seg-9101-1789075061360-5 | pass |
+| OBS-app-143 | AP01 positive UTC/PTS seg-9101-1789075061360-5 | pass |
+| OBS-app-144 | AP01 actual bytes SHA seg-9101-1789075061360-5 \| bytes=3094851 sha256=bfdcd92e26407847d320e0d2c025cdf28e14a63305dc2d21be6390390bd5005a | pass |
+| OBS-app-145 | AP12 distinct loopback ports | pass |
+| OBS-app-146 | AP12 actual foreground healthy \| pid=15249 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-v1NWnG | pass |
+| OBS-app-147 | AP09 restart actual new PID | pass |
+| OBS-app-148 | AP09 immutable segment seg-9101-1789075031344-1 | pass |
+| OBS-app-149 | AP09 immutable segment seg-9101-1789075039700-2 | pass |
+| OBS-app-150 | AP09 immutable segment seg-9101-1789075048030-3 | pass |
+| OBS-app-151 | AP09 immutable segment event-seg-sha256-f98e3b764bf0303252185af09390b144199a688391e2d13fae4bc80b247c0e6a | pass |
+| OBS-app-152 | AP09 immutable segment event-seg-sha256-305517a1de5189f044634d3dbbf65e889f48815a5a01c231fade0bace0859c93 | pass |
+| OBS-app-153 | AP09 immutable segment event-seg-sha256-8d4ec3397ac7e3bebedf169435e858b1da3bb2fe298e888b8b5e8501207bdded | pass |
+| OBS-app-154 | AP09 immutable segment event-seg-sha256-2ddd0aa3dbfca58481805f4350f2c11c37cf20363817d238c6f3c108d94f96b5 | pass |
+| OBS-app-155 | AP09 immutable segment event-seg-sha256-b03094c890101715a82526f721a3def320f18368f35aada5fc6e8342590b1cb6 | pass |
+| OBS-app-156 | AP09 immutable segment event-seg-sha256-1f00ce28f56f638dfdaff87020d95e3b8b9a4d60332e1f081c16d5429e5bcad9 | pass |
+| OBS-app-157 | AP09 immutable segment event-seg-sha256-387f7f9b6c704789cca3fff0bf91162d8367b48692896be191dee735372bdcea | pass |
+| OBS-app-158 | AP09 immutable segment event-seg-sha256-d14344c52074b685c97d716c9b1158a7f197a2a560878ac414c9367d6435fbeb | pass |
+| OBS-app-159 | AP09 immutable segment seg-9201-1789075057226-1 | pass |
+| OBS-app-160 | AP09 immutable segment seg-9201-1789075058271-2 | pass |
+| OBS-app-161 | AP09 immutable segment seg-9201-1789075059271-3 | pass |
+| OBS-app-162 | AP09 immutable segment seg-9201-1789075060271-4 | pass |
+| OBS-app-163 | AP09 immutable segment seg-9101-1789075056358-4 | pass |
+| OBS-app-164 | AP09 immutable segment seg-9201-1789075061265-5 | pass |
+| OBS-app-165 | AP09 immutable segment seg-9201-1789075062278-6 | pass |
+| OBS-app-166 | AP09 immutable segment seg-9201-1789075062630-1 | pass |
+| OBS-app-167 | AP09 immutable segment seg-9201-1789075064273-2 | pass |
+| OBS-app-168 | AP09 immutable segment seg-9201-1789075065270-3 | pass |
+| OBS-app-169 | AP09 immutable segment seg-9201-1789075065765-1 | pass |
+| OBS-app-170 | AP09 immutable segment seg-9201-1789075067279-2 | pass |
+| OBS-app-171 | AP09 immutable segment seg-9101-1789075061360-5 | pass |
+| OBS-app-172 | AP09 immutable media SHA seg-9101-1789075031344-1 | pass |
+| OBS-app-173 | AP09 immutable media SHA seg-9101-1789075039700-2 | pass |
+| OBS-app-174 | AP09 immutable media SHA seg-9101-1789075048030-3 | pass |
+| OBS-app-175 | AP09 immutable media SHA event-seg-sha256-f98e3b764bf0303252185af09390b144199a688391e2d13fae4bc80b247c0e6a | pass |
+| OBS-app-176 | AP09 immutable media SHA event-seg-sha256-305517a1de5189f044634d3dbbf65e889f48815a5a01c231fade0bace0859c93 | pass |
+| OBS-app-177 | AP09 immutable media SHA event-seg-sha256-8d4ec3397ac7e3bebedf169435e858b1da3bb2fe298e888b8b5e8501207bdded | pass |
+| OBS-app-178 | AP09 immutable media SHA event-seg-sha256-2ddd0aa3dbfca58481805f4350f2c11c37cf20363817d238c6f3c108d94f96b5 | pass |
+| OBS-app-179 | AP09 immutable media SHA event-seg-sha256-b03094c890101715a82526f721a3def320f18368f35aada5fc6e8342590b1cb6 | pass |
+| OBS-app-180 | AP09 immutable media SHA event-seg-sha256-1f00ce28f56f638dfdaff87020d95e3b8b9a4d60332e1f081c16d5429e5bcad9 | pass |
+| OBS-app-181 | AP09 immutable media SHA event-seg-sha256-387f7f9b6c704789cca3fff0bf91162d8367b48692896be191dee735372bdcea | pass |
+| OBS-app-182 | AP09 immutable media SHA event-seg-sha256-d14344c52074b685c97d716c9b1158a7f197a2a560878ac414c9367d6435fbeb | pass |
+| OBS-app-183 | AP09 immutable media SHA seg-9101-1789075056358-4 | pass |
+| OBS-app-184 | AP09 immutable media SHA seg-9201-1789075065270-3 | pass |
+| OBS-app-185 | AP09 immutable media SHA seg-9201-1789075065765-1 | pass |
+| OBS-app-186 | AP09 immutable media SHA seg-9201-1789075067279-2 | pass |
+| OBS-app-187 | AP09 immutable media SHA seg-9101-1789075061360-5 | pass |
+| OBS-app-188 | AP09 immutable links evt_1789075039958_2 | pass |
+| OBS-app-189 | AP09 immutable links evt_1789075039958_3 | pass |
+| OBS-app-190 | AP09 immutable links evt_1789075039967_4 | pass |
+| OBS-app-191 | AP09 immutable links evt_1789075039968_5 | pass |
+| OBS-app-192 | AP09 immutable links evt_1789075049026_76 | pass |
+| OBS-app-193 | AP09 immutable links evt_1789075049026_77 | pass |
+| OBS-app-194 | AP09 immutable links evt_1789075049048_79 | pass |
+| OBS-app-195 | AP09 immutable links evt_1789075049049_80 | pass |
+| OBS-app-196 | AP09 immutable links evt_1789075049050_81 | pass |
+| OBS-app-197 | AP09 immutable links evt_1789075049050_82 | pass |
+| OBS-app-198 | AP09 immutable links evt_1789075049051_83 | pass |
+| OBS-app-199 | AP09 immutable links evt_1789075049051_84 | pass |
+| OBS-app-200 | AP09 immutable observations obs-d0b338178528faa4bc8d465210578a69 | pass |
+| OBS-app-201 | AP09 immutable observations obs-6127f3b23d2c9ba1064e879da9a82f68 | pass |
+| OBS-app-202 | AP09 immutable observations obs-d269e7c522ae2b562bbcd7d9517187ef | pass |
+| OBS-app-203 | AP09 immutable observations obs-29f225b57717e9abe0546cd5a88bb98e | pass |
+| OBS-app-204 | AP09 immutable observations obs-2ed2904923ad625d914f8821a4286580 | pass |
+| OBS-app-205 | AP09 immutable observations obs-3c7549acb9418fa82db2c136298ec1b1 | pass |
+| OBS-app-206 | AP09 immutable observations obs-67dba55734b4d7f70248adb0db28f67e | pass |
+| OBS-app-207 | AP09 immutable observations obs-5cadfe8d1f0bf94aae9ce12316a9d3ff | pass |
+| OBS-app-208 | AP09 immutable observations obs-fa2d8d88c7687660e1b1371f60d68737 | pass |
+| OBS-app-209 | AP09 immutable observations obs-cd0a80e6211bfaffa81d830be1a59150 | pass |
+| OBS-app-210 | AP09 immutable observations obs-833bb4c6aa048a7a81d202e59bc50115 | pass |
+| OBS-app-211 | AP09 immutable observations obs-a77e57d6f4b855c902b1da2db691c856 | pass |
+| OBS-app-212 | AP09 immutable observations obs-f43d97f306d6d58900677f03303fddc6 | pass |
+| OBS-app-213 | AP09 immutable observations obs-ca84a111197b544e47ec9e786f68a349 | pass |
+| OBS-app-214 | AP09 immutable observations obs-3871c5da94c7bd0b78a223fdb9e332bc | pass |
+| OBS-app-215 | AP09 immutable observations obs-dcb6ae8341708e50c4d546d05a246fd7 | pass |
+| OBS-app-216 | AP09 immutable observations obs-76e8c398ae39414540b6bf5ff83402ae | pass |
+| OBS-app-217 | AP09 immutable observations obs-a78d405274eeecb22b37a9d6f509f051 | pass |
+| OBS-app-218 | AP09 immutable observations obs-851c27f8c48ceacb98e47d11beff4b10 | pass |
+| OBS-app-219 | AP09 immutable observations obs-46e59b3e962e90a0294a23e1a15105f3 | pass |
+| OBS-app-220 | AP09 immutable observations obs-d06481f2214ca641658480f5329488ea | pass |
+| OBS-app-221 | AP09 immutable observations obs-1331f5a85751464a2599a8720320c269 | pass |
+| OBS-app-222 | AP09 immutable observations obs-54b85c98409577937cff217fb85786f8 | pass |
+| OBS-app-223 | AP09 immutable observations obs-6b08fb46940f1ea4e81ec81517115937 | pass |
+| OBS-app-224 | AP09 immutable observations obs-add768fdd034914a5edefd8576905151 | pass |
+| OBS-app-225 | AP09 immutable observations obs-fc2bd69b79dc2d71af81140e0c77baf2 | pass |
+| OBS-app-226 | AP09 immutable observations obs-9b7d2d7f7126b7b7b1fd658f8f2534c4 | pass |
+| OBS-app-227 | AP09 immutable observations obs-98188bafde1ed66df500594a48b94dd6 | pass |
+| OBS-app-228 | AP09 immutable observations obs-4349659148ece1949d6418b09a197fe3 | pass |
+| OBS-app-229 | AP09 immutable observations obs-e85eb27968be51a7552fa51549edb870 | pass |
+| OBS-app-230 | AP09 immutable observations obs-6a1ac4407db5216d4adb882690294732 | pass |
+| OBS-app-231 | AP09 immutable observations obs-3c150955caf95f70087dfe0eac7872af | pass |
+| OBS-app-232 | AP09 immutable observations obs-10df4551800ff2fb142abadfe3da0e76 | pass |
+| OBS-app-233 | AP09 immutable observations obs-ef3ac33fdb2f7d3e9ae46fea02838427 | pass |
+| OBS-app-234 | AP09 immutable observations obs-4ea0992257bb3c410eb10903dbde5df0 | pass |
+| OBS-app-235 | AP09 immutable observations obs-0ffe099b89faafd428075947b54a0b19 | pass |
+| OBS-app-236 | AP09 immutable observations obs-8fa0b311e8009277f8b1810393bc3bd4 | pass |
+| OBS-app-237 | AP09 immutable observations obs-e425352377b618d63be3be76d0f3c21d | pass |
+| OBS-app-238 | AP09 immutable observations obs-9d951d0a9e12fdac1cfcb8aa3a1434a7 | pass |
+| OBS-app-239 | AP09 immutable observations obs-6563332eb1404d01fbbbbf339f381e72 | pass |
+| OBS-app-240 | AP09 immutable observations obs-f76e0edcf665c76e4c30839068a2634d | pass |
+| OBS-app-241 | AP09 immutable observations obs-ec7f6bf6e77edb155c6793c84673957e | pass |
+| OBS-app-242 | AP09 immutable observations obs-1ad2c5e54094b1ac87c697af8a80d87f | pass |
+| OBS-app-243 | AP09 immutable observations obs-50d0ff564994fcf35da675e77e476898 | pass |
+| OBS-app-244 | AP09 immutable observations obs-35ad0a804c3674208a4a27eee9a17517 | pass |
+| OBS-app-245 | AP09 immutable observations obs-585ff63b29a891434d52306c91838da4 | pass |
+| OBS-app-246 | AP09 immutable observations obs-92ee252fd9b1241eaf932aa59c7fead9 | pass |
+| OBS-app-247 | AP09 immutable observations obs-e022ecf272eb7971a6d8ad18d5c6eb3e | pass |
+| OBS-app-248 | AP09 immutable observations obs-66e62c5a0a873a22f7583d151edfeaed | pass |
+| OBS-app-249 | AP09 immutable observations obs-10eda5c0a266b6d5d65d11be14510c8a | pass |
+| OBS-app-250 | AP09 immutable observations obs-b54e02f36f38b3d0aa198db5f6c8b95f | pass |
+| OBS-app-251 | AP09 immutable observations obs-c22d9a5226122df3788b27e8c4a0ef64 | pass |
+| OBS-app-252 | AP09 immutable observations obs-b4b1fa90ccb72788f89990975f41f9bb | pass |
+| OBS-app-253 | AP09 immutable observations obs-72d28bd8dfbdb57fddab9c33cf4f1bbc | pass |
+| OBS-app-254 | AP09 immutable observations obs-ccc072d819233066b61edc16f2e862ad | pass |
+| OBS-app-255 | AP09 immutable observations obs-c45da56850b0258d7749d466843ee096 | pass |
+| OBS-app-256 | AP09 immutable observations obs-6493d0a92485b5bee19e55158a7dc001 | pass |
+| OBS-app-257 | AP09 immutable observations obs-ea2b6a77a898325dabd5b958c7d5343a | pass |
+| OBS-app-258 | AP09 immutable observations obs-ef556628c0a5ebf8e86cd3309c741a2f | pass |
+| OBS-app-259 | AP09 immutable observations obs-a50f4223fa5fd0a70f3a10d072d761f0 | pass |
+| OBS-app-260 | AP09 immutable observations obs-3eeb01d48366921523195fbb9af4c012 | pass |
+| OBS-app-261 | AP09 immutable observations obs-ce4837d57c4cc79632718d14b2786339 | pass |
+| OBS-app-262 | AP09 immutable observations obs-2ddd38590f48cb933f8025520fd974bc | pass |
+| OBS-app-263 | AP09 immutable observations obs-4b13d0bac45cd95c083286c3f10bf6d3 | pass |
+| OBS-app-264 | AP09 immutable observations obs-c54ae73dfae066ff42237392048b4cc4 | pass |
+| OBS-app-265 | AP09 immutable observations obs-0060e65e5de61f2c12ef255321de9b87 | pass |
+| OBS-app-266 | AP09 immutable observations obs-a9913816738b9bdd4266348049a351ee | pass |
+| OBS-app-267 | AP09 immutable observations obs-f6870758d739fef2314a174f52abfb21 | pass |
+| OBS-app-268 | AP09 immutable observations obs-26b7d701ecebb3e9db019629058f5f32 | pass |
+| OBS-app-269 | AP09 immutable observations obs-d7fdff0ecb5e95a68518d5a5a70a545d | pass |
+| OBS-app-270 | AP09 immutable observations obs-b45932d0af931e3f23da6a807d681d1c | pass |
+| OBS-app-271 | AP09 immutable observations obs-3d59b389255d94c49d0350996d3d3137 | pass |
+| OBS-app-272 | AP09 immutable observations obs-bae1d7baee7bad8f892fd585399e5260 | pass |
+| OBS-app-273 | AP09 immutable observations obs-b91cc3b12a8a1318b82cff1ed8c4af27 | pass |
+| OBS-app-274 | AP09 immutable observations obs-8221d5da30ab607d771f762aa4143fc2 | pass |
+| OBS-app-275 | AP09 immutable observations obs-3eea31fb50d5e16e74e440a282a03519 | pass |
+| OBS-app-276 | AP09 immutable tombstones seg-9201-1789075057226-1 | pass |
+| OBS-app-277 | AP09 immutable tombstones seg-9201-1789075058271-2 | pass |
+| OBS-app-278 | AP09 immutable tombstones seg-9201-1789075059271-3 | pass |
+| OBS-app-279 | AP09 immutable tombstones seg-9201-1789075060271-4 | pass |
+| OBS-app-280 | AP09 immutable tombstones seg-9201-1789075061265-5 | pass |
+| OBS-app-281 | AP09 immutable tombstones seg-9201-1789075062278-6 | pass |
+| OBS-app-282 | AP09 immutable tombstones seg-9201-1789075062630-1 | pass |
+| OBS-app-283 | AP09 immutable tombstones seg-9201-1789075064273-2 | pass |
+| OBS-app-284 | AP09 duplicate mutation IDs zero | pass |
+| OBS-app-285 | AP09 actual post-restart finalized | pass |
+| OBS-app-286 | AP12 app2 exit0 \| exit=0 signal=null | pass |
+| OBS-app-287 | AP12 root below 512MiB cap \| bytes=386600567 | pass |
+| OBS-app-288 | AP12 port absent 64111 | pass |
+| OBS-app-289 | AP12 port absent 64112 | pass |
+| OBS-app-290 | AP12 port absent 64161 | pass |
+| OBS-app-291 | AP12 port absent 64162 | pass |
+| OBS-app-292 | AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-v1NWnG bytes=386600567 absent=true | pass |
+| OBS-app-293 | AP wrapper completed and cleanup absent | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-v1NWnG | app/media/events/journal root | 386600567 | 프로세스종료 후 삭제 | absent=true | AP12 root cleanup |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.RfUwzX | collector/registry | 143595 | trap 삭제 | absent=true | wrapper cleanup |
+| /private/tmp/s09-observe-output.tn1KFi | 전체stdout/stderr | 63071 | 전수행/11표본/숫자 이관 뒤 삭제 | absent=true | lstat ENOENT, URL/raw file::/credential 패턴 발견0 |
+
+범위: 고정nativecollector compile 및 실제 macOS 표본, 기존 실제app 통합 관측은 이실행범위에서 통과. 코드수정없음. 180초·50ms448MiB선제/512MiB상한 유지, cap실패없음. root 삭제전386600567bytes는 최종크기이며 원자적 peak 상한 측정으로 주장하지 않는다. auth/다른회귀/build/30/120/UI/외부/운영데이터는 미실행. Linux native, 장시간누수·자원추세, 전체S09/릴리즈 완료는 미확인이다. 커밋·푸시 미수행.
+
+OBS-N01~04 실행 승인 갱신: 사용자가 직전 `상승`으로 격리 로컬 서버·녹화 단기 검증 및 loopback 권한상승을 명시 승인했다. 기존 코드/180초/448선제·512MiB 상한 그대로, 동일 `./server.sh verify-v410-recording-foundation --app-observe`를 require_escalated로 1회 재개한다. 외부·운영데이터·auth·장시간·UI·build·커밋·푸시는 제외한다.
+
+## S09 OBS 실제 실행 시작 실패·권한 승인 거부
+
+최종 cleanup 직접 대조: 로그11624bytes unlink 후 로그/app/GST 3경로 lstat 검사 checked3/present[] exit0. 위 세 경로 모두 삭제됐고 임시 로그는 보존하지 않는다.
+
+`./server.sh verify-v410-recording-foundation --app-observe`를 전체 stdout/stderr capture로 실행했으나 exit1. collector 컴파일 뒤 포트 예약의 `listen EPERM: operation not permitted 127.0.0.1`에서 앱 시작 전에 실패했다. 시작1789067950919ms/종료1789067950928ms/elapsed9ms(Node Date.now), token start/end/consumed=null(하위 작업별 자동 집계 없음). 전체 원로그5줄/11624bytes의 pass1/fail2가 JSON summary1/2와 일치했다. 원출력 절단 없이 파일에서 확인했으며 URL 패턴/credential material 패턴 검사는 발견0이다. 아래 원문 결과를 전수 이관했다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| OBS native 시작 실패 | listen EPERM: operation not permitted 127.0.0.1; 앱 시작 전 포트 예약 권한 오류 | fail |
+| OBS 최종 미측정 | observer: observer-final-unmeasured; 앞선 시작 실패로 PID/원장 표본 미도달, 별도 제품 손상 증거 아님 | fail |
+| AP12 root cleanup | path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-f5Mp6u bytes=17071044 absent=true | pass |
+| OBS GST cleanup | path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.lhwQ4C bytes=143595 absent=true | pass |
+
+동일 명령을 require_escalated로 요청했으나 auto-review가 실제 앱/권한상승 사용자 명시승인 부재를 이유로 거부했다. 거부된 요청에는 exit code/실행 session이 없으며 새 서버·검증 프로세스를 시작하지 않았다. 우회나 추가 재실행 없이 중단했다. 실행권한 승인은 메인에게 전달한 blocker다.
+
+미실행: 실제 앱 PID/새PID, RSS/thread/FD 표본, type/uniqueID/cursor, media/event/retention/restart, 최종 정상 tail은 모두 미도달이다. observationCompleted=false, resourceTrendPass=false, fullFoundationPass=false. 30/120/UI/auth/build/다른 회귀·커밋·푸시 미수행. native 컴파일 산출물143595bytes가 생성된 사실은 실제 PID 측정 PASS가 아니다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-f5Mp6u | app fixture root | 17071044 | wrapper 내부 삭제 | absent=true | 원출력 AP12 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.lhwQ4C | registry/collector | 143595 | trap 삭제 | absent=true | 원출력 cleanup |
+| /private/tmp/s09-observe-output.GF1WVG | 전체 stdout/stderr | 11624 | 필수값/개별행 이관 후 삭제 | 최종 아래 cleanup 확인 기록 참조 | 테스트 로그, 최종 evidence 아님 |
+
+## S09 OBS 실제 단기 관측 실행 사전등록
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| OBS-N01 native collector | 고정소스 compile 및 실제 PID 표본 | --app-observe wrapper compile 성공·각 PID/startIdentity/RSSbytes/thread/fd/sampletime 전수 보존 | v4.1.0 |
+| OBS-N02 증분 집계 | 7type/raw/고유ID·32MiB/100k 상한 | 표본별 count/UTF8 bytes/cursor/backlog/partial 및 최종 완결 확인 | v4.1.0 |
+| OBS-N03 실제 통합 | 기존 AP·동일archive 새PID restart | 정상 media/event/retention/restart 개별 결과·새PID 그룹·cursor 연속성 직접 관측 | v4.1.0 |
+| OBS-N04 정리/증거 | 전체stdout/stderr·프로세스/포트/temp | 180초/448·512MiB 기존상한 유지, 로그 전수행/summary 대조·redaction·bytes/삭제부재 | v4.1.0 |
+
+실행 승인: `./server.sh verify-v410-recording-foundation --app-observe` 단기1회만. 출력은 owned mktemp 로그에 보존 후 필요한 값을 이관·삭제한다. 첫 실패 시 추가 재실행하지 않고 원인 판정을 메인에 반환한다. build/다른회귀/auth/30/120/UI/커밋/푸시는 이번 미실행.
+
+## S09 observer 단위 결과·앱 연결 준비 (실제 관측 미실행)
+
+실제 명령 `node scripts/internal/recording_foundation_observer.test.mjs`: 최초 예상 RED exit1/0pass1fail/1ms(first mutation counted, stub0), 첫 GREEN exit0/24pass0fail/6ms. 최종 종료 경계 보완 중 exit1/26pass1fail/6ms가 발생했다. failure cleanup closes reader가 reader의 최초 truncated 오류 latch보다 closed 오류를 우선 기대한 테스트 결함이다. reader/제품은 변경하지 않고 원래 FD fstat의 EBADF·fd=null·truncated 오류 보존을 검증하도록 수정했다. 동일 명령 최종 exit0/33pass0fail/6ms. 중간 실패 뒤 미도달 6개는 그 실행 PASS로 계산하지 않았다.
+
+최종 `node --check scripts/internal/recording_foundation_observer.mjs`, `node --check scripts/internal/verify_v410_recording_foundation.mjs`, `bash -n scripts/internal/verify_v410_recording_foundation.sh`, `git diff --check` 각각 exit0. syntax/diff elapsed 별도 미계측. token start/end/consumed=null, source=하위 작업별 자동 집계 없음. 단위 elapsed source=Node Date.now. 도구 원출력 개별행을 아래 전수 이관했으며 별도 로그 파일은 생성하지 않았다.
+
+연결: --app-observe만 고정 collector 소스를 격리 GST root의 고정 basename으로 컴파일하도록 준비했다(이번 컴파일 미실행). collector subprocess 환경은 PATH만 전달하며 3초/16KiB 상한과 close callback으로 실패를 판정한다. 최초·5초 tick에서 현재 PID/startIdentity별 metrics 및 bounded 7type 원장 집계를 출력한다. ID 전체100k/UTF8 ID32MiB 상한, payload 비누적, 동일 live PID identity 변경 오류, 중복 tick 방지, stop 앞 pause/in-flight 대기, 모든 앱 close 확인 후 final journal drain을 연결했다. 최종 partial/backlog/미측정/오류는 거부하고 cleanup close(false)는 FD만 닫는다. observationCompleted는 failed0·모든 process closed·final 자료·오류없음에 결속되며 resourceTrendPass/fullFoundationPass는 false다. 기존 입력/시간/quota/root 상한은 변경하지 않았다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| OBS 최초 RED | first mutation counted; exit1/0pass1fail; 미구현 예상 assertion | fail |
+| OBS 중간 실제실패 | failure cleanup closes reader; exit1/26pass1fail; 오류 latch에 대한 fixture 기대 오류 | fail |
+| OBS-final-01 | OBS01 first mutation counted; 최종33 실행 pass·첫24 실행 pass | pass |
+| OBS-final-02 | OBS01 no duplicate poll count; 최종33 실행 pass·첫24 실행 pass | pass |
+| OBS-final-03 | OBS02 raw rows distinct from unique IDs; 최종33 실행 pass·첫24 실행 pass | pass |
+| OBS-final-04 | OBS03 new PID distinct group same cursor; 최종33 실행 pass·첫24 실행 pass | pass |
+| OBS-final-05 | OBS01 all seven type counts; 최종33 실행 pass·첫24 실행 pass | pass |
+| OBS-final-06 | OBS04 initial absent journal pending not zero; 최종33 실행 pass·첫24 실행 pass | pass |
+| OBS-final-07 | OBS04 journal created later observed; 최종33 실행 pass·첫24 실행 pass | pass |
+| OBS-final-08 | OBS04 final unmeasured rejected; 최종33 실행 pass·첫24 실행 pass | pass |
+| OBS-final-09 | OBS04 final pending rejected; 최종33 실행 pass·첫24 실행 pass | pass |
+| OBS-final-10 | OBS02 total ID count bound; 최종33 실행 pass·첫24 실행 pass | pass |
+| OBS-final-11 | OBS02 UTF8 byte bound; 최종33 실행 pass·첫24 실행 pass | pass |
+| OBS-final-12 | OBS03 missing collector binary fails; 최종33 실행 pass·첫24 실행 pass | pass |
+| OBS-final-13 | OBS03 null sample rejected; 최종33 실행 pass·첫24 실행 pass | pass |
+| OBS-final-14 | OBS03 invalid sample rejected; 최종33 실행 pass·첫24 실행 pass | pass |
+| OBS-final-15 | OBS03 wrongpid sample rejected; 최종33 실행 pass·첫24 실행 pass | pass |
+| OBS-final-16 | OBS03 missingfd sample rejected; 최종33 실행 pass·첫24 실행 pass | pass |
+| OBS-final-17 | OBS03 rsszero sample rejected; 최종33 실행 pass·첫24 실행 pass | pass |
+| OBS-final-18 | OBS03 live identity change rejected; 최종33 실행 pass·첫24 실행 pass | pass |
+| OBS-final-19 | OBS03 identity error latched; 최종33 실행 pass·첫24 실행 pass | pass |
+| OBS-final-20 | OBS03 reader error not empty archive; 최종33 실행 pass·첫24 실행 pass | pass |
+| OBS-final-21 | OBS04 duplicate tick not launched; 최종33 실행 pass·첫24 실행 pass | pass |
+| OBS-final-22 | OBS04 pause waits active tick; 최종33 실행 pass·첫24 실행 pass | pass |
+| OBS-final-23 | OBS04 measured close returns groups not resource pass; 최종33 실행 pass·첫24 실행 pass | pass |
+| OBS-final-24 | OBS04 closed tick rejected; 최종33 실행 pass·첫24 실행 pass | pass |
+| OBS-final-25 | OBS04 live partial observed without consuming tail; 최종33 실행 pass | pass |
+| OBS-final-26 | OBS04 final partial rejected and reader closed; 최종33 실행 pass | pass |
+| OBS-final-27 | OBS04 failure cleanup closes reader; 최종33 실행 pass·중간26/1에서 fail 후 실제 FD EBADF 검사로 수정 | pass |
+| OBS-final-28 | OBS04 complete observation predicate positive; 최종33 실행 pass | pass |
+| OBS-final-29 | OBS04 failure completion rejected; 최종33 실행 pass | pass |
+| OBS-final-30 | OBS04 process-unclosed completion rejected; 최종33 실행 pass | pass |
+| OBS-final-31 | OBS04 no-final completion rejected; 최종33 실행 pass | pass |
+| OBS-final-32 | OBS04 error completion rejected; 최종33 실행 pass | pass |
+| OBS-final-33 | OBS04 disabled completion rejected; 최종33 실행 pass | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-observer-QkRuzW | RED temp journal | 146 | 삭제 | absent=true | lstat ENOENT |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-observer-GYlZyY | 첫 GREEN temp journal | 1767 | reader close 뒤 삭제 | absent=true | lstat ENOENT |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-observer-M6NkOg | 중간 실패 temp journal | 1932 | reader close 뒤 삭제 | absent=true | lstat ENOENT |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-observer-nOBdDd | 최종33 temp journal | 1932 | reader close 뒤 삭제 | absent=true | lstat ENOENT |
+
+미실행/한계: 실제 app-observe·native collector compile/실측·GST·auth·장시간·UI·기존 회귀·전체 build는 이번 승인 밖이라 미실행이다. fake sample 단위는 실제 녹화/OS 측정/자원 안정성 PASS가 아니다. 관측 원장은 catalog 수용·fsync·strict duplicate-key 검증을 대체하지 않고, 동시 비협력 prefix 변경 원자 검출도 보장하지 않는다. 기존 collector41/reader40 증거는 구현 재사용 근거일 뿐 이번 앱 연결 실행 evidence가 아니다. 커밋/푸시 미수행.
+
+## S09 observer 사전등록
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| OBS01 측정결합 | PID sample과7type/고유ID 집계 | 예상RED 첫tick mutationCount1 assertion; stub미집계 | v4.1.0 |
+| OBS02 보존상한 | total IDs100k/UTF8 32MiB·payload누적없음 | 작은testlimit 초과거부·중복ID count유지 | v4.1.0 |
+| OBS03 PID/오류 | 새PID분리·동일PIDidentity변경거부·결측실패 | fake완료는단위경계뿐·collector없음/불완전/read오류거부 | v4.1.0 |
+| OBS04 수명 | 중복tick방지·pause가진행중tick대기 | 오류latch·close/미측정실패·journal최초pending | v4.1.0 |
+| OBS05 격리정리 | temp파일/FD cleanup·syntax/diff | 실제앱/GST/collector compile/장시간/auth이번미실행 | v4.1.0 |
+| OBS04 최종완결 보완 | 최종 LF 미완결 거부·종료 미확인 시 FD만 닫기 | 정상 tick의 partial 허용과 최종 close 거부, 오류 뒤 close(false), failed 또는 process 미종료 시 완료 거부를 단위 검사 | v4.1.0 |
+
+예상RED명령 `node scripts/internal/recording_foundation_observer.test.mjs`: 첫관측의 mutationCount가1이어야하나stub0이므로실패. source편집apply_patch·실제파일은test mkdtemp에만생성.
+
+## S09 --all orchestration 단위 결과 (실제 통합 미실행)
+
+최종자체리뷰 보완: secret환경검사 내부assert가 runSuite의실패결과로전환될때도 테스트가이를감지하도록 integrationExecutionPass===true를외부에서추가assert했다. 동일29개재검증 exit0/29pass0fail/241ms, diffcheck0. 아래표의 `29 실행`은237ms와241ms 두실행에서각각해당개별항목pass를뜻한다. 최초237ms는이검증기보완전증거로보존하며더넓게소급해석하지않는다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-suite-native-AAZnAn | 최종29 native fixture/marker | 186 | child close 뒤삭제 | absent=true | lstat ENOENT |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-suite-redaction-UndtNL | 최종29 redaction fixture | 194 | child close 뒤삭제 | absent=true | lstat ENOENT |
+
+최초 `node scripts/internal/recording_foundation_suite.test.mjs` RED exit1/0pass1fail/0ms: stub이호출하지않아 ALL01 fixed runtime then app-auth order assertion실패. 첫GREEN24/0 exit0/2ms는DI경계만검사했으며 당시outer kill구현의실제안전성을검증한것이아니다. 메인리뷰가detached앱고아위험을발견하여outer timeout/kill을제거했다. overflow시추가출력저장을멈추고기존runner close까지기다린뒤FAIL/후속미실행. 이후25/0 exit0/1ms(DI close),26/0 exit0/153ms(native overflow),28/0 exit0/198ms(직접mjs진입거부),최종29/0 exit0/237ms(multiline redaction)로같은단위범위를보강했다. compile/OS hang 전체deadline보장은없다.
+
+auth회귀 `node scripts/internal/recording_foundation_auth_helpers.test.mjs` 첫24/0 exit0/78ms 및최종24/0 exit0/82ms. node --check suite.mjs/foundation.mjs, bash -n foundation.sh, git diff --check 각각exit0. 모든token start/end/consumed null(하위작업별자동집계없음), elapsed source=각Node Date.now.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| ALL 최초RED | fixed order assertion 실패, exit1; 예상RED | fail |
+| ALL-final-01 | ALL04 direct internal default rejected before root; 28/29 실행에서 pass | pass |
+| ALL-final-02 | ALL04 direct internal all rejected before root; 28/29 실행에서 pass | pass |
+| ALL-final-03 | ALL02 native overflow child cleanup and close before failure; 26/28/29 실행에서 pass | pass |
+| ALL-final-04 | ALL04 native split multiline secret redacted before output; 29 실행 pass | pass |
+| ALL-final-05 | ALL02 output overflow waits close then blocks app; 25/26/28/29 실행에서 pass | pass |
+| ALL-final-06 | ALL01 fixed runtime then app-auth order; 24/25/26/28/29 실행에서 pass | pass |
+| ALL-final-07 | ALL01 integration completion not full or resource pass; 24/25/26/28/29 실행에서 pass | pass |
+| ALL-final-08 | ALL04 missing preflight before executor; 24/25/26/28/29 실행에서 pass | pass |
+| ALL-final-09 | ALL04 short preflight before executor; 24/25/26/28/29 실행에서 pass | pass |
+| ALL-final-10 | ALL04 duplicate preflight before executor; 24/25/26/28/29 실행에서 pass | pass |
+| ALL-final-11 | ALL04 runtime secrets removed app secrets retained fixed commands; 24/25/26/28/29 실행에서 pass | pass |
+| ALL-final-12 | ALL02 runtime nonzero stops app; 24/25/26/28/29 실행에서 pass | pass |
+| ALL-final-13 | ALL02 runtime null exit stops app; 24/25/26/28/29 실행에서 pass | pass |
+| ALL-final-14 | ALL02 runtime signal stops app; 24/25/26/28/29 실행에서 pass | pass |
+| ALL-final-15 | ALL02 runtime spawn error stops app; 24/25/26/28/29 실행에서 pass | pass |
+| ALL-final-16 | ALL02 runtime missing summary stops app; 24/25/26/28/29 실행에서 pass | pass |
+| ALL-final-17 | ALL02 runtime failed summary stops app; 24/25/26/28/29 실행에서 pass | pass |
+| ALL-final-18 | ALL02 runtime missing completion stops app; 24/25/26/28/29 실행에서 pass | pass |
+| ALL-final-19 | ALL02 runtime missing cleanup stops app; 24/25/26/28/29 실행에서 pass | pass |
+| ALL-final-20 | ALL02 runtime failed cleanup stops app; 24/25/26/28/29 실행에서 pass | pass |
+| ALL-final-21 | ALL02 executor exception stops app; 24/25/26/28/29 실행에서 pass | pass |
+| ALL-final-22 | ALL03 app nonzero rejected; 24/25/26/28/29 실행에서 pass | pass |
+| ALL-final-23 | ALL03 app null exit rejected; 24/25/26/28/29 실행에서 pass | pass |
+| ALL-final-24 | ALL03 app missing summary rejected; 24/25/26/28/29 실행에서 pass | pass |
+| ALL-final-25 | ALL03 app incomplete auth rejected; 24/25/26/28/29 실행에서 pass | pass |
+| ALL-final-26 | ALL03 app remaining case rejected; 24/25/26/28/29 실행에서 pass | pass |
+| ALL-final-27 | ALL03 app wrong mode rejected; 24/25/26/28/29 실행에서 pass | pass |
+| ALL-final-28 | ALL03 app missing completion rejected; 24/25/26/28/29 실행에서 pass | pass |
+| ALL-final-29 | ALL03 app failed cleanup rejected; 24/25/26/28/29 실행에서 pass | pass |
+| ALL-auth-01 | missing credentials rejected; 첫/최종 auth helper 회귀 각각pass | pass |
+| ALL-auth-02 | five distinct valid values; 첫/최종 auth helper 회귀 각각pass | pass |
+| ALL-auth-03 | rejects missing; 첫/최종 auth helper 회귀 각각pass | pass |
+| ALL-auth-04 | rejects nonstring; 첫/최종 auth helper 회귀 각각pass | pass |
+| ALL-auth-05 | rejects short; 첫/최종 auth helper 회귀 각각pass | pass |
+| ALL-auth-06 | rejects duplicate; 첫/최종 auth helper 회귀 각각pass | pass |
+| ALL-auth-07 | errors contain no secret; 첫/최종 auth helper 회귀 각각pass | pass |
+| ALL-auth-08 | explicit cookie replaces ambient cookie; 첫/최종 auth helper 회귀 각각pass | pass |
+| ALL-auth-09 | explicit unauth removes cookie; 첫/최종 auth helper 회귀 각각pass | pass |
+| ALL-auth-10 | redirect always manual; 첫/최종 auth helper 회귀 각각pass | pass |
+| ALL-auth-11 | Range header preserved; 첫/최종 auth helper 회귀 각각pass | pass |
+| ALL-auth-12 | lowercase cookie removed; 첫/최종 auth helper 회귀 각각pass | pass |
+| ALL-auth-13 | Headers cookie removed and content type preserved; 첫/최종 auth helper 회귀 각각pass | pass |
+| ALL-auth-14 | redacts password and cookie; 첫/최종 auth helper 회귀 각각pass | pass |
+| ALL-auth-15 | overlapping secrets order0; 첫/최종 auth helper 회귀 각각pass | pass |
+| ALL-auth-16 | overlapping secrets order1; 첫/최종 auth helper 회귀 각각pass | pass |
+| ALL-auth-17 | wrapper missing before GST root or app; 첫/최종 auth helper 회귀 각각pass | pass |
+| ALL-auth-18 | wrapper short before GST root or app; 첫/최종 auth helper 회귀 각각pass | pass |
+| ALL-auth-19 | wrapper duplicate before GST root or app; 첫/최종 auth helper 회귀 각각pass | pass |
+| ALL-auth-20 | timeline allowed nonempty; 첫/최종 auth helper 회귀 각각pass | pass |
+| ALL-auth-21 | timeline empty denied; 첫/최종 auth helper 회귀 각각pass | pass |
+| ALL-auth-22 | timeline other channel denied; 첫/최종 auth helper 회귀 각각pass | pass |
+| ALL-auth-23 | coverage one missing denied; 첫/최종 auth helper 회귀 각각pass | pass |
+| ALL-auth-24 | coverage complete accepted; 첫/최종 auth helper 회귀 각각pass | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-suite-native-33fG0l | 26 native fixture/marker | 186 | native close뒤삭제 | absent=true | lstat ENOENT |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-suite-native-Y18aA5 | 28 native fixture/marker | 186 | native close뒤삭제 | absent=true | lstat ENOENT |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-suite-native-ekZGvp | 29 native fixture/marker | 186 | exit0/signalnull/close뒤삭제 | absent=true | lstat ENOENT |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-suite-redaction-UkXBKG | 29 redaction fixture | 194 | native exit0/close뒤삭제 | absent=true | lstat ENOENT |
+
+구현: shell default/--all은임시root전에suite로분기하여credentials→고정runtimewrapper→고정app-authwrapper순서다. runtime환경에서5authsecret제거, app검증Node만계승. 내부foundation.mjs직접default/--all은root전에거부한다. nativestdout/stderr는8MiB bounded수집후secret전체치환하여출력, overflow는내용미출력/실패유지·강제kill없음. 각단계exit/summary/cleanup/완료marker가필수이며실패뒤단계미실행. integrationExecutionPass만연결완주표시이고fullFoundationPass/resourceTrendPass는false다.
+
+미실행: 실제runtime/앱/auth/GST/전체--all/장시간/UI/build. 단위 fake완료fixture는실제제품PASS가아니다. 실제auth5env미설정, 기존제품/collector/reader/runtimeC++·wrapper불변. 커밋/푸시없음.
+
+ALL04 native redaction 추가 사전등록: 짧은제어child가합성 multiline secret을두chunk로출력해도 nativeExecute가전출력을가린후내보내는지확인. 실제인증값아닌test-only env, 원문로그금지·tempcleanup. overflow제어child실제exit0/signalnull도명시확인한다.
+
+ALL04 추가 사전등록: 내부 foundation.mjs 직접 무인자/--all은 shell wrapper 사용오류 exit1로temp전에거부. 순수 subprocess 음성2개이며 실제server/root 생성없음. public shelldefault/--all만suite진입점이다.
+
+ALL02 native 추가 사전등록: 테스트전용 mkdtemp shell/Node child가9MiB출력 후120ms뒤cleanup완료marker를쓰고정상종료. 고정nativeExecute의8MiB overflow가kill하지않고close까지기다린뒤FAIL/다음단계없음을확인한다. test의직접함수주입만허용하며 CLI/env executor대체없음. 앱/runtime/GST미실행.
+
+ALL02 보완 사전등록: output overflow가 발생해도 outer kill 없이 child close를 기다리고 완료후FAIL/후속미실행. 순수capture+DI close제어로검사하며 실제앱실행아님. 기존 runner의 bounded cleanup에의존하고 compile/OS hang 전체deadline보장은없다.
+
+## S09 기본 all orchestration 사전등록
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| ALL01 순서 | credential→runtime→app-auth | DI unit 예상RED 두고정단계호출assertion, 실제runner미실행 | v4.1.0 |
+| ALL02 실패전파 | 단계1실패면단계2없음·exitnull/nonzero | 원인/완료/cleanup 실패닫기 | v4.1.0 |
+| ALL03 완료증거 | 실제형태runtime텍스트/appJSON·cleanup | 누락/실패/부분scope 거부, fullS09false 유지 | v4.1.0 |
+| ALL04 secret | preflight missing/type/duplicate·runtime값제거 | root/child전에거부, app내부Node만승계·출력redaction | v4.1.0 |
+| ALL05 정적/회귀 | 신규단위/authhelper24/syntax/diff | fake success는실제검증PASS아님·앱/GST미실행 | v4.1.0 |
+
+예상RED `node scripts/internal/recording_foundation_suite.test.mjs`: 미구현runSuite가고정runtime→app-auth를호출하지않아 ALL01순서assertion실패. 실제앱/runtime/auth/장시간/UI/build미실행.
+
+## JR 테스트 루프 bounded 보완 최종40/0
+
+메인리뷰로 test의 무한while를 최대20회·단조offset·완주 assertion으로 바꿨다(reader로직불변). `node scripts/internal/recording_journal_reader.test.mjs` exit0,40pass0fail,44ms(Date.now). `git diff --check` exit0. 토큰start/end/consumed null(하위별자동집계없음). 최초RED/34/39 결과는아래그대로보존.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| JR40-01 | complete LF row emitted; 개별pass·command exit0 | pass |
+| JR40-02 | repeated poll no duplicate; 개별pass·command exit0 | pass |
+| JR40-03 | byte offset includes UTF8 bytes; 개별pass·command exit0 | pass |
+| JR40-04 | append next row only; 개별pass·command exit0 | pass |
+| JR40-05 | empty regular file; 개별pass·command exit0 | pass |
+| JR40-06 | complete JSON without LF unconsumed; 개별pass·command exit0 | pass |
+| JR40-07 | tail replacement reread without old concatenation; 개별pass·command exit0 | pass |
+| JR40-08 | split UTF8 no premature decode; 개별pass·command exit0 | pass |
+| JR40-09 | split UTF8 append recovered; 개별pass·command exit0 | pass |
+| JR40-10 | repair after consumed prefix; 개별pass·command exit0 | pass |
+| JR40-11 | poll byte budget and backlog; 개별pass·command exit0 | pass |
+| JR40-12 | poll boundary partial distinguished from EOF; 개별pass·command exit0 | pass |
+| JR40-13 | bounded poll progress and completion; 개별pass·command exit0 | pass |
+| JR40-14 | bounded multi poll no missing duplicate; 개별pass·command exit0 | pass |
+| JR40-15 | default 4MiB read ceiling; 개별pass·command exit0 | pass |
+| JR40-16 | default ceiling complete second batch; 개별pass·command exit0 | pass |
+| JR40-17 | default line bound; 개별pass·command exit0 | pass |
+| JR40-18 | line error latched after file repaired; 개별pass·command exit0 | pass |
+| JR40-19 | invalid limits rejected; 개별pass·command exit0 | pass |
+| JR40-20 | seven known types accepted; 개별pass·command exit0 | pass |
+| JR40-21 | json rejected; 개별pass·command exit0 | pass |
+| JR40-22 | schema rejected; 개별pass·command exit0 | pass |
+| JR40-23 | type rejected; 개별pass·command exit0 | pass |
+| JR40-24 | field rejected; 개별pass·command exit0 | pass |
+| JR40-25 | payload rejected; 개별pass·command exit0 | pass |
+| JR40-26 | integer rejected; 개별pass·command exit0 | pass |
+| JR40-27 | invalid UTF8 rejected; 개별pass·command exit0 | pass |
+| JR40-28 | inode replacement latched; 개별pass·command exit0 | pass |
+| JR40-29 | consumed prefix truncate rejected; 개별pass·command exit0 | pass |
+| JR40-30 | truncate latch prevents reset; 개별pass·command exit0 | pass |
+| JR40-31 | leaf symlink rejected; 개별pass·command exit0 | pass |
+| JR40-32 | parent symlink rejected; 개별pass·command exit0 | pass |
+| JR40-33 | symlink root rejected; 개별pass·command exit0 | pass |
+| JR40-34 | parent replacement rejected; 개별pass·command exit0 | pass |
+| JR40-35 | root escape rejected; 개별pass·command exit0 | pass |
+| JR40-36 | nonregular directory rejected; 개별pass·command exit0 | pass |
+| JR40-37 | absent file rejected; 개별pass·command exit0 | pass |
+| JR40-38 | hardlink rejected; 개별pass·command exit0 | pass |
+| JR40-39 | read path error latch; 개별pass·command exit0 | pass |
+| JR40-40 | closed poll rejected; 개별pass·command exit0 | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-journal-reader-MN3srB | 최종40 임시JSONL/경로fixture | 4545807 | reader전수close후삭제 | absent=true | lstat ENOENT |
+
+이번도신규단위만이며앱/장시간/UI/auth/build미실행. 코드/기록동결,커밋/푸시없음.
+
+JR03 재검증 사전등록 보완: 테스트 자체 무한반복 방지를 위해 최대20poll·매회consumedOffset단조증가·최종완주 assertion을 추가한다. 기존 reader제품로직은불변, 최초39실행보존 후 같은단위재검증.
+
+## S09 증분 reader 최종39/0 — 관측기 단위만
+
+RED `node scripts/internal/recording_journal_reader.test.mjs --red` exit1,0pass1fail/1ms: 사전명시한 `JR01 complete LF row emitted`가 stub빈batch로실패. 구현후 `node scripts/internal/recording_journal_reader.test.mjs` 첫GREEN34/0 exit0/10ms. poll경계/기본4MiB/루트·parent교체 보강후 동일명령 최종39/0 exit0/45ms. 원래34개와 추가5개를 아래에서 구분하여 두실행 전수보존. node --check 신규reader와test 각각exit0, git diff --check exit0. token start/end/consumed null, 하위작업별자동집계없음, elapsed=Date.now.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| JR 최초RED | complete LF row emitted assertion; exit1, 예상RED | fail |
+| JR-final-01 | JR01 complete LF row emitted; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-02 | JR01 repeated poll no duplicate; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-03 | JR01 byte offset includes UTF8 bytes; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-04 | JR01 append next row only; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-05 | JR01 empty regular file; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-06 | JR02 complete JSON without LF unconsumed; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-07 | JR02 tail replacement reread without old concatenation; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-08 | JR02 split UTF8 no premature decode; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-09 | JR02 split UTF8 append recovered; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-10 | JR02 repair after consumed prefix; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-11 | JR03 poll byte budget and backlog; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-12 | JR03 poll boundary partial distinguished from EOF; 최종 추가검사 pass | pass |
+| JR-final-13 | JR03 bounded multi poll no missing duplicate; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-14 | JR03 default 4MiB read ceiling; 최종 추가검사 pass | pass |
+| JR-final-15 | JR03 default ceiling complete second batch; 최종 추가검사 pass | pass |
+| JR-final-16 | JR03 default line bound; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-17 | JR03 line error latched after file repaired; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-18 | JR03 invalid limits rejected; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-19 | JR04 seven known types accepted; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-20 | JR04 json rejected; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-21 | JR04 schema rejected; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-22 | JR04 type rejected; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-23 | JR04 field rejected; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-24 | JR04 payload rejected; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-25 | JR04 integer rejected; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-26 | JR04 invalid UTF8 rejected; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-27 | JR05 inode replacement latched; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-28 | JR05 consumed prefix truncate rejected; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-29 | JR05 truncate latch prevents reset; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-30 | JR05 leaf symlink rejected; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-31 | JR05 parent symlink rejected; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-32 | JR05 symlink root rejected; 최종 추가검사 pass | pass |
+| JR-final-33 | JR05 parent replacement rejected; 최종 추가검사 pass | pass |
+| JR-final-34 | JR05 root escape rejected; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-35 | JR05 nonregular directory rejected; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-36 | JR05 absent file rejected; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-37 | JR05 hardlink rejected; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-38 | JR05 read path error latch; 첫34 및 최종39에서 각각 pass | pass |
+| JR-final-39 | JR05 closed poll rejected; 첫34 및 최종39에서 각각 pass | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-journal-reader-0IUO1Q | RED 임시JSONL | 166 | reader.close 뒤 삭제 | absent=true | lstat ENOENT |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-journal-reader-BADfMs | 첫34 임시JSONL/경로fixture | 6917 | reader 전수close 뒤 삭제 | absent=true | lstat ENOENT |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-journal-reader-J2qrAB | 최종39 임시JSONL/경로fixture | 4545807 | reader 전수close 뒤 삭제 | absent=true | lstat ENOENT |
+
+구현범위: root/file constructor→poll bounded batch/consumedOffset/consumedBytes/readBytes/lineCount/partialBytes/backlogBytes/backlog→idempotent close. 일반단일링크/nofollow/ancestor·leaf devino를전후검사하고 prefixtruncate·교체·read오류·행상한은latch한다. 미완결꼬리는저장하지않고다음poll에재읽는다. 기본64KiB chunk/4MiB poll/1MiB line. 실제26000행을4MiB경계두batch로소비했고EOF미완결과poll경계미완결을backlog로구분했다.
+
+한계: root는절대경로이며symlink ancestor를거부하므로caller는기존격리root의realpath를전달한다. 순차무잠금검사이며동일inode의소비prefix를동시에변조하거나truncate후관측전재확장한모든경쟁을검출한다고주장하지않는다. 기본envelope7type검사만이고strict duplicate-key/catalog참조/Apply성공/fsync성공검증아님. rawpayload는로그로출력하지않았으며reader는전체원장/무제한IDmap을축적하지않는다. Linux실행/앱/GST/auth/장시간/UI/build/기존회귀미실행. 제품/foundation/collector/server.sh변경없음, commit/push없음.
+
+## S09 증분 reader 단위 사전등록
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| JR01 완결offset | 빈파일/append/다중poll 무중복 | 실제mkdtemp JSONL, 최초 LF완결행 반환 assertion RED | v4.1.0 |
+| JR02 꼬리 | split UTF8/완성JSON noLF/tail repair | 완결offset만갱신·미완결bytes재읽기·잘린옛tail 합성금지 | v4.1.0 |
+| JR03 bounded | 기본64KiB/4MiB/1MiB와backlog | 여러poll완주·행초과오류latch·명시작은옵션 경계 | v4.1.0 |
+| JR04 envelope | 실제7type 기본필드·손상JSON/schema/type/누락 | 관측기기본검사이며 strict duplicate-key/catalog/fsync 검증아님 | v4.1.0 |
+| JR05 안전경로 | 교체/truncate/symlink/rootescape/nonregular/닫힘 | consumed prefix 아래잘림·I/O오류 latch, 자동reset없음 | v4.1.0 |
+| JR06 cleanup | readerFD/임시root정리 | 삭제전bytes·삭제후lstat부재·원래fail보존 | v4.1.0 |
+
+예상RED 명령 `node scripts/internal/recording_journal_reader.test.mjs --red`: 미구현 poll의 빈batch가 `JR01 complete LF row emitted`를 실패시켜야 한다. import/환경오류는RED아님. 승인검사는 신규단위/syntax/diff만, 앱/GST/auth/장시간/UI/build/기존회귀미실행.
+
+## PM collector 오류분류 보완 최종41/0
+
+메인리뷰의 Linux directory error_code 분류 누락을 공통 ClassifyError로 보완했다. Read/mac native errno초기화는 이전35코드에 이미 있었으며, 이번에는 공통분류와 순수6개가 추가됐다. `node scripts/internal/recording_process_metrics.test.mjs` exit0,41pass0fail,1331ms(Date.now). `git diff --check` exit0. token start/end/consumed null(하위작업별자동집계없음). 이전RED/35 두실행은 아래보존.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| PM-final-01 | PM01 external child valid; 개별pass·command exit0 | pass |
+| PM-final-02 | PM01 complete positive fields; 개별pass·command exit0 | pass |
+| PM-final-03 | PM02 same external PID start identity; 개별pass·command exit0 | pass |
+| PM-final-04 | PM02 exact 16 additional FDs; 개별pass·command exit0 | pass |
+| PM-final-05 | PM02 exact 3 additional threads; 개별pass·command exit0 | pass |
+| PM-final-06 | PM02 touched allocation RSS grows; 개별pass·command exit0 | pass |
+| PM-final-07 | PM02 released identity preserved; 개별pass·command exit0 | pass |
+| PM-final-08 | PM02 released FDs return baseline; 개별pass·command exit0 | pass |
+| PM-final-09 | PM02 released threads return baseline; 개별pass·command exit0 | pass |
+| PM-final-10 | PM03 missing rejected null; 개별pass·command exit0 | pass |
+| PM-final-11 | PM03 zero rejected null; 개별pass·command exit0 | pass |
+| PM-final-12 | PM03 negative rejected null; 개별pass·command exit0 | pass |
+| PM-final-13 | PM03 text rejected null; 개별pass·command exit0 | pass |
+| PM-final-14 | PM03 partial rejected null; 개별pass·command exit0 | pass |
+| PM-final-15 | PM03 range rejected null; 개별pass·command exit0 | pass |
+| PM-final-16 | PM03 extra rejected null; 개별pass·command exit0 | pass |
+| PM-final-17 | PM04 positive PID; 개별pass·command exit0 | pass |
+| PM-final-18 | PM04 zero PID rejected; 개별pass·command exit0 | pass |
+| PM-final-19 | PM04 negative PID rejected; 개별pass·command exit0 | pass |
+| PM-final-20 | PM04 partial PID rejected; 개별pass·command exit0 | pass |
+| PM-final-21 | PM04 PID range rejected; 개별pass·command exit0 | pass |
+| PM-final-22 | PM04 missing PID rejected; 개별pass·command exit0 | pass |
+| PM-final-23 | PM04 resident pages converted; 개별pass·command exit0 | pass |
+| PM-final-24 | PM04 partial statm rejected; 개별pass·command exit0 | pass |
+| PM-final-25 | PM04 resident overflow rejected; 개별pass·command exit0 | pass |
+| PM-final-26 | PM04 page size missing rejected; 개별pass·command exit0 | pass |
+| PM-final-27 | PM04 stat comm parentheses and start field; 개별pass·command exit0 | pass |
+| PM-final-28 | PM04 wrong PID stat rejected; 개별pass·command exit0 | pass |
+| PM-final-29 | PM04 partial stat rejected; 개별pass·command exit0 | pass |
+| PM-final-30 | PM04 complete FD bytes accepted; 개별pass·command exit0 | pass |
+| PM-final-31 | PM04 partial FD bytes rejected; 개별pass·command exit0 | pass |
+| PM-final-32 | PM04 saturated FD bytes rejected; 개별pass·command exit0 | pass |
+| PM-final-33 | PM04 failed FD read rejected; 개별pass·command exit0 | pass |
+| PM-final-34 | PM04 EACCES classified; 개별pass·command exit0 | pass |
+| PM-final-35 | PM04 EPERM classified; 개별pass·command exit0 | pass |
+| PM-final-36 | PM04 ENOENT classified; 개별pass·command exit0 | pass |
+| PM-final-37 | PM04 ESRCH classified; 개별pass·command exit0 | pass |
+| PM-final-38 | PM04 unknown error preserves stage; 개별pass·command exit0 | pass |
+| PM-final-39 | PM04 zero error preserves stage; 개별pass·command exit0 | pass |
+| PM-final-40 | PM05 controlled child exited zero; 개별pass·command exit0 | pass |
+| PM-final-41 | PM03 exited process null nonzero; 개별pass·command exit0 | pass |
+
+최종 실제 PID10299/startIdentity=macos:1789065752:981834. baseline sampledAt1789065753709 RSS1425408/thread1/FD3; grown1789065753715 RSS68599808/thread4/FD19; released1789065753718 RSS1441792/thread1/FD3. 세표본 validtrue/errornull. 종료표본1789065753755는 pid10299/startIdentity·RSS·thread·FD모두null(입력pid는10299 유지), validfalse/error=process-exited-or-absent, collector exit1. child종료exit0.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-process-metrics-mK2FEk | 최종41 임시binary/root | 226624 | child10299 exit0 뒤 삭제 | absent=true | driver lstat ENOENT |
+
+Linux native/실제권한거부/PID재활용/실제FD포화는미실행. 순수분류6개로 실제OS사례PASS를대체하지않는다. 제품/기존harness/장시간runner변경없음·실행없음.
+
+PM04 추가 사전등록: 공통 OS 오류분류 EACCES/EPERM→permission-denied, ENOENT/ESRCH→process-exited-or-absent, EIO/0→stage 유지 순수6개. Linux 실제환경·권한·PID재활용 강제실행 없이 기존35항목과 함께 검증한다.
+
+## S09 외부 PID collector 결과 — macOS controlled child만
+
+`node scripts/internal/recording_process_metrics.test.mjs --red` exit1,0pass1fail,elapsed1264ms. 최초 예상 assertion `PM01 external child valid`가 unimplemented validfalse 때문에 실패했다. 컴파일 정상, child9929 종료0. 최초 patch 도구는 동일경로 delete/add 중복으로 적용 거부됐고 파일은 바뀌지 않았으며 Update patch로 수정했다(제품/테스트 실패 아님).
+
+구현 후 `node scripts/internal/recording_process_metrics.test.mjs` 첫 GREEN exit0,35/0,1353ms. 이후 errno 초기화/구체 오류분류 보완 뒤 동일 명령 최종 exit0,35/0,1318ms. 두 실행의 개별35행은 아래 표로 전수 보존한다. native compile은 driver가 `c++ -std=c++17 -pthread <source> -o <temp binary>`로 collector/fixture 각각 수행했다. 최종 `node --check scripts/internal/recording_process_metrics.test.mjs`와 `git diff --check` exit0. 토큰 start/end/consumed null: 하위작업별 자동집계 미제공. elapsed source=driver Date.now. RSS 원상복귀/누수 부재·장시간 안정성은 판정하지 않았다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| PM RED | external child valid 예상 assertion; exit1/0pass1fail | fail |
+| PM-01 | PM01 external child valid; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-02 | PM01 complete positive fields; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-03 | PM02 same external PID start identity; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-04 | PM02 exact 16 additional FDs; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-05 | PM02 exact 3 additional threads; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-06 | PM02 touched allocation RSS grows; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-07 | PM02 released identity preserved; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-08 | PM02 released FDs return baseline; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-09 | PM02 released threads return baseline; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-10 | PM03 missing rejected null; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-11 | PM03 zero rejected null; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-12 | PM03 negative rejected null; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-13 | PM03 text rejected null; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-14 | PM03 partial rejected null; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-15 | PM03 range rejected null; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-16 | PM03 extra rejected null; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-17 | PM04 positive PID; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-18 | PM04 zero PID rejected; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-19 | PM04 negative PID rejected; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-20 | PM04 partial PID rejected; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-21 | PM04 PID range rejected; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-22 | PM04 missing PID rejected; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-23 | PM04 resident pages converted; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-24 | PM04 partial statm rejected; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-25 | PM04 resident overflow rejected; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-26 | PM04 page size missing rejected; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-27 | PM04 stat comm parentheses and start field; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-28 | PM04 wrong PID stat rejected; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-29 | PM04 partial stat rejected; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-30 | PM04 complete FD bytes accepted; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-31 | PM04 partial FD bytes rejected; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-32 | PM04 saturated FD bytes rejected; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-33 | PM04 failed FD read rejected; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-34 | PM05 controlled child exited zero; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+| PM-35 | PM03 exited process null nonzero; 첫 GREEN pass + 최종 GREEN pass, 각 command exit0 | pass |
+
+| 실행/PID/startIdentity | 표본 sampledAt(ms) | rssBytes | threadCount | fdCount | valid/error |
+| --- | ---: | ---: | ---: | ---: | --- |
+| 첫10118/macos:1789065611:761230 baseline | 1789065612496 | 1425408 | 1 | 3 | true/null |
+| 첫10118 grown | 1789065612503 | 68599808 | 4 | 19 | true/null |
+| 첫10118 released | 1789065612506 | 1441792 | 1 | 3 | true/null |
+| 첫10118 exited | 1789065612544 | null | null | null | false/process-exited-or-absent, startIdentity=null, exit1 |
+| 최종10182/macos:1789065652:848338 baseline | 1789065653575 | 1425408 | 1 | 3 | true/null |
+| 최종10182 grown | 1789065653582 | 68599808 | 4 | 19 | true/null |
+| 최종10182 released | 1789065653586 | 1441792 | 1 | 3 | true/null |
+| 최종10182 exited | 1789065653621 | null | null | null | false/process-exited-or-absent, startIdentity=null, exit1 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-process-metrics-aGPC1m | RED 임시binary/root | 89840 | child9929 exit0 뒤 삭제 | absent=true | driver lstat ENOENT |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-process-metrics-HRetPZ | 첫 GREEN 임시binary/root | 209936 | child10118 exit0 뒤 삭제 | absent=true | driver lstat ENOENT |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-process-metrics-0bkWHC | 최종 GREEN 임시binary/root | 226448 | child10182 exit0 뒤 삭제 | absent=true | driver lstat ENOENT |
+
+한계/미실행: Linux stat/statm 순수 parser만 macOS에서 실행했으며 Linux native compile/OS측정은 미실행. 실제 권한 거부·PID 재활용·FD 포화/경쟁을 강제로 만들지 않았다. FD 부분/포화 판별은 실제 공통함수의 합성 입력 검증이다. BSD 시작시각 전후 대조는 PID 재사용 방어이며 여러 카운터의 원자적 스냅샷을 보장하지 않는다. media_server/GST/실제녹화/auth/장시간/UI/기존회귀/전체build 미실행. 제품·기존 foundation/auth/buildscript 변경 없음, 커밋·푸시 없음.
+
+## S09 외부 PID collector 사전등록
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| PM01 외부 측정 | 별도 제어 child baseline PID/start/RSS/thread/FD | 미구현 stub의 validfalse를 `PM01 external child valid` assertion RED로 검출, 컴파일 오류는 RED 아님 | v4.1.0 |
+| PM02 증가/해제 | 실제 FD16/thread3/64MiB 페이지 접근 및 해제 | 동일 startIdentity, FD/thread/RSS 증가; 해제 뒤 FD/thread 감소. RSS 원상복귀 주장금지 | v4.1.0 |
+| PM03 실패닫기 | missing/zero/negative/text/range/종료PID | JSON validfalse + 모든 측정 null + nonzero. 민감 경로/프로세스명 출력없음 | v4.1.0 |
+| PM04 parser | 숫자 범위/부분stat/overflow/FD부분read·포화 | collector 실제 내부 parser 소비, 합성 OS 입력은 실제 OS 실행과 구분 | v4.1.0 |
+| PM05 정리 | bounded child stop 및 mktemp root 삭제 | child exit·삭제전bytes·삭제후lstat부재, 실패에도 cleanup | v4.1.0 |
+
+명령 `node scripts/internal/recording_process_metrics.test.mjs --red` 이후 동일 명령(옵션 없음) GREEN. 이번은 native compile/작은 controlled child/순수parser만 승인. media_server/GST/auth/녹화/장시간/UI 미실행. Astra medium 유지, 하위·커밋·푸시 금지.
+
+## AP10 최종 helper 24/0 — 실제 앱 미실행
+
+`node scripts/internal/recording_foundation_auth_helpers.test.mjs` exit0, 24pass0fail, elapsed80ms(Date.now), token start/end/consumed null(하위작업별 미집계). 이전19개와 추가5개 전수 결과는 아래와 같다. root/GST/app/포트/임시파일 생성 없음. node --check foundation.mjs 및 git diff --check exit0. 실제auth 실행·전체S09 PASS 근거가 아니다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| AP10-final-01 | missing credentials rejected; Node 최종 exit0 개별pass | pass |
+| AP10-final-02 | five distinct valid values; Node 최종 exit0 개별pass | pass |
+| AP10-final-03 | rejects missing; Node 최종 exit0 개별pass | pass |
+| AP10-final-04 | rejects nonstring; Node 최종 exit0 개별pass | pass |
+| AP10-final-05 | rejects short; Node 최종 exit0 개별pass | pass |
+| AP10-final-06 | rejects duplicate; Node 최종 exit0 개별pass | pass |
+| AP10-final-07 | errors contain no secret; Node 최종 exit0 개별pass | pass |
+| AP10-final-08 | explicit cookie replaces ambient cookie; Node 최종 exit0 개별pass | pass |
+| AP10-final-09 | explicit unauth removes cookie; Node 최종 exit0 개별pass | pass |
+| AP10-final-10 | redirect always manual; Node 최종 exit0 개별pass | pass |
+| AP10-final-11 | Range header preserved; Node 최종 exit0 개별pass | pass |
+| AP10-final-12 | lowercase cookie removed; Node 최종 exit0 개별pass | pass |
+| AP10-final-13 | Headers cookie removed and content type preserved; Node 최종 exit0 개별pass | pass |
+| AP10-final-14 | redacts password and cookie; Node 최종 exit0 개별pass | pass |
+| AP10-final-15 | overlapping secrets order0; Node 최종 exit0 개별pass | pass |
+| AP10-final-16 | overlapping secrets order1; Node 최종 exit0 개별pass | pass |
+| AP10-final-17 | wrapper missing before GST root or app; Node 최종 exit0 개별pass | pass |
+| AP10-final-18 | wrapper short before GST root or app; Node 최종 exit0 개별pass | pass |
+| AP10-final-19 | wrapper duplicate before GST root or app; Node 최종 exit0 개별pass | pass |
+| AP10-final-20 | timeline allowed nonempty; Node 최종 exit0 개별pass | pass |
+| AP10-final-21 | timeline empty denied; Node 최종 exit0 개별pass | pass |
+| AP10-final-22 | timeline other channel denied; Node 최종 exit0 개별pass | pass |
+| AP10-final-23 | coverage one missing denied; Node 최종 exit0 개별pass | pass |
+| AP10-final-24 | coverage complete accepted; Node 최종 exit0 개별pass | pass |
+
+## AP10 auth helper 결과 — 실제 auth 미실행
+
+구현 범위는 test-only auth partial mode 및 순수 helper다. 실제 auth 앱은 환경 5개 미설정·실행 미승인으로 미실행이며 AP10/S09 전체 PASS가 아니다. 기존 app-nonauth66598 증거는 해당 당시 코드 범위로 보존하며 auth 변경 경로를 검증하지 않는다.
+
+최초 RED: `node scripts/internal/recording_foundation_auth_helpers.test.mjs` exit1, `AP10-A missing credentials rejected` Missing expected exception. helper stub의 무검증 반환을 검출했으며 import/환경오류가 아니다. 임시산출물 없음, elapsed 미계측. 이후 GREEN16/0 exit0 12ms, wrapper 시작guard 3건 추가 후 최종 GREEN19/0 exit0 81ms. token start/end/consumed는 모두 미집계(하위 작업별 자동집계 미제공), source=각 Node summary Date.now. 실제 서버·포트·GST cache·임시파일 생성 없음.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| AP10 helper 최초RED | missing credentials 거부 assertion; exit1, 예상RED | fail |
+| AP10-helper-01 | missing credentials rejected; 최종 Node helper exit0, 개별 pass | pass |
+| AP10-helper-02 | five distinct valid values; 최종 Node helper exit0, 개별 pass | pass |
+| AP10-helper-03 | rejects missing; 최종 Node helper exit0, 개별 pass | pass |
+| AP10-helper-04 | rejects nonstring; 최종 Node helper exit0, 개별 pass | pass |
+| AP10-helper-05 | rejects short; 최종 Node helper exit0, 개별 pass | pass |
+| AP10-helper-06 | rejects duplicate; 최종 Node helper exit0, 개별 pass | pass |
+| AP10-helper-07 | errors contain no secret; 최종 Node helper exit0, 개별 pass | pass |
+| AP10-helper-08 | explicit cookie replaces ambient cookie; 최종 Node helper exit0, 개별 pass | pass |
+| AP10-helper-09 | explicit unauth removes cookie; 최종 Node helper exit0, 개별 pass | pass |
+| AP10-helper-10 | redirect always manual; 최종 Node helper exit0, 개별 pass | pass |
+| AP10-helper-11 | Range header preserved; 최종 Node helper exit0, 개별 pass | pass |
+| AP10-helper-12 | lowercase cookie removed; 최종 Node helper exit0, 개별 pass | pass |
+| AP10-helper-13 | Headers cookie removed and content type preserved; 최종 Node helper exit0, 개별 pass | pass |
+| AP10-helper-14 | redacts password and cookie; 최종 Node helper exit0, 개별 pass | pass |
+| AP10-helper-15 | overlapping secrets order0; 최종 Node helper exit0, 개별 pass | pass |
+| AP10-helper-16 | overlapping secrets order1; 최종 Node helper exit0, 개별 pass | pass |
+| AP10-helper-17 | wrapper missing before GST root or app; 최종 Node helper exit0, 개별 pass | pass |
+| AP10-helper-18 | wrapper short before GST root or app; 최종 Node helper exit0, 개별 pass | pass |
+| AP10-helper-19 | wrapper duplicate before GST root or app; 최종 Node helper exit0, 개별 pass | pass |
+| AP10 JS syntax | node --check scripts/internal/verify_v410_recording_foundation.mjs; exit0 | pass |
+| AP10 shell syntax | bash -n scripts/internal/verify_v410_recording_foundation.sh; exit0 | pass |
+| AP10 diff | git diff --check; exit0 | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| 없음 | helper 임시산출물 | 0 | 생성하지 않음 | app/GST/root 미생성 | wrapper 음성3건 credential 오류 exit1·예정TMPDIR 부재 확인 |
+
+구현: `--app-auth`는 환경 guard 후 production setup/login/users 및 메모리 cookie를 사용하고 restart에는 기존 users로 재로그인하도록 준비했다. fetch는 cookie를 명시 병합하며 unauth는 기존 Cookie를 제거하고 redirect manual을 강제한다. 실제 3종 media의 admin/허용 Range, 4종 거부, known/nonexistent 비교, timeline/status 권한 전수를 restart 전후 검사하도록 준비했다. authAttempted/authSuiteCompleted/authRemainingCases를 분리하여 실패·미실행을 완료로 숨기지 않는다. secret 중첩은 긴 값 우선 redaction하며 child 환경으로 전달하지 않는다. 이 실제 HTTP 경로들은 이번에 실행하지 않았고 향후 실행에서 입력시점·180초 예산을 확인해야 한다.
+
+## AP10 auth 부분모드 사전등록
+
+AP10-D/F 추가 helper 사전등록: timeline nonempty9101 양성, empty/다른channel 거부, 필수coverage 한개누락 거부·전수양성. 실제 timeline은 같은시간의 nonempty9101 범위를 요구하며 fallback→derived 정상전이에서 옛ID 표출은 요구하지 않는다. 원본ID는 직접media로 검사한다.
+
+실제 auth 추가 필수 정의(미실행): admin/allowed timeline200 items 전수 channelId9101, 필수 authCaseRequired 하나라도 누락 시 suite coverage assertion 실패. fallback의 정상 derived 교체 이후 같은 fallback item이 timeline에 남아야 한다고 추정하지 않는다.
+
+AP10-F 세부 사전등록: Cookie/cookie/Headers 객체의 명시 unauth 제거, Range/Content-Type 보존, redirect manual 강제, 겹친 secret 양순서 입력의 전체 치환. AP10-D/E timeline admin/허용operator200·unauth401·다른channel/viewer/noops403 및 status unauth401을 실제 앱 전수 대상으로 포함한다. 이번에는 순수helper만 실행한다.
+
+AP10-A 추가 사전등록: 순수helper 테스트가 실제 shell 진입점을 missing/short/duplicate fixture 환경으로 호출하여 exit1·credential 오류·GST/root 생성 이전 종료를 확인한다. 실제 auth 서버는 시작하지 않으며 유효 credential은 해당 wrapper에 전달하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| AP10-A credential 시작guard | missing/type/short/duplicate 거부·5개유효양성 | root/GST/app전에검사, 이름/개수만오류, 값출력없음. 순수helper 예상RED missing거부assertion | v4.1.0 |
+| AP10-B 계정수명 | 실제setup/login/users productionhash 및restart재로그인 | password/cookie메모리전용·childenv/CLI/로그금지·기존userssetup중복없음 | v4.1.0 |
+| AP10-C 미디어양성 | continuous/fallback/derived admin+9101operator 각각206 | 실제생성ID·동일file literalbytes, restart전후메모리refs 재사용 | v4.1.0 |
+| AP10-D 거부경계 | 각실제media unauth401/다른channel404/viewer403/noops403 | 9201operator timeline403, known/nonexistentmedia404응답동일 | v4.1.0 |
+| AP10-E status/redaction | admin전체·operator허용channels만·globalobservations제한 | 민감필드/절대path/source/credential노출없음·usersplaintext저장없음 | v4.1.0 |
+| AP10-F helper 판별력 | 순수credential/cookie/redaction RED/GREEN | auth실행아닌synthetichelper값, 실제server기본credential로사용금지. syntax/diffcheck | v4.1.0 |
+
+예상RED: `node scripts/internal/recording_foundation_auth_helpers.test.mjs`의 missing credentials 거부 assertion. 미구현helper stub반환을잡는RED, import/compile/env오류는RED아님. 실제auth/nonauth앱·build/unit기존회귀/UI/30/120미실행.
+
+## S09 실제 app-nonauth66598 통과 — 부분 foundation 범위
+
+최종후처리: 전체출력로그44408bytes를이관후unlink, lstat ENOENT/absent=true exit0. 최종 `git diff --check` exit0. 이번로그수집/이관은누락없으며 이전실패들의증거한계를소급해해소하지않는다.
+
+`./server.sh verify-v410-recording-foundation --app-nonauth` session66598 exit0,294pass0fail. start1789064108655/end1789064167457/elapsed58802ms. stdout/stderr44408bytes311줄 전체수집, 개별294/0과summary정확일치(countsMatch=true, 수집명령exit0). token start/end/consumed null: 하위작업별자동집계없음. fullFoundationPass=false/coverage=app-nonauth-partial, auth/30/UI/120 미실행. 과거실패·출력누락·메인회수 이력은보존하며 소급PASS로바꾸지않는다.
+
+실제흐름: source→continuous bytes/SHA→생산rule/tap 신규EventRecord→bound fallback WebM Range206 및 별도rule의derivedComplete TS Range206/priority/superseded→retention4개합77917761bytes>64MiB/각64미만→oldest삭제→AP07완료cursor46987뒤신규2개원장진행/순서삭제/실파일부재→quota256복원뒤새finalize→정상stop 살아있는snapshot validateSegment(size/SHA)→동일archive 새PID8523→8558/recovery/immutable metadata·link·observation·tombstone·SHA·mutation중복0→새finalize까지통과했다. 삭제된2개의SHA는원장metadata검증만이며 실파일SHA재검사라고하지않는다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 66598-001 | [pass] AP12 distinct loopback ports | pass |
+| 66598-002 | [pass] AP12 actual foreground healthy \| pid=8523 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-KcseZc | pass |
+| 66598-003 | [pass] POST /ops/api/sources \| status=201 | pass |
+| 66598-004 | [pass] AP01 V1 identity seg-9101-1789064109879-1 | pass |
+| 66598-005 | [pass] AP01 positive UTC/PTS seg-9101-1789064109879-1 | pass |
+| 66598-006 | [pass] AP01 actual bytes SHA seg-9101-1789064109879-1 \| bytes=4096788 sha256=00a3416d3afad60186b84c3fdd161bf32d4761b5e4e28093bc4442303d050b64 | pass |
+| 66598-007 | [pass] AP02 actual finalized barrier before rule and tap | pass |
+| 66598-008 | [pass] PUT /lab/analysis/rules/9101 \| status=200 | pass |
+| 66598-009 | [pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 \| status=200 | pass |
+| 66598-010 | [pass] AP02 actual tap created | pass |
+| 66598-011 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| 66598-012 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| 66598-013 | [pass] AP02/03 actual EventRecord identity fallback \| eventId=evt_1789064118516_2 linkId=event-link-sha256-fcfb93097262a777f5ee8859c10a16c75ad3b68dd4cd9208603982d8ebf57d73 | pass |
+| 66598-014 | [pass] AP02/03 actual nonnegative padded event start fallback \| startTime=8333 updateTime=8333 timeBasis=media-pts-ms | pass |
+| 66598-015 | [pass] AP02/03 durable link source fallback | pass |
+| 66598-016 | [pass] GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789064116712&endTimeMs=1789064119734 \| status=200 | pass |
+| 66598-017 | [pass] AP04 fallback event priority | pass |
+| 66598-018 | [pass] AP04 fallback path redaction | pass |
+| 66598-019 | [pass] AP02 fallback remains partial requested-fallback | pass |
+| 66598-020 | [pass] AP02 encoded WebM eventId/encoded contract/size/isolated path | pass |
+| 66598-021 | [pass] AP05 fallback playable local URL | pass |
+| 66598-022 | [pass] AP05 fallback actual file prefix | pass |
+| 66598-023 | [pass] AP05 fallback literal GET Range \| status=206 contentRange=bytes 2-5/22905 bodyHex=dfa30100 | pass |
+| 66598-024 | [pass] DELETE /lab/analysis/taps/analysis-tap-1 \| status=200 | pass |
+| 66598-025 | [pass] AP01 V1 identity seg-9101-1789064109879-1 | pass |
+| 66598-026 | [pass] AP01 positive UTC/PTS seg-9101-1789064109879-1 | pass |
+| 66598-027 | [pass] AP01 actual bytes SHA seg-9101-1789064109879-1 \| bytes=4096788 sha256=00a3416d3afad60186b84c3fdd161bf32d4761b5e4e28093bc4442303d050b64 | pass |
+| 66598-028 | [pass] AP01 V1 identity seg-9101-1789064118234-2 | pass |
+| 66598-029 | [pass] AP01 positive UTC/PTS seg-9101-1789064118234-2 | pass |
+| 66598-030 | [pass] AP01 actual bytes SHA seg-9101-1789064118234-2 \| bytes=4813100 sha256=ae3d910ca24d96f94beac38873988bdf883234f3bd37f0f0318232eebaa6b346 | pass |
+| 66598-031 | [pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 \| status=200 | pass |
+| 66598-032 | [pass] AP03 actual tap created | pass |
+| 66598-033 | [pass] AP03 finalized boundary available | pass |
+| 66598-034 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 66598-035 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 66598-036 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 66598-037 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 66598-038 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 66598-039 | [pass] PUT /lab/analysis/rules/9102 \| status=200 | pass |
+| 66598-040 | [pass] GET /lab/analysis/taps/analysis-tap-2/events?dispatch=1 \| status=200 | pass |
+| 66598-041 | [pass] AP02/03 actual EventRecord identity derived \| eventId=evt_1789064127573_84 linkId=event-link-sha256-bd5469ba2ec209d3f8a31b0fe03260d7fbb282411d316b37d30d88281fa5d928 | pass |
+| 66598-042 | [pass] AP02/03 actual nonnegative padded event start derived \| startTime=17566 updateTime=17566 timeBasis=media-pts-ms | pass |
+| 66598-043 | [pass] AP02/03 durable link source derived | pass |
+| 66598-044 | [pass] GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789064125960&endTimeMs=1789064128960 \| status=200 | pass |
+| 66598-045 | [pass] AP04 derived event priority | pass |
+| 66598-046 | [pass] AP04 derived path redaction | pass |
+| 66598-047 | [pass] AP03 actual derived remux metadata | pass |
+| 66598-048 | [pass] AP01 V1 identity event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087 | pass |
+| 66598-049 | [pass] AP01 positive UTC/PTS event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087 | pass |
+| 66598-050 | [pass] AP01 actual bytes SHA event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087 \| bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994 | pass |
+| 66598-051 | [pass] AP03 Complete actual overlaps | pass |
+| 66598-052 | [pass] AP04 continuous superseded with priority100 | pass |
+| 66598-053 | [pass] AP05 derived playable local URL | pass |
+| 66598-054 | [pass] AP05 derived actual file prefix | pass |
+| 66598-055 | [pass] AP05 derived literal GET Range \| status=206 contentRange=bytes 2-5/1218616 bodyHex=0032a600 | pass |
+| 66598-056 | [pass] DELETE /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 66598-057 | [pass] AP02/03 fallback and derived independent events | pass |
+| 66598-058 | [pass] AP06 actual H264 generator \| exit=0 log=Setting pipeline to PAUSED ... Pipeline is PREROLLING ... Redistribute latency... Redistribute latency... Pipeline is PREROLLED ... Setting pipeline to PLAYING ... Redistribute latency... New clock: GstSystemClock Got EOS from element "pipeline0". EOS received - stopping pipeline... Execution ended after 0:00:00.221621167 Setting pipeline to NULL ... Freeing pipeline ... | pass |
+| 66598-059 | [pass] AP12 generated input bounded \| bytes=62334405 limitBytes=100663296 | pass |
+| 66598-060 | [pass] POST /ops/api/sources \| status=201 | pass |
+| 66598-061 | [pass] AP01 V1 identity seg-9201-1789064135789-1 | pass |
+| 66598-062 | [pass] AP01 positive UTC/PTS seg-9201-1789064135789-1 | pass |
+| 66598-063 | [pass] AP01 actual bytes SHA seg-9201-1789064135789-1 \| bytes=15581582 sha256=4dff1e3a4bab4e639c45bc20f09b2d7d93510a04385a97cc2ef9020a24f14a0a | pass |
+| 66598-064 | [pass] AP01 V1 identity seg-9201-1789064136829-2 | pass |
+| 66598-065 | [pass] AP01 positive UTC/PTS seg-9201-1789064136829-2 | pass |
+| 66598-066 | [pass] AP01 actual bytes SHA seg-9201-1789064136829-2 \| bytes=15586510 sha256=f12449e3e3c3aa15ac7fc28d5f63b9ef3a6df095a6cb103d637258844b952be1 | pass |
+| 66598-067 | [pass] AP01 V1 identity seg-9201-1789064137834-3 | pass |
+| 66598-068 | [pass] AP01 positive UTC/PTS seg-9201-1789064137834-3 | pass |
+| 66598-069 | [pass] AP01 actual bytes SHA seg-9201-1789064137834-3 \| bytes=31168087 sha256=b254ba1405f62c4ac7e67f78e5df8de963006123b3070a08b7f0600b8366631b | pass |
+| 66598-070 | [pass] AP01 V1 identity seg-9201-1789064139822-4 | pass |
+| 66598-071 | [pass] AP01 positive UTC/PTS seg-9201-1789064139822-4 | pass |
+| 66598-072 | [pass] AP01 actual bytes SHA seg-9201-1789064139822-4 \| bytes=15581582 sha256=29bb9eb2612a5165d5b124da34fe23a5de84ef09437c7b2326f89ee32ff09bec | pass |
+| 66598-073 | [pass] AP06 each actual segment below reservation | pass |
+| 66598-074 | [pass] AP06 actual total exceeds future quota \| count=4 bytes=77917761 oldest=seg-9201-1789064135789-1,seg-9201-1789064136829-2,seg-9201-1789064137834-3,seg-9201-1789064139822-4 | pass |
+| 66598-075 | [pass] PUT /ops/api/sources/9201 \| status=200 | pass |
+| 66598-076 | [pass] AP07 oldest deletion request independent order | pass |
+| 66598-077 | [pass] AP07 durable completed seg-9201-1789064135789-1 | pass |
+| 66598-078 | [pass] AP07 physical absent seg-9201-1789064135789-1 | pass |
+| 66598-079 | [pass] AP07 durable completed seg-9201-1789064136829-2 | pass |
+| 66598-080 | [pass] AP07 physical absent seg-9201-1789064136829-2 | pass |
+| 66598-081 | [pass] AP07 durable completed seg-9201-1789064137834-3 | pass |
+| 66598-082 | [pass] AP07 physical absent seg-9201-1789064137834-3 | pass |
+| 66598-083 | [pass] AP07 durable completed seg-9201-1789064139822-4 | pass |
+| 66598-084 | [pass] AP07 physical absent seg-9201-1789064139822-4 | pass |
+| 66598-085 | [pass] AP08 new finalized then ordered deleted physical absence seg-9201-1789064141058-1 | pass |
+| 66598-086 | [pass] AP08 new finalized then ordered deleted physical absence seg-9201-1789064142836-2 | pass |
+| 66598-087 | [pass] AP08 actual recording resumes after quota deletion | pass |
+| 66598-088 | [pass] PUT /ops/api/sources/9201 \| status=200 | pass |
+| 66598-089 | [pass] AP08 restored quota new finalized | pass |
+| 66598-090 | [pass] AP12 app0 exit0 \| exit=0 signal=null | pass |
+| 66598-091 | [pass] AP01 V1 identity seg-9101-1789064109879-1 | pass |
+| 66598-092 | [pass] AP01 positive UTC/PTS seg-9101-1789064109879-1 | pass |
+| 66598-093 | [pass] AP01 actual bytes SHA seg-9101-1789064109879-1 \| bytes=4096788 sha256=00a3416d3afad60186b84c3fdd161bf32d4761b5e4e28093bc4442303d050b64 | pass |
+| 66598-094 | [pass] AP01 V1 identity seg-9101-1789064118234-2 | pass |
+| 66598-095 | [pass] AP01 positive UTC/PTS seg-9101-1789064118234-2 | pass |
+| 66598-096 | [pass] AP01 actual bytes SHA seg-9101-1789064118234-2 \| bytes=4813100 sha256=ae3d910ca24d96f94beac38873988bdf883234f3bd37f0f0318232eebaa6b346 | pass |
+| 66598-097 | [pass] AP01 V1 identity seg-9101-1789064126560-3 | pass |
+| 66598-098 | [pass] AP01 positive UTC/PTS seg-9101-1789064126560-3 | pass |
+| 66598-099 | [pass] AP01 actual bytes SHA seg-9101-1789064126560-3 \| bytes=5222837 sha256=b1d112d0b0a34a461e274e1e40acf6d30f821d42a4d7c95ef52e2b604f34af87 | pass |
+| 66598-100 | [pass] AP01 V1 identity event-seg-sha256-c91b42b29d2afece60f84c479b02831c3da11af71bb3a1ff75b8474a32094c5f | pass |
+| 66598-101 | [pass] AP01 positive UTC/PTS event-seg-sha256-c91b42b29d2afece60f84c479b02831c3da11af71bb3a1ff75b8474a32094c5f | pass |
+| 66598-102 | [pass] AP01 actual bytes SHA event-seg-sha256-c91b42b29d2afece60f84c479b02831c3da11af71bb3a1ff75b8474a32094c5f \| bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994 | pass |
+| 66598-103 | [pass] AP01 V1 identity event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087 | pass |
+| 66598-104 | [pass] AP01 positive UTC/PTS event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087 | pass |
+| 66598-105 | [pass] AP01 actual bytes SHA event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087 \| bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994 | pass |
+| 66598-106 | [pass] AP01 V1 identity event-seg-sha256-e8a9d48aedcce04468437446b2060d635d0ddd43ab0c1e96d27387c07d616fa5 | pass |
+| 66598-107 | [pass] AP01 positive UTC/PTS event-seg-sha256-e8a9d48aedcce04468437446b2060d635d0ddd43ab0c1e96d27387c07d616fa5 | pass |
+| 66598-108 | [pass] AP01 actual bytes SHA event-seg-sha256-e8a9d48aedcce04468437446b2060d635d0ddd43ab0c1e96d27387c07d616fa5 \| bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994 | pass |
+| 66598-109 | [pass] AP01 V1 identity event-seg-sha256-f478dae7af4628c0047d60f160c67354664f1eb7fc7c0ca14db9c1fac5b11694 | pass |
+| 66598-110 | [pass] AP01 positive UTC/PTS event-seg-sha256-f478dae7af4628c0047d60f160c67354664f1eb7fc7c0ca14db9c1fac5b11694 | pass |
+| 66598-111 | [pass] AP01 actual bytes SHA event-seg-sha256-f478dae7af4628c0047d60f160c67354664f1eb7fc7c0ca14db9c1fac5b11694 \| bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994 | pass |
+| 66598-112 | [pass] AP01 V1 identity event-seg-sha256-30f173dddb1115abe1e0469a628bd58a608a56c38caf9aa9cfc17719564d7c1e | pass |
+| 66598-113 | [pass] AP01 positive UTC/PTS event-seg-sha256-30f173dddb1115abe1e0469a628bd58a608a56c38caf9aa9cfc17719564d7c1e | pass |
+| 66598-114 | [pass] AP01 actual bytes SHA event-seg-sha256-30f173dddb1115abe1e0469a628bd58a608a56c38caf9aa9cfc17719564d7c1e \| bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994 | pass |
+| 66598-115 | [pass] AP01 V1 identity event-seg-sha256-89ad8f54a5448a8c438829a4700bbaf4d8a5d3ae75e95dbc7da284b381252dbc | pass |
+| 66598-116 | [pass] AP01 positive UTC/PTS event-seg-sha256-89ad8f54a5448a8c438829a4700bbaf4d8a5d3ae75e95dbc7da284b381252dbc | pass |
+| 66598-117 | [pass] AP01 actual bytes SHA event-seg-sha256-89ad8f54a5448a8c438829a4700bbaf4d8a5d3ae75e95dbc7da284b381252dbc \| bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994 | pass |
+| 66598-118 | [pass] AP01 V1 identity event-seg-sha256-758b51ee08c7fe057ae8ab6e8edf4b0ceec1f7589b86a71b21ce64ec47427968 | pass |
+| 66598-119 | [pass] AP01 positive UTC/PTS event-seg-sha256-758b51ee08c7fe057ae8ab6e8edf4b0ceec1f7589b86a71b21ce64ec47427968 | pass |
+| 66598-120 | [pass] AP01 actual bytes SHA event-seg-sha256-758b51ee08c7fe057ae8ab6e8edf4b0ceec1f7589b86a71b21ce64ec47427968 \| bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994 | pass |
+| 66598-121 | [pass] AP01 V1 identity event-seg-sha256-586f665ef176fbd9207bc4578b22b6dd88d569762404cb33bd3225a16a700c49 | pass |
+| 66598-122 | [pass] AP01 positive UTC/PTS event-seg-sha256-586f665ef176fbd9207bc4578b22b6dd88d569762404cb33bd3225a16a700c49 | pass |
+| 66598-123 | [pass] AP01 actual bytes SHA event-seg-sha256-586f665ef176fbd9207bc4578b22b6dd88d569762404cb33bd3225a16a700c49 \| bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994 | pass |
+| 66598-124 | [pass] AP01 V1 identity seg-9101-1789064134900-4 | pass |
+| 66598-125 | [pass] AP01 positive UTC/PTS seg-9101-1789064134900-4 | pass |
+| 66598-126 | [pass] AP01 actual bytes SHA seg-9101-1789064134900-4 \| bytes=2940815 sha256=d1d0db4500a15db40883cb75c80446b511bdf7303697f994991c30ee02a2b269 | pass |
+| 66598-127 | [pass] AP01 V1 identity seg-9201-1789064143831-3 | pass |
+| 66598-128 | [pass] AP01 positive UTC/PTS seg-9201-1789064143831-3 | pass |
+| 66598-129 | [pass] AP01 actual bytes SHA seg-9201-1789064143831-3 \| bytes=6752007 sha256=2dc521a600b7a9cc93d821447a743437c79f0affba66736bf5c0b98dde324a59 | pass |
+| 66598-130 | [pass] AP01 V1 identity seg-9201-1789064144271-1 | pass |
+| 66598-131 | [pass] AP01 positive UTC/PTS seg-9201-1789064144271-1 | pass |
+| 66598-132 | [pass] AP01 actual bytes SHA seg-9201-1789064144271-1 \| bytes=31167191 sha256=fe7d2dbdd2e8e25c4ca52f141c0a2a2b2a4aea88fc63009b8e0ae1a1e22c4221 | pass |
+| 66598-133 | [pass] AP01 V1 identity seg-9201-1789064145839-2 | pass |
+| 66598-134 | [pass] AP01 positive UTC/PTS seg-9201-1789064145839-2 | pass |
+| 66598-135 | [pass] AP01 actual bytes SHA seg-9201-1789064145839-2 \| bytes=15582562 sha256=4a8e7934a0e0951e2c491e45bf890ec2d06311d142d7403fa3b05c80db652a3a | pass |
+| 66598-136 | [pass] AP01 V1 identity seg-9201-1789064146853-3 | pass |
+| 66598-137 | [pass] AP01 positive UTC/PTS seg-9201-1789064146853-3 | pass |
+| 66598-138 | [pass] AP01 actual bytes SHA seg-9201-1789064146853-3 \| bytes=4156146 sha256=2b572bcbf47a4d8a98c27bcd97d6c3fd922a2f7d70732acb8b7dde6574cb78b6 | pass |
+| 66598-139 | [pass] AP01 V1 identity seg-9101-1789064139895-5 | pass |
+| 66598-140 | [pass] AP01 positive UTC/PTS seg-9101-1789064139895-5 | pass |
+| 66598-141 | [pass] AP01 actual bytes SHA seg-9101-1789064139895-5 \| bytes=3474714 sha256=01d3b41d0c486facf42ff37e07682274c1df1f8ab37dd06289fda4cb2d91b098 | pass |
+| 66598-142 | [pass] AP12 distinct loopback ports | pass |
+| 66598-143 | [pass] AP12 actual foreground healthy \| pid=8558 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-KcseZc | pass |
+| 66598-144 | [pass] AP09 restart actual new PID | pass |
+| 66598-145 | [pass] AP09 immutable segment seg-9101-1789064109879-1 | pass |
+| 66598-146 | [pass] AP09 immutable segment seg-9101-1789064118234-2 | pass |
+| 66598-147 | [pass] AP09 immutable segment seg-9101-1789064126560-3 | pass |
+| 66598-148 | [pass] AP09 immutable segment event-seg-sha256-c91b42b29d2afece60f84c479b02831c3da11af71bb3a1ff75b8474a32094c5f | pass |
+| 66598-149 | [pass] AP09 immutable segment event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087 | pass |
+| 66598-150 | [pass] AP09 immutable segment event-seg-sha256-e8a9d48aedcce04468437446b2060d635d0ddd43ab0c1e96d27387c07d616fa5 | pass |
+| 66598-151 | [pass] AP09 immutable segment event-seg-sha256-f478dae7af4628c0047d60f160c67354664f1eb7fc7c0ca14db9c1fac5b11694 | pass |
+| 66598-152 | [pass] AP09 immutable segment event-seg-sha256-30f173dddb1115abe1e0469a628bd58a608a56c38caf9aa9cfc17719564d7c1e | pass |
+| 66598-153 | [pass] AP09 immutable segment event-seg-sha256-89ad8f54a5448a8c438829a4700bbaf4d8a5d3ae75e95dbc7da284b381252dbc | pass |
+| 66598-154 | [pass] AP09 immutable segment event-seg-sha256-758b51ee08c7fe057ae8ab6e8edf4b0ceec1f7589b86a71b21ce64ec47427968 | pass |
+| 66598-155 | [pass] AP09 immutable segment event-seg-sha256-586f665ef176fbd9207bc4578b22b6dd88d569762404cb33bd3225a16a700c49 | pass |
+| 66598-156 | [pass] AP09 immutable segment seg-9201-1789064135789-1 | pass |
+| 66598-157 | [pass] AP09 immutable segment seg-9201-1789064136829-2 | pass |
+| 66598-158 | [pass] AP09 immutable segment seg-9101-1789064134900-4 | pass |
+| 66598-159 | [pass] AP09 immutable segment seg-9201-1789064137834-3 | pass |
+| 66598-160 | [pass] AP09 immutable segment seg-9201-1789064139822-4 | pass |
+| 66598-161 | [pass] AP09 immutable segment seg-9201-1789064140831-5 | pass |
+| 66598-162 | [pass] AP09 immutable segment seg-9201-1789064141058-1 | pass |
+| 66598-163 | [pass] AP09 immutable segment seg-9201-1789064142836-2 | pass |
+| 66598-164 | [pass] AP09 immutable segment seg-9201-1789064143831-3 | pass |
+| 66598-165 | [pass] AP09 immutable segment seg-9201-1789064144271-1 | pass |
+| 66598-166 | [pass] AP09 immutable segment seg-9201-1789064145839-2 | pass |
+| 66598-167 | [pass] AP09 immutable segment seg-9201-1789064146853-3 | pass |
+| 66598-168 | [pass] AP09 immutable segment seg-9101-1789064139895-5 | pass |
+| 66598-169 | [pass] AP09 immutable media SHA seg-9101-1789064109879-1 | pass |
+| 66598-170 | [pass] AP09 immutable media SHA seg-9101-1789064118234-2 | pass |
+| 66598-171 | [pass] AP09 immutable media SHA seg-9101-1789064126560-3 | pass |
+| 66598-172 | [pass] AP09 immutable media SHA event-seg-sha256-c91b42b29d2afece60f84c479b02831c3da11af71bb3a1ff75b8474a32094c5f | pass |
+| 66598-173 | [pass] AP09 immutable media SHA event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087 | pass |
+| 66598-174 | [pass] AP09 immutable media SHA event-seg-sha256-e8a9d48aedcce04468437446b2060d635d0ddd43ab0c1e96d27387c07d616fa5 | pass |
+| 66598-175 | [pass] AP09 immutable media SHA event-seg-sha256-f478dae7af4628c0047d60f160c67354664f1eb7fc7c0ca14db9c1fac5b11694 | pass |
+| 66598-176 | [pass] AP09 immutable media SHA event-seg-sha256-30f173dddb1115abe1e0469a628bd58a608a56c38caf9aa9cfc17719564d7c1e | pass |
+| 66598-177 | [pass] AP09 immutable media SHA event-seg-sha256-89ad8f54a5448a8c438829a4700bbaf4d8a5d3ae75e95dbc7da284b381252dbc | pass |
+| 66598-178 | [pass] AP09 immutable media SHA event-seg-sha256-758b51ee08c7fe057ae8ab6e8edf4b0ceec1f7589b86a71b21ce64ec47427968 | pass |
+| 66598-179 | [pass] AP09 immutable media SHA event-seg-sha256-586f665ef176fbd9207bc4578b22b6dd88d569762404cb33bd3225a16a700c49 | pass |
+| 66598-180 | [pass] AP09 immutable media SHA seg-9101-1789064134900-4 | pass |
+| 66598-181 | [pass] AP09 immutable media SHA seg-9201-1789064143831-3 | pass |
+| 66598-182 | [pass] AP09 immutable media SHA seg-9201-1789064144271-1 | pass |
+| 66598-183 | [pass] AP09 immutable media SHA seg-9201-1789064145839-2 | pass |
+| 66598-184 | [pass] AP09 immutable media SHA seg-9201-1789064146853-3 | pass |
+| 66598-185 | [pass] AP09 immutable media SHA seg-9101-1789064139895-5 | pass |
+| 66598-186 | [pass] AP09 immutable links evt_1789064118516_2 | pass |
+| 66598-187 | [pass] AP09 immutable links evt_1789064118516_3 | pass |
+| 66598-188 | [pass] AP09 immutable links evt_1789064118524_4 | pass |
+| 66598-189 | [pass] AP09 immutable links evt_1789064118525_5 | pass |
+| 66598-190 | [pass] AP09 immutable links evt_1789064127560_77 | pass |
+| 66598-191 | [pass] AP09 immutable links evt_1789064127560_78 | pass |
+| 66598-192 | [pass] AP09 immutable links evt_1789064127567_79 | pass |
+| 66598-193 | [pass] AP09 immutable links evt_1789064127571_80 | pass |
+| 66598-194 | [pass] AP09 immutable links evt_1789064127572_81 | pass |
+| 66598-195 | [pass] AP09 immutable links evt_1789064127572_82 | pass |
+| 66598-196 | [pass] AP09 immutable links evt_1789064127573_83 | pass |
+| 66598-197 | [pass] AP09 immutable links evt_1789064127573_84 | pass |
+| 66598-198 | [pass] AP09 immutable observations obs-7b68092235ecf50a65087d98c9ae2a4f | pass |
+| 66598-199 | [pass] AP09 immutable observations obs-f33e4a50a31622a7aa245c00ecb98e96 | pass |
+| 66598-200 | [pass] AP09 immutable observations obs-2f2466bfa4f1c198e06ba8dcbd1c2b89 | pass |
+| 66598-201 | [pass] AP09 immutable observations obs-364247ad4eca16fde2fce73212696540 | pass |
+| 66598-202 | [pass] AP09 immutable observations obs-48ac304a8df8e56b2e357a684875705e | pass |
+| 66598-203 | [pass] AP09 immutable observations obs-3b9d400be2303a8600c467d332e64667 | pass |
+| 66598-204 | [pass] AP09 immutable observations obs-074f3f8f74e71c11ca00d5320b4a4fa0 | pass |
+| 66598-205 | [pass] AP09 immutable observations obs-228bcc31bd991fc40e3aa5627e988a29 | pass |
+| 66598-206 | [pass] AP09 immutable observations obs-35103e226fc3d07e87734bf363d47ef5 | pass |
+| 66598-207 | [pass] AP09 immutable observations obs-62bd8051fea6b655533d4d444e40ecde | pass |
+| 66598-208 | [pass] AP09 immutable observations obs-8f7d728140d01d24ed2117e8eb8a4ad7 | pass |
+| 66598-209 | [pass] AP09 immutable observations obs-842e6b53e58377ab9b9f8aca4a757aa8 | pass |
+| 66598-210 | [pass] AP09 immutable observations obs-2974fccbdbae8ddf8810dcabed0b429c | pass |
+| 66598-211 | [pass] AP09 immutable observations obs-d2739144a7b08d1c1560b9e6f1d3945f | pass |
+| 66598-212 | [pass] AP09 immutable observations obs-3c16bb88e38b46cd94404f220a31ca66 | pass |
+| 66598-213 | [pass] AP09 immutable observations obs-0e6066b67c40058a3463f6e8a3d43c21 | pass |
+| 66598-214 | [pass] AP09 immutable observations obs-35f983348ebe37fff0c9a0615f0a5370 | pass |
+| 66598-215 | [pass] AP09 immutable observations obs-f9f63c200f43a8ecf3fea87ee77c947b | pass |
+| 66598-216 | [pass] AP09 immutable observations obs-2dbd22883d3463199f91d195d6d82ece | pass |
+| 66598-217 | [pass] AP09 immutable observations obs-6fc165597be7c0de866491c10d236a49 | pass |
+| 66598-218 | [pass] AP09 immutable observations obs-7c5b27cbf9f8ed877a108c958506e6d8 | pass |
+| 66598-219 | [pass] AP09 immutable observations obs-b50f8a4c5522d04038aa3b2baec07dbf | pass |
+| 66598-220 | [pass] AP09 immutable observations obs-7e0d60e4ad680be57bb85c9d7905e70a | pass |
+| 66598-221 | [pass] AP09 immutable observations obs-70db76ead3fae756111a75a3e6e752c1 | pass |
+| 66598-222 | [pass] AP09 immutable observations obs-381f9e5e73a9d72400beec5d793aa7d3 | pass |
+| 66598-223 | [pass] AP09 immutable observations obs-8208c0a611090bbb37872bee8cfbd54c | pass |
+| 66598-224 | [pass] AP09 immutable observations obs-64e32affd321224580952510cb40dd6a | pass |
+| 66598-225 | [pass] AP09 immutable observations obs-45b59f8a4687daef00f3428afe0b7298 | pass |
+| 66598-226 | [pass] AP09 immutable observations obs-83361f3ac27be5d6874e8c38ed3753bd | pass |
+| 66598-227 | [pass] AP09 immutable observations obs-fff0d3c8509491190df12f639af6f7f2 | pass |
+| 66598-228 | [pass] AP09 immutable observations obs-cc66396f2eb6b2f32cd749b071ff9880 | pass |
+| 66598-229 | [pass] AP09 immutable observations obs-9b3cda7a9cfe5d6e2ad71a1225eb4715 | pass |
+| 66598-230 | [pass] AP09 immutable observations obs-ecc876d928f280f402b592032a32a1e1 | pass |
+| 66598-231 | [pass] AP09 immutable observations obs-a2cf4ed442ab48fd138c57e87f92d394 | pass |
+| 66598-232 | [pass] AP09 immutable observations obs-366b41a16f57f76a735e8c8794027deb | pass |
+| 66598-233 | [pass] AP09 immutable observations obs-38316c11941ae25b35ff6fb06b7d4aee | pass |
+| 66598-234 | [pass] AP09 immutable observations obs-03c94cdcddb25f2c3170871ebc04e8f7 | pass |
+| 66598-235 | [pass] AP09 immutable observations obs-9e40d8832233865f78c476ff9c1b1ddc | pass |
+| 66598-236 | [pass] AP09 immutable observations obs-02253fdc95619d119bb7d7f6630ec232 | pass |
+| 66598-237 | [pass] AP09 immutable observations obs-7c52bf5f5bf208eef78afcbf17ad6a55 | pass |
+| 66598-238 | [pass] AP09 immutable observations obs-af5408ecb96415d7648392b92a02b614 | pass |
+| 66598-239 | [pass] AP09 immutable observations obs-b92a4e7f1424bd4089b649e77cadafdb | pass |
+| 66598-240 | [pass] AP09 immutable observations obs-2de770f47ef166152e1737799fa50876 | pass |
+| 66598-241 | [pass] AP09 immutable observations obs-225314a7168979162ccf22fa7ccebbd5 | pass |
+| 66598-242 | [pass] AP09 immutable observations obs-2de36541a2d1c68d8c6b43f38645c0f2 | pass |
+| 66598-243 | [pass] AP09 immutable observations obs-6c46015aec76c54a4cdf58246146746d | pass |
+| 66598-244 | [pass] AP09 immutable observations obs-94ff36dbe19903fba412370b971f1f54 | pass |
+| 66598-245 | [pass] AP09 immutable observations obs-13dfc75d040cd5f068270158bb9661e7 | pass |
+| 66598-246 | [pass] AP09 immutable observations obs-89faa2fa65529896a3d1193f4104a791 | pass |
+| 66598-247 | [pass] AP09 immutable observations obs-52d9fb50a88eea890453f0866698f7d6 | pass |
+| 66598-248 | [pass] AP09 immutable observations obs-3e00f79c4aa1fe5847afec458c9a04ff | pass |
+| 66598-249 | [pass] AP09 immutable observations obs-3d6a4913362b7d937671d5b08ac7b15c | pass |
+| 66598-250 | [pass] AP09 immutable observations obs-4af87eded34d9f26632646278e3a37b9 | pass |
+| 66598-251 | [pass] AP09 immutable observations obs-d58526f64ff156455529c0f7f3cf4702 | pass |
+| 66598-252 | [pass] AP09 immutable observations obs-caaa0cb8b1f843442a1de4a1d0bb1bdb | pass |
+| 66598-253 | [pass] AP09 immutable observations obs-fdb46ae1f87e40ab064b52066f9b05bc | pass |
+| 66598-254 | [pass] AP09 immutable observations obs-9d61611747dd02dd244ccf4ae61a39f6 | pass |
+| 66598-255 | [pass] AP09 immutable observations obs-ab985684e9684fda5b396a75a08f2651 | pass |
+| 66598-256 | [pass] AP09 immutable observations obs-f4cadd936a00b76f74fbbe339b6e1dec | pass |
+| 66598-257 | [pass] AP09 immutable observations obs-743f62510cd58ab488241e5261de97df | pass |
+| 66598-258 | [pass] AP09 immutable observations obs-f95f6d52437c48e0edb2eaf4489c8bcf | pass |
+| 66598-259 | [pass] AP09 immutable observations obs-9aaf208e9e4b7367e96c2afa49749988 | pass |
+| 66598-260 | [pass] AP09 immutable observations obs-7a1e14a3b7ea28a6bb489c497a62c0b1 | pass |
+| 66598-261 | [pass] AP09 immutable observations obs-f3ee6a35a0125cbde1ae86167c22120a | pass |
+| 66598-262 | [pass] AP09 immutable observations obs-f36f77bc82eaa80947867fb3bafc54de | pass |
+| 66598-263 | [pass] AP09 immutable observations obs-6d8ee5f6c116ff6e44a241c40caffc89 | pass |
+| 66598-264 | [pass] AP09 immutable observations obs-3d4b14d361f9a24fe9205de20dd71fe0 | pass |
+| 66598-265 | [pass] AP09 immutable observations obs-5fa375302bb86904b9f1d1e02970f90b | pass |
+| 66598-266 | [pass] AP09 immutable observations obs-f49185e3006e9d81ca2b5f43e606654e | pass |
+| 66598-267 | [pass] AP09 immutable observations obs-ccba113ad4ecdfd156f2637c52b2c7c2 | pass |
+| 66598-268 | [pass] AP09 immutable observations obs-5f66ae44797c7cd648a9b3a94eb99915 | pass |
+| 66598-269 | [pass] AP09 immutable observations obs-aceff29d69d01acb455b573e3200e4b0 | pass |
+| 66598-270 | [pass] AP09 immutable observations obs-d983ad5b3747d1b04f112903a70dd293 | pass |
+| 66598-271 | [pass] AP09 immutable observations obs-f4c72d29ff6f95cd458037e7a0cad92e | pass |
+| 66598-272 | [pass] AP09 immutable observations obs-fc5719fd9bff26e60370ecf3fc5c14e5 | pass |
+| 66598-273 | [pass] AP09 immutable observations obs-0d558b0f622bb93b714bc2f62a9838e0 | pass |
+| 66598-274 | [pass] AP09 immutable observations obs-a2da1f7d8a67bdb4df94259f8bfca727 | pass |
+| 66598-275 | [pass] AP09 immutable observations obs-a03fda4d86bf0dafc5cbe2c4d33c42b0 | pass |
+| 66598-276 | [pass] AP09 immutable observations obs-6a6163486eb949f0ddf0ec1adb2a89e7 | pass |
+| 66598-277 | [pass] AP09 immutable observations obs-c37d627eedbf7fa1a80149680a54fd6e | pass |
+| 66598-278 | [pass] AP09 immutable observations obs-004ff3a23701ce2203574b83fe14fc35 | pass |
+| 66598-279 | [pass] AP09 immutable tombstones seg-9201-1789064135789-1 | pass |
+| 66598-280 | [pass] AP09 immutable tombstones seg-9201-1789064136829-2 | pass |
+| 66598-281 | [pass] AP09 immutable tombstones seg-9201-1789064137834-3 | pass |
+| 66598-282 | [pass] AP09 immutable tombstones seg-9201-1789064139822-4 | pass |
+| 66598-283 | [pass] AP09 immutable tombstones seg-9201-1789064140831-5 | pass |
+| 66598-284 | [pass] AP09 immutable tombstones seg-9201-1789064141058-1 | pass |
+| 66598-285 | [pass] AP09 immutable tombstones seg-9201-1789064142836-2 | pass |
+| 66598-286 | [pass] AP09 duplicate mutation IDs zero | pass |
+| 66598-287 | [pass] AP09 actual post-restart finalized | pass |
+| 66598-288 | [pass] AP12 app2 exit0 \| exit=0 signal=null | pass |
+| 66598-289 | [pass] AP12 root below 512MiB cap \| bytes=397162973 | pass |
+| 66598-290 | [pass] AP12 port absent 61497 | pass |
+| 66598-291 | [pass] AP12 port absent 61498 | pass |
+| 66598-292 | [pass] AP12 port absent 61553 | pass |
+| 66598-293 | [pass] AP12 port absent 61554 | pass |
+| 66598-294 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-KcseZc bytes=397162973 absent=true | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-KcseZc | 실제앱archive/media/input | 397162973bytes | 소유process정상종료뒤삭제 | absent=true | 앱cleanup |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.JxoEQC | GST cache | 62691bytes | 삭제 | absent=true | wrapper |
+| /private/tmp/media-server-s09-ap08green.q3EsMP | 전체stdout/stderr | 44408bytes | 중앙이관후삭제 | 아래후처리확인 | 311줄/294항목summary일치 |
+
+포트61497/61498/61553/61554 부재. 아래원출력은소스키hash/redaction·격리임시경로만보존, rawmedia최종보존없음. 이번추가unit/build/S05/S06/RT/auth/30/UI/120미실행, 제품/입력/selector동결. 커밋/푸시미수행. 전체S09/릴리즈완료판정아님.
+
+<details><summary>66598 전체 원출력 (줄 끝 공백만 정규화)</summary>
+
+```text
+[pass] AP12 distinct loopback ports
+[pass] AP12 actual foreground healthy | pid=8523 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-KcseZc
+[pass] POST /ops/api/sources | status=201
+[pass] AP01 V1 identity seg-9101-1789064109879-1
+[pass] AP01 positive UTC/PTS seg-9101-1789064109879-1
+[pass] AP01 actual bytes SHA seg-9101-1789064109879-1 | bytes=4096788 sha256=00a3416d3afad60186b84c3fdd161bf32d4761b5e4e28093bc4442303d050b64
+[pass] AP02 actual finalized barrier before rule and tap
+[pass] PUT /lab/analysis/rules/9101 | status=200
+[pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 | status=200
+[pass] AP02 actual tap created
+[pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 | status=200
+[event-correlation] {"source":{"sha256":"184f99186bc144d3c1b18d2cbe41a7d0f86113bb2078d884feb54514e28b833c"},"pts":8333333333,"ruleId":"9101","trackId":1,"type":"presence","priorIdCount":0}
+[pass] AP02/03 actual EventRecord identity fallback | eventId=evt_1789064118516_2 linkId=event-link-sha256-fcfb93097262a777f5ee8859c10a16c75ad3b68dd4cd9208603982d8ebf57d73
+[pass] AP02/03 actual nonnegative padded event start fallback | startTime=8333 updateTime=8333 timeBasis=media-pts-ms
+[event-transition] {"eventId":"evt_1789064118516_2","linkId":"event-link-sha256-fcfb93097262a777f5ee8859c10a16c75ad3b68dd4cd9208603982d8ebf57d73","requested":null,"mediaPts":{"start_ms":7833,"end_ms":8833},"status":"pending","reason":"time-basis-awaiting-segment-map","overlaps":[],"missing":[],"derivedId":null,"manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"184f99186bc144d3c1b18d2cbe41a7d0f86113bb2078d884feb54514e28b833c"},"manifestChannel":{"kind":"file-stream-key","sha256":"184f99186bc144d3c1b18d2cbe41a7d0f86113bb2078d884feb54514e28b833c"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":22905},"segments":[{"id":"seg-9101-1789064109879-1","epoch":"epoch-9101-1-1789064109803","start":{"utc_ms":1789064109879,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789064118187,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}}]}
+[event-transition] {"eventId":"evt_1789064118516_2","linkId":"event-link-sha256-fcfb93097262a777f5ee8859c10a16c75ad3b68dd4cd9208603982d8ebf57d73","requested":null,"mediaPts":{"start_ms":7833,"end_ms":8833},"status":"pending","reason":"time-basis-awaiting-segment-map","overlaps":[],"missing":[],"derivedId":null,"manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"184f99186bc144d3c1b18d2cbe41a7d0f86113bb2078d884feb54514e28b833c"},"manifestChannel":{"kind":"file-stream-key","sha256":"184f99186bc144d3c1b18d2cbe41a7d0f86113bb2078d884feb54514e28b833c"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":22905},"segments":[{"id":"seg-9101-1789064109879-1","epoch":"epoch-9101-1-1789064109803","start":{"utc_ms":1789064109879,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789064118187,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789064118234-2","epoch":"epoch-9101-1-1789064109803","start":{"utc_ms":1789064118234,"pts":8333333333,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789064126517,"pts":16633333333,"time_base_num":1,"time_base_den":1000000000}}]}
+[event-transition] {"eventId":"evt_1789064118516_2","linkId":"event-link-sha256-fcfb93097262a777f5ee8859c10a16c75ad3b68dd4cd9208603982d8ebf57d73","requested":{"start_ms":1789064117712,"end_ms":1789064118734},"status":"partial","reason":"partial-missing-continuous-range","overlaps":[{"segment_id":"seg-9101-1789064109879-1","range":{"start_ms":1789064117712,"end_ms":1789064118187}},{"segment_id":"seg-9101-1789064118234-2","range":{"start_ms":1789064118234,"end_ms":1789064118734}}],"missing":[{"start_ms":1789064118187,"end_ms":1789064118234}],"epoch":"epoch-9101-1-1789064109803","derivedId":null,"manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"184f99186bc144d3c1b18d2cbe41a7d0f86113bb2078d884feb54514e28b833c"},"manifestChannel":{"kind":"file-stream-key","sha256":"184f99186bc144d3c1b18d2cbe41a7d0f86113bb2078d884feb54514e28b833c"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":22905},"http":{"status":200,"items":[{"segmentId":"fallback-bound-v1-7fbb58b0ebe6ec4959e055d0d43d53fb6d0f444f718f112c4ad6ab214e8c2ef3","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789064117712,"endTimeMs":1789064118734,"eventId":"evt_1789064118516_2","completeness":"partial","playable":true,"playbackUrl":"/ops/api/recordings/media/fallback-bound-v1-7fbb58b0ebe6ec4959e055d0d43d53fb6d0f444f718f112c4ad6ab214e8c2ef3","contentType":"video/webm","rangeBasis":"requested-fallback","requestedRange":{"startTimeMs":1789064117712,"endTimeMs":1789064118734},"actualRange":null,"supersededByEventIds":[]}]},"segments":[{"id":"seg-9101-1789064109879-1","epoch":"epoch-9101-1-1789064109803","start":{"utc_ms":1789064109879,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789064118187,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789064118234-2","epoch":"epoch-9101-1-1789064109803","start":{"utc_ms":1789064118234,"pts":8333333333,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789064126517,"pts":16633333333,"time_base_num":1,"time_base_den":1000000000}}]}
+[pass] AP02/03 durable link source fallback
+[pass] GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789064116712&endTimeMs=1789064119734 | status=200
+[pass] AP04 fallback event priority
+[pass] AP04 fallback path redaction
+[pass] AP02 fallback remains partial requested-fallback
+[pass] AP02 encoded WebM eventId/encoded contract/size/isolated path
+[pass] AP05 fallback playable local URL
+[pass] AP05 fallback actual file prefix
+[pass] AP05 fallback literal GET Range | status=206 contentRange=bytes 2-5/22905 bodyHex=dfa30100
+[evidence] fallback {"eventId":"evt_1789064118516_2","link":{"schema":"media-server.event-recording-link.v1","link_id":"event-link-sha256-fcfb93097262a777f5ee8859c10a16c75ad3b68dd4cd9208603982d8ebf57d73","event_id":"evt_1789064118516_2","source_id":"9101","channel_id":"9101","requested_range":{"start_ms":1789064117712,"end_ms":1789064118734},"ordered_overlaps":[{"segment_id":"seg-9101-1789064109879-1","range":{"start_ms":1789064117712,"end_ms":1789064118187}},{"segment_id":"seg-9101-1789064118234-2","range":{"start_ms":1789064118234,"end_ms":1789064118734}}],"derived_segment_id":null,"fallback_evidence_id":"fallback-bound-v1-7fbb58b0ebe6ec4959e055d0d43d53fb6d0f444f718f112c4ad6ab214e8c2ef3","fallback_media_locator":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-KcseZc/events/clips/evt_1789064118516_2.clip/manifest.json","missing_ranges":[{"start_ms":1789064118187,"end_ms":1789064118234}],"time_basis":"media-pts-ms","stream_epoch_id":"epoch-9101-1-1789064109803","completeness_reason":"partial-missing-continuous-range","status":"partial","created_at_ms":1789064118516,"updated_at_ms":1789064126589},"item":{"segmentId":"fallback-bound-v1-7fbb58b0ebe6ec4959e055d0d43d53fb6d0f444f718f112c4ad6ab214e8c2ef3","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789064117712,"endTimeMs":1789064118734,"eventId":"evt_1789064118516_2","completeness":"partial","playable":true,"playbackUrl":"/ops/api/recordings/media/fallback-bound-v1-7fbb58b0ebe6ec4959e055d0d43d53fb6d0f444f718f112c4ad6ab214e8c2ef3","contentType":"video/webm","rangeBasis":"requested-fallback","requestedRange":{"startTimeMs":1789064117712,"endTimeMs":1789064118734},"actualRange":null,"supersededByEventIds":[]},"capturedAtMs":1789064126815}
+[pass] DELETE /lab/analysis/taps/analysis-tap-1 | status=200
+[pass] AP01 V1 identity seg-9101-1789064109879-1
+[pass] AP01 positive UTC/PTS seg-9101-1789064109879-1
+[pass] AP01 actual bytes SHA seg-9101-1789064109879-1 | bytes=4096788 sha256=00a3416d3afad60186b84c3fdd161bf32d4761b5e4e28093bc4442303d050b64
+[pass] AP01 V1 identity seg-9101-1789064118234-2
+[pass] AP01 positive UTC/PTS seg-9101-1789064118234-2
+[pass] AP01 actual bytes SHA seg-9101-1789064118234-2 | bytes=4813100 sha256=ae3d910ca24d96f94beac38873988bdf883234f3bd37f0f0318232eebaa6b346
+[pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 | status=200
+[pass] AP03 actual tap created
+[pass] AP03 finalized boundary available
+[pass] GET /lab/analysis/taps/analysis-tap-2 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-2 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-2 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-2 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-2 | status=200
+[event-input] {"tapId":"analysis-tap-2","pts":17433333333,"finalizedEndPts":16633333333,"epoch":"epoch-9101-1-1789064109803"}
+[pass] PUT /lab/analysis/rules/9102 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-2/events?dispatch=1 | status=200
+[event-correlation] {"source":{"sha256":"184f99186bc144d3c1b18d2cbe41a7d0f86113bb2078d884feb54514e28b833c"},"pts":17566666666,"ruleId":"9102","trackId":1,"type":"presence","priorIdCount":4}
+[pass] AP02/03 actual EventRecord identity derived | eventId=evt_1789064127573_84 linkId=event-link-sha256-bd5469ba2ec209d3f8a31b0fe03260d7fbb282411d316b37d30d88281fa5d928
+[pass] AP02/03 actual nonnegative padded event start derived | startTime=17566 updateTime=17566 timeBasis=media-pts-ms
+[event-transition] {"eventId":"evt_1789064127573_84","linkId":"event-link-sha256-bd5469ba2ec209d3f8a31b0fe03260d7fbb282411d316b37d30d88281fa5d928","requested":null,"mediaPts":{"start_ms":17066,"end_ms":18066},"status":"pending","reason":"pending-with-provisional-frame-buffer-fallback","overlaps":[],"missing":[],"derivedId":null,"manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"184f99186bc144d3c1b18d2cbe41a7d0f86113bb2078d884feb54514e28b833c"},"manifestChannel":{"kind":"file-stream-key","sha256":"184f99186bc144d3c1b18d2cbe41a7d0f86113bb2078d884feb54514e28b833c"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":45223},"segments":[{"id":"seg-9101-1789064109879-1","epoch":"epoch-9101-1-1789064109803","start":{"utc_ms":1789064109879,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789064118187,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789064118234-2","epoch":"epoch-9101-1-1789064109803","start":{"utc_ms":1789064118234,"pts":8333333333,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789064126517,"pts":16633333333,"time_base_num":1,"time_base_den":1000000000}}]}
+[event-transition] {"eventId":"evt_1789064127573_84","linkId":"event-link-sha256-bd5469ba2ec209d3f8a31b0fe03260d7fbb282411d316b37d30d88281fa5d928","requested":{"start_ms":1789064126960,"end_ms":1789064127960},"status":"complete","reason":"complete","overlaps":[{"segment_id":"seg-9101-1789064126560-3","range":{"start_ms":1789064126960,"end_ms":1789064127960}}],"missing":[],"epoch":"epoch-9101-1-1789064109803","derivedId":"event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087","manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"184f99186bc144d3c1b18d2cbe41a7d0f86113bb2078d884feb54514e28b833c"},"manifestChannel":{"kind":"file-stream-key","sha256":"184f99186bc144d3c1b18d2cbe41a7d0f86113bb2078d884feb54514e28b833c"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":45223},"http":{"status":200,"items":[{"segmentId":"event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789064126560,"endTimeMs":1789064127960,"eventId":"evt_1789064127573_84","completeness":"complete","playable":true,"playbackUrl":"/ops/api/recordings/media/event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087","contentType":"video/mp2t","rangeBasis":"segment","requestedRange":{"startTimeMs":1789064126960,"endTimeMs":1789064127960},"actualRange":{"startTimeMs":1789064126560,"endTimeMs":1789064127960},"supersededByEventIds":[]}]},"segments":[{"id":"seg-9101-1789064109879-1","epoch":"epoch-9101-1-1789064109803","start":{"utc_ms":1789064109879,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789064118187,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789064118234-2","epoch":"epoch-9101-1-1789064109803","start":{"utc_ms":1789064118234,"pts":8333333333,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789064126517,"pts":16633333333,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789064126560-3","epoch":"epoch-9101-1-1789064109803","start":{"utc_ms":1789064126560,"pts":16666666666,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789064134850,"pts":24966666666,"time_base_num":1,"time_base_den":1000000000}}]}
+[pass] AP02/03 durable link source derived
+[pass] GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789064125960&endTimeMs=1789064128960 | status=200
+[pass] AP04 derived event priority
+[pass] AP04 derived path redaction
+[pass] AP03 actual derived remux metadata
+[pass] AP01 V1 identity event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087
+[pass] AP01 positive UTC/PTS event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087
+[pass] AP01 actual bytes SHA event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087 | bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994
+[pass] AP03 Complete actual overlaps
+[pass] AP04 continuous superseded with priority100
+[pass] AP05 derived playable local URL
+[pass] AP05 derived actual file prefix
+[pass] AP05 derived literal GET Range | status=206 contentRange=bytes 2-5/1218616 bodyHex=0032a600
+[evidence] derived {"eventId":"evt_1789064127573_84","link":{"schema":"media-server.event-recording-link.v1","link_id":"event-link-sha256-bd5469ba2ec209d3f8a31b0fe03260d7fbb282411d316b37d30d88281fa5d928","event_id":"evt_1789064127573_84","source_id":"9101","channel_id":"9101","requested_range":{"start_ms":1789064126960,"end_ms":1789064127960},"ordered_overlaps":[{"segment_id":"seg-9101-1789064126560-3","range":{"start_ms":1789064126960,"end_ms":1789064127960}}],"derived_segment_id":"event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087","fallback_evidence_id":"fallback-bound-v1-27fd298e9c57cd83af923453a3699fa03d3c0999fba6ede14fffae5af15e13c6","fallback_media_locator":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-KcseZc/events/clips/evt_1789064127573_84.clip/manifest.json","missing_ranges":[],"derived_actual_range":{"start_ms":1789064126560,"end_ms":1789064127960},"derivation_mode":"remux-no-video-reencode","time_basis":"media-pts-ms","stream_epoch_id":"epoch-9101-1-1789064109803","completeness_reason":"complete","status":"complete","created_at_ms":1789064127576,"updated_at_ms":1789064134974},"item":{"segmentId":"event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789064126560,"endTimeMs":1789064127960,"eventId":"evt_1789064127573_84","completeness":"complete","playable":true,"playbackUrl":"/ops/api/recordings/media/event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087","contentType":"video/mp2t","rangeBasis":"segment","requestedRange":{"startTimeMs":1789064126960,"endTimeMs":1789064127960},"actualRange":{"startTimeMs":1789064126560,"endTimeMs":1789064127960},"supersededByEventIds":[]},"capturedAtMs":1789064135292}
+[pass] DELETE /lab/analysis/taps/analysis-tap-2 | status=200
+[pass] AP02/03 fallback and derived independent events
+[pass] AP06 actual H264 generator | exit=0 log=Setting pipeline to PAUSED ... Pipeline is PREROLLING ... Redistribute latency... Redistribute latency... Pipeline is PREROLLED ... Setting pipeline to PLAYING ... Redistribute latency... New clock: GstSystemClock Got EOS from element "pipeline0". EOS received - stopping pipeline... Execution ended after 0:00:00.221621167 Setting pipeline to NULL ... Freeing pipeline ...
+[pass] AP12 generated input bounded | bytes=62334405 limitBytes=100663296
+[pass] POST /ops/api/sources | status=201
+[pass] AP01 V1 identity seg-9201-1789064135789-1
+[pass] AP01 positive UTC/PTS seg-9201-1789064135789-1
+[pass] AP01 actual bytes SHA seg-9201-1789064135789-1 | bytes=15581582 sha256=4dff1e3a4bab4e639c45bc20f09b2d7d93510a04385a97cc2ef9020a24f14a0a
+[pass] AP01 V1 identity seg-9201-1789064136829-2
+[pass] AP01 positive UTC/PTS seg-9201-1789064136829-2
+[pass] AP01 actual bytes SHA seg-9201-1789064136829-2 | bytes=15586510 sha256=f12449e3e3c3aa15ac7fc28d5f63b9ef3a6df095a6cb103d637258844b952be1
+[pass] AP01 V1 identity seg-9201-1789064137834-3
+[pass] AP01 positive UTC/PTS seg-9201-1789064137834-3
+[pass] AP01 actual bytes SHA seg-9201-1789064137834-3 | bytes=31168087 sha256=b254ba1405f62c4ac7e67f78e5df8de963006123b3070a08b7f0600b8366631b
+[pass] AP01 V1 identity seg-9201-1789064139822-4
+[pass] AP01 positive UTC/PTS seg-9201-1789064139822-4
+[pass] AP01 actual bytes SHA seg-9201-1789064139822-4 | bytes=15581582 sha256=29bb9eb2612a5165d5b124da34fe23a5de84ef09437c7b2326f89ee32ff09bec
+[pass] AP06 each actual segment below reservation
+[pass] AP06 actual total exceeds future quota | count=4 bytes=77917761 oldest=seg-9201-1789064135789-1,seg-9201-1789064136829-2,seg-9201-1789064137834-3,seg-9201-1789064139822-4
+[pass] PUT /ops/api/sources/9201 | status=200
+[pass] AP07 oldest deletion request independent order
+[pass] AP07 durable completed seg-9201-1789064135789-1
+[pass] AP07 physical absent seg-9201-1789064135789-1
+[pass] AP07 durable completed seg-9201-1789064136829-2
+[pass] AP07 physical absent seg-9201-1789064136829-2
+[pass] AP07 durable completed seg-9201-1789064137834-3
+[pass] AP07 physical absent seg-9201-1789064137834-3
+[pass] AP07 durable completed seg-9201-1789064139822-4
+[pass] AP07 physical absent seg-9201-1789064139822-4
+[retention-journal] {"phase":"before-wait","offset":46976,"rows":[{"index":46976,"mutationId":"mut-1789064141057-46977","type":"segment_finalized","entityId":"seg-9201-1789064140831-5","existedBeforeQuota":false,"segment":{"channel":"9201","epoch":"epoch-9201-1-1789064135766-r1","start":{"utc_ms":1789064140831,"pts":1000000000,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789064141034,"pts":1233333333,"time_base_num":1,"time_base_den":1000000000},"size":4155929,"checksum_sha256":"0ab509649547bd78a2d0d5b52b0763e1b25355ddfdaca7ae5ef0b122c03f710d","finalized_at_ms":1789064141048,"lifecycle":"finalized"},"tombstoned":true},{"index":46977,"mutationId":"mut-1789064141059-46978","type":"deletion_requested","entityId":"seg-9201-1789064135789-1","existedBeforeQuota":true,"tombstoned":true},{"index":46978,"mutationId":"mut-1789064141060-46979","type":"deletion_completed","entityId":"seg-9201-1789064135789-1","existedBeforeQuota":true,"tombstoned":true},{"index":46979,"mutationId":"mut-1789064141060-46980","type":"deletion_requested","entityId":"seg-9201-1789064136829-2","existedBeforeQuota":true,"tombstoned":true},{"index":46980,"mutationId":"mut-1789064141061-46981","type":"deletion_completed","entityId":"seg-9201-1789064136829-2","existedBeforeQuota":true,"tombstoned":true},{"index":46981,"mutationId":"mut-1789064141061-46982","type":"deletion_requested","entityId":"seg-9201-1789064137834-3","existedBeforeQuota":true,"tombstoned":true},{"index":46982,"mutationId":"mut-1789064141061-46983","type":"deletion_completed","entityId":"seg-9201-1789064137834-3","existedBeforeQuota":true,"tombstoned":true},{"index":46983,"mutationId":"mut-1789064141061-46984","type":"deletion_requested","entityId":"seg-9201-1789064139822-4","existedBeforeQuota":true,"tombstoned":true},{"index":46984,"mutationId":"mut-1789064141062-46985","type":"deletion_completed","entityId":"seg-9201-1789064139822-4","existedBeforeQuota":true,"tombstoned":true},{"index":46985,"mutationId":"mut-1789064141062-46986","type":"deletion_requested","entityId":"seg-9201-1789064140831-5","existedBeforeQuota":false,"tombstoned":true},{"index":46986,"mutationId":"mut-1789064141062-46987","type":"deletion_completed","entityId":"seg-9201-1789064140831-5","existedBeforeQuota":false,"tombstoned":true}]}
+[retention-status] {"phase":"before-wait","status":200,"channelId":"9201","enabled":true,"active":true,"storageBlocked":false,"continuousBytes":0,"continuousMaxBytes":67108864}
+[retention-journal] {"phase":"after-success","offset":46976,"rows":[{"index":46976,"mutationId":"mut-1789064141057-46977","type":"segment_finalized","entityId":"seg-9201-1789064140831-5","existedBeforeQuota":false,"segment":{"channel":"9201","epoch":"epoch-9201-1-1789064135766-r1","start":{"utc_ms":1789064140831,"pts":1000000000,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789064141034,"pts":1233333333,"time_base_num":1,"time_base_den":1000000000},"size":4155929,"checksum_sha256":"0ab509649547bd78a2d0d5b52b0763e1b25355ddfdaca7ae5ef0b122c03f710d","finalized_at_ms":1789064141048,"lifecycle":"finalized"},"tombstoned":true},{"index":46977,"mutationId":"mut-1789064141059-46978","type":"deletion_requested","entityId":"seg-9201-1789064135789-1","existedBeforeQuota":true,"tombstoned":true},{"index":46978,"mutationId":"mut-1789064141060-46979","type":"deletion_completed","entityId":"seg-9201-1789064135789-1","existedBeforeQuota":true,"tombstoned":true},{"index":46979,"mutationId":"mut-1789064141060-46980","type":"deletion_requested","entityId":"seg-9201-1789064136829-2","existedBeforeQuota":true,"tombstoned":true},{"index":46980,"mutationId":"mut-1789064141061-46981","type":"deletion_completed","entityId":"seg-9201-1789064136829-2","existedBeforeQuota":true,"tombstoned":true},{"index":46981,"mutationId":"mut-1789064141061-46982","type":"deletion_requested","entityId":"seg-9201-1789064137834-3","existedBeforeQuota":true,"tombstoned":true},{"index":46982,"mutationId":"mut-1789064141061-46983","type":"deletion_completed","entityId":"seg-9201-1789064137834-3","existedBeforeQuota":true,"tombstoned":true},{"index":46983,"mutationId":"mut-1789064141061-46984","type":"deletion_requested","entityId":"seg-9201-1789064139822-4","existedBeforeQuota":true,"tombstoned":true},{"index":46984,"mutationId":"mut-1789064141062-46985","type":"deletion_completed","entityId":"seg-9201-1789064139822-4","existedBeforeQuota":true,"tombstoned":true},{"index":46985,"mutationId":"mut-1789064141062-46986","type":"deletion_requested","entityId":"seg-9201-1789064140831-5","existedBeforeQuota":false,"tombstoned":true},{"index":46986,"mutationId":"mut-1789064141062-46987","type":"deletion_completed","entityId":"seg-9201-1789064140831-5","existedBeforeQuota":false,"tombstoned":true},{"index":46987,"mutationId":"mut-1789064142952-46988","type":"segment_finalized","entityId":"seg-9201-1789064141058-1","existedBeforeQuota":false,"segment":{"channel":"9201","epoch":"epoch-9201-2-1789064141058","start":{"utc_ms":1789064141058,"pts":1000000000,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789064142770,"pts":2966666666,"time_base_num":1,"time_base_den":1000000000},"size":31168171,"checksum_sha256":"2c3d2249ebea3e636f7b3eeca22c89f91cc4df8d0c4a71da11b986f09a00b522","finalized_at_ms":1789064142894,"lifecycle":"finalized"},"tombstoned":true},{"index":46988,"mutationId":"mut-1789064142954-46989","type":"deletion_requested","entityId":"seg-9201-1789064141058-1","existedBeforeQuota":false,"tombstoned":true},{"index":46989,"mutationId":"mut-1789064142954-46990","type":"deletion_completed","entityId":"seg-9201-1789064141058-1","existedBeforeQuota":false,"tombstoned":true},{"index":46990,"mutationId":"mut-1789064143891-46991","type":"segment_finalized","entityId":"seg-9201-1789064142836-2","existedBeforeQuota":false,"segment":{"channel":"9201","epoch":"epoch-9201-2-1789064141058","start":{"utc_ms":1789064142836,"pts":3000000000,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789064143770,"pts":3966666666,"time_base_num":1,"time_base_den":1000000000},"size":15586426,"checksum_sha256":"405c3d15dc3247446f425a66c1d2c2589793c8ac47c0dc85017faa087b2d5e6d","finalized_at_ms":1789064143861,"lifecycle":"finalized"},"tombstoned":true},{"index":46991,"mutationId":"mut-1789064143893-46992","type":"deletion_requested","entityId":"seg-9201-1789064142836-2","existedBeforeQuota":false,"tombstoned":true},{"index":46992,"mutationId":"mut-1789064143893-46993","type":"deletion_completed","entityId":"seg-9201-1789064142836-2","existedBeforeQuota":false,"tombstoned":true}]}
+[retention-status] {"phase":"after-success","status":200,"channelId":"9201","enabled":true,"active":true,"storageBlocked":false,"continuousBytes":0,"continuousMaxBytes":67108864}
+[pass] AP08 new finalized then ordered deleted physical absence seg-9201-1789064141058-1
+[pass] AP08 new finalized then ordered deleted physical absence seg-9201-1789064142836-2
+[retention-progress] {"cursor":46987,"ids":["seg-9201-1789064141058-1","seg-9201-1789064142836-2"],"metadataOnly":true,"physicalShaRechecked":false}
+[pass] AP08 actual recording resumes after quota deletion
+[pass] PUT /ops/api/sources/9201 | status=200
+[pass] AP08 restored quota new finalized
+[pass] AP12 app0 exit0 | exit=0 signal=null
+[pass] AP01 V1 identity seg-9101-1789064109879-1
+[pass] AP01 positive UTC/PTS seg-9101-1789064109879-1
+[pass] AP01 actual bytes SHA seg-9101-1789064109879-1 | bytes=4096788 sha256=00a3416d3afad60186b84c3fdd161bf32d4761b5e4e28093bc4442303d050b64
+[pass] AP01 V1 identity seg-9101-1789064118234-2
+[pass] AP01 positive UTC/PTS seg-9101-1789064118234-2
+[pass] AP01 actual bytes SHA seg-9101-1789064118234-2 | bytes=4813100 sha256=ae3d910ca24d96f94beac38873988bdf883234f3bd37f0f0318232eebaa6b346
+[pass] AP01 V1 identity seg-9101-1789064126560-3
+[pass] AP01 positive UTC/PTS seg-9101-1789064126560-3
+[pass] AP01 actual bytes SHA seg-9101-1789064126560-3 | bytes=5222837 sha256=b1d112d0b0a34a461e274e1e40acf6d30f821d42a4d7c95ef52e2b604f34af87
+[pass] AP01 V1 identity event-seg-sha256-c91b42b29d2afece60f84c479b02831c3da11af71bb3a1ff75b8474a32094c5f
+[pass] AP01 positive UTC/PTS event-seg-sha256-c91b42b29d2afece60f84c479b02831c3da11af71bb3a1ff75b8474a32094c5f
+[pass] AP01 actual bytes SHA event-seg-sha256-c91b42b29d2afece60f84c479b02831c3da11af71bb3a1ff75b8474a32094c5f | bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994
+[pass] AP01 V1 identity event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087
+[pass] AP01 positive UTC/PTS event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087
+[pass] AP01 actual bytes SHA event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087 | bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994
+[pass] AP01 V1 identity event-seg-sha256-e8a9d48aedcce04468437446b2060d635d0ddd43ab0c1e96d27387c07d616fa5
+[pass] AP01 positive UTC/PTS event-seg-sha256-e8a9d48aedcce04468437446b2060d635d0ddd43ab0c1e96d27387c07d616fa5
+[pass] AP01 actual bytes SHA event-seg-sha256-e8a9d48aedcce04468437446b2060d635d0ddd43ab0c1e96d27387c07d616fa5 | bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994
+[pass] AP01 V1 identity event-seg-sha256-f478dae7af4628c0047d60f160c67354664f1eb7fc7c0ca14db9c1fac5b11694
+[pass] AP01 positive UTC/PTS event-seg-sha256-f478dae7af4628c0047d60f160c67354664f1eb7fc7c0ca14db9c1fac5b11694
+[pass] AP01 actual bytes SHA event-seg-sha256-f478dae7af4628c0047d60f160c67354664f1eb7fc7c0ca14db9c1fac5b11694 | bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994
+[pass] AP01 V1 identity event-seg-sha256-30f173dddb1115abe1e0469a628bd58a608a56c38caf9aa9cfc17719564d7c1e
+[pass] AP01 positive UTC/PTS event-seg-sha256-30f173dddb1115abe1e0469a628bd58a608a56c38caf9aa9cfc17719564d7c1e
+[pass] AP01 actual bytes SHA event-seg-sha256-30f173dddb1115abe1e0469a628bd58a608a56c38caf9aa9cfc17719564d7c1e | bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994
+[pass] AP01 V1 identity event-seg-sha256-89ad8f54a5448a8c438829a4700bbaf4d8a5d3ae75e95dbc7da284b381252dbc
+[pass] AP01 positive UTC/PTS event-seg-sha256-89ad8f54a5448a8c438829a4700bbaf4d8a5d3ae75e95dbc7da284b381252dbc
+[pass] AP01 actual bytes SHA event-seg-sha256-89ad8f54a5448a8c438829a4700bbaf4d8a5d3ae75e95dbc7da284b381252dbc | bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994
+[pass] AP01 V1 identity event-seg-sha256-758b51ee08c7fe057ae8ab6e8edf4b0ceec1f7589b86a71b21ce64ec47427968
+[pass] AP01 positive UTC/PTS event-seg-sha256-758b51ee08c7fe057ae8ab6e8edf4b0ceec1f7589b86a71b21ce64ec47427968
+[pass] AP01 actual bytes SHA event-seg-sha256-758b51ee08c7fe057ae8ab6e8edf4b0ceec1f7589b86a71b21ce64ec47427968 | bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994
+[pass] AP01 V1 identity event-seg-sha256-586f665ef176fbd9207bc4578b22b6dd88d569762404cb33bd3225a16a700c49
+[pass] AP01 positive UTC/PTS event-seg-sha256-586f665ef176fbd9207bc4578b22b6dd88d569762404cb33bd3225a16a700c49
+[pass] AP01 actual bytes SHA event-seg-sha256-586f665ef176fbd9207bc4578b22b6dd88d569762404cb33bd3225a16a700c49 | bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994
+[pass] AP01 V1 identity seg-9101-1789064134900-4
+[pass] AP01 positive UTC/PTS seg-9101-1789064134900-4
+[pass] AP01 actual bytes SHA seg-9101-1789064134900-4 | bytes=2940815 sha256=d1d0db4500a15db40883cb75c80446b511bdf7303697f994991c30ee02a2b269
+[pass] AP01 V1 identity seg-9201-1789064143831-3
+[pass] AP01 positive UTC/PTS seg-9201-1789064143831-3
+[pass] AP01 actual bytes SHA seg-9201-1789064143831-3 | bytes=6752007 sha256=2dc521a600b7a9cc93d821447a743437c79f0affba66736bf5c0b98dde324a59
+[pass] AP01 V1 identity seg-9201-1789064144271-1
+[pass] AP01 positive UTC/PTS seg-9201-1789064144271-1
+[pass] AP01 actual bytes SHA seg-9201-1789064144271-1 | bytes=31167191 sha256=fe7d2dbdd2e8e25c4ca52f141c0a2a2b2a4aea88fc63009b8e0ae1a1e22c4221
+[pass] AP01 V1 identity seg-9201-1789064145839-2
+[pass] AP01 positive UTC/PTS seg-9201-1789064145839-2
+[pass] AP01 actual bytes SHA seg-9201-1789064145839-2 | bytes=15582562 sha256=4a8e7934a0e0951e2c491e45bf890ec2d06311d142d7403fa3b05c80db652a3a
+[pass] AP01 V1 identity seg-9201-1789064146853-3
+[pass] AP01 positive UTC/PTS seg-9201-1789064146853-3
+[pass] AP01 actual bytes SHA seg-9201-1789064146853-3 | bytes=4156146 sha256=2b572bcbf47a4d8a98c27bcd97d6c3fd922a2f7d70732acb8b7dde6574cb78b6
+[pass] AP01 V1 identity seg-9101-1789064139895-5
+[pass] AP01 positive UTC/PTS seg-9101-1789064139895-5
+[pass] AP01 actual bytes SHA seg-9101-1789064139895-5 | bytes=3474714 sha256=01d3b41d0c486facf42ff37e07682274c1df1f8ab37dd06289fda4cb2d91b098
+[pass] AP12 distinct loopback ports
+[pass] AP12 actual foreground healthy | pid=8558 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-KcseZc
+[pass] AP09 restart actual new PID
+[pass] AP09 immutable segment seg-9101-1789064109879-1
+[pass] AP09 immutable segment seg-9101-1789064118234-2
+[pass] AP09 immutable segment seg-9101-1789064126560-3
+[pass] AP09 immutable segment event-seg-sha256-c91b42b29d2afece60f84c479b02831c3da11af71bb3a1ff75b8474a32094c5f
+[pass] AP09 immutable segment event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087
+[pass] AP09 immutable segment event-seg-sha256-e8a9d48aedcce04468437446b2060d635d0ddd43ab0c1e96d27387c07d616fa5
+[pass] AP09 immutable segment event-seg-sha256-f478dae7af4628c0047d60f160c67354664f1eb7fc7c0ca14db9c1fac5b11694
+[pass] AP09 immutable segment event-seg-sha256-30f173dddb1115abe1e0469a628bd58a608a56c38caf9aa9cfc17719564d7c1e
+[pass] AP09 immutable segment event-seg-sha256-89ad8f54a5448a8c438829a4700bbaf4d8a5d3ae75e95dbc7da284b381252dbc
+[pass] AP09 immutable segment event-seg-sha256-758b51ee08c7fe057ae8ab6e8edf4b0ceec1f7589b86a71b21ce64ec47427968
+[pass] AP09 immutable segment event-seg-sha256-586f665ef176fbd9207bc4578b22b6dd88d569762404cb33bd3225a16a700c49
+[pass] AP09 immutable segment seg-9201-1789064135789-1
+[pass] AP09 immutable segment seg-9201-1789064136829-2
+[pass] AP09 immutable segment seg-9101-1789064134900-4
+[pass] AP09 immutable segment seg-9201-1789064137834-3
+[pass] AP09 immutable segment seg-9201-1789064139822-4
+[pass] AP09 immutable segment seg-9201-1789064140831-5
+[pass] AP09 immutable segment seg-9201-1789064141058-1
+[pass] AP09 immutable segment seg-9201-1789064142836-2
+[pass] AP09 immutable segment seg-9201-1789064143831-3
+[pass] AP09 immutable segment seg-9201-1789064144271-1
+[pass] AP09 immutable segment seg-9201-1789064145839-2
+[pass] AP09 immutable segment seg-9201-1789064146853-3
+[pass] AP09 immutable segment seg-9101-1789064139895-5
+[pass] AP09 immutable media SHA seg-9101-1789064109879-1
+[pass] AP09 immutable media SHA seg-9101-1789064118234-2
+[pass] AP09 immutable media SHA seg-9101-1789064126560-3
+[pass] AP09 immutable media SHA event-seg-sha256-c91b42b29d2afece60f84c479b02831c3da11af71bb3a1ff75b8474a32094c5f
+[pass] AP09 immutable media SHA event-seg-sha256-bda8e02a1e32366c5a86ab4dafb11a00e02ae00b27de2f6797061c6db0976087
+[pass] AP09 immutable media SHA event-seg-sha256-e8a9d48aedcce04468437446b2060d635d0ddd43ab0c1e96d27387c07d616fa5
+[pass] AP09 immutable media SHA event-seg-sha256-f478dae7af4628c0047d60f160c67354664f1eb7fc7c0ca14db9c1fac5b11694
+[pass] AP09 immutable media SHA event-seg-sha256-30f173dddb1115abe1e0469a628bd58a608a56c38caf9aa9cfc17719564d7c1e
+[pass] AP09 immutable media SHA event-seg-sha256-89ad8f54a5448a8c438829a4700bbaf4d8a5d3ae75e95dbc7da284b381252dbc
+[pass] AP09 immutable media SHA event-seg-sha256-758b51ee08c7fe057ae8ab6e8edf4b0ceec1f7589b86a71b21ce64ec47427968
+[pass] AP09 immutable media SHA event-seg-sha256-586f665ef176fbd9207bc4578b22b6dd88d569762404cb33bd3225a16a700c49
+[pass] AP09 immutable media SHA seg-9101-1789064134900-4
+[pass] AP09 immutable media SHA seg-9201-1789064143831-3
+[pass] AP09 immutable media SHA seg-9201-1789064144271-1
+[pass] AP09 immutable media SHA seg-9201-1789064145839-2
+[pass] AP09 immutable media SHA seg-9201-1789064146853-3
+[pass] AP09 immutable media SHA seg-9101-1789064139895-5
+[pass] AP09 immutable links evt_1789064118516_2
+[pass] AP09 immutable links evt_1789064118516_3
+[pass] AP09 immutable links evt_1789064118524_4
+[pass] AP09 immutable links evt_1789064118525_5
+[pass] AP09 immutable links evt_1789064127560_77
+[pass] AP09 immutable links evt_1789064127560_78
+[pass] AP09 immutable links evt_1789064127567_79
+[pass] AP09 immutable links evt_1789064127571_80
+[pass] AP09 immutable links evt_1789064127572_81
+[pass] AP09 immutable links evt_1789064127572_82
+[pass] AP09 immutable links evt_1789064127573_83
+[pass] AP09 immutable links evt_1789064127573_84
+[pass] AP09 immutable observations obs-7b68092235ecf50a65087d98c9ae2a4f
+[pass] AP09 immutable observations obs-f33e4a50a31622a7aa245c00ecb98e96
+[pass] AP09 immutable observations obs-2f2466bfa4f1c198e06ba8dcbd1c2b89
+[pass] AP09 immutable observations obs-364247ad4eca16fde2fce73212696540
+[pass] AP09 immutable observations obs-48ac304a8df8e56b2e357a684875705e
+[pass] AP09 immutable observations obs-3b9d400be2303a8600c467d332e64667
+[pass] AP09 immutable observations obs-074f3f8f74e71c11ca00d5320b4a4fa0
+[pass] AP09 immutable observations obs-228bcc31bd991fc40e3aa5627e988a29
+[pass] AP09 immutable observations obs-35103e226fc3d07e87734bf363d47ef5
+[pass] AP09 immutable observations obs-62bd8051fea6b655533d4d444e40ecde
+[pass] AP09 immutable observations obs-8f7d728140d01d24ed2117e8eb8a4ad7
+[pass] AP09 immutable observations obs-842e6b53e58377ab9b9f8aca4a757aa8
+[pass] AP09 immutable observations obs-2974fccbdbae8ddf8810dcabed0b429c
+[pass] AP09 immutable observations obs-d2739144a7b08d1c1560b9e6f1d3945f
+[pass] AP09 immutable observations obs-3c16bb88e38b46cd94404f220a31ca66
+[pass] AP09 immutable observations obs-0e6066b67c40058a3463f6e8a3d43c21
+[pass] AP09 immutable observations obs-35f983348ebe37fff0c9a0615f0a5370
+[pass] AP09 immutable observations obs-f9f63c200f43a8ecf3fea87ee77c947b
+[pass] AP09 immutable observations obs-2dbd22883d3463199f91d195d6d82ece
+[pass] AP09 immutable observations obs-6fc165597be7c0de866491c10d236a49
+[pass] AP09 immutable observations obs-7c5b27cbf9f8ed877a108c958506e6d8
+[pass] AP09 immutable observations obs-b50f8a4c5522d04038aa3b2baec07dbf
+[pass] AP09 immutable observations obs-7e0d60e4ad680be57bb85c9d7905e70a
+[pass] AP09 immutable observations obs-70db76ead3fae756111a75a3e6e752c1
+[pass] AP09 immutable observations obs-381f9e5e73a9d72400beec5d793aa7d3
+[pass] AP09 immutable observations obs-8208c0a611090bbb37872bee8cfbd54c
+[pass] AP09 immutable observations obs-64e32affd321224580952510cb40dd6a
+[pass] AP09 immutable observations obs-45b59f8a4687daef00f3428afe0b7298
+[pass] AP09 immutable observations obs-83361f3ac27be5d6874e8c38ed3753bd
+[pass] AP09 immutable observations obs-fff0d3c8509491190df12f639af6f7f2
+[pass] AP09 immutable observations obs-cc66396f2eb6b2f32cd749b071ff9880
+[pass] AP09 immutable observations obs-9b3cda7a9cfe5d6e2ad71a1225eb4715
+[pass] AP09 immutable observations obs-ecc876d928f280f402b592032a32a1e1
+[pass] AP09 immutable observations obs-a2cf4ed442ab48fd138c57e87f92d394
+[pass] AP09 immutable observations obs-366b41a16f57f76a735e8c8794027deb
+[pass] AP09 immutable observations obs-38316c11941ae25b35ff6fb06b7d4aee
+[pass] AP09 immutable observations obs-03c94cdcddb25f2c3170871ebc04e8f7
+[pass] AP09 immutable observations obs-9e40d8832233865f78c476ff9c1b1ddc
+[pass] AP09 immutable observations obs-02253fdc95619d119bb7d7f6630ec232
+[pass] AP09 immutable observations obs-7c52bf5f5bf208eef78afcbf17ad6a55
+[pass] AP09 immutable observations obs-af5408ecb96415d7648392b92a02b614
+[pass] AP09 immutable observations obs-b92a4e7f1424bd4089b649e77cadafdb
+[pass] AP09 immutable observations obs-2de770f47ef166152e1737799fa50876
+[pass] AP09 immutable observations obs-225314a7168979162ccf22fa7ccebbd5
+[pass] AP09 immutable observations obs-2de36541a2d1c68d8c6b43f38645c0f2
+[pass] AP09 immutable observations obs-6c46015aec76c54a4cdf58246146746d
+[pass] AP09 immutable observations obs-94ff36dbe19903fba412370b971f1f54
+[pass] AP09 immutable observations obs-13dfc75d040cd5f068270158bb9661e7
+[pass] AP09 immutable observations obs-89faa2fa65529896a3d1193f4104a791
+[pass] AP09 immutable observations obs-52d9fb50a88eea890453f0866698f7d6
+[pass] AP09 immutable observations obs-3e00f79c4aa1fe5847afec458c9a04ff
+[pass] AP09 immutable observations obs-3d6a4913362b7d937671d5b08ac7b15c
+[pass] AP09 immutable observations obs-4af87eded34d9f26632646278e3a37b9
+[pass] AP09 immutable observations obs-d58526f64ff156455529c0f7f3cf4702
+[pass] AP09 immutable observations obs-caaa0cb8b1f843442a1de4a1d0bb1bdb
+[pass] AP09 immutable observations obs-fdb46ae1f87e40ab064b52066f9b05bc
+[pass] AP09 immutable observations obs-9d61611747dd02dd244ccf4ae61a39f6
+[pass] AP09 immutable observations obs-ab985684e9684fda5b396a75a08f2651
+[pass] AP09 immutable observations obs-f4cadd936a00b76f74fbbe339b6e1dec
+[pass] AP09 immutable observations obs-743f62510cd58ab488241e5261de97df
+[pass] AP09 immutable observations obs-f95f6d52437c48e0edb2eaf4489c8bcf
+[pass] AP09 immutable observations obs-9aaf208e9e4b7367e96c2afa49749988
+[pass] AP09 immutable observations obs-7a1e14a3b7ea28a6bb489c497a62c0b1
+[pass] AP09 immutable observations obs-f3ee6a35a0125cbde1ae86167c22120a
+[pass] AP09 immutable observations obs-f36f77bc82eaa80947867fb3bafc54de
+[pass] AP09 immutable observations obs-6d8ee5f6c116ff6e44a241c40caffc89
+[pass] AP09 immutable observations obs-3d4b14d361f9a24fe9205de20dd71fe0
+[pass] AP09 immutable observations obs-5fa375302bb86904b9f1d1e02970f90b
+[pass] AP09 immutable observations obs-f49185e3006e9d81ca2b5f43e606654e
+[pass] AP09 immutable observations obs-ccba113ad4ecdfd156f2637c52b2c7c2
+[pass] AP09 immutable observations obs-5f66ae44797c7cd648a9b3a94eb99915
+[pass] AP09 immutable observations obs-aceff29d69d01acb455b573e3200e4b0
+[pass] AP09 immutable observations obs-d983ad5b3747d1b04f112903a70dd293
+[pass] AP09 immutable observations obs-f4c72d29ff6f95cd458037e7a0cad92e
+[pass] AP09 immutable observations obs-fc5719fd9bff26e60370ecf3fc5c14e5
+[pass] AP09 immutable observations obs-0d558b0f622bb93b714bc2f62a9838e0
+[pass] AP09 immutable observations obs-a2da1f7d8a67bdb4df94259f8bfca727
+[pass] AP09 immutable observations obs-a03fda4d86bf0dafc5cbe2c4d33c42b0
+[pass] AP09 immutable observations obs-6a6163486eb949f0ddf0ec1adb2a89e7
+[pass] AP09 immutable observations obs-c37d627eedbf7fa1a80149680a54fd6e
+[pass] AP09 immutable observations obs-004ff3a23701ce2203574b83fe14fc35
+[pass] AP09 immutable tombstones seg-9201-1789064135789-1
+[pass] AP09 immutable tombstones seg-9201-1789064136829-2
+[pass] AP09 immutable tombstones seg-9201-1789064137834-3
+[pass] AP09 immutable tombstones seg-9201-1789064139822-4
+[pass] AP09 immutable tombstones seg-9201-1789064140831-5
+[pass] AP09 immutable tombstones seg-9201-1789064141058-1
+[pass] AP09 immutable tombstones seg-9201-1789064142836-2
+[pass] AP09 duplicate mutation IDs zero
+[pass] AP09 actual post-restart finalized
+[pass] AP12 app2 exit0 | exit=0 signal=null
+[pass] AP12 root below 512MiB cap | bytes=397162973
+[pass] AP12 port absent 61497
+[pass] AP12 port absent 61498
+[pass] AP12 port absent 61553
+[pass] AP12 port absent 61554
+[pass] AP12 root cleanup | path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-KcseZc bytes=397162973 absent=true
+{"mode":"--app-nonauth","passed":294,"failed":0,"startedAtMs":1789064108655,"endedAtMs":1789064167457,"elapsedMs":58802,"fullFoundationPass":false,"coverage":"app-nonauth-partial","notRun":["auth","30min","120min","UI"],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"하위 작업별 자동 집계 없음"}
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.JxoEQC bytes=62691 absent=true
+```
+
+</details>
+
+
+
+## AP08 판정 메인검토 후 실제 앱 재개 승인
+
+기존 단위13항목·diff 메인검토 후 현재코드 app-nonauth1회 신규승인. 과거 앱미승인 표기는 당시역사로보존한다. AP07뒤cursor/knownIDs→신규2개원장진행→quota256복원뒤신규9201→정상stop 살아있는snapshot 실제size/SHA→동일archive 새PID recovery·새finalize를검증한다. 입력/quota/timeout/rootcap/제품 불변. stdout/stderr전체로그와원exit를보존하고개별행·summary일치대조후이관/cleanup. 실패시추가수정·재실행없이반환, unit/build/S05/S06/RT/auth/UI/30/120 미실행.
+
+## AP08 원장 진행 판정 TDD 사전등록
+
+실행: `./server.sh verify-v410-recording-foundation --retention-progress-red` exit1, 예상assertion0pass1fail(start/end1789063952086/elapsed0ms). 기존live-only판정이즉시삭제된자료를놓침을재현했다. 최초summary coverage app-nonauth-partial은분류문구오류이며 실제앱미실행; GREEN에서oracle-predicates-only로정정. `./server.sh verify-v410-recording-foundation --retention-progress-negative` exit0,13pass0fail(start1789064019936/end1789064019937/elapsed1ms). fixture검증이며실제앱PASS아님. token start/end/consumed null(하위자동집계없음).
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| AP08 RED | [fail] AP08 two finalized then tombstoned segments count as progress | fail |
+| AP08 GREEN | [pass] AP08 two finalized then tombstoned segments count as progress | pass |
+| AP08 GREEN | [pass] AP08 rejects old cursor only | pass |
+| AP08 GREEN | [pass] AP08 rejects known Stop finalize only | pass |
+| AP08 GREEN | [pass] AP08 rejects one new segment only | pass |
+| AP08 GREEN | [pass] AP08 rejects duplicate ID | pass |
+| AP08 GREEN | [pass] AP08 rejects other channel | pass |
+| AP08 GREEN | [pass] AP08 rejects invalid range | pass |
+| AP08 GREEN | [pass] AP08 rejects zero size | pass |
+| AP08 GREEN | [pass] AP08 rejects invalid SHA | pass |
+| AP08 GREEN | [pass] AP08 rejects invalid finalized time | pass |
+| AP08 GREEN | [pass] AP08 rejects time order | pass |
+| AP08 GREEN | [pass] AP08 rejects deletion order | pass |
+| AP08 GREEN | [pass] AP08 two alive finalized metadata accepted | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.8LREIq | RED GSTcache | 62691bytes | 삭제 | absent=true | wrapper exit1 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.arxLOp | GREEN GSTcache | 62691bytes | 삭제 | absent=true | wrapper exit0 |
+
+신규실제앱미실행. 새판정은AP07완료뒤cursor/knownIDs를고정하여구revision Stop-finalize를제외하며, 원장메타데이터와삭제순서/물리부재를확인한다. quota복원뒤새finalize및정상stop후살아있는snapshot의실파일size/SHA는다음앱검증대상이며아직PASS아님.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| AP08 즉시삭제된신규2개진행 | live-only 판정 추출→실제형태fixture 기대RED | `--retention-progress-red`: cursor뒤두continuous finalized가각각삭제된경우 진행인식 assertion 실패여야함. compile/env오류는RED아님 | v4.1.0 |
+| AP08 진행메타데이터/순서음성 | oldcursor/channel/duplicate/one/range/size/SHA/order/Stop-old-only 거부 | `--retention-progress-negative` 신규distinct2개·시간순서·knownID제외·삭제순서 확인. fixturePASS는실제제품PASS아님 | v4.1.0 |
+| AP08 물리media 별도확인 | quota256복원후신규finalize·정상stop뒤파일검증 | 지워진ID는파일부재, 살아있는snapshot은기존validateSegment(size/SHA) 수행. 이번앱실행미승인 | v4.1.0 |
+
+이번승인 단위RED/GREEN/음성·syntax/diffcheck만. 제품/selector/입력/quota/timeout/rootcap 불변, 실제앱은메인diff검토뒤별도승인. 기존실패이력보존.
+
+## S09 AP08 원래 predicate 진단73110 — 즉시삭제 원인 확인
+
+후처리: 로그35337bytes 이관후 unlink/lstat ENOENT absent=true(exit0), 최종diffcheck exit0.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-opTWCQ | 앱media/archive/input | 201804215bytes | 소유process종료뒤삭제 | absent=true | 앱cleanup |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.aEipf4 | GST cache | 62691bytes | 삭제 | absent=true | wrapper |
+| /private/tmp/media-server-s09-ap08diag.pI6sE1 | 전체stdout/stderr | 35337bytes | 중앙이관후삭제 | lstat ENOENT | 후처리exit0 |
+
+`./server.sh verify-v410-recording-foundation --app-nonauth` session73110 exit1:88pass1fail, start1789063770181/end1789063814098/43917ms. stdout/stderr35337bytes106줄 전체수집, 개별88/1과summary정확일치(수집검사exit0). syntax `node --check scripts/internal/verify_v410_recording_foundation.mjs` 및 사전diffcheck exit0. token start/end/consumed null(하위작업 자동집계 없음).
+
+원인 직접확인: before-wait 뒤 revision2 epoch에서 신규8개 segment_finalized(index46725/46728/46731/46734/46737/46740/46744/46747)가 발생했고 각행 직후 deletion_requested/completed로 모두 tombstone됐다. 첫offset46714의신규1개는 이전revision1 Stop-finalize이며 이후녹화8개와구분한다. 전후status HTTP200 enabled=true/active=true/storageBlocked=false/continuousBytes0/continuousMaxBytes67108864. active는subscriber존재에한정하며 packet진행은실제8개새finalize원장으로확인한다. quota64MiB와다음admission64MiB예약정책하에서 live-only predicate가생성직후삭제된파일을놓친다. 원래AP08는변경하지않아 `timeout: new finalized after retention` FAIL유지. 진단을PASS승격하지않으며restart건너뜀, 제품정책·추가실행 없음.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 73110-1 | [pass] AP12 distinct loopback ports | pass |
+| 73110-2 | [pass] AP12 actual foreground healthy \| pid=8040 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-opTWCQ | pass |
+| 73110-3 | [pass] POST /ops/api/sources \| status=201 | pass |
+| 73110-4 | [pass] AP01 V1 identity seg-9101-1789063771389-1 | pass |
+| 73110-5 | [pass] AP01 positive UTC/PTS seg-9101-1789063771389-1 | pass |
+| 73110-6 | [pass] AP01 actual bytes SHA seg-9101-1789063771389-1 \| bytes=4096788 sha256=dbdeb347934dc3717ddeaaca0629bc9fed9f54ce456cfd408c0c8e8a0e7d6ddc | pass |
+| 73110-7 | [pass] AP02 actual finalized barrier before rule and tap | pass |
+| 73110-8 | [pass] PUT /lab/analysis/rules/9101 \| status=200 | pass |
+| 73110-9 | [pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 \| status=200 | pass |
+| 73110-10 | [pass] AP02 actual tap created | pass |
+| 73110-11 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| 73110-12 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| 73110-13 | [pass] AP02/03 actual EventRecord identity fallback \| eventId=evt_1789063780034_2 linkId=event-link-sha256-1c5d7e1926c2af003411d37a9eec83a7d3bc4a35167e3fa53b0c3a611fd05963 | pass |
+| 73110-14 | [pass] AP02/03 actual nonnegative padded event start fallback \| startTime=8333 updateTime=8333 timeBasis=media-pts-ms | pass |
+| 73110-15 | [pass] AP02/03 durable link source fallback | pass |
+| 73110-16 | [pass] GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789063778222&endTimeMs=1789063781246 \| status=200 | pass |
+| 73110-17 | [pass] AP04 fallback event priority | pass |
+| 73110-18 | [pass] AP04 fallback path redaction | pass |
+| 73110-19 | [pass] AP02 fallback remains partial requested-fallback | pass |
+| 73110-20 | [pass] AP02 encoded WebM eventId/encoded contract/size/isolated path | pass |
+| 73110-21 | [pass] AP05 fallback playable local URL | pass |
+| 73110-22 | [pass] AP05 fallback actual file prefix | pass |
+| 73110-23 | [pass] AP05 fallback literal GET Range \| status=206 contentRange=bytes 2-5/22910 bodyHex=dfa30100 | pass |
+| 73110-24 | [pass] DELETE /lab/analysis/taps/analysis-tap-1 \| status=200 | pass |
+| 73110-25 | [pass] AP01 V1 identity seg-9101-1789063771389-1 | pass |
+| 73110-26 | [pass] AP01 positive UTC/PTS seg-9101-1789063771389-1 | pass |
+| 73110-27 | [pass] AP01 actual bytes SHA seg-9101-1789063771389-1 \| bytes=4096788 sha256=dbdeb347934dc3717ddeaaca0629bc9fed9f54ce456cfd408c0c8e8a0e7d6ddc | pass |
+| 73110-28 | [pass] AP01 V1 identity seg-9101-1789063779746-2 | pass |
+| 73110-29 | [pass] AP01 positive UTC/PTS seg-9101-1789063779746-2 | pass |
+| 73110-30 | [pass] AP01 actual bytes SHA seg-9101-1789063779746-2 \| bytes=4813100 sha256=d3fff7b708314e83a2af5b48fbb27e681c68586ab4d9ee72c805f218ac7bc323 | pass |
+| 73110-31 | [pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 \| status=200 | pass |
+| 73110-32 | [pass] AP03 actual tap created | pass |
+| 73110-33 | [pass] AP03 finalized boundary available | pass |
+| 73110-34 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 73110-35 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 73110-36 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 73110-37 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 73110-38 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 73110-39 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 73110-40 | [pass] PUT /lab/analysis/rules/9102 \| status=200 | pass |
+| 73110-41 | [pass] GET /lab/analysis/taps/analysis-tap-2/events?dispatch=1 \| status=200 | pass |
+| 73110-42 | [pass] AP02/03 actual EventRecord identity derived \| eventId=evt_1789063789081_82 linkId=event-link-sha256-21c24f43d63298a7068bb833d69f66cf69497bacb9588216a63af468c5721526 | pass |
+| 73110-43 | [pass] AP02/03 actual nonnegative padded event start derived \| startTime=17566 updateTime=17566 timeBasis=media-pts-ms | pass |
+| 73110-44 | [pass] AP02/03 durable link source derived | pass |
+| 73110-45 | [pass] GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789063787471&endTimeMs=1789063790471 \| status=200 | pass |
+| 73110-46 | [pass] AP04 derived event priority | pass |
+| 73110-47 | [pass] AP04 derived path redaction | pass |
+| 73110-48 | [pass] AP03 actual derived remux metadata | pass |
+| 73110-49 | [pass] AP01 V1 identity event-seg-sha256-e4d18ce84d75769584b0b7155fd6d6de0bfbd5d17eb1ff9d9cc12caa199f0853 | pass |
+| 73110-50 | [pass] AP01 positive UTC/PTS event-seg-sha256-e4d18ce84d75769584b0b7155fd6d6de0bfbd5d17eb1ff9d9cc12caa199f0853 | pass |
+| 73110-51 | [pass] AP01 actual bytes SHA event-seg-sha256-e4d18ce84d75769584b0b7155fd6d6de0bfbd5d17eb1ff9d9cc12caa199f0853 \| bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994 | pass |
+| 73110-52 | [pass] AP03 Complete actual overlaps | pass |
+| 73110-53 | [pass] AP04 continuous superseded with priority100 | pass |
+| 73110-54 | [pass] AP05 derived playable local URL | pass |
+| 73110-55 | [pass] AP05 derived actual file prefix | pass |
+| 73110-56 | [pass] AP05 derived literal GET Range \| status=206 contentRange=bytes 2-5/1218616 bodyHex=0032a600 | pass |
+| 73110-57 | [pass] DELETE /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 73110-58 | [pass] AP02/03 fallback and derived independent events | pass |
+| 73110-59 | [pass] AP06 actual H264 generator \| exit=0 log=Setting pipeline to PAUSED ... Pipeline is PREROLLING ... Redistribute latency... Redistribute latency... Pipeline is PREROLLED ... Setting pipeline to PLAYING ... Redistribute latency... New clock: GstSystemClock Got EOS from element "pipeline0". EOS received - stopping pipeline... Execution ended after 0:00:00.222963917 Setting pipeline to NULL ... Freeing pipeline ... | pass |
+| 73110-60 | [pass] AP12 generated input bounded \| bytes=62334405 limitBytes=100663296 | pass |
+| 73110-61 | [pass] POST /ops/api/sources \| status=201 | pass |
+| 73110-62 | [pass] AP01 V1 identity seg-9201-1789063797240-1 | pass |
+| 73110-63 | [pass] AP01 positive UTC/PTS seg-9201-1789063797240-1 | pass |
+| 73110-64 | [pass] AP01 actual bytes SHA seg-9201-1789063797240-1 \| bytes=15581582 sha256=f2f97aae7d07900b2eb8ead9280d9c14795f06fe675ae91977555640e241395a | pass |
+| 73110-65 | [pass] AP01 V1 identity seg-9201-1789063798286-2 | pass |
+| 73110-66 | [pass] AP01 positive UTC/PTS seg-9201-1789063798286-2 | pass |
+| 73110-67 | [pass] AP01 actual bytes SHA seg-9201-1789063798286-2 \| bytes=31168171 sha256=09759c129d47e62a434273ca986d088879ff187d0d492564ecc61bda68de559f | pass |
+| 73110-68 | [pass] AP01 V1 identity seg-9201-1789063800275-3 | pass |
+| 73110-69 | [pass] AP01 positive UTC/PTS seg-9201-1789063800275-3 | pass |
+| 73110-70 | [pass] AP01 actual bytes SHA seg-9201-1789063800275-3 \| bytes=15586426 sha256=13ec6e7404687a2c768a46ad616a00622b89096007fbbbe9dc925242758545bb | pass |
+| 73110-71 | [pass] AP01 V1 identity seg-9201-1789063801281-4 | pass |
+| 73110-72 | [pass] AP01 positive UTC/PTS seg-9201-1789063801281-4 | pass |
+| 73110-73 | [pass] AP01 actual bytes SHA seg-9201-1789063801281-4 \| bytes=15581582 sha256=680ba8c89c7075b5e7bfd63ef32cdf5d7342c5b8fb905f2ff2172afdcb354fbb | pass |
+| 73110-74 | [pass] AP06 each actual segment below reservation | pass |
+| 73110-75 | [pass] AP06 actual total exceeds future quota \| count=4 bytes=77917761 oldest=seg-9201-1789063797240-1,seg-9201-1789063798286-2,seg-9201-1789063800275-3,seg-9201-1789063801281-4 | pass |
+| 73110-76 | [pass] PUT /ops/api/sources/9201 \| status=200 | pass |
+| 73110-77 | [pass] AP07 oldest deletion request independent order | pass |
+| 73110-78 | [pass] AP07 durable completed seg-9201-1789063797240-1 | pass |
+| 73110-79 | [pass] AP07 physical absent seg-9201-1789063797240-1 | pass |
+| 73110-80 | [pass] AP07 durable completed seg-9201-1789063798286-2 | pass |
+| 73110-81 | [pass] AP07 physical absent seg-9201-1789063798286-2 | pass |
+| 73110-82 | [pass] AP07 durable completed seg-9201-1789063800275-3 | pass |
+| 73110-83 | [pass] AP07 physical absent seg-9201-1789063800275-3 | pass |
+| 73110-84 | [pass] AP07 durable completed seg-9201-1789063801281-4 | pass |
+| 73110-85 | [pass] AP07 physical absent seg-9201-1789063801281-4 | pass |
+| 73110-86 | [fail] timeout: new finalized after retention | fail |
+| 73110-87 | [pass] AP12 port absent 61333 | pass |
+| 73110-88 | [pass] AP12 port absent 61334 | pass |
+| 73110-89 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-opTWCQ bytes=201804215 absent=true | pass |
+
+### 정리 원출력
+
+```text
+[pass] AP12 port absent 61333
+[pass] AP12 port absent 61334
+[pass] AP12 root cleanup | path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-opTWCQ bytes=201804215 absent=true
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.aEipf4 bytes=62691 absent=true
+```
+
+수집로그 /private/tmp/media-server-s09-ap08diag.pI6sE1 35337bytes는 위자료이관후삭제한다. 앱/GST경로는 위cleanup의정확경로/byte/absence대로이며 원본영상보존없음. auth/30/UI/120/build/unit/S05/S06/RT 미실행, commit/push없음.
+
+<details><summary>73110 전체 원출력·9201 whitelist 원장순서·실제status</summary>
+
+```text
+[pass] AP12 distinct loopback ports
+[pass] AP12 actual foreground healthy | pid=8040 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-opTWCQ
+[pass] POST /ops/api/sources | status=201
+[pass] AP01 V1 identity seg-9101-1789063771389-1
+[pass] AP01 positive UTC/PTS seg-9101-1789063771389-1
+[pass] AP01 actual bytes SHA seg-9101-1789063771389-1 | bytes=4096788 sha256=dbdeb347934dc3717ddeaaca0629bc9fed9f54ce456cfd408c0c8e8a0e7d6ddc
+[pass] AP02 actual finalized barrier before rule and tap
+[pass] PUT /lab/analysis/rules/9101 | status=200
+[pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 | status=200
+[pass] AP02 actual tap created
+[pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 | status=200
+[event-correlation] {"source":{"sha256":"254ee7c8cc06cca8e34ca0f8f7a39cbec036e03be79d9ed169731378ca480c28"},"pts":8333333333,"ruleId":"9101","trackId":1,"type":"presence","priorIdCount":0}
+[pass] AP02/03 actual EventRecord identity fallback | eventId=evt_1789063780034_2 linkId=event-link-sha256-1c5d7e1926c2af003411d37a9eec83a7d3bc4a35167e3fa53b0c3a611fd05963
+[pass] AP02/03 actual nonnegative padded event start fallback | startTime=8333 updateTime=8333 timeBasis=media-pts-ms
+[event-transition] {"eventId":"evt_1789063780034_2","linkId":"event-link-sha256-1c5d7e1926c2af003411d37a9eec83a7d3bc4a35167e3fa53b0c3a611fd05963","requested":null,"mediaPts":{"start_ms":7833,"end_ms":8833},"status":"pending","reason":"pending-with-provisional-frame-buffer-fallback","overlaps":[],"missing":[],"derivedId":null,"manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"254ee7c8cc06cca8e34ca0f8f7a39cbec036e03be79d9ed169731378ca480c28"},"manifestChannel":{"kind":"file-stream-key","sha256":"254ee7c8cc06cca8e34ca0f8f7a39cbec036e03be79d9ed169731378ca480c28"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":22910},"segments":[{"id":"seg-9101-1789063771389-1","epoch":"epoch-9101-1-1789063771321","start":{"utc_ms":1789063771389,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063779697,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}}]}
+[event-transition] {"eventId":"evt_1789063780034_2","linkId":"event-link-sha256-1c5d7e1926c2af003411d37a9eec83a7d3bc4a35167e3fa53b0c3a611fd05963","requested":{"start_ms":1789063779222,"end_ms":1789063780246},"status":"partial","reason":"partial-missing-continuous-range","overlaps":[{"segment_id":"seg-9101-1789063771389-1","range":{"start_ms":1789063779222,"end_ms":1789063779697}},{"segment_id":"seg-9101-1789063779746-2","range":{"start_ms":1789063779746,"end_ms":1789063780246}}],"missing":[{"start_ms":1789063779697,"end_ms":1789063779746}],"epoch":"epoch-9101-1-1789063771321","derivedId":null,"manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"254ee7c8cc06cca8e34ca0f8f7a39cbec036e03be79d9ed169731378ca480c28"},"manifestChannel":{"kind":"file-stream-key","sha256":"254ee7c8cc06cca8e34ca0f8f7a39cbec036e03be79d9ed169731378ca480c28"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":22910},"http":{"status":200,"items":[{"segmentId":"fallback-bound-v1-b7e6f755e1e3b6557c2688df12d27799efeed3a3e9ecee0937024ae15eb43d7a","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789063779222,"endTimeMs":1789063780246,"eventId":"evt_1789063780034_2","completeness":"partial","playable":true,"playbackUrl":"/ops/api/recordings/media/fallback-bound-v1-b7e6f755e1e3b6557c2688df12d27799efeed3a3e9ecee0937024ae15eb43d7a","contentType":"video/webm","rangeBasis":"requested-fallback","requestedRange":{"startTimeMs":1789063779222,"endTimeMs":1789063780246},"actualRange":null,"supersededByEventIds":[]}]},"segments":[{"id":"seg-9101-1789063771389-1","epoch":"epoch-9101-1-1789063771321","start":{"utc_ms":1789063771389,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063779697,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789063779746-2","epoch":"epoch-9101-1-1789063771321","start":{"utc_ms":1789063779746,"pts":8333333333,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063788028,"pts":16633333333,"time_base_num":1,"time_base_den":1000000000}}]}
+[pass] AP02/03 durable link source fallback
+[pass] GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789063778222&endTimeMs=1789063781246 | status=200
+[pass] AP04 fallback event priority
+[pass] AP04 fallback path redaction
+[pass] AP02 fallback remains partial requested-fallback
+[pass] AP02 encoded WebM eventId/encoded contract/size/isolated path
+[pass] AP05 fallback playable local URL
+[pass] AP05 fallback actual file prefix
+[pass] AP05 fallback literal GET Range | status=206 contentRange=bytes 2-5/22910 bodyHex=dfa30100
+[evidence] fallback {"eventId":"evt_1789063780034_2","link":{"schema":"media-server.event-recording-link.v1","link_id":"event-link-sha256-1c5d7e1926c2af003411d37a9eec83a7d3bc4a35167e3fa53b0c3a611fd05963","event_id":"evt_1789063780034_2","source_id":"9101","channel_id":"9101","requested_range":{"start_ms":1789063779222,"end_ms":1789063780246},"ordered_overlaps":[{"segment_id":"seg-9101-1789063771389-1","range":{"start_ms":1789063779222,"end_ms":1789063779697}},{"segment_id":"seg-9101-1789063779746-2","range":{"start_ms":1789063779746,"end_ms":1789063780246}}],"derived_segment_id":null,"fallback_evidence_id":"fallback-bound-v1-b7e6f755e1e3b6557c2688df12d27799efeed3a3e9ecee0937024ae15eb43d7a","fallback_media_locator":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-opTWCQ/events/clips/evt_1789063780034_2.clip/manifest.json","missing_ranges":[{"start_ms":1789063779697,"end_ms":1789063779746}],"time_basis":"media-pts-ms","stream_epoch_id":"epoch-9101-1-1789063771321","completeness_reason":"partial-missing-continuous-range","status":"partial","created_at_ms":1789063780034,"updated_at_ms":1789063788105},"item":{"segmentId":"fallback-bound-v1-b7e6f755e1e3b6557c2688df12d27799efeed3a3e9ecee0937024ae15eb43d7a","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789063779222,"endTimeMs":1789063780246,"eventId":"evt_1789063780034_2","completeness":"partial","playable":true,"playbackUrl":"/ops/api/recordings/media/fallback-bound-v1-b7e6f755e1e3b6557c2688df12d27799efeed3a3e9ecee0937024ae15eb43d7a","contentType":"video/webm","rangeBasis":"requested-fallback","requestedRange":{"startTimeMs":1789063779222,"endTimeMs":1789063780246},"actualRange":null,"supersededByEventIds":[]},"capturedAtMs":1789063788192}
+[pass] DELETE /lab/analysis/taps/analysis-tap-1 | status=200
+[pass] AP01 V1 identity seg-9101-1789063771389-1
+[pass] AP01 positive UTC/PTS seg-9101-1789063771389-1
+[pass] AP01 actual bytes SHA seg-9101-1789063771389-1 | bytes=4096788 sha256=dbdeb347934dc3717ddeaaca0629bc9fed9f54ce456cfd408c0c8e8a0e7d6ddc
+[pass] AP01 V1 identity seg-9101-1789063779746-2
+[pass] AP01 positive UTC/PTS seg-9101-1789063779746-2
+[pass] AP01 actual bytes SHA seg-9101-1789063779746-2 | bytes=4813100 sha256=d3fff7b708314e83a2af5b48fbb27e681c68586ab4d9ee72c805f218ac7bc323
+[pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 | status=200
+[pass] AP03 actual tap created
+[pass] AP03 finalized boundary available
+[pass] GET /lab/analysis/taps/analysis-tap-2 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-2 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-2 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-2 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-2 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-2 | status=200
+[event-input] {"tapId":"analysis-tap-2","pts":17433333333,"finalizedEndPts":16633333333,"epoch":"epoch-9101-1-1789063771321"}
+[pass] PUT /lab/analysis/rules/9102 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-2/events?dispatch=1 | status=200
+[event-correlation] {"source":{"sha256":"254ee7c8cc06cca8e34ca0f8f7a39cbec036e03be79d9ed169731378ca480c28"},"pts":17566666666,"ruleId":"9102","trackId":1,"type":"presence","priorIdCount":4}
+[pass] AP02/03 actual EventRecord identity derived | eventId=evt_1789063789081_82 linkId=event-link-sha256-21c24f43d63298a7068bb833d69f66cf69497bacb9588216a63af468c5721526
+[pass] AP02/03 actual nonnegative padded event start derived | startTime=17566 updateTime=17566 timeBasis=media-pts-ms
+[event-transition] {"eventId":"evt_1789063789081_82","linkId":"event-link-sha256-21c24f43d63298a7068bb833d69f66cf69497bacb9588216a63af468c5721526","requested":null,"mediaPts":{"start_ms":17066,"end_ms":18066},"status":"pending","reason":"pending-with-provisional-frame-buffer-fallback","overlaps":[],"missing":[],"derivedId":null,"manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"254ee7c8cc06cca8e34ca0f8f7a39cbec036e03be79d9ed169731378ca480c28"},"manifestChannel":{"kind":"file-stream-key","sha256":"254ee7c8cc06cca8e34ca0f8f7a39cbec036e03be79d9ed169731378ca480c28"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":44303},"segments":[{"id":"seg-9101-1789063771389-1","epoch":"epoch-9101-1-1789063771321","start":{"utc_ms":1789063771389,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063779697,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789063779746-2","epoch":"epoch-9101-1-1789063771321","start":{"utc_ms":1789063779746,"pts":8333333333,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063788028,"pts":16633333333,"time_base_num":1,"time_base_den":1000000000}}]}
+[event-transition] {"eventId":"evt_1789063789081_82","linkId":"event-link-sha256-21c24f43d63298a7068bb833d69f66cf69497bacb9588216a63af468c5721526","requested":{"start_ms":1789063788471,"end_ms":1789063789471},"status":"complete","reason":"complete","overlaps":[{"segment_id":"seg-9101-1789063788071-3","range":{"start_ms":1789063788471,"end_ms":1789063789471}}],"missing":[],"epoch":"epoch-9101-1-1789063771321","derivedId":"event-seg-sha256-e4d18ce84d75769584b0b7155fd6d6de0bfbd5d17eb1ff9d9cc12caa199f0853","manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"254ee7c8cc06cca8e34ca0f8f7a39cbec036e03be79d9ed169731378ca480c28"},"manifestChannel":{"kind":"file-stream-key","sha256":"254ee7c8cc06cca8e34ca0f8f7a39cbec036e03be79d9ed169731378ca480c28"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":44303},"http":{"status":200,"items":[{"segmentId":"event-seg-sha256-e4d18ce84d75769584b0b7155fd6d6de0bfbd5d17eb1ff9d9cc12caa199f0853","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789063788071,"endTimeMs":1789063789471,"eventId":"evt_1789063789081_82","completeness":"complete","playable":true,"playbackUrl":"/ops/api/recordings/media/event-seg-sha256-e4d18ce84d75769584b0b7155fd6d6de0bfbd5d17eb1ff9d9cc12caa199f0853","contentType":"video/mp2t","rangeBasis":"segment","requestedRange":{"startTimeMs":1789063788471,"endTimeMs":1789063789471},"actualRange":{"startTimeMs":1789063788071,"endTimeMs":1789063789471},"supersededByEventIds":[]}]},"segments":[{"id":"seg-9101-1789063771389-1","epoch":"epoch-9101-1-1789063771321","start":{"utc_ms":1789063771389,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063779697,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789063779746-2","epoch":"epoch-9101-1-1789063771321","start":{"utc_ms":1789063779746,"pts":8333333333,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063788028,"pts":16633333333,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789063788071-3","epoch":"epoch-9101-1-1789063771321","start":{"utc_ms":1789063788071,"pts":16666666666,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063796365,"pts":24966666666,"time_base_num":1,"time_base_den":1000000000}}]}
+[pass] AP02/03 durable link source derived
+[pass] GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789063787471&endTimeMs=1789063790471 | status=200
+[pass] AP04 derived event priority
+[pass] AP04 derived path redaction
+[pass] AP03 actual derived remux metadata
+[pass] AP01 V1 identity event-seg-sha256-e4d18ce84d75769584b0b7155fd6d6de0bfbd5d17eb1ff9d9cc12caa199f0853
+[pass] AP01 positive UTC/PTS event-seg-sha256-e4d18ce84d75769584b0b7155fd6d6de0bfbd5d17eb1ff9d9cc12caa199f0853
+[pass] AP01 actual bytes SHA event-seg-sha256-e4d18ce84d75769584b0b7155fd6d6de0bfbd5d17eb1ff9d9cc12caa199f0853 | bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994
+[pass] AP03 Complete actual overlaps
+[pass] AP04 continuous superseded with priority100
+[pass] AP05 derived playable local URL
+[pass] AP05 derived actual file prefix
+[pass] AP05 derived literal GET Range | status=206 contentRange=bytes 2-5/1218616 bodyHex=0032a600
+[evidence] derived {"eventId":"evt_1789063789081_82","link":{"schema":"media-server.event-recording-link.v1","link_id":"event-link-sha256-21c24f43d63298a7068bb833d69f66cf69497bacb9588216a63af468c5721526","event_id":"evt_1789063789081_82","source_id":"9101","channel_id":"9101","requested_range":{"start_ms":1789063788471,"end_ms":1789063789471},"ordered_overlaps":[{"segment_id":"seg-9101-1789063788071-3","range":{"start_ms":1789063788471,"end_ms":1789063789471}}],"derived_segment_id":"event-seg-sha256-e4d18ce84d75769584b0b7155fd6d6de0bfbd5d17eb1ff9d9cc12caa199f0853","fallback_evidence_id":"fallback-bound-v1-a7b3d631ecabb1efb3edb5b35e99453d0d213855f0de0eebe06aa51a58bdfbf0","fallback_media_locator":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-opTWCQ/events/clips/evt_1789063789081_82.clip/manifest.json","missing_ranges":[],"derived_actual_range":{"start_ms":1789063788071,"end_ms":1789063789471},"derivation_mode":"remux-no-video-reencode","time_basis":"media-pts-ms","stream_epoch_id":"epoch-9101-1-1789063771321","completeness_reason":"complete","status":"complete","created_at_ms":1789063789082,"updated_at_ms":1789063796494},"item":{"segmentId":"event-seg-sha256-e4d18ce84d75769584b0b7155fd6d6de0bfbd5d17eb1ff9d9cc12caa199f0853","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789063788071,"endTimeMs":1789063789471,"eventId":"evt_1789063789081_82","completeness":"complete","playable":true,"playbackUrl":"/ops/api/recordings/media/event-seg-sha256-e4d18ce84d75769584b0b7155fd6d6de0bfbd5d17eb1ff9d9cc12caa199f0853","contentType":"video/mp2t","rangeBasis":"segment","requestedRange":{"startTimeMs":1789063788471,"endTimeMs":1789063789471},"actualRange":{"startTimeMs":1789063788071,"endTimeMs":1789063789471},"supersededByEventIds":[]},"capturedAtMs":1789063796767}
+[pass] DELETE /lab/analysis/taps/analysis-tap-2 | status=200
+[pass] AP02/03 fallback and derived independent events
+[pass] AP06 actual H264 generator | exit=0 log=Setting pipeline to PAUSED ... Pipeline is PREROLLING ... Redistribute latency... Redistribute latency... Pipeline is PREROLLED ... Setting pipeline to PLAYING ... Redistribute latency... New clock: GstSystemClock Got EOS from element "pipeline0". EOS received - stopping pipeline... Execution ended after 0:00:00.222963917 Setting pipeline to NULL ... Freeing pipeline ...
+[pass] AP12 generated input bounded | bytes=62334405 limitBytes=100663296
+[pass] POST /ops/api/sources | status=201
+[pass] AP01 V1 identity seg-9201-1789063797240-1
+[pass] AP01 positive UTC/PTS seg-9201-1789063797240-1
+[pass] AP01 actual bytes SHA seg-9201-1789063797240-1 | bytes=15581582 sha256=f2f97aae7d07900b2eb8ead9280d9c14795f06fe675ae91977555640e241395a
+[pass] AP01 V1 identity seg-9201-1789063798286-2
+[pass] AP01 positive UTC/PTS seg-9201-1789063798286-2
+[pass] AP01 actual bytes SHA seg-9201-1789063798286-2 | bytes=31168171 sha256=09759c129d47e62a434273ca986d088879ff187d0d492564ecc61bda68de559f
+[pass] AP01 V1 identity seg-9201-1789063800275-3
+[pass] AP01 positive UTC/PTS seg-9201-1789063800275-3
+[pass] AP01 actual bytes SHA seg-9201-1789063800275-3 | bytes=15586426 sha256=13ec6e7404687a2c768a46ad616a00622b89096007fbbbe9dc925242758545bb
+[pass] AP01 V1 identity seg-9201-1789063801281-4
+[pass] AP01 positive UTC/PTS seg-9201-1789063801281-4
+[pass] AP01 actual bytes SHA seg-9201-1789063801281-4 | bytes=15581582 sha256=680ba8c89c7075b5e7bfd63ef32cdf5d7342c5b8fb905f2ff2172afdcb354fbb
+[pass] AP06 each actual segment below reservation
+[pass] AP06 actual total exceeds future quota | count=4 bytes=77917761 oldest=seg-9201-1789063797240-1,seg-9201-1789063798286-2,seg-9201-1789063800275-3,seg-9201-1789063801281-4
+[pass] PUT /ops/api/sources/9201 | status=200
+[pass] AP07 oldest deletion request independent order
+[pass] AP07 durable completed seg-9201-1789063797240-1
+[pass] AP07 physical absent seg-9201-1789063797240-1
+[pass] AP07 durable completed seg-9201-1789063798286-2
+[pass] AP07 physical absent seg-9201-1789063798286-2
+[pass] AP07 durable completed seg-9201-1789063800275-3
+[pass] AP07 physical absent seg-9201-1789063800275-3
+[pass] AP07 durable completed seg-9201-1789063801281-4
+[pass] AP07 physical absent seg-9201-1789063801281-4
+[retention-journal] {"phase":"before-wait","offset":46714,"rows":[{"index":46714,"mutationId":"mut-1789063802540-46715","type":"segment_finalized","entityId":"seg-9201-1789063802292-5","existedBeforeQuota":false,"segment":{"channel":"9201","epoch":"epoch-9201-1-1789063797216-r1","start":{"utc_ms":1789063802292,"pts":1000000000,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063802493,"pts":1233333333,"time_base_num":1,"time_base_den":1000000000},"size":4155929,"checksum_sha256":"bc91c3006a6510fad8800369a2f724cb28985cec51cb91fc323470e30e87c2de","finalized_at_ms":1789063802531,"lifecycle":"finalized"},"tombstoned":true},{"index":46715,"mutationId":"mut-1789063802542-46716","type":"deletion_requested","entityId":"seg-9201-1789063797240-1","existedBeforeQuota":true,"tombstoned":true},{"index":46716,"mutationId":"mut-1789063802542-46717","type":"deletion_completed","entityId":"seg-9201-1789063797240-1","existedBeforeQuota":true,"tombstoned":true},{"index":46717,"mutationId":"mut-1789063802543-46718","type":"deletion_requested","entityId":"seg-9201-1789063798286-2","existedBeforeQuota":true,"tombstoned":true},{"index":46718,"mutationId":"mut-1789063802543-46719","type":"deletion_completed","entityId":"seg-9201-1789063798286-2","existedBeforeQuota":true,"tombstoned":true},{"index":46719,"mutationId":"mut-1789063802543-46720","type":"deletion_requested","entityId":"seg-9201-1789063800275-3","existedBeforeQuota":true,"tombstoned":true},{"index":46720,"mutationId":"mut-1789063802544-46721","type":"deletion_completed","entityId":"seg-9201-1789063800275-3","existedBeforeQuota":true,"tombstoned":true},{"index":46721,"mutationId":"mut-1789063802544-46722","type":"deletion_requested","entityId":"seg-9201-1789063801281-4","existedBeforeQuota":true,"tombstoned":true},{"index":46722,"mutationId":"mut-1789063802544-46723","type":"deletion_completed","entityId":"seg-9201-1789063801281-4","existedBeforeQuota":true,"tombstoned":true},{"index":46723,"mutationId":"mut-1789063802544-46724","type":"deletion_requested","entityId":"seg-9201-1789063802292-5","existedBeforeQuota":false,"tombstoned":true},{"index":46724,"mutationId":"mut-1789063802545-46725","type":"deletion_completed","entityId":"seg-9201-1789063802292-5","existedBeforeQuota":false,"tombstoned":true}]}
+[retention-status] {"phase":"before-wait","status":200,"channelId":"9201","enabled":true,"active":true,"storageBlocked":false,"continuousBytes":0,"continuousMaxBytes":67108864}
+[retention-journal] {"phase":"after-failure","offset":46714,"rows":[{"index":46714,"mutationId":"mut-1789063802540-46715","type":"segment_finalized","entityId":"seg-9201-1789063802292-5","existedBeforeQuota":false,"segment":{"channel":"9201","epoch":"epoch-9201-1-1789063797216-r1","start":{"utc_ms":1789063802292,"pts":1000000000,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063802493,"pts":1233333333,"time_base_num":1,"time_base_den":1000000000},"size":4155929,"checksum_sha256":"bc91c3006a6510fad8800369a2f724cb28985cec51cb91fc323470e30e87c2de","finalized_at_ms":1789063802531,"lifecycle":"finalized"},"tombstoned":true},{"index":46715,"mutationId":"mut-1789063802542-46716","type":"deletion_requested","entityId":"seg-9201-1789063797240-1","existedBeforeQuota":true,"tombstoned":true},{"index":46716,"mutationId":"mut-1789063802542-46717","type":"deletion_completed","entityId":"seg-9201-1789063797240-1","existedBeforeQuota":true,"tombstoned":true},{"index":46717,"mutationId":"mut-1789063802543-46718","type":"deletion_requested","entityId":"seg-9201-1789063798286-2","existedBeforeQuota":true,"tombstoned":true},{"index":46718,"mutationId":"mut-1789063802543-46719","type":"deletion_completed","entityId":"seg-9201-1789063798286-2","existedBeforeQuota":true,"tombstoned":true},{"index":46719,"mutationId":"mut-1789063802543-46720","type":"deletion_requested","entityId":"seg-9201-1789063800275-3","existedBeforeQuota":true,"tombstoned":true},{"index":46720,"mutationId":"mut-1789063802544-46721","type":"deletion_completed","entityId":"seg-9201-1789063800275-3","existedBeforeQuota":true,"tombstoned":true},{"index":46721,"mutationId":"mut-1789063802544-46722","type":"deletion_requested","entityId":"seg-9201-1789063801281-4","existedBeforeQuota":true,"tombstoned":true},{"index":46722,"mutationId":"mut-1789063802544-46723","type":"deletion_completed","entityId":"seg-9201-1789063801281-4","existedBeforeQuota":true,"tombstoned":true},{"index":46723,"mutationId":"mut-1789063802544-46724","type":"deletion_requested","entityId":"seg-9201-1789063802292-5","existedBeforeQuota":false,"tombstoned":true},{"index":46724,"mutationId":"mut-1789063802545-46725","type":"deletion_completed","entityId":"seg-9201-1789063802292-5","existedBeforeQuota":false,"tombstoned":true},{"index":46725,"mutationId":"mut-1789063804400-46726","type":"segment_finalized","entityId":"seg-9201-1789063802541-1","existedBeforeQuota":false,"segment":{"channel":"9201","epoch":"epoch-9201-2-1789063802541","start":{"utc_ms":1789063802541,"pts":1000000000,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063804228,"pts":2966666666,"time_base_num":1,"time_base_den":1000000000},"size":31168171,"checksum_sha256":"7a72baf6f5c7db90f961ea45a4a66cdcce525b8173a1de656f367e9fe517aebd","finalized_at_ms":1789063804341,"lifecycle":"finalized"},"tombstoned":true},{"index":46726,"mutationId":"mut-1789063804402-46727","type":"deletion_requested","entityId":"seg-9201-1789063802541-1","existedBeforeQuota":false,"tombstoned":true},{"index":46727,"mutationId":"mut-1789063804402-46728","type":"deletion_completed","entityId":"seg-9201-1789063802541-1","existedBeforeQuota":false,"tombstoned":true},{"index":46728,"mutationId":"mut-1789063805349-46729","type":"segment_finalized","entityId":"seg-9201-1789063804284-2","existedBeforeQuota":false,"segment":{"channel":"9201","epoch":"epoch-9201-2-1789063802541","start":{"utc_ms":1789063804284,"pts":3000000000,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063805219,"pts":3966666666,"time_base_num":1,"time_base_den":1000000000},"size":15586426,"checksum_sha256":"fddf7ebf9d67fd9d32980dde26b28695fcfb3ed0f01db85500758dffbe53322c","finalized_at_ms":1789063805319,"lifecycle":"finalized"},"tombstoned":true},{"index":46729,"mutationId":"mut-1789063805350-46730","type":"deletion_requested","entityId":"seg-9201-1789063804284-2","existedBeforeQuota":false,"tombstoned":true},{"index":46730,"mutationId":"mut-1789063805351-46731","type":"deletion_completed","entityId":"seg-9201-1789063804284-2","existedBeforeQuota":false,"tombstoned":true},{"index":46731,"mutationId":"mut-1789063806351-46732","type":"segment_finalized","entityId":"seg-9201-1789063805290-3","existedBeforeQuota":false,"segment":{"channel":"9201","epoch":"epoch-9201-2-1789063802541-r1","start":{"utc_ms":1789063805290,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063806235,"pts":966666666,"time_base_num":1,"time_base_den":1000000000},"size":15581582,"checksum_sha256":"1a4d8a487231bfe8713d5ef925d142547b814d89c634bf704a08d65ee7164627","finalized_at_ms":1789063806322,"lifecycle":"finalized"},"tombstoned":true},{"index":46732,"mutationId":"mut-1789063806353-46733","type":"deletion_requested","entityId":"seg-9201-1789063805290-3","existedBeforeQuota":false,"tombstoned":true},{"index":46733,"mutationId":"mut-1789063806353-46734","type":"deletion_completed","entityId":"seg-9201-1789063805290-3","existedBeforeQuota":false,"tombstoned":true},{"index":46734,"mutationId":"mut-1789063807359-46735","type":"segment_finalized","entityId":"seg-9201-1789063806292-4","existedBeforeQuota":false,"segment":{"channel":"9201","epoch":"epoch-9201-2-1789063802541-r1","start":{"utc_ms":1789063806292,"pts":1000000000,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063807229,"pts":1966666666,"time_base_num":1,"time_base_den":1000000000},"size":15586510,"checksum_sha256":"2a35e599b490211af0c95bdbfd5a7db544143f508b0cbdf2b2cb8ba44e5cecaa","finalized_at_ms":1789063807330,"lifecycle":"finalized"},"tombstoned":true},{"index":46735,"mutationId":"mut-1789063807361-46736","type":"deletion_requested","entityId":"seg-9201-1789063806292-4","existedBeforeQuota":false,"tombstoned":true},{"index":46736,"mutationId":"mut-1789063807362-46737","type":"deletion_completed","entityId":"seg-9201-1789063806292-4","existedBeforeQuota":false,"tombstoned":true},{"index":46737,"mutationId":"mut-1789063808362-46738","type":"segment_finalized","entityId":"seg-9201-1789063807301-5","existedBeforeQuota":false,"segment":{"channel":"9201","epoch":"epoch-9201-2-1789063802541-r1","start":{"utc_ms":1789063807301,"pts":2000000000,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063808236,"pts":2966666666,"time_base_num":1,"time_base_den":1000000000},"size":15582562,"checksum_sha256":"5da42ff56e1c161262307c17dfe9436ca537f61246435710916850b89f27ed5d","finalized_at_ms":1789063808332,"lifecycle":"finalized"},"tombstoned":true},{"index":46738,"mutationId":"mut-1789063808364-46739","type":"deletion_requested","entityId":"seg-9201-1789063807301-5","existedBeforeQuota":false,"tombstoned":true},{"index":46739,"mutationId":"mut-1789063808364-46740","type":"deletion_completed","entityId":"seg-9201-1789063807301-5","existedBeforeQuota":false,"tombstoned":true},{"index":46740,"mutationId":"mut-1789063809361-46741","type":"segment_finalized","entityId":"seg-9201-1789063808302-6","existedBeforeQuota":false,"segment":{"channel":"9201","epoch":"epoch-9201-2-1789063802541-r1","start":{"utc_ms":1789063808302,"pts":3000000000,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063809237,"pts":3966666666,"time_base_num":1,"time_base_den":1000000000},"size":15586426,"checksum_sha256":"93201567a81addadd4507fa9f9f6b2c2dfb50d4df650d4b6623e13e3f8c931d3","finalized_at_ms":1789063809331,"lifecycle":"finalized"},"tombstoned":true},{"index":46741,"mutationId":"mut-1789063809362-46742","type":"deletion_requested","entityId":"seg-9201-1789063808302-6","existedBeforeQuota":false,"tombstoned":true},{"index":46742,"mutationId":"mut-1789063809363-46743","type":"deletion_completed","entityId":"seg-9201-1789063808302-6","existedBeforeQuota":false,"tombstoned":true},{"index":46744,"mutationId":"mut-1789063810375-46745","type":"segment_finalized","entityId":"seg-9201-1789063809301-7","existedBeforeQuota":false,"segment":{"channel":"9201","epoch":"epoch-9201-2-1789063802541-r2","start":{"utc_ms":1789063809301,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063810247,"pts":966666666,"time_base_num":1,"time_base_den":1000000000},"size":15581582,"checksum_sha256":"87b5eda7197b7057923b69d99524c4b2f52d68e4e0518d1b14ea5c6e596c12c1","finalized_at_ms":1789063810345,"lifecycle":"finalized"},"tombstoned":true},{"index":46745,"mutationId":"mut-1789063810377-46746","type":"deletion_requested","entityId":"seg-9201-1789063809301-7","existedBeforeQuota":false,"tombstoned":true},{"index":46746,"mutationId":"mut-1789063810377-46747","type":"deletion_completed","entityId":"seg-9201-1789063809301-7","existedBeforeQuota":false,"tombstoned":true},{"index":46747,"mutationId":"mut-1789063812428-46748","type":"segment_finalized","entityId":"seg-9201-1789063810315-8","existedBeforeQuota":false,"segment":{"channel":"9201","epoch":"epoch-9201-2-1789063802541-r2","start":{"utc_ms":1789063810315,"pts":1000000000,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063812247,"pts":2966666666,"time_base_num":1,"time_base_den":1000000000},"size":31168171,"checksum_sha256":"5e2a1e34877fef618d3770fccae30baa42f5573543e08523ef9a8dc9d8814f74","finalized_at_ms":1789063812369,"lifecycle":"finalized"},"tombstoned":true},{"index":46748,"mutationId":"mut-1789063812430-46749","type":"deletion_requested","entityId":"seg-9201-1789063810315-8","existedBeforeQuota":false,"tombstoned":true},{"index":46749,"mutationId":"mut-1789063812430-46750","type":"deletion_completed","entityId":"seg-9201-1789063810315-8","existedBeforeQuota":false,"tombstoned":true}]}
+[retention-status] {"phase":"after-failure","status":200,"channelId":"9201","enabled":true,"active":true,"storageBlocked":false,"continuousBytes":0,"continuousMaxBytes":67108864}
+[fail] timeout: new finalized after retention
+[diagnostic] app0 ing-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=unstable-track severity=warning association=0.842083 missed=0 overlap=0.000225186 directionChanges=0 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=overlap-risk severity=warning association=0.858794 missed=0 overlap=0.50132 directionChanges=2 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=overlap-risk severity=warning association=0.869212 missed=0 overlap=0.50132 directionChanges=2 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=direction-change-spike severity=warning association=0.814923 missed=0 overlap=0.508457 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=1 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=unstable-track severity=warning association=0.837829 missed=0 overlap=0.0705535 directionChanges=0 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=direction-change-spike severity=warning association=0.873286 missed=0 overlap=0.424888 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=reacquired severity=info association=0.438126 missed=0 overlap=0.549111 directionChanges=2 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=5 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=overlap-risk severity=warning association=0.840473 missed=0 overlap=0.724193 directionChanges=6 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=reacquired severity=info association=0.495036 missed=0 overlap=0.724193 directionChanges=5 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=direction-change-spike severity=warning association=0.811821 missed=0 overlap=0.335205 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=unstable-track severity=warning association=0.845726 missed=0 overlap=0 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=direction-change-spike severity=warning association=0.845726 missed=0 overlap=0 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=unstable-track severity=warning association=0.878117 missed=0 overlap=0 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=direction-change-spike severity=warning association=0.878117 missed=0 overlap=0 directionChanges=3 |
+[diagnostic] retention-generator Setting pipeline to PAUSED ... | Pipeline is PREROLLING ... | Redistribute latency... | Redistribute latency... | Pipeline is PREROLLED ... | Setting pipeline to PLAYING ... | Redistribute latency... | New clock: GstSystemClock | Got EOS from element "pipeline0". | EOS received - stopping pipeline... | Execution ended after 0:00:00.222963917 | Setting pipeline to NULL ... | Freeing pipeline ... |
+[pass] AP12 port absent 61333
+[pass] AP12 port absent 61334
+[pass] AP12 root cleanup | path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-opTWCQ bytes=201804215 absent=true
+{"mode":"--app-nonauth","passed":88,"failed":1,"startedAtMs":1789063770181,"endedAtMs":1789063814098,"elapsedMs":43917,"fullFoundationPass":false,"coverage":"app-nonauth-partial","notRun":["auth","30min","120min","UI"],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"하위 작업별 자동 집계 없음"}
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.aEipf4 bytes=62691 absent=true
+```
+
+</details>
+
+
+
+## AP08 원래 predicate 유지 진단 사전등록
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| AP08 신규 finalize 즉시삭제 진단 | 원장순서·기존status 전후 수집 | quota PUT 전offset 뒤9201 finalize/delete request/completed의 index/ID/type/UTC/PTS/epoch/size/SHA/lifecycle, GETstatus enabled/active/storageBlocked/bytes/quota. URL/locator 원문제외 | v4.1.0 |
+| AP08 진단오류 보존 | 진단 조회 실패 및 원래 timeout 각각 유지 | 기존live-only/10초/입력640×360/96MiB/rootcap/제품selector 불변. 진단만으로PASS 금지 | v4.1.0 |
+
+app-nonauth1회 승인, 이미정리된상태를 연속재현하기위해 AP02/03도 다시수행한다. stdout/stderr 전체임시로그→행수/summary대조→중앙이관→byte/삭제/부재확인. build/unit/S05/S06/RT/auth/30/UI/120 미실행.
+
+## S09 640×360 실제 앱67556 — retention 뒤 신규 finalize 실패
+
+후처리 완료: 수집로그25003bytes를 이관 뒤 unlink, lstat ENOENT로 absent=true 확인(exit0). 최종 `git diff --check` exit0. 로그수집 실패/누락 없음은 이번67556 범위만이며 이전76851 출력누락은 해결된 것으로 소급하지 않는다.
+
+`./server.sh verify-v410-recording-foundation --app-nonauth` stdout/stderr를 mktemp 로그에 redirect하고 원 exit를 보존했다. session67556 exit1, start1789063426195/end1789063470899/elapsed44704ms. 로그25003bytes/103줄을 종료 후 읽었으며 개별pass88/fail1과summary88/1이 정확 일치(countsMatch=true, 수집 명령exit0). truncation 없이 아래89행과 원출력을 이관했다. token start/end/consumed null(하위 작업별 자동 집계 없음).
+
+입력 실측62334405bytes<100663296bytes(96MiB). 실제segment4개 각64MiB미만·합77917761bytes>64MiB. quota64MiB 변경 후 독립 oldest순서4개 deletion_request/completed 및 physical absence 확인. AP02 fallback 및 AP03 최초신규 derived Complete/Range는 동일 앱에서 앞서 통과. 이후 `timeout: new finalized after retention` 실제실패, archive restart는 건너뜀. source 변경 후 worker/admission 상세 상태는 이번진단에서 수집하지 않았으므로 제품 원인을 확정하지 않는다. 상한/timeout/제품정책 변경 및 추가실행 없음. 이전76851 cap실패·출력누락 이력은 그대로 보존한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 67556-1 | [pass] AP12 distinct loopback ports | pass |
+| 67556-2 | [pass] AP12 actual foreground healthy \| pid=7548 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-naKv0z | pass |
+| 67556-3 | [pass] POST /ops/api/sources \| status=201 | pass |
+| 67556-4 | [pass] AP01 V1 identity seg-9101-1789063427415-1 | pass |
+| 67556-5 | [pass] AP01 positive UTC/PTS seg-9101-1789063427415-1 | pass |
+| 67556-6 | [pass] AP01 actual bytes SHA seg-9101-1789063427415-1 \| bytes=4096788 sha256=8333c0d0ab0923504735c755b10752f667c7d76c93a7a0433bbb20b71c462176 | pass |
+| 67556-7 | [pass] AP02 actual finalized barrier before rule and tap | pass |
+| 67556-8 | [pass] PUT /lab/analysis/rules/9101 \| status=200 | pass |
+| 67556-9 | [pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 \| status=200 | pass |
+| 67556-10 | [pass] AP02 actual tap created | pass |
+| 67556-11 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| 67556-12 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| 67556-13 | [pass] AP02/03 actual EventRecord identity fallback \| eventId=evt_1789063436048_2 linkId=event-link-sha256-f3c0686668b1a8270d1053cd68ad6ea944bc2ba3060a7a16c7ef1f4db3d157df | pass |
+| 67556-14 | [pass] AP02/03 actual nonnegative padded event start fallback \| startTime=8333 updateTime=8333 timeBasis=media-pts-ms | pass |
+| 67556-15 | [pass] AP02/03 durable link source fallback | pass |
+| 67556-16 | [pass] GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789063434248&endTimeMs=1789063437277 \| status=200 | pass |
+| 67556-17 | [pass] AP04 fallback event priority | pass |
+| 67556-18 | [pass] AP04 fallback path redaction | pass |
+| 67556-19 | [pass] AP02 fallback remains partial requested-fallback | pass |
+| 67556-20 | [pass] AP02 encoded WebM eventId/encoded contract/size/isolated path | pass |
+| 67556-21 | [pass] AP05 fallback playable local URL | pass |
+| 67556-22 | [pass] AP05 fallback actual file prefix | pass |
+| 67556-23 | [pass] AP05 fallback literal GET Range \| status=206 contentRange=bytes 2-5/22905 bodyHex=dfa30100 | pass |
+| 67556-24 | [pass] DELETE /lab/analysis/taps/analysis-tap-1 \| status=200 | pass |
+| 67556-25 | [pass] AP01 V1 identity seg-9101-1789063427415-1 | pass |
+| 67556-26 | [pass] AP01 positive UTC/PTS seg-9101-1789063427415-1 | pass |
+| 67556-27 | [pass] AP01 actual bytes SHA seg-9101-1789063427415-1 \| bytes=4096788 sha256=8333c0d0ab0923504735c755b10752f667c7d76c93a7a0433bbb20b71c462176 | pass |
+| 67556-28 | [pass] AP01 V1 identity seg-9101-1789063435777-2 | pass |
+| 67556-29 | [pass] AP01 positive UTC/PTS seg-9101-1789063435777-2 | pass |
+| 67556-30 | [pass] AP01 actual bytes SHA seg-9101-1789063435777-2 \| bytes=4813100 sha256=1eae013149242fb828e54b6b833425c6585240afd399258dfa8050de11fc2246 | pass |
+| 67556-31 | [pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 \| status=200 | pass |
+| 67556-32 | [pass] AP03 actual tap created | pass |
+| 67556-33 | [pass] AP03 finalized boundary available | pass |
+| 67556-34 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 67556-35 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 67556-36 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 67556-37 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 67556-38 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 67556-39 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 67556-40 | [pass] PUT /lab/analysis/rules/9102 \| status=200 | pass |
+| 67556-41 | [pass] GET /lab/analysis/taps/analysis-tap-2/events?dispatch=1 \| status=200 | pass |
+| 67556-42 | [pass] AP02/03 actual EventRecord identity derived \| eventId=evt_1789063445162_84 linkId=event-link-sha256-0ff2e4e11d5475496955175877a6ae07b2b754eecc1a96f69e1fe19b53212165 | pass |
+| 67556-43 | [pass] AP02/03 actual nonnegative padded event start derived \| startTime=17600 updateTime=17600 timeBasis=media-pts-ms | pass |
+| 67556-44 | [pass] AP02/03 durable link source derived | pass |
+| 67556-45 | [pass] GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789063443532&endTimeMs=1789063446532 \| status=200 | pass |
+| 67556-46 | [pass] AP04 derived event priority | pass |
+| 67556-47 | [pass] AP04 derived path redaction | pass |
+| 67556-48 | [pass] AP03 actual derived remux metadata | pass |
+| 67556-49 | [pass] AP01 V1 identity event-seg-sha256-b1e6d00c038f5e90b6dceca0436055bbc1861f82eb3791d29786e870bd942447 | pass |
+| 67556-50 | [pass] AP01 positive UTC/PTS event-seg-sha256-b1e6d00c038f5e90b6dceca0436055bbc1861f82eb3791d29786e870bd942447 | pass |
+| 67556-51 | [pass] AP01 actual bytes SHA event-seg-sha256-b1e6d00c038f5e90b6dceca0436055bbc1861f82eb3791d29786e870bd942447 \| bytes=1254148 sha256=76f6ce657cdbc61fde5ad1ccba3cf3382bd4539a75909a767d7df757634a5a21 | pass |
+| 67556-52 | [pass] AP03 Complete actual overlaps | pass |
+| 67556-53 | [pass] AP04 continuous superseded with priority100 | pass |
+| 67556-54 | [pass] AP05 derived playable local URL | pass |
+| 67556-55 | [pass] AP05 derived actual file prefix | pass |
+| 67556-56 | [pass] AP05 derived literal GET Range \| status=206 contentRange=bytes 2-5/1254148 bodyHex=0032a600 | pass |
+| 67556-57 | [pass] DELETE /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 67556-58 | [pass] AP02/03 fallback and derived independent events | pass |
+| 67556-59 | [pass] AP06 actual H264 generator \| exit=0 log=Setting pipeline to PAUSED ... Pipeline is PREROLLING ... Redistribute latency... Redistribute latency... Pipeline is PREROLLED ... Setting pipeline to PLAYING ... Redistribute latency... New clock: GstSystemClock Got EOS from element "pipeline0". EOS received - stopping pipeline... Execution ended after 0:00:00.221569500 Setting pipeline to NULL ... Freeing pipeline ... | pass |
+| 67556-60 | [pass] AP12 generated input bounded \| bytes=62334405 limitBytes=100663296 | pass |
+| 67556-61 | [pass] POST /ops/api/sources \| status=201 | pass |
+| 67556-62 | [pass] AP01 V1 identity seg-9201-1789063453365-1 | pass |
+| 67556-63 | [pass] AP01 positive UTC/PTS seg-9201-1789063453365-1 | pass |
+| 67556-64 | [pass] AP01 actual bytes SHA seg-9201-1789063453365-1 \| bytes=15581582 sha256=2d485956e716ea019b9058e249ac14b1bbb076f244e40377b5fd64c1783babbc | pass |
+| 67556-65 | [pass] AP01 V1 identity seg-9201-1789063454411-2 | pass |
+| 67556-66 | [pass] AP01 positive UTC/PTS seg-9201-1789063454411-2 | pass |
+| 67556-67 | [pass] AP01 actual bytes SHA seg-9201-1789063454411-2 \| bytes=15586510 sha256=671dbe3417f4d999b131815e10d21675dcff6a786e0e53d2a296b7793014883d | pass |
+| 67556-68 | [pass] AP01 V1 identity seg-9201-1789063455411-3 | pass |
+| 67556-69 | [pass] AP01 positive UTC/PTS seg-9201-1789063455411-3 | pass |
+| 67556-70 | [pass] AP01 actual bytes SHA seg-9201-1789063455411-3 \| bytes=31168087 sha256=a0f11c8195aac71eb07c9a25bedc2cbfc04beba3d0687b8bcdcd23b87ce54ba4 | pass |
+| 67556-71 | [pass] AP01 V1 identity seg-9201-1789063457406-4 | pass |
+| 67556-72 | [pass] AP01 positive UTC/PTS seg-9201-1789063457406-4 | pass |
+| 67556-73 | [pass] AP01 actual bytes SHA seg-9201-1789063457406-4 \| bytes=15581582 sha256=bd4e10cd2c10e803c8fa5abf4c077f257598705a3dcab5519808328a5c0e12e4 | pass |
+| 67556-74 | [pass] AP06 each actual segment below reservation | pass |
+| 67556-75 | [pass] AP06 actual total exceeds future quota \| count=4 bytes=77917761 oldest=seg-9201-1789063453365-1,seg-9201-1789063454411-2,seg-9201-1789063455411-3,seg-9201-1789063457406-4 | pass |
+| 67556-76 | [pass] PUT /ops/api/sources/9201 \| status=200 | pass |
+| 67556-77 | [pass] AP07 oldest deletion request independent order | pass |
+| 67556-78 | [pass] AP07 durable completed seg-9201-1789063453365-1 | pass |
+| 67556-79 | [pass] AP07 physical absent seg-9201-1789063453365-1 | pass |
+| 67556-80 | [pass] AP07 durable completed seg-9201-1789063454411-2 | pass |
+| 67556-81 | [pass] AP07 physical absent seg-9201-1789063454411-2 | pass |
+| 67556-82 | [pass] AP07 durable completed seg-9201-1789063455411-3 | pass |
+| 67556-83 | [pass] AP07 physical absent seg-9201-1789063455411-3 | pass |
+| 67556-84 | [pass] AP07 durable completed seg-9201-1789063457406-4 | pass |
+| 67556-85 | [pass] AP07 physical absent seg-9201-1789063457406-4 | pass |
+| 67556-86 | [fail] timeout: new finalized after retention | fail |
+| 67556-87 | [pass] AP12 port absent 61168 | pass |
+| 67556-88 | [pass] AP12 port absent 61169 | pass |
+| 67556-89 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-naKv0z bytes=201399756 absent=true | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-naKv0z | 앱 media/archive/input | 201399756bytes | 소유process 종료 후 삭제 | absent=true | 앱출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.o9tRTn | GST cache | 62691bytes | 삭제 | absent=true | wrapper |
+| /private/tmp/media-server-s09-ap-640.vzkoH9 | stdout/stderr 수집 로그 | 25003bytes | 중앙기록 이관 후 삭제 예정 | 아래 후처리 결과 참조 | 수집103줄/89assertion·summary 일치 |
+
+포트61168/61169 부재. 원본 source는 SHA256/redaction만 남긴다. raw log의 역사적 임시경로는 최종파일 링크가 아니며 raw media 보존 없음. auth/30/UI/120/RT/S05/S06/build 미실행. 커밋/푸시 없음.
+
+<details><summary>67556 전체 수집 원출력 (줄 끝 공백 정규화)</summary>
+
+```text
+[pass] AP12 distinct loopback ports
+[pass] AP12 actual foreground healthy | pid=7548 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-naKv0z
+[pass] POST /ops/api/sources | status=201
+[pass] AP01 V1 identity seg-9101-1789063427415-1
+[pass] AP01 positive UTC/PTS seg-9101-1789063427415-1
+[pass] AP01 actual bytes SHA seg-9101-1789063427415-1 | bytes=4096788 sha256=8333c0d0ab0923504735c755b10752f667c7d76c93a7a0433bbb20b71c462176
+[pass] AP02 actual finalized barrier before rule and tap
+[pass] PUT /lab/analysis/rules/9101 | status=200
+[pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 | status=200
+[pass] AP02 actual tap created
+[pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 | status=200
+[event-correlation] {"source":{"sha256":"2d134c721f6338f272b776ee48caa6015e3d5ccc3a5e6015fffaac9c85a9c08d"},"pts":8333333333,"ruleId":"9101","trackId":1,"type":"presence","priorIdCount":0}
+[pass] AP02/03 actual EventRecord identity fallback | eventId=evt_1789063436048_2 linkId=event-link-sha256-f3c0686668b1a8270d1053cd68ad6ea944bc2ba3060a7a16c7ef1f4db3d157df
+[pass] AP02/03 actual nonnegative padded event start fallback | startTime=8333 updateTime=8333 timeBasis=media-pts-ms
+[event-transition] {"eventId":"evt_1789063436048_2","linkId":"event-link-sha256-f3c0686668b1a8270d1053cd68ad6ea944bc2ba3060a7a16c7ef1f4db3d157df","requested":null,"mediaPts":{"start_ms":7833,"end_ms":8833},"status":"pending","reason":"time-basis-awaiting-segment-map","overlaps":[],"missing":[],"derivedId":null,"manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"2d134c721f6338f272b776ee48caa6015e3d5ccc3a5e6015fffaac9c85a9c08d"},"manifestChannel":{"kind":"file-stream-key","sha256":"2d134c721f6338f272b776ee48caa6015e3d5ccc3a5e6015fffaac9c85a9c08d"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":22905},"segments":[{"id":"seg-9101-1789063427415-1","epoch":"epoch-9101-1-1789063427345","start":{"utc_ms":1789063427415,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063435725,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}}]}
+[event-transition] {"eventId":"evt_1789063436048_2","linkId":"event-link-sha256-f3c0686668b1a8270d1053cd68ad6ea944bc2ba3060a7a16c7ef1f4db3d157df","requested":{"start_ms":1789063435248,"end_ms":1789063436277},"status":"partial","reason":"partial-missing-continuous-range","overlaps":[{"segment_id":"seg-9101-1789063427415-1","range":{"start_ms":1789063435248,"end_ms":1789063435725}},{"segment_id":"seg-9101-1789063435777-2","range":{"start_ms":1789063435777,"end_ms":1789063436277}}],"missing":[{"start_ms":1789063435725,"end_ms":1789063435777}],"epoch":"epoch-9101-1-1789063427345","derivedId":null,"manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"2d134c721f6338f272b776ee48caa6015e3d5ccc3a5e6015fffaac9c85a9c08d"},"manifestChannel":{"kind":"file-stream-key","sha256":"2d134c721f6338f272b776ee48caa6015e3d5ccc3a5e6015fffaac9c85a9c08d"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":22905},"http":{"status":200,"items":[{"segmentId":"fallback-bound-v1-3f294be24a722deb07142bcb43a050b330221366bb746a2b28bc0c9082b58f41","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789063435248,"endTimeMs":1789063436277,"eventId":"evt_1789063436048_2","completeness":"partial","playable":true,"playbackUrl":"/ops/api/recordings/media/fallback-bound-v1-3f294be24a722deb07142bcb43a050b330221366bb746a2b28bc0c9082b58f41","contentType":"video/webm","rangeBasis":"requested-fallback","requestedRange":{"startTimeMs":1789063435248,"endTimeMs":1789063436277},"actualRange":null,"supersededByEventIds":[]}]},"segments":[{"id":"seg-9101-1789063427415-1","epoch":"epoch-9101-1-1789063427345","start":{"utc_ms":1789063427415,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063435725,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789063435777-2","epoch":"epoch-9101-1-1789063427345","start":{"utc_ms":1789063435777,"pts":8333333333,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063444059,"pts":16633333333,"time_base_num":1,"time_base_den":1000000000}}]}
+[pass] AP02/03 durable link source fallback
+[pass] GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789063434248&endTimeMs=1789063437277 | status=200
+[pass] AP04 fallback event priority
+[pass] AP04 fallback path redaction
+[pass] AP02 fallback remains partial requested-fallback
+[pass] AP02 encoded WebM eventId/encoded contract/size/isolated path
+[pass] AP05 fallback playable local URL
+[pass] AP05 fallback actual file prefix
+[pass] AP05 fallback literal GET Range | status=206 contentRange=bytes 2-5/22905 bodyHex=dfa30100
+[evidence] fallback {"eventId":"evt_1789063436048_2","link":{"schema":"media-server.event-recording-link.v1","link_id":"event-link-sha256-f3c0686668b1a8270d1053cd68ad6ea944bc2ba3060a7a16c7ef1f4db3d157df","event_id":"evt_1789063436048_2","source_id":"9101","channel_id":"9101","requested_range":{"start_ms":1789063435248,"end_ms":1789063436277},"ordered_overlaps":[{"segment_id":"seg-9101-1789063427415-1","range":{"start_ms":1789063435248,"end_ms":1789063435725}},{"segment_id":"seg-9101-1789063435777-2","range":{"start_ms":1789063435777,"end_ms":1789063436277}}],"derived_segment_id":null,"fallback_evidence_id":"fallback-bound-v1-3f294be24a722deb07142bcb43a050b330221366bb746a2b28bc0c9082b58f41","fallback_media_locator":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-naKv0z/events/clips/evt_1789063436048_2.clip/manifest.json","missing_ranges":[{"start_ms":1789063435725,"end_ms":1789063435777}],"time_basis":"media-pts-ms","stream_epoch_id":"epoch-9101-1-1789063427345","completeness_reason":"partial-missing-continuous-range","status":"partial","created_at_ms":1789063436048,"updated_at_ms":1789063444122},"item":{"segmentId":"fallback-bound-v1-3f294be24a722deb07142bcb43a050b330221366bb746a2b28bc0c9082b58f41","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789063435248,"endTimeMs":1789063436277,"eventId":"evt_1789063436048_2","completeness":"partial","playable":true,"playbackUrl":"/ops/api/recordings/media/fallback-bound-v1-3f294be24a722deb07142bcb43a050b330221366bb746a2b28bc0c9082b58f41","contentType":"video/webm","rangeBasis":"requested-fallback","requestedRange":{"startTimeMs":1789063435248,"endTimeMs":1789063436277},"actualRange":null,"supersededByEventIds":[]},"capturedAtMs":1789063444238}
+[pass] DELETE /lab/analysis/taps/analysis-tap-1 | status=200
+[pass] AP01 V1 identity seg-9101-1789063427415-1
+[pass] AP01 positive UTC/PTS seg-9101-1789063427415-1
+[pass] AP01 actual bytes SHA seg-9101-1789063427415-1 | bytes=4096788 sha256=8333c0d0ab0923504735c755b10752f667c7d76c93a7a0433bbb20b71c462176
+[pass] AP01 V1 identity seg-9101-1789063435777-2
+[pass] AP01 positive UTC/PTS seg-9101-1789063435777-2
+[pass] AP01 actual bytes SHA seg-9101-1789063435777-2 | bytes=4813100 sha256=1eae013149242fb828e54b6b833425c6585240afd399258dfa8050de11fc2246
+[pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 | status=200
+[pass] AP03 actual tap created
+[pass] AP03 finalized boundary available
+[pass] GET /lab/analysis/taps/analysis-tap-2 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-2 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-2 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-2 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-2 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-2 | status=200
+[event-input] {"tapId":"analysis-tap-2","pts":17466666666,"finalizedEndPts":16633333333,"epoch":"epoch-9101-1-1789063427345"}
+[pass] PUT /lab/analysis/rules/9102 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-2/events?dispatch=1 | status=200
+[event-correlation] {"source":{"sha256":"2d134c721f6338f272b776ee48caa6015e3d5ccc3a5e6015fffaac9c85a9c08d"},"pts":17600000000,"ruleId":"9102","trackId":1,"type":"presence","priorIdCount":4}
+[pass] AP02/03 actual EventRecord identity derived | eventId=evt_1789063445162_84 linkId=event-link-sha256-0ff2e4e11d5475496955175877a6ae07b2b754eecc1a96f69e1fe19b53212165
+[pass] AP02/03 actual nonnegative padded event start derived | startTime=17600 updateTime=17600 timeBasis=media-pts-ms
+[event-transition] {"eventId":"evt_1789063445162_84","linkId":"event-link-sha256-0ff2e4e11d5475496955175877a6ae07b2b754eecc1a96f69e1fe19b53212165","requested":null,"mediaPts":{"start_ms":17100,"end_ms":18100},"status":"pending","reason":"pending-with-provisional-frame-buffer-fallback","overlaps":[],"missing":[],"derivedId":null,"manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"2d134c721f6338f272b776ee48caa6015e3d5ccc3a5e6015fffaac9c85a9c08d"},"manifestChannel":{"kind":"file-stream-key","sha256":"2d134c721f6338f272b776ee48caa6015e3d5ccc3a5e6015fffaac9c85a9c08d"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":44883},"segments":[{"id":"seg-9101-1789063427415-1","epoch":"epoch-9101-1-1789063427345","start":{"utc_ms":1789063427415,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063435725,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789063435777-2","epoch":"epoch-9101-1-1789063427345","start":{"utc_ms":1789063435777,"pts":8333333333,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063444059,"pts":16633333333,"time_base_num":1,"time_base_den":1000000000}}]}
+[event-transition] {"eventId":"evt_1789063445162_84","linkId":"event-link-sha256-0ff2e4e11d5475496955175877a6ae07b2b754eecc1a96f69e1fe19b53212165","requested":null,"mediaPts":{"start_ms":17100,"end_ms":18100},"status":"pending","reason":"pending-with-provisional-frame-buffer-fallback","overlaps":[],"missing":[],"derivedId":null,"manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"2d134c721f6338f272b776ee48caa6015e3d5ccc3a5e6015fffaac9c85a9c08d"},"manifestChannel":{"kind":"file-stream-key","sha256":"2d134c721f6338f272b776ee48caa6015e3d5ccc3a5e6015fffaac9c85a9c08d"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":44883},"segments":[{"id":"seg-9101-1789063427415-1","epoch":"epoch-9101-1-1789063427345","start":{"utc_ms":1789063427415,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063435725,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789063435777-2","epoch":"epoch-9101-1-1789063427345","start":{"utc_ms":1789063435777,"pts":8333333333,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063444059,"pts":16633333333,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789063444098-3","epoch":"epoch-9101-1-1789063427345","start":{"utc_ms":1789063444098,"pts":16666666666,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063452388,"pts":24966666666,"time_base_num":1,"time_base_den":1000000000}}]}
+[event-transition] {"eventId":"evt_1789063445162_84","linkId":"event-link-sha256-0ff2e4e11d5475496955175877a6ae07b2b754eecc1a96f69e1fe19b53212165","requested":{"start_ms":1789063444532,"end_ms":1789063445532},"status":"complete","reason":"complete","overlaps":[{"segment_id":"seg-9101-1789063444098-3","range":{"start_ms":1789063444532,"end_ms":1789063445532}}],"missing":[],"epoch":"epoch-9101-1-1789063427345","derivedId":"event-seg-sha256-b1e6d00c038f5e90b6dceca0436055bbc1861f82eb3791d29786e870bd942447","manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"2d134c721f6338f272b776ee48caa6015e3d5ccc3a5e6015fffaac9c85a9c08d"},"manifestChannel":{"kind":"file-stream-key","sha256":"2d134c721f6338f272b776ee48caa6015e3d5ccc3a5e6015fffaac9c85a9c08d"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":44883},"http":{"status":200,"items":[{"segmentId":"event-seg-sha256-b1e6d00c038f5e90b6dceca0436055bbc1861f82eb3791d29786e870bd942447","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789063444098,"endTimeMs":1789063445565,"eventId":"evt_1789063445162_84","completeness":"complete","playable":true,"playbackUrl":"/ops/api/recordings/media/event-seg-sha256-b1e6d00c038f5e90b6dceca0436055bbc1861f82eb3791d29786e870bd942447","contentType":"video/mp2t","rangeBasis":"segment","requestedRange":{"startTimeMs":1789063444532,"endTimeMs":1789063445532},"actualRange":{"startTimeMs":1789063444098,"endTimeMs":1789063445565},"supersededByEventIds":[]}]},"segments":[{"id":"seg-9101-1789063427415-1","epoch":"epoch-9101-1-1789063427345","start":{"utc_ms":1789063427415,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063435725,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789063435777-2","epoch":"epoch-9101-1-1789063427345","start":{"utc_ms":1789063435777,"pts":8333333333,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063444059,"pts":16633333333,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789063444098-3","epoch":"epoch-9101-1-1789063427345","start":{"utc_ms":1789063444098,"pts":16666666666,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063452388,"pts":24966666666,"time_base_num":1,"time_base_den":1000000000}}]}
+[pass] AP02/03 durable link source derived
+[pass] GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789063443532&endTimeMs=1789063446532 | status=200
+[pass] AP04 derived event priority
+[pass] AP04 derived path redaction
+[pass] AP03 actual derived remux metadata
+[pass] AP01 V1 identity event-seg-sha256-b1e6d00c038f5e90b6dceca0436055bbc1861f82eb3791d29786e870bd942447
+[pass] AP01 positive UTC/PTS event-seg-sha256-b1e6d00c038f5e90b6dceca0436055bbc1861f82eb3791d29786e870bd942447
+[pass] AP01 actual bytes SHA event-seg-sha256-b1e6d00c038f5e90b6dceca0436055bbc1861f82eb3791d29786e870bd942447 | bytes=1254148 sha256=76f6ce657cdbc61fde5ad1ccba3cf3382bd4539a75909a767d7df757634a5a21
+[pass] AP03 Complete actual overlaps
+[pass] AP04 continuous superseded with priority100
+[pass] AP05 derived playable local URL
+[pass] AP05 derived actual file prefix
+[pass] AP05 derived literal GET Range | status=206 contentRange=bytes 2-5/1254148 bodyHex=0032a600
+[evidence] derived {"eventId":"evt_1789063445162_84","link":{"schema":"media-server.event-recording-link.v1","link_id":"event-link-sha256-0ff2e4e11d5475496955175877a6ae07b2b754eecc1a96f69e1fe19b53212165","event_id":"evt_1789063445162_84","source_id":"9101","channel_id":"9101","requested_range":{"start_ms":1789063444532,"end_ms":1789063445532},"ordered_overlaps":[{"segment_id":"seg-9101-1789063444098-3","range":{"start_ms":1789063444532,"end_ms":1789063445532}}],"derived_segment_id":"event-seg-sha256-b1e6d00c038f5e90b6dceca0436055bbc1861f82eb3791d29786e870bd942447","fallback_evidence_id":"fallback-bound-v1-f61a0343f79f4abcdd92786d5d333f91d7861e1ebc7997c119e63fa576a99582","fallback_media_locator":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-naKv0z/events/clips/evt_1789063445162_84.clip/manifest.json","missing_ranges":[],"derived_actual_range":{"start_ms":1789063444098,"end_ms":1789063445565},"derivation_mode":"remux-no-video-reencode","time_basis":"media-pts-ms","stream_epoch_id":"epoch-9101-1-1789063427345","completeness_reason":"complete","status":"complete","created_at_ms":1789063445162,"updated_at_ms":1789063452494},"item":{"segmentId":"event-seg-sha256-b1e6d00c038f5e90b6dceca0436055bbc1861f82eb3791d29786e870bd942447","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789063444098,"endTimeMs":1789063445565,"eventId":"evt_1789063445162_84","completeness":"complete","playable":true,"playbackUrl":"/ops/api/recordings/media/event-seg-sha256-b1e6d00c038f5e90b6dceca0436055bbc1861f82eb3791d29786e870bd942447","contentType":"video/mp2t","rangeBasis":"segment","requestedRange":{"startTimeMs":1789063444532,"endTimeMs":1789063445532},"actualRange":{"startTimeMs":1789063444098,"endTimeMs":1789063445565},"supersededByEventIds":[]},"capturedAtMs":1789063452881}
+[pass] DELETE /lab/analysis/taps/analysis-tap-2 | status=200
+[pass] AP02/03 fallback and derived independent events
+[pass] AP06 actual H264 generator | exit=0 log=Setting pipeline to PAUSED ... Pipeline is PREROLLING ... Redistribute latency... Redistribute latency... Pipeline is PREROLLED ... Setting pipeline to PLAYING ... Redistribute latency... New clock: GstSystemClock Got EOS from element "pipeline0". EOS received - stopping pipeline... Execution ended after 0:00:00.221569500 Setting pipeline to NULL ... Freeing pipeline ...
+[pass] AP12 generated input bounded | bytes=62334405 limitBytes=100663296
+[pass] POST /ops/api/sources | status=201
+[pass] AP01 V1 identity seg-9201-1789063453365-1
+[pass] AP01 positive UTC/PTS seg-9201-1789063453365-1
+[pass] AP01 actual bytes SHA seg-9201-1789063453365-1 | bytes=15581582 sha256=2d485956e716ea019b9058e249ac14b1bbb076f244e40377b5fd64c1783babbc
+[pass] AP01 V1 identity seg-9201-1789063454411-2
+[pass] AP01 positive UTC/PTS seg-9201-1789063454411-2
+[pass] AP01 actual bytes SHA seg-9201-1789063454411-2 | bytes=15586510 sha256=671dbe3417f4d999b131815e10d21675dcff6a786e0e53d2a296b7793014883d
+[pass] AP01 V1 identity seg-9201-1789063455411-3
+[pass] AP01 positive UTC/PTS seg-9201-1789063455411-3
+[pass] AP01 actual bytes SHA seg-9201-1789063455411-3 | bytes=31168087 sha256=a0f11c8195aac71eb07c9a25bedc2cbfc04beba3d0687b8bcdcd23b87ce54ba4
+[pass] AP01 V1 identity seg-9201-1789063457406-4
+[pass] AP01 positive UTC/PTS seg-9201-1789063457406-4
+[pass] AP01 actual bytes SHA seg-9201-1789063457406-4 | bytes=15581582 sha256=bd4e10cd2c10e803c8fa5abf4c077f257598705a3dcab5519808328a5c0e12e4
+[pass] AP06 each actual segment below reservation
+[pass] AP06 actual total exceeds future quota | count=4 bytes=77917761 oldest=seg-9201-1789063453365-1,seg-9201-1789063454411-2,seg-9201-1789063455411-3,seg-9201-1789063457406-4
+[pass] PUT /ops/api/sources/9201 | status=200
+[pass] AP07 oldest deletion request independent order
+[pass] AP07 durable completed seg-9201-1789063453365-1
+[pass] AP07 physical absent seg-9201-1789063453365-1
+[pass] AP07 durable completed seg-9201-1789063454411-2
+[pass] AP07 physical absent seg-9201-1789063454411-2
+[pass] AP07 durable completed seg-9201-1789063455411-3
+[pass] AP07 physical absent seg-9201-1789063455411-3
+[pass] AP07 durable completed seg-9201-1789063457406-4
+[pass] AP07 physical absent seg-9201-1789063457406-4
+[fail] timeout: new finalized after retention
+[diagnostic] app0 ctionChanges=1 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=1 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=unstable-track severity=warning association=0.851205 missed=0 overlap=0.0790955 directionChanges=1 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=reacquired severity=info association=0.392429 missed=0 overlap=0.644589 directionChanges=2 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=2 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=direction-change-spike severity=warning association=0.897684 missed=0 overlap=0.240304 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=reacquired severity=info association=0.897684 missed=0 overlap=0.240304 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=direction-change-spike severity=warning association=0.912607 missed=0 overlap=0.234353 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=overlap-risk severity=warning association=0.809635 missed=0 overlap=0.638039 directionChanges=4 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=direction-change-spike severity=warning association=0.399794 missed=0 overlap=0.638039 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=5 type=unstable-track severity=warning association=1 missed=0 overlap=0.388267 directionChanges=0 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=5 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=0 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=5 type=reacquired severity=info association=0.698022 missed=0 overlap=0.201921 directionChanges=0 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=unstable-track severity=warning association=0.834827 missed=0 overlap=0 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=direction-change-spike severity=warning association=0.834827 missed=0 overlap=0 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=unstable-track severity=warning association=0.878655 missed=0 overlap=0 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=direction-change-spike severity=warning association=0.878655 missed=0 overlap=0 directionChanges=3 |
+[diagnostic] retention-generator Setting pipeline to PAUSED ... | Pipeline is PREROLLING ... | Redistribute latency... | Redistribute latency... | Pipeline is PREROLLED ... | Setting pipeline to PLAYING ... | Redistribute latency... | New clock: GstSystemClock | Got EOS from element "pipeline0". | EOS received - stopping pipeline... | Execution ended after 0:00:00.221569500 | Setting pipeline to NULL ... | Freeing pipeline ... |
+[pass] AP12 port absent 61168
+[pass] AP12 port absent 61169
+[pass] AP12 root cleanup | path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-naKv0z bytes=201399756 absent=true
+{"mode":"--app-nonauth","passed":88,"failed":1,"startedAtMs":1789063426195,"endedAtMs":1789063470899,"elapsedMs":44704,"fullFoundationPass":false,"coverage":"app-nonauth-partial","notRun":["auth","30min","120min","UI"],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"하위 작업별 자동 집계 없음"}
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.o9tRTn bytes=62691 absent=true
+```
+
+</details>
+
+
+
+## AP06/AP12 640×360 입력 재개 사전등록
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| AP06/AP12 실제 입력 예산 | snow640×360/30fps/120frames/x264quant0/keyint30, sourcePOST 전96MiB 실측상한 | root448선제/512한계·180초 유지, 실제3개이상·각file64MiB미만·총량64MiB초과·15초 관측/oldest/tombstone/계속녹화/restart 기존 기준 유지 | v4.1.0 |
+| AP12 원출력 보존 | stdout/stderr 별도 mktemp 로그·원exit 유지 | 종료 후 개별pass/fail 행수와summary 대조·중앙기록 이관·로그byte/삭제/부재 확인. 출력수집 오류는 PASS 아님 | v4.1.0 |
+
+app-nonauth1회 승인. 입력~62MiB는 예측이며 실측전 PASS 아님. 새live앱의 event→quota→동일archive restart 연속 oracle 때문에 AP02/03을 함께 실행한다. 기존15/14단위·build/S05/S06/RT/auth/30/UI/120 미실행. 제품/selector 동결, 입력해상도와상한 외 정책변경 없음.
+
+## S09 실제 앱76851 — event 통과 후 retention 입력 cap 중단
+
+메인 회수의 생산 metadata/updateTime 대조 보완 뒤 `./server.sh verify-v410-recording-foundation --app-nonauth` 1회 실행, session76851 exit1. startedAtMs1789063194794/endedAtMs1789063224626/elapsed29832ms. summary64pass2fail이며 두 fail은 같은 capFailure의 본문 및 finally 중복 출력으로 독립 제품실패2개가 아니다. token start/end/consumed null(하위 작업별 자동 집계 없음). 기존 선택기14 및 WebM15 증거는 재실행하지 않았다.
+
+확인: AP02 actual fallback 상관·HTTP playable, AP03 실제 tapPTS17466666666 > latest finalized16633333333+750000000(ns 명시guard), 새rule9102 최초응답PTS17600000000/track1·신규event evt_1789063213752_84 고정. 실제 PTS요청17100~18100ms는 단일segment 내부이며 Complete/TS1254148bytes/SHA25676f6ce657cdbc61fde5ad1ccba3cf3382bd4539a75909a767d7df757634a5a21·Range206 bytes2-5/1254148 body0032a600, continuous superseded priority100 통과.
+
+실패: lossless snow H264 입력248248092bytes 생성 후 retention sourcePOST, root477689527bytes에서448MiB 선제감시 발동. 이 관측값은512MiB 미만이지만 입력+실제녹화파일+이벤트채널이 함께 cap 예산을 차지한다. AP06 총량·개별segment·quota 변경을 대조하기 전에 중단됐으므로 retention·restart 통과 아님. timeout/상한/제품정책을 늘리지 않고 원인·입력 설계를 메인에 반환했다.
+
+증거 한계: polling 세번째 chunk에 max_output_tokens1500을 설정해2063token 출력 일부가 절단됐다. summary는64/2이나 아래 직접 보존 결과는59행이며 AP02 중간 일부 상세행/Range literal 및 fallback evidence가 빠졌다. 소스나 이전실행으로 누락행을 재작성하지 않는다. 이번 실행 전수증거 완료로 보고하지 않으며 추가 재실행도 하지 않았다. 이후 chunk는 충분한 출력예산으로 보존했다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 76851 관측 1 | [pass] AP12 distinct loopback ports | pass |
+| 76851 관측 2 | [pass] AP12 actual foreground healthy \| pid=7326 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-FvZJBw | pass |
+| 76851 관측 3 | [pass] POST /ops/api/sources \| status=201 | pass |
+| 76851 관측 4 | [pass] AP01 V1 identity seg-9101-1789063196011-1 | pass |
+| 76851 관측 5 | [pass] AP01 positive UTC/PTS seg-9101-1789063196011-1 | pass |
+| 76851 관측 6 | [pass] AP01 actual bytes SHA seg-9101-1789063196011-1 \| bytes=4096788 sha256=618c59c982d486b50ba6b70e3fa02b74a32f21b481b2a6fe15f69613fea92c76 | pass |
+| 76851 관측 7 | [pass] AP02 actual finalized barrier before rule and tap | pass |
+| 76851 관측 8 | [pass] PUT /lab/analysis/rules/9101 \| status=200 | pass |
+| 76851 관측 9 | [pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 \| status=200 | pass |
+| 76851 관측 10 | [pass] AP02 actual tap created | pass |
+| 76851 관측 11 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| 76851 관측 12 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| 76851 관측 13 | [pass] AP02/03 actual EventRecord identity fallback \| eventId=evt_1789063204639_2 linkId=event-link-sha256-3b51962ab369f1d92b78dd3d30074642ceb81d29b029d4a10efa38e71bf3c57d | pass |
+| 76851 관측 14 | [pass] AP02/03 actual nonnegative padded event start fallback \| startTime=8333 updateTime=8333 timeBasis=media-pts-ms | pass |
+| 76851 관측 15 | [pass] AP02/03 durable link source fallback | pass |
+| 76851 관측 16 | [pass] GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789063202844&endTimeMs=1789063205872 \| status=200 | pass |
+| 76851 관측 17 | [pass] AP04 fallback event priority | pass |
+| 76851 관측 18 | [pass] AP04 fallback path redaction | pass |
+| 76851 관측 19 | [pass] AP02 fallback remains partial requested-fallback | pass |
+| 76851 관측 20 | [pass] AP02 encoded WebM eventId/encoded contract/size/isolated path | pass |
+| 76851 관측 21 | [pass] AP05 fallback playable local URL | pass |
+| 76851 관측 22 | [pass] AP05 fallback actual file prefix | pass |
+| 76851 관측 23 | [pass] AP05 fallback literal GET Range …563 tokens truncated…P01 actual bytes SHA seg-9101-1789063204372-2 \| bytes=4813100 sha256=d2210996941bcb747dd6b5109296787d6f514d131bb6ed5bd1753ecdb84cbbe8 | pass |
+| 76851 관측 24 | [pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 \| status=200 | pass |
+| 76851 관측 25 | [pass] AP03 actual tap created | pass |
+| 76851 관측 26 | [pass] AP03 finalized boundary available | pass |
+| 76851 관측 27 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 76851 관측 28 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 76851 관측 29 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 76851 관측 30 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 76851 관측 31 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 76851 관측 32 | [pass] GET /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 76851 관측 33 | [pass] PUT /lab/analysis/rules/9102 \| status=200 | pass |
+| 76851 관측 34 | [pass] GET /lab/analysis/taps/analysis-tap-2/events?dispatch=1 \| status=200 | pass |
+| 76851 관측 35 | [pass] AP02/03 actual EventRecord identity derived \| eventId=evt_1789063213752_84 linkId=event-link-sha256-d76d9a3a61b2fccb3b3b499063a84a4932fe4b7331a0134da7954c356be7e5f3 | pass |
+| 76851 관측 36 | [pass] AP02/03 actual nonnegative padded event start derived \| startTime=17600 updateTime=17600 timeBasis=media-pts-ms | pass |
+| 76851 관측 37 | [pass] AP02/03 durable link source derived | pass |
+| 76851 관측 38 | [pass] GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789063212132&endTimeMs=1789063215132 \| status=200 | pass |
+| 76851 관측 39 | [pass] AP04 derived event priority | pass |
+| 76851 관측 40 | [pass] AP04 derived path redaction | pass |
+| 76851 관측 41 | [pass] AP03 actual derived remux metadata | pass |
+| 76851 관측 42 | [pass] AP01 V1 identity event-seg-sha256-ce1c8e9a90d1fefca22476334b475eb9e7396c7410273c5084dc1e613f98da8e | pass |
+| 76851 관측 43 | [pass] AP01 positive UTC/PTS event-seg-sha256-ce1c8e9a90d1fefca22476334b475eb9e7396c7410273c5084dc1e613f98da8e | pass |
+| 76851 관측 44 | [pass] AP01 actual bytes SHA event-seg-sha256-ce1c8e9a90d1fefca22476334b475eb9e7396c7410273c5084dc1e613f98da8e \| bytes=1254148 sha256=76f6ce657cdbc61fde5ad1ccba3cf3382bd4539a75909a767d7df757634a5a21 | pass |
+| 76851 관측 45 | [pass] AP03 Complete actual overlaps | pass |
+| 76851 관측 46 | [pass] AP04 continuous superseded with priority100 | pass |
+| 76851 관측 47 | [pass] AP05 derived playable local URL | pass |
+| 76851 관측 48 | [pass] AP05 derived actual file prefix | pass |
+| 76851 관측 49 | [pass] AP05 derived literal GET Range \| status=206 contentRange=bytes 2-5/1254148 bodyHex=0032a600 | pass |
+| 76851 관측 50 | [pass] DELETE /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| 76851 관측 51 | [pass] AP02/03 fallback and derived independent events | pass |
+| 76851 관측 52 | [pass] AP06 actual H264 generator \| exit=0 log=Setting pipeline to PAUSED ... Pipeline is PREROLLING ... Redistribute latency... Redistribute latency... Pipeline is PREROLLED ... Setting pipeline to PLAYING ... Redistribute latency... New clock: GstSystemClock Got EOS from element "pipeline0". EOS received - stopping pipeline... Execution ended after 0:00:00.778928291 Setting pipeline to NULL ... Freeing pipeline ... | pass |
+| 76851 관측 53 | [pass] AP12 generated input bounded \| bytes=248248092 | pass |
+| 76851 관측 54 | [pass] POST /ops/api/sources \| status=201 | pass |
+| 76851 관측 55 | [fail] AP12 safety stop bytes=477689527 elapsedMs=29328 | fail |
+| 76851 관측 56 | [fail] AP12 safety stop bytes=474294449 elapsedMs=29791 | fail |
+| 76851 관측 57 | [pass] AP12 port absent 61073 | pass |
+| 76851 관측 58 | [pass] AP12 port absent 61074 | pass |
+| 76851 관측 59 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-FvZJBw bytes=474294449 absent=true | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-FvZJBw | 실제 앱/생성입력/media/archive | 474294449bytes | 모든 소유process 종료 후 삭제 | absent=true | 앱cleanup |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.u6a2Gd | GST cache | 62691bytes | 삭제 | absent=true | wrapper |
+
+포트61073/61074 부재. 제품4파일·harness 실행중 동결, 이번 실행담당은 제품/코드수정·build·S05/S06/RT/auth/30/UI/120·commit/push 미수행. 아래 부분 원출력에는 truncation표시가 그대로 남으며 원본소스키는hash/redaction이다.
+
+<details><summary>76851 보존된 부분 원출력 (일부 polling 절단 한계 있음)</summary>
+
+```text
+[pass] AP12 distinct loopback ports
+[pass] AP12 actual foreground healthy | pid=7326 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-FvZJBw
+[pass] POST /ops/api/sources | status=201
+[pass] AP01 V1 identity seg-9101-1789063196011-1
+[pass] AP01 positive UTC/PTS seg-9101-1789063196011-1
+[pass] AP01 actual bytes SHA seg-9101-1789063196011-1 | bytes=4096788 sha256=618c59c982d486b50ba6b70e3fa02b74a32f21b481b2a6fe15f69613fea92c76
+[pass] AP02 actual finalized barrier before rule and tap
+[pass] PUT /lab/analysis/rules/9101 | status=200
+[pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 | status=200
+[pass] AP02 actual tap created
+[pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 | status=200
+[event-correlation] {"source":{"sha256":"bf6aec0bb4496ffd7d2449e1d09886e07059322755c89308effbbd6b86c22e14"},"pts":8333333333,"ruleId":"9101","trackId":1,"type":"presence","priorIdCount":0}
+[pass] AP02/03 actual EventRecord identity fallback | eventId=evt_1789063204639_2 linkId=event-link-sha256-3b51962ab369f1d92b78dd3d30074642ceb81d29b029d4a10efa38e71bf3c57d
+[pass] AP02/03 actual nonnegative padded event start fallback | startTime=8333 updateTime=8333 timeBasis=media-pts-ms
+[event-transition] {"eventId":"evt_1789063204639_2","linkId":"event-link-sha256-3b51962ab369f1d92b78dd3d30074642ceb81d29b029d4a10efa38e71bf3c57d","requested":null,"mediaPts":{"start_ms":7833,"end_ms":8833},"status":"pending","reason":"pending-with-provisional-frame-buffer-fallback","overlaps":[],"missing":[],"derivedId":null,"manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"bf6aec0bb4496ffd7d2449e1d09886e07059322755c89308effbbd6b86c22e14"},"manifestChannel":{"kind":"file-stream-key","sha256":"bf6aec0bb4496ffd7d2449e1d09886e07059322755c89308effbbd6b86c22e14"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":22905},"segments":[{"id":"seg-9101-1789063196011-1","epoch":"epoch-9101-1-1789063195942","start":{"utc_ms":1789063196011,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063204314,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}}]}
+Warning: truncated output (original token count: 2063)
+Total output lines: 34
+
+[event-transition] {"eventId":"evt_1789063204639_2","linkId":"event-link-sha256-3b51962ab369f1d92b78dd3d30074642ceb81d29b029d4a10efa38e71bf3c57d","requested":{"start_ms":1789063203844,"end_ms":1789063204872},"status":"partial","reason":"partial-missing-continuous-range","overlaps":[{"segment_id":"seg-9101-1789063196011-1","range":{"start_ms":1789063203844,"end_ms":1789063204314}},{"segment_id":"seg-9101-1789063204372-2","range":{"start_ms":1789063204372,"end_ms":1789063204872}}],"missing":[{"start_ms":1789063204314,"end_ms":1789063204372}],"epoch":"epoch-9101-1-1789063195942","derivedId":null,"manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"bf6aec0bb4496ffd7d2449e1d09886e07059322755c89308effbbd6b86c22e14"},"manifestChannel":{"kind":"file-stream-key","sha256":"bf6aec0bb4496ffd7d2449e1d09886e07059322755c89308effbbd6b86c22e14"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":22905},"http":{"status":200,"items":[{"segmentId":"fallback-bound-v1-73a38abb68d47ff729cd74bff8c229e53e758bfc19ff3eaf3844a4b5b7c7a296","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789063203844,"endTimeMs":1789063204872,"eventId":"evt_1789063204639_2","completeness":"partial","playable":true,"playbackUrl":"/ops/api/recordings/media/fallback-bound-v1-73a38abb68d47ff729cd74bff8c229e53e758bfc19ff3eaf3844a4b5b7c7a296","contentType":"video/webm","rangeBasis":"requested-fallback","requestedRange":{"startTimeMs":1789063203844,"endTimeMs":1789063204872},"actualRange":null,"supersededByEventIds":[]}]},"segments":[{"id":"seg-9101-1789063196011-1","epoch":"epoch-9101-1-1789063195942","start":{"utc_ms":1789063196011,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063204314,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789063204372-2","epoch":"epoch-9101-1-1789063195942","start":{"utc_ms":1789063204372,"pts":8333333333,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063212655,"pts":16633333333,"time_base_num":1,"time_base_den":1000000000}}]}
+[pass] AP02/03 durable link source fallback
+[pass] GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789063202844&endTimeMs=1789063205872 | status=200
+[pass] AP04 fallback event priority
+[pass] AP04 fallback path redaction
+[pass] AP02 fallback remains partial requested-fallback
+[pass] AP02 encoded WebM eventId/encoded contract/size/isolated path
+[pass] AP05 fallback playable local URL
+[pass] AP05 fallback actual file prefix
+[pass] AP05 fallback literal GET Range …563 tokens truncated…P01 actual bytes SHA seg-9101-1789063204372-2 | bytes=4813100 sha256=d2210996941bcb747dd6b5109296787d6f514d131bb6ed5bd1753ecdb84cbbe8
+[pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 | status=200
+[pass] AP03 actual tap created
+[pass] AP03 finalized boundary available
+[pass] GET /lab/analysis/taps/analysis-tap-2 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-2 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-2 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-2 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-2 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-2 | status=200
+[event-input] {"tapId":"analysis-tap-2","pts":17466666666,"finalizedEndPts":16633333333,"epoch":"epoch-9101-1-1789063195942"}
+[pass] PUT /lab/analysis/rules/9102 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-2/events?dispatch=1 | status=200
+[event-correlation] {"source":{"sha256":"bf6aec0bb4496ffd7d2449e1d09886e07059322755c89308effbbd6b86c22e14"},"pts":17600000000,"ruleId":"9102","trackId":1,"type":"presence","priorIdCount":4}
+[pass] AP02/03 actual EventRecord identity derived | eventId=evt_1789063213752_84 linkId=event-link-sha256-d76d9a3a61b2fccb3b3b499063a84a4932fe4b7331a0134da7954c356be7e5f3
+[pass] AP02/03 actual nonnegative padded event start derived | startTime=17600 updateTime=17600 timeBasis=media-pts-ms
+[event-transition] {"eventId":"evt_1789063213752_84","linkId":"event-link-sha256-d76d9a3a61b2fccb3b3b499063a84a4932fe4b7331a0134da7954c356be7e5f3","requested":null,"mediaPts":{"start_ms":17100,"end_ms":18100},"status":"pending","reason":"time-basis-awaiting-segment-map","overlaps":[],"missing":[],"derivedId":null,"manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"bf6aec0bb4496ffd7d2449e1d09886e07059322755c89308effbbd6b86c22e14"},"manifestChannel":{"kind":"file-stream-key","sha256":"bf6aec0bb4496ffd7d2449e1d09886e07059322755c89308effbbd6b86c22e14"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":44318},"segments":[{"id":"seg-9101-1789063196011-1","epoch":"epoch-9101-1-1789063195942","start":{"utc_ms":1789063196011,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063204314,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789063204372-2","epoch":"epoch-9101-1-1789063195942","start":{"utc_ms":1789063204372,"pts":8333333333,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063212655,"pts":16633333333,"time_base_num":1,"time_base_den":1000000000}}]}
+[event-transition] {"eventId":"evt_1789063213752_84","linkId":"event-link-sha256-d76d9a3a61b2fccb3b3b499063a84a4932fe4b7331a0134da7954c356be7e5f3","requested":null,"mediaPts":{"start_ms":17100,"end_ms":18100},"status":"pending","reason":"time-basis-awaiting-segment-map","overlaps":[],"missing":[],"derivedId":null,"manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"bf6aec0bb4496ffd7d2449e1d09886e07059322755c89308effbbd6b86c22e14"},"manifestChannel":{"kind":"file-stream-key","sha256":"bf6aec0bb4496ffd7d2449e1d09886e07059322755c89308effbbd6b86c22e14"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":44318},"segments":[{"id":"seg-9101-1789063196011-1","epoch":"epoch-9101-1-1789063195942","start":{"utc_ms":1789063196011,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063204314,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789063204372-2","epoch":"epoch-9101-1-1789063195942","start":{"utc_ms":1789063204372,"pts":8333333333,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063212655,"pts":16633333333,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789063212698-3","epoch":"epoch-9101-1-1789063195942","start":{"utc_ms":1789063212698,"pts":16666666666,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063220982,"pts":24966666666,"time_base_num":1,"time_base_den":1000000000}}]}
+[event-transition] {"eventId":"evt_1789063213752_84","linkId":"event-link-sha256-d76d9a3a61b2fccb3b3b499063a84a4932fe4b7331a0134da7954c356be7e5f3","requested":{"start_ms":1789063213132,"end_ms":1789063214132},"status":"complete","reason":"complete","overlaps":[{"segment_id":"seg-9101-1789063212698-3","range":{"start_ms":1789063213132,"end_ms":1789063214132}}],"missing":[],"epoch":"epoch-9101-1-1789063195942","derivedId":"event-seg-sha256-ce1c8e9a90d1fefca22476334b475eb9e7396c7410273c5084dc1e613f98da8e","manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"bf6aec0bb4496ffd7d2449e1d09886e07059322755c89308effbbd6b86c22e14"},"manifestChannel":{"kind":"file-stream-key","sha256":"bf6aec0bb4496ffd7d2449e1d09886e07059322755c89308effbbd6b86c22e14"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":44318},"http":{"status":200,"items":[{"segmentId":"event-seg-sha256-ce1c8e9a90d1fefca22476334b475eb9e7396c7410273c5084dc1e613f98da8e","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789063212698,"endTimeMs":1789063214165,"eventId":"evt_1789063213752_84","completeness":"complete","playable":true,"playbackUrl":"/ops/api/recordings/media/event-seg-sha256-ce1c8e9a90d1fefca22476334b475eb9e7396c7410273c5084dc1e613f98da8e","contentType":"video/mp2t","rangeBasis":"segment","requestedRange":{"startTimeMs":1789063213132,"endTimeMs":1789063214132},"actualRange":{"startTimeMs":1789063212698,"endTimeMs":1789063214165},"supersededByEventIds":[]}]},"segments":[{"id":"seg-9101-1789063196011-1","epoch":"epoch-9101-1-1789063195942","start":{"utc_ms":1789063196011,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063204314,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789063204372-2","epoch":"epoch-9101-1-1789063195942","start":{"utc_ms":1789063204372,"pts":8333333333,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063212655,"pts":16633333333,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789063212698-3","epoch":"epoch-9101-1-1789063195942","start":{"utc_ms":1789063212698,"pts":16666666666,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789063220982,"pts":24966666666,"time_base_num":1,"time_base_den":1000000000}}]}
+[pass] AP02/03 durable link source derived
+[pass] GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789063212132&endTimeMs=1789063215132 | status=200
+[pass] AP04 derived event priority
+[pass] AP04 derived path redaction
+[pass] AP03 actual derived remux metadata
+[pass] AP01 V1 identity event-seg-sha256-ce1c8e9a90d1fefca22476334b475eb9e7396c7410273c5084dc1e613f98da8e
+[pass] AP01 positive UTC/PTS event-seg-sha256-ce1c8e9a90d1fefca22476334b475eb9e7396c7410273c5084dc1e613f98da8e
+[pass] AP01 actual bytes SHA event-seg-sha256-ce1c8e9a90d1fefca22476334b475eb9e7396c7410273c5084dc1e613f98da8e | bytes=1254148 sha256=76f6ce657cdbc61fde5ad1ccba3cf3382bd4539a75909a767d7df757634a5a21
+[pass] AP03 Complete actual overlaps
+[pass] AP04 continuous superseded with priority100
+[pass] AP05 derived playable local URL
+[pass] AP05 derived actual file prefix
+[pass] AP05 derived literal GET Range | status=206 contentRange=bytes 2-5/1254148 bodyHex=0032a600
+[evidence] derived {"eventId":"evt_1789063213752_84","link":{"schema":"media-server.event-recording-link.v1","link_id":"event-link-sha256-d76d9a3a61b2fccb3b3b499063a84a4932fe4b7331a0134da7954c356be7e5f3","event_id":"evt_1789063213752_84","source_id":"9101","channel_id":"9101","requested_range":{"start_ms":1789063213132,"end_ms":1789063214132},"ordered_overlaps":[{"segment_id":"seg-9101-1789063212698-3","range":{"start_ms":1789063213132,"end_ms":1789063214132}}],"derived_segment_id":"event-seg-sha256-ce1c8e9a90d1fefca22476334b475eb9e7396c7410273c5084dc1e613f98da8e","fallback_evidence_id":"fallback-bound-v1-2b97e2f49db7f2a1500f8e497f66f2634ae51c74fd6e640bde2388d4c4d27f17","fallback_media_locator":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-FvZJBw/events/clips/evt_1789063213752_84.clip/manifest.json","missing_ranges":[],"derived_actual_range":{"start_ms":1789063212698,"end_ms":1789063214165},"derivation_mode":"remux-no-video-reencode","time_basis":"media-pts-ms","stream_epoch_id":"epoch-9101-1-1789063195942","completeness_reason":"complete","status":"complete","created_at_ms":1789063213752,"updated_at_ms":1789063221085},"item":{"segmentId":"event-seg-sha256-ce1c8e9a90d1fefca22476334b475eb9e7396c7410273c5084dc1e613f98da8e","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789063212698,"endTimeMs":1789063214165,"eventId":"evt_1789063213752_84","completeness":"complete","playable":true,"playbackUrl":"/ops/api/recordings/media/event-seg-sha256-ce1c8e9a90d1fefca22476334b475eb9e7396c7410273c5084dc1e613f98da8e","contentType":"video/mp2t","rangeBasis":"segment","requestedRange":{"startTimeMs":1789063213132,"endTimeMs":1789063214132},"actualRange":{"startTimeMs":1789063212698,"endTimeMs":1789063214165},"supersededByEventIds":[]},"capturedAtMs":1789063221484}
+[pass] DELETE /lab/analysis/taps/analysis-tap-2 | status=200
+[pass] AP02/03 fallback and derived independent events
+[pass] AP06 actual H264 generator | exit=0 log=Setting pipeline to PAUSED ... Pipeline is PREROLLING ... Redistribute latency... Redistribute latency... Pipeline is PREROLLED ... Setting pipeline to PLAYING ... Redistribute latency... New clock: GstSystemClock Got EOS from element "pipeline0". EOS received - stopping pipeline... Execution ended after 0:00:00.778928291 Setting pipeline to NULL ... Freeing pipeline ...
+[pass] AP12 generated input bounded | bytes=248248092
+[pass] POST /ops/api/sources | status=201
+[fail] AP12 safety stop bytes=477689527 elapsedMs=29328
+[diagnostic] app0 king-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=unstable-track severity=warning association=0.885023 missed=0 overlap=0.060957 directionChanges=0 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=direction-change-spike severity=warning association=0.830086 missed=0 overlap=0.437042 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=overlap-risk severity=warning association=0.780963 missed=0 overlap=0.521551 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=direction-change-spike severity=warning association=0.780963 missed=0 overlap=0.521551 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=overlap-risk severity=warning association=0.860097 missed=0 overlap=0.521551 directionChanges=4 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=unstable-track severity=warning association=0.886416 missed=0 overlap=0.0231881 directionChanges=0 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=4 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=reacquired severity=info association=0.634909 missed=0 overlap=0.683322 directionChanges=5 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=7 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=direction-change-spike severity=warning association=0.841275 missed=0 overlap=0.241619 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=overlap-risk severity=warning association=0.844641 missed=0 overlap=0.777335 directionChanges=4 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=reacquired severity=info association=0.498962 missed=0 overlap=0.777335 directionChanges=7 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=unstable-track severity=warning association=0.854351 missed=0 overlap=0 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=direction-change-spike severity=warning association=0.854351 missed=0 overlap=0 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=unstable-track severity=warning association=0.917663 missed=0 overlap=0 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=direction-change-spike severity=warning association=0.917663 missed=0 overlap=0 directionChanges=3 |
+[diagnostic] retention-generator Setting pipeline to PAUSED ... | Pipeline is PREROLLING ... | Redistribute latency... | Redistribute latency... | Pipeline is PREROLLED ... | Setting pipeline to PLAYING ... | Redistribute latency... | New clock: GstSystemClock | Got EOS from element "pipeline0". | EOS received - stopping pipeline... | Execution ended after 0:00:00.778928291 | Setting pipeline to NULL ... | Freeing pipeline ... |
+[fail] AP12 safety stop bytes=474294449 elapsedMs=29791
+[pass] AP12 port absent 61073
+[pass] AP12 port absent 61074
+[pass] AP12 root cleanup | path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-FvZJBw bytes=474294449 absent=true
+{"mode":"--app-nonauth","passed":64,"failed":2,"startedAtMs":1789063194794,"endedAtMs":1789063224626,"elapsedMs":29832,"fullFoundationPass":false,"coverage":"app-nonauth-partial","notRun":["auth","30min","120min","UI"],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"하위 작업별 자동 집계 없음"}
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.u6a2Gd bytes=62691 absent=true
+```
+
+</details>
+
+
+
+## S09 AP11 메인 회수: 실제 메타데이터 시간 대조 사전등록
+
+`event_rule_engine.cpp:AttachTrackHealthSnapshots`는 ruleId/eventMetadata/trackHealth를
+담고 pts는 담지 않는다. `BuildMetadataJson`은 이 원문을 유지한다. 대신 EventManager는
+candidate의 result.pts를 last_seen_ns로 기록하고 EventRecord.updateTime은 이를
+밀리초로 직렬화한다. 공통 updateTime의 정확 대조와 명시된 두 메타데이터 schema를
+사용한다. 이는 생산 코드 직접 확인이며 78777에서 실제 후보가 미수집된 한계는 유지한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| V410-S09-AP-11 실제 metadata 시간 | track-health 및 기본 metadata의 신규 이벤트 대조 | track-health 양성에 top-level pts를 넣지 않는다. 기존 selector에서 exact-new assertion RED 확인 후 updateTime 일치와 알려진 schema만 허용한다. 잘못된 시간·schema·누락 metadata를 각각 거부한다 | v4.1.0 |
+
+예상 RED: `./server.sh verify-v410-recording-foundation --event-selection-negative`의
+`AP11 exact new dispatch tuple`이 pts 없는 실제 track-health 구조를 거부한다.
+이후 동일 검사 GREEN과 기존 음성 항목을 확인한다. 제품 API·녹화 정책은 변경하지 않는다.
+
+RED 실행: 위 명령 exit1, 예상한 `AP11 exact new dispatch tuple`에서 실패(1pass/1fail).
+startedAtMs/endedAtMs=1789063077150, elapsedMs=0(밀리초 해상도), token 값은 개별 집계
+부재로 null. GST 임시 root media-server-s09-foundation-gst.Ejgaft는 62691bytes 삭제,
+absent=true. 제품 서버·포트는 사용하지 않았다.
+
+GREEN: 같은 명령 exit0, 14pass/0fail, start1789063103466/end1789063103467/elapsed1ms.
+token start/end/consumed는 개별 집계 부재로 null. 제품 코드는 변경하지 않았다.
+추가한 실패 후보 진단은 원본 source 대신 일치 여부만 남기며, AP03은 실제 segment
+timebase가 ns인지 명시 검사한다. `node --check scripts/internal/verify_v410_recording_foundation.mjs`
+및 `git diff --check` exit0. 다음 실제 앱 실행은 아직 미실행이다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| AP11 메타데이터 RED 최소 track | 최초 응답 최소 track 고정 | pass |
+| AP11 메타데이터 RED 신규 tuple | pts 없는 실제 track-health 구조에서 예상 assertion 실패 | fail |
+| AP11 GREEN 최소 track | 최초 응답 최소 track 고정 | pass |
+| AP11 GREEN 신규 tuple | track-health의 공통 updateTime과 정확 신규 ID 대조 | pass |
+| AP11 GREEN 과거 ID | updateTime만 새로운 과거 ID 거부 | pass |
+| AP11 GREEN 다른 tap | 다른 tap 응답 거부 | pass |
+| AP11 GREEN 다른 rule | 다른 durable rule 거부 | pass |
+| AP11 GREEN 다른 시간 | 다른 durable updateTime 거부 | pass |
+| AP11 GREEN 다른 track | 다른 durable track 거부 | pass |
+| AP11 GREEN 다른 source | 다른 durable source 거부 | pass |
+| AP11 GREEN 같은 ID 반복 | 같은 ID의 반복 행을 새 ID 중복으로 오판하지 않음 | pass |
+| AP11 GREEN 복수 신규 ID | 정확 조건에 맞는 서로 다른 ID가 둘이면 거부 | pass |
+| AP11 GREEN 기본 metadata | 기본 schema의 updateTime·pts 일치 허용 | pass |
+| AP11 GREEN 기본 pts 오류 | 기본 schema의 pts 불일치 거부 | pass |
+| AP11 GREEN 알 수 없는 schema | 미지원 metadata schema 거부 | pass |
+| AP11 GREEN metadata 누락 | metadata 없는 이벤트 거부 | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.Ejgaft | RED registry | 62691bytes | wrapper 삭제 | absent=true | 실제 명령 exit1의 cleanup 출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.hI8NHi | GREEN registry | 62691bytes | wrapper 삭제 | absent=true | 실제 명령 exit0의 cleanup 출력 |
+
+## AP03 선택 보강 실제 실패 — 78777
+
+사전등록 후 `./server.sh verify-v410-recording-foundation --event-selection-negative` exit0:10pass0fail, start1789062887294/end1789062887296/2ms. `./server.sh verify-v410-recording-foundation --app-nonauth` session78777 exit1:16pass1fail, start1789062900776/end1789062931343/30567ms. token start/end/consumed null(하위 작업별 자동 집계 없음). 기존15개 WebM 음성 증거는 변경없어 재사용했다.
+
+실패: AP02 `timeout: actual fallback durable correlated EventRecord`. 최초 응답 tuple rule9101/track1/PTS8333333333을 고정했으나 metadata.pts exact 대조가 성립하지 않았다. 직접 코드 확인: event_rule_engine.cpp1008~1030 AttachTrackHealthSnapshots는 metadata에 event-track-health.v1/ruleId/eventMetadata/trackHealth를 채우고 event_storage.cpp114~117은 이 metadata를 그대로 반환하므로 top-level pts가 없을 가능성이 높다. 실제 durable 후보 필드는 선택 전 실패catch에 출력하지 않아 미확인이다. 삭제된 원본을 확인했다고 주장하지 않는다. 이는 선택기 fixture가 실제 metadata shape를 반영하지 못한 검증 한계이며 제품 결함으로 확정하지 않는다. 추가 실행/제품수정 없음. AP03 barrier의 ns timebase 명시assert 누락은 메인리뷰로 확인됐으나 이번 미도달이며 일반 계약 PASS 근거가 아니다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| AP 선택 보강 1 | [pass] AP11 deterministic first response minimum track | pass |
+| AP 선택 보강 2 | [pass] AP11 exact new dispatch tuple | pass |
+| AP 선택 보강 3 | [pass] AP11 old ID newer update rejected | pass |
+| AP 선택 보강 4 | [pass] AP11 unrelated tap response rejected | pass |
+| AP 선택 보강 5 | [pass] AP11 unrelated durable rule rejected | pass |
+| AP 선택 보강 6 | [pass] AP11 unrelated durable PTS rejected | pass |
+| AP 선택 보강 7 | [pass] AP11 unrelated durable track rejected | pass |
+| AP 선택 보강 8 | [pass] AP11 unrelated durable source rejected | pass |
+| AP 선택 보강 9 | [pass] AP11 same ID repeated rows accepted | pass |
+| AP 선택 보강 10 | [pass] AP11 distinct matching IDs rejected | pass |
+| AP 선택 보강 11 | [pass] AP12 distinct loopback ports | pass |
+| AP 선택 보강 12 | [pass] AP12 actual foreground healthy \| pid=7016 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-asnZrS | pass |
+| AP 선택 보강 13 | [pass] POST /ops/api/sources \| status=201 | pass |
+| AP 선택 보강 14 | [pass] AP01 V1 identity seg-9101-1789062902110-1 | pass |
+| AP 선택 보강 15 | [pass] AP01 positive UTC/PTS seg-9101-1789062902110-1 | pass |
+| AP 선택 보강 16 | [pass] AP01 actual bytes SHA seg-9101-1789062902110-1 \| bytes=4096788 sha256=804f95ef808ed7f680921a2b071235ba77c5c85e67a936e491e829b42e44d30b | pass |
+| AP 선택 보강 17 | [pass] AP02 actual finalized barrier before rule and tap | pass |
+| AP 선택 보강 18 | [pass] PUT /lab/analysis/rules/9101 \| status=200 | pass |
+| AP 선택 보강 19 | [pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 \| status=200 | pass |
+| AP 선택 보강 20 | [pass] AP02 actual tap created | pass |
+| AP 선택 보강 21 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP 선택 보강 22 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP 선택 보강 23 | [pass] DELETE /lab/analysis/taps/analysis-tap-1 \| status=200 | pass |
+| AP 선택 보강 24 | [fail] timeout: actual fallback durable correlated EventRecord | fail |
+| AP 선택 보강 25 | [pass] AP12 port absent 60969 | pass |
+| AP 선택 보강 26 | [pass] AP12 port absent 60970 | pass |
+| AP 선택 보강 27 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-asnZrS bytes=71188149 absent=true | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.w5bqn1 | 선택기 GST cache | 62691bytes | 삭제 | absent=true | wrapper |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-asnZrS | 실제 앱 media/archive | 71188149bytes | 프로세스 종료 뒤 삭제 | absent=true | 앱 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.Gvp1Ph | 앱 GST cache | 62691bytes | 삭제 | absent=true | wrapper |
+
+포트60969/60970 부재. AP03/retention/restart 건너뜀. auth/30/UI/120/build/S05/S06/RT 미실행. 커밋/푸시 없음.
+
+<details><summary>78777 원출력 (소스 키 redacted, 줄 끝 공백 정규화)</summary>
+
+```text
+[pass] AP12 distinct loopback ports
+[pass] AP12 actual foreground healthy | pid=7016 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-asnZrS
+[pass] POST /ops/api/sources | status=201
+[pass] AP01 V1 identity seg-9101-1789062902110-1
+[pass] AP01 positive UTC/PTS seg-9101-1789062902110-1
+[pass] AP01 actual bytes SHA seg-9101-1789062902110-1 | bytes=4096788 sha256=804f95ef808ed7f680921a2b071235ba77c5c85e67a936e491e829b42e44d30b
+[pass] AP02 actual finalized barrier before rule and tap
+[pass] PUT /lab/analysis/rules/9101 | status=200
+[pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 | status=200
+[pass] AP02 actual tap created
+[pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 | status=200
+[event-correlation] {"source":{"sha256":"aba535bbbc07a73b4d243feb1be04db856d6a9248c9b85e0fd6fb3e2ef39e215"},"pts":8333333333,"ruleId":"9101","trackId":1,"type":"presence","priorIdCount":0}
+[pass] DELETE /lab/analysis/taps/analysis-tap-1 | status=200
+[fail] timeout: actual fallback durable correlated EventRecord
+[diagnostic] app0 =0 overlap=0.060957 directionChanges=0 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=direction-change-spike severity=warning association=0.830086 missed=0 overlap=0.437042 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=overlap-risk severity=warning association=0.780963 missed=0 overlap=0.521551 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=direction-change-spike severity=warning association=0.780963 missed=0 overlap=0.521551 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=overlap-risk severity=warning association=0.860097 missed=0 overlap=0.521551 directionChanges=4 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=unstable-track severity=warning association=0.886416 missed=0 overlap=0.0231881 directionChanges=0 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=4 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=reacquired severity=info association=0.571683 missed=0 overlap=0.764743 directionChanges=5 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=6 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=reacquired severity=info association=0.897639 missed=0 overlap=0.240294 directionChanges=7 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=overlap-risk severity=warning association=0.80964 missed=0 overlap=0.642838 directionChanges=2 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=5 type=unstable-track severity=warning association=1 missed=0 overlap=0.388267 directionChanges=0 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=5 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=0 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=direction-change-spike severity=warning association=0.869955 missed=0 overlap=0.0989445 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=5 type=reacquired severity=info association=0.698022 missed=0 overlap=0.201921 directionChanges=0 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=lost severity=warning association=0 missed=15 overlap=0 directionChanges=8 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=12 |
+[pass] AP12 port absent 60969
+[pass] AP12 port absent 60970
+[pass] AP12 root cleanup | path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-asnZrS bytes=71188149 absent=true
+{"mode":"--app-nonauth","passed":16,"failed":1,"startedAtMs":1789062900776,"endedAtMs":1789062931343,"elapsedMs":30567,"fullFoundationPass":false,"coverage":"app-nonauth-partial","notRun":["auth","30min","120min","UI"],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"하위 작업별 자동 집계 없음"}
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.Gvp1Ph bytes=62691 absent=true
+```
+
+</details>
+
+
+
+## AP03 신규 dispatch 선택 사전등록
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| AP03/AP11 신규 이벤트 tuple 선택 | 실제 응답 고정 후 durable 고유ID 대조 | 사전 전수ID 제외, oldID newer update 거부, wrongrule/tap/PTS/track 거부, 정확 신규 양성, 같은ID 반복 허용·다른ID 모호성 거부, 최소track 결정성. `--event-selection-negative` 후 app-nonauth1회 | v4.1.0 |
+| AP03 실제 PTS 입력 barrier | 새 rule9102 이전 tap latestResult.pts(ns) 관측 | 최신finalized.endPTS+750ms 이상 전진, rollback/epoch변화 오류, 이후 최초rule 응답 고정. Complete 사후선택·시간clamp 없음 | v4.1.0 |
+
+## S09 AP BF 후 실제 앱 재개 결과 — 41535 실패 보존
+
+후처리: lstatSync로 위 신규 임시4경로 재대조 checked4/present[] exit0. 원출력 이관 뒤 최초 `git diff --check`는 diagnostic 행 끝 공백을 검출했다(뒤 node 명령과 결합한 shell exit0을 diff PASS로 사용하지 않음). 해당 끝 공백만 제거하고 단독 `git diff --check` 재실행 exit0. 원출력 보존은 줄 끝 공백만 정규화했다.
+
+`./server.sh verify-v410-recording-foundation --oracle-negative` exit0, 14개 공유 판별 assertion+cleanup1=15pass/0fail, elapsed7ms. parser 선택 fixture는 실제 demux를 대체하지 않는다. `./server.sh verify-v410-recording-foundation --app-nonauth` session41535 exit1, 44pass/1fail, startedAtMs1789062269134/endedAtMs1789062309756/elapsed40622ms. token start/end/consumed는 null: 하위 작업별 자동 집계 없음. 제품 변경·추가 앱 실행 없음.
+
+확인: 첫 continuous finalize 뒤 event.startTime8333ms, padded mediaPTS[7833,8833]. 실제 bound fallback은 priority200/partial/requested-fallback, WebM22905bytes의 Range206(Content-Range bytes 2-5/22905, body dfa30100) 통과. AP03은 다른 event ID이지만 동일 시작시각8333을 선택하여 이미 존재하는 50ms UTC gap [1789062279292,1789062279342]를 포함했다. status=partial, reason=partial-missing-continuous-range, derivedId=null에서 `timeout: derived exact link`. 정상 보수적 Partial을 Complete로 완화하지 않는다. 실제 source/event/HTTP fallback 범위만 통과이며 derived·retention·restart 및 전체 S09는 미완료다. 진단 warning은 실제 tracking warning이며 승인되지 않은 UI warning gate로 확대하지 않는다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| AP 음성 보강 | AP11 literal Range valid | pass |
+| AP 음성 보강 | AP11 wrong Range bytes rejected | pass |
+| AP 음성 보강 | AP11 wrong Content-Range rejected | pass |
+| AP 음성 보강 | AP11 independent oldest tie order | pass |
+| AP 음성 보강 | AP11 actual restart predicate accepts unique IDs | pass |
+| AP 음성 보강 | AP11 actual restart predicate rejects duplicate IDs | pass |
+| AP 음성 보강 | AP11 actual timeline predicate accepts priority | pass |
+| AP 음성 보강 | AP11 actual timeline predicate rejects inversion | pass |
+| AP 음성 보강 | AP05 shared selector returns encoded media not manifest | pass |
+| AP 음성 보강 | AP05 shared selector rejects encoded schema | pass |
+| AP 음성 보강 | AP05 shared selector rejects encoded status | pass |
+| AP 음성 보강 | AP05 shared selector rejects encoded contentType | pass |
+| AP 음성 보강 | AP05 shared selector rejects encoded byteSize | pass |
+| AP 음성 보강 | AP05 shared selector rejects encoded mediaPath | pass |
+| AP 음성 보강 | AP12 root cleanup | pass |
+| AP 재개41535-01 | [pass] AP12 distinct loopback ports | pass |
+| AP 재개41535-02 | [pass] AP12 actual foreground healthy \| pid=6371 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-UCESIc | pass |
+| AP 재개41535-03 | [pass] POST /ops/api/sources \| status=201 | pass |
+| AP 재개41535-04 | [pass] AP01 V1 identity seg-9101-1789062270982-1 | pass |
+| AP 재개41535-05 | [pass] AP01 positive UTC/PTS seg-9101-1789062270982-1 | pass |
+| AP 재개41535-06 | [pass] AP01 actual bytes SHA seg-9101-1789062270982-1 \| bytes=4096788 sha256=8d7a614e4e04071edee63b3feb890f4068ea7c11f98334946ae0c95558da2e2b | pass |
+| AP 재개41535-07 | [pass] AP02 actual finalized barrier before rule and tap | pass |
+| AP 재개41535-08 | [pass] PUT /lab/analysis/rules/9101 \| status=200 | pass |
+| AP 재개41535-09 | [pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 \| status=200 | pass |
+| AP 재개41535-10 | [pass] AP02 actual tap created | pass |
+| AP 재개41535-11 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP 재개41535-12 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP 재개41535-13 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP 재개41535-14 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP 재개41535-15 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP 재개41535-16 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP 재개41535-17 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP 재개41535-18 | [pass] AP02/03 actual EventRecord identity fallback \| eventId=evt_1789062279615_2 linkId=event-link-sha256-64689098e011d5565f95bdb7cc392805d6aca30249e8ec9ea086f420015cb3c4 | pass |
+| AP 재개41535-19 | [pass] AP02/03 actual nonnegative padded event start fallback \| startTime=8333 updateTime=8333 timeBasis=media-pts-ms | pass |
+| AP 재개41535-20 | [pass] AP02/03 durable link source fallback | pass |
+| AP 재개41535-21 | [pass] GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789062277815&endTimeMs=1789062280842 \| status=200 | pass |
+| AP 재개41535-22 | [pass] AP04 fallback event priority | pass |
+| AP 재개41535-23 | [pass] AP04 fallback path redaction | pass |
+| AP 재개41535-24 | [pass] AP02 fallback remains partial requested-fallback | pass |
+| AP 재개41535-25 | [pass] AP02 encoded WebM eventId/encoded contract/size/isolated path | pass |
+| AP 재개41535-26 | [pass] AP05 fallback playable local URL | pass |
+| AP 재개41535-27 | [pass] AP05 fallback actual file prefix | pass |
+| AP 재개41535-28 | [pass] AP05 fallback literal GET Range \| status=206 contentRange=bytes 2-5/22905 bodyHex=dfa30100 | pass |
+| AP 재개41535-29 | [pass] DELETE /lab/analysis/taps/analysis-tap-1 \| status=200 | pass |
+| AP 재개41535-30 | [pass] AP01 V1 identity seg-9101-1789062270982-1 | pass |
+| AP 재개41535-31 | [pass] AP01 positive UTC/PTS seg-9101-1789062270982-1 | pass |
+| AP 재개41535-32 | [pass] AP01 actual bytes SHA seg-9101-1789062270982-1 \| bytes=4096788 sha256=8d7a614e4e04071edee63b3feb890f4068ea7c11f98334946ae0c95558da2e2b | pass |
+| AP 재개41535-33 | [pass] AP01 V1 identity seg-9101-1789062279342-2 | pass |
+| AP 재개41535-34 | [pass] AP01 positive UTC/PTS seg-9101-1789062279342-2 | pass |
+| AP 재개41535-35 | [pass] AP01 actual bytes SHA seg-9101-1789062279342-2 \| bytes=4813100 sha256=13c9988c47c8546eabfb952873761db6199c4398735459bdf04649a31aafedb8 | pass |
+| AP 재개41535-36 | [pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 \| status=200 | pass |
+| AP 재개41535-37 | [pass] AP03 actual tap created | pass |
+| AP 재개41535-38 | [pass] GET /lab/analysis/taps/analysis-tap-2/events?dispatch=1 \| status=200 | pass |
+| AP 재개41535-39 | [pass] AP02/03 actual EventRecord identity derived \| eventId=evt_1789062279615_3 linkId=event-link-sha256-f68424471cab4111460bd2f7c4f4381ac8c1dbeb2e37f14a88f56f4ae8239d0a | pass |
+| AP 재개41535-40 | [pass] AP02/03 actual nonnegative padded event start derived \| startTime=8333 updateTime=8333 timeBasis=media-pts-ms | pass |
+| AP 재개41535-41 | [pass] DELETE /lab/analysis/taps/analysis-tap-2 \| status=200 | pass |
+| AP 재개41535-42 | [fail] timeout: derived exact link | fail |
+| AP 재개41535-43 | [pass] AP12 port absent 60632 | pass |
+| AP 재개41535-44 | [pass] AP12 port absent 60633 | pass |
+| AP 재개41535-45 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-UCESIc bytes=108102901 absent=true | pass |
+
+### 임시 산출물 전수
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-fallback-oracle-IcrLpc | 음성 parser fixture | 368bytes | 삭제 | absent=true | 음성 실행 출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.icvbWp | 음성 GST cache | 62691bytes | 삭제 | absent=true | wrapper 출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-UCESIc | 실제 앱 archive/media | 108102901bytes | 종료 후 삭제 | absent=true | 앱 cleanup |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.FLVdkn | 실제 앱 GST cache | 62691bytes | 삭제 | absent=true | wrapper 출력 |
+
+포트60632/60633 부재 확인. 아래 원출력은 저장소 문서에 이관한 최소 진단·개별 결과이며 raw source key는 SHA256 또는 redacted 표현이다. 임시 미디어를 보존하지 않았으며 아래 역사적 경로는 최종 파일 링크가 아니다. 원출력의 fallback locator는 격리 임시 경로 식별자다.
+
+<details><summary>41535 원출력 및 상태 전이 (소스 키 redacted)</summary>
+
+```text
+[pass] AP12 distinct loopback ports
+[pass] AP12 actual foreground healthy | pid=6371 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-UCESIc
+[pass] POST /ops/api/sources | status=201
+[pass] AP01 V1 identity seg-9101-1789062270982-1
+[pass] AP01 positive UTC/PTS seg-9101-1789062270982-1
+[pass] AP01 actual bytes SHA seg-9101-1789062270982-1 | bytes=4096788 sha256=8d7a614e4e04071edee63b3feb890f4068ea7c11f98334946ae0c95558da2e2b
+[pass] AP02 actual finalized barrier before rule and tap
+[pass] PUT /lab/analysis/rules/9101 | status=200
+[pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 | status=200
+[pass] AP02 actual tap created
+[pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 | status=200
+[pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 | status=200
+[pass] AP02/03 actual EventRecord identity fallback | eventId=evt_1789062279615_2 linkId=event-link-sha256-64689098e011d5565f95bdb7cc392805d6aca30249e8ec9ea086f420015cb3c4
+[pass] AP02/03 actual nonnegative padded event start fallback | startTime=8333 updateTime=8333 timeBasis=media-pts-ms
+[event-transition] {"eventId":"evt_1789062279615_2","linkId":"event-link-sha256-64689098e011d5565f95bdb7cc392805d6aca30249e8ec9ea086f420015cb3c4","requested":null,"mediaPts":{"start_ms":7833,"end_ms":8833},"status":"pending","reason":"pending-with-provisional-frame-buffer-fallback","overlaps":[],"missing":[],"derivedId":null,"manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"afaf0a75bc0844171041cd908bd7fc3bed8d44ac56ece674280d559ed71b9847"},"manifestChannel":{"kind":"file-stream-key","sha256":"afaf0a75bc0844171041cd908bd7fc3bed8d44ac56ece674280d559ed71b9847"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":22905},"segments":[{"id":"seg-9101-1789062270982-1","epoch":"epoch-9101-1-1789062270902","start":{"utc_ms":1789062270982,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789062279292,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}}]}
+[event-transition] {"eventId":"evt_1789062279615_2","linkId":"event-link-sha256-64689098e011d5565f95bdb7cc392805d6aca30249e8ec9ea086f420015cb3c4","requested":null,"mediaPts":{"start_ms":7833,"end_ms":8833},"status":"pending","reason":"pending-with-provisional-frame-buffer-fallback","overlaps":[],"missing":[],"derivedId":null,"manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"afaf0a75bc0844171041cd908bd7fc3bed8d44ac56ece674280d559ed71b9847"},"manifestChannel":{"kind":"file-stream-key","sha256":"afaf0a75bc0844171041cd908bd7fc3bed8d44ac56ece674280d559ed71b9847"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":22905},"segments":[{"id":"seg-9101-1789062270982-1","epoch":"epoch-9101-1-1789062270902","start":{"utc_ms":1789062270982,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789062279292,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789062279342-2","epoch":"epoch-9101-1-1789062270902","start":{"utc_ms":1789062279342,"pts":8333333333,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789062287625,"pts":16633333333,"time_base_num":1,"time_base_den":1000000000}}]}
+[event-transition] {"eventId":"evt_1789062279615_2","linkId":"event-link-sha256-64689098e011d5565f95bdb7cc392805d6aca30249e8ec9ea086f420015cb3c4","requested":{"start_ms":1789062278815,"end_ms":1789062279842},"status":"partial","reason":"partial-missing-continuous-range","overlaps":[{"segment_id":"seg-9101-1789062270982-1","range":{"start_ms":1789062278815,"end_ms":1789062279292}},{"segment_id":"seg-9101-1789062279342-2","range":{"start_ms":1789062279342,"end_ms":1789062279842}}],"missing":[{"start_ms":1789062279292,"end_ms":1789062279342}],"epoch":"epoch-9101-1-1789062270902","derivedId":null,"manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"afaf0a75bc0844171041cd908bd7fc3bed8d44ac56ece674280d559ed71b9847"},"manifestChannel":{"kind":"file-stream-key","sha256":"afaf0a75bc0844171041cd908bd7fc3bed8d44ac56ece674280d559ed71b9847"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":22905},"http":{"status":200,"items":[{"segmentId":"fallback-bound-v1-2a2c6f587faff01faad6e2afe1dde5b4377942ba1fd36a7399d4709e831da519","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789062278815,"endTimeMs":1789062279842,"eventId":"evt_1789062279615_2","completeness":"partial","playable":true,"playbackUrl":"/ops/api/recordings/media/fallback-bound-v1-2a2c6f587faff01faad6e2afe1dde5b4377942ba1fd36a7399d4709e831da519","contentType":"video/webm","rangeBasis":"requested-fallback","requestedRange":{"startTimeMs":1789062278815,"endTimeMs":1789062279842},"actualRange":null,"supersededByEventIds":[]}]},"segments":[{"id":"seg-9101-1789062270982-1","epoch":"epoch-9101-1-1789062270902","start":{"utc_ms":1789062270982,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789062279292,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789062279342-2","epoch":"epoch-9101-1-1789062270902","start":{"utc_ms":1789062279342,"pts":8333333333,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789062287625,"pts":16633333333,"time_base_num":1,"time_base_den":1000000000}}]}
+[pass] AP02/03 durable link source fallback
+[pass] GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789062277815&endTimeMs=1789062280842 | status=200
+[pass] AP04 fallback event priority
+[pass] AP04 fallback path redaction
+[pass] AP02 fallback remains partial requested-fallback
+[pass] AP02 encoded WebM eventId/encoded contract/size/isolated path
+[pass] AP05 fallback playable local URL
+[pass] AP05 fallback actual file prefix
+[pass] AP05 fallback literal GET Range | status=206 contentRange=bytes 2-5/22905 bodyHex=dfa30100
+[evidence] fallback {"eventId":"evt_1789062279615_2","link":{"schema":"media-server.event-recording-link.v1","link_id":"event-link-sha256-64689098e011d5565f95bdb7cc392805d6aca30249e8ec9ea086f420015cb3c4","event_id":"evt_1789062279615_2","source_id":"9101","channel_id":"9101","requested_range":{"start_ms":1789062278815,"end_ms":1789062279842},"ordered_overlaps":[{"segment_id":"seg-9101-1789062270982-1","range":{"start_ms":1789062278815,"end_ms":1789062279292}},{"segment_id":"seg-9101-1789062279342-2","range":{"start_ms":1789062279342,"end_ms":1789062279842}}],"derived_segment_id":null,"fallback_evidence_id":"fallback-bound-v1-2a2c6f587faff01faad6e2afe1dde5b4377942ba1fd36a7399d4709e831da519","fallback_media_locator":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-UCESIc/events/clips/evt_1789062279615_2.clip/manifest.json","missing_ranges":[{"start_ms":1789062279292,"end_ms":1789062279342}],"time_basis":"media-pts-ms","stream_epoch_id":"epoch-9101-1-1789062270902","completeness_reason":"partial-missing-continuous-range","status":"partial","created_at_ms":1789062279615,"updated_at_ms":1789062287730},"item":{"segmentId":"fallback-bound-v1-2a2c6f587faff01faad6e2afe1dde5b4377942ba1fd36a7399d4709e831da519","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789062278815,"endTimeMs":1789062279842,"eventId":"evt_1789062279615_2","completeness":"partial","playable":true,"playbackUrl":"/ops/api/recordings/media/fallback-bound-v1-2a2c6f587faff01faad6e2afe1dde5b4377942ba1fd36a7399d4709e831da519","contentType":"video/webm","rangeBasis":"requested-fallback","requestedRange":{"startTimeMs":1789062278815,"endTimeMs":1789062279842},"actualRange":null,"supersededByEventIds":[]},"capturedAtMs":1789062287928}
+[pass] DELETE /lab/analysis/taps/analysis-tap-1 | status=200
+[pass] AP01 V1 identity seg-9101-1789062270982-1
+[pass] AP01 positive UTC/PTS seg-9101-1789062270982-1
+[pass] AP01 actual bytes SHA seg-9101-1789062270982-1 | bytes=4096788 sha256=8d7a614e4e04071edee63b3feb890f4068ea7c11f98334946ae0c95558da2e2b
+[pass] AP01 V1 identity seg-9101-1789062279342-2
+[pass] AP01 positive UTC/PTS seg-9101-1789062279342-2
+[pass] AP01 actual bytes SHA seg-9101-1789062279342-2 | bytes=4813100 sha256=13c9988c47c8546eabfb952873761db6199c4398735459bdf04649a31aafedb8
+[pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 | status=200
+[pass] AP03 actual tap created
+[pass] GET /lab/analysis/taps/analysis-tap-2/events?dispatch=1 | status=200
+[pass] AP02/03 actual EventRecord identity derived | eventId=evt_1789062279615_3 linkId=event-link-sha256-f68424471cab4111460bd2f7c4f4381ac8c1dbeb2e37f14a88f56f4ae8239d0a
+[pass] AP02/03 actual nonnegative padded event start derived | startTime=8333 updateTime=8333 timeBasis=media-pts-ms
+[event-transition] {"eventId":"evt_1789062279615_3","linkId":"event-link-sha256-f68424471cab4111460bd2f7c4f4381ac8c1dbeb2e37f14a88f56f4ae8239d0a","requested":{"start_ms":1789062278815,"end_ms":1789062279842},"status":"partial","reason":"partial-missing-continuous-range","overlaps":[{"segment_id":"seg-9101-1789062270982-1","range":{"start_ms":1789062278815,"end_ms":1789062279292}},{"segment_id":"seg-9101-1789062279342-2","range":{"start_ms":1789062279342,"end_ms":1789062279842}}],"missing":[{"start_ms":1789062279292,"end_ms":1789062279342}],"epoch":"epoch-9101-1-1789062270902","derivedId":null,"manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"afaf0a75bc0844171041cd908bd7fc3bed8d44ac56ece674280d559ed71b9847"},"manifestChannel":{"kind":"file-stream-key","sha256":"afaf0a75bc0844171041cd908bd7fc3bed8d44ac56ece674280d559ed71b9847"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":22905},"http":{"status":200,"items":[{"segmentId":"fallback-bound-v1-f6a40d9ffb7c62a05f1581e51818b2fe97f3d8bf84e4f5c7cfcdd0f657f6c735","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789062278815,"endTimeMs":1789062279842,"eventId":"evt_1789062279615_3","completeness":"partial","playable":true,"playbackUrl":"/ops/api/recordings/media/fallback-bound-v1-f6a40d9ffb7c62a05f1581e51818b2fe97f3d8bf84e4f5c7cfcdd0f657f6c735","contentType":"video/webm","rangeBasis":"requested-fallback","requestedRange":{"startTimeMs":1789062278815,"endTimeMs":1789062279842},"actualRange":null,"supersededByEventIds":[]}]},"segments":[{"id":"seg-9101-1789062270982-1","epoch":"epoch-9101-1-1789062270902","start":{"utc_ms":1789062270982,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789062279292,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789062279342-2","epoch":"epoch-9101-1-1789062270902","start":{"utc_ms":1789062279342,"pts":8333333333,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789062287625,"pts":16633333333,"time_base_num":1,"time_base_den":1000000000}}]}
+[event-transition] {"eventId":"evt_1789062279615_3","linkId":"event-link-sha256-f68424471cab4111460bd2f7c4f4381ac8c1dbeb2e37f14a88f56f4ae8239d0a","requested":{"start_ms":1789062278815,"end_ms":1789062279842},"status":"partial","reason":"partial-missing-continuous-range","overlaps":[{"segment_id":"seg-9101-1789062270982-1","range":{"start_ms":1789062278815,"end_ms":1789062279292}},{"segment_id":"seg-9101-1789062279342-2","range":{"start_ms":1789062279342,"end_ms":1789062279842}}],"missing":[{"start_ms":1789062279292,"end_ms":1789062279342}],"epoch":"epoch-9101-1-1789062270902","derivedId":null,"manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"afaf0a75bc0844171041cd908bd7fc3bed8d44ac56ece674280d559ed71b9847"},"manifestChannel":{"kind":"file-stream-key","sha256":"afaf0a75bc0844171041cd908bd7fc3bed8d44ac56ece674280d559ed71b9847"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":22905},"http":{"status":200,"items":[{"segmentId":"fallback-bound-v1-f6a40d9ffb7c62a05f1581e51818b2fe97f3d8bf84e4f5c7cfcdd0f657f6c735","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789062278815,"endTimeMs":1789062279842,"eventId":"evt_1789062279615_3","completeness":"partial","playable":true,"playbackUrl":"/ops/api/recordings/media/fallback-bound-v1-f6a40d9ffb7c62a05f1581e51818b2fe97f3d8bf84e4f5c7cfcdd0f657f6c735","contentType":"video/webm","rangeBasis":"requested-fallback","requestedRange":{"startTimeMs":1789062278815,"endTimeMs":1789062279842},"actualRange":null,"supersededByEventIds":[]}]},"segments":[{"id":"seg-9101-1789062270982-1","epoch":"epoch-9101-1-1789062270902","start":{"utc_ms":1789062270982,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789062279292,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789062279342-2","epoch":"epoch-9101-1-1789062270902","start":{"utc_ms":1789062279342,"pts":8333333333,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789062287625,"pts":16633333333,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789062287663-3","epoch":"epoch-9101-1-1789062270902","start":{"utc_ms":1789062287663,"pts":16666666666,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789062295956,"pts":24966666666,"time_base_num":1,"time_base_den":1000000000}}]}
+[event-transition] {"eventId":"evt_1789062279615_3","linkId":"event-link-sha256-f68424471cab4111460bd2f7c4f4381ac8c1dbeb2e37f14a88f56f4ae8239d0a","requested":{"start_ms":1789062278815,"end_ms":1789062279842},"status":"partial","reason":"partial-missing-continuous-range","overlaps":[{"segment_id":"seg-9101-1789062270982-1","range":{"start_ms":1789062278815,"end_ms":1789062279292}},{"segment_id":"seg-9101-1789062279342-2","range":{"start_ms":1789062279342,"end_ms":1789062279842}}],"missing":[{"start_ms":1789062279292,"end_ms":1789062279342}],"epoch":"epoch-9101-1-1789062270902","derivedId":null,"manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"afaf0a75bc0844171041cd908bd7fc3bed8d44ac56ece674280d559ed71b9847"},"manifestChannel":{"kind":"file-stream-key","sha256":"afaf0a75bc0844171041cd908bd7fc3bed8d44ac56ece674280d559ed71b9847"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":22905},"http":{"status":200,"items":[{"segmentId":"fallback-bound-v1-f6a40d9ffb7c62a05f1581e51818b2fe97f3d8bf84e4f5c7cfcdd0f657f6c735","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789062278815,"endTimeMs":1789062279842,"eventId":"evt_1789062279615_3","completeness":"partial","playable":true,"playbackUrl":"/ops/api/recordings/media/fallback-bound-v1-f6a40d9ffb7c62a05f1581e51818b2fe97f3d8bf84e4f5c7cfcdd0f657f6c735","contentType":"video/webm","rangeBasis":"requested-fallback","requestedRange":{"startTimeMs":1789062278815,"endTimeMs":1789062279842},"actualRange":null,"supersededByEventIds":[]}]},"segments":[{"id":"seg-9101-1789062270982-1","epoch":"epoch-9101-1-1789062270902","start":{"utc_ms":1789062270982,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789062279292,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789062279342-2","epoch":"epoch-9101-1-1789062270902","start":{"utc_ms":1789062279342,"pts":8333333333,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789062287625,"pts":16633333333,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789062287663-3","epoch":"epoch-9101-1-1789062270902","start":{"utc_ms":1789062287663,"pts":16666666666,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789062295956,"pts":24966666666,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789062296002-4","epoch":"epoch-9101-1-1789062270902","start":{"utc_ms":1789062296002,"pts":25000000000,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789062300953,"pts":29966666666,"time_base_num":1,"time_base_den":1000000000}}]}
+[event-diagnostic] {"eventId":"evt_1789062279615_3","lastTransition":{"eventId":"evt_1789062279615_3","linkId":"event-link-sha256-f68424471cab4111460bd2f7c4f4381ac8c1dbeb2e37f14a88f56f4ae8239d0a","requested":{"start_ms":1789062278815,"end_ms":1789062279842},"status":"partial","reason":"partial-missing-continuous-range","overlaps":[{"segment_id":"seg-9101-1789062270982-1","range":{"start_ms":1789062278815,"end_ms":1789062279292}},{"segment_id":"seg-9101-1789062279342-2","range":{"start_ms":1789062279342,"end_ms":1789062279842}}],"missing":[{"start_ms":1789062279292,"end_ms":1789062279342}],"epoch":"epoch-9101-1-1789062270902","derivedId":null,"manifestExists":true,"mediaExists":true,"identity":{"eventMatches":true,"streamMatchesCatalogSource":false,"channelMatchesCatalogChannel":false,"manifestStream":{"kind":"file-stream-key","sha256":"afaf0a75bc0844171041cd908bd7fc3bed8d44ac56ece674280d559ed71b9847"},"manifestChannel":{"kind":"file-stream-key","sha256":"afaf0a75bc0844171041cd908bd7fc3bed8d44ac56ece674280d559ed71b9847"},"catalogSource":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"},"catalogChannel":{"kind":"opaque-id","sha256":"74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"}},"encodedClip":{"schema":"media-server.encoded-event-clip-contract.v1","status":"completed","format":"webm","contentType":"video/webm","codec":"vp8","byteSize":22905},"http":{"status":200,"items":[{"segmentId":"fallback-bound-v1-f6a40d9ffb7c62a05f1581e51818b2fe97f3d8bf84e4f5c7cfcdd0f657f6c735","channelId":"9101","kind":"event","displayPriority":200,"startTimeMs":1789062278815,"endTimeMs":1789062279842,"eventId":"evt_1789062279615_3","completeness":"partial","playable":true,"playbackUrl":"/ops/api/recordings/media/fallback-bound-v1-f6a40d9ffb7c62a05f1581e51818b2fe97f3d8bf84e4f5c7cfcdd0f657f6c735","contentType":"video/webm","rangeBasis":"requested-fallback","requestedRange":{"startTimeMs":1789062278815,"endTimeMs":1789062279842},"actualRange":null,"supersededByEventIds":[]}]},"segments":[{"id":"seg-9101-1789062270982-1","epoch":"epoch-9101-1-1789062270902","start":{"utc_ms":1789062270982,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789062279292,"pts":8300000000,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789062279342-2","epoch":"epoch-9101-1-1789062270902","start":{"utc_ms":1789062279342,"pts":8333333333,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789062287625,"pts":16633333333,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789062287663-3","epoch":"epoch-9101-1-1789062270902","start":{"utc_ms":1789062287663,"pts":16666666666,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789062295956,"pts":24966666666,"time_base_num":1,"time_base_den":1000000000}},{"id":"seg-9101-1789062296002-4","epoch":"epoch-9101-1-1789062270902","start":{"utc_ms":1789062296002,"pts":25000000000,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":1789062300953,"pts":29966666666,"time_base_num":1,"time_base_den":1000000000}}]},"selectedLinkPresent":true}
+[pass] DELETE /lab/analysis/taps/analysis-tap-2 | status=200
+[fail] timeout: derived exact link
+[diagnostic] app0 on=0.780963 missed=0 overlap=0.521551 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=direction-change-spike severity=warning association=0.780963 missed=0 overlap=0.521551 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=overlap-risk severity=warning association=0.860097 missed=0 overlap=0.521551 directionChanges=4 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=unstable-track severity=warning association=0.886416 missed=0 overlap=0.0231881 directionChanges=0 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=4 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=reacquired severity=info association=0.634909 missed=0 overlap=0.683322 directionChanges=5 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=7 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=direction-change-spike severity=warning association=0.841275 missed=0 overlap=0.241619 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=overlap-risk severity=warning association=0.844641 missed=0 overlap=0.777335 directionChanges=4 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=3 type=reacquired severity=info association=0.498962 missed=0 overlap=0.777335 directionChanges=7 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=1 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=unstable-track severity=warning association=0 missed=1 overlap=0 directionChanges=1 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=1 type=reacquired severity=info association=0.765479 missed=0 overlap=0 directionChanges=0 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=unstable-track severity=warning association=0.86211 missed=0 overlap=0 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=direction-change-spike severity=warning association=0.86211 missed=0 overlap=0 directionChanges=3 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=missed-frame-spike severity=warning association=0 missed=1 overlap=0 directionChanges=18 | [tracking-issue] stream=[local-source-redacted] channel=[local-source-redacted] track=2 type=reacquired severity=info association=0.405901 missed=0 overlap=0 directionChanges=19 |
+[pass] AP12 port absent 60632
+[pass] AP12 port absent 60633
+[pass] AP12 root cleanup | path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-UCESIc bytes=108102901 absent=true
+{"mode":"--app-nonauth","passed":44,"failed":1,"startedAtMs":1789062269134,"endedAtMs":1789062309756,"elapsedMs":40622,"fullFoundationPass":false,"coverage":"app-nonauth-partial","notRun":["auth","30min","120min","UI"],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"하위 작업별 자동 집계 없음"}
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.FLVdkn bytes=62691 absent=true
+```
+
+</details>
+
+미실행: AP03 이후 retention/restart는 실패 뒤 건너뜀. auth5env 미설정, 30분/UI/120분/RT/S05/S06/build는 이번 승인 밖이므로 미실행·전체 PASS 근거 아님. 커밋/푸시 없음.
+
+
+
+## S09 AP 재개 사전 정의 (BF 수정 후)
+
+AP05 공유 fallbackMedia 음성검증을 실제 앱 실행 전에 추가한다: 정상 completed encodedClip의 실파일 선택, wrong encoded schema/status/contentType, wrong byteSize 및 root escape는 각각 거부해야 한다. 이 fixture의 짧은 bytes는 parser/선택 oracle이며 실제 WebM decode가 아니다. 기존 AP11 8개 음성 판별력도 함께 재검증한다.
+
+AP02 입력은 source POST→실제 첫 continuous finalized→rule/tap 순서다. 임의 sleep/UTC합성/clamp/timeout 증가는 없다. actual EventRecord startTime/link PTS가 nonnegative인지 확인하고 state 전이별 requested/mediaPTS/gap/derived/manifest/HTTP를 기록한다. fallback이 Complete로 먼저 대체되면 fallback 성공으로 보지 않는다. 승인된 app-nonauth 1회 뒤 실패가 있으면 추가 앱 실행 없이 메인 판단에 반환한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| AP05 WebM oracle 음성 보강 | shared fallbackMedia 선택·거부 | 정상 encoded 파일 선택 및 schema/status/contentType/size/path 각각 변형, 기존8개 음성 회귀 | v4.1.0 |
+| AP02 actual finalize barrier | recording이 먼저 실제 source 진행 | 실제 finalized metadata·SHA 관측 뒤 tap 생성, event.startTime/pre500 및 requested/mediaPTS·실제 HTTP 상태변화 | v4.1.0 |
+
+메인 BF 검토 뒤 docs-links 별도실행 exit0:226md/1051links/22images/103anchors/76indexed/142excluded/fail0. BF 최신 build8702와 제품4파일은 동결하며 이번재개에서 build/RT/S05/S06/auth/long/UI를 재실행하지 않는다. token start/end/consumed 자동개별집계 부재, elapsed는 실행별 측정한다.
+
+## S09 fallback binding TDD 사전정의
+
+최초 RED `./server.sh verify-v410-recording-fallback-binding --red` session61846 exit1: journal open/catalog open/actual bridge numeric link/actual fallback durable 4pass 뒤 사전명시 `BF01 mapped bridge catalog reader playable` 1fail. 예상 요구사항 RED이며 compile/env 실패 아님. 임시root `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.S7jGQX` 2080256bytes 삭제·absent=true, elapsed4214ms. token start/end/consumed 자동개별집계 부재로 미집계.
+
+독립 기대값은 메인 Node crypto 직접계산 exit0(테스트PASS 아님): domain/event/link/catalogSource/catalogChannel/rawStream/rawChannel을 UTF8 byte길이 십진수+':'로 연결. `evt-test,link-test,9101,9101,file::sample.mp4,file::sample.mp4`의 SHA256 `2aa12ad414db07ecd365fde2c23009bf177ab73787732e7581568d36df6d77ff`. 메인 임시산출물 없음. 제품/fixture/scripts 검색에서 기존 `fallback-bound-` namespace 사용 없음 확인.
+
+예상 RED 명령 `./server.sh verify-v410-recording-fallback-binding --red`는 기존 실제 CatalogEventRecordingBridge가 raw→numeric link를 만들고 RecordFallback을 저장한 뒤 `BF01 mapped bridge catalog reader playable` assertion에서 실패해야 한다. compile/env 실패는 RED 아님. manifest는 기존 S06과 같은 내부 reader fixture이며 실제 demux/앱 검증 대체가 아니다. 이후 동일 경로의 reopen 내구성 및 아래 음성 경계를 검증한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| V410-S09-BF-01 | 실제 bridge→catalog→reader raw/numeric mapped fallback 양성 및 journal reopen | 사전등록된 focused 실제 제품함수·reader·journal 경로 및 independent literal mutation 대조 | v4.1.0 |
+| V410-S09-BF-02 | 독립 고정 length-prefix SHA vector와 opaque 길이/문자 | 사전등록된 focused 실제 제품함수·reader·journal 경로 및 independent literal mutation 대조 | v4.1.0 |
+| V410-S09-BF-03 | event/rawstream/rawchannel/catalogchannel/catalogsource/link/hash 각각 변조 거부 | 사전등록된 focused 실제 제품함수·reader·journal 경로 및 independent literal mutation 대조 | v4.1.0 |
+| V410-S09-BF-04 | malformed bound prefix·noOpenSSL failclosed 및 legacy downgrade 금지 | 사전등록된 focused 실제 제품함수·reader·journal 경로 및 independent literal mutation 대조 | v4.1.0 |
+| V410-S09-BF-05 | resolver 실패/다른 채널 및 기존 bound 재결속 거부: ID/locator 원본 보존 | 사전등록된 focused 실제 제품함수·reader·journal 경로 및 independent literal mutation 대조 | v4.1.0 |
+| V410-S09-BF-06 | 같은 RecordFallback 반복 ID 안정 및 legacy 자동승격 없음 | 사전등록된 focused 실제 제품함수·reader·journal 경로 및 independent literal mutation 대조 | v4.1.0 |
+| V410-S09-BF-07 | legacy exact 양성·legacy mismatch 거부·resolver 없는 exact 경로 | 사전등록된 focused 실제 제품함수·reader·journal 경로 및 independent literal mutation 대조 | v4.1.0 |
+| V410-S09-BF-08 | wrongchannel·manifest type/size/symlink/duplicate/tombstone 기존 read guard 유지 | 사전등록된 focused 실제 제품함수·reader·journal 경로 및 independent literal mutation 대조 | v4.1.0 |
+| V410-S09-BF-09 | UTF8·빈 rawstream 규칙 및 필수 identity 빈값 거부 | 사전등록된 focused 실제 제품함수·reader·journal 경로 및 independent literal mutation 대조 | v4.1.0 |
+| V410-S09-BF-10 | focused 실행 오류전파·mktemp bytes/부재·S05/S06 관련 회귀 | 사전등록된 focused 실제 제품함수·reader·journal 경로 및 independent literal mutation 대조 | v4.1.0 |
+
+
+
+### BF 실행 이력과 전수 결과
+
+RED61846 4pass1예상fail→초기GREEN58310 5pass0fail→중간48612 44pass0fail→15282 SSL53+noSSL3→최종47213 SSL57+noSSL3 모두exit0. 최신60개는 identity/read 계약 범위만 검사하며 실제 앱/WebM decode/HTTP/프로세스restart는 대체하지 않는다. reopen은 원catalog가 살아있는 동안 새catalog 객체로 journal replay하여 active resolver 없이 읽는 검사다. UTF8 독립 Node crypto 계산 exit0의 literal `0d487cb09635e14becbca30e34c873503843419d255c8b46f9fdc3ca5e42738d`를 사용했다(기대값 산출이지 제품PASS 아님). token start/end/consumed는 개별자동집계없음. 메인 기존13개 compile shell 조사에서 macro1 경로의 crypto libs가 확인됐으며 읽기근거일 뿐 실행PASS 아님.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| BF RED61846 | [pass] BF01 journal open | pass |
+| BF RED61846 | [pass] BF01 catalog open | pass |
+| BF RED61846 | [pass] BF01 actual bridge resolves numeric catalog link | pass |
+| BF RED61846 | [pass] BF01 actual fallback durable | pass |
+| BF RED61846 | [fail] BF01 mapped bridge catalog reader playable | fail |
+| BF 초기GREEN58310 | [pass] BF01 journal open | pass |
+| BF 초기GREEN58310 | [pass] BF01 catalog open | pass |
+| BF 초기GREEN58310 | [pass] BF01 actual bridge resolves numeric catalog link | pass |
+| BF 초기GREEN58310 | [pass] BF01 actual fallback durable | pass |
+| BF 초기GREEN58310 | [pass] BF01 mapped bridge catalog reader playable | pass |
+| BF 중간확장48612 | [pass] BF01 journal open | pass |
+| BF 중간확장48612 | [pass] BF01 catalog open | pass |
+| BF 중간확장48612 | [pass] BF01 actual bridge resolves numeric catalog link | pass |
+| BF 중간확장48612 | [pass] BF01 actual fallback durable | pass |
+| BF 중간확장48612 | [pass] BF01 mapped bridge catalog reader playable | pass |
+| BF 중간확장48612 | [pass] BF02 opaque bound prefix length alphabet | pass |
+| BF 중간확장48612 | [pass] BF02 independent fixed Node vector | pass |
+| BF 중간확장48612 | [pass] BF02 length prefix split ambiguity rejected | pass |
+| BF 중간확장48612 | [pass] BF03 manifest field rejects event-one | pass |
+| BF 중간확장48612 | [pass] BF03 manifest field rejects raw-stream | pass |
+| BF 중간확장48612 | [pass] BF03 manifest field rejects raw-channel | pass |
+| BF 중간확장48612 | [pass] BF03 stored field rejects source | pass |
+| BF 중간확장48612 | [pass] BF03 stored field rejects channel | pass |
+| BF 중간확장48612 | [pass] BF03 stored field rejects link | pass |
+| BF 중간확장48612 | [pass] BF03 stored field rejects hash | pass |
+| BF 중간확장48612 | [pass] BF04 malformed reserved namespace no legacy downgrade fallback-bound- | pass |
+| BF 중간확장48612 | [pass] BF04 malformed reserved namespace no legacy downgrade fallback-bound-v1-abc | pass |
+| BF 중간확장48612 | [pass] BF04 malformed reserved namespace no legacy downgrade fallback-bound-v2-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa | pass |
+| BF 중간확장48612 | [pass] BF04 malformed reserved namespace no legacy downgrade fallback-bound-v1-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA | pass |
+| BF 중간확장48612 | [pass] BF08 wrong caller channel denied | pass |
+| BF 중간확장48612 | [pass] BF08 duplicate fallback identity denied | pass |
+| BF 중간확장48612 | [pass] BF08 manifest type or actual size denied "streamId":"raw-stream" | pass |
+| BF 중간확장48612 | [pass] BF08 manifest type or actual size denied "channelId":"raw-channel" | pass |
+| BF 중간확장48612 | [pass] BF08 manifest type or actual size denied "byteSize":10 | pass |
+| BF 중간확장48612 | [pass] BF08 oversized manifest denied | pass |
+| BF 중간확장48612 | [pass] BF08 symlink media denied | pass |
+| BF 중간확장48612 | [pass] BF05 resolver unavailable no append ID locator preserved | pass |
+| BF 중간확장48612 | [pass] BF05 resolver changed channel no append ID locator preserved | pass |
+| BF 중간확장48612 | [pass] BF05 bound identity replacement denied no append | pass |
+| BF 중간확장48612 | [pass] BF06 repeated RecordFallback stable ID locator | pass |
+| BF 중간확장48612 | [pass] BF07 legacy raw numeric mismatch denied | pass |
+| BF 중간확장48612 | [pass] BF07 legacy exact identity playable | pass |
+| BF 중간확장48612 | [pass] BF06 legacy fixture stored | pass |
+| BF 중간확장48612 | [pass] BF06 existing legacy not auto promoted | pass |
+| BF 중간확장48612 | [pass] BF01 restore bound link for reopen | pass |
+| BF 중간확장48612 | [pass] BF01 reopen journal | pass |
+| BF 중간확장48612 | [pass] BF01 reopen catalog | pass |
+| BF 중간확장48612 | [pass] BF01 reopened bound playable without active resolver | pass |
+| BF 중간확장48612 | [pass] BF09 empty raw stream allowed | pass |
+| BF 중간확장48612 | [pass] BF09 required empty field denied 0 | pass |
+| BF 중간확장48612 | [pass] BF09 required empty field denied 1 | pass |
+| BF 중간확장48612 | [pass] BF09 required empty field denied 2 | pass |
+| BF 중간확장48612 | [pass] BF09 required empty field denied 3 | pass |
+| BF 중간확장48612 | [pass] BF09 required empty field denied 5 | pass |
+| BF noSSL확장15282 | [pass] BF01 journal open | pass |
+| BF noSSL확장15282 | [pass] BF01 catalog open | pass |
+| BF noSSL확장15282 | [pass] BF01 actual bridge resolves numeric catalog link | pass |
+| BF noSSL확장15282 | [pass] BF01 actual fallback durable | pass |
+| BF noSSL확장15282 | [pass] BF01 mapped bridge catalog reader playable | pass |
+| BF noSSL확장15282 | [pass] BF02 opaque bound prefix length alphabet | pass |
+| BF noSSL확장15282 | [pass] BF02 independent fixed Node vector | pass |
+| BF noSSL확장15282 | [pass] BF02 length prefix split ambiguity rejected | pass |
+| BF noSSL확장15282 | [pass] BF09 UTF8 raw identity byte encoding accepted | pass |
+| BF noSSL확장15282 | [pass] BF03 manifest field rejects event-one | pass |
+| BF noSSL확장15282 | [pass] BF03 manifest field rejects raw-stream | pass |
+| BF noSSL확장15282 | [pass] BF03 manifest field rejects raw-channel | pass |
+| BF noSSL확장15282 | [pass] BF03 stored field rejects source | pass |
+| BF noSSL확장15282 | [pass] BF03 stored field rejects channel | pass |
+| BF noSSL확장15282 | [pass] BF03 stored field rejects link | pass |
+| BF noSSL확장15282 | [pass] BF03 stored field rejects hash | pass |
+| BF noSSL확장15282 | [pass] BF04 malformed reserved namespace no legacy downgrade fallback-bound- | pass |
+| BF noSSL확장15282 | [pass] BF04 malformed reserved namespace no legacy downgrade fallback-bound-v1-abc | pass |
+| BF noSSL확장15282 | [pass] BF04 malformed reserved namespace no legacy downgrade fallback-bound-v2-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa | pass |
+| BF noSSL확장15282 | [pass] BF04 malformed reserved namespace no legacy downgrade fallback-bound-v1-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA | pass |
+| BF noSSL확장15282 | [pass] BF08 wrong caller channel denied | pass |
+| BF noSSL확장15282 | [pass] BF08 duplicate fallback identity denied | pass |
+| BF noSSL확장15282 | [pass] BF08 manifest type or actual size denied "streamId":"raw-stream" | pass |
+| BF noSSL확장15282 | [pass] BF08 manifest type or actual size denied "channelId":"raw-channel" | pass |
+| BF noSSL확장15282 | [pass] BF08 manifest type or actual size denied "byteSize":10 | pass |
+| BF noSSL확장15282 | [pass] BF08 oversized manifest denied | pass |
+| BF noSSL확장15282 | [pass] BF08 symlink media denied | pass |
+| BF noSSL확장15282 | [pass] BF05 resolver unavailable no append ID locator preserved | pass |
+| BF noSSL확장15282 | [pass] BF05 resolver changed channel no append ID locator preserved | pass |
+| BF noSSL확장15282 | [pass] BF05 bound identity replacement denied no append | pass |
+| BF noSSL확장15282 | [pass] BF06 repeated RecordFallback stable ID locator | pass |
+| BF noSSL확장15282 | [pass] BF04 malformed reserved fixture stored | pass |
+| BF noSSL확장15282 | [pass] BF04 malformed bound writer cannot downgrade or overwrite | pass |
+| BF noSSL확장15282 | [pass] BF05 source mismatch fixture stored | pass |
+| BF noSSL확장15282 | [pass] BF05 resolver catalog source mismatch no append | pass |
+| BF noSSL확장15282 | [pass] BF05 original mapping restored | pass |
+| BF noSSL확장15282 | [pass] BF07 legacy raw numeric mismatch denied | pass |
+| BF noSSL확장15282 | [pass] BF07 legacy exact identity playable | pass |
+| BF noSSL확장15282 | [pass] BF06 legacy fixture stored | pass |
+| BF noSSL확장15282 | [pass] BF06 existing legacy not auto promoted | pass |
+| BF noSSL확장15282 | [pass] BF01 restore bound link for reopen | pass |
+| BF noSSL확장15282 | [pass] BF01 reopen journal | pass |
+| BF noSSL확장15282 | [pass] BF01 reopen catalog | pass |
+| BF noSSL확장15282 | [pass] BF01 reopened bound playable without active resolver | pass |
+| BF noSSL확장15282 | [pass] BF07 resolver absent exact link created | pass |
+| BF noSSL확장15282 | [pass] BF07 resolver absent issues only legacy exact ID | pass |
+| BF noSSL확장15282 | [pass] BF07 resolver absent legacy exact reader positive | pass |
+| BF noSSL확장15282 | [pass] BF09 empty raw stream allowed | pass |
+| BF noSSL확장15282 | [pass] BF09 required empty field denied 0 | pass |
+| BF noSSL확장15282 | [pass] BF09 required empty field denied 1 | pass |
+| BF noSSL확장15282 | [pass] BF09 required empty field denied 2 | pass |
+| BF noSSL확장15282 | [pass] BF09 required empty field denied 3 | pass |
+| BF noSSL확장15282 | [pass] BF09 required empty field denied 5 | pass |
+| BF noSSL확장15282 | [pass] BF04 noSSL helper unavailable | pass |
+| BF noSSL확장15282 | [pass] BF04 noSSL independently valid bound ID denied | pass |
+| BF noSSL확장15282 | [pass] BF07 noSSL legacy exact reader preserved | pass |
+| BF 최종47213 | [pass] BF01 journal open | pass |
+| BF 최종47213 | [pass] BF01 catalog open | pass |
+| BF 최종47213 | [pass] BF01 actual bridge resolves numeric catalog link | pass |
+| BF 최종47213 | [pass] BF01 actual fallback durable | pass |
+| BF 최종47213 | [pass] BF01 mapped bridge catalog reader playable | pass |
+| BF 최종47213 | [pass] BF02 opaque bound prefix length alphabet | pass |
+| BF 최종47213 | [pass] BF02 independent fixed Node vector | pass |
+| BF 최종47213 | [pass] BF02 length prefix split ambiguity rejected | pass |
+| BF 최종47213 | [pass] BF09 independent UTF8 byte-length fixed vector | pass |
+| BF 최종47213 | [pass] BF03 manifest field rejects event-one | pass |
+| BF 최종47213 | [pass] BF03 manifest field rejects raw-stream | pass |
+| BF 최종47213 | [pass] BF03 manifest field rejects raw-channel | pass |
+| BF 최종47213 | [pass] BF03 stored field rejects source | pass |
+| BF 최종47213 | [pass] BF03 stored field rejects channel | pass |
+| BF 최종47213 | [pass] BF03 stored field rejects link | pass |
+| BF 최종47213 | [pass] BF03 stored field rejects hash | pass |
+| BF 최종47213 | [pass] BF04 malformed reserved namespace no legacy downgrade fallback-bound- | pass |
+| BF 최종47213 | [pass] BF04 malformed reserved namespace no legacy downgrade fallback-bound-v1-abc | pass |
+| BF 최종47213 | [pass] BF04 malformed reserved namespace no legacy downgrade fallback-bound-v2-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa | pass |
+| BF 최종47213 | [pass] BF04 malformed reserved namespace no legacy downgrade fallback-bound-v1-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA | pass |
+| BF 최종47213 | [pass] BF08 wrong caller channel denied | pass |
+| BF 최종47213 | [pass] BF08 duplicate fallback identity denied | pass |
+| BF 최종47213 | [pass] BF08 manifest type or actual size denied "streamId":"raw-stream" | pass |
+| BF 최종47213 | [pass] BF08 manifest type or actual size denied "channelId":"raw-channel" | pass |
+| BF 최종47213 | [pass] BF08 manifest type or actual size denied "byteSize":10 | pass |
+| BF 최종47213 | [pass] BF08 oversized manifest denied | pass |
+| BF 최종47213 | [pass] BF08 symlink media denied | pass |
+| BF 최종47213 | [pass] BF05 resolver unavailable no append ID locator preserved | pass |
+| BF 최종47213 | [pass] BF05 resolver changed channel no append ID locator preserved | pass |
+| BF 최종47213 | [pass] BF05 bound identity replacement denied no append | pass |
+| BF 최종47213 | [pass] BF06 repeated RecordFallback stable ID locator | pass |
+| BF 최종47213 | [pass] BF04 malformed reserved fixture stored | pass |
+| BF 최종47213 | [pass] BF04 malformed bound writer cannot downgrade or overwrite | pass |
+| BF 최종47213 | [pass] BF05 source mismatch fixture stored | pass |
+| BF 최종47213 | [pass] BF05 resolver catalog source mismatch no append | pass |
+| BF 최종47213 | [pass] BF05 original mapping restored | pass |
+| BF 최종47213 | [pass] BF07 legacy raw numeric mismatch denied | pass |
+| BF 최종47213 | [pass] BF07 legacy exact identity playable | pass |
+| BF 최종47213 | [pass] BF06 legacy fixture stored | pass |
+| BF 최종47213 | [pass] BF06 existing legacy not auto promoted | pass |
+| BF 최종47213 | [pass] BF01 restore bound link for reopen | pass |
+| BF 최종47213 | [pass] BF01 reopen journal | pass |
+| BF 최종47213 | [pass] BF01 reopen catalog | pass |
+| BF 최종47213 | [pass] BF01 reopened bound playable without active resolver | pass |
+| BF 최종47213 | [pass] BF09 empty raw stream mapped via raw channel | pass |
+| BF 최종47213 | [pass] BF09 actual issuer raw-channel resolver key | pass |
+| BF 최종47213 | [pass] BF09 empty raw stream bound reader positive | pass |
+| BF 최종47213 | [pass] BF07 resolver absent exact link created | pass |
+| BF 최종47213 | [pass] BF07 resolver absent issues only legacy exact ID | pass |
+| BF 최종47213 | [pass] BF07 resolver absent legacy exact reader positive | pass |
+| BF 최종47213 | [pass] BF07 resolver absent mismatched update preserves journal | pass |
+| BF 최종47213 | [pass] BF09 empty raw stream allowed | pass |
+| BF 최종47213 | [pass] BF09 required empty field denied 0 | pass |
+| BF 최종47213 | [pass] BF09 required empty field denied 1 | pass |
+| BF 최종47213 | [pass] BF09 required empty field denied 2 | pass |
+| BF 최종47213 | [pass] BF09 required empty field denied 3 | pass |
+| BF 최종47213 | [pass] BF09 required empty field denied 5 | pass |
+| BF 최종47213 | [pass] BF04 noSSL helper unavailable | pass |
+| BF 최종47213 | [pass] BF04 noSSL independently valid bound ID denied | pass |
+| BF 최종47213 | [pass] BF07 noSSL legacy exact reader preserved | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.S7jGQX | BF RED61846 binary·fixture | 2080256bytes | wrapper 삭제 | absent=true | exit1, elapsed4214ms |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.WFxLG7 | BF 초기GREEN58310 binary·fixture | 2081908bytes | wrapper 삭제 | absent=true | exit0, elapsed4181ms |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.JyxyDo | BF 중간확장48612 binary·fixture | 2126661bytes | wrapper 삭제 | absent=true | exit0, elapsed4219ms |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.YE9MyY | BF noSSL확장15282 binary·fixture | 4280433bytes | wrapper 삭제 | absent=true | exit0, elapsed8291ms |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.8ux4kj | BF 최종47213 binary·fixture | 4282232bytes | wrapper 삭제 | absent=true | exit0, elapsed8278ms |
+
+
+### BF 관련 회귀·검증기 종료 결과
+
+최종 BF 묶음9개 임시경로를 lstat로 직접 전수 재확인: checked9/present[]/exit0. dangling symlink도 부재로 오판하지 않는 조회다. 최종 git diff --check exit0. 새 앱 실행·auth·RT재실행·longrun·UI는 이번 BF 번들에서 미실행이며 완료 근거로 사용하지 않는다.
+
+메인 별도 전체빌드 `./server.sh build` session8702 exit0, 최신 제품4파일로 `[100%] media_server` 완료. warning/error 출력 없음. 전체 elapsed는 별도 시작 계측이 없어 미계측이며 도구 initial1.0029s+final1.468s를 총시간으로 합산하지 않는다. token start/end/consumed 자동개별집계 부재로 미집계. 기존 제품 build 산출물만 갱신하고 새임시산출물/서버기동/포트 없음. 메인 config 문서 보완 후 git diff --check exit0. 마지막 wrapper 표시만 actual !-e && !-L 판정과 일치시켰으며 기존 실행원출력 수치는 그대로 보존한다.
+
+`./server.sh verify-v410-event-recording` session65454 exit0: 등록기35, 실제 S05 assertion140, application7, storage runtime23, 의도 mutation2, 기능ID27 수용검사 통과. 전체 elapsed 시작 계측이 누락되어 미계측(내부 mutation 부분18327ms만 기록, 전체시간으로 확대하지 않음). `./server.sh verify-v410-recording-timeline --read-model` session73407 exit0: memory76+SQLite76+cleanup1=153행; 호출 시작~종료 관측 16907ms(도구 왕복 포함, 순수 실행시간 아님). S06은 noOpenSSL legacy경로·tombstone/hold/symlink/type/size guard 회귀를 실제 확인했고 auth/HTTP 전체는 미실행이다. `CXX=false ./server.sh verify-v410-recording-fallback-binding --red`는 사전 BF10 검증기 오류전파 의도실패 exit1/43ms, product RED나제품회귀 아님. `git diff --check` exit0.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS 정상 정식 등록 27개 | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS 다른 등록군 추가와 일관된 총계 허용 | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS 전체 총계 불일치 거부 | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS canonical 등록 수 변경 거부 | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS S05 등록 수 변경 거부 | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS 등록군 중복 거부 | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS 음수 등록 수 거부 | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS 소수 등록 수 거부 | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS 등록 범위 표 누락 거부 | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS 누락 ID | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS 중복 ID | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS 추가 ID | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS 빈 테스트 영역 | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS 없는 구현 심볼 | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS 없는 테스트 함수 | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS 없는 check | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS 중복 check ID | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS 문서 행 누락 | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS 실행 소비자 정상 합성 입력 | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS 실제 check 결과 누락 | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS EOS assertion 제거와 감소한 summary도 거부 | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS 실패 summary | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS 성공 summary만으로 PASS 금지 | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS 중복 application 결과 | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS runtime 로그 전체 누락 | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS runtime 시나리오 누락 | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS 종료 취소 runtime 시나리오 누락 | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS runtime assertion 누락 및 감소 summary | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS runtime assertion 중복 및 증가 summary | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS runtime summary 실패 | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS runtime summary 중복 | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS runtime failure marker | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS runtime mutation 결과 누락 | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS runtime mutation 결과 중복 | pass |
+| BF S05 회귀65454 | [등록기 단위 테스트] PASS runtime negative summary 실패 | pass |
+| BF S05 회귀65454 | [s05-assert] "기본 pending event link가 유효해야 함: " | pass |
+| BF S05 회귀65454 | [s05-assert] "terminal 대기 UTC 확장 요청은 additive 계약으로 round-trip해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "terminal 대기 요청이 현재 범위를 축소하면 거부해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "미해석 후속 PTS는 기존 UTC 범위와 별도 field로 round-trip해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "미해석 후속 PTS를 소비하지 않은 terminal 상태를 거부해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "서로 겹치는 ordered overlap을 거부해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "overlap/missing이 requested range를 정확히 분할하지 않으면 거부해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "unknown link status를 영속 계약으로 허용하면 안 됨" | pass |
+| BF S05 회귀65454 | [s05-assert] "locator 없는 fallback evidence를 거부해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "journal open 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "catalog open 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "event link 갱신은 SQLite primary projection에서 검증해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "segment finalize 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "segment finalize 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "segment finalize 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "segment finalize 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "segment finalize 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "retention policy 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "이벤트 저장 worker를 막지 않고 파생 job을 pending으로 enqueue해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "완전한 archive 파생 완료 뒤 ready clip을 반환해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "event link ID와 derived clip path가 반환되어야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "반개구간 overlap은 맞닿기만 한 segment를 제외해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "media PTS event 범위가 segment epoch 기준 UTC로 변환되어야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "overlap segment가 UTC 순서로 전달되어야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "파생 성공 link가 catalog complete로 저장되어야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "파생 완료 뒤 원본 hold가 해제되어야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "파생 완료 뒤 원본 hold가 해제되어야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "파생 완료 뒤 원본 hold가 해제되어야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "같은 event update는 파생 clip을 중복 생성하지 않아야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "완료 event의 더 넓은 update는 range별 결정 ID로 다시 파생해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "segment finalize 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "segment finalize 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "cam-b policy 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "archive gap이 있으면 complete로 표시하면 안 됨" | pass |
+| BF S05 회귀65454 | [s05-assert] "link가 정확한 missing UTC range를 보존해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "frame-buffer fallback 뒤 같은 link가 fallback evidence로 갱신되어야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "같은 event link의 overlap/fallback 갱신 뒤에도 SQLite projection을 유지해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "cam-late policy 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "segment finalize 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "anchor 없는 PTS를 finalized segment의 실제 PTS/UTC mapping으로 복구해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "PTS epoch anchor가 없으면 임의 UTC 연결이나 파생을 하면 안 됨" | pass |
+| BF S05 회귀65454 | [s05-assert] "anchor 없는 PTS는 UTC field가 아니라 재해석 가능한 PTS range로 보존해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "같은 긴 prefix의 event ID도 SHA-256 기반 결정 ID가 충돌하면 안 됨" | pass |
+| BF S05 회귀65454 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "파생 중 원본 segment hold가 유지되어야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "확장 회귀 journal open 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "확장 회귀 initial catalog open 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "segment finalize 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "cleanup 확장 fixture 저장 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "cleanup 확장 fixture 저장 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "확장 회귀 restart catalog open 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "확장 policy 실패" | pass |
+| BF S05 회귀65454 | [s05-assert] "cleanup 확장 remux 실패는 한 번만 실행되어야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "실패/Partial도 보류 확장 요청을 현재 범위로 소비해 보존해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "실패/Partial도 보류 확장 요청을 현재 범위로 소비해 보존해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "PTS 확장은 다른 범위 ID를 사용해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "미해석 PTS 확장을 이전 complete clip으로 응답하면 안 됨" | pass |
+| BF S05 회귀65454 | [s05-assert] "segment finalize 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "PTS 확장 2회는 최초 포함 총 3회 파생해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "quota journal open 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "quota catalog open 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "segment finalize 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "segment finalize 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "quota policy 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "event quota는 oldest event를 정리해 새 event write를 허용해야 함: ok" | pass |
+| BF S05 회귀65454 | [s05-assert] "event quota 충족을 위해 continuous를 삭제하면 안 됨" | pass |
+| BF S05 회귀65454 | [s05-assert] "event quota는 oldest eligible event를 삭제해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "policy 재등록 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "policy 제거가 진행 중 event reservation을 지우면 안 됨" | pass |
+| BF S05 회귀65454 | [s05-assert] "명시적 complete 뒤 event reservation ID를 재사용할 수 있어야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "queue journal open 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "queue catalog open 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "segment finalize 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "queue policy 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "bounded queue 밖 durable pending도 완료 뒤 다시 흡수해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "긴 event remux가 다른 이벤트의 durable link admission을 동기 차단하면 안 됨" | pass |
+| BF S05 회귀65454 | [s05-assert] "cleanup 실패 시 source hold와 event reservation을 성공처럼 해제하면 안 됨" | pass |
+| BF S05 회귀65454 | [s05-assert] "terminal marker unlink 실패 시 source/output hold를 유지해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "terminal marker unlink 실패 시 event reservation을 유지해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "marker 복구 중 event/fallback 갱신은 자원·단계를 보존하고 확장 요청을 내구 대기해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "terminal hold 해제 실패를 Complete로 기록하면 안 됨" | pass |
+| BF S05 회귀65454 | [s05-assert] "terminal 복구 중 event/fallback 갱신이 release 단계를 덮어쓰면 안 됨" | pass |
+| BF S05 회귀65454 | [s05-assert] "복구 완료 뒤 내구 대기한 범위 확장은 같은 source epoch의 새 segment로 파생해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "terminal complete commit retry fixture 저장 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "complete commit 재시도는 다른 pending event의 source hold를 해제하면 안 됨" | pass |
+| BF S05 회귀65454 | [s05-assert] "overflow fixture 이전 hold_count가 저장 범위를 넘으면 안 됨" | pass |
+| BF S05 회귀65454 | [s05-assert] "hold overflow fixture 준비 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "event source lease hold_count overflow를 사전에 거부해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "hold fixture journal open 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "hold fixture catalog open 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "segment finalize 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "segment finalize 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "hold pending link 저장 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "hold replay journal open 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "hold replay catalog open 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "재시작 replay가 terminal 전 output/source hold를 함께 복원해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "terminal stage fixture event link 조회" | pass |
+| BF S05 회귀65454 | [s05-assert] "terminal stage fixture 저장 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "terminal stage replay journal open: " | pass |
+| BF S05 회귀65454 | [s05-assert] "terminal stage catalog open: " | pass |
+| BF S05 회귀65454 | [s05-assert] "complete commit 단계 재시작은 이미 해제된 output/source hold를 복원하면 안 됨" | pass |
+| BF S05 회귀65454 | [s05-assert] "terminal Complete 기록 전 source 삭제 요청을 차단해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "terminal Complete 기록 전 output 삭제 요청을 차단해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "restart journal open 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "restart catalog open 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "segment finalize 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "segment finalize 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "restart pending link 저장 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "재시작은 이미 finalized된 결정적 event segment를 재파생 없이 연결해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "재시작 복구에서 event clip을 중복 파생하면 안 됨" | pass |
+| BF S05 회귀65454 | [s05-assert] "segment finalize 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "conflict pending link 저장 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "다른 channel/class의 동일 segment ID를 event 결과로 오인하면 안 됨" | pass |
+| BF S05 회귀65454 | [s05-assert] "segment ID conflict에서 파생을 실행하면 안 됨" | pass |
+| BF S05 회귀65454 | [s05-assert] "실제 H264/MP4 source를 video 재인코딩 없이 remux해야 함: " | pass |
+| BF S05 회귀65454 | [s05-assert] "remux 결과 파일과 size가 일치해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "event clip actual range는 keyframe 확대를 측정해 requested range와 분리해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "event clip이 source segment 전체 단순 연결보다 작아야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "remux 결과 checksum과 crash cleanup marker를 남겨야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "동일 final은 소유 artifact가 없는 terminal 충돌로 거부하고 기존 clip을 보존해야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "파생 H264/MP4 clip이 끝까지 demux/parse 가능해야 함: " | pass |
+| BF S05 회귀65454 | [s05-assert] "nonce partial은 foreign 고정 partial을 보존하면서 독립 파생되어야 함" | pass |
+| BF S05 회귀65454 | [s05-assert] "event remux recovery journal open 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "재시작은 marker nonce와 일치하는 owned crash partial만 정리해야 함: " | pass |
+| BF S05 회귀65454 | [s05-assert] "owned crash partial 복구 뒤 동일 event clip 재파생이 성공해야 함: " | pass |
+| BF S05 회귀65454 | [s05-assert] "VP8/WebM test source 생성 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "VP8/WebM test source demux 실패: " | pass |
+| BF S05 회귀65454 | [s05-assert] "검증되지 않은 VP8/WebM event remux는 산출물 없이 fail-closed해야 함" | pass |
+| BF S05 회귀65454 | - PASS: application header is standard-only with exact DTO/default manifests | pass |
+| BF S05 회귀65454 | - PASS: application source owns exact canonical mapping and overwrite semantics | pass |
+| BF S05 회귀65454 | - PASS: transport has zero canonical bypass and exact projection/call ordering | pass |
+| BF S05 회귀65454 | - PASS: recording link is durably admitted before the bounded storage queue can drop an event | pass |
+| BF S05 회귀65454 | - PASS: event clip output remains fd-bound and measured before no-replace publication | pass |
+| BF S05 회귀65454 | - PASS: compiled fake canonical matrix preserves all fields failure/null outputs and lifecycle order | pass |
+| BF S05 회귀65454 | - PASS: S05 composition starts the bridge before ingress and drains it after storage | pass |
+| BF S05 회귀65454 | [s05-runtime-assert] {"case":"disabled-admit","message":"실제 EventStorage worker 진입을 관찰한다"} | pass |
+| BF S05 회귀65454 | [s05-runtime-assert] {"case":"disabled-admit","message":"worker 처리 전에 첫 이벤트 연결이 내구 접수된다"} | pass |
+| BF S05 회귀65454 | [s05-runtime-assert] {"case":"disabled-admit","message":"실제 저장 큐 크기 2에서 다섯 접수 중 두 이벤트가 퇴출된다"} | pass |
+| BF S05 회귀65454 | [s05-runtime-assert] {"case":"disabled-admit","message":"퇴출 이벤트를 포함한 다섯 PTS 연결이 worker 해제 전에 보존된다"} | pass |
+| BF S05 회귀65454 | [s05-runtime-assert] {"case":"disabled-admit","message":"저장 worker drain 뒤에도 다섯 연결과 시간축이 보존된다"} | pass |
+| BF S05 회귀65454 | [s05-runtime-assert] {"case":"disabled-admit","message":"JSONL 설정에 따른 실제 저장 수와 빈 큐를 확인한다"} | pass |
+| BF S05 회귀65454 | [s05-runtime-assert] {"case":"disabled-admit","message":"JSONL 비활성은 파일 없음이고 활성은 생존 이벤트 세 개와 link ID가 일치한다"} | pass |
+| BF S05 회귀65454 | [s05-runtime-assert] {"case":"disabled-recover","message":"새 프로세스의 빈 SQLite를 journal로 재구축해 다섯 PTS 연결을 복구한다"} | pass |
+| BF S05 회귀65454 | [s05-runtime-assert] {"case":"disabled-recover","message":"퇴출 이벤트까지 UTC 매핑 후 다섯 실제 H264 파생 파일이 완료된다"} | pass |
+| BF S05 회귀65454 | [s05-runtime-assert] {"case":"disabled-recover","message":"같은 이벤트 재접수는 복구된 다섯 clip ID를 바꾸거나 추가하지 않는다"} | pass |
+| BF S05 회귀65454 | [s05-runtime-assert] {"case":"enabled-admit","message":"실제 EventStorage worker 진입을 관찰한다"} | pass |
+| BF S05 회귀65454 | [s05-runtime-assert] {"case":"enabled-admit","message":"worker 처리 전에 첫 이벤트 연결이 내구 접수된다"} | pass |
+| BF S05 회귀65454 | [s05-runtime-assert] {"case":"enabled-admit","message":"실제 저장 큐 크기 2에서 다섯 접수 중 두 이벤트가 퇴출된다"} | pass |
+| BF S05 회귀65454 | [s05-runtime-assert] {"case":"enabled-admit","message":"퇴출 이벤트를 포함한 다섯 PTS 연결이 worker 해제 전에 보존된다"} | pass |
+| BF S05 회귀65454 | [s05-runtime-assert] {"case":"enabled-admit","message":"저장 worker drain 뒤에도 다섯 연결과 시간축이 보존된다"} | pass |
+| BF S05 회귀65454 | [s05-runtime-assert] {"case":"enabled-admit","message":"JSONL 설정에 따른 실제 저장 수와 빈 큐를 확인한다"} | pass |
+| BF S05 회귀65454 | [s05-runtime-assert] {"case":"enabled-admit","message":"JSONL 비활성은 파일 없음이고 활성은 생존 이벤트 세 개와 link ID가 일치한다"} | pass |
+| BF S05 회귀65454 | [s05-runtime-assert] {"case":"enabled-recover","message":"새 프로세스의 빈 SQLite를 journal로 재구축해 다섯 PTS 연결을 복구한다"} | pass |
+| BF S05 회귀65454 | [s05-runtime-assert] {"case":"enabled-recover","message":"퇴출 이벤트까지 UTC 매핑 후 다섯 실제 H264 파생 파일이 완료된다"} | pass |
+| BF S05 회귀65454 | [s05-runtime-assert] {"case":"enabled-recover","message":"같은 이벤트 재접수는 복구된 다섯 clip ID를 바꾸거나 추가하지 않는다"} | pass |
+| BF S05 회귀65454 | [s05-runtime-assert] {"case":"shutdown-cancel","message":"post-event frame 대기 중인 실제 storage worker를 관찰한다"} | pass |
+| BF S05 회귀65454 | [s05-runtime-assert] {"case":"shutdown-cancel","message":"종료 신호가 post-event frame 대기를 깨워 1초 안에 worker를 drain한다"} | pass |
+| BF S05 회귀65454 | [s05-runtime-assert] {"case":"shutdown-cancel","message":"frame 대기 취소 뒤에도 EventRecord JSONL을 유실하지 않는다"} | pass |
+| BF S05 회귀65454 | [s05-runtime-mutation] disabled-guard: PASS (실제 assertion의 RED 확인) | pass |
+| BF S05 회귀65454 | [s05-runtime-mutation] prequeue-admission: PASS (실제 assertion의 RED 확인) | pass |
+| BF S05 수용 V410-S05-I01-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I01-C02 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I01-C03 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I02-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I02-C02 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I02-C03 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I02-C04 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I02-C05 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I02-C06 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I02-C07 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I02-C08 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I02-C09 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I02-C10 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I02-C11 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I02-C12 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I02-C13 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I02-C14 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I02-C15 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I02-C16 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I02-C17 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I02-C18 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I02-C19 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I02-C20 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I02-C21 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I03-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I04-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I04-C02 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I04-C03 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I05-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I05-C02 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I05-C03 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I06-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I06-C02 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I06-C03 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I06-C04 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I06-C05 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I06-C06 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I06-C07 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I06-C08 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I07-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I07-C02 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I07-C03 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I07-C04 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I08-C01 | 실제 등록 check 소비, executions=14 status=PASS | pass |
+| BF S05 수용 V410-S05-I08-C02 | 실제 등록 check 소비, executions=3 status=PASS | pass |
+| BF S05 수용 V410-S05-I09-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I09-C02 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I09-C03 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I09-C04 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I10-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I11-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I12-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I13-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I13-C02 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I13-C03 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I14-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I14-C02 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I14-C03 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I14-C04 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I14-C05 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I15-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I15-C02 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I16-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I16-C02 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I17-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I18-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I18-C02 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I19-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I19-C02 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I20-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I20-C02 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I20-C03 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I20-C04 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I20-C05 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I21-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I21-C02 | 실제 등록 check 소비, executions=2 status=PASS | pass |
+| BF S05 수용 V410-S05-I21-C03 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I21-C04 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I21-C05 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I22-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I23-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I23-C02 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I24-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I24-C02 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I24-C03 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I24-C04 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I25-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I26-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I27-C01 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I27-C02 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I27-C03 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S05 수용 V410-S05-I27-C04 | 실제 등록 check 소비, executions=1 status=PASS | pass |
+| BF S06 memory 1 | [pass] V410-S06-I03 catalog timeline item 반환 | pass |
+| BF S06 memory 2 | [pass] I09 opaque 재생 URL | pass |
+| BF S06 memory 3 | [pass] I03 끝 경계 인접 제외 | pass |
+| BF S06 memory 4 | [pass] I03 다른 채널 제외 | pass |
+| BF S06 memory 5 | [pass] I04 음수 시간 거부 | pass |
+| BF S06 memory 6 | [pass] I04 역전 시간 거부 | pass |
+| BF S06 memory 7 | [pass] I04 빈 페이지 제한 거부 | pass |
+| BF S06 memory 8 | [pass] I04 과대 페이지 거부 | pass |
+| BF S06 memory 9 | [pass] I05 큰 offset overflow 없이 빈 페이지 | pass |
+| BF S06 memory 10 | [pass] I16 다른 채널 media 거부 | pass |
+| BF S06 memory 11 | [pass] I17 경로형 ID 거부 | pass |
+| BF S06 memory 12 | [pass] I09 fd 크기 MIME 확인 | pass |
+| BF S06 memory 13 | [pass] I25 재생 hold 중 삭제 거부 | pass |
+| BF S06 memory 14 | [pass] I19 경로 교체 뒤 열린 fd 기존 byte 유지 | pass |
+| BF S06 memory 15 | [pass] I18 leaf symlink 거부 | pass |
+| BF S06 memory 16 | [pass] I09 누락 파일 거부 | pass |
+| BF S06 memory 17 | [pass] I09 크기 불일치 거부 | pass |
+| BF S06 memory 18 | [pass] I09 비일반 파일 거부 | pass |
+| BF S06 memory 19 | [pass] I06 같은 시간 event 우선 | pass |
+| BF S06 memory 20 | [pass] I07 정확한 이벤트 ID 연결 | pass |
+| BF S06 memory 21 | [pass] I10 실제 범위와 요청 범위 분리 | pass |
+| BF S06 memory 22 | [pass] I05 정렬 뒤 페이지 적용 | pass |
+| BF S06 memory 23 | [pass] I25 모든 실패 경로 hold 반환 후 삭제 허용 | pass |
+| BF S06 memory 24 | [pass] I08 deletion pending 거부 | pass |
+| BF S06 memory 25 | [pass] I08 pending timeline 재생 불가 | pass |
+| BF S06 memory 26 | [pass] I11 검증한 fallback 영상 fd 제공 | pass |
+| BF S06 memory 27 | [pass] I11 JSON이 아닌 실제 media byte 반환 | pass |
+| BF S06 memory 28 | [pass] I11 fallback timeline을 complete로 과장하지 않음 | pass |
+| BF S06 memory 29 | [pass] I11 중복 key manifest 거부 | pass |
+| BF S06 memory 30 | [pass] I11 event 바인딩 불일치 거부 | pass |
+| BF S06 memory 31 | [pass] I11 byteSize 문자열 타입 거부 | pass |
+| BF S06 memory 32 | [pass] I11 64KiB 초과 manifest 거부 | pass |
+| BF S06 memory 33 | [pass] I18 fallback media symlink 거부 | pass |
+| BF S06 memory 34 | [pass] I09 fallback media 크기 불일치 거부 | pass |
+| BF S06 memory 35 | [pass] I19 fallback 교체 뒤 기존 fd byte 유지 | pass |
+| BF S06 memory 36 | [pass] I17 다른 채널 fallback ID 충돌도 거부 | pass |
+| BF S06 memory 37 | [pass] I03 기존 숫자형 channel ID 유지 | pass |
+| BF S06 memory 38 | [pass] I08/I17 삭제 완료 ID의 fallback 재사용 거부 | pass |
+| BF S06 memory 39 | [pass] I20 closed Range 시작과 길이 | pass |
+| BF S06 memory 40 | [pass] I26 열린 gate 신규 요청 admission | pass |
+| BF S06 memory 41 | [pass] I26 닫힌 gate 신규 요청 거부 | pass |
+| BF S06 memory 42 | [pass] I26 active flight 이전 drain 완료 금지 | pass |
+| BF S06 memory 43 | [pass] I26 마지막 flight 해제 뒤 drain 완료 | pass |
+| BF S06 memory 44 | [pass] I26 활성 socket shutdown 확인 | pass |
+| BF S06 memory 45 | [pass] I25 동시 삭제 경쟁 0 | pass |
+| BF S06 memory 46 | [pass] I26 경쟁 뒤 fd 반환 0 | pass |
+| BF S06 memory 47 | [pass] I25 동시 삭제 경쟁 1 | pass |
+| BF S06 memory 48 | [pass] I26 경쟁 뒤 fd 반환 1 | pass |
+| BF S06 memory 49 | [pass] I25 동시 삭제 경쟁 2 | pass |
+| BF S06 memory 50 | [pass] I26 경쟁 뒤 fd 반환 2 | pass |
+| BF S06 memory 51 | [pass] I25 동시 삭제 경쟁 3 | pass |
+| BF S06 memory 52 | [pass] I26 경쟁 뒤 fd 반환 3 | pass |
+| BF S06 memory 53 | [pass] I25 동시 삭제 경쟁 4 | pass |
+| BF S06 memory 54 | [pass] I26 경쟁 뒤 fd 반환 4 | pass |
+| BF S06 memory 55 | [pass] I25 동시 삭제 경쟁 5 | pass |
+| BF S06 memory 56 | [pass] I26 경쟁 뒤 fd 반환 5 | pass |
+| BF S06 memory 57 | [pass] I25 동시 삭제 경쟁 6 | pass |
+| BF S06 memory 58 | [pass] I26 경쟁 뒤 fd 반환 6 | pass |
+| BF S06 memory 59 | [pass] I25 동시 삭제 경쟁 7 | pass |
+| BF S06 memory 60 | [pass] I26 경쟁 뒤 fd 반환 7 | pass |
+| BF S06 memory 61 | [pass] I25 동시 삭제 경쟁 8 | pass |
+| BF S06 memory 62 | [pass] I26 경쟁 뒤 fd 반환 8 | pass |
+| BF S06 memory 63 | [pass] I25 동시 삭제 경쟁 9 | pass |
+| BF S06 memory 64 | [pass] I26 경쟁 뒤 fd 반환 9 | pass |
+| BF S06 memory 65 | [pass] I25 동시 삭제 경쟁 10 | pass |
+| BF S06 memory 66 | [pass] I26 경쟁 뒤 fd 반환 10 | pass |
+| BF S06 memory 67 | [pass] I25 동시 삭제 경쟁 11 | pass |
+| BF S06 memory 68 | [pass] I26 경쟁 뒤 fd 반환 11 | pass |
+| BF S06 memory 69 | [pass] I25 동시 삭제 경쟁 12 | pass |
+| BF S06 memory 70 | [pass] I26 경쟁 뒤 fd 반환 12 | pass |
+| BF S06 memory 71 | [pass] I25 동시 삭제 경쟁 13 | pass |
+| BF S06 memory 72 | [pass] I26 경쟁 뒤 fd 반환 13 | pass |
+| BF S06 memory 73 | [pass] I25 동시 삭제 경쟁 14 | pass |
+| BF S06 memory 74 | [pass] I26 경쟁 뒤 fd 반환 14 | pass |
+| BF S06 memory 75 | [pass] I25 동시 삭제 경쟁 15 | pass |
+| BF S06 memory 76 | [pass] I26 경쟁 뒤 fd 반환 15 | pass |
+| BF S06 SQLite 77 | [pass] V410-S06-I03 catalog timeline item 반환 | pass |
+| BF S06 SQLite 78 | [pass] I09 opaque 재생 URL | pass |
+| BF S06 SQLite 79 | [pass] I03 끝 경계 인접 제외 | pass |
+| BF S06 SQLite 80 | [pass] I03 다른 채널 제외 | pass |
+| BF S06 SQLite 81 | [pass] I04 음수 시간 거부 | pass |
+| BF S06 SQLite 82 | [pass] I04 역전 시간 거부 | pass |
+| BF S06 SQLite 83 | [pass] I04 빈 페이지 제한 거부 | pass |
+| BF S06 SQLite 84 | [pass] I04 과대 페이지 거부 | pass |
+| BF S06 SQLite 85 | [pass] I05 큰 offset overflow 없이 빈 페이지 | pass |
+| BF S06 SQLite 86 | [pass] I16 다른 채널 media 거부 | pass |
+| BF S06 SQLite 87 | [pass] I17 경로형 ID 거부 | pass |
+| BF S06 SQLite 88 | [pass] I09 fd 크기 MIME 확인 | pass |
+| BF S06 SQLite 89 | [pass] I25 재생 hold 중 삭제 거부 | pass |
+| BF S06 SQLite 90 | [pass] I19 경로 교체 뒤 열린 fd 기존 byte 유지 | pass |
+| BF S06 SQLite 91 | [pass] I18 leaf symlink 거부 | pass |
+| BF S06 SQLite 92 | [pass] I09 누락 파일 거부 | pass |
+| BF S06 SQLite 93 | [pass] I09 크기 불일치 거부 | pass |
+| BF S06 SQLite 94 | [pass] I09 비일반 파일 거부 | pass |
+| BF S06 SQLite 95 | [pass] I06 같은 시간 event 우선 | pass |
+| BF S06 SQLite 96 | [pass] I07 정확한 이벤트 ID 연결 | pass |
+| BF S06 SQLite 97 | [pass] I10 실제 범위와 요청 범위 분리 | pass |
+| BF S06 SQLite 98 | [pass] I05 정렬 뒤 페이지 적용 | pass |
+| BF S06 SQLite 99 | [pass] I25 모든 실패 경로 hold 반환 후 삭제 허용 | pass |
+| BF S06 SQLite 100 | [pass] I08 deletion pending 거부 | pass |
+| BF S06 SQLite 101 | [pass] I08 pending timeline 재생 불가 | pass |
+| BF S06 SQLite 102 | [pass] I11 검증한 fallback 영상 fd 제공 | pass |
+| BF S06 SQLite 103 | [pass] I11 JSON이 아닌 실제 media byte 반환 | pass |
+| BF S06 SQLite 104 | [pass] I11 fallback timeline을 complete로 과장하지 않음 | pass |
+| BF S06 SQLite 105 | [pass] I11 중복 key manifest 거부 | pass |
+| BF S06 SQLite 106 | [pass] I11 event 바인딩 불일치 거부 | pass |
+| BF S06 SQLite 107 | [pass] I11 byteSize 문자열 타입 거부 | pass |
+| BF S06 SQLite 108 | [pass] I11 64KiB 초과 manifest 거부 | pass |
+| BF S06 SQLite 109 | [pass] I18 fallback media symlink 거부 | pass |
+| BF S06 SQLite 110 | [pass] I09 fallback media 크기 불일치 거부 | pass |
+| BF S06 SQLite 111 | [pass] I19 fallback 교체 뒤 기존 fd byte 유지 | pass |
+| BF S06 SQLite 112 | [pass] I17 다른 채널 fallback ID 충돌도 거부 | pass |
+| BF S06 SQLite 113 | [pass] I03 기존 숫자형 channel ID 유지 | pass |
+| BF S06 SQLite 114 | [pass] I08/I17 삭제 완료 ID의 fallback 재사용 거부 | pass |
+| BF S06 SQLite 115 | [pass] I20 closed Range 시작과 길이 | pass |
+| BF S06 SQLite 116 | [pass] I26 열린 gate 신규 요청 admission | pass |
+| BF S06 SQLite 117 | [pass] I26 닫힌 gate 신규 요청 거부 | pass |
+| BF S06 SQLite 118 | [pass] I26 active flight 이전 drain 완료 금지 | pass |
+| BF S06 SQLite 119 | [pass] I26 마지막 flight 해제 뒤 drain 완료 | pass |
+| BF S06 SQLite 120 | [pass] I26 활성 socket shutdown 확인 | pass |
+| BF S06 SQLite 121 | [pass] I25 동시 삭제 경쟁 0 | pass |
+| BF S06 SQLite 122 | [pass] I26 경쟁 뒤 fd 반환 0 | pass |
+| BF S06 SQLite 123 | [pass] I25 동시 삭제 경쟁 1 | pass |
+| BF S06 SQLite 124 | [pass] I26 경쟁 뒤 fd 반환 1 | pass |
+| BF S06 SQLite 125 | [pass] I25 동시 삭제 경쟁 2 | pass |
+| BF S06 SQLite 126 | [pass] I26 경쟁 뒤 fd 반환 2 | pass |
+| BF S06 SQLite 127 | [pass] I25 동시 삭제 경쟁 3 | pass |
+| BF S06 SQLite 128 | [pass] I26 경쟁 뒤 fd 반환 3 | pass |
+| BF S06 SQLite 129 | [pass] I25 동시 삭제 경쟁 4 | pass |
+| BF S06 SQLite 130 | [pass] I26 경쟁 뒤 fd 반환 4 | pass |
+| BF S06 SQLite 131 | [pass] I25 동시 삭제 경쟁 5 | pass |
+| BF S06 SQLite 132 | [pass] I26 경쟁 뒤 fd 반환 5 | pass |
+| BF S06 SQLite 133 | [pass] I25 동시 삭제 경쟁 6 | pass |
+| BF S06 SQLite 134 | [pass] I26 경쟁 뒤 fd 반환 6 | pass |
+| BF S06 SQLite 135 | [pass] I25 동시 삭제 경쟁 7 | pass |
+| BF S06 SQLite 136 | [pass] I26 경쟁 뒤 fd 반환 7 | pass |
+| BF S06 SQLite 137 | [pass] I25 동시 삭제 경쟁 8 | pass |
+| BF S06 SQLite 138 | [pass] I26 경쟁 뒤 fd 반환 8 | pass |
+| BF S06 SQLite 139 | [pass] I25 동시 삭제 경쟁 9 | pass |
+| BF S06 SQLite 140 | [pass] I26 경쟁 뒤 fd 반환 9 | pass |
+| BF S06 SQLite 141 | [pass] I25 동시 삭제 경쟁 10 | pass |
+| BF S06 SQLite 142 | [pass] I26 경쟁 뒤 fd 반환 10 | pass |
+| BF S06 SQLite 143 | [pass] I25 동시 삭제 경쟁 11 | pass |
+| BF S06 SQLite 144 | [pass] I26 경쟁 뒤 fd 반환 11 | pass |
+| BF S06 SQLite 145 | [pass] I25 동시 삭제 경쟁 12 | pass |
+| BF S06 SQLite 146 | [pass] I26 경쟁 뒤 fd 반환 12 | pass |
+| BF S06 SQLite 147 | [pass] I25 동시 삭제 경쟁 13 | pass |
+| BF S06 SQLite 148 | [pass] I26 경쟁 뒤 fd 반환 13 | pass |
+| BF S06 SQLite 149 | [pass] I25 동시 삭제 경쟁 14 | pass |
+| BF S06 SQLite 150 | [pass] I26 경쟁 뒤 fd 반환 14 | pass |
+| BF S06 SQLite 151 | [pass] I25 동시 삭제 경쟁 15 | pass |
+| BF S06 SQLite 152 | [pass] I26 경쟁 뒤 fd 반환 15 | pass |
+| BF S06 cleanup 153 | [pass] read-model 임시 root 삭제 확인: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.fgpzRN | pass |
+| BF10 compile 오류 전파 | CXX=false 실제 exit1, 본문 미완료가 PASS로 변환되지 않고 cleanup 수행 | pass |
+| BF diff check | git diff --check exit0 | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_s05_storage_runtime_xg1qWs | S05 runtime fixture | 10950691bytes | wrapper 삭제 | removed/absent=true | 실제 종료 출력 |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media_server_v410_event_recording.6m6JT4 | S05 wrapper fixture | 3380949bytes | wrapper 삭제 | removed/absent=true | 실제 종료 출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.fgpzRN | S06 binary·fixture | 2276KiB, 정확 bytes 미계측 | wrapper 삭제 | removed/absent=true | 실제 종료 출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.DcEwkR | BF10 의도 compile 실패 | 0bytes | wrapper 삭제 | removed/absent=true | 실제 종료 출력 |
+
+## v4.1.0 S09 실제 앱 HTTP/event/retention/restart 사전 정의 (2026-09-11)
+
+추가 사전등록 AP05: fallback Range oracle는 manifest encodedClip의 completed WebM 실파일과 literal bytes를 비교한다. schema/event/format/codec/byteSize/contained path를 읽으며 manifest bytes를 영상으로 비교하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| V410-S09-AP-13 | 실제 초기 provisional manifest identity 1회 진단 | --identity-diagnostic: source/rule/tap→EventRecord→durable fallback locator→실제 manifest eventId·stream/channel SHA 및 catalog 일치boolean·encodedClip schema/status/contentType/byteSize 기록. 음수PTS 보존, UTC/playable/Range 성공 요구 없음. 원문 source URL 출력 금지, 종료/port0/cleanup | v4.1.0 |
+
+실행 전 등록. 신규 oracle 음성 대조는 제품 미구현 RED가 아닌 검증기 판별력이다. 최초 앱 실행은 auth off 명시 격리 fixture이며 auth 검증을 대체하지 않는다. 4초/120frame/1280×720/30fps/keyint30 실제 H264 retention 입력은 로컬 GStreamer/x264만 사용한다. 생성 중 root 크기를 감시하고 512MiB 안전상한 전에 소유 process를 종료하며 초과/timeout은 실패다. 임시 영상은 보존하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| V410-S09-AP-01 | 실제 앱 opt-in source→finalized의 ID·metadata·SHA·UTC/PTS 및 파일크기 대조 | 실제 foreground 앱·HTTP·완전 LF journal 읽기 및 독립 byte/정렬 oracle. AP10/11은 시작조건·음성 판별력, AP12는 모든 성공/실패 경로 정리 | v4.1.0 |
+| V410-S09-AP-02 | 실제 rule/tap EventRecord와 동일 event/link의 frame-buffer fallback 포착 | 실제 foreground 앱·HTTP·완전 LF journal 읽기 및 독립 byte/정렬 oracle. AP10/11은 시작조건·음성 판별력, AP12는 모든 성공/실패 경로 정리 | v4.1.0 |
+| V410-S09-AP-03 | 별도 실제 event의 Complete derived·remux provenance·원본 overlap 결속 | 실제 foreground 앱·HTTP·완전 LF journal 읽기 및 독립 byte/정렬 oracle. AP10/11은 시작조건·음성 판별력, AP12는 모든 성공/실패 경로 정리 | v4.1.0 |
+| V410-S09-AP-04 | timeline event priority200·continuous100·supersededByEventIds 및 요청/실제 범위 | 실제 foreground 앱·HTTP·완전 LF journal 읽기 및 독립 byte/정렬 oracle. AP10/11은 시작조건·음성 판별력, AP12는 모든 성공/실패 경로 정리 | v4.1.0 |
+| V410-S09-AP-05 | derived와 fallback 각각 실제 GET Range206·Content-Range·literal 파일 byte 비교 | 실제 foreground 앱·HTTP·완전 LF journal 읽기 및 독립 byte/정렬 oracle. AP10/11은 시작조건·음성 판별력, AP12는 모든 성공/실패 경로 정리 | v4.1.0 |
+| V410-S09-AP-06 | 별도 실제 source에서 3개 이상 segment, 각64MiB미만·합계64MiB초과 확보 | 실제 foreground 앱·HTTP·완전 LF journal 읽기 및 독립 byte/정렬 oracle. AP10/11은 시작조건·음성 판별력, AP12는 모든 성공/실패 경로 정리 | v4.1.0 |
+| V410-S09-AP-07 | 유효quota64MiB 하향 뒤 독립 endUTC/ID oldest 삭제요청·완료·tombstone·실파일 부재 | 실제 foreground 앱·HTTP·완전 LF journal 읽기 및 독립 byte/정렬 oracle. AP10/11은 시작조건·음성 판별력, AP12는 모든 성공/실패 경로 정리 | v4.1.0 |
+| V410-S09-AP-08 | retention 뒤 신규 finalized 생성 및 삭제ID 부활 없음 | 실제 foreground 앱·HTTP·완전 LF journal 읽기 및 독립 byte/정렬 oracle. AP10/11은 시작조건·음성 판별력, AP12는 모든 성공/실패 경로 정리 | v4.1.0 |
+| V410-S09-AP-09 | 정상 종료·새PID 동일 archive 재시작, 기존 ID/metadata/SHA/link/관측/tombstone 보존 및 재녹화 | 실제 foreground 앱·HTTP·완전 LF journal 읽기 및 독립 byte/정렬 oracle. AP10/11은 시작조건·음성 판별력, AP12는 모든 성공/실패 경로 정리 | v4.1.0 |
+| V410-S09-AP-10 | 5개 auth env 부재 시 시작금지; nonauth 부분coverage와 전체PASS 분리 | 실제 foreground 앱·HTTP·완전 LF journal 읽기 및 독립 byte/정렬 oracle. AP10/11은 시작조건·음성 판별력, AP12는 모든 성공/실패 경로 정리 | v4.1.0 |
+| V410-S09-AP-11 | literal oracle 음성대조: priority/Range bytes/oldest순서/중복ID 변조 거부 | 실제 foreground 앱·HTTP·완전 LF journal 읽기 및 독립 byte/정렬 oracle. AP10/11은 시작조건·음성 판별력, AP12는 모든 성공/실패 경로 정리 | v4.1.0 |
+| V410-S09-AP-12 | 격리cwd/env/loopback·소유 process 종료·port0·cleanup; 생성 중512MiB 감시와 timeout 실패전파 | 실제 foreground 앱·HTTP·완전 LF journal 읽기 및 독립 byte/정렬 oracle. AP10/11은 시작조건·음성 판별력, AP12는 모든 성공/실패 경로 정리 | v4.1.0 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 메인 실제 앱 묶음 위임 | AP01~12 | focused 및 필요한 관련 단기 승인, auth 실행 금지 |
+| 30분 테스트 | 진행 대상 | 버전 완료 필수 | AGENTS 7.6.2 | 미승인·이번 미실행 |
+| 120분 테스트 | 진행 대상 | 녹화 lifecycle 최종 코드 | AP01~09 | predev120 기존 승인 보류; 녹화직접검사 미승인 |
+| UI 풀테스트 | 진행 대상 | 버전 완료 필수 | AGENTS 7.9 | 미승인·이번 미실행 |
+
+메인 별도 문서 검증: `./server.sh verify-docs-links` exit0, markdown226/localLinks1051/images22/anchors103/indexed76/exclusions142/failures0; `git diff --check` exit0. 도구 측정0.0023s, token start/end/consumed는 자동 개별 집계 부재로 미집계. 새 임시 산출물 없음. 앱 실행 결과 아님.
+
+
+
+### AP13 실제 manifest identity 관찰 (session92694)
+
+`./server.sh verify-v410-recording-foundation --identity-diagnostic` session92694 exit0,21pass0fail/5251ms. 이는 실제 manifest 관찰·정리 성공만 뜻한다. actual manifest stream/channel과 catalog source/channel이 모두 불일치함을 실측했으므로 해당 raw→numeric 경로의 제품 정합 결함은 미해결이다. reader guard 제거/manifest 합성/live resolver 우회는 하지 않았다. requested_range=null 및 mediaPTS[-500,500] 정상 provisional 상태는 이 진단의 실패 조건이 아니다. 실제 fallback 재생/Range/Complete/retention/restart는 미실행. 새 앱 실행과 제품 수정 없이 메인 설계 판단에 반환한다.
+
+원문 source URL 없이 보존한 진단:
+
+```json
+{
+  "eventId": "evt_1789061018353_2",
+  "linkId": "event-link-sha256-e905c30227b1dd47aff2cde9d689c228226b32e6f3333af4134f18d37a68f067",
+  "requested": null,
+  "mediaPts": {
+    "start_ms": -500,
+    "end_ms": 500
+  },
+  "status": "pending",
+  "reason": "pending-with-provisional-frame-buffer-fallback",
+  "overlaps": [],
+  "missing": [],
+  "derivedId": null,
+  "manifestExists": true,
+  "mediaExists": true,
+  "identity": {
+    "eventMatches": true,
+    "streamMatchesCatalogSource": false,
+    "channelMatchesCatalogChannel": false,
+    "manifestStream": {
+      "kind": "file-stream-key",
+      "sha256": "24b8636d15823d933b76e8c0b655fdf44f5157a09c87ad51b7d485702d6e0046"
+    },
+    "manifestChannel": {
+      "kind": "file-stream-key",
+      "sha256": "24b8636d15823d933b76e8c0b655fdf44f5157a09c87ad51b7d485702d6e0046"
+    },
+    "catalogSource": {
+      "kind": "opaque-id",
+      "sha256": "74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"
+    },
+    "catalogChannel": {
+      "kind": "opaque-id",
+      "sha256": "74ac6b844cae1e21a3792fd8061ee81952812e1395b30ada42e7b9e10ed7ce5e"
+    }
+  },
+  "encodedClip": {
+    "schema": "media-server.encoded-event-clip-contract.v1",
+    "status": "completed",
+    "format": "webm",
+    "contentType": "video/webm",
+    "codec": "vp8",
+    "byteSize": 22349
+  }
+}
+```
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| AP13 session92694 | [pass] AP12 distinct loopback ports | pass |
+| AP13 session92694 | [pass] AP12 actual foreground healthy \| pid=4507 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-rSQlwi | pass |
+| AP13 session92694 | [pass] POST /ops/api/sources \| status=201 | pass |
+| AP13 session92694 | [pass] PUT /lab/analysis/rules/9101 \| status=200 | pass |
+| AP13 session92694 | [pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 \| status=200 | pass |
+| AP13 session92694 | [pass] AP13 actual tap identity available | pass |
+| AP13 session92694 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP13 session92694 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP13 session92694 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP13 session92694 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP13 session92694 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP13 session92694 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP13 session92694 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP13 session92694 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP13 session92694 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP13 session92694 | [pass] AP13 actual manifest inspected \| UTC mapping/playable/Range success not asserted | pass |
+| AP13 session92694 | [pass] DELETE /lab/analysis/taps/analysis-tap-1 \| status=200 | pass |
+| AP13 session92694 | [pass] AP12 app0 exit0 \| exit=0 signal=null | pass |
+| AP13 session92694 | [pass] AP12 port absent 60213 | pass |
+| AP13 session92694 | [pass] AP12 port absent 60214 | pass |
+| AP13 session92694 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-rSQlwi bytes=70877428 absent=true | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-rSQlwi | 실제 앱 state/media/manifest | 70877428bytes | 종료 뒤 삭제 | absent=true | app exit0·60213/60214 ECONNREFUSED |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.UX2fvr | 전용 GStreamer plugin cache | 62691bytes | wrapper 삭제 | absent=true | wrapper exit0 |
+
+입력 조사: recording_session_service63~84와 core/session_manager307~313은 recording subscriber 등록 뒤 StartSource를 호출하므로 tap-lazy 시작은 아니다. 다만 실제 packet 진행 증거 없이 임의 sleep을 성공 조건으로 쓰지 않는다. 같은 tap의 EventManager104는 first_seen을 startTime으로 유지하므로 뒤 updateTime만 양수인 이벤트를 고르면 음수 padded start 문제가 남을 수 있다. 이후 양성 입력은 실제 startTime>500 및 link range/epoch 관측으로 선택해야 한다. 기존 S06 timeline smoke255~264는 manifest와 link identity가 모두 source-one/channel-one인 양성 fixture라 이번 raw→numeric producer 경계는 검사하지 않았다. Range oracle은 completed encodedClip.mediaPath WebM으로 보완했으나 해당 실행은 아직 없다. malformed encodedClip/size/path 공유 predicate 음성 확장은 승인됐지만 이번 반환까지 미실행. token start/end/consumed는 개별 자동집계 부재로 미집계.
+
+### AP fallback 원인 진단 (session80819)
+
+동일 `./server.sh verify-v410-recording-foundation --app-nonauth` 진단 session80819 exit1/20pass1fail/23638ms. 실제 event evt_1789060632844_2의 초기/최종 media_pts_range_ms는 {-500,500}, requested_range=null, status=pending이고 첫 reason=time-basis-awaiting-segment-map에서 fallback manifest가 결속된 pending-with-provisional-frame-buffer-fallback으로 바뀌었다. derived ID/ordered overlaps 없음. continuous 2개는 동일 epoch-9101-1-1789060632618에 PTS [0,8300000000), [8333333333,16633333333), 크기4096788/4813100bytes였다. bridge MapPtsBoundary는 음수 start=-500ms를 실제 segment에서 매핑하지 못하므로 UTC 미확정 보존이 정상이며 timeout 증가로 해결하지 않는다. 다음 최소입력 제안은 실제 양수PTS>=1000ms 뒤 tap 생성이다. 아직 승인/실행 전이다. 진단은 durable history의 사후 수집이며 상태 변경 시점별 HTTP/clip 존재는 미확인이다. fallback locator는 manifest이므로 실제 Range는 encodedClip.mediaPath의 WebM bytes와 비교하도록 수정 필요. manifest rawstream identity와 numeric catalog identity 정합은 추가 확인 필요이며 제품결함 확정 아님. 추가 실행은 메인 원인 판정 전 보류한다.
+
+GST root `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.5xOfAN` 62691bytes 삭제·absent=true. 아래 app root와 별개다. token start/end/consumed 자동 집계 부재로 미집계. 실제 capture 로그의 반복 raw file stream 문자열은 중앙 새 진단에 옮기지 않고 event/epoch/PTS와 필요한 오류만 보존한다. 앱 측 tracking warning은 발생했으나 UI gate로 판단하지 않는다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| AP session80819 | [pass] AP12 distinct loopback ports | pass |
+| AP session80819 | [pass] AP12 actual foreground healthy \| pid=3981 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-29WSGq | pass |
+| AP session80819 | [pass] POST /ops/api/sources \| status=201 | pass |
+| AP session80819 | [pass] PUT /lab/analysis/rules/9101 \| status=200 | pass |
+| AP session80819 | [pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 \| status=200 | pass |
+| AP session80819 | [pass] AP02 actual tap created | pass |
+| AP session80819 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP session80819 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP session80819 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP session80819 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP session80819 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP session80819 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP session80819 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP session80819 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP session80819 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP session80819 | [pass] AP02/03 actual EventRecord identity fallback \| eventId=evt_1789060632844_2 linkId=event-link-sha256-435602120c684637c7231e06d19c95baffa9a2b9645971338a8b395e7ad35a8b | pass |
+| AP session80819 | [pass] DELETE /lab/analysis/taps/analysis-tap-1 \| status=200 | pass |
+| AP session80819 | [fail] timeout: fallback exact link | fail |
+| AP session80819 | [pass] AP12 port absent 60054 | pass |
+| AP session80819 | [pass] AP12 port absent 60055 | pass |
+| AP session80819 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-29WSGq bytes=143858142 absent=true | pass |
+
+### AP fallback 대기 실패 (session15607)
+
+동일 `./server.sh verify-v410-recording-foundation --app-nonauth` exit1, 19pass1fail/22607ms. null-safe 보완 후 초기 링크는 생성됐지만 20초 내 UTC requested_range + fallback-only 조건 미충족. 해당 출력만으로 derived 전환/미확정 여부 구분 불가; 진단 보강 후 1회 재현. timeout·제품 변경 없음, 뒤 시나리오 미실행. headless 환경 보완 후 GLib/GTK scanner 경고는 없고 tracking warning은 남았으며 UI 판정 대상 아님. GST wrapper root `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-gst.WDq6aP` 62691bytes 삭제·absent=true. 아래 app root cleanup와 별개다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| AP session15607 | [pass] AP12 distinct loopback ports | pass |
+| AP session15607 | [pass] AP12 actual foreground healthy \| pid=3911 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-djIDWw | pass |
+| AP session15607 | [pass] POST /ops/api/sources \| status=201 | pass |
+| AP session15607 | [pass] PUT /lab/analysis/rules/9101 \| status=200 | pass |
+| AP session15607 | [pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 \| status=200 | pass |
+| AP session15607 | [pass] AP02 actual tap created | pass |
+| AP session15607 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP session15607 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP session15607 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP session15607 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP session15607 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP session15607 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP session15607 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP session15607 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP session15607 | [pass] AP02/03 actual EventRecord identity fallback \| eventId=evt_1789060571640_2 linkId=event-link-sha256-fa3c287274e4799b0bef6102efb297a437c19039d2ee106b36b037eb060e1171 | pass |
+| AP session15607 | [pass] DELETE /lab/analysis/taps/analysis-tap-1 \| status=200 | pass |
+| AP session15607 | [fail] timeout: fallback exact link | fail |
+| AP session15607 | [pass] AP12 port absent 60009 | pass |
+| AP session15607 | [pass] AP12 port absent 60010 | pass |
+| AP session15607 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-djIDWw bytes=136767543 absent=true | pass |
+
+### AP 최초 실행과 수정 이력
+
+최초 음성 실행 exit0/6행/5ms 중 priority·duplicate 2행은 실제 판정 함수를 사용하지 않아 판별력 증거 불충분으로 판정했다. 공유 priorityMatches/uniqueIds로 수정한 음성 재검증은 exit0/8행/5ms이며 실제 앱 판정과 동일 함수를 사용한다. 최초 앱은 sandbox listen EPERM(exit1/15ms)으로 서버 미시작. 권한승격 동일 명령 session33442는 exit1/20pass1fail/4949ms: 초기 fallback link.requested_range=null을 harness가 즉시 접근한 TypeError다. 정상 미확정 상태를 제품 결함으로 바꾸지 않고 UTC 확정까지 null-safe 대기한다. derived/retention/restart는 미실행. 초기 GStreamer whitelist가 빈 system path와 DYLD를 누락해 scanner GLib/GTK 경고가 발생했다. 기존 headless 환경의 빈값·versioned키·DYLD를 전달하고 신규wrapper 전용 임시 plugin cache를 사용하도록 보완했다. 첫 검사명령 경로조회 `rg src/config/app_config.cpp`는 경로 오류였고 실제 `src/app_config.cpp`로 정정해 키 대조했다(테스트 PASS 아님).
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| AP 최초 sandbox 실행 | [fail] listen EPERM: operation not permitted 127.0.0.1 | fail |
+| AP 최초 sandbox 실행 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-rbYHd2 bytes=17071044 absent=true | pass |
+| AP 실제 앱 첫 실행 시작 | [pass] AP12 distinct loopback ports | pass |
+| AP 실제 앱 첫 실행 종료 | [pass] AP12 actual foreground healthy \| pid=3839 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-r6hmHB | pass |
+| AP 실제 앱 첫 실행 종료 | [pass] POST /ops/api/sources \| status=201 | pass |
+| AP 실제 앱 첫 실행 종료 | [pass] PUT /lab/analysis/rules/9101 \| status=200 | pass |
+| AP 실제 앱 첫 실행 종료 | [pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 \| status=200 | pass |
+| AP 실제 앱 첫 실행 종료 | [pass] AP02 actual tap created | pass |
+| AP 실제 앱 첫 실행 종료 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP 실제 앱 첫 실행 종료 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP 실제 앱 첫 실행 종료 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP 실제 앱 첫 실행 종료 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP 실제 앱 첫 실행 종료 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP 실제 앱 첫 실행 종료 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP 실제 앱 첫 실행 종료 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP 실제 앱 첫 실행 종료 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 \| status=200 | pass |
+| AP 실제 앱 첫 실행 종료 | [pass] AP02/03 actual EventRecord identity fallback \| eventId=evt_1789060482179_2 linkId=event-link-sha256-d69f79779b4f77174d6a4af58876e05ee4513a0bc67a7f4633de0354f4ee10c0 | pass |
+| AP 실제 앱 첫 실행 종료 | [pass] AP02/03 durable link source fallback | pass |
+| AP 실제 앱 첫 실행 종료 | [pass] DELETE /lab/analysis/taps/analysis-tap-1 \| status=200 | pass |
+| AP 실제 앱 첫 실행 종료 | [fail] Cannot read properties of null (reading 'start_ms') | fail |
+| AP 실제 앱 첫 실행 종료 | [diagnostic] app0  \| (gst-plugin-scanner:3842): GLib-GIRepository-WARNING **: 02:14:41.842: Failed to load shared library 'libgobject-2.0.0.dylib' referenced by the typelib: dlopen(libgobject-2.0.0.dylib, 0x0009): tried: 'libgobject-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibgobject-2.0.0.dylib' (no such file), '/usr/lib/libgobject-2.0.0.dylib' (no such file, not in dyld cache), 'libgobject-2.0.0.dylib' (no such file) \|  \| (gst-plugin-scanner:3842): GLib-GIRepository-WARNING **: 02:14:41.842: Failed to load shared library 'libglib-2.0.0.dylib' referenced by the typelib: dlopen(libglib-2.0.0.dylib, 0x0009): tried: 'libglib-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibglib-2.0.0.dylib' (no such file), '/usr/lib/libglib-2.0.0.dylib' (no such file, not in dyld cache), 'libglib-2.0.0.dylib' (no such file) \|  \| ** (gst-plugin-scanner:3842): CRITICAL **: 02:14:41.843: can't find gi.repository.Gst \| objc[3842]: Class ResultReceiver is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x119e29748) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11bafab70). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed. \| objc[3842]: Class GtkApplicationQuartzDelegate is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x119e29770) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11bafab98). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed. \| objc[3842]: Class GNSMenuItem is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x119e297c0) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11bafac38). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed. \| objc[3842]: Class GNSMenu is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x119e297e8) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11bafac60). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed. \| objc[3842]: Class FilterComboBox is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x119e29860) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11bafacd8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed. \| objc[3842]: Class gdkCoreCursor is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgdk-3.0.dylib (0x118299258) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11bafad28). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed. \| media-server skeleton (C++) \| default route: /dhseo \| recording startup recovery complete: deleted=0 recovered=0 inspected=0 corrupt=0 \| [gst] forcing RTSP lower transport to TCP only \| [gst] forcing RTSP lower transport to TCP only \| [gst] forcing RTSP lower transport to TCP only \| [gst] forcing RTSP lower transport to TCP only \| [gst] forcing RTSP lower transport to TCP only \| [gst] forcing RTSP lower transport to TCP only \| [gst] forcing RTSP lower transport to TCP only \| [gst] forcing RTSP lower transport to TCP only \| [gst] forcing RTSP lower transport to TCP only \| gstreamer rtsp server started: yes \| webrtc http server started: yes \| listen: rtsp://127.0.0.1:59957/dhseo \| ops console: http://127.0.0.1:59958/ops/home \| client live: http://127.0.0.1:59958/client/live \| recording catalog: sqlite-primary (enabled=yes) \| file test url: rtsp://127.0.0.1:59957/dhseo?file=identity.mp4 \| running... (SIGINT/SIGTERM to stop) \|  | pass |
+| AP 실제 앱 첫 실행 종료 | [pass] AP12 port absent 59957 | pass |
+| AP 실제 앱 첫 실행 종료 | [pass] AP12 port absent 59958 | pass |
+| AP 실제 앱 첫 실행 종료 | [pass] AP12 root cleanup \| path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-r6hmHB bytes=64783359 absent=true | pass |
+
+## v4.1.0 S09 runtime 통합 사전 정의 (2026-09-11)
+
+실행 전 등록. 제품 미구현 RED가 아닌 신규 oracle의 음성 대조를 먼저 실행한다. 기존 제품 코드 변경 없이 실제 source/decoder/YOLO/tracker/projector/catalog를 연결하며 oracle 1/5/7만 대상이다.
+RT04 입력 정정 후는 실제 S05의 `video/imports/va_tracking_event_1280x720_30fps_h264.mp4`를 사용하고 대기 중 공개 snapshot에서 seenPositiveDetections/seenPositiveTracks/seenValidContext를 누적 관측한다. 최신 result 한 개만 전체검출 결과로 확대하지 않는다. 제품 threshold/epoch/timeout은 변경하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| V410-S09-RT-01 | opt-in 실제 source 시작 | registry source 등록→supervisor→SessionManager 실제 FileSourceWorker, IsSourceRunning 및 recorder/subscriber/stream 각각1 | v4.1.0 |
+| V410-S09-RT-02 | reconcile 비증식 | 같은 revision ReconcileNow 3회와 실제 analysis tap attach 뒤 같은 stream/source 및 recorder1 유지 | v4.1.0 |
+| V410-S09-RT-03 | 실제 finalized bytes | 모든 생성 segment V1 validation, source/channel/epoch·양수 UTC/PTS 범위, 실제 파일 byte 수 및 독립 EVP SHA256 비교 | v4.1.0 |
+| V410-S09-RT-04 | production observation 연결 | 실제 local model detector/tracker와 AnalysisObservationProjector를 통해 catalog에 관측 및 locator가 내구 저장됨 | v4.1.0 |
+| V410-S09-RT-05 | 시간/identity oracle | 실제 locator마다 segment ID/source/channel/epoch, startPTS≤PTS<endPTS, UTC=startUTC+(PTS-startPTS)/1000000 검증 | v4.1.0 |
+| V410-S09-RT-06 | runtime 종료 | analysis shutdown→supervisor stop→projector drain 뒤 내부 카운터0 및 held SharedStream source/subscriber0, partial/ready/cleanup-marker 부재 | v4.1.0 |
+| V410-S09-RT-07 | 반복 종료 측정 | warmup1+3회 종료 후 지원 OS 실제 thread/fd/RSS 관찰, 내부 owner 0. 전역 pool 차이는 보고하고 RSS 누수 PASS 주장 금지 | v4.1.0 |
+| V410-S09-RT-08 | 판별력·검증기 | --oracle-negative에서 literal 정상/중복 count·다른 epoch·endPTS·잘못된 UTC·잔여 subscriber를 판별. CXX=false 오류 nonzero/cleanup. 실행별 mktemp bytes/부재/elapsed 기록 | v4.1.0 |
+| V410-S09-RT-09 | 실패경로 수명 | 실제 source 시작 후 --fail-after-source로 조기return을 주입한다. 정상/예외와 동일한 scope cleanup에서 supervisor→analysis→observer해제→projector drain→registry0 AND guard0 후 owner0를 확인하고 expected nonzero·wrapper cleanup을 대조. timeout은 test process failclosed nonzero로 끝내 dangling owner destructor 금지 | v4.1.0 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 메인 S09 oracle1/5/7 위임 | V410-S09-RT-01~08 | 신규 runtime 및 기존 S07 runtime 승인 |
+| 30분 테스트 | 진행 대상 | 버전 완료 필수; 이번 runtime 묶음에서는 미실행 | AGENTS 7.6.2 | 미승인 |
+| 120분 테스트 | 진행 대상 | lifecycle 변경의 최종코드 검증 | AGENTS 7.6.2 | predev120 기존 승인이나 최종코드로 보류; 녹화직접검사 미승인, predev120으로 대체하지 않음 |
+| UI 풀테스트 | 진행 대상 | 버전 완료 필수 blocker; RT 내부 기능은 UI 자체 비대상 | AGENTS 7.9 | 미승인·이번 미실행 |
+
+auth/앱 HTTP/event/longrun은 이 묶음에서 실행하지 않는다. token start/end/consumed는 하위 작업별 자동 집계값 부재로 미집계하며 elapsed는 실행별 실시간 측정한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| RT 최초 compile 실패 | `./server.sh verify-v410-recording-foundation-runtime --oracle-negative` exit1: utility의 AdmitContinuousWrite now_ms 인자 누락으로 2개 compiler error. 제품/음성 oracle 미실행, 예상 RED 아님. 필수 현재시각 인자 보완 후 같은 명령 재검증 | fail |
+| RT 음성 oracle | 같은 --oracle-negative 재검증 session54969 exit0, 9pass0fail+wrapper cleanup1. 정상 count/empty/500ms→1500 및 duplicate worker/recorder/subscriber·다른 epoch·endPTS·UTC변조 판별. 제품 미구현 RED 아닌 판별력 시험 | pass |
+| RT 최초 actual 실패 | `./server.sh verify-v410-recording-foundation-runtime` session52640 exit134, 5pass 뒤 `analysis rule registry port is not bound` uncaught logic_error. 실제 file worker/recorder 각각1까지 확인, analysis 이후 및 반복·회귀 미실행. HTTP 생성자가 수행하는 실제 registry backend binding을 새 TU에서 누락한 composition 오류 | fail |
+| RT actual 두번째 실패 | 같은 명령 session70705 exit1/16pass4fail: RT02 analysis runtime provider 미결속, RT04 locator/nonempty 관측2건, RT06 file idle grace 전에 즉시0 기대. provider 및 grace 대기는 실제 app/SessionManager 계약으로 보완, 관측 없음은 추가 진단 전 원인 미확인. 나머지3회/회귀 미실행 | fail |
+| RT 동결 직전 진단 실행 | 같은 명령 session35559 exit1/18pass2fail, RT04 locator/nonempty 관측 실패. provider 결속 뒤 RT02 통과, 실제 idle grace 대기 뒤 RT06 owner0 통과. detector=yolo/tracking1/packets603/decoded601/analyzed148/decoderErrors0/latest 존재이나 catalog 관측0. detection0 또는 context 원인은 이 출력만으로 미확인. 메인 회수 지시 직전 시작한 실행이며 이후 수정·실행 동결 | fail |
+| RT 메인 승인 동일 sample 진단 | 같은 명령 session65185 exit1/18pass2fail, elapsed32697ms. detector=yolo/tracking1/packets604/decoded602/analyzed147/decoderErrors0; latest detections0/tracks0; source/channel9101, epoch空, namespace tap-1789058922103005-1-r1, ambiguous-epoch, PTS9833333333; projector stored/queued/tracks/pending/errors/rejected 모두0. sample_h264는 실제 S05 input이 아니었으며 S05는 imports/va_tracking_event_1280x720_30fps_h264.mp4를 사용한다. 기존 설명 정정. 종료순서는 app와 동일 supervisor→analysis→projector로 정렬했고 grace 뒤 owner0 통과 | fail |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-runtime.quLLyn | 최초 compile 임시root | 0bytes | wrapper 삭제 | absent=true | exit1, elapsed595ms |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-runtime.ZgdwZo | 음성 oracle binary | 8437832bytes | wrapper 삭제 | absent=true | exit0, elapsed1275ms |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-runtime.GKrs0p | actual 최초 실패 binary/media/state | 10488620bytes | wrapper 삭제 | absent=true | exit134, elapsed2375ms |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-runtime.oep53u | actual 두번째 실패 binary/media/state | 20929674bytes | wrapper 삭제 | absent=true | exit1, elapsed22594ms |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-runtime.oc5zTp | actual 진단 binary/media/state | 20918835bytes | wrapper 삭제 | absent=true | exit1, elapsed32611ms |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-runtime.57jCS1 | 메인 승인 동일 sample 진단 | 20918840bytes | wrapper 삭제 | absent=true | exit1, elapsed32697ms |
+
+### S09 runtime 최종 실행 결과
+
+`./server.sh verify-v410-recording-foundation-runtime` session30147 exit0, 510 assertions/0fail + wrapper cleanup1, elapsed76858ms. warmup1+반복3 모두 실행. 실제 imported 입력으로 positive detections/tracks/validContext 모두1이고 매회 유효epoch 관측이 finalized 실제 파일에 결속됐다. 생성segment8개 SHA/UTC/PTS를 전수대조했고 locator는 warmup110/반복1 110/반복2 114/반복3 107개(총441)를 각각 검증했다. locator 없는 관측의 gap을 정상 locator로 승격하지 않았다.
+
+검사 전 초기 threads3/fd3/RSS26836992bytes; warmup뒤10/3/213827584; 반복1 10/3/220708864; 반복2 10/3/223363072; 반복3 10/3/220463104. 초기 thread+7 원인은 이 시험에서 확정하지 않았으며, 반복중 thread/fd 비증식은 해당3회 관측만 뜻한다. RSS와 thread 누수 없음 판정은 하지 않는다. cycle0~2에 각 `unstable-track` 및 `direction-change-spike` warning 총6행이 발생했다(track2, directionChanges3, association 약0.79037~0.790381). 실제 검출용 입력의 제품 진단 이력이며 UI warning gate 판정이나 UI PASS로 해석하지 않는다. cycle3에는 해당 warning 출력 없음.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| RT04 production analysis registry binding | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 journal open | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 catalog open | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT01 source opt-in persisted | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT01 supervisor start | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT01 exact one source worker stream recorder subscriber | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT04 actual decoder detector tracker attached | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT02 reconcile and analysis share original worker | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT04 production projector durable locator exists | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT06 file idle grace cleanup finished | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT03 actual source finalized segment exists | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT03 bytes SHA UTC PTS seg-9101-1789059016575-1 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT03 bytes SHA UTC PTS seg-9101-1789059024919-2 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-01b545809a36de1ff144240a3768e30a | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-03205ad80eaaec9394b32c0c753ae782 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-03db4509f4e45946352fc578adce80e3 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-06a86bbd096afcfd588d2d2366b0d238 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-09f5bfca181934b3415131544c3a0a32 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-0a1d8282851a737292fe057e9dcebf3b | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-0dd0e1c6c226c8d1a5a874d3fe5c7f44 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-121f8512e5c16d69a45890e24216e578 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-16f2b12d3eb524ce45849d3a925a17d7 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-17b50f366b68bccc360f5f51d458cbc7 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-17d5756d4045967692c20b51f904ab4b | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-18819a8e7a88d0b0a3cbc312cec541d5 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-191ecd7d6a2ce13c34fddf417f7cb059 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-199a517a9e8e0de6f62525a60a01ebb7 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-1caf1cd80316df0fe5dd116250adc2f2 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-2066b9ab7f5a2010e288ea7c4f9ffe31 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-226e783bb70b3d3cf537b36a87b2e409 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-2275785ede41358dba6352d50229292c | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-239ae9a523c10bff102d31625f1bf422 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-286b4d0cbc82a73c4d76837bafa1a381 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-2b0eb453b89e00f195a88dd9a7486fa8 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-2c65ce04835d2652479115fdc2ef8deb | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-2fb3ed3860d4f6d5f55dc6202583a240 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-317171fee09d335a43c4bb40202cd96b | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-33bad589bed07a0348ca03c12072b54a | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-35d0719f9e44220e5dfcb2cbe111a403 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-37de19edd3d2bbd441181414209d1bf5 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-38422a097564fc707d495f099836d109 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-38e75f9efadbe5958a60ef7f1e4e989c | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-3e57e7a7860098555a6ef84ce46946ec | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-3fd1bbd476bb1d0b216be6aa44c6d692 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-4039ece34c155140e9f5e0f7323aef39 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-423644957c6be822099aea4989e8831f | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-42c831bf31ac308cad7e5b3fdaa34db3 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-458006e568ff7ed10e9fc12962a02574 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-45dd3dddf5581b01dfbf3945dd64bdea | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-497fd3bd77faabaac0e8b24c4f322c5f | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-4beeb8d58d54d56251e3acaf25850223 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-4c56aac37e4775ae9e95bc45e2ea4b7f | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-53571496409a1e00233abbd4809ceba9 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-56410878eea4742e73f784bae0f9ee9f | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-564d3908b284ccafb5bf35ab104c38e6 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-59a7ff64eb74ee348e3fe9d8279b2349 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-5cd97d8613f37a05024eb42555f06550 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-5f1cdab505a867fd400fddd20bd7fb64 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-5f2897d7f8a832f8bed72901ce8b94bd | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-6101b64d06abf3ef00a5c46fa52c1126 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-6693aa644d68b78878c101e51bf64a9d | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-68aba76757e240f76d0cfdadd595e226 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-68f5860a3172cb5759949f0228ebb4b6 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-6caff7e86756027b6a1e1ea77f7d2d52 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-6f41aed5f94f5e899afd020c844db5f2 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-708cbb3cf57fc355ccee6a9281540c90 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-7b369eca47b42d26d09ed418c099ef15 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-7d4fa4cf1a085c90d76815beaae849f1 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-7e7fb139c8d24d96c3e327a7dd95fd17 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-7f14a09df1dae713fd994afef661b6c6 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-8048f33b3e7fd944957954c7e980db01 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-82591a6a711bbf8d0fdaf5262bfa7b78 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-837a0ffb136a3efe8e8d04aac1c677b7 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-8a1b886a6ac86ee873abd815096a669b | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-8d23aba8edfdef161d020d476a0fc5bf | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-920b466980353531e43528723cd68f30 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-92af39d6f068a9f6210f5a1a094b801b | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-941b61f62ae8b3074ae7390d1ec53590 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-946d3ad0e98cb29e243b78372bf57d77 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-974acaffae2d3a0bf8ed8b2f6559f772 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-97e92fecbc66a16ee3438449247c8e1d | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-9dcf84c9e66ec3582a7426c44282a361 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-9e3a75a394149c9b1cb522bf03a53c76 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-9ecb107ed4d058054243b800d94c0516 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-ab528fbef1f1579fef237e8263e35b1e | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-ac91f712e262c28d1b2825b99d1c4d78 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-acb60f8beeb31e967e4bf5ef79cd1e0b | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-af313bc9f265f99b48b4a219622a787e | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-b01966fe709ac7c2b089fe284f49bfdf | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-b20936f2c331838f992bd4446f61d5e2 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-b4d3887780dc336a98b9738db9cf6c27 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-b748fa63f2f7c658ce27448a89c9d545 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-b83258799147e1839b3d82923ab41b0e | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-b9d2708e62125180fdfb44d0a3e1dd61 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-bed7d29aa8d2c841590e46f933fe0768 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-befda8ea15e3cdd7cd0a1e27ed9db5ae | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-c209f16f10971227166177746b61fc76 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-c3800854d6e1652121c1a4862473b5bc | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-c7863b526ea0a766aa042ddcdc0e36cb | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-c9113fd9503ddf67eb3ae05cb56a260a | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-cc4dd655e4e2da8b27cd061acf00e8c6 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-ced3728d6b4f39453c70d419664004dc | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-d2be2718684a756e55e38448a833f4bf | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-d88c02e1304db8dc0e63ccac3e3740c5 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-de2a007a359de32ee0aeeb45db6a76b3 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-de3f078c988afa81782f3f8af867da04 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-e057ccf4b39ffc2bf593c84e2fa0bdf2 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-e0da4f82a0186f5a3d5cdeeecb6489e7 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-e224949e85df6168ee95fcda686f54d5 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-e857a12a7105e59db245cf0eb2b90f14 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-e91b8c469d44de712507ee19c34fc864 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-edd13316d43beaf7225a6967d059401a | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-efd7675745c45a5379671dedbde9bd28 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-f1fdc04523605af0090bfad29f665f59 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-f20c93e8600721e1e54834f1a5d91c14 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-f220891b573b29e22c8fc0063e6c6faf | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-f2749a2366d956d454babd22f597c3cf | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-f29117f0c47188c40597810f64e458a5 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-f3a0be51546ea7a9256f4fe469cb010c | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-f42abc75e37f26af2356d94f22e8cbaa | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-f61c88f142fc7a655d13db33e1001c7c | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-f835e9db2d3ace26765af552f60595a1 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT05 identity half-open UTC obs-f8d66a1e997f56a208d3ee944214d18f | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT04 nonempty real tracks and media | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT06 all runtime owners and held stream stopped | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT06 projector drained without storage rejection | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle0 RT06 no partial ready cleanup marker | 실제 runtime session30147에서 해당 assertion true | pass |
+| RT07 supported process measurements 0 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 journal open | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 catalog open | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT01 source opt-in persisted | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT01 supervisor start | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT01 exact one source worker stream recorder subscriber | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT04 actual decoder detector tracker attached | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT02 reconcile and analysis share original worker | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT04 production projector durable locator exists | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT06 file idle grace cleanup finished | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT03 actual source finalized segment exists | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT03 bytes SHA UTC PTS seg-9101-1789059035200-1 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT03 bytes SHA UTC PTS seg-9101-1789059043541-2 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-01a9ee8fa355cdbad8da5f2085d897ef | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-02dc3f220dc19e78ada46f4696d96fa1 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-042400cb94ba18b139d100d8ef738a1e | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-06ada266452cae08fbccb1f69bdc53b9 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-1001a81368f2e7c9d92563b9e7a51728 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-1348c2744c53c5d44939ef291e8c7af5 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-16a58c40b2986393f753d66de3d3c096 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-17b7da673e9caab7b04290ef732d85ce | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-1a04a399457eeab8644bb5edf4846cd9 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-1c66a65ea6eeefc64caf5f921f4c0643 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-1dd2a7e1e3685e6ed907b10ab8c447e1 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-2496b94f2a0dfdc01204db65a2cb1b11 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-2710f047caf277fd02500c41e4291b18 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-2baed8664121cc1f7c0fd8f8fae3fcb2 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-2cbfab8c584419ab1ab8ace73fa9a366 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-329da690c38b50ef37ce4e46bcff496a | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-32dc2bf160095a5597d282d88faa0efc | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-3725864058c8347e0ea4216b756d8777 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-384c6f15b03b338b2fa683a34e46472e | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-3d8bbc5ad0b6abf110d1e221ea052938 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-3db22c20f8cdab1a960ef1c11c4917e3 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-3e5e9a561469ca9cb30bf8a5be9b65e1 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-40e1fed6030c22280d369ca22ffe3945 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-4141a0ffe8b6f26f317d76027c3de302 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-44781ad8f2498a250e39d03616a2a1e8 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-4528e46f1c07767a4d68cdc8fd57af73 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-45b121fda6ac791eee842000fa9e8a1f | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-4690b92f8aacf7623690aaedfd21750b | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-4a796477c41bbc90ec1f4bd504f765c7 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-4ad0d66f3f1878e4743a0ef9d804099d | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-4da34daf8e17bec5e53c2889410f99b8 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-4da73a596db70af7b2239086fcbdae9e | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-4f7dc700588b392744169e999b00690a | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-5850388ea5c076688d3f0a1a079d1acd | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-596e3fd82022e57fcb3ef168cb134ede | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-5c47481eb3436045ce3aa454449a95e8 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-60adbf668dcfbb56262de79f2f9a2083 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-61f9b52d9668dc17acdf665684a49242 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-6337004281348f93cacd09fa430d94ee | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-63aea319c68157c519775964ff479498 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-687efebcc63a28eaf2fe6699e2fc2fd7 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-699656a89e8039cc2b6b13c0008d5121 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-6c56952fd2a5aae37a262aea7b651330 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-6fb800a3b5d36837ce52f1805d33dd72 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-7191b7d03a732cb496a2eb119a646bd1 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-73927e89bcbc482a6de83e2b0c2d1aa9 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-73db173fa614d67a143116ca315b2c7f | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-74dd083338a31aaff46698442167b672 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-75c0df4c6cc617532f4ef7aadd8c82fc | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-78847eec816edc47c0a05e53317f5cfe | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-7964e7e2cddffe3e6e6056edeb62df17 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-8033e0591ce58c6f2e17299f1326b596 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-808520a2bcff639f9c2a76fc4379ede6 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-811493e29c62cea9b739201f48259218 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-81615343394e7895c6dce69c2a2f13bc | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-82a313b2d7cae882f76ff3e8861fa097 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-83d7aa05638a7de97909200dbe2c87b0 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-840af32a64b94f3fd1e0abfbe649d6f6 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-842200d3316ce2c4fe31661bfd2985f9 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-852f51d3c312a7a0c1eb1e3bc80bac39 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-892cb93837d04a2625ff39c74cc5cee9 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-8f291b11e22b051ff9fdf3939f153a16 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-90290dc482444a0e9873a5e67d964a23 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-92c5fb425698844459ee8abb5a0d1b91 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-9432458f1ad821e5479b41ac96daaa84 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-94d6227189346a8dd27f20d3867643fc | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-974ef9d48de5994e07cea5b218b99a87 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-9751357c4c873e9cb548178acc82f43b | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-9880186ae128a907d5e1f7e3a6336666 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-9ac45c68764047be520dee2a1658979b | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-9c52dc38b1a86197084823af65acc402 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-a0c7f4a32cf709b5461eea2e81bd8b8a | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-a181937f94dd1e6aca62ea4216bf783b | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-a222677331db1e491aa10435430b2a14 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-a3a0f8f0fbd57678461a43534259a041 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-a3b3610a0435b22500fa8625592f2148 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-a4884e70984de0318abaa2bae5ba4db8 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-a95f3782f5d46afa820f2682dc90036b | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-ab2e95431a6116721aad016d13e268a3 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-af4c01c3bf2efed8efff411d15c805fd | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-af934e432dc81a56182c5a6f4287f01b | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-b63ff3ceba3cc5232b87313aa2d93122 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-b756f86e72fd387e1c88672ec5593f1b | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-bb5ec97d3b3a9ba6b8b2c6881374bc9f | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-bf0eff19fa7b6d8dc79e245b1177201c | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-bfd86309707613b73639888f367619ae | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-c17fa75e325453c2c35413f3f8c577bb | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-c42c30ab219577b0ab2dc9d622d16501 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-c8b1a9b458aded8c0aeab4180249e70f | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-c969779b266ec0b8dcc9e683c7a7c4cf | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-cc7cf86c7077f939aefcf3f7454d0be0 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-cfaa1a26c4600f22eb505d7164df22a3 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-d3b35d3d8fca928057ab95661fa160c5 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-d80f6c86405520a8c49bdf7d26f32a35 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-dacfc90b3a7c57212cc07475147c69fc | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-dd8497a35e3d17014ccb7d0cc197e644 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-e103df7eb05d8cf61bdde2eeddbfd233 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-e1ca771670b245edba534eeb28e53450 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-e346395b76a5773f30daf9f73f698856 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-e3b917decc731140f844bf5b10f8ea11 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-e3c10e99fa78f3af615769e6f8b1a1ea | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-e444473398be261d42ffda2deb3c43cc | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-e4e6154ba4266f6d3f603aa81e97f392 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-ef6453f59430720e62c4caffa947c983 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-efa7d9edd5892e7604dc5eb9e14ace63 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-efb04ee1c4fb91904b5444b5ccfc94c1 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-f2035deccb5e8dd5da86150d981056ac | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-f6695b9b7966f257ddd83c6bc7c94dba | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-fea3b688f27245e4d52b019100582931 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT05 identity half-open UTC obs-ff09b4e564990e49e8e9d3e78666e508 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT04 nonempty real tracks and media | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT06 all runtime owners and held stream stopped | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT06 projector drained without storage rejection | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle1 RT06 no partial ready cleanup marker | 실제 runtime session30147에서 해당 assertion true | pass |
+| RT07 supported process measurements 1 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 journal open | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 catalog open | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT01 source opt-in persisted | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT01 supervisor start | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT01 exact one source worker stream recorder subscriber | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT04 actual decoder detector tracker attached | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT02 reconcile and analysis share original worker | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT04 production projector durable locator exists | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT06 file idle grace cleanup finished | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT03 actual source finalized segment exists | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT03 bytes SHA UTC PTS seg-9101-1789059053851-1 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT03 bytes SHA UTC PTS seg-9101-1789059062199-2 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-0311d97be128c1da8351430c4c019ae3 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-03b99c5ab4bcfad42ce206658d8e1461 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-0681b0d29911e1a84ccb375b59fd5801 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-092c3a655ab4b053a9a9f564237d188e | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-09d9efc207fcafad658086fb4c6776b0 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-0b5e1c0337e2999aac2e963290d169d3 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-0d75df7c0666afb6486955cbbe52cbf3 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-0e1738825f2394d6180e7c447addb42d | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-12350d3d5013945925c9a36d12688bc4 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-14b889a5de331564a331e246b7d86a2d | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-16a83aaaddc9cfc7d3579ea1734a9a36 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-17aee366d78041ac73f8d4d7f847e151 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-1a9aed2641c917d4fe4e281652e2a9b1 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-1b7b7ab43483c64637de3c398de36ee3 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-1c08f3e0aa16b09168db6b1ecd32446c | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-1cea5da05f07fd758330b87f209b70f4 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-208782ed613f3e2b843806fe4d2c09e2 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-211851950bfa2fa40940b312ae17a23b | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-235c8415035eb6e44b0a706cd7e8a55d | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-267b04e1134a2d7a77577ab8a6e6502f | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-2e24a297583dcdd5992269b62ed9d610 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-2f2b7d5c866adfab3f7cdf0af742ca8e | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-2f9e76c448f8528bb02f156ea6d573b6 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-2fda57a203fd4aab2cfe23e02fd9f462 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-2ffab88e2d87c218662db11bf2619af9 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-315947bf14f395cef87db2dec1b6bd7b | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-334ae088b01e4b3fbf305008748b7616 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-36ff7049a557e6fcfb1452d7c5fbb335 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-38d8bb0ec0f86423e46db966aee30a42 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-3fec9e391d07f88337002bdc41b69ec0 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-40c60cafb4076454505f3bc1cd5e3925 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-4b83ba4e2161427ec6d0d1e3445956e7 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-4d5c717013c7022f4d39dbdf692d55da | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-4eccdd7756eba3bd036766dc505ceb1c | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-51d2bdbaa0b31673b9a2237ddf58696e | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-545ceddeb0a94bc171bdfa8fe4890b08 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-56b7d3c3f31036249af411902f161487 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-5beeef86df60427c7c924cf35da4a841 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-5e2fb9c9272531f5d3f613791377073c | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-5f8098b6b23d38f4c126a08021b0204d | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-5fcf0a822d052416a98251dc2a2cd9f3 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-6300e84dd5d4ed41c3d230e13c9e8330 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-67adcb488fb11e546b633f02fa2ca7a9 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-690f85ff1f4eec6c219d5cff4ebb8bd5 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-6a92e9f6048be3fcaf9973c3d5606179 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-6ae9bedded8cc74dbc4af2e8fb4efc90 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-6c9e98fde12fc77520a7dfe866140b2a | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-6ebeeb3b506a90ef0134d79eb61bfab6 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-7346caeae5a7747ed5e86582237bcb53 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-748a3fbed0ddcd12b83d0aba31c22c5b | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-77758e4ac104a67d31eae72f08bcf444 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-7857cab7864168895f6f7ca32b686814 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-7886895c712375ebf409d83839249e8e | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-7a6703aad4c6d9df342b5c972a9c6626 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-7a6daace479681a4e35a3b3bf2aa7801 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-7aff6d48431e0b582eb323748f79a545 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-7bdf3ab8875ae38065c2a89381853019 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-7e7b94020612e6ad0fb0c2dba3a36528 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-7e9e045479c072511c17f6dad00bed54 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-7f8287f949055d3dfd73ad6406662fd6 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-80ca2a79afe1482b119d6a576f35188a | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-827bf4c6c2a5df7656778b55a0173bbf | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-849557bb437de363bde560d0fe3426da | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-84e03a22bef7809dc40a133d880df640 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-88f427ca6767af423365a01f4f658c6b | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-904c41d0eb34ec10a69c948f3259b4b5 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-9384b75d8967558942904d060dd60174 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-95fc48f82dedc76aa6a077f547da7d07 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-9a79ee8f81eba1be2c9992d34f10e657 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-9d5cb85377c5559aabd5793d143a350f | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-9d5e84359853998d3b84e9a32a0731ac | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-a27eda217f61575bdc91d26bb028f7de | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-a4013c84462d779e5b2d712289bc5107 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-a7098e0c548b98292d24f5ed1a015c10 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-a74e05e1123771022be473e5e8c8242f | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-a792783e45642736bb0f2dc804deee37 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-ac00b2c29cf0f71a9d63d30013254f3f | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-b108d7487a69b4941ff038303c0e7ba9 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-b509d51bb92e445b2a661b33f0cd99fa | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-baa096886bb84538a0326fd73458594d | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-bd400457b61636a017b87286b1f7b225 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-be09709b3fbfa9c6d693f087a6d882f7 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-c237adb8d797c13b2ca7a49ef1780976 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-c32f2c896782547aa66e72ac948eef43 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-c356067c9582bc1bc7fe904463c3c830 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-c51ded9e8b03fbcb882f170831f9214e | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-c94490f790e3e6b8986df940fd440a79 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-c9765c341d07736bbf5a7f4eb93e7936 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-ca7445b3ff58bb4d036a435af9952526 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-ca7d8c24be9c664dae7be10e3c449564 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-cc47d35634e5058ee274ba463e80621d | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-d1f14f8e581c96e8cd44ce8bc71a0071 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-d67ab9916639889a5416ba3eef97b71b | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-d6b4b4e4ec613379a532df9aa6801934 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-db176dd0b37bf305e3fb8c4febdeb0b8 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-dba71ba4c3d69fe6d82a800756b81453 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-debbf6556365f7b1dfb2ee47d1198280 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-e0856f4abad2de7a4a6724544bda903b | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-e0b64016d4d49f1e4bde51c0fec090a7 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-e7827c9e1fa1449788bab81f05fcfa7a | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-e87a298b713b5e86b6e740edc0d841fd | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-e9b4e5f66fcf9994ff8516b0d1fc6ff1 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-ea95de16cd9f2049f1e3853e01e2cb20 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-ed0df30121250bb1b7443501e89a7490 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-f02c388b6fed25dc1112436d1e4c2ec5 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-f068d2a8314c6047c812f53b347811aa | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-f0c563355df424f49ad0256f5454ce9d | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-f15a1f694e3dad4333720555229b84be | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-f405127f8a904b8b7643872f38c85b70 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-f45578189f5efb6e19256b95e8f466e1 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-f8eb97ed7c608489602e52fbb1210dc4 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-fb8e68051dfa87f7ae1b67f5b8fd13ae | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-fb90560cafb1e40347dcbf1dcd7b26e2 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT05 identity half-open UTC obs-fc02d0267bed55fd7a4af1325666a464 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT04 nonempty real tracks and media | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT06 all runtime owners and held stream stopped | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT06 projector drained without storage rejection | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle2 RT06 no partial ready cleanup marker | 실제 runtime session30147에서 해당 assertion true | pass |
+| RT07 supported process measurements 2 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 journal open | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 catalog open | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT01 source opt-in persisted | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT01 supervisor start | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT01 exact one source worker stream recorder subscriber | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT04 actual decoder detector tracker attached | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT02 reconcile and analysis share original worker | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT04 production projector durable locator exists | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT06 file idle grace cleanup finished | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT03 actual source finalized segment exists | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT03 bytes SHA UTC PTS seg-9101-1789059072465-1 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT03 bytes SHA UTC PTS seg-9101-1789059080816-2 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-03ef75116486844247b6d5da4b10c507 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-0588ac9847b4614dd69f518581cc73a0 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-096bc55f5ce5067bc03a32e6b62a618a | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-096be84695a6a3479f249cd27836beb2 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-0f45f52d58c46fcdbcbeba55a5190a0c | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-1127307f71b95e151d7c518ada34e0b4 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-123adf0e6d452a9eafc7797f380ea7b7 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-19dc0dddfed81caf8544fd7053eb7c8a | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-1bf827a37e55391e57f6d1e9b1161823 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-1cd64ff91f35270328607e9862fa3016 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-1d0419d7aae63d4ca320863983d80409 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-1dc3d9074f75f5f1bd86ded8c5164962 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-1dc66fc6344f28a804f2d7c79a7766a9 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-217a4682682da25f10e6c58943e59536 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-21a140e56c2ef3d8a97e6a8a7d069b31 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-22d81531e1cc377fae4427771e49865a | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-238591299d561f4bc33044246df57384 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-25ce08d6e7326d7b795b9300dc4abb46 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-2713001dfa931f8ff8f6bbbd23862866 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-2abdf4b1e5f719dd8ded198847161ce0 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-2d41b400378f3b6d2fe99d6e7c429ca0 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-2d99176971136b3667154181fd5850f7 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-2dfecceb1b3d4c7f41a8f3ba5e3c7f26 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-313536965d4ebb86cb0d430fa79b5693 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-3190cea1c1a09a4cf0d3d0dd4581143d | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-31c84abdb0e7bb77ef0c15e0bc581566 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-3316d6347fe8beae7b6e37966743152b | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-339e02c4a6235ad4ebd2be36be8e5ac9 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-34401d7a96d7c476b63e031f9c6220bf | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-3c4b8f1295bb7a70cb89ac93a63cccc5 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-3db8794c319723991beeaaa613891c84 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-40827c430d037666ad2dc81a028709ef | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-40d8a30154039ccb33e4071612c9d31e | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-410451bec8fb00e23bab2fa80e44ee61 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-42e19bcb25cf6c5b212713a8a114785e | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-477f51f411912665302569b1b9edf8ec | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-48c6dd04b892893006d317c70f453a87 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-491792302dca022f1c31d31503def702 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-49884abde35cf5f58ef9d1fd00d745c4 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-4bb3863ee680316aaf18faf013be5fcf | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-4e233b2f783a69bb7be16568828f99ce | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-52a1686bf48cb21dfa8916d949bf12e4 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-584c1e4e1e2b773e32bbff992c8cbe6b | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-5899665ce6441905433b4ed6847569a4 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-5976a5680ca83ddf9f2072f3bfbc06ee | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-5d1f39beffd15753219ea3eebfc0bba2 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-5fa2f90d516978e3e050c2a665183402 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-611e7388514ddca28ce71c307d9304c3 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-62acac25b6094624398608da80376afd | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-645bcad133a267c1e84df98dfedb244c | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-685960e2e3e703629a98484e09f0c91f | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-6bedaff4232232b61b21bc935ee11faf | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-6c345cfe350127c0b5c7208eb196e78d | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-6d4eb48a60f8332a22c2aa53db2060cf | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-6d8a9dc6182b6bbde77331b47f37a22c | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-6e3da74e1190f29ce1a95682dd8a7d49 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-6f69680c520bd5bb4a7685cd785dd5f2 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-708222c4331169f873efa0c3181e7e15 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-71f6c771c5da4c4f2b375b59ea87d674 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-72da3cf305d92a0d4c03a2ca30cb48d0 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-74227d1e014d1136dfab904da4cdba07 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-763446b7ca808ff36ed93c8c7508b81e | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-789cfbb931242b339328bdcab3142cb2 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-7b1af891de9c22f37c963f134d8029de | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-80f5285fda7b8c45adde929aaae6d758 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-8316167442c2bdfa220b610a94ee608b | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-840569d91def9fb11148cb84de14253c | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-84d84126efac317308ec6ae3f0e0b84a | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-860b167d2b66eae58f580779b33ab6bc | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-8ba291ed69406a3ada107256a06a0a0f | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-8bb6ecf61d05a3bae34a804b44a71fdf | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-8c2acf7bf3e56cde2f2a3bd0f8a8581b | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-8d3256c57778256aa1b2793de533cb75 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-8e841e8128ffa99d03516accf614f210 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-944bb866140616d4019e27d0ebb2c479 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-9497b3e30cc1e7f3555864348ba3284c | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-958d5d4b3b260c9272ae4d40d7bc6f47 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-9709fc984e37be4ccc9828548da75c11 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-98faebd573b52582b1546b51471aaefb | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-9db67ef0626bd4660f4499ec765fc163 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-ab29524cd79d9a8c8971abc77cd37975 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-b29eb4ea50c68cf41a1f135d7ebe95ed | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-b37d042de645e4be63d3f4909997766f | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-b3d81a3ef131d92a86c17dc1e099144f | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-c3022b656b1bea1d875cbf7ac1cf52e6 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-c77e8e146ab5324583505cf0c1fb7de0 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-ca515783b0c371a96f3d9f3ad35a1244 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-d00357917ed0485af7cb32ed4e74b68f | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-d32af801b96234e75250b2323965717e | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-d40c6ad41402708bc20dcafe17011206 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-d53731715c7f8590287c16325acfd05d | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-d644ed45eb0c8b04a75bde898e12f597 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-d76ccc3508dc0578c97fc830524679e9 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-d9019ae205ef75f82e4562a2cb0af813 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-d93fa8c0a3d17804d16cdb6044083f2d | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-de8c216c5cb3f97e0dcd6c7fc379c0f7 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-e21314182eb5299c396e8e024e8c234d | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-e89c14f17f14120992915024dd1270b0 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-eb54cf970e51a5fefd196b06ff231867 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-ecfb4f7d0641ef126fb31353ce4df9bd | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-ee98738f3945fd8547ea6f6fc09ca108 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-f1347bef600c956cd4d78da8be8989b5 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-f72f1397a15d7d99b7efd7380e106904 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-f88bf005710f0da485bb30f385d1d78d | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-faf1c484711ca3ec15a38baa5d59b2a1 | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-fb22ec96088e5a4deafeb22c2f62bc9a | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT05 identity half-open UTC obs-ff04780e1b272af3dd7afe3413db9a6a | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT04 nonempty real tracks and media | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT06 all runtime owners and held stream stopped | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT06 projector drained without storage rejection | 실제 runtime session30147에서 해당 assertion true | pass |
+| cycle3 RT06 no partial ready cleanup marker | 실제 runtime session30147에서 해당 assertion true | pass |
+| RT07 supported process measurements 3 | 실제 runtime session30147에서 해당 assertion true | pass |
+| RT08 wrapper completed and cleanup absent | 실제 runtime session30147에서 해당 assertion true | pass |
+
+### S09 runtime 추가 검증기 및 S07 회귀
+
+`--oracle-negative` session54969 및 최신 RAII 보완 후 session47485의 9개 판별 결과는 아래와 같다(두 실행 모두 각 행 true). 최초 compile 실패 후 인자 보완으로 실제 assertion에 도달했으며 이는 기존제품 미구현 RED가 아니다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| RT08 normal single oracle | literal 정상/변조값에 대해 해당 oracle predicate 기대 결과 일치 | pass |
+| RT08 duplicate worker rejected | literal 정상/변조값에 대해 해당 oracle predicate 기대 결과 일치 | pass |
+| RT08 duplicate recorder rejected | literal 정상/변조값에 대해 해당 oracle predicate 기대 결과 일치 | pass |
+| RT08 normal empty oracle | literal 정상/변조값에 대해 해당 oracle predicate 기대 결과 일치 | pass |
+| RT08 remaining subscriber rejected | literal 정상/변조값에 대해 해당 oracle predicate 기대 결과 일치 | pass |
+| RT08 literal PTS500ms UTC1500 accepted | literal 정상/변조값에 대해 해당 oracle predicate 기대 결과 일치 | pass |
+| RT08 wrong epoch rejected | literal 정상/변조값에 대해 해당 oracle predicate 기대 결과 일치 | pass |
+| RT08 half-open end rejected | literal 정상/변조값에 대해 해당 oracle predicate 기대 결과 일치 | pass |
+| RT08 wrong UTC rejected | literal 정상/변조값에 대해 해당 oracle predicate 기대 결과 일치 | pass |
+
+최종 정리 후 위 두 cleanup 표의 9개 실제 경로를 별도 `fs.existsSync`로 재확인하여 checked9/present[]/exit0이었다. `git diff --check` exit0. 새서버/포트 없음. 최종 원출력의 모든 pass label은 아래/앞의 개별행에 보존했고 제품 tracking warning·원인진단·계측은 위 서술에 보존했다. 삭제한 임시root를 최종 evidence 링크로 사용하지 않는다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| RT08 CXX 실패 오류전파 | `CXX=false ./server.sh verify-v410-recording-foundation-runtime --oracle-negative` actual exit1(기대 nonzero), 정상완료 PASS 출력 없음·cleanup absent=true, elapsed100ms | pass |
+| S07 actual runtime 명령 | `bash scripts/internal/verify_v410_recording_observation_runtime.sh` session99490 exit0/13assertions+cleanup1; elapsed 11362ms는 도구 시작부터 종료수집까지 상한(순수명령시간 미계측) | pass |
+| S07 runtime-configured-interval | 실제 S07 runtime 회귀에서 해당 assertion true | pass |
+| S07 runtime-status-limited-scope | 실제 S07 runtime 회귀에서 해당 assertion true | pass |
+| S07 runtime-status-global-scope | 실제 S07 runtime 회귀에서 해당 assertion true | pass |
+| S07 runtime-real-vp8-fixture | 실제 S07 runtime 회귀에서 해당 assertion true | pass |
+| S07 runtime-attach | 실제 S07 runtime 회귀에서 해당 assertion true | pass |
+| S07 runtime-observer-exception-isolation | 실제 S07 runtime 회귀에서 해당 assertion true | pass |
+| S07 runtime-tap-lock-reentry | 실제 S07 runtime 회귀에서 해당 assertion true | pass |
+| S07 runtime-live-fanout-unblocked | 실제 S07 runtime 회귀에서 해당 assertion true | pass |
+| S07 runtime-captured-provenance-immutable | 실제 S07 runtime 회귀에서 해당 assertion true | pass |
+| S07 runtime-tracking-disabled-independent | 실제 S07 runtime 회귀에서 해당 assertion true | pass |
+| S07 runtime-built-event-record-observer | 실제 S07 runtime 회귀에서 해당 assertion true | pass |
+| S07 runtime-tap-stop-once | 실제 S07 runtime 회귀에서 해당 assertion true | pass |
+| S07 runtime-subscriber-cleanup | 실제 S07 runtime 회귀에서 해당 assertion true | pass |
+| S07 runtime temporary cleanup | 실제 S07 runtime 회귀에서 해당 assertion true | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-runtime.BhiSes | 최종 warmup+3회 binary/media/catalog | 57297337bytes | wrapper 삭제 | absent=true | exit0, elapsed76858ms |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-runtime.AowRwM | 강제 compile 실패 | 0bytes | wrapper 삭제 | absent=true | expected exit1, elapsed100ms |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s07-runtime.NZVt8V | 기존 S07 runtime binary | 4588KiB | 기존 wrapper 삭제 | 부재 확인 | exit0, 기존 du -sk 단위; 정확 byte 미계측 |
+
+이 표는 runtime oracle1/5/7 일부 통합 검증일 뿐 전체 S09/event/retention/restart/auth/HTTP/Range/30분/120분/UI 완료가 아니다. 제품 빌드/장시간/UI/auth/앱HTTP는 이번 묶음에서 미실행. token start/end/consumed는 하위작업 집계 부재로 미집계.
+
+### S09 runtime RAII 보완 후 최종 실행 (최신 판정)
+
+기록 완료 뒤 담당자 최종 diffcheck exit0 및 모든 실행 temp12경로 별도 fs.existsSync 대조 checked12/present[]/exit0. 원출력 보존은 이 문서의 개별 assertion/진단/계측/실패/cleanup 표이며 삭제된 임시 경로를 최종 evidence로 사용하지 않는다.
+
+메인 코드리뷰에서 성공경로 외 선행요건/attach 실패 조기return은 detached idle cleanup보다 manager/registry를 먼저 파괴할 수 있음을 확인했다. 정상510 PASS를 이 미검증 실패경로의 안전 증거로 사용하지 않는다. RT09를 실행 전에 등록한 뒤 Start 앞 scope guard로 정상/return/예외를 같은 정리 함수에 결속했고, timeout/정리예외는 진단 flush 후 test process _Exit(1)로 failclosed한다. 제품 코드는 변경하지 않았다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| RT09 조기실패 명령 | ./server.sh verify-v410-recording-foundation-runtime --fail-after-source session73865, expected exit1/8pass+의도실패1. 실제 source 시작 뒤 공통정리가 registry/resource/workers/recorder/subscribers/analysis 모두0 확인, elapsed12482ms | pass |
+| RT04 production analysis registry binding | RT09 주입 원출력; intentional failure는 요구된 음성 실패이며 명령 전체 성공으로 바꾸지 않음 | pass |
+| cycle0 journal open | RT09 주입 원출력; intentional failure는 요구된 음성 실패이며 명령 전체 성공으로 바꾸지 않음 | pass |
+| cycle0 catalog open | RT09 주입 원출력; intentional failure는 요구된 음성 실패이며 명령 전체 성공으로 바꾸지 않음 | pass |
+| cycle0 RT01 source opt-in persisted | RT09 주입 원출력; intentional failure는 요구된 음성 실패이며 명령 전체 성공으로 바꾸지 않음 | pass |
+| cycle0 RT01 supervisor start | RT09 주입 원출력; intentional failure는 요구된 음성 실패이며 명령 전체 성공으로 바꾸지 않음 | pass |
+| cycle0 RT01 exact one source worker stream recorder subscriber | RT09 주입 원출력; intentional failure는 요구된 음성 실패이며 명령 전체 성공으로 바꾸지 않음 | pass |
+| cycle0 RT09 intentional failure after actual source start | RT09 주입 원출력; intentional failure는 요구된 음성 실패이며 명령 전체 성공으로 바꾸지 않음 | fail |
+| cycle0 RT09 common cleanup all owners zero | RT09 주입 원출력; intentional failure는 요구된 음성 실패이며 명령 전체 성공으로 바꾸지 않음 | pass |
+| RT07 supported process measurements 0 | RT09 주입 원출력; intentional failure는 요구된 음성 실패이며 명령 전체 성공으로 바꾸지 않음 | pass |
+| 최신 음성 oracle 명령 | --oracle-negative session47485 exit0/9assertions+cleanup1, elapsed1134ms. 앞의 정상/변조9개 전수 재검증 | pass |
+| 최신 정상 명령 | ./server.sh verify-v410-recording-foundation-runtime session8380 exit0/518assertions+cleanup1, elapsed76682ms | pass |
+| 메인 별도 문서검증 | ./server.sh verify-docs-links exit0, markdown226/localLinks1051/images22/anchors103/indexed76/exclusions142/failures0. 토큰미집계, 도구 walltime0.00275s는 반올림 관측값 | pass |
+| 메인 별도 diff검증 | git diff --check exit0. 담당자 수행으로 이름 바꾸지 않음 | pass |
+
+최신 정상은 warmup1+반복3 실제 source/recorder/analysis/projector 경로를 재검증했다. locator445개(114/114/107/110) 및 실제 generated segment8개를 전수 대조했다. percheck518행과 wrapper cleanup1행을 아래 보존한다. S07은 제품미변경으로 앞의99490 실제13+cleanup1 증거를 재사용하고 중복실행하지 않았다.
+
+| 단계 | threads | fd | RSS bytes | 판정 범위 |
+| --- | ---: | ---: | ---: | --- |
+| 초기 | 3 | 3 | 26755072 | 기준관측 |
+| warmup 종료 | 10 | 3 | 214892544 | owner0, 초기 thread+7 원인 미확정 |
+| 반복1 종료 | 10 | 3 | 223117312 | 해당 반복 관측, 누수판정 없음 |
+| 반복2 종료 | 10 | 3 | 226508800 | 해당 반복 관측, 누수판정 없음 |
+| 반복3 종료 | 10 | 3 | 227262464 | 해당 반복 관측, 누수판정 없음 |
+
+최신 tracking warning은 반복1에서 track2의 unstable-track/direction-change-spike 각1행(total2), association0.79038/directionChanges3/overlap0/missed0였다. 이전 정상30147의6행 이력도 보존하며 UI warning gate로 해석하지 않는다. 4회 모두 detector yolo/tracking1/positiveDetections1/positiveTracks1/validContext1/decoderErrors0가 직접 관측됐다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| RT04 production analysis registry binding | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 journal open | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 catalog open | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT01 source opt-in persisted | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT01 supervisor start | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT01 exact one source worker stream recorder subscriber | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT04 actual decoder detector tracker attached | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT02 reconcile and analysis share original worker | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT04 production projector durable locator exists | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT09 common cleanup all owners zero | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT06 file idle grace cleanup finished | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT03 actual source finalized segment exists | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT03 bytes SHA UTC PTS seg-9101-1789059374450-1 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT03 bytes SHA UTC PTS seg-9101-1789059382799-2 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-00a1b00cb9170f53a6753ba5fe917f46 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-02ba9f9ac9d659ac25d409a2e0ea22f9 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-09a72014ed234f0dc87750b4a3932824 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-0f2e849414d29ce208ef1fa209249077 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-11296f957efdab62bdc099b541c8770b | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-1199fe6aec340a44c610c72ac51aea89 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-15aa8134b69182ab0fe03f5aaf4b51f6 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-16e718304879aacc3be5c2201193f4c1 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-19750042634b10ca31cc7e5970d07ebf | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-198d8a1c0bb3130356ae0f13924cf8ce | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-1a2ddfa0bf958d345f85e503e847a5cd | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-1b89861298ee0be0439af17657471841 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-22d993182ce964c70dcc91e1c172f1ee | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-24627b3efb761ec6c8fa47f8771a2875 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-24a1187b2c70e6151f05959b6ed59460 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-265715d5e52c8f18ebf583ff8b2be3bd | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-29b71cd860be11e301120de73978a1e6 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-2d2ec90acd58ccf1847b14d3c695772c | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-2f2924f5640e895a7d594735caed624f | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-315352cd654200db8515fc1c67be1852 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-317288804241d00349c445e4742ef8a6 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-332377985fc0cd87fe7a053afa6c477e | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-36de5be7680817f6e180dbaee6b385a7 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-3def044bca5a8600a63883968c8fbd75 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-3edd627709792a7992d3cf2fcfee7cda | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-41b2370cd38254365b58df4f9efe1757 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-423f9ae9951342c3eab384e79e2dccd8 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-466f2559f3e29e6764cc98015c948aee | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-4973ce995bc925b4b8e50d937d832fc9 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-49a3d7d9c239283f92c03dcb700cacc2 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-4c09f4d08fbd325900d8f505b98e6b30 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-4c21d5eadf81f893bff49c6db2af437e | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-4dafaa716ac013e28e3f24b34cd09ea3 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-4ebab73925bd96c419d31f7631115fed | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-53da04e0165bb6f79f3835e6f646f3fa | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-578de6656c7ed7206f2a8f9819df1f31 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-5ac1c42a7694fe0e919538c1ea17772f | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-5d45b7dd7398de7d8fc1199016c8dad4 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-5f119ff14ead08c828c1b9bc38aa3b25 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-5f2827bc46f59e6e0153a752c1c6f2bb | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-6607819ba4008d4d0e87f34eb66ba2aa | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-66244ae0043bb07695f454099283c223 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-66a1ae4491c08243cff00273d26c5230 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-677b05de855c80a11287cb422100485c | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-6c110e5ce63ac3e8b9cb47ff95c76319 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-70e08c5bf6c979467cc3910e4cc543cb | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-737ab6b5602c9ee95e2ff6bb07393434 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-77c2b070a05e96ef0c3d37dd86536056 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-790aa84205ff8fe6e179adc5986ff78f | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-7b885f8a721c395fef23d8d3f2e30272 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-7bb1466d6a5f65241b24c065cb5fa2b1 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-7bf01076bb05f296541f745fdd185f9f | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-7c839309eee3b701f3cc7fa7d6485f1c | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-7fb84589bd3a40d9e5cc2f916e440358 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-816e4721130d38a84533a33529e0b1b1 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-81ff3fb3e00dc3f157cf4740ea8eca28 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-845ea67e99862722c0bd473edc07a80b | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-8ab0fd48dcc22de2ad37edb2662e1907 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-8c1f8b421c2cce6d3c421a3820ccb240 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-91a19600e57a4a3367f4a7e2a0820bee | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-93591488dba4bb5d1c7f66810afaf96c | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-935935cdfdde70cf9025f6de4f51a7da | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-98046b6dfdcf5da9fdfa0606dda31b98 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-9844bc227fbed6c518b206f3d61a12bc | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-99762b898ba57b183c030acc52f459c3 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-9a5cd8d1b444257bab7db512259a7b6a | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-a2469cf4323ed66d402652a0b690679c | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-a46b391b1ad1fd34a44fb02f119779f3 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-a4bb873dd15bc2ba23c8575c27c16d93 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-a9fc13099d5d21ba10a8ea2bd8a3b683 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-abdc863bb7e5820b4ab9264da2863382 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-ada0e28ac47661726b28ee69c829818f | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-b0221a0a0c070b5772a9ae0bc11eda4a | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-b24392c5112b07f5788badc7a6f719ac | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-b28592b89f53e7cd16d23e99f58b96e8 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-b567ce14cec5623991c738d24e760a70 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-b62dd8088c35a84a7457ea08454498bb | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-b653b179d5efbb8b8392968045096e56 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-bbbb00c2a50e823018abcea0dcf9b1c5 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-bce162a0998ee5acb695bd0ecde7e695 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-bf2cb43737d8d566da14d9385b70ba5d | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-bfc791b80ace34c3ddbd9eb43e03f7fa | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-c18a83679aa6d924da87ae86522fb29d | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-c29f24c69a12094ff9e355dc154fe456 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-c42dec948bf3b98ccb391d78cec39439 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-c5918283ed81b4d9bc31d189743fa0b4 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-c84244ec8382194475bfac8fdd863171 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-c9e3b9566732e3aef82dbd952517c877 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-c9f8c068ca1ffb0100561b4dfb1989c4 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-ca7855a87bf4e775a99252ffcb114048 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-cad496fe80b787e9f615d81339234764 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-cd7f8b1edea17ed51821b25857f8a214 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-cf137eb22fc9b9f0e95a486f8207d3e9 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-cf336187a1ba26cac66d2b10418d4e27 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-cf3cf8bf1200fde9bc6fc08b375a19a0 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-d309626193356e8a254daa209f188f25 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-d77ad2fb15c1be332fddd156ae5072d2 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-d884868999b4650e143a76b5b4f1959b | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-da29da02831396ae4a6c87e30bc1320b | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-dfe475521514272f3ad5ab9e6c961d6e | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-e3439a3a8a417a0c65f009bbe6490135 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-e3b61868d449c473ff910676bdaa3a62 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-e78e8c3150bfaee48953d81495fe0fc1 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-e8aad89fe4e02929a809fd801d15b4c0 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-f01b39e92ec1c1ce5cb76896d443bb55 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-f322d5dda934d8fba91236b07398ccd0 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-f32859f37fc0a27e316550b2950c0607 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-f4119f059ebb09ffd413c30494219e86 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-f6cbd10701563a8042944e37ad3cb9c9 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-f79929dcd7ee2f8466e472bb143401a1 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-fc071502bc7d1c4a5e1c0e8860e93b1f | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-fc945632470967661ddff7261f327703 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-fd911c8e93dfafb4d2f2e8029e42ba45 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT05 identity half-open UTC obs-feadc8520e943870b27834633338e1cb | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT04 nonempty real tracks and media | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT06 all runtime owners and held stream stopped | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT06 projector drained without storage rejection | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle0 RT06 no partial ready cleanup marker | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| RT07 supported process measurements 0 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 journal open | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 catalog open | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT01 source opt-in persisted | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT01 supervisor start | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT01 exact one source worker stream recorder subscriber | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT04 actual decoder detector tracker attached | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT02 reconcile and analysis share original worker | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT04 production projector durable locator exists | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT09 common cleanup all owners zero | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT06 file idle grace cleanup finished | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT03 actual source finalized segment exists | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT03 bytes SHA UTC PTS seg-9101-1789059393102-1 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT03 bytes SHA UTC PTS seg-9101-1789059401452-2 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-05d17796eb61d95ec05e9f0a4d617bb5 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-096613ddb0ce4e4ac13e7201bf8241cf | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-0abec59025af4e747bbea2702d520add | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-0c831d6cc740ed88012d01a1cfdcfc3d | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-0d8927d5b24ad106fadd1bff90e8bf97 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-0da23689e6d13e0565d2c0c6c18661e0 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-19b6213c968cb00ec4e9fd1d52d51c2f | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-1a32f66dce6ab6d7903739f870483f5a | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-1f68ec0f3be65f992efa5ff8a4488274 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-2623f813f0dd00f2984ec86bb56c8c8f | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-286df9e1ec6158a5b1ace0d9610a9f48 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-28b3b1a90f80183416b51d7aaa2cb405 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-293613d60e2b919fb36c1a93b6e6614e | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-293cd2b295e97bd19dad2cb7858fdca0 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-299dabcd50b47e6b3f0bfe5ce26eb64a | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-2aa9dab3af3907e9c1528ce4d3782998 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-2d4cbe49ffdd3e251ec65ed38c735c44 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-2e0ce67e611201196f44265a3f19eb30 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-2e85c56eb4402d1ea1ff12e4c30f26e3 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-34f35c1e29b0dd13e38211bf2bd4eb9e | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-380820bdef62d2e0bd0e983bed9d59d9 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-3a428c80b2804d397c1021981ece86d4 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-3b8d6032e87c6a14c4efcc6eae0e9489 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-3f2df309968b265b642951c71667cfb6 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-407ebf5a9bf1167f21b82b27f0e11446 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-4095cd0368a4aa04c1d82a1d58bd64b1 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-4208063c20cc2da4b694600bcb5acab1 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-441346e680f1f83a21446651c428fddb | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-45ebaa7c5ccdd804c5e78f9cf79b0c61 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-484a40cdb18d77c40841acd71b2588bd | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-49548c9534f556ecdd278f1dc4545e21 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-4cbcdf5f637dc4797bb722449c83edda | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-4d421afb2b52dd8cd090003b6ffaf721 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-4dd1ed78bbb6c7db59c21a1b53ff3f6e | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-5247bae5c7fdada95693f70ac8972c90 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-5334d65e2df82f8ae83a6b58b2089b07 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-5531ba2449c1cbb4eee2415814899289 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-559da9f36c456891bef7e16531093e44 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-56065076eb4b967296f94d375e66baab | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-59e1d9ebc1a7683e0e4202ca081a3573 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-5bb5ad4d0b7b9e88cefc52bb2831eccb | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-5f1c3fa0e419a1b7eae587ac146670ce | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-60ebb554ed294f2928e3c049c3343db8 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-64a5627c30c8aa685fdf1e79b8900fe9 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-671df4e359e4a301ac27bd0df2769d48 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-6b3007f8d8a1e5b6a447576cf72d3a8f | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-6e4edf1b217110177360eb9e9f1d18fe | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-708abfece448bf5bbd3129d56d67f82e | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-729493b1b814db9ed5255748b5887af5 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-743a0ae895b439dd1331afd3292c4514 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-7a82076ec9468497edd42ef89e37826a | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-7ab0c175ddffdb5c2a3cf9990a090fa1 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-7b0e27b1aef8ea6c71ec87305c215639 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-7f06f5d15c46776dc0b055c2956fed78 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-8078353c252717356c6b4814ff628e94 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-8123f8c670e73e146f8e217b401a214d | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-81323220c3ab4eaf867ab8a5449b1a96 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-82a2e58b5ab07776bbe4bf91dee692bb | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-82df698f74f9525d39ab5c76f72ab17c | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-87421f0f2aeebd0150c8288f94212d4a | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-8833c82eb9ef59e7b7a4816a8d776eb2 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-8cc96250255ca6d9efdbfc309c8d601a | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-8dcea50e9baaf52f2ae32b28e1d0698e | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-8de123c15f2d927d35e2c0bad151bb32 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-8f13703be72ecbcef432fa59f3c94907 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-8fd62c8fe8d6f02fa7f7bb6db4bdc542 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-92b954f84c89f96bd642c872d2be882e | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-93889029f3a6dbd8fec831caeb922819 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-94ef3bac35e69d36ec1d7c7c0d52fe13 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-968189c5a4d2bb081b4c87802c0ecdfb | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-997e8a1d107e006d03c1172ab9201770 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-9b6a6564e35f3b5ccbaa455d29ee1955 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-9d93a395038c70c21183c586d5e2866d | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-a07cf3976fc6897621f148681c7e0283 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-a4b600c387ed08807043896a6b651ce9 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-a61f5c5eb107fc45467dee7610bde1a8 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-a69b4ff5af8e7753ac3668750e10366e | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-a7525a0d06a50bad25371e97dcc808f8 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-a7e3a28b080f218d6077753196d1d568 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-a857f25a8af973e70334d175acfa0b00 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-b19522d9172170cf39053b884551743a | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-b495d5012d9feade725a20251816f39f | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-b9fe38fae2ce89f80cfa3b28ea396851 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-bc536b72bedbfab5242faaa8f61e980c | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-c0e9a833a4e5ef705118a48ecc790ab5 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-c17cca5f2c388f0b2a65fc5e3650e9c8 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-c417f7c5f3ab7a430d1cccc26a0406a6 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-c5cb1fe99093ce881ac7bfbc64cfa191 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-c5febd5bc1bc6f133321219306266992 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-ca713e968a38ac453b36501b87c40a9c | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-cc04efccc5faa9eef02394da54eba157 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-cc28b86801d7466c1aeecd0b4648c871 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-cd451857e03f60b2ba43bd9b50db396f | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-cff5ded3396e76555ab76965ea207668 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-d20d7050b2462f63327a958ca945b37a | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-d46f1a58b5bf7008574976c4b24e0ec1 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-d6f5b2c4c3277a906a035daeb93e4fe9 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-d6ff1b563385ea8b8e7b5bc5ae702d42 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-ddf4db469ae5f39f95f388160aca6346 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-dfc4283a47e655a6be565fdd0b7e26fb | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-e44ae021c8ce2e5e4b0dbf2b20f6f10f | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-e51c6a38a1e253783edaf4260853e945 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-ec571418abccd65ef60dd679e6dcbbfb | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-ec81ff662d86c9021506dcfb8371948b | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-ed19d24f6892ddd6a4bab888bb05098f | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-ee6822a96d11f726a754dba80f09232b | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-ee83764bb58254b285fe8bd6ff0ef8eb | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-ef1ae27bb4763ae0421d2df3b092588b | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-f247ec9a0455afe508d93b8b071bb108 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-f6079164deb448b156ff004102e047fc | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-f9631afadc2ae5fbee987955caccd226 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-f9c320d31a811432912746d84c624ae3 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-ff9b1ab8241b61419b2cfbad931edb88 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT05 identity half-open UTC obs-ffb26b0232df56e34ec75a03620ac6b6 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT04 nonempty real tracks and media | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT06 all runtime owners and held stream stopped | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT06 projector drained without storage rejection | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle1 RT06 no partial ready cleanup marker | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| RT07 supported process measurements 1 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 journal open | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 catalog open | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT01 source opt-in persisted | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT01 supervisor start | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT01 exact one source worker stream recorder subscriber | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT04 actual decoder detector tracker attached | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT02 reconcile and analysis share original worker | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT04 production projector durable locator exists | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT09 common cleanup all owners zero | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT06 file idle grace cleanup finished | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT03 actual source finalized segment exists | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT03 bytes SHA UTC PTS seg-9101-1789059411740-1 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT03 bytes SHA UTC PTS seg-9101-1789059420091-2 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-00ef44da3db2ffc3d6b6b968103c96fe | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-031296d2b564180794df52e29c2f4846 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-0678466ed1c466302ea48568421011f9 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-06b47bd320c725fada494f7ab83959a7 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-0790fd5af5c9a36684e5c19bbc8c55db | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-07e92408713b6e9f5974c10567fe8d6e | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-0e8b2932e8b5cc1371657d5fcf898b22 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-1102fe1078b0f074d9d3f9bdce09d609 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-14c76b92f84176067f2108b79125654b | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-1a1778736c3431246c2da413d2495041 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-1a86b1c5ead0e424b70b56ec5f6636d1 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-1edf48f7eac9679e9fbf6b3bfa38c2c7 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-200d7b8bae977863fbe6f1e8b10857ca | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-205b463e8ff1fec90cd9ba30b694c3ac | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-21d71c00b6b47f51937ac7f13189a4a0 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-23243ddf191492fd127a2a7c368161c4 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-2345983022cb9dfc39d580e147c25d81 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-27b0f326fa1b61484afd426d5c5c1441 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-289df56f8c055ec2bc3908f72f0464ab | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-292aac350ffc85a43505db0225b54309 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-2ed99d3f743700d2d4cc482c6d70e4cf | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-39317ecd5d247e500f32c8c63f55fba1 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-395aa18719da3a648430565b3165f5ff | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-3ab849abff9e804cec359dbff61545f1 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-3f4cd2c57994ad322e6c7929e4be842f | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-4048d1cdceaf79726ce50dc114251ec5 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-436ecb88d010063bd34b49ab253fd382 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-481bc540a42db7706133639ea8a529c9 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-48b52c353770730e92788adc0e00dbd3 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-4eb5fd96abc1356b3eea47fa981e7e4e | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-50e2a91baf625e3e3d5cb5a18c1a8f9b | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-573231c14623f922bcfacf739e0cdcb3 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-57aad032f206d88b862344cf733bcc32 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-58889c44d7ce554278bfb31dad80343b | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-588bd09eaf4653d8024b0a7021a5bd81 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-60e40f582b2d2f4559868c6f6b946760 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-61372bdd21b66659f9308bbf48b380bc | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-6243107920121021740772a47b3016e8 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-624a98df55c509ea4115cbd388db9acf | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-626b57b86303d153f0461959552faa0a | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-64f29e019af9f8992034c8d236a44fc0 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-664ecaa217327a0b6d0cc51174153f5e | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-67391c8b9b89741d58cd4938a2b5db4e | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-6839c2d15cfa7ba7a6e77504b692a674 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-684996e05ef52bc08a540e372927ed29 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-6a1883156930df6772f9c0be912cec6e | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-6bd4272ff4072c24a38365c2bb5eef31 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-6d597750d2e7ffda933bff04216049c7 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-6d74cf3c12c6a817d3d6a88e16f25352 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-6ef334f5ec560dfead059b3917aaeb13 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-70e70ae8453db1a1c5251db782a08690 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-7180dbed21e4e962f4d934b6527710d3 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-7363a6169620cc440ae35861eb3e6455 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-75f10cb4cf4863053da4ab026a3e0460 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-7989ea9902d8d06dc2c6d0dfcb732d68 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-79ac5aeb76865c1123a1e89308198198 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-7ce6df397bca707b879c7ff7d2d4d50e | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-7f5bc1c2087e75f36a21f369db83b66a | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-820fb021f9f8ee4ba2e81ee07bdb41ee | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-82ce2a51f314b80e4a12ba6e715386a3 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-85198f9e39556c4020430688ffa7a12d | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-8c05b7960be6a30a894f69217842fe91 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-9372a0bfc31df451a4abf9723d2b9f20 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-94de68005b0389baac26fcb917c0ba13 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-961a69f0f7d2bad041b3afb0e38c5e61 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-963f6a0b40784acbfd20167864c7140e | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-9812795574c21392e4e2890f599004bf | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-99525cb1f0c0f0dd8656e2ffa4f45b20 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-9ec9cc21f3f8230801509f7b534c1a37 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-a0a88c66002e86c867ba226a081b1e39 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-a2bba72105c6715a0c24abe42ba07323 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-a32ae0738463245aaa8599fa02b0cab3 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-abc71ff976ca6ed6768442bc7a23e50f | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-ae2623fe9d5f2d455c212293d1e724d0 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-b0fe71ec755528175c686dbfe07536a4 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-b176b4352e1cfaa14e4d0ce7a1c53154 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-b1a943ffe032f1a9f60bfdbf7d8da232 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-b529c70253c4e1f1d78290d4fbedf900 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-bbc7ad292b2efafeeaf44a3db5b33723 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-bc93b3b8e6e911c5b56985b8071d536c | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-bcca1e6dc28acec52c6472649e132a7c | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-be6df41e4514bb535f4c4cbf2628410e | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-c370ae451da6072bddffc13eb1511d7c | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-c54359104e83037345d24e759f7d6ace | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-c827ebf0eadc9470ca00acfe7eb70b69 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-c899e25f10072f5aaada603244958737 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-cc84e1f9acb7c98c9923e4299303cea1 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-cd370e44c89214e4483f32ff6df3174f | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-d013bf85d0c2249863d2b89c254921b1 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-d081fd0636ed8d81b81338ea5dd51b90 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-d0ec9eb0db240fcd4b2c7b7f1a23a8e8 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-dad4b690ee6170678d10674d1f8ce8e6 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-de38e3b283cac389ca2627fbae2e7bfc | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-e36e50166523a16da9c776c841cd649c | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-e641c5562f09865d6d32bf1042ba0958 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-e6424821d44db9c939a8c468af1648dc | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-e72efe5cca7ce485061076fc07d0ea38 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-e73e472a29688609f3346d214b28c582 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-eaeec7e5d9d764e1ed5e316f77e1f5e0 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-ec2af7ec962a5459d642f8b7bbcba304 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-ee85c190f2f9f426d7e6dd5decda8657 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-f11a8c7ea0f9f31093b1068d83bc5ee3 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-f157d65df824578f95e96fac61fd7ade | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-f1dc0cacef955a9c2c808fdf405f0a7d | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-f441aa162add16acbaf7b574eea255dd | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-fc95b9cfdccd9a7b86215667276e2ec6 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT05 identity half-open UTC obs-fcccb9359af160a429de7d1a5f53e471 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT04 nonempty real tracks and media | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT06 all runtime owners and held stream stopped | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT06 projector drained without storage rejection | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle2 RT06 no partial ready cleanup marker | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| RT07 supported process measurements 2 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 journal open | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 catalog open | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT01 source opt-in persisted | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT01 supervisor start | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT01 exact one source worker stream recorder subscriber | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT04 actual decoder detector tracker attached | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT02 reconcile and analysis share original worker | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT04 production projector durable locator exists | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT09 common cleanup all owners zero | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT06 file idle grace cleanup finished | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT03 actual source finalized segment exists | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT03 bytes SHA UTC PTS seg-9101-1789059430379-1 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT03 bytes SHA UTC PTS seg-9101-1789059438723-2 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-02b3ba7c92a9465c9c3a6504f11531d5 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-05bdf0609c8d4709e1c8425eadb2e0f4 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-08127fdfc7bd0d37ab3db3297f0793c6 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-09b1e5891fc69c9fe57c6039fe1977b6 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-11cb3a1c90068243e572334a078b2c8a | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-11cd27e50c3f894d3a458ffd7f80f87c | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-1341e9ddd6ebf30ea000a1e32d03b2bd | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-1405aa224c1b8674e786c0217fcfa231 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-16902d13a6cca4068460bf51647fb217 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-1858d2a50debafbd0cffe2f942d6168c | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-1f8148aec6a77b9151681c5ed2e9ab2c | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-235cb768dbd56abb80130463c04a9f66 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-28ecb20799f41b0461deae55977e9071 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-2a09a44c629386e174cff4aba54843f6 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-2af36db5be87b3a49e03160020e64855 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-2d5274ef8a78288c3e248a5688cd8329 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-2f51a37a01d8ff128fa70ab7c17be7c3 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-2fe8f90bb817629bc4bff9b341b12832 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-2ff1bdc9f30798e7dd08e96def33bd8a | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-3180933d6d559df47d6884c4bf006ba1 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-32d5b1c04a2d5caaa25f332235c574ff | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-345a50097828010a4a7558c20eda2f4f | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-361ef7bfb46e1861e92e62c2948d3c10 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-36c742029e258b436cbec6aef5880af2 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-3aff29072c97390be3bfb1710fad9e10 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-3c7ed068d74a4758fb1aeba638478081 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-3e8c19d2883372729a60fbaf0b763dc7 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-401b723911c3eb87d1aefb7dabe998fe | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-406ed0fe853687c030969c551232d0bb | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-418391ae3ce0a6c64cf7ff7c2bdd77b7 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-4732a609b67f9fadf11a87673c2e5274 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-47453cb961561d0c9b7afbe749a59ef9 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-4b0fad4428bc05988c3a2c11ffd40059 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-4bc1ed059d60cd75ae0f726ca04d5754 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-50865602ccd58e4166e6040072f451a4 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-529b71275b618eec8a72e2327f432285 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-531aa3eedc8a3f3e5bc542f99842fa7b | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-5718d20ae222ffdbad8fc1b22ce2304a | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-59d836fea234f8102f895b45f0d568a5 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-5b561d2e512a90d441d1c1cbb278646d | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-5b600bc6781ec9e62a6882e7295a0cbb | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-619c9aec7b501a7edf01041e1c3f203b | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-62f902d3d8592c80dc25cefefc700ed1 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-63793cc7624d5a3581221972a792cea8 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-644f439bbb83707d23326263387a73f4 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-64dce3bdebe21be87b7dfe7e34ace251 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-6507c187374041fdf66585f8046be14c | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-6812681cae011d24d09a0a5007b384db | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-700ba64b0529fcfb6978a76281e06a26 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-707ae8dc69183379c63298feec14dda4 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-7229d396bfb4e0bc029219571e5e0471 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-7765facb2821869f24a9cf8d722a2dc0 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-77b9ce357dd3910521d584742e7242a8 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-7c3c0b0c02b41df6bff33050ceef30cf | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-7d41be8f70133030f136a4e1de7a3275 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-7e22ee5013da7e1a6a82454bf3e05b53 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-837630e4c77a1d8374d456c6451519ba | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-86eb1b857e895f1f002fb2bf88a3a14e | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-8b1b7660e47bd084aa32ff9e12dc3bcd | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-8bd9594e7eef690aec45c9e84dd0463f | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-8cbf64f804eb6a111721ec7ec0d430d0 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-916b23237f42058c4e177313244a39dd | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-91de52845c037ffa7e88caf31f84e831 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-91e3287909636eb774ca29d64e86ce8e | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-928dedc2b0148f73e67c9ea2c81b2122 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-9601b209fe21b3d02b925b913810d3d9 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-96f5d799b33ed967d416bed4c7a75a8e | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-99c7806c4853f28b78550508960a4fe6 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-9a5efa585e0011a57299ab83b0bfcea8 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-9bcc05eaa91d397243129e23bca4e8ff | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-9df3a5f7adde117a86018a47573b065b | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-9f8836f6b43af99b9aebfc8a1c7e5ad0 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-a144ca8b1b60f0192dbc497fff3e6610 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-a501b569544e01b0f07150d2ed620f8b | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-a68725e0cb898a50da7788262972d1fd | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-a9616a630107552dcb61ec15a34f7050 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-adb28be89b3ca5436db1fe8dbaea385e | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-af9e638bc1b7d3cdc6afeeb01664bc30 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-b05fd3dd604fde36746dd694c902fb63 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-b4832b440d479c43cda65171dbd002c2 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-b8123d6f0ae86edd2f341917dfe36778 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-ba3714557114f1f44c4ec217f479235d | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-bd02f6a6f6720a5ffc16bd3b3c83acf6 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-bfe16706c85be102a7aa4096216c9b77 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-c3f06d136bf4d82059786435a7a9cd3d | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-c9e13e317d7811c69afb1c52a2e9e757 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-cdbbf3124af92d47d3c97008a04d5704 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-ceb5a9c25c4d2caa3dc7fc54fa4be613 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-cf45a1ede828a713a2dabb890c4561ee | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-d1505bea9f5bbd0ecfe3221a0332abdf | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-d2a9ad35b39fe8f946c35a56cd564480 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-d3b3ac053fbbe039723d26a75951500a | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-d4433c206edcc44e248233a7cc66eceb | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-d622ef76e772898e18524a09da70f973 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-d84b11f61c34e6cd1d3f2c39f2fa6b60 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-d9d146859cd3bec7367273ea961a4e5a | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-de138ef76336f161b28a58ef7f7615f8 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-dfd8bf1929f7cb150ffaf0b86dd71f48 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-e1366cf314f2f46ebb11d7f81163867b | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-e2038adec4061a379590bd4d017d693e | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-e338ccbf9623b8b9416ea9be966fa8dc | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-e666324edd89cab03b7263fd75909ad1 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-e77ee93b018f07e62eeca70b18db2eb3 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-e9e5cca80f9b0100e2b01d196b5cb7b1 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-ee2b5c0f15c54c57807e4c9629cbfb72 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-ee546982d6aa4ad60e98bfeeba18271f | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-f08f50ecafabd25aa7365223920a8ef1 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-f9249bf2fdc68ee7bb91280c89153b5a | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-fa964dd738018accb21558e8880fd439 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT05 identity half-open UTC obs-fdbd60adfff5e2d76691975081e50da2 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT04 nonempty real tracks and media | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT06 all runtime owners and held stream stopped | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT06 projector drained without storage rejection | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| cycle3 RT06 no partial ready cleanup marker | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| RT07 supported process measurements 3 | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+| RT08 wrapper completed and cleanup absent | 실제 session8380 해당 assertion true; RT09 공통 정리 적용 후 최신 결과 | pass |
+
+### S09 초기·진단 실패 실행 개별 assertion 보존
+
+각 명령의 원인·실패코드·cleanup는 앞의 실패표에 있고, 아래는 삭제한 임시 산출물과 별개로 원출력 pass/fail label을 보존한 표다. 실행되지 않은 후속3반복은 해당 실패실행의 PASS가 아니다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| session52640 cycle0 journal open | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session52640 cycle0 catalog open | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session52640 cycle0 RT01 source opt-in persisted | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session52640 cycle0 RT01 supervisor start | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session52640 cycle0 RT01 exact one source worker stream recorder subscriber | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session70705 RT04 production analysis registry binding | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session70705 cycle0 journal open | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session70705 cycle0 catalog open | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session70705 cycle0 RT01 source opt-in persisted | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session70705 cycle0 RT01 supervisor start | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session70705 cycle0 RT01 exact one source worker stream recorder subscriber | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session70705 cycle0 RT04 actual decoder detector tracker attached | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session70705 cycle0 RT02 reconcile and analysis share original worker | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | fail |
+| session70705 cycle0 RT04 production projector durable locator exists | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | fail |
+| session70705 cycle0 RT03 actual source finalized segment exists | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session70705 cycle0 RT03 bytes SHA UTC PTS seg-9101-1789058685985-1 | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session70705 cycle0 RT03 bytes SHA UTC PTS seg-9101-1789058694261-2 | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session70705 cycle0 RT03 bytes SHA UTC PTS seg-9101-1789058695991-3 | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session70705 cycle0 RT03 bytes SHA UTC PTS seg-9101-1789058704258-4 | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session70705 cycle0 RT03 bytes SHA UTC PTS seg-9101-1789058705999-5 | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session70705 cycle0 RT04 nonempty real tracks and media | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | fail |
+| session70705 cycle0 RT06 all runtime owners and held stream stopped | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | fail |
+| session70705 cycle0 RT06 projector drained without storage rejection | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session70705 cycle0 RT06 no partial ready cleanup marker | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session70705 RT07 supported process measurements 0 | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session35559 RT04 production analysis registry binding | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session35559 cycle0 journal open | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session35559 cycle0 catalog open | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session35559 cycle0 RT01 source opt-in persisted | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session35559 cycle0 RT01 supervisor start | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session35559 cycle0 RT01 exact one source worker stream recorder subscriber | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session35559 cycle0 RT04 actual decoder detector tracker attached | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session35559 cycle0 RT02 reconcile and analysis share original worker | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session35559 cycle0 RT04 production projector durable locator exists | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | fail |
+| session35559 cycle0 RT06 file idle grace cleanup finished | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session35559 cycle0 RT03 actual source finalized segment exists | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session35559 cycle0 RT03 bytes SHA UTC PTS seg-9101-1789058796631-1 | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session35559 cycle0 RT03 bytes SHA UTC PTS seg-9101-1789058804904-2 | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session35559 cycle0 RT03 bytes SHA UTC PTS seg-9101-1789058806636-3 | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session35559 cycle0 RT03 bytes SHA UTC PTS seg-9101-1789058814913-4 | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session35559 cycle0 RT04 nonempty real tracks and media | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | fail |
+| session35559 cycle0 RT06 all runtime owners and held stream stopped | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session35559 cycle0 RT06 projector drained without storage rejection | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session35559 cycle0 RT06 no partial ready cleanup marker | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session35559 RT07 supported process measurements 0 | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session65185 RT04 production analysis registry binding | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session65185 cycle0 journal open | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session65185 cycle0 catalog open | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session65185 cycle0 RT01 source opt-in persisted | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session65185 cycle0 RT01 supervisor start | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session65185 cycle0 RT01 exact one source worker stream recorder subscriber | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session65185 cycle0 RT04 actual decoder detector tracker attached | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session65185 cycle0 RT02 reconcile and analysis share original worker | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session65185 cycle0 RT04 production projector durable locator exists | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | fail |
+| session65185 cycle0 RT06 file idle grace cleanup finished | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session65185 cycle0 RT03 actual source finalized segment exists | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session65185 cycle0 RT03 bytes SHA UTC PTS seg-9101-1789058930374-2 | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session65185 cycle0 RT03 bytes SHA UTC PTS seg-9101-1789058932107-3 | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session65185 cycle0 RT03 bytes SHA UTC PTS seg-9101-1789058940377-4 | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session65185 cycle0 RT03 bytes SHA UTC PTS seg-9101-1789058942114-5 | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session65185 cycle0 RT04 nonempty real tracks and media | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | fail |
+| session65185 cycle0 RT06 all runtime owners and held stream stopped | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session65185 cycle0 RT06 projector drained without storage rejection | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session65185 cycle0 RT06 no partial ready cleanup marker | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+| session65185 RT07 supported process measurements 0 | 원출력 개별 assertion; 최초/진단 실패 실행의 역사 | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-runtime.G2Uwpg | 실제 source 조기실패 | 37649279bytes | wrapper 삭제 | absent=true | expected exit1, elapsed12482ms |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-runtime.64VG4B | 최신 음성 oracle | 18913640bytes | wrapper 삭제 | absent=true | exit0, elapsed1134ms |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-runtime.j0se8J | RAII 최신 정상 | 57262838bytes | wrapper 삭제 | absent=true | exit0, elapsed76682ms |
+
 ## v4.1.0 S08 startup 연결 최종 실행 기록 (2026-09-11)
 
 메인 마감 대조: `./server.sh verify-docs-links` exit0, markdown226/local links1051/images22/

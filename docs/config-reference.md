@@ -771,6 +771,11 @@ playable=false 항목이나 삭제·미완성·손상·누락 파일을 정상 �
 실제 파일을 열린 fd에 결박하고 최대 256KiB 단위로 전송한다. catalog 영상의 전송 중 hold는
 순환 삭제와 원자적으로 조정한다. fallback은 내구 manifest와 실제 영상 파일을 검증하며
 manifest JSON 자체를 영상으로 반환하지 않는다.
+신규 녹화 연결의 fallback ID는 원본 stream/channel과 녹화 catalog의 source/channel을
+함께 결속한다. 조회 시 manifest와 내구 catalog의 연결을 검증하므로 현재 활성 녹화
+세션에 의존하지 않는다. 이 결속은 파일 서명이나 미디어 checksum을 뜻하지 않는다.
+기존 legacy ID는 기존의 직접 identity 검사를 유지한다. 과거에 원본 ID와 녹화 채널 ID가
+불일치한 legacy fallback은 자동 승격하지 않으며 재생 불가 상태를 유지한다.
 화면 사용법은 [UI 가이드](ui-guide.md#녹화-조회와-재생-v410-s06)를 따른다.
 
 상시녹화는 전역과 채널을 모두 명시적으로 켜야 시작합니다. source 자체가 disabled이면
@@ -827,19 +832,33 @@ artifact를 선택하지 않고, 이벤트 quota 정리도 상시녹화를 대�
 등급에서는 `(end_utc_ms, segment_id)`가 작은 finalized segment부터 삭제합니다. pinned 또는
 `hold_count > 0`인 항목은 자동 삭제 대상이 아닙니다. 새 segment는 예상 크기를
 continuous quota에 먼저 반영하며, 동시에 여러 채널이 쓰는 용량은 in-flight reserve로
-중복 사용하지 않습니다. partial 파일의 실제 쓰기량은 물리 free에 이미 반영된 만큼
+중복 사용하지 않습니다. 현재 앱의 기본 예상 segment 예약 하한은 64 MiB이며, 이전
+실측 크기나 writer의 최소 요청이 더 크면 그 값을 사용합니다. 상시 quota가 이 예약보다
+작으면 기존 파일을 삭제해도 새 녹화 admission은 차단됩니다. 실제 파일 크기만 보고
+quota를 예약 하한 아래로 설정하지 마십시오. quota가 예약 크기와 같아도 보존 여유는
+없습니다. 이 경우 녹화는 계속되지만 다음 segment 예약 시 방금 finalized된 파일까지
+삭제되어 조회 가능한 상시 파일이 남지 않을 수 있습니다. 완료된 녹화도 보존하려면
+다음 segment 예약과 보존할 완료 파일 용량을 함께 수용하도록 quota를 설정해야 합니다.
+partial 파일의 실제 쓰기량은 물리 free에 이미 반영된 만큼
 예약 잔량에서 차감해 이중 계산하지 않습니다. writer는 container overhead까지 예약하고
 상한에 도달하면 segment를 닫아 다음 keyframe에서 새 epoch로 재개합니다. EOS 뒤 실제
 파일이 예약보다 크면 catalog에 finalize하지 않고 파일을 제거한 뒤 실제 크기를 다음
-예약의 high-water로 반영합니다. catalog journal/finalize 실패도 같은 방식으로 final 파일을
-제거하고, 제거가 실패하면 0 byte truncate를 시도합니다. 둘 다 실패하면 예약을 반환하지
-않아 해당 채널을 fail-closed 상태로 둡니다. writer는 final 파일 open 전에 storage root
+예약의 high-water로 반영합니다. 이 정리는 최종화 복구 티켓 작성 전의 미완결 출력에
+적용하며, 제거 실패 시 안전한 0 byte truncate를 시도합니다. 둘 다 실패하면 예약을
+반환하지 않아 해당 채널을 fail-closed 상태로 둡니다. EOS·fsync·SHA·V1 검증 후에는
+원래 ID와 파일 정보를 담은 ready 티켓을 내구 기록하고 기존 파일을 덮어쓰지 않는
+publish를 수행합니다. 티켓 기록 시도 이후 publish·catalog finalize·티켓 정리 중
+실패하면 완결 미디어와 복구 정보를 보존하고 재시작까지 새 admission을 차단합니다.
+이 경우 정상 영상을 삭제하거나 같은 프로세스에서 새 녹화로 덮어쓰지 않습니다.
+writer는 출력 파일 open 전에 storage root
 dirfd에 결박한 `openat(O_NOFOLLOW|O_EXCL)`로 `.cleanup-pending` 마커를 만들고 file과
 parent directory까지 fsync합니다. 새 v2 마커는 UUID가 붙은 `.partial.<uuid>` leaf를
 결박하며 writer는 해당 partial을 `O_EXCL`로 선점해 fd에 직접 씁니다. catalog finalize 또는
 cleanup 뒤 마커 안전 제거와 directory fsync까지 성공해야 예약을 반환합니다. 프로세스
-재시작 시 catalog는 추적 media를 보존하고, v2 마커가 정확히 지목한 단일-link 일반
-partial만 root dirfd 경계 안에서 정리합니다. 기존 v1 마커는 제거하되 소유권 불명 final/partial은
+재시작 시 catalog는 추적 media와 ready 티켓에 결속된 완결 출력을 보존하고,
+그 밖의 v2 마커가 정확히 지목한 단일-link 일반 partial만 root dirfd 경계 안에서
+정리합니다. 앱은 recorder 시작 전에 삭제 대기·ready 복구·Finalized 검사를 순서대로
+수행합니다. 기존 v1 마커는 제거하되 소유권 불명 final/partial은
 삭제하지 않고 orphan 진단에 남기며, 형식·symlink·hardlink·I/O 안전 검사가 실패하면 catalog
 open을 fail-closed합니다.
 disk reserve가 부족하면 삭제 가능한

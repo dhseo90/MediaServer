@@ -1329,13 +1329,26 @@ git commit -m "test: 녹화 복구와 v1 호환성 gate 추가"
 
 ## Task 9: V410-S09 통합 안정화와 release readiness 판정
 
+**진행 (2026-09-11):** S08은 `4b7639db`와 `11953256`으로 커밋·푸시했고 원격과
+동기화를 확인했다. 현재 S09은 실제 runtime 부분 통합 검증(아래 oracle 1·5·7)의
+구현·메인 검토를 마쳤고, 실제 앱 이벤트·HTTP·보존·재시작 통합 검증에 착수했다.
+runtime 최신 검증은 518 assertions와 cleanup 1개가 통과했고, 조기 실패 종료 경계도
+실제 source 시작 후 실패 주입으로 확인했다. 상세 실패·수정·실행 기록은 중앙 테스트
+기록의 S09 runtime RAII 절을 따른다. 초기 스레드 증가 원인과 장시간 RSS 판정은 미확정이다.
+후속 작업에서 실제 인증90713과 관측32023을 통과했고 장시간 녹화 runner의 구현·순수
+검증 및 정적 통합 검증을 마쳤다. 전체 진입점 `--all`은 세션48365로 첫 실제 실행을
+마쳤으며 runtime517·인증535 checks와 두 단계 정리 확인 후 exit0이었다.
+장시간 녹화·자원 안정성·UI 및 S09 전체 완료는 아직 아니다. 최신 개별 실행 결과는
+중앙 테스트 기록을 따른다.
+단일 Astra/medium 담당자(2/1/2/2=7)를 재사용하고 메인이 계약·최종 판정을 맡는다.
+
 **수정 파일:**
 
 - 생성: `scripts/internal/verify_v410_recording_foundation.sh`
 - 생성: `scripts/internal/verify_v410_recording_longrun.sh`
 - 수정: `server.sh`
 - 수정: `docs/config-reference.md`
-- 수정: `docs/http-api.md`
+- API 설명: 실제 source-of-truth인 `docs/config-reference.md`의 녹화 API 절에 반영
 - 수정: `docs/stream-verification.md`
 - 수정: `docs/project-feature-test-inventory.md`
 - 수정: `docs/release-evidence-v410.md`
@@ -1356,22 +1369,205 @@ cross-component oracle을 직접 확인한다.
 - auth 없는 media ID 접근 거부, 다른 channel scope 누출 없음
 - runtime stop 후 subscriber/thread/.partial 누수 없음
 
+구현 경계 (2026-09-11): 공개 status schema에 검증용 카운터를 추가하지 않는다.
+실제 SessionManager·RecordingSessionService·AnalysisObservationProjector·catalog를
+연결한 C++ 통합 검증으로 worker/subscriber와 FrameLocator를 직접 관측하고,
+실제 앱 HTTP 검증으로 event 파생 완료와 frame-buffer fallback을 각각 확인한다.
+fallback은 원본 세그먼트 전환과 다른 경로이며, 요청 전 구간 충족을 보장하지 않는
+`partial` 상태와 실제 재생 가능 여부를 각각 확인한다.
+단기 runtime은 warmup 1회 후 시작·종료 3회를 확인한다. 녹화 소유 카운터의 종료값과
+실제 process thread/fd 측정값은 분리하며, 라이브러리 전역 pool의 증가를 근거 없이
+허용하지 않는다. 단기 RSS 측정만으로 장시간 누수 부재를 판정하지 않는다.
+신규 개별 테스트 항목은 실행 전에 inventory와 중앙 테스트 기록에 등록한다.
+auth 5개 환경변수가 없으면 auth를 실행하지 않고 전체 통합 PASS도 보류한다.
+
+#### S09 실제 fallback identity 정합 보완
+
+AP13 실제 앱 진단에서 원본 manifest의 stream/channel은 shared stream key이고,
+catalog link의 source/channel은 녹화 채널 ID여서 기존 조회기의 직접 비교가 실패함을
+확인했다. 원본 이벤트·manifest·공개 API 및 V1 JSON 필드를 변경하지 않는다.
+신규 연결은 기존 opaque fallback ID에 `fallback-bound-v1-` 접두사와 SHA-256을 담는다.
+고정 domain과 길이 접두 인코딩으로 event ID, link ID, catalog source/channel,
+원본 stream/channel을 결속한다. 첫 필드는 domain
+`media-server.recording-fallback-binding.v1`이며, 각 필드는 UTF-8 바이트 길이의
+십진수와 `:` 및 원문 바이트를 순서대로 연결한다. 빈 원본 stream은 그대로 해시하되
+생산 resolver의 조회 키만 원본 channel로 대체한다. 생산 시 실제 녹화 채널 resolver의 일치를 확인하고,
+조회 시 manifest와 내구 catalog만으로 같은 결속을 검증한다. 조회에 현재 활성 세션을
+요구하지 않으므로 재시작 이후에도 검증할 수 있어야 한다.
+
+이미 발급된 bound ID는 다른 결속으로 덮어쓰지 않는다. resolver 실패·채널 불일치·
+해시 계산 실패는 기존 ID/locator를 보존하고 새 연결을 거부한다. bound ID 형식이나
+해시가 잘못됐으면 기존 ID 판독 경로로 강등하지 않는다. 기존 legacy ID는 자동 승격하지
+않고 기존 manifest와 catalog의 직접 identity 검사를 유지한다. 따라서 과거 잘못 매핑된
+legacy 자료가 이 수정만으로 재생 가능해졌다고 보고하지 않는다.
+
+이 해시는 신뢰된 journal에 저장된 identity 연결을 검증하는 값이며, 임의 journal 변조를
+막는 서명이나 미디어 전체 checksum은 아니다. 기존 event ID, 채널 권한, 경로·파일 형식·
+크기·symlink·중복 ID·tombstone 검사는 유지한다. 실제 bridge→catalog→reader 양성,
+재시작 내구성, 각 identity 변조 거부, 반복 등록 안정성, resolver 실패 시 보존,
+legacy 호환 및 OpenSSL 미지원 시 거부를 실행 전에 개별 등록하고 RED→GREEN으로 확인한다.
+이 절은 구현 방침이며 구현·검증 완료 기록이 아니다.
+
+실제 앱 보존 검증은 event 검증과 별도 채널로 격리해 파생 중 hold와 삭제 기대값이
+섞이지 않게 한다. admission의 기본 예상 세그먼트 예약 64 MiB를 무시하고 quota를
+수 KiB로 낮춰 녹화 차단을 순환 보존 실패로 오판하지 않는다. 실제 생성 크기를 관측한
+뒤 예약 하한을 포함한 quota로 admission-triggered oldest-first 삭제와 후속 finalize를
+확인한다. 이것만으로 완료 파일 총량의 quota 초과 검증을 대체하지 않는다. 실제 앱에서
+충분한 녹화 파일을 만든 뒤 총량보다 작은 유효 quota로 변경해 삭제·계속 녹화도 확인한다.
+삭제 전 eligible 후보의 시간·ID 순서를 독립 계산하고 journal deletion 요청/완료 및
+실파일 삭제를 대조한다. quota 변경에 의한 revision/epoch 전환은 기존 정책을 유지한다.
+
+S09 실제 진단에서 quota와 다음 segment 예약이 모두64MiB이면 새 finalized도 즉시
+삭제되어 live 목록 폴링이 녹화 지속을 놓침을 확인했다. AP07 삭제 완료 이후의 원장
+cursor와 기존 ID를 고정하고, 이후 서로 다른 신규 finalized 최소2개의 시간 진행과
+유효 메타데이터를 확인한다. quota 변경 시 이전 writer가 종료하며 만든 파일 하나를
+녹화 재개로 오인하지 않는다. 삭제된 신규 파일은 finalized→삭제 요청→삭제 완료 순서와
+실파일 부재를 대조한다. 삭제된 파일의 SHA를 다시 읽었다고 보고하지 않으며,
+quota 복원 후 신규 녹화를 확인하고 정상 종료한 뒤 남은 파일의 실제 크기·SHA를
+검사한다. fixture 검사는 판정기의 검증일 뿐 실제 앱·재시작 검증을 대체하지 않는다.
+
+#### S09 AP10 실제 녹화 자료 인증 검증
+
+비인증 실제 앱66598의 자료 생성 경로를 재사용하되, 별도 `--app-auth` 부분 실행은
+`AUTH_MODE=auto`와 실제 setup/login/user API를 사용한다. 합성 S06 seed나 인증 우회
+사용자 파일을 사용하지 않는다. 실행 전 인증 환경변수5개의 존재·검증기 요구 길이·
+상호 구분을 확인하며, 미충족이면 서버나 임시 root를 만들지 않는다. 값과 cookie는
+메모리에만 두고 로그·명령행·자식 환경·저장소 문서에 기록하지 않는다. 제품이 생성한
+passwordHash 사용자 파일은 격리된 임시 root 안에서만 사용하고 종료 시 정리한다.
+
+실제 상시 segment, 파생 이벤트 영상, frame-buffer fallback 각각의 같은 URL을
+아래 권한으로 대조한다. 성공 결과는 실제 파일 바이트와 비교한다.
+
+| 계정/권한 | 미디어 GET Range | timeline | status |
+| --- | --- | --- | --- |
+| 미인증 | 401 | 401 | 401 |
+| admin | 206·실제 바이트 일치 | 200 | 현재 채널 전수 |
+| operator·ops:read·해당 source:read | 206·실제 바이트 일치 | 200 | 허용 채널만 |
+| operator·ops:read·다른 source:read | 404·없는 ID와 같은 거부 | 403 | 자기 허용 채널만 |
+| viewer | 403 | 403 | 403 |
+| operator·해당 source:read만, ops:read 없음 | 403 | 403 | 403 |
+
+제한된 계정에는 global observations를 포함하지 않으며 응답에 원본 source 경로나
+인증 material을 노출하지 않는다. 허용된 timeline은 실제 영상 시간 범위에 대해
+비어 있지 않은 items와 요청 채널만 포함하는지 확인한다. fallback이 파생 영상으로
+대체되는 정상 전이 때문에 timeline에 과거 fallback ID를 계속 요구하지 않는다.
+원본 opaque ID의 접근 권한과 실제 바이트는 media API에서 별도로 확인한다.
+필수 개별 검사가 하나라도 빠졌으면 인증 suite를 성공 종료하지 않는다.
+재시작 시 기존 사용자를 다시 setup하지 않고 로그인해
+권한 검사를 유지한다. `--app-auth` 통과는 인증된 실제 앱 통합 부분의 증거이며,
+runtime·장시간·UI를 포함한 전체 foundation 또는 S09 완료로 확대하지 않는다.
+인증 환경 미설정 상태에서는 구현과 순수 helper 검증만 수행하고 실제 인증 실행은 보류한다.
+
+#### S09 기본 통합 실행 연결
+
+`verify-v410-recording-foundation --all` 및 인자 없는 기본 실행은 인증 필수값을
+임시 root 생성 전에 확인한 뒤 기존 runtime wrapper와 `--app-auth` 앱 검사를 순서대로
+실행한다. 각 단계의 실제 정상 종료와 완료 결과를 확인하고 실패하면 후속 단계를
+실행하지 않는다. 하위 wrapper cleanup 실패도 전체 실패다. 테스트용 실행 함수 주입은
+단위검사 안에서만 사용하고 CLI/env로 실제 검사 대신 가짜 실행기를 고르는 기능은 없다.
+개별 출력은 보존하되 비밀값을 노출하지 않으며 마지막 통합 결과와 부분 앱 결과를
+구별한다. 인증값은 runtime 자식에 전달하지 않는다.
+
+이 연결은 runtime/인증 앱 통합 실행의 완주 판정이며 장시간 자원 추세·UI·30분·120분
+및 버전 완료를 뜻하지 않는다. 단계 성공만으로 남은 시간별 안정성 판정을 지우지 않는다.
+기존 부분 모드·oracle 단위 모드는 그대로 유지하고 `--all`을 앱 내부로 넘겨
+준비 상태 오류를 내던 분기를 제거한다. 실제 전체 실행은 인증 환경 사전조건을
+충족한 뒤 수행하며, 현재는 순서·실패 전파·완료 누락 거부의 단위 검증부터 진행한다.
+
+상위 suite는 별도 timeout으로 하위 wrapper를 먼저 강제 종료하지 않는다. 앱 검사기가
+별도 그룹으로 소유한 서버를 두고 상위 wrapper만 종료하면 finally 정리를 건너뛸 수
+있기 때문이다. 출력 상한 초과는 실패로 기록하고 더 저장하지 않되 하위 검사기의
+기존 안전 중단·cleanup과 close를 기다리며 후속 단계를 차단한다. 이 방식은 새 전역
+강제 종료 시간 보장이 아니며, 컴파일 또는 OS 수준 정체의 완전한 제한을 주장하지 않는다.
+
 ### Step 2: 테스트 필요성 판정표를 먼저 작성한다
 
-AGENTS.md 7.6.2 기준으로 다음을 분리한다.
+2026-09-11 판정: 초기 구상표의 `필수 후보`와 별도 외부 장비 영역을 현재 AGENTS.md
+7.6.2의 네 영역으로 정규화한다. UI·30분은 버전 완료 필수 항목이며 미실행은 blocker다.
+120분은 이번 writer/startup lifecycle 변경과 기존 실행 승인을 직접 근거로 삼는다.
 
-| 카테고리 | 예상 판정 | 실행 전 조건 |
-| --- | --- | --- |
-| build/static/focused | 필수 | 각 단계 구현 승인 범위 |
-| UI 풀테스트 | 필수 후보 | `/ops/events` 실제 조작과 재생 UI가 추가되므로 사용자 실행 승인 필요 |
-| 30분 | 필수 후보 | 연속 writer·retention·reconnect 장기 동작이므로 사용자 실행 승인 필요 |
-| 120분 | 조건부 | memory/thread/fd 증가 신호 또는 release policy 명시 시 사용자 승인 후 실행 |
-| 외부 RTSP/ONVIF | 조건부 미실행 | endpoint/credential/실기기와 별도 승인 필요 |
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 사용자 목표 S09 진행, 아래 통합 oracle 구현·검증 | Task9 Step1, S08 startup ST01~14 | focused·관련 회귀·build·문서 검증 승인; auth는 필수5개 env 사전 충족 필요 |
+| 30분 테스트 | 진행 대상 | 현재 버전 로드맵 완료 판정의 필수 evidence | AGENTS.md7.6.2·7.7, Task9 readiness | 승인 실행52899 exit0,109pass/0fail/1skip,20회; 개별 결과 보존 및626경로 cleanup 완료 |
+| 120분 테스트 | 진행 대상 | writer 최종화와 실제 startup/cleanup lifecycle 변경 | gstreamer_segment_writer.cpp, media_server_application.cpp, FR09~10·ST01~14 | predev120 session96360 종료·보존·cleanup 완료. 녹화 직접120도 승인되었으며 30분·UI 통과 뒤 실행 |
+| UI 풀테스트 | 진행 대상 | 현재 버전 Ops timeline·재생 UI와 버전 완료 필수 evidence | Task6 `/ops/events`, AGENTS.md7.6.2·7.9 | 승인 실행14128은 clean worktree 선수조건에서exit1; 실제 브라우저 미실행. 검토·커밋 승인 후 재개 필요 |
 
-실제 판정은 구현 diff와 선수 test 결과를 근거로 다시 작성하며, 이 표를 실행 PASS로
-사용하지 않는다.
+외부 RTSP/ONVIF는 독립 테스트 영역으로 만들지 않고 안정화의 조건부 항목으로 기록한다.
+현재 외부 endpoint/credential/실기기 실행 승인이 없으므로 실행하지 않으며 PASS 근거도 아니다.
+이 표는 필요성·승인 판정이고 실제 실행 PASS가 아니다. predev120만으로 직접 녹화
+장시간 검사 또는 30분·UI 결과를 대체하지 않는다.
 
 ### Step 3: 승인된 범위의 안정화만 실행한다
+
+#### 2026-09-11 predev120 종료 상태
+
+아래 실행 전 기록은 당시 이력이다. 이후 session96360은 요청 soak120분,
+80회 반복, outer409pass/0fail/1skip으로 종료했다. 결과 전수 대조와 임시2306경로
+정리를 마쳤으며 상세 수치·제외·최초 실패 이력은 `docs/release-test-records.md`의
+`S09 PD120 96360` 절을 따른다. 같은 코드·환경·범위의 유효 증거를 인계나
+30분/UI 순서만을 이유로 다시 실행하지 않는다. 관련 코드 변경이나 실패 신호가
+생기면 영향 범위와 별도 실행 승인을 다시 판단한다.
+
+후속 사용자 승인으로30분 안정화 → UI 풀테스트 → 녹화 직접120분 순서의 실행이 허용되었다.
+외부 실기기·외부 서비스 및 릴리즈 작업은 포함하지 않는다. 자원 추세 판정은 미완료이며
+이번 predev 종료로 `resourceTrendPass` 또는 S09 전체 완료를 승격하지 않는다.
+
+#### 2026-09-11 predev120 실행 전 직접 확인
+
+`--all`48365 통과 후 기존 승인된 predev120의 실행 준비를 읽기 검토했다.
+장시간 테스트 자체는 아직 실행하지 않았다. 다음 세 경계는 실행 전 보완 대상이다.
+
+- `verify_predev_stability.sh`의 `start_server`는 저장 경로를 별도 지정하지 않고
+  상속 환경에서 서버를 실행한다. `MEDIA_SERVER_SOURCE_REGISTRY`,
+  `MEDIA_SERVER_ANALYSIS_REGISTRY`, `MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_PATH`,
+  `MEDIA_SERVER_RECORDING_STORAGE_ROOT`의 격리 및 입력 fixture 경계를 먼저 확정한다.
+  실제 기존 데이터 접근이 발생했다는 뜻은 아니다.
+- 바깥 `--fail-fast`는 있으나 integrated-smoke의 `server.sh test` 인자에 전달하지
+  않는다. `test_all.sh`는 기본 `FAIL_FAST=0`이고 별도 CLI 인자로만 켠다.
+  기존 옵션을 내부 단계에 전달하는 최소 보완을 검토하며 제품 동작은 바꾸지 않는다.
+- 최초/갱신 report 명령은 `/tmp/media_server_*summary*.json` 전체를 입력으로 받는다.
+  현재 실행과 자식 실행에서 생성한 명시적 증거만 모아 과거 결과 혼입을 막아야 한다.
+  현재 summary 파일 자체의 판정이 잘못됐다고 확정한 것은 아니다.
+
+기존 검증 기록을 읽기 조사나 준비 완료로 대체하지 않는다. 보완 구현 전 개별 회귀
+항목을 등록하고, 정상·실패 전달·경로 격리·보고서 입력 범위를 focused 검증한다.
+장시간 테스트의 시간 축소 또는 테스트 제외로 이 문제를 우회하지 않는다.
+
+보완 범위 결정: 주 서버 저장 경로는 위 설정에 published views/auth users/이벤트
+snapshot·clip 경로와 전용 GST cache를 더한 명시적 임시 환경으로 격리한다.
+운영 foreground 스크립트나 제품 기본값은 수정하지 않는다. 비밀번호가 필요 없는
+auth-off predev 프로세스에는 앞선 인증 검사의 임시 비밀번호를 전달하지 않는다.
+보고서 입력은 predev 자신의 `SUMMARY_FILE` 하나로 제한하는 최소 변경을 우선한다.
+그 파일의 `steps`는 이번 실행의 개별 명령·결과·로그 경로를 가진다. 자식의 상세
+결과는 해당 step 로그에서 별도로 전수 보존하며, 짧은 Markdown 리포트가 상세
+전수표를 대체한다고 주장하지 않는다. 보고서 생성 실패의 전파도 보존해야 한다.
+공통 summarizer의 다중 파일 기능이나 기존 UI/미디어 기능은 변경 대상이 아니다.
+
+내부 `test_all` report smoke에도 별도 전체 glob이 있어 같은 입력 한정 경계를
+적용한다. 진행 중에는 무출력 helper가 현재 부분 summary를 쓰고, 마지막 기존
+print_summary가 최종 카운터로 갱신한다. 완료 문구를 조기에 출력하지 않는다.
+기존 `media-server.test-summary.v1` schema는 passCount/failCount/skipCount를
+사용하므로 공통 summarizer의 pass/fail 전용 해석에 그대로 넣으면 수치가 틀린다.
+이 직접 인터페이스 확인에 따라 해당 exact schema의 카운터·상태 해석 지원만
+최소 추가한다. 앞선 ‘공통 summarizer 미변경’ 구현 가정은 이 범위에 한해 정정하며,
+다중 파일 기능과 다른 schema의 기존 해석은 유지하고 별도 회귀로 확인한다.
+
+PF 인자 전달 보완 결과: `verify_predev_stability.sh`는 명시 `--fail-fast`만
+integrated `server.sh test`에 전달하도록 최소 수정했다. 실제 main/run_step을
+서버 없는 경계 대체와 실행한 focused 검사는 최초 utility 실패16/18,
+수정 전 예상 RED32/2를 거쳐 최종88312에서34/0을 기록했다. 기존 predev
+first-fail/cumulative fixture 4개 assertion이 포함되며 실제 test_all 전체나
+장시간 PASS는 아니다. 메인이 diff·검증 경계를 검토하고 임시15경로 부재를
+직접 확인했다. 개별 결과는 중앙 release-test-records의 PF 절을 따른다.
+
+AP10 실제 인증 첫 실행40595에서는 계정 생성/로그인과 continuous 권한 경계 통과 후
+관리자 status 채널 집합 비교가 실패했다. `SourceViewRegistry`는 빈 목록에 기본
+소스를 seed하지만 검증기의 `actualSourceIds`는 성공 POST만 기록한다. 초기 기대 집합은
+녹화 status 응답이 아니라 독립된 소스 registry/admin 소스 목록에서 확보해야 한다.
+이후 성공한 생성과 재시작 시 집합을 대조하고, 권한별 exact 집합 비교를 유지한다.
+기본 소스 삭제·권한 정책 변경·subset 비교 완화로 이 검증을 통과시키지 않는다.
+실패 실행의 실제 응답 ID 목록은 보존되지 않아 코드상 원인 후보와 재실행 확인을 구분한다.
 
 기본 focused/static 승인 범위가 주어진 경우:
 
@@ -1390,6 +1586,130 @@ UI/30분/120분은 사용자가 해당 묶음을 명시 승인한 경우에만 �
 bounded test root와 작은 quota를 사용해 rollover, fd/thread/RSS 증가, event priority,
 restart를 관찰하고 테스트 media는 release evidence 최소 산출물만 남긴 뒤 정리한다.
 
+장시간 측정 경계: PID별로 warmup 전후 RSS·FD·thread와 실제 segment/link/observation/
+tombstone 수·journal 크기를 함께 기록한다. 현재 catalog는 삭제 이력과 관측 메타데이터를
+유지하므로 저장된 항목 증가를 분리하지 않은 RSS 상승만으로 누수 또는 정상이라고
+단정하지 않는다. 재시작 전후 프로세스 표본을 하나의 연속 RSS 기울기로 합치지 않는다.
+카운터가 사라졌거나 측정 불가한 표본은 0으로 대체하지 않는다. 실행 종료 코드와
+자원 추세 판정을 분리하고, 원인 미확정·검토 대기 상태는 최종 안정성 PASS가 아니다.
+
+측정기 구현 경계: 기존 runtime smoke의 `Measure()`는 자기 프로세스를 측정하므로
+실제 서버 장시간 검사에 그대로 사용하지 않는다. test-only 외부 PID collector를 두고
+macOS는 `proc_pidinfo`의 시작 식별자·task 정보·FD 목록을, Linux는 해당 PID의
+`/proc` 시작 시각·상주 페이지·task/FD 목록을 읽는다. 시작 식별자를 측정 전후 대조해
+PID 재사용이나 종료 중 부분 표본을 거부한다. 측정 불가 항목은 null과 오류로 남기며
+부분 성공을 유효한 전체 표본으로 만들지 않는다. Linux 실행 증거가 없으면 macOS
+검사 통과를 Linux 통과로 확대하지 않는다.
+
+먼저 별도 제어 프로세스의 FD·스레드·실제 접근한 메모리 증가 및 종료를 짧게 관측한다.
+이 검사는 collector의 정확도 검증이며 서버·녹화·장시간 PASS가 아니다. journal의
+장시간 집계는 완결된 줄의 offset 기반 증분 방식으로 설계하며, 현재 단기 `state()`의
+매회 전체 재읽기를 장시간 샘플러에 그대로 복사하지 않는다. 과거 앱66598의 AP07
+cursor가46987이었던 사실만으로 메타데이터 증가가 정상 또는 누수라고 단정하지 않는다.
+mutation 유형별 증가와 고유 entity 수·bytes를 함께 관측한 뒤 한계와 추세를 판정한다.
+샘플 주기·warmup·자원 추세 허용 기준은 실제 측정과 함께 확정해야 하는 잔여 설계다.
+
+장시간 도구 구현은 실행 흐름과 자원 요약을 분리한다. 기존 observer 표본을 PID와
+startIdentity별로 묶어 첫값/마지막값/최고값/실측 시간과 원장 증가를 함께 보존한다.
+5분 warmup은 기존 runtime longrun과 비교하기 위한 관찰 구간이며 메모리가 안정됐다는
+보장이 아니다. warmup 이후 표본이2개 미만이면 delta/rate는 null·insufficient로 남긴다.
+누락 수치, 시간 역전, 같은 PID의 identity 변경, 누적 원장 카운터 감소는 정상0이나
+새 기준점으로 대체하지 않는다. 상한을 넘는 입력은 오류로 처리하고 몰래 잘라내지 않는다.
+요약 계산 단위 검증은 실제 장시간 실행 또는 자원 안정성 검토를 대신하지 않는다.
+자원 허용 범위가 확정되지 않은 동안 resourceTrendPass=false/reviewRequired=true를
+유지한다. 이 요약기를 이유로 단기 관측을 장시간 완료로 승격하지 않는다.
+
+실제 runner 연결 시 기존 단기 시나리오의 초기화·정리 경로를 재사용하되 별도 명시
+장시간 모드에서만 지속 녹화 구간을 추가한다. 초기 기능 확인 후 같은 PID를 유지하며
+실시간으로 진행을 관측하고, 마지막 정상 종료 뒤 새 PID의 archive 복구를 확인한다.
+재시작 snapshot 대조 중 보존 정책이 새 데이터를 삭제하는 경합은 테스트의 정상 API로
+녹화를 일시 비활성화한 뒤 종료/복구 대조/재활성화하는 순서로 통제한다. 제품 pin이나
+삭제 정책을 수정하여 통과시키지 않는다. 테스트 quota는 두 채널의 실제 파일과 입력,
+이벤트 파일 및 원장이 기존448MiB 선제/512MiB 상한 안에 있도록 별도 장시간 모드에
+한정해 배정한다. 정확한 duration·quota·진행 assertion과 단기 경로 불변을 메인이
+구현 위임 전에 확정하며, 사용자 실행 승인은 별도로 확인한다.
+
+2026-09-11 인증 통과 후 runner 구현 계약을 확정했다. 공개 명령은
+`verify-v410-recording-longrun --duration-minutes 120`이며 무인자·다른 시간·알 수 없는
+옵션은 임시 디렉터리나 서버 생성 전에 거부한다. 별도 내부 장시간 모드에서만
+AP09 복구 이후 같은 PID를 120분 유지한다. 5초 간격의 증분 표본과 채널별 최대30초
+이내 새 finalized 진행, 실제 삭제 요청·완료를 확인한다. 5분 warmup과 PID별 요약은
+관측 분류이며 자동 안정성 PASS 기준이 아니다. 표본10000개 상한을 유지한다.
+같은 장시간 구간의 PID/startIdentity와 시작·종료 표본 커버리지를 대조하며 표본 간
+최대 간격15초를 넘으면 수집 연속성 실패다. 이 값은 메모리 정상 범위가 아니다.
+채널9101/9201의 continuous/event quota는 각각128MiB, age는3시간으로 설정하되
+전체 root448MiB 선제 중단/512MiB 상한과 기존 로그·ID 집계 상한을 유지한다.
+duration은 monotonic 시간으로 측정하며 전체 안전 중단은 duration+180초다.
+종료 복구 대조는 양채널 녹화 비활성화→정상 종료→메타데이터/미디어 SHA 저장→
+새 PID 복구 대조→재활성화→양채널 신규 finalized→정상 종료 순서다.
+설정 revision은 정상 API의 현재값을 조회·대조해 갱신한다. 장시간 루프에서 기존
+전체 journal 재읽기를 반복하지 않는다. 단기 인증/비인증/관측 흐름과180초 제한은
+그대로 두며, 이번 구현 검증은 순수 단위·CLI 거부·구문 검사에 한정한다.
+실제 녹화 전용120분 실행은 별도 승인 전 미실행이다.
+
+OBS32023 이후 장시간 workload 분리 시 주의점: 실제 event tap 입력은
+`va_tracking_event_1280x720_30fps_h264.mp4`를 복사한 identity.mp4다.
+640×360은 quota 확인용 retention.mp4만 해당하므로 event buffer의 메모리 추산에
+사용하지 않는다. `EventFrameBuffer::Record`는 같은 key의 새 프레임 수신 시에만
+시간/프레임 수 조건으로 prune하며 static `RecorderFrameBuffer`는 프로세스 수명을
+갖는다. tap 제거 자체를 이벤트 프레임 보유량0의 evidence로 삼지 않는다.
+장시간 검사에서는 입력/분석 활성 구간과 해제 후 유휴 구간, 누적 catalog metadata,
+새 PID 구간을 구분해야 한다. 현재 첫 PID 약416MB 표본만으로 이 버퍼가 전부 원인이라고
+단정하지 않으며, buffer 해제·byte cap·제품 정책 변경은 이 관측 설계에 끼워 넣지 않는다.
+
+증분 판독 첫 구현은 관측용 reader에 한정한다. 허용된 테스트 root 내부의 일반 파일을
+고정 dev/inode로 확인하고, 완결 LF 다음 byte offset만 소비한다. 미완결 꼬리는 보관해
+이어붙이지 않고 다음 poll에서 재읽어 제품의 RepairTail과 충돌하지 않게 한다.
+이미 소비한 prefix 아래 잘림·파일 교체·읽기 오류는 명시 오류로 고정하며 자동으로
+offset 0으로 되돌아가 정상 집계처럼 이어가지 않는다. 같은 파일을 유지한 앱 재시작은
+cursor를 유지할 수 있으나 PID별 자원 계측군은 별도로 나눈다.
+
+reader는 기본 64KiB chunk, poll당 최대4MiB 읽기, 단일행 최대1MiB로 메모리와 일을
+제한한다. 상한은 검증 도구의 보호값이지 제품 제한이 아니다. backlog·미완결 bytes와
+실제로 소비한 bytes를 분리한다. 지나치게 긴 행은 조용히 건너뛰지 않고 오류로 남긴다.
+관측한 mutation envelope의 기본 필드와 알려진7개 type을 확인하되 제품의 strict JSON
+중복키 검사·catalog 참조 검증·Apply 성공을 대신한다고 주장하지 않는다.
+무잠금으로 읽은 완결행도 fsync 성공 증거는 아니며 내구 판정은 정상 stop 이후의 기존
+snapshot 검증으로 유지한다. raw payload를 로그로 출력하지 않는다. 전체 원장이나
+무제한 entity Map을 reader 내부에 누적하지 않고 bounded batch를 소비자에게 반환한다.
+이 첫 구현과 짧은 실제 임시파일 검사는 장시간 runner 연결·실행·추세 판정과 구분한다.
+
+장시간 연결 전 실제 관측 결합은 별도 `--app-observe` 단기 모드로 준비한다. 기존
+비인증 앱 시나리오의 순서·입력·quota·180초 안전 중단·512MiB root 상한을 바꾸지
+않고, 현재 서버 PID의 계측값과 원장 증분 배치를 5초 간격으로 함께 기록한다.
+최초 원장 생성 전은 미측정으로 표시하고 생성 후 읽기 오류는 정상 빈 원장으로
+대체하지 않는다. 재시작 시 PID/startIdentity별 표본군을 분리하며 journal cursor는
+같은 파일일 때 유지한다. 부모 검증기의 메모리는 서버 RSS에 합치지 않는다.
+
+관측 집계는 mutation type별 행 수와 고유 mutation/entity 수·ID 저장 바이트를
+구분한다. ID 최대100,000개와 UTF-8 ID 저장32MiB 상한을 넘으면 관측 불가로 실패하며
+자동 eviction·journal 절삭·기존 quota 상향으로 통과시키지 않는다. 단기 관측 보호값은
+제품 제한이나 120분 적정 용량 판정이 아니다. raw payload/source URL/비밀값은
+표본 로그에 포함하지 않는다. sampler 오류는 기존 앱의 정상 정리 경로로 전파한다.
+목적은 과거 원장 cursor46987의 실제 유형별 증가와 PID별 자원 변화를 연결하는 것이며,
+단기 결과를 누수 부재 또는 120분 통과로 해석하지 않는다. 구현·단위 검토 뒤 실제
+단기 관측을 수행하고, 그 증거로 장시간 판정 기준과 집계 상한을 검토한다.
+정상 서버 종료 뒤의 최종 원장 집계는 backlog와 미완결 꼬리가 모두 없어야 한다.
+살아있는 서버의 일시적인 꼬리 대기와 종료 후 불완전 원장을 구분하며, 실패 정리에서도
+진행 중인 tick 종료와 reader FD 해제를 보장한다.
+
+### Step 3.4: 이벤트 대기열 키와 재시도 일정 보존 검증
+
+실제 단기 관측27991의 원장46714행 중 event_link_created가46497행이었다.
+HTTP dispatch3회는 EventRecord3개를 뜻하지 않으며, 유형별 집계만으로 원인을
+확정하지 않는다. 읽기 조사에서 `CatalogEventRecordingBridge::Enqueue`가
+대입 우변에서 작업을 이동한 뒤 좌변에서 이동된 `event_id`를 키로 사용함을 확인했다.
+이동 후 문자열 값에 의존하면 원래 이벤트 검색과 `preserve_existing_schedule`이
+깨져 Refill이 미래 재시도를 현재 시각으로 덮을 수 있다는 단일 가설을 검증한다.
+
+- 실제 Catalog/Bridge의 공개 동작을 사용한 제한 시간 내 focused 재현을 먼저 등록한다.
+- 고정 clock에서 재시도 deadline 이전 원장 반복 증가와 서로 다른 이벤트의 일정
+  보존을 검사한다. 소스 문자열이나 별도 대기열 복제품만으로 통과하지 않는다.
+- 예상된 RED가 가설과 일치할 때만 이동 전 키 보존으로 최소 수정한다.
+- timeout·retry 값, 삭제/보존 정책, 원장 schema, 무변경 append 정책은 변경하지 않는다.
+- 동일 GREEN과 관련 bridge 회귀를 확인하며, 실제 앱 관측량 감소는 별도 재실행
+  전까지 미확인으로 유지한다. focused 통과를 S09 전체 완료로 확대하지 않는다.
+
 ### Step 4: 로드맵 상태를 실제 evidence에 맞게 닫는다
 
 - 구현된 단계만 `개발 완료`로 바꾼다.
@@ -1404,7 +1724,7 @@ restart를 관찰하고 테스트 media는 release evidence 최소 산출물만 
 커밋 가능 상태로 보고한다. 사용자가 이 단계 커밋을 명시 승인한 경우에만:
 
 ```bash
-git add scripts/internal/verify_v410_recording_foundation.sh scripts/internal/verify_v410_recording_longrun.sh server.sh docs/config-reference.md docs/http-api.md docs/stream-verification.md docs/project-feature-test-inventory.md docs/release-evidence-v410.md docs/release-evidence-index.md docs/v410-v49-recording-search-roadmap.md docs/development-backlog.md
+git add scripts/internal/verify_v410_recording_foundation.sh scripts/internal/verify_v410_recording_longrun.sh server.sh docs/config-reference.md docs/stream-verification.md docs/project-feature-test-inventory.md docs/release-evidence-v410.md docs/release-evidence-index.md docs/v410-v49-recording-search-roadmap.md docs/development-backlog.md
 git commit -m "docs: v4.1 녹화 기반 검증과 evidence 마감"
 ```
 

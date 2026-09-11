@@ -4,6 +4,213 @@
 PASS는 UI 풀테스트, 30분/120분 장시간 테스트, PR/main merge, tag, GitHub Release 또는
 published metadata 완료를 뜻하지 않는다.
 
+## S09 진행: 실제 runtime 부분 통합 검증 (2026-09-11)
+
+### 통합 진입점 실행과 장시간 검증 준비
+
+첫 실제 `verify-v410-recording-foundation --all` 실행48365는 exit0,
+runtime517개·auth535개 및 wrapper2개를 통과했다. elapsed132661ms이며
+integrationExecutionPass=true, fullFoundationPass=false, resourceTrendPass=false다.
+메인이 개별 PASS1054행·측정5행을 보존표와 직접 대조하고 runtime/app/GST 임시
+경로3개와 원로그 정리를 확인했다. 자세한 결과는 중앙 테스트 기록을 따른다.
+
+기존 승인된 predev120 실행 준비에서 내부 fail-fast 전달 누락, 상속된 저장 경로,
+과거 summary가 섞일 수 있는 보고서 glob을 확인했다. 첫 항목은 명시 옵션만
+내부 test에 전달하는 최소 보완 뒤 focused34개를 통과했다. 최초 utility 실패와
+예상 RED를 중앙 PF 기록에 보존했으며, 실제 서버나 장시간 실행 증거는 아니다.
+보고서 입력은 현재 summary 한 개로 제한하고, Bash 및 Python glob의 재해석을
+막도록 호출부를 보완했다. 최종39789 focused72개에 PF 회귀, 실제 Python 보고서
+생성, 특수 경로·다른 파일 배제, 보고서 실패 전파가 포함된다. 메인이 diff와 결과를
+검토하고 PR 임시59경로 부재를 확인했다. 저장 경로 격리 환경과 장시간 실행 준비는
+남아 있으며, 이 보완을 S09 전체 완료로 해석하지 않는다.
+
+### 녹화 장시간 도구 구현·단위 검증
+
+`verify-v410-recording-longrun --duration-minutes 120`의 명시 실행 경로를 구현했다.
+기존 앱 초기 기능·재시작 확인 뒤 양채널 지속 녹화, 증분 journal 진전과 물리 삭제,
+PID별 표본 연속성, 녹화 비활성화 후 정상 종료·새 PID 복구·재활성화를 연결했다.
+메인은 helper·실제 연결·정리·CLI 코드와 단위 증거를 직접 검토했다. 삭제 기록만으로
+물리 삭제를 판정하던 초안을 보완해 lstat ENOENT만 부재로 인정하며 경로 바이트도
+집계 메모리 상한에 포함했다. 최초 schema 오기 및 예상 RED 이력은 중앙 기록에 남겼다.
+최종 신규43개와 변경하지 않은 reader40개·observer33개 증거를 합쳐116개 순수·회귀
+항목을 확인했다. 실제120분 실행, 자원 정상 범위 검토, UI·predev 검증은 미완료다.
+단위에서 합성 시간을 진행한 것은 실제120분 실행 증거가 아니다.
+
+### 임시 인증 검증 재실행
+
+사용자 승인으로 임시 무작위 비밀번호 5개를 실행 프로세스 환경에만 전달했다.
+40595의 최초 46pass/1fail은 초기 기본 소스를 누락한 검증기 기대집합 결함이었다.
+독립 source 목록으로 초기 기대값을 고정하고 성공 POST·재시작을 exact 비교하도록
+검증기만 보완한 뒤, 90713 `--app-auth`가 exit0/앱534pass+wrapper1pass/0fail,
+48985ms로 통과했다. 기본 ID 1~5와 생성 채널의 admin 전체 목록 및 제한 계정의
+채널별 목록, 상시/fallback/파생 영상 권한, 재시작 후 동일 권한을 확인했다.
+authSuiteCompleted=true이며 fullFoundationPass=false다. 비밀번호 원문은 기록하지
+않았고, 해시 계정 파일이 있던 격리 앱 root328175375bytes와 GST root62691bytes의
+삭제를 메인이 직접 확인했다. 개별 결과와 최초 실패 이력은
+[중앙 테스트 기록](release-test-records.md)에 보존한다. 30분/120분/UI는 이번 실행에
+포함하지 않았으며 S09 전체 완료 또는 릴리즈 가능 판정이 아니다.
+
+### Enqueue 수정 후 실제 관측 재검증
+
+장시간 연결 준비로 `recording_longrun_summary.mjs`에 PID별 수치·원장 증가와
+warmup 이후 변화를 계산하는 요약을 추가했다. 이 모듈은 실측 runner 연결 전이며
+resourceTrendPass=false/reviewRequired=true로 판단을 보류한다. 실제 서버 장시간
+검증을 대신하지 않는다. 합성 단위51개 통과 후 메인 리뷰에서 테스트 최상위 예외의
+실패 전파를 보완했다. check 밖 예외 주입의 exit1과 에러 본문 비노출을 확인했으며,
+같은51개 단위가 다시 통과했다. 메인은 모듈·검사 코드와 중앙 결과를 확인했다.
+
+사용자 승인으로 동일 `--app-observe`를1회 실행한32023은 exit0,
+앱289개+wrapper1개=290pass/0fail이었다. 두 서버 정상 종료·4개 loopback 포트 해제와
+앱 임시root322986806bytes/GSTroot143595bytes 정리를 확인했다. 동적 세그먼트·관측
+개수와 polling 횟수에 따라 개별 assertion 수가 달라지며, 단순 총계 차이를 테스트
+생략으로 해석하지 않는다. 실제 상시/fallback/파생 재생·event 우선순위·oldest 삭제 후
+녹화 지속·새 PID 복구 흐름은 모두 실행했다.
+
+| 관측 | 수정 전27991 | 수정 후32023 |
+| --- | ---: | ---: |
+| 앱 실행 시간(ms) | 58678 | 49079 |
+| event_link_created 행 | 46497 | 484 |
+| 전체 원장 행 | 46714 | 708 |
+| 최종 원장 bytes | 48269484 | 747845 |
+| 첫 PID 최고 표본 RSS(bytes) | 416284672 | 416268288 |
+| 재시작 PID 마지막 표본 RSS(bytes) | 223297536 | 122044416 |
+
+같은 시나리오에서 이벤트 연결 발행량은 약98.96% 감소했다. 실행 시간·실시간 입력
+타이밍 차이가 있으므로 통제된 성능 벤치마크는 아니다. fixedclock focused 재현과
+함께 이동 후 키 사용 결함의 수정 효과를 뒷받침한다. 첫 PID RSS는 거의 같아
+기존 메모리 증가까지 해결했다고 판정하지 않는다. 최종 backlog/partial0, 중복mutation0,
+observationCompleted=true이나 resourceTrendPass/fullFoundationPass=false다.
+인증·UI·30분·120분과 S09 전체 완료는 여전히 미확보이며, 개별 증거는 중앙 기록을 따른다.
+
+`scripts/internal/recording_foundation_runtime_smoke.cpp`와
+`verify_v410_recording_foundation_runtime.sh`, `server.sh` 명령 연결을 추가했다.
+기존 runtime archive의 실제 source·recorder·YOLO/tracker·production projector·catalog를
+결속해 단일 녹화, 실제 영상 위치, 정상·조기 실패 종료를 확인한다. 공개 API나 제품
+로직을 바꾸지 않았고, 테스트 작업 디렉터리·환경·미디어·registry를 격리한다.
+
+최신 정상 실행은 518 assertions와 cleanup 1개가 통과했다. 입력·초기화 연결 누락의
+최초 실패와 메인 리뷰에서 확인한 조기 종료 수명 위험은 보완·재검증했다.
+원출력 개별 결과·실패 주입·기존 S07 회귀·12개 임시 경로 정리 기록은
+`release-test-records.md`의 S09 runtime RAII 절이 source-of-truth다.
+메인은 최종 519개 결과 행과 12개 경로 부재, 종료 guard와 실제 앱 연결을 대조했다.
+
+이 결과는 S09 전체 완료가 아니다. 초기보다 증가한 스레드 7개의 원인과 장시간
+RSS 안정성은 미확정이다. 실제 앱 이벤트·재생·보존·재시작의 비인증 통합 검증은
+아래66598 실행에서 통과했으며, 인증과 전체 통합 실행 연결은 아직 남아 있다.
+인증 5개 환경변수는 미설정이어서 해당 검증을 시작하지 않았다. UI·30분·녹화 직접
+120분은 미승인·미실행이고 기존 predev120 승인은 최종 코드에서 사용한다.
+이번 S09 변경은 아직 커밋·푸시하지 않았다.
+
+### 인증 실행 준비
+
+`verify_v410_recording_foundation.mjs`의 `--app-auth` 부분 모드와
+`recording_foundation_auth_helpers.mjs/.test.mjs`를 추가했다. 실제 setup/login/users API,
+상시·파생·fallback 미디어의 역할·채널 접근 제한, 재시작 재로그인 검증을 연결했다.
+인증값 시작 검사, 명시적 미인증 Cookie 제거, 겹친 비밀값 가림, timeline 채널 제한,
+필수 검사 누락 거부의 보조24개 검사는 통과했다. 실제 인증 앱은 필수 환경변수
+미설정으로 실행하지 않았으며, 보조 검사 통과를 AP10 실제 인증 통과로 사용하지 않는다.
+제품 인증 정책이나 비밀번호 저장 방식을 변경하지 않았다.
+
+기본 통합 실행은 `recording_foundation_suite.mjs`를 통해 인증 사전조건 확인 후
+고정 runtime wrapper→인증 앱 wrapper를 순차 실행하도록 연결했다. 각 종료값,
+완료 요약과 cleanup 표시를 대조하며, 앞 단계 실패 또는 누락이면 뒤 단계를 실행하지
+않는다. 내부 앱 스크립트의 직접 무인자/`--all` 호출은 root 생성 전에 거부한다.
+메인 검토에서 wrapper 강제 종료가 별도 그룹의 서버를 남길 수 있어 상위 자동 kill을
+제거했다. 출력 상한을 넘으면 저장·출력을 중단하고 기존 검사기의 정리·close 이후
+실패로 반환한다. 컴파일·OS 정체에 대한 전역 강제 종료 시간 보장은 아니다.
+연결 단위와 짧은 제어 프로세스 검증은 실제 runtime/인증 앱 실행 증거가 아니며,
+`integrationExecutionPass`와 `fullFoundationPass`·자원 추세·버전 완료를 구분한다.
+최종 연결 단위29개(241ms)와 기존 인증 보조24개(82ms)가 통과했다. 메인은 고정
+실행 경로·secret 분리·close 이후 반환·내부 진입점 거부 코드와 중앙 개별 결과를
+대조했다. 최초 RED 및 리뷰에서 발견한 종료 위험과 보완 이력도 중앙 기록에 남겼다.
+
+### 장시간 검증용 외부 프로세스 계측 준비
+
+최초 `--app-observe`는 collector 컴파일 뒤
+loopback 포트 예약에서 EPERM으로 앱 시작 전에 실패했다. 뒤따른 최종 미측정 오류를
+별도 제품 손상으로 해석하지 않는다. 정상 권한 상승 요청도 승인 심사에서 거부됐으며
+당시 우회하지 않았다. 이후 사용자의 `상승` 명시 승인으로 동일 단기 검사를 재개했다.
+최초 실패의 중앙 기록과 임시3경로 삭제를 메인이 대조했다.
+관측 연결 단위33개 통과는 실제 서버 PID·원장 증가·자원 안정성 측정의 대체 증거가 아니다.
+
+승인 후 실제 실행27991은 exit0·58,678ms, 앱292pass/0fail 및 wrapper 완료1pass로
+종료했다. 새 PID를 포함한11개 자원 표본과 최종 원장 집계를 확보했다. 총46,714행 중
+event_link_created46,497행, segment_finalized33행, observation_v2_put168행,
+삭제 요청·완료 각8행이며 고유 mutation46,714개·entity121개다. 최종 원장은
+48,269,484bytes, backlog/미완결 꼬리0이며 ID UTF-8 보유량은1,068,248bytes다.
+메인은 전체 로그의293개 pass와 앱 summary292개+wrapper1개의 차이,11개 표본과
+최종 집계를 직접 대조했다. 첫 PID RSS는51,478,528→416,284,672bytes, 재시작 후
+PID는199,999,488→223,297,536bytes로 관측됐다. 이는 원인 미확정의 자원 증가
+신호이며, 재시작 전후 표본을 같은 기울기로 합치거나 누수 부재로 판정하지 않는다.
+후속 focused 재현에서 `Enqueue`의 이동 후 이벤트 ID 사용으로 재시도 일정이
+보존되지 않는 결함을 확인했다. 고정 시각의 deadline 이전 기록36→1779행 증가를
+예상 RED로 관측한 뒤, 이동 전 ID 보존만 수정했다. 동일 GREEN15개와 기존 연결
+회귀를 포함한144개 검사가 통과했다. 최초 fixture 생성자 컴파일 오류는 별도 실패로
+보존했다. 메인은 최소 diff·실제 bridge 검사·중앙159개 실행행과 임시5경로 부재를
+확인했다. 공개 schema·보존 정책·retry 값은 변경하지 않았다.
+수정 후 전체 빌드80764도 exit0으로 runtime 정적 라이브러리와 media_server를
+재컴파일·링크했다. 실제 앱의 원장 증가량 감소와 장시간 안정성은 아직 재측정하지 않았다. 실제 인증·UI·30분·120분
+및 S09 전체 완료는 아니며, 전체 개별 결과와 정리 기록은 중앙 테스트 기록을 따른다.
+
+`recording_process_metrics.cpp`는 지정한 외부 PID의 시작 식별자·RSS 바이트·스레드·FD를
+관측한다. PID 재사용이나 관측 오류를 정상 수치 0으로 바꾸지 않고, 측정 불가이면
+`valid=false`와 null 수치·비정상 종료값을 반환한다. macOS는 libproc, Linux는 procfs를
+사용하며 전체 카운터가 원자적 스냅샷이라는 보장은 하지 않는다.
+
+실제 macOS 제어 자식 프로세스와 순수 판독 검사를 합친 최종 41개 검사가 통과했다.
+FD 3→19→3, 스레드 1→4→1과 할당 후 RSS 증가, 자식 종료 후 측정 거부를 확인했다.
+메인은 오류 분류·부분 FD 판독 거부·PID 시작 식별자 재확인 코드와 중앙 41개 결과를
+대조했다. 최초 RED 및 후속 보완 이력, 임시 root 정리 결과는 중앙 테스트 기록에 보존한다.
+Linux 실제 실행·실제 권한 거부·PID 재사용 재현은 미실행이다. 이 결과는 계측기 검증이며
+미디어 서버의 누수 부재나 녹화 장시간 통과가 아니다. 원장 증분 집계와 장시간 runner
+연결·판정 기준 및 승인된 범위의 실제 실행은 남아 있다.
+
+원장 관측용 `recording_journal_reader.mjs/.test.mjs`를 추가했다. 마지막 완결 LF의
+byte offset만 소비하고, 미완결 꼬리는 재읽으며, 파일·부모 디렉터리 교체와 소비한
+prefix 아래 잘림·판독 오류는 오류 상태로 유지한다. 기본 poll4MiB·행1MiB로 제한된
+배치를 반환하며 전체 원장을 내부에 누적하지 않는다. 부분 UTF-8, 꼬리 복구,
+26,000행의 두 배치 판독, 경로 보호와 종료까지 최종40개 단위 검사가 통과했다.
+테스트 반복에도 최대20회·offset 전진·최종 완주 조건을 적용했다. 메인은 코드와
+40개 결과를 대조했다. 제품 strict JSON/catalog 수용 여부나 fsync 성공을 검증하는
+도구는 아니며, 실제 녹화 runner 연결·집계·장시간 실행은 아직 남아 있다.
+
+### 실제 앱에서 확인한 fallback 연결 결함 보완 중
+
+AP13에서 정상 생성된 VP8 WebM의 manifest 원본 stream/channel과 녹화 catalog의
+매핑된 source/channel이 불일치함을 확인했다. 이는 앞의 runtime 부분 검증이 다루지
+않은 제품 조회 경계다. `event_recording_bridge.cpp:RecordFallback`과
+`recording_read_service.cpp:ResolveMedia`, `recording_contracts.h/.cpp` 내부 helper에
+기존 opaque ID를 이용한 내구 identity 결속 보완을 진행한다. 공개 JSON 필드나 원본
+이벤트·manifest를 변경하지 않으며 기존 legacy identity 검사는 유지한다.
+
+새 `recording_fallback_binding_smoke.cpp`의 실제 bridge→catalog→reader 경로에서
+사전 지정한 재생 fd assertion 실패(RED)를 확인한 뒤 최종 내부 검사 60개가 통과했다.
+identity 변조 거부, 새 catalog의 journal replay, legacy 호환, OpenSSL 미지원 시 거부를
+확인했다. 관련 S05 검증과 S06 memory/SQLite read-model 152개 및 cleanup 1개,
+전체 제품 빌드도 통과했다. 메인은 제품 diff와 개별 결과를 대조했다.
+후속 실제 앱 실행 41535에서 새 bound fallback의 priority200·partial·requested-fallback
+표시와 실제 WebM의 GET Range206을 확인했다. 이 부분의 앱 검증은 통과했지만,
+다음 derived 검증은 기존 이벤트를 다시 고른 입력 선택 결함으로 실패했다.
+그 이벤트는 실제 녹화 공백을 포함해 정상적으로 Partial을 유지했다. 기존 공백을
+숨기거나 Complete로 승격하지 않고 검증기의 신규 이벤트 선택을 보완했다.
+후속 실행67556에서는 별도 신규 이벤트의 derived Complete, 실제1254148bytes의
+TS 파일 SHA, GET Range206(`0032a600`), 이벤트200·상시100의 우선순위와
+superseded 표시까지 확인했다. 이 실행의 전체88pass/1fail 결과는 중앙 기록에 보존했다.
+실제 상시 파일4개 합77917761bytes가64MiB를 초과한 뒤 oldest 순서의 원장 삭제와
+실파일 부재도 확인했으나, 이후 신규 살아있는 파일 대기가 시간 초과됐다.
+후속 진단73110에서는 대기 중 신규8개 최종화가 각각 내구 삭제로 이어짐을 확인했다.
+64MiB 예약과 동일한 quota에서 새 파일이 즉시 순환 삭제되는데 검증기가 살아있는
+파일만 찾은 것이 실패 원인이다. 기존 실행의 timeout 실패 기록은 유지하며,
+생성·삭제 원장 기반의 연속 녹화 판정과 실제 파일 확인을 구분하도록 보완했다.
+판정기 예상 RED0/1 후 단위13/0을 확인했고, 실제 앱66598은294pass/0fail,
+58802ms로 통과했다. AP07 이후 신규2개 최종화·순차 삭제와 파일 부재,
+quota 복원 후 신규 녹화·정상 종료 뒤 살아있는 파일 크기/SHA를 확인했다.
+새 PID로 같은 archive를 복구해 segment/link/observation/tombstone 불변성,
+미디어 SHA, 중복 mutation ID 없음 및 재시작 후 새 녹화 생성도 확인했다.
+이 결과는 비인증 실제 앱 통합 범위이며 인증·장시간·UI 또는 S09 전체 PASS가 아니다.
+상세 실행 결과는 `release-test-records.md`의 S09 fallback binding 절을 따른다.
+이 보완은 아직 전체 완료가 아니다.
+
 ## S08 시작 복구 구현·단계 검증 완료 (2026-09-11)
 
 `4b7639db`의 최종화 복구 위에 `recording_startup_recovery.h/.cpp`와 application 초기화

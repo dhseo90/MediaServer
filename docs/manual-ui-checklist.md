@@ -6,16 +6,17 @@
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 합니다. 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
 사용합니다. 최신 공개 release 기준은 `v4.0.0`이고 직전 공개 제품 baseline은
-`v3.9.1`이며, 현재 소스 기준도 `v4.0.0`입니다.
-exact-ID 체크 대상은 `test/fixtures/project_feature_implementation_evidence.json`의
+`v3.9.1`이며, 현재 소스 기준은 `v4.1.0`입니다.
+baseline exact-ID 체크 대상은 `test/fixtures/project_feature_implementation_evidence.json`의
 UI 테스트 영역 424개 `manualUiCaseId`, `uiEvidence.screenRoute`, anchor이며 누락 ID를
 prefix/range delegation으로 대체하지 않습니다.
-UI 문서 기준은 `v4.0.0 Local Operations Policy and Stabilization`이며,
+과거 UI 문서 기준은 `v4.0.0 Local Operations Policy and Stabilization`이며,
 제품 기능 baseline은 v3.9.1이 유지한 v3.9.0-origin exact 424-case 범위를 그대로 상속합니다.
 UI 풀테스트 기준은 해당 작업 범위에 포함된 제품 route, 권한, 기능 baseline만 대상으로 합니다.
-현재 release 목표는 `v4.0.0`, v4.0.0 release UI gate는 현재 release target의 UI evidence 경계를 뜻하며, UI
+현재 release 목표는 `v4.1.0`이며, `v4.1.0 release UI gate`는 아래432개 ID의 현재
+UI evidence 경계를 뜻합니다. v4.0.0 release UI gate는 당시 이력입니다. UI
 재배치 문서 준비나 자동 smoke만으로 UI 풀테스트 PASS를 뜻하지 않습니다. 이번
-Required Closeout의 `V390-REQ-001`, `V390-REQ-002`, `V390-REQ-003`은 manual UI
+historical Required Closeout의 `V390-REQ-001`, `V390-REQ-002`, `V390-REQ-003`은 manual UI
 기준서 current화, 장시간/UI 테스트 시작 조건 current화, `v3.5-v3.8 UI coverage bridge`
 정렬을 닫는 문서/test-source gate입니다.
 문서 구조와 evidence 경계는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
@@ -26,6 +27,25 @@ Required Closeout의 `V390-REQ-001`, `V390-REQ-002`, `V390-REQ-003`은 manual UI
 `./server.sh verify-ui-fulltest-one-shot --output-dir <dir>`을 사용합니다.
 이 wrapper는 UI 풀테스트 선수/보조 verifier 묶음만 실행하며 30분/120분 장시간
 테스트는 실행하지 않습니다.
+
+## v4.1.0 추가 녹화 UI 실행
+
+현재 대상은 baseline 424 + inventory I27~I34 녹화 8 = 432개 ID입니다.
+기존 canonical/native manifest는 보존하고 424 qualifier는 baseline만 판정합니다.
+[결과 템플릿의 action별 사전 정의](./manual-ui-result-template.md#v410-녹화-8개-id-action별-결과)를
+한 행도 생략하지 않고 실행합니다. 이 표는 ID 8개 안의 세부 조작을 정의하며 새 ID가 아닙니다.
+
+1. baseline 424개 exact 실행·증거를 확보하고 녹화 8개와 집계를 분리합니다.
+2. /ops/events에서 I27 정상/빈값/역전/페이지 → I28 이벤트 우선 → I29 원본 →
+   I30 실제 영상 재생/정지/탐색을 실제 control로 조작합니다.
+3. I31 partial/삭제/손상/작성 중/공백/오류, I32 quota/활성/blocked를 각각 확인합니다.
+   준비 fixture에 없는 상태는 미실행으로 남기고 정상 상태로 대체하지 않습니다.
+4. I33 navigation 범위와 I34 실제 role/scope/redaction 및
+   320/390/760/1180 × light/dark 8개 조합을 확인합니다.
+5. 과거 S06 PASS는 재사용하지 않습니다. auth-off --ui-direct 준비·종료는 역할 검증이
+   아니므로 실제 로그인·권한별 조작 및 제품 반영을 별도로 기록합니다.
+6. 메인이 exact 432개와 모든 세부 action·AGENTS Policy v4 공통 조건·cleanup을
+   확인한 뒤 whole-suite 판정합니다. 424 qualifier나 준비 도구 exit0로 대체하지 않습니다.
 
 UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라 실제 브라우저에서 제품 화면을
 열고 클릭과 타이핑으로 수행하는 end-to-end 검수입니다. 인앱 직접 조작 또는 Policy v4
