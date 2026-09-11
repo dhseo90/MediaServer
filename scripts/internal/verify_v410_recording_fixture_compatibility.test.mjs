@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 고정 자료의 무결성 및 정리 경계 검사.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { mkdtempSync, cpSync, rmSync, appendFileSync, readFileSync, writeFileSync } from 'node:fs';

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# S08-B1 실제 journal focused; 전용 mktemp root만 정리한다.
+# 파일 용도: S08-B1 실제 journal focused; 전용 mktemp root만 정리한다.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"

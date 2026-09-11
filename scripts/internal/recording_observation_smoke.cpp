@@ -1,4 +1,4 @@
-// S07 실제 관측 영속 경계의 독립 focused smoke.
+// 파일 용도: S07 실제 관측 영속 경계의 독립 focused smoke.
 #include "recording/recording_catalog.h"
 #include "recording/analysis_observation_projector.h"
 #include "analysis/object_tracker.h"

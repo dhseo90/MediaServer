@@ -1,4 +1,4 @@
-// 실제 SharedStream→VP8 decoder→AnalysisManager worker 및 EventRecord 생성 연결 검증.
+// 파일 용도: 실제 SharedStream→VP8 decoder→AnalysisManager worker 및 EventRecord 생성 연결 검증.
 #include "analysis/analysis_manager.h"
 #include "analysis/event_storage.h"
 #include "app_config.h"

@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 생산자 시작 전 삭제 대기·최종화·미디어 복구.
 #include "recording/recording_startup_recovery.h"
 #include "recording/recording_catalog.h"
 #include "recording/retention_coordinator.h"

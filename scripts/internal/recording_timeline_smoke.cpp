@@ -1,4 +1,4 @@
-// S06 실제 catalog를 이용한 조회 투영 회귀. 미디어 재생 검증과 구분한다.
+// 파일 용도: S06 실제 catalog를 이용한 조회 투영 회귀. 미디어 재생 검증과 구분한다.
 #include "recording/recording_read_service.h"
 #include "ingress/recording_application_service.h"
 #include "ingress/recording_request_gate.h"

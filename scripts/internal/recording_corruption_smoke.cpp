@@ -1,4 +1,4 @@
-// S08-B2a 알려진 segment 손상 상태의 실제 catalog/SQLite 검증.
+// 파일 용도: S08-B2a 알려진 segment 손상 상태의 실제 catalog/SQLite 검증.
 #include "recording/recording_catalog.h"
 #include <filesystem>
 #include <fstream>

@@ -1223,6 +1223,14 @@ Usage:
                  S06 조회·Range·인증·전송 수명을 검증합니다. 인증 환경변수 5개와 빌드된 서버가 필요합니다.
   verify-v410-recording-observations
                  S07 V2 관측·sampling·종료·시간 snapshot focused 검증을 실행합니다.
+  verify-v410-recording-foundation-runtime
+                 S09 실제 runtime oracle 1/5/7을 검증합니다. 전체 S09 PASS를 뜻하지 않습니다.
+  verify-v410-recording-foundation
+                 기본 --all은 runtime→app-auth, 부분모드는 별도 실행합니다. 전체 S09 PASS가 아닙니다.
+  verify-v410-recording-longrun --duration-minutes 120
+                 S09 실제 녹화120분 관측입니다. 자원 안정성은 별도 검토하며 명시 실행 승인 필요.
+  verify-v410-recording-fallback-binding
+                 S09 fallback의 durable identity 결속·legacy·noOpenSSL 거부를 검증합니다.
   verify-v410-recording-ui-contract
                  S06 화면 정적 계약을 검증합니다. 실제 UI 풀테스트 PASS를 뜻하지 않습니다.
   verify-post-release-reconciliation
@@ -3108,6 +3116,22 @@ case "${cmd}" in
   verify-v410-recording-observations)
     require_internal verify_v410_recording_observations.sh
     exec bash "${INTERNAL_DIR}/verify_v410_recording_observations.sh" "$@"
+    ;;
+  verify-v410-recording-foundation-runtime)
+    require_internal verify_v410_recording_foundation_runtime.sh
+    exec bash "${INTERNAL_DIR}/verify_v410_recording_foundation_runtime.sh" "$@"
+    ;;
+  verify-v410-recording-foundation)
+    require_internal verify_v410_recording_foundation.sh
+    exec bash "${INTERNAL_DIR}/verify_v410_recording_foundation.sh" "$@"
+    ;;
+  verify-v410-recording-longrun)
+    require_internal verify_v410_recording_longrun.sh
+    exec bash "${INTERNAL_DIR}/verify_v410_recording_longrun.sh" "$@"
+    ;;
+  verify-v410-recording-fallback-binding)
+    require_internal verify_v410_recording_fallback_binding.sh
+    exec bash "${INTERNAL_DIR}/verify_v410_recording_fallback_binding.sh" "$@"
     ;;
   verify-v410-recording-ui-contract)
     require_internal verify_v410_recording_ui_contract.mjs

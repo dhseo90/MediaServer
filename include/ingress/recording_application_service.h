@@ -1,4 +1,4 @@
-// S06 HTTP adapter에 노출하는 경로 비노출 녹화 조회·응답 계약.
+// 파일 용도: S06 HTTP adapter에 노출하는 경로 비노출 녹화 조회·응답 계약.
 #pragma once
 
 #include "ingress/application_service_result.h"

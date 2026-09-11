@@ -1,4 +1,4 @@
-// S06 요청의 admission과 종료 drain을 분리한다. 다른 HTTP 경로의 동작은 바꾸지 않는다.
+// 파일 용도: S06 요청의 admission과 종료 drain을 분리한다. 다른 HTTP 경로의 동작은 바꾸지 않는다.
 #pragma once
 #include <memory>
 #include <mutex>

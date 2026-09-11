@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 실제 media 검사 focused. mktemp root만 생성/정리한다.
+# 파일 용도: 실제 media 검사 focused. mktemp root만 생성/정리한다.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"

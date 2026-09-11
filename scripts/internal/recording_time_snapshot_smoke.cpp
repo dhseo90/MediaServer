@@ -1,4 +1,4 @@
-// S07 시간 사본의 불변성·되감기·epoch 모호성 검증.
+// 파일 용도: S07 시간 사본의 불변성·되감기·epoch 모호성 검증.
 #include "recording/recording_time_snapshot.h"
 #include <iostream>
 int main() {

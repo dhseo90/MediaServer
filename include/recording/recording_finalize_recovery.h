@@ -1,5 +1,5 @@
 #pragma once
-// 내부 finalize 내구 증명. 공개 V1 schema는 변경하지 않는다.
+// 파일 용도: 내부 finalize 내구 증명. 공개 V1 schema는 변경하지 않는다.
 #include "recording/recording_contracts.h"
 #include <filesystem>
 #include <optional>

@@ -1,4 +1,4 @@
-// 녹화 catalog의 영속 순서와 분리된 운영 timeline 조회 계약.
+// 파일 용도: 녹화 catalog의 영속 순서와 분리된 운영 timeline 조회 계약.
 #pragma once
 
 #include "recording/recording_catalog.h"

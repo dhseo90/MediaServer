@@ -472,14 +472,36 @@ void CatalogEventRecordingBridge::RecordFallback(
     const auto existing = catalog_.FindEventLinkByEventId(record.event_id);
     if (!existing.has_value() || existing->link_id != previous.link_id ||
         existing->status == EventRecordingLinkStatus::Complete) return;
-    const std::string token = StableToken(record.event_id);
-    if (token.empty()) return;
+    const auto& raw_key = record.stream_id.empty() ? record.channel_id : record.stream_id;
+    if (options_.resolve_recording_channel) {
+        const auto mapped = options_.resolve_recording_channel(raw_key);
+        if (!mapped || *mapped != existing->channel_id || *mapped != existing->source_id) return;
+    } else if (record.stream_id != existing->source_id || record.channel_id != existing->channel_id) {
+        return;
+    }
+    std::string evidence_id;
+    if (existing->fallback_evidence_id &&
+        !IsBoundRecordingFallbackNamespace(*existing->fallback_evidence_id)) {
+        // 기존 unbound URL을 자동 승격하지 않는다. exact identity 갱신만 허용한다.
+        if (record.stream_id != existing->source_id || record.channel_id != existing->channel_id) return;
+        evidence_id = *existing->fallback_evidence_id;
+    } else if (options_.resolve_recording_channel) {
+        evidence_id = BoundRecordingFallbackId(record.event_id, existing->link_id,
+            existing->source_id, existing->channel_id, record.stream_id, record.channel_id);
+        if (evidence_id.empty()) return;
+        if (existing->fallback_evidence_id && *existing->fallback_evidence_id != evidence_id) return;
+    } else {
+        if (existing->fallback_evidence_id) return;
+        const auto token = StableToken(record.event_id);
+        if (token.empty()) return;
+        evidence_id = "fallback-sha256-" + token;
+    }
     std::error_code path_error;
     const auto locator = std::filesystem::absolute(record.clip_path, path_error).lexically_normal();
     if (path_error || locator.empty() || !std::filesystem::is_regular_file(locator, path_error) ||
         path_error) return;
     auto link = *existing;
-    link.fallback_evidence_id = "fallback-sha256-" + token;
+    link.fallback_evidence_id = evidence_id;
     link.fallback_media_locator = locator.string();
     if (link.status == EventRecordingLinkStatus::Pending &&
         !IsResourceRecoveryStage(link.completeness_reason)) {
@@ -508,7 +530,8 @@ void CatalogEventRecordingBridge::Enqueue(PendingJob job,
         return;
     }
     if (jobs_.size() >= options_.max_pending_jobs) return;
-    jobs_[job.event_id] = std::make_shared<PendingJob>(std::move(job));
+    const std::string event_id = job.event_id;
+    jobs_[event_id] = std::make_shared<PendingJob>(std::move(job));
     cv_.notify_one();
 }
 

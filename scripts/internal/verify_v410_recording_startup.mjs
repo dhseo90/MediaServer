@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 실제 앱 startup fixture. 운영 환경·파일·포트를 재사용하지 않는다.
+// 파일 용도: 실제 앱 startup fixture. 운영 환경·파일·포트를 재사용하지 않는다.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';

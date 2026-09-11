@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 고정 V1 바이트 무결성과 실제 C++ reader 검증. 자동 digest 갱신은 없다.
+// 파일 용도: 고정 V1 바이트 무결성과 실제 C++ reader 검증. 자동 digest 갱신은 없다.
 import { readFileSync, mkdtempSync, rmSync, statSync, readdirSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';

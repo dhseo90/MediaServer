@@ -1,4 +1,4 @@
-// 녹화 HTTP 응답의 범위·숫자·JSON 계약을 transport와 분리한다.
+// 파일 용도: 녹화 HTTP 응답의 범위·숫자·JSON 계약을 transport와 분리한다.
 #include "ingress/recording_application_service.h"
 #include <charconv>
 #include <sstream>

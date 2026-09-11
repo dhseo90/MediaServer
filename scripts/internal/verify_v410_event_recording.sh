@@ -3,14 +3,18 @@
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+FOCUSED_MODE="${1:-}"
+if [[ $# -gt 1 || ( -n "$FOCUSED_MODE" && "$FOCUSED_MODE" != --enqueue-only && "$FOCUSED_MODE" != --bridge-only ) ]]; then exit 2; fi
 source "${SCRIPT_DIR}/env_common.sh"
 media_server_apply_homebrew_gst_env
 BUILD_DIR="$(mktemp -d "${TMPDIR:-/tmp}/media_server_v410_event_recording.XXXXXX")"
 CXX_BIN="${CXX:-c++}"
 cleanup() { node -e 'const f=require("fs"),p=require("path"),r=process.argv[1];function size(x){const s=f.lstatSync(x);return s.isDirectory()?f.readdirSync(x).reduce((n,k)=>n+size(p.join(x,k)),0):s.size}const bytes=f.existsSync(r)?size(r):0;f.rmSync(r,{recursive:true,force:true});if(f.existsSync(r))process.exit(1);console.log(`[cleanup] path=${r} bytes=${bytes} removed=true`)' "$BUILD_DIR"; }
 trap cleanup EXIT
-node "${SCRIPT_DIR}/v410_s05_inventory.mjs"
-node "${SCRIPT_DIR}/v410_s05_inventory.test.mjs"
+if [[ -z "$FOCUSED_MODE" ]]; then
+  node "${SCRIPT_DIR}/v410_s05_inventory.mjs"
+  node "${SCRIPT_DIR}/v410_s05_inventory.test.mjs"
+fi
 
 SQLITE_CFLAGS=()
 SQLITE_LIBS=()
@@ -55,6 +59,11 @@ fi
   ${SQLITE_LIBS[*]-} ${GST_LIBS[*]-} ${OPENSSL_LIBS[*]-} \
   -o "${BUILD_DIR}/event_recording_link_smoke"
 
+if [[ -n "$FOCUSED_MODE" ]]; then
+  "${BUILD_DIR}/event_recording_link_smoke" "${BUILD_DIR}" \
+    "${ROOT_DIR}/video/sample_h264_video_only.mp4" "$FOCUSED_MODE"
+  exit 0
+fi
 "${BUILD_DIR}/event_recording_link_smoke" "${BUILD_DIR}" \
   "${ROOT_DIR}/video/sample_h264_video_only.mp4" | tee "${BUILD_DIR}/assertions.log"
 

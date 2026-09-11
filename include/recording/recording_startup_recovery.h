@@ -1,4 +1,4 @@
-// 녹화 생산자와 HTTP가 시작되기 전에 수행하는 동기 복구. 새 보존 삭제를 계획하지 않는다.
+// 파일 용도: 녹화 생산자와 HTTP가 시작되기 전에 수행하는 동기 복구. 새 보존 삭제를 계획하지 않는다.
 #pragma once
 #include "recording/recording_finalize_recovery.h"
 #include "recording/recording_media_inspector.h"

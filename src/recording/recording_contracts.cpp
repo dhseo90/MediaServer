@@ -5,6 +5,7 @@
 #include "domain/strict_json.h"
 
 #include <algorithm>
+#include <array>
 #include <charconv>
 #include <cmath>
 #include <cstdlib>
@@ -13,6 +14,13 @@
 #include <sstream>
 #include <string_view>
 #include <unordered_set>
+
+#ifndef MEDIA_SERVER_USE_OPENSSL
+#define MEDIA_SERVER_USE_OPENSSL 0
+#endif
+#if MEDIA_SERVER_USE_OPENSSL
+#include <openssl/evp.h>
+#endif
 
 namespace recording {
 namespace {
@@ -381,6 +389,45 @@ bool ValidateOpaqueId(const std::string& value, std::string* error) {
     if (all_digits) return Fail(error, "opaque ID는 SQLite rowid 형태일 수 없음");
     ClearError(error);
     return true;
+}
+
+bool IsBoundRecordingFallbackNamespace(const std::string& value) {
+    return value.rfind("fallback-bound-", 0) == 0;
+}
+
+std::string BoundRecordingFallbackId(const std::string& event_id,
+                                     const std::string& link_id,
+                                     const std::string& source_id,
+                                     const std::string& channel_id,
+                                     const std::string& raw_stream_id,
+                                     const std::string& raw_channel_id) {
+    if (event_id.empty() || link_id.empty() || source_id.empty() || channel_id.empty() ||
+        raw_channel_id.empty()) return {};
+#if !MEDIA_SERVER_USE_OPENSSL
+    (void)raw_stream_id;
+    return {};
+#else
+    const std::array<std::string_view, 7> fields{
+        "media-server.recording-fallback-binding.v1", event_id, link_id, source_id,
+        channel_id, raw_stream_id, raw_channel_id};
+    EVP_MD_CTX* context = EVP_MD_CTX_new();
+    if (context == nullptr) return {};
+    bool ok = EVP_DigestInit_ex(context, EVP_sha256(), nullptr) == 1;
+    for (const auto field : fields) {
+        const auto prefix = std::to_string(field.size()) + ":";
+        ok = ok && EVP_DigestUpdate(context, prefix.data(), prefix.size()) == 1 &&
+             EVP_DigestUpdate(context, field.data(), field.size()) == 1;
+    }
+    std::array<unsigned char, EVP_MAX_MD_SIZE> digest{};
+    unsigned int size = 0;
+    ok = ok && EVP_DigestFinal_ex(context, digest.data(), &size) == 1;
+    EVP_MD_CTX_free(context);
+    if (!ok || size != 32) return {};
+    std::ostringstream output;
+    output << "fallback-bound-v1-" << std::hex << std::setfill('0');
+    for (unsigned int i = 0; i < size; ++i) output << std::setw(2) << static_cast<int>(digest[i]);
+    return output.str();
+#endif
 }
 
 bool ValidateMediaTime(const MediaTimeV1& value, std::string* error) {

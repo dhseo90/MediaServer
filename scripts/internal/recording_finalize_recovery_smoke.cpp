@@ -1,4 +1,4 @@
-// 실제 ready 상태와 catalog recovery 경로를 검사하는 focused fixture.
+// 파일 용도: 실제 ready 상태와 catalog recovery 경로를 검사하는 focused fixture.
 #include "recording/recording_finalize_recovery.h"
 #include "recording/recording_catalog.h"
 #include <filesystem>

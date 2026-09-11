@@ -1,4 +1,4 @@
-// FR09~16: 실제 writer/remux/bridge와 SQLite·fallback 재시작 경계를 검사한다.
+// 파일 용도: FR09~16: 실제 writer/remux/bridge와 SQLite·fallback 재시작 경계를 검사한다.
 #include "recording/gstreamer_segment_writer.h"
 #include "recording/event_recording_bridge.h"
 #include "recording/recording_media_inspector.h"

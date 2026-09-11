@@ -159,6 +159,14 @@ bool ParseAnalysisObservationV2(const std::string& json, AnalysisObservationV2* 
                                 std::string* error);
 
 bool ValidateOpaqueId(const std::string& value, std::string* error);
+// 내부 trusted-journal identity 결속. 파일 서명/미디어 checksum이 아니며 JSON 필드는 추가하지 않는다.
+bool IsBoundRecordingFallbackNamespace(const std::string& value);
+std::string BoundRecordingFallbackId(const std::string& event_id,
+                                     const std::string& link_id,
+                                     const std::string& source_id,
+                                     const std::string& channel_id,
+                                     const std::string& raw_stream_id,
+                                     const std::string& raw_channel_id);
 bool ValidateMediaTime(const MediaTimeV1& value, std::string* error);
 bool ValidateRecordingSegmentV1(const RecordingSegmentV1& value, std::string* error);
 bool ValidateEventRecordingLinkV1(const EventRecordingLinkV1& value, std::string* error);

@@ -1352,17 +1352,100 @@ void VerifyRealVp8Remux(const std::filesystem::path& root) {
 #endif
 }
 
+void VerifyEnqueueRetryIdentity(const std::filesystem::path& base) {
+    // 실제 worker가 무한 루프여도 테스트 프로세스와 wrapper 정리가 유한 시간에 끝난다.
+    struct Watchdog {
+        std::atomic<bool> done{false};
+        std::thread thread;
+        Watchdog() : thread([this] {
+            for (int i = 0; i < 1000 && !done.load(); ++i)
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            if (!done.load()) {
+                std::cerr << "[fail] EQ watchdog 10초 초과\n" << std::flush;
+                std::_Exit(124);
+            }
+        }) {}
+        ~Watchdog() { done = true; thread.join(); }
+    } watchdog;
+    for (const int event_count : {1, 2}) {
+        const auto root = base / std::to_string(event_count);
+        std::filesystem::create_directories(root);
+        RecordingJournal journal(root / "journal.jsonl");
+        std::string error;
+        Expect(journal.Open(&error), "EQ journal open");
+        RecordingCatalog catalog(journal, {root / "index.sqlite", root, false});
+        Expect(catalog.Open(&error), "EQ catalog open");
+        RetentionCoordinator::Options retention_options;
+        retention_options.media_root = root;
+        RetentionCoordinator retention(catalog,
+            [&catalog] { return catalog.RetentionSnapshot(); },
+            [](std::uint64_t* bytes, std::string*) { *bytes = 1000000; return true; },
+            [](const std::filesystem::path&, std::string*) { return false; }, retention_options);
+        RemuxFailDeriver deriver;
+        recording::CatalogEventRecordingBridge::Options options;
+        options.output_root = root;
+        options.now_ms = [] { return 10000; };
+        options.mapping_retry_ms = 250;
+        recording::CatalogEventRecordingBridge bridge(catalog, retention, deriver, options);
+        std::vector<std::string> ids;
+        for (int i = 0; i < event_count; ++i) {
+            auto event = MakePtsEvent("eq-event-" + std::to_string(i), "eq-channel");
+            event.time_anchor_utc_ms = 0;
+            const auto result = bridge.TryResolve({}, event, {});
+            Expect(result.handled && !result.link_id.empty(), "EQ 실제 pending 등록");
+            ids.push_back(result.link_id);
+        }
+        auto counts = [&] {
+            const auto replay = journal.Replay();
+            if (replay.io_error_count || replay.corrupt_line_count || replay.truncated_tail_count)
+                throw std::runtime_error("EQ journal read 오류");
+            std::vector<std::size_t> value(ids.size());
+            for (const auto& mutation : replay.mutations)
+                for (std::size_t i = 0; i < ids.size(); ++i)
+                    if (mutation.entity_id == ids[i]) ++value[i];
+            return value;
+        };
+        WaitUntil([&] {
+            const auto value = counts();
+            for (const auto n : value) if (n < 2) return false;
+            return true;
+        }, "EQ 각 event worker 최초처리 미도달");
+        Expect(true, "EQ 각 event 실제 worker 최초 journal 기록 확인");
+        const auto before = counts();
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
+        const auto after = counts();
+        bridge.StopAndDrain();
+        std::cout << "[eq-evidence] events=" << event_count << " clock=10000 deadline=10250 before=";
+        for (auto n : before) std::cout << n << ',';
+        std::cout << " after=";
+        for (auto n : after) std::cout << n << ',';
+        std::cout << '\n';
+        Expect(before == std::vector<std::size_t>(ids.size(), 2) && after == before,
+               "EQ deadline 이전 동일 event journal 증가 없음");
+        Expect(event_count == 1 || ids[0] != ids[1], "EQ 서로 다른 event link ID 보존");
+        Expect(deriver.calls == 0, "EQ 미해석 PTS는 파생 비실행");
+    }
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
     try {
-        if (argc != 3) {
+        if (argc != 3 && argc != 4) {
             throw std::runtime_error(
                 "사용법: event_recording_link_smoke <build-dir> <h264-video-only-sample>");
         }
+        const std::string mode = argc == 4 ? argv[3] : "";
+        if (!mode.empty() && mode != "--enqueue-only" && mode != "--bridge-only")
+            throw std::runtime_error("알 수 없는 focused mode");
         const std::filesystem::path root = std::filesystem::path(argv[1]) / "recordings";
         std::filesystem::remove_all(root);
         std::filesystem::create_directories(root);
+        VerifyEnqueueRetryIdentity(root / "enqueue");
+        if (mode == "--enqueue-only") {
+            std::cout << "[verify-v410-event-recording] pass=" << g_pass << " fail=0\n";
+            return 0;
+        }
         VerifyLinkContractInvariants();
         VerifyEventLinking(root / "linking");
         VerifyDeferredFailureAndPtsUpdates(root / "deferred-updates");
@@ -1370,8 +1453,10 @@ int main(int argc, char** argv) {
         VerifyQueueRefillAndCleanupHold(root / "queue-cleanup");
         VerifyPendingDerivedHoldRecovery(root / "derived-hold-recovery");
         VerifyRestartRecoveryAndIdConflict(root / "restart");
-        VerifyRealRemux(root / "remux", argv[2]);
-        VerifyRealVp8Remux(root / "remux-vp8");
+        if (mode != "--bridge-only") {
+            VerifyRealRemux(root / "remux", argv[2]);
+            VerifyRealVp8Remux(root / "remux-vp8");
+        }
         std::cout << "[verify-v410-event-recording] pass=" << g_pass << " fail=0\n";
         return 0;
     } catch (const std::exception& ex) {

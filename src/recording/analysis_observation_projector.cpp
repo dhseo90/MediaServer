@@ -1,3 +1,4 @@
+// 파일 용도: 분석 관측의 표본 선택과 비동기 원장 투영.
 #include "recording/analysis_observation_projector.h"
 #include <algorithm>
 #include <limits>
@@ -19,7 +20,7 @@ std::string Key(const AnalysisObservationV2& o) {
     return key;
 }
 std::string Id(const AnalysisObservationV2& o) {
-    // stable bounded token; catalog independently rejects any differing identity sharing a token.
+    // 길이가 제한된 안정적 토큰이며, catalog는 같은 토큰에 다른 식별자가 결속되면 별도로 거부한다.
     const auto bytes=Key(o)+":"+std::to_string(o.pts);
     std::uint64_t first=14695981039346656037ULL,second=7809847782465536322ULL;
     for(unsigned char ch:bytes) {

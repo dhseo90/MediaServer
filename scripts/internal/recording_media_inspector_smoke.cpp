@@ -1,4 +1,4 @@
-// 실제 로컬 media와 고정 FD inspector를 검사한다. decoder 보장은 검사하지 않는다.
+// 파일 용도: 실제 로컬 media와 고정 FD inspector를 검사한다. decoder 보장은 검사하지 않는다.
 #include "recording/recording_media_inspector.h"
 #include "recording/recording_catalog.h"
 #if MEDIA_SERVER_USE_GSTREAMER

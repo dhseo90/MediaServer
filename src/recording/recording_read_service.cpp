@@ -1,4 +1,4 @@
-// 운영 timeline의 조회 전용 투영.
+// 파일 용도: 운영 timeline의 조회 전용 투영.
 #include "recording/recording_read_service.h"
 #include <algorithm>
 #include <charconv>
@@ -103,9 +103,18 @@ std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveMedia(
         ingress::StrictJsonObjectDocument doc, encoded;
         if (!ingress::ParseStrictJsonObjectDocument(json, &doc, nullptr) ||
             ingress::StrictJsonStringField(doc, "schema") != "media-server.va.event-clip-hook.v1" ||
-            ingress::StrictJsonStringField(doc, "eventId") != fallback->event_id ||
-            ingress::StrictJsonStringField(doc, "streamId") != fallback->source_id ||
-            ingress::StrictJsonStringField(doc, "channelId") != channel_id) return {};
+            ingress::StrictJsonStringField(doc, "eventId") != fallback->event_id) return {};
+        const auto raw_stream = ingress::StrictJsonStringField(doc, "streamId");
+        const auto raw_channel = ingress::StrictJsonStringField(doc, "channelId");
+        if (!raw_stream || !raw_channel) return {};
+        if (IsBoundRecordingFallbackNamespace(*fallback->fallback_evidence_id)) {
+            const auto expected = BoundRecordingFallbackId(fallback->event_id, fallback->link_id,
+                fallback->source_id, fallback->channel_id, *raw_stream, *raw_channel);
+            // 지원하지 않는 version/잘린 prefix/잘못된 hex도 legacy로 강등하지 않는다.
+            if (expected.empty() || expected != *fallback->fallback_evidence_id) return {};
+        } else if (*raw_stream != fallback->source_id || *raw_channel != channel_id) {
+            return {};
+        }
         const auto nested = ingress::StrictJsonObjectField(doc, "encodedClip");
         if (!nested || !ingress::ParseStrictJsonObjectDocument(*nested, &encoded, nullptr) ||
             ingress::StrictJsonStringField(encoded, "schema") != "media-server.encoded-event-clip-contract.v1" ||

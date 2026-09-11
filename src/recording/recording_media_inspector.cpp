@@ -1,3 +1,4 @@
+// 파일 용도: 안전한 파일 접근을 통한 녹화 크기·해시·컨테이너 검사.
 #include "recording/recording_media_inspector.h"
 #include "recording/recording_catalog.h"
 #include <algorithm>

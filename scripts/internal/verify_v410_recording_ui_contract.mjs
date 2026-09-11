@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// 파일 용도: 녹화 UI 계약과 HTTP 권한의 격리 검증.
 
 import fs from "node:fs";
 import net from "node:net";

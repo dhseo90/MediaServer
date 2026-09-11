@@ -1,4 +1,4 @@
-// 실제 journal I/O를 통해 S08-B1 미commit tail의 append 유실을 재현한다.
+// 파일 용도: 실제 journal I/O를 통해 S08-B1 미commit tail의 append 유실을 재현한다.
 #include "recording/recording_journal.h"
 #include "recording/recording_catalog.h"
 #include <filesystem>

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# S07 focused smoke: 실행별 임시 root만 생성하고 종료 시 제거한다.
+# 파일 용도: S07 focused smoke: 실행별 임시 root만 생성하고 종료 시 제거한다.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"

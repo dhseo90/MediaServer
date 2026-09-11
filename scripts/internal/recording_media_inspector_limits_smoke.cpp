@@ -1,4 +1,4 @@
-// 테스트 전용 TU: 제품 hook 없이 실제 callback 구현에 FD/GstAppSrc를 전달한다.
+// 파일 용도: 테스트 전용 TU: 제품 hook 없이 실제 callback 구현에 FD/GstAppSrc를 전달한다.
 // 실제 container가 큰 pull 요청을 발생시켰다는 증거가 아니다.
 #include "../../src/recording/recording_media_inspector.cpp"
 #include <fstream>

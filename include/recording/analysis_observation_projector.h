@@ -1,4 +1,4 @@
-// 분석 관측 sampling 및 비동기 영속화. media thread에서 filesystem을 접근하지 않는다.
+// 파일 용도: 분석 관측 sampling 및 비동기 영속화. media thread에서 filesystem을 접근하지 않는다.
 #pragma once
 #include "recording/recording_catalog.h"
 #include "analysis/analysis_types.h"

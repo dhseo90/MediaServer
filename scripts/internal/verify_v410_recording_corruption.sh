@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# S08-B2a 실제 catalog focused. 자동 파일 손상 검출은 검사하지 않는다.
+# 파일 용도: S08-B2a 실제 catalog focused. 자동 파일 손상 검출은 검사하지 않는다.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"

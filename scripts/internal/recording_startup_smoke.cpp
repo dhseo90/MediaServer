@@ -1,4 +1,4 @@
-// 실제 catalog/retention/inspector startup 경계. 제품 test hook 없이 파일과 원장으로 구성한다.
+// 파일 용도: 실제 catalog/retention/inspector startup 경계. 제품 test hook 없이 파일과 원장으로 구성한다.
 #include "recording/recording_catalog.h"
 #include "recording/recording_startup_recovery.h"
 #include <filesystem>

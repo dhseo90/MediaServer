@@ -1,3 +1,4 @@
+// 파일 용도: 완료 증명 티켓을 이용한 녹화 최종화 복구.
 #include "recording/recording_finalize_recovery.h"
 #include "recording/recording_catalog.h"
 #include "recording/recording_media_inspector.h"

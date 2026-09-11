@@ -1,4 +1,4 @@
-// 명시적 known segment 검사. startup coordinator가 호출하며 재생 경로의 자동검사는 아니다.
+// 파일 용도: 명시적 known segment 검사. startup coordinator가 호출하며 재생 경로의 자동검사는 아니다.
 #pragma once
 #include "recording/recording_contracts.h"
 #include <chrono>

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 기존 runtime archive에 실제 decoder/manager smoke를 링크한다. 운영 env 파일은 읽지 않는다.
+# 파일 용도: 기존 runtime archive에 실제 decoder/manager smoke를 링크한다. 운영 env 파일은 읽지 않는다.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
