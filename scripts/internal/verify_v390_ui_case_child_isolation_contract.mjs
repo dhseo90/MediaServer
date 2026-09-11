@@ -87,6 +87,15 @@ check("production suite-finalizer child writes one attested PASS summary", () =>
     "suite-finalizer PASS did not preserve its injected matrix probe");
 });
 
+// FD08 사전 명세: 실제 finalizer subprocess가 독립 PNG 생성 뒤 case canonical 참조를 확정한다.
+check("FD08 finalizer subprocess canonicalizes new PNG before summary and secret attestation", () => {
+  const child = runProductionSuiteFinalizer("pass");
+  assert(child.exitCode === 0, "FD08 fixture child failed before dedup assertion");
+  assert(child.canonicalReference && !child.duplicatePngRemains && child.casePngUnchanged,
+    "FD08 finalizer duplicate PNG remains or canonical reference missing");
+  assertSuiteFinalizerSummary(child.summary, "PASS");
+});
+
 check("production suite-finalizer child writes one safe attested FAIL summary", () => {
   const child = runProductionSuiteFinalizer("matrix-failure");
   assert(child.exitCode === 1,
@@ -459,7 +468,13 @@ function listRegularFiles(rootPath) {
 }
 
 function runProductionSuiteFinalizer(mode) {
-  const outputDir = fs.mkdtempSync(path.join(rootDir, ".v390-suite-finalizer-contract-"));
+  const ownedRoot = fs.mkdtempSync(path.join(rootDir, ".v390-suite-finalizer-contract-"));
+  const outputDir = path.join(ownedRoot, "suite-finalizer");
+  fs.mkdirSync(outputDir);
+  const canonical = path.join(ownedRoot, "cases", "001-UI-001", "screenshots", "UI-001.png");
+  fs.mkdirSync(path.dirname(canonical), { recursive: true });
+  const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aN9sAAAAASUVORK5CYII=", "base64");
+  fs.writeFileSync(canonical, png);
   const buildPath = path.join(outputDir, "build-placeholder");
   const serverLogPath = path.join(outputDir, "server.log");
   fs.writeFileSync(buildPath, "contract build placeholder\n");
@@ -497,12 +512,17 @@ function runProductionSuiteFinalizer(mode) {
       stdout: child.stdout || "",
       stderr: child.stderr || "",
       summary,
+      canonicalReference: summary?.visualMatrixProbes?.[0]?.screenshotPath === canonical,
+      duplicatePngRemains: fs.existsSync(path.join(outputDir, "visual-matrix", "contract-probe.png")),
+      casePngUnchanged: fs.readFileSync(canonical).equals(png),
       secretArtifactExists: fs.existsSync(path.join(outputDir, "retained-secret.txt")),
       treeContainsCanary: listRegularFiles(outputDir).some(filePath =>
         fs.readFileSync(filePath).includes("round2-finalizer-secret-canary")),
     };
   } finally {
-    fs.rmSync(outputDir, { recursive: true, force: true });
+    const bytes = listRegularFiles(ownedRoot).reduce((sum, file) => sum + fs.lstatSync(file).size, 0);
+    fs.rmSync(ownedRoot, { recursive: true, force: true });
+    console.log(`[cleanup] ${ownedRoot} bytes=${bytes} absent=${!fs.existsSync(ownedRoot)}`);
   }
 }
 

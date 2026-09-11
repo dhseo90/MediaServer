@@ -49,6 +49,7 @@ import {
 import { expandVisualMatrixPlan, validateVisualMatrixPlan } from "./v390_ui_visual_evidence.mjs";
 import {
   deduplicateScreenshotArtifactAgainstTree,
+  deduplicateFinalizerScreenshots,
   deduplicateScreenshotArtifacts,
   pruneUnreferencedArtifactFiles,
   sha256File,
@@ -773,6 +774,7 @@ async function runCanonicalSuiteFinalizerChild() {
   let summary = null;
   try {
     const visualMatrixProbes = await executeVisualMatrix(adapter);
+    deduplicateFinalizerScreenshots(visualMatrixProbes, path.dirname(outputDir));
     summary = {
       schema: "media-server.v390-ui-suite-finalizer.v1",
       result: "PASS",
@@ -3488,6 +3490,8 @@ async function executeVisualMatrix(adapter) {
       fs.writeFileSync(path.join(outputDir, "retained-secret.txt"),
         "round2-finalizer-secret-canary\n", { mode: 0o600 });
     }
+    const fixtureScreenshot = path.join(visualMatrixDir, "contract-probe.png");
+    fs.writeFileSync(fixtureScreenshot, Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aN9sAAAAASUVORK5CYII=", "base64"));
     return [{
       id: "contract-suite-finalizer-visual-probe",
       canonicalCaseId: "UI-001",
@@ -3499,7 +3503,7 @@ async function executeVisualMatrix(adapter) {
       height: 720,
       theme: "light",
       correlationId: "contract-suite-finalizer-visual-probe:navigation",
-      screenshotPath: "",
+      screenshotPath: fixtureScreenshot,
       measurement: { status: "PASS",
         ...(options.contractSuiteFinalizerFixture === "probe-secret"
           ? { contractDiagnostic: "round2-finalizer-secret-canary" } : {}) },
