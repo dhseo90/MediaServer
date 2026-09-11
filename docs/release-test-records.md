@@ -1,5 +1,208 @@
 # Release Test Records
 
+## S09 EVT-058 adapter 진단 focused 및 역사 증거 정합성 — 실제 결과
+
+독자: 개발·검증 담당자. lifecycle: v4.1.0 S09 실행 증적. 아래는 기존 도구 원출력에서 이관한 결과이며 현재 브라우저/UI 실행이나 EVT-058 원인 해소를 증명하지 않는다. 공개 제품 schema, recorder snapshot, evaluator, timeout 및 누락 실패 정책은 변경하지 않았다. 진단은 additive projection이며 판정 입력으로 사용하지 않는다.
+
+명령 F: `node scripts/internal/verify_v390_ui_native_adapter_contract.mjs --lifecycle-diagnostics-only`
+명령 A: `node scripts/internal/verify_v390_ui_native_adapter_contract.mjs`
+
+### 등록 및 실제 실행 순서
+
+신규 명세는 기존 focused 소스 안에 실행 전에 등록했다. 최초 mapped/finished/failed 3개 → unmapped 1개 추가 → diagnostic-error 1개 추가 순서다. 뒤에 추가한 항목을 최초 RED에서 실행한 것으로 소급하지 않는다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 최초 F RED | F exit1, 0pass/3fail; 세 항목 모두 direct identity diagnostic mapping missing. 실제 원출력 chunk 898538 | fail |
+| 최초 F GREEN | F exit0, 3pass/0fail; 직접 매핑·terminal·seal 진단 추가 후. chunk cf8f53 | pass |
+| unmapped 추가 F | F exit0, 4pass/0fail. chunk 2a9ad7 | pass |
+| 최초 전체 A | A exit1, 67pass/2fail. guard 문자열 및 historical tracePath 누락; chunk ca4782 | fail |
+| diagnostic-error 추가 F | F exit0, 5pass/0fail. 진단 전용 오류가 authoritative REQUEST_FAILED를 숨기지 않음; chunk 468643 | pass |
+| guard 보존 후 A | A exit1, 69pass/1fail. historical tracePath 누락만 잔여; chunk f56e37 | fail |
+| historical 보완 후 A | A exit0, 70pass/0fail. chunk 7513fb; 아래 개별70행 | pass |
+| 최종 공백 검사 | git diff --check exit0, 출력 없음; chunk 27b58e | pass |
+
+첫 전체 실패 원문은 `native callbacks use the capture-only recorder as lifecycle authority: request callback is not excluded after the logical capture boundary` 및 `preserved standalone evidence proves native actions: native artifact missing tracePath`다. 첫 원인은 기대값 완화 없이 기존 `if (requestCaptureSealed) return;` 앞에 진단만 배치하여 해소했다. 두 번째는 v3.9.1 공개 최소화 정책(설계 문서 63~68행), commit 7f3e9dc9의 의도된 raw trace 삭제와 기존 검사의 불일치다. raw trace를 복원하지 않고 보존 summary의 정확한7action/finalState/cleanup, report7행/metadata, PNG signature를 검사하도록 좁게 보완했다. 현재 diagnostic trace 필수 검사는 변경하지 않았다.
+
+### focused 개별5행 및 등록 시점
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| LD-mapped lifecycle diagnostic identity terminal and seal evidence | F: direct requestIdentity/legacy ID, method/path, start 및 seal/after-seal | pass | 최초3개 사전등록; RED fail → 3/0, 4/0, 5/0에서 pass |
+| LD-finished lifecycle diagnostic identity terminal and seal evidence | F: response 및 finished sequence/time, 직접 ID 결속 | pass | 최초3개 사전등록; RED fail → 3/0, 4/0, 5/0에서 pass |
+| LD-failed lifecycle diagnostic identity terminal and seal evidence | F: failed terminal 보존 및 failure 본문 비노출 | pass | 최초3개 사전등록; RED fail → 3/0, 4/0, 5/0에서 pass |
+| LD-unmapped diagnostic missing mapping remains explicit and method is restricted | F: 매핑 부재 빈값/seal null, query/fragment/origin credential 제외, method 제한 | pass | 최초3/0 이후 사전등록; 4/0, 5/0에서 실행. 최초RED 미실행 |
+| LD-diagnostic-error cannot prevent authoritative capture or change failure | F: 새 진단 오류 count만 보존, 실제 REQUEST_FAILED 판정 유지 | pass | 전체67/2 이후 사전등록; 5/0에서 실행. 최초RED 및67/2 미실행 |
+
+### 최종 전체 원출력70개
+
+아래 제목·순서는 실제 chunk 7513fb의 [pass]70개와 일치한다. 신규5개와 기존65개이며, 첫 전체67/2는 신규4개+기존65개=69개였으므로 마지막70개와의 차이는 누락이 아니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| 1. LD-mapped lifecycle diagnostic identity terminal and seal evidence | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 최초 focused RED fail → pass |
+| 2. LD-finished lifecycle diagnostic identity terminal and seal evidence | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 최초 focused RED fail → pass |
+| 3. LD-failed lifecycle diagnostic identity terminal and seal evidence | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 최초 focused RED fail → pass |
+| 4. LD-unmapped diagnostic missing mapping remains explicit and method is restricted | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 5. LD-diagnostic-error cannot prevent authoritative capture or change failure | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 첫 전체67/2 이후 등록·실행 |
+| 6. native callbacks use the capture-only recorder as lifecycle authority | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 첫 전체67/2에서 guard 문자열 경계 fail → 기존 guard 보존 후 pass |
+| 7. theme init script persists preference without touching an unparsed document | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 8. local link actions bind one owned document navigation | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 9. browser role roundtrip follows application redirects to terminal response | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 10. successful case settles the cleanup request snapshot before physical browser close | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 11. request-first and route-first exact action binding fail closed without global fallback | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 12. legacy request evidence preserves every exact tuple without evaluator authority | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 13. invocation begin/end events use one independent case-local total order | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 14. constant clocks still produce strictly monotonic cross-kind invocation timestamps | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 15. request capture timestamps advance the invocation watermark before end | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 16. navigation and action capture projections exclude load subresources by exact request kind | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 17. active action scopes claim only exact request owners and their document redirects | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 18. missing invite runtime-secret sink keeps failure evidence and a safe fallback shape | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 19. adapter lifecycle ledger is exact-object, sealed, memoized, and JSON-safe | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 20. adapter integration carries the four actual-like lifecycle graphs end to end | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 21. request lifecycle invocation identity separates phases for one semantic action | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 22. bundled Playwright module resolves with provenance | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 23. explicit missing module fails without fallback | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 24. Playwright timeout attestation uses class identity instead of mutable error name | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 25. selector owner reveal keeps plain CSS in the Playwright locator engine | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 26. UI-008 Playwright has-text selector never reaches native querySelector | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 27. selector owner reveal opens only the selected target closed details owner | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 28. selector owner reveal waits for dynamic attachment before owner evaluation | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 29. selector owner reveal fails closed for zero candidates and preserves first of many | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 30. selector owner reveal preserves exact text selector identity and rejects wrong text | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 31. shared adapter impact census covers all canonical 424 cases and the fixed remaining 125 | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 32. navigation completion binds post-action visuals to the declared final document | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 33. all redirecting document cases bind destination controls and forbid stale source rewait | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 34. UI-002 through UI-007 existing canonical cases have explicit post-action lifecycle coverage | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 35. post-action lifecycle separates UI-002 source control from the redirect destination | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 36. legacy destination wait helper remains redirect-scoped | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 37. runtime control observation separates canonical identity from fixture-qualified owner | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 38. post-action lifecycle fails closed for missing destination and wrong destination route | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 39. post-action lifecycle waits only for the destination selector after redirect | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 40. post-action destination wait failures retain structured fail-closed evidence | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 41. post-action visual measurement never re-waits a detached source owner | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 42. exact runner preserves visible same-route source owners and binds all destination owners | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 43. canonical selector dialect audit leaves no Playwright selector path in native DOM APIs | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 44. adapter exposes native wait click fill type select screenshot | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 45. route-injected application correlation survives request-start to response binding | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 46. explicit inner correlation precedence is registry-bound and leak-free | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 47. Playwright response events bind only to the exact initiating request object | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 48. document form responses bind exact request identity and redirect chain | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 49. fixture responses use an exact opaque initiating request handle | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 50. whoami observation keeps setup-required and unauthorized sessions anonymous | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 51. native browser child strips acceptance secrets | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 52. issued invite tokens are registered and redacted at every evidence boundary | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 53. endpoint-owned response fixtures cover the product response fields | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 54. endpoint-owned full product responses are projected only through the Playwright response listener | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 55. Ops timeline response projection preserves only safe EventRecord identity | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 56. client WebRTC session responses retain only the safe protocol completion shape | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 57. client WebRTC session projections reject wrong status and malformed success shapes | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 58. endpoint-owned non-success responses fail before success-shape projection with redacted status diagnostics | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 59. endpoint-owned sensitive response fields fail closed with redacted field-path diagnostics | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 60. AUTH public lifecycle fields accept exact public types and reject type drift | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 61. live session evidence preserves request view and response session identity | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 62. visual focus sampling preserves exact DOM identity and stops before a repeated owner | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 63. live visual sampling keeps serializable video evidence separate from the DOM element | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 64. live visual capture scrolls the target and tile union by the minimum bounded delta | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 65. browser resource console errors bind one exact Playwright response and fail closed on duplicates | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 66. UI runner selects native Playwright and rejects CDP promotion | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 67. server dispatch and docs expose reproducible native commands | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 68. historical action record consistency matches retained summary report and PNG | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 이전 제목 preserved standalone evidence proves native actions: 67/2 및69/1에서 native artifact missing tracePath fail → 역사 최소 증거 정합성 보완 후 pass |
+| 69. current UI suite state does not reuse stale native evidence | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+| 70. dashboard marker response projection keeps only digests and fails closed | 아래 A 명령의 실제 개별 판정; exit0, 전체70/0 | pass | 실패 이력 없음 |
+
+### 시간·사용량·cleanup·미실행
+
+- 전체 A의 도구 wall time: 첫67/2 0.436616초, 후속69/1 0.471968초, 최종70/0 0.446474333초. 해당 도구 셀의 시간이며 별도 시작/종료 UTC와 end-to-end elapsed는 미계측이다.
+- token start/end/consumed: 미집계. source: 도구 실행 출력에는 자동 token usage가 제공되지 않음. 비용·절감량은 추정하지 않는다.
+- 원출력 보존 source: 위 도구 chunk와 이 중앙 전수표. 별도 raw 로그 파일을 만들지 않았다.
+- 실제 서버·브라우저·UI·build·장시간 검증은 이 묶음에서 미실행. 실제 EVT-058 원인 및 재현 결과는 별도이며 이70/0으로 PASS 승격하지 않는다.
+- TDD 스킬 적용; 파일 수정은 진단 adapter와 기존 focused 검사였고 중앙 이관 시에는 이 문서만 수정했다. 커밋·푸시 미수행.
+- 중앙 문서 이관 검증: 최초 git diff --check exit2(명령 F 줄의 trailing whitespace) → 해당 공백만 제거 후 동일 검사 exit0. 테스트 재실행은 하지 않음.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| 없음 | in-memory focused/기존 파일 읽기 검사 | 0 | 삭제 대상 없음 | 임시root·서버·포트 생성 없음 | 해당 검사에 write/mkdir/spawn/exec 실행 없음; 이 중앙 결과만 보존 |
+
+
+
+## S09 EVT-058 응답 누락 진단 — 실행 전 등록
+
+후속 실행 결과: `--case-id EVT-058` 실제 진단은 미커밋 변경으로 clean-worktree
+사전조건에서 exit1로 종료되어 컴파일·서버·브라우저는 시작되지 않았다.
+시작1789106562662/종료1789106563551,889ms. 원본 결과와 임시자료2경로 삭제는
+[실패 기록의 후속 진단 항목](release-artifacts/v4.1.0/s09-ui-baseline-67127/results.md)에 보존했다.
+token start7322309/end7340216/차이17907은 준비·후처리를 포함하는 goal차이이며
+테스트889ms 단독 사용량이 아니다. 실제 EVT-058 원인은 여전히 미확정이다.
+현재 준비 문서 검증은 `git diff --check` exit0,
+`./server.sh verify-docs-links` exit0(234md/1061links/22images/104anchors/76indexed/149exclusions/failure0).
+
+범위는 기존 `EVT-058` 실패의 실제 요청 수명과 관측 종료 경계를 분리하는 것이다.
+제품/API/시간 제한/실패 판정은 바꾸지 않는다. 진단 실행은 전체 UI PASS가 아니다.
+기존 단일 담당자는 관측 필드·focused 검사를 보완하며 메인은 실제 브라우저 결과를 판정한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S09-UI-DIAG-01 | EVT-058 단일 실제 브라우저 재현 | `run-v390-ui-native-diagnostic-sweep --case-id EVT-058`을 별도 diagnostic root에서 실행, exact route/control 결과와 요청·응답·finished/failed·seal 시각을 비교한다. 비밀번호는 임시 난수 환경에서만 취급 | v4.1.0 |
+| S09-UI-DIAG-02 | 요청 identity 직접 연결 및 비밀 비노출 | authoritative identity와 legacy ID, method/path의 직접 대응 및 query/header/body/credential 미보존을 확인한다. source URL·비밀번호 출력 금지 | v4.1.0 |
+| S09-UI-DIAG-03 | 격리 수정 실제 runtime 확인 | 녹화 DB가 owned temporaryRoot/recordings 하위에 생성되고 기본 .media_server/recordings가 생기지 않는지 실행 전후 확인한다 | v4.1.0 |
+| S09-UI-DIAG-04 | 진단 종료·임시자료 정리 | 소유 서버 PID/포트 종료·해제, 필요한 최소 실패 증거 보존, run root 크기 및 삭제 부재를 확인한다 | v4.1.0 |
+
+네 항목 모두 아직 미실행이다. 안정화 영역의 focused 검사는 실제 UI 재현 전에,
+UI 영역의 단일 EVT-058 재현은 관측 보완 검토 뒤 실행한다. 30분/120분은 이 진단에서 미진행이다.
+
+## S09 UI baseline 실행 67127 — 결과 보존, 진단 원본 정리 대기
+
+`./test_ui.sh`는 2026-09-11 실행에서 exit1, 1528998ms로 종료됐다.
+[424개 개별 결과와 단계 전수](release-artifacts/v4.1.0/s09-ui-baseline-67127/results.md)에
+423 pass/1 fail을 보존했다. 전체 UI 판정은 FAIL이며 Policy v4 qualification은 미실행이다.
+EVT-058은 background 요청 응답 증거 누락(`RESPONSE_MISSING`)이며 제품 원인은 미확정이다.
+별도로 테스트가 기본 `.media_server/recordings` 파일4개를 생성하여 최종 source drift도 발생했다.
+실패 이후 녹화 추가8개ID/31action과 녹화 전용120분은 실행하지 않았다.
+runner의 소유 서버·포트·runtime root 정리는 pass이고 메인도 권한을 갖춘
+읽기 전용 ps/lsof에서 PID84796/86459·포트55094/55095·DB 열린 핸들이 없음을 확인했다.
+424개 summary SHA가 보존 전수표에 모두 있는지 확인하고 실패 trace/PNG/console의
+원본·복사본 SHA가 일치함을 확인한 뒤 임시 출력 3개 경로를 삭제했다.
+이번 실패를 수정 전/재검증 후 이력에서 삭제하거나 PASS로 덮어쓰지 않는다.
+token start/end/consumed는 정확한 실행경계 snapshot이 없어 미집계이며 elapsed는 launcher 기록이다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| `/private/tmp/s09-ui-baseline-VUSCas` | 실행 로그3개 | 25129 | 삭제 | 부재 확인 | 정확 경로·크기 대조 |
+| `.media_server.test/v4.1.0/ui-acceptance-current` | 재생성 UI 출력1853개 | 152603313 | 삭제 | 부재 확인 | 424 summary SHA 전수 보존 대조 |
+| `.media_server/recordings` | 검증이 만든 빈 DB·journal4개 | 131072 | 삭제 | 부재 확인 | 6개 데이터 테이블0행, journal0bytes, 열린 핸들 없음 |
+| `docs/release-artifacts/v4.1.0/s09-ui-baseline-67127/` | 실패 전수 결과표 | 91653(최초) | 보존 | 424개 summary SHA 대조 | 개인 home은 workspace 표시로 정규화 |
+| `.media_server.test/v4.1.0/s09-evt058-diagnostic-source/` | trace·PNG·console | 진단 종료 시 최종 측정 | 공개 후보에서 제외·비공개 작업 경로로 이동 | 진단 종료 후 삭제 대기 | 원시 trace 공개 금지; 최종 evidence 아님 |
+
+정정: 초기 실패 trace 공개 보존 후보는 public_repo_policy와 v3.9.1 정리 설계의
+원시 trace 공개 금지에 맞춰 커밋 전에 비공개 작업 경로로 이동했다.
+따라서 기존 run output 삭제는 끝났지만 전체 진단 임시자료 정리는 아직 완료가 아니다.
+
+## S09 UI 녹화 root 격리 보완 — focused 결과
+
+단일 담당자의 실제 수정은 `v390_acceptance_ui_environment.mjs`의 spawn 환경에
+`MEDIA_SERVER_RECORDING_STORAGE_ROOT=<owned temporaryRoot>/recordings`를 추가한 것이다.
+제품 설정·recording-enabled·허용목록은 변경하지 않았다. 메인이 실제 diff를 확인했다.
+검사는 `verify_v390_test_acceptance_bundle_contract.mjs`의 RG01~04로 실행 전에 등록됐다.
+명령은 `node scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs --recording-root-only`다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| RG01 | 실제 spawn 함수의 녹화 root가 소유 임시경로 하위인지 확인 | pass | 초기/정상 RED fail, GREEN pass |
+| RG02 | 상속된 외부 root를 덮어쓰고 retry도 동일 격리 유지 | pass | 초기/정상 RED fail, GREEN pass |
+| RG03 | argv·auth·event·port·recording-enabled 불변 확인 | pass | 세 실행 모두 pass |
+| RG04 | 기존 cleanup 함수로 recordings 포함 실제 임시파일 제거 | pass | 초기 fixture의 listListenerPids 누락은 별도 fail; fixture 정정 RED/최종 GREEN pass |
+
+첫 실행 exit1/1pass3fail/2ms에는 예상 RED 외 fixture 준비 오류가 있었다.
+이를 숨기지 않고 fixture port를 null로 정정한 뒤 RED exit1/2pass2fail/2ms,
+제품 정책이 아닌 spawn env 한 줄 보완 후 GREEN exit0/4pass0fail/2ms를 기록한다.
+`git diff --check` exit0. 임시경로는 각 17bytes를 생성한 뒤 삭제·부재 확인했다:
+`$TMPDIR/media_server_v390_ui-rg-Cyh2Yc`, `media_server_v390_ui-rg-p1P6vZ`,
+`media_server_v390_ui-rg-0iMJXO`. 정확 TMPDIR은
+`/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/`다.
+실제 서버·전체 contract·전체 UI 재검증은 아직 미실행이다.
+token start/end/consumed는 담당자 실행경계 집계가 없어 미집계다.
+
 ## S09 중간 커밋 전 문서·코드 검토
 
 기능 증거 재검증 session30129: `./server.sh verify-feature-implementation-evidence`
