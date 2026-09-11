@@ -1,5 +1,48 @@
 # Release Test Records
 
+## S09 EVT-058 제한 반복 진단 — 실행 27447
+
+결과 문서 커밋 2cf0dfe5 이후 clean worktree에서 사용자 승인한 최대3회를 순차 실행했다. 명령은 앞선 단일 진단과 같고 --output-dir만 각 실행의 별도 경로다. 제품 코드·timeout·실패 기준 변경과 푸시는 없다. 기록된 S09-UI-DIAG-01~04를 재실행했다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| UI 풀테스트 내부 제한 진단 | 진행 대상 | 사용자 승인: EVT-058 제한 반복 및 DB 직접 관찰 | S09-UI-DIAG-01~04 | 승인, 전체 suite 실행은 아님 |
+| 안정화 테스트 | 미진행 | 이번에는 진단기 내 기존 build 외 추가 묶음 없음 | 진단기 current-source build | 범위 확대 없음 |
+| 30분 테스트 | 미진행 | 기존 결과 유지 | S09 기존30분 기록 | 재실행 없음 |
+| 120분 테스트 | 미진행 | 전체 UI 미완료 | 녹화전용120분 선수 조건 | 이번 실행 없음 |
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| 반복1 DIAG-01 | EVT-058 /ops/dashboard, operator 390×844 light, #dashRuntimeTrendSparkline; runner exit0, 6684ms, 단일 actual browser PASS | pass | 전체 UI PASS 아님; uiFulltestPass=false |
+| 반복1 DIAG-02 | 요청131/응답131/finished131, missing0/failed0/diagnosticErrors0/afterSeal0; object-112 native-request-58 runbook-instance-ledger GET200, start1789108248764 → response/finished1789108248771 | pass | 기존 실패는 비재현, 원인 해결 판정 아님 |
+| 반복1 DIAG-03 | 소유 runtime media_server_v390_ui-pzvMdC/recordings/recording-catalog.sqlite3 98304bytes, SQLite format 3 헤더 확인; 기본 저장경로 부재; 종료 후 소유 root 부재 | pass | 이전31380 증거 부족 fail을 유지하고 새 실행의 직접 관찰로 보완 |
+| 반복1 DIAG-04 | runner cleanup PASS; PID22604, TCP62788/62789 종료·해제 메인 ps/lsof 출력 없음; runtime 215965bytes 삭제 | pass | 생성물 정리는 아래 표와 연결 |
+| 반복1 원본 식별 | .media_server.test/v3.9.0/ui-diagnostic-sweep/s09-evt058-repeat-1789108244211-1; summary SHA256 27669b487bf62e183ea4169df8d3e1b75a31d82bece78e3d63554d263923ffe8 | pass | 경로는 삭제된 원본 식별값이며 최종 evidence 링크 아님 |
+| 반복2 DIAG-01 | EVT-058 /ops/dashboard, operator 390×844 light, #dashRuntimeTrendSparkline; runner exit0, 6714ms, 단일 actual browser PASS | pass | 전체 UI PASS 아님; uiFulltestPass=false |
+| 반복2 DIAG-02 | 요청131/응답131/finished131, missing0/failed0/diagnosticErrors0/afterSeal0; object-112 native-request-58 runbook-instance-ledger GET200, start1789108255497 → response/finished1789108255503 | pass | 기존 실패는 비재현, 원인 해결 판정 아님 |
+| 반복2 DIAG-03 | 소유 runtime media_server_v390_ui-mOXMDQ/recordings/recording-catalog.sqlite3 98304bytes, SQLite format 3 헤더 확인; 기본 저장경로 부재; 종료 후 소유 root 부재 | pass | 이전31380 증거 부족 fail을 유지하고 새 실행의 직접 관찰로 보완 |
+| 반복2 DIAG-04 | runner cleanup PASS; PID22876, TCP62966/62967 종료·해제 메인 ps/lsof 출력 없음; runtime 215964bytes 삭제 | pass | 생성물 정리는 아래 표와 연결 |
+| 반복2 원본 식별 | .media_server.test/v3.9.0/ui-diagnostic-sweep/s09-evt058-repeat-1789108250895-2; summary SHA256 dffd6a6d6f916a76f14ac6888a3f363e98b8cff835a2d26e189a2f28be10e7d2 | pass | 경로는 삭제된 원본 식별값이며 최종 evidence 링크 아님 |
+| 반복3 DIAG-01 | EVT-058 /ops/dashboard, operator 390×844 light, #dashRuntimeTrendSparkline; runner exit0, 6753ms, 단일 actual browser PASS | pass | 전체 UI PASS 아님; uiFulltestPass=false |
+| 반복3 DIAG-02 | 요청131/응답131/finished131, missing0/failed0/diagnosticErrors0/afterSeal0; object-112 native-request-58 runbook-instance-ledger GET200, start1789108262232 → response/finished1789108262237 | pass | 기존 실패는 비재현, 원인 해결 판정 아님 |
+| 반복3 DIAG-03 | 소유 runtime media_server_v390_ui-AO58V8/recordings/recording-catalog.sqlite3 98304bytes, SQLite format 3 헤더 확인; 기본 저장경로 부재; 종료 후 소유 root 부재 | pass | 이전31380 증거 부족 fail을 유지하고 새 실행의 직접 관찰로 보완 |
+| 반복3 DIAG-04 | runner cleanup PASS; PID23142, TCP63142/63143 종료·해제 메인 ps/lsof 출력 없음; runtime 215964bytes 삭제 | pass | 생성물 정리는 아래 표와 연결 |
+| 반복3 원본 식별 | .media_server.test/v3.9.0/ui-diagnostic-sweep/s09-evt058-repeat-1789108257609-3; summary SHA256 f62f7793d886f0d31cf858d584091e835ae6c93b931f51c48bc3d575050e6f6c | pass | 경로는 삭제된 원본 식별값이며 최종 evidence 링크 아님 |
+
+스크립트 테스트: 진단기 내부 current-source build 후 각 exit0. 별도 안정화/30분/120분 재실행 없음. UI: 실제 브라우저 diagnostic-only, exact EVT-058 한 개를3회 실행; Policy v4 자격 판정 및 전체432 ID PASS로 사용하지 않는다. 다른 viewport/theme/role 및 녹화8개ID31action은 이번 범위 미실행.
+
+token start7492054/end7504066/consumed12012, source=goal 누적 차이(준비·후처리 포함). 실행 전체 elapsed20151ms, 각6684/6714/6753ms.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| .media_server.test/v3.9.0/ui-diagnostic-sweep/s09-evt058-repeat-1789108244211-1 | 9파일 | 14910567bytes | 최소 결과 본문 이관 후 삭제 | 삭제·부재 확인 | 직접 크기 집계 및 exists=false |
+| .media_server.test/v3.9.0/ui-diagnostic-sweep/s09-evt058-repeat-1789108250895-2 | 9파일 | 14897336bytes | 최소 결과 본문 이관 후 삭제 | 삭제·부재 확인 | 직접 크기 집계 및 exists=false |
+| .media_server.test/v3.9.0/ui-diagnostic-sweep/s09-evt058-repeat-1789108257609-3 | 9파일 | 14910567bytes | 최소 결과 본문 이관 후 삭제 | 삭제·부재 확인 | 직접 크기 집계 및 exists=false |
+| 임시 루트 s09-repeat-6G4eUU | 4파일 | 3602bytes | 최소 결과 본문 이관 후 삭제 | 삭제·부재 확인 | 직접 크기 집계 및 exists=false |
+
+응답 누락 원인은 미확정. 같은 단일 조건에서 반복 횟수만 무제한 늘리지 않는다. 원래 전체 실행 순서·공유 서버 상태에서 새 진단을 수집하는 것이 다음 판단 대상이다. 기존 실패 raw3파일은 이 비교가 남아 있어 비공개 임시 보존 상태이며 S09 전체 cleanup 완료가 아니다.
+
+
 ## S09 EVT-058 단일 실제 진단 — 2026-09-11 실행 31380
 
 ### 단일 재현 이후 읽기 전용 원인 대조
