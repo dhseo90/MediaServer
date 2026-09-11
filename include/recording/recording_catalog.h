@@ -48,6 +48,7 @@ public:
         std::filesystem::path sqlite_path;
         std::filesystem::path media_root;
         bool prefer_sqlite{true};
+        bool enable_v2_storage{false};
 
         Options() = default;
         Options(std::filesystem::path sqlite,
@@ -61,6 +62,10 @@ public:
     RecordingCatalog(RecordingJournal& journal, Options options);
     ~RecordingCatalog() override;
     bool Open(std::string* error);
+    bool FinalizeSegmentV2(const RecordingSegmentV2& segment, const std::string& media_path, std::string* error);
+    std::optional<RecordingSegmentV2> FindSegmentV2ById(const std::string& id) const;
+    bool ValidateFinalizeRecoveryV2(const RecordingSegmentV2& segment, const std::string& media_path, std::string* error) const;
+    bool RecoverFinalizedSegmentV2(const RecordingSegmentV2& segment, const std::string& media_path, bool* inserted, std::string* error);
     std::string catalog_mode() const;
     RecordingCatalogRecoveryReport recovery_report() const;
     RecordingOrphanReport InspectOrphans() const;
@@ -122,6 +127,10 @@ public:
                                                   std::int64_t end_ms) const override;
 
 private:
+    bool PreflightV2Locked(const RecordingJournalReplayResult& replay, std::string* error,
+                           const RecordingSegmentV2* candidate = nullptr,
+                           const std::string& relative = {}) const;
+    bool ValidateV2Locked(const RecordingSegmentV2& segment, const std::string& relative, std::string* error) const;
     bool ApplyMutationLocked(const RecordingMutationV1& mutation,
                              bool count_duplicate,
                              std::string* error);
@@ -151,6 +160,8 @@ private:
     std::unordered_map<std::string, std::string> accepted_segment_state_mutations_;
     std::unordered_set<std::size_t> accepted_segment_state_replay_ordinals_;
     std::unordered_map<std::string, RecordingSegmentV1> segments_;
+    std::unordered_map<std::string, RecordingSegmentV2> segments_v2_;
+    std::unordered_map<std::string, RecordingOrderReservationV1> orders_v2_;
     std::unordered_map<std::string, std::string> media_relpaths_;
     std::unordered_map<std::string, std::uint64_t> hold_counts_;
     std::unordered_map<std::string, std::string> deletion_reasons_;

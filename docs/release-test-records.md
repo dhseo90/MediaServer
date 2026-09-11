@@ -25,6 +25,284 @@
 
 token start/end/consumed는 자동 집계 미제공으로 미집계. 실행 elapsed/원출력·cleanup은 실행 후 보존한다.
 
+### C2 catalog 구현 사전등록
+
+명령은 `./server.sh verify-v410-recording-catalog`. 선언/reject stub에서 아래 정상 양성
+finalize/Find/recovery/orphan/SQLite/JSONL 6개만 예상 RED이며 기존139개 회귀 실패는 중단한다.
+V2 query 분리와 음성은 stub 한계가 있으므로 GREEN 후 실제 경계로 판정한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-M06 opened catalog accepts fresh exact reservation V2 finalize | C2 실제 journal/catalog | 제목의 상태·반환·원문 보존을 실제 focused C++로 확인 | v4.1.0 |
+| S10-M07 V2 find preserves complete metadata | C2 실제 journal/catalog | 제목의 상태·반환·원문 보존을 실제 focused C++로 확인 | v4.1.0 |
+| S10-M07 identical V2 recovery is idempotent | C2 실제 journal/catalog | 제목의 상태·반환·원문 보존을 실제 focused C++로 확인 | v4.1.0 |
+| S10-M07 V2 is absent from V1 range query | C2 실제 journal/catalog | 제목의 상태·반환·원문 보존을 실제 focused C++로 확인 | v4.1.0 |
+| S10-M07 V2 registered path is not orphan | C2 실제 journal/catalog | 제목의 상태·반환·원문 보존을 실제 focused C++로 확인 | v4.1.0 |
+| S10-M07 SQLite exact V2 JSON and path match | C2 실제 journal/catalog | 제목의 상태·반환·원문 보존을 실제 focused C++로 확인 | v4.1.0 |
+| S10-M07 JSONL restart preserves V2 exact payload | C2 실제 journal/catalog | 제목의 상태·반환·원문 보존을 실제 focused C++로 확인 | v4.1.0 |
+| S10-M06 wrong reservation tuple rejected store | C2 실제 journal/catalog | 제목의 상태·반환·원문 보존을 실제 focused C++로 확인 | v4.1.0 |
+| S10-M06 wrong reservation tuple rejected request | C2 실제 journal/catalog | 제목의 상태·반환·원문 보존을 실제 focused C++로 확인 | v4.1.0 |
+| S10-M06 wrong reservation tuple rejected segment | C2 실제 journal/catalog | 제목의 상태·반환·원문 보존을 실제 focused C++로 확인 | v4.1.0 |
+| S10-M06 wrong reservation tuple rejected channel | C2 실제 journal/catalog | 제목의 상태·반환·원문 보존을 실제 focused C++로 확인 | v4.1.0 |
+| S10-M06 wrong reservation tuple rejected sequence | C2 실제 journal/catalog | 제목의 상태·반환·원문 보존을 실제 focused C++로 확인 | v4.1.0 |
+| S10-M09 immutable V2 mapping mismatch rejected | C2 실제 journal/catalog | 제목의 상태·반환·원문 보존을 실제 focused C++로 확인 | v4.1.0 |
+| S10-M09 bad V2 startup retry preserves original state bad-payload | C2 실제 journal/catalog | 제목의 상태·반환·원문 보존을 실제 focused C++로 확인 | v4.1.0 |
+| S10-M09 bad V2 startup retry preserves original state missing-order | C2 실제 journal/catalog | 제목의 상태·반환·원문 보존을 실제 focused C++로 확인 | v4.1.0 |
+| S10-M09 bad V2 startup retry preserves original state bad-order | C2 실제 journal/catalog | 제목의 상태·반환·원문 보존을 실제 focused C++로 확인 | v4.1.0 |
+| S10-M09 bad V2 startup retry preserves original state conflicting-order | C2 실제 journal/catalog | 제목의 상태·반환·원문 보존을 실제 focused C++로 확인 | v4.1.0 |
+| S10-M09 bad V2 startup retry preserves original state tail | C2 실제 journal/catalog | 제목의 상태·반환·원문 보존을 실제 focused C++로 확인 | v4.1.0 |
+| S10-M09 bad V2 startup retry preserves original state corrupt | C2 실제 journal/catalog | 제목의 상태·반환·원문 보존을 실제 focused C++로 확인 | v4.1.0 |
+| S10-M09 bad V2 startup retry preserves original state unsafe-path | C2 실제 journal/catalog | 제목의 상태·반환·원문 보존을 실제 focused C++로 확인 | v4.1.0 |
+| S10-M09 default off rejects V2 before SQLite changes | C2 실제 journal/catalog | 제목의 상태·반환·원문 보존을 실제 focused C++로 확인 | v4.1.0 |
+
+#### C2 경계 보완 사전등록
+
+동일 focused 명령에서 아래 5개만 추가 예상 RED다. 실제 파일 부재/디렉터리 및 Open 후 추가된 원장의 mapping/path/tombstone을 stale candidate가 수용하는 결함을 확인한다. 기존 160개는 유지한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-M09 V2 finalize rejects missing media | 실제 파일 경계 | 예약 후 없는 경로 finalize 거부 및 원장 불변 | v4.1.0 |
+| S10-M09 V2 finalize rejects directory media | 실제 파일 경계 | 디렉터리 finalize 거부 및 원장 불변 | v4.1.0 |
+| S10-M09 fresh candidate rejects mapping | 최신 상태 경계 | Open 후 동일 ID 다른 mapping 원장 추가, recovery/finalize 거부 | v4.1.0 |
+| S10-M09 fresh candidate rejects path | 최신 상태 경계 | Open 후 동일 ID 다른 path 원장 추가, recovery/finalize 거부 | v4.1.0 |
+| S10-M09 fresh candidate rejects tombstone | 최신 삭제 경계 | Open 후 finalize+정상 tombstone 추가, recovery/finalize 거부 | v4.1.0 |
+
+다음 7개는 기존 M09 계약의 실제 raw replay/SQLite 경계 보완이며 예상 실패 없이 동일 GREEN에 포함한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-M09 V2 replay namespace and deletion duplicate | V2 실제 재시작 | 정상 중복·삭제는 Find/SQL row 수 직접 대조, 충돌·부활은 Open 거부 및 원문 불변 | v4.1.0 |
+| S10-M09 V2 replay namespace and deletion deleted | V2 실제 재시작 | 정상 중복·삭제는 Find/SQL row 수 직접 대조, 충돌·부활은 Open 거부 및 원문 불변 | v4.1.0 |
+| S10-M09 V2 replay namespace and deletion v1-before | V2 실제 재시작 | 정상 중복·삭제는 Find/SQL row 수 직접 대조, 충돌·부활은 Open 거부 및 원문 불변 | v4.1.0 |
+| S10-M09 V2 replay namespace and deletion v1-after | V2 실제 재시작 | 정상 중복·삭제는 Find/SQL row 수 직접 대조, 충돌·부활은 Open 거부 및 원문 불변 | v4.1.0 |
+| S10-M09 V2 replay namespace and deletion deleted-before | V2 실제 재시작 | 정상 중복·삭제는 Find/SQL row 수 직접 대조, 충돌·부활은 Open 거부 및 원문 불변 | v4.1.0 |
+| S10-M09 V2 replay namespace and deletion resurrection | V2 실제 재시작 | 정상 중복·삭제는 Find/SQL row 수 직접 대조, 충돌·부활은 Open 거부 및 원문 불변 | v4.1.0 |
+| S10-M09 V2 replay namespace and deletion mutation-collision | V2 실제 재시작 | 정상 중복·삭제는 Find/SQL row 수 직접 대조, 충돌·부활은 Open 거부 및 원문 불변 | v4.1.0 |
+
+#### C2 실제 결과 전수 (최종 session 96993)
+
+명령은 네 실행 모두 `./server.sh verify-v410-recording-catalog`이다. 실행 범위는 실제 C++ journal/catalog/SQLite focused와 wrapper의 정적 연결 9개다. C3, 실제 writer, whole build, integration, auth, UI, 30/120분은 미실행이며 C2 결과로 대체하지 않는다. token start/end/consumed는 에이전트 자동 집계 미제공으로 미집계다. elapsed는 도구 호출 직전부터 종료 관측까지 Date.now 차이이며 순수 실행시간보다 도구 왕복을 포함한다.
+
+| 실행 | exit | 실제 결과 | elapsed ms |
+| --- | ---: | --- | ---: |
+| RED1 17080 | 1 | C++145 pass/6 fail; shell9 미실행. reject stub 정상 양성 6개 예상 실패, 기존130 보존 | 16159 |
+| GREEN1 77189 | 0 | C++151 pass/0 fail + shell9 pass =160/0 | 16324 |
+| RED2 84566 | 1 | C++152 pass/4 fail; shell9 미실행. missing 및 fresh mapping/path/tombstone 예상 실패. directory는 기존 검사로 이미 pass(예상5개 중 보호1개 확인) | 5829 |
+| 최종 GREEN 96993 | 0 | C++163 pass/0 fail + shell9 pass =172/0, 기존139 및 최초C2 21개 유지 | 11981 |
+
+최종 raw 판정172행을 아래172행과 원제목·순서·중복 발생 횟수까지 직접 대응했다. RED1 151행, GREEN1 160행, RED2 156행도 각 제목의 발생순번으로 대조하여 최종표 밖 누락0이다. 최초 실패를 아래 이력에 보존하며 미실행은 PASS가 아니다. 별도 원로그 파일을 생성하지 않고 도구 반환 원문을 메모리 저장 후 이관했다. 문서 patch 형식 오류1회는 테스트 실행 전 교정했으며 제품/검증 실패가 아니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| journal open:  | 원출력 1행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| fallback catalog open:  | 원출력 2행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| SQLite off mode 표시 | 원출력 3행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| segment finalize journal+projection:  | 원출력 4행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| fallback range query | 원출력 5행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| event link FK 위반 거부 | 원출력 6행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| FK 위반 transaction/journal 전체 rollback | 원출력 7행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| 최초 durable mutation 1개 | 원출력 8행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| 동일 mutation 중복 append | 원출력 9행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| 손상 사이 정상 durable mutation 보존 | 원출력 10행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| 중간 corrupt line count | 원출력 11행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| 마지막 truncated line skip | 원출력 12행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| fallback replay open | 원출력 13행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| 같은 mutation idempotent replay | 원출력 14행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | 원출력 15행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| 중복 replay row/합계 불증가 | 원출력 16행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구:  | 원출력 17행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | 원출력 18행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | 원출력 19행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| SQLite catalog open/rebuild:  | 원출력 20행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| SQLite primary mode 표시 | 원출력 21행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| SQLite on/off range query ID·순서 parity | 원출력 22행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | 원출력 23행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| journal 없는 손상 media orphan 구분 | 원출력 24행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| projection failover journal open:  | 원출력 25행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| projection failover catalog open:  | 원출력 26행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| 실제 SQLite INSERT 실패 trigger 설치 | 원출력 27행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| SQLite 투영 실패 뒤 journal+memory finalize 유지:  | 원출력 28행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| SQLite 투영 실패 즉시 JSONL fallback 전환 | 원출력 29행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| 재시작 rebuild 전 실패 trigger 제거 | 원출력 30행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| 투영 실패 직후 in-memory query 정합성 유지 | 원출력 31행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| projection failover 재시작 journal rebuild:  | 원출력 32행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| 재시작 후 journal에서 누락 SQLite projection 복구 | 원출력 33행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| 재시작 후 SQLite primary 복귀 | 원출력 34행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| 재시작 journal rebuild가 실제 SQLite row 복원 | 원출력 35행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| tombstone journal open:  | 원출력 36행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| tombstone catalog open:  | 원출력 37행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| tombstone 대상 segment finalize:  | 원출력 38행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| tombstone 대상 deletion request:  | 원출력 39행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| tombstone 완료 기록:  | 원출력 40행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | 원출력 41행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| 손상 SQLite 격리 후 journal rebuild:  | 원출력 42행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| 손상 SQLite 원본 격리 | 원출력 43행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| 격리 SQLite 파일 보존 | 원출력 44행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| 격리 후 journal rebuild 결과 | 원출력 45행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A future-schema journal read open | 원출력 46행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A future-schema unsupported classification | 원출력 47행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A future-schema catalog open denied | 원출력 48행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A future-schema catalog retry denied | 원출력 49행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A future-schema journal bytes preserved | 원출력 50행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A future-schema SQLite bytes preserved | 원출력 51행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A future-schema writer cleanup untouched | 원출력 52행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A arbitrary-schema journal read open | 원출력 53행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A arbitrary-schema unsupported classification | 원출력 54행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A arbitrary-schema catalog open denied | 원출력 55행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A arbitrary-schema catalog retry denied | 원출력 56행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A arbitrary-schema journal bytes preserved | 원출력 57행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A arbitrary-schema SQLite bytes preserved | 원출력 58행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A arbitrary-schema writer cleanup untouched | 원출력 59행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A empty-schema journal read open | 원출력 60행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A empty-schema unsupported classification | 원출력 61행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A empty-schema catalog open denied | 원출력 62행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A empty-schema catalog retry denied | 원출력 63행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A empty-schema journal bytes preserved | 원출력 64행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A empty-schema SQLite bytes preserved | 원출력 65행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A empty-schema writer cleanup untouched | 원출력 66행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A future-type journal read open | 원출력 67행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A future-type unsupported classification | 원출력 68행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A future-type catalog open denied | 원출력 69행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A future-type catalog retry denied | 원출력 70행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A future-type journal bytes preserved | 원출력 71행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A future-type SQLite bytes preserved | 원출력 72행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A future-type writer cleanup untouched | 원출력 73행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A malformed journal open | 원출력 74행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-3A malformed JSON missing fields and wrong types remain corrupt | 원출력 75행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O01 reservation journal open | 원출력 76행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O01 first reservation returns four IDs and sequence one | 원출력 77행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O01 versioned reservation payload replays | 원출력 78행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O01 new reservation records actual occurred time | 원출력 79행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O02 identical retry preserves sequence and bytes | 원출력 80행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O03 reopened instance allocates next sequence | 원출력 81행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O03 new process resumes durable sequence | 원출력 82행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O04 different store rejected | 원출력 83행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O04 reused request with different segment rejected | 원출력 84행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O04 reused request with different channel rejected | 원출력 85행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O04 reused segment with different request rejected | 원출력 86행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O04 conflicts preserve original bytes | 원출력 87행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O05/O06 reject and preserve corrupt | 원출력 88행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O05/O06 reject and preserve unsupported-schema | 원출력 89행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O05/O06 reject and preserve unsupported-type | 원출력 90행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O05/O06 reject and preserve tail | 원출력 91행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O05/O06 reject and preserve payload-zero | 원출력 92행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O05/O06 reject and preserve payload-negative | 원출력 93행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O05/O06 reject and preserve payload-fraction | 원출력 94행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O05/O06 reject and preserve payload-overflow | 원출력 95행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O05/O06 reject and preserve duplicate-sequence | 원출력 96행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O05/O06 reject and preserve decreasing-sequence | 원출력 97행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O05/O06 reject and preserve duplicate-request | 원출력 98행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O05/O06 reject and preserve duplicate-segment | 원출력 99행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O05/O06 reject and preserve store-conflict | 원출력 100행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O05/O06 reject and preserve ordinary-before | 원출력 101행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O05/O06 reject and preserve ordinary-after | 원출력 102행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O05/O06 reject and preserve line-cap | 원출력 103행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O05 reservation entity envelope binding rejects mismatch | 원출력 104행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O05 reservation request envelope binding rejects mismatch | 원출력 105행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O01 strict reservation parser accepts versioned literal | 원출력 106행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 원출력 107행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 원출력 108행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 원출력 109행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 원출력 110행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O06 INT64_MAX identical retry remains valid | 원출력 111행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O06 sequence overflow rejected without write | 원출력 112행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O02 identical durable reservation duplicates remain idempotent | 원출력 113행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O06 sequence gaps remain valid and allocate above maximum | 원출력 114행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O07 four simultaneous processes finish reservations | 원출력 115행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O07 concurrent sequences are unique and complete | 원출력 116행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O07 next sequence follows concurrent reservations | 원출력 117행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O08 ordinary Append cannot reserve orders | 원출력 118행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O08 unopened journal rejected | 원출력 119행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O08 null result rejected | 원출력 120행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O08 invalid opaque ID rejected | 원출력 121행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O08 failed reservation does not expose tentative result | 원출력 122행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O09 unsafe file binding rejected and original preserved inode | 원출력 123행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O09 unsafe file binding rejected and original preserved parent | 원출력 124행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O09 unsafe file binding rejected and original preserved symlink | 원출력 125행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O09 unsafe file binding rejected and original preserved hardlink | 원출력 126행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O10 reservation and normal segment coexist in catalog | 원출력 127행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O04 reserve then finalize permits identical retry | 원출력 128행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O10 reservation survives catalog rebuild without changing segment query | 원출력 129행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-O04 legacy segment cannot acquire retroactive reservation | 원출력 130행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-M06 opened catalog accepts fresh exact reservation V2 finalize | 원출력 131행; 동일 catalog focused assertion | pass | RED1 fail; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-M07 V2 find preserves complete metadata | 원출력 132행; 동일 catalog focused assertion | pass | RED1 fail; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-M07 identical V2 recovery is idempotent | 원출력 133행; 동일 catalog focused assertion | pass | RED1 fail; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-M07 V2 is absent from V1 range query | 원출력 134행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-M07 V2 registered path is not orphan | 원출력 135행; 동일 catalog focused assertion | pass | RED1 fail; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-M07 SQLite exact V2 JSON and path match | 원출력 136행; 동일 catalog focused assertion | pass | RED1 fail; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-M07 JSONL restart preserves V2 exact payload | 원출력 137행; 동일 catalog focused assertion | pass | RED1 fail; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-M06 wrong reservation tuple rejected store | 원출력 138행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-M06 wrong reservation tuple rejected request | 원출력 139행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-M06 wrong reservation tuple rejected segment | 원출력 140행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-M06 wrong reservation tuple rejected channel | 원출력 141행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-M06 wrong reservation tuple rejected sequence | 원출력 142행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-M09 immutable V2 mapping mismatch rejected | 원출력 143행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-M09 bad V2 startup retry preserves original state bad-payload | 원출력 144행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-M09 bad V2 startup retry preserves original state missing-order | 원출력 145행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-M09 bad V2 startup retry preserves original state bad-order | 원출력 146행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-M09 bad V2 startup retry preserves original state conflicting-order | 원출력 147행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-M09 bad V2 startup retry preserves original state tail | 원출력 148행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-M09 bad V2 startup retry preserves original state corrupt | 원출력 149행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-M09 bad V2 startup retry preserves original state unsafe-path | 원출력 150행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-M09 default off rejects V2 before SQLite changes | 원출력 151행; 동일 catalog focused assertion | pass | RED1 pass; GREEN1 pass; RED2 pass; 최종 pass |
+| S10-M09 V2 replay namespace and deletion duplicate | 원출력 152행; 동일 catalog focused assertion | pass | RED1 미실행; GREEN1 미실행; RED2 미실행; 최종 pass |
+| S10-M09 V2 replay namespace and deletion deleted | 원출력 153행; 동일 catalog focused assertion | pass | RED1 미실행; GREEN1 미실행; RED2 미실행; 최종 pass |
+| S10-M09 V2 replay namespace and deletion v1-before | 원출력 154행; 동일 catalog focused assertion | pass | RED1 미실행; GREEN1 미실행; RED2 미실행; 최종 pass |
+| S10-M09 V2 replay namespace and deletion v1-after | 원출력 155행; 동일 catalog focused assertion | pass | RED1 미실행; GREEN1 미실행; RED2 미실행; 최종 pass |
+| S10-M09 V2 replay namespace and deletion deleted-before | 원출력 156행; 동일 catalog focused assertion | pass | RED1 미실행; GREEN1 미실행; RED2 미실행; 최종 pass |
+| S10-M09 V2 replay namespace and deletion resurrection | 원출력 157행; 동일 catalog focused assertion | pass | RED1 미실행; GREEN1 미실행; RED2 미실행; 최종 pass |
+| S10-M09 V2 replay namespace and deletion mutation-collision | 원출력 158행; 동일 catalog focused assertion | pass | RED1 미실행; GREEN1 미실행; RED2 미실행; 최종 pass |
+| S10-M09 V2 finalize rejects missing media | 원출력 159행; 동일 catalog focused assertion | pass | RED1 미실행; GREEN1 미실행; RED2 fail; 최종 pass |
+| S10-M09 V2 finalize rejects directory media | 원출력 160행; 동일 catalog focused assertion | pass | RED1 미실행; GREEN1 미실행; RED2 pass; 최종 pass |
+| S10-M09 fresh candidate rejects mapping | 원출력 161행; 동일 catalog focused assertion | pass | RED1 미실행; GREEN1 미실행; RED2 fail; 최종 pass |
+| S10-M09 fresh candidate rejects path | 원출력 162행; 동일 catalog focused assertion | pass | RED1 미실행; GREEN1 미실행; RED2 fail; 최종 pass |
+| S10-M09 fresh candidate rejects tombstone | 원출력 163행; 동일 catalog focused assertion | pass | RED1 미실행; GREEN1 미실행; RED2 fail; 최종 pass |
+| source 저장 callback reconcile 연결 | 원출력 164행; 동일 catalog focused assertion (shell 정적 연결검사) | pass | RED1 미실행; GREEN1 pass; RED2 미실행; 최종 pass |
+| policy revision idempotency | 원출력 165행; 동일 catalog focused assertion (shell 정적 연결검사) | pass | RED1 미실행; GREEN1 pass; RED2 미실행; 최종 pass |
+| 5초 safety reconcile | 원출력 166행; 동일 catalog focused assertion (shell 정적 연결검사) | pass | RED1 미실행; GREEN1 pass; RED2 미실행; 최종 pass |
+| composition root journal 선행 open | 원출력 167행; 동일 catalog focused assertion (shell 정적 연결검사) | pass | RED1 미실행; GREEN1 pass; RED2 미실행; 최종 pass |
+| composition root catalog rebuild/open | 원출력 168행; 동일 catalog focused assertion (shell 정적 연결검사) | pass | RED1 미실행; GREEN1 pass; RED2 미실행; 최종 pass |
+| 서버 전 supervisor 시작 | 원출력 169행; 동일 catalog focused assertion (shell 정적 연결검사) | pass | RED1 미실행; GREEN1 pass; RED2 미실행; 최종 pass |
+| ingress 전 event bridge 등록 | 원출력 170행; 동일 catalog focused assertion (shell 정적 연결검사) | pass | RED1 미실행; GREEN1 pass; RED2 미실행; 최종 pass |
+| ingress 종료 뒤 recorder finalize | 원출력 171행; 동일 catalog focused assertion (shell 정적 연결검사) | pass | RED1 미실행; GREEN1 pass; RED2 미실행; 최종 pass |
+| composition root 시작/종료 순서 | 원출력 172행; 동일 catalog focused assertion (shell 정적 연결검사) | pass | RED1 미실행; GREEN1 pass; RED2 미실행; 최종 pass |
+
+
+C2 변경은 V2 기본-off/별도 메모리·SQL 저장, B 순서검증 재사용, Open side effect 전 scratch preflight, 최신 replay의 후보 tuple/identity/tombstone 대조, 실제 regular-file finalize 조건이다. 일반 Append에 전체 scan을 추가하지 않았다. Rebuild preflight는 방어층이며 독립 실패 주입 검증으로 주장하지 않는다. 삭제 후 Find/SQL0 및 동일 raw 중복SQL1을 직접 확인했다. store 전체 비협력 writer 직렬화·활성 writer·성능 합격은 미확인/비범위다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /tmp/media_server_v410_recording_catalog-85236 | focused binary/fixture root | 19606841 | wrapper cleanup | removed=true | RED1 원출력 |
+| /tmp/media_server_v410_recording_catalog-85401 | focused binary/fixture root | 19791714 | wrapper cleanup | removed=true | GREEN1 원출력 |
+| /tmp/media_server_v410_recording_catalog-85973 | focused binary/fixture root | 20515446 | wrapper cleanup | removed=true | RED2 원출력 |
+| /tmp/media_server_v410_recording_catalog-86404 | focused binary/fixture root | 20806577 | wrapper cleanup | removed=true | 최종 원출력 |
+
+`git diff --check` exit0, 출력없음. 커밋·푸시 미수행(메인 담당). C2 구현/승인 focused 범위만 반환하며 C3 자동 착수하지 않는다.
+
+
+#### C2 실행 중단 기록 (2026-09-12)
+
+이 절은 이전 중단 당시의 기록이다. 이후 사용자 승인 재개로 아래 두 결함과 증거 이관을
+해소했으며 현재 판정은 위 「C2 실제 결과 전수」의 최종172/0을 따른다. 과거 중단을 삭제하지 않는다.
+
+단일 담당자가 도구 측 `possible cybersecurity risk` 분류 오류로 종료됐다. 이는 제품 회귀
+판정이 아니다. 같은 요청을 반복 전송하지 않았으며 C2 완료·C3 착수·추가 커밋·푸시는 하지 않았다.
+
+| 실행 | 확인된 전달 결과 | 증거 한계 |
+| --- | --- | --- |
+| RED17080 | 담당자 보고 exit1, 145 pass/6 fail; 사전 지정 정상 양성6개와 일치, 기존 C++130 pass, shell9 미실행; cleanup19,606,841B removed=true | 메인이 개별 원출력 전수를 아직 확보·대조하지 못함 |
+| GREEN77189 | 담당자 보고 exit0, 160 pass/0 fail(C++151+shell9) | 개별 결과·elapsed·정확한 cleanup 경로를 저장소에 이관하기 전 담당자 종료. 단계 완료 evidence로 사용하지 않음 |
+
+메인은 첫 GREEN의 실제 code diff를 읽었다. 다음 두 미해소 경계 때문에 최종 합격은 보류한다.
+
+- V2 FinalizeSegmentV2는 안전한 경로 외에 실제 regular 파일 존재를 확인해야 한다.
+- Open 뒤 원장에 추가된 동일 ID metadata/path 또는 tombstone을 복구 후보와 최신 상태에서
+  대조해야 한다. 현재 fresh replay 검사는 원장 자체만 검사하고 후보 identity는 오래된 live 상태로 본다.
+
+위 두 항목은 다음 실행 전에 개별 예상 RED로 등록하고 확인한 뒤 보완한다. V2 테이블 초기화도
+기존 rebuild DELETE transaction 안으로 옮길 계획이며 아직 적용하지 않았다. C2 전수 결과 보존과
+미확인 cleanup 증거도 남아 있다. token start/end/consumed·elapsed는 담당자 집계 미수신이다.
+
 ### C1 상한·nullable 직접 경계 보완 사전등록
 
 첫 GREEN125/0 뒤, 제품 코드는 바꾸지 않고 기존 M01~04의 독립 경계 검사를 추가한다.

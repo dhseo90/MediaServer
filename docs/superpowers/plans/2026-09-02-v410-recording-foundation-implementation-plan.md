@@ -1847,7 +1847,79 @@ Serialize 결과에서 입력 정수·null·provenance를 보존한다. V2를 V1
 검증 명령: `./server.sh verify-v410-recording-contracts`. 선언·reject stub에서 새 정상 V2 수용의
 예상 RED를 먼저 확인하며 기존 V1 실패는 중단한다. 이후 같은 명령 GREEN과 개별 결과를 기록한다.
 
-C1 한정 구현·검증 완료: contracts focused135/0(V1 89개 포함). 전수 이력·cleanup은 중앙 S10-3C/C1 기록을 따른다. C2/C3는 아직 완료하지 않았다.
+#### C2/C3 연결 책임
+
+catalog 저장 옵션 `enable_v2_storage`는 기본 false다. true는 이번 격리 검증에서만 사용하고
+실제 composition root에는 연결하지 않는다. false에서 V2 원장/ready를 만나면 부분 복구하지 않고 거부한다.
+이 절의 저장 계약이 V2 실제 녹화 활성화를 의미하지 않는다.
+
+#### C2: catalog의 불변 V2 저장
+
+- 기존 journal에 `SegmentV2Finalized`/`segment_v2_finalized`를 추가한다. payload는
+  `segment`(전체 V2)와 `mediaRelpath`이며 envelope entityId=segment_id다. 단일 mutation에 같이 보존한다.
+- catalog 공개 내부 API는 FinalizeSegmentV2(segment, media_path, error), FindSegmentV2ById(id),
+  ValidateFinalizeRecoveryV2(segment, media_path, error), RecoverFinalizedSegmentV2(segment, media_path, inserted, error)다.
+  예약 확인은 읽기만 수행한다. 없으면 예약을 새로 발급하지 않으며 store/request/segment/channel/sequence가 모두 같아야 한다.
+- V1/V2 ID는 같은 namespace다. 상호 충돌·tombstone·경로 및 불변 metadata 불일치는 거부한다.
+  동일 V2 replay/recovery는 멱등이며 finalize 때 다른 mapping으로 덮어쓰지 않는다.
+- V2 projection은 별도 `recording_segments_v2(segment_id PRIMARY KEY,payload_json,media_relpath)`에
+  정규 JSON 전체를 저장한다. V1 UTC 열에 대체값을 넣지 않는다. journal 재구축에서 메모리가 수용한
+  동일 ordinal/envelope만 투영하고 직접 SQL의 JSON/path와 in-memory 결과를 대조한다.
+- V2 신규 mutation은 전체 envelope/예약/기존 identity를 검증한 뒤 수용한다. 잘못된 V2 기록은
+  catalog Open에서 SQLite 변경·cleanup 전에 거부한다. V1의 기존 손상 복구 정책은 완화/확대하지 않는다.
+  Open 사전 검사는 임시 상태로 수행하여 실패 후 Open 재시도가 부분 메모리를 수용하지 않게 한다.
+  V2 옵션 true 또는 정상 order reservation/V2 record가 있는 원장에 손상/tail이 있으면 시작을 거부한다.
+  일반 V1-only 원장의 기존 손상 복구는 유지한다. V2 payload는 Replay에서 잃어버리지 말고 catalog가 검증한다.
+- 예약 이후의 V2 finalize는 journal 순서 발급 scan에서 기존 segment 상태로 취급한다.
+  catalog가 열린 뒤 발급된 예약도 fresh replay로 읽되, 파일 검사/append와 store 전체 다중 writer 소유권은
+  실제 활성화 전 경계다. 비협력 writer와의 완전 직렬화 완료로 보고하지 않는다.
+- V2 Find는 tombstone ID를 숨긴다. V1 tombstone/삭제 기록을 보존하고 V2와 ID 충돌 시 부활시키지 않는다.
+  V2를 V1 QuerySegments/retention/분석 locator에 추가하지 않는다. 새 삭제 producer는 소비자 연결 단계다.
+  orphan 인식에는 V2의 실제 등록 경로를 포함하여 이미 등록된 파일을 미등록 파일로 분류하지 않는다.
+
+#### C3: ready의 버전 분기
+
+- 기존 FinalizeReadyTicket에 optional segment_v2를 추가한다. 기존 segment와 동시에 지정하면 거부한다.
+  version=1 직렬화/검증은 유지한다. version=2는 segment에 V2 전체를 담고 기존 partial/final/eventLink 키를 유지한다.
+- V2 ready는 continuous만 이번 복구 경로로 받는다(eventLink=null). 기존 event V1 ready는 그대로 유지한다.
+  V2 event 파생 provenance/hold는 이벤트 소비자 연결 때까지 명시 거부하며 자동 V1 변환하지 않는다.
+- same directory, nonce, filename/ID/container, nlink/nofollow, 원문 보존/정리 경계는 V1과 같다.
+  매핑·순서·reservation·tombstone·기존 ID/path를 publish 전에 검증한다. V2 옵션 false이면 publish 전에 거부한다.
+- catalog 인자가 없는 기존 PublishFinalizeReady는 V1 진입점으로 유지하고 V2 직접 호출은 거부한다.
+  V2 publish는 RecoverFinalizeReadyTickets의 catalog 검증 이후 내부 경로에서만 허용한다.
+  ready 작성은 최종 공개가 아니며, 예약이 없는 ticket을 복구하면서 새 순서를 발급하지 않는다.
+- 실제 미디어 검사는 공통 물리 descriptor(container/codecs/bytes/SHA/retention)만 사용하도록 내부 분리한다.
+  V1 inspector API는 wrapper로 유지하며 V2에 가짜 V1 UTC를 만들어 전달하지 않는다.
+- V2의 중단된 두 link는 검사 전에 partial을 제거하지 않는다. inspector의 새 내부 물리 검사 경로에서만
+  정확한 같은 디렉터리의 서로 다른 두 이름·동일 regular inode·nlink=2를 전후 확인한다.
+  임의 hardlink 허용 옵션으로 일반 V1 검사를 완화하지 않는다. Healthy와 두 이름의 binding 재확인 뒤에만
+  partial 이름을 정리한다. 손상/검사불가이면 두 이름과 ready를 그대로 보존한다.
+- 전체 ready envelope도 최대1MiB다. segment만 한도 이내여도 경로·envelope를 합쳐 초과하면
+  파일 생성 전에 거부한다. V1 직렬화는 바꾸지 않는다.
+- partial만 존재/중단된 두 link/final만 존재/원장 commit 뒤 ready 잔존을 복구하고 같은 V2를 복원한다.
+  이미 commit된 metadata와 ticket이 다르거나 미디어가 손상/검사불가이면 파일·ready를 보존하고 실패한다.
+  V2 손상의 기존 V1 corruption/provenance 모델로의 자동 격리 변환은 하지 않는다.
+  원장 commit 뒤 동일 ticket을 확인한 경우에만 기존 marker/ready 정리를 수행한다.
+
+최종 합격은 같은 V2 원문 의미가 ready→journal→SQLite/JSONL 재시작에서 보존되고,
+충돌·누락·삭제 ID는 publish/ready 제거 전에 거부되는 것이다. 시간 없는 V1 투영은 금지한다.
+등록/실행은 중앙 S10-3C 기록을 따른다. contracts, catalog, finalize-recovery의 focused만 승인 범위이며
+whole build·integration 옵션·30분/120분/UI·C 이후 단계는 이번 실행 범위 밖이다.
+
+| 런타임 패밀리 | 담당 | 추천 모델 | 추론 수준 | 선정 근거 |
+| --- | --- | --- | --- | --- |
+| Codex | 메인 설계·검토, 기존 단일 담당자 구현 | gpt-6-astra | medium 유지 | 영향2/불확실성2/검증2/범위2=8. 시간·저장·복구 계약을 메인이 고정하며 구현을 순차 위임. 자동 상향·하위 생성 없음 |
+
+- [x] C1 계약·V1 golden 회귀: focused 최종135/0. V1 89개 유지, 새 V2 46개.
+  최초 정상 수용 RED 5개와 검토 후 Unknown retention RED 2개를 각각 기록하고 보완했다.
+  전수 결과·실패 이력·임시5경로 삭제는 중앙 테스트 기록의 S10-3C/C1 절에 보존했다.
+- [x] C2 원장·catalog·SQLite 동등성: 최종172/0(기존139개 포함).
+  예약 검증 공유, 별도 V2 투영, 최신 원장 후보 대조·실제 파일 존재와 삭제/충돌 경계를 구현했다.
+  메인이 실제 diff 및 중앙 C2 전수 결과를 대조했다. V2 실제 writer 활성화는 하지 않았다.
+- [ ] C3 ready 복구·삭제/충돌 보존 및 관련 회귀
+
+C2 첫 구현 후 담당자 도구 분류 오류로 중단했던 이력은 중앙 기록에 보존했다.
+새 승인으로 재개하여 미해소 두 경계와 전수 결과 이관을 마쳤다. C3는 다음 구현 대상이다.
 
 v4.1.0 개발 완료는 다음이 모두 참일 때만 성립한다.
 

@@ -314,6 +314,141 @@ void OrderReservationCases(const std::filesystem::path& root) {
     Expect(legacy_finalized && !legacy_journal.ReserveRecordingOrder("store-1","fresh-r","legacy-segment","channel-1",&result,&error) && ReadBytes(legacy)==legacy_before,
         "S10-O04 legacy segment cannot acquire retroactive reservation");
 }
+recording::RecordingSegmentV2 SegmentV2() {
+    recording::RecordingSegmentV2 v;
+    v.segment_id="v2-segment";v.source_id="source-1";v.channel_id="channel-1";v.store_id="store-1";
+    v.order_request_id="v2-request";v.media_epoch_id="media-epoch";v.order_sequence=1;
+    v.media_start_pts=0;v.media_end_pts=20;v.container="mp4";v.video_codecs={"h264"};
+    v.audio_omitted_reason="none";v.size_bytes=12;v.checksum_sha256=std::string(64,'a');v.created_at_ms=1;v.finalized_at_ms=2;
+    v.mappings={{"media-server.recording-utc-mapping.v1","map-a",0,10,"source-capture",100,110,0,""},
+                {"media-server.recording-utc-mapping.v1","map-b",10,20,"server-observation",90,100,1,""}};
+    return v;
+}
+std::string V2Line(const recording::RecordingSegmentV2& v,const std::string& id="v2-final",const std::string& path="segment.mp4") {
+    recording::RecordingMutationV1 m;m.mutation_type=recording::RecordingMutationType::SegmentV2Finalized;
+    m.mutation_id=id;m.entity_id=v.segment_id;m.occurred_at_ms=3;
+    m.payload_json="{\"segment\":"+recording::SerializeRecordingSegmentV2(v)+",\"mediaRelpath\":\""+path+"\"}";
+    return recording::SerializeRecordingMutationV1(m)+"\n";
+}
+void V2CatalogCases(const std::filesystem::path& root) {
+    using namespace recording;
+    const auto media=root/"media";WriteMp4Header(media/"segment.mp4");
+    RecordingJournal journal(root/"journal.jsonl");std::string error;
+    RecordingCatalog::Options options(root/"index.sqlite3",media,true);options.enable_v2_storage=true;
+    RecordingCatalog c(journal,options);const bool opened=journal.Open(&error)&&c.Open(&error);
+    auto v=SegmentV2();RecordingOrderReservationV1 order;
+    const bool reserved=journal.ReserveRecordingOrder(v.store_id,v.order_request_id,v.segment_id,v.channel_id,&order,&error);
+    Expect(opened&&reserved&&c.FinalizeSegmentV2(v,(media/"segment.mp4").string(),&error),"S10-M06 opened catalog accepts fresh exact reservation V2 finalize");
+    auto found=c.FindSegmentV2ById(v.segment_id);
+    Expect(found&&SerializeRecordingSegmentV2(*found)==SerializeRecordingSegmentV2(v),"S10-M07 V2 find preserves complete metadata");
+    bool inserted=true;const auto before=ReadBytes(journal.path());
+    Expect(c.ValidateFinalizeRecoveryV2(v,(media/"segment.mp4").string(),&error)&&
+        c.RecoverFinalizedSegmentV2(v,(media/"segment.mp4").string(),&inserted,&error)&&!inserted&&ReadBytes(journal.path())==before,
+        "S10-M07 identical V2 recovery is idempotent");
+    Expect(c.QuerySegments("channel-1",0,1000).empty(),"S10-M07 V2 is absent from V1 range query");
+    Expect(c.InspectOrphans().normal_orphan_count==0,"S10-M07 V2 registered path is not orphan");
+#if MEDIA_SERVER_USE_SQLITE3
+    sqlite3* db=nullptr;sqlite3_stmt* stmt=nullptr;bool sql=false;
+    if(sqlite3_open(options.sqlite_path.c_str(),&db)==SQLITE_OK &&
+       sqlite3_prepare_v2(db,"SELECT payload_json,media_relpath FROM recording_segments_v2 WHERE segment_id='v2-segment'",-1,&stmt,nullptr)==SQLITE_OK && sqlite3_step(stmt)==SQLITE_ROW)
+        sql=std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt,0)))==SerializeRecordingSegmentV2(v)&&
+            std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt,1)))=="segment.mp4";
+    if(stmt)sqlite3_finalize(stmt);if(db)sqlite3_close(db);
+    Expect(sql,"S10-M07 SQLite exact V2 JSON and path match");
+#endif
+    auto fallback_options=options;fallback_options.prefer_sqlite=false;
+    RecordingCatalog fallback(journal,fallback_options);const bool fallback_open=fallback.Open(&error);
+    const auto again=fallback.FindSegmentV2ById(v.segment_id);
+    Expect(fallback_open&&again&&SerializeRecordingSegmentV2(*again)==SerializeRecordingSegmentV2(v),"S10-M07 JSONL restart preserves V2 exact payload");
+    for(const auto& field:{"store","request","segment","channel","sequence"}) {
+        auto changed=v;const std::string key(field);
+        if(key=="store")changed.store_id="other";else if(key=="request")changed.order_request_id="other";
+        else if(key=="segment")changed.segment_id="other";else if(key=="channel")changed.channel_id="other";else changed.order_sequence=2;
+        Expect(!c.FinalizeSegmentV2(changed,(media/"segment.mp4").string(),&error)&&ReadBytes(journal.path())==before,
+            "S10-M06 wrong reservation tuple rejected "+key);
+    }
+    auto changed=v;changed.mappings[1].utc_start_ns=80;
+    Expect(!c.RecoverFinalizedSegmentV2(changed,(media/"segment.mp4").string(),&inserted,&error)&&ReadBytes(journal.path())==before,
+        "S10-M09 immutable V2 mapping mismatch rejected");
+    const auto reserved_line=OrderLine("v2-request","v2-segment","1");
+    const auto good=reserved_line+V2Line(v);
+    for(const auto& item:std::vector<std::pair<std::string,std::string>>{
+        {"bad-payload",reserved_line+"{\"schema\":\"media-server.recording-mutation.v1\",\"mutationId\":\"bad\",\"mutationType\":\"segment_v2_finalized\",\"occurredAtMs\":1,\"entityId\":\"v2-segment\",\"payload\":{}}\n"},
+        {"missing-order",V2Line(v)}, {"bad-order",OrderLine("v2-request","v2-segment","0")+V2Line(v)},
+        {"conflicting-order",reserved_line+OrderLine("other-r","other-s","1")+V2Line(v)},
+        {"tail",good+"{"}, {"corrupt",good+"{bad}\n"}, {"unsafe-path",reserved_line+V2Line(v,"v2-final","../escape")}}) {
+        const auto dir=root/item.first;WriteMp4Header(dir/"media"/"segment.mp4");
+        const auto p=dir/"journal.jsonl";{std::ofstream out(p);out<<item.second;}
+        const auto sql_path=dir/"index.sqlite3";{std::ofstream out(sql_path);out<<"sqlite-sentinel";}
+        RecordingJournal j(p);const bool jo=j.Open(&error);auto o=options;o.media_root=dir/"media";o.sqlite_path=sql_path;RecordingCatalog bad(j,o);
+        Expect(jo&&!bad.Open(&error)&&!bad.Open(&error)&&ReadBytes(p)==item.second&&ReadBytes(sql_path)=="sqlite-sentinel"&&!bad.FindSegmentV2ById(v.segment_id),
+            "S10-M09 bad V2 startup retry preserves original state "+item.first);
+    }
+    const auto off_dir=root/"off";WriteMp4Header(off_dir/"media"/"segment.mp4");
+    {std::ofstream out(off_dir/"journal.jsonl");out<<good;}
+    {std::ofstream out(off_dir/"index.sqlite3");out<<"sqlite-sentinel";}
+    RecordingJournal off_j(off_dir/"journal.jsonl");const bool off_open=off_j.Open(&error);
+    RecordingCatalog off(off_j,{off_dir/"index.sqlite3",off_dir/"media",true});
+    Expect(off_open&&!off.Open(&error)&&ReadBytes(off_dir/"journal.jsonl")==good&&ReadBytes(off_dir/"index.sqlite3")=="sqlite-sentinel",
+        "S10-M09 default off rejects V2 before SQLite changes");
+    RecordingMutationV1 legacy;legacy.mutation_type=RecordingMutationType::SegmentFinalized;legacy.mutation_id="legacy-final";legacy.entity_id=v.segment_id;legacy.occurred_at_ms=3;
+    legacy.payload_json="{\"segment\":"+SerializeRecordingSegmentV1(Segment(v.segment_id))+",\"mediaRelpath\":\"segment.mp4\"}";
+    const auto legacy_line=SerializeRecordingMutationV1(legacy)+"\n";
+    RecordingTombstoneV1 tomb;tomb.tombstone_id="v2-deleted";tomb.segment_id=v.segment_id;tomb.source_id=v.source_id;tomb.channel_id=v.channel_id;
+    tomb.recorded_range={100,110};tomb.checksum_sha256=v.checksum_sha256;tomb.retention_class=v.retention_class;tomb.deletion_reason="event-retention";tomb.deleted_at_ms=4;
+    RecordingMutationV1 deletion;deletion.mutation_type=RecordingMutationType::DeletionCompleted;deletion.mutation_id="delete-v2";deletion.entity_id=v.segment_id;deletion.occurred_at_ms=4;
+    deletion.payload_json="{\"tombstone\":"+SerializeRecordingTombstoneV1(tomb)+"}";
+    const auto deleted_line=SerializeRecordingMutationV1(deletion)+"\n";
+    for(const auto& item:std::vector<std::pair<std::string,std::string>>{
+        {"duplicate",good+V2Line(v)}, {"deleted",good+deleted_line},
+        {"v1-before",reserved_line+legacy_line+V2Line(v)}, {"v1-after",good+legacy_line},
+        {"deleted-before",reserved_line+deleted_line+V2Line(v)}, {"resurrection",good+deleted_line+V2Line(v,"revive")},
+        {"mutation-collision",reserved_line+legacy_line+V2Line(v,"legacy-final")}}) {
+        const auto dir=root/("replay-"+item.first);WriteMp4Header(dir/"media"/"segment.mp4");
+        const auto p=dir/"journal.jsonl";{std::ofstream out(p);out<<item.second;}
+        RecordingJournal j(p);auto o=options;o.media_root=dir/"media";o.sqlite_path=dir/"index.sqlite3";
+        RecordingCatalog replayed(j,o);const bool jo=j.Open(&error);const bool ok=jo&&replayed.Open(&error);
+        const bool accepted=item.first=="duplicate"||item.first=="deleted";
+        bool sql_ok=true;
+#if MEDIA_SERVER_USE_SQLITE3
+        if(accepted&&ok) {
+            sqlite3* db2=nullptr;sqlite3_stmt* st=nullptr;sql_ok=false;
+            if(sqlite3_open(o.sqlite_path.c_str(),&db2)==SQLITE_OK&&sqlite3_prepare_v2(db2,"SELECT COUNT(*) FROM recording_segments_v2",-1,&st,nullptr)==SQLITE_OK&&sqlite3_step(st)==SQLITE_ROW)
+                sql_ok=sqlite3_column_int(st,0)==(item.first=="deleted"?0:1);
+            if(st)sqlite3_finalize(st);if(db2)sqlite3_close(db2);
+        }
+#endif
+        const auto f=replayed.FindSegmentV2ById(v.segment_id);
+        Expect(jo&&ok==accepted&&ReadBytes(p)==item.second&&sql_ok&&bool(f)==(item.first=="duplicate"),"S10-M09 V2 replay namespace and deletion "+item.first);
+    }
+    for(const std::string kind:{"missing","directory","mapping","path","tombstone"}) {
+        const auto dir=root/("fresh-"+kind);WriteMp4Header(dir/"media"/"segment.mp4");
+        RecordingJournal j(dir/"journal.jsonl");auto o=options;o.media_root=dir/"media";o.sqlite_path=dir/"index.sqlite3";
+        RecordingCatalog stale(j,o);RecordingOrderReservationV1 r;
+        const bool setup=j.Open(&error)&&stale.Open(&error)&&j.ReserveRecordingOrder(v.store_id,v.order_request_id,v.segment_id,v.channel_id,&r,&error);
+        auto target=dir/"media"/"segment.mp4";
+        if(kind=="missing")target=dir/"media"/"missing.mp4";
+        else if(kind=="directory")target=dir/"media";
+        else {
+            auto newer=v;if(kind=="mapping")newer.mappings[1].utc_start_ns=80;
+            std::ofstream out(j.path(),std::ios::app);out<<V2Line(newer,"external-final",kind=="path"?"other.mp4":"segment.mp4");
+            if(kind=="tombstone") {
+                RecordingTombstoneV1 t;t.tombstone_id="deleted-v2";t.segment_id=v.segment_id;t.source_id=v.source_id;t.channel_id=v.channel_id;
+                t.recorded_range={100,110};t.checksum_sha256=v.checksum_sha256;t.retention_class=v.retention_class;t.deletion_reason="event-retention";t.deleted_at_ms=4;
+                RecordingMutationV1 m;m.mutation_type=RecordingMutationType::DeletionCompleted;m.mutation_id="external-delete";m.entity_id=v.segment_id;m.occurred_at_ms=4;
+                m.payload_json="{\"tombstone\":"+SerializeRecordingTombstoneV1(t)+"}";out<<SerializeRecordingMutationV1(m)<<'\n';
+            }
+        }
+        const auto original=ReadBytes(j.path());
+        if(kind=="missing"||kind=="directory")
+            Expect(setup&&!stale.FinalizeSegmentV2(v,target.string(),&error)&&ReadBytes(j.path())==original,"S10-M09 V2 finalize rejects "+kind+" media");
+        else {
+            const bool validation=stale.ValidateFinalizeRecoveryV2(v,target.string(),&error);
+            const bool finalized=stale.FinalizeSegmentV2(v,target.string(),&error);
+            Expect(setup&&!validation&&!finalized&&ReadBytes(j.path())==original,"S10-M09 fresh candidate rejects "+kind);
+        }
+    }
+}
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -638,6 +773,7 @@ int main(int argc, char** argv) {
 
     UnsupportedJournalCases(root / "unsupported");
     OrderReservationCases(root / "order-reservations");
+    V2CatalogCases(root / "v2-catalog");
     std::cout << "[verify-v410-recording-catalog] pass=" << passes << " fail=" << failures << '\n';
     return failures == 0 ? 0 : 1;
 }

@@ -19,6 +19,7 @@ enum class RecordingMutationType {
     DeletionCompleted,
     CorruptionDetected,
     RecordingOrderReserved,
+    SegmentV2Finalized,
     Unknown,
 };
 
@@ -48,6 +49,8 @@ bool ParseRecordingOrderReservationV1(const std::string& json,
                                      RecordingOrderReservationV1* value, std::string* error);
 
 std::string RecordingMutationTypeName(RecordingMutationType type);
+bool ValidateRecordingOrderHistory(const std::vector<RecordingMutationV1>& mutations,
+                                  std::vector<RecordingOrderReservationV1>* orders, std::string* error);
 RecordingMutationType ParseRecordingMutationType(const std::string& value);
 std::string SerializeRecordingMutationV1(const RecordingMutationV1& value);
 bool ParseRecordingMutationV1(const std::string& json,
