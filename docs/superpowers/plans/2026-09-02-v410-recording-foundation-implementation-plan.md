@@ -1735,6 +1735,35 @@ git commit -m "docs: v4.1 녹화 기반 검증과 evidence 마감"
 
 ## 전체 완료 조건
 
+### S10-3A 원장 미래 버전 읽기 안전 경계
+
+진행 범위: 원장·catalog의 미지원 schema/type 분류와 시작 거부. 녹화 순서 발급, 시간 매핑
+영속화, writer 연결, SQLite schema 변경, V1 data migration은 이 하위 작업에 포함하지 않는다.
+기존 정상 V1·손상 행/불완전 tail의 복구는 유지한다. 새로운 정책 source는 설계 명세 S10 절이다.
+
+수정 파일: `include/recording/recording_journal.h`, `src/recording/recording_journal.cpp`,
+`src/recording/recording_catalog.cpp`, `scripts/internal/recording_catalog_smoke.cpp`.
+출력: replay의 `unsupported_record_count`와 catalog open의 fail-closed 결과.
+정상 strict JSON object의 문자열 `schema`가 `media-server.recording-mutation.v1`과 다르거나,
+해당 schema에서 문자열 `mutationType`이 미지원이면 unsupported로 분류한다. 원문은 수정하지 않는다.
+필드 부재/잘못된 타입/JSON 구문 오류는 기존 손상 분류이며 새 type의 payload를 해석하지 않는다.
+읽기 중 unsupported가 하나라도 있으면 SQLite open/rebuild·writer cleanup 전에 catalog open을 거부한다.
+이 변경이 예전 바이너리의 downgrade를 막아주는 것은 아니다. store format의 downgrade 차단은 별도 경계다.
+
+- [x] 미래 schema와 미래 type의 replay 분류·catalog 거부·원본 bytes 불변 검사를 먼저 작성한다.
+- [x] 기존에 corruption으로 건너뛰어 Open이 성공하는 assertion을 예상 RED로 확인한다.
+- [x] 분류·counter와 Open 사전 guard를 구현한다. 기존 V1 의미·payload·삭제 동작을 변경하지 않는다.
+- [x] `./server.sh verify-v410-recording-catalog`의 관련 기존 회귀와 신규 검사 GREEN을 확인한다.
+- [x] 메인이 실제 diff·결과·원본 보존·cleanup을 검토한다. 커밋·푸시는 실행하지 않는다.
+
+결과: RED 55/20(신규 예상 실패만), GREEN 84/0(C++75+script9). 중앙 기록 S10-3A 절에
+전수 결과·정리를 보존했다. S10-3A 한정 구현 완료이며 순서 발급·시간 매핑 저장·실제 writer
+시간 수정은 아직 아니다. 메인은 guard 선행성·V1 parser 경계·counter 사용처와 결과를 직접 검토했다.
+
+작업 소유권: 단일 담당자는 위 코드/검사만, 메인은 계획·설계·중앙 결과 기록만 수정한다.
+AGENTS.md 1.3에 따라 새 검토 에이전트·하위 에이전트 없이 기존 담당자를 재사용한다.
+실제 실패 발생 시 보고·중단하며 예상 RED만 같은 범위에서 구현으로 진행한다.
+
 v4.1.0 개발 완료는 다음이 모두 참일 때만 성립한다.
 
 1. channel opt-in recorder가 client 유무와 무관하게 source를 유지하고 불변 segment를

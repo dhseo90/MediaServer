@@ -276,6 +276,7 @@ bool RecordingCatalog::Open(std::string* error) {
     if (opened_) return true;
     const auto replay = journal_.Replay();
     if (replay.io_error_count != 0) return Fail(error, "journal replay I/O 오류로 catalog open 거부");
+    if (replay.unsupported_record_count != 0) return Fail(error, "미지원 journal record로 catalog open 거부");
     recovery_report_.corrupt_line_count = replay.corrupt_line_count;
     recovery_report_.truncated_tail_count = replay.truncated_tail_count;
     for (std::size_t ordinal = 0; ordinal < replay.mutations.size(); ++ordinal) {
@@ -1389,6 +1390,7 @@ bool RecordingCatalog::RebuildSqliteLocked(std::string* error) {
 #else
     const auto replay = journal_.Replay();
     if (replay.io_error_count != 0) return Fail(error, "journal replay I/O 오류로 SQLite rebuild 거부");
+    if (replay.unsupported_record_count != 0) return Fail(error, "미지원 journal record로 SQLite rebuild 거부");
     if (!Exec(sqlite_db_, "BEGIN; DELETE FROM recording_event_link_segments; DELETE FROM recording_event_links; DELETE FROM recording_observations; DELETE FROM recording_observations_v2; DELETE FROM recording_segments; DELETE FROM recording_tombstones; DELETE FROM recording_mutations; COMMIT;", error)) return false;
     for (std::size_t ordinal = 0; ordinal < replay.mutations.size(); ++ordinal) {
         const auto& mutation = replay.mutations[ordinal];

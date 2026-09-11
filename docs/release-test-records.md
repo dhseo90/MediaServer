@@ -1,5 +1,219 @@
 # Release Test Records
 
+## S10-3A 원장 버전 안전 경계 사전등록
+
+사용자 후속 이슈 진행 승인에 따라 S10-3의 첫 하위 작업을 수행한다. 테스트는
+`./server.sh verify-v410-recording-catalog`이며 원문 보존·미지원 record 차단을 확인한다.
+설계/수정 파일/예상 RED는 기존 상세 구현계획 「S10-3A 원장 미래 버전 읽기 안전 경계」를 따른다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-J01 | 미래 mutation schema 분류 | strict JSON 미지원 schema를 corrupt와 구분해 unsupported count 증가 | v4.1.0 |
+| S10-J02 | 미래 mutation type 분류 | V1 envelope의 미지원 type을 unsupported로 분리 | v4.1.0 |
+| S10-J03 | 부분 복구 거부 | unsupported가 있는 원장의 catalog.Open 실패·SQLite rebuild/cleanup 미진행 | v4.1.0 |
+| S10-J04 | 원본 보존 | 거부 전후 원장 byte가 같고 기존 V1·손상·tail 회귀가 유지됨 | v4.1.0 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | S10-3A 원장·Open guard 변경 | S10-J01~04·catalog smoke | 이번 후속 진행 범위 |
+| 30분 테스트 | 미진행 | 하위 guard 단기 검증·S11 아님 | S10-3A | 실행하지 않음 |
+| 120분 테스트 | 미진행 | writer/media lifecycle 연결 무변경 | S10-3A | 실행하지 않음 |
+| UI 풀테스트 | 미진행 | UI/API 무변경 | S10-3A | 실행하지 않음 |
+
+token start/end/consumed는 자동 계수 미제공으로 미집계. elapsed·실제 command/결과·cleanup은
+완료 또는 실패 보고 시 본 절에 보존한다. 이 검증은 새 녹화 시간 저장/복구 전체 PASS가 아니다.
+
+### S10-3A 실제 실행 결과 (2026-09-12)
+
+수정 파일은 journal header/implementation, catalog implementation, catalog smoke 네 개다. counter 선언을 먼저 추가한 컴파일 가능한 상태에서 예상 RED를 확인하고 분류/Open guard를 구현했다. strict JSON 문자열 schema가 V1이 아니면 형식과 관계없이 unsupported; V1 필수 필드·타입/ID가 정상일 때 unknown type은 unsupported다. parse 실패·필드 부재/잘못된 타입은 corrupt로 유지한다. 완결 LF record만 이번 보호 범위이며 incomplete tail은 기존 truncated다.
+
+| 실행 | 명령 | exit | 원출력 census | 시작 UTC | 관측 elapsed |
+| --- | --- | --- | --- | --- | --- |
+| RED 94834 | `./server.sh verify-v410-recording-catalog` | 1 | 기존45 pass + 신규10 pass/20 fail =55/20; script 후속9개 미실행 | 2026-09-11T17:11:42.042Z | 5958ms |
+| GREEN 75455 | `./server.sh verify-v410-recording-catalog` | 0 | C++75/0(기존45+신규30), script9/0, 전체84/0 | 2026-09-11T17:12:22.863Z | 10704ms |
+
+elapsed는 실행 호출 직전부터 종료 결과 수집까지의 wall clock 관측이며 polling/도구 간격이 포함된다. 프로세스 자체 종료 timestamp는 미계측이다. token start/end/consumed는 이 담당자 자동 계수 미제공으로 미집계. source=실제 exec/write_stdin 도구 원출력. RED 75행·GREEN 84행을 전수 이관했으며 census 차이는 RED exit1 이후 shell9검사가 실행되지 않은 것으로 누락이 아니다. 예상된20실패는 각 미래 입력의 분류·Open/retry 거부·SQLite 보존·cleanup 미진행이며 기존 회귀 실패는0이었다.
+
+#### RED 개별 원출력 판정
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 1. S10-3A future-schema unsupported classification | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | fail |
+| 2. journal open:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 3. fallback catalog open:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 4. SQLite off mode 표시 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 5. segment finalize journal+projection:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 6. fallback range query | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 7. event link FK 위반 거부 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 8. FK 위반 transaction/journal 전체 rollback | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 9. 최초 durable mutation 1개 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 10. 동일 mutation 중복 append | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 11. 손상 사이 정상 durable mutation 보존 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 12. 중간 corrupt line count | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 13. 마지막 truncated line skip | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 14. fallback replay open | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 15. 같은 mutation idempotent replay | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 16. 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 17. 중복 replay row/합계 불증가 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 18. 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 19. writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 20. v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 21. SQLite catalog open/rebuild:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 22. SQLite primary mode 표시 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 23. SQLite on/off range query ID·순서 parity | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 24. journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 25. journal 없는 손상 media orphan 구분 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 26. projection failover journal open:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 27. projection failover catalog open:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 28. 실제 SQLite INSERT 실패 trigger 설치 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 29. SQLite 투영 실패 뒤 journal+memory finalize 유지:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 30. SQLite 투영 실패 즉시 JSONL fallback 전환 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 31. 재시작 rebuild 전 실패 trigger 제거 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 32. 투영 실패 직후 in-memory query 정합성 유지 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 33. projection failover 재시작 journal rebuild:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 34. 재시작 후 journal에서 누락 SQLite projection 복구 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 35. 재시작 후 SQLite primary 복귀 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 36. 재시작 journal rebuild가 실제 SQLite row 복원 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 37. tombstone journal open:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 38. tombstone catalog open:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 39. tombstone 대상 segment finalize:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 40. tombstone 대상 deletion request:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 41. tombstone 완료 기록:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 42. catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 43. 손상 SQLite 격리 후 journal rebuild:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 44. 손상 SQLite 원본 격리 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 45. 격리 SQLite 파일 보존 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 46. 격리 후 journal rebuild 결과 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 47. S10-3A future-schema journal read open | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 48. S10-3A future-schema catalog open denied | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | fail |
+| 49. S10-3A future-schema catalog retry denied | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | fail |
+| 50. S10-3A future-schema SQLite bytes preserved | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | fail |
+| 51. S10-3A future-schema journal bytes preserved | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 52. S10-3A future-schema writer cleanup untouched | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | fail |
+| 53. S10-3A arbitrary-schema unsupported classification | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | fail |
+| 54. S10-3A arbitrary-schema journal read open | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 55. S10-3A arbitrary-schema catalog open denied | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | fail |
+| 56. S10-3A arbitrary-schema catalog retry denied | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | fail |
+| 57. S10-3A arbitrary-schema SQLite bytes preserved | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | fail |
+| 58. S10-3A arbitrary-schema journal bytes preserved | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 59. S10-3A arbitrary-schema writer cleanup untouched | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | fail |
+| 60. S10-3A empty-schema unsupported classification | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | fail |
+| 61. S10-3A empty-schema journal read open | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 62. S10-3A empty-schema catalog open denied | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | fail |
+| 63. S10-3A empty-schema catalog retry denied | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | fail |
+| 64. S10-3A empty-schema SQLite bytes preserved | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | fail |
+| 65. S10-3A empty-schema journal bytes preserved | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 66. S10-3A empty-schema writer cleanup untouched | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | fail |
+| 67. S10-3A future-type unsupported classification | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | fail |
+| 68. S10-3A future-type journal read open | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 69. S10-3A future-type catalog open denied | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | fail |
+| 70. S10-3A future-type catalog retry denied | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | fail |
+| 71. S10-3A future-type SQLite bytes preserved | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | fail |
+| 72. S10-3A future-type journal bytes preserved | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 73. S10-3A future-type writer cleanup untouched | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | fail |
+| 74. S10-3A malformed journal open | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 75. S10-3A malformed JSON missing fields and wrong types remain corrupt | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+
+#### GREEN 개별 원출력 판정
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 1. journal open:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 2. fallback catalog open:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 3. SQLite off mode 표시 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 4. segment finalize journal+projection:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 5. fallback range query | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 6. event link FK 위반 거부 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 7. FK 위반 transaction/journal 전체 rollback | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 8. 최초 durable mutation 1개 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 9. 동일 mutation 중복 append | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 10. 손상 사이 정상 durable mutation 보존 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 11. 중간 corrupt line count | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 12. 마지막 truncated line skip | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 13. fallback replay open | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 14. 같은 mutation idempotent replay | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 15. 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 16. 중복 replay row/합계 불증가 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 17. 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 18. writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 19. v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 20. SQLite catalog open/rebuild:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 21. SQLite primary mode 표시 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 22. SQLite on/off range query ID·순서 parity | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 23. journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 24. journal 없는 손상 media orphan 구분 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 25. projection failover journal open:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 26. projection failover catalog open:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 27. 실제 SQLite INSERT 실패 trigger 설치 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 28. SQLite 투영 실패 뒤 journal+memory finalize 유지:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 29. SQLite 투영 실패 즉시 JSONL fallback 전환 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 30. 재시작 rebuild 전 실패 trigger 제거 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 31. 투영 실패 직후 in-memory query 정합성 유지 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 32. projection failover 재시작 journal rebuild:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 33. 재시작 후 journal에서 누락 SQLite projection 복구 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 34. 재시작 후 SQLite primary 복귀 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 35. 재시작 journal rebuild가 실제 SQLite row 복원 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 36. tombstone journal open:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 37. tombstone catalog open:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 38. tombstone 대상 segment finalize:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 39. tombstone 대상 deletion request:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 40. tombstone 완료 기록:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 41. catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 42. 손상 SQLite 격리 후 journal rebuild:  | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 43. 손상 SQLite 원본 격리 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 44. 격리 SQLite 파일 보존 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 45. 격리 후 journal rebuild 결과 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 46. S10-3A future-schema journal read open | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 47. S10-3A future-schema unsupported classification | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 48. S10-3A future-schema catalog open denied | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 49. S10-3A future-schema catalog retry denied | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 50. S10-3A future-schema journal bytes preserved | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 51. S10-3A future-schema SQLite bytes preserved | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 52. S10-3A future-schema writer cleanup untouched | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 53. S10-3A arbitrary-schema journal read open | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 54. S10-3A arbitrary-schema unsupported classification | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 55. S10-3A arbitrary-schema catalog open denied | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 56. S10-3A arbitrary-schema catalog retry denied | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 57. S10-3A arbitrary-schema journal bytes preserved | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 58. S10-3A arbitrary-schema SQLite bytes preserved | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 59. S10-3A arbitrary-schema writer cleanup untouched | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 60. S10-3A empty-schema journal read open | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 61. S10-3A empty-schema unsupported classification | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 62. S10-3A empty-schema catalog open denied | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 63. S10-3A empty-schema catalog retry denied | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 64. S10-3A empty-schema journal bytes preserved | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 65. S10-3A empty-schema SQLite bytes preserved | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 66. S10-3A empty-schema writer cleanup untouched | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 67. S10-3A future-type journal read open | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 68. S10-3A future-type unsupported classification | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 69. S10-3A future-type catalog open denied | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 70. S10-3A future-type catalog retry denied | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 71. S10-3A future-type journal bytes preserved | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 72. S10-3A future-type SQLite bytes preserved | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 73. S10-3A future-type writer cleanup untouched | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 74. S10-3A malformed journal open | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 75. S10-3A malformed JSON missing fields and wrong types remain corrupt | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 76. source 저장 callback reconcile 연결 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 77. policy revision idempotency | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 78. 5초 safety reconcile | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 79. composition root journal 선행 open | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 80. composition root catalog rebuild/open | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 81. 서버 전 supervisor 시작 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 82. ingress 전 event bridge 등록 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 83. ingress 종료 뒤 recorder finalize | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+| 84. composition root 시작/종료 순서 | 동일 catalog smoke의 실제 개별 assertion/명령 출력 | pass |
+
+#### 정리 및 검증 한계
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /tmp/media_server_v410_recording_catalog-80691 | RED binary/격리 원장·SQLite·media fixture | 2498294B | 기존 wrapper cleanup | removed=true | 실제 cleanup 원출력 |
+| /tmp/media_server_v410_recording_catalog-80802 | GREEN binary/격리 원장·SQLite·media fixture | 1974298B | 기존 wrapper cleanup | removed=true | 실제 cleanup 원출력 |
+
+별도 raw 로그 파일은 생성하지 않았고 도구 원출력을 메모리에 보존한 뒤 이 표로 이관했다. 기존 SQLite sentinel과 writer marker의 bytes 보존으로 Open 선행 차단을 직접 확인했다. RebuildSqliteLocked 추가 guard는 코드 검토한 방어 계층이며 독립 실행 검증으로 확대하지 않는다. 동시 외부 writer/store 소유권·구버전 바이너리 downgrade 차단은 이번 증거가 아니며 S10-3B 경계다. 전체 build·writer/media·장시간·UI·커밋·푸시는 미실행이다. S10 시간 저장/복구 전체 완료를 뜻하지 않는다.
+
+후속 비실행 검증: `git diff --check` exit0. 두 소유 temp 경로에 `lstat`를 직접 수행하여 각각 ENOENT를 확인했다(exit0). 신규 임시 산출물 없음. 문구 갱신 patch 한 차례가 기존 긴 행과 context 불일치로 적용되지 않았고, 제품/테스트 실패가 아니며 해당 실행 결과는 변경하지 않았다.
+
 ## S09 계측 활성화 기존424 UI 최종 결과 — 64886
 
 승인된 분할 커밋 `b0fc2ea7`(기본-off 요청 계측), `77edc049`(검증·승인 기록) 이후 `MEDIA_SERVER_SITE_OPERATIONS_REQUEST_DIAGNOSTIC=1 ./test_ui.sh`를 실행했다. run ID는 `v390-test-acceptance-20260911104717-14002`, 시작·종료 source는 `77edc0499159f59aad095f2816bdd2a9d8d809e7`, 양쪽 worktree clean이다. 종료 후 기존 exec session 조회는 Unknown process였으므로 재실행하지 않고 실제 완료 summary를 대조했다. 외부 observer 프로세스의 마지막 exit/count 출력은 대화 출력 유실로 미확인이다. 제품 실행 판정은 보존된 launcher·canonical·qualification 결과에 근거하며 observer 종료 코드를 추정하지 않는다.

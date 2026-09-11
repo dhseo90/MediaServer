@@ -51,6 +51,58 @@ recording::RecordingSegmentV1 Segment(const std::string& id) {
     segment.finalized_at_ms = 2000;
     return segment;
 }
+std::string ReadBytes(const std::filesystem::path& path) {
+    std::ifstream input(path, std::ios::binary);
+    return {std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>()};
+}
+
+void UnsupportedJournalCases(const std::filesystem::path& root) {
+    const std::vector<std::pair<std::string, std::string>> cases = {
+        {"future-schema", R"({"schema":"media-server.recording-mutation.v2","futurePayload":[]})"},
+        {"arbitrary-schema", R"({"schema":"unrecognized-format"})"},
+        {"empty-schema", R"({"schema":""})"},
+        {"future-type", R"({"schema":"media-server.recording-mutation.v1","mutationId":"future-1","mutationType":"future_put","occurredAtMs":1000,"entityId":"entity-1","payload":{}})"},
+    };
+    for (const auto& item : cases) {
+        const auto directory = root / item.first;
+        const auto media = directory / "media";
+        const auto path = directory / "journal.jsonl";
+        const auto sqlite = directory / "index.sqlite3";
+        const auto marker = media / "orphan.mp4.cleanup-pending";
+        WriteMp4Header(media / "orphan.mp4");
+        { std::ofstream output(path); output << item.second << '\n'; }
+        { std::ofstream output(sqlite); output << "existing-sqlite-sentinel"; }
+        { std::ofstream output(marker); output << "recording-cleanup-pending-v1\n"; }
+        const auto journal_before = ReadBytes(path), sqlite_before = ReadBytes(sqlite);
+        const auto marker_before = ReadBytes(marker);
+        recording::RecordingJournal journal(path);
+        std::string error;
+        Expect(journal.Open(&error), "S10-3A " + item.first + " journal read open");
+        const auto replay = journal.Replay();
+        Expect(replay.unsupported_record_count == 1 && replay.corrupt_line_count == 0 &&
+                   replay.mutations.empty(), "S10-3A " + item.first + " unsupported classification");
+        recording::RecordingCatalog catalog(journal, {sqlite, media, true});
+        Expect(!catalog.Open(&error), "S10-3A " + item.first + " catalog open denied");
+        Expect(!catalog.Open(&error), "S10-3A " + item.first + " catalog retry denied");
+        Expect(ReadBytes(path) == journal_before, "S10-3A " + item.first + " journal bytes preserved");
+        Expect(ReadBytes(sqlite) == sqlite_before, "S10-3A " + item.first + " SQLite bytes preserved");
+        Expect(ReadBytes(marker) == marker_before, "S10-3A " + item.first + " writer cleanup untouched");
+    }
+    const auto malformed = root / "malformed.jsonl";
+    {
+        std::ofstream output(malformed);
+        output << "{bad-json}\n{}\n{\"schema\":42}\n"
+               << R"({"schema":"media-server.recording-mutation.v1","mutationType":42})" << '\n'
+               << R"({"schema":"media-server.recording-mutation.v1","mutationId":"m","mutationType":"future_put","occurredAtMs":1,"entityId":"e","payload":[]})" << '\n';
+    }
+    recording::RecordingJournal journal(malformed);
+    std::string error;
+    Expect(journal.Open(&error), "S10-3A malformed journal open");
+    const auto replay = journal.Replay();
+    Expect(replay.corrupt_line_count == 5 && replay.unsupported_record_count == 0,
+           "S10-3A malformed JSON missing fields and wrong types remain corrupt");
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -373,6 +425,7 @@ int main(int argc, char** argv) {
     }
 #endif
 
+    UnsupportedJournalCases(root / "unsupported");
     std::cout << "[verify-v410-recording-catalog] pass=" << passes << " fail=" << failures << '\n';
     return failures == 0 ? 0 : 1;
 }

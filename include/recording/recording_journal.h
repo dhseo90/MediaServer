@@ -33,6 +33,7 @@ struct RecordingMutationV1 {
 struct RecordingJournalReplayResult {
     std::vector<RecordingMutationV1> mutations;
     std::size_t corrupt_line_count{0};
+    std::size_t unsupported_record_count{0};
     std::size_t truncated_tail_count{0};
     std::size_t io_error_count{0};  // 안전한 원본 FD를 읽지 못함; 정상 빈 원장과 구분.
 };

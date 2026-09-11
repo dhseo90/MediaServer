@@ -187,6 +187,23 @@ std::optional<std::int64_t> Int64Field(const ingress::StrictJsonObjectDocument& 
     }
 }
 
+bool IsUnsupportedRecord(const std::string& json) {
+    ingress::StrictJsonObjectDocument document;
+    std::string error;
+    if (!ingress::ParseStrictJsonObjectDocument(json, &document, &error)) return false;
+    const auto schema = ingress::StrictJsonStringField(document, "schema");
+    if (!schema) return false;
+    // 미래 schema의 payload 모양은 현재 V1 규칙으로 손상 판정하지 않는다.
+    if (*schema != "media-server.recording-mutation.v1") return true;
+    const auto mutation_id = ingress::StrictJsonStringField(document, "mutationId");
+    const auto type = ingress::StrictJsonStringField(document, "mutationType");
+    const auto entity_id = ingress::StrictJsonStringField(document, "entityId");
+    if (!mutation_id || !type || !entity_id || !Int64Field(document, "occurredAtMs") ||
+        !ingress::StrictJsonObjectField(document, "payload") ||
+        !ValidateOpaqueId(*mutation_id, &error) || !ValidateOpaqueId(*entity_id, &error)) return false;
+    return ParseRecordingMutationType(*type) == RecordingMutationType::Unknown;
+}
+
 }  // namespace
 
 std::string RecordingMutationTypeName(RecordingMutationType type) {
@@ -353,7 +370,8 @@ RecordingJournalReplayResult RecordingJournal::Replay() const {
         RecordingMutationV1 mutation;
         std::string error;
         if (!ParseRecordingMutationV1(line, &mutation, &error)) {
-            ++result.corrupt_line_count;
+            if (IsUnsupportedRecord(line)) ++result.unsupported_record_count;
+            else ++result.corrupt_line_count;
             continue;
         }
         result.mutations.push_back(std::move(mutation));
