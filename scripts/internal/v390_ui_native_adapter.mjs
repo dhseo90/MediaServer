@@ -869,6 +869,27 @@ export function createNativeRequestLifecycleLedger({
     correlationDigest: defaultCorrelationDigest,
   });
   const states = new Set();
+  const legacyDiagnosticIds = new WeakMap();
+  const afterSealDiagnostics = [];
+  let diagnosticSequence = 0;
+  let diagnosticSeal = null;
+  let diagnosticErrors = 0;
+  const diagnosticOnly = fn => {
+    try { fn(); } catch { diagnosticErrors += 1; }
+  };
+  const diagnosticStamp = () => ({ sequence: ++diagnosticSequence, timestamp: clock() });
+  const bindLegacyRequestDiagnostic = (request, id) => diagnosticOnly(() => {
+    if (/^native-request-[1-9][0-9]*$/.test(id)) legacyDiagnosticIds.set(request, id);
+  });
+  const noteRequestCaptureSeal = () => diagnosticOnly(() => {
+    diagnosticSeal ??= diagnosticStamp();
+  });
+  const noteRequestAfterSeal = (event, request) => diagnosticOnly(() => {
+    if (!["request", "response", "finished", "failed"].includes(event)) return;
+    const envelope = requestLifecycleRecorder.snapshot().requests.find(item => item.requestObject === request);
+    afterSealDiagnostics.push({ ...diagnosticStamp(), event,
+      requestIdentity: envelope?.objectIdentity || "", legacyRequestId: legacyDiagnosticIds.get(request) || "" });
+  });
   const events = { navigation: [], action: [] };
   const rows = { navigation: [], action: [] };
   const invocationIds = { navigation: new Set(), action: new Set() };
@@ -1110,6 +1131,26 @@ export function createNativeRequestLifecycleLedger({
     return freezeJsonProjection({
       status: String(result.status || "FAIL"),
       census: { ...result.census },
+      diagnostics: {
+        sequenceDomain: "diagnostic-seal-and-after-seal-only",
+        diagnosticErrors,
+        seal: diagnosticSeal,
+        afterSeal: afterSealDiagnostics,
+        requests: snapshot.requests.map(item => {
+          const stamp = entry => ({ sequence: entry.sequence, timestamp: entry.timestamp });
+          return {
+            requestIdentity: item.objectIdentity,
+            legacyRequestId: legacyDiagnosticIds.get(item.requestObject) || "",
+            method: ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"].includes(item.method) ? item.method : "OTHER",
+            path: item.path,
+            start: stamp(item),
+            responses: snapshot.responses.filter(entry => entry.responseRequestObject === item.requestObject)
+              .map(entry => ({ ...stamp(entry), status: entry.status })),
+            finished: snapshot.requestFinished.filter(entry => entry.requestObject === item.requestObject).map(stamp),
+            failed: snapshot.requestFailed.filter(entry => entry.requestObject === item.requestObject).map(stamp),
+          };
+        }),
+      },
       requests: snapshot.requests.map(item => ({
         requestIdentity: item.objectIdentity,
         redirectedFromIdentity: item.redirectedFromObjectIdentity,
@@ -1131,6 +1172,9 @@ export function createNativeRequestLifecycleLedger({
     });
   };
   const api = {
+    bindLegacyRequestDiagnostic,
+    noteRequestCaptureSeal,
+    noteRequestAfterSeal,
     requestLifecycleRecorder,
     beginInvocation,
     endInvocation,
@@ -1523,6 +1567,7 @@ async function openNativePlaywrightPage(playwright, {
   };
   requestListenerStartSequence = ++lifecycleSequence;
   page.on("request", request => {
+    if (requestCaptureSealed) requestLifecycleLedger.noteRequestAfterSeal("request", request);
     if (requestCaptureSealed) return;
     let redirectedFrom = null;
     let actionRequestOwnership = null;
@@ -1598,6 +1643,7 @@ async function openNativePlaywrightPage(playwright, {
     const correlationId = String(routeInjectedCorrelation?.correlationId ||
       request.headers()["x-media-server-correlation-id"] || "");
     const identity = requestIdentity(request);
+    requestLifecycleLedger.bindLegacyRequestDiagnostic(request, identity.requestId);
     const requestId = identity.requestId;
     const requestStartedAtMs = Date.now();
     const actionContext = actionRequestOwnership?.context || null;
@@ -1756,6 +1802,9 @@ async function openNativePlaywrightPage(playwright, {
     }
   });
   page.on("response", response => {
+    if (requestCaptureSealed) {
+      try { requestLifecycleLedger.noteRequestAfterSeal("response", response.request()); } catch {}
+    }
     if (requestCaptureSealed) return;
     requestLifecycleRecorder.recordResponse(response);
     try {
@@ -1921,11 +1970,13 @@ async function openNativePlaywrightPage(playwright, {
     }
   };
   page.on("requestfinished", request => {
+    if (requestCaptureSealed) requestLifecycleLedger.noteRequestAfterSeal("finished", request);
     if (requestCaptureSealed) return;
     requestLifecycleRecorder.recordRequestFinished(request);
     completeOwnedRequest(request);
   });
   page.on("requestfailed", request => {
+    if (requestCaptureSealed) requestLifecycleLedger.noteRequestAfterSeal("failed", request);
     if (requestCaptureSealed) return;
     let failure = null;
     try {
@@ -2133,6 +2184,7 @@ async function openNativePlaywrightPage(playwright, {
   };
   const sealRequestCaptureBoundary = () => {
     if (requestCaptureSealed) return;
+    requestLifecycleLedger.noteRequestCaptureSeal();
     requestCaptureSealed = true;
     if (requestListenerEndSequence === null) {
       requestListenerEndSequence = ++lifecycleSequence;

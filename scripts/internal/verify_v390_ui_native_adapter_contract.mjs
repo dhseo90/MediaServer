@@ -54,7 +54,7 @@ Checks module discovery, missing-module hard failure, native action capabilities
 runner integration, dispatch/docs, and preserved standalone native evidence.
 `);
 }
-assertKnownOptions(rawArgs, ["h", "help"]);
+assertKnownOptions(rawArgs, ["h", "help", "lifecycle-diagnostics-only"]);
 
 const adapterSource = readText("scripts/internal/v390_ui_native_adapter.mjs");
 const browserCallbackSource = readText("scripts/internal/v390_ui_browser_callback_boundary.mjs");
@@ -74,6 +74,66 @@ const docs = [
   readText("docs/release-evidence-index.md"),
 ].join("\n");
 const checks = [];
+// LD01~03 사전 명세: 직접 ID 결속, terminal/seal 구분, 비밀 제외 및 판정 불변.
+for (const scenario of ["mapped", "finished", "failed"]) {
+  check(`LD-${scenario} lifecycle diagnostic identity terminal and seal evidence`, () => {
+    const ledger = nativeAdapterModule.createNativeRequestLifecycleLedger({ caseId: "LD", clock: () => 100 });
+    const request = fakeLifecycleRequest("http://runtime.invalid/ops/api/events?token=DO_NOT_RECORD");
+    const envelope = ledger.requestLifecycleRecorder.recordRequest(request);
+    assert(typeof ledger.bindLegacyRequestDiagnostic === "function", "direct identity diagnostic mapping missing");
+    ledger.bindLegacyRequestDiagnostic(request, "native-request-58");
+    if (scenario === "finished") {
+      ledger.requestLifecycleRecorder.recordResponse(fakeLifecycleResponse(request));
+      ledger.requestLifecycleRecorder.recordRequestFinished(request);
+    }
+    if (scenario === "failed") ledger.requestLifecycleRecorder.recordRequestFailed(request, { errorText: "DO_NOT_RECORD" });
+    ledger.noteRequestCaptureSeal();
+    ledger.noteRequestAfterSeal("response", request);
+    ledger.sealRequestLifecycleLedger();
+    const before = ledger.evaluateRequestLifecycleLedger();
+    const projection = ledger.safeRequestLifecycleProjection();
+    const row = projection.diagnostics.requests[0];
+    assert(row.requestIdentity === envelope.objectIdentity && row.legacyRequestId === "native-request-58" &&
+      row.method === "GET" && row.path === "/ops/api/events", "safe direct mapping mismatch");
+    assert(row.start.sequence === envelope.sequence && row.start.timestamp === envelope.timestamp &&
+      row.responses.length === Number(scenario === "finished") &&
+      row.finished.length === Number(scenario === "finished") && row.failed.length === Number(scenario === "failed"),
+    "terminal evidence mismatch");
+    assert(projection.diagnostics.seal.timestamp === 100 && projection.diagnostics.afterSeal[0].event === "response" &&
+      projection.diagnostics.afterSeal[0].requestIdentity === envelope.objectIdentity &&
+      projection.diagnostics.afterSeal[0].sequence > projection.diagnostics.seal.sequence,
+    "seal/drop evidence missing");
+    assert(!JSON.stringify(projection).includes("DO_NOT_RECORD") && ledger.evaluateRequestLifecycleLedger() === before,
+      "diagnostics exposed secret or changed evaluation");
+  });
+}
+check("LD-unmapped diagnostic missing mapping remains explicit and method is restricted", () => {
+  const ledger = nativeAdapterModule.createNativeRequestLifecycleLedger({ caseId: "LD-UNMAPPED" });
+  const request = fakeLifecycleRequest("https://user:DO_NOT_RECORD@runtime.invalid/ops/api/events?key=DO_NOT_RECORD#DO_NOT_RECORD",
+    { method: "DO_NOT_RECORD" });
+  ledger.requestLifecycleRecorder.recordRequest(request);
+  ledger.sealRequestLifecycleLedger();
+  const projection = ledger.safeRequestLifecycleProjection();
+  const row = projection.diagnostics.requests[0];
+  assert(row.legacyRequestId === "" && row.method === "OTHER" && row.path === "/ops/api/events" &&
+    projection.diagnostics.seal === null && projection.diagnostics.afterSeal.length === 0 &&
+    !JSON.stringify(projection).includes("DO_NOT_RECORD"), "unmapped/secret diagnostic contract drift");
+});
+check("LD-diagnostic-error cannot prevent authoritative capture or change failure", () => {
+  const ledger = nativeAdapterModule.createNativeRequestLifecycleLedger({ caseId: "LD-ERROR",
+    clock: () => { throw new Error("DO_NOT_RECORD"); } });
+  const request = fakeLifecycleRequest("http://runtime.invalid/ops/api/events");
+  ledger.requestLifecycleRecorder.recordRequest(request);
+  ledger.bindLegacyRequestDiagnostic(null, "native-request-1");
+  ledger.noteRequestCaptureSeal();
+  ledger.noteRequestAfterSeal("failed", request);
+  ledger.requestLifecycleRecorder.recordRequestFailed(request, { errorText: "actual failure" });
+  ledger.sealRequestLifecycleLedger();
+  const projection = ledger.safeRequestLifecycleProjection();
+  assert(projection.diagnostics.diagnosticErrors === 3 && projection.diagnostics.requests[0].failed.length === 1 &&
+    projection.failures.some(item => item.code === "REQUEST_FAILED") && !JSON.stringify(projection).includes("DO_NOT_RECORD"),
+  "diagnostic failure changed capture or exposed exception");
+});
 
 check("native callbacks use the capture-only recorder as lifecycle authority", () => {
   const requestCallback = callbackSource("request", "response");
@@ -2340,7 +2400,8 @@ check("server dispatch and docs expose reproducible native commands", () => {
   }
 });
 
-check("preserved standalone evidence proves native actions", () => {
+// v3.9.1 공개 최소화 정책: 과거 7개 action의 보존 정합성이며 현재 UI 실행 증거가 아니다.
+check("historical action record consistency matches retained summary report and PNG", () => {
   const summaryPath = path.join(rootDir, "docs/release-artifacts/v3.9.0/ui-native-adapter-final/summary.json");
   assert(fs.existsSync(summaryPath), "native adapter summary missing");
   const summary = JSON.parse(fs.readFileSync(summaryPath, "utf8"));
@@ -2352,10 +2413,7 @@ check("preserved standalone evidence proves native actions", () => {
     assert(summary.actions.some(action => action.kind === kind && action.status === "PASS"), `missing PASS action ${kind}`);
   }
   assert(summary.finalState === "native-adapter:ready:typed", "native final state mismatch");
-  const artifactNames = {
-    screenshotPath: "native-adapter.png",
-    tracePath: "trace.json",
-  };
+  const artifactNames = { screenshotPath: "native-adapter.png" };
   for (const [field, expectedName] of Object.entries(artifactNames)) {
     assert(path.basename(String(summary[field] || "")) === expectedName,
       `native artifact identity drifted ${field}`);
@@ -2366,10 +2424,29 @@ check("preserved standalone evidence proves native actions", () => {
   assert(screenshot.length > 8 && screenshot.subarray(0, 8).equals(
     Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])),
   "native screenshot is not a PNG artifact");
-  const trace = JSON.parse(fs.readFileSync(
-    path.join(path.dirname(summaryPath), artifactNames.tracePath), "utf8"));
-  assert(trace.schema === "media-server.v390-ui-native-adapter-trace.v1",
-    "native adapter trace schema mismatch");
+  const report = fs.readFileSync(path.join(path.dirname(summaryPath), "report.md"), "utf8");
+  const expectedActions = [
+    ["wait", "#native-name"], ["fill", "#native-name"], ["type", "#native-note"],
+    ["select", "#native-mode=ready"], ["click", "#native-apply"],
+    ["wait", "#native-status=native-adapter:ready:typed"], ["screenshot", "native-adapter.png"],
+  ];
+  assert(summary.actions.length === 7, "historical action census mismatch");
+  const rows = report.split("\n").filter(line => /^\| (wait|fill|type|select|click|screenshot) \|/.test(line));
+  assert(rows.length === 7, "historical report action census mismatch");
+  summary.actions.forEach((action, index) => {
+    const [kind, target] = expectedActions[index];
+    assert(action.kind === kind && (kind === "screenshot" ? path.basename(action.target) : action.target) === target &&
+      action.status === "PASS" && Number.isSafeInteger(action.durationMs) && action.durationMs >= 0,
+    `historical action contract mismatch ${index}`);
+    assert(rows[index] === `| ${action.kind} | ${action.target} | ${action.status} | ${action.durationMs} |`,
+      `historical report row mismatch ${index}`);
+  });
+  for (const line of ["result: PASS", "engine: playwright-native", "fallbackUsed: false",
+    "finalState: native-adapter:ready:typed", `moduleVersion: ${summary.selectedAdapter.moduleVersion}`]) {
+    assert(report.split("\n").includes(line), "historical report metadata mismatch");
+  }
+  assert(summary.cleanup?.pageClosed === true && summary.cleanup?.serverStopped === true &&
+    summary.cleanup?.fallbackUsed === false, "historical cleanup record mismatch");
 });
 
 check("current UI suite state does not reuse stale native evidence", () => {
@@ -2441,6 +2518,7 @@ check("dashboard marker response projection keeps only digests and fails closed"
 let pass = 0;
 let fail = 0;
 for (const item of checks) {
+  if (rawArgs.includes("--lifecycle-diagnostics-only") && !item.name.startsWith("LD-")) continue;
   try {
     await item.fn();
     pass += 1;
