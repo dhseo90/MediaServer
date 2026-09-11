@@ -133,7 +133,7 @@ Options:
                        선택 검증: /ops와 /client shell, 실제 클릭, 테이블, rules round-trip smoke를 추가
   --include-redaction 선택 검증: 사람 객체 자동 모자이크 image/live 검증을 추가
   --include-report-summary
-                       선택 검증: /tmp summary Markdown/HTML 리포트 생성 smoke를 추가
+                       선택 검증: 현재 실행의 부분 summary Markdown/HTML 렌더 smoke를 추가
   --require-external-source
                        제3자 RTSP upstream 후보 실패도 hard fail로 처리
   --skip-external     LAN IP 외부 클라이언트 접근성과 제3자 RTSP upstream 검증 생략. 격리된 개발 환경에서만 사용
@@ -398,7 +398,7 @@ run_step() {
   echo >> "${log_file}"
 
   set +e
-  (cd "${ROOT_DIR}" && bash -lc "${command}") >> "${log_file}" 2>&1
+  (cd "${ROOT_DIR}" && env -u BASH_ENV bash -c "${command}") >> "${log_file}" 2>&1
   local rc=$?
   set -e
 
@@ -430,16 +430,56 @@ skip_step() {
   print_line "사유" "${reason}"
 }
 
-print_summary() {
-  local end_epoch elapsed_seconds elapsed_minutes
+# 진행 중 보고와 최종 출력이 같은 시각·카운터 schema의 JSON을 사용한다.
+write_test_summary() {
+  local end_epoch
   end_epoch="$(date +%s)"
-  elapsed_seconds=$((end_epoch - START_EPOCH))
-  elapsed_minutes="$(python3 - "${elapsed_seconds}" <<'PY'
+  TEST_SUMMARY_ELAPSED_SECONDS=$((end_epoch - START_EPOCH))
+  TEST_SUMMARY_ELAPSED_MINUTES="$(python3 - "${TEST_SUMMARY_ELAPSED_SECONDS}" <<'PY'
 import sys
 seconds = int(sys.argv[1])
 print(f"{seconds / 60.0:.1f}")
 PY
 )"
+  python3 - "${LOG_DIR}/test-summary.json" "${MODE}" "${FFMPEG_FREE}" \
+    "${PASS_COUNT}" "${FAIL_COUNT}" "${SKIP_COUNT}" \
+    "${TEST_SUMMARY_ELAPSED_SECONDS}" "${TEST_SUMMARY_ELAPSED_MINUTES}" \
+    "${LOG_DIR}" "${FULL_TARGET_SECONDS}" "${SKIP_CODECS}" "${SKIP_VA}" <<'PY'
+import json
+import pathlib
+import sys
+
+output, mode, ffmpeg_free, passed, failed, skipped, seconds, minutes, log_dir, target, skip_codecs, skip_va = sys.argv[1:]
+payload = {
+    "schema": "media-server.test-summary.v1",
+    "mode": mode,
+    "ffmpegFree": ffmpeg_free == "1",
+    "passCount": int(passed),
+    "failCount": int(failed),
+    "skipCount": int(skipped),
+    "elapsedSeconds": int(seconds),
+    "elapsedMinutes": float(minutes),
+    "logDir": log_dir,
+    "fullTargetSeconds": int(target),
+    "fullReleaseCandidate": mode == "full" and skip_codecs == "0" and skip_va == "0",
+}
+pathlib.Path(output).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+}
+
+# shell과 summarizer의 glob 해석 모두에서 현재 파일 경로를 리터럴로 유지한다.
+test_summary_report_command() {
+  local summary_pattern="${LOG_DIR}/test-summary.json"
+  summary_pattern="${summary_pattern//\[/[[]}"
+  summary_pattern="${summary_pattern//\*/[*]}"
+  summary_pattern="${summary_pattern//\?/[?]}"
+  printf '%q ' ./server.sh summarize-reports "${summary_pattern}" --output "${LOG_DIR}/verification_report.md" --html-output "${LOG_DIR}/verification_report.html"
+}
+
+print_summary() {
+  write_test_summary
+  local elapsed_seconds="${TEST_SUMMARY_ELAPSED_SECONDS}"
+  local elapsed_minutes="${TEST_SUMMARY_ELAPSED_MINUTES}"
   echo
   echo "== 통합 테스트 요약 =="
   echo "- 통과: ${PASS_COUNT}"
@@ -460,21 +500,6 @@ PY
   else
     print_line "결론" "실패 항목이 있습니다. 위 한글 원인과 개별 로그를 기준으로 수정하세요."
   fi
-  cat > "${LOG_DIR}/test-summary.json" <<EOF_SUMMARY
-{
-  "schema": "media-server.test-summary.v1",
-  "mode": "${MODE}",
-  "ffmpegFree": $([[ "${FFMPEG_FREE}" == "1" ]] && echo true || echo false),
-  "passCount": ${PASS_COUNT},
-  "failCount": ${FAIL_COUNT},
-  "skipCount": ${SKIP_COUNT},
-  "elapsedSeconds": ${elapsed_seconds},
-  "elapsedMinutes": ${elapsed_minutes},
-  "logDir": "${LOG_DIR}",
-  "fullTargetSeconds": ${FULL_TARGET_SECONDS},
-  "fullReleaseCandidate": $([[ "${MODE}" == "full" && "${SKIP_CODECS}" == "0" && "${SKIP_VA}" == "0" ]] && echo true || echo false)
-}
-EOF_SUMMARY
 }
 
 run_codec_filter() {
@@ -520,11 +545,12 @@ run_step \
   "python3 -m json.tool config/codec_test_sources.json >/dev/null" || true
 
 if [[ "${INCLUDE_REPORT_SUMMARY}" == "1" ]]; then
+  write_test_summary
   run_step \
     "report-summary" \
-    "검증 summary Markdown/HTML 생성 smoke" \
-    "검증 summary 리포트 생성 실패입니다. /tmp summary JSON/NDJSON 파싱과 출력 경로 권한을 확인하세요." \
-    "./server.sh summarize-reports /tmp/media_server_*summary*.json --output '${LOG_DIR}/verification_report.md' --html-output '${LOG_DIR}/verification_report.html'" || true
+    "진행 중 부분 summary 렌더 smoke" \
+    "현재 실행의 부분 summary 리포트 생성 실패입니다. JSON과 출력 경로 권한을 확인하세요." \
+    "$(test_summary_report_command)" || true
 else
   skip_step "검증 summary 리포트 생성 smoke" "현재 모드에는 포함하지 않습니다. 필요하면 --include-report-summary 또는 --basic/--full/--external을 사용하세요."
 fi

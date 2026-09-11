@@ -8,6 +8,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+import { parseServerDispatches as parseFixedServerDispatches } from "./script_dispatch_parser.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
@@ -695,15 +696,7 @@ function fileExists(file) {
 }
 
 function parseServerDispatches(server = readText(path.join(rootDir, "server.sh"))) {
-  const dispatches = [];
-  const regex = /^\s{2}([a-zA-Z0-9_.|-]+)\)\n\s+require_internal [^\n]+\n\s+exec (?:bash |node )?"\$\{INTERNAL_DIR\}\/([^"\n]+)"/gm;
-  let match;
-  while ((match = regex.exec(server)) !== null) {
-    for (const command of match[1].split("|")) {
-      dispatches.push({ command, script: match[2] });
-    }
-  }
-  return dispatches;
+  return parseFixedServerDispatches(server);
 }
 
 function walkDocsAndScripts() {

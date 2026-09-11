@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# 파일 용도: GStreamer 실행 환경 회귀 검사. 기본은 격리 fixture이며 실제 서버를 시작하지 않는다.
 """GStreamer 실행 환경 회귀 검사. 기본은 격리 fixture이며 실제 서버를 시작하지 않는다."""
 
 import concurrent.futures

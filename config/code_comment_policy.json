@@ -1,5 +1,37 @@
 {
   "schema": "media-server.code-comment-policy.v1",
+  "preservedHeaderExceptions": [
+    {
+      "path": "docs/release-artifacts/v4.1.0/20260904-s05-identity-fix/resume-verification.mjs",
+      "sha256": "fae3570778ce5aa602aa25f6761e7e347ab5de56efec614d0dfd1718050bb9b4",
+      "reason": "당시 실행 source의 해시 증거를 보존하므로 상단 주석을 변경하지 않는다."
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.0/20260904-s05-identity-fix/verify-actual-link-reader.mjs",
+      "sha256": "6629b50fe944c30a3c49c828fdb3f0567ce7269610e7264ae958a628f9204110",
+      "reason": "당시 실행 source의 해시 증거를 보존하므로 상단 주석을 변경하지 않는다."
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.0/20260904-s05-identity-fix/verify-actual-link-reader.test.mjs",
+      "sha256": "b26a9265c9de38370259075edaeb12ef8b70ceccd74890db357094714a4c336e",
+      "reason": "당시 실행 source의 해시 증거를 보존하므로 상단 주석을 변경하지 않는다."
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.0/20260904-s05-identity-fix/verify-actual.mjs",
+      "sha256": "dfa43d418f298fd81038267593efd2583542b37f748cd29218372196d68b5100",
+      "reason": "당시 실행 source의 해시 증거를 보존하므로 상단 주석을 변경하지 않는다."
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.0/20260904-s05-identity-red/reproduce.mjs",
+      "sha256": "633a714475ca8aad920df8ad2e7ab75536f51017ab215817cbd53ca2545de7df",
+      "reason": "당시 실행 source의 해시 증거를 보존하므로 상단 주석을 변경하지 않는다."
+    },
+    {
+      "path": "docs/release-artifacts/v4.1.0/20260905-s05-identity-actual-rerun/verify-actual-rerun.mjs",
+      "sha256": "0628b00fc2d5a2b48928ed77a7c9c9e1f00e07ef574b4a36c544cc0fe36b2e8c",
+      "reason": "당시 실행 source의 해시 증거를 보존하므로 상단 주석을 변경하지 않는다."
+    }
+  ],
   "headerPatterns": [
     "파일\\s*용도",
     "파일\\s*요약",

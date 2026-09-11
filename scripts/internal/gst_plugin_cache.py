@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# 파일 용도: Homebrew 원본을 건드리지 않는 headless 플러그인 링크·registry 캐시를 준비한다.
 """Homebrew 원본을 건드리지 않는 headless 플러그인 링크·registry 캐시를 준비한다."""
 
 import hashlib

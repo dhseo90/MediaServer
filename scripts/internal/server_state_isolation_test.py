@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# 파일 용도: 제품 서버를 띄우지 않고 launcher 상태 namespace 격리를 검증한다.
 """제품 서버를 띄우지 않고 launcher 상태 namespace 격리를 검증한다."""
 
 import os
