@@ -1,5 +1,192 @@
 # Release Test Records
 
+## S09 최초 오류 집계 보완 커밋 및 EVT-058 단독 진단 승인
+
+사용자가 현재 변경의 분할 커밋 후 EVT-058 단독 진단을 승인했다. 오류 집계 코드·계약 테스트와 실패·검증 기록을 분리 커밋하고 clean 상태에서 기존 diagnostic sweep의 `--case-id EVT-058`을 한 번 실행한다. 기존 EVT-058 exact action·요청 수명·cleanup 항목을 재사용하며 새 합격 기준을 만들지 않는다. 진단은 현재 소스 build를 선수 조건으로 실행한다. 푸시·전체 UI·30분·120분은 이번 승인 범위가 아니다. 단독 성공도 61366 전체 UI 실패를 소급 해소하지 않는다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 단독 진단의 현재 소스 build 및 커밋 전 diff 검사 | diagnostic sweep buildCurrentSourceBoundBinary | 승인됨 |
+| UI 풀테스트 | 조건부 진행 | 이번에는 전체가 아닌 EVT-058 단독 실제 브라우저 진단만 수행 | 기존 EVT-058 exact case | 단독 진단만 승인, 전체 미실행 |
+| 30분 테스트 | 미진행 | 이번 승인 범위 밖 | 기존52899 기록 유지 | 재실행하지 않음 |
+| 120분 테스트 | 미진행 | 이번 승인 범위 밖 | 녹화 전용 검증 미실행 유지 | 재실행하지 않음 |
+
+## S09 EVT-058 재발 후 최초 오류 집계 경계 조사
+
+61366 실패 이후 읽기 조사에서 `run_v390_ui_native_exact_cases.mjs`의 `caseExecutionFailure`가 분류 코드 없는 최초 Error보다 후속 request lifecycle 실패의 코드를 선택하고, `caseChildFailureCensus`가 그 코드를 이유로 최초 오류 행을 생략할 수 있음을 확인했다. 이는 오류 기록의 결함이며 실제 HTTP 미응답 원인의 확정이 아니다. adapter의 `waitForPendingRequestSnapshot`은 제한 시간 경과 시 plain Error를 던지지만, 이번 실행이 그 오류였다는 직접 증거는 아직 없다. trace는 최종 primary evidence 구성보다 먼저 저장되므로 trace의 null만으로 최초 오류가 없었다고 판정하지 않는다.
+
+메인과 단일 Astra/medium 담당자가 분리 조사했다. 담당자는 두 제품 endpoint를 읽고 메인은 실제 handler와 frontend를 직접 대조했다. `src/ingress/webrtc_http_server_runtime.cpp`의 impact-graph/runbook-instance-ledger GET은 snapshot 수집과 JSON 생성 뒤 200/no-store를 반환한다. `src/ingress/product_ui_page_scripts.cpp`는 해당 두 요청을 포함한 다섯 GET을 Promise.all로 실행하고 `product_ui_js.cpp`의 requestJson에는 명시 timeout/AbortSignal이 없다. snapshot 잠금·동기 I/O·브라우저 연결 대기 중 어느 경계가 지연됐는지는 계측 증거가 없어 미확정이다. 제품 handler, timeout, auth/media 계약과 UI 합격 기준은 변경하지 않는다.
+
+이번 보완은 최초 오류와 후속 lifecycle 오류를 안전한 집계로 모두 보존하는 범위다. 실제 미응답 해결, 전체 UI PASS 또는 S09 완료를 뜻하지 않는다. 서브에이전트는 기존 한 명을 재사용하며 하위 위임을 금지한다. Codex 위임 모델 gpt-6-astra/medium, 영향도2·불확실성1·검증 난이도1·변경 범위1=5점이나 실패 증거와 redaction 교차 검토 때문에 기존 복합 담당자를 유지한다. 자동 상향은 없다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 최초 오류 누락 결함의 focused RED/GREEN 및 기존 계약 회귀 | caseExecutionFailure, caseChildFailureCensus; child-isolation/native-exact 계약 | 현재 S09 목표 안의 수정·검증 |
+| UI 풀테스트 | 미진행 | 이번에는 오류 집계만 검증하며 실제 전체 UI를 다시 실행하지 않음 | 61366 FAIL 기록 유지 | 이번 보완에서 미실행 |
+| 30분 테스트 | 미진행 | 기존 52899 결과 유지 | S09 기존 기록 | 재실행하지 않음 |
+| 120분 테스트 | 미진행 | 전체 UI 미완료로 녹화 전용 검증에 진입하지 않음 | S09 실행 순서 | 이번 보완에서 미실행 |
+
+실행 전 개별 항목 등록:
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| PF-LC01 | plain 최초 오류와 후속 응답 누락 모두 보존 | 실제 caseExecutionFailure→finalizeCaseChildAttempt 경로에서 대표 CASE_EXECUTION_FAILED와 census [CASE_EXECUTION_FAILED, RESPONSE_MISSING] 확인. 수정 전 최초 코드가 REQUEST_LIFECYCLE_FAILED인 assertion 실패를 예상 RED로 특정 | v4.1.0 |
+| PF-LC02 | lifecycle-only 오류 중복 집계 금지 | 실제 evaluator RESPONSE_MISSING을 사용하여 대표 REQUEST_LIFECYCLE_FAILED 유지 및 누락 행 정확히 한 개 확인 | v4.1.0 |
+| PF-LC03 | 최초 오류 보존 시 비밀값 비노출·정리 유지 | canary message/URL 미노출, cleanup pass, actualBrowserExecution=false 확인 | v4.1.0 |
+
+명령은 `node scripts/internal/verify_v390_ui_case_child_isolation_contract.mjs`의 RED/GREEN과 `node scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs` 회귀다. 기존 개별 항목은 같은 문서의 앞선 계약 검증 정의를 재사용한다. fixture 결과는 실제 UI 실행 evidence가 아니다.
+
+token start8241252/end8308017/consumed66765. source=공유 Codex goal(문맥 복원·조사·위임·검증·기록 포함)이며 개별 테스트만의 소비량은 아니다. elapsed는 전체 wallclock 사전 계측이 없어 미집계다. 커밋·푸시는 이번 보완에서 수행하지 않는다.
+
+### 오류 집계 보완 검증 결과
+
+메인이 실제 diff와 원출력 전수 행을 직접 확인했다. 실제 수정은 최초 오류가 있을 때 후속 lifecycle class/phase/code를 대표값으로 상속하지 않는 세 표현식이다. 원문 오류 메시지, URL, 허용 코드, timeout, continuation eligibility 및 제품 경로는 변경하지 않았다. RED는40pass/1fail(exit1, PF-LC01만 예상 assertion 실패), GREEN은41pass/0fail(exit0), native exact 회귀는60pass/0fail(exit0)이다. syntax 두 파일과 git diff --check도 exit0이다.
+
+C=`node scripts/internal/verify_v390_ui_case_child_isolation_contract.mjs`, E=`node scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs`. 아래101개 행은 원출력의 기술 식별자를 보존한다. 전체 UI·30분·120분 및 제품 build는 이번 수정에서 미실행이며, 61366 UI FAIL과 실제 HTTP 지연 원인 미확정 상태를 유지한다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| completed actual case child bypasses the Node worker shutdown deadlock | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| canonical browser children disable concurrent Maglev shutdown work | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| suite finalizer scans success and failure artifacts before secret release | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| production suite-finalizer child writes one attested PASS summary | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| FD08 finalizer subprocess canonicalizes new PNG before summary and secret attestation | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| production suite-finalizer child writes one safe attested FAIL summary | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| production suite-finalizer child drops tainted probe-secret payload | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| production suite-finalizer child drops tainted adapter-secret payload | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| production suite-finalizer child removes a secret-bearing disk artifact before release | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| pass child writes one attempted PASS summary | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| production case child removes a secret-bearing disk artifact before release | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| callback-capture-error writes a valid one-attempt FAIL summary | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| lifecycle-duplicate-response writes a valid one-attempt FAIL summary | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| dom-assertion-error writes a valid one-attempt FAIL summary | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| api-assertion-error writes a valid one-attempt FAIL summary | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| rejected-promise writes a valid one-attempt FAIL summary | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| timeout-like writes a valid one-attempt FAIL summary | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| cleanup-error-after-assertion writes a valid one-attempt FAIL summary | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| cleanup failure is appended without erasing the primary assertion | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| PF-LC01 plain primary remains first before secondary missing response | C exit0; 해당 assertion 통과 | pass | 최초 예상 RED fail 후 pass |
+| PF-LC02 lifecycle-only missing response is not duplicated | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| PF-LC03 plain primary remains redacted with cleanup and fixture boundary | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| dom-multi-lifecycle-secret-error preserves the primary and every lifecycle failure in deterministic order | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| api-multi-lifecycle-secret-error preserves the primary and every lifecycle failure in deterministic order | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| subdir-preflight-error still attempts one case and writes a valid FAIL summary | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| adapter-bootstrap-error still attempts one case and writes a valid FAIL summary | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| runtime-bootstrap-error still attempts one case and writes a valid FAIL summary | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| source-binding-error still attempts one case and writes a valid FAIL summary | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| summary-build-error still attempts one case and writes a valid FAIL summary | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| summary-serialize-error still attempts one case and writes a valid FAIL summary | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| release-secrets-error still attempts one case and writes a valid FAIL summary | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| retained-secret fallback discards a tainted lifecycle projection and scans final bytes | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| a throwing retained-secret scanner cannot block or leak the independent summary | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| evaluator throw is exhaustively censused with primary and finalization failures | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| subdir-preflight-error injection traverses and proves the production catch boundary | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| adapter-bootstrap-error injection traverses and proves the production catch boundary | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| runtime-bootstrap-error injection traverses and proves the production catch boundary | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| a failed child does not contaminate the next process | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| only summary write failure uses the dedicated infra-fatal marker | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| an unusable output root is the same dedicated summary-write infrastructure failure | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| selection cardinality failure is not reported as an attempted case | C exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| generated manifest validates against canonical exact ordered 424 | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| event typed fixtures select one row and preserve request-derived identities | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| incident memory search fixtures bind every product filter and searchable query | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| event review seed receipts bind PUT response, storage readback, and EventRecord identity | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| event review authoritative readback selects one exact nested event/review identity | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| EVT-038 binds one dry-run response to one attempt, audit row, and DOM projection | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| event review note evidence survives the production failure rewrap and parent aggregation | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| builder is deterministic and preserves exact case order | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| all 424 completion modes separate document navigation from application requests | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| all 424 failure lifecycles retain the initial manifest navigation binding | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| independent readback passes one coordinator ownership context and always ends it | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| RULE-097 callback receives only its declared explicit argument projection | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| bounded ownership cleanup precedes physical close without changing close truth | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| EVT-004 reuses one document navigation and correlates only the authoritative API fetch | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| canonical and native generator writes are one validated atomic transaction | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| RULE relationship fixtures use one collision-free numeric identity contract | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| workflow distribution is owned by the shared exact 424 contract | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| declared exact runtime seeds materialize through the shared deterministic fixture registry | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| every exact EVT seed.kind has a declarative store and join materializer | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| event review mutation cleanup validates an empty 200 collection and byte restore | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| event review seed keeps the official top-level note schema and uses structured reload | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| records.records fixture family uses product dispatch with exact readback and cleanup | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| fixture-safe incident digests bind one authoritative event to one safe summary | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| EVT-023/026 expected digest binds one materialized EventRecord identity before browser startup | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| EVT-004 diagnostic log evidence is redacted and byte-restored before native execution | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| audited route-local primary controls match their exact runtime oracles | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| endpoint source fixtures intentionally cross the published canonical-media baseline without bypassing sourceId identity | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| inactive-or-equal-before cleanup accepts absent or disabled state and rejects enabled residue | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| non-canonical implementation review metadata does not invalidate the exact 424 manifest | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| exact-case implementation projection drift and whole-file fallback are rejected | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| endpoint action execution inputs retain full runtime values but trace inputs are release-safe digests | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| admin-only ops users cases and runtime role schema stay authoritative | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| API ownership routes normalize to product screens | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| UI-017 binds the client events read model instead of a dashboard-only preset status | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| UI-018 remains a dedicated negative route case | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| SAFE-017 keeps its cross-route negative behavior without changing UI-018 classification | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| MEDIA/SAFE client cases and SAFE-016 negative route use one exact route lifecycle | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| remaining client-safe batch clusters bind dynamic identities and owned lifecycle endpoints | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| actual read-only and hidden-boundary completion requests use exact runtime oracle paths | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| all cases declare native action, oracle seed, and artifact plan | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| REVIEW4-56 requires exact typed product workflows for all 424 cases | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| REVIEW4-56 rejects fallback no-submit generic and self-comparison workflows | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| runner owns native execution, role state, first-fail, and artifact fields | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| self-contained runtime closes invite, auth readback, preference, and visual-session gaps | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| case runtime keeps generated secrets ephemeral and rejects state path escape | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| authoritative cleanup readback restores state after success and failure | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| SRC-010 and SRC-019 use a fresh fixture-scoped viewer and restore auth bytes | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| fresh role session restores login audit writes before a read-only case | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| fresh viewer session uses scope and client view readback instead of a nonexistent whoami viewId | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| canonical requested route and runtime screen route are explicit projections | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| runner and producer share typed capture schema while qualifier is independently implemented | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| missing, reordered, unsupported, API-screen, and field drift are rejected | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| stale implementation binding writes a fail-closed 0/424 pre-execution summary | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| canonical parent bootstrap failure writes a fail-closed 0/424 summary | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| pre-execution failure cannot become UI PASS, Policy v4 eligible, or cleanup evidence | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| raw capture success and UI qualification remain separate lifecycle states | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| evidence producer failure always leaves an exact 424 failure ledger | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| full exact failure ledger preserves the typed EVT-004 lifecycle envelope | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| failed case partial artifacts are referenced, deduplicated, and orphan-free | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+| canonical case children bind duplicate screenshots to one prior artifact | E exit0; 해당 assertion 통과 | pass | 계약 검증; 실제 UI PASS 아님 |
+
+### 보완 검증 산출물 정리
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-uGq8L9 | finalizer fixture | 3705B | verifier 삭제 | 메인 부재 확인 | s09-pflc-red.log |
+| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-xTfXpJ | finalizer fixture | 3705B | verifier 삭제 | 메인 부재 확인 | s09-pflc-red.log |
+| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-lScpiT | finalizer fixture | 1814B | verifier 삭제 | 메인 부재 확인 | s09-pflc-red.log |
+| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-duUCpk | finalizer fixture | 1620B | verifier 삭제 | 메인 부재 확인 | s09-pflc-red.log |
+| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-ov9JhA | finalizer fixture | 1620B | verifier 삭제 | 메인 부재 확인 | s09-pflc-red.log |
+| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-WuamLs | finalizer fixture | 1705B | verifier 삭제 | 메인 부재 확인 | s09-pflc-red.log |
+| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-vZ60zj | finalizer fixture | 3705B | verifier 삭제 | 메인 부재 확인 | s09-pflc-green.log |
+| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-kH1qwc | finalizer fixture | 3705B | verifier 삭제 | 메인 부재 확인 | s09-pflc-green.log |
+| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-pZIGhH | finalizer fixture | 1814B | verifier 삭제 | 메인 부재 확인 | s09-pflc-green.log |
+| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-6DI2CT | finalizer fixture | 1620B | verifier 삭제 | 메인 부재 확인 | s09-pflc-green.log |
+| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-Ta7mGW | finalizer fixture | 1620B | verifier 삭제 | 메인 부재 확인 | s09-pflc-green.log |
+| /Users/dhseo/Workspace/mediaServer/.v390-suite-finalizer-contract-SzFCtc | finalizer fixture | 1705B | verifier 삭제 | 메인 부재 확인 | s09-pflc-green.log |
+| .media_server.test/s09-pflc-red.log | 임시 결과 로그 | 3999B | 전수 행 이관 후 삭제 | 메인 SHA·크기 대조 후 삭제, absent=true | SHA256 565753d9e65405aa00ddc5c7c0ce7f3804e8b0c8ecd0f598e7d0157055bb5475 |
+| .media_server.test/s09-pflc-green.log | 임시 결과 로그 | 3937B | 전수 행 이관 후 삭제 | 메인 SHA·크기 대조 후 삭제, absent=true | SHA256 5e027a9a534ae82ce1dc46b93cae9a5141874a1a211c94d4d8181eebe97dd8cb |
+| .media_server.test/s09-pflc-exact.log | 임시 결과 로그 | 5370B | 전수 행 이관 후 삭제 | 메인 SHA·크기 대조 후 삭제, absent=true | SHA256 3c9afb69bc53a0724046490ae435e491a99f4a40a73553d7a3fcba2eaaf2fa58 |
+
+그 외 child/exact 임시 root는 verifier finally 정리 및 담당자의 해당 prefix 잔존0 확인으로 기록한다. 개별 랜덤 경로와 삭제 전 크기는 기존 verifier에서 계측하지 않아 미집계다. 새 제품 서버·포트는 사용하지 않았다. 기록 생성 보조 명령의 첫 시도는 행 수41로 조립을 거절했고 파일 변경 없이 종료했다. prefix 파싱으로 정정하여 원출력101개 행을 이관했으며 제품 테스트 실패와 구분한다.
+
+## S09 실제 UI 재검증 61366 — EVT-058 응답 누락 재발
+
+`./test_ui.sh`는 source522aab3e에서 실행되어 exit1로 종료했다. canonical424개를 모두 시도했고423pass/1fail(EVT-058), notRun/unsupported/runnerAbort0이다. UI-004는 통과했다. launcher26/0, source contract60/0, preflight·build·bootstrap은 통과했다. qualification은 미실행이며 uiFulltestPass=false다. 후속30분·120분·전체432 UI 완료로 대체하지 않는다. 상세 개별 기록은 [61366 실행 전수 결과](release-artifacts/v4.1.0/s09-ui-baseline-67127/results.md)에 이관한다.
+
+실패 직접 근거: request131/response130, RESPONSE_MISSING `EVT-058:object-111`/`native-request-57`, GET `/ops/api/site-operations/impact-graph`. 진단 start sequence165/time1789119672434, responses/finished/failed 배열 모두 비어 있고 capture seal=null/afterSeal=[]이다. 조작3개는 PASS였으나 요청 수명 검증은 FAIL이다. 해당case duration32080ms(09:41:11.587Z~09:41:43.667Z); 앞 EVT-057은2300ms이고 seal 존재. runner의 pending snapshot 성공 경로는 capture seal을 남기므로 이번 실패는 해당 성공 경계에 도달한 증거가 없다. 실제 대기 timeout인지, 브라우저/서버 중 어디서 요청이 멈췄는지는 아직 확정하지 않았다. primaryFailureEvidence/failureProvenance가 null이므로 이 값만으로 최초 원인을 단정하지 않는다.
+
+cleanup 및 ui-final-integrity는 PASS지만 이는 실패 기록과 정리의 무결성이지 UI 기능 PASS가 아니다. 동일 EVT-058 실패를 단순 재시도 성공으로 해결 처리하지 않는다. 다음은 이 진단과 대기·종료 경계를 대조하는 원인 분석이며 timeout 증가·응답 누락 허용·촬영 생략을 적용하지 않았다. 제품 코드 수정·새 테스트·새 커밋·푸시는 수행하지 않았다.
+
+token start7868391/end7943312/consumed74921; source=공유 Codex goal(실행·대기·초기 기록 포함), 개별 테스트 소비량 아님. launcher 시작09:21:35 UTC, exact 시작09:22:04.440Z, 서버정리 시작09:46:07.468Z, report09:46:08.568Z. launcher 정밀 종료 계량은 없으므로 단계 시간을 전체 정확 duration으로 대체하지 않는다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| 임시 media_server_v390_ui-xDjXTc | 소유 서버 runtime | 1582578bytes | runner 삭제 | 부재 확인 | 메인 exists=false, 승격 읽기 ps/lsof PID72971·TCP57492/57493 없음 |
+| .media_server.test/v4.1.0/ui-acceptance-current | 이번 실제 UI 원본1852파일 | 180782113bytes | 전수 결과 및 진단 이관 후 삭제 | 삭제 후 absent=true 직접 확인 | runId·결과·파일 수·크기 재대조, 기존 진단 보존물 제외 |
+
+메인이 전용 기록의424 summary·trace SHA와 원본을 직접 전수 대조해 불일치0, case424행·action1089개를 확인했다. 이번 원본은 삭제했으나 실행결과·실패진단·해시를 문서에 보존했다. 원본 파일 자체를 복구하지는 않았으며 재실행 결과는 다른 실행 증거다. finalizer80개는 실제 미진입으로 이번 cleanup PASS를 finalizer 수정의 실제 브라우저 PASS로 쓰지 않는다.
+
 ## S09 finalizer 보완 후 실제 UI 재검증 승인
 
 2026-09-11 사용자가 `커밋 후 UI 재검증 진행`을 승인했다. 기존 수정·검증 기록은 분할 커밋하고 `./test_ui.sh`를 같은 canonical424·반응형80·Policy v4·최종 정리 범위로 재실행한다. 푸시는 하지 않는다. 실제 완료 여부는 실행 결과 확인 후 기록하며 기존58281 FAIL을 소급 변경하지 않는다.
