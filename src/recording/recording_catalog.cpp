@@ -583,6 +583,12 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
             // 이미 Corrupt와 삭제 pending/completed 상태는 단조적으로 보존한다.
             break;
         }
+        case RecordingMutationType::RecordingOrderReserved: {
+            RecordingOrderReservationV1 order;
+            ok = ParseRecordingOrderReservationV1(mutation.payload_json, &order, error) &&
+                 order.request_id == mutation.mutation_id && order.segment_id == mutation.entity_id;
+            break;
+        }
         case RecordingMutationType::Unknown:
             ok = Fail(error, "unknown mutation");
             break;

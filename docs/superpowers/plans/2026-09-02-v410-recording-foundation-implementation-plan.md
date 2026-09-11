@@ -1764,6 +1764,52 @@ git commit -m "docs: v4.1 녹화 기반 검증과 evidence 마감"
 AGENTS.md 1.3에 따라 새 검토 에이전트·하위 에이전트 없이 기존 담당자를 재사용한다.
 실제 실패 발생 시 보고·중단하며 예상 RED만 같은 범위에서 구현으로 진행한다.
 
+### S10-3B 영속 순서 예약 저장 API
+
+이번 범위는 `RecordingJournal::ReserveRecordingOrder(store_id, request_id, segment_id,
+channel_id, result, error)`와 `RecordingOrderReservationV1`의 저장 계층 구현이다.
+결과는 입력 네 ID와 양의 int64 `sequence`다. 모든 ID는 기존 opaque ID 검증을 따른다.
+`recording_order_reserved` mutation의 entityId는 segment ID, mutationId는 request ID이며,
+payload schema는 `media-server.recording-order.v1`이다. 기존 V1 필드 의미는 바꾸지 않는다.
+
+- 첫 예약이 store ID를 내구적으로 결박한다. 같은 원장의 다른 store ID, 요청/segment 재사용
+  충돌, 기존 다른 mutation의 request ID 충돌, 잘못된 예약 payload는 거부한다.
+  예약 없이 먼저 finalize/삭제된 V1 segment에 순서를 소급 부여하지 않는다.
+- 동일 요청·동일 네 ID는 기존 번호를 반환한다. 새 요청은 원장에 기록된 최댓값 다음 번호를
+  발급한다. 번호의 의미는 UTC·finalize 순서가 아니며 INT64_MAX 이후 발급은 거부한다.
+  동일 예약 중복을 제외한 기존 발급 순서의 역행도 거부하며 번호 사이 공백은 허용한다.
+- inode/parent 검증과 동일 FD의 배타 flock 안에서 전체 읽기·검증·append·fsync를 수행한다.
+  다른 인스턴스/프로세스도 같은 잠금을 사용한다. 성공 및 재시도 반환 전에 fsync한다.
+- 손상·미지원·불완전 tail 또는 충돌하는 예약이 있으면 원문을 보존하고 거부한다.
+  이 경로에서는 기존 Append의 tail repair를 호출하지 않는다. 일반 Append로 예약을 우회할 수 없다.
+- catalog는 정상 예약을 읽되 기존 segment/삭제 projection에 새 의미를 넣지 않는다.
+  writer/composition root 연결, store migration, downgrade 차단, 시간 매핑은 이번에 활성화하지 않는다.
+- 전체 원장 검증 비용은 원장 크기에 비례한다. 우선 정확성 경계를 검증하며 이것을 장기 운영
+  성능 PASS로 보고하지 않는다. 실제 활성화 전 원장 성장·쓰기 소유권·구형 binary 접근을 닫아야 한다.
+  64KiB chunk로 읽고 record 하나는 16MiB 안전상한을 적용한다. 상한 초과도 원문 보존 후 거부한다.
+  충돌 인덱스 메모리는 원장 크기에 비례한다. 기존 일반 Append에 전체 scan을 추가하지 않으며,
+  외부/일반 append로 생긴 충돌은 다음 Reserve에서 검출한다. 비협조 writer 차단 완료가 아니다.
+
+검증은 기존 `./server.sh verify-v410-recording-catalog`만 사용한다. 새 API의 컴파일 가능한
+거부 stub에서 최초 발급·재시도/재시작·정상 원장 호환·동시 발급 assertion의 예상 RED를 확인한다.
+기존 회귀/빌드/환경 오류는 예상 RED가 아니다. 중앙 S10-3B 사전등록의 오류 경계도 GREEN에 포함한다.
+코드 네 파일은 기존 담당자 소유, 문서/최종 검토는 메인 소유다. 하위 생성·커밋·푸시·S10-3C 착수는 금지한다.
+
+| 런타임 패밀리 | 담당 | 추천 모델 | 추론 수준 | 선정 근거 |
+| --- | --- | --- | --- | --- |
+| Codex | 단일 기존 서브에이전트 | gpt-6-astra | medium 유지 | 영향2/불확실성1/검증2/범위1=6. 저장 원자성의 확정 구현이며 메인이 안전 계약·결과를 검토한다. 상향/추가 생성 없음; 실행 설정 변경 없음 |
+
+- [x] 사전등록·예상 RED 확인
+- [x] 저장 API 및 catalog 호환 구현·GREEN
+- [x] 실제 diff·개별 결과·cleanup 대조와 한정 완료 보고
+
+저장 API 한정 결과: RED 두 회 모두 113/13(새 양성13만 예상 실패), GREEN135/0 후
+기존 계약의 독립 경계4개를 보강한 최종139/0(C++130+shell9). 제품 코드는 GREEN 이후
+변경하지 않았다. 개별 결과·이력·cleanup은 중앙 테스트 기록 S10-3B 절에 보존한다.
+메인은 same-FD 잠금, strict payload/envelope 결박, 단조 발급·ID 충돌, fsync 뒤 결과 반환,
+기존 Append 비용 유지와 실제 테스트를 직접 대조했다. 이번 변경은 위 코드 네 파일 및 관련
+기존 문서에 한정한다. 커밋·푸시는 미수행이다. 실제 writer 활성화와 S10-3C는 미완료다.
+
 v4.1.0 개발 완료는 다음이 모두 참일 때만 성립한다.
 
 1. channel opt-in recorder가 client 유무와 무관하게 source를 유지하고 불변 segment를

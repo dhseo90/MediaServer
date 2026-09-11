@@ -3,9 +3,14 @@
 #include "recording/recording_journal.h"
 
 #include <cerrno>
+#include <algorithm>
 #include <cstring>
 #include <fstream>
 #include <sstream>
+#include <chrono>
+#include <limits>
+#include <unordered_map>
+#include <unordered_set>
 #include <sys/stat.h>
 
 #include "domain/strict_json.h"
@@ -215,6 +220,7 @@ std::string RecordingMutationTypeName(RecordingMutationType type) {
         case RecordingMutationType::DeletionRequested: return "deletion_requested";
         case RecordingMutationType::DeletionCompleted: return "deletion_completed";
         case RecordingMutationType::CorruptionDetected: return "corruption_detected";
+        case RecordingMutationType::RecordingOrderReserved: return "recording_order_reserved";
         case RecordingMutationType::Unknown: return "unknown";
     }
     return "unknown";
@@ -228,6 +234,7 @@ RecordingMutationType ParseRecordingMutationType(const std::string& value) {
     if (value == "deletion_requested") return RecordingMutationType::DeletionRequested;
     if (value == "deletion_completed") return RecordingMutationType::DeletionCompleted;
     if (value == "corruption_detected") return RecordingMutationType::CorruptionDetected;
+    if (value == "recording_order_reserved") return RecordingMutationType::RecordingOrderReserved;
     return RecordingMutationType::Unknown;
 }
 
@@ -262,12 +269,160 @@ bool ParseRecordingMutationV1(const std::string& json,
     }
     const auto parsed_type = ParseRecordingMutationType(*mutation_type);
     if (parsed_type == RecordingMutationType::Unknown) return Fail(error, "지원하지 않는 mutation type");
+    if (parsed_type == RecordingMutationType::RecordingOrderReserved) {
+        RecordingOrderReservationV1 reservation;
+        if (!ParseRecordingOrderReservationV1(*payload, &reservation, error)) return false;
+        if (reservation.request_id != *mutation_id || reservation.segment_id != *entity_id)
+            return Fail(error, "recording order envelope 결박 불일치");
+    }
     *value = RecordingMutationV1{*schema, *mutation_id, parsed_type, *occurred_at_ms, *entity_id, *payload};
     if (error != nullptr) error->clear();
     return true;
 }
 
 RecordingJournal::RecordingJournal(std::filesystem::path path) : path_(std::move(path)) {}
+
+bool ParseRecordingOrderReservationV1(const std::string& json, RecordingOrderReservationV1* value, std::string* error) {
+    if (value == nullptr) return Fail(error, "recording order output이 없음");
+    ingress::StrictJsonObjectDocument document;
+    if (!ingress::ParseStrictJsonObjectDocument(json, &document, error)) return false;
+    const auto schema = ingress::StrictJsonStringField(document, "schema");
+    const auto store = ingress::StrictJsonStringField(document, "storeId");
+    const auto request = ingress::StrictJsonStringField(document, "requestId");
+    const auto segment = ingress::StrictJsonStringField(document, "segmentId");
+    const auto channel = ingress::StrictJsonStringField(document, "channelId");
+    const auto sequence = Int64Field(document, "sequence");
+    if (document.members.size() != 6 || schema != "media-server.recording-order.v1" ||
+        !store || !request || !segment || !channel || !sequence || *sequence <= 0)
+        return Fail(error, "recording order payload field가 잘못됨");
+    if (!ValidateOpaqueId(*store, error) || !ValidateOpaqueId(*request, error) ||
+        !ValidateOpaqueId(*segment, error) || !ValidateOpaqueId(*channel, error)) return false;
+    *value = RecordingOrderReservationV1{*schema, *store, *request, *segment, *channel, *sequence};
+    if (error != nullptr) error->clear();
+    return true;
+}
+bool RecordingJournal::ReserveRecordingOrder(const std::string& store_id, const std::string& request_id,
+    const std::string& segment_id, const std::string& channel_id,
+    RecordingOrderReservationV1* result, std::string* error) {
+    std::lock_guard lock(mu_);
+    if (!opened_ || result == nullptr) return Fail(error, "recording order 시작 조건 불충족");
+    if (!ValidateOpaqueId(store_id, error) || !ValidateOpaqueId(request_id, error) ||
+        !ValidateOpaqueId(segment_id, error) || !ValidateOpaqueId(channel_id, error)) return false;
+#if !defined(_WIN32)
+    OwnedFd parent(OpenParent(io_path_, false));
+    struct stat directory {};
+    if (parent.value < 0 || ::fstat(parent.value, &directory) != 0 ||
+        parent_device_ != static_cast<std::uint64_t>(directory.st_dev) || parent_inode_ != directory.st_ino)
+        return Fail(error, "recording order parent 교체 거부");
+    const std::string name = io_path_.filename().string();
+    OwnedFd fd(::openat(parent.value, name.c_str(), O_RDWR | O_APPEND | O_NOFOLLOW | O_CLOEXEC | O_NONBLOCK));
+    struct stat bound {};
+    if (fd.value < 0 || !Lock(fd.value, LOCK_EX) || !Regular(fd.value, &bound) || bound.st_size < 0 ||
+        device_ != static_cast<std::uint64_t>(bound.st_dev) || inode_ != bound.st_ino ||
+        !Same(parent.value, name, fd.value, bound)) return Fail(error, "recording order unsafe inode 거부");
+
+    // 예약은 전체 완결 원장을 검증한다. 일반 Append의 복구/비용 계약은 바꾸지 않는다.
+    std::unordered_map<std::string, RecordingOrderReservationV1> requests;
+    std::unordered_map<std::string, std::int64_t> request_times;
+    std::unordered_set<std::string> segments, ordinary_ids, legacy_segments;
+    std::string bound_store;
+    std::int64_t maximum = 0;
+    const auto consume = [&](const std::string& line) -> bool {
+        if (line.empty()) return true;
+        RecordingMutationV1 mutation;
+        if (!ParseRecordingMutationV1(line, &mutation, error)) return false;
+        if (mutation.mutation_type != RecordingMutationType::RecordingOrderReserved) {
+            if (requests.count(mutation.mutation_id)) return Fail(error, "recording order mutation ID 충돌");
+            ordinary_ids.insert(mutation.mutation_id);
+            if ((mutation.mutation_type == RecordingMutationType::SegmentFinalized ||
+                 mutation.mutation_type == RecordingMutationType::CorruptionDetected ||
+                 mutation.mutation_type == RecordingMutationType::DeletionRequested ||
+                 mutation.mutation_type == RecordingMutationType::DeletionCompleted) &&
+                !segments.count(mutation.entity_id)) legacy_segments.insert(mutation.entity_id);
+            return true;
+        }
+        RecordingOrderReservationV1 order;
+        if (!ParseRecordingOrderReservationV1(mutation.payload_json, &order, error)) return false;
+        if (ordinary_ids.count(order.request_id) || legacy_segments.count(order.segment_id))
+            return Fail(error, "recording order 기존 ID 소급/재사용 거부");
+        if (!bound_store.empty() && bound_store != order.store_id)
+            return Fail(error, "recording order store 충돌");
+        bound_store = order.store_id;
+        const auto previous = requests.find(order.request_id);
+        if (previous != requests.end()) {
+            const auto& old = previous->second;
+            if (old.store_id != order.store_id || old.segment_id != order.segment_id ||
+                old.channel_id != order.channel_id || old.sequence != order.sequence ||
+                request_times.at(order.request_id) != mutation.occurred_at_ms)
+                return Fail(error, "recording order 동일 요청 기록 충돌");
+            return true;
+        }
+        if (segments.count(order.segment_id) || order.sequence <= maximum)
+            return Fail(error, "recording order segment/발급 순서 충돌");
+        maximum = order.sequence;
+        segments.insert(order.segment_id);
+        request_times.emplace(order.request_id, mutation.occurred_at_ms);
+        const auto order_request_id = order.request_id;
+        requests.emplace(order_request_id, std::move(order));
+        return true;
+    };
+    constexpr std::size_t kChunkBytes = 64 * 1024, kMaxRecordBytes = 16 * 1024 * 1024;
+    char chunk[kChunkBytes];
+    std::string line;
+    off_t offset = 0;
+    while (offset < bound.st_size) {
+        const auto wanted = static_cast<std::size_t>(std::min<off_t>(bound.st_size - offset, kChunkBytes));
+        ssize_t count;
+        do { count = ::pread(fd.value, chunk, wanted, offset); } while (count < 0 && errno == EINTR);
+        if (count <= 0) return Fail(error, "recording order 원장 읽기 실패");
+        offset += count;
+        for (ssize_t i = 0; i < count; ++i) {
+            if (chunk[i] == '\n') {
+                if (!consume(line)) return false;
+                line.clear();
+            } else {
+                if (line.size() == kMaxRecordBytes) return Fail(error, "recording order record 상한 초과");
+                line.push_back(chunk[i]);
+            }
+        }
+    }
+    if (!line.empty()) return Fail(error, "recording order 미완결 tail 거부");
+    struct stat after {};
+    if (!Regular(fd.value, &after) || after.st_size != bound.st_size || !Same(parent.value, name, fd.value, bound))
+        return Fail(error, "recording order 원장 변경 거부");
+    if ((!bound_store.empty() && bound_store != store_id) || ordinary_ids.count(request_id))
+        return Fail(error, "recording order store/request 충돌");
+    const auto previous = requests.find(request_id);
+    if (previous != requests.end()) {
+        const auto& old = previous->second;
+        if (old.segment_id != segment_id || old.channel_id != channel_id)
+            return Fail(error, "recording order 재시도 ID 충돌");
+        if (!Sync(fd.value)) return Fail(error, "recording order 재시도 fsync 실패");
+        *result = old;
+    } else {
+        if (segments.count(segment_id) || legacy_segments.count(segment_id))
+            return Fail(error, "recording order segment 재사용 거부");
+        if (maximum == std::numeric_limits<std::int64_t>::max()) return Fail(error, "recording order 번호 고갈");
+        RecordingOrderReservationV1 order{"media-server.recording-order.v1", store_id, request_id, segment_id, channel_id, maximum + 1};
+        RecordingMutationV1 mutation;
+        mutation.mutation_id = request_id;
+        mutation.entity_id = segment_id;
+        mutation.mutation_type = RecordingMutationType::RecordingOrderReserved;
+        mutation.occurred_at_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+        mutation.payload_json = "{\"schema\":\"media-server.recording-order.v1\",\"storeId\":\"" + Escape(store_id) +
+            "\",\"requestId\":\"" + Escape(request_id) + "\",\"segmentId\":\"" + Escape(segment_id) +
+            "\",\"channelId\":\"" + Escape(channel_id) + "\",\"sequence\":" + std::to_string(order.sequence) + "}";
+        if (!WriteAll(fd.value, SerializeRecordingMutationV1(mutation) + "\n") || !Sync(fd.value))
+            return Fail(error, "recording order write/fsync 실패");
+        *result = std::move(order);
+    }
+    if (error != nullptr) error->clear();
+    return true;
+#else
+    return Fail(error, "recording order 배타 잠금 미지원");
+#endif
+}
 
 bool RecordingJournal::Open(std::string* error) {
     std::lock_guard lock(mu_);
@@ -302,6 +457,8 @@ bool RecordingJournal::Open(std::string* error) {
 bool RecordingJournal::Append(const RecordingMutationV1& mutation, std::string* error) {
     std::lock_guard lock(mu_);
     if (!opened_) return Fail(error, "journal이 열리지 않음");
+    if (mutation.mutation_type == RecordingMutationType::RecordingOrderReserved)
+        return Fail(error, "recording order 전용 예약 API 필요");
     RecordingMutationV1 parsed;
     const std::string line = SerializeRecordingMutationV1(mutation);
     if (!ParseRecordingMutationV1(line, &parsed, error)) return false;

@@ -1,5 +1,240 @@
 # Release Test Records
 
+## S10-3B 영속 순서 예약 사전등록
+
+상세 API·안전 계약은 기존 구현계획 S10-3B 절을 따른다. 테스트 실행 전 등록이다.
+명령은 `./server.sh verify-v410-recording-catalog`이며 기존 회귀도 유지한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-O01 | 최초 발급·store 결박 | 새 원장 sequence 1 및 versioned payload replay 확인 | v4.1.0 |
+| S10-O02 | 멱등 재시도 | 동일 네 ID의 번호 동일·원장 byte 불변 | v4.1.0 |
+| S10-O03 | 재시작 후 다음 번호 | 새 journal 인스턴스와 재시작 프로세스에서 이전 번호 재사용 없음 | v4.1.0 |
+| S10-O04 | ID 충돌 차단 | store/request/segment/channel 변경·다른 mutation ID 충돌 거부와 원문 보존 | v4.1.0 |
+| S10-O05 | 비정상 원장 차단 | 손상/미지원 schema/type/불완전 tail/잘못된 예약 payload 거부·원문 보존 | v4.1.0 |
+| S10-O06 | 번호 경계 | 양의 int64 검증, 중복 번호 충돌 및 INT64_MAX overflow 거부 | v4.1.0 |
+| S10-O07 | 프로세스 동시 발급 | 별도 프로세스·별도 FD 동시 요청 번호 유일성·총수·다음 번호 검사 | v4.1.0 |
+| S10-O08 | 우회·입력 차단 | 일반 Append 예약 차단, 미open·null output·invalid ID 거부 | v4.1.0 |
+| S10-O09 | 원본 FD 보호 | inode/parent 교체·symlink/hardlink 거부, 원본 보존 | v4.1.0 |
+| S10-O10 | 기존 catalog 호환 | 정상 예약과 V1 segment 공존·catalog open/rebuild 및 기존 84검사 유지 | v4.1.0 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 저장 API/원장 parser 한정 변경 | S10-O01~10 | 현재 진행 승인 범위 |
+| 30분 테스트 | 미진행 | writer 미연결, S11 아님 | S10-3B 계획 | 미실행 |
+| 120분 테스트 | 미진행 | 실제 media/lifecycle 활성화 없음 | S10-3B 계획 | 미실행 |
+| UI 풀테스트 | 미진행 | UI 무변경 | S10-3B 계획 | 미실행 |
+
+S10-3B 최초 GREEN 뒤 계약 직접 대조 보완을 실행 전에 등록한다. 아래 항목은 이미 구현된
+동일 계약의 characterization이며 예상 RED로 주장하지 않는다. 승인된 catalog 명령으로만 검사한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-O02 identical durable reservation duplicates remain idempotent | 동일 raw 예약 두 행 | 동일 네 ID 재시도 sequence 유지·원문 bytes 불변 | v4.1.0 |
+| S10-O06 sequence gaps remain valid and allocate above maximum | 발급 번호 공백 | 실제 raw sequence 2,4에서 다음 5 반환 | v4.1.0 |
+| S10-O05 reservation request envelope binding rejects mismatch | mutationId 결박 | 정상 payload와 다른 envelope mutationId는 parser 거부 | v4.1.0 |
+| S10-O01 new reservation records actual occurred time | 생성 시각 | 신규 replay occurredAtMs 양수 확인; 순서 oracle로 사용하지 않음 | v4.1.0 |
+
+token start/end/consumed는 자동 계수 미제공으로 미집계. 실제 elapsed/명령/판정/cleanup은
+실행 후 이 절에 보존한다. 성공은 저장 API 한정이며 전원 차단·장기 운영·writer 통합 PASS가 아니다.
+
+
+### S10-3B 실제 실행 결과 (2026-09-12)
+
+동일 명령 `./server.sh verify-v410-recording-catalog`를 아래 네 번 실행했다. 도구 원출력의
+각 판정 행을 최종 전수표에 대응시켜 보존한다. 최초/보완 RED는 reject stub의 미구현 양성
+13개만 실패했고 기존 C++ 75개는 모두 통과했다. 빌드·환경·기존 회귀 실패는 없었다.
+RED의 음성 PASS는 stub에서도 거부되어 통과한 제한 증거이며 구현 검증은 GREEN 결과를 사용한다.
+
+| 실행 | 명령·exit | 원출력 개별 판정 | elapsed |
+| --- | --- | --- | --- |
+| RED1 62752 | `./server.sh verify-v410-recording-catalog`; exit 1 | 113 pass / 13 fail; C++113/13, 후속 shell9 미실행 | 14496 ms |
+| RED2 40389 | `./server.sh verify-v410-recording-catalog`; exit 1 | 113 pass / 13 fail; C++113/13, 후속 shell9 미실행 | 16185 ms |
+| GREEN1 74631 | `./server.sh verify-v410-recording-catalog`; exit 0 | 135 pass / 0 fail; C++126/0 + shell9/0 | 14644 ms |
+| 최종 GREEN 43443 | `./server.sh verify-v410-recording-catalog`; exit 0 | 139 pass / 0 fail; C++130/0 + shell9/0 | 16166 ms |
+
+elapsed는 명령 요청부터 최종 도구 출력 수신까지의 관측 구간으로 polling 지연을 포함하며,
+프로세스 내부 순수 실행시간은 별도 계측하지 않았다. source는 exec/write_stdin 실제 원출력이다.
+token start/end/consumed는 이 담당자의 자동 계수 미제공으로 미집계다.
+
+보완 RED 전 O08은 정상 예약 payload의 직접 Append로, O07은 4행 정확 개수와
+corrupt/unsupported/tail/io 모두 0으로, O04는 실제 catalog.FinalizeSegment legacy fixture로 강화했다.
+GREEN1 뒤 제품 코드는 바꾸지 않고 사전등록한 4개 characterization만 추가했다.
+서로 같은 제목의 strict parser 네 행은 실제 출력의 발생 순서대로 미래 schema/필수 필드 누락/
+추가 필드/중복 key 입력이며 제목을 임의로 바꾸지 않았다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| journal open: | 최종 43443 행 1; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| fallback catalog open: | 최종 43443 행 2; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| SQLite off mode 표시 | 최종 43443 행 3; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| segment finalize journal+projection: | 최종 43443 행 4; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| fallback range query | 최종 43443 행 5; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| event link FK 위반 거부 | 최종 43443 행 6; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| FK 위반 transaction/journal 전체 rollback | 최종 43443 행 7; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| 최초 durable mutation 1개 | 최종 43443 행 8; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| 동일 mutation 중복 append | 최종 43443 행 9; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| 손상 사이 정상 durable mutation 보존 | 최종 43443 행 10; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| 중간 corrupt line count | 최종 43443 행 11; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| 마지막 truncated line skip | 최종 43443 행 12; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| fallback replay open | 최종 43443 행 13; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| 같은 mutation idempotent replay | 최종 43443 행 14; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | 최종 43443 행 15; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| 중복 replay row/합계 불증가 | 최종 43443 행 16; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구: | 최종 43443 행 17; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | 최종 43443 행 18; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | 최종 43443 행 19; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| SQLite catalog open/rebuild: | 최종 43443 행 20; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| SQLite primary mode 표시 | 최종 43443 행 21; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| SQLite on/off range query ID·순서 parity | 최종 43443 행 22; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | 최종 43443 행 23; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| journal 없는 손상 media orphan 구분 | 최종 43443 행 24; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| projection failover journal open: | 최종 43443 행 25; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| projection failover catalog open: | 최종 43443 행 26; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| 실제 SQLite INSERT 실패 trigger 설치 | 최종 43443 행 27; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| SQLite 투영 실패 뒤 journal+memory finalize 유지: | 최종 43443 행 28; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| SQLite 투영 실패 즉시 JSONL fallback 전환 | 최종 43443 행 29; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| 재시작 rebuild 전 실패 trigger 제거 | 최종 43443 행 30; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| 투영 실패 직후 in-memory query 정합성 유지 | 최종 43443 행 31; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| projection failover 재시작 journal rebuild: | 최종 43443 행 32; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| 재시작 후 journal에서 누락 SQLite projection 복구 | 최종 43443 행 33; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| 재시작 후 SQLite primary 복귀 | 최종 43443 행 34; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| 재시작 journal rebuild가 실제 SQLite row 복원 | 최종 43443 행 35; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| tombstone journal open: | 최종 43443 행 36; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| tombstone catalog open: | 최종 43443 행 37; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| tombstone 대상 segment finalize: | 최종 43443 행 38; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| tombstone 대상 deletion request: | 최종 43443 행 39; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| tombstone 완료 기록: | 최종 43443 행 40; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | 최종 43443 행 41; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| 손상 SQLite 격리 후 journal rebuild: | 최종 43443 행 42; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| 손상 SQLite 원본 격리 | 최종 43443 행 43; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| 격리 SQLite 파일 보존 | 최종 43443 행 44; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| 격리 후 journal rebuild 결과 | 최종 43443 행 45; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A future-schema journal read open | 최종 43443 행 46; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A future-schema unsupported classification | 최종 43443 행 47; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A future-schema catalog open denied | 최종 43443 행 48; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A future-schema catalog retry denied | 최종 43443 행 49; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A future-schema journal bytes preserved | 최종 43443 행 50; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A future-schema SQLite bytes preserved | 최종 43443 행 51; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A future-schema writer cleanup untouched | 최종 43443 행 52; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A arbitrary-schema journal read open | 최종 43443 행 53; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A arbitrary-schema unsupported classification | 최종 43443 행 54; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A arbitrary-schema catalog open denied | 최종 43443 행 55; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A arbitrary-schema catalog retry denied | 최종 43443 행 56; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A arbitrary-schema journal bytes preserved | 최종 43443 행 57; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A arbitrary-schema SQLite bytes preserved | 최종 43443 행 58; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A arbitrary-schema writer cleanup untouched | 최종 43443 행 59; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A empty-schema journal read open | 최종 43443 행 60; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A empty-schema unsupported classification | 최종 43443 행 61; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A empty-schema catalog open denied | 최종 43443 행 62; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A empty-schema catalog retry denied | 최종 43443 행 63; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A empty-schema journal bytes preserved | 최종 43443 행 64; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A empty-schema SQLite bytes preserved | 최종 43443 행 65; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A empty-schema writer cleanup untouched | 최종 43443 행 66; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A future-type journal read open | 최종 43443 행 67; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A future-type unsupported classification | 최종 43443 행 68; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A future-type catalog open denied | 최종 43443 행 69; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A future-type catalog retry denied | 최종 43443 행 70; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A future-type journal bytes preserved | 최종 43443 행 71; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A future-type SQLite bytes preserved | 최종 43443 행 72; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A future-type writer cleanup untouched | 최종 43443 행 73; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A malformed journal open | 최종 43443 행 74; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-3A malformed JSON missing fields and wrong types remain corrupt | 최종 43443 행 75; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O01 reservation journal open | 최종 43443 행 76; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O01 first reservation returns four IDs and sequence one | 최종 43443 행 77; 실제 C++ assertion; RED1 fail → RED2 fail → GREEN1 pass → 최종 pass | pass |
+| S10-O01 versioned reservation payload replays | 최종 43443 행 78; 실제 C++ assertion; RED1 fail → RED2 fail → GREEN1 pass → 최종 pass | pass |
+| S10-O01 new reservation records actual occurred time | 최종 43443 행 79; 실제 C++ assertion; RED1 미실행 → RED2 미실행 → GREEN1 미실행 → 최종 pass | pass |
+| S10-O02 identical retry preserves sequence and bytes | 최종 43443 행 80; 실제 C++ assertion; RED1 fail → RED2 fail → GREEN1 pass → 최종 pass | pass |
+| S10-O03 reopened instance allocates next sequence | 최종 43443 행 81; 실제 C++ assertion; RED1 fail → RED2 fail → GREEN1 pass → 최종 pass | pass |
+| S10-O03 new process resumes durable sequence | 최종 43443 행 82; 실제 C++ assertion; RED1 fail → RED2 fail → GREEN1 pass → 최종 pass | pass |
+| S10-O04 different store rejected | 최종 43443 행 83; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O04 reused request with different segment rejected | 최종 43443 행 84; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O04 reused request with different channel rejected | 최종 43443 행 85; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O04 reused segment with different request rejected | 최종 43443 행 86; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O04 conflicts preserve original bytes | 최종 43443 행 87; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve corrupt | 최종 43443 행 88; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve unsupported-schema | 최종 43443 행 89; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve unsupported-type | 최종 43443 행 90; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve tail | 최종 43443 행 91; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve payload-zero | 최종 43443 행 92; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve payload-negative | 최종 43443 행 93; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve payload-fraction | 최종 43443 행 94; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve payload-overflow | 최종 43443 행 95; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve duplicate-sequence | 최종 43443 행 96; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve decreasing-sequence | 최종 43443 행 97; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve duplicate-request | 최종 43443 행 98; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve duplicate-segment | 최종 43443 행 99; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve store-conflict | 최종 43443 행 100; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve ordinary-before | 최종 43443 행 101; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve ordinary-after | 최종 43443 행 102; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve line-cap | 최종 43443 행 103; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O05 reservation entity envelope binding rejects mismatch | 최종 43443 행 104; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O05 reservation request envelope binding rejects mismatch | 최종 43443 행 105; 실제 C++ assertion; RED1 미실행 → RED2 미실행 → GREEN1 미실행 → 최종 pass | pass |
+| S10-O01 strict reservation parser accepts versioned literal | 최종 43443 행 106; 실제 C++ assertion; RED1 fail → RED2 fail → GREEN1 pass → 최종 pass | pass |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 최종 43443 행 107; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 최종 43443 행 108; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass; 동명 2번째 행 | pass |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 최종 43443 행 109; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass; 동명 3번째 행 | pass |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 최종 43443 행 110; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass; 동명 4번째 행 | pass |
+| S10-O06 INT64_MAX identical retry remains valid | 최종 43443 행 111; 실제 C++ assertion; RED1 fail → RED2 fail → GREEN1 pass → 최종 pass | pass |
+| S10-O06 sequence overflow rejected without write | 최종 43443 행 112; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O02 identical durable reservation duplicates remain idempotent | 최종 43443 행 113; 실제 C++ assertion; RED1 미실행 → RED2 미실행 → GREEN1 미실행 → 최종 pass | pass |
+| S10-O06 sequence gaps remain valid and allocate above maximum | 최종 43443 행 114; 실제 C++ assertion; RED1 미실행 → RED2 미실행 → GREEN1 미실행 → 최종 pass | pass |
+| S10-O07 four simultaneous processes finish reservations | 최종 43443 행 115; 실제 C++ assertion; RED1 fail → RED2 fail → GREEN1 pass → 최종 pass | pass |
+| S10-O07 concurrent sequences are unique and complete | 최종 43443 행 116; 실제 C++ assertion; RED1 fail → RED2 fail → GREEN1 pass → 최종 pass | pass |
+| S10-O07 next sequence follows concurrent reservations | 최종 43443 행 117; 실제 C++ assertion; RED1 fail → RED2 fail → GREEN1 pass → 최종 pass | pass |
+| S10-O08 ordinary Append cannot reserve orders | 최종 43443 행 118; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O08 unopened journal rejected | 최종 43443 행 119; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O08 null result rejected | 최종 43443 행 120; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O08 invalid opaque ID rejected | 최종 43443 행 121; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O08 failed reservation does not expose tentative result | 최종 43443 행 122; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O09 unsafe file binding rejected and original preserved inode | 최종 43443 행 123; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O09 unsafe file binding rejected and original preserved parent | 최종 43443 행 124; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O09 unsafe file binding rejected and original preserved symlink | 최종 43443 행 125; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O09 unsafe file binding rejected and original preserved hardlink | 최종 43443 행 126; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| S10-O10 reservation and normal segment coexist in catalog | 최종 43443 행 127; 실제 C++ assertion; RED1 fail → RED2 fail → GREEN1 pass → 최종 pass | pass |
+| S10-O04 reserve then finalize permits identical retry | 최종 43443 행 128; 실제 C++ assertion; RED1 fail → RED2 fail → GREEN1 pass → 최종 pass | pass |
+| S10-O10 reservation survives catalog rebuild without changing segment query | 최종 43443 행 129; 실제 C++ assertion; RED1 fail → RED2 fail → GREEN1 pass → 최종 pass | pass |
+| S10-O04 legacy segment cannot acquire retroactive reservation | 최종 43443 행 130; 실제 C++ assertion; RED1 pass → RED2 pass → GREEN1 pass → 최종 pass | pass |
+| source 저장 callback reconcile 연결 | 최종 43443 행 131; 기존 shell 정적 연결/순서 검사; RED1 미실행 → RED2 미실행 → GREEN1 pass → 최종 pass | pass |
+| policy revision idempotency | 최종 43443 행 132; 기존 shell 정적 연결/순서 검사; RED1 미실행 → RED2 미실행 → GREEN1 pass → 최종 pass | pass |
+| 5초 safety reconcile | 최종 43443 행 133; 기존 shell 정적 연결/순서 검사; RED1 미실행 → RED2 미실행 → GREEN1 pass → 최종 pass | pass |
+| composition root journal 선행 open | 최종 43443 행 134; 기존 shell 정적 연결/순서 검사; RED1 미실행 → RED2 미실행 → GREEN1 pass → 최종 pass | pass |
+| composition root catalog rebuild/open | 최종 43443 행 135; 기존 shell 정적 연결/순서 검사; RED1 미실행 → RED2 미실행 → GREEN1 pass → 최종 pass | pass |
+| 서버 전 supervisor 시작 | 최종 43443 행 136; 기존 shell 정적 연결/순서 검사; RED1 미실행 → RED2 미실행 → GREEN1 pass → 최종 pass | pass |
+| ingress 전 event bridge 등록 | 최종 43443 행 137; 기존 shell 정적 연결/순서 검사; RED1 미실행 → RED2 미실행 → GREEN1 pass → 최종 pass | pass |
+| ingress 종료 뒤 recorder finalize | 최종 43443 행 138; 기존 shell 정적 연결/순서 검사; RED1 미실행 → RED2 미실행 → GREEN1 pass → 최종 pass | pass |
+| composition root 시작/종료 순서 | 최종 43443 행 139; 기존 shell 정적 연결/순서 검사; RED1 미실행 → RED2 미실행 → GREEN1 pass → 최종 pass | pass |
+
+#### 미실행과 증거 경계
+
+| 항목 | 상태·사유 |
+| --- | --- |
+| RED1/RED2 후속 shell 9개 | 미실행; C++ exit1로 wrapper 중단. GREEN1/최종에서 실제 통과 |
+| 최종에 추가한 O01 시각/O02 동일 raw 중복/O05 request 결박/O06 번호 공백 | 앞선 세 실행 미실행; 최종 43443에서 각 실제 통과. 기존 RED로 소급하지 않음 |
+| 전체 build·실제 writer·전원 차단/fsync 실패 주입·Linux 실행·30분·120분·UI | 미실행. focused macOS 저장 API 검증으로 대체하지 않음 |
+| S10-3C·구형 binary downgrade 차단·전체 writer 소유권·장기 성능 | 미구현/미검증 후속 경계. 이번 저장 primitive 완료와 구분 |
+
+정상 예약의 catalog 읽기/SQLite rebuild 호환만 확인했다. catalog가 잘못된 모든 예약을
+fail-closed 처리한다고 주장하지 않는다. 예약 API는 64KiB chunk·16MiB record 제한을 쓰며
+충돌 인덱스는 원장 크기에 비례한다. 일반 Append에는 전체 scan을 추가하지 않았다.
+새 result는 fsync 성공 뒤에만 갱신하고 재시도도 fsync한다는 코드 경계는 직접 검토했지만
+강제 fsync 실패나 전원 차단 내구성 검증으로 확대하지 않는다.
+
+#### 임시 산출물 정리
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| `/tmp/media_server_v410_recording_catalog-82768` | 단기 binary·journal·SQLite·fixture | 18990511 B | wrapper EXIT cleanup | removed=true | 62752 원출력 |
+| `/tmp/media_server_v410_recording_catalog-83033` | 단기 binary·journal·SQLite·fixture | 19122298 B | wrapper EXIT cleanup | removed=true | 40389 원출력 |
+| `/tmp/media_server_v410_recording_catalog-83163` | 단기 binary·journal·SQLite·fixture | 19363269 B | wrapper EXIT cleanup | removed=true | 74631 원출력 |
+| `/tmp/media_server_v410_recording_catalog-83282` | 단기 binary·journal·SQLite·fixture | 19364796 B | wrapper EXIT cleanup | removed=true | 43443 원출력 |
+
+원출력 행수는 RED1 126, RED2 126, GREEN1 135, 최종 139이며 제목/중복 발생 수를
+최종표에 전수 대응하여 미대응 행 0을 확인했다. 최종표 139개는 기존 C++75+신규55+shell9다.
+보존 뒤 파일 readback의 139개 제목·결과·순서를 최종 도구 출력과 다시 대조하여 일치했다.
+위 4개 임시 경로는 별도 lstat에서도 전부 ENOENT였다. `git diff --check` exit0을 확인했다.
+커밋·푸시·추가 단계는 수행하지 않았다.
+
 ## S10-3A 원장 버전 안전 경계 사전등록
 
 사용자 후속 이슈 진행 승인에 따라 S10-3의 첫 하위 작업을 수행한다. 테스트는

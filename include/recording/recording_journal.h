@@ -18,6 +18,7 @@ enum class RecordingMutationType {
     DeletionRequested,
     DeletionCompleted,
     CorruptionDetected,
+    RecordingOrderReserved,
     Unknown,
 };
 
@@ -38,6 +39,14 @@ struct RecordingJournalReplayResult {
     std::size_t io_error_count{0};  // 안전한 원본 FD를 읽지 못함; 정상 빈 원장과 구분.
 };
 
+struct RecordingOrderReservationV1 {
+    std::string schema{"media-server.recording-order.v1"};
+    std::string store_id, request_id, segment_id, channel_id;
+    std::int64_t sequence{0};
+};
+bool ParseRecordingOrderReservationV1(const std::string& json,
+                                     RecordingOrderReservationV1* value, std::string* error);
+
 std::string RecordingMutationTypeName(RecordingMutationType type);
 RecordingMutationType ParseRecordingMutationType(const std::string& value);
 std::string SerializeRecordingMutationV1(const RecordingMutationV1& value);
@@ -50,6 +59,9 @@ public:
     explicit RecordingJournal(std::filesystem::path path);
     bool Open(std::string* error);
     bool Append(const RecordingMutationV1& mutation, std::string* error);
+    bool ReserveRecordingOrder(const std::string& store_id, const std::string& request_id,
+                               const std::string& segment_id, const std::string& channel_id,
+                               RecordingOrderReservationV1* result, std::string* error);
     RecordingJournalReplayResult Replay() const;
     const std::filesystem::path& path() const;
 

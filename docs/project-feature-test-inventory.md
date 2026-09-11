@@ -1,5 +1,23 @@
 # Project Feature Test Inventory
 
+## S10-3B 저장 계층 순서 예약
+
+세부 입력·판정은 `release-test-records.md`의 S10-O01~10 사전등록과 구현계획 S10-3B를 따른다.
+실제 writer 미연결 상태의 내부 저장 API이며 장시간/UI PASS를 대신하지 않는다.
+
+| 기능 ID | 동작·PASS 기준 | 안정화 테스트 | 30분 테스트 | 120분 테스트 | UI 테스트 | UI 존재 |
+| --- | --- | --- | --- | --- | --- | --- |
+| S10-O01 | 최초 번호·store 결박·payload 보존 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-O02 | 동일 예약 재시도 번호·원문 불변 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-O03 | 재시작 후 번호 재사용 없음 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-O04 | 네 ID 및 다른 mutation ID 충돌 거부 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-O05 | 손상·미지원·tail·비정상 예약 거부 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-O06 | 양수·중복·정수 overflow 경계 보존 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-O07 | 프로세스 동시 발급 유일성·다음 번호 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-O08 | 일반 Append 우회 및 잘못된 입력 차단 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-O09 | inode·parent·symlink·hardlink 원본 보호 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-O10 | 기존 V1 segment·catalog 호환 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+
 ## S09 운영 요청 최소 진단 SD01~08
 
 개별 정의와 실행 전 등록은 `release-test-records.md`의 S09 서버 요청 경계 최소 계측 절을 따른다. 다음은 그 정의의 inventory 매핑이며 새 PASS 판정이 아니다. 진단은 기본-off이고 두 GET의 고정 route·로컬 ID·elapsed·phase·전송 결과만 출력한다.
