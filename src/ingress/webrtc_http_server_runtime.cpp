@@ -1,5 +1,7 @@
 // 파일 요약: WebRTC HTTP 서버의 공개 runtime lifecycle과 registry 검증 구현이다.
 #include "webrtc_http_server_detail.h"
+#include "site_operations_request_diagnostic.h"
+#include <cstdlib>
 
 namespace ingress {
 
@@ -381,7 +383,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
     running_.store(true);
 
     // 간단한 내장 HTTP 서버다. 연결마다 thread를 만들되 parser timeout과 동시 연결 상한을 둔다.
-    impl_->accept_thread = std::thread([this] {
+    const bool site_request_diagnostic_enabled = SiteOperationsRequestDiagnostic::Enabled(
+        std::getenv("MEDIA_SERVER_SITE_OPERATIONS_REQUEST_DIAGNOSTIC"));
+    impl_->accept_thread = std::thread([this, site_request_diagnostic_enabled] {
         while (running_.load()) {
             sockaddr_in client_addr{};
             socklen_t client_len = sizeof(client_addr);
@@ -393,6 +397,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                 continue;
             }
 
+            const auto accepted_at = site_request_diagnostic_enabled
+                ? SiteOperationsRequestDiagnostic::Clock::now()
+                : SiteOperationsRequestDiagnostic::Clock::time_point{};
             const int previous_connections = impl_->active_http_connections.fetch_add(1);
             if (previous_connections >= kMaxActiveHttpConnections) {
                 impl_->active_http_connections.fetch_sub(1);
@@ -408,7 +415,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
             const auto recording_gate = impl_->recording_gate;
             auto* const recording_service = impl_->recording_service;
-            std::thread([this, client_fd, recording_gate, recording_service] {
+            std::thread([this, client_fd, recording_gate, recording_service,
+                         site_request_diagnostic_enabled, accepted_at] {
                 struct ActiveConnectionGuard {
                     std::atomic<int>& active_connections;
                     ~ActiveConnectionGuard() {
@@ -419,6 +427,11 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                 SetHttpSocketTimeouts(client_fd);
                 HttpResponse response;
                 auto request_opt = ReadHttpRequest(client_fd, &response);
+                SiteOperationsRequestDiagnostic site_diagnostic(
+                    site_request_diagnostic_enabled,
+                    request_opt ? std::string_view(request_opt->method) : std::string_view{},
+                    request_opt ? std::string_view(request_opt->path) : std::string_view{}, accepted_at);
+                site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::Parsed);
                 const bool recording_request = request_opt &&
                     request_opt->path.compare(0, 20, "/ops/api/recordings/") == 0;
                 std::unique_ptr<RecordingRequestGate::Flight> recording_flight;
@@ -430,6 +443,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                     }
                 } else {
                     const HttpRequest& request = *request_opt;
+                    site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::HandlerBegin);
                     response = [&]() -> HttpResponse {
                         if (recording_request && !recording_flight)
                             return JsonResponse(503, "Service Unavailable", "{\"error\":\"recording shutdown\"}");
@@ -5039,6 +5053,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 
                         return HttpResponse{404, "Not Found", "text/plain; charset=utf-8", {}, "not found"};
                     }();
+                    site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::HandlerEnd);
                 }
 
                 if (!response_sent) {
@@ -5046,7 +5061,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                     const HttpRequest* request_for_headers =
                         request_opt.has_value() ? &request_opt.value() : nullptr;
                     const std::string encoded = BuildHttpResponse(response, request_for_headers);
-                    (void)SendAll(client_fd, encoded);
+                    const bool sent = SendAll(client_fd, encoded);
+                    site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::SendEnd, sent);
                 }
                 recording_flight.reset();
                 close(client_fd);
