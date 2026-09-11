@@ -1,5 +1,20 @@
 # Project Feature Test Inventory
 
+## S09 운영 요청 최소 진단 SD01~08
+
+개별 정의와 실행 전 등록은 `release-test-records.md`의 S09 서버 요청 경계 최소 계측 절을 따른다. 다음은 그 정의의 inventory 매핑이며 새 PASS 판정이 아니다. 진단은 기본-off이고 두 GET의 고정 route·로컬 ID·elapsed·phase·전송 결과만 출력한다.
+
+| 기능 ID | 동작·PASS 기준 | 안정화 테스트 | 30분 테스트 | 120분 테스트 | UI 테스트 | UI 존재 |
+| --- | --- | --- | --- | --- | --- | --- |
+| S09-SD01 | 정확한 opt-in만 허용, 비대상 출력0 | focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S09-SD02 | 두 GET enum·ID·phase·elapsed 보존 | focused/integration | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S09-SD03 | query/header/body/원문URL 비노출 | focused/integration | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S09-SD04 | sink 예외 비전파 | focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S09-SD05 | send bool 보존·재시도 없음 | focused 및 실제 연결 검토 | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S09-SD06 | 실제 서버 opt-in 진단 연결 | loopback integration | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S09-SD07 | 기본-off 진단0·HTTP 계약 유지 | loopback integration | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S09-SD08 | 정상 종료·PID/포트/temp 정리 | loopback integration | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+
 S09 사전등록 절의 실행 승인·미실행 표기는 등록 당시 이력이다. 현재 사용자 승인과
 실행 결과는 구현 계획의 Task9 판정표 및 `release-test-records.md`를 따른다.
 이 inventory의 기능·검증 기준은 유지하며 과거 승인 제한을 현재 상태로 재해석하지 않는다.

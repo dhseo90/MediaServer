@@ -1,5 +1,136 @@
 # Release Test Records
 
+## S09 계측 활성화 기존 UI 재검증 승인
+
+사용자는 현재 계측·검증·기록의 분할 커밋 후 기존424 UI 재검증을 승인했다. `MEDIA_SERVER_SITE_OPERATIONS_REQUEST_DIAGNOSTIC=1 ./test_ui.sh`의 기존 canonical424·finalizer 시각검사·Policy v4·cleanup 범위를 유지한다. 신규 녹화8개 case를 포함한 전체432 완료로 확대하지 않으며 푸시·30분·120분은 실행하지 않는다. 이번 실행이 만든 runtime만 읽어 고정 prefix 진단행을 안전 필드 allowlist로 검증 후 별도 임시 보존한다. 서버 원문 로그·인증값·payload는 복사하지 않는다. 보존된 계측행과 실제 브라우저 결과는 종료 후 대조한다. 미커밋 소스 실행을 피하기 위해 실행 중 제품·문서는 변경하지 않는다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | launcher 선수 검증·build | 기존 test_ui.sh | 승인됨 |
+| UI 풀테스트 | 진행 대상 | 사용자 기존424 재검증 승인 | canonical424 및 기존 finalizer/Policy v4 | 승인됨; 녹화8개 별도 미실행 |
+| 30분 테스트 | 미진행 | 이번 승인 제외 | 기존 결과 유지 | 실행하지 않음 |
+| 120분 테스트 | 미진행 | 이번 승인 제외 | 녹화 전용 미실행 유지 | 실행하지 않음 |
+
+## S09 서버 요청 경계 최소 계측 — 실행 전 등록
+
+사용자 승인 범위는 두 site-operations GET의 기본-off 계측 구현·관련 단기 검증이다. handler·SendAll 호출 횟수, HTTP status/body, auth/media 및 timeout을 바꾸지 않는다. accept 시각은 저장하고 parse 후 허용 GET만 process-local ID·고정 route enum·단조 elapsed·parsed/handler_begin/handler_end/send_end 및 send 성공 bool을 기록한다. query/header/body/원문URL은 helper에 전달하지 않는다. parse 이전 정지는 관찰 불가하며 opt-in stderr 출력의 backpressure 무영향을 보장하지 않는다. 로그 예외는 호출자에 전파하지 않는다.
+
+담당: Codex 메인 안전경계·통합 검토, 기존 단일 gpt-6-astra/medium 구현 담당자 재사용(재위임 금지). 영향도2/불확실성1/검증 난이도2/변경 범위1=6점, 자동 상향 없음. source-of-truth는 AGENTS.md이며 이번 계측은 S09 진단 보완이지 기능 완료가 아니다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 최소 계측 구현 승인 | SD01~08 focused·실제 loopback integration 및 build | 승인됨 |
+| UI 풀테스트 | 미진행 | 제품 브라우저 실행은 이번 범위 밖 | 기존61366 FAIL 유지 | 실행하지 않음 |
+| 30분 테스트 | 미진행 | 이번 범위 밖 | 기존52899 유지 | 실행하지 않음 |
+| 120분 테스트 | 미진행 | 이번 범위 밖 | S09 미완료 | 실행하지 않음 |
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| SD01 | 비활성·비대상 출력 금지 | default-off/잘못된 opt-in/다른 method/path의 출력0 | v4.1.0 |
+| SD02 | 허용 GET 계측 | 두 route enum·로컬 ID·단조 elapsed·phase 순서 확인 | v4.1.0 |
+| SD03 | 입력 비밀값 비노출 | query/header/body/원문URL/secret 미포함 | v4.1.0 |
+| SD04 | sink 실패 격리 | sink 예외가 호출자에 전파되지 않음 | v4.1.0 |
+| SD05 | 전송 결과 보존 | true/false 각각 기록, 실제 send 재호출 없음 | v4.1.0 |
+| SD06 | 실제 binary 연결 | 허용 GET HTTP 응답 및 진단행; 구현 전 진단행0만 예상 RED | v4.1.0 |
+| SD07 | 기본-off HTTP 계약 | 동일 요청에서 로그0과 응답 status/body 계약 유지 | v4.1.0 |
+| SD08 | 정리 | 정상 종료·PID/포트/temp 부재 | v4.1.0 |
+
+컴파일·환경 오류는 예상 RED가 아니다. 먼저 기존 binary의 SD06 진단행 부재를 확인하고 구현 뒤 focused/build/동일 integration을 실행한다. 실행 결과는 아직 미기록이며 완료를 뜻하지 않는다. token start8449645, source=공유 goal, wallclock 계측은 이번 설계 확인 이후부터이며 구현·검증 종료 후 기록한다. 커밋·푸시 금지.
+
+최초 실행 이력: short integration은 sandbox에서 HTTP 진입 전 실행 오류로 종료(1pass/1fail,5ms), root26B를 정리했다. 원출력에는 오류 코드가 없어 EPERM으로 확정하지 않는다. safe error-code 출력을 보강한 뒤 승인 범위 안에서 권한을 갖춘 동일 검증을 실행했다. 승격 실행45064는 exit1/8pass/3fail,2551ms이며 두 GET HTTP200·정상 종료·두 포트·root 정리는 PASS였다. 실패3개는 SD06의 진단행0과 두 route의 phase 부재로, 동일 미구현 요구의 예상 RED다. SD07 off run은 선수 RED로 건너뛰었다. root1738557B 삭제 기록을 보존한다. 이 결과는 제품 지연 재현이나 기능 PASS가 아니다.
+
+### SD 최소 계측 구현 및 최종 결과
+
+실제 구현: `src/ingress/site_operations_request_diagnostic.h`는 opt-in·allowlist·로컬 ID·고정 필드 출력·sink 예외 격리를 담당한다. `webrtc_http_server_runtime.cpp`는 시작시 환경값을 한 번 읽고 기존 accept/parse/handler/SendAll 경계에 관찰을 연결한다. 기본-off일 때 시계 조회를 건너뛴다. helper와 runtime diff를 메인이 직접 읽어 SendAll 1회·HTTP 응답·timeout·권한·스레드 수명 불변을 확인했다. SD05의 false는 helper 주입 검증이며 실제 끊긴 socket 전송 실패 재현은 미실행이다.
+
+C++ 명령 `bash scripts/internal/verify_site_operations_request_diagnostic.sh`은 최종6pass/0fail; `node scripts/internal/verify_site_operations_request_diagnostic.mjs`는 최종18pass/0fail,5121ms, actualUi=false다. 두 차례 `./server.sh build`는 exit0이며 최초 전체 빌드 후 비활성 경로 비용 보완을 포함한 마지막 빌드로 검증했다. 중간 focused도6/0이었다. 최종 node --check, bash -n, git diff --check는 exit0이다. 로그 안의 개별 결과를 메인이 직접 읽고 확인했다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| SD01 exact opt-in only (unit-final-1) | C++ focused exit0; 해당 assertion 통과 | pass | 이번 계측 범위 |
+| SD01 non-allowlisted requests and default off emit nothing (unit-final-2) | C++ focused exit0; 해당 assertion 통과 | pass | 이번 계측 범위 |
+| SD02 route enums unique IDs and monotonic elapsed (unit-final-3) | C++ focused exit0; 해당 assertion 통과 | pass | 이번 계측 범위 |
+| SD03 fixed projection contains no request material (unit-final-4) | C++ focused exit0; 해당 assertion 통과 | pass | 이번 계측 범위 |
+| SD04 throwing diagnostic sink does not escape (unit-final-5) | C++ focused exit0; 해당 assertion 통과 | pass | 이번 계측 범위 |
+| SD05 send result preserved without retries (unit-final-6) | C++ focused exit0; 해당 assertion 통과 | pass | 이번 계측 범위 |
+| SD06 impact-graph unchanged HTTP200 (green-1) | HTTP integration exit0; 해당 assertion 통과 | pass | 이번 계측 범위 |
+| SD06 runbook-instance-ledger unchanged HTTP200 (green-2) | HTTP integration exit0; 해당 assertion 통과 | pass | 이번 계측 범위 |
+| SD08 server normal exit (green-3) | HTTP integration exit0; 해당 assertion 통과 | pass | 이번 계측 범위 |
+| SD08 bounded output (green-4) | HTTP integration exit0; 해당 assertion 통과 | pass | 이번 계측 범위 |
+| SD06 actual runtime emits two four-phase traces (green-5) | HTTP integration exit0; 해당 assertion 통과 | pass | 최초 예상 RED fail 후 pass |
+| SD06 impact_graph ordered phases and actual send success (green-6) | HTTP integration exit0; 해당 assertion 통과 | pass | 최초 예상 RED fail 후 pass |
+| SD06 runbook_instance_ledger ordered phases and actual send success (green-7) | HTTP integration exit0; 해당 assertion 통과 | pass | 최초 예상 RED fail 후 pass |
+| SD03 query absent from diagnostics (green-8) | HTTP integration exit0; 해당 assertion 통과 | pass | 이번 계측 범위 |
+| SD07 impact-graph unchanged HTTP200 (green-9) | HTTP integration exit0; 해당 assertion 통과 | pass | 이번 계측 범위 |
+| SD07 runbook-instance-ledger unchanged HTTP200 (green-10) | HTTP integration exit0; 해당 assertion 통과 | pass | 이번 계측 범위 |
+| SD08 server normal exit (green-11) | HTTP integration exit0; 해당 assertion 통과 | pass | 이번 계측 범위 |
+| SD08 bounded output (green-12) | HTTP integration exit0; 해당 assertion 통과 | pass | 이번 계측 범위 |
+| SD07 default off emits no diagnostic (green-13) | HTTP integration exit0; 해당 assertion 통과 | pass | 이번 계측 범위 |
+| SD08 port 64968 absent (green-14) | HTTP integration exit0; 해당 assertion 통과 | pass | 이번 계측 범위 |
+| SD08 port 64969 absent (green-15) | HTTP integration exit0; 해당 assertion 통과 | pass | 이번 계측 범위 |
+| SD08 port 64992 absent (green-16) | HTTP integration exit0; 해당 assertion 통과 | pass | 이번 계측 범위 |
+| SD08 port 64993 absent (green-17) | HTTP integration exit0; 해당 assertion 통과 | pass | 이번 계측 범위 |
+| SD08 root absent (green-18) | HTTP integration exit0; 해당 assertion 통과 | pass | 이번 계측 범위 |
+| build 초기 | ./server.sh build exit0 | pass | 이후 비활성 비용 보완 후 다시 build |
+| build 최종 | ./server.sh build exit0 | pass | 최종 source |
+| JS 문법 | node --check scripts/internal/verify_site_operations_request_diagnostic.mjs exit0 | pass | 메인 확인 |
+| shell 문법 | bash -n scripts/internal/verify_site_operations_request_diagnostic.sh exit0 | pass | 메인 확인 |
+| diff 공백 | git diff --check exit0 | pass | 메인 확인 |
+
+runtime 진단행의 개별 elapsed 숫자는 verifier 메모리에서 검증됐으나 결과 로그에는 보존하지 않았다. 이번 검증을 실제 지연 위치 확정으로 확대하지 않는다. 독립 서버의 auth-off loopback 요청이며 기존 인증 UI/전체 UI/30분/120분·EVT-058 재현은 미실행이다. 원본 서버 로그는 별도 보존하지 않는다.
+
+token start8449645/end8515937/consumed66292; source=공유 goal(설계·구현·검토·검증 포함), 개별 테스트 전용 집계 아님. 설계 확인 후 관찰 elapsed=437828ms; 최초 전체 build의 별도 elapsed는 미계측이다. 커밋·푸시하지 않았다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/site-request-diagnostic-pZV5Ay | fixture | bytes=26 | verifier 삭제 | absent=true 기록 | red |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/site-request-diagnostic-ssE2OS | fixture | bytes=1738557 | verifier 삭제 | absent=true 기록 | red-escalated |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//site-request-diagnostic-unit.qgP5hF | fixture | kib=92 | verifier 삭제 | absent=true 기록 | unit |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//site-request-diagnostic-unit.AaATrq | fixture | kib=92 | verifier 삭제 | absent=true 기록 | unit-final |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/site-request-diagnostic-zYC6w5 | fixture | bytes=3477410 | verifier 삭제 | absent=true 기록 | green |
+| .media_server.test/s09-sd-red.log | 결과 로그 | 252B | 이관 후 삭제 | SHA·크기 대조 및 absent=true | 25a250efd47ae4228ff2cd06ac41da84eafeda418b7d2f3f8746076243a0c3c1 |
+| .media_server.test/s09-sd-red-escalated.log | 결과 로그 | 646B | 이관 후 삭제 | SHA·크기 대조 및 absent=true | a30210ec55b84088a3e457a5f041380b264fe6eee85e0cf5026442bb222c7ea2 |
+| .media_server.test/s09-sd-unit.log | 결과 로그 | 449B | 이관 후 삭제 | SHA·크기 대조 및 absent=true | 2928306cb4760b6a1c4c59da079c522ecc24f83322b0c639d183476c3ba68767 |
+| .media_server.test/s09-sd-unit-final.log | 결과 로그 | 449B | 이관 후 삭제 | SHA·크기 대조 및 absent=true | e2b197196be0f843d44095726735d88d23014443bb32324444265ae9f8992988 |
+| .media_server.test/s09-sd-build.log | 결과 로그 | 12692B | 이관 후 삭제 | SHA·크기 대조 및 absent=true | 7a069221b32c056ff03df3d333fc282dd2e7c7b306a6850bcb180c4d624a0ce7 |
+| .media_server.test/s09-sd-build-final.log | 결과 로그 | 598B | 이관 후 삭제 | SHA·크기 대조 및 absent=true | 2fb62975e0386e35363eaa59aed334aead526b99233dff6c7dd91379578d5029 |
+| .media_server.test/s09-sd-green.log | 결과 로그 | 899B | 이관 후 삭제 | SHA·크기 대조 및 absent=true | e13ff2ce0675bf6053faaf30282923bdc88d7e78e30e94b8b01571961ff3ae35 |
+
+## S09 EVT-058 단독 진단 16535 — 미재현
+
+후속 읽기 조사: `webrtc_http_server_runtime.cpp`의 accept 경로는 backlog32, 동시 active 연결 상한128이며 초과 시503을 보낸다. `webrtc_http_server.cpp::SetHttpSocketTimeouts`는 recv/send에 각각5초 socket timeout을 설정하지만 handler 전체 실행시간을 제한하지 않는다. 최종 전송 경로는 `SendAll` 반환값을 버리므로 현재 증거만으로 handler 완료와 실제 전송 성공을 구분할 수 없다. `SendAll`은 send≤0이면 false로 끝나고 socket은 닫힌다. 따라서 32초 관찰을 곧바로 서버5초 timeout 실패나 handler 잠금으로 단정할 수 없다. 기존 단독 진단의 6/16ms는 브라우저 요청→응답 관찰값일 뿐 accept/parse/handler/send 각각의 시간이 아니다.
+
+다음 재현에서 필요한 증거는 동일 요청의 브라우저 시작, 서버 accept/parse 완료, handler 반환, send 결과·종료 시각이다. raw URL query·header·인증값·payload를 기록하지 않고 allowlisted route와 실행 내 식별자만 사용해야 한다. 아직 계측을 추가하거나 재현을 재실행하지 않았다. 단독 성공을 반복 수집하는 대신 전체 실행과의 환경·누적 상태 차이를 구분할 계측 범위를 먼저 확정한다.
+
+승인 범위의 분할 커밋은 `d64a02ce`(오류 집계·회귀 테스트), `a925dc75`(실패·검증 기록)이며 진단 시작 전 clean을 확인했다. 명령 `node scripts/internal/run_v390_ui_native_diagnostic_sweep.mjs --case-id EVT-058 --output-dir .media_server.test/v3.9.0/ui-diagnostic-sweep/s09-evt058-a925dc75 --playwright-module-path <bundled runtime>/node_modules/playwright --chrome-path <Google Chrome executable>`는 exit0이었다. runId=`v390-ui-diagnostic-20260911101507-10207`, source=`a925dc75d77ab694a2e87aa7a622631572663d0d`, 자동 재시도0, 대상1/시도1/pass1/fail0/notRun0/unsupported0. diagnosticOnly=true, releaseEvidenceEligible=false, uiFulltestPass=false다. 실제 UI 전체 통과나 61366 실패 해결로 사용하지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| 현재 소스 빌드 | runner의 server.sh build; exit0, media_server 두 target 완료 | pass | clean source binding |
+| child 선택 사전 확인 | EVT-058 단일 선택·source binding; exit0 | pass | 실제 UI 자체가 아님 |
+| EVT-058 wait-visible | operator/light/390×844, /ops/dashboard의 #dashRuntimeTrendSparkline 표시 확인 | pass | 실제 브라우저 자동화 진단 |
+| EVT-058 assert-visible-read-model | 같은 control의 read-model assertion 및 GET /ops/api/events/reviews completion 연결 | pass | 61366 FAIL 이력 유지 |
+| EVT-058 verify-independent-readback | 독립 읽기·DOM oracle 실행 후 PASS | pass | 전체432 기능 대체 불가 |
+| 요청 수명 전수 | request131/response131/classified131; unclassified·multiplyClassified·captureErrors·duplicateResponses·failureCount 모두0 | pass | seal timestamp1789121713662, diagnosticErrors0 |
+| impact-graph 첫 요청 | native-request-57 GET 200, 브라우저 관찰6ms, finished1/failed0 | pass | 과거 미응답 요청 위치와 대조 |
+| runbook-instance-ledger 첫 요청 | native-request-58 GET 200, 관찰6ms, finished1/failed0 | pass | 서버 내부 구간 계측 아님 |
+| impact-graph 후속 요청 | native-request-129 GET 200, 관찰16ms, finished1/failed0 | pass | 미재현 |
+| runbook-instance-ledger 후속 요청 | native-request-130 GET 200, 관찰16ms, finished1/failed0 | pass | 미재현 |
+| no-persisted-mutation 정리 | no-op cleanup PASS | pass | trace 직접 확인 |
+| restore-transient-state 정리 | 임시 API·파일 snapshot 복원 PASS | pass | trace 직접 확인 |
+| authoritative-state-boundary 정리 | unexpectedStateChange=false, finalStateRestored=true | pass | trace 직접 확인 |
+| case runtime·browser 정리 | caseRuntimeRestored=true, browserContextClosed=true, cleanup pass | pass | child attestation |
+| 서버·포트 정리 | PID10354와 TCP64425/64426 없음; ps/lsof 출력 없음(exit1 no match) | pass | 메인 승격 읽기 확인 |
+
+요청 대기 증상은 재현되지 않았다. 제품 코드나 timeout을 수정하지 않았고, 서버 잠금/IO 또는 전체 suite 누적 상태 중 원인은 여전히 미확정이다. 전체 UI·30분·120분 및 푸시는 미실행이다. 원출력 summary SHA256=`d62d1f6abc8009fbe8ffffda4a3da3056100441960754dcbe6f7acc60bda15c8`, child summary=`0d425d2a38270baafce7846c417f89e2072a0efc08a2e49db88f7c88b372d9b3`, trace=`7b38b65ecf95bb80e097a6ab1bd94bccb8bf0481ff59c101f9c27ff35b3ee3a0`.
+
+token start/end/consumed: 이번 진단 전후 전용 집계값 미수집으로 미집계. source=도구 실행 결과; shared goal 누적값을 테스트 전용 소비량으로 대체하지 않음. elapsed: 정확한 종료시각 미계측; runId 시작10:15:07 UTC, 관찰된 요청 seal10:15:13.662 UTC이며 전체 실행시간과 구분한다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| media_server_v390_ui-GpqN0j | 격리 runtime | 215965B | runner 삭제 | existsAfter=false | runtimeRootCleanup |
+| .media_server.test/v3.9.0/ui-diagnostic-sweep/s09-evt058-a925dc75 | 단독 진단9파일 | 14911252B | 결과·해시 이관 후 삭제 | source·summary digest 대조 후 absent=true | 위 전수 결과 및 digest |
+
 ## S09 최초 오류 집계 보완 커밋 및 EVT-058 단독 진단 승인
 
 사용자가 현재 변경의 분할 커밋 후 EVT-058 단독 진단을 승인했다. 오류 집계 코드·계약 테스트와 실패·검증 기록을 분리 커밋하고 clean 상태에서 기존 diagnostic sweep의 `--case-id EVT-058`을 한 번 실행한다. 기존 EVT-058 exact action·요청 수명·cleanup 항목을 재사용하며 새 합격 기준을 만들지 않는다. 진단은 현재 소스 build를 선수 조건으로 실행한다. 푸시·전체 UI·30분·120분은 이번 승인 범위가 아니다. 단독 성공도 61366 전체 UI 실패를 소급 해소하지 않는다.
