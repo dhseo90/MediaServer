@@ -1,5 +1,53 @@
 # Release Test Records
 
+## S09 계측 활성화 기존424 UI 최종 결과 — 64886
+
+승인된 분할 커밋 `b0fc2ea7`(기본-off 요청 계측), `77edc049`(검증·승인 기록) 이후 `MEDIA_SERVER_SITE_OPERATIONS_REQUEST_DIAGNOSTIC=1 ./test_ui.sh`를 실행했다. run ID는 `v390-test-acceptance-20260911104717-14002`, 시작·종료 source는 `77edc0499159f59aad095f2816bdd2a9d8d809e7`, 양쪽 worktree clean이다. 종료 후 기존 exec session 조회는 Unknown process였으므로 재실행하지 않고 실제 완료 summary를 대조했다. 외부 observer 프로세스의 마지막 exit/count 출력은 대화 출력 유실로 미확인이다. 제품 실행 판정은 보존된 launcher·canonical·qualification 결과에 근거하며 observer 종료 코드를 추정하지 않는다.
+
+기존424 exact UI는 424 attempted / 424 pass / 0 fail / 0 not-run / 0 unsupported다. finalizer 실제 시각 검사80개, Policy v4 `policyValidationResult=PASS` 및 이424개에 대한 `uiFulltestPass=true`, 최종 무결성·서버 정리도 PASS다. evidence mode는 `qualified-native-automation`; Playwright1.62.1, Chrome152.0.7977.83이며 인앱 수동 확인으로 바꾸어 부르지 않는다. 모든 case·action·시각 검사·stage 상세는 [기존 전수 보존 문서](release-artifacts/v4.1.0/s09-ui-baseline-67127/results.md)의 64886 실행 기록을 따른다. 기존61366의 EVT-058 실패와 이전 finalizer 실패는 삭제하거나 소급 PASS하지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| 기존424 canonical UI | exact runner exit0; 424/424, elapsed1477513ms; 전수 개별 행은 위 보존 문서 | pass | 이전61366은423/424; 이번 재실행 결과와 분리 |
+| finalizer 시각 검사 | 실제80개 probe 및 자동 재시도0; 개별 행은 위 보존 문서 | pass | 이전 중복 촬영물 정리 실패 보완 후 실제 end-to-end 통과 |
+| Policy v4 적격성 | qualifier exit0; eligible424, policyValidationResult PASS, uiFulltestPass true | pass | 녹화8개를 포함한 전체432 판정 아님 |
+| 최종 무결성 | canonical parent·424 child·source·policy·cleanup 대조 exit0; finalEvidenceEligible true | pass | 기존424 실행 범위 |
+| EVT-058 | child exit0,2589ms; request131/response131; failure census0 | pass | 간헐 지연은 이번 실행에서 재현되지 않음; 원인 해결 단정 금지 |
+| 안전 계측 파일 검사 | JSONL704행/176요청; 고정6필드 allowlist, phase4개 순서·단조 elapsed 전수 확인 | pass | 외부 observer terminal stats 미확인; 파일 자체 검사 |
+| runtime 정리 | PID14531 종료,65314/65315 listener 없음 및 runner bindableAfter=true; runtime1704568B 삭제 | pass | 최초 ps는 sandbox 거부, 권한 있는 읽기 확인은 프로세스·listener0 |
+
+두 허용 route별 계측은 아래와 같다. 모든 요청에 parsed→handler_begin→handler_end→send_end가 있고 sendSuccess=false는0이다. 계측 ID는 서버 process-local이므로 브라우저 native request ID와 동일하다고 간주하지 않는다. 숫자는 이번 관찰분 전체의 최댓값이며 이전 실패의 지연시간을 설명하지 않는다. 계측 opt-in에 따른 타이밍 영향과 parse 이전 대기는 검증 범위 밖이다.
+
+| route enum | 요청/행 | 최대 accept 이후 elapsed | 최대 handler 구간 | 전송 실패 |
+| --- | ---: | ---: | ---: | ---: |
+| impact_graph | 88/352 | 8528µs | 8354µs | 0 |
+| runbook_instance_ledger | 88/352 | 9002µs | 8853µs | 0 |
+
+| 보존 판정 대상 | 원본 바이트 | SHA256 |
+| --- | ---: | --- |
+| acceptance summary | 68383 | bbdb8a1b33106c0863e8e7bc4e3b54e63d166feb98cf64be5618831f8dd0cd09 |
+| user test summary | 96302 | 32a5b7fc76d464bee9d2c49c5602c3919b63790a349265dce3b249dc4f5f48d9 |
+| finalizer summary | 2416149 | 10c342a892a3fdf24cd19414b07b8ea785f140841797d36f740cbdd2e524bd85 |
+| Policy v4 evaluation | 9161 | 51b0de66406ec9c32459d140290675a3b8db3eeceb2a3bbe7802dd9a7a51a35d |
+| final integrity | 2947 | a5df8f79abe79017ec73999e7c74385d08c4a56c88c2ca903e0d8a69179cd51b |
+| 안전 계측 JSONL | 71632 | 70e818bf80646c28cd948c2d4c760e49f77045cbec5cd798b908ddcb588f394b |
+
+스크립트 테스트: 이번 launcher 선수 계약26/26·exact source 계약60/60·build 통과, 30분·120분 재실행 없음. UI canonical elapsed1477513ms(24분37.513초), acceptance provenance 관찰은10:47:17.226Z~11:14:19.800Z다. 이는 30분 soak가 아니다. token start/end/consumed는 미집계: 실행 전후 독립 계수 미확보 및 공유 goal 누적값을 이번 테스트 전용 사용량으로 분리할 수 없음. source=실제 canonical timing·acceptance provenance; observer 전체 elapsed 미확인.
+
+미완료: 녹화 UI8개·녹화 전용120분은 이번 실행에 포함하지 않았으며 S09/전체432 완료로 판정하지 않는다. 제품 API/schema/auth/media/timeout 추가 변경은 없다. 이번 종료 기록은 미커밋이며 푸시는 하지 않았다.
+
+### 64886 이관 및 정리 완료
+
+메인이 원본424 child의 해시·PASS·exit0·cleanup을 문서와 직접 대조했다. 전수 문서는 case424/action1089/visual80행이며 이전 실패 기록을 유지한다. 담당자가 원본 policy424와 PNG80·measurement80의 해시를 대조했고, 메인이 전수 행수·표 형식 및 실제 diff를 확인했다. 새로운 제품 테스트 실행 없이 문서 `git diff --check`를 통과했다. 관찰 원본의 필요한 결과와 해시만 문서로 보존했으며 아래 임시 파일은 삭제했다. 삭제 후 다시 존재하지 않음을 확인했다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| `.media_server.test/v4.1.0/ui-acceptance-current` | 이번 실행4566파일, screenshot/trace/summary/log | 334167423B | run ID·PASS·실경로·symlink0·파일수/크기 재대조 후 삭제 | 삭제·부재 확인 | 개별 결과·해시는 저장소 전수 문서 보존; 원본 재검사는 불가 |
+| `.media_server.test/s09-instrumented-77edc049.jsonl` | 고정 안전 계측704행 | 71632B | SHA256 재대조 후 삭제 | 삭제·부재 확인 | 위 route별 집계·해시 보존 |
+| `media_server_v390_ui-wdcnTl` | 실행 소유 runtime/auth/registry/media | 1704568B | runner 종료 단계에서 삭제 | 삭제·부재 재확인 | runtime cleanup 측정, PID14531 및 두 포트 listener 없음 |
+
+모든 원본 경로는 삭제 관찰 대상이며 최종 evidence 링크가 아니다. 보존 증거는 이 문서와 전수 결과 문서다. 자동 감시는 중복 실행 방지를 위해 PAUSED로 전환했다. 이번 기록 정리의 영향은 문서2개뿐이며 새 커밋·푸시는 수행하지 않았다.
+
 ## S09 계측 활성화 기존 UI 재검증 승인
 
 사용자는 현재 계측·검증·기록의 분할 커밋 후 기존424 UI 재검증을 승인했다. `MEDIA_SERVER_SITE_OPERATIONS_REQUEST_DIAGNOSTIC=1 ./test_ui.sh`의 기존 canonical424·finalizer 시각검사·Policy v4·cleanup 범위를 유지한다. 신규 녹화8개 case를 포함한 전체432 완료로 확대하지 않으며 푸시·30분·120분은 실행하지 않는다. 이번 실행이 만든 runtime만 읽어 고정 prefix 진단행을 안전 필드 allowlist로 검증 후 별도 임시 보존한다. 서버 원문 로그·인증값·payload는 복사하지 않는다. 보존된 계측행과 실제 브라우저 결과는 종료 후 대조한다. 미커밋 소스 실행을 피하기 위해 실행 중 제품·문서는 변경하지 않는다.
