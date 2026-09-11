@@ -36,6 +36,7 @@ const ordinaryModes = Object.freeze([
   ["cleanup-error-after-assertion", "DOM_ASSERTION_FAILED", "CASE_RUNTIME_CLEANUP_FAILED"],
 ]);
 const checks = [];
+// PF-LC01~03: 실제 wrapper의 plain primary 보존, lifecycle 중복 방지, 비밀 비노출·정리 회귀.
 const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), "v390-case-child-contract-"));
 
 check("completed actual case child bypasses the Node worker shutdown deadlock", () => {
@@ -201,6 +202,35 @@ try {
     assert(child.summary.case.cleanupAttestation?.pass === false &&
       child.summary.case.cleanupAttestation?.failureCode === "CASE_RUNTIME_CLEANUP_FAILED",
     "cleanup failure attestation mismatch");
+  });
+
+  const plainLifecycleChild = runContractChild("plain-primary-plus-lifecycle");
+  check("PF-LC01 plain primary remains first before secondary missing response", () => {
+    assert(plainLifecycleChild.exitCode === 1, "composite child exit mismatch");
+    assert(plainLifecycleChild.summary?.case.failureCode === "CASE_EXECUTION_FAILED",
+      "plain primary was overwritten by secondary lifecycle code");
+    assert(plainLifecycleChild.summary.case.failurePhase === "case-execution" &&
+      plainLifecycleChild.summary.case.failureClass === "case-execution-failure",
+      "plain primary inherited secondary lifecycle class or phase");
+    assert(JSON.stringify(plainLifecycleChild.summary.case.failureCensus.map(item => item.code)) ===
+      JSON.stringify(["CASE_EXECUTION_FAILED", "RESPONSE_MISSING"]), "primary census order mismatch");
+  });
+  check("PF-LC02 lifecycle-only missing response is not duplicated", () => {
+    const child = runContractChild("missing-response-lifecycle-only");
+    assert(child.exitCode === 1 && child.summary?.case.failureCode === "REQUEST_LIFECYCLE_FAILED",
+      "lifecycle-only primary mismatch");
+    assert(JSON.stringify(child.summary.case.failureCensus.map(item => item.code)) ===
+      JSON.stringify(["RESPONSE_MISSING"]), "lifecycle-only census duplicated");
+  });
+  check("PF-LC03 plain primary remains redacted with cleanup and fixture boundary", () => {
+    assertCommonSummary(plainLifecycleChild.summary, "FAIL");
+    const serialized = JSON.stringify(plainLifecycleChild.summary);
+    for (const forbidden of [...secretCanaries, "https://example.invalid", "?token="]) {
+      assert(!serialized.includes(forbidden), "composite child exposed a secret canary");
+    }
+    assert(plainLifecycleChild.summary.actualBrowserExecution === false &&
+      plainLifecycleChild.summary.case.cleanupAttestation.pass === true,
+      "composite cleanup or fixture boundary mismatch");
   });
 
   for (const [mode, primaryCode] of [

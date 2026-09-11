@@ -116,6 +116,8 @@ const caseChildContractFixtureModes = Object.freeze(new Set([
   "pass",
   "callback-capture-error",
   "lifecycle-duplicate-response",
+  "plain-primary-plus-lifecycle",
+  "missing-response-lifecycle-only",
   "dom-assertion-error",
   "api-assertion-error",
   "rejected-promise",
@@ -1248,6 +1250,21 @@ async function runContractCaseChildFixture(item) {
       item.caseId,
       options.contractCaseChildFixture,
     );
+    if (["plain-primary-plus-lifecycle", "missing-response-lifecycle-only"]
+      .includes(options.contractCaseChildFixture)) {
+      throw caseExecutionFailure(item.caseId, {
+        primaryFailure: options.contractCaseChildFixture === "plain-primary-plus-lifecycle"
+          ? new Error("review-json-password-value https://example.invalid/?token=review-query-token-value")
+          : null,
+        requestLifecycleFailure: structuredCaseChildFailure({
+          failureClass: "request-lifecycle-failure",
+          phase: "request-lifecycle-evaluation",
+          code: "REQUEST_LIFECYCLE_FAILED",
+          message: "contract lifecycle failed",
+        }),
+        requestLifecycleEvaluation,
+      });
+    }
     if (["serialized-secret-lifecycle-fallback", "serialized-secret-scanner-throws"]
       .includes(options.contractCaseChildFixture)) {
       requestLifecycleEvaluation = structuredClone(requestLifecycleEvaluation);
@@ -1423,7 +1440,7 @@ async function executeContractRequestLifecycleFixture(caseId, mode) {
     ledger.captureContext(),
   );
   ledger.registerCapturedRequest(envelope);
-  if (envelope) {
+  if (envelope && !["plain-primary-plus-lifecycle", "missing-response-lifecycle-only"].includes(mode)) {
     ledger.requestLifecycleRecorder.recordResponse(response);
     if (mode === "lifecycle-duplicate-response") {
       ledger.requestLifecycleRecorder.recordResponse(response);
@@ -3283,18 +3300,18 @@ function caseExecutionFailure(
     : null;
   error.failureClass = String(
     primaryFailure?.failureClass ||
-    requestLifecycleFailure?.failureClass ||
+    (!primaryFailure && requestLifecycleFailure?.failureClass) ||
     "case-execution-failure",
   );
   error.failurePhase = String(
     primaryFailure?.failurePhase ||
-    requestLifecycleFailure?.failurePhase ||
+    (!primaryFailure && requestLifecycleFailure?.failurePhase) ||
     failurePhase ||
     "case-execution",
   );
   error.failureCode = String(
     primaryFailure?.failureCode ||
-    requestLifecycleFailure?.failureCode ||
+    (!primaryFailure && requestLifecycleFailure?.failureCode) ||
     "CASE_EXECUTION_FAILED",
   );
   error.actualBrowserExecution = actualBrowserExecution === true;
