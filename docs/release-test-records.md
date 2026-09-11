@@ -25,6 +25,327 @@
 
 token start/end/consumed는 자동 집계 미제공으로 미집계. 실행 elapsed/원출력·cleanup은 실행 후 보존한다.
 
+### C3 ready 구현 사전등록
+
+승인 명령 `./server.sh verify-v410-recording-finalize-recovery`(integration 없음). 다음 정상 수용 5개가 미구현 예상 RED이며 기존 V1 실패는 중단한다. 최종 공통 inspector 회귀는 `./server.sh verify-v410-recording-catalog` 1회, `git diff --check`다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-M08 V2 ready recovers exact metadata partial | 실제 미디어 복구 | partial-only에서 정수/null/provenance 및 bytes 복구 | v4.1.0 |
+| S10-M08 V2 ready recovers exact metadata two-links | 실제 미디어 복구 | 정확한 두 link 검사 후 partial 정리와 동일 V2 | v4.1.0 |
+| S10-M08 V2 ready recovers exact metadata final | 실제 미디어 복구 | final-only 재시작 동일 V2 | v4.1.0 |
+| S10-M08 V2 ready recovers exact metadata committed | 실제 미디어 복구 | commit 후 ready 잔존 멱등 정리 | v4.1.0 |
+| S10-M08 V2 ready writer preserves versioned envelope | 실제 ready 생성 | version2 전체 payload literal 대조 | v4.1.0 |
+
+다음 18개 음성 경계를 첫 GREEN 전에 등록한다. mixed ticket은 V1 기본 객체 전체와 다르면 거부하며 V2→V1 변환하지 않는다. C3 외 실제 writer/UI/장시간/wholebuild는 미실행.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-M09 V2 ready refusal preserves originals missing-order | 실제 ready/catalog/파일 | 거부와 원문·미디어·원장 보존, 생성 전 거부 또는 기존 inspector nlink1 경계 | v4.1.0 |
+| S10-M09 V2 ready refusal preserves originals wrong-tuple | 실제 ready/catalog/파일 | 거부와 원문·미디어·원장 보존, 생성 전 거부 또는 기존 inspector nlink1 경계 | v4.1.0 |
+| S10-M09 V2 ready refusal preserves originals optout | 실제 ready/catalog/파일 | 거부와 원문·미디어·원장 보존, 생성 전 거부 또는 기존 inspector nlink1 경계 | v4.1.0 |
+| S10-M09 V2 ready refusal preserves originals deleted | 실제 ready/catalog/파일 | 거부와 원문·미디어·원장 보존, 생성 전 거부 또는 기존 inspector nlink1 경계 | v4.1.0 |
+| S10-M09 V2 ready refusal preserves originals mapping | 실제 ready/catalog/파일 | 거부와 원문·미디어·원장 보존, 생성 전 거부 또는 기존 inspector nlink1 경계 | v4.1.0 |
+| S10-M09 V2 ready refusal preserves originals path | 실제 ready/catalog/파일 | 거부와 원문·미디어·원장 보존, 생성 전 거부 또는 기존 inspector nlink1 경계 | v4.1.0 |
+| S10-M09 V2 ready refusal preserves originals version | 실제 ready/catalog/파일 | 거부와 원문·미디어·원장 보존, 생성 전 거부 또는 기존 inspector nlink1 경계 | v4.1.0 |
+| S10-M09 V2 ready refusal preserves originals event | 실제 ready/catalog/파일 | 거부와 원문·미디어·원장 보존, 생성 전 거부 또는 기존 inspector nlink1 경계 | v4.1.0 |
+| S10-M09 V2 ready refusal preserves originals corrupt-pair | 실제 ready/catalog/파일 | 거부와 원문·미디어·원장 보존, 생성 전 거부 또는 기존 inspector nlink1 경계 | v4.1.0 |
+| S10-M09 V2 ready refusal preserves originals foreign-link | 실제 ready/catalog/파일 | 거부와 원문·미디어·원장 보존, 생성 전 거부 또는 기존 inspector nlink1 경계 | v4.1.0 |
+| S10-M09 V2 ready writer rejects mixed-id | 실제 ready/catalog/파일 | 거부와 원문·미디어·원장 보존, 생성 전 거부 또는 기존 inspector nlink1 경계 | v4.1.0 |
+| S10-M09 V2 ready writer rejects mixed-size | 실제 ready/catalog/파일 | 거부와 원문·미디어·원장 보존, 생성 전 거부 또는 기존 inspector nlink1 경계 | v4.1.0 |
+| S10-M09 V2 ready writer rejects mixed-source | 실제 ready/catalog/파일 | 거부와 원문·미디어·원장 보존, 생성 전 거부 또는 기존 inspector nlink1 경계 | v4.1.0 |
+| S10-M09 V2 ready writer rejects mixed-time | 실제 ready/catalog/파일 | 거부와 원문·미디어·원장 보존, 생성 전 거부 또는 기존 inspector nlink1 경계 | v4.1.0 |
+| S10-M09 V2 ready writer rejects event | 실제 ready/catalog/파일 | 거부와 원문·미디어·원장 보존, 생성 전 거부 또는 기존 inspector nlink1 경계 | v4.1.0 |
+| S10-M09 V2 ready writer rejects oversize | 실제 ready/catalog/파일 | 거부와 원문·미디어·원장 보존, 생성 전 거부 또는 기존 inspector nlink1 경계 | v4.1.0 |
+| S10-M09 V2 direct publish requires catalog | 실제 ready/catalog/파일 | 거부와 원문·미디어·원장 보존, 생성 전 거부 또는 기존 inspector nlink1 경계 | v4.1.0 |
+| S10-M09 V1 inspector still rejects two links | 실제 ready/catalog/파일 | 거부와 원문·미디어·원장 보존, 생성 전 거부 또는 기존 inspector nlink1 경계 | v4.1.0 |
+
+첫 GREEN43/0 이후 다음 1개만 새 예상 RED로 등록한다. public Clear가 V2 미커밋 ticket/marker를 삭제하는 경계를 막고, 내부 Recover commit 뒤 정리만 허용한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-M09 V2 direct clear preserves uncommitted ticket and marker | 정리 선수조건 | public Clear 거부 및 ticket/marker bytes 불변 | v4.1.0 |
+
+최종 동일 focused에 아래 재시작 직접 대조 4개를 추가한다(예상 실패 없음). commit 이후 원장 불증가와 재개 원문 동등성을 독립 catalog.Open으로 확인한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-M08 V2 journal restart and repeated recovery partial | JSONL 재시작 | 전체 V2 동일 및 반복복구 원장 불변 | v4.1.0 |
+| S10-M08 V2 journal restart and repeated recovery two-links | JSONL 재시작 | 전체 V2 동일 및 반복복구 원장 불변 | v4.1.0 |
+| S10-M08 V2 journal restart and repeated recovery final | JSONL 재시작 | 전체 V2 동일 및 반복복구 원장 불변 | v4.1.0 |
+| S10-M08 V2 journal restart and repeated recovery committed | JSONL 재시작 | commit 전후 원장 불증가 및 전체 V2 동일 | v4.1.0 |
+
+최초 최종48/0 후 M08 실제 startup 연결 characterization 4개를 사전등록한다. 정상4상태에 cleanup marker를 생성한 뒤 새 Catalog.Open이 ready/marker/존재 partial을 보존하는지 확인하고 그 catalog로 Recover하여 최종 marker 부재를 검사한다. 제품코드 변경 없이 focused 1회만 보완하며 catalog172/0는 재실행하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker partial | 실제 시작 순서 | marker/ready 생성→새 Open 보존→Recover 정리 | v4.1.0 |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker two-links | 실제 시작 순서 | marker/ready 생성→새 Open 보존→Recover 정리 | v4.1.0 |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker final | 실제 시작 순서 | marker/ready 생성→새 Open 보존→Recover 정리 | v4.1.0 |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker committed | 실제 시작 순서 | marker/ready 생성→새 Open 보존→Recover 정리 | v4.1.0 |
+
+#### C3 실제 결과 (2026-09-12)
+
+복구 명령은 `./server.sh verify-v410-recording-finalize-recovery`이며 integration 옵션 없이 실행했다. 공통 inspector catalog 회귀 명령은 `./server.sh verify-v410-recording-catalog`이다. 실제 미디어 fixture의 SHA/demux와 JSONL 복구를 검사했지만 actual writer/integration/wholebuild/auth/UI/30·120분은 미실행이다. C2 SQLite 동등성은 별도172개 회귀이며 ready focused는 JSONL catalog를 사용한다. 시간 없는 V1 변환을 만들지 않았다.
+
+| 실행 | exit | 실제 결과 | elapsed ms |
+| --- | ---: | --- | ---: |
+| 76224 | 1 | V1 20pass; V2 정상수용5 예상fail | 11607 |
+| 25690 | 0 | V1 20+V2 23=43pass/0fail | 6873 |
+| 68002 | 1 | 기존43pass+미커밋 direct-clear 예상1fail | 12444 |
+| 93773 | 0 | V1 20+V2 28=48pass/0fail | 15513 |
+| 25461 | 0 | C++163+shell9=172pass/0fail | 8307 |
+| 23380 | 0 | V1 20+V2 32=52pass/0fail; startup4 보완 | 13269 |
+
+elapsed는 Date.now 도구 호출 직전→종료 관측값(도구 왕복 포함)이다. token start/end/consumed는 자동 집계 미제공으로 미집계. 도구 원출력을 메모리에 보존한 뒤 아래 최종52행+catalog172행으로 전수 이관했다. RED1 25행/GREEN1 43행/RED2 44행/GREEN2 48행의 제목·중복 순번을 최종52행에 대조해 누락0, 최초5fail와 추가1fail 이력을 보존했다. 최종 startup4는 실행 전 등록했다. 이관 문자열 조립 오류1회는 파일쓰기 전 교정했으며 제품·테스트 실패가 아니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| ready partial recovers original segment ID | 실제 복구 focused 원출력 1행 | pass | RED1 pass; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| FR02 interrupted publish converges: final only | 실제 복구 focused 원출력 2행 | pass | RED1 pass; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| FR02 repeated recovery no duplicate mutation | 실제 복구 focused 원출력 3행 | pass | RED1 pass; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| FR02 interrupted publish converges: owned two links | 실제 복구 focused 원출력 4행 | pass | RED1 pass; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| FR02 repeated recovery no duplicate mutation | 실제 복구 focused 원출력 5행 | pass | RED1 pass; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| FR03 catalog commit before cleanup does not append or replace | 실제 복구 focused 원출력 6행 | pass | RED1 pass; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| FR04 invalid version preserves original without publication | 실제 복구 focused 원출력 7행 | pass | RED1 pass; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| FR04 invalid duplicate preserves original without publication | 실제 복구 focused 원출력 8행 | pass | RED1 pass; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| FR04 invalid nonce preserves original without publication | 실제 복구 focused 원출력 9행 | pass | RED1 pass; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| FR04 invalid escape preserves original without publication | 실제 복구 focused 원출력 10행 | pass | RED1 pass; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| FR04 invalid identity preserves original without publication | 실제 복구 focused 원출력 11행 | pass | RED1 pass; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| FR05 symlink ticket rejected and external target untouched | 실제 복구 focused 원출력 12행 | pass | RED1 pass; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| FR05 foreign hardlink rejected without unlink | 실제 복구 focused 원출력 13행 | pass | RED1 pass; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| FR05 actual unreadable ticket preserves media | 실제 복구 focused 원출력 14행 | pass | RED1 pass; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| FR06 corrupt unknown isolated in place without finalized mutation | 실제 복구 focused 원출력 15행 | pass | RED1 pass; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| FR06 repeated corruption recovery converges without resurrection | 실제 복구 focused 원출력 16행 | pass | RED1 pass; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| FR07 pending takes precedence over ready publication | 실제 복구 focused 원출력 17행 | pass | RED1 pass; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| FR07 deleted takes precedence over ready publication | 실제 복구 focused 원출력 18행 | pass | RED1 pass; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| FR07 conflict takes precedence over ready publication | 실제 복구 focused 원출력 19행 | pass | RED1 pass; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| FR08 orphan not inferred and legacy owned partial cleaned | 실제 복구 focused 원출력 20행 | pass | RED1 pass; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker partial | 실제 복구 focused 원출력 21행 | pass | RED1 미실행; GREEN1 미실행; RED2 미실행; GREEN2 미실행; 최종 pass |
+| S10-M08 V2 ready recovers exact metadata partial | 실제 복구 focused 원출력 22행 | pass | RED1 fail; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| S10-M08 V2 journal restart and repeated recovery partial | 실제 복구 focused 원출력 23행 | pass | RED1 미실행; GREEN1 미실행; RED2 미실행; GREEN2 pass; 최종 pass |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker two-links | 실제 복구 focused 원출력 24행 | pass | RED1 미실행; GREEN1 미실행; RED2 미실행; GREEN2 미실행; 최종 pass |
+| S10-M08 V2 ready recovers exact metadata two-links | 실제 복구 focused 원출력 25행 | pass | RED1 fail; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| S10-M08 V2 journal restart and repeated recovery two-links | 실제 복구 focused 원출력 26행 | pass | RED1 미실행; GREEN1 미실행; RED2 미실행; GREEN2 pass; 최종 pass |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker final | 실제 복구 focused 원출력 27행 | pass | RED1 미실행; GREEN1 미실행; RED2 미실행; GREEN2 미실행; 최종 pass |
+| S10-M08 V2 ready recovers exact metadata final | 실제 복구 focused 원출력 28행 | pass | RED1 fail; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| S10-M08 V2 journal restart and repeated recovery final | 실제 복구 focused 원출력 29행 | pass | RED1 미실행; GREEN1 미실행; RED2 미실행; GREEN2 pass; 최종 pass |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker committed | 실제 복구 focused 원출력 30행 | pass | RED1 미실행; GREEN1 미실행; RED2 미실행; GREEN2 미실행; 최종 pass |
+| S10-M08 V2 ready recovers exact metadata committed | 실제 복구 focused 원출력 31행 | pass | RED1 fail; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| S10-M08 V2 journal restart and repeated recovery committed | 실제 복구 focused 원출력 32행 | pass | RED1 미실행; GREEN1 미실행; RED2 미실행; GREEN2 pass; 최종 pass |
+| S10-M08 V2 ready writer preserves versioned envelope | 실제 복구 focused 원출력 33행 | pass | RED1 fail; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| S10-M09 V2 ready refusal preserves originals missing-order | 실제 복구 focused 원출력 34행 | pass | RED1 미실행; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| S10-M09 V2 ready refusal preserves originals wrong-tuple | 실제 복구 focused 원출력 35행 | pass | RED1 미실행; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| S10-M09 V2 ready refusal preserves originals optout | 실제 복구 focused 원출력 36행 | pass | RED1 미실행; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| S10-M09 V2 ready refusal preserves originals deleted | 실제 복구 focused 원출력 37행 | pass | RED1 미실행; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| S10-M09 V2 ready refusal preserves originals mapping | 실제 복구 focused 원출력 38행 | pass | RED1 미실행; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| S10-M09 V2 ready refusal preserves originals path | 실제 복구 focused 원출력 39행 | pass | RED1 미실행; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| S10-M09 V2 ready refusal preserves originals version | 실제 복구 focused 원출력 40행 | pass | RED1 미실행; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| S10-M09 V2 ready refusal preserves originals event | 실제 복구 focused 원출력 41행 | pass | RED1 미실행; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| S10-M09 V2 ready refusal preserves originals corrupt-pair | 실제 복구 focused 원출력 42행 | pass | RED1 미실행; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| S10-M09 V2 ready refusal preserves originals foreign-link | 실제 복구 focused 원출력 43행 | pass | RED1 미실행; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| S10-M09 V2 ready writer rejects mixed-id | 실제 복구 focused 원출력 44행 | pass | RED1 미실행; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| S10-M09 V2 ready writer rejects mixed-size | 실제 복구 focused 원출력 45행 | pass | RED1 미실행; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| S10-M09 V2 ready writer rejects mixed-source | 실제 복구 focused 원출력 46행 | pass | RED1 미실행; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| S10-M09 V2 ready writer rejects mixed-time | 실제 복구 focused 원출력 47행 | pass | RED1 미실행; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| S10-M09 V2 ready writer rejects event | 실제 복구 focused 원출력 48행 | pass | RED1 미실행; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| S10-M09 V2 ready writer rejects oversize | 실제 복구 focused 원출력 49행 | pass | RED1 미실행; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| S10-M09 V2 direct publish requires catalog | 실제 복구 focused 원출력 50행 | pass | RED1 미실행; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| S10-M09 V1 inspector still rejects two links | 실제 복구 focused 원출력 51행 | pass | RED1 미실행; GREEN1 pass; RED2 pass; GREEN2 pass; 최종 pass |
+| S10-M09 V2 direct clear preserves uncommitted ticket and marker | 실제 복구 focused 원출력 52행 | pass | RED1 미실행; GREEN1 미실행; RED2 fail; GREEN2 pass; 최종 pass |
+
+
+##### C3 공통 inspector catalog 회귀 전수
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| journal open:  | catalog 회귀 원출력 1행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| fallback catalog open:  | catalog 회귀 원출력 2행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| SQLite off mode 표시 | catalog 회귀 원출력 3행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| segment finalize journal+projection:  | catalog 회귀 원출력 4행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| fallback range query | catalog 회귀 원출력 5행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| event link FK 위반 거부 | catalog 회귀 원출력 6행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| FK 위반 transaction/journal 전체 rollback | catalog 회귀 원출력 7행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| 최초 durable mutation 1개 | catalog 회귀 원출력 8행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| 동일 mutation 중복 append | catalog 회귀 원출력 9행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| 손상 사이 정상 durable mutation 보존 | catalog 회귀 원출력 10행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| 중간 corrupt line count | catalog 회귀 원출력 11행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| 마지막 truncated line skip | catalog 회귀 원출력 12행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| fallback replay open | catalog 회귀 원출력 13행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| 같은 mutation idempotent replay | catalog 회귀 원출력 14행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | catalog 회귀 원출력 15행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| 중복 replay row/합계 불증가 | catalog 회귀 원출력 16행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구:  | catalog 회귀 원출력 17행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | catalog 회귀 원출력 18행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | catalog 회귀 원출력 19행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| SQLite catalog open/rebuild:  | catalog 회귀 원출력 20행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| SQLite primary mode 표시 | catalog 회귀 원출력 21행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| SQLite on/off range query ID·순서 parity | catalog 회귀 원출력 22행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | catalog 회귀 원출력 23행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| journal 없는 손상 media orphan 구분 | catalog 회귀 원출력 24행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| projection failover journal open:  | catalog 회귀 원출력 25행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| projection failover catalog open:  | catalog 회귀 원출력 26행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| 실제 SQLite INSERT 실패 trigger 설치 | catalog 회귀 원출력 27행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| SQLite 투영 실패 뒤 journal+memory finalize 유지:  | catalog 회귀 원출력 28행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| SQLite 투영 실패 즉시 JSONL fallback 전환 | catalog 회귀 원출력 29행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| 재시작 rebuild 전 실패 trigger 제거 | catalog 회귀 원출력 30행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| 투영 실패 직후 in-memory query 정합성 유지 | catalog 회귀 원출력 31행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| projection failover 재시작 journal rebuild:  | catalog 회귀 원출력 32행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| 재시작 후 journal에서 누락 SQLite projection 복구 | catalog 회귀 원출력 33행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| 재시작 후 SQLite primary 복귀 | catalog 회귀 원출력 34행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| 재시작 journal rebuild가 실제 SQLite row 복원 | catalog 회귀 원출력 35행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| tombstone journal open:  | catalog 회귀 원출력 36행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| tombstone catalog open:  | catalog 회귀 원출력 37행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| tombstone 대상 segment finalize:  | catalog 회귀 원출력 38행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| tombstone 대상 deletion request:  | catalog 회귀 원출력 39행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| tombstone 완료 기록:  | catalog 회귀 원출력 40행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | catalog 회귀 원출력 41행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| 손상 SQLite 격리 후 journal rebuild:  | catalog 회귀 원출력 42행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| 손상 SQLite 원본 격리 | catalog 회귀 원출력 43행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| 격리 SQLite 파일 보존 | catalog 회귀 원출력 44행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| 격리 후 journal rebuild 결과 | catalog 회귀 원출력 45행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A future-schema journal read open | catalog 회귀 원출력 46행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A future-schema unsupported classification | catalog 회귀 원출력 47행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A future-schema catalog open denied | catalog 회귀 원출력 48행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A future-schema catalog retry denied | catalog 회귀 원출력 49행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A future-schema journal bytes preserved | catalog 회귀 원출력 50행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A future-schema SQLite bytes preserved | catalog 회귀 원출력 51행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A future-schema writer cleanup untouched | catalog 회귀 원출력 52행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A arbitrary-schema journal read open | catalog 회귀 원출력 53행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A arbitrary-schema unsupported classification | catalog 회귀 원출력 54행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A arbitrary-schema catalog open denied | catalog 회귀 원출력 55행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A arbitrary-schema catalog retry denied | catalog 회귀 원출력 56행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A arbitrary-schema journal bytes preserved | catalog 회귀 원출력 57행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A arbitrary-schema SQLite bytes preserved | catalog 회귀 원출력 58행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A arbitrary-schema writer cleanup untouched | catalog 회귀 원출력 59행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A empty-schema journal read open | catalog 회귀 원출력 60행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A empty-schema unsupported classification | catalog 회귀 원출력 61행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A empty-schema catalog open denied | catalog 회귀 원출력 62행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A empty-schema catalog retry denied | catalog 회귀 원출력 63행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A empty-schema journal bytes preserved | catalog 회귀 원출력 64행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A empty-schema SQLite bytes preserved | catalog 회귀 원출력 65행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A empty-schema writer cleanup untouched | catalog 회귀 원출력 66행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A future-type journal read open | catalog 회귀 원출력 67행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A future-type unsupported classification | catalog 회귀 원출력 68행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A future-type catalog open denied | catalog 회귀 원출력 69행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A future-type catalog retry denied | catalog 회귀 원출력 70행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A future-type journal bytes preserved | catalog 회귀 원출력 71행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A future-type SQLite bytes preserved | catalog 회귀 원출력 72행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A future-type writer cleanup untouched | catalog 회귀 원출력 73행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A malformed journal open | catalog 회귀 원출력 74행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-3A malformed JSON missing fields and wrong types remain corrupt | catalog 회귀 원출력 75행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O01 reservation journal open | catalog 회귀 원출력 76행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O01 first reservation returns four IDs and sequence one | catalog 회귀 원출력 77행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O01 versioned reservation payload replays | catalog 회귀 원출력 78행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O01 new reservation records actual occurred time | catalog 회귀 원출력 79행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O02 identical retry preserves sequence and bytes | catalog 회귀 원출력 80행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O03 reopened instance allocates next sequence | catalog 회귀 원출력 81행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O03 new process resumes durable sequence | catalog 회귀 원출력 82행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O04 different store rejected | catalog 회귀 원출력 83행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O04 reused request with different segment rejected | catalog 회귀 원출력 84행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O04 reused request with different channel rejected | catalog 회귀 원출력 85행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O04 reused segment with different request rejected | catalog 회귀 원출력 86행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O04 conflicts preserve original bytes | catalog 회귀 원출력 87행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O05/O06 reject and preserve corrupt | catalog 회귀 원출력 88행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O05/O06 reject and preserve unsupported-schema | catalog 회귀 원출력 89행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O05/O06 reject and preserve unsupported-type | catalog 회귀 원출력 90행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O05/O06 reject and preserve tail | catalog 회귀 원출력 91행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O05/O06 reject and preserve payload-zero | catalog 회귀 원출력 92행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O05/O06 reject and preserve payload-negative | catalog 회귀 원출력 93행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O05/O06 reject and preserve payload-fraction | catalog 회귀 원출력 94행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O05/O06 reject and preserve payload-overflow | catalog 회귀 원출력 95행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O05/O06 reject and preserve duplicate-sequence | catalog 회귀 원출력 96행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O05/O06 reject and preserve decreasing-sequence | catalog 회귀 원출력 97행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O05/O06 reject and preserve duplicate-request | catalog 회귀 원출력 98행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O05/O06 reject and preserve duplicate-segment | catalog 회귀 원출력 99행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O05/O06 reject and preserve store-conflict | catalog 회귀 원출력 100행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O05/O06 reject and preserve ordinary-before | catalog 회귀 원출력 101행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O05/O06 reject and preserve ordinary-after | catalog 회귀 원출력 102행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O05/O06 reject and preserve line-cap | catalog 회귀 원출력 103행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O05 reservation entity envelope binding rejects mismatch | catalog 회귀 원출력 104행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O05 reservation request envelope binding rejects mismatch | catalog 회귀 원출력 105행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O01 strict reservation parser accepts versioned literal | catalog 회귀 원출력 106행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | catalog 회귀 원출력 107행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | catalog 회귀 원출력 108행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | catalog 회귀 원출력 109행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | catalog 회귀 원출력 110행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O06 INT64_MAX identical retry remains valid | catalog 회귀 원출력 111행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O06 sequence overflow rejected without write | catalog 회귀 원출력 112행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O02 identical durable reservation duplicates remain idempotent | catalog 회귀 원출력 113행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O06 sequence gaps remain valid and allocate above maximum | catalog 회귀 원출력 114행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O07 four simultaneous processes finish reservations | catalog 회귀 원출력 115행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O07 concurrent sequences are unique and complete | catalog 회귀 원출력 116행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O07 next sequence follows concurrent reservations | catalog 회귀 원출력 117행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O08 ordinary Append cannot reserve orders | catalog 회귀 원출력 118행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O08 unopened journal rejected | catalog 회귀 원출력 119행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O08 null result rejected | catalog 회귀 원출력 120행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O08 invalid opaque ID rejected | catalog 회귀 원출력 121행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O08 failed reservation does not expose tentative result | catalog 회귀 원출력 122행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O09 unsafe file binding rejected and original preserved inode | catalog 회귀 원출력 123행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O09 unsafe file binding rejected and original preserved parent | catalog 회귀 원출력 124행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O09 unsafe file binding rejected and original preserved symlink | catalog 회귀 원출력 125행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O09 unsafe file binding rejected and original preserved hardlink | catalog 회귀 원출력 126행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O10 reservation and normal segment coexist in catalog | catalog 회귀 원출력 127행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O04 reserve then finalize permits identical retry | catalog 회귀 원출력 128행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O10 reservation survives catalog rebuild without changing segment query | catalog 회귀 원출력 129행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-O04 legacy segment cannot acquire retroactive reservation | catalog 회귀 원출력 130행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M06 opened catalog accepts fresh exact reservation V2 finalize | catalog 회귀 원출력 131행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M07 V2 find preserves complete metadata | catalog 회귀 원출력 132행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M07 identical V2 recovery is idempotent | catalog 회귀 원출력 133행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M07 V2 is absent from V1 range query | catalog 회귀 원출력 134행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M07 V2 registered path is not orphan | catalog 회귀 원출력 135행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M07 SQLite exact V2 JSON and path match | catalog 회귀 원출력 136행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M07 JSONL restart preserves V2 exact payload | catalog 회귀 원출력 137행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M06 wrong reservation tuple rejected store | catalog 회귀 원출력 138행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M06 wrong reservation tuple rejected request | catalog 회귀 원출력 139행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M06 wrong reservation tuple rejected segment | catalog 회귀 원출력 140행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M06 wrong reservation tuple rejected channel | catalog 회귀 원출력 141행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M06 wrong reservation tuple rejected sequence | catalog 회귀 원출력 142행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M09 immutable V2 mapping mismatch rejected | catalog 회귀 원출력 143행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M09 bad V2 startup retry preserves original state bad-payload | catalog 회귀 원출력 144행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M09 bad V2 startup retry preserves original state missing-order | catalog 회귀 원출력 145행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M09 bad V2 startup retry preserves original state bad-order | catalog 회귀 원출력 146행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M09 bad V2 startup retry preserves original state conflicting-order | catalog 회귀 원출력 147행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M09 bad V2 startup retry preserves original state tail | catalog 회귀 원출력 148행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M09 bad V2 startup retry preserves original state corrupt | catalog 회귀 원출력 149행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M09 bad V2 startup retry preserves original state unsafe-path | catalog 회귀 원출력 150행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M09 default off rejects V2 before SQLite changes | catalog 회귀 원출력 151행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M09 V2 replay namespace and deletion duplicate | catalog 회귀 원출력 152행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M09 V2 replay namespace and deletion deleted | catalog 회귀 원출력 153행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M09 V2 replay namespace and deletion v1-before | catalog 회귀 원출력 154행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M09 V2 replay namespace and deletion v1-after | catalog 회귀 원출력 155행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M09 V2 replay namespace and deletion deleted-before | catalog 회귀 원출력 156행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M09 V2 replay namespace and deletion resurrection | catalog 회귀 원출력 157행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M09 V2 replay namespace and deletion mutation-collision | catalog 회귀 원출력 158행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M09 V2 finalize rejects missing media | catalog 회귀 원출력 159행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M09 V2 finalize rejects directory media | catalog 회귀 원출력 160행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M09 fresh candidate rejects mapping | catalog 회귀 원출력 161행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M09 fresh candidate rejects path | catalog 회귀 원출력 162행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| S10-M09 fresh candidate rejects tombstone | catalog 회귀 원출력 163행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| source 저장 callback reconcile 연결 | catalog 회귀 원출력 164행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| policy revision idempotency | catalog 회귀 원출력 165행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| 5초 safety reconcile | catalog 회귀 원출력 166행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| composition root journal 선행 open | catalog 회귀 원출력 167행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| composition root catalog rebuild/open | catalog 회귀 원출력 168행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| 서버 전 supervisor 시작 | catalog 회귀 원출력 169행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| ingress 전 event bridge 등록 | catalog 회귀 원출력 170행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| ingress 종료 뒤 recorder finalize | catalog 회귀 원출력 171행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+| composition root 시작/종료 순서 | catalog 회귀 원출력 172행 | pass | GST 비활성 compile·실제 catalog/SQLite 및 shell9 |
+
+##### C3 정리와 한계
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/tmp/media-server-finalize-cUImfX | focused binary/실제 fixture | 3109067 | wrapper 삭제 | removed=true | 76224 원출력 |
+| /private/tmp/media-server-finalize-yJk2Xo | focused binary/실제 fixture | 3797653 | wrapper 삭제 | removed=true | 25690 원출력 |
+| /private/tmp/media-server-finalize-sdzq8J | focused binary/실제 fixture | 3797653 | wrapper 삭제 | removed=true | 68002 원출력 |
+| /private/tmp/media-server-finalize-ZMazCA | focused binary/실제 fixture | 3799265 | wrapper 삭제 | removed=true | 93773 원출력 |
+| /tmp/media_server_v410_recording_catalog-87287 | focused binary/실제 fixture | 20828385 | wrapper 삭제 | removed=true | 25461 원출력 |
+| /private/tmp/media-server-finalize-jzW1hM | focused binary/실제 fixture | 3799265 | wrapper 삭제 | removed=true | 23380 원출력 |
+
+`git diff --check` exit0/출력없음. 새 원로그 파일은 생성하지 않았다. 공개 Publish/Clear는 V2를 거부하고 Recover 내부에서 catalog 검증과 commit 이후에만 정리한다. pair 검사에서 같은 parent·서로 다른 이름·regular inode·nlink2 및 전후 binding을 확인하지만 같은 권한 비협력 writer와 파일/원장 전체 원자성을 보장하지 않는다. V1 serializer 및 기본 nlink1은 유지한다. 실제 V2 producer/event 소비자 활성화는 하지 않았다. 최종 startup4 보완은 test-only이며 catalog172/0를 재사용했다. 커밋·푸시 미수행(메인 담당), 후속 자동 착수 없음.
+
+
 ### C2 catalog 구현 사전등록
 
 명령은 `./server.sh verify-v410-recording-catalog`. 선언/reject stub에서 아래 정상 양성

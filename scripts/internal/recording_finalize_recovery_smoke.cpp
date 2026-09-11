@@ -1,6 +1,7 @@
 // 파일 용도: 실제 ready 상태와 catalog recovery 경로를 검사하는 focused fixture.
 #include "recording/recording_finalize_recovery.h"
 #include "recording/recording_catalog.h"
+#include "recording/recording_media_inspector.h"
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -47,6 +48,107 @@ struct Context {
 };
 // 회귀 표적: 소유 partial 삭제, publish 덮어쓰기, ID 재발급, 삭제 ID 부활,
 // 손상 파일 정상 등록, provenance 없는 orphan 추론, 외부 파일 unlink.
+bool V2Cases(const fs::path& root,const std::string& bytes,const RecordingSegmentV1& physical) {
+    int passed=0,failed=0;
+    const auto check=[&](bool ok,const std::string& label){std::cout<<(ok?"[pass] ":"[fail] ")<<label<<'\n';ok?++passed:++failed;};
+    RecordingSegmentV2 v;v.segment_id="ready-segment";v.source_id="source-one";v.channel_id="channel-one";
+    v.store_id="store-one";v.order_request_id="request-one";v.media_epoch_id="media-one";v.order_sequence=1;
+    v.media_start_pts=9007199254740993LL;v.media_end_pts=std::nullopt;
+    v.container=physical.container;v.video_codecs=physical.video_codecs;v.size_bytes=physical.size_bytes;
+    v.checksum_sha256=physical.checksum_sha256;v.audio_omitted_reason="source-no-audio";v.created_at_ms=1000;v.finalized_at_ms=2000;
+    v.mappings={{"media-server.recording-utc-mapping.v1","map-one",9007199254740993LL,9007199254741003LL,"source-capture",100,110,1,""},
+        {"media-server.recording-utc-mapping.v1","map-unknown",9007199254741003LL,std::nullopt,"unknown",std::nullopt,std::nullopt,std::nullopt,"duration-unavailable"}};
+    FinalizeReadyTicket ticket;ticket.segment_v2=v;ticket.partial_relative=partial_name;ticket.final_relative=final_name;
+    const auto literal="{\"version\":2,\"segment\":"+SerializeRecordingSegmentV2(v)+",\"partial\":\""+partial_name+"\",\"final\":\""+final_name+"\",\"eventLink\":null}";
+    for(const std::string state:{"partial","two-links","final","committed"}) {
+        const auto dir=root/("v2-"+state);fs::create_directories(dir);
+        RecordingJournal journal(dir/"journal.jsonl");RecordingCatalog::Options options(dir/"catalog.db",dir,false);options.enable_v2_storage=true;
+        RecordingCatalog catalog(journal,options);std::string error;RecordingOrderReservationV1 order;
+        const bool setup=journal.Open(&error)&&catalog.Open(&error)&&journal.ReserveRecordingOrder(v.store_id,v.order_request_id,v.segment_id,v.channel_id,&order,&error);
+        WriteBytes(dir/partial_name,bytes);WriteBytes(dir/ready_name,literal);
+        if(state=="two-links")fs::create_hard_link(dir/partial_name,dir/final_name);
+        if(state=="final"||state=="committed")fs::rename(dir/partial_name,dir/final_name);
+        const bool commit=state!="committed"||catalog.FinalizeSegmentV2(v,(dir/final_name).string(),&error);
+        const auto marker="recording-cleanup-pending-v2\npartial="+partial_name+"\n";
+        WriteBytes(dir/marker_name,marker);
+        const auto before=ReadBytes(dir/"journal.jsonl");
+        RecordingCatalog restarted(journal,options);const bool restart_open=restarted.Open(&error);
+        const bool has_partial=state=="partial"||state=="two-links";
+        check(restart_open&&ReadBytes(dir/ready_name)==literal&&ReadBytes(dir/marker_name)==marker&&
+            fs::exists(dir/partial_name)==has_partial&&(!has_partial||ReadBytes(dir/partial_name)==bytes)&&ReadBytes(dir/"journal.jsonl")==before,
+            "S10-M08 catalog startup preserves V2 ready and cleanup marker "+state);
+        FinalizeRecoveryReport report;const bool recovered=restart_open&&RecoverFinalizeReadyTickets(restarted,dir,&report,&error);
+        const auto found=restarted.FindSegmentV2ById(v.segment_id);
+        check(setup&&commit&&recovered&&found&&found->media_start_pts==9007199254740993LL&&!found->media_end_pts&&
+            found->mappings.size()==2&&!found->mappings[1].utc_start_ns&&found->mappings[1].reason=="duration-unavailable"&&
+            SerializeRecordingSegmentV2(*found)==SerializeRecordingSegmentV2(v)&&ReadBytes(dir/final_name)==bytes&&!fs::exists(dir/ready_name)&&!fs::exists(dir/marker_name)&&!fs::exists(dir/partial_name)&&
+            (state=="committed"?report.already_committed==1:report.recovered==1),"S10-M08 V2 ready recovers exact metadata "+state);
+        RecordingCatalog reopened(journal,options);const bool opened=reopened.Open(&error);const auto replayed=reopened.FindSegmentV2ById(v.segment_id);
+        const auto committed=ReadBytes(dir/"journal.jsonl");FinalizeRecoveryReport again;
+        check(opened&&replayed&&SerializeRecordingSegmentV2(*replayed)==SerializeRecordingSegmentV2(v)&&
+            (state!="committed"||before==committed)&&RecoverFinalizeReadyTickets(reopened,dir,&again,&error)&&
+            again.recovered==0&&again.already_committed==0&&ReadBytes(dir/"journal.jsonl")==committed,
+            "S10-M08 V2 journal restart and repeated recovery "+state);
+    }
+    const auto dir=root/"v2-write";fs::create_directories(dir);std::string error;
+    check(WriteFinalizeReadyTicket(dir,ticket,&error)&&ReadBytes(dir/ready_name)==literal,"S10-M08 V2 ready writer preserves versioned envelope");
+    for(const std::string kind:{"missing-order","wrong-tuple","optout","deleted","mapping","path","version","event","corrupt-pair","foreign-link"}) {
+        const auto base=root/("v2-denied-"+kind);fs::create_directories(base);RecordingJournal journal(base/"journal.jsonl");
+        RecordingCatalog::Options options(base/"catalog.db",base,false);options.enable_v2_storage=kind!="optout";
+        RecordingCatalog catalog(journal,options);RecordingOrderReservationV1 order;
+        bool setup=journal.Open(&error)&&catalog.Open(&error);
+        if(kind!="missing-order")setup=setup&&journal.ReserveRecordingOrder(v.store_id,v.order_request_id,v.segment_id,v.channel_id,&order,&error);
+        auto input=v;
+        if(kind=="wrong-tuple")input.order_sequence=2;
+        if(kind=="event")input.retention_class=RecordingRetentionClass::Event;
+        if(kind=="mapping"||kind=="path") {
+            WriteBytes(base/final_name,bytes);
+            setup=setup&&catalog.FinalizeSegmentV2(v,(base/final_name).string(),&error);
+            if(kind=="mapping")input.mappings[0].utc_start_ns=99;
+        }
+        if(kind=="deleted") {
+            RecordingTombstoneV1 t;t.tombstone_id="deleted-ready";t.segment_id=v.segment_id;t.source_id=v.source_id;t.channel_id=v.channel_id;
+            t.recorded_range={100,110};t.checksum_sha256=v.checksum_sha256;t.retention_class=v.retention_class;t.deletion_reason="quota";t.deleted_at_ms=3000;
+            setup=setup&&catalog.CompleteDeletion(t,&error);
+        }
+        auto input_ticket=ticket;input_ticket.segment_v2=input;
+        if(kind=="path") {fs::create_directories(base/"other");input_ticket.partial_relative=fs::path("other")/partial_name;input_ticket.final_relative=fs::path("other")/final_name;}
+        auto raw="{\"version\":"+std::string(kind=="version"?"3":"2")+",\"segment\":"+SerializeRecordingSegmentV2(input)+",\"partial\":\""+input_ticket.partial_relative.generic_string()+"\",\"final\":\""+input_ticket.final_relative.generic_string()+"\",\"eventLink\":null}";
+        const auto ready=base/(input_ticket.final_relative.string()+".finalize-ready");
+        auto media=bytes;if(kind=="corrupt-pair")media[media.size()/2]^=1;
+        WriteBytes(base/input_ticket.partial_relative,media);WriteBytes(ready,raw);
+        if(kind=="corrupt-pair")fs::create_hard_link(base/input_ticket.partial_relative,base/input_ticket.final_relative);
+        if(kind=="foreign-link")fs::create_hard_link(base/input_ticket.partial_relative,base/"foreign.mp4");
+        const auto before=ReadBytes(base/"journal.jsonl");FinalizeRecoveryReport report;
+        const bool ok=RecoverFinalizeReadyTickets(catalog,base,&report,&error);
+        bool preserved=ReadBytes(ready)==raw&&ReadBytes(base/input_ticket.partial_relative)==media&&ReadBytes(base/"journal.jsonl")==before;
+        if(kind=="corrupt-pair") {struct stat a{},b{};preserved=preserved&&::lstat((base/partial_name).c_str(),&a)==0&&::lstat((base/final_name).c_str(),&b)==0&&a.st_ino==b.st_ino&&a.st_nlink==2&&b.st_nlink==2;}
+        check(setup&&!ok&&report.errors==1&&preserved,"S10-M09 V2 ready refusal preserves originals "+kind);
+    }
+    for(const std::string kind:{"mixed-id","mixed-size","mixed-source","mixed-time","event","oversize"}) {
+        auto invalid=ticket;
+        if(kind=="mixed-id")invalid.segment.segment_id="legacy";
+        if(kind=="mixed-size")invalid.segment.size_bytes=1;
+        if(kind=="mixed-source")invalid.segment.source_id="legacy";
+        if(kind=="mixed-time")invalid.segment.created_at_ms=1;
+        if(kind=="event")invalid.segment_v2->retention_class=RecordingRetentionClass::Event;
+        if(kind=="oversize") {
+            const auto base_size=SerializeRecordingSegmentV2(*invalid.segment_v2).size();
+            invalid.segment_v2->audio_omitted_reason+=std::string(1024*1024-base_size-10,'x');
+        }
+        const auto base=root/("v2-write-denied-"+kind);fs::create_directories(base);
+        check((kind!="oversize"||ValidateRecordingSegmentV2(*invalid.segment_v2,&error))&&
+            !WriteFinalizeReadyTicket(base,invalid,&error)&&!fs::exists(base/ready_name),"S10-M09 V2 ready writer rejects "+kind);
+    }
+    const auto direct=root/"v2-direct";fs::create_directories(direct);WriteBytes(direct/partial_name,bytes);
+    check(!PublishFinalizeReady(direct,ticket,&error)&&ReadBytes(direct/partial_name)==bytes&&!fs::exists(direct/final_name),"S10-M09 V2 direct publish requires catalog");
+    fs::create_hard_link(direct/partial_name,direct/final_name);
+    check(InspectRecordingMedia(direct,partial_name,physical).state==MediaInspectionState::Unavailable,"S10-M09 V1 inspector still rejects two links");
+    WriteBytes(direct/ready_name,literal);const auto marker="recording-cleanup-pending-v2\npartial="+partial_name+"\n";WriteBytes(direct/marker_name,marker);
+    check(!ClearFinalizeReady(direct,ticket,&error)&&ReadBytes(direct/ready_name)==literal&&ReadBytes(direct/marker_name)==marker,
+        "S10-M09 V2 direct clear preserves uncommitted ticket and marker");
+    std::cout<<"[v2-summary] pass="<<passed<<" fail="<<failed<<'\n';return failed==0;
+}
 bool BoundaryCases(const fs::path& root,const std::string& bytes,const RecordingSegmentV1& segment) {
     int passed=0,failed=0;
     const auto check=[&](bool ok,const std::string& label){std::cout<<(ok?"[pass] ":"[fail] ")<<label<<'\n';ok?++passed:++failed;};
@@ -178,5 +280,6 @@ int main(int argc,char** argv) {
         !fs::exists(root/ready_name)&&!fs::exists(root/marker_name)&&!fs::exists(partial);
     std::cout<<(registered?"[pass] ":"[fail] ")<<"ready partial recovers original segment ID"<<'\n';
     const bool boundaries=BoundaryCases(root,bytes,segment);
-    return registered&&boundaries?0:1;
+    const bool v2=V2Cases(root,bytes,segment);
+    return registered&&boundaries&&v2?0:1;
 }

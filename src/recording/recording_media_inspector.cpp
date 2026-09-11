@@ -81,7 +81,9 @@ struct Binding {
     Fd root_fd, parent_fd, file_fd;
     struct stat root_stat{}, parent_stat{}, file_stat{};
     bool missing{false};
-    bool Open(const std::filesystem::path& input_root, const std::filesystem::path& input_relative) {
+    nlink_t expected_links{1};
+    bool Open(const std::filesystem::path& input_root, const std::filesystem::path& input_relative, nlink_t links=1) {
+        expected_links=links;
         root = AbsoluteRoot(input_root); relative = input_relative;
         if (root.empty() || relative.empty() || relative.is_absolute() || !Components(relative) ||
             relative.filename().empty() || relative.filename() == ".") return false;
@@ -98,11 +100,11 @@ struct Binding {
         file_fd = Fd(::openat(parent_fd.value,relative.filename().c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK));
         if (file_fd.value < 0) { missing = errno == ENOENT; return missing; }
         return ::fstat(file_fd.value,&file_stat) == 0 && S_ISREG(file_stat.st_mode) &&
-            file_stat.st_nlink == 1 && file_stat.st_size >= 0;
+            file_stat.st_nlink == expected_links && file_stat.st_size >= 0;
     }
     bool Unchanged() const {
         Binding current;
-        if (!current.Open(root,relative) || !Identity(root_stat,current.root_stat) ||
+        if (!current.Open(root,relative,expected_links) || !Identity(root_stat,current.root_stat) ||
             !Identity(parent_stat,current.parent_stat) || missing != current.missing) return false;
         if (missing) return true;
         struct stat now{};
@@ -112,7 +114,7 @@ struct Binding {
 MediaInspectionResult Corrupt(const std::string& detail, const std::string& reason) {
     return {MediaInspectionState::Corrupt,detail,reason,false,""};
 }
-bool MetadataSupported(const RecordingSegmentV1& segment) {
+bool MetadataSupported(const RecordingMediaDescriptor& segment) {
     if (segment.checksum_sha256.size() != 64 ||
         !std::all_of(segment.checksum_sha256.begin(),segment.checksum_sha256.end(),[](unsigned char c) {
             return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
@@ -191,7 +193,7 @@ void PadAdded(GstElement*, GstPad* pad, gpointer user) {
     if (!target || gst_pad_link(pad,target) != GST_PAD_LINK_OK || !gst_element_sync_state_with_parent(sink)) c.setup_error = true;
     if (target) gst_object_unref(target);
 }
-MediaInspectionResult Demux(Binding& binding, const RecordingSegmentV1& segment, Clock::time_point deadline) {
+MediaInspectionResult Demux(Binding& binding, const RecordingMediaDescriptor& segment, Clock::time_point deadline) {
     GError* init_error = nullptr;
     if (!gst_init_check(nullptr,nullptr,&init_error)) { if (init_error) g_error_free(init_error); return Unavailable("gstreamer-init"); }
     GstElement* pipeline = gst_pipeline_new(nullptr);
@@ -243,7 +245,7 @@ MediaInspectionResult Demux(Binding& binding, const RecordingSegmentV1& segment,
     gst_object_unref(pipeline);
     return result;
 }
-MediaInspectionResult Inspect(Binding& binding, const RecordingSegmentV1& segment, Clock::time_point deadline) {
+MediaInspectionResult Inspect(Binding& binding, const RecordingMediaDescriptor& segment, Clock::time_point deadline) {
     if (Clock::now() >= deadline) return Unavailable("timeout");
     if (!MetadataSupported(segment)) return Unavailable("unsupported-metadata");
     if (binding.missing) return Corrupt("missing-media",segment.retention_class == RecordingRetentionClass::Event ? "derived-media-missing" : "missing-media");
@@ -267,8 +269,8 @@ MediaInspectionResult Inspect(Binding& binding, const RecordingSegmentV1& segmen
 }
 #endif
 } // namespace
-MediaInspectionResult InspectRecordingMedia(const std::filesystem::path& root,
-    const std::filesystem::path& relative, const RecordingSegmentV1& segment, MediaInspectionOptions options) {
+MediaInspectionResult InspectRecordingPhysicalMedia(const std::filesystem::path& root,
+    const std::filesystem::path& relative, const RecordingMediaDescriptor& segment, MediaInspectionOptions options) {
 #if MEDIA_SERVER_USE_GSTREAMER
     if (options.budget.count() <= 0 || options.budget > std::chrono::minutes(1)) return Unavailable("timeout");
     const auto deadline = Clock::now()+options.budget;
@@ -283,6 +285,28 @@ MediaInspectionResult InspectRecordingMedia(const std::filesystem::path& root,
     return Unavailable("gstreamer-unavailable");
 #endif
 }
+MediaInspectionResult InspectRecordingPhysicalMediaPair(const std::filesystem::path& root,
+    const std::filesystem::path& first,const std::filesystem::path& second,
+    const RecordingMediaDescriptor& descriptor,MediaInspectionOptions options) {
+#if MEDIA_SERVER_USE_GSTREAMER
+    if(options.budget.count()<=0||options.budget>std::chrono::minutes(1))return Unavailable("timeout");
+    if(first==second||first.filename()==second.filename()||first.parent_path()!=second.parent_path())return Unavailable("invalid-pair");
+    const auto deadline=Clock::now()+options.budget;Binding a,b;
+    if(!a.Open(root,first,2)||!b.Open(root,second,2)||a.missing||b.missing||
+       !Identity(a.parent_stat,b.parent_stat)||!Stable(a.file_stat,b.file_stat))return Unavailable("unsafe-pair");
+    auto result=Inspect(a,descriptor,deadline);
+    if(!a.Unchanged()||!b.Unchanged())return Unavailable("pair-changed");
+    if(Clock::now()>=deadline)return Unavailable("timeout");
+    return result;
+#else
+    (void)root;(void)first;(void)second;(void)descriptor;(void)options;return Unavailable("gstreamer-unavailable");
+#endif
+}
+MediaInspectionResult InspectRecordingMedia(const std::filesystem::path& root,
+    const std::filesystem::path& relative,const RecordingSegmentV1& segment,MediaInspectionOptions options) {
+    return InspectRecordingPhysicalMedia(root,relative,{segment.container,segment.video_codecs,
+        segment.size_bytes,segment.checksum_sha256,segment.retention_class},options);
+}
 MediaInspectionResult InspectAndMarkRecordingMedia(RecordingCatalog& catalog,
     const std::string& segment_id, MediaInspectionOptions options) {
 #if MEDIA_SERVER_USE_GSTREAMER
@@ -293,7 +317,8 @@ MediaInspectionResult InspectAndMarkRecordingMedia(RecordingCatalog& catalog,
     if (!segment || !location || segment->lifecycle != RecordingLifecycle::Finalized) return Unavailable("catalog-not-finalized");
     Binding binding;
     if (!binding.Open(location->first,location->second)) return Unavailable("unsafe-or-unavailable-path");
-    auto result = Inspect(binding,*segment,deadline);
+    auto result = Inspect(binding,{segment->container,segment->video_codecs,segment->size_bytes,
+        segment->checksum_sha256,segment->retention_class},deadline);
     if (!binding.Unchanged()) return Unavailable("file-changed");
     if (Clock::now() >= deadline) return Unavailable("timeout");
     if (result.state != MediaInspectionState::Corrupt) return result;

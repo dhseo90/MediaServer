@@ -16,6 +16,21 @@ struct MediaInspectionResult {
     bool applied{false};
     std::string apply_error;
 };
+// 시간·순서 metadata를 만들지 않는 공통 물리 검사 입력.
+struct RecordingMediaDescriptor {
+    std::string container;
+    std::vector<std::string> video_codecs;
+    std::uint64_t size_bytes{0};
+    std::string checksum_sha256;
+    RecordingRetentionClass retention_class{RecordingRetentionClass::Continuous};
+};
+MediaInspectionResult InspectRecordingPhysicalMedia(const std::filesystem::path& root,
+    const std::filesystem::path& relative, const RecordingMediaDescriptor& descriptor,
+    MediaInspectionOptions options = {});
+// 정확히 같은 디렉터리의 서로 다른 두 이름만 허용한다. 일반 검사 nlink=1은 유지한다.
+MediaInspectionResult InspectRecordingPhysicalMediaPair(const std::filesystem::path& root,
+    const std::filesystem::path& first, const std::filesystem::path& second,
+    const RecordingMediaDescriptor& descriptor, MediaInspectionOptions options = {});
 // Healthy는 stored SHA256 및 예상 video buffer를 포함한 MP4/WebM/MPEGTS demux 정상만 뜻한다.
 // 전체 codec decode 또는 같은권한 비협력 프로세스의 동시write 원자성을 보장하지 않는다.
 MediaInspectionResult InspectRecordingMedia(const std::filesystem::path& root,

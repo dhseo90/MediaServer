@@ -30,13 +30,13 @@ struct Fd {
     Fd& operator=(Fd&& o) noexcept{if(this!=&o){if(fd>=0)::close(fd);fd=o.fd;o.fd=-1;}return *this;}
 };
 bool Same(const struct stat& a,const struct stat& b){return a.st_dev==b.st_dev&&a.st_ino==b.st_ino;}
-bool StableFile(const struct stat& a,const struct stat& b){
+bool StableFile(const struct stat& a,const struct stat& b,nlink_t links=1){
 #ifdef __APPLE__
     const auto am=a.st_mtimespec,bm=b.st_mtimespec,ac=a.st_ctimespec,bc=b.st_ctimespec;
 #else
     const auto am=a.st_mtim,bm=b.st_mtim,ac=a.st_ctim,bc=b.st_ctim;
 #endif
-    return Same(a,b)&&S_ISREG(a.st_mode)&&S_ISREG(b.st_mode)&&a.st_nlink==1&&b.st_nlink==1&&a.st_size==b.st_size&&
+    return Same(a,b)&&S_ISREG(a.st_mode)&&S_ISREG(b.st_mode)&&a.st_nlink==links&&b.st_nlink==links&&a.st_size==b.st_size&&
         am.tv_sec==bm.tv_sec&&am.tv_nsec==bm.tv_nsec&&ac.tv_sec==bc.tv_sec&&ac.tv_nsec==bc.tv_nsec;
 }
 bool Relative(const std::filesystem::path& p){
@@ -71,11 +71,19 @@ struct Parent {
 };
 std::filesystem::path TicketPath(const FinalizeReadyTicket& t){return t.final_relative.string()+".finalize-ready";}
 bool Validate(const FinalizeReadyTicket& t,std::string* error){
-    if(!ValidateRecordingSegmentV1(t.segment,error)||t.segment.lifecycle!=RecordingLifecycle::Finalized||
-       t.segment.size_bytes==0||t.segment.checksum_sha256.size()!=64||
-       !std::all_of(t.segment.checksum_sha256.begin(),t.segment.checksum_sha256.end(),[](unsigned char c){return (c>='0'&&c<='9')||(c>='a'&&c<='f');})||
+    const bool v2=t.segment_v2.has_value();
+    if(v2&&(SerializeRecordingSegmentV1(t.segment)!=SerializeRecordingSegmentV1(RecordingSegmentV1{})||
+       !ValidateRecordingSegmentV2(*t.segment_v2,error)||t.segment_v2->retention_class!=RecordingRetentionClass::Continuous||t.event_link))
+        return Fail(error,"ready V2 mixed/metadata/provenance 거부");
+    const auto& id=v2?t.segment_v2->segment_id:t.segment.segment_id;
+    const auto& container=v2?t.segment_v2->container:t.segment.container;
+    const auto& checksum=v2?t.segment_v2->checksum_sha256:t.segment.checksum_sha256;
+    const auto size=v2?t.segment_v2->size_bytes:t.segment.size_bytes;
+    if((!v2&&(!ValidateRecordingSegmentV1(t.segment,error)||t.segment.lifecycle!=RecordingLifecycle::Finalized))||
+       size==0||checksum.size()!=64||
+       !std::all_of(checksum.begin(),checksum.end(),[](unsigned char c){return (c>='0'&&c<='9')||(c>='a'&&c<='f');})||
        !Relative(t.partial_relative)||!Relative(t.final_relative)||t.partial_relative.parent_path()!=t.final_relative.parent_path()||
-       t.final_relative.stem()!=t.segment.segment_id)return Fail(error,"ready metadata/path 불일치");
+       t.final_relative.stem()!=id)return Fail(error,"ready metadata/path 불일치");
     const std::string expected=t.final_relative.filename().string()+".partial.";
     const auto partial=t.partial_relative.filename().string();
     if(partial.rfind(expected,0)!=0)return Fail(error,"ready partial 소유권 불일치");
@@ -85,7 +93,8 @@ bool Validate(const FinalizeReadyTicket& t,std::string* error){
     for(std::size_t i=0;i<nonce.size();++i){const char c=nonce[i];const bool dash=i==8||i==13||i==18||i==23;
         if(dash?c!='-':!((c>='0'&&c<='9')||(c>='a'&&c<='f')))return Fail(error,"ready nonce 형식 불일치");}
     const auto ext=t.final_relative.extension();
-    if(!((ext==".mp4"&&t.segment.container=="mp4")||(ext==".webm"&&t.segment.container=="webm")||(ext==".ts"&&t.segment.container=="mpegts")))return Fail(error,"ready container/path 불일치");
+    if(!((ext==".mp4"&&container=="mp4")||(ext==".webm"&&container=="webm")||(ext==".ts"&&container=="mpegts")))return Fail(error,"ready container/path 불일치");
+    if(v2)return true;
     if(t.segment.retention_class==RecordingRetentionClass::Event){
         if(!t.event_link||!ValidateEventRecordingLinkV1(*t.event_link,error))return Fail(error,"ready event provenance 없음");
         const auto& l=*t.event_link;
@@ -100,15 +109,16 @@ bool Validate(const FinalizeReadyTicket& t,std::string* error){
     }else if(t.segment.retention_class!=RecordingRetentionClass::Continuous||t.event_link)return Fail(error,"ready retention/provenance 불일치");
     return true;
 }
-std::string Serialize(const FinalizeReadyTicket& t){return "{\"version\":1,\"segment\":"+SerializeRecordingSegmentV1(t.segment)+
+std::string Serialize(const FinalizeReadyTicket& t){return (t.segment_v2?"{\"version\":2,\"segment\":"+SerializeRecordingSegmentV2(*t.segment_v2):"{\"version\":1,\"segment\":"+SerializeRecordingSegmentV1(t.segment))+
     ",\"partial\":\""+t.partial_relative.generic_string()+"\",\"final\":\""+t.final_relative.generic_string()+"\",\"eventLink\":"+
     (t.event_link?SerializeEventRecordingLinkV1(*t.event_link):"null")+"}";}
 bool Parse(const std::string& text,FinalizeReadyTicket* t,std::string* error){
     ingress::StrictJsonObjectDocument d;if(!ingress::ParseStrictJsonObjectDocument(text,&d,error)||d.members.size()!=5)return Fail(error,"ready strict object 실패");
     const auto* version=d.Find("version");const auto segment=ingress::StrictJsonObjectField(d,"segment");
     const auto partial=ingress::StrictJsonStringField(d,"partial"),final=ingress::StrictJsonStringField(d,"final");
-    if(!version||version->type!=ingress::StrictJsonType::Number||version->raw!="1"||!segment||!partial||!final||!d.Find("eventLink")||
-       !ParseRecordingSegmentV1(*segment,&t->segment,error))return Fail(error,"ready version/필수필드 실패");
+    if(!version||version->type!=ingress::StrictJsonType::Number||(version->raw!="1"&&version->raw!="2")||!segment||!partial||!final||!d.Find("eventLink"))return Fail(error,"ready version/필수필드 실패");
+    if(version->raw=="2") {RecordingSegmentV2 v;if(!ParseRecordingSegmentV2(*segment,&v,error))return false;t->segment_v2=v;}
+    else if(!ParseRecordingSegmentV1(*segment,&t->segment,error))return false;
     t->partial_relative=*partial;t->final_relative=*final;
     if(!ingress::StrictJsonFieldIsNull(d,"eventLink")){const auto event=ingress::StrictJsonObjectField(d,"eventLink");EventRecordingLinkV1 l;
         if(!event||!ParseEventRecordingLinkV1(*event,&l,error))return Fail(error,"ready event parse 실패");t->event_link=l;}
@@ -207,9 +217,11 @@ bool Quarantine(RecordingCatalog& catalog,const std::filesystem::path& root,cons
 }
 
 bool WriteFinalizeReadyTicket(const std::filesystem::path& root,const FinalizeReadyTicket& ticket,std::string* error){
-    if(!Validate(ticket,error))return false;Parent p;if(!p.Open(root,TicketPath(ticket)))return Fail(error,"ready parent 불가");
+    if(!Validate(ticket,error))return false;const auto text=Serialize(ticket);
+    if(text.size()>1024*1024)return Fail(error,"ready envelope 크기 거부");
+    Parent p;if(!p.Open(root,TicketPath(ticket)))return Fail(error,"ready parent 불가");
     Fd fd(::openat(p.fd.fd,TicketPath(ticket).filename().c_str(),O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600));
-    if(fd.fd<0)return Fail(error,"ready 생성 충돌/실패");const auto text=Serialize(ticket);std::size_t done=0;
+    if(fd.fd<0)return Fail(error,"ready 생성 충돌/실패");std::size_t done=0;
     while(done<text.size()){const auto n=::write(fd.fd,text.data()+done,text.size()-done);if(n<0&&errno==EINTR)continue;if(n<=0)return Fail(error,"ready 부분쓰기: 원본 보존");done+=n;}
     struct stat owned{},leaf{};
     return (::fsync(fd.fd)==0&&::fstat(fd.fd,&owned)==0&&
@@ -224,7 +236,7 @@ bool PreserveFinalizeReadyPartial(const std::filesystem::path& root,const std::f
     if(t.final_relative!=final_relative||t.partial_relative.filename()!=partial_name)return Fail(error,"ready/cleanup 소유권 불일치");
     *preserve=true;return true;
 }
-bool PublishFinalizeReady(const std::filesystem::path& root,const FinalizeReadyTicket& t,std::string* error){
+static bool PublishValidatedReady(const std::filesystem::path& root,const FinalizeReadyTicket& t,std::string* error){
     if(!Validate(t,error))return false;Parent p;if(!p.Open(root,t.final_relative))return Fail(error,"publish parent 불가");
     const auto partial=t.partial_relative.filename().string(),final=t.final_relative.filename().string();struct stat a{},b{};
     const bool has_a=::fstatat(p.fd.fd,partial.c_str(),&a,AT_SYMLINK_NOFOLLOW)==0;const int a_error=errno;
@@ -232,6 +244,16 @@ bool PublishFinalizeReady(const std::filesystem::path& root,const FinalizeReadyT
     if((!has_a&&a_error!=ENOENT)||(!has_b&&b_error!=ENOENT)||(!has_a&&!has_b))return Fail(error,"publish media 불가");
     if(has_a&&has_b){
         if(!S_ISREG(a.st_mode)||!S_ISREG(b.st_mode)||!Same(a,b)||a.st_nlink!=2||b.st_nlink!=2||!p.Stable())return Fail(error,"publish 기존 final 충돌");
+        if(t.segment_v2) {
+            const auto& v=*t.segment_v2;
+            const auto inspected=InspectRecordingPhysicalMediaPair(root,t.partial_relative,t.final_relative,
+                {v.container,v.video_codecs,v.size_bytes,v.checksum_sha256,v.retention_class});
+            struct stat now_a{},now_b{};
+            if(inspected.state!=MediaInspectionState::Healthy||!p.Stable()||
+               ::fstatat(p.fd.fd,partial.c_str(),&now_a,AT_SYMLINK_NOFOLLOW)!=0||::fstatat(p.fd.fd,final.c_str(),&now_b,AT_SYMLINK_NOFOLLOW)!=0||
+               !StableFile(a,now_a,2)||!StableFile(b,now_b,2))return Fail(error,"publish V2 pair 검사/재결박 실패");
+            return (::unlinkat(p.fd.fd,partial.c_str(),0)==0&&::fsync(p.fd.fd)==0)||Fail(error,"publish partial 내구 정리 실패");
+        }
         // 이 ticket의 정확한 두 이름이 같은 inode인 중단 상태만 두 번째 link를 제거한다.
         if(::unlinkat(p.fd.fd,partial.c_str(),0)!=0||::fsync(p.fd.fd)!=0)return Fail(error,"publish partial 내구 정리 실패");
     }
@@ -239,7 +261,8 @@ bool PublishFinalizeReady(const std::filesystem::path& root,const FinalizeReadyT
     struct stat inspection_binding{};
     if(::fstatat(p.fd.fd,relative.filename().c_str(),&inspection_binding,AT_SYMLINK_NOFOLLOW)!=0||
        !S_ISREG(inspection_binding.st_mode)||inspection_binding.st_nlink!=1)return Fail(error,"publish 검사 binding 불가");
-    const auto inspected=InspectRecordingMedia(root,relative,t.segment);
+    const auto inspected=t.segment_v2?InspectRecordingPhysicalMedia(root,relative,
+        {t.segment_v2->container,t.segment_v2->video_codecs,t.segment_v2->size_bytes,t.segment_v2->checksum_sha256,t.segment_v2->retention_class}):InspectRecordingMedia(root,relative,t.segment);
     if(inspected.state!=MediaInspectionState::Healthy)return Fail(error,"publish 검사 실패: "+inspected.detail);
     if(!p.Stable())return Fail(error,"publish parent 변경");
     struct stat current{};
@@ -250,7 +273,11 @@ bool PublishFinalizeReady(const std::filesystem::path& root,const FinalizeReadyT
     if(::fsync(p.fd.fd)!=0||::unlinkat(p.fd.fd,partial.c_str(),0)!=0||::fsync(p.fd.fd)!=0)return Fail(error,"publish 내구성 불확실");
     return true;
 }
-bool ClearFinalizeReady(const std::filesystem::path& root,const FinalizeReadyTicket& t,std::string* error){
+bool PublishFinalizeReady(const std::filesystem::path& root,const FinalizeReadyTicket& t,std::string* error){
+    if(t.segment_v2)return Fail(error,"V2 publish에는 catalog 검증 필요");
+    return PublishValidatedReady(root,t,error);
+}
+static bool ClearValidatedReady(const std::filesystem::path& root,const FinalizeReadyTicket& t,std::string* error){
     FinalizeReadyTicket current;bool missing=false;struct stat ticket_binding{},marker_binding{};
     if(!Read(root,TicketPath(t),&current,&missing,error,&ticket_binding)||missing||Serialize(current)!=Serialize(t))return Fail(error,"ready cleanup ticket 변경/부재");
     Parent p;if(!p.Open(root,t.final_relative))return Fail(error,"ready cleanup parent 실패");
@@ -265,6 +292,10 @@ bool ClearFinalizeReady(const std::filesystem::path& root,const FinalizeReadyTic
         marker_binding=s;
     }else if(errno!=ENOENT)return Fail(error,"ready cleanup marker 읽기 불가");
     return Remove(p,marker,true,error,marker_fd.fd>=0?&marker_binding:nullptr)&&Remove(p,TicketPath(t).filename().string(),false,error,&ticket_binding);
+}
+bool ClearFinalizeReady(const std::filesystem::path& root,const FinalizeReadyTicket& t,std::string* error){
+    if(t.segment_v2)return Fail(error,"V2 cleanup에는 catalog commit 확인 필요");
+    return ClearValidatedReady(root,t,error);
 }
 bool RecoverFinalizeReadyTickets(RecordingCatalog& catalog,const std::filesystem::path& root,FinalizeRecoveryReport* report,std::string* error){
     if(report)*report={};
@@ -288,6 +319,17 @@ bool RecoverFinalizeReadyTickets(RecordingCatalog& catalog,const std::filesystem
         FinalizeReadyTicket t;bool missing=false;bool inserted=false;struct stat ticket_binding{};
         if(!Read(root,path,&t,&missing,error,&ticket_binding)||missing||catalog.IsDeletedSegmentId(t.segment.segment_id)){
             if(report)++report->errors;return Fail(error,"ready invalid 또는 삭제 ID: 원본 보존");}
+        if(t.segment_v2) {
+            const auto& v=*t.segment_v2;
+            // catalog 설정 root와 같은 입력 표기로 전달한다. 물리 접근은 각 helper가 안전 정규화한다.
+            const auto final_path=(root/t.final_relative).string();
+            if(!catalog.ValidateFinalizeRecoveryV2(v,final_path,error)||!PublishValidatedReady(root,t,error)||
+               !catalog.RecoverFinalizedSegmentV2(v,final_path,&inserted,error)||!ClearValidatedReady(root,t,error)) {
+                if(report)++report->errors;return false;
+            }
+            if(report){if(inserted)++report->recovered;else ++report->already_committed;}
+            continue;
+        }
         const auto known=catalog.FindSegmentById(t.segment.segment_id);
         auto identity=known.value_or(t.segment);
         identity.lifecycle=RecordingLifecycle::Finalized;

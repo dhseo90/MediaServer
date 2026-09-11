@@ -1881,6 +1881,7 @@ catalog 저장 옵션 `enable_v2_storage`는 기본 false다. true는 이번 격
 
 - 기존 FinalizeReadyTicket에 optional segment_v2를 추가한다. 기존 segment와 동시에 지정하면 거부한다.
   version=1 직렬화/검증은 유지한다. version=2는 segment에 V2 전체를 담고 기존 partial/final/eventLink 키를 유지한다.
+  V2 ticket의 기존 segment는 기본 V1 객체 그대로여야 한다. ID뿐 아니라 다른 V1 필드를 채운 mixed 입력도 거부한다.
 - V2 ready는 continuous만 이번 복구 경로로 받는다(eventLink=null). 기존 event V1 ready는 그대로 유지한다.
   V2 event 파생 provenance/hold는 이벤트 소비자 연결 때까지 명시 거부하며 자동 V1 변환하지 않는다.
 - same directory, nonce, filename/ID/container, nlink/nofollow, 원문 보존/정리 경계는 V1과 같다.
@@ -1888,6 +1889,7 @@ catalog 저장 옵션 `enable_v2_storage`는 기본 false다. true는 이번 격
 - catalog 인자가 없는 기존 PublishFinalizeReady는 V1 진입점으로 유지하고 V2 직접 호출은 거부한다.
   V2 publish는 RecoverFinalizeReadyTickets의 catalog 검증 이후 내부 경로에서만 허용한다.
   ready 작성은 최종 공개가 아니며, 예약이 없는 ticket을 복구하면서 새 순서를 발급하지 않는다.
+  ClearFinalizeReady도 V2 직접 호출을 거부하고 원장 commit 성공 뒤 내부 정리 경로만 사용한다.
 - 실제 미디어 검사는 공통 물리 descriptor(container/codecs/bytes/SHA/retention)만 사용하도록 내부 분리한다.
   V1 inspector API는 wrapper로 유지하며 V2에 가짜 V1 UTC를 만들어 전달하지 않는다.
 - V2의 중단된 두 link는 검사 전에 partial을 제거하지 않는다. inspector의 새 내부 물리 검사 경로에서만
@@ -1916,10 +1918,13 @@ whole build·integration 옵션·30분/120분/UI·C 이후 단계는 이번 실�
 - [x] C2 원장·catalog·SQLite 동등성: 최종172/0(기존139개 포함).
   예약 검증 공유, 별도 V2 투영, 최신 원장 후보 대조·실제 파일 존재와 삭제/충돌 경계를 구현했다.
   메인이 실제 diff 및 중앙 C2 전수 결과를 대조했다. V2 실제 writer 활성화는 하지 않았다.
-- [ ] C3 ready 복구·삭제/충돌 보존 및 관련 회귀
+- [x] C3 ready 복구·삭제/충돌 보존 및 관련 회귀: 최종52/0(V1 20개 포함), catalog172/0.
+  ready/inspector 헤더·구현과 focused 테스트에 V2 분기·물리 descriptor·두 link 검사·commit 후 정리를 추가했다.
+  메인이 실제 diff와 전수 결과를 대조했고, marker가 남은 새 Catalog.Open→Recover도 확인했다.
 
 C2 첫 구현 후 담당자 도구 분류 오류로 중단했던 이력은 중앙 기록에 보존했다.
-새 승인으로 재개하여 미해소 두 경계와 전수 결과 이관을 마쳤다. C3는 다음 구현 대상이다.
+새 승인으로 재개하여 미해소 두 경계와 전수 결과 이관을 마쳤다. C1은 eb7d4885, C2는 ebf74762로
+커밋했다. C3도 한정 구현·검증을 마쳤다. 실제 writer 연결·전체 build·integration·UI·30/120분·S11은 미실행이다.
 
 v4.1.0 개발 완료는 다음이 모두 참일 때만 성립한다.
 

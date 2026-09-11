@@ -344,6 +344,34 @@ retention tick 또는 low-space signal
 - 모든 후속 index는 안정적인 v4.1 ID를 key로 하는 재구축 가능한 projection이다.
 - migration은 crash-safe해야 하며 journal rebuild parity를 함께 검증한다.
 
+## S10-3 저장·복구의 구현 순서와 호환 경계
+
+S10-3은 S10-2 모델을 제품 PASS로 승격하지 않고 다음 순서로 적용한다.
+
+1. S10-3A: 미지원 원장 schema/type를 일반 손상과 분리하고 catalog 시작을 거부한다.
+   새 record를 조용히 건너뛴 부분 복구를 방지하는 선수 작업이다. 이 경계는 구현·단기84검사를
+   통과했다. 변경은 `RecordingJournal::Replay`, `RecordingCatalog::Open/RebuildSqliteLocked`이며
+   개별 결과는 중앙 테스트 기록 S10-3A 절에 보존한다.
+2. S10-3B: store identity와 영속 녹화 순서를 발급한다. store의 단일 쓰기 소유권·원장 잠금 안에서
+   할당과 내구 기록을 묶는다. `Replay()`와 `Append()`를 별도 호출하는 read/modify/write로 구현하지
+   않는다. 성공 응답 전 durable 보존, 같은 요청의 idempotent 재시도, 충돌·counter overflow 거부를 검증한다.
+   손상·미지원·미확인 꼬리를 무시한 max+1 발급은 금지한다. 실패한 발급으로 생긴 번호 공백은 허용한다.
+3. S10-3C: segment의 미디어 identity·순서·UTC 매핑을 하나의 버전 계약과 finalize ready 증명에
+   결박한다. 파일 publish와 journal commit 사이 재시작도 동일 정보를 복원해야 하며 누락된 매핑을
+   V1 anchor로 생성하지 않는다. SQLite projection과 JSONL rebuild의 동등성, tombstone 보존을 검증한다.
+
+S10-3A의 시작 거부는 새 코드가 이해하지 못하는 데이터를 발견했을 때의 보호다. 과거 바이너리가
+새 store를 열지 못하게 하는 downgrade 보호까지 완료한 것은 아니다. S10-3B/C에서 새 기록을
+활성화하기 전에 store format/쓰기 소유권/이전 binary 접근 제한을 결정한다. 기존 V1 store는 그대로
+읽을 수 있어야 하며, 별도 승인 없이 기존 데이터를 새 형식으로 덮어쓰지 않는다.
+S10-3B의 저장 API는 구현·한정139검사를 통과했으며 세부 고정 계약은 기존 구현계획의
+「S10-3B 영속 순서 예약 저장 API」 절을 따른다. writer에는 아직 연결하지 않는다. 이 원장 잠금은
+예약 트랜잭션 직렬화이며 store 전체의 쓰기 소유권 또는 구형 binary 차단 완료가 아니다.
+S10-3C는 V2 계약135개, catalog172개, ready 복구52개 한정 검증을 통과했다.
+미디어 identity·예약 순서·UTC mapping의 원문 의미를 별도 V2 저장에 보존하고,
+ready는 검증→파일 최종화→원장 저장→정리 순서로 복구한다. V1 계약은 유지한다.
+V2 저장은 기본 비활성이다. writer 입력 연결·분석/조회 소비자 통합과 S11은 미구현·미실행이다.
+
 ## Main과 릴리즈 브랜치 책임
 
 v4.1.0의 장기 로드맵 변경은 v4.1.0을 머지할 때 `main`에 함께 반영한다. 그 뒤 `main`이
