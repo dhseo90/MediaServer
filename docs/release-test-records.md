@@ -1,5 +1,38 @@
 # Release Test Records
 
+## S09 EVT-058 단일 실제 진단 — 2026-09-11 실행 31380
+
+### 단일 재현 이후 읽기 전용 원인 대조
+
+기존 실패 원본과 현재 adapter를 대조했다. `v390_ui_native_adapter.mjs`의 request callback은 pending 등록(1691행) 뒤 legacy request-start를 남긴다. pending 삭제는 completeOwnedRequest(1967행)이며 호출자는 requestfinished/requestfailed(1976/1988행)다. waitForPendingRequestSnapshot(3057행 이후)은 pending에 남아 있고 response가 없는 ID만 unresolved로 세므로, response 없이 finished를 받은 요청은 대기 종료 조건을 만족할 수 있다. 최종 lifecycle evaluator는 별도로 RESPONSE_MISSING을 내므로 이 구조가 거짓 PASS를 만들었다는 뜻은 아니다.
+
+확인된 사실: 기존 원본에 native-request-58의 request-start는 있고 대응 response는 없다. census captureErrors0, duplicateResponses0이며 해당 요청 redirectedFromIdentity=null이다. 기존 원본은 finished/failed/seal 시각을 보존하지 않아 terminal callback의 실제 순서를 직접 입증할 수 없다. 응답이 늦게 도착했는지, 브라우저가 response callback을 누락했는지, 수집 종료 경계 문제인지는 미확정이다. 캐시·리디렉트 원인으로 단정하지 않는다.
+
+추론: response 이전 finished 처리로 pending에서 빠진 뒤 capture가 닫힌 경우가 코드상 가능한 설명이다. 후속 재현은 같은 EVT-058의 제한된 반복에서 identity별 response/finished/failed/seal/afterSeal을 비교해야 한다. API·제품 UI·timeout·실패 허용 정책은 변경하지 않았다. 녹화 경로는 cleanupState가 전체 runtime root 크기만 보존하고 곧바로 삭제하므로 DB별 관찰이 없는 이유를 확인했다. 다음 실제 실행에서는 삭제 전에 owned recordings 디렉터리와 SQLite 파일 존재를 직접 관찰해야 하며, 이전 실행 증거를 사후 PASS로 바꾸지 않는다.
+
+이 대조는 테스트 실행이 아니다. 진단 결과 문서 커밋과 후속 실제 재현 범위에 대한 승인을 요청했으며, 미커밋 상태의 clean gate를 우회하지 않았다.
+
+진단 준비 변경을 f2e7da7e, 27c8bb9e, 065a840c로 분할 커밋한 뒤 clean 상태에서 실행했다. 푸시는 하지 않았다. 아래 단일 진단 PASS는 앞선 전체 UI 423pass/1fail을 대체하지 않으며, 응답 누락의 원인 해소 또는 S09 완료 증거가 아니다.
+
+명령: `node scripts/internal/run_v390_ui_native_diagnostic_sweep.mjs --case-id EVT-058 --output-dir .media_server.test/v3.9.0/ui-diagnostic-sweep/s09-evt058-1789107419459 --playwright-module-path <runtime>/node_modules/playwright --chrome-path <Chrome executable>`; exit0; 시작1789107419459, 종료1789107426298, elapsed6839ms. 원출력 summary SHA256 `7512265a72c0da44498de7792b783c6fb97719566f699efa39f0b78dde2f4fd2`, case summary `de7f5e28fcd48a4483f0b0e9e7955b2a8cb868418a4c05ca36e1c009e6d476ce`, trace `a5a218ccdec85cfa76dd61ceade995af284cae7bfc7996e4c54c949649c19720`.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| S09-UI-DIAG-01 | 실제 브라우저 operator, /ops/dashboard, 390×844 light, #dashRuntimeTrendSparkline visible/enabled 및 조작; GET /ops/api/events/reviews 200; child exit0 | pass | 전체 실행 당시 EVT-058 실패 이력 유지. 단일 실행에서만 비재현; releaseEvidenceEligible=false, uiFulltestPass=false |
+| S09-UI-DIAG-02 | 요청131/응답131/finished131, failed0, 누락0, diagnosticErrors0. object-112 ↔ native-request-58 ↔ GET /ops/api/site-operations/runbook-instance-ledger 직접 매핑; 시작1789107424138, 응답200 및 finished1789107424148; seal1789107425460, afterSeal0. 런타임 비밀 검사25파일1172369bytes PASS | pass | 기존 실패에서는 요청131/응답130. 새 진단 projection에 query/header/body를 포함하지 않음. 실제 실패 원인은 미확정 |
+| S09-UI-DIAG-03 | 격리 환경 실행 뒤 기본 .media_server/recordings 부재, git clean 확인. owned runtime root215965bytes는 runner 정리 후 부재 | fail | 기본 경로 오염 비재현은 확인했지만, 삭제 전 owned recordings DB 자체 존재를 직접 보존하지 않아 등록된 모든 조건 PASS로 확대하지 않음 |
+| S09-UI-DIAG-04 | runner serversStopped/portsClean/tempRemoved PASS; 메인 ps PID21489 및 lsof TCP62344/62345 출력 없음, runtime root 부재 확인; 새 진단 output9파일과 capture2파일 삭제·부재 직접 확인 | pass | 최초 정리 전 fail → 삭제 확인 후 pass. 기존 전체 실패 원본3파일의 정리는 별도 미완료이며 전체 S09 cleanup 완료가 아님 |
+
+토큰: start7366110, end7421223, consumed55113, source=goal 누적값 차이. 준비·후처리 포함 구간이며 6839ms 테스트 단독 사용량이 아니다. UI 풀테스트 전체 및 녹화 전용120분은 미완료/미실행 상태를 유지한다. 스크립트 선수 테스트와 기존30분·공통120분 결과를 이번 단일 UI 증거로 대체하지 않는다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| .media_server.test/v3.9.0/ui-diagnostic-sweep/s09-evt058-1789107419459 | 단일 진단9파일 | 14907689bytes | 필요한 값과 hash를 본문 이관 후 삭제 | 삭제·부재 확인 | 직접 크기 집계 및 exists=false |
+| 임시 루트 s09-evt058-diag-ul6mZ5 | launcher 로그·종료 기록2파일 | 872bytes | 실행 시간·exit 이관 후 삭제 | 삭제·부재 확인 | 직접 크기 집계 및 exists=false |
+| 임시 루트 media_server_v390_ui-lYmklU | 소유 서버 runtime | 215965bytes | runner 삭제 | 부재 직접 확인 | runner cleanup 및 메인 exists=false |
+| .media_server.test/v4.1.0/s09-evt058-diagnostic-source | 기존 실패 원본3파일 | 기존 기록 참조 | 원인 비교용 비공개 임시 보존 | 정리 미완료 | 전체 UI 실패 원인 미해소; 공개 증거로 사용하지 않음 |
+
+
 ## S09 EVT-058 adapter 진단 focused 및 역사 증거 정합성 — 실제 결과
 
 독자: 개발·검증 담당자. lifecycle: v4.1.0 S09 실행 증적. 아래는 기존 도구 원출력에서 이관한 결과이며 현재 브라우저/UI 실행이나 EVT-058 원인 해소를 증명하지 않는다. 공개 제품 schema, recorder snapshot, evaluator, timeout 및 누락 실패 정책은 변경하지 않았다. 진단은 additive projection이며 판정 입력으로 사용하지 않는다.
