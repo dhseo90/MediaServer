@@ -1,5 +1,579 @@
 # Release Test Records
 
+### 진단 경로 보완 실제 검증 결과
+
+adapter의 safeRequestLifecycleProjection에서 diagnostic path만 생략하도록5줄을 추가하고1줄을 교체했다. parent 차단 검사·제품 API·auth·recorder/evaluator·timeout은 변경하지 않았다. 신규7개 테스트를 구현 전에 추가해 기존5pass/신규7fail(exit1, 예상 RED)을 확인한 뒤 LD12pass/0fail, 전체77pass/0fail(exit0)을 확인했다. 메인 검토에서 parent PASS fixture 내부 lifecycle FAIL 모순을 발견해 실제 request→response→finished·background owner 등록과 projection PASS assertion으로 고쳤고, 다시 LD12/0 및 전체77/0을 실행했다. 이전 fixture 통과를 실제 UI 증거로 사용하지 않는다.
+
+F: node scripts/internal/verify_v390_ui_native_adapter_contract.mjs --lifecycle-diagnostics-only; A: node scripts/internal/verify_v390_ui_native_adapter_contract.mjs. 메인이 최종 원출력12행·77행을 직접 읽고 각 summary와 대조했다. 원출력 전체 실행 도구시간0.432444625초(검증기 자체elapsed와 구분). token start/end/consumed 미집계: 하위에이전트 토큰 계량값이 제공되지 않음; source=실행 로그 및 도구 결과.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| LD-path-auth diagnostic path omission preserves authoritative evaluation | F 및 A exit0; 해당 assertion 실행·통과 | pass | 사전등록 예상 RED fail → GREEN pass; 최종 fixture 보완 후 재통과 |
+| LD-path-case-variants diagnostic path omission preserves authoritative evaluation | F 및 A exit0; 해당 assertion 실행·통과 | pass | 사전등록 예상 RED fail → GREEN pass; 최종 fixture 보완 후 재통과 |
+| LD-path-correlation diagnostic path omission preserves authoritative evaluation | F 및 A exit0; 해당 assertion 실행·통과 | pass | 사전등록 예상 RED fail → GREEN pass; 최종 fixture 보완 후 재통과 |
+| LD-path-raw-request diagnostic path omission preserves authoritative evaluation | F 및 A exit0; 해당 assertion 실행·통과 | pass | 사전등록 예상 RED fail → GREEN pass; 최종 fixture 보완 후 재통과 |
+| LD-path-raw-response diagnostic path omission preserves authoritative evaluation | F 및 A exit0; 해당 assertion 실행·통과 | pass | 사전등록 예상 RED fail → GREEN pass; 최종 fixture 보완 후 재통과 |
+| LD-path-normal diagnostic path omission preserves authoritative evaluation | F 및 A exit0; 해당 assertion 실행·통과 | pass | 사전등록 예상 RED fail → GREEN pass; 최종 fixture 보완 후 재통과 |
+| LD-path-parent full child validator accepts omission and rejects raw sensitive path | F 및 A exit0; 해당 assertion 실행·통과 | pass | 사전등록 예상 RED fail → GREEN pass; 최종 fixture 보완 후 재통과 |
+| LD-mapped lifecycle diagnostic identity terminal and seal evidence | F 및 A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| LD-finished lifecycle diagnostic identity terminal and seal evidence | F 및 A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| LD-failed lifecycle diagnostic identity terminal and seal evidence | F 및 A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| LD-unmapped diagnostic missing mapping remains explicit and method is restricted | F 및 A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| LD-diagnostic-error cannot prevent authoritative capture or change failure | F 및 A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| native callbacks use the capture-only recorder as lifecycle authority | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| theme init script persists preference without touching an unparsed document | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| local link actions bind one owned document navigation | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| browser role roundtrip follows application redirects to terminal response | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| successful case settles the cleanup request snapshot before physical browser close | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| request-first and route-first exact action binding fail closed without global fallback | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| legacy request evidence preserves every exact tuple without evaluator authority | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| invocation begin/end events use one independent case-local total order | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| constant clocks still produce strictly monotonic cross-kind invocation timestamps | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| request capture timestamps advance the invocation watermark before end | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| navigation and action capture projections exclude load subresources by exact request kind | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| active action scopes claim only exact request owners and their document redirects | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| missing invite runtime-secret sink keeps failure evidence and a safe fallback shape | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| adapter lifecycle ledger is exact-object, sealed, memoized, and JSON-safe | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| adapter integration carries the four actual-like lifecycle graphs end to end | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| request lifecycle invocation identity separates phases for one semantic action | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| bundled Playwright module resolves with provenance | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| explicit missing module fails without fallback | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| Playwright timeout attestation uses class identity instead of mutable error name | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| selector owner reveal keeps plain CSS in the Playwright locator engine | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| UI-008 Playwright has-text selector never reaches native querySelector | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| selector owner reveal opens only the selected target closed details owner | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| selector owner reveal waits for dynamic attachment before owner evaluation | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| selector owner reveal fails closed for zero candidates and preserves first of many | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| selector owner reveal preserves exact text selector identity and rejects wrong text | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| shared adapter impact census covers all canonical 424 cases and the fixed remaining 125 | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| navigation completion binds post-action visuals to the declared final document | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| all redirecting document cases bind destination controls and forbid stale source rewait | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| UI-002 through UI-007 existing canonical cases have explicit post-action lifecycle coverage | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| post-action lifecycle separates UI-002 source control from the redirect destination | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| legacy destination wait helper remains redirect-scoped | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| runtime control observation separates canonical identity from fixture-qualified owner | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| post-action lifecycle fails closed for missing destination and wrong destination route | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| post-action lifecycle waits only for the destination selector after redirect | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| post-action destination wait failures retain structured fail-closed evidence | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| post-action visual measurement never re-waits a detached source owner | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| exact runner preserves visible same-route source owners and binds all destination owners | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| canonical selector dialect audit leaves no Playwright selector path in native DOM APIs | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| adapter exposes native wait click fill type select screenshot | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| route-injected application correlation survives request-start to response binding | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| explicit inner correlation precedence is registry-bound and leak-free | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| Playwright response events bind only to the exact initiating request object | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| document form responses bind exact request identity and redirect chain | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| fixture responses use an exact opaque initiating request handle | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| whoami observation keeps setup-required and unauthorized sessions anonymous | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| native browser child strips acceptance secrets | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| issued invite tokens are registered and redacted at every evidence boundary | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| endpoint-owned response fixtures cover the product response fields | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| endpoint-owned full product responses are projected only through the Playwright response listener | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| Ops timeline response projection preserves only safe EventRecord identity | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| client WebRTC session responses retain only the safe protocol completion shape | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| client WebRTC session projections reject wrong status and malformed success shapes | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| endpoint-owned non-success responses fail before success-shape projection with redacted status diagnostics | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| endpoint-owned sensitive response fields fail closed with redacted field-path diagnostics | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| AUTH public lifecycle fields accept exact public types and reject type drift | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| live session evidence preserves request view and response session identity | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| visual focus sampling preserves exact DOM identity and stops before a repeated owner | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| live visual sampling keeps serializable video evidence separate from the DOM element | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| live visual capture scrolls the target and tile union by the minimum bounded delta | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| browser resource console errors bind one exact Playwright response and fail closed on duplicates | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| UI runner selects native Playwright and rejects CDP promotion | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| server dispatch and docs expose reproducible native commands | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| historical action record consistency matches retained summary report and PNG | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| current UI suite state does not reuse stale native evidence | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+| dashboard marker response projection keeps only digests and fails closed | A exit0; 해당 assertion 실행·통과 | pass | 기존 회귀 통과 |
+
+실제 브라우저 UI-004/전체424는 아직 재실행하지 않았다. clean source binding이 요구하는 커밋은 이번 사용자 지시에 포함되지 않아 수행하지 않았다. 아래 결과는 안정화 계약 검사이며 UI 풀테스트 완료가 아니다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| 임시 ui-path-parent-1POS2Y/vnyEyc/VTBNaq | 최초 fixture | 미측정 | 검증기가 삭제 | 부재 확인, 크기 미측정 이력 유지 | 담당자 실행 기록 |
+| 임시 ui-path-parent-LQbWSo | 최종 focused fixture | 3060bytes | 검증기가 삭제 | absent=true | F 원출력 |
+| 임시 ui-path-parent-ZtEmUK | 최종 전체 fixture | 3060bytes | 검증기가 삭제 | absent=true | A 원출력 |
+| .media_server.test/s09-path-focused-final.log | focused 원출력 | 1463bytes | 개별 결과 이관 후 삭제 | 삭제·부재 확인 | 직접 파일 확인 및 exists=false |
+| .media_server.test/s09-path-adapter-final.log | 전체77개 원출력 | 6905bytes | 개별 결과 이관 후 삭제 | 삭제·부재 확인 | 직접 파일 확인 및 exists=false |
+
+
+## S09 UI-004 진단 경로 생략 보완 — 실행 전 등록
+
+승인 범위: 진단 path 출력과 기존 parent 비밀정보 차단 규칙의 충돌 수정 및 관련 검증. 제품 경로·인증·recorder snapshot·evaluator·timeout·parent 차단 기준은 변경하지 않는다. 차단 문자열이 포함된 진단 path만 빈 문자열과 pathOmitted=true로 명시적으로 생략한다. 일반 path는 원문과 pathOmitted=false를 유지한다. 생략은 해당 경로를 직접 확인했다는 증거가 아니며 identity·terminal·시각 증거를 대체하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S09-UI-DIAG-PATH-01 | 금지 문자열 진단 경로의 명시적 생략 | 실제 ledger projection에서 password/authorization/cookie 단어 및 correlationId/raw-request-object/raw-response-object 경로를 생략하고 일반 EVT-058 API 경로·identity·시각을 보존하는지 focused 검증 | v4.1.0 |
+| S09-UI-DIAG-PATH-02 | 기존 실패·비밀정보 검사 불변 | authoritative 실패 판정이 동일하고 기존 parent validator가 진단 생략 후 summary를 수용하되 실제 금지 문자열 삽입은 계속 거부하는지 확인 | v4.1.0 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 사용자 수정 후 재검증 승인 | PATH-01/02, LD focused 및 전체 adapter contract | 승인 |
+| UI 풀테스트 | 조건부 진행 | 수정·선수 회귀 통과 후 실제 UI 재검증 | UI-004, EVT-058, clean source binding | 재검증 승인, 별도 커밋 승인 필요 |
+| 30분 테스트 | 미진행 | 기존 결과 유지, 이번 범위 제외 | S09 기존30분 기록 | 실행하지 않음 |
+| 120분 테스트 | 미진행 | 이번 범위 제외 | S09 녹화전용120분 선수 조건 미충족 | 실행하지 않음 |
+
+위 표는 구현·검증 전 사전 등록 기록이다. 이후 실제 결과는 본 문서의 진단 경로 보완 실제 검증 결과에 기록했다. 커밋·푸시는 이번 승인에 포함되지 않는다.
+
+## S09 전체 UI 재검증 42070 — 실패
+
+명령 ./test_ui.sh, commit242a442364e2fcc4243f0f431fce4ff56267c9cc, 시작1789109181438 종료1789109225686 elapsed44248ms exit1. Canonical selected424/attempted3/pass3/fail0/notRun421/runnerAbort1. UI-004 child는 실행됐지만 parent validation에서 거부되어 parent attempted에 포함되지 않는다. UI 전체 FAIL, uiFulltestPass=false. EVT-058 미도달.
+
+직접 원인: SUMMARY_WRITE_FAILED, phase child-summary-validation, detail child-summary-sensitive-material. 추가한 requestLifecycleEvaluation.diagnostics.requests의 0·3번째 path 문자열에 password라는 URL 경로 단어가 있으며 v390_ui_native_exact_cases_lib.mjs의 serialized summary 금지 단어 검사(842~845행)가 이를 검출했다. 비밀번호 값 검출로 단정하지 않는다. 검사 우회·제품 코드·timeout 수정 없이 중단했다. 최초 실패 뒤 수백 child mismatch는 미실행에 따른 파생 오류다.
+
+메인 ps PID25059/lsof TCP63577·63578 출력 없음(exit1=매칭 없음), runner owned runtime215325bytes 삭제 PASS. 원본 최소 값·hash 이관 후 output/capture 정리는 아래 표에서 확정한다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| preflight | stage PASS, exit 0 | pass | 실제 stage 결과; 검사 범위 밖 PASS 아님 |
+| build | stage PASS, exit 0 | pass | 실제 stage 결과; 검사 범위 밖 PASS 아님 |
+| feature-gates | stage not-run, exit 없음 | fail | 미실행: 승인 제외 또는 실패 뒤 건너뜀 |
+| server-longrun-30 | stage not-run, exit 없음 | fail | 미실행: 승인 제외 또는 실패 뒤 건너뜀 |
+| ui-environment-bootstrap | stage PASS, exit 0 | pass | 실제 stage 결과; 검사 범위 밖 PASS 아님 |
+| ui-exact-424 | stage FAIL, exit 1 | fail | 실제 stage 결과; 검사 범위 밖 PASS 아님 |
+| ui-server-cleanup | stage PASS, exit 0 | pass | 실제 stage 결과; 검사 범위 밖 PASS 아님 |
+| ui-fulltest-qualification | stage not-run, exit 없음 | fail | 미실행: 승인 제외 또는 실패 뒤 건너뜀 |
+| longrun-120-decision | stage not-run, exit 없음 | fail | 미실행: 승인 제외 또는 실패 뒤 건너뜀 |
+| server-longrun-120 | stage not-run, exit 없음 | fail | 미실행: 승인 제외 또는 실패 뒤 건너뜀 |
+| cleanup | stage PASS, exit 0 | pass | 실제 stage 결과; 검사 범위 밖 PASS 아님 |
+| ui-final-integrity | stage FAIL, exit 1 | fail | 실제 stage 결과; 검사 범위 밖 PASS 아님 |
+| report | stage PASS, exit 0 | pass | 실제 stage 결과; 검사 범위 밖 PASS 아님 |
+| final-integrity | stage not-run, exit 없음 | fail | 미실행: 승인 제외 또는 실패 뒤 건너뜀 |
+| UI-001 | 실제 브라우저 child exit0 및 상위 검증 통과; summary SHA b5d22e79f3f2d77c1e6f0dfef68f5cb9b848857632f263659f82ecc98f922b9a | pass | 현재 단일 case 범위만 |
+| UI-002 | 실제 브라우저 child exit0 및 상위 검증 통과; summary SHA 173b0c1760f033c581a3959849a78e59dc19ab2f604937bf27b5b08558a42470 | pass | 현재 단일 case 범위만 |
+| UI-003 | 실제 브라우저 child exit0 및 상위 검증 통과; summary SHA f0e8e67c4cb76d97d580a228384c118b1dd73a19c119243958fea949db017ad6 | pass | 현재 단일 case 범위만 |
+| UI-004 | child 자체 PASS였으나 상위 summary 비밀정보 검사에서 거부됨 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-005 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-007 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-008 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-009 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-010 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-011 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-012 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-013 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-014 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-015 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-016 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-017 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-018 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-019 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-020 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-021 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-022 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-023 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-024 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-025 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-026 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-027 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-028 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-029 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-030 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-031 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-032 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-033 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-034 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-035 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-036 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-037 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-038 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-039 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-040 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-041 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-042 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-043 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-044 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-045 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-046 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-047 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-048 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-049 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-050 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-051 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-052 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-053 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-054 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-055 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-056 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-057 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-058 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-059 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-060 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-061 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-062 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-063 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-064 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-065 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-066 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-067 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-068 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-069 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-070 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-071 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-072 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-073 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-074 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-075 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-076 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-077 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-078 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-079 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-080 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-081 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-082 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-083 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-084 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-085 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-086 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-087 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-088 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-089 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-090 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-091 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-092 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-093 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-094 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-095 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-096 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-097 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-098 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-099 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-100 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-101 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-102 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-103 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-104 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-105 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-106 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-107 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-108 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-109 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-110 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-111 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-112 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-113 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-114 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| UI-115 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-004 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-005 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-006 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-007 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-012 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-013 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-014 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-015 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-016 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-018 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-019 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-020 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-021 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-022 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-023 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-024 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-025 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-026 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-027 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-028 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-029 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-030 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-033 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-034 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-035 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-036 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-037 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-038 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-039 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| AUTH-040 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-001 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-002 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-003 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-004 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-005 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-006 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-007 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-008 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-009 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-010 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-011 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-012 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-014 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-016 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-017 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-018 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-019 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-020 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-021 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-022 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-023 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-024 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-025 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-026 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-028 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-029 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-030 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-031 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-032 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-034 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-035 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-036 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-037 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-038 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-039 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-040 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-065 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-066 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-067 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SRC-068 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-001 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-002 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-003 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-004 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-005 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-006 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-007 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-008 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-009 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-010 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-011 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-012 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-013 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-014 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-015 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-016 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-017 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-018 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-019 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-020 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-021 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-022 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-023 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-024 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-025 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-026 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-027 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-028 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-029 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-030 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-031 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-032 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-033 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-034 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-035 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-036 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-037 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-038 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-039 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-040 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-041 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-042 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-043 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-044 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-045 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-046 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-047 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-048 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-049 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-050 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-051 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-052 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-053 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-054 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-055 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-056 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-057 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-058 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-059 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-060 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-061 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-062 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-063 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-064 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-065 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-066 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-067 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-068 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-069 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-070 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-071 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-072 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-073 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-074 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-075 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-076 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-077 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-078 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-079 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-080 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-081 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-082 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-083 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-084 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-085 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-086 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-087 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-088 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-089 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-090 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-091 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-092 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-093 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-094 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-095 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-096 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-097 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-098 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-100 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-101 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-102 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-103 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-104 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| RULE-111 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-001 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-003 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-004 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-007 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-016 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-017 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-018 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-019 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-020 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-021 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-022 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-023 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-024 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-025 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-026 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-028 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-030 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-031 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-036 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-037 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-038 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-041 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-042 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-043 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-044 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-046 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-047 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-048 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-049 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-050 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-051 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-052 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-053 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-054 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-055 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-056 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-057 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-058 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-061 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-064 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-065 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-066 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-067 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-068 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-069 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-070 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-071 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-072 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| EVT-075 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-001 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-002 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-005 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-006 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-007 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-009 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-010 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-011 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-012 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-013 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-014 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-015 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-016 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-017 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-018 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-019 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-020 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-021 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-022 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-023 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-024 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-025 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-027 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-028 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-029 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-031 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-032 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-040 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-041 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| CLIENT-042 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| MEDIA-016 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| MEDIA-017 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-015 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-016 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-017 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-018 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-019 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-020 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-021 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-024 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-028 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-031 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-033 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-038 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-041 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-042 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-045 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-046 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-047 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-048 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-049 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-050 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-052 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-053 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-054 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-055 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-056 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-058 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-059 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-060 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-061 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-062 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-065 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-066 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-067 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-068 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-069 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-098 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-104 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-105 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-106 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-107 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-108 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-109 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-110 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-111 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-117 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-118 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-119 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-121 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-122 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-129 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-130 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-131 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-132 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-138 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+| SAFE-140 | 상위 runner 중단으로 실행하지 않음 | fail | parent not-run; 전체 PASS 근거로 사용 불가 |
+
+30분·120분은 승인 제외로 재실행하지 않았다. Policy v4 qualification과 녹화추가8개ID31action은 미실행. 정확 UI개별421항목의 미실행을 위 결과표에 fail로 유지한다. token start/end/consumed: 미집계(실행 당시 goal이 blocked로 집계 갱신되지 않아 유효 구간값 없음), elapsed44248ms, source=launcher exit.json.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| .media_server.test/v4.1.0/ui-acceptance-current | 37파일 | 1541084bytes | 최소 결과 본문 이관 후 삭제 | 삭제·부재 확인 | 직접 크기 집계 및 exists=false |
+| 임시 루트 s09-ui-full-SuTY4X | 2파일 | 12573bytes | 최소 결과 본문 이관 후 삭제 | 삭제·부재 확인 | 직접 크기 집계 및 exists=false |
+
+parent summary SHA256 166dbd4119e21d3035a59becd39935d4f7ac04c4d9af7a813b0fb995bfa67485. 원본 임시경로는 최종 evidence 링크로 사용하지 않는다.
+
+
 ## S09 EVT-058 제한 반복 진단 — 실행 27447
 
 결과 문서 커밋 2cf0dfe5 이후 clean worktree에서 사용자 승인한 최대3회를 순차 실행했다. 명령은 앞선 단일 진단과 같고 --output-dir만 각 실행의 별도 경로다. 제품 코드·timeout·실패 기준 변경과 푸시는 없다. 기록된 S09-UI-DIAG-01~04를 재실행했다.
