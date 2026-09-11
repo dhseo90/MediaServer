@@ -1810,6 +1810,45 @@ payload schema는 `media-server.recording-order.v1`이다. 기존 V1 필드 의�
 기존 Append 비용 유지와 실제 테스트를 직접 대조했다. 이번 변경은 위 코드 네 파일 및 관련
 기존 문서에 한정한다. 커밋·푸시는 미수행이다. 실제 writer 활성화와 S10-3C는 미완료다.
 
+### S10-3C 세그먼트 시간 계약과 finalize 복구 결합
+
+2026-09-12 사용자 「커밋 후 S10-3C 진행」 승인. A/B는 각각 `a82f4d21`, `15f2753e`로
+분리 커밋했다. 이전 S09·S10-1/2의 미커밋 변경은 보존하고 이 커밋에 섞지 않았다.
+이후 사용자 「C2~C3까지 마무리·진행 중 커밋·마지막 푸시」 승인으로 의존 C1과 C2/C3를
+각각 검증·분리 커밋하고 마지막에 푸시한다. S11·릴리즈 작업은 포함하지 않는다.
+이번에는 저장 계약→catalog→ready 복구 순서로 구현하며 실제 writer·조회 UI·이벤트 소비자 활성화는 하지 않는다.
+
+#### C1: 새 시간 계약 (먼저 구현)
+
+기존 contracts header/cpp와 `recording_contract_smoke.cpp`를 사용한다. V1 함수·golden은 그대로 둔다.
+`RecordingSegmentV2`의 schema는 `media-server.recording-segment.v2`이며 아래 필드를 snake_case로 저장한다.
+
+- ID: segment_id/source_id/channel_id/store_id/order_request_id/media_epoch_id. 기존 opaque ID 검증을 적용한다.
+- order_sequence: 양의 int64. media_start_pts: int64, media_end_pts: nullable int64.
+  time_base_num/time_base_den: 양의 int32. 알려진 media_end_pts는 start보다 커야 한다.
+- container/video_codecs/audio_codecs/audio_omitted_reason/size_bytes/checksum_sha256/
+  retention_class/lifecycle/pinned/created_at_ms/finalized_at_ms는 V1과 같은 물리/운영 의미다.
+  UTC start/end 또는 V1 stream_epoch_id를 억지로 생성하지 않는다. lifecycle은 이번 저장 계약에서 Finalized만 허용한다.
+  V2 retention_class는 continuous/event만 허용하며 V1의 기존 enum 해석은 변경하지 않는다.
+- mappings: `RecordingUtcMappingV1` 배열. 각 항목의 schema는 `media-server.recording-utc-mapping.v1`.
+  mapping_id, start_pts, nullable end_pts, provenance, nullable utc_start_ns/utc_end_ns,
+  nullable uncertainty_ns, reason을 필수 키로 둔다.
+- provenance는 source-capture/server-observation/estimated/unknown만 허용한다. known은 양쪽 UTC와
+  media 끝이 모두 있고 각 범위가 증가하며 uncertainty_ns>=0이어야 한다. estimated는 비어 있지 않은 reason이 필요하다.
+  unknown은 UTC·uncertainty를 모두 null로 두고 비어 있지 않은 reason을 저장한다. 실제 epoch UTC 0은 unknown 대용이 아니다.
+- media 구간은 처음부터 끝까지 빠짐없이 서로 인접한 mapping으로 덮는다. 중복 mapping_id·미디어 겹침·빈 배열은 거부한다.
+  끝이 불명확한 경우 마지막 mapping만 unknown/end_pts=null이고 media_end_pts도 null이어야 한다.
+  서로 다른 mapping의 UTC는 중복/역행할 수 있다. 저장 시 재계산하거나 단조 보정하지 않는다.
+- 최대256개 mapping, reason 최대256 bytes, 전체 JSON 최대1MiB. 상한 초과는 명시 거부하고
+  writer가 unknown tail로 묶을 정책을 임의 생성하지 않는다. parser는 알려진 정확한 키/타입을 검증하고 결과를 성공 시에만 대입한다.
+
+공개 함수: ValidateRecordingSegmentV2/SerializeRecordingSegmentV2/ParseRecordingSegmentV2.
+Serialize 결과에서 입력 정수·null·provenance를 보존한다. V2를 V1으로 반환하는 adapter는 만들지 않는다.
+검증 명령: `./server.sh verify-v410-recording-contracts`. 선언·reject stub에서 새 정상 V2 수용의
+예상 RED를 먼저 확인하며 기존 V1 실패는 중단한다. 이후 같은 명령 GREEN과 개별 결과를 기록한다.
+
+C1 한정 구현·검증 완료: contracts focused135/0(V1 89개 포함). 전수 이력·cleanup은 중앙 S10-3C/C1 기록을 따른다. C2/C3는 아직 완료하지 않았다.
+
 v4.1.0 개발 완료는 다음이 모두 참일 때만 성립한다.
 
 1. channel opt-in recorder가 client 유무와 무관하게 source를 유지하고 불변 segment를

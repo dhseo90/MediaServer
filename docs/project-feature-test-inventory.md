@@ -1,5 +1,21 @@
 # Project Feature Test Inventory
 
+## S10-3C 세그먼트 시간 저장·복구
+
+실행 전 등록. 세부 입력과 기대값은 중앙 테스트 기록의 S10-M01~09 및 구현계획 S10-3C를 따른다.
+
+| 기능 ID | 동작·PASS 기준 | 안정화 테스트 | 30분 테스트 | 120분 테스트 | UI 테스트 | UI 존재 |
+| --- | --- | --- | --- | --- | --- | --- |
+| S10-M01 | V2 정수·출처·ID·순서 roundtrip | 해당 contracts/catalog/finalize focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-M02 | unknown null·사유·미확정 media 끝 보존 | 해당 contracts/catalog/finalize focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-M03 | mapping 미디어 전수·중복·인접성 검증 | 해당 contracts/catalog/finalize focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-M04 | strict 형식·정수·metadata 상한 | 해당 contracts/catalog/finalize focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-M05 | 기존 V1 golden 불변 | 해당 contracts/catalog/finalize focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-M06 | 영속 예약과 finalize 결박 | 해당 contracts/catalog/finalize focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-M07 | journal/SQLite/JSONL 재시작 동등성 | 해당 contracts/catalog/finalize focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-M08 | ready 재시작과 멱등 정리 | 해당 contracts/catalog/finalize focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-M09 | 삭제·ID/매핑/경로 충돌 원본 보존 | 해당 contracts/catalog/finalize focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+
 ## S10-3B 저장 계층 순서 예약
 
 세부 입력·판정은 `release-test-records.md`의 S10-O01~10 사전등록과 구현계획 S10-3B를 따른다.

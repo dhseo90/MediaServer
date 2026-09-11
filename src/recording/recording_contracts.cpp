@@ -462,6 +462,130 @@ bool ValidateRecordingSegmentV1(const RecordingSegmentV1& value, std::string* er
     return true;
 }
 
+namespace {
+constexpr std::size_t kSegmentV2JsonLimit = 1024 * 1024;
+std::string NullableInteger(const std::optional<std::int64_t>& value) {
+    return value ? std::to_string(*value) : "null";
+}
+bool RequiredNullableInteger(const Document& d, const std::string& key,
+                             std::optional<std::int64_t>* value, std::string* error) {
+    const auto* member = d.Find(key);
+    if (!member) return Fail(error, "V2 nullable field 누락");
+    if (member->type == Type::Null) { value->reset(); return true; }
+    std::int64_t integer;
+    if (member->type != Type::Number || !ParseIntegerRaw(member->raw, &integer))
+        return Fail(error, "V2 nullable 정수 오류");
+    *value = integer;
+    return true;
+}
+}
+
+std::string SerializeRecordingSegmentV2(const RecordingSegmentV2& v) {
+    std::ostringstream out;
+    out << "{\"schema\":" << Quote(v.schema) << ",\"segment_id\":" << Quote(v.segment_id)
+        << ",\"source_id\":" << Quote(v.source_id) << ",\"channel_id\":" << Quote(v.channel_id)
+        << ",\"store_id\":" << Quote(v.store_id) << ",\"order_request_id\":" << Quote(v.order_request_id)
+        << ",\"media_epoch_id\":" << Quote(v.media_epoch_id) << ",\"order_sequence\":" << v.order_sequence
+        << ",\"media_start_pts\":" << v.media_start_pts << ",\"media_end_pts\":" << NullableInteger(v.media_end_pts)
+        << ",\"time_base_num\":" << v.time_base_num << ",\"time_base_den\":" << v.time_base_den
+        << ",\"container\":" << Quote(v.container) << ",\"video_codecs\":" << SerializeStringArray(v.video_codecs)
+        << ",\"audio_codecs\":" << SerializeStringArray(v.audio_codecs)
+        << ",\"audio_omitted_reason\":" << Quote(v.audio_omitted_reason) << ",\"size_bytes\":" << v.size_bytes
+        << ",\"checksum_sha256\":" << Quote(v.checksum_sha256) << ",\"retention_class\":" << Quote(RetentionString(v.retention_class))
+        << ",\"lifecycle\":" << Quote(LifecycleString(v.lifecycle)) << ",\"pinned\":" << (v.pinned ? "true" : "false")
+        << ",\"created_at_ms\":" << v.created_at_ms << ",\"finalized_at_ms\":" << v.finalized_at_ms << ",\"mappings\":[";
+    for (std::size_t i=0; i<v.mappings.size(); ++i) {
+        if (i) out << ',';
+        const auto& m=v.mappings[i];
+        out << "{\"schema\":" << Quote(m.schema) << ",\"mapping_id\":" << Quote(m.mapping_id)
+            << ",\"start_pts\":" << m.start_pts << ",\"end_pts\":" << NullableInteger(m.end_pts)
+            << ",\"provenance\":" << Quote(m.provenance) << ",\"utc_start_ns\":" << NullableInteger(m.utc_start_ns)
+            << ",\"utc_end_ns\":" << NullableInteger(m.utc_end_ns) << ",\"uncertainty_ns\":" << NullableInteger(m.uncertainty_ns)
+            << ",\"reason\":" << Quote(m.reason) << '}';
+        if (out.tellp() > static_cast<std::streamoff>(kSegmentV2JsonLimit)) return {};
+    }
+    out << "]}";
+    auto json=out.str();
+    return json.size() <= kSegmentV2JsonLimit ? json : std::string{};
+}
+
+bool ValidateRecordingSegmentV2(const RecordingSegmentV2& v, std::string* error) {
+    if (v.schema != "media-server.recording-segment.v2") return Fail(error, "V2 segment schema 오류");
+    if (v.retention_class!=RecordingRetentionClass::Continuous && v.retention_class!=RecordingRetentionClass::Event)
+        return Fail(error,"V2 retention 분류 오류");
+    for (const auto* id : {&v.segment_id,&v.source_id,&v.channel_id,&v.store_id,&v.order_request_id,&v.media_epoch_id})
+        if (!ValidateOpaqueId(*id,error)) return false;
+    if (v.order_sequence<=0 || v.time_base_num<=0 || v.time_base_den<=0 ||
+        (v.media_end_pts && *v.media_end_pts<=v.media_start_pts)) return Fail(error,"V2 media/순서 범위 오류");
+    if (v.container.empty() || v.video_codecs.empty() || (v.audio_codecs.empty() && v.audio_omitted_reason.empty()) ||
+        v.lifecycle!=RecordingLifecycle::Finalized || v.size_bytes==0 || !IsSha256(v.checksum_sha256) || v.finalized_at_ms<=0)
+        return Fail(error,"V2 물리 finalized 계약 오류");
+    if (v.mappings.empty() || v.mappings.size()>256) return Fail(error,"V2 mapping 개수 오류");
+    std::unordered_set<std::string> ids;
+    std::int64_t next=v.media_start_pts;
+    for (std::size_t i=0;i<v.mappings.size();++i) {
+        const auto& m=v.mappings[i];
+        if (m.schema!="media-server.recording-utc-mapping.v1" || !ValidateOpaqueId(m.mapping_id,error) ||
+            !ids.insert(m.mapping_id).second || m.reason.size()>256 || m.start_pts!=next ||
+            (m.end_pts && *m.end_pts<=m.start_pts)) return Fail(error,"V2 mapping identity/media 범위 오류");
+        const bool unknown=m.provenance=="unknown";
+        if (unknown) {
+            if (m.utc_start_ns || m.utc_end_ns || m.uncertainty_ns || m.reason.empty())
+                return Fail(error,"V2 unknown nullable/reason 오류");
+        } else {
+            if ((m.provenance!="source-capture" && m.provenance!="server-observation" && m.provenance!="estimated") ||
+                !m.end_pts || !m.utc_start_ns || !m.utc_end_ns || *m.utc_start_ns>=*m.utc_end_ns ||
+                !m.uncertainty_ns || *m.uncertainty_ns<0 || (m.provenance=="estimated" && m.reason.empty()))
+                return Fail(error,"V2 known UTC/provenance 오류");
+        }
+        if (!m.end_pts) {
+            if (!unknown || i+1!=v.mappings.size() || v.media_end_pts)
+                return Fail(error,"V2 미확정 끝 위치 오류");
+        } else next=*m.end_pts;
+    }
+    if (v.mappings.back().end_pts!=v.media_end_pts) return Fail(error,"V2 mapping 전체 cover 오류");
+    if (SerializeRecordingSegmentV2(v).empty()) return Fail(error,"V2 JSON 상한 초과");
+    ClearError(error);return true;
+}
+
+bool ParseRecordingSegmentV2(const std::string& json, RecordingSegmentV2* value, std::string* error) {
+    if (!value || json.size()>kSegmentV2JsonLimit) return Fail(error,"V2 output/JSON 상한 오류");
+    Document d; RecordingSegmentV2 v; std::string retention,lifecycle;
+    if (!ParseDocument(json,&d,error)) return false;
+    if (d.members.size()!=24) return Fail(error,"V2 정확한 field 집합 오류");
+    if (!RequiredString(d,"schema",&v.schema,error) || !RequiredString(d,"segment_id",&v.segment_id,error) ||
+        !RequiredString(d,"source_id",&v.source_id,error) || !RequiredString(d,"channel_id",&v.channel_id,error) ||
+        !RequiredString(d,"store_id",&v.store_id,error) || !RequiredString(d,"order_request_id",&v.order_request_id,error) ||
+        !RequiredString(d,"media_epoch_id",&v.media_epoch_id,error) || !RequiredInteger(d,"order_sequence",&v.order_sequence,error) ||
+        !RequiredInteger(d,"media_start_pts",&v.media_start_pts,error) || !RequiredNullableInteger(d,"media_end_pts",&v.media_end_pts,error) ||
+        !RequiredInteger(d,"time_base_num",&v.time_base_num,error) || !RequiredInteger(d,"time_base_den",&v.time_base_den,error) ||
+        !RequiredString(d,"container",&v.container,error) || !ParseStringArray(d,"video_codecs",&v.video_codecs,error) ||
+        !ParseStringArray(d,"audio_codecs",&v.audio_codecs,error) || !RequiredString(d,"audio_omitted_reason",&v.audio_omitted_reason,error) ||
+        !RequiredInteger(d,"size_bytes",&v.size_bytes,error) || !RequiredString(d,"checksum_sha256",&v.checksum_sha256,error) ||
+        !RequiredString(d,"retention_class",&retention,error) || !RequiredString(d,"lifecycle",&lifecycle,error) ||
+        !RequiredBool(d,"pinned",&v.pinned,error) || !RequiredInteger(d,"created_at_ms",&v.created_at_ms,error) ||
+        !RequiredInteger(d,"finalized_at_ms",&v.finalized_at_ms,error)) return false;
+    v.retention_class=ParseRetention(retention);v.lifecycle=ParseLifecycle(lifecycle);
+    if (RetentionString(v.retention_class)!=retention || lifecycle!="finalized") return Fail(error,"V2 enum 오류");
+    const auto* mappings=RequiredMember(d,"mappings",Type::Array,error);
+    std::vector<std::string> entries;
+    if (!mappings || !SplitArray(mappings->raw,&entries,error)) return false;
+    if (entries.empty() || entries.size()>256) return Fail(error,"V2 mapping 개수 오류");
+    for (const auto& entry:entries) {
+        Document md;RecordingUtcMappingV1 m;
+        if (!ParseDocument(entry,&md,error)) return false;
+        if (md.members.size()!=9) return Fail(error,"V2 mapping 정확한 field 집합 오류");
+        if (!RequiredString(md,"schema",&m.schema,error) || !RequiredString(md,"mapping_id",&m.mapping_id,error) ||
+            !RequiredInteger(md,"start_pts",&m.start_pts,error) || !RequiredNullableInteger(md,"end_pts",&m.end_pts,error) ||
+            !RequiredString(md,"provenance",&m.provenance,error) || !RequiredNullableInteger(md,"utc_start_ns",&m.utc_start_ns,error) ||
+            !RequiredNullableInteger(md,"utc_end_ns",&m.utc_end_ns,error) || !RequiredNullableInteger(md,"uncertainty_ns",&m.uncertainty_ns,error) ||
+            !RequiredString(md,"reason",&m.reason,error)) return false;
+        v.mappings.push_back(std::move(m));
+    }
+    if (!ValidateRecordingSegmentV2(v,error)) return false;
+    *value=std::move(v);ClearError(error);return true;
+}
+
 bool IsPlayable(RecordingLifecycle lifecycle) {
     return lifecycle == RecordingLifecycle::Finalized;
 }

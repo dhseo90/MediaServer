@@ -46,6 +46,37 @@ struct RecordingSegmentV1 {
     std::int64_t finalized_at_ms{0};
 };
 
+struct RecordingUtcMappingV1 {
+    std::string schema{"media-server.recording-utc-mapping.v1"};
+    std::string mapping_id;
+    std::int64_t start_pts{0};
+    std::optional<std::int64_t> end_pts;
+    std::string provenance;
+    std::optional<std::int64_t> utc_start_ns, utc_end_ns, uncertainty_ns;
+    std::string reason;
+};
+
+struct RecordingSegmentV2 {
+    std::string schema{"media-server.recording-segment.v2"};
+    std::string segment_id, source_id, channel_id, store_id, order_request_id, media_epoch_id;
+    std::int64_t order_sequence{0}, media_start_pts{0};
+    std::optional<std::int64_t> media_end_pts;
+    std::int32_t time_base_num{1}, time_base_den{1000000000};
+    std::string container;
+    std::vector<std::string> video_codecs, audio_codecs;
+    std::string audio_omitted_reason;
+    std::uint64_t size_bytes{0};
+    std::string checksum_sha256;
+    RecordingRetentionClass retention_class{RecordingRetentionClass::Continuous};
+    RecordingLifecycle lifecycle{RecordingLifecycle::Finalized};
+    bool pinned{false};
+    std::int64_t created_at_ms{0}, finalized_at_ms{0};
+    std::vector<RecordingUtcMappingV1> mappings;
+};
+bool ValidateRecordingSegmentV2(const RecordingSegmentV2& value, std::string* error);
+std::string SerializeRecordingSegmentV2(const RecordingSegmentV2& value);
+bool ParseRecordingSegmentV2(const std::string& json, RecordingSegmentV2* value, std::string* error);
+
 struct FrameLocatorV1 {
     std::string schema{"media-server.frame-locator.v1"};
     std::string segment_id;

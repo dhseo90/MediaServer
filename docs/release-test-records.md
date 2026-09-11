@@ -1,5 +1,235 @@
 # Release Test Records
 
+## S10-3C 저장 계약·복구 결합 사전등록
+
+명세는 기존 구현계획 S10-3C 절이다. 테스트 실행 전 등록이며 아래 C1 다음 C2/C3 순서로 진행한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-M01 | V2 정상 보존 | UTC 중복/역행 mapping의 정수·출처·ID·순서 roundtrip | v4.1.0 |
+| S10-M02 | unknown 구간 | null UTC/uncertainty·사유 및 미확정 media 끝 보존, UTC 0과 구분 | v4.1.0 |
+| S10-M03 | mapping 범위 | 누락·겹침·불연속·중복 ID·역전 media·잘못된 nullable 조합 거부 | v4.1.0 |
+| S10-M04 | 정수·크기·형식 | int64 정밀도/overflow·unknown key/type/schema·256 상한·reason 상한 거부 | v4.1.0 |
+| S10-M05 | V1 불변 | 기존 golden/parser/serializer 회귀 유지, V2→V1 강제 변환 없음 | v4.1.0 |
+| S10-M06 | 순서 결박 | 원장 예약의 store/request/segment/channel/sequence 일치만 finalize | v4.1.0 |
+| S10-M07 | 저장 동등성 | journal 전체 V2·SQLite·JSONL 재시작 동등성, 중복/충돌 판정 | v4.1.0 |
+| S10-M08 | ready 재시작 | publish 전후·commit 후 ready 복구에서 동일 V2 보존·멱등 정리 | v4.1.0 |
+| S10-M09 | 삭제·충돌 보존 | tombstone·ID/path/매핑 충돌·미지원 ready는 원본을 보존하고 거부 | v4.1.0 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | C1→C2→C3 저장/복구 변경 | S10-M01~09, contracts/catalog/finalize-recovery focused | 이번 C 진행 범위 |
+| 30분 테스트 | 미진행 | 실제 writer 활성화 전, S11 아님 | S10-3C | 실행 안 함 |
+| 120분 테스트 | 미진행 | 실제 media/lifecycle producer 변경 없음 | S10-3C | 실행 안 함 |
+| UI 풀테스트 | 미진행 | UI 변경 없음 | S10-3C | 실행 안 함 |
+
+token start/end/consumed는 자동 집계 미제공으로 미집계. 실행 elapsed/원출력·cleanup은 실행 후 보존한다.
+
+### C1 상한·nullable 직접 경계 보완 사전등록
+
+첫 GREEN125/0 뒤, 제품 코드는 바꾸지 않고 기존 M01~04의 독립 경계 검사를 추가한다.
+명령은 `./server.sh verify-v410-recording-contracts`이며 아래 양성은 characterization이다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-M04 exact 256 unique adjacent mappings accepted | mapping 상한 | 유일 ID·인접구간256개 Validate/Parse 수용, 257개만 거부 | v4.1.0 |
+| S10-M04 exact 256 byte estimated reason accepted | reason 상한 | reason256 bytes estimated 수용, 기존257 거부 유지 | v4.1.0 |
+| S10-M02 bounded unknown mapping preserves media endpoint | bounded unknown | UTC/uncertainty null·사유·알려진 media 끝 roundtrip | v4.1.0 |
+| S10-M04 exact JSON size limit accepted | JSON 상한 | 정상 literal 앞 JSON 공백으로 정확1MiB 수용, 1byte 초과 거부 | v4.1.0 |
+| S10-M04 parser rejects and preserves output timebase-overflow | int32 | time_base_den 2147483648 거부, output 불변 | v4.1.0 |
+| S10-M04 parser rejects and preserves output mapping-schema | mapping schema | v9 매핑 schema 거부, output 불변 | v4.1.0 |
+| S10-M04 parser rejects and preserves output provenance | 출처 enum | unsupported provenance 거부, output 불변 | v4.1.0 |
+
+#### C1 retention enum 추가 예상 RED 사전등록
+
+메인 검토에서 새 V2의 Unknown retention 수용을 발견했다. V1의 legacy enum 정책은 유지하고
+V2만 continuous/event로 제한한다. 다음 두 항목만 현 구현에서 예상 FAIL이다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-M04 V2 unknown retention rejected | V2 validator enum | Unknown retention 값 거부, 예상 RED | v4.1.0 |
+| S10-M04 parser rejects and preserves output unknown-retention | V2 parser enum | literal unknown retention 거부·output 불변, 예상 RED | v4.1.0 |
+| S10-M04 oversized physical string rejected by validator and serializer | 출력 크기 | 1MiB 초과 container에서 Validate false·Serialize 빈 결과, 현 구현 PASS 예상 | v4.1.0 |
+
+
+### C1 실제 결과 및 전수 이력 (2026-09-12)
+
+TDD 스킬의 실제 실패 확인 후 구현 순서를 적용했다. 코드 변경은 contracts header/cpp와
+recording_contract_smoke.cpp 세 파일이며 V1 함수·serializer·golden은 변경하지 않았다.
+최초 정상 수용 5개만 예상 RED였으며, 뒤 메인 검토의 Unknown retention 허용은 별도 사전등록한
+2개 예상 RED로 확인하고 V2 validator guard만 보완했다. 기존 V1 89개는 모든 실행에서 통과했다.
+
+| 실행 | 명령 | exit | 실제 pass/fail | elapsed |
+| --- | --- | --- | --- | --- |
+| 최초 RED 9127 | `./server.sh verify-v410-recording-contracts` | 1 | 120/5 | 20095 ms |
+| 첫 GREEN 29750 | `./server.sh verify-v410-recording-contracts` | 0 | 125/0 | 19981 ms |
+| 경계 보완 GREEN 18165 | `./server.sh verify-v410-recording-contracts` | 0 | 132/0 | 25082 ms |
+| retention RED 32544 | `./server.sh verify-v410-recording-contracts` | 1 | 133/2 | 16155 ms |
+| 최종 GREEN 42015 | `./server.sh verify-v410-recording-contracts` | 0 | 135/0 | 20056 ms |
+
+elapsed는 명령 요청부터 최종 출력 수신까지의 도구 관측값(polling 지연 포함)이다. source는
+exec/write_stdin 원출력이며 내부 순수 실행시간은 별도 미계측이다. token start/end/consumed는
+담당자 자동 집계 미제공으로 미집계다. 첫 GREEN 후 경계 7개와 retention/출력상한 3개를
+실행 전에 추가 등록했으며 이전 실행 결과로 소급하지 않는다. 최초 음성 31개 PASS는 reject stub
+한계가 있으므로 제품 동작 검증은 최종 GREEN을 사용한다. mapping257 검사는 첫 두 실행의
+중복 ID 혼입 가능성을 제거하여 인접·유일한 257개로 보완했다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| opaque ID 허용 | 최종 실제 assertion 1; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| 빈 opaque ID 거부 | 최종 실제 assertion 2; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| path opaque ID 거부 | 최종 실제 assertion 3; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| SQLite rowid 형태 opaque ID 거부 | 최종 실제 assertion 4; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| 반개구간 겹침 | 최종 실제 assertion 5; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| 맞닿은 반개구간 비겹침 | 최종 실제 assertion 6; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| 빈 반개구간 거부 | 최종 실제 assertion 7; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | 최종 실제 assertion 8; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | 최종 실제 assertion 9; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| V1 segment golden row count | 최종 실제 assertion 10; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| unknown optional field를 포함한 segment parse: | 최종 실제 assertion 11; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| segment provenance semantic | 최종 실제 assertion 12; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| segment UTC/end PTS semantic | 최종 실제 assertion 13; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| segment media/checksum semantic | 최종 실제 assertion 14; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| segment lifecycle/retention semantic | 최종 실제 assertion 15; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| unknown optional field 뒤 known ID 보존 | 최종 실제 assertion 16; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| PTS/timebase exact 보존 | 최종 실제 assertion 17; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| public JSON에 filesystem path 비노출 | 최종 실제 assertion 18; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| segment canonical 재parse | 최종 실제 assertion 19; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| PTS/timebase round-trip | 최종 실제 assertion 20; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| unknown lifecycle를 호환 parse | 최종 실제 assertion 21; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| unknown lifecycle를 Unknown으로 보존 | 최종 실제 assertion 22; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| unknown lifecycle 비재생 | 최종 실제 assertion 23; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | 최종 실제 assertion 24; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/segments.jsonl | 최종 실제 assertion 25; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| segments.jsonl parse[0]: | 최종 실제 assertion 26; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| segments.jsonl additive optional known semantic parity[0] | 최종 실제 assertion 27; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| V1 schema probe anchor | 최종 실제 assertion 28; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| segments.jsonl changed schema rejected | 최종 실제 assertion 29; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| required ID probe anchor | 최종 실제 assertion 30; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| segments.jsonl missing required ID rejected | 최종 실제 assertion 31; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| segments.jsonl canonical parse[0]: | 최종 실제 assertion 32; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| segments.jsonl canonical parity[0] | 최종 실제 assertion 33; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| segments.jsonl parse[1]: | 최종 실제 assertion 34; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| segments.jsonl additive optional known semantic parity[1] | 최종 실제 assertion 35; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| V1 schema probe anchor | 최종 실제 assertion 36; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| segments.jsonl changed schema rejected | 최종 실제 assertion 37; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| required ID probe anchor | 최종 실제 assertion 38; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| segments.jsonl missing required ID rejected | 최종 실제 assertion 39; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| segments.jsonl canonical parse[1]: | 최종 실제 assertion 40; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| segments.jsonl canonical parity[1] | 최종 실제 assertion 41; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | 최종 실제 assertion 42; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | 최종 실제 assertion 43; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| event-links.jsonl parse[0]: | 최종 실제 assertion 44; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| event-links.jsonl additive optional known semantic parity[0] | 최종 실제 assertion 45; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| V1 schema probe anchor | 최종 실제 assertion 46; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| event-links.jsonl changed schema rejected | 최종 실제 assertion 47; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| required ID probe anchor | 최종 실제 assertion 48; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| event-links.jsonl missing required ID rejected | 최종 실제 assertion 49; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| event-links.jsonl canonical parse[0]: | 최종 실제 assertion 50; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| event-links.jsonl canonical parity[0] | 최종 실제 assertion 51; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | 최종 실제 assertion 52; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | 최종 실제 assertion 53; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| observations.jsonl parse[0]: | 최종 실제 assertion 54; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| observations.jsonl additive optional known semantic parity[0] | 최종 실제 assertion 55; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| V1 schema probe anchor | 최종 실제 assertion 56; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| observations.jsonl changed schema rejected | 최종 실제 assertion 57; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| required ID probe anchor | 최종 실제 assertion 58; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| observations.jsonl missing required ID rejected | 최종 실제 assertion 59; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| observations.jsonl canonical parse[0]: | 최종 실제 assertion 60; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| observations.jsonl canonical parity[0] | 최종 실제 assertion 61; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | 최종 실제 assertion 62; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | 최종 실제 assertion 63; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| tombstones.jsonl parse[0]: | 최종 실제 assertion 64; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| tombstones.jsonl additive optional known semantic parity[0] | 최종 실제 assertion 65; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| V1 schema probe anchor | 최종 실제 assertion 66; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| tombstones.jsonl changed schema rejected | 최종 실제 assertion 67; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| required ID probe anchor | 최종 실제 assertion 68; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| tombstones.jsonl missing required ID rejected | 최종 실제 assertion 69; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| tombstones.jsonl canonical parse[0]: | 최종 실제 assertion 70; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| tombstones.jsonl canonical parity[0] | 최종 실제 assertion 71; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | 최종 실제 assertion 72; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/event-links.jsonl | 최종 실제 assertion 73; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| link ID/provenance semantic | 최종 실제 assertion 74; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| link requested range/status semantic | 최종 실제 assertion 75; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| link overlap/missing semantic | 최종 실제 assertion 76; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| link fallback/time semantic | 최종 실제 assertion 77; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | 최종 실제 assertion 78; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/observations.jsonl | 최종 실제 assertion 79; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| observation ID/provenance semantic | 최종 실제 assertion 80; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| observation exact locator semantic | 최종 실제 assertion 81; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| observation detection semantic | 최종 실제 assertion 82; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| observation association/time semantic | 최종 실제 assertion 83; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture를 끝까지 읽음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | 최종 실제 assertion 84; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| fixture가 비어 있지 않음: /Users/dhseo/Workspace/mediaServer/test/fixtures/recording/v1/tombstones.jsonl | 최종 실제 assertion 85; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| tombstone ID/provenance semantic | 최종 실제 assertion 86; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| tombstone range/checksum/legacy retention semantic | 최종 실제 assertion 87; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| tombstone segment ID 재사용 거부 | 최종 실제 assertion 88; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| 새 segment ID 허용 | 최종 실제 assertion 89; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M01 V2 accepts adjacent media and backward overlapping UTC mappings | 최종 실제 assertion 90; 9127 fail → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M01 literal parser preserves exact int64 above double precision | 최종 실제 assertion 91; 9127 fail → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M01 serializer matches independent canonical literal | 최종 실제 assertion 92; 9127 fail → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M02 unknown final media endpoint and null UTC roundtrip | 최종 실제 assertion 93; 9127 fail → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M02 actual UTC zero remains known | 최종 실제 assertion 94; 9127 fail → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M03 empty mappings rejected | 최종 실제 assertion 95; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M03 initial media gap rejected | 최종 실제 assertion 96; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M03 interior media gap rejected | 최종 실제 assertion 97; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M03 media overlap rejected | 최종 실제 assertion 98; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M03 final media gap rejected | 최종 실제 assertion 99; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M03 duplicate mapping ID rejected | 최종 실제 assertion 100; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M03 reversed mapping media rejected | 최종 실제 assertion 101; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M03 reversed segment media rejected | 최종 실제 assertion 102; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M03 nonfinal unknown media end rejected | 최종 실제 assertion 103; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M03 known missing UTC endpoint rejected | 최종 실제 assertion 104; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M03 negative uncertainty rejected | 최종 실제 assertion 105; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M03 nonincreasing known UTC rejected | 최종 실제 assertion 106; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M03 unknown with UTC value rejected | 최종 실제 assertion 107; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M03 unknown without reason rejected | 최종 실제 assertion 108; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M03 estimated without reason rejected | 최종 실제 assertion 109; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M04 reason byte limit rejected | 최종 실제 assertion 110; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M04 exact 256 unique adjacent mappings accepted | 최종 실제 assertion 111; 9127 미실행 → 29750 미실행 → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M04 mapping count limit rejected | 최종 실제 assertion 112; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M04 exact 256 byte estimated reason accepted | 최종 실제 assertion 113; 9127 미실행 → 29750 미실행 → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M02 bounded unknown mapping preserves media endpoint | 최종 실제 assertion 114; 9127 미실행 → 29750 미실행 → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M04 exact JSON size limit accepted | 최종 실제 assertion 115; 9127 미실행 → 29750 미실행 → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M04 nonpositive order rejected | 최종 실제 assertion 116; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M04 nonpositive timebase rejected | 최종 실제 assertion 117; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M04 invalid opaque ID rejected | 최종 실제 assertion 118; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M04 nonfinalized lifecycle rejected | 최종 실제 assertion 119; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M04 invalid physical integrity rejected | 최종 실제 assertion 120; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M04 V2 unknown retention rejected | 최종 실제 assertion 121; 9127 미실행 → 29750 미실행 → 18165 미실행 → 32544 fail → 42015 pass | pass |
+| S10-M04 oversized physical string rejected by validator and serializer | 최종 실제 assertion 122; 9127 미실행 → 29750 미실행 → 18165 미실행 → 32544 pass → 42015 pass | pass |
+| S10-M04 parser rejects and preserves output schema | 최종 실제 assertion 123; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M04 parser rejects and preserves output unknown-key | 최종 실제 assertion 124; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M04 parser rejects and preserves output duplicate-key | 최종 실제 assertion 125; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M04 parser rejects and preserves output integer-overflow | 최종 실제 assertion 126; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M04 parser rejects and preserves output fraction | 최종 실제 assertion 127; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M04 parser rejects and preserves output wrong-type | 최종 실제 assertion 128; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M04 parser rejects and preserves output timebase-overflow | 최종 실제 assertion 129; 9127 미실행 → 29750 미실행 → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M04 parser rejects and preserves output mapping-schema | 최종 실제 assertion 130; 9127 미실행 → 29750 미실행 → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M04 parser rejects and preserves output provenance | 최종 실제 assertion 131; 9127 미실행 → 29750 미실행 → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M04 parser rejects and preserves output unknown-retention | 최종 실제 assertion 132; 9127 미실행 → 29750 미실행 → 18165 미실행 → 32544 fail → 42015 pass | pass |
+| S10-M04 parser rejects and preserves output mapping-key | 최종 실제 assertion 133; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M04 parser rejects and preserves output json-cap | 최종 실제 assertion 134; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+| S10-M04 parser null output rejected | 최종 실제 assertion 135; 9127 pass → 29750 pass → 18165 pass → 32544 pass → 42015 pass | pass |
+
+#### C1 cleanup 및 한계
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| `/tmp/media_server_v410_recording_contracts-84678` | focused binary root | 568728 B | wrapper EXIT cleanup | removed=true | 실행 9127 원출력 |
+| `/tmp/media_server_v410_recording_contracts-84756` | focused binary root | 605688 B | wrapper EXIT cleanup | removed=true | 실행 29750 원출력 |
+| `/tmp/media_server_v410_recording_contracts-84808` | focused binary root | 606248 B | wrapper EXIT cleanup | removed=true | 실행 18165 원출력 |
+| `/tmp/media_server_v410_recording_contracts-84843` | focused binary root | 606248 B | wrapper EXIT cleanup | removed=true | 실행 32544 원출력 |
+| `/tmp/media_server_v410_recording_contracts-84875` | focused binary root | 606248 B | wrapper EXIT cleanup | removed=true | 실행 42015 원출력 |
+
+최종135행은 기존89+신규46이다. 이전125/125/132/135행의 제목·동명 발생 수를 최종표에
+모두 대응했다. 실제 미실행은 표 이력에 별도로 남기며 PASS로 취급하지 않는다.
+C1의 자료 계약만 구현·검증했으며 C2/C3, 실제 writer/reservation 연결, SQLite/ready 복구,
+API/UI/전체 build/30분/120분/auth는 이번 실행에서 미실행이다. Linux 별도 실행도 없다.
+V2를 가짜 V1 UTC로 바꾸는 adapter는 추가하지 않았다. 커밋·푸시는 수행하지 않았다.
+보존 파일 readback의 135개 제목·결과·순서는 최종 원출력과 일치했고, 5개 실행의
+미대응 판정 행은 0이었다. 위 임시 5경로는 lstat ENOENT 확인. `git diff --check` exit0.
+
 ## S10-3B 영속 순서 예약 사전등록
 
 상세 API·안전 계약은 기존 구현계획 S10-3B 절을 따른다. 테스트 실행 전 등록이다.

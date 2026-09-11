@@ -83,6 +83,85 @@ void ExpectCanonicalRoundTrip(const std::filesystem::path& path,
     }
 }
 
+void V2Cases() {
+    using namespace recording;
+    const std::string literal=R"({"schema":"media-server.recording-segment.v2","segment_id":"s","source_id":"source","channel_id":"channel","store_id":"store","order_request_id":"request","media_epoch_id":"epoch","order_sequence":9007199254740993,"media_start_pts":0,"media_end_pts":20,"time_base_num":1,"time_base_den":1000000000,"container":"mp4","video_codecs":["h264"],"audio_codecs":[],"audio_omitted_reason":"none","size_bytes":12,"checksum_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","retention_class":"continuous","lifecycle":"finalized","pinned":false,"created_at_ms":1,"finalized_at_ms":2,"mappings":[{"schema":"media-server.recording-utc-mapping.v1","mapping_id":"a","start_pts":0,"end_pts":10,"provenance":"source-capture","utc_start_ns":9007199254740993,"utc_end_ns":9007199254741003,"uncertainty_ns":0,"reason":""},{"schema":"media-server.recording-utc-mapping.v1","mapping_id":"b","start_pts":10,"end_pts":20,"provenance":"server-observation","utc_start_ns":9007199254740990,"utc_end_ns":9007199254741000,"uncertainty_ns":2,"reason":""}]})";
+    RecordingSegmentV2 base;
+    base.segment_id="s"; base.source_id="source"; base.channel_id="channel";base.store_id="store";
+    base.order_request_id="request";base.media_epoch_id="epoch";base.order_sequence=9007199254740993LL;
+    base.media_end_pts=20;base.container="mp4";base.video_codecs={"h264"};base.audio_omitted_reason="none";
+    base.size_bytes=12;base.checksum_sha256=std::string(64,'a');base.created_at_ms=1;base.finalized_at_ms=2;
+    base.mappings={{"media-server.recording-utc-mapping.v1","a",0,10,"source-capture",9007199254740993LL,9007199254741003LL,0,""},
+                   {"media-server.recording-utc-mapping.v1","b",10,20,"server-observation",9007199254740990LL,9007199254741000LL,2,""}};
+    std::string error;RecordingSegmentV2 parsed;
+    Expect(ValidateRecordingSegmentV2(base,&error),"S10-M01 V2 accepts adjacent media and backward overlapping UTC mappings");
+    Expect(ParseRecordingSegmentV2(literal,&parsed,&error) && parsed.order_sequence==9007199254740993LL &&
+        parsed.mappings.size()==2 && parsed.mappings[0].utc_start_ns==9007199254740993LL,
+        "S10-M01 literal parser preserves exact int64 above double precision");
+    Expect(SerializeRecordingSegmentV2(base)==literal,"S10-M01 serializer matches independent canonical literal");
+    auto unknown=base;unknown.media_end_pts.reset();auto& tail=unknown.mappings.back();tail.end_pts.reset();
+    tail.provenance="unknown";tail.utc_start_ns.reset();tail.utc_end_ns.reset();tail.uncertainty_ns.reset();tail.reason="duration-missing";
+    Expect(ValidateRecordingSegmentV2(unknown,&error) && ParseRecordingSegmentV2(SerializeRecordingSegmentV2(unknown),&parsed,&error) &&
+        !parsed.media_end_pts && !parsed.mappings.back().utc_start_ns && parsed.mappings.back().reason=="duration-missing",
+        "S10-M02 unknown final media endpoint and null UTC roundtrip");
+    auto zero=base;zero.mappings[0].utc_start_ns=0;zero.mappings[0].utc_end_ns=10;
+    Expect(ValidateRecordingSegmentV2(zero,&error),"S10-M02 actual UTC zero remains known");
+    const auto reject=[&](RecordingSegmentV2 value,const std::string& label){Expect(!ValidateRecordingSegmentV2(value,&error),label);};
+    auto v=base;v.mappings.clear();reject(v,"S10-M03 empty mappings rejected");
+    v=base;v.mappings[0].start_pts=1;reject(v,"S10-M03 initial media gap rejected");
+    v=base;v.mappings[1].start_pts=11;reject(v,"S10-M03 interior media gap rejected");
+    v=base;v.mappings[1].start_pts=9;reject(v,"S10-M03 media overlap rejected");
+    v=base;v.mappings.back().end_pts=19;reject(v,"S10-M03 final media gap rejected");
+    v=base;v.mappings[1].mapping_id="a";reject(v,"S10-M03 duplicate mapping ID rejected");
+    v=base;v.mappings[0].end_pts=0;reject(v,"S10-M03 reversed mapping media rejected");
+    v=base;v.media_end_pts=0;reject(v,"S10-M03 reversed segment media rejected");
+    v=base;v.mappings[0].end_pts.reset();reject(v,"S10-M03 nonfinal unknown media end rejected");
+    v=base;v.mappings[0].utc_end_ns.reset();reject(v,"S10-M03 known missing UTC endpoint rejected");
+    v=base;v.mappings[0].uncertainty_ns=-1;reject(v,"S10-M03 negative uncertainty rejected");
+    v=base;v.mappings[0].utc_end_ns=v.mappings[0].utc_start_ns;reject(v,"S10-M03 nonincreasing known UTC rejected");
+    v=unknown;v.mappings.back().utc_start_ns=0;reject(v,"S10-M03 unknown with UTC value rejected");
+    v=unknown;v.mappings.back().reason.clear();reject(v,"S10-M03 unknown without reason rejected");
+    v=base;v.mappings[0].provenance="estimated";reject(v,"S10-M03 estimated without reason rejected");
+    v=base;v.mappings[0].reason=std::string(257,'x');reject(v,"S10-M04 reason byte limit rejected");
+    v=base;v.mappings.clear();v.media_end_pts=256;
+    for(int i=0;i<256;++i){auto m=base.mappings[0];m.mapping_id="m"+std::to_string(i);m.start_pts=i;m.end_pts=i+1;v.mappings.push_back(m);}
+    Expect(ValidateRecordingSegmentV2(v,&error) && ParseRecordingSegmentV2(SerializeRecordingSegmentV2(v),&parsed,&error) && parsed.mappings.size()==256,
+        "S10-M04 exact 256 unique adjacent mappings accepted");
+    auto extra=v.mappings.back();extra.mapping_id="m256";extra.start_pts=256;extra.end_pts=257;v.mappings.push_back(extra);v.media_end_pts=257;
+    reject(v,"S10-M04 mapping count limit rejected");
+    v=base;v.mappings[0].provenance="estimated";v.mappings[0].reason=std::string(256,'x');
+    Expect(ValidateRecordingSegmentV2(v,&error),"S10-M04 exact 256 byte estimated reason accepted");
+    v=unknown;v.media_end_pts=20;v.mappings.back().end_pts=20;
+    Expect(ValidateRecordingSegmentV2(v,&error) && ParseRecordingSegmentV2(SerializeRecordingSegmentV2(v),&parsed,&error) && parsed.media_end_pts==20 &&
+        !parsed.mappings.back().utc_start_ns,"S10-M02 bounded unknown mapping preserves media endpoint");
+    Expect(ParseRecordingSegmentV2(std::string(1024*1024-literal.size(),' ')+literal,&parsed,&error),"S10-M04 exact JSON size limit accepted");
+    v=base;v.order_sequence=0;reject(v,"S10-M04 nonpositive order rejected");
+    v=base;v.time_base_num=0;reject(v,"S10-M04 nonpositive timebase rejected");
+    v=base;v.segment_id="../invalid";reject(v,"S10-M04 invalid opaque ID rejected");
+    v=base;v.lifecycle=RecordingLifecycle::Writing;reject(v,"S10-M04 nonfinalized lifecycle rejected");
+    v=base;v.checksum_sha256="bad";reject(v,"S10-M04 invalid physical integrity rejected");
+    v=base;v.retention_class=RecordingRetentionClass::Unknown;reject(v,"S10-M04 V2 unknown retention rejected");
+    v=base;v.container=std::string(1024*1024+1,'x');
+    Expect(!ValidateRecordingSegmentV2(v,&error) && SerializeRecordingSegmentV2(v).empty(),
+        "S10-M04 oversized physical string rejected by validator and serializer");
+    const auto changed=[&](const std::string& from,const std::string& to){auto x=literal;const auto p=x.find(from);if(p==std::string::npos)throw std::runtime_error("fixture anchor missing");x.replace(p,from.size(),to);return x;};
+    const std::vector<std::pair<std::string,std::string>> invalid={
+      {"schema",changed("recording-segment.v2","recording-segment.v9")},
+      {"unknown-key","{\"extra\":1,"+literal.substr(1)},
+      {"duplicate-key","{\"schema\":\"x\","+literal.substr(1)},
+      {"integer-overflow",changed("9007199254740993","9223372036854775808")},
+      {"fraction",changed("\"order_sequence\":9007199254740993","\"order_sequence\":1.5")},
+      {"wrong-type",changed("\"pinned\":false","\"pinned\":0")},
+      {"timebase-overflow",changed("\"time_base_den\":1000000000","\"time_base_den\":2147483648")},
+      {"mapping-schema",changed("recording-utc-mapping.v1","recording-utc-mapping.v9")},
+      {"provenance",changed("source-capture","unsupported")},
+      {"unknown-retention",changed("\"retention_class\":\"continuous\"","\"retention_class\":\"unknown\"")},
+      {"mapping-key",changed("\"mapping_id\":\"a\"","\"unexpected\":0,\"mapping_id\":\"a\"")},
+      {"json-cap",std::string(1024*1024+1,' ')+literal}};
+    for(const auto& item:invalid){parsed.segment_id="sentinel";Expect(!ParseRecordingSegmentV2(item.second,&parsed,&error)&&parsed.segment_id=="sentinel",
+        "S10-M04 parser rejects and preserves output "+item.first);}
+    Expect(!ParseRecordingSegmentV2(literal,nullptr,&error),"S10-M04 parser null output rejected");
+}
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -213,6 +292,7 @@ int main(int argc, char** argv) {
                "새 segment ID 허용");
     }
 
+    V2Cases();
     std::cout << "[verify-v410-recording-contracts] pass=" << passes
               << " fail=" << failures << '\n';
     return failures == 0 ? 0 : 1;
