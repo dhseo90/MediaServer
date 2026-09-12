@@ -75,6 +75,8 @@ public:
     bool Checkpoint(std::string* error);
     bool FinalizeSegmentV2(const RecordingSegmentV2& segment, const std::string& media_path, std::string* error);
     std::optional<RecordingSegmentV2> FindSegmentV2ById(const std::string& id) const;
+    RecordingLifecycle SegmentLifecycleV2(const std::string& id) const;
+    bool CompleteDeletionV2(const RecordingTombstoneV2& tombstone,std::string* error) override;
     bool ValidateFinalizeRecoveryV2(const RecordingSegmentV2& segment, const std::string& media_path, std::string* error) const;
     bool RecoverFinalizedSegmentV2(const RecordingSegmentV2& segment, const std::string& media_path, bool* inserted, std::string* error);
     std::string catalog_mode() const;
@@ -138,6 +140,7 @@ public:
                                                   std::int64_t end_ms) const override;
 
 private:
+    RecordingLifecycle EffectiveLifecycleV2Locked(const std::string& id) const;
     bool OpenLocked(std::string* error);
     bool CanWriteLocked(std::string* error) const;
     bool CheckpointLocked(bool recover_only, std::string* error);
@@ -177,6 +180,8 @@ private:
     std::unordered_set<std::size_t> accepted_segment_state_replay_ordinals_;
     std::unordered_map<std::string, RecordingSegmentV1> segments_;
     std::unordered_map<std::string, RecordingSegmentV2> segments_v2_;
+    std::unordered_map<std::string, RecordingSegmentStateV2> states_v2_;
+    std::unordered_map<std::string, RecordingTombstoneV2> tombstones_v2_;
     std::unordered_map<std::string, RecordingOrderReservationV1> orders_v2_;
     std::unordered_map<std::string, std::string> media_relpaths_;
     std::unordered_map<std::string, std::uint64_t> hold_counts_;

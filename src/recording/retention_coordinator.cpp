@@ -26,20 +26,46 @@ std::uint64_t SaturatingAdd(std::uint64_t lhs, std::uint64_t rhs) {
 }
 
 bool IsEligible(const RetentionCandidate& candidate) {
-    return candidate.segment.lifecycle == RecordingLifecycle::Finalized &&
-           !candidate.segment.pinned && candidate.hold_count == 0 &&
+    return candidate.Lifecycle() == RecordingLifecycle::Finalized &&
+           !candidate.Pinned() && candidate.hold_count == 0 &&
            !candidate.media_path.empty();
 }
 
 bool IsClass(const RetentionCandidate& candidate, RecordingRetentionClass retention_class) {
-    return candidate.segment.retention_class == retention_class;
+    return candidate.Class() == retention_class;
 }
 
 bool OldestFirst(const RetentionCandidate* lhs, const RetentionCandidate* rhs) {
+    // Legacy 그룹 뒤 V2 store/발급 순서. 그룹 사이 실제 시간 순서를 주장하지 않는다.
+    if(bool(lhs->segment_v2)!=bool(rhs->segment_v2))return !lhs->segment_v2;
+    if(lhs->segment_v2) {
+        const auto& a=*lhs->segment_v2;const auto& b=*rhs->segment_v2;
+        if(a.store_id!=b.store_id)return a.store_id<b.store_id;
+        if(a.order_sequence!=b.order_sequence)return a.order_sequence<b.order_sequence;
+        return a.segment_id<b.segment_id;
+    }
     if (lhs->segment.end.utc_ms != rhs->segment.end.utc_ms) {
         return lhs->segment.end.utc_ms < rhs->segment.end.utc_ms;
     }
-    return lhs->segment.segment_id < rhs->segment.segment_id;
+    return lhs->Id() < rhs->Id();
+}
+
+std::optional<std::int64_t> ConservativeAgeEnd(const RetentionCandidate& candidate) {
+    if(!candidate.segment_v2)return candidate.segment.end.utc_ms;
+    const auto& segment=*candidate.segment_v2;
+    if(!segment.media_end_pts||segment.mappings.empty())return std::nullopt;
+    __int128 maximum=std::numeric_limits<std::int64_t>::min();
+    for(const auto& mapping:segment.mappings) {
+        if(!mapping.utc_start_ns||!mapping.utc_end_ns||!mapping.uncertainty_ns||!mapping.end_pts||
+           mapping.provenance=="unknown")return std::nullopt;
+        const __int128 end=static_cast<__int128>(*mapping.utc_end_ns)+*mapping.uncertainty_ns;
+        if(end>std::numeric_limits<std::int64_t>::max())return std::nullopt;
+        maximum=std::max(maximum,end);
+    }
+    // 음수에서도 수학적 ceil을 유지한다.
+    const __int128 millis=maximum/1000000+(maximum%1000000>0?1:0);
+    if(millis<std::numeric_limits<std::int64_t>::min()||millis>std::numeric_limits<std::int64_t>::max())return std::nullopt;
+    return static_cast<std::int64_t>(millis);
 }
 
 bool IsContainedMediaPath(const std::filesystem::path& media_root,
@@ -56,6 +82,35 @@ bool IsContainedMediaPath(const std::filesystem::path& media_root,
         if (component == "..") return false;
     }
     return true;
+}
+
+bool StrictV2Path(const std::filesystem::path& root,const std::filesystem::path& path,bool* absent=nullptr) {
+    if(absent)*absent=false;
+#if defined(__APPLE__) || defined(__linux__)
+    if(!root.is_absolute()||!path.is_absolute()||root!=root.lexically_normal()||path!=path.lexically_normal())return false;
+    const auto relative=path.lexically_relative(root);
+    if(relative.empty()||relative.is_absolute())return false;
+    for(const auto& part:relative)if(part==".."||part=="."||part.string().find('\0')!=std::string::npos)return false;
+    int parent=::open("/",O_RDONLY|O_DIRECTORY|O_CLOEXEC);
+    for(const auto& part:root.relative_path()) {
+        if(parent<0)return false;
+        const int next=::openat(parent,part.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
+        ::close(parent);parent=next;
+    }
+    if(parent<0)return false;
+    for(const auto& part:relative.parent_path()) {
+        if(part.empty()||part==".")continue;
+        const int next=::openat(parent,part.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
+        const int saved=errno;::close(parent);parent=next;
+        if(parent<0){if(saved==ENOENT&&absent){*absent=true;return true;}return false;}
+    }
+    struct stat info{};const int rc=::fstatat(parent,path.filename().c_str(),&info,AT_SYMLINK_NOFOLLOW);
+    const int saved_errno=errno;::close(parent);
+    if(rc<0&&saved_errno==ENOENT&&absent)*absent=true;
+    return rc==0?(S_ISREG(info.st_mode)&&info.st_nlink==1):saved_errno==ENOENT;
+#else
+    (void)root;(void)path;return false;
+#endif
 }
 
 #if defined(__APPLE__) || defined(__linux__)
@@ -347,15 +402,17 @@ RetentionPlan RetentionCoordinator::Plan(const RetentionSnapshot& snapshot,
     std::uint64_t event_bytes = 0;
 
     for (const auto& candidate : snapshot.candidates) {
-        if (candidate.segment.channel_id != request.channel_id ||
-            candidate.segment.lifecycle != RecordingLifecycle::Finalized) {
+        if (candidate.Channel() != request.channel_id ||
+            (candidate.Lifecycle() != RecordingLifecycle::Finalized &&
+             !(candidate.segment_v2&&(candidate.Lifecycle()==RecordingLifecycle::DeletionPending||
+                                     candidate.Lifecycle()==RecordingLifecycle::Corrupt)))) {
             continue;
         }
         if (IsClass(candidate, RecordingRetentionClass::Continuous)) {
-            continuous_bytes = SaturatingAdd(continuous_bytes, candidate.segment.size_bytes);
+            continuous_bytes = SaturatingAdd(continuous_bytes, candidate.Size());
             if (IsEligible(candidate)) continuous.push_back(&candidate);
         } else if (IsClass(candidate, RecordingRetentionClass::Event)) {
-            event_bytes = SaturatingAdd(event_bytes, candidate.segment.size_bytes);
+            event_bytes = SaturatingAdd(event_bytes, candidate.Size());
             if (IsEligible(candidate)) events.push_back(&candidate);
         }
     }
@@ -372,10 +429,10 @@ RetentionPlan RetentionCoordinator::Plan(const RetentionSnapshot& snapshot,
     const auto select = [&](const RetentionCandidate* candidate,
                             RetentionCleanupReason reason,
                             RetentionPlan* output) {
-        if (!selected.insert(candidate->segment.segment_id).second) return;
+        if (!selected.insert(candidate->Id()).second) return;
         output->deletions.push_back({*candidate, reason});
         output->projected_reclaimed_bytes = SaturatingAdd(
-            output->projected_reclaimed_bytes, candidate->segment.size_bytes);
+            output->projected_reclaimed_bytes, candidate->Size());
     };
 
     const auto select_aged = [&](const std::vector<const RetentionCandidate*>& candidates,
@@ -388,11 +445,12 @@ RetentionPlan RetentionCoordinator::Plan(const RetentionSnapshot& snapshot,
                 ? std::numeric_limits<std::int64_t>::min()
                 : request.now_ms - max_age_ms;
         for (const auto* candidate : candidates) {
-            if (candidate->segment.end.utc_ms > cutoff) continue;
+            const auto end=ConservativeAgeEnd(*candidate);
+            if(!end||*end>cutoff)continue;
             select(candidate, reason, &plan);
-            *bytes = candidate->segment.size_bytes > *bytes
+            *bytes = candidate->Size() > *bytes
                          ? 0
-                         : *bytes - candidate->segment.size_bytes;
+                         : *bytes - candidate->Size();
         }
     };
     select_aged(continuous, request.policy.continuous_max_age_ms,
@@ -406,11 +464,11 @@ RetentionPlan RetentionCoordinator::Plan(const RetentionSnapshot& snapshot,
                                      std::uint64_t* bytes) {
         for (const auto* candidate : candidates) {
             if (*bytes <= max_bytes) break;
-            if (selected.find(candidate->segment.segment_id) != selected.end()) continue;
+            if (selected.find(candidate->Id()) != selected.end()) continue;
             select(candidate, reason, &plan);
-            *bytes = candidate->segment.size_bytes > *bytes
+            *bytes = candidate->Size() > *bytes
                          ? 0
-                         : *bytes - candidate->segment.size_bytes;
+                         : *bytes - candidate->Size();
         }
     };
     select_capacity(continuous, request.policy.continuous_max_bytes,
@@ -429,9 +487,9 @@ RetentionPlan RetentionCoordinator::Plan(const RetentionSnapshot& snapshot,
         request.free_bytes, plan.projected_reclaimed_bytes);
     for (const auto* candidate : continuous) {
         if (projected_free >= required_free) break;
-        if (selected.find(candidate->segment.segment_id) != selected.end()) continue;
+        if (selected.find(candidate->Id()) != selected.end()) continue;
         select(candidate, RetentionCleanupReason::ReservedFreeSpace, &plan);
-        projected_free = SaturatingAdd(projected_free, candidate->segment.size_bytes);
+        projected_free = SaturatingAdd(projected_free, candidate->Size());
     }
     plan.reserve_satisfied = projected_free >= required_free;
     return plan;
@@ -444,7 +502,18 @@ RetentionApplyResult RetentionCoordinator::Apply(const RetentionPlan& plan,
     for (const auto& deletion : plan.deletions) {
         std::string error;
         const std::string reason = RetentionCleanupReasonName(deletion.reason);
-        if (!store_.RequestDeletion(deletion.candidate.segment.segment_id, reason, &error)) {
+        if(deletion.candidate.segment_v2) {
+            const auto snapshot=snapshot_provider_();
+            const auto found=std::find_if(snapshot.candidates.begin(),snapshot.candidates.end(),[&](const auto& candidate){
+                return candidate.Id()==deletion.candidate.Id() && candidate.segment_v2 &&
+                    candidate.media_path==deletion.candidate.media_path &&
+                    SerializeRecordingSegmentV2(*candidate.segment_v2)==SerializeRecordingSegmentV2(*deletion.candidate.segment_v2);
+            });
+            if(found==snapshot.candidates.end()||!StrictV2Path(options_.media_root,deletion.candidate.media_path)) {
+                result.ok=false;result.last_error="V2 등록 경로/파일 결박 거부";return result;
+            }
+        }
+        if (!store_.RequestDeletion(deletion.candidate.Id(), reason, &error)) {
             result.ok = false;
             result.last_error = error.empty() ? "삭제 요청 journal 기록 실패" : error;
             return result;
@@ -460,15 +529,22 @@ RetentionApplyResult RetentionCoordinator::Apply(const RetentionPlan& plan,
             result.last_error = error.empty() ? "녹화 media unlink 실패" : error;
             return result;
         }
+        if(deletion.candidate.segment_v2) {
+            RecordingTombstoneV2 tombstone;tombstone.tombstone_id=NextTombstoneId(deleted_at_ms);
+            tombstone.segment=*deletion.candidate.segment_v2;tombstone.deletion_reason=reason;tombstone.deleted_at_ms=deleted_at_ms;
+            if(!store_.CompleteDeletionV2(tombstone,&error)){result.ok=false;result.last_error=error;return result;}
+            result.reclaimed_bytes=SaturatingAdd(result.reclaimed_bytes,deletion.candidate.Size());++result.deleted_count;
+            continue;
+        }
         RecordingTombstoneV1 tombstone;
         tombstone.tombstone_id = NextTombstoneId(deleted_at_ms);
-        tombstone.segment_id = deletion.candidate.segment.segment_id;
+        tombstone.segment_id = deletion.candidate.Id();
         tombstone.source_id = deletion.candidate.segment.source_id;
-        tombstone.channel_id = deletion.candidate.segment.channel_id;
+        tombstone.channel_id = deletion.candidate.Channel();
         tombstone.recorded_range = {deletion.candidate.segment.start.utc_ms,
                                     deletion.candidate.segment.end.utc_ms};
         tombstone.checksum_sha256 = deletion.candidate.segment.checksum_sha256;
-        tombstone.retention_class = deletion.candidate.segment.retention_class;
+        tombstone.retention_class = deletion.candidate.Class();
         tombstone.deletion_reason = reason;
         tombstone.deleted_at_ms = deleted_at_ms;
         if (!store_.CompleteDeletion(tombstone, &error)) {
@@ -477,7 +553,7 @@ RetentionApplyResult RetentionCoordinator::Apply(const RetentionPlan& plan,
             return result;
         }
         result.reclaimed_bytes = SaturatingAdd(
-            result.reclaimed_bytes, deletion.candidate.segment.size_bytes);
+            result.reclaimed_bytes, deletion.candidate.Size());
         ++result.deleted_count;
     }
     return result;
@@ -486,8 +562,8 @@ RetentionApplyResult RetentionCoordinator::Apply(const RetentionPlan& plan,
 RetentionApplyResult RetentionCoordinator::RecoverPending(std::int64_t deleted_at_ms) {
     std::unordered_set<std::string> channels;
     for (const auto& candidate : snapshot_provider_().candidates) {
-        if (candidate.segment.lifecycle == RecordingLifecycle::DeletionPending) {
-            channels.insert(candidate.segment.channel_id);
+        if (candidate.Lifecycle() == RecordingLifecycle::DeletionPending) {
+            channels.insert(candidate.Channel());
         }
     }
     RetentionApplyResult aggregate;
@@ -508,30 +584,40 @@ RetentionApplyResult RetentionCoordinator::RecoverPendingForChannel(
     std::lock_guard apply_lock(apply_mu_);
     RetentionApplyResult result;
     for (const auto& candidate : snapshot_provider_().candidates) {
-        if (candidate.segment.lifecycle != RecordingLifecycle::DeletionPending ||
-            candidate.segment.channel_id != channel_id) {
+        if (candidate.Lifecycle() != RecordingLifecycle::DeletionPending ||
+            candidate.Channel() != channel_id) {
             continue;
         }
         std::string error;
+        bool v2_absent=false;
+        if(candidate.segment_v2&&!StrictV2Path(options_.media_root,candidate.media_path,&v2_absent)) {
+            result.ok=false;result.last_error="V2 pending 등록 경로 거부";return result;
+        }
         if (!IsContainedMediaPath(options_.media_root, candidate.media_path)) {
             result.ok = false;
             result.last_error = "pending 녹화 media 경로가 storage root 밖으로 변경됨";
             return result;
         }
-        if (!media_unlinker_ || !media_unlinker_(candidate.media_path, &error)) {
+        if (!v2_absent&&(!media_unlinker_ || !media_unlinker_(candidate.media_path, &error))) {
             result.ok = false;
             result.last_error = error.empty() ? "pending media unlink 재개 실패" : error;
             return result;
         }
+        if(candidate.segment_v2) {
+            RecordingTombstoneV2 tombstone;tombstone.tombstone_id=NextTombstoneId(deleted_at_ms);
+            tombstone.segment=*candidate.segment_v2;tombstone.deletion_reason=candidate.deletion_reason;tombstone.deleted_at_ms=deleted_at_ms;
+            if(!store_.CompleteDeletionV2(tombstone,&error)){result.ok=false;result.last_error=error;return result;}
+            ++result.deleted_count;continue;
+        }
         RecordingTombstoneV1 tombstone;
         tombstone.tombstone_id = NextTombstoneId(deleted_at_ms);
-        tombstone.segment_id = candidate.segment.segment_id;
+        tombstone.segment_id = candidate.Id();
         tombstone.source_id = candidate.segment.source_id;
-        tombstone.channel_id = candidate.segment.channel_id;
+        tombstone.channel_id = candidate.Channel();
         tombstone.recorded_range = {candidate.segment.start.utc_ms,
                                     candidate.segment.end.utc_ms};
         tombstone.checksum_sha256 = candidate.segment.checksum_sha256;
-        tombstone.retention_class = candidate.segment.retention_class;
+        tombstone.retention_class = candidate.Class();
         tombstone.deletion_reason = candidate.deletion_reason.empty()
                                         ? "manual-corrupt-cleanup"
                                         : candidate.deletion_reason;
@@ -575,8 +661,8 @@ void RetentionCoordinator::RunPeriodic(std::int64_t now_ms) {
     std::lock_guard admission_lock(admission_mu_);
     std::unordered_set<std::string> pending_channels;
     for (const auto& candidate : snapshot_provider_().candidates) {
-        if (candidate.segment.lifecycle == RecordingLifecycle::DeletionPending) {
-            pending_channels.insert(candidate.segment.channel_id);
+        if (candidate.Lifecycle() == RecordingLifecycle::DeletionPending) {
+            pending_channels.insert(candidate.Channel());
         }
     }
     for (const auto& channel_id : pending_channels) {
@@ -687,7 +773,7 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
         std::remove_if(
             admission_snapshot.candidates.begin(), admission_snapshot.candidates.end(),
             [](const RetentionCandidate& candidate) {
-                return candidate.segment.retention_class !=
+                return candidate.Class() !=
                        RecordingRetentionClass::Continuous;
             }),
         admission_snapshot.candidates.end());
@@ -792,7 +878,7 @@ RetentionAdmissionResult RetentionCoordinator::AdmitEventWrite(
         std::remove_if(admission_snapshot.candidates.begin(),
                        admission_snapshot.candidates.end(),
                        [](const RetentionCandidate& candidate) {
-                           return candidate.segment.retention_class !=
+                           return candidate.Class() !=
                                   RecordingRetentionClass::Event;
                        }),
         admission_snapshot.candidates.end());

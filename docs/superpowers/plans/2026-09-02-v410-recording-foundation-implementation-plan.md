@@ -1897,7 +1897,7 @@ catalog finalize에 전달한다. UTC 변화는 물리 분할 기준이 아니�
   timebase·provenance·uncertainty를 보존하며 파일 열기/재생 가능 판정은 하지 않는다.
   half-open 끝, 정수 overflow, 유효 0, unknown 끝, 서로 다른 후보를 독립 검증한다.
   `recording_location_resolution_smoke.cpp`와 격리 shell을 등록 후 예상 assertion RED→GREEN으로 실행한다.
-- [ ] 3B 보존·재생 보호: catalog의 hold·pin·삭제 대기·tombstone와 quota snapshot을 새 저장에 연결한다.
+- [x] 3B 보존·재생 보호: catalog의 hold·pin·삭제 대기·tombstone와 quota snapshot을 새 저장에 연결했다.
   용량 삭제는 영속 순서, 기간 만료는 별도 시간 정책이다. exact ID의 파일을 fd containment와
   삭제 mutex 보호 아래 해석하고 누락/손상/삭제를 재생 가능으로 반환하지 않는다.
 - [ ] 3C 이벤트·분석 연결: 3A 해석 결과를 소비한다. 같은 UTC인 다른 미디어 후보를 숨기거나
@@ -1910,9 +1910,64 @@ catalog finalize에 전달한다. UTC 변화는 물리 분할 기준이 아니�
 완화하지 않는다. 실제 서버 전환 전에 channel 의미를 대조하고 저장·입력·조회 검증을 함께 닫아야 한다.
 
 3A는 LOC14/0·기존 읽기166/0+cleanup·catalog246/0으로 한정 완료했다. 원출력과 최초 RED는
-중앙 기록에 보존한다. 파일 재생 활성화·후속3 전체 완료는 아니다. 나머지는 완료로 표시하지 않는다. 단일 기존 Astra/medium 담당자가
-확정된 3A 코드와 단기 검증을 맡고 메인은 문서·안전 계약·diff/증거 검토를 맡는다. 하위 위임 금지.
+중앙 기록에 보존한다. 3B는 아래 한정 판정으로 완료했으며 후속3 전체 완료는 아니다. 단일 기존 Astra/medium 담당자가
+확정된 코드와 단기 검증을 맡고 메인은 문서·안전 계약·diff/증거 검토를 맡는다. 하위 위임 금지.
 기존 미커밋 S09 수정은 보존한다. S11·장시간/UI 전체와 후속4 데이터 삭제는 자동 착수하지 않는다.
+
+#### 3B 구현 계약과 검증 순서
+
+사용자 승인: 3B 전체 마무리·관련 검증 후 커밋. 푸시·3C·3D는 이번에 실행하지 않는다.
+서브에이전트 개발 스킬을 적용하되 AGENTS 1.3에 따라 기존 Astra/medium 한 명을 재사용한다.
+메인은 안전 설계·문서·사전등록·최종 diff/증거 검토를 담당하고 담당자는 아래 코드와 focused를 맡는다.
+하위 생성 금지, 기존 S09 dirty 변경 보존, 기존 버전 원문 및 시간 매핑 임의 변경 금지.
+
+1. 불변 `RecordingSegmentV2`와 별도 pending/corrupt/deleted overlay를 둔다.
+   V2 상태/삭제는 명시 versioned mutation이며 잘못된 entity·전이·중복 충돌은 거부한다.
+   V2 tombstone은 불변 segment를 nested로 보존하고 삭제 사유·시각을 추가한다.
+   V1 `recorded_range`를 임의 생성하지 않는다. checkpoint는 이 상태 이력을 원형 보존한다.
+   SQL 상태 투영과 JSONL fallback이 동일하게 복원돼야 하며 finalize 재시도로 부활하지 않는다.
+2. `RetentionCandidate`는 새 segment를 별도 optional metadata로 소비하고 V1 시간으로 캐스팅하지 않는다.
+   V2 capacity/reserve 삭제는 store별 영속 order이며 서로 다른 store와 legacy 혼재는 결정적 별도 정렬이다.
+   다른 store 간 실제 녹화 순서가 확정됐다고 주장하지 않는다.
+   age는 모든 mapping의 끝과 UTC가 알려졌을 때 max(UTC end+uncertainty)를 overflow 없이 ms 상향 변환한다.
+   unknown/overflow이면 age로 삭제하지 않으며 capacity 대상 여부는 독립적으로 판단한다.
+   pending/corrupt byte는 사용량에 포함하고 자동 삭제 후보에서는 제외한다. corrupt의 명시 수동 정리만 허용한다.
+3. catalog의 hold·pin·삭제 대기 판정은 같은 mutex를 사용한다. pin/hold 중 삭제·손상 전이를 거부한다.
+   pending 내구 기록 → 등록된 파일 unlink → V2 tombstone 내구 기록 순서다.
+   중단 뒤 pending만 재개하며 아직 삭제되지 않은 데이터가 삭제 완료로 보이면 실패다.
+   V2 완료 API도 등록된 파일의 안전한 부재를 확인하며 파일 존재/경로 불명확이면 완료를 거부한다.
+   등록된 lexical 경로를 지키고 symlink/hardlink로 다른 파일을 지목하면 삭제를 거부한다.
+4. continuous V2 재생은 channel/ID 충돌 검증 후 hold를 취득하고 root부터 fd로 안전하게 파일을 연다.
+   `InspectRecordingPhysicalMediaFd`는 borrowed fd를 CLOEXEC dup하여 같은 inode의 size/SHA/demux를 검사한다.
+   호출자의 fd/offset은 보존하고 검사 중 파일 변화는 거부한다. 기존 V1 검사 정책은 그대로다.
+   UTC unknown만으로 정상 파일을 막지 않지만 provenance가 아직 연결되지 않은 V2 event는 거부한다.
+   GStreamer 없는 build는 새 재생을 지원한 척하지 않고 Unavailable이다.
+   동일 권한의 비협력 외부 writer에 대한 완전한 원자성이나 codec 전체 decode는 보장하지 않는다.
+
+소유 파일: recording_contracts/journal/catalog/retention_coordinator/media_inspector의 h/cpp,
+recording_store_port.h, recording_read_service.cpp, 신규 recording_retention_v2_smoke.cpp와
+verify_recording_retention_v2.sh. 신규 helper는 역할·소유를 확인한 뒤 추가하며 무관 모듈은 수정하지 않는다.
+
+| 작업 사이 계약 | 확인 결과 |
+| --- | --- |
+| 상태 원장 → catalog/recovery | immutable payload와 effective lifecycle 분리, 부활 거부 필요 |
+| catalog snapshot → retention | V2 metadata를 V1로 변환하지 않고 byte/order/age를 개별 소비 |
+| retention → 재생 | 동일 ID hold/pending 경계로 삭제·재생 경쟁 제어 |
+| inspector → read service | 검사한 동일 fd를 반환, 다른 경로 재open 금지 |
+| 3B → 3C/3D | event provenance/숫자 channel/default 전환은 이번 범위 밖으로 유지 |
+
+진행: B01~23 사전등록 → 컴파일 가능한 stub의 예상 assertion RED → 구현/GREEN →
+메인 실제 diff 검토 → 관련 catalog/retention/read/LOC/writer/finalize 단기 회귀·build →
+전수 결과/정리 기록·문서 검증 → 3B만 커밋. 기존 유효 증거는 무관 변경으로 재실행하지 않는다.
+
+3B 결과: focused GST-on22/0·off2/0, catalog246/0·retention56/0·read167/0·LOC14/0·
+writer37/0·finalize55/0 및 전체 제품 build exit0. 메인 diff 검토와 전수 기록/임시 정리를 마쳤다.
+중간 삭제 경로 실패와 수정 이력은 중앙 기록에 보존했다. B21은 두 검사 사이 파일 변경 차단을
+실행했으며 검사 진행 중 비협력 쓰기 경쟁의 결정적 실증은 아니다. 전후 fstat 구현은 직접 검토했다.
+기존 S09 dirty를 포함한 작업트리 검증이며 V1·공개 schema·서버 기본 구성은 변경하지 않았다.
+3C는 이벤트/분석의 위치 후보·provenance 소비, 3D는 숫자 channel 호환과 기본 writer 연결이 남았다.
+이번 커밋에 3C·3D·V1 삭제·S11/장시간/UI 전체·푸시를 포함하지 않는다.
+
 
 ### S10 저장소 활성화 선행 1번 — 구현·한정 검증 완료
 

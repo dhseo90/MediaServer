@@ -509,6 +509,63 @@ std::string SerializeRecordingSegmentV2(const RecordingSegmentV2& v) {
     return json.size() <= kSegmentV2JsonLimit ? json : std::string{};
 }
 
+namespace {
+bool V2DeletionReason(const std::string& reason) {
+    return reason=="continuous-capacity" || reason=="continuous-age" ||
+           reason=="event-capacity" || reason=="event-age" ||
+           reason=="reserved-free-space" || reason=="manual-corrupt-cleanup";
+}
+bool V2CorruptionReason(const std::string& reason) {
+    return reason=="missing-media" || reason=="checksum-mismatch" ||
+           reason=="container-invalid" || reason=="derived-media-missing";
+}
+}
+
+std::string SerializeRecordingTombstoneV2(const RecordingTombstoneV2& v) {
+    if (v.schema!="media-server.recording-tombstone.v2" ||
+        !ValidateOpaqueId(v.tombstone_id,nullptr) || !V2DeletionReason(v.deletion_reason) ||
+        v.deleted_at_ms<0) return {};
+    const auto segment=SerializeRecordingSegmentV2(v.segment);
+    if (segment.empty()) return {};
+    const auto json="{\"schema\":"+Quote(v.schema)+",\"tombstone_id\":"+Quote(v.tombstone_id)+
+        ",\"segment\":"+segment+",\"deletion_reason\":"+Quote(v.deletion_reason)+
+        ",\"deleted_at_ms\":"+std::to_string(v.deleted_at_ms)+"}";
+    return json.size()<=kSegmentV2JsonLimit ? json : std::string{};
+}
+
+bool ParseRecordingTombstoneV2(const std::string& json,RecordingTombstoneV2* out,std::string* error) {
+    if (!out || json.size()>kSegmentV2JsonLimit) return Fail(error,"V2 tombstone 입력 오류");
+    RecordingTombstoneV2 v; Document d; std::string segment;
+    if (!ParseDocument(json,&d,error) || d.members.size()!=5 ||
+        !RequiredString(d,"schema",&v.schema,error) ||
+        !RequiredString(d,"tombstone_id",&v.tombstone_id,error) ||
+        !RequiredObject(d,"segment",&segment,error) ||
+        !RequiredString(d,"deletion_reason",&v.deletion_reason,error) ||
+        !RequiredInteger(d,"deleted_at_ms",&v.deleted_at_ms,error) ||
+        !ParseRecordingSegmentV2(segment,&v.segment,error) ||
+        SerializeRecordingTombstoneV2(v).empty()) return Fail(error,"V2 tombstone 형식 오류");
+    *out=std::move(v); ClearError(error); return true;
+}
+
+std::string SerializeRecordingSegmentStateV2(const RecordingSegmentStateV2& v) {
+    if (v.schema!="media-server.recording-segment-state.v2" || !ValidateOpaqueId(v.segment_id,nullptr) ||
+        !((v.lifecycle==RecordingLifecycle::DeletionPending && V2DeletionReason(v.reason)) ||
+          (v.lifecycle==RecordingLifecycle::Corrupt && V2CorruptionReason(v.reason)))) return {};
+    return "{\"schema\":"+Quote(v.schema)+",\"segment_id\":"+Quote(v.segment_id)+
+        ",\"lifecycle\":"+Quote(LifecycleString(v.lifecycle))+",\"reason\":"+Quote(v.reason)+"}";
+}
+
+bool ParseRecordingSegmentStateV2(const std::string& json,RecordingSegmentStateV2* out,std::string* error) {
+    if (!out || json.size()>kSegmentV2JsonLimit) return Fail(error,"V2 state 입력 오류");
+    RecordingSegmentStateV2 v; Document d; std::string lifecycle;
+    if (!ParseDocument(json,&d,error) || d.members.size()!=4 ||
+        !RequiredString(d,"schema",&v.schema,error) || !RequiredString(d,"segment_id",&v.segment_id,error) ||
+        !RequiredString(d,"lifecycle",&lifecycle,error) || !RequiredString(d,"reason",&v.reason,error)) return false;
+    v.lifecycle=ParseLifecycle(lifecycle);
+    if (SerializeRecordingSegmentStateV2(v).empty()) return Fail(error,"V2 state 형식 오류");
+    *out=std::move(v); ClearError(error); return true;
+}
+
 bool ValidateRecordingSegmentV2(const RecordingSegmentV2& v, std::string* error) {
     if (v.schema != "media-server.recording-segment.v2") return Fail(error, "V2 segment schema 오류");
     if (v.retention_class!=RecordingRetentionClass::Continuous && v.retention_class!=RecordingRetentionClass::Event)

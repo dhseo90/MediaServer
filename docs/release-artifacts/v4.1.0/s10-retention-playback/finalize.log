@@ -1,0 +1,58 @@
+[pass] ready partial recovers original segment ID
+[pass] FR02 interrupted publish converges: final only
+[pass] FR02 repeated recovery no duplicate mutation
+[pass] FR02 interrupted publish converges: owned two links
+[pass] FR02 repeated recovery no duplicate mutation
+[pass] FR03 catalog commit before cleanup does not append or replace
+[pass] FR04 invalid version preserves original without publication
+[pass] FR04 invalid duplicate preserves original without publication
+[pass] FR04 invalid nonce preserves original without publication
+[pass] FR04 invalid escape preserves original without publication
+[pass] FR04 invalid identity preserves original without publication
+[pass] FR05 symlink ticket rejected and external target untouched
+[pass] FR05 foreign hardlink rejected without unlink
+[pass] FR05 actual unreadable ticket preserves media
+[pass] FR06 corrupt unknown isolated in place without finalized mutation
+[pass] FR06 repeated corruption recovery converges without resurrection
+[pass] FR07 pending takes precedence over ready publication
+[pass] FR07 deleted takes precedence over ready publication
+[pass] FR07 conflict takes precedence over ready publication
+[pass] FR08 orphan not inferred and legacy owned partial cleaned
+[boundary-summary] pass=19 fail=0
+[pass] S10-M08 catalog startup preserves V2 ready and cleanup marker partial
+[pass] S10-M08 V2 ready recovers exact metadata partial
+[pass] S10-M08 V2 journal restart and repeated recovery partial
+[pass] S10-M08 catalog startup preserves V2 ready and cleanup marker two-links
+[pass] S10-M08 V2 ready recovers exact metadata two-links
+[pass] S10-M08 V2 journal restart and repeated recovery two-links
+[pass] S10-M08 catalog startup preserves V2 ready and cleanup marker final
+[pass] S10-M08 V2 ready recovers exact metadata final
+[pass] S10-M08 V2 journal restart and repeated recovery final
+[pass] S10-M08 catalog startup preserves V2 ready and cleanup marker committed
+[pass] S10-M08 V2 ready recovers exact metadata committed
+[pass] S10-M08 V2 journal restart and repeated recovery committed
+[pass] S10-M08 V2 ready writer preserves versioned envelope
+[pass] S10-M09 V2 ready refusal preserves originals missing-order
+[pass] S10-M09 V2 ready refusal preserves originals wrong-tuple
+[pass] S10-M09 V2 ready refusal preserves originals optout
+[pass] S10-M09 V2 ready refusal preserves originals deleted
+[pass] S10-M09 V2 ready refusal preserves originals mapping
+[pass] S10-M09 V2 ready refusal preserves originals path
+[pass] S10-M09 V2 ready refusal preserves originals version
+[pass] S10-M09 V2 ready refusal preserves originals event
+[pass] S10-M09 V2 ready refusal preserves originals corrupt-pair
+[pass] S10-M09 V2 ready refusal preserves originals foreign-link
+[pass] S10-M09 V2 ready writer rejects mixed-id
+[pass] S10-M09 V2 ready writer rejects mixed-size
+[pass] S10-M09 V2 ready writer rejects mixed-source
+[pass] S10-M09 V2 ready writer rejects mixed-time
+[pass] S10-M09 V2 ready writer rejects event
+[pass] S10-M09 V2 ready writer rejects oversize
+[pass] S10-M09 V2 direct publish requires catalog
+[pass] S10-M09 V1 inspector still rejects two links
+[pass] S10-M09 V2 direct clear preserves uncommitted ticket and marker
+[pass] S10-WR09 active ready validates publishes commits and clears exact ticket
+[pass] S10-WR09 active ready refusal preserves originals changed-ticket
+[pass] S10-WR09 active ready refusal preserves originals missing-order
+[v2-summary] pass=35 fail=0
+[cleanup] path=/private/tmp/media-server-finalize-5gZkeh bytes=4313777 removed=true

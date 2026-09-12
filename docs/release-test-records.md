@@ -1,5 +1,770 @@
 # Release Test Records
 
+## S10 후속 3B 보존·재생 보호 — 실행 전 정의
+
+독자는 구현·검증 담당자이며 정책은 AGENTS, 계약은 기존 S10 명세/계획을 따른다.
+사용자 승인 범위는 3B 구현·단기 검증·마지막 커밋이다. 푸시·3C·3D·S11은 제외한다.
+명령: `bash scripts/internal/verify_recording_retention_v2.sh`.
+GST-on의 작은 실제 MP4와 GST-off 별도 빌드/실행을 격리한다. 포트·외부 서비스·운영 데이터 접근 없음.
+신규 shell 소유 임시root만 삭제하며 원출력/전수 결과/elapsed/cleanup을 보존한다.
+새 API의 컴파일 가능한 거부 stub에서 양성 assertion의 예상 RED를 확인한 뒤 구현한다.
+첫 GST-on 예상 RED: B01·B03~16·B20~21 총17개. B02/B17~19/B23 5개는 stub에서도 PASS 예상이다.
+GST-on exit1 뒤 GST-off B22/B23은 미실행으로 남기며 별도 GREEN 결과로 확인한다.
+healthy MP4의 기존 inspector 준비 검사는 setup 실패(exit2)로 분리하고 기능 RED로 처리하지 않는다.
+환경/빌드/fixture 준비 실패는 예상 RED가 아니다. 각 stub의 exact 실패 행은 실행 전에 기록한다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 저장 lifecycle·보존·재생 보호 변경 | B01~23 | 이번 3B 개발 |
+| 30분 | 미진행 | 개발 단계·전체 코드 미고정 | S11 별도 판정 | 이번 실행 없음 |
+| 120분 | 진행 대상 | 녹화 파일 재생·삭제/복구 수명 변경 | read service/catalog/retention B11~21 | 필요성 판정만, S11 실행 범위 별도 확정 |
+| UI 풀테스트 | 미진행 | 기존 route/UI 미변경, 서버 전환 전 | 3B 내부 연결 | 이번 실행 없음 |
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-B01 UTC 조작 없는 삭제 표식 | 격리 저장·미디어 focused | V2 불변 segment의 직렬화·파싱 원문 일치, V1 UTC range 혼입 없음 | v4.1.0 |
+| S10-B02 상태 원장 엄격성 | 격리 저장·미디어 focused | 잘못된 payload/entity/충돌 중복 거부 및 원문 보존 | v4.1.0 |
+| S10-B03 불변 metadata와 상태 분리 | 격리 저장·미디어 focused | pending/corrupt/deleted 전이 후 원본 finalized payload 불변 | v4.1.0 |
+| S10-B04 부활 차단 | 격리 저장·미디어 focused | 잘못된 전이·finalize 재시도로 정상 상태 복원 금지 | v4.1.0 |
+| S10-B05 체크포인트·재시작 | 격리 저장·미디어 focused | 등록 파일이 남아 있으면 완료 거부, unlink 후 overlay/tombstone·SQLite/JSONL 동일 상태 복원 | v4.1.0 |
+| S10-B06 영속 용량 삭제 순서 | 격리 저장·미디어 focused | UTC 후퇴에도 order_sequence 순 삭제 | v4.1.0 |
+| S10-B07 혼재 순서 명시 | 격리 저장·미디어 focused | legacy/여러 store는 결정적 별도 순서, 실제 시간 순서 주장 금지 | v4.1.0 |
+| S10-B08 보수적 기간 만료 | 격리 저장·미디어 focused | 모든 known 매핑의 끝+uncertainty 최댓값을 ms 상향 변환 | v4.1.0 |
+| S10-B09 기간 미확정 분리 | 격리 저장·미디어 focused | unknown/overflow이면 age 불가·capacity 가능 | v4.1.0 |
+| S10-B10 등급·reserve 분리 | 격리 저장·미디어 focused | continuous/event quota와 disk reserve 경계 유지 | v4.1.0 |
+| S10-B11 pin·hold 보호 | 격리 저장·미디어 focused | 보호된 ID 삭제/손상 전이 거부 | v4.1.0 |
+| S10-B12 상태별 용량 계수 | 격리 저장·미디어 focused | pending/corrupt byte 집계 유지·자동 삭제 제외 | v4.1.0 |
+| S10-B13 내구 삭제 순서 | 격리 저장·미디어 focused | pending fsync 후 unlink, unlink 후 tombstone | v4.1.0 |
+| S10-B14 중단 삭제 복구 | 격리 저장·미디어 focused | pending 재시작·missing file 재시도 후 부활 없음 | v4.1.0 |
+| S10-B15 손상 수동 정리 | 격리 저장·미디어 focused | corrupt는 explicit manual-corrupt-cleanup만 허용 | v4.1.0 |
+| S10-B16 UTC unknown 파일 재생 | 격리 저장·미디어 focused | 정상 continuous 파일 fd 제공 및 실제 hold 확인 | v4.1.0 |
+| S10-B17 재생 identity 경계 | 격리 저장·미디어 focused | wrong channel/event provenance 부재/fallback 충돌 거부 | v4.1.0 |
+| S10-B18 경로·누락 거부 | 격리 저장·미디어 focused | missing/symlink/hardlink 재생 거부와 hold 반환; 삭제 시 root 안 symlink target도 보존 | v4.1.0 |
+| S10-B19 동일 크기 손상 검출 | 격리 저장·미디어 focused | SHA 불일치·컨테이너 오류 거부와 hold 반환 | v4.1.0 |
+| S10-B20 삭제·재생 경쟁 | 격리 저장·미디어 focused | 한쪽만 안전하게 성공, fd 종료 뒤 hold 반환 | v4.1.0 |
+| S10-B21 borrowed fd 검사 | 격리 저장·미디어 focused | caller 소유권 유지·검사 전후 파일 변화 감지 | v4.1.0 |
+| S10-B22 GST 미지원 경계 | 격리 저장·미디어 focused | GStreamer 없는 build는 새 재생 Unavailable | v4.1.0 |
+| S10-B23 기존 저장 port 경계 | 격리 저장·미디어 focused | V2 삭제 미지원 port는 명시 거부 | v4.1.0 |
+
+미실행: 전체 제품 build 및 영향 회귀는 구현 고정 뒤 아래 기준으로 실행한다.
+기존 catalog·retention·read-model·위치 해석·managed writer·finalize recovery를 변경 영향 회귀로 대조한다.
+실행할 정확한 명령은 `./server.sh verify-v410-recording-catalog`,
+`./server.sh verify-v410-recording-retention`, `./server.sh verify-v410-recording-timeline --read-model`,
+`bash scripts/internal/verify_recording_location_resolution.sh`,
+`bash scripts/internal/verify_recording_managed_writer.sh`,
+`./server.sh verify-v410-recording-finalize-recovery`, `./server.sh build`,
+`git diff --check`, `./server.sh verify-docs-links`다.
+30분/UI/120분은 이번에 실행하지 않으며 단기 PASS로 대체하지 않는다.
+token start/end/consumed는 전용 집계값 미제공으로 미집계, elapsed/source는 실행 후 기록.
+현재 상태: 아래 실제 결과와 한정 판정을 따른다.
+첫 실행: 담당자 session86751 exit1, GST-on pass5/fail17로 사전 예상 assertion과 일치했다.
+GST-off는 이 실행에서 미실행이며 제품 PASS가 아니다. 원출력·정리 전수는 아래에 이관했다.
+
+
+### 3B 실행 결과와 한정 판정
+
+3B 내부 보존·재생 보호 구현과 단기 검증을 완료했다. 푸시·3C·3D·S11은 수행하지 않았다.
+contracts의 V2 상태/삭제 표식, journal versioned mutation, catalog overlay·hold·SQL 투영,
+retention의 영속 순서·보수적 만료·중단 삭제 복구, inspector/read service의 동일 FD 재생 검사를 연결했다.
+시간 매핑·세그먼트 ID 원문, 기존 V1 serializer·공개 응답·서버 기본 writer는 변경하지 않았다.
+메인이 실제 diff와 아래 전수 출력, 별도 상태 전이·동일 잠금의 hold/삭제 보호·부재 확인·FD 결박을 직접 검토했다.
+Superpowers의 예상 RED→구현→검증 절차를 적용하고 기존 단일 담당자를 재사용했다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 3B 마무리 | 완료 | 내부 구현·관련 단기 검증 PASS | 아래 명령/개별 결과 |
+| 2 | 이후 커밋 | 검증 후 수행 대상 | 3B 소유 파일만 선택, 기존 S09 dirty 제외 | 커밋 직전 staged diff 대조 |
+| 3 | 후속 이슈 제시 | 확인 | 3C 이벤트·분석, 3D 서버 구성 전환 순서 | 기존 상세 계획 후속3 절 |
+
+| 실행 | 명령 | exit | 실제 결과 | 시간 |
+| --- | --- | --- | --- | --- |
+| 86751 | `bash scripts/internal/verify_recording_retention_v2.sh` | 1 | 예상 RED GST-on 5/17; off 미실행 | 5초 |
+| 53274 | 동일 focused | 1 | GST-on 19/3; off 미실행 | 4초 |
+| 93811 | 동일 focused + 오류 진단 | 1 | GST-on 19/3; off 미실행 | 4초 |
+| 36939 | 동일 focused, 세부 oracle 보강 | 0 | GST-on 22/0 + off 2/0 | 8초 |
+| 96057 | 동일 focused, 최종 세부 oracle | 0 | GST-on 22/0 + off 2/0 | 8초 |
+| 32318 | `./server.sh verify-v410-recording-catalog` | 0 | 246/0 | 13초 이하(호출~종료 관측) |
+| 28177 | `./server.sh verify-v410-recording-retention` | 0 | 56/0 | 20초 이하(호출~종료 관측) |
+| 39415 | `./server.sh verify-v410-recording-timeline --read-model` | 0 | 167/0 | 9초 이하(호출~종료 관측) |
+| 54171 | `bash scripts/internal/verify_recording_location_resolution.sh` | 0 | 14/0 | 3초 |
+| 96025 | `bash scripts/internal/verify_recording_managed_writer.sh` | 0 | 37/0 | 5초 |
+| 3207 | `./server.sh verify-v410-recording-finalize-recovery` | 0 | 55/0 | 14초 이하(호출~종료 관측) |
+| 27953 | `./server.sh build` | 0 | 제품 실행 파일 빌드 성공 | 32초 이하(호출~종료 관측) |
+
+최초 실패는 사전등록한 stub assertion RED였다. 중간 B05/B13/B14의 실제 실패는
+빈 parent component까지 `openat("")`한 경로 처리 오류다. 오류 진단 뒤 빈 component를 건너뛰고
+존재하는 root 아래 사라진 subdir는 안전한 파일 부재로 처리했다. root 부재·symlink·권한 불명확은 거부한다.
+terminal tombstone 뒤 늦은 pending 거부, 멱등 성공 시 stale error 제거도 최종 검증에 포함했다.
+timeout 증가·검사 삭제·판정 완화는 없었다. 최종 코드 고정 후 영향 회귀는 모두 첫 실행 PASS였다.
+
+원출력은 [focused](release-artifacts/v4.1.0/s10-retention-playback/focused.log),
+[catalog](release-artifacts/v4.1.0/s10-retention-playback/catalog.log),
+[retention](release-artifacts/v4.1.0/s10-retention-playback/retention.log),
+[read-model](release-artifacts/v4.1.0/s10-retention-playback/read.log),
+[location](release-artifacts/v4.1.0/s10-retention-playback/location.log),
+[writer](release-artifacts/v4.1.0/s10-retention-playback/writer.log),
+[finalize](release-artifacts/v4.1.0/s10-retention-playback/finalize.log),
+[build](release-artifacts/v4.1.0/s10-retention-playback/build.log)에 보존했다.
+[SHA-256](release-artifacts/v4.1.0/s10-retention-playback/source.sha256)은 변경 코드/테스트14개·회귀 fixture6개·빌드 실행파일을 고정한다.
+원출력의 줄 끝 공백만 정규화했다. 자체 생성 fixture·정상화된 테스트 경로만 포함하고 비밀번호/외부 URL/세션 원문은 없다.
+환경: macOS26.6.2(25G83), arm64, Apple clang21.0.0, GStreamer1.28.1, SQLite3.51.0, OpenSSL3.6.2.
+기존 S09 dirty 코드·read-model fixture가 함께 있는 작업트리 기준이다. clean commit 독립 재현이나 S09 변경 승인으로 확대하지 않는다.
+focused/location/writer elapsed는 bash SECONDS, 그 외는 메인 호출 시작~종료 확인의 관측 상한이며 정밀 실행시간은 아니다.
+안정화 token start/end/consumed는 전용 집계값 미제공으로 미집계다.
+
+| 항목 | 실행 상태 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- |
+| 30분·120분·UI 풀테스트·S11 | 미실행 | 3B 단기 PASS가 버전 최종 PASS를 대체하지 않음 |
+| HTTP/Auth·외부 실기기/서비스 | 미실행 | 기존 공개 route/인증 변경 없음; 실제 서버 기본 연결은 3D |
+| Linux | 미실행 | 소스의 플랫폼 분기 존재가 실제 OS 검증은 아님 |
+| B21 검사 진행 중 비협력 쓰기 경쟁 | 미실증 | 두 검사 사이 실제 byte 변경 차단과 FD 소유/offset 보존을 실행; 검사 전후 fstat 경계는 코드 검토 |
+| 전체 codec decode·외부 writer에 대한 절대 원자성 | 비범위 | 같은 열린 inode의 size/SHA/demux 검사를 전체 decode로 과장하지 않음 |
+| V2 event 재생·이벤트/분석 소비자 | 3C 미완료 | provenance 미연결 event는 fail-closed |
+| 숫자 channel 호환·서버 default 전환 | 3D 미완료 | 현재 저장 계약을 임의 완화하지 않음 |
+| 기존 V1 데이터/코드 삭제 | 미실행 | 이번 단계는 기존 경로 유지, 후속 정리 단계에서 별도 수행 |
+
+#### 3B focused 개별 결과와 실패 이력
+
+각 행은 최종 세부 oracle 기준이다. 이전 실행은 동일 제목이라도 보강 전 범위이며 최종 범위 PASS로 소급하지 않는다.
+B23은 GST-on/off 각각 별도 실행한다. 첫 세 실행의 GST-off는 미실행이므로 결과 행을 꾸미지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| B01 V2 tombstone preserves immutable segment without legacy UTC range | 최종 focused GST-on; exit0 | PASS | 86751 FAIL → 53274 PASS → 93811 PASS → 36939 PASS → 96057 PASS |
+| B02 V2 state records reject malformed payload entity and duplicate conflicts | 최종 focused GST-on; exit0 | PASS | 86751 PASS → 53274 PASS → 93811 PASS → 36939 PASS → 96057 PASS |
+| B03 V2 pending corrupt and deleted overlays never mutate finalized payload | 최종 focused GST-on; exit0 | PASS | 86751 FAIL → 53274 PASS → 93811 PASS → 36939 PASS → 96057 PASS |
+| B04 V2 invalid transitions and finalize retries cannot resurrect state | 최종 focused GST-on; exit0 | PASS | 86751 FAIL → 53274 PASS → 93811 PASS → 36939 PASS → 96057 PASS |
+| B05 V2 checkpoint and restart preserve overlay tombstone and SQLite parity | 최종 focused GST-on; exit0 | PASS | 86751 FAIL → 53274 FAIL → 93811 FAIL → 36939 PASS → 96057 PASS |
+| B06 V2 capacity deletion follows durable order despite reversed UTC | 최종 focused GST-on; exit0 | PASS | 86751 FAIL → 53274 PASS → 93811 PASS → 36939 PASS → 96057 PASS |
+| B07 mixed legacy and multiple stores use deterministic nonchronological ordering | 최종 focused GST-on; exit0 | PASS | 86751 FAIL → 53274 PASS → 93811 PASS → 36939 PASS → 96057 PASS |
+| B08 V2 age expiry uses all known mapping ends plus uncertainty rounded upward | 최종 focused GST-on; exit0 | PASS | 86751 FAIL → 53274 PASS → 93811 PASS → 36939 PASS → 96057 PASS |
+| B09 V2 unknown or overflowing age remains capacity eligible | 최종 focused GST-on; exit0 | PASS | 86751 FAIL → 53274 PASS → 93811 PASS → 36939 PASS → 96057 PASS |
+| B10 V2 class quotas and disk reserve remain separated | 최종 focused GST-on; exit0 | PASS | 86751 FAIL → 53274 PASS → 93811 PASS → 36939 PASS → 96057 PASS |
+| B11 V2 pin and hold protect deletion and corruption | 최종 focused GST-on; exit0 | PASS | 86751 FAIL → 53274 PASS → 93811 PASS → 36939 PASS → 96057 PASS |
+| B12 V2 pending and corrupt bytes remain charged but are not automatic victims | 최종 focused GST-on; exit0 | PASS | 86751 FAIL → 53274 PASS → 93811 PASS → 36939 PASS → 96057 PASS |
+| B13 V2 apply persists pending before unlink and tombstone after unlink | 최종 focused GST-on; exit0 | PASS | 86751 FAIL → 53274 FAIL → 93811 FAIL → 36939 PASS → 96057 PASS |
+| B14 V2 interrupted deletion recovers without resurrection | 최종 focused GST-on; exit0 | PASS | 86751 FAIL → 53274 FAIL → 93811 FAIL → 36939 PASS → 96057 PASS |
+| B15 V2 corrupt cleanup requires explicit manual reason | 최종 focused GST-on; exit0 | PASS | 86751 FAIL → 53274 PASS → 93811 PASS → 36939 PASS → 96057 PASS |
+| B16 V2 continuous media with unknown UTC resolves a healthy held fd | 최종 focused GST-on; exit0 | PASS | 86751 FAIL → 53274 PASS → 93811 PASS → 36939 PASS → 96057 PASS |
+| B17 V2 wrong channel event and fallback collision cannot expose media | 최종 focused GST-on; exit0 | PASS | 86751 PASS → 53274 PASS → 93811 PASS → 36939 PASS → 96057 PASS |
+| B18 V2 missing symlink and multiple hardlink media reject without hold leak | 최종 focused GST-on; exit0 | PASS | 86751 PASS → 53274 PASS → 93811 PASS → 36939 PASS → 96057 PASS |
+| B19 V2 same size corruption and invalid container reject without hold leak | 최종 focused GST-on; exit0 | PASS | 86751 PASS → 53274 PASS → 93811 PASS → 36939 PASS → 96057 PASS |
+| B20 V2 deletion and playback hold races have one safe winner | 최종 focused GST-on; exit0 | PASS | 86751 FAIL → 53274 PASS → 93811 PASS → 36939 PASS → 96057 PASS |
+| B21 borrowed fd inspection preserves caller ownership and detects file changes | 최종 focused GST-on; exit0 | PASS | 86751 FAIL → 53274 PASS → 93811 PASS → 36939 PASS → 96057 PASS |
+| B23 legacy store port refuses unsupported V2 deletion | 최종 focused GST-on; exit0 | PASS | 86751 PASS → 53274 PASS → 93811 PASS → 36939 PASS → 96057 PASS |
+| B22 V2 playback is unavailable without GStreamer | 최종 focused GST-off; exit0 | PASS | 86751 미실행 → 53274 미실행 → 93811 미실행 → 36939 PASS → 96057 PASS |
+| B23 legacy store port refuses unsupported V2 deletion | 최종 focused GST-off; exit0 | PASS | 86751 미실행 → 53274 미실행 → 93811 미실행 → 36939 PASS → 96057 PASS |
+
+#### 3B 영향 회귀 개별 전수 결과
+
+기존 등록 항목의 실제 원출력 순서다. read의 1~83행은 JSONL, 84~166행은 SQLite, 167행은 정리 확인이다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| catalog-1 journal open: | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 1번 결과 | PASS |
+| catalog-2 fallback catalog open: | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 2번 결과 | PASS |
+| catalog-3 SQLite off mode 표시 | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 3번 결과 | PASS |
+| catalog-4 segment finalize journal+projection: | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 4번 결과 | PASS |
+| catalog-5 fallback range query | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 5번 결과 | PASS |
+| catalog-6 event link FK 위반 거부 | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 6번 결과 | PASS |
+| catalog-7 FK 위반 transaction/journal 전체 rollback | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 7번 결과 | PASS |
+| catalog-8 최초 durable mutation 1개 | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 8번 결과 | PASS |
+| catalog-9 동일 mutation 중복 append | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 9번 결과 | PASS |
+| catalog-10 손상 사이 정상 durable mutation 보존 | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 10번 결과 | PASS |
+| catalog-11 중간 corrupt line count | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 11번 결과 | PASS |
+| catalog-12 마지막 truncated line skip | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 12번 결과 | PASS |
+| catalog-13 fallback replay open | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 13번 결과 | PASS |
+| catalog-14 같은 mutation idempotent replay | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 14번 결과 | PASS |
+| catalog-15 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 15번 결과 | PASS |
+| catalog-16 중복 replay row/합계 불증가 | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 16번 결과 | PASS |
+| catalog-17 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구: | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 17번 결과 | PASS |
+| catalog-18 writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 18번 결과 | PASS |
+| catalog-19 v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 19번 결과 | PASS |
+| catalog-20 SQLite catalog open/rebuild: | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 20번 결과 | PASS |
+| catalog-21 SQLite primary mode 표시 | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 21번 결과 | PASS |
+| catalog-22 SQLite on/off range query ID·순서 parity | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 22번 결과 | PASS |
+| catalog-23 journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 23번 결과 | PASS |
+| catalog-24 journal 없는 손상 media orphan 구분 | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 24번 결과 | PASS |
+| catalog-25 projection failover journal open: | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 25번 결과 | PASS |
+| catalog-26 projection failover catalog open: | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 26번 결과 | PASS |
+| catalog-27 실제 SQLite INSERT 실패 trigger 설치 | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 27번 결과 | PASS |
+| catalog-28 SQLite 투영 실패 뒤 journal+memory finalize 유지: | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 28번 결과 | PASS |
+| catalog-29 SQLite 투영 실패 즉시 JSONL fallback 전환 | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 29번 결과 | PASS |
+| catalog-30 재시작 rebuild 전 실패 trigger 제거 | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 30번 결과 | PASS |
+| catalog-31 투영 실패 직후 in-memory query 정합성 유지 | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 31번 결과 | PASS |
+| catalog-32 projection failover 재시작 journal rebuild: | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 32번 결과 | PASS |
+| catalog-33 재시작 후 journal에서 누락 SQLite projection 복구 | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 33번 결과 | PASS |
+| catalog-34 재시작 후 SQLite primary 복귀 | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 34번 결과 | PASS |
+| catalog-35 재시작 journal rebuild가 실제 SQLite row 복원 | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 35번 결과 | PASS |
+| catalog-36 tombstone journal open: | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 36번 결과 | PASS |
+| catalog-37 tombstone catalog open: | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 37번 결과 | PASS |
+| catalog-38 tombstone 대상 segment finalize: | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 38번 결과 | PASS |
+| catalog-39 tombstone 대상 deletion request: | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 39번 결과 | PASS |
+| catalog-40 tombstone 완료 기록: | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 40번 결과 | PASS |
+| catalog-41 catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 41번 결과 | PASS |
+| catalog-42 손상 SQLite 격리 후 journal rebuild: | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 42번 결과 | PASS |
+| catalog-43 손상 SQLite 원본 격리 | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 43번 결과 | PASS |
+| catalog-44 격리 SQLite 파일 보존 | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 44번 결과 | PASS |
+| catalog-45 격리 후 journal rebuild 결과 | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 45번 결과 | PASS |
+| catalog-46 S10-3A future-schema journal read open | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 46번 결과 | PASS |
+| catalog-47 S10-3A future-schema unsupported classification | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 47번 결과 | PASS |
+| catalog-48 S10-3A future-schema catalog open denied | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 48번 결과 | PASS |
+| catalog-49 S10-3A future-schema catalog retry denied | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 49번 결과 | PASS |
+| catalog-50 S10-3A future-schema journal bytes preserved | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 50번 결과 | PASS |
+| catalog-51 S10-3A future-schema SQLite bytes preserved | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 51번 결과 | PASS |
+| catalog-52 S10-3A future-schema writer cleanup untouched | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 52번 결과 | PASS |
+| catalog-53 S10-3A arbitrary-schema journal read open | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 53번 결과 | PASS |
+| catalog-54 S10-3A arbitrary-schema unsupported classification | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 54번 결과 | PASS |
+| catalog-55 S10-3A arbitrary-schema catalog open denied | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 55번 결과 | PASS |
+| catalog-56 S10-3A arbitrary-schema catalog retry denied | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 56번 결과 | PASS |
+| catalog-57 S10-3A arbitrary-schema journal bytes preserved | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 57번 결과 | PASS |
+| catalog-58 S10-3A arbitrary-schema SQLite bytes preserved | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 58번 결과 | PASS |
+| catalog-59 S10-3A arbitrary-schema writer cleanup untouched | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 59번 결과 | PASS |
+| catalog-60 S10-3A empty-schema journal read open | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 60번 결과 | PASS |
+| catalog-61 S10-3A empty-schema unsupported classification | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 61번 결과 | PASS |
+| catalog-62 S10-3A empty-schema catalog open denied | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 62번 결과 | PASS |
+| catalog-63 S10-3A empty-schema catalog retry denied | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 63번 결과 | PASS |
+| catalog-64 S10-3A empty-schema journal bytes preserved | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 64번 결과 | PASS |
+| catalog-65 S10-3A empty-schema SQLite bytes preserved | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 65번 결과 | PASS |
+| catalog-66 S10-3A empty-schema writer cleanup untouched | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 66번 결과 | PASS |
+| catalog-67 S10-3A future-type journal read open | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 67번 결과 | PASS |
+| catalog-68 S10-3A future-type unsupported classification | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 68번 결과 | PASS |
+| catalog-69 S10-3A future-type catalog open denied | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 69번 결과 | PASS |
+| catalog-70 S10-3A future-type catalog retry denied | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 70번 결과 | PASS |
+| catalog-71 S10-3A future-type journal bytes preserved | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 71번 결과 | PASS |
+| catalog-72 S10-3A future-type SQLite bytes preserved | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 72번 결과 | PASS |
+| catalog-73 S10-3A future-type writer cleanup untouched | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 73번 결과 | PASS |
+| catalog-74 S10-3A malformed journal open | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 74번 결과 | PASS |
+| catalog-75 S10-3A malformed JSON missing fields and wrong types remain corrupt | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 75번 결과 | PASS |
+| catalog-76 S10-O01 reservation journal open | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 76번 결과 | PASS |
+| catalog-77 S10-O01 first reservation returns four IDs and sequence one | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 77번 결과 | PASS |
+| catalog-78 S10-O01 versioned reservation payload replays | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 78번 결과 | PASS |
+| catalog-79 S10-O01 new reservation records actual occurred time | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 79번 결과 | PASS |
+| catalog-80 S10-O02 identical retry preserves sequence and bytes | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 80번 결과 | PASS |
+| catalog-81 S10-O03 reopened instance allocates next sequence | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 81번 결과 | PASS |
+| catalog-82 S10-O03 new process resumes durable sequence | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 82번 결과 | PASS |
+| catalog-83 S10-O04 different store rejected | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 83번 결과 | PASS |
+| catalog-84 S10-O04 reused request with different segment rejected | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 84번 결과 | PASS |
+| catalog-85 S10-O04 reused request with different channel rejected | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 85번 결과 | PASS |
+| catalog-86 S10-O04 reused segment with different request rejected | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 86번 결과 | PASS |
+| catalog-87 S10-O04 conflicts preserve original bytes | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 87번 결과 | PASS |
+| catalog-88 S10-O05/O06 reject and preserve corrupt | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 88번 결과 | PASS |
+| catalog-89 S10-O05/O06 reject and preserve unsupported-schema | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 89번 결과 | PASS |
+| catalog-90 S10-O05/O06 reject and preserve unsupported-type | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 90번 결과 | PASS |
+| catalog-91 S10-O05/O06 reject and preserve tail | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 91번 결과 | PASS |
+| catalog-92 S10-O05/O06 reject and preserve payload-zero | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 92번 결과 | PASS |
+| catalog-93 S10-O05/O06 reject and preserve payload-negative | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 93번 결과 | PASS |
+| catalog-94 S10-O05/O06 reject and preserve payload-fraction | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 94번 결과 | PASS |
+| catalog-95 S10-O05/O06 reject and preserve payload-overflow | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 95번 결과 | PASS |
+| catalog-96 S10-O05/O06 reject and preserve duplicate-sequence | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 96번 결과 | PASS |
+| catalog-97 S10-O05/O06 reject and preserve decreasing-sequence | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 97번 결과 | PASS |
+| catalog-98 S10-O05/O06 reject and preserve duplicate-request | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 98번 결과 | PASS |
+| catalog-99 S10-O05/O06 reject and preserve duplicate-segment | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 99번 결과 | PASS |
+| catalog-100 S10-O05/O06 reject and preserve store-conflict | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 100번 결과 | PASS |
+| catalog-101 S10-O05/O06 reject and preserve ordinary-before | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 101번 결과 | PASS |
+| catalog-102 S10-O05/O06 reject and preserve ordinary-after | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 102번 결과 | PASS |
+| catalog-103 S10-O05/O06 reject and preserve line-cap | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 103번 결과 | PASS |
+| catalog-104 S10-O05 reservation entity envelope binding rejects mismatch | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 104번 결과 | PASS |
+| catalog-105 S10-O05 reservation request envelope binding rejects mismatch | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 105번 결과 | PASS |
+| catalog-106 S10-O01 strict reservation parser accepts versioned literal | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 106번 결과 | PASS |
+| catalog-107 S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 107번 결과 | PASS |
+| catalog-108 S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 108번 결과 | PASS |
+| catalog-109 S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 109번 결과 | PASS |
+| catalog-110 S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 110번 결과 | PASS |
+| catalog-111 S10-O06 INT64_MAX identical retry remains valid | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 111번 결과 | PASS |
+| catalog-112 S10-O06 sequence overflow rejected without write | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 112번 결과 | PASS |
+| catalog-113 S10-O02 identical durable reservation duplicates remain idempotent | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 113번 결과 | PASS |
+| catalog-114 S10-O06 sequence gaps remain valid and allocate above maximum | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 114번 결과 | PASS |
+| catalog-115 S10-O07 four simultaneous processes finish reservations | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 115번 결과 | PASS |
+| catalog-116 S10-O07 concurrent sequences are unique and complete | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 116번 결과 | PASS |
+| catalog-117 S10-O07 next sequence follows concurrent reservations | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 117번 결과 | PASS |
+| catalog-118 S10-O08 ordinary Append cannot reserve orders | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 118번 결과 | PASS |
+| catalog-119 S10-O08 unopened journal rejected | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 119번 결과 | PASS |
+| catalog-120 S10-O08 null result rejected | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 120번 결과 | PASS |
+| catalog-121 S10-O08 invalid opaque ID rejected | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 121번 결과 | PASS |
+| catalog-122 S10-O08 failed reservation does not expose tentative result | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 122번 결과 | PASS |
+| catalog-123 S10-O09 unsafe file binding rejected and original preserved inode | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 123번 결과 | PASS |
+| catalog-124 S10-O09 unsafe file binding rejected and original preserved parent | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 124번 결과 | PASS |
+| catalog-125 S10-O09 unsafe file binding rejected and original preserved symlink | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 125번 결과 | PASS |
+| catalog-126 S10-O09 unsafe file binding rejected and original preserved hardlink | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 126번 결과 | PASS |
+| catalog-127 S10-O10 reservation and normal segment coexist in catalog | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 127번 결과 | PASS |
+| catalog-128 S10-O04 reserve then finalize permits identical retry | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 128번 결과 | PASS |
+| catalog-129 S10-O10 reservation survives catalog rebuild without changing segment query | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 129번 결과 | PASS |
+| catalog-130 S10-O04 legacy segment cannot acquire retroactive reservation | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 130번 결과 | PASS |
+| catalog-131 S10-M06 opened catalog accepts fresh exact reservation V2 finalize | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 131번 결과 | PASS |
+| catalog-132 S10-M07 V2 find preserves complete metadata | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 132번 결과 | PASS |
+| catalog-133 S10-M07 identical V2 recovery is idempotent | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 133번 결과 | PASS |
+| catalog-134 S10-M07 V2 is absent from V1 range query | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 134번 결과 | PASS |
+| catalog-135 S10-M07 V2 registered path is not orphan | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 135번 결과 | PASS |
+| catalog-136 S10-M07 SQLite exact V2 JSON and path match | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 136번 결과 | PASS |
+| catalog-137 S10-M07 JSONL restart preserves V2 exact payload | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 137번 결과 | PASS |
+| catalog-138 S10-M06 wrong reservation tuple rejected store | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 138번 결과 | PASS |
+| catalog-139 S10-M06 wrong reservation tuple rejected request | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 139번 결과 | PASS |
+| catalog-140 S10-M06 wrong reservation tuple rejected segment | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 140번 결과 | PASS |
+| catalog-141 S10-M06 wrong reservation tuple rejected channel | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 141번 결과 | PASS |
+| catalog-142 S10-M06 wrong reservation tuple rejected sequence | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 142번 결과 | PASS |
+| catalog-143 S10-M09 immutable V2 mapping mismatch rejected | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 143번 결과 | PASS |
+| catalog-144 S10-M09 bad V2 startup retry preserves original state bad-payload | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 144번 결과 | PASS |
+| catalog-145 S10-M09 bad V2 startup retry preserves original state missing-order | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 145번 결과 | PASS |
+| catalog-146 S10-M09 bad V2 startup retry preserves original state bad-order | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 146번 결과 | PASS |
+| catalog-147 S10-M09 bad V2 startup retry preserves original state conflicting-order | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 147번 결과 | PASS |
+| catalog-148 S10-M09 bad V2 startup retry preserves original state tail | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 148번 결과 | PASS |
+| catalog-149 S10-M09 bad V2 startup retry preserves original state corrupt | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 149번 결과 | PASS |
+| catalog-150 S10-M09 bad V2 startup retry preserves original state unsafe-path | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 150번 결과 | PASS |
+| catalog-151 S10-M09 default off rejects V2 before SQLite changes | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 151번 결과 | PASS |
+| catalog-152 S10-M09 V2 replay namespace and deletion duplicate | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 152번 결과 | PASS |
+| catalog-153 S10-M09 V2 replay namespace and deletion deleted | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 153번 결과 | PASS |
+| catalog-154 S10-M09 V2 replay namespace and deletion v1-before | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 154번 결과 | PASS |
+| catalog-155 S10-M09 V2 replay namespace and deletion v1-after | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 155번 결과 | PASS |
+| catalog-156 S10-M09 V2 replay namespace and deletion deleted-before | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 156번 결과 | PASS |
+| catalog-157 S10-M09 V2 replay namespace and deletion resurrection | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 157번 결과 | PASS |
+| catalog-158 S10-M09 V2 replay namespace and deletion mutation-collision | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 158번 결과 | PASS |
+| catalog-159 S10-M09 V2 finalize rejects missing media | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 159번 결과 | PASS |
+| catalog-160 S10-M09 V2 finalize rejects directory media | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 160번 결과 | PASS |
+| catalog-161 S10-M09 fresh candidate rejects mapping | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 161번 결과 | PASS |
+| catalog-162 S10-M09 fresh candidate rejects path | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 162번 결과 | PASS |
+| catalog-163 S10-M09 fresh candidate rejects tombstone | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 163번 결과 | PASS |
+| catalog-164 S10-SW01 managed empty root opens with lifetime lease | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 164번 결과 | PASS |
+| catalog-165 S10-SW02 same process second managed owner denied | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 165번 결과 | PASS |
+| catalog-166 S10-SW03 different process owner and inherited use denied | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 166번 결과 | PASS |
+| catalog-167 S10-SW12 managed duplicate descriptors are close-on-exec | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 167번 결과 | PASS |
+| catalog-168 S10-SW05 managed reserve append replay use owned descriptor | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 168번 결과 | PASS |
+| catalog-169 S10-SW06 raw managed access and legacy default path denied | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 169번 결과 | PASS |
+| catalog-170 S10-SW01 managed Reserve rejects different store identity | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 170번 결과 | PASS |
+| catalog-171 S10-SW10 catalog connection can inspect managed lease | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 171번 결과 | PASS |
+| catalog-172 S10-SW04 owner destruction releases lease | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 172번 결과 | PASS |
+| catalog-173 S10-SW01 managed reopen rejects different store identity | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 173번 결과 | PASS |
+| catalog-174 S10-SW11 managed incomplete tail rejects append without changing bytes | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 174번 결과 | PASS |
+| catalog-175 S10-SW07 legacy nonempty root preserved without conversion | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 175번 결과 | PASS |
+| catalog-176 S10-SW08 partial initialization retry validates exact state lease | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 176번 결과 | PASS |
+| catalog-177 S10-SW08 partial initialization retry validates exact state init | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 177번 결과 | PASS |
+| catalog-178 S10-SW08 partial initialization retry validates exact state barrier | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 178번 결과 | PASS |
+| catalog-179 S10-SW08 partial initialization retry validates exact state journal | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 179번 결과 | PASS |
+| catalog-180 S10-SW08 partial initialization retry validates exact state incomplete | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 180번 결과 | PASS |
+| catalog-181 S10-SW08 partial initialization retry validates exact state unknown | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 181번 결과 | PASS |
+| catalog-182 S10-SW09 symlink inode and malformed marker rejected journal | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 182번 결과 | PASS |
+| catalog-183 S10-SW09 symlink inode and malformed marker rejected marker | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 183번 결과 | PASS |
+| catalog-184 S10-SW09 symlink inode and malformed marker rejected barrier | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 184번 결과 | PASS |
+| catalog-185 S10-SW09 symlink inode and malformed marker rejected root-symlink | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 185번 결과 | PASS |
+| catalog-186 S10-SB01 second managed catalog is denied | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 186번 결과 | PASS |
+| catalog-187 S10-SB02 failed catalog cannot mutate journal or holds | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 187번 결과 | PASS |
+| catalog-188 S10-SB03 attached catalog blocks unowned append but permits reservation | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 188번 결과 | PASS |
+| catalog-189 S10-SB04 catalog destruction releases attachment | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 189번 결과 | PASS |
+| catalog-190 S10-SB05 managed catalog rejects unsafe options outside | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 190번 결과 | PASS |
+| catalog-191 S10-SB05 managed catalog rejects unsafe options dotdot | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 191번 결과 | PASS |
+| catalog-192 S10-SB05 managed catalog rejects unsafe options media-symlink | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 192번 결과 | PASS |
+| catalog-193 S10-SB05 managed catalog rejects unsafe options sqlite-symlink | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 193번 결과 | PASS |
+| catalog-194 S10-SB05 managed catalog rejects unsafe options sqlite-hardlink | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 194번 결과 | PASS |
+| catalog-195 S10-SB05 managed catalog rejects unsafe options disabled | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 195번 결과 | PASS |
+| catalog-196 S10-SB06 failed open releases catalog attachment | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 196번 결과 | PASS |
+| catalog-197 S10-SB07 managed SQLite sidecar rejected -wal symlink | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 197번 결과 | PASS |
+| catalog-198 S10-SB07 managed SQLite sidecar rejected -wal hardlink | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 198번 결과 | PASS |
+| catalog-199 S10-SB07 managed SQLite sidecar rejected -shm symlink | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 199번 결과 | PASS |
+| catalog-200 S10-SB07 managed SQLite sidecar rejected -shm hardlink | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 200번 결과 | PASS |
+| catalog-201 S10-SB07 managed SQLite sidecar rejected -journal symlink | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 201번 결과 | PASS |
+| catalog-202 S10-SB07 managed SQLite sidecar rejected -journal hardlink | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 202번 결과 | PASS |
+| catalog-203 S10-SC01 managed repeated event fixture is valid | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 203번 결과 | PASS |
+| catalog-204 S10-SC02 managed reservations avoid history reads | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 204번 결과 | PASS |
+| catalog-205 S10-SC03 managed V2 finalize avoids full replay | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 205번 결과 | PASS |
+| catalog-206 S10-SC04 checkpoint reduces superseded event payload bytes | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 206번 결과 | PASS |
+| catalog-207 S10-SC05 checkpoint preserves latest event and all record identities | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 207번 결과 | PASS |
+| catalog-208 S10-SC06 checkpoint is idempotent and preserves V2 | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 208번 결과 | PASS |
+| catalog-209 S10-SC08 receipt preserves retry identity and rejects direct append | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 209번 결과 | PASS |
+| catalog-210 S10-SC09 checkpoint restart preserves SQLite and JSONL state sqlite | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 210번 결과 | PASS |
+| catalog-211 S10-SC09 managed checkpoint SQL V2 payload and path | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 211번 결과 | PASS |
+| catalog-212 S10-SC09 checkpoint restart preserves SQLite and JSONL state jsonl | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 212번 결과 | PASS |
+| catalog-213 S10-SC10 checkpoint prefix recovers before writes | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 213번 결과 | PASS |
+| catalog-214 S10-SC11 checkpoint mismatch preserves bytes and poisons owner | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 214번 결과 | PASS |
+| catalog-215 S10-SC12 first accepted mutation controls latest event | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 215번 결과 | PASS |
+| catalog-216 S10-SC16 automatic checkpoint uses accumulated growth | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 216번 결과 | PASS |
+| catalog-217 S10-SC07 raw checkpoint is rejected | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 217번 결과 | PASS |
+| catalog-218 S10-SC18 checkpoint syscall failure poisons and reopens write | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 218번 결과 | PASS |
+| catalog-219 S10-SC21 poison rejects hold mutation write | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 219번 결과 | PASS |
+| catalog-220 S10-SC18 checkpoint syscall failure poisons and reopens file-fsync | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 220번 결과 | PASS |
+| catalog-221 S10-SC21 poison rejects hold mutation file-fsync | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 221번 결과 | PASS |
+| catalog-222 S10-SC18 checkpoint syscall failure poisons and reopens rename | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 222번 결과 | PASS |
+| catalog-223 S10-SC21 poison rejects hold mutation rename | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 223번 결과 | PASS |
+| catalog-224 S10-SC18 checkpoint syscall failure poisons and reopens dir-fsync | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 224번 결과 | PASS |
+| catalog-225 S10-SC21 poison rejects hold mutation dir-fsync | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 225번 결과 | PASS |
+| catalog-226 S10-SC17 checkpoint preserves holds observations and deletion | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 226번 결과 | PASS |
+| catalog-227 S10-SC17 checkpoint SQL hold observation tombstone | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 227번 결과 | PASS |
+| catalog-228 S10-SC17 checkpoint preserves holds observations and deletion restart sqlite | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 228번 결과 | PASS |
+| catalog-229 S10-SC17 checkpoint SQL restart observation tombstone | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 229번 결과 | PASS |
+| catalog-230 S10-SC17 checkpoint preserves holds observations and deletion restart jsonl | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 230번 결과 | PASS |
+| catalog-231 S10-SC19 invalid managed history remains unchanged malformed | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 231번 결과 | PASS |
+| catalog-232 S10-SC19 invalid managed history remains unchanged unsupported | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 232번 결과 | PASS |
+| catalog-233 S10-SC19 invalid managed history remains unchanged conflict | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 233번 결과 | PASS |
+| catalog-234 S10-SC20 raw catalog rejects receipt before side effects | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 234번 결과 | PASS |
+| catalog-235 S10-SC13 crypto off raw remains usable | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 235번 결과 | PASS |
+| catalog-236 S10-SC14 crypto off checkpoint is rejected | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 236번 결과 | PASS |
+| catalog-237 S10-SC15 crypto off receipt reopen is rejected | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 237번 결과 | PASS |
+| catalog-238 source 저장 callback reconcile 연결 | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 238번 결과 | PASS |
+| catalog-239 policy revision idempotency | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 239번 결과 | PASS |
+| catalog-240 5초 safety reconcile | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 240번 결과 | PASS |
+| catalog-241 composition root journal 선행 open | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 241번 결과 | PASS |
+| catalog-242 composition root catalog rebuild/open | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 242번 결과 | PASS |
+| catalog-243 서버 전 supervisor 시작 | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 243번 결과 | PASS |
+| catalog-244 ingress 전 event bridge 등록 | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 244번 결과 | PASS |
+| catalog-245 ingress 종료 뒤 recorder finalize | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 245번 결과 | PASS |
+| catalog-246 composition root 시작/종료 순서 | 등록된 catalog 회귀 명령 exit0; catalog.log 원출력 246번 결과 | PASS |
+| retention-1 continuous quota는 end_utc_ms, segment_id oldest-first | 등록된 retention 회귀 명령 exit0; retention.log 원출력 1번 결과 | PASS |
+| retention-2 continuous/event quota가 자기 등급 artifact만 선택 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 2번 결과 | PASS |
+| retention-3 continuous/event 보존 기간을 독립적으로 적용 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 3번 결과 | PASS |
+| retention-4 continuous 보존 기간은 event와 독립적으로 적용 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 4번 결과 | PASS |
+| retention-5 event 보존 기간은 continuous와 독립적으로 적용 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 5번 결과 | PASS |
+| retention-6 새 segment 예상 용량까지 continuous quota에 선반영 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 6번 결과 | PASS |
+| retention-7 pinned event와 hold_count>0 continuous 자동 삭제 제외 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 7번 결과 | PASS |
+| retention-8 disk reserve 부족은 eligible continuous부터 정리 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 8번 결과 | PASS |
+| retention-9 journal 실패 시 media unlink와 tombstone 중단 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 9번 결과 | PASS |
+| retention-10 unlink 실패는 deletion_pending 유지, 회수 byte 0 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 10번 결과 | PASS |
+| retention-11 tombstone journal 실패는 pending으로 남겨 다음 tick 복구 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 11번 결과 | PASS |
+| retention-12 channel retention policy 등록: | 등록된 retention 회귀 명령 exit0; retention.log 원출력 12번 결과 | PASS |
+| retention-13 삭제 불가 시 해당 channel writer만 storage-blocked | 등록된 retention 회귀 명령 exit0; retention.log 원출력 13번 결과 | PASS |
+| retention-14 공간 회복 뒤 새 keyframe용 epoch 재발급 신호 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 14번 결과 | PASS |
+| retention-15 다중 channel reserve policy 등록 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 15번 결과 | PASS |
+| retention-16 동시 channel admission이 물리 여유 공간을 중복 예약하지 않음 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 16번 결과 | PASS |
+| retention-17 segment finalize 후 in-flight reserve 반환으로 다른 channel 재개 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 17번 결과 | PASS |
+| retention-18 segment hard bound policy 등록 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 18번 결과 | PASS |
+| retention-19 최소 packet보다 작은 continuous quota는 쓰기 전에 차단 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 19번 결과 | PASS |
+| retention-20 진행량 정산 policy 등록 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 20번 결과 | PASS |
+| retention-21 물리 free에 반영된 partial 쓰기량은 예약에서 이중 차감하지 않음 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 21번 결과 | PASS |
+| retention-22 실제 동시 admission policy 등록 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 22번 결과 | PASS |
+| retention-23 두 실제 thread의 동시 admission 중 하나만 reserve 획득 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 23번 결과 | PASS |
+| retention-24 cleanup 미해결 reservation policy 등록 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 24번 결과 | PASS |
+| retention-25 cleanup 미해결 channel 재활성화 policy 등록 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 25번 결과 | PASS |
+| retention-26 정책 비활성·재활성 뒤에도 미해결 파일 reservation을 유지해 fail-closed | 등록된 retention 회귀 명령 exit0; retention.log 원출력 26번 결과 | PASS |
+| retention-27 stale free-space policy 등록 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 27번 결과 | PASS |
+| retention-28 unlink 뒤에도 filesystem 여유 공간이 부족하면 회수량을 추정해 허용하지 않음 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 28번 결과 | PASS |
+| retention-29 통합 journal open: | 등록된 retention 회귀 명령 exit0; retention.log 원출력 29번 결과 | PASS |
+| retention-30 통합 catalog open: | 등록된 retention 회귀 명령 exit0; retention.log 원출력 30번 결과 | PASS |
+| retention-31 통합 segment finalize: | 등록된 retention 회귀 명령 exit0; retention.log 원출력 31번 결과 | PASS |
+| retention-32 tombstone은 남고 media path와 원본 bytes는 제거 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 32번 결과 | PASS |
+| retention-33 hold overflow segment finalize: | 등록된 retention 회귀 명령 exit0; retention.log 원출력 33번 결과 | PASS |
+| retention-34 hold_count int64 최댓값 저장: | 등록된 retention 회귀 명령 exit0; retention.log 원출력 34번 결과 | PASS |
+| retention-35 hold_count int64 오버플로 거부 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 35번 결과 | PASS |
+| retention-36 hold race segment finalize: | 등록된 retention 회귀 명령 exit0; retention.log 원출력 36번 결과 | PASS |
+| retention-37 hold_count 획득: | 등록된 retention 회귀 명령 exit0; retention.log 원출력 37번 결과 | PASS |
+| retention-38 계획 뒤 획득된 hold도 삭제 transition에서 재검증 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 38번 결과 | PASS |
+| retention-39 pending recovery segment finalize: | 등록된 retention 회귀 명령 exit0; retention.log 원출력 39번 결과 | PASS |
+| retention-40 pending recovery 삭제 요청: | 등록된 retention 회귀 명령 exit0; retention.log 원출력 40번 결과 | PASS |
+| retention-41 pending recovery media 사전 제거 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 41번 결과 | PASS |
+| retention-42 unlink 뒤 tombstone 실패 상태를 다음 tick에서 idempotent 재완료 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 42번 결과 | PASS |
+| retention-43 pending 복구 격리 policy 등록 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 43번 결과 | PASS |
+| retention-44 한 channel의 pending 복구 실패가 다른 channel admission/tick을 차단하지 않음 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 44번 결과 | PASS |
+| retention-45 정책이 없거나 비활성인 channel의 pending도 주기적으로 tombstone 완료 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 45번 결과 | PASS |
+| retention-46 event 압력 독립 policy 등록 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 46번 결과 | PASS |
+| retention-47 event 예상 회수량을 제외하고 continuous만으로 reserve와 admission 처리 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 47번 결과 | PASS |
+| retention-48 malicious journal open: | 등록된 retention 회귀 명령 exit0; retention.log 원출력 48번 결과 | PASS |
+| retention-49 malicious mutation append: | 등록된 retention 회귀 명령 exit0; retention.log 원출력 49번 결과 | PASS |
+| retention-50 malicious catalog open: | 등록된 retention 회귀 명령 exit0; retention.log 원출력 50번 결과 | PASS |
+| retention-51 journal mediaRelpath가 root 밖이면 retention 후보에서 격리 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 51번 결과 | PASS |
+| retention-52 unlink 직전 symlink 전환 준비 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 52번 결과 | PASS |
+| retention-53 unlink 직전 root 밖 symlink 생성 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 53번 결과 | PASS |
+| retention-54 journal 이후 unlink 직전 canonical root containment 재검증 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 54번 결과 | PASS |
+| retention-55 dirfd에 결박된 unlink는 검증 뒤 상위 경로 교체에도 외부 파일을 보호 | 등록된 retention 회귀 명령 exit0; retention.log 원출력 55번 결과 | PASS |
+| retention-56 storage root가 비어 있으면 안전 unlink를 fail-closed | 등록된 retention 회귀 명령 exit0; retention.log 원출력 56번 결과 | PASS |
+| read-1 V410-S06-I03 catalog timeline item 반환 | 등록된 read 회귀 명령 exit0; read.log 원출력 1번 결과 | PASS |
+| read-2 I09 opaque 재생 URL | 등록된 read 회귀 명령 exit0; read.log 원출력 2번 결과 | PASS |
+| read-3 I03 끝 경계 인접 제외 | 등록된 read 회귀 명령 exit0; read.log 원출력 3번 결과 | PASS |
+| read-4 I03 다른 채널 제외 | 등록된 read 회귀 명령 exit0; read.log 원출력 4번 결과 | PASS |
+| read-5 I04 음수 시간 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 5번 결과 | PASS |
+| read-6 I04 역전 시간 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 6번 결과 | PASS |
+| read-7 I04 빈 페이지 제한 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 7번 결과 | PASS |
+| read-8 I04 과대 페이지 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 8번 결과 | PASS |
+| read-9 I05 큰 offset overflow 없이 빈 페이지 | 등록된 read 회귀 명령 exit0; read.log 원출력 9번 결과 | PASS |
+| read-10 I16 다른 채널 media 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 10번 결과 | PASS |
+| read-11 I17 경로형 ID 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 11번 결과 | PASS |
+| read-12 I09 fd 크기 MIME 확인 | 등록된 read 회귀 명령 exit0; read.log 원출력 12번 결과 | PASS |
+| read-13 I25 재생 hold 중 삭제 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 13번 결과 | PASS |
+| read-14 I19 경로 교체 뒤 열린 fd 기존 byte 유지 | 등록된 read 회귀 명령 exit0; read.log 원출력 14번 결과 | PASS |
+| read-15 I18 leaf symlink 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 15번 결과 | PASS |
+| read-16 I09 누락 파일 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 16번 결과 | PASS |
+| read-17 I09 크기 불일치 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 17번 결과 | PASS |
+| read-18 I09 비일반 파일 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 18번 결과 | PASS |
+| read-19 I06 같은 시간 event 우선 | 등록된 read 회귀 명령 exit0; read.log 원출력 19번 결과 | PASS |
+| read-20 I07 정확한 이벤트 ID 연결 | 등록된 read 회귀 명령 exit0; read.log 원출력 20번 결과 | PASS |
+| read-21 I10 실제 범위와 요청 범위 분리 | 등록된 read 회귀 명령 exit0; read.log 원출력 21번 결과 | PASS |
+| read-22 I05 정렬 뒤 페이지 적용 | 등록된 read 회귀 명령 exit0; read.log 원출력 22번 결과 | PASS |
+| read-23 I25 모든 실패 경로 hold 반환 후 삭제 허용 | 등록된 read 회귀 명령 exit0; read.log 원출력 23번 결과 | PASS |
+| read-24 I08 deletion pending 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 24번 결과 | PASS |
+| read-25 I08 pending timeline 재생 불가 | 등록된 read 회귀 명령 exit0; read.log 원출력 25번 결과 | PASS |
+| read-26 I11 검증한 fallback 영상 fd 제공 | 등록된 read 회귀 명령 exit0; read.log 원출력 26번 결과 | PASS |
+| read-27 I11 JSON이 아닌 실제 media byte 반환 | 등록된 read 회귀 명령 exit0; read.log 원출력 27번 결과 | PASS |
+| read-28 I11 fallback timeline을 complete로 과장하지 않음 | 등록된 read 회귀 명령 exit0; read.log 원출력 28번 결과 | PASS |
+| read-29 I11 중복 key manifest 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 29번 결과 | PASS |
+| read-30 I11 event 바인딩 불일치 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 30번 결과 | PASS |
+| read-31 I11 byteSize 문자열 타입 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 31번 결과 | PASS |
+| read-32 I11 64KiB 초과 manifest 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 32번 결과 | PASS |
+| read-33 I18 fallback media symlink 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 33번 결과 | PASS |
+| read-34 I09 fallback media 크기 불일치 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 34번 결과 | PASS |
+| read-35 I19 fallback 교체 뒤 기존 fd byte 유지 | 등록된 read 회귀 명령 exit0; read.log 원출력 35번 결과 | PASS |
+| read-36 I17 다른 채널 fallback ID 충돌도 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 36번 결과 | PASS |
+| read-37 I03 기존 숫자형 channel ID 유지 | 등록된 read 회귀 명령 exit0; read.log 원출력 37번 결과 | PASS |
+| read-38 I08/I17 삭제 완료 ID의 fallback 재사용 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 38번 결과 | PASS |
+| read-39 I20 closed Range 시작과 길이 | 등록된 read 회귀 명령 exit0; read.log 원출력 39번 결과 | PASS |
+| read-40 I26 열린 gate 신규 요청 admission | 등록된 read 회귀 명령 exit0; read.log 원출력 40번 결과 | PASS |
+| read-41 I26 닫힌 gate 신규 요청 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 41번 결과 | PASS |
+| read-42 I26 active flight 이전 drain 완료 금지 | 등록된 read 회귀 명령 exit0; read.log 원출력 42번 결과 | PASS |
+| read-43 I26 마지막 flight 해제 뒤 drain 완료 | 등록된 read 회귀 명령 exit0; read.log 원출력 43번 결과 | PASS |
+| read-44 I26 활성 socket shutdown 확인 | 등록된 read 회귀 명령 exit0; read.log 원출력 44번 결과 | PASS |
+| read-45 I25 동시 삭제 경쟁 0 | 등록된 read 회귀 명령 exit0; read.log 원출력 45번 결과 | PASS |
+| read-46 I26 경쟁 뒤 fd 반환 0 | 등록된 read 회귀 명령 exit0; read.log 원출력 46번 결과 | PASS |
+| read-47 I25 동시 삭제 경쟁 1 | 등록된 read 회귀 명령 exit0; read.log 원출력 47번 결과 | PASS |
+| read-48 I26 경쟁 뒤 fd 반환 1 | 등록된 read 회귀 명령 exit0; read.log 원출력 48번 결과 | PASS |
+| read-49 I25 동시 삭제 경쟁 2 | 등록된 read 회귀 명령 exit0; read.log 원출력 49번 결과 | PASS |
+| read-50 I26 경쟁 뒤 fd 반환 2 | 등록된 read 회귀 명령 exit0; read.log 원출력 50번 결과 | PASS |
+| read-51 I25 동시 삭제 경쟁 3 | 등록된 read 회귀 명령 exit0; read.log 원출력 51번 결과 | PASS |
+| read-52 I26 경쟁 뒤 fd 반환 3 | 등록된 read 회귀 명령 exit0; read.log 원출력 52번 결과 | PASS |
+| read-53 I25 동시 삭제 경쟁 4 | 등록된 read 회귀 명령 exit0; read.log 원출력 53번 결과 | PASS |
+| read-54 I26 경쟁 뒤 fd 반환 4 | 등록된 read 회귀 명령 exit0; read.log 원출력 54번 결과 | PASS |
+| read-55 I25 동시 삭제 경쟁 5 | 등록된 read 회귀 명령 exit0; read.log 원출력 55번 결과 | PASS |
+| read-56 I26 경쟁 뒤 fd 반환 5 | 등록된 read 회귀 명령 exit0; read.log 원출력 56번 결과 | PASS |
+| read-57 I25 동시 삭제 경쟁 6 | 등록된 read 회귀 명령 exit0; read.log 원출력 57번 결과 | PASS |
+| read-58 I26 경쟁 뒤 fd 반환 6 | 등록된 read 회귀 명령 exit0; read.log 원출력 58번 결과 | PASS |
+| read-59 I25 동시 삭제 경쟁 7 | 등록된 read 회귀 명령 exit0; read.log 원출력 59번 결과 | PASS |
+| read-60 I26 경쟁 뒤 fd 반환 7 | 등록된 read 회귀 명령 exit0; read.log 원출력 60번 결과 | PASS |
+| read-61 I25 동시 삭제 경쟁 8 | 등록된 read 회귀 명령 exit0; read.log 원출력 61번 결과 | PASS |
+| read-62 I26 경쟁 뒤 fd 반환 8 | 등록된 read 회귀 명령 exit0; read.log 원출력 62번 결과 | PASS |
+| read-63 I25 동시 삭제 경쟁 9 | 등록된 read 회귀 명령 exit0; read.log 원출력 63번 결과 | PASS |
+| read-64 I26 경쟁 뒤 fd 반환 9 | 등록된 read 회귀 명령 exit0; read.log 원출력 64번 결과 | PASS |
+| read-65 I25 동시 삭제 경쟁 10 | 등록된 read 회귀 명령 exit0; read.log 원출력 65번 결과 | PASS |
+| read-66 I26 경쟁 뒤 fd 반환 10 | 등록된 read 회귀 명령 exit0; read.log 원출력 66번 결과 | PASS |
+| read-67 I25 동시 삭제 경쟁 11 | 등록된 read 회귀 명령 exit0; read.log 원출력 67번 결과 | PASS |
+| read-68 I26 경쟁 뒤 fd 반환 11 | 등록된 read 회귀 명령 exit0; read.log 원출력 68번 결과 | PASS |
+| read-69 I25 동시 삭제 경쟁 12 | 등록된 read 회귀 명령 exit0; read.log 원출력 69번 결과 | PASS |
+| read-70 I26 경쟁 뒤 fd 반환 12 | 등록된 read 회귀 명령 exit0; read.log 원출력 70번 결과 | PASS |
+| read-71 I25 동시 삭제 경쟁 13 | 등록된 read 회귀 명령 exit0; read.log 원출력 71번 결과 | PASS |
+| read-72 I26 경쟁 뒤 fd 반환 13 | 등록된 read 회귀 명령 exit0; read.log 원출력 72번 결과 | PASS |
+| read-73 I25 동시 삭제 경쟁 14 | 등록된 read 회귀 명령 exit0; read.log 원출력 73번 결과 | PASS |
+| read-74 I26 경쟁 뒤 fd 반환 14 | 등록된 read 회귀 명령 exit0; read.log 원출력 74번 결과 | PASS |
+| read-75 I25 동시 삭제 경쟁 15 | 등록된 read 회귀 명령 exit0; read.log 원출력 75번 결과 | PASS |
+| read-76 I26 경쟁 뒤 fd 반환 15 | 등록된 read 회귀 명령 exit0; read.log 원출력 76번 결과 | PASS |
+| read-77 I08 Writing lifecycle 재생 불가 | 등록된 read 회귀 명령 exit0; read.log 원출력 77번 결과 | PASS |
+| read-78 I08 Writing finalize 등록 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 78번 결과 | PASS |
+| read-79 I08 Writing 실제 파일 존재해도 media 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 79번 결과 | PASS |
+| read-80 I08 Writing timeline 재생 노출 없음 | 등록된 read 회귀 명령 exit0; read.log 원출력 80번 결과 | PASS |
+| read-81 I08 Corrupt 실제 catalog 전이 | 등록된 read 회귀 명령 exit0; read.log 원출력 81번 결과 | PASS |
+| read-82 I08 Corrupt 실제 파일 존재해도 media 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 82번 결과 | PASS |
+| read-83 I08 Corrupt timeline 불가 상태 | 등록된 read 회귀 명령 exit0; read.log 원출력 83번 결과 | PASS |
+| read-84 V410-S06-I03 catalog timeline item 반환 | 등록된 read 회귀 명령 exit0; read.log 원출력 84번 결과 | PASS |
+| read-85 I09 opaque 재생 URL | 등록된 read 회귀 명령 exit0; read.log 원출력 85번 결과 | PASS |
+| read-86 I03 끝 경계 인접 제외 | 등록된 read 회귀 명령 exit0; read.log 원출력 86번 결과 | PASS |
+| read-87 I03 다른 채널 제외 | 등록된 read 회귀 명령 exit0; read.log 원출력 87번 결과 | PASS |
+| read-88 I04 음수 시간 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 88번 결과 | PASS |
+| read-89 I04 역전 시간 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 89번 결과 | PASS |
+| read-90 I04 빈 페이지 제한 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 90번 결과 | PASS |
+| read-91 I04 과대 페이지 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 91번 결과 | PASS |
+| read-92 I05 큰 offset overflow 없이 빈 페이지 | 등록된 read 회귀 명령 exit0; read.log 원출력 92번 결과 | PASS |
+| read-93 I16 다른 채널 media 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 93번 결과 | PASS |
+| read-94 I17 경로형 ID 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 94번 결과 | PASS |
+| read-95 I09 fd 크기 MIME 확인 | 등록된 read 회귀 명령 exit0; read.log 원출력 95번 결과 | PASS |
+| read-96 I25 재생 hold 중 삭제 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 96번 결과 | PASS |
+| read-97 I19 경로 교체 뒤 열린 fd 기존 byte 유지 | 등록된 read 회귀 명령 exit0; read.log 원출력 97번 결과 | PASS |
+| read-98 I18 leaf symlink 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 98번 결과 | PASS |
+| read-99 I09 누락 파일 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 99번 결과 | PASS |
+| read-100 I09 크기 불일치 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 100번 결과 | PASS |
+| read-101 I09 비일반 파일 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 101번 결과 | PASS |
+| read-102 I06 같은 시간 event 우선 | 등록된 read 회귀 명령 exit0; read.log 원출력 102번 결과 | PASS |
+| read-103 I07 정확한 이벤트 ID 연결 | 등록된 read 회귀 명령 exit0; read.log 원출력 103번 결과 | PASS |
+| read-104 I10 실제 범위와 요청 범위 분리 | 등록된 read 회귀 명령 exit0; read.log 원출력 104번 결과 | PASS |
+| read-105 I05 정렬 뒤 페이지 적용 | 등록된 read 회귀 명령 exit0; read.log 원출력 105번 결과 | PASS |
+| read-106 I25 모든 실패 경로 hold 반환 후 삭제 허용 | 등록된 read 회귀 명령 exit0; read.log 원출력 106번 결과 | PASS |
+| read-107 I08 deletion pending 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 107번 결과 | PASS |
+| read-108 I08 pending timeline 재생 불가 | 등록된 read 회귀 명령 exit0; read.log 원출력 108번 결과 | PASS |
+| read-109 I11 검증한 fallback 영상 fd 제공 | 등록된 read 회귀 명령 exit0; read.log 원출력 109번 결과 | PASS |
+| read-110 I11 JSON이 아닌 실제 media byte 반환 | 등록된 read 회귀 명령 exit0; read.log 원출력 110번 결과 | PASS |
+| read-111 I11 fallback timeline을 complete로 과장하지 않음 | 등록된 read 회귀 명령 exit0; read.log 원출력 111번 결과 | PASS |
+| read-112 I11 중복 key manifest 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 112번 결과 | PASS |
+| read-113 I11 event 바인딩 불일치 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 113번 결과 | PASS |
+| read-114 I11 byteSize 문자열 타입 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 114번 결과 | PASS |
+| read-115 I11 64KiB 초과 manifest 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 115번 결과 | PASS |
+| read-116 I18 fallback media symlink 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 116번 결과 | PASS |
+| read-117 I09 fallback media 크기 불일치 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 117번 결과 | PASS |
+| read-118 I19 fallback 교체 뒤 기존 fd byte 유지 | 등록된 read 회귀 명령 exit0; read.log 원출력 118번 결과 | PASS |
+| read-119 I17 다른 채널 fallback ID 충돌도 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 119번 결과 | PASS |
+| read-120 I03 기존 숫자형 channel ID 유지 | 등록된 read 회귀 명령 exit0; read.log 원출력 120번 결과 | PASS |
+| read-121 I08/I17 삭제 완료 ID의 fallback 재사용 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 121번 결과 | PASS |
+| read-122 I20 closed Range 시작과 길이 | 등록된 read 회귀 명령 exit0; read.log 원출력 122번 결과 | PASS |
+| read-123 I26 열린 gate 신규 요청 admission | 등록된 read 회귀 명령 exit0; read.log 원출력 123번 결과 | PASS |
+| read-124 I26 닫힌 gate 신규 요청 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 124번 결과 | PASS |
+| read-125 I26 active flight 이전 drain 완료 금지 | 등록된 read 회귀 명령 exit0; read.log 원출력 125번 결과 | PASS |
+| read-126 I26 마지막 flight 해제 뒤 drain 완료 | 등록된 read 회귀 명령 exit0; read.log 원출력 126번 결과 | PASS |
+| read-127 I26 활성 socket shutdown 확인 | 등록된 read 회귀 명령 exit0; read.log 원출력 127번 결과 | PASS |
+| read-128 I25 동시 삭제 경쟁 0 | 등록된 read 회귀 명령 exit0; read.log 원출력 128번 결과 | PASS |
+| read-129 I26 경쟁 뒤 fd 반환 0 | 등록된 read 회귀 명령 exit0; read.log 원출력 129번 결과 | PASS |
+| read-130 I25 동시 삭제 경쟁 1 | 등록된 read 회귀 명령 exit0; read.log 원출력 130번 결과 | PASS |
+| read-131 I26 경쟁 뒤 fd 반환 1 | 등록된 read 회귀 명령 exit0; read.log 원출력 131번 결과 | PASS |
+| read-132 I25 동시 삭제 경쟁 2 | 등록된 read 회귀 명령 exit0; read.log 원출력 132번 결과 | PASS |
+| read-133 I26 경쟁 뒤 fd 반환 2 | 등록된 read 회귀 명령 exit0; read.log 원출력 133번 결과 | PASS |
+| read-134 I25 동시 삭제 경쟁 3 | 등록된 read 회귀 명령 exit0; read.log 원출력 134번 결과 | PASS |
+| read-135 I26 경쟁 뒤 fd 반환 3 | 등록된 read 회귀 명령 exit0; read.log 원출력 135번 결과 | PASS |
+| read-136 I25 동시 삭제 경쟁 4 | 등록된 read 회귀 명령 exit0; read.log 원출력 136번 결과 | PASS |
+| read-137 I26 경쟁 뒤 fd 반환 4 | 등록된 read 회귀 명령 exit0; read.log 원출력 137번 결과 | PASS |
+| read-138 I25 동시 삭제 경쟁 5 | 등록된 read 회귀 명령 exit0; read.log 원출력 138번 결과 | PASS |
+| read-139 I26 경쟁 뒤 fd 반환 5 | 등록된 read 회귀 명령 exit0; read.log 원출력 139번 결과 | PASS |
+| read-140 I25 동시 삭제 경쟁 6 | 등록된 read 회귀 명령 exit0; read.log 원출력 140번 결과 | PASS |
+| read-141 I26 경쟁 뒤 fd 반환 6 | 등록된 read 회귀 명령 exit0; read.log 원출력 141번 결과 | PASS |
+| read-142 I25 동시 삭제 경쟁 7 | 등록된 read 회귀 명령 exit0; read.log 원출력 142번 결과 | PASS |
+| read-143 I26 경쟁 뒤 fd 반환 7 | 등록된 read 회귀 명령 exit0; read.log 원출력 143번 결과 | PASS |
+| read-144 I25 동시 삭제 경쟁 8 | 등록된 read 회귀 명령 exit0; read.log 원출력 144번 결과 | PASS |
+| read-145 I26 경쟁 뒤 fd 반환 8 | 등록된 read 회귀 명령 exit0; read.log 원출력 145번 결과 | PASS |
+| read-146 I25 동시 삭제 경쟁 9 | 등록된 read 회귀 명령 exit0; read.log 원출력 146번 결과 | PASS |
+| read-147 I26 경쟁 뒤 fd 반환 9 | 등록된 read 회귀 명령 exit0; read.log 원출력 147번 결과 | PASS |
+| read-148 I25 동시 삭제 경쟁 10 | 등록된 read 회귀 명령 exit0; read.log 원출력 148번 결과 | PASS |
+| read-149 I26 경쟁 뒤 fd 반환 10 | 등록된 read 회귀 명령 exit0; read.log 원출력 149번 결과 | PASS |
+| read-150 I25 동시 삭제 경쟁 11 | 등록된 read 회귀 명령 exit0; read.log 원출력 150번 결과 | PASS |
+| read-151 I26 경쟁 뒤 fd 반환 11 | 등록된 read 회귀 명령 exit0; read.log 원출력 151번 결과 | PASS |
+| read-152 I25 동시 삭제 경쟁 12 | 등록된 read 회귀 명령 exit0; read.log 원출력 152번 결과 | PASS |
+| read-153 I26 경쟁 뒤 fd 반환 12 | 등록된 read 회귀 명령 exit0; read.log 원출력 153번 결과 | PASS |
+| read-154 I25 동시 삭제 경쟁 13 | 등록된 read 회귀 명령 exit0; read.log 원출력 154번 결과 | PASS |
+| read-155 I26 경쟁 뒤 fd 반환 13 | 등록된 read 회귀 명령 exit0; read.log 원출력 155번 결과 | PASS |
+| read-156 I25 동시 삭제 경쟁 14 | 등록된 read 회귀 명령 exit0; read.log 원출력 156번 결과 | PASS |
+| read-157 I26 경쟁 뒤 fd 반환 14 | 등록된 read 회귀 명령 exit0; read.log 원출력 157번 결과 | PASS |
+| read-158 I25 동시 삭제 경쟁 15 | 등록된 read 회귀 명령 exit0; read.log 원출력 158번 결과 | PASS |
+| read-159 I26 경쟁 뒤 fd 반환 15 | 등록된 read 회귀 명령 exit0; read.log 원출력 159번 결과 | PASS |
+| read-160 I08 Writing lifecycle 재생 불가 | 등록된 read 회귀 명령 exit0; read.log 원출력 160번 결과 | PASS |
+| read-161 I08 Writing finalize 등록 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 161번 결과 | PASS |
+| read-162 I08 Writing 실제 파일 존재해도 media 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 162번 결과 | PASS |
+| read-163 I08 Writing timeline 재생 노출 없음 | 등록된 read 회귀 명령 exit0; read.log 원출력 163번 결과 | PASS |
+| read-164 I08 Corrupt 실제 catalog 전이 | 등록된 read 회귀 명령 exit0; read.log 원출력 164번 결과 | PASS |
+| read-165 I08 Corrupt 실제 파일 존재해도 media 거부 | 등록된 read 회귀 명령 exit0; read.log 원출력 165번 결과 | PASS |
+| read-166 I08 Corrupt timeline 불가 상태 | 등록된 read 회귀 명령 exit0; read.log 원출력 166번 결과 | PASS |
+| read-167 read-model 임시 root 삭제 확인: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.QROjiz | 등록된 read 회귀 명령 exit0; read.log 원출력 167번 결과 | PASS |
+| location-1 LOC01 exact media location preserves identity and mapping | 등록된 location 회귀 명령 exit0; location.log 원출력 1번 결과 | PASS |
+| location-2 LOC02 unknown UTC does not discard exact media location | 등록된 location 회귀 명령 exit0; location.log 원출력 2번 결과 | PASS |
+| location-3 LOC03 UTC point returns both overlapping files | 등록된 location 회귀 명령 exit0; location.log 원출력 3번 결과 | PASS |
+| location-4 LOC04 UTC point preserves separate mappings in one file | 등록된 location 회귀 명령 exit0; location.log 원출력 4번 결과 | PASS |
+| location-5 LOC05 point lookup uses half-open bounds | 등록된 location 회귀 명령 exit0; location.log 원출력 5번 결과 | PASS |
+| location-6 LOC06 unknown mapping never extrapolates UTC | 등록된 location 회귀 명령 exit0; location.log 원출력 6번 결과 | PASS |
+| location-7 LOC07 known candidates coexist with unknown coverage | 등록된 location 회귀 명령 exit0; location.log 원출력 7번 결과 | PASS |
+| location-8 LOC08 rational conversion preserves exact non-nanosecond PTS | 등록된 location 회귀 명령 exit0; location.log 원출력 8번 결과 | PASS |
+| location-9 LOC09 fractional PTS remains unknown without rounding | 등록된 location 회귀 명령 exit0; location.log 원출력 9번 결과 | PASS |
+| location-10 LOC10 arithmetic extremes do not overflow | 등록된 location 회귀 명령 exit0; location.log 원출력 10번 결과 | PASS |
+| location-11 LOC11 deleted exact ID is channel scoped | 등록된 location 회귀 명령 exit0; location.log 원출력 11번 결과 | PASS |
+| location-12 LOC12 invalid input is rejected without mutation | 등록된 location 회귀 명령 exit0; location.log 원출력 12번 결과 | PASS |
+| location-13 LOC13 reopened JSONL and SQLite locations are identical | 등록된 location 회귀 명령 exit0; location.log 원출력 13번 결과 | PASS |
+| location-14 LOC14 metadata resolution does not require files or alter holds | 등록된 location 회귀 명령 exit0; location.log 원출력 14번 결과 | PASS |
+| writer-1 WR01 h264 managed segments decode all frames without legacy callback or snapshot | 등록된 writer 회귀 명령 exit0; writer.log 원출력 1번 결과 | PASS |
+| writer-2 WR01 vp8 managed segments decode all frames without legacy callback or snapshot | 등록된 writer 회귀 명령 exit0; writer.log 원출력 2번 결과 | PASS |
+| writer-3 WR02 UTC-only change preserves media splits frames and independent mapping | 등록된 writer 회귀 명령 exit0; writer.log 원출력 3번 결과 | PASS |
+| writer-4 WR03 UTC-only change preserves media splits frames and independent mapping | 등록된 writer 회귀 명령 exit0; writer.log 원출력 4번 결과 | PASS |
+| writer-5 WR04 UTC-only change preserves media splits frames and independent mapping | 등록된 writer 회귀 명령 exit0; writer.log 원출력 5번 결과 | PASS |
+| writer-6 WR05 duplicate PTS with advancing DTS preserves media and unknown mapping | 등록된 writer 회귀 명령 exit0; writer.log 원출력 6번 결과 | PASS |
+| writer-7 WR06 explicit generation reset creates a new media epoch | 등록된 writer 회귀 명령 exit0; writer.log 원출력 7번 결과 | PASS |
+| writer-8 WR07 repeated observations and processing UTC do not duplicate media | 등록된 writer 회귀 명령 exit0; writer.log 원출력 8번 결과 | PASS |
+| writer-9 WR08 missing final duration preserves media with unknown end | 등록된 writer 회귀 명령 exit0; writer.log 원출력 9번 결과 | PASS |
+| writer-10 WR09 mapping budget retains bounded unknown tail and all frames | 등록된 writer 회귀 명령 exit0; writer.log 원출력 10번 결과 | PASS |
+| writer-11 WR01 invalid binding rejects before writes journal | 등록된 writer 회귀 명령 exit0; writer.log 원출력 11번 결과 | PASS |
+| writer-12 WR01 invalid binding rejects before writes catalog | 등록된 writer 회귀 명령 exit0; writer.log 원출력 12번 결과 | PASS |
+| writer-13 WR01 invalid binding rejects before writes root | 등록된 writer 회귀 명령 exit0; writer.log 원출력 13번 결과 | PASS |
+| writer-14 WR01 invalid binding rejects before writes store | 등록된 writer 회귀 명령 exit0; writer.log 원출력 14번 결과 | PASS |
+| writer-15 WR01 invalid binding rejects before writes lease | 등록된 writer 회귀 명령 exit0; writer.log 원출력 15번 결과 | PASS |
+| writer-16 WR01 invalid binding rejects before writes incomplete | 등록된 writer 회귀 명령 exit0; writer.log 원출력 16번 결과 | PASS |
+| writer-17 WR08 clock process change preserves same-generation media with unknown comparison | 등록된 writer 회귀 명령 exit0; writer.log 원출력 17번 결과 | PASS |
+| writer-18 WR08 invalid duration leaves unknown end zero | 등록된 writer 회귀 명령 exit0; writer.log 원출력 18번 결과 | PASS |
+| writer-19 WR08 invalid duration leaves unknown end overflow | 등록된 writer 회귀 명령 exit0; writer.log 원출력 19번 결과 | PASS |
+| writer-20 WR08 unsafe original input cannot become finalized observation | 등록된 writer 회귀 명령 exit0; writer.log 원출력 20번 결과 | PASS |
+| writer-21 WR08 unsafe original input cannot become finalized pts | 등록된 writer 회귀 명령 exit0; writer.log 원출력 21번 결과 | PASS |
+| writer-22 WR08 unsafe original input cannot become finalized range | 등록된 writer 회귀 명령 exit0; writer.log 원출력 22번 결과 | PASS |
+| writer-23 WR07 older generation cache cannot switch media backwards | 등록된 writer 회귀 명령 exit0; writer.log 원출력 23번 결과 | PASS |
+| writer-24 WR07 unrelated video track cannot change selected track identity | 등록된 writer 회귀 명령 exit0; writer.log 원출력 24번 결과 | PASS |
+| writer-25 WR06 reopened store allocates fresh IDs and increasing durable order | 등록된 writer 회귀 명령 exit0; writer.log 원출력 25번 결과 | PASS |
+| writer-26 WR05 actual H264 reordering preserves decode timestamps and mux origin | 등록된 writer 회귀 명령 exit0; writer.log 원출력 26번 결과 | PASS |
+| writer-27 WR05 reordered segment end covers maximum presented frame end | 등록된 writer 회귀 명령 exit0; writer.log 원출력 27번 결과 | PASS |
+| writer-28 WR08 missing maximum PTS frame duration keeps reordered end unknown | 등록된 writer 회귀 명령 exit0; writer.log 원출력 28번 결과 | PASS |
+| writer-29 WR09 failed active commit preserves ready order and quota reservation | 등록된 writer 회귀 명령 exit0; writer.log 원출력 29번 결과 | PASS |
+| writer-30 WR09 restart recovers the same durable segment and all frames | 등록된 writer 회귀 명령 exit0; writer.log 원출력 30번 결과 | PASS |
+| writer-31 WR08 excessive clock width preserves media as unknown | 등록된 writer 회귀 명령 exit0; writer.log 원출력 31번 결과 | PASS |
+| writer-32 WR08 zero generation order cannot become finalized | 등록된 writer 회귀 명령 exit0; writer.log 원출력 32번 결과 | PASS |
+| writer-33 WR08 media observation quality normal | 등록된 writer 회귀 명령 exit0; writer.log 원출력 33번 결과 | PASS |
+| writer-34 WR08 media observation quality fast | 등록된 writer 회귀 명령 exit0; writer.log 원출력 34번 결과 | PASS |
+| writer-35 WR08 media observation quality drift | 등록된 writer 회귀 명령 exit0; writer.log 원출력 35번 결과 | PASS |
+| writer-36 WR08 media observation quality fast-step | 등록된 writer 회귀 명령 exit0; writer.log 원출력 36번 결과 | PASS |
+| writer-37 WR01 actual appsink observation flows through managed writer and decode | 등록된 writer 회귀 명령 exit0; writer.log 원출력 37번 결과 | PASS |
+| finalize-1 ready partial recovers original segment ID | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 1번 결과 | PASS |
+| finalize-2 FR02 interrupted publish converges: final only | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 2번 결과 | PASS |
+| finalize-3 FR02 repeated recovery no duplicate mutation | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 3번 결과 | PASS |
+| finalize-4 FR02 interrupted publish converges: owned two links | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 4번 결과 | PASS |
+| finalize-5 FR02 repeated recovery no duplicate mutation | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 5번 결과 | PASS |
+| finalize-6 FR03 catalog commit before cleanup does not append or replace | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 6번 결과 | PASS |
+| finalize-7 FR04 invalid version preserves original without publication | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 7번 결과 | PASS |
+| finalize-8 FR04 invalid duplicate preserves original without publication | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 8번 결과 | PASS |
+| finalize-9 FR04 invalid nonce preserves original without publication | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 9번 결과 | PASS |
+| finalize-10 FR04 invalid escape preserves original without publication | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 10번 결과 | PASS |
+| finalize-11 FR04 invalid identity preserves original without publication | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 11번 결과 | PASS |
+| finalize-12 FR05 symlink ticket rejected and external target untouched | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 12번 결과 | PASS |
+| finalize-13 FR05 foreign hardlink rejected without unlink | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 13번 결과 | PASS |
+| finalize-14 FR05 actual unreadable ticket preserves media | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 14번 결과 | PASS |
+| finalize-15 FR06 corrupt unknown isolated in place without finalized mutation | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 15번 결과 | PASS |
+| finalize-16 FR06 repeated corruption recovery converges without resurrection | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 16번 결과 | PASS |
+| finalize-17 FR07 pending takes precedence over ready publication | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 17번 결과 | PASS |
+| finalize-18 FR07 deleted takes precedence over ready publication | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 18번 결과 | PASS |
+| finalize-19 FR07 conflict takes precedence over ready publication | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 19번 결과 | PASS |
+| finalize-20 FR08 orphan not inferred and legacy owned partial cleaned | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 20번 결과 | PASS |
+| finalize-21 S10-M08 catalog startup preserves V2 ready and cleanup marker partial | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 21번 결과 | PASS |
+| finalize-22 S10-M08 V2 ready recovers exact metadata partial | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 22번 결과 | PASS |
+| finalize-23 S10-M08 V2 journal restart and repeated recovery partial | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 23번 결과 | PASS |
+| finalize-24 S10-M08 catalog startup preserves V2 ready and cleanup marker two-links | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 24번 결과 | PASS |
+| finalize-25 S10-M08 V2 ready recovers exact metadata two-links | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 25번 결과 | PASS |
+| finalize-26 S10-M08 V2 journal restart and repeated recovery two-links | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 26번 결과 | PASS |
+| finalize-27 S10-M08 catalog startup preserves V2 ready and cleanup marker final | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 27번 결과 | PASS |
+| finalize-28 S10-M08 V2 ready recovers exact metadata final | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 28번 결과 | PASS |
+| finalize-29 S10-M08 V2 journal restart and repeated recovery final | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 29번 결과 | PASS |
+| finalize-30 S10-M08 catalog startup preserves V2 ready and cleanup marker committed | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 30번 결과 | PASS |
+| finalize-31 S10-M08 V2 ready recovers exact metadata committed | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 31번 결과 | PASS |
+| finalize-32 S10-M08 V2 journal restart and repeated recovery committed | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 32번 결과 | PASS |
+| finalize-33 S10-M08 V2 ready writer preserves versioned envelope | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 33번 결과 | PASS |
+| finalize-34 S10-M09 V2 ready refusal preserves originals missing-order | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 34번 결과 | PASS |
+| finalize-35 S10-M09 V2 ready refusal preserves originals wrong-tuple | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 35번 결과 | PASS |
+| finalize-36 S10-M09 V2 ready refusal preserves originals optout | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 36번 결과 | PASS |
+| finalize-37 S10-M09 V2 ready refusal preserves originals deleted | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 37번 결과 | PASS |
+| finalize-38 S10-M09 V2 ready refusal preserves originals mapping | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 38번 결과 | PASS |
+| finalize-39 S10-M09 V2 ready refusal preserves originals path | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 39번 결과 | PASS |
+| finalize-40 S10-M09 V2 ready refusal preserves originals version | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 40번 결과 | PASS |
+| finalize-41 S10-M09 V2 ready refusal preserves originals event | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 41번 결과 | PASS |
+| finalize-42 S10-M09 V2 ready refusal preserves originals corrupt-pair | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 42번 결과 | PASS |
+| finalize-43 S10-M09 V2 ready refusal preserves originals foreign-link | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 43번 결과 | PASS |
+| finalize-44 S10-M09 V2 ready writer rejects mixed-id | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 44번 결과 | PASS |
+| finalize-45 S10-M09 V2 ready writer rejects mixed-size | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 45번 결과 | PASS |
+| finalize-46 S10-M09 V2 ready writer rejects mixed-source | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 46번 결과 | PASS |
+| finalize-47 S10-M09 V2 ready writer rejects mixed-time | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 47번 결과 | PASS |
+| finalize-48 S10-M09 V2 ready writer rejects event | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 48번 결과 | PASS |
+| finalize-49 S10-M09 V2 ready writer rejects oversize | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 49번 결과 | PASS |
+| finalize-50 S10-M09 V2 direct publish requires catalog | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 50번 결과 | PASS |
+| finalize-51 S10-M09 V1 inspector still rejects two links | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 51번 결과 | PASS |
+| finalize-52 S10-M09 V2 direct clear preserves uncommitted ticket and marker | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 52번 결과 | PASS |
+| finalize-53 S10-WR09 active ready validates publishes commits and clears exact ticket | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 53번 결과 | PASS |
+| finalize-54 S10-WR09 active ready refusal preserves originals changed-ticket | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 54번 결과 | PASS |
+| finalize-55 S10-WR09 active ready refusal preserves originals missing-order | 등록된 finalize 회귀 명령 exit0; finalize.log 원출력 55번 결과 | PASS |
+| 제품 build | `./server.sh build` exit0; media_server 실행 파일 생성 | PASS |
+
+
+문서 검증: `git diff --check` exit0; `./server.sh verify-docs-links` exit0,
+문서234개·로컬 링크1148개·이미지22개·anchor108개·실패0. 이미지/실제 UI 시각 PASS는 아니다.
+
+#### 3B 정리 결과
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| `/private/tmp/media-server-retention-v2.WoQqlp` | 격리 fixture·바이너리 | 2982522B | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-retention-v2.00cqXn` | 격리 fixture·바이너리 | 3106152B | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-retention-v2.F0IuaP` | 격리 fixture·바이너리 | 3106152B | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-retention-v2.WLx7rS` | 격리 fixture·바이너리 | 6198827B | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-retention-v2.XM7aL9` | 격리 fixture·바이너리 | 6236250B | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
+| `/tmp/media_server_v410_recording_catalog-56614` | 격리 fixture·바이너리 | 24074238B | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
+| `/tmp/media_server_v410_recording_retention-56736` | 격리 fixture·바이너리 | 2802380B | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
+| `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-location.9DXxFv` | 격리 fixture·바이너리 | 2687071B | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.lucUEt` | 격리 fixture·바이너리 | 9274383B | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
+| `/private/tmp/media-server-finalize-5gZkeh` | 격리 fixture·바이너리 | 4313777B | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.QROjiz` | 격리 fixture·바이너리 | 3052KiB(du -sk) | 해당 runner cleanup | 삭제 확인; 메인 lstat 재확인 | 해당 원출력 cleanup |
+| `.media_server.test/s10-3b/`의 원출력5개 | 임시 로그 | 9,588B | focused.log로 이관 후 삭제 | 삭제 확인 | 원출력 전수·실패/cleanup 보존 |
+| `docs/release-artifacts/v4.1.0/s10-retention-playback/` | 로그8개·hash1개 | 46,948B | 보존 | 재현·최초 실패·회귀 근거 | 원출력 정규화/비민감 확인 |
+| `build-gst-onnx/` | 기존 빌드 캐시·실행 파일 | 전체 재집계 안 함 | 보존 | 사용자 기존 개발 빌드 경로; 신규 임시root 아님 | build.log·실행파일 hash |
+
+모든 검증 프로세스는 종료(exit 확인)했으며 자체 생성 fixture만 사용했다. 외부 서버·포트를 열지 않았다.
+원출력 보존 뒤 임시 로그5개만 삭제하고 다른 `.media_server.test`/S09 산출물은 건드리지 않았다.
+
+
 ## S10 후속 3A 내부 위치 해석 — 실행 전 정의
 
 독자는 구현·검증 담당자이며 정책은 AGENTS, 설계는 S10 명세/구현 계획을 따른다.

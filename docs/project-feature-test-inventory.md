@@ -1,5 +1,33 @@
 # Project Feature Test Inventory
 
+## S10 후속 3B 보존·재생 보호
+
+| 기능 ID | 동작·PASS 기준 | 안정화 테스트 | 30분 테스트 | 120분 테스트 | UI 테스트 | UI 존재 |
+| --- | --- | --- | --- | --- | --- | --- |
+| S10-B01 | UTC 조작 없는 삭제 표식: V2 불변 segment의 직렬화·파싱 원문 일치, V1 UTC range 혼입 없음 | 보존·재생 focused | S11 최종 판정 | 녹화 수명 변경: S11 범위 확정 후 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-B02 | 상태 원장 엄격성: 잘못된 payload/entity/충돌 중복 거부 및 원문 보존 | 보존·재생 focused | S11 최종 판정 | 녹화 수명 변경: S11 범위 확정 후 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-B03 | 불변 metadata와 상태 분리: pending/corrupt/deleted 전이 후 원본 finalized payload 불변 | 보존·재생 focused | S11 최종 판정 | 녹화 수명 변경: S11 범위 확정 후 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-B04 | 부활 차단: 잘못된 전이·finalize 재시도로 정상 상태 복원 금지 | 보존·재생 focused | S11 최종 판정 | 녹화 수명 변경: S11 범위 확정 후 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-B05 | 체크포인트·재시작: overlay/tombstone·SQLite/JSONL 동일 상태 복원 | 보존·재생 focused | S11 최종 판정 | 녹화 수명 변경: S11 범위 확정 후 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-B06 | 영속 용량 삭제 순서: UTC 후퇴에도 order_sequence 순 삭제 | 보존·재생 focused | S11 최종 판정 | 녹화 수명 변경: S11 범위 확정 후 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-B07 | 혼재 순서 명시: legacy/여러 store는 결정적 별도 순서, 실제 시간 순서 주장 금지 | 보존·재생 focused | S11 최종 판정 | 녹화 수명 변경: S11 범위 확정 후 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-B08 | 보수적 기간 만료: 모든 known 매핑의 끝+uncertainty 최댓값을 ms 상향 변환 | 보존·재생 focused | S11 최종 판정 | 녹화 수명 변경: S11 범위 확정 후 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-B09 | 기간 미확정 분리: unknown/overflow이면 age 불가·capacity 가능 | 보존·재생 focused | S11 최종 판정 | 녹화 수명 변경: S11 범위 확정 후 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-B10 | 등급·reserve 분리: continuous/event quota와 disk reserve 경계 유지 | 보존·재생 focused | S11 최종 판정 | 녹화 수명 변경: S11 범위 확정 후 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-B11 | pin·hold 보호: 보호된 ID 삭제/손상 전이 거부 | 보존·재생 focused | S11 최종 판정 | 녹화 수명 변경: S11 범위 확정 후 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-B12 | 상태별 용량 계수: pending/corrupt byte 집계 유지·자동 삭제 제외 | 보존·재생 focused | S11 최종 판정 | 녹화 수명 변경: S11 범위 확정 후 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-B13 | 내구 삭제 순서: pending fsync 후 unlink, unlink 후 tombstone | 보존·재생 focused | S11 최종 판정 | 녹화 수명 변경: S11 범위 확정 후 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-B14 | 중단 삭제 복구: pending 재시작·missing file 재시도 후 부활 없음 | 보존·재생 focused | S11 최종 판정 | 녹화 수명 변경: S11 범위 확정 후 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-B15 | 손상 수동 정리: corrupt는 explicit manual-corrupt-cleanup만 허용 | 보존·재생 focused | S11 최종 판정 | 녹화 수명 변경: S11 범위 확정 후 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-B16 | UTC unknown 파일 재생: 정상 continuous 파일 fd 제공 및 실제 hold 확인 | 보존·재생 focused | S11 최종 판정 | 녹화 수명 변경: S11 범위 확정 후 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-B17 | 재생 identity 경계: wrong channel/event provenance 부재/fallback 충돌 거부 | 보존·재생 focused | S11 최종 판정 | 녹화 수명 변경: S11 범위 확정 후 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-B18 | 경로·누락 거부: missing/symlink/hardlink 재생 거부와 hold 반환 | 보존·재생 focused | S11 최종 판정 | 녹화 수명 변경: S11 범위 확정 후 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-B19 | 동일 크기 손상 검출: SHA 불일치·컨테이너 오류 거부와 hold 반환 | 보존·재생 focused | S11 최종 판정 | 녹화 수명 변경: S11 범위 확정 후 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-B20 | 삭제·재생 경쟁: 한쪽만 안전하게 성공, fd 종료 뒤 hold 반환 | 보존·재생 focused | S11 최종 판정 | 녹화 수명 변경: S11 범위 확정 후 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-B21 | borrowed fd 검사: caller 소유권 유지·검사 전후 파일 변화 감지 | 보존·재생 focused | S11 최종 판정 | 녹화 수명 변경: S11 범위 확정 후 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-B22 | GST 미지원 경계: GStreamer 없는 build는 새 재생 Unavailable | 보존·재생 focused | S11 최종 판정 | 녹화 수명 변경: S11 범위 확정 후 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-B23 | 기존 저장 port 경계: V2 삭제 미지원 port는 명시 거부 | 보존·재생 focused | S11 최종 판정 | 녹화 수명 변경: S11 범위 확정 후 | 이번 비대상 | 비대상: 신규 UI 없음 |
+
 ## S10 후속 3A 내부 위치 해석
 
 | 기능 ID | 동작·PASS 기준 | 안정화 테스트 | 30분 테스트 | 120분 테스트 | UI 테스트 | UI 존재 |

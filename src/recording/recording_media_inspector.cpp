@@ -285,6 +285,30 @@ MediaInspectionResult InspectRecordingPhysicalMedia(const std::filesystem::path&
     return Unavailable("gstreamer-unavailable");
 #endif
 }
+MediaInspectionResult InspectRecordingPhysicalMediaFd(int fd,const RecordingMediaDescriptor& descriptor,MediaInspectionOptions options) {
+#if MEDIA_SERVER_USE_GSTREAMER
+    if(options.budget.count()<=0 || options.budget>std::chrono::minutes(1)) return Unavailable("timeout");
+    const auto deadline=Clock::now()+options.budget;
+    Binding binding;
+    binding.file_fd=Fd(::fcntl(fd,F_DUPFD_CLOEXEC,0));
+    struct stat caller_before{},caller_after{},duplicate_after{};
+    if(binding.file_fd.value<0 || ::fstat(fd,&caller_before)!=0 ||
+       ::fstat(binding.file_fd.value,&binding.file_stat)!=0 ||
+       !S_ISREG(binding.file_stat.st_mode) || binding.file_stat.st_nlink!=1 ||
+       binding.file_stat.st_size<0 || !Stable(caller_before,binding.file_stat))
+        return Unavailable("unsafe-or-unavailable-fd");
+    // SHA와 demux 모두 이 복제 FD의 pread를 사용하며 caller의 offset을 바꾸지 않는다.
+    auto result=Inspect(binding,descriptor,deadline);
+    if(::fstat(fd,&caller_after)!=0 || ::fstat(binding.file_fd.value,&duplicate_after)!=0 ||
+       !Stable(caller_before,caller_after) || !Stable(binding.file_stat,duplicate_after))
+        return Unavailable("file-changed");
+    if(Clock::now()>=deadline) return Unavailable("timeout");
+    return result;
+#else
+    (void)fd; (void)descriptor; (void)options;
+    return Unavailable("gstreamer-unavailable");
+#endif
+}
 MediaInspectionResult InspectRecordingPhysicalMediaPair(const std::filesystem::path& root,
     const std::filesystem::path& first,const std::filesystem::path& second,
     const RecordingMediaDescriptor& descriptor,MediaInspectionOptions options) {

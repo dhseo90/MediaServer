@@ -27,6 +27,9 @@ struct RecordingMediaDescriptor {
 MediaInspectionResult InspectRecordingPhysicalMedia(const std::filesystem::path& root,
     const std::filesystem::path& relative, const RecordingMediaDescriptor& descriptor,
     MediaInspectionOptions options = {});
+// caller FD의 소유권과 읽기 위치를 유지한다.
+MediaInspectionResult InspectRecordingPhysicalMediaFd(int fd,const RecordingMediaDescriptor& descriptor,
+    MediaInspectionOptions options = {});
 // 정확히 같은 디렉터리의 서로 다른 두 이름만 허용한다. 일반 검사 nlink=1은 유지한다.
 MediaInspectionResult InspectRecordingPhysicalMediaPair(const std::filesystem::path& root,
     const std::filesystem::path& first, const std::filesystem::path& second,

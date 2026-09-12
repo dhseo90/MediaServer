@@ -77,6 +77,24 @@ bool ValidateRecordingSegmentV2(const RecordingSegmentV2& value, std::string* er
 std::string SerializeRecordingSegmentV2(const RecordingSegmentV2& value);
 bool ParseRecordingSegmentV2(const std::string& json, RecordingSegmentV2* value, std::string* error);
 
+struct RecordingTombstoneV2 {
+    std::string schema{"media-server.recording-tombstone.v2"};
+    std::string tombstone_id;
+    RecordingSegmentV2 segment;
+    std::string deletion_reason;
+    std::int64_t deleted_at_ms{0};
+};
+struct RecordingSegmentStateV2 {
+    std::string schema{"media-server.recording-segment-state.v2"};
+    std::string segment_id;
+    RecordingLifecycle lifecycle{RecordingLifecycle::Unknown};
+    std::string reason;
+};
+std::string SerializeRecordingTombstoneV2(const RecordingTombstoneV2& value);
+bool ParseRecordingTombstoneV2(const std::string& json, RecordingTombstoneV2* value, std::string* error);
+std::string SerializeRecordingSegmentStateV2(const RecordingSegmentStateV2& value);
+bool ParseRecordingSegmentStateV2(const std::string& json, RecordingSegmentStateV2* value, std::string* error);
+
 struct FrameLocatorV1 {
     std::string schema{"media-server.frame-locator.v1"};
     std::string segment_id;

@@ -31,6 +31,14 @@ struct RetentionCandidate {
     std::filesystem::path media_path;
     std::uint64_t hold_count{0};
     std::string deletion_reason;
+    std::optional<RecordingSegmentV2> segment_v2{};
+    RecordingLifecycle effective_lifecycle{RecordingLifecycle::Unknown};
+    const std::string& Id() const {return segment_v2?segment_v2->segment_id:segment.segment_id;}
+    const std::string& Channel() const {return segment_v2?segment_v2->channel_id:segment.channel_id;}
+    std::uint64_t Size() const {return segment_v2?segment_v2->size_bytes:segment.size_bytes;}
+    RecordingRetentionClass Class() const {return segment_v2?segment_v2->retention_class:segment.retention_class;}
+    RecordingLifecycle Lifecycle() const {return segment_v2?effective_lifecycle:segment.lifecycle;}
+    bool Pinned() const {return segment_v2?segment_v2->pinned:segment.pinned;}
 };
 
 struct RetentionSnapshot {

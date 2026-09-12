@@ -1,5 +1,6 @@
 // 파일 용도: 운영 timeline의 조회 전용 투영.
 #include "recording/recording_read_service.h"
+#include "recording/recording_media_inspector.h"
 #include <algorithm>
 #include <charconv>
 #include <cerrno>
@@ -133,19 +134,42 @@ std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveMedia(
     const std::string& channel_id, const std::string& segment_id) const {
     if (!ValidateOpaqueId(segment_id, nullptr)) return {};
     const auto segment = catalog_.FindSegmentById(segment_id);
+    const auto segment_v2 = catalog_.FindSegmentV2ById(segment_id);
     const auto links = AllLinks(catalog_);
     const EventRecordingLinkV1* fallback = nullptr;
     const EventRecordingLinkV1* derived = nullptr;
     for (const auto& link : links) {
         if (link.fallback_evidence_id == segment_id) {
             // segment 스냅샷 뒤 tombstone 확인: 두 조회 사이 삭제 완료도 재사용하지 않는다.
-            if (fallback || segment || catalog_.IsDeletedSegmentId(segment_id)) return {};
+            if (fallback || segment || segment_v2 || catalog_.IsDeletedSegmentId(segment_id)) return {};
             fallback = &link;
         }
         if (link.derived_segment_id == segment_id) {
             if (derived) return {};
             derived = &link;
         }
+    }
+    if(segment_v2) {
+        if(derived||fallback||segment_v2->channel_id!=channel_id||
+           segment_v2->retention_class!=RecordingRetentionClass::Continuous||
+           catalog_.SegmentLifecycleV2(segment_id)!=RecordingLifecycle::Finalized)return {};
+        auto media=std::unique_ptr<ResolvedRecordingMedia>(new ResolvedRecordingMedia);
+        std::string error;
+        if(!catalog_.AdjustHoldCount(segment_id,1,&error))return {};
+        media->catalog_=&catalog_;media->segment_id_=segment_id;
+        const auto location=catalog_.FindSegmentMediaLocation(segment_id);
+        if(!location)return {};
+        media->fd_=OpenMedia(location->first,location->second);
+        const auto inspected=InspectRecordingPhysicalMediaFd(media->fd_,{
+            segment_v2->container,segment_v2->video_codecs,segment_v2->size_bytes,
+            segment_v2->checksum_sha256,segment_v2->retention_class});
+        if(inspected.state!=MediaInspectionState::Healthy)return {};
+        media->size_bytes_=segment_v2->size_bytes;
+        if(segment_v2->container=="mp4")media->content_type_="video/mp4";
+        else if(segment_v2->container=="webm")media->content_type_="video/webm";
+        else if(segment_v2->container=="mpegts"||segment_v2->container=="ts")media->content_type_="video/mp2t";
+        else return {};
+        return media;
     }
     if (fallback) {
         if (derived || fallback->channel_id != channel_id || !fallback->fallback_media_locator) return {};

@@ -22,6 +22,8 @@ enum class RecordingMutationType {
     CorruptionDetected,
     RecordingOrderReserved,
     SegmentV2Finalized,
+    SegmentV2State,
+    SegmentV2Deleted,
     EventLinkReceipt,
     Unknown,
 };

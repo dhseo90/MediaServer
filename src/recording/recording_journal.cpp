@@ -265,6 +265,8 @@ std::string RecordingMutationTypeName(RecordingMutationType type) {
         case RecordingMutationType::CorruptionDetected: return "corruption_detected";
         case RecordingMutationType::RecordingOrderReserved: return "recording_order_reserved";
         case RecordingMutationType::SegmentV2Finalized: return "segment_v2_finalized";
+        case RecordingMutationType::SegmentV2State: return "segment_v2_state";
+        case RecordingMutationType::SegmentV2Deleted: return "segment_v2_deleted";
         case RecordingMutationType::EventLinkReceipt: return "event_link_receipt";
         case RecordingMutationType::Unknown: return "unknown";
     }
@@ -281,6 +283,8 @@ RecordingMutationType ParseRecordingMutationType(const std::string& value) {
     if (value == "corruption_detected") return RecordingMutationType::CorruptionDetected;
     if (value == "recording_order_reserved") return RecordingMutationType::RecordingOrderReserved;
     if (value == "segment_v2_finalized") return RecordingMutationType::SegmentV2Finalized;
+    if (value == "segment_v2_state") return RecordingMutationType::SegmentV2State;
+    if (value == "segment_v2_deleted") return RecordingMutationType::SegmentV2Deleted;
     if (value == "event_link_receipt") return RecordingMutationType::EventLinkReceipt;
     return RecordingMutationType::Unknown;
 }
@@ -322,6 +326,16 @@ bool ParseRecordingMutationV1(const std::string& json,
         if (reservation.request_id != *mutation_id || reservation.segment_id != *entity_id)
             return Fail(error, "recording order envelope 결박 불일치");
     }
+    if(parsed_type==RecordingMutationType::SegmentV2State) {
+        RecordingSegmentStateV2 state;
+        if(!ParseRecordingSegmentStateV2(*payload,&state,error)) return false;
+        if(state.segment_id!=*entity_id) return Fail(error,"V2 state entity 결박 불일치");
+    }
+    if(parsed_type==RecordingMutationType::SegmentV2Deleted) {
+        RecordingTombstoneV2 tombstone;
+        if(!ParseRecordingTombstoneV2(*payload,&tombstone,error)) return false;
+        if(tombstone.segment.segment_id!=*entity_id) return Fail(error,"V2 tombstone entity 결박 불일치");
+    }
     if(parsed_type==RecordingMutationType::EventLinkReceipt) {
         ingress::StrictJsonObjectDocument receipt;
         if(!ingress::ParseStrictJsonObjectDocument(*payload,&receipt,error)||receipt.members.size()!=3||
@@ -350,6 +364,8 @@ struct OrderHistoryIndex {
             ordinary_ids.insert(mutation.mutation_id);
             if ((mutation.mutation_type == RecordingMutationType::SegmentFinalized ||
                  mutation.mutation_type == RecordingMutationType::SegmentV2Finalized ||
+                 mutation.mutation_type == RecordingMutationType::SegmentV2State ||
+                 mutation.mutation_type == RecordingMutationType::SegmentV2Deleted ||
                  mutation.mutation_type == RecordingMutationType::CorruptionDetected ||
                  mutation.mutation_type == RecordingMutationType::DeletionRequested ||
                  mutation.mutation_type == RecordingMutationType::DeletionCompleted) &&
