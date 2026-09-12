@@ -1,0 +1,56 @@
+=== red.log / bash scripts/internal/verify_recording_frame_correlation.sh / exit 1 ===
+[fail] S10-C101 유일 timestamp 연관
+[summary] pass=0 fail=1
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-frame-correlation.kT4DvD bytes=176056 removed=true
+[elapsed] seconds=1 source=bash-SECONDS
+
+=== green-43159.log / bash scripts/internal/verify_recording_frame_correlation.sh / exit 0 ===
+[pass] S10-C101 유일 timestamp 연관
+[pass] S10-C102 최근접 추정 분리
+[pass] S10-C103 중복 timestamp 모호성
+[pass] S10-C104 원본 미관측
+[pass] S10-C105 출력 PTS 부재
+[pass] S10-C106 원본 PTS 부재·범위
+[pass] S10-C107 bounded 이력
+[pass] S10-C108 충돌·동일 입력 재전달
+[pass] S10-C109 세대·track 분리
+[pass] S10-C110 자체 영상 실제 decoder
+[summary] pass=10 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-frame-correlation.1DI9n1 bytes=273208 removed=true
+[elapsed] seconds=1 source=bash-SECONDS
+
+=== red-95368.log / bash scripts/internal/verify_recording_frame_correlation.sh / exit 1 ===
+command: bash scripts/internal/verify_recording_frame_correlation.sh
+exit: 1
+[pass] S10-C101 유일 timestamp 연관
+[pass] S10-C102 최근접 추정 분리
+[pass] S10-C103 중복 timestamp 모호성
+[pass] S10-C104 원본 미관측
+[pass] S10-C105 출력 PTS 부재
+[pass] S10-C106 원본 PTS 부재·범위
+[pass] S10-C107 bounded 이력
+[fail] S10-C108 충돌·동일 입력 재전달
+[pass] S10-C109 세대·track 분리
+[pass] S10-C110 자체 영상 실제 decoder
+[summary] pass=9 fail=1
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-frame-correlation.O3Q2gO bytes=273208 removed=true
+[elapsed] seconds=1 source=bash-SECONDS
+
+=== green-6809.log / bash scripts/internal/verify_recording_frame_correlation.sh / exit 0 ===
+command: bash scripts/internal/verify_recording_frame_correlation.sh
+exit: 0
+[pass] S10-C101 유일 timestamp 연관
+[pass] S10-C102 최근접 추정 분리
+[pass] S10-C103 중복 timestamp 모호성
+[pass] S10-C104 원본 미관측
+[pass] S10-C105 출력 PTS 부재
+[pass] S10-C106 원본 PTS 부재·범위
+[pass] S10-C107 bounded 이력
+[pass] S10-C108 충돌·동일 입력 재전달
+[pass] S10-C109 세대·track 분리
+[pass] S10-C110 자체 영상 실제 decoder
+[summary] pass=10 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-frame-correlation.rvoWos bytes=273176 removed=true
+[elapsed] seconds=1 source=bash-SECONDS
+git diff --check: exit 0
+token start/end/consumed: 미집계 (담당자 단위 집계 도구값 없음)

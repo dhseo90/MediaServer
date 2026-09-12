@@ -1,5 +1,199 @@
 # Release Test Records
 
+## S10 3C-1 원본·분석 연관 — 실행 전 정의
+
+독자는 구현·검증 담당자다. 기존 S10 보완 계획의 첫 단위이며 정책은 AGENTS를 따른다.
+제품 외부 payload·기존 숫자PTS·normalization·V1 저장 의미는 변경하지 않는다.
+신규 correlation은 timestamp 연관의 품질이며 decoded frame 고유성을 보장하지 않는다.
+명령: `bash scripts/internal/verify_recording_frame_correlation.sh`(신규 격리 focused).
+stub의 C101 유효 identity 보존 assertion이 예상 RED다. 컴파일·환경 오류는 예상 RED가 아니다.
+실제 decoder 검증은 자체 생성 영상만 사용한다. runtime은 제품 build 후 기존
+`bash scripts/internal/verify_v410_recording_observation_runtime.sh`에 C111/112를 추가하여 실행한다.
+실행 전 임시root·로그 보존/정리를 확인한다. 운영/외부 source·비밀번호·외부 서버를 사용하지 않는다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | decoder→analysis 내부 연관 추가 | C101~112 | 이번 개발의 관련 단기 검증 |
+| 30분 | 미진행 | 개발 중 최종 코드 미고정 | S11 | 이번 실행 없음 |
+| 120분 | 조건부 진행 | 기존 source lifecycle/transport는 불변; 전체 3C 최종 diff로 재판정 | raw_video_decoder/analysis_manager | 이번 실행 없음 |
+| UI 풀테스트 | 미진행 | 신규 화면·control 없음 | C101~112 | 이번 실행 없음 |
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-C101 유일 timestamp 연관 | 원본↔분석 연관 검사 | 단일 유효 입력의 generation/order/ordinal/track/원본 PTS 보존; 프레임 고유성 아님 | v4.1.0 |
+| S10-C102 최근접 추정 분리 | 원본↔분석 연관 검사 | 기존 숫자 PTS 선택은 유지하되 correlation은 nearest이며 확정 참조 없음 | v4.1.0 |
+| S10-C103 중복 timestamp 모호성 | 원본↔분석 연관 검사 | 동일 decoder PTS에 다른 관측이 있으면 ambiguous; 임의 최신 선택 금지 | v4.1.0 |
+| S10-C104 원본 미관측 | 원본↔분석 연관 검사 | observation 부재·빈 generation·0 order/ordinal이면 unavailable | v4.1.0 |
+| S10-C105 출력 PTS 부재 | 원본↔분석 연관 검사 | 없는 출력 timestamp를 유효 0으로 취급하지 않음 | v4.1.0 |
+| S10-C106 원본 PTS 부재·범위 | 원본↔분석 연관 검사 | 없는 원본 PTS·표현 범위 초과값은 확정 연관 불가; 유효0은 보존 | v4.1.0 |
+| S10-C107 bounded 이력 | 원본↔분석 연관 검사 | 상한 밖 과거 입력은 unavailable; 무한 증가 없음 | v4.1.0 |
+| S10-C108 충돌·동일 입력 재전달 | 원본↔분석 연관 검사 | 동일 observation 재전달과 충돌 metadata를 구분; conflicting duplicate는 모호 | v4.1.0 |
+| S10-C109 세대·track 분리 | 원본↔분석 연관 검사 | timestamp가 같아도 다른 generation/track 관측을 합치지 않음 | v4.1.0 |
+| S10-C110 자체 영상 실제 decoder | 원본↔분석 연관 검사 | 자체 생성 영상의 callback correlation과 기존 PTS·영상 frame 전달 확인 | v4.1.0 |
+| S10-C111 실제 manager 전달 | 원본↔분석 연관 검사 | SharedStream→decoder→queue→AnalysisResult의 correlation 원문 유지 | v4.1.0 |
+| S10-C112 미관측 입력 기존 동작 | 원본↔분석 연관 검사 | 원본 관측 없는 입력의 기존 영상·숫자PTS 동작 및 public payload 유지 | v4.1.0 |
+
+영향 회귀 명령: `./server.sh build`,
+`bash scripts/internal/verify_v410_recording_observation_runtime.sh`, `./server.sh verify-v410-recording-observations`.
+analysis-state는 이번 첫 단위가 Rule/Scenario/판단 로직을 변경하지 않으므로 미진행이다.
+해당 runner의 고정 임시 파일 경로를 정리하는 별도 작업도 이번 개발에 끼워 넣지 않는다.
+각 단계 원출력·개별 결과·실패 이력·cleanup을 아래에 보존한다.
+
+#### 3C-1 구현·검토 및 결과
+
+첫 단위 구현·관련 단기 검증 완료. 3C-2~5와 3C 전체는 미완료다.
+- `analysis_types.h`: 내부 OriginalSampleIdentity/SourceAssociation, RawVideoFrame·AnalysisResult 전달 필드.
+- `frame_source_association.h`: 4096개 bounded 이력의 timestamp/nearest/ambiguous/unavailable 판정.
+- `raw_video_decoder.cpp`: 기존 normalize·숫자 PTS 선택식을 유지하며 같은 잠금에서 숫자와 연관 판정.
+- `analysis_manager.cpp`: 큐로 전달된 frame의 연관을 결과로 복사. Public EventRecord metadata 비교는 실제 dispatch 결과로 확인했다.
+- 메인 diff 검토에서 두 잠금 사이 snapshot 불일치 가능성과 source_pts 충돌 누락을 확인하여 이 단위 안에서 보완했다.
+
+정확한 decoded frame 증명·writer epoch 결박·V2 observation/event 저장 연결은 이번 PASS의 범위가 아니다.
+원본 관측이 없는 입력은 unavailable이며 기존 숫자 PTS·영상 전달을 유지한다.
+기존 S09 dirty 소스가 포함된 작업 트리 빌드이며 이를 이번 변경 또는 S09 최종 PASS로 승격하지 않는다.
+
+| 명령 | exit | 직접 결과 | 증거 |
+| --- | --- | --- | --- |
+| `bash scripts/internal/verify_recording_frame_correlation.sh` | 1 → 0 → 1 → 0 | C101 stub 0/1 → 10/0 → C108 추가 검사 9/1 → 최종 10/0 | [전 실행 원출력](release-artifacts/v4.1.0/s10-frame-source-association/focused.log) |
+| `./server.sh build` | 0 | 제품 archive·실행파일 rebuild | [빌드](release-artifacts/v4.1.0/s10-frame-source-association/build.log) |
+| `bash scripts/internal/verify_v410_recording_observation_runtime.sh` | 0 | 기능15개+정리1개 PASS, C111/112 포함 | [실제 runtime](release-artifacts/v4.1.0/s10-frame-source-association/runtime.log) |
+| `./server.sh verify-v410-recording-observations` | 0 | 기능81개+정리1개 PASS | [기존 observation](release-artifacts/v4.1.0/s10-frame-source-association/obs.log) |
+
+[source/build SHA-256·OS](release-artifacts/v4.1.0/s10-frame-source-association/source.sha256).
+focused elapsed는 실행당 1초(bash SECONDS). 나머지 로그 elapsed는 호출부터 수집까지의 관측 구간이며 process 정밀 duration으로 주장하지 않는다.
+token start/end/consumed: 미집계 — 담당자·메인 단위의 실측 집계가 제공되지 않음.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| S10-C101 유일 timestamp 연관 | 단일 유효 입력의 generation/order/ordinal/track/원본 PTS 보존; 프레임 고유성 아님; focused.log exit0 | PASS | 최초 stub FAIL → PASS |
+| S10-C102 최근접 추정 분리 | 기존 숫자 PTS 선택은 유지하되 correlation은 nearest이며 확정 참조 없음; focused.log exit0 | PASS | 최종 코드 검사 |
+| S10-C103 중복 timestamp 모호성 | 동일 decoder PTS에 다른 관측이 있으면 ambiguous; 임의 최신 선택 금지; focused.log exit0 | PASS | 최종 코드 검사 |
+| S10-C104 원본 미관측 | observation 부재·빈 generation·0 order/ordinal이면 unavailable; focused.log exit0 | PASS | 최종 코드 검사 |
+| S10-C105 출력 PTS 부재 | 없는 출력 timestamp를 유효 0으로 취급하지 않음; focused.log exit0 | PASS | 최종 코드 검사 |
+| S10-C106 원본 PTS 부재·범위 | 없는 원본 PTS·표현 범위 초과값은 확정 연관 불가; 유효0은 보존; focused.log exit0 | PASS | 최종 코드 검사 |
+| S10-C107 bounded 이력 | 상한 밖 과거 입력은 unavailable; 무한 증가 없음; focused.log exit0 | PASS | 최종 코드 검사 |
+| S10-C108 충돌·동일 입력 재전달 | 동일 observation 재전달과 충돌 metadata를 구분; conflicting duplicate는 모호; focused.log exit0 | PASS | source_pts 충돌 하위 검사 FAIL → 보완 후 PASS |
+| S10-C109 세대·track 분리 | timestamp가 같아도 다른 generation/track 관측을 합치지 않음; focused.log exit0 | PASS | 최종 코드 검사 |
+| S10-C110 자체 영상 실제 decoder | 자체 생성 영상의 callback correlation과 기존 PTS·영상 frame 전달 확인; focused.log exit0 | PASS | 최종 코드 검사 |
+| S10-C111 실제 manager 전달 | SharedStream→decoder→queue→AnalysisResult의 correlation 원문 유지; runtime.log exit0 | PASS | 최종 코드 검사 |
+| S10-C112 미관측 입력 기존 동작 | 원본 관측 없는 입력의 기존 영상·숫자PTS 동작 및 public payload 유지; runtime.log exit0 | PASS | 최종 코드 검사 |
+| runtime-configured-interval | 실제 SharedStream/decoder/manager; runtime.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| runtime-status-limited-scope | 실제 SharedStream/decoder/manager; runtime.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| runtime-status-global-scope | 실제 SharedStream/decoder/manager; runtime.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| runtime-real-vp8-fixture | 실제 SharedStream/decoder/manager; runtime.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| runtime-attach | 실제 SharedStream/decoder/manager; runtime.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| runtime-observer-exception-isolation | 실제 SharedStream/decoder/manager; runtime.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| runtime-tap-lock-reentry | 실제 SharedStream/decoder/manager; runtime.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| runtime-live-fanout-unblocked | 실제 SharedStream/decoder/manager; runtime.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| runtime-captured-provenance-immutable | 실제 SharedStream/decoder/manager; runtime.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| runtime-tracking-disabled-independent | 실제 SharedStream/decoder/manager; runtime.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| runtime-built-event-record-observer | 실제 SharedStream/decoder/manager; runtime.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| runtime-tap-stop-once | 실제 SharedStream/decoder/manager; runtime.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| runtime-subscriber-cleanup | 실제 SharedStream/decoder/manager; runtime.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| runtime temporary cleanup | 실제 SharedStream/decoder/manager; runtime.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| mutation-v2 | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| null-roundtrip | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| reference-roundtrip | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| negative-created-time | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| negative-reason | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| negative-summary | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| negative-observation-range | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| negative-bbox | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| journal-open | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| catalog-open | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| null-put | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| gap-null | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| missing-provenance-null | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| segment-finalize | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| pending-resolve | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| located-roundtrip | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| negative-locator-pts | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| locator-put-reject | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| located-put | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| identity-put-reject | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| identity-restore | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| event-put | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| reasons-merge | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| missing-media-null | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| v1-roundtrip | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| deletion-request | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| deleted-null | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| sqlite-reopen | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| journal-replay | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| jsonl-parity | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| sqlite-projection | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| sqlite-payload-parity | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| sampling-journal-open | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| sampling-catalog-open | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| stop-duration | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| sampling-start | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| sampling-60s-bound | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| stop-once | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| drain-bounded | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| jobs-journal-open | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| jobs-catalog-open | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| ended-state-reuse | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| pending-unrelated-finalize | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| tracker-start | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| runtime-journal-open | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| runtime-catalog-open | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| tracker-terminated-copy | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| tracker-terminated-once | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| observer-tracker-start-event-end | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| observer-event-provenance | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| late-journal-open | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| late-catalog-open | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| delayed-event-before-latest | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| delayed-event-after-end | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| config-zero-reject | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| config-positive | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| critical-overload-visible | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| queue-cap | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| concurrent-stop | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| multi-namespace | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| bounded-id | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| storage-failure-counter | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| pending-segment-finalize | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| pending-finalize-automatic | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| ambiguous-segment-finalize | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| ambiguous-null | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| corrupt-null | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| reference-overflow-visible | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| replay-identity-open | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| replay-identity-memory | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| replay-identity-sqlite | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| 입력 전 위치 없음 | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| 수락 packet anchor | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| 동일 epoch 범위 확장 | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| 캡처된 사본 불변 | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| accepted-pts-exact-membership | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| PTS 되감기 차단 | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| 모호성 이후 추정 복원 금지 | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| epoch 변경 차단 | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| 종료 사본 차단 | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| accepted-pts-history-bound | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+| S07 temporary cleanup | 기존 catalog/projector/time snapshot; obs.log exit0 원출력 해당 행 | PASS | 기존 검증 유지 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR/media-server-frame-correlation.kT4DvD | 첫 RED 임시 binary | 176056B | runner 정리 | 삭제 확인 | focused.log |
+| TMPDIR/media-server-frame-correlation.1DI9n1 | 첫 GREEN 임시 binary | 273208B | runner 정리 | 삭제 확인 | focused.log |
+| TMPDIR/media-server-frame-correlation.O3Q2gO | C108 RED 임시 binary | 273208B | runner 정리 | 삭제 확인 | focused.log |
+| TMPDIR/media-server-frame-correlation.rvoWos | 최종 GREEN 임시 binary | 273176B | runner 정리 | 삭제 확인 | focused.log |
+| TMPDIR/media-server-s07-runtime.vNm2ik | runtime binary·격리 원장 | 5384KiB | runner 정리 | 삭제 확인 | runtime.log |
+| TMPDIR/media-server-s07.i78mWT | focused binary·격리 원장 | 3548KiB | runner 정리 | 삭제 확인 | obs.log |
+| docs/release-artifacts/v4.1.0/s10-frame-source-association/ | 비민감 최소 원출력·hash | 5개 텍스트 파일 | 보존 | 원문·실패 이력 보존 | 위 링크 |
+
+포트·외부 서비스·운영 계정 사용 없음. build-gst-onnx는 기존 제품 빌드이며 임시 정리 대상 아님.
+30분·120분·UI 전체·3D·푸시는 미실행이며 이 단위 PASS로 대체하지 않는다.
+
+추가 확인: `./server.sh verify-docs-links` exit0 — md234/links1153/images22/anchors108/failures0.
+`git diff --check` exit0. `.media_server.test/s10-3c1/`의 실행 원출력 4개(2279B)는
+redaction 확인 후 위 최소 artifact(5개/12847B)로 이관하고 apply_patch 삭제·부재를 확인했다.
+기존 S09 파일은 보존하며 이 단위 stage에서 제외한다. 커밋은 사용자 승인 범위, 푸시는 미수행이다.
+
+
+
 ## S10 후속 3B 보존·재생 보호 — 실행 전 정의
 
 독자는 구현·검증 담당자이며 정책은 AGENTS, 계약은 기존 S10 명세/계획을 따른다.

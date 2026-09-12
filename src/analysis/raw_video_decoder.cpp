@@ -2,6 +2,7 @@
 // 동작 요약: GStreamer appsrc/appsink pipeline으로 source packet을 디코딩하고 frame callback으로 전달한다.
 // 동작 요약: analysis tap이 egress path와 분리된 raw frame 흐름을 갖도록 한다.
 #include "analysis/raw_video_decoder.h"
+#include "analysis/frame_source_association.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER
 #include <gst/app/gstappsink.h>
@@ -25,7 +26,6 @@ namespace {
 
 constexpr std::int64_t kDefaultVideoFrameDurationNs = 33333333LL;
 constexpr std::int64_t kMaxTimestampMappingDistanceNs = 500000000LL;
-constexpr std::size_t kMaxTimestampMappings = 4096;
 
 std::int64_t AbsDiff(std::int64_t lhs, std::int64_t rhs) {
     return lhs >= rhs ? lhs - rhs : rhs - lhs;
@@ -245,11 +245,6 @@ public:
     }
 
 private:
-    struct TimestampMapping {
-        std::int64_t decoder_pts{0};
-        std::int64_t source_pts{0};
-    };
-
     media::Packet NormalizePacketForDecoder(const media::Packet& packet) {
         media::Packet normalized = packet;
         if (packet.pts < 0 && packet.dts < 0) {
@@ -288,15 +283,13 @@ private:
 
         const std::int64_t source_pts =
             packet.pts >= 0 ? packet.pts : (packet.dts >= 0 ? packet.dts : normalized.pts);
-        timestamp_mappings_.push_back(TimestampMapping{.decoder_pts = normalized.pts, .source_pts = source_pts});
-        while (timestamp_mappings_.size() > kMaxTimestampMappings) {
-            timestamp_mappings_.pop_front();
-        }
+        timestamp_history_.Append(normalized.pts,source_pts,packet);
         return normalized;
     }
 
-    std::int64_t ResolveSourcePts(std::int64_t decoder_pts) const {
-        std::lock_guard lock(timestamp_mu_);
+    // timestamp_mu_ 아래 숫자 복원과 연관 판정이 같은 입력 이력을 읽는다.
+    std::int64_t ResolveSourcePtsLocked(std::int64_t decoder_pts) const {
+        const auto& timestamp_mappings_=timestamp_history_.mappings();
         if (timestamp_mappings_.empty()) {
             return decoder_pts;
         }
@@ -341,7 +334,15 @@ private:
             if (buffer != nullptr) {
                 const std::int64_t decoder_pts =
                     GST_BUFFER_PTS_IS_VALID(buffer) ? static_cast<std::int64_t>(GST_BUFFER_PTS(buffer)) : 0;
-                frame.pts = ResolveSourcePts(decoder_pts);
+                {
+                    std::lock_guard lock(timestamp_mu_);
+                    frame.pts = ResolveSourcePtsLocked(decoder_pts);
+                    const auto raw_pts=GST_BUFFER_PTS(buffer);
+                    const std::optional<std::int64_t> observed_pts=
+                        GST_BUFFER_PTS_IS_VALID(buffer)&&raw_pts<=static_cast<GstClockTime>(std::numeric_limits<std::int64_t>::max())
+                        ?std::optional<std::int64_t>(static_cast<std::int64_t>(raw_pts)):std::nullopt;
+                    frame.source_association=timestamp_history_.Resolve(observed_pts);
+                }
                 GstMapInfo map;
                 if (gst_buffer_map(buffer, &map, GST_MAP_READ) == TRUE) {
                     frame.data.assign(map.data, map.data + map.size);
@@ -367,7 +368,7 @@ private:
     std::optional<std::int64_t> input_base_pts_;
     std::optional<std::int64_t> last_input_dts_;
     std::int64_t last_input_frame_duration_ns_{kDefaultVideoFrameDurationNs};
-    std::deque<TimestampMapping> timestamp_mappings_;
+    TimestampAssociationHistory timestamp_history_;
 };
 
 #else

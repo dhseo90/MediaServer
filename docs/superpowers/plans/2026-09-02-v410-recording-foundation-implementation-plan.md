@@ -1914,6 +1914,44 @@ catalog finalize에 전달한다. UTC 변화는 물리 분할 기준이 아니�
 확정된 코드와 단기 검증을 맡고 메인은 문서·안전 계약·diff/증거 검토를 맡는다. 하위 위임 금지.
 기존 미커밋 S09 수정은 보존한다. S11·장시간/UI 전체와 후속4 데이터 삭제는 자동 착수하지 않는다.
 
+#### 3C 보완 구현 순서 — 사용자 개발 승인
+
+독자는 S10 구현·검토 담당자다. 기존 S10 시간식별 계약의 실행 세분화이며 정책은 AGENTS를 따른다.
+사용자는 보완한 다섯 단계의 개발과 필요시 분할 커밋을 승인했다. 3D·푸시·장시간/UI 전체는 제외한다.
+기존 S09 dirty 파일은 이번 소유 변경과 분리한다. 기존 단일 Astra/medium 담당자를 재사용하고
+메인이 계약·등록·실제 diff·검증 증거를 검토한다. 하위 생성과 자동 추론 상향은 금지한다.
+
+- [x] 3C-1 원본↔분석 연관: 별도 내부 correlation을 RawVideoFrame→AnalysisResult에 전달한다.
+  기존 decoder normalize·숫자PTS·영상 전달을 바꾸지 않는다. 유일 timestamp 연관은
+  현재 bounded 입력 이력의 판정이며 프레임 고유성 보장이 아니다. nearest/ambiguous/unavailable을 구분한다.
+  관측 generation/order/ordinal/track/원본 PTS를 보존한다. source_generation과 media_epoch_id를 동일시하지 않는다.
+- [ ] 3C-2 공통 구간 해석: 점 두 개만 연결하지 않고 매핑 경계별 미디어 구간과 중첩·공백·unknown을 보존한다.
+- [ ] 3C-3 영속 참조·복구: 원본↔녹화 epoch 결박과 파생 위치를 versioned 계약으로 보존한다.
+  기존 finalized segment/UTC 매핑은 수정하지 않으며 같은 원장의 복구·SQL/JSONL 정합성을 확인한다.
+- [ ] 3C-4 분석·이벤트 소비: 원본 참조가 같은 범위에만 event 우선순위를 적용한다.
+  기존 공개 Event POST/SSE/WS field 의미는 유지하며 표현 불가한 결과를 V1으로 억지 변환하지 않는다.
+- [ ] 3C-5 파생·중단 복구: 미디어 시간으로 출력 위치를 측정하고 UTC는 별도 대응으로 유지한다.
+  다른 epoch는 이벤트의 여러 참조로 보존하되 하나의 연속 영상으로 자동 합성하지 않는다.
+  같은 epoch의 정상 segment 분할은 결합 가능하며 codec/공백·actual coverage 검증을 통과해야 한다.
+
+| 단계 사이 경계 | 확인·처리 |
+| --- | --- |
+| 1 → 2/3 | timestamp 연관을 exact decoded frame 증명으로 승격하지 않음 |
+| 2 → 3/4 | 불명확·복수 후보를 원형 보존, UTC로 임의 단일화 금지 |
+| 3 → 5 | 새 event ready와 hold/예약의 중단 복구 계약을 구현 전에 상세 고정 |
+| 4 → 공개 응답 | 기존 schema 의미 유지; 새 내부 결과와 기존 DTO를 구분 |
+| 5 → 3D | 소비자·복구가 완료된 뒤에만 별도 서버 기본 연결 |
+
+현재 첫 단위 소유: analysis_types.h, raw_video_decoder.cpp, analysis_manager.cpp,
+내부 correlation helper와 focused/runtime 검증. 메인은 관련 문서만 수정한다.
+C101~112를 실행 전 등록하며 stub에서 예상 assertion RED를 확인한 뒤 구현한다.
+각 단위의 관련 검증·기록·diffcheck PASS 후 커밋하며 첫 단위 PASS를 3C 전체 완료로 표기하지 않는다.
+
+3C-1 실제 결과: focused 10개, 실제 runtime 15개, 기존 observation 81개 및 각 runner 정리 PASS, 제품 rebuild exit0.
+상세 전수 결과·실패 이력은 중앙 release-test-records의 S10 3C-1 절에 보존한다.
+메인 검토에서 동일 timestamp snapshot과 source_pts 충돌 판정을 보완했다. 3C-2~5는 아직 미완료다.
+
+
 #### 3B 구현 계약과 검증 순서
 
 사용자 승인: 3B 전체 마무리·관련 검증 후 커밋. 푸시·3C·3D는 이번에 실행하지 않는다.

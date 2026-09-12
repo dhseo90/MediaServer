@@ -1,5 +1,23 @@
 # Project Feature Test Inventory
 
+## S10 3C-1 원본·분석 연관
+
+| 기능 ID | 기능·합격 기준 | 안정화 | 30분 | 120분 | UI 풀테스트 | UI 존재 |
+| --- | --- | --- | --- | --- | --- | --- |
+| S10-C101 | 유일 timestamp 연관: 단일 유효 입력의 generation/order/ordinal/track/원본 PTS 보존; 프레임 고유성 아님 | 격리 focused/runtime | S11 판정 | 최종 diff 기준 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C102 | 최근접 추정 분리: 기존 숫자 PTS 선택은 유지하되 correlation은 nearest이며 확정 참조 없음 | 격리 focused/runtime | S11 판정 | 최종 diff 기준 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C103 | 중복 timestamp 모호성: 동일 decoder PTS에 다른 관측이 있으면 ambiguous; 임의 최신 선택 금지 | 격리 focused/runtime | S11 판정 | 최종 diff 기준 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C104 | 원본 미관측: observation 부재·빈 generation·0 order/ordinal이면 unavailable | 격리 focused/runtime | S11 판정 | 최종 diff 기준 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C105 | 출력 PTS 부재: 없는 출력 timestamp를 유효 0으로 취급하지 않음 | 격리 focused/runtime | S11 판정 | 최종 diff 기준 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C106 | 원본 PTS 부재·범위: 없는 원본 PTS·표현 범위 초과값은 확정 연관 불가; 유효0은 보존 | 격리 focused/runtime | S11 판정 | 최종 diff 기준 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C107 | bounded 이력: 상한 밖 과거 입력은 unavailable; 무한 증가 없음 | 격리 focused/runtime | S11 판정 | 최종 diff 기준 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C108 | 충돌·동일 입력 재전달: 동일 observation 재전달과 충돌 metadata를 구분; conflicting duplicate는 모호 | 격리 focused/runtime | S11 판정 | 최종 diff 기준 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C109 | 세대·track 분리: timestamp가 같아도 다른 generation/track 관측을 합치지 않음 | 격리 focused/runtime | S11 판정 | 최종 diff 기준 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C110 | 자체 영상 실제 decoder: 자체 생성 영상의 callback correlation과 기존 PTS·영상 frame 전달 확인 | 격리 focused/runtime | S11 판정 | 최종 diff 기준 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C111 | 실제 manager 전달: SharedStream→decoder→queue→AnalysisResult의 correlation 원문 유지 | 격리 focused/runtime | S11 판정 | 최종 diff 기준 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C112 | 미관측 입력 기존 동작: 원본 관측 없는 입력의 기존 영상·숫자PTS 동작 및 public payload 유지 | 격리 focused/runtime | S11 판정 | 최종 diff 기준 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+
+
 ## S10 후속 3B 보존·재생 보호
 
 | 기능 ID | 동작·PASS 기준 | 안정화 테스트 | 30분 테스트 | 120분 테스트 | UI 테스트 | UI 존재 |

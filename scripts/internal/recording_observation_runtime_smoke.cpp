@@ -6,6 +6,7 @@
 #include <gst/app/gstappsink.h>
 #include <gst/gst.h>
 #include <atomic>
+#include <algorithm>
 #include <chrono>
 #include <cstdlib>
 #include <iostream>
@@ -65,6 +66,11 @@ int main() {
             media::Packet p; p.kind=media::MediaKind::Video; p.codec=media::CodecId::VP8;
             p.track_id="video-0"; p.pts=GST_BUFFER_PTS(buffer); p.dts=p.pts;
             p.is_key_frame=!GST_BUFFER_FLAG_IS_SET(buffer,GST_BUFFER_FLAG_DELTA_UNIT);
+            if(packets.size()<6) {
+                media::SampleObservation observation;observation.source_generation="runtime-source-generation";
+                observation.generation_order=73;observation.ordinal=packets.size()+1;observation.pts_ns=p.pts;
+                p.observation=observation;
+            }
             p.payload.assign(map.data,map.data+map.size); packets.push_back(std::move(p));
             gst_buffer_unmap(buffer,&map);
         }
@@ -94,18 +100,50 @@ int main() {
     if(observer->observed.load()<2) { std::cout<<"[fail] runtime-observer-timeout"<<std::endl; std::_Exit(1); }
     Check(observer->reentered.load()>=2,"runtime-tap-lock-reentry");
     Check(live.load()==12,"runtime-live-fanout-unblocked");
+    bool matched_source=false,unobserved_source=false,associations_valid=true;
+    for(int attempt=0;attempt<150;++attempt) {
+        {std::lock_guard lock(observer->mu);
+         matched_source=false;unobserved_source=false;associations_valid=true;
+         for(const auto& value:observer->results) {
+            const auto source=std::find_if(packets.begin(),packets.end(),[&](const auto& packet){return packet.pts==value.pts;});
+            if(source==packets.end()){associations_valid=false;continue;}
+            const auto& association=value.source_association;
+            if(source->observation) {
+                matched_source=true;
+                associations_valid=associations_valid&&association.quality==analysis::SourceAssociationQuality::TimestampMatch&&association.original&&
+                    association.original->source_generation=="runtime-source-generation"&&association.original->generation_order==73&&
+                    association.original->ordinal==source->observation->ordinal&&association.original->track_id=="video-0"&&
+                    association.original->pts_ns==static_cast<std::uint64_t>(source->pts);
+            } else {
+                unobserved_source=true;associations_valid=associations_valid&&association.quality==analysis::SourceAssociationQuality::Unavailable&&!association.original;
+            }
+         }}
+        if(matched_source&&unobserved_source)break;
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    }
+    Check(matched_source&&associations_valid,"S10-C111 실제 manager 전달");
     analysis::AnalysisResult first;
     { std::lock_guard lock(observer->mu); first=observer->results.front(); }
     Check(first.observation_context.stream_epoch_id=="epoch-old","runtime-captured-provenance-immutable");
     Check(!first.observation_namespace.empty() && first.tracks.empty(),"runtime-tracking-disabled-independent");
     std::string event_id;
+    std::vector<std::string> public_metadata;
     analysis::SetEventObservationObserver([&](const auto& result,const auto& record,const auto& event) {
-        if(result.observation_namespace==first.observation_namespace && event.rule_id=="runtime-rule")event_id=record.event_id;
+        if(result.observation_namespace==first.observation_namespace && event.rule_id=="runtime-rule") {
+            event_id=record.event_id;public_metadata.push_back(record.metadata_json);
+        }
     });
     analysis::AnalysisEvent event; event.rule_id="runtime-rule"; event.event_type="intrusion";
     event.track_id=1; event.label="person"; event.score=.9; event.box={.1F,.1F,.2F,.2F};
     analysis::DispatchEventRecords(first,{event});
     Check(!event_id.empty(),"runtime-built-event-record-observer");
+    auto without_association=first;without_association.source_association={};
+    analysis::DispatchEventRecords(without_association,{event});
+    const bool metadata_unchanged=first.source_association.quality==analysis::SourceAssociationQuality::TimestampMatch&&
+        first.source_association.original&&public_metadata.size()==2&&public_metadata[0]==public_metadata[1]&&
+        public_metadata[0].find("runtime-source-generation")==std::string::npos&&
+        public_metadata[0].find("source_association")==std::string::npos&&public_metadata[0].find("generation_order")==std::string::npos;
+    Check(unobserved_source&&associations_valid&&metadata_unchanged,"S10-C112 미관측 입력 기존 동작");
     analysis::SetEventObservationObserver({}); analysis::StopEventStorage();
     manager.DetachAll(); stream->StopAllSubscribers();
     Check(observer->stopped.load()==1,"runtime-tap-stop-once");

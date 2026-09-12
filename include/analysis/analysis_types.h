@@ -20,6 +20,20 @@ enum class PixelFormat {
     Gray8,
 };
 
+enum class SourceAssociationQuality { TimestampMatch, Nearest, Ambiguous, Unavailable };
+// 현재 decoder 입력 이력의 timestamp 연관이며 decoded frame 고유성의 증명이 아니다.
+struct OriginalSampleIdentity {
+    std::string source_generation;
+    std::uint64_t generation_order{0};
+    std::uint64_t ordinal{0};
+    std::string track_id;
+    std::uint64_t pts_ns{0};
+};
+struct SourceAssociation {
+    SourceAssociationQuality quality{SourceAssociationQuality::Unavailable};
+    std::optional<OriginalSampleIdentity> original;
+};
+
 struct RawVideoFrame {
     // raw decode hub가 compressed packet을 변환한 뒤 detector 입력으로 전달하는 frame이다.
     std::string source_key;
@@ -29,6 +43,7 @@ struct RawVideoFrame {
     PixelFormat format{PixelFormat::Unknown};
     std::int64_t pts{0};
     std::vector<unsigned char> data;
+    SourceAssociation source_association;
 };
 
 struct RectF {
@@ -409,6 +424,7 @@ struct AnalysisResult {
     AnalysisContext context;
     std::uint64_t frame_id{0};
     std::int64_t pts{0};
+    SourceAssociation source_association;
     int frame_width{0};
     int frame_height{0};
     std::vector<Detection> detections;
