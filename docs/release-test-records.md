@@ -1,5 +1,50 @@
 # Release Test Records
 
+## S09 잔여 변경 정리·커밋 — 2026-09-13
+
+추가 cleanup 실행 전 등록: UA08-A anchored seed, UA08-B legacy seed, UA08-C seek seed의 captured stdout에서 소유 `media-server-s06-read.*` root의 `du -sk`와 삭제 확인 안전행만 보존하고 동일 root의 lstat ENOENT를 직접 확인한다. 기존17기능은 유지하며 auth-prep만 재실행한다. 최초 내부 root 세부 미보존 이력은 삭제하지 않는다.
+
+독자: 현재 브랜치 개발·검토 담당자. 이번 절은 잔여 변경의 정리 기록이며 S09 실패 이력을 현재 PASS로 승격하지 않는다.
+사용자 승인 범위는 기존 S09 미커밋 변경 검토·필요한 보완·관련 단기 검증·커밋이다. 푸시·S11·새 장시간/UI 실행은 포함하지 않는다.
+아래 과거 S09의 진행 중/승인/임시 보존 문구는 당시 상태이며 지금 실행하라는 지시가 아니다.
+S09 검증 단계는 S10 보강/S11 최종 검증으로 대체됐다. 과거 93분 실패는 120분 PASS가 아니며 그대로 보존한다.
+
+| 변경 묶음 | 대상 | 결정·근거 |
+| --- | --- | --- |
+| 종료 수명 | session_manager·stream_registry h/cpp, shutdown smoke/sh | worker strong 참조 유지·idle 취소/drain 보완 보존. 현재 4파일 hash가 당시 72162 기록과 일치 |
+| UI 안내 | product_ui_page_scripts.cpp, recording_playback_status.test.mjs | 선택 해제 안내 초기화·늦은 metadata guard 보존. VM 검증과 당시 실제 브라우저 증거 구분 |
+| UI 준비 | timeline smoke, UI contract, auth prep test, range proxy/test | 격리 인증·고정 anchor·상태 fixture·Range 관측 보존; 제품 API 확대 아님 |
+| 실패 진단 | longrun progress/test | 실패 이유와 안전 수치만 보존. UTC 증가 판정을 이번에 완화하지 않음 |
+| 정의·이력 | manual checklist/template, inventory, 기존 중앙 S09 기록 | 승인된 원래 S06 UI/내부 안전성 분리와 최초 실패 이력 보존 |
+| 역사적 화면·준비 로그 | s09-recording-ui-21777 | 파일 무결성·비노출 재대조 후 보존. 현재 코드의 새 UI PASS로 사용하지 않음 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 잔여 코드·도구 보완의 단기 확인 | LC01~06, LD01, I31-R01/R02, UA/RP/SF, S06 HTTP AUTH, read-model, harness | 이번 정리 승인에 포함 |
+| 30분 | 미진행 | 코드 정리 커밋이며 버전 완료 판정 아님 | S11에서 최신 diff/증거 재판정 | 이번 미실행 |
+| 120분 | 조건부 진행 | source lifecycle 변경은 장시간 직접 매핑, 과거 72162 실패 보존 | S09-LC01~06, S11 | S11 코드 고정 후 별도 실행; 이번 미실행 |
+| UI 풀테스트 | 미진행 | 기존 UI 수정/직접 관측 보존, 이번 새 UI 변경 없음 | I31 및 71450/39491 역사적 기록 | S11 최신 코드 기준 판정; 이번 미실행 |
+
+단기 명령: shutdown lifecycle, recording identity, longrun progress Node, playback status Node,
+range proxy Node, auth prep Node, recording harness all, timeline --read-model, UI contract --http-auth, build, docs links/assets, diffcheck.
+기존 등록된 각 시나리오를 그대로 사용한다. auth는 격리 root에 실행별 CSPRNG 임시값5개를 환경으로만 전달하고 원문은 출력·저장하지 않는다.
+검토 중 UI contract의 verifyRecordingHttpAuth에서 bootstrap 호출은 authPasswords()로 바뀌었으나
+마지막 plaintext 확인은 미선언 passwords를 참조함을 확인했다. 실제 --http-auth의 ReferenceError를 예상 재현하고,
+동일 배열을 로컬 변수로 유지하는 최소 보완 후 같은 명령으로 확인한다. 제품 인증 계약은 변경하지 않는다.
+LD01 추가 실행 전 정의: `S09-LD01 missing timestamp diagnostics remain specific and redacted`는 start/end 각각 부재 시 TypeError가 아닌 positive-metadata 진단과 비민감 null 값을 확인한다. 현재 무조건 역참조의 예상 assertion RED 뒤 optional 접근만 보완하며 기존44개는 유지한다.
+실행 전 runner의 mktemp/trap 및 loopback/자식 종료를 확인하며 원출력·개별 결과·소유 경로를 아래에 기록한다.
+token start/end/consumed는 실행별 집계가 없어 미집계이며 elapsed/source는 각 실제 출력에 보존한다.
+
+정리 결과: 기존 제품 보완은 보존하고 검증 도구 결함2개(미선언 인증 배열·누락 timestamp 진단 역참조)를 최소 수정했다.
+실제 HTTP AUTH는 최초 sandbox EPERM을 환경 실패로 분리했고, 승격 실행에서39검사 뒤 예상 ReferenceError를 확인한 후40/0으로 통과했다.
+LD01도44/1 예상 실패 뒤45/0 통과했다. 실패 이력과 새 통과는 별도 로그다.
+종료 수명6/0, identity23/0, UI VM7/0, proxy10/0, 준비 최초17/0 및 cleanup 기록 보완 후20/0, harness5case40check/0,
+read-model166 assertion 및 cleanup1, build exit0. 장시간/UI 전체는 이번 실행하지 않았다.
+전수 명령·개별 결과·변경 검토는 [담당 검증 기록](release-artifacts/v4.1.0/s09-closeout/tool-report.md)과
+[메인 대조·임시 정리](release-artifacts/v4.1.0/s09-closeout/main-review.md)를 따른다.
+소유가 확인된 과거 임시 진단14파일은 최소 증거·크기·SHA를 보존한 후 삭제하고 부재 확인했다.
+역사적 화면/준비 로그41파일은 보존한다. 과거 기록의 임시 보존 예정 문구는 이 정리 결과로 종결하며 원문 이력은 지우지 않는다.
+
 ## S10 3C-4 초기 pre-roll 요청 사실 보존 — 실행 전 정의
 
 사용자 보완안 승인에 따라 start-pre가 음수라는 이유만으로 요청을 버리지 않는다.
@@ -6598,6 +6643,1693 @@ token start/end/consumed: 명령별 집계 미제공으로 미집계. elapsed/so
 필요한 assertion·주입값·수치 결과를 본 문서에 보존했다. 임시 미디어는 최종 증거 링크로 사용하지 않는다.
 제품 코드 수정·장시간·UI·전체 build·커밋·푸시는 미실행이다.
 `git diff --check` exit0 및 실제 writer 임시 디렉터리 부재도 확인했다.
+
+## S09 장시간 세그먼트 실패 진단 사전등록
+
+S09-LD02 짧은 재현: `./server.sh verify-v410-recording-recorder` 기존 실제 writer smoke에 H.264 UTC 후퇴 입력 재현을 추가한다. writer 시작, 두 finalized 생성, 각 V1·실제 파일 크기, UTC 원값 보존을 개별 출력한다. 그 출력의 두 메타데이터를 LongrunProgress에 입력해 `utc-progress` 이유만으로 거부됨을 확인한다. 제품 수정 전 특성 확인이며 72162 소실 payload의 복원이나 120분 PASS가 아니다. 예상 결과는 재현 assertion PASS이며 기존 smoke 실패는 실제 실패로 기록한다.
+
+72162 실패 후 원인 필드 미보존을 보완한다. 제품 코드·세그먼트 수용 조건·120분 요구시간은 변경하지 않는다. 담당은 메인 직접(반복 실패 원인 회수), Codex 사용자 모델 설정 유지. 영향도/불확실성/검증 난이도/변경 범위=1/1/1/1, 총4점이며 자동 상향·추가 에이전트 없음.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S09-LD01 | 잘못된 세그먼트 실패 원인 보존 | 기존 실패식의 동일 조건별 이름과 안전한 숫자/불리언만 오류에 포함. size0·UTC 역행·PTS 역행·체크섬 오류 각각의 이유 확인, 원문 경로/ID/임의 문자열은 비노출. 기존43검사 유지 | v4.1.0 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 승인 S09 실패 원인 진단 보완 | S09-LD01, recording_longrun_progress.test.mjs | 기존 goal 범위 |
+| 30분 테스트 | 미진행 | 이번 진단 변경은 검증 도구만 해당 | S09-LD01 | 이번 실행 없음 |
+| 120분 테스트 | 조건부 진행 | 원인 확인 준비 후 기존 실패 범위 재검증 | 72162 실패 | 기존 승인 있으나 지금 재실행하지 않음 |
+| UI 풀테스트 | 미진행 | 제품 UI 무변경 | S09-LD01 | 이번 실행 없음 |
+
+예상 RED: 신규 S09-LD01에서 오류 문자열에 원인별 진단이 없다는 assertion 실패. 기존43검사 실패는 예상 RED가 아니다. token start/end/consumed는 명령별 자동 계수 미제공으로 미집계, elapsed는 명령 출력으로 기록한다.
+
+## S09 녹화 직접 120분 재개 — 종료 수명 보완 후
+
+### S09-LD02 실제 writer 재현 결과
+
+`./server.sh verify-v410-recording-recorder` 실행63473 exit0, 98 pass/0 fail. 실제 생성된 H.264 세그먼트 UTC는 첫 구간10000–24500, 다음 구간5966–20466이다. 입력의 시작 UTC를4034ms 낮춘 특성 재현이며 호스트 clock 변경이나 원래 실패 payload의 복원이 아니다. 두 실제 메타데이터를 `LongrunProgress.consume`에 순서대로 입력한 Node assertion은 exit0, 이유 배열이 `["utc-progress"]`임을 확인했다. 파일 크기/체크섬/PTS 조건은 이 입력에서 실패하지 않았다. 제품 수정 없음. 상세 실행 로그는 `.media_server.test/s09-clock-step-recorder.log`에 임시 유지하고 정리 전 필요한 값을 본 절에 이관했다. 커밋·푸시·120분 재실행 없음. token start/end/consumed 명령별 미집계, elapsed 계수 미제공.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| LD02-1 | [pass] 기본 녹화 설정 유효 | pass | 실제 writer smoke 출력 |
+| LD02-2 | [pass] disk reserve와 retention 주기 기본값 | pass | 실제 writer smoke 출력 |
+| LD02-3 | [pass] 활성화+quota 0 거부 | pass | 실제 writer smoke 출력 |
+| LD02-4 | [pass] 녹화/media root 중복 거부 | pass | 실제 writer smoke 출력 |
+| LD02-5 | [pass] global/source/channel opt-in 삼중 경계 | pass | 실제 writer smoke 출력 |
+| LD02-6 | [pass] Recorder subscriber 추가 | pass | 실제 writer smoke 출력 |
+| LD02-7 | [pass] 역할별 subscriber 계수 분리 | pass | 실제 writer smoke 출력 |
+| LD02-8 | [pass] client 추가 | pass | 실제 writer smoke 출력 |
+| LD02-9 | [pass] 느린 recorder 추가 | pass | 실제 writer smoke 출력 |
+| LD02-10 | [pass] recorder overflow가 client queue를 차단하지 않음 | pass | 실제 writer smoke 출력 |
+| LD02-11 | [pass] source policy 저장 성공 뒤 reconcile callback | pass | 실제 writer smoke 출력 |
+| LD02-12 | [pass] source policy snapshot | pass | 실제 writer smoke 출력 |
+| LD02-13 | [pass] source policy create/save/load/snapshot round-trip | pass | 실제 writer smoke 출력 |
+| LD02-14 | [pass] legacy source policy 호환 저장 | pass | 실제 writer smoke 출력 |
+| LD02-15 | [pass] legacy source policy snapshot | pass | 실제 writer smoke 출력 |
+| LD02-16 | [pass] legacy quotaBytes/retentionDays를 분리 정책으로 이행 | pass | 실제 writer smoke 출력 |
+| LD02-17 | [pass] eventMaxBytes 0 저장 실패 시 callback 미호출 | pass | 실제 writer smoke 출력 |
+| LD02-18 | [pass] 음수 continuousMaxAgeMs 저장 거부 | pass | 실제 writer smoke 출력 |
+| LD02-19 | [pass] 음수 continuousMaxBytes 명시 입력을 default로 대체하지 않고 거부 | pass | 실제 writer smoke 출력 |
+| LD02-20 | [pass] 형식이 잘못된 continuousMaxBytes 명시 입력 거부 | pass | 실제 writer smoke 출력 |
+| LD02-21 | [pass] 형식이 잘못된 continuousMaxAgeMs 명시 입력 거부 | pass | 실제 writer smoke 출력 |
+| LD02-22 | [pass] 음수 legacy quotaBytes 명시 입력 거부 | pass | 실제 writer smoke 출력 |
+| LD02-23 | [pass] viewer-safe client view에 quota/storage path 비노출 | pass | 실제 writer smoke 출력 |
+| LD02-24 | [pass] application DTO snapshot | pass | 실제 writer smoke 출력 |
+| LD02-25 | [pass] application DTO recording policy 보존 | pass | 실제 writer smoke 출력 |
+| LD02-26 | [pass] h264 fixture encode | pass | 실제 writer smoke 출력 |
+| LD02-27 | [pass] h264 writer 시작:  | pass | 실제 writer smoke 출력 |
+| LD02-28 | [pass] h264 S07 delta 미수락 시간 위치 없음 | pass | 실제 writer smoke 출력 |
+| LD02-29 | [pass] h264 delta-start 차단 | pass | 실제 writer smoke 출력 |
+| LD02-30 | [pass] callback finalized V1 양수 시간구간 검증 | pass | 실제 writer smoke 출력 |
+| LD02-31 | [pass] callback 시 final 파일 존재 | pass | 실제 writer smoke 출력 |
+| LD02-32 | [pass] callback 시 partial 제거 | pass | 실제 writer smoke 출력 |
+| LD02-33 | [pass] h264 S07 수락 시간 epoch와 PTS 일치 | pass | 실제 writer smoke 출력 |
+| LD02-34 | [pass] h264 열린 segment는 partial 한 개 | pass | 실제 writer smoke 출력 |
+| LD02-35 | [pass] h264 열린 segment marker는 소유 partial nonce를 결박 | pass | 실제 writer smoke 출력 |
+| LD02-36 | [pass] callback finalized V1 양수 시간구간 검증 | pass | 실제 writer smoke 출력 |
+| LD02-37 | [pass] callback 시 final 파일 존재 | pass | 실제 writer smoke 출력 |
+| LD02-38 | [pass] callback 시 partial 제거 | pass | 실제 writer smoke 출력 |
+| LD02-39 | [pass] h264 S07 종료 시간 위치 없음 | pass | 실제 writer smoke 출력 |
+| LD02-40 | [pass] h264 10초 뒤 다음 keyframe 분할 | pass | 실제 writer smoke 출력 |
+| LD02-41 | [pass] h264 finalized callback | pass | 실제 writer smoke 출력 |
+| LD02-42 | [pass] foreign 고정 partial 보존 writer 시작 | pass | 실제 writer smoke 출력 |
+| LD02-43 | [pass] nonce partial은 기존 고정 foreign partial을 덮어쓰거나 삭제하면 안 됨 | pass | 실제 writer smoke 출력 |
+| LD02-44 | [pass] S09-LD02 writer 시작 | pass | 실제 writer smoke 출력 |
+| LD02-45 | [pass] S09-LD02 실제 finalized V1과 파일 크기 | pass | 실제 writer smoke 출력 |
+| LD02-46 | [pass] S09-LD02 실제 finalized V1과 파일 크기 | pass | 실제 writer smoke 출력 |
+| LD02-47 | [pass] S09-LD02 실제 두 세그먼트 생성 | pass | 실제 writer smoke 출력 |
+| LD02-48 | [pass] S09-LD02 UTC 원값 보존 및 구간간 후퇴 재현 | pass | 실제 writer smoke 출력 |
+| LD02-49 | [pass] rollback writer 시작 | pass | 실제 writer smoke 출력 |
+| LD02-50 | [pass] rollback finalized V1과 실제 파일 크기 일치 | pass | 실제 writer smoke 출력 |
+| LD02-51 | [pass] S07 rollback 모호한 시간 위치 없음 | pass | 실제 writer smoke 출력 |
+| LD02-52 | [pass] rollback finalized V1과 실제 파일 크기 일치 | pass | 실제 writer smoke 출력 |
+| LD02-53 | [pass] PTS rollback 시 새 stream epoch | pass | 실제 writer smoke 출력 |
+| LD02-54 | [pass] writer admission 시작 | pass | 실제 writer smoke 출력 |
+| LD02-55 | [pass] storage-blocked 뒤 다음 keyframe에서 새 epoch로 재개 | pass | 실제 writer smoke 출력 |
+| LD02-56 | [pass] admission reserve를 segment finalize 실제 용량으로 반환 | pass | 실제 writer smoke 출력 |
+| LD02-57 | [pass] partial/finalized 실제 파일 크기를 admission 진행량으로 보고 | pass | 실제 writer smoke 출력 |
+| LD02-58 | [pass] 실제 파일 예약 초과 writer 시작 | pass | 실제 writer smoke 출력 |
+| LD02-59 | [pass] 실제 파일 예약 초과는 catalog callback 전 제거·high-water 반환 후 새 epoch 재개 | pass | 실제 writer smoke 출력 |
+| LD02-60 | [pass] writer 예약 hard bound 시작 | pass | 실제 writer smoke 출력 |
+| LD02-61 | [pass] bounded finalized V1과 실제 파일 예약 상한 검증 | pass | 실제 writer smoke 출력 |
+| LD02-62 | [pass] bounded finalized V1과 실제 파일 예약 상한 검증 | pass | 실제 writer smoke 출력 |
+| LD02-63 | [pass] bounded finalized V1과 실제 파일 예약 상한 검증 | pass | 실제 writer smoke 출력 |
+| LD02-64 | [pass] bounded finalized V1과 실제 파일 예약 상한 검증 | pass | 실제 writer smoke 출력 |
+| LD02-65 | [pass] bounded finalized V1과 실제 파일 예약 상한 검증 | pass | 실제 writer smoke 출력 |
+| LD02-66 | [pass] bounded finalized V1과 실제 파일 예약 상한 검증 | pass | 실제 writer smoke 출력 |
+| LD02-67 | [pass] bounded finalized V1과 실제 파일 예약 상한 검증 | pass | 실제 writer smoke 출력 |
+| LD02-68 | [pass] bounded finalized V1과 실제 파일 예약 상한 검증 | pass | 실제 writer smoke 출력 |
+| LD02-69 | [pass] 예약 payload 상한 도달 시 keyframe 경계 재개와 실제 파일 크기 상한 유지 | pass | 실제 writer smoke 출력 |
+| LD02-70 | [pass] catalog finalize 실패 writer 시작 | pass | 실제 writer smoke 출력 |
+| LD02-71 | [pass] catalog journal/finalize 실패는 ready와 final을 보존하고 예약 유지 | pass | 실제 writer smoke 출력 |
+| LD02-72 | [pass] cleanup marker symlink 선점 공격 writer 시작 | pass | 실제 writer smoke 출력 |
+| LD02-73 | [pass] cleanup marker symlink 선점 fixture 생성 | pass | 실제 writer smoke 출력 |
+| LD02-74 | [pass] cleanup marker symlink 선점 시 root 밖/공유 inode 내용을 truncate하지 않음 | pass | 실제 writer smoke 출력 |
+| LD02-75 | [pass] cleanup marker hardlink 선점 공격 writer 시작 | pass | 실제 writer smoke 출력 |
+| LD02-76 | [pass] cleanup marker hardlink 선점 fixture 생성 | pass | 실제 writer smoke 출력 |
+| LD02-77 | [pass] cleanup marker hardlink 선점 시 root 밖/공유 inode 내용을 truncate하지 않음 | pass | 실제 writer smoke 출력 |
+| LD02-78 | [pass] catalog 성공 뒤 marker 제거 실패 writer 시작 | pass | 실제 writer smoke 출력 |
+| LD02-79 | [pass] catalog 성공 뒤 marker 제거 실패 시 예약과 marker를 유지 | pass | 실제 writer smoke 출력 |
+| LD02-80 | [pass] final media cleanup 실패 writer 시작 | pass | 실제 writer smoke 출력 |
+| LD02-81 | [pass] final media 제거 실패 시 durable marker를 남기고 예약을 반환하지 않음 | pass | 실제 writer smoke 출력 |
+| LD02-82 | [pass] vp8 fixture encode | pass | 실제 writer smoke 출력 |
+| LD02-83 | [pass] vp8 writer 시작:  | pass | 실제 writer smoke 출력 |
+| LD02-84 | [pass] vp8 S07 delta 미수락 시간 위치 없음 | pass | 실제 writer smoke 출력 |
+| LD02-85 | [pass] vp8 delta-start 차단 | pass | 실제 writer smoke 출력 |
+| LD02-86 | [pass] callback finalized V1 양수 시간구간 검증 | pass | 실제 writer smoke 출력 |
+| LD02-87 | [pass] callback 시 final 파일 존재 | pass | 실제 writer smoke 출력 |
+| LD02-88 | [pass] callback 시 partial 제거 | pass | 실제 writer smoke 출력 |
+| LD02-89 | [pass] vp8 S07 수락 시간 epoch와 PTS 일치 | pass | 실제 writer smoke 출력 |
+| LD02-90 | [pass] vp8 열린 segment는 partial 한 개 | pass | 실제 writer smoke 출력 |
+| LD02-91 | [pass] vp8 열린 segment marker는 소유 partial nonce를 결박 | pass | 실제 writer smoke 출력 |
+| LD02-92 | [pass] callback finalized V1 양수 시간구간 검증 | pass | 실제 writer smoke 출력 |
+| LD02-93 | [pass] callback 시 final 파일 존재 | pass | 실제 writer smoke 출력 |
+| LD02-94 | [pass] callback 시 partial 제거 | pass | 실제 writer smoke 출력 |
+| LD02-95 | [pass] vp8 S07 종료 시간 위치 없음 | pass | 실제 writer smoke 출력 |
+| LD02-96 | [pass] vp8 10초 뒤 다음 keyframe 분할 | pass | 실제 writer smoke 출력 |
+| LD02-97 | [pass] vp8 finalized callback | pass | 실제 writer smoke 출력 |
+| LD02-98 | [pass] VP8 S07 rollback 모호한 시간 위치 없음 | pass | 실제 writer smoke 출력 |
+| LD02 판정기 재현 | 실제 출력 세그먼트2개를 입력한 assertion exit0, reasons=[utc-progress] | pass | 원래93분 실패 해결 또는120분 통과 아님 |
+
+정리: `/tmp/media_server_v410_recording_recorder-72309` 3,315,779바이트를 runner가 삭제하여 removed=true 확인. 로그 파일은 원인 대조 후 정리 예정이다.
+
+
+### 72162 실패 시각과 호스트 시간 보정 대조
+
+확인됨: `recording_session_service.cpp`는 입력 packet마다 `system_clock` 기반 `NowMs()`를 writer에 전달한다. writer와 catalog는 개별 finalized 세그먼트의 UTC/PTS 양수 구간·크기·체크섬을 검증한다. `recording_longrun_progress.mjs`는 이에 더해 이전 세그먼트 대비 start/end UTC의 엄격한 증가를 요구한다. 실패 payload 자체는 cleanup으로 삭제되어 정확한 필드값을 사후 복원할 수 없다.
+
+실패 직전 PID62272 표본의 `sampledAt`은 1789140154041 → 1789140159041 → 1789140164042 → 1789140169044 → 1789140170014이다. 마지막 차이는 970ms이고, 수집 타이머는 5초다. 메인 루프의 마지막 두 monotonic elapsed는 5,567,003.810959 → 5,572,013.897875ms로 약5초 증가했다.
+
+읽기 전용 호스트 로그 조회 `/usr/bin/log show --style compact --start '2026-09-12 00:22:30' --end '2026-09-12 00:23:10' --predicate 'process == "timed"' --info`는 sandbox 내부에서 exit64(`Cannot run while sandboxed`), 읽기 권한 승인 후 실행85296에서 exit0이었다. 필요한 비민감 사실만 보존한다: `timed`의 2026-09-12 00:22:47.975 KST `cmd,apply,src,settimeofday` 기록에 `adjust,-4.033783913,success,1`이 존재한다. 시스템 시각이 약4.034초 후퇴한 것은 직접 확인이다. 호스트 설정/시간/네트워크 설정을 수정하지 않았다. 조회 결과에 포함된 원격 주소·기타 시스템 정보는 저장소에 복사하지 않는다. 조회 임시 파일 없음.
+
+추론: 이 시각 보정이 검증기의 채널 간격 UTC 증가 조건 위반을 유발했을 가능성이 높다. 단, 소실된 실패 세그먼트와 필드의 직접 대조 전에는 해당 assertion의 원인을 확정했다고 쓰지 않는다. 짧은 시간 후퇴 재현 및 실제 UTC/PTS 보존·epoch 경계와 검증기 합격 기준의 정합성 확인이 남았다. NTP 비활성화, UTC 값 조작, UTC 역행의 무조건 허용, 기존93분을120분 PASS로 승격하는 처리는 하지 않는다.
+
+### S09-LD01 실행 결과
+
+`node scripts/internal/recording_longrun_progress.test.mjs`: 최초 exit1, 43 pass/1 fail, 47ms(신규 진단 부재 예상 RED); 보완 후 exit0, 44 pass/0 fail, 46ms. `git diff --check` exit0. 제품 코드·기존 실패식 무변경. 임시 산출물 없음. 72162 원인 확정·실제 앱 재현·120분 재실행은 미실행이며 이 단위 결과로 대체하지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| explicit 120 minutes accepted | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| invalid CLI [] | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| invalid CLI ["120"] | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| invalid CLI ["--duration-minutes","30"] | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| invalid CLI ["--duration-minutes","120","extra"] | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| invalid CLI ["--unknown","120"] | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| two channels progress and ordered deletion | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| stall rejected | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| duplicate rejected | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| UTC regression rejected | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| completion without request rejected | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| invalid media metadata rejected | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| duration cannot be shortened | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| unknown channel cannot satisfy progress | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| backward clock rejected | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| sample continuous accepted | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| sample gap rejected | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| sample wrong PID rejected | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| sample wrong identity rejected | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| sample missing beginning rejected | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| sample missing end rejected | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| sample insufficient rejected | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| actual golden schema accepted | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| full duration distributed progress accepted | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| last moment only cannot pass | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| ID limit rejected | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| UTF8 byte limit rejected | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| queried revision advanced disable | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| missing source rejected | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| duplicate source rejected | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| invalid revision rejected | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| public CLI rejects [] | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| public CLI rejects ["120"] | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| public CLI rejects ["--duration-minutes","30"] | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| public CLI rejects ["--duration-minutes","120","extra"] | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| public CLI rejects ["--unknown","120"] | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| completed batch returns media path once | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| missing media path rejected | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| media path byte limit rejected | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| ENOENT media absent | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| regular media present rejected | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| dangling symlink present rejected | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| media permission error rejected | 위 명령의 실제 개별 assertion 출력 | pass | RED 실행과 GREEN 실행 모두 pass |
+| S09-LD01 invalid segment diagnostics are specific and redacted | 위 명령의 실제 개별 assertion 출력 | pass | 최초 fail → 보완 후 pass; size0/UTC/PTS/checksum 이유와 비밀 문자열 비노출 |
+
+
+이번 실행(72162)은 약 93분 시점에 `longrun-invalid-segment`로 exit 1 종료했다. 마지막 정상 진행 표본은 5,572,013.897875ms이며 120분 완료가 아니다. 실패 조건의 어느 필드가 위반됐는지는 현재 오류 문자열에 포함되지 않아 원인 조사 중이다. 기존 SIGABRT와 동일 원인으로 단정하지 않는다. 재실행은 아직 하지 않았다. 실행 root `media-server-s09-foundation-rCsmhj` 274,112,850바이트와 GST root `media-server-s09-foundation-gst.DZLjDa` 143,595바이트는 runner가 삭제하고 absent=true를 기록했다. 상세 로그는 원인 조사·증거 이관 전까지 기존 임시 로그에 유지한다. 최종 자원 추세·120분 후 복구는 완료 evidence로 사용하지 않는다.
+
+관측 445,425ms(약 7분 25초) 시점의 동결 확인 SHA-256이다. 실행 시작 시 측정값으로 소급하지 않으며 최종 결과의 변경 여부 대조에 사용한다. 이 시점까지 실행 실패 0건, 동일 본 관측 PID 62272를 유지했다.
+
+| 파일 | SHA-256 |
+| --- | --- |
+| include/core/session_manager.h | bdd49e051c9adacf8a93a047551cc34d70666f676246bcb4edf756455cadc8d3 |
+| include/core/stream_registry.h | 1ef5296767fb24901865c54c52ce5a3879bf4313fd73ee1288d42a172f8f9c75 |
+| src/core/session_manager.cpp | d21a3a77441cd0eaf9053599b83ae756f229692cc1e2ab68cc8ac07e5a314ed9 |
+| src/core/stream_registry.cpp | 7397265f59b60a12189bbc24fef5f3465205b86737499e3a68a0983765b57fbd |
+| build-gst-onnx/media_server | 36d24d1f43072069e8895aac7f5b3cb70b3f41f99324956c776793ffcf50741a |
+
+기존 명시 승인된 `verify-v410-recording-longrun --duration-minutes 120`을 재개한다. 최초 8336 SIGABRT는 보존한다. 종료 수명 6/6, identity 23/23, build, 실제 앱 295/295, codec67/67·ICE8/8·metadata8/8 단기 검증을 통과한 동일 코드다. 제품·검증 코드를 동결하고 문서만 기록한다. `S09-LR01~04/AP01~09` 기존 등록 범위를 유지하며 신규 테스트나 외부기기/외부TURN/UI/30분은 이 실행에 추가하지 않는다. source lifecycle 변경에 따른 기존 장시간 증거 적용 범위와 최종 릴리즈 판정은 이 실행 결과 이후 별도로 확인한다.
+
+실행 로그: `.media_server.test/s09-recording120-after-shutdown.log`(임시). 실제 7,200,000ms 관측, 종료·재시작 및 자원 추세 직접 검토 전에는 PASS로 판정하지 않는다. 실행 전 `git diff --check` 통과. token start 10,177,749(자동 goal 시작 계수), end/consumed는 종료 시 집계 가능 여부를 확인한다. 커밋·푸시·릴리즈 action 없음.
+
+재개 실행 핸들은 72162다. 준비 서버 PID62237의 정상 종료와 새 PID62272의 재시작·녹화 생성을 통과하고 실제 장시간 관측에 진입했다. 최초 본 관측 15초 시점에는 두 채널 active, 새 세그먼트 및 순환 삭제 진행, journal backlog 0을 확인했다. 이는 시작 상태일 뿐 120분 완료가 아니다. 진행 중에는 임시 실행 root rCsmhj를 유지하며 terminal 결과 후 정리한다.
+
+## S09 종료 수명 보완 — 실행 전 범위
+
+### 종료 수정 후 미디어 회귀 — 92017
+
+실제 단기 앱 재현을 먼저 통과한 뒤 같은 수정 코드로 기존 미디어 검증 3개를 실행했다. 일회성 실행 파일 `.media_server.test/s09-media-regression.mjs`는 격리된 state/event/GST/recording 경로와 루프백 포트를 사용하며, 제품·verifier 코드를 추가 변경하지 않는다. 실행값과 표는 중앙 문서에 보존한다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| codec 명령 | ./server.sh verify-codecs, exit 0, 327136ms, 67/0 및 제외 3 | pass | 외부 입력은 아래 별도 제외 |
+| ICE 명령 | ./server.sh verify-webrtc-ice, exit 0, 17731ms, 8/0 | pass | local mode, relay 요구 없음 |
+| metadata 명령 | ./server.sh verify-webrtc-va-metadata --http-base http://127.0.0.1:62281 --debug-port 62702, exit 0, 3037ms, summary 8/0 | pass | stdout 세부 판정 10행과 summary 8개 check는 집계 단위가 다름 |
+| media-1 | verify-codecs: [pass] file_local_h264_aac: RTSP /default -> h264/aac | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-2 | verify-codecs: [pass] file_local_h264_aac: RTSP /h264 -> h264/aac | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-3 | verify-codecs: [pass] file_local_h264_aac: RTSP /h265 -> hevc/aac | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-4 | verify-codecs: [pass] file_local_h264_aac: RTSP /opus -> h264/opus | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-5 | verify-codecs: [pass] file_local_h264_aac: RTSP /h265/opus -> hevc/opus | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-6 | verify-codecs: [pass] file_local_h264_aac: RTSP /pcmu -> h264/pcm_mulaw | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-7 | verify-codecs: [pass] file_local_h264_aac: RTSP /h265/pcmu -> hevc/pcm_mulaw | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-8 | verify-codecs: [pass] file_local_h264_aac: RTSP /pcma -> h264/pcm_alaw | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-9 | verify-codecs: [pass] file_local_h264_aac: RTSP /h265/pcma -> hevc/pcm_alaw | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-10 | verify-codecs: [pass] file_local_h264_aac: WebRTC signaling session created ([session-redacted]) | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-11 | verify-codecs: [pass] file_local_h265_aac: RTSP /default -> h264/aac | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-12 | verify-codecs: [pass] file_local_h265_aac: RTSP /h264 -> h264/aac | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-13 | verify-codecs: [pass] file_local_h265_aac: RTSP /h265 -> hevc/aac | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-14 | verify-codecs: [pass] file_local_h265_aac: RTSP /opus -> h264/opus | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-15 | verify-codecs: [pass] file_local_h265_aac: RTSP /h265/opus -> hevc/opus | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-16 | verify-codecs: [pass] file_local_h265_aac: RTSP /pcmu -> h264/pcm_mulaw | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-17 | verify-codecs: [pass] file_local_h265_aac: RTSP /h265/pcmu -> hevc/pcm_mulaw | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-18 | verify-codecs: [pass] file_local_h265_aac: RTSP /pcma -> h264/pcm_alaw | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-19 | verify-codecs: [pass] file_local_h265_aac: RTSP /h265/pcma -> hevc/pcm_alaw | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-20 | verify-codecs: [pass] file_local_h265_aac: WebRTC signaling session created ([session-redacted]) | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-21 | verify-codecs: [pass] http_local_h264_aac: RTSP /default -> h264/aac | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-22 | verify-codecs: [pass] http_local_h264_aac: RTSP /h264 -> h264/aac | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-23 | verify-codecs: [pass] http_local_h264_aac: RTSP /opus -> h264/opus | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-24 | verify-codecs: [pass] http_local_h264_aac: WebRTC signaling session created ([session-redacted]) | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-25 | verify-codecs: [pass] http_local_h264_video_only: RTSP /default -> h264/aac | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-26 | verify-codecs: [pass] http_local_h264_video_only: RTSP /h264 -> h264/aac | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-27 | verify-codecs: [pass] http_local_h264_video_only: RTSP /h265 -> hevc/aac | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-28 | verify-codecs: [pass] http_local_h264_video_only: WebRTC signaling session created ([session-redacted]) | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-29 | verify-codecs: [pass] hls_local_h264_aac: RTSP /default -> h264/aac | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-30 | verify-codecs: [pass] hls_local_h264_aac: RTSP /h264 -> h264/aac | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-31 | verify-codecs: [pass] hls_local_h264_aac: RTSP /opus -> h264/opus | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-32 | verify-codecs: [pass] hls_local_h264_aac: WebRTC signaling session created ([session-redacted]) | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-33 | verify-codecs: [pass] rtsp_local_h265_opus: RTSP /default -> h264/aac | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-34 | verify-codecs: [pass] rtsp_local_h265_opus: RTSP /h264 -> h264/aac | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-35 | verify-codecs: [pass] rtsp_local_h265_opus: RTSP /h265 -> hevc/aac | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-36 | verify-codecs: [pass] rtsp_local_h265_opus: RTSP /opus -> h264/opus | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-37 | verify-codecs: [pass] rtsp_local_h265_opus: RTSP /h265/opus -> hevc/opus | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-38 | verify-codecs: [pass] rtsp_local_h265_opus: RTSP /pcmu -> h264/pcm_mulaw | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-39 | verify-codecs: [pass] rtsp_local_h265_opus: RTSP /h265/pcmu -> hevc/pcm_mulaw | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-40 | verify-codecs: [pass] rtsp_local_h265_opus: RTSP /pcma -> h264/pcm_alaw | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-41 | verify-codecs: [pass] rtsp_local_h265_opus: RTSP /h265/pcma -> hevc/pcm_alaw | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-42 | verify-codecs: [pass] rtsp_local_h265_opus: WebRTC signaling session created ([session-redacted]) | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-43 | verify-codecs: [pass] rtsp_local_h264_pcmu: RTSP /default -> h264/aac | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-44 | verify-codecs: [pass] rtsp_local_h264_pcmu: RTSP /h264 -> h264/aac | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-45 | verify-codecs: [pass] rtsp_local_h264_pcmu: RTSP /h265 -> hevc/aac | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-46 | verify-codecs: [pass] rtsp_local_h264_pcmu: RTSP /opus -> h264/opus | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-47 | verify-codecs: [pass] rtsp_local_h264_pcmu: RTSP /h265/opus -> hevc/opus | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-48 | verify-codecs: [pass] rtsp_local_h264_pcmu: RTSP /pcmu -> h264/pcm_mulaw | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-49 | verify-codecs: [pass] rtsp_local_h264_pcmu: RTSP /h265/pcmu -> hevc/pcm_mulaw | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-50 | verify-codecs: [pass] rtsp_local_h264_pcmu: RTSP /pcma -> h264/pcm_alaw | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-51 | verify-codecs: [pass] rtsp_local_h264_pcmu: RTSP /h265/pcma -> hevc/pcm_alaw | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-52 | verify-codecs: [pass] rtsp_local_h264_pcmu: WebRTC signaling session created ([session-redacted]) | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-53 | verify-codecs: [pass] rtsp_local_h264_pcma: RTSP /default -> h264/aac | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-54 | verify-codecs: [pass] rtsp_local_h264_pcma: RTSP /h264 -> h264/aac | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-55 | verify-codecs: [pass] rtsp_local_h264_pcma: RTSP /h265 -> hevc/aac | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-56 | verify-codecs: [pass] rtsp_local_h264_pcma: RTSP /opus -> h264/opus | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-57 | verify-codecs: [pass] rtsp_local_h264_pcma: RTSP /h265/opus -> hevc/opus | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-58 | verify-codecs: [pass] rtsp_local_h264_pcma: RTSP /pcmu -> h264/pcm_mulaw | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-59 | verify-codecs: [pass] rtsp_local_h264_pcma: RTSP /h265/pcmu -> hevc/pcm_mulaw | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-60 | verify-codecs: [pass] rtsp_local_h264_pcma: RTSP /pcma -> h264/pcm_alaw | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-61 | verify-codecs: [pass] rtsp_local_h264_pcma: RTSP /h265/pcma -> hevc/pcm_alaw | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-62 | verify-codecs: [pass] rtsp_local_h264_pcma: WebRTC signaling session created ([session-redacted]) | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-63 | verify-codecs: [pass] webrtc_local_publish_h264_opus: WebRTC signaling session created ([session-redacted]) | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-64 | verify-codecs: [pass] webrtc_local_publish_h264_opus: RTSP /default -> h264/aac | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-65 | verify-codecs: [pass] webrtc_local_publish_h264_opus: RTSP /h264 -> h264/aac | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-66 | verify-codecs: [pass] webrtc_local_publish_h264_opus: RTSP /h265 -> hevc/aac | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-67 | verify-codecs: [pass] webrtc_local_publish_h264_opus: RTSP /opus -> h264/opus | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-68 | verify-webrtc-ice: [pass] STUN URI 형식 확인 | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-69 | verify-webrtc-ice: [pass] TURN URI 형식 확인 | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-70 | verify-webrtc-ice: [pass] HTTP health ok | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-71 | verify-webrtc-ice: [pass] WebRTC browser ICE config 확인 | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-72 | verify-webrtc-ice: [pass] WebRTC session 생성: [session-redacted] | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-73 | verify-webrtc-ice: [pass] ICE candidate 수집 확인 | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-74 | verify-webrtc-ice: [pass] ICE transport policy 확인: all | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-75 | verify-webrtc-ice: [pass] WHIP publish -> WebRTC signaling 확인 | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-76 | verify-webrtc-va-metadata: [pass] HTTP health ok | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-77 | verify-webrtc-va-metadata: [pass] WebRTC video track 수신 확인 | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-78 | verify-webrtc-va-metadata: [pass] WebRTC ICE connected 확인 | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-79 | verify-webrtc-va-metadata: [pass] WebRTC DataChannel open 확인 | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-80 | verify-webrtc-va-metadata: [pass] WebRTC DataChannel label va-metadata 확인 | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-81 | verify-webrtc-va-metadata: [pass] WebRTC metadata message 수신 확인 | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-82 | verify-webrtc-va-metadata: [pass] WebRTC metadata schema 확인 | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-83 | verify-webrtc-va-metadata: [pass] WebRTC metadata tracks array 확인 | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-84 | verify-webrtc-va-metadata: [pass] WebRTC metadata events array 확인 | pass | 이번 실행 직접 결과, session ID 비노출 |
+| media-85 | verify-webrtc-va-metadata: [pass] WebRTC metadata sync diagnostics 확인 | pass | 이번 실행 직접 결과, session ID 비노출 |
+
+| 제목 | 제외된 테스트내용 | 사유 | 완료 근거 |
+| --- | --- | --- | --- |
+| verify-codecs | [skip] youtube_upload_h264_aac: disabled in config | 기존 설정 비활성 외부 입력 | 완료 PASS 근거로 사용 불가 |
+| verify-codecs | [skip] youtube_live_h264_aac: disabled in config | 기존 설정 비활성 외부 입력 | 완료 PASS 근거로 사용 불가 |
+| verify-codecs | [skip] rtsp_external_wowza_h264_aac: disabled in config | 기존 설정 비활성 외부 입력 | 완료 PASS 근거로 사용 불가 |
+| 외부 TURN | relay 운영 서버 질의 | endpoint·실행 승인 없음 | 완료 PASS 근거로 사용 불가 |
+
+ICE 실제 summary는 hasStun=true/hasTurn=false, host 12·srflx 3·unknown 1이다. 빈 환경변수 지정이 기본 STUN 설정을 비활성화하지 않았으므로 외부 통신이 전혀 없었다고 주장하지 않는다. 외부 영상과 TURN 미실행 경계는 유지하지만 STUN 통신이 관측된 실행으로 기록한다. Metadata는 videoTrack=true, ICE connected, 메시지 2개, parseErrors 0이며 DataChannel은 실행 중 open 확인 후 정리 시 closed다. 서버 로그의 CRITICAL/ERROR/terminate/SIGABRT 검색은 0행이다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| root J6CrdL | state/GST/임시 데이터 | 1741988B, 294항목, symlink277 | 기존 cleanup helper | 부재, symlink 대상 미삭제 | cleanup failureCount 0 |
+
+PID60383은 exit0/signal=null, 포트62280/62281은 ECONNREFUSED로 해제 확인했다. `/private/tmp/media_server_webrtc-ice-1789134393-61547` 접두의 candidates(2028B), session(1200B), summary(303B), config(230B), whip log(1922B) 5개는 정확한 파일 경로를 대조한 뒤 삭제했다. 필요한 판정값은 위에 보존했고 같은 접두의 잔여 파일은 0개다. 재현 가능한 임시 자료이며 복구 보존 대상이 아니다. 실행 로그 최종 정리는 아직 남아 있다. token start/end/consumed 미집계(명령 단위 집계 없음), source=직접 명령 출력과 summary. 120분은 아직 재실행 전이며 전체 S09 완료가 아니다.
+
+현재 goal의 S09 실패 수정·재검증 지시를 적용한다. 종료 시 스트림 strong reference를 유지한 채 모든 source worker를 먼저 정지하고, SessionManager 파괴 전 예약된 idle 정리를 취소하거나 실행 중 정리를 drain한다. 공개 API, packet/schema, 녹화 저장 계약 및 정상 실행 중 idle grace 정책은 유지한다. FileSourceWorker의 자기 스레드를 detach하거나 timeout을 늘리지 않는다.
+
+담당은 Codex 메인 설계·최종 판정, 기존 단일 서브에이전트 `gpt-6-astra` / `medium` 구현이다. 영향도 2·불확실성 2·검증 난이도 2·변경 범위 1 = 7점이며 상향하지 않는다. 하위 에이전트는 금지한다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 실제 종료 SIGABRT 재현과 수명 경계 수정 | StreamRegistry/SessionManager, AP12 | 현재 S09 goal의 수정·재검증 범위 |
+| 30분 테스트 | 미확인 | 종료 수명 변경 후 기존 증거의 적용 범위를 판단해야 함 | 기존 PD30 및 실제 변경 diff | 이 단계에서 실행하지 않음 |
+| UI 풀테스트 | 미확인 | UI 변경은 없으나 최종 diff에 따라 기존 증거 적용 판단 | 기존 424개 및 녹화 31개 조작 | 이 단계에서 실행하지 않음 |
+| 120분 테스트 | 진행 대상 | 실제 실패한 녹화 전용 검증, source lifecycle 보완 | AP12/LR01~04 | 기존 승인 유지, 단기 검증 통과 후 |
+
+안정화 순서는 신규 결정적 수명 테스트의 예상 RED → 수정 후 GREEN → 기존 recording identity → build 및 7.4의 codec/ICE/VA metadata → 실제 앱 `--app-observe`의 종료·재시작이다. 예상 RED는 registry가 worker의 strong reference를 유지하는 동안에도 Stop을 선행하지 않는 결과, pending idle 예약이 소유자 파괴 뒤 실행되는 결과다. 빌드·환경 오류는 예상 RED가 아니다. 신규 테스트는 실행 전 기능 인벤토리에 개별 등록한다. 아직 실행하지 않은 검증은 통과로 적지 않는다.
+
+### 종료 수명 최초 재현 — 75048
+
+실행 전 LC01~06을 기능 인벤토리에 등록했다. `bash scripts/internal/verify_stream_shutdown_lifecycle.sh`은 exit 1, 6개 중 2개 pass/4개 fail이다. 제품 core 코드는 아직 수정하지 않은 시점이다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| LC01 | 실제 registry 파괴 뒤 worker-held stream의 Stop/join 미완료 | fail | 사전 예상 assertion RED |
+| LC02 | 모든 worker Stop 전에 다른 stream 소유 해제 관측 | fail | 사전 예상 assertion RED |
+| LC03 | 실행 중 idle callback이 barrier에 있는데 manager 파괴 반환 | fail | 사전 예상 assertion RED |
+| LC04 | manager 파괴 후 pending callback에서 SIGSEGV(11) | fail | 예상 assertion에 도달하지 못한 실제 실패, RED로 소급하지 않음 |
+| LC05 | 정상 idle grace 후 stream 제거·admission 반환 | pass | 기존 동작 |
+| LC06 | grace 안 재획득 lease의 stream·admission 유지 | pass | 기존 동작 |
+
+최초 임시 binary 1,105,248B는 root `media-server-lifecycle.Qnrxky`와 함께 삭제·부재 확인했다. 원문은 `.media_server.test/s09-lifecycle-tdd/red.log`에 임시 보존 중이다. LC04는 실제 destructor 호출은 유지하되 backing storage를 subprocess 종료까지 보존하는 fixture로 보완하여, 종료 후 callback 실행 여부의 assertion을 분리한다. 최초 SIGSEGV 기록은 유지한다. 같은 S09 goal 안에서 테스트 보완 후 재검증하며 제품 수정·GREEN 이전에는 완료로 판정하지 않는다.
+
+### 종료 수명 보완 및 단기 GREEN — 76339 / 2663
+
+담당 에이전트는 테스트 작성·RED까지 수행한 뒤 도구 심사 오류로 종료됐다. 메인이 같은 설계를 회수해 core 4파일을 수정했다. 모델 설정 상향이나 추가 에이전트 생성은 없었다. `StreamRegistry` 소멸자가 map 전체의 strong reference를 유지한 채 모든 `StopSource()`를 호출한다. `SessionManager` 소멸자는 idle 예약을 닫고 대기 중 예약을 깨워 취소하며, 실행 중 callback의 마지막 객체 접근까지 mutex/CV/count로 drain한다. 정상 grace와 lease 정책, packet/API는 변경하지 않았다.
+
+LC04 placement 재현 76239는 exit 1, LC01~04 assertion fail/LC05~06 pass이며 임시 binary 1,105,664B를 삭제했다. 최초 SIGSEGV 이력은 위에 유지한다. 수정 후 `bash scripts/internal/verify_stream_shutdown_lifecycle.sh` 76339는 exit 0, 6/6 pass이다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| LC01 | registry 파괴 반환 전 worker strong 참조 상태의 Stop/join 완료 | pass | 최초 fail → 수정 후 pass |
+| LC02 | 전체 worker Stop 동안 모든 stream strong 참조 유지 | pass | 최초 fail → 수정 후 pass |
+| LC03 | 실행 중 idle callback이 끝날 때까지 manager 소멸 대기 | pass | 최초 fail → 수정 후 pass |
+| LC04 | manager 파괴 시 대기 중 idle 예약 취소, 종료 후 Stop 미발생 | pass | 최초 SIGSEGV → fixture 분리 assertion fail → 수정 후 pass |
+| LC05 | 정상 grace 후 stream 및 admission 해제 | pass | 기존 동작 유지 |
+| LC06 | grace 중 lease 재획득 stream 유지 | pass | 기존 동작 유지 |
+| LC cleanup | 임시 binary 1,108,048B, root 23Qyvh 삭제·부재 | pass | exit 0 |
+
+`bash scripts/internal/verify_recording_identity.sh` 2663은 exit 0, 아래 23개 개별 검사가 통과했다. GStreamer 미사용 focused 검사이므로 실제 서버·media 회귀·장시간 증거를 대체하지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| V410-IDMAP-I01 | 실제 identity smoke assertion 충족, command exit 0 | pass | 수정 후 회귀 |
+| V410-IDMAP-I02 | 실제 identity smoke assertion 충족, command exit 0 | pass | 수정 후 회귀 |
+| V410-IDMAP-I03 | 실제 identity smoke assertion 충족, command exit 0 | pass | 수정 후 회귀 |
+| V410-IDMAP-I04 | 실제 identity smoke assertion 충족, command exit 0 | pass | 수정 후 회귀 |
+| V410-IDMAP-I05 | 실제 identity smoke assertion 충족, command exit 0 | pass | 수정 후 회귀 |
+| V410-IDMAP-I06 | 실제 identity smoke assertion 충족, command exit 0 | pass | 수정 후 회귀 |
+| V410-IDMAP-I07 | 실제 identity smoke assertion 충족, command exit 0 | pass | 수정 후 회귀 |
+| S07-time-session-start | 실제 identity smoke assertion 충족, command exit 0 | pass | 수정 후 회귀 |
+| S07-time-session-input | 실제 identity smoke assertion 충족, command exit 0 | pass | 수정 후 회귀 |
+| S07-time-session-range | 실제 identity smoke assertion 충족, command exit 0 | pass | 수정 후 회귀 |
+| S07-time-session-accepted-gap-null | 실제 identity smoke assertion 충족, command exit 0 | pass | 수정 후 회귀 |
+| S07-time-session-ambiguous-channel | 실제 identity smoke assertion 충족, command exit 0 | pass | 수정 후 회귀 |
+| S07-time-finalize-success-observer-exception-isolated | 실제 identity smoke assertion 충족, command exit 0 | pass | 수정 후 회귀 |
+| S07-time-session-restart | 실제 identity smoke assertion 충족, command exit 0 | pass | 수정 후 회귀 |
+| S07-time-session-restart-null | 실제 identity smoke assertion 충족, command exit 0 | pass | 수정 후 회귀 |
+| S07-time-finalize-failure-no-observer-stop-null | 실제 identity smoke assertion 충족, command exit 0 | pass | 수정 후 회귀 |
+| V410-IDMAP-I08 | 실제 identity smoke assertion 충족, command exit 0 | pass | 수정 후 회귀 |
+| V410-IDMAP-I09 | 실제 identity smoke assertion 충족, command exit 0 | pass | 수정 후 회귀 |
+| V410-IDMAP-I10 | 실제 identity smoke assertion 충족, command exit 0 | pass | 수정 후 회귀 |
+| V410-IDMAP-I11 | 실제 identity smoke assertion 충족, command exit 0 | pass | 수정 후 회귀 |
+| V410-IDMAP-I12 | 실제 identity smoke assertion 충족, command exit 0 | pass | 수정 후 회귀 |
+| V410-IDMAP-I13 | 실제 identity smoke assertion 충족, command exit 0 | pass | 수정 후 회귀 |
+| S07-time-session-blocked-writer-null-nonblocking | 실제 identity smoke assertion 충족, command exit 0 | pass | 수정 후 회귀 |
+| identity cleanup | 임시 5파일 3,846,385B, root REUaBJ 삭제·부재 | pass | exit 0 |
+
+`git diff --check` exit 0. 빌드와 실제 앱 종료·재시작은 진행 중이며 아직 PASS가 아니다. token start/end/consumed는 실행별 집계가 없어 미집계, source=직접 tool output. 커밋·푸시는 수행하지 않았다.
+
+### 수정 후 빌드·실제 앱 종료와 재시작 — 91256 / 78768
+
+`./server.sh build` 91256 exit 0, 실제 `build-gst-onnx/media_server` 링크 완료. 이어 `bash scripts/internal/verify_v410_recording_foundation.sh --app-observe` 78768 exit 0, 앱 검사 295개 pass/0 fail, elapsed 49,355ms다. wrapper 완료 판정은 별도 1개다. `--app-observe`는 녹화·이벤트·보존·재시작 단기 관측이며 인증/30분/120분/UI 검증을 실행하지 않는다.
+
+최초 8336에서 실패한 AP12 정상 종료는 이번 app0/app2 모두 exit=0/signal=null이다. 재시작 후 세그먼트·원본 SHA·event link·관측·삭제 정보의 불변성과 새 녹화 최종화를 확인했다. 아래 개별 판정 전수를 보존한다. 실제 실패를 한 번 재검증한 결과이며 장시간 안정성을 확대 주장하지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| 78768-1 | [pass] AP12 distinct loopback ports | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-2 | [pass] AP12 actual foreground healthy &#124; pid=60138 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-InpAKV | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-3 | [pass] POST /ops/api/sources &#124; status=201 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-4 | [pass] AP01 V1 identity seg-9101-1789133820007-1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-5 | [pass] AP01 positive UTC/PTS seg-9101-1789133820007-1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-6 | [pass] AP01 actual bytes SHA seg-9101-1789133820007-1 &#124; bytes=4096788 sha256=04b1c3b2ef7a351e97e637288f4e7ba6af073becc4b50b74b25b2e2f7f8f9723 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-7 | [pass] AP02 actual finalized barrier before rule and tap | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-8 | [pass] PUT /lab/analysis/rules/9101 &#124; status=200 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-9 | [pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 &#124; status=200 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-10 | [pass] AP02 actual tap created | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-11 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 &#124; status=200 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-12 | [pass] GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 &#124; status=200 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-13 | [pass] AP02/03 actual EventRecord identity fallback &#124; eventId=evt_1789133828656_2 linkId=event-link-sha256-670a36f9f9e5a0f9560a6b7f2a3ff5647d56b9370fde7d05626ae640fcd0b12c | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-14 | [pass] AP02/03 actual nonnegative padded event start fallback &#124; startTime=8333 updateTime=8333 timeBasis=media-pts-ms | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-15 | [pass] AP02/03 durable link source fallback | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-16 | [pass] GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789133826840&endTimeMs=1789133829867 &#124; status=200 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-17 | [pass] AP04 fallback event priority | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-18 | [pass] AP04 fallback path redaction | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-19 | [pass] AP02 fallback remains partial requested-fallback | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-20 | [pass] AP02 encoded WebM eventId/encoded contract/size/isolated path | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-21 | [pass] AP05 fallback playable local URL | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-22 | [pass] AP05 fallback actual file prefix | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-23 | [pass] AP05 fallback literal GET Range &#124; status=206 contentRange=bytes 2-5/22910 bodyHex=dfa30100 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-24 | [pass] DELETE /lab/analysis/taps/analysis-tap-1 &#124; status=200 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-25 | [pass] AP01 V1 identity seg-9101-1789133820007-1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-26 | [pass] AP01 positive UTC/PTS seg-9101-1789133820007-1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-27 | [pass] AP01 actual bytes SHA seg-9101-1789133820007-1 &#124; bytes=4096788 sha256=04b1c3b2ef7a351e97e637288f4e7ba6af073becc4b50b74b25b2e2f7f8f9723 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-28 | [pass] AP01 V1 identity seg-9101-1789133828367-2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-29 | [pass] AP01 positive UTC/PTS seg-9101-1789133828367-2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-30 | [pass] AP01 actual bytes SHA seg-9101-1789133828367-2 &#124; bytes=4813100 sha256=d8fb0ea3b6db5bab493f3e246bb36e703414bd9e38bc9a5520c59705bf5eaa6d | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-31 | [pass] POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 &#124; status=200 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-32 | [pass] AP03 actual tap created | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-33 | [pass] AP03 finalized boundary available | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-34 | [pass] GET /lab/analysis/taps/analysis-tap-2 &#124; status=200 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-35 | [pass] GET /lab/analysis/taps/analysis-tap-2 &#124; status=200 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-36 | [pass] GET /lab/analysis/taps/analysis-tap-2 &#124; status=200 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-37 | [pass] GET /lab/analysis/taps/analysis-tap-2 &#124; status=200 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-38 | [pass] GET /lab/analysis/taps/analysis-tap-2 &#124; status=200 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-39 | [pass] GET /lab/analysis/taps/analysis-tap-2 &#124; status=200 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-40 | [pass] GET /lab/analysis/taps/analysis-tap-2 &#124; status=200 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-41 | [pass] GET /lab/analysis/taps/analysis-tap-2 &#124; status=200 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-42 | [pass] PUT /lab/analysis/rules/9102 &#124; status=200 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-43 | [pass] GET /lab/analysis/taps/analysis-tap-2/events?dispatch=1 &#124; status=200 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-44 | [pass] AP02/03 actual EventRecord identity derived &#124; eventId=evt_1789133837710_84 linkId=event-link-sha256-41d25f05988af5498aaa90986b0b1f26f6775a0624b0a769834298dd76e28670 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-45 | [pass] AP02/03 actual nonnegative padded event start derived &#124; startTime=17533 updateTime=17533 timeBasis=media-pts-ms | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-46 | [pass] AP02/03 durable link source derived | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-47 | [pass] GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789133836060&endTimeMs=1789133839060 &#124; status=200 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-48 | [pass] AP04 derived event priority | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-49 | [pass] AP04 derived path redaction | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-50 | [pass] AP03 actual derived remux metadata | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-51 | [pass] AP01 V1 identity event-seg-sha256-9b8c78bc7e6a8f4d31e04ecae664347bd9b8e727eb0f49ff5bca28e317baf2e1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-52 | [pass] AP01 positive UTC/PTS event-seg-sha256-9b8c78bc7e6a8f4d31e04ecae664347bd9b8e727eb0f49ff5bca28e317baf2e1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-53 | [pass] AP01 actual bytes SHA event-seg-sha256-9b8c78bc7e6a8f4d31e04ecae664347bd9b8e727eb0f49ff5bca28e317baf2e1 &#124; bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-54 | [pass] AP03 Complete actual overlaps | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-55 | [pass] AP04 continuous superseded with priority100 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-56 | [pass] AP05 derived playable local URL | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-57 | [pass] AP05 derived actual file prefix | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-58 | [pass] AP05 derived literal GET Range &#124; status=206 contentRange=bytes 2-5/1218616 bodyHex=0032a600 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-59 | [pass] DELETE /lab/analysis/taps/analysis-tap-2 &#124; status=200 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-60 | [pass] AP02/03 fallback and derived independent events | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-61 | [pass] AP06 actual H264 generator &#124; exit=0 log=Setting pipeline to PAUSED ... Pipeline is PREROLLING ... Redistribute latency... Redistribute latency... Pipeline is PREROLLED ... Setting pipeline to PLAYING ... Redistribute latency... New clock: GstSystemClock Got EOS from element "pipeline0". EOS received - stopping pipeline... Execution ended after 0:00:00.217769791 Setting pipeline to NULL ... Freeing pipeline ...  | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-62 | [pass] AP12 generated input bounded &#124; bytes=62334405 limitBytes=100663296 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-63 | [pass] POST /ops/api/sources &#124; status=201 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-64 | [pass] AP01 V1 identity seg-9201-1789133845852-1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-65 | [pass] AP01 positive UTC/PTS seg-9201-1789133845852-1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-66 | [pass] AP01 actual bytes SHA seg-9201-1789133845852-1 &#124; bytes=15581582 sha256=d5ea7270e8dce603c453dbf90328b74ee2aeb97fba4a9aa376612837fca051ef | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-67 | [pass] AP01 V1 identity seg-9201-1789133846913-2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-68 | [pass] AP01 positive UTC/PTS seg-9201-1789133846913-2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-69 | [pass] AP01 actual bytes SHA seg-9201-1789133846913-2 &#124; bytes=31168171 sha256=d7dd74441b90869c7920fe49c11281459ffbe954bdcd73cd593ff1aa255fcb71 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-70 | [pass] AP01 V1 identity seg-9201-1789133848905-3 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-71 | [pass] AP01 positive UTC/PTS seg-9201-1789133848905-3 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-72 | [pass] AP01 actual bytes SHA seg-9201-1789133848905-3 &#124; bytes=15586426 sha256=b6ce70a4c52793f7fd275fb666cbb7de5fe490f94cd9f0860ca8f66a10a4dcff | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-73 | [pass] AP01 V1 identity seg-9201-1789133849900-4 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-74 | [pass] AP01 positive UTC/PTS seg-9201-1789133849900-4 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-75 | [pass] AP01 actual bytes SHA seg-9201-1789133849900-4 &#124; bytes=15581582 sha256=cd7e10521c740220c7ccee9ad64317358ba12ff85818c2304c9af1f4db2728b0 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-76 | [pass] AP06 each actual segment below reservation | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-77 | [pass] AP06 actual total exceeds future quota &#124; count=4 bytes=77917761 oldest=seg-9201-1789133845852-1,seg-9201-1789133846913-2,seg-9201-1789133848905-3,seg-9201-1789133849900-4 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-78 | [pass] PUT /ops/api/sources/9201 &#124; status=200 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-79 | [pass] AP07 oldest deletion request independent order | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-80 | [pass] AP07 durable completed seg-9201-1789133845852-1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-81 | [pass] AP07 physical absent seg-9201-1789133845852-1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-82 | [pass] AP07 durable completed seg-9201-1789133846913-2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-83 | [pass] AP07 physical absent seg-9201-1789133846913-2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-84 | [pass] AP07 durable completed seg-9201-1789133848905-3 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-85 | [pass] AP07 physical absent seg-9201-1789133848905-3 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-86 | [pass] AP07 durable completed seg-9201-1789133849900-4 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-87 | [pass] AP07 physical absent seg-9201-1789133849900-4 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-88 | [pass] AP08 new finalized then ordered deleted physical absence seg-9201-1789133851135-1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-89 | [pass] AP08 new finalized then ordered deleted physical absence seg-9201-1789133852909-2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-90 | [pass] AP08 actual recording resumes after quota deletion | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-91 | [pass] PUT /ops/api/sources/9201 &#124; status=200 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-92 | [pass] AP08 restored quota new finalized | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-93 | [pass] AP12 app0 exit0 &#124; exit=0 signal=null | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-94 | [pass] AP01 V1 identity seg-9101-1789133820007-1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-95 | [pass] AP01 positive UTC/PTS seg-9101-1789133820007-1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-96 | [pass] AP01 actual bytes SHA seg-9101-1789133820007-1 &#124; bytes=4096788 sha256=04b1c3b2ef7a351e97e637288f4e7ba6af073becc4b50b74b25b2e2f7f8f9723 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-97 | [pass] AP01 V1 identity seg-9101-1789133828367-2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-98 | [pass] AP01 positive UTC/PTS seg-9101-1789133828367-2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-99 | [pass] AP01 actual bytes SHA seg-9101-1789133828367-2 &#124; bytes=4813100 sha256=d8fb0ea3b6db5bab493f3e246bb36e703414bd9e38bc9a5520c59705bf5eaa6d | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-100 | [pass] AP01 V1 identity seg-9101-1789133836693-3 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-101 | [pass] AP01 positive UTC/PTS seg-9101-1789133836693-3 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-102 | [pass] AP01 actual bytes SHA seg-9101-1789133836693-3 &#124; bytes=5222837 sha256=e3f40d8e46250f1d55f6ec0a8433fa07d1366816b866707a0a17e49e6b16dd26 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-103 | [pass] AP01 V1 identity event-seg-sha256-38e34e5bfae7b9d1129860c63c7fe977cf5421e6078e5c2ee9892d603a74cb3e | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-104 | [pass] AP01 positive UTC/PTS event-seg-sha256-38e34e5bfae7b9d1129860c63c7fe977cf5421e6078e5c2ee9892d603a74cb3e | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-105 | [pass] AP01 actual bytes SHA event-seg-sha256-38e34e5bfae7b9d1129860c63c7fe977cf5421e6078e5c2ee9892d603a74cb3e &#124; bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-106 | [pass] AP01 V1 identity event-seg-sha256-0a8265c6590406d1f28572ced0a0fb6782aa8cda6a3c81ffc61b945578eeba9e | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-107 | [pass] AP01 positive UTC/PTS event-seg-sha256-0a8265c6590406d1f28572ced0a0fb6782aa8cda6a3c81ffc61b945578eeba9e | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-108 | [pass] AP01 actual bytes SHA event-seg-sha256-0a8265c6590406d1f28572ced0a0fb6782aa8cda6a3c81ffc61b945578eeba9e &#124; bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-109 | [pass] AP01 V1 identity event-seg-sha256-74fd6296f56a3fa30c85b472c88e2c73c7036d9be080159fce8721c0c5268eff | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-110 | [pass] AP01 positive UTC/PTS event-seg-sha256-74fd6296f56a3fa30c85b472c88e2c73c7036d9be080159fce8721c0c5268eff | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-111 | [pass] AP01 actual bytes SHA event-seg-sha256-74fd6296f56a3fa30c85b472c88e2c73c7036d9be080159fce8721c0c5268eff &#124; bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-112 | [pass] AP01 V1 identity event-seg-sha256-565ceb0502722a5b188101876b9c5b0bf7bd24bb245da26194cd627b1306039d | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-113 | [pass] AP01 positive UTC/PTS event-seg-sha256-565ceb0502722a5b188101876b9c5b0bf7bd24bb245da26194cd627b1306039d | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-114 | [pass] AP01 actual bytes SHA event-seg-sha256-565ceb0502722a5b188101876b9c5b0bf7bd24bb245da26194cd627b1306039d &#124; bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-115 | [pass] AP01 V1 identity event-seg-sha256-2a14b16d7724a50dc2aa2bb8c6b848827d3b7f9aa3c1b4e870695f754381a76c | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-116 | [pass] AP01 positive UTC/PTS event-seg-sha256-2a14b16d7724a50dc2aa2bb8c6b848827d3b7f9aa3c1b4e870695f754381a76c | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-117 | [pass] AP01 actual bytes SHA event-seg-sha256-2a14b16d7724a50dc2aa2bb8c6b848827d3b7f9aa3c1b4e870695f754381a76c &#124; bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-118 | [pass] AP01 V1 identity event-seg-sha256-b17b70241008e6560c3aaf2b8289e71bc5f74ba91df69b378d9c60e76bf35ecd | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-119 | [pass] AP01 positive UTC/PTS event-seg-sha256-b17b70241008e6560c3aaf2b8289e71bc5f74ba91df69b378d9c60e76bf35ecd | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-120 | [pass] AP01 actual bytes SHA event-seg-sha256-b17b70241008e6560c3aaf2b8289e71bc5f74ba91df69b378d9c60e76bf35ecd &#124; bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-121 | [pass] AP01 V1 identity event-seg-sha256-02a6b9b6cb1dac55d2229fad17ce4a79afbb5a5e4227f2dfa23ce30c3a4aa6d2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-122 | [pass] AP01 positive UTC/PTS event-seg-sha256-02a6b9b6cb1dac55d2229fad17ce4a79afbb5a5e4227f2dfa23ce30c3a4aa6d2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-123 | [pass] AP01 actual bytes SHA event-seg-sha256-02a6b9b6cb1dac55d2229fad17ce4a79afbb5a5e4227f2dfa23ce30c3a4aa6d2 &#124; bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-124 | [pass] AP01 V1 identity event-seg-sha256-9b8c78bc7e6a8f4d31e04ecae664347bd9b8e727eb0f49ff5bca28e317baf2e1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-125 | [pass] AP01 positive UTC/PTS event-seg-sha256-9b8c78bc7e6a8f4d31e04ecae664347bd9b8e727eb0f49ff5bca28e317baf2e1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-126 | [pass] AP01 actual bytes SHA event-seg-sha256-9b8c78bc7e6a8f4d31e04ecae664347bd9b8e727eb0f49ff5bca28e317baf2e1 &#124; bytes=1218616 sha256=1089a59d6bed4ed3c72e10ee11d4bd9ebac5e03735999144753c553491447994 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-127 | [pass] AP01 V1 identity seg-9101-1789133845024-4 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-128 | [pass] AP01 positive UTC/PTS seg-9101-1789133845024-4 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-129 | [pass] AP01 actual bytes SHA seg-9101-1789133845024-4 &#124; bytes=2940815 sha256=ac5c771aa28ea61b6b239146af769b58dba41622d0f9f4f521b5fdb24ed39c78 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-130 | [pass] AP01 V1 identity seg-9201-1789133853910-3 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-131 | [pass] AP01 positive UTC/PTS seg-9201-1789133853910-3 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-132 | [pass] AP01 actual bytes SHA seg-9201-1789133853910-3 &#124; bytes=2078417 sha256=aec8d165b3110c511a06eba49f2fb4389a2734cd2a564d938aefa811588a6a35 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-133 | [pass] AP01 V1 identity seg-9201-1789133854002-1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-134 | [pass] AP01 positive UTC/PTS seg-9201-1789133854002-1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-135 | [pass] AP01 actual bytes SHA seg-9201-1789133854002-1 &#124; bytes=31167191 sha256=7b6bbaf631c388ec78eb35d86ea1f0256dff4507e55f5da38376a870b7674c3b | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-136 | [pass] AP01 V1 identity seg-9201-1789133855934-2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-137 | [pass] AP01 positive UTC/PTS seg-9201-1789133855934-2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-138 | [pass] AP01 actual bytes SHA seg-9201-1789133855934-2 &#124; bytes=13504639 sha256=75a630b5979b6d283f9067dd127e5cc723c801751010ff5333c654ff39634deb | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-139 | [pass] AP01 V1 identity seg-9101-1789133850018-5 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-140 | [pass] AP01 positive UTC/PTS seg-9101-1789133850018-5 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-141 | [pass] AP01 actual bytes SHA seg-9101-1789133850018-5 &#124; bytes=3196910 sha256=9da561cb4a8441c466c6af06992c21491f229bd9f88764b45763a26078d94d50 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-142 | [pass] AP12 distinct loopback ports | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-143 | [pass] AP12 actual foreground healthy &#124; pid=60179 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-InpAKV | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-144 | [pass] AP09 restart actual new PID | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-145 | [pass] AP09 immutable segment seg-9101-1789133820007-1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-146 | [pass] AP09 immutable segment seg-9101-1789133828367-2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-147 | [pass] AP09 immutable segment seg-9101-1789133836693-3 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-148 | [pass] AP09 immutable segment event-seg-sha256-38e34e5bfae7b9d1129860c63c7fe977cf5421e6078e5c2ee9892d603a74cb3e | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-149 | [pass] AP09 immutable segment event-seg-sha256-0a8265c6590406d1f28572ced0a0fb6782aa8cda6a3c81ffc61b945578eeba9e | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-150 | [pass] AP09 immutable segment event-seg-sha256-74fd6296f56a3fa30c85b472c88e2c73c7036d9be080159fce8721c0c5268eff | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-151 | [pass] AP09 immutable segment event-seg-sha256-565ceb0502722a5b188101876b9c5b0bf7bd24bb245da26194cd627b1306039d | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-152 | [pass] AP09 immutable segment event-seg-sha256-2a14b16d7724a50dc2aa2bb8c6b848827d3b7f9aa3c1b4e870695f754381a76c | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-153 | [pass] AP09 immutable segment event-seg-sha256-b17b70241008e6560c3aaf2b8289e71bc5f74ba91df69b378d9c60e76bf35ecd | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-154 | [pass] AP09 immutable segment event-seg-sha256-02a6b9b6cb1dac55d2229fad17ce4a79afbb5a5e4227f2dfa23ce30c3a4aa6d2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-155 | [pass] AP09 immutable segment event-seg-sha256-9b8c78bc7e6a8f4d31e04ecae664347bd9b8e727eb0f49ff5bca28e317baf2e1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-156 | [pass] AP09 immutable segment seg-9201-1789133845852-1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-157 | [pass] AP09 immutable segment seg-9201-1789133846913-2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-158 | [pass] AP09 immutable segment seg-9201-1789133848905-3 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-159 | [pass] AP09 immutable segment seg-9101-1789133845024-4 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-160 | [pass] AP09 immutable segment seg-9201-1789133849900-4 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-161 | [pass] AP09 immutable segment seg-9201-1789133850919-5 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-162 | [pass] AP09 immutable segment seg-9201-1789133851135-1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-163 | [pass] AP09 immutable segment seg-9201-1789133852909-2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-164 | [pass] AP09 immutable segment seg-9201-1789133853910-3 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-165 | [pass] AP09 immutable segment seg-9201-1789133854002-1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-166 | [pass] AP09 immutable segment seg-9201-1789133855934-2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-167 | [pass] AP09 immutable segment seg-9101-1789133850018-5 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-168 | [pass] AP09 immutable media SHA seg-9101-1789133820007-1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-169 | [pass] AP09 immutable media SHA seg-9101-1789133828367-2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-170 | [pass] AP09 immutable media SHA seg-9101-1789133836693-3 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-171 | [pass] AP09 immutable media SHA event-seg-sha256-38e34e5bfae7b9d1129860c63c7fe977cf5421e6078e5c2ee9892d603a74cb3e | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-172 | [pass] AP09 immutable media SHA event-seg-sha256-0a8265c6590406d1f28572ced0a0fb6782aa8cda6a3c81ffc61b945578eeba9e | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-173 | [pass] AP09 immutable media SHA event-seg-sha256-74fd6296f56a3fa30c85b472c88e2c73c7036d9be080159fce8721c0c5268eff | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-174 | [pass] AP09 immutable media SHA event-seg-sha256-565ceb0502722a5b188101876b9c5b0bf7bd24bb245da26194cd627b1306039d | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-175 | [pass] AP09 immutable media SHA event-seg-sha256-2a14b16d7724a50dc2aa2bb8c6b848827d3b7f9aa3c1b4e870695f754381a76c | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-176 | [pass] AP09 immutable media SHA event-seg-sha256-b17b70241008e6560c3aaf2b8289e71bc5f74ba91df69b378d9c60e76bf35ecd | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-177 | [pass] AP09 immutable media SHA event-seg-sha256-02a6b9b6cb1dac55d2229fad17ce4a79afbb5a5e4227f2dfa23ce30c3a4aa6d2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-178 | [pass] AP09 immutable media SHA event-seg-sha256-9b8c78bc7e6a8f4d31e04ecae664347bd9b8e727eb0f49ff5bca28e317baf2e1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-179 | [pass] AP09 immutable media SHA seg-9101-1789133845024-4 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-180 | [pass] AP09 immutable media SHA seg-9201-1789133853910-3 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-181 | [pass] AP09 immutable media SHA seg-9201-1789133854002-1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-182 | [pass] AP09 immutable media SHA seg-9201-1789133855934-2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-183 | [pass] AP09 immutable media SHA seg-9101-1789133850018-5 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-184 | [pass] AP09 immutable links evt_1789133828656_2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-185 | [pass] AP09 immutable links evt_1789133828656_3 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-186 | [pass] AP09 immutable links evt_1789133828657_4 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-187 | [pass] AP09 immutable links evt_1789133828658_5 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-188 | [pass] AP09 immutable links evt_1789133837707_77 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-189 | [pass] AP09 immutable links evt_1789133837707_78 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-190 | [pass] AP09 immutable links evt_1789133837708_79 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-191 | [pass] AP09 immutable links evt_1789133837709_80 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-192 | [pass] AP09 immutable links evt_1789133837709_81 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-193 | [pass] AP09 immutable links evt_1789133837710_82 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-194 | [pass] AP09 immutable links evt_1789133837710_83 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-195 | [pass] AP09 immutable links evt_1789133837710_84 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-196 | [pass] AP09 immutable observations obs-788fe67e514f586c264f383c5ce420b1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-197 | [pass] AP09 immutable observations obs-892af13e1f7872b5ddeac95d1d0d6734 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-198 | [pass] AP09 immutable observations obs-461d99a40585d196bec946d58eeaa587 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-199 | [pass] AP09 immutable observations obs-86188fcf522d2a4f2266344ea56dbf9a | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-200 | [pass] AP09 immutable observations obs-a37564d1b20e3b5d04c5613f37d55730 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-201 | [pass] AP09 immutable observations obs-f57059679b61d87472d246b9313a86c5 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-202 | [pass] AP09 immutable observations obs-5a4ce270b05930ef6b2f0f59a217eafe | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-203 | [pass] AP09 immutable observations obs-0fd2ade84f368806c4aa83d6e7ba0e33 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-204 | [pass] AP09 immutable observations obs-36e2499830552aa0c188365aef7e9857 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-205 | [pass] AP09 immutable observations obs-a64b51355ef181eb709d574e7cd4aa44 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-206 | [pass] AP09 immutable observations obs-1d41fb18e02475320eff6b2b9019ee85 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-207 | [pass] AP09 immutable observations obs-0d2efb9a2b263ce55393a6f6e323d5ea | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-208 | [pass] AP09 immutable observations obs-964d4982602095de7748837e5f7364ed | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-209 | [pass] AP09 immutable observations obs-bea504907e65d74569d281583a61b296 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-210 | [pass] AP09 immutable observations obs-53b14703fe420938c254854e0b22b213 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-211 | [pass] AP09 immutable observations obs-a2c1bf0bc02dc427d16b2ea5b0e5cd54 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-212 | [pass] AP09 immutable observations obs-8d080e66c8befee5b8d9408694fc1b5e | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-213 | [pass] AP09 immutable observations obs-3c283cc6915e13aeb4ce4319ca3f38b5 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-214 | [pass] AP09 immutable observations obs-ce204b7c1ab8aae36dbaebbba5640810 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-215 | [pass] AP09 immutable observations obs-a0227631579e53cc339016d22d9013f7 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-216 | [pass] AP09 immutable observations obs-b558fa1035272951a3fbd4b302e6a97a | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-217 | [pass] AP09 immutable observations obs-d9946b3c9171dca6d825316ee1f17add | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-218 | [pass] AP09 immutable observations obs-577f3e26315807fbb3c0a210f0ba3378 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-219 | [pass] AP09 immutable observations obs-5cb5cde9dcc12c40c6126c4175151c5b | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-220 | [pass] AP09 immutable observations obs-a7fe51d2b82726f5e80caa6cbac3a2ea | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-221 | [pass] AP09 immutable observations obs-395165c08b1149aaa7a4a0fc170e8ed5 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-222 | [pass] AP09 immutable observations obs-5240842a87c110f055e30cd899d7f4d7 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-223 | [pass] AP09 immutable observations obs-5f7cf227e5877ba52fca3c228fde5fc6 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-224 | [pass] AP09 immutable observations obs-cbc8172381b5fa9c9d10e8ab2ae61ccb | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-225 | [pass] AP09 immutable observations obs-1f1ee7423c0bb943191e0cba12f51f04 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-226 | [pass] AP09 immutable observations obs-4579ae7780c61439a29c5d26622b5306 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-227 | [pass] AP09 immutable observations obs-ae1287113f68de3034effa378ebb0347 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-228 | [pass] AP09 immutable observations obs-2fe14a62c0b4b0f107467831dd6c87e4 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-229 | [pass] AP09 immutable observations obs-d5d6fd004f0c4000b3ff7444ca2d74e9 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-230 | [pass] AP09 immutable observations obs-4761cdfbbfcb432bda009a273c69861a | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-231 | [pass] AP09 immutable observations obs-def966353182c2823e695bbea470de77 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-232 | [pass] AP09 immutable observations obs-566870a679c38652bf2e98288e118e2d | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-233 | [pass] AP09 immutable observations obs-4882c6b6888460b9b2aee89bb9cb0c76 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-234 | [pass] AP09 immutable observations obs-93cb82dd0db9bd77d6a72027c66b1840 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-235 | [pass] AP09 immutable observations obs-360a81566bfd4b58e5d41b0d8976255f | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-236 | [pass] AP09 immutable observations obs-10a8866d85d03853a369647eba37eed4 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-237 | [pass] AP09 immutable observations obs-38dd31fc963b23549d5cad74f33473fb | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-238 | [pass] AP09 immutable observations obs-a386697461f560a1b60267f7b0765f0e | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-239 | [pass] AP09 immutable observations obs-2ca634e4b328813a6f724bd6dee804a5 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-240 | [pass] AP09 immutable observations obs-f0a31ecb901460661f38a20d1eb84d81 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-241 | [pass] AP09 immutable observations obs-5af6ff99fe8e8ec12a71a55017c7b1ce | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-242 | [pass] AP09 immutable observations obs-816d1bd6f9a2ceb428ed701c8be3213b | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-243 | [pass] AP09 immutable observations obs-81e168507b9be427179e1af5db9be5f8 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-244 | [pass] AP09 immutable observations obs-777da6a6ae0e54c2a741a5d4263a7d29 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-245 | [pass] AP09 immutable observations obs-3700ac6425fe7ecd846a761c60b31bae | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-246 | [pass] AP09 immutable observations obs-bf58caad3bda29f43d039f54f04f12df | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-247 | [pass] AP09 immutable observations obs-a22e9221887fbf07bc3517abdc24cee4 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-248 | [pass] AP09 immutable observations obs-1c9c864167b83bdafce5ac06b2706ca1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-249 | [pass] AP09 immutable observations obs-2073db64e91b0341cf4ff680afd1b15a | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-250 | [pass] AP09 immutable observations obs-13649a636c6ac7385afcd6a2eacc3e9b | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-251 | [pass] AP09 immutable observations obs-a97e5e2632b4b107318c41b8d1506444 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-252 | [pass] AP09 immutable observations obs-467159b00ff9cbf6583b0ddee69ab085 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-253 | [pass] AP09 immutable observations obs-ea38e577718fa9211e0eff3876373db2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-254 | [pass] AP09 immutable observations obs-a67d0008f583b1186785425937994e43 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-255 | [pass] AP09 immutable observations obs-9861e5a76170af5b500890f28da57f70 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-256 | [pass] AP09 immutable observations obs-2e5883fe2af3750c88ebf123f2f5ca53 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-257 | [pass] AP09 immutable observations obs-47b58b81e74e858b0bf2728bc413b364 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-258 | [pass] AP09 immutable observations obs-5762faeee6934eae9836259e43f46811 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-259 | [pass] AP09 immutable observations obs-c70817e453bdef753b24017b204b3992 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-260 | [pass] AP09 immutable observations obs-01f52261e2f1b17da841d190880dd7d6 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-261 | [pass] AP09 immutable observations obs-093566f87971d32ac3285e5196ff4161 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-262 | [pass] AP09 immutable observations obs-ceb49fbf821eff5341cdd32392ebdc90 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-263 | [pass] AP09 immutable observations obs-71ad5fc0a086e08022000f2e9c2d6613 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-264 | [pass] AP09 immutable observations obs-30cef5c68b85a16df28a979cbd4b14ba | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-265 | [pass] AP09 immutable observations obs-3d4862b95e09d81a2fbd137ef493507d | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-266 | [pass] AP09 immutable observations obs-d940445736ca170716a0c9b3f1d58800 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-267 | [pass] AP09 immutable observations obs-082bbbd1f3149954e2bc92260c778d2b | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-268 | [pass] AP09 immutable observations obs-8768bbce37981fa7a8122ca39b4a771a | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-269 | [pass] AP09 immutable observations obs-4e5f4cd62f3127fe27a8c46c078fa1bf | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-270 | [pass] AP09 immutable observations obs-59901b65822f78016f09fbdb9d5f2618 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-271 | [pass] AP09 immutable observations obs-48b236d6d1cb93880b95f531b5fc5e85 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-272 | [pass] AP09 immutable observations obs-ffe663ae840a9c00b964c82aa1ff5657 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-273 | [pass] AP09 immutable observations obs-876e270405e5c7170c6fc83cee6391f0 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-274 | [pass] AP09 immutable observations obs-5c681b15b73de73a0a27c9b26bce931d | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-275 | [pass] AP09 immutable observations obs-831023cbb81810d13a0d7fe0fe13389e | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-276 | [pass] AP09 immutable observations obs-335dda45504189a45c812c45a70b3cff | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-277 | [pass] AP09 immutable observations obs-344c77194254e92bbe9c29bab7ceaff0 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-278 | [pass] AP09 immutable observations obs-ee0009f1c17354bd3a9d2bd8529ccafe | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-279 | [pass] AP09 immutable observations obs-03a9966f8d326a360fa050b9dd8fa175 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-280 | [pass] AP09 immutable tombstones seg-9201-1789133845852-1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-281 | [pass] AP09 immutable tombstones seg-9201-1789133846913-2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-282 | [pass] AP09 immutable tombstones seg-9201-1789133848905-3 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-283 | [pass] AP09 immutable tombstones seg-9201-1789133849900-4 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-284 | [pass] AP09 immutable tombstones seg-9201-1789133850919-5 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-285 | [pass] AP09 immutable tombstones seg-9201-1789133851135-1 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-286 | [pass] AP09 immutable tombstones seg-9201-1789133852909-2 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-287 | [pass] AP09 duplicate mutation IDs zero | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-288 | [pass] AP09 actual post-restart finalized | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-289 | [pass] AP12 app2 exit0 &#124; exit=0 signal=null | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-290 | [pass] AP12 root below 512MiB cap &#124; bytes=329183285 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-291 | [pass] AP12 port absent 62134 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-292 | [pass] AP12 port absent 62135 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-293 | [pass] AP12 port absent 62200 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-294 | [pass] AP12 port absent 62201 | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-295 | [pass] AP12 root cleanup &#124; path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-InpAKV bytes=329183285 absent=true | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+| 78768-296 | [pass] AP wrapper completed and cleanup absent | pass | AP12 최초 SIGABRT → 수정 후 정상 종료, 나머지는 이번 개별 결과 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| 실행 root InpAKV | 녹화·registry·입력·로그 | 329183285B | runner 정리 | 부재 | 위 AP12 cleanup |
+| GST root U6Qgj8 | registry·collector | 143595B | wrapper 정리 | 부재 | wrapper exit 0 |
+
+포트 62134/62135/62200/62201 부재 확인. 원문 `.media_server.test/s09-shutdown-app-observe.log`는 최종 이관·정리 전 임시 기록이다. token start/end/consumed 미집계(별도 실행 집계 없음), source=직접 tool output. 미디어 codec/ICE/metadata 회귀 및 녹화 직접 120분은 아직 재실행 전이다. 커밋·푸시는 하지 않았다.
+
+## S09 녹화 직접 120분 준비 중 실제 종료 실패 — 8336
+
+`./server.sh verify-v410-recording-longrun --duration-minutes 120`은 exit 1이다. 준비 검사 95개 pass, 1개 fail이며 elapsed 38,603ms이다. AP08 보존 후 녹화 재개까지 통과했으나, 재시작을 위한 정상 종료 요청에서 PID 58827이 SIGABRT로 종료됐다. `longrunObservationCompleted=false`, `verifiedDurationMs=null`이므로 120분 관측은 시작되지 않았고 통과 증거가 아니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| AP12 정상 종료 | SIGTERM 뒤 exit 0 기대, 실제 exit=null/signal=SIGABRT | fail | 최초 실제 제품 실패, 수정·재검증 전 |
+| AP12 포트 정리 | 61733·61734 listener 부재 | pass | runner 개별 확인 |
+| AP12 임시 녹화 정리 | 실행 root GKSMqV 185,263,857B 삭제 후 부재 | pass | runner 및 후속 읽기 확인 |
+| GST 임시 환경 정리 | 실행 root 1QoMgH 143,595B 삭제 후 부재 | pass | wrapper 및 후속 읽기 확인 |
+
+직접 충돌 증거: macOS `media_server-2026-09-11-222039.ips`의 PID 58827, EXC_CRASH/SIGABRT. 주 스레드는 `StreamRegistry::~StreamRegistry → unordered_map 소멸 → SharedStream::~SharedStream → StopSource → FileSourceWorker::Stop → join`에 있다. 충돌 스레드 13은 `FileSourceWorker::SampleLoop → shared_ptr<SharedStream> 소멸 → SharedStream::~SharedStream → StopSource → FileSourceWorker 소멸 → std::terminate`다. 다른 스레드 16/17/19/20은 `SessionManager::ScheduleIdleCleanup`의 대기 중이다. 원본 OS 진단에는 장치 정보가 있어 저장소에 복사하지 않고 필요한 스택만 여기 보존한다.
+
+원인 가설과 직접 코드 근거: StreamRegistry 기본 소멸은 worker 종료 전에 strong reference를 해제할 수 있다. SampleLoop가 마지막 소유자가 되면 자기 worker의 join/소멸이 발생할 수 있다. SessionManager의 기본 소멸과 detached `[this]` 정리 예약 역시 종료 후 객체 접근 위험이 있다. 소유 객체가 살아 있는 동안 worker 및 예약 정리를 종료하는 경계를 먼저 검증한다. self-detach, timeout 증가, 검사 제외로 우회하지 않는다. 아직 수정 완료로 판정하지 않는다.
+
+RSS 8개 표본은 약 33초의 초기 기동 구간이므로 메모리 누수 판정에 사용하지 않는다. 원시 실행 로그는 `.media_server.test/s09-recording120-20260911.log`에 임시 보존 중이며 최종 증적 이관·정리가 남아 있다. token start 9,824,664, end/consumed 미집계(실행 단위 집계 없음), source=실제 실행 summary 및 OS 충돌 보고서. 커밋·푸시는 수행하지 않았다.
+
+### 8336 초기 자원 관측
+
+PID 58827의 아래 8개 표본은 33,461ms 구간이며 300,000ms warmup 미달이다. 증가량을 장시간 누수 또는 안정화 통과로 해석하지 않는다. 최종 원장은 mutation 679개(세그먼트 23, event link 476, V2 observation 166, 삭제 요청 7, 삭제 완료 7), 손상 표지 0개다. 후속 재시작 보존 확인은 실행되지 않았다.
+
+| 시각(Unix ms) | RSS(bytes) | thread | fd |
+| --- | ---: | ---: | ---: |
+| 1789132801015 | 51200000 | 7 | 12 |
+| 1789132804470 | 67059712 | 21 | 20 |
+| 1789132809473 | 71335936 | 18 | 20 |
+| 1789132814470 | 332365824 | 33 | 22 |
+| 1789132819472 | 391954432 | 33 | 24 |
+| 1789132824472 | 396509184 | 33 | 22 |
+| 1789132829479 | 416645120 | 28 | 28 |
+| 1789132834476 | 425705472 | 27 | 28 |
+
+### 8336 개별 실행 결과 원문 대조
+
+아래는 실제 실행의 96개 판정행 전수다. 실행하지 않은 AP09 재시작 및 LR01~04 장시간 관측은 포함하지 않으며 완료 증거로 사용하지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| 8336-1 | AP12 distinct loopback ports | pass | 최초 실행 |
+| 8336-2 | AP12 actual foreground healthy &#124; pid=58827 cwd=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-GKSMqV | pass | 최초 실행 |
+| 8336-3 | POST /ops/api/sources &#124; status=201 | pass | 최초 실행 |
+| 8336-4 | AP01 V1 identity seg-9101-1789132801121-1 | pass | 최초 실행 |
+| 8336-5 | AP01 positive UTC/PTS seg-9101-1789132801121-1 | pass | 최초 실행 |
+| 8336-6 | AP01 actual bytes SHA seg-9101-1789132801121-1 &#124; bytes=4096788 sha256=c8cedc485e32f0aad00fb443080580d2725efed13de0b5dde18bc1291319c532 | pass | 최초 실행 |
+| 8336-7 | AP02 actual finalized barrier before rule and tap | pass | 최초 실행 |
+| 8336-8 | PUT /lab/analysis/rules/9101 &#124; status=200 | pass | 최초 실행 |
+| 8336-9 | POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 &#124; status=200 | pass | 최초 실행 |
+| 8336-10 | AP02 actual tap created | pass | 최초 실행 |
+| 8336-11 | GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 &#124; status=200 | pass | 최초 실행 |
+| 8336-12 | GET /lab/analysis/taps/analysis-tap-1/events?dispatch=1 &#124; status=200 | pass | 최초 실행 |
+| 8336-13 | AP02/03 actual EventRecord identity fallback &#124; eventId=evt_1789132809758_2 linkId=event-link-sha256-1e2bdf9536a57d4f72724fad602a7ed3208afc85e946af43a51b516e895b273d | pass | 최초 실행 |
+| 8336-14 | AP02/03 actual nonnegative padded event start fallback &#124; startTime=8333 updateTime=8333 timeBasis=media-pts-ms | pass | 최초 실행 |
+| 8336-15 | AP02/03 durable link source fallback | pass | 최초 실행 |
+| 8336-16 | GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789132807954&endTimeMs=1789132810982 &#124; status=200 | pass | 최초 실행 |
+| 8336-17 | AP04 fallback event priority | pass | 최초 실행 |
+| 8336-18 | AP04 fallback path redaction | pass | 최초 실행 |
+| 8336-19 | AP02 fallback remains partial requested-fallback | pass | 최초 실행 |
+| 8336-20 | AP02 encoded WebM eventId/encoded contract/size/isolated path | pass | 최초 실행 |
+| 8336-21 | AP05 fallback playable local URL | pass | 최초 실행 |
+| 8336-22 | AP05 fallback actual file prefix | pass | 최초 실행 |
+| 8336-23 | AP05 fallback literal GET Range &#124; status=206 contentRange=bytes 2-5/22905 bodyHex=dfa30100 | pass | 최초 실행 |
+| 8336-24 | DELETE /lab/analysis/taps/analysis-tap-1 &#124; status=200 | pass | 최초 실행 |
+| 8336-25 | AP01 V1 identity seg-9101-1789132801121-1 | pass | 최초 실행 |
+| 8336-26 | AP01 positive UTC/PTS seg-9101-1789132801121-1 | pass | 최초 실행 |
+| 8336-27 | AP01 actual bytes SHA seg-9101-1789132801121-1 &#124; bytes=4096788 sha256=c8cedc485e32f0aad00fb443080580d2725efed13de0b5dde18bc1291319c532 | pass | 최초 실행 |
+| 8336-28 | AP01 V1 identity seg-9101-1789132809482-2 | pass | 최초 실행 |
+| 8336-29 | AP01 positive UTC/PTS seg-9101-1789132809482-2 | pass | 최초 실행 |
+| 8336-30 | AP01 actual bytes SHA seg-9101-1789132809482-2 &#124; bytes=4813100 sha256=b8a47cfe9480528d7786dd58bf69f3c360cd63d0604b062632686bbfe026d87a | pass | 최초 실행 |
+| 8336-31 | POST /lab/analysis/taps?file=identity.mp4&va=1&fps=8&maxQueue=1&trackIds=1 &#124; status=200 | pass | 최초 실행 |
+| 8336-32 | AP03 actual tap created | pass | 최초 실행 |
+| 8336-33 | AP03 finalized boundary available | pass | 최초 실행 |
+| 8336-34 | GET /lab/analysis/taps/analysis-tap-2 &#124; status=200 | pass | 최초 실행 |
+| 8336-35 | GET /lab/analysis/taps/analysis-tap-2 &#124; status=200 | pass | 최초 실행 |
+| 8336-36 | GET /lab/analysis/taps/analysis-tap-2 &#124; status=200 | pass | 최초 실행 |
+| 8336-37 | GET /lab/analysis/taps/analysis-tap-2 &#124; status=200 | pass | 최초 실행 |
+| 8336-38 | GET /lab/analysis/taps/analysis-tap-2 &#124; status=200 | pass | 최초 실행 |
+| 8336-39 | GET /lab/analysis/taps/analysis-tap-2 &#124; status=200 | pass | 최초 실행 |
+| 8336-40 | GET /lab/analysis/taps/analysis-tap-2 &#124; status=200 | pass | 최초 실행 |
+| 8336-41 | GET /lab/analysis/taps/analysis-tap-2 &#124; status=200 | pass | 최초 실행 |
+| 8336-42 | PUT /lab/analysis/rules/9102 &#124; status=200 | pass | 최초 실행 |
+| 8336-43 | GET /lab/analysis/taps/analysis-tap-2/events?dispatch=1 &#124; status=200 | pass | 최초 실행 |
+| 8336-44 | AP02/03 actual EventRecord identity derived &#124; eventId=evt_1789132818819_84 linkId=event-link-sha256-51f96f1af6d1256816df19cb16105a3515b1e645d31ff73c4308dfd1eee67119 | pass | 최초 실행 |
+| 8336-45 | AP02/03 actual nonnegative padded event start derived &#124; startTime=17500 updateTime=17500 timeBasis=media-pts-ms | pass | 최초 실행 |
+| 8336-46 | AP02/03 durable link source derived | pass | 최초 실행 |
+| 8336-47 | GET /ops/api/recordings/timeline?channelId=9101&startTimeMs=1789132817142&endTimeMs=1789132820142 &#124; status=200 | pass | 최초 실행 |
+| 8336-48 | AP04 derived event priority | pass | 최초 실행 |
+| 8336-49 | AP04 derived path redaction | pass | 최초 실행 |
+| 8336-50 | AP03 actual derived remux metadata | pass | 최초 실행 |
+| 8336-51 | AP01 V1 identity event-seg-sha256-f46b340ec726e8058b73aecab8816a91f946d762ee1ee4ec685a1e7383f0968b | pass | 최초 실행 |
+| 8336-52 | AP01 positive UTC/PTS event-seg-sha256-f46b340ec726e8058b73aecab8816a91f946d762ee1ee4ec685a1e7383f0968b | pass | 최초 실행 |
+| 8336-53 | AP01 actual bytes SHA event-seg-sha256-f46b340ec726e8058b73aecab8816a91f946d762ee1ee4ec685a1e7383f0968b &#124; bytes=1189664 sha256=102c9155638fd10b12363fe7182b2290ea85fe3f0b2cea35f9092e27d9f48fd9 | pass | 최초 실행 |
+| 8336-54 | AP03 Complete actual overlaps | pass | 최초 실행 |
+| 8336-55 | AP04 continuous superseded with priority100 | pass | 최초 실행 |
+| 8336-56 | AP05 derived playable local URL | pass | 최초 실행 |
+| 8336-57 | AP05 derived actual file prefix | pass | 최초 실행 |
+| 8336-58 | AP05 derived literal GET Range &#124; status=206 contentRange=bytes 2-5/1189664 bodyHex=0032a600 | pass | 최초 실행 |
+| 8336-59 | DELETE /lab/analysis/taps/analysis-tap-2 &#124; status=200 | pass | 최초 실행 |
+| 8336-60 | AP02/03 fallback and derived independent events | pass | 최초 실행 |
+| 8336-61 | AP06 actual H264 generator &#124; exit=0 log=Setting pipeline to PAUSED ... Pipeline is PREROLLING ... Redistribute latency... Redistribute latency... Pipeline is PREROLLED ... Setting pipeline to PLAYING ... Redistribute latency... New clock: GstSystemClock Got EOS from element "pipeline0". EOS received - stopping pipeline... Execution ended after 0:00:00.218890625 Setting pipeline to NULL ... Freeing pipeline ...  | pass | 최초 실행 |
+| 8336-62 | AP12 generated input bounded &#124; bytes=62334405 limitBytes=100663296 | pass | 최초 실행 |
+| 8336-63 | POST /ops/api/sources &#124; status=201 | pass | 최초 실행 |
+| 8336-64 | AP01 V1 identity seg-9201-1789132826898-1 | pass | 최초 실행 |
+| 8336-65 | AP01 positive UTC/PTS seg-9201-1789132826898-1 | pass | 최초 실행 |
+| 8336-66 | AP01 actual bytes SHA seg-9201-1789132826898-1 &#124; bytes=15581582 sha256=b8bbe3eb654e99127c14c7e2c37bd1b6290e3b43e37f3e8378280a6d786b1c9b | pass | 최초 실행 |
+| 8336-67 | AP01 V1 identity seg-9201-1789132827960-2 | pass | 최초 실행 |
+| 8336-68 | AP01 positive UTC/PTS seg-9201-1789132827960-2 | pass | 최초 실행 |
+| 8336-69 | AP01 actual bytes SHA seg-9201-1789132827960-2 &#124; bytes=31168171 sha256=68f09374bf285648706bf771e676a545babdce75c58f99c04d0cf1ba3837f408 | pass | 최초 실행 |
+| 8336-70 | AP01 V1 identity seg-9201-1789132829954-3 | pass | 최초 실행 |
+| 8336-71 | AP01 positive UTC/PTS seg-9201-1789132829954-3 | pass | 최초 실행 |
+| 8336-72 | AP01 actual bytes SHA seg-9201-1789132829954-3 &#124; bytes=15586426 sha256=417152beeaacd47befc22abb306f92029ec7f4401a58646e58fd53be100b2b50 | pass | 최초 실행 |
+| 8336-73 | AP01 V1 identity seg-9201-1789132830940-4 | pass | 최초 실행 |
+| 8336-74 | AP01 positive UTC/PTS seg-9201-1789132830940-4 | pass | 최초 실행 |
+| 8336-75 | AP01 actual bytes SHA seg-9201-1789132830940-4 &#124; bytes=15581582 sha256=d68e21548e5e1cd4462cd61706117e53acf27459e051724b3f04541b71eb878b | pass | 최초 실행 |
+| 8336-76 | AP06 each actual segment below reservation | pass | 최초 실행 |
+| 8336-77 | AP06 actual total exceeds future quota &#124; count=4 bytes=77917761 oldest=seg-9201-1789132826898-1,seg-9201-1789132827960-2,seg-9201-1789132829954-3,seg-9201-1789132830940-4 | pass | 최초 실행 |
+| 8336-78 | PUT /ops/api/sources/9201 &#124; status=200 | pass | 최초 실행 |
+| 8336-79 | AP07 oldest deletion request independent order | pass | 최초 실행 |
+| 8336-80 | AP07 durable completed seg-9201-1789132826898-1 | pass | 최초 실행 |
+| 8336-81 | AP07 physical absent seg-9201-1789132826898-1 | pass | 최초 실행 |
+| 8336-82 | AP07 durable completed seg-9201-1789132827960-2 | pass | 최초 실행 |
+| 8336-83 | AP07 physical absent seg-9201-1789132827960-2 | pass | 최초 실행 |
+| 8336-84 | AP07 durable completed seg-9201-1789132829954-3 | pass | 최초 실행 |
+| 8336-85 | AP07 physical absent seg-9201-1789132829954-3 | pass | 최초 실행 |
+| 8336-86 | AP07 durable completed seg-9201-1789132830940-4 | pass | 최초 실행 |
+| 8336-87 | AP07 physical absent seg-9201-1789132830940-4 | pass | 최초 실행 |
+| 8336-88 | AP08 new finalized then ordered deleted physical absence seg-9201-1789132832122-1 | pass | 최초 실행 |
+| 8336-89 | AP08 new finalized then ordered deleted physical absence seg-9201-1789132833949-2 | pass | 최초 실행 |
+| 8336-90 | AP08 actual recording resumes after quota deletion | pass | 최초 실행 |
+| 8336-91 | PUT /ops/api/sources/9201 &#124; status=200 | pass | 최초 실행 |
+| 8336-92 | AP08 restored quota new finalized | pass | 최초 실행 |
+| 8336-93 | AP12 app0 exit0 &#124; exit=null signal=SIGABRT | fail | 최초 실행 |
+| 8336-94 | AP12 port absent 61733 | pass | 최초 실행 |
+| 8336-95 | AP12 port absent 61734 | pass | 최초 실행 |
+| 8336-96 | AP12 root cleanup &#124; path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s09-foundation-GKSMqV bytes=185263857 absent=true | pass | 최초 실행 |
+
+## S09 녹화 직접120분 — 실행 준비
+
+기존 `사용자가30분 안정화 → UI 풀테스트 → 녹화 직접120분 순서를 승인했다` 기록과 실제 사용자 승인을 적용한다. 중간 UI/fixture 작업의120분 미진행은각한정실행에서제외였으며전체순서승인철회로해석하지않는다. 52899의30분,64886의기존424 UI,21777~39491의녹화31action 증거를유지한다. 이번에는 `./server.sh verify-v410-recording-longrun --duration-minutes 120`만 실행한다. 공통predev120/30분/UI재실행·외부기기/서비스·커밋·푸시없음. 실행중제품/검증코드는동결하고기록만추가한다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 미진행 | 이미확보한선수결과유지,동일런타임변경없음 | 기존S09/AP/최종SF·UA·RP | 중복실행없음 |
+| 30분 테스트 | 미진행 | 기존52899결과유지 | PD30 기록 | 중복실행없음 |
+| UI 풀테스트 | 미진행 | 기존424+녹화31action실행종결 | 64886/39491 | 중복실행없음 |
+| 120분 테스트 | 진행 대상 | 승인된순서의마지막녹화직접관측 | S09-LR01~04/AP01~09 | 기존명시승인적용 |
+
+LR01~04의개별등록은아래기존source-of-truth를유지한다. 실제7200000ms를채우기전PASS하지않으며 runner종료후RSS/FD/thread/원장추세수치를메인이검토해야한다. `reviewRequired`와 `resourceReview:false`는자동PASS로바꾸지않는다. 실행로그는최종보존전비노출검사·필요값이관하며임시계정/미디어/registry는종료후정리한다. 시작시goal token9824664, 종료시계수재조회하되값갱신이없으면미집계로분리한다.
+
+## S09 녹화 UI 잔여 관측 종결 — 39491
+
+이번 승인범위의 단일 큰fixture 및 실제 탐색·권한 응답 관측을 마쳤다. 기존 실패 이력은 아래에 보존하며 이 절이 녹화 I27~I34의 최신 종합 판정이다. 코드 자체의 `actualUiPass:false`는 runner가 UI를 자동 판정하지 않는다는 의미이며, 실제 UI 판정은 아래 direct-browser 증거로 메인이 수행했다. 기존424개와 이31action을 합쳐 버전완료/장시간통과로 확대하지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| SF01 예상RED | 기존parser에 --ui-seek-fixture →거부·exit1 | fail | 사전미구현 assertion, 이후GREEN |
+| SF04 최초검증 | auth-prep17개 중16pass1fail/exit1 | fail | 테스트가저널type을조회, 실제mutationType과불일치;제품실패아님 |
+| SF01~06/UA 최종 | node scripts/internal/verify_v410_recording_ui_auth_prep.test.mjs →17pass0fail/exit0 | pass | 실제 개별17행 원문 preparation/s09-seek-fixture-green-final.log 보존;최초16/1도별도보존 |
+| 기존harness | node scripts/internal/verify_v410_recording_harness.test.mjs all →5cases40checks0fail/26ms/exit0 | pass | H01/H02/H03/H03-R01/H03-R02 개별원문 보존 |
+| 기존proxy | node scripts/internal/recording_ui_range_proxy.test.mjs →10pass0fail/56ms/exit0 | pass | RP01 두case 및RP02~09 개별원문 보존 |
+| SF05 live입력 | 실제 실행root의 source3/4 SHA를 기존sample과대조 | pass | 둘다동일, 큰파일전파없음 |
+| SF07 단독탐색 | 실제admin /ops/events 09:00~09:01조회, 1789132342363 ArrowRight만 조작 | pass | time0/pausedtrue/ready4→0.1/pausedtrue/ready4;Space미조작 |
+| SF07 새Range | seq2 started1789132342419·bytes=524288-·206·Content-Range bytes 524288-5357068/5357069 | pass | 첫로딩seq1과구분. completed=false이므로전체응답전송완료는주장하지않음 |
+| I34 실제scope | 실제operator로그인·채널1만, 타채널존재ID 직접goto | pass | 브라우저ERR_BLOCKED_BY_CLIENT와별개로동일요청seq3 status404/completedtrue를직접관측 |
+| 브라우저 로그 | 탐색직후 error로그0 | pass | 이후직접미디어탐색의도구차단은별도기록 |
+| 서버/redaction | private log1059B·error/fatal/critical0·warn0·임시비밀번호포함0 | pass | 관측파일도비밀값0·truncatedfalse/dropped0/writeFailedfalse |
+| 실행정리 | runner exit0·PID58238exit0·RTSP61399/HTTP61400closed·rootAbsent | pass | elapsed202080ms/cleanup700ms |
+| proxy정리 | net.connect61428 ECONNREFUSED/exit0 | pass | 실제포트해제·CUA탭닫기·임시인증참조해제 |
+
+실행명령: `node scripts/internal/verify_v410_recording_ui_contract.mjs --ui-auth-direct --ui-anchor-utc-ms 1789084800000 --ui-seek-fixture`. 최초load는seq1 started1789132333711/ended1789132333975, bytes0-/206/5357069B범위/completedfalse. 단독탐색seq2 ended1789132342427. 타채널ID는admin 실제조회status200에서존재확인한 `seg-3-1789132406101-23`이며 operator 실제browser요청seq3 started1789132442228/ended1789132442230/status404/range null/contentRange null/completedtrue다. 비허용미디어를서버가거부한증거이며도구차단자체를서버PASS로바꾼것이아니다.
+
+큰fixture는5357069B·10.0초·H264무음1280×720·첫keyframe이다. timeout/상한은구현을확인했지만 timeout강제주입·16MiB초과실파일·filesystem쓰기실패주입은실행하지않았다. SF06은malformed probe값/경로symlink 거부검사이며 모든손상파일조합을실행했다고확대하지않는다.
+
+### 녹화31action 최종 대조
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| I27 정상 필터 | 21777: 채널1/지정시간 조회107개·99표시 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I27 빈값·빈결과 | 21777: 필수값 거부·채널2 빈결과/src해제 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I27 역전시간 | 21777: 역전시간 안내 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I27 페이지 | 21777: 1~100→101~107→이전 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I28 이벤트우선 | 21777: http-event 기본선택·우선badge | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I29 원본 | 21777: 원본99↔100·continuous선택 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I30 재생 | 21777/13946: time진행·실제숫자프레임 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I30 정지 | 21777/13946: pausedtrue·시간정지 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I30 탐색 | 39491: 단독ArrowRight→신규524288- Range206·time0.1/ready4 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I31 partial | 63872: 실제일부구간/ready4 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I31 삭제 | 21777/63872: 실제삭제참조·재생차단 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I31 손상 | 21777: 실제손상참조·재생차단;40383안전성별도 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I31 미완결event | 63872: Pendinglink 공통재생불가·srcnull | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I31 공백 | 21777/71450: 빈결과·src해제·안내초기화 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I31 오류 | 71450: 로그아웃후조회오류·stale안내/src해제 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I32 quota | 21777: UI와status continuous/event bytes/상한대조 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I32 활성 | 63872: PUT200·activefalse·UI녹화중아님 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I32 blocked | 21777: 실제source4 storageBlocked UI | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I33 navigation | 21777: 기존nav유지·녹화영역신규검색없음 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I34 admin | 21777/13946/39491: 실제admin로그인·녹화접근 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I34 operator | 39491: 채널1만·존재하는타채널 실제browser요청404 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I34 viewer·미인증 | 21777: viewer/client메뉴·AccessDenied·미인증login | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I34 redaction | 기존직접시각18장 해시불변+신규2장 직접시각+로그20개 전문대조 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I34 320 light | 21777: player/filters 직접시각·geometry·overflow/focus/contrast;760light corrected사용 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I34 320 dark | 21777: player/filters 직접시각·geometry·overflow/focus/contrast;760light corrected사용 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I34 390 light | 21777: player/filters 직접시각·geometry·overflow/focus/contrast;760light corrected사용 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I34 390 dark | 21777: player/filters 직접시각·geometry·overflow/focus/contrast;760light corrected사용 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I34 760 light | 21777: player/filters 직접시각·geometry·overflow/focus/contrast;760light corrected사용 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I34 760 dark | 21777: player/filters 직접시각·geometry·overflow/focus/contrast;760light corrected사용 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I34 1180 light | 21777: player/filters 직접시각·geometry·overflow/focus/contrast;760light corrected사용 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+| I34 1180 dark | 21777: player/filters 직접시각·geometry·overflow/focus/contrast;760light corrected사용 | pass | 최초결과/수정/재검증은아래해당run이력보존 |
+
+### 증적 전수 비노출 및 정리
+
+기존18JPEG는이전21777 직접시각검수(아래18장비노출기록)의픽셀증거를재사용하며, 현재18개size/SHA/JPEG형식전수대조exit0으로불변을확인했다. 이는hash검사를시각검수대신사용한것이아니다. 추가 `proxy-seek-7.jpg`와 `large-seek.jpg`는각실제브라우저에서전체player/control을직접확인했다. UI에내부경로/sourceURL/rawdebug/auth정보없음. 준비로그20개는전문읽어판정명·검사결과·cleanup경로·컴파일진단만있고password/cookie/session/token/hash값이없음을확인했다. 개발용로그의로컬소스/임시경로는cleanup·진단이력이지viewer UI노출이아니다. 생성계정원문은repo로옮기지않았다.
+
+`large-seek.jpg`62442B JPEG SHA256 `cc16ab96e44b07d6c96887eaefd0187b8446590c8c533193bbc64b1fa8a117d2`, 나머지18장manifest및이전추가1장해시는아래참조. 전체20JPEG·20로그·기존manifest1개가보존자료다. 원본18개manifest의wholeSuitePass=false는원래run21777의역사적판정으로유지한다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| 실행root apBpAj | 큰fixture·계정·녹화455entries | 27815648B | runner cleanup | 부재·277symlink미추적 | exit0/포트해제 |
+| SF test l9rd9G/bFU5yQ | 최초FAIL/최종PASS 임시root | 각53809905B | testcleanup | 둘다부재 | 로그보존 |
+| proxy Unwijo | 임시관측 | 1720B | testcleanup | 부재 | 10/0 |
+| harness UCKNlz | 임시root | 107B | testcleanup | 부재·PID58023exit0 | 40/0 |
+| preparation/s09-seek-fixture-* 4로그 | 최초/최종/harness/proxy | 4399B | 저장소증적으로이동 | 보존·임시원본없음 | 전체전문대조 |
+| large-seek.jpg | 실제탐색프레임 | 62442B | 최소증거보존 | JPEG/hash/시각확인 | 위SHA |
+
+token start/end/consumed미집계(별도실행사용량집계없음), source=tool결과/실제CUA, UIelapsed202080ms. 커밋·푸시·30분/120분재실행없음. 녹화31action의관측잔여는해소했으나 S09는녹화전용120분및최종통합판정이남아전체완료가아니다.
+
+## S09 큰 단일 검증 영상 — 승인·실행 전 등록
+
+사용자가 단일 녹화 구간에만 큰10초 검증 영상을 적용하는 변경을 승인했다. 기존 작은 fixture/나머지 구간/source3·4 및 제품계약은 유지한다. 고정 저장소 H264 원본 앞10초를 owned root로 stream-copy하며 원본은 수정하지 않는다. duration 허용범위9.95~10.10초(30fps packet 경계), 첫 frame keyframe, H264 무음1280×720, 출력 상한16MiB, 생성timeout30초를 실행 전에 정한다. 신규 flag는 auth UI 준비 전용이며 기본값은 비활성이다. 최종 UI 신규요청이 없으면 PASS로 승격하지 않는다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 승인한 단일fixture 준비 및 기존준비 회귀 | SF01~06/UA/RP/harness | 이번 승인 |
+| UI 풀테스트 | 진행 대상 | 미확인 단독 탐색 응답 상관 | SF07/V410-S06-I30 | 승인된 녹화UI 범위 |
+| 30분 테스트 | 미진행 | 단일fixture 검증 범위 밖 | 이번 승인 | 실행하지 않음 |
+| 120분 테스트 | 미진행 | 단일fixture 검증 범위 밖 | 이번 승인 | 실행하지 않음 |
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| SF01 | 선택입력 기본 비활성 | 기존모드/기본옵션 seed와 영상 유지, 상속환경 제거 | v4.1.0 |
+| SF02 | bounded 생성·정리 | 고정입력·ownedroot·30초timeout·16MiB상한·실패cleanup | v4.1.0 |
+| SF03 | 실제 미디어 유효성 | ffprobe codec/audio/dimensions/duration/첫keyframe 대조 | v4.1.0 |
+| SF04 | 단일event catalog 정합성 | http-event만 새파일크기/SHA와 일치 | v4.1.0 |
+| SF05 | 비대상fixture 불변 | 다른segment/source3·4의 기존파일size/SHA 유지 | v4.1.0 |
+| SF06 | 잘못된 입력 거부 | file/type/duration/containment 위반은 서버시작전실패 | v4.1.0 |
+| SF07 | 단독탐색 실제응답 상관 | CUA 실제seek만 조작 후 시간·영상·신규206/Content-Range 대조 | v4.1.0 |
+
+담당: Codex 기존 단일서브 gpt-6-astra/medium 유지, 하위위임금지. 점수영향도1/불확실성1/검증난이도2/범위1=5이나 미디어·catalog 교차준비로 기존Astra 유지, 상향없음. 메인은실제UI와최종diff/evidence 판단. TDD 예상RED는현재옵션파서가 새선택옵션을거부하는 assertion이며 환경/컴파일 실패는RED아님. 실행명령/개별결과/token/cleanup은실행후보존한다.
+
+## S09 단독 탐색 분리 관측 — 실행 전
+
+실행82665 결과: 같은 runner 명령 exit0·elapsed91708ms. 최초 관측 seq1은 started1789131097468/ended1789131097470, http-event/bytes=0-/206/bytes 0-135693/135694/completed=true다. 1789131104282에 time0/pausedtrue/ready4에서 ArrowRight만 실행했고1789131110435에 time0.1/pausedtrue/ready4를 확인했다. 관측행은1개 그대로였다. Space/재생 조작을 섞지 않았으므로 이전조작중첩만이 원인이라는 가설은 지지되지 않는다. 단독탐색의 시간반영은pass, 신규Range상관은fail(미확인), 제품탐색실패로 단정하지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| I30 새세션 단독탐색 | 실제 인앱 /ops/events 조회후 ArrowRight,0→0.1/pausedtrue/ready4 | pass | 재생을 누르지 않음 |
+| I30 단독탐색 신규요청 | 관측cursor1→1 | fail | 신규요청 없음, 이전미확인 유지 |
+| 82665 정리 | PID57010exit0·RTSP60896/HTTP60897closed·rootAbsent | pass | cleanup943ms |
+| 82665 proxy 정리 | net.connect60924 ECONNREFUSED/exit0 | pass | 별도 포트해제 확인 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| 격리root gzPzY8 | 계정·녹화·로그432entries | 16974482B | runner cleanup | 부재·277symlink미추적 | exit0/cleanup0fail |
+
+읽기전용 입력조사: 저장소 `video/imports/va_tracking_event_1280x720_30fps_h264.mp4`를 ffprobe로 확인, H264 video-only1280x720/30초/17071018B다. 원본 변경 없음. 큰입력을 이용한 신규fixture는 아직 구현하지 않았다. 자동goal usage값은갱신되지않아token미집계.
+
+기존 I30 진행 대상/실행 승인을 유지한다. 가설: 이전에는 최초 ArrowRight 후 decode 완료를 확인하기 전에 다시 탐색·재생해 신규요청의 조작 상관을 분리하지 못했다. 제품/fixture 변경 없이 새 격리세션에서 최초 로딩 관측cursor를 확보한 뒤 ArrowRight만 조작하고 readyState 회복 및 신규 Range 행을 확인한다. Space/재생은 이 판정 전에 실행하지 않는다. 새 항목이나 별도 테스트 영역을 추가하지 않고 기존 I30의 미완료 assertion을 같은 조건에서 분리 관측한다. 30분/120분·기존424개 재실행 없음.
+
+## S09 프록시 보완·실제 녹화 관측 최종 결과 — 13946
+
+기록 후 `git diff --check` exit0, `./server.sh verify-docs-links` exit0(markdown234/local links1068/images22/anchors104/indexed76/exclusions150/failures0). 실제 검증 탭 닫기와 CUA 임시 인증 참조 해제를 수행했다.
+
+이번 승인 범위인 테스트 전용 프록시 구현과 검증을 수행했다. `scripts/internal/recording_ui_range_proxy.mjs`에 고정 upstream streaming·안전 관측·종료 helper, `.test.mjs`에 개별 검증10개, `verify_v410_recording_ui_contract.mjs`의 auth UI 준비/hold/cleanup에 연결했다. 제품 변경은 이번 프록시 작업에 없다. 기존 미커밋 제품 상태 안내 수정은 이전 작업 그대로다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| Host 보존 예상 RED | node scripts/internal/recording_ui_range_proxy.test.mjs, exit1·8pass/2fail·55ms | fail | RP01 외부Host 거부와 동일출처 신규 assertion; 나머지8pass |
+| Host 보존 GREEN | 동일 명령 exit0·10pass/0fail·57ms | pass | 최초 실제 로그인 실패 이후 테스트 보완 |
+| Connection 예상 RED | 동일 명령 exit1·9pass/1fail·56ms | fail | RP01 Connection host/origin 거부 신규 assertion만 실패 |
+| RP01 fixed loopback upstream and origin-form target only | 최종 동일 명령 exit0, exact Host·origin-form·Connection host/origin·CONNECT·upgrade 거부 확인 | pass | 신규RED 이후GREEN |
+| RP01 same-origin POST preserves proxy Host and external Origin rejection | 실제HTTP 동일Origin302/외부Origin403, 고정upstream에서 Host/Origin 보존 | pass | Host RED 이후GREEN |
+| RP02 streaming preserves 206 bytes and Range headers | 첫chunk 전달 후 끝chunk 전송·206·바이트·Content-Range·완료 관측 | pass | 최초관측부재RED 이후GREEN |
+| RP03 cookie forwarded but absent from observation | 쿠키 양방향 전달·기록allowlist | pass | 원문 비기록 |
+| RP04 nonmedia and invalid metadata never expose payload | 비미디어와 부정확metadata 비노출 | pass | query/body/header 원문 비기록 |
+| RP05 upstream failure records incomplete safely | upstream 종료 후502/incomplete | pass | 안전오류 |
+| RP06 client disconnect closes upstream and records incomplete | 실제 client중단 후 upstream 종료 | pass | socket 검사 |
+| RP07 close drains or destroys sockets and releases port | bounded close·미완료 관측·포트 해제 | pass | socket 검사 |
+| RP08 private log mode0600 bounded failure is latched | 0600 및 bytes/rows 제한 실패 유지 | pass | filesystem write 장애 주입 아님 |
+| RP09 harness proxy cleanup failure still runs owned server cleanup | proxy 실패 후 기존 cleanup 실행 | pass | 실패 mock |
+| 최종 harness H01 | node scripts/internal/verify_v410_recording_harness.test.mjs all, root 삭제 | pass | NehaYq107B 부재 |
+| 최종 harness H02 | 같은 명령, child 정상종료 | pass | PID56461 exit0 |
+| 최종 harness H03 | 같은 명령, 기존 cleanup 검사 | pass | 전체5cases40checks0fail27ms/exit0 |
+| 최종 harness H03-R01 | 같은 명령, 기존 cleanup 회귀 | pass | 원문 보존 |
+| 최종 harness H03-R02 | 같은 명령, 기존 cleanup 회귀 | pass | 원문 보존 |
+| proxy 구문 | node --check scripts/internal/recording_ui_range_proxy.mjs | pass | exit0 |
+| proxy test 구문 | node --check scripts/internal/recording_ui_range_proxy.test.mjs | pass | exit0 |
+| harness 구문 | node --check scripts/internal/verify_v410_recording_ui_contract.mjs | pass | exit0 |
+| 13946 실제 로그인 | 인앱 브라우저 proxy60664에서 임시admin 입력·로그인 클릭 → 운영 홈 | pass | 81075 로그인 실패 수정 후 실제 재검증 |
+| I30 최초 영상 로딩 | /ops/events에서 09:00~09:01조회 →107개/99표시·http-event·time0/ready4 | pass | 최초브라우저 Range bytes=0- →206/bytes 0-135693/135694 |
+| I30 탐색·재생 복합 조작 | ArrowRight로0→0.1, 다시ArrowRight와Space로0.207474 재생, Space일시정지8.056601 | pass | 조작 이후 seq2 신규206 관측; 탐색만의 인과로 확정하지 않음 |
+| I30 일시정지 단독 탐색 | ArrowLeft로8.056601→7.9566, paused=true·ready1→4, 실제숫자8→7 | pass | 관측cursor2 유지·신규HTTP요청0 |
+| I30 단독 탐색→신규Range 상관 | 단독탐색 전후 관측행2→2 | fail | 시간·프레임 반영은 확인했으나 신규요청 상관 미확인. 캐시 원인 단정/최초206 대체 금지 |
+| 브라우저 오류 | 실제 탭 error 로그0 | pass | 이번 열어본 탭 범위 |
+| 서버·관측 redaction | private log1059B error/fatal/critical0·warning0·생성된 임시 비밀번호 포함0 | pass | truncated=false/droppedBytes0/writeFailed=false |
+| 13946 종료 | 실행 exit0·PID56523 exit0·RTSP60636/HTTP60637 ECONNREFUSED·rootAbsent | pass | elapsed152515ms/cleanup595ms |
+| 13946 proxy 종료 | net.connect 60664 →ECONNREFUSED/exit0 | pass | 소유proxy포트 별도확인 |
+
+안전 관측 원문(8필드, 인증·query·body 없음):
+
+```json
+{"seq":1,"startedAtMs":1789130496162,"opaqueId":"http-event","range":"bytes=0-","status":206,"contentRange":"bytes 0-135693/135694","completed":true,"endedAtMs":1789130496163}
+{"seq":2,"startedAtMs":1789130530438,"opaqueId":"http-event","range":"bytes=0-","status":206,"contentRange":"bytes 0-135693/135694","completed":true,"endedAtMs":1789130530441}
+```
+
+최초 탐색cursor는1789130520695/1행, 단독뒤로탐색cursor는1789130548121/2행이다. 새 seq2는 탐색·재생 복합 조작 구간의 응답이며 단독 탐색 응답으로 과장하지 않는다. 실제 숫자7 프레임은 [보존 JPEG](release-artifacts/v4.1.0/s09-recording-ui-21777/proxy-seek-7.jpg),43101B, SHA256 `7dfe9f126246843d231d2a7ba9db3afc485735f94dc99a8f4d6d91ab62b80712`. JPEG magic 및 실제 전체 player/control 시각 확인, 인증/소스URL/raw debug 노출 없음. 기존18장 manifest와 별개인 이번 추가 증적이다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| run13946 root sMygb8 | 계정·로그·녹화444entries | 17114398B | runner cleanup | 부재/277symlink 미추적 | 프로세스/포트 정상정리 |
+| proxy test G6uIWk | 임시관측fixture | 1720B | test cleanup | 부재 | GREEN10/0/58ms |
+| proxy test NDe1gM | 예상RED fixture | 1713B | test cleanup | 부재 | RED9/1 |
+| proxy test Wjpovf/jAztyY | Host RED/GREEN fixture | 각1720B | test cleanup | 부재 | 각원문기록 |
+| harness NehaYq/8oyEjI | 임시root | 각107B | test cleanup | 부재 | 정상child종료 |
+| preparation/s09-range-proxy-*.log 9개 | 최종·RED·회귀 원문 | 7102B | 저장소 보존 위치로 이동 | 보존, 임시원본없음 | 아래파일목록·민감값없는검사이름/요약만 |
+| proxy-seek-7.jpg | 실제UI 프레임 | 43101B | 최소증거 보존 | JPEG/hash/시각 직접확인 | 위 해시 |
+
+보존로그9개: `s09-range-proxy-green.log`, `s09-range-proxy-harness.log`, `s09-range-proxy-auth-prep.log`, `s09-range-proxy-host-red.log`, `s09-range-proxy-host-green.log`, `s09-range-proxy-host-harness.log`, `s09-range-proxy-connection-red.log`, `s09-range-proxy-connection-green.log`, `s09-range-proxy-connection-harness.log`. 모두 `docs/release-artifacts/v4.1.0/s09-recording-ui-21777/preparation/` 아래다.
+
+token start/end 조회값9629651/9629651은 blocked goal의 갱신되지 않은 누적값이다. token consumed를0으로 주장하지 않고 미집계로 남긴다. source=get_goal(blocked), 개별elapsed는위실행기록. 30분/120분·기존424개 재실행, 새커밋·푸시는 없음. 프록시 구현·한정검증은 완료했지만 I30 단독탐색 신규요청 상관 및 기존잔여 최종판정은 미완료이므로 전체432 UI/S09 완료가 아니다.
+
+## S09 테스트 전용 Range 관측 프록시 — 승인 및 실행 전 등록
+
+RP01 추가 실행 전 등록: `Connection` 토큰이 `host` 또는 `origin`을 지목하면400으로 거부한다. hop-by-hop 정리로 동일출처 헤더가 소실되지 않는 경계이며 정상 브라우저 요청은 변경하지 않는다. 해당 assertion을 먼저 실행해 예상RED를 확인하고 같은 proxy suite GREEN으로 닫는다.
+
+### 최초 단기 검증 및 실제 브라우저 실패 결과
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| Proxy 최초 환경 실행 | node scripts/internal/recording_ui_range_proxy.test.mjs, exit1·loopback listen EPERM | fail | 예상 RED 아님; empty 임시 root j65tBz 삭제 확인 |
+| RP02 예상 RED | 동일 명령 권한 적용, exit1·전달1pass/관측부재1fail·14ms | fail | 사전 특정한 미구현 assertion 일치, zTLeXF 0B 삭제 |
+| RP01 | GREEN 동일 명령, 고정 upstream/target/CONNECT/upgrade 검사 | pass | 최초GREEN의 Host 검사에 동일출처 누락, 이후 보완 결과 별도 |
+| RP02 | 실제 첫 chunk 수신 후 끝 chunk 전송, 206/bytes/Content-Range/관측행 | pass | 예상RED 이후GREEN |
+| RP03 | Cookie/Set-Cookie 전달·관측 8필드 allowlist·secret 부재 | pass | 테스트 전용 표식 사용 |
+| RP04 | 비미디어·잘못된 Range·query·body 원문 비기록 | pass | invalid Range/Content-Range null |
+| RP05 | upstream 종료 후502·completed=false | pass | 안전 오류 기록 |
+| RP06 | 실제 client disconnect 후 upstream 종료·completed=false | pass | 실제 socket 검사 |
+| RP07 | close deadline 후 pending socket 종료·port ECONNREFUSED | pass | 실제 socket 검사 |
+| RP08 | 0600·행/byte상한·실패 latch | pass | 실제 파일시스템 쓰기 장애 주입은 미실행 |
+| RP09 | proxy.close 실패 후에도 harness cleanup 호출·결과 보존 | pass | 실패 경계 mock |
+| H01 | node scripts/internal/verify_v410_recording_harness.test.mjs all, 임시root 정리 | pass | 107B/pNT7lT 부재 |
+| H02 | 같은 명령, child 종료 | pass | PID55857 exit0 |
+| H03 | 같은 명령, 기존 cleanup assertion | pass | 전체5cases/40checks/0fail/26ms |
+| H03-R01 | 같은 명령, 기존 cleanup 회귀 | pass | 요약0fail |
+| H03-R02 | 같은 명령, 기존 cleanup 회귀 | pass | 요약0fail |
+| UA01 anchor | node scripts/internal/verify_v410_recording_ui_auth_prep.test.mjs, anchor/unknown option 거부 | pass | 전체exit0/11pass/0fail |
+| UA05 environment | 상속 anchor/auth 제거 | pass | 인증값 비출력 |
+| UA02 | 서로 다른 임시 비밀번호 생성 | pass | 인증값 비출력 |
+| UA03 | setup/login/users 순서 | pass | 기존 계약 유지 |
+| UA04 | 0600 일회용handoff·덮어쓰기 거부 | pass | 삭제 확인 |
+| UA07 | live/blocked quota payload 구분 | pass | 기존 계약 유지 |
+| UA01 missing anchor | anchor 없는 준비 거부 | pass | 준비 전 거부 |
+| UA06 command | 실제 catalog seed 명령 완료 | pass | 실제 컴파일·seed |
+| UA06 state | anchored corrupt/deleted/pending 상태 | pass | 실제 catalog |
+| UA05 legacy | 기존 time0 seed 유지 | pass | anchored fixture와 분리 |
+| UA08 | auth 준비 임시root 정리 | pass | Pwh0Dk28761779B 삭제·부재 |
+| 81075 실제 로그인 | 프록시 base에서 실제 계정입력/로그인 후 로그인 화면 복귀 | fail | 제품 auth 변경 없음, Host/Origin 불일치 확인 |
+| 81075 Origin 진단 | 같은 임시 계정 POST /login, Origin 없음302/cookie 있음; proxy Origin 있음403/cookie 없음 | pass | HTTP 원인 진단만 PASS, UI 실패 대체 아님 |
+| 81075 종료 | runner exit0·PID56012 exit0·RTSP60210/HTTP60211 closed·rootAbsent | pass | 17088708B/442entries 삭제·elapsed142301ms |
+| 81075 proxy port | 별도 net.connect 60239 →ECONNREFUSED/exit0 | pass | proxy포트 실제 해제 |
+
+최초GREEN은9pass/0fail/55ms이며 메인이 전체 로그와 실제 diff를 대조했다. 이 통과는 실제 브라우저 로그인/탐색 PASS가 아니다. CUA의 `checkValidity()` 읽기 시도는 지원하지 않아 TypeError가 났고, 입력 길이와 DOM text 읽기로 확인했다. 임의 스크립트로 UI 상태를 조작하지 않았다. 실패 이력은 유지한다.
+
+실제 UI 준비 run81075에서 로그인 후 로그인 화면으로 복귀했다. 안전 HTTP 진단은 같은 임시 계정에 Origin 없음302/Set-Cookie 있음, proxy origin 있음403/Set-Cookie 없음이다. 제품 `IsCorsOriginAllowed`가 Origin과 Host를 비교하는데 proxy가 Host 포트를 upstream으로 변경한 것이 확인된 원인이다. 제품 auth 정책은 수정하지 않는다. RP01 추가 assertion을 실행 전에 등록한다: 정확한 proxy Host만 허용하고 그대로 upstream에 전달하여 동일출처 보존; 임의 Host400; 실제 연결 목적지는 계속 고정127.0.0.1; Origin 원형 전달로 다른 Origin을 허용하지 않음. 현재 Host 변경 구현은 이 assertion에서 예상 RED이며 수정 후 RP01~09와 harness 회귀, 실제 UI 로그인을 재검증한다.
+
+2026-09-11 사용자 `승인`으로 고정 loopback upstream의 테스트 전용 streaming proxy 구현과 관련 단기 검증, 실제 브라우저 녹화 탐색 관측을 진행한다. 아래 과거의 승인 대기 기록은 당시 상태다. 제품 API/auth/media 계약과 캐시 정책은 변경하지 않는다. 쿠키는 전달만 하며 관측 파일에는 인증값·전체 헤더·query·body를 기록하지 않는다. 최초 로딩 206을 탐색 이후 신규 요청으로 대체하지 않는다. token start/end/consumed는 미집계(작업별 자동 계수 없음), elapsed는 실제 결과에 기록한다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 승인된 관측 helper와 harness 통합의 안전성·회귀 | 아래 RP01~RP09, 기존 UA01~UA08/harness | 사용자 승인 |
+| UI 풀테스트 | 진행 대상 | 현재 녹화 탐색의 미확인 응답 상관만 직접 관측 | V410-S06-I30 | 기존 녹화 UI 범위와 이번 승인, 기존424개 재실행 아님 |
+| 30분 테스트 | 미진행 | 이번 proxy 관측 범위 밖 | 이번 사용자 승인 범위 | 추가 실행 안 함 |
+| 120분 테스트 | 미진행 | 이번 proxy 관측 범위 밖 | 이번 사용자 승인 범위 | 추가 실행 안 함 |
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| RP01 fixed loopback upstream and origin-form target only | 고정 upstream과 target 제한 | 다른 host/absolute target 거부, 허용 origin-form만 고정 서버 전달 | v4.1.0 |
+| RP02 streaming preserves 206 bytes and Range headers | 바이트·응답·관측 동일성 | 실제 streaming206 바이트/Range/Content-Range 동일 및 완료 관측행 대조 | v4.1.0 |
+| RP03 cookie forwarded but absent from observation | 인증 전달·비기록 | 테스트 쿠키 전달 확인, 관측에 쿠키/인증값 부재 | v4.1.0 |
+| RP04 nonmedia and invalid metadata never expose payload | 관측 allowlist | 비미디어와 invalid metadata/query/body가 원문으로 기록되지 않음 | v4.1.0 |
+| RP05 upstream failure records incomplete safely | upstream 오류 | 오류 시 안전한 미완료 관측, 원문 오류 비노출 | v4.1.0 |
+| RP06 client disconnect closes upstream and records incomplete | 클라이언트 중단 | 전달 요청 종료·미완료 관측 확인 | v4.1.0 |
+| RP07 close drains or destroys sockets and releases port | 제한시간 종료 | 소유 양방향 socket 종료와 proxy port 해제 | v4.1.0 |
+| RP08 private log mode0600 bounded failure is latched | 로그 제한·오류 유지 | 0600·크기/행 제한 및 오류가 성공처럼 소실되지 않음 | v4.1.0 |
+| RP09 harness proxy cleanup failure still runs owned server cleanup | 실패 시 정리 전수 실행 | proxy 정리 실패에도 기존 server/root cleanup 호출 | v4.1.0 |
+
+실행 예정 명령은 `node scripts/internal/recording_ui_range_proxy.test.mjs`, 기존 harness `all`, 인증 준비 회귀다. 예상 RED는 forwarding-only 구현의 RP02 안전 관측행 부재 assertion이며 의존성·환경 실패가 아니다. 아직 이 등록 시점에는 실행 결과 없음. 단일 담당자 Astra/medium, 영향도1·불확실성1·검증난이도2·변경범위1=5점이나 streaming/auth 전달 교차 안전성 때문에 Astra 후보 유지. 메인은 계약·실제 브라우저·최종 증거를 직접 검토한다.
+
+## S09 보존 이미지 형식 정정
+
+파일 형식 직접 검사에서21777 스크린샷18장이 PNG가 아니라 JPEG임을 확인했다. 브라우저가 반환한 JPEG bytes를 메인이 `.png`로 저장한 증적 관리 오류다. 최초 magic 검사 exit1 `not png` 이력을 보존한다. `file` 전수 검사로18장 모두 JPEG를 확인한 뒤 재인코딩 없이 `.jpg`로 이름만 변경하고 manifest에 `image/jpeg`를 명시했다. 이전 기록의 PNG/옛이름은 당시 저장 오류를 포함한 이력이며 현재 경로는 manifest를 따른다. 픽셀·bytes·SHA256은 변경하지 않았다.
+
+수정 후18장 전수 실제파일·경로포함·JPEG magic·mimeType·bytes·SHA256 검사18pass/0fail, 합계1129320B. 이는 파일 무결성 검사이며 새 UI 실행이나 Range 검증이 아니다. 테스트 전용 프록시 설계 승인은 아직 받지 않아 구현하지 않았다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| 이미지 확장자/실제형식 최초 검사 | manifest 파일을 PNG magic과 대조, exit1 not png | fail | 저장 확장자 오류, 이후 JPEG로 정정 |
+| JPEG 보존 무결성 | manifest18개 전체에 대해 actual path/type/size/hash/mimeType 확인 | pass | 최초fail 이후pass; 개별파일명·해시는 manifest보존 |
+
+## S09 정정 기준 잔여 UI 실행 — 63872
+
+사용자 승인한 원래 S06 계약 기준으로 실제 인앱 브라우저에서 재검증했다. `node scripts/internal/verify_v410_recording_ui_contract.mjs --ui-auth-direct --ui-anchor-utc-ms 1789084800000`, exit0·elapsed335622ms·actualUiPass=false. auth auto의 새 임시 계정 사용, 비밀값 비출력. 과거 기준 fail은 지우지 않고 이번 실행을 별도 기록한다. token start/end/consumed 미집계(실행 전용 자동 계수 없음). 제품·검증 코드 변경 없음.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| I31 partial | admin source1 09:00~09:01 조회 후 일부 구간 row 클릭: 일부 구간·src=ui-partial·readyState4·error=null | pass | 이전 정확 누락시간 요구는 승인 정정; 이번 실제 재실행 |
+| I31 미완결 event | 같은 조회의 재생불가09:00:02~09:00:08 두 번째 row 클릭: 구간 누락·미완성·공통 재생불가 안내·src=null·paused=true | pass | HTTP timeline 선두3개 순서 ui-deleted/ui-incomplete/ui-missing 직접 대조; Writing 내부검사와 분리 |
+| I32 활성 전이 준비 최초 요청 | 격리 source3 녹화 비활성용 POST /ops/api/sources →409, active=true 유지 | fail | 기존 채널 생성 route를 잘못 사용한 테스트 준비 오류; 제품 회귀 아님 |
+| I32 활성 전이 | 기존 PUT /ops/api/sources/3 계약 확인 후 recording.enabled=false/revision2 →200·active=false. UI 새로고침 클릭 후 S09 UI3 녹화 중 아님·260307/134217728 bytes | pass | 최초409 후 올바른 갱신 요청으로 pass, 실제 생성 자료 유지 |
+| I34 operator 허용 UI | 실제 operator 로그인 뒤 기존 녹화 화면 새로고침, 채널1 옵션 하나·http-event src·readyState4 | pass | admin stale nav를 operator nav 판정에 사용하지 않음 |
+| I34 비허용 미디어 브라우저 직접 열기 | 실제 operator 세션으로 채널3의 존재하는 미디어 URL 열기 →ERR_BLOCKED_BY_CLIENT | fail | 브라우저 도구의 탐색 차단. 서버 권한 PASS로 해석하지 않음 |
+| I34 비허용 서버 미디어 | 같은 임시 operator로 GET /ops/api/recordings/media/seg-3-1789128975325-27 →404/39B, 미디어 비노출 | pass | admin 조회에서 존재 확인된 ID, 서버 직접 HTTP 검사이며 브라우저 탐색 대체 아님 |
+| I34 허용 서버 미디어 | 같은 operator로 GET /ops/api/recordings/media/http-event, Range bytes=0-15 →206/16B·Content-Range bytes 0-15/135694 | pass | API 증거이며 native seek 증거 아님 |
+| I34 비허용 채널 조회 | 같은 operator로 GET /ops/api/recordings/timeline?channelId=3&startTimeMs=1789084800000&endTimeMs=1789084860000 →403/39B | pass | 내부 권한 경계 확인 |
+| 브라우저 로그 | 실제 녹화 UI 탭 error/warn 조회0 | pass | 현재 실행 관측 |
+| 서버 로그 | private log1059B·error/fatal/critical0·warning0·임시 비밀번호 원문 포함0 | pass | truncated=false/droppedBytes0/writeFailed=false |
+| 정리 | PID54613 exit0 graceful·RTSP59518/HTTP59519 ECONNREFUSED·rootAbsent=true·failure0 | pass | cleanup967ms |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| 실행root `media-server-v410-s06-VCTfu7` | 격리 계정·녹화·registry·로그441entries | 17088677B | 실행 종료 후 runner cleanup | 부재, symlink277개 미추적 | 정상 종료·cleanup0failure |
+
+남은 판정: I30 실제 브라우저 Range 관측, I34 직접 URL 도구 차단의 증거 한계와 전수 redaction 최종 대조, 관련 회귀·최종 정리. 임시 API206을 native seek의 응답으로 대신하지 않는다. 현재 native adapter는 Content-Range를 보존하지 않고 CUA DOM에서는 network performance API를 사용할 수 없었다. 테스트 전용 loopback streaming proxy 관측은 대안으로 조사했을 뿐 아직 구현·실행하지 않았다. 전체 UI432/S09 완료 및 추가 커밋·푸시 없음. 30분·120분 재실행 없음.
+
+## S09 I08 직접 안전성 보완 결과 — 40383
+
+`./server.sh verify-v410-recording-timeline --read-model` exit0, JSONL83개·SQLite83개 assertion 통과, cleanup1개 별도 통과. 실제 파일 존재 상태의 Writing 등록·재생 거부와 Corrupt 상태 전이를 직접 확인했다. 메인은 diff와 전수 로그를 대조했다. 제품 변경 없음. UI 판정 대체 없음. 실행별 token start/end/consumed·elapsed 미집계(분리된 자동 계수 없음). 로그6864B SHA256 `91c52e14d52e328401f7a168ca8cd0e02554aef9d677cefa5a29057d01c42c82`.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| JSONL V410-S06-I03 catalog timeline item 반환 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I09 opaque 재생 URL | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I03 끝 경계 인접 제외 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I03 다른 채널 제외 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I04 음수 시간 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I04 역전 시간 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I04 빈 페이지 제한 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I04 과대 페이지 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I05 큰 offset overflow 없이 빈 페이지 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I16 다른 채널 media 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I17 경로형 ID 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I09 fd 크기 MIME 확인 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I25 재생 hold 중 삭제 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I19 경로 교체 뒤 열린 fd 기존 byte 유지 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I18 leaf symlink 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I09 누락 파일 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I09 크기 불일치 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I09 비일반 파일 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I06 같은 시간 event 우선 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I07 정확한 이벤트 ID 연결 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I10 실제 범위와 요청 범위 분리 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I05 정렬 뒤 페이지 적용 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I25 모든 실패 경로 hold 반환 후 삭제 허용 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I08 deletion pending 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I08 pending timeline 재생 불가 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I11 검증한 fallback 영상 fd 제공 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I11 JSON이 아닌 실제 media byte 반환 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I11 fallback timeline을 complete로 과장하지 않음 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I11 중복 key manifest 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I11 event 바인딩 불일치 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I11 byteSize 문자열 타입 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I11 64KiB 초과 manifest 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I18 fallback media symlink 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I09 fallback media 크기 불일치 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I19 fallback 교체 뒤 기존 fd byte 유지 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I17 다른 채널 fallback ID 충돌도 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I03 기존 숫자형 channel ID 유지 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I08/I17 삭제 완료 ID의 fallback 재사용 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I20 closed Range 시작과 길이 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I26 열린 gate 신규 요청 admission | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I26 닫힌 gate 신규 요청 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I26 active flight 이전 drain 완료 금지 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I26 마지막 flight 해제 뒤 drain 완료 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I26 활성 socket shutdown 확인 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I25 동시 삭제 경쟁 0 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I26 경쟁 뒤 fd 반환 0 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I25 동시 삭제 경쟁 1 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I26 경쟁 뒤 fd 반환 1 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I25 동시 삭제 경쟁 2 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I26 경쟁 뒤 fd 반환 2 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I25 동시 삭제 경쟁 3 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I26 경쟁 뒤 fd 반환 3 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I25 동시 삭제 경쟁 4 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I26 경쟁 뒤 fd 반환 4 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I25 동시 삭제 경쟁 5 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I26 경쟁 뒤 fd 반환 5 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I25 동시 삭제 경쟁 6 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I26 경쟁 뒤 fd 반환 6 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I25 동시 삭제 경쟁 7 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I26 경쟁 뒤 fd 반환 7 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I25 동시 삭제 경쟁 8 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I26 경쟁 뒤 fd 반환 8 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I25 동시 삭제 경쟁 9 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I26 경쟁 뒤 fd 반환 9 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I25 동시 삭제 경쟁 10 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I26 경쟁 뒤 fd 반환 10 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I25 동시 삭제 경쟁 11 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I26 경쟁 뒤 fd 반환 11 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I25 동시 삭제 경쟁 12 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I26 경쟁 뒤 fd 반환 12 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I25 동시 삭제 경쟁 13 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I26 경쟁 뒤 fd 반환 13 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I25 동시 삭제 경쟁 14 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I26 경쟁 뒤 fd 반환 14 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I25 동시 삭제 경쟁 15 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I26 경쟁 뒤 fd 반환 15 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I08 Writing lifecycle 재생 불가 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I08 Writing finalize 등록 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I08 Writing 실제 파일 존재해도 media 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I08 Writing timeline 재생 노출 없음 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I08 Corrupt 실제 catalog 전이 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I08 Corrupt 실제 파일 존재해도 media 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| JSONL I08 Corrupt timeline 불가 상태 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite V410-S06-I03 catalog timeline item 반환 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I09 opaque 재생 URL | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I03 끝 경계 인접 제외 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I03 다른 채널 제외 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I04 음수 시간 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I04 역전 시간 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I04 빈 페이지 제한 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I04 과대 페이지 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I05 큰 offset overflow 없이 빈 페이지 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I16 다른 채널 media 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I17 경로형 ID 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I09 fd 크기 MIME 확인 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I25 재생 hold 중 삭제 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I19 경로 교체 뒤 열린 fd 기존 byte 유지 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I18 leaf symlink 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I09 누락 파일 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I09 크기 불일치 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I09 비일반 파일 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I06 같은 시간 event 우선 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I07 정확한 이벤트 ID 연결 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I10 실제 범위와 요청 범위 분리 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I05 정렬 뒤 페이지 적용 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I25 모든 실패 경로 hold 반환 후 삭제 허용 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I08 deletion pending 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I08 pending timeline 재생 불가 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I11 검증한 fallback 영상 fd 제공 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I11 JSON이 아닌 실제 media byte 반환 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I11 fallback timeline을 complete로 과장하지 않음 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I11 중복 key manifest 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I11 event 바인딩 불일치 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I11 byteSize 문자열 타입 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I11 64KiB 초과 manifest 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I18 fallback media symlink 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I09 fallback media 크기 불일치 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I19 fallback 교체 뒤 기존 fd byte 유지 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I17 다른 채널 fallback ID 충돌도 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I03 기존 숫자형 channel ID 유지 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I08/I17 삭제 완료 ID의 fallback 재사용 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I20 closed Range 시작과 길이 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I26 열린 gate 신규 요청 admission | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I26 닫힌 gate 신규 요청 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I26 active flight 이전 drain 완료 금지 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I26 마지막 flight 해제 뒤 drain 완료 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I26 활성 socket shutdown 확인 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I25 동시 삭제 경쟁 0 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I26 경쟁 뒤 fd 반환 0 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I25 동시 삭제 경쟁 1 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I26 경쟁 뒤 fd 반환 1 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I25 동시 삭제 경쟁 2 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I26 경쟁 뒤 fd 반환 2 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I25 동시 삭제 경쟁 3 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I26 경쟁 뒤 fd 반환 3 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I25 동시 삭제 경쟁 4 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I26 경쟁 뒤 fd 반환 4 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I25 동시 삭제 경쟁 5 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I26 경쟁 뒤 fd 반환 5 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I25 동시 삭제 경쟁 6 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I26 경쟁 뒤 fd 반환 6 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I25 동시 삭제 경쟁 7 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I26 경쟁 뒤 fd 반환 7 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I25 동시 삭제 경쟁 8 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I26 경쟁 뒤 fd 반환 8 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I25 동시 삭제 경쟁 9 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I26 경쟁 뒤 fd 반환 9 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I25 동시 삭제 경쟁 10 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I26 경쟁 뒤 fd 반환 10 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I25 동시 삭제 경쟁 11 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I26 경쟁 뒤 fd 반환 11 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I25 동시 삭제 경쟁 12 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I26 경쟁 뒤 fd 반환 12 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I25 동시 삭제 경쟁 13 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I26 경쟁 뒤 fd 반환 13 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I25 동시 삭제 경쟁 14 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I26 경쟁 뒤 fd 반환 14 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I25 동시 삭제 경쟁 15 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I26 경쟁 뒤 fd 반환 15 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I08 Writing lifecycle 재생 불가 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I08 Writing finalize 등록 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I08 Writing 실제 파일 존재해도 media 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I08 Writing timeline 재생 노출 없음 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I08 Corrupt 실제 catalog 전이 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I08 Corrupt 실제 파일 존재해도 media 거부 | 실제 read-model assertion·exit0 | pass | 40383 |
+| SQLite I08 Corrupt timeline 불가 상태 | 실제 read-model assertion·exit0 | pass | 40383 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| 실행root `media-server-s06-read.U1dgZF` | read-model build/fixture | 2300KiB 할당 크기 | runner trap 삭제 | 부재 확인 | cleanup PASS, 논리 bytes 미집계 |
+| `.media_server.test/s09-i08-readmodel-20260911-unique.log` | 전체 실행 로그 | 6864B | 위166행·해시 이관 후 해시 재대조·삭제 | 부재 확인 | 원본 재검사는 불가, 개별 결과 보존 |
+
+문서 링크 검증 `./server.sh verify-docs-links`: markdown234·local links1067·images22·anchors104, failures0. 문구 정정은 현재 I31 조건만이며 과거 실패와 I30/I32/I34 요구사항은 유지했다. 커밋·푸시 미수행.
+
+
+## S09 I08 직접 안전성 검사 보완 사전 등록
+
+아래는 기존 안전 계약의 명시적 characterization 검사다. 제품은 변경하지 않고 JSONL/SQLite 양쪽에서 실제 catalog/read service를 실행한다. Writing fixture는 실제 파일이 있어도 finalize 등록과 media resolve가 거부되고 timeline에 재생 가능하게 노출되지 않아야 한다. Corrupt는 실제 파일 변경과 catalog 상태 전이를 사용한다. 실행 명령은 `./server.sh verify-v410-recording-timeline --read-model`이며 이 표 등록 후 실행한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| I08 Writing lifecycle 재생 불가 | 기존 I08 안전 계약 직접 확인 | 실제 lifecycle/catalog/read service assertion, UI PASS 대체 금지 | v4.1.0 S09 보완 |
+| I08 Writing finalize 등록 거부 | 기존 I08 안전 계약 직접 확인 | 실제 lifecycle/catalog/read service assertion, UI PASS 대체 금지 | v4.1.0 S09 보완 |
+| I08 Writing 실제 파일 존재해도 media 거부 | 기존 I08 안전 계약 직접 확인 | 실제 lifecycle/catalog/read service assertion, UI PASS 대체 금지 | v4.1.0 S09 보완 |
+| I08 Writing timeline 재생 노출 없음 | 기존 I08 안전 계약 직접 확인 | 실제 lifecycle/catalog/read service assertion, UI PASS 대체 금지 | v4.1.0 S09 보완 |
+| I08 Corrupt 실제 catalog 전이 | 기존 I08 안전 계약 직접 확인 | 실제 lifecycle/catalog/read service assertion, UI PASS 대체 금지 | v4.1.0 S09 보완 |
+| I08 Corrupt 실제 파일 존재해도 media 거부 | 기존 I08 안전 계약 직접 확인 | 실제 lifecycle/catalog/read service assertion, UI PASS 대체 금지 | v4.1.0 S09 보완 |
+| I08 Corrupt timeline 불가 상태 | 기존 I08 안전 계약 직접 확인 | 실제 lifecycle/catalog/read service assertion, UI PASS 대체 금지 | v4.1.0 S09 보완 |
+
+## S09 I08 기존 read-model 재확인 — 78658
+
+명령 `bash scripts/internal/verify_v410_recording_timeline.sh --read-model` exit0. JSONL 및 SQLite 모드 각각76개, 합계152개 assertion 통과. 아래는 실제 출력 전수다. Writing 직접 assertion은 이 실행에 없어 별도 보완하며 기존 통과로 대체하지 않는다. 실행별 token start/end/consumed·elapsed 미집계(자동 계수와 별도 시각 미확보). 임시 root `media-server-s06-read.3pcNxK` 삭제 전 du -sk=2276KiB, trap 삭제·부재 확인. 이 검증은 HTTP/브라우저 UI가 아니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| JSONL V410-S06-I03 catalog timeline item 반환 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I09 opaque 재생 URL | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I03 끝 경계 인접 제외 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I03 다른 채널 제외 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I04 음수 시간 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I04 역전 시간 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I04 빈 페이지 제한 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I04 과대 페이지 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I05 큰 offset overflow 없이 빈 페이지 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I16 다른 채널 media 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I17 경로형 ID 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I09 fd 크기 MIME 확인 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I25 재생 hold 중 삭제 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I19 경로 교체 뒤 열린 fd 기존 byte 유지 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I18 leaf symlink 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I09 누락 파일 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I09 크기 불일치 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I09 비일반 파일 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I06 같은 시간 event 우선 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I07 정확한 이벤트 ID 연결 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I10 실제 범위와 요청 범위 분리 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I05 정렬 뒤 페이지 적용 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I25 모든 실패 경로 hold 반환 후 삭제 허용 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I08 deletion pending 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I08 pending timeline 재생 불가 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I11 검증한 fallback 영상 fd 제공 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I11 JSON이 아닌 실제 media byte 반환 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I11 fallback timeline을 complete로 과장하지 않음 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I11 중복 key manifest 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I11 event 바인딩 불일치 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I11 byteSize 문자열 타입 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I11 64KiB 초과 manifest 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I18 fallback media symlink 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I09 fallback media 크기 불일치 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I19 fallback 교체 뒤 기존 fd byte 유지 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I17 다른 채널 fallback ID 충돌도 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I03 기존 숫자형 channel ID 유지 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I08/I17 삭제 완료 ID의 fallback 재사용 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I20 closed Range 시작과 길이 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I26 열린 gate 신규 요청 admission | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I26 닫힌 gate 신규 요청 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I26 active flight 이전 drain 완료 금지 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I26 마지막 flight 해제 뒤 drain 완료 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I26 활성 socket shutdown 확인 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I25 동시 삭제 경쟁 0 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I26 경쟁 뒤 fd 반환 0 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I25 동시 삭제 경쟁 1 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I26 경쟁 뒤 fd 반환 1 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I25 동시 삭제 경쟁 2 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I26 경쟁 뒤 fd 반환 2 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I25 동시 삭제 경쟁 3 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I26 경쟁 뒤 fd 반환 3 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I25 동시 삭제 경쟁 4 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I26 경쟁 뒤 fd 반환 4 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I25 동시 삭제 경쟁 5 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I26 경쟁 뒤 fd 반환 5 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I25 동시 삭제 경쟁 6 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I26 경쟁 뒤 fd 반환 6 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I25 동시 삭제 경쟁 7 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I26 경쟁 뒤 fd 반환 7 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I25 동시 삭제 경쟁 8 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I26 경쟁 뒤 fd 반환 8 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I25 동시 삭제 경쟁 9 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I26 경쟁 뒤 fd 반환 9 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I25 동시 삭제 경쟁 10 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I26 경쟁 뒤 fd 반환 10 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I25 동시 삭제 경쟁 11 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I26 경쟁 뒤 fd 반환 11 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I25 동시 삭제 경쟁 12 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I26 경쟁 뒤 fd 반환 12 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I25 동시 삭제 경쟁 13 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I26 경쟁 뒤 fd 반환 13 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I25 동시 삭제 경쟁 14 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I26 경쟁 뒤 fd 반환 14 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I25 동시 삭제 경쟁 15 | 실제 read-model assertion·exit0 | pass | 78658 |
+| JSONL I26 경쟁 뒤 fd 반환 15 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite V410-S06-I03 catalog timeline item 반환 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I09 opaque 재생 URL | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I03 끝 경계 인접 제외 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I03 다른 채널 제외 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I04 음수 시간 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I04 역전 시간 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I04 빈 페이지 제한 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I04 과대 페이지 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I05 큰 offset overflow 없이 빈 페이지 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I16 다른 채널 media 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I17 경로형 ID 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I09 fd 크기 MIME 확인 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I25 재생 hold 중 삭제 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I19 경로 교체 뒤 열린 fd 기존 byte 유지 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I18 leaf symlink 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I09 누락 파일 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I09 크기 불일치 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I09 비일반 파일 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I06 같은 시간 event 우선 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I07 정확한 이벤트 ID 연결 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I10 실제 범위와 요청 범위 분리 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I05 정렬 뒤 페이지 적용 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I25 모든 실패 경로 hold 반환 후 삭제 허용 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I08 deletion pending 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I08 pending timeline 재생 불가 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I11 검증한 fallback 영상 fd 제공 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I11 JSON이 아닌 실제 media byte 반환 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I11 fallback timeline을 complete로 과장하지 않음 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I11 중복 key manifest 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I11 event 바인딩 불일치 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I11 byteSize 문자열 타입 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I11 64KiB 초과 manifest 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I18 fallback media symlink 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I09 fallback media 크기 불일치 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I19 fallback 교체 뒤 기존 fd byte 유지 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I17 다른 채널 fallback ID 충돌도 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I03 기존 숫자형 channel ID 유지 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I08/I17 삭제 완료 ID의 fallback 재사용 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I20 closed Range 시작과 길이 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I26 열린 gate 신규 요청 admission | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I26 닫힌 gate 신규 요청 거부 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I26 active flight 이전 drain 완료 금지 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I26 마지막 flight 해제 뒤 drain 완료 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I26 활성 socket shutdown 확인 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I25 동시 삭제 경쟁 0 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I26 경쟁 뒤 fd 반환 0 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I25 동시 삭제 경쟁 1 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I26 경쟁 뒤 fd 반환 1 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I25 동시 삭제 경쟁 2 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I26 경쟁 뒤 fd 반환 2 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I25 동시 삭제 경쟁 3 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I26 경쟁 뒤 fd 반환 3 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I25 동시 삭제 경쟁 4 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I26 경쟁 뒤 fd 반환 4 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I25 동시 삭제 경쟁 5 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I26 경쟁 뒤 fd 반환 5 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I25 동시 삭제 경쟁 6 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I26 경쟁 뒤 fd 반환 6 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I25 동시 삭제 경쟁 7 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I26 경쟁 뒤 fd 반환 7 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I25 동시 삭제 경쟁 8 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I26 경쟁 뒤 fd 반환 8 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I25 동시 삭제 경쟁 9 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I26 경쟁 뒤 fd 반환 9 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I25 동시 삭제 경쟁 10 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I26 경쟁 뒤 fd 반환 10 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I25 동시 삭제 경쟁 11 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I26 경쟁 뒤 fd 반환 11 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I25 동시 삭제 경쟁 12 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I26 경쟁 뒤 fd 반환 12 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I25 동시 삭제 경쟁 13 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I26 경쟁 뒤 fd 반환 13 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I25 동시 삭제 경쟁 14 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I26 경쟁 뒤 fd 반환 14 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I25 동시 삭제 경쟁 15 | 실제 read-model assertion·exit0 | pass | 78658 |
+| SQLite I26 경쟁 뒤 fd 반환 15 | 실제 read-model assertion·exit0 | pass | 78658 |
+
+
+## S09 원래 S06 계약 유지 승인
+
+사용자 `권장하는 방향으로 시작`에 따라, 정확한 누락 시간 목록·삭제/손상/작성 중 사유별 UI 표출을 추가하지 않고 원래 S06 completeness·재생 차단 계약으로 검증 역할을 정정한다. UI I31은 일부 구간/미완결·재생불가/공백/오류 안내를 실제 조작한다. 실제 Writing·corrupt·deletion_pending·deleted의 재생 금지는 내부 안전성 I08에 유지한다. pending 이벤트 참조를 Writing의 증거로 대체하지 않는다. 이전31action 실패 기록은 당시 기준의 기록으로 보존하며 자동 PASS로 변경하지 않는다. I30 Range 상관, I32 전이, I34 권한·비노출 조건은 그대로다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인방법) | 몇버전부터 deprecated되었는지 |
+| --- | --- | --- | --- |
+| I31 정확 누락 시간 UI 표출 조건 | partial에 missingRanges 수치 목록을 요구한 후속 검증 문구 | 원래 Task6 completeness와 현재 공개 API에 없는 표시 요구를 정정. 일부 구간 표시·재생 가능 여부 UI 검증은 유지 | v4.1.0 S09 승인 정정 시점 |
+| I31 Writing 사유별 UI 행 조건 | 내부 Writing lifecycle을 반드시 별도 UI 행/사유로 표시할 것을 요구한 문구 | UI는 미완결 참조 안내와 차단, 실제 Writing 미디어 거부는 I08 내부 안전성 검사로 분리 | v4.1.0 S09 승인 정정 시점 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 사용자 승인한 원래 안전 계약 유지 확인 | I08, recording_timeline_smoke.cpp/read-model | 승인된 S09 잔여 범위 |
+| UI 풀테스트 | 진행 대상 | 정정된 I31 및 기존 미완료 action | I27~I34 | 기존 녹화 UI 승인 범위 유지 |
+| 30분 테스트 | 미진행 | 현재 요청은 문구 정정·녹화 잔여 검증 | 기존 실행 기록 별도 | 재실행 안 함 |
+| 120분 테스트 | 미진행 | 현 실행 묶음에 포함하지 않음 | 녹화 전용120분 별도 미완료 | 자동 착수하지 않음 |
+
+## S09 준비 로그 보존·정리
+
+2026-09-11 메인이 준비 로그7개 전문을 직접 읽고 비밀번호·세션 값이 없음을 확인했다. 이전 실패의 세부 내용을 잃지 않도록 작은 원본7개를 [준비 증적 디렉터리](release-artifacts/v4.1.0/s09-recording-ui-21777/preparation/)에 보존했다. 파일명 green은 통과를 뜻하지 않는다: red.log는2pass/2fail, green.log와diagnostic.log는7pass/3fail, green-fixed·green-final·green-pair-fixed는9pass/2fail이며 이후11pass/0fail 기록과 구분한다. 테스트를 새로 실행하거나 실패를 소급 PASS하지 않았다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| H01 | 기존 `node scripts/internal/verify_v410_recording_harness.test.mjs all` 결과,2ms·임시root107B/2entries 정리·부재 | pass | 이번에는 원본 로그 대조만 수행 |
+| H02 | 기존 같은 명령의 프로세스 종료 검사29ms,PID51427 exit0 graceful | pass | 재실행 아님 |
+| H03 | 기존 같은 명령 H03,0ms | pass | 원본 harness-all.log, 전체5cases/40checks/0fail/32ms |
+| H03-R01 | 기존 같은 명령 H03-R01,0ms | pass | 재실행 아님 |
+| H03-R02 | 기존 같은 명령 H03-R02,1ms | pass | 재실행 아님 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| `.media_server.test/s09-ui-auth-prep-20260911-prepare` | 준비 실행 로그7개 | 5970B | 파일 전수·regular file 확인, 저장소 복사 바이트 대조 후 원본 삭제 | 디렉터리 부재 확인 | 보존위치 위 링크; 재현 실패 이력의 작은 원본 보존 |
+
+제품 코드 추가 변경·테스트 실행·커밋·푸시 없음. 기존 S06 명세와 후속 UI 검증표의 차이에 대한 사용자 결정은 아직 없다. 이 로그 정리는 해당 요구사항 조율을 대신하지 않는다.
+
+## S09 안내 초기화 실제 재검증 — 71450
+
+수정 빌드에서 임시 admin으로 실제 로그인하고 인앱 브라우저 `/ops/events`를 조작했다. 원래 S06 명세와 후속31action 문구의 차이는 별도 판정이 필요하므로 아래 수정 재검증을 전체 UI 완료로 확대하지 않는다. 실행 명령은 `node scripts/internal/verify_v410_recording_ui_contract.mjs --ui-auth-direct --ui-anchor-utc-ms 1789084800000`, exit0·elapsed129792ms·actualUiPass=false다. token start/end/consumed 미집계(실행별 자동 계수 없음).
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| I31-R01 정상 영상 선택 | 채널1·09:00~09:01 조회, http-event src·readyState4·메타데이터 완료 안내 | pass | 기존 정상 경로 유지 |
+| I31-R01 빈 결과 전이 | 채널2 선택 후 지원 안내가 구간 선택 안내로 초기화 | pass | 단기 RED 뒤 실제 브라우저 pass |
+| I31-R01 재생 불가 선택 | 채널1 복귀 후09:00:01~09:00:10 재생불가 row 클릭, src=null·paused=true·지원 안내 초기화 | pass | 단기 RED 뒤 실제 브라우저 pass |
+| I31 오류 전이 재검증 | 정상 재조회 후 보조 탭 로그아웃→원 탭 조회. 조회 오류와 구간 선택 안내·src=null·paused=true | pass | 21777의 메타데이터 완료 안내 잔존 fail 뒤 수정 후 pass |
+| 서버 로그 | private log1059B, error/critical/fatal0·warning0·임시 비밀번호 원문 포함0 | pass | 로그 원문과 비밀번호 비출력 |
+| 실행 정리 | PID53482 exit0 graceful, RTSP59159/HTTP59160 ECONNREFUSED, rootAbsent=true·failure0 | pass | truncated=false/droppedBytes0/writeFailed=false |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| 실행root `media-server-v410-s06-SFzKnQ` | 격리 계정·녹화·registry·private log,439entries | 17067434B | 실행 종료 후 cleanup | 부재, symlink277개 미추적 | cleanup429ms, failure0 |
+
+### 미해소 명세 대조
+
+메인이 Task6 원문과 API/UI 구현을 직접 읽었다. 계획 `docs/superpowers/plans/2026-09-02-v410-recording-foundation-implementation-plan.md` Task6 Step1은 writing 재생 금지, Step4는 completeness 표출을 요구한다. API `recording_application_service.cpp`는 requestedRange/actualRange를 반환하지만 missingRanges 배열은 반환하지 않는다. 현재 UI는 일부 구간 및 공통 재생불가 안내이며 개별 삭제/손상/writing 사유를 나누지 않는다. 반면 `manual-ui-result-template.md`는 partial 누락 범위 표출을, inventory I31은 각 상태 구분을 요구한다. 이는 문서와 실제 구현의 해소되지 않은 차이다. pending event fixture를 실제 Writing 검증으로 간주하거나 문구를 임의 완화해 PASS로 바꾸지 않는다.
+
+현재 미완료: I30 브라우저 탐색과 Range 응답 상관, I31 partial·Writing 요구사항 조율, I32 활성 전이, I34 비허용 직접 미디어·전수 redaction, 관련 회귀·준비 로그 정리. 30분·120분은 이번 실행에 포함하지 않았다. 커밋·추가 푸시 미수행. 다음 결정은 원래 S06 계약에 맞춰 UI/비UI 검증 역할을 정정할지, 공개 API·UI를 확장해 추가 상태/누락범위까지 표출할지다. 후자는 별도 제품 범위 승인 없이 착수하지 않는다.
+
+## S09 녹화 UI 진행 기록 — 21777 후속 관측
+
+### 실행 종료·수정 회귀
+
+21777은 stdin 종료 요청 뒤 exit0, elapsed995940ms로 끝났다. 로그 truncation=false/droppedBytes0/writeFailed=false이며 actualUiPass=false를 유지한다. 메인은 아래 두 제품 변경을 직접 확인했다: `src/ingress/product_ui_page_scripts.cpp` clearPlayer에서 지원 안내 초기화, loadedmetadata에서 selected와 src 존재 확인. API·인증·미디어 경로는 변경하지 않았다. 단기 회귀는 실제 제품 스크립트 block을 VM에서 실행하며 DOM/HTTP만 대역이다. 실제 브라우저 통과를 대체하지 않는다. 수정 후 빌드는 통과했고 브라우저 재검증은 남아 있다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| normal selected metadata updates visible support | `node scripts/internal/recording_playback_status.test.mjs` 정상 선택 metadata 안내와 media src 유지 | pass | RED에서도 pass; 최종7/0 exit0·10ms, 메인 재실행 동일 |
+| I31-R01 failed timeline clears previous support | 조회 실패 뒤 src제거·정지·선택없음·지원 안내 초기화 | pass | 최초 fail 후 pass |
+| I31-R01 empty timeline clears previous support | 빈목록 뒤 초기상태·빈결과 안내 | pass | 최초 fail 후 pass |
+| I31-R01 unplayable selection clears previous support | 재생불가 선택 뒤 src제거·이전완료 안내 제거·재생불가 안내 | pass | 최초 fail 후 pass |
+| I31-R02 late metadata cannot contaminate unselected state | 무선택 뒤 metadata 이벤트가 안내를 오염시키지 않음 | pass | 최초 fail 후 pass |
+| unselected error preserves selection prompt | 무선택 error가 선택 안내를 유지 | pass | RED에서도 pass |
+| selected media error shows failure notice | 선택 상태 error는 재생 실패 안내 | pass | RED에서도 pass |
+| 수정 파일 검사 | 신규test node --check, `git diff --check` exit0 | pass | 메인 diff 직접 확인 |
+| 수정 후 빌드 | `./server.sh build` session38276 exit0, media_server 100% link 완료 | pass | 실제 UI 재검증 대체 아님 |
+
+최초 RED는 exit1·3pass/4fail·16ms로 위4개 예상 assertion 실패였고 build/환경 실패가 아니다. 임시 테스트 산출물0. token start/end/consumed 미집계(테스트별 자동 계수 없음). 영향1/불확실1/검증2/범위1=5, 기존 단일 Codex Astra/medium 담당자 재사용·하위 위임 없음. 메인은 실패 재현·원인·diff와 최종7행 출력을 직접 확인했다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| 실행root `media-server-v410-s06-MypXEY` | 격리 계정·녹화·registry·private log,613entries | 19141233B | 소유 실행 종료 후 runner cleanup | rootAbsent=true, symlink277개 미추적, failure0 | PID51516 exit0 graceful, RTSP58383/HTTP58384 ECONNREFUSED |
+| `.media_server.test/s09-recording-ui-current` | UI PNG18개 | 1129320B | 해시·바이트 동일 복사 후 원본 삭제 | 원본 부재 재확인 | 저장소 보존위치 아래 |
+| `docs/release-artifacts/v4.1.0/s09-recording-ui-21777` | UI 관측18PNG·manifest | PNG1129320B | 보존 | 실제 확인한 재생·8viewport/theme와 잘못 촬영된760light의 수정 이력 | [해시 manifest](release-artifacts/v4.1.0/s09-recording-ui-21777/artifact-manifest.json); 전체 UI PASS 근거 아님 |
+
+18장 모두 이전 direct-browser 시각 확인을 거쳤으며 공개 source URL·auth material이 없는 녹화 UI 캡처다. 잘못된 위치의 player-760-light.png는 실패 촬영 이력이고 corrected 파일만 해당 시각 판정 근거다. 저장소 보존 자료는 테스트 증적이므로 README 색인에 추가하지 않는다. 준비단계 진단 로그는 아직 작업 디렉터리에 남아 있어 별도 이관·정리가 필요하다.
+
+### 31action 관측 대장(중간 결과, 최종 UI PASS 아님)
+
+아래는 동일21777 실행의 선행 관측과 후속 권한 확인을 합친 중간 대장이다. 미완료 요구사항은 fail로 남기며 수정 후 재검증 이력을 이어 적는다. screenshot은 현재 작업 산출물에 있고 보존·정리 전이므로 최종 evidence 링크로 쓰지 않는다. UI 화면 기준 anchor는 2026-09-11 09:00 KST다. private server log 관측1059B/22줄에서 error·critical·fatal 0, warn 0, 생성한 임시 비밀번호5개의 원문 포함0; 오류 유도 탭과 operator/viewer 탭의 브라우저 error/warn은 각각0이다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| I27 정상 필터 | source1·09:00~09:01 입력·조회,107개·첫 페이지99표시; HTTP timeline200의107개 및 선두순서 대조 | pass | original 기본 접힘 |
+| I27 빈값·빈 결과 | 시작값 비움 native valueMissing=true; source2 조회 빈결과·src=null | pass | 각각 직접 조작 |
+| I27 역전 시간 | 09:02~09:01 조회 올바른 시작·종료 안내 | pass | 직접 입력·조회 |
+| I27 페이지 | 다음101~107/7개, 이전1~100/99개 반영 | pass | 선택 영상 갱신 관측 |
+| I28 이벤트 우선 | 겹친 event 기본 선택·이벤트 우선·전체구간·09:00:01~09:00:10 | pass | http-event readyState4 |
+| I29 원본 | checkbox 펼침100개/접기99개, continuous 선택·상시녹화 원본·http-continuous | pass | 같은 시간의 겹침 관계 |
+| I30 재생 | native Space, currentTime0.017436→6.380638; 실제 영상 숫자6 확인. 후속0→5 숫자 및0.006105→5.974511 | pass | 정지 screenshot과 동영상 구분 |
+| I30 일시정지 | paused=true·6.952563 이후 동일 시간 | pass | 첫 Space는 ended 뒤 재시작이었고 다음 Space로 실제 일시정지 확인 |
+| I30 탐색 | native ArrowLeft로6.952563→6.85256, paused=true | fail | 브라우저 Range 응답 상관 미확인. API206만으로 대체하지 않음 |
+| I31 partial | 일부 구간 버튼 선택·일부 구간·재생 준비 | fail | 누락 범위의 실제 UI 표출 미확인 |
+| I31 삭제 | API 순서의ui-deleted와 첫 동일label row 대조·클릭, 재생불가 안내·src=null | pass | 실제 삭제 fixture |
+| I31 손상 | ui-corrupt에 해당하는 row 클릭, 재생불가 안내·src=null | pass | 실제 checksum 불일치 fixture |
+| I31 작성 중 | ui-incomplete row 재생불가·src=null | fail | pending 이벤트 참조이며 실제 Writing segment 검증은 아님 |
+| I31 공백 | ui-missing row 재생불가·src=null, 빈 채널도 선택 해제 | pass | 이전 영상 오인 재생 방지 관측 |
+| I31 오류 | 보조 탭 로그아웃 후 조회 오류·src=null | fail | 메타데이터 완료 안내 잔존, 아래 원인·보완 등록 |
+| I32 quota | UI channel1 상시13705094/10737418240·이벤트271388/10737418240; 실제 status200 동일값 | pass | source3/4 상한134217728 및1048576도 일치 |
+| I32 활성 | source3 녹화 중·active=true, source1/2 비활성 확인 | fail | 같은 채널의 활성→비활성 전이 미실행 |
+| I32 blocked | source4 녹화 중·저장 공간 차단·0/1048576; status active=true/storageBlocked=true | pass | 실제 live input+소량quota |
+| I33 navigation | 기존 홈·대시보드·채널·룰·사용자·클라이언트 유지, 녹화section 신규nav/검색입력 없음 | pass | 아래 기존 Incident Memory Search는 baseline 기능 |
+| I34 admin | 실제 admin 로그인·source1 조회·미디어 준비/재생 | pass | 임시 계정, auth auto |
+| I34 operator scope | source1만 옵션, 허용 영상 ready4 | fail | 비허용 채널 직접 미디어 접근 검증 남음 |
+| I34 viewer·미인증 | 각각 Access Denied·로그인 redirect 실제 브라우저 관측 | pass | 후속 상세표 참조 |
+| I34 redaction | viewer client 화면·차단화면에 경로/source/debug/auth값 없음; 서버로그 비밀번호0 | fail | 보존artifact 전수 redaction·범위 전체 대조 남음 |
+| I34 320 light | 실제 width320 light, video254px·날짜254px·checkbox18px, 화면넘침없음·focus/대비 시각확인 | pass | player/filters 두 screenshot |
+| I34 320 dark | 실제 width320 dark, video254px·날짜254px·checkbox18px, 화면넘침없음·focus/대비 시각확인 | pass | player/filters 두 screenshot |
+| I34 390 light | 실제 width390 light, video324px·날짜324px·checkbox18px, 화면넘침없음·focus/대비 시각확인 | pass | player/filters 두 screenshot |
+| I34 390 dark | 실제 width390 dark, video324px·날짜324px·checkbox18px, 화면넘침없음·focus/대비 시각확인 | pass | player/filters 두 screenshot |
+| I34 760 light | 실제 width760 light, video694px·날짜694px·checkbox18px, 화면넘침없음·focus/대비 시각확인 | pass | 최초 player캡처가 상단위치여서 corrected 별도 재촬영·확인 |
+| I34 760 dark | 실제 width760 dark, video694px·날짜694px·checkbox18px, 화면넘침없음·focus/대비 시각확인 | pass | player/filters 두 screenshot |
+| I34 1180 light | 실제 width1180 light, video1114px·날짜341.4375px·checkbox18px, 화면넘침없음·focus/대비 시각확인 | pass | player/filters 두 screenshot |
+| I34 1180 dark | 실제 width1180 dark, video1114px·날짜341.4375px·checkbox18px, 화면넘침없음·focus/대비 시각확인 | pass | player/filters 두 screenshot |
+
+2026-09-11 실제 인앱 브라우저 direct-browser 검증이다. 서버21777 생존을 재확인했다. 이전 탭이 사라져 새 탭으로 이어갔으며 서버는 재시작하지 않았다. 전체31action 완료 판정은 보류한다. token start/end/consumed 및 이번 구간 elapsed는 미집계(분리된 자동 계수 없음).
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| I31 오류 전이 | admin `/ops/events` source1 09:00~09:01 조회로 src=`/ops/api/recordings/media/http-event` 확보 → 보조 탭 로그아웃 → 원 탭 조회. src=null·paused=true·조회 오류·선택 없음 반영되나 메타데이터 완료 안내 잔존 | fail | clearPlayer의 PlaybackSupport 초기화 누락을 제품 코드에서 확인. 인증 우회 근거 없음 |
+| I34 익명 직접 접근 | 로그아웃 상태의 새 탭 `/ops/events`가 `/login`으로 이동하고 계정명·비밀번호·로그인만 표시 | pass | 브라우저 실제 화면 전이 범위. suite PASS 아님 |
+| I34 operator scope | 임시 operator 실제 로그인 후 `/ops/events` 채널 목록이 S06 channel1 한 개이고 해당 시간 조회 src=http-event, readyState4 | fail | 허용 채널 화면은 정상. 다른 채널 직접 미디어 거부는 아직 미검증으로 전체 action 미완료 |
+| I34 viewer 직접 접근 | 임시 viewer 로그인 후 client/live에 라이브·대시보드만 표시. 새 탭 `/ops/events`는 Access Denied와 admin/operator·ops:read 필요 안내 | pass | 직접 UI 접근 제한 관측; 전체 redaction·로그 판정 별도 |
+
+다음 안정화 회귀 항목은 실행 전에 등록한다. I31의 기존 오류 전이 요구사항 보완이며 신규 제품 범위가 아니다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| I31-R01 메타데이터 안내 초기화 | 정상 선택 후 조회 실패·빈 결과·재생 불가 선택 시 이전 완료 안내 제거 | 실제 제품 UI 스크립트를 실행하는 단기 동작 테스트로 src·선택·지원 안내 확인. 수정 전 예상 실패는 이전 완료 안내 잔존이다 | v4.1.0 |
+| I31-R02 늦은 metadata 이벤트 | 선택·src가 없는 상태의 loadedmetadata가 완료 안내를 되살리지 않음 | 실제 등록된 이벤트 handler 실행으로 미선택 상태 유지, 정상 선택 metadata 안내는 유지. 수정 전 예상 실패는 안내 오염이다 | v4.1.0 |
+
+## S09 녹화 UI8개 실행 승인 및 준비
+
+### 인증 UI 준비 도구 보완 사전 등록 — UA01~08
+
+사용자는 보완안 제시 후 `푸시 하고 검증까지 진행`을 승인했다. 기존17개 커밋은 origin `v4.1.0`의 `4b9817dc`까지 일반 푸시했다. 아래 보완은 테스트 준비 도구만 대상이며 기존 제품 API·timeout·424 manifest를 바꾸지 않는다. 신규 `--ui-auth-direct`와 명시 UTC anchor 옵션의 예상 RED는 신규 모드 거부 및 catalog seed의 anchor/상태 부재다. 의존성·컴파일·환경 오류는 RED로 대체하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| UA01 | 인증 UI 모드·UTC anchor | 유효 옵션 선택, 누락·잘못된 값은 temp 생성 전 거부 | v4.1.0 |
+| UA02 | 임시 비밀번호 격리 | crypto 생성5개 서로 다름·12자 이상·사용자 env 미사용·서버 env 미전달 | v4.1.0 |
+| UA03 | 인증 준비 요청 계약 | setup/login/users 순서·role/scope·출력 비노출; 통제 fetch 검사는 실제 HTTP/UI 아님 | v4.1.0 |
+| UA04 | 일회 전달파일 | 소유root 아래0600 파일·경로 containment·정리 | v4.1.0 |
+| UA05 | 기존 모드 회귀 | 기존 ui-direct/http-auth 및 기본 seed 동작 유지 | v4.1.0 |
+| UA06 | 실제 catalog 상태 준비 | 명시 anchor 이동·corrupt·삭제요청/완료와 파일부재·pending 미완결; Writing finalize 위조 금지 | v4.1.0 |
+| UA07 | 실제 녹화용 source 준비 | 충분quota source3·양수 소량quota source4 설정; active/blocked는 실제 서버에서 별도 관측 | v4.1.0 |
+| UA08 | 실행 종료 경계 | stdin 종료·60분 준비 세션 상한·기존 stop/port/temp cleanup 회귀 | v4.1.0 |
+
+UA01~08은 안정화 내부 준비 검증이며 30분/120분 비대상, UI action PASS를 대체하지 않는다. 승인된 단기 검증은 신규 focused test, 기존 `verify_v410_recording_harness.test.mjs all`, 격리 `verify_v410_recording_timeline.sh --seed-ui`다. 실제 UI 서버 시작은 준비 검증 후 메인이 확인한다. 60분은 대기 세션 안전 상한이지 장시간 안정화 테스트가 아니다.
+
+예상 RED 실행10942: exit1/2pass2fail. 기존 모드가 신규 anchor 검증에 도달하지 못하고, 실제 seed에 anchor/corrupt/deleted/pending가 없다는 사전 지정 assertion2개가 실패했다. seed 컴파일·실행 자체는 통과했으며 임시14292156B 삭제·부재를 확인한 담당자 기록을 받았다. GREEN 전이며 이 결과를 기능 PASS로 사용하지 않는다. 원로그는 이관 전 임시 보존 중이다.
+
+첫 GREEN 시도1520은 실제 실패(exit1/7pass3fail)다. UA06 seed 실행·추가상태 및 UA05 기존seed 회귀가 실패했다. 검사기가 하위 stderr를 보존하지 않아 최초 정확한 원인은 미확정이며, 예상 RED로 바꾸지 않는다. 원로그를 유지하고 하위 진단 보존을 보완한 뒤 동일 범위로 재검증한다. 해당 임시root는0B/부재 확인; 실제 UI 서버·후속 UI 조작은 아직 실행하지 않았다.
+
+진단2216에서 테스트 C++의 `optional<string>.clear()` 컴파일 오류2개를 확인해 `reset()`으로 수정했다. 70335 및61656은 각각9pass/2fail, seed exit2·기존seed PASS였다. 삭제 자료의 목록 표시 기대와 fallback 참조 준비가 부족했다. 같은 exit2가 반복되어 메인이 회수했고, `recording_contracts.cpp`의 fallback ID/locator 쌍 필수 검증을 직접 확인했다. 삭제 fixture의 locator 누락을 보완했다. 기존 제품 계약을 변경하지 않았으며, pending fixture는 실제 Writing segment가 아닌 미완결 이벤트 참조다. 두 실패 실행의 각 임시root28745931B 삭제·부재 확인 기록을 보존한다. 최종 재검증은 아직 진행 중이다.
+
+56730도9pass/2fail이었다. 메인이 고정 seed 단계 진단을 추가한75060에서 `mark-corrupt` 실패를 직접 확인했다. `MarkSegmentCorrupt`는 정해진 사유만 허용하는데 테스트가 임의 문자열을 사용했다. 실제 fixture 파일에1바이트를 추가하고 허용 사유 `checksum-mismatch`로 상태 전환했다. 제품 계약·소스는 바꾸지 않았다. 동일 명령 `node scripts/internal/verify_v410_recording_ui_auth_prep.test.mjs`의71923은 exit0/11pass/0fail로 종료했다. 75060 임시root28745931B,71923 임시root28761779B 각각 삭제·부재 확인. 이 결과는 실제 UI PASS가 아니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| UA01 anchor bounds and unknown options | 실제 옵션 검증: 잘못된 값 거부 | pass | 최종71923 exit0 |
+| UA05 inherited anchor and auth values | seed용 환경에서 기존 anchor·비밀번호 env 제거 | pass | 최종71923 |
+| UA02 random temporary passwords | 임시5개 값 길이·서로 다름 | pass | 값 출력 없음 |
+| UA03 bootstrap request order | 실제 helper+통제 fetch로 setup·login5회·users4회 순서 | pass | 실제 HTTP·브라우저 아님 |
+| UA04 one-time handoff | 0600·덮어쓰기 거부 | pass | 격리 테스트 파일 정리 |
+| UA07 live source payload | active용quota/blocked용소량quota 구분 | pass | 실제 active/blocked 미관측 |
+| UA01 missing anchor | 신규 모드가 준비 전 거부 | pass | 최초 예상 RED 후 pass |
+| UA06 actual seed command | C++ 컴파일·실제catalog API seed 생성 | pass | 앞선 컴파일·seed 실패 이력 유지 |
+| UA06 catalog states | anchored corrupt/deleted/pending·재생거부 확인 | pass | 최초 RED 및 GREEN 시도 실패 후71923 pass |
+| UA05 legacy UI seed | 기존 시간·신규 상태 제외 확인 | pass | 컴파일 실패로 미확인 후 최종 pass |
+| UA08 test root cleanup | 소유root 삭제 후부재 확인 | pass | 71923 28761779B |
+
+사용자 `진행` 승인에 따라 앞선 종료 기록2개를 `4b9817dc`로 커밋했다. 다음 범위는 임시 인증 계정의 실제 녹화 UI `V410-S06-I27`~`I34`, 사전 정의31action이다. 기존424 재실행·120분·푸시는 제외한다. 항목 정의와 순서는 `manual-ui-result-template.md`의 녹화8개 action 표를 유지한다. 실행하지 않은 항목은 통과로 기록하지 않는다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 조건부 진행 | 격리 준비 및 관련 변경 발생 시 선수 검증 | S06 UI 준비 helper; 변경 없는 기존 build 증거 재사용 | 녹화 UI 실행 준비 범위만 승인 |
+| UI 풀테스트 | 진행 대상 | 사용자 기록 커밋 후 녹화UI8개 승인 | manual-ui-result-template I27~I34/31action | 승인됨; direct-browser로 확인 예정 |
+| 30분 테스트 | 미진행 | 이번 요청 범위 밖 | 이전30분 결과 별도 | 재실행 안 함 |
+| 120분 테스트 | 미진행 | 이번 승인에서 제외 | 녹화 전용120분 미실행 유지 | 실행 안 함 |
+
+메인은 CUA 실제 UI 및 안전경계·최종 판정, 기존 단일 Astra/medium 담당자는 격리 fixture 재사용경로 조사를 담당한다. 영향2/불확실1/검증2/범위1=6, 자동 상향·재위임 없음. 기존 auth-off `--ui-direct` 준비만으로 역할검증을 대체하지 않는다. 현재는 준비 중이며 실제31action 결과 미기록, 전체 UI/S09 완료 아님. token start/end/consumed 미집계(작업 전용 자동 집계값 없음), elapsed는 실제 UI 실행 후 기록한다.
 
 ## S09 계측 활성화 기존424 UI 최종 결과 — 64886
 

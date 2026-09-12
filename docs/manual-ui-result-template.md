@@ -53,10 +53,10 @@ baseline만 뜻하며 아래 action 전수와 AGENTS 7.6.3 공통 조건을 메�
 | V410-S06-I30 | 재생: 네이티브 재생 조작 후 실제 영상 표시와 currentTime 진행; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
 | V410-S06-I30 | 정지: 일시정지 조작 후 paused 상태와 시간 진행 중단; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
 | V410-S06-I30 | 탐색: 실제 탐색 control 조작 후 시간·영상 반영 및 Range 응답 상관; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I31 | partial: 일부 구간 표시·누락 범위·재생 가능 부분 구분; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I31 | 삭제: 삭제 항목 안내 및 재생 차단; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I31 | 손상: 손상 항목 안내 및 재생 차단; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
-| V410-S06-I31 | 작성 중: 미완결 항목 안내 및 재생 차단; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I31 | partial: completeness의 일부 구간 표시 및 재생 가능 여부 확인; 정확한 missingRanges 표출은 요구하지 않음. 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
+| V410-S06-I31 | 삭제: 실제 삭제 fixture가 참조된 event의 공통 재생 불가 안내 및 재생 차단 확인; 삭제 segment 자체의 목록 표출은 요구하지 않음. 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지; 손상 fixture와 별도 확인 |
+| V410-S06-I31 | 손상: 실제 손상 fixture의 공통 재생 불가 안내 및 재생 차단 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지; 삭제 fixture와 별도 확인 |
+| V410-S06-I31 | 미완결 event: 실제 Pending link·미생성 media fixture의 안내 및 재생 차단 확인; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | Writing segment 검증으로 대체하지 않음. Writing 재생 금지는 내부 안전성 V410-S06-I08 및 verify-v410-recording-timeline --read-model 참조 |
 | V410-S06-I31 | 공백: 녹화 공백 표시와 선택 영상 해제·오인 재생 방지; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
 | V410-S06-I31 | 오류: 조회/서버 오류 안내와 stale 재생 상태 처리; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |
 | V410-S06-I32 | quota: continuous/event 용량·상한을 실제 조회 값과 대조; 실제 route/control/action·응답·로그·artifact는 실행 후 기입 | 미실행 | 과거 S06 결과 재사용 금지 |

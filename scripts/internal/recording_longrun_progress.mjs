@@ -51,7 +51,23 @@ export class LongrunProgress {
            ![s.start.time_base_num,s.start.time_base_den].every(x=>Number.isSafeInteger(x)&&x>0)||
            s.start.time_base_num!==s.end.time_base_num||s.start.time_base_den!==s.end.time_base_den||
            !Number.isSafeInteger(s.start.pts)||!Number.isSafeInteger(s.end.pts)||s.end.pts<=s.start.pts||
-           !/^[a-f0-9]{64}$/.test(s.checksum_sha256))throw Error('longrun-invalid-segment');
+           !/^[a-f0-9]{64}$/.test(s.checksum_sha256)){
+          // 실패 판정은 위 식 그대로 유지한다. 원문 ID·경로·payload를 출력하지 않는다.
+          const reasons=[];
+          if(s.segment_id!==r.entityId)reasons.push('entity-mismatch');
+          if(this.segments.has(r.entityId))reasons.push('duplicate-segment');
+          if(s.lifecycle!=='finalized')reasons.push('lifecycle');
+          if(![s.start?.utc_ms,s.end?.utc_ms,s.size_bytes,s.finalized_at_ms].every(x=>Number.isSafeInteger(x)&&x>0))reasons.push('positive-metadata');
+          if(s.end?.utc_ms<=s.start?.utc_ms||s.start?.utc_ms<=c.startUTC||s.end?.utc_ms<=c.endUTC)reasons.push('utc-progress');
+          if(![s.start?.time_base_num,s.start?.time_base_den].every(x=>Number.isSafeInteger(x)&&x>0)||
+             s.start?.time_base_num!==s.end?.time_base_num||s.start?.time_base_den!==s.end?.time_base_den)reasons.push('timebase');
+          if(!Number.isSafeInteger(s.start?.pts)||!Number.isSafeInteger(s.end?.pts)||s.end?.pts<=s.start?.pts)reasons.push('pts-range');
+          if(!/^[a-f0-9]{64}$/.test(s.checksum_sha256))reasons.push('checksum');
+          const number=x=>typeof x==='number'&&Number.isFinite(x)?x:null;
+          throw Error(`longrun-invalid-segment ${JSON.stringify({reasons,channel:c===this.channels['9101']?'9101':'9201',
+            previousStartUTC:c.startUTC,previousEndUTC:c.endUTC,startUTC:number(s.start?.utc_ms),endUTC:number(s.end?.utc_ms),
+            startPTS:number(s.start?.pts),endPTS:number(s.end?.pts),sizeBytes:number(s.size_bytes),finalizedAt:number(s.finalized_at_ms)})}`);
+        }
         if(typeof r.payload.mediaRelpath!=='string'||!r.payload.mediaRelpath.length)throw Error('longrun-media-path-missing');
         const n=Buffer.byteLength(r.entityId)+Buffer.byteLength(r.payload.mediaRelpath);
         if(this.ids.size+this.segments.size>=100000||this.bytes+n>33554432)throw Error('longrun-id-limit');

@@ -1,0 +1,12 @@
+command: bash scripts/internal/verify_stream_shutdown_lifecycle.sh
+exit: 0
+elapsed_observed_ms: 19447 (dispatch→poll; 실제 검사 시간과 구분)
+[PASS] LC01 registry stops and joins worker-held streams before returning
+[PASS] LC02 registry retains every stream until all workers stop
+[PASS] LC03 manager drains an executing idle callback before returning
+[PASS] LC04 manager cancels pending idle cleanup at destruction
+[PASS] LC05 normal idle grace removes stream and releases admission
+[PASS] LC06 reacquired lease preserves stream across idle grace
+[summary] scenarios=6 failed=0
+[cleanup] files=1 bytes=1130368
+[cleanup] absent=/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-lifecycle.yeOAnN

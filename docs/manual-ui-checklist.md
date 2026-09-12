@@ -60,7 +60,7 @@ historical Required Closeout의 `V390-REQ-001`, `V390-REQ-002`, `V390-REQ-003`�
 1. baseline 424개 exact 실행·증거를 확보하고 녹화 8개와 집계를 분리합니다.
 2. /ops/events에서 I27 정상/빈값/역전/페이지 → I28 이벤트 우선 → I29 원본 →
    I30 실제 영상 재생/정지/탐색을 실제 control로 조작합니다.
-3. I31 partial/삭제/손상/작성 중/공백/오류, I32 quota/활성/blocked를 각각 확인합니다.
+3. I31 partial의 일부 구간·재생 가능 여부, 실제 삭제/손상 fixture 각각의 공통 재생 불가 안내, 미완결 event, 공백, 오류를 확인합니다. 정확한 missingRanges 표출이나 Writing segment의 목록 표출은 요구하지 않습니다. Writing 재생 금지는 내부 안전성 V410-S06-I08(`verify-v410-recording-timeline --read-model`)로 별도 검증하며 Pending event UI로 대체하지 않습니다. I32 quota/활성/blocked를 각각 확인합니다.
    준비 fixture에 없는 상태는 미실행으로 남기고 정상 상태로 대체하지 않습니다.
 4. I33 navigation 범위와 I34 실제 role/scope/redaction 및
    320/390/760/1180 × light/dark 8개 조합을 확인합니다.

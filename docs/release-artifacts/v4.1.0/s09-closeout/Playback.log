@@ -1,0 +1,11 @@
+command: node scripts/internal/recording_playback_status.test.mjs
+exit: 0
+elapsed_observed_ms: 미집계 (dispatch→poll; 실제 검사 시간과 구분)
+PASS normal selected metadata updates visible support
+PASS I31-R01 failed timeline clears previous support
+PASS I31-R01 empty timeline clears previous support
+PASS I31-R01 unplayable selection clears previous support
+PASS I31-R02 late metadata cannot contaminate unselected state
+PASS unselected error preserves selection prompt
+PASS selected media error shows failure notice
+{"pass":7,"fail":0,"elapsedMs":10,"actualBrowser":false,"tempArtifacts":0}

@@ -1,0 +1,14 @@
+PASS: UA01 anchor bounds and unknown options are rejected
+PASS: UA05 inherited anchor and auth values are removed from legacy seed environment
+PASS: UA02 random temporary passwords are distinct with sufficient length
+PASS: UA03 actual bootstrap function orders setup five logins and four users
+PASS: UA04 one-time handoff is mode0600 and refuses overwrite
+PASS: UA07 live source payload distinguishes active quota from blocked reservation
+PASS: UA01 new auth direct mode rejects missing anchor before preparation
+{"seedExit":2,"signal":null,"compilerDiagnostics":[]}
+FAIL: UA06 actual seed command completes
+FAIL: UA06 actual catalog preserves anchored corrupt deleted and pending states
+PASS: UA05 legacy UI seed retains original time and excludes new states
+PASS: UA08 test root cleanup
+[cleanup] /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-ui-auth-prep-test-JVbsol bytes=28745931 absent=true
+{"pass":9,"fail":2,"actualUi":false}

@@ -10234,6 +10234,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             setText('opsRecordingKindBadge', '선택 없음');
             setText('opsRecordingCompleteness', '구간 미선택');
             setText('opsRecordingPlaybackStatus', '재생할 구간을 선택하세요.');
+            setText('opsRecordingPlaybackSupport', '구간 선택 후 브라우저 재생 지원을 확인합니다.');
           };
           const select = item => {
             clearPlayer();
@@ -10320,7 +10321,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           field('opsRecordingNext').addEventListener('click', () => { offset += 100; load(); });
           field('opsEventsRefresh')?.addEventListener('click', () => status().then(load));
           player.addEventListener('error', () => { if (selected) setText('opsRecordingPlaybackStatus', '재생 실패: 브라우저 형식 지원 또는 녹화 파일 상태를 확인하세요.'); });
-          player.addEventListener('loadedmetadata', () => setText('opsRecordingPlaybackSupport', '영상 메타데이터 로드 완료. 재생 버튼으로 확인하세요.'));
+          player.addEventListener('loadedmetadata', () => { if (selected && player.getAttribute('src')) setText('opsRecordingPlaybackSupport', '영상 메타데이터 로드 완료. 재생 버튼으로 확인하세요.'); });
           status().then(load);
         }
         document.getElementById('eventRecordsEvidenceSelect')?.addEventListener('change', () => {

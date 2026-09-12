@@ -47,5 +47,36 @@ check('ENOENT media absent',()=>assert(mediaAbsent(()=>{throw Object.assign(Erro
 check('regular media present rejected',()=>assert(!mediaAbsent(()=>({isFile:()=>true}))));
 check('dangling symlink present rejected',()=>assert(!mediaAbsent(()=>({isSymbolicLink:()=>true}))));
 check('media permission error rejected',()=>assert.throws(()=>mediaAbsent(()=>{throw Object.assign(Error(),{code:'EACCES'});})));
-if(passed+failed!==43)failed++;
+check('S09-LD01 invalid segment diagnostics are specific and redacted',()=>{
+  for(const [reason,mutate] of [
+    ['positive-metadata',s=>{s.size_bytes=0;}],
+    ['utc-progress',s=>{s.start.utc_ms=1;s.end.utc_ms=2;}],
+    ['pts-range',s=>{s.end.pts=s.start.pts;}],
+    ['checksum',s=>{s.checksum_sha256='secret-checksum-text';}],
+  ]){
+    const p=new LongrunProgress(0);p.consume([row('first','9101',10)],1);
+    const r=row('secret-id','9101',20);r.payload.mediaRelpath='secret-source-path';mutate(r.payload.segment);
+    assert.throws(()=>p.consume([r],2),e=>{
+      assert.match(e.message,/^longrun-invalid-segment /);
+      const d=JSON.parse(e.message.slice('longrun-invalid-segment '.length));
+      assert(d.reasons.includes(reason));assert.equal(d.previousStartUTC,10);
+      assert(!e.message.includes('secret'));return true;
+    });
+  }
+});
+check('S09-LD01 missing timestamp diagnostics remain specific and redacted',()=>{
+  for(const field of ['start','end']){
+    const p=new LongrunProgress(0),r=row('secret-id','9101',20);
+    delete r.payload.segment[field];
+    r.payload.mediaRelpath='secret-source-path';
+    assert.throws(()=>p.consume([r],2),e=>{
+      assert.match(e.message,/^longrun-invalid-segment /);
+      const d=JSON.parse(e.message.slice('longrun-invalid-segment '.length));
+      assert(d.reasons.includes('positive-metadata'));
+      assert.equal(d[field==='start'?'startUTC':'endUTC'],null);
+      assert(!e.message.includes('secret'));return true;
+    });
+  }
+});
+if(passed+failed!==45)failed++;
 console.log(`[summary] passed=${passed} failed=${failed} elapsedMs=${Date.now()-start}`);process.exitCode=failed?1:0;

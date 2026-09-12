@@ -1,0 +1,169 @@
+exit: 0
+[pass] V410-S06-I03 catalog timeline item 반환
+[pass] I09 opaque 재생 URL
+[pass] I03 끝 경계 인접 제외
+[pass] I03 다른 채널 제외
+[pass] I04 음수 시간 거부
+[pass] I04 역전 시간 거부
+[pass] I04 빈 페이지 제한 거부
+[pass] I04 과대 페이지 거부
+[pass] I05 큰 offset overflow 없이 빈 페이지
+[pass] I16 다른 채널 media 거부
+[pass] I17 경로형 ID 거부
+[pass] I09 fd 크기 MIME 확인
+[pass] I25 재생 hold 중 삭제 거부
+[pass] I19 경로 교체 뒤 열린 fd 기존 byte 유지
+[pass] I18 leaf symlink 거부
+[pass] I09 누락 파일 거부
+[pass] I09 크기 불일치 거부
+[pass] I09 비일반 파일 거부
+[pass] I06 같은 시간 event 우선
+[pass] I07 정확한 이벤트 ID 연결
+[pass] I10 실제 범위와 요청 범위 분리
+[pass] I05 정렬 뒤 페이지 적용
+[pass] I25 모든 실패 경로 hold 반환 후 삭제 허용
+[pass] I08 deletion pending 거부
+[pass] I08 pending timeline 재생 불가
+[pass] I11 검증한 fallback 영상 fd 제공
+[pass] I11 JSON이 아닌 실제 media byte 반환
+[pass] I11 fallback timeline을 complete로 과장하지 않음
+[pass] I11 중복 key manifest 거부
+[pass] I11 event 바인딩 불일치 거부
+[pass] I11 byteSize 문자열 타입 거부
+[pass] I11 64KiB 초과 manifest 거부
+[pass] I18 fallback media symlink 거부
+[pass] I09 fallback media 크기 불일치 거부
+[pass] I19 fallback 교체 뒤 기존 fd byte 유지
+[pass] I17 다른 채널 fallback ID 충돌도 거부
+[pass] I03 기존 숫자형 channel ID 유지
+[pass] I08/I17 삭제 완료 ID의 fallback 재사용 거부
+[pass] I20 closed Range 시작과 길이
+[pass] I26 열린 gate 신규 요청 admission
+[pass] I26 닫힌 gate 신규 요청 거부
+[pass] I26 active flight 이전 drain 완료 금지
+[pass] I26 마지막 flight 해제 뒤 drain 완료
+[pass] I26 활성 socket shutdown 확인
+[pass] I25 동시 삭제 경쟁 0
+[pass] I26 경쟁 뒤 fd 반환 0
+[pass] I25 동시 삭제 경쟁 1
+[pass] I26 경쟁 뒤 fd 반환 1
+[pass] I25 동시 삭제 경쟁 2
+[pass] I26 경쟁 뒤 fd 반환 2
+[pass] I25 동시 삭제 경쟁 3
+[pass] I26 경쟁 뒤 fd 반환 3
+[pass] I25 동시 삭제 경쟁 4
+[pass] I26 경쟁 뒤 fd 반환 4
+[pass] I25 동시 삭제 경쟁 5
+[pass] I26 경쟁 뒤 fd 반환 5
+[pass] I25 동시 삭제 경쟁 6
+[pass] I26 경쟁 뒤 fd 반환 6
+[pass] I25 동시 삭제 경쟁 7
+[pass] I26 경쟁 뒤 fd 반환 7
+[pass] I25 동시 삭제 경쟁 8
+[pass] I26 경쟁 뒤 fd 반환 8
+[pass] I25 동시 삭제 경쟁 9
+[pass] I26 경쟁 뒤 fd 반환 9
+[pass] I25 동시 삭제 경쟁 10
+[pass] I26 경쟁 뒤 fd 반환 10
+[pass] I25 동시 삭제 경쟁 11
+[pass] I26 경쟁 뒤 fd 반환 11
+[pass] I25 동시 삭제 경쟁 12
+[pass] I26 경쟁 뒤 fd 반환 12
+[pass] I25 동시 삭제 경쟁 13
+[pass] I26 경쟁 뒤 fd 반환 13
+[pass] I25 동시 삭제 경쟁 14
+[pass] I26 경쟁 뒤 fd 반환 14
+[pass] I25 동시 삭제 경쟁 15
+[pass] I26 경쟁 뒤 fd 반환 15
+[pass] I08 Writing lifecycle 재생 불가
+[pass] I08 Writing finalize 등록 거부
+[pass] I08 Writing 실제 파일 존재해도 media 거부
+[pass] I08 Writing timeline 재생 노출 없음
+[pass] I08 Corrupt 실제 catalog 전이
+[pass] I08 Corrupt 실제 파일 존재해도 media 거부
+[pass] I08 Corrupt timeline 불가 상태
+[pass] V410-S06-I03 catalog timeline item 반환
+[pass] I09 opaque 재생 URL
+[pass] I03 끝 경계 인접 제외
+[pass] I03 다른 채널 제외
+[pass] I04 음수 시간 거부
+[pass] I04 역전 시간 거부
+[pass] I04 빈 페이지 제한 거부
+[pass] I04 과대 페이지 거부
+[pass] I05 큰 offset overflow 없이 빈 페이지
+[pass] I16 다른 채널 media 거부
+[pass] I17 경로형 ID 거부
+[pass] I09 fd 크기 MIME 확인
+[pass] I25 재생 hold 중 삭제 거부
+[pass] I19 경로 교체 뒤 열린 fd 기존 byte 유지
+[pass] I18 leaf symlink 거부
+[pass] I09 누락 파일 거부
+[pass] I09 크기 불일치 거부
+[pass] I09 비일반 파일 거부
+[pass] I06 같은 시간 event 우선
+[pass] I07 정확한 이벤트 ID 연결
+[pass] I10 실제 범위와 요청 범위 분리
+[pass] I05 정렬 뒤 페이지 적용
+[pass] I25 모든 실패 경로 hold 반환 후 삭제 허용
+[pass] I08 deletion pending 거부
+[pass] I08 pending timeline 재생 불가
+[pass] I11 검증한 fallback 영상 fd 제공
+[pass] I11 JSON이 아닌 실제 media byte 반환
+[pass] I11 fallback timeline을 complete로 과장하지 않음
+[pass] I11 중복 key manifest 거부
+[pass] I11 event 바인딩 불일치 거부
+[pass] I11 byteSize 문자열 타입 거부
+[pass] I11 64KiB 초과 manifest 거부
+[pass] I18 fallback media symlink 거부
+[pass] I09 fallback media 크기 불일치 거부
+[pass] I19 fallback 교체 뒤 기존 fd byte 유지
+[pass] I17 다른 채널 fallback ID 충돌도 거부
+[pass] I03 기존 숫자형 channel ID 유지
+[pass] I08/I17 삭제 완료 ID의 fallback 재사용 거부
+[pass] I20 closed Range 시작과 길이
+[pass] I26 열린 gate 신규 요청 admission
+[pass] I26 닫힌 gate 신규 요청 거부
+[pass] I26 active flight 이전 drain 완료 금지
+[pass] I26 마지막 flight 해제 뒤 drain 완료
+[pass] I26 활성 socket shutdown 확인
+[pass] I25 동시 삭제 경쟁 0
+[pass] I26 경쟁 뒤 fd 반환 0
+[pass] I25 동시 삭제 경쟁 1
+[pass] I26 경쟁 뒤 fd 반환 1
+[pass] I25 동시 삭제 경쟁 2
+[pass] I26 경쟁 뒤 fd 반환 2
+[pass] I25 동시 삭제 경쟁 3
+[pass] I26 경쟁 뒤 fd 반환 3
+[pass] I25 동시 삭제 경쟁 4
+[pass] I26 경쟁 뒤 fd 반환 4
+[pass] I25 동시 삭제 경쟁 5
+[pass] I26 경쟁 뒤 fd 반환 5
+[pass] I25 동시 삭제 경쟁 6
+[pass] I26 경쟁 뒤 fd 반환 6
+[pass] I25 동시 삭제 경쟁 7
+[pass] I26 경쟁 뒤 fd 반환 7
+[pass] I25 동시 삭제 경쟁 8
+[pass] I26 경쟁 뒤 fd 반환 8
+[pass] I25 동시 삭제 경쟁 9
+[pass] I26 경쟁 뒤 fd 반환 9
+[pass] I25 동시 삭제 경쟁 10
+[pass] I26 경쟁 뒤 fd 반환 10
+[pass] I25 동시 삭제 경쟁 11
+[pass] I26 경쟁 뒤 fd 반환 11
+[pass] I25 동시 삭제 경쟁 12
+[pass] I26 경쟁 뒤 fd 반환 12
+[pass] I25 동시 삭제 경쟁 13
+[pass] I26 경쟁 뒤 fd 반환 13
+[pass] I25 동시 삭제 경쟁 14
+[pass] I26 경쟁 뒤 fd 반환 14
+[pass] I25 동시 삭제 경쟁 15
+[pass] I26 경쟁 뒤 fd 반환 15
+[pass] I08 Writing lifecycle 재생 불가
+[pass] I08 Writing finalize 등록 거부
+[pass] I08 Writing 실제 파일 존재해도 media 거부
+[pass] I08 Writing timeline 재생 노출 없음
+[pass] I08 Corrupt 실제 catalog 전이
+[pass] I08 Corrupt 실제 파일 존재해도 media 거부
+[pass] I08 Corrupt timeline 불가 상태
+3724	/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.KZtJ9V
+[pass] read-model 임시 root 삭제 확인: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.KZtJ9V

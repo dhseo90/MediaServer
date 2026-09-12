@@ -350,6 +350,27 @@ S10-SW12의 test-only `scripts/internal/recording_journal_fd_probe.h`는 journal
 | S10-O09 | inode·parent·symlink·hardlink 원본 보호 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
 | S10-O10 | 기존 V1 segment·catalog 호환 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
 
+## S09 장시간 실패 필드 진단
+
+S09-LD02(실행 전 등록): 실제 H.264 writer에 4,034ms 후퇴한 UTC와 파일 반복 PTS를 입력하여 finalized 두 구간의 V1 유효성·파일 크기·입력 UTC 보존을 확인하고, 출력된 실제 메타데이터를 LongrunProgress가 `utc-progress`로 거부하는지 확인한다. 안정화 focused 대상, 30분/120분/UI 비대상(대체 PASS 불가). 호스트 시각 변경 없음.
+
+| 기능 ID | 동작·PASS 기준 | 안정화 테스트 | 30분 테스트 | 120분 테스트 | UI 테스트 | UI 존재 |
+| --- | --- | --- | --- | --- | --- | --- |
+| S09-LD01 | 기존 세그먼트 실패 기준 유지, 이유별 진단과 원문 경로/ID/임의 문자열 비노출 | recording_longrun_progress.test.mjs | 비대상 | 기존 LR02 실패 시 진단, 120분 PASS 대체 불가 | 비대상 | 비대상: UI 없어야 정상 |
+
+## S09 종료 수명 LC01~06 실행 전 등록
+
+실제 Registry/SharedStream/SessionManager와 barrier SourceWorker만 사용한다. 명령은 `bash scripts/internal/verify_stream_shutdown_lifecycle.sh`이며 각 시나리오는 제한된 별도 프로세스로 실행한다. LC01~04는 기존 소멸자의 stop/drain/cancel 누락이 예상 RED이고 LC05~06은 기존 grace/lease 회귀다. 실제 GStreamer/app/장시간 종료의 PASS를 대체하지 않는다.
+
+| 기능 ID | 동작·PASS 기준 | 안정화 테스트 | 30분 테스트 | 120분 테스트 | UI 테스트 | UI 존재 |
+| --- | --- | --- | --- | --- | --- | --- |
+| S09-LC01 | worker strong 참조가 있어도 registry 종료 전에 Stop/join 완료 | shutdown focused | 후속 승인 범위 | 후속 승인 범위 | 비대상 | 비대상: UI 없어야 정상 |
+| S09-LC02 | 모든 stream 참조를 전체 worker Stop 완료까지 유지 | shutdown focused | 후속 승인 범위 | 후속 승인 범위 | 비대상 | 비대상: UI 없어야 정상 |
+| S09-LC03 | 실행 중 idle callback을 manager 소멸자가 drain | shutdown focused | 후속 승인 범위 | 후속 승인 범위 | 비대상 | 비대상: UI 없어야 정상 |
+| S09-LC04 | 종료 시 pending idle 예약 취소 | shutdown focused | 후속 승인 범위 | 후속 승인 범위 | 비대상 | 비대상: UI 없어야 정상 |
+| S09-LC05 | 정상 grace 이후 idle stream 및 resource 해제 | shutdown focused | 후속 승인 범위 | 후속 승인 범위 | 비대상 | 비대상: UI 없어야 정상 |
+| S09-LC06 | grace 중 lease 재획득은 stream 유지 | shutdown focused | 후속 승인 범위 | 후속 승인 범위 | 비대상 | 비대상: UI 없어야 정상 |
+
 ## S09 운영 요청 최소 진단 SD01~08
 
 개별 정의와 실행 전 등록은 `release-test-records.md`의 S09 서버 요청 경계 최소 계측 절을 따른다. 다음은 그 정의의 inventory 매핑이며 새 PASS 판정이 아니다. 진단은 기본-off이고 두 GET의 고정 route·로컬 ID·elapsed·phase·전송 결과만 출력한다.
@@ -856,7 +877,7 @@ H03의 반환 객체 전달·미확인 성공 거부는 같은 내부 항목의 
 | V410-S06-I28 | 이벤트 기본 선택 | /ops/events timeline (S06 구현됨; 실행 결과는 기록 참조) | event badge·종류·시간을 표시하고 겹치는 이벤트를 기본 재생 대상으로 선택 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 대상: /ops/events 실제 브라우저, 별도 승인 |
 | V410-S06-I29 | 상시녹화 원본 보기 | /ops/events 원본 보기 (S06 구현됨; 실행 결과는 기록 참조) | continuous 원본 펼침·선택이 해당 미디어로 연결되고 event 원본 관계 보존 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 대상: /ops/events 실제 브라우저, 별도 승인 |
 | V410-S06-I30 | 녹화 영상 재생 컨트롤 | /ops/events video (S06 구현됨; 실행 결과는 기록 참조) | controls/preload=metadata, 선택 영상·Range 재생 반영; 실제 codec/container 재생은 브라우저 확인 필요 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 대상: /ops/events 실제 브라우저, 별도 승인 |
-| V410-S06-I31 | 비재생·불완전 상태 UI | /ops/events status (S06 구현됨; 실행 결과는 기록 참조) | 삭제·손상·작성 중·공백·partial·오류 상태를 구분하고 불가 항목 재생 차단 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 대상: /ops/events 실제 브라우저, 별도 승인 |
+| V410-S06-I31 | 비재생·불완전 상태 UI | /ops/events status (S06 구현됨; 실행 결과는 기록 참조) | partial은 일부 구간·재생 가능 여부 표시(정확한 missingRanges 표출 요구 없음); 실제 삭제 참조 event·손상 fixture 각각 공통 불가 안내와 재생 차단; 미완결 event·공백·오류 확인. Writing 재생 금지는 내부 V410-S06-I08 및 verify-v410-recording-timeline --read-model로 별도 검증하며 Pending UI로 대체하지 않음 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 대상: /ops/events 실제 브라우저, 별도 승인 |
 | V410-S06-I32 | 용량·녹화 상태 UI | /ops/events status card (S06 구현됨; 실행 결과는 기록 참조) | continuous/event quota와 storage-blocked 상태를 실제 조회 값으로 표시 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 대상: /ops/events 실제 브라우저, 별도 승인 |
 | V410-S06-I33 | S06 화면 범위 유지 | /ops/events navigation (S06 구현됨; 실행 결과는 기록 참조) | 새 primary nav·자연어/vector 검색 입력을 추가하지 않고 기존 테마·배치 유지 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 대상: /ops/events 실제 브라우저, 별도 승인 |
 | V410-S06-I34 | 화면 권한·정보 비노출 | /ops/events role/redaction (S06 구현됨; 실행 결과는 기록 참조) | viewer 접근 제한, 내부 경로·source URL·raw debug 미노출, responsive/theme 상태 확인 | 대상: S06 focused/관련 회귀 | 대상: 버전 종료 시 별도 승인 | 조건부: 관련 누수·drift 발견 시 별도 승인 | 대상: /ops/events 실제 브라우저, 별도 승인 |

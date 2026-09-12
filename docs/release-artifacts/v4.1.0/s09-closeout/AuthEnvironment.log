@@ -1,0 +1,6 @@
+exit: 1
+3324	/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.bdlzJv
+[pass] read-model 임시 root 삭제 확인: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.bdlzJv
+[cleanup] PASS {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-W9Tl7B","rootBeforeBytes":854546,"rootBeforeEntries":21,"rootSymlinksNotFollowed":0,"rootAbsent":true,"process":{"pid":null,"exitCode":null,"signalCode":null,"graceful":true,"notStarted":true},"ports":[],"attempted":3,"failureCount":0,"cleanupElapsedMs":3,"verifierElapsedMs":4668}
+[V410-S06 verifier] FAIL: listen EPERM: operation not permitted 127.0.0.1
+{"exit":1,"signal":null,"errorCode":null,"elapsedMs":4702,"secretsPrinted":false}

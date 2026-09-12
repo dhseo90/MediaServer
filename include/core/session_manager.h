@@ -74,7 +74,7 @@ public:
     using AuxiliaryStreamRuntimeProvider = std::function<AuxiliaryStreamRuntimeSnapshot()>;
 
     SessionManager(StreamRegistry& registry, ResourceGuard& resource_guard);
-    ~SessionManager() = default;
+    ~SessionManager();
 
     CreateResult CreateSession(const media::IngressRequest& request, SharedStream::SubscriberCallback callback);
     bool CloseSession(const std::string& session_id);
@@ -104,6 +104,10 @@ private:
     ResourceGuard& resource_guard_;
     mutable std::mutex mu_;
     std::mutex stream_acquire_mu_;
+    mutable std::mutex idle_cleanup_mu_;
+    mutable std::condition_variable idle_cleanup_cv_;
+    mutable std::size_t idle_cleanup_calls_{0};
+    mutable bool idle_cleanup_closing_{false};
     std::unordered_map<std::string, SessionEntry> sessions_;
     std::unordered_map<StreamKey, SourceReconnectStats> source_reconnect_stats_;
     mutable std::mutex auxiliary_stream_runtime_provider_mu_;

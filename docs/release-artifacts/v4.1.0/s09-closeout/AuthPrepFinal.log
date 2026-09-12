@@ -1,0 +1,32 @@
+command: node scripts/internal/verify_v410_recording_ui_auth_prep.test.mjs
+exit: 0
+elapsed_observed_seconds: 22.872 (functions Date.now dispatch to final output preservation; polling/processing delay included)
+PASS: SF01 optional seek fixture is accepted only with explicit UI anchor
+PASS: UA01 anchor bounds and unknown options are rejected
+PASS: UA05 inherited anchor and auth values are removed from legacy seed environment
+PASS: UA02 random temporary passwords are distinct with sufficient length
+PASS: UA03 actual bootstrap function orders setup five logins and four users
+PASS: UA04 one-time handoff is mode0600 and refuses overwrite
+PASS: UA07 live source payload distinguishes active quota from blocked reservation
+PASS: UA01 new auth direct mode rejects missing anchor before preparation
+3324	/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.TWLwwu
+[pass] read-model 임시 root 삭제 확인: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.TWLwwu
+PASS: UA08-A anchored seed compile root cleanup
+PASS: UA06 actual seed command completes
+PASS: UA06 actual catalog preserves anchored corrupt deleted and pending states
+3324	/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.yP1jjb
+[pass] read-model 임시 root 삭제 확인: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.yP1jjb
+PASS: UA08-B legacy seed compile root cleanup
+PASS: UA05 legacy UI seed retains original time and excludes new states
+PASS: SF02 bounded owned seek fixture generation completes
+PASS: SF03 actual H264 silent 1280x720 ten-second first-keyframe fixture
+[seek-fixture] {"sizeBytes":5357069,"duration":10,"codec":"h264","width":1280,"height":720,"audio":false,"firstKeyframe":true}
+PASS: SF06 malformed media metadata and symlink input directory are rejected
+3324	/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.rqfBvx
+[pass] read-model 임시 root 삭제 확인: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.rqfBvx
+PASS: UA08-C seek seed compile root cleanup
+PASS: SF04 only http-event catalog binds actual seek fixture size and SHA
+PASS: SF05 other seeded media retain small original bytes
+PASS: UA08 test root cleanup
+[cleanup] /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-ui-auth-prep-test-QaXzKG bytes=53932785 absent=true
+{"pass":20,"fail":0,"actualUi":false}

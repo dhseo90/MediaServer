@@ -1,0 +1,6 @@
+FAIL: UA01 new auth direct mode rejects missing anchor before preparation
+PASS: UA06 actual seed command completes
+FAIL: UA06 actual catalog preserves anchored corrupt deleted and pending states
+PASS: UA08 test root cleanup
+[cleanup] /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-ui-auth-prep-test-xECh7U bytes=14292156 absent=true
+{"pass":2,"fail":2,"actualUi":false}

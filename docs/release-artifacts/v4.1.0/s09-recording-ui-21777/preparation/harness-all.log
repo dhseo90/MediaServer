@@ -1,0 +1,9 @@
+[harness-test-cleanup] H01 {"root":"/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-h01-JxGCHD","rootBeforeBytes":107,"rootBeforeEntries":2,"symlinksNotFollowed":0,"helperRootAbsent":true}
+[harness-test-cleanup] H01 finalRootAbsent=true root="/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-h01-JxGCHD"
+[v410-s06-harness-unit] PASS H01 elapsedMs=2
+[harness-test-cleanup] H02 {"pid":51427,"exitCode":0,"signalCode":null,"graceful":true}
+[v410-s06-harness-unit] PASS H02 elapsedMs=29
+[v410-s06-harness-unit] PASS H03 elapsedMs=0
+[v410-s06-harness-unit] PASS H03-R01 elapsedMs=0
+[v410-s06-harness-unit] PASS H03-R02 elapsedMs=1
+[v410-s06-harness-summary] cases=5 checks=40 fail=0 elapsedMs=32

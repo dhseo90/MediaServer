@@ -11,6 +11,8 @@ namespace core {
 
 class StreamRegistry {
 public:
+    ~StreamRegistry();
+
     struct AcquireResult {
         std::shared_ptr<SharedStream> stream;
         bool created{false};

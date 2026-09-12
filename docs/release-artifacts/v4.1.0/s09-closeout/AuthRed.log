@@ -1,0 +1,45 @@
+exit: 1
+3324	/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.cwLebN
+[pass] read-model 임시 root 삭제 확인: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.cwLebN
+[auth-subcheck] PASS I12~I16 principal 0 route 0 expected=200 actual=200
+[auth-subcheck] PASS I02 principal 0 허용 채널만 status 반환
+[auth-subcheck] PASS I01 principal 0 실제 비녹화 상태
+[auth-subcheck] PASS S07-http-observations-global
+[auth-subcheck] PASS I02/I17 principal 0 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 0 route 1 expected=200 actual=200
+[auth-subcheck] PASS I02/I17 principal 0 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 0 route 2 expected=200 actual=200
+[auth-subcheck] PASS I12~I16 principal 1 route 0 expected=200 actual=200
+[auth-subcheck] PASS I02 principal 1 허용 채널만 status 반환
+[auth-subcheck] PASS I01 principal 1 실제 비녹화 상태
+[auth-subcheck] PASS S07-http-observations-limited principal 1
+[auth-subcheck] PASS I02/I17 principal 1 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 1 route 1 expected=200 actual=200
+[auth-subcheck] PASS I02/I17 principal 1 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 1 route 2 expected=200 actual=200
+[auth-subcheck] PASS I12~I16 principal 2 route 0 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 2 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 2 route 1 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 2 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 2 route 2 expected=403 actual=403
+[auth-subcheck] PASS I12~I16 principal 3 route 0 expected=200 actual=200
+[auth-subcheck] PASS I02 principal 3 허용 채널만 status 반환
+[auth-subcheck] PASS I01 principal 3 실제 비녹화 상태
+[auth-subcheck] PASS S07-http-observations-limited principal 3
+[auth-subcheck] PASS I02/I17 principal 3 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 3 route 1 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 3 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 3 route 2 expected=404 actual=404
+[auth-subcheck] PASS I12~I16 principal 4 route 0 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 4 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 4 route 1 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 4 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 4 route 2 expected=403 actual=403
+[auth-subcheck] PASS I15 미인증 API expected=401 actual=401
+[auth-subcheck] PASS I15 미인증 API expected=401 actual=401
+[auth-subcheck] PASS I15 미인증 API expected=401 actual=401
+[auth-subcheck] PASS I16 operator의 다른 채널 조회 거부
+[auth-subcheck] PASS I34 viewer 녹화 화면 거부 status=403
+[cleanup] PASS {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-MXprjT","rootBeforeBytes":2470456,"rootBeforeEntries":306,"rootSymlinksNotFollowed":277,"rootAbsent":true,"process":{"pid":82536,"exitCode":0,"signalCode":null,"graceful":true},"ports":[{"kind":"rtsp","port":57532,"closed":true,"evidence":"ECONNREFUSED"},{"kind":"http","port":57533,"closed":true,"evidence":"ECONNREFUSED"}],"attempted":6,"failureCount":0,"cleanupElapsedMs":376,"verifierElapsedMs":7757}
+[V410-S06 verifier] FAIL: passwords is not defined
+{"exit":1,"signal":null,"errorCode":null,"elapsedMs":7790,"secretsPrinted":false}

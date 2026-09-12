@@ -8,6 +8,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { spawn, execFileSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import {startRecordingUiRangeProxy,finishRecordingUiProxy} from './recording_ui_range_proxy.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -412,11 +413,77 @@ function authPasswords() {
   return values;
 }
 
-async function verifyRecordingHttpAuth(baseUrl, root) {
-  const passwords = authPasswords();
-  let checks = 0;
-  const check = (condition, label) => { assert(condition, label); checks += 1; console.log(`[auth-subcheck] PASS ${label}`); };
-  const call = (route, options = {}) => fetch(`${baseUrl}${route}`, { redirect: 'manual', signal: AbortSignal.timeout(5000), ...options });
+export function uiAuthPreparationOptions(args) {
+  assert((args.length === 2 || (args.length === 3 && args[2] === '--ui-seek-fixture')) && args[0] === '--ui-anchor-utc-ms', 'UI anchor required: --ui-anchor-utc-ms VALUE [--ui-seek-fixture]');
+  assert(/^\d+$/.test(args[1]), 'invalid UI anchor');
+  const anchor = Number(args[1]);
+  assert(Number.isSafeInteger(anchor) && anchor >= 946684800000 && anchor <= 4102444800000, 'invalid UI anchor');
+  return Object.freeze({anchor, holdMs: 60 * 60 * 1000,seekFixture:args.length===3});
+}
+
+export function validateUiSeekProbe(probe) {
+  const streams=probe.streams;
+  assert(Array.isArray(streams)&&streams.length===1&&streams[0].codec_type==='video'&&streams[0].codec_name==='h264'&&streams[0].width===1280&&streams[0].height===720,'seek fixture stream contract');
+  const duration=Number(probe.format?.duration);
+  assert(Number.isFinite(duration)&&duration>=9.95&&duration<=10.10,'seek fixture duration');
+  assert(Array.isArray(probe.packets)&&probe.packets.length>0&&typeof probe.packets[0].flags==='string'&&probe.packets[0].flags.includes('K'),'seek fixture first keyframe');
+  return {duration,width:1280,height:720,codec:'h264',audio:false,firstKeyframe:true};
+}
+
+export function createUiSeekFixture(root) {
+  assert(fs.lstatSync(root).isDirectory()&&!fs.lstatSync(root).isSymbolicLink(),'seek fixture root');
+  const owned=fs.realpathSync(root),inputDir=path.join(owned,'input');
+  assert(fs.lstatSync(inputDir).isDirectory()&&!fs.lstatSync(inputDir).isSymbolicLink()&&fs.realpathSync(inputDir)===inputDir,'seek fixture input directory');
+  const source=path.join(repo,'video/imports/va_tracking_event_1280x720_30fps_h264.mp4');
+  assert(fs.lstatSync(source).isFile()&&!fs.lstatSync(source).isSymbolicLink(),'seek fixture source');
+  const file=path.join(inputDir,'seek-event.mp4');
+  const env={PATH:process.env.PATH||'/usr/bin:/bin',TMPDIR:path.join(owned,'tmp'),LANG:'C'};
+  try {
+    execFileSync('ffmpeg',['-nostdin','-v','error','-n','-i',source,'-t','10','-map','0:v:0','-an','-c:v','copy','-movflags','+faststart','-fs',String(16*1024*1024),file],{env,timeout:30000,maxBuffer:65536,stdio:['ignore','pipe','pipe']});
+    const stat=fs.lstatSync(file);
+    assert(stat.isFile()&&!stat.isSymbolicLink()&&stat.size>0&&stat.size<=16*1024*1024,'seek fixture output size');
+    const raw=execFileSync('ffprobe',['-v','error','-show_streams','-show_format','-show_packets','-read_intervals','%+#1','-of','json',file],{env,timeout:30000,maxBuffer:65536,encoding:'utf8'});
+    return {file,sizeBytes:stat.size,...validateUiSeekProbe(JSON.parse(raw))};
+  } catch {throw new Error('seek fixture generation or validation failed');}
+}
+
+export function createUiAuthPasswords() {
+  const values = Array.from({length: 5}, () => crypto.randomBytes(24).toString('base64url'));
+  assert(new Set(values).size === 5, 'temporary credential collision');
+  return values;
+}
+
+export function uiSeedEnvironment(anchor = null, inherited = process.env, seekFile = null) {
+  const env = {...inherited};
+  delete env.MEDIA_SERVER_VERIFY_RECORDING_UI_ANCHOR_UTC_MS;
+  delete env.MEDIA_SERVER_VERIFY_RECORDING_UI_EVENT_MEDIA;
+  for (const key of authPasswordNames) delete env[key];
+  if (anchor !== null) env.MEDIA_SERVER_VERIFY_RECORDING_UI_ANCHOR_UTC_MS = String(anchor);
+  if (anchor !== null && seekFile !== null) env.MEDIA_SERVER_VERIFY_RECORDING_UI_EVENT_MEDIA = seekFile;
+  return env;
+}
+
+export function writeUiLoginHandoff(root, accounts) {
+  assert(fs.lstatSync(root).isDirectory() && !fs.lstatSync(root).isSymbolicLink(), 'handoff root invalid');
+  const file = path.join(fs.realpathSync(root), 'ui-login-once.json');
+  fs.writeFileSync(file, JSON.stringify({accounts}), {flag:'wx',mode:0o600});
+  assert((fs.lstatSync(file).mode & 0o777) === 0o600, 'handoff permissions invalid');
+  return file;
+}
+
+export function uiLiveSource(id, file, blocked = false) {
+  assert(['3','4'].includes(id) && file === `s06-channel-${id}.mp4`, 'invalid UI live source');
+  return {sourceId:id,displayName:`S09 UI ${id}`,kind:'file',file,enabled:true,
+    recording:{enabled:true,continuousMaxBytes:(blocked?1:128)*1024*1024,eventMaxBytes:128*1024*1024,
+      continuousMaxAgeMs:3600000,eventMaxAgeMs:3600000,revision:1}};
+}
+
+export async function bootstrapRecordingUiAuth(baseUrl, passwords, fetchImpl = fetch) {
+  assert(passwords.length === 5 && passwords.every(x => typeof x === 'string' && x.length >= 12) && new Set(passwords).size === 5, 'invalid temporary credentials');
+  const call = async (route, options = {}) => {
+    try { return await fetchImpl(`${baseUrl}${route}`, { ...options, redirect: 'manual', signal: AbortSignal.timeout(5000) }); }
+    catch { const error = new Error('auth request failed'); error.uiStage = route === '/setup' ? 'setup' : route === '/login' ? 'login' : route === '/ops/api/users' ? 'users' : 'request'; throw error; }
+  };
   const form = async (route, values) => call(route, { method: 'POST', body: new URLSearchParams(values) });
   const setup = await form('/setup', { username: 'admin', password: passwords[0], confirm: passwords[0] });
   assert(setup.status === 302, `인증 fixture setup 실패 status=${setup.status}`);
@@ -446,6 +513,15 @@ async function verifyRecordingHttpAuth(baseUrl, root) {
     await jsonPost('/ops/api/users', { username, displayName: username, role, scopes, password: passwords[index + 1], enabled: true, mustChangePassword: false });
     cookies.push(await login(username, passwords[index + 1]));
   }
+  return {cookies, call, accounts: [{username:'admin',role:'admin',password:passwords[0]},
+    ...users.map(([username,role,scopes],index)=>({username,role,scopes,password:passwords[index+1]}))]};
+}
+
+async function verifyRecordingHttpAuth(baseUrl, root) {
+  let checks = 0;
+  const check = (condition, label) => { assert(condition, label); checks += 1; console.log(`[auth-subcheck] PASS ${label}`); };
+  const passwords = authPasswords();
+  const {cookies,call} = await bootstrapRecordingUiAuth(baseUrl, passwords);
   const routes = ['/ops/api/recordings/status', '/ops/api/recordings/timeline?channelId=1&startTimeMs=1000&endTimeMs=10000', '/ops/api/recordings/media/http-event'];
   for (const [index, cookie] of cookies.entries()) {
     for (const [routeIndex, route] of routes.entries()) {
@@ -539,8 +615,10 @@ async function verifyRecordingHttpLifecycle(baseUrl, fixture, root, child) {
 export async function runVerifier(requestedMode = process.argv[2] || "--full") {
   const startedAt = Date.now();
   const mode = requestedMode;
-  const allowedModes = new Set(["--red-status", "--red-http-baseline", "--full", "--http-api", "--http-auth", "--ui-direct", "--http-lifecycle"]);
+  const allowedModes = new Set(["--red-status", "--red-http-baseline", "--full", "--http-api", "--http-auth", "--ui-direct", "--ui-auth-direct", "--http-lifecycle"]);
   if (!allowedModes.has(mode)) throw new Error(`지원하지 않는 mode: ${mode}`);
+  const uiAuth = mode === '--ui-auth-direct' ? uiAuthPreparationOptions(process.argv.slice(3)) : null;
+  if (!uiAuth && process.argv.slice(3).includes('--ui-seek-fixture')) throw new Error('seek fixture requires UI auth direct mode');
   if (mode === '--http-auth') authPasswords();
 
   let root = "";
@@ -550,6 +628,9 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
   let primaryError;
   let cleanupError;
   let cleanupResult;
+  let uiProxy;
+  let uiStage = 'seed';
+  const uiLogReport = {truncated:false,droppedBytes:0,writeFailed:false};
 
   try {
     const tmpRoot = fs.realpathSync(os.tmpdir());
@@ -571,14 +652,17 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
         }
       } finally { fs.closeSync(fd); }
     }
-    const sources = (mode === '--http-auth' || mode === '--ui-direct')
+    const sources = (mode === '--http-auth' || mode === '--ui-direct' || uiAuth)
       ? ['1', '2'].map(id => ({ sourceId: id, displayName: `S06 channel ${id}`, kind: 'file', file: `s06-channel-${id}.mp4`, enabled: false, recording: { enabled: false } }))
       : [];
     for (const source of sources) fs.copyFileSync(fixture, path.join(root, 'input', source.file));
+    if (uiAuth) for (const id of ['3','4']) fs.copyFileSync(fixture,path.join(root,'input',`s06-channel-${id}.mp4`));
     fs.writeFileSync(path.join(root, "data/sources.json"), JSON.stringify({ sources }));
     fs.writeFileSync(path.join(root, "data/views.json"), JSON.stringify({ views: [] }));
-    if (mode === '--http-api' || mode === '--http-auth' || mode === '--ui-direct' || mode === '--http-lifecycle') {
-      execFileSync('bash', [path.join(repo, 'scripts/internal/verify_v410_recording_timeline.sh'), mode === '--ui-direct' ? '--seed-ui' : '--seed-http', path.join(root, 'recordings'), fixture], { cwd: repo, stdio: 'inherit' });
+    const seekFixture = uiAuth?.seekFixture ? createUiSeekFixture(root) : null;
+    if (mode === '--http-api' || mode === '--http-auth' || mode === '--ui-direct' || mode === '--http-lifecycle' || uiAuth) {
+      execFileSync('bash', [path.join(repo, 'scripts/internal/verify_v410_recording_timeline.sh'), (mode === '--ui-direct' || uiAuth) ? '--seed-ui' : '--seed-http', path.join(root, 'recordings'), fixture], { cwd: repo, stdio: 'inherit',
+        env: uiSeedEnvironment(uiAuth ? uiAuth.anchor : null,process.env,seekFixture?.file??null) });
     }
     rtspPort = await reservePort();
     httpPort = await reservePort();
@@ -589,12 +673,16 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
     assert(fs.realpathSync(binary) === path.join(repo, "build-gst-onnx/media_server"),
       "검증 binary가 고정 제품 경로와 다름");
     const isolatedEnv = isolatedEnvironment(root, binary, rtspPort, httpPort);
-    const env = mode === '--http-auth'
+    const env = (mode === '--http-auth' || uiAuth)
       ? Object.freeze({ ...isolatedEnv, MEDIA_SERVER_AUTH_MODE: 'auto' })
       : mode === '--ui-direct'
         ? Object.freeze({ ...isolatedEnv, MEDIA_SERVER_ENABLE_LAB: '1' })
         : isolatedEnv;
     const logState = { lineCount: 0, processErrorCode: "" };
+    uiStage = 'spawn';
+    const privateLog = uiAuth ? path.join(root,'server-private.log') : null;
+    if (privateLog) fs.writeFileSync(privateLog,'',{flag:'wx',mode:0o600});
+    let privateLogBytes = 0;
     child = spawn("./server.sh", ["foreground"], {
       cwd: repo,
       env,
@@ -620,6 +708,14 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
       stream.setEncoding("utf8");
       stream.on("data", chunk => {
         logState.lineCount += String(chunk).split(/\r?\n/).filter(Boolean).length;
+        if (privateLog) {
+          try {
+            if (privateLogBytes + Buffer.byteLength(chunk) > 4 * 1024 * 1024) {
+              uiLogReport.truncated=true;uiLogReport.droppedBytes+=Buffer.byteLength(chunk);throw Error('private log limit');
+            }
+            fs.appendFileSync(privateLog,chunk); privateLogBytes += Buffer.byteLength(chunk);
+          } catch { logState.privateLogFailed = true; uiLogReport.writeFailed=true; }
+        }
       });
     }
     await spawned;
@@ -627,15 +723,32 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
       logState.processErrorCode = error?.code || "unknown";
     });
     const baseUrl = `http://127.0.0.1:${httpPort}`;
+    uiStage = 'ready';
     await waitReady(baseUrl, child, logState);
 
     if (mode === '--http-lifecycle') {
       await verifyRecordingHttpLifecycle(baseUrl, fixture, root, child);
-    } else if (mode === '--ui-direct') {
-      console.log(`[S06 UI direct 준비] ${baseUrl}/ops/events ; 종료 시 stdin에 줄바꿈. UI PASS를 자동 판정하지 않음.`);
+    } else if (mode === '--ui-direct' || uiAuth) {
+      if (uiAuth) {
+        uiStage = 'bootstrap';
+        const auth = await bootstrapRecordingUiAuth(baseUrl, createUiAuthPasswords());
+        uiStage = 'source';
+        for (const id of ['3','4']) {
+          const response = await auth.call('/ops/api/sources',{method:'POST',headers:{Cookie:auth.cookies[0],'Content-Type':'application/json'},
+            body:JSON.stringify(uiLiveSource(id,`s06-channel-${id}.mp4`,id==='4'))});
+          assert(response.ok,'UI live source preparation failed'); await response.arrayBuffer();
+        }
+        writeUiLoginHandoff(root, auth.accounts);
+        uiStage = 'proxy';
+        uiProxy = await startRecordingUiRangeProxy({root,upstreamPort:httpPort});
+        console.log(JSON.stringify({ready:true,baseUrl:uiProxy.baseUrl,observationPath:uiProxy.logPath,root,anchorUtcMs:uiAuth.anchor,accounts:auth.accounts.map(x=>x.username),actualUiPass:false}));
+      } else console.log(`[S06 UI direct 준비] ${baseUrl}/ops/events ; 종료 시 stdin에 줄바꿈. UI PASS를 자동 판정하지 않음.`);
+      uiStage = 'hold';
       await new Promise((resolve, reject) => {
         const finish = error => {
           clearTimeout(timer);
+          if (logMonitor) clearInterval(logMonitor);
+          child.removeListener('exit',onExit);
           process.stdin.removeListener('data', onData);
           process.stdin.removeListener('end', onEnd);
           process.stdin.pause();
@@ -643,7 +756,10 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
         };
         const onData = () => finish();
         const onEnd = () => finish(new Error('UI 확인 종료 입력 전 stdin 종료'));
-        const timer = setTimeout(() => finish(new Error('UI 확인 15분 제한 도달')), 15 * 60 * 1000);
+        const onExit = () => finish(new Error('UI preparation server exited'));
+        const timer = setTimeout(() => finish(new Error(uiAuth ? 'UI 확인 60분 제한 도달' : 'UI 확인 15분 제한 도달')), uiAuth ? uiAuth.holdMs : 15 * 60 * 1000);
+        const logMonitor = uiAuth ? setInterval(() => {if(logState.privateLogFailed||uiProxy?.failure)finish(new Error('private observation unavailable'));},250) : null;
+        if (uiAuth) child.once('exit',onExit);
         process.stdin.once('data', onData);
         process.stdin.once('end', onEnd);
         process.stdin.resume();
@@ -667,12 +783,15 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
       console.log(`[V410-S06 UI static contract] subchecks=${count} fail=0 actualUiActions=NOT_RUN`);
     }
   } catch (error) {
-    primaryError = error;
+    const stage = ['setup','login','users'].includes(error.uiStage) ? error.uiStage : uiStage;
+    const code = ['EPERM','EACCES','ENOENT','EADDRINUSE'].includes(error.code) ? error.code : 'PREPARATION_FAILED';
+    primaryError = uiAuth ? new Error(`UI auth preparation failed stage=${stage} code=${code}`) : error;
   }
 
   const cleanupStartedAt = Date.now();
+  if (uiAuth) console.log(JSON.stringify({uiPreparationLog:uiLogReport,actualUiPass:false}));
   try {
-    cleanupResult = await cleanupHarnessResources({ child, rtspPort, httpPort, root });
+    cleanupResult = await finishRecordingUiProxy(uiProxy, () => cleanupHarnessResources({ child, rtspPort, httpPort, root }));
   } catch (error) {
     cleanupError = error;
     cleanupResult = error.cleanupReport;
