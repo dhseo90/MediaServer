@@ -374,6 +374,81 @@ std::string SerializeDouble(double value) {
 
 }  // namespace
 
+bool ValidateRecordingConsumerReferenceV1(const RecordingConsumerReferenceV1& v, std::string* error) {
+    const auto track=[](const std::string& s) {
+        return !s.empty()&&s.size()<=1024&&std::none_of(s.begin(),s.end(),[](unsigned char c){return c<32||c==127;});
+    };
+    if(v.schema!="media-server.recording-consumer-reference.v1"||
+       (v.kind!="observation"&&v.kind!="event")||v.analysis_pts<0||v.created_at_ms<0||!track(v.analysis_track_id))
+        return Fail(error,"consumer reference schema/kind/analysis 오류");
+    for(const auto* id:{&v.reference_id,&v.owner_id,&v.source_id,&v.channel_id,&v.analysis_namespace})
+        if(!ValidateOpaqueId(*id,error))return false;
+    const bool associated=v.association_quality=="timestamp-match"||v.association_quality=="nearest";
+    if((!associated&&v.association_quality!="ambiguous"&&v.association_quality!="unavailable")||associated!=v.original.has_value())
+        return Fail(error,"consumer reference quality/original 오류");
+    if(v.original) {
+        const auto& o=*v.original;
+        if(!ValidateOpaqueId(o.source_generation,error)||!o.generation_order||!o.ordinal||!track(o.track_id)||
+           o.pts_ns>static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max()))
+            return Fail(error,"consumer reference original 오류");
+    }
+    if((v.kind=="event")!=v.request.has_value())return Fail(error,"consumer reference request 종류 오류");
+    if(v.request) {
+        const auto& r=*v.request;
+        if((r.time_basis!="utc-ms"&&r.time_basis!="media-pts-ms")||r.start_ms<0||r.end_ms<r.start_ms||r.pre_ms<0||r.post_ms<0||
+           static_cast<__int128>(r.start_ms)-r.pre_ms<0||static_cast<__int128>(r.end_ms)+r.post_ms>std::numeric_limits<std::int64_t>::max())
+            return Fail(error,"consumer reference request 범위 오류");
+    }
+    ClearError(error);return true;
+}
+std::string SerializeRecordingConsumerReferenceV1(const RecordingConsumerReferenceV1& v) {
+    if(!ValidateRecordingConsumerReferenceV1(v,nullptr))return {};
+    std::ostringstream out;
+    out<<"{\"schema\":"<<Quote(v.schema)<<",\"reference_id\":"<<Quote(v.reference_id)<<",\"kind\":"<<Quote(v.kind)
+       <<",\"owner_id\":"<<Quote(v.owner_id)<<",\"source_id\":"<<Quote(v.source_id)<<",\"channel_id\":"<<Quote(v.channel_id)
+       <<",\"analysis_namespace\":"<<Quote(v.analysis_namespace)<<",\"analysis_track_id\":"<<Quote(v.analysis_track_id)
+       <<",\"analysis_pts\":"<<v.analysis_pts<<",\"association_quality\":"<<Quote(v.association_quality)<<",\"original\":";
+    if(v.original) {
+        const auto& o=*v.original;
+        out<<"{\"source_generation\":"<<Quote(o.source_generation)<<",\"generation_order\":"<<o.generation_order
+           <<",\"ordinal\":"<<o.ordinal<<",\"track_id\":"<<Quote(o.track_id)<<",\"pts_ns\":"<<o.pts_ns<<'}';
+    } else out<<"null";
+    out<<",\"request\":";
+    if(v.request) {
+        const auto& r=*v.request;
+        out<<"{\"time_basis\":"<<Quote(r.time_basis)<<",\"start_ms\":"<<r.start_ms<<",\"end_ms\":"<<r.end_ms
+           <<",\"pre_ms\":"<<r.pre_ms<<",\"post_ms\":"<<r.post_ms<<'}';
+    } else out<<"null";
+    out<<",\"created_at_ms\":"<<v.created_at_ms<<'}';return out.str();
+}
+bool ParseRecordingConsumerReferenceV1(const std::string& json, RecordingConsumerReferenceV1* output, std::string* error) {
+    if(!output||json.size()>1024*1024)return Fail(error,"consumer reference JSON 상한/output 오류");
+    Document d;RecordingConsumerReferenceV1 v;
+    if(!ParseDocument(json,&d,error)||d.members.size()!=13)return Fail(error,"consumer reference field 집합 오류");
+    if(!RequiredString(d,"schema",&v.schema,error)||!RequiredString(d,"reference_id",&v.reference_id,error)||
+       !RequiredString(d,"kind",&v.kind,error)||!RequiredString(d,"owner_id",&v.owner_id,error)||
+       !RequiredString(d,"source_id",&v.source_id,error)||!RequiredString(d,"channel_id",&v.channel_id,error)||
+       !RequiredString(d,"analysis_namespace",&v.analysis_namespace,error)||!RequiredString(d,"analysis_track_id",&v.analysis_track_id,error)||
+       !RequiredInteger(d,"analysis_pts",&v.analysis_pts,error)||!RequiredString(d,"association_quality",&v.association_quality,error)||
+       !RequiredInteger(d,"created_at_ms",&v.created_at_ms,error)||!d.Find("original")||!d.Find("request"))return false;
+    if(d.Find("original")->type!=Type::Null) {
+        const auto* field=RequiredMember(d,"original",Type::Object,error);Document item;RecordingConsumerOriginalV1 o;
+        if(!field||!ParseDocument(field->raw,&item,error)||item.members.size()!=5||
+           !RequiredString(item,"source_generation",&o.source_generation,error)||!RequiredInteger(item,"generation_order",&o.generation_order,error)||
+           !RequiredInteger(item,"ordinal",&o.ordinal,error)||!RequiredString(item,"track_id",&o.track_id,error)||!RequiredInteger(item,"pts_ns",&o.pts_ns,error))return false;
+        v.original=std::move(o);
+    }
+    if(d.Find("request")->type!=Type::Null) {
+        const auto* field=RequiredMember(d,"request",Type::Object,error);Document item;RecordingConsumerRequestV1 r;
+        if(!field||!ParseDocument(field->raw,&item,error)||item.members.size()!=5||!RequiredString(item,"time_basis",&r.time_basis,error)||
+           !RequiredInteger(item,"start_ms",&r.start_ms,error)||!RequiredInteger(item,"end_ms",&r.end_ms,error)||
+           !RequiredInteger(item,"pre_ms",&r.pre_ms,error)||!RequiredInteger(item,"post_ms",&r.post_ms,error))return false;
+        v.request=std::move(r);
+    }
+    if(!ValidateRecordingConsumerReferenceV1(v,error))return false;
+    *output=std::move(v);ClearError(error);return true;
+}
+
 bool ValidateRecordingSourceBindingV1(const RecordingSourceBindingV1& b, std::string* error) {
     if(b.schema!="media-server.recording-source-binding.v1" || b.samples.empty() || b.samples.size()>4096 ||
        b.generation_order==0 || b.track_id.empty() || b.track_id.size()>1024 ||

@@ -115,6 +115,31 @@ bool ParseRecordingTombstoneV2(const std::string& json, RecordingTombstoneV2* va
 std::string SerializeRecordingSegmentStateV2(const RecordingSegmentStateV2& value);
 bool ParseRecordingSegmentStateV2(const std::string& json, RecordingSegmentStateV2* value, std::string* error);
 
+// 원본 연관/요청 사실만 저장한다. 후보나 재생 가능 상태는 포함하지 않는다.
+struct RecordingConsumerOriginalV1 {
+    std::string source_generation;
+    std::uint64_t generation_order{0}, ordinal{0};
+    std::string track_id;
+    std::uint64_t pts_ns{0};
+};
+struct RecordingConsumerRequestV1 {
+    std::string time_basis;
+    std::int64_t start_ms{0}, end_ms{0}, pre_ms{0}, post_ms{0};
+};
+struct RecordingConsumerReferenceV1 {
+    std::string schema{"media-server.recording-consumer-reference.v1"};
+    std::string reference_id, kind, owner_id, source_id, channel_id;
+    std::string analysis_namespace, analysis_track_id;
+    std::int64_t analysis_pts{0};
+    std::string association_quality;
+    std::optional<RecordingConsumerOriginalV1> original;
+    std::optional<RecordingConsumerRequestV1> request;
+    std::int64_t created_at_ms{0};
+};
+bool ValidateRecordingConsumerReferenceV1(const RecordingConsumerReferenceV1&, std::string*);
+std::string SerializeRecordingConsumerReferenceV1(const RecordingConsumerReferenceV1&);
+bool ParseRecordingConsumerReferenceV1(const std::string&, RecordingConsumerReferenceV1*, std::string*);
+
 struct FrameLocatorV1 {
     std::string schema{"media-server.frame-locator.v1"};
     std::string segment_id;

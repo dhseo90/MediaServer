@@ -1,5 +1,25 @@
 # Project Feature Test Inventory
 
+| 기능 ID | 기능 | 안정화 | 30분 | 120분 | UI 풀테스트 | UI 기준 |
+| --- | --- | --- | --- | --- | --- | --- |
+| S10-C341 | 계약 왕복 | consumer-reference focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 저장: UI 없어야 정상 |
+| S10-C342 | unknown/중복 필드 거부 | consumer-reference focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 저장: UI 없어야 정상 |
+| S10-C343 | ID·종류·소유자 제약 | consumer-reference focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 저장: UI 없어야 정상 |
+| S10-C344 | 품질·원본 nullable 조합 | consumer-reference focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 저장: UI 없어야 정상 |
+| S10-C345 | 원본 수치·track 경계 | consumer-reference focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 저장: UI 없어야 정상 |
+| S10-C346 | event 요청·시간축 | consumer-reference focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 저장: UI 없어야 정상 |
+| S10-C347 | observation 요청 금지 | consumer-reference focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 저장: UI 없어야 정상 |
+| S10-C348 | 요청 음수·역전·padding | consumer-reference focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 저장: UI 없어야 정상 |
+| S10-C349 | 미지원 schema 거부 | consumer-reference focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 저장: UI 없어야 정상 |
+| S10-C350 | 실제 원장 저장·조회 | consumer-reference focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 저장: UI 없어야 정상 |
+| S10-C351 | 동일 참조 멱등 | consumer-reference focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 저장: UI 없어야 정상 |
+| S10-C352 | 동일 ID 충돌 거부 | consumer-reference focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 저장: UI 없어야 정상 |
+| S10-C353 | opt-in·미open 거부 | consumer-reference focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 저장: UI 없어야 정상 |
+| S10-C354 | SQL·JSONL 재시작 동등 | consumer-reference focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 저장: UI 없어야 정상 |
+| S10-C355 | checkpoint 참조 보존 | consumer-reference focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 저장: UI 없어야 정상 |
+| S10-C356 | 손상·충돌 replay 선차단 | consumer-reference focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 저장: UI 없어야 정상 |
+
+
 | 기능 ID | 합격 기준 | 안정화 | 30분 | 120분 | UI 풀테스트 |
 | --- | --- | --- | --- | --- | --- |
 | C323-A | 거부 결과가 tuple/last/완전성을 바꾸지 않음 | write-boundaries 단위 + writer 통합 | S11 | S11 | 신규 UI 비대상 |

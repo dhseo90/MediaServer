@@ -319,6 +319,7 @@ std::vector<std::string> RecordingCatalog::ProjectionSignatureLocked() const {
     for(const auto& [id,v]:segments_)add("v1",id,SerializeRecordingSegmentV1(v));
     for(const auto& [id,v]:segments_v2_)add("v2",id,SerializeRecordingSegmentV2(v));
     for(const auto& [id,v]:source_bindings_)add("source-binding",id,SerializeRecordingSourceBindingV1(v));
+    for(const auto& [id,v]:consumer_references_)add("consumer-reference",id,SerializeRecordingConsumerReferenceV1(v));
     for(const auto& [id,v]:states_v2_)add("v2-state",id,SerializeRecordingSegmentStateV2(v));
     for(const auto& [id,v]:tombstones_v2_)add("v2-deleted",id,SerializeRecordingTombstoneV2(v));
     for(const auto& [id,v]:orders_v2_) {
@@ -538,7 +539,8 @@ bool RecordingCatalog::RecoverWriterCleanupMarkersLocked(std::string* error) {
 bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                                            bool count_duplicate,
                                            std::string* error) {
-    const bool segment_state = mutation.mutation_type == RecordingMutationType::SegmentFinalized ||
+    const bool segment_state = mutation.mutation_type == RecordingMutationType::ConsumerReferencePut ||
+                               mutation.mutation_type == RecordingMutationType::SegmentFinalized ||
                                mutation.mutation_type == RecordingMutationType::SegmentV2State ||
                                mutation.mutation_type == RecordingMutationType::SegmentV2Deleted ||
                                mutation.mutation_type == RecordingMutationType::SegmentV2Finalized ||
@@ -557,6 +559,21 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
     }
     bool ok = true;
     switch (mutation.mutation_type) {
+        case RecordingMutationType::ConsumerReferencePut: {
+            ingress::StrictJsonObjectDocument payload;
+            RecordingConsumerReferenceV1 reference;
+            const auto json=ObjectField(mutation.payload_json,"reference");
+            ok=options_.enable_v2_storage&&
+               ingress::ParseStrictJsonObjectDocument(mutation.payload_json,&payload,error)&&payload.members.size()==1&&
+               json&&ParseRecordingConsumerReferenceV1(*json,&reference,error)&&reference.reference_id==mutation.entity_id;
+            if(ok) {
+                const auto old=consumer_references_.find(reference.reference_id);
+                ok=old==consumer_references_.end()||SerializeRecordingConsumerReferenceV1(old->second)==SerializeRecordingConsumerReferenceV1(reference);
+                if(ok)consumer_references_.emplace(reference.reference_id,std::move(reference));
+            }
+            if(!ok)Fail(error,"consumer reference payload/identity 충돌");
+            break;
+        }
         case RecordingMutationType::SegmentFinalized: {
             const auto segment_json = ObjectField(mutation.payload_json, "segment");
             const auto relpath = StringField(mutation.payload_json, "mediaRelpath");
@@ -774,6 +791,7 @@ bool RecordingCatalog::PreflightV2Locked(const RecordingJournalReplayResult& rep
     bool orders=false,v2=false;
     std::unordered_set<std::string> v2_ids;
     for(const auto& m:replay.mutations) {
+        if(m.mutation_type==RecordingMutationType::ConsumerReferencePut)v2=true;
         if(m.mutation_type==RecordingMutationType::EventLinkReceipt&&(!journal_.managed_||!options_.enable_v2_storage))
             return Fail(error,"receipt managed 지원 필요");
         orders=orders||m.mutation_type==RecordingMutationType::RecordingOrderReserved;
@@ -793,14 +811,15 @@ bool RecordingCatalog::PreflightV2Locked(const RecordingJournalReplayResult& rep
     std::unordered_map<std::string,RecordingMutationV1> seen;
     for(const auto& m:replay.mutations) {
         const auto old=seen.find(m.mutation_id);
-        if(old!=seen.end()&&(m.mutation_type==RecordingMutationType::SegmentV2Finalized||
+        if(old!=seen.end()&&(m.mutation_type==RecordingMutationType::ConsumerReferencePut||
+           old->second.mutation_type==RecordingMutationType::ConsumerReferencePut||m.mutation_type==RecordingMutationType::SegmentV2Finalized||
            m.mutation_type==RecordingMutationType::SegmentV2BoundFinalized||
            old->second.mutation_type==RecordingMutationType::SegmentV2BoundFinalized||
            old->second.mutation_type==RecordingMutationType::SegmentV2Finalized)&&
            SerializeRecordingMutationV1(old->second)!=SerializeRecordingMutationV1(m))return Fail(error,"V2 mutation ID 충돌");
         seen.emplace(m.mutation_id,m);
         const bool accepted=scratch.ApplyMutationLocked(m,false,error);
-        if(!accepted&&(journal_.managed_||m.mutation_type==RecordingMutationType::SegmentV2Finalized||v2_ids.count(m.entity_id)))return false;
+        if(!accepted&&(journal_.managed_||m.mutation_type==RecordingMutationType::ConsumerReferencePut||m.mutation_type==RecordingMutationType::SegmentV2Finalized||v2_ids.count(m.entity_id)))return false;
     }
     if(candidate) {
         if(binding ? !scratch.ValidateBoundLocked(*candidate,*binding,relative,error) :
@@ -1377,6 +1396,35 @@ bool RecordingCatalog::RequestDeletion(const std::string& segment_id,
     return AppendAndApplyLocked(std::move(mutation), error);
 }
 
+bool RecordingCatalog::PutConsumerReference(const RecordingConsumerReferenceV1& reference, std::string* error) {
+    std::lock_guard lock(mu_);
+    if(!opened_||!options_.enable_v2_storage||!CanWriteLocked(error)||!ValidateRecordingConsumerReferenceV1(reference,error))
+        return Fail(error,"consumer reference 저장 상태/입력 거부");
+    const auto old=consumer_references_.find(reference.reference_id);
+    if(old!=consumer_references_.end()) {
+        if(SerializeRecordingConsumerReferenceV1(old->second)!=SerializeRecordingConsumerReferenceV1(reference))return Fail(error,"consumer reference ID 충돌");
+        if(error)error->clear();
+        return true;
+    }
+    RecordingMutationV1 mutation;mutation.mutation_type=RecordingMutationType::ConsumerReferencePut;
+    mutation.entity_id=reference.reference_id;
+    mutation.payload_json="{\"reference\":"+SerializeRecordingConsumerReferenceV1(reference)+"}";
+    return AppendAndApplyLocked(std::move(mutation),error);
+}
+std::vector<RecordingConsumerReferenceV1> RecordingCatalog::QueryConsumerReferences(
+    const std::string& channel, const std::string& kind, const std::string& owner) const {
+    std::lock_guard lock(mu_);
+    std::vector<RecordingConsumerReferenceV1> result;
+    if(!opened_||!options_.enable_v2_storage||!ValidateOpaqueId(channel,nullptr)||!ValidateOpaqueId(owner,nullptr)||
+       (kind!="observation"&&kind!="event"))return result;
+    for(const auto& [id,reference]:consumer_references_) {
+        (void)id;
+        if(reference.channel_id==channel&&reference.kind==kind&&reference.owner_id==owner)result.push_back(reference);
+    }
+    std::sort(result.begin(),result.end(),[](const auto& a,const auto& b){return a.reference_id<b.reference_id;});
+    return result;
+}
+
 void RecordingCatalog::ResolveObservationV2Locked(AnalysisObservationV2* o) const {
     const auto original = o->frame_locator;
     o->frame_locator.reset();
@@ -1879,6 +1927,7 @@ CREATE TABLE IF NOT EXISTS recording_mutations(mutation_id TEXT PRIMARY KEY, typ
 CREATE TABLE IF NOT EXISTS recording_segments(segment_id TEXT PRIMARY KEY, source_id TEXT NOT NULL, channel_id TEXT NOT NULL, stream_epoch_id TEXT NOT NULL, start_utc_ms INTEGER NOT NULL, end_utc_ms INTEGER NOT NULL, start_pts INTEGER NOT NULL, end_pts INTEGER NOT NULL, time_base_num INTEGER NOT NULL, time_base_den INTEGER NOT NULL, container TEXT NOT NULL, codecs_json TEXT NOT NULL, size_bytes INTEGER NOT NULL, checksum_sha256 TEXT NOT NULL, retention_class TEXT NOT NULL, lifecycle TEXT NOT NULL, pinned INTEGER NOT NULL, hold_count INTEGER NOT NULL DEFAULT 0, media_relpath TEXT NOT NULL, created_at_ms INTEGER NOT NULL, finalized_at_ms INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS recording_segments_v2(segment_id TEXT PRIMARY KEY,payload_json TEXT NOT NULL,media_relpath TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS recording_source_bindings(segment_id TEXT PRIMARY KEY,payload_json TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS recording_consumer_references(reference_id TEXT PRIMARY KEY,payload_json TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS recording_segment_states_v2(segment_id TEXT PRIMARY KEY,lifecycle TEXT NOT NULL,reason TEXT NOT NULL,tombstone_json TEXT NOT NULL,hold_count INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE IF NOT EXISTS recording_event_links(link_id TEXT PRIMARY KEY, event_id TEXT UNIQUE NOT NULL, channel_id TEXT NOT NULL, requested_start_ms INTEGER NOT NULL, requested_end_ms INTEGER NOT NULL, derived_segment_id TEXT, fallback_ref TEXT, completeness TEXT NOT NULL, missing_ranges_json TEXT NOT NULL, display_priority INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE IF NOT EXISTS recording_event_link_segments(link_id TEXT NOT NULL REFERENCES recording_event_links(link_id) ON DELETE CASCADE, segment_id TEXT NOT NULL REFERENCES recording_segments(segment_id), overlap_start_ms INTEGER NOT NULL, overlap_end_ms INTEGER NOT NULL, PRIMARY KEY(link_id, segment_id));
@@ -1903,7 +1952,7 @@ bool RecordingCatalog::RebuildSqliteLocked(std::string* error) {
     if (replay.io_error_count != 0) return Fail(error, "journal replay I/O 오류로 SQLite rebuild 거부");
     if (replay.unsupported_record_count != 0) return Fail(error, "미지원 journal record로 SQLite rebuild 거부");
     if (!PreflightV2Locked(replay,error)) return false;
-    if (!Exec(sqlite_db_, "BEGIN; DELETE FROM recording_source_bindings; DELETE FROM recording_event_link_segments; DELETE FROM recording_event_links; DELETE FROM recording_observations; DELETE FROM recording_observations_v2; DELETE FROM recording_segment_states_v2; DELETE FROM recording_segments_v2; DELETE FROM recording_segments; DELETE FROM recording_tombstones; DELETE FROM recording_mutations; COMMIT;", error)) return false;
+    if (!Exec(sqlite_db_, "BEGIN; DELETE FROM recording_consumer_references; DELETE FROM recording_source_bindings; DELETE FROM recording_event_link_segments; DELETE FROM recording_event_links; DELETE FROM recording_observations; DELETE FROM recording_observations_v2; DELETE FROM recording_segment_states_v2; DELETE FROM recording_segments_v2; DELETE FROM recording_segments; DELETE FROM recording_tombstones; DELETE FROM recording_mutations; COMMIT;", error)) return false;
     for (std::size_t ordinal = 0; ordinal < replay.mutations.size(); ++ordinal) {
         const auto& mutation = replay.mutations[ordinal];
         if (mutation.mutation_type == RecordingMutationType::SegmentFinalized ||
@@ -1942,7 +1991,16 @@ bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mu
         return Fail(error, mutation_error);
     }
     if (!inserted) return Exec(sqlite_db_, "COMMIT", error);
-    if (mutation.mutation_type == RecordingMutationType::SegmentFinalized) {
+    if (mutation.mutation_type == RecordingMutationType::ConsumerReferencePut) {
+        const auto json=ObjectField(mutation.payload_json,"reference");RecordingConsumerReferenceV1 reference;
+        if(!json||!ParseRecordingConsumerReferenceV1(*json,&reference,error)||
+           sqlite3_prepare_v2(sqlite_db_,"INSERT OR IGNORE INTO recording_consumer_references VALUES(?,?)",-1,&statement,nullptr)!=SQLITE_OK) {
+            Exec(sqlite_db_,"ROLLBACK",nullptr);return false;
+        }
+        BindText(statement,1,reference.reference_id);BindText(statement,2,SerializeRecordingConsumerReferenceV1(reference));
+        const bool ok=sqlite3_step(statement)==SQLITE_DONE;sqlite3_finalize(statement);
+        if(!ok){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+    } else if (mutation.mutation_type == RecordingMutationType::SegmentFinalized) {
         const auto segment_json = ObjectField(mutation.payload_json, "segment");
         const auto relpath = StringField(mutation.payload_json, "mediaRelpath");
         RecordingSegmentV1 s;

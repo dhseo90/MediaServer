@@ -1,0 +1,21 @@
+command=bash scripts/internal/verify_recording_consumer_reference.sh
+session=54538 exit=0
+[pass] C341 계약 왕복
+[pass] C342 unknown/중복 필드 거부
+[pass] C343 ID·종류·소유자 제약
+[pass] C344 품질·원본 nullable 조합
+[pass] C345 원본 수치·track 경계
+[pass] C346 event 요청·시간축
+[pass] C347 observation 요청 금지
+[pass] C348 요청 음수·역전·padding
+[pass] C349 미지원 schema 거부
+[pass] C350 실제 원장 저장·조회
+[pass] C351 동일 참조 멱등
+[pass] C352 동일 ID 충돌 거부
+[pass] C353 opt-in·미open 거부
+[pass] C354 SQL·JSONL 재시작 동등
+[pass] C355 checkpoint 참조 보존
+[pass] C356 손상·충돌 replay 선차단
+[summary] pass=16 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-consumer-reference.2HD2xU bytes=3176608 removed=true
+[elapsed] seconds=5 source=bash-SECONDS

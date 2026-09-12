@@ -143,6 +143,9 @@ public:
     bool PutEventLink(const EventRecordingLinkV1& link, std::string* error) override;
     bool PutObservation(const AnalysisObservationV1& observation, std::string* error) override;
     bool PutObservationV2(AnalysisObservationV2 observation, std::string* error);
+    bool PutConsumerReference(const RecordingConsumerReferenceV1&, std::string* error);
+    std::vector<RecordingConsumerReferenceV1> QueryConsumerReferences(
+        const std::string& channel, const std::string& kind, const std::string& owner) const;
     // 파일 검출/삭제가 아닌 known segment의 내부 durable 상태 전이.
     bool MarkSegmentCorrupt(const std::string& segment_id,
                             const std::string& reason,
@@ -212,6 +215,7 @@ private:
     std::unordered_map<std::string, EventRecordingLinkV1> event_links_;
     std::unordered_map<std::string, AnalysisObservationV1> observations_;
     std::unordered_map<std::string, AnalysisObservationV2> observations_v2_;
+    std::unordered_map<std::string, RecordingConsumerReferenceV1> consumer_references_;
     std::unordered_map<std::string, RecordingTombstoneV1> tombstones_;
     sqlite3* sqlite_db_{nullptr};
 };

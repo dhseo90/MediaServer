@@ -1,5 +1,325 @@
 # Release Test Records
 
+## S10 3C-3C 원본 참조 저장 — 실행 전 정의
+
+### 3C-3C 저장 단위 최종 결과
+
+문서 마감: verify-docs-links exit0(235문서/1459링크/실패0), git diff --check exit0.
+임시 복제 정리: `.media_server.test/s10-3c3c/red-82667.log` 412B와 `green-54538.log` 956B는 보존 로그 이관 대조 뒤 삭제했고 디렉터리 부재 확인했다.
+
+계약·catalog·journal 6파일, 신규 focused/runner 2파일을 구현했다. 메인이 실제 diff에서 immutable Put·opt-in preflight·SQL projection·checkpoint 서명을 대조했다.
+최종 focused16 + source-binding20 + catalog234/crypto-off3/정적9 = **282 PASS/0 FAIL**, 모든 명령 exit0. 제품 `./server.sh build` exit0.
+전체 소비자 연결/파생 완료가 아니며 3C-4와 3C-5는 이어서 진행할 대상이다.
+[세부 oracle·실행/정리·해시](release-artifacts/v4.1.0/s10-consumer-reference/report.md), [최종 focused](release-artifacts/v4.1.0/s10-consumer-reference/Final.log), [제품 빌드](release-artifacts/v4.1.0/s10-consumer-reference/Build.log).
+최초 RED와 등록 보완 전 결과를 보존했으며 최종 기준은 등록 보완 후 session30139다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| Binding.log: S10-C301 결박 schema 왕복 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
+| Binding.log: S10-C302 식별·ordinal 검증 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
+| Binding.log: S10-C303 PTS 재정렬 보존 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
+| Binding.log: S10-C304 미디어 범위·timebase | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
+| Binding.log: S10-C305 색인 상한·미색인 꼬리 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
+| Binding.log: S10-C306 단일 bound mutation | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
+| Binding.log: S10-C307 source·저장 identity 결박 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
+| Binding.log: S10-C308 불변·멱등 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
+| Binding.log: S10-C309 소급·다운그레이드 금지 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
+| Binding.log: S10-C310 정확한 원본 tuple 조회 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
+| Binding.log: S10-C311 미색인·실제 부재 구분 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
+| Binding.log: S10-C312 복수 segment 후보 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
+| Binding.log: S10-C313 삭제·corrupt·pending 차단 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
+| Binding.log: S10-C314 채널·조회 오류 경계 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
+| Binding.log: S10-C315 SQL·JSONL 재시작 동등 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
+| Binding.log: S10-C316 checkpoint 보존 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
+| Binding.log: S10-C317 손상 원장 선차단 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
+| Binding.log: S10-C318 예약·옵트인 경계 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
+| Binding.log: S10-C319 기존 segment·조회 불변 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
+| Binding.log: S10-C320 실제 finalize 수락 경계 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Binding.log), exit0 | pass |
+| Catalog.log: journal open:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: fallback catalog open:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: SQLite off mode 표시 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: segment finalize journal+projection:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: fallback range query | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: event link FK 위반 거부 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: FK 위반 transaction/journal 전체 rollback | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: 최초 durable mutation 1개 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: 동일 mutation 중복 append | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: 손상 사이 정상 durable mutation 보존 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: 중간 corrupt line count | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: 마지막 truncated line skip | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: fallback replay open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: 같은 mutation idempotent replay | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: 중복 replay row/합계 불증가 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: SQLite catalog open/rebuild:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: SQLite primary mode 표시 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: SQLite on/off range query ID·순서 parity | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: journal 없는 손상 media orphan 구분 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: projection failover journal open:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: projection failover catalog open:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: 실제 SQLite INSERT 실패 trigger 설치 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: SQLite 투영 실패 뒤 journal+memory finalize 유지:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: SQLite 투영 실패 즉시 JSONL fallback 전환 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: 재시작 rebuild 전 실패 trigger 제거 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: 투영 실패 직후 in-memory query 정합성 유지 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: projection failover 재시작 journal rebuild:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: 재시작 후 journal에서 누락 SQLite projection 복구 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: 재시작 후 SQLite primary 복귀 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: 재시작 journal rebuild가 실제 SQLite row 복원 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: tombstone journal open:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: tombstone catalog open:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: tombstone 대상 segment finalize:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: tombstone 대상 deletion request:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: tombstone 완료 기록:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: 손상 SQLite 격리 후 journal rebuild:  | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: 손상 SQLite 원본 격리 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: 격리 SQLite 파일 보존 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: 격리 후 journal rebuild 결과 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A future-schema journal read open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A future-schema unsupported classification | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A future-schema catalog open denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A future-schema catalog retry denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A future-schema journal bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A future-schema SQLite bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A future-schema writer cleanup untouched | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A arbitrary-schema journal read open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A arbitrary-schema unsupported classification | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A arbitrary-schema catalog open denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A arbitrary-schema catalog retry denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A arbitrary-schema journal bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A arbitrary-schema SQLite bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A arbitrary-schema writer cleanup untouched | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A empty-schema journal read open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A empty-schema unsupported classification | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A empty-schema catalog open denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A empty-schema catalog retry denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A empty-schema journal bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A empty-schema SQLite bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A empty-schema writer cleanup untouched | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A future-type journal read open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A future-type unsupported classification | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A future-type catalog open denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A future-type catalog retry denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A future-type journal bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A future-type SQLite bytes preserved | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A future-type writer cleanup untouched | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A malformed journal open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-3A malformed JSON missing fields and wrong types remain corrupt | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O01 reservation journal open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O01 first reservation returns four IDs and sequence one | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O01 versioned reservation payload replays | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O01 new reservation records actual occurred time | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O02 identical retry preserves sequence and bytes | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O03 reopened instance allocates next sequence | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O03 new process resumes durable sequence | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O04 different store rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O04 reused request with different segment rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O04 reused request with different channel rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O04 reused segment with different request rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O04 conflicts preserve original bytes | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve corrupt | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve unsupported-schema | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve unsupported-type | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve tail | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve payload-zero | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve payload-negative | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve payload-fraction | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve payload-overflow | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve duplicate-sequence | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve decreasing-sequence | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve duplicate-request | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve duplicate-segment | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve store-conflict | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve ordinary-before | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve ordinary-after | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O05/O06 reject and preserve line-cap | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O05 reservation entity envelope binding rejects mismatch | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O05 reservation request envelope binding rejects mismatch | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O01 strict reservation parser accepts versioned literal | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O06 INT64_MAX identical retry remains valid | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O06 sequence overflow rejected without write | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O02 identical durable reservation duplicates remain idempotent | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O06 sequence gaps remain valid and allocate above maximum | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O07 four simultaneous processes finish reservations | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O07 concurrent sequences are unique and complete | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O07 next sequence follows concurrent reservations | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O08 ordinary Append cannot reserve orders | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O08 unopened journal rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O08 null result rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O08 invalid opaque ID rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O08 failed reservation does not expose tentative result | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O09 unsafe file binding rejected and original preserved inode | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O09 unsafe file binding rejected and original preserved parent | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O09 unsafe file binding rejected and original preserved symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O09 unsafe file binding rejected and original preserved hardlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O10 reservation and normal segment coexist in catalog | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O04 reserve then finalize permits identical retry | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O10 reservation survives catalog rebuild without changing segment query | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-O04 legacy segment cannot acquire retroactive reservation | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M06 opened catalog accepts fresh exact reservation V2 finalize | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M07 V2 find preserves complete metadata | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M07 identical V2 recovery is idempotent | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M07 V2 is absent from V1 range query | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M07 V2 registered path is not orphan | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M07 SQLite exact V2 JSON and path match | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M07 JSONL restart preserves V2 exact payload | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M06 wrong reservation tuple rejected store | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M06 wrong reservation tuple rejected request | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M06 wrong reservation tuple rejected segment | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M06 wrong reservation tuple rejected channel | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M06 wrong reservation tuple rejected sequence | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M09 immutable V2 mapping mismatch rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M09 bad V2 startup retry preserves original state bad-payload | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M09 bad V2 startup retry preserves original state missing-order | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M09 bad V2 startup retry preserves original state bad-order | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M09 bad V2 startup retry preserves original state conflicting-order | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M09 bad V2 startup retry preserves original state tail | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M09 bad V2 startup retry preserves original state corrupt | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M09 bad V2 startup retry preserves original state unsafe-path | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M09 default off rejects V2 before SQLite changes | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M09 V2 replay namespace and deletion duplicate | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M09 V2 replay namespace and deletion deleted | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M09 V2 replay namespace and deletion v1-before | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M09 V2 replay namespace and deletion v1-after | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M09 V2 replay namespace and deletion deleted-before | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M09 V2 replay namespace and deletion resurrection | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M09 V2 replay namespace and deletion mutation-collision | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M09 V2 finalize rejects missing media | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M09 V2 finalize rejects directory media | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M09 fresh candidate rejects mapping | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M09 fresh candidate rejects path | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-M09 fresh candidate rejects tombstone | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SW01 managed empty root opens with lifetime lease | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SW02 same process second managed owner denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SW03 different process owner and inherited use denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SW12 managed duplicate descriptors are close-on-exec | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SW05 managed reserve append replay use owned descriptor | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SW06 raw managed access and legacy default path denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SW01 managed Reserve rejects different store identity | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SW10 catalog connection can inspect managed lease | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SW04 owner destruction releases lease | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SW01 managed reopen rejects different store identity | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SW11 managed incomplete tail rejects append without changing bytes | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SW07 legacy nonempty root preserved without conversion | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SW08 partial initialization retry validates exact state lease | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SW08 partial initialization retry validates exact state init | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SW08 partial initialization retry validates exact state barrier | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SW08 partial initialization retry validates exact state journal | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SW08 partial initialization retry validates exact state incomplete | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SW08 partial initialization retry validates exact state unknown | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SW09 symlink inode and malformed marker rejected journal | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SW09 symlink inode and malformed marker rejected marker | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SW09 symlink inode and malformed marker rejected barrier | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SW09 symlink inode and malformed marker rejected root-symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SB01 second managed catalog is denied | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SB02 failed catalog cannot mutate journal or holds | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SB03 attached catalog blocks unowned append but permits reservation | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SB04 catalog destruction releases attachment | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SB05 managed catalog rejects unsafe options outside | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SB05 managed catalog rejects unsafe options dotdot | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SB05 managed catalog rejects unsafe options media-symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SB05 managed catalog rejects unsafe options sqlite-symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SB05 managed catalog rejects unsafe options sqlite-hardlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SB05 managed catalog rejects unsafe options disabled | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SB06 failed open releases catalog attachment | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SB07 managed SQLite sidecar rejected -wal symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SB07 managed SQLite sidecar rejected -wal hardlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SB07 managed SQLite sidecar rejected -shm symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SB07 managed SQLite sidecar rejected -shm hardlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SB07 managed SQLite sidecar rejected -journal symlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SB07 managed SQLite sidecar rejected -journal hardlink | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC01 managed repeated event fixture is valid | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC02 managed reservations avoid history reads | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC03 managed V2 finalize avoids full replay | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC04 checkpoint reduces superseded event payload bytes | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC05 checkpoint preserves latest event and all record identities | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC06 checkpoint is idempotent and preserves V2 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC08 receipt preserves retry identity and rejects direct append | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC09 checkpoint restart preserves SQLite and JSONL state sqlite | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC09 managed checkpoint SQL V2 payload and path | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC09 checkpoint restart preserves SQLite and JSONL state jsonl | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC10 checkpoint prefix recovers before writes | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC11 checkpoint mismatch preserves bytes and poisons owner | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC12 first accepted mutation controls latest event | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC16 automatic checkpoint uses accumulated growth | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC07 raw checkpoint is rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC18 checkpoint syscall failure poisons and reopens write | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC21 poison rejects hold mutation write | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC18 checkpoint syscall failure poisons and reopens file-fsync | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC21 poison rejects hold mutation file-fsync | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC18 checkpoint syscall failure poisons and reopens rename | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC21 poison rejects hold mutation rename | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC18 checkpoint syscall failure poisons and reopens dir-fsync | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC21 poison rejects hold mutation dir-fsync | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC17 checkpoint preserves holds observations and deletion | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC17 checkpoint SQL hold observation tombstone | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC17 checkpoint preserves holds observations and deletion restart sqlite | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC17 checkpoint SQL restart observation tombstone | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC17 checkpoint preserves holds observations and deletion restart jsonl | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC19 invalid managed history remains unchanged malformed | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC19 invalid managed history remains unchanged unsupported | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC19 invalid managed history remains unchanged conflict | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC20 raw catalog rejects receipt before side effects | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC13 crypto off raw remains usable | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC14 crypto off checkpoint is rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: S10-SC15 crypto off receipt reopen is rejected | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: source 저장 callback reconcile 연결 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: policy revision idempotency | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: 5초 safety reconcile | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: composition root journal 선행 open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: composition root catalog rebuild/open | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: 서버 전 supervisor 시작 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: ingress 전 event bridge 등록 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: ingress 종료 뒤 recorder finalize | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+| Catalog.log: composition root 시작/종료 순서 | [전체 명령·원출력](release-artifacts/v4.1.0/s10-consumer-reference/Catalog.log), exit0 | pass |
+
+focused16개와 10개 손상/충돌 세부 경우는 연결된 report의 전수표와 Final.log에 보존한다.
+스크립트 원출력 없는 전체 elapsed와 token start/end/consumed는 미집계다. 30분/120분/UI 전체/3D/S11/푸시 미실행.
+
+
+등록 보완: inventory/중앙 정의는 실행 전 작성했으나 UI checklist/template의 비대상 연결은 focused 후 보완했다.
+기존 focused 실행은 이력으로 보존하고 최종 완료 증거는 연결 보완 후 동일 focused 재실행으로 확정한다.
+기존 binding/catalog 회귀의 정의는 변경하지 않았으므로 해당 증거까지 무효화하지 않는다.
+
+C342에는 1MiB 초과 원문 입력 거부를 포함한다. schema의 필드 제한과 별개인 parser 방어 상한이다.
+최초 stub 실행: C341/C350 0 PASS/2 FAIL(exit1), 예상 assertion 일치. 컴파일·환경 오류 아님.
+소유 임시 media-server-consumer-reference.Pguq3h 3012796B 삭제 확인, runner4초. 최종 원출력은 담당자 반환 뒤 이관한다.
+
+정책은 AGENTS, 계약은 구현계획의 2026-09-13 재개 절이다. 이 단위는 저장 기반이며 소비자/파생 완료가 아니다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| C341 계약 왕복 | 내부 원본 참조 저장 | 계약 왕복; 격리 실제 parser/catalog/journal, runner 개별 assertion | v4.1.0 |
+| C342 unknown/중복 필드 거부 | 내부 원본 참조 저장 | unknown/중복 필드 거부; 격리 실제 parser/catalog/journal, runner 개별 assertion | v4.1.0 |
+| C343 ID·종류·소유자 제약 | 내부 원본 참조 저장 | ID·종류·소유자 제약; 격리 실제 parser/catalog/journal, runner 개별 assertion | v4.1.0 |
+| C344 품질·원본 nullable 조합 | 내부 원본 참조 저장 | 품질·원본 nullable 조합; 격리 실제 parser/catalog/journal, runner 개별 assertion | v4.1.0 |
+| C345 원본 수치·track 경계 | 내부 원본 참조 저장 | 원본 수치·track 경계; 격리 실제 parser/catalog/journal, runner 개별 assertion | v4.1.0 |
+| C346 event 요청·시간축 | 내부 원본 참조 저장 | event 요청·시간축; 격리 실제 parser/catalog/journal, runner 개별 assertion | v4.1.0 |
+| C347 observation 요청 금지 | 내부 원본 참조 저장 | observation 요청 금지; 격리 실제 parser/catalog/journal, runner 개별 assertion | v4.1.0 |
+| C348 요청 음수·역전·padding | 내부 원본 참조 저장 | 요청 음수·역전·padding; 격리 실제 parser/catalog/journal, runner 개별 assertion | v4.1.0 |
+| C349 미지원 schema 거부 | 내부 원본 참조 저장 | 미지원 schema 거부; 격리 실제 parser/catalog/journal, runner 개별 assertion | v4.1.0 |
+| C350 실제 원장 저장·조회 | 내부 원본 참조 저장 | 실제 원장 저장·조회; 격리 실제 parser/catalog/journal, runner 개별 assertion | v4.1.0 |
+| C351 동일 참조 멱등 | 내부 원본 참조 저장 | 동일 참조 멱등; 격리 실제 parser/catalog/journal, runner 개별 assertion | v4.1.0 |
+| C352 동일 ID 충돌 거부 | 내부 원본 참조 저장 | 동일 ID 충돌 거부; 격리 실제 parser/catalog/journal, runner 개별 assertion | v4.1.0 |
+| C353 opt-in·미open 거부 | 내부 원본 참조 저장 | opt-in·미open 거부; 격리 실제 parser/catalog/journal, runner 개별 assertion | v4.1.0 |
+| C354 SQL·JSONL 재시작 동등 | 내부 원본 참조 저장 | SQL·JSONL 재시작 동등; 격리 실제 parser/catalog/journal, runner 개별 assertion | v4.1.0 |
+| C355 checkpoint 참조 보존 | 내부 원본 참조 저장 | checkpoint 참조 보존; 격리 실제 parser/catalog/journal, runner 개별 assertion | v4.1.0 |
+| C356 손상·충돌 replay 선차단 | 내부 원본 참조 저장 | 손상·충돌 replay 선차단; 격리 실제 parser/catalog/journal, runner 개별 assertion | v4.1.0 |
+
+안정화: 진행 대상(사용자 승인, C341~356). 30분/120분/UI: 이번 미진행, 최종 필요성·명령은 S11에서 판정.
+신규 명령은 `bash scripts/internal/verify_recording_consumer_reference.sh`. 최초 RED/GREEN·회귀·cleanup은 실행 후 기록한다.
+token start/end/consumed: 실측 미제공으로 미집계. elapsed는 runner 측정, 최종 증거는 원출력과 함께 보존한다.
+
+
 ## S10 3C-3B 최종 결과 — 승인된 내부 실패 경계 포함
 
 문서 마감: `./server.sh verify-docs-links` exit0, 234문서/1184링크/실패0; `git diff --check` exit0.

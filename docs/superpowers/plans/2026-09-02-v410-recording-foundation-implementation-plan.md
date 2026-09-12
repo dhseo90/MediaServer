@@ -1914,6 +1914,65 @@ catalog finalize에 전달한다. UTC 변화는 물리 분할 기준이 아니�
 확정된 코드와 단기 검증을 맡고 메인은 문서·안전 계약·diff/증거 검토를 맡는다. 하위 위임 금지.
 기존 미커밋 S09 수정은 보존한다. S11·장시간/UI 전체와 후속4 데이터 삭제는 자동 착수하지 않는다.
 
+### 3C-3C → 3C-4 → 3C-5 승인 재개 (2026-09-13)
+
+독자는 구현·검토 담당자이며 기존 S10 설계와 AGENTS를 따른다. 사용자 재검토 후 개발 승인.
+기존 v4.1.0 checkout과 S09 변경은 보존하며 다른 worktree/branch를 만들지 않는다.
+메인이 계약·최종 검토, 기존 Astra/medium 담당자 한 명이 확정된 단위를 순차 구현한다. 하위 생성 금지.
+공개 Event POST/SSE/WS, decoder 정규화, 확정 segment·UTC 매핑은 불변이다.
+별도 DB·새 외부 의존성·3D·S11·장시간/UI 전체·푸시는 제외한다.
+
+- [x] 3C-3C: 원본 사실 저장. `RecordingConsumerReferenceV1`을 기존 journal/catalog/SQLite/checkpoint에 연결했다. focused16·binding20·catalog246 및 build 통과. metadata 원자 저장/소비자는 다음 단위다.
+- [ ] 3C-4: 위 참조를 분석/projector와 event bridge에서 생산하고 현재 catalog로 후보를 해석한다.
+- [ ] 3C-5: 참조 구간의 실제 미디어 출력/ready/hold·예약 중단 복구를 구현한다.
+
+#### 3C-3C 고정 계약
+
+`recording_contracts.h/.cpp`에 `RecordingConsumerReferenceV1`:
+schema=`media-server.recording-consumer-reference.v1`,
+reference_id, kind(`observation`/`event`), owner_id, source_id, channel_id,
+analysis_namespace, analysis_track_id, analysis_pts(ns, >=0),
+association_quality(`timestamp-match`/`nearest`/`ambiguous`/`unavailable`),
+optional original{source_generation,generation_order,ordinal,track_id,pts_ns},
+optional request{time_basis(`utc-ms`/`media-pts-ms`),start_ms,end_ms,pre_ms,post_ms},
+created_at_ms. 직렬화는 위 필드를 모두 요구하고 optional 부재는 null이다. 알 수 없는 필드/중복 거부.
+ID는 기존 ValidateOpaqueId, analysis_track_id는 비어 있지 않은 최대1024 printable 문자열.
+parser 원문은 1MiB 이하로 제한하며 과대 입력은 parsing 전에 거부한다.
+original generation/order/ordinal/track/PTS는 기존 source-binding과 같은 값 제약.
+timestamp-match/nearest에는 original 필수; ambiguous/unavailable에는 original 금지.
+request는 event에만 필수이며 start<=end, 음수/overflow/음수 padding은 거부한다.
+padding 합성은 int128 중간값으로 start_ms-pre_ms>=0, end_ms+post_ms<=INT64_MAX를 검증한다.
+start==end는 원본 순간 요청으로 보존하며 영상 coverage를 자동 부여하지 않는다.
+단일 현재 원본으로 과거 이벤트 시작 위치를 역산하지 않는다. 요청 사실과 현재 연관은 분리 보존한다.
+소비자는 timestamp-match만 정확한 입력 tuple 조회에 사용하며 decoded frame 유일성으로 승격하지 않는다.
+kind/owner/원본이 다른 동일 reference_id는 충돌로 거부한다. 같은 전체 값 재전달만 멱등이다.
+후보 snapshot·playable·UTC 외삽 결과는 이 불변 원본 참조에 저장하지 않는다.
+
+catalog API:
+`bool PutConsumerReference(const RecordingConsumerReferenceV1&, std::string*)`;
+`std::vector<RecordingConsumerReferenceV1> QueryConsumerReferences(const std::string& channel, const std::string& kind, const std::string& owner) const`.
+새 mutation `consumer_reference_put`의 payload는 `{"reference":...}`, entity_id=reference_id.
+새 kind를 알지 못하는 원장 시작 보호는 기존 미지원 기록 규칙을 따른다. enable_v2_storage opt-in 필요.
+원본은 finalized 전에 저장할 수 있으므로 segment 존재를 필수로 하지 않는다.
+SQL은 기존 DB 안 별도 projection table, JSONL-only와 동일 출력. checkpoint/재시작/미지원·충돌 선차단을 유지한다.
+분석 관측 metadata와 참조의 원자 저장 연결은 3C-4에서 고정하며 이 단위의 단독 원본 참조 PASS를 전체 소비자 PASS로 쓰지 않는다.
+
+#### 실행 순서·합격 기준
+
+소유: contracts/catalog/journal h/cpp, 신규 recording_consumer_reference_smoke.cpp 및 verify_recording_consumer_reference.sh.
+실행 전 C341~356을 중앙 기록·inventory에 등록한다. 컴파일 가능한 stub에서 C341 왕복·C350 저장이
+미구현 assertion으로 실패함을 확인한 뒤 구현한다. 컴파일/환경 실패는 RED가 아니다.
+격리 mktemp·포트 없음, cleanup 경로/크기/부재를 출력한다. 실제 출력·exit는 중앙 기록에 전수 보존한다.
+관련 단기: 신규 focused, 기존 source-binding/catalog 회귀, 제품 build, docs links/diffcheck.
+단계별 변경을 메인이 검토하고 통과한 단위만 승인 범위에 맞춰 커밋한다.
+후속 소비자·파생 단계는 이 API의 실제 결과를 확인한 후 세부 함수를 고정하며 동일 파일 동시 수정하지 않는다.
+
+| 작업 경계 | 대조 결과 |
+| --- | --- |
+| 3C-3C → 3C-4 | 원본 사실/요청 저장과 해석·표출 분리, 미확정은 확정 후보로 승격 금지 |
+| 3C-4 → 3C-5 | 이벤트 요청 전체 coverage는 현재 단일 association으로 증명 불가; 실제 범위 확인 필요 |
+| 공통 계약 → 공개 serializer | 내부 참조 추가를 Event POST/SSE/WS 필드 추가로 노출하지 않음 |
+
 #### 3C 보완 구현 순서 — 사용자 개발 승인
 
 독자는 S10 구현·검토 담당자다. 기존 S10 시간식별 계약의 실행 세분화이며 정책은 AGENTS를 따른다.
