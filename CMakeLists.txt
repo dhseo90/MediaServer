@@ -99,6 +99,7 @@ add_library(media_server_runtime STATIC
     src/recording/recording_catalog.cpp
     src/recording/analysis_observation_projector.cpp
     src/recording/recording_read_service.cpp
+    src/recording/recording_derived_selection.cpp
     src/ingress/recording_application_service.cpp
     src/recording/retention_coordinator.cpp
     src/recording/recording_session_service.cpp

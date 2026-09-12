@@ -1,5 +1,66 @@
 # Release Test Records
 
+## S10 3C-5.1 요청 구간 대응·선택 — 2026-09-13 실행 전 정의
+
+추가 사전등록 D21(v4.1.0): 메인이 지적한 이전 namespace의 큰 PTS eviction→새namespace의 낮은 PTS 4096개 초과→재eviction에서 이전 highwater가 재등장하는 반례를 focused fixture로 실행한다. worker의 실제 namespace reset에서 collector 소유 경계를 명시적으로 전환하고, cutoff 이후 누락 증거는 감추지 않는다. 앞선 pure26/runtime19 PASS는 당시 범위로 보존하며 이 반례의 검증은 아니었다.
+
+추가 실행 전 등록(메인 검토 반영): D14 유효+손상 후보 병존은 미확인, D15 queued decoded sequence 이후 frame 제외, D16 기존 worker namespace reset에서 이전 sequence/eviction 제외, D17 exact 원본 duration만 전달, D18 실제 VP8 decoder→manager snapshot의 정상 시간구간 선택, D19 실제 PTS rollback namespace 경계, D20 history 복사본에서는 새 snapshot만 제거하고 live/latest는 보존. 모두 v4.1.0의 격리 단기 focused/runtime 범위이며 `bash scripts/internal/verify_v410_recording_observation_runtime.sh`는 서버·port·외부 호출 없이 실행한다. VP8 fixture는 분석 시간 전달 검사이며 H264 remux PASS가 아니다.
+
+D09 최초 fixture는 media_end=20ms에서 UTC mapping만10ms로 줄인 뒤 영상공백을 기대한 오류가 있었다. 실제 `ValidateRecordingSegmentV2`의 mapping 전체 coverage 계약상 invalid이므로 Unknown으로 정정하고 구현 전 RED22건을 다시 실행했다. 이 oracle 정정은 실제 미디어공백 PASS가 아니며 Gap/AwaitingPostRoll 상태는 직접 증거가 없어 현재 반환하지 않는다.
+
+독자: 현재 개발·검토 담당자. 이 절은 내부 구간 선택의 실행 정의이며 실제 파생 생성/내구 복구/S11 완료 증거가 아니다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-D01 | callback 증거 누적 | 직접 frame의 정수 PTS·duration 구간, snapshot 불변 | v4.1.0 |
+| S10-D02 | 0·부재·fallback | 원본 유효 0만 대응, nearest/ambiguous/숫자 불일치/duration 부재는 미확인 | v4.1.0 |
+| S10-D03 | 요청 산술 | pre/post 원문 유지·음수 확장·ns overflow 거부 | v4.1.0 |
+| S10-D04 | 정상 선택 | 연속 직접 구간 union의 정확한 반열림 coverage 및 segment/hash 보존 | v4.1.0 |
+| S10-D05 | 외삽 금지 | 한 점과 누락 표본은 전체 구간으로 승격하지 않음 | v4.1.0 |
+| S10-D06 | 내부 namespace 경계 | namespace/generation/order/track 불일치를 합성하지 않음 | v4.1.0 |
+| S10-D07 | 중복 후보 | 서로 다른 ordinal의 같은 PTS, 복수 segment 후보를 보존하고 ambiguous | v4.1.0 |
+| S10-D08 | 증거 유한 상한 | cap 초과 요청은 incomplete 경계를 보존하며 성공으로 자르지 않음 | v4.1.0 |
+| S10-D09 | 원본 상태 | epoch를 보존하고 gap/deleted/unknown을 분리 | v4.1.0 |
+| S10-D10 | UTC | piecewise mapping·uncertainty·복수 후보·unplaced를 그대로 유지 | v4.1.0 |
+| S10-D11 | 유리수 시간축 | exact 변환과 표현 불가 잔차를 구분 | v4.1.0 |
+| S10-D12 | postroll | 최신 PTS만으로 watermark·완료·공백을 단정하지 않음 | v4.1.0 |
+| S10-D13 | 원본 결박 | source/channel/binding/파일 checksum 식별 누락을 거부 | v4.1.0 |
+| S10-D14 | 정상·손상 후보 병존 | 요청 source/channel의 손상 binding을 정상 후보로 숨기지 않고 Unknown 유지 | v4.1.0 |
+| S10-D15 | queued sequence cutoff | 실제 callback의 decoded sequence가 queued frame 이후이면 snapshot에서 제외 | v4.1.0 |
+| S10-D16 | namespace·eviction 경계 | 기존 worker reset의 최소 sequence 이전 증거·eviction을 새 namespace로 재라벨링하지 않음 | v4.1.0 |
+| S10-D17 | decoder 원본 duration | exact 연관에서만 원본 duration을 전달하고 nearest/PTS 부재는 미확인 | v4.1.0 |
+| S10-D18 | 실제 분석 전달 정상 선택 | 기존 VP8 encoder→decoder→manager 결과의 직접 시간 구간 union으로 정상 요청 선택 | v4.1.0 |
+| S10-D19 | 실제 PTS rollback | 로컬 패킷의 PTS/source generation 재시작 뒤 namespace와 증거 최소 sequence 격리 | v4.1.0 |
+| S10-D20 | snapshot 소유 수명 | live/latest에서 보존하고 history 복사본의 신규 pointer만 제거; 기존 PTS 값 동일 | v4.1.0 |
+| S10-D21 | reset 이후 재eviction | 과거 큰 PTS 4100개→실제 namespace 경계→새 낮은 PTS 4100개 뒤 최근 작은 구간 선택 | v4.1.0 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 3C-5.1 내부 대응/선택 구현 | S10-D01~D13; derived-selection·frame-association·consumer/range 회귀·build/diff | 승인된 격리 단기 범위 |
+| 30분 | 미진행 | S11로 보류 | 이번 focused 구현 범위 | 실행 승인 없음 |
+| 120분 | 조건부 진행 | S11 최종 cut에서 영향범위 대조 | 내부 decoder 증거 전달·bounded collector 영향 | 이번 실행 미승인·미실행 |
+| UI 풀테스트 | 미진행 | 내부 선택 모듈이며 제품 UI 없음 | S10-D01~D13 | 실행 승인 없음 |
+
+예상 RED: 선언과 미구현 stub만 있는 상태에서 D01의 실제 frame 누적 및 D04의 exact 요청 선택 assertion이 실패한다. 컴파일/환경 실패는 예상 RED가 아니다.
+실행: `bash scripts/internal/verify_recording_derived_selection.sh`. 실행 소유 root는 `mktemp`의 `media-server-derived-selection.*`이며 trap이 종류/containment/크기를 확인하고 제거한다. 비밀·서버·외부 호출 없음.
+token start/end/consumed: 자동 집계 없음(서브에이전트 tool에서 토큰 집계 미제공). elapsed는 runner의 SECONDS, source는 명령 원출력. 결과·cleanup은 [상세 기록](release-artifacts/v4.1.0/s10-derived-selection/report.md)에 보존한다.
+
+### 3C-5.1 실행 결과
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| S10-D01~D17·D21 focused | 최종 개별27 assertion. 원본 구간 union, 요청 산술, 중복/손상 후보, sequence/namespace/eviction, duration을 검사 | PASS |
+| S10-D15·D18~D20 실제 runtime | 기존 VP8 encoder→decoder→manager에서19 assertion과 별도cleanup1개; 실제 시간선택 정상case와PTS rollback 포함 | PASS |
+| source association 영향 회귀 | 기존 S10-C101~C110 개별10 assertion | PASS |
+| consumer connection 영향 회귀 | 기존 C401~C425의 실제22 assertion | PASS |
+| consumer reference 영향 회귀 | 실제19 assertion 및 C356 replay detail10개 | PASS |
+| range resolution 영향 회귀 | S10-C201~C216 개별16 assertion | PASS |
+| build | `cmake --build build-gst-onnx -j2`, exit0, build100% | PASS |
+| cleanup | 실행 소유 root를 모두 제거하고 부재 확인 | PASS |
+
+위 묶음의 모든 개별명령/assertion/replay detail/cleanup 행과 최초 실패→정정→GREEN 이력은 [전수 결과](release-artifacts/v4.1.0/s10-derived-selection/report.md#개별-실행-결과-전수)에 저장했다. 초기 준비 경고 실패와 일부 중간 원출력 파일 미보존을 명시했고 해당 중간자료를 최종 evidence로 사용하지 않는다. 최종 실행 원출력은 전수 보존했다.
+이 PASS는 내부 선택·실제 분석 전달 범위다. 파일/AU 동일성·파생 생성·내구 복구·실제bridge event→출력은 미구현이며 3C-5 전체 완료가 아니다. 30분/120분/UI/S11은 미실행이다.
+
 ## S09 잔여 변경 정리·커밋 — 2026-09-13
 
 추가 cleanup 실행 전 등록: UA08-A anchored seed, UA08-B legacy seed, UA08-C seek seed의 captured stdout에서 소유 `media-server-s06-read.*` root의 `du -sk`와 삭제 확인 안전행만 보존하고 동일 root의 lstat ENOENT를 직접 확인한다. 기존17기능은 유지하며 auth-prep만 재실행한다. 최초 내부 root 세부 미보존 이력은 삭제하지 않는다.

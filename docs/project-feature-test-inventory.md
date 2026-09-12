@@ -2,6 +2,36 @@
 
 | 기능 ID | 기능 | 안정화 | 30분 | 120분 | UI 풀테스트 | UI 기준 |
 | --- | --- | --- | --- | --- | --- | --- |
+| S10-D21 | namespace reset 이후 재eviction에서 이전큰PTS 격리 | derived-selection focused/runtime | S11 판정 | S11 판정 | 비대상 | 반복namespace 증거 수명 |
+
+| 기능 ID | 기능 | 안정화 | 30분 | 120분 | UI 풀테스트 | UI 기준 |
+| --- | --- | --- | --- | --- | --- | --- |
+| S10-D14 | 유효후보와 손상후보 병존 | derived-selection focused | S11 판정 | S11 판정 | 비대상 | 내부 후보 완전성 |
+| S10-D15 | queued sequence 이후 callback 제외 | derived-selection focused/runtime | S11 판정 | S11 판정 | 비대상 | 내부 시간 증거 |
+| S10-D16 | namespace reset·과거 eviction 격리 | derived-selection focused/runtime | S11 판정 | S11 판정 | 비대상 | 기존 reset 판단 불변 |
+| S10-D17 | decoder 실제 duration 복원 | derived-selection focused/runtime | S11 판정 | S11 판정 | 비대상 | duration 추정 없음 |
+| S10-D18 | 실제 decoder→manager 선택 정상범위 | observation runtime | S11 판정 | S11 판정 | 비대상 | VP8 fixture는 선택시간 검증, remux지원 아님 |
+| S10-D19 | 실제 namespace reset 내부증거 단절 | observation runtime | S11 판정 | S11 판정 | 비대상 | 공개 metadata 불변 |
+| S10-D20 | history snapshot 수명 제한 | observation runtime | S11 판정 | S11 판정 | 비대상 | live/latest 전용 내부 필드 |
+
+| 기능 ID | 기능 | 안정화 | 30분 | 120분 | UI 풀테스트 | UI 기준 |
+| --- | --- | --- | --- | --- | --- | --- |
+| S10-D01 | 실제 callback 직접 구간 누적·불변 snapshot | derived-selection focused | S11 판정 | S11 판정 | 비대상 | 내부 시간 대응; UI 없어야 정상 |
+| S10-D02 | 원본 PTS 0과 부재·fallback·duration 부재 | derived-selection focused | S11 판정 | S11 판정 | 비대상 | 공개 직렬화 변화 없음 |
+| S10-D03 | pre/post·음수 확장·overflow | derived-selection focused | S11 판정 | S11 판정 | 비대상 | 반열림 요청 보존 |
+| S10-D04 | exact 구간 union 정상 선택·파일 식별 | derived-selection focused | S11 판정 | S11 판정 | 비대상 | 재생 가능 판정 아님 |
+| S10-D05 | 한 점 외삽 금지·표본 사이 미확인 | derived-selection focused | S11 판정 | S11 판정 | 비대상 | source duration 추정 금지 |
+| S10-D06 | namespace·generation·track 격리 | derived-selection focused | S11 판정 | S11 판정 | 비대상 | 서로 다른 원점 합성 금지 |
+| S10-D07 | 중복 PTS·복수 원본 후보 모호성 | derived-selection focused | S11 판정 | S11 판정 | 비대상 | 후보 자동 축약 금지 |
+| S10-D08 | bounded 증거 cap·초과 범위 미확인 | derived-selection focused | S11 판정 | S11 판정 | 비대상 | 잘라 성공 금지 |
+| S10-D09 | epoch·공백·삭제·미확인 구분 | derived-selection focused | S11 판정 | S11 판정 | 비대상 | 별도 출력 입력 유지 |
+| S10-D10 | UTC piecewise 품질·복수 후보·unplaced | derived-selection focused | S11 판정 | S11 판정 | 비대상 | 원본 UTC mapping 유지 |
+| S10-D11 | 분수 timebase exact 변환·잔차 거부 | derived-selection focused | S11 판정 | S11 판정 | 비대상 | 1ns 일괄 무시 금지 |
+| S10-D12 | 후행 구간은 watermark 없으면 미확인 | derived-selection focused | S11 판정 | S11 판정 | 비대상 | 무한 pending 금지 |
+| S10-D13 | source binding 무결성·source/channel 불일치 | derived-selection focused | S11 판정 | S11 판정 | 비대상 | 경로만으로 선택 금지 |
+
+| 기능 ID | 기능 | 안정화 | 30분 | 120분 | UI 풀테스트 | UI 기준 |
+| --- | --- | --- | --- | --- | --- | --- |
 | S10-C419 | media-pts 초기 요청 원문 왕복 | consumer-reference/connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in; 영상 생성·범위 증명 아님 |
 | S10-C420 | UTC 초기 요청 원문 왕복 | consumer-reference/connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in; 영상 생성·범위 증명 아님 |
 | S10-C421 | 0·최대 pre 요청 및 오류 경계 | consumer-reference/connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in; 영상 생성·범위 증명 아님 |

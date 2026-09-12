@@ -68,6 +68,14 @@ public:
 
     const std::deque<FrameTimestampAssociation>& mappings() const { return mappings_; }
 
+    // 정확한 입력 연관의 원본 duration만 전달한다. 출력 프레임 고유성의 증명이 아니다.
+    std::optional<std::uint64_t> ResolveDuration(std::optional<std::int64_t> pts) const {
+        const auto association=Resolve(pts);
+        if(association.quality!=SourceAssociationQuality::TimestampMatch||!association.original)return std::nullopt;
+        for(const auto& entry:mappings_)if(entry.decoder_pts==*pts&&Valid(entry))return entry.observation->duration_ns;
+        return std::nullopt;
+    }
+
 private:
     static bool Valid(const FrameTimestampAssociation& entry) {
         if (!entry.observation || entry.track_id.empty()) return false;

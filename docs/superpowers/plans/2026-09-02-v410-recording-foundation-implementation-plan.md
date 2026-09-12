@@ -1978,6 +1978,45 @@ PTS의 원본 대비 차이가 일정한지, timescale 양자화 또는 decode-p
   계약 문서화는 제품 구현·검증 PASS가 아니다. 3D 기본 연결과 S11은 착수하지 않았다.
   S09 잔여 변경은 e223817d로 이미 정리·커밋·푸시됐다. 위의 보존 문구는 당시 작업 경계다.
 
+#### 3C-5 순차 개발 착수 (2026-09-13)
+
+사용자 승인 범위는 계약 문서 커밋 후 3C-5.1~5.4 개발·격리 단기 검증·통과 단위 분할 커밋이다.
+계약 커밋은 `e11ab7d1`이며 이번 푸시·3D·S11·장시간/UI 실행은 포함하지 않는다.
+메인은 시간·원본/자원 계약과 직접 리뷰를 맡고 단일 Astra/medium 담당자가 순차 구현한다.
+
+3C-5.1의 내부 증거 생산 위치는 `AnalysisManager::HandleFrame`의 sampling 이전이다.
+decoder 출력 시각과 원본 association의 정확한 대응 및 원본의 유효 duration을 함께 확인한다.
+기존 decoder 숫자 정규화/fallback과 공개 직렬화는 바꾸지 않는다. 모든 decoded frame의
+직접 구간을 bounded collector에 모아 분석 결과에 immutable snapshot으로 전달한다.
+queue에는 decoded sequence만 결박하고 worker의 기존 namespace reset 판정 후
+해당 sequence 이하·현재 namespace 시작 sequence 이상의 증거만 snapshot으로 만든다.
+별도 callback namespace 판정기를 만들지 않는다. 이미 evict된 범위는 미확인이다.
+신규 snapshot은 live observer/event 처리와 latest result에 한정하고, 최대512개인
+기존 result history의 저장 복사본에는 중복 보존하지 않는다. 기존 공개/history 필드는 불변이다.
+관측 상한은 기존 이력 규모인 4096개를 기준으로 하며 eviction·중복·미확인 이유를 보존한다.
+한 점 offset 또는 표본 사이 보간으로 구간을 채우지 않는다. 입력에 duration이 없으면
+프레임율이나 DTS 간격으로 대신하지 않는다. 정상 직접 대응 구간이 실제로 선택되는 경로와
+증거 부족으로 선택하지 않는 경로를 모두 검증하며, 내구 작업 capture는 3C-5.3에서 연결한다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 이번 구간 선택 및 내부 분석 연결 변경 | 이 절, RawVideoDecoder/AnalysisManager/RecordingReadService | 격리 focused·직접 영향 회귀·build 승인 |
+| 30분 | 미진행 | 개발 중 단기 검증이며 최종 코드 미고정 | AGENTS 7.6.2, S11 | 이번 실행 범위 아님 |
+| 120분 | 조건부 진행 | 분석 callback/lifecycle 영향은 최종 cut에서 판정 | AGENTS 7.6.2, S11 | 이번 실행 미승인, 필요성·범위 재대조 후 실행 |
+| UI 풀테스트 | 미진행 | 공개 UI/route 변경 및 3D 기본 연결 없음 | 이 절, S11 | 이번 실행 범위 아님 |
+
+개별 신규 검증 등록·실행 결과는 중앙 테스트 기록과 이번 단위 보고서를 따른다.
+착수/계획만으로 제품 완료·PASS를 표시하지 않는다.
+
+3C-5.1의 시간 증거 생산·순수 선택 단위는 구현했다. 메인이 실제 diff와 최종 원출력을 대조했으며
+focused27, 실제 decoder/manager19, source association10, consumer connection22,
+consumer reference19, range16 및 제품 build가 통과했다. 준비 실패와 D09 oracle 정정,
+D21 초기화 후 재eviction 결함/수정 이력은 [실행 기록](../../release-artifacts/v4.1.0/s10-derived-selection/report.md)에 남겼다.
+시간 선택은 재생 가능 판정이 아니다. catalog 공급 adapter·실제 bridge 생성 호출·작업/출처의
+내구 직렬화는 3C-5.2~5.4에 남는다. 직접 증거 없는 Gap/post-roll watermark를 생성하지 않는다.
+worker reset 전에 새 namespace 자료까지 상한 밖으로 소실됐다면 해당 namespace는 미확인으로
+유지한다. 선택 iteration 상한과 정상 길이 제약도 기록했으며 이를 전체 요청 지원으로 과장하지 않는다.
+
 #### 3C-4 실제 분석·이벤트 소비자 연결 (3C-3C 이후)
 
 전제: a8ed142f 원본 참조 저장 계약/복구 검증 완료. 이 단계는 실제 class 경로의 opt-in 구현이며

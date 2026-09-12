@@ -548,6 +548,10 @@ void AnalysisManager::HandleFrame(const std::weak_ptr<AnalysisTap>& weak_tap, Ra
         std::lock_guard tap_lock(tap->mu);
         ++tap->decoded_frames;
         ++tap->decoded_frame_sequence;
+        DecodedIntervalEvidence interval;
+        interval.analysis_pts_ns=frame.pts;interval.association=frame.source_association;
+        interval.duration_ns=frame.source_duration_ns;
+        tap->decoded_interval_collector.Append(std::move(interval));
         if (tap->observation_last_frame_pts >= 0 && frame.pts < tap->observation_last_frame_pts)
             tap->observation_ambiguous = true;
         tap->observation_last_frame_pts = frame.pts;
@@ -586,7 +590,8 @@ void AnalysisManager::HandleFrame(const std::weak_ptr<AnalysisTap>& weak_tap, Ra
             ++tap->dropped_packets;
         }
         tap->frame_queue.push_back(AnalysisTap::QueuedFrame{.frame = std::move(frame), .enqueued_at = now,
-                                                          .observation_context = std::move(observation_context)});
+                                                          .observation_context = std::move(observation_context),
+                                                          .decoded_sequence = tap->decoded_frame_sequence});
         tap->peak_pending_frames = std::max(tap->peak_pending_frames, tap->frame_queue.size());
         should_notify = true;
     }
@@ -679,11 +684,13 @@ void AnalysisManager::AnalysisWorkerLoop(const std::weak_ptr<AnalysisTap>& weak_
                     std::to_string(tap->observation_generation), "pts-rollback"); } catch (...) {}
             }
             ++tap->observation_generation;
+            tap->observation_minimum_sequence=queued_frame.decoded_sequence;
             if (tap->tracker != nullptr) {
                 tap->tracker->Reset();
             }
             tap->track_state_manager.Reset();
             std::lock_guard tap_lock(tap->mu);
+            tap->decoded_interval_collector.BeginNamespace(tap->observation_minimum_sequence);
             tap->latest_result.reset();
             tap->latest_result_at = {};
             tap->result_history.clear();
@@ -693,6 +700,12 @@ void AnalysisManager::AnalysisWorkerLoop(const std::weak_ptr<AnalysisTap>& weak_
             detection.detector_box_available = true;
         }
         result.observation_namespace = tap->observation_namespace + "-r" + std::to_string(tap->observation_generation);
+        {
+            std::lock_guard tap_lock(tap->mu);
+            // 미래 callback은 queued sequence에서 자르고, 실제 worker reset 이전 자료를 재라벨링하지 않는다.
+            result.decoded_intervals=tap->decoded_interval_collector.Snapshot(result.observation_namespace,
+                tap->observation_minimum_sequence,queued_frame.decoded_sequence);
+        }
         if (tap->tracker != nullptr) {
             // detector는 frame 단위 결과만 만들기 때문에, tracker에서 같은 객체에 안정 ID를 붙인다.
             tap->tracker->Update(&result);
@@ -729,6 +742,8 @@ void AnalysisManager::AnalysisWorkerLoop(const std::weak_ptr<AnalysisTap>& weak_
         tap->latest_result = std::move(result);
         tap->latest_result_at = analysis_finished_at;
         tap->result_history.push_back(*tap->latest_result);
+        // 512개 history에 4096-frame snapshot을 반복 보관하지 않는다. 기존 history 값은 유지한다.
+        tap->result_history.back().decoded_intervals.reset();
         while (tap->result_history.size() > kMaxResultHistory) {
             tap->result_history.pop_front();
         }

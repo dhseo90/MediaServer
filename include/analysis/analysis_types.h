@@ -6,11 +6,14 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
 
 namespace analysis {
+
+struct DecodedIntervalSnapshot;
 
 enum class PixelFormat {
     Unknown,
@@ -44,6 +47,7 @@ struct RawVideoFrame {
     std::int64_t pts{0};
     std::vector<unsigned char> data;
     SourceAssociation source_association;
+    std::optional<std::uint64_t> source_duration_ns;
 };
 
 struct RectF {
@@ -425,6 +429,8 @@ struct AnalysisResult {
     std::uint64_t frame_id{0};
     std::int64_t pts{0};
     SourceAssociation source_association;
+    // live observer/event/latest 전용. 공개 serializer 및 장기 result_history에는 보존하지 않는다.
+    std::shared_ptr<const DecodedIntervalSnapshot> decoded_intervals;
     int frame_width{0};
     int frame_height{0};
     std::vector<Detection> detections;

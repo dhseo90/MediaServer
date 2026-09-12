@@ -2,6 +2,7 @@
 // 동작 요약: tap 생성/삭제, metadata/snapshot/overlay 조회, 최신 결과 snapshot을 제공한다.
 // 동작 요약: HTTP API와 egress overlay probe가 분석 상태를 공유하는 중심 계약이다.
 #pragma once
+#include "analysis/decoded_interval_evidence.h"
 
 #include <chrono>
 #include <condition_variable>
@@ -152,12 +153,16 @@ private:
             RawVideoFrame frame;
             std::chrono::steady_clock::time_point enqueued_at;
             AnalysisObservationContext observation_context;
+            std::uint64_t decoded_sequence{0};
         };
 
         std::string tap_id;
         std::shared_ptr<AnalysisResultObserver> observer;
         std::string observation_namespace;
         std::uint64_t observation_generation{0};
+        // worker가 기존 namespace reset과 함께 갱신한다. callback에 별도 reset 판정기를 두지 않는다.
+        std::uint64_t observation_minimum_sequence{0};
+        DecodedIntervalCollector decoded_interval_collector;
         std::int64_t observation_last_frame_pts{-1};
         bool observation_ambiguous{false};
         core::StreamKey stream_key;

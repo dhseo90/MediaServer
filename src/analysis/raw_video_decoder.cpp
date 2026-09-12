@@ -342,6 +342,7 @@ private:
                         GST_BUFFER_PTS_IS_VALID(buffer)&&raw_pts<=static_cast<GstClockTime>(std::numeric_limits<std::int64_t>::max())
                         ?std::optional<std::int64_t>(static_cast<std::int64_t>(raw_pts)):std::nullopt;
                     frame.source_association=timestamp_history_.Resolve(observed_pts);
+                    frame.source_duration_ns=timestamp_history_.ResolveDuration(observed_pts);
                 }
                 GstMapInfo map;
                 if (gst_buffer_map(buffer, &map, GST_MAP_READ) == TRUE) {

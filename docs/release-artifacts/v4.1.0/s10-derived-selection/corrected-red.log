@@ -1,0 +1,26 @@
+[fail] D01 callback 누적·불변 snapshot
+[fail] D02 유효0·fallback·duration/원본부재
+[fail] D04 exact union 정상 선택·파일식별
+[fail] D03 pre/post·음수요청 보존
+[fail] D03 ns 변환 overflow 거부
+[fail] D05 한점 외삽 금지
+[fail] D06 namespace 격리
+[fail] D06 generation 합성 금지
+[fail] D06 track 합성 금지
+[fail] D07 중복 PTS 모호성
+[fail] D07 복수 원본 후보 보존
+[fail] D08 cap 초과범위 미확인
+[fail] D09 삭제 원본 구분
+[fail] D09 불완전 mapping을 영상공백으로 승격 금지
+[fail] D09 epoch identity 유지
+[fail] D11 비표현 유리수 잔차 거부
+[fail] D12 watermark 없는 postroll 미확인
+[fail] D13 source/channel 결박
+[fail] D13 checksum 없는 원본 거부
+[fail] D10 UTC 품질·불확실성 유지
+[fail] D10 UTC 역행 복수후보 보존
+[fail] D10 UTC unplaced 차단
+[summary] pass=0 fail=22
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.mIpg3u bytes=759672 removed=true
+[elapsed] seconds=1 source=bash-SECONDS
+
