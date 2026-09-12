@@ -374,6 +374,72 @@ std::string SerializeDouble(double value) {
 
 }  // namespace
 
+bool ValidateRecordingSourceBindingV1(const RecordingSourceBindingV1& b, std::string* error) {
+    if(b.schema!="media-server.recording-source-binding.v1" || b.samples.empty() || b.samples.size()>4096 ||
+       b.generation_order==0 || b.track_id.empty() || b.track_id.size()>1024 ||
+       std::any_of(b.track_id.begin(),b.track_id.end(),[](unsigned char c){return c<32||c==127;}))
+        return Fail(error,"source binding schema/track/상한 오류");
+    for(const auto* id:{&b.segment_id,&b.source_id,&b.channel_id,&b.store_id,&b.media_epoch_id,&b.source_generation})
+        if(!ValidateOpaqueId(*id,error))return false;
+    std::uint64_t prior=0;
+    for(const auto& sample:b.samples) {
+        if(sample.ordinal<=prior || sample.pts_ns>static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max()))
+            return Fail(error,"source binding ordinal/PTS 오류");
+        prior=sample.ordinal;
+    }
+    if(b.index_complete ? (b.last_accepted_ordinal!=prior||!b.incomplete_reason.empty()) :
+       (b.samples.size()!=4096||b.last_accepted_ordinal<=prior||b.incomplete_reason!="sample-index-cap"))
+        return Fail(error,"source binding completeness 오류");
+    // 모든 문자열·tuple 상한의 직렬화 최대 합은 512KiB 미만이다.
+    ClearError(error);return true;
+}
+bool ValidateRecordingSourceBindingForSegment(const RecordingSourceBindingV1& b,const RecordingSegmentV2& s,std::string* error) {
+    if(!ValidateRecordingSourceBindingV1(b,error)||!ValidateRecordingSegmentV2(s,error))return false;
+    if(b.segment_id!=s.segment_id||b.source_id!=s.source_id||b.channel_id!=s.channel_id||
+       b.store_id!=s.store_id||b.media_epoch_id!=s.media_epoch_id)return Fail(error,"source binding segment identity 불일치");
+    const __int128 denominator=static_cast<__int128>(1000000000)*s.time_base_num;
+    for(const auto& sample:b.samples) {
+        const __int128 numerator=static_cast<__int128>(sample.pts_ns)*s.time_base_den;
+        if(numerator%denominator)return Fail(error,"source binding 비정수 media PTS");
+        const __int128 pts=numerator/denominator;
+        if(pts>std::numeric_limits<std::int64_t>::max()||pts<s.media_start_pts||
+           (s.media_end_pts&&pts>=*s.media_end_pts))return Fail(error,"source binding media 범위 오류");
+    }
+    ClearError(error);return true;
+}
+std::string SerializeRecordingSourceBindingV1(const RecordingSourceBindingV1& b) {
+    if(!ValidateRecordingSourceBindingV1(b,nullptr))return {};
+    std::ostringstream out;
+    out<<"{\"schema\":"<<Quote(b.schema)<<",\"segment_id\":"<<Quote(b.segment_id)<<",\"source_id\":"<<Quote(b.source_id)
+       <<",\"channel_id\":"<<Quote(b.channel_id)<<",\"store_id\":"<<Quote(b.store_id)<<",\"media_epoch_id\":"<<Quote(b.media_epoch_id)
+       <<",\"source_generation\":"<<Quote(b.source_generation)<<",\"generation_order\":"<<b.generation_order
+       <<",\"track_id\":"<<Quote(b.track_id)<<",\"samples\":[";
+    for(std::size_t i=0;i<b.samples.size();++i){if(i)out<<',';out<<"{\"ordinal\":"<<b.samples[i].ordinal<<",\"pts_ns\":"<<b.samples[i].pts_ns<<'}';}
+    out<<"],\"index_complete\":"<<(b.index_complete?"true":"false")<<",\"last_accepted_ordinal\":"<<b.last_accepted_ordinal
+       <<",\"incomplete_reason\":"<<Quote(b.incomplete_reason)<<'}';
+    auto text=out.str();return text.size()<=512*1024?text:std::string{};
+}
+bool ParseRecordingSourceBindingV1(const std::string& json,RecordingSourceBindingV1* output,std::string* error) {
+    if(!output||json.size()>512*1024)return Fail(error,"source binding JSON 상한/output 오류");
+    Document d;RecordingSourceBindingV1 b;
+    if(!ParseDocument(json,&d,error)||d.members.size()!=13)return Fail(error,"source binding field 집합 오류");
+    if(!RequiredString(d,"schema",&b.schema,error)||!RequiredString(d,"segment_id",&b.segment_id,error)||
+       !RequiredString(d,"source_id",&b.source_id,error)||!RequiredString(d,"channel_id",&b.channel_id,error)||
+       !RequiredString(d,"store_id",&b.store_id,error)||!RequiredString(d,"media_epoch_id",&b.media_epoch_id,error)||
+       !RequiredString(d,"source_generation",&b.source_generation,error)||!RequiredInteger(d,"generation_order",&b.generation_order,error)||
+       !RequiredString(d,"track_id",&b.track_id,error)||!RequiredBool(d,"index_complete",&b.index_complete,error)||
+       !RequiredInteger(d,"last_accepted_ordinal",&b.last_accepted_ordinal,error)||!RequiredString(d,"incomplete_reason",&b.incomplete_reason,error))return false;
+    const auto* array=RequiredMember(d,"samples",Type::Array,error);std::vector<std::string> items;
+    if(!array||!SplitArray(array->raw,&items,error)||items.empty()||items.size()>4096)return Fail(error,"source binding samples 오류");
+    for(const auto& text:items){Document item;RecordingSourceSampleV1 sample;
+        if(!ParseDocument(text,&item,error)||item.members.size()!=2||!RequiredInteger(item,"ordinal",&sample.ordinal,error)||
+           !RequiredInteger(item,"pts_ns",&sample.pts_ns,error))return false;
+        b.samples.push_back(sample);
+    }
+    if(!ValidateRecordingSourceBindingV1(b,error))return false;
+    *output=std::move(b);ClearError(error);return true;
+}
+
 bool ValidateOpaqueId(const std::string& value, std::string* error) {
     if (value.empty() || value.size() > 128) return Fail(error, "opaque ID 길이 오류");
     if (value.find('/') != std::string::npos || value.find('\\') != std::string::npos ||

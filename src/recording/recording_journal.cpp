@@ -265,6 +265,7 @@ std::string RecordingMutationTypeName(RecordingMutationType type) {
         case RecordingMutationType::CorruptionDetected: return "corruption_detected";
         case RecordingMutationType::RecordingOrderReserved: return "recording_order_reserved";
         case RecordingMutationType::SegmentV2Finalized: return "segment_v2_finalized";
+        case RecordingMutationType::SegmentV2BoundFinalized: return "segment_v2_bound_finalized";
         case RecordingMutationType::SegmentV2State: return "segment_v2_state";
         case RecordingMutationType::SegmentV2Deleted: return "segment_v2_deleted";
         case RecordingMutationType::EventLinkReceipt: return "event_link_receipt";
@@ -286,6 +287,7 @@ RecordingMutationType ParseRecordingMutationType(const std::string& value) {
     if (value == "segment_v2_state") return RecordingMutationType::SegmentV2State;
     if (value == "segment_v2_deleted") return RecordingMutationType::SegmentV2Deleted;
     if (value == "event_link_receipt") return RecordingMutationType::EventLinkReceipt;
+    if (value == "segment_v2_bound_finalized") return RecordingMutationType::SegmentV2BoundFinalized;
     return RecordingMutationType::Unknown;
 }
 
@@ -364,6 +366,7 @@ struct OrderHistoryIndex {
             ordinary_ids.insert(mutation.mutation_id);
             if ((mutation.mutation_type == RecordingMutationType::SegmentFinalized ||
                  mutation.mutation_type == RecordingMutationType::SegmentV2Finalized ||
+                 mutation.mutation_type == RecordingMutationType::SegmentV2BoundFinalized ||
                  mutation.mutation_type == RecordingMutationType::SegmentV2State ||
                  mutation.mutation_type == RecordingMutationType::SegmentV2Deleted ||
                  mutation.mutation_type == RecordingMutationType::CorruptionDetected ||

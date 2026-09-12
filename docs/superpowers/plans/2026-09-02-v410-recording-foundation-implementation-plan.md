@@ -1959,6 +1959,16 @@ C101~112를 실행 전 등록하며 stub에서 예상 assertion RED를 확인한
 UTC sweep과 128 인접 media 범위·혼재 후보를 확인했고, 준비2회·예상 RED·컴파일1회 실패와 이후 결과는 중앙 기록에 보존한다.
 3C-3~5는 아직 미완료이며 이번 두 단위를 전체 3C 완료로 취급하지 않는다.
 
+3C-2 커밋: 215bf71b. 다음 3C-3은 A(계약/catalog 원본 수락 결박)→B(실제 writer/ready 복구)로 세분화한다.
+세그먼트와 별도 schema 원본 결박을 신규 단일 bound-finalized 원장 항목으로 함께 commit한다.
+2개 append 사이 삭제/부분 노출을 막으며 기존 unbound 데이터에 소급 결박하지 않는다.
+원본 수락 색인은4096 tuple까지 보존하고 초과는명시적unknown으로남기며영상폐기는금지한다.
+세부13field 계약과 C301~320 정의는 중앙 release-test-records의3C-3A절에고정한다.
+3C-3A의 metadata PASS를 실제 writer/파생/전체3C PASS로승격하지않는다.
+3C-3A 구현·메인 검토: binding/단일 원장/catalog·SQL/복구 완료. focused20, 기존catalog234+crypto-off3,
+정적 source/순서9, location14/range16, 보존GST-on22/off2와 제품 build PASS.
+최초 RED·컴파일 경고2회·oracle 보강은 중앙 전수 기록에 보존한다. 다음은 실제 writer/ready3 연결이다.
+
 
 #### 3B 구현 계약과 검증 순서
 

@@ -1,5 +1,30 @@
 # Project Feature Test Inventory
 
+## S10 3C-3A 원본 수락 결박
+
+| 기능 ID | 기능·합격 기준 | 안정화 | 30분 | 120분 | UI 풀테스트 | UI 존재 |
+| --- | --- | --- | --- | --- | --- | --- |
+| S10-C301 | 결박 schema 왕복: 고정 field 집합·sample tuple·nullable 없는 값의 JSON 왕복 및 잘못된 schema/type/추가 field 거부 | 격리 source-binding focused | S11 판정 | 실제 생산/수명 연결 후 S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C302 | 식별·ordinal 검증: 빈/잘못된 ID, 0 generation/order/ordinal, 중복·역전 ordinal 거부 | 격리 source-binding focused | S11 판정 | 실제 생산/수명 연결 후 S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C303 | PTS 재정렬 보존: 증가 ordinal의 중복·감소 PTS를 허용하고 임의 정렬·새 epoch 생성 없음 | 격리 source-binding focused | S11 판정 | 실제 생산/수명 연결 후 S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C304 | 미디어 범위·timebase: 정수 유리수 변환과 닫힌 media 범위 검증; 비정수·overflow·범위 밖 거부 | 격리 source-binding focused | S11 판정 | 실제 생산/수명 연결 후 S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C305 | 색인 상한·미색인 꼬리: 4096 prefix 상한, complete/last/reason 정합성 및 초과·허위 truncated 거부 | 격리 source-binding focused | S11 판정 | 실제 생산/수명 연결 후 S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C306 | 단일 bound mutation: segment와 binding을 한 envelope로 append/replay하고 두 부분을 함께 투영 | 격리 source-binding focused | S11 판정 | 실제 생산/수명 연결 후 S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C307 | source·저장 identity 결박: source/channel/store/segment/media_epoch 불일치 거부; source_generation과 epoch는 독립 | 격리 source-binding focused | S11 판정 | 실제 생산/수명 연결 후 S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C308 | 불변·멱등: 동일 bound payload 복구만 수용; 다른 payload·mutation 충돌 거부 | 격리 source-binding focused | S11 판정 | 실제 생산/수명 연결 후 S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C309 | 소급·다운그레이드 금지: 기존 unbound V2에 binding 추가 및 bound ID의 unbound 복구 거부 | 격리 source-binding focused | S11 판정 | 실제 생산/수명 연결 후 S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C310 | 정확한 원본 tuple 조회: generation/order/track/ordinal/PTS 전부 일치한 수락 후보만 반환 | 격리 source-binding focused | S11 판정 | 실제 생산/수명 연결 후 S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C311 | 미색인·실제 부재 구분: prefix 내부 누락과 last 초과는 none; truncated tail만 unknown; 범위 추정 exact 금지 | 격리 source-binding focused | S11 판정 | 실제 생산/수명 연결 후 S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C312 | 복수 segment 후보: 같은 원본이 여러 segment에 수락됐으면 모든 후보·영속 순서 보존 | 격리 source-binding focused | S11 판정 | 실제 생산/수명 연결 후 S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C313 | 삭제·corrupt·pending 차단: 상태 변경 뒤 원본 위치 조회/재수용 차단, 동일 옛 mutation replay로 부활 없음 | 격리 source-binding focused | S11 판정 | 실제 생산/수명 연결 후 S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C314 | 채널·조회 오류 경계: 다른 source/channel 혼입 금지, invalid/null/미open 조회 거부·output 초기화 | 격리 source-binding focused | S11 판정 | 실제 생산/수명 연결 후 S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C315 | SQL·JSONL 재시작 동등: binding JSON projection·재시작·fallback 원본 후보/unknown 상태 동일 | 격리 source-binding focused | S11 판정 | 실제 생산/수명 연결 후 S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C316 | checkpoint 보존: managed checkpoint 및 재시작에서 원본 tuple·완전성·ID·상태 보존 | 격리 source-binding focused | S11 판정 | 실제 생산/수명 연결 후 S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C317 | 손상 원장 선차단: bound record 손상·truncated/unsupported·duplicate envelope 충돌 시 부분 공개 금지 | 격리 source-binding focused | S11 판정 | 실제 생산/수명 연결 후 S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C318 | 예약·옵트인 경계: bound record opt-in·예약 tuple·store 결박 및 예약 소급/ID 재사용 거부 | 격리 source-binding focused | S11 판정 | 실제 생산/수명 연결 후 S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C319 | 기존 segment·조회 불변: segmentV2 직렬화·UTC mapping 및 query journal/hold 무변경; unbound 위치 조회 유지 | 격리 source-binding focused | S11 판정 | 실제 생산/수명 연결 후 S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C320 | 실제 finalize 수락 경계: 실제 소유 파일 경로를 사용하는 새 catalog finalize/recover API, wrong path·missing·기존 ID 거부 | 격리 source-binding focused | S11 판정 | 실제 생산/수명 연결 후 S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+
 ## S10 3C-2 공통 구간 해석
 
 | 기능 ID | 기능·합격 기준 | 안정화 | 30분 | 120분 | UI 풀테스트 | UI 존재 |

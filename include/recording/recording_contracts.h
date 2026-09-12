@@ -77,6 +77,26 @@ bool ValidateRecordingSegmentV2(const RecordingSegmentV2& value, std::string* er
 std::string SerializeRecordingSegmentV2(const RecordingSegmentV2& value);
 bool ParseRecordingSegmentV2(const std::string& json, RecordingSegmentV2* value, std::string* error);
 
+struct RecordingSourceSampleV1 {
+    std::uint64_t ordinal{0}, pts_ns{0};
+};
+// appsrc 수락 연관이며 출력 decoded frame의 고유성·존재 증명이 아니다.
+struct RecordingSourceBindingV1 {
+    std::string schema{"media-server.recording-source-binding.v1"};
+    std::string segment_id, source_id, channel_id, store_id, media_epoch_id;
+    std::string source_generation;
+    std::uint64_t generation_order{0};
+    std::string track_id;
+    std::vector<RecordingSourceSampleV1> samples;
+    bool index_complete{true};
+    std::uint64_t last_accepted_ordinal{0};
+    std::string incomplete_reason;
+};
+bool ValidateRecordingSourceBindingV1(const RecordingSourceBindingV1&, std::string* error);
+bool ValidateRecordingSourceBindingForSegment(const RecordingSourceBindingV1&, const RecordingSegmentV2&, std::string* error);
+std::string SerializeRecordingSourceBindingV1(const RecordingSourceBindingV1&);
+bool ParseRecordingSourceBindingV1(const std::string&, RecordingSourceBindingV1*, std::string* error);
+
 struct RecordingTombstoneV2 {
     std::string schema{"media-server.recording-tombstone.v2"};
     std::string tombstone_id;

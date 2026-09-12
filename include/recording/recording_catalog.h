@@ -47,6 +47,17 @@ struct RecordingLocationCatalogSnapshot {
     std::vector<std::string> deleted_segment_ids;
 };
 
+struct RecordingOriginalCandidate {
+    RecordingSegmentV2 segment;
+    std::string source_generation, track_id;
+    std::uint64_t generation_order{0}, last_accepted_ordinal{0};
+    std::optional<RecordingSourceSampleV1> sample;
+    std::string reason;
+};
+struct RecordingOriginalResult {
+    std::vector<RecordingOriginalCandidate> exact, unknown;
+};
+
 class RecordingCatalog final : public RecordingStorePort {
 public:
     struct Options {
@@ -73,6 +84,14 @@ public:
                                      const std::filesystem::path& root,
                                      const std::string& store_id, std::string* error) const;
     bool Checkpoint(std::string* error);
+    bool FinalizeBoundSegmentV2(const RecordingSegmentV2&, const RecordingSourceBindingV1&, const std::string& path, std::string* error);
+    bool ValidateBoundFinalizeRecoveryV2(const RecordingSegmentV2&, const RecordingSourceBindingV1&, const std::string& path, std::string* error) const;
+    bool RecoverBoundSegmentV2(const RecordingSegmentV2&, const RecordingSourceBindingV1&, const std::string& path, bool* inserted, std::string* error);
+    std::optional<RecordingSourceBindingV1> FindSourceBinding(const std::string& id) const;
+    bool ResolveOriginalSample(const std::string& channel, const std::string& source,
+                              const std::string& generation, std::uint64_t generation_order,
+                              const std::string& track, std::uint64_t ordinal, std::uint64_t pts_ns,
+                              RecordingOriginalResult* result, std::string* error) const;
     bool FinalizeSegmentV2(const RecordingSegmentV2& segment, const std::string& media_path, std::string* error);
     std::optional<RecordingSegmentV2> FindSegmentV2ById(const std::string& id) const;
     RecordingLifecycle SegmentLifecycleV2(const std::string& id) const;
@@ -148,7 +167,10 @@ private:
     std::vector<std::string> ProjectionSignatureLocked() const;
     bool PreflightV2Locked(const RecordingJournalReplayResult& replay, std::string* error,
                            const RecordingSegmentV2* candidate = nullptr,
-                           const std::string& relative = {}) const;
+                           const std::string& relative = {},
+                           const RecordingSourceBindingV1* binding = nullptr) const;
+    bool ValidateBoundLocked(const RecordingSegmentV2&,const RecordingSourceBindingV1&,const std::string&,std::string*) const;
+    bool CommitBoundLocked(const RecordingSegmentV2&,const RecordingSourceBindingV1&,const std::string&,bool,bool*,std::string*);
     bool ValidateV2Locked(const RecordingSegmentV2& segment, const std::string& relative, std::string* error) const;
     bool ApplyMutationLocked(const RecordingMutationV1& mutation,
                              bool count_duplicate,
@@ -180,6 +202,7 @@ private:
     std::unordered_set<std::size_t> accepted_segment_state_replay_ordinals_;
     std::unordered_map<std::string, RecordingSegmentV1> segments_;
     std::unordered_map<std::string, RecordingSegmentV2> segments_v2_;
+    std::unordered_map<std::string, RecordingSourceBindingV1> source_bindings_;
     std::unordered_map<std::string, RecordingSegmentStateV2> states_v2_;
     std::unordered_map<std::string, RecordingTombstoneV2> tombstones_v2_;
     std::unordered_map<std::string, RecordingOrderReservationV1> orders_v2_;

@@ -1,5 +1,7 @@
 # Manual UI Checklist
 
+S10 3C-3A C301~320은 내부 저장 결박이며 신규 UI 비대상이다. metadata 검증을 실제 writer/ready/UI PASS로 확대하지 않는다.
+
 S10 3C-2 C201~216은 내부 구간 해석이며 신규 UI 비대상이다. 실제 UI 결과를 대체하지 않는다.
 
 S10 3C-1 C101~112는 내부 원본·분석 연관이며 신규 UI 비대상이다. 단기 결과를 실제 UI PASS로 대체하지 않는다.

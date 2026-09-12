@@ -1,0 +1,137 @@
+실행 기록: red-50784.log
+command: bash scripts/internal/verify_recording_source_binding.sh
+exit: 1
+[fail] S10-C301 결박 schema 왕복
+[fail] S10-C302 식별·ordinal 검증
+[fail] S10-C303 PTS 재정렬 보존
+[fail] S10-C304 미디어 범위·timebase
+[fail] S10-C305 색인 상한·미색인 꼬리
+[fail] S10-C306 단일 bound mutation
+[pass] S10-C307 source·저장 identity 결박
+[fail] S10-C308 불변·멱등
+[fail] S10-C309 소급·다운그레이드 금지
+[fail] S10-C310 정확한 원본 tuple 조회
+[fail] S10-C311 미색인·실제 부재 구분
+[fail] S10-C312 복수 segment 후보
+[fail] S10-C313 삭제·corrupt·pending 차단
+[pass] S10-C314 채널·조회 오류 경계
+[fail] S10-C315 SQL·JSONL 재시작 동등
+[fail] S10-C316 checkpoint 보존
+[pass] S10-C317 손상 원장 선차단
+[pass] S10-C318 예약·옵트인 경계
+[pass] S10-C319 기존 segment·조회 불변
+[fail] S10-C320 실제 finalize 수락 경계
+[summary] pass=5 fail=15
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.mrMNYy bytes=2928459 removed=true
+[elapsed] seconds=4 source=bash-SECONDS
+
+실행 기록: build-68585.log
+command: bash scripts/internal/verify_recording_source_binding.sh
+exit: 1
+/Users/dhseo/Workspace/mediaServer/src/recording/recording_contracts.cpp:436:78: error: misleading indentation; statement is not part of the previous 'if' [-Werror,-Wmisleading-indentation]
+  436 |            !RequiredInteger(item,"pts_ns",&sample.pts_ns,error))return false;b.samples.push_back(sample);}
+      |                                                                              ^
+/Users/dhseo/Workspace/mediaServer/src/recording/recording_contracts.cpp:435:9: note: previous statement is here
+  435 |         if(!ParseDocument(text,&item,error)||item.members.size()!=2||!RequiredInteger(item,"ordinal",&sample.ordinal,error)||
+      |         ^
+1 error generated.
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.Bg4kch bytes=0 removed=true
+[elapsed] seconds=3 source=bash-SECONDS
+
+실행 기록: green-14329.log
+command: bash scripts/internal/verify_recording_source_binding.sh
+exit: 0
+[pass] S10-C301 결박 schema 왕복
+[pass] S10-C302 식별·ordinal 검증
+[pass] S10-C303 PTS 재정렬 보존
+[pass] S10-C304 미디어 범위·timebase
+[pass] S10-C305 색인 상한·미색인 꼬리
+[pass] S10-C306 단일 bound mutation
+[pass] S10-C307 source·저장 identity 결박
+[pass] S10-C308 불변·멱등
+[pass] S10-C309 소급·다운그레이드 금지
+[pass] S10-C310 정확한 원본 tuple 조회
+[pass] S10-C311 미색인·실제 부재 구분
+[pass] S10-C312 복수 segment 후보
+[pass] S10-C313 삭제·corrupt·pending 차단
+[pass] S10-C314 채널·조회 오류 경계
+[pass] S10-C315 SQL·JSONL 재시작 동등
+[pass] S10-C316 checkpoint 보존
+[pass] S10-C317 손상 원장 선차단
+[pass] S10-C318 예약·옵트인 경계
+[pass] S10-C319 기존 segment·조회 불변
+[pass] S10-C320 실제 finalize 수락 경계
+[summary] pass=20 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.612OGp bytes=3339046 removed=true
+[elapsed] seconds=5 source=bash-SECONDS
+
+실행 기록: build-85271.log
+command: bash scripts/internal/verify_recording_source_binding.sh
+exit: 1
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_source_binding_smoke.cpp:214:69: error: misleading indentation; statement is not part of the previous 'for' [-Werror,-Wmisleading-indentation]
+  214 |             if(candidate.Id()=="capped")return candidate.hold_count;return std::uint64_t{0};};
+      |                                                                     ^
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_source_binding_smoke.cpp:213:32: note: previous statement is here
+  213 |         const auto holds=[&](){for(const auto& candidate:f.catalog->RetentionSnapshot().candidates)
+      |                                ^
+1 error generated.
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.cxMwA0 bytes=0 removed=true
+[elapsed] seconds=3 source=bash-SECONDS
+
+실행 기록: green-81043.log
+command: bash scripts/internal/verify_recording_source_binding.sh
+exit: 0
+[pass] S10-C301 결박 schema 왕복
+[pass] S10-C302 식별·ordinal 검증
+[pass] S10-C303 PTS 재정렬 보존
+[pass] S10-C304 미디어 범위·timebase
+[pass] S10-C305 색인 상한·미색인 꼬리
+[pass] S10-C306 단일 bound mutation
+[pass] S10-C307 source·저장 identity 결박
+[pass] S10-C308 불변·멱등
+[pass] S10-C309 소급·다운그레이드 금지
+[pass] S10-C310 정확한 원본 tuple 조회
+[pass] S10-C311 미색인·실제 부재 구분
+[pass] S10-C312 복수 segment 후보
+[pass] S10-C313 삭제·corrupt·pending 차단
+[pass] S10-C314 채널·조회 오류 경계
+[pass] S10-C315 SQL·JSONL 재시작 동등
+[pass] S10-C316 checkpoint 보존
+[pass] S10-C317 손상 원장 선차단
+[pass] S10-C318 예약·옵트인 경계
+[pass] S10-C319 기존 segment·조회 불변
+[pass] S10-C320 실제 finalize 수락 경계
+[summary] pass=20 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.G9jkJz bytes=4445808 removed=true
+[elapsed] seconds=5 source=bash-SECONDS
+git diff --check: exit 0
+token start/end/consumed: 미집계 (담당자 실측 집계 도구값 없음)
+
+실행 기록: green-38070.log
+command: bash scripts/internal/verify_recording_source_binding.sh
+exit: 0
+[pass] S10-C301 결박 schema 왕복
+[pass] S10-C302 식별·ordinal 검증
+[pass] S10-C303 PTS 재정렬 보존
+[pass] S10-C304 미디어 범위·timebase
+[pass] S10-C305 색인 상한·미색인 꼬리
+[pass] S10-C306 단일 bound mutation
+[pass] S10-C307 source·저장 identity 결박
+[pass] S10-C308 불변·멱등
+[pass] S10-C309 소급·다운그레이드 금지
+[pass] S10-C310 정확한 원본 tuple 조회
+[pass] S10-C311 미색인·실제 부재 구분
+[pass] S10-C312 복수 segment 후보
+[pass] S10-C313 삭제·corrupt·pending 차단
+[pass] S10-C314 채널·조회 오류 경계
+[pass] S10-C315 SQL·JSONL 재시작 동등
+[pass] S10-C316 checkpoint 보존
+[pass] S10-C317 손상 원장 선차단
+[pass] S10-C318 예약·옵트인 경계
+[pass] S10-C319 기존 segment·조회 불변
+[pass] S10-C320 실제 finalize 수락 경계
+[summary] pass=20 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.uWOhk1 bytes=4445808 removed=true
+[elapsed] seconds=6 source=bash-SECONDS
+git diff --check: exit 0
+token start/end/consumed: 미집계 (담당자 실측 집계 도구값 없음)
