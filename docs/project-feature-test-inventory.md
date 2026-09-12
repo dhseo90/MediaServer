@@ -1,5 +1,26 @@
 # Project Feature Test Inventory
 
+## S10 3C-2 공통 구간 해석
+
+| 기능 ID | 기능·합격 기준 | 안정화 | 30분 | 120분 | UI 풀테스트 | UI 존재 |
+| --- | --- | --- | --- | --- | --- | --- |
+| S10-C201 | 미디어 구간 mapping 경계: 한 segment의 여러 mapping을 query 범위로 잘라 별도 조각으로 보존 | 격리 range focused | S11 판정 | 이번 읽기 전용 단위 미진행 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C202 | unknown UTC의 미디어 위치: 닫힌 unknown mapping은 미디어 범위를 보존하며 UTC를 만들지 않음 | 격리 range focused | S11 판정 | 이번 읽기 전용 단위 미진행 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C203 | 미디어 범위 밖: query 중 segment 앞뒤 부분은 미포함으로 남김 | 격리 range focused | S11 판정 | 이번 읽기 전용 단위 미진행 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C204 | 미확정 끝: 열린 mapping 끝을 query 끝까지 확정 coverage로 확장하지 않음 | 격리 range focused | S11 판정 | 이번 읽기 전용 단위 미진행 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C205 | UTC 중첩 mapping: 같은 파일의 역행·중첩 mapping 후보를 전부 보존 | 격리 range focused | S11 판정 | 이번 읽기 전용 단위 미진행 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C206 | 저장소 경계·결정 순서: 두 catalog 각각 store 보존, 동일 store 다중 파일/order 정렬, cross-store 원장 혼입 거부 | 격리 range focused | S11 판정 | 이번 읽기 전용 단위 미진행 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C207 | 정상 segment 분할: 같은 epoch라도 물리 segment 경계를 보존하고 자동 결합하지 않음 | 격리 range focused | S11 판정 | 이번 읽기 전용 단위 미진행 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C208 | 반열린 구간 경계: 빈·역전 입력 거부와 인접 끝점 비중복 | 격리 range focused | S11 판정 | 이번 읽기 전용 단위 미진행 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C209 | 유리수·비정수 경계: 정확한 timebase 변환; 비정수 끝은 반올림 없이 미확정 후보로 보존 | 격리 range focused | S11 판정 | 이번 읽기 전용 단위 미진행 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C210 | 정수 범위 안전성: 극단 PTS/UTC/timebase 곱셈에서 overflow나 임의 clamp 없음 | 격리 range focused | S11 판정 | 이번 읽기 전용 단위 미진행 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C211 | UTC 공백·unplaced 구분: known UTC coverage gap과 UTC를 알 수 없는 media 후보를 별도 보존 | 격리 range focused | S11 판정 | 이번 읽기 전용 단위 미진행 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C212 | 입력 오류 초기화: 잘못된 ID·null output·미개방 catalog 거부 시 이전 결과 잔존 없음 | 격리 range focused | S11 판정 | 이번 읽기 전용 단위 미진행 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C213 | 삭제·채널 경계: 삭제된 ID와 다른 채널의 segment를 잘못 연결하지 않음 | 격리 range focused | S11 판정 | 이번 읽기 전용 단위 미진행 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C214 | 재시작 SQL·JSONL 동등: 동일 원장 재시작의 모든 구간·후보·품질 일치 | 격리 range focused | S11 판정 | 이번 읽기 전용 단위 미진행 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C215 | 원본 mapping·조회 불변: 원본 provenance/uncertainty/reason 및 mapping 범위 유지; journal·hold 무변경 | 격리 range focused | S11 판정 | 이번 읽기 전용 단위 미진행 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C216 | unknown 채널 격리: 타 채널 unknown 및 pending/corrupt segment를 현재 범위 결과에 섞지 않음 | 격리 range focused | S11 판정 | 이번 읽기 전용 단위 미진행 | 이번 비대상 | 비대상: 신규 UI 없음 |
+
 ## S10 3C-1 원본·분석 연관
 
 | 기능 ID | 기능·합격 기준 | 안정화 | 30분 | 120분 | UI 풀테스트 | UI 존재 |

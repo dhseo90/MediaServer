@@ -6,12 +6,186 @@
 #include <cerrno>
 #include <limits>
 #include <tuple>
+#include <set>
 #include "domain/strict_json.h"
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
 namespace recording {
+namespace {
+RecordingRangeCandidate RangeCandidate(const RecordingSegmentV2& segment,
+                                       const RecordingUtcMappingV1& mapping) {
+    return {segment.store_id, segment.segment_id, segment.media_epoch_id, segment.order_sequence,
+            segment.time_base_num, segment.time_base_den, mapping, std::nullopt, std::nullopt, {}};
+}
+void SortRangeCandidates(std::vector<RecordingRangeCandidate>& candidates) {
+    std::sort(candidates.begin(), candidates.end(), [](const auto& a, const auto& b) {
+        return std::tie(a.store_id, a.order_sequence, a.segment_id, a.mapping.mapping_id) <
+               std::tie(b.store_id, b.order_sequence, b.segment_id, b.mapping.mapping_id);
+    });
+}
+void AddRangeBoundary(std::vector<std::int64_t>& boundaries, std::int64_t point,
+                      std::int64_t start, std::int64_t end) {
+    if (point > start && point < end) boundaries.push_back(point);
+}
+void SortRangeBoundaries(std::vector<std::int64_t>& boundaries) {
+    std::sort(boundaries.begin(), boundaries.end());
+    boundaries.erase(std::unique(boundaries.begin(), boundaries.end()), boundaries.end());
+}
+bool PlacedUtc(const RecordingUtcMappingV1& mapping) {
+    return mapping.provenance != "unknown" && mapping.utc_start_ns &&
+           mapping.utc_end_ns && mapping.end_pts;
+}
+std::optional<std::int64_t> InverseRangeBound(const RecordingSegmentV2& segment,
+                                            const RecordingUtcMappingV1& mapping,
+                                            std::int64_t utc, bool end, std::string& reason) {
+    // 64비트 차이 × 양수 32비트 timebase는 signed int128 안이다.
+    const __int128 numerator = (static_cast<__int128>(utc) - *mapping.utc_start_ns) * segment.time_base_den;
+    const __int128 denominator = static_cast<__int128>(1000000000) * segment.time_base_num;
+    if (denominator <= 0 || numerator % denominator != 0) {
+        reason = "non-integral-media-bound";
+        return std::nullopt;
+    }
+    const __int128 pts = static_cast<__int128>(mapping.start_pts) + numerator / denominator;
+    if (pts < std::numeric_limits<std::int64_t>::min() ||
+        pts > std::numeric_limits<std::int64_t>::max()) {
+        reason = "media-bound-overflow";
+        return std::nullopt;
+    }
+    if (pts < mapping.start_pts || (end ? pts > *mapping.end_pts : pts >= *mapping.end_pts)) {
+        reason = "outside-mapping-media-bounds";
+        return std::nullopt;
+    }
+    return static_cast<std::int64_t>(pts);
+}
+bool InvalidRange(std::string* error) {
+    if (error) *error = "invalid range input";
+    return false;
+}
+} // namespace
+
+bool RecordingReadService::ResolveMediaRange(const std::string& channel, const std::string& id,
+                                             std::int64_t start, std::int64_t end,
+                                             RecordingRangeResult* result, std::string* error) const {
+    if (result) *result = {};
+    if (!result || start >= end || !ValidateOpaqueId(channel, error) || !ValidateOpaqueId(id, error))
+        return InvalidRange(error);
+    RecordingLocationCatalogSnapshot snapshot;
+    if (!catalog_.SnapshotLocationsV2(channel, &snapshot, error)) return false;
+    RecordingRangeResult output;
+    if (std::binary_search(snapshot.deleted_segment_ids.begin(), snapshot.deleted_segment_ids.end(), id)) {
+        output.deleted = true;
+    } else {
+        const RecordingSegmentV2* selected = nullptr;
+        std::vector<std::int64_t> boundaries{start, end};
+        for (const auto& segment : snapshot.segments) {
+            if (segment.segment_id != id) continue;
+            selected = &segment;
+            for (const auto& mapping : segment.mappings) {
+                AddRangeBoundary(boundaries, mapping.start_pts, start, end);
+                if (mapping.end_pts) AddRangeBoundary(boundaries, *mapping.end_pts, start, end);
+            }
+            break;
+        }
+        SortRangeBoundaries(boundaries);
+        for (std::size_t i = 1; i < boundaries.size(); ++i) {
+            RecordingRangeSlice slice{boundaries[i-1], boundaries[i], RecordingRangeCoverage::Gap, {}};
+            if (selected) for (const auto& mapping : selected->mappings) {
+                if (slice.start < mapping.start_pts || (mapping.end_pts && slice.start >= *mapping.end_pts)) continue;
+                auto candidate = RangeCandidate(*selected, mapping);
+                candidate.media_start_pts = slice.start;
+                if (mapping.end_pts) {
+                    candidate.media_end_pts = slice.end;
+                    slice.coverage = RecordingRangeCoverage::Confirmed;
+                } else {
+                    candidate.reason = "open-media-end";
+                    slice.coverage = RecordingRangeCoverage::Unknown;
+                }
+                slice.candidates.push_back(std::move(candidate));
+            }
+            SortRangeCandidates(slice.candidates);
+            output.slices.push_back(std::move(slice));
+        }
+    }
+    *result = std::move(output);
+    if (error) error->clear();
+    return true;
+}
+
+bool RecordingReadService::ResolveUtcRange(const std::string& channel, std::int64_t start, std::int64_t end,
+                                           RecordingRangeResult* result, std::string* error) const {
+    if (result) *result = {};
+    if (!result || start >= end || !ValidateOpaqueId(channel, error)) return InvalidRange(error);
+    RecordingLocationCatalogSnapshot snapshot;
+    if (!catalog_.SnapshotLocationsV2(channel, &snapshot, error)) return false;
+    RecordingRangeResult output;
+    std::vector<std::int64_t> boundaries{start, end};
+    struct Overlap {
+        const RecordingSegmentV2* segment;
+        const RecordingUtcMappingV1* mapping;
+    };
+    struct BoundaryEvent {
+        std::int64_t point;
+        std::size_t index;
+        bool entering;
+    };
+    std::vector<Overlap> overlaps;
+    std::vector<BoundaryEvent> events;
+    for (const auto& segment : snapshot.segments) for (const auto& mapping : segment.mappings) {
+        if (!PlacedUtc(mapping)) {
+            auto candidate = RangeCandidate(segment, mapping);
+            candidate.media_start_pts = mapping.start_pts;
+            candidate.media_end_pts = mapping.end_pts;
+            candidate.reason = "utc-unplaced";
+            output.unplaced.push_back(std::move(candidate));
+            continue;
+        }
+        if (*mapping.utc_end_ns <= start || *mapping.utc_start_ns >= end) continue;
+        const auto first = std::max(start, *mapping.utc_start_ns);
+        const auto last = std::min(end, *mapping.utc_end_ns);
+        const auto index = overlaps.size();
+        overlaps.push_back({&segment, &mapping});
+        events.push_back({first, index, true});
+        events.push_back({last, index, false});
+        AddRangeBoundary(boundaries, first, start, end);
+        AddRangeBoundary(boundaries, last, start, end);
+    }
+    SortRangeBoundaries(boundaries);
+    std::sort(events.begin(), events.end(), [](const auto& a, const auto& b) {
+        return std::tie(a.point, a.entering, a.index) < std::tie(b.point, b.entering, b.index);
+    });
+    std::set<std::size_t> active;
+    std::size_t next_event = 0;
+    for (std::size_t i = 1; i < boundaries.size(); ++i) {
+        RecordingRangeSlice slice{boundaries[i-1], boundaries[i], RecordingRangeCoverage::Gap, {}};
+        // 인접 구간은 전체 mapping을 다시 읽지 않고 변화한 활성 집합만 갱신한다.
+        while (next_event < events.size() && events[next_event].point <= slice.start) {
+            const auto& event = events[next_event++];
+            if (event.entering) active.insert(event.index);
+            else active.erase(event.index);
+        }
+        bool confirmed = false;
+        for (const auto index : active) {
+            const auto& segment = *overlaps[index].segment;
+            const auto& mapping = *overlaps[index].mapping;
+            auto candidate = RangeCandidate(segment, mapping);
+            candidate.media_start_pts = InverseRangeBound(segment, mapping, slice.start, false, candidate.reason);
+            candidate.media_end_pts = InverseRangeBound(segment, mapping, slice.end, true, candidate.reason);
+            confirmed = confirmed || (candidate.media_start_pts && candidate.media_end_pts);
+            slice.candidates.push_back(std::move(candidate));
+        }
+        if (!slice.candidates.empty()) {
+            slice.coverage = confirmed ? RecordingRangeCoverage::Confirmed : RecordingRangeCoverage::Unknown;
+        }
+        SortRangeCandidates(slice.candidates);
+        output.slices.push_back(std::move(slice));
+    }
+    SortRangeCandidates(output.unplaced);
+    *result = std::move(output);
+    if (error) error->clear();
+    return true;
+}
 namespace {
 RecordingLocationCandidate LocationCandidate(const RecordingSegmentV2& s,std::int64_t pts,
                                               const RecordingUtcMappingV1& m) {

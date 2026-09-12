@@ -70,6 +70,30 @@ struct RecordingLocationResult {
     bool has_unknown{false};
 };
 
+// Confirmed는 최소 한 후보의 미디어 구간 coverage가 확인됨을 뜻한다(UTC는 known 후보).
+// 다른 불확실 후보·unplaced를 포함한 전체 완전성, 후보 유일성·프레임 고유성·재생 가능성은 아니다.
+enum class RecordingRangeCoverage { Confirmed, Unknown, Gap };
+struct RecordingRangeCandidate {
+    std::string store_id, segment_id, media_epoch_id;
+    std::int64_t order_sequence{0};
+    std::int32_t time_base_num{1}, time_base_den{1000000000};
+    RecordingUtcMappingV1 mapping;
+    std::optional<std::int64_t> media_start_pts, media_end_pts;
+    std::string reason;
+};
+struct RecordingRangeSlice {
+    // ResolveMediaRange에서는 PTS, ResolveUtcRange에서는 UTC ns인 query 축 좌표다.
+    std::int64_t start{0}, end{0};
+    RecordingRangeCoverage coverage{RecordingRangeCoverage::Gap};
+    std::vector<RecordingRangeCandidate> candidates;
+};
+struct RecordingRangeResult {
+    std::vector<RecordingRangeSlice> slices;
+    // UTC 위치가 불명확한 mapping을 UTC축에 임의로 배치하지 않는다.
+    std::vector<RecordingRangeCandidate> unplaced;
+    bool deleted{false};
+};
+
 class RecordingReadService {
 public:
     explicit RecordingReadService(RecordingCatalog& catalog,
@@ -81,6 +105,11 @@ public:
                               std::int64_t pts, RecordingLocationResult* result, std::string* error) const;
     bool ResolveUtcLocations(const std::string& channel_id, std::int64_t utc_ns,
                              RecordingLocationResult* result, std::string* error) const;
+    bool ResolveMediaRange(const std::string& channel_id, const std::string& segment_id,
+                           std::int64_t start_pts, std::int64_t end_pts,
+                           RecordingRangeResult* result, std::string* error) const;
+    bool ResolveUtcRange(const std::string& channel_id, std::int64_t start_ns, std::int64_t end_ns,
+                         RecordingRangeResult* result, std::string* error) const;
     std::unique_ptr<ResolvedRecordingMedia> ResolveMedia(
         const std::string& channel_id, const std::string& segment_id) const;
 private:

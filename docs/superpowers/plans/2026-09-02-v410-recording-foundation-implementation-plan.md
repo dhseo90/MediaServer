@@ -1925,7 +1925,7 @@ catalog finalize에 전달한다. UTC 변화는 물리 분할 기준이 아니�
   기존 decoder normalize·숫자PTS·영상 전달을 바꾸지 않는다. 유일 timestamp 연관은
   현재 bounded 입력 이력의 판정이며 프레임 고유성 보장이 아니다. nearest/ambiguous/unavailable을 구분한다.
   관측 generation/order/ordinal/track/원본 PTS를 보존한다. source_generation과 media_epoch_id를 동일시하지 않는다.
-- [ ] 3C-2 공통 구간 해석: 점 두 개만 연결하지 않고 매핑 경계별 미디어 구간과 중첩·공백·unknown을 보존한다.
+- [x] 3C-2 공통 구간 해석: 점 두 개만 연결하지 않고 매핑 경계별 미디어 구간과 중첩·공백·unknown을 보존한다.
 - [ ] 3C-3 영속 참조·복구: 원본↔녹화 epoch 결박과 파생 위치를 versioned 계약으로 보존한다.
   기존 finalized segment/UTC 매핑은 수정하지 않으며 같은 원장의 복구·SQL/JSONL 정합성을 확인한다.
 - [ ] 3C-4 분석·이벤트 소비: 원본 참조가 같은 범위에만 event 우선순위를 적용한다.
@@ -1948,8 +1948,16 @@ C101~112를 실행 전 등록하며 stub에서 예상 assertion RED를 확인한
 각 단위의 관련 검증·기록·diffcheck PASS 후 커밋하며 첫 단위 PASS를 3C 전체 완료로 표기하지 않는다.
 
 3C-1 실제 결과: focused 10개, 실제 runtime 15개, 기존 observation 81개 및 각 runner 정리 PASS, 제품 rebuild exit0.
+커밋: 29de4d8f. 이어서 3C-2 C201~216을 중앙 기록에 실행 전 등록했다.
+3C-2는 channel/segment의 반열린 미디어 구간과 UTC 구간을 별도 API로 조회한다.
+각 mapping 경계·복수 후보·UTC coverage 공백을 보존하고 unknown UTC는 별도 unplaced 후보로 유지한다.
+정수로 표현 불가한 역변환은 이유를 보존하며 반올림·끝점 보간으로 확정 위치를 만들지 않는다.
+이 단위는 읽기 전용이며 3A 점 조회·원장·hold·public route 의미를 바꾸지 않는다.
 상세 전수 결과·실패 이력은 중앙 release-test-records의 S10 3C-1 절에 보존한다.
-메인 검토에서 동일 timestamp snapshot과 source_pts 충돌 판정을 보완했다. 3C-2~5는 아직 미완료다.
+메인 검토에서 동일 timestamp snapshot과 source_pts 충돌 판정을 보완했다.
+3C-2 실제 결과: focused C201~216 16개, 기존 위치 LOC01~14 14개·cleanup PASS, 제품 rebuild exit0.
+UTC sweep과 128 인접 media 범위·혼재 후보를 확인했고, 준비2회·예상 RED·컴파일1회 실패와 이후 결과는 중앙 기록에 보존한다.
+3C-3~5는 아직 미완료이며 이번 두 단위를 전체 3C 완료로 취급하지 않는다.
 
 
 #### 3B 구현 계약과 검증 순서

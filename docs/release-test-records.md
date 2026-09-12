@@ -1,5 +1,146 @@
 # Release Test Records
 
+## S10 3C-2 공통 구간 해석 — 실행 전 정의
+
+독자는 S10 구현·검증 담당자다. 승인된 보완 순서의 둘째 단위이며 AGENTS를 따른다.
+첫 단위 커밋은 29de4d8f다. 이번 결과를 영속 binding·event 파생 또는 전체 3C 완료로 확대하지 않는다.
+
+3C-2는 HTTP/API 변경 없이 RecordingReadService에 미디어 구간과 UTC 구간의 별도 내부 조회를 추가한다.
+미디어 조회는 channel+segment ID+동일 timebase의 반열린 [start,end)를 받고, mapping 경계마다 분할한다.
+닫힌 unknown UTC mapping은 정확한 미디어 구간을 유지한다. 미확정 끝은 confirmed extent로 추정하지 않으며 unknown 조각으로 구분한다.
+UTC 조회는 query와 각 known mapping의 경계 전부에서 분할하며 각 조각의 모든 후보를 보존한다. 각 후보에는 원본 mapping과 store/segment/epoch/order/timebase를 보존한다.
+inverse 변환은 원본 mapping 시작점과 유리수 timebase를 사용하며 끝점 보간·반올림을 하지 않는다. 표현 불가한 후보도 이유와 원본 mapping을 보존하되 confirmed PTS를 생성하지 않는다.
+unknown UTC mapping은 UTC 축에 억지 배치하지 않고 별도 unplaced 후보 목록으로 제공한다. 후보 없는 UTC 조각은 known UTC coverage gap이지 물리 영상 손실의 증명이 아니다.
+다른 store/epoch 및 같은 segment의 UTC 중첩 mapping을 임의 병합하지 않는다. 같은 snapshot에서 해석하며 결정적 정렬, 무변경 원장/hold, SQL/JSONL 재시작 동등성을 검증한다.
+3A 점 조회 의미는 유지하며 3C-3 영속 binding·3C-4 우선순위·3C-5 파생은 이 API의 품질 구분을 소비한다.
+
+명령: `bash scripts/internal/verify_recording_range_resolution.sh` 신규 격리 catalog focused.
+양성 assertion을 거부 stub에서 먼저 실행하고 정확한 예상 RED 목록을 실행 전 기록한다.
+첫 거부 stub 예상 RED: C201~211, C213~216 총15행. C212 입력 거부·결과 초기화는 PASS 예상이다.
+fixture 준비·컴파일·환경 오류는 이 예상 RED가 아니다.
+임시 원장·SQLite·fixture만 사용한다. 실제 영상·외부 source·서버·포트 접근 없음.
+영향 회귀: `bash scripts/internal/verify_recording_location_resolution.sh`, `./server.sh build`, 문서 links·diffcheck.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 내부 구간 조회 추가 | C201~216/read service | 이번 개발의 관련 단기 검증 |
+| 30분 | 미진행 | 개발 중 최종 코드 미고정 | S11 | 이번 실행 없음 |
+| 120분 | 미진행 | 이번 단위는 metadata 읽기 전용, 수명·전송 불변 | read service 구간 조회 | 다른 단위 S11 판정은 유지 |
+| UI 풀테스트 | 미진행 | 신규 route/control 없음 | C201~216 | 이번 실행 없음 |
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-C201 미디어 구간 mapping 경계 | 실제 catalog 구간 조회 | 한 segment의 여러 mapping을 query 범위로 잘라 별도 조각으로 보존 | v4.1.0 |
+| S10-C202 unknown UTC의 미디어 위치 | 실제 catalog 구간 조회 | 닫힌 unknown mapping은 미디어 범위를 보존하며 UTC를 만들지 않음 | v4.1.0 |
+| S10-C203 미디어 범위 밖 | 실제 catalog 구간 조회 | query 중 segment 앞뒤 부분은 미포함으로 남김 | v4.1.0 |
+| S10-C204 미확정 끝 | 실제 catalog 구간 조회 | 열린 mapping 끝을 query 끝까지 확정 coverage로 확장하지 않음 | v4.1.0 |
+| S10-C205 UTC 중첩 mapping | 실제 catalog 구간 조회 | 같은 파일의 역행·중첩 mapping 후보를 전부 보존 | v4.1.0 |
+| S10-C206 저장소 경계·결정 순서 | 실제 catalog 구간 조회 | 두 catalog 각각 store 보존, 동일 store 다중 파일/order 정렬, cross-store 원장 혼입 거부 | v4.1.0 |
+| S10-C207 정상 segment 분할 | 실제 catalog 구간 조회 | 같은 epoch라도 물리 segment 경계를 보존하고 자동 결합하지 않음 | v4.1.0 |
+| S10-C208 반열린 구간 경계 | 실제 catalog 구간 조회 | 빈·역전 입력 거부와 인접 끝점 비중복 | v4.1.0 |
+| S10-C209 유리수·비정수 경계 | 실제 catalog 구간 조회 | 정확한 timebase 변환; 비정수 끝은 반올림 없이 미확정 후보로 보존 | v4.1.0 |
+| S10-C210 정수 범위 안전성 | 실제 catalog 구간 조회 | 극단 PTS/UTC/timebase 곱셈에서 overflow나 임의 clamp 없음 | v4.1.0 |
+| S10-C211 UTC 공백·unplaced 구분 | 실제 catalog 구간 조회 | known UTC coverage gap과 UTC를 알 수 없는 media 후보를 별도 보존 | v4.1.0 |
+| S10-C212 입력 오류 초기화 | 실제 catalog 구간 조회 | 잘못된 ID·null output·미개방 catalog 거부 시 이전 결과 잔존 없음 | v4.1.0 |
+| S10-C213 삭제·채널 경계 | 실제 catalog 구간 조회 | 삭제된 ID와 다른 채널의 segment를 잘못 연결하지 않음 | v4.1.0 |
+| S10-C214 재시작 SQL·JSONL 동등 | 실제 catalog 구간 조회 | 동일 원장 재시작의 모든 구간·후보·품질 일치 | v4.1.0 |
+| S10-C215 원본 mapping·조회 불변 | 실제 catalog 구간 조회 | 원본 provenance/uncertainty/reason 및 mapping 범위 유지; journal·hold 무변경 | v4.1.0 |
+| S10-C216 unknown 채널 격리 | 실제 catalog 구간 조회 | 타 채널 unknown 및 pending/corrupt segment를 현재 범위 결과에 섞지 않음 | v4.1.0 |
+
+최종 검토 전 C207 하위 검사에 인접 segment 128개의 경계·원래 ID 순서 보존을 추가한다.
+UTC 조회는 경계마다 전체 mapping 재검색 대신 start/end sweep의 active 후보만 소비한다.
+시간 임계치로 성능 PASS를 만들지 않는다. C209는 같은 slice의 exact+nonintegral 후보 혼재 보존도 검사한다.
+
+실제 결과·실패 이력은 아래와 같다. token start/end/consumed는 실측 도구 미제공으로 미집계다.
+
+C206 실행 전 정정: 원장은 첫 order 예약의 store에 결박되어 단일 catalog snapshot의 cross-store 동시 후보가 정상 경로로 도달 불가다.
+두 실제 catalog의 store 보존과 동일 store 다중 후보 순서·혼입 거부를 검사했다. 원장 계약을 완화하거나 가짜 snapshot으로 PASS를 만들지 않았다.
+
+### 3C-2 구현·검토 및 결과
+
+구간 해석 단위의 구현·관련 단기 검증 완료. 3C-3~5 및 전체 3C는 미완료다.
+`recording_read_service.h/cpp`의 ResolveMediaRange/ResolveUtcRange는 catalog snapshot을 한 번 읽고
+원본 mapping을 수정하지 않은 채 반열린 범위를 분할한다. UTC 시작·끝 event sweep은 활성 후보만 해석한다.
+Confirmed는 known 후보의 coverage이며 후보 유일성·전체 완전성·재생 가능성·정확한 decoded frame의 증명이 아니다.
+unknown UTC는 unplaced에 남는다. 기존 점 조회·원장·hold·public route는 바꾸지 않았다.
+
+메인 검토: 반복 전체 mapping 재검색을 sweep으로 보완했다. C207은 동일 epoch 연속 PTS 128개로 정정했고
+C209는 exact/nonintegral 후보가 같은 slice에 모두 남는지 확인했다. 시간 성능 임계치 PASS는 주장하지 않는다.
+3C-1과 기존 S09 코드는 수정하지 않았다. 작업 트리 제품 빌드는 기존 S09 dirty를 포함한다.
+
+| 명령/실행 | exit | 결과 | 증거 |
+| --- | --- | --- | --- |
+| range focused / 25658 | 2 | V1식 삭제 사유를 사용한 fixture 준비 실패; 기능 미실행 | [실패·수정 이력](release-artifacts/v4.1.0/s10-range-resolution/focused.log) |
+| range focused / 25940 | 2 | /var 심볼릭 경로의 strict opener 거부; 소유 temp canonical 경로 정정; 기능 미실행 | 위 focused |
+| range focused / 33754 | 1 | 예상 RED: C201~211/C213~216 15 FAIL, C212 PASS | 위 focused |
+| range focused / 62307 | 1 | 기존 익명 namespace 여는 줄 누락에 따른 18개 컴파일 진단; 해당 줄 복구; 기능 미실행 | 위 focused의 최소 첫/끝 발췌 |
+| range focused / 7292 | 0 | 첫 구현 16/0 | 위 focused |
+| range focused / 56782 | 0 | sweep·128 인접 검사 16/0 | 위 focused |
+| range focused / 9205 | 0 | exact/nonintegral 혼재 검사 16/0 | 위 focused |
+| range focused / 92295 | 0 | C207 정상 연속 mediaPTS fixture 포함 최종 16/0 | 위 focused |
+| `bash scripts/internal/verify_recording_location_resolution.sh` | 0 | 기존 LOC01~14 전수 PASS·cleanup 확인 | [점 조회](release-artifacts/v4.1.0/s10-range-resolution/location.log) |
+| `./server.sh build` | 0 | runtime archive/제품 실행파일 rebuild | [빌드](release-artifacts/v4.1.0/s10-range-resolution/build.log) |
+
+range focused 명령은 모두 `bash scripts/internal/verify_recording_range_resolution.sh`다.
+62307 전체 18개 컴파일 원출력은 저장소에 보존하지 못했고 첫/끝 실제 오류·개수·원인·cleanup만 보존했다.
+이는 성공 evidence가 아니며 추정 복원하지 않는다. 나머지 focused의 실제 개별 행과 최초 실패를 위 로그에 보존한다.
+[source/build SHA-256·OS](release-artifacts/v4.1.0/s10-range-resolution/source.sha256). 최종 focused 5초(bash SECONDS), location 5초.
+빌드의 elapsed는 도구 호출부터 최종 수집까지의 관측값이며 정밀 process duration은 아니다.
+token start/end/consumed: 미집계 — 실측 집계 도구값 없음.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| S10-C201 미디어 구간 mapping 경계 | 한 segment의 여러 mapping을 query 범위로 잘라 별도 조각으로 보존; 최종 focused exit0 | PASS | 예상 RED → 최종 PASS |
+| S10-C202 unknown UTC의 미디어 위치 | 닫힌 unknown mapping은 미디어 범위를 보존하며 UTC를 만들지 않음; 최종 focused exit0 | PASS | 예상 RED → 최종 PASS |
+| S10-C203 미디어 범위 밖 | query 중 segment 앞뒤 부분은 미포함으로 남김; 최종 focused exit0 | PASS | 예상 RED → 최종 PASS |
+| S10-C204 미확정 끝 | 열린 mapping 끝을 query 끝까지 확정 coverage로 확장하지 않음; 최종 focused exit0 | PASS | 예상 RED → 최종 PASS |
+| S10-C205 UTC 중첩 mapping | 같은 파일의 역행·중첩 mapping 후보를 전부 보존; 최종 focused exit0 | PASS | 예상 RED → 최종 PASS |
+| S10-C206 저장소 경계·결정 순서 | 두 catalog 각각 store 보존, 동일 store 다중 파일/order 정렬, cross-store 원장 혼입 거부; 최종 focused exit0 | PASS | 예상 RED → 최종 PASS |
+| S10-C207 정상 segment 분할 | 같은 epoch라도 물리 segment 경계를 보존하고 자동 결합하지 않음; 최종 focused exit0 | PASS | 예상 RED → 최종 PASS |
+| S10-C208 반열린 구간 경계 | 빈·역전 입력 거부와 인접 끝점 비중복; 최종 focused exit0 | PASS | 예상 RED → 최종 PASS |
+| S10-C209 유리수·비정수 경계 | 정확한 timebase 변환; 비정수 끝은 반올림 없이 미확정 후보로 보존; 최종 focused exit0 | PASS | 예상 RED → 최종 PASS |
+| S10-C210 정수 범위 안전성 | 극단 PTS/UTC/timebase 곱셈에서 overflow나 임의 clamp 없음; 최종 focused exit0 | PASS | 예상 RED → 최종 PASS |
+| S10-C211 UTC 공백·unplaced 구분 | known UTC coverage gap과 UTC를 알 수 없는 media 후보를 별도 보존; 최종 focused exit0 | PASS | 예상 RED → 최종 PASS |
+| S10-C212 입력 오류 초기화 | 잘못된 ID·null output·미개방 catalog 거부 시 이전 결과 잔존 없음; 최종 focused exit0 | PASS | 거부 stub부터 PASS |
+| S10-C213 삭제·채널 경계 | 삭제된 ID와 다른 채널의 segment를 잘못 연결하지 않음; 최종 focused exit0 | PASS | 예상 RED → 최종 PASS |
+| S10-C214 재시작 SQL·JSONL 동등 | 동일 원장 재시작의 모든 구간·후보·품질 일치; 최종 focused exit0 | PASS | 예상 RED → 최종 PASS |
+| S10-C215 원본 mapping·조회 불변 | 원본 provenance/uncertainty/reason 및 mapping 범위 유지; journal·hold 무변경; 최종 focused exit0 | PASS | 예상 RED → 최종 PASS |
+| S10-C216 unknown 채널 격리 | 타 채널 unknown 및 pending/corrupt segment를 현재 범위 결과에 섞지 않음; 최종 focused exit0 | PASS | 예상 RED → 최종 PASS |
+| LOC01 exact media location preserves identity and mapping | 기존 점 조회 회귀; location.log exit0 | PASS | 기존 구현 의미 유지 |
+| LOC02 unknown UTC does not discard exact media location | 기존 점 조회 회귀; location.log exit0 | PASS | 기존 구현 의미 유지 |
+| LOC03 UTC point returns both overlapping files | 기존 점 조회 회귀; location.log exit0 | PASS | 기존 구현 의미 유지 |
+| LOC04 UTC point preserves separate mappings in one file | 기존 점 조회 회귀; location.log exit0 | PASS | 기존 구현 의미 유지 |
+| LOC05 point lookup uses half-open bounds | 기존 점 조회 회귀; location.log exit0 | PASS | 기존 구현 의미 유지 |
+| LOC06 unknown mapping never extrapolates UTC | 기존 점 조회 회귀; location.log exit0 | PASS | 기존 구현 의미 유지 |
+| LOC07 known candidates coexist with unknown coverage | 기존 점 조회 회귀; location.log exit0 | PASS | 기존 구현 의미 유지 |
+| LOC08 rational conversion preserves exact non-nanosecond PTS | 기존 점 조회 회귀; location.log exit0 | PASS | 기존 구현 의미 유지 |
+| LOC09 fractional PTS remains unknown without rounding | 기존 점 조회 회귀; location.log exit0 | PASS | 기존 구현 의미 유지 |
+| LOC10 arithmetic extremes do not overflow | 기존 점 조회 회귀; location.log exit0 | PASS | 기존 구현 의미 유지 |
+| LOC11 deleted exact ID is channel scoped | 기존 점 조회 회귀; location.log exit0 | PASS | 기존 구현 의미 유지 |
+| LOC12 invalid input is rejected without mutation | 기존 점 조회 회귀; location.log exit0 | PASS | 기존 구현 의미 유지 |
+| LOC13 reopened JSONL and SQLite locations are identical | 기존 점 조회 회귀; location.log exit0 | PASS | 기존 구현 의미 유지 |
+| LOC14 metadata resolution does not require files or alter holds | 기존 점 조회 회귀; location.log exit0 | PASS | 기존 구현 의미 유지 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-range.X1UmAS | 임시 binary/catalog | 2734942B | runner 정리 | 삭제 확인 | focused.log / setup-25658.log |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-range.aWTedh | 임시 binary/catalog | 2735251B | runner 정리 | 삭제 확인 | focused.log / setup-25940.log |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-range.HMbS0Y | 임시 binary/catalog | 2738389B | runner 정리 | 삭제 확인 | focused.log / red-33754.log |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-range.uMCKZP | 임시 binary/catalog | 0B | runner 정리 | 삭제 확인 | focused.log / build-62307.log |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-range.hVBoWX | 임시 binary/catalog | 2826069B | runner 정리 | 삭제 확인 | focused.log / green-7292.log |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-range.UAm1NS | 임시 binary/catalog | 3286508B | runner 정리 | 삭제 확인 | focused.log / green-56782.log |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-range.I7VP3Y | 임시 binary/catalog | 3289390B | runner 정리 | 삭제 확인 | focused.log / green-9205.log |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-range.RAelEF | 임시 binary/catalog | 3290234B | runner 정리 | 삭제 확인 | focused.log / green-92295.log |
+| TMPDIR/media-server-location.v5RVIG | 점 조회 binary·catalog | 2888351B | runner 정리 | 삭제 확인 | location.log |
+| docs/release-artifacts/v4.1.0/s10-range-resolution/ | 비민감 최소 로그·hash | 4개 텍스트 | 이력 보존 | 보존 | 위 링크 |
+
+포트·외부/운영 source·계정 사용 없음. 30분·120분·UI 전체·3D·푸시는 미실행이며 이 단위 PASS로 대체하지 않는다.
+
+문서 확인: `./server.sh verify-docs-links` exit0 — md234/links1157/images22/anchors108/failures0.
+`git diff --check` exit0. 임시 실행 로그 8개 6371B를 최소 artifact 4개 9917B로 이관한 뒤
+원래 `.media_server.test/s10-3c2/` 로그를 apply_patch로 삭제하고 부재를 확인했다.
+기존 S09 dirty는 이번 stage에서 제외하여 보존한다. 푸시는 실행하지 않았다.
+
 ## S10 3C-1 원본·분석 연관 — 실행 전 정의
 
 독자는 구현·검증 담당자다. 기존 S10 보완 계획의 첫 단위이며 정책은 AGENTS를 따른다.
