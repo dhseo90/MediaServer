@@ -206,6 +206,111 @@ struct NoDerive final : EventClipDeriver {
     int calls = 0;
     EventClipDeriveResult Derive(const EventClipDeriveRequest&) override { ++calls; return {}; }
 };
+std::string SqlReference(const std::filesystem::path& path, const std::string& id) {
+    sqlite3* db = nullptr;
+    sqlite3_stmt* statement = nullptr;
+    std::string value;
+    if (sqlite3_open_v2(path.c_str(), &db, SQLITE_OPEN_READONLY, nullptr) == SQLITE_OK &&
+        sqlite3_prepare_v2(db, "SELECT payload_json FROM recording_consumer_references WHERE reference_id=?",
+                          -1, &statement, nullptr) == SQLITE_OK) {
+        sqlite3_bind_text(statement, 1, id.c_str(), -1, SQLITE_TRANSIENT);
+        if (sqlite3_step(statement) == SQLITE_ROW)
+            value = reinterpret_cast<const char*>(sqlite3_column_text(statement, 0));
+    }
+    sqlite3_finalize(statement);
+    if (db) sqlite3_close(db);
+    return value;
+}
+void EarlyRequestCases(Fixture& f) {
+    NoDerive deriver;
+    CatalogEventRecordingBridge::Options options;
+    options.output_root = f.root / "early-clips";
+    options.now_ms = [] { return 100; };
+    options.use_consumer_references = true;
+    options.resolve_recording_channel = [](const std::string&) {
+        return std::optional<std::string>("channel-one");
+    };
+    std::vector<RecordingConsumerReferenceV1> expected;
+    bool admitted = false, updates = false;
+    {
+        RetentionCoordinator retention(*f.catalog, [&] { return f.catalog->RetentionSnapshot(); },
+            [](std::uint64_t* bytes, std::string*) { *bytes = 1000000; return true; }, {}, {});
+        CatalogEventRecordingBridge bridge(*f.catalog, retention, deriver, options);
+        auto result = Result("early-event-producer");
+        analysis::EventRecord event;
+        event.event_id = "early-event"; event.stream_id = "source-one";
+        event.channel_id = "channel-one"; event.track_id = 1;
+        event.time_basis = "media-pts-ms"; event.start_time_ms = 100; event.update_time_ms = 200;
+        analysis::EventMediaHookOptions hook;
+        hook.pre_event_ms = 5000; hook.post_event_ms = 3000;
+        const auto response = bridge.TryResolve(result, event, hook);
+        auto rows = f.catalog->QueryConsumerReferences("channel-one", "event", event.event_id);
+        admitted = response.handled && response.error.empty() && response.completeness == "pending" &&
+            !response.derived_clip_ready && response.clip_path.empty() && response.link_id.empty() &&
+            rows.size() == 1 && rows[0].request && rows[0].request->start_ms == 100 &&
+            rows[0].request->end_ms == 200 && rows[0].request->pre_ms == 5000 &&
+            rows[0].request->post_ms == 3000 && rows[0].request->time_basis == "media-pts-ms";
+        const auto before_retry = Bytes(f.journal->path());
+        const auto retry = bridge.TryResolve(result, event, hook);
+        updates = admitted && retry.error.empty() && Bytes(f.journal->path()) == before_retry;
+        event.update_time_ms = 300;
+        const auto extended = bridge.TryResolve(result, event, hook);
+        result.source_association.original->source_generation = "early-generation-two";
+        result.source_association.original->generation_order = 2;
+        result.source_association.original->pts_ns = 0;
+        const auto reset = bridge.TryResolve(result, event, hook);
+        expected = f.catalog->QueryConsumerReferences("channel-one", "event", event.event_id);
+        bool first = false, extension = false, generation = false;
+        for (const auto& row : expected) {
+            if (!row.original || !row.request) continue;
+            const bool request = row.request->start_ms == 100 && row.request->pre_ms == 5000 &&
+                row.request->post_ms == 3000 && row.request->time_basis == "media-pts-ms";
+            const bool identity = row.original->pts_ns == 0 && row.original->ordinal == 1 &&
+                row.original->track_id == "video/0";
+            first = first || (request && identity && row.original->source_generation == "generation-one" &&
+                row.original->generation_order == 1 && row.request->end_ms == 200);
+            extension = extension || (request && identity && row.original->source_generation == "generation-one" &&
+                row.original->generation_order == 1 && row.request->end_ms == 300);
+            generation = generation || (request && identity && row.original->source_generation == "early-generation-two" &&
+                row.original->generation_order == 2 && row.request->end_ms == 300);
+        }
+        updates = updates && extended.error.empty() && reset.error.empty() &&
+            expected.size() == 3 && first && extension && generation;
+        bridge.RecordFallback(event, response);
+        bridge.StopAndDrain();
+    }
+    Check(admitted && deriver.calls == 0 && !std::filesystem::exists(options.output_root) &&
+          f.catalog->ListEventLinks(EventRecordingLinkStatus::Pending).empty(),
+          "C422 실제 bridge 초기 pre-roll 수락·pending 유지");
+    Check(updates, "C423 초기 요청 멱등·갱신·generation 분리");
+    const auto same = [&] {
+        const auto actual = f.catalog->QueryConsumerReferences("channel-one", "event", "early-event");
+        if (expected.size() != 3 || actual.size() != expected.size()) return false;
+        for (const auto& row : expected) {
+            const auto found = std::find_if(actual.begin(), actual.end(), [&](const auto& value) {
+                return value.reference_id == row.reference_id;
+            });
+            if (found == actual.end() || SerializeRecordingConsumerReferenceV1(*found) !=
+                SerializeRecordingConsumerReferenceV1(row)) return false;
+        }
+        return true;
+    };
+    const auto sql_same = [&] {
+        if (expected.size() != 3) return false;
+        for (const auto& row : expected)
+            if (SqlReference(f.root / "recording-catalog.sqlite3", row.reference_id) !=
+                SerializeRecordingConsumerReferenceV1(row)) return false;
+        return true;
+    };
+    bool restored = sql_same();
+    f.Reopen(false); restored = same() && restored;
+    f.Reopen(true); restored = same() && sql_same() && restored;
+    Check(restored, "C424 초기 요청 SQL·JSONL 복구");
+    bool checkpoint = f.catalog->Checkpoint(&f.error);
+    f.Reopen(false); checkpoint = same() && checkpoint;
+    f.Reopen(true); checkpoint = same() && sql_same() && checkpoint;
+    Check(checkpoint, "C425 초기 요청 checkpoint 복구");
+}
 void BridgeCases(Fixture& f) {
     RetentionCoordinator retention(*f.catalog, [&] { return f.catalog->RetentionSnapshot(); },
         [](std::uint64_t* bytes, std::string*) { *bytes = 1000000; return true; }, {}, {});
@@ -339,6 +444,7 @@ int main(int argc, char** argv) {
         ProjectorCases(f);
         ReadCases(f);
         BridgeCases(f);
+        EarlyRequestCases(f);
     } catch (const std::exception& error) {
         std::cerr << "[setup-fail] " << error.what() << '\n'; return 2;
     }

@@ -1,0 +1,34 @@
+command: bash scripts/internal/verify_recording_consumer_reference.sh
+exit: 1
+[pass] C341 계약 왕복
+[pass] C342 unknown/중복 필드 거부
+[pass] C343 ID·종류·소유자 제약
+[pass] C344 품질·원본 nullable 조합
+[pass] C345 원본 수치·track 경계
+[pass] C346 event 요청·시간축
+[pass] C347 observation 요청 금지
+[pass] C348 요청 음수·역전·padding
+[fail] C419 media-pts 초기 요청 원문 왕복
+[fail] C420 UTC 초기 요청 원문 왕복
+[fail] C421 0·최대 pre 요청 및 오류 경계
+[pass] C349 미지원 schema 거부
+[pass] C350 실제 원장 저장·조회
+[pass] C351 동일 참조 멱등
+[pass] C352 동일 ID 충돌 거부
+[pass] C353 opt-in·미open 거부
+[pass] C354 SQL·JSONL 재시작 동등
+[pass] C355 checkpoint 참조 보존
+[detail] C356 malformed preserved=true
+[detail] C356 conflict preserved=true
+[detail] C356 unknown preserved=true
+[detail] C356 tail preserved=true
+[detail] C356 optout preserved=true
+[detail] C356 entity preserved=true
+[detail] C356 extra preserved=true
+[detail] C356 same-id preserved=true
+[detail] C356 cross-before preserved=true
+[detail] C356 cross-after preserved=true
+[pass] C356 손상·충돌 replay 선차단
+[summary] pass=16 fail=3
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-consumer-reference.8w1Y40 bytes=3504765 removed=true
+[elapsed] seconds=5 source=bash-SECONDS

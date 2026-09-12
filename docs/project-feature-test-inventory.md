@@ -2,6 +2,16 @@
 
 | 기능 ID | 기능 | 안정화 | 30분 | 120분 | UI 풀테스트 | UI 기준 |
 | --- | --- | --- | --- | --- | --- | --- |
+| S10-C419 | media-pts 초기 요청 원문 왕복 | consumer-reference/connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in; 영상 생성·범위 증명 아님 |
+| S10-C420 | UTC 초기 요청 원문 왕복 | consumer-reference/connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in; 영상 생성·범위 증명 아님 |
+| S10-C421 | 0·최대 pre 요청 및 오류 경계 | consumer-reference/connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in; 영상 생성·범위 증명 아님 |
+| S10-C422 | 실제 bridge 초기 pre-roll 수락·pending 유지 | consumer-reference/connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in; 영상 생성·범위 증명 아님 |
+| S10-C423 | 초기 요청 멱등·갱신·generation 분리 | consumer-reference/connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in; 영상 생성·범위 증명 아님 |
+| S10-C424 | 초기 요청 SQL·JSONL 복구 | consumer-reference/connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in; 영상 생성·범위 증명 아님 |
+| S10-C425 | 초기 요청 checkpoint 복구 | consumer-reference/connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in; 영상 생성·범위 증명 아님 |
+
+| 기능 ID | 기능 | 안정화 | 30분 | 120분 | UI 풀테스트 | UI 기준 |
+| --- | --- | --- | --- | --- | --- | --- |
 | S10-C501 | H264 실제 파일 시각 측정 | 실제 파일 측정 단기 | S11 판정 | S11 판정 | 이번 비대상 | 제품 UI 없음; 파생 기능 PASS 아님 |
 | S10-C502 | 비영점 원본 시각 측정 | 실제 파일 측정 단기 | S11 판정 | S11 판정 | 이번 비대상 | 제품 UI 없음; 파생 기능 PASS 아님 |
 | S10-C503 | 정상 segment 분할 측정 | 실제 파일 측정 단기 | S11 판정 | S11 판정 | 이번 비대상 | 제품 UI 없음; 파생 기능 PASS 아님 |

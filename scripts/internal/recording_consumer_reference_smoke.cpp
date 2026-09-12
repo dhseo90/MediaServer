@@ -57,17 +57,35 @@ int main(int argc,char** argv) {
     check(request,"C346 event 요청·시간축");
     bad=v;bad.request=event.request;check(!ValidateRecordingConsumerReferenceV1(bad,&error),"C347 observation 요청 금지");
     bool ranges=true;
-    for(int field=0;field<6;++field) {
+    for(int field=0;field<5;++field) {
         bad=event;
         if(field==0)bad.request->start_ms=-1;
         if(field==1)bad.request->start_ms=1;
         if(field==2)bad.request->pre_ms=-1;
         if(field==3)bad.request->post_ms=-1;
-        if(field==4)bad.request->pre_ms=1;
-        if(field==5){bad.request->end_ms=std::numeric_limits<std::int64_t>::max();bad.request->post_ms=1;}
+        if(field==4){bad.request->end_ms=std::numeric_limits<std::int64_t>::max();bad.request->post_ms=1;}
         ranges=ranges&&!ValidateRecordingConsumerReferenceV1(bad,&error);
     }
     check(ranges,"C348 요청 음수·역전·padding");
+    const auto round_trip = [&](const std::string& basis, std::int64_t start,
+                                std::int64_t end, std::int64_t pre, std::int64_t post) {
+        auto value = event;
+        value.request = RecordingConsumerRequestV1{basis, start, end, pre, post};
+        RecordingConsumerReferenceV1 copy;
+        const auto json = SerializeRecordingConsumerReferenceV1(value);
+        return ValidateRecordingConsumerReferenceV1(value, &error) && !json.empty() &&
+            ParseRecordingConsumerReferenceV1(json, &copy, &error) && copy.request &&
+            copy.request->time_basis == basis && copy.request->start_ms == start &&
+            copy.request->end_ms == end && copy.request->pre_ms == pre &&
+            copy.request->post_ms == post && SerializeRecordingConsumerReferenceV1(copy) == json;
+    };
+    check(round_trip("media-pts-ms",100,200,5000,3000),"C419 media-pts 초기 요청 원문 왕복");
+    check(round_trip("utc-ms",100,200,5000,3000),"C420 UTC 초기 요청 원문 왕복");
+    const auto maximum = std::numeric_limits<std::int64_t>::max();
+    check(round_trip("media-pts-ms",0,0,0,0) && round_trip("media-pts-ms",0,0,1,0) &&
+          round_trip("media-pts-ms",0,0,maximum,0) && round_trip("utc-ms",0,0,maximum,maximum) &&
+          round_trip("utc-ms",maximum,maximum,maximum,0) && ranges,
+          "C421 0·최대 pre 요청 및 오류 경계");
     auto unsupported=literal;unsupported.replace(unsupported.find("reference.v1"),12,"reference.v9");
     check(!ParseRecordingConsumerReferenceV1(unsupported,&parsed,&error),"C349 미지원 schema 거부");
     const std::filesystem::path root=std::filesystem::path(argv[1])/"store";

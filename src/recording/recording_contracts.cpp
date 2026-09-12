@@ -429,8 +429,10 @@ bool ValidateRecordingConsumerReferenceV1(const RecordingConsumerReferenceV1& v,
     if((v.kind=="event")!=v.request.has_value())return Fail(error,"consumer reference request 종류 오류");
     if(v.request) {
         const auto& r=*v.request;
+        // pre-roll은 요청 사실이다. start-pre가 음수여도 원문을 보존하며
+        // 실제 영상의 존재 범위나 coverage를 여기서 추론하지 않는다.
         if((r.time_basis!="utc-ms"&&r.time_basis!="media-pts-ms")||r.start_ms<0||r.end_ms<r.start_ms||r.pre_ms<0||r.post_ms<0||
-           static_cast<__int128>(r.start_ms)-r.pre_ms<0||static_cast<__int128>(r.end_ms)+r.post_ms>std::numeric_limits<std::int64_t>::max())
+           static_cast<__int128>(r.end_ms)+r.post_ms>std::numeric_limits<std::int64_t>::max())
             return Fail(error,"consumer reference request 범위 오류");
     }
     ClearError(error);return true;

@@ -1916,7 +1916,13 @@ catalog finalize에 전달한다. UTC 변화는 물리 분할 기준이 아니�
 
 ### 3C-5A 실제 파일 시간 대응 확인 — 2026-09-13
 
-#### 후속 구현 전 입력 계약 판단 대기
+#### 후속 구현 전 입력 계약 발견 이력과 승인 보완
+
+사용자는 요청 사실과 영상 범위 판정을 분리하는 보완안을 승인했다. 아래 판단 대기는 승인 이전 이력이다.
+보완 결과: 초기 pre-roll 요청 수락·실제 bridge·복구 검증을 완료했다. reference19/0, connection22/0,
+기존 이벤트 회귀 및 제품 build exit0이며 원출력은 중앙 기록의 초기 pre-roll 보완 기록에 보존한다.
+3C-5 실제 영상 생성·복구 구현을 포함하지 않는다.
+작은 media-pts가 서버 시작 전 또는 영상 부재를 뜻하지 않는다. 확인 전에는 unknown이며, 실제 부재 근거가 있을 때만 부족으로 판정한다.
 
 메인 정적 대조에서 초기 media-pts 요청의 경계를 추가 발견했다. `recording_contracts.cpp`의
 `ValidateRecordingConsumerReferenceV1`은 `start_ms-pre_ms<0`이면 거부하고,
@@ -1935,7 +1941,7 @@ C507은 유효 시계의 UTC 역행을 두 estimated mapping으로, C508은 세�
 3C-5A는 실제 경계 측정 완료이며 파생 기능 전체는 미완료다. 다음 구현은 명시적 file/stream-time 변환과
 실제 출력 coverage/provenance, 그 뒤 ready·hold·예약 중단 복구다. 기존 finalized 계약은 변경하지 않았다.
 
-3C-4는 a05c15dd로 마감했다. 다음 실제 파생 구현의 선행 단위로, 기존 writer를 바꾸지 않고
+3C-4는 a05c15dd 당시 정의 범위를 마감했으나 초기 pre-roll 경계가 추가 발견됐다. 다음 실제 파생 구현의 선행 단위로, 기존 writer를 바꾸지 않고
 H264/MP4 산출물의 패킷 시각과 원본 결박을 측정한다. 과거 UTC 기반 deriver에 원본 PTS를 UTC인 것처럼 전달하지 않는다.
 이 단위의 PASS는 측정 도구/실제 파일 관찰의 성공이지, 파생 영상·ready/hold·예약 복구 완료가 아니다.
 
@@ -1964,7 +1970,7 @@ PTS의 원본 대비 차이가 일정한지, timescale 양자화 또는 decode-p
 별도 DB·새 외부 의존성·3D·S11·장시간/UI 전체·푸시는 제외한다.
 
 - [x] 3C-3C: 원본 사실 저장. `RecordingConsumerReferenceV1`을 기존 journal/catalog/SQLite/checkpoint에 연결했다. focused16·binding20·catalog246 및 build 통과. metadata 원자 저장/소비자는 다음 단위다.
-- [ ] 3C-4: 참조 생산·해석 구현과 최종 C401~418·관련 단기 회귀·제품 build는 a05c15dd에서 통과했다. 뒤늦게 확인한 초기 pre-event 요청 저장 계약의 변경 판단이 남아 최종 종료는 보류한다. 실제 파생 clip/UI 기본 전환은 완료 범위가 아니다.
+- [x] 3C-4: a05c15dd의 참조 생산·해석에 초기 pre-event 요청 보존 보완을 추가했다. reference19/0, connection22/0, 기존 이벤트 회귀 및 제품 build exit0. 실제 파생 clip/UI 기본 전환은 완료 범위가 아니다.
 - [ ] 3C-5: 참조 구간의 실제 미디어 출력/ready/hold·예약 중단 복구를 구현한다.
 
 #### 3C-4 실제 분석·이벤트 소비자 연결 (3C-3C 이후)
@@ -2045,7 +2051,10 @@ timestamp-match에는 original 필수, nearest에는 optional, ambiguous/unavail
 3C-4 실제 생산자 대조에서 decoder가 nearest/null을 반환함을 확인해 a8ed142f의 nearest 필수를 보완한다.
 원본이 있더라도 nearest는 정확한 위치로 승격하지 않는다. 기존 decoder/PTS 정책은 변경하지 않는다.
 request는 event에만 필수이며 start<=end, 음수/overflow/음수 padding은 거부한다.
-padding 합성은 int128 중간값으로 start_ms-pre_ms>=0, end_ms+post_ms<=INT64_MAX를 검증한다.
+승인 보완: 기존 start_ms-pre_ms>=0 수락 조건을 제거해 초기 pre-roll 요청 사실을 보존한다.
+start/end/pre/post는 비음수이고 start<=end이며, int128 중간값으로 end_ms+post_ms<=INT64_MAX 검사는 유지한다.
+요청 필드를 0으로 덮어쓰거나 음수 실제 PTS·UTC 외삽·coverage를 생성하지 않는다.
+동일 schema/필드로 과거 데이터를 읽지만 구형 바이너리의 새 수락 레코드 읽기(downgrade)는 보장하지 않는다.
 start==end는 원본 순간 요청으로 보존하며 영상 coverage를 자동 부여하지 않는다.
 단일 현재 원본으로 과거 이벤트 시작 위치를 역산하지 않는다. 요청 사실과 현재 연관은 분리 보존한다.
 소비자는 timestamp-match만 정확한 입력 tuple 조회에 사용하며 decoded frame 유일성으로 승격하지 않는다.
@@ -2091,7 +2100,8 @@ SQL은 기존 DB 안 별도 projection table, JSONL-only와 동일 출력. check
 - [x] 3C-2 공통 구간 해석: 점 두 개만 연결하지 않고 매핑 경계별 미디어 구간과 중첩·공백·unknown을 보존한다.
 - [ ] 3C-3 영속 참조·복구: 원본↔녹화 epoch 결박과 파생 위치를 versioned 계약으로 보존한다.
   기존 finalized segment/UTC 매핑은 수정하지 않으며 같은 원장의 복구·SQL/JSONL 정합성을 확인한다.
-- [ ] 3C-4 분석·이벤트 소비: 원본 참조가 같은 범위에만 event 우선순위를 적용한다.
+- [x] 3C-4 분석·이벤트 소비: 실제 producer 참조 저장과 확인된 동일 원본 구간의 내부 우선순위 판정을 구현·검증했다.
+  초기 pre-roll 요청 보존 보완도 완료했다. 실제 coverage 생성과 제품 화면 적용 완료를 의미하지 않는다.
   기존 공개 Event POST/SSE/WS field 의미는 유지하며 표현 불가한 결과를 V1으로 억지 변환하지 않는다.
 - [ ] 3C-5 파생·중단 복구: 미디어 시간으로 출력 위치를 측정하고 UTC는 별도 대응으로 유지한다.
   다른 epoch는 이벤트의 여러 참조로 보존하되 하나의 연속 영상으로 자동 합성하지 않는다.

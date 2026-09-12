@@ -1,8 +1,44 @@
 # Release Test Records
 
+## S10 3C-4 초기 pre-roll 요청 사실 보존 — 실행 전 정의
+
+사용자 보완안 승인에 따라 start-pre가 음수라는 이유만으로 요청을 버리지 않는다.
+start/end/pre/post 원문, 기존 음수·역전·post 합산 overflow·ID·품질 검사는 유지한다.
+요청 수락은 실제 영상 존재/coverage/재생 가능 증명이 아니다. 미확인은 missing으로 단정하지 않는다.
+새 코드는 과거 레코드를 읽지만 구형 바이너리가 새 수락 레코드를 읽는 downgrade 호환은 보장하지 않는다.
+기존 C348의 음수 확장 시작 거부 기대만 승인된 계약으로 교체하며 과거 결과는 보존한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-C419 | media-pts 초기 요청 원문 왕복 | 실제 계약/bridge/catalog에서 원문·수락·복구·부작용 검사 | v4.1.0 |
+| S10-C420 | UTC 초기 요청 원문 왕복 | 실제 계약/bridge/catalog에서 원문·수락·복구·부작용 검사 | v4.1.0 |
+| S10-C421 | 0·최대 pre 요청 및 오류 경계 | 실제 계약/bridge/catalog에서 원문·수락·복구·부작용 검사 | v4.1.0 |
+| S10-C422 | 실제 bridge 초기 pre-roll 수락·pending 유지 | 실제 계약/bridge/catalog에서 원문·수락·복구·부작용 검사 | v4.1.0 |
+| S10-C423 | 초기 요청 멱등·갱신·generation 분리 | 실제 계약/bridge/catalog에서 원문·수락·복구·부작용 검사 | v4.1.0 |
+| S10-C424 | 초기 요청 SQL·JSONL 복구 | 실제 계약/bridge/catalog에서 원문·수락·복구·부작용 검사 | v4.1.0 |
+| S10-C425 | 초기 요청 checkpoint 복구 | 실제 계약/bridge/catalog에서 원문·수락·복구·부작용 검사 | v4.1.0 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 요청 수락 변경과 실제 bridge·복구 영향 | C348, C419~425; contracts/consumer-reference/connection | 보완안 개발 승인: focused, event 회귀, build, diff/docs |
+| 30분 | 미진행 | 이번은 요청 수락 단기 보완 | S11 최종 판정에서 별도 판단 | 이번 실행 안 함 |
+| 120분 | 미진행 | 미디어·수명 경로 변경 없음 | validator 요청 수락만 변경 | 이번 실행 안 함 |
+| UI 풀테스트 | 미진행 | 내부 opt-in이며 UI 변경 없음 | C419~425 | 이번 실행 안 함 |
+
+예상 RED: 제품 변경 전 C419~425 중 early pre 요청을 실제 수락해야 하는 assertion이 거부된다.
+빌드/환경 실패는 예상 RED가 아니다. GREEN 및 영향 회귀 뒤 실제 결과·원출력·정리를 기록한다.
+소유 임시 경로는 reference/connection/event runner의 mktemp root이며 trap 정리를 확인한다.
+token start/end/consumed: 미집계(이 작업 단위 사용량 계측 없음); elapsed/source는 실제 실행 출력에 기록한다.
+
+실행 결과: 예상 RED reference16/3·connection18/4(exit1)는 C419~425의 기존 수락 거부에 정확히 일치했다.
+보완 후 reference19/0·connection22/0(exit0), 기존 이벤트 회귀 및 제품 build(session46438) exit0.
+실제 이벤트는 원문 요청을 보존하고 pending/clip 없음으로 유지됐다. 기존 C348 음수·역전·overflow 거부는 유지한다.
+개별 정의·결과·최초 실패·원출력·소유 임시 경로 정리는 [보완 실행 기록](release-artifacts/v4.1.0/s10-consumer-request-admission/report.md)에 보존한다.
+기존 3C-5A 측정 증거는 writer/미디어 변경이 없어 유지한다. 이번 결과는 실제 파생 영상 생성·coverage 판정·S11 PASS가 아니다.
+
 ## S10 3C-5A 실제 파일 시간 측정 — 실행 전 정의
 
-후속 구현 보류 항목(정적 발견, 테스트 미실행): start_ms보다 pre_ms가 큰 초기 media-pts 이벤트는
+당시 후속 구현 보류 항목(승인 전 정적 발견 이력; 최신 진행은 위 초기 pre-roll 보완 기록): start_ms보다 pre_ms가 큰 초기 media-pts 이벤트는
 현재 고정된 consumer reference 수락 조건에서 거부된다. 요청 사실 보존과 미존재 coverage 분리로 바꾸는 안을 사용자에게 제시한다.
 3C-4의 기존 구현/검증 PASS는 보존하지만 해당 입력 호환 및 전체 종료는 미확인이다. validator/판정 기준은 아직 변경하지 않았다.
 
