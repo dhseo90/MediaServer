@@ -1,0 +1,11 @@
+명령: bash scripts/internal/verify_recording_managed_writer.sh
+exit: 1
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_managed_writer_smoke.cpp:225:15: error: redefinition of 'ls'
+  225 |         Store ls(root/"late");bool late_ok=Run(ls,late);auto lseg=ls.Segments();
+      |               ^
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_managed_writer_smoke.cpp:173:56: note: previous definition is here
+  173 |         const auto long_input=Encode(false,4100);Store ls(root/"source-index-cap");
+      |                                                        ^
+1 error generated.
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.GE3ZUM bytes=0 removed=true
+[elapsed] seconds=4 source=bash-SECONDS

@@ -54,7 +54,7 @@ Encoded Encode(bool h264,int frames=60,bool bframes=false,bool actual_probe=fals
     }
     gst_element_set_state(pipe,GST_STATE_NULL);gst_object_unref(sink);gst_object_unref(pipe);return out;
 }
-int Decode(const std::filesystem::path& path,std::vector<std::uint64_t>* timestamps=nullptr) {
+int Decode(const std::filesystem::path& path,std::vector<std::uint64_t>* timestamps=nullptr,int max_frames=1000) {
     gchar* uri=g_filename_to_uri(path.c_str(),nullptr,nullptr);
     const std::string launch=std::string("uridecodebin uri=\"")+uri+"\" ! videoconvert ! appsink name=out sync=false";g_free(uri);
     GError* error=nullptr;GstElement* pipe=gst_parse_launch(launch.c_str(),&error);
@@ -66,7 +66,7 @@ int Decode(const std::filesystem::path& path,std::vector<std::uint64_t>* timesta
         if(!sample){eos=gst_app_sink_is_eos(GST_APP_SINK(sink));break;}
         if(timestamps)timestamps->push_back(GST_BUFFER_PTS(gst_sample_get_buffer(sample)));
         ++count;gst_sample_unref(sample);
-        if(count>1000)break;
+        if(count>max_frames)break;
     }
     gst_element_set_state(pipe,GST_STATE_NULL);gst_object_unref(sink);gst_object_unref(pipe);return eos?count:-1;
 }
@@ -86,7 +86,8 @@ struct Store {
     std::vector<recording::RecordingSegmentV2> Segments() {
         std::vector<recording::RecordingSegmentV2> out;
         // 원장 envelope ID로 실제 catalog 결과를 찾는다.
-        for(const auto& m:journal.Replay().mutations)if(m.mutation_type==recording::RecordingMutationType::SegmentV2Finalized) {
+        for(const auto& m:journal.Replay().mutations)if(m.mutation_type==recording::RecordingMutationType::SegmentV2Finalized||
+            m.mutation_type==recording::RecordingMutationType::SegmentV2BoundFinalized) {
             auto s=catalog.FindSegmentV2ById(m.entity_id);if(s)out.push_back(*s);
         }
         return out;
@@ -112,6 +113,21 @@ int main(int argc,char** argv) {
         for(const auto& pair:std::vector<std::pair<std::string,const Encoded*>>{{"h264",&h264},{"vp8",&vp8}}) {
             Store s(root/pair.first);const bool ran=Run(s,*pair.second);auto segments=s.Segments();
             Check(ran&&segments.size()==3&&s.Frames(segments)==60,"WR01 "+pair.first+" managed segments decode all frames without legacy callback or snapshot");
+            bool bound=segments.size()==3;
+            std::uint64_t next=1;
+            for(const auto& segment:segments) {
+                const auto binding=s.catalog.FindSourceBinding(segment.segment_id);
+                if(!binding){bound=false;continue;}
+                bound=bound&&binding->source_generation=="source-a"&&binding->generation_order==1&&
+                    binding->track_id=="video-0"&&binding->media_epoch_id==segment.media_epoch_id&&
+                    binding->index_complete&&binding->samples.size()==20;
+                for(const auto& sample:binding->samples) {
+                    bound=bound&&sample.ordinal==next&&sample.pts_ns==(next-1)*100000000ULL;
+                    ++next;
+                }
+                bound=bound&&binding->last_accepted_ordinal==next-1;
+            }
+            Check(bound&&next==61,"S10-C321 "+pair.first+" 실제 수락 원본 tuple과 segment 결박");
         }
         for(const auto& c:std::vector<std::pair<std::string,std::pair<int,std::int64_t>>>{{"WR02",{15,-4034000000LL}},{"WR03",{20,-4034000000LL}},{"WR04",{15,4034000000LL}}}) {
             auto shifted=h264;for(std::size_t i=c.second.first;i<shifted.packets.size();++i)shifted.packets[i].observation->observed_utc_ns+=c.second.second;
@@ -125,8 +141,48 @@ int main(int argc,char** argv) {
         Store gs(root/"generation");bool generations=Run(gs,changed);auto gseg=gs.Segments();
         bool distinct=false;for(std::size_t i=1;i<gseg.size();++i)distinct|=gseg[i].media_epoch_id!=gseg[0].media_epoch_id;
         Check(generations&&distinct&&gs.Frames(gseg)==60,"WR06 explicit generation reset creates a new media epoch");
+        bool bound_generations=gseg.size()==3;
+        for(std::size_t i=0;i<gseg.size();++i) {
+            const auto b=gs.catalog.FindSourceBinding(gseg[i].segment_id);
+            bound_generations=bound_generations&&b&&b->source_generation==(i==0?"source-a":"source-b")&&
+                b->generation_order==(i==0?1U:2U)&&b->media_epoch_id==gseg[i].media_epoch_id;
+        }
+        Check(bound_generations,"S10-C326 세대별 원본 결박 분리");
         Store replay(root/"replay");bool replayed=Run(replay,h264,2000,true);auto rep=replay.Segments();
         Check(replayed&&rep.size()==3&&replay.Frames(rep)==60,"WR07 repeated observations and processing UTC do not duplicate media");
+        bool split_binding=rep.size()==3;
+        for(std::size_t i=0;i<rep.size();++i) {
+            const auto b=replay.catalog.FindSourceBinding(rep[i].segment_id);
+            split_binding=split_binding&&b&&b->samples.size()==20&&b->samples.front().ordinal==i*20+1&&
+                b->samples.back().ordinal==(i+1)*20&&b->last_accepted_ordinal==(i+1)*20&&
+                rep[i].media_epoch_id==rep[0].media_epoch_id;
+        }
+        Check(split_binding,"S10-C325 분할·재전달의 segment별 수락 범위");
+        auto waiting=h264;waiting.packets.erase(waiting.packets.begin(),waiting.packets.begin()+5);
+        auto other=waiting.packets.front();other.track_id="other-video";
+        waiting.packets.insert(waiting.packets.begin(),other);
+        auto empty=waiting.packets[1];empty.payload.clear();waiting.packets.insert(waiting.packets.begin(),empty);
+        Store ws(root/"binding-wait");const bool waited=Run(ws,waiting,2000,true);auto wseg=ws.Segments();
+        std::uint64_t expected_ordinal=11;bool accepted_only=waited&&ws.Frames(wseg)==50;
+        for(const auto& segment:wseg) {
+            const auto b=ws.catalog.FindSourceBinding(segment.segment_id);
+            if(!b){accepted_only=false;continue;}
+            for(const auto& sample:b->samples)accepted_only=(sample.ordinal==expected_ordinal++)&&accepted_only;
+        }
+        Check(accepted_only&&expected_ordinal==61,"S10-C322 keyframe 대기·다른 track·빈 입력·replay 제외");
+        const auto long_input=Encode(false,4100);Store capped_source_store(root/"source-index-cap");
+        const bool long_ran=Run(capped_source_store,long_input,1000000);const auto long_segments=capped_source_store.Segments();
+        bool bounded=long_ran&&long_segments.size()==1;
+        if(bounded) {
+            const auto b=capped_source_store.catalog.FindSourceBinding(long_segments[0].segment_id);
+            recording::RecordingOriginalResult found;std::string error;
+            bounded=b&&b->samples.size()==4096&&b->samples.front().ordinal==1&&b->samples.back().ordinal==4096&&
+                !b->index_complete&&b->last_accepted_ordinal==4100&&b->incomplete_reason=="sample-index-cap"&&
+                Decode(capped_source_store.root/"channel-1"/(long_segments[0].segment_id+".webm"),nullptr,4100)==4100&&
+                capped_source_store.catalog.ResolveOriginalSample("channel-1","channel-1","source-a",1,"video-0",4097,409600000000ULL,&found,&error)&&
+                found.exact.empty()&&found.unknown.size()==1;
+        }
+        Check(bounded,"S10-C324 색인 상한 뒤에도 실제4100프레임 저장·미색인 꼬리 표시");
         auto missing=h264;missing.packets.back().observation->duration_ns.reset();Store ms(root/"missing-end");bool unknown=Run(ms,missing);auto mseg=ms.Segments();
         Check(unknown&&!mseg.empty()&&!mseg.back().media_end_pts&&HasUnknown(mseg)&&ms.Frames(mseg)==60,"WR08 missing final duration preserves media with unknown end");
         auto knots=Encode(false,270);for(std::size_t i=0;i<knots.packets.size();++i)knots.packets[i].observation->observed_utc_ns+=static_cast<std::int64_t>(i)*1000000000LL;
@@ -191,6 +247,12 @@ int main(int argc,char** argv) {
         for(const auto& p:bframes.packets)maximum_end=std::max(maximum_end,*p.observation->pts_ns+*p.observation->duration_ns);
         Check(bseg.size()==1&&bseg[0].media_end_pts==static_cast<std::int64_t>(maximum_end),
               "WR05 reordered segment end covers maximum presented frame end");
+        const auto bsource=bseg.empty()?std::nullopt:bs.catalog.FindSourceBinding(bseg[0].segment_id);
+        bool original_pts=bsource&&bsource->samples.size()==bframes.packets.size();
+        if(original_pts)for(std::size_t i=0;i<bframes.packets.size();++i)
+            original_pts=original_pts&&bsource->samples[i].ordinal==i+1&&
+                bsource->samples[i].pts_ns==*bframes.packets[i].observation->pts_ns;
+        Check(original_pts,"S10-C327 실제 B-frame 원본PTS·ordinal 보존");
         std::cout<<"[measure] bframe_last_end_ns="<<(*bframes.packets.back().observation->pts_ns+*bframes.packets.back().observation->duration_ns)
                  <<" maximum_end_ns="<<maximum_end<<'\n';
         auto missing_middle=bframes;

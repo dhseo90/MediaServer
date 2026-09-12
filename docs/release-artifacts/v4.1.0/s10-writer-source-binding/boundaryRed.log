@@ -1,0 +1,13 @@
+명령: bash scripts/internal/verify_recording_write_boundaries.sh
+exit: 1
+[pass] C323-A 거부 결과 불변
+[fail] C323-B 성공 원본 tuple
+[fail] C323-C 상한 이후 수락·거부
+[fail] C334-A 정상 순서
+[fail] C334-B validate 실패
+[fail] C334-C publish 실패
+[fail] C334-D commit 실패 보존
+[fail] C334-E clear 실패
+[summary] pass=1 fail=7
+[cleanup] path=/private/tmp/media-server-write-boundaries.KDVNlF bytes=117167 removed=true
+[elapsed] seconds=1

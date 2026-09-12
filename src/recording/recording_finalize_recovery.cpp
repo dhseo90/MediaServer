@@ -1,5 +1,6 @@
 // 파일 용도: 완료 증명 티켓을 이용한 녹화 최종화 복구.
 #include "recording/recording_finalize_recovery.h"
+#include "recording/recording_write_boundaries.h"
 #include "recording/recording_catalog.h"
 #include "recording/recording_media_inspector.h"
 #include "domain/strict_json.h"
@@ -72,6 +73,8 @@ struct Parent {
 std::filesystem::path TicketPath(const FinalizeReadyTicket& t){return t.final_relative.string()+".finalize-ready";}
 bool Validate(const FinalizeReadyTicket& t,std::string* error){
     const bool v2=t.segment_v2.has_value();
+    if(t.source_binding&&(!v2||!ValidateRecordingSourceBindingForSegment(*t.source_binding,*t.segment_v2,error)))
+        return Fail(error,"ready 원본 결박 불일치");
     if(v2&&(SerializeRecordingSegmentV1(t.segment)!=SerializeRecordingSegmentV1(RecordingSegmentV1{})||
        !ValidateRecordingSegmentV2(*t.segment_v2,error)||t.segment_v2->retention_class!=RecordingRetentionClass::Continuous||t.event_link))
         return Fail(error,"ready V2 mixed/metadata/provenance 거부");
@@ -109,15 +112,25 @@ bool Validate(const FinalizeReadyTicket& t,std::string* error){
     }else if(t.segment.retention_class!=RecordingRetentionClass::Continuous||t.event_link)return Fail(error,"ready retention/provenance 불일치");
     return true;
 }
-std::string Serialize(const FinalizeReadyTicket& t){return (t.segment_v2?"{\"version\":2,\"segment\":"+SerializeRecordingSegmentV2(*t.segment_v2):"{\"version\":1,\"segment\":"+SerializeRecordingSegmentV1(t.segment))+
+std::string Serialize(const FinalizeReadyTicket& t){return (t.segment_v2?std::string("{\"version\":")+(t.source_binding?"3":"2")+",\"segment\":"+SerializeRecordingSegmentV2(*t.segment_v2):"{\"version\":1,\"segment\":"+SerializeRecordingSegmentV1(t.segment))+
     ",\"partial\":\""+t.partial_relative.generic_string()+"\",\"final\":\""+t.final_relative.generic_string()+"\",\"eventLink\":"+
-    (t.event_link?SerializeEventRecordingLinkV1(*t.event_link):"null")+"}";}
+    (t.event_link?SerializeEventRecordingLinkV1(*t.event_link):"null")+
+    (t.source_binding?",\"sourceBinding\":"+SerializeRecordingSourceBindingV1(*t.source_binding):"")+"}";}
 bool Parse(const std::string& text,FinalizeReadyTicket* t,std::string* error){
-    ingress::StrictJsonObjectDocument d;if(!ingress::ParseStrictJsonObjectDocument(text,&d,error)||d.members.size()!=5)return Fail(error,"ready strict object 실패");
+    ingress::StrictJsonObjectDocument d;if(!ingress::ParseStrictJsonObjectDocument(text,&d,error))return Fail(error,"ready strict object 실패");
     const auto* version=d.Find("version");const auto segment=ingress::StrictJsonObjectField(d,"segment");
     const auto partial=ingress::StrictJsonStringField(d,"partial"),final=ingress::StrictJsonStringField(d,"final");
-    if(!version||version->type!=ingress::StrictJsonType::Number||(version->raw!="1"&&version->raw!="2")||!segment||!partial||!final||!d.Find("eventLink"))return Fail(error,"ready version/필수필드 실패");
-    if(version->raw=="2") {RecordingSegmentV2 v;if(!ParseRecordingSegmentV2(*segment,&v,error))return false;t->segment_v2=v;}
+    if(!version||version->type!=ingress::StrictJsonType::Number||(version->raw!="1"&&version->raw!="2"&&version->raw!="3")||!segment||!partial||!final||!d.Find("eventLink"))return Fail(error,"ready version/필수필드 실패");
+    const bool bound=version->raw=="3";
+    if(d.members.size()!=(bound?6U:5U)||text.size()>(bound?2U:1U)*1024*1024)
+        return Fail(error,"ready version별 field/크기 오류");
+    *t=FinalizeReadyTicket{};
+    if(bound) {
+        const auto json=ingress::StrictJsonObjectField(d,"sourceBinding");RecordingSourceBindingV1 binding;
+        if(!json||!ParseRecordingSourceBindingV1(*json,&binding,error))return Fail(error,"ready sourceBinding 오류");
+        t->source_binding=std::move(binding);
+    }
+    if(version->raw!="1") {RecordingSegmentV2 v;if(!ParseRecordingSegmentV2(*segment,&v,error))return false;t->segment_v2=v;}
     else if(!ParseRecordingSegmentV1(*segment,&t->segment,error))return false;
     t->partial_relative=*partial;t->final_relative=*final;
     if(!ingress::StrictJsonFieldIsNull(d,"eventLink")){const auto event=ingress::StrictJsonObjectField(d,"eventLink");EventRecordingLinkV1 l;
@@ -129,7 +142,7 @@ bool Read(const std::filesystem::path& root,const std::filesystem::path& relativ
     Fd fd(::openat(p.fd.fd,relative.filename().c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK));
     if(fd.fd<0){if(errno==ENOENT){*missing=true;return true;}return Fail(error,"ready 읽기 불가");}
     struct stat before{},after{},leaf{};
-    if(::fstat(fd.fd,&before)!=0||!S_ISREG(before.st_mode)||before.st_nlink!=1||before.st_size<=0||before.st_size>1024*1024)return Fail(error,"ready 파일 binding/크기 거부");
+    if(::fstat(fd.fd,&before)!=0||!S_ISREG(before.st_mode)||before.st_nlink!=1||before.st_size<=0||before.st_size>2*1024*1024)return Fail(error,"ready 파일 binding/크기 거부");
     std::string text(static_cast<std::size_t>(before.st_size),'\0');std::size_t done=0;
     while(done<text.size()){const auto n=::pread(fd.fd,text.data()+done,text.size()-done,done);if(n<0&&errno==EINTR)continue;if(n<=0)return Fail(error,"ready read 실패");done+=n;}
     if(::fstat(fd.fd,&after)!=0||::fstatat(p.fd.fd,relative.filename().c_str(),&leaf,AT_SYMLINK_NOFOLLOW)!=0||
@@ -218,7 +231,7 @@ bool Quarantine(RecordingCatalog& catalog,const std::filesystem::path& root,cons
 
 bool WriteFinalizeReadyTicket(const std::filesystem::path& root,const FinalizeReadyTicket& ticket,std::string* error){
     if(!Validate(ticket,error))return false;const auto text=Serialize(ticket);
-    if(text.size()>1024*1024)return Fail(error,"ready envelope 크기 거부");
+    if(text.size()>(ticket.source_binding?2U:1U)*1024*1024)return Fail(error,"ready envelope 크기 거부");
     Parent p;if(!p.Open(root,TicketPath(ticket)))return Fail(error,"ready parent 불가");
     Fd fd(::openat(p.fd.fd,TicketPath(ticket).filename().c_str(),O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600));
     if(fd.fd<0)return Fail(error,"ready 생성 충돌/실패");std::size_t done=0;
@@ -309,10 +322,13 @@ bool CommitFinalizeReadyV2(RecordingCatalog& catalog,const std::filesystem::path
     const auto final_path=(root/ticket.final_relative).string();
     bool inserted=false;
     // 예약/소유권을 먼저 확인하고 publish한다. 이후 불확실 실패는 ticket을 보존한다.
-    return catalog.ValidateFinalizeRecoveryV2(*ticket.segment_v2,final_path,error)&&
-        PublishValidatedReady(root,ticket,error)&&
-        catalog.RecoverFinalizedSegmentV2(*ticket.segment_v2,final_path,&inserted,error)&&
-        ClearValidatedReady(root,ticket,error);
+    return detail::FinalizeInOrder([&]{return ticket.source_binding?
+        catalog.ValidateBoundFinalizeRecoveryV2(*ticket.segment_v2,*ticket.source_binding,final_path,error):
+        catalog.ValidateFinalizeRecoveryV2(*ticket.segment_v2,final_path,error);},
+        [&]{return PublishValidatedReady(root,ticket,error);},
+        [&]{return ticket.source_binding?catalog.RecoverBoundSegmentV2(*ticket.segment_v2,*ticket.source_binding,final_path,&inserted,error):
+         catalog.RecoverFinalizedSegmentV2(*ticket.segment_v2,final_path,&inserted,error);},
+        [&]{return ClearValidatedReady(root,ticket,error);});
 }
 bool RecoverFinalizeReadyTickets(RecordingCatalog& catalog,const std::filesystem::path& root,FinalizeRecoveryReport* report,std::string* error){
     if(report)*report={};
@@ -340,8 +356,14 @@ bool RecoverFinalizeReadyTickets(RecordingCatalog& catalog,const std::filesystem
             const auto& v=*t.segment_v2;
             // catalog 설정 root와 같은 입력 표기로 전달한다. 물리 접근은 각 helper가 안전 정규화한다.
             const auto final_path=(root/t.final_relative).string();
-            if(!catalog.ValidateFinalizeRecoveryV2(v,final_path,error)||!PublishValidatedReady(root,t,error)||
-               !catalog.RecoverFinalizedSegmentV2(v,final_path,&inserted,error)||!ClearValidatedReady(root,t,error)) {
+            const bool completed=detail::FinalizeInOrder(
+                [&]{return t.source_binding?catalog.ValidateBoundFinalizeRecoveryV2(v,*t.source_binding,final_path,error):
+                    catalog.ValidateFinalizeRecoveryV2(v,final_path,error);},
+                [&]{return PublishValidatedReady(root,t,error);},
+                [&]{return t.source_binding?catalog.RecoverBoundSegmentV2(v,*t.source_binding,final_path,&inserted,error):
+                    catalog.RecoverFinalizedSegmentV2(v,final_path,&inserted,error);},
+                [&]{return ClearValidatedReady(root,t,error);});
+            if(!completed) {
                 if(report)++report->errors;return false;
             }
             if(report){if(inserted)++report->recovered;else ++report->already_committed;}

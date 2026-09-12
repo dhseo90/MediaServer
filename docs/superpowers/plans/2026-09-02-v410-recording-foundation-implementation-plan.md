@@ -1968,6 +1968,20 @@ UTC sweep과 128 인접 media 범위·혼재 후보를 확인했고, 준비2회�
 3C-3A 구현·메인 검토: binding/단일 원장/catalog·SQL/복구 완료. focused20, 기존catalog234+crypto-off3,
 정적 source/순서9, location14/range16, 보존GST-on22/off2와 제품 build PASS.
 최초 RED·컴파일 경고2회·oracle 보강은 중앙 전수 기록에 보존한다. 다음은 실제 writer/ready3 연결이다.
+3C-3A 커밋: 148e4366. 3C-3B C321~336은 중앙 기록·inventory에 실행 전 등록했다.
+writer는 성공한 appsrc 수락만 원본 tuple로 보존하고 ready3에 함께 동봉한다.
+기존ready1/2 크기·형식, 소유 partial/FD·원자 publish·해시검증·삭제 보호는 유지한다.
+테스트 전용 호출 래핑으로 실패 push와 publish 뒤 commit 실패를 검사하며 제품 hook은 추가하지 않는다.
+위 호출 래핑 구상은 도구 중단 후 폐기했다. 사용자 재개 승인으로 메인이 정상 writer·ready3를 직접 구현했다.
+실제4100프레임·색인4096상한, 분할·세대·PTS 재정렬, ready 중단상태 복구와 기존회귀를 확인했다.
+최종 writer44/ready73/binding20 및 제품build PASS지만 C323과C334 active오류 타이밍은 미검증이다.
+전체3C-3B 완료/커밋은 보류하며 내부 단계를 분리하는 안전한 검증 대안의 구조 변경 판단을 요청했다.
+
+위 보류 이후 사용자 승인으로 내부 수락·최종화 순서를 분리하고 실제 writer/ready에 연결했다.
+C323/C334는 내부 실패 결과 단위검증과 실제 영상 통합으로 완료했으며 시스템/GStreamer 강제 오류 주입 증거는 아니다.
+최종 내부8/writer44/ready74/binding20(146 PASS), 제품 build exit0과 정리를 확인했다.
+3C-3B는 완료이며 상세 최초 실패·정정·전수 결과는 중앙 기록의 최종 결과 절을 따른다.
+다음은 3C-4 분석/이벤트 소비자, 이어서 3C-5 파생 미디어 시간·복구다. 전체3C는 미완료다.
 
 
 #### 3B 구현 계약과 검증 순서

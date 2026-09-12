@@ -1,5 +1,39 @@
 # Project Feature Test Inventory
 
+| 기능 ID | 합격 기준 | 안정화 | 30분 | 120분 | UI 풀테스트 |
+| --- | --- | --- | --- | --- | --- |
+| C323-A | 거부 결과가 tuple/last/완전성을 바꾸지 않음 | write-boundaries 단위 + writer 통합 | S11 | S11 | 신규 UI 비대상 |
+| C323-B | 성공 결과 원본 tuple·last 반영 | write-boundaries 단위 + writer 통합 | S11 | S11 | 신규 UI 비대상 |
+| C323-C | 4096 이후 성공/실패 상태 전이 | write-boundaries 단위 + writer 통합 | S11 | S11 | 신규 UI 비대상 |
+| C334-A | validate→publish→commit→clear 순서 | write-boundaries 단위 + ready 통합 | S11 | S11 | 신규 UI 비대상 |
+| C334-B | validate 실패 후 다음 단계 차단 | write-boundaries 단위 + ready 통합 | S11 | S11 | 신규 UI 비대상 |
+| C334-C | publish 실패 후 다음 단계 차단 | write-boundaries 단위 + ready 통합 | S11 | S11 | 신규 UI 비대상 |
+| C334-D | commit 실패 후 ready/final 보존 | write-boundaries 단위 + ready 통합 | S11 | S11 | 신규 UI 비대상 |
+| C334-E | clear 실패 결과 반환 | write-boundaries 단위 + ready 통합 | S11 | S11 | 신규 UI 비대상 |
+
+C323/C334의 이전 호출 주입 계획은 내부 단위+실제 통합 방식으로 대체 승인됐다. 상세 이력은 중앙 기록을 따른다.
+
+## S10 3C-3B 실제 writer·ready 결박
+
+| 기능 ID | 기능·합격 기준 | 안정화 | 30분 | 120분 | UI 풀테스트 | UI 존재 |
+| --- | --- | --- | --- | --- | --- | --- |
+| S10-C321 | 실제 writer 수락 결박: H264/VP8 실제 encode→writer→decode 후 bound segment와 generation/order/track/ordinal/원본PTS 일치 | 실제 synthetic writer/ready focused | S11 판정 | writer 수명 변경: S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C322 | 미수락 입력 제외: keyframe 대기·다른 track·빈 payload·동일 ordinal replay가 binding에 들어가지 않음 | 실제 synthetic writer/ready focused | S11 판정 | writer 수명 변경: S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C323 | push 실패 제외: 내부 수락 함수의 거부 결과 불변과 실제 GST_FLOW_OK 이후 연결 확인; 호출 주입은 폐기 | 내부 C323-A~C + 실제 synthetic writer 통합 | S11 판정 | writer 수명 변경: S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C324 | 4096 색인 상한: 실제 writer 4096/4097 이상 수락에서 prefix4096 유지·last 갱신·영상 지속·tail unknown | 실제 synthetic writer/ready focused | S11 판정 | writer 수명 변경: S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C325 | 정상 분할: 같은 epoch의 여러 segment가 각각 자기 수락 tuple만 보존하고 영속 순서를 유지 | 실제 synthetic writer/ready focused | S11 판정 | writer 수명 변경: S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C326 | 세대 전환·재시작: source generation/order와 media epoch를 독립 보존, 재시작 조회·다른 세대 혼입 차단 | 실제 synthetic writer/ready focused | S11 판정 | writer 수명 변경: S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C327 | B-frame 원본PTS: decode 순서 증가와 PTS 재정렬에서 원본PTS/ordinal 보존·UTC unknown 의미 유지 | 실제 synthetic writer/ready focused | S11 판정 | writer 수명 변경: S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C328 | ready3 엄격 계약: binding 필수·extra/mixed/null/schema/identity 오류 거부, 기존 ready1/2 직렬화 유지 | 실제 synthetic writer/ready focused | S11 판정 | writer 수명 변경: S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C329 | ready 버전별 상한: version1/2 1MiB, version3 2MiB 상한을 읽기·쓰기 양쪽에서 확인 | 실제 synthetic writer/ready focused | S11 판정 | writer 수명 변경: S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C330 | partial-only 복구: 실제 미디어 ready3+partial만 있는 중단 상태에서 segment와 binding 한꺼번에 복구 | 실제 synthetic writer/ready focused | S11 판정 | writer 수명 변경: S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C331 | two-links 복구: publish 중 partial/final 동일 inode 2links 상태 복구 및 exact binding 유지 | 실제 synthetic writer/ready focused | S11 판정 | writer 수명 변경: S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C332 | final-only 복구: publish 뒤 commit 전 final+ready 상태에서 bound catalog 복구 | 실제 synthetic writer/ready focused | S11 판정 | writer 수명 변경: S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C333 | committed-ready 복구: bound commit 뒤 ready 잔존 시 멱등 복구, 중복 원장·상태 부활 없음 | 실제 synthetic writer/ready focused | S11 판정 | writer 수명 변경: S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C334 | commit 실패 보존: 내부 순서 함수에서 commit 실패 후 clear 미호출·ready/final 보존, 실제 ready 복구와 결합 | 내부 C334-A~E + 실제 synthetic ready 통합; OS 강제 실패 아님 | S11 판정 | writer 수명 변경: S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C335 | prepublish 거부: 삭제·identity충돌·손상 미디어 또는 ticket이면 publish/소급등록 금지·원본 보존 | 실제 synthetic writer/ready focused | S11 판정 | writer 수명 변경: S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+| S10-C336 | 기존 ready·소유권 회귀: ready1/2·nonce marker preserve·fd/no-follow/no-replace·hash/크기·정리 불변 | 실제 synthetic writer/ready focused | S11 판정 | writer 수명 변경: S11 판정 | 이번 비대상 | 비대상: 신규 UI 없음 |
+
 ## S10 3C-3A 원본 수락 결박
 
 | 기능 ID | 기능·합격 기준 | 안정화 | 30분 | 120분 | UI 풀테스트 | UI 존재 |

@@ -11,6 +11,7 @@ struct FinalizeReadyTicket {
     std::filesystem::path final_relative;
     std::optional<EventRecordingLinkV1> event_link;
     std::optional<RecordingSegmentV2> segment_v2;
+    std::optional<RecordingSourceBindingV1> source_binding{};
 };
 struct FinalizeRecoveryReport { std::size_t recovered{0}, already_committed{0}, quarantined{0}, errors{0}; };
 bool WriteFinalizeReadyTicket(const std::filesystem::path& root,const FinalizeReadyTicket& ticket,std::string* error);

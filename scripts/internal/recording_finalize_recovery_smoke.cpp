@@ -178,6 +178,96 @@ bool V2Cases(const fs::path& root,const std::string& bytes,const RecordingSegmen
                 "S10-WR09 active ready refusal preserves originals " + mode);
         }
     }
+    RecordingSourceBindingV1 source;
+    source.segment_id=v.segment_id;source.source_id=v.source_id;source.channel_id=v.channel_id;
+    source.store_id=v.store_id;source.media_epoch_id=v.media_epoch_id;source.source_generation="input-generation";
+    source.generation_order=7;source.track_id="video/0";
+    source.samples={{11,9007199254740993ULL},{12,9007199254741003ULL}};source.last_accepted_ordinal=12;
+    const auto bound_literal="{\"version\":3,\"segment\":"+SerializeRecordingSegmentV2(v)+
+        ",\"partial\":\""+partial_name+"\",\"final\":\""+final_name+"\",\"eventLink\":null,\"sourceBinding\":"+
+        SerializeRecordingSourceBindingV1(source)+"}";
+    int case_id=330;
+    auto bound_ticket=ticket;bound_ticket.source_binding=source;
+    const auto bound_write=root/"bound-write";fs::create_directories(bound_write);
+    check(WriteFinalizeReadyTicket(bound_write,bound_ticket,&error)&&ReadBytes(bound_write/ready_name)==bound_literal,
+        "S10-C328 ready3 writer의 엄격 원본 결박 envelope");
+    for(const std::string kind:{"identity","legacy","event","missing-binding","null-binding","extra"}) {
+        const auto base=root/("bound-invalid-"+kind);fs::create_directories(base);
+        auto invalid=bound_ticket;
+        if(kind=="identity")invalid.source_binding->segment_id="other";
+        if(kind=="legacy")invalid.segment_v2.reset();
+        if(kind=="event")invalid.event_link=EventRecordingLinkV1{};
+        if(kind=="missing-binding"||kind=="null-binding"||kind=="extra") {
+            auto raw=kind=="extra"?bound_literal.substr(0,bound_literal.size()-1)+",\"extra\":1}":literal;
+            if(kind!="extra")raw.replace(raw.find("\"version\":2"),11,"\"version\":3");
+            if(kind=="null-binding")raw=raw.substr(0,raw.size()-1)+",\"sourceBinding\":null}";
+            WriteBytes(base/ready_name,raw);bool preserve=false;
+            check(!PreserveFinalizeReadyPartial(base,final_name,partial_name,&preserve,&error)&&!preserve&&ReadBytes(base/ready_name)==raw,
+                "S10-C328 ready3 거부 "+kind);
+        } else check(!WriteFinalizeReadyTicket(base,invalid,&error)&&!fs::exists(base/ready_name),"S10-C328 ready3 거부 "+kind);
+    }
+    for(const std::string version:{"1","2","3"}) {
+        const auto base=root/("bound-size-"+version);fs::create_directories(base);
+        std::string raw=version=="1"?TicketBytes(physical):version=="2"?literal:bound_literal;
+        const auto limit=(version=="3"?2U:1U)*1024*1024;
+        raw.append(limit+1-raw.size(),' ');WriteBytes(base/ready_name,raw);bool preserve=false;
+        check(!PreserveFinalizeReadyPartial(base,final_name,partial_name,&preserve,&error)&&!preserve&&ReadBytes(base/ready_name)==raw,
+            "S10-C329 ready 버전별 읽기 상한 "+version);
+    }
+    auto large=bound_ticket;
+    const auto original_size=SerializeRecordingSegmentV2(*large.segment_v2).size();
+    large.segment_v2->audio_omitted_reason+=std::string(1024*1024-original_size-200,'x');
+    const auto large_root=root/"bound-large";fs::create_directories(large_root);
+    bool preserved_large=false;
+    check(WriteFinalizeReadyTicket(large_root,large,&error)&&fs::file_size(large_root/ready_name)>1024*1024&&
+        PreserveFinalizeReadyPartial(large_root,final_name,partial_name,&preserved_large,&error)&&preserved_large,
+        "S10-C329 ready3은1MiB를넘는유효결박을수용");
+    for(const std::string state:{"partial","two-links","final","committed"}) {
+        const auto base=root/("bound-"+state);fs::create_directories(base);
+        RecordingJournal journal(base/"journal.jsonl");
+        RecordingCatalog::Options options(base/"catalog.db",base,false);options.enable_v2_storage=true;
+        RecordingCatalog catalog(journal,options);RecordingOrderReservationV1 order;
+        const bool setup=journal.Open(&error)&&catalog.Open(&error)&&
+            journal.ReserveRecordingOrder(v.store_id,v.order_request_id,v.segment_id,v.channel_id,&order,&error);
+        WriteBytes(base/partial_name,bytes);WriteBytes(base/ready_name,bound_literal);
+        if(state=="two-links")fs::create_hard_link(base/partial_name,base/final_name);
+        if(state=="final"||state=="committed")fs::rename(base/partial_name,base/final_name);
+        const bool committed=state!="committed"||catalog.FinalizeBoundSegmentV2(v,source,(base/final_name).string(),&error);
+        bool preserve=false;
+        const bool recognized=PreserveFinalizeReadyPartial(base,final_name,partial_name,&preserve,&error);
+        FinalizeRecoveryReport report;
+        const bool recovered=RecoverFinalizeReadyTickets(catalog,base,&report,&error);
+        const auto binding=catalog.FindSourceBinding(v.segment_id);
+        check(setup&&committed&&recognized&&preserve&&recovered&&binding&&
+            SerializeRecordingSourceBindingV1(*binding)==SerializeRecordingSourceBindingV1(source)&&
+            ReadBytes(base/final_name)==bytes&&!fs::exists(base/ready_name)&&!fs::exists(base/partial_name)&&
+            (state=="committed"?report.already_committed==1:report.recovered==1),
+            "S10-C"+std::to_string(case_id++)+" ready3 원본 결박 복구 "+state);
+    }
+    for(const std::string state:{"no-reservation-final","pending","conflict","damaged-media"}) {
+        const auto base=root/("bound-refuse-"+state);fs::create_directories(base);
+        RecordingJournal journal(base/"journal.jsonl");RecordingCatalog::Options options(base/"catalog.db",base,false);
+        options.enable_v2_storage=true;RecordingCatalog catalog(journal,options);RecordingOrderReservationV1 order;
+        bool setup=journal.Open(&error)&&catalog.Open(&error);
+        if(state!="no-reservation-final")setup=setup&&journal.ReserveRecordingOrder(v.store_id,v.order_request_id,v.segment_id,v.channel_id,&order,&error);
+        const bool final_only=state=="no-reservation-final";
+        std::string media=bytes;if(state=="damaged-media")media[media.size()/2]^=1;
+        WriteBytes(base/(final_only?final_name:partial_name),media);
+        auto requested=bound_ticket;
+        if(state=="pending"||state=="conflict") {
+            WriteBytes(base/final_name,bytes);
+            setup=setup&&catalog.FinalizeBoundSegmentV2(v,source,(base/final_name).string(),&error);
+            if(state=="pending")setup=setup&&catalog.RequestDeletion(v.segment_id,"continuous-capacity",&error);
+            else requested.source_binding->source_generation="different-generation";
+        }
+        setup=setup&&WriteFinalizeReadyTicket(base,requested,&error);
+        const auto before=ReadBytes(base/"journal.jsonl"),ready_before=ReadBytes(base/ready_name);
+        FinalizeRecoveryReport report;
+        const bool refused=!RecoverFinalizeReadyTickets(catalog,base,&report,&error);
+        check(setup&&refused&&report.errors==1&&ReadBytes(base/ready_name)==ready_before&&
+            ReadBytes(base/(final_only?final_name:partial_name))==media&&ReadBytes(base/"journal.jsonl")==before,
+            std::string(final_only?"S10-C334":"S10-C335")+" ready3 거부 상태 원본 보존 "+state);
+    }
     std::cout<<"[v2-summary] pass="<<passed<<" fail="<<failed<<'\n';return failed==0;
 }
 bool BoundaryCases(const fs::path& root,const std::string& bytes,const RecordingSegmentV1& segment) {

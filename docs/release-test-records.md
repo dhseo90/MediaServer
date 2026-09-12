@@ -1,5 +1,797 @@
 # Release Test Records
 
+## S10 3C-3B 최종 결과 — 승인된 내부 실패 경계 포함
+
+문서 마감: `./server.sh verify-docs-links` exit0, 234문서/1184링크/실패0; `git diff --check` exit0.
+완료 검증 스킬에 따라 보존된 최종 실행 출력과 현재 소스 해시를 대조했으며 문서 변경으로 제품 검증을 반복하지 않았다.
+
+이번 단위는 완료다. 메인이 `AcceptSourceSample`의 실제 GST_FLOW_OK 이후 호출과
+`FinalizeInOrder`의 active/startup 두 경로 연결을 직접 검토했다. 수락 실패는 색인을 변경하지 않고
+최종화 단계 실패는 뒤 단계를 호출하지 않는다. ready3 원본 결박·실제 영상 복구와 결합해 C323/C334를 닫는다.
+이는 사용자 승인된 내부 함수 단위 + 실제 영상 통합 기준이며, GStreamer/OS 실패를 강제 주입한 결과가 아니다.
+공개 route·시간 매핑·PTS 변환·기존 ready1/2 계약은 유지했다. 전체 3C와 S10 완료는 아니다.
+
+최종 소스는 [소스 해시](release-artifacts/v4.1.0/s10-writer-source-binding/boundary-source.sha256)에 고정했다.
+최종 안정화는 내부8 + writer44 + ready74 + binding20 = **146 PASS/0 FAIL**, 제품 build exit0이다.
+ready의 missing-binding과 null-binding을 별도 검사했다. 과거73개 실행은 null 자체의 직접 증거가 아니었다.
+C329의 구조상 생성 불가능한 2MiB 초과 유효 writer 객체를 테스트했다고 주장하지 않는다.
+이하 전수 행은 원출력의 모든 pass/fail 행과 대조했다. 각 실행의 명령·exit·원출력은 다음 표에 있다.
+
+| 실행 | 명령 | exit | 집계·경계 | 원출력 |
+| --- | --- | --- | --- | --- |
+| boundaryRed | `bash scripts/internal/verify_recording_write_boundaries.sh` | 1 | 1 PASS/7 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/boundaryRed.log) |
+| boundaryRedConfirmed | `bash scripts/internal/verify_recording_write_boundaries.sh` | 1 | 1 PASS/7 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/boundaryRedConfirmed.log) |
+| boundaryGreen | `bash scripts/internal/verify_recording_write_boundaries.sh` | 0 | 8 PASS/0 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/boundaryGreen.log) |
+| boundaryFinal | `bash scripts/internal/verify_recording_write_boundaries.sh` | 0 | 8 PASS/0 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/boundaryFinal.log) |
+| boundaryWriter | `bash scripts/internal/verify_recording_managed_writer.sh` | 0 | 44 PASS/0 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/boundaryWriter.log) |
+| boundaryReady | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | 0 | 74 PASS/0 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/boundaryReady.log) |
+| boundaryBinding | `bash scripts/internal/verify_recording_source_binding.sh` | 0 | 20 PASS/0 FAIL | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/boundaryBinding.log) |
+| boundaryBuild | `./server.sh build` | 0 | 제품 빌드 완료 | [로그](release-artifacts/v4.1.0/s10-writer-source-binding/boundaryBuild.log) |
+
+첫 RED의 예상 집계 착오와 정정 재실행은 아래 이력에 보존하며 검사 삭제나 기준 완화는 없다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| boundaryRed: C323-A 거부 결과 불변 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryRed: C323-B 성공 원본 tuple | 위 명령과 동명 로그의 개별 assertion | fail |
+| boundaryRed: C323-C 상한 이후 수락·거부 | 위 명령과 동명 로그의 개별 assertion | fail |
+| boundaryRed: C334-A 정상 순서 | 위 명령과 동명 로그의 개별 assertion | fail |
+| boundaryRed: C334-B validate 실패 | 위 명령과 동명 로그의 개별 assertion | fail |
+| boundaryRed: C334-C publish 실패 | 위 명령과 동명 로그의 개별 assertion | fail |
+| boundaryRed: C334-D commit 실패 보존 | 위 명령과 동명 로그의 개별 assertion | fail |
+| boundaryRed: C334-E clear 실패 | 위 명령과 동명 로그의 개별 assertion | fail |
+| boundaryRedConfirmed: C323-A 거부 결과 불변 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryRedConfirmed: C323-B 성공 원본 tuple | 위 명령과 동명 로그의 개별 assertion | fail |
+| boundaryRedConfirmed: C323-C 상한 이후 수락·거부 | 위 명령과 동명 로그의 개별 assertion | fail |
+| boundaryRedConfirmed: C334-A 정상 순서 | 위 명령과 동명 로그의 개별 assertion | fail |
+| boundaryRedConfirmed: C334-B validate 실패 | 위 명령과 동명 로그의 개별 assertion | fail |
+| boundaryRedConfirmed: C334-C publish 실패 | 위 명령과 동명 로그의 개별 assertion | fail |
+| boundaryRedConfirmed: C334-D commit 실패 보존 | 위 명령과 동명 로그의 개별 assertion | fail |
+| boundaryRedConfirmed: C334-E clear 실패 | 위 명령과 동명 로그의 개별 assertion | fail |
+| boundaryGreen: C323-A 거부 결과 불변 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryGreen: C323-B 성공 원본 tuple | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryGreen: C323-C 상한 이후 수락·거부 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryGreen: C334-A 정상 순서 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryGreen: C334-B validate 실패 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryGreen: C334-C publish 실패 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryGreen: C334-D commit 실패 보존 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryGreen: C334-E clear 실패 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryFinal: C323-A 거부 결과 불변 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryFinal: C323-B 성공 원본 tuple | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryFinal: C323-C 상한 이후 수락·거부 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryFinal: C334-A 정상 순서 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryFinal: C334-B validate 실패 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryFinal: C334-C publish 실패 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryFinal: C334-D commit 실패 보존 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryFinal: C334-E clear 실패 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR01 h264 managed segments decode all frames without legacy callback or snapshot | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: S10-C321 h264 실제 수락 원본 tuple과 segment 결박 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR01 vp8 managed segments decode all frames without legacy callback or snapshot | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: S10-C321 vp8 실제 수락 원본 tuple과 segment 결박 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR02 UTC-only change preserves media splits frames and independent mapping | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR03 UTC-only change preserves media splits frames and independent mapping | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR04 UTC-only change preserves media splits frames and independent mapping | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR05 duplicate PTS with advancing DTS preserves media and unknown mapping | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR06 explicit generation reset creates a new media epoch | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: S10-C326 세대별 원본 결박 분리 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR07 repeated observations and processing UTC do not duplicate media | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: S10-C325 분할·재전달의 segment별 수락 범위 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: S10-C322 keyframe 대기·다른 track·빈 입력·replay 제외 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: S10-C324 색인 상한 뒤에도 실제4100프레임 저장·미색인 꼬리 표시 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR08 missing final duration preserves media with unknown end | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR09 mapping budget retains bounded unknown tail and all frames | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR01 invalid binding rejects before writes journal | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR01 invalid binding rejects before writes catalog | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR01 invalid binding rejects before writes root | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR01 invalid binding rejects before writes store | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR01 invalid binding rejects before writes lease | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR01 invalid binding rejects before writes incomplete | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR08 clock process change preserves same-generation media with unknown comparison | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR08 invalid duration leaves unknown end zero | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR08 invalid duration leaves unknown end overflow | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR08 unsafe original input cannot become finalized observation | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR08 unsafe original input cannot become finalized pts | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR08 unsafe original input cannot become finalized range | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR07 older generation cache cannot switch media backwards | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR07 unrelated video track cannot change selected track identity | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR06 reopened store allocates fresh IDs and increasing durable order | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR05 actual H264 reordering preserves decode timestamps and mux origin | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR05 reordered segment end covers maximum presented frame end | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: S10-C327 실제 B-frame 원본PTS·ordinal 보존 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR08 missing maximum PTS frame duration keeps reordered end unknown | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR09 failed active commit preserves ready order and quota reservation | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR09 restart recovers the same durable segment and all frames | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR08 excessive clock width preserves media as unknown | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR08 zero generation order cannot become finalized | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR08 media observation quality normal | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR08 media observation quality fast | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR08 media observation quality drift | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR08 media observation quality fast-step | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryWriter: WR01 actual appsink observation flows through managed writer and decode | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: ready partial recovers original segment ID | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: FR02 interrupted publish converges: final only | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: FR02 repeated recovery no duplicate mutation | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: FR02 interrupted publish converges: owned two links | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: FR02 repeated recovery no duplicate mutation | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: FR03 catalog commit before cleanup does not append or replace | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: FR04 invalid version preserves original without publication | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: FR04 invalid duplicate preserves original without publication | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: FR04 invalid nonce preserves original without publication | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: FR04 invalid escape preserves original without publication | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: FR04 invalid identity preserves original without publication | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: FR05 symlink ticket rejected and external target untouched | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: FR05 foreign hardlink rejected without unlink | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: FR05 actual unreadable ticket preserves media | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: FR06 corrupt unknown isolated in place without finalized mutation | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: FR06 repeated corruption recovery converges without resurrection | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: FR07 pending takes precedence over ready publication | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: FR07 deleted takes precedence over ready publication | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: FR07 conflict takes precedence over ready publication | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: FR08 orphan not inferred and legacy owned partial cleaned | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M08 catalog startup preserves V2 ready and cleanup marker partial | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M08 V2 ready recovers exact metadata partial | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M08 V2 journal restart and repeated recovery partial | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M08 catalog startup preserves V2 ready and cleanup marker two-links | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M08 V2 ready recovers exact metadata two-links | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M08 V2 journal restart and repeated recovery two-links | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M08 catalog startup preserves V2 ready and cleanup marker final | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M08 V2 ready recovers exact metadata final | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M08 V2 journal restart and repeated recovery final | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M08 catalog startup preserves V2 ready and cleanup marker committed | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M08 V2 ready recovers exact metadata committed | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M08 V2 journal restart and repeated recovery committed | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M08 V2 ready writer preserves versioned envelope | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M09 V2 ready refusal preserves originals missing-order | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M09 V2 ready refusal preserves originals wrong-tuple | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M09 V2 ready refusal preserves originals optout | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M09 V2 ready refusal preserves originals deleted | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M09 V2 ready refusal preserves originals mapping | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M09 V2 ready refusal preserves originals path | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M09 V2 ready refusal preserves originals version | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M09 V2 ready refusal preserves originals event | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M09 V2 ready refusal preserves originals corrupt-pair | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M09 V2 ready refusal preserves originals foreign-link | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M09 V2 ready writer rejects mixed-id | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M09 V2 ready writer rejects mixed-size | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M09 V2 ready writer rejects mixed-source | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M09 V2 ready writer rejects mixed-time | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M09 V2 ready writer rejects event | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M09 V2 ready writer rejects oversize | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M09 V2 direct publish requires catalog | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M09 V1 inspector still rejects two links | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-M09 V2 direct clear preserves uncommitted ticket and marker | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-WR09 active ready validates publishes commits and clears exact ticket | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-WR09 active ready refusal preserves originals changed-ticket | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-WR09 active ready refusal preserves originals missing-order | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-C328 ready3 writer의 엄격 원본 결박 envelope | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-C328 ready3 거부 identity | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-C328 ready3 거부 legacy | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-C328 ready3 거부 event | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-C328 ready3 거부 missing-binding | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-C328 ready3 거부 null-binding | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-C328 ready3 거부 extra | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-C329 ready 버전별 읽기 상한 1 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-C329 ready 버전별 읽기 상한 2 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-C329 ready 버전별 읽기 상한 3 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-C329 ready3은1MiB를넘는유효결박을수용 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-C330 ready3 원본 결박 복구 partial | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-C331 ready3 원본 결박 복구 two-links | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-C332 ready3 원본 결박 복구 final | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-C333 ready3 원본 결박 복구 committed | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-C334 ready3 거부 상태 원본 보존 no-reservation-final | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-C335 ready3 거부 상태 원본 보존 pending | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-C335 ready3 거부 상태 원본 보존 conflict | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryReady: S10-C335 ready3 거부 상태 원본 보존 damaged-media | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryBinding: S10-C301 결박 schema 왕복 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryBinding: S10-C302 식별·ordinal 검증 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryBinding: S10-C303 PTS 재정렬 보존 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryBinding: S10-C304 미디어 범위·timebase | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryBinding: S10-C305 색인 상한·미색인 꼬리 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryBinding: S10-C306 단일 bound mutation | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryBinding: S10-C307 source·저장 identity 결박 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryBinding: S10-C308 불변·멱등 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryBinding: S10-C309 소급·다운그레이드 금지 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryBinding: S10-C310 정확한 원본 tuple 조회 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryBinding: S10-C311 미색인·실제 부재 구분 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryBinding: S10-C312 복수 segment 후보 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryBinding: S10-C313 삭제·corrupt·pending 차단 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryBinding: S10-C314 채널·조회 오류 경계 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryBinding: S10-C315 SQL·JSONL 재시작 동등 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryBinding: S10-C316 checkpoint 보존 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryBinding: S10-C317 손상 원장 선차단 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryBinding: S10-C318 예약·옵트인 경계 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryBinding: S10-C319 기존 segment·조회 불변 | 위 명령과 동명 로그의 개별 assertion | pass |
+| boundaryBinding: S10-C320 실제 finalize 수락 경계 | 위 명령과 동명 로그의 개별 assertion | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| `/private/tmp/media-server-write-boundaries.KDVNlF` | 소유 격리 fixture·바이너리 | 117167B | runner 정리 | 삭제 확인 | boundaryRed.log |
+| `/private/tmp/media-server-write-boundaries.POdoax` | 소유 격리 fixture·바이너리 | 117167B | runner 정리 | 삭제 확인 | boundaryRedConfirmed.log |
+| `/private/tmp/media-server-write-boundaries.0HOnFo` | 소유 격리 fixture·바이너리 | 119845B | runner 정리 | 삭제 확인 | boundaryGreen.log |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-write-boundaries.hn3Kzs` | 소유 격리 fixture·바이너리 | 119845B | runner 정리 | 삭제 확인 | boundaryFinal.log |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.Be8XlS` | 소유 격리 fixture·바이너리 | 11938798B | runner 정리 | 삭제 확인 | boundaryWriter.log |
+| `/private/tmp/media-server-finalize-lrsUKz` | 소유 격리 fixture·바이너리 | 10234290B | runner 정리 | 삭제 확인 | boundaryReady.log |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.rQUjEU` | 소유 격리 fixture·바이너리 | 4451280B | runner 정리 | 삭제 확인 | boundaryBinding.log |
+| `docs/release-artifacts/v4.1.0/s10-writer-source-binding/` | 전수 로그·소스 hash | 43375B/20파일 | 보존 | 비밀·실제 영상 없이 최소 증거 보존 | 이번/직전 실행 이력 |
+
+새 서버·포트는 사용하지 않았다. 공용 build-gst-onnx는 제품 빌드로 유지한다.
+token start/end/consumed: 미집계(실측 도구 없음). elapsed: 단위 각1초, writer7초, binding6초;
+ready/build와 전체 경과는 원출력의 완전한 실측이 없어 미집계다. source: runner bash SECONDS/보존 출력.
+30분·120분·UI 풀테스트·S11·3D·푸시는 미실행이다. 기존 S09 미커밋 변경은 이번 커밋에서 제외한다.
+다음 개발은 3C-4 분석·이벤트 소비자 연결, 이후 3C-5 파생 미디어 시간·복구이며 이번에 착수하지 않았다.
+
+
+## S10 3C-3B 실패 경계 내부 분리 — 재개 승인
+
+독자는 S10 구현·검증 담당자이며 정책은 AGENTS를 따른다. 사용자 승인으로 메인이 직접 처리한다.
+공개 API/저장 schema를 바꾸지 않고 detail 내부 수락 처리와 validate→publish→commit→clear 실행 순서를 분리한다.
+호출 가로채기·시스템 오류 주입은 하지 않는다. C323/C334의 검증 방법을 **제품 내부 함수 단위 + 실제 영상 통합**으로 변경한 승인이다.
+단위 함수에 실패 결과를 전달했을 때 tuple/last/completeness 불변과 cleanup 미호출·ready/final 보존을 검사한다.
+실제 GStreamer 오류나 OS 오류를 강제 재현했다는 증거는 아니며 이를 혼동하지 않는다.
+기존 C321~336 정의는 아래 과거 계획/실행 기록으로 보존한다. 이번 개별 등록은 아래와 같다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| C323-A | 거부 수락 결과 | false 반환 시 samples/last/완전성/이유 불변 | v4.1.0 |
+| C323-B | 성공 수락 결과 | true 반환 시 원본 ordinal/PTS 추가·last 갱신 | v4.1.0 |
+| C323-C | 색인 상한 경계 | 4096 이후 성공만 last/unknown 전이, 실패는 불변 | v4.1.0 |
+| C334-A | 최종화 정상 순서 | validate/publish/commit/clear 한 번씩 순서 실행 | v4.1.0 |
+| C334-B | validate 실패 | publish/commit/clear 미실행 | v4.1.0 |
+| C334-C | publish 실패 | commit/clear 미실행 | v4.1.0 |
+| C334-D | commit 실패 | publish 완료 후 ready/final 보존·clear 미실행 | v4.1.0 |
+| C334-E | clear 실패 | false 전달, 앞 단계 재실행 없음 | v4.1.0 |
+
+명령: 신규 `bash scripts/internal/verify_recording_write_boundaries.sh`(소유 mktemp, 포트 없는 단위검증).
+거부 stub 첫 실행은1 PASS/7 FAIL(exit1)이다. 예상목록에서 C334-B를 빠뜨렸으나 stub이 validate 자체를 호출하지 않아
+실제 순서 assertion이 실패했다. 기대 집계 착오를 정정하며 첫 실행은 정확한 예상 RED 일치 증거로 사용하지 않는다.
+거부 stub 재실행 예상은 C323-B/C323-C/C334-A/B/C/D/E 일곱 FAIL이다. 검사/합격 기준 변경은 없다.
+이후 실제 writer/ready 공통 경로에 연결하고 기존 managed writer·finalize recovery·source binding·build/문서/diffcheck로 회귀한다.
+안정화만 진행 대상(사용자 개발 승인); 장시간/30분/UI/S11은 이번 미진행이며 3D·푸시도 제외한다.
+
+## S10 3C-3B 실제 writer·ready 결박 — 실행 전 정의
+
+재개 승인 후 메인이 직접 처리한다. 이전 호출 래핑·원장 변경 방식은 실행하지 않는다.
+정상 writer와 공개 ready/catalog 함수로 구성한 격리 중간상태를 먼저 검증한다.
+명령은 `bash scripts/internal/verify_recording_managed_writer.sh`와
+`bash scripts/internal/verify_v410_recording_finalize_recovery.sh`의 비integration 모드다.
+첫 RED는 실제 H264/VP8 writer가 아직 binding을 생성하지 않아 C321 두 행이 FAIL하는 것이다.
+C323의 결정적 push 실패는 안전한 대안 미확정으로 미실행에 남기며 다른 PASS로 대체하지 않는다.
+이하 과거 test-only 호출 래핑 구상은 채택하지 않는 이력이다. 제품 계약은 유지한다.
+
+독자는 S10 구현·검증 담당자이며 AGENTS가 정책 원본이다. 3C-3A 커밋148e4366의 계약을 실제 생산에 연결한다.
+소유 코드는 finalize_recovery.h/.cpp와 gstreamer_segment_writer.cpp, 기존 managed writer smoke/runner 및 신규 focused다.
+main이 계약·문서·diff/증거를 검토하고 같은 Astra/medium 담당자1명을 재사용한다. 하위 생성/푸시/3D/S11 없음.
+
+FinalizeReadyTicket에 source_binding optional을 추가하되 V2 segment가 있고 유효한 binding이 있을 때만 ready version3이다.
+version3은 기존5field+sourceBinding의6field, version1/2는 기존5field 그대로다. version3 eventLink는 null이며 continuous만 허용한다.
+ValidateRecordingSourceBindingForSegment를 쓰고 binding없는 version3/혼합version/추가field를 거부한다.
+Read의 전체 방어 상한은2MiB, Parse의 version1/2 개별상한은1MiB로 유지한다. Write도 동일 version별상한이다.
+새 reader는 PreserveFinalizeReadyPartial에도 적용돼 startup marker cleanup 전에 ready3 소유 partial을 보호한다.
+active CommitFinalizeReadyV2와 startup recovery 모두 binding 유무로 새 bound validate/recover API를 선택한다.
+기존 linkat/no-replace·FD 동일성·fsync·hash/실제 media inspection·소유 marker 정리는 유지한다.
+
+writer OpenLocked에서 segment identity와 source generation/order/선택track을 초기화한다.
+PushBufferLocked의 실제 GST_FLOW_OK 뒤에만 observation.ordinal/원본pts_ns를 기록한다.
+입력단 last_ordinal은 keyframe 대기·push 전에도 변하므로 수락 last에 재사용하지 않는다.
+4096까지 prefix를 저장하고 그 뒤에도 영상 수락/last_accepted를 계속 갱신하며 sample-index-cap으로 표시한다.
+분할마다 새 binding, ResetPipelineLocked에서 finalize 전에 지우지 않는다. 시간 매핑/PTS 변환/원본 packet은 바꾸지 않는다.
+recording-source-binding은 appsrc 수락 연관이지 decoded frame 유일성 증거가 아니다.
+실패 push oracle는 test-only 별도 compile object의 얇은 GStreamer 함수 래핑으로 주입할 수 있다.
+제품 공개 API·환경변수·runtime 분기는 추가하지 않는다. wrapper는 실제 성공호출에 전달하고 실패시 buffer ownership을 정확히 해제한다.
+기존 managed smoke의 Segments()가 새 bound mutation도 읽게 보완하되 이전 검사/assertion은 유지한다.
+
+예상 RED는 새 focused의 각 미구현 assertion을 명시한 뒤 실행한다. fixture/컴파일 오류는 RED가 아니다.
+실제 소유 synthetic media만 사용하며 포트/운영 root/외부 입력은 사용하지 않는다.
+실행 명령은 담당자가 신규 runner 및 기존 runner의 소유 root/cleanup을 확인해 실행 전 보고한다.
+관련 단기 대상은 새 focused, 기존 managed writer, finalize recovery, source-binding, 제품build와 diff/문서links이다.
+30분/120분/UI 전체·S11은 실행하지 않는다. 변경 기능의 최종 장시간 필요성은 S11에서 직접 판정한다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 실제 writer·내구 ready 연결 | C321~336 | 이번 개발 관련 단기 검증 |
+| 30분 | 미진행 | 개발 중 코드 미고정 | S11 | 이번 실행 없음 |
+| 120분 | 조건부 진행 | writer media/수명 직접 변경, S11 최종 판정에 포함 | C321~336 | 이번 실행 없음 |
+| UI 풀테스트 | 미진행 | 내부 writer/ready, 신규 control 없음 | C321~336 | 이번 실행 없음 |
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-C321 실제 writer 수락 결박 | 실제 writer/ready 결박 | H264/VP8 실제 encode→writer→decode 후 bound segment와 generation/order/track/ordinal/원본PTS 일치 | v4.1.0 |
+| S10-C322 미수락 입력 제외 | 실제 writer/ready 결박 | keyframe 대기·다른 track·빈 payload·동일 ordinal replay가 binding에 들어가지 않음 | v4.1.0 |
+| S10-C323 push 실패 제외 | 실제 writer/ready 결박 | test-only GStreamer 호출 주입으로 GST_FLOW_ERROR를 반환하고 실패 tuple 미등록·기존 수락 tuple 보존 | v4.1.0 |
+| S10-C324 4096 색인 상한 | 실제 writer/ready 결박 | 실제 writer 4096/4097 이상 수락에서 prefix4096 유지·last 갱신·영상 지속·tail unknown | v4.1.0 |
+| S10-C325 정상 분할 | 실제 writer/ready 결박 | 같은 epoch의 여러 segment가 각각 자기 수락 tuple만 보존하고 영속 순서를 유지 | v4.1.0 |
+| S10-C326 세대 전환·재시작 | 실제 writer/ready 결박 | source generation/order와 media epoch를 독립 보존, 재시작 조회·다른 세대 혼입 차단 | v4.1.0 |
+| S10-C327 B-frame 원본PTS | 실제 writer/ready 결박 | decode 순서 증가와 PTS 재정렬에서 원본PTS/ordinal 보존·UTC unknown 의미 유지 | v4.1.0 |
+| S10-C328 ready3 엄격 계약 | 실제 writer/ready 결박 | binding 필수·extra/mixed/null/schema/identity 오류 거부, 기존 ready1/2 직렬화 유지 | v4.1.0 |
+| S10-C329 ready 버전별 상한 | 실제 writer/ready 결박 | version1/2 1MiB, version3 2MiB 상한을 읽기·쓰기 양쪽에서 확인 | v4.1.0 |
+| S10-C330 partial-only 복구 | 실제 writer/ready 결박 | 실제 미디어 ready3+partial만 있는 중단 상태에서 segment와 binding 한꺼번에 복구 | v4.1.0 |
+| S10-C331 two-links 복구 | 실제 writer/ready 결박 | publish 중 partial/final 동일 inode 2links 상태 복구 및 exact binding 유지 | v4.1.0 |
+| S10-C332 final-only 복구 | 실제 writer/ready 결박 | publish 뒤 commit 전 final+ready 상태에서 bound catalog 복구 | v4.1.0 |
+| S10-C333 committed-ready 복구 | 실제 writer/ready 결박 | bound commit 뒤 ready 잔존 시 멱등 복구, 중복 원장·상태 부활 없음 | v4.1.0 |
+| S10-C334 commit 실패 보존 | 실제 writer/ready 결박 | publish 성공 후 catalog 결박/commit 실패 시 ready 보존·재시작 조건 명시, 임의 orphan 삭제 없음 | v4.1.0 |
+| S10-C335 prepublish 거부 | 실제 writer/ready 결박 | 삭제·identity충돌·손상 미디어 또는 ticket이면 publish/소급등록 금지·원본 보존 | v4.1.0 |
+| S10-C336 기존 ready·소유권 회귀 | 실제 writer/ready 결박 | ready1/2·nonce marker preserve·fd/no-follow/no-replace·hash/크기·정리 불변 | v4.1.0 |
+
+위 표는 실행 전 정의이며 실제 결과와 미검증 경계는 다음 절을 따른다. token start/end/consumed는 도구 실측이 없으면 미집계다.
+
+### 재개 후 실제 구현·검증 결과
+
+문서 최종 검증: verify-docs-links exit0(234문서/1175링크/실패0), git diff --check exit0.
+보존 증거는11파일30446B이며 전수 출력·소스hash만 포함한다. 운영 영상·비밀·자격증명은 없다.
+메인이 직접 writer/ready3 연결을 구현하고 관련 diff를 검토했다. 제품 변경은
+`gstreamer_segment_writer.cpp`의 segment별 원본 결박 초기화·GST_FLOW_OK 후 tuple 기록·4096 상한과
+`recording_finalize_recovery.h/.cpp`의 source_binding optional·ready3 strict parser/serializer·active/startup bound recovery 분기다.
+기존 ready1/2 형식·1MiB 상한과 file descriptor/동일 inode/원자 publish·checksum·소유 marker 경계는 유지했다.
+실제 H264/VP8 생성→녹화→decode, B-frame 재정렬, 분할, 세대 전환과4100프레임/4096색인 상한을 확인했다.
+137개 최종 검사행(writer44/ready73/source-binding20)과 제품 build가 exit0이다.
+이 숫자는 **실행한 범위의 합계**이며 C321~336 전수 완료가 아니다.
+
+**미해소:** C323 실제 GST_FLOW_ERROR 결과의 tuple 미등록은 결정적 동적 검증 미실행이다.
+C334는 final-only+예약 없음의 준비된 복구 거부 상태만 검사했다. 실제 active publish 성공 직후 commit 오류 타이밍은 미검증이다.
+기존 WR09의 active commit 거부·ready 보존 PASS는 publish 이후 오류의 대체 근거가 아니다.
+C328의 null-binding이라는 출력 라벨은 실제로 binding field 자체가 빠진 version3 거부 케이스다(명시 null 자체를 별도 동적 검증했다고 주장하지 않는다).
+C329는 유효 ready3가1MiB 초과해도 쓰기/읽기되고 버전별 read 상한이 적용됨을 확인했다.
+2MiB 초과 writer envelope는 segment/binding 자체 크기 제한으로 만들 수 없어 별도 경계값 생성 PASS로 주장하지 않는다.
+따라서 3C-3B 전체완료·커밋을 보류하고 다음3C-4/5는 진행하지 않았다.
+사용자에게 수락 처리·최종화 내부 단계를 분리해 실패 결과를 검증하는 안전한 대안의 구조 변경 판단을 요청했다.
+호출 가로채기를 다른 도구로 재실행하지 않았으며 신규 시스템 호출/라이브러리 래핑은 추가하지 않았다.
+기존 managed writer 회귀에는 자기 fixture 원장의 상태 변경을 통한 기존 WR09 검사가 포함되어 실행됐다.
+앞서 말한 '원장 변경 방식 미사용'은 **신규 제안된 wrapper 방식 미사용**으로 한정해 정정한다.
+
+| 실행 | 명령 | 실제 exit·요약 | evidence |
+| --- | --- | --- | --- |
+| Red | `bash scripts/internal/verify_recording_managed_writer.sh` | exit1; PASS 37/FAIL 2 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/Red.log) |
+| ReadyRed | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | exit1; PASS 55/FAIL 4 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/ReadyRed.log) |
+| WriterGreen | `bash scripts/internal/verify_recording_managed_writer.sh` | exit0; PASS 39/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/WriterGreen.log) |
+| ReadyGreen | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | exit0; PASS 59/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/ReadyGreen.log) |
+| WriterFinal | `bash scripts/internal/verify_recording_managed_writer.sh` | exit1; PASS 0/FAIL 0 (컴파일 오류, assertion 미실행) | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/WriterFinal.log) |
+| ReadyFinal | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | exit0; PASS 69/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/ReadyFinal.log) |
+| WriterFinal2 | `bash scripts/internal/verify_recording_managed_writer.sh` | exit0; PASS 44/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/WriterFinal2.log) |
+| ReadyFinal2 | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | exit0; PASS 73/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/ReadyFinal2.log) |
+| Build | `./server.sh build` | exit0; PASS 0/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/Build.log) |
+| Binding | `bash scripts/internal/verify_recording_source_binding.sh` | exit0; PASS 20/FAIL 0 | [전문](release-artifacts/v4.1.0/s10-writer-source-binding/Binding.log) |
+
+첫 writer RED37/2는 C321 H264/VP8 부재와 일치했다. ready RED55/4도 C330~333 부재와 일치했다.
+GREEN 후 oracle 확대에서 기존 변수ls와 신규ls의 이름 중복 컴파일 오류1건이 발생했다(WriterFinal exit1).
+신규 이름만 capped_source_store로 바꾼 WriterFinal2는44/0이었다. 환경/제품 회귀로 오인하지 않았다.
+최종 소스 [SHA256](release-artifacts/v4.1.0/s10-writer-source-binding/source.sha256)를 보존한다.
+macOS/기존 C++17·GStreamer·sqlite3·openssl 환경, 포트/외부입력/운영저장소 사용 없음.
+token start/end/consumed는 실측 도구값 미제공으로 미집계다. elapsed는 각 로그의 SECONDS값,
+시간을 내보내지 않은 ready/build는 별도 전체 elapsed 미집계다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| WR01 h264 managed segments decode all frames without legacy callback or snapshot | Red 원출력1행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-C321 h264 실제 수락 원본 tuple과 segment 결박 | Red 원출력2행·위 명령 exit1 | FAIL | 미구현 RED 이력 |
+| WR01 vp8 managed segments decode all frames without legacy callback or snapshot | Red 원출력3행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-C321 vp8 실제 수락 원본 tuple과 segment 결박 | Red 원출력4행·위 명령 exit1 | FAIL | 미구현 RED 이력 |
+| WR02 UTC-only change preserves media splits frames and independent mapping | Red 원출력5행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR03 UTC-only change preserves media splits frames and independent mapping | Red 원출력6행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR04 UTC-only change preserves media splits frames and independent mapping | Red 원출력7행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR05 duplicate PTS with advancing DTS preserves media and unknown mapping | Red 원출력8행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR06 explicit generation reset creates a new media epoch | Red 원출력9행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR07 repeated observations and processing UTC do not duplicate media | Red 원출력10행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR08 missing final duration preserves media with unknown end | Red 원출력11행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR09 mapping budget retains bounded unknown tail and all frames | Red 원출력12행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR01 invalid binding rejects before writes journal | Red 원출력13행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR01 invalid binding rejects before writes catalog | Red 원출력14행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR01 invalid binding rejects before writes root | Red 원출력15행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR01 invalid binding rejects before writes store | Red 원출력16행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR01 invalid binding rejects before writes lease | Red 원출력17행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR01 invalid binding rejects before writes incomplete | Red 원출력18행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR08 clock process change preserves same-generation media with unknown comparison | Red 원출력19행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR08 invalid duration leaves unknown end zero | Red 원출력20행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR08 invalid duration leaves unknown end overflow | Red 원출력21행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR08 unsafe original input cannot become finalized observation | Red 원출력22행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR08 unsafe original input cannot become finalized pts | Red 원출력23행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR08 unsafe original input cannot become finalized range | Red 원출력24행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR07 older generation cache cannot switch media backwards | Red 원출력25행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR07 unrelated video track cannot change selected track identity | Red 원출력26행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR06 reopened store allocates fresh IDs and increasing durable order | Red 원출력27행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR05 actual H264 reordering preserves decode timestamps and mux origin | Red 원출력28행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR05 reordered segment end covers maximum presented frame end | Red 원출력29행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR08 missing maximum PTS frame duration keeps reordered end unknown | Red 원출력30행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR09 failed active commit preserves ready order and quota reservation | Red 원출력31행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR09 restart recovers the same durable segment and all frames | Red 원출력32행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR08 excessive clock width preserves media as unknown | Red 원출력33행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR08 zero generation order cannot become finalized | Red 원출력34행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR08 media observation quality normal | Red 원출력35행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR08 media observation quality fast | Red 원출력36행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR08 media observation quality drift | Red 원출력37행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR08 media observation quality fast-step | Red 원출력38행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| WR01 actual appsink observation flows through managed writer and decode | Red 원출력39행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| ready partial recovers original segment ID | ReadyRed 원출력1행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| FR02 interrupted publish converges: final only | ReadyRed 원출력2행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| FR02 repeated recovery no duplicate mutation | ReadyRed 원출력3행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| FR02 interrupted publish converges: owned two links | ReadyRed 원출력4행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| FR02 repeated recovery no duplicate mutation | ReadyRed 원출력5행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| FR03 catalog commit before cleanup does not append or replace | ReadyRed 원출력6행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| FR04 invalid version preserves original without publication | ReadyRed 원출력7행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| FR04 invalid duplicate preserves original without publication | ReadyRed 원출력8행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| FR04 invalid nonce preserves original without publication | ReadyRed 원출력9행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| FR04 invalid escape preserves original without publication | ReadyRed 원출력10행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| FR04 invalid identity preserves original without publication | ReadyRed 원출력11행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| FR05 symlink ticket rejected and external target untouched | ReadyRed 원출력12행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| FR05 foreign hardlink rejected without unlink | ReadyRed 원출력13행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| FR05 actual unreadable ticket preserves media | ReadyRed 원출력14행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| FR06 corrupt unknown isolated in place without finalized mutation | ReadyRed 원출력15행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| FR06 repeated corruption recovery converges without resurrection | ReadyRed 원출력16행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| FR07 pending takes precedence over ready publication | ReadyRed 원출력17행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| FR07 deleted takes precedence over ready publication | ReadyRed 원출력18행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| FR07 conflict takes precedence over ready publication | ReadyRed 원출력19행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| FR08 orphan not inferred and legacy owned partial cleaned | ReadyRed 원출력20행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker partial | ReadyRed 원출력21행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M08 V2 ready recovers exact metadata partial | ReadyRed 원출력22행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M08 V2 journal restart and repeated recovery partial | ReadyRed 원출력23행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker two-links | ReadyRed 원출력24행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M08 V2 ready recovers exact metadata two-links | ReadyRed 원출력25행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M08 V2 journal restart and repeated recovery two-links | ReadyRed 원출력26행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker final | ReadyRed 원출력27행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M08 V2 ready recovers exact metadata final | ReadyRed 원출력28행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M08 V2 journal restart and repeated recovery final | ReadyRed 원출력29행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker committed | ReadyRed 원출력30행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M08 V2 ready recovers exact metadata committed | ReadyRed 원출력31행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M08 V2 journal restart and repeated recovery committed | ReadyRed 원출력32행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M08 V2 ready writer preserves versioned envelope | ReadyRed 원출력33행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M09 V2 ready refusal preserves originals missing-order | ReadyRed 원출력34행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M09 V2 ready refusal preserves originals wrong-tuple | ReadyRed 원출력35행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M09 V2 ready refusal preserves originals optout | ReadyRed 원출력36행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M09 V2 ready refusal preserves originals deleted | ReadyRed 원출력37행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M09 V2 ready refusal preserves originals mapping | ReadyRed 원출력38행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M09 V2 ready refusal preserves originals path | ReadyRed 원출력39행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M09 V2 ready refusal preserves originals version | ReadyRed 원출력40행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M09 V2 ready refusal preserves originals event | ReadyRed 원출력41행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M09 V2 ready refusal preserves originals corrupt-pair | ReadyRed 원출력42행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M09 V2 ready refusal preserves originals foreign-link | ReadyRed 원출력43행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M09 V2 ready writer rejects mixed-id | ReadyRed 원출력44행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M09 V2 ready writer rejects mixed-size | ReadyRed 원출력45행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M09 V2 ready writer rejects mixed-source | ReadyRed 원출력46행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M09 V2 ready writer rejects mixed-time | ReadyRed 원출력47행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M09 V2 ready writer rejects event | ReadyRed 원출력48행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M09 V2 ready writer rejects oversize | ReadyRed 원출력49행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M09 V2 direct publish requires catalog | ReadyRed 원출력50행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M09 V1 inspector still rejects two links | ReadyRed 원출력51행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-M09 V2 direct clear preserves uncommitted ticket and marker | ReadyRed 원출력52행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-WR09 active ready validates publishes commits and clears exact ticket | ReadyRed 원출력53행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-WR09 active ready refusal preserves originals changed-ticket | ReadyRed 원출력54행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-WR09 active ready refusal preserves originals missing-order | ReadyRed 원출력55행·위 명령 exit1 | PASS | 미구현 RED 이력 |
+| S10-C330 ready3 원본 결박 복구 partial | ReadyRed 원출력56행·위 명령 exit1 | FAIL | 미구현 RED 이력 |
+| S10-C331 ready3 원본 결박 복구 two-links | ReadyRed 원출력57행·위 명령 exit1 | FAIL | 미구현 RED 이력 |
+| S10-C332 ready3 원본 결박 복구 final | ReadyRed 원출력58행·위 명령 exit1 | FAIL | 미구현 RED 이력 |
+| S10-C333 ready3 원본 결박 복구 committed | ReadyRed 원출력59행·위 명령 exit1 | FAIL | 미구현 RED 이력 |
+| WR01 h264 managed segments decode all frames without legacy callback or snapshot | WriterGreen 원출력1행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C321 h264 실제 수락 원본 tuple과 segment 결박 | WriterGreen 원출력2행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR01 vp8 managed segments decode all frames without legacy callback or snapshot | WriterGreen 원출력3행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C321 vp8 실제 수락 원본 tuple과 segment 결박 | WriterGreen 원출력4행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR02 UTC-only change preserves media splits frames and independent mapping | WriterGreen 원출력5행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR03 UTC-only change preserves media splits frames and independent mapping | WriterGreen 원출력6행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR04 UTC-only change preserves media splits frames and independent mapping | WriterGreen 원출력7행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR05 duplicate PTS with advancing DTS preserves media and unknown mapping | WriterGreen 원출력8행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR06 explicit generation reset creates a new media epoch | WriterGreen 원출력9행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR07 repeated observations and processing UTC do not duplicate media | WriterGreen 원출력10행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 missing final duration preserves media with unknown end | WriterGreen 원출력11행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR09 mapping budget retains bounded unknown tail and all frames | WriterGreen 원출력12행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR01 invalid binding rejects before writes journal | WriterGreen 원출력13행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR01 invalid binding rejects before writes catalog | WriterGreen 원출력14행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR01 invalid binding rejects before writes root | WriterGreen 원출력15행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR01 invalid binding rejects before writes store | WriterGreen 원출력16행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR01 invalid binding rejects before writes lease | WriterGreen 원출력17행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR01 invalid binding rejects before writes incomplete | WriterGreen 원출력18행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 clock process change preserves same-generation media with unknown comparison | WriterGreen 원출력19행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 invalid duration leaves unknown end zero | WriterGreen 원출력20행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 invalid duration leaves unknown end overflow | WriterGreen 원출력21행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 unsafe original input cannot become finalized observation | WriterGreen 원출력22행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 unsafe original input cannot become finalized pts | WriterGreen 원출력23행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 unsafe original input cannot become finalized range | WriterGreen 원출력24행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR07 older generation cache cannot switch media backwards | WriterGreen 원출력25행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR07 unrelated video track cannot change selected track identity | WriterGreen 원출력26행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR06 reopened store allocates fresh IDs and increasing durable order | WriterGreen 원출력27행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR05 actual H264 reordering preserves decode timestamps and mux origin | WriterGreen 원출력28행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR05 reordered segment end covers maximum presented frame end | WriterGreen 원출력29행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 missing maximum PTS frame duration keeps reordered end unknown | WriterGreen 원출력30행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR09 failed active commit preserves ready order and quota reservation | WriterGreen 원출력31행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR09 restart recovers the same durable segment and all frames | WriterGreen 원출력32행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 excessive clock width preserves media as unknown | WriterGreen 원출력33행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 zero generation order cannot become finalized | WriterGreen 원출력34행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 media observation quality normal | WriterGreen 원출력35행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 media observation quality fast | WriterGreen 원출력36행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 media observation quality drift | WriterGreen 원출력37행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 media observation quality fast-step | WriterGreen 원출력38행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR01 actual appsink observation flows through managed writer and decode | WriterGreen 원출력39행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| ready partial recovers original segment ID | ReadyGreen 원출력1행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR02 interrupted publish converges: final only | ReadyGreen 원출력2행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR02 repeated recovery no duplicate mutation | ReadyGreen 원출력3행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR02 interrupted publish converges: owned two links | ReadyGreen 원출력4행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR02 repeated recovery no duplicate mutation | ReadyGreen 원출력5행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR03 catalog commit before cleanup does not append or replace | ReadyGreen 원출력6행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR04 invalid version preserves original without publication | ReadyGreen 원출력7행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR04 invalid duplicate preserves original without publication | ReadyGreen 원출력8행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR04 invalid nonce preserves original without publication | ReadyGreen 원출력9행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR04 invalid escape preserves original without publication | ReadyGreen 원출력10행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR04 invalid identity preserves original without publication | ReadyGreen 원출력11행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR05 symlink ticket rejected and external target untouched | ReadyGreen 원출력12행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR05 foreign hardlink rejected without unlink | ReadyGreen 원출력13행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR05 actual unreadable ticket preserves media | ReadyGreen 원출력14행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR06 corrupt unknown isolated in place without finalized mutation | ReadyGreen 원출력15행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR06 repeated corruption recovery converges without resurrection | ReadyGreen 원출력16행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR07 pending takes precedence over ready publication | ReadyGreen 원출력17행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR07 deleted takes precedence over ready publication | ReadyGreen 원출력18행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR07 conflict takes precedence over ready publication | ReadyGreen 원출력19행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR08 orphan not inferred and legacy owned partial cleaned | ReadyGreen 원출력20행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker partial | ReadyGreen 원출력21행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 ready recovers exact metadata partial | ReadyGreen 원출력22행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 journal restart and repeated recovery partial | ReadyGreen 원출력23행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker two-links | ReadyGreen 원출력24행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 ready recovers exact metadata two-links | ReadyGreen 원출력25행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 journal restart and repeated recovery two-links | ReadyGreen 원출력26행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker final | ReadyGreen 원출력27행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 ready recovers exact metadata final | ReadyGreen 원출력28행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 journal restart and repeated recovery final | ReadyGreen 원출력29행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker committed | ReadyGreen 원출력30행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 ready recovers exact metadata committed | ReadyGreen 원출력31행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 journal restart and repeated recovery committed | ReadyGreen 원출력32행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 ready writer preserves versioned envelope | ReadyGreen 원출력33행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals missing-order | ReadyGreen 원출력34행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals wrong-tuple | ReadyGreen 원출력35행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals optout | ReadyGreen 원출력36행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals deleted | ReadyGreen 원출력37행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals mapping | ReadyGreen 원출력38행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals path | ReadyGreen 원출력39행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals version | ReadyGreen 원출력40행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals event | ReadyGreen 원출력41행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals corrupt-pair | ReadyGreen 원출력42행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals foreign-link | ReadyGreen 원출력43행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready writer rejects mixed-id | ReadyGreen 원출력44행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready writer rejects mixed-size | ReadyGreen 원출력45행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready writer rejects mixed-source | ReadyGreen 원출력46행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready writer rejects mixed-time | ReadyGreen 원출력47행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready writer rejects event | ReadyGreen 원출력48행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready writer rejects oversize | ReadyGreen 원출력49행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 direct publish requires catalog | ReadyGreen 원출력50행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V1 inspector still rejects two links | ReadyGreen 원출력51행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 direct clear preserves uncommitted ticket and marker | ReadyGreen 원출력52행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-WR09 active ready validates publishes commits and clears exact ticket | ReadyGreen 원출력53행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-WR09 active ready refusal preserves originals changed-ticket | ReadyGreen 원출력54행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-WR09 active ready refusal preserves originals missing-order | ReadyGreen 원출력55행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C330 ready3 원본 결박 복구 partial | ReadyGreen 원출력56행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C331 ready3 원본 결박 복구 two-links | ReadyGreen 원출력57행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C332 ready3 원본 결박 복구 final | ReadyGreen 원출력58행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C333 ready3 원본 결박 복구 committed | ReadyGreen 원출력59행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| ready partial recovers original segment ID | ReadyFinal 원출력1행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR02 interrupted publish converges: final only | ReadyFinal 원출력2행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR02 repeated recovery no duplicate mutation | ReadyFinal 원출력3행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR02 interrupted publish converges: owned two links | ReadyFinal 원출력4행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR02 repeated recovery no duplicate mutation | ReadyFinal 원출력5행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR03 catalog commit before cleanup does not append or replace | ReadyFinal 원출력6행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR04 invalid version preserves original without publication | ReadyFinal 원출력7행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR04 invalid duplicate preserves original without publication | ReadyFinal 원출력8행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR04 invalid nonce preserves original without publication | ReadyFinal 원출력9행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR04 invalid escape preserves original without publication | ReadyFinal 원출력10행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR04 invalid identity preserves original without publication | ReadyFinal 원출력11행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR05 symlink ticket rejected and external target untouched | ReadyFinal 원출력12행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR05 foreign hardlink rejected without unlink | ReadyFinal 원출력13행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR05 actual unreadable ticket preserves media | ReadyFinal 원출력14행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR06 corrupt unknown isolated in place without finalized mutation | ReadyFinal 원출력15행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR06 repeated corruption recovery converges without resurrection | ReadyFinal 원출력16행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR07 pending takes precedence over ready publication | ReadyFinal 원출력17행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR07 deleted takes precedence over ready publication | ReadyFinal 원출력18행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR07 conflict takes precedence over ready publication | ReadyFinal 원출력19행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR08 orphan not inferred and legacy owned partial cleaned | ReadyFinal 원출력20행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker partial | ReadyFinal 원출력21행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 ready recovers exact metadata partial | ReadyFinal 원출력22행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 journal restart and repeated recovery partial | ReadyFinal 원출력23행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker two-links | ReadyFinal 원출력24행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 ready recovers exact metadata two-links | ReadyFinal 원출력25행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 journal restart and repeated recovery two-links | ReadyFinal 원출력26행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker final | ReadyFinal 원출력27행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 ready recovers exact metadata final | ReadyFinal 원출력28행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 journal restart and repeated recovery final | ReadyFinal 원출력29행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker committed | ReadyFinal 원출력30행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 ready recovers exact metadata committed | ReadyFinal 원출력31행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 journal restart and repeated recovery committed | ReadyFinal 원출력32행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 ready writer preserves versioned envelope | ReadyFinal 원출력33행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals missing-order | ReadyFinal 원출력34행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals wrong-tuple | ReadyFinal 원출력35행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals optout | ReadyFinal 원출력36행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals deleted | ReadyFinal 원출력37행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals mapping | ReadyFinal 원출력38행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals path | ReadyFinal 원출력39행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals version | ReadyFinal 원출력40행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals event | ReadyFinal 원출력41행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals corrupt-pair | ReadyFinal 원출력42행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals foreign-link | ReadyFinal 원출력43행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready writer rejects mixed-id | ReadyFinal 원출력44행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready writer rejects mixed-size | ReadyFinal 원출력45행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready writer rejects mixed-source | ReadyFinal 원출력46행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready writer rejects mixed-time | ReadyFinal 원출력47행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready writer rejects event | ReadyFinal 원출력48행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready writer rejects oversize | ReadyFinal 원출력49행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 direct publish requires catalog | ReadyFinal 원출력50행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V1 inspector still rejects two links | ReadyFinal 원출력51행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 direct clear preserves uncommitted ticket and marker | ReadyFinal 원출력52행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-WR09 active ready validates publishes commits and clears exact ticket | ReadyFinal 원출력53행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-WR09 active ready refusal preserves originals changed-ticket | ReadyFinal 원출력54행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-WR09 active ready refusal preserves originals missing-order | ReadyFinal 원출력55행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C328 ready3 writer의 엄격 원본 결박 envelope | ReadyFinal 원출력56행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C328 ready3 거부 identity | ReadyFinal 원출력57행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C328 ready3 거부 legacy | ReadyFinal 원출력58행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C328 ready3 거부 event | ReadyFinal 원출력59행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C328 ready3 거부 null-binding | ReadyFinal 원출력60행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C328 ready3 거부 extra | ReadyFinal 원출력61행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C329 ready 버전별 읽기 상한 1 | ReadyFinal 원출력62행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C329 ready 버전별 읽기 상한 2 | ReadyFinal 원출력63행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C329 ready 버전별 읽기 상한 3 | ReadyFinal 원출력64행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C329 ready3은1MiB를넘는유효결박을수용 | ReadyFinal 원출력65행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C330 ready3 원본 결박 복구 partial | ReadyFinal 원출력66행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C331 ready3 원본 결박 복구 two-links | ReadyFinal 원출력67행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C332 ready3 원본 결박 복구 final | ReadyFinal 원출력68행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C333 ready3 원본 결박 복구 committed | ReadyFinal 원출력69행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR01 h264 managed segments decode all frames without legacy callback or snapshot | WriterFinal2 원출력1행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C321 h264 실제 수락 원본 tuple과 segment 결박 | WriterFinal2 원출력2행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR01 vp8 managed segments decode all frames without legacy callback or snapshot | WriterFinal2 원출력3행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C321 vp8 실제 수락 원본 tuple과 segment 결박 | WriterFinal2 원출력4행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR02 UTC-only change preserves media splits frames and independent mapping | WriterFinal2 원출력5행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR03 UTC-only change preserves media splits frames and independent mapping | WriterFinal2 원출력6행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR04 UTC-only change preserves media splits frames and independent mapping | WriterFinal2 원출력7행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR05 duplicate PTS with advancing DTS preserves media and unknown mapping | WriterFinal2 원출력8행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR06 explicit generation reset creates a new media epoch | WriterFinal2 원출력9행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C326 세대별 원본 결박 분리 | WriterFinal2 원출력10행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR07 repeated observations and processing UTC do not duplicate media | WriterFinal2 원출력11행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C325 분할·재전달의 segment별 수락 범위 | WriterFinal2 원출력12행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C322 keyframe 대기·다른 track·빈 입력·replay 제외 | WriterFinal2 원출력13행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C324 색인 상한 뒤에도 실제4100프레임 저장·미색인 꼬리 표시 | WriterFinal2 원출력14행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 missing final duration preserves media with unknown end | WriterFinal2 원출력15행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR09 mapping budget retains bounded unknown tail and all frames | WriterFinal2 원출력16행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR01 invalid binding rejects before writes journal | WriterFinal2 원출력17행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR01 invalid binding rejects before writes catalog | WriterFinal2 원출력18행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR01 invalid binding rejects before writes root | WriterFinal2 원출력19행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR01 invalid binding rejects before writes store | WriterFinal2 원출력20행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR01 invalid binding rejects before writes lease | WriterFinal2 원출력21행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR01 invalid binding rejects before writes incomplete | WriterFinal2 원출력22행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 clock process change preserves same-generation media with unknown comparison | WriterFinal2 원출력23행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 invalid duration leaves unknown end zero | WriterFinal2 원출력24행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 invalid duration leaves unknown end overflow | WriterFinal2 원출력25행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 unsafe original input cannot become finalized observation | WriterFinal2 원출력26행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 unsafe original input cannot become finalized pts | WriterFinal2 원출력27행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 unsafe original input cannot become finalized range | WriterFinal2 원출력28행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR07 older generation cache cannot switch media backwards | WriterFinal2 원출력29행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR07 unrelated video track cannot change selected track identity | WriterFinal2 원출력30행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR06 reopened store allocates fresh IDs and increasing durable order | WriterFinal2 원출력31행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR05 actual H264 reordering preserves decode timestamps and mux origin | WriterFinal2 원출력32행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR05 reordered segment end covers maximum presented frame end | WriterFinal2 원출력33행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C327 실제 B-frame 원본PTS·ordinal 보존 | WriterFinal2 원출력34행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 missing maximum PTS frame duration keeps reordered end unknown | WriterFinal2 원출력35행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR09 failed active commit preserves ready order and quota reservation | WriterFinal2 원출력36행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR09 restart recovers the same durable segment and all frames | WriterFinal2 원출력37행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 excessive clock width preserves media as unknown | WriterFinal2 원출력38행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 zero generation order cannot become finalized | WriterFinal2 원출력39행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 media observation quality normal | WriterFinal2 원출력40행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 media observation quality fast | WriterFinal2 원출력41행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 media observation quality drift | WriterFinal2 원출력42행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR08 media observation quality fast-step | WriterFinal2 원출력43행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| WR01 actual appsink observation flows through managed writer and decode | WriterFinal2 원출력44행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| ready partial recovers original segment ID | ReadyFinal2 원출력1행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR02 interrupted publish converges: final only | ReadyFinal2 원출력2행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR02 repeated recovery no duplicate mutation | ReadyFinal2 원출력3행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR02 interrupted publish converges: owned two links | ReadyFinal2 원출력4행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR02 repeated recovery no duplicate mutation | ReadyFinal2 원출력5행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR03 catalog commit before cleanup does not append or replace | ReadyFinal2 원출력6행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR04 invalid version preserves original without publication | ReadyFinal2 원출력7행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR04 invalid duplicate preserves original without publication | ReadyFinal2 원출력8행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR04 invalid nonce preserves original without publication | ReadyFinal2 원출력9행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR04 invalid escape preserves original without publication | ReadyFinal2 원출력10행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR04 invalid identity preserves original without publication | ReadyFinal2 원출력11행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR05 symlink ticket rejected and external target untouched | ReadyFinal2 원출력12행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR05 foreign hardlink rejected without unlink | ReadyFinal2 원출력13행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR05 actual unreadable ticket preserves media | ReadyFinal2 원출력14행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR06 corrupt unknown isolated in place without finalized mutation | ReadyFinal2 원출력15행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR06 repeated corruption recovery converges without resurrection | ReadyFinal2 원출력16행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR07 pending takes precedence over ready publication | ReadyFinal2 원출력17행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR07 deleted takes precedence over ready publication | ReadyFinal2 원출력18행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR07 conflict takes precedence over ready publication | ReadyFinal2 원출력19행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| FR08 orphan not inferred and legacy owned partial cleaned | ReadyFinal2 원출력20행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker partial | ReadyFinal2 원출력21행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 ready recovers exact metadata partial | ReadyFinal2 원출력22행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 journal restart and repeated recovery partial | ReadyFinal2 원출력23행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker two-links | ReadyFinal2 원출력24행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 ready recovers exact metadata two-links | ReadyFinal2 원출력25행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 journal restart and repeated recovery two-links | ReadyFinal2 원출력26행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker final | ReadyFinal2 원출력27행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 ready recovers exact metadata final | ReadyFinal2 원출력28행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 journal restart and repeated recovery final | ReadyFinal2 원출력29행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker committed | ReadyFinal2 원출력30행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 ready recovers exact metadata committed | ReadyFinal2 원출력31행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 journal restart and repeated recovery committed | ReadyFinal2 원출력32행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M08 V2 ready writer preserves versioned envelope | ReadyFinal2 원출력33행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals missing-order | ReadyFinal2 원출력34행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals wrong-tuple | ReadyFinal2 원출력35행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals optout | ReadyFinal2 원출력36행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals deleted | ReadyFinal2 원출력37행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals mapping | ReadyFinal2 원출력38행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals path | ReadyFinal2 원출력39행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals version | ReadyFinal2 원출력40행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals event | ReadyFinal2 원출력41행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals corrupt-pair | ReadyFinal2 원출력42행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready refusal preserves originals foreign-link | ReadyFinal2 원출력43행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready writer rejects mixed-id | ReadyFinal2 원출력44행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready writer rejects mixed-size | ReadyFinal2 원출력45행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready writer rejects mixed-source | ReadyFinal2 원출력46행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready writer rejects mixed-time | ReadyFinal2 원출력47행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready writer rejects event | ReadyFinal2 원출력48행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 ready writer rejects oversize | ReadyFinal2 원출력49행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 direct publish requires catalog | ReadyFinal2 원출력50행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V1 inspector still rejects two links | ReadyFinal2 원출력51행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-M09 V2 direct clear preserves uncommitted ticket and marker | ReadyFinal2 원출력52행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-WR09 active ready validates publishes commits and clears exact ticket | ReadyFinal2 원출력53행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-WR09 active ready refusal preserves originals changed-ticket | ReadyFinal2 원출력54행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-WR09 active ready refusal preserves originals missing-order | ReadyFinal2 원출력55행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C328 ready3 writer의 엄격 원본 결박 envelope | ReadyFinal2 원출력56행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C328 ready3 거부 identity | ReadyFinal2 원출력57행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C328 ready3 거부 legacy | ReadyFinal2 원출력58행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C328 ready3 거부 event | ReadyFinal2 원출력59행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C328 ready3 거부 null-binding | ReadyFinal2 원출력60행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C328 ready3 거부 extra | ReadyFinal2 원출력61행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C329 ready 버전별 읽기 상한 1 | ReadyFinal2 원출력62행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C329 ready 버전별 읽기 상한 2 | ReadyFinal2 원출력63행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C329 ready 버전별 읽기 상한 3 | ReadyFinal2 원출력64행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C329 ready3은1MiB를넘는유효결박을수용 | ReadyFinal2 원출력65행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C330 ready3 원본 결박 복구 partial | ReadyFinal2 원출력66행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C331 ready3 원본 결박 복구 two-links | ReadyFinal2 원출력67행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C332 ready3 원본 결박 복구 final | ReadyFinal2 원출력68행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C333 ready3 원본 결박 복구 committed | ReadyFinal2 원출력69행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C334 ready3 거부 상태 원본 보존 no-reservation-final | ReadyFinal2 원출력70행·위 명령 exit0 | PASS | 준비된 final-only 거부 상태만 확인; active 실패 타이밍 미검증 |
+| S10-C335 ready3 거부 상태 원본 보존 pending | ReadyFinal2 원출력71행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C335 ready3 거부 상태 원본 보존 conflict | ReadyFinal2 원출력72행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C335 ready3 거부 상태 원본 보존 damaged-media | ReadyFinal2 원출력73행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C301 결박 schema 왕복 | Binding 원출력1행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C302 식별·ordinal 검증 | Binding 원출력2행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C303 PTS 재정렬 보존 | Binding 원출력3행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C304 미디어 범위·timebase | Binding 원출력4행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C305 색인 상한·미색인 꼬리 | Binding 원출력5행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C306 단일 bound mutation | Binding 원출력6행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C307 source·저장 identity 결박 | Binding 원출력7행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C308 불변·멱등 | Binding 원출력8행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C309 소급·다운그레이드 금지 | Binding 원출력9행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C310 정확한 원본 tuple 조회 | Binding 원출력10행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C311 미색인·실제 부재 구분 | Binding 원출력11행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C312 복수 segment 후보 | Binding 원출력12행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C313 삭제·corrupt·pending 차단 | Binding 원출력13행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C314 채널·조회 오류 경계 | Binding 원출력14행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C315 SQL·JSONL 재시작 동등 | Binding 원출력15행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C316 checkpoint 보존 | Binding 원출력16행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C317 손상 원장 선차단 | Binding 원출력17행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C318 예약·옵트인 경계 | Binding 원출력18행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C319 기존 segment·조회 불변 | Binding 원출력19행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+| S10-C320 실제 finalize 수락 경계 | Binding 원출력20행·위 명령 exit0 | PASS | 이 실행의 판정만 인정 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.42FWa3 | 실행 소유 media/build fixture | 9698303B | runner 삭제 | 부재 확인 | Red.log |
+| /private/tmp/media-server-finalize-BW738o | 실행 소유 media/build fixture | 4733371B | runner 삭제 | 부재 확인 | ReadyRed.log |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.LUymmw | 실행 소유 media/build fixture | 9824631B | runner 삭제 | 부재 확인 | WriterGreen.log |
+| /private/tmp/media-server-finalize-35Cj7g | 실행 소유 media/build fixture | 4692853B | runner 삭제 | 부재 확인 | ReadyGreen.log |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.GE3ZUM | 실행 소유 media/build fixture | 0B | runner 삭제 | 부재 확인 | WriterFinal.log |
+| /private/tmp/media-server-finalize-ctbM2S | 실행 소유 media/build fixture | 9959912B | runner 삭제 | 부재 확인 | ReadyFinal.log |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.HKV7Il | 실행 소유 media/build fixture | 11938207B | runner 삭제 | 부재 확인 | WriterFinal2.log |
+| /private/tmp/media-server-finalize-eN0NX0 | 실행 소유 media/build fixture | 10230437B | runner 삭제 | 부재 확인 | ReadyFinal2.log |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.735LrT | 실행 소유 media/build fixture | 4448752B | runner 삭제 | 부재 확인 | Binding.log |
+| 저장소 .media_server.test/s10-3c3b | 임시 수집 로그 | 없음 | 생성하지 않음 | 도구 원출력에서 직접 보존 | 이번 재개 |
+
+### 3C-3B 이전 착수 중단 이력
+
+단일 담당자는 읽기 조사를 마친 뒤 구현 요청 처리 중 도구의 cybersecurity 위험 감지로 종료됐다.
+이는 제품 테스트 FAIL이 아니다. 담당자 도구가 정확히 어느 작업을 차단했는지는 확인되지 않았다.
+같은 요청을 다른 도구/담당자로 우회 실행하지 않았다. 3C-3B 제품 소유 파일 diff와 신규 runner/수집 로그는 없으며
+등록 문서5개만 미커밋이다. 기존 S09 변경은 보존했다. 실패 주입 방식은 실행하지 않았다.
+후속 3C-4/5 구현·커밋은 건너뜀이다. 차단된 방식과 분리되는 안전한 검증 대안을 확정한 뒤 재개해야 한다.
+
+| 항목 | 실행 상태 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- |
+| C321~336 | 미실행 | 사전등록·읽기 조사뿐, 제품 코드/검증 결과 없음 |
+| 실제 writer/ready3 | 미구현 | 3C-3A 저장 계약 PASS와 구분 |
+| 테스트 임시 산출물 | 없음 | 신규 실행/runner/수집 로그 생성 전 중단 |
+| 커밋/푸시 | 미수행 | 3C-3B 미완료, 푸시 승인 없음 |
+
 ## S10 3C-3A 원본 수락 결박 — 실행 전 정의
 
 독자는 저장 기반 구현·검증 담당자다. 승인된 3C 순서의 영속 연결 단위를 세분화하며 AGENTS를 따른다.

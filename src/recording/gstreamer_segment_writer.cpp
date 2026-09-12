@@ -5,6 +5,7 @@
 #include "recording/recording_finalize_recovery.h"
 #include "recording/recording_catalog.h"
 #include "recording/recording_writer_time_state.h"
+#include "recording/recording_write_boundaries.h"
 #include <iostream>
 
 #include <chrono>
@@ -364,6 +365,11 @@ private:
             current_v2.container=video_track.codec==media::CodecId::H264?"mp4":"webm";
             current_v2.video_codecs={media::ToString(video_track.codec)};current_v2.audio_omitted_reason="source-no-audio";
             current_v2.created_at_ms=NowMs();v2_time.Start(v2_origin,id);
+            current_source=RecordingSourceBindingV1{};
+            current_source.segment_id=id;current_source.source_id=channel_id;current_source.channel_id=channel_id;
+            current_source.store_id=current_v2.store_id;current_source.media_epoch_id=epoch_id;
+            current_source.source_generation=source_generation;current_source.generation_order=generation_order;
+            current_source.track_id=video_track.track_id;current_source.samples.reserve(4096);
         } else {
         current = RecordingSegmentV1{};
         current.segment_id = id;
@@ -407,7 +413,10 @@ private:
                                      : GST_CLOCK_TIME_NONE;
         }
         if (!packet.is_key_frame) GST_BUFFER_FLAG_SET(buffer, GST_BUFFER_FLAG_DELTA_UNIT);
-        if (gst_app_src_push_buffer(GST_APP_SRC(appsrc), buffer) != GST_FLOW_OK) {
+        bool accepted=gst_app_src_push_buffer(GST_APP_SRC(appsrc), buffer)==GST_FLOW_OK;
+        if(v2_mode)accepted=detail::AcceptSourceSample(accepted,current_source,
+            {packet.observation->ordinal,*packet.observation->pts_ns});
+        if (!accepted) {
             if(v2_mode)InputFailureLocked("mux-push");return;
         }
         current_payload_bytes = packet.payload.size() >
@@ -427,7 +436,10 @@ private:
                 }
             }
         }
-        if(v2_mode) {v2_time.Accept(*packet.observation);return;}
+        if(v2_mode) {
+            const auto& observation=*packet.observation;
+            v2_time.Accept(observation);return;
+        }
         current.end.utc_ms = utc_ms;
         current.end.pts = packet.pts;
         current.end.time_base_num = 1;
@@ -488,7 +500,7 @@ private:
             if(!ValidateRecordingSegmentV2(current_v2,&error)) {
                 InputFailureLocked("final-metadata-invalid");BlockForRecoveryLocked();return;
             }
-            FinalizeReadyTicket ready;ready.segment_v2=current_v2;
+            FinalizeReadyTicket ready;ready.segment_v2=current_v2;ready.source_binding=current_source;
             ready.partial_relative=partial_path.lexically_relative(options.storage_root);
             ready.final_relative=final_path.lexically_relative(options.storage_root);
             if(!WriteFinalizeReadyTicket(options.storage_root,ready,&error) ||
@@ -626,6 +638,7 @@ private:
     std::string source_generation;
     RecordingOrderReservationV1 current_order;
     RecordingSegmentV2 current_v2;
+    RecordingSourceBindingV1 current_source;
     RecordingWriterTimeState v2_time;
     int partial_fd{-1};
     GstElement* pipeline{nullptr};
