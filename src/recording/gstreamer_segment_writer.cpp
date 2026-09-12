@@ -3,6 +3,8 @@
 #include "recording/gstreamer_segment_writer.h"
 #include "recording/retention_coordinator.h"
 #include "recording/recording_finalize_recovery.h"
+#include "recording/recording_catalog.h"
+#include "recording/recording_writer_time_state.h"
 #include <iostream>
 
 #include <chrono>
@@ -97,6 +99,10 @@ public:
                std::string* error) {
         std::lock_guard lock(mu);
         if (started) return Fail(error, "segment writer가 이미 시작됨");
+        v2_mode=options.managed_journal || options.managed_catalog || !options.managed_store_id.empty();
+        if(v2_mode && (!options.managed_journal || !options.managed_catalog ||
+            !options.managed_catalog->ValidateManagedWriterBinding(*options.managed_journal,options.storage_root,options.managed_store_id,error)))
+            return Fail(error,"V2 writer 관리 저장소 결박 오류");
         if (options.segment_duration_ms <= 0) return Fail(error, "segment duration은 양수여야 함");
         if (input_channel_id.empty() || input_epoch_id.empty()) return Fail(error, "channel/epoch ID가 비어 있음");
         for (const auto& track : input_descriptor.tracks) {
@@ -140,6 +146,7 @@ public:
         if (recovery_pending) return;
         if (!started || packet.kind != media::MediaKind::Video || packet.codec != video_track.codec) return;
 #if MEDIA_SERVER_USE_GSTREAMER
+        if(v2_mode) {PushV2Locked(packet);return;}
         if (has_last_pts && packet.pts < last_pts) {
             time_snapshot.Invalidate();
             FinalizeLocked();
@@ -194,8 +201,69 @@ private:
     }
 
 #if MEDIA_SERVER_USE_GSTREAMER
+    static std::string NewId() {
+        gchar* value=g_uuid_string_random();if(!value)return {};std::string out(value);g_free(value);return out;
+    }
+    void InputFailureLocked(const char* reason) {
+        if(!input_failed)std::cerr<<"[recording-v2] input rejected reason="<<reason<<'\n';
+        input_failed=true;
+    }
+    void PushV2Locked(const media::Packet& packet) {
+        if(input_failed || packet.track_id!=video_track.track_id || packet.payload.empty())return;
+        if(!packet.observation || packet.observation->source_generation.empty() || packet.observation->generation_order==0 || packet.observation->ordinal==0 ||
+           !RecordingWriterTimeState::Signed(packet.observation->pts_ns) ||
+           (packet.observation->dts_ns && !RecordingWriterTimeState::Signed(packet.observation->dts_ns))) {
+            InputFailureLocked("original-timestamp-unavailable");return;
+        }
+        const auto& o=*packet.observation;
+        const auto pts=static_cast<std::int64_t>(*o.pts_ns);
+        const auto progress=static_cast<std::int64_t>(o.dts_ns.value_or(*o.pts_ns));
+        const bool same=o.source_generation==source_generation;
+        if(o.generation_order<generation_order)return;
+        if((same && o.generation_order!=generation_order) ||
+           (!same && !source_generation.empty() && o.generation_order==generation_order)) {
+            InputFailureLocked("source-identity-conflict");return;
+        }
+        if(same && o.ordinal<=last_ordinal)return;
+        if(!same) {
+            FinalizeLocked();if(recovery_pending)return;
+            source_generation=o.source_generation;generation_order=o.generation_order;last_ordinal=0;has_v2_progress=false;epoch_id=NewId();
+        }
+        if(has_v2_progress && progress<=v2_last_progress) {
+            InputFailureLocked("decode-order-unavailable");return;
+        }
+        last_ordinal=o.ordinal;
+        if(!segment_open) {
+            if(!packet.is_key_frame)return;
+            v2_origin=std::min(pts,progress);v2_segment_progress=progress;
+            if(!OpenLocked(packet,0))return;
+        } else if(packet.is_key_frame && static_cast<__int128>(progress)-v2_segment_progress>=
+                  static_cast<__int128>(options.segment_duration_ms)*1000000) {
+            FinalizeLocked();if(recovery_pending)return;
+            v2_origin=std::min(pts,progress);v2_segment_progress=progress;
+            if(!OpenLocked(packet,0))return;
+        }
+        if(pts<v2_origin || progress<v2_origin){InputFailureLocked("mux-origin-underflow");return;}
+        const auto budget=current_reserved_bytes>options.container_overhead_reservation_bytes?
+            current_reserved_bytes-options.container_overhead_reservation_bytes:0;
+        if(reservation_active && (packet.payload.size()>budget-std::min(current_payload_bytes,budget))) {
+            FinalizeLocked();admission_blocked=true;if(!packet.is_key_frame || recovery_pending)return;
+            v2_origin=std::min(pts,progress);v2_segment_progress=progress;if(!OpenLocked(packet,0))return;
+        }
+        PushBufferLocked(packet,0);
+        if(!input_failed) {v2_last_progress=progress;has_v2_progress=true;}
+    }
     bool OpenLocked(const media::Packet& first, std::int64_t utc_ms) {
         if (recovery_pending) return false;
+        std::string managed_id;
+        if(v2_mode) {
+            std::string error;managed_id=NewId();const auto request=NewId();
+            if(managed_id.empty() || request.empty() ||
+               !options.managed_catalog->ValidateManagedWriterBinding(*options.managed_journal,options.storage_root,options.managed_store_id,&error) ||
+               !options.managed_journal->ReserveRecordingOrder(options.managed_store_id,request,managed_id,channel_id,&current_order,&error)) {
+                InputFailureLocked("durable-order-reservation");return false;
+            }
+        }
         if (options.admit_segment) {
             SegmentAdmissionDecision decision;
             const std::uint64_t minimum_segment_bytes =
@@ -218,14 +286,14 @@ private:
             }
             reservation_active = true;
             current_reserved_bytes = decision.reserved_bytes;
-            if (admission_blocked || decision.start_new_epoch) {
+            if (!v2_mode && (admission_blocked || decision.start_new_epoch)) {
                 ++epoch_revision;
                 epoch_id = base_epoch_id + "-r" + std::to_string(epoch_revision);
             }
             admission_blocked = false;
         }
         const std::string extension = video_track.codec == media::CodecId::H264 ? ".mp4" : ".webm";
-        const std::string id = "seg-" + SafeToken(channel_id) + "-" +
+        const std::string id = v2_mode?managed_id:"seg-" + SafeToken(channel_id) + "-" +
                                std::to_string(utc_ms) + "-" + std::to_string(++sequence);
         final_path = options.storage_root / SafeToken(channel_id) / (id + extension);
         partial_path = final_path;
@@ -289,6 +357,14 @@ private:
             AbortSegmentFileLocked(partial_path, 0);
             return false;
         }
+        if(v2_mode) {
+            current_v2=RecordingSegmentV2{};current_v2.segment_id=id;current_v2.source_id=channel_id;current_v2.channel_id=channel_id;
+            current_v2.store_id=options.managed_store_id;current_v2.order_request_id=current_order.request_id;
+            current_v2.order_sequence=current_order.sequence;current_v2.media_epoch_id=epoch_id;
+            current_v2.container=video_track.codec==media::CodecId::H264?"mp4":"webm";
+            current_v2.video_codecs={media::ToString(video_track.codec)};current_v2.audio_omitted_reason="source-no-audio";
+            current_v2.created_at_ms=NowMs();v2_time.Start(v2_origin,id);
+        } else {
         current = RecordingSegmentV1{};
         current.segment_id = id;
         current.source_id = channel_id;
@@ -305,6 +381,7 @@ private:
         current.retention_class = RecordingRetentionClass::Continuous;
         current.lifecycle = RecordingLifecycle::Writing;
         current.created_at_ms = NowMs();
+        }
         current_payload_bytes = 0;
         reported_on_disk_bytes = 0;
         segment_start_utc_ms = utc_ms;
@@ -317,13 +394,22 @@ private:
         if (!segment_open || appsrc == nullptr || packet.payload.empty()) return;
         GstBuffer* buffer = gst_buffer_new_allocate(nullptr, packet.payload.size(), nullptr);
         gst_buffer_fill(buffer, 0, packet.payload.data(), packet.payload.size());
-        const auto normalized_pts = static_cast<GstClockTime>(std::max<std::int64_t>(0, packet.pts - first_pts));
-        GST_BUFFER_PTS(buffer) = normalized_pts;
+        if(v2_mode) {
+            const auto& o=*packet.observation;
+            GST_BUFFER_PTS(buffer)=*o.pts_ns-static_cast<std::uint64_t>(v2_origin);
+            GST_BUFFER_DTS(buffer)=o.dts_ns?*o.dts_ns-static_cast<std::uint64_t>(v2_origin):GST_CLOCK_TIME_NONE;
+            if(o.duration_ns && *o.duration_ns>0 && *o.duration_ns<=static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max()))
+                GST_BUFFER_DURATION(buffer)=*o.duration_ns;
+        } else {
+        GST_BUFFER_PTS(buffer) = static_cast<GstClockTime>(std::max<std::int64_t>(0, packet.pts - first_pts));
         GST_BUFFER_DTS(buffer) = packet.dts >= first_pts
                                      ? static_cast<GstClockTime>(packet.dts - first_pts)
                                      : GST_CLOCK_TIME_NONE;
+        }
         if (!packet.is_key_frame) GST_BUFFER_FLAG_SET(buffer, GST_BUFFER_FLAG_DELTA_UNIT);
-        if (gst_app_src_push_buffer(GST_APP_SRC(appsrc), buffer) != GST_FLOW_OK) return;
+        if (gst_app_src_push_buffer(GST_APP_SRC(appsrc), buffer) != GST_FLOW_OK) {
+            if(v2_mode)InputFailureLocked("mux-push");return;
+        }
         current_payload_bytes = packet.payload.size() >
                                         std::numeric_limits<std::uint64_t>::max() -
                                             current_payload_bytes
@@ -341,6 +427,7 @@ private:
                 }
             }
         }
+        if(v2_mode) {v2_time.Accept(*packet.observation);return;}
         current.end.utc_ms = utc_ms;
         current.end.pts = packet.pts;
         current.end.time_base_num = 1;
@@ -394,13 +481,29 @@ private:
         current.lifecycle = RecordingLifecycle::Finalized;
         current.finalized_at_ms = NowMs();
         if(current.checksum_sha256.size()!=64){AbortSegmentFileLocked(partial_path,current.size_bytes);return;}
+        if(v2_mode) {
+            current_v2.size_bytes=current.size_bytes;current_v2.checksum_sha256=current.checksum_sha256;
+            current_v2.finalized_at_ms=current.finalized_at_ms;v2_time.Finish(&current_v2);
+            std::string error;
+            if(!ValidateRecordingSegmentV2(current_v2,&error)) {
+                InputFailureLocked("final-metadata-invalid");BlockForRecoveryLocked();return;
+            }
+            FinalizeReadyTicket ready;ready.segment_v2=current_v2;
+            ready.partial_relative=partial_path.lexically_relative(options.storage_root);
+            ready.final_relative=final_path.lexically_relative(options.storage_root);
+            if(!WriteFinalizeReadyTicket(options.storage_root,ready,&error) ||
+               !CommitFinalizeReadyV2(*options.managed_catalog,options.storage_root,ready,&error)) {
+                BlockForRecoveryLocked();return;
+            }
+            ReleaseReservationLocked(current_v2.size_bytes);segment_open=false;return;
+        }
         // 양수 시간구간이 없는 단일 packet은 ready 작성 전의 미완결 출력이다.
         // ticket 작성을 시도한 이후의 불확실 보존/차단 경계와 구분한다.
         if (!ValidateRecordingSegmentV1(current, nullptr)) {
             AbortSegmentFileLocked(partial_path, current.size_bytes);
             return;
         }
-        FinalizeReadyTicket ready{current,partial_path.lexically_relative(options.storage_root),final_path.lexically_relative(options.storage_root),std::nullopt};
+        FinalizeReadyTicket ready{current,partial_path.lexically_relative(options.storage_root),final_path.lexically_relative(options.storage_root),std::nullopt,std::nullopt};
         std::string ready_error;
         if(!WriteFinalizeReadyTicket(options.storage_root,ready,&ready_error)||
            !PublishFinalizeReady(options.storage_root,ready,&ready_error)){
@@ -492,6 +595,7 @@ private:
     RecordingTimeSnapshotPublisher time_snapshot;
     std::mutex mu;
     bool started{false};
+    bool v2_mode{false};
     [[maybe_unused]] bool segment_open{false};
     [[maybe_unused]] bool has_last_pts{false};
     [[maybe_unused]] bool admission_blocked{false};
@@ -516,6 +620,13 @@ private:
     std::filesystem::path final_path;
     std::filesystem::path cleanup_marker_path;
 #if MEDIA_SERVER_USE_GSTREAMER
+    bool input_failed{false},has_v2_progress{false};
+    std::int64_t v2_origin{0},v2_segment_progress{0},v2_last_progress{0};
+    std::uint64_t last_ordinal{0},generation_order{0};
+    std::string source_generation;
+    RecordingOrderReservationV1 current_order;
+    RecordingSegmentV2 current_v2;
+    RecordingWriterTimeState v2_time;
     int partial_fd{-1};
     GstElement* pipeline{nullptr};
     GstElement* appsrc{nullptr};

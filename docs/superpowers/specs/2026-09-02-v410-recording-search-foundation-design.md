@@ -5,7 +5,11 @@
 이 명세는 2026-09-02에 사용자와 합의하고 승인한 아키텍처 방향을 기록한다.
 `V410-S00`~`V410-S06`의 조사·계약·segment recorder·catalog/journal·순환 보존·이벤트
 연결·timeline/재생을 구현했다. S07 분석 관측은 구현·단계 검증을 완료했다. 이 명세 자체는
-S08~S09 안정화와 릴리즈 완료 증거가 아니다. 공개 버전 순서는
+S08 이후의 통합 안정화와 릴리즈 완료 증거가 아니다. S09는 2026-09-12에 종료·대체됐으며
+성공 완료가 아니다. 같은 날 사용자 승인으로 S10-1 시간·식별 계약 방향을 채택했다.
+아래 S10 절은 신규 구현의 설계 기준이다. S10-3A 원장 버전 차단·S10-3B 순서 예약 API와
+S10-3C의 C1 시간 계약과 후속 2번의 입력 관측·명시 주입형 관리 writer 연결을 구현·단기 검증했다.
+소비자 연결과 서버 기본 writer 전환은 후속 3번에 남아 있으며 전체 통합 완료가 아니다. 공개 버전 순서는
 [`docs/v410-v49-recording-search-roadmap.md`](../../v410-v49-recording-search-roadmap.md)에
 요약한다. 단계별 파일·인터페이스·검증 순서는
 [`2026-09-02-v410-recording-foundation-implementation-plan.md`](../plans/2026-09-02-v410-recording-foundation-implementation-plan.md)에
@@ -23,8 +27,8 @@ API 필드, 파일명, 표준 고유명사는 원문 표기를 유지할 수 있
 
 ## 문제 정의
 
-MediaServer에는 이벤트 중심 프레임, 증거 manifest, 짧은 이벤트 clip 저장이 이미 있다.
-그러나 상시녹화 archive는 없다. 단순히 영상 파일 목록만 추가하면 이후의 구조화 검색,
+최초 설계 당시 MediaServer에는 이벤트 중심 프레임, 증거 manifest, 짧은 이벤트 clip 저장이
+있었지만 상시녹화 archive는 없었다. 단순히 영상 파일 목록만 추가하면 이후의 구조화 검색,
 벡터 검색, 증거 검토, 자연어 검색 단계에서 녹화 모델을 다시 설계해야 한다.
 
 따라서 v4.1.0은 상시녹화와 이벤트 연동 녹화를 제공하면서, 후속 릴리즈가 이미 승인된
@@ -82,7 +86,8 @@ migration 비용이 커진다. v4.2.0이 녹화 모델을 소비하지 못하고
 `recording` namespace 아래에 contract, catalog, recorder, retention, event link 단위를
 분리한다. 각 단위는 자신의 역할과 interface를 독립적으로 검증할 수 있어야 한다.
 
-안정화할 v1 계약은 다음과 같다.
+기존 V1 및 S07 V2 계약은 다음과 같다. 기존 데이터 해석을 위해 보존하며, S10 신규 기록의
+시간·식별 의미는 아래 「S10 시간·식별 계약」을 따른다. 기존 필드에 새 의미를 덮어쓰지 않는다.
 
 #### `RecordingSegmentV1`
 
@@ -343,6 +348,154 @@ retention tick 또는 low-space signal
   않고 application contract를 사용한다.
 - 모든 후속 index는 안정적인 v4.1 ID를 key로 하는 재구축 가능한 projection이다.
 - migration은 crash-safe해야 하며 journal rebuild parity를 함께 검증한다.
+
+## S10 시간식별 계약
+
+### S10-1 승인 범위와 불변 조건
+
+2026-09-12 사용자의 「권장 방향으로 진행」에 따라 다음 계약 방향을 채택한다.
+이 절은 녹화 기반 개발자의 설계 source-of-truth이며 S10 구현·호환 검증에 따라 유지한다.
+로드맵에는 상태만 기록한다. S10-2의 미확정 세부 정책을 승인·구현·검증 완료로 해석하지 않는다.
+
+| 개념 | 고정한 의미 | 금지하는 대체 |
+| --- | --- | --- |
+| 물리 세그먼트 ID | 파일의 불변 identity. 삭제 뒤에도 재사용하지 않음 | 파일명·UTC·SQLite rowid를 공개 identity로 사용 |
+| 미디어 연속 구간 ID | 동일한 미디어 시간축의 범위. 소스 실행 세대·명시적 불연속과 연결 | PTS 감소만으로 소스 재시작 판정 |
+| UTC 매핑 구간 ID | 미디어 위치와 특정 출처 UTC의 대응 범위·버전 | 하나의 시작 anchor를 파일 전체에 무조건 외삽 |
+| 영속 녹화 순서 | store 안에서 녹화 시작 등록 시 내구 발급. 번호 공백 허용·재사용 금지 | UTC·finalize 완료 순서·ID 문자열로 녹화 순서 추정 |
+| 프레임 위치 | 세그먼트·트랙·미디어 위치와 필요한 중복 구분 정보 | UTC 또는 PTS 하나만으로 유일 프레임이라고 단정 |
+| 시각 출처·품질 | 촬영 시각, 서버 수신 관측, 추정, 알 수 없음을 구분. 유효 범위와 불확실성 보존 | 알 수 없는 값을 0 또는 촬영 시각으로 승격 |
+
+1. `stream_epoch_id`의 기존 의미는 유지한다. 새로운 연속 구간·매핑·순서는 버전이 명시된
+   저장 계약으로 추가하며 C++/JSON 필드의 exact schema는 구현 전 호환 설계에서 고정한다.
+2. 서버 관측은 구독자 큐 이전의 명시된 지점에서 기록한다. 캐시 재전달 시 원래 관측을 유지한다.
+   이 관측은 네트워크 최초 도착이나 카메라 촬영 시각의 보장이 아니다. 처리 시각은 별도 진단값이다.
+3. UTC 보정만으로 미디어 연속 구간을 끝내거나 정상 영상을 버리지 않는다. 키프레임 기반
+   물리 분할과 UTC 매핑 경계를 분리하며, 한 파일 안에 여러 매핑 구간을 허용한다.
+4. UTC 대응이 불명확해도 저장 가능한 미디어를 임의 폐기하지 않는다. 미디어 자체의 시간·형식
+   불량 때문에 안전한 mux가 불가능한 경우는 별도 오류·공백으로 기록하고 정상 녹화로 꾸미지 않는다.
+5. writer, snapshot, 분석 locator, 이벤트 연결, 조회·재생은 공통 시간 해석 계약을 소비한다.
+   결과는 단일 위치·복수 후보·불확실·없음·삭제됨을 구분한다. 명확한 미디어 locator가 있으면
+   UTC 역조회가 모호하다는 이유만으로 그 locator까지 무효화하지 않는다.
+6. 이벤트 우선순위는 동일한 원본 녹화 범위와 연결된 media 사이에 적용한다. UTC가 같지만
+   실제 영상이 다른 후보를 합치거나 숨기지 않는다. 자동 후속 세그먼트 재생 UI는 이번 범위 밖이다.
+7. 신규 녹화의 용량 초과 삭제 순서는 영속 녹화 순서다. continuous/event quota, pin·hold,
+   재생 보호, tombstone, disk reserve 경계는 유지한다. 기간 만료와 용량 삭제 순서는 별도 정책이다.
+8. 파일·매핑·순서가 함께 복구 가능한 시점에만 정상 녹화로 공개한다. SQLite와 JSONL rebuild는
+   동일한 identity·mapping·order를 복원해야 한다. 확정 매핑을 사후 시계 보정으로 덮어쓰지 않는다.
+9. 기존 V1 파일·ID·확정 증거를 보존한다. 알 수 없는 과거 순서·촬영 시각은 생성하지 않는다.
+   레거시 관리용 순서가 필요하면 안정적인 별도 순서와 출처를 기록하고 실제 녹화 순서와 구분한다.
+   V1으로 표현할 수 없는 새 결과는 의미를 바꿔 반환하지 않고 명시적인 버전 호환 경계를 둔다.
+
+선택 이유: 세그먼트 ID만 추가하는 방식은 UTC 매핑·삭제 순서 문제를 해결하지 못한다.
+UTC를 강제로 증가시키는 방식은 관측 사실을 바꾼다. 시간·식별·순서를 분리하는 위 방식을 채택한다.
+외부 저장소 코드나 특허 고유 구현을 반입하지 않았으며 법적 비침해 판정을 뜻하지 않는다.
+
+### S10-2 입력 조사와 불연속 설계
+
+상태: 입력 조사·판정 정책 모델·순수 UTC 실제 writer 특성 재현을 수행했다. 수치값은 아래
+모델 버전 1의 보수적 설계 예산으로 선택했다. 실제 제품 통합의 정확도·무손실 보장은 검증 전이다.
+S10-2의 설계·기존 동작 재현 산출물은 갖췄으며, S10-T01~09의 실제 신규 제품 합격은 아래와
+같이 분리한다. 다음 저장/입력/소비자 구현을 자동 착수하지 않는다.
+
+| 직접 확인한 위치 | 현재 동작 | 설계에 필요한 조치 |
+| --- | --- | --- |
+| `src/core/source_factory.cpp`, `BuildSampleFromGst` | 없는 PTS는 0, 없는 DTS는 PTS로 변환 | 변환 이전 원본 유효성·duration·불연속 정보를 별도 관측으로 보존 |
+| `src/ingress/webrtc_source_session.cpp`, `BuildSampleFromGst` | 같은 PTS/DTS 대체 방식 | 같은 관측 계약 적용. 실제 외부 입력 검증은 별도 승인 대상 |
+| `include/media_types.h`, `MediaSample` | pts/dts만 있고 원본 유효성·duration·관측 출처 없음 | 기존 필드 의미를 유지하는 optional 내부 관측 정보 설계 |
+| `src/core/shared_stream.cpp`, `FanOut`·`AddSubscriberWithRole` | packet을 독립 queue와 GOP cache에 복사·재전달 | 관측 identity를 복사하고 재전달 시 새 시각·새 프레임으로 발급하지 않음 |
+| `src/recording/recording_session_service.cpp`, writer 호출 | queue 처리 시 `NowMs()` 전달 | 수신 관측과 처리 시각 분리 |
+| `src/recording/gstreamer_segment_writer.cpp`, `Push` | PTS 감소 시 epoch 변경, UTC 차이로 분할 | 미디어 연속성·분할 경과와 UTC 매핑을 독립 판정 |
+| `scripts/internal/recording_segment_writer_smoke.cpp`, S09-LD02 | UTC와 PTS를 함께 되돌림 | 혼합 불연속 이력으로 보존. 순수 UTC 보정의 증거로 재사용하지 않음 |
+
+설계 방침:
+
+- 원본 timestamp 유효성은 GstBuffer에서 숫자로 변환하기 전에 수집한다. 기존 egress가 소비하는
+  pts/dts/payload 값은 바꾸지 않는다. 내부 관측 전달이 source/cache/analysis 경로를 지나는 만큼
+  「녹화 코드만 변경」으로 영향 범위를 축소하지 않는다.
+- 같은 packet의 수신 관측 identity를 recorder와 분석이 공유하도록 한다. PTS 중복 시에는
+  원래 packet/frame 상관관계가 보존된 경우에만 유일 locator를 만들고, 없으면 모호함을 반환한다.
+- 시계 관측은 단조 시계 → 시스템 시계 → 단조 시계의 짝으로 읽어 측정 구간을 보존한다.
+  시스템 시계 증가량과 단조 시계 증가량의 차이로 보정 후보를 판단한다. UTC와 PTS 차이를
+  시계 보정 감지식으로 사용하지 않는다. 프로세스 재시작을 넘어 단조 시계 원값을 비교하지 않는다.
+- PTS는 표출 순서, DTS는 디코딩 순서로 구분한다. 실제 source 재시작·segment/discontinuity
+  신호를 함께 사용하며 PTS 감소 하나로 재시작하지 않는다. 손실 신호도 재시작과 자동 동치가 아니다.
+- UTC 경계는 키프레임까지 미루지 않는다. 경계가 어느 프레임 사이인지 불확실하면 그 범위를 남긴다.
+  재정렬 입력에서 단일 PTS 구간만으로 표현할 수 없는 매핑을 억지로 단순화하지 않는다.
+- 시계 오차와 전송·buffer 지연에 의한 촬영 시각 오차는 별개다. 단조/UTC 측정 오차가 작다고
+  촬영 시각 정확도를 보장하지 않는다. 입력 속도 변화와 지연 변화는 매핑 품질 문제로 분리한다.
+
+GStreamer 공식 문서에서 PTS의 비단조 가능성, PTS/DTS/duration의 부재 가능성과 미디어
+running-time의 별도 역할을 확인했다. 이는 위 독립 설계의 참고이며 외부 코드 도입이 아니다.
+참고: [GstBuffer](https://gstreamer.freedesktop.org/documentation/gstreamer/gstbuffer.html),
+[동기화 설계](https://gstreamer.freedesktop.org/documentation/additional/design/synchronisation.html).
+
+#### S10-2 판정 정책 모델 버전 1
+
+`scripts/internal/recording_time_policy_probe.h`는 설계 검증 전용 모델이며 제품에 연결하지 않는다.
+다음 값은 장비 실측 최적값이나 촬영 시각 정확도가 아니라 bounded·보수적 판단을 위한 선택값이다.
+
+| 항목 | 선택값/동작 | 선택 이유·한계 |
+| --- | --- | --- |
+| clock 짝 읽기 폭 | 5ms 초과면 Unknown | 스케줄링 지연을 보정으로 단정하지 않음. 유효 관측까지 억지 보간 금지 |
+| clock 해상도 예산 | 관측당 1ms, 두 관측에 합산 | UTC ms 저장의 양자화 여유. 실제 clock 정확도 보장 아님 |
+| 매핑 잔차 예산 | 50ms + 측정 오차 초과면 Remap | 오차를 무제한 누적하지 않음. 50ms 이내 촬영 시각 정확도 보장 아님 |
+| 급격한 보정 후보 | 250ms + 측정 오차 + 경과×500ppm 초과 | 느린 drift와 분류 분리. OS/NTP 보정 원인 확정값 아님 |
+| 매핑 관측 상한 | 물리 segment당 256개, 초과 후 unknown-tail | 과부하 때 매핑 정밀도만 낮추고 미디어 폐기·무한 metadata 증가 금지 |
+| 마지막 frame 끝 | 원본 유효 PTS + 양수 duration, overflow 없음일 때만 확정 | 부재 시 Unknown. FPS 기본값·decoder 보정 간격·다음 PTS로 확정값 생성 금지 |
+
+각 clock은 단조 구간 `[before, after]`와 그 사이 UTC를 가진다. 두 관측의 단조 중간점 차이를
+`elapsed`, `ΔUTC - elapsed`를 잔차로 하고, 측정 오차는 두 구간 반폭 합 + 2ms로 계산한다.
+부등식 경계는 초과(`>`)일 때만 전환한다. 인접 관측으로 급격한 보정 후보를 판정하고 마지막
+확정 anchor와의 누적 비교로 Remap을 판단한다. 새 매핑은 관측 경계부터 적용하며 과거 anchor를
+갱신하지 않는다. 서로 다른 프로세스·역전/겹친 단조 관측은 Unknown이다. 입력 PTS/속도는 이 식에
+들어가지 않는다. 모델은 long double로 overflow를 피하며 제품 정수 ns 직렬화·연산은 후속 검증 대상이다.
+상한 초과 unknown-tail은 새 유한 기록 하나로 표현하고 해당 segment의 추가 knot를 생성하지 않는다.
+이 동작의 실제 저장량·복구 검증은 저장 구현 단계에서 수행한다.
+
+연속성 판단은 기존 숫자 PTS가 아닌 원본 유효성·입력 세대·관측 ordinal을 사용한다.
+동일 세대에서 DTS가 증가하고 PTS가 감소/중복하면 재정렬 후보이며 새 epoch가 아니다.
+DTS 부재·후퇴·중복 또는 ordinal 충돌은 Unknown, 동일 관측 재전달은 Replay로 남긴다.
+실제 세대 변경은 새 연속 구간이다. source worker 시작 외에도 파일 EOS seek(0), URI/YouTube
+delegate 교체, WebRTC 재등록에서 세대 경계를 발급해야 한다. GstSegment/flush 경계의 실제
+직렬 전달과 구독 cache 경계는 통합 시 검증하며, DISCONT 단독을 재시작으로 취급하지 않는다.
+
+직접 대조 근거: `source_factory.cpp::BusLoop`는 같은 pipeline에서 파일 seek를 수행하고
+`StartDelegate`는 같은 SharedStream 내부에서 source를 교체한다. `raw_video_decoder.cpp`의
+`NormalizePacketForDecoder`는 DTS를 보정하며 `ResolveSourcePts`는 최근접 PTS를 선택한다.
+따라서 decoder 보정값을 원본 duration으로, 최근접 PTS를 정확한 frame identity로 재사용하지 않는다.
+명시적 상관관계가 없으면 분석 locator는 모호함을 보존한다. 이 기존 제품 동작은 이번에 수정하지 않았다.
+
+exact 저장 schema·V1 API 호환·레거시 삭제 순서는 S10 저장/소비자 구현 전 고정할 경계다.
+S10-2 모델 선택만으로 해당 계약이나 제품 통합이 완료됐다고 판정하지 않는다.
+
+### S10-2 결정적 재현의 합격 기준
+
+아래는 실행 전 정의이며 실행 결과가 아니다. OS 시계는 변경하지 않고 주입 가능한 clock을 사용한다.
+기존 S09의 유효 검사와 실패 이력은 보존하고 관련 runner만 정리한다. 다른 버전 JS·증적 정리는 하지 않는다.
+
+| ID | 입력 조건 | 반드시 확인할 결과 |
+| --- | --- | --- |
+| S10-T01 | 정상 PTS/DTS·일정한 clock offset | 정상 분할·유일 locator·기존 정상 미디어 보존 |
+| S10-T02 | PTS/DTS 연속, 파일 중간 UTC만 4034ms 후퇴 | 영상 비폐기·매핑 분리·복수 UTC 후보 보존 |
+| S10-T03 | 같은 후퇴를 키프레임 경계에 주입 | 물리 분할과 매핑 경계 독립, 프레임 중복·누락 없음 |
+| S10-T04 | PTS/DTS 연속, UTC만 4034ms 전진 | UTC 공백을 영상 손실로 단정하지 않음·재생 순서 유지 |
+| S10-T05 | DTS 증가·PTS 재정렬 및 중복 | PTS 감소만으로 재시작하지 않음·모호한 프레임 단일화 금지 |
+| S10-T06 | 실제 source 세대 변경과 PTS 재설정 | 새 연속 구간·과거 위치 불변·경계 공백의 명시 |
+| S10-T07 | cache replay와 recorder queue 지연 | 동일 관측 identity/시각 유지·처리 시각과 분리 |
+| S10-T08 | 없는 PTS/DTS/duration과 실제 0 timestamp | 원본 부재와 유효 0 구분·끝 범위 임의 생성 금지 |
+| S10-T09 | 완만한 clock drift·관측 지연·입력 속도 변화 | 시간 보정과 미디어 속도 문제 구분·오차/저장량 상한 확인 |
+
+공통 실행 기록에는 주입값·실패 assertion·실제 매핑·세그먼트/프레임 수·원출력과 cleanup을 남긴다.
+S10-T02의 4034ms는 과거 관찰 규모를 반영한 재현 입력이며 제품 감지 임계값이 아니다.
+이 9개는 S10-2의 최소 재현 범위다. 원장 복구·순서·삭제·이벤트/분석·API 호환의 전체 S10
+합격 검증을 대체하지 않는다. 사전 등록과 실제 결과 기록은 AGENTS.md 7장을 따른다.
+
+실행 범위 대조: S10-T01~04는 실제 H.264 writer의 기존 동작을 S10-C01~04로 재현했다.
+T05~09는 판정 모델 P01~P23과 source 직접 조사까지 수행했다. 실제 재정렬 mux, cache/분석
+상관관계 전달, frame 끝·누락 없는 재생, bounded metadata 저장은 제품 통합 검증 전이다.
+모델 23/23 및 실제 writer 118/118은 각 실행 범위의 PASS이며 위 9개 제품 합격 전수 PASS가 아니다.
+실제 결과·RED 이력·cleanup은 [중앙 테스트 기록](../../release-test-records.md#s10-2-시간-판정-모델-사전등록-2026-09-12)에 보존한다.
 
 ## S10-3 저장·복구의 구현 순서와 호환 경계
 

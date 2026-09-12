@@ -1,5 +1,44 @@
 # Project Feature Test Inventory
 
+## S10 외부 STUN 차단 검증 준비
+
+| 기능 ID | 동작·PASS 기준 | 안정화 테스트 | 30분 테스트 | 120분 테스트 | UI 테스트 | UI 존재 |
+| --- | --- | --- | --- | --- | --- | --- |
+| S10-ISO01 | 중앙 S10 외부 STUN 차단 재검증의 개별 정의 | 단위/동일 미디어 회귀 | 비대상: 검증 준비만 변경 | 비대상: 제품/바이너리 미변경 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-ISO02 | 중앙 S10 외부 STUN 차단 재검증의 개별 정의 | 단위/동일 미디어 회귀 | 비대상: 검증 준비만 변경 | 비대상: 제품/바이너리 미변경 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-ISO03 | 중앙 S10 외부 STUN 차단 재검증의 개별 정의 | 단위/동일 미디어 회귀 | 비대상: 검증 준비만 변경 | 비대상: 제품/바이너리 미변경 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-ISO04 | 중앙 S10 외부 STUN 차단 재검증의 개별 정의 | 단위/동일 미디어 회귀 | 비대상: 검증 준비만 변경 | 비대상: 제품/바이너리 미변경 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-ISO05 | 중앙 S10 외부 STUN 차단 재검증의 개별 정의 | 단위/동일 미디어 회귀 | 비대상: 검증 준비만 변경 | 비대상: 제품/바이너리 미변경 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-ISO06 | 중앙 S10 외부 STUN 차단 재검증의 개별 정의 | 단위/동일 미디어 회귀 | 비대상: 검증 준비만 변경 | 비대상: 제품/바이너리 미변경 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-ISO07 | 중앙 S10 외부 STUN 차단 재검증의 개별 정의 | 단위/동일 미디어 회귀 | 비대상: 검증 준비만 변경 | 비대상: 제품/바이너리 미변경 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-ISO08 | 중앙 S10 외부 STUN 차단 재검증의 개별 정의 | 단위/동일 미디어 회귀 | 비대상: 검증 준비만 변경 | 비대상: 제품/바이너리 미변경 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-ISO09 | 중앙 S10 외부 STUN 차단 재검증의 개별 정의 | 단위/동일 미디어 회귀 | 비대상: 검증 준비만 변경 | 비대상: 제품/바이너리 미변경 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-ISO10 | 중앙 S10 외부 STUN 차단 재검증의 개별 정의 | 단위/동일 미디어 회귀 | 비대상: 검증 준비만 변경 | 비대상: 제품/바이너리 미변경 | 비대상 | 비대상: UI 없어야 정상 |
+
+## S10 후속 2번 입력·writer 연결
+
+| 기능 ID | 동작·PASS 기준 | 안정화 테스트 | 30분 테스트 | 120분 테스트 | UI 테스트 | UI 존재 |
+| --- | --- | --- | --- | --- | --- | --- |
+| S10-INPUT01 | 원본 timestamp 부재·유효 0·uint64 범위; 중앙 사전등록의 직접 oracle | 입력/writer focused | S11 최종 판정 | source/media 변경으로 S11 대상, 이번 미실행 | 이번 비대상 | 비대상: UI 없어야 정상 |
+| S10-INPUT02 | SEGMENT/buffer 직렬 세대 결박; 중앙 사전등록의 직접 oracle | 입력/writer focused | S11 최종 판정 | source/media 변경으로 S11 대상, 이번 미실행 | 이번 비대상 | 비대상: UI 없어야 정상 |
+| S10-INPUT03 | DISCONT 단독 연속성 유지; 중앙 사전등록의 직접 oracle | 입력/writer focused | S11 최종 판정 | source/media 변경으로 S11 대상, 이번 미실행 | 이번 비대상 | 비대상: UI 없어야 정상 |
+| S10-INPUT04 | 관측기 새 수명 세대 분리; 중앙 사전등록의 직접 oracle | 입력/writer focused | S11 최종 판정 | source/media 변경으로 S11 대상, 이번 미실행 | 이번 비대상 | 비대상: UI 없어야 정상 |
+| S10-INPUT05 | cache 복사 관측 보존; 중앙 사전등록의 직접 oracle | 입력/writer focused | S11 최종 판정 | source/media 변경으로 S11 대상, 이번 미실행 | 이번 비대상 | 비대상: UI 없어야 정상 |
+| S10-INPUT06 | PTS 재정렬 입력 불변; 중앙 사전등록의 직접 oracle | 입력/writer focused | S11 최종 판정 | source/media 변경으로 S11 대상, 이번 미실행 | 이번 비대상 | 비대상: UI 없어야 정상 |
+| S10-INPUT07 | clock 짝 읽기 provenance; 중앙 사전등록의 직접 oracle | 입력/writer focused | S11 최종 판정 | source/media 변경으로 S11 대상, 이번 미실행 | 이번 비대상 | 비대상: UI 없어야 정상 |
+| S10-INPUT08 | SEGMENT 재전달 멱등성; 중앙 사전등록의 직접 oracle | 입력/writer focused | S11 최종 판정 | source/media 변경으로 S11 대상, 이번 미실행 | 이번 비대상 | 비대상: UI 없어야 정상 |
+| S10-INPUT09 | 중복 설치와 BUFFER_LIST; 중앙 사전등록의 직접 oracle | 입력/writer focused | S11 최종 판정 | source/media 변경으로 S11 대상, 이번 미실행 | 이번 비대상 | 비대상: UI 없어야 정상 |
+| S10-INPUT10 | 동일 buffer 다중 pad·재전달; 중앙 사전등록의 직접 oracle | 입력/writer focused | S11 최종 판정 | source/media 변경으로 S11 대상, 이번 미실행 | 이번 비대상 | 비대상: UI 없어야 정상 |
+| S10-WR01 | 정상 미디어 분할·관리 저장; 중앙 사전등록의 직접 oracle | 입력/writer focused | S11 최종 판정 | source/media 변경으로 S11 대상, 이번 미실행 | 이번 비대상 | 비대상: UI 없어야 정상 |
+| S10-WR02 | UTC 중간 후퇴; 중앙 사전등록의 직접 oracle | 입력/writer focused | S11 최종 판정 | source/media 변경으로 S11 대상, 이번 미실행 | 이번 비대상 | 비대상: UI 없어야 정상 |
+| S10-WR03 | UTC keyframe 경계 후퇴; 중앙 사전등록의 직접 oracle | 입력/writer focused | S11 최종 판정 | source/media 변경으로 S11 대상, 이번 미실행 | 이번 비대상 | 비대상: UI 없어야 정상 |
+| S10-WR04 | UTC 전진; 중앙 사전등록의 직접 oracle | 입력/writer focused | S11 최종 판정 | source/media 변경으로 S11 대상, 이번 미실행 | 이번 비대상 | 비대상: UI 없어야 정상 |
+| S10-WR05 | PTS 재정렬·중복; 중앙 사전등록의 직접 oracle | 입력/writer focused | S11 최종 판정 | source/media 변경으로 S11 대상, 이번 미실행 | 이번 비대상 | 비대상: UI 없어야 정상 |
+| S10-WR06 | 원본 세대 변경·재시작; 중앙 사전등록의 직접 oracle | 입력/writer focused | S11 최종 판정 | source/media 변경으로 S11 대상, 이번 미실행 | 이번 비대상 | 비대상: UI 없어야 정상 |
+| S10-WR07 | 재전달·queue 처리 지연; 중앙 사전등록의 직접 oracle | 입력/writer focused | S11 최종 판정 | source/media 변경으로 S11 대상, 이번 미실행 | 이번 비대상 | 비대상: UI 없어야 정상 |
+| S10-WR08 | duration 부재·overflow·관측 부재; 중앙 사전등록의 직접 oracle | 입력/writer focused | S11 최종 판정 | source/media 변경으로 S11 대상, 이번 미실행 | 이번 비대상 | 비대상: UI 없어야 정상 |
+| S10-WR09 | 매핑 예산·저장 상한·복구; 중앙 사전등록의 직접 oracle | 입력/writer focused | S11 최종 판정 | source/media 변경으로 S11 대상, 이번 미실행 | 이번 비대상 | 비대상: UI 없어야 정상 |
+
 ## S10 저장소 활성화 선행 1C
 
 | 기능 ID | 동작·PASS 기준 | 안정화 테스트 | 30분 테스트 | 120분 테스트 | UI 테스트 | UI 존재 |

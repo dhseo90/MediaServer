@@ -323,6 +323,76 @@ int main(int argc, char** argv) {
                    "nonce partial은 기존 고정 foreign partial을 덮어쓰거나 삭제하면 안 됨");
 
             recording::GStreamerSegmentWriter rollback_writer({root / "rollback", 60000});
+
+            // S09-LD02: 호스트 시각 대신 writer 입력 UTC만 4,034ms 후퇴시킨다.
+            {
+                recording::GStreamerSegmentWriter clock_writer({root / "clock-step", 60000});
+                std::vector<recording::RecordingSegmentV1> clock_segments;
+                Expect(clock_writer.Start("9101", "clock-test", descriptor,
+                    [&](recording::RecordingSegmentV1 segment, std::string file, std::string*) {
+                        Expect(recording::ValidateRecordingSegmentV1(segment, nullptr) &&
+                               std::filesystem::file_size(file) == segment.size_bytes,
+                               "S09-LD02 실제 finalized V1과 파일 크기");
+                        clock_segments.push_back(segment);
+                        std::cout << "[clock-step-segment] " << recording::SerializeRecordingSegmentV1(segment) << '\n';
+                        return true;
+                    }, &error), "S09-LD02 writer 시작");
+                for(const auto& packet:packets)
+                    clock_writer.Push(packet,10000+(packet.pts-base_pts)/1000000);
+                for(auto packet:packets) {
+                    packet.pts-=base_pts;
+                    packet.dts=packet.pts;
+                    clock_writer.Push(packet,5966+packet.pts/1000000);
+                }
+                clock_writer.Stop();
+                Expect(clock_segments.size()==2,"S09-LD02 실제 두 세그먼트 생성");
+                Expect(clock_segments.size()==2 && clock_segments[0].start.utc_ms==10000 &&
+                       clock_segments[1].start.utc_ms==5966 &&
+                       clock_segments[1].end.utc_ms<clock_segments[0].end.utc_ms,
+                       "S09-LD02 UTC 원값 보존 및 구간간 후퇴 재현");
+            }
+            // S10-2 특성 재현: 같은 encoded 입력의 UTC만 변경한다.
+            // 성공은 현재 V1의 시간 불일치를 관찰했다는 뜻이지 제품 수정 PASS가 아니다.
+            for (int scenario = 0; scenario < 4; ++scenario) {
+                const auto label = "S10-C0" + std::to_string(scenario + 1);
+                const std::int64_t offset = scenario == 0 ? 0 : (scenario == 3 ? 4034 : -4034);
+                std::size_t boundary = packets.size() / 2;
+                if (scenario == 2) {
+                    while (boundary < packets.size() && !packets[boundary].is_key_frame) ++boundary;
+                } else if (scenario == 1) {
+                    while (boundary < packets.size() && packets[boundary].is_key_frame) ++boundary;
+                }
+                Expect(boundary > 0 && boundary < packets.size(), label + " 주입 경계 존재");
+                std::vector<recording::RecordingSegmentV1> observed;
+                recording::GStreamerSegmentWriter probe({root / label, 60000});
+                Expect(probe.Start("s10-probe", "s10-epoch", descriptor,
+                    [&](recording::RecordingSegmentV1 segment, std::string file, std::string*) {
+                        Expect(recording::ValidateRecordingSegmentV1(segment, nullptr) &&
+                               std::filesystem::file_size(file) == segment.size_bytes,
+                               label + " 실제 V1 파일 무결성");
+                        observed.push_back(segment);
+                        return true;
+                    }, &error), label + " writer 시작");
+                for (std::size_t i = 0; i < packets.size(); ++i) {
+                    const auto utc = 10000 + (packets[i].pts - base_pts) / 1000000 + (i >= boundary ? offset : 0);
+                    probe.Push(packets[i], utc);
+                }
+                probe.Stop();
+                Expect(observed.size() == 1, label + " 단일 물리 파일");
+                if (observed.size() == 1) {
+                    const auto& s = observed.front();
+                    const auto residual = (s.end.utc_ms - s.start.utc_ms) -
+                        (s.end.pts - s.start.pts) / 1000000;
+                    Expect(s.start.pts == packets.front().pts && s.end.pts == packets.back().pts &&
+                           s.stream_epoch_id == "s10-epoch" && residual == offset,
+                           label + " PTS 유지 및 현재 단일 anchor 불일치 관찰");
+                    std::cout << "[s10-clock-characterization] case=" << label
+                              << " packets=" << packets.size() << " boundary=" << boundary
+                              << " offset_ms=" << offset << " residual_ms=" << residual
+                              << " utc_start=" << s.start.utc_ms << " utc_end=" << s.end.utc_ms
+                              << " productFixed=false\n";
+                }
+            }
             std::vector<std::string> epochs;
             Expect(rollback_writer.Start("channel-2", "epoch-base", descriptor,
                                          [&](recording::RecordingSegmentV1 segment,

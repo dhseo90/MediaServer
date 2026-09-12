@@ -9,6 +9,8 @@
 #include "recording/segment_writer.h"
 
 namespace recording {
+class RecordingJournal;
+class RecordingCatalog;
 
 class GStreamerSegmentWriter final : public SegmentWriter {
 public:
@@ -19,6 +21,10 @@ public:
         AdmissionCallback admit_segment;
         SegmentProgressCallback report_segment_progress;
         SegmentCompletionCallback complete_segment;
+        // 내부 opt-in. 세 객체 수명은 writer보다 길어야 하며 서버 기본값은 미변경이다.
+        RecordingJournal* managed_journal{nullptr};
+        RecordingCatalog* managed_catalog{nullptr};
+        std::string managed_store_id;
 
         Options() = default;
         Options(std::filesystem::path root, std::int64_t duration_ms)

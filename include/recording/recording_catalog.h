@@ -62,6 +62,9 @@ public:
     RecordingCatalog(RecordingJournal& journal, Options options);
     ~RecordingCatalog() override;
     bool Open(std::string* error);
+    bool ValidateManagedWriterBinding(const RecordingJournal& journal,
+                                     const std::filesystem::path& root,
+                                     const std::string& store_id, std::string* error) const;
     bool Checkpoint(std::string* error);
     bool FinalizeSegmentV2(const RecordingSegmentV2& segment, const std::string& media_path, std::string* error);
     std::optional<RecordingSegmentV2> FindSegmentV2ById(const std::string& id) const;

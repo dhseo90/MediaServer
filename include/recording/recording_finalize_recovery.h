@@ -16,6 +16,9 @@ struct FinalizeRecoveryReport { std::size_t recovered{0}, already_committed{0}, 
 bool WriteFinalizeReadyTicket(const std::filesystem::path& root,const FinalizeReadyTicket& ticket,std::string* error);
 bool PublishFinalizeReady(const std::filesystem::path& root,const FinalizeReadyTicket& ticket,std::string* error);
 bool ClearFinalizeReady(const std::filesystem::path& root,const FinalizeReadyTicket& ticket,std::string* error);
+// 실행 중 writer의 정확한 ticket 한 개만 검증·publish·commit·정리한다. 전체 root를 스캔하지 않는다.
+bool CommitFinalizeReadyV2(RecordingCatalog& catalog,const std::filesystem::path& root,
+                           const FinalizeReadyTicket& ticket,std::string* error);
 // marker 정리 전에 ticket 유효성과 정확한 partial 소유권을 확인한다.
 bool PreserveFinalizeReadyPartial(const std::filesystem::path& root,const std::filesystem::path& final_relative,
                                  const std::string& partial_name,bool* preserve,std::string* error);

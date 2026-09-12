@@ -23,6 +23,10 @@ verifier.
 
 ## 전역 제약
 
+- 2026-09-12 재편: S00~S08은 기존 개발 이력, Task 9는 종료·대체된 과거 실행계획이다.
+  현재 S10 설계 기준은 [설계 명세의 S10 절](../specs/2026-09-02-v410-recording-search-foundation-design.md#s10-시간식별-계약),
+  단계 상태는 로드맵을 따른다. S10-1 방향 승인·S10-2 정책 모델/실제 writer 특성 재현까지 반영했으며,
+  새 제품 구현의 exact schema·실행계획과 S11 검증 범위는 아직 확정하지 않았다.
 - 이 문서는 구현계획이며 구현·테스트 실행·커밋·푸시·PR·머지·태그·릴리즈 승인이 아니다.
 - 실제 개발은 `V410-S00`부터 순서대로 진행한다. 한 단계가 실패하면 뒤 단계는 실행하지
   않고 `건너뜀`으로 보고한다.
@@ -52,15 +56,11 @@ verifier.
 - v4.1.0의 등록 채널 식별자는 `SourceViewRegistry::SourceRecord::source_id`를 그대로
   `channel_id`로 사용한다. `source_id`와 `channel_id`를 같은 값으로 저장하되 두 필드는
   후속 다중 채널 source 확장을 위해 계속 분리한다.
-- `stream_epoch_id`는 source worker가 새로 시작되거나 PTS가 뒤로 이동·큰 폭으로
-  불연속할 때 새로 발급한다.
-- 현재 `media::Packet::pts`는 nanosecond로 취급한다. 영속 계약에는
-  `time_base_num=1`, `time_base_den=1000000000`, `pts`를 함께 저장한다.
-- epoch 첫 video keyframe의 `{pts, observed_utc_ms}`를 anchor로 잡고
-  `utc_ms = anchor_utc_ms + (pts - anchor_pts) / 1,000,000`으로 매핑한다.
-- system clock 역행 또는 PTS rollback을 발견하면 기존 epoch의 마지막 segment를 닫고 새
-  epoch를 시작한다. 이미 finalize된 UTC 범위를 다시 쓰지 않는다.
-- 모든 시간 범위는 `[start_utc_ms, end_utc_ms)` 반개구간이다.
+- 기존 V1은 nanosecond PTS와 UTC 반개구간을 가진다. 아래 과거 Task의 단일 anchor 매핑·
+  PTS rollback epoch 규칙은 S01~S09 구현 이력이며 S10 신규 구현 규칙이 아니다.
+- S10은 [승인된 시간·식별 계약](../specs/2026-09-02-v410-recording-search-foundation-design.md#s10-시간식별-계약)을
+  따른다. 기존 필드 의미를 유지하고 신규 계약을 버전화한다. 단순 PTS 감소나 UTC 보정만으로
+  미디어 재시작을 단정하지 않으며, 알 수 없는 UTC를 기존 V1 숫자로 강제 투영하지 않는다.
 
 ### 설정 계약
 
@@ -1329,6 +1329,10 @@ git commit -m "test: 녹화 복구와 v1 호환성 gate 추가"
 
 ## Task 9: V410-S09 통합 안정화와 release readiness 판정
 
+**현재 상태: 2026-09-12 종료·대체됨(성공 완료 아님).** 아래 진행·승인·명령은 당시 이력이다.
+새 설계 보강은 S10, 코드 고정 후 최종 검증은 S11로 분리했다. 아래 승인을 새 실행 권한으로
+해석하거나 당시 PASS를 S10 이후 전체 PASS로 승격하지 않는다.
+
 **진행 (2026-09-11):** S08은 `4b7639db`와 `11953256`으로 커밋·푸시했고 원격과
 동기화를 확인했다. 현재 S09은 실제 runtime 부분 통합 검증(아래 oracle 1·5·7)의
 구현·메인 검토를 마쳤고, 실제 앱 이벤트·HTTP·보존·재시작 통합 검증에 착수했다.
@@ -1809,6 +1813,74 @@ payload schema는 `media-server.recording-order.v1`이다. 기존 V1 필드 의�
 메인은 same-FD 잠금, strict payload/envelope 결박, 단조 발급·ID 충돌, fsync 뒤 결과 반환,
 기존 Append 비용 유지와 실제 테스트를 직접 대조했다. 이번 변경은 위 코드 네 파일 및 관련
 기존 문서에 한정한다. 커밋·푸시는 미수행이다. 실제 writer 활성화와 S10-3C는 미완료다.
+
+### 기존 전체 완료 조건 (S10 이전 계획 보존)
+
+### S10 후속 2번 — 입력 관측과 실제 writer 연결
+
+현재 판정: 후속2 명시 주입 입력/writer 연결과 관련 단기 검증 완료. 입력14/writer37/active ready55/
+기존 recorder118 및 전체 빌드 증거는 동결 소스/바이너리16개 일치 확인 후 유지했다.
+최초 미디어 회귀는 빈 STUN의 외부 기본값 fallback으로 무효이며 실패 이력을 보존한다.
+사용자 승인 후 검증 전용 loopback STUN과 env/실제 config 가드7개를 보완하고 동일 미디어 회귀
+codec67/ICE8/metadata 실제10개, 문서 links/assets10개 및 cleanup을 통과했다.
+제품 기본 STUN 정책·녹화 코드는 이 재검증에서 변경하지 않았다. 서버 기본 전환/소비자 연결인 후속3은 미착수다.
+커밋/푸시·S11·장시간/UI 전체는 미수행이다. 상세 명령·최초 실패·정리는 중앙 기록의 같은 절을 따른다.
+
+2026-09-12 사용자 개발 승인. 기존 승인 설계의 입력→writer→관리 저장소 경계를 구현한다.
+메인이 안전 계약·문서·최종 검토를 맡고 단일 Astra/medium 담당자를 순차 재사용한다. 하위 위임은 금지한다.
+기존 미커밋 S09/S10 변경은 보존한다. 이번 요청에는 커밋·푸시·장시간/UI 실행을 포함하지 않는다.
+
+입력은 appsink sink pad의 비차단 buffer/event 관측에서 원본 timestamp 유효성, duration,
+세대+프로세스 내 세대 순서+track ordinal, monotonic→UTC→monotonic 시각을 결박한다. seek bus thread의 atomic
+증가만으로 이미 pull한 packet을 새 세대로 바꾸지 않는다. serialized SEGMENT와 buffer를
+같은 지점에서 관측하며 DISCONT·PTS 감소만으로 재시작하지 않는다. 기존 pts/dts/payload와
+스트리밍 전달 순서는 그대로 유지하고 cache 재전달은 불변 관측을 복사한다.
+
+writer는 불변 세그먼트 ID와 내구 순서를 파일 작성 전에 예약하고 새 시간 계약을 ready→publish→
+catalog finalize에 전달한다. UTC 변화는 물리 분할 기준이 아니며 매핑 경계로 처리한다.
+재정렬·부재·오차 예산 초과에서 표현할 수 없는 매핑은 unknown으로 남기고 UTC를 보정해 꾸미지 않는다.
+직접 미디어 입력과 관리 catalog를 결합한 단기 검증으로 증명한다. V1 조회·보존 소비자는 아직
+새 저장소를 보지 못하므로 서버 기본 경로 전환은 후속 3번과 함께 한다. 새 공개 config나
+영구 dual-store를 추가하지 않는다. 이번 writer 연결 PASS는 서버 전체 전환 완료가 아니다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 입력 관측·writer·저장 연결 변경 | S10-INPUT01~10, S10-WR01~09 및 영향 회귀 | 이번 개발 요청의 격리 단기 검증 |
+| 30분 | 미진행 | 개발 중 focused 검증, 최종 코드 미고정 | S11에서 유효 증거 대조 | 이번 실행 없음 |
+| 120분 | 진행 대상 | source/media 관측과 writer lifecycle 직접 변경 | source_factory, webrtc_source_session, gstreamer_segment_writer | 필요성만 판정; S11 범위 확정 후 실행, 이번 실행 없음 |
+| UI 풀테스트 | 미진행 | UI 변경·서버 기본 전환 없음 | 후속 3번/S11 | 이번 실행 없음 |
+
+#### writer 구현의 고정 경계
+
+- `GStreamerSegmentWriter::Options`의 내부 명시 주입으로 관리 journal/catalog/store ID를 받는다.
+  불완전 주입·lease 없음은 시작을 거부하고 기존 callback에 V2를 V1처럼 변환하지 않는다.
+  journal/catalog의 수명은 writer보다 길어야 한다. 서버 구성 기본값은 아직 바꾸지 않는다.
+- 첫 저장 가능 keyframe에서 UUID segment/request ID와 durable order를 먼저 예약한다.
+  기존 파일 생성·quota reservation·ready 실패 보존 경계는 재사용한다. active V2 finalize는
+  `CommitFinalizeReadyV2`로 정확한 ticket 하나만 처리한다. 정상 V1 경로는 유지한다.
+- V2 분할은 원본 미디어의 단조 진행 기준과 keyframe으로 결정한다. UTC 후퇴/전진으로
+  분할 간격·미디어 세대를 변경하지 않는다. 명시 source generation 변경은 새 연속 구간이다.
+  PTS 재정렬은 DTS 진행을 사용해 구분하고, 안전한 mux가 불가능하면 오류/공백으로 남긴다.
+- 원본 uint64 timestamp의 int64 변환 범위·뺄셈·끝 계산 overflow를 검사한다. DTS/PTS의
+  의미를 바꾸거나 음수 composition offset을 0으로 눌러 재정렬을 파괴하지 않는다.
+- 동일 generation/ordinal 재전달은 재녹화하지 않는다. 오래된 세대의 cache 재전달은
+  새 세대로 되돌아가는 근거가 아니다. 미확정 원본 관측은 처리 시각으로 대체하지 않는다.
+  세대 순서는 관측 지점의 내부 단조 카운터로 판단하며 UTC·clock 품질에 의존하지 않는다.
+  이 순서는 프로세스 내부 cache 구분용이며 영속 저장 순서나 프로세스 재시작 간 비교값이 아니다.
+- clock 판정 예산은 설계 S10-2 표를 따른다. 매핑 UTC는 서버 관측/추정 provenance를
+  명시하고 촬영 시각으로 주장하지 않는다. 확정 불가능한 재정렬·중복 PTS 구간은 unknown이며
+  이전 확정 파일을 고치지 않는다. metadata는 최대256개 내에 unknown-tail 자리를 포함한다.
+  duration 부재/0/overflow는 마지막 끝 위치 미확정이다. V2 경로는 구형 단일 anchor snapshot을
+  게시하지 않아 소비자가 잘못된 UTC 대응을 읽지 못하게 한다.
+- 시간 매핑의 clock 측정 오차를 미디어 대응 정확도로 오인하지 않는다. anchor 대비
+  PTS 증가와 단조 관측 증가의 차이가 기존 두 관측 측정 오차를 넘으면 해당 매핑은
+  `unknown`으로 낮춘다. 이것은 clock 보정 감지식과 별개이며 새 허용 임계값을 추가하지 않는다.
+  `estimated`의 uncertainty는 관측 UTC와 PTS 외삽 UTC 사이 최대 잔차와 측정 예산을 포함한다.
+  재정렬 입력의 확정 끝은 유효 frame end의 최대값을 포함해야 하며 미확정 duration을 숨기지 않는다.
+
+진행 순서: 입력 관측 TDD → writer/관리 저장소 TDD → 관련 회귀·직접 diff 검토 → 기록/정리.
+새 검증은 중앙 기록과 inventory에 실행 전에 등록한다. 기존 유효 catalog/finalize 증거는
+변경 영향이 없으면 재사용하며 입력·미디어 영향 검증은 새 결과로 구분한다.
 
 ### S10 저장소 활성화 선행 1번 — 구현·한정 검증 완료
 

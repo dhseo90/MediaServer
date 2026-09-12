@@ -147,6 +147,37 @@ bool V2Cases(const fs::path& root,const std::string& bytes,const RecordingSegmen
     WriteBytes(direct/ready_name,literal);const auto marker="recording-cleanup-pending-v2\npartial="+partial_name+"\n";WriteBytes(direct/marker_name,marker);
     check(!ClearFinalizeReady(direct,ticket,&error)&&ReadBytes(direct/ready_name)==literal&&ReadBytes(direct/marker_name)==marker,
         "S10-M09 V2 direct clear preserves uncommitted ticket and marker");
+    for (const std::string mode : {"valid", "changed-ticket", "missing-order"}) {
+        const auto active = root / ("active-" + mode);
+        fs::create_directories(active);
+        RecordingJournal journal(active / "journal.jsonl");
+        RecordingCatalog::Options options(active / "catalog.db", active, false);
+        options.enable_v2_storage = true;
+        RecordingCatalog catalog(journal, options);
+        RecordingOrderReservationV1 order;
+        bool setup = journal.Open(&error) && catalog.Open(&error);
+        if (mode != "missing-order") {
+            setup = setup && journal.ReserveRecordingOrder(v.store_id, v.order_request_id,
+                v.segment_id, v.channel_id, &order, &error);
+        }
+        WriteBytes(active / partial_name, bytes);
+        setup = setup && WriteFinalizeReadyTicket(active, ticket, &error);
+        WriteBytes(active / marker_name, marker);
+        auto requested = ticket;
+        if (mode == "changed-ticket") requested.segment_v2->mappings[0].uncertainty_ns = 2;
+        const bool committed = CommitFinalizeReadyV2(catalog, active, requested, &error);
+        const auto found = catalog.FindSegmentV2ById(v.segment_id);
+        if (mode == "valid") {
+            check(setup && committed && found && SerializeRecordingSegmentV2(*found) == SerializeRecordingSegmentV2(v)
+                && ReadBytes(active / final_name) == bytes && !fs::exists(active / partial_name)
+                && !fs::exists(active / ready_name) && !fs::exists(active / marker_name),
+                "S10-WR09 active ready validates publishes commits and clears exact ticket");
+        } else {
+            check(setup && !committed && !found && !fs::exists(active / final_name)
+                && ReadBytes(active / partial_name) == bytes && ReadBytes(active / ready_name) == literal,
+                "S10-WR09 active ready refusal preserves originals " + mode);
+        }
+    }
     std::cout<<"[v2-summary] pass="<<passed<<" fail="<<failed<<'\n';return failed==0;
 }
 bool BoundaryCases(const fs::path& root,const std::string& bytes,const RecordingSegmentV1& segment) {

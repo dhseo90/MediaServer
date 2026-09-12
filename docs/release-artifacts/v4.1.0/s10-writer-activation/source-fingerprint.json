@@ -1,0 +1,70 @@
+{
+  "head": "3166fded",
+  "worktree": "uncommitted",
+  "files": [
+    {
+      "path": "include/media_types.h",
+      "sha256": "4c7ed4b29cd3385f109d55ed3bea47e1792f38198d11896840b3b0c8b8f9c54a"
+    },
+    {
+      "path": "include/media/gstreamer_sample_observation.h",
+      "sha256": "162a865f5d1bee7494f9c3304f3fd40eae9df1b25416b0447ac08c4b30f506fa"
+    },
+    {
+      "path": "src/core/source_factory.cpp",
+      "sha256": "3a11944e49b460fceaf48e730d3ee3cdb285bdc02e9d2d4263b50e10dec59c2b"
+    },
+    {
+      "path": "src/ingress/webrtc_source_session.cpp",
+      "sha256": "bdacaac15b70d0d8125764e27bd800b6967351ae347fd82b330512ab3c84d2ba"
+    },
+    {
+      "path": "include/recording/gstreamer_segment_writer.h",
+      "sha256": "7b80fd26b4c1bef3f8582001fd07d33e47e37f273ede2b497f1965d5e2c96504"
+    },
+    {
+      "path": "src/recording/gstreamer_segment_writer.cpp",
+      "sha256": "afe705848198314aa04b777a2070090b2d3c3c54ec1f6e75d93ddf54aa0e556c"
+    },
+    {
+      "path": "include/recording/recording_writer_time_state.h",
+      "sha256": "3467188cb30316d685720e966c8948fc3865fce38bdaae53e2eb8d2abe2de34e"
+    },
+    {
+      "path": "include/recording/recording_catalog.h",
+      "sha256": "4ad054242b85ba7e8ed1d773228ecca2ca1cc8e2a6689ae4ce4fa4baae7a1b1d"
+    },
+    {
+      "path": "src/recording/recording_catalog.cpp",
+      "sha256": "72dfdac06f1e813f7007da119f1695ca75874ba267575af3fcd0a0692ba18333"
+    },
+    {
+      "path": "include/recording/recording_finalize_recovery.h",
+      "sha256": "d8fe0c162e58dab58000cf6505bc50aef62e56c638812d32004c28f2a2055eef"
+    },
+    {
+      "path": "src/recording/recording_finalize_recovery.cpp",
+      "sha256": "0943152ed098da8b99a070144bc18b3b26b0fb3f37aece05f27c7a3a79d1ec35"
+    },
+    {
+      "path": "scripts/internal/recording_input_observation_smoke.cpp",
+      "sha256": "670d9f5d5bacbed621ca4cfc85e2e29b26e824e7266c6539e2359bbb14797bd9"
+    },
+    {
+      "path": "scripts/internal/recording_managed_writer_smoke.cpp",
+      "sha256": "4bf061ea03cd1a9b4d525c29438de8c52ec0485337d8d78aca57456187381b54"
+    },
+    {
+      "path": "scripts/internal/recording_finalize_recovery_smoke.cpp",
+      "sha256": "2e51a82f669ca1c2a4514b71ab9821218e22dabe7f169a17e7119041936cfa69"
+    },
+    {
+      "path": "scripts/internal/recording_segment_writer_smoke.cpp",
+      "sha256": "0b32375f75fdbffe2139de0e80322c95bba3e85921a118d4e019ab210988fbc4"
+    },
+    {
+      "path": "build-gst-onnx/media_server",
+      "sha256": "7d4a69f8036a70b746dafaf2ebb44a4eeecbe0d08b1d3d97e68f7dc3b6622ede"
+    }
+  ]
+}

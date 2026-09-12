@@ -1,0 +1,141 @@
+
+(gst-plugin-scanner:16790): GLib-GIRepository-WARNING **: 12:35:16.403: Failed to load shared library 'libgobject-2.0.0.dylib' referenced by the typelib: dlopen(libgobject-2.0.0.dylib, 0x0009): tried: 'libgobject-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibgobject-2.0.0.dylib' (no such file), '/usr/lib/libgobject-2.0.0.dylib' (no such file, not in dyld cache), 'libgobject-2.0.0.dylib' (no such file)
+
+(gst-plugin-scanner:16790): GLib-GIRepository-WARNING **: 12:35:16.403: Failed to load shared library 'libglib-2.0.0.dylib' referenced by the typelib: dlopen(libglib-2.0.0.dylib, 0x0009): tried: 'libglib-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibglib-2.0.0.dylib' (no such file), '/usr/lib/libglib-2.0.0.dylib' (no such file, not in dyld cache), 'libglib-2.0.0.dylib' (no such file)
+
+** (gst-plugin-scanner:16790): CRITICAL **: 12:35:16.405: can't find gi.repository.Gst
+objc[16790]: Class ResultReceiver is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10899d748) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11de56b70). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[16790]: Class GtkApplicationQuartzDelegate is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10899d770) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11de56b98). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[16790]: Class GNSMenuItem is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10899d7c0) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11de56c38). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[16790]: Class GNSMenu is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10899d7e8) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11de56c60). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[16790]: Class FilterComboBox is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10899d860) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11de56cd8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[16790]: Class gdkCoreCursor is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgdk-3.0.dylib (0x107df1258) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11de56d28). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+[recording] finalize recovery pending; writer admission blocked until restart
+[pass] 기본 녹화 설정 유효
+[pass] disk reserve와 retention 주기 기본값
+[pass] 활성화+quota 0 거부
+[pass] 녹화/media root 중복 거부
+[pass] global/source/channel opt-in 삼중 경계
+[pass] Recorder subscriber 추가
+[pass] 역할별 subscriber 계수 분리
+[pass] client 추가
+[pass] 느린 recorder 추가
+[pass] recorder overflow가 client queue를 차단하지 않음
+[pass] source policy 저장 성공 뒤 reconcile callback
+[pass] source policy snapshot
+[pass] source policy create/save/load/snapshot round-trip
+[pass] legacy source policy 호환 저장
+[pass] legacy source policy snapshot
+[pass] legacy quotaBytes/retentionDays를 분리 정책으로 이행
+[pass] eventMaxBytes 0 저장 실패 시 callback 미호출
+[pass] 음수 continuousMaxAgeMs 저장 거부
+[pass] 음수 continuousMaxBytes 명시 입력을 default로 대체하지 않고 거부
+[pass] 형식이 잘못된 continuousMaxBytes 명시 입력 거부
+[pass] 형식이 잘못된 continuousMaxAgeMs 명시 입력 거부
+[pass] 음수 legacy quotaBytes 명시 입력 거부
+[pass] viewer-safe client view에 quota/storage path 비노출
+[pass] application DTO snapshot
+[pass] application DTO recording policy 보존
+[pass] h264 fixture encode
+[pass] h264 writer 시작:
+[pass] h264 S07 delta 미수락 시간 위치 없음
+[pass] h264 delta-start 차단
+[pass] callback finalized V1 양수 시간구간 검증
+[pass] callback 시 final 파일 존재
+[pass] callback 시 partial 제거
+[pass] h264 S07 수락 시간 epoch와 PTS 일치
+[pass] h264 열린 segment는 partial 한 개
+[pass] h264 열린 segment marker는 소유 partial nonce를 결박
+[pass] callback finalized V1 양수 시간구간 검증
+[pass] callback 시 final 파일 존재
+[pass] callback 시 partial 제거
+[pass] h264 S07 종료 시간 위치 없음
+[pass] h264 10초 뒤 다음 keyframe 분할
+[pass] h264 finalized callback
+[pass] foreign 고정 partial 보존 writer 시작
+[pass] nonce partial은 기존 고정 foreign partial을 덮어쓰거나 삭제하면 안 됨
+[pass] S09-LD02 writer 시작
+[pass] S09-LD02 실제 finalized V1과 파일 크기
+[clock-step-segment] {"schema":"media-server.recording-segment.v1","segment_id":"seg-9101-10000-1","source_id":"9101","channel_id":"9101","stream_epoch_id":"clock-test","start":{"utc_ms":10000,"pts":3600000000000000,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":24500,"pts":3600014500000000,"time_base_num":1,"time_base_den":1000000000},"container":"mp4","video_codecs":["h264"],"audio_codecs":[],"audio_omitted_reason":"source-no-audio","size_bytes":45252,"checksum_sha256":"a2cc5e7935e7b675d5da356b754632594136854714622ff25d21bb16091b66fa","retention_class":"continuous","lifecycle":"finalized","pinned":false,"created_at_ms":1789184117765,"finalized_at_ms":1789184117765}
+[pass] S09-LD02 실제 finalized V1과 파일 크기
+[clock-step-segment] {"schema":"media-server.recording-segment.v1","segment_id":"seg-9101-5966-2","source_id":"9101","channel_id":"9101","stream_epoch_id":"clock-test-r1","start":{"utc_ms":5966,"pts":0,"time_base_num":1,"time_base_den":1000000000},"end":{"utc_ms":20466,"pts":14500000000,"time_base_num":1,"time_base_den":1000000000},"container":"mp4","video_codecs":["h264"],"audio_codecs":[],"audio_omitted_reason":"source-no-audio","size_bytes":45252,"checksum_sha256":"a2cc5e7935e7b675d5da356b754632594136854714622ff25d21bb16091b66fa","retention_class":"continuous","lifecycle":"finalized","pinned":false,"created_at_ms":1789184117766,"finalized_at_ms":1789184117767}
+[pass] S09-LD02 실제 두 세그먼트 생성
+[pass] S09-LD02 UTC 원값 보존 및 구간간 후퇴 재현
+[pass] S10-C01 주입 경계 존재
+[pass] S10-C01 writer 시작
+[pass] S10-C01 실제 V1 파일 무결성
+[pass] S10-C01 단일 물리 파일
+[pass] S10-C01 PTS 유지 및 현재 단일 anchor 불일치 관찰
+[s10-clock-characterization] case=S10-C01 packets=30 boundary=15 offset_ms=0 residual_ms=0 utc_start=10000 utc_end=24500 productFixed=false
+[pass] S10-C02 주입 경계 존재
+[pass] S10-C02 writer 시작
+[pass] S10-C02 실제 V1 파일 무결성
+[pass] S10-C02 단일 물리 파일
+[pass] S10-C02 PTS 유지 및 현재 단일 anchor 불일치 관찰
+[s10-clock-characterization] case=S10-C02 packets=30 boundary=15 offset_ms=-4034 residual_ms=-4034 utc_start=10000 utc_end=20466 productFixed=false
+[pass] S10-C03 주입 경계 존재
+[pass] S10-C03 writer 시작
+[pass] S10-C03 실제 V1 파일 무결성
+[pass] S10-C03 단일 물리 파일
+[pass] S10-C03 PTS 유지 및 현재 단일 anchor 불일치 관찰
+[s10-clock-characterization] case=S10-C03 packets=30 boundary=16 offset_ms=-4034 residual_ms=-4034 utc_start=10000 utc_end=20466 productFixed=false
+[pass] S10-C04 주입 경계 존재
+[pass] S10-C04 writer 시작
+[pass] S10-C04 실제 V1 파일 무결성
+[pass] S10-C04 단일 물리 파일
+[pass] S10-C04 PTS 유지 및 현재 단일 anchor 불일치 관찰
+[s10-clock-characterization] case=S10-C04 packets=30 boundary=15 offset_ms=4034 residual_ms=4034 utc_start=10000 utc_end=28534 productFixed=false
+[pass] rollback writer 시작
+[pass] rollback finalized V1과 실제 파일 크기 일치
+[pass] S07 rollback 모호한 시간 위치 없음
+[pass] rollback finalized V1과 실제 파일 크기 일치
+[pass] PTS rollback 시 새 stream epoch
+[pass] writer admission 시작
+[pass] storage-blocked 뒤 다음 keyframe에서 새 epoch로 재개
+[pass] admission reserve를 segment finalize 실제 용량으로 반환
+[pass] partial/finalized 실제 파일 크기를 admission 진행량으로 보고
+[pass] 실제 파일 예약 초과 writer 시작
+[pass] 실제 파일 예약 초과는 catalog callback 전 제거·high-water 반환 후 새 epoch 재개
+[pass] writer 예약 hard bound 시작
+[pass] bounded finalized V1과 실제 파일 예약 상한 검증
+[pass] bounded finalized V1과 실제 파일 예약 상한 검증
+[pass] bounded finalized V1과 실제 파일 예약 상한 검증
+[pass] bounded finalized V1과 실제 파일 예약 상한 검증
+[pass] bounded finalized V1과 실제 파일 예약 상한 검증
+[pass] bounded finalized V1과 실제 파일 예약 상한 검증
+[pass] bounded finalized V1과 실제 파일 예약 상한 검증
+[pass] bounded finalized V1과 실제 파일 예약 상한 검증
+[pass] 예약 payload 상한 도달 시 keyframe 경계 재개와 실제 파일 크기 상한 유지
+[pass] catalog finalize 실패 writer 시작
+[recording] finalize recovery pending; writer admission blocked until restart
+[pass] catalog journal/finalize 실패는 ready와 final을 보존하고 예약 유지
+[pass] cleanup marker symlink 선점 공격 writer 시작
+[pass] cleanup marker symlink 선점 fixture 생성
+[pass] cleanup marker symlink 선점 시 root 밖/공유 inode 내용을 truncate하지 않음
+[pass] cleanup marker hardlink 선점 공격 writer 시작
+[pass] cleanup marker hardlink 선점 fixture 생성
+[pass] cleanup marker hardlink 선점 시 root 밖/공유 inode 내용을 truncate하지 않음
+[pass] catalog 성공 뒤 marker 제거 실패 writer 시작
+[recording] finalize recovery pending; writer admission blocked until restart
+[pass] catalog 성공 뒤 marker 제거 실패 시 예약과 marker를 유지
+[pass] final media cleanup 실패 writer 시작
+[pass] final media 제거 실패 시 durable marker를 남기고 예약을 반환하지 않음
+[pass] vp8 fixture encode
+[pass] vp8 writer 시작:
+[pass] vp8 S07 delta 미수락 시간 위치 없음
+[pass] vp8 delta-start 차단
+[pass] callback finalized V1 양수 시간구간 검증
+[pass] callback 시 final 파일 존재
+[pass] callback 시 partial 제거
+[pass] vp8 S07 수락 시간 epoch와 PTS 일치
+[pass] vp8 열린 segment는 partial 한 개
+[pass] vp8 열린 segment marker는 소유 partial nonce를 결박
+[pass] callback finalized V1 양수 시간구간 검증
+[pass] callback 시 final 파일 존재
+[pass] callback 시 partial 제거
+[pass] vp8 S07 종료 시간 위치 없음
+[pass] vp8 10초 뒤 다음 keyframe 분할
+[pass] vp8 finalized callback
+[pass] VP8 S07 rollback 모호한 시간 위치 없음
+[verify-v410-recording-recorder] pass=118 fail=0
+[cleanup] path=/tmp/media_server_v410_recording_recorder-16762 bytes=4054451 removed=true

@@ -1,5 +1,8 @@
 # Manual UI Checklist
 
+S10 후속 2번 INPUT01~10/WR01~09는 내부 입력·writer 기능으로 신규 UI가 없어야 정상이다.
+직접 미디어 단기 검증은 중앙 기록을 따르며 UI 풀테스트 PASS로 사용하지 않는다.
+
 이 문서는 앞으로 "UI 풀테스트"라고 부르는 작업의 실행 체크리스트입니다.
 기준 정의와 범위는 [manual-ui-fulltest.md](./manual-ui-fulltest.md)를
 세부 기준으로 삼고, 기능별 UI 필요 여부와 테스트 영역은

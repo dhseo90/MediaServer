@@ -297,6 +297,23 @@ bool ClearFinalizeReady(const std::filesystem::path& root,const FinalizeReadyTic
     if(t.segment_v2)return Fail(error,"V2 cleanup에는 catalog commit 확인 필요");
     return ClearValidatedReady(root,t,error);
 }
+bool CommitFinalizeReadyV2(RecordingCatalog& catalog,const std::filesystem::path& root,
+                           const FinalizeReadyTicket& ticket,std::string* error){
+    if(!ticket.segment_v2 || !Validate(ticket,error))
+        return Fail(error,"active ready에는 정확한 V2 ticket 필요");
+    FinalizeReadyTicket persisted;
+    bool missing=false;
+    if(!Read(root,TicketPath(ticket),&persisted,&missing,error)||missing||
+       Serialize(persisted)!=Serialize(ticket))
+        return Fail(error,"active ready 원본 ticket 변경/부재");
+    const auto final_path=(root/ticket.final_relative).string();
+    bool inserted=false;
+    // 예약/소유권을 먼저 확인하고 publish한다. 이후 불확실 실패는 ticket을 보존한다.
+    return catalog.ValidateFinalizeRecoveryV2(*ticket.segment_v2,final_path,error)&&
+        PublishValidatedReady(root,ticket,error)&&
+        catalog.RecoverFinalizedSegmentV2(*ticket.segment_v2,final_path,&inserted,error)&&
+        ClearValidatedReady(root,ticket,error);
+}
 bool RecoverFinalizeReadyTickets(RecordingCatalog& catalog,const std::filesystem::path& root,FinalizeRecoveryReport* report,std::string* error){
     if(report)*report={};
     const auto normalized_root=Root(root);

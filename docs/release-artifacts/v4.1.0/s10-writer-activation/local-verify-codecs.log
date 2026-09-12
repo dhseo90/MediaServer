@@ -1,0 +1,110 @@
+[info] server rtsp=127.0.0.1:64785 route=dhseo client=127.0.0.1
+[info] server http=127.0.0.1:64786 client=127.0.0.1
+[info] source s10-media-server-s10-media-jqRqlh-file_local_h264_aac: Local file source for baseline H264/AAC verification.
+[info] source s10-media-server-s10-media-jqRqlh-file_local_h264_aac: verify profile=local-default rtsp_preflight_timeout_ms=1500 ffprobe_timeout_us=8000000 webrtc_http_timeout_s=15
+[pass] s10-media-server-s10-media-jqRqlh-file_local_h264_aac: RTSP /default -> h264/aac
+[pass] s10-media-server-s10-media-jqRqlh-file_local_h264_aac: RTSP /h264 -> h264/aac
+[pass] s10-media-server-s10-media-jqRqlh-file_local_h264_aac: RTSP /h265 -> hevc/aac
+[pass] s10-media-server-s10-media-jqRqlh-file_local_h264_aac: RTSP /opus -> h264/opus
+[pass] s10-media-server-s10-media-jqRqlh-file_local_h264_aac: RTSP /h265/opus -> hevc/opus
+[pass] s10-media-server-s10-media-jqRqlh-file_local_h264_aac: RTSP /pcmu -> h264/pcm_mulaw
+[pass] s10-media-server-s10-media-jqRqlh-file_local_h264_aac: RTSP /h265/pcmu -> hevc/pcm_mulaw
+[pass] s10-media-server-s10-media-jqRqlh-file_local_h264_aac: RTSP /pcma -> h264/pcm_alaw
+[pass] s10-media-server-s10-media-jqRqlh-file_local_h264_aac: RTSP /h265/pcma -> hevc/pcm_alaw
+[pass] s10-media-server-s10-media-jqRqlh-file_local_h264_aac: WebRTC signaling session created ([SESSION_ID])
+[info] source s10-media-server-s10-media-jqRqlh-file_local_h265_aac: Local file source for H265 ingress verification.
+[info] source s10-media-server-s10-media-jqRqlh-file_local_h265_aac: verify profile=local-default rtsp_preflight_timeout_ms=1500 ffprobe_timeout_us=8000000 webrtc_http_timeout_s=15
+[pass] s10-media-server-s10-media-jqRqlh-file_local_h265_aac: RTSP /default -> h264/aac
+[pass] s10-media-server-s10-media-jqRqlh-file_local_h265_aac: RTSP /h264 -> h264/aac
+[pass] s10-media-server-s10-media-jqRqlh-file_local_h265_aac: RTSP /h265 -> hevc/aac
+[pass] s10-media-server-s10-media-jqRqlh-file_local_h265_aac: RTSP /opus -> h264/opus
+[pass] s10-media-server-s10-media-jqRqlh-file_local_h265_aac: RTSP /h265/opus -> hevc/opus
+[pass] s10-media-server-s10-media-jqRqlh-file_local_h265_aac: RTSP /pcmu -> h264/pcm_mulaw
+[pass] s10-media-server-s10-media-jqRqlh-file_local_h265_aac: RTSP /h265/pcmu -> hevc/pcm_mulaw
+[pass] s10-media-server-s10-media-jqRqlh-file_local_h265_aac: RTSP /pcma -> h264/pcm_alaw
+[pass] s10-media-server-s10-media-jqRqlh-file_local_h265_aac: RTSP /h265/pcma -> hevc/pcm_alaw
+[pass] s10-media-server-s10-media-jqRqlh-file_local_h265_aac: WebRTC signaling session created ([SESSION_ID])
+[info] HTTP launcher ready: [SOURCE_URL_REDACTED]
+[info] source s10-media-server-s10-media-jqRqlh-http_local_h264_aac: Local HTTP MP4 source used to verify the URI source path before YouTube/HLS resolver work.
+[info] source s10-media-server-s10-media-jqRqlh-http_local_h264_aac: verify profile=local-http rtsp_preflight_timeout_ms=1500 ffprobe_timeout_us=10000000 webrtc_http_timeout_s=20
+[pass] s10-media-server-s10-media-jqRqlh-http_local_h264_aac: RTSP /default -> h264/aac
+[pass] s10-media-server-s10-media-jqRqlh-http_local_h264_aac: RTSP /h264 -> h264/aac
+[pass] s10-media-server-s10-media-jqRqlh-http_local_h264_aac: RTSP /opus -> h264/opus
+[pass] s10-media-server-s10-media-jqRqlh-http_local_h264_aac: WebRTC signaling session created ([SESSION_ID])
+[info] launcher stopped: pid=50301 log=/tmp/s10-media-server-s10-media-jqRqlh-http_local_h264_aac.http.log
+[info] HTTP launcher ready: [SOURCE_URL_REDACTED]
+[info] source s10-media-server-s10-media-jqRqlh-http_local_h264_video_only: Local HTTP MP4 source without audio on a dedicated port. Sequential verify-codecs processes must not share 8765 with http_local_h264_aac; RTSP routes synthesize silent route audio while WebRTC can signal video-only.
+[info] source s10-media-server-s10-media-jqRqlh-http_local_h264_video_only: verify profile=local-http-video-only rtsp_preflight_timeout_ms=1500 ffprobe_timeout_us=10000000 webrtc_http_timeout_s=20
+[pass] s10-media-server-s10-media-jqRqlh-http_local_h264_video_only: RTSP /default -> h264/aac
+[pass] s10-media-server-s10-media-jqRqlh-http_local_h264_video_only: RTSP /h264 -> h264/aac
+[pass] s10-media-server-s10-media-jqRqlh-http_local_h264_video_only: RTSP /h265 -> hevc/aac
+[pass] s10-media-server-s10-media-jqRqlh-http_local_h264_video_only: WebRTC signaling session created ([SESSION_ID])
+[info] launcher stopped: pid=50390 log=/tmp/s10-media-server-s10-media-jqRqlh-http_local_h264_video_only.http.log
+[info] HLS launcher ready: [SOURCE_URL_REDACTED]
+[info] source s10-media-server-s10-media-jqRqlh-hls_local_h264_aac: Local HLS VOD generated from sample_h264.mp4. Verifies source=hls without external network dependency.
+[info] source s10-media-server-s10-media-jqRqlh-hls_local_h264_aac: verify profile=local-hls rtsp_preflight_timeout_ms=1500 ffprobe_timeout_us=15000000 webrtc_http_timeout_s=25
+[pass] s10-media-server-s10-media-jqRqlh-hls_local_h264_aac: RTSP /default -> h264/aac
+[pass] s10-media-server-s10-media-jqRqlh-hls_local_h264_aac: RTSP /h264 -> h264/aac
+[pass] s10-media-server-s10-media-jqRqlh-hls_local_h264_aac: RTSP /opus -> h264/opus
+[pass] s10-media-server-s10-media-jqRqlh-hls_local_h264_aac: WebRTC signaling session created ([SESSION_ID])
+[info] launcher stopped: pid=50480 log=/tmp/s10-media-server-s10-media-jqRqlh-hls_local_h264_aac.hls.log
+[skip] youtube_upload_h264_aac: disabled in config
+[skip] youtube_live_h264_aac: disabled in config
+[info] launcher ready: [SOURCE_URL_REDACTED]
+[info] s10-media-server-s10-media-jqRqlh-rtsp_local_h265_opus: RTSP preflight ok: 127.0.0.1:64790
+[info] source s10-media-server-s10-media-jqRqlh-rtsp_local_h265_opus: Local RTSP source generated from sample_h265.mp4 with Opus audio.
+[info] source s10-media-server-s10-media-jqRqlh-rtsp_local_h265_opus: verify profile=local-rtsp rtsp_preflight_timeout_ms=1500 ffprobe_timeout_us=8000000 webrtc_http_timeout_s=15
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h265_opus: RTSP /default -> h264/aac
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h265_opus: RTSP /h264 -> h264/aac
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h265_opus: RTSP /h265 -> hevc/aac
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h265_opus: RTSP /opus -> h264/opus
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h265_opus: RTSP /h265/opus -> hevc/opus
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h265_opus: RTSP /pcmu -> h264/pcm_mulaw
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h265_opus: RTSP /h265/pcmu -> hevc/pcm_mulaw
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h265_opus: RTSP /pcma -> h264/pcm_alaw
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h265_opus: RTSP /h265/pcma -> hevc/pcm_alaw
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h265_opus: WebRTC signaling session created ([SESSION_ID])
+[info] launcher stopped: pid=50627 log=/tmp/s10-media-server-s10-media-jqRqlh-rtsp_local_h265_opus.launcher.log
+[info] launcher ready: [SOURCE_URL_REDACTED]
+[info] s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcmu: RTSP preflight ok: 127.0.0.1:64791
+[info] source s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcmu: Local RTSP source generated from sample_h264.mp4 with PCMU audio.
+[info] source s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcmu: verify profile=local-rtsp rtsp_preflight_timeout_ms=1500 ffprobe_timeout_us=8000000 webrtc_http_timeout_s=15
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcmu: RTSP /default -> h264/aac
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcmu: RTSP /h264 -> h264/aac
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcmu: RTSP /h265 -> hevc/aac
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcmu: RTSP /opus -> h264/opus
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcmu: RTSP /h265/opus -> hevc/opus
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcmu: RTSP /pcmu -> h264/pcm_mulaw
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcmu: RTSP /h265/pcmu -> hevc/pcm_mulaw
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcmu: RTSP /pcma -> h264/pcm_alaw
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcmu: RTSP /h265/pcma -> hevc/pcm_alaw
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcmu: WebRTC signaling session created ([SESSION_ID])
+[info] launcher stopped: pid=50760 log=/tmp/s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcmu.launcher.log
+[info] launcher ready: [SOURCE_URL_REDACTED]
+[info] s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcma: RTSP preflight ok: 127.0.0.1:64792
+[info] source s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcma: Local RTSP source generated from sample_h264.mp4 with PCMA audio.
+[info] source s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcma: verify profile=local-rtsp rtsp_preflight_timeout_ms=1500 ffprobe_timeout_us=8000000 webrtc_http_timeout_s=15
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcma: RTSP /default -> h264/aac
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcma: RTSP /h264 -> h264/aac
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcma: RTSP /h265 -> hevc/aac
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcma: RTSP /opus -> h264/opus
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcma: RTSP /h265/opus -> hevc/opus
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcma: RTSP /pcmu -> h264/pcm_mulaw
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcma: RTSP /h265/pcmu -> hevc/pcm_mulaw
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcma: RTSP /pcma -> h264/pcm_alaw
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcma: RTSP /h265/pcma -> hevc/pcm_alaw
+[pass] s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcma: WebRTC signaling session created ([SESSION_ID])
+[info] launcher stopped: pid=50891 log=/tmp/s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcma.launcher.log
+published source ready: sourceId=publisher-verify-50017-4037 hasVideo=True hasAudio=True subscribers=0
+[info] publisher ready: sourceId=publisher-verify-50017-4037
+[info] source s10-media-server-s10-media-jqRqlh-webrtc_local_publish_h264_opus: Local WHIP publisher using videotestsrc/audiotestsrc. Consume through source=webrtc.
+[info] source s10-media-server-s10-media-jqRqlh-webrtc_local_publish_h264_opus: verify profile=local-webrtc-publish rtsp_preflight_timeout_ms=1500 ffprobe_timeout_us=10000000 webrtc_http_timeout_s=20
+[pass] s10-media-server-s10-media-jqRqlh-webrtc_local_publish_h264_opus: WebRTC signaling session created ([SESSION_ID])
+[pass] s10-media-server-s10-media-jqRqlh-webrtc_local_publish_h264_opus: RTSP /default -> h264/aac
+[pass] s10-media-server-s10-media-jqRqlh-webrtc_local_publish_h264_opus: RTSP /h264 -> h264/aac
+[pass] s10-media-server-s10-media-jqRqlh-webrtc_local_publish_h264_opus: RTSP /h265 -> hevc/aac
+[pass] s10-media-server-s10-media-jqRqlh-webrtc_local_publish_h264_opus: RTSP /opus -> h264/opus
+[info] launcher stopped: pid=51017 log=/tmp/s10-media-server-s10-media-jqRqlh-webrtc_local_publish_h264_opus.publisher.log
+[skip] rtsp_external_wowza_h264_aac: disabled in config
+
+[summary] pass=67 fail=0 skip=3

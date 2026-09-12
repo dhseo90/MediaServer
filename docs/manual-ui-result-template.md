@@ -1,5 +1,8 @@
 # Manual UI Result Template
 
+S10 후속 2번 INPUT01~10/WR01~09: 내부 기능으로 신규 UI 비대상. 단기 입력·writer 결과는
+중앙 기록에 남기고 이 UI 결과표의 PASS로 대신하지 않는다.
+
 이 템플릿은 인앱 브라우저 direct 실행 또는 `AGENTS.md` 7.6.3 Policy v4 qualifier를
 통과한 actual browser automation으로 확인한 UI 풀테스트 결과를 남길 때 사용합니다. 자동 smoke,
 screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니다.

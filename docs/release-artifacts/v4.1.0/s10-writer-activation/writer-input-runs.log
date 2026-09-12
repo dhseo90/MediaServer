@@ -1,0 +1,378 @@
+Captured tool output; writer command: bash scripts/internal/verify_recording_managed_writer.sh
+Input command: bash scripts/internal/verify_recording_input_observation.sh
+18362 initial compiler output was not retained in this log; see central failure description.
+
+=== session 18362 exit 1 ===
+[cleanup] path=/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-managed-writer.wxhxyd bytes=0 removed=true
+[elapsed] seconds=3 source=bash-SECONDS
+
+=== session 78929 exit 1 ===
+[fail] WR01 h264 managed segments decode all frames without legacy callback or snapshot
+[fail] WR01 vp8 managed segments decode all frames without legacy callback or snapshot
+[fail] WR02 UTC-only change preserves media splits frames and independent mapping
+[fail] WR03 UTC-only change preserves media splits frames and independent mapping
+[fail] WR04 UTC-only change preserves media splits frames and independent mapping
+[fail] WR05 duplicate PTS with advancing DTS preserves media and unknown mapping
+[fail] WR06 explicit generation reset creates a new media epoch
+[fail] WR07 repeated observations and processing UTC do not duplicate media
+[fail] WR08 missing final duration preserves media with unknown end
+[fail] WR09 mapping budget retains bounded unknown tail and all frames
+[summary] pass=0 fail=10
+[cleanup] path=/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-managed-writer.Y5bv7t bytes=3851628 removed=true
+[elapsed] seconds=4 source=bash-SECONDS
+
+=== session 20489 exit 0 ===
+[pass] WR01 h264 managed segments decode all frames without legacy callback or snapshot
+[pass] WR01 vp8 managed segments decode all frames without legacy callback or snapshot
+[pass] WR02 UTC-only change preserves media splits frames and independent mapping
+[pass] WR03 UTC-only change preserves media splits frames and independent mapping
+[pass] WR04 UTC-only change preserves media splits frames and independent mapping
+[pass] WR05 duplicate PTS with advancing DTS preserves media and unknown mapping
+[pass] WR06 explicit generation reset creates a new media epoch
+[pass] WR07 repeated observations and processing UTC do not duplicate media
+[pass] WR08 missing final duration preserves media with unknown end
+[pass] WR09 mapping budget retains bounded unknown tail and all frames
+[summary] pass=10 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.fTSWfA bytes=4671145 removed=true
+[elapsed] seconds=4 source=bash-SECONDS
+
+=== session 18485 exit 0 ===
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR01 h264 managed segments decode all frames without legacy callback or snapshot
+[pass] WR01 vp8 managed segments decode all frames without legacy callback or snapshot
+[pass] WR02 UTC-only change preserves media splits frames and independent mapping
+[pass] WR03 UTC-only change preserves media splits frames and independent mapping
+[pass] WR04 UTC-only change preserves media splits frames and independent mapping
+[pass] WR05 duplicate PTS with advancing DTS preserves media and unknown mapping
+[pass] WR06 explicit generation reset creates a new media epoch
+[pass] WR07 repeated observations and processing UTC do not duplicate media
+[pass] WR08 missing final duration preserves media with unknown end
+[pass] WR09 mapping budget retains bounded unknown tail and all frames
+[pass] WR01 invalid binding rejects before writes journal
+[pass] WR01 invalid binding rejects before writes catalog
+[pass] WR01 invalid binding rejects before writes root
+[pass] WR01 invalid binding rejects before writes store
+[pass] WR01 invalid binding rejects before writes lease
+[pass] WR01 invalid binding rejects before writes incomplete
+[pass] WR08 clock process change preserves same-generation media with unknown comparison
+[pass] WR08 invalid duration leaves unknown end zero
+[pass] WR08 invalid duration leaves unknown end overflow
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR08 unsafe original input cannot become finalized observation
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR08 unsafe original input cannot become finalized pts
+[pass] WR08 unsafe original input cannot become finalized range
+[pass] WR07 older generation cache cannot switch media backwards
+[pass] WR07 unrelated video track cannot change selected track identity
+[pass] WR06 reopened store allocates fresh IDs and increasing durable order
+[pass] WR05 actual H264 reordering preserves decode timestamps and mux origin
+[summary] pass=26 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.5iRqw0 bytes=6901300 removed=true
+[elapsed] seconds=4 source=bash-SECONDS
+
+=== session 30659 exit 0 ===
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR01 h264 managed segments decode all frames without legacy callback or snapshot
+[pass] WR01 vp8 managed segments decode all frames without legacy callback or snapshot
+[pass] WR02 UTC-only change preserves media splits frames and independent mapping
+[pass] WR03 UTC-only change preserves media splits frames and independent mapping
+[pass] WR04 UTC-only change preserves media splits frames and independent mapping
+[pass] WR05 duplicate PTS with advancing DTS preserves media and unknown mapping
+[pass] WR06 explicit generation reset creates a new media epoch
+[pass] WR07 repeated observations and processing UTC do not duplicate media
+[pass] WR08 missing final duration preserves media with unknown end
+[pass] WR09 mapping budget retains bounded unknown tail and all frames
+[pass] WR01 invalid binding rejects before writes journal
+[pass] WR01 invalid binding rejects before writes catalog
+[pass] WR01 invalid binding rejects before writes root
+[pass] WR01 invalid binding rejects before writes store
+[pass] WR01 invalid binding rejects before writes lease
+[pass] WR01 invalid binding rejects before writes incomplete
+[pass] WR08 clock process change preserves same-generation media with unknown comparison
+[pass] WR08 invalid duration leaves unknown end zero
+[pass] WR08 invalid duration leaves unknown end overflow
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR08 unsafe original input cannot become finalized observation
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR08 unsafe original input cannot become finalized pts
+[recording] finalize recovery pending; writer admission blocked until restart
+[pass] WR08 unsafe original input cannot become finalized range
+[pass] WR07 older generation cache cannot switch media backwards
+[pass] WR07 unrelated video track cannot change selected track identity
+[pass] WR06 reopened store allocates fresh IDs and increasing durable order
+[pass] WR05 actual H264 reordering preserves decode timestamps and mux origin
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR09 failed active commit preserves ready order and quota reservation
+[pass] WR09 restart recovers the same durable segment and all frames
+[pass] WR08 excessive clock width preserves media as unknown
+[pass] WR08 zero generation order cannot become finalized
+[summary] pass=30 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.6gfNZy bytes=7522596 removed=true
+[elapsed] seconds=5 source=bash-SECONDS
+
+=== session 79006 exit 1 ===
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR01 h264 managed segments decode all frames without legacy callback or snapshot
+[pass] WR01 vp8 managed segments decode all frames without legacy callback or snapshot
+[pass] WR02 UTC-only change preserves media splits frames and independent mapping
+[pass] WR03 UTC-only change preserves media splits frames and independent mapping
+[pass] WR04 UTC-only change preserves media splits frames and independent mapping
+[pass] WR05 duplicate PTS with advancing DTS preserves media and unknown mapping
+[pass] WR06 explicit generation reset creates a new media epoch
+[pass] WR07 repeated observations and processing UTC do not duplicate media
+[pass] WR08 missing final duration preserves media with unknown end
+[pass] WR09 mapping budget retains bounded unknown tail and all frames
+[pass] WR01 invalid binding rejects before writes journal
+[pass] WR01 invalid binding rejects before writes catalog
+[pass] WR01 invalid binding rejects before writes root
+[pass] WR01 invalid binding rejects before writes store
+[pass] WR01 invalid binding rejects before writes lease
+[pass] WR01 invalid binding rejects before writes incomplete
+[pass] WR08 clock process change preserves same-generation media with unknown comparison
+[pass] WR08 invalid duration leaves unknown end zero
+[pass] WR08 invalid duration leaves unknown end overflow
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR08 unsafe original input cannot become finalized observation
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR08 unsafe original input cannot become finalized pts
+[recording] finalize recovery pending; writer admission blocked until restart
+[pass] WR08 unsafe original input cannot become finalized range
+[pass] WR07 older generation cache cannot switch media backwards
+[pass] WR07 unrelated video track cannot change selected track identity
+[pass] WR06 reopened store allocates fresh IDs and increasing durable order
+[pass] WR05 actual H264 reordering preserves decode timestamps and mux origin
+[fail] WR05 reordered segment end covers maximum presented frame end
+[measure] bframe_last_end_ns=3100000000 maximum_end_ns=3200000000
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR09 failed active commit preserves ready order and quota reservation
+[pass] WR09 restart recovers the same durable segment and all frames
+[pass] WR08 excessive clock width preserves media as unknown
+[pass] WR08 zero generation order cannot become finalized
+[summary] pass=30 fail=1
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.nvDsX1 bytes=7522772 removed=true
+[elapsed] seconds=5 source=bash-SECONDS
+
+=== session 67234 exit 1 ===
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR01 h264 managed segments decode all frames without legacy callback or snapshot
+[pass] WR01 vp8 managed segments decode all frames without legacy callback or snapshot
+[pass] WR02 UTC-only change preserves media splits frames and independent mapping
+[pass] WR03 UTC-only change preserves media splits frames and independent mapping
+[pass] WR04 UTC-only change preserves media splits frames and independent mapping
+[pass] WR05 duplicate PTS with advancing DTS preserves media and unknown mapping
+[pass] WR06 explicit generation reset creates a new media epoch
+[pass] WR07 repeated observations and processing UTC do not duplicate media
+[pass] WR08 missing final duration preserves media with unknown end
+[pass] WR09 mapping budget retains bounded unknown tail and all frames
+[pass] WR01 invalid binding rejects before writes journal
+[pass] WR01 invalid binding rejects before writes catalog
+[pass] WR01 invalid binding rejects before writes root
+[pass] WR01 invalid binding rejects before writes store
+[pass] WR01 invalid binding rejects before writes lease
+[pass] WR01 invalid binding rejects before writes incomplete
+[pass] WR08 clock process change preserves same-generation media with unknown comparison
+[pass] WR08 invalid duration leaves unknown end zero
+[pass] WR08 invalid duration leaves unknown end overflow
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR08 unsafe original input cannot become finalized observation
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR08 unsafe original input cannot become finalized pts
+[recording] finalize recovery pending; writer admission blocked until restart
+[pass] WR08 unsafe original input cannot become finalized range
+[pass] WR07 older generation cache cannot switch media backwards
+[pass] WR07 unrelated video track cannot change selected track identity
+[pass] WR06 reopened store allocates fresh IDs and increasing durable order
+[pass] WR05 actual H264 reordering preserves decode timestamps and mux origin
+[pass] WR05 reordered segment end covers maximum presented frame end
+[measure] bframe_last_end_ns=3100000000 maximum_end_ns=3200000000
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR09 failed active commit preserves ready order and quota reservation
+[pass] WR09 restart recovers the same durable segment and all frames
+[pass] WR08 excessive clock width preserves media as unknown
+[pass] WR08 zero generation order cannot become finalized
+[pass] WR08 media observation quality normal
+[fail] WR08 media observation quality fast
+[fail] WR08 media observation quality drift
+[pass] WR01 actual appsink observation flows through managed writer and decode
+[summary] pass=33 fail=2
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.UOj02o bytes=8367058 removed=true
+[elapsed] seconds=5 source=bash-SECONDS
+
+=== session 48278 exit 0 ===
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR01 h264 managed segments decode all frames without legacy callback or snapshot
+[pass] WR01 vp8 managed segments decode all frames without legacy callback or snapshot
+[pass] WR02 UTC-only change preserves media splits frames and independent mapping
+[pass] WR03 UTC-only change preserves media splits frames and independent mapping
+[pass] WR04 UTC-only change preserves media splits frames and independent mapping
+[pass] WR05 duplicate PTS with advancing DTS preserves media and unknown mapping
+[pass] WR06 explicit generation reset creates a new media epoch
+[pass] WR07 repeated observations and processing UTC do not duplicate media
+[pass] WR08 missing final duration preserves media with unknown end
+[pass] WR09 mapping budget retains bounded unknown tail and all frames
+[pass] WR01 invalid binding rejects before writes journal
+[pass] WR01 invalid binding rejects before writes catalog
+[pass] WR01 invalid binding rejects before writes root
+[pass] WR01 invalid binding rejects before writes store
+[pass] WR01 invalid binding rejects before writes lease
+[pass] WR01 invalid binding rejects before writes incomplete
+[pass] WR08 clock process change preserves same-generation media with unknown comparison
+[pass] WR08 invalid duration leaves unknown end zero
+[pass] WR08 invalid duration leaves unknown end overflow
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR08 unsafe original input cannot become finalized observation
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR08 unsafe original input cannot become finalized pts
+[recording] finalize recovery pending; writer admission blocked until restart
+[pass] WR08 unsafe original input cannot become finalized range
+[pass] WR07 older generation cache cannot switch media backwards
+[pass] WR07 unrelated video track cannot change selected track identity
+[pass] WR06 reopened store allocates fresh IDs and increasing durable order
+[pass] WR05 actual H264 reordering preserves decode timestamps and mux origin
+[pass] WR05 reordered segment end covers maximum presented frame end
+[measure] bframe_last_end_ns=3100000000 maximum_end_ns=3200000000
+[pass] WR08 missing maximum PTS frame duration keeps reordered end unknown
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR09 failed active commit preserves ready order and quota reservation
+[pass] WR09 restart recovers the same durable segment and all frames
+[pass] WR08 excessive clock width preserves media as unknown
+[pass] WR08 zero generation order cannot become finalized
+[pass] WR08 media observation quality normal
+[pass] WR08 media observation quality fast
+[pass] WR08 media observation quality drift
+[pass] WR01 actual appsink observation flows through managed writer and decode
+[summary] pass=36 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.PfydOD bytes=8604895 removed=true
+[elapsed] seconds=5 source=bash-SECONDS
+
+=== session 93757 exit 1 ===
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR01 h264 managed segments decode all frames without legacy callback or snapshot
+[pass] WR01 vp8 managed segments decode all frames without legacy callback or snapshot
+[pass] WR02 UTC-only change preserves media splits frames and independent mapping
+[pass] WR03 UTC-only change preserves media splits frames and independent mapping
+[pass] WR04 UTC-only change preserves media splits frames and independent mapping
+[pass] WR05 duplicate PTS with advancing DTS preserves media and unknown mapping
+[pass] WR06 explicit generation reset creates a new media epoch
+[pass] WR07 repeated observations and processing UTC do not duplicate media
+[pass] WR08 missing final duration preserves media with unknown end
+[pass] WR09 mapping budget retains bounded unknown tail and all frames
+[pass] WR01 invalid binding rejects before writes journal
+[pass] WR01 invalid binding rejects before writes catalog
+[pass] WR01 invalid binding rejects before writes root
+[pass] WR01 invalid binding rejects before writes store
+[pass] WR01 invalid binding rejects before writes lease
+[pass] WR01 invalid binding rejects before writes incomplete
+[pass] WR08 clock process change preserves same-generation media with unknown comparison
+[pass] WR08 invalid duration leaves unknown end zero
+[pass] WR08 invalid duration leaves unknown end overflow
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR08 unsafe original input cannot become finalized observation
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR08 unsafe original input cannot become finalized pts
+[recording] finalize recovery pending; writer admission blocked until restart
+[pass] WR08 unsafe original input cannot become finalized range
+[pass] WR07 older generation cache cannot switch media backwards
+[pass] WR07 unrelated video track cannot change selected track identity
+[pass] WR06 reopened store allocates fresh IDs and increasing durable order
+[pass] WR05 actual H264 reordering preserves decode timestamps and mux origin
+[pass] WR05 reordered segment end covers maximum presented frame end
+[measure] bframe_last_end_ns=3100000000 maximum_end_ns=3200000000
+[pass] WR08 missing maximum PTS frame duration keeps reordered end unknown
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR09 failed active commit preserves ready order and quota reservation
+[pass] WR09 restart recovers the same durable segment and all frames
+[pass] WR08 excessive clock width preserves media as unknown
+[pass] WR08 zero generation order cannot become finalized
+[pass] WR08 media observation quality normal
+[pass] WR08 media observation quality fast
+[pass] WR08 media observation quality drift
+[fail] WR08 media observation quality fast-step
+[pass] WR01 actual appsink observation flows through managed writer and decode
+[summary] pass=36 fail=1
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.eUInna bytes=8842867 removed=true
+[elapsed] seconds=5 source=bash-SECONDS
+
+=== session 2978 exit 0 ===
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR01 h264 managed segments decode all frames without legacy callback or snapshot
+[pass] WR01 vp8 managed segments decode all frames without legacy callback or snapshot
+[pass] WR02 UTC-only change preserves media splits frames and independent mapping
+[pass] WR03 UTC-only change preserves media splits frames and independent mapping
+[pass] WR04 UTC-only change preserves media splits frames and independent mapping
+[pass] WR05 duplicate PTS with advancing DTS preserves media and unknown mapping
+[pass] WR06 explicit generation reset creates a new media epoch
+[pass] WR07 repeated observations and processing UTC do not duplicate media
+[pass] WR08 missing final duration preserves media with unknown end
+[pass] WR09 mapping budget retains bounded unknown tail and all frames
+[pass] WR01 invalid binding rejects before writes journal
+[pass] WR01 invalid binding rejects before writes catalog
+[pass] WR01 invalid binding rejects before writes root
+[pass] WR01 invalid binding rejects before writes store
+[pass] WR01 invalid binding rejects before writes lease
+[pass] WR01 invalid binding rejects before writes incomplete
+[pass] WR08 clock process change preserves same-generation media with unknown comparison
+[pass] WR08 invalid duration leaves unknown end zero
+[pass] WR08 invalid duration leaves unknown end overflow
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR08 unsafe original input cannot become finalized observation
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR08 unsafe original input cannot become finalized pts
+[recording] finalize recovery pending; writer admission blocked until restart
+[pass] WR08 unsafe original input cannot become finalized range
+[pass] WR07 older generation cache cannot switch media backwards
+[pass] WR07 unrelated video track cannot change selected track identity
+[pass] WR06 reopened store allocates fresh IDs and increasing durable order
+[pass] WR05 actual H264 reordering preserves decode timestamps and mux origin
+[pass] WR05 reordered segment end covers maximum presented frame end
+[measure] bframe_last_end_ns=3100000000 maximum_end_ns=3200000000
+[pass] WR08 missing maximum PTS frame duration keeps reordered end unknown
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR09 failed active commit preserves ready order and quota reservation
+[pass] WR09 restart recovers the same durable segment and all frames
+[pass] WR08 excessive clock width preserves media as unknown
+[pass] WR08 zero generation order cannot become finalized
+[pass] WR08 media observation quality normal
+[pass] WR08 media observation quality fast
+[pass] WR08 media observation quality drift
+[pass] WR08 media observation quality fast-step
+[pass] WR01 actual appsink observation flows through managed writer and decode
+[summary] pass=37 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.PG15nu bytes=8840527 removed=true
+[elapsed] seconds=5 source=bash-SECONDS
+
+=== session 4863 exit 1 ===
+[PASS] INPUT01 original missing zero and uint64 timestamps remain distinct
+[PASS] INPUT02 serialized segment changes generation before next buffer
+[PASS] INPUT03 DISCONT alone preserves source generation
+[PASS] INPUT04 new sink lifetime has a distinct generation
+[FAIL] INPUT02 process-local generation order advances across segments and sinks
+[PASS] INPUT05 actual GOP cache replay preserves complete observation
+[PASS] INPUT06 reordered PTS preserves generation original values and payload
+[PASS] INPUT07 clock observation brackets UTC with a process identity
+[PASS] INPUT08 repeated segment seqnum and duplicate installation do not reissue identity
+[PASS] INPUT09 buffer list receives one observation per original buffer
+[PASS] INPUT10 same buffer across pads and new segment retains first immutable observation
+[PASS] INPUT01 missing installation or stream signal remains unobserved
+[PASS] INPUT02 flush followed by same sequence segment starts a new generation
+[PASS] INPUT10 concurrent pads bind one immutable observation
+[SUMMARY] pass=13 fail=1
+[cleanup] path=/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-input-observation.jjfKrH bytes=545160 removed=true
+
+=== session 81148 exit 0 ===
+[PASS] INPUT01 original missing zero and uint64 timestamps remain distinct
+[PASS] INPUT02 serialized segment changes generation before next buffer
+[PASS] INPUT03 DISCONT alone preserves source generation
+[PASS] INPUT04 new sink lifetime has a distinct generation
+[PASS] INPUT02 process-local generation order advances across segments and sinks
+[PASS] INPUT05 actual GOP cache replay preserves complete observation
+[PASS] INPUT06 reordered PTS preserves generation original values and payload
+[PASS] INPUT07 clock observation brackets UTC with a process identity
+[PASS] INPUT08 repeated segment seqnum and duplicate installation do not reissue identity
+[PASS] INPUT09 buffer list receives one observation per original buffer
+[PASS] INPUT10 same buffer across pads and new segment retains first immutable observation
+[PASS] INPUT01 missing installation or stream signal remains unobserved
+[PASS] INPUT02 flush followed by same sequence segment starts a new generation
+[PASS] INPUT10 concurrent pads bind one immutable observation
+[SUMMARY] pass=14 fail=0
+[cleanup] path=/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-input-observation.rxrxrG bytes=545736 removed=true

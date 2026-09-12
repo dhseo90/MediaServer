@@ -1,5 +1,807 @@
 # Release Test Records
 
+## S10 외부 STUN 차단 재검증 (2026-09-12)
+
+최종 판정: 외부 STUN 경계 보완과 동일 미디어 회귀·문서 검증·cleanup을 완료했다.
+S10 후속2의 명시 주입 입력/writer 연결 범위는 완료이며 서버 기본 전환·소비자 연결(후속3)은 미착수다.
+이전 외부 STUN 사용 실행은 여전히 무효이고 이번 새 실행으로만 해당 미디어 근거를 충족한다.
+
+사용자 승인 범위: 제품 정책 변경 없이 검증 환경의 외부 STUN 차단 보완 및 같은 미디어 회귀.
+단일 담당자는 모델 capacity 오류로 착수하지 못했고 메인이 직접 처리한다. 커밋/푸시·후속3·장시간/UI 전체는 제외한다.
+빈 STUN이 비활성을 뜻하지 않는 원인은 이전 기록으로 확정했다. 검증 소유 UDP socket의
+`stun://127.0.0.1:<port>`를 명시하고 서버 실제 `/webrtc/config`가 그 주소만 갖는지 각 명령 전에 확인한다.
+이는 외부 STUN 차단이며 STUN 기능 자체를 끈다는 뜻이 아니다. 제품 코드·기존 바이너리는 변경하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| ISO01 | 올바른 명시 loopback 설정 허용 | env/server config exact 소유 port만 허용 | v4.1.0 |
+| ISO02 | 빈 env 거부 | fallback 전에 예외 | v4.1.0 |
+| ISO03 | 외부 STUN 거부 | env 외부 호스트 거부 | v4.1.0 |
+| ISO04 | 혼합 browser ICE 거부 | loopback+외부 목록 거부 | v4.1.0 |
+| ISO05 | 외부 TURN 거부 | TURN env 또는 실제 목록 거부 | v4.1.0 |
+| ISO06 | 미소유 port 거부 | 예상 port 불일치 거부 | v4.1.0 |
+| ISO07 | credentials 거부 | 검증에 필요 없는 ICE credential 거부 | v4.1.0 |
+| ISO08 | 실제 기동 config와 소유 UDP | 매 명령 전 실제 config 검사, UDP 수신 관측·종료 | v4.1.0 |
+| ISO09 | 같은 영향 회귀 | 기존 S10-REG-codecs/ice/metadata 전수 재실행, 외부 영상3개 제외 유지 | v4.1.0 |
+| ISO10 | 문서/정리 | docs-links/docs-ui-assets/diffcheck 및 소유 process/port/temp 정리 | v4.1.0 |
+
+단위 명령: `node --test scripts/internal/verify_local_ice_guard.test.mjs`. permissive stub에서 ISO02~07만 예상 RED다.
+영역 판정: 안정화=진행 대상(사용자 승인), 30분/120분/UI 전체=미진행(이번 범위 밖).
+기존 입력14/writer37/ready55/recorder118/build는 동결 fingerprint 일치 확인 후 유지한다.
+사전등록 보완: 최초 단위 RED(1/6, 30.17275ms)·GREEN(7/0, 29.211875ms)은 중앙 정의만 있고
+inventory 행이 누락됐다. 해당 실행은 완료 evidence로 무효이며, inventory ISO01~10 등록 후 같은 단위를 재실행한다.
+최초 실패는 ISO02~07 모두 Missing expected exception이며 허용 stub의 사전 예상과 일치했다.
+
+### 외부 STUN 차단 재검증 결과
+
+문서 검사 최초 이력: `verify-docs-links` exit1, 동일 S10 heading 앵커 불일치3건(문서234/link1135/image22/anchor108).
+설계 제목의 가운데점은 verifier anchor에 남는데 기존 링크에서는 빠져 있었다. 계약 본문/검사 기준은 유지하고
+제목의 가운데점만 제거해 기존 링크와 맞췄다. 최초 같은 배치에서 assets도 실행된 것은 순서 처리 오류이며
+그10/0 결과를 최종 근거로 사용하지 않고 links 통과 뒤 재실행한다. 미디어/제품 코드는 수정하지 않는다.
+
+보완 뒤 `./server.sh verify-docs-links` exit0(failures0, 동일234/1135/22/108), 이어 `./server.sh verify-docs-ui-assets` exit0(10/0).
+문서 검사 elapsed/token은 별도 수집하지 않았고 tool wall time을 명령 소요시간으로 대체하지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| ISO10 docs links | 로컬 link/anchor/image 대조, exit0 | PASS | 최초3FAIL 후 제목 수정 |
+| ISO10 assets/1: README uses only representative product UI screenshots | verify-docs-ui-assets exit0 | PASS | 링크 보완 뒤 재실행 |
+| ISO10 assets/2: English README uses English UI screenshots | verify-docs-ui-assets exit0 | PASS | 링크 보완 뒤 재실행 |
+| ISO10 assets/3: UI guide keeps product screenshots in the shared asset set | verify-docs-ui-assets exit0 | PASS | 링크 보완 뒤 재실행 |
+| ISO10 assets/4: docs UI asset policy documents capture rules | verify-docs-ui-assets exit0 | PASS | 링크 보완 뒤 재실행 |
+| ISO10 assets/5: managed UI asset manifest stays complete | verify-docs-ui-assets exit0 | PASS | 링크 보완 뒤 재실행 |
+| ISO10 assets/6: capture script owns every documented UI asset | verify-docs-ui-assets exit0 | PASS | 링크 보완 뒤 재실행 |
+| ISO10 assets/7: docs capture covers current screenshots | verify-docs-ui-assets exit0 | PASS | 링크 보완 뒤 재실행 |
+| ISO10 assets/8: representative screenshot docs do not point at stale visual baselines | verify-docs-ui-assets exit0 | PASS | 링크 보완 뒤 재실행 |
+| ISO10 assets/9: docs UI asset directory contains managed PNG files | verify-docs-ui-assets exit0 | PASS | 링크 보완 뒤 재실행 |
+| ISO10 assets/10: VA documentation images keep full video frame bounds | verify-docs-ui-assets exit0 | PASS | 링크 보완 뒤 재실행 |
+
+
+검증 전용 `verify_local_ice_guard.mjs`와 단위 검사를 추가했다. env의 빈/외부 주소를 허용하지 않고
+실제 `/webrtc/config`가 소유 loopback 주소만 담는지 미디어 명령마다 확인한다. 제품 설정 parser,
+기본 STUN, 녹화 코드·바이너리는 변경하지 않았다. 이 가드는 이번 harness의 실행 전 경계이며
+기존 개별 verifier의 기본 정책 전체를 변경한 것은 아니다. 재현 시 [검증 harness](release-artifacts/v4.1.0/s10-writer-activation/local-media-harness.txt)의 가드를 포함해야 한다.
+
+등록 후 단위 명령 exit0, 7/0, 30.599209ms: [원출력](release-artifacts/v4.1.0/s10-writer-activation/ice-guard-unit.log).
+제품 소스/바이너리16개는 이전 [동결 fingerprint](release-artifacts/v4.1.0/s10-writer-activation/source-fingerprint.json)와 모두 일치했다.
+단기 미디어 session38532 exit0: codec67/0(332.394초), ICE8/0(17.726초), metadata 실제 assertion10/0(2.823초).
+metadata 도구의 summary8/0과 실제 출력10개 차이는 이전부터 있던 출력 범위 차이로 명시하며 전수10행을 대조했다.
+token start/end/consumed=집계 API 부재로 미집계; elapsed source=Node test runner/Date.now.
+
+기동 전 env guard와 각 명령 전 config guard3회 모두 통과. 실제 ICE 주소는 `stun:127.0.0.1:60806` 하나,
+TURN 없음, candidate host15/unknown1(종료 표기 포함), srflx/relay0이다. 소유 UDP에25개 메시지를 수신했고 종료했다.
+이 결과는 외부 STUN 미지정/루프백 실행 경계를 확인한 것이며 모든 OS 네트워크 트래픽을 packet capture한 증거는 아니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| ISO01 explicit owned loopback accepted | 등록 후 실제 가드 단위 명령 exit0 | PASS | 최초 무효 실행 이력은 위에 보존 |
+| ISO02 empty STUN rejected | 등록 후 실제 가드 단위 명령 exit0 | PASS | 최초 무효 실행 이력은 위에 보존 |
+| ISO03 external STUN rejected | 등록 후 실제 가드 단위 명령 exit0 | PASS | 최초 무효 실행 이력은 위에 보존 |
+| ISO04 mixed server ICE rejected | 등록 후 실제 가드 단위 명령 exit0 | PASS | 최초 무효 실행 이력은 위에 보존 |
+| ISO05 TURN rejected | 등록 후 실제 가드 단위 명령 exit0 | PASS | 최초 무효 실행 이력은 위에 보존 |
+| ISO06 unowned port rejected | 등록 후 실제 가드 단위 명령 exit0 | PASS | 최초 무효 실행 이력은 위에 보존 |
+| ISO07 unexpected credentials rejected | 등록 후 실제 가드 단위 명령 exit0 | PASS | 최초 무효 실행 이력은 위에 보존 |
+| ISO08 env guard | 프로세스 생성 전 exact loopback 검증 | PASS | UDP60806 소유 |
+| ISO08 codec config | /webrtc/config 실제 응답 exact 검사 | PASS | codec 명령 전 |
+| ISO08 ICE config | /webrtc/config 실제 응답 exact 검사 | PASS | ICE 명령 전 |
+| ISO08 metadata config | /webrtc/config 실제 응답 exact 검사 | PASS | metadata 명령 전 |
+| verify-codecs/1: file_local_h264_aac: RTSP /default -> h264/aac | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/2: file_local_h264_aac: RTSP /h264 -> h264/aac | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/3: file_local_h264_aac: RTSP /h265 -> hevc/aac | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/4: file_local_h264_aac: RTSP /opus -> h264/opus | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/5: file_local_h264_aac: RTSP /h265/opus -> hevc/opus | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/6: file_local_h264_aac: RTSP /pcmu -> h264/pcm_mulaw | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/7: file_local_h264_aac: RTSP /h265/pcmu -> hevc/pcm_mulaw | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/8: file_local_h264_aac: RTSP /pcma -> h264/pcm_alaw | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/9: file_local_h264_aac: RTSP /h265/pcma -> hevc/pcm_alaw | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/10: file_local_h264_aac: WebRTC signaling session created ([SESSION_ID]) | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/11: file_local_h265_aac: RTSP /default -> h264/aac | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/12: file_local_h265_aac: RTSP /h264 -> h264/aac | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/13: file_local_h265_aac: RTSP /h265 -> hevc/aac | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/14: file_local_h265_aac: RTSP /opus -> h264/opus | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/15: file_local_h265_aac: RTSP /h265/opus -> hevc/opus | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/16: file_local_h265_aac: RTSP /pcmu -> h264/pcm_mulaw | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/17: file_local_h265_aac: RTSP /h265/pcmu -> hevc/pcm_mulaw | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/18: file_local_h265_aac: RTSP /pcma -> h264/pcm_alaw | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/19: file_local_h265_aac: RTSP /h265/pcma -> hevc/pcm_alaw | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/20: file_local_h265_aac: WebRTC signaling session created ([SESSION_ID]) | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/21: http_local_h264_aac: RTSP /default -> h264/aac | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/22: http_local_h264_aac: RTSP /h264 -> h264/aac | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/23: http_local_h264_aac: RTSP /opus -> h264/opus | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/24: http_local_h264_aac: WebRTC signaling session created ([SESSION_ID]) | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/25: http_local_h264_video_only: RTSP /default -> h264/aac | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/26: http_local_h264_video_only: RTSP /h264 -> h264/aac | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/27: http_local_h264_video_only: RTSP /h265 -> hevc/aac | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/28: http_local_h264_video_only: WebRTC signaling session created ([SESSION_ID]) | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/29: hls_local_h264_aac: RTSP /default -> h264/aac | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/30: hls_local_h264_aac: RTSP /h264 -> h264/aac | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/31: hls_local_h264_aac: RTSP /opus -> h264/opus | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/32: hls_local_h264_aac: WebRTC signaling session created ([SESSION_ID]) | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/33: rtsp_local_h265_opus: RTSP /default -> h264/aac | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/34: rtsp_local_h265_opus: RTSP /h264 -> h264/aac | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/35: rtsp_local_h265_opus: RTSP /h265 -> hevc/aac | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/36: rtsp_local_h265_opus: RTSP /opus -> h264/opus | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/37: rtsp_local_h265_opus: RTSP /h265/opus -> hevc/opus | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/38: rtsp_local_h265_opus: RTSP /pcmu -> h264/pcm_mulaw | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/39: rtsp_local_h265_opus: RTSP /h265/pcmu -> hevc/pcm_mulaw | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/40: rtsp_local_h265_opus: RTSP /pcma -> h264/pcm_alaw | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/41: rtsp_local_h265_opus: RTSP /h265/pcma -> hevc/pcm_alaw | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/42: rtsp_local_h265_opus: WebRTC signaling session created ([SESSION_ID]) | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/43: rtsp_local_h264_pcmu: RTSP /default -> h264/aac | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/44: rtsp_local_h264_pcmu: RTSP /h264 -> h264/aac | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/45: rtsp_local_h264_pcmu: RTSP /h265 -> hevc/aac | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/46: rtsp_local_h264_pcmu: RTSP /opus -> h264/opus | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/47: rtsp_local_h264_pcmu: RTSP /h265/opus -> hevc/opus | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/48: rtsp_local_h264_pcmu: RTSP /pcmu -> h264/pcm_mulaw | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/49: rtsp_local_h264_pcmu: RTSP /h265/pcmu -> hevc/pcm_mulaw | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/50: rtsp_local_h264_pcmu: RTSP /pcma -> h264/pcm_alaw | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/51: rtsp_local_h264_pcmu: RTSP /h265/pcma -> hevc/pcm_alaw | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/52: rtsp_local_h264_pcmu: WebRTC signaling session created ([SESSION_ID]) | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/53: rtsp_local_h264_pcma: RTSP /default -> h264/aac | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/54: rtsp_local_h264_pcma: RTSP /h264 -> h264/aac | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/55: rtsp_local_h264_pcma: RTSP /h265 -> hevc/aac | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/56: rtsp_local_h264_pcma: RTSP /opus -> h264/opus | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/57: rtsp_local_h264_pcma: RTSP /h265/opus -> hevc/opus | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/58: rtsp_local_h264_pcma: RTSP /pcmu -> h264/pcm_mulaw | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/59: rtsp_local_h264_pcma: RTSP /h265/pcmu -> hevc/pcm_mulaw | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/60: rtsp_local_h264_pcma: RTSP /pcma -> h264/pcm_alaw | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/61: rtsp_local_h264_pcma: RTSP /h265/pcma -> hevc/pcm_alaw | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/62: rtsp_local_h264_pcma: WebRTC signaling session created ([SESSION_ID]) | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/63: webrtc_local_publish_h264_opus: WebRTC signaling session created ([SESSION_ID]) | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/64: webrtc_local_publish_h264_opus: RTSP /default -> h264/aac | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/65: webrtc_local_publish_h264_opus: RTSP /h264 -> h264/aac | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/66: webrtc_local_publish_h264_opus: RTSP /h265 -> hevc/aac | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-codecs/67: webrtc_local_publish_h264_opus: RTSP /opus -> h264/opus | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-webrtc-ice/1: STUN URI 형식 확인 | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-webrtc-ice/2: TURN URI 형식 확인 | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-webrtc-ice/3: HTTP health ok | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-webrtc-ice/4: WebRTC browser ICE config 확인 | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-webrtc-ice/5: WebRTC session 생성: [SESSION_ID] | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-webrtc-ice/6: ICE candidate 수집 확인 | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-webrtc-ice/7: ICE transport policy 확인: all | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-webrtc-ice/8: WHIP publish -> WebRTC signaling 확인 | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-webrtc-va-metadata/1: HTTP health ok | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-webrtc-va-metadata/2: WebRTC video track 수신 확인 | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-webrtc-va-metadata/3: WebRTC ICE connected 확인 | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-webrtc-va-metadata/4: WebRTC DataChannel open 확인 | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-webrtc-va-metadata/5: WebRTC DataChannel label va-metadata 확인 | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-webrtc-va-metadata/6: WebRTC metadata message 수신 확인 | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-webrtc-va-metadata/7: WebRTC metadata schema 확인 | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-webrtc-va-metadata/8: WebRTC metadata tracks array 확인 | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-webrtc-va-metadata/9: WebRTC metadata events array 확인 | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| verify-webrtc-va-metadata/10: WebRTC metadata sync diagnostics 확인 | 실제 격리 서버, 명령 exit0 | PASS | 같은 기능 재검증 |
+| ISO10 서버 정리 | PID49972 exit0/graceful=true | PASS | 강제 종료 없음 |
+| ISO10 포트 정리 | RTSP64785/HTTP64786 및 launcher64787~64792 해제 | PASS | closed=true |
+| ISO10 UDP 정리 | 소유 UDP60806 close 및 lsof listener 부재 | PASS | lsof exit1/출력없음 |
+| ISO10 Chrome 정리 | debug65210 listener 부재 | PASS | lsof exit1/출력없음 |
+| ISO10 root 정리 | jqRqlh root1756750 B 삭제 | PASS | rootAbsent=true |
+
+[codec 로그](release-artifacts/v4.1.0/s10-writer-activation/local-verify-codecs.log),
+[ICE 로그](release-artifacts/v4.1.0/s10-writer-activation/local-verify-webrtc-ice.log),
+[metadata 로그](release-artifacts/v4.1.0/s10-writer-activation/local-verify-webrtc-va-metadata.log),
+[실행/정리 로그](release-artifacts/v4.1.0/s10-writer-activation/local-media-execution.log).
+source URL/session/candidate 주소는 가렸고 원본 세션·디버그·임시 미디어는 삭제했다.
+이번 실행의 외부 영상 source3개(YouTube2/Wowza)는 기존 disabled 제외이며 PASS가 아니다.
+UI 전체/30분/120분/S11, 후속3, 커밋/푸시는 미실행이다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| `/private/tmp/media_server_webrtc-ice-1789197973-51119_candidates.ndjson` | 검증 소유 임시 산출물 | 2004 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/private/tmp/media_server_webrtc-ice-1789197973-51119_session.json` | 검증 소유 임시 산출물 | 1200 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/private/tmp/media_server_webrtc-ice-1789197973-51119_summary.json` | 검증 소유 임시 산출물 | 287 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/private/tmp/media_server_webrtc-ice-1789197973-51119_webrtc_config.json` | 검증 소유 임시 산출물 | 222 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/private/tmp/media_server_webrtc-ice-1789197973-51119_whip.log` | 검증 소유 임시 산출물 | 2364 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-jqRqlh-hls_local_h264_aac.hls.log` | 검증 소유 임시 산출물 | 2488 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-jqRqlh-hls_local_h264_aac_hls` | 검증 소유 임시 산출물 | 1418800 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-jqRqlh-http_local_h264_aac.http.log` | 검증 소유 임시 산출물 | 427 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-jqRqlh-http_local_h264_video_only.http.log` | 검증 소유 임시 산출물 | 471 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcma.launcher.log` | 검증 소유 임시 산출물 | 74 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-jqRqlh-rtsp_local_h264_pcmu.launcher.log` | 검증 소유 임시 산출물 | 74 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-jqRqlh-rtsp_local_h265_opus.launcher.log` | 검증 소유 임시 산출물 | 74 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-jqRqlh-webrtc_local_publish_h264_opus.publisher.log` | 검증 소유 임시 산출물 | 175 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/chrome.log` | 검증 소유 임시 산출물 | 1860 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/execution.json` | 검증 소유 임시 산출물 | 438 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/metadata-summary.json` | 검증 소유 임시 산출물 | 2367 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/server.log` | 검증 소유 임시 산출물 | 66460 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/verify-codecs.log` | 검증 소유 임시 산출물 | 11785 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/verify-webrtc-ice.log` | 검증 소유 임시 산출물 | 1609 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/verify-webrtc-va-metadata.log` | 검증 소유 임시 산출물 | 540 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression-v2.mjs` | 검증 소유 임시 산출물 | 6727 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression-v2-driver.log` | 검증 소유 임시 산출물 | 1848 B | 삭제 | 부재 확인 | [크기/hash](release-artifacts/v4.1.0/s10-writer-activation/local-media-cleanup.jsonl) |
+
+## S10 후속 2번 입력·writer 연결 (2026-09-12)
+
+### 입력/writer 통합 후 영향 회귀 실행 전 정의
+
+기존 기능의 이번 실행 묶음이다. 새 UI/외부 endpoint/120분은 포함하지 않는다.
+writer focused GREEN과 코드 동결 뒤 순차 실행한다. 기존 제품 코드와 무관한 과거 PASS를
+이번 source 변경의 미디어 PASS로 재사용하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-REG-build | 전체 제품 빌드 | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build`; source/WHIP 관측 연결을 실제 제품 TU와 함께 컴파일, exit0 | v4.1.0 실행 묶음 |
+| S10-REG-recorder | 기존 recorder 계약 | `bash scripts/internal/verify_v410_recording_recorder.sh`; 기존 raw 모드 분할·quota·atomic finalize 개별 assertion 전수 | v4.1.0 |
+| S10-REG-codecs | 기존 로컬 codec matrix | 격리 서버에서 `./server.sh verify-codecs`, 외부 입력 비활성; 실제 RTSP/WebRTC signaling 각 route 결과 | 기존 codec 기능, v4.1.0 회귀 |
+| S10-REG-ice | 로컬 ICE | 격리 서버에서 `./server.sh verify-webrtc-ice`; 외부 STUN/TURN 미지정, local candidate 및 publish/consume | 기존 ICE 기능, v4.1.0 회귀 |
+| S10-REG-metadata | WebRTC VA metadata | 격리 서버에서 `./server.sh verify-webrtc-va-metadata --http-base <loopback> --debug-port <owned-port>`; 기존 metadata 개별 결과, UI 풀테스트 아님 | 기존 metadata 기능, v4.1.0 회귀 |
+| S10-REG-cleanup | 검증 소유 자원 정리 | 실행별 process 종료·port 해제·임시 root 부재; 원출력 redaction 후 최소 텍스트 보존 | v4.1.0 |
+
+위 표는 실행 전 정의이며 실제 실행 결과와 구분한다. 제품 서버는 auth off인 검증 소유 루프백 환경만 허용하며 운영 계정/저장소는 접근하지 않는다.
+
+### 메인 빌드·미디어 영향 회귀 — 범위 이탈로 완료 보류
+
+- 전체 빌드: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build`, session41885, exit0, 43초. [빌드 로그](release-artifacts/v4.1.0/s10-writer-activation/build.log), [동결 소스/바이너리 SHA256](release-artifacts/v4.1.0/s10-writer-activation/source-fingerprint.json). 이번 빌드 로그에는 compiler warning/error가 없다.
+- 최초 미디어 준비: sandbox의 loopback listen EPERM, exit1. 제품 기동 전 실패이며 [원출력](release-artifacts/v4.1.0/s10-writer-activation/media-sandbox-failure.log)을 보존한다. 생성된 빈 소유 root `media-server-s10-media-5b3JIF`(0 B)를 삭제·부재 확인하고 포트 예약을 root 생성보다 먼저 하도록 임시 harness만 보완했다.
+- 권한 검토를 거친 실행 session6438은 명령 exit0이지만 **로컬 한정 검증은 FAIL**이다. 빈 `MEDIA_SERVER_WEBRTC_STUN_SERVER`를 비활성으로 오판했다. `src/app_config.cpp::ReadEnv`는 빈 값을 미설정으로 취급하며 `include/app_config.h` 기본값과 `verify_webrtc_ice_config.sh:276`의 기본값은 Google STUN이다. 실제 ICE 로그에는 해당 서버와 srflx 후보3개가 확인됐다. 외부 통신 범위 이탈이며 사용자에게 즉시 정정·보고했다.
+- 이탈은 순차 명령 종료 후 원출력 검토에서 발견했다. 해당 미디어 묶음을 로컬 한정 PASS로 사용하지 않고 추가 실행/커밋/후속 단계는 중단했다. 제품 기본 STUN 정책은 수정하지 않았다.
+- 재개 조건: 사용자 판단 후 **검증 소유 설정에서 외부 STUN을 실제로 차단하고 기동 전/후 유효 설정을 확인하는 준비 보완**, 영향 미디어 회귀 재실행. 이미 유효한 입력14/writer37/ready55/recorder118 및 빌드를 인계 때문에 반복하지 않는다.
+- `verify-codecs`: 67/0, 제외3, 335.132초. `verify-webrtc-ice`: 8/0, 17.508초. `verify-webrtc-va-metadata`: stdout assertion10개 PASS, summary는 기존 도구의 8/0, 5.871초. 이 차이를 숨기거나 UI 전체 PASS로 바꾸지 않는다. 전체 harness 361.582초; token start/end/consumed는 집계 API 부재로 미집계, source=Node Date.now/셸 exit/원출력.
+- 운영 계정·녹화 저장소는 사용하지 않았다. auth off/loopback/검증 전용 root, 녹화·event hook 비활성. 외부 영상 source3개는 config disabled였지만 STUN 통신까지 막지는 못했다.
+- [실행·정리 로그](release-artifacts/v4.1.0/s10-writer-activation/media-execution.log), [과거 실패 harness](release-artifacts/v4.1.0/s10-writer-activation/failed-media-harness.txt)는 재현·원인 보존용이다. 그대로 재실행하면 안 된다.
+- [codec 원출력](release-artifacts/v4.1.0/s10-writer-activation/verify-codecs.log), [ICE 원출력](release-artifacts/v4.1.0/s10-writer-activation/verify-webrtc-ice.log), [metadata 원출력](release-artifacts/v4.1.0/s10-writer-activation/verify-webrtc-va-metadata.log)은 source URL/session 식별자/candidate 주소를 가렸다. 원본 debug/session/미디어는 아래대로 삭제했다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| S10-REG-build | 전체 제품 compile/link, exit0, 43초 | PASS | 동결 코드 |
+| S10-REG-isolation | 실제 browser ICE config/candidate의 외부 STUN 미사용 경계 | FAIL | 빈 값이 기본 Google STUN으로 fallback; srflx3 관측 |
+| verify-codecs/1: file_local_h264_aac: RTSP /default -> h264/aac | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/2: file_local_h264_aac: RTSP /h264 -> h264/aac | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/3: file_local_h264_aac: RTSP /h265 -> hevc/aac | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/4: file_local_h264_aac: RTSP /opus -> h264/opus | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/5: file_local_h264_aac: RTSP /h265/opus -> hevc/opus | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/6: file_local_h264_aac: RTSP /pcmu -> h264/pcm_mulaw | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/7: file_local_h264_aac: RTSP /h265/pcmu -> hevc/pcm_mulaw | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/8: file_local_h264_aac: RTSP /pcma -> h264/pcm_alaw | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/9: file_local_h264_aac: RTSP /h265/pcma -> hevc/pcm_alaw | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/10: file_local_h264_aac: WebRTC signaling session created ([SESSION_ID]) | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/11: file_local_h265_aac: RTSP /default -> h264/aac | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/12: file_local_h265_aac: RTSP /h264 -> h264/aac | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/13: file_local_h265_aac: RTSP /h265 -> hevc/aac | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/14: file_local_h265_aac: RTSP /opus -> h264/opus | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/15: file_local_h265_aac: RTSP /h265/opus -> hevc/opus | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/16: file_local_h265_aac: RTSP /pcmu -> h264/pcm_mulaw | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/17: file_local_h265_aac: RTSP /h265/pcmu -> hevc/pcm_mulaw | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/18: file_local_h265_aac: RTSP /pcma -> h264/pcm_alaw | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/19: file_local_h265_aac: RTSP /h265/pcma -> hevc/pcm_alaw | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/20: file_local_h265_aac: WebRTC signaling session created ([SESSION_ID]) | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/21: http_local_h264_aac: RTSP /default -> h264/aac | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/22: http_local_h264_aac: RTSP /h264 -> h264/aac | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/23: http_local_h264_aac: RTSP /opus -> h264/opus | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/24: http_local_h264_aac: WebRTC signaling session created ([SESSION_ID]) | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/25: http_local_h264_video_only: RTSP /default -> h264/aac | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/26: http_local_h264_video_only: RTSP /h264 -> h264/aac | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/27: http_local_h264_video_only: RTSP /h265 -> hevc/aac | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/28: http_local_h264_video_only: WebRTC signaling session created ([SESSION_ID]) | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/29: hls_local_h264_aac: RTSP /default -> h264/aac | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/30: hls_local_h264_aac: RTSP /h264 -> h264/aac | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/31: hls_local_h264_aac: RTSP /opus -> h264/opus | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/32: hls_local_h264_aac: WebRTC signaling session created ([SESSION_ID]) | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/33: rtsp_local_h265_opus: RTSP /default -> h264/aac | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/34: rtsp_local_h265_opus: RTSP /h264 -> h264/aac | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/35: rtsp_local_h265_opus: RTSP /h265 -> hevc/aac | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/36: rtsp_local_h265_opus: RTSP /opus -> h264/opus | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/37: rtsp_local_h265_opus: RTSP /h265/opus -> hevc/opus | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/38: rtsp_local_h265_opus: RTSP /pcmu -> h264/pcm_mulaw | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/39: rtsp_local_h265_opus: RTSP /h265/pcmu -> hevc/pcm_mulaw | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/40: rtsp_local_h265_opus: RTSP /pcma -> h264/pcm_alaw | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/41: rtsp_local_h265_opus: RTSP /h265/pcma -> hevc/pcm_alaw | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/42: rtsp_local_h265_opus: WebRTC signaling session created ([SESSION_ID]) | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/43: rtsp_local_h264_pcmu: RTSP /default -> h264/aac | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/44: rtsp_local_h264_pcmu: RTSP /h264 -> h264/aac | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/45: rtsp_local_h264_pcmu: RTSP /h265 -> hevc/aac | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/46: rtsp_local_h264_pcmu: RTSP /opus -> h264/opus | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/47: rtsp_local_h264_pcmu: RTSP /h265/opus -> hevc/opus | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/48: rtsp_local_h264_pcmu: RTSP /pcmu -> h264/pcm_mulaw | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/49: rtsp_local_h264_pcmu: RTSP /h265/pcmu -> hevc/pcm_mulaw | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/50: rtsp_local_h264_pcmu: RTSP /pcma -> h264/pcm_alaw | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/51: rtsp_local_h264_pcmu: RTSP /h265/pcma -> hevc/pcm_alaw | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/52: rtsp_local_h264_pcmu: WebRTC signaling session created ([SESSION_ID]) | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/53: rtsp_local_h264_pcma: RTSP /default -> h264/aac | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/54: rtsp_local_h264_pcma: RTSP /h264 -> h264/aac | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/55: rtsp_local_h264_pcma: RTSP /h265 -> hevc/aac | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/56: rtsp_local_h264_pcma: RTSP /opus -> h264/opus | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/57: rtsp_local_h264_pcma: RTSP /h265/opus -> hevc/opus | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/58: rtsp_local_h264_pcma: RTSP /pcmu -> h264/pcm_mulaw | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/59: rtsp_local_h264_pcma: RTSP /h265/pcmu -> hevc/pcm_mulaw | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/60: rtsp_local_h264_pcma: RTSP /pcma -> h264/pcm_alaw | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/61: rtsp_local_h264_pcma: RTSP /h265/pcma -> hevc/pcm_alaw | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/62: rtsp_local_h264_pcma: WebRTC signaling session created ([SESSION_ID]) | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/63: webrtc_local_publish_h264_opus: WebRTC signaling session created ([SESSION_ID]) | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/64: webrtc_local_publish_h264_opus: RTSP /default -> h264/aac | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/65: webrtc_local_publish_h264_opus: RTSP /h264 -> h264/aac | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/66: webrtc_local_publish_h264_opus: RTSP /h265 -> hevc/aac | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-codecs/67: webrtc_local_publish_h264_opus: RTSP /opus -> h264/opus | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-webrtc-ice/1: STUN URI 형식 확인 | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-webrtc-ice/2: TURN URI 형식 확인 | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-webrtc-ice/3: HTTP health ok | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-webrtc-ice/4: WebRTC browser ICE config 확인 | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-webrtc-ice/5: WebRTC session 생성: [SESSION_ID] | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-webrtc-ice/6: ICE candidate 수집 확인 | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-webrtc-ice/7: ICE transport policy 확인: all | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-webrtc-ice/8: WHIP publish -> WebRTC signaling 확인 | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-webrtc-va-metadata/1: HTTP health ok | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-webrtc-va-metadata/2: WebRTC video track 수신 확인 | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-webrtc-va-metadata/3: WebRTC ICE connected 확인 | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-webrtc-va-metadata/4: WebRTC DataChannel open 확인 | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-webrtc-va-metadata/5: WebRTC DataChannel label va-metadata 확인 | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-webrtc-va-metadata/6: WebRTC metadata message 수신 확인 | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-webrtc-va-metadata/7: WebRTC metadata schema 확인 | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-webrtc-va-metadata/8: WebRTC metadata tracks array 확인 | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-webrtc-va-metadata/9: WebRTC metadata events array 확인 | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| verify-webrtc-va-metadata/10: WebRTC metadata sync diagnostics 확인 | 스크립트 자체 assertion; exit0 | PASS | 외부 STUN 경계 이탈로 로컬 한정 완료 근거 불가 |
+| S10-REG-cleanup 서버 | PID16902 정상 종료 exit0, graceful=true | PASS | 강제 종료 없음 |
+| S10-REG-cleanup 포트 | RTSP61048/HTTP61049 및 launcher61050~61055 해제 | PASS | runner closed=true |
+| S10-REG-cleanup Chrome | debug61462 listener 부재 | PASS | lsof exit1/출력없음; verifier Chrome 종료 경로 |
+| S10-REG-cleanup root | DYmFpM root 1756750 B 제거·부재 | PASS | 원출력 rootAbsent=true |
+
+| 항목 | 실행 상태 | 완료 근거로 사용할 수 없는 이유 |
+| --- | --- | --- |
+| 외부 영상 source 3개 | 제외 | YouTube upload/live, Wowza disabled; 기능 PASS 아님 |
+| 로컬 한정 미디어 재검증 | 미실행 | 범위 이탈 중단, 격리 보완에 대한 사용자 판단 필요 |
+| 문서 link/assets 검증 | 미실행 | 미디어 범위 이탈 발견 후 뒤 단계 중단 |
+| UI 풀테스트/30분/120분/S11 | 미실행 | 이번 개발 범위 아님 |
+| 서버 기본 writer/소비자 전환 | 미실행 | 후속3 범위 |
+
+정리 표의 삭제는 검증 소유 임시 산출물만 대상으로 했다. 디버그 원문·세션 자료·HLS 임시 영상은 복구용 사본을 남기지 않았고, 비민감 전수 결과·최초 실패·재현 경계는 저장소에 보존한다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| `/private/tmp/media_server_webrtc-ice-1789184492-18238_candidates.ndjson` | 검증 소유 임시 산출물 | 2028 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/private/tmp/media_server_webrtc-ice-1789184492-18238_session.json` | 검증 소유 임시 산출물 | 1200 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/private/tmp/media_server_webrtc-ice-1789184492-18238_summary.json` | 검증 소유 임시 산출물 | 303 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/private/tmp/media_server_webrtc-ice-1789184492-18238_webrtc_config.json` | 검증 소유 임시 산출물 | 230 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/private/tmp/media_server_webrtc-ice-1789184492-18238_whip.log` | 검증 소유 임시 산출물 | 2364 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-DYmFpM-hls_local_h264_aac.hls.log` | 검증 소유 임시 산출물 | 2488 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-DYmFpM-hls_local_h264_aac_hls` | 검증 소유 임시 산출물 | 1418800 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-DYmFpM-http_local_h264_aac.http.log` | 검증 소유 임시 산출물 | 427 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-DYmFpM-http_local_h264_video_only.http.log` | 검증 소유 임시 산출물 | 471 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-DYmFpM-rtsp_local_h264_pcma.launcher.log` | 검증 소유 임시 산출물 | 74 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-DYmFpM-rtsp_local_h264_pcmu.launcher.log` | 검증 소유 임시 산출물 | 74 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-DYmFpM-rtsp_local_h265_opus.launcher.log` | 검증 소유 임시 산출물 | 74 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/private/tmp/s10-media-server-s10-media-DYmFpM-webrtc_local_publish_h264_opus.publisher.log` | 검증 소유 임시 산출물 | 175 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression/chrome.log` | 검증 소유 임시 산출물 | 1860 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression/execution.json` | 검증 소유 임시 산출물 | 438 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression/metadata-summary.json` | 검증 소유 임시 산출물 | 2361 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression/server.log` | 검증 소유 임시 산출물 | 63705 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression/verify-codecs.log` | 검증 소유 임시 산출물 | 11785 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression/verify-webrtc-ice.log` | 검증 소유 임시 산출물 | 1640 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression/verify-webrtc-va-metadata.log` | 검증 소유 임시 산출물 | 537 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+| `/Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression.mjs` | 검증 소유 임시 산출물 | 5671 B | 삭제 | 부재 확인 | [cleanup/hash](release-artifacts/v4.1.0/s10-writer-activation/media-cleanup.jsonl) |
+
+검토용 로그 추가 정리: `/private/tmp/media-server-s10-build-sjHx5E/build.log` 12,651 B,
+`media-regression-authorized.log` 1,531 B, `media-regression.log` 481 B는 저장소 보존본과
+끝 공백 제외 동일성 대조 후 삭제했으며 부모 root도 부재 확인했다. 비민감 최소 로그만 영구 보존했다.
+최종 `git diff --check` exit0. 현재 브랜치 `v4.1.0`, HEAD `3166fded`, 기존 미커밋 변경을 보존했다.
+이번 범위 커밋·푸시는 미수행이다. 푸시 가능: 아니오 — 미커밋 상태이며 영향 회귀 완료 조건이 남았다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 후속2 실제 입력·writer 시간/ID/저장소 계약 개발 | 부분 완료 | 구현·focused·빌드 통과, 로컬 한정 미디어 회귀 범위 이탈로 완료 보류 | 이 절 및 WR/INPUT 전수 결과 |
+
+### WR09 active ready 실행 결과
+
+메인 직접 구현: `CommitFinalizeReadyV2`가 정확한 영속 ticket과 요청을 대조하고 catalog 예약/소유권을 검증한 뒤 publish→commit→cleanup한다.
+기존 V1 API의 V2 무검증 publish/clear 거부는 유지한다. 전체 root scan을 하지 않는다.
+명령 `bash scripts/internal/verify_v410_recording_finalize_recovery.sh`: RED exit1(54 PASS/1 예상 FAIL), GREEN exit0(55 PASS/0 FAIL).
+원출력: [RED](release-artifacts/v4.1.0/s10-writer-activation/active-ready-red.log), [GREEN](release-artifacts/v4.1.0/s10-writer-activation/active-ready-green.log).
+기존52개와 신규3개 전수 대조다. 이 단독 검증 당시 active writer는 미실행이었으며 이후 실제 writer 결과는 아래 WR 기록으로 구분한다. token start/end/consumed=미집계(API 없음), elapsed=미집계(실행 시작·종료 시각 별도 수집 누락), source=로컬 셸 원출력.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| ready partial recovers original segment ID | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| FR02 interrupted publish converges: final only | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| FR02 repeated recovery no duplicate mutation | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| FR02 interrupted publish converges: owned two links | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| FR02 repeated recovery no duplicate mutation | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| FR03 catalog commit before cleanup does not append or replace | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| FR04 invalid version preserves original without publication | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| FR04 invalid duplicate preserves original without publication | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| FR04 invalid nonce preserves original without publication | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| FR04 invalid escape preserves original without publication | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| FR04 invalid identity preserves original without publication | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| FR05 symlink ticket rejected and external target untouched | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| FR05 foreign hardlink rejected without unlink | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| FR05 actual unreadable ticket preserves media | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| FR06 corrupt unknown isolated in place without finalized mutation | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| FR06 repeated corruption recovery converges without resurrection | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| FR07 pending takes precedence over ready publication | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| FR07 deleted takes precedence over ready publication | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| FR07 conflict takes precedence over ready publication | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| FR08 orphan not inferred and legacy owned partial cleaned | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker partial | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M08 V2 ready recovers exact metadata partial | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M08 V2 journal restart and repeated recovery partial | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker two-links | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M08 V2 ready recovers exact metadata two-links | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M08 V2 journal restart and repeated recovery two-links | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker final | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M08 V2 ready recovers exact metadata final | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M08 V2 journal restart and repeated recovery final | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker committed | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M08 V2 ready recovers exact metadata committed | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M08 V2 journal restart and repeated recovery committed | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M08 V2 ready writer preserves versioned envelope | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M09 V2 ready refusal preserves originals missing-order | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M09 V2 ready refusal preserves originals wrong-tuple | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M09 V2 ready refusal preserves originals optout | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M09 V2 ready refusal preserves originals deleted | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M09 V2 ready refusal preserves originals mapping | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M09 V2 ready refusal preserves originals path | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M09 V2 ready refusal preserves originals version | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M09 V2 ready refusal preserves originals event | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M09 V2 ready refusal preserves originals corrupt-pair | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M09 V2 ready refusal preserves originals foreign-link | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M09 V2 ready writer rejects mixed-id | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M09 V2 ready writer rejects mixed-size | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M09 V2 ready writer rejects mixed-source | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M09 V2 ready writer rejects mixed-time | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M09 V2 ready writer rejects event | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M09 V2 ready writer rejects oversize | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M09 V2 direct publish requires catalog | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M09 V1 inspector still rejects two links | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-M09 V2 direct clear preserves uncommitted ticket and marker | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-WR09 active ready validates publishes commits and clears exact ticket | 실제 파일/catalog; 위 명령 exit0 | PASS | 최초 예상 RED 후 구현하여 PASS |
+| S10-WR09 active ready refusal preserves originals changed-ticket | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+| S10-WR09 active ready refusal preserves originals missing-order | 실제 파일/catalog; 위 명령 exit0 | PASS | RED/GREEN 모두 PASS |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| `/private/tmp/media-server-finalize-QXqzNy` | RED 빌드/격리 미디어 | 4,119,657 B | runner 소유 경로 삭제 | 삭제 완료 | RED cleanup 출력 |
+| `/private/tmp/media-server-finalize-u3Mjow` | GREEN 빌드/격리 미디어 | 4,119,649 B | runner 소유 경로 삭제 | 삭제 완료 | GREEN cleanup 출력 |
+| `docs/release-artifacts/v4.1.0/s10-writer-activation/active-ready-*.log` | 비민감 assertion 원출력 | 합계 7,076 B | 저장소 보존 | 보존 | 최초 실패·회귀 근거; 미디어·비밀번호 없음 |
+| `/private/tmp/media-server-s10-active-ready-9lmtoo` | 원출력 임시 사본 | 7,076 B | 보존본과 cmp 후 두 파일 삭제·빈 디렉터리 제거 | 부재 확인 | 저장소에 동일 원출력 보존 |
+
+WR09 active ready 추가 정의(실행 전): `active ready validates publishes commits and clears exact ticket`,
+`active ready refusal preserves originals changed-ticket`, `active ready refusal preserves originals missing-order`.
+실제 파일과 catalog를 사용한다. 최초 예상 RED는 미구현 commit stub 때문에 첫 번째 assertion만 실패하는 것이다.
+명령은 `bash scripts/internal/verify_v410_recording_finalize_recovery.sh`; 기존 52검사는 영향 회귀이며 새 3검사와 구분한다.
+
+아래는 실행 전 정의다. 이후 결과는 WR/INPUT 결과 절에 기록하며 제품 기본 전환·소비자 통합·S11 PASS가 아니다.
+이번 변경의 입력/미디어 단기 검증만 실행한다. OS 시계·운영 저장소·외부 서비스는 변경하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-INPUT01 | 원본 timestamp 부재·유효 0·uint64 범위 | 실제 GstBuffer 원본 PTS/DTS/duration와 optional 관측 비교; 기존 packet 숫자 불변 | v4.1.0 |
+| S10-INPUT02 | SEGMENT/buffer 직렬 세대 결박 | 이전 sample을 보유한 채 새 SEGMENT와 buffer를 보내 이전·신규 세대가 섞이지 않는지 확인 | v4.1.0 |
+| S10-INPUT03 | DISCONT 단독 연속성 유지 | 같은 세대의 DISCONT buffer에서 세대 유지와 flag 보존 확인 | v4.1.0 |
+| S10-INPUT04 | 관측기 새 수명 세대 분리 | 서로 다른 sink/publisher 수명의 실제 buffer 관측 generation 비교 | v4.1.0 |
+| S10-INPUT05 | cache 복사 관측 보존 | 실제 cache/packet 복사·재전달에서 ordinal/clock/generation 동일성 확인 | v4.1.0 |
+| S10-INPUT06 | PTS 재정렬 입력 불변 | PTS 후퇴와 DTS 증가를 넣어 원본 숫자·payload 및 같은 세대 유지 확인 | v4.1.0 |
+| S10-INPUT07 | clock 짝 읽기 provenance | mono before≤after, process identity와 UTC 관측 존재 확인; 촬영 시각으로 승격하지 않음 | v4.1.0 |
+| S10-INPUT08 | SEGMENT 재전달 멱등성 | 동일 seqnum SEGMENT 재전달에서 불필요 세대 증가 없음 확인 | v4.1.0 |
+| S10-INPUT09 | 중복 설치와 BUFFER_LIST | 실제 probe 중복 설치·buffer list에서 각 buffer 관측과 ordinal 확인 | v4.1.0 |
+| S10-INPUT10 | 동일 buffer 다중 pad·재전달 | 동일 원본 객체의 최초 관측 보존과 qdata 수명·경합 안전 확인 | v4.1.0 |
+| S10-INPUT01 하위 경계 | 미설치·필수 이벤트 누락 | `INPUT01 missing installation or stream signal remains unobserved`: 실제 pad의 설치 전/STREAM_START 미관측 buffer는 optional 부재. 최초 GREEN 뒤 실행 전 추가, 예상 RED 아님 | v4.1.0 |
+| S10-INPUT02 하위 경계 | flush 후 재개 | `INPUT02 flush followed by same sequence segment starts a new generation`: 실제 flush start/stop 후 동일 seq SEGMENT라도 새 세대. 최초 GREEN 뒤 실행 전 추가, 예상 RED 아님 | v4.1.0 |
+| S10-INPUT10 하위 경계 | 최초 결박 동시 경합 | `INPUT10 concurrent pads bind one immutable observation`: 관측 없는 동일 buffer를 두 실제 pad에서 병행 push, 동일 관측 한 개 보존. 최초 GREEN 뒤 실행 전 추가, 예상 RED 아님 | v4.1.0 |
+| S10-WR01 | 정상 미디어 분할·관리 저장 | 실제 H264/VP8 keyframe 입력, 새 ID/order/ready/catalog metadata·파일 재생 확인 | v4.1.0 |
+| S10-WR02 | UTC 중간 후퇴 | 연속 미디어 중 UTC만 4034ms 후퇴; 물리 분할·프레임 수 유지 및 매핑 분리 확인 | v4.1.0 |
+| S10-WR03 | UTC keyframe 경계 후퇴 | 물리 분할과 시계 매핑 독립 및 원본 프레임 중복·누락 확인 | v4.1.0 |
+| S10-WR04 | UTC 전진 | UTC만 4034ms 전진; 미디어 순서·프레임 보존과 매핑 공백 확인 | v4.1.0 |
+| S10-WR05 | PTS 재정렬·중복 | 실제 DTS 증가 재정렬 입력의 epoch 미변경; 표현 불가능 매핑 unknown 및 안전 mux 확인 | v4.1.0 |
+| S10-WR06 | 원본 세대 변경·재시작 | 명시 generation 변경과 PTS reset, writer/store 재시작에서 ID 미재사용·내구 순서 증가 확인 | v4.1.0 |
+| S10-WR07 | 재전달·queue 처리 지연 | 같은 observation 재전달 중복 억제, 처리 시각 대신 원본 관측 사용 확인 | v4.1.0 |
+| S10-WR08 | duration 부재·overflow·관측 부재 | 끝 범위 임의 생성 없음; 미확정 시간·안전 mux 불가를 정상으로 꾸미지 않음 | v4.1.0 |
+| S10-WR09 | 매핑 예산·저장 상한·복구 | clock drift/관측 지연·256개 제한·unknown tail, ready 오류 후 같은 ID/order 복구 확인 | v4.1.0 |
+
+실행 상태: INPUT은 아래 실제 결과로 대체한다. WR 실행 상태는 메인이 별도 기록한다. token start/end/consumed는 사용량 집계 API 부재로 미집계이며 elapsed/source는 실행 결과에 기록한다.
+원출력의 모든 assertion을 결과표로 보존한다. 임시 산출물은 소유 경로·크기 확인 후 정리하며 cleanup도 별도 기록한다.
+
+### WR 실제 미디어 writer 검사 실행 전 세부 정의
+
+`bash scripts/internal/verify_recording_managed_writer.sh`를 실행한다. 최초 compiler 가능한 V2 Start reject stub의 예상 RED는 아래10개 정상수용 assertion이며 빌드/encode/store fixture 오류는 RED가 아니다. 실제 H264/VP8 encode→writer→managed catalog→decode를 대조한다. 과거 INPUT 및 WR09 active-ready 검사는 별도 유지한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| WR01 h264 managed segments decode all frames without legacy callback or snapshot | H264 저장 | 60frame→3segment·60decode, V1 callback/snapshot 없음 | v4.1.0 |
+| WR01 vp8 managed segments decode all frames without legacy callback or snapshot | VP8 저장 | 60frame→3segment·60decode, V1 callback/snapshot 없음 | v4.1.0 |
+| WR02 UTC-only change preserves media splits frames and independent mapping | 중간 UTC 후퇴 | 15번째 이후 -4034ms, split/frame 불변·mapping 추가 | v4.1.0 |
+| WR03 UTC-only change preserves media splits frames and independent mapping | keyframe UTC 후퇴 | 20번째 이후 -4034ms, split/frame 불변 | v4.1.0 |
+| WR04 UTC-only change preserves media splits frames and independent mapping | 중간 UTC 전진 | 15번째 이후 +4034ms, split/frame 불변·mapping 추가 | v4.1.0 |
+| WR05 duplicate PTS with advancing DTS preserves media and unknown mapping | 재정렬 | VP8 중복 PTS·DTS 진행, decode60·unknown mapping | v4.1.0 |
+| WR06 explicit generation reset creates a new media epoch | 세대 변경 | 20번째 keyframe부터 새세대·PTS/DTS reset, decode60 | v4.1.0 |
+| WR07 repeated observations and processing UTC do not duplicate media | 재전달 | 각 packet 두 번·처리 UTC 변경, decode60 | v4.1.0 |
+| WR08 missing final duration preserves media with unknown end | 끝 부재 | 마지막 duration null, V2 media_end null·unknown·decode60 | v4.1.0 |
+| WR09 mapping budget retains bounded unknown tail and all frames | metadata 예산 | 실제270frame·반복clock step, 최대256mapping·unknown-tail·decode270 | v4.1.0 |
+
+추가 경계 실행 전 등록(첫 GREEN10 이후, 아래는 예상 RED가 아닌 기존 확정 계약 검사):
+- `WR01 invalid binding rejects before writes journal`, `WR01 invalid binding rejects before writes catalog`, `WR01 invalid binding rejects before writes root`, `WR01 invalid binding rejects before writes store`, `WR01 invalid binding rejects before writes lease`, `WR01 invalid binding rejects before writes incomplete`: 시작 전 결박 거부·원장/미생성 경로 불변.
+- `WR08 clock process change preserves same-generation media with unknown comparison`: 동일세대에서 clock process 변경은 unknown 매핑과 영상 유지.
+- `WR08 invalid duration leaves unknown end zero`, `WR08 invalid duration leaves unknown end overflow`: 끝 임의 생성 없음·영상 유지.
+- `WR08 unsafe original input cannot become finalized observation`, `WR08 unsafe original input cannot become finalized pts`, `WR08 unsafe original input cannot become finalized range`: 원본 부재/범위초과 정상 finalize 금지.
+- `WR07 older generation cache cannot switch media backwards`, `WR07 unrelated video track cannot change selected track identity`: 묵은 cache·다른 video track 비혼합.
+- `WR06 reopened store allocates fresh IDs and increasing durable order`: 객체/저장소 재open 후 실제 decode120·신규 ID/order.
+- `WR05 actual H264 reordering preserves decode timestamps and mux origin`: 실제 B-frame encode→mux→decode timestamp와 media_start=origin 대조. 첫 DTS<PTS pre-roll은 거짓 UTC로 표시하지 않음.
+
+### WR 실제 결과 — 관리형 writer 한정 검증 (2026-09-12)
+
+명령은 아래 10회 모두 `bash scripts/internal/verify_recording_managed_writer.sh`다. 최종 37개 판정은 실제 H264/VP8 encode→관리형 writer→원장/catalog→decode와 시간·ID·복구 경계를 확인했다. 일반 fixture 관측 시계는 결정적 합성이며 마지막 actual appsink 항목만 실제 pad probe→Read 관측을 사용했다. 서버 기본 V1 경로 전환·source_factory 전체 실행·UI·장시간 통과를 뜻하지 않는다. 전체 build/media 회귀는 메인 담당으로 별도 기록한다. token start/end/consumed는 집계 API 연결이 없어 미집계, elapsed source는 runner Bash SECONDS(초 단위)다.
+
+18362는 미사용 fixture Read 함수와 기존 V1 ready aggregate의 새 optional 필드 누락에 따른 -Werror 빌드 실패다. assertion 전수 미실행이며 예상 RED가 아니다. 승인된 안전한 로컬 수정으로 사용하지 않는 함수 제거 및 명시 nullopt 초기화 후 재개했다. 최초 compiler 원문 chunk는 이관용 로그에 미보존이며 오류 종류와 cleanup 직접 결과만 보존한다. 79006은 최대 표출 PTS 끝을 누락한 실제 결함(예상 RED 아님)이며 최대끝 추적 후 해소했다. 67234/93757은 사전 지정 시간품질 미구현 assertion만 예상 RED다.
+
+| 실행 | exit | pass/fail | elapsed | 이력 |
+| --- | ---: | --- | ---: | --- |
+| 18362 | 1 | assertion 미실행 | 3초 | 빌드 실패 |
+| 78929 | 1 | 0/10 | 4초 | 예상 RED10 |
+| 20489 | 0 | 10/0 | 4초 | 해당 실행 범위 통과 |
+| 18485 | 0 | 26/0 | 4초 | 해당 실행 범위 통과 |
+| 30659 | 0 | 30/0 | 5초 | 해당 실행 범위 통과 |
+| 79006 | 1 | 30/1 | 5초 | 실제 end 경계 실패 |
+| 67234 | 1 | 33/2 | 5초 | 예상 RED2 |
+| 48278 | 0 | 36/0 | 5초 | 해당 실행 범위 통과 |
+| 93757 | 1 | 36/1 | 5초 | 예상 RED1 |
+| 2978 | 0 | 37/0 | 5초 | 해당 실행 범위 통과 |
+
+동일 제목의 실행별 실제 판정을 한 행에 합쳤다. 이력에 없는 실행에서는 해당 항목이 아직 추가되지 않아 미실행이며 PASS로 사용하지 않는다. 제목은 원출력 그대로 보존한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 실제 실행 이력 |
+| --- | --- | --- | --- |
+| WR01 h264 managed segments decode all frames without legacy callback or snapshot | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 78929 fail; 20489 pass; 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR01 vp8 managed segments decode all frames without legacy callback or snapshot | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 78929 fail; 20489 pass; 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR02 UTC-only change preserves media splits frames and independent mapping | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 78929 fail; 20489 pass; 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR03 UTC-only change preserves media splits frames and independent mapping | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 78929 fail; 20489 pass; 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR04 UTC-only change preserves media splits frames and independent mapping | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 78929 fail; 20489 pass; 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR05 duplicate PTS with advancing DTS preserves media and unknown mapping | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 78929 fail; 20489 pass; 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR06 explicit generation reset creates a new media epoch | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 78929 fail; 20489 pass; 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR07 repeated observations and processing UTC do not duplicate media | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 78929 fail; 20489 pass; 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR08 missing final duration preserves media with unknown end | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 78929 fail; 20489 pass; 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR09 mapping budget retains bounded unknown tail and all frames | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 78929 fail; 20489 pass; 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR01 invalid binding rejects before writes journal | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR01 invalid binding rejects before writes catalog | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR01 invalid binding rejects before writes root | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR01 invalid binding rejects before writes store | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR01 invalid binding rejects before writes lease | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR01 invalid binding rejects before writes incomplete | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR08 clock process change preserves same-generation media with unknown comparison | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR08 invalid duration leaves unknown end zero | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR08 invalid duration leaves unknown end overflow | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR08 unsafe original input cannot become finalized observation | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR08 unsafe original input cannot become finalized pts | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR08 unsafe original input cannot become finalized range | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR07 older generation cache cannot switch media backwards | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR07 unrelated video track cannot change selected track identity | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR06 reopened store allocates fresh IDs and increasing durable order | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR05 actual H264 reordering preserves decode timestamps and mux origin | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 18485 pass; 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR05 reordered segment end covers maximum presented frame end | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 79006 fail; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR08 missing maximum PTS frame duration keeps reordered end unknown | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 48278 pass; 93757 pass; 2978 pass |
+| WR09 failed active commit preserves ready order and quota reservation | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR09 restart recovers the same durable segment and all frames | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR08 excessive clock width preserves media as unknown | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR08 zero generation order cannot become finalized | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 30659 pass; 79006 pass; 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR08 media observation quality normal | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+| WR08 media observation quality fast | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 67234 fail; 48278 pass; 93757 pass; 2978 pass |
+| WR08 media observation quality drift | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 67234 fail; 48278 pass; 93757 pass; 2978 pass |
+| WR08 media observation quality fast-step | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 93757 fail; 2978 pass |
+| WR01 actual appsink observation flows through managed writer and decode | 위 명령의 독립 assertion 실행; 최종 exit0 | pass | 67234 pass; 48278 pass; 93757 pass; 2978 pass |
+
+측정값: 실제 B-frame 마지막 decode packet 끝=3100000000ns, 전체 최대 표출 끝=3200000000ns. 최대 PTS frame duration 부재 시 보수적 media_end=null 및 decode30 확인. 정상 시계 estimated, 빠른 입력/동시 clock-step unknown, 완만 drift uncertainty≥7901000ns를 확인했다. clock remap 수치에는 PTS를 넣지 않았고 미디어 잔차 판단은 remap 여부와 독립이다.
+
+| 경로 | 종류 | 삭제 전 bytes | 조치/결과 |
+| --- | --- | ---: | --- |
+| `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-managed-writer.wxhxyd` | 18362 소유 compile/media/store fixture | 0 | runner 삭제, removed=true |
+| `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-managed-writer.Y5bv7t` | 78929 소유 compile/media/store fixture | 3851628 | runner 삭제, removed=true |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.fTSWfA` | 20489 소유 compile/media/store fixture | 4671145 | runner 삭제, removed=true |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.5iRqw0` | 18485 소유 compile/media/store fixture | 6901300 | runner 삭제, removed=true |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.6gfNZy` | 30659 소유 compile/media/store fixture | 7522596 | runner 삭제, removed=true |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.nvDsX1` | 79006 소유 compile/media/store fixture | 7522772 | runner 삭제, removed=true |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.UOj02o` | 67234 소유 compile/media/store fixture | 8367058 | runner 삭제, removed=true |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.PfydOD` | 48278 소유 compile/media/store fixture | 8604895 | runner 삭제, removed=true |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.eUInna` | 93757 소유 compile/media/store fixture | 8842867 | runner 삭제, removed=true |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.PG15nu` | 2978 소유 compile/media/store fixture | 8840527 | runner 삭제, removed=true |
+
+12회(writer10/input2) 도구 원출력은 [writer/input 실행 로그](release-artifacts/v4.1.0/s10-writer-activation/writer-input-runs.log)에 보존한다. 인증정보·원본 source URL 없이 fixture 판정/안전 reason/소유 경로만 존재한다. 메인이 실제 diff와 원출력을 직접 대조했다. 같은 writer 객체의 Stop→Start 재사용은 입력 highwater/failure latch를 유지하므로 지원 검증으로 주장하지 않는다. 새로운 writer 객체/저장소 재open은 검증했다. 커밋·푸시·실서버·전체 build·UI·30/120분은 이 담당자 미실행이며 메인 영향 회귀는 별도 기록한다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| `.media_server.test/s10-managed-writer-18362/results.log` | 검토용 원출력 | 24,904 B | 저장소 보존본과 끝 공백 제외 동일성 확인 후 삭제 | 파일/부모 디렉터리 부재 | 위 영구 로그 |
+| `.media_server.test/s10-managed-writer-18362/recorder.log` | 기존 recorder 원출력 | 11,150 B | 동일 대조 후 삭제 | 파일/부모 디렉터리 부재 | [원출력](release-artifacts/v4.1.0/s10-writer-activation/legacy-recorder.log) |
+
+#### WR 기존 V1 recorder 영향 회귀
+
+`bash scripts/internal/verify_v410_recording_recorder.sh`, session88076, exit0, pass118/fail0. 실행 elapsed와 token start/end/consumed 미집계. GStreamer scanner는 GLib typelib 공유라이브러리 2개 부재 경고, gi.repository.Gst 탐색 CRITICAL 및 GTK3/GTK4 중복 class 경고를 출력했다. 경고를 없음으로 보고하지 않으며 실제 native fixture 118개는 통과했다. 기존 V1 clock characterization의 productFixed=false도 그대로 유지한다. V2로 기본 전환되었다는 증거가 아니다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 1. 기본 녹화 설정 유효 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 2. disk reserve와 retention 주기 기본값 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 3. 활성화+quota 0 거부 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 4. 녹화/media root 중복 거부 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 5. global/source/channel opt-in 삼중 경계 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 6. Recorder subscriber 추가 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 7. 역할별 subscriber 계수 분리 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 8. client 추가 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 9. 느린 recorder 추가 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 10. recorder overflow가 client queue를 차단하지 않음 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 11. source policy 저장 성공 뒤 reconcile callback | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 12. source policy snapshot | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 13. source policy create/save/load/snapshot round-trip | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 14. legacy source policy 호환 저장 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 15. legacy source policy snapshot | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 16. legacy quotaBytes/retentionDays를 분리 정책으로 이행 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 17. eventMaxBytes 0 저장 실패 시 callback 미호출 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 18. 음수 continuousMaxAgeMs 저장 거부 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 19. 음수 continuousMaxBytes 명시 입력을 default로 대체하지 않고 거부 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 20. 형식이 잘못된 continuousMaxBytes 명시 입력 거부 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 21. 형식이 잘못된 continuousMaxAgeMs 명시 입력 거부 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 22. 음수 legacy quotaBytes 명시 입력 거부 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 23. viewer-safe client view에 quota/storage path 비노출 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 24. application DTO snapshot | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 25. application DTO recording policy 보존 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 26. h264 fixture encode | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 27. h264 writer 시작: | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 28. h264 S07 delta 미수락 시간 위치 없음 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 29. h264 delta-start 차단 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 30. callback finalized V1 양수 시간구간 검증 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 31. callback 시 final 파일 존재 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 32. callback 시 partial 제거 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 33. h264 S07 수락 시간 epoch와 PTS 일치 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 34. h264 열린 segment는 partial 한 개 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 35. h264 열린 segment marker는 소유 partial nonce를 결박 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 36. callback finalized V1 양수 시간구간 검증 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 37. callback 시 final 파일 존재 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 38. callback 시 partial 제거 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 39. h264 S07 종료 시간 위치 없음 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 40. h264 10초 뒤 다음 keyframe 분할 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 41. h264 finalized callback | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 42. foreign 고정 partial 보존 writer 시작 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 43. nonce partial은 기존 고정 foreign partial을 덮어쓰거나 삭제하면 안 됨 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 44. S09-LD02 writer 시작 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 45. S09-LD02 실제 finalized V1과 파일 크기 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 46. S09-LD02 실제 finalized V1과 파일 크기 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 47. S09-LD02 실제 두 세그먼트 생성 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 48. S09-LD02 UTC 원값 보존 및 구간간 후퇴 재현 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 49. S10-C01 주입 경계 존재 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 50. S10-C01 writer 시작 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 51. S10-C01 실제 V1 파일 무결성 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 52. S10-C01 단일 물리 파일 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 53. S10-C01 PTS 유지 및 현재 단일 anchor 불일치 관찰 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 54. S10-C02 주입 경계 존재 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 55. S10-C02 writer 시작 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 56. S10-C02 실제 V1 파일 무결성 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 57. S10-C02 단일 물리 파일 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 58. S10-C02 PTS 유지 및 현재 단일 anchor 불일치 관찰 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 59. S10-C03 주입 경계 존재 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 60. S10-C03 writer 시작 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 61. S10-C03 실제 V1 파일 무결성 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 62. S10-C03 단일 물리 파일 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 63. S10-C03 PTS 유지 및 현재 단일 anchor 불일치 관찰 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 64. S10-C04 주입 경계 존재 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 65. S10-C04 writer 시작 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 66. S10-C04 실제 V1 파일 무결성 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 67. S10-C04 단일 물리 파일 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 68. S10-C04 PTS 유지 및 현재 단일 anchor 불일치 관찰 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 69. rollback writer 시작 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 70. rollback finalized V1과 실제 파일 크기 일치 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 71. S07 rollback 모호한 시간 위치 없음 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 72. rollback finalized V1과 실제 파일 크기 일치 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 73. PTS rollback 시 새 stream epoch | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 74. writer admission 시작 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 75. storage-blocked 뒤 다음 keyframe에서 새 epoch로 재개 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 76. admission reserve를 segment finalize 실제 용량으로 반환 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 77. partial/finalized 실제 파일 크기를 admission 진행량으로 보고 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 78. 실제 파일 예약 초과 writer 시작 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 79. 실제 파일 예약 초과는 catalog callback 전 제거·high-water 반환 후 새 epoch 재개 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 80. writer 예약 hard bound 시작 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 81. bounded finalized V1과 실제 파일 예약 상한 검증 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 82. bounded finalized V1과 실제 파일 예약 상한 검증 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 83. bounded finalized V1과 실제 파일 예약 상한 검증 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 84. bounded finalized V1과 실제 파일 예약 상한 검증 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 85. bounded finalized V1과 실제 파일 예약 상한 검증 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 86. bounded finalized V1과 실제 파일 예약 상한 검증 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 87. bounded finalized V1과 실제 파일 예약 상한 검증 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 88. bounded finalized V1과 실제 파일 예약 상한 검증 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 89. 예약 payload 상한 도달 시 keyframe 경계 재개와 실제 파일 크기 상한 유지 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 90. catalog finalize 실패 writer 시작 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 91. catalog journal/finalize 실패는 ready와 final을 보존하고 예약 유지 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 92. cleanup marker symlink 선점 공격 writer 시작 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 93. cleanup marker symlink 선점 fixture 생성 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 94. cleanup marker symlink 선점 시 root 밖/공유 inode 내용을 truncate하지 않음 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 95. cleanup marker hardlink 선점 공격 writer 시작 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 96. cleanup marker hardlink 선점 fixture 생성 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 97. cleanup marker hardlink 선점 시 root 밖/공유 inode 내용을 truncate하지 않음 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 98. catalog 성공 뒤 marker 제거 실패 writer 시작 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 99. catalog 성공 뒤 marker 제거 실패 시 예약과 marker를 유지 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 100. final media cleanup 실패 writer 시작 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 101. final media 제거 실패 시 durable marker를 남기고 예약을 반환하지 않음 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 102. vp8 fixture encode | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 103. vp8 writer 시작: | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 104. vp8 S07 delta 미수락 시간 위치 없음 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 105. vp8 delta-start 차단 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 106. callback finalized V1 양수 시간구간 검증 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 107. callback 시 final 파일 존재 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 108. callback 시 partial 제거 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 109. vp8 S07 수락 시간 epoch와 PTS 일치 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 110. vp8 열린 segment는 partial 한 개 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 111. vp8 열린 segment marker는 소유 partial nonce를 결박 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 112. callback finalized V1 양수 시간구간 검증 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 113. callback 시 final 파일 존재 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 114. callback 시 partial 제거 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 115. vp8 S07 종료 시간 위치 없음 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 116. vp8 10초 뒤 다음 keyframe 분할 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 117. vp8 finalized callback | 실제 recorder command의 순서별 assertion; exit0 | pass |
+| 118. VP8 S07 rollback 모호한 시간 위치 없음 | 실제 recorder command의 순서별 assertion; exit0 | pass |
+
+cleanup: `/tmp/media_server_v410_recording_recorder-16762`, 4054451bytes, runner 삭제 removed=true. 원출력은 위 영구 로그에 이관했고 메인 대조용 임시 사본은 삭제·부재 확인했다. 재현용 fixture/media 임시 root는 남기지 않았다.
+
+### INPUT 실제 결과 (2026-09-12)
+
+#### INPUT generation_order 후속 결과
+
+명령 두 번 모두 `bash scripts/internal/verify_recording_input_observation.sh`. 4863 exit1=13 pass/1 fail은 선언 기본0 상태의 사전 지정 generation_order 예상 RED다. 81148 exit0=14 pass/0 fail. 기존 13개 결과를 유지하며 process-local 순서를 추가했다. elapsed는 별도 계측하지 않았으며 도구 polling 대기시간을 실제 실행시간으로 대체하지 않는다. token start/end/consumed도 미집계다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| INPUT01 original missing zero and uint64 timestamps remain distinct | 실제 pad/appsink/SharedStream fixture, 81148 pass; 4863 pass | pass |
+| INPUT02 serialized segment changes generation before next buffer | 실제 pad/appsink/SharedStream fixture, 81148 pass; 4863 pass | pass |
+| INPUT03 DISCONT alone preserves source generation | 실제 pad/appsink/SharedStream fixture, 81148 pass; 4863 pass | pass |
+| INPUT04 new sink lifetime has a distinct generation | 실제 pad/appsink/SharedStream fixture, 81148 pass; 4863 pass | pass |
+| INPUT02 process-local generation order advances across segments and sinks | 실제 pad/appsink/SharedStream fixture, 81148 pass; 4863 fail(예상 RED) | pass |
+| INPUT05 actual GOP cache replay preserves complete observation | 실제 pad/appsink/SharedStream fixture, 81148 pass; 4863 pass | pass |
+| INPUT06 reordered PTS preserves generation original values and payload | 실제 pad/appsink/SharedStream fixture, 81148 pass; 4863 pass | pass |
+| INPUT07 clock observation brackets UTC with a process identity | 실제 pad/appsink/SharedStream fixture, 81148 pass; 4863 pass | pass |
+| INPUT08 repeated segment seqnum and duplicate installation do not reissue identity | 실제 pad/appsink/SharedStream fixture, 81148 pass; 4863 pass | pass |
+| INPUT09 buffer list receives one observation per original buffer | 실제 pad/appsink/SharedStream fixture, 81148 pass; 4863 pass | pass |
+| INPUT10 same buffer across pads and new segment retains first immutable observation | 실제 pad/appsink/SharedStream fixture, 81148 pass; 4863 pass | pass |
+| INPUT01 missing installation or stream signal remains unobserved | 실제 pad/appsink/SharedStream fixture, 81148 pass; 4863 pass | pass |
+| INPUT02 flush followed by same sequence segment starts a new generation | 실제 pad/appsink/SharedStream fixture, 81148 pass; 4863 pass | pass |
+| INPUT10 concurrent pads bind one immutable observation | 실제 pad/appsink/SharedStream fixture, 81148 pass; 4863 pass | pass |
+
+| 경로 | 종류 | 삭제 전 bytes | 조치/결과 |
+| --- | --- | ---: | --- |
+| `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-input-observation.jjfKrH` | 4863 소유 binary fixture | 545160 | 삭제, removed=true |
+| `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-input-observation.rxrxrG` | 81148 소유 binary fixture | 545736 | 삭제, removed=true |
+
+새 필드도 cache 및 동일 buffer 불변 관측 비교에 포함했다. 실제 source/네트워크 통합·generation counter overflow 실횟수 실행은 범위 밖이며 source 코드 연결은 메인 build/media 검증과 분리한다.
+
+
+
+clock 품질 실행 전 등록: `WR08 media observation quality normal`은 기존 정상속도 estimated 양성, `WR08 media observation quality fast`는 PTS가 관측mono보다2배 진행해 unknown이어야 하며 현재 구현에서는 예상 RED, `WR08 media observation quality drift`는 frame당 UTC+100000ns 완만 drift의 최대잔차+측정예산7901000ns를 uncertainty가 포함해야 하며 현재 구현에서는 예상 RED다. clock 보정식에 PTS를 섞지 않고 미디어 대응품질을 별도 보수판정한다. `WR01 actual appsink observation flows through managed writer and decode`는 수동 clock 주입 없이 실제 encode appsink probe→Read→writer→catalog→decode60을 검사한다(네트워크/source_factory전체 통합 아님). 앞선 writer fixture의 clock은 결정적 합성이었다. endmax 실제실패79006의 last3100000000/max3200000000ns는 별도 결함 이력이며 아래 실행 전 최대끝 보존으로 수정했다.
+
+WR08 실행 전 추가: `WR08 media observation quality fast-step`은 빠른 PTS 진행과 매 관측 UTC step을 함께 주어 clock remap 여부와 독립적으로 앞 매핑의 미디어 대응을 unknown으로 낮추는지 검사한다. 현재 !split guard로 앞 매핑이 estimated인 예상 RED 1개이며 나머지 36개는 회귀다.
+
+WR08 실행 전 추가: `WR08 missing maximum PTS frame duration keeps reordered end unknown`은 실제 B-frame 최대 PTS packet의 duration을 비우고 뒤 decode packet duration이 유효해도 media_end가 null이며 30프레임을 보존하는지 확인한다. 승인된 보수적 end 불명확성 보완의 characterization이며 임의 실패를 예상 RED로 바꾸지 않는다.
+
+WR05 실행 전 추가: `WR05 reordered segment end covers maximum presented frame end`는 실제 B-frame 입력 모든 원본 PTS+duration의 최대값과 확정 media_end를 대조한다. 마지막 decode 순서의 frame 끝만 저장하면 최대 표출 범위를 누락하는 결함을 검출한다. actual encode fixture의 마지막 끝/최대 끝 수치도 출력한다. 기존30개와 별도이며 결과를 임의 예상 RED로 바꾸지 않는다.
+
+writer 마지막 경계 실행 전 추가: `WR09 failed active commit preserves ready order and quota reservation`, `WR09 restart recovers the same durable segment and all frames`는 자체 fixture 원장에 유효 동일 예약 envelope를 append하여 기존 객체 poison→ready/예약 보존→새 객체 recovery/동일 ID/order/decode60을 검사한다. `WR08 excessive clock width preserves media as unknown`는 6ms clock 폭에서도 영상 유지, `WR08 zero generation order cannot become finalized`는 0세대 순서 거부다. 기존 WR07 묵은cache fixture는 고의 잘못된 clock도 넣어 새 generation_order와 시간품질 독립을 확인한다. 기존 INPUT14 및 writer26결과는 해당 실행 범위로 유지한다.
+
+세대순서 보완 실행 전 등록: `INPUT02 process-local generation order advances across segments and sinks`를 추가한다. 선언 기본0인 상태에서 이1개만 예상 RED이며 기존13개는 회귀다. INPUT05·10의 동일성 비교에는 새 내부 `generation_order`도 포함한다. 이는 프로세스 내 원본 세대 순서이며 UTC·영속 녹화 순서와 다르다. writer WR07 묵은 cache는 clock 품질과 무관하게 이 값으로 거부하도록 계약을 보완한다.
+
+명령 세 번 모두 `bash scripts/internal/verify_recording_input_observation.sh`이다. appsink pad probe의 원본 관측과 실제 SharedStream GOP 복사를 확인한 한정 단기 검증이며 actual RTSP/WebRTC/file worker 전체 실행·제품 build·writer/저장 연결·UI·장시간 PASS가 아니다. 기존 packet pts/dts/payload 변환식과 cache 전달 코드는 변경하지 않았다. 기존 두 source 변환 함수에는 관측 복사만 추가했다. ordinal overflow는 guard 코드 검토 경계이며 uint64 최대 횟수 실제 실행으로 검증하지 않았다. clock 관측은 촬영 시각 또는 네트워크 최초 수신 시각의 보장이 아니다.
+
+| 실행 | 실제 결과 | 비고 |
+| --- | --- | --- |
+| RED session7878 | exit1, pass0/fail10 | 관측 없는 컴파일 가능 stub에서 사전 지정 INPUT01~10 assertion만 실패. 빌드/fixture 오류 없음 |
+| GREEN session49194 | exit0, pass10/fail0 | 최초 구현 후 동일10개 전수 통과 |
+| 최종 session51876 | exit0, pass13/fail0 | 기존10개와 사전등록 하위3개 전수 통과; 새3개는 예상 RED로 주장하지 않음 |
+
+token start/end/consumed: 미집계(사용량 집계값 없음). 세 실행의 실제 총 elapsed: 미계측. 도구의 개별 호출 wait 시간은 명령 전체 실행시간이 아니므로 대체하지 않는다. source: exec/write_stdin 원출력. 메인이 실제 diff/13개 assertion과 이력을 대조하고 [입력 원출력](release-artifacts/v4.1.0/s10-writer-activation/input-observation.log)에 이관했다. 비밀번호/source URL/header/body는 출력하지 않았다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| `INPUT01 original missing zero and uint64 timestamps remain distinct` | 실제 Gst pad/appsink fixture; 최종 session51876 exit0; RED7878 fail → GREEN49194 pass → 최종 pass | pass |
+| `INPUT02 serialized segment changes generation before next buffer` | 실제 Gst pad/appsink fixture; 최종 session51876 exit0; RED7878 fail → GREEN49194 pass → 최종 pass | pass |
+| `INPUT03 DISCONT alone preserves source generation` | 실제 Gst pad/appsink fixture; 최종 session51876 exit0; RED7878 fail → GREEN49194 pass → 최종 pass | pass |
+| `INPUT04 new sink lifetime has a distinct generation` | 실제 Gst pad/appsink fixture; 최종 session51876 exit0; RED7878 fail → GREEN49194 pass → 최종 pass | pass |
+| `INPUT05 actual GOP cache replay preserves complete observation` | 실제 Gst pad/appsink→SharedStream GOP cache fixture; 최종 session51876 exit0; RED7878 fail → GREEN49194 pass → 최종 pass | pass |
+| `INPUT06 reordered PTS preserves generation original values and payload` | 실제 Gst pad/appsink fixture; 최종 session51876 exit0; RED7878 fail → GREEN49194 pass → 최종 pass | pass |
+| `INPUT07 clock observation brackets UTC with a process identity` | 실제 Gst pad/appsink fixture; 최종 session51876 exit0; RED7878 fail → GREEN49194 pass → 최종 pass | pass |
+| `INPUT08 repeated segment seqnum and duplicate installation do not reissue identity` | 실제 Gst pad/appsink fixture; 최종 session51876 exit0; RED7878 fail → GREEN49194 pass → 최종 pass | pass |
+| `INPUT09 buffer list receives one observation per original buffer` | 실제 Gst pad/appsink fixture; 최종 session51876 exit0; RED7878 fail → GREEN49194 pass → 최종 pass | pass |
+| `INPUT10 same buffer across pads and new segment retains first immutable observation` | 실제 Gst pad/appsink fixture; 최종 session51876 exit0; RED7878 fail → GREEN49194 pass → 최종 pass | pass |
+| `INPUT01 missing installation or stream signal remains unobserved` | 실제 Gst pad/appsink fixture; 최종 session51876 exit0; 최종 실행 전 추가; 최초 두 실행에는 미포함 | pass |
+| `INPUT02 flush followed by same sequence segment starts a new generation` | 실제 Gst pad/appsink fixture; 최종 session51876 exit0; 최종 실행 전 추가; 최초 두 실행에는 미포함 | pass |
+| `INPUT10 concurrent pads bind one immutable observation` | 실제 Gst pad/appsink fixture; 최종 session51876 exit0; 최종 실행 전 추가; 최초 두 실행에는 미포함 | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 결과 |
+| --- | --- | ---: | --- | --- |
+| `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-input-observation.Xy91Vn` | RED 컴파일 binary | 509944 B | runner 소유 binary 삭제 후 rmdir | removed=true |
+| `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-input-observation.YIeSxK` | GREEN 컴파일 binary | 520856 B | runner 소유 binary 삭제 후 rmdir | removed=true |
+| `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-input-observation.xhff2m` | 최종 컴파일 binary | 545160 B | runner 소유 binary 삭제 후 rmdir | removed=true |
+
+`git diff --check`: exit0/출력 없음(입력 구현과 기록 변경 후 재확인). 실제 서버·포트·영구 데이터 산출물 없음.
+임시 인계 로그 `.media_server.test/s10-input-observation-7878/results.log`(3,327 B)는 저장소 보존본과 cmp 일치 후 삭제하고 빈 디렉터리를 제거했다. 커밋·푸시 미수행.
+
 ## S10 저장소 활성화 선행 1C
 
 ### 추가 경계 실행 전 등록
@@ -2227,6 +3029,217 @@ elapsed는 실행 호출 직전부터 종료 결과 수집까지의 wall clock �
 별도 raw 로그 파일은 생성하지 않았고 도구 원출력을 메모리에 보존한 뒤 이 표로 이관했다. 기존 SQLite sentinel과 writer marker의 bytes 보존으로 Open 선행 차단을 직접 확인했다. RebuildSqliteLocked 추가 guard는 코드 검토한 방어 계층이며 독립 실행 검증으로 확대하지 않는다. 동시 외부 writer/store 소유권·구버전 바이너리 downgrade 차단은 이번 증거가 아니며 S10-3B 경계다. 전체 build·writer/media·장시간·UI·커밋·푸시는 미실행이다. S10 시간 저장/복구 전체 완료를 뜻하지 않는다.
 
 후속 비실행 검증: `git diff --check` exit0. 두 소유 temp 경로에 `lstat`를 직접 수행하여 각각 ENOENT를 확인했다(exit0). 신규 임시 산출물 없음. 문구 갱신 patch 한 차례가 기존 긴 행과 context 불일치로 적용되지 않았고, 제품/테스트 실패가 아니며 해당 실행 결과는 변경하지 않았다.
+
+## S10-2 시간 판정 모델 사전등록 (2026-09-12)
+
+실제 writer 특성 재현도 사전 등록한다. `./server.sh verify-v410-recording-recorder`에 S10-C01~04를
+추가한다. 각 case는 주입 경계·시작·실제 파일 무결성·파일 수·PTS/UTC 잔차 5개 assertion이며,
+정상 잔차0, 파일 중간 후퇴-4034ms, keyframe 후퇴-4034ms, 전진+4034ms를 예상한다.
+PTS/DTS/payload는 원본 30 packet 그대로 전달한다. PASS는 현재 제품의 불일치 재현 성공이며
+수정 PASS가 아니다. 기존 smoke 실패·예상 밖 실패는 중단 대상이다. 아래 안정화 승인 범위에 포함한다.
+
+범위: `bash scripts/internal/verify_recording_time_policy_probe.sh`의 순수 C++ 설계 모델.
+제품 writer·mux·파일·분석·API·복구·UI는 연결하지 않으며 S10-T01~09 제품 합격을 대체하지 않는다.
+P01~P23 제목/입력/assertion은 `scripts/internal/recording_time_policy_probe.cpp`에 실행 전 등록했다.
+P01~09는 정상/UTC 단독 후퇴·전진/오차·drift/관측 불량, P10~16은 연속/재정렬/재전달/세대/부재,
+P17~22는 duration·유효 0·부재·overflow, P23은 매핑 개수 상한을 검사한다.
+예상 RED는 아직 Unknown/null을 반환하는 Compare/Classify/KnownEnd의 신규 정상·분류 assertion 실패다.
+컴파일/환경 오류와 기존 회귀 실패는 예상 RED가 아니다. 이후 동일 모델 구현 후 GREEN을 확인한다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 사용자 S10-2 잔여 진행 | P01~P23 설계 모델·diff check | 이번 범위 승인 |
+| 30분 테스트 | 미진행 | 설계 모델만 변경·S11 아님 | S10-2 범위 | 실행하지 않음 |
+| 120분 테스트 | 미진행 | 실제 미디어·서버 lifecycle 무변경 | S10-2 범위 | 실행하지 않음 |
+| UI 풀테스트 | 미진행 | UI 무변경 | S10-2 범위 | 실행하지 않음 |
+
+token start/end/consumed: 명령별 집계 미제공으로 미집계. elapsed/source는 실행 결과에 기록한다.
+스크립트는 전용 mktemp 디렉터리에 단일 binary만 만들고 성공/실패 모두 제거·디렉터리 제거를 확인한다.
+
+### S10-2 실행 결과
+
+- 모델 RED: `bash scripts/internal/verify_recording_time_policy_probe.sh`, exit1, pass10/fail13.
+  사전등록한 Unknown/null stub의 예상 assertion과 일치. elapsed 0.610초, binary 42,232B 제거.
+- 모델 GREEN: 같은 명령, exit0, pass23/fail0, elapsed 0.500초, binary 42,760B 제거.
+- 경계 검사 보완: P04를 정확한 52ms(50ms+두 관측 해상도2ms) 경계로 맞추고 cleanup leaf 출력 추가.
+  `bash -n scripts/internal/verify_recording_time_policy_probe.sh && bash scripts/internal/verify_recording_time_policy_probe.sh`,
+  exit0, pass23/fail0, elapsed 0.585초. `/private/tmp/media-server-s10-policy.3bOvpu` 42760B 제거 확인.
+- runner 임시 경로를 `${TMPDIR:-/tmp}`로 바꿔 macOS 고정 `/private/tmp` 의존을 제거한 후 같은
+  syntax+모델 명령 exit0, pass23/fail0, elapsed 0.349초. Linux 실행 자체는 미검증이다.
+- 실제 writer: `./server.sh verify-v410-recording-recorder`, exit0, pass118/fail0.
+  기존98 + 신규20. 실행 session7611, 전체 elapsed는 도구의 분할 반환으로 미집계.
+  주입된 catalog/finalize 실패 검사의 recovery-pending 로그는 의도된 경로다. 새 GTK 경고는 관찰되지 않았다.
+- source: 실제 exec/write_stdin 출력. token start/end/consumed는 자동 계수 미제공으로 미집계.
+  서버·HTTP/RTSP 포트·UI는 시작하지 않았다. GStreamer encode/mux를 사용했다.
+
+| case | 입력 packet 수 | 주입 index | UTC 변화 ms | 실제 UTC start/end ms | UTC-미디어 경과 잔차 ms |
+| --- | ---: | ---: | ---: | --- | ---: |
+| S10-C01 | 30 | 15 | 0 | 10000/24500 | 0 |
+| S10-C02 | 30 | 15(비키프레임) | -4034 | 10000/20466 | -4034 |
+| S10-C03 | 30 | 16(키프레임) | -4034 | 10000/20466 | -4034 |
+| S10-C04 | 30 | 15 | 4034 | 10000/28534 | 4034 |
+
+모든 case에서 단일 파일, 동일 stream epoch, 원본 첫/끝 PTS를 확인했다. decoded frame 수·seek·
+재생 누락 여부는 이번 명령이 검사하지 않았다. 소실된 S09 72162 payload의 원인을 확정한 것도 아니다.
+설계 모델과 기존 제품 특성의 결과이며 S10-T01~09 전체 제품 PASS는 미완료다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| P01 정상 clock | 순수 C++ 모델의 사전등록 입력/assertion 실행 | pass | 최초 예상 RED fail → 모델 구현 후 pass |
+| P02 UTC만 4034ms 후퇴 | 순수 C++ 모델의 사전등록 입력/assertion 실행 | pass | 최초 예상 RED fail → 모델 구현 후 pass |
+| P03 UTC만 4034ms 전진 | 순수 C++ 모델의 사전등록 입력/assertion 실행 | pass | 최초 예상 RED fail → 모델 구현 후 pass |
+| P04 오차예산 경계 포함 | 순수 C++ 모델의 사전등록 입력/assertion 실행 | pass | 최초 예상 RED fail → 모델 구현 후 pass |
+| P05 누적오차 예산 초과 | 순수 C++ 모델의 사전등록 입력/assertion 실행 | pass | 최초 예상 RED fail → 모델 구현 후 pass |
+| P06 400ppm 누적 drift는 step 아님 | 순수 C++ 모델의 사전등록 입력/assertion 실행 | pass | 최초 예상 RED fail → 모델 구현 후 pass |
+| P07 지연된 clock 읽기 | 순수 C++ 모델의 사전등록 입력/assertion 실행 | pass | RED 단계부터 pass·GREEN에서도 pass |
+| P08 다른 프로세스 clock | 순수 C++ 모델의 사전등록 입력/assertion 실행 | pass | RED 단계부터 pass·GREEN에서도 pass |
+| P09 역전된 측정 구간 | 순수 C++ 모델의 사전등록 입력/assertion 실행 | pass | RED 단계부터 pass·GREEN에서도 pass |
+| P10 정상 decode 순서 | 순수 C++ 모델의 사전등록 입력/assertion 실행 | pass | 최초 예상 RED fail → 모델 구현 후 pass |
+| P11 PTS 재정렬 | 순수 C++ 모델의 사전등록 입력/assertion 실행 | pass | 최초 예상 RED fail → 모델 구현 후 pass |
+| P12 중복 PTS는 고유 프레임 아님 | 순수 C++ 모델의 사전등록 입력/assertion 실행 | pass | 최초 예상 RED fail → 모델 구현 후 pass |
+| P13 동일 관측 재전달 | 순수 C++ 모델의 사전등록 입력/assertion 실행 | pass | 최초 예상 RED fail → 모델 구현 후 pass |
+| P14 명시적 입력 세대 변경 | 순수 C++ 모델의 사전등록 입력/assertion 실행 | pass | 최초 예상 RED fail → 모델 구현 후 pass |
+| P15 DTS 부재로 재시작 추정 금지 | 순수 C++ 모델의 사전등록 입력/assertion 실행 | pass | RED 단계부터 pass·GREEN에서도 pass |
+| P16 DTS 후퇴만으로 재시작 추정 금지 | 순수 C++ 모델의 사전등록 입력/assertion 실행 | pass | RED 단계부터 pass·GREEN에서도 pass |
+| P17 마지막 프레임 알려진 끝 | 순수 C++ 모델의 사전등록 입력/assertion 실행 | pass | 최초 예상 RED fail → 모델 구현 후 pass |
+| P18 duration 부재는 unknown | 순수 C++ 모델의 사전등록 입력/assertion 실행 | pass | RED 단계부터 pass·GREEN에서도 pass |
+| P19 실제 PTS 0 유효 | 순수 C++ 모델의 사전등록 입력/assertion 실행 | pass | 최초 예상 RED fail → 모델 구현 후 pass |
+| P20 PTS 부재는 0 아님 | 순수 C++ 모델의 사전등록 입력/assertion 실행 | pass | RED 단계부터 pass·GREEN에서도 pass |
+| P21 끝 overflow 거부 | 순수 C++ 모델의 사전등록 입력/assertion 실행 | pass | RED 단계부터 pass·GREEN에서도 pass |
+| P22 빈 duration 거부 | 순수 C++ 모델의 사전등록 입력/assertion 실행 | pass | RED 단계부터 pass·GREEN에서도 pass |
+| P23 매핑 관측 개수 상한 | 순수 C++ 모델의 사전등록 입력/assertion 실행 | pass | RED 단계부터 pass·GREEN에서도 pass |
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| WR001 | 기본 녹화 설정 유효 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR002 | disk reserve와 retention 주기 기본값 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR003 | 활성화+quota 0 거부 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR004 | 녹화/media root 중복 거부 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR005 | global/source/channel opt-in 삼중 경계 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR006 | Recorder subscriber 추가 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR007 | 역할별 subscriber 계수 분리 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR008 | client 추가 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR009 | 느린 recorder 추가 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR010 | recorder overflow가 client queue를 차단하지 않음 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR011 | source policy 저장 성공 뒤 reconcile callback | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR012 | source policy snapshot | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR013 | source policy create/save/load/snapshot round-trip | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR014 | legacy source policy 호환 저장 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR015 | legacy source policy snapshot | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR016 | legacy quotaBytes/retentionDays를 분리 정책으로 이행 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR017 | eventMaxBytes 0 저장 실패 시 callback 미호출 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR018 | 음수 continuousMaxAgeMs 저장 거부 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR019 | 음수 continuousMaxBytes 명시 입력을 default로 대체하지 않고 거부 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR020 | 형식이 잘못된 continuousMaxBytes 명시 입력 거부 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR021 | 형식이 잘못된 continuousMaxAgeMs 명시 입력 거부 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR022 | 음수 legacy quotaBytes 명시 입력 거부 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR023 | viewer-safe client view에 quota/storage path 비노출 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR024 | application DTO snapshot | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR025 | application DTO recording policy 보존 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR026 | h264 fixture encode | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR027 | h264 writer 시작: | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR028 | h264 S07 delta 미수락 시간 위치 없음 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR029 | h264 delta-start 차단 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR030 | callback finalized V1 양수 시간구간 검증 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR031 | callback 시 final 파일 존재 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR032 | callback 시 partial 제거 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR033 | h264 S07 수락 시간 epoch와 PTS 일치 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR034 | h264 열린 segment는 partial 한 개 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR035 | h264 열린 segment marker는 소유 partial nonce를 결박 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR036 | callback finalized V1 양수 시간구간 검증 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR037 | callback 시 final 파일 존재 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR038 | callback 시 partial 제거 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR039 | h264 S07 종료 시간 위치 없음 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR040 | h264 10초 뒤 다음 keyframe 분할 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR041 | h264 finalized callback | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR042 | foreign 고정 partial 보존 writer 시작 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR043 | nonce partial은 기존 고정 foreign partial을 덮어쓰거나 삭제하면 안 됨 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR044 | S09-LD02 writer 시작 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR045 | S09-LD02 실제 finalized V1과 파일 크기 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR046 | S09-LD02 실제 finalized V1과 파일 크기 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR047 | S09-LD02 실제 두 세그먼트 생성 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR048 | S09-LD02 UTC 원값 보존 및 구간간 후퇴 재현 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR049 | S10-C01 주입 경계 존재 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR050 | S10-C01 writer 시작 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR051 | S10-C01 실제 V1 파일 무결성 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR052 | S10-C01 단일 물리 파일 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR053 | S10-C01 PTS 유지 및 현재 단일 anchor 불일치 관찰 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR054 | S10-C02 주입 경계 존재 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR055 | S10-C02 writer 시작 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR056 | S10-C02 실제 V1 파일 무결성 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR057 | S10-C02 단일 물리 파일 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR058 | S10-C02 PTS 유지 및 현재 단일 anchor 불일치 관찰 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR059 | S10-C03 주입 경계 존재 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR060 | S10-C03 writer 시작 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR061 | S10-C03 실제 V1 파일 무결성 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR062 | S10-C03 단일 물리 파일 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR063 | S10-C03 PTS 유지 및 현재 단일 anchor 불일치 관찰 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR064 | S10-C04 주입 경계 존재 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR065 | S10-C04 writer 시작 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR066 | S10-C04 실제 V1 파일 무결성 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR067 | S10-C04 단일 물리 파일 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR068 | S10-C04 PTS 유지 및 현재 단일 anchor 불일치 관찰 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR069 | rollback writer 시작 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR070 | rollback finalized V1과 실제 파일 크기 일치 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR071 | S07 rollback 모호한 시간 위치 없음 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR072 | rollback finalized V1과 실제 파일 크기 일치 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR073 | PTS rollback 시 새 stream epoch | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR074 | writer admission 시작 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR075 | storage-blocked 뒤 다음 keyframe에서 새 epoch로 재개 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR076 | admission reserve를 segment finalize 실제 용량으로 반환 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR077 | partial/finalized 실제 파일 크기를 admission 진행량으로 보고 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR078 | 실제 파일 예약 초과 writer 시작 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR079 | 실제 파일 예약 초과는 catalog callback 전 제거·high-water 반환 후 새 epoch 재개 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR080 | writer 예약 hard bound 시작 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR081 | bounded finalized V1과 실제 파일 예약 상한 검증 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR082 | bounded finalized V1과 실제 파일 예약 상한 검증 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR083 | bounded finalized V1과 실제 파일 예약 상한 검증 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR084 | bounded finalized V1과 실제 파일 예약 상한 검증 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR085 | bounded finalized V1과 실제 파일 예약 상한 검증 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR086 | bounded finalized V1과 실제 파일 예약 상한 검증 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR087 | bounded finalized V1과 실제 파일 예약 상한 검증 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR088 | bounded finalized V1과 실제 파일 예약 상한 검증 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR089 | 예약 payload 상한 도달 시 keyframe 경계 재개와 실제 파일 크기 상한 유지 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR090 | catalog finalize 실패 writer 시작 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR091 | catalog journal/finalize 실패는 ready와 final을 보존하고 예약 유지 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR092 | cleanup marker symlink 선점 공격 writer 시작 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR093 | cleanup marker symlink 선점 fixture 생성 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR094 | cleanup marker symlink 선점 시 root 밖/공유 inode 내용을 truncate하지 않음 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR095 | cleanup marker hardlink 선점 공격 writer 시작 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR096 | cleanup marker hardlink 선점 fixture 생성 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR097 | cleanup marker hardlink 선점 시 root 밖/공유 inode 내용을 truncate하지 않음 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR098 | catalog 성공 뒤 marker 제거 실패 writer 시작 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR099 | catalog 성공 뒤 marker 제거 실패 시 예약과 marker를 유지 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR100 | final media cleanup 실패 writer 시작 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR101 | final media 제거 실패 시 durable marker를 남기고 예약을 반환하지 않음 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR102 | vp8 fixture encode | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR103 | vp8 writer 시작: | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR104 | vp8 S07 delta 미수락 시간 위치 없음 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR105 | vp8 delta-start 차단 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR106 | callback finalized V1 양수 시간구간 검증 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR107 | callback 시 final 파일 존재 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR108 | callback 시 partial 제거 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR109 | vp8 S07 수락 시간 epoch와 PTS 일치 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR110 | vp8 열린 segment는 partial 한 개 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR111 | vp8 열린 segment marker는 소유 partial nonce를 결박 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR112 | callback finalized V1 양수 시간구간 검증 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR113 | callback 시 final 파일 존재 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR114 | callback 시 partial 제거 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR115 | vp8 S07 종료 시간 위치 없음 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR116 | vp8 10초 뒤 다음 keyframe 분할 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR117 | vp8 finalized callback | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+| WR118 | VP8 S07 rollback 모호한 시간 위치 없음 | pass | 실제 recorder smoke 출력; 제품 시간 수정 PASS 아님 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/tmp/media-server-s10-policy.XXXXXX (실행별 mktemp) | 모델 binary | RED 42232B / GREEN 42760B | 단일 binary·빈 디렉터리 제거 | cleanup 출력 removed=true; 정확한 난수 leaf는 첫 runner 출력에 미보존 | EXIT trap rm/rmdir exit0 |
+| /tmp/media_server_v410_recording_recorder-77931 | 빌드·합성 영상·격리 registry | 3501507B | 기존 runner cleanup | removed=true | recorder 실제 cleanup 출력 |
+| /private/tmp/media-server-s10-policy.3bOvpu | 최종 경계 검사 binary | 42760B | binary·디렉터리 제거 | removed=true | 모델 cleanup 실제 출력 |
+| /var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s10-policy.PZtUQ2 | portable temp runner binary | 42760B | binary·디렉터리 제거 | removed=true | 최종 runner cleanup 출력 |
+
+필요한 assertion·주입값·수치 결과를 본 문서에 보존했다. 임시 미디어는 최종 증거 링크로 사용하지 않는다.
+제품 코드 수정·장시간·UI·전체 build·커밋·푸시는 미실행이다.
+`git diff --check` exit0 및 실제 writer 임시 디렉터리 부재도 확인했다.
 
 ## S09 계측 활성화 기존424 UI 최종 결과 — 64886
 

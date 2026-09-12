@@ -280,6 +280,26 @@ bool RecordingCatalog::Open(std::string* error) {
     CloseSqliteLocked();journal_.DetachCatalog(this);return false;
 }
 
+bool RecordingCatalog::ValidateManagedWriterBinding(const RecordingJournal& journal,
+        const std::filesystem::path& root,const std::string& store_id,std::string* error) const {
+    std::lock_guard lock(mu_);
+    if(&journal!=&journal_ || !opened_ || !options_.enable_v2_storage || !journal_.managed_ ||
+       store_id.empty() || store_id!=journal_.managed_store_id_ || !CanWriteLocked(error) || !journal_.HasManagedLease())
+        return Fail(error,"managed writer 소유권/옵션 결박 오류");
+    std::error_code ec;const auto absolute=std::filesystem::absolute(root,ec);
+    if(ec || absolute!=absolute.lexically_normal())return Fail(error,"managed writer root 정규 경로 필요");
+    std::filesystem::path cursor;
+    for(const auto& part:absolute) {
+        cursor/=part;const auto status=std::filesystem::symlink_status(cursor,ec);
+        if(ec || std::filesystem::is_symlink(status) || !std::filesystem::is_directory(status))
+            return Fail(error,"managed writer root 안전 경로 오류");
+    }
+    const auto expected=std::filesystem::absolute(journal_.managed_root_,ec).lexically_normal();
+    if(ec || absolute!=expected || absolute!=std::filesystem::absolute(options_.media_root,ec).lexically_normal())
+        return Fail(error,"managed writer root 불일치");
+    if(error)error->clear();return true;
+}
+
 bool RecordingCatalog::CanWriteLocked(std::string* error) const {
     if(journal_.managed_&&(!opened_||!journal_.OwnsCatalog(this)))return Fail(error,"managed catalog write 소유권 거부");
     return true;

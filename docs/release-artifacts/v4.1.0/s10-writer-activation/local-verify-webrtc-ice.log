@@ -1,0 +1,28 @@
+[info] http_base=[SOURCE_URL_REDACTED]
+[info] file=sample_h264.mp4
+[info] stun=stun://127.0.0.1:60806
+[info] turn=<unset>
+[info] ice_policy=all require_relay=0
+[pass] STUN URI 형식 확인
+[pass] TURN URI 형식 확인
+[pass] HTTP health ok
+browser_ice_policy= all
+browser_requested_ice_policy= all
+browser_relay_fallback= False
+browser_ice_urls= ['stun:127.0.0.1:60806']
+[pass] WebRTC browser ICE config 확인
+[pass] WebRTC session 생성: [SESSION_ID]
+candidate_total= 16
+candidate_types= {'host': 15, 'unknown': 1}
+candidate_samples=[REDACTED_NETWORK_ADDRESSES]
+[pass] ICE candidate 수집 확인
+[pass] ICE transport policy 확인: all
+[pass] WHIP publish -> WebRTC signaling 확인
+
+== WebRTC ICE 설정 검증 요약 ==
+- 통과: 8
+- 실패: 0
+- 건너뜀: 0
+- browser config: /tmp/media_server_webrtc-ice-1789197973-51119_webrtc_config.json
+- candidates: /tmp/media_server_webrtc-ice-1789197973-51119_candidates.ndjson
+- summary: /tmp/media_server_webrtc-ice-1789197973-51119_summary.json

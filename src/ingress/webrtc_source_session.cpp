@@ -5,6 +5,7 @@
 
 #if MEDIA_SERVER_USE_GSTREAMER
 #include <gst/app/gstappsink.h>
+#include "media/gstreamer_sample_observation.h"
 #include <gst/gst.h>
 #include <gst/sdp/sdp.h>
 #include <gst/webrtc/webrtc.h>
@@ -134,6 +135,7 @@ media::MediaSample BuildSampleFromGst(const GstSample* sample, const media::Trac
 
     out.pts = GST_BUFFER_PTS_IS_VALID(buffer) ? static_cast<std::int64_t>(GST_BUFFER_PTS(buffer)) : 0;
     out.dts = GST_BUFFER_DTS_IS_VALID(buffer) ? static_cast<std::int64_t>(GST_BUFFER_DTS(buffer)) : out.pts;
+    out.observation = media::ReadGstreamerSampleObservation(sample);
     out.is_key_frame = track.kind != media::MediaKind::Video || !GST_BUFFER_FLAG_IS_SET(buffer, GST_BUFFER_FLAG_DELTA_UNIT);
 
     GstMapInfo map;
@@ -636,6 +638,7 @@ std::unique_ptr<WebRtcSourceSession::SinkBranch> WebRtcSourceSession::CreateBran
     }
 
     branch->sink = gst_element_factory_make("appsink", nullptr);
+    media::InstallGstreamerSampleObservation(branch->sink);
     if (branch->queue == nullptr || branch->depay == nullptr || branch->sink == nullptr ||
         ((track.codec != media::CodecId::VP8 && track.codec != media::CodecId::PCMU && track.codec != media::CodecId::PCMALaw) &&
          branch->parser == nullptr)) {

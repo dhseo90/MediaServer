@@ -1,0 +1,12 @@
+[pass] HTTP health ok
+[pass] WebRTC video track 수신 확인
+[pass] WebRTC ICE connected 확인
+[pass] WebRTC DataChannel open 확인
+[pass] WebRTC DataChannel label va-metadata 확인
+[pass] WebRTC metadata message 수신 확인
+[pass] WebRTC metadata schema 확인
+[pass] WebRTC metadata tracks array 확인
+[pass] WebRTC metadata events array 확인
+[pass] WebRTC metadata sync diagnostics 확인
+[summary] pass=8 fail=0
+[summary-json] /Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression-v2/metadata-summary.json

@@ -1,0 +1,14 @@
+{"ready":true,"pid":16902,"rtspPort":61048,"httpPort":61049,"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s10-media-DYmFpM","runPrefix":"s10-media-server-s10-media-DYmFpM","ownedLauncherPorts":[61050,61051,61052,61053,61054,61055]}
+[시작] ./server.sh verify-codecs
+{"command":"verify-codecs","code":0,"signal":null,"elapsedMs":335132}
+[시작] ./server.sh verify-webrtc-ice
+{"command":"verify-webrtc-ice","code":0,"signal":null,"elapsedMs":17508}
+[시작] ./server.sh verify-webrtc-va-metadata --http-base http://127.0.0.1:61049 --debug-port 61462 --summary-file /Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression/metadata-summary.json --log-file /Users/dhseo/Workspace/mediaServer/.media_server.test/s10-media-regression/chrome.log
+{"command":"verify-webrtc-va-metadata","code":0,"signal":null,"elapsedMs":5871}
+{"cleanup":{"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s10-media-DYmFpM","rootBefore":{"bytes":1756750,"entries":295,"symlinks":277},"rootAbsent":true,"process":{"pid":16902,"exitCode":0,"signalCode":null,"graceful":true},"ports":[{"kind":"rtsp","port":61048,"closed":true,"evidence":"ECONNREFUSED"},{"kind":"http","port":61049,"closed":true,"evidence":"ECONNREFUSED"}],"attempted":6,"failureCount":0}}
+{"launcherPort":61050,"closed":true}
+{"launcherPort":61051,"closed":true}
+{"launcherPort":61052,"closed":true}
+{"launcherPort":61053,"closed":true}
+{"launcherPort":61054,"closed":true}
+{"launcherPort":61055,"closed":true}
