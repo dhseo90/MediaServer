@@ -69,6 +69,24 @@ struct RecordingLocationResult {
     std::vector<RecordingLocationCandidate> candidates;
     bool has_unknown{false};
 };
+struct ConsumerReferenceLocation {
+    RecordingOriginalCandidate original;
+    RecordingLocationResult location;
+    std::string reason;
+};
+struct ConsumerReferenceResolution {
+    std::vector<ConsumerReferenceLocation> exact;
+    std::vector<RecordingOriginalCandidate> unindexed;
+    std::string reason;
+};
+// 호출자가 이미 확인한 미디어 구간만 입력한다. association 점/UTC 요청이나 playable 증명이 아니다.
+struct ConfirmedMediaInterval {
+    std::string source_id, store_id, media_epoch_id, segment_id;
+    std::int32_t time_base_num{1}, time_base_den{1000000000};
+    std::int64_t start_pts{0}, end_pts{0};
+};
+std::optional<ConfirmedMediaInterval> IntersectConfirmedMediaIntervals(
+    const ConfirmedMediaInterval&, const ConfirmedMediaInterval&);
 
 // Confirmed는 최소 한 후보의 미디어 구간 coverage가 확인됨을 뜻한다(UTC는 known 후보).
 // 다른 불확실 후보·unplaced를 포함한 전체 완전성, 후보 유일성·프레임 고유성·재생 가능성은 아니다.
@@ -101,6 +119,7 @@ public:
         : catalog_(catalog), event_root_(std::move(event_root)) {}
     bool QueryTimeline(const RecordingTimelineQuery& query,
                        RecordingTimelineResult* result, std::string* error) const;
+    bool ResolveConsumerReference(const RecordingConsumerReferenceV1&, ConsumerReferenceResolution*, std::string*) const;
     bool ResolveMediaLocation(const std::string& channel_id, const std::string& segment_id,
                               std::int64_t pts, RecordingLocationResult* result, std::string* error) const;
     bool ResolveUtcLocations(const std::string& channel_id, std::int64_t utc_ns,

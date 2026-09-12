@@ -304,8 +304,10 @@ CatalogEventRecordingBridge::CatalogEventRecordingBridge(
     }
     options_.mapping_retry_ms = std::max<std::int64_t>(1, options_.mapping_retry_ms);
     options_.max_pending_jobs = std::max<std::size_t>(1, options_.max_pending_jobs);
-    RefillPendingJobs();
-    worker_ = std::thread([this] { WorkerLoop(); });
+    if(!options_.use_consumer_references) {
+        RefillPendingJobs();
+        worker_ = std::thread([this] { WorkerLoop(); });
+    }
 }
 
 CatalogEventRecordingBridge::~CatalogEventRecordingBridge() { StopAndDrain(); }
@@ -315,6 +317,41 @@ analysis::EventRecordingBridgeResult CatalogEventRecordingBridge::TryResolve(
     const analysis::EventRecord& record,
     const analysis::EventMediaHookOptions& options) {
     std::lock_guard resolution_lock(resolution_mu_);
+    if(options_.use_consumer_references) {
+        {std::lock_guard lock(mu_);if(stopping_)return {true,false,{},{},{},"bridge-stopped"};}
+        const auto& context=result.observation_context;
+        if(!options_.resolve_recording_channel||context.source_id.empty()||context.channel_id.empty()||
+           record.channel_id!=context.channel_id||(!record.stream_id.empty()&&record.stream_id!=context.source_id))
+            return {true,false,{},{},{},"reference-source-channel-conflict"};
+        const auto channel=options_.resolve_recording_channel(context.source_id);
+        if(!channel||*channel!=context.channel_id)return {true,false,{},{},{},"reference-source-channel-conflict"};
+        RecordingConsumerReferenceV1 reference;
+        reference.reference_id="pending-reference";reference.kind="event";reference.owner_id=record.event_id;
+        reference.source_id=context.source_id;reference.channel_id=context.channel_id;
+        reference.analysis_namespace=result.observation_namespace;reference.analysis_track_id="track-"+std::to_string(record.track_id);
+        reference.analysis_pts=result.pts;reference.association_quality="unavailable";
+        switch(result.source_association.quality) {
+            case analysis::SourceAssociationQuality::TimestampMatch:reference.association_quality="timestamp-match";break;
+            case analysis::SourceAssociationQuality::Nearest:reference.association_quality="nearest";break;
+            case analysis::SourceAssociationQuality::Ambiguous:reference.association_quality="ambiguous";break;
+            case analysis::SourceAssociationQuality::Unavailable:break;
+        }
+        if(result.source_association.original) {
+            const auto& x=*result.source_association.original;
+            reference.original=RecordingConsumerOriginalV1{x.source_generation,x.generation_order,x.ordinal,x.track_id,x.pts_ns};
+        }
+        reference.request=RecordingConsumerRequestV1{record.time_basis,record.start_time_ms,
+            record.end_time_ms>record.start_time_ms?record.end_time_ms:record.update_time_ms,options.pre_event_ms,options.post_event_ms};
+        const auto identity=SerializeRecordingConsumerReferenceV1(reference);const auto token=StableToken(identity);
+        if(identity.empty()||token.empty())return {true,false,{},{},{},"reference-invalid"};
+        reference.reference_id="event-reference-"+token;
+        reference.created_at_ms=options_.now_ms();
+        for(const auto& previous:catalog_.QueryConsumerReferences(reference.channel_id,"event",reference.owner_id))
+            if(previous.reference_id==reference.reference_id){reference.created_at_ms=previous.created_at_ms;break;}
+        std::string error;
+        if(!catalog_.PutConsumerReference(reference,&error))return {true,false,{},{},{},"reference-storage-failed"};
+        return {true,false,{}, {},"pending",{}};
+    }
     if (record.event_id.empty() || record.channel_id.empty()) {
         return {false, false, {}, {}, {}, "event/channel ID가 비어 있음"};
     }
@@ -467,6 +504,7 @@ analysis::EventRecordingBridgeResult CatalogEventRecordingBridge::TryResolve(
 void CatalogEventRecordingBridge::RecordFallback(
     const analysis::EventRecord& record,
     const analysis::EventRecordingBridgeResult& previous) {
+    if(options_.use_consumer_references)return;
     std::lock_guard resolution_lock(resolution_mu_);
     if (!previous.handled || previous.link_id.empty() || record.clip_path.empty()) return;
     const auto existing = catalog_.FindEventLinkByEventId(record.event_id);

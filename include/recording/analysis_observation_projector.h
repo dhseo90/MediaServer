@@ -16,6 +16,7 @@ public:
         std::size_t max_tracks{4096};
         std::size_t max_pending{1024};
         std::function<analysis::AnalysisObservationContext(const std::string&,std::int64_t)> resolve_context;
+        bool use_consumer_references{false};
     };
     struct Status {
         std::size_t queued{0}, tracks{0}, pending{0};
@@ -36,15 +37,18 @@ public:
                  std::uint64_t track_id,const std::string& zone_id,const std::string& line_id,
                  const std::string& rule_id,const std::string& scenario_id);
 private:
-    struct TrackState { AnalysisObservationV2 last; std::int64_t sampled_pts{0}; bool ended{false}; };
-    bool EnqueueLocked(AnalysisObservationV2 observation);
+    struct TrackState { AnalysisObservationV2 last; std::int64_t sampled_pts{0}; bool ended{false}; std::optional<RecordingConsumerReferenceV1> reference; };
+    struct Queued { AnalysisObservationV2 observation; std::optional<RecordingConsumerReferenceV1> reference; };
+    bool EnqueueLocked(AnalysisObservationV2 observation, std::optional<RecordingConsumerReferenceV1> reference = std::nullopt);
+    bool SubmitInternal(AnalysisObservationV2 observation, std::optional<RecordingConsumerReferenceV1> reference);
+    void SubmitResult(const analysis::AnalysisResult&, AnalysisObservationV2, bool ended);
     void WorkerLoop();
     RecordingCatalog& catalog_;
     Options options_;
     mutable std::mutex mu_;
     std::mutex stop_mu_;
     std::condition_variable cv_;
-    std::deque<AnalysisObservationV2> queue_;
+    std::deque<Queued> queue_;
     std::unordered_map<std::string, TrackState> tracks_;
     std::unordered_map<std::string, AnalysisObservationV2> pending_;
     std::unordered_set<std::string> ended_;

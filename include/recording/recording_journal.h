@@ -18,6 +18,7 @@ enum class RecordingMutationType {
     ObservationPut,
     ObservationV2Put,
     ConsumerReferencePut,
+    ReferencedObservationPut,
     DeletionRequested,
     DeletionCompleted,
     CorruptionDetected,

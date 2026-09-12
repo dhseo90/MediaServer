@@ -1,0 +1,45 @@
+[command] bash scripts/internal/verify_v410_event_recording.sh
+[S05 등록 대조] 27개 연결 확인; 실행 증거 아님
+[등록기 단위 테스트] PASS 정상 정식 등록 27개
+[등록기 단위 테스트] PASS 다른 등록군 추가와 일관된 총계 허용
+[등록기 단위 테스트] PASS 전체 총계 불일치 거부
+[등록기 단위 테스트] PASS canonical 등록 수 변경 거부
+[등록기 단위 테스트] PASS S05 등록 수 변경 거부
+[등록기 단위 테스트] PASS 등록군 중복 거부
+[등록기 단위 테스트] PASS 음수 등록 수 거부
+[등록기 단위 테스트] PASS 소수 등록 수 거부
+[등록기 단위 테스트] PASS 등록 범위 표 누락 거부
+[등록기 단위 테스트] PASS 누락 ID
+[등록기 단위 테스트] PASS 중복 ID
+[등록기 단위 테스트] PASS 추가 ID
+[등록기 단위 테스트] PASS 빈 테스트 영역
+[등록기 단위 테스트] PASS 없는 구현 심볼
+[등록기 단위 테스트] PASS 없는 테스트 함수
+[등록기 단위 테스트] PASS 없는 check
+[등록기 단위 테스트] PASS 중복 check ID
+[등록기 단위 테스트] PASS 문서 행 누락
+[등록기 단위 테스트] PASS 실행 소비자 정상 합성 입력
+[등록기 단위 테스트] PASS 실제 check 결과 누락
+[등록기 단위 테스트] PASS EOS assertion 제거와 감소한 summary도 거부
+[등록기 단위 테스트] PASS 실패 summary
+[등록기 단위 테스트] PASS 성공 summary만으로 PASS 금지
+[등록기 단위 테스트] PASS 중복 application 결과
+[등록기 단위 테스트] PASS runtime 로그 전체 누락
+[등록기 단위 테스트] PASS runtime 시나리오 누락
+[등록기 단위 테스트] PASS 종료 취소 runtime 시나리오 누락
+[등록기 단위 테스트] PASS runtime assertion 누락 및 감소 summary
+[등록기 단위 테스트] PASS runtime assertion 중복 및 증가 summary
+[등록기 단위 테스트] PASS runtime summary 실패
+[등록기 단위 테스트] PASS runtime summary 중복
+[등록기 단위 테스트] PASS runtime failure marker
+[등록기 단위 테스트] PASS runtime mutation 결과 누락
+[등록기 단위 테스트] PASS runtime mutation 결과 중복
+[등록기 단위 테스트] PASS runtime negative summary 실패
+[v410-s05-inventory-unit] pass=35 fail=0
+/Users/dhseo/Workspace/mediaServer/src/recording/event_clip_deriver.cpp:582:89: error: missing field 'segment_v2' initializer [-Werror,-Wmissing-field-initializers]
+  582 |             result.media_path.lexically_relative(request.output_root),request.ready_link};
+      |                                                                                         ^
+1 error generated.
+[cleanup] path=/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media_server_v410_event_recording.0Tajy3 bytes=0 removed=true
+[exit] 1
+[elapsed] 미집계: 기존 runner는 elapsed를 출력하지 않으며 비동기 도구 대기 시간은 전체 실행 시간이 아님

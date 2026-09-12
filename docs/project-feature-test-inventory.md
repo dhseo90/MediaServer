@@ -2,6 +2,28 @@
 
 | 기능 ID | 기능 | 안정화 | 30분 | 120분 | UI 풀테스트 | UI 기준 |
 | --- | --- | --- | --- | --- | --- | --- |
+| S10-C401 | 관측·참조 원자 저장 | consumer-connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in: 신규 UI 없음 |
+| S10-C402 | 쌍 identity 불일치 거부 | consumer-connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in: 신규 UI 없음 |
+| S10-C403 | 동일 원본 재전달·event 병합 | consumer-connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in: 신규 UI 없음 |
+| S10-C404 | 다른 원본 동일PTS 구분 | consumer-connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in: 신규 UI 없음 |
+| S10-C405 | SQL·JSONL·checkpoint 쌍 복구 | consumer-connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in: 신규 UI 없음 |
+| S10-C406 | 실제 OnResult 원본 참조 저장 | consumer-connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in: 신규 UI 없음 |
+| S10-C407 | OnEvent 강제 표본 | consumer-connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in: 신규 UI 없음 |
+| S10-C408 | 종료track 과거참조 보존 | consumer-connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in: 신규 UI 없음 |
+| S10-C409 | 종료track 참조부재 unknown | consumer-connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in: 신규 UI 없음 |
+| S10-C410 | sampling·queue·StopAndDrain 회귀 | consumer-connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in: 신규 UI 없음 |
+| S10-C411 | exact·미색인 복수 후보 보존 | consumer-connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in: 신규 UI 없음 |
+| S10-C412 | nearest/ambiguous/unavailable 미승격 | consumer-connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in: 신규 UI 없음 |
+| S10-C413 | UTC unknown·삭제 상태 재판정 | consumer-connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in: 신규 UI 없음 |
+| S10-C414 | 실제 TryResolve 요청참조 저장 | consumer-connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in: 신규 UI 없음 |
+| S10-C415 | event 재전달·확장·세대 구분 | consumer-connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in: 신규 UI 없음 |
+| S10-C416 | source/channel 충돌 거부 | consumer-connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in: 신규 UI 없음 |
+| S10-C417 | 같은 원본 미디어 교집합 우선 | consumer-connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in: 신규 UI 없음 |
+| S10-C418 | 공개 결과·구형 fallback 불변 | consumer-connection focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 opt-in: 신규 UI 없음 |
+
+
+| 기능 ID | 기능 | 안정화 | 30분 | 120분 | UI 풀테스트 | UI 기준 |
+| --- | --- | --- | --- | --- | --- | --- |
 | S10-C341 | 계약 왕복 | consumer-reference focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 저장: UI 없어야 정상 |
 | S10-C342 | unknown/중복 필드 거부 | consumer-reference focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 저장: UI 없어야 정상 |
 | S10-C343 | ID·종류·소유자 제약 | consumer-reference focused | S11 판정 | S11 판정 | 이번 비대상 | 내부 저장: UI 없어야 정상 |

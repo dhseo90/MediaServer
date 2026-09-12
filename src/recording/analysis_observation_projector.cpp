@@ -19,9 +19,9 @@ std::string Key(const AnalysisObservationV2& o) {
         key+=std::to_string(field->size())+":"+*field;
     return key;
 }
-std::string Id(const AnalysisObservationV2& o) {
+std::string Id(const AnalysisObservationV2& o, const std::string& original = {}) {
     // 길이가 제한된 안정적 토큰이며, catalog는 같은 토큰에 다른 식별자가 결속되면 별도로 거부한다.
-    const auto bytes=Key(o)+":"+std::to_string(o.pts);
+    const auto bytes=Key(o)+":"+std::to_string(o.pts)+original;
     std::uint64_t first=14695981039346656037ULL,second=7809847782465536322ULL;
     for(unsigned char ch:bytes) {
         first=(first^ch)*1099511628211ULL;
@@ -33,6 +33,20 @@ std::string Id(const AnalysisObservationV2& o) {
 }
 bool IntervalOnly(const AnalysisObservationV2& o) {
     return o.selection_reasons.size()==1 && Has(o,"interval");
+}
+bool SameReferencedIdentity(const AnalysisObservationV2& previous,
+                            const std::optional<RecordingConsumerReferenceV1>& previous_reference,
+                            const AnalysisObservationV2& next,
+                            const std::optional<RecordingConsumerReferenceV1>& next_reference) {
+    if (!previous_reference && !next_reference) return true; // 기존 경로의 병합 의미 유지.
+    if (!previous_reference || !next_reference) return false;
+    auto normalized = *next_reference;
+    normalized.created_at_ms = previous_reference->created_at_ms;
+    return SerializeRecordingConsumerReferenceV1(*previous_reference) ==
+               SerializeRecordingConsumerReferenceV1(normalized) &&
+           previous.class_label == next.class_label && previous.confidence == next.confidence &&
+           previous.bbox.x == next.bbox.x && previous.bbox.y == next.bbox.y &&
+           previous.bbox.width == next.bbox.width && previous.bbox.height == next.bbox.height;
 }
 AnalysisObservationV2 FromTrack(const analysis::AnalysisResult& result,const analysis::Track& track,bool ended) {
     AnalysisObservationV2 o;
@@ -68,8 +82,49 @@ analysis::AnalysisObservationContext AnalysisObservationProjector::CaptureContex
 }
 void AnalysisObservationProjector::OnResult(const analysis::AnalysisResult& result) {
     if(result.observation_context.channel_id.empty() || result.observation_namespace.empty()) return;
-    for(const auto& track:result.tracks) Submit(FromTrack(result,track,false));
-    for(const auto& track:result.terminated_tracks) Submit(FromTrack(result,track,true));
+    for(const auto& track:result.tracks) SubmitResult(result,FromTrack(result,track,false),false);
+    for(const auto& track:result.terminated_tracks) SubmitResult(result,FromTrack(result,track,true),true);
+}
+void AnalysisObservationProjector::SubmitResult(const analysis::AnalysisResult& result,
+                                               AnalysisObservationV2 o, bool ended) {
+    if (!options_.use_consumer_references) {
+        Submit(std::move(o));
+        return;
+    }
+    o.stream_epoch_id.clear();
+    o.frame_locator.reset();
+    o.locator_reason = "unresolved";
+    RecordingConsumerReferenceV1 r;
+    r.reference_id = "pending-reference"; r.kind = "observation"; r.owner_id = "pending-owner";
+    r.source_id = o.source_id; r.channel_id = o.channel_id; r.analysis_namespace = o.analysis_namespace;
+    r.analysis_track_id = o.track_id; r.analysis_pts = o.pts;
+    r.created_at_ms = o.created_at_ms; r.association_quality = "unavailable";
+    if(ended) {
+        std::lock_guard lock(mu_);
+        const auto previous = tracks_.find(Key(o));
+        if (previous != tracks_.end() && previous->second.last.pts == o.pts && previous->second.reference)
+            r = *previous->second.reference;
+    } else {
+        const auto& a=result.source_association;
+        switch(a.quality) {
+            case analysis::SourceAssociationQuality::TimestampMatch:r.association_quality="timestamp-match";break;
+            case analysis::SourceAssociationQuality::Nearest:r.association_quality="nearest";break;
+            case analysis::SourceAssociationQuality::Ambiguous:r.association_quality="ambiguous";break;
+            case analysis::SourceAssociationQuality::Unavailable:break;
+        }
+        if(a.original) {
+            const auto& x = *a.original;
+            r.original = RecordingConsumerOriginalV1{x.source_generation, x.generation_order, x.ordinal, x.track_id, x.pts_ns};
+        }
+    }
+    if(r.owner_id=="pending-owner") {
+        auto identity = r;
+        identity.created_at_ms = 0;
+        o.observation_id = Id(o, SerializeRecordingConsumerReferenceV1(identity));
+        r.owner_id = o.observation_id;
+        r.reference_id = "ref-" + o.observation_id;
+    } else o.observation_id = r.owner_id;
+    SubmitInternal(std::move(o), std::move(r));
 }
 void AnalysisObservationProjector::OnStopped(const std::string& ns,const std::string& reason) { StopNamespace(ns,reason); }
 void AnalysisObservationProjector::OnEvent(const analysis::AnalysisResult& result,const std::string& event_id,
@@ -85,11 +140,17 @@ void AnalysisObservationProjector::OnEvent(const analysis::AnalysisResult& resul
     if(!rule_id.empty() && std::find(observation.rule_ids.begin(),observation.rule_ids.end(),rule_id)==observation.rule_ids.end())
         observation.rule_ids.push_back(rule_id);
     if(!scenario_id.empty()) observation.scenario_ids={scenario_id};
-    Submit(std::move(observation));
+    SubmitResult(result,std::move(observation),false);
 }
-bool AnalysisObservationProjector::EnqueueLocked(AnalysisObservationV2 observation) {
-    for(auto& queued:queue_) {
+bool AnalysisObservationProjector::EnqueueLocked(AnalysisObservationV2 observation,std::optional<RecordingConsumerReferenceV1> reference) {
+    for(auto& item:queue_) {
+        auto& queued=item.observation;
         if(queued.observation_id!=observation.observation_id) continue;
+        if (!SameReferencedIdentity(queued, item.reference, observation, reference)) {
+            ++status_.critical_rejected;
+            status_.last_error = "observation-identity-conflict";
+            return false;
+        }
         auto combined=queued;
         for(const auto& reason:observation.selection_reasons) Add(&combined,reason);
         const auto merge=[](const auto& from,auto* to) {
@@ -109,7 +170,7 @@ bool AnalysisObservationProjector::EnqueueLocked(AnalysisObservationV2 observati
         return true;
     }
     if(queue_.size()>=options_.max_queue) {
-        const auto interval=std::find_if(queue_.begin(),queue_.end(),IntervalOnly);
+        const auto interval=std::find_if(queue_.begin(),queue_.end(),[](const auto& item){return IntervalOnly(item.observation);});
         if(interval!=queue_.end()) { queue_.erase(interval); ++status_.interval_dropped; }
         else {
             if(IntervalOnly(observation)) ++status_.interval_dropped;
@@ -117,22 +178,32 @@ bool AnalysisObservationProjector::EnqueueLocked(AnalysisObservationV2 observati
             return false;
         }
     }
-    queue_.push_back(std::move(observation)); cv_.notify_one(); return true;
+    queue_.push_back({std::move(observation),std::move(reference)}); cv_.notify_one(); return true;
 }
 bool AnalysisObservationProjector::Submit(AnalysisObservationV2 observation) {
+    return SubmitInternal(std::move(observation),std::nullopt);
+}
+bool AnalysisObservationProjector::SubmitInternal(AnalysisObservationV2 observation,std::optional<RecordingConsumerReferenceV1> reference) {
     std::lock_guard lock(mu_);
+    if(options_.use_consumer_references&&!reference){++status_.critical_rejected;status_.last_error="missing-consumer-reference";return false;}
     if(stopping_) { ++status_.critical_rejected; status_.last_error="projector-stopped"; return false; }
     const auto key=Key(observation);
     auto found=tracks_.find(key);
+    if (found != tracks_.end() && found->second.last.observation_id == observation.observation_id &&
+        !SameReferencedIdentity(found->second.last, found->second.reference, observation, reference)) {
+        ++status_.critical_rejected;
+        status_.last_error = "observation-identity-conflict";
+        return false;
+    }
     // EventRecord는 다른 소비자에서 늦게 도착할 수 있다. 과거 state를 되돌리지 않고 독립 저장한다.
     if(Has(observation,"event") && (ended_.count(key) ||
         (found!=tracks_.end() && observation.pts<found->second.last.pts))) {
-        observation.observation_id=Id(observation);
+        if(!reference)observation.observation_id=Id(observation);
         AnalysisObservationV2 checked; std::string error;
         if(!ParseAnalysisObservationV2(SerializeAnalysisObservationV2(observation),&checked,&error)) {
             ++status_.critical_rejected; status_.last_error="invalid-observation"; return false;
         }
-        return EnqueueLocked(std::move(observation));
+        return EnqueueLocked(std::move(observation),std::move(reference));
     }
     if(ended_.count(key)) return true;
     const bool first=found==tracks_.end();
@@ -146,7 +217,7 @@ bool AnalysisObservationProjector::Submit(AnalysisObservationV2 observation) {
     } else if(observation.pts-found->second.sampled_pts>=options_.interval_ms*1000000)
         Add(&observation,"interval");
     if(!first) observation.first_seen_pts=found->second.last.first_seen_pts;
-    observation.observation_id=Id(observation);
+    if(!reference)observation.observation_id=Id(observation);
     if(Has(observation,"track-end")) {
         observation.duration_ns=observation.last_seen_pts-observation.first_seen_pts;
         if(observation.ended_reason.empty()) observation.ended_reason="tracker-terminated";
@@ -157,10 +228,11 @@ bool AnalysisObservationProjector::Submit(AnalysisObservationV2 observation) {
     if(!ParseAnalysisObservationV2(SerializeAnalysisObservationV2(candidate),&parsed,&error)) {
         ++status_.critical_rejected; status_.last_error="invalid-observation"; return false;
     }
-    if(first) found=tracks_.emplace(key,TrackState{observation,observation.pts,false}).first;
+    if(first) found=tracks_.emplace(key,TrackState{observation,observation.pts,false,reference}).first;
     found->second.last=observation;
+    found->second.reference=reference;
     if(observation.selection_reasons.empty()) return true;
-    const bool accepted=EnqueueLocked(observation);
+    const bool accepted=EnqueueLocked(observation,reference);
     if(accepted) {
         found->second.sampled_pts=observation.pts;
         found->second.ended=Has(observation,"track-end");
@@ -183,8 +255,8 @@ void AnalysisObservationProjector::StopNamespace(const std::string& value,const 
             last.selection_reasons={"track-end"};
             last.ended_reason=reason;
             last.duration_ns=last.last_seen_pts-last.first_seen_pts;
-            last.observation_id=Id(last);
-            EnqueueLocked(std::move(last));
+            if(!it->second.reference)last.observation_id=Id(last);
+            EnqueueLocked(std::move(last),it->second.reference);
         }
         it=tracks_.erase(it);
     }
@@ -199,8 +271,9 @@ void AnalysisObservationProjector::StopAndDrain() {
       stopping_=true;
       for(const auto& item:tracks_) {
           auto last=item.second.last; last.selection_reasons={"track-end"}; last.ended_reason="stream-stopped";
-          last.duration_ns=last.last_seen_pts-last.first_seen_pts; last.observation_id=Id(last);
-          EnqueueLocked(std::move(last));
+          last.duration_ns=last.last_seen_pts-last.first_seen_pts;
+          if(!item.second.reference)last.observation_id=Id(last);
+          EnqueueLocked(std::move(last),item.second.reference);
       }
       tracks_.clear(); cv_.notify_one(); }
     if(worker_.joinable()) worker_.join();
@@ -213,6 +286,7 @@ AnalysisObservationProjector::Status AnalysisObservationProjector::GetStatus() c
 void AnalysisObservationProjector::WorkerLoop() {
     for(;;) {
         AnalysisObservationV2 observation;
+        std::optional<RecordingConsumerReferenceV1> reference;
         {
             std::unique_lock lock(mu_);
             cv_.wait(lock,[&]{return stopping_ || finalized_ || !queue_.empty() || !retry_ids_.empty();});
@@ -221,7 +295,7 @@ void AnalysisObservationProjector::WorkerLoop() {
                 retry_ids_.clear();
                 for(const auto& item:pending_) retry_ids_.push_back(item.first);
             }
-            if(!queue_.empty()) { observation=std::move(queue_.front()); queue_.pop_front(); }
+            if(!queue_.empty()) { observation=std::move(queue_.front().observation);reference=std::move(queue_.front().reference); queue_.pop_front(); }
             else if(stopping_ && !pending_.empty()) {
                 auto pending=pending_.begin(); observation=std::move(pending->second); pending_.erase(pending);
             } else if(!retry_ids_.empty()) {
@@ -238,8 +312,8 @@ void AnalysisObservationProjector::WorkerLoop() {
         std::string error;
         bool ok=false;
         try {
-            resolved=catalog_.ResolveObservationV2(observation);
-            ok=catalog_.PutObservationV2(resolved,&error);
+            if(reference)ok=catalog_.PutReferencedObservation(observation,*reference,&error);
+            else {resolved=catalog_.ResolveObservationV2(observation);ok=catalog_.PutObservationV2(resolved,&error);}
         } catch(...) { ok=false; }
         {
             std::lock_guard lock(mu_);

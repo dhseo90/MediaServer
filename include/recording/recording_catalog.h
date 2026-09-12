@@ -144,6 +144,8 @@ public:
     bool PutObservation(const AnalysisObservationV1& observation, std::string* error) override;
     bool PutObservationV2(AnalysisObservationV2 observation, std::string* error);
     bool PutConsumerReference(const RecordingConsumerReferenceV1&, std::string* error);
+    bool PutReferencedObservation(const AnalysisObservationV2&, const RecordingConsumerReferenceV1&, std::string*);
+    std::vector<ReferencedObservationV1> QueryReferencedObservations(const std::string& channel) const;
     std::vector<RecordingConsumerReferenceV1> QueryConsumerReferences(
         const std::string& channel, const std::string& kind, const std::string& owner) const;
     // 파일 검출/삭제가 아닌 known segment의 내부 durable 상태 전이.
@@ -216,6 +218,7 @@ private:
     std::unordered_map<std::string, AnalysisObservationV1> observations_;
     std::unordered_map<std::string, AnalysisObservationV2> observations_v2_;
     std::unordered_map<std::string, RecordingConsumerReferenceV1> consumer_references_;
+    std::unordered_map<std::string, ReferencedObservationV1> referenced_observations_;
     std::unordered_map<std::string, RecordingTombstoneV1> tombstones_;
     sqlite3* sqlite_db_{nullptr};
 };

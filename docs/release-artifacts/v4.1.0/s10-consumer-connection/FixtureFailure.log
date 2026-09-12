@@ -1,0 +1,8 @@
+[command] bash scripts/internal/verify_recording_consumer_connection.sh
+[setup-fail] opaque ID 길이 오류
+[pass] C401 관측·참조 원자 저장
+[pass] C402 쌍 identity 불일치 거부
+[pass] C403 동일 원본 재전달·event 병합
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-consumer-connection.LnYMlP bytes=4013851 removed=true
+[elapsed] seconds=6 source=bash-SECONDS
+[exit] 2

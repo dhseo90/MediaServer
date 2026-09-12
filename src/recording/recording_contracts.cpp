@@ -374,6 +374,39 @@ std::string SerializeDouble(double value) {
 
 }  // namespace
 
+bool ValidateReferencedObservationV1(const ReferencedObservationV1& value, std::string* error) {
+    const auto& o = value.observation;
+    const auto& r = value.reference;
+    AnalysisObservationV2 checked;
+    if(value.schema!="media-server.referenced-observation.v1"||
+       !ParseAnalysisObservationV2(SerializeAnalysisObservationV2(o),&checked,error)||
+       !ValidateRecordingConsumerReferenceV1(r,error)||r.kind!="observation"||r.owner_id!=o.observation_id||
+       r.source_id!=o.source_id||r.channel_id!=o.channel_id||r.analysis_namespace!=o.analysis_namespace||
+       r.analysis_track_id!=o.track_id||r.analysis_pts!=o.pts||o.frame_locator||!o.stream_epoch_id.empty()||o.locator_reason!="unresolved")
+        return Fail(error,"referenced observation identity/metadata 오류");
+    ClearError(error);
+    return true;
+}
+std::string SerializeReferencedObservationV1(const ReferencedObservationV1& value) {
+    if (!ValidateReferencedObservationV1(value, nullptr)) return {};
+    return "{\"schema\":"+Quote(value.schema)+",\"observation\":"+SerializeAnalysisObservationV2(value.observation)+
+        ",\"reference\":"+SerializeRecordingConsumerReferenceV1(value.reference)+"}";
+}
+bool ParseReferencedObservationV1(const std::string& json, ReferencedObservationV1* output, std::string* error) {
+    if (!output || json.size() > 2 * 1024 * 1024)
+        return Fail(error, "referenced observation JSON 상한/output 오류");
+    Document d;
+    ReferencedObservationV1 value;
+    std::string observation, reference;
+    if(!ParseDocument(json,&d,error)||d.members.size()!=3||!RequiredString(d,"schema",&value.schema,error)||
+       !RequiredObject(d,"observation",&observation,error)||!RequiredObject(d,"reference",&reference,error)||
+       observation.size()>1024*1024||!ParseAnalysisObservationV2(observation,&value.observation,error)||
+       !ParseRecordingConsumerReferenceV1(reference,&value.reference,error)||!ValidateReferencedObservationV1(value,error))return false;
+    *output = std::move(value);
+    ClearError(error);
+    return true;
+}
+
 bool ValidateRecordingConsumerReferenceV1(const RecordingConsumerReferenceV1& v, std::string* error) {
     const auto track=[](const std::string& s) {
         return !s.empty()&&s.size()<=1024&&std::none_of(s.begin(),s.end(),[](unsigned char c){return c<32||c==127;});
@@ -384,7 +417,8 @@ bool ValidateRecordingConsumerReferenceV1(const RecordingConsumerReferenceV1& v,
     for(const auto* id:{&v.reference_id,&v.owner_id,&v.source_id,&v.channel_id,&v.analysis_namespace})
         if(!ValidateOpaqueId(*id,error))return false;
     const bool associated=v.association_quality=="timestamp-match"||v.association_quality=="nearest";
-    if((!associated&&v.association_quality!="ambiguous"&&v.association_quality!="unavailable")||associated!=v.original.has_value())
+    if((!associated&&v.association_quality!="ambiguous"&&v.association_quality!="unavailable")||
+       (v.association_quality=="timestamp-match"&&!v.original)||(!associated&&v.original))
         return Fail(error,"consumer reference quality/original 오류");
     if(v.original) {
         const auto& o=*v.original;

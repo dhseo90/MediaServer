@@ -1,0 +1,38 @@
+명령: ./server.sh build
+세션: 84465
+exit: 0
+범위: 기존 S09 미커밋이 존재하는 현재 작업 트리 제품 빌드. UI/장시간 PASS 아님.
+token start/end/consumed: 미집계(실측 usage 미제공)
+elapsed: 명령 전체 실측 미보존(도구 반환 개별 대기 시간은 전체 경과 아님)
+
+[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+[2/2] build
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_contracts.cpp.o
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/event_clip_deriver.cpp.o
+[  3%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/event_recording_bridge.cpp.o
+[  4%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/gstreamer_segment_writer.cpp.o
+[  4%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_journal.cpp.o
+[  5%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_media_inspector.cpp.o
+[  6%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_finalize_recovery.cpp.o
+[  7%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_startup_recovery.cpp.o
+[  8%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_catalog.cpp.o
+[  9%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/analysis_observation_projector.cpp.o
+[  9%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_read_service.cpp.o
+[ 10%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/recording_application_service.cpp.o
+[ 11%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/retention_coordinator.cpp.o
+[ 12%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_session_service.cpp.o
+[ 13%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_supervisor.cpp.o
+[ 14%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_http_server.cpp.o
+[ 14%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_http_server_ops_foundation.cpp.o
+[ 15%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_http_server_ops_workflows.cpp.o
+[ 16%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_http_server_ops_incidents.cpp.o
+[ 17%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_http_server_runtime.cpp.o
+[ 18%] Linking CXX static library libmedia_server_runtime.a
+[ 98%] Built target media_server_runtime
+[ 98%] Building CXX object CMakeFiles/media_server.dir/src/application/media_server_application.cpp.o
+[ 99%] Linking CXX executable media_server
+[100%] Built target media_server
+[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server

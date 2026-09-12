@@ -1923,8 +1923,69 @@ catalog finalize에 전달한다. UTC 변화는 물리 분할 기준이 아니�
 별도 DB·새 외부 의존성·3D·S11·장시간/UI 전체·푸시는 제외한다.
 
 - [x] 3C-3C: 원본 사실 저장. `RecordingConsumerReferenceV1`을 기존 journal/catalog/SQLite/checkpoint에 연결했다. focused16·binding20·catalog246 및 build 통과. metadata 원자 저장/소비자는 다음 단위다.
-- [ ] 3C-4: 위 참조를 분석/projector와 event bridge에서 생산하고 현재 catalog로 후보를 해석한다.
+- [x] 3C-4: 위 참조를 분석/projector와 event bridge에서 생산하고 현재 catalog로 후보를 해석한다. 최종 C401~418·관련 단기 회귀와 제품 build 통과. 실제 파생 clip/UI 기본 전환은 완료 범위가 아니다.
 - [ ] 3C-5: 참조 구간의 실제 미디어 출력/ready/hold·예약 중단 복구를 구현한다.
+
+#### 3C-4 실제 분석·이벤트 소비자 연결 (3C-3C 이후)
+
+전제: a8ed142f 원본 참조 저장 계약/복구 검증 완료. 이 단계는 실제 class 경로의 opt-in 구현이며
+서버 composition root의 기본 전환은 3D다. 새 공개 route/schema/상시녹화 미디어 writer 변경 없음.
+메인 설계, 같은 단일 담당자 Astra/medium 구현; 하위 생성 금지.
+
+1. 분석 metadata와 reference를 단일 `referenced_observation_put` mutation으로 저장한다.
+   catalog `PutReferencedObservation(const AnalysisObservationV2&, const RecordingConsumerReferenceV1&, std::string*)`,
+   `QueryReferencedObservations(channel)`는 metadata+reference 쌍을 반환한다.
+   기존 observation_v2_put/조회와 별도 projection이며 한쪽만 성공한 상태는 만들지 않는다.
+   새 payload schema는 `media-server.referenced-observation.v1`, 필드는 schema/observation/reference 3개.
+   쌍 원문 상한은2MiB, nested observation/reference 각1MiB이며 파싱 전에 거부한다.
+   reference.kind=observation, owner_id=observation_id, source/channel/namespace/analysis_track/analysis_pts가 metadata와 일치해야 한다.
+   metadata의 frame_locator는 null, stream_epoch_id는 빈 값, locator_reason=unresolved다.
+   기존 metadata 구조는 분석 속성 보존에만 재사용하며 V1 locator/UTC 해석에는 넣지 않는다.
+   같은 observation ID의 원본 reference identity는 불변이고 기존 selection/event/rule 종료정보 병합만 허용한다.
+   원본이 다른 동일 PTS는 서로 다른 observation ID다. immutable reference의 created_at은 재전달 때 최초 값을 유지한다.
+   SQL/JSONL/checkpoint/open preflight는 metadata+reference가 같은 상태인지 검증한다.
+2. AnalysisObservationProjector Options에 `use_consumer_references=false`를 추가한다.
+   기존 기본 경로는 불변. opt-in에서 OnResult/OnEvent→sampling/queue→단일 원장 저장을 연결한다.
+   트랙 key는 track 수명용, observation ID는 namespace/track/analysis_pts/원본 식별용으로 구분한다.
+   ended track은 last_seen_pts와 일치하는 보존된 마지막 참조만 재사용하고 현재 프레임 참조를 붙이지 않는다.
+   마지막 참조가 없으면 unavailable로 남긴다. sampling, event 강제 저장, max queue/track/stop/drain 제한은 유지한다.
+   원본 참조 해석을 media thread에 filesystem 작업으로 추가하지 않는다.
+3. RecordingReadService에 내부 `ResolveConsumerReference(reference, result, error)`를 둔다.
+   timestamp-match만 ResolveOriginalSample로 조회한다. exact는 입력 tuple 일치이며 decoded frame 고유성 아님.
+   nearest/ambiguous/unavailable은 확정 위치 없음과 이유를 반환한다.
+   exact/미색인 후보는 각각 유지하고 ResolveMediaLocation/공통 range 결과를 소비한다. UTC unknown도 참조 자체를 지우지 않는다.
+   삭제/pending/corrupt는 현재 catalog에서 재판정한다. 후보 없음은 삭제라고 추정하지 않는다.
+   기존 공개 QueryTimeline/Serialize API로 강제 투영하지 않는다.
+4. CatalogEventRecordingBridge Options에 `use_consumer_references=false`를 추가한다.
+   opt-in TryResolve는 AnalysisResult association과 EventRecord의 요청 사실을 consumer reference로 내구 저장한다.
+   source/channel은 명시 resolver/context를 교차 확인해 정하고 missing/충돌이면 거부한다.
+   event owner별 update는 서로 다른 reference로 보존하고 동일 입력 재전달은 멱등이다.
+   현재 한 association으로 과거 event 시작/전체 requested coverage를 추정하지 않는다.
+   기존 V1 UTC 원본 선택/deriver queue로 보내지 않는다. 아직 파생 영상이 없으므로 derived_clip_ready=false,
+   completeness=pending, 공개 recording_link_id에 내부 reference_id를 넣지 않는다.
+   opt-in RecordFallback/시작 worker가 구형 링크를 새 참조로 승격·변경하지 않는다.
+5. 이벤트 우선 표시는 내부 실제 매칭 결과에만 부여한다. 동일 source/store/epoch/segment의 미디어 교집합에만
+   event를 연결하고 같은 UTC·다른 source/epoch/segment는 가리지 않는다.
+   요청만 있는 이벤트를 재생 가능한 event clip으로 표현하지 않는다.
+   점 association은 구간 coverage가 아니므로 duration/끝점 근거 없는 우선 구간은 생성하지 않는다.
+   이 단계는 확인된 구간을 소비하는 내부 판정과 실제 producer 저장까지이며 제품 UI 연결은 3D 이후 검증이다.
+
+소유: contracts/catalog/journal h/cpp, analysis_observation_projector h/cpp, event_recording_bridge h/cpp,
+recording_read_service h/cpp, 신규 recording_consumer_connection_smoke.cpp/verify_recording_consumer_connection.sh.
+기존 S09 dirty/ingress/public serializer/composition root는 수정하지 않는다.
+검증: C401~418을 사전등록, 컴파일 가능한 신규 경로 stub의 C401 원자 저장·C406 producer 저장 예상 RED 확인 후 구현.
+focused GREEN 뒤 기존 consumer-reference/observation/event-recording/source-binding 단기 회귀, build/diff/docs.
+소유 임시 root/포트/로그는 runner별 확인하고 외부·장시간/UI 전체는 실행하지 않는다.
+완료 보고는 새 내부 API unit PASS와 실제 producer integration PASS를 분리하고 미연결 범위를 명시한다.
+
+3C-4 실행 결과(2026-09-13): 최종 focused18, 기존 reference16/binding20/correlation10/observations81와 cleanup,
+event 등록기35/C++158/application7/runtime23·mutation2 및 기능 집계27 PASS. 기능 집계는 assertion 합계에 중복 가산하지 않는다.
+제품 build는 최종 session44940 exit0. nearest/null 계약 보완, fixture mutation ID 누락,
+queue 속성 충돌 예상 RED, 구형 ready aggregate 경고를 각각 구분해 최초 결과를 보존했다.
+ready의 `segment_v2{}` 명시 기본값은 optional 부재 의미를 유지하는 선언 보완이다.
+상세 원출력과 cleanup은 중앙 release-test-records의 s10-consumer-connection 기록을 따른다.
+아직 미연결: 새 참조 기반 실제 영상 생성·ready/hold·예약 복구(3C-5), 서버 기본 전환(3D), S11.
+
 
 #### 3C-3C 고정 계약
 
@@ -1939,7 +2000,9 @@ created_at_ms. 직렬화는 위 필드를 모두 요구하고 optional 부재는
 ID는 기존 ValidateOpaqueId, analysis_track_id는 비어 있지 않은 최대1024 printable 문자열.
 parser 원문은 1MiB 이하로 제한하며 과대 입력은 parsing 전에 거부한다.
 original generation/order/ordinal/track/PTS는 기존 source-binding과 같은 값 제약.
-timestamp-match/nearest에는 original 필수; ambiguous/unavailable에는 original 금지.
+timestamp-match에는 original 필수, nearest에는 optional, ambiguous/unavailable에는 original 금지.
+3C-4 실제 생산자 대조에서 decoder가 nearest/null을 반환함을 확인해 a8ed142f의 nearest 필수를 보완한다.
+원본이 있더라도 nearest는 정확한 위치로 승격하지 않는다. 기존 decoder/PTS 정책은 변경하지 않는다.
 request는 event에만 필수이며 start<=end, 음수/overflow/음수 padding은 거부한다.
 padding 합성은 int128 중간값으로 start_ms-pre_ms>=0, end_ms+post_ms<=INT64_MAX를 검증한다.
 start==end는 원본 순간 요청으로 보존하며 영상 coverage를 자동 부여하지 않는다.

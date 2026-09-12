@@ -1,5 +1,62 @@
 # Release Test Records
 
+## S10 3C-4 소비자 연결 — 실행 전 정의
+
+### 3C-4 실행 결과
+
+내부 참조·관측의 원자 저장, 실제 opt-in projector/bridge 생산과 현재 catalog 후보 해석을 구현했다.
+최종 C401~418 18/0, 참조16/결박20/correlation10/관측81와 cleanup PASS.
+기존 event 회귀는 최초 컴파일 실패 뒤 같은 명령으로 등록기35/C++158/application7/runtime23·negative2 및 기능집계27 PASS다.
+기능집계는 기존 assertion을 묶은 것이므로 개별 검사 합계에 중복 가산하지 않는다.
+제품 최종 build session44940 exit0. [범위·개별 전수표·실패·정리·SHA](release-artifacts/v4.1.0/s10-consumer-connection/report.md),
+[최종 focused](release-artifacts/v4.1.0/s10-consumer-connection/Final.log), [이벤트 재검증](release-artifacts/v4.1.0/s10-consumer-connection/EventGreen.log),
+[제품 재빌드](release-artifacts/v4.1.0/s10-consumer-connection/BuildFinal.log).
+신규 내부 구간 판정은 실제 event clip/UI 우선 표시 완료가 아니다. 3C-5 파생·복구와 3D 기본 전환·S11은 미완료다.
+소유 임시 경로 정리는 각 원출력과 보고서에서 확인했으며 기존 S09 미커밋 파일은 보존했다.
+
+C402는 쌍2MiB/nested각1MiB 상한·추가/중복 필드 거부를 포함한다. 실제 nearest/null RED1→GREEN1과 C401/C406 stub 예상2 FAIL은 별도 원출력으로 보존한다.
+
+선행 계약 보완: 실제 TimestampAssociationHistory::Resolve는 nearest/null을 반환하지만 a8ed142f는 nearest 원본을 필수로 했다.
+최초 저장 단위282 PASS는 그 당시 검사 범위 결과이며 생산자 호환 PASS가 아니었다. 원인을 직접 확인했으며 decoder는 변경하지 않는다.
+C344/C412에 실제 nearest/null 생산자 결과의 저장·복원·확정위치 미승격을 사전등록한다.
+nearest original optional로 보완하되 timestamp-match 필수/ambiguous·unavailable 금지는 유지한다.
+관련 focused와 correlation 회귀를 다시 실행하고 최초 실패→보완→검증 이력을 보존한다.
+
+계약·소유·불변조건은 구현계획의 3C-4 실제 연결 절을 따른다. 신규 opt-in 내부 경로이며 3D 기본 전환 아님.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| C401 관측·참조 원자 저장 | 실제 저장·producer·내부 해석 | 관측·참조 원자 저장; 신규 focused의 직접 API/실제 class 결과 확인 | v4.1.0 |
+| C402 쌍 identity 불일치 거부 | 실제 저장·producer·내부 해석 | 쌍 identity 불일치 거부; 신규 focused의 직접 API/실제 class 결과 확인 | v4.1.0 |
+| C403 동일 원본 재전달·event 병합 | 실제 저장·producer·내부 해석 | 동일 원본 재전달·event 병합; 신규 focused의 직접 API/실제 class 결과 확인 | v4.1.0 |
+| C404 다른 원본 동일PTS 구분 | 실제 저장·producer·내부 해석 | 다른 원본 동일PTS 구분; 신규 focused의 직접 API/실제 class 결과 확인 | v4.1.0 |
+| C405 SQL·JSONL·checkpoint 쌍 복구 | 실제 저장·producer·내부 해석 | SQL·JSONL·checkpoint 쌍 복구; 부분 event 갱신 원장 replay에서 기존 selection/event/created_at 병합을 보존하고 메모리와 SQL 투영의 동등성을 확인 | v4.1.0 |
+| C406 실제 OnResult 원본 참조 저장 | 실제 저장·producer·내부 해석 | 실제 OnResult 원본 참조 저장; 신규 focused의 직접 API/실제 class 결과 확인 | v4.1.0 |
+| C407 OnEvent 강제 표본 | 실제 저장·producer·내부 해석 | OnEvent 강제 표본; 신규 focused의 직접 API/실제 class 결과 확인 | v4.1.0 |
+| C408 종료track 과거참조 보존 | 실제 저장·producer·내부 해석 | 종료track 과거참조 보존; 신규 focused의 직접 API/실제 class 결과 확인 | v4.1.0 |
+| C409 종료track 참조부재 unknown | 실제 저장·producer·내부 해석 | 종료track 참조부재 unknown; 신규 focused의 직접 API/실제 class 결과 확인 | v4.1.0 |
+| C410 sampling·queue·StopAndDrain 회귀 | 실제 저장·producer·내부 해석 | sampling·queue·StopAndDrain 및 동일 원본/동일 ID·다른 bbox의 OnEvent를 silent merge하지 않고 거부; catalog 원본·속성 불변 계약을 queue 경유에도 유지 | v4.1.0 |
+| C411 exact·미색인 복수 후보 보존 | 실제 저장·producer·내부 해석 | exact·미색인 복수 후보 보존; 신규 focused의 직접 API/실제 class 결과 확인 | v4.1.0 |
+| C412 nearest/ambiguous/unavailable 미승격 | 실제 저장·producer·내부 해석 | nearest/ambiguous/unavailable 미승격; 신규 focused의 직접 API/실제 class 결과 확인 | v4.1.0 |
+| C413 UTC unknown·삭제 상태 재판정 | 실제 저장·producer·내부 해석 | UTC unknown·삭제 상태 재판정; 신규 focused의 직접 API/실제 class 결과 확인 | v4.1.0 |
+| C414 실제 TryResolve 요청참조 저장 | 실제 저장·producer·내부 해석 | 실제 TryResolve 요청참조 저장; 신규 focused의 직접 API/실제 class 결과 확인 | v4.1.0 |
+| C415 event 재전달·확장·세대 구분 | 실제 저장·producer·내부 해석 | event 재전달·확장·세대 구분; 신규 focused의 직접 API/실제 class 결과 확인 | v4.1.0 |
+| C416 source/channel 충돌 거부 | 실제 저장·producer·내부 해석 | source/channel 충돌 거부; 신규 focused의 직접 API/실제 class 결과 확인 | v4.1.0 |
+| C417 같은 원본 미디어 교집합 우선 | 실제 저장·producer·내부 해석 | 같은 원본 미디어 교집합 우선; 신규 focused의 직접 API/실제 class 결과 확인 | v4.1.0 |
+| C418 공개 결과·구형 fallback 불변 | 실제 저장·producer·내부 해석 | 공개 결과·구형 fallback 불변; 신규 focused의 직접 API/실제 class 결과 확인 | v4.1.0 |
+
+안정화는 사용자 승인 진행 대상; 30분/120분/UI 풀테스트는 이번 미진행. 공개 schema/실제 기본 구성은 변경하지 않는다.
+신규 bash scripts/internal/verify_recording_consumer_connection.sh를 격리 실행한다. 예상 RED는 C401/C406 미구현 assertion이다.
+추가 단기는 기존 consumer-reference/observation/event-recording/source-binding과 제품build/docs/diffcheck다.
+token start/end/consumed는 실측 없으면 미집계, elapsed/명령/exit/전수 결과/cleanup은 실제 실행 뒤 보존한다.
+
+이벤트 회귀 최초 session76579는 GST-on 빌드의 `-Wmissing-field-initializers`로 exit1이었다.
+기존 ready 티켓의 `segment_v2`에 명시 기본 초기화가 없어 구형 aggregate 호출에서 경고가 발생했다.
+메인이 `segment_v2{}`로 기존 optional 부재 의미를 유지하는 선언 보완만 적용한다.
+원출력 Event.log를 보존하며 동일 이벤트 회귀와 제품 build를 재실행한다. 다른 기능 계약·원장 schema 변경 없음.
+앞서 통과한 focused/reference/binding/correlation/observations는 이 기본 초기화 표기만으로 무효화하지 않는다.
+
+
 ## S10 3C-3C 원본 참조 저장 — 실행 전 정의
 
 ### 3C-3C 저장 단위 최종 결과

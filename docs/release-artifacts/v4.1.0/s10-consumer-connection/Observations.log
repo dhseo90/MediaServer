@@ -1,0 +1,87 @@
+[command] bash scripts/internal/verify_v410_recording_observations.sh
+[pass] mutation-v2
+[pass] null-roundtrip
+[pass] reference-roundtrip
+[pass] negative-created-time
+[pass] negative-reason
+[pass] negative-summary
+[pass] negative-observation-range
+[pass] negative-bbox
+[pass] journal-open
+[pass] catalog-open
+[pass] null-put
+[pass] gap-null
+[pass] missing-provenance-null
+[pass] segment-finalize
+[pass] pending-resolve
+[pass] located-roundtrip
+[pass] negative-locator-pts
+[pass] locator-put-reject
+[pass] located-put
+[pass] identity-put-reject
+[pass] identity-restore
+[pass] event-put
+[pass] reasons-merge
+[pass] missing-media-null
+[pass] v1-roundtrip
+[pass] deletion-request
+[pass] deleted-null
+[pass] sqlite-reopen
+[pass] journal-replay
+[pass] jsonl-parity
+[pass] sqlite-projection
+[pass] sqlite-payload-parity
+[pass] sampling-journal-open
+[pass] sampling-catalog-open
+[pass] stop-duration
+[pass] sampling-start
+[pass] sampling-60s-bound
+[pass] stop-once
+[pass] drain-bounded
+[pass] jobs-journal-open
+[pass] jobs-catalog-open
+[pass] ended-state-reuse
+[pass] pending-unrelated-finalize
+[pass] tracker-start
+[pass] runtime-journal-open
+[pass] runtime-catalog-open
+[pass] tracker-terminated-copy
+[pass] tracker-terminated-once
+[pass] observer-tracker-start-event-end
+[pass] observer-event-provenance
+[pass] late-journal-open
+[pass] late-catalog-open
+[pass] delayed-event-before-latest
+[pass] delayed-event-after-end
+[pass] config-zero-reject
+[pass] config-positive
+[pass] critical-overload-visible
+[pass] queue-cap
+[pass] concurrent-stop
+[pass] multi-namespace
+[pass] bounded-id
+[pass] storage-failure-counter
+[pass] pending-segment-finalize
+[pass] pending-finalize-automatic
+[pass] ambiguous-segment-finalize
+[pass] ambiguous-null
+[pass] corrupt-null
+[pass] reference-overflow-visible
+[pass] replay-identity-open
+[pass] replay-identity-memory
+[pass] replay-identity-sqlite
+S07 core failures=0
+[pass] 입력 전 위치 없음
+[pass] 수락 packet anchor
+[pass] 동일 epoch 범위 확장
+[pass] 캡처된 사본 불변
+[pass] accepted-pts-exact-membership
+[pass] PTS 되감기 차단
+[pass] 모호성 이후 추정 복원 금지
+[pass] epoch 변경 차단
+[pass] 종료 사본 차단
+[pass] accepted-pts-history-bound
+4036	/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-s07.K73c9i
+[pass] S07 temporary cleanup
+[exit] 0
+[elapsed] 미집계: 기존 runner는 elapsed를 출력하지 않으며 비동기 도구 대기 시간은 전체 실행 시간이 아님

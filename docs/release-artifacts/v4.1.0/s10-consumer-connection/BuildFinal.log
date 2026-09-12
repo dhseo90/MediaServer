@@ -1,0 +1,24 @@
+명령: ./server.sh build
+세션: 44940
+exit: 0
+범위: segment_v2{} 기본 초기화 보완 후 현재 작업 트리. 기존 S09 dirty 포함. UI/장시간 PASS 아님.
+token start/end/consumed: 미집계(실측 usage 미제공)
+elapsed: 전체 경과 실측 미보존
+
+[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+[2/2] build
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/event_clip_deriver.cpp.o
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/event_recording_bridge.cpp.o
+[  3%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/gstreamer_segment_writer.cpp.o
+[  4%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_finalize_recovery.cpp.o
+[  5%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_startup_recovery.cpp.o
+[  6%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_catalog.cpp.o
+[  7%] Linking CXX static library libmedia_server_runtime.a
+[ 98%] Built target media_server_runtime
+[ 98%] Building CXX object CMakeFiles/media_server.dir/src/application/media_server_application.cpp.o
+[ 99%] Linking CXX executable media_server
+[100%] Built target media_server
+[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server

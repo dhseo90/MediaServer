@@ -34,6 +34,7 @@ public:
         std::int64_t finalization_grace_ms{0};
         std::int64_t mapping_retry_ms{250};
         std::size_t max_pending_jobs{256};
+        bool use_consumer_references{false};
     };
 
     CatalogEventRecordingBridge(RecordingCatalog& catalog,

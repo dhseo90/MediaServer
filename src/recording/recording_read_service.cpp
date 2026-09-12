@@ -13,6 +13,54 @@
 #include <unistd.h>
 
 namespace recording {
+std::optional<ConfirmedMediaInterval> IntersectConfirmedMediaIntervals(
+        const ConfirmedMediaInterval& a, const ConfirmedMediaInterval& b) {
+    if(a.source_id.empty()||a.store_id.empty()||a.media_epoch_id.empty()||a.segment_id.empty()||
+       a.source_id!=b.source_id||a.store_id!=b.store_id||a.media_epoch_id!=b.media_epoch_id||a.segment_id!=b.segment_id||
+       a.time_base_num<=0||a.time_base_den<=0||a.time_base_num!=b.time_base_num||a.time_base_den!=b.time_base_den||
+       a.start_pts<0||b.start_pts<0||a.start_pts>=a.end_pts||b.start_pts>=b.end_pts)return std::nullopt;
+    auto out = a;
+    out.start_pts = std::max(a.start_pts, b.start_pts);
+    out.end_pts = std::min(a.end_pts, b.end_pts);
+    return out.start_pts<out.end_pts?std::optional<ConfirmedMediaInterval>(out):std::nullopt;
+}
+bool RecordingReadService::ResolveConsumerReference(const RecordingConsumerReferenceV1& reference,
+        ConsumerReferenceResolution* output, std::string* error) const {
+    if (output) *output = {};
+    if (!output || !ValidateRecordingConsumerReferenceV1(reference, error)) return false;
+    if (reference.association_quality != "timestamp-match") {
+        output->reason = reference.association_quality;
+        if (error) error->clear();
+        return true;
+    }
+    const auto& original = *reference.original;
+    RecordingOriginalResult candidates;
+    if(!catalog_.ResolveOriginalSample(reference.channel_id,reference.source_id,original.source_generation,
+        original.generation_order,original.track_id,original.ordinal,original.pts_ns,&candidates,error))return false;
+    output->unindexed=candidates.unknown;
+    for(const auto& candidate:candidates.exact) {
+        const auto& segment=candidate.segment;
+        const __int128 numerator=static_cast<__int128>(original.pts_ns)*segment.time_base_den;
+        const __int128 denominator=static_cast<__int128>(1000000000)*segment.time_base_num;
+        // 정상 binding은 이미 exact 변환을 검증한다. 방어 경계에서도 원본 후보는 숨기지 않는다.
+        if (denominator <= 0 || numerator % denominator ||
+            numerator / denominator > std::numeric_limits<std::int64_t>::max()) {
+            RecordingLocationResult unknown;
+            unknown.state = RecordingLocationState::Unknown;
+            unknown.has_unknown = true;
+            output->exact.push_back({candidate, std::move(unknown), "unrepresentable-media-time"});
+            continue;
+        }
+        RecordingLocationResult location;
+        if(!ResolveMediaLocation(reference.channel_id,segment.segment_id,static_cast<std::int64_t>(numerator/denominator),&location,error))return false;
+        // catalog 조회 사이 삭제/손상된 후보를 확정 위치로 돌려주지 않는다.
+        if(location.state==RecordingLocationState::Deleted||location.state==RecordingLocationState::None)continue;
+        output->exact.push_back({candidate,std::move(location),{}});
+    }
+    if(output->exact.empty())output->reason=output->unindexed.empty()?"none":"sample-index-cap";
+    if (error) error->clear();
+    return true;
+}
 namespace {
 RecordingRangeCandidate RangeCandidate(const RecordingSegmentV2& segment,
                                        const RecordingUtcMappingV1& mapping) {

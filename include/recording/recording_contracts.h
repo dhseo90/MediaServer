@@ -248,6 +248,15 @@ struct AnalysisObservationV2 {
     std::int64_t created_at_ms{0};
 };
 
+struct ReferencedObservationV1 {
+    std::string schema{"media-server.referenced-observation.v1"};
+    AnalysisObservationV2 observation;
+    RecordingConsumerReferenceV1 reference;
+};
+bool ValidateReferencedObservationV1(const ReferencedObservationV1&, std::string*);
+std::string SerializeReferencedObservationV1(const ReferencedObservationV1&);
+bool ParseReferencedObservationV1(const std::string&, ReferencedObservationV1*, std::string*);
+
 std::string SerializeAnalysisObservationV2(const AnalysisObservationV2& value);
 bool ParseAnalysisObservationV2(const std::string& json, AnalysisObservationV2* value,
                                 std::string* error);

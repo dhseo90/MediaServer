@@ -1,0 +1,8 @@
+[command] bash scripts/internal/verify_recording_consumer_connection.sh
+[pass] C412 실제 nearest/null 저장 왕복
+[pass] C401 관측·참조 원자 저장
+[pass] C406 실제 OnResult 원본 참조 저장
+[summary] pass=3 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-consumer-connection.MFJk0p bytes=3653986 removed=true
+[elapsed] seconds=4 source=bash-SECONDS
+[exit] 0
