@@ -1,5 +1,132 @@
 # Release Test Records
 
+## S10 3C-5.2 실행 결과 — 2026-09-13
+
+최종 R05 epoch 보완: 실제 writer 재시작의 서로 다른 두 epoch 원본3개→독립TS3개·전체요청 충족을 추가 검증했다. 최종은 [epoch-verified.log](release-artifacts/v4.1.0/s10-derived-remux/epoch-verified.log)의 focused31(취소1+media30), 아래 선택27/probe8과 합계66개다. 이전 final-evidence의30개 이력은 보존한다. 제품 코드는 검증된 latch build 이후 무변경이며 fixture만 보완했다. 추가 <set> include 누락 컴파일 오류(exit1)는 epoch-final.log에 비RED로 보존했다. 최종22개 root 부재는 cleanup-verified.log다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| S10 R05 실제 epoch 변경 원본→독립 출력 목록 | verify_recording_derived_remux.sh exit0, epoch-verified.log; 원본3/출력3·epoch2·전체충족 | pass |
+| S10 3C-5.2 문서 링크(메인 실행) | ./server.sh verify-docs-links exit0, markdown242/local links2289/images22/anchors110/indexed76/exclusions157/failures0; 메인 전달 요약, 서버/temp 없음, 제품66개와 별도 | pass |
+
+상세 범위·실패/미실행·FD 소유권·22개 root cleanup·소스 fingerprint는 [보존 보고](release-artifacts/v4.1.0/s10-derived-remux/report.md)가 담당한다. 아래 표는 epoch 추가 전 focused30(단발 취소1+media29)과 직접 선택 회귀27/기존 probe8의 개별 행이며, 위 epoch1행을 더한 최종 제품 assertion은66개다. build/diffcheck exit0. 메인 diff 검토 완료, 커밋은 메인이 수행한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| S10 3C-5.2 R14 단발 true→false 취소의 단조 고정 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 D22 실제 분수frame 요청 선택 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R01 실제 source-AU→TS-AU payload·decode 일치 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R11 confirmed source 누락은 생성전 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R03 분수 duration 미충족과 검증성공 분리 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R08 양수 byte 상한 필수 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R08 byte 상한 초과 전 중단·partial cleanup | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R09 미지원 codec 명시 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R09 ambiguous 자동 선택 금지 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R11 중복 segment 입력 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R11 reference source 결박 불일치 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R11 reference channel 결박 불일치 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R06 원본·출력 별칭 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R06 O_APPEND 출력 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R07 원본 hash 불일치 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R13 시작 전 취소·쓰기 없음 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R13 유효 전체시간 상한 필수 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R10 unknown 요청 보존·partial 출력 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R06 borrowed FD offset 보존 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R13 출력 후 취소·partial 소유권 보존 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R13 1ms 전체 deadline 초과는 검증성공 아님 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R07 출력 중 원본 변경 재확인 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R02 B-frame 실제 seek·nonzero 원본축 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R04 요청 외 keyframe preroll·GOP 의존 범위 분리 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R12 162×94 visible plane 픽셀 대응 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R05 인접 same-epoch 실제 source별 독립 출력 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R06 output끼리 전체 inode 교차 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R06 다른 source의 원본FD를 출력으로 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R06 다른 segment의 중복 원본FD 거부 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 R08 모든 출력 합계 byte 상한·부분 실패 목록 | `bash scripts/internal/verify_recording_derived_remux.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/final-evidence.log) | pass |
+| S10 3C-5.2 D01 callback 누적·불변 snapshot | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D02 유효0·fallback·duration/원본부재 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D04 exact union 정상 선택·파일식별 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D03 pre/post·음수요청 보존 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D03 ns 변환 overflow 거부 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D05 한점 외삽 금지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D06 namespace 격리 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D06 generation 합성 금지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D06 track 합성 금지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D07 중복 PTS 모호성 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D07 복수 원본 후보 보존 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D08 cap 초과범위 미확인 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D09 삭제 원본 구분 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D09 불완전 mapping을 영상공백으로 승격 금지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D09 epoch identity 유지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D11 비표현 유리수 잔차 거부 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D12 watermark 없는 postroll 미확인 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D13 source/channel 결박 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D13 checksum 없는 원본 거부 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D10 UTC 품질·불확실성 유지 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D10 UTC 역행 복수후보 보존 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D10 UTC unplaced 차단 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D14 정상후보가 손상후보를 숨기지 않음 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D15 queued sequence 미래제외 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D16 namespace reset 과거eviction 격리 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D17 decoder exact duration·fallback 격리 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 D21 namespace reset 이후 재eviction 최근작은구간 선택 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/selection-regression.log) | pass |
+| S10 3C-5.2 C501 H264 실제 파일 시각 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/probe-complete.log) | pass |
+| S10 3C-5.2 C502 비영점 원본 시각 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/probe-complete.log) | pass |
+| S10 3C-5.2 C503 정상 segment 분할 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/probe-complete.log) | pass |
+| S10 3C-5.2 C504 B-frame decode preroll 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/probe-complete.log) | pass |
+| S10 3C-5.2 C505 비영점 B-frame 시각 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/probe-complete.log) | pass |
+| S10 3C-5.2 C506 분수 frame rate 시각 측정 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/probe-complete.log) | pass |
+| S10 3C-5.2 C507 시계 역행과 미디어 시각 분리 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/probe-complete.log) | pass |
+| S10 3C-5.2 C508 PTS 초기화 epoch 분리 | `bash scripts/internal/verify_recording_derived_time_probe.sh`, exit0, [전수 원출력](release-artifacts/v4.1.0/s10-derived-remux/probe-complete.log) | pass |
+| S10 remux 최초 예상 RED | 실제 생성 미구현 not-implemented, R01 assertion 실패; remuxred.log exit1, 1PASS/1FAIL | fail |
+| S10 source 누락 예상 RED | R11 입력 없는 confirmed source의 잘못된 성공, closure-red.log exit1, 2PASS/1FAIL; 이후 검사 보완 | fail |
+| S10 reference source 예상 RED | source 불일치 거부 assertion 실패, reference-red.log exit1; 이후 보완 | fail |
+| S10 reference channel 예상 RED | channel 불일치 거부 assertion 실패, reference-red.log exit1; 이후 보완 | fail |
+| S10 단발 취소 예상 RED | R14 Stop=true 후 Check 반환, cancel-red.log exit1, 0PASS/1FAIL; atomic latch로 보완 | fail |
+| S10 remux 최종 build | cmake --build build-gst-onnx -j2, exit0; verified-build.log | pass |
+| S10 remux 최종 cleanup | runner containment 삭제 후22개 root 부재 확인, cleanup-verified.log; 이전20개 cleanup-final.log 이력 유지 | pass |
+
+선수 컴파일 오류2건·burst decoder-count 미충족2건은 제품 RED가 아니다. 최초→수정→검증 이력은 보고서에 보존한다. probe-regression.log는 도구 반환 cap에 의해 세부 원출력이 유실되어 전수 증거 사용 불가이며 probe-complete.log의 재실행으로 보완했다. final-focused.log의26개와 verified-final.log의1+28개를 최종30개와 혼동하지 않는다.
+
+| 제목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| S10 3C-5.2 30분/UI | 장시간·UI 풀테스트 | 이번 실행 미승인 | focused를 버전 전체 PASS로 확대 불가 |
+| S10 3C-5.2 120분 | 조건부 진행 | S11 최종cut에서 영향범위 대조, 이번 실행 미승인 | 실제120분 PASS 아님 |
+| S10 3C-5.3/5.4 | durable 작업·게시/소비 | 이번 비범위 | FD 결과만으로 ready/publish 완료 아님 |
+
+## S10 3C-5.2 실제 remux 실행 전 정의 — 2026-09-13
+
+독자: 현재 개발·검토 담당자. 이 절은 내부 FD 기반 출력 검증이며 job 원장/publish/3D/S11의 완료 증거가 아니다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-R01 | AU 직접 출처 | 실제 managed MP4를 FD로 검사하고 VCL 정규형 SHA256 전수 및 source/output 실제 decoded 영상 hash 비교 | v4.1.0 |
+| S10-R02 | 실제 seek | 비영점·B-frame의 filePTS와 GstSegment stream-time을 분리하고 실제 seek 후 AU를 원본목록과 대조 | v4.1.0 |
+| S10-R03 | 유리수·미충족 | TS90k tick·GST ns 잔차와 fileduration을 그대로 보존; 1ns를 삭제하지 않고 verified_output/fully_satisfied 분리 | v4.1.0 |
+| S10-R04 | GOP 경계 | IDR preroll과 종료 dependency의 추가 AU/실제범위를 요청과 구분 | v4.1.0 |
+| S10-R05 | 여러 출력 | source/epoch별 독립 출력 목록과 전체요청 coverage를 보존; 일부실패를 all verified로 하지 않음 | v4.1.0 |
+| S10-R06 | FD 소유권 | 빈 O_RDWR regular output·서로 다른 inode·source FD 중복을 확인; close/unlink는caller | v4.1.0 |
+| S10-R07 | 파일 무결성 | source size/SHA 및 fstat 변화·변조를 거부; source offset/content 불변 | v4.1.0 |
+| S10-R08 | 출력 상한 | max_output_bytes=0 거부와 작은 예산 실패에서 실제쓰기 bytes가 예산 이하임을 검사 | v4.1.0 |
+| S10-R09 | 미지원/모호성 | codec profile 밖 또는 ambiguous slice는 자동출력하지 않음 | v4.1.0 |
+| S10-R10 | partial 선택 | confirmed 단일후보만 출력해도 원래 unknown/미충족 요청을 결과에서 유지 | v4.1.0 |
+| S10-R11 | confirmed source 전수 결박 | 선택에 A/B가 있으나 FD목록에A만 있는 경우 생성 전 거부; segmentID중복·전 FD교차·source누락 및 reference.source_id/channel_id 불일치를 각각 검사 | v4.1.0 |
+| S10-R12 | visible pixel 검증 | I420 stride/plane padding을 제외한 보이는 픽셀만 hash; 정렬되지 않는162×94 실제 H264 fixture로 검증 | v4.1.0 |
+| S10-R13 | 전체 budget·취소 | 요청 전체 deadline/취소신호를 모든source읽기·pipelinepoll·쓰기에서 검사, 이미쓴partial과callercleanup책임 보존 | v4.1.0 |
+| S10-R14 | 단발 취소의 단조성 | thread-safe callback이 한 번 true 이후 false를 반환해도 Stop 이후 Check가 반드시 work-cancelled를 던짐. 해제 후 재사용을 일으키지 않는 내부 Budget 직접 assertion, 예상 RED는 Check 미거부 | v4.1.0 |
+
+명령은 `bash scripts/internal/verify_recording_derived_remux.sh`이며 최초 예상 RED는 미구현 deriver가 R01 실제 출력·AU·decode assertion을 충족하지 못하는 것이다. 로컬 fixture/보호된FD/빈출력FD만 사용한다. 30분/UI 미실행,120분은S11최종cut영향대조의조건부이며이번미승인이다. 기존helper분리에 직접영향 있는 time-probe8case도 단기회귀로 재검증한다. 원출력·전수 결과·cleanup은 `docs/release-artifacts/v4.1.0/s10-derived-remux/report.md`에 보존한다.
+
+## S10 3C-5.2 선수 fractional 선택 경계 — 2026-09-13
+
+독자: 현재 개발·검토 담당자. lifecycle은 v4.1.0 내부 파생 구현 증거이며 AGENTS가 정책 source-of-truth다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-D22 | 실제 분수frame duration overlap | 기존 Encode/Store helper를 재사용한 H26430000/1001→managed MP4 및 실제 decoder→collector→SelectDerivedRecording에서 서로 다른 PTS의1ns overlap이 가짜모호성이 아닌지 검사; 같은 PTS·서로 다른ordinal 모호성은 유지 | v4.1.0 |
+
+명령: `bash scripts/internal/verify_recording_derived_remux.sh`. 예상 RED는 실제 decoder30frame을 받고 요청[7000,8001)ms의 일부1ns slice가 Ambiguous가 되는 assertion이다. 준비/build/환경 실패는 RED가 아니다. 원본writer/decoder정규화 변경 없음. 실제 로컬media만 사용하고 소유 `media-server-derived-remux.*` root는 크기 확인 후 trap 삭제한다. 새 외부입력·서버·장시간/UI 없음. token start/end/consumed는 미집계(도구 미제공), elapsed/source는 runner SECONDS다.
+
 ## S10 3C-5.1 요청 구간 대응·선택 — 2026-09-13 실행 전 정의
 
 추가 사전등록 D21(v4.1.0): 메인이 지적한 이전 namespace의 큰 PTS eviction→새namespace의 낮은 PTS 4096개 초과→재eviction에서 이전 highwater가 재등장하는 반례를 focused fixture로 실행한다. worker의 실제 namespace reset에서 collector 소유 경계를 명시적으로 전환하고, cutoff 이후 누락 증거는 감추지 않는다. 앞선 pure26/runtime19 PASS는 당시 범위로 보존하며 이 반례의 검증은 아니었다.

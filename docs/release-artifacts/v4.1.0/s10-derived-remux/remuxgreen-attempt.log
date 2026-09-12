@@ -1,0 +1,7 @@
+[detail] decoded=60 slices=30 ambiguous=0 complete=1
+[pass] D22 실제 분수frame 요청 선택
+[detail] remux_error= outputs=1
+[pass] R01 실제 source-AU→TS-AU payload·decode 일치
+[summary] pass=2 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.wZBPzd bytes=3982536 removed=true
+[elapsed] seconds=5 source=bash-SECONDS

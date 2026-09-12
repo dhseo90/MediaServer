@@ -2,6 +2,30 @@
 
 | 기능 ID | 기능 | 안정화 | 30분 | 120분 | UI 풀테스트 | UI 기준 |
 | --- | --- | --- | --- | --- | --- | --- |
+| S10-R11 | confirmed source 전수 결박·FD전체교차 | derived-remux 실제fixture | S11 판정 | S11 조건부 | 비대상 | 입력누락 성공승격 금지 |
+| S10-R12 | I420 visible plane hash | derived-remux 실제fixture | S11 판정 | S11 조건부 | 비대상 | stride padding 동일성 아님 |
+| S10-R13 | 전체 deadline·취소·partial 소유 | derived-remux 실제fixture | S11 판정 | S11 조건부 | 비대상 | stop/cleanup 경계 |
+| S10-R14 | 단발 취소 단조 고정 | 내부 Budget focused RED/GREEN | S11 판정 | S11 조건부 | 비대상: UI 없어야 정상 | 해제 후 재사용 방지 |
+
+| 기능 ID | 기능 | 안정화 | 30분 | 120분 | UI 풀테스트 | UI 기준 |
+| --- | --- | --- | --- | --- | --- | --- |
+| S10-R01 | 실제 H264 AU payload·decode remux 출처 | derived-remux 실제fixture | S11 판정 | S11 조건부 | 비대상 | 내부 FD 출력, publish 없음 |
+| S10-R02 | 비영점·B-frame·GstSegment 실제 seek | derived-remux 실제fixture | S11 판정 | S11 조건부 | 비대상 | 고정 offset 금지 |
+| S10-R03 | 분수90k timebase·1ns 미충족 | derived-remux 실제fixture | S11 판정 | S11 조건부 | 비대상 | verified/fullySatisfied 분리 |
+| S10-R04 | GOP preroll·후행 dependency 실제범위 | derived-remux 실제fixture | S11 판정 | S11 조건부 | 비대상 | 요청과추가범위 분리 |
+| S10-R05 | 다중 source/epoch 독립 출력 | derived-remux 실제fixture | S11 판정 | S11 조건부 | 비대상 | 단일영상·연속재생 주장 없음 |
+| S10-R06 | source/output FD·inode 별칭 거부 | derived-remux 실제fixture | S11 판정 | S11 조건부 | 비대상 | 경로 임의open 없음 |
+| S10-R07 | source size/hash/파일변경 거부 | derived-remux 실제fixture | S11 판정 | S11 조건부 | 비대상 | 원본 보존 |
+| S10-R08 | 양수 byte상한·부분쓰기 실패 | derived-remux 실제fixture | S11 판정 | S11 조건부 | 비대상 | caller cleanup 책임 |
+| S10-R09 | unsupported codec·ambiguous 선택 거부 | derived-remux 실제fixture | S11 판정 | S11 조건부 | 비대상 | 판단 완화 없음 |
+| S10-R10 | partial 선택의 전체요청·미충족 보존 | derived-remux 실제fixture | S11 판정 | S11 조건부 | 비대상 | 선택 밖 unknown 제거 금지 |
+
+| 기능 ID | 기능 | 안정화 | 30분 | 120분 | UI 풀테스트 | UI 기준 |
+| --- | --- | --- | --- | --- | --- | --- |
+| S10-D22 | 실제 30000/1001 decoder duration overlap 선택 | derived-remux 실제fixture·derived-selection | S11 판정 | S11 조건부 | 비대상 | 서로 다른 PTS overlap과 같은 PTS 모호성 분리 |
+
+| 기능 ID | 기능 | 안정화 | 30분 | 120분 | UI 풀테스트 | UI 기준 |
+| --- | --- | --- | --- | --- | --- | --- |
 | S10-D21 | namespace reset 이후 재eviction에서 이전큰PTS 격리 | derived-selection focused/runtime | S11 판정 | S11 판정 | 비대상 | 반복namespace 증거 수명 |
 
 | 기능 ID | 기능 | 안정화 | 30분 | 120분 | UI 풀테스트 | UI 기준 |

@@ -2017,6 +2017,22 @@ D21 초기화 후 재eviction 결함/수정 이력은 [실행 기록](../../rele
 worker reset 전에 새 namespace 자료까지 상한 밖으로 소실됐다면 해당 namespace는 미확인으로
 유지한다. 선택 iteration 상한과 정상 길이 제약도 기록했으며 이를 전체 요청 지원으로 과장하지 않는다.
 
+3C-5.2는 보호된 원본 FD와 호출자 소유의 빈 출력 FD를 받아 H.264/MP4→MPEG-TS를 생성한다.
+양수 byte 상한을 강제하고 publish/ready/원장 변경·FD close/unlink는 수행하지 않는다.
+원본 size/hash와 실제 file AU를 확인하며 sourcefile→output payload 대응과 decode/seek를 검증한다.
+원본 timestamp 연관을 payload/decoded frame identity로 승격하지 않는다.
+`verified_output`과 `request_fully_satisfied`를 분리하고 실제 file duration·90kHz 출력 시간축·잔차,
+preroll/decode dependency·미충족 범위를 보존한다. binding에 없는 원본 duration을 복원하지 않는다.
+첫 프로파일은 source별 독립 출력 목록이며 같은 epoch 파일도 단일 파일 결합을 지원한다고 하지 않는다.
+여러 출력 중 일부 실패나 첫 파일만으로 전체 요청 완료를 표시하지 않는다. 후속 bridge는 목록을 보존해야 한다.
+
+3C-5.2의 실제 remux 단위는 구현·단기 검증했다. 메인이 제품 diff와 실제 원출력을 직접 대조했다.
+최종 remux31개(단발 취소1+실제 미디어30), 선택 회귀27개, 시각 probe8개 및 build가 통과했다.
+비영점/B-frame seek·분수 duration·보이는 픽셀·동일/상이 epoch별 독립 출력과 FD/취소 오류를 확인했다.
+누락 source/참조 결박 및 단발 취소 결함의 RED→GREEN, 준비 실패와 잘린 probe 출력의 재수집은
+[실행 기록](../../release-artifacts/v4.1.0/s10-derived-remux/report.md)에 보존한다.
+검증된 FD 출력이지 게시·내구 작업·이벤트 통합 완료가 아니다. 3C-5.3/5.4는 아직 남아 있다.
+
 #### 3C-4 실제 분석·이벤트 소비자 연결 (3C-3C 이후)
 
 전제: a8ed142f 원본 참조 저장 계약/복구 검증 완료. 이 단계는 실제 class 경로의 opt-in 구현이며

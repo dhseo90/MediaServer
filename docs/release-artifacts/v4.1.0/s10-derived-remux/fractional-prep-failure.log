@@ -1,0 +1,10 @@
+In file included from /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_derived_remux_smoke.cpp:2:
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h:40:13: error: unused function 'Number' [-Werror,-Wunused-function]
+   40 | std::string Number(GstClockTime value) {
+      |             ^~~~~~
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h:43:13: error: unused function 'Signed' [-Werror,-Wunused-function]
+   43 | std::string Signed(__int128 value) {
+      |             ^~~~~~
+2 errors generated.
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.A2PqJL bytes=0 removed=true
+[elapsed] seconds=0 source=bash-SECONDS

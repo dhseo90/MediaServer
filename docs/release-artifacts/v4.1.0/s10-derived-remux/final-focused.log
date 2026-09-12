@@ -1,0 +1,33 @@
+[detail] decoded=60 slices=30 ambiguous=0 complete=1
+[pass] D22 실제 분수frame 요청 선택
+[detail] remux_error= outputs=1
+[pass] R01 실제 source-AU→TS-AU payload·decode 일치
+[pass] R11 confirmed source 누락은 생성전 거부
+[pass] R03 분수 duration 미충족과 검증성공 분리
+[pass] R08 양수 byte 상한 필수
+[pass] R08 byte 상한 초과 전 중단·partial cleanup
+[pass] R09 미지원 codec 명시 거부
+[pass] R09 ambiguous 자동 선택 금지
+[pass] R11 중복 segment 입력 거부
+[pass] R06 원본·출력 별칭 거부
+[pass] R06 O_APPEND 출력 거부
+[pass] R07 원본 hash 불일치 거부
+[pass] R13 시작 전 취소·쓰기 없음
+[pass] R13 유효 전체시간 상한 필수
+[pass] R10 unknown 요청 보존·partial 출력
+[pass] R06 borrowed FD offset 보존
+[pass] R13 출력 후 취소·partial 소유권 보존
+[pass] R13 1ms 전체 deadline 초과는 검증성공 아님
+[pass] R07 출력 중 원본 변경 재확인 거부
+[detail] bframe_error= outputs=1
+[pass] R02 B-frame 실제 seek·nonzero 원본축
+[pass] R04 요청 외 keyframe preroll·GOP 의존 범위 분리
+[pass] R12 162×94 visible plane 픽셀 대응
+[detail] multi_error= inputs=3 outputs=3
+[pass] R05 인접 same-epoch 실제 source별 독립 출력
+[pass] R06 output끼리 전체 inode 교차 거부
+[pass] R06 다른 source의 원본FD를 출력으로 거부
+[pass] R08 모든 출력 합계 byte 상한·부분 실패 목록
+[summary] pass=26 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.HTYQEn bytes=4624430 removed=true
+[elapsed] seconds=4 source=bash-SECONDS

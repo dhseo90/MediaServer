@@ -1,0 +1,4 @@
+[fail] R14 단발 true→false 취소의 단조 고정
+[summary] pass=0 fail=1
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.LZhTXB bytes=3190544 removed=true
+[elapsed] seconds=1 source=bash-SECONDS

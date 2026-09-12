@@ -1,0 +1,20 @@
+[pass] R14 단발 true→false 취소의 단조 고정
+[summary] pass=1 fail=0
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_derived_remux_smoke.cpp:90:26: error: no member named 'set' in namespace 'std'
+   90 |     if(split_epoch){std::set<std::string> epochs;for(const auto& output:normal.outputs)epochs.insert(output.media_epoch_id);
+      |                          ^~~
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_derived_remux_smoke.cpp:90:41: error: expected '(' for function-style cast or type construction
+   90 |     if(split_epoch){std::set<std::string> epochs;for(const auto& output:normal.outputs)epochs.insert(output.media_epoch_id);
+      |                              ~~~~~~~~~~~^
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_derived_remux_smoke.cpp:90:43: error: use of undeclared identifier 'epochs'
+   90 |     if(split_epoch){std::set<std::string> epochs;for(const auto& output:normal.outputs)epochs.insert(output.media_epoch_id);
+      |                                           ^~~~~~
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_derived_remux_smoke.cpp:90:88: error: use of undeclared identifier 'epochs'
+   90 |     if(split_epoch){std::set<std::string> epochs;for(const auto& output:normal.outputs)epochs.insert(output.media_epoch_id);
+      |                                                                                        ^~~~~~
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_derived_remux_smoke.cpp:91:186: error: use of undeclared identifier 'epochs'
+   91 |         checks.push_back({"R05 실제 epoch 변경 원본→독립 출력 목록",normal.verified_output&&normal.request_fully_satisfied&&normal.outputs.size()==request.sources.size()&&epochs.size()==2});
+      |                                                                                                                                                                            ^~~~~~
+5 errors generated.
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.tikVWX bytes=3190544 removed=true
+[elapsed] seconds=2 source=bash-SECONDS
