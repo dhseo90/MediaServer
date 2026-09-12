@@ -817,6 +817,25 @@ std::optional<RecordingSegmentV2> RecordingCatalog::FindSegmentV2ById(const std:
     return found->second;
 }
 
+bool RecordingCatalog::SnapshotLocationsV2(const std::string& channel, RecordingLocationCatalogSnapshot* result, std::string* error) const {
+    if(result)*result={};
+    if(!result||!ValidateOpaqueId(channel,error))return Fail(error,"invalid location snapshot input");
+    std::lock_guard lock(mu_);
+    if(!opened_)return Fail(error,"catalog not open");
+    RecordingLocationCatalogSnapshot snapshot;
+    for(const auto& [id,segment]:segments_v2_)
+        if(segment.channel_id==channel&&!tombstones_.count(id))snapshot.segments.push_back(segment);
+    for(const auto& [id,tombstone]:tombstones_)
+        if(tombstone.channel_id==channel)snapshot.deleted_segment_ids.push_back(id);
+    std::sort(snapshot.segments.begin(),snapshot.segments.end(),[](const auto& a,const auto& b){
+        if(a.store_id!=b.store_id)return a.store_id<b.store_id;
+        if(a.order_sequence!=b.order_sequence)return a.order_sequence<b.order_sequence;
+        return a.segment_id<b.segment_id;
+    });
+    std::sort(snapshot.deleted_segment_ids.begin(),snapshot.deleted_segment_ids.end());
+    *result=std::move(snapshot);if(error)error->clear();return true;
+}
+
 bool RecordingCatalog::RecoverFinalizedSegmentV2(const RecordingSegmentV2& v,const std::string& path,bool* inserted,std::string* error) {
     if(inserted)*inserted=false;
     if(!ValidateFinalizeRecoveryV2(v,path,error))return false;

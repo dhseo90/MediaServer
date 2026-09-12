@@ -3,12 +3,75 @@
 #include <algorithm>
 #include <charconv>
 #include <cerrno>
+#include <limits>
+#include <tuple>
 #include "domain/strict_json.h"
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
 namespace recording {
+namespace {
+RecordingLocationCandidate LocationCandidate(const RecordingSegmentV2& s,std::int64_t pts,
+                                              const RecordingUtcMappingV1& m) {
+    return {s.store_id,s.segment_id,s.media_epoch_id,s.order_sequence,pts,s.time_base_num,s.time_base_den,m};
+}
+bool LocationError(std::string* error){if(error)*error="invalid location input";return false;}
+void SortLocations(RecordingLocationResult* result) {
+    std::sort(result->candidates.begin(),result->candidates.end(),[](const auto& a,const auto& b){
+        // 이 경로의 후보는 닫힌 mapping 검사를 통과한 LocationCandidate에서만 생성된다.
+        return std::tie(a.store_id,a.order_sequence,a.segment_id,a.mapping->mapping_id)<
+               std::tie(b.store_id,b.order_sequence,b.segment_id,b.mapping->mapping_id);
+    });
+}
+}
+bool RecordingReadService::ResolveMediaLocation(const std::string& channel,const std::string& id,std::int64_t pts,
+                                                RecordingLocationResult* result,std::string* error) const {
+    if(result)*result={};
+    if(!result||!ValidateOpaqueId(channel,error)||!ValidateOpaqueId(id,error))return LocationError(error);
+    RecordingLocationCatalogSnapshot snapshot;
+    if(!catalog_.SnapshotLocationsV2(channel,&snapshot,error))return false;
+    RecordingLocationResult output;
+    if(std::binary_search(snapshot.deleted_segment_ids.begin(),snapshot.deleted_segment_ids.end(),id))
+        output.state=RecordingLocationState::Deleted;
+    else for(const auto& segment:snapshot.segments) {
+        if(segment.segment_id!=id||pts<segment.media_start_pts||(segment.media_end_pts&&pts>=*segment.media_end_pts))continue;
+        for(const auto& mapping:segment.mappings) {
+            if(pts<mapping.start_pts||(mapping.end_pts&&pts>=*mapping.end_pts))continue;
+            if(!mapping.end_pts) {output.state=RecordingLocationState::Unknown;output.has_unknown=true;break;}
+            output.candidates.push_back(LocationCandidate(segment,pts,mapping));
+            output.state=RecordingLocationState::Single;output.has_unknown=mapping.provenance=="unknown";break;
+        }
+    }
+    *result=std::move(output);if(error)error->clear();return true;
+}
+bool RecordingReadService::ResolveUtcLocations(const std::string& channel,std::int64_t utc,
+                                               RecordingLocationResult* result,std::string* error) const {
+    if(result)*result={};
+    if(!result||!ValidateOpaqueId(channel,error))return LocationError(error);
+    RecordingLocationCatalogSnapshot snapshot;
+    if(!catalog_.SnapshotLocationsV2(channel,&snapshot,error))return false;
+    RecordingLocationResult output;
+    for(const auto& segment:snapshot.segments)for(const auto& mapping:segment.mappings) {
+        if(mapping.provenance=="unknown"||!mapping.utc_start_ns||!mapping.utc_end_ns||!mapping.end_pts) {
+            output.has_unknown=true;continue;
+        }
+        if(utc<*mapping.utc_start_ns||utc>=*mapping.utc_end_ns)continue;
+        // 최대 64비트 차이와 양수 32비트 timebase 곱은 int128 안이다. 끝점 간 보간은 하지 않는다.
+        const __int128 numerator=(static_cast<__int128>(utc)-*mapping.utc_start_ns)*segment.time_base_den;
+        const __int128 denominator=static_cast<__int128>(1000000000)*segment.time_base_num;
+        if(denominator<=0||numerator%denominator!=0) {output.has_unknown=true;continue;}
+        const __int128 pts=static_cast<__int128>(mapping.start_pts)+numerator/denominator;
+        if(pts<std::numeric_limits<std::int64_t>::min()||pts>std::numeric_limits<std::int64_t>::max()||
+           pts<mapping.start_pts||pts>=*mapping.end_pts) {output.has_unknown=true;continue;}
+        output.candidates.push_back(LocationCandidate(segment,static_cast<std::int64_t>(pts),mapping));
+    }
+    SortLocations(&output);
+    if(output.candidates.size()>1)output.state=RecordingLocationState::Multiple;
+    else if(output.has_unknown)output.state=RecordingLocationState::Unknown;
+    else if(output.candidates.size()==1)output.state=RecordingLocationState::Single;
+    *result=std::move(output);if(error)error->clear();return true;
+}
 namespace {
 // 루트부터 각 구성요소를 fd로 고정한다. FIFO도 block하지 않고 fstat에서 거부한다.
 int OpenMedia(const std::filesystem::path& root, const std::filesystem::path& relative) {

@@ -42,6 +42,11 @@ struct EventSourceLease {
     std::vector<RetentionCandidate> sources;
 };
 
+struct RecordingLocationCatalogSnapshot {
+    std::vector<RecordingSegmentV2> segments;
+    std::vector<std::string> deleted_segment_ids;
+};
+
 class RecordingCatalog final : public RecordingStorePort {
 public:
     struct Options {
@@ -62,6 +67,8 @@ public:
     RecordingCatalog(RecordingJournal& journal, Options options);
     ~RecordingCatalog() override;
     bool Open(std::string* error);
+    bool SnapshotLocationsV2(const std::string& channel_id,
+                             RecordingLocationCatalogSnapshot* result, std::string* error) const;
     bool ValidateManagedWriterBinding(const RecordingJournal& journal,
                                      const std::filesystem::path& root,
                                      const std::string& store_id, std::string* error) const;

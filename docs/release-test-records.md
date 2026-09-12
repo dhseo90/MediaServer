@@ -1,5 +1,567 @@
 # Release Test Records
 
+## S10 후속 3A 내부 위치 해석 — 실행 전 정의
+
+독자는 구현·검증 담당자이며 정책은 AGENTS, 설계는 S10 명세/구현 계획을 따른다.
+명령: `bash scripts/internal/verify_recording_location_resolution.sh`. 실제 catalog/journal의 격리
+metadata fixture를 사용한다. 외부 호출·포트·운영 데이터·GStreamer 실행은 없다.
+공개 API·기존 timeline·보존/이벤트/분석·서버 기본 전환은 이번 3A 범위 밖이다.
+컴파일 가능한 거부 stub에서 정상 조회 assertion 실패가 예상 RED이며 준비/컴파일 실패는 RED가 아니다.
+첫 focused 예상 실패는 LOC01~11/13/14 총13개이며 입력 거부 LOC12는 stub에서도 PASS다.
+LOC12 보완: 성공한 결과 객체로 잘못된 입력을 다시 호출하면 이전 후보/삭제 ID가 남지 않아야 한다.
+초기화 구현 전 이 assertion 하나의 예상 RED를 확인하며 입력 검증/계약 자체는 변경하지 않는다.
+Single은 미디어 시간 위치 후보 하나이며 프레임 고유성·촬영 시각 정확도·재생 가능 보장이 아니다.
+UTC 후보 하나+unknown은 Unknown, 후보 복수+unknown은 Multiple+has_unknown으로 표현한다.
+exact media는 존재 범위가 입증되면 UTC unknown과 별개로 Single+has_unknown이다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 내부 위치 해석 추가 | S10-LOC01~14 | 후속3 개발의 격리 단기 검증 |
+| 30분 | 미진행 | 최종 코드 미고정 | S11 별도 판정 | 이번 실행 없음 |
+| 120분 | 미진행 | 3A는 source/media 수명 미변경 | read service/catalog 읽기 API | 이번 실행 없음 |
+| UI 풀테스트 | 미진행 | 화면/route 변경 없음 | 내부 API | 이번 실행 없음 |
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-LOC01 정확 미디어 위치 | 격리 C++ 위치 해석 | segment·epoch·PTS·timebase·mapping 원문 보존 | v4.1.0 |
+| S10-LOC02 UTC 불명확 미디어 위치 | 격리 C++ 위치 해석 | 범위가 입증된 exact 위치는 Single+has_unknown; 열린 tail은 Unknown | v4.1.0 |
+| S10-LOC03 서로 다른 파일의 UTC 중첩 | 격리 C++ 위치 해석 | 후보 두 개를 Multiple로 보존 | v4.1.0 |
+| S10-LOC04 한 파일의 서로 다른 UTC 매핑 | 격리 C++ 위치 해석 | mapping ID가 다른 후보를 병합하지 않음 | v4.1.0 |
+| S10-LOC05 점 조회 반개구간 | 격리 C++ 위치 해석 | start 포함/end 제외; 구간 밖은 None | v4.1.0 |
+| S10-LOC06 알 수 없는 UTC | 격리 C++ 위치 해석 | unknown 매핑과 열린 끝을 외삽하지 않음 | v4.1.0 |
+| S10-LOC07 알려진 후보와 미확정 공존 | 격리 C++ 위치 해석 | 후보를 보존하고 has_unknown으로 불완전성 표시 | v4.1.0 |
+| S10-LOC08 다른 timebase 정확 변환 | 격리 C++ 위치 해석 | 분모가 ns가 아닌 PTS를 checked rational로 보존 | v4.1.0 |
+| S10-LOC09 정수로 표현 불가능한 위치 | 격리 C++ 위치 해석 | 반올림하지 않고 Unknown | v4.1.0 |
+| S10-LOC10 산술 극값 | 격리 C++ 위치 해석 | int64 경계 차이·곱셈·최종 위치 overflow 거부 | v4.1.0 |
+| S10-LOC11 삭제 ID의 channel 경계 | 격리 C++ 위치 해석 | 동일 channel exact ID만 Deleted; 다른 channel은 None | v4.1.0 |
+| S10-LOC12 잘못된 입력 | 격리 C++ 위치 해석 | null 결과·잘못된 ID/channel 및 미open 거부, 상태 변경 없음 | v4.1.0 |
+| S10-LOC13 재시작/저장 모드 일치 | 격리 C++ 위치 해석 | JSONL/SQLite 재open 결과의 ID·매핑·순서 일치 | v4.1.0 |
+| S10-LOC14 읽기 전용 경계 | 격리 C++ 위치 해석 | 파일 부재와 무관한 metadata 해석; 원장/hold 불변 | v4.1.0 |
+
+영향 회귀: 새 위치 해석 GREEN 뒤 `./server.sh verify-v410-recording-timeline --read-model`로
+기존 V1 읽기/재생 내부 경계를, `./server.sh verify-v410-recording-catalog`로 기존 투영·복구를 확인한다.
+이 명령의 기존 등록 개별 항목을 그대로 실행하고 출력별 전수 행을 아래 결과에 보존한다.
+HTTP/Auth/실제 UI/전체 빌드·장시간 PASS로 확대하지 않는다.
+
+실행 전 상태는 미실행이었으며 아래에 실제 실행/결과를 보존한다. token 집계 한계와 정리 결과도 아래와 같다.
+
+
+
+### 3A 실행 결과와 한정 판정
+
+3A 내부 위치 해석 구현·검증 완료. 변경은 catalog/read service h/cpp 4개와 신규 smoke/runner 2개다.
+메인은 실제 diff·전수 출력·오류 결과 초기화·checked rational 연산·channel 필터·원문 매핑 보존을 직접 검토했다.
+기존 공개 timeline·media open·hold·삭제·이벤트·분석·서버 default 경로는 변경하지 않았다.
+기존 S09 dirty fixture를 포함한 작업트리에서 회귀를 실행했으며, clean commit만의 독립 빌드라고 주장하지 않는다.
+
+| 실행 | 명령 | exit | 결과 |
+| --- | --- | --- | --- |
+| 31092 | `bash scripts/internal/verify_recording_location_resolution.sh` | 1 | 예상 RED 1/13 |
+| 20176 | 동일 focused | 0 | 14/0 |
+| 9177 | 동일 focused, LOC12 결과 초기화 assertion 추가 | 1 | 예상 RED 13/1 |
+| 70418 | 동일 focused, 결과 초기화 구현 | 0 | 최종 14/0 |
+| 74195 | `./server.sh verify-v410-recording-timeline --read-model` | 0 | JSONL83 + SQLite83 + cleanup1 = 167/0 |
+| 49201 | `./server.sh verify-v410-recording-catalog` | 0 | C++234 + crypto-off3 + shell9 = 246/0 |
+| diffcheck | `git diff --check` | 0 | 변경 공백 검사 |
+
+원출력: [focused](release-artifacts/v4.1.0/s10-location-resolution/focused.log),
+[읽기 회귀](release-artifacts/v4.1.0/s10-location-resolution/read-model.log),
+[catalog 회귀](release-artifacts/v4.1.0/s10-location-resolution/catalog.log).
+[검증 소스 SHA-256](release-artifacts/v4.1.0/s10-location-resolution/source.sha256)에 제품·테스트 8개를 고정했다.
+최종 `git diff --check` exit0, `./server.sh verify-docs-links` exit0(234문서/1139링크/실패0).
+원출력 catalog의 줄 끝 공백만 정규화했다. 시간: focused 네 회 각각4초(bash SECONDS),
+회귀 두 회 elapsed는 전용 시작/종료 타이머 미설치로 미집계다. token start/end/consumed 미집계(전용 집계값 없음).
+미실행: 전체 제품 build·HTTP/Auth·UI·30분·120분·S11. 위 focused C++ 컴파일 성공을 전체 build로 대체하지 않는다.
+한계: 결과는 저장된 명목 UTC 매핑의 미디어 시간 후보이며 uncertainty 원문을 보존한다.
+실제 프레임 존재·파일 무결성·재생 가능·촬영 시각 정확도나 불확실성 확장 검색의 완료가 아니다.
+기존 숫자 channel과 새 저장 ID 검증의 차이는 서버 기본 전환 전에 해결할 호환 항목으로 계획에 기록했다.
+후속3 전체는 미완료다. 위 검증 종료 당시 3A는 미커밋/미푸시였다. 후속2는 `a5673050` 푸시 완료다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| 실행 전용 media-server-location.U3bvr5 | RED fixture/binary | 2,401,707B | shell cleanup | 삭제 확인 | focused log |
+| 실행 전용 media-server-location.RdBp2g | GREEN fixture/binary | 2,528,335B | shell cleanup | 삭제 확인 | focused log |
+| 실행 전용 media-server-location.HOrmCX | LOC12 RED fixture/binary | 2,528,447B | shell cleanup | 삭제 확인 | focused log |
+| 실행 전용 media-server-location.8s8R8P | 최종 GREEN fixture/binary | 2,528,447B | shell cleanup | 삭제 확인 | focused log |
+| 실행 전용 media-server-s06-read.nHGBvH | 회귀 fixture/binary | 2896KiB(du) | shell cleanup | 삭제 확인 | read-model log |
+| /tmp/media_server_v410_recording_catalog-54255 | 회귀 fixture/binary | 23,732,702B | shell cleanup | 삭제 확인 | catalog log |
+| .media_server.test/s10-location-resolution-31092/results.log | 담당자 전수 원출력 | 4,313B | focused.log로 이관 후 삭제 | 파일·빈 소유 디렉터리 삭제 확인 | 최소 증거만 저장소 보존 |
+
+### 3A 개별 실행 결과 전수
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| focused 31092 exit1 LOC01 exact media location preserves identity and mapping | 등록된 LOC 검증 | fail | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 31092 exit1 LOC02 unknown UTC does not discard exact media location | 등록된 LOC 검증 | fail | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 31092 exit1 LOC03 UTC point returns both overlapping files | 등록된 LOC 검증 | fail | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 31092 exit1 LOC04 UTC point preserves separate mappings in one file | 등록된 LOC 검증 | fail | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 31092 exit1 LOC05 point lookup uses half-open bounds | 등록된 LOC 검증 | fail | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 31092 exit1 LOC06 unknown mapping never extrapolates UTC | 등록된 LOC 검증 | fail | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 31092 exit1 LOC07 known candidates coexist with unknown coverage | 등록된 LOC 검증 | fail | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 31092 exit1 LOC08 rational conversion preserves exact non-nanosecond PTS | 등록된 LOC 검증 | fail | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 31092 exit1 LOC09 fractional PTS remains unknown without rounding | 등록된 LOC 검증 | fail | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 31092 exit1 LOC10 arithmetic extremes do not overflow | 등록된 LOC 검증 | fail | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 31092 exit1 LOC11 deleted exact ID is channel scoped | 등록된 LOC 검증 | fail | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 31092 exit1 LOC12 invalid input is rejected without mutation | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 31092 exit1 LOC13 reopened JSONL and SQLite locations are identical | 등록된 LOC 검증 | fail | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 31092 exit1 LOC14 metadata resolution does not require files or alter holds | 등록된 LOC 검증 | fail | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 20176 exit0 LOC01 exact media location preserves identity and mapping | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 20176 exit0 LOC02 unknown UTC does not discard exact media location | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 20176 exit0 LOC03 UTC point returns both overlapping files | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 20176 exit0 LOC04 UTC point preserves separate mappings in one file | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 20176 exit0 LOC05 point lookup uses half-open bounds | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 20176 exit0 LOC06 unknown mapping never extrapolates UTC | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 20176 exit0 LOC07 known candidates coexist with unknown coverage | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 20176 exit0 LOC08 rational conversion preserves exact non-nanosecond PTS | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 20176 exit0 LOC09 fractional PTS remains unknown without rounding | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 20176 exit0 LOC10 arithmetic extremes do not overflow | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 20176 exit0 LOC11 deleted exact ID is channel scoped | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 20176 exit0 LOC12 invalid input is rejected without mutation | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 20176 exit0 LOC13 reopened JSONL and SQLite locations are identical | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 20176 exit0 LOC14 metadata resolution does not require files or alter holds | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 9177 exit1 LOC01 exact media location preserves identity and mapping | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 9177 exit1 LOC02 unknown UTC does not discard exact media location | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 9177 exit1 LOC03 UTC point returns both overlapping files | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 9177 exit1 LOC04 UTC point preserves separate mappings in one file | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 9177 exit1 LOC05 point lookup uses half-open bounds | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 9177 exit1 LOC06 unknown mapping never extrapolates UTC | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 9177 exit1 LOC07 known candidates coexist with unknown coverage | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 9177 exit1 LOC08 rational conversion preserves exact non-nanosecond PTS | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 9177 exit1 LOC09 fractional PTS remains unknown without rounding | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 9177 exit1 LOC10 arithmetic extremes do not overflow | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 9177 exit1 LOC11 deleted exact ID is channel scoped | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 9177 exit1 LOC12 invalid input is rejected without mutation | 등록된 LOC 검증 | fail | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 9177 exit1 LOC13 reopened JSONL and SQLite locations are identical | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 9177 exit1 LOC14 metadata resolution does not require files or alter holds | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 70418 exit0 LOC01 exact media location preserves identity and mapping | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 70418 exit0 LOC02 unknown UTC does not discard exact media location | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 70418 exit0 LOC03 UTC point returns both overlapping files | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 70418 exit0 LOC04 UTC point preserves separate mappings in one file | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 70418 exit0 LOC05 point lookup uses half-open bounds | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 70418 exit0 LOC06 unknown mapping never extrapolates UTC | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 70418 exit0 LOC07 known candidates coexist with unknown coverage | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 70418 exit0 LOC08 rational conversion preserves exact non-nanosecond PTS | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 70418 exit0 LOC09 fractional PTS remains unknown without rounding | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 70418 exit0 LOC10 arithmetic extremes do not overflow | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 70418 exit0 LOC11 deleted exact ID is channel scoped | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 70418 exit0 LOC12 invalid input is rejected without mutation | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 70418 exit0 LOC13 reopened JSONL and SQLite locations are identical | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| focused 70418 exit0 LOC14 metadata resolution does not require files or alter holds | 등록된 LOC 검증 | pass | 최초 RED와 LOC12 추가 RED 보존 |
+| read-model 74195 exit0 #1 | V410-S06-I03 catalog timeline item 반환 | pass | 원출력 순서 |
+| read-model 74195 exit0 #2 | I09 opaque 재생 URL | pass | 원출력 순서 |
+| read-model 74195 exit0 #3 | I03 끝 경계 인접 제외 | pass | 원출력 순서 |
+| read-model 74195 exit0 #4 | I03 다른 채널 제외 | pass | 원출력 순서 |
+| read-model 74195 exit0 #5 | I04 음수 시간 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #6 | I04 역전 시간 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #7 | I04 빈 페이지 제한 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #8 | I04 과대 페이지 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #9 | I05 큰 offset overflow 없이 빈 페이지 | pass | 원출력 순서 |
+| read-model 74195 exit0 #10 | I16 다른 채널 media 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #11 | I17 경로형 ID 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #12 | I09 fd 크기 MIME 확인 | pass | 원출력 순서 |
+| read-model 74195 exit0 #13 | I25 재생 hold 중 삭제 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #14 | I19 경로 교체 뒤 열린 fd 기존 byte 유지 | pass | 원출력 순서 |
+| read-model 74195 exit0 #15 | I18 leaf symlink 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #16 | I09 누락 파일 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #17 | I09 크기 불일치 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #18 | I09 비일반 파일 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #19 | I06 같은 시간 event 우선 | pass | 원출력 순서 |
+| read-model 74195 exit0 #20 | I07 정확한 이벤트 ID 연결 | pass | 원출력 순서 |
+| read-model 74195 exit0 #21 | I10 실제 범위와 요청 범위 분리 | pass | 원출력 순서 |
+| read-model 74195 exit0 #22 | I05 정렬 뒤 페이지 적용 | pass | 원출력 순서 |
+| read-model 74195 exit0 #23 | I25 모든 실패 경로 hold 반환 후 삭제 허용 | pass | 원출력 순서 |
+| read-model 74195 exit0 #24 | I08 deletion pending 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #25 | I08 pending timeline 재생 불가 | pass | 원출력 순서 |
+| read-model 74195 exit0 #26 | I11 검증한 fallback 영상 fd 제공 | pass | 원출력 순서 |
+| read-model 74195 exit0 #27 | I11 JSON이 아닌 실제 media byte 반환 | pass | 원출력 순서 |
+| read-model 74195 exit0 #28 | I11 fallback timeline을 complete로 과장하지 않음 | pass | 원출력 순서 |
+| read-model 74195 exit0 #29 | I11 중복 key manifest 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #30 | I11 event 바인딩 불일치 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #31 | I11 byteSize 문자열 타입 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #32 | I11 64KiB 초과 manifest 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #33 | I18 fallback media symlink 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #34 | I09 fallback media 크기 불일치 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #35 | I19 fallback 교체 뒤 기존 fd byte 유지 | pass | 원출력 순서 |
+| read-model 74195 exit0 #36 | I17 다른 채널 fallback ID 충돌도 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #37 | I03 기존 숫자형 channel ID 유지 | pass | 원출력 순서 |
+| read-model 74195 exit0 #38 | I08/I17 삭제 완료 ID의 fallback 재사용 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #39 | I20 closed Range 시작과 길이 | pass | 원출력 순서 |
+| read-model 74195 exit0 #40 | I26 열린 gate 신규 요청 admission | pass | 원출력 순서 |
+| read-model 74195 exit0 #41 | I26 닫힌 gate 신규 요청 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #42 | I26 active flight 이전 drain 완료 금지 | pass | 원출력 순서 |
+| read-model 74195 exit0 #43 | I26 마지막 flight 해제 뒤 drain 완료 | pass | 원출력 순서 |
+| read-model 74195 exit0 #44 | I26 활성 socket shutdown 확인 | pass | 원출력 순서 |
+| read-model 74195 exit0 #45 | I25 동시 삭제 경쟁 0 | pass | 원출력 순서 |
+| read-model 74195 exit0 #46 | I26 경쟁 뒤 fd 반환 0 | pass | 원출력 순서 |
+| read-model 74195 exit0 #47 | I25 동시 삭제 경쟁 1 | pass | 원출력 순서 |
+| read-model 74195 exit0 #48 | I26 경쟁 뒤 fd 반환 1 | pass | 원출력 순서 |
+| read-model 74195 exit0 #49 | I25 동시 삭제 경쟁 2 | pass | 원출력 순서 |
+| read-model 74195 exit0 #50 | I26 경쟁 뒤 fd 반환 2 | pass | 원출력 순서 |
+| read-model 74195 exit0 #51 | I25 동시 삭제 경쟁 3 | pass | 원출력 순서 |
+| read-model 74195 exit0 #52 | I26 경쟁 뒤 fd 반환 3 | pass | 원출력 순서 |
+| read-model 74195 exit0 #53 | I25 동시 삭제 경쟁 4 | pass | 원출력 순서 |
+| read-model 74195 exit0 #54 | I26 경쟁 뒤 fd 반환 4 | pass | 원출력 순서 |
+| read-model 74195 exit0 #55 | I25 동시 삭제 경쟁 5 | pass | 원출력 순서 |
+| read-model 74195 exit0 #56 | I26 경쟁 뒤 fd 반환 5 | pass | 원출력 순서 |
+| read-model 74195 exit0 #57 | I25 동시 삭제 경쟁 6 | pass | 원출력 순서 |
+| read-model 74195 exit0 #58 | I26 경쟁 뒤 fd 반환 6 | pass | 원출력 순서 |
+| read-model 74195 exit0 #59 | I25 동시 삭제 경쟁 7 | pass | 원출력 순서 |
+| read-model 74195 exit0 #60 | I26 경쟁 뒤 fd 반환 7 | pass | 원출력 순서 |
+| read-model 74195 exit0 #61 | I25 동시 삭제 경쟁 8 | pass | 원출력 순서 |
+| read-model 74195 exit0 #62 | I26 경쟁 뒤 fd 반환 8 | pass | 원출력 순서 |
+| read-model 74195 exit0 #63 | I25 동시 삭제 경쟁 9 | pass | 원출력 순서 |
+| read-model 74195 exit0 #64 | I26 경쟁 뒤 fd 반환 9 | pass | 원출력 순서 |
+| read-model 74195 exit0 #65 | I25 동시 삭제 경쟁 10 | pass | 원출력 순서 |
+| read-model 74195 exit0 #66 | I26 경쟁 뒤 fd 반환 10 | pass | 원출력 순서 |
+| read-model 74195 exit0 #67 | I25 동시 삭제 경쟁 11 | pass | 원출력 순서 |
+| read-model 74195 exit0 #68 | I26 경쟁 뒤 fd 반환 11 | pass | 원출력 순서 |
+| read-model 74195 exit0 #69 | I25 동시 삭제 경쟁 12 | pass | 원출력 순서 |
+| read-model 74195 exit0 #70 | I26 경쟁 뒤 fd 반환 12 | pass | 원출력 순서 |
+| read-model 74195 exit0 #71 | I25 동시 삭제 경쟁 13 | pass | 원출력 순서 |
+| read-model 74195 exit0 #72 | I26 경쟁 뒤 fd 반환 13 | pass | 원출력 순서 |
+| read-model 74195 exit0 #73 | I25 동시 삭제 경쟁 14 | pass | 원출력 순서 |
+| read-model 74195 exit0 #74 | I26 경쟁 뒤 fd 반환 14 | pass | 원출력 순서 |
+| read-model 74195 exit0 #75 | I25 동시 삭제 경쟁 15 | pass | 원출력 순서 |
+| read-model 74195 exit0 #76 | I26 경쟁 뒤 fd 반환 15 | pass | 원출력 순서 |
+| read-model 74195 exit0 #77 | I08 Writing lifecycle 재생 불가 | pass | 원출력 순서 |
+| read-model 74195 exit0 #78 | I08 Writing finalize 등록 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #79 | I08 Writing 실제 파일 존재해도 media 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #80 | I08 Writing timeline 재생 노출 없음 | pass | 원출력 순서 |
+| read-model 74195 exit0 #81 | I08 Corrupt 실제 catalog 전이 | pass | 원출력 순서 |
+| read-model 74195 exit0 #82 | I08 Corrupt 실제 파일 존재해도 media 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #83 | I08 Corrupt timeline 불가 상태 | pass | 원출력 순서 |
+| read-model 74195 exit0 #84 | V410-S06-I03 catalog timeline item 반환 | pass | 원출력 순서 |
+| read-model 74195 exit0 #85 | I09 opaque 재생 URL | pass | 원출력 순서 |
+| read-model 74195 exit0 #86 | I03 끝 경계 인접 제외 | pass | 원출력 순서 |
+| read-model 74195 exit0 #87 | I03 다른 채널 제외 | pass | 원출력 순서 |
+| read-model 74195 exit0 #88 | I04 음수 시간 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #89 | I04 역전 시간 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #90 | I04 빈 페이지 제한 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #91 | I04 과대 페이지 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #92 | I05 큰 offset overflow 없이 빈 페이지 | pass | 원출력 순서 |
+| read-model 74195 exit0 #93 | I16 다른 채널 media 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #94 | I17 경로형 ID 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #95 | I09 fd 크기 MIME 확인 | pass | 원출력 순서 |
+| read-model 74195 exit0 #96 | I25 재생 hold 중 삭제 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #97 | I19 경로 교체 뒤 열린 fd 기존 byte 유지 | pass | 원출력 순서 |
+| read-model 74195 exit0 #98 | I18 leaf symlink 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #99 | I09 누락 파일 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #100 | I09 크기 불일치 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #101 | I09 비일반 파일 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #102 | I06 같은 시간 event 우선 | pass | 원출력 순서 |
+| read-model 74195 exit0 #103 | I07 정확한 이벤트 ID 연결 | pass | 원출력 순서 |
+| read-model 74195 exit0 #104 | I10 실제 범위와 요청 범위 분리 | pass | 원출력 순서 |
+| read-model 74195 exit0 #105 | I05 정렬 뒤 페이지 적용 | pass | 원출력 순서 |
+| read-model 74195 exit0 #106 | I25 모든 실패 경로 hold 반환 후 삭제 허용 | pass | 원출력 순서 |
+| read-model 74195 exit0 #107 | I08 deletion pending 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #108 | I08 pending timeline 재생 불가 | pass | 원출력 순서 |
+| read-model 74195 exit0 #109 | I11 검증한 fallback 영상 fd 제공 | pass | 원출력 순서 |
+| read-model 74195 exit0 #110 | I11 JSON이 아닌 실제 media byte 반환 | pass | 원출력 순서 |
+| read-model 74195 exit0 #111 | I11 fallback timeline을 complete로 과장하지 않음 | pass | 원출력 순서 |
+| read-model 74195 exit0 #112 | I11 중복 key manifest 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #113 | I11 event 바인딩 불일치 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #114 | I11 byteSize 문자열 타입 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #115 | I11 64KiB 초과 manifest 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #116 | I18 fallback media symlink 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #117 | I09 fallback media 크기 불일치 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #118 | I19 fallback 교체 뒤 기존 fd byte 유지 | pass | 원출력 순서 |
+| read-model 74195 exit0 #119 | I17 다른 채널 fallback ID 충돌도 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #120 | I03 기존 숫자형 channel ID 유지 | pass | 원출력 순서 |
+| read-model 74195 exit0 #121 | I08/I17 삭제 완료 ID의 fallback 재사용 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #122 | I20 closed Range 시작과 길이 | pass | 원출력 순서 |
+| read-model 74195 exit0 #123 | I26 열린 gate 신규 요청 admission | pass | 원출력 순서 |
+| read-model 74195 exit0 #124 | I26 닫힌 gate 신규 요청 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #125 | I26 active flight 이전 drain 완료 금지 | pass | 원출력 순서 |
+| read-model 74195 exit0 #126 | I26 마지막 flight 해제 뒤 drain 완료 | pass | 원출력 순서 |
+| read-model 74195 exit0 #127 | I26 활성 socket shutdown 확인 | pass | 원출력 순서 |
+| read-model 74195 exit0 #128 | I25 동시 삭제 경쟁 0 | pass | 원출력 순서 |
+| read-model 74195 exit0 #129 | I26 경쟁 뒤 fd 반환 0 | pass | 원출력 순서 |
+| read-model 74195 exit0 #130 | I25 동시 삭제 경쟁 1 | pass | 원출력 순서 |
+| read-model 74195 exit0 #131 | I26 경쟁 뒤 fd 반환 1 | pass | 원출력 순서 |
+| read-model 74195 exit0 #132 | I25 동시 삭제 경쟁 2 | pass | 원출력 순서 |
+| read-model 74195 exit0 #133 | I26 경쟁 뒤 fd 반환 2 | pass | 원출력 순서 |
+| read-model 74195 exit0 #134 | I25 동시 삭제 경쟁 3 | pass | 원출력 순서 |
+| read-model 74195 exit0 #135 | I26 경쟁 뒤 fd 반환 3 | pass | 원출력 순서 |
+| read-model 74195 exit0 #136 | I25 동시 삭제 경쟁 4 | pass | 원출력 순서 |
+| read-model 74195 exit0 #137 | I26 경쟁 뒤 fd 반환 4 | pass | 원출력 순서 |
+| read-model 74195 exit0 #138 | I25 동시 삭제 경쟁 5 | pass | 원출력 순서 |
+| read-model 74195 exit0 #139 | I26 경쟁 뒤 fd 반환 5 | pass | 원출력 순서 |
+| read-model 74195 exit0 #140 | I25 동시 삭제 경쟁 6 | pass | 원출력 순서 |
+| read-model 74195 exit0 #141 | I26 경쟁 뒤 fd 반환 6 | pass | 원출력 순서 |
+| read-model 74195 exit0 #142 | I25 동시 삭제 경쟁 7 | pass | 원출력 순서 |
+| read-model 74195 exit0 #143 | I26 경쟁 뒤 fd 반환 7 | pass | 원출력 순서 |
+| read-model 74195 exit0 #144 | I25 동시 삭제 경쟁 8 | pass | 원출력 순서 |
+| read-model 74195 exit0 #145 | I26 경쟁 뒤 fd 반환 8 | pass | 원출력 순서 |
+| read-model 74195 exit0 #146 | I25 동시 삭제 경쟁 9 | pass | 원출력 순서 |
+| read-model 74195 exit0 #147 | I26 경쟁 뒤 fd 반환 9 | pass | 원출력 순서 |
+| read-model 74195 exit0 #148 | I25 동시 삭제 경쟁 10 | pass | 원출력 순서 |
+| read-model 74195 exit0 #149 | I26 경쟁 뒤 fd 반환 10 | pass | 원출력 순서 |
+| read-model 74195 exit0 #150 | I25 동시 삭제 경쟁 11 | pass | 원출력 순서 |
+| read-model 74195 exit0 #151 | I26 경쟁 뒤 fd 반환 11 | pass | 원출력 순서 |
+| read-model 74195 exit0 #152 | I25 동시 삭제 경쟁 12 | pass | 원출력 순서 |
+| read-model 74195 exit0 #153 | I26 경쟁 뒤 fd 반환 12 | pass | 원출력 순서 |
+| read-model 74195 exit0 #154 | I25 동시 삭제 경쟁 13 | pass | 원출력 순서 |
+| read-model 74195 exit0 #155 | I26 경쟁 뒤 fd 반환 13 | pass | 원출력 순서 |
+| read-model 74195 exit0 #156 | I25 동시 삭제 경쟁 14 | pass | 원출력 순서 |
+| read-model 74195 exit0 #157 | I26 경쟁 뒤 fd 반환 14 | pass | 원출력 순서 |
+| read-model 74195 exit0 #158 | I25 동시 삭제 경쟁 15 | pass | 원출력 순서 |
+| read-model 74195 exit0 #159 | I26 경쟁 뒤 fd 반환 15 | pass | 원출력 순서 |
+| read-model 74195 exit0 #160 | I08 Writing lifecycle 재생 불가 | pass | 원출력 순서 |
+| read-model 74195 exit0 #161 | I08 Writing finalize 등록 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #162 | I08 Writing 실제 파일 존재해도 media 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #163 | I08 Writing timeline 재생 노출 없음 | pass | 원출력 순서 |
+| read-model 74195 exit0 #164 | I08 Corrupt 실제 catalog 전이 | pass | 원출력 순서 |
+| read-model 74195 exit0 #165 | I08 Corrupt 실제 파일 존재해도 media 거부 | pass | 원출력 순서 |
+| read-model 74195 exit0 #166 | I08 Corrupt timeline 불가 상태 | pass | 원출력 순서 |
+| read-model 74195 exit0 #167 | read-model 임시 root 삭제 확인: /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-s06-read.nHGBvH | pass | 원출력 순서 |
+| catalog 49201 exit0 #1 | journal open: | pass | 원출력 순서 |
+| catalog 49201 exit0 #2 | fallback catalog open: | pass | 원출력 순서 |
+| catalog 49201 exit0 #3 | SQLite off mode 표시 | pass | 원출력 순서 |
+| catalog 49201 exit0 #4 | segment finalize journal+projection: | pass | 원출력 순서 |
+| catalog 49201 exit0 #5 | fallback range query | pass | 원출력 순서 |
+| catalog 49201 exit0 #6 | event link FK 위반 거부 | pass | 원출력 순서 |
+| catalog 49201 exit0 #7 | FK 위반 transaction/journal 전체 rollback | pass | 원출력 순서 |
+| catalog 49201 exit0 #8 | 최초 durable mutation 1개 | pass | 원출력 순서 |
+| catalog 49201 exit0 #9 | 동일 mutation 중복 append | pass | 원출력 순서 |
+| catalog 49201 exit0 #10 | 손상 사이 정상 durable mutation 보존 | pass | 원출력 순서 |
+| catalog 49201 exit0 #11 | 중간 corrupt line count | pass | 원출력 순서 |
+| catalog 49201 exit0 #12 | 마지막 truncated line skip | pass | 원출력 순서 |
+| catalog 49201 exit0 #13 | fallback replay open | pass | 원출력 순서 |
+| catalog 49201 exit0 #14 | 같은 mutation idempotent replay | pass | 원출력 순서 |
+| catalog 49201 exit0 #15 | 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | pass | 원출력 순서 |
+| catalog 49201 exit0 #16 | 중복 replay row/합계 불증가 | pass | 원출력 순서 |
+| catalog 49201 exit0 #17 | 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구: | pass | 원출력 순서 |
+| catalog 49201 exit0 #18 | writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | pass | 원출력 순서 |
+| catalog 49201 exit0 #19 | v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | pass | 원출력 순서 |
+| catalog 49201 exit0 #20 | SQLite catalog open/rebuild: | pass | 원출력 순서 |
+| catalog 49201 exit0 #21 | SQLite primary mode 표시 | pass | 원출력 순서 |
+| catalog 49201 exit0 #22 | SQLite on/off range query ID·순서 parity | pass | 원출력 순서 |
+| catalog 49201 exit0 #23 | journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | pass | 원출력 순서 |
+| catalog 49201 exit0 #24 | journal 없는 손상 media orphan 구분 | pass | 원출력 순서 |
+| catalog 49201 exit0 #25 | projection failover journal open: | pass | 원출력 순서 |
+| catalog 49201 exit0 #26 | projection failover catalog open: | pass | 원출력 순서 |
+| catalog 49201 exit0 #27 | 실제 SQLite INSERT 실패 trigger 설치 | pass | 원출력 순서 |
+| catalog 49201 exit0 #28 | SQLite 투영 실패 뒤 journal+memory finalize 유지: | pass | 원출력 순서 |
+| catalog 49201 exit0 #29 | SQLite 투영 실패 즉시 JSONL fallback 전환 | pass | 원출력 순서 |
+| catalog 49201 exit0 #30 | 재시작 rebuild 전 실패 trigger 제거 | pass | 원출력 순서 |
+| catalog 49201 exit0 #31 | 투영 실패 직후 in-memory query 정합성 유지 | pass | 원출력 순서 |
+| catalog 49201 exit0 #32 | projection failover 재시작 journal rebuild: | pass | 원출력 순서 |
+| catalog 49201 exit0 #33 | 재시작 후 journal에서 누락 SQLite projection 복구 | pass | 원출력 순서 |
+| catalog 49201 exit0 #34 | 재시작 후 SQLite primary 복귀 | pass | 원출력 순서 |
+| catalog 49201 exit0 #35 | 재시작 journal rebuild가 실제 SQLite row 복원 | pass | 원출력 순서 |
+| catalog 49201 exit0 #36 | tombstone journal open: | pass | 원출력 순서 |
+| catalog 49201 exit0 #37 | tombstone catalog open: | pass | 원출력 순서 |
+| catalog 49201 exit0 #38 | tombstone 대상 segment finalize: | pass | 원출력 순서 |
+| catalog 49201 exit0 #39 | tombstone 대상 deletion request: | pass | 원출력 순서 |
+| catalog 49201 exit0 #40 | tombstone 완료 기록: | pass | 원출력 순서 |
+| catalog 49201 exit0 #41 | catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | pass | 원출력 순서 |
+| catalog 49201 exit0 #42 | 손상 SQLite 격리 후 journal rebuild: | pass | 원출력 순서 |
+| catalog 49201 exit0 #43 | 손상 SQLite 원본 격리 | pass | 원출력 순서 |
+| catalog 49201 exit0 #44 | 격리 SQLite 파일 보존 | pass | 원출력 순서 |
+| catalog 49201 exit0 #45 | 격리 후 journal rebuild 결과 | pass | 원출력 순서 |
+| catalog 49201 exit0 #46 | S10-3A future-schema journal read open | pass | 원출력 순서 |
+| catalog 49201 exit0 #47 | S10-3A future-schema unsupported classification | pass | 원출력 순서 |
+| catalog 49201 exit0 #48 | S10-3A future-schema catalog open denied | pass | 원출력 순서 |
+| catalog 49201 exit0 #49 | S10-3A future-schema catalog retry denied | pass | 원출력 순서 |
+| catalog 49201 exit0 #50 | S10-3A future-schema journal bytes preserved | pass | 원출력 순서 |
+| catalog 49201 exit0 #51 | S10-3A future-schema SQLite bytes preserved | pass | 원출력 순서 |
+| catalog 49201 exit0 #52 | S10-3A future-schema writer cleanup untouched | pass | 원출력 순서 |
+| catalog 49201 exit0 #53 | S10-3A arbitrary-schema journal read open | pass | 원출력 순서 |
+| catalog 49201 exit0 #54 | S10-3A arbitrary-schema unsupported classification | pass | 원출력 순서 |
+| catalog 49201 exit0 #55 | S10-3A arbitrary-schema catalog open denied | pass | 원출력 순서 |
+| catalog 49201 exit0 #56 | S10-3A arbitrary-schema catalog retry denied | pass | 원출력 순서 |
+| catalog 49201 exit0 #57 | S10-3A arbitrary-schema journal bytes preserved | pass | 원출력 순서 |
+| catalog 49201 exit0 #58 | S10-3A arbitrary-schema SQLite bytes preserved | pass | 원출력 순서 |
+| catalog 49201 exit0 #59 | S10-3A arbitrary-schema writer cleanup untouched | pass | 원출력 순서 |
+| catalog 49201 exit0 #60 | S10-3A empty-schema journal read open | pass | 원출력 순서 |
+| catalog 49201 exit0 #61 | S10-3A empty-schema unsupported classification | pass | 원출력 순서 |
+| catalog 49201 exit0 #62 | S10-3A empty-schema catalog open denied | pass | 원출력 순서 |
+| catalog 49201 exit0 #63 | S10-3A empty-schema catalog retry denied | pass | 원출력 순서 |
+| catalog 49201 exit0 #64 | S10-3A empty-schema journal bytes preserved | pass | 원출력 순서 |
+| catalog 49201 exit0 #65 | S10-3A empty-schema SQLite bytes preserved | pass | 원출력 순서 |
+| catalog 49201 exit0 #66 | S10-3A empty-schema writer cleanup untouched | pass | 원출력 순서 |
+| catalog 49201 exit0 #67 | S10-3A future-type journal read open | pass | 원출력 순서 |
+| catalog 49201 exit0 #68 | S10-3A future-type unsupported classification | pass | 원출력 순서 |
+| catalog 49201 exit0 #69 | S10-3A future-type catalog open denied | pass | 원출력 순서 |
+| catalog 49201 exit0 #70 | S10-3A future-type catalog retry denied | pass | 원출력 순서 |
+| catalog 49201 exit0 #71 | S10-3A future-type journal bytes preserved | pass | 원출력 순서 |
+| catalog 49201 exit0 #72 | S10-3A future-type SQLite bytes preserved | pass | 원출력 순서 |
+| catalog 49201 exit0 #73 | S10-3A future-type writer cleanup untouched | pass | 원출력 순서 |
+| catalog 49201 exit0 #74 | S10-3A malformed journal open | pass | 원출력 순서 |
+| catalog 49201 exit0 #75 | S10-3A malformed JSON missing fields and wrong types remain corrupt | pass | 원출력 순서 |
+| catalog 49201 exit0 #76 | S10-O01 reservation journal open | pass | 원출력 순서 |
+| catalog 49201 exit0 #77 | S10-O01 first reservation returns four IDs and sequence one | pass | 원출력 순서 |
+| catalog 49201 exit0 #78 | S10-O01 versioned reservation payload replays | pass | 원출력 순서 |
+| catalog 49201 exit0 #79 | S10-O01 new reservation records actual occurred time | pass | 원출력 순서 |
+| catalog 49201 exit0 #80 | S10-O02 identical retry preserves sequence and bytes | pass | 원출력 순서 |
+| catalog 49201 exit0 #81 | S10-O03 reopened instance allocates next sequence | pass | 원출력 순서 |
+| catalog 49201 exit0 #82 | S10-O03 new process resumes durable sequence | pass | 원출력 순서 |
+| catalog 49201 exit0 #83 | S10-O04 different store rejected | pass | 원출력 순서 |
+| catalog 49201 exit0 #84 | S10-O04 reused request with different segment rejected | pass | 원출력 순서 |
+| catalog 49201 exit0 #85 | S10-O04 reused request with different channel rejected | pass | 원출력 순서 |
+| catalog 49201 exit0 #86 | S10-O04 reused segment with different request rejected | pass | 원출력 순서 |
+| catalog 49201 exit0 #87 | S10-O04 conflicts preserve original bytes | pass | 원출력 순서 |
+| catalog 49201 exit0 #88 | S10-O05/O06 reject and preserve corrupt | pass | 원출력 순서 |
+| catalog 49201 exit0 #89 | S10-O05/O06 reject and preserve unsupported-schema | pass | 원출력 순서 |
+| catalog 49201 exit0 #90 | S10-O05/O06 reject and preserve unsupported-type | pass | 원출력 순서 |
+| catalog 49201 exit0 #91 | S10-O05/O06 reject and preserve tail | pass | 원출력 순서 |
+| catalog 49201 exit0 #92 | S10-O05/O06 reject and preserve payload-zero | pass | 원출력 순서 |
+| catalog 49201 exit0 #93 | S10-O05/O06 reject and preserve payload-negative | pass | 원출력 순서 |
+| catalog 49201 exit0 #94 | S10-O05/O06 reject and preserve payload-fraction | pass | 원출력 순서 |
+| catalog 49201 exit0 #95 | S10-O05/O06 reject and preserve payload-overflow | pass | 원출력 순서 |
+| catalog 49201 exit0 #96 | S10-O05/O06 reject and preserve duplicate-sequence | pass | 원출력 순서 |
+| catalog 49201 exit0 #97 | S10-O05/O06 reject and preserve decreasing-sequence | pass | 원출력 순서 |
+| catalog 49201 exit0 #98 | S10-O05/O06 reject and preserve duplicate-request | pass | 원출력 순서 |
+| catalog 49201 exit0 #99 | S10-O05/O06 reject and preserve duplicate-segment | pass | 원출력 순서 |
+| catalog 49201 exit0 #100 | S10-O05/O06 reject and preserve store-conflict | pass | 원출력 순서 |
+| catalog 49201 exit0 #101 | S10-O05/O06 reject and preserve ordinary-before | pass | 원출력 순서 |
+| catalog 49201 exit0 #102 | S10-O05/O06 reject and preserve ordinary-after | pass | 원출력 순서 |
+| catalog 49201 exit0 #103 | S10-O05/O06 reject and preserve line-cap | pass | 원출력 순서 |
+| catalog 49201 exit0 #104 | S10-O05 reservation entity envelope binding rejects mismatch | pass | 원출력 순서 |
+| catalog 49201 exit0 #105 | S10-O05 reservation request envelope binding rejects mismatch | pass | 원출력 순서 |
+| catalog 49201 exit0 #106 | S10-O01 strict reservation parser accepts versioned literal | pass | 원출력 순서 |
+| catalog 49201 exit0 #107 | S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | pass | 원출력 순서 |
+| catalog 49201 exit0 #108 | S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | pass | 원출력 순서 |
+| catalog 49201 exit0 #109 | S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | pass | 원출력 순서 |
+| catalog 49201 exit0 #110 | S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | pass | 원출력 순서 |
+| catalog 49201 exit0 #111 | S10-O06 INT64_MAX identical retry remains valid | pass | 원출력 순서 |
+| catalog 49201 exit0 #112 | S10-O06 sequence overflow rejected without write | pass | 원출력 순서 |
+| catalog 49201 exit0 #113 | S10-O02 identical durable reservation duplicates remain idempotent | pass | 원출력 순서 |
+| catalog 49201 exit0 #114 | S10-O06 sequence gaps remain valid and allocate above maximum | pass | 원출력 순서 |
+| catalog 49201 exit0 #115 | S10-O07 four simultaneous processes finish reservations | pass | 원출력 순서 |
+| catalog 49201 exit0 #116 | S10-O07 concurrent sequences are unique and complete | pass | 원출력 순서 |
+| catalog 49201 exit0 #117 | S10-O07 next sequence follows concurrent reservations | pass | 원출력 순서 |
+| catalog 49201 exit0 #118 | S10-O08 ordinary Append cannot reserve orders | pass | 원출력 순서 |
+| catalog 49201 exit0 #119 | S10-O08 unopened journal rejected | pass | 원출력 순서 |
+| catalog 49201 exit0 #120 | S10-O08 null result rejected | pass | 원출력 순서 |
+| catalog 49201 exit0 #121 | S10-O08 invalid opaque ID rejected | pass | 원출력 순서 |
+| catalog 49201 exit0 #122 | S10-O08 failed reservation does not expose tentative result | pass | 원출력 순서 |
+| catalog 49201 exit0 #123 | S10-O09 unsafe file binding rejected and original preserved inode | pass | 원출력 순서 |
+| catalog 49201 exit0 #124 | S10-O09 unsafe file binding rejected and original preserved parent | pass | 원출력 순서 |
+| catalog 49201 exit0 #125 | S10-O09 unsafe file binding rejected and original preserved symlink | pass | 원출력 순서 |
+| catalog 49201 exit0 #126 | S10-O09 unsafe file binding rejected and original preserved hardlink | pass | 원출력 순서 |
+| catalog 49201 exit0 #127 | S10-O10 reservation and normal segment coexist in catalog | pass | 원출력 순서 |
+| catalog 49201 exit0 #128 | S10-O04 reserve then finalize permits identical retry | pass | 원출력 순서 |
+| catalog 49201 exit0 #129 | S10-O10 reservation survives catalog rebuild without changing segment query | pass | 원출력 순서 |
+| catalog 49201 exit0 #130 | S10-O04 legacy segment cannot acquire retroactive reservation | pass | 원출력 순서 |
+| catalog 49201 exit0 #131 | S10-M06 opened catalog accepts fresh exact reservation V2 finalize | pass | 원출력 순서 |
+| catalog 49201 exit0 #132 | S10-M07 V2 find preserves complete metadata | pass | 원출력 순서 |
+| catalog 49201 exit0 #133 | S10-M07 identical V2 recovery is idempotent | pass | 원출력 순서 |
+| catalog 49201 exit0 #134 | S10-M07 V2 is absent from V1 range query | pass | 원출력 순서 |
+| catalog 49201 exit0 #135 | S10-M07 V2 registered path is not orphan | pass | 원출력 순서 |
+| catalog 49201 exit0 #136 | S10-M07 SQLite exact V2 JSON and path match | pass | 원출력 순서 |
+| catalog 49201 exit0 #137 | S10-M07 JSONL restart preserves V2 exact payload | pass | 원출력 순서 |
+| catalog 49201 exit0 #138 | S10-M06 wrong reservation tuple rejected store | pass | 원출력 순서 |
+| catalog 49201 exit0 #139 | S10-M06 wrong reservation tuple rejected request | pass | 원출력 순서 |
+| catalog 49201 exit0 #140 | S10-M06 wrong reservation tuple rejected segment | pass | 원출력 순서 |
+| catalog 49201 exit0 #141 | S10-M06 wrong reservation tuple rejected channel | pass | 원출력 순서 |
+| catalog 49201 exit0 #142 | S10-M06 wrong reservation tuple rejected sequence | pass | 원출력 순서 |
+| catalog 49201 exit0 #143 | S10-M09 immutable V2 mapping mismatch rejected | pass | 원출력 순서 |
+| catalog 49201 exit0 #144 | S10-M09 bad V2 startup retry preserves original state bad-payload | pass | 원출력 순서 |
+| catalog 49201 exit0 #145 | S10-M09 bad V2 startup retry preserves original state missing-order | pass | 원출력 순서 |
+| catalog 49201 exit0 #146 | S10-M09 bad V2 startup retry preserves original state bad-order | pass | 원출력 순서 |
+| catalog 49201 exit0 #147 | S10-M09 bad V2 startup retry preserves original state conflicting-order | pass | 원출력 순서 |
+| catalog 49201 exit0 #148 | S10-M09 bad V2 startup retry preserves original state tail | pass | 원출력 순서 |
+| catalog 49201 exit0 #149 | S10-M09 bad V2 startup retry preserves original state corrupt | pass | 원출력 순서 |
+| catalog 49201 exit0 #150 | S10-M09 bad V2 startup retry preserves original state unsafe-path | pass | 원출력 순서 |
+| catalog 49201 exit0 #151 | S10-M09 default off rejects V2 before SQLite changes | pass | 원출력 순서 |
+| catalog 49201 exit0 #152 | S10-M09 V2 replay namespace and deletion duplicate | pass | 원출력 순서 |
+| catalog 49201 exit0 #153 | S10-M09 V2 replay namespace and deletion deleted | pass | 원출력 순서 |
+| catalog 49201 exit0 #154 | S10-M09 V2 replay namespace and deletion v1-before | pass | 원출력 순서 |
+| catalog 49201 exit0 #155 | S10-M09 V2 replay namespace and deletion v1-after | pass | 원출력 순서 |
+| catalog 49201 exit0 #156 | S10-M09 V2 replay namespace and deletion deleted-before | pass | 원출력 순서 |
+| catalog 49201 exit0 #157 | S10-M09 V2 replay namespace and deletion resurrection | pass | 원출력 순서 |
+| catalog 49201 exit0 #158 | S10-M09 V2 replay namespace and deletion mutation-collision | pass | 원출력 순서 |
+| catalog 49201 exit0 #159 | S10-M09 V2 finalize rejects missing media | pass | 원출력 순서 |
+| catalog 49201 exit0 #160 | S10-M09 V2 finalize rejects directory media | pass | 원출력 순서 |
+| catalog 49201 exit0 #161 | S10-M09 fresh candidate rejects mapping | pass | 원출력 순서 |
+| catalog 49201 exit0 #162 | S10-M09 fresh candidate rejects path | pass | 원출력 순서 |
+| catalog 49201 exit0 #163 | S10-M09 fresh candidate rejects tombstone | pass | 원출력 순서 |
+| catalog 49201 exit0 #164 | S10-SW01 managed empty root opens with lifetime lease | pass | 원출력 순서 |
+| catalog 49201 exit0 #165 | S10-SW02 same process second managed owner denied | pass | 원출력 순서 |
+| catalog 49201 exit0 #166 | S10-SW03 different process owner and inherited use denied | pass | 원출력 순서 |
+| catalog 49201 exit0 #167 | S10-SW12 managed duplicate descriptors are close-on-exec | pass | 원출력 순서 |
+| catalog 49201 exit0 #168 | S10-SW05 managed reserve append replay use owned descriptor | pass | 원출력 순서 |
+| catalog 49201 exit0 #169 | S10-SW06 raw managed access and legacy default path denied | pass | 원출력 순서 |
+| catalog 49201 exit0 #170 | S10-SW01 managed Reserve rejects different store identity | pass | 원출력 순서 |
+| catalog 49201 exit0 #171 | S10-SW10 catalog connection can inspect managed lease | pass | 원출력 순서 |
+| catalog 49201 exit0 #172 | S10-SW04 owner destruction releases lease | pass | 원출력 순서 |
+| catalog 49201 exit0 #173 | S10-SW01 managed reopen rejects different store identity | pass | 원출력 순서 |
+| catalog 49201 exit0 #174 | S10-SW11 managed incomplete tail rejects append without changing bytes | pass | 원출력 순서 |
+| catalog 49201 exit0 #175 | S10-SW07 legacy nonempty root preserved without conversion | pass | 원출력 순서 |
+| catalog 49201 exit0 #176 | S10-SW08 partial initialization retry validates exact state lease | pass | 원출력 순서 |
+| catalog 49201 exit0 #177 | S10-SW08 partial initialization retry validates exact state init | pass | 원출력 순서 |
+| catalog 49201 exit0 #178 | S10-SW08 partial initialization retry validates exact state barrier | pass | 원출력 순서 |
+| catalog 49201 exit0 #179 | S10-SW08 partial initialization retry validates exact state journal | pass | 원출력 순서 |
+| catalog 49201 exit0 #180 | S10-SW08 partial initialization retry validates exact state incomplete | pass | 원출력 순서 |
+| catalog 49201 exit0 #181 | S10-SW08 partial initialization retry validates exact state unknown | pass | 원출력 순서 |
+| catalog 49201 exit0 #182 | S10-SW09 symlink inode and malformed marker rejected journal | pass | 원출력 순서 |
+| catalog 49201 exit0 #183 | S10-SW09 symlink inode and malformed marker rejected marker | pass | 원출력 순서 |
+| catalog 49201 exit0 #184 | S10-SW09 symlink inode and malformed marker rejected barrier | pass | 원출력 순서 |
+| catalog 49201 exit0 #185 | S10-SW09 symlink inode and malformed marker rejected root-symlink | pass | 원출력 순서 |
+| catalog 49201 exit0 #186 | S10-SB01 second managed catalog is denied | pass | 원출력 순서 |
+| catalog 49201 exit0 #187 | S10-SB02 failed catalog cannot mutate journal or holds | pass | 원출력 순서 |
+| catalog 49201 exit0 #188 | S10-SB03 attached catalog blocks unowned append but permits reservation | pass | 원출력 순서 |
+| catalog 49201 exit0 #189 | S10-SB04 catalog destruction releases attachment | pass | 원출력 순서 |
+| catalog 49201 exit0 #190 | S10-SB05 managed catalog rejects unsafe options outside | pass | 원출력 순서 |
+| catalog 49201 exit0 #191 | S10-SB05 managed catalog rejects unsafe options dotdot | pass | 원출력 순서 |
+| catalog 49201 exit0 #192 | S10-SB05 managed catalog rejects unsafe options media-symlink | pass | 원출력 순서 |
+| catalog 49201 exit0 #193 | S10-SB05 managed catalog rejects unsafe options sqlite-symlink | pass | 원출력 순서 |
+| catalog 49201 exit0 #194 | S10-SB05 managed catalog rejects unsafe options sqlite-hardlink | pass | 원출력 순서 |
+| catalog 49201 exit0 #195 | S10-SB05 managed catalog rejects unsafe options disabled | pass | 원출력 순서 |
+| catalog 49201 exit0 #196 | S10-SB06 failed open releases catalog attachment | pass | 원출력 순서 |
+| catalog 49201 exit0 #197 | S10-SB07 managed SQLite sidecar rejected -wal symlink | pass | 원출력 순서 |
+| catalog 49201 exit0 #198 | S10-SB07 managed SQLite sidecar rejected -wal hardlink | pass | 원출력 순서 |
+| catalog 49201 exit0 #199 | S10-SB07 managed SQLite sidecar rejected -shm symlink | pass | 원출력 순서 |
+| catalog 49201 exit0 #200 | S10-SB07 managed SQLite sidecar rejected -shm hardlink | pass | 원출력 순서 |
+| catalog 49201 exit0 #201 | S10-SB07 managed SQLite sidecar rejected -journal symlink | pass | 원출력 순서 |
+| catalog 49201 exit0 #202 | S10-SB07 managed SQLite sidecar rejected -journal hardlink | pass | 원출력 순서 |
+| catalog 49201 exit0 #203 | S10-SC01 managed repeated event fixture is valid | pass | 원출력 순서 |
+| catalog 49201 exit0 #204 | S10-SC02 managed reservations avoid history reads | pass | 원출력 순서 |
+| catalog 49201 exit0 #205 | S10-SC03 managed V2 finalize avoids full replay | pass | 원출력 순서 |
+| catalog 49201 exit0 #206 | S10-SC04 checkpoint reduces superseded event payload bytes | pass | 원출력 순서 |
+| catalog 49201 exit0 #207 | S10-SC05 checkpoint preserves latest event and all record identities | pass | 원출력 순서 |
+| catalog 49201 exit0 #208 | S10-SC06 checkpoint is idempotent and preserves V2 | pass | 원출력 순서 |
+| catalog 49201 exit0 #209 | S10-SC08 receipt preserves retry identity and rejects direct append | pass | 원출력 순서 |
+| catalog 49201 exit0 #210 | S10-SC09 checkpoint restart preserves SQLite and JSONL state sqlite | pass | 원출력 순서 |
+| catalog 49201 exit0 #211 | S10-SC09 managed checkpoint SQL V2 payload and path | pass | 원출력 순서 |
+| catalog 49201 exit0 #212 | S10-SC09 checkpoint restart preserves SQLite and JSONL state jsonl | pass | 원출력 순서 |
+| catalog 49201 exit0 #213 | S10-SC10 checkpoint prefix recovers before writes | pass | 원출력 순서 |
+| catalog 49201 exit0 #214 | S10-SC11 checkpoint mismatch preserves bytes and poisons owner | pass | 원출력 순서 |
+| catalog 49201 exit0 #215 | S10-SC12 first accepted mutation controls latest event | pass | 원출력 순서 |
+| catalog 49201 exit0 #216 | S10-SC16 automatic checkpoint uses accumulated growth | pass | 원출력 순서 |
+| catalog 49201 exit0 #217 | S10-SC07 raw checkpoint is rejected | pass | 원출력 순서 |
+| catalog 49201 exit0 #218 | S10-SC18 checkpoint syscall failure poisons and reopens write | pass | 원출력 순서 |
+| catalog 49201 exit0 #219 | S10-SC21 poison rejects hold mutation write | pass | 원출력 순서 |
+| catalog 49201 exit0 #220 | S10-SC18 checkpoint syscall failure poisons and reopens file-fsync | pass | 원출력 순서 |
+| catalog 49201 exit0 #221 | S10-SC21 poison rejects hold mutation file-fsync | pass | 원출력 순서 |
+| catalog 49201 exit0 #222 | S10-SC18 checkpoint syscall failure poisons and reopens rename | pass | 원출력 순서 |
+| catalog 49201 exit0 #223 | S10-SC21 poison rejects hold mutation rename | pass | 원출력 순서 |
+| catalog 49201 exit0 #224 | S10-SC18 checkpoint syscall failure poisons and reopens dir-fsync | pass | 원출력 순서 |
+| catalog 49201 exit0 #225 | S10-SC21 poison rejects hold mutation dir-fsync | pass | 원출력 순서 |
+| catalog 49201 exit0 #226 | S10-SC17 checkpoint preserves holds observations and deletion | pass | 원출력 순서 |
+| catalog 49201 exit0 #227 | S10-SC17 checkpoint SQL hold observation tombstone | pass | 원출력 순서 |
+| catalog 49201 exit0 #228 | S10-SC17 checkpoint preserves holds observations and deletion restart sqlite | pass | 원출력 순서 |
+| catalog 49201 exit0 #229 | S10-SC17 checkpoint SQL restart observation tombstone | pass | 원출력 순서 |
+| catalog 49201 exit0 #230 | S10-SC17 checkpoint preserves holds observations and deletion restart jsonl | pass | 원출력 순서 |
+| catalog 49201 exit0 #231 | S10-SC19 invalid managed history remains unchanged malformed | pass | 원출력 순서 |
+| catalog 49201 exit0 #232 | S10-SC19 invalid managed history remains unchanged unsupported | pass | 원출력 순서 |
+| catalog 49201 exit0 #233 | S10-SC19 invalid managed history remains unchanged conflict | pass | 원출력 순서 |
+| catalog 49201 exit0 #234 | S10-SC20 raw catalog rejects receipt before side effects | pass | 원출력 순서 |
+| catalog 49201 exit0 #235 | S10-SC13 crypto off raw remains usable | pass | 원출력 순서 |
+| catalog 49201 exit0 #236 | S10-SC14 crypto off checkpoint is rejected | pass | 원출력 순서 |
+| catalog 49201 exit0 #237 | S10-SC15 crypto off receipt reopen is rejected | pass | 원출력 순서 |
+| catalog 49201 exit0 #238 | source 저장 callback reconcile 연결 | pass | 원출력 순서 |
+| catalog 49201 exit0 #239 | policy revision idempotency | pass | 원출력 순서 |
+| catalog 49201 exit0 #240 | 5초 safety reconcile | pass | 원출력 순서 |
+| catalog 49201 exit0 #241 | composition root journal 선행 open | pass | 원출력 순서 |
+| catalog 49201 exit0 #242 | composition root catalog rebuild/open | pass | 원출력 순서 |
+| catalog 49201 exit0 #243 | 서버 전 supervisor 시작 | pass | 원출력 순서 |
+| catalog 49201 exit0 #244 | ingress 전 event bridge 등록 | pass | 원출력 순서 |
+| catalog 49201 exit0 #245 | ingress 종료 뒤 recorder finalize | pass | 원출력 순서 |
+| catalog 49201 exit0 #246 | composition root 시작/종료 순서 | pass | 원출력 순서 |
+
+
 ## S10 외부 STUN 차단 재검증 (2026-09-12)
 
 최종 판정: 외부 STUN 경계 보완과 동일 미디어 회귀·문서 검증·cleanup을 완료했다.

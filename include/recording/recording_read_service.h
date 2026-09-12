@@ -56,6 +56,20 @@ private:
     std::string content_type_;
 };
 
+enum class RecordingLocationState { Single, Multiple, Unknown, None, Deleted };
+// 내부 메타데이터 위치: 프레임 고유성이나 파일 재생 가능 여부의 증명이 아니다.
+struct RecordingLocationCandidate {
+    std::string store_id, segment_id, media_epoch_id;
+    std::int64_t order_sequence{0}, media_pts{0};
+    std::int32_t time_base_num{1}, time_base_den{1000000000};
+    std::optional<RecordingUtcMappingV1> mapping;
+};
+struct RecordingLocationResult {
+    RecordingLocationState state{RecordingLocationState::None};
+    std::vector<RecordingLocationCandidate> candidates;
+    bool has_unknown{false};
+};
+
 class RecordingReadService {
 public:
     explicit RecordingReadService(RecordingCatalog& catalog,
@@ -63,6 +77,10 @@ public:
         : catalog_(catalog), event_root_(std::move(event_root)) {}
     bool QueryTimeline(const RecordingTimelineQuery& query,
                        RecordingTimelineResult* result, std::string* error) const;
+    bool ResolveMediaLocation(const std::string& channel_id, const std::string& segment_id,
+                              std::int64_t pts, RecordingLocationResult* result, std::string* error) const;
+    bool ResolveUtcLocations(const std::string& channel_id, std::int64_t utc_ns,
+                             RecordingLocationResult* result, std::string* error) const;
     std::unique_ptr<ResolvedRecordingMedia> ResolveMedia(
         const std::string& channel_id, const std::string& segment_id) const;
 private:

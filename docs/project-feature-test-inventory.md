@@ -1,5 +1,24 @@
 # Project Feature Test Inventory
 
+## S10 후속 3A 내부 위치 해석
+
+| 기능 ID | 동작·PASS 기준 | 안정화 테스트 | 30분 테스트 | 120분 테스트 | UI 테스트 | UI 존재 |
+| --- | --- | --- | --- | --- | --- | --- |
+| S10-LOC01 | 정확 미디어 위치: segment·epoch·PTS·timebase·mapping 원문 보존 | 위치 해석 focused | 이번 비대상 | 이번 비대상: 읽기 내부 단위 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-LOC02 | UTC 불명확 미디어 위치: 범위가 입증된 exact 위치는 Single+has_unknown; 열린 tail은 Unknown | 위치 해석 focused | 이번 비대상 | 이번 비대상: 읽기 내부 단위 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-LOC03 | 서로 다른 파일의 UTC 중첩: 후보 두 개를 Multiple로 보존 | 위치 해석 focused | 이번 비대상 | 이번 비대상: 읽기 내부 단위 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-LOC04 | 한 파일의 서로 다른 UTC 매핑: mapping ID가 다른 후보를 병합하지 않음 | 위치 해석 focused | 이번 비대상 | 이번 비대상: 읽기 내부 단위 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-LOC05 | 점 조회 반개구간: start 포함/end 제외; 구간 밖은 None | 위치 해석 focused | 이번 비대상 | 이번 비대상: 읽기 내부 단위 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-LOC06 | 알 수 없는 UTC: unknown 매핑과 열린 끝을 외삽하지 않음 | 위치 해석 focused | 이번 비대상 | 이번 비대상: 읽기 내부 단위 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-LOC07 | 알려진 후보와 미확정 공존: 후보를 보존하고 has_unknown으로 불완전성 표시 | 위치 해석 focused | 이번 비대상 | 이번 비대상: 읽기 내부 단위 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-LOC08 | 다른 timebase 정확 변환: 분모가 ns가 아닌 PTS를 checked rational로 보존 | 위치 해석 focused | 이번 비대상 | 이번 비대상: 읽기 내부 단위 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-LOC09 | 정수로 표현 불가능한 위치: 반올림하지 않고 Unknown | 위치 해석 focused | 이번 비대상 | 이번 비대상: 읽기 내부 단위 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-LOC10 | 산술 극값: int64 경계 차이·곱셈·최종 위치 overflow 거부 | 위치 해석 focused | 이번 비대상 | 이번 비대상: 읽기 내부 단위 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-LOC11 | 삭제 ID의 channel 경계: 동일 channel exact ID만 Deleted; 다른 channel은 None | 위치 해석 focused | 이번 비대상 | 이번 비대상: 읽기 내부 단위 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-LOC12 | 잘못된 입력: null 결과·잘못된 ID/channel 및 미open 거부, 상태 변경 없음 | 위치 해석 focused | 이번 비대상 | 이번 비대상: 읽기 내부 단위 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-LOC13 | 재시작/저장 모드 일치: JSONL/SQLite 재open 결과의 ID·매핑·순서 일치 | 위치 해석 focused | 이번 비대상 | 이번 비대상: 읽기 내부 단위 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-LOC14 | 읽기 전용 경계: 파일 부재와 무관한 metadata 해석; 원장/hold 불변 | 위치 해석 focused | 이번 비대상 | 이번 비대상: 읽기 내부 단위 | 비대상 | 비대상: UI 없어야 정상 |
+
 ## S10 외부 STUN 차단 검증 준비
 
 | 기능 ID | 동작·PASS 기준 | 안정화 테스트 | 30분 테스트 | 120분 테스트 | UI 테스트 | UI 존재 |
