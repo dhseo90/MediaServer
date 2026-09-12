@@ -1,5 +1,955 @@
 # Release Test Records
 
+## S10 저장소 활성화 선행 1C
+
+### 추가 경계 실행 전 등록
+
+마지막 SQL 직접 대조(동일 SC09/17 사전등록): `S10-SC09 managed checkpoint SQL V2 payload and path`, `S10-SC17 checkpoint SQL hold observation tombstone`, `S10-SC17 checkpoint SQL restart observation tombstone`. 실제 SQLite SELECT 결과를 fixture metadata/경로/hold=2/관측 payload/삭제 ID와 대조한다. 기존243/0와 finalize52/0는 앞선 범위 증거로 유지하며 이 확인의 실패는 예상 RED가 아니다. 제품 수정 없이 동일 focused 1회만 추가 승인됐다.
+
+SC21 `poison rejects hold mutation`은 write/file-fsync/rename 실패 후 OwnsCatalog가 poison을 검사하지 않는 세 경우만 예상 RED이다. dir-fsync는 inode 교체로 기존 거부되는 회귀다. 메인이 동일 소유권 불변 조건 보완을 승인했다. 다른 추가 검사 실패는 예상 RED가 아니다.
+
+마지막 계약 검증 사전등록: SC17 `checkpoint preserves holds observations and deletion`, SC18 `checkpoint syscall failure poisons and reopens`(write/file-fsync/rename/dir-fsync 각 행), SC19 `invalid managed history remains unchanged`(malformed/unsupported/conflict), SC20 `raw catalog rejects receipt before side effects`. SC18은 journal TU 한정 실제 syscall 호출점에서 단일 EIO를 주입하며 오류 전후 원문·stage·새 객체 복구를 확인한다. prefix 합성 fixture와 실제 syscall 오류 증거를 구분한다. 기존 SC01~16 228/0는 유지하고 아래 추가 검사로 이전 증거를 소급 확대하지 않는다.
+
+96022는 SC07 전용 하위 root로 격리한 뒤 기존202+SC01/07=204pass, SC02~06 예상5fail만 관찰했다. 이후 구현 중 아래 동일 계약 경계를 실행 전에 추가한다. SB06은 외부 변경 poison을 복구해 같은 객체를 재사용하는 대신 journal 수명 종료 후 새 객체로 reopen하도록 승인된 요구 변경이다. 과거 SB06 PASS는 당시 소유권 반환 경계 증거로 유지한다. 추가 검사는 구현의 경계 검증이며 기존 RED를 소급 확대하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-SC08 receipt preserves retry identity and rejects direct append | receipt 안전성 | 원 ID/entity/시각·동일 재시도·충돌·일반 append 거부 | v4.1.0 |
+| S10-SC09 checkpoint restart preserves SQLite and JSONL state | 재시작 동등성 | 실제 두 catalog 모드 재open 및 V2/최종 link 대조 | v4.1.0 |
+| S10-SC10 checkpoint prefix recovers before writes | stage 복구 | 현재 checkpoint bytes prefix만 catalog open 전후 정리, 복구 전 쓰기 거부 | v4.1.0 |
+| S10-SC11 checkpoint mismatch preserves bytes and poisons owner | 실패 보존 | 불일치 stage 거부 및 삭제 후 같은 journal 계속쓰기 차단 | v4.1.0 |
+| S10-SC12 first accepted mutation controls latest event | 중복 순서 | 동일 ID 재등장과 receipt/original 재시도 순서 보존 | v4.1.0 |
+| S10-SC13 crypto off raw remains usable | 선택 의존성 | OpenSSL 비활성 실제 별도 컴파일에서 raw append/replay | v4.1.0 |
+| S10-SC14 crypto off checkpoint is rejected | 지원 부재 | 비활성 실제 managed checkpoint 거부 | v4.1.0 |
+| S10-SC15 crypto off receipt reopen is rejected | 지원 부재 | digest receipt 원장 reopen 거부/원문 보존 | v4.1.0 |
+| S10-SC16 automatic checkpoint uses accumulated growth | 자동 성장 처리 | 1MiB 이상 반복 link payload 이후 receipt 생성과 최신값 보존 | v4.1.0 |
+
+실행 전 등록: 관리 원장 증분 순서/ID 검증과 event-link receipt checkpoint. 첫 focused는 SC02~06만 미구현 예상 RED이며 SC01 실제 fixture와 SC07 raw 거부 및 기존211개는 회귀다. OpenSSL EVP SHA256을 사용하며 crypto-off raw 유지/checkpoint 거부, prefix 복구·중단·재시작·SQLite/JSONL·삭제/예약/관측 보존 경계는 후속 개별 fixture를 실행 전에 추가 등록한다. 명령은 catalog focused와 영향 finalize-recovery focused, diffcheck만. 커밋/푸시/하위 위임 없음.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-SC01 managed repeated event fixture is valid | 관리 원장 성장 경계 | 실제 catalog/journal·pread byte/call·파일 크기/상태 검사 | v4.1.0 |
+| S10-SC02 managed reservations avoid history reads | 관리 원장 성장 경계 | 실제 catalog/journal·pread byte/call·파일 크기/상태 검사 | v4.1.0 |
+| S10-SC03 managed V2 finalize avoids full replay | 관리 원장 성장 경계 | 실제 catalog/journal·pread byte/call·파일 크기/상태 검사 | v4.1.0 |
+| S10-SC04 checkpoint reduces superseded event payload bytes | 관리 원장 성장 경계 | 실제 catalog/journal·pread byte/call·파일 크기/상태 검사 | v4.1.0 |
+| S10-SC05 checkpoint preserves latest event and all record identities | 관리 원장 성장 경계 | 실제 catalog/journal·pread byte/call·파일 크기/상태 검사 | v4.1.0 |
+| S10-SC06 checkpoint is idempotent and preserves V2 | 관리 원장 성장 경계 | 실제 catalog/journal·pread byte/call·파일 크기/상태 검사 | v4.1.0 |
+| S10-SC07 raw checkpoint is rejected | 관리 원장 성장 경계 | 실제 catalog/journal·pread byte/call·파일 크기/상태 검사 | v4.1.0 |
+
+
+### 실행별 실제 결과 및 최초 실패 이력
+
+catalog 명령은 모든 실행에서 `./server.sh verify-v410-recording-catalog`이다. 최종7312는 C++234+crypto-off3+shell9=246pass/0fail이며, 기존211개를 포함한다. 아래 단일 전수표는 최종 원출력의246개 행 순서/제목/판정에 대응하고 과거 각 실행의 동일 제목 발생 순번까지 대조했다. 과거 출력의209/209/228/231/243개 행에서 최종표 미대응은0이다. 같은 제목으로 출력된 기존 parser4행도 합치지 않았다.
+
+| 실행 | exit | 실제 pass/fail | elapsed(ms) | 성격 |
+| --- | ---: | --- | ---: | --- |
+| 84514 | 1 | 203/6 | 6507 | SC07 준비 실패 포함 실제 중단 |
+| 96022 | 1 | 204/5 | 5557 | SC07 격리 수정, SC02~06 예상 RED만 |
+| 43227 | 0 | 228/0 | 8490 | 첫 구현 GREEN |
+| 87718 | 1 | 228/3 | 6283 | SC21 세 예상 RED만 |
+| 49241 | 0 | 243/0 | 9712 | poison hold 보완 GREEN |
+| 7312 | 0 | 246/0 | 17854 | SQL 직접 SELECT 보완 최종 |
+
+84514의 SC07 media_root가 전체 fixture root를 포함한 잘못된 격리는 직접 확인했다. 실패한 정확 marker/오류는 당시 출력에 없어 미확인으로 보존한다. 이를 예상 RED로 소급하지 않았고 사용자 재승인 후 전용 하위 root로 수정했다. 96022의 SC02~06 다섯 실패는 등록한 미구현 요구와 일치했다. 87718의 write/file-fsync/rename 세 SC21 실패는 journal poison 뒤 OwnsCatalog가 binding만 검사하던 누락이며 CheckManagedStateLocked 검사로 보완했다. 기존 회귀·빌드 실패는 이후 없었다.
+
+elapsed source=JS Date.now 도구 호출부터 terminal 관측까지이며 순수 CPU/실행시간이 아니다. token start/end/consumed는 자동 집계 미제공으로 미집계다. RED 실행의 crypto-off/shell 후속은 바이너리 exit1로 미실행이며 PASS로 계산하지 않았다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| journal open: | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| fallback catalog open: | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| SQLite off mode 표시 | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| segment finalize journal+projection: | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| fallback range query | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| event link FK 위반 거부 | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| FK 위반 transaction/journal 전체 rollback | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| 최초 durable mutation 1개 | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| 동일 mutation 중복 append | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| 손상 사이 정상 durable mutation 보존 | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| 중간 corrupt line count | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| 마지막 truncated line skip | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| fallback replay open | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| 같은 mutation idempotent replay | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| 중복 replay row/합계 불증가 | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구: | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| SQLite catalog open/rebuild: | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| SQLite primary mode 표시 | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| SQLite on/off range query ID·순서 parity | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| journal 없는 손상 media orphan 구분 | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| projection failover journal open: | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| projection failover catalog open: | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| 실제 SQLite INSERT 실패 trigger 설치 | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| SQLite 투영 실패 뒤 journal+memory finalize 유지: | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| SQLite 투영 실패 즉시 JSONL fallback 전환 | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| 재시작 rebuild 전 실패 trigger 제거 | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| 투영 실패 직후 in-memory query 정합성 유지 | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| projection failover 재시작 journal rebuild: | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| 재시작 후 journal에서 누락 SQLite projection 복구 | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| 재시작 후 SQLite primary 복귀 | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| 재시작 journal rebuild가 실제 SQLite row 복원 | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| tombstone journal open: | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| tombstone catalog open: | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| tombstone 대상 segment finalize: | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| tombstone 대상 deletion request: | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| tombstone 완료 기록: | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| 손상 SQLite 격리 후 journal rebuild: | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| 손상 SQLite 원본 격리 | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| 격리 SQLite 파일 보존 | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| 격리 후 journal rebuild 결과 | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A future-schema journal read open | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A future-schema unsupported classification | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A future-schema catalog open denied | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A future-schema catalog retry denied | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A future-schema journal bytes preserved | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A future-schema SQLite bytes preserved | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A future-schema writer cleanup untouched | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A arbitrary-schema journal read open | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A arbitrary-schema unsupported classification | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A arbitrary-schema catalog open denied | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A arbitrary-schema catalog retry denied | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A arbitrary-schema journal bytes preserved | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A arbitrary-schema SQLite bytes preserved | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A arbitrary-schema writer cleanup untouched | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A empty-schema journal read open | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A empty-schema unsupported classification | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A empty-schema catalog open denied | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A empty-schema catalog retry denied | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A empty-schema journal bytes preserved | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A empty-schema SQLite bytes preserved | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A empty-schema writer cleanup untouched | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A future-type journal read open | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A future-type unsupported classification | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A future-type catalog open denied | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A future-type catalog retry denied | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A future-type journal bytes preserved | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A future-type SQLite bytes preserved | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A future-type writer cleanup untouched | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A malformed journal open | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-3A malformed JSON missing fields and wrong types remain corrupt | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O01 reservation journal open | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O01 first reservation returns four IDs and sequence one | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O01 versioned reservation payload replays | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O01 new reservation records actual occurred time | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O02 identical retry preserves sequence and bytes | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O03 reopened instance allocates next sequence | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O03 new process resumes durable sequence | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O04 different store rejected | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O04 reused request with different segment rejected | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O04 reused request with different channel rejected | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O04 reused segment with different request rejected | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O04 conflicts preserve original bytes | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O05/O06 reject and preserve corrupt | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O05/O06 reject and preserve unsupported-schema | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O05/O06 reject and preserve unsupported-type | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O05/O06 reject and preserve tail | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O05/O06 reject and preserve payload-zero | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O05/O06 reject and preserve payload-negative | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O05/O06 reject and preserve payload-fraction | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O05/O06 reject and preserve payload-overflow | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O05/O06 reject and preserve duplicate-sequence | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O05/O06 reject and preserve decreasing-sequence | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O05/O06 reject and preserve duplicate-request | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O05/O06 reject and preserve duplicate-segment | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O05/O06 reject and preserve store-conflict | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O05/O06 reject and preserve ordinary-before | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O05/O06 reject and preserve ordinary-after | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O05/O06 reject and preserve line-cap | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O05 reservation entity envelope binding rejects mismatch | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O05 reservation request envelope binding rejects mismatch | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O01 strict reservation parser accepts versioned literal | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O06 INT64_MAX identical retry remains valid | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O06 sequence overflow rejected without write | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O02 identical durable reservation duplicates remain idempotent | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O06 sequence gaps remain valid and allocate above maximum | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O07 four simultaneous processes finish reservations | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O07 concurrent sequences are unique and complete | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O07 next sequence follows concurrent reservations | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O08 ordinary Append cannot reserve orders | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O08 unopened journal rejected | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O08 null result rejected | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O08 invalid opaque ID rejected | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O08 failed reservation does not expose tentative result | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O09 unsafe file binding rejected and original preserved inode | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O09 unsafe file binding rejected and original preserved parent | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O09 unsafe file binding rejected and original preserved symlink | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O09 unsafe file binding rejected and original preserved hardlink | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O10 reservation and normal segment coexist in catalog | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O04 reserve then finalize permits identical retry | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O10 reservation survives catalog rebuild without changing segment query | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-O04 legacy segment cannot acquire retroactive reservation | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M06 opened catalog accepts fresh exact reservation V2 finalize | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M07 V2 find preserves complete metadata | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M07 identical V2 recovery is idempotent | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M07 V2 is absent from V1 range query | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M07 V2 registered path is not orphan | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M07 SQLite exact V2 JSON and path match | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M07 JSONL restart preserves V2 exact payload | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M06 wrong reservation tuple rejected store | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M06 wrong reservation tuple rejected request | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M06 wrong reservation tuple rejected segment | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M06 wrong reservation tuple rejected channel | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M06 wrong reservation tuple rejected sequence | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M09 immutable V2 mapping mismatch rejected | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M09 bad V2 startup retry preserves original state bad-payload | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M09 bad V2 startup retry preserves original state missing-order | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M09 bad V2 startup retry preserves original state bad-order | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M09 bad V2 startup retry preserves original state conflicting-order | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M09 bad V2 startup retry preserves original state tail | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M09 bad V2 startup retry preserves original state corrupt | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M09 bad V2 startup retry preserves original state unsafe-path | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M09 default off rejects V2 before SQLite changes | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M09 V2 replay namespace and deletion duplicate | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M09 V2 replay namespace and deletion deleted | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M09 V2 replay namespace and deletion v1-before | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M09 V2 replay namespace and deletion v1-after | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M09 V2 replay namespace and deletion deleted-before | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M09 V2 replay namespace and deletion resurrection | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M09 V2 replay namespace and deletion mutation-collision | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M09 V2 finalize rejects missing media | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M09 V2 finalize rejects directory media | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M09 fresh candidate rejects mapping | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M09 fresh candidate rejects path | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-M09 fresh candidate rejects tombstone | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SW01 managed empty root opens with lifetime lease | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SW02 same process second managed owner denied | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SW03 different process owner and inherited use denied | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SW12 managed duplicate descriptors are close-on-exec | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SW05 managed reserve append replay use owned descriptor | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SW06 raw managed access and legacy default path denied | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SW01 managed Reserve rejects different store identity | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SW10 catalog connection can inspect managed lease | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SW04 owner destruction releases lease | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SW01 managed reopen rejects different store identity | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SW11 managed incomplete tail rejects append without changing bytes | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SW07 legacy nonempty root preserved without conversion | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SW08 partial initialization retry validates exact state lease | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SW08 partial initialization retry validates exact state init | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SW08 partial initialization retry validates exact state barrier | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SW08 partial initialization retry validates exact state journal | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SW08 partial initialization retry validates exact state incomplete | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SW08 partial initialization retry validates exact state unknown | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SW09 symlink inode and malformed marker rejected journal | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SW09 symlink inode and malformed marker rejected marker | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SW09 symlink inode and malformed marker rejected barrier | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SW09 symlink inode and malformed marker rejected root-symlink | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SB01 second managed catalog is denied | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SB02 failed catalog cannot mutate journal or holds | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SB03 attached catalog blocks unowned append but permits reservation | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SB04 catalog destruction releases attachment | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SB05 managed catalog rejects unsafe options outside | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SB05 managed catalog rejects unsafe options dotdot | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SB05 managed catalog rejects unsafe options media-symlink | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SB05 managed catalog rejects unsafe options sqlite-symlink | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SB05 managed catalog rejects unsafe options sqlite-hardlink | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SB05 managed catalog rejects unsafe options disabled | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SB06 failed open releases catalog attachment | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SB07 managed SQLite sidecar rejected -wal symlink | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SB07 managed SQLite sidecar rejected -wal hardlink | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SB07 managed SQLite sidecar rejected -shm symlink | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SB07 managed SQLite sidecar rejected -shm hardlink | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SB07 managed SQLite sidecar rejected -journal symlink | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SB07 managed SQLite sidecar rejected -journal hardlink | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SC01 managed repeated event fixture is valid | 7312 실제 assertion; 앞선5회 모두 pass | pass |
+| S10-SC02 managed reservations avoid history reads | 7312 실제 assertion; 84514 fail; 96022 fail; 43227 pass; 87718 pass; 49241 pass | pass |
+| S10-SC03 managed V2 finalize avoids full replay | 7312 실제 assertion; 84514 fail; 96022 fail; 43227 pass; 87718 pass; 49241 pass | pass |
+| S10-SC04 checkpoint reduces superseded event payload bytes | 7312 실제 assertion; 84514 fail; 96022 fail; 43227 pass; 87718 pass; 49241 pass | pass |
+| S10-SC05 checkpoint preserves latest event and all record identities | 7312 실제 assertion; 84514 fail; 96022 fail; 43227 pass; 87718 pass; 49241 pass | pass |
+| S10-SC06 checkpoint is idempotent and preserves V2 | 7312 실제 assertion; 84514 fail; 96022 fail; 43227 pass; 87718 pass; 49241 pass | pass |
+| S10-SC08 receipt preserves retry identity and rejects direct append | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 pass; 87718 pass; 49241 pass | pass |
+| S10-SC09 checkpoint restart preserves SQLite and JSONL state sqlite | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 pass; 87718 pass; 49241 pass | pass |
+| S10-SC09 managed checkpoint SQL V2 payload and path | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 미실행; 87718 미실행; 49241 미실행 | pass |
+| S10-SC09 checkpoint restart preserves SQLite and JSONL state jsonl | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 pass; 87718 pass; 49241 pass | pass |
+| S10-SC10 checkpoint prefix recovers before writes | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 pass; 87718 pass; 49241 pass | pass |
+| S10-SC11 checkpoint mismatch preserves bytes and poisons owner | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 pass; 87718 pass; 49241 pass | pass |
+| S10-SC12 first accepted mutation controls latest event | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 pass; 87718 pass; 49241 pass | pass |
+| S10-SC16 automatic checkpoint uses accumulated growth | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 pass; 87718 pass; 49241 pass | pass |
+| S10-SC07 raw checkpoint is rejected | 7312 실제 assertion; 84514 fail; 96022 pass; 43227 pass; 87718 pass; 49241 pass | pass |
+| S10-SC18 checkpoint syscall failure poisons and reopens write | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 미실행; 87718 pass; 49241 pass | pass |
+| S10-SC21 poison rejects hold mutation write | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 미실행; 87718 fail; 49241 pass | pass |
+| S10-SC18 checkpoint syscall failure poisons and reopens file-fsync | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 미실행; 87718 pass; 49241 pass | pass |
+| S10-SC21 poison rejects hold mutation file-fsync | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 미실행; 87718 fail; 49241 pass | pass |
+| S10-SC18 checkpoint syscall failure poisons and reopens rename | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 미실행; 87718 pass; 49241 pass | pass |
+| S10-SC21 poison rejects hold mutation rename | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 미실행; 87718 fail; 49241 pass | pass |
+| S10-SC18 checkpoint syscall failure poisons and reopens dir-fsync | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 미실행; 87718 pass; 49241 pass | pass |
+| S10-SC21 poison rejects hold mutation dir-fsync | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 미실행; 87718 pass; 49241 pass | pass |
+| S10-SC17 checkpoint preserves holds observations and deletion | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 미실행; 87718 pass; 49241 pass | pass |
+| S10-SC17 checkpoint SQL hold observation tombstone | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 미실행; 87718 미실행; 49241 미실행 | pass |
+| S10-SC17 checkpoint preserves holds observations and deletion restart sqlite | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 미실행; 87718 pass; 49241 pass | pass |
+| S10-SC17 checkpoint SQL restart observation tombstone | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 미실행; 87718 미실행; 49241 미실행 | pass |
+| S10-SC17 checkpoint preserves holds observations and deletion restart jsonl | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 미실행; 87718 pass; 49241 pass | pass |
+| S10-SC19 invalid managed history remains unchanged malformed | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 미실행; 87718 pass; 49241 pass | pass |
+| S10-SC19 invalid managed history remains unchanged unsupported | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 미실행; 87718 pass; 49241 pass | pass |
+| S10-SC19 invalid managed history remains unchanged conflict | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 미실행; 87718 pass; 49241 pass | pass |
+| S10-SC20 raw catalog rejects receipt before side effects | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 미실행; 87718 pass; 49241 pass | pass |
+| S10-SC13 crypto off raw remains usable | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 pass; 87718 미실행; 49241 pass | pass |
+| S10-SC14 crypto off checkpoint is rejected | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 pass; 87718 미실행; 49241 pass | pass |
+| S10-SC15 crypto off receipt reopen is rejected | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 pass; 87718 미실행; 49241 pass | pass |
+| source 저장 callback reconcile 연결 | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 pass; 87718 미실행; 49241 pass | pass |
+| policy revision idempotency | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 pass; 87718 미실행; 49241 pass | pass |
+| 5초 safety reconcile | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 pass; 87718 미실행; 49241 pass | pass |
+| composition root journal 선행 open | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 pass; 87718 미실행; 49241 pass | pass |
+| composition root catalog rebuild/open | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 pass; 87718 미실행; 49241 pass | pass |
+| 서버 전 supervisor 시작 | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 pass; 87718 미실행; 49241 pass | pass |
+| ingress 전 event bridge 등록 | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 pass; 87718 미실행; 49241 pass | pass |
+| ingress 종료 뒤 recorder finalize | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 pass; 87718 미실행; 49241 pass | pass |
+| composition root 시작/종료 순서 | 7312 실제 assertion; 84514 미실행; 96022 미실행; 43227 pass; 87718 미실행; 49241 pass | pass |
+
+### finalize-recovery 영향 회귀
+
+`./server.sh verify-v410-recording-finalize-recovery` (integration 옵션 없음), 84258 exit0, 실제52pass/0fail, elapsed 12962ms(동일 관측 source). 첫 ready1+boundary19+V2 32이며 crypto-off 컴파일 경로의 기존 V1/V2 복구만 검증했다. 아래52개가 원출력 전수다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| ready partial recovers original segment ID | 84258 실제 비integration assertion | pass |
+| FR02 interrupted publish converges: final only | 84258 실제 비integration assertion | pass |
+| FR02 repeated recovery no duplicate mutation | 84258 실제 비integration assertion | pass |
+| FR02 interrupted publish converges: owned two links | 84258 실제 비integration assertion | pass |
+| FR02 repeated recovery no duplicate mutation | 84258 실제 비integration assertion | pass |
+| FR03 catalog commit before cleanup does not append or replace | 84258 실제 비integration assertion | pass |
+| FR04 invalid version preserves original without publication | 84258 실제 비integration assertion | pass |
+| FR04 invalid duplicate preserves original without publication | 84258 실제 비integration assertion | pass |
+| FR04 invalid nonce preserves original without publication | 84258 실제 비integration assertion | pass |
+| FR04 invalid escape preserves original without publication | 84258 실제 비integration assertion | pass |
+| FR04 invalid identity preserves original without publication | 84258 실제 비integration assertion | pass |
+| FR05 symlink ticket rejected and external target untouched | 84258 실제 비integration assertion | pass |
+| FR05 foreign hardlink rejected without unlink | 84258 실제 비integration assertion | pass |
+| FR05 actual unreadable ticket preserves media | 84258 실제 비integration assertion | pass |
+| FR06 corrupt unknown isolated in place without finalized mutation | 84258 실제 비integration assertion | pass |
+| FR06 repeated corruption recovery converges without resurrection | 84258 실제 비integration assertion | pass |
+| FR07 pending takes precedence over ready publication | 84258 실제 비integration assertion | pass |
+| FR07 deleted takes precedence over ready publication | 84258 실제 비integration assertion | pass |
+| FR07 conflict takes precedence over ready publication | 84258 실제 비integration assertion | pass |
+| FR08 orphan not inferred and legacy owned partial cleaned | 84258 실제 비integration assertion | pass |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker partial | 84258 실제 비integration assertion | pass |
+| S10-M08 V2 ready recovers exact metadata partial | 84258 실제 비integration assertion | pass |
+| S10-M08 V2 journal restart and repeated recovery partial | 84258 실제 비integration assertion | pass |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker two-links | 84258 실제 비integration assertion | pass |
+| S10-M08 V2 ready recovers exact metadata two-links | 84258 실제 비integration assertion | pass |
+| S10-M08 V2 journal restart and repeated recovery two-links | 84258 실제 비integration assertion | pass |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker final | 84258 실제 비integration assertion | pass |
+| S10-M08 V2 ready recovers exact metadata final | 84258 실제 비integration assertion | pass |
+| S10-M08 V2 journal restart and repeated recovery final | 84258 실제 비integration assertion | pass |
+| S10-M08 catalog startup preserves V2 ready and cleanup marker committed | 84258 실제 비integration assertion | pass |
+| S10-M08 V2 ready recovers exact metadata committed | 84258 실제 비integration assertion | pass |
+| S10-M08 V2 journal restart and repeated recovery committed | 84258 실제 비integration assertion | pass |
+| S10-M08 V2 ready writer preserves versioned envelope | 84258 실제 비integration assertion | pass |
+| S10-M09 V2 ready refusal preserves originals missing-order | 84258 실제 비integration assertion | pass |
+| S10-M09 V2 ready refusal preserves originals wrong-tuple | 84258 실제 비integration assertion | pass |
+| S10-M09 V2 ready refusal preserves originals optout | 84258 실제 비integration assertion | pass |
+| S10-M09 V2 ready refusal preserves originals deleted | 84258 실제 비integration assertion | pass |
+| S10-M09 V2 ready refusal preserves originals mapping | 84258 실제 비integration assertion | pass |
+| S10-M09 V2 ready refusal preserves originals path | 84258 실제 비integration assertion | pass |
+| S10-M09 V2 ready refusal preserves originals version | 84258 실제 비integration assertion | pass |
+| S10-M09 V2 ready refusal preserves originals event | 84258 실제 비integration assertion | pass |
+| S10-M09 V2 ready refusal preserves originals corrupt-pair | 84258 실제 비integration assertion | pass |
+| S10-M09 V2 ready refusal preserves originals foreign-link | 84258 실제 비integration assertion | pass |
+| S10-M09 V2 ready writer rejects mixed-id | 84258 실제 비integration assertion | pass |
+| S10-M09 V2 ready writer rejects mixed-size | 84258 실제 비integration assertion | pass |
+| S10-M09 V2 ready writer rejects mixed-source | 84258 실제 비integration assertion | pass |
+| S10-M09 V2 ready writer rejects mixed-time | 84258 실제 비integration assertion | pass |
+| S10-M09 V2 ready writer rejects event | 84258 실제 비integration assertion | pass |
+| S10-M09 V2 ready writer rejects oversize | 84258 실제 비integration assertion | pass |
+| S10-M09 V2 direct publish requires catalog | 84258 실제 비integration assertion | pass |
+| S10-M09 V1 inspector still rejects two links | 84258 실제 비integration assertion | pass |
+| S10-M09 V2 direct clear preserves uncommitted ticket and marker | 84258 실제 비integration assertion | pass |
+
+### 임시 산출물 정리와 경계
+
+보존 표를 실제 도구 원출력과 재대조하여 catalog246/246 및 finalize52/52의 제목·행 순서·판정 일치, 누락0을 확인했다. `git diff --check` exit0(출력 없음). 임시 로그 복제는 만들지 않았다.
+
+원장 checkpoint 전후 bytes와 예약 pread bytes/calls의 정확 숫자는 assertion 내부에서만 측정했고 stdout에 출력하지 않아 미집계다. 직접 보존된 판정은 SC04의 `after bytes < before bytes`, SC02의 예약8회 누적 `pread bytes < 1024` 및 `calls < 32`, SC03의 관리 V2 finalize `pread bytes < 1024`이다. 실제 절감량·비율·정확 호출 수를 추정하지 않으며 숫자를 얻기 위한 추가 재실행은 하지 않았다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /tmp/media_server_v410_recording_catalog-97777 | focused build/fixture | 21462141 | wrapper 소유 root 삭제 | removed=true | 84514 실제 출력 |
+| /tmp/media_server_v410_recording_catalog-98058 | focused build/fixture | 21461549 | wrapper 소유 root 삭제 | removed=true | 96022 실제 출력 |
+| /tmp/media_server_v410_recording_catalog-99325 | focused build/fixture | 22937012 | wrapper 소유 root 삭제 | removed=true | 43227 실제 출력 |
+| /tmp/media_server_v410_recording_catalog-99586 | focused build/fixture | 23687498 | wrapper 소유 root 삭제 | removed=true | 87718 실제 출력 |
+| /tmp/media_server_v410_recording_catalog-99658 | focused build/fixture | 23671518 | wrapper 소유 root 삭제 | removed=true | 49241 실제 출력 |
+| /tmp/media_server_v410_recording_catalog-99847 | focused build/fixture | 23688942 | wrapper 소유 root 삭제 | removed=true | 7312 실제 출력 |
+| /private/tmp/media-server-finalize-UEr6J8 | focused build/fixture | 3968609 | wrapper 소유 root 삭제 | removed=true | 84258 실제 출력 |
+
+결과 원문은 도구 출력에서 위 표로 이관했으며 비밀번호/사용자 source URL을 포함하지 않는다. 실제 syscall 단일 EIO 주입과 재open은 확인했지만 전원 차단/OS crash의 모든 시점 탐색을 수행한 것은 아니다. hold는 같은 catalog 수명 내 checkpoint 전후 값2와 SQL을 확인했으며 재시작 뒤 transient hold 영구 지속을 새로 보장하지 않는다. 원장 고유 ID·예약·삭제·관측은 계속 누적되며 전체 상수 크기/무한 장시간 메모리를 보장하지 않는다. full build·actual writer 활성화·integration·auth·UI·30/120분은 미실행, 커밋·푸시 없음. 범위는1C 저장 primitive의 한정 구현/검증이며 저장소 전체 적용/릴리즈 완료 판정은 메인 담당이다.
+
+## S10 저장소 활성화 선행 1B
+
+### 1B sidecar 보완 최종 11729
+
+동일 명령 `./server.sh verify-v410-recording-catalog`: 23829 exit1 C++196pass/6fail는 사전등록 SB07 여섯 개만 예상 RED, shell9 미실행. 11729 exit0 C++202pass/0fail+shell9=211pass/0fail(기존194+1B17). 이전 45925의205행 모두 최종에서도 pass로 실제 대조했으며 아래6행을 추가해 최종 전수211행을 보존한다. 과거 두 번의 RED 이력은 유지한다.
+
+elapsed 23829=6308ms, 11729=6189ms; JS 도구 호출→terminal 관측값이며 순수 실행시간 아님. token start/end/consumed는 자동집계 미제공으로 미집계.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| S10-SB07 managed SQLite sidecar rejected -wal symlink | prefer_sqlite=true, Open 사전거부·원본불변·본체미생성; 23829 fail →11729 pass | pass |
+| S10-SB07 managed SQLite sidecar rejected -wal hardlink | prefer_sqlite=true, Open 사전거부·원본불변·본체미생성; 23829 fail →11729 pass | pass |
+| S10-SB07 managed SQLite sidecar rejected -shm symlink | prefer_sqlite=true, Open 사전거부·원본불변·본체미생성; 23829 fail →11729 pass | pass |
+| S10-SB07 managed SQLite sidecar rejected -shm hardlink | prefer_sqlite=true, Open 사전거부·원본불변·본체미생성; 23829 fail →11729 pass | pass |
+| S10-SB07 managed SQLite sidecar rejected -journal symlink | prefer_sqlite=true, Open 사전거부·원본불변·본체미생성; 23829 fail →11729 pass | pass |
+| S10-SB07 managed SQLite sidecar rejected -journal hardlink | prefer_sqlite=true, Open 사전거부·원본불변·본체미생성; 23829 fail →11729 pass | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /tmp/media_server_v410_recording_catalog-97132 | focused build/fixture | 22022598 | wrapper cleanup | removed=true | 실제 원출력 |
+| /tmp/media_server_v410_recording_catalog-97189 | focused build/fixture | 21290570 | wrapper cleanup | removed=true | 실제 원출력 |
+
+
+SB07 추가 실행 전 등록: 실제 prefer_sqlite=true에서 기존 SQLite sidecar symlink/hardlink를 본체 생성보다 먼저 거부하고 원본 bytes를 보존해야 한다. 현재 본체만 검사하므로 아래6개만 추가 예상 RED, 기존205개는 회귀다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-SB07 managed SQLite sidecar rejected -wal symlink | SQLite sidecar 사전 거부 | 실제 catalog Open 실패, 본체 미생성 및 원문 불변 | v4.1.0 |
+| S10-SB07 managed SQLite sidecar rejected -wal hardlink | SQLite sidecar 사전 거부 | 실제 catalog Open 실패, 본체 미생성 및 원문 불변 | v4.1.0 |
+| S10-SB07 managed SQLite sidecar rejected -shm symlink | SQLite sidecar 사전 거부 | 실제 catalog Open 실패, 본체 미생성 및 원문 불변 | v4.1.0 |
+| S10-SB07 managed SQLite sidecar rejected -shm hardlink | SQLite sidecar 사전 거부 | 실제 catalog Open 실패, 본체 미생성 및 원문 불변 | v4.1.0 |
+| S10-SB07 managed SQLite sidecar rejected -journal symlink | SQLite sidecar 사전 거부 | 실제 catalog Open 실패, 본체 미생성 및 원문 불변 | v4.1.0 |
+| S10-SB07 managed SQLite sidecar rejected -journal hardlink | SQLite sidecar 사전 거부 | 실제 catalog Open 실패, 본체 미생성 및 원문 불변 | v4.1.0 |
+
+### 1B 실제 결과
+
+두 실행의 exact command는 `./server.sh verify-v410-recording-catalog`다. 51549 exit1 예상 RED 187pass/9fail(C++), shell9 미실행. 45925 exit0 C++196pass/0fail + shell9 =205pass/0fail. 기존194개 보존, 신규11개 추가이며 SW10은 새 정상 계약으로 갱신했다. 빌드/환경/기존 회귀 실패는 없었다.
+
+elapsed: 51549 6677ms, 45925 5686ms. source=JS Date.now 도구 호출 직전부터 terminal 결과 관측까지(순수 프로세스 시간 아님). token start/end/consumed 자동 집계 미제공으로 미집계. TDD/writing-good-tests 사용: 실제 production Journal/Catalog와 원장·파일·hold API로 RED→GREEN을 관측했다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| journal open: | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| fallback catalog open: | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| SQLite off mode 표시 | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| segment finalize journal+projection: | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| fallback range query | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| event link FK 위반 거부 | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| FK 위반 transaction/journal 전체 rollback | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| 최초 durable mutation 1개 | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| 동일 mutation 중복 append | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| 손상 사이 정상 durable mutation 보존 | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| 중간 corrupt line count | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| 마지막 truncated line skip | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| fallback replay open | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| 같은 mutation idempotent replay | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| 중복 replay row/합계 불증가 | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구: | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| SQLite catalog open/rebuild: | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| SQLite primary mode 표시 | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| SQLite on/off range query ID·순서 parity | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| journal 없는 손상 media orphan 구분 | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| projection failover journal open: | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| projection failover catalog open: | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| 실제 SQLite INSERT 실패 trigger 설치 | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| SQLite 투영 실패 뒤 journal+memory finalize 유지: | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| SQLite 투영 실패 즉시 JSONL fallback 전환 | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| 재시작 rebuild 전 실패 trigger 제거 | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| 투영 실패 직후 in-memory query 정합성 유지 | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| projection failover 재시작 journal rebuild: | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| 재시작 후 journal에서 누락 SQLite projection 복구 | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| 재시작 후 SQLite primary 복귀 | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| 재시작 journal rebuild가 실제 SQLite row 복원 | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| tombstone journal open: | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| tombstone catalog open: | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| tombstone 대상 segment finalize: | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| tombstone 대상 deletion request: | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| tombstone 완료 기록: | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| 손상 SQLite 격리 후 journal rebuild: | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| 손상 SQLite 원본 격리 | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| 격리 SQLite 파일 보존 | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| 격리 후 journal rebuild 결과 | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A future-schema journal read open | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A future-schema unsupported classification | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A future-schema catalog open denied | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A future-schema catalog retry denied | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A future-schema journal bytes preserved | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A future-schema SQLite bytes preserved | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A future-schema writer cleanup untouched | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A arbitrary-schema journal read open | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A arbitrary-schema unsupported classification | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A arbitrary-schema catalog open denied | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A arbitrary-schema catalog retry denied | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A arbitrary-schema journal bytes preserved | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A arbitrary-schema SQLite bytes preserved | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A arbitrary-schema writer cleanup untouched | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A empty-schema journal read open | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A empty-schema unsupported classification | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A empty-schema catalog open denied | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A empty-schema catalog retry denied | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A empty-schema journal bytes preserved | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A empty-schema SQLite bytes preserved | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A empty-schema writer cleanup untouched | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A future-type journal read open | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A future-type unsupported classification | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A future-type catalog open denied | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A future-type catalog retry denied | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A future-type journal bytes preserved | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A future-type SQLite bytes preserved | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A future-type writer cleanup untouched | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A malformed journal open | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-3A malformed JSON missing fields and wrong types remain corrupt | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O01 reservation journal open | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O01 first reservation returns four IDs and sequence one | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O01 versioned reservation payload replays | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O01 new reservation records actual occurred time | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O02 identical retry preserves sequence and bytes | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O03 reopened instance allocates next sequence | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O03 new process resumes durable sequence | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O04 different store rejected | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O04 reused request with different segment rejected | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O04 reused request with different channel rejected | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O04 reused segment with different request rejected | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O04 conflicts preserve original bytes | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve corrupt | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve unsupported-schema | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve unsupported-type | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve tail | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve payload-zero | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve payload-negative | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve payload-fraction | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve payload-overflow | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve duplicate-sequence | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve decreasing-sequence | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve duplicate-request | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve duplicate-segment | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve store-conflict | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve ordinary-before | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve ordinary-after | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O05/O06 reject and preserve line-cap | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O05 reservation entity envelope binding rejects mismatch | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O05 reservation request envelope binding rejects mismatch | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O01 strict reservation parser accepts versioned literal | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O06 INT64_MAX identical retry remains valid | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O06 sequence overflow rejected without write | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O02 identical durable reservation duplicates remain idempotent | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O06 sequence gaps remain valid and allocate above maximum | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O07 four simultaneous processes finish reservations | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O07 concurrent sequences are unique and complete | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O07 next sequence follows concurrent reservations | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O08 ordinary Append cannot reserve orders | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O08 unopened journal rejected | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O08 null result rejected | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O08 invalid opaque ID rejected | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O08 failed reservation does not expose tentative result | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O09 unsafe file binding rejected and original preserved inode | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O09 unsafe file binding rejected and original preserved parent | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O09 unsafe file binding rejected and original preserved symlink | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O09 unsafe file binding rejected and original preserved hardlink | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O10 reservation and normal segment coexist in catalog | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O04 reserve then finalize permits identical retry | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O10 reservation survives catalog rebuild without changing segment query | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-O04 legacy segment cannot acquire retroactive reservation | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M06 opened catalog accepts fresh exact reservation V2 finalize | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M07 V2 find preserves complete metadata | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M07 identical V2 recovery is idempotent | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M07 V2 is absent from V1 range query | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M07 V2 registered path is not orphan | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M07 SQLite exact V2 JSON and path match | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M07 JSONL restart preserves V2 exact payload | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M06 wrong reservation tuple rejected store | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M06 wrong reservation tuple rejected request | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M06 wrong reservation tuple rejected segment | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M06 wrong reservation tuple rejected channel | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M06 wrong reservation tuple rejected sequence | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M09 immutable V2 mapping mismatch rejected | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M09 bad V2 startup retry preserves original state bad-payload | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M09 bad V2 startup retry preserves original state missing-order | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M09 bad V2 startup retry preserves original state bad-order | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M09 bad V2 startup retry preserves original state conflicting-order | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M09 bad V2 startup retry preserves original state tail | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M09 bad V2 startup retry preserves original state corrupt | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M09 bad V2 startup retry preserves original state unsafe-path | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M09 default off rejects V2 before SQLite changes | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M09 V2 replay namespace and deletion duplicate | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M09 V2 replay namespace and deletion deleted | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M09 V2 replay namespace and deletion v1-before | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M09 V2 replay namespace and deletion v1-after | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M09 V2 replay namespace and deletion deleted-before | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M09 V2 replay namespace and deletion resurrection | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M09 V2 replay namespace and deletion mutation-collision | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M09 V2 finalize rejects missing media | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M09 V2 finalize rejects directory media | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M09 fresh candidate rejects mapping | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M09 fresh candidate rejects path | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-M09 fresh candidate rejects tombstone | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-SW01 managed empty root opens with lifetime lease | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-SW02 same process second managed owner denied | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-SW03 different process owner and inherited use denied | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-SW12 managed duplicate descriptors are close-on-exec | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-SW05 managed reserve append replay use owned descriptor | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-SW06 raw managed access and legacy default path denied | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-SW01 managed Reserve rejects different store identity | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-SW10 catalog connection can inspect managed lease | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-SW04 owner destruction releases lease | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-SW01 managed reopen rejects different store identity | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-SW11 managed incomplete tail rejects append without changing bytes | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-SW07 legacy nonempty root preserved without conversion | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-SW08 partial initialization retry validates exact state lease | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-SW08 partial initialization retry validates exact state init | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-SW08 partial initialization retry validates exact state barrier | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-SW08 partial initialization retry validates exact state journal | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-SW08 partial initialization retry validates exact state incomplete | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-SW08 partial initialization retry validates exact state unknown | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-SW09 symlink inode and malformed marker rejected journal | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-SW09 symlink inode and malformed marker rejected marker | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-SW09 symlink inode and malformed marker rejected barrier | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-SW09 symlink inode and malformed marker rejected root-symlink | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-SB01 second managed catalog is denied | 45925 실제 focused assertion; 51549 fail → 최종 pass | pass |
+| S10-SB02 failed catalog cannot mutate journal or holds | 45925 실제 focused assertion; 51549 fail → 최종 pass | pass |
+| S10-SB03 attached catalog blocks unowned append but permits reservation | 45925 실제 focused assertion; 51549 fail → 최종 pass | pass |
+| S10-SB04 catalog destruction releases attachment | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| S10-SB05 managed catalog rejects unsafe options outside | 45925 실제 focused assertion; 51549 fail → 최종 pass | pass |
+| S10-SB05 managed catalog rejects unsafe options dotdot | 45925 실제 focused assertion; 51549 fail → 최종 pass | pass |
+| S10-SB05 managed catalog rejects unsafe options media-symlink | 45925 실제 focused assertion; 51549 fail → 최종 pass | pass |
+| S10-SB05 managed catalog rejects unsafe options sqlite-symlink | 45925 실제 focused assertion; 51549 fail → 최종 pass | pass |
+| S10-SB05 managed catalog rejects unsafe options sqlite-hardlink | 45925 실제 focused assertion; 51549 fail → 최종 pass | pass |
+| S10-SB05 managed catalog rejects unsafe options disabled | 45925 실제 focused assertion; 51549 fail → 최종 pass | pass |
+| S10-SB06 failed open releases catalog attachment | 45925 실제 focused assertion; 51549 pass → 최종 pass | pass |
+| source 저장 callback reconcile 연결 | 45925 실제 focused assertion; 51549 미실행 → 최종 pass | pass |
+| policy revision idempotency | 45925 실제 focused assertion; 51549 미실행 → 최종 pass | pass |
+| 5초 safety reconcile | 45925 실제 focused assertion; 51549 미실행 → 최종 pass | pass |
+| composition root journal 선행 open | 45925 실제 focused assertion; 51549 미실행 → 최종 pass | pass |
+| composition root catalog rebuild/open | 45925 실제 focused assertion; 51549 미실행 → 최종 pass | pass |
+| 서버 전 supervisor 시작 | 45925 실제 focused assertion; 51549 미실행 → 최종 pass | pass |
+| ingress 전 event bridge 등록 | 45925 실제 focused assertion; 51549 미실행 → 최종 pass | pass |
+| ingress 종료 뒤 recorder finalize | 45925 실제 focused assertion; 51549 미실행 → 최종 pass | pass |
+| composition root 시작/종료 순서 | 45925 실제 focused assertion; 51549 미실행 → 최종 pass | pass |
+
+원출력 최종205행 및 RED196행을 제목·판정으로 전수 연결했다. 동일 parser 제목4행은 원출력 횟수 그대로 보존했다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /tmp/media_server_v410_recording_catalog-96853 | focused build/fixture | 21282340 | wrapper cleanup | removed=true | 실제 원출력 |
+| /tmp/media_server_v410_recording_catalog-96967 | focused build/fixture | 21288463 | wrapper cleanup | removed=true | 실제 원출력 |
+
+구현은 managed 전용 private catalog owner token, 옵션/경로 사전검증, AppendOwned, hold/lease 소유 검사, Open 실패와 destructor의 SQLite close→detach다. raw API/제품 HTTP/schema는 유지했다. 두번째 catalog 차단은 확인했으나 같은 UID가 Open 뒤 SQLite를 외부 교체하는 공격 방어를 보장하지 않는다. 전체1번은 원장 성장/checkpoint가 남아 미완료이며 실제 writer 활성화·wholebuild/integration/UI/auth/30분/120분은 미실행이다. 커밋·푸시 미수행.
+
+
+실행 전 등록. managed catalog 단일 소유 및 media_root/sqlite_path 결박만 구현한다. SW10 정상 fixture는 새 요구에 따라 정확 경로와 V2 true로 변경했다(기존 결함 RED가 아님). 예상 RED는 SB01/SB02/SB03와 SB05 6개 거부 조건이며 SB04/SB06 기존 정상 회귀는 유지한다. 명령 `./server.sh verify-v410-recording-catalog`; 기존194개 회귀 실패/빌드 오류는 즉시 중단한다. 하위 위임/커밋/푸시 없음, Astra/medium 유지. 성장/checkpoint는 비범위·미완료.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-SB01 second managed catalog is denied | managed catalog 실제 소유권 경계 | 실제 Journal/Catalog와 파일 원문/hold/재연결 확인 | v4.1.0 |
+| S10-SB02 failed catalog cannot mutate journal or holds | managed catalog 실제 소유권 경계 | 실제 Journal/Catalog와 파일 원문/hold/재연결 확인 | v4.1.0 |
+| S10-SB03 attached catalog blocks unowned append but permits reservation | managed catalog 실제 소유권 경계 | 실제 Journal/Catalog와 파일 원문/hold/재연결 확인 | v4.1.0 |
+| S10-SB04 catalog destruction releases attachment | managed catalog 실제 소유권 경계 | 실제 Journal/Catalog와 파일 원문/hold/재연결 확인 | v4.1.0 |
+| S10-SB05 managed catalog rejects unsafe options outside | managed catalog 실제 소유권 경계 | 실제 Journal/Catalog와 파일 원문/hold/재연결 확인 | v4.1.0 |
+| S10-SB05 managed catalog rejects unsafe options dotdot | managed catalog 실제 소유권 경계 | 실제 Journal/Catalog와 파일 원문/hold/재연결 확인 | v4.1.0 |
+| S10-SB05 managed catalog rejects unsafe options media-symlink | managed catalog 실제 소유권 경계 | 실제 Journal/Catalog와 파일 원문/hold/재연결 확인 | v4.1.0 |
+| S10-SB05 managed catalog rejects unsafe options sqlite-symlink | managed catalog 실제 소유권 경계 | 실제 Journal/Catalog와 파일 원문/hold/재연결 확인 | v4.1.0 |
+| S10-SB05 managed catalog rejects unsafe options sqlite-hardlink | managed catalog 실제 소유권 경계 | 실제 Journal/Catalog와 파일 원문/hold/재연결 확인 | v4.1.0 |
+| S10-SB05 managed catalog rejects unsafe options disabled | managed catalog 실제 소유권 경계 | 실제 Journal/Catalog와 파일 원문/hold/재연결 확인 | v4.1.0 |
+| S10-SB06 failed open releases catalog attachment | managed catalog 실제 소유권 경계 | 실제 Journal/Catalog와 파일 원문/hold/재연결 확인 | v4.1.0 |
+
+
+## S10 저장소 활성화 선행 1번
+
+### 최종 1A 검증 50093
+
+최종 `git diff --check` exit0(도구 wall 0.000002083초, 순수 검사 시간 미집계). 메인도 같은 diffcheck exit0 및 최종 root96060의 `test ! -e` exit0을 직접 확인했다. 전체 1번은 catalog attachment/성장 checkpoint 미완료로 남는다.
+
+명령은 모든 실행에서 `./server.sh verify-v410-recording-catalog`이다. 50093 exit0, C++185pass/0fail + shell9pass =194pass/0fail(기존172+신규22). TDD 및 writing-good-tests에 따라 실제 journal/파일/프로세스를 검사했고 syscall 관측은 journal TU에만 적용했다. 46619 이후 승인된 cast4/CLOEXEC3/managed tail 보존을 보완했다. 아래 과거 '미수행' 문구는 당시 중단 상태이며 이 세 항목은 이번 실행에서 해소했다.
+
+| 실행 | 결과(pass/fail) | 실제 결과 | elapsed |
+| --- | --- | --- | --- |
+| 21293 | fail | 163pass/1fail, SW01 예상 RED; shell9 미실행 | 15718ms |
+| 62520 | fail | 183pass/1fail, SW11 예상 RED; shell9 미실행 | 16836ms |
+| 63124 | fail | 184pass/1fail, SW12 예상 RED; shell9 미실행 | 5056ms |
+| 50093 | pass | 194pass/0fail, exit0 | 5241ms |
+
+elapsed source는 도구 호출 직전 JS Date.now부터 terminal 결과 관측까지이며 순수 프로세스 시간과 같다고 주장하지 않는다. token start/end/consumed는 자동 집계 미제공으로 미집계. 12334/46619 실제 compile 실패 이력은 아래 보존하며 예상 RED가 아니다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| journal open: | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| fallback catalog open: | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| SQLite off mode 표시 | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| segment finalize journal+projection: | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| fallback range query | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| event link FK 위반 거부 | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| FK 위반 transaction/journal 전체 rollback | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| 최초 durable mutation 1개 | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| 동일 mutation 중복 append | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| 손상 사이 정상 durable mutation 보존 | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| 중간 corrupt line count | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| 마지막 truncated line skip | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| fallback replay open | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| 같은 mutation idempotent replay | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| 중복 replay row/합계 불증가 | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구: | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| SQLite catalog open/rebuild: | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| SQLite primary mode 표시 | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| SQLite on/off range query ID·순서 parity | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| journal 없는 손상 media orphan 구분 | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| projection failover journal open: | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| projection failover catalog open: | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| 실제 SQLite INSERT 실패 trigger 설치 | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| SQLite 투영 실패 뒤 journal+memory finalize 유지: | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| SQLite 투영 실패 즉시 JSONL fallback 전환 | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| 재시작 rebuild 전 실패 trigger 제거 | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| 투영 실패 직후 in-memory query 정합성 유지 | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| projection failover 재시작 journal rebuild: | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| 재시작 후 journal에서 누락 SQLite projection 복구 | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| 재시작 후 SQLite primary 복귀 | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| 재시작 journal rebuild가 실제 SQLite row 복원 | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| tombstone journal open: | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| tombstone catalog open: | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| tombstone 대상 segment finalize: | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| tombstone 대상 deletion request: | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| tombstone 완료 기록: | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| 손상 SQLite 격리 후 journal rebuild: | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| 손상 SQLite 원본 격리 | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| 격리 SQLite 파일 보존 | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| 격리 후 journal rebuild 결과 | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A future-schema journal read open | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A future-schema unsupported classification | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A future-schema catalog open denied | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A future-schema catalog retry denied | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A future-schema journal bytes preserved | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A future-schema SQLite bytes preserved | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A future-schema writer cleanup untouched | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A arbitrary-schema journal read open | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A arbitrary-schema unsupported classification | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A arbitrary-schema catalog open denied | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A arbitrary-schema catalog retry denied | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A arbitrary-schema journal bytes preserved | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A arbitrary-schema SQLite bytes preserved | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A arbitrary-schema writer cleanup untouched | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A empty-schema journal read open | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A empty-schema unsupported classification | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A empty-schema catalog open denied | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A empty-schema catalog retry denied | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A empty-schema journal bytes preserved | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A empty-schema SQLite bytes preserved | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A empty-schema writer cleanup untouched | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A future-type journal read open | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A future-type unsupported classification | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A future-type catalog open denied | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A future-type catalog retry denied | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A future-type journal bytes preserved | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A future-type SQLite bytes preserved | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A future-type writer cleanup untouched | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A malformed journal open | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-3A malformed JSON missing fields and wrong types remain corrupt | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O01 reservation journal open | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O01 first reservation returns four IDs and sequence one | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O01 versioned reservation payload replays | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O01 new reservation records actual occurred time | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O02 identical retry preserves sequence and bytes | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O03 reopened instance allocates next sequence | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O03 new process resumes durable sequence | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O04 different store rejected | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O04 reused request with different segment rejected | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O04 reused request with different channel rejected | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O04 reused segment with different request rejected | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O04 conflicts preserve original bytes | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O05/O06 reject and preserve corrupt | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O05/O06 reject and preserve unsupported-schema | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O05/O06 reject and preserve unsupported-type | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O05/O06 reject and preserve tail | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O05/O06 reject and preserve payload-zero | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O05/O06 reject and preserve payload-negative | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O05/O06 reject and preserve payload-fraction | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O05/O06 reject and preserve payload-overflow | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O05/O06 reject and preserve duplicate-sequence | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O05/O06 reject and preserve decreasing-sequence | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O05/O06 reject and preserve duplicate-request | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O05/O06 reject and preserve duplicate-segment | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O05/O06 reject and preserve store-conflict | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O05/O06 reject and preserve ordinary-before | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O05/O06 reject and preserve ordinary-after | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O05/O06 reject and preserve line-cap | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O05 reservation entity envelope binding rejects mismatch | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O05 reservation request envelope binding rejects mismatch | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O01 strict reservation parser accepts versioned literal | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O06 INT64_MAX identical retry remains valid | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O06 sequence overflow rejected without write | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O02 identical durable reservation duplicates remain idempotent | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O06 sequence gaps remain valid and allocate above maximum | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O07 four simultaneous processes finish reservations | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O07 concurrent sequences are unique and complete | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O07 next sequence follows concurrent reservations | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O08 ordinary Append cannot reserve orders | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O08 unopened journal rejected | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O08 null result rejected | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O08 invalid opaque ID rejected | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O08 failed reservation does not expose tentative result | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O09 unsafe file binding rejected and original preserved inode | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O09 unsafe file binding rejected and original preserved parent | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O09 unsafe file binding rejected and original preserved symlink | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O09 unsafe file binding rejected and original preserved hardlink | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O10 reservation and normal segment coexist in catalog | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O04 reserve then finalize permits identical retry | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O10 reservation survives catalog rebuild without changing segment query | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-O04 legacy segment cannot acquire retroactive reservation | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M06 opened catalog accepts fresh exact reservation V2 finalize | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M07 V2 find preserves complete metadata | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M07 identical V2 recovery is idempotent | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M07 V2 is absent from V1 range query | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M07 V2 registered path is not orphan | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M07 SQLite exact V2 JSON and path match | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M07 JSONL restart preserves V2 exact payload | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M06 wrong reservation tuple rejected store | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M06 wrong reservation tuple rejected request | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M06 wrong reservation tuple rejected segment | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M06 wrong reservation tuple rejected channel | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M06 wrong reservation tuple rejected sequence | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M09 immutable V2 mapping mismatch rejected | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M09 bad V2 startup retry preserves original state bad-payload | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M09 bad V2 startup retry preserves original state missing-order | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M09 bad V2 startup retry preserves original state bad-order | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M09 bad V2 startup retry preserves original state conflicting-order | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M09 bad V2 startup retry preserves original state tail | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M09 bad V2 startup retry preserves original state corrupt | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M09 bad V2 startup retry preserves original state unsafe-path | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M09 default off rejects V2 before SQLite changes | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M09 V2 replay namespace and deletion duplicate | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M09 V2 replay namespace and deletion deleted | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M09 V2 replay namespace and deletion v1-before | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M09 V2 replay namespace and deletion v1-after | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M09 V2 replay namespace and deletion deleted-before | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M09 V2 replay namespace and deletion resurrection | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M09 V2 replay namespace and deletion mutation-collision | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M09 V2 finalize rejects missing media | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M09 V2 finalize rejects directory media | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M09 fresh candidate rejects mapping | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M09 fresh candidate rejects path | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-M09 fresh candidate rejects tombstone | 50093 실제 focused assertion; 21293 pass; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-SW01 managed empty root opens with lifetime lease | 50093 실제 focused assertion; 21293 fail; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-SW02 same process second managed owner denied | 50093 실제 focused assertion; 21293 미실행; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-SW03 different process owner and inherited use denied | 50093 실제 focused assertion; 21293 미실행; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-SW12 managed duplicate descriptors are close-on-exec | 50093 실제 focused assertion; 21293 미실행; 62520 미실행; 63124 fail; 최종 pass | pass |
+| S10-SW05 managed reserve append replay use owned descriptor | 50093 실제 focused assertion; 21293 미실행; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-SW06 raw managed access and legacy default path denied | 50093 실제 focused assertion; 21293 미실행; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-SW01 managed Reserve rejects different store identity | 50093 실제 focused assertion; 21293 미실행; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-SW10 catalog connection can inspect managed lease | 50093 실제 focused assertion; 21293 미실행; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-SW04 owner destruction releases lease | 50093 실제 focused assertion; 21293 미실행; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-SW01 managed reopen rejects different store identity | 50093 실제 focused assertion; 21293 미실행; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-SW11 managed incomplete tail rejects append without changing bytes | 50093 실제 focused assertion; 21293 미실행; 62520 fail; 63124 pass; 최종 pass | pass |
+| S10-SW07 legacy nonempty root preserved without conversion | 50093 실제 focused assertion; 21293 미실행; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-SW08 partial initialization retry validates exact state lease | 50093 실제 focused assertion; 21293 미실행; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-SW08 partial initialization retry validates exact state init | 50093 실제 focused assertion; 21293 미실행; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-SW08 partial initialization retry validates exact state barrier | 50093 실제 focused assertion; 21293 미실행; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-SW08 partial initialization retry validates exact state journal | 50093 실제 focused assertion; 21293 미실행; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-SW08 partial initialization retry validates exact state incomplete | 50093 실제 focused assertion; 21293 미실행; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-SW08 partial initialization retry validates exact state unknown | 50093 실제 focused assertion; 21293 미실행; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-SW09 symlink inode and malformed marker rejected journal | 50093 실제 focused assertion; 21293 미실행; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-SW09 symlink inode and malformed marker rejected marker | 50093 실제 focused assertion; 21293 미실행; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-SW09 symlink inode and malformed marker rejected barrier | 50093 실제 focused assertion; 21293 미실행; 62520 pass; 63124 pass; 최종 pass | pass |
+| S10-SW09 symlink inode and malformed marker rejected root-symlink | 50093 실제 focused assertion; 21293 미실행; 62520 pass; 63124 pass; 최종 pass | pass |
+| source 저장 callback reconcile 연결 | 50093 실제 focused assertion; 21293 미실행; 62520 미실행; 63124 미실행; 최종 pass | pass |
+| policy revision idempotency | 50093 실제 focused assertion; 21293 미실행; 62520 미실행; 63124 미실행; 최종 pass | pass |
+| 5초 safety reconcile | 50093 실제 focused assertion; 21293 미실행; 62520 미실행; 63124 미실행; 최종 pass | pass |
+| composition root journal 선행 open | 50093 실제 focused assertion; 21293 미실행; 62520 미실행; 63124 미실행; 최종 pass | pass |
+| composition root catalog rebuild/open | 50093 실제 focused assertion; 21293 미실행; 62520 미실행; 63124 미실행; 최종 pass | pass |
+| 서버 전 supervisor 시작 | 50093 실제 focused assertion; 21293 미실행; 62520 미실행; 63124 미실행; 최종 pass | pass |
+| ingress 전 event bridge 등록 | 50093 실제 focused assertion; 21293 미실행; 62520 미실행; 63124 미실행; 최종 pass | pass |
+| ingress 종료 뒤 recorder finalize | 50093 실제 focused assertion; 21293 미실행; 62520 미실행; 63124 미실행; 최종 pass | pass |
+| composition root 시작/종료 순서 | 50093 실제 focused assertion; 21293 미실행; 62520 미실행; 63124 미실행; 최종 pass | pass |
+
+동일 제목이 반복되는 parser4행도 원출력 순서 그대로 보존했다. 최종194행과 이전 실행164/184/185행의 제목·판정 전수 대조를 통해 누락 없이 이력 결합했다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /tmp/media_server_v410_recording_catalog-95097 | focused build/fixture root | 20863473 | wrapper cleanup | removed=true | 실제 원출력 |
+| /tmp/media_server_v410_recording_catalog-95753 | focused build/fixture root | 20902517 | wrapper cleanup | removed=true | 실제 원출력 |
+| /tmp/media_server_v410_recording_catalog-95993 | focused build/fixture root | 21260336 | wrapper cleanup | removed=true | 실제 원출력 |
+| /tmp/media_server_v410_recording_catalog-96060 | focused build/fixture root | 21260448 | wrapper cleanup | removed=true | 실제 원출력 |
+
+범위 한계: journal 수명 lease/새 root/구형 기본 경로 차단만 검증했다. catalog 단일 attachment와 경로 결박, 원장 성장/체크포인트, 실제 application/writer 활성화는 미완료다. 같은 UID의 악의적 파일변조 방어를 보장하지 않는다. wholebuild/integration/auth/UI/30분/120분은 미실행, 커밋·푸시 미수행.
+
+
+SW12 추가 실행 전 등록: `recording_journal_fd_probe.h`를 journal 번역 단위에만 강제 include하여 실제 syscall 반환을 변경 없이 관측한다. 현재 dup의 FD_CLOEXEC 부재/exec 상속만 예상 RED이며 SW11은 먼저 확인된 RED에 따라 수정한다. 관측은 Reserve/Append/Replay 3회, 원래 FD inode 및 실제 exec 뒤 미상속을 검사한다. 새 제품 API는 없다.
+
+재개 세 항목 사전등록: st_dev 명시 cast4개(컴파일 보완), managed FD 복제 CLOEXEC, managed 미완결 tail 거부. 다음 SW11만 기존 RepairTail 원문 변경으로 예상 RED이며 기타 회귀/빌드 오류는 중단한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-SW11 managed incomplete tail rejects append without changing bytes | managed tail 보존 | 실제 원장에 미완결 tail 후 Append 거부·원문 불변·격리파일 미생성 | v4.1.0 |
+| S10-SW12 managed duplicate descriptors are close-on-exec | FD 상속 차단 | 테스트 전용 syscall 관측으로 복제 직후 FD_CLOEXEC 확인, 실제 exec 후 해당 inode FD 부재 | v4.1.0 |
+
+### 구현 후 실행 중단 46619
+
+명령 `./server.sh verify-v410-recording-catalog`, exit1, elapsed 12660ms(도구 호출 직전→종료 관측). `ManagedBindingLocked`의 `dev_t`와 `uint64_t` 비교에 clang `-Werror,-Wsign-compare` 4개가 발생했다: `p.st_dev`/`parent_device_`, `j.st_dev`/`device_`, `l.st_dev`/`parent_device_`, `b.st_dev`/`parent_device_`(당시 src/recording/recording_journal.cpp 401/402/403/405행). 실제 빌드 실패이며 예상 RED가 아니다. 기존172개 및 신규 assertion 전수 미실행. token start/end/consumed는 자동 집계 미제공으로 미집계. 추가 수정·재실행 없이 메인 회수·파일동결했다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 46619 focused compile | signedness 오류4개; exit1, assertion 전 중단 | fail |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /tmp/media_server_v410_recording_catalog-95394 | focused temp root | 0 | wrapper cleanup | removed=true | 실제 도구 출력 |
+
+미수행 보완: device 값의 명시적 uint64_t 변환, managed FD 복제의 `F_DUPFD_CLOEXEC` 적용 및 exec 상속 검사, managed Append의 미완결 tail 거부·원문 보존(legacy RepairTail 유지). 뒤 두 항목은 메인 diff 리뷰로 발견했으며 아직 수정·테스트하지 않았다. catalog 단일 attachment/경로 결박·원장 성장·체크포인트·실제 writer 연결도 미완료다. 커밋·푸시 미수행.
+
+재개21293은 기존 C++163pass 및 SW01 예상1fail(exit1)이었다. shell9 미실행. 필수 caller store_id와 format marker 영속결박이 승인됐고 아래 세부 assertion을 GREEN 전에 등록했다. SW08/09 상위 정의는 아래 각 상태의 전수로 실행한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-SW01 managed Reserve rejects different store identity | managed 실제 파일 경계 | 각 상태 거부/재시도와 bytes·lease 보존 | v4.1.0 |
+| S10-SW01 managed reopen rejects different store identity | managed 실제 파일 경계 | 각 상태 거부/재시도와 bytes·lease 보존 | v4.1.0 |
+| S10-SW08 partial initialization retry validates exact state lease | managed 실제 파일 경계 | 각 상태 거부/재시도와 bytes·lease 보존 | v4.1.0 |
+| S10-SW08 partial initialization retry validates exact state init | managed 실제 파일 경계 | 각 상태 거부/재시도와 bytes·lease 보존 | v4.1.0 |
+| S10-SW08 partial initialization retry validates exact state barrier | managed 실제 파일 경계 | 각 상태 거부/재시도와 bytes·lease 보존 | v4.1.0 |
+| S10-SW08 partial initialization retry validates exact state journal | managed 실제 파일 경계 | 각 상태 거부/재시도와 bytes·lease 보존 | v4.1.0 |
+| S10-SW08 partial initialization retry validates exact state incomplete | managed 실제 파일 경계 | 각 상태 거부/재시도와 bytes·lease 보존 | v4.1.0 |
+| S10-SW08 partial initialization retry validates exact state unknown | managed 실제 파일 경계 | 각 상태 거부/재시도와 bytes·lease 보존 | v4.1.0 |
+| S10-SW09 symlink inode and malformed marker rejected journal | managed 실제 파일 경계 | 각 상태 거부/재시도와 bytes·lease 보존 | v4.1.0 |
+| S10-SW09 symlink inode and malformed marker rejected marker | managed 실제 파일 경계 | 각 상태 거부/재시도와 bytes·lease 보존 | v4.1.0 |
+| S10-SW09 symlink inode and malformed marker rejected barrier | managed 실제 파일 경계 | 각 상태 거부/재시도와 bytes·lease 보존 | v4.1.0 |
+| S10-SW09 symlink inode and malformed marker rejected root-symlink | managed 실제 파일 경계 | 각 상태 거부/재시도와 bytes·lease 보존 | v4.1.0 |
+
+### 최초 실행 중단 12334
+
+`./server.sh verify-v410-recording-catalog` exit1. 선언/reject stub의 private fields `owner_pid_`, `lease_inode_`, `marker_inode_`, `barrier_inode_`에 clang `-Werror,-Wunused-private-field` 오류4개가 발생했다. 예상 RED가 아닌 실제 빌드 실패이며 기존172개와 신규 SW01 assertion 모두 미실행이다. 즉시 중단하고 메인에 선언 최소화 후 재개 판단을 요청했다. elapsed 14163ms(도구 호출→종료 관측), token start/end/consumed 자동 집계 미제공으로 미집계.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 12334 focused compile | 미사용 private field 4개, exit1; assertion 실행 전 중단 | fail |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /tmp/media_server_v410_recording_catalog-94529 | focused temp root | 0 | wrapper cleanup | removed=true; 메인 `test ! -e` exit0 | 실제 도구 출력 및 메인 직접 부재 확인 |
+
+
+관리 저장소 소유권·구형 기본 접근 차단 첫 묶음. 기존 raw V1 모드는 유지하고 새 root만 초기화한다. 원장 성장/체크포인트와 실제 application/writer 연결은 미완료·이번 비범위다. 단일 기존 Astra/medium 담당, 하위 위임 없음. 명령은 `./server.sh verify-v410-recording-catalog`만. 선언/reject stub에서 SW01 정상 open/lease 1개만 예상 RED이며 기존172개 회귀 실패는 즉시 중단한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-SW01 managed empty root opens with lifetime lease | managed 저장소 focused | 실제 파일/객체/프로세스와 원문 보존·잠금·정리 확인 | v4.1.0 |
+| S10-SW02 same process second managed owner denied | managed 저장소 focused | 실제 파일/객체/프로세스와 원문 보존·잠금·정리 확인 | v4.1.0 |
+| S10-SW03 different process owner and inherited use denied | managed 저장소 focused | 실제 파일/객체/프로세스와 원문 보존·잠금·정리 확인 | v4.1.0 |
+| S10-SW04 owner destruction releases lease | managed 저장소 focused | 실제 파일/객체/프로세스와 원문 보존·잠금·정리 확인 | v4.1.0 |
+| S10-SW05 managed reserve append replay use owned descriptor | managed 저장소 focused | 실제 파일/객체/프로세스와 원문 보존·잠금·정리 확인 | v4.1.0 |
+| S10-SW06 raw managed access and legacy default path denied | managed 저장소 focused | 실제 파일/객체/프로세스와 원문 보존·잠금·정리 확인 | v4.1.0 |
+| S10-SW07 legacy nonempty root preserved without conversion | managed 저장소 focused | 실제 파일/객체/프로세스와 원문 보존·잠금·정리 확인 | v4.1.0 |
+| S10-SW08 partial initialization retry validates exact state | managed 저장소 focused | 실제 파일/객체/프로세스와 원문 보존·잠금·정리 확인 | v4.1.0 |
+| S10-SW09 symlink inode and malformed marker rejected | managed 저장소 focused | 실제 파일/객체/프로세스와 원문 보존·잠금·정리 확인 | v4.1.0 |
+| S10-SW10 catalog connection can inspect managed lease | managed 저장소 focused | 실제 파일/객체/프로세스와 원문 보존·잠금·정리 확인 | v4.1.0 |
+
+
 ## S10-3C 저장 계약·복구 결합 사전등록
 
 명세는 기존 구현계획 S10-3C 절이다. 테스트 실행 전 등록이며 아래 C1 다음 C2/C3 순서로 진행한다.

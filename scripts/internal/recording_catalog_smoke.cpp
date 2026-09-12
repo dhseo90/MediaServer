@@ -12,6 +12,58 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <signal.h>
+#include <fcntl.h>
+#include <cerrno>
+#include <sys/stat.h>
+
+namespace {
+std::string probe_executable;
+bool probe_active = false, probe_flags = true, probe_exec = true;
+dev_t probe_device = 0;
+ino_t probe_inode = 0;
+int probe_count = 0;
+std::string fault_operation;
+bool fault_hit=false;
+bool read_probe_active = false;
+std::uint64_t read_probe_bytes = 0, read_probe_calls = 0;
+}
+void S10ObserveRead(int fd, ssize_t count) {
+    const int saved_errno=errno;struct stat status {};
+    if(read_probe_active&&::fstat(fd,&status)==0&&status.st_dev==probe_device&&status.st_ino==probe_inode){
+        ++read_probe_calls;if(count>0)read_probe_bytes+=static_cast<std::uint64_t>(count);
+    }
+    errno=saved_errno;
+}
+bool S10FailJournalCall(const char* operation,int fd) {
+    if(fault_operation.empty()||fault_hit)return false;
+    struct stat status{};if(::fstat(fd,&status)!=0)return false;
+    const std::string actual=std::string(operation)=="fsync"?(S_ISDIR(status.st_mode)?"dir-fsync":"file-fsync"):operation;
+    if(actual!=fault_operation)return false;
+    fault_hit=true;return true;
+}
+
+void S10ObserveDuplicate(int source, int duplicated) {
+    const int saved_errno = errno;
+    struct stat status {};
+    if (probe_active && ::fstat(source, &status) == 0 && status.st_dev == probe_device && status.st_ino == probe_inode) {
+        ++probe_count;
+        const int flags = ::fcntl(duplicated, F_GETFD);
+        probe_flags = probe_flags && flags >= 0 && (flags & FD_CLOEXEC) != 0;
+        const auto fd_text = std::to_string(duplicated);
+        const auto dev_text = std::to_string(static_cast<std::uint64_t>(probe_device));
+        const auto ino_text = std::to_string(probe_inode);
+        const pid_t child = ::fork();
+        if (child == 0) {
+            ::alarm(3);
+            ::execl(probe_executable.c_str(), probe_executable.c_str(), "--fd-probe", fd_text.c_str(), dev_text.c_str(), ino_text.c_str(), nullptr);
+            _exit(2);
+        }
+        int result = 0;
+        const bool waited = child > 0 && ::waitpid(child, &result, 0) == child;
+        probe_exec = probe_exec && waited && WIFEXITED(result) && WEXITSTATUS(result) == 0;
+    }
+    errno = saved_errno;
+}
 
 #ifndef MEDIA_SERVER_USE_SQLITE3
 #define MEDIA_SERVER_USE_SQLITE3 0
@@ -61,6 +113,19 @@ std::string ReadBytes(const std::filesystem::path& path) {
     std::ifstream input(path, std::ios::binary);
     return {std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>()};
 }
+
+#if MEDIA_SERVER_USE_SQLITE3
+std::optional<std::string> ReadSqlText(const std::filesystem::path& path,const char* sql) {
+    sqlite3* db=nullptr;sqlite3_stmt* statement=nullptr;std::optional<std::string> result;
+    if(sqlite3_open_v2(path.c_str(),&db,SQLITE_OPEN_READONLY,nullptr)==SQLITE_OK&&
+       sqlite3_prepare_v2(db,sql,-1,&statement,nullptr)==SQLITE_OK&&sqlite3_step(statement)==SQLITE_ROW) {
+        const auto* text=sqlite3_column_text(statement,0);
+        if(text)result=std::string(reinterpret_cast<const char*>(text));
+        if(sqlite3_step(statement)!=SQLITE_DONE)result.reset();
+    }
+    if(statement)sqlite3_finalize(statement);if(db)sqlite3_close(db);return result;
+}
+#endif
 
 void UnsupportedJournalCases(const std::filesystem::path& root) {
     const std::vector<std::pair<std::string, std::string>> cases = {
@@ -449,10 +514,336 @@ void V2CatalogCases(const std::filesystem::path& root) {
         }
     }
 }
+void ManagedStoreCases(const std::filesystem::path& root) {
+    using recording::RecordingJournal;using recording::RecordingOrderReservationV1;
+    std::string error;const auto dir=root/"owned";
+    const auto mutation=[](const std::string& id){recording::RecordingMutationV1 m;m.mutation_id=id;m.entity_id="managed-legacy";
+        m.mutation_type=recording::RecordingMutationType::SegmentFinalized;m.occurred_at_ms=2000;
+        m.payload_json="{\"segment\":"+recording::SerializeRecordingSegmentV1(Segment("managed-legacy"))+",\"mediaRelpath\":\"legacy.mp4\"}";return m;};
+    const auto options=RecordingJournal::ManagedOptions{dir,"managed-store"};
+    {
+        RecordingJournal owner(options);
+        Expect(owner.Open(&error)&&owner.HasManagedLease(),"S10-SW01 managed empty root opens with lifetime lease");
+        RecordingJournal other(options);
+        Expect(!other.Open(&error)&&owner.HasManagedLease(),"S10-SW02 same process second managed owner denied");
+        std::cout.flush();std::cerr.flush();const pid_t pid=::fork();
+        if(pid==0){::alarm(3);RecordingJournal second(options);RecordingOrderReservationV1 value;
+            const bool denied=!owner.HasManagedLease()&&!owner.Open(&error)&&!owner.ReserveRecordingOrder("managed-store","fork-r","fork-s","c",&value,&error)&&owner.Replay().io_error_count==1&&!second.Open(&error);
+            _exit(denied?0:1);}
+        int status=0;const bool waited=pid>0&&::waitpid(pid,&status,0)==pid;
+        Expect(waited&&WIFEXITED(status)&&WEXITSTATUS(status)==0&&owner.HasManagedLease(),"S10-SW03 different process owner and inherited use denied");
+        RecordingOrderReservationV1 reservation;
+        auto ordinary=mutation("managed-event");
+        struct stat owned_status {};const bool probe_ready=::stat(owner.path().c_str(),&owned_status)==0;
+        probe_device=owned_status.st_dev;probe_inode=owned_status.st_ino;probe_active=probe_ready;
+        const bool reserved=owner.ReserveRecordingOrder("managed-store","managed-r","managed-s","channel-1",&reservation,&error);
+        const bool appended=owner.Append(ordinary,&error);const auto replay=owner.Replay();
+        probe_active=false;
+        Expect(probe_ready&&probe_count==3&&probe_flags&&probe_exec,"S10-SW12 managed duplicate descriptors are close-on-exec");
+        Expect(reserved&&reservation.sequence==1&&appended&&replay.mutations.size()==2&&replay.io_error_count==0&&replay.corrupt_line_count==0,
+            "S10-SW05 managed reserve append replay use owned descriptor");
+        RecordingJournal raw(owner.path());RecordingJournal legacy(dir/"recording-mutations.jsonl");
+        errno=0;const int old_fd=::open((dir/"recording-mutations.jsonl").c_str(),O_RDWR|O_APPEND|O_CREAT|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK,0640);
+        const int old_error=errno;if(old_fd>=0)::close(old_fd);
+        Expect(!raw.Open(&error)&&!legacy.Open(&error)&&old_fd<0&&old_error==EISDIR,"S10-SW06 raw managed access and legacy default path denied");
+        const auto before=ReadBytes(owner.path());
+        Expect(!owner.ReserveRecordingOrder("other-store","other-r","other-s","channel-1",&reservation,&error)&&ReadBytes(owner.path())==before,
+            "S10-SW01 managed Reserve rejects different store identity");
+        recording::RecordingCatalog::Options catalog_options{dir/"recording-catalog.sqlite3",dir,false};catalog_options.enable_v2_storage=true;
+        recording::RecordingCatalog catalog(owner,catalog_options);
+        Expect(owner.HasManagedLease()&&catalog.Open(&error)&&owner.HasManagedLease(),"S10-SW10 catalog connection can inspect managed lease");
+    }
+    RecordingJournal reopened(options);
+    Expect(reopened.Open(&error)&&reopened.HasManagedLease()&&reopened.Replay().mutations.size()==2,"S10-SW04 owner destruction releases lease");
+    RecordingJournal wrong(RecordingJournal::ManagedOptions{dir,"other-store"});
+    Expect(!wrong.Open(&error),"S10-SW01 managed reopen rejects different store identity");
+    const auto tail_root=root/"managed-tail";
+    RecordingJournal tail(RecordingJournal::ManagedOptions{tail_root,"managed-store"});const bool tail_open=tail.Open(&error);
+    {std::ofstream out(tail.path(),std::ios::app);out<<"{incomplete";}
+    const auto tail_before=ReadBytes(tail.path());
+    Expect(tail_open&&!tail.Append(mutation("after-tail"),&error)&&ReadBytes(tail.path())==tail_before&&
+        !std::filesystem::exists(tail.path().string()+".tail-0-11-0"),"S10-SW11 managed incomplete tail rejects append without changing bytes");
+    const auto legacy=root/"legacy";std::filesystem::create_directories(legacy);{std::ofstream out(legacy/"recording-mutations.jsonl");out<<"legacy-original";}
+    RecordingJournal refuse(RecordingJournal::ManagedOptions{legacy,"managed-store"});
+    Expect(!refuse.Open(&error)&&ReadBytes(legacy/"recording-mutations.jsonl")=="legacy-original"&& !std::filesystem::exists(legacy/".recording-store-lease"),
+        "S10-SW07 legacy nonempty root preserved without conversion");
+    const std::string format="{\"format\":\"media-server.managed-recording-store.v1\",\"storeId\":\"managed-store\",\"journal\":\"recording-v2-mutations.jsonl\"}\n";
+    for(const std::string stage:{"lease","init","barrier","journal","incomplete","unknown"}) {
+        const auto partial=root/("partial-"+stage);std::filesystem::create_directories(partial);
+        {std::ofstream out(partial/".recording-store-lease");}
+        if(stage!="lease"){std::ofstream out(partial/".recording-store-init");out<<(stage=="incomplete"?"{":format);}
+        if(stage=="barrier"||stage=="journal")std::filesystem::create_directory(partial/"recording-mutations.jsonl");
+        if(stage=="journal"){std::ofstream out(partial/"recording-v2-mutations.jsonl");}
+        if(stage=="unknown"){std::ofstream out(partial/"foreign");out<<"keep";}
+        RecordingJournal retry(RecordingJournal::ManagedOptions{partial,"managed-store"});const bool success=retry.Open(&error);
+        const bool valid=stage!="incomplete"&&stage!="unknown";
+        const bool bytes=valid?(ReadBytes(partial/".recording-store-format")==format&&!std::filesystem::exists(partial/".recording-store-init")):
+            ReadBytes(partial/".recording-store-init")== (stage=="incomplete"?"{":format);
+        Expect(success==valid&&bytes,"S10-SW08 partial initialization retry validates exact state "+stage);
+    }
+    for(const std::string kind:{"journal","marker","barrier","root-symlink"}) {
+        const auto bound=root/("binding-"+kind);RecordingJournal managed(RecordingJournal::ManagedOptions{bound,"managed-store"});
+        const bool opened=managed.Open(&error);
+        if(kind=="journal"){std::filesystem::rename(managed.path(),bound/"old-journal");std::ofstream out(managed.path());out<<"replacement";}
+        if(kind=="marker"){std::ofstream out(bound/".recording-store-format");out<<"wrong";}
+        if(kind=="barrier"){std::filesystem::rename(bound/"recording-mutations.jsonl",bound/"old-barrier");std::filesystem::create_directory(bound/"recording-mutations.jsonl");}
+        bool rejected=false;
+        if(kind=="root-symlink") {const auto link=root/"linked-root";std::filesystem::create_directory_symlink(bound,link);RecordingJournal via(RecordingJournal::ManagedOptions{link,"managed-store"});rejected=!via.Open(&error)&&managed.HasManagedLease();}
+        else rejected=!managed.HasManagedLease()&&managed.Replay().io_error_count==1&&!managed.Append(mutation("denied"),&error);
+        Expect(opened&&rejected,"S10-SW09 symlink inode and malformed marker rejected "+kind);
+    }
+}
 }  // namespace
 
+void ManagedCatalogCases(const std::filesystem::path& root) {
+    using recording::RecordingJournal;using recording::RecordingCatalog;
+    std::string error;
+    const auto options=[](const std::filesystem::path& dir){RecordingCatalog::Options o{dir/"recording-catalog.sqlite3",dir,false};o.enable_v2_storage=true;return o;};
+    const auto dir=root/"owner";RecordingJournal journal(RecordingJournal::ManagedOptions{dir,"store"});
+    const bool opened=journal.Open(&error);
+    auto segment=Segment("owner-segment");const auto media=dir/"owner.mp4";WriteMp4Header(media);
+    {
+        RecordingCatalog owner(journal,options(dir));const bool ready=opened&&owner.Open(&error)&&owner.FinalizeSegment(segment,media.string(),&error);
+        RecordingCatalog second(journal,options(dir));
+        Expect(ready&&!second.Open(&error),"S10-SB01 second managed catalog is denied");
+        const auto before=ReadBytes(journal.path());auto other=Segment("failed-owner");
+        recording::EventSourceLease lease;
+        Expect(!second.FinalizeSegment(other,media.string(),&error)&&!second.AdjustHoldCount(segment.segment_id,1,&error)&&
+            !second.AcquireEventSourceLease(segment.channel_id,segment.stream_epoch_id,{segment.segment_id},&lease,&error)&&ReadBytes(journal.path())==before,
+            "S10-SB02 failed catalog cannot mutate journal or holds");
+        recording::RecordingMutationV1 m;m.mutation_id="unowned";m.entity_id=segment.segment_id;m.occurred_at_ms=2000;
+        m.mutation_type=recording::RecordingMutationType::SegmentFinalized;
+        m.payload_json="{\"segment\":"+recording::SerializeRecordingSegmentV1(segment)+",\"mediaRelpath\":\"owner.mp4\"}";
+        const bool denied=!journal.Append(m,&error)&&ReadBytes(journal.path())==before;
+        recording::RecordingOrderReservationV1 order;
+        Expect(denied&&journal.ReserveRecordingOrder("store","reserve","new-segment","channel-1",&order,&error),"S10-SB03 attached catalog blocks unowned append but permits reservation");
+    }
+    RecordingCatalog next(journal,options(dir));Expect(next.Open(&error),"S10-SB04 catalog destruction releases attachment");
+    for(const std::string mode:{"outside","dotdot","media-symlink","sqlite-symlink","sqlite-hardlink","disabled"}) {
+        const auto r=root/mode;RecordingJournal j(RecordingJournal::ManagedOptions{r,"store"});const bool ok=j.Open(&error);auto o=options(r);
+        const auto outside=root/(mode+"-outside");std::filesystem::create_directories(outside);
+        if(mode=="outside")o.sqlite_path=outside/"catalog.sqlite3";
+        if(mode=="dotdot")o.media_root=r/".."/mode;
+        if(mode=="media-symlink"){std::filesystem::create_directory_symlink(r,outside/"link");o.media_root=outside/"link";}
+        if(mode=="sqlite-symlink"||mode=="sqlite-hardlink"){
+            std::ofstream(outside/"original")<<"original";
+            if(mode=="sqlite-symlink")std::filesystem::create_symlink(outside/"original",o.sqlite_path);
+            else std::filesystem::create_hard_link(outside/"original",o.sqlite_path);
+        }
+        if(mode=="disabled")o.enable_v2_storage=false;
+        const auto before=ReadBytes(j.path());RecordingCatalog bad(j,o);
+        Expect(ok&&!bad.Open(&error)&&ReadBytes(j.path())==before&&
+            (!std::filesystem::exists(outside/"original")||ReadBytes(outside/"original")=="original"),"S10-SB05 managed catalog rejects unsafe options "+mode);
+    }
+    const auto failroot=root/"open-failure";bool rejected=false;
+    {
+        RecordingJournal failed(RecordingJournal::ManagedOptions{failroot,"store"});const bool ready=failed.Open(&error);
+        {std::ofstream(failed.path(),std::ios::app)<<"{\"schema\":\"future\"}\n";}
+        RecordingCatalog bad(failed,options(failroot));rejected=ready&&!bad.Open(&error);
+        // poison 객체는 재사용하지 않고 fixture 원문 복구 후 수명을 종료한다.
+        std::ofstream(failed.path(),std::ios::trunc).close();
+    }
+    RecordingJournal renewed(RecordingJournal::ManagedOptions{failroot,"store"});
+    const bool reopened=renewed.Open(&error);RecordingCatalog recovered(renewed,options(failroot));
+    Expect(rejected&&reopened&&recovered.Open(&error),"S10-SB06 failed open releases catalog attachment");
+    for(const std::string suffix:{"-wal","-shm","-journal"})for(const std::string kind:{"symlink","hardlink"}) {
+        const auto r=root/("sidecar"+suffix+kind);RecordingJournal j(RecordingJournal::ManagedOptions{r,"store"});const bool ok=j.Open(&error);
+        auto o=options(r);o.prefer_sqlite=true;const auto original=root/("original"+suffix+kind);
+        std::ofstream(original)<<"preserved-sidecar";const auto sidecar=std::filesystem::path(o.sqlite_path.string()+suffix);
+        if(kind=="symlink")std::filesystem::create_symlink(original,sidecar);else std::filesystem::create_hard_link(original,sidecar);
+        const auto before=ReadBytes(j.path());RecordingCatalog bad(j,o);
+        Expect(ok&&!bad.Open(&error)&&ReadBytes(j.path())==before&&ReadBytes(original)=="preserved-sidecar"&&!std::filesystem::exists(o.sqlite_path),
+            "S10-SB07 managed SQLite sidecar rejected "+suffix+" "+kind);
+    }
+}
+
+void ManagedGrowthCases(const std::filesystem::path& root) {
+    using namespace recording;std::string error;
+    std::string expected_link,expected_v2,checkpoint_bytes;RecordingMutationV1 original_retry;
+    {
+    RecordingJournal j(RecordingJournal::ManagedOptions{root,"store-1"});const bool opened=j.Open(&error);
+    RecordingCatalog::Options o{root/"recording-catalog.sqlite3",root,true};o.enable_v2_storage=true;
+    RecordingCatalog c(j,o);const bool ready=opened&&c.Open(&error);
+    EventRecordingLinkV1 link;link.link_id="growth-link";link.event_id="growth-event";link.source_id="source-1";link.channel_id="channel-1";
+    link.time_basis="utc-ms";link.status=EventRecordingLinkStatus::Pending;link.created_at_ms=1000;link.updated_at_ms=1000;link.requested_range={1000,2000};
+    bool writes=ready;for(int i=0;i<12;++i){link.updated_at_ms=1000+i;link.completeness_reason=std::string(200,'x');writes=c.PutEventLink(link,&error)&&writes;}
+    Expect(writes,"S10-SC01 managed repeated event fixture is valid");
+    const auto before=j.Replay();
+    struct stat st{};::stat(j.path().c_str(),&st);probe_device=st.st_dev;probe_inode=st.st_ino;read_probe_bytes=read_probe_calls=0;read_probe_active=true;
+    RecordingOrderReservationV1 order;bool reserved=true;
+    for(int i=0;i<8;++i)reserved=j.ReserveRecordingOrder("store-1","growth-r"+std::to_string(i),"growth-s"+std::to_string(i),"channel-1",&order,&error)&&reserved;
+    read_probe_active=false;
+    Expect(reserved&&read_probe_bytes<1024&&read_probe_calls<32,"S10-SC02 managed reservations avoid history reads");
+    auto v=SegmentV2();v.order_request_id="growth-v2";v.segment_id="growth-v2-segment";v.order_sequence=9;
+    WriteMp4Header(root/"v2.mp4");const bool vr=j.ReserveRecordingOrder("store-1",v.order_request_id,v.segment_id,v.channel_id,&order,&error);
+    read_probe_bytes=read_probe_calls=0;read_probe_active=true;const bool vf=c.FinalizeSegmentV2(v,(root/"v2.mp4").string(),&error);read_probe_active=false;
+    Expect(vr&&vf&&read_probe_bytes<1024,"S10-SC03 managed V2 finalize avoids full replay");
+    const auto original=ReadBytes(j.path());const bool compacted=c.Checkpoint(&error);const auto after=j.Replay();
+    Expect(compacted&&ReadBytes(j.path()).size()<original.size(),"S10-SC04 checkpoint reduces superseded event payload bytes");
+    const auto found=c.FindEventLinkByEventId(link.event_id);
+    Expect(compacted&&found&&SerializeEventRecordingLinkV1(*found)==SerializeEventRecordingLinkV1(link)&&after.mutations.size()==before.mutations.size()+10,
+        "S10-SC05 checkpoint preserves latest event and all record identities");
+    Expect(compacted&&c.FindSegmentV2ById(v.segment_id)&&c.Checkpoint(&error),"S10-SC06 checkpoint is idempotent and preserves V2");
+    original_retry=before.mutations.front();expected_link=SerializeEventRecordingLinkV1(link);expected_v2=SerializeRecordingSegmentV2(v);
+    checkpoint_bytes=ReadBytes(j.path());
+    bool receipt_ok=after.mutations.size()==22;
+    for(std::size_t i=0;i<11&&i<after.mutations.size();++i)receipt_ok=receipt_ok&&
+        after.mutations[i].mutation_type==RecordingMutationType::EventLinkReceipt&&
+        after.mutations[i].mutation_id==before.mutations[i].mutation_id&&after.mutations[i].entity_id==before.mutations[i].entity_id&&
+        after.mutations[i].occurred_at_ms==before.mutations[i].occurred_at_ms;
+    Expect(receipt_ok&&!j.Append(after.mutations.front(),&error)&&ReadBytes(j.path())==checkpoint_bytes,
+        "S10-SC08 receipt preserves retry identity and rejects direct append");
+    }
+    for(const bool sqlite:{true,false}) {
+        RecordingJournal reopened(RecordingJournal::ManagedOptions{root,"store-1"});const bool jo=reopened.Open(&error);
+        const auto saved=ReadBytes(reopened.path());auto conflict=original_retry;conflict.occurred_at_ms++;
+        const bool retry=jo&&reopened.Append(original_retry,&error)&&!reopened.Append(conflict,&error)&&ReadBytes(reopened.path())==saved;
+        RecordingCatalog::Options options{root/"recording-catalog.sqlite3",root,sqlite};options.enable_v2_storage=true;
+        RecordingCatalog again(reopened,options);const bool co=again.Open(&error);const auto l=again.FindEventLinkByEventId("growth-event");
+        const auto segment=again.FindSegmentV2ById("growth-v2-segment");
+        Expect(retry&&co&&l&&segment&&SerializeEventRecordingLinkV1(*l)==expected_link&&SerializeRecordingSegmentV2(*segment)==expected_v2,
+            std::string("S10-SC09 checkpoint restart preserves SQLite and JSONL state ")+(sqlite?"sqlite":"jsonl"));
+#if MEDIA_SERVER_USE_SQLITE3
+        if(sqlite)Expect(co&&ReadSqlText(options.sqlite_path,"SELECT payload_json FROM recording_segments_v2 WHERE segment_id='growth-v2-segment'")==expected_v2&&
+            ReadSqlText(options.sqlite_path,"SELECT media_relpath FROM recording_segments_v2 WHERE segment_id='growth-v2-segment'")=="v2.mp4",
+            "S10-SC09 managed checkpoint SQL V2 payload and path");
+#endif
+    }
+    for(const std::string mode:{"prefix","mismatch"}) {
+        const auto stage=root/".recording-checkpoint.tmp";const std::string staged=mode=="prefix"?checkpoint_bytes.substr(0,checkpoint_bytes.size()/2):"not-the-candidate";
+        {std::ofstream out(stage);out<<staged;}
+        RecordingJournal reopened(RecordingJournal::ManagedOptions{root,"store-1"});const bool jo=reopened.Open(&error);RecordingOrderReservationV1 order;
+        const bool blocked=jo&&!reopened.ReserveRecordingOrder("store-1","pending-r","pending-s","channel-1",&order,&error);
+        RecordingCatalog::Options options{root/"recording-catalog.sqlite3",root,false};options.enable_v2_storage=true;
+        RecordingCatalog again(reopened,options);const bool co=again.Open(&error);
+        if(mode=="prefix")Expect(blocked&&co&&!std::filesystem::exists(stage)&&ReadBytes(reopened.path())==checkpoint_bytes,
+            "S10-SC10 checkpoint prefix recovers before writes");
+        else {
+            const bool preserved=ReadBytes(stage)==staged&&ReadBytes(reopened.path())==checkpoint_bytes;
+            std::filesystem::remove(stage);
+            Expect(blocked&&!co&&preserved&&!reopened.Append(original_retry,&error),
+                "S10-SC11 checkpoint mismatch preserves bytes and poisons owner");
+        }
+    }
+    {
+        // 뒤에 나타난 동일 원문은 첫 receipt의 재시도이며 최신 link를 되돌리지 않는다.
+        {std::ofstream out(root/"recording-v2-mutations.jsonl",std::ios::app);out<<SerializeRecordingMutationV1(original_retry)<<'\n';}
+        RecordingJournal reopened(RecordingJournal::ManagedOptions{root,"store-1"});const bool jo=reopened.Open(&error);
+        RecordingCatalog::Options options{root/"recording-catalog.sqlite3",root,false};options.enable_v2_storage=true;RecordingCatalog again(reopened,options);
+        const bool ok=jo&&again.Open(&error)&&again.Checkpoint(&error);const auto l=again.FindEventLinkByEventId("growth-event");
+        Expect(ok&&l&&SerializeEventRecordingLinkV1(*l)==expected_link,"S10-SC12 first accepted mutation controls latest event");
+        bool writes=ok;
+        if(l)for(int i=0;i<2300;++i){auto update=*l;update.updated_at_ms+=i+1;update.completeness_reason=std::string(200,'y');writes=again.PutEventLink(update,&error)&&writes;}
+        const auto records=reopened.Replay();std::size_t receipts=0;for(const auto& m:records.mutations)if(m.mutation_type==RecordingMutationType::EventLinkReceipt)++receipts;
+        Expect(writes&&receipts>12,"S10-SC16 automatic checkpoint uses accumulated growth");
+    }
+    const auto raw_root=root.parent_path()/"raw-checkpoint-only";
+    RecordingJournal raw(raw_root/"journal.jsonl");const bool ro=raw.Open(&error);
+    if(!ro)std::cerr<<"[diagnostic] SC07 stage=journal-open error="<<error<<'\n';
+    RecordingCatalog rc(raw,{raw_root/"raw.sqlite",raw_root,false});const bool co=ro&&rc.Open(&error);
+    if(ro&&!co)std::cerr<<"[diagnostic] SC07 stage=catalog-open error="<<error<<'\n';
+    Expect(ro&&co&&!rc.Checkpoint(&error),"S10-SC07 raw checkpoint is rejected");
+}
+
+void CryptoOffCases(const std::filesystem::path& root) {
+    using namespace recording;std::string error;std::filesystem::create_directories(root);
+    RecordingJournal raw(root/"raw.jsonl");RecordingMutationV1 m;m.mutation_id="raw-id";m.entity_id="raw-entity";m.mutation_type=RecordingMutationType::EventLinkCreated;m.payload_json="{}";
+    Expect(raw.Open(&error)&&raw.Append(m,&error)&&raw.Replay().mutations.size()==1,"S10-SC13 crypto off raw remains usable");
+    const auto managed=root/"managed";std::filesystem::path path;
+    {
+        RecordingJournal j(RecordingJournal::ManagedOptions{managed,"store"});const bool opened=j.Open(&error);path=j.path();
+        RecordingCatalog::Options o{managed/"recording-catalog.sqlite3",managed,false};o.enable_v2_storage=true;RecordingCatalog c(j,o);
+        Expect(opened&&c.Open(&error)&&!c.Checkpoint(&error),"S10-SC14 crypto off checkpoint is rejected");
+    }
+    m.mutation_type=RecordingMutationType::EventLinkReceipt;m.payload_json="{\"schema\":\"media-server.recording-receipt.v1\",\"originalType\":\"event_link_created\",\"originalSha256\":\""+std::string(64,'a')+"\"}";
+    {std::ofstream out(path,std::ios::app);out<<SerializeRecordingMutationV1(m)<<'\n';}
+    const auto original=ReadBytes(path);RecordingJournal j(RecordingJournal::ManagedOptions{managed,"store"});
+    Expect(!j.Open(&error)&&ReadBytes(path)==original,"S10-SC15 crypto off receipt reopen is rejected");
+}
+
+void CheckpointSafetyCases(const std::filesystem::path& root) {
+    using namespace recording;std::string error;
+    const auto options=[](const std::filesystem::path& r){RecordingCatalog::Options o{r/"recording-catalog.sqlite3",r,true};o.enable_v2_storage=true;return o;};
+    const auto link=[](){EventRecordingLinkV1 v;v.link_id="safety-link";v.event_id="safety-event";v.source_id="source-1";v.channel_id="channel-1";
+        v.time_basis="utc-ms";v.status=EventRecordingLinkStatus::Pending;v.created_at_ms=1000;v.updated_at_ms=1000;v.requested_range={1000,2000};v.completeness_reason=std::string(200,'z');return v;};
+    for(const std::string mode:{"write","file-fsync","rename","dir-fsync"}) {
+        const auto r=root/mode;bool rejected=false,hold_denied=false;std::string expected;
+        {
+            RecordingJournal j(RecordingJournal::ManagedOptions{r,"store"});bool ok=j.Open(&error);RecordingCatalog c(j,options(r));ok=c.Open(&error)&&ok;
+            WriteMp4Header(r/"held.mp4");ok=c.FinalizeSegment(Segment("held"),(r/"held.mp4").string(),&error)&&ok;
+            ok=c.AdjustHoldCount("held",1,&error)&&ok;auto v=link();ok=c.PutEventLink(v,&error)&&ok;v.updated_at_ms++;ok=c.PutEventLink(v,&error)&&ok;expected=SerializeEventRecordingLinkV1(v);
+            fault_hit=false;fault_operation=mode;const bool checkpoint=c.Checkpoint(&error);fault_operation.clear();
+            RecordingOrderReservationV1 order;rejected=ok&&fault_hit&&!checkpoint&&!j.ReserveRecordingOrder("store","poison-r","poison-s","channel-1",&order,&error);
+            hold_denied=!c.AdjustHoldCount("held",1,&error);
+        }
+        RecordingJournal reopened(RecordingJournal::ManagedOptions{r,"store"});const bool jo=reopened.Open(&error);RecordingCatalog recovered(reopened,options(r));const bool co=recovered.Open(&error);
+        const auto found=recovered.FindEventLinkByEventId("safety-event");
+        Expect(rejected&&jo&&co&&found&&SerializeEventRecordingLinkV1(*found)==expected&&!std::filesystem::exists(r/".recording-checkpoint.tmp"),
+            "S10-SC18 checkpoint syscall failure poisons and reopens "+mode);
+        Expect(hold_denied,"S10-SC21 poison rejects hold mutation "+mode);
+    }
+    const auto state_root=root/"state";std::vector<std::string> preserved;std::string observation_json;
+    {
+        RecordingJournal j(RecordingJournal::ManagedOptions{state_root,"store"});bool ok=j.Open(&error);RecordingCatalog c(j,options(state_root));ok=c.Open(&error)&&ok;
+        WriteMp4Header(state_root/"held.mp4");WriteMp4Header(state_root/"deleted.mp4");
+        ok=c.FinalizeSegment(Segment("held"),(state_root/"held.mp4").string(),&error)&&ok;
+        ok=c.FinalizeSegment(Segment("deleted"),(state_root/"deleted.mp4").string(),&error)&&ok;
+        AnalysisObservationV1 observation;observation.observation_id="obs";observation.source_id="source-1";observation.channel_id="channel-1";
+        observation.frame_locator.segment_id="held";observation.frame_locator.frame={1500,500000000,1,1000000000};
+        observation.track_id="track";observation.class_label="person";observation.confidence=0.8;observation.bbox={0.1,0.1,0.2,0.3};observation.selection_reason="event";observation.created_at_ms=1500;
+        ok=c.PutObservation(observation,&error)&&ok;
+        observation_json=SerializeAnalysisObservationV1(observation);
+        RecordingTombstoneV1 t;t.tombstone_id="tomb";t.segment_id="deleted";t.source_id="source-1";t.channel_id="channel-1";
+        t.recorded_range={1000,2000};t.checksum_sha256=std::string(64,'a');t.retention_class=RecordingRetentionClass::Continuous;t.deletion_reason="event-retention";t.deleted_at_ms=3000;
+        ok=c.RequestDeletion("deleted","event-retention",&error)&&ok;ok=c.CompleteDeletion(t,&error)&&ok;
+        ok=c.AdjustHoldCount("held",2,&error)&&ok;auto v=link();ok=c.PutEventLink(v,&error)&&ok;v.updated_at_ms++;ok=c.PutEventLink(v,&error)&&ok;
+        const auto before=j.Replay();for(const auto& m:before.mutations)if(m.mutation_type!=RecordingMutationType::EventLinkCreated)preserved.push_back(SerializeRecordingMutationV1(m));
+        ok=c.Checkpoint(&error)&&ok;std::uint64_t hold=0;for(const auto& item:c.RetentionSnapshot().candidates)if(item.segment.segment_id=="held")hold=item.hold_count;
+        std::vector<std::string> after;for(const auto& m:j.Replay().mutations)if(m.mutation_type!=RecordingMutationType::EventLinkCreated&&m.mutation_type!=RecordingMutationType::EventLinkReceipt)after.push_back(SerializeRecordingMutationV1(m));
+        Expect(ok&&hold==2&&after==preserved&&c.IsDeletedSegmentId("deleted"),"S10-SC17 checkpoint preserves holds observations and deletion");
+#if MEDIA_SERVER_USE_SQLITE3
+        Expect(ok&&ReadSqlText(options(state_root).sqlite_path,"SELECT hold_count FROM recording_segments WHERE segment_id='held'")=="2"&&
+            ReadSqlText(options(state_root).sqlite_path,"SELECT payload_json FROM recording_observations WHERE observation_id='obs'")==observation_json&&
+            ReadSqlText(options(state_root).sqlite_path,"SELECT entity_id FROM recording_tombstones WHERE entity_id='deleted'")=="deleted",
+            "S10-SC17 checkpoint SQL hold observation tombstone");
+#endif
+    }
+    for(const bool sqlite:{true,false}) {
+        RecordingJournal j(RecordingJournal::ManagedOptions{state_root,"store"});bool ok=j.Open(&error);auto o=options(state_root);o.prefer_sqlite=sqlite;RecordingCatalog c(j,o);ok=c.Open(&error)&&ok;
+        std::vector<std::string> after;for(const auto& m:j.Replay().mutations)if(m.mutation_type!=RecordingMutationType::EventLinkCreated&&m.mutation_type!=RecordingMutationType::EventLinkReceipt)after.push_back(SerializeRecordingMutationV1(m));
+        Expect(ok&&after==preserved&&c.IsDeletedSegmentId("deleted")&&!c.FinalizeSegment(Segment("deleted"),(state_root/"deleted.mp4").string(),&error),
+            std::string("S10-SC17 checkpoint preserves holds observations and deletion restart ")+(sqlite?"sqlite":"jsonl"));
+#if MEDIA_SERVER_USE_SQLITE3
+        if(sqlite)Expect(ok&&ReadSqlText(o.sqlite_path,"SELECT payload_json FROM recording_observations WHERE observation_id='obs'")==observation_json&&
+            ReadSqlText(o.sqlite_path,"SELECT entity_id FROM recording_tombstones WHERE entity_id='deleted'")=="deleted",
+            "S10-SC17 checkpoint SQL restart observation tombstone");
+#endif
+    }
+    for(const std::string mode:{"malformed","unsupported","conflict"}) {
+        const auto r=root/mode;std::filesystem::path path;
+        {RecordingJournal j(RecordingJournal::ManagedOptions{r,"store"});j.Open(&error);path=j.path();}
+        {std::ofstream out(path,std::ios::app);if(mode=="malformed")out<<"broken\n";else if(mode=="unsupported")out<<"{\"schema\":\"future\"}\n";
+         else {RecordingMutationV1 m;m.mutation_id="same";m.entity_id="entity";m.mutation_type=RecordingMutationType::EventLinkCreated;m.payload_json="{}";out<<SerializeRecordingMutationV1(m)<<'\n';m.occurred_at_ms++;out<<SerializeRecordingMutationV1(m)<<'\n';}}
+        const auto saved=ReadBytes(path);RecordingJournal j(RecordingJournal::ManagedOptions{r,"store"});
+        Expect(!j.Open(&error)&&ReadBytes(path)==saved,"S10-SC19 invalid managed history remains unchanged "+mode);
+    }
+    const auto raw_root=root/"raw-receipt";std::filesystem::create_directories(raw_root);const auto db=raw_root/"index.sqlite";
+    {std::ofstream out(db);out<<"sqlite-original";}
+    {RecordingJournal source(RecordingJournal::ManagedOptions{state_root,"store"});source.Open(&error);
+     std::ofstream out(raw_root/"journal.jsonl");for(const auto& m:source.Replay().mutations)out<<SerializeRecordingMutationV1(m)<<'\n';}
+    RecordingJournal raw(raw_root/"journal.jsonl");const bool opened=raw.Open(&error);RecordingCatalog c(raw,{db,raw_root,true});
+    Expect(opened&&!c.Open(&error)&&ReadBytes(db)=="sqlite-original","S10-SC20 raw catalog rejects receipt before side effects");
+}
+
 int main(int argc, char** argv) {
+    if(argc==3&&std::string(argv[1])=="--crypto-off") {CryptoOffCases(argv[2]);return failures==0?0:1;}
+    if (argc == 5 && std::string(argv[1]) == "--fd-probe") {
+        struct stat status {};
+        if (::fstat(std::stoi(argv[2]), &status) != 0) return errno == EBADF ? 0 : 2;
+        return static_cast<std::uint64_t>(status.st_dev) == std::stoull(argv[3]) && status.st_ino == std::stoull(argv[4]) ? 1 : 0;
+    }
     if (argc != 2) return 2;
+    probe_executable=std::filesystem::absolute(argv[0]).string();
     const std::filesystem::path root(argv[1]);
     const auto media_root = root / "media";
     const auto journal_path = root / "recording.jsonl";
@@ -774,6 +1165,10 @@ int main(int argc, char** argv) {
     UnsupportedJournalCases(root / "unsupported");
     OrderReservationCases(root / "order-reservations");
     V2CatalogCases(root / "v2-catalog");
+    ManagedStoreCases(root/"managed");
+    ManagedCatalogCases(root/"managed-catalog");
+    ManagedGrowthCases(root/"managed-growth");
+    CheckpointSafetyCases(root/"checkpoint-safety");
     std::cout << "[verify-v410-recording-catalog] pass=" << passes << " fail=" << failures << '\n';
     return failures == 0 ? 0 : 1;
 }

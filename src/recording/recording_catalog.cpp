@@ -269,15 +269,69 @@ RecordingCatalog::RecordingCatalog(RecordingJournal& journal, Options options)
 RecordingCatalog::~RecordingCatalog() {
     std::lock_guard lock(mu_);
     CloseSqliteLocked();
+    journal_.DetachCatalog(this);
 }
 
 bool RecordingCatalog::Open(std::string* error) {
     std::lock_guard lock(mu_);
-    if (opened_) return true;
+    if (opened_) return journal_.OwnsCatalog(this);
+    if(!journal_.AttachCatalog(this,options_.media_root,options_.sqlite_path,options_.enable_v2_storage,error))return false;
+    if(OpenLocked(error))return true;
+    CloseSqliteLocked();journal_.DetachCatalog(this);return false;
+}
+
+bool RecordingCatalog::CanWriteLocked(std::string* error) const {
+    if(journal_.managed_&&(!opened_||!journal_.OwnsCatalog(this)))return Fail(error,"managed catalog write 소유권 거부");
+    return true;
+}
+
+bool RecordingCatalog::Checkpoint(std::string* error) {
+    std::lock_guard lock(mu_);
+    return opened_ && CanWriteLocked(error) && CheckpointLocked(false,error);
+}
+
+std::vector<std::string> RecordingCatalog::ProjectionSignatureLocked() const {
+    std::vector<std::string> result;
+    const auto add=[&](const std::string& type,const std::string& key,const std::string& value){
+        result.push_back(type+std::to_string(key.size())+":"+key+value);
+    };
+    for(const auto& id:mutation_ids_)add("id",id,"");
+    for(const auto& [id,v]:segments_)add("v1",id,SerializeRecordingSegmentV1(v));
+    for(const auto& [id,v]:segments_v2_)add("v2",id,SerializeRecordingSegmentV2(v));
+    for(const auto& [id,v]:orders_v2_) {
+        add("order-store",id,v.store_id);add("order-segment",id,v.segment_id);
+        add("order-channel",id,v.channel_id);add("order-sequence",id,std::to_string(v.sequence));
+    }
+    for(const auto& [id,v]:event_links_)add("link",id,SerializeEventRecordingLinkV1(v));
+    for(const auto& [id,v]:observations_)add("obs1",id,SerializeAnalysisObservationV1(v));
+    for(const auto& [id,v]:observations_v2_)add("obs2",id,SerializeAnalysisObservationV2(v));
+    for(const auto& [id,v]:tombstones_)add("deleted",id,SerializeRecordingTombstoneV1(v));
+    for(const auto& [id,v]:media_relpaths_)add("path",id,v);
+    for(const auto& [id,v]:deletion_reasons_)add("reason",id,v);
+    std::sort(result.begin(),result.end());return result;
+}
+
+bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error) {
+    if(!journal_.managed_||!options_.enable_v2_storage||!journal_.OwnsCatalog(this))
+        return Fail(error,"managed checkpoint 소유권/지원 없음");
+    const auto original=journal_.Replay();
+    if(original.io_error_count||original.corrupt_line_count||original.unsupported_record_count||original.truncated_tail_count)
+        return Fail(error,"checkpoint 원장 불완전");
+    std::vector<RecordingMutationV1> candidate;
+    if(!journal_.PrepareCheckpoint(this,&candidate,error))return false;
+    RecordingCatalog before(journal_,options_),after(journal_,options_);
+    for(const auto& m:original.mutations)if(!before.ApplyMutationLocked(m,false,error))return false;
+    for(const auto& m:candidate)if(!after.ApplyMutationLocked(m,false,error))return false;
+    if(before.ProjectionSignatureLocked()!=after.ProjectionSignatureLocked())return Fail(error,"checkpoint 투영 불일치");
+    return journal_.CommitCheckpoint(this,candidate,recover_only,error);
+}
+
+bool RecordingCatalog::OpenLocked(std::string* error) {
     const auto replay = journal_.Replay();
     if (replay.io_error_count != 0) return Fail(error, "journal replay I/O 오류로 catalog open 거부");
     if (replay.unsupported_record_count != 0) return Fail(error, "미지원 journal record로 catalog open 거부");
     if (!PreflightV2Locked(replay,error)) return false;
+    if(journal_.managed_&&journal_.CheckpointPending()&&!CheckpointLocked(true,error))return false;
     recovery_report_.corrupt_line_count = replay.corrupt_line_count;
     recovery_report_.truncated_tail_count = replay.truncated_tail_count;
     for (std::size_t ordinal = 0; ordinal < replay.mutations.size(); ++ordinal) {
@@ -509,6 +563,10 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
             }
             break;
         }
+        case RecordingMutationType::EventLinkReceipt:
+            ok=journal_.managed_&&options_.enable_v2_storage;
+            if(!ok)Fail(error,"receipt managed 지원 필요");
+            break;
         case RecordingMutationType::EventLinkCreated: {
             const auto link_json = ObjectField(mutation.payload_json, "link");
             EventRecordingLinkV1 link;
@@ -619,9 +677,10 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
 }
 
 bool RecordingCatalog::AppendAndApplyLocked(RecordingMutationV1 mutation, std::string* error) {
+    if(!CanWriteLocked(error))return false;
     mutation.mutation_id = mutation.mutation_id.empty() ? NextMutationId() : mutation.mutation_id;
     mutation.occurred_at_ms = mutation.occurred_at_ms == 0 ? NowMs() : mutation.occurred_at_ms;
-    if (!journal_.Append(mutation, error)) return false;
+    if (!journal_.AppendOwned(mutation, this, error)) return false;
     if (!ApplyMutationLocked(mutation, false, error)) return false;
     if (sqlite_db_ != nullptr) {
         std::string projection_error;
@@ -632,7 +691,7 @@ bool RecordingCatalog::AppendAndApplyLocked(RecordingMutationV1 mutation, std::s
             if (error != nullptr) error->clear();
         }
     }
-    return true;
+    return !journal_.CheckpointDue(this)||CheckpointLocked(false,error);
 }
 
 bool RecordingCatalog::PreflightV2Locked(const RecordingJournalReplayResult& replay,std::string* error,
@@ -640,6 +699,8 @@ bool RecordingCatalog::PreflightV2Locked(const RecordingJournalReplayResult& rep
     bool orders=false,v2=false;
     std::unordered_set<std::string> v2_ids;
     for(const auto& m:replay.mutations) {
+        if(m.mutation_type==RecordingMutationType::EventLinkReceipt&&(!journal_.managed_||!options_.enable_v2_storage))
+            return Fail(error,"receipt managed 지원 필요");
         orders=orders||m.mutation_type==RecordingMutationType::RecordingOrderReserved;
         if(m.mutation_type==RecordingMutationType::SegmentV2Finalized){v2=true;v2_ids.insert(m.entity_id);}
     }
@@ -659,7 +720,7 @@ bool RecordingCatalog::PreflightV2Locked(const RecordingJournalReplayResult& rep
            SerializeRecordingMutationV1(old->second)!=SerializeRecordingMutationV1(m))return Fail(error,"V2 mutation ID 충돌");
         seen.emplace(m.mutation_id,m);
         const bool accepted=scratch.ApplyMutationLocked(m,false,error);
-        if(!accepted&&(m.mutation_type==RecordingMutationType::SegmentV2Finalized||v2_ids.count(m.entity_id)))return false;
+        if(!accepted&&(journal_.managed_||m.mutation_type==RecordingMutationType::SegmentV2Finalized||v2_ids.count(m.entity_id)))return false;
     }
     if(candidate) {
         if(!scratch.ValidateV2Locked(*candidate,relative,error))return false;
@@ -684,6 +745,12 @@ bool RecordingCatalog::ValidateV2Locked(const RecordingSegmentV2& v,const std::s
     return true;
 }
 
+bool RecordingCatalog::ValidateManagedCandidateLocked(const RecordingSegmentV2& v,const std::string& relative,std::string* error) const {
+    RecordingOrderReservationV1 order;order.store_id=v.store_id;order.request_id=v.order_request_id;
+    order.segment_id=v.segment_id;order.channel_id=v.channel_id;order.sequence=v.order_sequence;
+    return CanWriteLocked(error)&&ValidateV2Locked(v,relative,error)&&journal_.ManagedOrderMatches(order,error);
+}
+
 bool RecordingCatalog::ValidateFinalizeRecoveryV2(const RecordingSegmentV2& v,const std::string& media_path,std::string* error) const {
     std::lock_guard lock(mu_);
     if(!opened_)return Fail(error,"V2 catalog 미open");
@@ -691,6 +758,7 @@ bool RecordingCatalog::ValidateFinalizeRecoveryV2(const RecordingSegmentV2& v,co
     const auto path=std::filesystem::absolute(media_path).lexically_normal();
     const auto relative=path.lexically_relative(root).generic_string();
     if(!ValidateV2Locked(v,relative,error))return false;
+    if(journal_.managed_)return ValidateManagedCandidateLocked(v,relative,error);
     const auto replay=journal_.Replay();
     return PreflightV2Locked(replay,error,&v,relative);
 }
@@ -708,9 +776,16 @@ bool RecordingCatalog::FinalizeSegmentV2(const RecordingSegmentV2& v,const std::
        !std::filesystem::is_regular_file(contained,ec)||ec)
         return Fail(error,"V2 실제 media 경로 거부");
     // 실제 writer 활성화 전 단일 catalog 호출 경계. 외부 비협력 writer 직렬화는 별도다.
-    const auto replay=journal_.Replay();std::vector<RecordingOrderReservationV1> orders;
-    if(!PreflightV2Locked(replay,error,&v,relative.generic_string())||!ValidateRecordingOrderHistory(replay.mutations,&orders,error))return false;
-    for(const auto& order:orders)orders_v2_[order.request_id]=order;
+    if(journal_.managed_) {
+        if(!ValidateManagedCandidateLocked(v,relative.generic_string(),error))return false;
+        RecordingOrderReservationV1 order;order.store_id=v.store_id;order.request_id=v.order_request_id;
+        order.segment_id=v.segment_id;order.channel_id=v.channel_id;order.sequence=v.order_sequence;
+        orders_v2_[order.request_id]=order;
+    } else {
+        const auto replay=journal_.Replay();std::vector<RecordingOrderReservationV1> orders;
+        if(!PreflightV2Locked(replay,error,&v,relative.generic_string())||!ValidateRecordingOrderHistory(replay.mutations,&orders,error))return false;
+        for(const auto& order:orders)orders_v2_[order.request_id]=order;
+    }
     RecordingMutationV1 m;m.mutation_type=RecordingMutationType::SegmentV2Finalized;m.entity_id=v.segment_id;
     m.payload_json="{\"segment\":"+SerializeRecordingSegmentV2(v)+",\"mediaRelpath\":\""+Escape(relative.generic_string())+"\"}";
     return AppendAndApplyLocked(std::move(m),error);
@@ -1263,6 +1338,7 @@ bool RecordingCatalog::AcquireEventSourceLease(
     }
     std::lock_guard lock(mu_);
     std::unordered_set<std::string> unique;
+    if(!CanWriteLocked(error))return false;
     std::vector<RetentionCandidate> acquired;
     acquired.reserve(segment_ids.size());
     for (const auto& segment_id : segment_ids) {
@@ -1334,11 +1410,12 @@ bool RecordingCatalog::AcquireEventSourceLease(
 
 bool RecordingCatalog::ReleaseEventSourceLease(const EventSourceLease& lease,
                                                 std::string* error) {
+    std::lock_guard lock(mu_);
+    if(!CanWriteLocked(error))return false;
     if (lease.sources.empty()) {
         if (error != nullptr) error->clear();
         return true;
     }
-    std::lock_guard lock(mu_);
     for (const auto& candidate : lease.sources) {
         const auto hold = hold_counts_.find(candidate.segment.segment_id);
         if (hold == hold_counts_.end() || hold->second == 0) {
@@ -1384,6 +1461,7 @@ bool RecordingCatalog::AdjustHoldCount(const std::string& segment_id,
                                        std::int64_t delta,
                                        std::string* error) {
     std::lock_guard lock(mu_);
+    if(!CanWriteLocked(error))return false;
     const auto segment = segments_.find(segment_id);
     if (segment == segments_.end() || segment->second.lifecycle != RecordingLifecycle::Finalized) {
         return Fail(error, "hold 대상 finalized segment가 없음");

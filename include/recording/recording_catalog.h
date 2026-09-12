@@ -62,6 +62,7 @@ public:
     RecordingCatalog(RecordingJournal& journal, Options options);
     ~RecordingCatalog() override;
     bool Open(std::string* error);
+    bool Checkpoint(std::string* error);
     bool FinalizeSegmentV2(const RecordingSegmentV2& segment, const std::string& media_path, std::string* error);
     std::optional<RecordingSegmentV2> FindSegmentV2ById(const std::string& id) const;
     bool ValidateFinalizeRecoveryV2(const RecordingSegmentV2& segment, const std::string& media_path, std::string* error) const;
@@ -127,6 +128,11 @@ public:
                                                   std::int64_t end_ms) const override;
 
 private:
+    bool OpenLocked(std::string* error);
+    bool CanWriteLocked(std::string* error) const;
+    bool CheckpointLocked(bool recover_only, std::string* error);
+    bool ValidateManagedCandidateLocked(const RecordingSegmentV2& segment, const std::string& relative, std::string* error) const;
+    std::vector<std::string> ProjectionSignatureLocked() const;
     bool PreflightV2Locked(const RecordingJournalReplayResult& replay, std::string* error,
                            const RecordingSegmentV2* candidate = nullptr,
                            const std::string& relative = {}) const;

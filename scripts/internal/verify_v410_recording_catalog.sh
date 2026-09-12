@@ -11,15 +11,28 @@ mkdir -p "${BUILD_DIR}"
 SQLITE_CFLAGS=()
 SQLITE_LIBS=()
 SQLITE_DEFINE=0
+CRYPTO_CFLAGS=()
+CRYPTO_LIBS=()
+CRYPTO_DEFINE=0
+if command -v pkg-config >/dev/null 2>&1 && pkg-config --exists openssl; then
+  read -r -a CRYPTO_CFLAGS <<<"$(pkg-config --cflags openssl)"
+  read -r -a CRYPTO_LIBS <<<"$(pkg-config --libs openssl)"
+  CRYPTO_DEFINE=1
+fi
 if command -v pkg-config >/dev/null 2>&1 && pkg-config --exists sqlite3; then
   read -r -a SQLITE_CFLAGS <<<"$(pkg-config --cflags sqlite3)"
   read -r -a SQLITE_LIBS <<<"$(pkg-config --libs sqlite3)"
   SQLITE_DEFINE=1
 fi
+compile_catalog() {
+"${CXX_BIN}" -std=c++17 -Wall -Wextra -Werror -pthread -I"${ROOT_DIR}/include" \
+  ${SQLITE_CFLAGS[*]-} ${CRYPTO_CFLAGS[*]-} -DMEDIA_SERVER_USE_OPENSSL="${CRYPTO_DEFINE}" -DMEDIA_SERVER_USE_SQLITE3="${SQLITE_DEFINE}" \
+  -include "${SCRIPT_DIR}/recording_journal_fd_probe.h" \
+  -c "${ROOT_DIR}/src/recording/recording_journal.cpp" -o "${BUILD_DIR}/recording_journal.o"
 "${CXX_BIN}" -std=c++17 -Wall -Wextra -Werror -pthread -I"${ROOT_DIR}/include" \
   ${SQLITE_CFLAGS[*]-} \
   "${SCRIPT_DIR}/recording_catalog_smoke.cpp" \
-  "${ROOT_DIR}/src/recording/recording_journal.cpp" \
+  "${BUILD_DIR}/recording_journal.o" \
   "${ROOT_DIR}/src/recording/recording_catalog.cpp" \
  "${ROOT_DIR}/src/recording/recording_finalize_recovery.cpp" \
  "${ROOT_DIR}/src/recording/recording_media_inspector.cpp" \
@@ -27,9 +40,16 @@ fi
   "${ROOT_DIR}/src/recording/recording_contracts.cpp" \
   "${ROOT_DIR}/src/domain/strict_json.cpp" \
   -DMEDIA_SERVER_USE_SQLITE3="${SQLITE_DEFINE}" \
-  ${SQLITE_LIBS[*]-} \
+  ${SQLITE_LIBS[*]-} ${CRYPTO_LIBS[*]-} \
   -o "${BUILD_DIR}/recording_catalog_smoke"
+}
+compile_catalog
 "${BUILD_DIR}/recording_catalog_smoke" "${BUILD_DIR}"
+CRYPTO_DEFINE=0
+CRYPTO_CFLAGS=()
+CRYPTO_LIBS=()
+compile_catalog
+"${BUILD_DIR}/recording_catalog_smoke" --crypto-off "${BUILD_DIR}/crypto-off"
 
 check_contains() {
   local file="$1"

@@ -1810,6 +1810,159 @@ payload schema는 `media-server.recording-order.v1`이다. 기존 V1 필드 의�
 기존 Append 비용 유지와 실제 테스트를 직접 대조했다. 이번 변경은 위 코드 네 파일 및 관련
 기존 문서에 한정한다. 커밋·푸시는 미수행이다. 실제 writer 활성화와 S10-3C는 미완료다.
 
+### S10 저장소 활성화 선행 1번 — 구현·한정 검증 완료
+
+사용자 최신 승인 범위는 저장소 안전성·원장 성장 대응 구현과 해당 범위 커밋이다.
+푸시, 실제 writer 활성화, 소비자 전환, 기존 V1 코드·데이터 삭제, S11 실행은 포함하지 않는다.
+기존 데이터가 모두 개발·검증용임을 확인했으므로 V1 데이터 마이그레이션과 영구 병행 지원은
+완료 조건에서 제외한다. 검증용 최소 fixture·과거 실행 결과는 유지하며 실제 제거는 후속 정리 단계다.
+
+#### 구현 순서와 소유 경계
+
+- [x] 저장소 전용 명시 모드: 신규 root, 형식 식별, 구형 기본 원장 경로 차단,
+  객체 수명 배타 소유권과 동일/다른 프로세스 충돌·종료 후 재획득을 구현한다.
+  기존 raw journal 경로는 실제 소비자 전환 전까지 기존 계약을 유지한다.
+- [x] 같은 managed journal을 공유하는 복수 catalog의 쓰기/hold 상태 분기를 막는다.
+  journal lease 확인 API만으로 catalog의 단일 소유권까지 완료로 판정하지 않는다.
+- [x] 원장 성장: 반복 전체 조회 비용과 영속 이력 정리 비용을 구분한다.
+  삭제·예약/재시도 식별자를 잃는 단순 절삭이나 상한 도달 시 녹화 중단으로 대체하지 않는다.
+  체크포인트 전후 및 중단 복구에서 같은 의미가 복원되어야 한다.
+- [x] 연결 검토·관련 focused 회귀와 중앙 전수 결과/cleanup을 확인하고 승인 범위의 커밋을 준비한다.
+
+첫 구현 묶음은 담당자가 journal 헤더/구현과 필요한 전용 저장소 모듈, catalog focused
+테스트·빌드 목록을 수정한다. 메인은 성장/복구 계약과 이 계획을 소유한다.
+중앙 실행 기록·inventory 등록은 담당자 소유로 하여 동시 편집하지 않는다.
+신규 경로는 symlink를 따라 기존 저장소를 변환하지 않으며, 기존 파일이 있는 root를
+자동 덮어쓰거나 지우지 않는다. 동일 UID의 임의 파일 변조까지 막는 보안 격리로 주장하지 않는다.
+두 번째 managed writer는 무한 대기가 아니라 명시 실패하고, fork된 자식의 소유권 승계를 거부한다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/기능 | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | 1번 저장소 구현과 관련 회귀 | recording_journal / recording_catalog focused | 최신 개발 요청 범위 |
+| 30분 테스트 | 미진행 | 이번은 저장소 한정 구현, 최종 코드는 아직 미고정 | S11 최종 검증 | 이번 실행 안 함 |
+| 120분 테스트 | 미진행 | 이번에 실제 writer/lifecycle 활성화하지 않음 | S11 최종 검증에서 범위 확정 | 이번 실행 안 함 |
+| UI 풀테스트 | 미진행 | 제품 화면 변경 없음 | 후속 소비자 연결·S11 | 이번 실행 안 함 |
+
+첫 묶음 명령은 `./server.sh verify-v410-recording-catalog`와 `git diff --check`다.
+새 managed 정상 open의 거부 stub을 예상 RED로 사전 특정하고 기존 172개 회귀 실패는
+예상 RED로 처리하지 않는다. 반환된 실제 변경·검증 근거를 메인이 검토한다.
+성장 대응 검증은 계약·개별 항목 등록 후 같은 안정화 범위에서 실행한다.
+
+| 런타임 패밀리 | 담당 | 추천 모델 | 추론 수준 | 선정 근거 |
+| --- | --- | --- | --- | --- |
+| Codex | 메인 설계·최종 판정 / 기존 단일 담당자 구현 | gpt-6-astra | medium 유지 | 영향2/불확실성2/검증2/범위2=8. 저장소 소유권·원장 복구 교차 경계. 자동 상향·하위 생성 없음 |
+
+위 항목이 모두 닫히기 전 1번 완료로 표시하지 않는다.
+
+첫 실행 이력: `verify-v410-recording-catalog`가 reject stub의 미사용 private field
+4개에 대한 clang `-Werror,-Wunused-private-field`로 컴파일 실패했다. 예상 RED가 아니며
+신규/기존 assertion은 모두 미실행이다. 코드 수정·재실행·커밋과 성장 대응 구현을 중단했다.
+정확한 명령·오류·임시 root 부재 확인은 중앙 실행 기록의 같은 이름 절에 보존한다.
+재개 시 stub에서 아직 사용하지 않는 네 필드 선언을 제외하고 동일 focused RED부터 확인한다.
+
+사용자가 해당 수정·동일 검증 재개를 승인했다. 재개 실행21293에서는 기존 C++163개가
+통과하고 SW01만 예상대로 실패했다(shell9는 fail-fast로 미실행). 미사용 필드 컴파일 오류와
+예상 RED를 구분하며 이제 첫 구현 묶음을 진행한다. ManagedOptions는 root와 필수 store_id를
+받고 init/format marker 및 Reserve의 store ID를 정확히 대조한다. 암묵적 기본 ID는 만들지 않는다.
+
+구현 후 실행46619는 `ManagedBindingLocked`의 dev_t/uint64_t 비교 네 곳에서
+`-Werror,-Wsign-compare`로 컴파일 실패했다. assertion은 미실행이며 예상 RED가 아니다.
+미사용 필드 문제 재발과는 구분한다. 메인은 추가 수정·재실행을 중단하고 변경 검토를 회수했다.
+확인된 추가 보완 대상은 managed FD 복제의 CLOEXEC 유지와 managed Append의
+불완전 tail 보존·거부다. catalog attachment와 원장 성장 구현도 미완료이며 커밋하지 않았다.
+
+사용자 「수정 후 재검증」 승인으로 위 세 보완을 수행했다. dev_t 비교 네 곳을 기존
+uint64_t binding 타입에 명시 변환하고, managed FD 복제 세 곳에 F_DUPFD_CLOEXEC를 사용한다.
+managed Append는 미완결 tail을 변경·격리하지 않고 거부하며 기존 raw RepairTail은 유지한다.
+SW11 원문 보존 및 SW12 실제 FD flag/exec 상속 검사 각각의 예상 RED를 확인한 뒤
+최종 focused 실행50093에서 C++185개와 shell9개, 합계194개가 통과했다.
+기존172개 포함, managed22개 추가다. 메인이 실제 코드와 diffcheck exit0을 확인했다.
+첫 journal 소유권 묶음과 이번 세 보완의 focused 결과이며, catalog 단일 attachment와
+원장 성장·체크포인트가 남아 있으므로 1번 전체 완료·커밋 가능으로 판정하지 않는다.
+
+#### 1B catalog 단일 소유권 — focused 검증 통과
+
+사용자 「1번 전체 잔여이슈 수정 후 보고」 승인으로 계속한다. managed journal에 한 catalog만
+결박하며, catalog 없이 직접 Append하거나 실패한/다른 catalog가 쓰기·hold를 변경하는 것을 막는다.
+예약은 같은 journal 소유 프로세스에서 계속 사용할 수 있다. media_root는 managed root,
+SQLite 경로는 그 root의 recording-catalog.sqlite3로 제한하고 '..'/symlink/hardlink/외부 경로를
+부작용 전에 거부한다. enable_v2_storage=true를 명시해야 하며 raw 동작은 유지한다.
+Open 내부 실패 시 SQLite를 닫고 소유권을 반납하며 destructor도 같은 순서다.
+복수 catalog, 실패 객체 우회, 무토큰 Append, 소유 반납, 경로·옵션 거부, 실패 후 재연결을
+중앙 SB01~06에 등록한 뒤 focused RED/GREEN으로 확인한다. 제품 writer 활성화는 하지 않는다.
+
+SB01~06 구현 후 실행45925에서 205개가 통과했다. 메인 검토에서 SQLite sidecar 경로도
+같은 경계로 검사하도록 SB07을 추가했고, 예상 RED 실행23829를 거쳐 실행11729에서
+C++202개와 shell9개, 합계211개가 통과했다. 기존205개를 유지하며 sidecar의
+symlink/hardlink 여섯 경우를 추가했다. 실행 임시 root97189는 21,290,570바이트를
+삭제하고 부재를 확인했다. 상세 명령·개별 결과와 이전 실패는 중앙 실행 기록에 보존한다.
+
+#### 1C 원장 성장 대응 — 설계 경계
+
+managed 독점 소유에서 최초 검증으로 순서/ID 인덱스를 만들고, 자기 쓰기의 fsync 성공분을
+증분 반영한다. 예약·V2 후보 검사마다 원장 전체와 scratch catalog를 다시 읽는 경로를
+managed 모드에서는 제거한다. raw 경로와 초기 재시작 전체 검증은 그대로 구분한다.
+외부 inode/size 변경과 fsync 불확실성은 캐시를 신뢰하지 않고 실패로 닫는다.
+
+체크포인트는 현재 알려진 큰 반복 이력인 event_link_created의 같은 link 최종 상태를
+원래 순서에 유지하고, 앞선 상태의 큰 payload만 작은 receipt로 정리하는 보수적 범위다.
+receipt도 원래 mutation ID·entity·시각을 보존하여 재시도/ID 충돌 의미를 잃지 않는다.
+원래 canonical envelope의 SHA256도 exact 필드로 보존하여 동일 ID 재시도와 다른 내용의
+충돌을 구별한다. 기존 OpenSSL EVP를 재사용하며 새 암호 구현이나 전역 필수 의존성을
+추가하지 않는다. 암호 기능이 없는 빌드는 raw 동작을 유지하고 managed checkpoint의
+지원 부재를 명시적으로 거부한다. 해당 capability 경계도 focused 검사에 포함한다.
+예약·세그먼트 identity·시간 매핑·삭제·관측은 임의 폐기하지 않는다. 손상/미지원/투영 실패
+원장은 압축하지 않으며 기존 상태와 동등성을 확인한 뒤에만 원자 교체한다.
+체크포인트 전/후·중단·재시작·SQLite/JSONL에서 최종 이벤트 상태, 예약 재시도/다음 번호,
+삭제 ID 거부가 같아야 한다. 실제 파일이 줄고 반복 예약의 전체 scan이 없어지는 근거도 필요하다.
+
+이 설계는 고유 식별자 수에 비례하는 최소 영속 메타데이터까지 상수 크기로 만든다는 뜻이 아니다.
+모든 과거 요청을 영구적으로 구분하면서 유한 크기만 쓴다는 보장은 하지 않는다.
+고유 ID 만료 정책, 실제 writer 활성화, 보존/이벤트 소비자 정책 변경을 이번에 몰래 추가하지 않는다.
+
+1C 첫 focused 실행84514는 C++203 pass/6 fail로 중단했다. 사전 예상한 SC02~06 다섯
+미구현 실패 외에 SC07도 실패했으므로 전체 결과는 예상 RED가 아니다. SC07은 raw
+catalog의 media_root를 전체 실행 root로 잡아 다른 fixture를 함께 순회하도록 구성된
+격리 결함이 있다. 정확한 실패 marker/오류는 이번 출력만으로 확정하지 않았다.
+checkpoint 거부 stub 이외의 1C 제품 구현은 아직 하지 않았으며 수정·재실행·커밋을
+중단했다. 실행 root97777의 21,462,141바이트는 삭제했고 메인이 부재를 확인했다.
+재개 대상은 SC07 전용 하위 root와 준비 단계별 오류 확인 후 같은 focused 검증이다.
+1번 전체는 미완료이며 finalize-recovery 회귀와 2~5번은 실행하지 않았다.
+
+사용자 「응」으로 SC07 격리 수정과 같은 focused 검증 재개를 승인했다. 전용 하위 root로
+분리하고 준비 단계 오류를 구분한다. SC07 및 기존 회귀 통과 후 사전 특정 SC02~06의
+미구현 RED만 남으면 승인된 1C 구현을 계속한다. 기존 실패 기록은 유지한다.
+
+재실행96022는 C++204 pass/5 fail로 SC02~06의 사전 예상 미구현 실패만 남았다.
+SC01/07과 기존202개가 통과하여 격리 수정은 검증됐으며 1C 구현을 재개했다.
+shell9는 예상 RED의 fail-fast로 미실행이다. 임시 root98058의 21,461,549바이트는
+삭제했고 메인이 부재를 확인했다. 이 결과는 1C 기능 통과가 아니다.
+
+#### 1번 최종 구현·검증 판정
+
+`recording_journal.h/cpp`의 managed 수명 소유권, 최초 인덱스·증분 예약/ID 검사,
+receipt 및 `PrepareCheckpoint/CommitCheckpoint`를 구현했다. `recording_catalog.h/cpp`는
+단일 연결·경로 결박, `ValidateManagedCandidateLocked`, 투영 동등성 검사와
+`Checkpoint`를 연결한다. 마지막 점검 이후 증가한 원장 크기 1MiB마다 자동 정리하며,
+줄어들지 않는 경우에도 그 점검 위치를 갱신하여 매번 전체 정리를 반복하지 않는다.
+고유 ID 메타데이터의 선형 증가는 여전히 존재한다. 실제 writer 기본값은 바꾸지 않았다.
+
+원자 stage 기록·fsync·rename·directory fsync와 오류 후 쓰기/hold 차단, prefix 복구,
+암호 미지원/손상/미지원 형식/ID 충돌의 원문 보존을 검증했다. SC21의 세 예상 RED는
+`OwnsCatalog`가 poison까지 확인하도록 보완한 뒤 통과했다. 실제 SQLite SELECT로
+V2 payload/path, hold, observation, tombstone을 확인했고 JSONL 재시작과 대조했다.
+
+- 최종 `./server.sh verify-v410-recording-catalog` 실행7312: exit0, 246 pass/0 fail
+  (기본 C++234, 암호 비활성3, 기존 shell9).
+- `./server.sh verify-v410-recording-finalize-recovery` 실행84258: exit0, 52 pass/0 fail.
+- 메인은 실제 변경·개별 결과·SQL 조회·FD 실패 주입을 검토하고 `git diff --check`를 확인했다.
+- 실행 임시 파일은 전부 삭제했다. 최종 catalog 23,688,942바이트, finalize 3,968,609바이트의
+  삭제와 경로 부재를 확인했다. 개별 전수 결과·이전 실패·모든 cleanup은 중앙 기록에 보존한다.
+- 전체 서버 빌드, 30분/120분/UI 풀테스트, 2~5번과 S11은 이번에 실행하지 않았다.
+
+1번 한정 구현·검증은 완료했으며 승인된 범위의 커밋을 준비한다. 실제 커밋은 Git 이력으로
+확인한다. 기존 미커밋 S09/S10 변경은 이 커밋에 섞지 않는다. 푸시 승인 없음.
+
 ### S10-3C 세그먼트 시간 계약과 finalize 복구 결합
 
 2026-09-12 사용자 「커밋 후 S10-3C 진행」 승인. A/B는 각각 `a82f4d21`, `15f2753e`로

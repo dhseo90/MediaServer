@@ -1,5 +1,74 @@
 # Project Feature Test Inventory
 
+## S10 저장소 활성화 선행 1C
+
+| 기능 ID | 동작·PASS 기준 | 안정화 테스트 | 30분 테스트 | 120분 테스트 | UI 테스트 | UI 존재 |
+| --- | --- | --- | --- | --- | --- | --- |
+| S10-SC01 | 실제 반복 이벤트 fixture 유효성 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SC02 | 예약의 전체 원장 읽기 제거 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SC03 | 관리 V2 후보의 전체 재생 제거 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SC04 | 이전 이벤트 payload 크기 감소 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SC05 | 최종 이벤트와 모든 원장 ID 보존 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SC06 | 멱등 checkpoint와 V2 보존 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SC07 | raw checkpoint 거부 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SC08 | receipt 재시도·직접 생성 거부 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SC09 | SQLite·JSONL 재시작 동등성 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SC10 | stage prefix 복구 선행 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SC11 | 불일치 stage 보존·poison | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SC12 | 첫 ID 수용 순서 보존 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SC13 | 암호 비활성 raw 유지 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SC14 | 암호 비활성 checkpoint 거부 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SC15 | 암호 비활성 receipt open 거부 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SC16 | 누적 증가량 자동 checkpoint | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SC17 | checkpoint 전후 hold·삭제·관측 보존과 두 모드 재시작 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SC18 | 쓰기·파일동기화·rename·디렉터리동기화 오류 후 poison과 재시작 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SC19 | 손상·미지원·ID 충돌 원장 원문 보존 거부 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SC20 | raw catalog의 receipt 투영 선행 거부 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SC21 | poison 상태에서 hold 쓰기 거부 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+
+## S10 저장소 활성화 선행 1B
+
+S10-SB07: SQLite -wal/-shm/-journal의 symlink·hardlink 각각 사전거부(6개); 안정화=catalog focused, 30분/120분/UI=비대상, UI 없어야 정상. 중앙에 실행 전 개별6행 등록.
+
+| 기능 ID | 동작·PASS 기준 | 안정화 테스트 | 30분 테스트 | 120분 테스트 | UI 테스트 | UI 존재 |
+| --- | --- | --- | --- | --- | --- | --- |
+| S10-SB01 | 두 번째 관리 catalog 거부 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SB02 | 실패 catalog의 원장·hold 변경 차단 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SB03 | 연결 중 무소유 append 차단·예약 허용 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SB04 | catalog 파괴 뒤 소유권 반환 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SB05 | 안전하지 않은 관리 옵션 거부: outside | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SB05 | 안전하지 않은 관리 옵션 거부: dotdot | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SB05 | 안전하지 않은 관리 옵션 거부: media-symlink | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SB05 | 안전하지 않은 관리 옵션 거부: sqlite-symlink | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SB05 | 안전하지 않은 관리 옵션 거부: sqlite-hardlink | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SB05 | 안전하지 않은 관리 옵션 거부: disabled | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SB06 | 실패 연결 해제·poison journal 새 수명 재open | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+
+## S10 저장소 활성화 선행 1번
+
+S10-SW12의 test-only `scripts/internal/recording_journal_fd_probe.h`는 journal TU 한정 실제 syscall 전달 관측이며 제품 빌드에는 포함하지 않는다.
+
+| 기능 ID | 동작·PASS 기준 | 안정화 테스트 | 30분 테스트 | 120분 테스트 | UI 테스트 | UI 존재 |
+| --- | --- | --- | --- | --- | --- | --- |
+| S10-SW11 | managed 미완결 tail 원문 보존 거부 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SW12 | 복제 FD CLOEXEC와 exec 후 미상속 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+
+실행 전 등록. 중앙 기록의 S10-SW01~10을 따른다. 원장 성장/실제 writer 연결 완료를 뜻하지 않는다.
+
+| 기능 ID | 동작·PASS 기준 | 안정화 테스트 | 30분 테스트 | 120분 테스트 | UI 테스트 | UI 존재 |
+| --- | --- | --- | --- | --- | --- | --- |
+| S10-SW01 | 빈 관리 root 초기화와 수명 lease | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SW02 | 동일 프로세스 중복 소유 거부 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SW03 | 다른 프로세스 소유·fork 상속 거부 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SW04 | 소유자 파괴 뒤 lease 반환 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SW05 | 관리 예약·추가·재생의 소유 FD | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SW06 | raw 관리 원장·구형 기본 경로 거부 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SW07 | 비어 있지 않은 기존 root 무변환 보존 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SW08 | 부분 초기화 재시도 정확성 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SW09 | 링크·inode·marker 안전성 거부 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-SW10 | 정확 root·V2 옵션 단일 catalog 연결 | catalog focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+
+
 ## S10-3C 세그먼트 시간 저장·복구
 
 실행 전 등록. 세부 입력과 기대값은 중앙 테스트 기록의 S10-M01~09 및 구현계획 S10-3C를 따른다.
