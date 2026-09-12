@@ -1972,6 +1972,11 @@ PTS의 원본 대비 차이가 일정한지, timescale 양자화 또는 decode-p
 - [x] 3C-3C: 원본 사실 저장. `RecordingConsumerReferenceV1`을 기존 journal/catalog/SQLite/checkpoint에 연결했다. focused16·binding20·catalog246 및 build 통과. metadata 원자 저장/소비자는 다음 단위다.
 - [x] 3C-4: a05c15dd의 참조 생산·해석에 초기 pre-event 요청 보존 보완을 추가했다. reference19/0, connection22/0, 기존 이벤트 회귀 및 제품 build exit0. 실제 파생 clip/UI 기본 전환은 완료 범위가 아니다.
 - [ ] 3C-5: 참조 구간의 실제 미디어 출력/ready/hold·예약 중단 복구를 구현한다.
+  2026-09-13 계약 정리는 [설계의 3C-5 절](../specs/2026-09-02-v410-recording-search-foundation-design.md#s10-3c-5-파생-영상-계약-2026-09-13)을 따른다.
+  요청 구간의 대응 증거/선택 → 실제 remux·출처 → 내구 자원/복구 → opt-in 통합 순서다.
+  현재 점 참조를 구간 증거로 외삽하지 않으며 정상 이벤트가 pending으로만 남으면 완료가 아니다.
+  계약 문서화는 제품 구현·검증 PASS가 아니다. 3D 기본 연결과 S11은 착수하지 않았다.
+  S09 잔여 변경은 e223817d로 이미 정리·커밋·푸시됐다. 위의 보존 문구는 당시 작업 경계다.
 
 #### 3C-4 실제 분석·이벤트 소비자 연결 (3C-3C 이후)
 
