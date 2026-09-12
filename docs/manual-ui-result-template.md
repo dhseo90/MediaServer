@@ -1,5 +1,7 @@
 # Manual UI Result Template
 
+S10 3C-5A C501~508은 실제 파일 시간 측정용 내부 단기 검사로 UI 비대상이며 파생 기능 완료 PASS가 아니다.
+
 S10 3C-4 C401~418은 내부 opt-in 소비자 연결이며 신규 UI 비대상이다. 실제 producer 단기 PASS가 UI 풀테스트 PASS는 아니다.
 
 S10 3C-3C C341~356은 내부 원본 참조 저장이며 신규 UI 비대상이다. focused·복구 검증을 UI 전체 PASS로 확대하지 않는다.

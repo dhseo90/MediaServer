@@ -1,5 +1,42 @@
 # Release Test Records
 
+## S10 3C-5A 실제 파일 시간 측정 — 실행 전 정의
+
+후속 구현 보류 항목(정적 발견, 테스트 미실행): start_ms보다 pre_ms가 큰 초기 media-pts 이벤트는
+현재 고정된 consumer reference 수락 조건에서 거부된다. 요청 사실 보존과 미존재 coverage 분리로 바꾸는 안을 사용자에게 제시한다.
+3C-4의 기존 구현/검증 PASS는 보존하지만 해당 입력 호환 및 전체 종료는 미확인이다. validator/판정 기준은 아직 변경하지 않았다.
+
+최종 실행 session79871: C501~508 8/0, 실제 H264 파일12개/AU300개를 전수 측정했다.
+C507 `two_estimated_reverse_ranges=true`, C508 `reset_distinct=true`; exit0, elapsed4초.
+소유 temp Oalgpl 4,799,554B 제거 확인. 제품 코드 변경 없음.
+B-frame의 file PTS와 stream-time 차이200ms, 분수 framerate 패킷20개의 duration 차이-1ns는 실제 관측값이다.
+시간 동일성/seek/파생 coverage/ready/hold 복구 PASS로 확대하지 않는다.
+[8개 개별 결과·12파일 요약·한계·정리](release-artifacts/v4.1.0/s10-derived-time-probe/report.md),
+[최종 패킷 전수 원출력](release-artifacts/v4.1.0/s10-derived-time-probe/Final.log)에 보존했다.
+
+3C-4 커밋 a05c15dd 이후 파생 구현을 위한 격리된 실제 파일 측정이다. 제품 코드·기존 writer 변경 없음.
+`bash scripts/internal/verify_recording_derived_time_probe.sh` 실행 승인 범위. 각 항목의 PASS는 생성/관찰 성공이지 시간 대응·파생/복구 계약의 완료가 아니다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| C501 H264 실제 파일 시각 측정 | 실제 파일 시각 관찰 | 10fps·무B-frame 실제 encode→managed writer→qtdemux→appsink의 패킷 수·PTS/duration과 원본 결박을 전수 대조; 원본 결박 수와 demux 수 일치/유효 PTS/전수 측정/cleanup 확인 | v4.1.0 |
+| C502 비영점 원본 시각 측정 | 실제 파일 시각 관찰 | 원본 PTS/DTS에 7초를 더한 실제 입력의 segment media_start와 demux 시각을 대조; 원본 결박 수와 demux 수 일치/유효 PTS/전수 측정/cleanup 확인 | v4.1.0 |
+| C503 정상 segment 분할 측정 | 실제 파일 시각 관찰 | 60프레임/2초 분할에서 각 segment의 수락 순서·원본 PTS·파일 PTS를 대조; 원본 결박 수와 demux 수 일치/유효 PTS/전수 측정/cleanup 확인 | v4.1.0 |
+| C504 B-frame decode preroll 측정 | 실제 파일 시각 관찰 | 30프레임 bframes=2의 decode 순서와 presentation 시각·원본 결박 대조; 원본 결박 수와 demux 수 일치/유효 PTS/전수 측정/cleanup 확인 | v4.1.0 |
+| C505 비영점 B-frame 시각 측정 | 실제 파일 시각 관찰 | B-frame 원본 PTS/DTS에 7초를 더해 원점 보정과 preroll을 구분; 원본 결박 수와 demux 수 일치/유효 PTS/전수 측정/cleanup 확인 | v4.1.0 |
+| C506 분수 frame rate 시각 측정 | 실제 파일 시각 관찰 | 30000/1001 실제 입력에서 파일 timescale 양자화 차이를 원본 PTS와 전수 측정; 임의 허용오차로 PASS를 만들지 않음; 원본 결박 수와 demux 수 일치/유효 PTS/전수 측정/cleanup 확인 | v4.1.0 |
+| C507 시계 역행과 미디어 시각 분리 | 실제 파일 시각 관찰 | 입력 관측 UTC만 역행시키고 파일 PTS/원본 PTS 대응과 별도 UTC 매핑 경계를 확인; 원본 결박 수와 demux 수 일치/유효 PTS/전수 측정/cleanup 확인 | v4.1.0 |
+| C508 PTS 초기화 epoch 분리 | 실제 파일 시각 관찰 | 입력 PTS/DTS 초기화 및 세대 변경 후 별도 epoch·파일의 대응을 각각 측정; 원본 결박 수와 demux 수 일치/유효 PTS/전수 측정/cleanup 확인 | v4.1.0 |
+
+안정화 단기만 진행 대상(직접 근거: 3C-5 영상 생성 위치의 시간 대응 확인). 30분/120분/UI는 이 측정 단위에서 미진행.
+외부 미디어/서비스·제품 기본 전환은 제외. token start/end/consumed는 실측 없으면 미집계 사유를 남기고 elapsed/명령/exit/정리 경로·크기를 보존한다.
+
+C507 정의 정정: 메인이 unknown을 예상했으나 `RecordingWriterTimeState::Accept`는 비교 가능한 시계의
+UTC 잔차 급변이면 현재 PTS에서 매핑을 닫고 새 estimated anchor를 시작한다. unknown은 시계 비교 불가 등 별도 조건이다.
+첫 실제 측정은 제품 수정 없이 두 estimated 매핑 [0,1.5초)/[1.5,3초)를 관찰했다.
+측정 성공 PASS를 unknown 검증 PASS로 해석하지 않는다. 사전 정의를 현재 계약의 매핑 경계/UTC 역행 보존으로 정정하고,
+첫 결과를 보존한 뒤 C507과 C508 epoch 분리의 직접 assertion을 포함해 최종 동일 단기 측정을 실행한다.
+
 ## S10 3C-4 소비자 연결 — 실행 전 정의
 
 ### 3C-4 실행 결과

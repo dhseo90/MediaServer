@@ -1914,6 +1914,47 @@ catalog finalize에 전달한다. UTC 변화는 물리 분할 기준이 아니�
 확정된 코드와 단기 검증을 맡고 메인은 문서·안전 계약·diff/증거 검토를 맡는다. 하위 위임 금지.
 기존 미커밋 S09 수정은 보존한다. S11·장시간/UI 전체와 후속4 데이터 삭제는 자동 착수하지 않는다.
 
+### 3C-5A 실제 파일 시간 대응 확인 — 2026-09-13
+
+#### 후속 구현 전 입력 계약 판단 대기
+
+메인 정적 대조에서 초기 media-pts 요청의 경계를 추가 발견했다. `recording_contracts.cpp`의
+`ValidateRecordingConsumerReferenceV1`은 `start_ms-pre_ms<0`이면 거부하고,
+`event_recording_bridge.cpp`의 opt-in TryResolve는 해당 validator를 직렬화 경유로 호출한다.
+따라서 start100ms/pre5000ms 같은 입력은 요청 사실을 기록하기 전에 `reference-invalid`가 된다.
+이는 정적 분기 대조이며 별도 실제 재현 검사를 실행한 결과로 표기하지 않는다. 운영 기본 경로는 opt-in이 꺼져 있어 영향이 없다.
+권장: start/end·pre/post 원본 요청 값을 보존하고, 실제 존재하지 않는 epoch 이전 coverage만 미확인/부족으로 분리한다.
+음수 실제 원본 PTS 생성·UTC 외삽·0으로 요청 덮어쓰기는 하지 않는다. 이미 고정한 a8ed142f의 요청 수락 제약 변경이므로
+사용자 판단 전 제품 validator/합격 기준을 바꾸지 않는다. 이 항목이 해소되기 전 3C-4 전체 종료와 후속 파생 구현은 보류한다.
+기존 18개 및 회귀 PASS는 당시 정의 범위의 유효 증거로 보존하며 전체 생산자 입력 호환 PASS로 확대하지 않는다.
+
+측정 단위 최종 결과: session79871 C501~508 8/0, 12파일/300 AU, 4초, 소유 temp 제거 확인.
+file PTS에는 `media_start_pts` 원점이 대응했지만 B-frame stream-time은 file PTS보다200ms 작았다.
+분수 framerate의 일부 duration은 원본보다1ns 작았다. 이 두 시간 영역과 정밀도를 같은 값으로 합치지 않는다.
+C507은 유효 시계의 UTC 역행을 두 estimated mapping으로, C508은 세대/PTS 초기화를 다른 epoch로 보존했다.
+3C-5A는 실제 경계 측정 완료이며 파생 기능 전체는 미완료다. 다음 구현은 명시적 file/stream-time 변환과
+실제 출력 coverage/provenance, 그 뒤 ready·hold·예약 중단 복구다. 기존 finalized 계약은 변경하지 않았다.
+
+3C-4는 a05c15dd로 마감했다. 다음 실제 파생 구현의 선행 단위로, 기존 writer를 바꾸지 않고
+H264/MP4 산출물의 패킷 시각과 원본 결박을 측정한다. 과거 UTC 기반 deriver에 원본 PTS를 UTC인 것처럼 전달하지 않는다.
+이 단위의 PASS는 측정 도구/실제 파일 관찰의 성공이지, 파생 영상·ready/hold·예약 복구 완료가 아니다.
+
+3C-5의 첫 확인은 실제 managed writer 산출 파일과 원본 PTS의 대응이다. UTC 역산을 도입하지 않는다. H264/MP4 무B-frame, 비영점 origin, 정상 분할, B-frame decode preroll, 분수 frame rate, 시계 역행, PTS reset을 실제 encode→writer→demux로 대조한다. packet PTS/duration/segment time와 catalog media_start/source binding을 보존하고, 정수 변환/컨테이너 양자화/순서 변화가 있으면 임의 허용오차로 맞추지 않고 원인과 새 provenance 계약을 확정한다. 기존 writer 및 공개 API는 수정하지 않는다. 확인 후 새 media 기반 파생 요청/result·출력 provenance·ready·원자 hold/reservation 및 재시작 복구를 같은 단계의 후속 단위로 구현한다. 실제 단기 증거 이전에 전체3C-5 완료로 표기하지 않는다.
+
+담당은 같은 단일 Astra/medium 에이전트, 하위 생성 금지. 소유는 신규
+`scripts/internal/recording_derived_time_probe.cpp`, `scripts/internal/verify_recording_derived_time_probe.sh`,
+`docs/release-artifacts/v4.1.0/s10-derived-time-probe/`뿐이다. 메인은 정의/계약/최종 판단을 맡는다.
+기존 managed writer fixture의 실제 encode/Run 구조를 참고하되 제품 코드와 기존 verifier는 바꾸지 않는다.
+실제 demux 출력의 패킷 단위 PTS/DTS/duration과 segment stream-time을 출력하고, 원본 결박의 decode-order sequence와 대조한다.
+PTS의 원본 대비 차이가 일정한지, timescale 양자화 또는 decode-preroll로 차이가 생기는지 실측값을 남긴다.
+성공 oracle은 생성·finalize·원본 결박 수와 demux 수 일치, 유효 PTS·관측값 수집 및 정리다.
+임의 tolerance로 원본과 동일하다고 판정하지 않는다. 대응 불명확은 측정 결과의 미해소 계약으로 보고한다.
+고정 원점/분수 시각을 위한 확정되지 않은 동등성 assertion을 제품 계약 PASS로 쓰지 않는다.
+
+검증은 아래 C501~508의 격리 단기 runner만 실행한다. 서버 포트/외부 입력/장시간/UI 없음.
+8행 각각 원출력·측정값·exit·cleanup을 남긴다. 제품 변경 없음이므로 기존 전체 build/회귀를 반복하지 않는다.
+측정 결과를 받은 뒤 메인이 같은 3C-5 안의 파생 provenance·자원 내구성 세부 계약을 고정한다.
+
 ### 3C-3C → 3C-4 → 3C-5 승인 재개 (2026-09-13)
 
 독자는 구현·검토 담당자이며 기존 S10 설계와 AGENTS를 따른다. 사용자 재검토 후 개발 승인.
@@ -1923,7 +1964,7 @@ catalog finalize에 전달한다. UTC 변화는 물리 분할 기준이 아니�
 별도 DB·새 외부 의존성·3D·S11·장시간/UI 전체·푸시는 제외한다.
 
 - [x] 3C-3C: 원본 사실 저장. `RecordingConsumerReferenceV1`을 기존 journal/catalog/SQLite/checkpoint에 연결했다. focused16·binding20·catalog246 및 build 통과. metadata 원자 저장/소비자는 다음 단위다.
-- [x] 3C-4: 위 참조를 분석/projector와 event bridge에서 생산하고 현재 catalog로 후보를 해석한다. 최종 C401~418·관련 단기 회귀와 제품 build 통과. 실제 파생 clip/UI 기본 전환은 완료 범위가 아니다.
+- [ ] 3C-4: 참조 생산·해석 구현과 최종 C401~418·관련 단기 회귀·제품 build는 a05c15dd에서 통과했다. 뒤늦게 확인한 초기 pre-event 요청 저장 계약의 변경 판단이 남아 최종 종료는 보류한다. 실제 파생 clip/UI 기본 전환은 완료 범위가 아니다.
 - [ ] 3C-5: 참조 구간의 실제 미디어 출력/ready/hold·예약 중단 복구를 구현한다.
 
 #### 3C-4 실제 분석·이벤트 소비자 연결 (3C-3C 이후)
