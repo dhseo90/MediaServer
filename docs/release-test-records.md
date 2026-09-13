@@ -1,5 +1,80 @@
 # Release Test Records
 
+## S10 3C-5.3a 실행 결과 — 2026-09-13
+
+상세 source-of-truth 보존물은 [단위 보고서](release-artifacts/v4.1.0/s10-derived-jobs/report.md), [최종 개별 349행 및 cleanup20행](release-artifacts/v4.1.0/s10-derived-jobs/results.md)이다. 원출력과 각 행을 자동 대조했으며 아래는 focused 개별 결과다. Ready/실제 파일/게시/복구는 5.3b 미구현으로 남긴다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| J01 실제 선택→compact 내구 job 계약 왕복 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 1행 | pass |
+| J17 무관source8개 추가에도 동일선택 jobID 유지 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 3행 | pass |
+| J18 cleanup wall시계 역행 허용·순서는상태로검사 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 4행 | pass |
+| J04 단일 Intent 원장·보호·예약 원자 가시성 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 5행 | pass |
+| J19 후발 coordinator 일반·파생 admission 및 복구 차단 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 6행 | pass |
+| J02 이후 시각 재Build ID 유지·선택 변경 새 ID | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 7행 | pass |
+| J03 unknown·중복·미지원 schema·불완전 JSON·4MiB·예약 상한·미구현 state 거부 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 8행 | pass |
+| J16 소유 경로·attempt·order 계획 조작 거부 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 9행 | pass |
+| J16 실제 2 source UUID 역순이어도 영속 order 순 출력 계획 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 10행 | pass |
+| J08 나중 시각 재요청 최초 시각 유지·예약/경로 충돌·다른 catalog 거부 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 11행 | pass |
+| J06 generic hold 감소로 job 보호 해제 불가·직접 삭제/corrupt 차단 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 12행 | pass |
+| J14 cleanup Failed는 job 자원만 해제·wall 역행·terminal 자동 재시도 없음 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 13행 | pass |
+| J05 pending·corrupt·tombstone·hash·binding 불일치 source 거부 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 19행 | pass |
+| J07 실제 source 삭제/Intent 경쟁에서 둘 중 한 전이만 허용 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 20행 | pass |
+| J10 checkpoint 전후 job·보호·예약 유지 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 21행 | pass |
+| J09 SQLite·fallback·재build/reopen 내구 job 동등·중복 보호 가산 없음 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 22행 | pass |
+| J10 replay 동일 중복 멱등·다른 내용/불완전/schema/전이/보호 상태 거부 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 29행 | pass |
+| J11 같은 채널 memory+동시 durable 예약 합계 event quota 제한 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 30행 | pass |
+| J12 durable outstanding을 continuous/event/derived disk 예약에 포함 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 31행 | pass |
+| J13 snapshot/disk provider 실패는 생성·periodic·복구 삭제 차단 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 32행 | pass |
+| J15 partial unknown·이유·후보·요청 시간축 그대로 보존 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 33행 | pass |
+| J19 정확한 소유자 소멸 후 새 coordinator만 재결박 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 34행 | pass |
+| J20 append 거부 후 원장 복원해도 공통 mutation 차단 | focused 명령 exit0, [원출력](release-artifacts/v4.1.0/s10-derived-jobs/FinalFocused.log) 35행 | pass |
+| catalog 영향 회귀 | 기존 catalog 234 + crypto-off3 + 정적 연결9 =246개, exit0; 전수는 위349행 표에 보존 | pass |
+| retention 영향 회귀 | 기존 56개, exit0; 전수는 위349행 표에 보존 | pass |
+| V2 retention 영향 회귀 | 실제 media22 + GStreamer-off2 =24개, exit0. 최초 B14 FAIL 및 scope 변경 compile 실패 뒤 보정 PASS; 전수/실패 이력은 보고서 | pass |
+| 제품 build | ./server.sh build exit0, media_server 완료; assertion349개와 별도 | pass |
+| 문서 링크 메인 최종 검증 | ./server.sh verify-docs-links exit0; markdown244/local2663/images22/anchors110/indexed76/exclusions158/failures0 | pass |
+| diffcheck 메인 최종 검증 | git diff --check exit0; 제품 assertion과 별도 | pass |
+
+위 focused 최초 RED·준비/compile 실패·회귀 FAIL 이력은 보고서의 실행별 표와 원출력을 보존하며 최종 PASS로 삭제하지 않았다. source/run fingerprint와 비민감 환경, token 미집계 이유는 단위 보고서를 따른다.
+
+
+## S10 3C-5.3a 사전등록 — 2026-09-13
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-J01 | compact job 계약 왕복 | 실제5.1선택→source-index capture→엄격JSON 왕복·ID/원문보존 | v4.1.0 |
+| S10-J02 | 멱등 ID와 immutable 충돌 | 같은참조/선택/profile ID동일, 선택변경 새ID; 같은ID 다른내용 거부 | v4.1.0 |
+| S10-J03 | 엄격 parser/상한 | unknown/중복/미지원schema/불완전원문/4MiB초과와잘못된state 거부 | v4.1.0 |
+| S10-J04 | 원자 Intent | 한 mutation으로 job·source보호·양수예약 동시가시화, append실패시부분변경없음 | v4.1.0 |
+| S10-J05 | live source 결박 | 삭제pending/tombstone/corrupt/metadata·binding·hash불일치 원본 거부 | v4.1.0 |
+| S10-J06 | generic hold/pin 격리 | 사용자hold감소로job보호해제불가; cleanup은job자원만해제 | v4.1.0 |
+| S10-J07 | source 상태 경쟁 | RequestDeletion/CompleteDeletionV2/MarkSegmentCorrupt와job 생성경쟁이catalog잠금에서 일관됨 | v4.1.0 |
+| S10-J08 | 동일 job 재요청 | 활성/terminal 재요청 멱등, 중복quota예약·보호가산·자동attempt추가없음 | v4.1.0 |
+| S10-J09 | SQLite/fallback/rebuild | 기존원장기반job/보호/예약일치, SQLiteprojection재생 | v4.1.0 |
+| S10-J10 | replay/checkpoint | 중복mutation의미변경·잘못된전이거부, checkpoint전후signature·예약동일 | v4.1.0 |
+| S10-J11 | event 동시quota | 동일채널기존memory+durable 예약합계로quota초과금지 | v4.1.0 |
+| S10-J12 | disk 동시예약 | continuous/event/derived admission에서전체outstanding예약포함 | v4.1.0 |
+| S10-J13 | provider 실패 | snapshot미확인·free-space실패는admission/periodic/복구에서삭제·생성안함 | v4.1.0 |
+| S10-J14 | cleanup 후 Failed | Intent는정리완료caller경계이후Failed만허용, 보호·예약해제; 실제inode검증은5.3b | v4.1.0 |
+| S10-J15 | 부분선택 사실보존 | unknown/미충족·UTC품질·원본후보를compact선택에보존, confirmed만보호/출력계획 | v4.1.0 |
+| S10-J16 | 출력 계획/순서 | 별도attempt/outputID·상대소유경로·기존order예약불변, Ready/Committed직접전이 거부 | v4.1.0 |
+| S10-J17 | 무관source 멱등 | 동일 선택에 무관source8개 추가(전체9개)해도 동일jobID·선택JSON; 실제참조8개와증거입력256개bound 분리. 예상RED는build거부/ID변경 | v4.1.0 |
+| S10-J18 | cleanup 시계 역행 | created10/cleanup5 양수walltime에서도Failed record왕복 가능, 전이순서는상태로검사. 예상RED는serializer빈문자열 | v4.1.0 |
+| S10-J19 | coordinator 단일 소유 | 동일 catalog의 두 coordinator 중 후발 일반 event/continuous·파생 admission과 삭제 snapshot을 거부; 정확한 소유자 소멸 후 새 coordinator 재결박. 예상 RED는 후발 admission 허용 | v4.1.0 |
+| S10-J20 | 원장 불확실 쓰기 guard | 작업 소유 원장 append 실패를 주입한 후 snapshot 미확인 및 RequestDeletion/MarkSegmentCorrupt/CompleteDeletion 공통 차단. 예상 RED는 직접 mutation 허용 | v4.1.0 |
+
+확장 묶음은 J02~J16·J19의 위 경계를 함께 실행한다. J16은 실제 selector에 `z-first(order1)`와 `a-second(order2)`를 전달한 2 source 결과를 사용하며 예상 RED는 현재 UUID 사전순 출력계획이다. J08은 later created_at_ms 재Build 및 다른 catalog 인자를 포함한다. 기존 J20 공통 guard 수정의 GREEN도 같은 묶음에서 확인한다.
+
+첫 명령은 `bash scripts/internal/verify_recording_derived_jobs.sh`이며 예상 RED는 J01 BuildDerivedJobIntent의 not-implemented가 계약 왕복 assertion을 충족하지 못하는 것이다. 원출력은 실행 시 저장소 artifact log로 직접 redirect하여 잘림 없이 보존한다. 실제 media/서버/외부/port 없음, fixture DB/원장/임시root는trap containment 삭제 및부재확인. Ready/게시/실제inode복구는5.3b이며 이번PASS로대체하지않는다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 신규job/보호/예약·catalog/retention직접영향 | J01~J16 | focused/build/관련단기회귀승인 |
+| 30분 | 미진행 | 이번단위에서미승인 | S11최종cut | 미승인 |
+| 120분 | 조건부 진행 | S11최종cut영향대조,이번실행미승인 | 내구예약/자원수명 | 미승인 |
+| UI | 미진행 | 내부job API에UI없어야정상 | J01~J16 | 미승인 |
+
 ## S10 3C-5.2 실행 결과 — 2026-09-13
 
 최종 R05 epoch 보완: 실제 writer 재시작의 서로 다른 두 epoch 원본3개→독립TS3개·전체요청 충족을 추가 검증했다. 최종은 [epoch-verified.log](release-artifacts/v4.1.0/s10-derived-remux/epoch-verified.log)의 focused31(취소1+media30), 아래 선택27/probe8과 합계66개다. 이전 final-evidence의30개 이력은 보존한다. 제품 코드는 검증된 latch build 이후 무변경이며 fixture만 보완했다. 추가 <set> include 누락 컴파일 오류(exit1)는 epoch-final.log에 비RED로 보존했다. 최종22개 root 부재는 cleanup-verified.log다.

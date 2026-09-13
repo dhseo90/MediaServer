@@ -1,6 +1,7 @@
 // 파일 요약: 등급별 녹화 순환 삭제와 disk reserve writer admission을 구현한다.
 // 동작 요약: oldest-first 계획 뒤 journal→pending→unlink→tombstone 순서로 공간을 회수한다.
 #include "recording/retention_coordinator.h"
+#include "recording/recording_catalog.h"
 
 #include <algorithm>
 #include <atomic>
@@ -23,6 +24,11 @@ std::uint64_t SaturatingAdd(std::uint64_t lhs, std::uint64_t rhs) {
         return std::numeric_limits<std::uint64_t>::max();
     }
     return lhs + rhs;
+}
+std::uint64_t DurableOutstanding(const RetentionSnapshot& snapshot) {
+    std::uint64_t bytes=0;
+    for(const auto& reservation:snapshot.durable_reservations)bytes=SaturatingAdd(bytes,reservation.bytes);
+    return bytes;
 }
 
 bool IsEligible(const RetentionCandidate& candidate) {
@@ -391,15 +397,107 @@ RetentionCoordinator::RetentionCoordinator(RecordingStorePort& store,
       snapshot_provider_(std::move(snapshot_provider)),
       free_space_provider_(std::move(free_space_provider)),
       media_unlinker_(std::move(media_unlinker)),
-      options_(options) {}
+      options_(options) {
+    if (auto* catalog = dynamic_cast<RecordingCatalog*>(&store_)) {
+        catalog->BindRetentionOwner(this);
+    }
+}
+
+RetentionCoordinator::~RetentionCoordinator() {
+    if (auto* catalog = dynamic_cast<RecordingCatalog*>(&store_)) {
+        catalog->UnbindRetentionOwner(this);
+    }
+}
+
+RetentionSnapshot RetentionCoordinator::ReadSnapshot() const {
+    RetentionSnapshot snapshot;
+    try {
+        if (const auto* catalog = dynamic_cast<const RecordingCatalog*>(&store_);
+            catalog && !catalog->IsRetentionOwner(this)) {
+            throw std::runtime_error("catalog retention coordinator 소유권 거부");
+        }
+        if(!snapshot_provider_)throw std::runtime_error("snapshot provider 없음");
+        snapshot=snapshot_provider_();
+        if(!snapshot.authoritative)return snapshot;
+        // catalog의 내구 예약은 임시 provider map이나 누락된 복사본으로 대체하지 않는다.
+        if(const auto* catalog=dynamic_cast<const RecordingCatalog*>(&store_)) {
+            const auto durable=catalog->RetentionSnapshot();
+            if(!durable.authoritative)return durable;
+            snapshot.durable_reservations=durable.durable_reservations;
+        }
+        std::unordered_set<std::string> ids;
+        for(const auto& reservation:snapshot.durable_reservations) {
+            if(reservation.job_id.empty()||reservation.channel_id.empty()||reservation.bytes==0||
+               !ids.insert(reservation.job_id).second)throw std::runtime_error("durable 예약 snapshot 불완전");
+        }
+    } catch(const std::exception& e) {
+        snapshot.authoritative=false;snapshot.error=e.what();
+    } catch(...) {
+        snapshot.authoritative=false;snapshot.error="snapshot provider 실패";
+    }
+    return snapshot;
+}
+
+DerivedJobAdmissionResult RetentionCoordinator::AdmitDerivedJob(
+    RecordingCatalog& catalog,const DerivedJobIntentV1& intent,std::int64_t now_ms) {
+    std::lock_guard admission_lock(admission_mu_);
+    const auto reject=[](const std::string& reason){return DerivedJobAdmissionResult{false,false,std::nullopt,reason};};
+    std::string error;
+    if(&store_!=static_cast<RecordingStorePort*>(&catalog)||!ValidateDerivedJobIntent(intent,&error))
+        return reject(error.empty()?"job catalog binding 불일치":error);
+    if(!catalog.IsRetentionOwner(this))return reject("catalog retention coordinator 소유권 거부");
+    std::optional<DerivedJobRecordV1> existing;
+    if(!catalog.FindDerivedJob(intent.job_id,&existing,&error))return reject(error);
+    if(existing) {
+        auto same=intent;same.created_at_ms=existing->intent.created_at_ms;
+        if(SerializeDerivedJobIntent(same)!=SerializeDerivedJobIntent(existing->intent))return reject("derived job immutable 충돌");
+        return {true,false,existing,"existing-job-no-new-attempt"};
+    }
+    RetentionPolicy policy;
+    {std::lock_guard lock(mu_);const auto found=policies_.find(intent.reference.channel_id);
+        if(found==policies_.end())return reject("channel retention policy가 없음");policy=found->second;}
+    const auto recovered=RecoverPendingForChannel(now_ms,intent.reference.channel_id);
+    if(!recovered.ok)return reject(recovered.last_error);
+    auto snapshot=ReadSnapshot();if(!snapshot.authoritative)return reject(snapshot.error);
+    for(const auto& source:intent.sources) {
+        const auto found=std::find_if(snapshot.candidates.begin(),snapshot.candidates.end(),[&](const auto& candidate){
+            return candidate.segment_v2&&SerializeRecordingSegmentV2(*candidate.segment_v2)==SerializeRecordingSegmentV2(source.segment)&&
+                   candidate.Lifecycle()==RecordingLifecycle::Finalized;});
+        if(found==snapshot.candidates.end())return reject("derived job live source snapshot 없음");
+        // admission의 자체 삭제 계획에서 입력을 제외한다. 실제 원자 보호는 Intent append에만 생긴다.
+        if(found->hold_count<std::numeric_limits<std::uint64_t>::max())++found->hold_count;
+    }
+    std::uint64_t free_bytes=0;
+    if(!free_space_provider_||!free_space_provider_(&free_bytes,&error))return reject(error.empty()?"free-space 조회 실패":error);
+    const auto outstanding=SaturatingAdd(OutstandingReservationsLocked(),DurableOutstanding(snapshot));
+    RetentionPlanRequest request;request.channel_id=intent.reference.channel_id;request.policy=policy;request.now_ms=now_ms;
+    request.free_bytes=free_bytes>outstanding?free_bytes-outstanding:0;request.reserved_free_bytes=options_.reserved_free_bytes;
+    request.required_write_bytes=intent.reserved_bytes;request.required_write_class=RecordingRetentionClass::Event;
+    request.event_reserved_bytes=EventReservationsLocked(request.channel_id);
+    snapshot.candidates.erase(std::remove_if(snapshot.candidates.begin(),snapshot.candidates.end(),[](const auto& c){return c.Class()!=RecordingRetentionClass::Event;}),snapshot.candidates.end());
+    const auto plan=Plan(snapshot,request);const auto applied=Apply(plan,now_ms);
+    if(!applied.ok)return reject(applied.last_error);
+    if(applied.deleted_count&&(!free_space_provider_||!free_space_provider_(&free_bytes,&error)))return reject(error.empty()?"free-space 재조회 실패":error);
+    const auto available=free_bytes>outstanding?free_bytes-outstanding:0;
+    if(!plan.event_quota_satisfied||available<SaturatingAdd(options_.reserved_free_bytes,intent.reserved_bytes))return reject("derived job event quota/disk reserve 부족");
+    bool inserted=false;
+    if(!catalog.BeginDerivedJobIntent(intent,&inserted,&error))return reject(error);
+    if(!catalog.FindDerivedJob(intent.job_id,&existing,&error)||!existing)return reject("derived job append 후 조회 미확인");
+    return {true,inserted,existing,inserted?"created":"existing-job-no-new-attempt"};
+}
 
 RetentionPlan RetentionCoordinator::Plan(const RetentionSnapshot& snapshot,
                                          const RetentionPlanRequest& request) {
     RetentionPlan plan;
+    if(!snapshot.authoritative){plan.snapshot_authoritative=false;plan.continuous_quota_satisfied=false;
+        plan.event_quota_satisfied=false;plan.quota_satisfied=false;plan.reserve_satisfied=false;return plan;}
     std::vector<const RetentionCandidate*> continuous;
     std::vector<const RetentionCandidate*> events;
     std::uint64_t continuous_bytes = 0;
     std::uint64_t event_bytes = 0;
+    event_bytes=request.event_reserved_bytes;
+    for(const auto& reservation:snapshot.durable_reservations)if(reservation.channel_id==request.channel_id)
+        event_bytes=SaturatingAdd(event_bytes,reservation.bytes);
 
     for (const auto& candidate : snapshot.candidates) {
         if (candidate.Channel() != request.channel_id ||
@@ -499,11 +597,15 @@ RetentionApplyResult RetentionCoordinator::Apply(const RetentionPlan& plan,
                                                  std::int64_t deleted_at_ms) {
     std::lock_guard apply_lock(apply_mu_);
     RetentionApplyResult result;
+    if(!plan.snapshot_authoritative){result.ok=false;result.last_error="snapshot 미확인 삭제계획 거부";return result;}
+    const auto initial=ReadSnapshot();
+    if(!initial.authoritative){result.ok=false;result.last_error=initial.error;return result;}
     for (const auto& deletion : plan.deletions) {
         std::string error;
         const std::string reason = RetentionCleanupReasonName(deletion.reason);
         if(deletion.candidate.segment_v2) {
-            const auto snapshot=snapshot_provider_();
+            const auto snapshot=ReadSnapshot();
+            if(!snapshot.authoritative){result.ok=false;result.last_error=snapshot.error;return result;}
             const auto found=std::find_if(snapshot.candidates.begin(),snapshot.candidates.end(),[&](const auto& candidate){
                 return candidate.Id()==deletion.candidate.Id() && candidate.segment_v2 &&
                     candidate.media_path==deletion.candidate.media_path &&
@@ -561,7 +663,9 @@ RetentionApplyResult RetentionCoordinator::Apply(const RetentionPlan& plan,
 
 RetentionApplyResult RetentionCoordinator::RecoverPending(std::int64_t deleted_at_ms) {
     std::unordered_set<std::string> channels;
-    for (const auto& candidate : snapshot_provider_().candidates) {
+    const auto snapshot=ReadSnapshot();
+    if(!snapshot.authoritative){RetentionApplyResult result;result.ok=false;result.last_error=snapshot.error;return result;}
+    for (const auto& candidate : snapshot.candidates) {
         if (candidate.Lifecycle() == RecordingLifecycle::DeletionPending) {
             channels.insert(candidate.Channel());
         }
@@ -583,7 +687,9 @@ RetentionApplyResult RetentionCoordinator::RecoverPendingForChannel(
     const std::string& channel_id) {
     std::lock_guard apply_lock(apply_mu_);
     RetentionApplyResult result;
-    for (const auto& candidate : snapshot_provider_().candidates) {
+    const auto snapshot=ReadSnapshot();
+    if(!snapshot.authoritative){result.ok=false;result.last_error=snapshot.error;return result;}
+    for (const auto& candidate : snapshot.candidates) {
         if (candidate.Lifecycle() != RecordingLifecycle::DeletionPending ||
             candidate.Channel() != channel_id) {
             continue;
@@ -660,7 +766,9 @@ void RetentionCoordinator::RemoveChannelPolicy(const std::string& channel_id) {
 void RetentionCoordinator::RunPeriodic(std::int64_t now_ms) {
     std::lock_guard admission_lock(admission_mu_);
     std::unordered_set<std::string> pending_channels;
-    for (const auto& candidate : snapshot_provider_().candidates) {
+    const auto initial=ReadSnapshot();
+    if(!initial.authoritative){std::lock_guard lock(mu_);for(auto& [_,status]:statuses_)status.last_error=initial.error;return;}
+    for (const auto& candidate : initial.candidates) {
         if (candidate.Lifecycle() == RecordingLifecycle::DeletionPending) {
             pending_channels.insert(candidate.Channel());
         }
@@ -691,10 +799,13 @@ void RetentionCoordinator::RunPeriodic(std::int64_t now_ms) {
         request.channel_id = channel_id;
         request.policy = policy;
         request.now_ms = now_ms;
-        const std::uint64_t inflight_bytes = OutstandingReservationsLocked();
+        const auto snapshot=ReadSnapshot();
+        if(!snapshot.authoritative){std::lock_guard lock(mu_);statuses_[channel_id].last_error=snapshot.error;continue;}
+        const std::uint64_t inflight_bytes = SaturatingAdd(OutstandingReservationsLocked(),DurableOutstanding(snapshot));
         request.free_bytes = free_bytes > inflight_bytes ? free_bytes - inflight_bytes : 0;
         request.reserved_free_bytes = options_.reserved_free_bytes;
-        const auto plan = Plan(snapshot_provider_(), request);
+        request.event_reserved_bytes=EventReservationsLocked(channel_id);
+        const auto plan = Plan(snapshot, request);
         const auto applied = Apply(plan, now_ms);
         if (!applied.ok) {
             std::lock_guard lock(mu_);
@@ -758,7 +869,9 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
         return {false, false, 0, status.last_error};
     }
 
-    const std::uint64_t inflight_bytes = OutstandingReservationsLocked();
+    auto admission_snapshot=ReadSnapshot();
+    if(!admission_snapshot.authoritative)return {false,false,0,admission_snapshot.error};
+    const std::uint64_t inflight_bytes = SaturatingAdd(OutstandingReservationsLocked(),DurableOutstanding(admission_snapshot));
     const std::uint64_t effective_free =
         free_bytes > inflight_bytes ? free_bytes - inflight_bytes : 0;
     RetentionPlanRequest request;
@@ -768,7 +881,7 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
     request.free_bytes = effective_free;
     request.reserved_free_bytes = options_.reserved_free_bytes;
     request.required_write_bytes = expected_segment_bytes;
-    auto admission_snapshot = snapshot_provider_();
+    request.event_reserved_bytes=EventReservationsLocked(channel_id);
     admission_snapshot.candidates.erase(
         std::remove_if(
             admission_snapshot.candidates.begin(), admission_snapshot.candidates.end(),
@@ -862,7 +975,9 @@ RetentionAdmissionResult RetentionCoordinator::AdmitEventWrite(
         return {false, false, 0,
                 error.empty() ? "recording root 여유 공간 조회 실패" : error};
     }
-    const std::uint64_t inflight_bytes = OutstandingReservationsLocked();
+    auto admission_snapshot=ReadSnapshot();
+    if(!admission_snapshot.authoritative)return {false,false,0,admission_snapshot.error};
+    const std::uint64_t inflight_bytes = SaturatingAdd(OutstandingReservationsLocked(),DurableOutstanding(admission_snapshot));
     const std::uint64_t effective_free =
         free_bytes > inflight_bytes ? free_bytes - inflight_bytes : 0;
     RetentionPlanRequest request;
@@ -873,7 +988,7 @@ RetentionAdmissionResult RetentionCoordinator::AdmitEventWrite(
     request.reserved_free_bytes = options_.reserved_free_bytes;
     request.required_write_bytes = expected_segment_bytes;
     request.required_write_class = RecordingRetentionClass::Event;
-    auto admission_snapshot = snapshot_provider_();
+    request.event_reserved_bytes=EventReservationsLocked(channel_id);
     admission_snapshot.candidates.erase(
         std::remove_if(admission_snapshot.candidates.begin(),
                        admission_snapshot.candidates.end(),
@@ -938,6 +1053,13 @@ std::uint64_t RetentionCoordinator::OutstandingReservationsLocked() const {
             outstanding, reservation.reserved_bytes - written);
     }
     return outstanding;
+}
+
+std::uint64_t RetentionCoordinator::EventReservationsLocked(const std::string& channel) const {
+    std::uint64_t bytes=0;
+    for(const auto& [_,reservation]:event_inflight_reservations_)if(reservation.channel_id==channel)
+        bytes=SaturatingAdd(bytes,reservation.reserved_bytes);
+    return bytes;
 }
 
 void RetentionCoordinator::CompleteContinuousWrite(

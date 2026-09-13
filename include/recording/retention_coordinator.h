@@ -12,8 +12,10 @@
 #include <vector>
 
 #include "recording/recording_store_port.h"
+#include "recording/recording_derived_job.h"
 
 namespace recording {
+class RecordingCatalog;
 
 enum class RetentionCleanupReason {
     ContinuousCapacity,
@@ -43,6 +45,10 @@ struct RetentionCandidate {
 
 struct RetentionSnapshot {
     std::vector<RetentionCandidate> candidates;
+    struct DurableReservation {std::string job_id,channel_id;std::uint64_t bytes{0};};
+    std::vector<DurableReservation> durable_reservations{};
+    bool authoritative{true};
+    std::string error{};
 };
 
 struct RetentionPolicy {
@@ -60,6 +66,7 @@ struct RetentionPlanRequest {
     std::uint64_t reserved_free_bytes{0};
     std::uint64_t required_write_bytes{0};
     RecordingRetentionClass required_write_class{RecordingRetentionClass::Continuous};
+    std::uint64_t event_reserved_bytes{0};
 };
 
 struct RetentionDeletion {
@@ -75,6 +82,7 @@ struct RetentionPlan {
     bool event_quota_satisfied{true};
     bool quota_satisfied{true};
     bool reserve_satisfied{true};
+    bool snapshot_authoritative{true};
 };
 
 struct RetentionApplyResult {
@@ -88,6 +96,11 @@ struct RetentionAdmissionResult {
     bool allowed{false};
     bool start_new_epoch{false};
     std::uint64_t reserved_bytes{0};
+    std::string message;
+};
+struct DerivedJobAdmissionResult {
+    bool accepted{false},created{false};
+    std::optional<DerivedJobRecordV1> job;
     std::string message;
 };
 
@@ -132,6 +145,7 @@ public:
                          FreeSpaceProvider free_space_provider,
                          MediaUnlinker media_unlinker,
                          Options options);
+    ~RetentionCoordinator();
 
     static RetentionPlan Plan(const RetentionSnapshot& snapshot,
                               const RetentionPlanRequest& request);
@@ -150,6 +164,7 @@ public:
                                              const std::string& reservation_id,
                                              std::uint64_t expected_segment_bytes,
                                              std::int64_t now_ms);
+    DerivedJobAdmissionResult AdmitDerivedJob(RecordingCatalog&,const DerivedJobIntentV1&,std::int64_t now_ms);
     void UpdateContinuousWriteProgress(const std::string& channel_id,
                                        std::uint64_t written_bytes);
     void CompleteContinuousWrite(const std::string& channel_id,
@@ -170,6 +185,8 @@ private:
     RetentionApplyResult RecoverPendingForChannel(std::int64_t deleted_at_ms,
                                                    const std::string& channel_id);
     std::uint64_t OutstandingReservationsLocked() const;
+    std::uint64_t EventReservationsLocked(const std::string& channel_id) const;
+    RetentionSnapshot ReadSnapshot() const;
 
     RecordingStorePort& store_;
     SnapshotProvider snapshot_provider_;

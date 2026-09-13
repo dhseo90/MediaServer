@@ -1,0 +1,9 @@
+[pass] J01 실제 선택→compact 내구 job 계약 왕복
+[detail] error=
+[pass] J17 무관source8개 추가에도 동일선택 jobID 유지
+[pass] J18 cleanup wall시계 역행 허용·순서는상태로검사
+[pass] J04 단일 Intent 원장·보호·예약 원자 가시성
+[detail] admission=created
+[summary] pass=4 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-jobs.SVsY7O bytes=4070641 removed=true
+[elapsed] seconds=5 source=bash-SECONDS

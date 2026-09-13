@@ -1,0 +1,5 @@
+[pass] J01 실제 선택→compact 내구 job 계약 왕복
+[detail] error=
+[setup-fail] 녹화 media 상위 디렉터리 열기 실패: No such file or directory
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-jobs.Iqou5z bytes=3854831 removed=true
+[elapsed] seconds=5 source=bash-SECONDS

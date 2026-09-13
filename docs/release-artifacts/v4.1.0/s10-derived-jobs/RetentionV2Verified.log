@@ -1,0 +1,12 @@
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_retention_v2_smoke.cpp:198:38: error: use of undeclared identifier 'coordinator'
+  198 |         const bool target_preserved=!coordinator.Apply(unsafe_plan,40).ok&&Bytes(s.root/"unknown.mp4")==untouched&&std::filesystem::is_symlink(unsafe.media_path);
+      |                                      ^~~~~~~~~~~
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_retention_v2_smoke.cpp:198:105: error: use of undeclared identifier 'untouched'
+  198 |         const bool target_preserved=!coordinator.Apply(unsafe_plan,40).ok&&Bytes(s.root/"unknown.mp4")==untouched&&std::filesystem::is_symlink(unsafe.media_path);
+      |                                                                                                         ^~~~~~~~~
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_retention_v2_smoke.cpp:202:107: error: use of undeclared identifier 'coordinator'
+  202 |         const auto ancestor_before=Bytes(s.root/"target-branch/media.mp4");const bool ancestor_preserved=!coordinator.Apply(ancestor_plan,40).ok&&!read.ResolveMedia("channel","ancestor")&&Bytes(s.root/"target-branch/media.mp4")==ancestor_before&&s.Hold("ancestor")==0;
+      |                                                                                                           ^~~~~~~~~~~
+3 errors generated.
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-retention-v2.gMPwzl bytes=0 removed=true
+[elapsed] seconds=5 source=bash-SECONDS

@@ -34,7 +34,7 @@ fi
   "${ROOT_DIR}/src/recording/recording_catalog.cpp" \
   "${ROOT_DIR}/src/recording/recording_journal.cpp" \
   "${ROOT_DIR}/src/recording/retention_coordinator.cpp" \
-  "${ROOT_DIR}/src/recording/recording_contracts.cpp" \
+  "${ROOT_DIR}/src/recording/recording_derived_job.cpp" "${ROOT_DIR}/src/recording/recording_contracts.cpp" \
   "${ROOT_DIR}/src/domain/strict_json.cpp" \
   -DMEDIA_SERVER_USE_GSTREAMER="${GST_DEFINE}" \
   "${GST_LIBS[@]}" \

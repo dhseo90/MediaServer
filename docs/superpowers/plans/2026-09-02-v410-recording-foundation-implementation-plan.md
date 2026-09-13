@@ -2033,6 +2033,38 @@ preroll/decode dependency·미충족 범위를 보존한다. binding에 없는 �
 [실행 기록](../../release-artifacts/v4.1.0/s10-derived-remux/report.md)에 보존한다.
 검증된 FD 출력이지 게시·내구 작업·이벤트 통합 완료가 아니다. 3C-5.3/5.4는 아직 남아 있다.
 
+3C-5.2 커밋은 `d6554de7`이다. 이어지는 3C-5.3은 같은 담당자가 원장/자원 단위와
+실제 파일/복구 단위로 나눠 구현하며, 각각 메인 검토·커밋 후 다음 단위로 진행한다.
+
+3C-5.3a는 Intent의 원자 보호·예약, 엄격한 작업 직렬화, replay/SQLite/checkpoint,
+단일 retention 소유권과 동시 용량 계산을 구현했다. focused23, catalog246,
+retention56, V2 retention24(실제 미디어22·GStreamer-off2), build가 통과했다.
+V2 복구 fixture의 겹친 coordinator 수명을 순차 수명으로 고쳤으며 최초 회귀 실패와
+그 수정 중의 컴파일 오류도 [실행 기록](../../release-artifacts/v4.1.0/s10-derived-jobs/report.md)에 보존한다.
+메인은 제품 단일 coordinator 구성과 B13/B14/B18의 기존 검사 유지 여부를 직접 대조했다.
+349개 단기 PASS는 원장·자원 단위에 한정한다. 실제 파일의 소유 확인·Ready·게시·
+중단 복구는 5.3b, 이벤트 통합은 5.4에 남아 있다.
+
+- **5.3a 원장·자원:** 기존 catalog 소유 journal에 요청/선택/profile 기반 job identity,
+  별도 attempt/output ID, source 보호와 용량 예약을 하나의 intent로 저장한다.
+  job 보호는 사용자 pin/hold와 분리하며 cleanup 완료 전 해제하지 않는다.
+  replay/SQLite/fallback/checkpoint가 같은 상태를 복원하고 충돌·잘못된 전이를 거부한다.
+  retention admission→catalog 잠금 순서를 고정하고 기존 inflight와 내구 예약을
+  event quota·disk reserve 계산에 포함한다. 동일 채널의 동시 예약도 합산한다.
+  상태 순서는 lifecycle 전이로 판단하며 관측된 wall clock의 역행을 정리 거부 근거로 쓰지 않는다.
+  선택과 무관한 원본의 추가는 job identity를 바꾸지 않는다. 전체 입력 증거 상한과
+  작업이 실제 참조하는 원본 수 상한을 구분한다.
+- **5.3b 게시·복구:** intent→실제 검증→내구 ready→no-replace 게시→출력/출처/job 원자 commit
+  →소유 임시물 정리→job 자원 해제 순서를 구현한다. ready는 기존 writer marker와 혼용하지 않는다.
+  startup에서 원장/보호·예약을 먼저 복원하고 파일을 대조한다. intent 중단은 소유물 정리 후
+  명시 실패로 수렴할 수 있으며 무한 재생성하지 않는다. 완료 후 삭제된 output은 재생성하지 않는다.
+- 출력은 실제 output PTS 기반 별도 epoch를 사용하고 원본 축/UTC를 복사하지 않는다.
+  원본 대응은 AU 출처로 보존하며 직접 대응이 없는 출력 UTC는 미확인으로 둔다.
+  job 직렬화와 생성 자원 상한을 두고, `verified_output`과 요청 전체 충족을 분리한다.
+
+개별 기능/중단점의 사전등록과 실제 결과는 중앙 기록과 5.3 실행 보고서에서 관리한다.
+관련 격리 단기 검증만 승인 범위이며 3D 기본 서버 연결·S11·장시간/UI·푸시는 제외한다.
+
 #### 3C-4 실제 분석·이벤트 소비자 연결 (3C-3C 이후)
 
 전제: a8ed142f 원본 참조 저장 계약/복구 검증 완료. 이 단계는 실제 class 경로의 opt-in 구현이며

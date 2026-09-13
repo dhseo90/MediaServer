@@ -158,6 +158,8 @@ int main(int argc,char** argv) {
         Check(hold&&s.Hold("held")==1&&!s.catalog.RequestDeletion("held","continuous-capacity",&s.error)&&!s.catalog.MarkSegmentCorrupt("held","checksum-mismatch",&s.error)&&!s.catalog.RequestDeletion("pinned","continuous-capacity",&s.error)&&!s.catalog.MarkSegmentCorrupt("pinned","checksum-mismatch",&s.error),"B11 V2 pin and hold protect deletion and corruption");
         auto charged=RetentionCoordinator::Plan({{Candidate(first,RecordingLifecycle::Corrupt),Candidate(second,RecordingLifecycle::DeletionPending)}},Request(0));
         Check(charged.deletions.empty()&&!charged.continuous_quota_satisfied,"B12 V2 pending and corrupt bytes remain charged but are not automatic victims");
+        const auto untouched=Bytes(s.root/"unknown.mp4");
+        {
         const auto applied=s.Add("applied");bool saw_pending=false;auto coordinator=s.Coordinator([&](const auto& p,auto* e){
             bool durable_pending=false,durable_deleted=false;
             for(const auto& record:s.journal.Replay().mutations)if(record.entity_id=="applied") {
@@ -169,9 +171,10 @@ int main(int argc,char** argv) {
         });
         auto cp=Candidate(applied);cp.media_path=s.root/"applied.mp4";RetentionPlan explicit_plan;explicit_plan.deletions.push_back({cp,RetentionCleanupReason::ContinuousCapacity});
         auto wrong_plan=explicit_plan;wrong_plan.deletions[0].candidate.media_path=s.root/"unknown.mp4";
-        const auto untouched=Bytes(s.root/"unknown.mp4");const bool wrong_path=!coordinator.Apply(wrong_plan,20).ok&&Bytes(s.root/"unknown.mp4")==untouched&&s.catalog.SegmentLifecycleV2("applied")==RecordingLifecycle::Finalized;
+        const bool wrong_path=!coordinator.Apply(wrong_plan,20).ok&&Bytes(s.root/"unknown.mp4")==untouched&&s.catalog.SegmentLifecycleV2("applied")==RecordingLifecycle::Finalized;
         auto apply=coordinator.Apply(explicit_plan,20);
         Check(wrong_path&&apply.ok&&apply.deleted_count==1&&saw_pending&&!std::filesystem::exists(cp.media_path)&&s.catalog.SegmentLifecycleV2("applied")==RecordingLifecycle::Deleted,"B13 V2 apply persists pending before unlink and tombstone after unlink");
+        } // 순차 B14 복구는 새 coordinator를 생성하므로 B13의 단일 소유 수명을 종료한다.
         auto interrupted=s.Add("interrupted");bool ip=s.catalog.RequestDeletion(interrupted.segment_id,"continuous-capacity",&s.error);auto recovery=s.Coordinator();auto rr=recovery.RecoverPending(30);
         bool restart_recovery=false;
         {Store pending_store(root/"pending-restart");const auto value=pending_store.Add("lost-parent",false,false,RecordingRetentionClass::Continuous,"sub/file.mp4");
@@ -193,11 +196,11 @@ int main(int argc,char** argv) {
         Check(!read.ResolveMedia("channel","collision")&&!read.ResolveMedia("wrong","unknown")&&!read.ResolveMedia("channel","event")&&s.Hold("collision")==0,"B17 V2 wrong channel event and fallback collision cannot expose media");
         s.Add("missing");std::filesystem::remove(s.root/"missing.mp4");const auto symlink_segment=s.Add("symlink");std::filesystem::remove(s.root/"symlink.mp4");std::filesystem::create_symlink(s.root/"unknown.mp4",s.root/"symlink.mp4");s.Add("hardlink");std::filesystem::create_hard_link(s.root/"hardlink.mp4",s.root/"extra.mp4");
         auto unsafe=Candidate(symlink_segment);unsafe.media_path=s.root/"symlink.mp4";RetentionPlan unsafe_plan;unsafe_plan.deletions.push_back({unsafe,RetentionCleanupReason::ContinuousCapacity});
-        const bool target_preserved=!coordinator.Apply(unsafe_plan,40).ok&&Bytes(s.root/"unknown.mp4")==untouched&&std::filesystem::is_symlink(unsafe.media_path);
+        const bool target_preserved=!recovery.Apply(unsafe_plan,40).ok&&Bytes(s.root/"unknown.mp4")==untouched&&std::filesystem::is_symlink(unsafe.media_path);
         const auto ancestor=s.Add("ancestor",false,false,RecordingRetentionClass::Continuous,"branch/media.mp4");
         std::filesystem::rename(s.root/"branch",s.root/"target-branch");std::filesystem::create_directory_symlink(s.root/"target-branch",s.root/"branch");
         auto ancestor_candidate=Candidate(ancestor);ancestor_candidate.media_path=s.root/"branch/media.mp4";RetentionPlan ancestor_plan;ancestor_plan.deletions.push_back({ancestor_candidate,RetentionCleanupReason::ContinuousCapacity});
-        const auto ancestor_before=Bytes(s.root/"target-branch/media.mp4");const bool ancestor_preserved=!coordinator.Apply(ancestor_plan,40).ok&&!read.ResolveMedia("channel","ancestor")&&Bytes(s.root/"target-branch/media.mp4")==ancestor_before&&s.Hold("ancestor")==0;
+        const auto ancestor_before=Bytes(s.root/"target-branch/media.mp4");const bool ancestor_preserved=!recovery.Apply(ancestor_plan,40).ok&&!read.ResolveMedia("channel","ancestor")&&Bytes(s.root/"target-branch/media.mp4")==ancestor_before&&s.Hold("ancestor")==0;
         Check(target_preserved&&ancestor_preserved&&!read.ResolveMedia("channel","missing")&&!read.ResolveMedia("channel","symlink")&&!read.ResolveMedia("channel","hardlink")&&s.Hold("missing")==0&&s.Hold("symlink")==0&&s.Hold("hardlink")==0,"B18 V2 missing symlink and multiple hardlink media reject without hold leak");
         s.Add("damaged");{std::fstream file(s.root/"damaged.mp4",std::ios::binary|std::ios::in|std::ios::out);file.put('X');}
         const auto healthy_fixture=media_fixture;media_fixture=root/"invalid-container.mp4";{std::ofstream file(media_fixture,std::ios::binary);file<<std::string(128,'x');}

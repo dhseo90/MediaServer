@@ -312,13 +312,119 @@ bool RecordingCatalog::ValidateManagedWriterBinding(const RecordingJournal& jour
 }
 
 bool RecordingCatalog::CanWriteLocked(std::string* error) const {
+    if(!derived_job_state_authoritative_)return Fail(error,"derived job 원장 불확실: 재open 필요");
     if(journal_.managed_&&(!opened_||!journal_.OwnsCatalog(this)))return Fail(error,"managed catalog write 소유권 거부");
     return true;
+}
+
+bool RecordingCatalog::BindRetentionOwner(const RetentionCoordinator* owner) {
+    std::lock_guard lock(mu_);
+    if (!owner || (retention_owner_ && retention_owner_ != owner)) return false;
+    retention_owner_ = owner;
+    return true;
+}
+
+void RecordingCatalog::UnbindRetentionOwner(const RetentionCoordinator* owner) {
+    std::lock_guard lock(mu_);
+    if (retention_owner_ == owner) retention_owner_ = nullptr;
+}
+
+bool RecordingCatalog::IsRetentionOwner(const RetentionCoordinator* owner) const {
+    std::lock_guard lock(mu_);
+    return owner && retention_owner_ == owner;
 }
 
 bool RecordingCatalog::Checkpoint(std::string* error) {
     std::lock_guard lock(mu_);
     return opened_ && CanWriteLocked(error) && CheckpointLocked(false,error);
+}
+
+bool RecordingCatalog::FindDerivedJob(const std::string& id,
+    std::optional<DerivedJobRecordV1>* result,std::string* error) const {
+    std::lock_guard lock(mu_);
+    if(result)result->reset();
+    if(!result||!opened_||!derived_job_state_authoritative_||!CanWriteLocked(error))return Fail(error,"derived job snapshot 미확인");
+    const auto found=derived_jobs_.find(id);
+    if(found!=derived_jobs_.end())*result=found->second;
+    if(error)error->clear();return true;
+}
+bool RecordingCatalog::SnapshotDerivedJobs(std::vector<DerivedJobRecordV1>* result,std::string* error) const {
+    std::lock_guard lock(mu_);
+    if(result)result->clear();
+    if(!result||!opened_||!derived_job_state_authoritative_||!CanWriteLocked(error))return Fail(error,"derived job snapshot 미확인");
+    for(const auto& [_,job]:derived_jobs_)result->push_back(job);
+    std::sort(result->begin(),result->end(),[](const auto& a,const auto& b){return a.intent.job_id<b.intent.job_id;});
+    if(error)error->clear();return true;
+}
+bool RecordingCatalog::DerivedJobProtectsLocked(const std::string& id) const {
+    for(const auto& [_,job]:derived_jobs_)if(DerivedJobActive(job)) {
+        for(const auto& source:job.intent.sources)if(source.segment.segment_id==id)return true;
+        for(const auto& output:job.intent.outputs)if(output.output_id==id)return true;
+    }
+    return false;
+}
+bool RecordingCatalog::ValidateDerivedJobSourcesLocked(const DerivedJobIntentV1& job,std::string* error) const {
+    for(const auto& source:job.sources) {
+        const auto segment=segments_v2_.find(source.segment.segment_id);
+        const auto binding=source_bindings_.find(source.segment.segment_id);
+        if(segment==segments_v2_.end()||binding==source_bindings_.end()||
+           EffectiveLifecycleV2Locked(source.segment.segment_id)!=RecordingLifecycle::Finalized||
+           SerializeRecordingSegmentV2(segment->second)!=SerializeRecordingSegmentV2(source.segment)||
+           SerializeRecordingSourceBindingV1(binding->second)!=SerializeRecordingSourceBindingV1(source.binding)||
+           !media_relpaths_.count(source.segment.segment_id))return Fail(error,"derived job live source 결박 거부");
+    }
+    for(const auto& output:job.outputs) {
+        if(segments_v2_.count(output.output_id)||segments_.count(output.output_id)||tombstones_v2_.count(output.output_id)||tombstones_.count(output.output_id))
+            return Fail(error,"derived job output ID 재사용 거부");
+    }
+    return true;
+}
+bool RecordingCatalog::ApplyDerivedJobMutationLocked(const RecordingMutationV1& mutation,std::string* error) {
+    DerivedJobRecordV1 record;
+    if(!journal_.managed_||!options_.enable_v2_storage||!ParseDerivedJobRecord(mutation.payload_json,&record,error)||
+       record.intent.job_id!=mutation.entity_id)return Fail(error,"derived job mutation 계약 거부");
+    const bool intent=mutation.mutation_type==RecordingMutationType::DerivedJobIntent;
+    if((intent&&record.state!=DerivedJobState::Intent)||(!intent&&record.state!=DerivedJobState::Failed))return Fail(error,"derived job mutation state 불일치");
+    const auto old=derived_jobs_.find(mutation.entity_id);
+    if(old==derived_jobs_.end()) {
+        if(!intent||!ValidateDerivedJobSourcesLocked(record.intent,error))return Fail(error,"derived job 최초 전이 거부");
+        derived_jobs_.emplace(mutation.entity_id,std::move(record));return true;
+    }
+    if(SerializeDerivedJobIntent(old->second.intent)!=SerializeDerivedJobIntent(record.intent))return Fail(error,"derived job immutable 충돌");
+    if(SerializeDerivedJobRecord(old->second)==SerializeDerivedJobRecord(record))return true;
+    if(!intent&&old->second.state==DerivedJobState::Intent){old->second=std::move(record);return true;}
+    return Fail(error,"derived job 상태 전이 거부");
+}
+bool RecordingCatalog::BeginDerivedJobIntent(const DerivedJobIntentV1& value,bool* inserted,std::string* error) {
+    std::lock_guard lock(mu_);if(inserted)*inserted=false;
+    if(!opened_||!journal_.managed_||!derived_job_state_authoritative_||!CanWriteLocked(error)||!ValidateDerivedJobIntent(value,error))return false;
+    const auto old=derived_jobs_.find(value.job_id);
+    if(old!=derived_jobs_.end()) {
+        auto same=value;same.created_at_ms=old->second.intent.created_at_ms;
+        if(SerializeDerivedJobIntent(same)!=SerializeDerivedJobIntent(old->second.intent))return Fail(error,"derived job immutable 충돌");
+        if(error)error->clear();return true;
+    }
+    if(!ValidateDerivedJobSourcesLocked(value,error))return false;
+    DerivedJobRecordV1 record;record.intent=value;
+    RecordingMutationV1 mutation;mutation.mutation_type=RecordingMutationType::DerivedJobIntent;
+    mutation.entity_id=value.job_id;mutation.payload_json=SerializeDerivedJobRecord(record);
+    if(mutation.payload_json.empty())return Fail(error,"derived job envelope 상한");
+    if(!AppendAndApplyLocked(std::move(mutation),error)){derived_job_state_authoritative_=false;return false;}
+    if(inserted)*inserted=true;return true;
+}
+bool RecordingCatalog::FailDerivedJobAfterCleanup(const std::string& id,const std::string& attempt,
+    const std::string& reason,std::int64_t cleaned,std::string* error) {
+    std::lock_guard lock(mu_);
+    if(!opened_||!derived_job_state_authoritative_||!CanWriteLocked(error))return Fail(error,"derived job cleanup snapshot 미확인");
+    const auto found=derived_jobs_.find(id);
+    if(found==derived_jobs_.end()||found->second.intent.attempt_id!=attempt)return Fail(error,"derived job cleanup 소유권 거부");
+    auto record=found->second;record.state=DerivedJobState::Failed;record.failure_reason=reason;record.cleaned_at_ms=cleaned;
+    const auto payload=SerializeDerivedJobRecord(record);
+    if(payload.empty())return Fail(error,"derived job cleanup payload 거부");
+    if(found->second.state==DerivedJobState::Failed)return SerializeDerivedJobRecord(found->second)==payload;
+    if(found->second.state!=DerivedJobState::Intent)return Fail(error,"derived job cleanup 전이 거부");
+    RecordingMutationV1 mutation;mutation.mutation_type=RecordingMutationType::DerivedJobFailed;mutation.entity_id=id;mutation.payload_json=payload;
+    if(!AppendAndApplyLocked(std::move(mutation),error)){derived_job_state_authoritative_=false;return false;}return true;
 }
 
 std::vector<std::string> RecordingCatalog::ProjectionSignatureLocked() const {
@@ -330,6 +436,7 @@ std::vector<std::string> RecordingCatalog::ProjectionSignatureLocked() const {
     for(const auto& [id,v]:segments_)add("v1",id,SerializeRecordingSegmentV1(v));
     for(const auto& [id,v]:segments_v2_)add("v2",id,SerializeRecordingSegmentV2(v));
     for(const auto& [id,v]:source_bindings_)add("source-binding",id,SerializeRecordingSourceBindingV1(v));
+    for(const auto& [id,v]:derived_jobs_)add("derived-job",id,SerializeDerivedJobRecord(v));
     for(const auto& [id,v]:consumer_references_)add("consumer-reference",id,SerializeRecordingConsumerReferenceV1(v));
     for(const auto& [id,v]:referenced_observations_)add("referenced-observation",id,SerializeReferencedObservationV1(v));
     for(const auto& [id,v]:states_v2_)add("v2-state",id,SerializeRecordingSegmentStateV2(v));
@@ -552,6 +659,8 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                                            bool count_duplicate,
                                            std::string* error) {
     const bool segment_state = mutation.mutation_type == RecordingMutationType::ReferencedObservationPut ||
+                               mutation.mutation_type == RecordingMutationType::DerivedJobIntent ||
+                               mutation.mutation_type == RecordingMutationType::DerivedJobFailed ||
                                mutation.mutation_type == RecordingMutationType::ConsumerReferencePut ||
                                mutation.mutation_type == RecordingMutationType::SegmentFinalized ||
                                mutation.mutation_type == RecordingMutationType::SegmentV2State ||
@@ -572,6 +681,10 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
     }
     bool ok = true;
     switch (mutation.mutation_type) {
+        case RecordingMutationType::DerivedJobIntent:
+        case RecordingMutationType::DerivedJobFailed:
+            ok=ApplyDerivedJobMutationLocked(mutation,error);
+            break;
         case RecordingMutationType::ReferencedObservationPut: {
             ReferencedObservationV1 pair;
             ok=options_.enable_v2_storage&&ParseReferencedObservationV1(mutation.payload_json,&pair,error)&&
@@ -747,7 +860,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
         case RecordingMutationType::SegmentV2State: {
             RecordingSegmentStateV2 state;
             ok=ParseRecordingSegmentStateV2(mutation.payload_json,&state,error) &&
-               state.segment_id==mutation.entity_id && segments_v2_.count(state.segment_id);
+               state.segment_id==mutation.entity_id && segments_v2_.count(state.segment_id)&&!DerivedJobProtectsLocked(state.segment_id);
             if(ok) {
                 const auto old=EffectiveLifecycleV2Locked(state.segment_id);
                 const auto previous=states_v2_.find(state.segment_id);
@@ -765,7 +878,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
         case RecordingMutationType::SegmentV2Deleted: {
             RecordingTombstoneV2 tombstone;
             ok=ParseRecordingTombstoneV2(mutation.payload_json,&tombstone,error) &&
-               tombstone.segment.segment_id==mutation.entity_id;
+               tombstone.segment.segment_id==mutation.entity_id&&!DerivedJobProtectsLocked(mutation.entity_id);
             const auto segment=segments_v2_.find(mutation.entity_id);
             const auto old=tombstones_v2_.find(mutation.entity_id);
             if(ok && old!=tombstones_v2_.end()) {
@@ -813,7 +926,8 @@ bool RecordingCatalog::PreflightV2Locked(const RecordingJournalReplayResult& rep
     bool orders=false,v2=false;
     std::unordered_set<std::string> v2_ids;
     for(const auto& m:replay.mutations) {
-        if(m.mutation_type==RecordingMutationType::ConsumerReferencePut||m.mutation_type==RecordingMutationType::ReferencedObservationPut)v2=true;
+        if(m.mutation_type==RecordingMutationType::ConsumerReferencePut||m.mutation_type==RecordingMutationType::ReferencedObservationPut||
+           m.mutation_type==RecordingMutationType::DerivedJobIntent||m.mutation_type==RecordingMutationType::DerivedJobFailed)v2=true;
         if(m.mutation_type==RecordingMutationType::EventLinkReceipt&&(!journal_.managed_||!options_.enable_v2_storage))
             return Fail(error,"receipt managed 지원 필요");
         orders=orders||m.mutation_type==RecordingMutationType::RecordingOrderReserved;
@@ -834,6 +948,8 @@ bool RecordingCatalog::PreflightV2Locked(const RecordingJournalReplayResult& rep
     for(const auto& m:replay.mutations) {
         const auto old=seen.find(m.mutation_id);
         if(old!=seen.end()&&(m.mutation_type==RecordingMutationType::ReferencedObservationPut||
+           m.mutation_type==RecordingMutationType::DerivedJobIntent||m.mutation_type==RecordingMutationType::DerivedJobFailed||
+           old->second.mutation_type==RecordingMutationType::DerivedJobIntent||old->second.mutation_type==RecordingMutationType::DerivedJobFailed||
            old->second.mutation_type==RecordingMutationType::ReferencedObservationPut||m.mutation_type==RecordingMutationType::ConsumerReferencePut||
            old->second.mutation_type==RecordingMutationType::ConsumerReferencePut||m.mutation_type==RecordingMutationType::SegmentV2Finalized||
            m.mutation_type==RecordingMutationType::SegmentV2BoundFinalized||
@@ -1051,7 +1167,7 @@ bool RecordingCatalog::CompleteDeletionV2(const RecordingTombstoneV2& tombstone,
     const auto segment=segments_v2_.find(id);
     if(payload.empty()||segment==segments_v2_.end()||EffectiveLifecycleV2Locked(id)!=RecordingLifecycle::DeletionPending||
        SerializeRecordingSegmentV2(segment->second)!=SerializeRecordingSegmentV2(tombstone.segment)||
-       deletion_reasons_[id]!=tombstone.deletion_reason||hold_counts_.count(id))return Fail(error,"V2 삭제 완료 상태 불일치");
+       deletion_reasons_[id]!=tombstone.deletion_reason||hold_counts_.count(id)||DerivedJobProtectsLocked(id))return Fail(error,"V2 삭제 완료 상태 불일치");
     const auto path=media_relpaths_.find(id);
     if(path==media_relpaths_.end()||!IsSafeMediaRelpath(path->second))return Fail(error,"V2 삭제 경로 없음");
 #if defined(__APPLE__) || defined(__linux__)
@@ -1130,7 +1246,7 @@ bool RecordingCatalog::MarkSegmentCorrupt(const std::string& segment_id,
         return Fail(error, "지원하지 않는 corruption reason");
     const auto v2=segments_v2_.find(segment_id);
     if(v2!=segments_v2_.end()) {
-        if(!CanWriteLocked(error)||v2->second.pinned||hold_counts_.count(segment_id))return Fail(error,"V2 corruption 보호 거부");
+        if(!CanWriteLocked(error)||v2->second.pinned||hold_counts_.count(segment_id)||DerivedJobProtectsLocked(segment_id))return Fail(error,"V2 corruption 보호 거부");
         const auto lifecycle=EffectiveLifecycleV2Locked(segment_id);
         if(lifecycle==RecordingLifecycle::Corrupt)return states_v2_.at(segment_id).reason==reason;
         if(lifecycle!=RecordingLifecycle::Finalized)return Fail(error,"V2 corruption 상태 거부");
@@ -1384,7 +1500,7 @@ bool RecordingCatalog::RequestDeletion(const std::string& segment_id,
         state.lifecycle=RecordingLifecycle::DeletionPending;state.reason=reason;
         const auto payload=SerializeRecordingSegmentStateV2(state);
         const auto effective=EffectiveLifecycleV2Locked(segment_id);
-        if(payload.empty()||v2->second.pinned||hold_counts_.count(segment_id))return Fail(error,"V2 삭제 보호/사유 거부");
+        if(payload.empty()||v2->second.pinned||hold_counts_.count(segment_id)||DerivedJobProtectsLocked(segment_id))return Fail(error,"V2 삭제 보호/사유 거부");
         if(effective==RecordingLifecycle::DeletionPending)return deletion_reasons_[segment_id]==reason;
         if(effective!=RecordingLifecycle::Finalized &&
            !(effective==RecordingLifecycle::Corrupt&&reason=="manual-corrupt-cleanup"))return Fail(error,"V2 삭제 전이 거부");
@@ -1608,6 +1724,9 @@ std::vector<RecordingSegmentV1> RecordingCatalog::FinalizedSegmentsForStartup() 
 RetentionSnapshot RecordingCatalog::RetentionSnapshot() const {
     std::lock_guard lock(mu_);
     struct RetentionSnapshot snapshot;
+    snapshot.authoritative=opened_&&derived_job_state_authoritative_&&CanWriteLocked(nullptr);
+    if(!snapshot.authoritative)snapshot.error="catalog reservation snapshot 미확인";
+    for(const auto& [id,job]:derived_jobs_)if(DerivedJobActive(job))snapshot.durable_reservations.push_back({id,job.intent.reference.channel_id,job.intent.reserved_bytes});
     for(const auto& [id,v]:segments_v2_) {
         const auto lifecycle=EffectiveLifecycleV2Locked(id);
         const auto path=media_relpaths_.find(id);
@@ -1615,6 +1734,7 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshot() const {
         RetentionCandidate candidate;candidate.segment_v2=v;candidate.effective_lifecycle=lifecycle;
         candidate.media_path=options_.media_root/std::filesystem::path(path->second);
         const auto hold=hold_counts_.find(id);candidate.hold_count=hold==hold_counts_.end()?0:hold->second;
+        if(DerivedJobProtectsLocked(id)&&candidate.hold_count<std::numeric_limits<std::uint64_t>::max())++candidate.hold_count;
         const auto reason=deletion_reasons_.find(id);if(reason!=deletion_reasons_.end())candidate.deletion_reason=reason->second;
         snapshot.candidates.push_back(std::move(candidate));
     }
@@ -1975,6 +2095,7 @@ CREATE TABLE IF NOT EXISTS recording_mutations(mutation_id TEXT PRIMARY KEY, typ
 CREATE TABLE IF NOT EXISTS recording_segments(segment_id TEXT PRIMARY KEY, source_id TEXT NOT NULL, channel_id TEXT NOT NULL, stream_epoch_id TEXT NOT NULL, start_utc_ms INTEGER NOT NULL, end_utc_ms INTEGER NOT NULL, start_pts INTEGER NOT NULL, end_pts INTEGER NOT NULL, time_base_num INTEGER NOT NULL, time_base_den INTEGER NOT NULL, container TEXT NOT NULL, codecs_json TEXT NOT NULL, size_bytes INTEGER NOT NULL, checksum_sha256 TEXT NOT NULL, retention_class TEXT NOT NULL, lifecycle TEXT NOT NULL, pinned INTEGER NOT NULL, hold_count INTEGER NOT NULL DEFAULT 0, media_relpath TEXT NOT NULL, created_at_ms INTEGER NOT NULL, finalized_at_ms INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS recording_segments_v2(segment_id TEXT PRIMARY KEY,payload_json TEXT NOT NULL,media_relpath TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS recording_source_bindings(segment_id TEXT PRIMARY KEY,payload_json TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS recording_derived_jobs(job_id TEXT PRIMARY KEY,payload_json TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS recording_consumer_references(reference_id TEXT PRIMARY KEY,payload_json TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS recording_referenced_observations(observation_id TEXT PRIMARY KEY,payload_json TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS recording_segment_states_v2(segment_id TEXT PRIMARY KEY,lifecycle TEXT NOT NULL,reason TEXT NOT NULL,tombstone_json TEXT NOT NULL,hold_count INTEGER NOT NULL DEFAULT 0);
@@ -2001,7 +2122,7 @@ bool RecordingCatalog::RebuildSqliteLocked(std::string* error) {
     if (replay.io_error_count != 0) return Fail(error, "journal replay I/O 오류로 SQLite rebuild 거부");
     if (replay.unsupported_record_count != 0) return Fail(error, "미지원 journal record로 SQLite rebuild 거부");
     if (!PreflightV2Locked(replay,error)) return false;
-    if (!Exec(sqlite_db_, "BEGIN; DELETE FROM recording_referenced_observations; DELETE FROM recording_consumer_references; DELETE FROM recording_source_bindings; DELETE FROM recording_event_link_segments; DELETE FROM recording_event_links; DELETE FROM recording_observations; DELETE FROM recording_observations_v2; DELETE FROM recording_segment_states_v2; DELETE FROM recording_segments_v2; DELETE FROM recording_segments; DELETE FROM recording_tombstones; DELETE FROM recording_mutations; COMMIT;", error)) return false;
+    if (!Exec(sqlite_db_, "BEGIN; DELETE FROM recording_derived_jobs; DELETE FROM recording_referenced_observations; DELETE FROM recording_consumer_references; DELETE FROM recording_source_bindings; DELETE FROM recording_event_link_segments; DELETE FROM recording_event_links; DELETE FROM recording_observations; DELETE FROM recording_observations_v2; DELETE FROM recording_segment_states_v2; DELETE FROM recording_segments_v2; DELETE FROM recording_segments; DELETE FROM recording_tombstones; DELETE FROM recording_mutations; COMMIT;", error)) return false;
     for (std::size_t ordinal = 0; ordinal < replay.mutations.size(); ++ordinal) {
         const auto& mutation = replay.mutations[ordinal];
         if (mutation.mutation_type == RecordingMutationType::SegmentFinalized ||
@@ -2040,7 +2161,14 @@ bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mu
         return Fail(error, mutation_error);
     }
     if (!inserted) return Exec(sqlite_db_, "COMMIT", error);
-    if (mutation.mutation_type == RecordingMutationType::ReferencedObservationPut) {
+    if(mutation.mutation_type==RecordingMutationType::DerivedJobIntent||mutation.mutation_type==RecordingMutationType::DerivedJobFailed) {
+        DerivedJobRecordV1 job;
+        if(!ParseDerivedJobRecord(mutation.payload_json,&job,error)||
+           sqlite3_prepare_v2(sqlite_db_,"INSERT OR REPLACE INTO recording_derived_jobs VALUES(?,?)",-1,&statement,nullptr)!=SQLITE_OK){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+        BindText(statement,1,job.intent.job_id);BindText(statement,2,SerializeDerivedJobRecord(job));
+        const bool ok=sqlite3_step(statement)==SQLITE_DONE;sqlite3_finalize(statement);
+        if(!ok){Exec(sqlite_db_,"ROLLBACK",nullptr);return Fail(error,"derived job SQLite projection 실패");}
+    } else if (mutation.mutation_type == RecordingMutationType::ReferencedObservationPut) {
         ReferencedObservationV1 pair;
         if(!ParseReferencedObservationV1(mutation.payload_json,&pair,error)) {Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
         const auto merged=referenced_observations_.find(pair.observation.observation_id);

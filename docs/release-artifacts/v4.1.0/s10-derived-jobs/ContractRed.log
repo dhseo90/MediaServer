@@ -1,0 +1,5 @@
+[fail] J01 실제 선택→compact 내구 job 계약 왕복
+[detail] error=not-implemented
+[summary] pass=0 fail=1
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-jobs.BMXzyc bytes=3393912 removed=true
+[elapsed] seconds=5 source=bash-SECONDS

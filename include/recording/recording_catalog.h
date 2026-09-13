@@ -84,6 +84,11 @@ public:
                                      const std::filesystem::path& root,
                                      const std::string& store_id, std::string* error) const;
     bool Checkpoint(std::string* error);
+    bool FindDerivedJob(const std::string& job_id,std::optional<DerivedJobRecordV1>* result,std::string* error) const;
+    bool SnapshotDerivedJobs(std::vector<DerivedJobRecordV1>* result,std::string* error) const;
+    // 내부 caller는 실제 소유물 cleanup 완료 후 호출한다. 5.3b가 inode/경로 증명을 담당한다.
+    bool FailDerivedJobAfterCleanup(const std::string& job_id,const std::string& attempt_id,
+        const std::string& reason,std::int64_t cleaned_at_ms,std::string* error);
     bool FinalizeBoundSegmentV2(const RecordingSegmentV2&, const RecordingSourceBindingV1&, const std::string& path, std::string* error);
     bool ValidateBoundFinalizeRecoveryV2(const RecordingSegmentV2&, const RecordingSourceBindingV1&, const std::string& path, std::string* error) const;
     bool RecoverBoundSegmentV2(const RecordingSegmentV2&, const RecordingSourceBindingV1&, const std::string& path, bool* inserted, std::string* error);
@@ -164,6 +169,15 @@ public:
                                                   std::int64_t end_ms) const override;
 
 private:
+    friend class RetentionCoordinator;
+    bool BindRetentionOwner(const RetentionCoordinator* owner);
+    void UnbindRetentionOwner(const RetentionCoordinator* owner);
+    bool IsRetentionOwner(const RetentionCoordinator* owner) const;
+    const RetentionCoordinator* retention_owner_{nullptr};
+    bool BeginDerivedJobIntent(const DerivedJobIntentV1&,bool* inserted,std::string* error);
+    bool DerivedJobProtectsLocked(const std::string& segment_id) const;
+    bool ValidateDerivedJobSourcesLocked(const DerivedJobIntentV1&,std::string*) const;
+    bool ApplyDerivedJobMutationLocked(const RecordingMutationV1&,std::string*);
     RecordingLifecycle EffectiveLifecycleV2Locked(const std::string& id) const;
     bool OpenLocked(std::string* error);
     bool CanWriteLocked(std::string* error) const;
@@ -199,6 +213,7 @@ private:
     Options options_;
     mutable std::mutex mu_;
     bool opened_{false};
+    bool derived_job_state_authoritative_{true};
     std::string catalog_mode_{"jsonl-fallback"};
     RecordingCatalogRecoveryReport recovery_report_;
     std::unordered_set<std::string> mutation_ids_;
@@ -208,6 +223,7 @@ private:
     std::unordered_map<std::string, RecordingSegmentV1> segments_;
     std::unordered_map<std::string, RecordingSegmentV2> segments_v2_;
     std::unordered_map<std::string, RecordingSourceBindingV1> source_bindings_;
+    std::unordered_map<std::string, DerivedJobRecordV1> derived_jobs_;
     std::unordered_map<std::string, RecordingSegmentStateV2> states_v2_;
     std::unordered_map<std::string, RecordingTombstoneV2> tombstones_v2_;
     std::unordered_map<std::string, RecordingOrderReservationV1> orders_v2_;

@@ -1,0 +1,40 @@
+[pass] J01 실제 선택→compact 내구 job 계약 왕복
+[detail] error=
+[pass] J17 무관source8개 추가에도 동일선택 jobID 유지
+[pass] J18 cleanup wall시계 역행 허용·순서는상태로검사
+[pass] J04 단일 Intent 원장·보호·예약 원자 가시성
+[pass] J19 후발 coordinator 일반·파생 admission 및 복구 차단
+[pass] J02 이후 시각 재Build ID 유지·선택 변경 새 ID
+[pass] J03 unknown·중복·미지원 schema·불완전 JSON·4MiB·예약 상한·미구현 state 거부
+[pass] J16 소유 경로·attempt·order 계획 조작 거부
+[pass] J16 실제 2 source UUID 역순이어도 영속 order 순 출력 계획
+[pass] J08 나중 시각 재요청 최초 시각 유지·예약/경로 충돌·다른 catalog 거부
+[pass] J06 generic hold 감소로 job 보호 해제 불가·직접 삭제/corrupt 차단
+[pass] J14 cleanup Failed는 job 자원만 해제·wall 역행·terminal 자동 재시도 없음
+[detail] J05 pending 예약 없음=1
+[detail] J05 corrupt 예약 없음=1
+[detail] J05 deleted 예약 없음=1
+[detail] J05 hash 예약 없음=1
+[detail] J05 binding 예약 없음=1
+[pass] J05 pending·corrupt·tombstone·hash·binding 불일치 source 거부
+[pass] J07 실제 source 삭제/Intent 경쟁에서 둘 중 한 전이만 허용
+[pass] J10 checkpoint 전후 job·보호·예약 유지
+[pass] J09 SQLite·fallback·재build/reopen 내구 job 동등·중복 보호 가산 없음
+[detail] J10 different 거부=derived job immutable 충돌
+[detail] J10 malformed 거부=derived job mutation 계약 거부
+[detail] J10 schema 거부=derived job mutation 계약 거부
+[detail] J10 transition 거부=derived job mutation 계약 거부
+[detail] J10 protected-state 거부=V2 상태 전이 거부
+[detail] J10 failed-without-intent 거부=derived job 최초 전이 거부
+[pass] J10 replay 동일 중복 멱등·다른 내용/불완전/schema/전이/보호 상태 거부
+[pass] J11 같은 채널 memory+동시 durable 예약 합계 event quota 제한
+[pass] J12 durable outstanding을 continuous/event/derived disk 예약에 포함
+[pass] J13 snapshot/disk provider 실패는 생성·periodic·복구 삭제 차단
+[pass] J15 partial unknown·이유·후보·요청 시간축 그대로 보존
+[pass] J19 정확한 소유자 소멸 후 새 coordinator만 재결박
+[pass] J20 append 거부 후 원장 복원해도 공통 mutation 차단
+[detail] injected=managed journal 미완결 tail 거부
+[detail] admission=created
+[summary] pass=23 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-jobs.qyKt8D bytes=8045759 removed=true
+[elapsed] seconds=6 source=bash-SECONDS

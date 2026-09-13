@@ -1,0 +1,12 @@
+[pass] J01 실제 선택→compact 내구 job 계약 왕복
+[detail] error=
+[pass] J17 무관source8개 추가에도 동일선택 jobID 유지
+[pass] J18 cleanup wall시계 역행 허용·순서는상태로검사
+[pass] J04 단일 Intent 원장·보호·예약 원자 가시성
+[pass] J19 후발 coordinator 일반·파생 admission 및 복구 차단
+[fail] J20 append 거부 후 원장 복원해도 공통 mutation 차단
+[detail] injected=managed journal 미완결 tail 거부
+[detail] admission=created
+[summary] pass=5 fail=1
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-jobs.hLVMHT bytes=4111166 removed=true
+[elapsed] seconds=5 source=bash-SECONDS

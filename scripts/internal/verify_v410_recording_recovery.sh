@@ -15,6 +15,6 @@ trap cleanup EXIT
  "${ROOT_DIR}/src/recording/recording_finalize_recovery.cpp" \
  "${ROOT_DIR}/src/recording/recording_media_inspector.cpp" \
   -DMEDIA_SERVER_USE_SQLITE3=0 \
-  "${ROOT_DIR}/src/recording/recording_contracts.cpp" "${ROOT_DIR}/src/domain/strict_json.cpp" \
+  "${ROOT_DIR}/src/recording/recording_derived_job.cpp" "${ROOT_DIR}/src/recording/recording_contracts.cpp" "${ROOT_DIR}/src/domain/strict_json.cpp" \
   -o "${BUILD_DIR}/recording_recovery_smoke"
 "${BUILD_DIR}/recording_recovery_smoke" "$BUILD_DIR" "$@"
