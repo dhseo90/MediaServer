@@ -1,0 +1,5 @@
+[fail] F01 실제 writer→선택→Intent→파생 파일→게시→Complete
+[detail] reason=not-implemented outputs=2
+[summary] pass=0 fail=1
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-job-service.lksyCt bytes=4071879 removed=true
+[elapsed] seconds=1 source=bash-SECONDS

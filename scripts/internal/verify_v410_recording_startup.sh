@@ -23,7 +23,7 @@ read -r -a FLAGS <<< "$(pkg-config --cflags --libs sqlite3 gstreamer-1.0 gstream
  "$SCRIPT_DIR/recording_startup_smoke.cpp" "$ROOT_DIR/src/recording/recording_startup_recovery.cpp" \
  "$ROOT_DIR/src/recording/recording_catalog.cpp" "$ROOT_DIR/src/recording/recording_journal.cpp" \
  "$ROOT_DIR/src/recording/recording_finalize_recovery.cpp" "$ROOT_DIR/src/recording/recording_media_inspector.cpp" \
- "$ROOT_DIR/src/recording/recording_derived_job.cpp" "$ROOT_DIR/src/recording/recording_contracts.cpp" "$ROOT_DIR/src/recording/retention_coordinator.cpp" \
+ "$ROOT_DIR/src/recording/recording_derived_job.cpp" "$ROOT_DIR/src/recording/recording_derived_job_ready.cpp" "$ROOT_DIR/src/recording/recording_contracts.cpp" "$ROOT_DIR/src/recording/retention_coordinator.cpp" \
  "$ROOT_DIR/src/domain/strict_json.cpp" -DMEDIA_SERVER_USE_SQLITE3=1 -DMEDIA_SERVER_USE_GSTREAMER=1 "${FLAGS[@]}" -o "$RUN_DIR/smoke"
 "$RUN_DIR/smoke" "$RUN_DIR" "$ROOT_DIR/video/sample_h264_video_only.mp4"
 STARTUP_UNIT_COMPLETED=1

@@ -1,0 +1,13 @@
+[fault] stage=3 index=0 durable_state_before_exit=true
+[fault] stage=0 index=0 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=render expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[fault] stage=3 index=0 durable_state_before_exit=true
+[pass] F11 anchored root 교체 거부·새 catalog에서 파일/원장 무변경
+[pass] F16 다른 journal/root/catalog의 Run·Reconcile 무변경 거부
+[pass] F12 실제 committed 중첩 output의 미예약 order 위조 거부
+[pass] F15 active snapshot 8개 상한·초과 명시·다음 호출 수렴
+[pass] F12 journal Ready→Complete 불법 전이 replay 거부
+[summary] pass=5 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-job-service.XYHDik bytes=7210023 removed=true
+[elapsed] seconds=5 source=bash-SECONDS

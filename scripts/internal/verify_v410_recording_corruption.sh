@@ -16,7 +16,7 @@ read -r -a SQLITE_FLAGS <<< "$(pkg-config --cflags --libs sqlite3)"
  "${SCRIPT_DIR}/recording_corruption_smoke.cpp" "${ROOT_DIR}/src/recording/recording_catalog.cpp" \
  "${ROOT_DIR}/src/recording/recording_finalize_recovery.cpp" \
  "${ROOT_DIR}/src/recording/recording_media_inspector.cpp" \
- "${ROOT_DIR}/src/recording/recording_journal.cpp" "${ROOT_DIR}/src/recording/recording_derived_job.cpp" "${ROOT_DIR}/src/recording/recording_contracts.cpp" \
+ "${ROOT_DIR}/src/recording/recording_journal.cpp" "${ROOT_DIR}/src/recording/recording_derived_job.cpp" "${ROOT_DIR}/src/recording/recording_derived_job_ready.cpp" "${ROOT_DIR}/src/recording/recording_contracts.cpp" \
  "${ROOT_DIR}/src/recording/retention_coordinator.cpp" "${ROOT_DIR}/src/domain/strict_json.cpp" \
  -DMEDIA_SERVER_USE_SQLITE3=1 -DB2A_RED_ONLY="$([[ "$MODE" == --red ]] && echo 1 || echo 0)" \
  "${SQLITE_FLAGS[@]}" -o "$RUN_DIR/smoke"

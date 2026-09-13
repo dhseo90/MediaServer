@@ -1,5 +1,96 @@
 # Release Test Records
 
+## S10 3C-5.3b 사전등록 — 2026-09-13
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-F01 | 실제 정상 완료 | 기존 H264 fixture→writer→selector→Intent→실제2출력→Ready→publish→원자commit→Complete, 파일hash·출처·자원해제 | v4.1.0 |
+| S10-F02 | 출력 독립 시간축·출처 | output PTS/duration 독립epoch·ns timebase·Event class·unknown UTC, AU/VCL/visible hash/90k 잔차 및 요청/실제/미충족 그대로 보존 | v4.1.0 |
+| S10-F03 | Intent 생성 전 중단 | 생성 전 재시작은 소유 파일 없음 확인 후 Failed, 렌더 재시도 없음 | v4.1.0 |
+| S10-F04 | create/receipt 사이 중단 | 파일 존재만으로 소유 추정 금지; Unknown blocker·보호/예약 유지·자동 삭제 없음 | v4.1.0 |
+| S10-F05 | receipt 후 중단 | 정확한 root/parents/dev/inode/attempt 및 nlink1·상한 확인 후 소유partial 정리→Failed | v4.1.0 |
+| S10-F06 | Ready 중단 | 실제 검증 Ready 재시작은 재렌더 없이 hash 대조·게시·원자commit·정리 수렴 | v4.1.0 |
+| S10-F07 | 각 output link 중단 | 두 출력 각각 linkat 직후 nlink2 동일inode 쌍 재시작·양 부모fsync·나머지publish 수렴 | v4.1.0 |
+| S10-F08 | 게시 내구 후 중단 | 모든 게시 뒤 commit 전 재시작은 동일 검증파일만 commit | v4.1.0 |
+| S10-F09 | Committed 중단 | 출력/출처/job 단일mutation과 source/output 보호 유지·임시정리 후 Complete | v4.1.0 |
+| S10-F10 | cleanup 중단 | 각 temp unlink·attempt/job 디렉터리 삭제·terminal 저장 직전 중단을 포함하며 Complete/Failed cleanup 모두 부재를 안전하게 증명해 재시작 수렴 | v4.1.0 |
+| S10-F11 | hash/누락/foreign 파일 | Ready hash변경·누락·동명foreign·symlink·FIFO·추가hardlink·root/parent교체는 비차단 regular 검사와 overwrite/unlink금지·blocker | v4.1.0 |
+| S10-F12 | 엄격 원장 전이 | receipt/Ready/Commit/Complete strict parser·unknown/불완전/ID충돌·중첩 output order 위조 거부 및SQLite/fallback/checkpoint 동등 | v4.1.0 |
+| S10-F13 | terminal tombstone | Complete output 보존삭제 후 재시작/Run은 재생성하지 않음 | v4.1.0 |
+| S10-F14 | 취소·용량·기록 상한 | 취소·30초budget·출력합계 cap·4MiB provenance 초과는 성공절단 금지, 소유cleanup 확인 후Failed | v4.1.0 |
+| S10-F15 | 단일 실행·동시 호출 | 같은 catalog service 소유1개·동시Run 거부·active snapshot 최대8개와 초과 명시, 중복 상태 멱등 | v4.1.0 |
+| S10-F16 | 복구 시작 순서 | catalogOpen 보호·예약 복원→service Reconcile→후속 retention/producer 순서만fixture검증; production기본연결 제외 | v4.1.0 |
+
+F12 추가 입력 결박: 실제 remux 결과의 selection 변경, provenance requested 범위 변경, unfulfilled의 source/axis/range 위조를 각각 거부한다. manifest 자기 일치로 요청 결박을 대신하지 않는다. F15는 서비스 Run 소유 중 외부 `FailDerivedJobAfterCleanup`의 자원 해제 거부도 포함한다. 중단 검증은 별도 exec 프로세스에서 새 managed catalog/service를 열고 progress 경계 `_exit` 후 다른 프로세스로 재개한다.
+
+첫 명령은 `bash scripts/internal/verify_recording_derived_job_service.sh`다. F01은 실제2출력 준비 후 서비스 stub `not-implemented` 때문에 Complete assertion이 실패하는 예상 RED다. 이후 독립 정상/중단 묶음을 함께 실행한다. 원출력은 `docs/release-artifacts/v4.1.0/s10-derived-job-service/`에 직접 capture하며 소유 mktemp root를 runner에서 전수 정리·부재 확인한다. 하위 생성·서버·port·외부 입력·비밀은 없다. create→receipt 전 crash의 소유 미확인은 의도된 blocker이며 복구완료로 승격하지 않는다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 실제 파일/원장·게시·복구 변경 | F01~F16 | focused/build/직접 catalog·retention·remux 영향 회귀 승인 |
+| 30분 | 미진행 | 이번 실행 미승인 | S11 최종 cut | 미승인 |
+| 120분 | 조건부 진행 | S11 최종 cut에서 영향 범위 대조 | job 파일/자원 수명 | 이번 실행 미승인 |
+| UI | 미진행 | 내부 서비스에 UI 없어야 정상 | F01~F16 | 미승인 |
+
+
+## S10 3C-5.3b 실행 결과 — 2026-09-13
+
+상세 [단위 보고서](release-artifacts/v4.1.0/s10-derived-job-service/report.md), [최종 개별 429행과 cleanup19행](release-artifacts/v4.1.0/s10-derived-job-service/results.md)에 실제 명령·exit·전수 결과·실패 이력·한계를 보존했다. 최종 focused49(43+6), 기존 job23, catalog246, retention56, V2retention24, remux31 전수 PASS다. build/diffcheck exit0. 메인 docs-links exit0(markdown246/local3141/images22/anchors110/index76/exclusions160/fail0)은 제품429개와 별도다. 5.4/3D/S11·장시간/UI·커밋/푸시는 수행하지 않았다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| F12 실제 remux의 다른 selection 결박 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 66행 | pass |
+| F12 실제 remux provenance의 요청 범위 위조 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 67행 | pass |
+| F12 실제 remux의 foreign unfulfilled 범위 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 68행 | pass |
+| F01 실제 writer→선택→Intent→파생 파일→게시→Complete | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 69행 | pass |
+| F01 실제 catalog/file/hash/단일 commit/hold 해제/cleanup 및 직접 decode | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 73행 | pass |
+| F15 단일 service·동시 Run·외부 terminal release 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 74행 | pass |
+| F16 active source 삭제 거부·동일 사유 비보호 원본 삭제 positive control | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 75행 | pass |
+| F02 두 출력 독립 epoch·unknown UTC·실제 AU/visible 출처 보존 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 76행 | pass |
+| F12 Complete 출처 전수 canonical roundtrip | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 77행 | pass |
+| F12 Ready 포함 Intent 잘못된 상태 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 78행 | pass |
+| F12 미지원 필드 엄격 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 79행 | pass |
+| F14 Ready JSON 4MiB 명시 상한 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 80행 | pass |
+| F12 출력 receipt inode 별칭 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 81행 | pass |
+| F03 Intent 생성 전 프로세스 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 83행 | pass |
+| F04 receipt 전 실물의 소유권 미확인 보호 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 84행 | pass |
+| F05 receipt 이후 Intent 중단 소유물 정리 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 85행 | pass |
+| F06 Ready 중단 뒤 재렌더 없이 완료 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 86행 | pass |
+| F07 첫 출력 link 중단 쌍 복구 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 87행 | pass |
+| F07 두 번째 출력 link 중단 쌍 복구 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 88행 | pass |
+| F08 전체 publish 후 commit 전 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 89행 | pass |
+| F09 원자 commit 후 cleanup 전 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 90행 | pass |
+| F10 첫 temp 삭제 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 91행 | pass |
+| F10 두 번째 temp 삭제 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 92행 | pass |
+| F10 attempt 디렉터리 삭제 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 93행 | pass |
+| F10 job 디렉터리 삭제 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 94행 | pass |
+| F10 Complete mutation 직전 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 95행 | pass |
+| F10 Failed cleanup attempt 삭제 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 96행 | pass |
+| F10 Failed cleanup job 삭제 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 97행 | pass |
+| F10 Failed mutation 직전 중단 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 98행 | pass |
+| F11 hash 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 99행 | pass |
+| F11 missing 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 100행 | pass |
+| F11 foreign 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 101행 | pass |
+| F11 symlink 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 102행 | pass |
+| F11 fifo 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 103행 | pass |
+| F11 hardlink 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 104행 | pass |
+| F11 parent 오류 거부·보호/예약 유지 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 105행 | pass |
+| F14 cancel-before-create 생성 중단·소유 cleanup·예약 해제 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 106행 | pass |
+| F14 cancel 생성 중단·소유 cleanup·예약 해제 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 107행 | pass |
+| F14 small 생성 중단·소유 cleanup·예약 해제 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 108행 | pass |
+| F14 deadline 생성 중단·소유 cleanup·예약 해제 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 109행 | pass |
+| F12 SQLite projection·journal fallback job/output 일치 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 110행 | pass |
+| F12 SQLite rebuild·checkpoint 재개방 job/output 일치 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 111행 | pass |
+| F13 Complete output tombstone 뒤 재생성 없음 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ProjectionFirst.log) 112행 | pass |
+| F11 anchored root 교체 거부·새 catalog에서 파일/원장 무변경 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ClosingFinalFixed.log) 9행 | pass |
+| F16 다른 journal/root/catalog의 Run·Reconcile 무변경 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ClosingFinalFixed.log) 10행 | pass |
+| F12 실제 committed 중첩 output의 미예약 order 위조 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ClosingFinalFixed.log) 11행 | pass |
+| F15 active snapshot 8개 상한·초과 명시·다음 호출 수렴 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ClosingFinalFixed.log) 12행 | pass |
+| F12 journal Ready→Complete 불법 전이 replay 거부 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ClosingFinalFixed.log) 13행 | pass |
+| F09 재개 전 source/output holds·정상 삭제사유 거부와 cleanup 후 해제 | focused exit0, [원출력](release-artifacts/v4.1.0/s10-derived-job-service/ClosingFinalFixed.log) 14행 | pass |
+
+최초 F01/F12/BeforeCreate 취소 예상 RED, 혼합 ABI abort134, 제품 order 필드 compile 오류, root 재조회 fixture 오류, C++17 fixture compile 오류를 보고서에 보존했으며 PASS로 소급 덮지 않았다. cleanup은 원출력에 기록된 소유 root19개를 정리하고 현재 부재를 다시 대조했다.
+
 ## S10 3C-5.3a 실행 결과 — 2026-09-13
 
 상세 source-of-truth 보존물은 [단위 보고서](release-artifacts/v4.1.0/s10-derived-jobs/report.md), [최종 개별 349행 및 cleanup20행](release-artifacts/v4.1.0/s10-derived-jobs/results.md)이다. 원출력과 각 행을 자동 대조했으며 아래는 focused 개별 결과다. Ready/실제 파일/게시/복구는 5.3b 미구현으로 남긴다.

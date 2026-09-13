@@ -1,0 +1,58 @@
+[pass] continuous quota는 end_utc_ms, segment_id oldest-first
+[pass] continuous/event quota가 자기 등급 artifact만 선택
+[pass] continuous/event 보존 기간을 독립적으로 적용
+[pass] continuous 보존 기간은 event와 독립적으로 적용
+[pass] event 보존 기간은 continuous와 독립적으로 적용
+[pass] 새 segment 예상 용량까지 continuous quota에 선반영
+[pass] pinned event와 hold_count>0 continuous 자동 삭제 제외
+[pass] disk reserve 부족은 eligible continuous부터 정리
+[pass] journal 실패 시 media unlink와 tombstone 중단
+[pass] unlink 실패는 deletion_pending 유지, 회수 byte 0
+[pass] tombstone journal 실패는 pending으로 남겨 다음 tick 복구
+[pass] channel retention policy 등록: 
+[pass] 삭제 불가 시 해당 channel writer만 storage-blocked
+[pass] 공간 회복 뒤 새 keyframe용 epoch 재발급 신호
+[pass] 다중 channel reserve policy 등록
+[pass] 동시 channel admission이 물리 여유 공간을 중복 예약하지 않음
+[pass] segment finalize 후 in-flight reserve 반환으로 다른 channel 재개
+[pass] segment hard bound policy 등록
+[pass] 최소 packet보다 작은 continuous quota는 쓰기 전에 차단
+[pass] 진행량 정산 policy 등록
+[pass] 물리 free에 반영된 partial 쓰기량은 예약에서 이중 차감하지 않음
+[pass] 실제 동시 admission policy 등록
+[pass] 두 실제 thread의 동시 admission 중 하나만 reserve 획득
+[pass] cleanup 미해결 reservation policy 등록
+[pass] cleanup 미해결 channel 재활성화 policy 등록
+[pass] 정책 비활성·재활성 뒤에도 미해결 파일 reservation을 유지해 fail-closed
+[pass] stale free-space policy 등록
+[pass] unlink 뒤에도 filesystem 여유 공간이 부족하면 회수량을 추정해 허용하지 않음
+[pass] 통합 journal open: 
+[pass] 통합 catalog open: 
+[pass] 통합 segment finalize: 
+[pass] tombstone은 남고 media path와 원본 bytes는 제거
+[pass] hold overflow segment finalize: 
+[pass] hold_count int64 최댓값 저장: 
+[pass] hold_count int64 오버플로 거부
+[pass] hold race segment finalize: 
+[pass] hold_count 획득: 
+[pass] 계획 뒤 획득된 hold도 삭제 transition에서 재검증
+[pass] pending recovery segment finalize: 
+[pass] pending recovery 삭제 요청: 
+[pass] pending recovery media 사전 제거
+[pass] unlink 뒤 tombstone 실패 상태를 다음 tick에서 idempotent 재완료
+[pass] pending 복구 격리 policy 등록
+[pass] 한 channel의 pending 복구 실패가 다른 channel admission/tick을 차단하지 않음
+[pass] 정책이 없거나 비활성인 channel의 pending도 주기적으로 tombstone 완료
+[pass] event 압력 독립 policy 등록
+[pass] event 예상 회수량을 제외하고 continuous만으로 reserve와 admission 처리
+[pass] malicious journal open: 
+[pass] malicious mutation append: 
+[pass] malicious catalog open: 
+[pass] journal mediaRelpath가 root 밖이면 retention 후보에서 격리
+[pass] unlink 직전 symlink 전환 준비
+[pass] unlink 직전 root 밖 symlink 생성
+[pass] journal 이후 unlink 직전 canonical root containment 재검증
+[pass] dirfd에 결박된 unlink는 검증 뒤 상위 경로 교체에도 외부 파일을 보호
+[pass] storage root가 비어 있으면 안전 unlink를 fail-closed
+[verify-v410-recording-retention] pass=56 fail=0
+[cleanup] path=/tmp/media_server_v410_recording_retention-99495 bytes=4273004 removed=true

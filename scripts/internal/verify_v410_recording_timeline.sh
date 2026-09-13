@@ -49,7 +49,7 @@ case "$MODE" in
  "$ROOT_DIR/src/recording/recording_finalize_recovery.cpp" \
  "$ROOT_DIR/src/recording/recording_media_inspector.cpp" \
       "$ROOT_DIR/src/recording/retention_coordinator.cpp" \
-      "$ROOT_DIR/src/recording/recording_derived_job.cpp" "$ROOT_DIR/src/recording/recording_contracts.cpp" \
+      "$ROOT_DIR/src/recording/recording_derived_job.cpp" "$ROOT_DIR/src/recording/recording_derived_job_ready.cpp" "$ROOT_DIR/src/recording/recording_contracts.cpp" \
       "$ROOT_DIR/src/domain/strict_json.cpp" \
       ${SQLITE_LIBS[*]-} ${CRYPTO_FLAGS[*]-} -o "$RUN_ROOT/read-smoke"
     if [[ "$MODE" == "--seed-http" || "$MODE" == "--seed-ui" ]]; then

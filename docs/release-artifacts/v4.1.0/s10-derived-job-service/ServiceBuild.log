@@ -1,0 +1,13 @@
+[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+[2/2] build
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_job_service.cpp.o
+/Users/dhseo/Workspace/mediaServer/src/recording/recording_derived_job_service.cpp:212:188: error: no member named 'order_sequence' in 'recording::RecordingOrderReservationV1'
+  212 |             Require(journal.ReserveRecordingOrder(source.store_id,plan.order_request_id,plan.output_id,source.channel_id,&order,&error),"job-output-order: "+error);orders.push_back(order.order_sequence);
+      |                                                                                                                                                                                      ~~~~~ ^
+1 error generated.
+make[2]: *** [CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_job_service.cpp.o] Error 1
+make[1]: *** [CMakeFiles/media_server_runtime.dir/all] Error 2
+make: *** [all] Error 2

@@ -414,6 +414,20 @@ namespace recording {
         }
         );
     }
+    bool MatchesDerivedJobSelection(const DerivedJobIntentV1& job,const DerivedRecordingSelection& selection,std::string* error){
+        return Guard(error,[&]{
+            Validate(job);
+            Need(SerializeRecordingConsumerReferenceV1(selection.reference)==SerializeRecordingConsumerReferenceV1(job.reference),"job-remux-reference-conflict");
+            std::vector<DerivedSourceEvidence> sources;
+            const auto document=Obj(job.selection_json,{"schema","start","end","complete","reason","segments","slices","unplaced"});
+            for(const auto& raw:A(document,"segments",8)){
+                DerivedSourceEvidence source;
+                Need(ParseRecordingSegmentV2(raw,&source.segment,nullptr),"job-selection-source");
+                sources.push_back(std::move(source));
+            }
+            Need(Compact(selection,sources)==job.selection_json,"job-remux-selection-conflict");
+        });
+    }
     bool ValidateDerivedJobIntent(const DerivedJobIntentV1& job,std::string* error){
         return Guard(error,[&]{
             Validate(job);
@@ -474,35 +488,6 @@ namespace recording {
     }
     bool DerivedJobActive(const DerivedJobRecordV1& record){
         return record.state!=DerivedJobState::Complete&&record.state!=DerivedJobState::Failed;
-    }
-    std::string SerializeDerivedJobRecord(const DerivedJobRecordV1& record){
-        const auto intent=SerializeDerivedJobIntent(record.intent);
-        if(intent.empty()||(record.state!=DerivedJobState::Intent&&record.state!=DerivedJobState::Failed))return {};
-        if(record.state==DerivedJobState::Intent&&(!record.failure_reason.empty()||record.cleaned_at_ms))return {};
-        if(record.state==DerivedJobState::Failed&&(record.failure_reason.empty()||record.failure_reason.size()>1024||record.cleaned_at_ms<=0))return {};
-        const auto json="{\"schema\":\"media-server.derived-job-record.v1\",\"intent\":"+intent+",\"state\":"+Q(record.state==DerivedJobState::Intent?"intent":"failed")+",\"reason\":"+Q(record.failure_reason)+",\"cleaned_at_ms\":"+std::to_string(record.cleaned_at_ms)+"}";
-        return json.size()<=kCap?json:std::string{};
-    }
-    bool ParseDerivedJobRecord(const std::string& json,DerivedJobRecordV1* out,std::string* error){
-        if(out)*out={};
-        return Guard(error,[&]{
-            Need(out,"job-record-output-null");
-            const auto d=Obj(json,{
-                "schema","intent","state","reason","cleaned_at_ms"
-            }
-            );
-            Need(S(d,"schema")=="media-server.derived-job-record.v1","job-record-schema");
-            DerivedJobRecordV1 record;
-            Need(ParseDerivedJobIntent(O(d,"intent"),&record.intent,error),"job-record-intent");
-            const auto state=S(d,"state");
-            Need(state=="intent"||state=="failed","job-state-not-supported-yet");
-            record.state=state=="intent"?DerivedJobState::Intent:DerivedJobState::Failed;
-            record.failure_reason=S(d,"reason");
-            record.cleaned_at_ms=N(d,"cleaned_at_ms");
-            Need(!SerializeDerivedJobRecord(record).empty()&&SerializeDerivedJobRecord(record)==json,"job-record-invalid");
-            *out=std::move(record);
-        }
-        );
     }
 }
 // namespace recording

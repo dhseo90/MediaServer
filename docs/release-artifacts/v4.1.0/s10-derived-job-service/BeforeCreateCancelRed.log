@@ -1,0 +1,11 @@
+[child] mode=cancel-before-create expected=failed observed_complete=0 blocked=1 reason=job-cancelled-or-deadline; cleanup: job-unreceipted-ownership-unknown
+[child] mode=cancel expected=failed observed_complete=0 blocked=0 reason=job-cancelled-or-deadline
+[child] mode=small expected=failed observed_complete=0 blocked=0 reason=job-remux: output-byte-budget-exceeded
+[child] mode=deadline expected=failed observed_complete=0 blocked=0 reason=job-cancelled-or-deadline
+[fail] F14 cancel-before-create 생성 중단·cleanup·예약 해제
+[pass] F14 cancel 생성 중단·cleanup·예약 해제
+[pass] F14 small 생성 중단·cleanup·예약 해제
+[pass] F14 deadline 생성 중단·cleanup·예약 해제
+[summary] pass=3 fail=1
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-job-service.0X79zW bytes=6117929 removed=true
+[elapsed] seconds=2 source=bash-SECONDS

@@ -2661,3 +2661,24 @@ release gate에서 FAIL합니다. 네 테스트 영역 밖 분류도 거부합�
 ## Script Inventory Boundary
 
 이 문서는 기능별 UI 필요 여부와 테스트 영역을 관리합니다. `server.sh` command dispatch, `scripts/internal/*`, `scripts/examples/*`, helper script 전체 목록은 `./server.sh verify-script-inventory`가 전용 검증 기준입니다. script 파일 하나하나를 기능 row로 다시 나열하지 않습니다.
+
+## S10 3C-5.3b 실제 파일·복구 사전등록
+
+| 기능 ID | 기능/경계 | 안정화 | 30분 | 120분 | UI | 합격 기준 |
+| --- | --- | --- | --- | --- | --- | --- |
+| S10-F01 | 실제 정상 완료 | 승인 focused/영향 회귀 | S11 최종 cut | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 기존 H264 fixture→writer→selector→Intent→실제2출력→Ready→publish→원자commit→Complete, 파일hash·출처·자원해제 |
+| S10-F02 | 출력 독립 시간축·출처 | 승인 focused/영향 회귀 | S11 최종 cut | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | output PTS/duration 독립epoch·ns timebase·Event class·unknown UTC, AU/VCL/visible hash/90k 잔차 및 요청/실제/미충족 그대로 보존 |
+| S10-F03 | Intent 생성 전 중단 | 승인 focused/영향 회귀 | S11 최종 cut | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 생성 전 재시작은 소유 파일 없음 확인 후 Failed, 렌더 재시도 없음 |
+| S10-F04 | create/receipt 사이 중단 | 승인 focused/영향 회귀 | S11 최종 cut | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 파일 존재만으로 소유 추정 금지; Unknown blocker·보호/예약 유지·자동 삭제 없음 |
+| S10-F05 | receipt 후 중단 | 승인 focused/영향 회귀 | S11 최종 cut | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 정확한 root/parents/dev/inode/attempt 및 nlink1·상한 확인 후 소유partial 정리→Failed |
+| S10-F06 | Ready 중단 | 승인 focused/영향 회귀 | S11 최종 cut | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 실제 검증 Ready 재시작은 재렌더 없이 hash 대조·게시·원자commit·정리 수렴 |
+| S10-F07 | 각 output link 중단 | 승인 focused/영향 회귀 | S11 최종 cut | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 두 출력 각각 linkat 직후 nlink2 동일inode 쌍 재시작·양 부모fsync·나머지publish 수렴 |
+| S10-F08 | 게시 내구 후 중단 | 승인 focused/영향 회귀 | S11 최종 cut | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 모든 게시 뒤 commit 전 재시작은 동일 검증파일만 commit |
+| S10-F09 | Committed 중단 | 승인 focused/영향 회귀 | S11 최종 cut | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 출력/출처/job 단일mutation과 source/output 보호 유지·임시정리 후 Complete |
+| S10-F10 | cleanup 중단 | 승인 focused/영향 회귀 | S11 최종 cut | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 각 temp unlink·attempt/job 디렉터리 삭제·terminal 저장 직전 중단을 포함하며 Complete/Failed cleanup 모두 부재를 안전하게 증명해 재시작 수렴 |
+| S10-F11 | hash/누락/foreign 파일 | 승인 focused/영향 회귀 | S11 최종 cut | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | Ready hash변경·누락·동명foreign·symlink·FIFO·추가hardlink·root/parent교체는 비차단 regular 검사와 overwrite/unlink금지·blocker |
+| S10-F12 | 엄격 원장 전이 | 승인 focused/영향 회귀 | S11 최종 cut | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | receipt/Ready/Commit/Complete strict parser·unknown/불완전/ID충돌·중첩 output order 위조 거부 및SQLite/fallback/checkpoint 동등 |
+| S10-F13 | terminal tombstone | 승인 focused/영향 회귀 | S11 최종 cut | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | Complete output 보존삭제 후 재시작/Run은 재생성하지 않음 |
+| S10-F14 | 취소·용량·기록 상한 | 승인 focused/영향 회귀 | S11 최종 cut | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 취소·30초budget·출력합계 cap·4MiB provenance 초과는 성공절단 금지, 소유cleanup 확인 후Failed |
+| S10-F15 | 단일 실행·동시 호출 | 승인 focused/영향 회귀 | S11 최종 cut | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 같은 catalog service 소유1개·동시Run 거부·active snapshot 최대8개와 초과 명시, 중복 상태 멱등 |
+| S10-F16 | 복구 시작 순서 | 승인 focused/영향 회귀 | S11 최종 cut | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | catalogOpen 보호·예약 복원→service Reconcile→후속 retention/producer 순서만fixture검증; production기본연결 제외 |

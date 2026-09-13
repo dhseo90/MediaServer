@@ -86,6 +86,7 @@ public:
     bool Checkpoint(std::string* error);
     bool FindDerivedJob(const std::string& job_id,std::optional<DerivedJobRecordV1>* result,std::string* error) const;
     bool SnapshotDerivedJobs(std::vector<DerivedJobRecordV1>* result,std::string* error) const;
+    bool SnapshotActiveDerivedJobs(std::size_t limit,std::vector<DerivedJobRecordV1>* result,bool* more,std::string* error) const;
     // 내부 caller는 실제 소유물 cleanup 완료 후 호출한다. 5.3b가 inode/경로 증명을 담당한다.
     bool FailDerivedJobAfterCleanup(const std::string& job_id,const std::string& attempt_id,
         const std::string& reason,std::int64_t cleaned_at_ms,std::string* error);
@@ -170,6 +171,11 @@ public:
 
 private:
     friend class RetentionCoordinator;
+    friend class DerivedJobService;
+    bool BindDerivedService(const void* owner);
+    void UnbindDerivedService(const void* owner);
+    bool UpdateDerivedJob(const void* owner,const DerivedJobRecordV1&,std::string* error);
+    const void* derived_service_owner_{nullptr};
     bool BindRetentionOwner(const RetentionCoordinator* owner);
     void UnbindRetentionOwner(const RetentionCoordinator* owner);
     bool IsRetentionOwner(const RetentionCoordinator* owner) const;
@@ -177,7 +183,7 @@ private:
     bool BeginDerivedJobIntent(const DerivedJobIntentV1&,bool* inserted,std::string* error);
     bool DerivedJobProtectsLocked(const std::string& segment_id) const;
     bool ValidateDerivedJobSourcesLocked(const DerivedJobIntentV1&,std::string*) const;
-    bool ApplyDerivedJobMutationLocked(const RecordingMutationV1&,std::string*);
+    bool ApplyDerivedJobMutationLocked(const RecordingMutationV1&,std::string*,bool apply=true);
     RecordingLifecycle EffectiveLifecycleV2Locked(const std::string& id) const;
     bool OpenLocked(std::string* error);
     bool CanWriteLocked(std::string* error) const;

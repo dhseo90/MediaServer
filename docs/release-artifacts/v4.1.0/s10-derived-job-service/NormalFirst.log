@@ -1,0 +1,8 @@
+[pass] F12 실제 remux의 다른 selection 결박 거부
+[pass] F12 실제 remux provenance의 요청 범위 위조 거부
+[pass] F12 실제 remux의 foreign unfulfilled 범위 거부
+[pass] F01 실제 writer→선택→Intent→파생 파일→게시→Complete
+[detail] reason= outputs=2
+[summary] pass=4 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-job-service.L8XgRL bytes=5411593 removed=true
+[elapsed] seconds=2 source=bash-SECONDS

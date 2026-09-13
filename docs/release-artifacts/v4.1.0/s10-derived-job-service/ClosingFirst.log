@@ -1,0 +1,4 @@
+[fault] stage=3 index=0 durable_state_before_exit=true
+[setup-fail] one job oracle
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-job-service.d9kvWE bytes=5565497 removed=true
+[elapsed] seconds=2 source=bash-SECONDS

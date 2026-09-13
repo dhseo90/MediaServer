@@ -19,6 +19,6 @@ read -r -a probe_flags <<< "$(pkg-config --cflags --libs gstreamer-1.0 gstreamer
   "$probe_script/recording_derived_time_probe.cpp" "$probe_repo/src/recording/gstreamer_segment_writer.cpp" \
   "$probe_repo/src/recording/recording_catalog.cpp" "$probe_repo/src/recording/recording_journal.cpp" \
   "$probe_repo/src/recording/recording_finalize_recovery.cpp" "$probe_repo/src/recording/recording_media_inspector.cpp" \
-  "$probe_repo/src/recording/recording_derived_job.cpp" "$probe_repo/src/recording/recording_contracts.cpp" "$probe_repo/src/recording/retention_coordinator.cpp" \
+  "$probe_repo/src/recording/recording_derived_job.cpp" "$probe_repo/src/recording/recording_derived_job_ready.cpp" "$probe_repo/src/recording/recording_contracts.cpp" "$probe_repo/src/recording/retention_coordinator.cpp" \
   "$probe_repo/src/domain/strict_json.cpp" "${probe_flags[@]}" -o "$probe_run/probe"
 "$probe_run/probe" "$probe_run"

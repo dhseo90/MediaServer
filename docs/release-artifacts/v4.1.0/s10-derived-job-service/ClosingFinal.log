@@ -1,0 +1,9 @@
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_derived_job_service_smoke.cpp:125:143: error: captured structured bindings are a C++20 extension [-Werror,-Wc++20-extensions]
+  125 |             const auto found=std::find_if(before.candidates.begin(),before.candidates.end(),[&](const auto& candidate){return candidate.Id()==id;});
+      |                                                                                                                                               ^
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_derived_job_service_smoke.cpp:124:26: note: 'id' declared here
+  124 |         for(const auto& [id,reason]:protected_ids){
+      |                          ^
+1 error generated.
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-job-service.LoXpuB bytes=0 removed=true
+[elapsed] seconds=1 source=bash-SECONDS

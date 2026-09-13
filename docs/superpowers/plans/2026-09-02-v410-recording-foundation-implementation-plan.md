@@ -2044,6 +2044,49 @@ V2 복구 fixture의 겹친 coordinator 수명을 순차 수명으로 고쳤으�
 메인은 제품 단일 coordinator 구성과 B13/B14/B18의 기존 검사 유지 여부를 직접 대조했다.
 349개 단기 PASS는 원장·자원 단위에 한정한다. 실제 파일의 소유 확인·Ready·게시·
 중단 복구는 5.3b, 이벤트 통합은 5.4에 남아 있다.
+5.3a 커밋은 `628addb9`다. 5.3b는 같은 담당자가 실제 출력과 중단 복구를 구현하고
+메인이 원본/출력 시간축, 파일 소유와 원자 원장 적용을 직접 검토한다.
+실제 출력은 O_EXCL 생성 후 root/parent·dev/inode·attempt/path 소유 receipt를
+동일 journal의 Intent 하위 전이로 내구 기록한 뒤에만 media 쓰기를 허용한다.
+파일 생성과 receipt 기록 사이 중단은 이름만으로 소유권을 복원하지 않는다.
+해당 경우는 자동 정리 완료가 아니라 보호·예약을 유지하는 cleanup blocker이며,
+receipt 이후의 중단과 구별해 fault 검증한다. 소유 미확인 파일의 삭제 승인을 추정하지 않는다.
+5.3a 신규 derived-job 원장은 미출시·기본 미연결이고 실행 소유 fixture는 정리됐다.
+5.3b는 같은 신규 record 계약에 상태별 receipt/Ready/결과 필드를 엄격하게 확장한다.
+개발 중 직렬화 초안만을 위해 record 구버전 병행 계층을 도입하지 않는다. 과거 원출력은
+당시 증거로 보존하며 실제 유지 대상이 발견되면 먼저 보고한다. 기존 segment/source와
+공개 이벤트 계약의 구버전 제거 또는 변경을 승인하는 의미는 아니다.
+
+5.4의 catalog 입력 adapter는 같은 source/channel의 원본 상시녹화와 그 binding·상태를
+일관된 snapshot으로 읽어 선택기에 전달해야 한다. 새로 만든 event 파생 출력을 다시
+원본 후보로 투입하지 않는다. UTC 판정도 동일 원본 snapshot에 근거하며, 별도 시점의
+채널 전체 조회와 혼합해 후보 누락·자기 출력을 통한 모호성을 만들지 않는다.
+선택 이후 admission에서 실제 원본 상태를 다시 확인하는 기존 원자 경계를 유지한다.
+이 절은 후속 통합의 검토 기준이며 5.4 구현·검증 완료 기록이 아니다.
+5.4는 opt-in 내부 bridge에서 원본 snapshot·선택·admission·단일 작업 worker·서비스를
+연결한다. 기존 EventRecord/public payload에 새 출력 목록을 직렬화하거나 완료 후
+원본 이벤트를 임의로 재작성하지 않는다. 안정된 참조/작업 연결로 현재 결과를 조회하며
+생성 당시 EventRecord의 상태와 현재 작업 상태를 구별한다. 복수 출력은 내부 결과 목록에
+보존하고, 첫 파일을 전체 clip으로 반환하지 않는다. 공개 조회·재생의 기본 연결은 3D다.
+post-roll 대기는 steady clock의 유한 대기 예산으로 제한하되 시간이 지났다는 사실을
+미디어 coverage로 승격하지 않는다. 같은 namespace/generation의 직접 증거만 갱신하고
+대기 종료 시 확인된 부분과 미확인 사유를 보존한다. 무기한 pending/재생성은 금지한다.
+
+5.3b의 실제 파일 서비스는 구현·단기 검증했다. 정상 생성, 별도 프로세스 중단 후 복구,
+출력/출처의 단일 commit, 소유 파일 대조와 정리, 독립 출력 시간축, 삭제 후 재생성 금지를
+확인했다. focused43·누락 경계6, job23·catalog246·retention56·V2 retention24·remux31로
+개별 429개가 통과했으며 build도 통과했다. 메인이 실제 서비스/직렬화/원장 diff와
+파일 hash·catalog·단일 mutation·보호/예약·정리의 독립 oracle을 직접 대조했다.
+혼합 ABI 및 필드명/fixture 준비 실패, 요청 결박과 생성 전 취소의 RED→GREEN은
+[실행 기록](../../release-artifacts/v4.1.0/s10-derived-job-service/report.md)에 보존한다.
+소유 receipt 없는 실물과 바뀐 파일/경로는 자동 삭제하지 않는 명시 blocker다.
+복구는 한 호출에서 active job 최대8개·단일30초 예산으로 제한하고 초과를 숨기지 않는다.
+이는 opt-in 내부 파일 서비스 완료이며 실제 이벤트 worker 통합은 5.4,
+서버 기본 구성과 공개 조회/재생 연결은 3D, 최종 검증은 S11에 남아 있다.
+최종 메인 확인: source/증거 fingerprint68개 대조 명령 exit0,
+`verify-docs-links` exit0(markdown246/local3226/image22/anchor110/index76/exclusions160),
+`git diff --check` exit0. 담당자의 source/결과와 인계 후 현재 파일이 일치하며
+인계만을 이유로 제품 검증을 재실행하지 않았다.
 
 - **5.3a 원장·자원:** 기존 catalog 소유 journal에 요청/선택/profile 기반 job identity,
   별도 attempt/output ID, source 보호와 용량 예약을 하나의 intent로 저장한다.

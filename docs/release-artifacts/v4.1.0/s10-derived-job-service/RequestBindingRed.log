@@ -1,0 +1,3 @@
+scripts/internal/verify_recording_derived_job_service.sh: line 31: 96658 Abort trap: 6           "$RUN_DIR/check" "$RUN_DIR"
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-job-service.zeidyp bytes=5018311 removed=true
+[elapsed] seconds=4 source=bash-SECONDS

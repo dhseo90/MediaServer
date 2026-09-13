@@ -269,6 +269,10 @@ std::string RecordingMutationTypeName(RecordingMutationType type) {
         case RecordingMutationType::ConsumerReferencePut: return "consumer_reference_put";
         case RecordingMutationType::ReferencedObservationPut: return "referenced_observation_put";
         case RecordingMutationType::DerivedJobIntent: return "derived_job_intent";
+        case RecordingMutationType::DerivedJobFiles: return "derived_job_files";
+        case RecordingMutationType::DerivedJobReady: return "derived_job_ready";
+        case RecordingMutationType::DerivedJobCommitted: return "derived_job_committed";
+        case RecordingMutationType::DerivedJobComplete: return "derived_job_complete";
         case RecordingMutationType::DerivedJobFailed: return "derived_job_failed";
         case RecordingMutationType::SegmentV2State: return "segment_v2_state";
         case RecordingMutationType::SegmentV2Deleted: return "segment_v2_deleted";
@@ -295,6 +299,10 @@ RecordingMutationType ParseRecordingMutationType(const std::string& value) {
     if (value == "consumer_reference_put") return RecordingMutationType::ConsumerReferencePut;
     if (value == "referenced_observation_put") return RecordingMutationType::ReferencedObservationPut;
     if (value == "derived_job_intent") return RecordingMutationType::DerivedJobIntent;
+    if (value == "derived_job_files") return RecordingMutationType::DerivedJobFiles;
+    if (value == "derived_job_ready") return RecordingMutationType::DerivedJobReady;
+    if (value == "derived_job_committed") return RecordingMutationType::DerivedJobCommitted;
+    if (value == "derived_job_complete") return RecordingMutationType::DerivedJobComplete;
     if (value == "derived_job_failed") return RecordingMutationType::DerivedJobFailed;
     return RecordingMutationType::Unknown;
 }
@@ -362,6 +370,29 @@ bool ParseRecordingMutationV1(const std::string& json,
 
 namespace {
 // 예약 발급과 catalog 검증의 순서/ID 규칙을 함께 유지한다.
+bool DerivedCommittedSegments(const std::string& json,std::vector<RecordingSegmentV2>* segments,std::string* error) {
+    ingress::StrictJsonObjectDocument record,ready;
+    if(json.size()>4*1024*1024||!ingress::ParseStrictJsonObjectDocument(json,&record,error)||
+       ingress::StrictJsonStringField(record,"state")!="committed")return Fail(error,"derived commit order envelope 거부");
+    const auto body=ingress::StrictJsonObjectField(record,"ready");
+    if(!body||!ingress::ParseStrictJsonObjectDocument(*body,&ready,error))return false;
+    const auto* outputs=ready.Find("outputs");
+    if(!outputs||outputs->type!=ingress::StrictJsonType::Array)return Fail(error,"derived commit outputs 없음");
+    const auto& raw=outputs->raw;std::size_t start=1;int depth=0;bool quote=false,escape=false;
+    const auto append=[&](const std::string& item) {
+        ingress::StrictJsonObjectDocument d;RecordingSegmentV2 s;
+        if(!ingress::ParseStrictJsonObjectDocument(item,&d,error))return false;
+        const auto value=ingress::StrictJsonObjectField(d,"segment");
+        if(!value||!ParseRecordingSegmentV2(*value,&s,error))return false;
+        segments->push_back(std::move(s));return segments->size()<=8;
+    };
+    for(std::size_t i=1;i+1<raw.size();++i) {
+        const char c=raw[i];if(quote){if(escape)escape=false;else if(c=='\\')escape=true;else if(c=='"')quote=false;continue;}
+        if(c=='"')quote=true;else if(c=='{'||c=='[')++depth;else if(c=='}'||c==']')--depth;
+        else if(c==','&&!depth){if(!append(raw.substr(start,i-start)))return false;start=i+1;}
+    }
+    return append(raw.substr(start,raw.size()-start-1))&&!segments->empty();
+}
 struct OrderHistoryIndex {
     std::unordered_map<std::string, RecordingOrderReservationV1> requests;
     std::unordered_map<std::string, std::int64_t> request_times;
@@ -372,6 +403,17 @@ struct OrderHistoryIndex {
         if (mutation.mutation_type != RecordingMutationType::RecordingOrderReserved) {
             if (requests.count(mutation.mutation_id)) return Fail(error, "recording order mutation ID 충돌");
             ordinary_ids.insert(mutation.mutation_id);
+            if(mutation.mutation_type==RecordingMutationType::DerivedJobCommitted) {
+                std::vector<RecordingSegmentV2> outputs;
+                if(!DerivedCommittedSegments(mutation.payload_json,&outputs,error))return false;
+                std::unordered_set<std::string> output_ids;
+                for(const auto& s:outputs) {
+                    const auto order=requests.find(s.order_request_id);
+                    if(!output_ids.insert(s.segment_id).second||order==requests.end()||order->second.segment_id!=s.segment_id||
+                       order->second.store_id!=s.store_id||order->second.channel_id!=s.channel_id||order->second.sequence!=s.order_sequence)
+                        return Fail(error,"derived 중첩 output 예약 결박 거부");
+                }
+            }
             if ((mutation.mutation_type == RecordingMutationType::SegmentFinalized ||
                  mutation.mutation_type == RecordingMutationType::SegmentV2Finalized ||
                  mutation.mutation_type == RecordingMutationType::SegmentV2BoundFinalized ||
