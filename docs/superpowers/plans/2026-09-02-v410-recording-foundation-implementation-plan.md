@@ -1900,7 +1900,7 @@ catalog finalize에 전달한다. UTC 변화는 물리 분할 기준이 아니�
 - [x] 3B 보존·재생 보호: catalog의 hold·pin·삭제 대기·tombstone와 quota snapshot을 새 저장에 연결했다.
   용량 삭제는 영속 순서, 기간 만료는 별도 시간 정책이다. exact ID의 파일을 fd containment와
   삭제 mutex 보호 아래 해석하고 누락/손상/삭제를 재생 가능으로 반환하지 않는다.
-- [ ] 3C 이벤트·분석 연결: 3A 해석 결과를 소비한다. 같은 UTC인 다른 미디어 후보를 숨기거나
+- [x] 3C 내부 이벤트·분석 연결: `f94faffc`까지 opt-in 통합을 구현·검증했다. 공개 경로는 3D다. 3A 해석 결과를 소비한다. 같은 UTC인 다른 미디어 후보를 숨기거나
   하나의 V1 range로 합치지 않는다. 공개 응답의 호환 경계는 연결 전에 명시적으로 고정한다.
 - [ ] 3D 서버 구성 전환: 앞 소비자와 관련 회귀가 완료된 뒤 관리 writer를 기본 구성에 연결한다.
   opt-in·source 수명·종료·재시작·복구를 검증한다. 신규 검색/자동 연속 재생 UI는 제외한다.
@@ -1912,7 +1912,27 @@ catalog finalize에 전달한다. UTC 변화는 물리 분할 기준이 아니�
 3A는 LOC14/0·기존 읽기166/0+cleanup·catalog246/0으로 한정 완료했다. 원출력과 최초 RED는
 중앙 기록에 보존한다. 3B는 아래 한정 판정으로 완료했으며 후속3 전체 완료는 아니다. 단일 기존 Astra/medium 담당자가
 확정된 코드와 단기 검증을 맡고 메인은 문서·안전 계약·diff/증거 검토를 맡는다. 하위 위임 금지.
-기존 미커밋 S09 수정은 보존한다. S11·장시간/UI 전체와 후속4 데이터 삭제는 자동 착수하지 않는다.
+이전 S09 미커밋 경고는 당시 이력이며 현재 잔여 작업으로 반복하지 않는다. 3D-1 시작 시 작업 트리는 clean/sync였다.
+S11·장시간/UI 전체와 후속4 데이터 삭제는 자동 착수하지 않는다.
+
+#### 3D 실행 분할 — 2026-09-13
+
+현재 계약은 [설계 문서](../specs/2026-09-02-v410-recording-search-foundation-design.md)의 「S10 3D-1 기본 구성·조회 소비 계약」 절이다.
+이번 사용자 승인은 3D-1 문서 확정·검증·커밋·푸시다. 3D-2/3 제품 개발로 자동 확대하지 않는다.
+
+- [x] **3D-1 계약 확정:** 식별/시간/복수 출력/우선순위/재생 상태와 D01~D08 합격 조건을 기존 설계에 반영.
+  산출물은 이 계획·설계·로드맵·중앙 기록이다. 제품 코드 변경·제품 PASS가 아니다.
+- [ ] **3D-2 기본 구성 연결:** `recording_contracts.cpp`, `recording_journal.cpp`, `recording_catalog.cpp`의
+  참조 ID 검증 적용부를 대조하고 `media_server_application.cpp`에서 관리 저장소/writer/provider/job 수명을 연결.
+  D01·D02 개별 사례 사전등록→focused 예상 RED→구현→GREEN→identity/catalog/consumer/writer/retention 영향 회귀·build.
+  공개 timeline/UI와 legacy 데이터 삭제는 제외한다. 소유 격리 fixture만 사용하며 종료·port·임시물 정리까지 기록한다.
+- [ ] **3D-3 공개 조회·재생/UI:** `recording_read_service.h/.cpp`, `recording_application_service.cpp`,
+  `product_ui_page_scripts.cpp`에서 D03~D08을 적용. catalog 현재 결과·출처를 소비하며 기존 질의 입력을 유지.
+  API/매핑/권한/삭제 경쟁 사례 등록→예상 RED→서버·UI 동시 반영→focused·영향 회귀·build 순서다.
+  실제 UI 묶음은 별도 실행 승인 후 수행하며 정적/fixture PASS로 D08을 대신하지 않는다.
+
+3D 뒤 순서는 새 기본 경로 검증 → 불필요 legacy 코드·개발 데이터의 정확한 소유/의존 대조 및 정리 →
+S10 코드 고정 → S11 증거 유효성 대조와 승인된 최종 검증이다. 강제 변환·역사적 실패 삭제·새 검색 기능은 제외한다.
 
 ### 3C-5A 실제 파일 시간 대응 확인 — 2026-09-13
 
