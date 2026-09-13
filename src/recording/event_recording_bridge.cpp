@@ -307,6 +307,9 @@ CatalogEventRecordingBridge::CatalogEventRecordingBridge(
     if(!options_.use_consumer_references) {
         RefillPendingJobs();
         worker_ = std::thread([this] { WorkerLoop(); });
+    } else if(options_.derived_service) {
+        options_.derived_options.now_ms=options_.now_ms;
+        derived_worker_=std::make_unique<DerivedEventWorker>(catalog_,retention_,*options_.derived_service,options_.derived_options);
     }
 }
 
@@ -318,13 +321,10 @@ analysis::EventRecordingBridgeResult CatalogEventRecordingBridge::TryResolve(
     const analysis::EventMediaHookOptions& options) {
     std::lock_guard resolution_lock(resolution_mu_);
     if(options_.use_consumer_references) {
-        {std::lock_guard lock(mu_);if(stopping_)return {true,false,{},{},{},"bridge-stopped"};}
         const auto& context=result.observation_context;
-        if(!options_.resolve_recording_channel||context.source_id.empty()||context.channel_id.empty()||
+        if(context.source_id.empty()||context.channel_id.empty()||
            record.channel_id!=context.channel_id||(!record.stream_id.empty()&&record.stream_id!=context.source_id))
             return {true,false,{},{},{},"reference-source-channel-conflict"};
-        const auto channel=options_.resolve_recording_channel(context.source_id);
-        if(!channel||*channel!=context.channel_id)return {true,false,{},{},{},"reference-source-channel-conflict"};
         RecordingConsumerReferenceV1 reference;
         reference.reference_id="pending-reference";reference.kind="event";reference.owner_id=record.event_id;
         reference.source_id=context.source_id;reference.channel_id=context.channel_id;
@@ -349,8 +349,40 @@ analysis::EventRecordingBridgeResult CatalogEventRecordingBridge::TryResolve(
         for(const auto& previous:catalog_.QueryConsumerReferences(reference.channel_id,"event",reference.owner_id))
             if(previous.reference_id==reference.reference_id){reference.created_at_ms=previous.created_at_ms;break;}
         std::string error;
-        if(!catalog_.PutConsumerReference(reference,&error))return {true,false,{},{},{},"reference-storage-failed"};
-        return {true,false,{}, {},"pending",{}};
+        RecordingDerivedReferenceResult existing;
+        if(!catalog_.QueryDerivedReferenceResult(reference.reference_id,&existing,&error))
+            return {true,false,{},reference.reference_id,"unknown","reference-ownership-query-failed",true};
+        if(!options_.resolve_recording_channel)
+            return {true,false,{},reference.reference_id,"unknown","reference-channel-resolver-not-configured",existing.managed};
+        std::optional<std::string> channel;
+        try {channel=options_.resolve_recording_channel(context.source_id);}
+        catch(...) {
+            return {true,false,{},reference.reference_id,"unknown","reference-channel-resolver-failed",existing.managed};
+        }
+        if(!channel||*channel!=context.channel_id)
+            return {true,false,{},reference.reference_id,"unknown","reference-source-channel-conflict",existing.managed};
+        // Stop과 신규 Put/접수를 같은 경계로 직렬화한다. join은 이 잠금 밖에서만 한다.
+        std::lock_guard lock(mu_);
+        if(stopping_)return {true,false,{},reference.reference_id,"unknown","bridge-stopped",existing.managed};
+        if(!catalog_.PutConsumerReference(reference,&error)) {
+            RecordingDerivedReferenceResult after;
+            const bool known=catalog_.QueryDerivedReferenceResult(reference.reference_id,&after,nullptr);
+            return {true,false,{},reference.reference_id,"unknown","reference-storage-failed",
+                    existing.managed||!known||after.managed};
+        }
+        if(!derived_worker_)return {true,false,{},reference.reference_id,"pending","derived-service-not-configured",existing.managed};
+        const bool accepted=derived_worker_->Submit(reference,result.decoded_intervals,&error);
+        bool managed=accepted||existing.managed;
+        if(!accepted) {
+            RecordingDerivedReferenceResult after;
+            std::string query_error;
+            if(!catalog_.QueryDerivedReferenceResult(reference.reference_id,&after,&query_error)) {
+                managed=true;
+                error="reference-ownership-query-failed";
+            } else managed=managed||after.managed;
+        }
+        return {true,false,{},reference.reference_id,accepted?"pending":existing.state,
+                accepted?std::string{}:error,managed};
     }
     if (record.event_id.empty() || record.channel_id.empty()) {
         return {false, false, {}, {}, {}, "event/channel ID가 비어 있음"};
@@ -1121,13 +1153,24 @@ void CatalogEventRecordingBridge::Process(PendingJob job) {
 }
 
 void CatalogEventRecordingBridge::StopAndDrain() {
+    std::lock_guard stop_lock(stop_mu_);
     {
         std::lock_guard lock(mu_);
         if (stopping_ && !worker_.joinable()) return;
         stopping_ = true;
         cv_.notify_all();
     }
+    if(derived_worker_)derived_worker_->StopAndDrain();
     if (worker_.joinable()) worker_.join();
+}
+
+RecordingDerivedReferenceResult CatalogEventRecordingBridge::QueryReferenceResult(const std::string& id) {
+    if(derived_worker_)return derived_worker_->Query(id);
+    RecordingDerivedReferenceResult result;
+    std::string error;
+    if(!catalog_.QueryDerivedReferenceResult(id,&result,&error))result.reason=error;
+    else result.reason="derived-service-not-configured";
+    return result;
 }
 
 }  // namespace recording

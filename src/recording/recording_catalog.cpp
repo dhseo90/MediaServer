@@ -533,6 +533,7 @@ std::vector<std::string> RecordingCatalog::ProjectionSignatureLocked() const {
     for(const auto& [id,v]:source_bindings_)add("source-binding",id,SerializeRecordingSourceBindingV1(v));
     for(const auto& [id,v]:derived_jobs_)add("derived-job",id,SerializeDerivedJobRecord(v));
     for(const auto& [id,v]:consumer_references_)add("consumer-reference",id,SerializeRecordingConsumerReferenceV1(v));
+    for(const auto& id:derived_accepted_references_)add("derived-reference-accepted",id,id);
     for(const auto& [id,v]:referenced_observations_)add("referenced-observation",id,SerializeReferencedObservationV1(v));
     for(const auto& [id,v]:states_v2_)add("v2-state",id,SerializeRecordingSegmentStateV2(v));
     for(const auto& [id,v]:tombstones_v2_)add("v2-deleted",id,SerializeRecordingTombstoneV2(v));
@@ -754,6 +755,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                                            bool count_duplicate,
                                            std::string* error) {
     const bool segment_state = mutation.mutation_type == RecordingMutationType::ReferencedObservationPut ||
+                               mutation.mutation_type == RecordingMutationType::DerivedReferenceAccepted ||
                                IsDerivedJobMutation(mutation.mutation_type) ||
                                mutation.mutation_type == RecordingMutationType::ConsumerReferencePut ||
                                mutation.mutation_type == RecordingMutationType::SegmentFinalized ||
@@ -792,6 +794,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
             if(ok)referenced_observations_[mutation.entity_id]=std::move(pair);
             break;
         }
+        case RecordingMutationType::DerivedReferenceAccepted:
         case RecordingMutationType::ConsumerReferencePut: {
             ingress::StrictJsonObjectDocument payload;
             RecordingConsumerReferenceV1 reference;
@@ -801,8 +804,14 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                json&&ParseRecordingConsumerReferenceV1(*json,&reference,error)&&reference.reference_id==mutation.entity_id;
             if(ok) {
                 const auto old=consumer_references_.find(reference.reference_id);
-                ok=old==consumer_references_.end()||SerializeRecordingConsumerReferenceV1(old->second)==SerializeRecordingConsumerReferenceV1(reference);
-                if(ok)consumer_references_.emplace(reference.reference_id,std::move(reference));
+                if(mutation.mutation_type==RecordingMutationType::DerivedReferenceAccepted) {
+                    ok=old!=consumer_references_.end()&&reference.kind=="event"&&
+                       SerializeRecordingConsumerReferenceV1(old->second)==SerializeRecordingConsumerReferenceV1(reference);
+                    if(ok)derived_accepted_references_.insert(reference.reference_id);
+                } else {
+                    ok=old==consumer_references_.end()||SerializeRecordingConsumerReferenceV1(old->second)==SerializeRecordingConsumerReferenceV1(reference);
+                    if(ok)consumer_references_.emplace(reference.reference_id,std::move(reference));
+                }
             }
             if(!ok)Fail(error,"consumer reference payload/identity 충돌");
             break;
@@ -1024,7 +1033,7 @@ bool RecordingCatalog::PreflightV2Locked(const RecordingJournalReplayResult& rep
     bool orders=false,v2=false;
     std::unordered_set<std::string> v2_ids;
     for(const auto& m:replay.mutations) {
-        if(m.mutation_type==RecordingMutationType::ConsumerReferencePut||m.mutation_type==RecordingMutationType::ReferencedObservationPut||
+        if(m.mutation_type==RecordingMutationType::DerivedReferenceAccepted||m.mutation_type==RecordingMutationType::ConsumerReferencePut||m.mutation_type==RecordingMutationType::ReferencedObservationPut||
            IsDerivedJobMutation(m.mutation_type))v2=true;
         if(m.mutation_type==RecordingMutationType::EventLinkReceipt&&(!journal_.managed_||!options_.enable_v2_storage))
             return Fail(error,"receipt managed 지원 필요");
@@ -1046,6 +1055,8 @@ bool RecordingCatalog::PreflightV2Locked(const RecordingJournalReplayResult& rep
     for(const auto& m:replay.mutations) {
         const auto old=seen.find(m.mutation_id);
         if(old!=seen.end()&&(m.mutation_type==RecordingMutationType::ReferencedObservationPut||
+           m.mutation_type==RecordingMutationType::DerivedReferenceAccepted||
+           old->second.mutation_type==RecordingMutationType::DerivedReferenceAccepted||
            IsDerivedJobMutation(m.mutation_type)||
            IsDerivedJobMutation(old->second.mutation_type)||
            old->second.mutation_type==RecordingMutationType::ReferencedObservationPut||m.mutation_type==RecordingMutationType::ConsumerReferencePut||
@@ -1056,7 +1067,7 @@ bool RecordingCatalog::PreflightV2Locked(const RecordingJournalReplayResult& rep
            SerializeRecordingMutationV1(old->second)!=SerializeRecordingMutationV1(m))return Fail(error,"V2 mutation ID 충돌");
         seen.emplace(m.mutation_id,m);
         const bool accepted=scratch.ApplyMutationLocked(m,false,error);
-        if(!accepted&&(journal_.managed_||m.mutation_type==RecordingMutationType::ReferencedObservationPut||m.mutation_type==RecordingMutationType::ConsumerReferencePut||m.mutation_type==RecordingMutationType::SegmentV2Finalized||v2_ids.count(m.entity_id)))return false;
+        if(!accepted&&(journal_.managed_||m.mutation_type==RecordingMutationType::DerivedReferenceAccepted||m.mutation_type==RecordingMutationType::ReferencedObservationPut||m.mutation_type==RecordingMutationType::ConsumerReferencePut||m.mutation_type==RecordingMutationType::SegmentV2Finalized||v2_ids.count(m.entity_id)))return false;
     }
     if(candidate) {
         if(binding ? !scratch.ValidateBoundLocked(*candidate,*binding,relative,error) :
@@ -1673,6 +1684,135 @@ bool RecordingCatalog::PutConsumerReference(const RecordingConsumerReferenceV1& 
     mutation.payload_json="{\"reference\":"+SerializeRecordingConsumerReferenceV1(reference)+"}";
     return AppendAndApplyLocked(std::move(mutation),error);
 }
+bool RecordingCatalog::AcceptDerivedReference(const RecordingConsumerReferenceV1& reference, std::string* error) {
+    std::lock_guard lock(mu_);
+    if(!opened_||!options_.enable_v2_storage||!CanWriteLocked(error)||
+       !ValidateRecordingConsumerReferenceV1(reference,error)||reference.kind!="event")
+        return Fail(error,"derived reference 접수 상태/입력 거부");
+    const auto stored=consumer_references_.find(reference.reference_id);
+    if(stored==consumer_references_.end()||
+       SerializeRecordingConsumerReferenceV1(stored->second)!=SerializeRecordingConsumerReferenceV1(reference))
+        return Fail(error,"derived reference canonical 결박 불일치");
+    if(derived_accepted_references_.count(reference.reference_id)) {
+        if(error)error->clear();
+        return true;
+    }
+    RecordingMutationV1 mutation;
+    mutation.mutation_type=RecordingMutationType::DerivedReferenceAccepted;
+    mutation.entity_id=reference.reference_id;
+    mutation.payload_json="{\"reference\":"+SerializeRecordingConsumerReferenceV1(reference)+"}";
+    if(!AppendAndApplyLocked(std::move(mutation),error)) {
+        derived_job_state_authoritative_=false;
+        return false;
+    }
+    return true;
+}
+bool RecordingCatalog::IsDerivedReferenceAccepted(const std::string& id, bool* accepted, std::string* error) const {
+    std::lock_guard lock(mu_);
+    if(accepted)*accepted=false;
+    if(!accepted||!opened_||!options_.enable_v2_storage||!CanWriteLocked(error)||!ValidateOpaqueId(id,error))
+        return Fail(error,"derived reference 조회 상태/입력 거부");
+    *accepted=derived_accepted_references_.count(id)!=0;
+    if(error)error->clear();
+    return true;
+}
+bool RecordingCatalog::SnapshotDerivedSources(const RecordingConsumerReferenceV1& reference,
+    std::vector<RecordingDerivedSourceSnapshotEntry>* result, std::string* error) const {
+    std::lock_guard lock(mu_);
+    if(result)result->clear();
+    if(!result||!opened_||!options_.enable_v2_storage||!CanWriteLocked(error)||
+       !ValidateRecordingConsumerReferenceV1(reference,error)||!reference.request)
+        return Fail(error,"derived source snapshot 상태/입력 거부");
+    const auto& request=*reference.request;
+    // 모든 중간 곱은 int64×int32×10^9 이하이며 __int128 범위 안이다.
+    const __int128 begin=(static_cast<__int128>(request.start_ms)-request.pre_ms)*1000000;
+    const __int128 end=(static_cast<__int128>(request.end_ms)+request.post_ms)*1000000;
+    for(const auto& [id,segment]:segments_v2_) {
+        if(segment.source_id!=reference.source_id||segment.channel_id!=reference.channel_id||
+           segment.retention_class!=RecordingRetentionClass::Continuous)continue;
+        const auto binding=source_bindings_.find(id);
+        const bool valid_binding=binding!=source_bindings_.end()&&
+            ValidateRecordingSourceBindingForSegment(binding->second,segment,nullptr);
+        const bool valid_segment=ValidateRecordingSegmentV2(segment,nullptr);
+        bool unrelated=false;
+        if(request.time_basis=="media-pts-ms") {
+            if(valid_binding&&reference.original) {
+                const auto& original=*reference.original;
+                unrelated=binding->second.source_generation!=original.source_generation||
+                    binding->second.generation_order!=original.generation_order||binding->second.track_id!=original.track_id;
+            }
+            if(valid_segment&&segment.media_end_pts) {
+                const __int128 scale=static_cast<__int128>(segment.time_base_num)*1000000000;
+                unrelated=unrelated||static_cast<__int128>(*segment.media_end_pts)*scale<=begin*segment.time_base_den||
+                    static_cast<__int128>(segment.media_start_pts)*scale>=end*segment.time_base_den;
+            }
+        } else if(request.time_basis=="utc-ms"&&valid_segment&&!segment.mappings.empty()) {
+            unrelated=true;
+            for(const auto& mapping:segment.mappings) {
+                if(mapping.provenance=="unknown"||!mapping.utc_start_ns||!mapping.utc_end_ns||
+                   !mapping.end_pts||!mapping.uncertainty_ns||*mapping.uncertainty_ns!=0||
+                   (static_cast<__int128>(*mapping.utc_end_ns)>begin&&
+                    static_cast<__int128>(*mapping.utc_start_ns)<end)) {
+                    unrelated=false;
+                    break;
+                }
+            }
+        }
+        if(unrelated)continue;
+        if(result->size()==256) {
+            result->clear();
+            return Fail(error,"derived source relevant snapshot cap exceeded");
+        }
+        RecordingDerivedSourceSnapshotEntry entry;
+        entry.segment=segment;
+        if(binding!=source_bindings_.end())entry.binding=binding->second;
+        entry.lifecycle=EffectiveLifecycleV2Locked(id);
+        entry.deleted=tombstones_v2_.count(id)!=0||entry.lifecycle==RecordingLifecycle::Deleted;
+        result->push_back(std::move(entry));
+    }
+    std::sort(result->begin(),result->end(),[](const auto& a,const auto& b){
+        return std::tie(a.segment.store_id,a.segment.order_sequence,a.segment.segment_id)<
+               std::tie(b.segment.store_id,b.segment.order_sequence,b.segment.segment_id);
+    });
+    if(error)error->clear();
+    return true;
+}
+bool RecordingCatalog::QueryDerivedReferenceResult(const std::string& id,
+    RecordingDerivedReferenceResult* result,std::string* error) const {
+    std::lock_guard lock(mu_);
+    if(result)*result={};
+    if(!result||!opened_||!options_.enable_v2_storage||!CanWriteLocked(error)||!ValidateOpaqueId(id,error))
+        return Fail(error,"derived reference result 조회 상태/입력 거부");
+    result->managed=derived_accepted_references_.count(id)!=0;
+    std::vector<const DerivedJobRecordV1*> selected;
+    for(const auto& [_,job]:derived_jobs_)if(job.intent.reference.reference_id==id) {
+        result->managed=true;
+        selected.push_back(&job);
+        std::sort(selected.begin(),selected.end(),[](const auto* a,const auto* b){return a->intent.job_id<b->intent.job_id;});
+        if(selected.size()>8) {result->truncated=true;selected.pop_back();}
+    }
+    for(const auto* job:selected) {
+        RecordingDerivedReferenceJob item;
+        item.job=*job;
+        if(job->ready)for(const auto& output:job->ready->outputs) {
+            RecordingDerivedOutputAvailability availability;
+            availability.segment_id=output.segment.segment_id;
+            const auto path=media_relpaths_.find(availability.segment_id);
+            if(path!=media_relpaths_.end())availability.relative_path=path->second;
+            availability.lifecycle=EffectiveLifecycleV2Locked(availability.segment_id);
+            availability.catalog_available=segments_v2_.count(availability.segment_id)!=0&&
+                !tombstones_v2_.count(availability.segment_id)&&
+                availability.lifecycle==RecordingLifecycle::Finalized&&path!=media_relpaths_.end();
+            item.outputs.push_back(std::move(availability));
+        }
+        result->jobs.push_back(std::move(item));
+    }
+    if(result->truncated)result->reason="derived-reference-job-list-truncated";
+    else if(result->jobs.empty())result->reason=result->managed?"evidence-not-durable":"derived-reference-not-accepted";
+    else result->state="jobs";
+    if(error)error->clear();
+    return true;
+}
 std::vector<RecordingConsumerReferenceV1> RecordingCatalog::QueryConsumerReferences(
     const std::string& channel, const std::string& kind, const std::string& owner) const {
     std::lock_guard lock(mu_);
@@ -2195,6 +2335,7 @@ CREATE TABLE IF NOT EXISTS recording_segments_v2(segment_id TEXT PRIMARY KEY,pay
 CREATE TABLE IF NOT EXISTS recording_source_bindings(segment_id TEXT PRIMARY KEY,payload_json TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS recording_derived_jobs(job_id TEXT PRIMARY KEY,payload_json TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS recording_consumer_references(reference_id TEXT PRIMARY KEY,payload_json TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS recording_derived_accepted_references(reference_id TEXT PRIMARY KEY,payload_json TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS recording_referenced_observations(observation_id TEXT PRIMARY KEY,payload_json TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS recording_segment_states_v2(segment_id TEXT PRIMARY KEY,lifecycle TEXT NOT NULL,reason TEXT NOT NULL,tombstone_json TEXT NOT NULL,hold_count INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE IF NOT EXISTS recording_event_links(link_id TEXT PRIMARY KEY, event_id TEXT UNIQUE NOT NULL, channel_id TEXT NOT NULL, requested_start_ms INTEGER NOT NULL, requested_end_ms INTEGER NOT NULL, derived_segment_id TEXT, fallback_ref TEXT, completeness TEXT NOT NULL, missing_ranges_json TEXT NOT NULL, display_priority INTEGER NOT NULL DEFAULT 0);
@@ -2220,7 +2361,7 @@ bool RecordingCatalog::RebuildSqliteLocked(std::string* error) {
     if (replay.io_error_count != 0) return Fail(error, "journal replay I/O 오류로 SQLite rebuild 거부");
     if (replay.unsupported_record_count != 0) return Fail(error, "미지원 journal record로 SQLite rebuild 거부");
     if (!PreflightV2Locked(replay,error)) return false;
-    if (!Exec(sqlite_db_, "BEGIN; DELETE FROM recording_derived_jobs; DELETE FROM recording_referenced_observations; DELETE FROM recording_consumer_references; DELETE FROM recording_source_bindings; DELETE FROM recording_event_link_segments; DELETE FROM recording_event_links; DELETE FROM recording_observations; DELETE FROM recording_observations_v2; DELETE FROM recording_segment_states_v2; DELETE FROM recording_segments_v2; DELETE FROM recording_segments; DELETE FROM recording_tombstones; DELETE FROM recording_mutations; COMMIT;", error)) return false;
+    if (!Exec(sqlite_db_, "BEGIN; DELETE FROM recording_derived_accepted_references; DELETE FROM recording_derived_jobs; DELETE FROM recording_referenced_observations; DELETE FROM recording_consumer_references; DELETE FROM recording_source_bindings; DELETE FROM recording_event_link_segments; DELETE FROM recording_event_links; DELETE FROM recording_observations; DELETE FROM recording_observations_v2; DELETE FROM recording_segment_states_v2; DELETE FROM recording_segments_v2; DELETE FROM recording_segments; DELETE FROM recording_tombstones; DELETE FROM recording_mutations; COMMIT;", error)) return false;
     for (std::size_t ordinal = 0; ordinal < replay.mutations.size(); ++ordinal) {
         const auto& mutation = replay.mutations[ordinal];
         if (mutation.mutation_type == RecordingMutationType::SegmentFinalized ||
@@ -2290,10 +2431,14 @@ bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mu
         BindText(statement,1,pair.observation.observation_id);BindText(statement,2,SerializeReferencedObservationV1(pair));
         const bool ok=sqlite3_step(statement)==SQLITE_DONE;sqlite3_finalize(statement);
         if(!ok){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
-    } else if (mutation.mutation_type == RecordingMutationType::ConsumerReferencePut) {
+    } else if (mutation.mutation_type == RecordingMutationType::ConsumerReferencePut ||
+               mutation.mutation_type == RecordingMutationType::DerivedReferenceAccepted) {
         const auto json=ObjectField(mutation.payload_json,"reference");RecordingConsumerReferenceV1 reference;
+        const char* sql=mutation.mutation_type==RecordingMutationType::DerivedReferenceAccepted
+            ? "INSERT OR IGNORE INTO recording_derived_accepted_references VALUES(?,?)"
+            : "INSERT OR IGNORE INTO recording_consumer_references VALUES(?,?)";
         if(!json||!ParseRecordingConsumerReferenceV1(*json,&reference,error)||
-           sqlite3_prepare_v2(sqlite_db_,"INSERT OR IGNORE INTO recording_consumer_references VALUES(?,?)",-1,&statement,nullptr)!=SQLITE_OK) {
+           sqlite3_prepare_v2(sqlite_db_,sql,-1,&statement,nullptr)!=SQLITE_OK) {
             Exec(sqlite_db_,"ROLLBACK",nullptr);return false;
         }
         BindText(statement,1,reference.reference_id);BindText(statement,2,SerializeRecordingConsumerReferenceV1(reference));

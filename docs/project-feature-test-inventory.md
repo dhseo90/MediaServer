@@ -2682,3 +2682,28 @@ release gate에서 FAIL합니다. 네 테스트 영역 밖 분류도 거부합�
 | S10-F14 | 취소·용량·기록 상한 | 승인 focused/영향 회귀 | S11 최종 cut | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 취소·30초budget·출력합계 cap·4MiB provenance 초과는 성공절단 금지, 소유cleanup 확인 후Failed |
 | S10-F15 | 단일 실행·동시 호출 | 승인 focused/영향 회귀 | S11 최종 cut | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 같은 catalog service 소유1개·동시Run 거부·active snapshot 최대8개와 초과 명시, 중복 상태 멱등 |
 | S10-F16 | 복구 시작 순서 | 승인 focused/영향 회귀 | S11 최종 cut | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | catalogOpen 보호·예약 복원→service Reconcile→후속 retention/producer 순서만fixture검증; production기본연결 제외 |
+
+## S10 3C-5.4 opt-in 이벤트 통합 사전등록
+
+| 기능 ID | 기능 | 안정화 | 30분 | 120분 | UI | 독립 oracle |
+| --- | --- | --- | --- | --- | --- | --- |
+| S10-E01 | 실제 H264 decoder 이벤트 2출력 | 승인 focused/직접 영향 | S11 최종 cut·미실행 | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 실제 encoder/writer와 RawVideoDecoder callback 직접 증거→DispatchEventRecords→reference→job Complete→2개 output ID/file decode·출처; packet 합성 증거와 구분 |
+| S10-E02 | 정상 단일 출력 | 승인 focused/직접 영향 | S11 최종 cut·미실행 | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 단일 원본 요청의 실제 파일과 job/output 목록·전체 요청 충족 |
+| S10-E03 | 부분 출력 | 승인 focused/직접 영향 | S11 최종 cut·미실행 | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 일부 confirmed와 외부 unknown을 보존한 partial job/output; verified와 fully 분리 |
+| S10-E04 | post-roll 증거 갱신 | 승인 focused/직접 영향 | S11 최종 cut·미실행 | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 동일 source/channel/ns/generation provider의 후행 직접 증거와 finalize snapshot 갱신으로 완전 출력 |
+| S10-E05 | 대기 timeout | 승인 focused/직접 영향 | S11 최종 cut·미실행 | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 유한 steady/시도 예산 종료는 unknown이며 시간 경과를 coverage로 사용하지 않음 |
+| S10-E06 | namespace/generation 경계 | 승인 focused/직접 영향 | S11 최종 cut·미실행 | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 새 namespace·세대·track 불일치 provider를 합성/재라벨링하지 않고 미확인 보존 |
+| S10-E07 | immutable 요청 | 승인 focused/직접 영향 | S11 최종 cut·미실행 | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | start/end/pre/post·원본 generation·namespace와 media/UTC 축을 reference/job까지 그대로 보존 |
+| S10-E08 | 동일 snapshot UTC 선택 | 승인 focused/직접 영향 | S11 최종 cut·미실행 | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 원본 snapshot에서 순수 range helper를 사용하며 unknown/unplaced/복수 후보를 숨기지 않음 |
+| S10-E09 | 멱등/선택 갱신 | 승인 focused/직접 영향 | S11 최종 cut·미실행 | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 같은 reference/selection은 동일 job/output ID; 선택 갱신은 새 job·이전 결과 목록 유지 |
+| S10-E10 | continuous 원본 adapter | 승인 focused/직접 영향 | S11 최종 cut·미실행 | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 같은 source/channel의 continuous만 포함; 자신의 derived Event output 재선택 제외 |
+| S10-E11 | 삭제/손상/unindexed | 승인 focused/직접 영향 | S11 최종 cut·미실행 | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 동일 catalog 잠금의 segment/binding/lifecycle/deleted 대조; 삭제·손상·결박부재를 숨겨 complete로 만들지 않음 |
+| S10-E12 | 원자 quota/disk admission | 승인 focused/직접 영향 | S11 최종 cut·미실행 | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 양수 총 예약과 기존 retention admission; 부족·provider 실패 시 파일 생성 없음 |
+| S10-E13 | 큐 포화/접수 종료 | 승인 focused/직접 영향 | S11 최종 cut·미실행 | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 유한 queue/evidence 상한과 stop 이후 신규 reference Put/Submit 금지, 기존 managed 보존·대기 상태 명시 |
+| S10-E14 | 실행 중 stop 취소 | 승인 focused/직접 영향 | S11 최종 cut·미실행 | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 단일 worker service Run 취소→join, cleanup 전 자원 release 금지·무한 재시도 없음 |
+| S10-E15 | 재시작 Ready/소실 대기 | 승인 focused/직접 영향 | S11 최종 cut·미실행 | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 내구 Ready는 기존 파일로 복구하고 Intent 전 메모리 증거 소실은 발명/재렌더 없이 unknown |
+| S10-E16 | terminal tombstone 현재 가용성 | 승인 focused/직접 영향 | S11 최종 cut·미실행 | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | historical Complete와 현재 output availability 분리·삭제 파일 재생성 없음 |
+| S10-E17 | clip/fallback/공개 불변 | 승인 focused/직접 영향 | S11 최종 cut·미실행 | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | managed 내부 기본 false flag로 접수된 요청만 clip fallback/실패 집계/RecordFallback 억제, snapshot hook 유지. 서비스 미주입 재생성 및 accepted 후 resolver nullopt/불일치/예외/미주입에서도 기존 내구 소유권 유지(신규 Put/접수 없음). reference link ID·내부 전체 목록·EventRecord 작성 당시 상태 분리; 공개 필드 추가/사후 재작성 없음 |
+| S10-E18 | provider/입력 상한 오류 | 승인 focused/직접 영향 | S11 최종 cut·미실행 | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 다른 source/channel·과대 증거·provider 예외 거부; 누적 원본256초과/관련소수 성공과 실제 관련256초과 거부를 구분 |
+| S10-E19 | 직접 영향 회귀 | 승인 focused/직접 영향 | S11 최종 cut·미실행 | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 기존 legacy event·consumer connection/reference·관측·writer·retention 및 build. C414/C418/C422/C423의 승인된 미주입 error/영속 reference link/managed=false 예상값으로 변경하며 기존 저장·공개·fallback assertions 유지. bridge 직접 링크 runner 4개에 신규 내부 worker 의존 cpp와 기존 gst-video 연결; 5.3b 전수는 인계만으로 재실행하지 않음 |
+| S10-E20 | 내구 accepted 소유권 | 승인 focused/직접 영향 | S11 최종 cut·미실행 | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 실제 slot 확보→canonical reference accepted mutation→worker 공개; 확인된 미접수는 managed=false, 원장 비권위/소유권 조회 불가면 unknown+legacy 억제(접수 성공 아님). 중복/충돌·SQLite/fallback/rebuild·재시작 no-job unknown 및 legacy 비반환 |

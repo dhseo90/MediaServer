@@ -3,6 +3,7 @@
 
 #include "recording/recording_catalog.h"
 #include <memory>
+#include <limits>
 
 namespace recording {
 
@@ -111,6 +112,10 @@ struct RecordingRangeResult {
     std::vector<RecordingRangeCandidate> unplaced;
     bool deleted{false};
 };
+// 동일 잠금에서 취득한 원본 집합의 순수 UTC 조회. 파일 건강도 증명이 아니다.
+bool ResolveUtcRangeFromSnapshot(const RecordingLocationCatalogSnapshot&,std::int64_t start,
+    std::int64_t end,RecordingRangeResult*,std::string* error,
+    std::size_t max_candidates=std::numeric_limits<std::size_t>::max());
 
 class RecordingReadService {
 public:

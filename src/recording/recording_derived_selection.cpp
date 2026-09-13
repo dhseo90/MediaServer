@@ -62,7 +62,7 @@ bool SameGeneration(const analysis::OriginalSampleIdentity& a,const RecordingCon
     return a.source_generation==b.source_generation&&a.generation_order==b.generation_order&&a.track_id==b.track_id;
 }
 bool SourceValid(const DerivedSourceEvidence& s,const RecordingConsumerReferenceV1& r) {
-    return s.segment.source_id==r.source_id&&s.segment.channel_id==r.channel_id&&ValidateRecordingSegmentV2(s.segment,nullptr);
+    return s.available_for_selection&&s.segment.source_id==r.source_id&&s.segment.channel_id==r.channel_id&&ValidateRecordingSegmentV2(s.segment,nullptr);
 }
 bool Bound(const DerivedSourceEvidence& source,const analysis::OriginalSampleIdentity& o) {
     if(!source.binding)return false;const auto& b=*source.binding;

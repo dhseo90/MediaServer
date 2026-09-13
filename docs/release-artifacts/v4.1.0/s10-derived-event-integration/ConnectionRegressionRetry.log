@@ -1,0 +1,25 @@
+[pass] C401 관측·참조 원자 저장
+[pass] C402 쌍 identity 불일치 거부
+[pass] C403 동일 원본 재전달·event 병합
+[pass] C405 SQL·JSONL·checkpoint 쌍 복구
+[pass] C404 다른 원본 동일PTS 구분
+[pass] C406 실제 OnResult 원본 참조 저장
+[pass] C407 OnEvent 강제 표본
+[pass] C408 종료track 과거참조 보존
+[pass] C409 종료track 참조부재 unknown
+[pass] C410 sampling·queue·StopAndDrain 회귀
+[pass] C411 exact·미색인 복수 후보 보존
+[pass] C412 nearest/ambiguous/unavailable 미승격
+[pass] C413 UTC unknown·삭제 상태 재판정
+[pass] C414 실제 TryResolve 요청참조 저장
+[pass] C415 event 재전달·확장·세대 구분
+[pass] C416 source/channel 충돌 거부
+[pass] C417 같은 원본 미디어 교집합 우선
+[pass] C418 공개 결과·구형 fallback 불변
+[pass] C422 실제 bridge 초기 pre-roll 수락·pending 유지
+[pass] C423 초기 요청 멱등·갱신·generation 분리
+[pass] C424 초기 요청 SQL·JSONL 복구
+[pass] C425 초기 요청 checkpoint 복구
+[summary] pass=22 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-consumer-connection.GG6Fs6 bytes=6169508 removed=true
+[elapsed] seconds=10 source=bash-SECONDS

@@ -267,6 +267,7 @@ std::string RecordingMutationTypeName(RecordingMutationType type) {
         case RecordingMutationType::SegmentV2Finalized: return "segment_v2_finalized";
         case RecordingMutationType::SegmentV2BoundFinalized: return "segment_v2_bound_finalized";
         case RecordingMutationType::ConsumerReferencePut: return "consumer_reference_put";
+        case RecordingMutationType::DerivedReferenceAccepted: return "derived_reference_accepted";
         case RecordingMutationType::ReferencedObservationPut: return "referenced_observation_put";
         case RecordingMutationType::DerivedJobIntent: return "derived_job_intent";
         case RecordingMutationType::DerivedJobFiles: return "derived_job_files";
@@ -297,6 +298,7 @@ RecordingMutationType ParseRecordingMutationType(const std::string& value) {
     if (value == "event_link_receipt") return RecordingMutationType::EventLinkReceipt;
     if (value == "segment_v2_bound_finalized") return RecordingMutationType::SegmentV2BoundFinalized;
     if (value == "consumer_reference_put") return RecordingMutationType::ConsumerReferencePut;
+    if (value == "derived_reference_accepted") return RecordingMutationType::DerivedReferenceAccepted;
     if (value == "referenced_observation_put") return RecordingMutationType::ReferencedObservationPut;
     if (value == "derived_job_intent") return RecordingMutationType::DerivedJobIntent;
     if (value == "derived_job_files") return RecordingMutationType::DerivedJobFiles;

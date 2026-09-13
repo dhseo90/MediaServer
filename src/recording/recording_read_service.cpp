@@ -167,7 +167,15 @@ bool RecordingReadService::ResolveUtcRange(const std::string& channel, std::int6
     if (!result || start >= end || !ValidateOpaqueId(channel, error)) return InvalidRange(error);
     RecordingLocationCatalogSnapshot snapshot;
     if (!catalog_.SnapshotLocationsV2(channel, &snapshot, error)) return false;
+    return ResolveUtcRangeFromSnapshot(snapshot,start,end,result,error);
+}
+
+bool ResolveUtcRangeFromSnapshot(const RecordingLocationCatalogSnapshot& snapshot,
+    std::int64_t start, std::int64_t end, RecordingRangeResult* result, std::string* error,std::size_t max_candidates) {
+    if(result)*result={};
+    if(!result||start>=end)return InvalidRange(error);
     RecordingRangeResult output;
+    std::size_t candidate_count=0;
     std::vector<std::int64_t> boundaries{start, end};
     struct Overlap {
         const RecordingSegmentV2* segment;
@@ -182,6 +190,7 @@ bool RecordingReadService::ResolveUtcRange(const std::string& channel, std::int6
     std::vector<BoundaryEvent> events;
     for (const auto& segment : snapshot.segments) for (const auto& mapping : segment.mappings) {
         if (!PlacedUtc(mapping)) {
+            if(candidate_count++>=max_candidates) {if(error)*error="utc-range-candidate-cap";return false;}
             auto candidate = RangeCandidate(segment, mapping);
             candidate.media_start_pts = mapping.start_pts;
             candidate.media_end_pts = mapping.end_pts;
@@ -215,6 +224,7 @@ bool RecordingReadService::ResolveUtcRange(const std::string& channel, std::int6
         }
         bool confirmed = false;
         for (const auto index : active) {
+            if(candidate_count++>=max_candidates) {if(error)*error="utc-range-candidate-cap";return false;}
             const auto& segment = *overlaps[index].segment;
             const auto& mapping = *overlaps[index].mapping;
             auto candidate = RangeCandidate(segment, mapping);

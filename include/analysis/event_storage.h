@@ -80,6 +80,8 @@ struct EventRecordingBridgeResult {
     std::string link_id;
     std::string completeness;
     std::string error;
+    // 새 경로 소유 또는 소유권 미확인 시 legacy 억제. 접수 성공 뜻이 아니며 공개 직렬화하지 않는다.
+    bool derived_job_managed{false};
 };
 
 class EventRecordingBridge {

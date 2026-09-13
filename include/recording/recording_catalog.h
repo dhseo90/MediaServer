@@ -46,6 +46,27 @@ struct RecordingLocationCatalogSnapshot {
     std::vector<RecordingSegmentV2> segments;
     std::vector<std::string> deleted_segment_ids;
 };
+struct RecordingDerivedSourceSnapshotEntry {
+    RecordingSegmentV2 segment;
+    std::optional<RecordingSourceBindingV1> binding;
+    RecordingLifecycle lifecycle{RecordingLifecycle::Unknown};
+    bool deleted{false};
+};
+struct RecordingDerivedOutputAvailability {
+    std::string segment_id, relative_path;
+    RecordingLifecycle lifecycle{RecordingLifecycle::Unknown};
+    // catalog 상태만 확인한다. 현재 파일 hash/read 건강도를 재검증한 값이 아니다.
+    bool catalog_available{false};
+};
+struct RecordingDerivedReferenceJob {
+    DerivedJobRecordV1 job;
+    std::vector<RecordingDerivedOutputAvailability> outputs;
+};
+struct RecordingDerivedReferenceResult {
+    bool managed{false},truncated{false};
+    std::string state{"unknown"},reason;
+    std::vector<RecordingDerivedReferenceJob> jobs;
+};
 
 struct RecordingOriginalCandidate {
     RecordingSegmentV2 segment;
@@ -150,6 +171,13 @@ public:
     bool PutObservation(const AnalysisObservationV1& observation, std::string* error) override;
     bool PutObservationV2(AnalysisObservationV2 observation, std::string* error);
     bool PutConsumerReference(const RecordingConsumerReferenceV1&, std::string* error);
+    // 큐 슬롯을 확보한 내부 bridge만 호출한다. 참조 자체는 변경하지 않는다.
+    bool AcceptDerivedReference(const RecordingConsumerReferenceV1&, std::string* error);
+    bool IsDerivedReferenceAccepted(const std::string& reference_id, bool* accepted, std::string* error) const;
+    bool SnapshotDerivedSources(const RecordingConsumerReferenceV1&,
+        std::vector<RecordingDerivedSourceSnapshotEntry>*, std::string* error) const;
+    bool QueryDerivedReferenceResult(const std::string& reference_id,
+        RecordingDerivedReferenceResult*,std::string* error) const;
     bool PutReferencedObservation(const AnalysisObservationV2&, const RecordingConsumerReferenceV1&, std::string*);
     std::vector<ReferencedObservationV1> QueryReferencedObservations(const std::string& channel) const;
     std::vector<RecordingConsumerReferenceV1> QueryConsumerReferences(
@@ -230,6 +258,7 @@ private:
     std::unordered_map<std::string, RecordingSegmentV2> segments_v2_;
     std::unordered_map<std::string, RecordingSourceBindingV1> source_bindings_;
     std::unordered_map<std::string, DerivedJobRecordV1> derived_jobs_;
+    std::unordered_set<std::string> derived_accepted_references_;
     std::unordered_map<std::string, RecordingSegmentStateV2> states_v2_;
     std::unordered_map<std::string, RecordingTombstoneV2> tombstones_v2_;
     std::unordered_map<std::string, RecordingOrderReservationV1> orders_v2_;

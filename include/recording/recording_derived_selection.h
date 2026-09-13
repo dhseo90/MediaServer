@@ -9,6 +9,8 @@ struct DerivedSourceEvidence {
     RecordingSegmentV2 segment;
     std::optional<RecordingSourceBindingV1> binding;
     bool deleted{false};
+    // 내부 snapshot의 lifecycle/결박 불명확성. 저장 shape나 decoded identity 증명이 아니다.
+    bool available_for_selection{true};
 };
 struct DerivedSelectionCandidate {
     RecordingSegmentV2 segment;

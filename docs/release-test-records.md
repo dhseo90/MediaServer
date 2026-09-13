@@ -1,5 +1,63 @@
 # Release Test Records
 
+## S10 3C-5.4 사전등록 — 2026-09-13
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S10-E01 | 실제 H264 decoder 이벤트 2출력 | 실제 encoder/writer와 RawVideoDecoder callback 직접 증거→DispatchEventRecords→reference→job Complete→2개 output ID/file decode·출처; packet 합성 증거와 구분 | v4.1.0 |
+| S10-E02 | 정상 단일 출력 | 단일 원본 요청의 실제 파일과 job/output 목록·전체 요청 충족 | v4.1.0 |
+| S10-E03 | 부분 출력 | 일부 confirmed와 외부 unknown을 보존한 partial job/output; verified와 fully 분리 | v4.1.0 |
+| S10-E04 | post-roll 증거 갱신 | 동일 source/channel/ns/generation provider의 후행 직접 증거와 finalize snapshot 갱신으로 완전 출력 | v4.1.0 |
+| S10-E05 | 대기 timeout | 유한 steady/시도 예산 종료는 unknown이며 시간 경과를 coverage로 사용하지 않음 | v4.1.0 |
+| S10-E06 | namespace/generation 경계 | 새 namespace·세대·track 불일치 provider를 합성/재라벨링하지 않고 미확인 보존 | v4.1.0 |
+| S10-E07 | immutable 요청 | start/end/pre/post·원본 generation·namespace와 media/UTC 축을 reference/job까지 그대로 보존 | v4.1.0 |
+| S10-E08 | 동일 snapshot UTC 선택 | 원본 snapshot에서 순수 range helper를 사용하며 unknown/unplaced/복수 후보를 숨기지 않음 | v4.1.0 |
+| S10-E09 | 멱등/선택 갱신 | 같은 reference/selection은 동일 job/output ID; 선택 갱신은 새 job·이전 결과 목록 유지 | v4.1.0 |
+| S10-E10 | continuous 원본 adapter | 같은 source/channel의 continuous만 포함; 자신의 derived Event output 재선택 제외 | v4.1.0 |
+| S10-E11 | 삭제/손상/unindexed | 동일 catalog 잠금의 segment/binding/lifecycle/deleted 대조; 삭제·손상·결박부재를 숨겨 complete로 만들지 않음 | v4.1.0 |
+| S10-E12 | 원자 quota/disk admission | 양수 총 예약과 기존 retention admission; 부족·provider 실패 시 파일 생성 없음 | v4.1.0 |
+| S10-E13 | 큐 포화/접수 종료 | 유한 queue/evidence 상한과 stop 이후 신규 reference Put/Submit 금지, 기존 managed 보존·대기 상태 명시 | v4.1.0 |
+| S10-E14 | 실행 중 stop 취소 | 단일 worker service Run 취소→join, cleanup 전 자원 release 금지·무한 재시도 없음 | v4.1.0 |
+| S10-E15 | 재시작 Ready/소실 대기 | 내구 Ready는 기존 파일로 복구하고 Intent 전 메모리 증거 소실은 발명/재렌더 없이 unknown | v4.1.0 |
+| S10-E16 | terminal tombstone 현재 가용성 | historical Complete와 현재 output availability 분리·삭제 파일 재생성 없음 | v4.1.0 |
+| S10-E17 | clip/fallback/공개 불변 | managed 내부 기본 false flag로 접수된 요청만 clip fallback/실패 집계/RecordFallback 억제, snapshot hook 유지. 서비스 미주입 재생성 및 accepted 후 resolver nullopt/불일치/예외/미주입에서도 기존 내구 소유권 유지(신규 Put/접수 없음). reference link ID·내부 전체 목록·EventRecord 작성 당시 상태 분리; 공개 필드 추가/사후 재작성 없음 | v4.1.0 |
+| S10-E18 | provider/입력 상한 오류 | 다른 source/channel·과대 증거·provider 예외 거부; 누적 원본256초과/관련소수 성공과 실제 관련256초과 거부를 구분 | v4.1.0 |
+| S10-E19 | 직접 영향 회귀 | 기존 legacy event·consumer connection/reference·관측·writer·retention 및 build. C414/C418/C422/C423의 승인된 미주입 error/영속 reference link/managed=false 예상값으로 변경하며 기존 저장·공개·fallback assertions 유지. bridge 직접 링크 runner 4개에 신규 내부 worker 의존 cpp와 기존 gst-video 연결; 5.3b 전수는 인계만으로 재실행하지 않음 | v4.1.0 |
+| S10-E20 | 내구 accepted 소유권 | 실제 slot 확보→canonical reference accepted mutation→worker 공개; 확인된 미접수는 managed=false, 원장 비권위/소유권 조회 불가면 unknown+legacy 억제(접수 성공 아님). 중복/충돌·SQLite/fallback/rebuild·재시작 no-job unknown 및 legacy 비반환 | v4.1.0 |
+
+E19 실행 묶음(실행 전 고정): `verify_recording_derived_selection.sh`, `verify_recording_consumer_connection.sh`, `verify_recording_consumer_reference.sh`, `verify_recording_range_resolution.sh`, `verify_v410_event_recording.sh --bridge-only`, `verify_recording_identity.sh`, `verify_v410_recording_finalize_recovery.sh --integration`, `verify_v410_recording_catalog.sh`, `verify_recording_retention_v2.sh`. 모두 `bash scripts/internal/<이름>`의 격리 단기 실행이다. 신규 내부 링크로 영향을 받은 runner와 catalog/UTC/retention/consumer 경계만 대조하며 기존 5.3b 전수 재실행이나 장시간/UI를 대신하지 않는다.
+
+첫 focused는 실제 이벤트 2출력 완료를 요구하며, 현행 consumer-reference 경로가 pending만 반환하고 job을 생성하지 않아 E01 assertion이 실패하는 예상 RED를 지정한다. compile/준비 오류는 예상 RED가 아니다. 원출력은 s10-derived-event-integration artifact에 직접 capture하고 소유 mktemp root를 정리한다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | opt-in worker·원본 adapter·현재 결과 조회 변경 | E01~E19 | focused/build/직접 영향 회귀 승인 |
+| 30분 | 미진행 | S11 최종 cut, 이번 미승인 | E01~E19 | 미승인 |
+| 120분 | 조건부 진행 | S11 최종 cut에서 worker/증거 수명 영향 대조 | E04/E13/E14 | 이번 실행 미승인 |
+| UI | 미진행 | 내부 opt-in helper에 UI 없어야 정상 | E01~E19 | 미승인 |
+
+
+### S10 3C-5.4 실행 결과
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| E01~E20 최종 통합 | `bash scripts/internal/verify_recording_derived_event_integration.sh`, exit 0, 56개. 실제 H264 decoder 증거·2/1출력 decode·부분/후행 finalize·내구 소유·별도 프로세스 Ready 복구·동시 Stop·상한 | pass |
+| 선택 영향 회귀 | `bash scripts/internal/verify_recording_derived_selection.sh`, exit 0, 27개 | pass |
+| consumer 연결 | `bash scripts/internal/verify_recording_consumer_connection.sh`, exit 0, 22개. 최초 기대값 실패와 resolver 소유 RED 이력 보존 | pass |
+| consumer 참조 | `bash scripts/internal/verify_recording_consumer_reference.sh`, exit 0, 19개 | pass |
+| range | `bash scripts/internal/verify_recording_range_resolution.sh`, exit 0, 16개 | pass |
+| legacy bridge | `bash scripts/internal/verify_v410_event_recording.sh --bridge-only`, exit 0, 144개 | pass |
+| identity | `bash scripts/internal/verify_recording_identity.sh`, exit 0, identity-pass 23개 | pass |
+| writer/finalize | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh --integration`, exit 0, 140개 | pass |
+| catalog | 새 `mktemp -d /private/tmp/media-server-s10-event-catalog.XXXXXX` 경로를 `MEDIA_SERVER_VERIFY_V410_RECORDING_CATALOG_BUILD_DIR`로 전달한 `bash scripts/internal/verify_v410_recording_catalog.sh`, exit 0, composition 포함 246개 | pass |
+| retention | `bash scripts/internal/verify_recording_retention_v2.sh`, exit 0, 24개 | pass |
+| 제품 build | `./server.sh build`, exit 0. 제품 assertion 717개와 별도 | pass |
+| 임시 산출물 정리 | historical 포함 원출력의 소유 경로 27행, 삭제 전 bytes·삭제·현재 부재 전수 대조. 서버/port·외부 입력 없음 | pass |
+| source fingerprint | 변경 제품/CMake/runner/fixture 22개 SHA-256 검증 전부 OK | pass |
+| 문서/diff 검사 | `./server.sh verify-docs-links`, exit 0: markdown 248/local links 3321/images 22/anchors 110/indexed 76/exclusions 162/failures 0. `git diff --check`, exit 0. 메인 최신 plan/spec 포함, 제품 717개와 별도 | pass |
+
+최종 **717개 pass / 0 fail**, historical **382행**은 [전수 결과](release-artifacts/v4.1.0/s10-derived-event-integration/results.md), 명령·exit·최초 실패/예상 RED·범위와 한계는 [보고서](release-artifacts/v4.1.0/s10-derived-event-integration/report.md), 실제 변경 파일은 [fingerprint](release-artifacts/v4.1.0/s10-derived-event-integration/source-fingerprints.log)에 보존했다. token start/end/consumed는 하위 작업별 계측 도구가 없어 미집계이며 elapsed는 지원 runner의 SECONDS 원출력, 미지원 runner는 미집계다. 30분/UI 미실행, 120분 조건부 진행(S11 최종 cut 영향 대조, 이번 실행 미승인), 공개 route/default 구성·3D/S11 미구현은 이번 단기 PASS에 포함하지 않는다.
+
 ## S10 3C-5.3b 사전등록 — 2026-09-13
 
 | 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |

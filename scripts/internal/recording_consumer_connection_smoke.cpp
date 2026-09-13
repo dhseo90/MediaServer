@@ -245,14 +245,14 @@ void EarlyRequestCases(Fixture& f) {
         hook.pre_event_ms = 5000; hook.post_event_ms = 3000;
         const auto response = bridge.TryResolve(result, event, hook);
         auto rows = f.catalog->QueryConsumerReferences("channel-one", "event", event.event_id);
-        admitted = response.handled && response.error.empty() && response.completeness == "pending" &&
-            !response.derived_clip_ready && response.clip_path.empty() && response.link_id.empty() &&
-            rows.size() == 1 && rows[0].request && rows[0].request->start_ms == 100 &&
+        admitted = response.handled && response.error=="derived-service-not-configured" && response.completeness == "pending" &&
+            !response.derived_clip_ready && response.clip_path.empty() && !response.derived_job_managed &&
+            rows.size() == 1 && response.link_id==rows[0].reference_id && rows[0].request && rows[0].request->start_ms == 100 &&
             rows[0].request->end_ms == 200 && rows[0].request->pre_ms == 5000 &&
             rows[0].request->post_ms == 3000 && rows[0].request->time_basis == "media-pts-ms";
         const auto before_retry = Bytes(f.journal->path());
         const auto retry = bridge.TryResolve(result, event, hook);
-        updates = admitted && retry.error.empty() && Bytes(f.journal->path()) == before_retry;
+        updates = admitted && retry.error=="derived-service-not-configured" && !retry.derived_job_managed && Bytes(f.journal->path()) == before_retry;
         event.update_time_ms = 300;
         const auto extended = bridge.TryResolve(result, event, hook);
         result.source_association.original->source_generation = "early-generation-two";
@@ -274,7 +274,8 @@ void EarlyRequestCases(Fixture& f) {
             generation = generation || (request && identity && row.original->source_generation == "early-generation-two" &&
                 row.original->generation_order == 2 && row.request->end_ms == 300);
         }
-        updates = updates && extended.error.empty() && reset.error.empty() &&
+        updates = updates && extended.error=="derived-service-not-configured" && reset.error=="derived-service-not-configured" &&
+            !extended.derived_job_managed && !reset.derived_job_managed &&
             expected.size() == 3 && first && extension && generation;
         bridge.RecordFallback(event, response);
         bridge.StopAndDrain();
@@ -326,7 +327,8 @@ void BridgeCases(Fixture& f) {
     analysis::EventMediaHookOptions hook; hook.pre_event_ms = 10; hook.post_event_ms = 20;
     const auto response = bridge.TryResolve(result, event, hook);
     auto references = f.catalog->QueryConsumerReferences("channel-one", "event", event.event_id);
-    Check(response.handled && response.error.empty() && references.size() == 1 && references[0].request &&
+    Check(response.handled && response.error=="derived-service-not-configured" && !response.derived_job_managed &&
+          references.size() == 1 && references[0].request && response.link_id==references[0].reference_id &&
           references[0].request->start_ms == 100 && references[0].request->end_ms == 200 &&
           references[0].request->pre_ms == 10 && references[0].request->post_ms == 20,
           "C414 실제 TryResolve 요청참조 저장");
@@ -358,7 +360,7 @@ void BridgeCases(Fixture& f) {
     }
     Check(overlap, "C417 같은 원본 미디어 교집합 우선");
     bridge.RecordFallback(event, response); bridge.StopAndDrain();
-    Check(!response.derived_clip_ready && response.clip_path.empty() && response.link_id.empty() && response.completeness == "pending" &&
+    Check(!response.derived_clip_ready && response.clip_path.empty() && !response.link_id.empty() && !response.derived_job_managed && response.completeness == "pending" &&
           deriver.calls == 0 && Bytes(f.journal->path()) == safe_bytes &&
           f.catalog->ListEventLinks(EventRecordingLinkStatus::Pending).empty(),
           "C418 공개 결과·구형 fallback 불변");

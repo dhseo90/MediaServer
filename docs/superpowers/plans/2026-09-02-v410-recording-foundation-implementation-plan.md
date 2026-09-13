@@ -2087,6 +2087,30 @@ post-roll 대기는 steady clock의 유한 대기 예산으로 제한하되 시�
 `verify-docs-links` exit0(markdown246/local3226/image22/anchor110/index76/exclusions160),
 `git diff --check` exit0. 담당자의 source/결과와 인계 후 현재 파일이 일치하며
 인계만을 이유로 제품 검증을 재실행하지 않았다.
+5.4 내부 소비 경계: 새 서비스가 접수·관리하는 요청은 비직렬화 `derived_job_managed`
+표시로 기존 clip fallback의 중복 생성을 막는다. 기본 legacy 경로와 snapshot hook은 유지한다.
+미주입·접수 거부는 명시 오류와 함께 기존 fallback을 유지하되, 이미 관리 중인 요청의
+실패·중단을 다시 legacy 요청으로 바꾸지 않는다. 여러 출력은 내부 reference 결과 조회로
+전부 제공하며 첫 파일을 전체 요청의 `clip_path`로 승격하지 않는다. 기존 EventRecord는
+저장 당시 상태이며 비동기 재작성하지 않는다. 공개 필드·route·서버 기본 전환은 추가하지 않는다.
+접수 소유권은 기존 reference identity를 바꾸지 않는 내부 원장 표지로 보존한다. 대기 슬롯 확보와
+정확한 reference 결박의 내구 접수 후 작업자에 공개한다. 재시작 시 accepted이나 job이 없으면
+`evidence-not-durable`인 확인 불가이며 legacy로 재전달하거나 무한 pending으로 처리하지 않는다.
+이는 분석 구간 증거의 내구 저장을 뜻하지 않는다. 새 직접 증거를 가진 재접수는 별도 선택과
+기존 job 멱등성 검사를 거친다. 무제한 메모리 소유권 캐시로 대체하지 않는다.
+
+5.4 구현·격리 단기 검증은 마쳤다. 실제 H264 decoder→이벤트→구간 선택→내구 접수/작업→
+2개 출력과 직접 decode, 후행 finalize, 부분/갱신, 큐·취소·재시작·tombstone를 연결했다.
+최종 통합56/선택27/연결22/참조19/구간16/legacy bridge144/identity23/finalize140/
+catalog246/retention24로 총717개가 통과했다. catalog의 composition 행은 정적 검사다.
+UTC 손상 후보 판정·종료/비권위/resolver의 소유권 누락과 검증 기대값 오류를 보완했으며
+최초 실패와 준비 오류는 [단위 기록](../../release-artifacts/v4.1.0/s10-derived-event-integration/report.md)에 보존한다.
+메인이 실제 제품 diff·주요 oracle·원출력을 직접 대조했다. source22개 hash, 최종717행과
+임시27경로 부재 및 문서 링크·diffcheck를 확인하여 해당 내부 단위의 커밋 조건을 충족했다.
+기본 서버 주입·공개 결과 소비·3D/S11·장시간/UI·푸시는 이번 완료 범위가 아니다.
+
+5.3b 커밋은 `e4917056`이다. 이후 5.4는 동일 담당자가 구현했고, 메인이 복수 출력과
+기존 clip/fallback 소비 경계를 확정하고 실제 이벤트→출력 통합 증거를 검토했다.
 
 - **5.3a 원장·자원:** 기존 catalog 소유 journal에 요청/선택/profile 기반 job identity,
   별도 attempt/output ID, source 보호와 용량 예약을 하나의 intent로 저장한다.

@@ -2984,15 +2984,15 @@ private:
         }
         std::string clip_path;
         error_message.clear();
-        if (!bridge_result.derived_clip_ready &&
+        if (!bridge_result.derived_clip_ready && !bridge_result.derived_job_managed &&
             clip_hook.CaptureClip(*record, clip_options, &clip_path, &error_message)) {
             record->clip_path = clip_path;
-        } else if (!bridge_result.derived_clip_ready && clip_options.enabled) {
+        } else if (!bridge_result.derived_clip_ready && !bridge_result.derived_job_managed && clip_options.enabled) {
             std::lock_guard lock(mu_);
             ++clip_hook_failed_count_;
             last_clip_error_ = TrimForLog(error_message);
         }
-        if (recording_bridge && !bridge_result.derived_clip_ready) {
+        if (recording_bridge && !bridge_result.derived_clip_ready && !bridge_result.derived_job_managed) {
             recording_bridge->RecordFallback(*record, bridge_result);
         }
         AttachVlmEvidenceRefs(record);

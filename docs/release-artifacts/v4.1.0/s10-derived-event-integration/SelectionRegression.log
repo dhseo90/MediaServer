@@ -1,0 +1,30 @@
+[pass] D01 callback 누적·불변 snapshot
+[pass] D02 유효0·fallback·duration/원본부재
+[pass] D04 exact union 정상 선택·파일식별
+[pass] D03 pre/post·음수요청 보존
+[pass] D03 ns 변환 overflow 거부
+[pass] D05 한점 외삽 금지
+[pass] D06 namespace 격리
+[pass] D06 generation 합성 금지
+[pass] D06 track 합성 금지
+[pass] D07 중복 PTS 모호성
+[pass] D07 복수 원본 후보 보존
+[pass] D08 cap 초과범위 미확인
+[pass] D09 삭제 원본 구분
+[pass] D09 불완전 mapping을 영상공백으로 승격 금지
+[pass] D09 epoch identity 유지
+[pass] D11 비표현 유리수 잔차 거부
+[pass] D12 watermark 없는 postroll 미확인
+[pass] D13 source/channel 결박
+[pass] D13 checksum 없는 원본 거부
+[pass] D10 UTC 품질·불확실성 유지
+[pass] D10 UTC 역행 복수후보 보존
+[pass] D10 UTC unplaced 차단
+[pass] D14 정상후보가 손상후보를 숨기지 않음
+[pass] D15 queued sequence 미래제외
+[pass] D16 namespace reset 과거eviction 격리
+[pass] D17 decoder exact duration·fallback 격리
+[pass] D21 namespace reset 이후 재eviction 최근작은구간 선택
+[summary] pass=27 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.eM4Kps bytes=1015416 removed=true
+[elapsed] seconds=2 source=bash-SECONDS

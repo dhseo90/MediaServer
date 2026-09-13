@@ -1,0 +1,144 @@
+[pass] FR09 actual H264 packet fixture
+[pass] FR09 writer start
+[pass] FR09 callback observes durable ready
+[pass] FR09 callback observes owned marker
+[pass] FR09 exact final bytes metadata
+[pass] FR09 completion actual bytes
+[pass] FR09 exactly one finalized callback
+[pass] FR09 successful cleanup and reservation completion
+[pass] FR09 writer start
+[pass] FR09 callback observes durable ready
+[pass] FR09 callback observes owned marker
+[pass] FR09 exact final bytes metadata
+[recording] finalize recovery pending; writer admission blocked until restart
+[pass] FR10 failure occurs during Push and blocks later packet admission before Stop
+[pass] FR10 repeated Push while started cannot bypass recovery pending
+[pass] FR09 exactly one finalized callback
+[pass] FR10 failure blocks repeat admission and reservation release
+[pass] FR10 Stop preserves media ready marker
+[pass] FR10 recovery journal
+[pass] FR10 recovery Open preserves ready
+[pass] FR10 restart recovers callback failure original ID
+[pass] FR06 known journal
+[pass] FR06 known catalog
+[pass] FR06 known original metadata
+[pass] FR06 known ready
+[pass] FR06 temporary hold fixture
+[pass] FR06 durable diagnostic before rejected Mark preserves journal
+[pass] FR06 release fixture hold
+[pass] FR06 before Mark restart journal
+[pass] FR06 before Mark restart catalog
+[pass] FR06 diagnostic before Mark crash converges to Corrupt
+[pass] FR06 after Mark restart journal
+[pass] FR06 after Mark restart catalog
+[pass] FR06 after Mark crash repeat no append
+[pass] FR06 diagnostic conflict preserves original and journal
+[pass] FR16 event journal open
+[pass] FR16 event catalog open
+[pass] FR16 actual catalog mode
+[pass] FR12 original source registered
+[pass] FR12 durable Pending precedes remux
+[pass] FR11 actual MPEGTS remux ready
+[pass] FR11 actual tsdemux healthy
+[pass] FR12 ready contains derived epoch fixture
+[pass] FR12 raw mismatched event epoch recovery rejects without registration
+[pass] FR13 new event output recovered
+[pass] FR13 source and new output holds exactly once
+[pass] FR16 query contains source and recovered output
+[pass] FR14 recreate exact postcommit stale ready
+[pass] FR14 restart journal
+[pass] FR14 restart catalog
+[pass] FR14 Open restores source output holds
+[pass] FR14 committed replay no journal append
+[pass] FR14 committed recovery no duplicate holds
+[pass] FR15 bridge quota policy
+[pass] FR14 existing output terminal recovery no remux
+[pass] FR14 existing terminal releases all restored holds
+[pass] FR15 production bridge accepts event
+[pass] FR15 every actual bridge request carries ready metadata and reservation
+[pass] FR15 actual production bridge remux completes
+[pass] FR15 production bridge clears ready before terminal
+[pass] FR15 reservation exceed before ready emission
+[pass] FR15 reservation exceed cleans owned output only
+[pass] FR16 event journal open
+[pass] FR16 event catalog open
+[pass] FR16 actual catalog mode
+[pass] FR12 original source registered
+[pass] FR12 durable Pending precedes remux
+[pass] FR11 actual MPEGTS remux ready
+[pass] FR11 actual tsdemux healthy
+[pass] FR12 ready contains derived epoch fixture
+[pass] FR12 raw mismatched event epoch recovery rejects without registration
+[pass] FR13 new event output recovered
+[pass] FR13 source and new output holds exactly once
+[pass] FR16 query contains source and recovered output
+[pass] FR16 direct SQLite open
+[pass] FR16 direct SQLite prepare
+[pass] FR16 actual SQL lifecycle and exact codec metadata projection
+[pass] FR14 recreate exact postcommit stale ready
+[pass] FR14 restart journal
+[pass] FR14 restart catalog
+[pass] FR14 Open restores source output holds
+[pass] FR14 committed replay no journal append
+[pass] FR14 committed recovery no duplicate holds
+[pass] FR15 bridge quota policy
+[pass] FR14 existing output terminal recovery no remux
+[pass] FR14 existing terminal releases all restored holds
+[pass] FR15 production bridge accepts event
+[pass] FR15 every actual bridge request carries ready metadata and reservation
+[pass] FR15 actual production bridge remux completes
+[pass] FR15 production bridge clears ready before terminal
+[pass] FR15 reservation exceed before ready emission
+[pass] FR15 reservation exceed cleans owned output only
+[pass] FR15 failure journal
+[pass] FR15 failure catalog
+[pass] FR15 failure source
+[pass] FR15 failure quota policy
+[pass] FR15 failure request accepted
+[pass] FR15 failed Pending append prevents remux and releases source lease
+[pass] FR15 failed Pending append leaves original and replacement journal unchanged
+[pass] FR15 failed Pending append creates no ready
+[pass] FR15 failed Pending append released exact reservation for readmission
+[pass] FR06 size ready fixture
+[pass] FR06 size journal fixture
+[pass] FR06 size catalog fixture
+[pass] FR06 size definite corruption never finalized
+[pass] FR06 size corrupt original and ticket retained
+[pass] FR06 size repeat logical quarantine converges
+[pass] FR06 container ready fixture
+[pass] FR06 container journal fixture
+[pass] FR06 container catalog fixture
+[pass] FR06 container definite corruption never finalized
+[pass] FR06 container corrupt original and ticket retained
+[pass] FR06 container repeat logical quarantine converges
+[pass] FR06 two-links ready fixture
+[pass] FR06 two-links journal fixture
+[pass] FR06 two-links catalog fixture
+[pass] FR06 two-links definite corruption never finalized
+[pass] FR06 two-links corrupt original and ticket retained
+[pass] FR06 two-links repeat logical quarantine converges
+[pass] FR12 missing link journal
+[pass] FR12 missing link catalog
+[pass] FR12 missing link source
+[pass] FR12 missing durable link actual remux fixture
+[pass] FR12 missing durable Pending prevents inferred event registration
+[pass] FR12 mismatched durable event fixture
+[pass] FR12 mismatched durable event preserves output and journal
+[pass] FR11 unsupported MPEGTS codec metadata unavailable
+[pass] FR11 actual MPEGTS changed bytes definitely corrupt
+[diagnostic] malformed MPEGTS state=2 detail=demux-error-unclassified
+[pass] FR11 unclassified MPEGTS error unavailable preserves bytes and journal
+[pass] FR06 path journal
+[pass] FR06 path catalog
+[pass] FR06 path known corrupt fixture
+[pass] FR06 path foreign relative ready fixture
+[pass] FR06 known Corrupt same metadata different stored path rejected
+[pass] FR09 single packet writer start
+[pass] FR09 single packet cleanup returns actual bytes
+[pass] FR09 single packet invalid interval cleans before ready without callback
+[pass] FR09 restart after incomplete single packet
+[pass] FR09 recovered positive interval callback valid V1
+[pass] FR09 single packet cleanup returns actual bytes
+[pass] FR09 positive interval after incomplete packet finalizes normally
+[summary] pass=140 fail=0
+[cleanup] path=/private/tmp/media-server-finalize-YWLqkm bytes=7754930 removed=true

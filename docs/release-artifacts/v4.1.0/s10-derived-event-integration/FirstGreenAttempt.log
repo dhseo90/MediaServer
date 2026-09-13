@@ -1,0 +1,5 @@
+[pass] E01 실제 H264 decoder→EventRecord→reference→내구 job·2출력 Complete
+[detail] decoded=30 evidence=30 references=1 jobs=1
+[summary] pass=1 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.oVQuiN bytes=7070959 removed=true
+[elapsed] seconds=5 source=bash-SECONDS

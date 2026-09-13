@@ -27,9 +27,9 @@ fi
 GST_CFLAGS=()
 GST_LIBS=()
 GST_DEFINE=0
-if command -v pkg-config >/dev/null 2>&1 && pkg-config --exists gstreamer-1.0 gstreamer-app-1.0; then
-  read -r -a GST_CFLAGS <<<"$(pkg-config --cflags gstreamer-1.0 gstreamer-app-1.0)"
-  read -r -a GST_LIBS <<<"$(pkg-config --libs gstreamer-1.0 gstreamer-app-1.0)"
+if command -v pkg-config >/dev/null 2>&1 && pkg-config --exists gstreamer-1.0 gstreamer-app-1.0 gstreamer-video-1.0; then
+  read -r -a GST_CFLAGS <<<"$(pkg-config --cflags gstreamer-1.0 gstreamer-app-1.0 gstreamer-video-1.0)"
+  read -r -a GST_LIBS <<<"$(pkg-config --libs gstreamer-1.0 gstreamer-app-1.0 gstreamer-video-1.0)"
   GST_DEFINE=1
 fi
 OPENSSL_CFLAGS=()
@@ -44,7 +44,7 @@ fi
 "${CXX_BIN}" -std=c++17 -Wall -Wextra -Werror -pthread -I"${ROOT_DIR}/include" \
   ${SQLITE_CFLAGS[*]-} ${GST_CFLAGS[*]-} ${OPENSSL_CFLAGS[*]-} \
   "${SCRIPT_DIR}/event_recording_link_smoke.cpp" \
-  "${ROOT_DIR}/src/recording/event_recording_bridge.cpp" \
+  "${ROOT_DIR}/src/recording/event_recording_bridge.cpp" "${ROOT_DIR}/src/recording/recording_derived_event_worker.cpp" "${ROOT_DIR}/src/recording/recording_derived_selection.cpp" "${ROOT_DIR}/src/recording/recording_derived_job_service.cpp" "${ROOT_DIR}/src/recording/recording_derived_remux.cpp" "${ROOT_DIR}/src/recording/recording_read_service.cpp" \
   "${ROOT_DIR}/src/recording/event_clip_deriver.cpp" \
   "${ROOT_DIR}/src/recording/recording_journal.cpp" \
   "${ROOT_DIR}/src/recording/recording_catalog.cpp" \

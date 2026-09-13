@@ -1,0 +1,10 @@
+[decode] frames=10 eos=1 error_free=1
+[decode] frames=10 eos=1 error_free=1
+[detail] E01 verified=1 fully_satisfied=1
+[pass] E01 실제 H264 decoder→EventRecord→reference→내구 job·2출력 Complete
+[detail] decoded=30 evidence=30 references=1 jobs=1
+[pass] E17 무주입 bridge 재생성에도 내구 managed 소유권 유지
+[pass] E13 Stop 이후 신규 reference 저장 없음
+[summary] pass=3 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.RGB5yL bytes=7073615 removed=true
+[elapsed] seconds=5 source=bash-SECONDS

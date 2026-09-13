@@ -1,0 +1,20 @@
+[decode] frames=10 eos=1 error_free=1
+[decode] frames=10 eos=1 error_free=1
+[detail] E01 verified=1 fully_satisfied=1
+[decode] frames=10 eos=1 error_free=1
+[pass] E02 단일 출력도 clip_path 승격 없이 목록·직접 decode·fully satisfied
+[pass] E09 동일 reference/선택 재요청 job ID 멱등
+[pass] E03 미확인 pre 구간을 유지한 verified partial 출력
+[pass] E07 immutable start/end/pre/post/namespace 보존
+[pass] E10 Event 출력이 누적되어도 원본 snapshot은 continuous만
+[pass] E04 provider의 동일 실제 decoder 증거 업데이트로 postroll 요청 충족
+[pass] E05 시간 경과만으로 coverage 없이 unknown 종료
+[pass] E06 provider namespace 변경을 새 증거로 혼합하지 않음
+[pass] E01 실제 H264 decoder→EventRecord→reference→내구 job·2출력 Complete
+[detail] decoded=30 evidence=30 references=1 jobs=1
+[pass] E17 무주입 bridge 재생성에도 내구 managed 소유권 유지
+[pass] E13 Stop 이후 신규 reference 저장 없음
+[pass] E20 비권위 원장 조회 실패는 legacy 억제 unknown
+[summary] pass=12 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.EokczT bytes=7542945 removed=true
+[elapsed] seconds=6 source=bash-SECONDS

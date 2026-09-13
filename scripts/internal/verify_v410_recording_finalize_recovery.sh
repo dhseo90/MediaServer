@@ -8,14 +8,14 @@ cleanup(){ node -e 'const f=require("fs"),p=require("path"),r=process.argv[1];fu
 trap cleanup EXIT
 source "$SCRIPT_DIR/env_common.sh"
 media_server_apply_homebrew_gst_env
-read -r -a GST_FLAGS <<< "$(pkg-config --cflags --libs gstreamer-1.0 gstreamer-app-1.0)"
+read -r -a GST_FLAGS <<< "$(pkg-config --cflags --libs gstreamer-1.0 gstreamer-app-1.0 gstreamer-video-1.0)"
 if [[ "${1:-}" == "--integration" ]]; then
   shift
   read -r -a EXTRA_FLAGS <<< "$(pkg-config --cflags --libs sqlite3 openssl)"
   "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$ROOT_DIR/include" \
     "$SCRIPT_DIR/recording_finalize_integration_smoke.cpp" \
     "$ROOT_DIR/src/recording/gstreamer_segment_writer.cpp" \
-    "$ROOT_DIR/src/recording/event_recording_bridge.cpp" "$ROOT_DIR/src/recording/event_clip_deriver.cpp" \
+    "$ROOT_DIR/src/recording/event_recording_bridge.cpp" "$ROOT_DIR/src/recording/recording_derived_event_worker.cpp" "$ROOT_DIR/src/recording/recording_derived_selection.cpp" "$ROOT_DIR/src/recording/recording_derived_job_service.cpp" "$ROOT_DIR/src/recording/recording_derived_remux.cpp" "$ROOT_DIR/src/recording/recording_read_service.cpp" "$ROOT_DIR/src/recording/event_clip_deriver.cpp" \
     "$ROOT_DIR/src/recording/recording_finalize_recovery.cpp" "$ROOT_DIR/src/recording/recording_media_inspector.cpp" \
     "$ROOT_DIR/src/recording/recording_catalog.cpp" "$ROOT_DIR/src/recording/recording_journal.cpp" \
     "$ROOT_DIR/src/recording/retention_coordinator.cpp" "$ROOT_DIR/src/recording/recording_derived_job.cpp" "$ROOT_DIR/src/recording/recording_derived_job_ready.cpp" "$ROOT_DIR/src/recording/recording_contracts.cpp" \

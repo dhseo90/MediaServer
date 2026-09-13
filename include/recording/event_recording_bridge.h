@@ -17,8 +17,10 @@
 #include "recording/event_clip_deriver.h"
 #include "recording/recording_catalog.h"
 #include "recording/retention_coordinator.h"
+#include "recording/recording_derived_event_worker.h"
 
 namespace recording {
+class DerivedJobService;
 
 class CatalogEventRecordingBridge final : public analysis::EventRecordingBridge {
 public:
@@ -35,6 +37,8 @@ public:
         std::int64_t mapping_retry_ms{250};
         std::size_t max_pending_jobs{256};
         bool use_consumer_references{false};
+        DerivedJobService* derived_service{nullptr};
+        DerivedEventWorkerOptions derived_options;
     };
 
     CatalogEventRecordingBridge(RecordingCatalog& catalog,
@@ -51,6 +55,7 @@ public:
         const analysis::EventRecord& record,
         const analysis::EventRecordingBridgeResult& previous) override;
     void StopAndDrain();
+    RecordingDerivedReferenceResult QueryReferenceResult(const std::string& reference_id);
 
 private:
     struct PendingJob;
@@ -70,11 +75,13 @@ private:
     Options options_;
     std::mutex mu_;
     std::mutex resolution_mu_;
+    std::mutex stop_mu_;
     std::condition_variable cv_;
     std::unordered_map<std::string, std::shared_ptr<PendingJob>> jobs_;
     std::unordered_set<std::string> deferred_until_restart_;
     bool stopping_{false};
     std::thread worker_;
+    std::unique_ptr<DerivedEventWorker> derived_worker_;
 };
 
 }  // namespace recording

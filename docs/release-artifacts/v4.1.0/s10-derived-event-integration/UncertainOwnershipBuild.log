@@ -1,0 +1,17 @@
+[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+[2/2] build
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/analysis_manager.cpp.o
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/analysis_session_service.cpp.o
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/event_storage.cpp.o
+[  3%] Building CXX object CMakeFiles/media_server_runtime.dir/src/analysis/vlm_observation_store.cpp.o
+[  4%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/event_storage_application_service.cpp.o
+[  5%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/event_recording_bridge.cpp.o
+[  6%] Linking CXX static library libmedia_server_runtime.a
+[ 98%] Built target media_server_runtime
+[ 98%] Building CXX object CMakeFiles/media_server.dir/src/application/media_server_application.cpp.o
+[ 99%] Linking CXX executable media_server
+[100%] Built target media_server
+[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
