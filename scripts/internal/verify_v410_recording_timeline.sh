@@ -42,6 +42,7 @@ case "$MODE" in
     "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$ROOT_DIR/include" \
       ${SQLITE_CFLAGS[*]-} ${SEED_FLAGS[*]-} -DMEDIA_SERVER_USE_SQLITE3=1 \
       "$SCRIPT_DIR/recording_timeline_smoke.cpp" \
+      "$ROOT_DIR/src/recording/recording_timeline_projection.cpp" \
       "$ROOT_DIR/src/recording/recording_read_service.cpp" \
       "$ROOT_DIR/src/ingress/recording_application_service.cpp" \
       "$ROOT_DIR/src/recording/recording_journal.cpp" \

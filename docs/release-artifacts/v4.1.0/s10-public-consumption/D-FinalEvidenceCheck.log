@@ -1,0 +1,11 @@
+2026-09-13 최종 증거 대조
+node fs 읽기 전용 검사 exit0
+D 원출력 로그14개 trailing-whitespace0
+D-results 판정101행 = 최종98 + 과거3
+D-cleanup 기재 경로12개, 현재 존재0
+git diff --check exit0, 원출력 D-DiffCheck.log 0 bytes
+docs-links exit0: markdown264/local5861/images22/anchors110/indexed76/exclusions168/failures0
+docs-ui-assets exit0: pass10/fail0
+D fingerprint8개 직접 -c exit0, 모두 OK
+메인 직접 B fingerprint24개/C4개 모두 OK
+A 이전 snapshot의3개 hash차이는 B 승인 변경에 따른 역사적 차이이며 원본 hash보존

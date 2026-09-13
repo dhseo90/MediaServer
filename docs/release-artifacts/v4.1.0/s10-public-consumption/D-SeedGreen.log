@@ -1,0 +1,3 @@
+[pass] D3D-01 actual managed 원본과 jobComplete2출력·physical 검증
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-http-seed.MrsFoA bytes=5813840 removed=true
+[elapsed] seconds=2 source=bash-SECONDS

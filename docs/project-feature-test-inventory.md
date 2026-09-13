@@ -1,5 +1,62 @@
 # Project Feature Test Inventory
 
+## S10 3D-3 D HTTP 안정화
+
+실제 최종98행(HTTP85/harness5/seed8), 과거3행은 [D 전수 결과](release-artifacts/v4.1.0/s10-public-consumption/D-results.md)에 보존한다. 브라우저 제외 및 실제 서버 두 번째 기동 미실행을 유지한다.
+
+| 기능 ID | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- |
+| D3D-01 | 관리 fixture: D-definition 사전 oracle | 이번 미승인 | S11 최종 영향 대조·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3D-02 | 실제 timeline DTO: D-definition 사전 oracle | 이번 미승인 | S11 최종 영향 대조·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3D-03 | 입력 오류: D-definition 사전 oracle | 이번 미승인 | S11 최종 영향 대조·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3D-04 | 실제 파생 파일: D-definition 사전 oracle | 이번 미승인 | S11 최종 영향 대조·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3D-05 | Range/HEAD: D-definition 사전 oracle | 이번 미승인 | S11 최종 영향 대조·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3D-06 | 인증/권한: D-definition 사전 oracle | 이번 미승인 | S11 최종 영향 대조·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3D-07 | 대용량 유효 파일: D-definition 사전 oracle | 이번 미승인 | S11 최종 영향 대조·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3D-08 | 응답 hold: D-definition 사전 oracle | 이번 미승인 | S11 최종 영향 대조·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3D-09 | 종료/정리: D-definition 사전 oracle | 이번 미승인 | S11 최종 영향 대조·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3D-10 | 내구 시작복구: D-definition 사전 oracle | 이번 미승인 | S11 최종 영향 대조·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3D-11 | harness 보존: D-definition 사전 oracle | 이번 미승인 | S11 최종 영향 대조·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3D-12 | 최종 gate: D-definition 사전 oracle | 이번 미승인 | S11 최종 영향 대조·이번 미승인 | 실제 브라우저 사용자 제외 |
+
+C 화면 소비 사전 정의의 메인 실행 최종29개(기존7/추가22)는 [C 결과](release-artifacts/v4.1.0/s10-public-consumption/C-results.md)에 연결한다. VM/DOM 안정화이며 실제 브라우저 사용자 제외 경계는 유지한다.
+
+### S10 3D-3 B timeline 투영
+
+실행 결과779행과 과거607행은 [B 전수 결과](release-artifacts/v4.1.0/s10-public-consumption/B-results.md)에 보존한다. focused38·구성 self22·직접회귀657·등록기35·정식ID27을 구분하며 실제 브라우저 제외를 유지한다.
+
+| 기능 ID | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- |
+| D3B-01 | actual V2 mapping 조회/문자열 시간 | 이번 미승인 | S11 최종 영향 대조·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3B-02 | 400/403/503·채널 권한 | 이번 미승인 | 동일 | C 순수 소비 후속 |
+| D3B-03 | UTC0/null/int64/overflow | 이번 미승인 | 동일 | 동일 |
+| D3B-04 | stable itemId/복수mapping | 이번 미승인 | 동일 | 동일 |
+| D3B-05 | actual 파생 AU/output 투영 | 이번 미승인 | 동일 | 동일 |
+| D3B-06 | 부분 overlap 원본 보존 | 이번 미승인 | 동일 | 동일 |
+| D3B-07 | wrong lineage/page밖 우선 | 이번 미승인 | 동일 | 동일 |
+| D3B-08 | output 현재 불가/완료 분리 | 이번 미승인 | 동일 | 동일 |
+| D3B-09 | source 삭제 뒤 UTC 투영 | 이번 미승인 | 동일 | 동일 |
+| D3B-10 | unknown 별도 pagination | 이번 미승인 | 동일 | 동일 |
+| D3B-11 | 관련/unknown workspace 상한 | 이번 미승인 | 동일 | 동일 |
+| D3B-12 | request 축/비노출 | 이번 미승인 | 동일 | 동일 |
+| D3B-13 | 출력없는 placeholder/대체 | 이번 미승인 | 동일 | 동일 |
+| D3B-14 | 고정 timebase span mismatch/non-integral 미확인 | 이번 미승인 | 동일 | 동일 |
+| D3B-15 | read_service 직접 링크 runner11개 및 기존 assertion 회귀 | 이번 미승인 | S11 최종 영향 대조·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3B-16 | D02 승인 종료4경로 static oracle와 source 변형 거부 | 이번 미승인 | S11 최종 영향 대조·이번 미승인 | 비대상: verifier 자체 검사 |
+
+### S10 3D-3 A media 제공
+
+| 기능 ID | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- |
+| D3A-01 | 실제 Complete 출력별 fd·bytes/type | 이번 미승인 | S11 최종 영향 대조·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3A-02 | partial 요청 출력 제공·full 구분 | 이번 미승인 | 동일 | 비대상: 내부 media 안전 경계 |
+| D3A-03 | channel authorizer/다른 채널 거부 | 이번 미승인 | 동일 | 동일 |
+| D3A-04 | orphan/manual Event 거부 | 이번 미승인 | 동일 | 동일 |
+| D3A-05 | Ready/Committed 거부 | 이번 미승인 | 동일 | 동일 |
+| D3A-06 | fd hold/삭제 경합·release | 이번 미승인 | 동일 | 동일 |
+| D3A-07 | 손상/metadata 변경·hold 누수 | 이번 미승인 | 동일 | 동일 |
+| D3A-08 | 원본 삭제 후 durable 출력 제공 | 이번 미승인 | 동일 | 동일 |
+
 ## S10 3C-5.3a 내구 job 등록
 
 | 기능 ID | 기능·oracle | 안정화 | 30분 | 120분 | UI | 경계 |
@@ -1024,7 +1081,7 @@ application-only check 및 실제 저장 큐 네 프로세스 결과를 모두 �
 | V410-S05-I24 | terminal replay 및 삭제 차단 | `src/recording/recording_catalog.cpp` · `RequestDeletion` | `VerifyPendingDerivedHoldRecovery` · V410-S05-I24-C01, V410-S05-I24-C02, V410-S05-I24-C03, V410-S05-I24-C04 | 단계별 hold 복원·hold 0이어도 terminal 전 삭제 거부 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
 | V410-S05-I25 | 전송 DTO 경계 | `src/ingress/webrtc_http_server_ops_incidents.cpp` · `ProjectEventStorageDispatchRequest` | `transport has zero canonical bypass and exact projection/call ordering` · V410-S05-I25-C01 | 전송 DTO 우회·필드 누락·잘못된 호출 순서 거부 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
 | V410-S05-I26 | 출력 fd 검증 계약 | `src/recording/event_clip_deriver.cpp` · `Derive` | `event clip output remains fd-bound and measured before no-replace publication` · V410-S05-I26-C01 | fd 결박·timestamp 측정·no-replace 출판의 정적 경계 | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
-| V410-S05-I27 | 제품 시작·종료 순서 | `src/application/media_server_application.cpp` · `RunMediaServerApplication`; `src/analysis/event_storage.cpp` · `EventStorageDispatcher::Stop`, `EventFrameBuffer::CancelPostEventWaits` | `S05 composition starts the bridge before ingress and drains it after storage`, `VerifyShutdownCancellation` · V410-S05-I27-C01, V410-S05-I27-C02, V410-S05-I27-C03, V410-S05-I27-C04 | ingress 전 bridge 등록·storage의 미래 frame 대기 취소·접수 기록 drain 뒤 bridge drain | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
+| V410-S05-I27 | 제품 시작·종료 순서 | `src/application/media_server_application.cpp` · `RunMediaServerApplication`; `src/analysis/event_storage.cpp` · `EventStorageDispatcher::Stop`, `EventFrameBuffer::CancelPostEventWaits` | `S05 구성은 생산자 전에 bridge를 등록하고 의존성 종료 전에 drain한다`, `VerifyShutdownCancellation` · V410-S05-I27-C01, V410-S05-I27-C02, V410-S05-I27-C03, V410-S05-I27-C04 | 생산자 전 bridge 등록·시작실패/정상 4경로 조기 bridge drain·storage 미래 frame 대기 취소·접수 기록 drain 뒤 detach | 대상 | 대상: 별도 승인 후 녹화 연속 운용 | 대상: 별도 승인 후 누수·복구 장시간 관찰 | 비대상: UI 없어야 정상 |
 
 ## V410 GStreamer 실행 환경 개별 동작 등록
 
@@ -2739,3 +2796,28 @@ release gate에서 FAIL합니다. 네 테스트 영역 밖 분류도 거부합�
 | D02-07 | 복구 선행: catalog/보호·예약→ready/deletion→derived bounded reconcile 잔여 blocker 검사→producer 순서 | focused/build/직접 영향 회귀 | 미승인·미실행 | S11 조건부, 이번 미승인 | 비대상: 내부 구성 |
 | D02-08 | 종료 수명: 신규 접수 차단→cancel/join→의존 해제, stop 중 작업·재시작과 소유 temp 정리 | focused/build/직접 영향 회귀 | 미승인·미실행 | S11 조건부, 이번 미승인 | 비대상: 내부 구성 |
 | D02-09 | 직접 영향 회귀: managed journal/catalog/writer/consumer/provider/startup/retention 관련 focused와 build. D01 유효 증거는 인계만으로 반복하지 않음 | focused/build/직접 영향 회귀 | 미승인·미실행 | S11 조건부, 이번 미승인 | 비대상: 내부 구성 |
+
+## S10 3D-3 C 화면 소비 사전 등록
+
+각 oracle은 [C 실행 전 정의](release-artifacts/v4.1.0/s10-public-consumption/C-definition.md)에 보존한다. 실제 브라우저는 사용자 제외이며 아래 VM 검증으로 대체하지 않는다.
+
+| 기능 ID | 기능/검증 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| D3C-01 | UTC 0 문자열 | Node VM/DOM focused | 미승인·미실행 | S11 최종 cut 조건부·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3C-02 | null 시간 별도 목록 | Node VM/DOM focused | 미승인·미실행 | S11 최종 cut 조건부·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3C-03 | 잘못된 날짜 경계 | Node VM/DOM focused | 미승인·미실행 | S11 최종 cut 조건부·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3C-04 | 항목 독립 선택 | Node VM/DOM focused | 미승인·미실행 | S11 최종 cut 조건부·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3C-05 | 부분 중첩 원본 보존 | Node VM/DOM focused | 미승인·미실행 | S11 최종 cut 조건부·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3C-06 | 페이지 바깥 이벤트 우선 | Node VM/DOM focused | 미승인·미실행 | S11 최종 cut 조건부·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3C-07 | 원본 보기 | Node VM/DOM focused | 미승인·미실행 | S11 최종 cut 조건부·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3C-08 | 독립 페이지 | Node VM/DOM focused | 미승인·미실행 | S11 최종 cut 조건부·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3C-09 | 요청 축 구별 | Node VM/DOM focused | 미승인·미실행 | S11 최종 cut 조건부·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3C-10 | 추정 시각 안내 | Node VM/DOM focused | 미승인·미실행 | S11 최종 cut 조건부·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3C-11 | 파일 시작 재생 | Node VM/DOM focused | 미승인·미실행 | S11 최종 cut 조건부·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3C-12 | 미지원 형식 | Node VM/DOM focused | 미승인·미실행 | S11 최종 cut 조건부·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3C-13 | 상태 분리 | Node VM/DOM focused | 미승인·미실행 | S11 최종 cut 조건부·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3C-14 | 늦은 조회 응답 | Node VM/DOM focused | 미승인·미실행 | S11 최종 cut 조건부·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3C-15 | known 빈·unknown 존재 | Node VM/DOM focused | 미승인·미실행 | S11 최종 cut 조건부·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3C-16 | 잘못된 응답 수량 | Node VM/DOM focused | 미승인·미실행 | S11 최종 cut 조건부·이번 미승인 | 실제 브라우저 사용자 제외 |
+| D3C-17 | 공개 정보 제한 | Node VM/DOM focused | 미승인·미실행 | S11 최종 cut 조건부·이번 미승인 | 실제 브라우저 사용자 제외 |
+| I31-R01/R02 기존 7개 | metadata·조회 실패·빈 목록·불가 선택·늦은 metadata·무선택 error·선택 error | 동일 Node 회귀 | 미승인·미실행 | S11 최종 cut 조건부·이번 미승인 | 실제 브라우저 사용자 제외 |

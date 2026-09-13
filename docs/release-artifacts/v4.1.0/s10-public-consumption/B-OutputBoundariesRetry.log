@@ -1,0 +1,11 @@
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_public_timeline_smoke.cpp:162:96: error: too few arguments to function call, expected 5, have 4
+  162 |         if(!failed.catalog.FailDerivedJobAfterCleanup(intent.job_id,"fixture-cleanup",20,&error))throw std::runtime_error(error);
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~                                          ^
+/Users/dhseo/Workspace/mediaServer/include/recording/recording_catalog.h:113:10: note: 'FailDerivedJobAfterCleanup' declared here
+  113 |     bool FailDerivedJobAfterCleanup(const std::string& job_id,const std::string& attempt_id,
+      |          ^                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  114 |         const std::string& reason,std::int64_t cleaned_at_ms,std::string* error);
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1 error generated.
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-public-timeline.a6rh5s bytes=0 removed=true
+[elapsed] seconds=1 source=bash-SECONDS

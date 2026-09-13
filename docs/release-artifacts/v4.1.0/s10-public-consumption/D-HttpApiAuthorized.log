@@ -1,0 +1,41 @@
+[pass] D3D-01 actual managed 원본과 jobComplete2출력·physical 검증
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-http-seed.uPqgAG bytes=5385032 removed=true
+[elapsed] seconds=1 source=bash-SECONDS
+[seed-subcheck] PASS D3D-01 generated2출력 manifest/containment/hash
+[http-subcheck] PASS I01 실제 status projection
+[http-subcheck] PASS I03/I06 실제 HTTP generated2출력·jobComplete timeline
+[http-subcheck] PASS I07 HTTP 전체/부분 중첩 원본 구별
+[http-subcheck] PASS D3D-02 accepted 미확인 독립 목록
+[http-subcheck] PASS D3D-02 문자열 시간·요청축 보존
+[http-subcheck] PASS D3D-04 actual Event output 전체 byte/hash·MIME
+[http-subcheck] PASS D3D-04 actual Event output 전체 byte/hash·MIME
+[http-subcheck] PASS I17 HTTP 내부 path 비노출
+[http-subcheck] PASS I04 HTTP 잘못된 query 거부 8
+[http-subcheck] PASS I04 HTTP 잘못된 query 거부 9
+[http-subcheck] PASS I04 HTTP 잘못된 query 거부 10
+[http-subcheck] PASS I04 HTTP 잘못된 query 거부 11
+[http-subcheck] PASS I04 HTTP 잘못된 query 거부 12
+[http-subcheck] PASS I20 Range status expected=206 actual=206
+[http-subcheck] PASS I20 Range Content-Range 일치
+[http-subcheck] PASS I20 Range body expected=4 actual=4 byte 일치
+[http-subcheck] PASS I20 range status expected=206 actual=206
+[http-subcheck] PASS I20 range Content-Range 일치
+[http-subcheck] PASS I20 range body expected=4 actual=4 byte 일치
+[http-subcheck] PASS I20 rAnGe status expected=206 actual=206
+[http-subcheck] PASS I20 rAnGe Content-Range 일치
+[http-subcheck] PASS I20 rAnGe body expected=4 actual=4 byte 일치
+[http-subcheck] PASS I20/I21 실제 Range bytes=2-5
+[http-subcheck] PASS I20/I21 실제 Range bytes=10-
+[http-subcheck] PASS I20/I21 실제 Range bytes=-7
+[http-subcheck] PASS I24 HTTP 전체 byte 일치
+[http-subcheck] PASS I22 HTTP 범위 거부 bytes=1-0
+[http-subcheck] PASS I22 HTTP 범위 거부 bytes=-0
+[http-subcheck] PASS I22 HTTP 범위 거부 bytes=0-1,3-4
+[http-subcheck] PASS I22 HTTP 범위 거부 bytes=18446744073709551616-
+[http-subcheck] PASS I22 HTTP 범위 거부 bytes=0-14476
+[http-subcheck] PASS I22 HTTP 범위 거부 invalid
+[http-subcheck] PASS I23 실제 HEAD full
+[http-subcheck] PASS I23 실제 HEAD bytes=2-5
+[http-subcheck] PASS I17 HTTP 없는 opaque ID 거부
+[S06 HTTP API] checks=35 fail=0 authMode=off roleTests=NOT_RUN
+[cleanup] PASS {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-vc5brb","rootBeforeBytes":2181571,"rootBeforeEntries":311,"rootSymlinksNotFollowed":277,"rootAbsent":true,"process":{"pid":23407,"exitCode":0,"signalCode":null,"graceful":true},"ports":[{"kind":"rtsp","port":51508,"closed":true,"evidence":"ECONNREFUSED"},{"kind":"http","port":51509,"closed":true,"evidence":"ECONNREFUSED"}],"attempted":6,"failureCount":0,"cleanupElapsedMs":612,"verifierElapsedMs":5075}

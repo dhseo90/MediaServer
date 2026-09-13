@@ -5679,6 +5679,7 @@ std::string ProductUiCss() {
     .ops-recording-rows { display: grid; gap: 8px; margin-block: 12px; }
     .ops-recording-rows button { text-align: start; white-space: normal; overflow-wrap: anywhere; }
     .ops-recording-rows button[aria-pressed="true"] { outline: 2px solid var(--color-border-strong); }
+    #opsRecordingCompleteness { white-space: normal; overflow-wrap: anywhere; max-width: 100%; }
     #opsRecordingPlayer { display: block; width: 100%; max-height: 65vh; aspect-ratio: 16 / 9; object-fit: contain; background: var(--color-surface-muted); margin-top: 12px; }
   </style>
 )CSS";

@@ -1,0 +1,4 @@
+[fail] D3B-01 actual V2 원본·문자열 UTC·독립 unplaced 응답
+[summary] pass=0 fail=1
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-public-timeline.jgkcWh bytes=4794302 removed=true
+[elapsed] seconds=1 source=bash-SECONDS

@@ -1,0 +1,38 @@
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_public_media_smoke.cpp:45:34: error: no member named 'DerivedJobProgressPoint' in namespace 'recording'; did you mean 'DerivedJobProgress'?
+   45 |             if(point==recording::DerivedJobProgressPoint::ReadyDurable||point==recording::DerivedJobProgressPoint::CommittedDurable)
+      |                       ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+      |                                  DerivedJobProgress
+/Users/dhseo/Workspace/mediaServer/include/recording/recording_derived_job_service.h:11:12: note: 'DerivedJobProgress' declared here
+   11 | enum class DerivedJobProgress {
+      |            ^
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_public_media_smoke.cpp:45:91: error: no member named 'DerivedJobProgressPoint' in namespace 'recording'; did you mean 'DerivedJobProgress'?
+   45 |             if(point==recording::DerivedJobProgressPoint::ReadyDurable||point==recording::DerivedJobProgressPoint::CommittedDurable)
+      |                                                                                ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+      |                                                                                           DerivedJobProgress
+/Users/dhseo/Workspace/mediaServer/include/recording/recording_derived_job_service.h:11:12: note: 'DerivedJobProgress' declared here
+   11 | enum class DerivedJobProgress {
+      |            ^
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_public_media_smoke.cpp:44:25: error: no viable overloaded '='
+   44 |         options.progress=[&](auto point,const auto& job,std::size_t){
+      |         ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   45 |             if(point==recording::DerivedJobProgressPoint::ReadyDurable||point==recording::DerivedJobProgressPoint::CommittedDurable)
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   46 |                 for(const auto& output:job.intent.outputs)check(!reader.ResolveMedia("probe-channel",output.output_id),"D3A-05 미완료 출력 거부");
+      |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   47 |         };
+      |         ~
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__functional/function.h:640:35: note: candidate function not viable: no known conversion from '(lambda at /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_public_media_smoke.cpp:44:26)' to 'const function<void (recording::DerivedJobProgress, unsigned long)>' for 1st argument
+  640 |   _LIBCPP_HIDE_FROM_ABI function& operator=(const function&);
+      |                                   ^         ~~~~~~~~~~~~~~~
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__functional/function.h:641:35: note: candidate function not viable: no known conversion from '(lambda at /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_public_media_smoke.cpp:44:26)' to 'function<void (recording::DerivedJobProgress, unsigned long)>' for 1st argument
+  641 |   _LIBCPP_HIDE_FROM_ABI function& operator=(function&&) _NOEXCEPT;
+      |                                   ^         ~~~~~~~~~~
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__functional/function.h:642:35: note: candidate function not viable: no known conversion from '(lambda at /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_public_media_smoke.cpp:44:26)' to 'nullptr_t' (aka 'std::nullptr_t') for 1st argument
+  642 |   _LIBCPP_HIDE_FROM_ABI function& operator=(nullptr_t) _NOEXCEPT;
+      |                                   ^         ~~~~~~~~~
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__functional/function.h:644:35: note: candidate template ignored: requirement 'integral_constant<bool, false>::value' was not satisfied [with _Fp = (lambda at /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_public_media_smoke.cpp:44:26)]
+  644 |   _LIBCPP_HIDE_FROM_ABI function& operator=(_Fp&&);
+      |                                   ^
+3 errors generated.
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-public-media.YHv7ES bytes=0 removed=true
+[elapsed] seconds=1 source=bash-SECONDS

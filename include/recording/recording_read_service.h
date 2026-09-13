@@ -7,37 +7,6 @@
 
 namespace recording {
 
-struct RecordingTimelineQuery {
-    std::string channel_id;
-    std::int64_t start_ms{0};
-    std::int64_t end_ms{0};
-    std::size_t offset{0};
-    std::size_t limit{100};
-};
-
-struct RecordingTimelineItem {
-    std::string segment_id;
-    std::string channel_id;
-    std::string kind;
-    int display_priority{0};
-    std::int64_t start_ms{0};
-    std::int64_t end_ms{0};
-    std::string event_id;
-    std::string completeness;
-    bool playable{false};
-    std::string playback_url;
-    std::string content_type;
-    std::vector<std::string> superseded_by_event_ids;
-    std::optional<UtcRangeV1> requested_range;
-    std::optional<UtcRangeV1> actual_range;
-    std::string range_basis{"segment"};
-};
-
-struct RecordingTimelineResult {
-    std::vector<RecordingTimelineItem> items;
-    std::size_t total{0};
-};
-
 // 소멸 순서: media fd close 후 catalog hold 해제. catalog는 이 객체보다 오래 살아야 한다.
 class ResolvedRecordingMedia {
 public:
@@ -138,6 +107,7 @@ public:
         const std::string& channel_id, const std::string& segment_id) const;
 private:
     RecordingCatalog& catalog_;
+    bool FinishTimelineV2(const RecordingTimelineQuery&,RecordingTimelineResult*,std::string*) const;
     std::filesystem::path event_root_;
 };
 

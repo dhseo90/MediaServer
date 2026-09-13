@@ -7,7 +7,7 @@
 oldest-first 순환 삭제, 재시작 복구와 후속 검색용 안정 메타데이터 기반을 v4.1.0에서
 완성한다.
 
-**아키텍처:** 기존 `SharedStream`의 인코딩 packet fan-out에 전용 Recorder subscriber를
+**초기 아키텍처(S00~S09 이력):** 기존 `SharedStream`의 인코딩 packet fan-out에 전용 Recorder subscriber를
 추가한다. 녹화기는 keyframe 경계의 불변 segment를 임시 경로에 쓴 뒤 atomic publish하고,
 append-only JSONL journal을 내구성 원장으로, optional SQLite를 조회 projection으로 쓴다.
 이벤트는 같은 UTC 범위의 segment를 연결·파생하고 기존 frame-buffer clip을 fallback으로
@@ -25,8 +25,8 @@ verifier.
 
 - 2026-09-12 재편: S00~S08은 기존 개발 이력, Task 9는 종료·대체된 과거 실행계획이다.
   현재 S10 설계 기준은 [설계 명세의 S10 절](../specs/2026-09-02-v410-recording-search-foundation-design.md#s10-시간식별-계약),
-  단계 상태는 로드맵을 따른다. S10-1 방향 승인·S10-2 정책 모델/실제 writer 특성 재현까지 반영했으며,
-  새 제품 구현의 exact schema·실행계획과 S11 검증 범위는 아직 확정하지 않았다.
+  단계 상태는 로드맵을 따른다. 이후 S10의 저장·시간·파생 작업과3D 공개 소비 계약을 별도 승인하여
+  적용 중이다. 현재 계약/진행은 아래 S10·3D 실행 절, S11 최종 검증 범위는 코드 고정 후 판정을 따른다.
 - 이 문서는 구현계획이며 구현·테스트 실행·커밋·푸시·PR·머지·태그·릴리즈 승인이 아니다.
 - 실제 개발은 `V410-S00`부터 순서대로 진행한다. 한 단계가 실패하면 뒤 단계는 실행하지
   않고 `건너뜀`으로 보고한다.
@@ -1919,7 +1919,8 @@ S11·장시간/UI 전체와 후속4 데이터 삭제는 자동 착수하지 않�
 
 현재 계약은 [설계 문서](../specs/2026-09-02-v410-recording-search-foundation-design.md)의 「S10 3D-1 기본 구성·조회 소비 계약」 절이다.
 최초 사용자 승인은 3D-1 문서 확정·검증·커밋·푸시였으며, 이후 별도 지시로 3D-2 개발·커밋·푸시가
-승인됐다. 3D-3 제품 개발로 자동 확대하지 않는다.
+승인됐다. 이어 사용자가 3D-3 개발·커밋·푸시를 별도로 승인했으며 실제 브라우저 검증은 제외했다.
+현재 실행 경계는 아래 3D-3 절을 따른다. 이후 legacy 정리·S11로 자동 확대하지 않는다.
 
 - [x] **3D-1 계약 확정:** 식별/시간/복수 출력/우선순위/재생 상태와 D01~D08 합격 조건을 기존 설계에 반영.
   산출물은 이 계획·설계·로드맵·중앙 기록이다. 제품 코드 변경·제품 PASS가 아니다.
@@ -1927,13 +1928,121 @@ S11·장시간/UI 전체와 후속4 데이터 삭제는 자동 착수하지 않�
   참조 ID 검증 적용부를 대조하고 `media_server_application.cpp`에서 관리 저장소/writer/provider/job 수명을 연결.
   D01·D02 개별 사례 사전등록→focused 예상 RED→구현→GREEN→identity/catalog/consumer/writer/retention 영향 회귀·build.
   공개 timeline/UI와 legacy 데이터 삭제는 제외한다. 소유 격리 fixture만 사용하며 종료·port·임시물 정리까지 기록한다.
-- [ ] **3D-3 공개 조회·재생/UI:** `recording_read_service.h/.cpp`, `recording_application_service.cpp`,
+- [x] **3D-3 공개 조회·재생/UI 구현·승인 단기 범위:** `recording_read_service.h/.cpp`, `recording_application_service.cpp`,
   `product_ui_page_scripts.cpp`에서 D03~D08을 적용. catalog 현재 결과·출처를 소비하며 기존 질의 입력을 유지.
   API/매핑/권한/삭제 경쟁 사례 등록→예상 RED→서버·UI 동시 반영→focused·영향 회귀·build 순서다.
-  실제 UI 묶음은 별도 실행 승인 후 수행하며 정적/fixture PASS로 D08을 대신하지 않는다.
+  실제 브라우저는 이번 사용자 제외로 미실행이다. D08 완료 표기가 아니며 정적/fixture PASS로 대신하지 않는다.
 
 3D 뒤 순서는 새 기본 경로 검증 → 불필요 legacy 코드·개발 데이터의 정확한 소유/의존 대조 및 정리 →
 S10 코드 고정 → S11 증거 유효성 대조와 승인된 최종 검증이다. 강제 변환·역사적 실패 삭제·새 검색 기능은 제외한다.
+
+#### 3D-3 실행 경계 — 2026-09-13
+
+시작 기준은 `491daeee`, `v4.1.0` clean/sync다. 사용자는 3D-3 개발·관련 단기 검증·완료 후
+커밋/푸시를 승인했고 실제 브라우저 검증은 명시 제외했다. D08 실제 재생 PASS는 만들지 않는다.
+기존 승인 설계 D03~D08을 적용하며 별도 신기능·자동 연속 재생·codec 변환·legacy 삭제·S11은 제외한다.
+단일 Astra/medium 담당자를 재사용하고 메인이 계약·안전 경계·diff·증거를 검토한다.
+기존 승인된 같은 checkout·계획 문서를 유지하며 새 worktree/중복 계획 문서를 만들지 않는다.
+
+| 순서/상태 | 파일·제공/소비 | 불변 조건·합격 기준 |
+| --- | --- | --- |
+| A 완료: 실제 미디어 제공 | catalog의 현재 output 결박 → read service의 hold·fd → application channel authorizer | 새 원본은 기존 보호 유지. 파생 Event는 단순 class 허용이 아니라 유일한 Complete/검증된 ready output·canonical segment·계보/파일 결박을 확인. 잘못된 채널·미완료·무연결·손상·삭제 상태는 거부. fd 해제 뒤 hold 반환 |
+| B 완료: 공개 timeline | 동일 catalog snapshot의 원본·job·현재 상태 → read projection → application JSON | 기존 query 입력 유지. 작업 완료·요청 충족·파일 가용성 구분. UTC unknown null, ns/64bit 문자열, 안정된 항목 ID, 복수 출력·원본 계보 기반 중첩 우선. 페이지 바깥 이벤트도 우선 판정에 포함. D 실제 HTTP 확인 |
+| C 구현·VM 검사 완료: UI 소비 | 새 JSON → 기존 녹화 table/control/video | 항목 ID 선택, 확인/미확인 시간 분리, 원본 보기 유지, 파일 시작 재생과 구간 안내 구분. UTC 차이 seek 금지, 미지원 명시. 공개 debug/source/원시 provenance 비노출. 실제 브라우저 제외 |
+| D 단기 검사 완료·문서 마감: HTTP 연결·정리 | A/B/C 변경 diff → 단기 API/auth/VM·media 검증 | 실제 HTTP35·권한40·전송/종료10 및 harness5시나리오/내부40검사, build 통과. 최초 실패·개별 결과·cleanup 보존. 최종 문서/diff 검사는 D 기록 참조. 브라우저/장시간 미실행 분리 |
+
+A/B는 catalog/read 파일을 공유하므로 같은 담당자가 순차 구현한다. B가 제공하는 JSON을 C가 소비하므로
+메인이 필드·시간·pagination 경계를 먼저 고정했다. 이후 B 검증과 병행하여 메인이 C의 분리된 UI 파일과
+VM 검사를 직접 구현·검토했다. A의 media 허용 여부를 B의 목록 표출만으로
+대신하지 않는다. D는 유효한 기존 증거를 유지하고 직접 변경 범위만 재검증하며 전수 장시간을 자동 재시작하지 않는다.
+
+A는 main diff 검토와 신규46·service43·retention24의113개 PASS 및 build/cleanup을 확인했다.
+[A 보고서](../../release-artifacts/v4.1.0/s10-public-consumption/A-report.md)에 최초 RED·준비 오류·전수 결과를
+보존했다. MIME도 hold 획득 snapshot에서 취득하도록 보완했다. 실제 HTTP/UI 및 B~D 전체 완료는 아니다.
+
+C는 [C 보고서](../../release-artifacts/v4.1.0/s10-public-consumption/C-report.md)에 기존7개 포함29개
+VM/DOM 소비 PASS와 최초 RED·중첩 안내 추가 RED·최종 결과를 보존했다. 실제 브라우저는 사용자 제외다.
+
+D는 [D 보고서](../../release-artifacts/v4.1.0/s10-public-consumption/D-report.md)에 실제 writer→파생2출력의
+HTTP 제공, 메모리 임시 인증, 유효 MP4 전송 fixture의 hash/Range/hold/종료와 정리 결과를 보존한다.
+64MiB 파일은 실제 원본에 유효 free atom을 붙인 전송용이며 writer 생산량·브라우저 재생 증거가 아니다.
+내구 시작복구는 seed 종료 후 실제 제품 첫 기동의 재개방이다. 실제 서버 두 번째 기동은 미실행이다.
+일반 Auth wrapper 전체·장시간·외부 입력·legacy 삭제·S11은 수행하지 않았다. 일반 Auth wrapper의
+비밀값 argv 전달 준비 결함은 S11 해당 인증 검증 전 보완 대상이며 이번 안전한 Node HTTP 인증으로 대체 PASS하지 않는다.
+
+B 링크 영향 회귀의 Event 묶음은 compiled158개·application6개 통과 뒤 과거 composition oracle1개가
+실패했다. 메인이 `491daeee` D02 diff와 현재 종료 경로·StopAndDrain을 대조했다. D02는 provider/recorder
+수명 안에서 bridge 접수 차단·작업 join을 먼저 완료하도록 변경했지만, 기존 oracle은 storage 직후 drain을
+요구했다. 이번 제품 diff는 종료 코드를 변경하지 않았다. 제품 계약을 되돌리지 않고 검증 준비만 현재 승인된
+네 종료 경로에 맞추며, 누락·순서 역전·조기 해제 변형을 거부하는 검사를 함께 등록한다. 최초 실패는 보존하고
+application-only→동일 Event 묶음→건너뛴 Identity/Jobs 순으로 진행한다. 앞선8개 회귀 PASS는 유지한다.
+이 정적 구성 검사는 실제 종료/HTTP 전송 검증을 대신하지 않는다.
+이어 구형 oracle의 등록부 제목 결박과 중첩 Node 런타임 검증기의 derived worker/job 링크 누락도 확인했다.
+ID/정확한 결과 집합/기존 runtime oracle는 유지하고 검증 준비만 보완했다. 최종 Event·Identity·Jobs 및
+B focused38개를 통과했으며 [B 보고서](../../release-artifacts/v4.1.0/s10-public-consumption/B-report.md)에
+최초 실패와 준비 실패·최종 개별 결과·정리를 구분해 보존한다. 제품 종료 경로 수정은 없다.
+
+##### 3D-3 B/C 메인 적용 판단
+
+- 저장 payload를 바꾸지 않고 조회 시 투영한다. 파생 출력의 영속 UTC mapping은 현재 unknown으로
+  고정되어 있다. 이를 덮어쓰지 않고 검증된 ready provenance의 실제 원본 구간과 intent source의
+  기존 UTC mapping을 정확히 대응할 때만 `source-utc-mapping`으로 표시한다. 원본 PTS·파일 PTS·출력 PTS를
+  동일 축으로 쓰지 않는다. 양자화/범위/매핑 결함은 미확인으로 남긴다.
+  actual 시작/끝의 외곽 범위만으로 내부 공백을 덮지 않는다. 검증된 access unit의 원본 PTS와
+  파일 duration 구간을 합집합으로 만들고, 우선 표시는 확인된 요청 구간과의 교집합만 쓴다.
+  연속 구간만 합치며 서로 다른 mapping ID/epoch는 합치지 않는다. 표시 매핑의 provenance와
+  uncertainty를 보존하여 추정 시각을 정밀 시각처럼 표시하지 않는다.
+  UTC 정방향은 기존 내부 역변환과 같은 `utc_start + (PTS - mapping.start_pts) × timebase`다.
+  UTC 양끝 길이에 맞춰 미디어 축을 비율 보정하지 않는다. 양끝 span 불일치·ns 정수 변환 불가인
+  mapping은 공개 원본/출력 모두 미확인으로 남기고 우선 표시의 근거에서 제외한다.
+- 공개 item은 `itemId`(구간/매핑별 안정 ID)와 `segmentId`(실제 파일)를 분리한다. `eventId`,
+  `referenceId`, `jobId`를 허용하되 원장 원문·파일 경로·source key·hash/디코드 진단은 직렬화하지 않는다.
+  `jobState`, `completeness`, `catalogState`, `playable`을 독립적으로 제공한다.
+- 확인된 UTC 항목은 `items/total`, 위치 미확인은 `unplacedItems/unplacedTotal`로 분리한다.
+  기존 offset/limit를 두 목록에 각각 적용하고 UI는 두 total의 최대값까지 페이지 이동한다.
+  미확인 목록은 채널 내 시간 귀속 미확인 자료이지 요청 구간 내 자료라는 주장이 아니다.
+- `startTimeMs/endTimeMs`는 십진 문자열 또는 null로 제공한다. 정밀 `utcRange`의 ns와
+  `mediaRange`의 PTS/timebase, 순서값도 문자열로 보존한다. UI는 null/잘못된 문자열/JS 날짜 범위 초과를
+  구분하고 안전한 범위만 Date로 변환한다. `requestedRange`를 UTC로 오해하지 않도록 요청 축을 명시한다.
+- 우선 표시는 동일 source/store/epoch/원본 segment의 확인된 실제 겹침에서만 계산한다.
+  부분 겹침이면 원본 행을 보존하고 겹친 구간만 안내한다. 원본 행 전체가 유효 이벤트 출력으로
+  충족된 경우에만 원본 보기 해제 시 숨길 수 있다. 같은 UTC지만 다른 계보, 미확인 또는 파일 불가인
+  이벤트는 원본을 숨기지 않는다. 이는 페이지를 자르기 전에 전체 관련 job을 대조한다.
+- snapshot·응답 생성의 상한 초과는 명시적 실패로 처리하고 잘린 결과를 전체라고 하지 않는다.
+  known 후보는 query overlap을 먼저 거른 뒤4096행/64MiB 상한을 적용한다. unknown은 전체수를 세되
+  stable itemId 순서의 top(offset+limit)만 bounded 선택한다. 전체 누적 unknown을 복사·정렬하여
+  첫 페이지가64MiB 초과로 영구 실패하게 만들지 않는다. offset+limit overflow와 실제 요청한
+  깊은 페이지의64MiB 작업공간 초과는 실패다. 새 영속 index는 추가하지 않는다.
+  catalog 잠금 안 순수 투영과 밖의 실제 fd/hash 검사를 분리하고 파일별 검사 결과를 요청 내 재사용한다.
+  query 문법 오류는400, catalog 조회 실패는503으로 구별한다. 정상 기존 입력의 의미는 유지한다.
+  영구 이중 저장은 만들지 않으며 기존 V1 독립 fixture 경로는 이후 legacy 정리 전까지 유지한다.
+- 재생은 파일 시작부터다. 구간 표시는 재생 위치 보장이 아니다. 자동 seek/다음 파일 재생·새 decoder는
+  추가하지 않는다. `canPlayType`은 형식 힌트이고 실제 재생 성공 상태로 표현하지 않는다.
+
+위 판단이 틀리면 시간 귀속·원본 숨김·선택 안정성에 오류가 생길 수 있으므로 D03~D07의 경계 사례와
+UI 순수 DOM 소비 검사를 먼저 등록한다. D08 브라우저 확인은 사용자 제외로 별도 미실행이다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 새 timeline/media/JS 소비·권한·정리 경계 | D03~D07, read/application/UI scripts, 녹화 전용 HTTP API/auth/lifecycle | 관련 단기 승인 |
+| 30분 | 미진행 | 이번 단계 실행 미승인, S11 최종 gate | S11 | 미승인 |
+| 120분 | 조건부 진행 | 실제 media 제공·hold/종료 영향은 최종 cut에서 대조 | D07/S11 | 이번 실행 미승인 |
+| UI 풀테스트 | 미진행 | 사용자가 이번 브라우저 검증 명시 제외 | D08 | 명시 제외·PASS 대체 금지 |
+
+일반 Auth bootstrap/users/routes 과거 실행 결과는 당시 범위의 역사적 증거로 유지한다.
+이번에는 새 녹화 media/timeline의 실제 role/scope를 녹화 전용 격리 Node HTTP 검사로 다시 검증하며
+일반 인증 전체를 새로 통과했다고 주장하지 않는다. 기존 shell auth workflow는 비밀번호를 curl/python의
+argv로 전달하므로 현재 정책 그대로 안전하게 실행할 수 없음을 읽기로 확인했다. 해당 wrapper는
+실행하지 않고 공통 인증 도구 정비를 이번 녹화 개발에 자동 포함하지 않는다. 이는 녹화 권한 검사를
+생략하는 근거가 아니며 S11에서 일반 인증 묶음의 안전한 실행 준비가 필요하다.
+
+D의 격리 HTTP fixture는 자체 H264→관리 writer→실제 파생2출력을 생성하고 출력 ID·기준 UTC·파일
+정보를 소유 임시 manifest로 전달한다. API/auth는 이 실제 Event 출력으로 검사한다. 전송 수명 검사는
+별도 상시 MP4에 유효 free atom을 붙인64MiB 파일을 size/hash 확정 전 구성하여 수행한다. 반복 MP4
+bytes를 유효 영상으로 바꾸어 부르거나 실제 writer가64MiB를 생성했다는 증거로 쓰지 않는다.
+미디어 검사·HEAD/Range/416·느린 수신 hold1→연결 중단/종료 뒤 hold0·정상 종료/port 반환을 유지한다.
+인증 난수5개는 Node 메모리와 fetch 본문에서만 쓰고 argv/log/임시 manifest/Git에 넣지 않는다.
+browser mode와 legacy UI seed는 이번 실행·수정에서 제외하며 후속 legacy 정리/S11의 준비 대상으로 남긴다.
 
 #### 3D-2 착수·구성 검토 — 2026-09-13
 

@@ -1,0 +1,24 @@
+[pass] D3B-01 actual V2 원본·문자열 UTC·독립 unplaced 응답
+[pass] D3B-14 mismatch/nonintegral mapping은 unplaced
+[pass] D3B-14 mismatch/nonintegral mapping은 unplaced
+[pass] D3B-02 문법/범위 오류400
+[pass] D3B-02 문법/범위 오류400
+[pass] D3B-02 문법/범위 오류400
+[pass] D3B-02 문법/범위 오류400
+[pass] D3B-02 문법/범위 오류400
+[pass] D3B-02 문법/범위 오류400
+[pass] D3B-02 권한 거부403
+[pass] D3B-13 Intent placeholder no file/null time
+[pass] D3B-13 accepted/no-job 상태 보존
+[pass] D3B-05 실제 검증된 파생2출력 시간/파일 독립
+[pass] D3B-13 출력 생성 뒤 job placeholder 없음
+[pass] D3B-07 page 밖 이벤트도 원본 전체 충족 판정
+[pass] D3B-06 일부 중첩 원본은 보존
+[pass] D3B-04 재조회 stable itemId/order
+[pass] D3B-12 요청축/문자열/공개 whitelist
+[pass] D3B-08 파일 누락 Complete와 재생불가/숨김 분리
+[pass] D3B-08 실제 tombstone 출력 deleted 보존
+[pass] D3B-09 source tombstone 뒤 durable UTC 투영
+[summary] pass=21 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-public-timeline.jyLLig bytes=6174921 removed=true
+[elapsed] seconds=2 source=bash-SECONDS

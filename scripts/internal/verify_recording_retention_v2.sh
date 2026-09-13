@@ -15,6 +15,7 @@ read -r -a GST <<<"$(pkg-config --cflags --libs gstreamer-1.0 gstreamer-app-1.0)
 compile(){
  local mode="$1";shift
  "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$ROOT_DIR/include" -DMEDIA_SERVER_USE_SQLITE3=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_GSTREAMER="$mode" \
+ "$ROOT_DIR/src/recording/recording_timeline_projection.cpp" \
  "$SCRIPT_DIR/recording_retention_v2_smoke.cpp" "$ROOT_DIR/src/recording/recording_read_service.cpp" \
  "$ROOT_DIR/src/recording/recording_catalog.cpp" "$ROOT_DIR/src/recording/recording_journal.cpp" \
  "$ROOT_DIR/src/recording/recording_derived_job.cpp" "$ROOT_DIR/src/recording/recording_derived_job_ready.cpp" "$ROOT_DIR/src/recording/recording_contracts.cpp" "$ROOT_DIR/src/recording/recording_finalize_recovery.cpp" \

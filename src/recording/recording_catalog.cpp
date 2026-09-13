@@ -1260,6 +1260,48 @@ RecordingLifecycle RecordingCatalog::EffectiveLifecycleV2Locked(const std::strin
     const auto state=states_v2_.find(id);
     return state==states_v2_.end()?RecordingLifecycle::Finalized:state->second.lifecycle;
 }
+bool RecordingCatalog::MediaV2EligibleLocked(const std::string& channel,const std::string& id) const {
+    const auto found=segments_v2_.find(id);
+    if(!opened_||!derived_job_state_authoritative_||segments_.count(id)||found==segments_v2_.end()||
+       found->second.channel_id!=channel||EffectiveLifecycleV2Locked(id)!=RecordingLifecycle::Finalized)return false;
+    for(const auto& entry:event_links_)if(entry.second.derived_segment_id==id||entry.second.fallback_evidence_id==id)return false;
+    const auto& segment=found->second;
+    if(segment.retention_class==RecordingRetentionClass::Continuous)return true;
+    if(segment.retention_class!=RecordingRetentionClass::Event)return false;
+    const DerivedJobRecordV1* owner=nullptr;
+    const DerivedJobReadyOutputV1* output=nullptr;
+    std::size_t index=0;
+    for(const auto& entry:derived_jobs_)for(std::size_t i=0;i<entry.second.intent.outputs.size();++i){
+        if(entry.second.intent.outputs[i].output_id!=id)continue;
+        if(owner)return false;
+        owner=&entry.second;index=i;
+    }
+    if(!owner||owner->state!=DerivedJobState::Complete||!owner->ready||!owner->ready->verified_output||
+       index>=owner->ready->outputs.size()||index>=owner->intent.sources.size())return false;
+    output=&owner->ready->outputs[index];
+    // strict record 검사로 source_index/선택/manifest/AU 출처 결박을 확인한다. 현재 원본 파일은 요구하지 않는다.
+    if(output->source_index!=index||!output->provenance.verified_output||SerializeDerivedJobRecord(*owner).empty()||
+       SerializeRecordingSegmentV2(output->segment)!=SerializeRecordingSegmentV2(segment))return false;
+    const auto path=media_relpaths_.find(id);
+    return path!=media_relpaths_.end()&&path->second==owner->intent.outputs[index].final_relpath;
+}
+bool RecordingCatalog::AcquireMediaV2(const std::string& channel,const std::string& id,RecordingSegmentV2* segment,
+    std::pair<std::filesystem::path,std::filesystem::path>* location,std::string* error) {
+    std::lock_guard lock(mu_);
+    if(!segment||!location||!MediaV2EligibleLocked(channel,id))return Fail(error,"V2 media 결박/상태 거부");
+    const auto path=media_relpaths_.find(id);
+    if(path==media_relpaths_.end())return Fail(error,"V2 media 경로 없음");
+    *segment=segments_v2_.at(id);*location={options_.media_root,path->second};
+    return AdjustHoldCountLocked(id,1,error);
+}
+bool RecordingCatalog::ValidateMediaV2(const RecordingSegmentV2& segment,
+    const std::pair<std::filesystem::path,std::filesystem::path>& location) const {
+    std::lock_guard lock(mu_);
+    if(!MediaV2EligibleLocked(segment.channel_id,segment.segment_id))return false;
+    const auto path=media_relpaths_.find(segment.segment_id);
+    return path!=media_relpaths_.end()&&location.first==options_.media_root&&location.second==path->second&&
+        SerializeRecordingSegmentV2(segment)==SerializeRecordingSegmentV2(segments_v2_.at(segment.segment_id));
+}
 RecordingLifecycle RecordingCatalog::SegmentLifecycleV2(const std::string& id) const {
     std::lock_guard lock(mu_);return EffectiveLifecycleV2Locked(id);
 }
@@ -2234,6 +2276,9 @@ bool RecordingCatalog::AdjustHoldCount(const std::string& segment_id,
                                        std::int64_t delta,
                                        std::string* error) {
     std::lock_guard lock(mu_);
+    return AdjustHoldCountLocked(segment_id,delta,error);
+}
+bool RecordingCatalog::AdjustHoldCountLocked(const std::string& segment_id,std::int64_t delta,std::string* error) {
     if(!CanWriteLocked(error))return false;
     const auto segment = segments_.find(segment_id);
     const bool v2=segments_v2_.count(segment_id)!=0;

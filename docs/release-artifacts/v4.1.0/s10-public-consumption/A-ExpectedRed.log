@@ -1,0 +1,33 @@
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-02 요청 충족 상태 구분
+[fail] D3A-01 실제 검증된 Event 출력 제공
+[pass] D3A-03 권한/다른 채널 거부
+[fail] D3A-01 application V2 채널 권한 후 제공
+[fail] D3A-06 제공 중 삭제 거부
+[pass] D3A-06 fd 해제 후 hold0
+[fail] D3A-01 실제 검증된 Event 출력 제공
+[pass] D3A-03 권한/다른 채널 거부
+[fail] D3A-01 application V2 채널 권한 후 제공
+[fail] D3A-06 제공 중 삭제 거부
+[pass] D3A-06 fd 해제 후 hold0
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-05 미완료 출력 거부
+[pass] D3A-02 요청 충족 상태 구분
+[fail] D3A-02 partial 출력 제공
+[pass] D3A-03 권한/다른 채널 거부
+[fail] D3A-01 application V2 채널 권한 후 제공
+[fail] D3A-06 제공 중 삭제 거부
+[pass] D3A-06 fd 해제 후 hold0
+[fail] D3A-02 partial 출력 제공
+[pass] D3A-03 권한/다른 채널 거부
+[fail] D3A-01 application V2 채널 권한 후 제공
+[fail] D3A-06 제공 중 삭제 거부
+[pass] D3A-06 fd 해제 후 hold0
+[summary] pass=18 fail=12
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-public-media.FCYoqr bytes=6063118 removed=true
+[elapsed] seconds=2 source=bash-SECONDS

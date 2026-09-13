@@ -15,6 +15,7 @@ read -r -a LIBS <<<"$(pkg-config --libs sqlite3 openssl)"
 "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$ROOT_DIR/include" "${FLAGS[@]}" \
   -DMEDIA_SERVER_USE_SQLITE3=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_GSTREAMER=0 \
   "$SCRIPT_DIR/recording_location_resolution_smoke.cpp" \
+  "$ROOT_DIR/src/recording/recording_timeline_projection.cpp" \
   "$ROOT_DIR/src/recording/recording_read_service.cpp" \
   "$ROOT_DIR/src/recording/recording_catalog.cpp" "$ROOT_DIR/src/recording/recording_journal.cpp" \
   "$ROOT_DIR/src/recording/recording_finalize_recovery.cpp" "$ROOT_DIR/src/recording/recording_media_inspector.cpp" \

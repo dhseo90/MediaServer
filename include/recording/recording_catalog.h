@@ -14,6 +14,7 @@
 #include "recording/recording_journal.h"
 #include "recording/recording_store_port.h"
 #include "recording/retention_coordinator.h"
+#include "recording/recording_timeline.h"
 
 struct sqlite3;
 
@@ -121,6 +122,12 @@ public:
                               RecordingOriginalResult* result, std::string* error) const;
     bool FinalizeSegmentV2(const RecordingSegmentV2& segment, const std::string& media_path, std::string* error);
     std::optional<RecordingSegmentV2> FindSegmentV2ById(const std::string& id) const;
+    // 현재 V2/파생 출처 검증과 hold 획득을 같은 잠금에서 수행한다. 성공 시 호출자가 hold를 해제한다.
+    bool AcquireMediaV2(const std::string& channel,const std::string& id,RecordingSegmentV2* segment,
+                        std::pair<std::filesystem::path,std::filesystem::path>* location,std::string* error);
+    bool ValidateMediaV2(const RecordingSegmentV2& segment,
+                         const std::pair<std::filesystem::path,std::filesystem::path>& location) const;
+    bool SnapshotTimelineV2(const RecordingTimelineQuery&,RecordingTimelineResult*,std::string*) const;
     RecordingLifecycle SegmentLifecycleV2(const std::string& id) const;
     bool CompleteDeletionV2(const RecordingTombstoneV2& tombstone,std::string* error) override;
     bool ValidateFinalizeRecoveryV2(const RecordingSegmentV2& segment, const std::string& media_path, std::string* error) const;
@@ -211,6 +218,8 @@ private:
     const RetentionCoordinator* retention_owner_{nullptr};
     bool BeginDerivedJobIntent(const DerivedJobIntentV1&,bool* inserted,std::string* error);
     bool DerivedJobProtectsLocked(const std::string& segment_id) const;
+    bool MediaV2EligibleLocked(const std::string& channel,const std::string& id) const;
+    bool AdjustHoldCountLocked(const std::string& id,std::int64_t delta,std::string* error);
     bool ValidateDerivedJobSourcesLocked(const DerivedJobIntentV1&,std::string*) const;
     bool ApplyDerivedJobMutationLocked(const RecordingMutationV1&,std::string*,bool apply=true);
     RecordingLifecycle EffectiveLifecycleV2Locked(const std::string& id) const;

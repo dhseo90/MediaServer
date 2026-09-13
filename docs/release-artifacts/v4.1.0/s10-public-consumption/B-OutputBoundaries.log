@@ -1,0 +1,17 @@
+[eval]:1
+const f=require("fs"),p=require("path"),root=process.argv[1],build=process.argv[2],archive=f.statSync(p.join(build,"libmedia_server_runtime.a")).mtimeMs,executable=f.statSync(p.join(build,"media_server")).mtimeMs,link=f.readFileSync(p.join(build,"CMakeFiles/media_server.dir/link.txt"),"utf8"),app=new Set([...link.matchAll(/CMakeFiles\/media_server\.dir\/(src\/[^ ]+)\.o/g)].map(m=>m[1]));function check(dir){for(const name of f.readdirSync(dir)){const full=p.join(dir,name),s=f.statSync(full);if(s.isDirectory())check(full);else if(/\.(h|hpp|cpp)$/.test(name)&&s.mtimeMs>(app.has(p.relative(root,full))?executable:archive))throw Error("제품 build가 오래됨: ./server.sh build 선수조건; "+full)}}check(p.join(root,"include"));check(p.join(root,"src"))
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ^
+
+Error: 제품 build가 오래됨: ./server.sh build 선수조건; /Users/dhseo/Workspace/mediaServer/src/ingress/product_ui_css.cpp
+    at check ([eval]:1:632)
+    at check ([eval]:1:515)
+    at [eval]:1:717
+    at runScriptInThisContext (node:internal/vm:219:10)
+    at node:internal/process/execution:451:12
+    at [eval]-wrapper:6:24
+    at runScriptInContext (node:internal/process/execution:449:60)
+    at evalFunction (node:internal/process/execution:283:30)
+    at evalTypeScript (node:internal/process/execution:295:3)
+    at node:internal/main/eval_string:71:3
+
+Node.js v24.13.0

@@ -1,0 +1,6 @@
+[pass] D3D-01 actual managed 원본과 jobComplete2출력·physical 검증
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-http-seed.2qAI2m bytes=5385032 removed=true
+[elapsed] seconds=2 source=bash-SECONDS
+[seed-subcheck] PASS D3D-01 generated2출력 manifest/containment/hash
+[cleanup] PASS {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-0twvdx","rootBeforeBytes":566128,"rootBeforeEntries":27,"rootSymlinksNotFollowed":0,"rootAbsent":true,"process":{"pid":null,"exitCode":null,"signalCode":null,"graceful":true,"notStarted":true},"ports":[],"attempted":3,"failureCount":0,"cleanupElapsedMs":2,"verifierElapsedMs":1753}
+[V410-S06 verifier] FAIL: listen EPERM: operation not permitted 127.0.0.1

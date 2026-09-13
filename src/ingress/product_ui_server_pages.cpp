@@ -1562,6 +1562,8 @@ void AppendOpsEventsPage(std::ostringstream& out) {
         <label class="ops-recording-original"><input id="opsRecordingOriginalView" type="checkbox" /> 이벤트와 겹치는 상시녹화 원본 보기</label>
         <p id="opsRecordingListStatus" role="status">채널과 시간 범위를 선택하세요.</p>
         <div id="opsRecordingTimelineRows" class="ops-recording-rows" aria-label="녹화 구간"></div>
+        <p id="opsRecordingUnplacedStatus" role="status">시간 귀속 미확인 자료는 별도로 표시합니다.</p>
+        <div id="opsRecordingUnplacedRows" class="ops-recording-rows" aria-label="시간 귀속 미확인 녹화"></div>
         <div class="actions">
           <button id="opsRecordingPrevious" type="button" class="button-secondary" disabled>이전</button>
           <button id="opsRecordingNext" type="button" class="button-secondary" disabled>다음</button>

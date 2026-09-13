@@ -1,0 +1,30 @@
+PASS normal selected metadata updates visible support
+PASS I31-R01 failed timeline clears previous support
+PASS I31-R01 empty timeline clears previous support
+PASS I31-R01 unplayable selection clears previous support
+PASS I31-R02 late metadata cannot contaminate unselected state
+PASS unselected error preserves selection prompt
+PASS selected media error shows failure notice
+PASS D3C-01 UTC zero is a date, not unknown
+PASS D3C-02 null times stay in separate unplaced list
+PASS D3C-03 number is not guessed as a date
+PASS D3C-03 empty is not guessed as a date
+PASS D3C-03 fraction is not guessed as a date
+PASS D3C-03 date-range is not guessed as a date
+PASS D3C-03 unsafe is not guessed as a date
+PASS D3C-04 same file rows have independent selected item IDs
+PASS D3C-05 partial overlap preserves original
+PASS D3C-06 off-page event still hides fully covered original
+PASS D3C-07 original view restores hidden rows
+PASS D3C-08 next page uses independent unknown total
+PASS D3C-09 request media axis is shown without date conversion
+PASS D3C-10 estimated UTC preserves uncertainty label
+PASS D3C-11 selection never seeks by UTC and ended never auto-advances
+PASS D3C-12 unsupported type is only a warning
+PASS D3C-13 job completion and partial deleted output remain separate
+PASS D3C-14 late response cannot replace newer selection
+PASS D3C-15 unknown-only page remains selectable
+PASS D3C-16 invalid total -1 cannot enable paging
+PASS D3C-16 invalid total 9007199254740992 cannot enable paging
+PASS D3C-17 unknown debug fields are not rendered
+{"pass":29,"fail":0,"elapsedMs":16,"actualBrowser":false,"tempArtifacts":0}

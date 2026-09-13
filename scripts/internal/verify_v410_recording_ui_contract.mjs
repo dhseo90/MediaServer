@@ -358,24 +358,48 @@ function verifyRecordingUiStaticContract(html) {
   return 8;
 }
 
-async function verifyRecordingHttpApi(baseUrl, fixture) {
+function seedTimelinePath(seed){return `/ops/api/recordings/timeline?channelId=1&startTimeMs=${seed.startTimeMs}&endTimeMs=${seed.endTimeMs}`;}
+export function validateHttpSeedManifest(root,seed){
+  assert(seed?.schema==='recording-http-fixture.v1'&&seed.channelId==='1'&&Array.isArray(seed.outputs)&&seed.outputs.length===2,'managed seed shape');
+  assert(/^\d+$/.test(seed.startTimeMs)&&/^\d+$/.test(seed.endTimeMs)&&BigInt(seed.startTimeMs)<BigInt(seed.endTimeMs),'seed UTC bounds');
+  const mediaRoot=fs.realpathSync(path.join(root,'recordings')),ids=new Set(),paths=new Set();
+  for(const [index,item]of [...seed.outputs,...(seed.transport?[seed.transport]:[])].entries()){
+    assert(item&&typeof item.id==='string'&&/^[A-Za-z0-9._:-]{1,128}$/.test(item.id)&&!/^\d+$/.test(item.id)&&!ids.has(item.id),'seed opaque ID');ids.add(item.id);
+    assert(typeof item.relativePath==='string'&&!path.isAbsolute(item.relativePath)&&!item.relativePath.includes('\\')&&
+      item.relativePath.split('/').every(part=>part&&part!=='.'&&part!=='..'),'seed relative path');
+    const file=path.resolve(mediaRoot,item.relativePath);assert(file.startsWith(mediaRoot+path.sep)&&fs.realpathSync(file)===file&&!paths.has(file),'seed containment');paths.add(file);
+    const stat=fs.lstatSync(file);assert(stat.isFile()&&!stat.isSymbolicLink()&&stat.nlink===1&&Number.isSafeInteger(item.sizeBytes)&&
+      item.sizeBytes>0&&item.sizeBytes<=64*1024*1024&&stat.size===item.sizeBytes,'seed regular size');
+    assert(item.contentType===(index<2?'video/mp2t':'video/mp4')&&/^[a-f0-9]{64}$/.test(item.sha256),'seed type/hash');
+    const fd=fs.openSync(file,'r'),hash=crypto.createHash('sha256'),chunk=Buffer.alloc(65536);
+    try{let n;while((n=fs.readSync(fd,chunk,0,chunk.length,null))>0)hash.update(chunk.subarray(0,n));}finally{fs.closeSync(fd);}
+    assert(hash.digest('hex')===item.sha256,'seed file hash');
+  }
+  return seed;
+}
+async function verifyRecordingHttpApi(baseUrl, root, seed) {
   let checks = 0;
   const check = (condition, label) => { assert(condition, label); checks += 1; console.log(`[http-subcheck] PASS ${label}`); };
-  const expected = fs.readFileSync(fixture);
+  const expected = fs.readFileSync(path.join(root,'recordings',seed.outputs[0].relativePath));
   const status = await fetch(`${baseUrl}/ops/api/recordings/status`).then(response => response.json());
   check(status.enabled === true && status.catalogMode === 'sqlite-primary' && Array.isArray(status.channels), 'I01 실제 status projection');
-  const timelinePath = '/ops/api/recordings/timeline?channelId=1&startTimeMs=1000&endTimeMs=10000';
+  const timelinePath = seedTimelinePath(seed);
   const timelineResponse = await fetch(`${baseUrl}${timelinePath}`);
   const timeline = await timelineResponse.json();
-  check(timelineResponse.status === 200 && timeline.total === 2 && timeline.items[0].segmentId === 'http-event', 'I03/I06 실제 HTTP event 우선 timeline');
-  check(timeline.items[1].supersededByEventIds.join(',') === 'http-event-id', 'I07 HTTP 원본 이벤트 ID 연결');
+  const events=timeline.items.filter(item=>item.kind==='event');
+  check(timelineResponse.status===200&&timeline.total===5&&events.length===2&&events.every(item=>seed.outputs.some(output=>output.id===item.segmentId)&&item.jobId===seed.jobId&&item.jobState==='complete'&&item.playable), 'I03/I06 실제 HTTP generated2출력·jobComplete timeline');
+  check(timeline.items.some(item=>item.kind==='continuous'&&item.hideByEvent)&&timeline.items.some(item=>item.kind==='continuous'&&!item.hideByEvent&&item.eventOverlaps.length), 'I07 HTTP 전체/부분 중첩 원본 구별');
+  check(timeline.unplacedTotal===1&&timeline.unplacedItems.length===1&&timeline.unplacedItems[0].startTimeMs===null&&!timeline.unplacedItems[0].playable,'D3D-02 accepted 미확인 독립 목록');
+  check(events.every(item=>typeof item.startTimeMs==='string'&&typeof item.utcRange.startNs==='string'&&item.requestedRange.timeBasis==='media-pts-ms'&&item.requestedRange.preMs==='0'),'D3D-02 문자열 시간·요청축 보존');
+  for(const output of seed.outputs){const response=await fetch(`${baseUrl}/ops/api/recordings/media/${output.id}`),body=Buffer.from(await response.arrayBuffer());
+    check(response.status===200&&response.headers.get('content-type')===output.contentType&&body.length===output.sizeBytes&&crypto.createHash('sha256').update(body).digest('hex')===output.sha256,'D3D-04 actual Event output 전체 byte/hash·MIME');}
   check(!JSON.stringify(timeline).includes('absolutePath') && !JSON.stringify(timeline).includes(repo) && !JSON.stringify(timeline).includes('mediaRelpath'), 'I17 HTTP 내부 path 비노출');
   for (const query of ['', '?channelId=1&startTimeMs=-1&endTimeMs=10000', '?channelId=1&startTimeMs=10000&endTimeMs=1000', '?channelId=1&startTimeMs=1&endTimeMs=18446744073709551616', '?channelId=1&startTimeMs=1&endTimeMs=10000&limit=0']) {
     const response = await fetch(`${baseUrl}/ops/api/recordings/timeline${query}`);
     check(response.status === 400, `I04 HTTP 잘못된 query 거부 ${checks}`);
     await response.arrayBuffer();
   }
-  const url = `${baseUrl}/ops/api/recordings/media/http-event`;
+  const url = `${baseUrl}/ops/api/recordings/media/${seed.outputs[0].id}`;
   for (const name of ['Range', 'range', 'rAnGe']) {
     const response = await fetch(url, { headers: { [name]: 'bytes=2-5' } });
     const body = Buffer.from(await response.arrayBuffer());
@@ -389,7 +413,7 @@ async function verifyRecordingHttpApi(baseUrl, fixture) {
     check(response.status === 206 && response.headers.get('content-range') === `bytes ${start}-${end - 1}/${expected.length}` && response.headers.get('accept-ranges') === 'bytes' && body.equals(expected.subarray(start, end)), `I20/I21 실제 Range ${range}`);
   }
   const full = await fetch(url);
-  check(full.status === 200 && full.headers.get('content-type') === 'video/mp4' && Buffer.from(await full.arrayBuffer()).equals(expected), 'I24 HTTP 전체 byte 일치');
+  check(full.status === 200 && full.headers.get('content-type') === seed.outputs[0].contentType && Buffer.from(await full.arrayBuffer()).equals(expected), 'I24 HTTP 전체 byte 일치');
   for (const range of ['bytes=1-0', 'bytes=-0', 'bytes=0-1,3-4', 'bytes=18446744073709551616-', `bytes=0-${expected.length}`, 'invalid']) {
     const response = await fetch(url, { headers: { Range: range } });
     check(response.status === 416 && response.headers.get('content-range') === `bytes */${expected.length}`, `I22 HTTP 범위 거부 ${range}`);
@@ -517,12 +541,11 @@ export async function bootstrapRecordingUiAuth(baseUrl, passwords, fetchImpl = f
     ...users.map(([username,role,scopes],index)=>({username,role,scopes,password:passwords[index+1]}))]};
 }
 
-async function verifyRecordingHttpAuth(baseUrl, root) {
+async function verifyRecordingHttpAuth(baseUrl, root, seed, passwords) {
   let checks = 0;
   const check = (condition, label) => { assert(condition, label); checks += 1; console.log(`[auth-subcheck] PASS ${label}`); };
-  const passwords = authPasswords();
   const {cookies,call} = await bootstrapRecordingUiAuth(baseUrl, passwords);
-  const routes = ['/ops/api/recordings/status', '/ops/api/recordings/timeline?channelId=1&startTimeMs=1000&endTimeMs=10000', '/ops/api/recordings/media/http-event'];
+  const routes = ['/ops/api/recordings/status', seedTimelinePath(seed), `/ops/api/recordings/media/${seed.outputs[0].id}`];
   for (const [index, cookie] of cookies.entries()) {
     for (const [routeIndex, route] of routes.entries()) {
       const expectedStatus = index <= 1 ? 200 : index === 3 ? [200, 403, 404][routeIndex] : 403;
@@ -558,13 +581,15 @@ async function verifyRecordingHttpAuth(baseUrl, root) {
   console.log(`[S06 HTTP AUTH] checks=${checks} fail=0 actualUiActions=NOT_RUN`);
 }
 
-async function verifyRecordingHttpLifecycle(baseUrl, fixture, root, child) {
+async function verifyRecordingHttpLifecycle(baseUrl, seed, root, child) {
   let checks = 0;
   const check = (condition, label) => { assert(condition, label); checks++; console.log(`[lifecycle-subcheck] PASS ${label}`); };
-  const url = `${baseUrl}/ops/api/recordings/media/http-event`;
+  assert(seed.transport,'transport fixture required');
+  const fixture=path.join(root,'recordings',seed.transport.relativePath);
+  const url = `${baseUrl}/ops/api/recordings/media/${seed.transport.id}`;
   const database = path.join(root, 'recordings/recording-catalog.sqlite3');
   const hold = () => Number(execFileSync('/usr/bin/sqlite3', ['-readonly', database,
-    "SELECT hold_count FROM recording_segments WHERE segment_id='http-event';"], { encoding: 'utf8' }).trim());
+    `SELECT hold_count FROM recording_segment_states_v2 WHERE segment_id='${seed.transport.id}';`], { encoding: 'utf8' }).trim());
   const waitHold = async expected => {
     for (let n = 0; n < 100; n++) {
       if (hold() === expected) return true;
@@ -619,7 +644,8 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
   if (!allowedModes.has(mode)) throw new Error(`지원하지 않는 mode: ${mode}`);
   const uiAuth = mode === '--ui-auth-direct' ? uiAuthPreparationOptions(process.argv.slice(3)) : null;
   if (!uiAuth && process.argv.slice(3).includes('--ui-seek-fixture')) throw new Error('seek fixture requires UI auth direct mode');
-  if (mode === '--http-auth') authPasswords();
+  const httpPasswords=mode==='--http-auth'?createUiAuthPasswords():null;
+  let httpSeed=null;
 
   let root = "";
   let rtspPort = 0;
@@ -642,16 +668,6 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
     let fixture = path.join(repo, "video/sample_h264_video_only.mp4");
     assert(fs.statSync(fixture).isFile(), `유효 media fixture가 없음: ${fixture}`);
     fs.copyFileSync(fixture, path.join(root, "input/sample_h264_video_only.mp4"));
-    if (mode === '--http-lifecycle') {
-      const block = fs.readFileSync(fixture);
-      fixture = path.join(root, 'input/large-byte-fixture.mp4');
-      const fd = fs.openSync(fixture, 'wx');
-      try {
-        for (let offset = 0; offset < 64 * 1024 * 1024;) {
-          offset += fs.writeSync(fd, block, 0, Math.min(block.length, 64 * 1024 * 1024 - offset));
-        }
-      } finally { fs.closeSync(fd); }
-    }
     const sources = (mode === '--http-auth' || mode === '--ui-direct' || uiAuth)
       ? ['1', '2'].map(id => ({ sourceId: id, displayName: `S06 channel ${id}`, kind: 'file', file: `s06-channel-${id}.mp4`, enabled: false, recording: { enabled: false } }))
       : [];
@@ -660,7 +676,13 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
     fs.writeFileSync(path.join(root, "data/sources.json"), JSON.stringify({ sources }));
     fs.writeFileSync(path.join(root, "data/views.json"), JSON.stringify({ views: [] }));
     const seekFixture = uiAuth?.seekFixture ? createUiSeekFixture(root) : null;
-    if (mode === '--http-api' || mode === '--http-auth' || mode === '--ui-direct' || mode === '--http-lifecycle' || uiAuth) {
+    if(['--http-api','--http-auth','--http-lifecycle'].includes(mode)){
+      const manifest=path.join(root,'seed-manifest.json');
+      execFileSync('bash',[path.join(repo,'scripts/internal/verify_recording_http_seed.sh'),path.join(root,'recordings'),manifest,mode==='--http-lifecycle'?'1':'0'],
+        {cwd:repo,stdio:'inherit',env:uiSeedEnvironment()});
+      httpSeed=validateHttpSeedManifest(root,JSON.parse(fs.readFileSync(manifest,'utf8')));
+      console.log('[seed-subcheck] PASS D3D-01 generated2출력 manifest/containment/hash');
+    } else if (mode === '--ui-direct' || uiAuth) {
       execFileSync('bash', [path.join(repo, 'scripts/internal/verify_v410_recording_timeline.sh'), (mode === '--ui-direct' || uiAuth) ? '--seed-ui' : '--seed-http', path.join(root, 'recordings'), fixture], { cwd: repo, stdio: 'inherit',
         env: uiSeedEnvironment(uiAuth ? uiAuth.anchor : null,process.env,seekFixture?.file??null) });
     }
@@ -727,7 +749,7 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
     await waitReady(baseUrl, child, logState);
 
     if (mode === '--http-lifecycle') {
-      await verifyRecordingHttpLifecycle(baseUrl, fixture, root, child);
+      await verifyRecordingHttpLifecycle(baseUrl, httpSeed, root, child);
     } else if (mode === '--ui-direct' || uiAuth) {
       if (uiAuth) {
         uiStage = 'bootstrap';
@@ -765,9 +787,9 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
         process.stdin.resume();
       });
     } else if (mode === '--http-auth') {
-      await verifyRecordingHttpAuth(baseUrl, root);
+      await verifyRecordingHttpAuth(baseUrl, root, httpSeed, httpPasswords);
     } else if (mode === '--http-api') {
-      await verifyRecordingHttpApi(baseUrl, fixture);
+      await verifyRecordingHttpApi(baseUrl, root, httpSeed);
     } else if (mode === "--red-status") {
       const response = await fetch(`${baseUrl}/ops/api/recordings/status`, {
         signal: AbortSignal.timeout(3000),
@@ -814,6 +836,7 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
   } else {
     console.log(`[cleanup] PASS ${JSON.stringify(cleanupPayload)}`);
   }
+  if(httpPasswords)httpPasswords.fill(''); // 보유 참조를 해제하며 메모리 소거 보장으로 표현하지 않는다.
   if (primaryError && cleanupError) {
     throw new AggregateError([primaryError, cleanupError],
       `검증 실패와 cleanup 실패가 함께 발생: ${primaryError.message}; ${cleanupError.message}`);

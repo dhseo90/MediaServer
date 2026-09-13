@@ -1,0 +1,8 @@
+- PASS: application header is standard-only with exact DTO/default manifests
+- PASS: application source owns exact canonical mapping and overwrite semantics
+- PASS: transport has zero canonical bypass and exact projection/call ordering
+- PASS: recording link is durably admitted before the bounded storage queue can drop an event
+- PASS: event clip output remains fd-bound and measured before no-replace publication
+- PASS: compiled fake canonical matrix preserves all fields failure/null outputs and lifecycle order
+- PASS: S05 구성은 생산자 전에 bridge를 등록하고 의존성 종료 전에 drain한다
+- summary: pass=7 fail=0

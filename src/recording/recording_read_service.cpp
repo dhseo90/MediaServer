@@ -382,24 +382,22 @@ std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveMedia(
         }
     }
     if(segment_v2) {
-        if(derived||fallback||segment_v2->channel_id!=channel_id||
-           segment_v2->retention_class!=RecordingRetentionClass::Continuous||
-           catalog_.SegmentLifecycleV2(segment_id)!=RecordingLifecycle::Finalized)return {};
+        if(segment||derived||fallback||segment_v2->channel_id!=channel_id)return {};
         auto media=std::unique_ptr<ResolvedRecordingMedia>(new ResolvedRecordingMedia);
         std::string error;
-        if(!catalog_.AdjustHoldCount(segment_id,1,&error))return {};
+        RecordingSegmentV2 current;
+        std::pair<std::filesystem::path,std::filesystem::path> location;
+        if(!catalog_.AcquireMediaV2(channel_id,segment_id,&current,&location,&error))return {};
         media->catalog_=&catalog_;media->segment_id_=segment_id;
-        const auto location=catalog_.FindSegmentMediaLocation(segment_id);
-        if(!location)return {};
-        media->fd_=OpenMedia(location->first,location->second);
+        media->fd_=OpenMedia(location.first,location.second);
         const auto inspected=InspectRecordingPhysicalMediaFd(media->fd_,{
-            segment_v2->container,segment_v2->video_codecs,segment_v2->size_bytes,
-            segment_v2->checksum_sha256,segment_v2->retention_class});
-        if(inspected.state!=MediaInspectionState::Healthy)return {};
-        media->size_bytes_=segment_v2->size_bytes;
-        if(segment_v2->container=="mp4")media->content_type_="video/mp4";
-        else if(segment_v2->container=="webm")media->content_type_="video/webm";
-        else if(segment_v2->container=="mpegts"||segment_v2->container=="ts")media->content_type_="video/mp2t";
+            current.container,current.video_codecs,current.size_bytes,
+            current.checksum_sha256,current.retention_class});
+        if(inspected.state!=MediaInspectionState::Healthy||!catalog_.ValidateMediaV2(current,location))return {};
+        media->size_bytes_=current.size_bytes;
+        if(current.container=="mp4")media->content_type_="video/mp4";
+        else if(current.container=="webm")media->content_type_="video/webm";
+        else if(current.container=="mpegts"||current.container=="ts")media->content_type_="video/mp2t";
         else return {};
         return media;
     }
@@ -497,6 +495,8 @@ bool RecordingReadService::QueryTimeline(const RecordingTimelineQuery& query,
         if (error) *error = "invalid timeline query";
         return false;
     }
+    if(!catalog_.SnapshotTimelineV2(query,result,error))return false;
+    if(result->v2_projection)return FinishTimelineV2(query,result,error);
     const auto segments = catalog_.QuerySegments(query.channel_id, query.start_ms, query.end_ms);
     std::vector<EventRecordingLinkV1> links;
     for (auto& link : AllLinks(catalog_))

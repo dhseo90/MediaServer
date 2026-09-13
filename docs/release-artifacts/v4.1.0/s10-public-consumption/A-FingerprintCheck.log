@@ -1,0 +1,6 @@
+include/recording/recording_catalog.h: OK
+src/recording/recording_catalog.cpp: OK
+src/recording/recording_read_service.cpp: OK
+src/ingress/recording_application_service.cpp: OK
+scripts/internal/recording_public_media_smoke.cpp: OK
+scripts/internal/verify_recording_public_media.sh: OK

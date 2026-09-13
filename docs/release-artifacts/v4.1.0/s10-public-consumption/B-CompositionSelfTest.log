@@ -1,0 +1,23 @@
+- PASS: D3B-16 supervisor 시작 실패 승인된 종료 순서
+- PASS: D3B-16 supervisor 시작 실패 bridge 미호출 변형 거부
+- PASS: D3B-16 supervisor 시작 실패 early detach 변형 거부
+- PASS: D3B-16 supervisor 시작 실패 경로 누락 변형 거부
+- PASS: D3B-16 RTSP 시작 실패 승인된 종료 순서
+- PASS: D3B-16 RTSP 시작 실패 bridge 미호출 변형 거부
+- PASS: D3B-16 RTSP 시작 실패 early detach 변형 거부
+- PASS: D3B-16 RTSP 시작 실패 경로 누락 변형 거부
+- PASS: D3B-16 RTSP 시작 실패 recorder 역전 변형 거부
+- PASS: D3B-16 RTSP 시작 실패 storage 뒤 late drain 변형 거부
+- PASS: D3B-16 HTTP 시작 실패 승인된 종료 순서
+- PASS: D3B-16 HTTP 시작 실패 bridge 미호출 변형 거부
+- PASS: D3B-16 HTTP 시작 실패 early detach 변형 거부
+- PASS: D3B-16 HTTP 시작 실패 경로 누락 변형 거부
+- PASS: D3B-16 HTTP 시작 실패 recorder 역전 변형 거부
+- PASS: D3B-16 HTTP 시작 실패 storage 뒤 late drain 변형 거부
+- PASS: D3B-16 정상 종료 승인된 종료 순서
+- PASS: D3B-16 정상 종료 bridge 미호출 변형 거부
+- PASS: D3B-16 정상 종료 early detach 변형 거부
+- PASS: D3B-16 정상 종료 경로 누락 변형 거부
+- PASS: D3B-16 정상 종료 recorder 역전 변형 거부
+- PASS: D3B-16 정상 종료 storage 뒤 late drain 변형 거부
+- summary: pass=22 fail=0

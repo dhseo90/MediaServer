@@ -1,0 +1,396 @@
+# 3D-3 B 전수 실행 행
+
+독자는 구현·검토 담당자다. 현재 정책이 아닌 실행 보존 증적이며 중앙 결과 기록에서 연결한다.
+각 행은 원출력의 실제 개별 assertion/등록기/정식 ID 판정을 기계 추출했다. summary는 중복 합산하지 않는다.
+최종 focused38, 구성 self-test22, 직접 영향 회귀657, 등록기35, 정식 ID 결과27을 구분한다.
+정리 결과는 별도 B-cleanup 표에 보존한다. 실제 브라우저/HTTP/장시간 결과가 아니다.
+[stdin]:1
+const fs=require('fs');const name="Regression-FinalFocused",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');out+='| '+(++n)+' | '+label+' | PASS | ['+file+':'+(i+1)+']('+file+') |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+[stdin]:1
+const fs=require('fs');const name="Regression-LegacyTimeline",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');out+='| '+(++n)+' | '+label+' | PASS | ['+file+':'+(i+1)+']('+file+') |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+[stdin]:1
+const fs=require('fs');const name="Regression-Location",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');out+='| '+(++n)+' | '+label+' | PASS | ['+file+':'+(i+1)+']('+file+') |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+[stdin]:1
+const fs=require('fs');const name="Regression-SourceBinding",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');out+='| '+(++n)+' | '+label+' | PASS | ['+file+':'+(i+1)+']('+file+') |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+[stdin]:1
+const fs=require('fs');const name="Regression-Reference",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');out+='| '+(++n)+' | '+label+' | PASS | ['+file+':'+(i+1)+']('+file+') |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+[stdin]:1
+const fs=require('fs');const name="Regression-Retention",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');out+='| '+(++n)+' | '+label+' | PASS | ['+file+':'+(i+1)+']('+file+') |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+[stdin]:1
+const fs=require('fs');const name="Regression-Finalize",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');out+='| '+(++n)+' | '+label+' | PASS | ['+file+':'+(i+1)+']('+file+') |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+[stdin]:1
+const fs=require('fs');const name="Regression-Range",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');out+='| '+(++n)+' | '+label+' | PASS | ['+file+':'+(i+1)+']('+file+') |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+[stdin]:1
+const fs=require('fs');const name="Regression-Connection",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');out+='| '+(++n)+' | '+label+' | PASS | ['+file+':'+(i+1)+']('+file+') |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+[stdin]:1
+const fs=require('fs');const name="Regression-EventClosed",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');out+='| '+(++n)+' | '+label+' | PASS | ['+file+':'+(i+1)+']('+file+') |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+[stdin]:1
+const fs=require('fs');const name="Regression-Identity",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');out+='| '+(++n)+' | '+label+' | PASS | ['+file+':'+(i+1)+']('+file+') |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+[stdin]:1
+const fs=require('fs');const name="Regression-Jobs",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');out+='| '+(++n)+' | '+label+' | PASS | ['+file+':'+(i+1)+']('+file+') |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+[stdin]:1
+const fs=require('fs');const name="CompositionSelfTestFinal",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');out+='| '+(++n)+' | '+label+' | PASS | ['+file+':'+(i+1)+']('+file+') |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[pass\\]|^\\[identity-pass\\]|^\\[등록기 단위 테스트\\] PASS|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- PASS:|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+[stdin]:1
+const fs=require('fs');const name="ExpectedRedFixed",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## 역사적 실행 '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');const failed=/^\\[fail\\]|^- FAIL:|^\\[identity-fail\\]|^\\[등록기 단위 테스트\\] FAIL/.test(line);out+='| '+(++n)+' | '+label+' | '+(failed?'FAIL':'PASS')+' | ['+file+':'+(i+1)+']('+file+'); 최종 합계와 별도 |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+[stdin]:1
+const fs=require('fs');const name="FirstGreen",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## 역사적 실행 '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');const failed=/^\\[fail\\]|^- FAIL:|^\\[identity-fail\\]|^\\[등록기 단위 테스트\\] FAIL/.test(line);out+='| '+(++n)+' | '+label+' | '+(failed?'FAIL':'PASS')+' | ['+file+':'+(i+1)+']('+file+'); 최종 합계와 별도 |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+[stdin]:1
+const fs=require('fs');const name="MappingRed",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## 역사적 실행 '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');const failed=/^\\[fail\\]|^- FAIL:|^\\[identity-fail\\]|^\\[등록기 단위 테스트\\] FAIL/.test(line);out+='| '+(++n)+' | '+label+' | '+(failed?'FAIL':'PASS')+' | ['+file+':'+(i+1)+']('+file+'); 최종 합계와 별도 |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+[stdin]:1
+const fs=require('fs');const name="Extended",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## 역사적 실행 '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');const failed=/^\\[fail\\]|^- FAIL:|^\\[identity-fail\\]|^\\[등록기 단위 테스트\\] FAIL/.test(line);out+='| '+(++n)+' | '+label+' | '+(failed?'FAIL':'PASS')+' | ['+file+':'+(i+1)+']('+file+'); 최종 합계와 별도 |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+[stdin]:1
+const fs=require('fs');const name="Boundaries",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## 역사적 실행 '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');const failed=/^\\[fail\\]|^- FAIL:|^\\[identity-fail\\]|^\\[등록기 단위 테스트\\] FAIL/.test(line);out+='| '+(++n)+' | '+label+' | '+(failed?'FAIL':'PASS')+' | ['+file+':'+(i+1)+']('+file+'); 최종 합계와 별도 |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+[stdin]:1
+const fs=require('fs');const name="OutputBoundariesFixed",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## 역사적 실행 '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');const failed=/^\\[fail\\]|^- FAIL:|^\\[identity-fail\\]|^\\[등록기 단위 테스트\\] FAIL/.test(line);out+='| '+(++n)+' | '+label+' | '+(failed?'FAIL':'PASS')+' | ['+file+':'+(i+1)+']('+file+'); 최종 합계와 별도 |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+[stdin]:1
+const fs=require('fs');const name="BoundedFocused",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## 역사적 실행 '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');const failed=/^\\[fail\\]|^- FAIL:|^\\[identity-fail\\]|^\\[등록기 단위 테스트\\] FAIL/.test(line);out+='| '+(++n)+' | '+label+' | '+(failed?'FAIL':'PASS')+' | ['+file+':'+(i+1)+']('+file+'); 최종 합계와 별도 |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+[stdin]:1
+const fs=require('fs');const name="Regression-Event",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## 역사적 실행 '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');const failed=/^\\[fail\\]|^- FAIL:|^\\[identity-fail\\]|^\\[등록기 단위 테스트\\] FAIL/.test(line);out+='| '+(++n)+' | '+label+' | '+(failed?'FAIL':'PASS')+' | ['+file+':'+(i+1)+']('+file+'); 최종 합계와 별도 |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+[stdin]:1
+const fs=require('fs');const name="CompositionFixed",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## 역사적 실행 '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');const failed=/^\\[fail\\]|^- FAIL:|^\\[identity-fail\\]|^\\[등록기 단위 테스트\\] FAIL/.test(line);out+='| '+(++n)+' | '+label+' | '+(failed?'FAIL':'PASS')+' | ['+file+':'+(i+1)+']('+file+'); 최종 합계와 별도 |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+[stdin]:1
+const fs=require('fs');const name="CompositionSelfTest",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## 역사적 실행 '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');const failed=/^\\[fail\\]|^- FAIL:|^\\[identity-fail\\]|^\\[등록기 단위 테스트\\] FAIL/.test(line);out+='| '+(++n)+' | '+label+' | '+(failed?'FAIL':'PASS')+' | ['+file+':'+(i+1)+']('+file+'); 최종 합계와 별도 |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+[stdin]:1
+const fs=require('fs');const name="CompositionFinal",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## 역사적 실행 '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');const failed=/^\\[fail\\]|^- FAIL:|^\\[identity-fail\\]|^\\[등록기 단위 테스트\\] FAIL/.test(line);out+='| '+(++n)+' | '+label+' | '+(failed?'FAIL':'PASS')+' | ['+file+':'+(i+1)+']('+file+'); 최종 합계와 별도 |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+[stdin]:1
+const fs=require('fs');const name="Regression-EventFinal",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## 역사적 실행 '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');const failed=/^\\[fail\\]|^- FAIL:|^\\[identity-fail\\]|^\\[등록기 단위 테스트\\] FAIL/.test(line);out+='| '+(++n)+' | '+label+' | '+(failed?'FAIL':'PASS')+' | ['+file+':'+(i+1)+']('+file+'); 최종 합계와 별도 |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0
+[stdin]:1
+const fs=require('fs');const name="EventRuntimeFixed",file='B-'+name+'.log';const lines=fs.readFileSync('docs/release-artifacts/v4.1.0/s10-public-consumption/'+file,'utf8').split('\n');let out='\n## 역사적 실행 '+name+'\n\n| 제목 | 테스트내용 | pass/fail | 비고 |\n| --- | --- | --- | --- |\n';let n=0;for(let i=0;i<lines.length;++i){const line=lines[i];if(!(/^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/.test(line))||line.includes('임시 root 삭제'))continue;const label=line.replaceAll('|','&#124;').replaceAll('<','&lt;');const failed=/^\\[fail\\]|^- FAIL:|^\\[identity-fail\\]|^\\[등록기 단위 테스트\\] FAIL/.test(line);out+='| '+(++n)+' | '+label+' | '+(failed?'FAIL':'PASS')+' | ['+file+':'+(i+1)+']('+file+'); 최종 합계와 별도 |\n';}process.stdout.write(out);
+                                                                                                                                                                                                                                                                                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid regular expression: /^\\[(pass|fail)\\]|^\\[identity-(pass|fail)\\]|^\\[등록기 단위 테스트\\] (PASS|FAIL)|^\\[s05-assert\\]|^\\[s05-runtime-assert\\]|^\\[s05-runtime-mutation\\]|^- (PASS|FAIL):|^\\[s05-action\\]/: Range out of order in character class
+    at makeContextifyScript (node:internal/vm:194:14)
+    at compileScript (node:internal/process/execution:388:10)
+    at evalTypeScript (node:internal/process/execution:270:24)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+    at ReadStream.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+
+Node.js v24.13.0

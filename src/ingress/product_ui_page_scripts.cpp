@@ -10224,8 +10224,40 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (window.location.pathname === '/ops/events' && document.getElementById('opsRecordingFilterForm')) {
           const field = id => document.getElementById(id);
           const player = field('opsRecordingPlayer');
-          let items = [], selected = '', offset = 0, total = 0, generation = 0;
+          let items = [], unplacedItems = [], selected = '', offset = 0, total = 0, unplacedTotal = 0, generation = 0;
           const localTime = date => new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+          const decimal = value => typeof value === 'string' && /^-?(0|[1-9][0-9]*)$/.test(value);
+          const displayTime = value => {
+            if (!decimal(value)) return '시간 미확인';
+            const ms = Number(value);
+            if (!Number.isSafeInteger(ms) || Math.abs(ms) > 8640000000000000) return '시간 미확인';
+            return new Date(ms).toLocaleString();
+          };
+          const requestText = item => {
+            const range = item.requestedRange;
+            if (!range || !decimal(range.startTimeMs) || !decimal(range.endTimeMs)) return '요청 구간 미확인';
+            if (range.timeBasis === 'utc-ms') return `요청 UTC: ${displayTime(range.startTimeMs)} ~ ${displayTime(range.endTimeMs)}`;
+            if (range.timeBasis === 'media-pts-ms') return `요청 원본 미디어: ${range.startTimeMs} ~ ${range.endTimeMs} ms`;
+            return '요청 시간축 미확인';
+          };
+          const timingText = item => {
+            const mapping = item.utcRange;
+            if (!mapping) return '';
+            const basis = mapping.mappingProvenance === 'estimated' ? '추정 시각' :
+              mapping.mappingProvenance === 'source-capture' ? '원본 시각' : '서버 관측 시각';
+            return ` · ${basis}${decimal(mapping.uncertaintyNs) ? ` · 불확실성 ${mapping.uncertaintyNs} ns` : ''}`;
+          };
+          const overlapText = item => {
+            const intervals = (item.eventOverlaps || []).filter(range => range.timeBasis === 'source-media-ns' &&
+              decimal(range.startNs) && decimal(range.endNs)).map(range => `${range.startNs} ~ ${range.endNs} ns`);
+            return intervals.length ? ` · 원본 미디어 중첩: ${[...new Set(intervals)].join(', ')} (파일 재생 위치와 다름)` : '';
+          };
+          const stateText = item => {
+            const jobs = { 'not-created': '작업 대기', intent: '작업 대기', ready: '출력 검증됨', committed: '작업 마무리 중', complete: '작업 완료', failed: '작업 실패' };
+            const states = { finalized: '등록됨', corrupt: '손상됨', deleted: '삭제됨', 'deletion-pending': '삭제 대기', absent: '출력 없음', writing: '작성 중' };
+            const completeness = item.completeness === 'complete' ? '전체 구간' : item.completeness === 'partial' ? '일부 구간' : '구간 충족 미확인';
+            return `${item.kind === 'event' ? `${jobs[item.jobState] || '작업 상태 미확인'} · ` : ''}${completeness} · ${states[item.catalogState] || '등록 상태 미확인'}`;
+          };
           field('opsRecordingStartTime').value = localTime(new Date(Date.now() - 3600000));
           field('opsRecordingEndTime').value = localTime(new Date());
           const clearPlayer = () => {
@@ -10238,46 +10270,53 @@ void AppendOpsShellScript(std::ostringstream& out,
           };
           const select = item => {
             clearPlayer();
-            selected = item.segmentId;
+            selected = item.itemId;
             setText('opsRecordingKindBadge', item.kind === 'event' ? '이벤트 우선' : '상시녹화 원본');
-            setText('opsRecordingCompleteness', item.completeness === 'complete' ? '전체 구간' : item.completeness === 'partial' ? '일부 구간' : '구간 누락·미완성');
+            setText('opsRecordingCompleteness', `${stateText(item)}${item.kind === 'event' ? ` · ${requestText(item)}` : overlapText(item)}`);
             if (!item.playable || !/^\/ops\/api\/recordings\/media\/[A-Za-z0-9._:-]+$/.test(item.playbackUrl || '')) {
               setText('opsRecordingPlaybackStatus', '삭제·미완성·파일 누락 상태로 재생할 수 없습니다.');
               return;
             }
             const supported = item.contentType && player.canPlayType(item.contentType);
             setText('opsRecordingPlaybackSupport', supported ? '브라우저 형식 지원 감지. 실제 디코딩 결과를 확인하세요.' : '브라우저에서 이 형식·코덱의 재생을 지원하지 않을 수 있습니다.');
-            setText('opsRecordingPlaybackStatus', item.rangeBasis === 'requested-fallback' ? '대체 영상: 표시 시간은 요청 구간이며 실제 전체 구간 충족은 미확인입니다.' : '재생 준비 중 — 재생 버튼을 누르세요.');
+            setText('opsRecordingPlaybackStatus', `파일 시작부터 재생합니다. 표시 구간은 파일 내 재생 위치를 보장하지 않습니다.${item.rangeBasis === 'requested-fallback' ? ' 대체 영상의 전체 요청 구간 충족은 미확인입니다.' : ''} 재생 버튼을 누르세요.`);
             player.src = item.playbackUrl;
             player.load();
           };
           const render = () => {
             const host = field('opsRecordingTimelineRows');
+            const unplacedHost = field('opsRecordingUnplacedRows');
             host.replaceChildren();
-            const availableEvents = new Set(items.filter(item => item.kind === 'event' && item.playable).map(item => item.eventId));
-            const visible = items.filter(item => field('opsRecordingOriginalView').checked || item.kind === 'event' ||
-              !(item.supersededByEventIds || []).some(id => availableEvents.has(id)));
-            if (!visible.some(item => item.segmentId === selected)) {
-              const initial = visible.find(item => item.kind === 'event' && item.playable) || visible.find(item => item.playable);
+            unplacedHost.replaceChildren();
+            // 전체 관련 출력과 실제 파일을 확인한 서버 판정만 사용한다. 부분·미확인 원본은 숨기지 않는다.
+            const visible = items.filter(item => field('opsRecordingOriginalView').checked || item.kind === 'event' || item.hideByEvent !== true);
+            if (![...visible, ...unplacedItems].some(item => item.itemId === selected)) {
+              const initial = visible.find(item => item.kind === 'event' && item.playable) || visible.find(item => item.playable) ||
+                unplacedItems.find(item => item.playable);
               if (initial) select(initial); else clearPlayer();
             }
-            visible.forEach(item => {
+            const appendRow = (target, item, unplaced) => {
               const button = document.createElement('button');
               button.type = 'button'; button.className = 'button-secondary';
-              button.setAttribute('aria-pressed', String(item.segmentId === selected));
-              button.textContent = `${item.kind === 'event' ? '이벤트' : '상시녹화'} · ${new Date(item.startTimeMs).toLocaleString()} ~ ${new Date(item.endTimeMs).toLocaleString()} · ${item.playable ? '재생 가능' : '재생 불가'}${item.completeness === 'partial' ? ' · 일부 구간' : ''}`;
+              button.setAttribute('aria-pressed', String(item.itemId === selected));
+              const overlap = item.kind === 'continuous' && (item.eventOverlaps || []).length ?
+                (item.hideByEvent ? ' · 전체 구간 이벤트 우선' : ' · 이벤트와 부분 중첩 — 원본 유지') : '';
+              button.textContent = `${item.kind === 'event' ? '이벤트' : '상시녹화'} · ${unplaced ? '시간 미확인' : `${displayTime(item.startTimeMs)} ~ ${displayTime(item.endTimeMs)}${timingText(item)}`} · ${stateText(item)} · ${item.playable ? '파일 제공 가능 · 디코딩 미확인' : '파일 제공 불가'}${overlap}`;
               button.addEventListener('click', () => { select(item); render(); });
-              host.append(button);
-            });
-            setText('opsRecordingListStatus', total ? `전체 ${total}개 · ${offset + 1}~${offset + items.length}번째 중 ${visible.length}개 표시 · 겹치는 원본은 원본 보기에서 확인` : '해당 시간 범위에 녹화 데이터가 없습니다.');
+              target.append(button);
+            };
+            visible.forEach(item => appendRow(host, item, false));
+            unplacedItems.forEach(item => appendRow(unplacedHost, item, true));
+            setText('opsRecordingListStatus', total ? `시간 확인 ${total}개 · 현재 페이지 ${items.length}개 중 ${visible.length}개 표시 · 완전히 겹친 원본은 원본 보기에서 확인` : '해당 시간 범위에 시간 확인 녹화 데이터가 없습니다.');
+            setText('opsRecordingUnplacedStatus', `시간 귀속 미확인 ${unplacedTotal}개 · 현재 페이지 ${unplacedItems.length}개. 채널 내 자료이며 조회 시간에 속한다는 의미가 아닙니다.`);
             field('opsRecordingPrevious').disabled = offset === 0;
-            field('opsRecordingNext').disabled = offset + items.length >= total;
+            field('opsRecordingNext').disabled = offset + 100 >= Math.max(total, unplacedTotal);
           };
           const load = async () => {
             const token = ++generation;
             field('opsRecordingLoad').disabled = false;
             clearPlayer();
-            items = []; total = 0; render();
+            items = []; unplacedItems = []; total = 0; unplacedTotal = 0; render();
             const channelId = field('opsRecordingChannelFilter').value;
             const startTimeMs = Date.parse(field('opsRecordingStartTime').value);
             const endTimeMs = Date.parse(field('opsRecordingEndTime').value);
@@ -10290,8 +10329,11 @@ void AppendOpsShellScript(std::ostringstream& out,
               const params = new URLSearchParams({ channelId, startTimeMs: String(startTimeMs), endTimeMs: String(endTimeMs), offset: String(offset), limit: '100' });
               const data = await requestJson(`/ops/api/recordings/timeline?${params}`);
               if (token !== generation) return;
-              items = Array.isArray(data.items) ? data.items : [];
-              total = Number(data.total) || 0; render();
+              if (!Array.isArray(data.items) || !Array.isArray(data.unplacedItems) ||
+                  !Number.isSafeInteger(data.total) || data.total < 0 || !Number.isSafeInteger(data.unplacedTotal) || data.unplacedTotal < 0 ||
+                  [...data.items, ...data.unplacedItems].some(item => !item || typeof item.itemId !== 'string' || !item.itemId)) throw new Error('invalid recording response');
+              items = data.items; unplacedItems = data.unplacedItems;
+              total = data.total; unplacedTotal = data.unplacedTotal; render();
             } catch {
               if (token === generation) setText('opsRecordingListStatus', '녹화 구간을 불러오지 못했습니다. 권한과 서버 상태를 확인하세요.');
             } finally { if (token === generation) field('opsRecordingLoad').disabled = false; }

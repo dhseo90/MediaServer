@@ -14,9 +14,11 @@ if (hasHelpFlag(args)) printUsageAndExit(`V390 Event Storage application boundar
 Usage:
   ./server.sh verify-v390-event-storage-application-boundary
   node scripts/internal/verify_v390_event_storage_application_boundary.mjs --application-only
+  node scripts/internal/verify_v390_event_storage_application_boundary.mjs --composition-self-test
 `);
-assertKnownOptions(args, ["h", "help", "application-only"]);
-const applicationOnly = args.includes("--application-only");
+assertKnownOptions(args, ["h", "help", "application-only", "composition-self-test"]);
+const compositionSelfTest = args.includes("--composition-self-test");
+const applicationOnly = args.includes("--application-only") || compositionSelfTest;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const read = file => fs.readFileSync(path.join(root, file), "utf8");
 const headerPath = "include/ingress/event_storage_application_service.h";
@@ -35,7 +37,10 @@ const transportPaths = [
 ];
 const checks = [];
 function assert(value, message) { if (!value) throw new Error(message); }
-function check(name, fn) { try { fn(); checks.push({name,status:"PASS"}); } catch (error) { checks.push({name,status:"FAIL",detail:error.message}); } }
+function check(name, fn) {
+  if (compositionSelfTest && !name.startsWith("D3B-16 ")) return;
+  try { fn(); checks.push({name,status:"PASS"}); } catch (error) { checks.push({name,status:"FAIL",detail:error.message}); }
+}
 function exactCount(text, pattern) { return (text.match(pattern) || []).length; }
 function compact(text) { return text.replace(/\/\/[^\n]*/g, "").replace(/\s+/g, " ").trim(); }
 function escapeRegex(text) { return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
@@ -317,27 +322,50 @@ check("compiled fake canonical matrix preserves all fields failure/null outputs 
 });
 
 if (applicationOnly) {
-  check("S05 composition starts the bridge before ingress and drains it after storage", () => {
-    const app = read("src/application/media_server_application.cpp");
-    const start = app.indexOf("analysis::SetEventRecordingBridge(event_recording_bridge);");
-    assert(start >= 0 && start < app.indexOf("gst_rtsp_server.Start("), "bridge 등록이 ingress 시작보다 늦음");
-    const lifecycle = app.slice(start);
-    const stops = [...lifecycle.matchAll(/analysis::StopEventStorage\(\);/g)];
-    assert(stops.length === 3, "정상/RTSP 실패/HTTP 실패 종료 경로 누락");
-    const suffix = [
-      "analysis::StopEventStorage();",
-      "if (event_recording_bridge) event_recording_bridge->StopAndDrain();",
-      "analysis::SetEventRecordingBridge(nullptr);",
-    ];
-    for (const stop of stops) {
-      const lines = lifecycle.slice(stop.index).split("\n").slice(0, 3).map(line => line.trim());
-      assert(JSON.stringify(lines) === JSON.stringify(suffix), "storage → bridge drain → 해제 순서 불일치");
-    }
-    assert(ordered(lifecycle.slice(lifecycle.lastIndexOf("webrtc_http_server.Stop();")), [
-      "webrtc_http_server.Stop();", "gst_rtsp_server.Stop();", "recording_supervisor.Stop();",
-      "analysis::StopEventStorage();", "event_recording_bridge->StopAndDrain();",
-    ]), "정상 종료 ingress → recorder → storage → bridge 순서 불일치");
+  // D02에서 승인된 조기 접수 차단/worker join을 검사한다. 이 source 검사는 runtime 증거가 아니다.
+  const app = compact(read("src/application/media_server_application.cpp"));
+  const bridge="event_recording_bridge->StopAndDrain();", recorder="recording_supervisor.Stop();";
+  const storage="analysis::StopEventStorage();", detach="analysis::SetEventRecordingBridge(nullptr);";
+  const observations="stop_observations();";
+  const drain=[bridge,recorder,"analysis_sessions.Shutdown();",storage,detach,observations];
+  const paths=[
+    {name:"supervisor 시작 실패",anchor:"if (!recording_supervisor.Start(&recording_error)) {",end:"return 1;",tokens:[bridge,detach,observations]},
+    {name:"RTSP 시작 실패",anchor:"if (!rtsp_server_started) {",end:"return 1;",tokens:drain},
+    {name:"HTTP 시작 실패",anchor:"if (!http_server_started) {",end:"return 1;",tokens:["gst_rtsp_server.Stop();",...drain]},
+    {name:"정상 종료",anchor:"webrtc_http_server.Stop();",end:"return 0;",tokens:["webrtc_http_server.Stop();","gst_rtsp_server.Stop();",...drain]},
+  ];
+  const calls=["webrtc_http_server.Stop();","gst_rtsp_server.Stop();",...drain];
+  function region(source, route){
+    const start=source.indexOf(route.anchor);assert(start>=0,`${route.name} 경로 누락`);
+    const end=source.indexOf(route.end,start);assert(end>=0,`${route.name} 종료 누락`);
+    return {start,end:end+route.end.length,text:source.slice(start,end+route.end.length)};
+  }
+  function validate(source,route){
+    const start=source.indexOf("analysis::SetEventRecordingBridge(event_recording_bridge);");
+    assert(start>=0&&start<source.indexOf("recording_supervisor.Start("),"bridge 등록이 생산자보다 늦음");
+    const block=region(source,route).text;
+    const actual=[...block.matchAll(new RegExp(calls.map(escapeRegex).join("|"),"g"))].map(match=>match[0]);
+    assert(JSON.stringify(actual)===JSON.stringify(route.tokens),`${route.name} 접수차단/수명 순서 불일치`);
+    assert(/if\s*\(event_recording_bridge\)\s*event_recording_bridge->StopAndDrain\(\);/.test(block),"nullable bridge guard 누락");
+  }
+  check("S05 구성은 생산자 전에 bridge를 등록하고 의존성 종료 전에 drain한다",()=>{
+    for(const route of paths)validate(app,route);
   });
+  if(compositionSelfTest)for(const route of paths){
+    check(`D3B-16 ${route.name} 승인된 종료 순서`,()=>validate(app,route));
+    const mutations=[
+      ["bridge 미호출",text=>text.replace(bridge,"")],
+      ["early detach",text=>text.replace(detach,"").replace(bridge,detach+" "+bridge)],
+      ["경로 누락",text=>text.replace(route.anchor,"removed-route")],
+    ];
+    if(route.tokens.includes(recorder))mutations.push(
+      ["recorder 역전",text=>text.replace(recorder,"").replace(bridge,recorder+" "+bridge)],
+      ["storage 뒤 late drain",text=>text.replace(bridge,"").replace(storage,storage+" "+bridge)]);
+    for(const [name,mutate]of mutations)check(`D3B-16 ${route.name} ${name} 변형 거부`,()=>{
+      const area=region(app,route);const changed=app.slice(0,area.start)+mutate(area.text)+app.slice(area.end);
+      assertRejected(name,()=>validate(changed,route));
+    });
+  }
 }
 
 if (!applicationOnly) {
@@ -362,6 +390,7 @@ if (!applicationOnly) {
   });
 }
 
+if(compositionSelfTest&&checks.length!==22)checks.push({name:"D3B-16 exact22 실행 수량",status:"FAIL",detail:`actual=${checks.length}`});
 for (const item of checks) console.log(`- ${item.status}: ${item.name}${item.detail ? ` — ${item.detail}` : ""}`);
 const failed = checks.filter(item => item.status === "FAIL").length;
 console.log(`- summary: pass=${checks.length-failed} fail=${failed}`);

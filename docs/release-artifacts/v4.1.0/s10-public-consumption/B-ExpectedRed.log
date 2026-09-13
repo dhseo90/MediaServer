@@ -1,0 +1,6 @@
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_public_timeline_smoke.cpp:16:28: error: no member named 'status_code' in 'ingress::ApplicationServiceResult'
+   16 |     const bool ok=response.status_code==200&&response.body.find("\"total\":2")!=std::string::npos&&
+      |                   ~~~~~~~~ ^
+1 error generated.
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-public-timeline.tqcQa6 bytes=0 removed=true
+[elapsed] seconds=1 source=bash-SECONDS

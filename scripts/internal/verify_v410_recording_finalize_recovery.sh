@@ -15,6 +15,7 @@ if [[ "${1:-}" == "--integration" ]]; then
   "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$ROOT_DIR/include" \
     "$SCRIPT_DIR/recording_finalize_integration_smoke.cpp" \
     "$ROOT_DIR/src/recording/gstreamer_segment_writer.cpp" \
+    "$ROOT_DIR/src/recording/recording_timeline_projection.cpp" \
     "$ROOT_DIR/src/recording/event_recording_bridge.cpp" "$ROOT_DIR/src/recording/recording_derived_event_worker.cpp" "$ROOT_DIR/src/recording/recording_derived_selection.cpp" "$ROOT_DIR/src/recording/recording_derived_job_service.cpp" "$ROOT_DIR/src/recording/recording_derived_remux.cpp" "$ROOT_DIR/src/recording/recording_read_service.cpp" "$ROOT_DIR/src/recording/event_clip_deriver.cpp" \
     "$ROOT_DIR/src/recording/recording_finalize_recovery.cpp" "$ROOT_DIR/src/recording/recording_media_inspector.cpp" \
     "$ROOT_DIR/src/recording/recording_catalog.cpp" "$ROOT_DIR/src/recording/recording_journal.cpp" \

@@ -1,0 +1,28 @@
+[pass] B01 V2 tombstone preserves immutable segment without legacy UTC range
+[pass] B02 V2 state records reject malformed payload entity and duplicate conflicts
+[pass] B03 V2 pending corrupt and deleted overlays never mutate finalized payload
+[pass] B04 V2 invalid transitions and finalize retries cannot resurrect state
+[pass] B05 V2 checkpoint and restart preserve overlay tombstone and SQLite parity
+[pass] B06 V2 capacity deletion follows durable order despite reversed UTC
+[pass] B07 mixed legacy and multiple stores use deterministic nonchronological ordering
+[pass] B08 V2 age expiry uses all known mapping ends plus uncertainty rounded upward
+[pass] B09 V2 unknown or overflowing age remains capacity eligible
+[pass] B10 V2 class quotas and disk reserve remain separated
+[pass] B11 V2 pin and hold protect deletion and corruption
+[pass] B12 V2 pending and corrupt bytes remain charged but are not automatic victims
+[pass] B13 V2 apply persists pending before unlink and tombstone after unlink
+[pass] B14 V2 interrupted deletion recovers without resurrection
+[pass] B15 V2 corrupt cleanup requires explicit manual reason
+[pass] B16 V2 continuous media with unknown UTC resolves a healthy held fd
+[pass] B17 V2 wrong channel event and fallback collision cannot expose media
+[pass] B18 V2 missing symlink and multiple hardlink media reject without hold leak
+[pass] B19 V2 same size corruption and invalid container reject without hold leak
+[pass] B20 V2 deletion and playback hold races have one safe winner
+[pass] B21 borrowed fd inspection preserves caller ownership and detects file changes
+[pass] B23 legacy store port refuses unsupported V2 deletion
+[summary] pass=22 fail=0
+[pass] B22 V2 playback is unavailable without GStreamer
+[pass] B23 legacy store port refuses unsupported V2 deletion
+[summary] pass=2 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-retention-v2.yT2dgl bytes=10435402 removed=true
+[elapsed] seconds=14 source=bash-SECONDS

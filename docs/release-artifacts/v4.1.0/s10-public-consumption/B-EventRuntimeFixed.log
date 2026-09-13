@@ -1,0 +1,56 @@
+[s05-runtime-assert] {"case":"disabled-admit","message":"실제 EventStorage worker 진입을 관찰한다"}
+[s05-runtime-assert] {"case":"disabled-admit","message":"worker 처리 전에 첫 이벤트 연결이 내구 접수된다"}
+[s05-runtime-assert] {"case":"disabled-admit","message":"실제 저장 큐 크기 2에서 다섯 접수 중 두 이벤트가 퇴출된다"}
+[s05-runtime-assert] {"case":"disabled-admit","message":"퇴출 이벤트를 포함한 다섯 PTS 연결이 worker 해제 전에 보존된다"}
+[s05-runtime-assert] {"case":"disabled-admit","message":"저장 worker drain 뒤에도 다섯 연결과 시간축이 보존된다"}
+[s05-runtime-assert] {"case":"disabled-admit","message":"JSONL 설정에 따른 실제 저장 수와 빈 큐를 확인한다"}
+[s05-runtime-assert] {"case":"disabled-admit","message":"JSONL 비활성은 파일 없음이고 활성은 생존 이벤트 세 개와 link ID가 일치한다"}
+[s05-runtime-summary] case=disabled-admit pass=7 fail=0
+[s05-runtime-assert] {"case":"disabled-recover","message":"새 프로세스의 빈 SQLite를 journal로 재구축해 다섯 PTS 연결을 복구한다"}
+[s05-runtime-assert] {"case":"disabled-recover","message":"퇴출 이벤트까지 UTC 매핑 후 다섯 실제 H264 파생 파일이 완료된다"}
+[s05-runtime-assert] {"case":"disabled-recover","message":"같은 이벤트 재접수는 복구된 다섯 clip ID를 바꾸거나 추가하지 않는다"}
+[s05-runtime-summary] case=disabled-recover pass=3 fail=0
+
+(gst-plugin-scanner:21628): GLib-GIRepository-WARNING **: 19:02:50.243: Failed to load shared library 'libgobject-2.0.0.dylib' referenced by the typelib: dlopen(libgobject-2.0.0.dylib, 0x0009): tried: 'libgobject-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibgobject-2.0.0.dylib' (no such file), '/usr/lib/libgobject-2.0.0.dylib' (no such file, not in dyld cache), 'libgobject-2.0.0.dylib' (no such file)
+
+(gst-plugin-scanner:21628): GLib-GIRepository-WARNING **: 19:02:50.244: Failed to load shared library 'libglib-2.0.0.dylib' referenced by the typelib: dlopen(libglib-2.0.0.dylib, 0x0009): tried: 'libglib-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibglib-2.0.0.dylib' (no such file), '/usr/lib/libglib-2.0.0.dylib' (no such file, not in dyld cache), 'libglib-2.0.0.dylib' (no such file)
+
+** (gst-plugin-scanner:21628): CRITICAL **: 19:02:50.245: can't find gi.repository.Gst
+objc[21628]: Class ResultReceiver is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10cbe1748) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x122002b70). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[21628]: Class GtkApplicationQuartzDelegate is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10cbe1770) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x122002b98). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[21628]: Class GNSMenuItem is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10cbe17c0) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x122002c38). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[21628]: Class GNSMenu is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10cbe17e8) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x122002c60). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[21628]: Class FilterComboBox is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10cbe1860) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x122002cd8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[21628]: Class gdkCoreCursor is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgdk-3.0.dylib (0x10c035258) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x122002d28). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+[s05-runtime-assert] {"case":"enabled-admit","message":"실제 EventStorage worker 진입을 관찰한다"}
+[s05-runtime-assert] {"case":"enabled-admit","message":"worker 처리 전에 첫 이벤트 연결이 내구 접수된다"}
+[s05-runtime-assert] {"case":"enabled-admit","message":"실제 저장 큐 크기 2에서 다섯 접수 중 두 이벤트가 퇴출된다"}
+[s05-runtime-assert] {"case":"enabled-admit","message":"퇴출 이벤트를 포함한 다섯 PTS 연결이 worker 해제 전에 보존된다"}
+[s05-runtime-assert] {"case":"enabled-admit","message":"저장 worker drain 뒤에도 다섯 연결과 시간축이 보존된다"}
+[s05-runtime-assert] {"case":"enabled-admit","message":"JSONL 설정에 따른 실제 저장 수와 빈 큐를 확인한다"}
+[s05-runtime-assert] {"case":"enabled-admit","message":"JSONL 비활성은 파일 없음이고 활성은 생존 이벤트 세 개와 link ID가 일치한다"}
+[s05-runtime-summary] case=enabled-admit pass=7 fail=0
+[s05-runtime-assert] {"case":"enabled-recover","message":"새 프로세스의 빈 SQLite를 journal로 재구축해 다섯 PTS 연결을 복구한다"}
+[s05-runtime-assert] {"case":"enabled-recover","message":"퇴출 이벤트까지 UTC 매핑 후 다섯 실제 H264 파생 파일이 완료된다"}
+[s05-runtime-assert] {"case":"enabled-recover","message":"같은 이벤트 재접수는 복구된 다섯 clip ID를 바꾸거나 추가하지 않는다"}
+[s05-runtime-summary] case=enabled-recover pass=3 fail=0
+
+(gst-plugin-scanner:21631): GLib-GIRepository-WARNING **: 19:02:51.730: Failed to load shared library 'libgobject-2.0.0.dylib' referenced by the typelib: dlopen(libgobject-2.0.0.dylib, 0x0009): tried: 'libgobject-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibgobject-2.0.0.dylib' (no such file), '/usr/lib/libgobject-2.0.0.dylib' (no such file, not in dyld cache), 'libgobject-2.0.0.dylib' (no such file)
+
+(gst-plugin-scanner:21631): GLib-GIRepository-WARNING **: 19:02:51.731: Failed to load shared library 'libglib-2.0.0.dylib' referenced by the typelib: dlopen(libglib-2.0.0.dylib, 0x0009): tried: 'libglib-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibglib-2.0.0.dylib' (no such file), '/usr/lib/libglib-2.0.0.dylib' (no such file, not in dyld cache), 'libglib-2.0.0.dylib' (no such file)
+
+** (gst-plugin-scanner:21631): CRITICAL **: 19:02:51.731: can't find gi.repository.Gst
+objc[21631]: Class ResultReceiver is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10c4f9748) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x121a16b70). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[21631]: Class GtkApplicationQuartzDelegate is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10c4f9770) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x121a16b98). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[21631]: Class GNSMenuItem is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10c4f97c0) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x121a16c38). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[21631]: Class GNSMenu is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10c4f97e8) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x121a16c60). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[21631]: Class FilterComboBox is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10c4f9860) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x121a16cd8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[21631]: Class gdkCoreCursor is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgdk-3.0.dylib (0x10b94d258) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x121a16d28). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+[s05-runtime-assert] {"case":"shutdown-cancel","message":"post-event frame 대기 중인 실제 storage worker를 관찰한다"}
+[s05-runtime-assert] {"case":"shutdown-cancel","message":"종료 신호가 post-event frame 대기를 깨워 1초 안에 worker를 drain한다"}
+[s05-runtime-assert] {"case":"shutdown-cancel","message":"frame 대기 취소 뒤에도 EventRecord JSONL을 유실하지 않는다"}
+[s05-runtime-summary] case=shutdown-cancel pass=3 fail=0
+[s05-runtime-mutation] disabled-guard: PASS (실제 assertion의 RED 확인)
+[s05-runtime-mutation] prequeue-admission: PASS (실제 assertion의 RED 확인)
+[s05-runtime-negative] pass=2 fail=0 elapsedMs=37714
+[s05-runtime-cleanup] {"path":"/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_s05_storage_runtime_ObUzWO","files":47,"bytes":21983866,"removed":true}

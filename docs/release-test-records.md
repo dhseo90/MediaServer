@@ -1,5 +1,92 @@
 # Release Test Records
 
+## S10 3D-3 D 실제 HTTP 최종 결과 — 2026-09-13
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| D 실제 HTTP/API/auth/전송 | API35/auth40/lifecycle10·harness5시나리오(내부40checks) 및 seed준비8행 전부 최종 exit0. [D-results](release-artifacts/v4.1.0/s10-public-consumption/D-results.md) 최종98/과거3행, 상세명령·실패·실제입력한계는 [D-report](release-artifacts/v4.1.0/s10-public-consumption/D-report.md) | PASS |
+| D build/정리/fingerprint | 제품 build exit0, 실제서버3/port6 종료, 기록된소유 temp12경로 부재, source/fixture/binary/archive8개 hash일치. [정리전수](release-artifacts/v4.1.0/s10-public-consumption/D-cleanup.md) | PASS |
+| D 최종 문서 gate | `./server.sh verify-docs-links` exit0/failures0 및 `./server.sh verify-docs-ui-assets` exit0/10 PASS. [링크 원출력](release-artifacts/v4.1.0/s10-public-consumption/D-DocsLinks.log), [자산 원출력](release-artifacts/v4.1.0/s10-public-consumption/D-DocsAssets.log). 제품 assertion98행과 분리하며 실제 UI 검증이 아님 | PASS |
+| D 최종 증거 대조 | `git diff --check` exit0; D 원출력14개 trailing0·결과101행(최종98/과거3)·temp12경로 현재부재 확인. 링크264md/5861local/22images/110anchors/76indexed/168exclusions/fail0. D-FinalEvidenceCheck.log에 대조 보존 | PASS |
+
+실제브라우저는 사용자 제외, 서버 두번째 기동은 미실행이다. seed 종료→제품 첫 기동의 내구 시작복구를 재시작/실제 재생으로 확대하지 않는다.
+
+## S10 3D-3 D 실행 전 정의 — 2026-09-13
+
+상세 oracle/격리/비밀/실행 순서는 [D-definition](release-artifacts/v4.1.0/s10-public-consumption/D-definition.md)에 보존한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| D3D-01 | 관리 fixture | 자체 H264→숫자1 managed writer→실제2출력 jobComplete·manifest containment; startup 재개방 동일 ID | v4.1.0 |
+| D3D-02 | 실제 timeline DTO | GET known/unknown 독립 수량·itemId·문자열/ns/null·request축·전체/부분 중첩·복수 출력 | v4.1.0 |
+| D3D-03 | 입력 오류 | 실제 HTTP invalid query400, 없는 opaque media404, 내부 경로/원본/hash 미노출 | v4.1.0 |
+| D3D-04 | 실제 파생 파일 | 각 generated output GET200·MPEGTS MIME·전체 bytes/hash와 원본 fixture 파일 대조 | v4.1.0 |
+| D3D-05 | Range/HEAD | 대소문자 Range·닫힌/열린/suffix206·invalid/overflow/다중416·HEAD body0·정확 length/range | v4.1.0 |
+| D3D-06 | 인증/권한 | 임시 난수5개 메모리 only, admin/operator/viewer/no-source/no-ops 및 미인증401·다른 채널403 matrix | v4.1.0 |
+| D3D-07 | 대용량 유효 파일 | 별도 Continuous MP4 trailing free atom64MiB·최종size/hash·startup physical 검증·full GET hash·256KiB 경계Range | v4.1.0 |
+| D3D-08 | 응답 hold | V2 states SQL로 pause hold1·full/disconnect hold0·정확 생성ID 대조 | v4.1.0 |
+| D3D-09 | 종료/정리 | pause 중 SIGTERM·자식 종료·동적 loopback ports 반환·소유 temp 삭제; 강제종료 정상 PASS 금지 | v4.1.0 |
+| D3D-10 | 내구 시작복구 | seed 종료 뒤 제품 첫 기동의 managed marker/원장 복구→동일 output 목록·ID와 파일 제공; 실제 서버 두 번째 기동은 미실행 | v4.1.0 |
+| D3D-11 | harness 보존 | 기존 --harness-self-test 전수; 격리env/종료/port/temp·실패경계 유지. 실제 UI 대체 아님 | v4.1.0 |
+| D3D-12 | 최종 gate | 코드 고정 build·docs-links/docs-ui-assets·diffcheck·신규 로그 whitespace·fingerprint/전수 결과/cleanup | v4.1.0 |
+
+## S10 3D-3 B 최종 실행 결과 — 2026-09-13
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B 공개 timeline | focused38·구성 self22·직접 영향657·등록기35·정식ID27, 모든 최종 명령 exit0. 전수779행/과거607행은 [B-results](release-artifacts/v4.1.0/s10-public-consumption/B-results.md), 실제 명령·준비 실패·RED·고정축/삭제/상한·S05 stale oracle 보완은 [B-report](release-artifacts/v4.1.0/s10-public-consumption/B-report.md) | PASS |
+| B build/정리/파일 정합성 | 제품 build·diffcheck exit0, 변경24파일 SHA 확인, 원출력40개 whitespace0, 소유 temp27경로 부재. [정리 전수](release-artifacts/v4.1.0/s10-public-consumption/B-cleanup.md) | PASS |
+
+HTTP/브라우저/장시간 결과로 확대하지 않는다. 실제 브라우저는 사용자 제외이며 D08 완료 증거가 아니다.
+
+## S10 3D-3 C 메인 실행 결과 연결 — 2026-09-13
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| C 녹화 화면 VM 소비 29개 | 메인 실행 `node scripts/internal/recording_playback_status.test.mjs`, 최종 exit0/29 PASS/0 FAIL. 기존7+추가22 전수는 [C-results](release-artifacts/v4.1.0/s10-public-consumption/C-results.md), 최초 RED10/19·추가 RED28/1·정리·한계는 [C-report](release-artifacts/v4.1.0/s10-public-consumption/C-report.md)에 보존 | PASS |
+
+실제 브라우저/D08은 사용자 제외다. 위 Node VM/DOM double 결과는 실제 영상 재생·시각·UI 풀테스트 완료 증거가 아니다.
+
+## S10 3D-3 B timeline 투영 사전등록 — 2026-09-13
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| D3B-01 | V2 원본 조회 | 실제 managed H264 원본의 UTC mapping→기존 query 입력→새 문자열 시간 응답 | v4.1.0 |
+| D3B-02 | 입력/권한/오류 | invalid range/limit400, authorizer403·채널 비노출, catalog 실패503 | v4.1.0 |
+| D3B-03 | 시간 경계 | 유효 UTC0, unknown null, int64/JS safe integer 밖 문자열과 overflow | v4.1.0 |
+| D3B-04 | 독립 항목 식별 | 같은 파일의 복수 mapping·서로 다른 구간 itemId, 재조회 stable ordering | v4.1.0 |
+| D3B-05 | 실제 파생 출력 | actual service 복수 출력·AU union/원본 mapping, 각 출력과 job/full 상태 구분; Ready/Committed 진행 callback에서 시각 투영은 보존하되 playable=false | v4.1.0 |
+| D3B-06 | 부분 중첩 | confirmed request∩실제 AU 구간만 overlap, 원본 부분 행 보존 | v4.1.0 |
+| D3B-07 | 계보/페이지 | 같은 UTC 다른 source/store/epoch/segment는 숨기지 않음, page 밖 event도 전체 충족 판정에 반영 | v4.1.0 |
+| D3B-08 | 현재 가용성 | output missing/corrupt/tombstone은 historical Complete와 분리·원본 숨김 없음 | v4.1.0 |
+| D3B-09 | 원본 삭제 | durable intent source mapping으로 출력 UTC 투영, source-utc-mapping provenance 명시 | v4.1.0 |
+| D3B-10 | unknown 독립 페이지 | unplacedTotal/offset/limit, known과 분리·요청범위 귀속 주장 없음 | v4.1.0 |
+| D3B-11 | 상한 | 관련 known4096·64MiB, unknown count+bounded heap·offset overflow, 무관 역사4096초과가 첫 페이지를 막지 않음 | v4.1.0 |
+| D3B-12 | 요청 축·노출 | request timeBasis/start/end/pre/post 문자열, raw source/path/hash/job JSON 비노출 | v4.1.0 |
+| D3B-13 | 출력 없는 상태 | accepted/nojob, Intent/Failed placeholder null/no playback, output 생성 뒤 placeholder 중복 없음 | v4.1.0 |
+| D3B-14 | 고정 시간축 적합성 | UTC span/media timebase span 불일치와 non-integral endpoint는 Source/Output 공통 unplaced, 임의 비율 재스케일·원본 hide 없음 | v4.1.0 |
+| D3B-15 | 직접 링크 영향 회귀 | read_service.cpp 직접 컴파일 runner 11개에 새 projection TU 연결; timeline --read-model, location, source-binding, consumer-reference, retention-v2, finalize-recovery, range, consumer-connection, event-recording, identity, derived-jobs 개별 기존 assertions 유지 | v4.1.0 |
+| D3B-16 | 기존 S05 구성 oracle 복원 | D02 supervisor 시작 실패/RTSP 실패/HTTP 실패/정상 종료 4경로의 실제 승인 순서; bridge 누락·recorder 역전·storage 뒤 late drain·early detach·경로 누락 source 변형 거부. static verifier 자체 검사이며 runtime 수명 PASS로 확대하지 않음 | v4.1.0 |
+
+명령 `bash scripts/internal/verify_recording_public_timeline.sh`. 최초 RED는 기존 QueryTimeline이 actual V2 원본을 누락하고 새 시간/미확인 응답 계약을 제공하지 않는 assertion으로 지정한다. same-lock compact projection과 API serializer focused이며 실제 HTTP·UI는 이 B 단위에서 실행하지 않는다. A helper 불변이면 A46은 반복하지 않는다.
+
+## S10 3D-3 A media 제공 사전등록 — 2026-09-13
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| D3A-01 | 검증된 출력 제공 | 실제 자체 H264→writer→DerivedJobService Complete의 각 MPEGTS output ResolveMedia 성공·bytes/type | v4.1.0 |
+| D3A-02 | 부분 요청 | unknown 구간을 포함하는 partial job의 검증된 개별 출력 제공, fullySatisfied 승격 없음 | v4.1.0 |
+| D3A-03 | 권한·채널 | application Media authorizer 거부·잘못된 channel 거부·hold 증가 없음 | v4.1.0 |
+| D3A-04 | 미결박 Event | manual/orphan Event finalize는 실제 파일이 있어도 media 거부 | v4.1.0 |
+| D3A-05 | 미완료 작업 | Ready/Committed 중 output 제공 거부, Complete 뒤 제공 | v4.1.0 |
+| D3A-06 | hold/삭제 경쟁 | 제공 fd 보유 중 RequestDeletion 거부, fd 해제 뒤 삭제 가능·재요청 거부 | v4.1.0 |
+| D3A-07 | 손상·결박 | 파일 변조/크기 불일치 거부·hold 누수 없음, immutable metadata 변경 거부 | v4.1.0 |
+| D3A-08 | 원본 삭제 독립 | 원본 보존 삭제 완료 뒤에도 검증된 durable output 제공 | v4.1.0 |
+
+명령 `bash scripts/internal/verify_recording_public_media.sh`. 최초 예상 RED는 현재 V2 Continuous-only gate가 D3A-01의 정상 Event ResolveMedia를 거부하는 assertion이다. 실제 service·retention 직접 회귀와 build만 실행하며 HTTP/browser/외부/장시간은 제외한다. 신규 로그 whitespace도 검사한다.
+
+실행 결과: 최종 focused46 + retention24 + derived service43 = **113 pass / 0 fail**, 최종 build/diffcheck exit0. 최초 callback fixture 컴파일 오류와 예상 RED18pass12fail, 중간 GREEN30/44를 보존했다. [A 보고서](release-artifacts/v4.1.0/s10-public-consumption/A-report.md)의 exact command/exit·불변 경계와 [전수 결과](release-artifacts/v4.1.0/s10-public-consumption/A-results.md)의 현재113행/historical104행/cleanup7개 root를 대조했다. 신규 원출력11개 trailing whitespace0, fingerprint6개 OK. 실제 브라우저·B timeline/C UI의 완료 증거는 아니다.
+
 ## S10 3D-2 메인 최종 검토 — 2026-09-13
 
 메인이 제품 diff·실제 출력·524개 유효 결과·실패 보존·cleanup 기록을 직접 대조했다.
@@ -34368,3 +34455,32 @@ artifact/hash, 모든 command exit/count, repair/rerun 이력은 Task 8 report�
 | 최종 semantic review | Candidate `e4d6e57c53ae975efbb46f24d24ec160a61ac188c3b67fce379386fb98b63b36`, reviewedOn `2026-08-12`, carry-forward 981 + independent 5입니다 | 최종 package/decision/snapshot digest는 원자적 source-of-truth `test/fixtures/v390_review4_feature_semantic_source_approvals.json`에서 검증합니다. self-bound 문서에는 변동 digest와 writer 횟수를 복제하지 않고 전체 실행 이력은 Task 8 report에 보존합니다 |
 | Build/static/replay | Build artifact `build-gst-onnx/media_server`, SHA-256 `ac86d34d309768e4b254f3b0275e476434389887fda9a1ccd124294342dc204c`, 17,511,664 bytes. Lifecycle `10/10`, child `35/35`, parent `40/40`, native `55/55`, adapter `58/58`, runtime `63/63`, acceptance `32/32`, launcher `21/21`, final integrity `15/15`, Policy `28/28`, recorded replay `548/548`과 inventory/docs/syntax/diff가 PASS입니다 | 모두 Static/contract/auxiliary replay 결과입니다. Actual exact 424 browser는 executed `0`/not-run `424`이고 UI/Policy/release PASS가 아닙니다 |
 | 미실행 | Actual browser, diagnostic actual, `./test_ui.sh`, 30분, 120분, actual acceptance/release, `./test_release.sh` | 사용자 금지. Clean pushed commit에서 별도 tester가 `./test_ui.sh`를 정확히 1회 실행해야 actual GREEN 여부가 결정됩니다 |
+
+## v4.1.0 S10 3D-3 C 실행 전 정의
+
+실행 명령은 `node scripts/internal/recording_playback_status.test.mjs`이며 메인이 실행한다. 아래는 실행 전 등록이고 결과가 아니다. 상세 확인 방법은 [C-definition](release-artifacts/v4.1.0/s10-public-consumption/C-definition.md)의 각 행을 따른다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| D3C-01 | UTC 0 문자열 | C-definition D3C-01; 실제 제품 script VM/DOM 격리 assertion | v4.1.0 |
+| D3C-02 | null 시간 별도 목록 | C-definition D3C-02; 실제 제품 script VM/DOM 격리 assertion | v4.1.0 |
+| D3C-03 | 잘못된 날짜 경계 | C-definition D3C-03; 실제 제품 script VM/DOM 격리 assertion | v4.1.0 |
+| D3C-04 | 항목 독립 선택 | C-definition D3C-04; 실제 제품 script VM/DOM 격리 assertion | v4.1.0 |
+| D3C-05 | 부분 중첩 원본 보존 | C-definition D3C-05; 실제 제품 script VM/DOM 격리 assertion | v4.1.0 |
+| D3C-06 | 페이지 바깥 이벤트 우선 | C-definition D3C-06; 실제 제품 script VM/DOM 격리 assertion | v4.1.0 |
+| D3C-07 | 원본 보기 | C-definition D3C-07; 실제 제품 script VM/DOM 격리 assertion | v4.1.0 |
+| D3C-08 | 독립 페이지 | C-definition D3C-08; 실제 제품 script VM/DOM 격리 assertion | v4.1.0 |
+| D3C-09 | 요청 축 구별 | C-definition D3C-09; 실제 제품 script VM/DOM 격리 assertion | v4.1.0 |
+| D3C-10 | 추정 시각 안내 | C-definition D3C-10; 실제 제품 script VM/DOM 격리 assertion | v4.1.0 |
+| D3C-11 | 파일 시작 재생 | C-definition D3C-11; 실제 제품 script VM/DOM 격리 assertion | v4.1.0 |
+| D3C-12 | 미지원 형식 | C-definition D3C-12; 실제 제품 script VM/DOM 격리 assertion | v4.1.0 |
+| D3C-13 | 상태 분리 | C-definition D3C-13; 실제 제품 script VM/DOM 격리 assertion | v4.1.0 |
+| D3C-14 | 늦은 조회 응답 | C-definition D3C-14; 실제 제품 script VM/DOM 격리 assertion | v4.1.0 |
+| D3C-15 | known 빈·unknown 존재 | C-definition D3C-15; 실제 제품 script VM/DOM 격리 assertion | v4.1.0 |
+| D3C-16 | 잘못된 응답 수량 | C-definition D3C-16; 실제 제품 script VM/DOM 격리 assertion | v4.1.0 |
+| D3C-17 | 공개 정보 제한 | C-definition D3C-17; 실제 제품 script VM/DOM 격리 assertion | v4.1.0 |
+| I31-R01/R02 기존 7개 | 정상 metadata·조회 실패·빈 목록·불가 선택·늦은 metadata·무선택 error·선택 error | 기존 실제 handler assertion 7개 유지 | v4.1.0 기존 |
+
+| 제목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| C 실제 브라우저/D08 | 실제 영상 재생·시각·브라우저 조작 | 사용자 명시 제외 | Node VM/DOM 결과는 실제 브라우저 재생 PASS가 아님 |

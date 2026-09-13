@@ -757,19 +757,38 @@ POST URL 자체는 rule output 설정에서 관리합니다. 외부 이벤트 JS
 | 요청 | 입력·결과 |
 | --- | --- |
 | `GET /ops/api/recordings/status` | 전역 enabled, catalogMode/degraded/recovery, 허용 channels의 enabled/active/storageBlocked 및 상시·이벤트 사용량/상한 |
-| `GET /ops/api/recordings/timeline` | 필수 channelId/startTimeMs/endTimeMs, 선택 offset(기본 0)/limit(기본 100, 1~1000). UTC epoch 밀리초 반개구간 조회, total/offset/limit/items 반환 |
+| `GET /ops/api/recordings/timeline` | 필수 channelId/startTimeMs/endTimeMs, 선택 offset(기본 0)/limit(기본 100, 1~1000). UTC epoch 밀리초 반개구간 조회. 시간 확인 items/total과 시간 귀속 미확인 unplacedItems/unplacedTotal에 같은 offset/limit를 각각 적용 |
 | `GET /ops/api/recordings/media/<opaqueId>` | 조회 결과의 playbackUrl로 접근. 전체 200 또는 단일 byte Range 206, 잘못된 범위 416 |
 | `HEAD /ops/api/recordings/media/<opaqueId>` | GET과 같은 미디어 길이·형식·Range 헤더, 본문 없음 |
 
-timeline은 startTimeMs 내림차순, displayPriority 내림차순, segmentId 오름차순이다.
-event 우선순위는 200, continuous는 100이며 원본과 이벤트 관계는 supersededByEventIds로
-표시한다. requestedRange와 actualRange, completeness, playable은 서로 다른 정보다.
+S10 관리 녹화의 시간 확인 목록은 정밀 UTC 시작 내림차순, displayPriority 내림차순,
+itemId 오름차순이다. 미확인 목록은 채널 전체의 시간 귀속 미확인 자료이며 요청한 시간 범위에
+속한다고 주장하지 않는다. 해당 목록은 안정된 itemId 오름차순이다. itemId는 표시 구간을,
+segmentId는 실제 파일을 식별하므로 같은 파일에 여러 항목이 있을 수 있다.
+
+startTimeMs/endTimeMs는 십진 문자열 또는 null이다. 유효 UTC0은 날짜이며 null과 다르다.
+utcRange의 ns·mediaRange의 PTS/timebase·orderSequence도 십진 문자열이다. requestedRange는
+timeBasis(utc-ms 또는 media-pts-ms)를 명시하며 서로 다른 축을 날짜로 바꾸어 해석하면 안 된다.
+파생 출력 시각은 검증된 원본 매핑으로 대응할 수 있을 때 source-utc-mapping으로 표시하며
+mappingProvenance/uncertaintyNs를 함께 제공한다. 맞지 않는 시간축을 비율 보정하지 않는다.
+
+event 우선순위는200, continuous는100이다. 같은 원본 계보의 확인된 중첩만 eventOverlaps로
+안내하며, 행 전체가 현재 제공 가능한 이벤트로 충족된 경우에만 hideByEvent가 true다.
+supersededByEventIds 하나만으로 원본을 숨기지 않는다. 부분·미확인·파일 불가 이벤트는
+원본 전체를 숨기지 않으며 이 판정은 페이지를 자르기 전에 수행한다.
+jobState(작업), completeness(요청 충족), catalogState(등록 상태), playable(현재 파일 제공)은
+서로 다르며 브라우저 디코딩 성공을 뜻하지 않는다. 출력 없는 작업은 파일 ID·재생 URL 없이 미확인 목록에 남는다.
 playable=false 항목이나 삭제·미완성·손상·누락 파일을 정상 영상으로 제공하지 않는다.
 미디어를 사용할 수 없거나 채널 권한이 없으면 media API는 404로 처리한다.
 허용되지 않은 timeline 채널은 403, 잘못된 조회 인자는 400이다.
+관련 항목4096개 또는 조회 작업공간/응답64MiB 상한 초과·catalog 실패는503이다.
+무관한 과거 항목 수 때문에 짧은 조회를 거부하지 않으며 미확인 목록은 필요한 페이지까지만 선택한다.
 
 실제 파일을 열린 fd에 결박하고 최대 256KiB 단위로 전송한다. catalog 영상의 전송 중 hold는
-순환 삭제와 원자적으로 조정한다. fallback은 내구 manifest와 실제 영상 파일을 검증하며
+순환 삭제와 원자적으로 조정한다. 새 파생 Event 파일은 유일한 완료 작업·검증된 ready output·현재 파일 결박을
+확인한다. 영상 재생은 파일 시작부터이며 표시 시각을 파일 내 seek 위치로 사용하지 않는다.
+아래 fallback 설명은 유지 중인 legacy 경로의 계약이다. 새 관리 녹화의 미완성 출력이 자동 fallback된다는 뜻은 아니다.
+fallback은 내구 manifest와 실제 영상 파일을 검증하며
 manifest JSON 자체를 영상으로 반환하지 않는다.
 신규 녹화 연결의 fallback ID는 원본 stream/channel과 녹화 catalog의 source/channel을
 함께 결속한다. 조회 시 manifest와 내구 catalog의 연결을 검증하므로 현재 활성 녹화
