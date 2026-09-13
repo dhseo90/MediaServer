@@ -1,0 +1,12 @@
+[pass] D01-01 consumer 숫자 참조 원문 왕복
+[pass] D01-02 빈 참조·경로 이탈 거부
+[pass] D01-03 생성 reference/owner/namespace 숫자-only 거부 유지
+[pass] D01-04 journal order 숫자 channel 왕복
+[pass] D01-05 order request/segment 숫자-only 거부 유지
+[pass] D01-06 실제 H264 writer→finalized segment/binding 숫자 원문 보존
+[pass] D01-07 catalog consumer 숫자 채널 저장·조회
+[pass] D01-08 숫자 채널 media/UTC range·location 입력 허용
+[pass] D01-09 새 catalog/journal 재개방 숫자 참조 유지
+[summary] pass=9 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-numeric-reference.kbUKZE bytes=4726481 removed=true
+[elapsed] seconds=1 source=bash-SECONDS

@@ -1918,11 +1918,12 @@ S11·장시간/UI 전체와 후속4 데이터 삭제는 자동 착수하지 않�
 #### 3D 실행 분할 — 2026-09-13
 
 현재 계약은 [설계 문서](../specs/2026-09-02-v410-recording-search-foundation-design.md)의 「S10 3D-1 기본 구성·조회 소비 계약」 절이다.
-이번 사용자 승인은 3D-1 문서 확정·검증·커밋·푸시다. 3D-2/3 제품 개발로 자동 확대하지 않는다.
+최초 사용자 승인은 3D-1 문서 확정·검증·커밋·푸시였으며, 이후 별도 지시로 3D-2 개발·커밋·푸시가
+승인됐다. 3D-3 제품 개발로 자동 확대하지 않는다.
 
 - [x] **3D-1 계약 확정:** 식별/시간/복수 출력/우선순위/재생 상태와 D01~D08 합격 조건을 기존 설계에 반영.
   산출물은 이 계획·설계·로드맵·중앙 기록이다. 제품 코드 변경·제품 PASS가 아니다.
-- [ ] **3D-2 기본 구성 연결:** `recording_contracts.cpp`, `recording_journal.cpp`, `recording_catalog.cpp`의
+- [x] **3D-2 기본 구성 연결:** `recording_contracts.cpp`, `recording_journal.cpp`, `recording_catalog.cpp`의
   참조 ID 검증 적용부를 대조하고 `media_server_application.cpp`에서 관리 저장소/writer/provider/job 수명을 연결.
   D01·D02 개별 사례 사전등록→focused 예상 RED→구현→GREEN→identity/catalog/consumer/writer/retention 영향 회귀·build.
   공개 timeline/UI와 legacy 데이터 삭제는 제외한다. 소유 격리 fixture만 사용하며 종료·port·임시물 정리까지 기록한다.
@@ -1933,6 +1934,47 @@ S11·장시간/UI 전체와 후속4 데이터 삭제는 자동 착수하지 않�
 
 3D 뒤 순서는 새 기본 경로 검증 → 불필요 legacy 코드·개발 데이터의 정확한 소유/의존 대조 및 정리 →
 S10 코드 고정 → S11 증거 유효성 대조와 승인된 최종 검증이다. 강제 변환·역사적 실패 삭제·새 검색 기능은 제외한다.
+
+#### 3D-2 착수·구성 검토 — 2026-09-13
+
+사용자가 3D-2 개발·관련 단기 검증·마지막 커밋/푸시를 승인했다. 기존 `v4.1.0` checkout을 유지한다.
+메인은 아래 구성/안전 판단과 최종 diff·증거 검토, 기존 단일 Astra/medium 담당자는 확정 구현을 맡는다.
+하위 위임은 금지한다. 구현과 관련 단기 검증을 마쳤으며, 실제 명령·개별 결과·최초 실패와 정리는
+[중앙 테스트 기록](../../release-test-records.md)의 3D-2 및 연결된 D01/D02 실행 기록을 따른다.
+실제 file source의 off→on→off→on, 동일 store ID 유지, 기본 10초 세그먼트·후행 5초 출력의
+실제 디코딩, 별도 프로세스 중단 복구 및 접수/종료 잠금 경계를 검사했다. macOS 격리 단기 증거이며
+Linux·외부 입력·실제 서버 전체·공개 UI·30분/120분 최종 묶음의 PASS로 확대하지 않는다.
+
+| 작업/연결 | 제공 → 소비 | 직접 확인 및 결정 |
+| --- | --- | --- |
+| D01 참조 ID | SourceViewRegistry 숫자 ID → writer/journal/catalog/reference/read | source_view_registry.cpp의 IsNumericRegistryId와 새 저장 opaque 검사가 충돌. 새 경로는 기존 opaque 문자/길이/경로 제한에서 숫자-only만 허용; 이전 V1 참조 규칙은 변경하지 않음 |
+| D02 저장소 identity | managed journal marker/lease → catalog·writer | 고정 전역 ID·경로 hash를 쓰지 않음. 신규 root는 lease 아래 난수 ID를 기존 init/format에 보존하고 재시작은 동일 ID를 읽음. 명시 ID 모드 유지; 기존 데이터 자동 변환·삭제 금지 |
+| D02 증거 갱신 | AnalysisResultObserver → 파생 worker provider | history는 decoded_intervals를 비우므로 공개 history 조회로 보완하지 않음. 내부 bounded immutable snapshot을 namespace/source/channel로 결박하고 비차단 갱신/조회·namespace 종료 정리. 부재는 unknown |
+| D02 시작 복구 | 원장/catalog → 삭제/ready 메타데이터 복구 → 파생 reconcile·잔여 작업 차단 → 물리 검사 → 생산자 | 기존 FinalizedSegmentsForStartup/InspectAndMarkRecordingMedia는 V1만 검사하므로 새 저장의 finalized 물리 검사도 연결. committed 파생 출력의 임시/final hardlink 정리를 먼저 마쳐 정상 파일을 nlink 조건으로 오판하지 않음. 실패/잔여 active·보호 미해소를 정상 시작으로 바꾸지 않음 |
+| D02 종료 | 신규 접수 차단 → worker 취소/join → 의존 객체 해제 | bridge/provider/service/catalog의 참조 수명을 대조. 설정 opt-in과 snapshot hook, 공개 Event payload/metadata/auth/media 송출은 유지 |
+| 3D-2 → 3D-3 | 관리 녹화·관측·작업 결과 → 공개 timeline/media/UI | 기존 공개 응답을 이 단계에서 수정하지 않음. 새 녹화가 기존 UI에 완전 표출된다고 보고하지 않음 |
+
+실행 묶음은 D01→D02 순차 TDD와 각 영향 회귀다. 테스트 코드 작성·실행 전에 개별 항목과 명령을
+inventory/중앙 기록에 등록한다. 새 구성 자체의 실제 writer/off/on/재시작/복구/종료와 provider 후행 증거를
+검증하며 helper 검사만으로 전체 구성 PASS를 만들지 않는다. 30분/UI/120분 최종 묶음은 이번 실행 범위가 아니다.
+
+구성 조사에서 추가 확인한 D02-10: 기존 worker의 기본1초/상한5초·16회는 제품 기본 세그먼트10초와
+post-roll5초보다 짧다. 또한 history 결과는 초기 decoded_intervals가 없을 수 있어 Submit 즉시 거부된다.
+메인 판단: 공개 계약 변경 없이 runtime 준비 예산을 `segment_ms + post_ms + 1000ms`로 계산한다.
+기본16초, retry500ms, 시도 수 `ceil(wait_ms/500)+1`, 내부 상한60초/121회로 유한하게 제한한다.
+일반 worker의 기존 기본1초/16회는 유지한다. 상한 초과/overflow는 명시 capped 사유를 보존하며
+기존 유효 config를 서버 전체 오류로 바꾸거나 충분한 대기로 오인하지 않는다. 미충족은 partial/unknown이다.
+초기 증거 부재는 worker 잠금 밖에서 같은 source/channel/namespace의 provider snapshot을 조회해 기존
+identity 검증을 통과한 경우만 사용하고, 접수 잠금 안에서 stop/slot을 재확인한다. null/불일치 자료를 발명하지 않는다.
+이 결정이 틀리면 정상 이벤트가 조기 미확인으로 종료되거나 종료 지연이 생길 수 있으므로, 실제 기본 시간의
+원본 회전·후행 입력 완료 후 출력 생성과 대기 중 stop 취소를 직접 검사한다. 테스트 timeout만 늘려 PASS하지 않는다.
+
+D02 이벤트 식별 결박: BuildEventRecord는 raw `result.source_key`를 stream/channel에 보존하지만
+녹화 context는 숫자 채널이다. runtime 전용 내부 adapter는 raw result/record 일치와 활성 세션의
+raw key→numeric channel 매핑, context source/channel 일치를 모두 확인한다. 공개 record/POST를 재작성하지 않는다.
+기존 generic 내부 source/channel이 서로 다른 직접 참조 입력은 유지하며 테스트 값을 같게 바꿔 통과시키지 않는다.
+초기 provider는 bridge/worker 잠금 밖에서 호출하고, 접수 직전 stop/slot을 다시 검증한다.
+Store ID는 OpenSSL 유무와 분리된 OS CSPRNG를 사용하며 난수 실패에 약한 대체값을 쓰지 않는다.
 
 ### 3C-5A 실제 파일 시간 대응 확인 — 2026-09-13
 

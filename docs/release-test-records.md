@@ -1,5 +1,82 @@
 # Release Test Records
 
+## S10 3D-2 메인 최종 검토 — 2026-09-13
+
+메인이 제품 diff·실제 출력·524개 유효 결과·실패 보존·cleanup 기록을 직접 대조했다.
+3D-2 기본 구성 연결을 완료로 갱신했으며 3D-3 공개 소비 및 S11은 미완료로 유지한다.
+`recording_derived_job_service.h`의 과거 기본 구성 미연결 주석만 현재 전용 worker 호출로 정정했다.
+실행 로직 변경이 없어 기존 기능 증거를 유지하며, 주석 정정 뒤 제품 build를 다시 확인했다.
+아래 문서 검사는 기존 D-DOC-01~03 정의, build는 D02-09 정의를 재사용했다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| D02-09 메인 최종 build | `./server.sh build` exit0, configure/generate 성공, runtime archive·application 재빌드·링크, `[100%] Built target media_server` | pass |
+| D-DOC-01 최종 링크 | `./server.sh verify-docs-links` exit0, markdown252/links4015/images22/anchors110/indexed76/exclusions164/failures0 | pass |
+| D-DOC-02 최종 자산 | `./server.sh verify-docs-ui-assets` exit0, 대표/영문 이미지·공유 자산·정책·manifest·캡처 소유/현재 화면·기준·PNG·VA frame 10개 pass/0fail; 실제 UI 검사가 아님 | pass |
+| D-DOC-03 최종 공백 | `git diff --check` exit0 | pass |
+| D02-09 소스 동일성 | `shasum -a 256 -c docs/release-artifacts/v4.1.0/s10-default-composition/D02-fingerprints.log` exit0, 27개 모두 OK | pass |
+| D-DOC-03 최초 staged | `git diff --cached --check` exit2, 신규 D01-Catalog.log/D02-CatalogRegression.log 각각 15행의 trailing whitespace. unstaged 검사만으로 신규 파일 검사를 대신할 수 없어 커밋 보류 | fail |
+| D-DOC-03 수정 후 staged | 같은 명령 exit0. 신규 로그의 줄 끝 공백만 정리했고 실패 이력을 보존 | pass |
+
+두 로그는 판정·측정·행 순서를 유지하고 줄 끝 공백만 정규화했다. 원본 SHA256은 각각
+`9614660763bc0dcec5c375b2e0ad4f38e2a9cd88c08aad037d2165bf0a91ba7d`,
+`3a2e65e773509add1e45bdd3f8e40ce55a46dc159a591b6274068ead6b20ecd5`다.
+전수표의 원출력 대조도 줄 끝 공백을 제외하여 비교한다. 이는 로그 형식 보완이며 기능 재검증 사유가 아니다.
+
+주석 정정 파일 SHA256: `c9d36026b944776042ceec9971de8d32bc5678a350ced743d32fd3f58488ea48`.
+메인 추가 검사는 기존 build directory만 재사용했고 새 server/port/temp/credential을 생성하지 않았다.
+원출력 핵심 값은 위 표에 보존했다. token start/end/consumed는 집계 도구 부재로 미집계,
+elapsed는 도구 wall time을 실제 소요로 신뢰할 수 없어 미집계(source: tool-output/manual-not-available).
+
+## S10 3D-2 D02 구성·수명 사전등록 — 2026-09-13
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| D02-01 | 자동 store identity | empty managed root 난수 ID 생성·다른 root 구별·재개방 ID 유지·명시 ID 계약 유지 | v4.1.0 |
+| D02-02 | marker/lease 안전성 | 충돌 ID·손상/unknown marker·legacy nonempty 거부, lease 동시 소유 거부·init 복구 | v4.1.0 |
+| D02-03 | bounded 증거 cache | 실제 OnResult snapshot source/channel/ns 결박·4096/capacity·try-lock publication/query, stop namespace 삭제 | v4.1.0 |
+| D02-04 | 후행 event 증거 | history의 초기 decoded null에서도 같은 namespace cache 갱신으로 실제 job 생성·후행 요청 충족 | v4.1.0 |
+| D02-05 | V2 startup 검사 | finalized V2 열거→실제 미디어/hash 검사→손상 Mark, 경로/metadata 변경·job 보호 시 안전 거부 | v4.1.0 |
+| D02-06 | opt-in 구성 | off 비녹화/on 실제 numeric channel managed writer·consumer observation/event→파일·catalog 결과. 기존 public timeline을 새 결과 oracle로 사용하지 않음 | v4.1.0 |
+| D02-07 | 복구 선행 | catalog/보호·예약→ready/deletion→derived bounded reconcile 잔여 blocker 검사→producer 순서 | v4.1.0 |
+| D02-08 | 종료 수명 | 신규 접수 차단→cancel/join→의존 해제, stop 중 작업·재시작과 소유 temp 정리 | v4.1.0 |
+| D02-09 | 직접 영향 회귀 | managed journal/catalog/writer/consumer/provider/startup/retention 관련 focused와 build. D01 유효 증거는 인계만으로 반복하지 않음 | v4.1.0 |
+| D02-10 | default 준비 예산 | segment10s+post5s+finalize여유1s=16s, 500ms retry/33회, hardcap60s/121회와 overflow capped 사유. 초기 history 증거null은 비차단 provider로 검증해 접수하며 실제 default 시간 후행 finalize 완료 | v4.1.0 |
+| D02-11 | raw stream 내부 결박 | canonical raw source_key≠numeric context, record 원문 불변·다른 rawchannel/stream/sourcecontext 모순 거부, 기존 generic 참조 mode 유지 | v4.1.0 |
+
+D02 closing 묶음: D02-07의 CommittedDurable 직후 별도 프로세스 `_exit(23)`→temp/final nlink2·보호/예약 복원→runtime reconcile→물리검사 완료, CreatedBeforeReceipt 직후 `_exit(23)`→소유 미확인 blocked/producer 미시작·파일 무삭제, 파일 없는 Intent→Failed cleanup→producer 허용을 개별 검사한다. D02-08은 초기 provider의 조회 재진입 및 StopAndDrain 호출→Submit 재검사·신규 accepted 없음, 동시 같은 reference의 단일 내구 소유도 검사한다. 5.3b의 모든 fault를 반복하지 않고 새 runtime 시작/잠금 연결만 대조한다.
+
+실행 결과: 신규46 + 직접 영향 회귀478 = **524 pass / 0 fail**, 최종 제품 build exit0. 정상42개는 유효 증거를 유지하고 provider1 및 recovery-only3을 추가했다. closing full runner의 child 준비 exit134는 양수 created_at_ms 기존 계약을 위반한 fixture 오류였으며 예상 child23과 구분해 보존했다. 제품 조건을 완화하지 않고 fixture 수정 후 해당 복구 묶음만 exit0 재검증했다. [D02 보고서](release-artifacts/v4.1.0/s10-default-composition/D02-report.md)에 exact 명령/exit·실제 decoder와 synthetic recovery 증거의 구분·비차단 cache unknown 한계를, [개별 결과](release-artifacts/v4.1.0/s10-default-composition/D02-results.md)에 현재524행·historical119행·소유 임시 root19개 cleanup을 보존했다. 장시간/UI/공개 조회·전체 application 서버 end-to-end의 완료 증거가 아니다.
+
+첫 명령 `bash scripts/internal/verify_recording_default_composition.sh`는 빈 store ID의 자동 생성 부재로 D02-01 예상 RED를 지정한다. 이후 cache/실제 composition 개별 묶음은 같은 runner에 이어 등록된 oracle로 검증한다. 외부/운영/port 서버/장시간/UI는 실행하지 않는다. 안정화 진행 대상·단기 승인, 30분/UI 미승인·미실행, 120분 S11 최종 cut 영향 대조 조건부/이번 미승인이다.
+
+## S10 3D-2 D01 숫자 참조 사전등록 — 2026-09-13
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| D01-01 | consumer 숫자 참조 | 007 source/channel 원문 serialize/parse 왕복 | v4.1.0 |
+| D01-02 | 잘못된 참조 | 빈 값·slash/backslash·경로 이탈 거부 | v4.1.0 |
+| D01-03 | 생성 ID 구분 | reference/owner/namespace 숫자-only 거부 유지 | v4.1.0 |
+| D01-04 | order 참조 | journal 예약과 strict parser 숫자 channel 왕복 | v4.1.0 |
+| D01-05 | 생성 order ID | request/segment 숫자-only 거부 유지 | v4.1.0 |
+| D01-06 | 실제 writer | 자체 H264 입력→관리 writer finalized segment/binding 숫자 원문 보존 | v4.1.0 |
+| D01-07 | catalog consumer | 숫자 channel 저장·목록 조회 | v4.1.0 |
+| D01-08 | range/location | 숫자 channel media/UTC 입력 허용, 공백 상태를 미디어 있음으로 승격하지 않음 | v4.1.0 |
+| D01-09 | 내구 재개방 | 새 journal/catalog에서 원본 segment 및 consumer 숫자 참조 유지 | v4.1.0 |
+| D01-10 | 참조 문자·길이 경계 | 128자리 숫자 허용, 129/공백/control/중간 .. 거부; 기존 V1 helper 강화 없음 | v4.1.0 |
+| D01-11 | segment/binding 생성 ID | 실제 writer metadata에서 segment/store/epoch/order request/generation 숫자-only 위조 거부 | v4.1.0 |
+
+명령: `bash scripts/internal/verify_recording_numeric_reference.sh`. 실행 전 예상 RED는 D01-01/04/06/07/08/09의 숫자 참조 opaque 거부다. 빌드/준비 실패는 RED가 아니다. V1 reference helper는 변경하지 않고 새 경로는 기존 opaque의 길이128/문자/경로 제약 중 숫자-only 거부만 제거한다. application 구성·공개 DTO·UI는 제외한다. build와 identity/catalog/consumer connection/reference/range/retention 직접 영향 단기 검증만 승인 범위다.
+
+실행 결과: 최종 focused 11 + identity 23 + consumer reference 19 + connection 22 + range 16 + catalog 246 + retention 24 = **361 pass / 0 fail**, 각각 exit 0. 제품 build exit 0. 최초 준비 오류 exit1/134, 예상 RED 3 pass/6 fail, 첫 GREEN 9 pass를 보존했다. [D01 보고서](release-artifacts/v4.1.0/s10-default-composition/D01-report.md)의 exact 명령/exit와 [전수 결과](release-artifacts/v4.1.0/s10-default-composition/D01-results.md)의 개별 결과·소유 임시 경로 11개 cleanup을 대조했다. 제품/CMake 구성 연결인 D02 완료 증거가 아니다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 참조 validation 교차 경로 | D01-01~09 | focused/build/직접 영향 단기 승인 |
+| 30분 | 미진행 | 이번 단위 실행 미승인 | S11 | 미승인 |
+| 120분 | 조건부 진행 | 최종 cut 영향 대조 | S11 | 이번 실행 미승인 |
+| UI | 미진행 | 내부 validation에 UI 없음 | D01 | 미승인 |
+
 ## S10 3D-1 계약 문서 확정 — 2026-09-13
 
 범위는 승인된 적용 계약·합격 기준 문서화이며 제품 구현은 아니다. 설계/계획/로드맵을

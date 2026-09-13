@@ -27,6 +27,7 @@
 #include <fcntl.h>
 #include <dirent.h>
 #include <sys/file.h>
+#include <sys/random.h>
 #include <unistd.h>
 #endif
 
@@ -150,6 +151,28 @@ bool ExactFile(int parent,const char* name,const std::string& bytes,struct stat*
     std::string read(bytes.size(),'\0');
     if(!ReadAt(fd.value,0,&read)||read!=bytes||!Same(parent,name,fd.value,s))return false;
     if(bound)*bound=s;return true;
+}
+bool ReadManagedStoreId(int parent,const char* name,std::string* id) {
+    OwnedFd fd(::openat(parent,name,O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK));
+    struct stat bound{};
+    if(fd.value<0||!Regular(fd.value,&bound)||bound.st_size<=0||bound.st_size>512)return false;
+    std::string bytes(static_cast<std::size_t>(bound.st_size),'\0');
+    if(!ReadAt(fd.value,0,&bytes)||!Same(parent,name,fd.value,bound))return false;
+    ingress::StrictJsonObjectDocument document;
+    if(!ingress::ParseStrictJsonObjectDocument(bytes,&document,nullptr))return false;
+    const auto value=ingress::StrictJsonStringField(document,"storeId");
+    if(!value||!ValidateOpaqueId(*value,nullptr)||bytes!=ManagedFormat(*value))return false;
+    *id=*value;
+    return true;
+}
+bool NewManagedStoreId(std::string* id) {
+    unsigned char bytes[16];
+    // managed store와 OS 난수는 optional OpenSSL의 receipt/checkpoint 지원과 독립적이다.
+    if(::getentropy(bytes,sizeof(bytes))!=0)return false;
+    static constexpr char hex[]="0123456789abcdef";
+    *id="store-";
+    for(const auto byte:bytes){id->push_back(hex[byte>>4]);id->push_back(hex[byte&15]);}
+    return true;
 }
 bool InitNamesOnly(int root) {
     const int copy=::openat(root,".",O_RDONLY|O_DIRECTORY|O_CLOEXEC);if(copy<0)return false;DIR* dir=::fdopendir(copy);
@@ -592,6 +615,13 @@ bool RecordingJournal::HasManagedLease() const {
     return false;
 #endif
 }
+std::string RecordingJournal::ManagedStoreId() const {
+#if !defined(_WIN32)
+    if(!managed_||owner_pid_!=::getpid())return {};
+#endif
+    std::lock_guard lock(mu_);
+    return managed_&&opened_&&ManagedBindingLocked()?managed_store_id_:std::string{};
+}
 bool RecordingJournal::ManagedBindingLocked() const {
 #if !defined(_WIN32)
     if(!opened_||owner_pid_!=::getpid()||managed_fd_<0||lease_fd_<0)return false;
@@ -610,18 +640,16 @@ bool RecordingJournal::ManagedBindingLocked() const {
 bool RecordingJournal::OpenManagedLocked(std::string* error) {
 #if !defined(_WIN32)
     if(opened_)return CheckManagedStateLocked(error);
-    if(managed_root_.empty()||!ValidateOpaqueId(managed_store_id_,error)||!SafePath(path_,&io_path_))return Fail(error,"managed root/store ID 거부");
+    if(managed_root_.empty()||(!managed_store_id_.empty()&&!ValidateOpaqueId(managed_store_id_,error))||!SafePath(path_,&io_path_))return Fail(error,"managed root/store ID 거부");
     OwnedFd parent(OpenParent(io_path_,true));struct stat p{};
     if(parent.value<0||::fstat(parent.value,&p)!=0)return Fail(error,"managed root 열기 실패");
-    const auto format=ManagedFormat(managed_store_id_);
     const bool committed=Present(parent.value,kManagedFormat);
     const bool pending=Present(parent.value,kManagedInit);
     if(committed) {
-        if(pending||!ExactFile(parent.value,kManagedFormat,format))return Fail(error,"managed format/store 충돌");
+        if(pending)return Fail(error,"managed format/store 충돌");
     } else {
         if(!InitNamesOnly(parent.value))return Fail(error,"managed 기존 데이터 변환 거부");
-        if(pending) {if(!ExactFile(parent.value,kManagedInit,format))return Fail(error,"managed init 원본 불일치");}
-        else if(Present(parent.value,kManagedJournal)||Present(parent.value,kLegacyBarrier))return Fail(error,"managed 소유권 없는 초기 파일 거부");
+        if(!pending&&(Present(parent.value,kManagedJournal)||Present(parent.value,kLegacyBarrier)))return Fail(error,"managed 소유권 없는 초기 파일 거부");
     }
     OwnedFd lease(::openat(parent.value,kManagedLease,O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK,0600));struct stat l{};
     if(lease.value<0||!Regular(lease.value,&l)||l.st_size!=0||!Lock(lease.value,LOCK_EX|LOCK_NB)||!Same(parent.value,kManagedLease,lease.value,l))
@@ -629,6 +657,17 @@ bool RecordingJournal::OpenManagedLocked(std::string* error) {
     if(!Sync(lease.value)||!Sync(parent.value))return Fail(error,"managed lease fsync 실패");
     if(Present(parent.value,kManagedFormat)!=committed||Present(parent.value,kManagedInit)!=pending)
         return Fail(error,"managed 초기 상태 변경: 재시도 필요");
+    // ID 조회/생성은 lease 획득 뒤다. marker 이름 존재만으로 값을 신뢰하지 않는다.
+    if(committed||pending) {
+        std::string persisted;
+        if(!ReadManagedStoreId(parent.value,committed?kManagedFormat:kManagedInit,&persisted)||
+           (!managed_store_id_.empty()&&persisted!=managed_store_id_))
+            return Fail(error,"managed format/store 충돌");
+        managed_store_id_=std::move(persisted);
+    } else if(managed_store_id_.empty()&&!NewManagedStoreId(&managed_store_id_)) {
+        return Fail(error,"managed store 난수 생성 불가");
+    }
+    const auto format=ManagedFormat(managed_store_id_);
     if(!committed&&!pending) {
         OwnedFd init(::openat(parent.value,kManagedInit,O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600));
         if(init.value<0||!WriteAll(init.value,format)||!Sync(init.value)||!Sync(parent.value))return Fail(error,"managed init 기록 실패: 보존");
@@ -675,7 +714,7 @@ bool ParseRecordingOrderReservationV1(const std::string& json, RecordingOrderRes
         !store || !request || !segment || !channel || !sequence || *sequence <= 0)
         return Fail(error, "recording order payload field가 잘못됨");
     if (!ValidateOpaqueId(*store, error) || !ValidateOpaqueId(*request, error) ||
-        !ValidateOpaqueId(*segment, error) || !ValidateOpaqueId(*channel, error)) return false;
+        !ValidateOpaqueId(*segment, error) || !ValidateRecordingReferenceId(*channel, error)) return false;
     *value = RecordingOrderReservationV1{*schema, *store, *request, *segment, *channel, *sequence};
     if (error != nullptr) error->clear();
     return true;
@@ -691,7 +730,7 @@ bool RecordingJournal::ReserveRecordingOrder(const std::string& store_id, const 
     if(managed_&&(!CheckManagedStateLocked(error)||store_id!=managed_store_id_))return Fail(error,"managed store/lease 불일치");
     if(managed_&&managed_state_->checkpoint_pending)return Fail(error,"checkpoint 복구 선행 필요");
     if (!ValidateOpaqueId(store_id, error) || !ValidateOpaqueId(request_id, error) ||
-        !ValidateOpaqueId(segment_id, error) || !ValidateOpaqueId(channel_id, error)) return false;
+        !ValidateOpaqueId(segment_id, error) || !ValidateRecordingReferenceId(channel_id, error)) return false;
 #if !defined(_WIN32)
     OwnedFd parent(OpenParent(io_path_, false));
     struct stat directory {};

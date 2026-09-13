@@ -1,0 +1,212 @@
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_default_composition_smoke.cpp:21:85: error: member access into incomplete type 'element_type' (aka 'analysis::DecodedIntervalSnapshot')
+   21 |         auto snapshot=std::make_shared<analysis::DecodedIntervalSnapshot>();snapshot->analysis_namespace="cache-a";
+      |                                                                                     ^
+/Users/dhseo/Workspace/mediaServer/include/analysis/analysis_types.h:16:8: note: forward declaration of 'analysis::DecodedIntervalSnapshot'
+   16 | struct DecodedIntervalSnapshot;
+      |        ^
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_default_composition_smoke.cpp:32:81: error: member access into incomplete type 'element_type' (aka 'analysis::DecodedIntervalSnapshot')
+   32 |         auto second=std::make_shared<analysis::DecodedIntervalSnapshot>();second->analysis_namespace="cache-b";
+      |                                                                                 ^
+/Users/dhseo/Workspace/mediaServer/include/analysis/analysis_types.h:16:8: note: forward declaration of 'analysis::DecodedIntervalSnapshot'
+   16 | struct DecodedIntervalSnapshot;
+      |        ^
+In file included from /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_default_composition_smoke.cpp:2:
+In file included from /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h:4:
+In file included from /Users/dhseo/Workspace/mediaServer/include/recording/gstreamer_segment_writer.h:5:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/filesystem:543:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__filesystem/directory_entry.h:19:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__filesystem/filesystem_error.h:14:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__filesystem/path.h:27:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/string:655:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/string_view:975:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/algorithm:2063:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/memory:950:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/inout_ptr.h:16:
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:198:63: error: field has incomplete type '__value_type' (aka 'analysis::DecodedIntervalSnapshot')
+  198 |       _LIBCPP_COMPRESSED_PAIR(_Alloc, __alloc_, __value_type, __elem_);
+      |                                                               ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:198:7: note: in instantiation of member class 'std::__shared_ptr_emplace<analysis::DecodedIntervalSnapshot, std::allocator<analysis::DecodedIntervalSnapshot>>::_Storage::_Data::(anonymous struct at /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:198:7)' requested here
+  198 |       _LIBCPP_COMPRESSED_PAIR(_Alloc, __alloc_, __value_type, __elem_);
+      |       ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/compressed_pair.h:109:7: note: expanded from macro '_LIBCPP_COMPRESSED_PAIR'
+  109 |       struct {                                                                                                         \
+      |       ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:201:41: note: in instantiation of member class 'std::__shared_ptr_emplace<analysis::DecodedIntervalSnapshot, std::allocator<analysis::DecodedIntervalSnapshot>>::_Storage::_Data' requested here
+  201 |     _ALIGNAS_TYPE(_Data) char __buffer_[sizeof(_Data)];
+      |                                         ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:215:12: note: in instantiation of member class 'std::__shared_ptr_emplace<analysis::DecodedIntervalSnapshot, std::allocator<analysis::DecodedIntervalSnapshot>>::_Storage' requested here
+  215 |   _Storage __storage_;
+      |            ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:684:51: note: in instantiation of template class 'std::__shared_ptr_emplace<analysis::DecodedIntervalSnapshot, std::allocator<analysis::DecodedIntervalSnapshot>>' requested here
+  684 |   ::new ((void*)std::addressof(*__guard.__get())) _ControlBlock(__a, std::forward<_Args>(__args)...);
+      |                                                   ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:692:15: note: in instantiation of function template specialization 'std::allocate_shared<analysis::DecodedIntervalSnapshot, std::allocator<analysis::DecodedIntervalSnapshot>, 0>' requested here
+  692 |   return std::allocate_shared<_Tp>(allocator<__remove_cv_t<_Tp> >(), std::forward<_Args>(__args)...);
+      |               ^
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_default_composition_smoke.cpp:21:28: note: in instantiation of function template specialization 'std::make_shared<analysis::DecodedIntervalSnapshot, 0>' requested here
+   21 |         auto snapshot=std::make_shared<analysis::DecodedIntervalSnapshot>();snapshot->analysis_namespace="cache-a";
+      |                            ^
+/Users/dhseo/Workspace/mediaServer/include/analysis/analysis_types.h:16:8: note: forward declaration of 'analysis::DecodedIntervalSnapshot'
+   16 | struct DecodedIntervalSnapshot;
+      |        ^
+In file included from /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_default_composition_smoke.cpp:2:
+In file included from /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h:4:
+In file included from /Users/dhseo/Workspace/mediaServer/include/recording/gstreamer_segment_writer.h:5:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/filesystem:543:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__filesystem/directory_entry.h:13:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__chrono/time_point.h:13:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__chrono/duration.h:22:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/limits:524:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/type_traits:493:
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__type_traits/is_empty.h:22:70: error: incomplete type 'analysis::DecodedIntervalSnapshot' used in type trait expression
+   22 | struct _LIBCPP_NO_SPECIALIZATIONS is_empty : integral_constant<bool, __is_empty(_Tp)> {};
+      |                                                                      ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/compressed_pair.h:70:6: note: in instantiation of template class 'std::is_empty<analysis::DecodedIntervalSnapshot>' requested here
+   70 |     (is_empty<_ToPad>::value && !__is_final_v<_ToPad>) || sizeof(_ToPad) == __datasizeof_v<_ToPad>;
+      |      ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/compressed_pair.h:78:39: note: in instantiation of variable template specialization 'std::__is_reference_or_unpadded_object<analysis::DecodedIntervalSnapshot>' requested here
+   78 | template <class _ToPad, bool _Empty = __is_reference_or_unpadded_object<_ToPad> >
+      |                                       ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:198:7: note: in instantiation of default argument for '__compressed_pair_padding<__value_type>' required here
+  198 |       _LIBCPP_COMPRESSED_PAIR(_Alloc, __alloc_, __value_type, __elem_);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/compressed_pair.h:113:42: note: expanded from macro '_LIBCPP_COMPRESSED_PAIR'
+  113 |         _LIBCPP_NO_UNIQUE_ADDRESS ::std::__compressed_pair_padding<T2> _LIBCPP_CONCAT3(__padding2_, __LINE__, _);      \
+      |                                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:198:7: note: in instantiation of member class 'std::__shared_ptr_emplace<analysis::DecodedIntervalSnapshot, std::allocator<analysis::DecodedIntervalSnapshot>>::_Storage::_Data::(anonymous struct at /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:198:7)' requested here
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/compressed_pair.h:109:7: note: expanded from macro '_LIBCPP_COMPRESSED_PAIR'
+  109 |       struct {                                                                                                         \
+      |       ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:201:41: note: in instantiation of member class 'std::__shared_ptr_emplace<analysis::DecodedIntervalSnapshot, std::allocator<analysis::DecodedIntervalSnapshot>>::_Storage::_Data' requested here
+  201 |     _ALIGNAS_TYPE(_Data) char __buffer_[sizeof(_Data)];
+      |                                         ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:215:12: note: in instantiation of member class 'std::__shared_ptr_emplace<analysis::DecodedIntervalSnapshot, std::allocator<analysis::DecodedIntervalSnapshot>>::_Storage' requested here
+  215 |   _Storage __storage_;
+      |            ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:684:51: note: in instantiation of template class 'std::__shared_ptr_emplace<analysis::DecodedIntervalSnapshot, std::allocator<analysis::DecodedIntervalSnapshot>>' requested here
+  684 |   ::new ((void*)std::addressof(*__guard.__get())) _ControlBlock(__a, std::forward<_Args>(__args)...);
+      |                                                   ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:692:15: note: in instantiation of function template specialization 'std::allocate_shared<analysis::DecodedIntervalSnapshot, std::allocator<analysis::DecodedIntervalSnapshot>, 0>' requested here
+  692 |   return std::allocate_shared<_Tp>(allocator<__remove_cv_t<_Tp> >(), std::forward<_Args>(__args)...);
+      |               ^
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_default_composition_smoke.cpp:21:28: note: in instantiation of function template specialization 'std::make_shared<analysis::DecodedIntervalSnapshot, 0>' requested here
+   21 |         auto snapshot=std::make_shared<analysis::DecodedIntervalSnapshot>();snapshot->analysis_namespace="cache-a";
+      |                            ^
+/Users/dhseo/Workspace/mediaServer/include/analysis/analysis_types.h:16:8: note: forward declaration of 'analysis::DecodedIntervalSnapshot'
+   16 | struct DecodedIntervalSnapshot;
+      |        ^
+In file included from /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_default_composition_smoke.cpp:2:
+In file included from /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h:4:
+In file included from /Users/dhseo/Workspace/mediaServer/include/recording/gstreamer_segment_writer.h:5:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/filesystem:543:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__filesystem/directory_entry.h:13:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__chrono/time_point.h:13:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__chrono/duration.h:22:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/limits:524:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/type_traits:536:
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__type_traits/is_final.h:22:34: error: incomplete type 'analysis::DecodedIntervalSnapshot' used in type trait expression
+   22 | inline const bool __is_final_v = __is_final(_Tp);
+      |                                  ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/compressed_pair.h:70:34: note: in instantiation of variable template specialization 'std::__is_final_v<analysis::DecodedIntervalSnapshot>' requested here
+   70 |     (is_empty<_ToPad>::value && !__is_final_v<_ToPad>) || sizeof(_ToPad) == __datasizeof_v<_ToPad>;
+      |                                  ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/compressed_pair.h:78:39: note: in instantiation of variable template specialization 'std::__is_reference_or_unpadded_object<analysis::DecodedIntervalSnapshot>' requested here
+   78 | template <class _ToPad, bool _Empty = __is_reference_or_unpadded_object<_ToPad> >
+      |                                       ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:198:7: note: in instantiation of default argument for '__compressed_pair_padding<__value_type>' required here
+  198 |       _LIBCPP_COMPRESSED_PAIR(_Alloc, __alloc_, __value_type, __elem_);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/compressed_pair.h:113:42: note: expanded from macro '_LIBCPP_COMPRESSED_PAIR'
+  113 |         _LIBCPP_NO_UNIQUE_ADDRESS ::std::__compressed_pair_padding<T2> _LIBCPP_CONCAT3(__padding2_, __LINE__, _);      \
+      |                                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:198:7: note: in instantiation of member class 'std::__shared_ptr_emplace<analysis::DecodedIntervalSnapshot, std::allocator<analysis::DecodedIntervalSnapshot>>::_Storage::_Data::(anonymous struct at /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:198:7)' requested here
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/compressed_pair.h:109:7: note: expanded from macro '_LIBCPP_COMPRESSED_PAIR'
+  109 |       struct {                                                                                                         \
+      |       ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:201:41: note: in instantiation of member class 'std::__shared_ptr_emplace<analysis::DecodedIntervalSnapshot, std::allocator<analysis::DecodedIntervalSnapshot>>::_Storage::_Data' requested here
+  201 |     _ALIGNAS_TYPE(_Data) char __buffer_[sizeof(_Data)];
+      |                                         ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:215:12: note: in instantiation of member class 'std::__shared_ptr_emplace<analysis::DecodedIntervalSnapshot, std::allocator<analysis::DecodedIntervalSnapshot>>::_Storage' requested here
+  215 |   _Storage __storage_;
+      |            ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:684:51: note: in instantiation of template class 'std::__shared_ptr_emplace<analysis::DecodedIntervalSnapshot, std::allocator<analysis::DecodedIntervalSnapshot>>' requested here
+  684 |   ::new ((void*)std::addressof(*__guard.__get())) _ControlBlock(__a, std::forward<_Args>(__args)...);
+      |                                                   ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:692:15: note: in instantiation of function template specialization 'std::allocate_shared<analysis::DecodedIntervalSnapshot, std::allocator<analysis::DecodedIntervalSnapshot>, 0>' requested here
+  692 |   return std::allocate_shared<_Tp>(allocator<__remove_cv_t<_Tp> >(), std::forward<_Args>(__args)...);
+      |               ^
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_default_composition_smoke.cpp:21:28: note: in instantiation of function template specialization 'std::make_shared<analysis::DecodedIntervalSnapshot, 0>' requested here
+   21 |         auto snapshot=std::make_shared<analysis::DecodedIntervalSnapshot>();snapshot->analysis_namespace="cache-a";
+      |                            ^
+/Users/dhseo/Workspace/mediaServer/include/analysis/analysis_types.h:16:8: note: forward declaration of 'analysis::DecodedIntervalSnapshot'
+   16 | struct DecodedIntervalSnapshot;
+      |        ^
+In file included from /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_default_composition_smoke.cpp:2:
+In file included from /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h:4:
+In file included from /Users/dhseo/Workspace/mediaServer/include/recording/gstreamer_segment_writer.h:5:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/filesystem:543:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__filesystem/directory_entry.h:19:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__filesystem/filesystem_error.h:14:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__filesystem/path.h:27:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/string:615:
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/compressed_pair.h:70:59: error: invalid application of 'sizeof' to an incomplete type 'analysis::DecodedIntervalSnapshot'
+   70 |     (is_empty<_ToPad>::value && !__is_final_v<_ToPad>) || sizeof(_ToPad) == __datasizeof_v<_ToPad>;
+      |                                                           ^~~~~~~~~~~~~~
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/compressed_pair.h:78:39: note: in instantiation of variable template specialization 'std::__is_reference_or_unpadded_object<analysis::DecodedIntervalSnapshot>' requested here
+   78 | template <class _ToPad, bool _Empty = __is_reference_or_unpadded_object<_ToPad> >
+      |                                       ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:198:7: note: in instantiation of default argument for '__compressed_pair_padding<__value_type>' required here
+  198 |       _LIBCPP_COMPRESSED_PAIR(_Alloc, __alloc_, __value_type, __elem_);
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/compressed_pair.h:113:42: note: expanded from macro '_LIBCPP_COMPRESSED_PAIR'
+  113 |         _LIBCPP_NO_UNIQUE_ADDRESS ::std::__compressed_pair_padding<T2> _LIBCPP_CONCAT3(__padding2_, __LINE__, _);      \
+      |                                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:198:7: note: in instantiation of member class 'std::__shared_ptr_emplace<analysis::DecodedIntervalSnapshot, std::allocator<analysis::DecodedIntervalSnapshot>>::_Storage::_Data::(anonymous struct at /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:198:7)' requested here
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/compressed_pair.h:109:7: note: expanded from macro '_LIBCPP_COMPRESSED_PAIR'
+  109 |       struct {                                                                                                         \
+      |       ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:201:41: note: in instantiation of member class 'std::__shared_ptr_emplace<analysis::DecodedIntervalSnapshot, std::allocator<analysis::DecodedIntervalSnapshot>>::_Storage::_Data' requested here
+  201 |     _ALIGNAS_TYPE(_Data) char __buffer_[sizeof(_Data)];
+      |                                         ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:215:12: note: in instantiation of member class 'std::__shared_ptr_emplace<analysis::DecodedIntervalSnapshot, std::allocator<analysis::DecodedIntervalSnapshot>>::_Storage' requested here
+  215 |   _Storage __storage_;
+      |            ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:684:51: note: in instantiation of template class 'std::__shared_ptr_emplace<analysis::DecodedIntervalSnapshot, std::allocator<analysis::DecodedIntervalSnapshot>>' requested here
+  684 |   ::new ((void*)std::addressof(*__guard.__get())) _ControlBlock(__a, std::forward<_Args>(__args)...);
+      |                                                   ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:692:15: note: in instantiation of function template specialization 'std::allocate_shared<analysis::DecodedIntervalSnapshot, std::allocator<analysis::DecodedIntervalSnapshot>, 0>' requested here
+  692 |   return std::allocate_shared<_Tp>(allocator<__remove_cv_t<_Tp> >(), std::forward<_Args>(__args)...);
+      |               ^
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_default_composition_smoke.cpp:21:28: note: in instantiation of function template specialization 'std::make_shared<analysis::DecodedIntervalSnapshot, 0>' requested here
+   21 |         auto snapshot=std::make_shared<analysis::DecodedIntervalSnapshot>();snapshot->analysis_namespace="cache-a";
+      |                            ^
+/Users/dhseo/Workspace/mediaServer/include/analysis/analysis_types.h:16:8: note: forward declaration of 'analysis::DecodedIntervalSnapshot'
+   16 | struct DecodedIntervalSnapshot;
+      |        ^
+In file included from /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_default_composition_smoke.cpp:2:
+In file included from /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h:4:
+In file included from /Users/dhseo/Workspace/mediaServer/include/recording/gstreamer_segment_writer.h:5:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/filesystem:543:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__filesystem/directory_entry.h:19:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__filesystem/filesystem_error.h:14:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__filesystem/path.h:27:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/string:655:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/string_view:975:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/algorithm:2063:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/memory:950:
+In file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/inout_ptr.h:16:
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:626:20: error: incompatible pointer types assigning to '__shared_weak_count *' from 'std::__shared_ptr_emplace<analysis::DecodedIntervalSnapshot, std::allocator<analysis::DecodedIntervalSnapshot>> *'
+  626 |     __r.__cntrl_ = __cntrl;
+      |                    ^~~~~~~
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:686:27: note: in instantiation of function template specialization 'std::shared_ptr<analysis::DecodedIntervalSnapshot>::__create_with_control_block<analysis::DecodedIntervalSnapshot, std::__shared_ptr_emplace<analysis::DecodedIntervalSnapshot, std::allocator<analysis::DecodedIntervalSnapshot>>>' requested here
+  686 |   return shared_ptr<_Tp>::__create_with_control_block(
+      |                           ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/shared_ptr.h:692:15: note: in instantiation of function template specialization 'std::allocate_shared<analysis::DecodedIntervalSnapshot, std::allocator<analysis::DecodedIntervalSnapshot>, 0>' requested here
+  692 |   return std::allocate_shared<_Tp>(allocator<__remove_cv_t<_Tp> >(), std::forward<_Args>(__args)...);
+      |               ^
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_default_composition_smoke.cpp:21:28: note: in instantiation of function template specialization 'std::make_shared<analysis::DecodedIntervalSnapshot, 0>' requested here
+   21 |         auto snapshot=std::make_shared<analysis::DecodedIntervalSnapshot>();snapshot->analysis_namespace="cache-a";
+      |                            ^
+7 errors generated.
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-default-composition.eQxMEK bytes=0 removed=true
+[elapsed] seconds=0 source=bash-SECONDS

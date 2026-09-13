@@ -74,11 +74,13 @@ bool ParseRecordingMutationV1(const std::string& json,
 
 class RecordingJournal {
 public:
+    // store_id가 비면 lease 아래 기존 marker ID를 복원하거나 신규 난수 ID를 내구 생성한다.
     struct ManagedOptions { std::filesystem::path root; std::string store_id; };
     explicit RecordingJournal(std::filesystem::path path);
     explicit RecordingJournal(ManagedOptions options);
     ~RecordingJournal();
     bool HasManagedLease() const;
+    std::string ManagedStoreId() const;
     bool Open(std::string* error);
     bool Append(const RecordingMutationV1& mutation, std::string* error);
     bool ReserveRecordingOrder(const std::string& store_id, const std::string& request_id,

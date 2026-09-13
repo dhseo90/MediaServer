@@ -1,0 +1,19 @@
+[pass] S10-C201 미디어 구간 mapping 경계
+[pass] S10-C202 unknown UTC의 미디어 위치
+[pass] S10-C203 미디어 범위 밖
+[pass] S10-C204 미확정 끝
+[pass] S10-C205 UTC 중첩 mapping
+[pass] S10-C206 저장소 경계·결정 순서
+[pass] S10-C207 정상 segment 분할
+[pass] S10-C208 반열린 구간 경계
+[pass] S10-C209 유리수·비정수 경계
+[pass] S10-C210 정수 범위 안전성
+[pass] S10-C211 UTC 공백·unplaced 구분
+[pass] S10-C212 입력 오류 초기화
+[pass] S10-C213 삭제·채널 경계
+[pass] S10-C214 재시작 SQL·JSONL 동등
+[pass] S10-C215 원본 mapping·조회 불변
+[pass] S10-C216 unknown 채널 격리
+[summary] pass=16 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-range.OU1JU1 bytes=4909530 removed=true
+[elapsed] seconds=8 source=bash-SECONDS

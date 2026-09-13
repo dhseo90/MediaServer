@@ -11,6 +11,9 @@ struct RecordingStartupRecoveryReport {
     std::size_t inspected{0}, healthy{0}, corrupt{0};
     std::string failed_stage;
 };
+bool RecoverRecordingMetadataAtStartup(RecordingCatalog&,RetentionCoordinator&,const std::filesystem::path&,
+    std::int64_t,RecordingStartupRecoveryReport*,std::string*);
+bool InspectFinalizedRecordingAtStartup(RecordingCatalog&,RecordingStartupRecoveryReport*,std::string*,MediaInspectionOptions = {});
 // 단일 startup 소유자가 worker 시작 전에 호출한다. 검사불가/보호된 손상/복구 충돌은 실패다.
 bool RecoverRecordingAtStartup(RecordingCatalog &catalog, RetentionCoordinator &retention,
                                const std::filesystem::path &root, std::int64_t now_ms,

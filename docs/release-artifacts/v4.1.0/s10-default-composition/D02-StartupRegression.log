@@ -1,0 +1,46 @@
+[pass] fallback ST02 healthy noappend
+[pass] fallback ST11 actual mode
+[pass] fallback ST01/11 missing Corrupt memory
+[pass] fallback ST11 missing query Corrupt and media location blocked
+[pass] fallback ST10/11 missing restart no resurrection/append
+[pass] fallback ST01/11 checksum Corrupt memory
+[pass] fallback ST11 checksum query Corrupt and media location blocked
+[pass] fallback ST10/11 checksum restart no resurrection/append
+[pass] fallback ST01/11 size Corrupt memory
+[pass] fallback ST11 size query Corrupt and media location blocked
+[pass] fallback ST10/11 size restart no resurrection/append
+[pass] fallback ST09 held corruption fails startup/noappend
+[pass] fallback ST09 Pending source restart protects corruption
+[pass] fallback ST09 Pending link unchanged
+[pass] fallback ST09 Pending output restart protects corruption
+[pass] fallback ST09 Pending link unchanged
+[pass] fallback ST08 unavailable timeout noappend
+[pass] fallback ST12 unsafe path remains in metadata snapshot
+[pass] fallback ST12 unsafe path startup fails
+[pass] sqlite ST02 healthy noappend
+[pass] sqlite ST11 actual mode
+[pass] sqlite ST01/11 missing Corrupt memory
+[pass] sqlite ST11 missing query Corrupt and media location blocked
+[pass] sqlite ST11 missing SQL actual lifecycle
+[pass] sqlite ST11 original codec metadata preserved
+[pass] sqlite ST10/11 missing restart no resurrection/append
+[pass] sqlite ST01/11 checksum Corrupt memory
+[pass] sqlite ST11 checksum query Corrupt and media location blocked
+[pass] sqlite ST11 checksum SQL actual lifecycle
+[pass] sqlite ST11 original codec metadata preserved
+[pass] sqlite ST10/11 checksum restart no resurrection/append
+[pass] sqlite ST01/11 size Corrupt memory
+[pass] sqlite ST11 size query Corrupt and media location blocked
+[pass] sqlite ST11 size SQL actual lifecycle
+[pass] sqlite ST11 original codec metadata preserved
+[pass] sqlite ST10/11 size restart no resurrection/append
+[pass] sqlite ST09 held corruption fails startup/noappend
+[pass] sqlite ST09 Pending source restart protects corruption
+[pass] sqlite ST09 Pending link unchanged
+[pass] sqlite ST09 Pending output restart protects corruption
+[pass] sqlite ST09 Pending link unchanged
+[pass] sqlite ST08 unavailable timeout noappend
+[pass] sqlite ST12 unsafe path remains in metadata snapshot
+[pass] sqlite ST12 unsafe path startup fails
+[startup-unit] pass=44 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-startup-unit.ZPWGB7 bytes=7626663 removed=true

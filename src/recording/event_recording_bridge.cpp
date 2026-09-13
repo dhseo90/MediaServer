@@ -319,11 +319,14 @@ analysis::EventRecordingBridgeResult CatalogEventRecordingBridge::TryResolve(
     const analysis::AnalysisResult& result,
     const analysis::EventRecord& record,
     const analysis::EventMediaHookOptions& options) {
-    std::lock_guard resolution_lock(resolution_mu_);
+    std::unique_lock resolution_lock(resolution_mu_);
     if(options_.use_consumer_references) {
         const auto& context=result.observation_context;
-        if(context.source_id.empty()||context.channel_id.empty()||
-           record.channel_id!=context.channel_id||(!record.stream_id.empty()&&record.stream_id!=context.source_id))
+        const bool identity_matches=options_.use_runtime_stream_identity?
+            (!result.source_key.empty()&&record.stream_id==result.source_key&&
+             (record.channel_id==result.source_key||record.channel_id==context.channel_id)&&context.source_id==context.channel_id):
+            (record.channel_id==context.channel_id&&(record.stream_id.empty()||record.stream_id==context.source_id));
+        if(context.source_id.empty()||context.channel_id.empty()||!identity_matches)
             return {true,false,{},{},{},"reference-source-channel-conflict"};
         RecordingConsumerReferenceV1 reference;
         reference.reference_id="pending-reference";reference.kind="event";reference.owner_id=record.event_id;
@@ -355,14 +358,14 @@ analysis::EventRecordingBridgeResult CatalogEventRecordingBridge::TryResolve(
         if(!options_.resolve_recording_channel)
             return {true,false,{},reference.reference_id,"unknown","reference-channel-resolver-not-configured",existing.managed};
         std::optional<std::string> channel;
-        try {channel=options_.resolve_recording_channel(context.source_id);}
+        try {channel=options_.resolve_recording_channel(options_.use_runtime_stream_identity?result.source_key:context.source_id);}
         catch(...) {
             return {true,false,{},reference.reference_id,"unknown","reference-channel-resolver-failed",existing.managed};
         }
         if(!channel||*channel!=context.channel_id)
             return {true,false,{},reference.reference_id,"unknown","reference-source-channel-conflict",existing.managed};
         // Stop과 신규 Put/접수를 같은 경계로 직렬화한다. join은 이 잠금 밖에서만 한다.
-        std::lock_guard lock(mu_);
+        std::unique_lock lock(mu_);
         if(stopping_)return {true,false,{},reference.reference_id,"unknown","bridge-stopped",existing.managed};
         if(!catalog_.PutConsumerReference(reference,&error)) {
             RecordingDerivedReferenceResult after;
@@ -371,6 +374,9 @@ analysis::EventRecordingBridgeResult CatalogEventRecordingBridge::TryResolve(
                     existing.managed||!known||after.managed};
         }
         if(!derived_worker_)return {true,false,{},reference.reference_id,"pending","derived-service-not-configured",existing.managed};
+        // provider는 bridge/worker 잠금 밖에서 실행한다. worker는 Stop/슬롯을 다시 검사한다.
+        lock.unlock();
+        resolution_lock.unlock();
         const bool accepted=derived_worker_->Submit(reference,result.decoded_intervals,&error);
         bool managed=accepted||existing.managed;
         if(!accepted) {

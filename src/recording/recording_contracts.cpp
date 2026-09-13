@@ -414,7 +414,8 @@ bool ValidateRecordingConsumerReferenceV1(const RecordingConsumerReferenceV1& v,
     if(v.schema!="media-server.recording-consumer-reference.v1"||
        (v.kind!="observation"&&v.kind!="event")||v.analysis_pts<0||v.created_at_ms<0||!track(v.analysis_track_id))
         return Fail(error,"consumer reference schema/kind/analysis 오류");
-    for(const auto* id:{&v.reference_id,&v.owner_id,&v.source_id,&v.channel_id,&v.analysis_namespace})
+    if(!ValidateRecordingReferenceId(v.source_id,error)||!ValidateRecordingReferenceId(v.channel_id,error))return false;
+    for(const auto* id:{&v.reference_id,&v.owner_id,&v.analysis_namespace})
         if(!ValidateOpaqueId(*id,error))return false;
     const bool associated=v.association_quality=="timestamp-match"||v.association_quality=="nearest";
     if((!associated&&v.association_quality!="ambiguous"&&v.association_quality!="unavailable")||
@@ -490,7 +491,8 @@ bool ValidateRecordingSourceBindingV1(const RecordingSourceBindingV1& b, std::st
        b.generation_order==0 || b.track_id.empty() || b.track_id.size()>1024 ||
        std::any_of(b.track_id.begin(),b.track_id.end(),[](unsigned char c){return c<32||c==127;}))
         return Fail(error,"source binding schema/track/상한 오류");
-    for(const auto* id:{&b.segment_id,&b.source_id,&b.channel_id,&b.store_id,&b.media_epoch_id,&b.source_generation})
+    if(!ValidateRecordingReferenceId(b.source_id,error)||!ValidateRecordingReferenceId(b.channel_id,error))return false;
+    for(const auto* id:{&b.segment_id,&b.store_id,&b.media_epoch_id,&b.source_generation})
         if(!ValidateOpaqueId(*id,error))return false;
     std::uint64_t prior=0;
     for(const auto& sample:b.samples) {
@@ -551,18 +553,23 @@ bool ParseRecordingSourceBindingV1(const std::string& json,RecordingSourceBindin
     *output=std::move(b);ClearError(error);return true;
 }
 
-bool ValidateOpaqueId(const std::string& value, std::string* error) {
+bool ValidateRecordingReferenceId(const std::string& value, std::string* error) {
     if (value.empty() || value.size() > 128) return Fail(error, "opaque ID 길이 오류");
     if (value.find('/') != std::string::npos || value.find('\\') != std::string::npos ||
         value == "." || value == ".." || value.find("..") != std::string::npos) {
         return Fail(error, "opaque ID에 path 표현이 있음");
     }
-    bool all_digits = true;
     for (const unsigned char ch : value) {
         const bool allowed = std::isalnum(ch) != 0 || ch == '-' || ch == '_' || ch == '.' || ch == ':';
         if (!allowed) return Fail(error, "opaque ID 문자가 허용되지 않음");
-        if (std::isdigit(ch) == 0) all_digits = false;
     }
+    ClearError(error);
+    return true;
+}
+
+bool ValidateOpaqueId(const std::string& value, std::string* error) {
+    if (!ValidateRecordingReferenceId(value,error)) return false;
+    const bool all_digits=std::all_of(value.begin(),value.end(),[](unsigned char ch){return std::isdigit(ch)!=0;});
     if (all_digits) return Fail(error, "opaque ID는 SQLite rowid 형태일 수 없음");
     ClearError(error);
     return true;
@@ -747,7 +754,8 @@ bool ValidateRecordingSegmentV2(const RecordingSegmentV2& v, std::string* error)
     if (v.schema != "media-server.recording-segment.v2") return Fail(error, "V2 segment schema 오류");
     if (v.retention_class!=RecordingRetentionClass::Continuous && v.retention_class!=RecordingRetentionClass::Event)
         return Fail(error,"V2 retention 분류 오류");
-    for (const auto* id : {&v.segment_id,&v.source_id,&v.channel_id,&v.store_id,&v.order_request_id,&v.media_epoch_id})
+    if(!ValidateRecordingReferenceId(v.source_id,error)||!ValidateRecordingReferenceId(v.channel_id,error))return false;
+    for (const auto* id : {&v.segment_id,&v.store_id,&v.order_request_id,&v.media_epoch_id})
         if (!ValidateOpaqueId(*id,error)) return false;
     if (v.order_sequence<=0 || v.time_base_num<=0 || v.time_base_den<=0 ||
         (v.media_end_pts && *v.media_end_pts<=v.media_start_pts)) return Fail(error,"V2 media/순서 범위 오류");

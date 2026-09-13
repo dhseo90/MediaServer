@@ -1,0 +1,7 @@
+libc++abi: terminating due to uncaught exception of type std::runtime_error: store-open:managed 기존 데이터 변환 거부
+[fail] D01-01 consumer 숫자 참조 원문 왕복
+[pass] D01-02 빈 참조·경로 이탈 거부
+[pass] D01-03 생성 reference/owner/namespace 숫자-only 거부 유지
+scripts/internal/verify_recording_numeric_reference.sh: line 31:  9596 Abort trap: 6           "$RUN_DIR/check" "$RUN_DIR"
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-numeric-reference.fdfUgp bytes=4515848 removed=true
+[elapsed] seconds=1 source=bash-SECONDS

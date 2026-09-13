@@ -1,0 +1,8 @@
+[fail] D02-01 신규 root 자동 내구 store identity
+[fail] D02-01 재개방 동일 store identity
+[fail] D02-01 서로 다른 root 난수 identity 구별
+[pass] D02-02 managed lease 동시 소유 거부
+[pass] D02-06 실제 H264 입력 준비
+[summary] pass=2 fail=3
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-default-composition.27GF8e bytes=939704 removed=true
+[elapsed] seconds=1 source=bash-SECONDS

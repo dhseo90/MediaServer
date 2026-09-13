@@ -1,0 +1,6 @@
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_default_composition_smoke.cpp:87:7: error: no type named 'close' in the global namespace
+   87 |     ::close(fd);std::cout<<"[decode] frames="<<frames<<" eos="<<eos<<'\n';return frames>0&&eos;
+      |     ~~^
+1 error generated.
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-default-composition.sdCdy2 bytes=0 removed=true
+[elapsed] seconds=1 source=bash-SECONDS

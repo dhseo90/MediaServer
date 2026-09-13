@@ -1,0 +1,7 @@
+In file included from /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_numeric_reference_smoke.cpp:2:
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h:115:6: error: unused function 'Shift' [-Werror,-Wunused-function]
+  115 | void Shift(Encoded& input, std::uint64_t offset) {
+      |      ^~~~~
+1 error generated.
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-numeric-reference.MRgwuh bytes=0 removed=true
+[elapsed] seconds=1 source=bash-SECONDS

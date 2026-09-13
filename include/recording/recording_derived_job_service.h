@@ -30,7 +30,7 @@ public:
     ~DerivedJobService();
     DerivedJobService(const DerivedJobService&)=delete;
     DerivedJobService& operator=(const DerivedJobService&)=delete;
-    // 호출자가 worker에서 실행한다. source callback/default composition에는 연결하지 않는다.
+    // 기본 구성의 전용 worker에서 실행한다. source callback에서 직접 실행하지 않는다.
     // 동일 catalog의 실행 소유는 하나이며 동시 Run은 대기열 없이 명시 거부한다.
     DerivedJobRunResult Run(const std::string& job_id,std::function<bool()> cancelled={});
     std::vector<DerivedJobRunResult> Reconcile(std::function<bool()> cancelled={});

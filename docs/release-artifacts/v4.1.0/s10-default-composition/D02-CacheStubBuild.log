@@ -1,0 +1,13 @@
+[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+[2/2] build
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_journal.cpp.o
+/Users/dhseo/Workspace/mediaServer/src/recording/recording_journal.cpp:170:10: error: no member named 'getentropy' in the global namespace
+  170 |     if(::getentropy(bytes,sizeof(bytes))!=0)return false;
+      |          ^~~~~~~~~~
+1 error generated.
+make[2]: *** [CMakeFiles/media_server_runtime.dir/src/recording/recording_journal.cpp.o] Error 1
+make[1]: *** [CMakeFiles/media_server_runtime.dir/all] Error 2
+make: *** [all] Error 2

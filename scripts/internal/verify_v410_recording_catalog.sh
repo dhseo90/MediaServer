@@ -69,9 +69,9 @@ check_contains "src/recording/recording_supervisor.cpp" \
 check_contains "src/recording/recording_supervisor.cpp" \
   "std::chrono::seconds(5)" "5초 safety reconcile"
 check_contains "src/application/media_server_application.cpp" \
-  "recording_journal.Open" "composition root journal 선행 open"
-check_contains "src/application/media_server_application.cpp" \
-  "recording_catalog.Open" "composition root catalog rebuild/open"
+  "recording_storage.Open" "composition root 관리 저장소 선행 open"
+check_contains "src/recording/recording_runtime_composition.cpp" \
+  'return journal_->Open(error)&&catalog_->Open(error)' "composition helper journal 다음 catalog rebuild/open"
 check_contains "src/application/media_server_application.cpp" \
   "recording_supervisor.Start" "서버 전 supervisor 시작"
 check_contains "src/application/media_server_application.cpp" \
@@ -82,8 +82,8 @@ check_contains "src/application/media_server_application.cpp" \
 line_of() { grep -nF "$2" "${ROOT_DIR}/$1" | head -1 | cut -d: -f1; }
 line_of_last() { grep -nF "$2" "${ROOT_DIR}/$1" | tail -1 | cut -d: -f1; }
 APP_FILE="src/application/media_server_application.cpp"
-JOURNAL_LINE="$(line_of "${APP_FILE}" "recording_journal.Open")"
-CATALOG_LINE="$(line_of "${APP_FILE}" "recording_catalog.Open")"
+STORAGE_LINE="$(line_of "${APP_FILE}" "recording_storage.Open")"
+RECOVERY_LINE="$(line_of "${APP_FILE}" "RecoverRuntimeRecordingAtStartup")"
 SUPERVISOR_LINE="$(line_of "${APP_FILE}" "recording_supervisor.Start")"
 BRIDGE_REGISTER_LINE="$(line_of "${APP_FILE}" "analysis::SetEventRecordingBridge(event_recording_bridge)")"
 RTSP_START_LINE="$(line_of "${APP_FILE}" "gst_rtsp_server.Start")"
@@ -92,8 +92,8 @@ HTTP_STOP_LINE="$(line_of_last "${APP_FILE}" "webrtc_http_server.Stop")"
 RTSP_STOP_LINE="$(line_of_last "${APP_FILE}" "gst_rtsp_server.Stop")"
 SUPERVISOR_STOP_LINE="$(line_of_last "${APP_FILE}" "recording_supervisor.Stop")"
 EVENT_STOP_LINE="$(line_of_last "${APP_FILE}" "analysis::StopEventStorage")"
-if (( JOURNAL_LINE < CATALOG_LINE && CATALOG_LINE < SUPERVISOR_LINE &&
-      SUPERVISOR_LINE < BRIDGE_REGISTER_LINE && BRIDGE_REGISTER_LINE < RTSP_START_LINE &&
+if (( STORAGE_LINE < RECOVERY_LINE && RECOVERY_LINE < BRIDGE_REGISTER_LINE &&
+      BRIDGE_REGISTER_LINE < SUPERVISOR_LINE && SUPERVISOR_LINE < RTSP_START_LINE &&
       RTSP_START_LINE < HTTP_START_LINE &&
       HTTP_STOP_LINE < RTSP_STOP_LINE && RTSP_STOP_LINE < SUPERVISOR_STOP_LINE && SUPERVISOR_STOP_LINE < EVENT_STOP_LINE )); then
   echo "[pass] composition root 시작/종료 순서"

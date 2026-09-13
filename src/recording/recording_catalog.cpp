@@ -1182,7 +1182,7 @@ bool RecordingCatalog::ResolveOriginalSample(const std::string& channel,const st
     const std::string& generation,std::uint64_t order,const std::string& track,std::uint64_t ordinal,
     std::uint64_t pts,RecordingOriginalResult* result,std::string* error) const {
     if(result)*result={};
-    if(!result||!ValidateOpaqueId(channel,error)||!ValidateOpaqueId(source,error)||!ValidateOpaqueId(generation,error)||
+    if(!result||!ValidateRecordingReferenceId(channel,error)||!ValidateRecordingReferenceId(source,error)||!ValidateOpaqueId(generation,error)||
        order==0||ordinal==0||pts>static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max())||
        track.empty()||track.size()>1024||std::any_of(track.begin(),track.end(),[](unsigned char c){return c<32||c==127;}))
         return Fail(error,"source lookup 입력 오류");
@@ -1312,7 +1312,7 @@ bool RecordingCatalog::CompleteDeletionV2(const RecordingTombstoneV2& tombstone,
 
 bool RecordingCatalog::SnapshotLocationsV2(const std::string& channel, RecordingLocationCatalogSnapshot* result, std::string* error) const {
     if(result)*result={};
-    if(!result||!ValidateOpaqueId(channel,error))return Fail(error,"invalid location snapshot input");
+    if(!result||!ValidateRecordingReferenceId(channel,error))return Fail(error,"invalid location snapshot input");
     std::lock_guard lock(mu_);
     if(!opened_)return Fail(error,"catalog not open");
     RecordingLocationCatalogSnapshot snapshot;
@@ -1661,7 +1661,7 @@ bool RecordingCatalog::PutReferencedObservation(const AnalysisObservationV2& obs
 }
 std::vector<ReferencedObservationV1> RecordingCatalog::QueryReferencedObservations(const std::string& channel) const {
     std::lock_guard lock(mu_);std::vector<ReferencedObservationV1> result;
-    if(!opened_||!options_.enable_v2_storage||!ValidateOpaqueId(channel,nullptr))return result;
+    if(!opened_||!options_.enable_v2_storage||!ValidateRecordingReferenceId(channel,nullptr))return result;
     for(const auto& [id,pair]:referenced_observations_) {
         (void)id;if(pair.observation.channel_id==channel)result.push_back(pair);
     }
@@ -1817,7 +1817,7 @@ std::vector<RecordingConsumerReferenceV1> RecordingCatalog::QueryConsumerReferen
     const std::string& channel, const std::string& kind, const std::string& owner) const {
     std::lock_guard lock(mu_);
     std::vector<RecordingConsumerReferenceV1> result;
-    if(!opened_||!options_.enable_v2_storage||!ValidateOpaqueId(channel,nullptr)||!ValidateOpaqueId(owner,nullptr)||
+    if(!opened_||!options_.enable_v2_storage||!ValidateRecordingReferenceId(channel,nullptr)||!ValidateOpaqueId(owner,nullptr)||
        (kind!="observation"&&kind!="event"))return result;
     for(const auto& [id,reference]:consumer_references_) {
         (void)id;
@@ -1956,6 +1956,18 @@ std::vector<RecordingSegmentV1> RecordingCatalog::FinalizedSegmentsForStartup() 
     std::sort(result.begin(), result.end(), [](const auto& left, const auto& right) {
         return left.segment_id < right.segment_id;
     });
+    return result;
+}
+
+std::vector<std::string> RecordingCatalog::FinalizedSegmentIdsForStartup() const {
+    std::lock_guard lock(mu_);
+    std::vector<std::string> result;
+    for(const auto& [id,segment]:segments_)if(segment.lifecycle==RecordingLifecycle::Finalized)result.push_back(id);
+    for(const auto& [id,segment]:segments_v2_) {
+        (void)segment;
+        if(EffectiveLifecycleV2Locked(id)==RecordingLifecycle::Finalized)result.push_back(id);
+    }
+    std::sort(result.begin(),result.end());
     return result;
 }
 

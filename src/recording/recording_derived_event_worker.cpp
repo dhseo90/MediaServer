@@ -7,6 +7,16 @@
 #include <limits>
 
 namespace recording {
+DerivedEventWorkerOptions RecordingRuntimeEventBudget(std::int64_t segment_ms,std::int64_t post_ms) {
+    DerivedEventWorkerOptions options;
+    const __int128 requested=static_cast<__int128>(std::max<std::int64_t>(0,segment_ms))+
+        std::max<std::int64_t>(0,post_ms)+1000;
+    options.wait_ms=static_cast<std::int64_t>(std::min<__int128>(60000,requested));
+    options.retry_ms=500;
+    options.max_attempts=static_cast<std::size_t>((options.wait_ms+499)/500+1);
+    if(requested>60000)options.budget_reason="runtime-evidence-budget-capped-60000ms";
+    return options;
+}
 namespace {
 bool EvidenceMatches(const RecordingConsumerReferenceV1& reference,
                      const analysis::DecodedIntervalSnapshot& evidence) {
@@ -24,8 +34,8 @@ DerivedEventWorker::DerivedEventWorker(RecordingCatalog& catalog,RetentionCoordi
     DerivedJobService& service,DerivedEventWorkerOptions options)
     :catalog_(catalog),retention_(retention),service_(service),options_(std::move(options)) {
     options_.queue_capacity=std::clamp<std::size_t>(options_.queue_capacity,1,32);
-    options_.max_attempts=std::clamp<std::size_t>(options_.max_attempts,1,16);
-    options_.wait_ms=std::clamp<std::int64_t>(options_.wait_ms,0,5000);
+    options_.max_attempts=std::clamp<std::size_t>(options_.max_attempts,1,121);
+    options_.wait_ms=std::clamp<std::int64_t>(options_.wait_ms,0,60000);
     options_.retry_ms=std::clamp<std::int64_t>(options_.retry_ms,1,500);
     if(!options_.now_ms)options_.now_ms=[] {
         return std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -41,8 +51,17 @@ DerivedEventWorker::DerivedEventWorker(RecordingCatalog& catalog,RetentionCoordi
 DerivedEventWorker::~DerivedEventWorker(){StopAndDrain();}
 bool DerivedEventWorker::Submit(const RecordingConsumerReferenceV1& reference,
     std::shared_ptr<const analysis::DecodedIntervalSnapshot> evidence,std::string* error) {
-    std::lock_guard lock(mu_);
     const auto reject=[&](const std::string& reason){if(error)*error=reason;return false;};
+    if(stopped_)return reject("derived-worker-stopped");
+    if(!evidence&&options_.latest_evidence) {
+        DerivedEventEvidenceUpdate update;
+        try {update=options_.latest_evidence(reference);}
+        catch(...) {return reject("derived-evidence-provider-exception");}
+        if(update.source_id!=reference.source_id||update.channel_id!=reference.channel_id)
+            return reject("derived-evidence-provider-identity-mismatch");
+        evidence=std::move(update.evidence);
+    }
+    std::lock_guard lock(mu_);
     if(stopped_)return reject("derived-worker-stopped");
     if(!startup_error_.empty())return reject(startup_error_);
     if(!evidence||!EvidenceMatches(reference,*evidence))return reject("derived-evidence-identity-mismatch");
@@ -84,6 +103,7 @@ RecordingDerivedReferenceResult DerivedEventWorker::Query(const std::string& id)
             else result.state="unknown";
         }
     }
+    if(!options_.budget_reason.empty())result.reason+=";"+options_.budget_reason;
     return result;
 }
 void DerivedEventWorker::Loop() {

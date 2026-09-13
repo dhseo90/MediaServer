@@ -2707,3 +2707,35 @@ release gate에서 FAIL합니다. 네 테스트 영역 밖 분류도 거부합�
 | S10-E18 | provider/입력 상한 오류 | 승인 focused/직접 영향 | S11 최종 cut·미실행 | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 다른 source/channel·과대 증거·provider 예외 거부; 누적 원본256초과/관련소수 성공과 실제 관련256초과 거부를 구분 |
 | S10-E19 | 직접 영향 회귀 | 승인 focused/직접 영향 | S11 최종 cut·미실행 | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 기존 legacy event·consumer connection/reference·관측·writer·retention 및 build. C414/C418/C422/C423의 승인된 미주입 error/영속 reference link/managed=false 예상값으로 변경하며 기존 저장·공개·fallback assertions 유지. bridge 직접 링크 runner 4개에 신규 내부 worker 의존 cpp와 기존 gst-video 연결; 5.3b 전수는 인계만으로 재실행하지 않음 |
 | S10-E20 | 내구 accepted 소유권 | 승인 focused/직접 영향 | S11 최종 cut·미실행 | 조건부·이번 미승인 | 비대상: UI 없어야 정상 | 실제 slot 확보→canonical reference accepted mutation→worker 공개; 확인된 미접수는 managed=false, 원장 비권위/소유권 조회 불가면 unknown+legacy 억제(접수 성공 아님). 중복/충돌·SQLite/fallback/rebuild·재시작 no-job unknown 및 legacy 비반환 |
+
+## S10 3D-2 D01 숫자 참조
+
+| 기능 ID | 기능/검증 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| D01-10 | 128/129 및 문자·경로 제약 | focused | 미승인·미실행 | S11 조건부, 이번 미승인 | 비대상: UI 없어야 정상 |
+| D01-11 | 실제 metadata 생성 ID 위조 거부 | focused | 미승인·미실행 | S11 조건부, 이번 미승인 | 비대상: UI 없어야 정상 |
+| D01-01 | consumer 숫자 참조: 007 source/channel 원문 serialize/parse 왕복 | focused/build/직접 영향 회귀 | 미승인·미실행 | S11 최종 cut 조건부, 이번 미승인 | 비대상: UI 없어야 정상 |
+| D01-02 | 잘못된 참조: 빈 값·slash/backslash·경로 이탈 거부 | focused/build/직접 영향 회귀 | 미승인·미실행 | S11 최종 cut 조건부, 이번 미승인 | 비대상: UI 없어야 정상 |
+| D01-03 | 생성 ID 구분: reference/owner/namespace 숫자-only 거부 유지 | focused/build/직접 영향 회귀 | 미승인·미실행 | S11 최종 cut 조건부, 이번 미승인 | 비대상: UI 없어야 정상 |
+| D01-04 | order 참조: journal 예약과 strict parser 숫자 channel 왕복 | focused/build/직접 영향 회귀 | 미승인·미실행 | S11 최종 cut 조건부, 이번 미승인 | 비대상: UI 없어야 정상 |
+| D01-05 | 생성 order ID: request/segment 숫자-only 거부 유지 | focused/build/직접 영향 회귀 | 미승인·미실행 | S11 최종 cut 조건부, 이번 미승인 | 비대상: UI 없어야 정상 |
+| D01-06 | 실제 writer: 자체 H264 입력→관리 writer finalized segment/binding 숫자 원문 보존 | focused/build/직접 영향 회귀 | 미승인·미실행 | S11 최종 cut 조건부, 이번 미승인 | 비대상: UI 없어야 정상 |
+| D01-07 | catalog consumer: 숫자 channel 저장·목록 조회 | focused/build/직접 영향 회귀 | 미승인·미실행 | S11 최종 cut 조건부, 이번 미승인 | 비대상: UI 없어야 정상 |
+| D01-08 | range/location: 숫자 channel media/UTC 입력 허용, 공백 상태를 미디어 있음으로 승격하지 않음 | focused/build/직접 영향 회귀 | 미승인·미실행 | S11 최종 cut 조건부, 이번 미승인 | 비대상: UI 없어야 정상 |
+| D01-09 | 내구 재개방: 새 journal/catalog에서 원본 segment 및 consumer 숫자 참조 유지 | focused/build/직접 영향 회귀 | 미승인·미실행 | S11 최종 cut 조건부, 이번 미승인 | 비대상: UI 없어야 정상 |
+
+## S10 3D-2 D02 기본 구성
+
+| 기능 ID | 기능/검증 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| D02-10 | 실제 default 후행 finalize와16s/cap60s/초기null provider | focused/build | 미승인·미실행 | S11 조건부, 이번 미승인 | 비대상: 내부 구성 |
+| D02-11 | canonical raw key→numeric context, 공개 원문 보존·모순 거부 | focused | 미승인·미실행 | S11 조건부, 이번 미승인 | 비대상: 내부 구성 |
+| D02-01 | 자동 store identity: empty managed root 난수 ID 생성·다른 root 구별·재개방 ID 유지·명시 ID 계약 유지 | focused/build/직접 영향 회귀 | 미승인·미실행 | S11 조건부, 이번 미승인 | 비대상: 내부 구성 |
+| D02-02 | marker/lease 안전성: 충돌 ID·손상/unknown marker·legacy nonempty 거부, lease 동시 소유 거부·init 복구 | focused/build/직접 영향 회귀 | 미승인·미실행 | S11 조건부, 이번 미승인 | 비대상: 내부 구성 |
+| D02-03 | bounded 증거 cache: 실제 OnResult snapshot source/channel/ns 결박·4096/capacity·try-lock publication/query, stop namespace 삭제 | focused/build/직접 영향 회귀 | 미승인·미실행 | S11 조건부, 이번 미승인 | 비대상: 내부 구성 |
+| D02-04 | 후행 event 증거: history의 초기 decoded null에서도 같은 namespace cache 갱신으로 실제 job 생성·후행 요청 충족 | focused/build/직접 영향 회귀 | 미승인·미실행 | S11 조건부, 이번 미승인 | 비대상: 내부 구성 |
+| D02-05 | V2 startup 검사: finalized V2 열거→실제 미디어/hash 검사→손상 Mark, 경로/metadata 변경·job 보호 시 안전 거부 | focused/build/직접 영향 회귀 | 미승인·미실행 | S11 조건부, 이번 미승인 | 비대상: 내부 구성 |
+| D02-06 | opt-in 구성: off 비녹화/on 실제 numeric channel managed writer·consumer observation/event→파일·catalog 결과. 기존 public timeline을 새 결과 oracle로 사용하지 않음 | focused/build/직접 영향 회귀 | 미승인·미실행 | S11 조건부, 이번 미승인 | 비대상: 내부 구성 |
+| D02-07 | 복구 선행: catalog/보호·예약→ready/deletion→derived bounded reconcile 잔여 blocker 검사→producer 순서 | focused/build/직접 영향 회귀 | 미승인·미실행 | S11 조건부, 이번 미승인 | 비대상: 내부 구성 |
+| D02-08 | 종료 수명: 신규 접수 차단→cancel/join→의존 해제, stop 중 작업·재시작과 소유 temp 정리 | focused/build/직접 영향 회귀 | 미승인·미실행 | S11 조건부, 이번 미승인 | 비대상: 내부 구성 |
+| D02-09 | 직접 영향 회귀: managed journal/catalog/writer/consumer/provider/startup/retention 관련 focused와 build. D01 유효 증거는 인계만으로 반복하지 않음 | focused/build/직접 영향 회귀 | 미승인·미실행 | S11 조건부, 이번 미승인 | 비대상: 내부 구성 |

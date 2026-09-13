@@ -22,7 +22,9 @@ struct DerivedEventWorkerOptions {
     // 잠금 밖 호출. 주입자는 thread-safe/nonblocking이어야 하며 강제 중단 thread를 만들지 않는다.
     std::function<DerivedEventEvidenceUpdate(const RecordingConsumerReferenceV1&)> latest_evidence;
     std::function<std::int64_t()> now_ms;
+    std::string budget_reason;
 };
+DerivedEventWorkerOptions RecordingRuntimeEventBudget(std::int64_t segment_ms,std::int64_t post_ms);
 class DerivedEventWorker {
 public:
     DerivedEventWorker(RecordingCatalog&,RetentionCoordinator&,DerivedJobService&,DerivedEventWorkerOptions);

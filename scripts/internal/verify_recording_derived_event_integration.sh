@@ -7,7 +7,7 @@ source "$SCRIPT_DIR/env_common.sh"
 media_server_apply_homebrew_gst_env
 BUILD_DIR="$ROOT_DIR/build-gst-onnx"
 # 공유 ABI가 다른 object/archive를 섞지 않는다. 제품 변경 뒤 ./server.sh build가 선수조건이다.
-node -e 'const f=require("fs"),p=require("path"),root=process.argv[1],archive=process.argv[2],stamp=f.statSync(archive).mtimeMs;function check(dir){for(const name of f.readdirSync(dir)){const full=p.join(dir,name),s=f.statSync(full);if(s.isDirectory())check(full);else if(/\.(h|hpp|cpp)$/.test(name)&&s.mtimeMs>stamp)throw Error("제품 archive가 오래됨: ./server.sh build 선수조건; "+full)}}check(p.join(root,"include"));check(p.join(root,"src"))' "$ROOT_DIR" "$BUILD_DIR/libmedia_server_runtime.a"
+node -e 'const f=require("fs"),p=require("path"),root=process.argv[1],build=process.argv[2],archive=f.statSync(p.join(build,"libmedia_server_runtime.a")).mtimeMs,executable=f.statSync(p.join(build,"media_server")).mtimeMs,link=f.readFileSync(p.join(build,"CMakeFiles/media_server.dir/link.txt"),"utf8"),app=new Set([...link.matchAll(/CMakeFiles\/media_server\.dir\/(src\/[^ ]+)\.o/g)].map(m=>m[1]));function check(dir){for(const name of f.readdirSync(dir)){const full=p.join(dir,name),s=f.statSync(full);if(s.isDirectory())check(full);else if(/\.(h|hpp|cpp)$/.test(name)&&s.mtimeMs>(app.has(p.relative(root,full))?executable:archive))throw Error("제품 build가 오래됨: ./server.sh build 선수조건; "+full)}}check(p.join(root,"include"));check(p.join(root,"src"))' "$ROOT_DIR" "$BUILD_DIR"
 RUN_DIR="$(mktemp -d "${TMPDIR:-/tmp}/media-server-derived-event-integration.XXXXXX")"
 RUN_DIR="$(cd "$RUN_DIR" && pwd -P)"
 SECONDS=0

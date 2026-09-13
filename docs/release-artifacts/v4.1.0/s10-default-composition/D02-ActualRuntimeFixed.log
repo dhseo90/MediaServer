@@ -1,0 +1,42 @@
+[pass] D02-03 동일 source/channel/ns immutable snapshot 전달
+[pass] D02-03 다른 channel 증거 혼합 거부
+[pass] D02-03 stop namespace 증거 삭제
+[pass] D02-03 cache capacity 이전 namespace eviction
+[pass] D02-03 전체 stop 후 publication/query 거부
+[pass] D02-01 신규 root 자동 내구 store identity
+[pass] D02-01 재개방 동일 store identity
+[pass] D02-01 서로 다른 root 난수 identity 구별
+[pass] D02-02 managed lease 동시 소유 거부
+[pass] D02-01 명시 ID 기존 계약 유지
+[pass] D02-02 명시 ID 충돌 원본 marker 보존
+[pass] D02-02 같은 init 내구 ID 복구
+[pass] D02-02 legacy nonempty 변환·삭제 거부
+[pass] D02-02 손상/unknown marker 덮어쓰기 거부
+[pass] D02-06 실제 H264 입력 준비
+[pass] D02-05 실제 V2 finalized startup 미디어 전수 검사
+[pass] D02-05 실제 V2 size/hash 손상 감지·catalog Mark
+[pass] D02-10 default 준비16s·500ms·33회 예산
+[pass] D02-06 on 구성의 동일 managed store/catalog writer 결박
+[pass] D02-07 빈 저장소 runtime 복구 함수
+[pass] D02-06 off managed 형식 유지·미디어 비생산
+[pass] D02-04/11 raw key→numeric 참조·history null provider 접수·공개 record 불변
+[summary] pass=22 fail=0
+[pass] D02-06 off/on 재개방 동일 store identity
+[pass] D02-07 실제 producer 시작 전 runtime 복구
+[pass] D02-06 실제 supervisor/session off 생산0·기존 segment 보존
+[pass] D02-08 실제 source/session 종료 owner0
+[pass] D02-06 off/on 재개방 동일 store identity
+[pass] D02-07 실제 producer 시작 전 runtime 복구
+[pass] D02-06 실제 supervisor/session on 숫자 채널 V2 파일 생성
+[fail] D02-08 실제 source/session 종료 owner0
+[pass] D02-06 off/on 재개방 동일 store identity
+[pass] D02-07 실제 producer 시작 전 runtime 복구
+[pass] D02-06 실제 supervisor/session off 생산0·기존 segment 보존
+[pass] D02-08 실제 source/session 종료 owner0
+[pass] D02-06 off/on 재개방 동일 store identity
+[pass] D02-07 실제 producer 시작 전 runtime 복구
+[pass] D02-06 실제 supervisor/session on 숫자 채널 V2 파일 생성
+[fail] D02-08 실제 source/session 종료 owner0
+[summary] pass=14 fail=2
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-default-composition.vx7ath bytes=10150543 removed=true
+[elapsed] seconds=16 source=bash-SECONDS

@@ -104,6 +104,8 @@ add_library(media_server_runtime STATIC
     src/recording/recording_derived_job_ready.cpp
     src/recording/recording_derived_job_service.cpp
     src/recording/recording_derived_event_worker.cpp
+    src/recording/recording_evidence_observer.cpp
+    src/recording/recording_runtime_composition.cpp
     src/recording/recording_derived_remux.cpp
     src/ingress/recording_application_service.cpp
     src/recording/retention_coordinator.cpp

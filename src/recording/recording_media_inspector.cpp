@@ -337,21 +337,29 @@ MediaInspectionResult InspectAndMarkRecordingMedia(RecordingCatalog& catalog,
     if (options.budget.count() <= 0 || options.budget > std::chrono::minutes(1)) return Unavailable("timeout");
     const auto deadline = Clock::now()+options.budget;
     const auto segment = catalog.FindSegmentById(segment_id);
+    const auto segment_v2 = segment?std::optional<RecordingSegmentV2>{}:catalog.FindSegmentV2ById(segment_id);
     const auto location = catalog.FindSegmentMediaLocation(segment_id);
-    if (!segment || !location || segment->lifecycle != RecordingLifecycle::Finalized) return Unavailable("catalog-not-finalized");
+    if(!location||(!segment&&!segment_v2)||(segment&&segment->lifecycle!=RecordingLifecycle::Finalized)||
+       (segment_v2&&catalog.SegmentLifecycleV2(segment_id)!=RecordingLifecycle::Finalized))return Unavailable("catalog-not-finalized");
     Binding binding;
     if (!binding.Open(location->first,location->second)) return Unavailable("unsafe-or-unavailable-path");
-    auto result = Inspect(binding,{segment->container,segment->video_codecs,segment->size_bytes,
-        segment->checksum_sha256,segment->retention_class},deadline);
+    const RecordingMediaDescriptor descriptor=segment?
+        RecordingMediaDescriptor{segment->container,segment->video_codecs,segment->size_bytes,segment->checksum_sha256,segment->retention_class}:
+        RecordingMediaDescriptor{segment_v2->container,segment_v2->video_codecs,segment_v2->size_bytes,segment_v2->checksum_sha256,segment_v2->retention_class};
+    auto result = Inspect(binding,descriptor,deadline);
     if (!binding.Unchanged()) return Unavailable("file-changed");
     if (Clock::now() >= deadline) return Unavailable("timeout");
-    if (result.state != MediaInspectionState::Corrupt) return result;
     const auto current = catalog.FindSegmentById(segment_id);
+    const auto current_v2=segment_v2?catalog.FindSegmentV2ById(segment_id):std::optional<RecordingSegmentV2>{};
     const auto current_location = catalog.FindSegmentMediaLocation(segment_id);
-    if (!current || !current_location || SerializeRecordingSegmentV1(*current) != SerializeRecordingSegmentV1(*segment) ||
+    const bool same_metadata=segment?(current&&SerializeRecordingSegmentV1(*current)==SerializeRecordingSegmentV1(*segment)):
+        (current_v2&&SerializeRecordingSegmentV2(*current_v2)==SerializeRecordingSegmentV2(*segment_v2)&&
+         catalog.SegmentLifecycleV2(segment_id)==RecordingLifecycle::Finalized);
+    if (!same_metadata || !current_location ||
         *current_location != *location) return Unavailable("catalog-binding-changed");
     if (!binding.Unchanged()) return Unavailable("file-changed");
     if (Clock::now() >= deadline) return Unavailable("timeout");
+    if (result.state != MediaInspectionState::Corrupt) return result;
     // 불변 metadata/path와 Mark의 잠금 내 state/hold/Pending 보호를 조합하며 장기 catalog 잠금은 없다.
     // 이 확인 이후 같은권한 비협력 외부 writer 변경을 원자적으로 막는다고 보장하지 않는다.
     result.applied = catalog.MarkSegmentCorrupt(segment_id,result.corruption_reason,&result.apply_error);

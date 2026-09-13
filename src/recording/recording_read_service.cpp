@@ -117,7 +117,7 @@ bool RecordingReadService::ResolveMediaRange(const std::string& channel, const s
                                              std::int64_t start, std::int64_t end,
                                              RecordingRangeResult* result, std::string* error) const {
     if (result) *result = {};
-    if (!result || start >= end || !ValidateOpaqueId(channel, error) || !ValidateOpaqueId(id, error))
+    if (!result || start >= end || !ValidateRecordingReferenceId(channel, error) || !ValidateOpaqueId(id, error))
         return InvalidRange(error);
     RecordingLocationCatalogSnapshot snapshot;
     if (!catalog_.SnapshotLocationsV2(channel, &snapshot, error)) return false;
@@ -164,7 +164,7 @@ bool RecordingReadService::ResolveMediaRange(const std::string& channel, const s
 bool RecordingReadService::ResolveUtcRange(const std::string& channel, std::int64_t start, std::int64_t end,
                                            RecordingRangeResult* result, std::string* error) const {
     if (result) *result = {};
-    if (!result || start >= end || !ValidateOpaqueId(channel, error)) return InvalidRange(error);
+    if (!result || start >= end || !ValidateRecordingReferenceId(channel, error)) return InvalidRange(error);
     RecordingLocationCatalogSnapshot snapshot;
     if (!catalog_.SnapshotLocationsV2(channel, &snapshot, error)) return false;
     return ResolveUtcRangeFromSnapshot(snapshot,start,end,result,error);
@@ -261,7 +261,7 @@ void SortLocations(RecordingLocationResult* result) {
 bool RecordingReadService::ResolveMediaLocation(const std::string& channel,const std::string& id,std::int64_t pts,
                                                 RecordingLocationResult* result,std::string* error) const {
     if(result)*result={};
-    if(!result||!ValidateOpaqueId(channel,error)||!ValidateOpaqueId(id,error))return LocationError(error);
+    if(!result||!ValidateRecordingReferenceId(channel,error)||!ValidateOpaqueId(id,error))return LocationError(error);
     RecordingLocationCatalogSnapshot snapshot;
     if(!catalog_.SnapshotLocationsV2(channel,&snapshot,error))return false;
     RecordingLocationResult output;
@@ -281,7 +281,7 @@ bool RecordingReadService::ResolveMediaLocation(const std::string& channel,const
 bool RecordingReadService::ResolveUtcLocations(const std::string& channel,std::int64_t utc,
                                                RecordingLocationResult* result,std::string* error) const {
     if(result)*result={};
-    if(!result||!ValidateOpaqueId(channel,error))return LocationError(error);
+    if(!result||!ValidateRecordingReferenceId(channel,error))return LocationError(error);
     RecordingLocationCatalogSnapshot snapshot;
     if(!catalog_.SnapshotLocationsV2(channel,&snapshot,error))return false;
     RecordingLocationResult output;

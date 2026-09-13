@@ -39,6 +39,8 @@ public:
         bool use_consumer_references{false};
         DerivedJobService* derived_service{nullptr};
         DerivedEventWorkerOptions derived_options;
+        // 기본 runtime 전용: raw stream EventRecord를 session numeric context에 결박한다.
+        bool use_runtime_stream_identity{false};
     };
 
     CatalogEventRecordingBridge(RecordingCatalog& catalog,

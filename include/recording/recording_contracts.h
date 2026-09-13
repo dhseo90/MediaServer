@@ -262,6 +262,9 @@ bool ParseAnalysisObservationV2(const std::string& json, AnalysisObservationV2* 
                                 std::string* error);
 
 bool ValidateOpaqueId(const std::string& value, std::string* error);
+// V2 source/channel 참조: opaque의 길이·문자·경로 제한을 유지하되 숫자 원문도 허용한다.
+// V1 legacy 참조 검증과 생성 opaque ID 검증은 별도로 유지한다.
+bool ValidateRecordingReferenceId(const std::string& value, std::string* error);
 // 내부 trusted-journal identity 결속. 파일 서명/미디어 checksum이 아니며 JSON 필드는 추가하지 않는다.
 bool IsBoundRecordingFallbackNamespace(const std::string& value);
 std::string BoundRecordingFallbackId(const std::string& event_id,
