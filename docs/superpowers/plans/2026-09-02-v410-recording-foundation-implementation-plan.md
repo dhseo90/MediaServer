@@ -1936,6 +1936,64 @@ S11·장시간/UI 전체와 후속4 데이터 삭제는 자동 착수하지 않�
 3D 뒤 순서는 새 기본 경로 검증 → 불필요 legacy 코드·개발 데이터의 정확한 소유/의존 대조 및 정리 →
 S10 코드 고정 → S11 증거 유효성 대조와 승인된 최종 검증이다. 강제 변환·역사적 실패 삭제·새 검색 기능은 제외한다.
 
+#### S11 준비: 테스트 코드 반영 대조 — 2026-09-14
+
+후속 1번의 [등록·소스 매핑 감사](../../release-artifacts/v4.1.0/s11-preparation-mapping/README.md)를 작성했다. S00~S09/ENV/IDMAP 표 283행과 S05 하위92개, S10 문맥별 정의를 대조했다. 미결박·ID 재사용·구형 oracle·최종 실행 미연결을 분리했으며 전체 coverage 또는 S11 준비 완료로 판정하지 않는다. 이번에는 문서만 변경했고 후속 2번 개발·테스트 실행·브라우저·커밋·푸시는 진행하지 않았다.
+
+기준 `037d42ee`, `v4.1.0` clean/sync에서 사용자 요청에 따라 최종 검증 전 준비 코드를 읽기 대조했다.
+메인은 기존 S00~S08/S09 실행 경계·인증·구형 fixture, 단일 Astra/medium 담당자는 S10 기능군의
+실제 assertion과 실행 연결을 확인했다. 아래는 **준비 감사 결과이며 실행 PASS가 아니다**.
+제품 수정·데이터 삭제·테스트 실행·커밋/푸시는 이 대조에서 수행하지 않았다. 이 기록의 문서 형식
+검사만 별도로 수행한다. 실제 브라우저는 사용자 제외이고 최종 안정화/30분/120분/UI는 이후 승인 범위다.
+
+판정: 신규 기능의 개별 테스트는 존재하지만 **현재 S11 통합 경로에 전부 반영됐다고 판정할 수 없다**.
+기능군별 소스·oracle 대조이며, 모든 등록 ID/분기/변형을 한 행씩 연결한 최종 전수표 완성은 아니다.
+파일 존재, 직접 bash 실행 가능, 최종 묶음 포함, 현재 계약 검사, 실제 PASS를 서로 구분한다.
+아래 경로는 `scripts/internal/` 기준이고 행은 조사 당시 기준이다.
+
+| 기능군 | 실제 테스트 코드·oracle 근거 | 실행 연결·남은 준비 |
+| --- | --- | --- |
+| S00 연구/버전 기준 | `verify_v410_entry_baseline.sh` source4.1/published4.0 분리·연구 gate dispatch 검사 | 제품 시간/녹화 검증이 아닌 metadata 기준. 기존 S00 기록 유지 |
+| S01~S03 기존 계약/recorder/catalog | `verify_v410_recording_contracts.sh`는 `recording_contract_smoke.cpp`와 v1 golden fixture를 실행 | 구형 계약 테스트를 새 관리 저장소 전체 검증으로 사용하지 않음 |
+| 시간·입력 | `recording_managed_writer_smoke.cpp:135,187,244` 실제 프레임/시계 split/B-frame; `recording_input_observation_smoke.cpp:84` 입력/세대/GOP | managed writer/input runner 존재. `recording_time_policy_probe.cpp:14` 순수 설계 모델과 제품 검사를 구별 |
+| ID·숫자 참조 | `recording_numeric_reference_smoke.cpp:23` 007 왕복/실제 writer/binding; `recording_identity_smoke.cpp:177` 매핑·실패 | 두 직접 runner 존재, 신규 항목 최종 실행 목록 연결 필요 |
+| 저장/binding | `recording_source_binding_smoke.cpp:86` 단일 bound finalize/복구; `recording_derived_jobs_smoke.cpp:178` replay·예약·실패폐쇄 | 구형 catalog runner만으로 대체 불가 |
+| 쓰기 경계 | `recording_write_boundaries_smoke.cpp:13` 수락 후 색인/cap/실패 순서 | callback 실패 검사와 실제 입력 검사를 구분해 연결 |
+| S07 분석 증거 | `recording_frame_correlation_smoke.cpp:107`, `recording_observation_runtime_smoke.cpp:178` decoder/manager·interval union/cutoff/reset | 신규 runtime 경계와 기존 `verify_v410_recording_observations.sh` 구분 |
+| 참조·위치 | `recording_consumer_reference_smoke.cpp:22`, `recording_consumer_connection_smoke.cpp:330`, `recording_range_resolution_smoke.cpp:142` 축·padding·stable link·반개구간·복수 mapping | 미주입 pending도 의도된 독립 계약이므로 이름만 보고 삭제하지 않음 |
+| 파생 선택/remux | `recording_derived_selection_smoke.cpp:61`, `recording_derived_remux_smoke.cpp:175` 세대·중복PTS·공백·분수잔차·취소/FD | 신규 selection/remux runner를 최종 목록에 연결 |
+| S05/S08 내구 job·복구 | `recording_derived_job_service_smoke.cpp:426`, `recording_derived_jobs_smoke.cpp:280` 취소/SQLite/fallback/checkpoint/tombstone·append 불확실성 | 기존 finalize integration과 신규 job 검사를 구분 |
+| 실제 이벤트 통합 | `recording_derived_event_integration_smoke.cpp:100,525,748` 별도 복구 프로세스·H264 decoder→2출력·sticky ownership | 신규 통합 runner 존재. S09 event-link oracle를 그대로 적용하면 안 됨 |
+| S04 보존·재생 보호 | `recording_retention_v2_smoke.cpp:149`, `recording_public_media_smoke.cpp:47` quota/pin/hold/손상·Complete 출력·원본 삭제 이후 제공 | 직접 runner 존재. 수동 무연결 Event 거부와 유효 파생 Event 허용을 함께 유지 |
+| S06 공개 DTO/HTTP/UI 소비 | `recording_public_timeline_smoke.cpp:77`, `recording_playback_status.test.mjs:58`, `verify_v410_recording_ui_contract.mjs:380,544,583` 정밀시간/unknown/itemId/페이지·실제 HTTP/auth/hold | HTTP 경로 갱신됨. VM은 실제 브라우저 아님. VM/public focused가 기본 S06/S11 묶음에 자동 포함되지 않음 |
+| 서버 기본 구성 | `recording_default_composition_smoke.cpp:148,310` 실제 supervisor·off/on·복구·기본10s/post5s·provider 수명 | default composition runner 존재, foundation suite 미호출 |
+
+##### 확인된 준비 결함과 수정 순서
+
+| 순서 | 직접 확인된 결함 | 수정안·합격 기준 |
+| --- | --- | --- |
+| 1 | `recording_foundation_suite.mjs:35`는 runtime/app-auth 두 단계뿐. 신규 S10 focused는 직접 명령으로만 존재 | 기능 ID→제품 계약→실제 oracle→실행 명령→네 검증 영역의 전수 매핑을 먼저 확정. 누락/중복/구형/순수모델/실제 제품 검사를 구분. 모든 직접 runner를 무조건 wrapper에 넣기보다 최종 manifest의 exact 대상과 미실행 전파를 검사 |
+| 2 | `verify_v410_recording_foundation.mjs:108,424,582` 구형 원장·segment.v1·단일 derived_segment_id/fallback 전제. 제품 원장은 `src/recording/recording_journal.cpp:139`의 recording-v2-mutations.jsonl | 기존 승인 계약의 reference→job→복수 output·현재 가용성을 검사. 요청 PTS를 UTC로 보거나 managed Event에 구형 fallback을 강제하지 않음. runtime smoke의 legacy 직접 구성(146행)도 새 default 검사와 분리 |
+| 3 | `recording_journal_reader.mjs:4`, observer6/summary2의 구형7종 mutation; `recording_longrun_progress.mjs:45` V1 구조와 UTC strict 증가 강제 | bounded/strict 판정 유지, 현재 mutation·내구 order·독립 epoch·UTC mapping/unknown으로 관측 모델 전환. 시각 역행을 녹화 순서 실패로 단정하지 않음. deterministic 양성/음성 자체 검사로 준비 확인; 120분 실행은 하지 않음 |
+| 4 | `verify_auth_workflow.sh:48` 사용자 env5개 요구, `1331` Node argv JSON quote, `1345` curl password argv. S06 shell72도 메모리 난수 auth 앞에서 구형 env 선검사 | 실행별 난수5개 자동 생성·프로세스 stdin/메모리 전달·출력 비노출·소유 임시물 정리로 보완. 실제 운영 계정/제품 auth 정책 불변. 등록된 기존 role/scope/암호이력 oracle를 삭제하거나 축소하지 않음 |
+| 5 | `verify_v410_recording_ui_contract.mjs:686` UI만 구형 --seed-ui. UI auth prep test94 이후도 구형 원장/수동 Event 검사 | 새 managed seed와 실제 출력 provenance·미확인/부분/손상/삭제 상태를 준비. UI case의 selector/action/completion oracle를 현재 itemId/문자열/null/파일 시작 계약과 대조. 브라우저 기동·실제 PASS는 별도 |
+| 6 | 구형 코드/fixture가 위 검증기에서 아직 사용됨. test/fixtures/recording/v1은 추적 파일8개이며 현재 compatibility manifest가4개 golden hash를 결박 | 대체 검증 연결 후 사용처·정확 소유·필요 음성 fixture를 대조하여 불필요한 경로만 제거. 로컬 개발 데이터 위치/소유 전수 확인은 아직 미완료이므로 이 조사로 삭제 승인 대상 확정하지 않음 |
+
+삭제 전에 대체 검증을 확보하는 순서를 권장한다. `RecordingConsumerReferenceV1`과 `DerivedJobIntentV1`은
+현재 새 파생 작업에서도 사용하는 독립 계약(`recording_derived_job.h:14`, `recording_derived_selection.cpp:179`)이다.
+V1/V2 접미사만으로 일괄 삭제·재명명하지 않는다. 과거 실패/실행 기록은 보존하며 현재 PASS로 승격하지 않는다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/기능 | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 조건부 진행 | 준비 코드 수정 후 해당 자체 검사·영향 회귀 필요. 이번 대조에서는 제품 검사 없음 | 위 준비1~6, AGENTS7.6.2 | 준비 수정 범위 확정 뒤 단기 검사, 최종 묶음은 이후 |
+| 30분 | 미진행 | 사용자가 최종 검증을 준비 이후로 지정 | S11/이번 요청 | 이번 실행 안 함 |
+| 120분 | 미진행 | reader/progress 준비 미완료, 최종 검증 이후 | 위 준비2~3/S11 | 이번 실행 안 함 |
+| UI 풀테스트 | 미진행 | 실제 브라우저 제외 유지·seed 준비 미완료 | 위 준비5/D08 | 이번 실행 안 함 |
+
+다음 완료 판정은 전수 매핑의 미확인 해소, 준비 수정·관련 단기 검사, 구형 제거의 대체 증거,
+코드 고정과 최종 실행 계획 확정이다. 이 감사만으로 준비 완료·S10/S11 완료를 주장하지 않는다.
+테스트 임시물/서버/계정 생성 없음. 토큰 start/end/consumed는 실행별 계측 도구 부재로 미집계다.
+
 #### 3D-3 실행 경계 — 2026-09-13
 
 시작 기준은 `491daeee`, `v4.1.0` clean/sync다. 사용자는 3D-3 개발·관련 단기 검증·완료 후

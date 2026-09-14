@@ -1,5 +1,7 @@
 # Project Feature Test Inventory
 
+S11 준비의 [v4.1.0 테스트 매핑 감사](release-artifacts/v4.1.0/s11-preparation-mapping/README.md)는 등록·소스·실행 연결의 차이를 기록한다. 실행 결과나 전체 coverage 충족 판정이 아니며 기존 ID/총계를 재번호화하지 않는다.
+
 ## S10 3D-3 D HTTP 안정화
 
 실제 최종98행(HTTP85/harness5/seed8), 과거3행은 [D 전수 결과](release-artifacts/v4.1.0/s10-public-consumption/D-results.md)에 보존한다. 브라우저 제외 및 실제 서버 두 번째 기동 미실행을 유지한다.
