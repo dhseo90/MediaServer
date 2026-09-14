@@ -241,13 +241,10 @@ role/scope snapshot을 담은 HttpOnly session cookie를 받습니다.
 
 ![로그인 화면](assets/ui/auth-login.png)
 
-로컬 QA, 수동 smoke, 자동 auth smoke의 계정 비밀번호는 테스트 실행자가
-명시적으로 지정합니다. auth verifier는 `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`,
-`MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD`,
-`MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD`,
-`MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE`,
-`MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO`가 없으면 시작 전에 실패해야 합니다.
-문서, 스크립트, fixture에 고정 기본 비밀번호를 두지 않습니다.
+운영·수동 QA의 기존 계정 비밀번호는 사용자가 관리합니다. 격리 자동 auth smoke는
+AGENTS.md 7.6에 따라 실행마다 임시값을 생성하므로 사용자 지정이 필요하지 않습니다.
+검증 내부의 다섯 값과 전달 경계는 [검증 안내](stream-verification.md)의 Fixture cleanup 경계를 따릅니다.
+고정 기본값·이전 실행값 재사용·원문 로그/명령행/Git 보존은 금지하며, 운영 계정 비밀번호를 변경하지 않습니다.
 
 Password policy 기본값은 `kr-privacy`입니다.
 `/setup`과 `/password/change`는 동일한 정책을 적용합니다.

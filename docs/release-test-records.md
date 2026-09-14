@@ -1,5 +1,32 @@
 # Release Test Records
 
+## S11 인증 준비 결과 — 2026-09-14
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| AUTH-P01~09 자체검사 | 최종 메인 실행 `env -i PATH="$PATH" node --test scripts/internal/recording_auth_preparation.test.mjs`, exit0, 17개 통과. 실제 개별 행·최초 RED 및 준비 실패는 아래 상세 기록 | pass |
+| AUTH-P07 bootstrap | 격리 실제 서버, 최종 exit0, 소계19. 최초 두 준비 실패 후 메인 수정·재검증 | pass |
+| AUTH-P07 users | 격리 실제 서버, exit0, 소계72 | pass |
+| AUTH-P07 routes | 격리 실제 서버, exit0, 요약146·출력 PASS148행 구분 보존 | pass |
+
+전수 결과와 소유 root·프로세스·포트 정리, 원출력, 실패 이력은 [인증 준비 기록](release-artifacts/v4.1.0/s11-preparation-mapping/auth-preparation.md)에 보존한다. 위는 작업 요약이며 상세 행을 대체하지 않는다. 제품 코드·브라우저·30분·120분·S11 최종 suite는 이번 범위가 아니다. token start/end/consumed와 총 elapsed는 메인 전체 집계 수단 부재로 미집계, 자체검사 elapsed2065.953459ms는 실제 Node 출력이다.
+
+## S11 인증 준비 실행 전 정의 — 2026-09-14
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| AUTH-P01 | 실행별 임시값 | 서로 다른5개·정책 충족·두 실행 비재사용; 원문 미출력 | v4.1.0 |
+| AUTH-P02 | 상속/추적 차단 | inherited 값 무시, xtrace/allexport 차단; child argv/env/log 원문 없음 | v4.1.0 |
+| AUTH-P03 | HTTP 비밀 전달 | 실제 transport의 JSON/urlencoded·invite URL·header 의미 보존, curl argv 원문 없음; config escaping 음성 포함 | v4.1.0 |
+| AUTH-P04 | JSON stdin | 빈값/따옴표/역슬래시/개행 JSON quoting 정확, Node argv 원문 없음 | v4.1.0 |
+| AUTH-P05 | 소유권/정리 | root0700·민감파일0600, 성공/실패/중단 정리와 정리 실패 비정상exit | v4.1.0 |
+| AUTH-P06 | 서버 격리 | env allowlist·상태/미디어 소유root·외부설정 차단. setupRequired=true일 때 ICE 검사를 설정 완료 뒤로 지연, false 즉시 검사·잘못된 응답 거부. double관측과 실제서버 증거 구분 | v4.1.0 |
+| AUTH-P07 | 기존 인증 회귀 | bootstrap/users/routes·role/scope/history 기대값 유지; 자체검사 후 격리 실제3모드 별도기록 | v4.1.0 |
+| AUTH-P08 | S06 선수조건 | 외부5env 없이 기존 Node memory auth 경로 선택, 기존 read-model/API/lifecycle 순서 유지 | v4.1.0 |
+| AUTH-P09 | 등록기 정합성 | operator env 강제조건 제거 후 안전 준비경계 검사, 누락된보안연결 거부 | v4.1.0 |
+
+자체검사는 실제 helper/transport, 서버·네트워크 double은 관측 용도로만 사용한다. 실제 인증 모드 결과와 혼동하지 않는다. 상세 [인증 준비 기록](release-artifacts/v4.1.0/s11-preparation-mapping/auth-preparation.md). 실제 브라우저·30/120분·최종 suite는 이번 제외.
+
 ## S10 3D-3 D 실제 HTTP 최종 결과 — 2026-09-13
 
 | 제목 | 수행내용 | 결과(pass/fail) |

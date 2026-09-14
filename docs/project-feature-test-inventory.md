@@ -1,5 +1,21 @@
 # Project Feature Test Inventory
 
+## S11 인증 선수조건 보완 — 실행 전 등록
+
+| 기능 ID | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- |
+| AUTH-P01 | 실행별 임시값: 서로 다른5개·정책 충족·두 실행 비재사용; 원문 미출력 | 비대상: 준비 경계 | 비대상: 준비 경계 | 비대상: 실제 UI 아님 |
+| AUTH-P02 | 상속/추적 차단: inherited 값 무시, xtrace/allexport 차단; child argv/env/log 원문 없음 | 비대상: 준비 경계 | 비대상: 준비 경계 | 비대상: 실제 UI 아님 |
+| AUTH-P03 | HTTP 비밀 전달: 실제 transport의 JSON/urlencoded·invite URL·header 의미 보존, curl argv 원문 없음; config escaping 음성 포함 | 비대상: 준비 경계 | 비대상: 준비 경계 | 비대상: 실제 UI 아님 |
+| AUTH-P04 | JSON stdin: 빈값/따옴표/역슬래시/개행 JSON quoting 정확, Node argv 원문 없음 | 비대상: 준비 경계 | 비대상: 준비 경계 | 비대상: 실제 UI 아님 |
+| AUTH-P05 | 소유권/정리: root0700·민감파일0600, 성공/실패/중단 정리와 정리 실패 비정상exit | 비대상: 준비 경계 | 비대상: 준비 경계 | 비대상: 실제 UI 아님 |
+| AUTH-P06 | 서버 격리: env allowlist·상태/미디어 소유root·외부설정 차단. setupRequired=true일 때 ICE 검사를 설정 완료 뒤로 지연, false 즉시 검사·잘못된 응답 거부. double관측과 실제서버 증거 구분 | 비대상: 준비 경계 | 비대상: 준비 경계 | 비대상: 실제 UI 아님 |
+| AUTH-P07 | 기존 인증 회귀: bootstrap/users/routes·role/scope/history 기대값 유지; 자체검사 후 격리 실제3모드 별도기록 | 비대상: 준비 경계 | 비대상: 준비 경계 | 비대상: 실제 UI 아님 |
+| AUTH-P08 | S06 선수조건: 외부5env 없이 기존 Node memory auth 경로 선택, 기존 read-model/API/lifecycle 순서 유지 | 비대상: 준비 경계 | 비대상: 준비 경계 | 비대상: 실제 UI 아님 |
+| AUTH-P09 | 등록기 정합성: operator env 강제조건 제거 후 안전 준비경계 검사, 누락된보안연결 거부 | 비대상: 준비 경계 | 비대상: 준비 경계 | 비대상: 실제 UI 아님 |
+
+개별 명령·예상 RED·실제 결과는 [인증 준비 기록](release-artifacts/v4.1.0/s11-preparation-mapping/auth-preparation.md)에 보존한다. 사전등록은 PASS가 아니다.
+
 S11 준비의 [v4.1.0 테스트 매핑 감사](release-artifacts/v4.1.0/s11-preparation-mapping/README.md)는 등록·소스·실행 연결의 차이를 기록한다. 실행 결과나 전체 coverage 충족 판정이 아니며 기존 ID/총계를 재번호화하지 않는다.
 
 후속 매핑 보완은 감사의 S00~S09 보완 판정과 S10 미결박 분류를 기준으로 읽는다. shared/상위 요구/deprecated/실제 검사 공백을 분리하며 과거 ID를 재사용·재번호화하지 않는다. 제품 테스트는 이번 문서 보완에서 실행하지 않았다.

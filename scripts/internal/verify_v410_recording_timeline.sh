@@ -69,14 +69,7 @@ case "$MODE" in
     exec node "$SCRIPT_DIR/verify_v410_recording_harness.test.mjs" all
     ;;
   "")
-    # 미설정 인증값은 실행 전에 거부한다. 값 자체는 출력하거나 저장하지 않는다.
-    for suffix in TEST_PASSWORD PREVIOUS_PASSWORD SECOND_PREVIOUS_PASSWORD WRONG_PASSWORD_ONE WRONG_PASSWORD_TWO; do
-      variable="MEDIA_SERVER_VERIFY_AUTH_${suffix}"
-      if [[ -z "${!variable:-}" ]]; then
-        echo "[fail] 필수 인증 환경변수 미설정: ${variable}" >&2
-        exit 1
-      fi
-    done
+    # --http-auth가 실행별 CSPRNG 임시값을 메모리에서 생성한다.
     bash "$0" --read-model
     node "$SCRIPT_DIR/verify_v410_recording_ui_contract.mjs" --http-api
     node "$SCRIPT_DIR/verify_v410_recording_ui_contract.mjs" --http-auth

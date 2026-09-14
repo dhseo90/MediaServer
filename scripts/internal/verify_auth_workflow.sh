@@ -1,16 +1,27 @@
 #!/usr/bin/env bash
 # 파일 용도: auth bootstrap/users/routes smoke 검증을 격리 users file과 포트에서 실행한다.
+set +x
+set +a
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 MODE="${1:-}"
-if [[ -z "${MODE}" ]]; then
+if [[ "${MODE}" != bootstrap && "${MODE}" != users && "${MODE}" != routes ]]; then
   echo "usage: verify_auth_workflow.sh bootstrap|users|routes" >&2
   exit 2
 fi
+source "${ROOT_DIR}/scripts/internal/recording_auth_preparation.sh"
+umask 077
+auth_generate_passwords || { echo '[fail] 임시 인증값 생성 실패' >&2; exit 2; }
 
 RUN_ID="auth-${MODE}-$(date +%s)-$$"
-TMP_DIR="${TMPDIR:-/tmp}"
+TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/media-server-auth-${MODE}.XXXXXX")"
+TMP_DIR="$(cd "$TMP_DIR" && pwd -P)"
+AUTH_ROOT_ID=""
+# root identity 확보 실패에도 방금 생성한 소유 root를 누락하지 않는다.
+trap 'r=$?; rmdir -- "$TMP_DIR" || r=1; exit "$r"' EXIT
+AUTH_ROOT_ID="$(command env -i PATH="$PATH" node "${AUTH_PREPARATION_DIR}/recording_auth_preparation.mjs" root-id "$TMP_DIR")"
+# 명시 visual opt-in은 보존한다. 비브라우저 실행자는 환경에서 0을 지정한다.
 USERS_FILE="${TMP_DIR}/media_server_${RUN_ID}_users.json"
 SOURCE_REGISTRY_FILE="${TMP_DIR}/media_server_${RUN_ID}_sources.json"
 VIEWS_REGISTRY_FILE="${TMP_DIR}/media_server_${RUN_ID}_views.json"
@@ -26,6 +37,9 @@ REQUEST_COOKIE="${TMP_DIR}/media_server_${RUN_ID}_request.cookie"
 LOG_FILE="${TMP_DIR}/media_server_${RUN_ID}.log"
 ACCESS_REQUEST_PAYLOAD="${TMP_DIR}/media_server_${RUN_ID}_access_request_payload.json"
 SERVER_PID=""
+AUTH_UDP_PID=""
+AUTH_UDP_PORT=""
+AUTH_RTSP_PORT=""
 BASE=""
 
 die_config() {
@@ -33,51 +47,38 @@ die_config() {
   exit 2
 }
 
-require_auth_secret_env() {
-  local name="$1"
-  local value="${!name:-}"
-  if [[ -z "${value}" ]]; then
-    die_config "${name} is required. Auth verifier passwords must be provided by the test operator, not defaulted by the script."
-  fi
-  if [[ "${value}" == *$'\n'* || "${value}" == *$'\r'* ]]; then
-    die_config "${name} must be a single-line value"
-  fi
-  printf '%s' "${value}"
-}
-
-TEST_PASSWORD="$(require_auth_secret_env MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD)"
-# 교체/history 검증은 표준 smoke 비밀번호와 다른 이전 비밀번호가 필요하다.
-PREVIOUS_PASSWORD="$(require_auth_secret_env MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD)"
-SECOND_PREVIOUS_PASSWORD="$(require_auth_secret_env MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD)"
-WRONG_PASSWORD_ONE="$(require_auth_secret_env MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE)"
-WRONG_PASSWORD_TWO="$(require_auth_secret_env MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO)"
-
-AUTH_SECRET_VALUES=("${TEST_PASSWORD}" "${PREVIOUS_PASSWORD}" "${SECOND_PREVIOUS_PASSWORD}" "${WRONG_PASSWORD_ONE}" "${WRONG_PASSWORD_TWO}")
-for ((auth_secret_i = 0; auth_secret_i < ${#AUTH_SECRET_VALUES[@]}; auth_secret_i += 1)); do
-  for ((auth_secret_j = auth_secret_i + 1; auth_secret_j < ${#AUTH_SECRET_VALUES[@]}; auth_secret_j += 1)); do
-    if [[ "${AUTH_SECRET_VALUES[auth_secret_i]}" == "${AUTH_SECRET_VALUES[auth_secret_j]}" ]]; then
-      die_config "auth verifier password env values must be distinct"
-    fi
-  done
-done
-unset AUTH_SECRET_VALUES auth_secret_i auth_secret_j
-
 pass_count=0
 
 cleanup() {
-  if [[ -n "${SERVER_PID}" ]] && kill -0 "${SERVER_PID}" >/dev/null 2>&1; then
-    kill "${SERVER_PID}" >/dev/null 2>&1 || true
-    wait "${SERVER_PID}" >/dev/null 2>&1 || true
+  local result=$?
+  local ownership_safe=1
+  trap - EXIT
+  stop_server || { result=1; ownership_safe=0; }
+  if [[ -n "$AUTH_UDP_PID" ]]; then
+    if kill -0 "$AUTH_UDP_PID" >/dev/null 2>&1; then
+      kill "$AUTH_UDP_PID" >/dev/null 2>&1 || { result=1; ownership_safe=0; }
+      for _ in $(seq 1 100); do
+        kill -0 "$AUTH_UDP_PID" >/dev/null 2>&1 || break
+        sleep 0.1
+      done
+    fi
+    if kill -0 "$AUTH_UDP_PID" >/dev/null 2>&1; then
+      result=1; ownership_safe=0
+    else
+      wait "$AUTH_UDP_PID" >/dev/null 2>&1 || { result=1; ownership_safe=0; }
+      AUTH_UDP_PID=""
+    fi
   fi
-  rm -f "${USERS_FILE}" "${USERS_FILE}.tmp" \
-    "${SOURCE_REGISTRY_FILE}" "${SOURCE_REGISTRY_FILE}".tmp* \
-    "${VIEWS_REGISTRY_FILE}" "${VIEWS_REGISTRY_FILE}".tmp* \
-    "${ANALYSIS_REGISTRY_FILE}" "${ANALYSIS_REGISTRY_FILE}".tmp* \
-    "${ADMIN_COOKIE}" "${OP_COOKIE}" "${OP_READONLY_COOKIE}" \
-    "${VIEWER_COOKIE}" "${INTEGRATOR_COOKIE}" \
-    "${INVITE_COOKIE}" "${EXISTING_INVITE_COOKIE}" "${REQUEST_COOKIE}" \
-    "${LOG_FILE}" "${ACCESS_REQUEST_PAYLOAD}"
-  rm -f "${TMP_DIR}/media_server_${RUN_ID}_"*.payload
+  if [[ "$ownership_safe" != 1 || -n "${SERVER_PID}" || -n "$AUTH_UDP_PID" ]]; then
+    echo '[fail] 종료/포트 미확인: 소유 root 보존' >&2
+    exit 1
+  fi
+  local size
+  size="$(du -sk "$TMP_DIR" | awk '{print $1}')"
+  if ! command env -i PATH="$PATH" node "${AUTH_PREPARATION_DIR}/recording_auth_preparation.mjs" cleanup "$TMP_DIR" "$AUTH_ROOT_ID"; then result=1; fi
+  if [[ -e "$TMP_DIR" || -L "$TMP_DIR" ]]; then result=1; else echo "[cleanup] path=$TMP_DIR kib=$size absent=true"; fi
+  unset TEST_PASSWORD PREVIOUS_PASSWORD SECOND_PREVIOUS_PASSWORD WRONG_PASSWORD_ONE WRONG_PASSWORD_TWO
+  exit "$result"
 }
 trap cleanup EXIT
 
@@ -91,11 +92,8 @@ pass() {
 }
 
 fail() {
-  echo "[fail] $*" >&2
-  if [[ -f "${LOG_FILE}" ]]; then
-    echo "[log] ${LOG_FILE}" >&2
-    tail -n 80 "${LOG_FILE}" >&2 || true
-  fi
+  # 응답·invite URL·server log 원문은 실패 보고에 복사하지 않는다.
+  echo "[fail] 인증 oracle 실패: caller=${FUNCNAME[1]:-main}" >&2
   exit 1
 }
 
@@ -122,6 +120,17 @@ choose_free_port() {
   echo "${port}"
 }
 
+verify_ice_when_ready() {
+  local required
+  required="$(curl -sS -w $'\n%{http_code}' "${BASE}/auth/whoami" | node "${AUTH_PREPARATION_DIR}/recording_auth_preparation.mjs" setup-required)" || fail 'setup 상태 확인 실패'
+  if [[ "$required" == true ]]; then
+    info 'ICE 응답 검사는 setup 완료 뒤 수행'
+    return
+  fi
+  [[ "$required" == false ]] || fail 'setup 상태 형식 오류'
+  curl -fsS "${BASE}/webrtc/config" | node "${AUTH_PREPARATION_DIR}/recording_auth_preparation.mjs" ice-config "$AUTH_UDP_PORT" || fail '실제 ICE 격리 설정 불일치'
+}
+
 start_server() {
   local auth_mode="$1"
   local ui_home="${2:-lab}"
@@ -130,8 +139,13 @@ start_server() {
   local http_port rtsp_port
   http_port="$(choose_free_port "${requested_http}")"
   rtsp_port="$(choose_free_port "${requested_rtsp}")"
+  AUTH_RTSP_PORT="$rtsp_port"
   BASE="http://127.0.0.1:${http_port}"
   info "starting auth ${MODE} server: auth=${auth_mode} http=${http_port} rtsp=${rtsp_port}"
+  mkdir -p "$TMP_DIR/state" "$TMP_DIR/recordings" "$TMP_DIR/events" "$TMP_DIR/cache" "$TMP_DIR/tmp" "$TMP_DIR/media"
+  cp "${ROOT_DIR}/video/sample_h264.mp4" "$TMP_DIR/media/sample_h264.mp4"
+  auth_start_ice || fail '소유 UDP 준비 실패'
+  env -i PATH="$PATH" HOME="$TMP_DIR" TMPDIR="$TMP_DIR/tmp" \
   MEDIA_SERVER_SKIP_LOCAL_ENV=1 \
   MEDIA_SERVER_SKIP_BUILD=1 \
   MEDIA_SERVER_AUTH_MODE="${auth_mode}" \
@@ -139,6 +153,14 @@ start_server() {
   MEDIA_SERVER_SOURCE_REGISTRY="${SOURCE_REGISTRY_FILE}" \
   MEDIA_SERVER_PUBLISHED_VIEWS="${VIEWS_REGISTRY_FILE}" \
   MEDIA_SERVER_ANALYSIS_REGISTRY="${ANALYSIS_REGISTRY_FILE}" \
+  MEDIA_SERVER_STATE_DIR="$TMP_DIR/state" \
+  MEDIA_SERVER_RECORDING_STORAGE_ROOT="$TMP_DIR/recordings" MEDIA_SERVER_RECORDING_ENABLED=0 \
+  MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_PATH="$TMP_DIR/events/events.jsonl" MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_ENABLED=0 \
+  MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_DIR="$TMP_DIR/events/snapshots" MEDIA_SERVER_ANALYSIS_EVENT_CLIP_DIR="$TMP_DIR/events/clips" \
+  MEDIA_SERVER_ANALYSIS_EVENT_SNAPSHOT_HOOK_ENABLED=0 MEDIA_SERVER_ANALYSIS_EVENT_CLIP_HOOK_ENABLED=0 MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=0 \
+  MEDIA_SERVER_FILE_ROOT="$TMP_DIR/media" MEDIA_SERVER_DEFAULT_FILE="$TMP_DIR/media/sample_h264.mp4" \
+  MEDIA_SERVER_GST_CACHE_DIR="$TMP_DIR/cache" GST_REGISTRY="$TMP_DIR/cache/registry.bin" GST_REGISTRY_1_0="$TMP_DIR/cache/registry.bin" \
+  MEDIA_SERVER_WEBRTC_STUN_SERVER="stun://127.0.0.1:$AUTH_UDP_PORT" MEDIA_SERVER_WEBRTC_TURN_SERVER= \
   MEDIA_SERVER_AUTH_LOGIN_MAX_FAILURES=2 \
   MEDIA_SERVER_AUTH_LOGIN_LOCKOUT_SECONDS=60 \
   MEDIA_SERVER_AUTH_PASSWORD_HISTORY_COUNT=2 \
@@ -151,6 +173,7 @@ start_server() {
   SERVER_PID=$!
   for _ in $(seq 1 80); do
     if curl -sS "${BASE}/health" >/dev/null 2>&1; then
+      verify_ice_when_ready
       pass "server health ok (${BASE})"
       return
     fi
@@ -163,11 +186,24 @@ start_server() {
 }
 
 stop_server() {
+  local status=0
   if [[ -n "${SERVER_PID}" ]] && kill -0 "${SERVER_PID}" >/dev/null 2>&1; then
     kill "${SERVER_PID}" >/dev/null 2>&1 || true
-    wait "${SERVER_PID}" >/dev/null 2>&1 || true
+    for _ in $(seq 1 100); do
+      kill -0 "${SERVER_PID}" >/dev/null 2>&1 || break
+      sleep 0.1
+    done
+    if kill -0 "${SERVER_PID}" >/dev/null 2>&1; then return 1; fi
+    wait "${SERVER_PID}" >/dev/null 2>&1 || status=$?
+  elif [[ -n "${SERVER_PID}" ]]; then
+    wait "${SERVER_PID}" >/dev/null 2>&1 || status=$?
   fi
   SERVER_PID=""
+  if [[ -n "$BASE" ]]; then
+    command env -i PATH="$PATH" node "${AUTH_PREPARATION_DIR}/recording_auth_preparation.mjs" port-closed "${BASE##*:}" || return 1
+    command env -i PATH="$PATH" node "${AUTH_PREPARATION_DIR}/recording_auth_preparation.mjs" port-closed "$AUTH_RTSP_PORT" || return 1
+  fi
+  [[ "$status" == 0 ]]
 }
 
 header_status_location() {
@@ -1329,7 +1365,7 @@ PY
 }
 
 json_quote() {
-  node -e 'process.stdout.write(JSON.stringify(process.argv[1] || ""));' "$1"
+  printf '%s' "$1" | node -e 'process.stdout.write(JSON.stringify(require("fs").readFileSync(0,"utf8")));'
 }
 
 json_password_payload() {
@@ -1382,6 +1418,7 @@ setup_admin() {
   expect_auth_store_owner_only
   after_setup="$(header_status_location "${BASE}/setup")"
   expect_eq "${after_setup}" "302:/login" "setup blocked after completion"
+  verify_ice_when_ready
 }
 
 login_admin() {

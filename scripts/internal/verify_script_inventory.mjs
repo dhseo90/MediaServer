@@ -182,11 +182,14 @@ check("auth verifier has no hardcoded test password defaults", () => {
     "MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE",
     "MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO",
   ]) {
-    assert(authWorkflow.includes(`require_auth_secret_env ${envName}`), `auth workflow does not require ${envName}`);
     assert(streamVerification.includes(envName), `stream verification docs missing ${envName}`);
     assert(agents.includes(envName), `AGENTS.md missing ${envName}`);
   }
-  assert(authWorkflow.includes("Auth verifier passwords must be provided by the test operator"), "auth workflow missing explicit no-default failure message");
+  assert(authWorkflow.includes('recording_auth_preparation.sh') && authWorkflow.includes('auth_generate_passwords'), 'auth workflow missing isolated credential bootstrap');
+  const preparation=readText(path.join(rootDir,'scripts/internal/recording_auth_preparation.mjs'));
+  assert(preparation.includes("randomBytes(24)") && preparation.includes("['-q','--config','-']"), 'auth preparation missing CSPRNG/stdin transport boundary');
+  assert(!authWorkflow.includes('require_auth_secret_env'), 'auth workflow still requires operator secrets');
+  assert(fs.existsSync(path.join(rootDir,'scripts/internal/recording_auth_preparation.test.mjs')), 'auth behavioral selftest missing');
 });
 
 check("VA EventRecord dispatch verifier fails early and dispatches every poll by default", () => {

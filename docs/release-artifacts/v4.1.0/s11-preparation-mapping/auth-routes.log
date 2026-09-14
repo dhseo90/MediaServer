@@ -1,0 +1,159 @@
+[info] starting auth routes server: auth=auto http=8091 rtsp=8565
+[info] ICE 응답 검사는 setup 완료 뒤 수행
+[pass] server health ok (http://127.0.0.1:8091)
+[pass] setup required root: 302:/setup
+[pass] weak admin password rejected: 400
+[pass] initial admin password setup: 302
+[pass] auth users file owner-only mode: 600
+[pass] setup blocked after completion: 302:/login
+[pass] logout root: 302:/login
+[pass] admin login landing: 302:/ops/home
+[pass] admin whoami username and role
+[pass] admin root: 302:/ops/home
+[pass] SourceRegistry API field/type freeze SHA-256=d6db4f603fbde478e5a4097daa8f5da4ba41e7cbdb42dea26bbda0546380763f
+[pass] operator login route: 302:/ops/home
+[pass] AUTH-029 operator with source write scope sees enabled source write UI
+[pass] readonly operator login route: 302:/ops/home
+[pass] Set-Cookie session viewer login route: 302:/client/live
+[pass] integrator login keeps API-only landing: 302:/auth/whoami
+[pass] viewer ops denied: 403
+[pass] viewer VLM install/connection UI denied: 403
+[pass] undefined route BuildHttpResponse returns 404: 404
+[pass] legacy /lab product UI BuildHttpResponse returns 404: 404
+[pass] unauth ops sources API denied: 401
+[pass] unauth ops views API denied: 401
+[pass] unauth ops runtime API denied: 401
+[pass] unauth ops rules catalog API denied: 401
+[pass] unauth ops events API denied: 401
+[pass] unauth ops ONVIF import draft API denied: 401
+[pass] unauth ops ONVIF probe draft API denied: 401
+[pass] unauth ops users API denied: 401
+[pass] unauth ops invites API denied: 401
+[pass] unauth ops access requests API denied: 401
+[pass] viewer ops sources API denied: 403
+[pass] viewer ops views API denied: 403
+[pass] viewer ops runtime API denied: 403
+[pass] viewer ops ONVIF import draft API denied: 403
+[pass] viewer ops ONVIF probe draft API denied: 403
+[pass] viewer ops users API denied: 403
+[pass] viewer ops invites API denied: 403
+[pass] viewer ops access requests API denied: 403
+[pass] readonly operator ops read allowed: 200
+[pass] ops runtime API read allowed: 200
+[pass] ops rules catalog API read allowed: 200
+[pass] ops events status API read allowed: 200
+[pass] AUTH-028 readonly operator sees ops sources UI with source write lock policy
+[pass] readonly operator admin users API denied: 403
+[pass] readonly operator invite API denied: 403
+[pass] readonly operator invite list API denied: 403
+[pass] readonly operator access requests API denied: 403
+[pass] source write scope required for view create: 403
+[pass] source write scope required for ONVIF import draft: 403
+[pass] source write scope required for ONVIF probe draft: 403
+[pass] source write scope required for view update: 403
+[pass] source write scope required for source update: 403
+[pass] rule write scope required for lab rule write: 403
+[pass] rule write scope required for lab vaRule write: 403
+[pass] rule write scope required for lab profile write: 403
+[pass] unauth VLM profile API denied: 401
+[pass] viewer VLM profile API denied: 403
+[pass] readonly operator VLM profile read allowed: 200
+[pass] rule write scope required for VLM profile write: 403
+[pass] invalid VLM profile fixture rejected: 400
+[pass] VLM profile write creates storage document
+[pass] VLM profile read lists stored profile with canonical evaluation status
+[pass] VLM profile delete allowed for admin: 200
+[pass] VLM profile delete readback confirms vlm-route-smoke absence
+[pass] AUTH-029 operator source write scope creates source
+[pass] AUTH-029 operator rule write scope saves profile: 200
+[pass] ONVIF import draft API allowed for source writer
+[pass] ONVIF import draft redacts credential reference and endpoint
+[pass] ONVIF probe draft API allowed for source writer
+[pass] ONVIF probe draft redacts credential reference and endpoint
+[pass] WHEP source registry create allowed
+[pass] WHEP source canonical duplicate denied: 409
+[pass] WHEP source visible to ops API
+[pass] integrator client shell denied: 403
+[pass] unauth client views API denied: 401
+[pass] unauth client live layout preference API denied: 401
+[pass] unauth client dashboard API denied: 401
+[pass] unauth client WebRTC wrapper denied: 401
+[pass] public access request API remains unauthenticated: 201
+[pass] Client PublishedView projection field/type freeze SHA-256=f289c7a2e21e47ca7439ecdf12949cc106c9aa2b6e1b80eeaab4327980bc6d62
+[pass] viewer assigned view visible in client API
+[pass] SRC-022 viewer client API keeps PublishedView allowedRuleIds list
+[pass] SRC-022 viewer client API omits unassigned vaRule from allowedRuleIds
+[pass] SRC-022 viewer client detail API keeps PublishedView allowedRuleIds list
+[pass] viewer unassigned view hidden from client API
+[pass] viewer client live layout preference separates user and role presets
+[pass] viewer client live layout preference save allowed: 200
+[pass] viewer client live layout preference rejects source URL material: 400
+[pass] viewer cross-view dashboard denied: 403
+[pass] viewer cross-view WebRTC wrapper denied: 403
+[pass] integrator client views list omits live views
+[pass] integrator event scope allowed: 200
+[pass] unauth scoped event search denied: 401
+[pass] viewer scoped event search role denied: 403
+[pass] integrator scoped event search allowed: 200
+[pass] integrator scoped event search cross-view denied: 403
+[pass] integrator metadata scope allowed: 200
+[pass] integrator dashboard scope denied: 403
+[pass] unauth generic WebRTC denied: 401
+[pass] viewer generic WebRTC denied: 403
+[pass] unauth WHEP denied: 401
+[pass] viewer WHEP denied: 403
+[pass] unauth WHIP publish denied: 401
+[pass] viewer WHIP publish denied: 403
+[pass] unauth metadata websocket denied: 401
+[pass] viewer metadata websocket denied: 403
+[pass] plain request omits CORS allow origin: 
+[pass] cross-origin actual request denied: 403
+[pass] cross-origin response omits CORS allow origin: 
+[pass] same-origin actual reflects origin: http://127.0.0.1:8091
+[pass] cross-origin preflight denied: 403
+[pass] same-origin preflight allowed: 204
+[pass] same-origin preflight reflects origin: http://127.0.0.1:8091
+[pass] invalid content-length rejected: 400
+[pass] server survives invalid content-length: 200
+[pass] oversized content-length rejected: 413
+[pass] server survives oversized content-length: 200
+[pass] WebRTC session id uses random token shape
+[pass] WebRTC session capability issued
+[pass] unauth session follow-up denied: 401
+[pass] viewer session follow-up denied: 403
+[pass] session capability follow-up allowed: 200
+[pass] session capability delete allowed: 200
+[pass] client WebRTC wrapper returns client session alias
+[pass] client WebRTC wrapper hides internal signaling detail
+[pass] client PublishedView maxTiles enforced: 409
+[pass] client WebRTC wrapper source override denied: 400
+[pass] client alias rejected on generic session route: 404
+[pass] client wrapper ICE allowed: 200
+[pass] client wrapper delete allowed: 200
+[pass] client vaRule matching PublishedView source allowed
+[pass] client vaRule wrapper delete allowed: 200
+[pass] client vaRule source mismatch denied: 400
+[info] starting auth routes server: auth=auto http=8091 rtsp=8565
+[pass] server health ok (http://127.0.0.1:8091)
+[pass] admin login landing: 302:/ops/home
+[pass] admin whoami username and role
+[pass] malformed source registry fail closed: 500
+[pass] malformed source registry not overwritten
+[info] starting auth routes server: auth=auto http=8091 rtsp=8565
+[pass] server health ok (http://127.0.0.1:8091)
+[pass] admin login landing: 302:/ops/home
+[pass] admin whoami username and role
+[pass] malformed published view registry fail closed: 500
+[pass] malformed published view registry not overwritten
+[info] starting auth routes server: auth=token http=8091 rtsp=8565
+[pass] server health ok (http://127.0.0.1:8091)
+[pass] token mode unauthenticated request denied: 401
+[info] starting auth routes server: auth=off http=8091 rtsp=8565
+[pass] server health ok (http://127.0.0.1:8091)
+[pass] auth off root redirects to ops: 302:/ops/home
+[pass] auth off development admin accesses users API: 200
+
+== Auth routes 검증 요약 ==
+- 통과: 146
+- 실패: 0
+[cleanup] path=/private/tmp/media-server-auth-routes.m1HBLV kib=13812 absent=true

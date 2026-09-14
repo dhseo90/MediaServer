@@ -898,7 +898,7 @@ RC command set:
 - SSE/WS/Event POST 검증은 임시 tap·queue·listener를 제거하고, lifecycle 검증은 throwaway state dir과 포트를 정리합니다.
 - 브라우저 visual smoke는 실행별 Chrome userDataDir을 제거합니다.
 
-Auth verifier는 고정 기본 비밀번호를 문서나 스크립트에 두지 않습니다. 테스트 실행자가 아래 env를 모두 제공하지 않으면 auth 테스트를 시작하지 않고 실패로 기록합니다.
+격리 Auth verifier의 임시 비밀번호는 AGENTS.md 7.6에 따라 실행마다 생성하며 사용자에게 아래 값을 지정하도록 요구하지 않습니다. 아래 이름은 검증 내부 전달 계약입니다. 운영 계정에는 자동 생성값을 적용하지 않습니다. 고정값·이전 실행값 재사용과 원문 로그/명령행/Git 보존을 금지합니다. 안전한 생성·주입·정리를 보장할 수 없는 실행 경로는 선수조건 실패로 처리합니다.
 
 | Env | 용도 |
 | --- | --- |
