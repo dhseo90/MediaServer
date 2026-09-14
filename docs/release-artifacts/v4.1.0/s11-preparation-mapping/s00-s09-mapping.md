@@ -5,6 +5,23 @@
 
 ## 범위와 판독법
 
+### 2026-09-14 후속 1번 보완 판정
+
+아래 분류는 정적 매핑 보완이며 실행 PASS가 아니다. 앞선 283행의 미결박 표현은 이 판정을 함께 읽는다.
+
+| 대상 | 확정 분류 | 실제 검사·실행 연결 | 남은 개발/판정 경계 |
+| --- | --- | --- | --- |
+| S00 | 기존 gate | `bash scripts/internal/verify_v410_research_gate.sh`, `bash scripts/internal/verify_v410_entry_baseline.sh` | 연구/버전 기준이며 제품 runtime·특허 안전성 PASS 아님 |
+| S01~S04 | 기존 검사 있음·고정 ID 등록 공백 | 아래 초기 단계 표의 contracts/recorder/catalog/retention runner 및 assertion 호출 위치 | 초기 요구의 고정 ID 정규화는 실제 등록 보완 과제. 호출 위치를 새 기능 ID나 실행 case 수로 승격하지 않음 |
+| S09-PD120 | 공유 실행 묶음 | `./server.sh verify-predev --soak-minutes 120 --fail-fast`, `scripts/internal/verify_predev_stability.sh` | 장시간 전체 묶음이지 단일 assertion 누락 아님. 현재 녹화 전용120과 서로 대체하지 않음 |
+| S09-PR05 | deprecated 제외 | 현재 renderer 검사는 PR04 및 `node scripts/internal/recording_predev_failfast.test.mjs`로 연결 | 제거된 Python formatter 검사 복원 불필요, 최초 실패 기록 보존 |
+| V410-ENV-12 | 기존 수동 실행 정의·재사용 runner 공백 | 중앙 기록28107~28109 및 PKG-F28424의 cold/warm·44 factory·READY/무음 decode 각각 | 과거 검사 존재. 일회성 소스 삭제 기록28150 때문에 단일 영속 자동 runner로는 미연결. 필요 시 해당 조건의 실행 절차 재구성, fixture 환경 검사로 대체 금지 |
+| V410-ENV-13 | 공유 회귀 묶음 | `./server.sh verify-v410-event-recording`; `node --test scripts/internal/v410_s05_inventory.test.mjs`; `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build`; 문서/등록 gate | 중앙28110~28113에서 하위 정의 확인. 단일 oracle가 없는 것은 의도된 묶음이며 새 제품 검사 누락 아님 |
+| S09-SI01~03 | 기존 자체검사 | `node scripts/internal/script_dispatch_parser.test.mjs`: conditional 두 target, alias/canonical, fake exec·외부 경로 거부 | 기존 predev 자체검사 연결 추정은 폐기. parser 자체 검사로 분류 |
+| PE/PH15/OBS/UA/SF 표 밖 정의 | 기존 검사·prose 등록 | 아래 표 밖 정의의 자체검사; observer는 `node scripts/internal/recording_foundation_observer.test.mjs` | 정규화와 현행 reader/seed 전환을 분리. prose라는 이유로 테스트 없음으로 세지 않음 |
+
+S01~04 등록 공백과 ENV12 영속 runner 공백은 후속 작업으로 명시적으로 넘긴다. 이 보완은 '미확정이면 테스트를 새로 만든다'는 결론을 내리지 않는다.
+
 - 기존 inventory의 S09~ENV 구간 283개 표 행을 모두 보존했다. 과거 canonical 986개 전체를 재감사한 숫자가 아니다.
 - 소스 위치는 ID/테스트명/의미 대응 앵커다. 문자열이나 준비 코드만으로 모든 하위 assertion이 검증됐다고 주장하지 않는다. 복합 항목은 후속 수정 전에 exact oracle를 다시 결박한다.
 - 실행 명령은 발견한 직접 진입점이며 이번 실행 승인이 아니다. 행의 구형/미결박 상태를 해소하기 전 최종 묶음에 무조건 추가하지 않는다.

@@ -2,6 +2,8 @@
 
 S11 준비의 [v4.1.0 테스트 매핑 감사](release-artifacts/v4.1.0/s11-preparation-mapping/README.md)는 등록·소스·실행 연결의 차이를 기록한다. 실행 결과나 전체 coverage 충족 판정이 아니며 기존 ID/총계를 재번호화하지 않는다.
 
+후속 매핑 보완은 감사의 S00~S09 보완 판정과 S10 미결박 분류를 기준으로 읽는다. shared/상위 요구/deprecated/실제 검사 공백을 분리하며 과거 ID를 재사용·재번호화하지 않는다. 제품 테스트는 이번 문서 보완에서 실행하지 않았다.
+
 ## S10 3D-3 D HTTP 안정화
 
 실제 최종98행(HTTP85/harness5/seed8), 과거3행은 [D 전수 결과](release-artifacts/v4.1.0/s10-public-consumption/D-results.md)에 보존한다. 브라우저 제외 및 실제 서버 두 번째 기동 미실행을 유지한다.
