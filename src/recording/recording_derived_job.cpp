@@ -311,7 +311,7 @@ namespace recording {
             for(const auto& o:job.outputs)outputs.push_back("{\"source\":"+std::to_string(o.source_index)+",\"id\":"+Q(o.output_id)+",\"order\":"+Q(o.order_request_id)+",\"temporary\":"+Q(o.temporary_relpath)+",\"final\":"+Q(o.final_relpath)+"}");
             return "{\"schema\":"+Q(job.schema)+",\"job_id\":"+Q(job.job_id)+",\"attempt_id\":"+Q(job.attempt_id)+",\"protection_token\":"+Q(job.protection_token)+",\"profile\":"+Q(job.profile)+",\"reference\":"+SerializeRecordingConsumerReferenceV1(job.reference)+",\"selection\":"+job.selection_json+",\"sources\":"+Sources(job)+",\"outputs\":"+Arr(outputs)+",\"reserved_bytes\":"+std::to_string(job.reserved_bytes)+",\"created_at_ms\":"+std::to_string(job.created_at_ms)+"}";
         }
-        void Validate(const DerivedJobIntentV1& job){
+        DerivedRecordingSelection Validate(const DerivedJobIntentV1& job){
             Need(job.schema=="media-server.derived-job-intent.v1"&&job.profile=="h264-mp4-to-mpegts-video-only-v1","job-schema-profile");
             Need(job.reserved_bytes>0&&job.reserved_bytes<=256*1024*1024&&job.created_at_ms>0&&!job.sources.empty()&&job.sources.size()<=8&&job.outputs.size()==job.sources.size(),"job-resource-cap");
             Need(ValidateRecordingConsumerReferenceV1(job.reference,nullptr)&&job.reference.request,"job-reference-invalid");
@@ -319,7 +319,13 @@ namespace recording {
             std::map<std::string,std::string> selected;
             for(const auto& s:selection.slices){
                 Need(s.state!=DerivedSliceState::Ambiguous,"job-ambiguous-selection");
-                if(s.state==DerivedSliceState::Confirmed)selected[s.candidates[0].segment.segment_id]=SerializeRecordingSegmentV2(s.candidates[0].segment);
+                if(s.state==DerivedSliceState::Confirmed){
+                    const auto& segment=s.candidates[0].segment;
+                    // Restore는 strict unique segment table에서만 candidate를 복사한다.
+                    // 동일 ID의 canonical 검사는 slice 수와 무관하게 한 번이면 충분하다.
+                    if(selected.find(segment.segment_id)==selected.end())
+                        selected.emplace(segment.segment_id,SerializeRecordingSegmentV2(segment));
+                }
             }
             Need(selected.size()==job.sources.size(),"job-confirmed-source-closure");
             std::int64_t previous_order=0;
@@ -346,6 +352,7 @@ namespace recording {
                 Need(o.source_index==i&&o.output_id==id&&o.order_request_id==id+"-order"&&o.temporary_relpath==".derived-jobs/"+job.job_id+"/"+job.attempt_id+"/"+id+".partial.ts"&&o.final_relpath==job.reference.channel_id+"/"+id+".ts","job-output-ownership-plan");
             }
             Need(Json(job).size()<=kCap,"job-json-cap");
+            return selection;
         }
         template<class Fn>bool Guard(std::string* error,Fn fn){
             try{
@@ -409,8 +416,7 @@ namespace recording {
     bool RestoreDerivedJobSelection(const DerivedJobIntentV1& job,DerivedRecordingSelection* out,std::string* error){
         return Guard(error,[&]{
             Need(out,"job-selection-output-null");
-            Validate(job);
-            *out=Restore(job);
+            *out=Validate(job);
         }
         );
     }

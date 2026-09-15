@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 # 파일 용도: 실제 파생 job 서비스의 격리 파일·원장 lifecycle을 검사한다.
+# --diagnostic-evidence는 과거 CP05 임시 계측용이다. 최종 제품은 계측을
+# 제거했으므로 이 모드는 증거 부족으로 FAIL한다. 현재 검증은 기본 모드다.
 set -euo pipefail
 DIAGNOSTIC=0
+IDENTITY_ONLY=0
 if [[ "${1:-}" == --diagnostic-evidence && "$#" == 1 ]]; then DIAGNOSTIC=1
+elif [[ "${1:-}" == --identity-only && "$#" == 1 ]]; then IDENTITY_ONLY=1
 elif [[ "$#" != 0 ]]; then exit 2; fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
@@ -34,19 +38,24 @@ test "$found" = 1
 read -r -a FLAGS <<<"$(pkg-config --cflags gstreamer-app-1.0 openssl sqlite3)"
 "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$ROOT_DIR/include" "${FLAGS[@]}" \
  -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_SQLITE3=1 \
+ "$SCRIPT_DIR/recording_checkpoint_identity_smoke.cpp" "${LINK_LIBS[@]}" -o "$RUN_DIR/identity"
+"$RUN_DIR/identity"
+if [[ "$IDENTITY_ONLY" == 1 ]]; then exit 0; fi
+"${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$ROOT_DIR/include" "${FLAGS[@]}" \
+ -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_SQLITE3=1 \
  "$SCRIPT_DIR/recording_checkpoint_reproduction_smoke.cpp" \
  "${LINK_LIBS[@]}" -o "$RUN_DIR/check"
 node - "$RUN_DIR" "$DIAGNOSTIC" <<'NODE'
 const fs=require('fs'),path=require('path'),{spawn}=require('child_process');
-const root=process.argv[2],diagnostic=process.argv[3]==='1';let count=0,limit=false;
+const root=process.argv[2],diagnostic=process.argv[3]==='1';let count=0,limit=false,equality=0,duplicate=0;
 for(const name of ['home','tmp','gst-cache'])fs.mkdirSync(path.join(root,name),{mode:0o700,recursive:true});
 const child=spawn(path.join(root,'check'),[root],{env:{...process.env,HOME:path.join(root,'home'),TMPDIR:path.join(root,'tmp'),GST_REGISTRY:path.join(root,'gst-cache/registry.bin'),GST_REGISTRY_1_0:path.join(root,'gst-cache/registry.bin'),MEDIA_SERVER_CHECKPOINT_DIAGNOSTIC:diagnostic?'1':'0'},stdio:['ignore','pipe','pipe']});
 function size(p){const s=fs.lstatSync(p);return s.isDirectory()?fs.readdirSync(p).reduce((n,k)=>n+size(path.join(p,k)),0):s.size;}
 let outputBytes=0,force;
 function stop(){limit=true;if(child.exitCode===null&&child.signalCode===null)child.kill('SIGTERM');if(!force)force=setTimeout(()=>{if(child.exitCode===null&&child.signalCode===null)child.kill('SIGKILL');},2000);}
-for(const stream of [child.stdout,child.stderr]){let buffered='';stream.setEncoding('utf8');stream.on('data',x=>{outputBytes+=Buffer.byteLength(x);if(outputBytes>4*1024*1024){stop();return;}process.stdout.write(x);buffered+=x;let i;while((i=buffered.indexOf('\n'))>=0){const line=buffered.slice(0,i);buffered=buffered.slice(i+1);if(line==='[checkpoint-committed] count=1')count++;}});}
+for(const stream of [child.stdout,child.stderr]){let buffered='';stream.setEncoding('utf8');stream.on('data',x=>{outputBytes+=Buffer.byteLength(x);if(outputBytes>4*1024*1024){stop();return;}process.stdout.write(x);buffered+=x;let i;while((i=buffered.indexOf('\n'))>=0){const line=buffered.slice(0,i);buffered=buffered.slice(i+1);if(line==='[checkpoint-committed] count=1')count++;if(line==='[checkpoint-equality] identical=1 original_replays=1 candidate_replays=0')equality++;if(line==='[checkpoint-equality] identical=1 original_replays=1 candidate_replays=1')duplicate++;}});}
 const cap=setInterval(()=>{try{if(size(root)>128*1024*1024)stop();}catch{stop();}},200);
 const timeout=setTimeout(stop,60000);
 child.on('error',()=>{limit=true;});
-child.on('close',(code,signal)=>{clearInterval(cap);clearTimeout(timeout);clearTimeout(force);console.log('[bounded] '+JSON.stringify({pid:child.pid,code,signal,limit,outputBytes,diagnostic,automaticCheckpoints:diagnostic?count:null}));process.exitCode=code===0&&!limit&&(!diagnostic||count>0)?0:1;});
+child.on('close',(code,signal)=>{clearInterval(cap);clearTimeout(timeout);clearTimeout(force);console.log('[bounded] '+JSON.stringify({pid:child.pid,code,signal,limit,outputBytes,diagnostic,automaticCheckpoints:diagnostic?count:null}));if(diagnostic)console.log((equality>0&&duplicate===0?'[pass] ':'[fail] ')+'CP05 exact candidate reused with original semantic replay');process.exitCode=code===0&&!limit&&(!diagnostic||(count>0&&equality>0&&duplicate===0))?0:1;});
 NODE
