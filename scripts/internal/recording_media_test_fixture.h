@@ -41,13 +41,15 @@ struct Encoded {
     media::StreamDescriptor descriptor;
     std::vector<media::Packet> packets;
 };
-Encoded Encode(int frames, bool bframes, bool fractional,int width=160,int height=90) {
-    const std::string rate = fractional ? "30000/1001" : "10/1";
+Encoded Encode(int frames, bool bframes, bool fractional,int width=160,int height=90,int fps=10,int key_interval=10) {
+    const std::string rate = fractional ? "30000/1001" : std::to_string(fps)+"/1";
     const std::string encoder = bframes ?
         "x264enc speed-preset=medium bframes=2 key-int-max=10 rc-lookahead=5" :
         "x264enc tune=zerolatency speed-preset=ultrafast key-int-max=10";
+    std::string configured_encoder=encoder;
+    configured_encoder.replace(configured_encoder.find("key-int-max=10"),14,"key-int-max="+std::to_string(key_interval));
     Pipeline pipe("videotestsrc num-buffers=" + std::to_string(frames) +
-        " pattern=ball ! video/x-raw,width="+std::to_string(width)+",height="+std::to_string(height)+",framerate=" + rate + " ! " + encoder +
+        " pattern=ball ! video/x-raw,width="+std::to_string(width)+",height="+std::to_string(height)+",framerate=" + rate + " ! " + configured_encoder +
         " ! video/x-h264,stream-format=byte-stream,alignment=au ! appsink name=out sync=false");
     Encoded result;
     GstClockTime origin = 0;

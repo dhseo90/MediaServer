@@ -1,5 +1,19 @@
 # Release Test Records
 
+## 2026-09-15 P0 1·2 독립 재현 실행 전 정의
+
+1번 결과: 실제 source250samples/mapping250·Ready319533B에서 전체 전이 5,667,190us, 원본/후보 복원 2,123,152/2,131,968us를 재현했다. 격리 실행기 최종 3개 PASS·자동 checkpoint2회·exit0·27초, 소유 root13,531,406B 정리 확인. 준비 compile 실패와 작은 부하의 최초 baseline도 보존한다. [전수 재현·원출력·정리](release-artifacts/v4.1.0/s11-preparation-mapping/p0-transition-reproduction.md). 제품 최적화 및 HTTP 지연 해결 PASS는 아직 아니다.
+
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| P0-CP01 | 실제 크기 내구 전이 | H26430fps/GOP250 입력·managed writer source250samples, 실제 selector/Intent/Service.Run의 Ready/Complete·receipt/hash/예약해제. canonical bytes/hash·source/sample/mapping/slice/AU 수, serialize/parse 각3회 단조시간 측정 | v4.1.0 |
+| P0-CP02 | 자동 checkpoint 비용 | 원장 padding/명시 Checkpoint 없이 최대2개 실제job으로 자동경계발생 확인. 임시opt-in으로 Replay/Prepare/원본Apply/후보Apply/투영비교/Commit·Update 전체를 분리. 원래mutex수명·검사불변, 중첩시간합산금지, 최종계측제거 | v4.1.0 |
+| P0-CP03 | 부분 녹화 원인 분리 | 첫GOP확정 후 요청끝9.316초를 덮는약10초입력까지전달하되 다음keyframe이전 유지. 실제sample기반 합성decoded증거가 전체요청을덮는지 확인. 기존3750ms예산후 source1/partial 정확미충족구간·이유 확인. 이후Stop/source2·동일증거로 selector complete 대조. 실제decoder검사로주장하지않음 | v4.1.0 |
+| P0-CP04 | 실제 크기 대응 구간 부하 | 최초linear clock은mapping1/183KB라실제250mapping/283KB와불일치. 별도합성burst profile의 mono before=1e9+i*1e6/after+1000, UTC=고정epoch+i*1e6로 ClockValid를유지하며 미디어PTS/duration은불변. 기존 media-observation-divergence 정책의250mapping과Ready/Complete/자동checkpoint 비용측정. 시스템시각변경/실제앱clock동일주장없음. CP03은linear유지 | v4.1.0 |
+
+안정화 단기만 승인됐으며 runner는 소유root128MiB·실행60초 경계와 성공/실패cleanup을 갖춘다. 세부 개별oracle/원출력은 별도 `p0-transition-reproduction.md`에 사전등록한다. 3번대기정책·4번복수출력/재기동통합·브라우저·30/120분·릴리즈는 이번미진행이다. 담당단일Astra/medium, 메인계약/검토/커밋. token start/end/consumed는 전용집계부재로미집계, 실제elapsed별도기록. 기존미완료변경은보존하며 이번독립재현완료로전체통합PASS를만들지않는다.
+
 ## S11 인증 준비 결과 — 2026-09-14
 
 | 제목 | 수행내용 | 결과(pass/fail) |

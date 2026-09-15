@@ -1,0 +1,116 @@
+[checkpoint-cost] stage=update count=0 bytes=0 us=503847
+[checkpoint-cost] stage=update count=1 bytes=0 us=913908
+[checkpoint-cost] stage=replay count=0 bytes=0 us=107
+[checkpoint-cost] stage=prepare count=11 bytes=0 us=73
+[checkpoint-cost] stage=original-apply count=11 bytes=1125252 us=902384
+[checkpoint-cost] stage=candidate-apply count=11 bytes=1125252 us=902332
+[checkpoint-cost] stage=signature count=0 bytes=0 us=159332
+[checkpoint-committed] count=1
+[checkpoint-cost] stage=commit count=11 bytes=0 us=732
+[checkpoint-cost] stage=update count=2 bytes=0 us=3049682
+[checkpoint-cost] stage=update count=3 bytes=0 us=1065943
+[checkpoint-cost] stage=update count=0 bytes=0 us=505452
+[checkpoint-cost] stage=update count=1 bytes=0 us=928344
+[checkpoint-cost] stage=replay count=0 bytes=0 us=184
+[checkpoint-cost] stage=prepare count=17 bytes=0 us=130
+[checkpoint-cost] stage=original-apply count=17 bytes=2409583 us=2121410
+[checkpoint-cost] stage=candidate-apply count=17 bytes=2409583 us=2124452
+[checkpoint-cost] stage=signature count=0 bytes=0 us=317719
+[checkpoint-committed] count=1
+[checkpoint-cost] stage=commit count=17 bytes=0 us=1192
+[checkpoint-cost] stage=update count=2 bytes=0 us=5682680
+[checkpoint-cost] stage=update count=3 bytes=0 us=1073123
+[shape] state=1 bytes=319533 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=c0611d59ff618b8d680286c7cac1b3798427716eff81cfe6c26d00d29ac0b466
+[record-cost] iteration=1 serialize_us=78544 parse_us=143345
+[record-cost] iteration=2 serialize_us=79243 parse_us=144471
+[record-cost] iteration=3 serialize_us=78153 parse_us=142930
+[shape] state=3 bytes=319548 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=387c87e4dbbc2edb03a45e3e21be9c38fe417bba8870894c549ce928638753ad
+[record-cost] iteration=1 serialize_us=78149 parse_us=143794
+[record-cost] iteration=2 serialize_us=79122 parse_us=143647
+[record-cost] iteration=3 serialize_us=79461 parse_us=144201
+[shape] state=1 bytes=319533 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=de3b5bab52855812588a31a9d209df4784c12508cddecf44c12e8cc4c8f81621
+[record-cost] iteration=1 serialize_us=79087 parse_us=145538
+[record-cost] iteration=2 serialize_us=82315 parse_us=146692
+[record-cost] iteration=3 serialize_us=78430 parse_us=143194
+[shape] state=3 bytes=319548 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=01d5befbc2f958e9c12861107e69c75346718ad2fb35d9288dfeb72a3a6d2228
+[record-cost] iteration=1 serialize_us=78942 parse_us=143781
+[record-cost] iteration=2 serialize_us=78678 parse_us=143931
+[record-cost] iteration=3 serialize_us=79006 parse_us=144720
+[pass] CP01 actual Ready Complete shape canonical files reservation
+[pass] CP02 bounded two jobs automatic checkpoint trace collected
+[checkpoint-cost] stage=update count=0 bytes=0 us=55557
+[checkpoint-cost] stage=update count=1 bytes=0 us=257113
+[checkpoint-cost] stage=update count=2 bytes=0 us=330259
+[checkpoint-cost] stage=update count=3 bytes=0 us=318707
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8333333333 end=8366666666
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8366666666 end=8400000000
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8400000000 end=8433333333
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8433333333 end=8466666666
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8466666666 end=8500000000
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8500000000 end=8533333333
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8533333333 end=8566666666
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8566666666 end=8600000000
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8600000000 end=8633333333
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8633333333 end=8666666666
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8666666666 end=8700000000
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8700000000 end=8733333333
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8733333333 end=8766666666
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8766666666 end=8800000000
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8800000000 end=8833333333
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8833333333 end=8866666666
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8866666666 end=8900000000
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8900000000 end=8933333333
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8933333333 end=8966666666
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=8966666666 end=9000000000
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=9000000000 end=9033333333
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=9033333333 end=9066666666
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=9066666666 end=9100000000
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=9100000000 end=9133333333
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=9133333333 end=9166666666
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=9166666666 end=9200000000
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=9200000000 end=9233333333
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=9233333333 end=9266666666
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=9266666666 end=9300000000
+[partial] state=1 reason=unconfirmed-interval-no-trusted-watermark start=9300000000 end=9316000000
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=8333333333 end=8366666666
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=8366666666 end=8400000000
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=8400000000 end=8433333333
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=8433333333 end=8466666666
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=8466666666 end=8500000000
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=8500000000 end=8533333333
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=8533333333 end=8566666666
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=8566666666 end=8600000000
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=8600000000 end=8633333333
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=8633333333 end=8666666666
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=8666666666 end=8700000000
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=8700000000 end=8733333333
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=8733333333 end=8766666666
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=8766666666 end=8800000000
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=8800000000 end=8833333333
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=8833333333 end=8866666666
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=8866666666 end=8900000000
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=8900000000 end=8933333333
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=8933333333 end=8966666666
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=8966666666 end=9000000000
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=9000000000 end=9033333333
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=9033333333 end=9066666666
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=9066666666 end=9100000000
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=9100000000 end=9133333333
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=9133333333 end=9166666666
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=9166666666 end=9200000000
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=9200000000 end=9233333333
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=9233333333 end=9266666666
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=9266666666 end=9300000000
+[unfulfilled] axis=request-ns reason=unconfirmed-interval-no-trusted-watermark start=9300000000 end=9316000000
+[unfulfilled] axis=original-pts-ns reason=file-duration-uncovered start=7899999999 end=7900000000
+[unfulfilled] axis=original-pts-ns reason=file-duration-uncovered start=7999999999 end=8000000000
+[unfulfilled] axis=original-pts-ns reason=file-duration-uncovered start=8099999999 end=8100000000
+[unfulfilled] axis=original-pts-ns reason=file-duration-uncovered start=8199999999 end=8200000000
+[unfulfilled] axis=original-pts-ns reason=file-duration-uncovered start=8299999999 end=8300000000
+[worker-elapsed] ms=4876
+[partial-context] before_sources=1 after_sources=2 evidence_frames=300 wait_ms=3750
+[pass] CP03 bounded partial missing source then same evidence complete
+[summary] pass=3 fail=0
+[bounded] {"pid":71619,"code":0,"signal":null,"limit":false,"automaticCheckpoints":2}
+[cleanup] path=/private/tmp/media-server-checkpoint-reproduction.0xUpwX bytes=11937194 removed=true
+[elapsed] seconds=25 source=bash-SECONDS

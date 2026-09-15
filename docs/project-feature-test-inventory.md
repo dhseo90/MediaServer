@@ -1,5 +1,14 @@
 # Project Feature Test Inventory
 
+## P0 1 독립 재현 등록
+
+| 기능 ID | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- |
+| P0-CP01 | 실제 H264/managed writer의250 samples 원본으로 Ready/Complete·receipt·파일hash·예약해제 확인, shape/hash와 serialize/parse 각3회측정 | 이번 제외 | 이번 제외 | 비대상: UI 없어야 정상 |
+| P0-CP02 | 실제 작업전이로 자동checkpoint 발생 확인, 원본/후보복원·서명비교·commit·전체전이 시간분리. 임시 opt-in계측 최종제거 | 이번 제외 | 이번 제외 | 비대상: UI 없어야 정상 |
+| P0-CP03 | 전체요청decoded증거가 있는상태에서 두번째원본 미확정→3750ms예산후partial의 정확구간/이유, Stop후같은증거+source2의complete 대조 | 이번 제외 | 이번 제외 | 비대상: UI 없어야 정상 |
+| P0-CP04 | 선형clock mapping1 baseline과 별도로 PTS/duration불변·1ms간격 도착의 합성burst profile에서250mapping 실제크기 Ready/Complete·자동checkpoint 재현. 실제앱clock 원인이라고 단정 안 함 | 이번 제외 | 이번 제외 | 비대상: UI 없어야 정상 |
+
 ## S11 인증 선수조건 보완 — 실행 전 등록
 
 | 기능 ID | 안정화 | 30분 | 120분 | UI |

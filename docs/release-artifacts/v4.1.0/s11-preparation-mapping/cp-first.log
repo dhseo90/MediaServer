@@ -1,0 +1,7 @@
+In file included from /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_checkpoint_reproduction_smoke.cpp:1:
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_media_test_fixture.h:117:6: error: unused function 'Shift' [-Werror,-Wunused-function]
+  117 | void Shift(Encoded& input, std::uint64_t offset) {
+      |      ^~~~~
+1 error generated.
+[cleanup] path=/private/tmp/media-server-checkpoint-reproduction.TYUsH3 bytes=0 removed=true
+[elapsed] seconds=0 source=bash-SECONDS

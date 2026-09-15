@@ -1,6 +1,7 @@
 // 파일 요약: 녹화 JSONL mutation을 memory/SQLite projection에 적용한다.
 // 동작 요약: idempotent replay, FK 검증, 손상 DB 격리와 range query parity를 구현한다.
 #include "recording/recording_catalog.h"
+#include "recording_checkpoint_diagnostic.h"
 #include "recording/recording_finalize_recovery.h"
 
 #include <algorithm>
@@ -349,6 +350,7 @@ void RecordingCatalog::UnbindDerivedService(const void* owner) {
     std::lock_guard lock(mu_);if(derived_service_owner_==owner)derived_service_owner_=nullptr;
 }
 bool RecordingCatalog::UpdateDerivedJob(const void* owner,const DerivedJobRecordV1& record,std::string* error) {
+    CheckpointDiagnostic timing("update",static_cast<std::size_t>(record.state));
     std::lock_guard lock(mu_);
     if(!owner||derived_service_owner_!=owner||!opened_||!CanWriteLocked(error))return Fail(error,"derived service 소유권/원장 거부");
     const auto payload=SerializeDerivedJobRecord(record);
@@ -553,16 +555,19 @@ std::vector<std::string> RecordingCatalog::ProjectionSignatureLocked() const {
 bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error) {
     if(!journal_.managed_||!options_.enable_v2_storage||!journal_.OwnsCatalog(this))
         return Fail(error,"managed checkpoint 소유권/지원 없음");
-    const auto original=journal_.Replay();
+    const auto original=[&]{CheckpointDiagnostic t("replay");return journal_.Replay();}();
     if(original.io_error_count||original.corrupt_line_count||original.unsupported_record_count||original.truncated_tail_count)
         return Fail(error,"checkpoint 원장 불완전");
     std::vector<RecordingMutationV1> candidate;
-    if(!journal_.PrepareCheckpoint(this,&candidate,error))return false;
+    {CheckpointDiagnostic t("prepare",original.mutations.size());if(!journal_.PrepareCheckpoint(this,&candidate,error))return false;}
     RecordingCatalog before(journal_,options_),after(journal_,options_);
-    for(const auto& m:original.mutations)if(!before.ApplyMutationLocked(m,false,error))return false;
-    for(const auto& m:candidate)if(!after.ApplyMutationLocked(m,false,error))return false;
-    if(before.ProjectionSignatureLocked()!=after.ProjectionSignatureLocked())return Fail(error,"checkpoint 투영 불일치");
-    return journal_.CommitCheckpoint(this,candidate,recover_only,error);
+    {CheckpointDiagnostic t("original-apply",original.mutations.size());for(const auto& m:original.mutations){t.bytes+=m.payload_json.size();if(!before.ApplyMutationLocked(m,false,error))return false;}}
+    {CheckpointDiagnostic t("candidate-apply",candidate.size());for(const auto& m:candidate){t.bytes+=m.payload_json.size();if(!after.ApplyMutationLocked(m,false,error))return false;}}
+    {CheckpointDiagnostic t("signature");if(before.ProjectionSignatureLocked()!=after.ProjectionSignatureLocked())return Fail(error,"checkpoint 투영 불일치");}
+    CheckpointDiagnostic t("commit",candidate.size());
+    const bool ok=journal_.CommitCheckpoint(this,candidate,recover_only,error);
+    if(ok&&std::getenv("MEDIA_SERVER_CHECKPOINT_DIAGNOSTIC"))std::fprintf(stderr,"[checkpoint-committed] count=1\n");
+    return ok;
 }
 
 bool RecordingCatalog::OpenLocked(std::string* error) {
