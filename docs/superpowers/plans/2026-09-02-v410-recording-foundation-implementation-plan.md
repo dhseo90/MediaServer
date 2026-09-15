@@ -2980,10 +2980,13 @@ v4.1.0 개발 완료는 다음이 모두 참일 때만 성립한다.
   결과: TP01~04 및 TP04-W 특성화 성공, 최종 exit0/6초, 29개 시각 증거 보존·소유 root 삭제 확인.
   parser duration 재작성, B-frame DTS/presentation 차이, tail 원본 시작 결박 불일치를 분리했다.
   [직접 증거](../../release-artifacts/v4.1.0/s11-preparation-mapping/timing-probe-report.md).
-- [ ] 2. 1번 결과에 따라 정확 시간단위에서 계산한 presentation interval의 끝점·원본축 변환과
+- [x] 2. 1번 결과에 따라 정확 시간단위에서 계산한 presentation interval의 끝점·원본축 변환과
   증거 부족/실제 누락 거부 규칙을 확정한다. 검증 전용 산술 모델에서 EP01~08을 확인하고
   계약/대안/미지원/후속 적용 범위를 기록한 후 별도 `docs/test` 커밋한다.
-- [ ] 승인된 1·2만 clean/diffcheck/문서 검증 뒤 푸시하고 remote hash 일치를 확인한다.
+  [계산 계약](../specs/2026-09-15-recording-endpoint-contract.md) 확정, 모델 EP01 예상RED 뒤 EP01~08 최종8PASS/0FAIL.
+  tail/B-frame 시작 결박 불일치를 숨기지 않으며 제품 적용/저장/대기는 미착수다.
+커밋·푸시는 승인된 1·2만 clean/diffcheck/문서 검증 뒤 수행하고 remote hash 일치를 확인한다.
+실제 전송 결과는 Git 이력·원격 상태와 최종 보고를 따른다. 문서로 사전 완료 처리하지 않는다.
 
 불변: 제품 구현·저장 바이트/schema·ID·원본 분할·wait/queue·완전/부분 판정·기존 R03 oracle.
 제외: 필요한 최소 증거 저장(3), 대기 정책(4), 생성·복구·타임라인 및 실제 통합(5), UI/30분/120분.

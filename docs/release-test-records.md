@@ -1,5 +1,50 @@
 # Release Test Records
 
+## 2026-09-15 시간 구간 2 — 종료점 계산 방식 확정
+
+1번 계측은 `75fa0c85`에 분리 커밋했다. 2번은 [계산 계약](superpowers/specs/2026-09-15-recording-endpoint-contract.md)과
+검증 전용 `recording_endpoint_contract.test.mjs`를 작성했다. 제품 구현/저장/대기/타임라인 변경은 없다.
+파일 native presentation 끝을 합산 후 한 번 변환하고, 실제 누락과 원본 시작 불일치는 보존하는 방식이다.
+현재 actualEventPass/restartPass 및 완전 출력2개는 여전히 미완료이며, 산술 모델 통과로 승격하지 않는다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 실제 파일 시간 대조·분할 커밋 | 완료 | 372샘플·5개 정의 특성화,75fa0c85 | 아래1번 결과 및 timing-probe-report |
+| 2 | 계산 방식 확정·분할 커밋 | 계산/검증 완료 | EP01~08과 거부 경계 확정; 실제 커밋 값은 Git 이력·최종 보고 | 계산 계약·아래 전수 결과 |
+| 3 | 2번 완료 후 푸시 | 실행 승인됨 | 커밋 후 원격 hash 대조, 실제 수행 결과는 최종 보고 | 승인 유지, 문서로 미리 완료 주장하지 않음 |
+| 4 | 3~5번 설명 | 정의 완료 | 최소 증거·연결→대기→공통 적용·통합 | 계산 계약5절, 이번 미착수 |
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| EP01 | 각 항 절삭 결과7899999999 vs 예상7900000000 | fail | 사전 특정된 계산 모델 RED, 제품 회귀 아님; exit1/34.708167ms |
+| EP01 | native 끝 단일 변환7900000000 | pass | 실패 후 모델수정 PASS |
+| EP02 | 30000/1001 끝66733333/1001000000 literal | pass | 고정FPS 계산 없음 |
+| EP03 | 실제1ns·0.5ns 양수 간격, 정수변환 후 gap0이어도 nativeGap>0 | pass | 최초GREEN은sub-ns차이가정수로도남는약한사례. 메인/담당검토로보완후재실행 |
+| EP04 | 실제20/50ms native 구간끝20000000/70000000 | pass | 가변 길이 |
+| EP05 | 재정렬 sample별끝, demuxduration의부족/초과반례, 실제 원본 시작불일치unknown | pass | 양성 산술이B-frame 제품연결PASS는아님 |
+| EP06 | 마지막native100ticks/T3000 end403333333, 입력희망440000000배제·길이없음unknown | pass | 파일근거 우선 |
+| EP07 | 0단위/비양수길이/음수/범위·ns overflow/Number입력거부·미해소변환unknown | pass | 두번째GREEN에서ns overflow독립경로·Number거부보강 |
+| EP08 | 기존ns만있음·tail시작불일치·null은unknown | pass | 보정/소급승격 없음 |
+
+명령과 원출력:
+
+- `node --test --test-name-pattern=EP01 scripts/internal/recording_endpoint_contract.test.mjs`: exit1,1FAIL,34.708167ms. [RED](release-artifacts/v4.1.0/s11-preparation-mapping/endpoint-model-red.txt).
+- `node --test scripts/internal/recording_endpoint_contract.test.mjs`: 최초GREEN exit0,8PASS/0FAIL,31.721209ms. [초기GREEN](release-artifacts/v4.1.0/s11-preparation-mapping/endpoint-model-green.txt).
+- 같은 전체명령: EP03/07 보완 후 exit0,8PASS/0FAIL,32.726833ms. [최종GREEN](release-artifacts/v4.1.0/s11-preparation-mapping/endpoint-model-final.txt). 반복을16개기능으로합산하지않는다.
+- `./server.sh verify-docs-links`: 설계 추가 후 exit0,Markdown273/links8565/images22/anchors110/failures0. 마지막 기록 링크 보완 후 exit0,Markdown273/links8570/images22/anchors110/failures0.
+- `git diff --check`: exit0. 새 파일은 커밋 직전 staged diffcheck로도 확인한다.
+
+메인은 코드·설계·실측을 대조했고 동일 담당자의 읽기검토에서도 sub-ns사례 보완 이외 모순은 발견되지 않았다.
+제품 source/header·기존R03·저장/API/auth/미디어 경로는 불변이므로 과거 유효 제품 회귀를 인계만으로 재실행하지 않는다.
+제품 빌드·통합·30분·120분·UI·release action은 이번 미실행이며 PASS가 아니다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| 없음 | 모델 실행 임시파일/서버/포트 | 0 | 정리 대상 없음 | 없음 | Node는 파일/서버를 생성하지 않음 |
+| endpoint-model-red/green/final.txt | 비민감 원출력 | 각 소량 텍스트 | 보존 | 실제 tool 반환을 기록, 줄끝공백만 제거 | 실패→초기GREEN→보강최종GREEN |
+
+token start/end/consumed는 전용 집계 소스 부재로 미집계, elapsed는 Node test runner 출력이다.
+
 ## 2026-09-15 시간 구간 1 — 실제 파일 경계 대조 결과
 
 TP01~04와 TP04-W를 실행했다. 이는 정밀도 손실의 특성화 성공이며 제품 수정 PASS가 아니다.
@@ -55,6 +100,11 @@ parser의 duration 재작성과 별도로 B-frame demux duration의 DTS 기준 �
 | EP08 | 증거 부족 | ns값에서 native 끝점 역산 금지, 기존 부분 자동승격 금지 | v4.1.0 |
 
 명령: `bash scripts/internal/verify_recording_timing_probe.sh`; 계산 모델 명령은 실행 전 보완한다.
+EP 실행 명령: `node --test --test-name-pattern=EP01 scripts/internal/recording_endpoint_contract.test.mjs`
+에서 각 항 절삭의 7899999999≠7900000000 assertion을 예상 RED로 확인한다. 이어 단일 native 끝점 변환으로
+계산 모델만 바꾸고 `node --test scripts/internal/recording_endpoint_contract.test.mjs` EP01~08을 실행한다.
+이는 검증용 계산 계약의 반례/GREEN이며 제품 수정 RED/GREEN이 아니다. EP03은 실제 sub-ns 양수 간격도
+ns 양자화 전에 구분한다. EP05/08은 실제 B-frame·tail 원본 시작 불일치를 unknown으로 남긴다.
 소유 root의 비민감 필수 시각값·hash·크기를 보존한 뒤 raw media/실행 파일 삭제·부재 확인한다.
 현재 미실행. token start/end/consumed는 전용 집계 소스 부재로 미집계, elapsed는 실행 도구 값으로 기록한다.
 
