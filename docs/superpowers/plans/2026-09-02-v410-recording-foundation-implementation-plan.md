@@ -2968,3 +2968,24 @@ v4.1.0 개발 완료는 다음이 모두 참일 때만 성립한다.
 - 미실행·조건부 test
 - 커밋 가능 여부와 실제 커밋 미수행/수행 여부
 - 푸시 가능 여부
+
+## 시간 구간 P0 1·2 후속 실행 계획 (2026-09-15)
+
+독자: 현재 녹화 설계·검증 담당. 이 절은 사용자 승인된 원인 계측과 계산 방식 확정만 다룬다.
+작업 정책은 AGENTS, 개별 실행 정의·결과는 release-test-records가 기준이다.
+
+- [x] 1. `scripts/internal/recording_timing_probe*` 및 실행기로 기존 managed writer의 실제
+  30fps/GOP250·30000/1001·B-frame·VFR 파일을 계측한다. 입력→native 표→demux→parser를 대조한다.
+  전체 샘플의 값·source hash·최초 실패·정리를 보존하고 메인이 직접 검토한 후 `test` 커밋한다.
+  결과: TP01~04 및 TP04-W 특성화 성공, 최종 exit0/6초, 29개 시각 증거 보존·소유 root 삭제 확인.
+  parser duration 재작성, B-frame DTS/presentation 차이, tail 원본 시작 결박 불일치를 분리했다.
+  [직접 증거](../../release-artifacts/v4.1.0/s11-preparation-mapping/timing-probe-report.md).
+- [ ] 2. 1번 결과에 따라 정확 시간단위에서 계산한 presentation interval의 끝점·원본축 변환과
+  증거 부족/실제 누락 거부 규칙을 확정한다. 검증 전용 산술 모델에서 EP01~08을 확인하고
+  계약/대안/미지원/후속 적용 범위를 기록한 후 별도 `docs/test` 커밋한다.
+- [ ] 승인된 1·2만 clean/diffcheck/문서 검증 뒤 푸시하고 remote hash 일치를 확인한다.
+
+불변: 제품 구현·저장 바이트/schema·ID·원본 분할·wait/queue·완전/부분 판정·기존 R03 oracle.
+제외: 필요한 최소 증거 저장(3), 대기 정책(4), 생성·복구·타임라인 및 실제 통합(5), UI/30분/120분.
+계측 PASS와 계산 모델 PASS는 제품 문제가 수정됐다는 뜻이 아니다. 모델 승인 결과의 제품 적용은 3번 이후다.
+이번 단계의 증거는 제품 불변의 기존 회귀 결과를 무효화하지 않는다. 새 검증 도구 자체와 문서만 검증한다.

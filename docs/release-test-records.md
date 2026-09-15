@@ -1,5 +1,63 @@
 # Release Test Records
 
+## 2026-09-15 시간 구간 1 — 실제 파일 경계 대조 결과
+
+TP01~04와 TP04-W를 실행했다. 이는 정밀도 손실의 특성화 성공이며 제품 수정 PASS가 아니다.
+GStreamer1.28.1에서 입력→실제 managed writer MP4 native 표→qtdemux→h264parse를 비교했다.
+30fps index236은 native 종료점7900000000, demux 종료점7900000000, parser 종료점7899999999ns다.
+parser의 duration 재작성과 별도로 B-frame demux duration의 DTS 기준 변환,
+두 번째 세그먼트의 원본 PTS 연결 불일치를 분리했다. 마지막 입력 duration도 파일에서 독립 확인해야 한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| TP01 | 300입력·250/50 두 파일. parser duration 변경83/16개, parser1ns차99개. tail 원본PTS 연결16개 불일치 관측 | pass |
+| TP02 | 30000/1001·30샘플·native timescale30000/STTS1001. parser duration 변경20개·내부1ns차19개 | pass |
+| TP03 | B-frame30샘플. demux PTS+duration과 native presentation end18개 불일치, 원본PTS 연결20개 불일치. decode-order nextPTS차를 실제누락으로 해석하지 않음 | pass |
+| TP04 | VFR12샘플. native20/50ms, 마지막33.333333ms, parser duration 변경11개 관측 | pass |
+| TP04-W | 동일 입력/caps parser 분리계측12개 PTS/DTS 보존. 마지막 입력70ms→parser33.333333ms | pass |
+
+실행: `bash scripts/internal/verify_recording_timing_probe.sh`, 최종 exit0·6초·29개 비민감 파일 copy 검증.
+소유 root5,577,994B 삭제·부재 확인, 서버/포트 사용 없음. 메인은 diff와 원출력·대표 CSV를 직접 대조했다.
+첫 compile 실패와 중간 evidence 보존 누락은 과거 이력으로 남긴다. 최종 증거만 해당 단계 완료에 사용한다.
+원출력: [최종 계측](release-artifacts/v4.1.0/s11-preparation-mapping/timing-probe-output.txt).
+전수 계측·한계·최초 실패·cleanup: [시간 경계 보고서](release-artifacts/v4.1.0/s11-preparation-mapping/timing-probe-report.md).
+2번 계산 확정과 3~5번 제품 적용은 아직 완료가 아니다. token start/end/consumed는 전용 집계 소스 부재로 미집계다.
+
+## 2026-09-15 시간 구간 1·2 실행 전 정의
+
+사용자 승인: 실제 파일 시간값 대조(1) → 종료점 계산 방식 확정(2), 분할 커밋 후 푸시.
+저장 계약 적용(3)·대기 정책(4)·통합 검증(5)은 미착수다. 제품 writer/remux/Ready/복구/타임라인과 기존 R03 판정은 불변이다.
+계측/native 파서는 실제 managed writer 격리 파일을 읽는 검증 전용이다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화: 파일 특성화 | 진행 대상 | 정밀도 손실 위치 확정 | TP01~04 | 이번 단기 승인 |
+| 안정화: 계산 모델 | 진행 대상 | 종료점 계산 계약 확정 | EP01~08 | 이번 단기 승인 |
+| 안정화: 문서/diff | 진행 대상 | 사전 정의·결과·설계 기록 | verify-docs-links, git diff --check | 이번 승인 |
+| 30분 | 미진행 | 최종 S11 전의 원인/계산 확정 | S11 | 이번 제외 |
+| 120분 | 미진행 | 제품 경로 불변, 최종 범위 별도 판정 | S11 | 이번 제외 |
+| UI 풀테스트 | 미진행 | 사용자 브라우저 제외 유지 | S11 UI | 이번 제외, 필수 완료 증거 대체 아님 |
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| TP01 | 30fps/GOP250 | Encode(501,false,false,160,90,30,250)의 첫300입력에서 first250확정, Stop 후 tail50. 입력 PTS/DTS/duration→MP4 native timescale/STTS/CTTS/edit→demux→parser 전수 대조, 1ns 잔차·hash·샘플수 확인 | v4.1.0 |
+| TP02 | 30000/1001 | 실제30frame 파일 tick→ns·demux/parser·마지막 샘플 대조 | v4.1.0 |
+| TP03 | B-frame | 실제30frame 재정렬·CTTS·PTS/DTS 축 대조, decode-order 다음PTS 사용 금지 | v4.1.0 |
+| TP04 | VFR·마지막 | 12frame 가변 간격·마지막70ms를 실제 파일 표와 대조, 고정FPS 추정 금지 | v4.1.0 |
+| TP04-W | writer 앞 parser 분리 계측 | 같은 입력 caps/12packet을 검증 전용 appsrc→h264parse→avc/au→appsink로 전달, PTS/DTS·개수12와 마지막70ms→33333333ns 여부 대조. 제품 writer 내부 직접 hook이 아닌 동등 parser 경계 실험이며 mux 내부 동작은 별도 추론으로 구분 | v4.1.0 |
+| EP01 | 1ns 절삭 반례 | 손계산 literal로 각각 변환 vs 끝점 합산 후 변환 차이 | v4.1.0 |
+| EP02 | 분수fps | 30000/1001 native 끝점 literal | v4.1.0 |
+| EP03 | 실제 작은 누락 | native 축 실제1ns 간격을 병합/반올림으로 은폐하지 않음 | v4.1.0 |
+| EP04 | 가변 길이 | 샘플별 duration, 고정FPS 배제 | v4.1.0 |
+| EP05 | 재정렬 | presentation interval 사용, 다음 decode-order PTS 사용 금지 | v4.1.0 |
+| EP06 | 마지막 샘플 | 명시 duration으로 계산, 없으면 unknown | v4.1.0 |
+| EP07 | 무효 산술 | timescale0/비양수duration/overflow/미지원 변환 거부 | v4.1.0 |
+| EP08 | 증거 부족 | ns값에서 native 끝점 역산 금지, 기존 부분 자동승격 금지 | v4.1.0 |
+
+명령: `bash scripts/internal/verify_recording_timing_probe.sh`; 계산 모델 명령은 실행 전 보완한다.
+소유 root의 비민감 필수 시각값·hash·크기를 보존한 뒤 raw media/실행 파일 삭제·부재 확인한다.
+현재 미실행. token start/end/consumed는 전용 집계 소스 부재로 미집계, elapsed는 실행 도구 값으로 기록한다.
+
 ## 2026-09-15 P0 1·2 완료 — 독립 재현·중복 복원·한정 HTTP
 
 사용자가 승인한 1·2만 완료했다. 원본 semantic replay를 유지하고 실제 schema/type 및 canonical sequence가 정확히 같을 때 후보 결과를 재사용한다. 저장 바이트·ID·손상 거부·복구·잠금 수명·녹화 대기·완전성 정책은 변경하지 않았다. 임시 계측은 제거했다.
