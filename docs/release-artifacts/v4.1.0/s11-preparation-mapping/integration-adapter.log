@@ -1,0 +1,10 @@
+[cleanup] path=/private/tmp/media-server-current-integration-unit-ciZu4W bytes=4028902 absent=true
+✔ S11-CI11 adapter 원본선택·symlink·원본hardlink 거부와 원본불변 (1393.981167ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1421.071875

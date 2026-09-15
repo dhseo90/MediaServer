@@ -2,6 +2,10 @@
 # 파일 용도: 환경 파일을 읽지 않고 실제 앱 검증기의 종료 코드를 보존한다.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ "${1:-}" == --current-integration ]]; then
+  [[ $# == 1 ]] || exit 2
+  exec node "${SCRIPT_DIR}/recording_current_integration_suite.mjs"
+fi
 if [[ "${1:-}" == --app-longrun ]]; then
   [[ $# == 3 && "${2:-}" == --duration-minutes && "${3:-}" == 120 ]] || { echo 'invalid longrun arguments' >&2; exit 2; }
 fi

@@ -1,0 +1,22 @@
+✖ S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 (0.458541ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 31.485042
+
+✖ failing tests:
+
+test at scripts/internal/recording_current_integration.test.mjs:66:1
+✖ S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 (0.458541ms)
+  Error: request-range
+      at need (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_app_helpers.mjs:2:39)
+      at eventOutputs (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_app_helpers.mjs:32:5)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_integration.test.mjs:68:16)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17)

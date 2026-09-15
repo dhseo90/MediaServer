@@ -1,0 +1,3 @@
+[fail] EV01 canonical application 왕복 같은 녹화 증거
+[summary] pass=0 fail=1
+[cleanup] path=/private/tmp/media-server-application-evidence.eJg6iy bytes=7151179 absent=true

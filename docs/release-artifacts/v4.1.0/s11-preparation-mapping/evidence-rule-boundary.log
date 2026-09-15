@@ -1,0 +1,22 @@
+[FAIL] historical approval is separate from actual execution: current branch mismatch
+[FAIL] slice order and completion frontier are fail-closed: unclassified production file: include/ingress/recording_application_service.h
+[FAIL] current graph hash and metrics are exact: unclassified production file: include/ingress/recording_application_service.h
+[FAIL] current graph negative mutations reject forbidden edge and cycle: unclassified production file: include/ingress/recording_application_service.h
+[FAIL] Slice 32 completion and current graph separation is fail-closed: unclassified production file: include/ingress/recording_application_service.h
+[FAIL] composition root extraction preserves lifecycle ownership: composition source missing lifecycle anchor: analysis::AnalysisSessionService analysis_sessions(session_manager);
+[FAIL] negative mutations reject false progress: unclassified production file: include/ingress/recording_application_service.h
+- PASS: application header is standard-only, standalone, and has no repository dependency closure
+- PASS: application source owns canonical snapshot, opaque mapping, and keyed lifecycle
+- PASS: compiled fake canonical harness binds full mapping, null/exception semantics, and runtime identity
+- PASS: transport has zero canonical bypass and exact runtime/action lifecycle
+- FAIL: CMake, server dispatch, and current graph bind exact Slice 29 successor — exact Event Rule graph successor drift
+- FAIL: current structure gate accepts exact non-final Event Rule successor — Command failed: /Users/dhseo/Workspace/mediaServer/server.sh verify-v390-review4-structure-stabilization-execution
+[FAIL] historical approval is separate from actual execution: current branch mismatch
+[FAIL] slice order and completion frontier are fail-closed: unclassified production file: include/ingress/recording_application_service.h
+[FAIL] current graph hash and metrics are exact: unclassified production file: include/ingress/recording_application_service.h
+[FAIL] current graph negative mutations reject forbidden edge and cycle: unclassified production file: include/ingress/recording_application_service.h
+[FAIL] Slice 32 completion and current graph separation is fail-closed: unclassified production file: include/ingress/recording_application_service.h
+[FAIL] composition root extraction preserves lifecycle ownership: composition source missing lifecycle anchor: analysis::AnalysisSessionService analysis_sessions(session_manager);
+[FAIL] negative mutations reject false progress: unclassified production file: include/ingress/recording_application_service.h
+
+- summary: pass=4 fail=2

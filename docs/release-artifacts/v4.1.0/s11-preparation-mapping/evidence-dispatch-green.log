@@ -1,0 +1,12 @@
+[pass] EV01 canonical application 왕복 같은 녹화 증거
+[pass] EV02 실제 rule 평가 왕복 증거 보존
+[pass] EV03 canonical projection 실제 storage bridge 입력 증거
+[pass] EV03 application projection 실제 storage bridge 입력 증거
+[pass] EV04 dispatch frame 충돌 증거 복원 거부
+[pass] EV04 source 충돌 거부
+[pass] EV04 PTS 충돌 거부
+[pass] EV04 frame 충돌 거부
+[pass] EV04 증거 부재 발명 금지
+[pass] EV05 history snapshot null 보존
+[summary] pass=10 fail=0
+[cleanup] path=/private/tmp/media-server-application-evidence.mag2ir bytes=21617803 absent=true

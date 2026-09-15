@@ -1,0 +1,40 @@
+✖ S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 (0.717542ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 30.815875
+
+✖ failing tests:
+
+test at scripts/internal/recording_current_integration.test.mjs:68:1
+✖ S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 (0.717542ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /^Error: event-not-complete$/. Input:
+
+  'Error: event-lineage'
+
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_integration.test.mjs:70:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Error: event-lineage
+        at need (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_app_helpers.mjs:2:39)
+        at eventOutputs (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_app_helpers.mjs:27:5)
+        at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_integration.test.mjs:70:21
+        at getActual (node:assert:611:5)
+        at strict.throws (node:assert:759:24)
+        at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_integration.test.mjs:70:10)
+        at Test.runInAsyncScope (node:async_hooks:214:14)
+        at Test.run (node:internal/test_runner/test:1106:25)
+        at Test.start (node:internal/test_runner/test:1003:17)
+        at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17),
+    expected: /^Error: event-not-complete$/,
+    operator: 'throws',
+    diff: 'simple'
+  }

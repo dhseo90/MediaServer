@@ -1,0 +1,100 @@
+✖ P0-HTTP01 pending은 전이 완료가 아님 (0.625ms)
+✖ P0-HTTP01 partial은 지연 관측만 가능 (0.074291ms)
+✖ P0-HTTP01 다른 참조와 모순 파일은 거부 (0.267708ms)
+✔ P0-HTTP01 원래 완전 출력 검사는 부분 출력 거부 유지 (0.114459ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 1
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 32.447292
+
+✖ failing tests:
+
+test at scripts/internal/recording_current_latency.test.mjs:12:1
+✖ P0-HTTP01 pending은 전이 완료가 아님 (0.625ms)
+  AssertionError [ERR_ASSERTION]: 지연 전용 완료 판정이 구현되어야 함
+  + actual - expected
+
+  + 'undefined'
+  - 'function'
+
+      at latencyTransitionOutputs (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_latency.test.mjs:7:10)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_latency.test.mjs:12:54)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_latency.test.mjs:13:1
+✖ P0-HTTP01 partial은 지연 관측만 가능 (0.074291ms)
+  AssertionError [ERR_ASSERTION]: 지연 전용 완료 판정이 구현되어야 함
+  + actual - expected
+
+  + 'undefined'
+  - 'function'
+
+      at latencyTransitionOutputs (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_latency.test.mjs:7:10)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_latency.test.mjs:13:54)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_latency.test.mjs:14:1
+✖ P0-HTTP01 다른 참조와 모순 파일은 거부 (0.267708ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /latency-lineage/. Input:
+
+  'AssertionError [ERR_ASSERTION]: 지연 전용 완료 판정이 구현되어야 함\n' +
+    '+ actual - expected\n' +
+    '\n' +
+    "+ 'undefined'\n" +
+    "- 'function'\n"
+
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_latency.test.mjs:15:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: AssertionError [ERR_ASSERTION]: 지연 전용 완료 판정이 구현되어야 함
+    + actual - expected
+
+    + 'undefined'
+    - 'function'
+
+        at latencyTransitionOutputs (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_latency.test.mjs:7:10)
+        at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_latency.test.mjs:15:21
+        at getActual (node:assert:611:5)
+        at strict.throws (node:assert:759:24)
+        at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_latency.test.mjs:15:10)
+        at Test.runInAsyncScope (node:async_hooks:214:14)
+        at Test.run (node:internal/test_runner/test:1106:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+        at Test.postRun (node:internal/test_runner/test:1235:19)
+        at Test.run (node:internal/test_runner/test:1163:12),
+    expected: /latency-lineage/,
+    operator: 'throws',
+    diff: 'simple'
+  }

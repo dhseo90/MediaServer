@@ -1,13 +1,63 @@
 # Project Feature Test Inventory
 
-## P0 1 독립 재현 등록
+## S11 P0 타임라인 지연 진단 — 실행 전 등록
 
 | 기능 ID | 안정화 | 30분 | 120분 | UI |
 | --- | --- | --- | --- | --- |
+| P0-DIAG01 | HTTP 정상/헤더 실패/본문 실패를 단조 elapsed·phase·고정 route 분류로 관측, URL·query·비밀 미노출 자체검사 | 이번 제외 | 이번 제외 | 브라우저 제외 |
+| P0-DIAG02 | 동일 격리 실제 앱1회에서 요청별 header/body/total 지연과 최초 실패 구간 기록. 기존4초/180초/64MiB 제한 유지 | 이번 제외 | 이번 제외 | 브라우저 제외 |
+| P0-DIAG03 | 실제 실패의 근거를 분석하여 원인 확정 후 해당 수정·영향검증. 미확정 상태에서 timeout 확대/반복수정 금지 | 최종 코드 고정 후 별도 | 최종 코드 고정 후 별도 | 브라우저 제외 |
+| P0-DIAG04 | 헤더 대기1초 초과 시 검증 소유 서버PID만1초 sample, 실행전체1회. 안전 함수스택만 보존하고 sampler/원문/root 정리 | 이번 제외 | 이번 제외 | 브라우저 제외 |
+| P0-DIAG05 | 검증 opt-in 임시 서버 stage enter/exit 계측으로 snapshot/파일검사/재확인 경계 분리. 고정 stage·단조elapsed만 보존, 진단후 계측제거 | 이번 제외 | 이번 제외 | 브라우저 제외 |
+| P0-DIAG06 | catalog 동일mutex의 wait/held 분리,50ms이상 안전함수명·시간만 해제후 출력. 동작/수명불변, 진단후제거 | 이번 제외 | 이번 제외 | 브라우저 제외 |
+| P0-DIAG07 | 긴 UpdateDerivedJob 점유의 순수검증/직렬화 및 append/apply 비용 분리. 임시계측만, 진단후제거 | 이번 제외 | 이번 제외 | 브라우저 제외 |
 | P0-CP01 | 실제 H264/managed writer의250 samples 원본으로 Ready/Complete·receipt·파일hash·예약해제 확인, shape/hash와 serialize/parse 각3회측정 | 이번 제외 | 이번 제외 | 비대상: UI 없어야 정상 |
 | P0-CP02 | 실제 작업전이로 자동checkpoint 발생 확인, 원본/후보복원·서명비교·commit·전체전이 시간분리. 임시 opt-in계측 최종제거 | 이번 제외 | 이번 제외 | 비대상: UI 없어야 정상 |
 | P0-CP03 | 전체요청decoded증거가 있는상태에서 두번째원본 미확정→3750ms예산후partial의 정확구간/이유, Stop후같은증거+source2의complete 대조 | 이번 제외 | 이번 제외 | 비대상: UI 없어야 정상 |
 | P0-CP04 | 선형clock mapping1 baseline과 별도로 PTS/duration불변·1ms간격 도착의 합성burst profile에서250mapping 실제크기 Ready/Complete·자동checkpoint 재현. 실제앱clock 원인이라고 단정 안 함 | 이번 제외 | 이번 제외 | 비대상: UI 없어야 정상 |
+| P0-CP05 | 정확히 동일한 mutation 후보에서 원본 복원1회·후보 재사용의 임시 계측 RED/GREEN | 이번 제외 | 이번 제외 | 비대상: UI 없어야 정상 |
+| P0-CP06 | 내부 canonical 순서 비교의 동일 값 및 같은 길이 다른 payload·순서·개수 음성 | 이번 제외 | 이번 제외 | 비대상: UI 없어야 정상 |
+| P0-CP07 | 원본 복원 선행·실패 전파 직접 검토와 공개 경계 불법 replay 거부. checkpoint 내부 불법 원본 직접 주입 미실행 | 이번 제외 | 이번 제외 | 비대상: UI 없어야 정상 |
+| P0-CP08 | 변경된 후보의 실제 축약·동등·멱등·SQLite/JSONL·pending 복구·자동 checkpoint 기존 SC 회귀 | 이번 제외 | 이번 제외 | 비대상: UI 없어야 정상 |
+| P0-HTTP01 | 지연 전용 관측의 pending/전이 완료·부분 녹화·다른 참조 거부 자체검사. 기존 정확2개 완전 출력 oracle 불변 | 이번 제외 | 이번 제외 | 브라우저 제외 |
+| P0-HTTP02 | 최종 제품의 실제 이벤트→전이 완료와 이후5초 timeline HTTP 관측. 기존 요청4초/총180초/정리 상한 유지. 부분 결과는 지연 관측만 가능하며 완전2출력·재기동 PASS가 아님 | 이번 제외 | 이번 제외 | 브라우저 제외 |
+| P0-PERF01 | 독립 source 1개·250 samples·45 confirmed slices의 기존 직렬화/복원 비용 측정, canonical 왕복과 source/mapping/identity 손상 거부 기준 고정. 제품 수정 전 baseline | 이번 제외 | 이번 제외 | 비대상: UI 없어야 정상 |
+| P0-PERF02 | 동일 호스트·기본 최적화에서 record 직렬화 3회 중앙값 60000us 이하의 명시적 성능 검사, 수정 전 canonical SHA256 및 모든 거부 조건 유지. 다른 환경의 보편 기준 아님 | 이번 제외 | 이번 제외 | 비대상: UI 없어야 정상 |
+| P0-ACTUAL01 | 최종 계측 제거 빌드·영향 회귀 후 S11-CI07/08/11 실제 앱 재검증. HTTP4초/전체180초·정확 출력2개/두 번째 기동·원본 복제 불변 조건 유지 | 이번 제외 | 이번 제외 | 브라우저 제외 |
+| P0-STATE01 | complete 출력1개도 미완료 유지하면서 안전한 실제 출력 개수 관측 | 이번 제외 | 이번 제외 | 브라우저 제외 |
+| P0-STATE02 | pending/partial/complete 상태 변화·최종 상태를 고정 enum/count로 구분 | 이번 제외 | 이번 제외 | 브라우저 제외 |
+| P0-STATE03 | ID/path/임의 문자열 미노출·숫자형 요청 구간만 제한 개수로 관측, 실제 trigger/dispatch PTS 상관 | 이번 제외 | 이번 제외 | 브라우저 제외 |
+
+## S11 내부 녹화 증거 전달 보완 — 실행 전 등록
+
+| 기능 ID | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- |
+| S11-EV01 | 분석 read DTO 왕복: 동일 결과의 입력 식별·namespace·원본 연관·decoded snapshot 보존. source/frame/PTS가 다른 결과의 증거로 대체하지 않음 | S11 최종 코드 고정 후 영향 판정, 이번 미실행 | S11 최종 코드 고정 후 영향 판정, 이번 미실행 | 비대상: 내부 DTO, 브라우저 제외 |
+| S11-EV02 | 실제 rule evaluation 전후 동일 녹화 증거 보존, 기존 이벤트 판정 불변 | 위와 같음 | 위와 같음 | 비대상: 내부 경계 |
+| S11-EV03 | canonical/application dispatch projection과 저장 진입 복원에서 동일 증거 전달 | 위와 같음 | 위와 같음 | 비대상: 내부 경계 |
+| S11-EV04 | 증거 부재·식별 모순의 기존 연결 거부 유지, 임의 최신 증거 보충 없음 | 위와 같음 | 위와 같음 | 비대상: 내부 경계 |
+| S11-EV05 | 불변 snapshot 공유·해제와 기존 history의 snapshot 미보관 유지, collector 크기 제한 불변 | 위와 같음 | 위와 같음 | 비대상: 내부 경계 |
+| S11-EV06 | 공개 분석/이벤트 직렬화에 내부 증거 미노출, 기존 application dependency 경계·관련 회귀 유지 | 위와 같음 | 위와 같음 | 브라우저 제외, 직렬화 검사는 UI PASS 아님 |
+
+승인 범위는 내부 전달 누락 보완이며 저장 포맷·녹화/보존 정책·공개 schema 변경은 제외한다. 실제 앱 재검증과 통합 순서는 기존 S11-CI01~11 정의를 유지한다.
+
+## S11 현행 통합 검증 연결 — 실행 전 등록
+
+| 기능 ID | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- |
+| S11-CI01 | 현행 순차 실행: HTTP API→인증→전송 수명→default composition→실제 앱. child별 실제 exit·정확 summary·정리 출력 결박 | 비대상: 단기 준비 | 비대상: 단기 준비 | 비대상: 실제 UI 아님 |
+| S11-CI02 | 실패 전파: child 실패·출력 한도·누락/중복 summary·cleanup 실패를 거부하고 뒤 단계 notRun. 종료 처리를 검증 결과와 구분 | 비대상: 단기 준비 | 비대상: 단기 준비 | 비대상: 실제 UI 아님 |
+| S11-CI03 | 완료 범위 구분: legacy integrationExecutionPass 의미 보존. 새 currentIntegrationExecutionPass만 사용하고 전체 S11·UI·장시간 PASS는 false/미실행 | 비대상: 단기 준비 | 비대상: 단기 준비 | 비대상: 실제 UI 아님 |
+| S11-CI04 | 이벤트 상관: 실제 dispatch tuple과 EventRecord ID 연결. 이전 ID·다른 tap/source/rule/track/PTS·복수 후보 거부; 기존 음성 계약 유지 | 비대상: 단기 준비 | 비대상: 단기 준비 | 비대상: 실제 UI 아님 |
+| S11-CI05 | 공개 DTO와 복수 출력: 페이지 전체·total/unplacedTotal·itemId 중복 검사. 동일 출력의 다중 mapping 행과 파일 집합 구분, 독립 기대 파일2개. reference/job/Complete·completeness·정밀 문자열 검사 | 비대상: 단기 준비 | 비대상: 단기 준비 | 비대상: 실제 UI 아님 |
+| S11-CI06 | 재기동 비교 자체검사: 기존 ID·HTTP bytes/hash 보존 및 새 event/reference/job/output 비중복. 누락·변형·새 생산 부재 거부 | 비대상: 단기 준비 | 비대상: 단기 준비 | 비대상: 실제 UI 아님 |
+| S11-CI07 | 실제 앱 이벤트 통합: 소유 입력 source→실제 tap 분석/dispatch→EventRecord→reference/job→출력 파일2개 전체 HTTP. 고정 요청 범위가 정확 두 원본에 교차함을 독립 확인. 소유 regular 파일 bytes/hash 대조 | 비대상: 단기 준비 | 비대상: 단기 준비 | 비대상: 실제 UI 아님 |
+| S11-CI08 | 실제 두 번째 기동: 첫 제품 프로세스 정상 종료·HTTP/RTSP 반환→같은 격리 archive 두 번째 제품 실행. 기존 출력 보존과 새 생산을 별도 확인 | 비대상: 단기 준비 | 비대상: 단기 준비 | 비대상: 실제 UI 아님 |
+| S11-CI09 | 격리·정리: 외부 환경/ICE 차단·작업 소유 입력/상태/root. 성공/실패/중단의 서버·자식·포트·임시 파일 정리. raw 비밀/URL 미보존 | 비대상: 단기 준비 | 비대상: 단기 준비 | 비대상: 실제 UI 아님 |
+| S11-CI10 | 기존 검사 재사용 경계: HTTP API/auth/lifecycle/default focused 실제 실행과 기존 accepted/partial/손상/삭제 검사의 정확 매핑 구분. 합성 seed와 실제 분석 흐름을 서로 대체하지 않음 | 비대상: 단기 준비 | 비대상: 단기 준비 | 비대상: 실제 UI 아님 |
+| S11-CI11 | 종료 저장소 복제본 adapter: 공개 DTO에 없는 epoch/generation/order/track을 기존 C++ Catalog로 대조. live/원본 입력 거부·소유 복제본만 Open, 원본 전후 목록/bytes/hash 불변, 정확 두 원본 동일 시간축·정밀 문자열. 복제본 복구 결과를 원본의 복구 전 상태로 주장하지 않음 | 비대상: 단기 준비 | 비대상: 단기 준비 | 비대상: 실제 UI 아님 |
+
+상세 정의·결과는 통합 준비 기록에 보존한다. 사전등록은 실행 PASS가 아니며 최종 S11 검증은 별도다.
 
 ## S11 인증 선수조건 보완 — 실행 전 등록
 

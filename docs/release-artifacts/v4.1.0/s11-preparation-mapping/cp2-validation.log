@@ -1,0 +1,23 @@
+[build-profile] optimization=compiler-default NDEBUG=0 gstreamer=0 direct-source=1
+[pass] P0-PERF01 literal source1 sample250 slice45 complete
+[fixture] sources=1 samples=250 slices=45 selection_bytes=72752 intent_bytes=144078 record_bytes=144206 sha256=529aff50132395c790a05ad68d735381b174966dc3099f00ba022a8ead494d5b
+[measure] operation=serialize-intent iteration=1 microseconds=14822
+[measure] operation=serialize-intent iteration=2 microseconds=14929
+[measure] operation=serialize-intent iteration=3 microseconds=14859
+[measure] operation=serialize-record iteration=1 microseconds=28821
+[measure] operation=serialize-record iteration=2 microseconds=29299
+[measure] operation=serialize-record iteration=3 microseconds=29179
+[measure] operation=parse-record iteration=1 microseconds=61447
+[measure] operation=parse-record iteration=2 microseconds=61472
+[measure] operation=parse-record iteration=3 microseconds=61277
+[measure] operation=restore-selection iteration=1 microseconds=14062
+[measure] operation=restore-selection iteration=2 microseconds=14105
+[measure] operation=restore-selection iteration=3 microseconds=14070
+[pass] P0-PERF01 canonical record roundtrip unchanged
+[pass] P0-PERF02 baseline canonical hash literal unchanged
+[pass] P0-PERF02 host-scoped serialize-record median <=60000us
+[pass] P0-PERF01 source mapping conflict rejected
+[pass] P0-PERF01 selection table mapping conflict rejected
+[pass] P0-PERF01 job identity forgery rejected
+[summary] pass=7 fail=0
+[cleanup] path=/private/tmp/media-server-job-validation.XhyMpn bytes=4690712 removed=true

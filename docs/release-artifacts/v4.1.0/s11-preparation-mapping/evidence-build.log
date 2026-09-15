@@ -1,0 +1,25 @@
+[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+[2/2] build
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/analysis_frame_application_service.cpp.o
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/va_metadata_application_service.cpp.o
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/event_storage_application_service.cpp.o
+[  3%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/event_rule_application_service.cpp.o
+[  4%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/analysis_session_read_application_adapter.cpp.o
+[  5%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_media_application_adapter.cpp.o
+[  6%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_http_server.cpp.o
+[  7%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_http_server_ops_foundation.cpp.o
+[  8%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_http_server_ops_workflows.cpp.o
+[  8%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_http_server_ops_incidents.cpp.o
+/Users/dhseo/Workspace/mediaServer/src/ingress/webrtc_http_server_ops_incidents.cpp:571:20: error: no member named 'frame_id' in 'ingress::EventPostDispatchSource'
+  571 |     request.source.frame_id = result.frame_id;
+      |     ~~~~~~~~~~~~~~ ^
+/Users/dhseo/Workspace/mediaServer/src/ingress/webrtc_http_server_ops_incidents.cpp:572:20: error: no member named 'recording_evidence' in 'ingress::EventPostDispatchSource'
+  572 |     request.source.recording_evidence = CaptureRecordingEvidence(result);
+      |     ~~~~~~~~~~~~~~ ^
+2 errors generated.
+make[2]: *** [CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_http_server_ops_incidents.cpp.o] Error 1
+make[1]: *** [CMakeFiles/media_server_runtime.dir/all] Error 2
+make: *** [all] Error 2

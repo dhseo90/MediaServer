@@ -1938,6 +1938,48 @@ S10 코드 고정 → S11 증거 유효성 대조와 승인된 최종 검증이�
 
 #### S11 준비: 테스트 코드 반영 대조 — 2026-09-14
 
+##### 현재 승인 범위 — 2026-09-15 P0 1·2 분리 개발
+
+최종 결과: 1·2 완료. 실제 크기 전이5.67→3.25초, 원본 검증 유지·정확 동일 후보 재복원 제거, 최종 build/CP9/catalog246 및 영향157 통과. 실제 한정 HTTP는190건 전부4초 이내(최대3,786ms), 서버/포트/root 정리 완료. 부분 출력1개는 그대로이며 3번 구간 충족·4번 완전2출력/재기동/통합은 미완료다. 전수 결과는 [P0 최종 기록](../../release-artifacts/v4.1.0/s11-preparation-mapping/p0-transition-reproduction.md)을 따른다.
+
+사용자는 독립 실패 재현·원인 확정(1)과 전체 전이 중복 제거·잠금 지연 개선(2), 분할 커밋·최종 푸시를 승인했다. 녹화 대기 정책 변경(3), 복수 출력·재기동·5stage 통합 완료(4), 브라우저·장시간·릴리즈는 이번 범위 밖이다.
+
+- 1: 실제 크기 Ready/Complete와 자동 checkpoint를 기존 C++ Catalog/서비스로 재현하고 순수 연산·전체 전이 비용을 구분한다. 별도 bounded-partial 검사에서 원본 확정 시점과 분석 증거 구간을 구분하고 정확한 미충족 이유를 확인한다. 원인 재현의 기대 결과와 제품 수정 PASS를 구분한다.
+- 2: 확인된 비용만 줄이며 canonical/ID/원장·SQLite·복구·hold/삭제 안전 계약을 유지한다. 호출 단위 검증 결과 재사용을 우선하고, 전역 캐시·검사 삭제·대기 상향·잠금 구조 변경을 자동 포함하지 않는다. 성능 RED→최소 수정→동일 독립 검사·영향 회귀·한정 HTTP 지연 검증 순서다.
+- 분할 커밋은 각 단위의 실제 합격·정리·기록 후 수행한다. 기존 3·4 관련 미완료 변경을 1·2 완료로 섞지 않는다. 기존 실패와 승인된 수정은 보존한다.
+
+담당은 기존 단일 Astra/medium 구현자, 메인은 계약·원인·diff·완료 판정·커밋을 담당했다. 상세 재현 정의와 실제 결과는 위 P0 최종 기록에 보존했다. 아래는 착수 시점의 계획·과거 실패 이력이다.
+
+##### 직전 결과: P0 최소 수정·회귀 완료, 실제 HTTP 재발 및 부분 출력으로 미완료
+
+최소 canonical 중복 제거는 RED 뒤 GREEN7개, 최종 build 및 영향 회귀185개를 통과했다. 임시 제품 계측은 제거해 Catalog/read/projection은 HEAD와 같으며, record 직렬화 중앙값은82077→28804us이고 canonical hash는 같다. 그러나 실제 첫 재검증은 출력 대기 실패, 추가 안전 상태 관측 후 실제 재검증은31,697ms에 HTTP header timeout으로 다시 실패했다. 최종 상태는 job complete·요청 partial·출력1개이며 정확2개·재기동·5stage 통합은 미완료다. 최소 성능 개선을 HTTP P0 해결로 승격하지 않는다.
+
+메인이 실제 입력에 `ffprobe -v error -select_streams v:0 -skip_frame nokey -show_entries frame=best_effort_timestamp_time -of csv=p=0 video/imports/va_tracking_event_1280x720_30fps_h264.mp4`를 실행(exit0)해 keyframe 0/8.333333/16.666667/25초를 확인했다. 현재 설정2초·post750ms는 RecordingRuntimeEventBudget에서3750ms 대기가 된다. trigger sourceEnd8.2초/tap·dispatch8.566666666초로 stale trigger가 아니며, 다음 원본 finalize 전에 부분 결과가 확정될 수 있는 입력/완전 출력 기대조건의 불일치가 드러났다. 실제 partial의 모든 미충족 구간 이유는 아직 직접 수집하지 않았다.
+
+동일 실제 검증을 추가 반복하지 않는다. 잔여 P0는 (1) Ready/전이/checkpoint의 나머지 반복 검증·잠금 점유를 독립 입력으로 분리해 HTTP 재발 해결, (2) 긴 GOP의 부분 결과와 완전2출력 시나리오의 선수조건을 구분해 실제 재기동·통합 연결 완료다. 제품 대기/녹화 정책·HTTP timeout·합격 기준을 임의 변경하지 않는다. 모든 실행 소유 서버·포트·UDP·root 정리는 완료했으며 실패 단계 커밋/푸시는 하지 않았다. 아래는 이번 P0 착수 시점의 계획이다.
+
+##### P0 착수 계획: 원인 계측 후 최소 수정
+
+사용자가 두 P0의 개발을 승인했다. DIAG05~07의 실제 격리 계측에서 timeline snapshot 대기4642ms, 같은 Catalog mutex의 UpdateDerivedJob 점유4459ms 및 그 안 append/apply3846ms를 관측했다. 메인은 AppendAndApplyLocked의 1MiB checkpoint 조건과 CheckpointLocked의 원본/압축 후보 전수 복원·투영 동등성 검증을 직접 대조했다. 동일 job의 엄격 복원·직렬화가 반복되는 것이 주요 연산 경계다. 물리 매체 검사5초와 HTTP4초의 차이만으로 원인을 설명하지 않는다.
+
+검사·내구성·잠금·시간/ID 계약은 유지한다. 먼저 source1/250 samples/45 slices의 독립 baseline(P0-PERF01)을 측정하고 동일 source의 반복 canonical 직렬화와 중복 selection 복원만 줄이는 최소안을 검증한다. 임시 제품 계측은 원인 확인 후 제거한다. 이후 최종 빌드·영향 회귀·원래 HTTP4초 조건의 실제 복수 출력/재기동·현행 통합을 순서대로 실행한다. 브라우저·장시간·최종 S11은 이번 범위 밖이며 아직 복수 출력/재기동 PASS 또는 커밋/푸시 완료가 아니다.
+
+##### 직전 중단 이력: 내부 전달 보완 검증·실제 앱 타임라인 지연
+
+내부 증거 전달 수정의 build와 focused15, read4/rule4/storage7 scoped, consumer22가 통과했다. 실제 앱에서 기존 녹화 참조 부재는 해결됐으나 이후 정상 accepted placeholder 오분류를 보완한 재실행이 timeline HTTP timeout으로 실패했다. query는 각 finalized 매체 물리 검사를 포함하며 기본 검사 예산5초와 검증 HTTP4초의 차이가 있지만 실제 내부 지연 원인은 미계측이다. timeout을 확대하거나 제품 조회 경계를 임의 수정하지 않는다. 출력2개·두 번째 기동·실제5단계 통합은 미완료/건너뜀이다. 현재 작업 커밋·푸시는 승인이 있어도 미해결 단계 때문에 보류한다. 상세는 [통합 준비 기록](../../release-artifacts/v4.1.0/s11-preparation-mapping/integration-preparation.md)을 따른다.
+
+사용자가 내부 전달 누락 보완과 해당 작업 커밋·푸시를 승인했다. 동일 분석 결과의 observation context/namespace·원본 샘플 연관·decoded snapshot을 read DTO 왕복, rule evaluation, dispatch projection/복원에서 보존한다. 내부 불변 캐리어는 source/PTS/frame에 결박하며 전체 분석 결과·history를 보관하지 않는다. 부재/불일치 증거는 기존처럼 거부하고 최신 프레임의 정보로 보충하지 않는다. 공개 schema·저장 포맷·녹화/보존 정책은 변경하지 않는다.
+
+S11-EV01~06을 inventory와 중앙 기록에 사전등록했다. 실행 순서는 변환/평가/전달 focused RED→최소 구현/GREEN→관련 회귀→실패했던 실제 앱→현행 통합이다. 브라우저·30분·120분·최종 S11 실행은 제외한다. 아래 중단은 최초 실패 이력이며 이번 승인으로 해당 내부 보완만 재개한다. 최종 검증 및 커밋·푸시 결과는 실제 수행 후 기록한다.
+
+##### 최초 중단 이력: 인증 선수조건 완료·현행 통합 연결 제품 경계 실패
+
+인증 준비는 `6ab2f61c`에 커밋했다. 임시값 생성·stdin 전달·격리 root·정리 경계를 보완했고 자체검사17개와 실제 bootstrap/users/routes를 통과했다. [전수 결과와 실패 이력](../../release-artifacts/v4.1.0/s11-preparation-mapping/auth-preparation.md)을 기준으로 하며 제품 인증 정책은 변경하지 않았다. 매핑 링크 보완은 `d04545fc`로 분리했다. 두 커밋의 푸시는 현재 후속 통합 작업 종료 후 수행할 예정이다.
+
+현행 통합 연결은 S11-CI01~11을 등록하고 개발 중이다. 새 실행 판정과 legacy `integrationExecutionPass`를 분리한다. 공개 timeline의 event/reference/job과 모든 출력 파일, 실제 두 번째 제품 기동을 검사하며 새 JS 원장 재생 엔진은 만들지 않는다. 공개 `mediaRange`에 epoch/generation/track이 없어 동일 시간축 대조가 불가능한 관측 공백을 확인했다. 이 부분만 정상 종료 후 작업 소유 복제본에 기존 C++ Catalog를 여는 검증 adapter로 보완한다. 원본 archive를 별도 Open하지 않고 복제 전후 원본 목록·bytes/hash 불변을 확인하며, 복제본 Open의 복구 쓰기는 원본 상태와 구분한다. 브라우저·30분·120분·최종 S11 suite는 이번에 실행하지 않는다. 아래의 문서-only/미착수 표현은 당시 기록이다.
+
+현재 중단 근거: 실제 앱 단독 실행은 S11-CI07에서 EventRecord의 녹화 참조가 없어 exit1로 종료됐다. `webrtc_http_server_runtime.cpp:4619`의 dispatch가 `webrtc_http_server_ops_incidents.cpp:606`의 projection과 `event_storage_application_service.cpp:86`의 AnalysisResult 재구성을 거치면서 observation context/namespace·source association·decoded intervals를 전달하지 않는다. `event_recording_bridge.cpp:324`는 빈 context를 참조 생성 전에 거부한다. 메인이 소스를 직접 대조했다. 검증 코드만의 문제가 아니므로 제품 내부 전달 경로 보완의 범위 승인이 필요하다. 제품 코드는 수정하지 않았고 실제 두 번째 기동·5단계 통합 실행은 건너뛰었다. 첫 제품 정상 종료·양포트 반환·UDP 종료·44,617,344바이트 소유 root 제거를 확인했다. 2번은 미완료·미커밋이며 누적 푸시는 보류한다.
+
 ##### 후속 2번 착수 — 2026-09-14
 
 최신 결정: [2번 선행 재사용 범위](../../release-artifacts/v4.1.0/s11-preparation-mapping/reuse-decision.md).

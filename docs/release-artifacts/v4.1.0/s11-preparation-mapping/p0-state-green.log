@@ -1,0 +1,11 @@
+✔ P0-STATE01 complete1 count와 기존 two-output 거부 구분 (0.523292ms)
+✔ P0-STATE02 pending partial complete2 변화와 8개 상한 (0.285875ms)
+✔ P0-STATE03 raw ID/path/unknown enum/request 비밀 미노출 (0.052709ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 29.203334

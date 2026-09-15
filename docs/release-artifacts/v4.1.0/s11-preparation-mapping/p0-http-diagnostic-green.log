@@ -1,0 +1,11 @@
+✔ P0-DIAG01 정상 header/body 시간·안전 route 분류와 비밀 미노출 (0.572708ms)
+✔ P0-DIAG02 header timeout 고정 진단과 실패 유지 (0.25625ms)
+✔ P0-DIAG03 body timeout 부분 수신 측정·완료 거부 (0.116333ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 28.829833

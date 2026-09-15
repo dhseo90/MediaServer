@@ -1,9 +1,50 @@
 # Release Test Records
 
+## 2026-09-15 P0 1·2 완료 — 독립 재현·중복 복원·한정 HTTP
+
+사용자가 승인한 1·2만 완료했다. 원본 semantic replay를 유지하고 실제 schema/type 및 canonical sequence가 정확히 같을 때 후보 결과를 재사용한다. 저장 바이트·ID·손상 거부·복구·잠금 수명·녹화 대기·완전성 정책은 변경하지 않았다. 임시 계측은 제거했다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| P0 1 실제 크기 재현 | source250samples/mapping250, Ready319533B, 전이5.67초·원본/후보 각2.13초 재현 및 긴 GOP partial 원인 분리 | pass |
+| P0 2 동일성·전이 | 정확 필드·canonical 비교6개와 실제 파일/hash/예약3개, 최종 기본CP9개·exit0. 계측 GREEN에서 전이3.25초 | pass |
+| P0 2 catalog | 최종 원장·SQLite·손상/복구·축약·자동경계246개·exit0 | pass |
+| P0 2 영향 회귀 | jobs23/service43/media46/timeline38/고정 canonical·성능7개·각exit0. schema/type 추가 후 정상 parser 도달 조건 불변으로 유지 | pass |
+| P0 HTTP 도구 | 지연4/HTTP3/상태3/통합 helper17, 총27개·exit0 | pass |
+| P0 HTTP 실제 | 첫 기동 동일 이벤트 전이·이후5초 관측,5개·exit0·30,023ms. timeline190건 HTTP200, 최대3,786ms<4초 | pass |
+| 제품 빌드·정리 | 최종 build exit0. CP 소유root14개 부재 및 실제 서버 exit0·HTTP/RTSP/UDP 반환·47,593,525B root 삭제 | pass |
+
+전수 명령·원출력 행·준비 실패/RED·cleanup·유효 증거 판정은 [P0 재현 및 최종 기록](release-artifacts/v4.1.0/s11-preparation-mapping/p0-transition-reproduction.md)을 따른다. CP06 6개는 기본CP9개에 포함되며 반복 실행을 커버리지 증가로 합산하지 않는다. HTTP 초기 health 접속 대기의 실패 시도도 전수표에 보존했다. HTTP 최대치의 여유는214ms이므로 다른 부하·장시간 성능까지 보장하지 않는다.
+
+| 미실행/잔여 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| 3번 입력·구간 충족 | 긴 GOP 원본 확정과 bounded 대기, 30fps 파일-duration 1ns 잔차 원인/대응 확정 | 실제 결과는 partial1 유지 | 대기 상향·반올림·partial→complete 승격 안 함 |
+| 4번 실제 통합 | 완전한 출력2개·HTTP/hash·두 번째 기동·새 생산·5stage | 3번 후 진행 | latencyPass를 actualEventPass/restartPass로 대체 안 함 |
+| checkpoint 내부 불법 원본 직접 주입 | private 내부 상태의 직접 조작 | 공개 쓰기/Open에서 선행 차단, test hook 미추가 | 원본 replay 선행 직접 검토·공개 경계 음성 범위만 인정 |
+| 브라우저/30분/120분·S11 완료 | 최종 검증 | 이번 제외 | 버전 완료 아님 |
+
+기존 미커밋 내부 증거 전달 및 실제 검증 준비는 이번 HTTP 실행의 의존성을 분리하여 기록한다. 이전 EV15/consumer22 및 application-only4/4/7의 제품·fixture는 변경 없어 기존 증거를 유지한다. 새 검사·최적화 커밋과 구분하며 기존 전체 통합 실패는 삭제하지 않는다. token start/end/consumed는 전용 집계 소스 부재로 미집계다. 이 아래의 ‘최신/중단’ 제목은 해당 과거 실행 당시 판정이다.
+
 ## 2026-09-15 P0 1·2 독립 재현 실행 전 정의
 
 1번 결과: 실제 source250samples/mapping250·Ready319533B에서 전체 전이 5,667,190us, 원본/후보 복원 2,123,152/2,131,968us를 재현했다. 격리 실행기 최종 3개 PASS·자동 checkpoint2회·exit0·27초, 소유 root13,531,406B 정리 확인. 준비 compile 실패와 작은 부하의 최초 baseline도 보존한다. [전수 재현·원출력·정리](release-artifacts/v4.1.0/s11-preparation-mapping/p0-transition-reproduction.md). 제품 최적화 및 HTTP 지연 해결 PASS는 아직 아니다.
 
+P0-HTTP01/02 추가 정의: 한정 지연 모드는 실제 첫 기동 이벤트의 동일 참조·작업 Complete·finalized/playable 출력 확인 뒤 5초간 timeline을 더 조회한다. 각 HTTP 4초·전체180초와 원래 cleanup을 유지한다. 부분 요청도 관측하되 정확2개/요청 완전/재기동 검사는 기본 모드에 그대로 남긴다. 자체검사는 pending, partial, 다른 참조 거부, 기존 완전2 oracle 유지 4개를 먼저 RED/GREEN으로 수행한다. 최종 제품 build·영향 회귀 후 `node scripts/internal/verify_recording_current_app.mjs --latency-only` 1회만 수행하며 actualEventPass/restartPass는 false다. 이 검사는 P0 2의 HTTP 경계이지 P0 3·4 완료가 아니다.
+
+CP05~08 추가 정의: 동일한 canonical mutation 순서에서 원본 복원은 한 번 유지하고 후보 재복원은 재사용하는 임시 계측 RED/GREEN(CP05), 같은 길이의 다른 payload·순서·개수 거부(CP06), 원본 복원이 분기 전 선행하고 실패 즉시 반환하는 직접 코드 검토와 공개 경계의 불법 replay 거부(CP07), 내용이 다른 후보의 양방향 검증·실제 축약/복구·자동 경계 기존 SC 전수 회귀(CP08). CP07의 checkpoint 내부 불법 상태 직접 주입은 공개 API가 선행 차단하므로 미실행이며, 이를 위해 제품 test hook이나 가짜 callback 추상화를 추가하지 않는다.
+
+CP06 검토 보완: 기존 mutation serializer는 schema를 고정 출력하므로 schema 및 enum 실제 값 차이도 거부하는 음성 두 개를 추가한다. 공개 serializer는 변경하지 않는다. 정상 parsed 원본/후보는 같은 schema·지원 enum으로 제한되므로 기존 매체 회귀 증거는 유지하고, 비교 helper·catalog·기본 CP 및 최종 build만 보완 후 다시 검증한다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화: 독립 재현·동등성·복구 | 진행 대상 | 체크포인트 반복 복원 제거와 동일성 조건 변경 | RecordingCatalog::CheckpointLocked, CP01~08, 기존 SC | P0 1·2 단기 검증 승인 |
+| 안정화: 파생 작업·재생·보존 영향 | 진행 대상 | 동일 Catalog 소비와 기존 intent 검증 결과 재사용 | derived_jobs/service/public_media/public_timeline, P0-PERF02 | 승인, 동일 정상 입력의 유효 증거 유지 |
+| 안정화: 실제 HTTP 지연 | 진행 대상 | 실제 이벤트 전이와 타임라인 지연 해결 확인 | P0-HTTP01/02 | 승인, 두 출력·재기동 완료와 구분 |
+| 30분 | 미진행 | 현재 개발 범위는 최종 검증 전 P0 1·2 | S11 최종 검증 | 이번 실행 제외 |
+| 120분 | 미진행 | 최종 코드 고정 뒤 영향·유효 증거 판정 대상 | S11 최종 검증 | 이번 실행 제외 |
+| UI 풀테스트 | 미진행 | 사용자 브라우저 제외 유지 | S11 UI | 이번 실행 제외, 필수 완료 증거를 대체하지 않음 |
+
+HTTP 준비 이력: 최초 named export 부재로 모듈 로드 실패(`cp-http-red.log`, exit1)는 준비 실패다. namespace import로 수정한 `cp-http-assertion-red.log`는 함수 미구현 assertion 및 연관 3개 실패/기존 부분 출력 거부1개 통과다(출력 조회가 결합된 shell의 최종 exit0는 테스트 PASS가 아님). 구현 후 `node --test` 지연4/HTTP3/상태3/통합 helper17의 실제27개·exit0를 `cp-http-unit.log`에 보존했다. 아직 실제 제품 HTTP 실행은 아니다.
 
 | 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
 | --- | --- | --- | --- |
@@ -13,6 +54,135 @@
 | P0-CP04 | 실제 크기 대응 구간 부하 | 최초linear clock은mapping1/183KB라실제250mapping/283KB와불일치. 별도합성burst profile의 mono before=1e9+i*1e6/after+1000, UTC=고정epoch+i*1e6로 ClockValid를유지하며 미디어PTS/duration은불변. 기존 media-observation-divergence 정책의250mapping과Ready/Complete/자동checkpoint 비용측정. 시스템시각변경/실제앱clock동일주장없음. CP03은linear유지 | v4.1.0 |
 
 안정화 단기만 승인됐으며 runner는 소유root128MiB·실행60초 경계와 성공/실패cleanup을 갖춘다. 세부 개별oracle/원출력은 별도 `p0-transition-reproduction.md`에 사전등록한다. 3번대기정책·4번복수출력/재기동통합·브라우저·30/120분·릴리즈는 이번미진행이다. 담당단일Astra/medium, 메인계약/검토/커밋. token start/end/consumed는 전용집계부재로미집계, 실제elapsed별도기록. 기존미완료변경은보존하며 이번독립재현완료로전체통합PASS를만들지않는다.
+
+## S11 P0 최신 판정 — 최소 수정 후 실제 실패 유지
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| P0-PERF02 | 동일 canonical 유지, record 중앙값82077→28804us, RED6/1 뒤 GREEN7/0 | pass |
+| P0 영향 회귀 | 계측 제거 build exit0 및 EV15/J23/F43/D3A46/D3B38/HTTP3/integration17 전수185개 | pass |
+| P0-STATE01~03 | 상태 관측 RED 뒤3개 및 기존20개, 전수23개 | pass |
+| P0-ACTUAL01 | HTTP timeout 없이도 complete-two-outputs-timeout, exit1/43735ms | fail |
+| P0 상태 관측 실제 | complete/partial/출력1개 후 HTTP header timeout 재발, exit1/31697ms | fail |
+
+실제 전수·최초 실패·정리·원출력은 [통합 준비 기록](release-artifacts/v4.1.0/s11-preparation-mapping/integration-preparation.md)의 최신 P0 절을 따른다. 메인이 diff와 원출력을 직접 대조했다. 제품 Catalog/read/projection 임시 계측은 제거됐고, 승인된 최소 intent 최적화와 내부 증거 전달 변경은 미커밋이다. 이번 수정은 P0 전체 완료가 아니다.
+
+| 미실행/미확인 대상 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| HTTP P0 완료 | 반복 검증/잠금 점유 추가 분리 | 동일 실제 header timeout 재발 | 독립 성능 개선을 HTTP 해결로 사용 금지 |
+| 실제 완전2출력 | 입력 GOP와 bounded 대기·구간 충족 대조 | 실제 keyframe8.333초 간격, 설정2초에서 대기3750ms, partial1 관측 | 부분 결과를 complete로 승격 금지 |
+| 두 번째 제품 기동·5stage 통합 | 기존 output 보존·새 생산·통합 | 실제 첫 기동 실패 뒤 건너뜀 | 자체검사 PASS로 대체 불가 |
+| 브라우저·30분·120분·최종 S11 | 최종 검증 | 이번 범위 제외 | 버전 완료 아님 |
+| 커밋·푸시 | 승인된 변경 반영 | 동일 실패 단계 미해결 | 승인 유지, 수행 안 함·푸시 가능 아니오 |
+
+마지막 제품 PID62303은 exit0, HTTP54638/RTSP54639 및 UDP 종료, 소유 root51,957,805B 삭제·부재를 확인했다. ffprobe 읽기 확인은 exit0, 입력 keyframe0/8.333333/16.666667/25초이며 파일 수정·새 임시물은 없다. timeout·녹화 정책·출력2 기대를 변경하지 않았다. token start/end/consumed는 집계 소스 부재로 미집계이며 elapsed는 개별 원출력을 따른다.
+
+## S11 P0 재개 사전 정의
+
+사용자가 타임라인 지연 계측·해결과 실제 복수 출력/재기동/현행 통합 완료를 승인했다. 기존 커밋·푸시 승인은 해당 완료 조건 충족 후 유지한다. 브라우저·장시간·릴리즈 작업은 제외한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| P0-DIAG01 | HTTP 경계 관측 자체검사 | 정상/헤더 실패/본문 실패 및 비밀 포함 URL이 고정 분류만 출력되는지 독립 기대값 대조 | v4.1.0 |
+| P0-DIAG02 | 동일 실제 앱 진단1회 | sequence·method·routeClass·status·header/body/total elapsed·bytes·phase·outcome만 보존. 원문 URL/query/헤더/본문 미출력, 기존4초/180초/64MiB 유지 | v4.1.0 |
+| P0-DIAG03 | 원인 확정·수정 | 진단 자료 및 실제 서버 코드로 원인 대조 뒤 최소 수정과 focused/영향회귀. 미확정 timeout 확대 금지 | v4.1.0 |
+| P0-DIAG04 | 지연 호출 스택 관측 | 첫 진단의 timeline 헤더 이전4001ms/0bytes 근거로, 동일 검증 소유PID의 지연 요청1초에서 sample1초를 실행전체1회 수집. sampler 종료확인·원문미보존·안전 함수스택만 보존 | v4.1.0 |
+| P0-DIAG05 | 임시 서버 경계 계측 | sample은 성공한 앞요청에 결박돼 원인미확정. 검증 opt-in에서만 QueryTimeline snapshot/FinishTimeline·ResolveMedia 조회/획득/물리검사/재확인 enter/exit·단조elapsed·숫자상관을 기록. ID/path/URL 미출력, 계측build후 동일실제1회, 진단후 임시계측제거 | v4.1.0 |
+| P0-DIAG06 | catalog 잠금 대기/점유 분리 | DIAG05 실패요청 snapshot4642ms/finish261ms 근거. 동일mutex 수명을 유지한 임시 RAII로 함수명·wait/held ms를50ms이상일때만 잠금해제후 출력. build후 동일실제1회, 진단후 제거 | v4.1.0 |
+| P0-DIAG07 | 파생 job 전이 내부 비용 분리 | DIAG06 UpdateDerivedJob held4556ms와 타작업4.4~4.6초대기 근거. 새/이전record 직렬화·전이검증·append/apply·SQLite parse/serialize를 임시계측, 잠금/엄격검사불변 | v4.1.0 |
+| P0-PERF01 | 독립 파생 작업 검증 baseline | source 1개·250 samples·45 confirmed slices를 실제 Select/Build로 구성. 기존 SerializeIntent/SerializeRecord/ParseRecord/Restore 각 3회 steady_clock, canonical SHA256·크기·정상 왕복·source/mapping/identity 손상 거부를 기록. 서버·미디어 없음. 성능 RED 기준은 측정 후 확정하며 아직 제품 수정 없음 | v4.1.0 |
+| P0-PERF02 | 중복 연산 제거 RED/GREEN | baseline record 중앙값81837us 근거로 같은 호스트·최적화의 명시 --performance-budget에서 3회 중앙값60000us 이하를 확인. 기존 canonical SHA256 literal 일치·5개 정상/손상 검사를 유지. 기존 코드에서 성능 assertion RED 후 unique source 직렬화 및 validated selection 재사용만 수정 | v4.1.0 |
+| P0-ACTUAL01 | 최소 수정 후 실제 앱 | 계측 제거 build·EV15/J23/F43/D3A46/D3B38·HTTP helper3/integration17 통과 뒤 기존 실제 앱1회. HTTP4초/전체180초, 정확 복수 출력2개와 hash·원본불변·두 번째 기동·새 생산·cleanup 기준 유지. 성능 smoke로 실제 PASS 대체 안 함 | v4.1.0 |
+| P0-STATE01 | 단일 출력 관측·완료 거부 | 실제 재검증 HTTP timeout은 없었으나 출력 대기 실패. complete1 요약 count1 및 기존 expected-two-output-files 거부 유지 | v4.1.0 |
+| P0-STATE02 | 상태 변화 관측 | 최초 pending만 남기는 한계를 보완. pending/partial/complete 고정 enum별 row·job/output count, 변화 시 및 timeout 최종 요약 | v4.1.0 |
+| P0-STATE03 | 안전한 관측 경계 | ID/path/임의 문자열 sentinel 미노출, decimal request 4필드·최대8개 제한. helper3 TDD 및 기존17/HTTP3 회귀 후 동일 실제1회에서 trigger endPts/tapPts/delta와 dispatchPTS만 상관. 제품·timeout·정확2 oracle 불변 | v4.1.0 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화·독립 성능/계약 | 진행 대상 | 파생 intent 검증 중복 제거. 동일 canonical·거부 조건 보존 | P0-PERF01/02, recording_derived_job.cpp Validate/RestoreDerivedJobSelection | 승인 |
+| 안정화·빌드/영향 회귀 | 진행 대상 | 임시 계측 제거 후 빌드, freshness 보완 focused, 내구 job/복구/공개 재생·timeline 영향 | S11-EV01~06, 기존 J/F/D3A/D3B 검사 | 승인: 해당 기존 검사·상세 실행 기록 재사용 |
+| 안정화·실제 앱/통합 | 진행 대상 | HTTP timeout과 실제 복수 출력·재기동을 같은 원래 조건에서 확인 | S11-CI01~11 | 승인: 선수 영향 회귀 통과 후 |
+| 30분 | 미진행 | 개발·검증 준비이며 최종 코드 미고정 | S11 최종 검증 | 이번 범위 제외 |
+| 120분 | 미진행 | 최종 영향 판정·실행은 이후 | S11 최종 검증 | 이번 범위 제외 |
+| UI 풀테스트 | 미진행 | 사용자 브라우저 제외 유지 | S11-CI10 | 이번 범위 제외 |
+
+구현자는 기존 단일 Astra/medium, 하위 위임 금지이며 메인이 제품 원인·계약·실제 diff를 검토한다. token start/end/consumed는 전용 집계 부재로 미집계, elapsed는 개별 실제 출력 기준이다. 이전 read/rule/storage application-only·consumer 연결은 해당 제품 코드가 변하지 않아 기존 유효 증거를 유지하며, 수정된 runner freshness와 파생 intent 소비 경계는 위 범위로 재검증한다.
+
+## S11 내부 증거 보완·실제 앱 재검증 중단 — 2026-09-14
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| S11-EV01~06 focused | 실제 adapter·평가·동기 dispatch, 식별 불일치, snapshot 수명·공개 serializer 15개, exit0 | pass |
+| S11-EV06 현행 application 경계 | read scoped4, rule scoped4, storage scoped7 각각 exit0. 역사 전체 graph 결과와 분리 | pass |
+| S11-EV04 기존 녹화 연결 | consumer connection 22개 exit0, 실제 bridge 안전 계약 영향 확인 | pass |
+| S11-CI07 실제 참조 | 내부 전달 수정 뒤 실제 EventRecord에 녹화 참조 생성 확인. 두 실제 재시도에서 해당 assertion 통과 | pass |
+| S11-CI07 정상 대기 처리 | 정확 accepted/no-job placeholder를 기다림으로 분류, 다른 참조·상태는 거부. 자체 묶음 최종17개 exit0 | pass |
+| S11-CI07 실제 출력 대기 | 최초 event-lineage 오분류 뒤 보완. 다음 재시도에서 timeline HTTP 요청 timeout, exit1·26,531ms·pass3/fail1 | fail |
+
+상세 개별 결과·원출력·정리는 [통합 준비 기록](release-artifacts/v4.1.0/s11-preparation-mapping/integration-preparation.md)을 따른다. 전체15개와 개별 regression 수는 서로 다른 검사 범위이며 합쳐 전체 S11 PASS로 사용하지 않는다. 제품 build는 최초 잘못된 삽입 위치로 exit2 뒤 수정·exit0, focused는 fixture 초기화/관측 race 실패 뒤 최종15/0이다. 과거 실패를 최종 결과로 덮지 않는다.
+
+| 미실행/미확인 대상 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| HTTP 지연 내부 원인 | header/body·catalog/매체 검사 등 경계 계측 | 실패 로그와 코드로 timeline 요청까지 좁혔으나 내부 계측 없음 | 물리 검사 원인이라고 확정하지 않음 |
+| 복수 출력·두 번째 기동 | 출력2개 HTTP/hash 및 정상 재기동 | 첫 기동 출력 대기 실패 뒤 건너뜀 | observedOutputCounts=[], 기대값2를 관측 성공으로 사용 금지 |
+| 현행5단계 통합 | current integration 실제 순차 실행 | 실제 앱 단독 실패 뒤 건너뜀 | 자체검사17개는 실제 통합 PASS 아님 |
+| 역사 graph 전체 | v3.9 branch/graph/옛 구성 기준 | 이번 변경 전 HEAD에도 맞지 않음 | scoped PASS로 전체 graph FAIL 대체 금지 |
+| 브라우저·30분·120분·최종 S11 | 최종 검증 | 이번 승인 범위 제외 | 미실행, 버전 완료 아님 |
+| 커밋·푸시 | 이번 보완과 누적 변경 반영 | 사용자 승인은 있으나 동일 통합 단계 미해결 | 이번 커밋/푸시 미수행, 푸시 가능 아니오 |
+
+마지막 실행 process57768 정상exit0·HTTP51639/RTSP51640 반환·UDP 종료·소유 root42,739,351바이트 삭제/부재가 원출력에 기록됐다. 추가 실행·timeout 확대·타임라인 제품 수정은 하지 않았다. 원인 재검토는 메인에 회수했다. token start/end/consumed는 전용 집계 부재로 미집계.
+
+## S11 내부 녹화 증거 전달 보완 실행 전 정의 — 2026-09-14
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S11-EV01 | 분석 DTO 왕복 | 고정 source/frame/PTS·namespace·원본 연관·decoded snapshot을 실제 양방향 adapter로 대조. 다른 결과의 최신 증거로 대체하지 않음 | v4.1.0 |
+| S11-EV02 | 평가 경계 | 실제 rule evaluation 전후 동일 증거와 기존 이벤트 판단 확인 | v4.1.0 |
+| S11-EV03 | 저장 전달 | canonical/application projector 및 dispatch 수신의 동일 증거 확인 | v4.1.0 |
+| S11-EV04 | 안전한 거부 | 증거 부재·식별 모순은 기존 bridge 연결 거부를 유지. 최신 snapshot 보충 금지 | v4.1.0 |
+| S11-EV05 | 수명·크기 | 같은 불변 snapshot 공유·소유 종료 후 해제, history snapshot 미보관·collector 제한 유지 | v4.1.0 |
+| S11-EV06 | 공개·의존성 경계 | 공개 분석/이벤트 직렬화 미노출과 기존 application boundary 영향 검사 | v4.1.0 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 내부 증거 전달 수정과 실제 앱/통합 검증 승인 | S11-EV01~06, S11-CI01~11 | 승인됨: focused RED/GREEN→영향 회귀→기존 실패 실제 앱→현행 통합 |
+| 30분 | 미진행 | 현재는 개발·검증 준비, 최종 코드 미고정 | S11 최종 검증 | 이번 범위 제외 |
+| 120분 | 미진행 | 최종 영향 판정·실행은 이후, 이번은 단기 개발 | S11 최종 검증 | 이번 범위 제외 |
+| UI 풀테스트 | 미진행 | 사용자 브라우저 검증 제외 유지 | S11-CI10, S11-EV06 | 이번 범위 제외 |
+
+담당은 기존 단일 Astra/medium 구현자이며 하위 위임은 금지한다. 메인이 계약·diff·증거를 검토한다. 최초 S11-CI07 실패는 아래에 보존하며, 이번 등록은 실행 결과가 아니다. token start/end/consumed는 전용 집계 부재로 미집계, elapsed/source는 실제 실행별 출력에 기록한다.
+
+EV06 범위 보완: 기존 read boundary 기본 명령은 v3.9 역사 graph/branch·옛 생성자 기준까지 실행해 실패했다. `HEAD`에도 이미 `analysis_sessions(session_manager, recording_evidence)`와 recording application 헤더가 존재하므로 이 부분은 이번 제품 회귀가 아니다. 새 명시 `node scripts/internal/verify_v390_analysis_session_read_application_boundary.mjs --application-only`는 DTO·adapter 실제 동작·transport/lifecycle 현재 연결 검사를 유지하고 마지막 역사 graph 등록/실행 두 항목만 제외한다. 기본 전체 모드는 보존하고 실패를 PASS로 바꾸지 않는다. 전체 graph 정합성은 후속 구형 검증 정리에서 다룬다. 새 carrier 필드의 generic 직대응 검사만 전용 capture/restore 검사로 바꾸며 나머지 필드 검사를 유지한다.
+
+event-rule boundary에도 같은 역사 graph 두 항목이 붙어 있어 기본 실행의 실제 local4 통과와 역사2 실패를 분리했다. `node scripts/internal/verify_v390_event_rule_application_boundary.mjs --application-only`도 local4를 유지하는 명시 검증 범위로 등록하며 기본 모드는 유지한다. 이미 확인한 동일 역사 graph는 현행 단기 검증마다 반복 실행하지 않는다.
+
+## S11 현행 통합 준비 중단 결과 — 2026-09-14
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| S11-CI01~06/11 자체검사 요약 | 공개 DTO·실행 순서·실패 전파와 adapter 음성, 최종16개 통과·exit0. 아래 상세 개별 결과 기준 | pass |
+| S11-CI04 기존 상관 회귀 | 기존 `--event-selection-negative`, 14개 통과·exit0 | pass |
+| S11-CI07 실제 앱 | 이벤트 발생 뒤 recordingLinkId 부재로 실패·exit1. 제품 내부 projection에서 녹화 분석 증거를 전달하지 않음을 소스 대조 | fail |
+
+상세 결과·정리·원출력은 [통합 준비 기록](release-artifacts/v4.1.0/s11-preparation-mapping/integration-preparation.md)에 보존한다. 실제 실행의 pass2/fail1은 첫 서버의 건강/정리와 실패 한 건이며 이벤트 출력 생성 성공이 아니다. 실패 출력의 `outputCount:2`는 초안의 고정 기대값으로 관측 개수가 아니므로 사용하지 않는다. 실제 두 번째 기동·5단계 통합 실행·브라우저·30분·120분·최종 suite는 미실행/건너뜀이다. S11-CI08 전체 PASS는 아니다. 단독 실행 elapsed13576ms, token start/end/consumed는 전용 집계 부재로 미집계.
+
+## S11 현행 통합 검증 연결 실행 전 정의 — 2026-09-14
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S11-CI01 | 현행 순차 실행 | HTTP API→인증→전송 수명→default composition→실제 앱. child별 실제 exit·정확 summary·정리 출력 결박 | v4.1.0 |
+| S11-CI02 | 실패 전파 | child 실패·출력 한도·누락/중복 summary·cleanup 실패를 거부하고 뒤 단계 notRun. 종료 처리를 검증 결과와 구분 | v4.1.0 |
+| S11-CI03 | 완료 범위 구분 | legacy integrationExecutionPass 의미 보존. 새 currentIntegrationExecutionPass만 사용하고 전체 S11·UI·장시간 PASS는 false/미실행 | v4.1.0 |
+| S11-CI04 | 이벤트 상관 | 실제 dispatch tuple과 EventRecord ID 연결. 이전 ID·다른 tap/source/rule/track/PTS·복수 후보 거부; 기존 음성 계약 유지 | v4.1.0 |
+| S11-CI05 | 공개 DTO와 복수 출력 | 페이지 전체·total/unplacedTotal·itemId 중복 검사. 동일 출력의 다중 mapping 행과 파일 집합 구분, 독립 기대 파일2개. reference/job/Complete·completeness·정밀 문자열 검사 | v4.1.0 |
+| S11-CI06 | 재기동 비교 자체검사 | 기존 ID·HTTP bytes/hash 보존 및 새 event/reference/job/output 비중복. 누락·변형·새 생산 부재 거부 | v4.1.0 |
+| S11-CI07 | 실제 앱 이벤트 통합 | 소유 입력 source→실제 tap 분석/dispatch→EventRecord→reference/job→출력 파일2개 전체 HTTP. 고정 요청 범위가 정확 두 원본에 교차함을 독립 확인. 소유 regular 파일 bytes/hash 대조 | v4.1.0 |
+| S11-CI08 | 실제 두 번째 기동 | 첫 제품 프로세스 정상 종료·HTTP/RTSP 반환→같은 격리 archive 두 번째 제품 실행. 기존 출력 보존과 새 생산을 별도 확인 | v4.1.0 |
+| S11-CI09 | 격리·정리 | 외부 환경/ICE 차단·작업 소유 입력/상태/root. 성공/실패/중단의 서버·자식·포트·임시 파일 정리. raw 비밀/URL 미보존 | v4.1.0 |
+| S11-CI10 | 기존 검사 재사용 경계 | HTTP API/auth/lifecycle/default focused 실제 실행과 기존 accepted/partial/손상/삭제 검사의 정확 매핑 구분. 합성 seed와 실제 분석 흐름을 서로 대체하지 않음 | v4.1.0 |
+| S11-CI11 | 종료 저장소 복제본 adapter | 공개 DTO에 없는 epoch/generation/order/track을 기존 C++ Catalog로 대조. live/원본 입력 거부·소유 복제본만 Open, 원본 전후 목록/bytes/hash 불변, 정확 두 원본 동일 시간축·정밀 문자열. 복제본 복구 결과를 원본의 복구 전 상태로 주장하지 않음 | v4.1.0 |
+
+단기 자체검사와 격리 실제 앱 검증만 이번 개발 범위다. 브라우저·30분·120분·최종 suite는 미실행이며 기존 인증1 증거는 변경 영향이 없으면 유지한다.
 
 ## S11 인증 준비 결과 — 2026-09-14
 

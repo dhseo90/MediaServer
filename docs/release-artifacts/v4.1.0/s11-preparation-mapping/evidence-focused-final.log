@@ -1,0 +1,17 @@
+[pass] EV01 canonical application 왕복 같은 녹화 증거
+[pass] EV01 전체 관측 context 및 원본 timestamp 연관 literal 보존
+[pass] EV02 실제 rule 평가 왕복 증거 보존
+[pass] EV02 평가 application annotated 결과 재복원 증거
+[pass] EV03 canonical projection 실제 storage bridge 입력 증거
+[pass] EV03 application projection 실제 storage bridge 입력 증거
+[pass] EV04 dispatch frame 충돌 증거 복원 거부
+[pass] EV04 source 충돌 거부
+[pass] EV04 PTS 충돌 거부
+[pass] EV04 frame 충돌 거부
+[pass] EV04 증거 부재 발명 금지
+[pass] EV05 history snapshot null 보존
+[pass] EV05 원본 해제 뒤 동일 4096 snapshot 수명 유지
+[pass] EV05 마지막 carrier 해제 뒤 snapshot 해제
+[pass] EV06 실제 공개 result serializer 내부 증거 비노출 불변
+[summary] pass=15 fail=0
+[cleanup] path=/private/tmp/media-server-application-evidence.9kTy4I bytes=21638379 absent=true

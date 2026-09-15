@@ -1,0 +1,7 @@
+[pass] S11-CI09 product-1 healthy isolated ICE
+[pass] S11-CI07 run1 actual tuple EventRecord reference
+[timeline-state] [{"kind":"event","referenceMatches":true,"jobPresent":false,"jobState":"not-created","segmentPresent":false,"completeness":"unknown","catalogState":"absent","playable":false}]
+[fail] current actual app: The operation was aborted due to timeout
+[pass] S11-CI08 product-1 exit0 ports returned
+[cleanup] {"root":"/private/tmp/media-server-current-integration-285AtP","bytes":42739351,"rootAbsent":true,"failureCount":0,"processes":[{"pid":57768,"exitCode":0,"signalCode":null,"graceful":true,"ports":[{"kind":"http","port":51639,"closed":true},{"kind":"rtsp","port":51640,"closed":true}]}],"udpClosed":true}
+{"mode":"current-actual-app","passed":3,"failed":1,"actualEventPass":false,"restartPass":false,"expectedOutputCount":2,"observedOutputCounts":[],"cleanup":{"rootAbsent":true,"failureCount":0,"processes":[{"pid":57768,"exitCode":0,"signalCode":null,"graceful":true,"ports":[{"kind":"http","port":51639,"closed":true},{"kind":"rtsp","port":51640,"closed":true}]}]},"elapsedMs":26531}

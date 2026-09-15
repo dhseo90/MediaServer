@@ -1,0 +1,9 @@
+[pass] CP06 exact canonical sequence equality
+[pass] CP06 same length different payload rejected
+[pass] CP06 reordered sequence rejected
+[pass] CP06 different count rejected
+[fail] CP06 different schema despite canonical equality rejected
+[fail] CP06 different enum despite canonical equality rejected
+[summary] pass=4 fail=2
+[cleanup] path=/private/tmp/media-server-checkpoint-reproduction.KSp2aj bytes=928443 removed=true
+[elapsed] seconds=1 source=bash-SECONDS
