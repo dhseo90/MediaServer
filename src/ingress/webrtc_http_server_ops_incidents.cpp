@@ -1,5 +1,6 @@
 // 파일 요약: WebRTC HTTP 서버의 incident, API JSON, metadata 전송 구현이다.
 #include "webrtc_http_server_detail.h"
+#include "recording_evidence_application_mapping.h"
 
 namespace ingress {
 
@@ -613,6 +614,8 @@ EventStorageApplicationDispatchRequest ProjectEventStorageDispatchRequestValue(
     request.source.route = result.context.route;
     request.source.client_id = result.context.client_id;
     request.source.pts = result.pts;
+    request.source.frame_id = result.frame_id;
+    request.source.recording_evidence = CaptureRecordingEvidence(result);
     request.source.time_basis = result.context.event_time_basis;
     request.source.time_anchor_utc_ms = result.context.event_anchor_utc_ms;
     request.source.time_anchor_pts_ms = result.context.event_anchor_pts_ms;

@@ -2,6 +2,7 @@
 // 파일 용도: 분석 세션 read/query projection의 application service 계약을 선언한다.
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
@@ -9,6 +10,8 @@
 #include "ingress/image_codec_application_service.h"
 
 namespace ingress {
+
+struct RecordingEvidenceCarrier;
 
 struct AnalysisSessionApplicationContext {
     std::string source_kind{"*"};
@@ -309,6 +312,8 @@ struct AnalysisSessionApplicationResult {
     bool metrics_report_requested{false};
     std::optional<AnalysisSessionApplicationDebugState> debug_state;
     std::optional<AnalysisSessionApplicationMetrics> metrics_report;
+    // 내부 전달 전용이며 공개 응답으로 직렬화하지 않는다.
+    std::shared_ptr<const RecordingEvidenceCarrier> recording_evidence;
 };
 
 struct AnalysisSessionApplicationSnapshot {

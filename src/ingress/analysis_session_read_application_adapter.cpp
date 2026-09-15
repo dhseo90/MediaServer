@@ -1,4 +1,5 @@
 #include "ingress/analysis_session_read_application_adapter.h"
+#include "recording_evidence_application_mapping.h"
 // 파일 용도: 분석 세션 read/query application adapter를 구현한다.
 #include <chrono>
 #include <utility>
@@ -329,6 +330,7 @@ AnalysisSessionApplicationResult FromCanonical(const analysis::AnalysisResult& i
     output.context = FromCanonical(input.context);
     output.frame_id = input.frame_id;
     output.pts = input.pts;
+    output.recording_evidence = CaptureRecordingEvidence(input);
     output.frame_width = input.frame_width;
     output.frame_height = input.frame_height;
     output.detections.reserve(input.detections.size());
@@ -618,6 +620,7 @@ analysis::AnalysisResult ToCanonical(const AnalysisSessionApplicationResult& inp
     output.context = ToCanonical(input.context);
     output.frame_id = input.frame_id;
     output.pts = input.pts;
+    RestoreRecordingEvidence(input.recording_evidence, output);
     output.frame_width = input.frame_width;
     output.frame_height = input.frame_height;
     output.detections.reserve(input.detections.size());
