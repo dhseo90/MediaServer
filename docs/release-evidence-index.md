@@ -1,5 +1,11 @@
 # Release Evidence Index
 
+## 2026-09-16 녹화 3-A 실제 forward 결박
+
+- [종료점·원본 식별 계약](superpowers/specs/2026-09-15-recording-endpoint-contract.md): 원본 PTS와 파일 표시 구간 분리, 요청 포함 기준 유지.
+- [중앙 실행 기록](release-test-records.md): FW01~04 372AU와 FW05 33개, 최초 준비 실패·정리 포함. 제품3-B/4/5 PASS 아님.
+- [실제 계측 원출력](release-artifacts/v4.1.0/s11-preparation-mapping/forward-probe-data/forward-probe-output.txt).
+
 이 문서는 v1.8.0 release trust hardening 이후 release close-out evidence를 한곳에서
 찾기 위한 색인입니다. README 첫 화면에는 세부 evidence 목록을 반복하지 않고,
 이 문서와 [release-policy.md](./release-policy.md), [development-backlog.md](./development-backlog.md)로
@@ -34,6 +40,11 @@
 - tag, push, GitHub Release 생성은 사용자 명시 승인 전에는 완료로 기록하지 않습니다.
 
 ## v4.1.0 S08 단계 증거 연결 (2026-09-11)
+
+현행 S10 시간 구간 보강의 2026-09-15 상태는
+[릴리즈 잔여 감사](release-artifacts/v4.1.0/s11-preparation-mapping/release-readiness-20260915.md)와
+[3번 선수 실패](release-artifacts/v4.1.0/s11-preparation-mapping/timing-profile-report.md)를 따른다.
+3번 미완료·4번 건너뜀이며 아래 S08 과거 PASS를 S10/S11 완료로 사용하지 않는다.
 
 S08의 구현 위치·현재 단계 상태는 [release-evidence-v410.md](./release-evidence-v410.md),
 개별 검사·최초 실패·수정·재검증·cleanup은 [release-test-records.md](./release-test-records.md)의

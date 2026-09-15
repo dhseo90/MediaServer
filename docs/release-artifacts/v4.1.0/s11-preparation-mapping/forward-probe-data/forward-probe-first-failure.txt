@@ -1,0 +1,6 @@
+command: bash scripts/internal/recording_forward_probe_run.sh
+exit: 1
+scripts/internal/recording_forward_probe_run.sh: line 40: /dev/fd/62: Operation not permitted
+[evidence] exported=0 raw_media_preserved=false run_exit=1
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-forward-probe.iKnqYV bytes=0 removed=true
+[elapsed] seconds=0 source=bash-SECONDS

@@ -1,0 +1,20 @@
+[run] root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-forward-probe.sXbW2f scope=FW01-FW04
+[gstreamer] GStreamer 1.28.1
+[checkpoint] TP01 finalized=250 unfinalized=50
+[capture] TP01 samples=300 segments=2
+[capture] TP02 samples=30 segments=1
+[capture] TP03 samples=30 segments=1
+[capture] TP04 samples=12 segments=1
+[FW01] segment=0 samples=250 acceptance_vcl_file_identity=pass integer_origin_subtraction=pass actual_mux_native_forward=pass origin_ns=0 timescale=3000
+[FW01] segment=1 samples=50 acceptance_vcl_file_identity=pass integer_origin_subtraction=pass actual_mux_native_forward=pass origin_ns=8333333333 timescale=3000
+[pass] FW01 samples=300 scope=forward-characterization-only inverse_endpoint_mapping=not-proven request_fully_satisfied=not-evaluated
+[FW02] segment=0 samples=30 acceptance_vcl_file_identity=pass integer_origin_subtraction=pass actual_mux_native_forward=pass origin_ns=0 timescale=30000
+[pass] FW02 samples=30 scope=forward-characterization-only inverse_endpoint_mapping=not-proven request_fully_satisfied=not-evaluated
+[FW03] segment=0 samples=30 acceptance_vcl_file_identity=pass integer_origin_subtraction=pass actual_mux_native_forward=pass origin_ns=0 timescale=3000
+[pass] FW03 samples=30 scope=forward-characterization-only inverse_endpoint_mapping=not-proven request_fully_satisfied=not-evaluated
+[FW04] segment=0 samples=12 acceptance_vcl_file_identity=pass integer_origin_subtraction=pass actual_mux_native_forward=pass origin_ns=0 timescale=3000
+[pass] FW04 samples=12 scope=forward-characterization-only inverse_endpoint_mapping=not-proven request_fully_satisfied=not-evaluated
+[summary] pass=4 fail=0 scope=actual-forward-capture-and-native-table-comparison product-complete=false
+[evidence] exported=48 raw_media_preserved=false run_exit=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-forward-probe.sXbW2f bytes=5850023 removed=true
+[elapsed] seconds=6 source=bash-SECONDS

@@ -1,5 +1,251 @@
 # Release Test Records
 
+## 2026-09-16 3-A~4 재개 및 forward 대응 사전등록
+
+승인 범위: 3-A 계약 보완 → 3-B 증거 수집·저장·복구 → 4번 대기 정책, 단계별 커밋과 최종 푸시.
+이전 MAP-A 검사는 실제 writer/mux 변환을 검사하지 않았으므로 완전 녹화 의미 변경을 요구하는 근거로
+사용한 해석을 정정한다. 원출력·실패 이력은 보존한다. 이번 제품 완료·PASS는 아직 없다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화: 실제 forward 대응 | 진행 대상 | 원본·파일 증거 수집 위치 확정 | FW01~04, endpoint-contract 2026-09-16 | 격리 단기 개발 검증 승인 |
+| 안정화: 저장·손상·복구·비용 | 조건부 진행 | 3-A 확정 후 3-B 구현 | source binding/catalog/finalize | 개발 승인, 선수 완료 후 개별 등록 |
+| 안정화: 제한 대기 | 조건부 진행 | 3-B 완료 후 4번 | derived event worker/retention | 개발 승인, 선수 완료 후 개별 등록 |
+| 30분·120분·UI | 미진행 | S10 개발 중, 브라우저 제외 유지 | S11 | 이번 실행하지 않음 |
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| FW01 | 긴 GOP 분할의 실제 대응 | 기본 writer TP01 250/50 샘플. 수락 입력·mux 경계·실제 파일의 canonical VCL 내용, 원본 ordinal 및 시각 대조. count/order만으로 연관을 증명하지 않음 | v4.1.0 |
+| FW02 | 분수 FPS 대응 | TP02 30000/1001 입력의 원본 ns·mux ns·native tick을 대조. parser duration과 파일 종료 근거를 구분 | v4.1.0 |
+| FW03 | B-frame 대응 | TP03 원본·mux·파일의 내용과 PTS/DTS를 별도 대조. PTS fitted offset을 DTS에 적용하지 않음 | v4.1.0 |
+| FW04 | VFR 및 마지막 샘플 | TP04 20/50ms·마지막70ms 입력의 parser/mux duration 변경을 관측하고 파일 밖 시간을 연장하지 않음 | v4.1.0 |
+| FW05 | forward 증거 부정 조건·native rational 경계 | actual capture를 사용하는 공통 verifier에 VCL/raw hash·ordinal·원점·PTS/DTS·duration/native table·중복/누락을 독립 변조해 거부. TP03⅔ns 미충족과 TP01⅓ns overlap을 BigInt literal로 확인. 명령 `node --test scripts/internal/recording_forward_probe_verify.test.cjs` | v4.1.0 |
+
+메인은 저장/복구 경계와 계약을 검토하고 단일 Astra/medium 담당자는 forward 계측 경로를 맡는다.
+하위 에이전트 금지. 제품 기본 mux 설정 변경·운영 데이터 접근·서버/브라우저 실행은 없다.
+실행 전이며 결과는 미실행이다. token start/end/consumed는 전용 집계 소스 부재로 미집계.
+임시 미디어는 작업 소유 root에만 만들며 숫자/hash 증거 보존 후 삭제·부재 확인한다.
+
+### FW01~04 실제 실행 및 한계
+
+3-B 사전등록(실행 전): `bash scripts/internal/verify_recording_file_evidence.sh`에서 다음 항목을
+개별 검사한다. 후속 구현 도구의 상세 명령이 확정되면 실행 전에 이 절을 보완한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| FE01 | optional file evidence strict 계약 | 실제 C++ parser/serializer roundtrip, absent 기존 바이트 불변, extra/missing fields 거부 | v4.1.0 |
+| FE02 | writer의 실제 증거 수집 | actual H264 원본 수락·mux·파일 대응, 정수 origin/native timestamps 및 식별 결박 | v4.1.0 |
+| FE03 | native 파일 parser 안전성 | 잘린 box/table, 개수 불일치, 잘못된 offset/overflow/edit를 literal fixture로 거부 | v4.1.0 |
+| FE04 | finalize의 원자 결박 | 파일 hash·증거가 EOS 뒤 같은 Ready ticket/bound mutation에 결박되는지 실제 writer/catalog 대조 | v4.1.0 |
+| FE05 | 저장·복구 | SQLite/JSONL fallback/checkpoint/restart 및 Ready 복구의 증거 바이트·판정 동일 | v4.1.0 |
+| FE06 | 변조 거부 | source/store/epoch/ordinal/hash/native ticks/timescale·누락/추가를 독립 변경해 거부 | v4.1.0 |
+| FE07 | 크기·잠금 비용 | 4096 상한·직렬화 크기, 실제 catalog commit/checkpoint 시간 측정. 비용 미확인을 성능 PASS로 쓰지 않음 | v4.1.0 |
+| FE08 | 기존 지원·미입증 입력 | 기존 no-evidence 직렬화 및 입력 녹화 유지, 미입증 profile/ambiguity에 새 증거·complete 없음 | v4.1.0 |
+
+FE01~08은 현재 미실행이며 3-B 제품 PASS가 아니다. 의존성 설치·장시간·UI·후속5번은 포함하지 않는다.
+
+`bash scripts/internal/recording_forward_probe_run.sh`: 최초 실행은 `/dev/fd` process substitution
+권한 오류 exit1. 일반 pipe로 실행 준비만 보완 후 exit0, 7초, 4PASS/0FAIL이다.
+제품 코드·기본 mux 설정은 변경하지 않았다. 메인이 wrapper/내용 연결/시간식/원출력을 직접 대조했다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| FW 실행 준비 최초 | /dev/fd 출력 보존 열기 실패, exit1 | fail | 제품 실행 전 실패이며 예상 RED 아님. 일반 pipe로 수정 |
+| FW01 | 300 AU, 250/50 두 파일. accepted source·고유 canonical VCL·mux raw hash·native sample 일치, origin 0/8333333333, scale3000 | pass | 원본 시간 역변환·complete 판정은 검사하지 않음 |
+| FW02 | 30 AU, scale30000. 원본/mux PTS·DTS와 실제 native forward 전수 일치 | pass | 분수FPS 특성화 |
+| FW03 | 30 AU, scale3000. B-frame 원본 내용 및 독립 PTS/DTS round·STTS 대조 | pass | `originalPTS + chosenDTSduration` 종료점 후보는 동일 native 경계의 상충으로 채택하지 않음 |
+| FW04 | 12 AU, scale3000. VFR 원본 duration·mux duration 별도 보존, actual native 전수 대조 | pass | 입력 마지막70ms를 파일 길이로 승격하지 않음 |
+
+직접 근거: [최종 원출력](release-artifacts/v4.1.0/s11-preparation-mapping/forward-probe-data/forward-probe-output.txt),
+[최초 실패](release-artifacts/v4.1.0/s11-preparation-mapping/forward-probe-data/forward-probe-first-failure.txt),
+[B-frame mapping](release-artifacts/v4.1.0/s11-preparation-mapping/forward-probe-data/TP03/forward-0-mapping.csv).
+GStreamer 및 app pkg-config1.28.1. 공식 동일 태그의 `gstqtmux.c`를 읽어 관측과 대조했다.
+소스 반입·의존성 설치 없음. 웹 조회 cache miss와 sandbox curl DNS 실패 후 승인된 읽기 조회는 exit0.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR/media-server-forward-probe.iKnqYV | 최초 소유 임시 root | 0B | 삭제 | removed=true | 최초 실패 원출력 |
+| TMPDIR/media-server-forward-probe.C152YS | 빌드·격리 녹화 | 5850023B | 숫자/hash 이관 후 삭제 | removed=true, raw media 미보존 | 최종 원출력 |
+| forward-probe-data | 숫자/hash CSV·JSON 48개와 실행 로그 | 별도 디스크 사용량 약544KiB | 보존 | 실제 AU·시간 전수 대조용, 영상/비밀 없음 | runner 허용 파일 export |
+
+전체 372 AU/5파일의 forward 계측 성공이지 3-A 전체 완료가 아니다. 종료점 계약, 제품 저장/복구,
+중복·변조 음성 실행, 비용·대기·통합·최종 검증은 아직 미실행이다. token start/end/consumed는
+전용 소스 부재로 미집계, elapsed는 runner SECONDS 7초이며 조사 전체 시간은 아니다.
+
+### 3-A 최종 보완 결과
+
+위 FW 첫 실행 이후 F(t)=실제 writer 원점+t로 파일 표시축을 이동하고, 원본 integer PTS는
+identity로 분리하는 계약을 확정했다. 기존 timestamp-only 경로를 완화하지 않고 새 증거를 구분한다.
+같은 native 경계에 상충하는 endpoint를 만드는 `originalPTS + DTSduration` 후보는 제외했다.
+FW05는 원본 캡처를 사용하는 공통 verifier로 33개를 실제 실행했다. 최종 3-A의 정상·오류·경계
+기준 확인이며 제품 저장/복구 또는 요청 complete 검증이 아니다.
+
+명령 `node --test scripts/internal/recording_forward_probe_verify.test.cjs`, exit0,33PASS/0FAIL,
+43.079791ms. [개별 원출력](release-artifacts/v4.1.0/s11-preparation-mapping/forward-probe-data/forward-negative-output.txt).
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| FW05 positive TP01 segment0 | 실제250AU capture 검증 | pass | 정상 경로 |
+| FW05 positive TP01 segment1 | 실제50AU capture 검증 | pass | 정수origin 결박 |
+| FW05 positive TP02 | 실제30AU capture 검증 | pass | 분수FPS |
+| FW05 positive TP03 | 실제30AU capture 검증 | pass | B-frame |
+| FW05 positive TP04 | 실제12AU capture 검증 | pass | VFR |
+| FW05 accepted VCL hash | 원본 내용 hash 변조 거부 | pass | 오류 이유 대조 |
+| FW05 mux VCL hash | mux 내용 hash 변조 거부 | pass | 오류 이유 대조 |
+| FW05 accepted raw hash | 수락 입력 raw hash 변조 거부 | pass | 오류 이유 대조 |
+| FW05 mux raw hash | mux raw hash 변조 거부 | pass | 오류 이유 대조 |
+| FW05 file sample raw hash | 파일 sample hash 변조 거부 | pass | 오류 이유 대조 |
+| FW05 source binding ordinal | 원본 ordinal 변조 거부 | pass | 오류 이유 대조 |
+| FW05 source binding PTS | 원본 PTS 변조 거부 | pass | 오류 이유 대조 |
+| FW05 per-AU origin disagreement | 샘플별 원점 불일치 거부 | pass | 오류 이유 대조 |
+| FW05 appsrc PTS | appsrc PTS 변조 거부 | pass | 오류 이유 대조 |
+| FW05 appsrc DTS | appsrc DTS 변조 거부 | pass | 오류 이유 대조 |
+| FW05 mux PTS | mux PTS 변조 거부 | pass | 오류 이유 대조 |
+| FW05 mux DTS | mux DTS 변조 거부 | pass | 오류 이유 대조 |
+| FW05 accepted duration | 수락 duration 변조 거부 | pass | 오류 이유 대조 |
+| FW05 used final mux duration | 실제 사용되는 마지막 duration 변조 거부 | pass | 비마지막 duration은 다음DTS가 우선하므로 일반화하지 않음 |
+| FW05 native sample PTS tick | native PTS 변조 거부 | pass | 오류 이유 대조 |
+| FW05 native sample DTS tick | native DTS 변조 거부 | pass | 오류 이유 대조 |
+| FW05 native sample duration tick | native duration 변조 거부 | pass | 오류 이유 대조 |
+| FW05 native timescale | native 단위 변조 거부 | pass | 오류 이유 대조 |
+| FW05 duplicate accepted VCL | 중복 수락 내용 거부 | pass | 고유성 oracle |
+| FW05 duplicate mux VCL | 중복 mux 내용 거부 | pass | 고유성 oracle |
+| FW05 duplicate file raw hash | 중복 파일 sample 거부 | pass | 고유성 oracle |
+| FW05 missing accepted AU | 수락 AU 누락 거부 | pass | 전수 개수 |
+| FW05 missing mux AU | mux AU 누락 거부 | pass | 전수 개수 |
+| FW05 missing file sample | 파일 sample 누락 거부 | pass | 전수 개수 |
+| FW05 missing accepted binding | binding 누락 거부 | pass | 전수 개수 |
+| FW05 segment time translation | 미지원 segment 이동 거부 | pass | 관측된 profile 경계 |
+| FW05 exact leading shortfall | 실제⅔ns 미충족을 floor로 숨기지 않음 | pass | 독립 BigInt literal 산술 |
+| FW05 exact cross-file overlap | 실제O 기준⅓ns overlap, gap 아님 | pass | 독립 BigInt literal 산술 |
+
+verifier 함수 분리 후 actual runner도 재실행하여 FW01~04 exit0/4PASS/0FAIL/6초를 확인했다.
+이전 성공 출력은 `forward-probe-before-fw05-output.txt`에 보존했다. 새 임시 root
+`TMPDIR/media-server-forward-probe.sXbW2f` 5850023B는 숫자/hash 이관 후 삭제·removed=true.
+메인 최초 두 root 부재 및 diffcheck exit0, docs links275/8589/실패0 확인. 문서 최종 변경 후 gate는 다시 기록한다.
+추가 probe 출력이 제품 기능 GREEN을 의미하지 않으며 3-B/4/5·최종 S11은 미완료다.
+
+## 2026-09-15 3-A 원본 시간 변환의 식별 가능성 확인
+
+사용자는 3-A/3-B 개발·분할 커밋·문제 없을 때 푸시를 승인했다. 4번 개발과 최종 장시간/UI는 이번 범위 밖이다.
+설계·TDD 스킬을 적용하되 이번 선수 검사는 제품 구현이 아닌 기존 실측값의 수학적 반례 특성화다.
+메인이 계약을 판단하고 기존 단일 Astra/medium 담당자는 읽기 검토만 수행했다. 하위 생성 없음.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화: 변환 식별 가능성 | 진행 대상 | 원본·native 증거만으로 유일 종료점/연속성 판정이 가능한지 확인 | MAP-A01~03 | 개발 범위 격리 단기 승인 |
+| 3-B 제품 저장/복구 | 조건부 진행 | 3-A 시간 판정 계약 확정 후 | endpoint-contract | 개발 승인, 선수 계약 미확정 |
+| 30분/120분/UI | 미진행 | 개발 중이며 최종 코드 미고정, 브라우저 제외 | S11 | 이번 실행하지 않음 |
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| MAP-A01 | 실제 tail50개에 맞는 서로 다른 후보 | `node --test scripts/internal/recording_mapping_ambiguity.test.mjs`; 기존 TP01 input/native에서 originA=25000000000/3ns, originB=originA+1/6ns 모두 원본 integerPTS와 일치 | v4.1.0 |
+| MAP-A02 | 같은 정수자료에서 연속/간격 후보 공존 | 앞파일 native끝25000/3000초에 대해 후보A gap0, 후보B gap1/6ns. 두 시작 정수ns는8333333333으로 동일 | v4.1.0 |
+| MAP-A03 | PTS/DTS 변환 분리 | TP03 nativeDTS0, 원본DTS0. PTS용 fitted origin−2/3ns를 DTS에 적용한 floor는−1 | v4.1.0 |
+
+이 검사는 후보가 실제 원천 시각이라는 증명이 아니다. 서로 다른 설명이 존재함을 입증해 데이터 fitting만으로
+유일 변환/연속성을 승격하는 오류를 막는다. 실제 gap1/6ns가 발생했다고 주장하지 않는다.
+파일/서버/계정 생성 없음, 기존 숫자 증거 읽기만 한다. token start/end/consumed는 전용 집계 부재로 미집계다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| MAP-A01 | 실제 TP01 tail50개에 후보A/B가 모두 일치 | pass | 0.79875ms. 일치 후보 존재는 실제 변환 증명 아님 |
+| MAP-A02 | 후보A gap0, 후보B gap1/6ns, 동일 정수 시작8333333333 | pass | 0.202083ms. 실제gap 발생을 주장하지 않음 |
+| MAP-A03 | TP03 DTS0에 PTS fitted 위상 적용 시−1 | pass | 0.13375ms. PTS/DTS 공통식으로 일반화 금지 |
+
+명령 exit0,3PASS/0FAIL,전체31.9795ms. [실제 원출력](release-artifacts/v4.1.0/s11-preparation-mapping/mapping-ambiguity-output.txt).
+제품 구현을 추가하지 않은 특성화 검사여서 RED→제품GREEN을 주장하지 않는다. 임시root/계정/서버/포트 생성 없음,
+cleanup 대상 없음. 전용집계 부재로 token start/end/consumed 미집계, elapsed source는 Node test runner다.
+
+3-A 계약은 미완료다. [endpoint 계약의 선수 확인](superpowers/specs/2026-09-15-recording-endpoint-contract.md)에
+원천정밀도 확보·unknown 유지와 파일native축/원본시간품질 분리의 선택 경계를 기록했다.
+현재 source sample observation은 정수 ns이고, fitting된 유리수 위상을 원천 증거로 소급 승격하지 않는다.
+완전 녹화 판정 의미의 사용자 결정 전 3-B 제품 구현·분할 커밋·푸시는 보류한다. 승인 취소가 아니라 완료 조건 미충족이다.
+문서검증 `./server.sh verify-docs-links` exit0, Markdown275/links8585/images22/anchors110/failures0.
+`git diff --check` exit0. 기존 미커밋 NP 실패 증거는 보존했고 제품 src/include 변경은 없다.
+직접 입력 경계 `include/media/gstreamer_sample_observation.h:60~62`도 GstBuffer의 정수PTS/DTS/duration을 복사하며
+이 모델의 rational phase를 수집하지 않는 것을 확인했다. 사용자에게 파일구간/원본시간품질 분리와 엄격원본축 유지의
+선택을 요청했다. 답변 전 정책 변경을 구현하지 않는다.
+
+## 2026-09-15 시간 구간 3·4 중단 및 릴리즈 잔여 대조
+
+3번 선수 실험에서 `track1e9/movie1e9`, `track1e9/movie0` 두 후보가 같은 edit 길이·count 문제로 실패했다.
+메인이 회수하고 추가 변형을 중단했다. 제품 source/header 변경은 없으며 기존 제품의 새로운 회귀로 보고하지 않는다.
+3번 최소 증거 저장·원본 연결은 **미완료**, 4번 대기는 **건너뜀**이다. 실패 단계를 커밋하거나 푸시하지 않았다.
+원래 커밋·푸시 승인은 유지되지만 현재 완료 조건을 충족하지 못한다.
+
+- [실패 원인·원출력·cleanup 전수](release-artifacts/v4.1.0/s11-preparation-mapping/timing-profile-report.md)
+- [5번 포함 릴리즈 잔여 감사 전수표](release-artifacts/v4.1.0/s11-preparation-mapping/release-readiness-20260915.md)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| NP01 최초 | `bash scripts/internal/recording_timing_profile_run.sh`, count assertion | fail | exit1/6초. 원출력만 보존, 최초 CSV 누락은 복원하지 않음 |
+| NP01 원인 계측 | 동일 명령, 실패 후 native250/demux122/parser122·edit4038366037 확보 | fail | exit1/6초. 도구 진단/보존 보완, oracle 불변 |
+| NP-T01 | `bash scripts/internal/recording_timing_profile_run.sh --track-only` | fail | exit1/6초. movie0이 실제1e9 자동 선택, 같은250/122 실패 |
+| 증거 보존 대조 | 메인이 두 manifest의14파일 bytes/SHA256 전수 재계산 | pass | 각7파일117123B/117108B 일치. 제품 정확성 PASS 아님 |
+| cleanup 직접 대조 | 원출력 세 root의 실제 부재 확인 | pass | 각각4749573/4810157/4809678B, 모두 없음. 원출력·경로는 상세 보고서 |
+
+| 제목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| NP01/NP-T01 tail | 뒤50개 파일 대조 | 첫파일 count 실패 | tail원본연결 미확인 |
+| NP02/NP-T02 | 분수fps | 선수실패로 건너뜀 | 결과 없음 |
+| NP03/NP-T03 | Bframe | 선수실패로 건너뜀 | 결과 없음 |
+| NP04/NP-T04 | VFR 마지막길이 | 선수실패로 건너뜀 | 결과 없음 |
+| NP04-L/NP-T04-L |5초 DTS간격/마지막duration | 선수실패로 건너뜀 |32bit 한계 산술은 실측 아님 |
+| 3번 제품/4번/5번/S11 | 제품 개발·통합·최종 검증 |3번 설계 미확정, 뒤단계 미착수 | 완료/PASS 아님 |
+
+메인은 실제 diff·native JSON·원출력·manifest를 대조했다. 현행 원격v4.1.0은6358d2162로 local/upstream과 일치한다.
+main/tag/Release/PR/CI 읽기 조회 결과는 잔여 감사2절에 보존한다. 공개 README/색인에 실행 증거를 추가하지 않았다.
+token start/end/consumed는 전용 집계 부재로 미집계, 실험 elapsed는 runner SECONDS 총18초다.
+
+문서 검증: `./server.sh verify-docs-links` exit0, Markdown275/로컬링크8582/이미지22/앵커110/실패0.
+`git diff --check` exit0. 메인의 nativeJSON/inputCSV 직접 대조에서도 각250개 원본PTS/DTS일치와
+demux122개·edit4038366037을 확인했다. 이 문서 검증·부분 일치는 NP FAIL이나 제품 미완료를 대체하지 않는다.
+신규25파일 whitespace 대조는 진단0건이다. 최초 보조 명령은 `git diff --no-index`의 신규파일 차이 exit1을
+검사 실패로 해석해 exit1로 끝났다(진단 출력 없음). 차이 exit1/실제 check 오류를 구분한 읽기 대조는 exit0이다.
+제품·NP oracle를 수정하거나 재실행한 것은 아니다.
+
+## 2026-09-15 시간 구간 3·4 착수 — 신규 파일 정밀도 보존 선수검사
+
+사용자는 3번 최소 증거 저장·원본 연결, 4번 대기 정책 개발과 분할 커밋·푸시 및 릴리즈 잔여 감사를 승인했다.
+3번은 저장 필드 추가 전, 이미 소실된 정밀도를 역산하지 않고 신규 파일에서 보존할 수 있는지 격리 검사한다.
+실험의 timebase 설정은 제품 정책 선택이 아니며, 실패/미확정이면 실제 writer의 지원 범위를 자동 축소하지 않는다.
+제품 코드·기존 저장·원본 연결·R03 판정은 선수검사에서 불변이다. 4번은 3번 합격 전 착수하지 않는다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화: 신규 ns profile 실험 | 진행 대상 | 3번 원본 정밀도·저장 증거 설계 | NP01~04 | 개발 범위 격리 단기 승인 |
+| 안정화: 제품 저장·복구/대기 | 조건부 진행 | 선수검사 후 불변 계약을 충족하는 설계 확정 필요 | 3·4 | 해당 개발 승인, 아직 미착수 |
+| 30분 | 미진행 | 이번 개발 검증, S11 최종 코드 고정 전 | S11 | 이번 실행하지 않음 |
+| 120분 | 미진행 | 최종 필요성/명령 및 승인 별도 대조 | S11 | 이번 실행하지 않음 |
+| UI 풀테스트 | 미진행 | 사용자 브라우저 제외 유지 | S11 UI | 이번 제외, release blocker 해소 아님 |
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| NP01 | ns track/movie profile 긴 GOP | 실제 writer 동등 테스트 연결에서 track/movie timescale1e9,300입력·250/50파일. 4.29초 초과 MDHD버전·길이, native 표와 원본 PTS/DTS 시작 exact 대조 | v4.1.0 |
+| NP02 | ns profile 분수fps | 30000/1001 native 시작/종료와 parser duration 차이 구분 | v4.1.0 |
+| NP03 | ns profile B-frame | CTTS/edit·PTS/DTS와 원본 시작 연결 대조. input decode-order만으로 연결 주장 금지 | v4.1.0 |
+| NP04 | ns profile VFR 및 상한 | 가변20/50ms·마지막70ms 관측, 단일sample5초의 STTS32bit 한계에서 실제 결과·오류/경고를 보존. 수용 가능성을 추정하지 않음 | v4.1.0 |
+
+실행 명령: `bash scripts/internal/recording_timing_profile_run.sh`.
+NP04-L 하위 경계: 2sample의 PTS/DTS 간격5초와 마지막duration5초를 각각 전달하여 parser 변경·STTS 한계를 구분한다.
+baseline은 제품 소스가 같은 기존 TP 고정 증거다. 새 profile은 제품 writer에 대한 테스트 factory wrapper에서
+mp4mux track/movie timescale만1e9로 설정한다. wrapper의 한정 실험을 제품 적용 완료로 보고하지 않는다.
+임시root·raw media는 소유권/필수 증거 대조 뒤 삭제한다.
+서버/포트/외부 장비는 사용하지 않는다. 과거 TP01~04 literal 검사와 증거는 그대로 보존한다.
+token start/end/consumed는 전용 집계 소스 부재로 미집계, elapsed는 실제 단조시간/runner 출력으로 남긴다.
+
+선수검사 첫 실행은 exit1·6초, NP01 boundary-count 실패다. 당시 CSV 보존 누락으로 capture.log만 남았으며
+원출력 누락을 추정 복원하지 않는다. exporter 진단 보완 후 두 번째 실행도 exit1·6초다.
+native250개 대비 demux/parser122개, MDHD/MVHD v1 duration8333333333이나 edit duration4038366037을 확인했다.
+두 실행의 제품 profile은 실패이며 NP02~04는 건너뛰었다. 제품 코드는 불변이다.
+
+추가 사전 정의 NP-T01~04/NP-T04-L: 동일 fixture·count·원본 연결 oracle을 유지하되 테스트 wrapper의
+movie-timescale은 제품 기본0으로 두고 track만1e9로 설정한다. movie edit 길이와 track STTS 한계를 분리한다.
+명령은 `bash scripts/internal/recording_timing_profile_run.sh --track-only`이며 앞선 실패를 덮어쓰지 않고
+별도 실행 디렉터리·원출력으로 보존한다. NP-T04-L의5초 간격은 올바른 저장을 보장하는 PASS가 아닌 특성화다.
+기존 지원 범위 축소·제품 적용·합격 기준 완화는 승인하지 않는다.
+
 ## 2026-09-15 시간 구간 2 — 종료점 계산 방식 확정
 
 1번 계측은 `75fa0c85`에 분리 커밋했다. 2번은 [계산 계약](superpowers/specs/2026-09-15-recording-endpoint-contract.md)과

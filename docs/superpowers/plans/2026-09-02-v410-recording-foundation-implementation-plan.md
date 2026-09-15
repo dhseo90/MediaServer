@@ -2992,3 +2992,34 @@ v4.1.0 개발 완료는 다음이 모두 참일 때만 성립한다.
 제외: 필요한 최소 증거 저장(3), 대기 정책(4), 생성·복구·타임라인 및 실제 통합(5), UI/30분/120분.
 계측 PASS와 계산 모델 PASS는 제품 문제가 수정됐다는 뜻이 아니다. 모델 승인 결과의 제품 적용은 3번 이후다.
 이번 단계의 증거는 제품 불변의 기존 회귀 결과를 무효화하지 않는다. 새 검증 도구 자체와 문서만 검증한다.
+
+## 시간 구간 3-A·3-B·4 재개 계획 (2026-09-16)
+
+독자: 이번 구현 담당자. 기존 설계의 실행 세분화이며 정책은 AGENTS, 계약은
+[녹화 종료점 계약](../specs/2026-09-15-recording-endpoint-contract.md)을 따른다.
+사용자가 세 단계 개발·분할 커밋·최종 푸시를 승인했다. 현재 v4.1.0 작업 위치의 기존 미커밋
+조사 증거를 보존하며 별도 브랜치나 worktree를 생성하지 않는다. 메인이 계약·최종 판정,
+단일 Astra/medium 담당자가 한정 구현을 맡는다. 하위 생성은 금지한다.
+
+- [x] 3-A: 기존 MAP-A 해석 정정 후 실제 기본 writer forward 계측.
+  `recording_forward_probe_*`는 테스트 전용 wrapper/driver/reader/runner로 분리한다.
+  제품 writer는 그대로 링크하고 accepted appsrc 및 실제 mux sink의 시각·내용을 수집한다.
+  파일 native sample과 내용 대조를 거친 뒤 ns→tick 규칙과 시작·끝 의미를 확정한다.
+  FW01~04의 독립 literal/native table oracle와 부정 조건을 검토한다. 실행은
+  `bash scripts/internal/recording_forward_probe_run.sh`; 출력·환경·정리를 중앙에 보존한다.
+  실패를 제품 TDD RED로 바꾸지 않으며 관측 성공만으로 원본축 종료 계약 완료를 주장하지 않는다.
+  결과: FW01~04 실제372AU/5파일, FW05 33검사 통과. 수락 원본 identity와 `실제O+native구간`을
+  구분하는 계약·유리수 gap 조건을 확정했다. 과거 MAP-A/NP 실패·검사 한계는 보존한다.
+- [ ] 3-B: 3-A 증거로 확정된 필드만 writer/source binding/finalize/catalog에 수집·결박한다.
+  실제 source binding 왕복·변조 거부·SQLite 및 journal 복구·상한/잠금 비용 검사를 사전등록하고
+  예상 assertion RED → 구현 → GREEN 및 영향 회귀를 수행한다. 원본 데이터 소급 승격 금지.
+  검증된 단계만 별도 커밋한다. 3-A 미확정이면 필드·증거를 임의로 설계하지 않는다.
+- [ ] 4: 단일 worker의 요청별 재평가, 절대 steady deadline, 임시 provider busy와 identity 오류 구분,
+  pending 원본 보호 및 Intent 전환/취소/재시작 정리를 구현한다. 기존 용량 상한·pipeline 정책 유지.
+  긴 GOP·복수 요청·보존 경쟁·취소/상한을 사전등록 후 TDD/영향 회귀한다. timeout만 늘리지 않는다.
+- [ ] 메인 diff/증거 직접 검토, docs links 및 diffcheck, 승인 범위 분할 커밋을 확인한다.
+  미해소 실패·cleanup·미커밋이 없을 때 승인된 v4.1.0 푸시 후 원격 hash를 확인한다.
+
+후속 5번 공통 소비·실제 통합과 S11/장시간/브라우저/release action은 이번 개발에 섞지 않는다.
+3-B/4의 정확한 필드·테스트 구현은 선수 계약이 확정된 후 이 절에 보완한다. 지금은 그 두 단계의
+착수 가능한 상세 구현안이 확정됐다고 주장하지 않는다.

@@ -1,0 +1,41 @@
+✔ FW05 positive actual TP01 segment0 (2.326042ms)
+✔ FW05 positive actual TP01 segment1 (0.718583ms)
+✔ FW05 positive actual TP02 segment0 (0.295667ms)
+✔ FW05 positive actual TP03 segment0 (0.258417ms)
+✔ FW05 positive actual TP04 segment0 (0.296541ms)
+✔ FW05 rejects accepted VCL hash (0.334708ms)
+✔ FW05 rejects mux VCL hash (0.17ms)
+✔ FW05 rejects accepted raw hash (0.175042ms)
+✔ FW05 rejects mux raw hash (0.141417ms)
+✔ FW05 rejects file sample raw hash (0.176333ms)
+✔ FW05 rejects source binding ordinal (0.148375ms)
+✔ FW05 rejects source binding PTS (0.115417ms)
+✔ FW05 rejects per-AU origin disagreement (0.215625ms)
+✔ FW05 rejects appsrc PTS (0.114375ms)
+✔ FW05 rejects appsrc DTS (0.110041ms)
+✔ FW05 rejects mux PTS (0.118042ms)
+✔ FW05 rejects mux DTS (0.126208ms)
+✔ FW05 rejects accepted duration (0.12125ms)
+✔ FW05 rejects used final mux duration (0.137125ms)
+✔ FW05 rejects native sample PTS tick (0.100083ms)
+✔ FW05 rejects native sample DTS tick (0.096291ms)
+✔ FW05 rejects native sample duration tick (0.098709ms)
+✔ FW05 rejects native timescale (0.122125ms)
+✔ FW05 rejects duplicate accepted VCL (0.089708ms)
+✔ FW05 rejects duplicate mux VCL (0.111ms)
+✔ FW05 rejects duplicate file raw hash (0.101416ms)
+✔ FW05 rejects missing accepted AU (0.099459ms)
+✔ FW05 rejects missing mux AU (0.105833ms)
+✔ FW05 rejects missing file sample (0.106625ms)
+✔ FW05 rejects missing accepted binding (0.091ms)
+✔ FW05 rejects segment time translation (0.277125ms)
+✔ FW05 exact native 2/3 ns leading shortfall remains uncovered (0.064458ms)
+✔ FW05 exact cross-file 1/3 ns overlap is not a gap (0.028375ms)
+ℹ tests 33
+ℹ suites 0
+ℹ pass 33
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 43.079791

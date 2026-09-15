@@ -1,5 +1,61 @@
 # Project Feature Test Inventory
 
+### 2026-09-16 3-B 파일 증거 저장 사전등록
+
+| 기능 ID | 기능/검사 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| FE01 | 선택적 증거 계약 | 실제 C++ roundtrip/absent 기존 바이트/엄격 필드 | S11 녹화 반복 조건 | S11 저장 추이 조건 | 비대상: 내부 계약 |
+| FE02 | 실제 writer capture | accepted 원본/mux/file 내용·native 대응 | S11 녹화 반복 조건 | S11 녹화 지속 조건 | 비대상: 내부 계약 |
+| FE03 | native parser 오류 | malformed box/table/edit·overflow·범위·중복 거부 | 비대상: 결정적 검사 | 비대상: 결정적 검사 | 비대상: 내부 계약 |
+| FE04 | finalize 원자 결박 | EOS 뒤 파일 hash/Ready/원본 증거가 같은 mutation | S11 복구 조건 | S11 복구 조건 | 비대상: 내부 계약 |
+| FE05 | 내구 복구 | SQLite·JSONL fallback·checkpoint·Ready 복구 일치 | S11 복구 조건 | S11 복구 조건 | 비대상: 내부 계약 |
+| FE06 | 증거 손상 거부 | identity/hash/ordinal/tick/timescale/field 변조 거부 | 비대상: 결정적 검사 | 비대상: 결정적 검사 | 비대상: 내부 계약 |
+| FE07 | 크기·잠금 비용 | 4096 경계, 직렬화 크기, 실제 catalog 전이·checkpoint 시간 기록 | S11 자원 조건 | S11 자원 조건 | 비대상: 내부 계약 |
+| FE08 | 증거 없는 입력 유지 | unsupported/ambiguous/기존 binding에 새 증거·complete를 발명하지 않고 기존 녹화 유지 | S11 현행 입력 조건 | S11 현행 입력 조건 | 비대상: 내부 계약 |
+
+실행은 3-A 합격 후다. 제품 TDD RED와 준비 실패를 구분하고 중앙 기록에 명령·개별 결과를 보존한다.
+
+### 2026-09-16 실제 forward 대응 사전등록
+
+| 기능 ID | 기능/검사 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| FW01 | 기본 writer 긴 GOP 250/50 원본·mux·파일 대응 | 수락 input, mux 경계, native file의 내용·시각 대조 | 비대상: 설계 계측 | 비대상: 설계 계측 | 비대상: UI 없어야 정상 |
+| FW02 | 분수 FPS 실제 변환 | 30000/1001의 ns/tick forward 관측 | 비대상: 설계 계측 | 비대상: 설계 계측 | 비대상: UI 없어야 정상 |
+| FW03 | B-frame 원본 대응 | 내용·PTS/DTS·native CTTS 분리 대조 | 비대상: 설계 계측 | 비대상: 설계 계측 | 비대상: UI 없어야 정상 |
+| FW04 | VFR 마지막 길이 | 실제 mux sink duration과 native endpoint 대조 | 비대상: 설계 계측 | 비대상: 설계 계측 | 비대상: UI 없어야 정상 |
+| FW05 | 실제 forward 증거의 음성·정확 구간 | 독립적으로 내용·ordinal·시각·native 표를 변조해 거부,⅔ns 미충족·⅓ns overlap 확인 | 비대상: 설계 계측 | 비대상: 설계 계측 | 비대상: UI 없어야 정상 |
+
+제품 수정 PASS가 아닌 3-A 근거 수집 검사다. `bash scripts/internal/recording_forward_probe_run.sh` 예정.
+검사별 정의·실행 상태는 중앙 release-test-records의 2026-09-16 절을 따른다.
+
+### 2026-09-15 3-A 변환 식별 가능성 사전등록
+
+| 기능 ID | 기능/검사 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| MAP-A01 | 실제 TP01 tail50개 원본 ns를 같은 native 표의 서로 다른 rational 위상 두 개가 모두 설명 | `node --test scripts/internal/recording_mapping_ambiguity.test.mjs`, 기존 고정 CSV/JSON 읽기, 두 후보 floor의 실제 원본 일치 | 비대상: 설계 계측 | 비대상: 설계 계측 | 비대상: UI 없어야 정상 |
+| MAP-A02 | 첫 파일 끝과 tail 시작은 두 후보에서0 또는1/6ns gap | 동일 명령, 정수ns값은 같아도 rational gap을 구분 | 비대상: 설계 계측 | 비대상: 설계 계측 | 비대상: UI 없어야 정상 |
+| MAP-A03 | TP03 PTS 후보 위상을 DTS에 일반화하지 않음 | 동일 명령, nativeDTS0에서candidate floor−1 vs실제원본0 반례 | 비대상: 설계 계측 | 비대상: 설계 계측 | 비대상: UI 없어야 정상 |
+
+### 2026-09-15 시간 정밀도 후보 분리계측 추가 사전등록
+
+| 기능 ID | 기능/검사 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| NP-T01 | movie 기본/track1e9 긴GOP250+50, edit·원본PTS/DTS 정확성 | `recording_timing_profile_run.sh --track-only`, 실제 count/native 대조 | 비대상: 실험 | 비대상: 실험 | 비대상: UI 없어야 정상 |
+| NP-T02 | 동일 profile 분수fps | 동일 명령, native 단위·원본 시작 대조 | 비대상: 실험 | 비대상: 실험 | 비대상: UI 없어야 정상 |
+| NP-T03 | 동일 profile B-frame | 동일 명령, CTTS/edit·원본 PTS/DTS 대조 | 비대상: 실험 | 비대상: 실험 | 비대상: UI 없어야 정상 |
+| NP-T04 | 동일 profile VFR 및 NP-T04-L 5초간격 한계 | 동일 명령, 마지막길이와 STTS 한계 특성화. 제품 PASS 아님 | 비대상: 실험 | 비대상: 실험 | 비대상: UI 없어야 정상 |
+
+## 시간 구간 3번 선수조건: 신규 ns profile 실험
+
+| 기능 ID | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- |
+| NP01 | 실제긴GOP ns profile·MDHD버전·원본시작 | 이번 제외 | 이번 제외 | 비대상: UI 없어야 정상 |
+| NP02 | 실제분수fps ns profile·끝점 | 이번 제외 | 이번 제외 | 비대상: UI 없어야 정상 |
+| NP03 | 실제B-frame ns profile·CTTS/edit·원본시작 | 이번 제외 | 이번 제외 | 비대상: UI 없어야 정상 |
+| NP04 | VFR/마지막70ms·단일delta5초 한계 실험 | 이번 제외 | 이번 제외 | 비대상: UI 없어야 정상 |
+
+검증 전용 실험이며 제품 기능 완료 ID가 아니다. 정의·실제 결과는 release-test-records를 따른다.
+
 ## S11 준비 시간 구간 계측·계산 계약
 
 검증 전용이며 제품 완전 판정 수정이 아니다. 개별 실행 정의는 release-test-records의 2026-09-15 시간 구간 절을 따른다.
