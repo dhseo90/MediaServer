@@ -1,5 +1,709 @@
 # Release Test Records
 
+## 2026-09-17 LP10 후속1 제한 원본 대기
+
+실행 전 정의. 기준9881bb7a, 작업 정책 AGENTS, 승인 spec LP10. main 설계/검토, 기존 단일 Astra medium 담당자 구현, 하위 금지. 승인 명령: `bash scripts/internal/verify_recording_bounded_wait.sh`(새 격리 실제 C++ fixture), `MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_GST_PLUGIN_PROFILE=headless ./server.sh build`; 영향회귀 `bash scripts/internal/verify_recording_derived_event_integration.sh`, `verify_recording_native_derived.sh`, `verify_recording_default_composition.sh`, `verify_recording_derived_jobs.sh`(모두 scripts/internal 아래), 문서 링크/diffcheck. 테스트 전용 시간 축소 옵션을 쓰되 제품의 상한/충족 기준을 완화하지 않는다. 모든 root/registry는 실행 소유로 생성·정리. 원출력·exit·elapsed와 실패이력 보존. token 집계 없으면 미집계로 남긴다. 아직 실행 결과 아님.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP10-W01 | 대기 공정성 | 첫 요청 incomplete 동안 뒤 ready 요청 평가/완료, 첫 요청의 일반기한 미연장 | v4.1.0 |
+| LP10-W02 | render 격리 | 첫 Run 장벽 중 둘째 요청 평가 진행; 동시 Run 없음 | v4.1.0 |
+| LP10-W03 | 후행 확정 | 실제 관측 identity·일반기한 뒤 원본 finalize→2출력 complete; 기존상태에서는 partial RED | v4.1.0 |
+| LP10-W04 | 절대 상한 | 미확정 지속이면 source기한/평가상한 종료, 갱신·queue로 재설정 없음 | v4.1.0 |
+| LP10-W05 | 거짓 충족 방지 | 실제 gap/삭제/손상/identity불일치는 source대기로 승격하지 않고 partial/unknown | v4.1.0 |
+| LP10-W06 | 원자 보호 | snapshot/lease 이후 삭제거부, 해제후 삭제가능·두 lease 중 하나해제시보호유지 | v4.1.0 |
+| LP10-W07 | 보호 상한 | 8원본/32lease 초과 원자거부·잘린보호목록 금지 | v4.1.0 |
+| LP10-W08 | 보호 인계 | 내구Intent 먼저 확보후임시lease해제, 성공/실패 후 소유보호·예약정리 | v4.1.0 |
+| LP10-W09 | 취소·종료 | pending/render queue/active Stop·동시Stop·provider장벽뒤Stop, 신규job금지·정확lease해제 | v4.1.0 |
+| LP10-W10 | 관측 보존 | 정상snapshot보관후rolling incomplete가되어도예전관측보존; 초기incomplete·중복identity·namespace오류를지우지않음 | v4.1.0 |
+| LP10-W11 | runtime 예산 | 일반budget불변·source최대60s/121평가·off옵션·overflow/clamp 확인 | v4.1.0 |
+| LP10-W12 | 내구/공개 회귀 | 기존integration/native/default/jobs, 재시작accepted/no-job은unknown·대기lease소멸, 기존payload/profile불변 | v4.1.0 |
+
+구현 전 교차 보완: W07은 미관측9개 후보 때문에 관측1개 원본의 기존 유효 선택이 거부되지 않는 반례를 포함한다. W08은 UTC ready의 선택원본도 관측identity발명없이 임시보호→내구보호로 전환하는 조건을 포함한다. W03 최초RED fixture는11packet만writer에넣고30packet전체synthetic관측을전달해입력순서정합이부족했다. 최초실패는보존하되후행확정PASS근거로사용하지않고,20packet입력/동일20관측이후base기한경과→남은입력/finalize로교정해다시확인한다. W06도미관측empty전체원본보호가아닌실제prefix관측원본의보호를검사한다. synthetic관측fixture이며실제앱decoder 전체PASS는아니다.
+
+메인 검토 후 추가 반례(실행 전 등록): W06/W08은 요청 시작점보다 앞선 프레임의 구간이 요청과 겹치는 경우를 포함한다. 유효 decoded duration으로 입증된 overlap은 미확정 원본 대기 근거가 될 수 있고, duration 없는 경우에는 이미 저장된 strict native 구간이 실제로 겹치는 원본만 보호한다. 파일 근거 없는 끝점을 발명하지 않는다. W09는 queue 슬롯 할당 실패 전에 소유 상태를 이동하지 않는 코드 경계와 Stop 후 접수 금지를 확인한다. 최초 확장 검사 22PASS/1FAIL은 손상 fixture에 허용되지 않는 reason을 주고 반환값을 확인하지 않은 준비 오류였다. 실제 손상 상태 변경 성공을 먼저 확인하도록 고치며 제품 실패나 예상 RED로 바꾸지 않는다.
+
+W12 영향 회귀에 `bash scripts/internal/verify_recording_derived_event_integration.sh --diagnostics-only`와 `--diagnostics-no-crypto`를 포함한다(기본 명령에 자동 포함되지 않음). LP09-Q01은 기존 단일 worker 때문에 renderer 장벽 뒤 첫 평가가 만료됐던 검사다. LP10에서는 같은 일반 예산20ms/2시도·현재 증거 갱신·전체2출력 기준을 유지하고, renderer 장벽이 닫힌 동안 scheduler 평가가 이루어지는지 직접 동기화로 확인한다. 머신 scheduling을20ms이내로 보장하는 검사가 아니며 deadline 플래그와 실제 경과시간의 정합성을 확인한다. 제품 예산·기존 실패 이력은 그대로다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 단기 안정화 | 진행 대상 | 후속1 구현 승인 | LP10-W01~12 | 승인 |
+| 실제 앱·누적 비용 | 미진행 | 후속2 범위 | LP09-4/5 | 이번 제외 |
+| 30분/120분/UI | 미진행 | 개발 단위 후 S11 별도 판정 | LP10 spec 비범위 | 이번 미실행, 릴리즈 PASS 아님 |
+
+### LP10 구현·최종 검증 결과
+
+대기 정책 구현 완료. 원본 확정 대기와 단일 영상 생성을 분리했고, runtime 임시 보호를 실제 실행 직전 내구 Intent 보호로 인계한다. 공개 payload·journal/SQLite 저장 형식·기존 partial job 판정은 변경하지 않았다. 실제 변경은 `RecordingCatalog::SnapshotDerivedSourcesWithWaitLease/RefreshDerivedWaitLeaseForIntent/ReleaseDerivedWaitLease`, `DerivedEventWorker::Loop/RenderLoop/Process/StopAndDrain`, `RecordingRuntimeEventBudget` 및 두 C++ fixture/전용 실행기다. 새 정책은 LP10 spec을 따른다.
+
+최종 개별 검사 **252PASS/0FAIL**: focused41, 기존 이벤트 통합56, 진단25, native60(내부 summary59와 자식 PASS1), 기본 구성46, 내구 작업23, crypto-off1. 마지막 제품 빌드 exit0. 메인이 실제 diff·결과·source SHA256 일치를 직접 확인했다. 테스트 파일 추가 뒤에는 관련 focused만 다시 실행했고, 제품 코드가 같은 기존 회귀는 재실행하지 않았다. 문서 링크는 `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links` exit0, 최종282파일/8689링크/실패0이며 `git diff --check`도 exit0이다(마지막 stage 시 재확인). 빌드 wall elapsed는 원출력에 없어 미집계이며 추정하지 않는다. token start/end/consumed는 메인·담당자 모두 실제 집계 수단 부재로 미집계다. 테스트별 elapsed/source는 아래와 [21회 원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp10-bounded-wait-output.txt)에 보존한다.
+
+최초 RED5개 중 W03 입력/관측 순서 및 W06 미관측 보호 전제는 위 보완 이력을 따른다. fractional 최초 실패는 native proof 전제가 없었으므로 제품 RED로 인정하지 않는다. proof와 정확 구간 overlap이 확인된 `fractional-red-proven`의 보호 누락 RED는 수정 뒤 통과했다. corrupt fixture 준비 실패와 이후 PASS도 삭제하지 않았다. 아래는 중간 실행을 포함한 개별480행의 전수 결과이며, 중간 PASS를 최종252개에 더하지 않는다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 후속1 개발 | 완료 | 제한 대기·공정 평가·보호 인계·종료 구현 및 관련 검증 | LP10-W01~12, 아래 전수 결과 |
+| 2 | 커밋 | 검증 충족 후 수행 대상 | 같은 LP10 범위만 stage/commit, 실제 해시는 Git 기록/최종 보고 | 사용자 최신 승인, diff/source 대조 |
+| 3 | 보고·이슈 목록 | 작성 | 다음은 누적 catalog/HTTP 지연 → 실제 앱 출력2개·재기동 통합 | LP09-4/5 미완료 유지 |
+
+미실행/한계: 실제 앱 전체 통합·누적16/32 측정·30분/120분/UI·릴리즈는 이번 범위 밖이다. allocator `bad_alloc` 주입은 미실행이며 queue 선할당/noexcept static_assert 및 코드 검토만 확인했다. fractional 앞원본 보호와 후행 확정은 각각 직접 검증했지만 두 조건을 결합한 단일 fixture는 없다. 이는 실제 앱 전체 PASS로 승격할 수 없는 경계이며 별도 제품 실패를 뜻하지 않는다. 푸시는 승인 범위가 아니므로 미수행이다.
+
+#### 실행 build-red.txt
+
+명령: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp10-bounded-wait-logs.5rrRcB/gst-cache ./server.sh build`, exit 0; elapsed 미집계(원출력 없음).
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| build-red.txt | 전체 제품 빌드·링크 | pass |
+
+#### 실행 red.txt
+
+명령: `bash scripts/internal/verify_recording_bounded_wait.sh`, exit 1; elapsed seconds=5 source=bash-SECONDS.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| red.txt-1 | LP10-W01 incomplete wait yields to later ready request | fail |
+| red.txt-2 | LP10-W02 single renderer barrier does not block scheduler evaluation | fail |
+| red.txt-3 | LP10-W03 observed trailing identity waits beyond base budget for actual finalize | fail |
+| red.txt-4 | LP10-W06 wait lease blocks deletion until exact worker cleanup | fail |
+| red.txt-5 | LP10-W11 runtime source budget opt-in preserves base budget | fail |
+
+#### 실행 build-green.txt
+
+명령: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp10-bounded-wait-logs.5rrRcB/gst-cache ./server.sh build`, exit 0; elapsed 미집계(원출력 없음).
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| build-green.txt | 전체 제품 빌드·링크 | pass |
+
+#### 실행 green-core.txt
+
+명령: `bash scripts/internal/verify_recording_bounded_wait.sh`, exit 0; elapsed seconds=5 source=bash-SECONDS.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| green-core.txt-1 | LP10-W01 incomplete wait yields to later ready request | pass |
+| green-core.txt-2 | LP10-W02 single renderer barrier does not block scheduler evaluation | pass |
+| green-core.txt-3 | LP10-W03 observed trailing identity waits beyond base budget for actual finalize | pass |
+| green-core.txt-4 | LP10-W06 wait lease blocks deletion until exact worker cleanup | pass |
+| green-core.txt-5 | LP10-W11 runtime source budget opt-in preserves base budget | pass |
+
+#### 실행 green-extended.txt
+
+명령: `bash scripts/internal/verify_recording_bounded_wait.sh`, exit 1; elapsed seconds=7 source=bash-SECONDS.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| green-extended.txt-1 | LP10-W01 incomplete wait yields to later ready request | pass |
+| green-extended.txt-2 | LP10-W02 single renderer barrier does not block scheduler evaluation | pass |
+| green-extended.txt-3 | LP10-W03 observed trailing identity waits beyond base budget for actual finalize | pass |
+| green-extended.txt-4 | LP10-W10 rolling incomplete never overwrites retained whole normal snapshot | pass |
+| green-extended.txt-5 | LP10-W10 initially incomplete snapshot never becomes invented complete | pass |
+| green-extended.txt-6 | LP10-W07 observed ten-source protection rejects atomically at eight | pass |
+| green-extended.txt-7 | LP10-W07 nine unobserved candidates do not consume protection slots | pass |
+| green-extended.txt-8 | LP10-W07 thirty-third lease rejects without partial token | pass |
+| green-extended.txt-9 | LP10-W06 shared lease survives one release and idempotent Open | pass |
+| green-extended.txt-10 | LP10-W06 foreign token cannot release owned protection | pass |
+| green-extended.txt-11 | LP10-W06 exact final release permits deletion with no lease journal writes | pass |
+| green-extended.txt-12 | LP10-W04 refreshed evidence cannot extend absolute source deadline | pass |
+| green-extended.txt-13 | LP10-W04 missing source ends at fixed evaluation cap | pass |
+| green-extended.txt-14 | LP10-W05 invalid source-wait basis stays partial/unknown: gap | pass |
+| green-extended.txt-15 | LP10-W05 invalid source-wait basis stays partial/unknown: deleted | pass |
+| green-extended.txt-16 | LP10-W05 invalid source-wait basis stays partial/unknown: corrupt | fail |
+| green-extended.txt-17 | LP10-W05 invalid source-wait basis stays partial/unknown: identity | pass |
+| green-extended.txt-18 | LP10-W05 invalid source-wait basis stays partial/unknown: duplicate | pass |
+| green-extended.txt-19 | LP10-W05 invalid source-wait basis stays partial/unknown: namespace | pass |
+| green-extended.txt-20 | LP10-W05 invalid source-wait basis stays partial/unknown: empty | pass |
+| green-extended.txt-21 | LP10-W05 invalid source-wait basis stays partial/unknown: throw | pass |
+| green-extended.txt-22 | LP10-W06 wait lease blocks deletion until exact worker cleanup | pass |
+| green-extended.txt-23 | LP10-W11 runtime source budget opt-in preserves base budget | pass |
+
+#### 실행 green-extended-fixed.txt
+
+명령: `bash scripts/internal/verify_recording_bounded_wait.sh`, exit 0; elapsed seconds=7 source=bash-SECONDS.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| green-extended-fixed.txt-1 | LP10-W01 incomplete wait yields to later ready request | pass |
+| green-extended-fixed.txt-2 | LP10-W02 single renderer barrier does not block scheduler evaluation | pass |
+| green-extended-fixed.txt-3 | LP10-W03 observed trailing identity waits beyond base budget for actual finalize | pass |
+| green-extended-fixed.txt-4 | LP10-W10 rolling incomplete never overwrites retained whole normal snapshot | pass |
+| green-extended-fixed.txt-5 | LP10-W10 initially incomplete snapshot never becomes invented complete | pass |
+| green-extended-fixed.txt-6 | LP10-W07 observed ten-source protection rejects atomically at eight | pass |
+| green-extended-fixed.txt-7 | LP10-W07 nine unobserved candidates do not consume protection slots | pass |
+| green-extended-fixed.txt-8 | LP10-W07 thirty-third lease rejects without partial token | pass |
+| green-extended-fixed.txt-9 | LP10-W06 shared lease survives one release and idempotent Open | pass |
+| green-extended-fixed.txt-10 | LP10-W06 foreign token cannot release owned protection | pass |
+| green-extended-fixed.txt-11 | LP10-W06 exact final release permits deletion with no lease journal writes | pass |
+| green-extended-fixed.txt-12 | LP10-W04 refreshed evidence cannot extend absolute source deadline | pass |
+| green-extended-fixed.txt-13 | LP10-W04 missing source ends at fixed evaluation cap | pass |
+| green-extended-fixed.txt-14 | LP10-W05 invalid source-wait basis stays partial/unknown: gap | pass |
+| green-extended-fixed.txt-15 | LP10-W05 invalid source-wait basis stays partial/unknown: deleted | pass |
+| green-extended-fixed.txt-16 | LP10-W05 invalid source-wait basis stays partial/unknown: corrupt | pass |
+| green-extended-fixed.txt-17 | LP10-W05 invalid source-wait basis stays partial/unknown: identity | pass |
+| green-extended-fixed.txt-18 | LP10-W05 invalid source-wait basis stays partial/unknown: duplicate | pass |
+| green-extended-fixed.txt-19 | LP10-W05 invalid source-wait basis stays partial/unknown: namespace | pass |
+| green-extended-fixed.txt-20 | LP10-W05 invalid source-wait basis stays partial/unknown: empty | pass |
+| green-extended-fixed.txt-21 | LP10-W05 invalid source-wait basis stays partial/unknown: throw | pass |
+| green-extended-fixed.txt-22 | LP10-W06 wait lease blocks deletion until exact worker cleanup | pass |
+| green-extended-fixed.txt-23 | LP10-W11 runtime source budget opt-in preserves base budget | pass |
+
+#### 실행 fractional-red.txt
+
+명령: `bash scripts/internal/verify_recording_bounded_wait.sh`, exit 1; elapsed seconds=7 source=bash-SECONDS.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| fractional-red.txt-1 | LP10-W01 incomplete wait yields to later ready request | pass |
+| fractional-red.txt-2 | LP10-W02 single renderer barrier does not block scheduler evaluation | pass |
+| fractional-red.txt-3 | LP10-W03 observed trailing identity waits beyond base budget for actual finalize | pass |
+| fractional-red.txt-4 | LP10-W10 rolling incomplete never overwrites retained whole normal snapshot | pass |
+| fractional-red.txt-5 | LP10-W10 initially incomplete snapshot never becomes invented complete | pass |
+| fractional-red.txt-6 | LP10-W07 observed ten-source protection rejects atomically at eight | pass |
+| fractional-red.txt-7 | LP10-W07 nine unobserved candidates do not consume protection slots | pass |
+| fractional-red.txt-8 | LP10-W07 thirty-third lease rejects without partial token | pass |
+| fractional-red.txt-9 | LP10-W06 shared lease survives one release and idempotent Open | pass |
+| fractional-red.txt-10 | LP10-W06 foreign token cannot release owned protection | pass |
+| fractional-red.txt-11 | LP10-W06 exact final release permits deletion with no lease journal writes | pass |
+| fractional-red.txt-12 | LP10-W04 refreshed evidence cannot extend absolute source deadline | pass |
+| fractional-red.txt-13 | LP10-W04 missing source ends at fixed evaluation cap | pass |
+| fractional-red.txt-14 | LP10-W05 invalid source-wait basis stays partial/unknown: gap | pass |
+| fractional-red.txt-15 | LP10-W05 invalid source-wait basis stays partial/unknown: deleted | pass |
+| fractional-red.txt-16 | LP10-W05 invalid source-wait basis stays partial/unknown: corrupt | pass |
+| fractional-red.txt-17 | LP10-W05 invalid source-wait basis stays partial/unknown: identity | pass |
+| fractional-red.txt-18 | LP10-W05 invalid source-wait basis stays partial/unknown: duplicate | pass |
+| fractional-red.txt-19 | LP10-W05 invalid source-wait basis stays partial/unknown: namespace | pass |
+| fractional-red.txt-20 | LP10-W05 invalid source-wait basis stays partial/unknown: empty | pass |
+| fractional-red.txt-21 | LP10-W05 invalid source-wait basis stays partial/unknown: throw | pass |
+| fractional-red.txt-22 | LP10-W06 wait lease blocks deletion until exact worker cleanup | pass |
+| fractional-red.txt-23 | LP10-W06 fractional start native proven preceding AU stays protected without decoded duration | fail |
+| fractional-red.txt-24 | LP10-W11 runtime source budget opt-in preserves base budget | pass |
+
+#### 실행 fractional-red-fixed.txt
+
+명령: `bash scripts/internal/verify_recording_bounded_wait.sh`, exit 1; elapsed seconds=7 source=bash-SECONDS.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| fractional-red-fixed.txt-1 | LP10-W01 incomplete wait yields to later ready request | pass |
+| fractional-red-fixed.txt-2 | LP10-W02 single renderer barrier does not block scheduler evaluation | pass |
+| fractional-red-fixed.txt-3 | LP10-W03 observed trailing identity waits beyond base budget for actual finalize | pass |
+| fractional-red-fixed.txt-4 | LP10-W10 rolling incomplete never overwrites retained whole normal snapshot | pass |
+| fractional-red-fixed.txt-5 | LP10-W10 initially incomplete snapshot never becomes invented complete | pass |
+| fractional-red-fixed.txt-6 | LP10-W07 observed ten-source protection rejects atomically at eight | pass |
+| fractional-red-fixed.txt-7 | LP10-W07 nine unobserved candidates do not consume protection slots | pass |
+| fractional-red-fixed.txt-8 | LP10-W07 thirty-third lease rejects without partial token | pass |
+| fractional-red-fixed.txt-9 | LP10-W06 shared lease survives one release and idempotent Open | pass |
+| fractional-red-fixed.txt-10 | LP10-W06 foreign token cannot release owned protection | pass |
+| fractional-red-fixed.txt-11 | LP10-W06 exact final release permits deletion with no lease journal writes | pass |
+| fractional-red-fixed.txt-12 | LP10-W04 refreshed evidence cannot extend absolute source deadline | pass |
+| fractional-red-fixed.txt-13 | LP10-W04 missing source ends at fixed evaluation cap | pass |
+| fractional-red-fixed.txt-14 | LP10-W05 invalid source-wait basis stays partial/unknown: gap | pass |
+| fractional-red-fixed.txt-15 | LP10-W05 invalid source-wait basis stays partial/unknown: deleted | pass |
+| fractional-red-fixed.txt-16 | LP10-W05 invalid source-wait basis stays partial/unknown: corrupt | pass |
+| fractional-red-fixed.txt-17 | LP10-W05 invalid source-wait basis stays partial/unknown: identity | pass |
+| fractional-red-fixed.txt-18 | LP10-W05 invalid source-wait basis stays partial/unknown: duplicate | pass |
+| fractional-red-fixed.txt-19 | LP10-W05 invalid source-wait basis stays partial/unknown: namespace | pass |
+| fractional-red-fixed.txt-20 | LP10-W05 invalid source-wait basis stays partial/unknown: empty | pass |
+| fractional-red-fixed.txt-21 | LP10-W05 invalid source-wait basis stays partial/unknown: throw | pass |
+| fractional-red-fixed.txt-22 | LP10-W06 wait lease blocks deletion until exact worker cleanup | pass |
+| fractional-red-fixed.txt-23 | LP10-W06 fractional start native proven preceding AU stays protected without decoded duration | fail |
+| fractional-red-fixed.txt-24 | LP10-W11 runtime source budget opt-in preserves base budget | pass |
+
+#### 실행 fractional-red-proven.txt
+
+명령: `bash scripts/internal/verify_recording_bounded_wait.sh`, exit 1; elapsed seconds=7 source=bash-SECONDS.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| fractional-red-proven.txt-1 | LP10-W01 incomplete wait yields to later ready request | pass |
+| fractional-red-proven.txt-2 | LP10-W02 single renderer barrier does not block scheduler evaluation | pass |
+| fractional-red-proven.txt-3 | LP10-W03 observed trailing identity waits beyond base budget for actual finalize | pass |
+| fractional-red-proven.txt-4 | LP10-W10 rolling incomplete never overwrites retained whole normal snapshot | pass |
+| fractional-red-proven.txt-5 | LP10-W10 initially incomplete snapshot never becomes invented complete | pass |
+| fractional-red-proven.txt-6 | LP10-W07 observed ten-source protection rejects atomically at eight | pass |
+| fractional-red-proven.txt-7 | LP10-W07 nine unobserved candidates do not consume protection slots | pass |
+| fractional-red-proven.txt-8 | LP10-W07 thirty-third lease rejects without partial token | pass |
+| fractional-red-proven.txt-9 | LP10-W06 shared lease survives one release and idempotent Open | pass |
+| fractional-red-proven.txt-10 | LP10-W06 foreign token cannot release owned protection | pass |
+| fractional-red-proven.txt-11 | LP10-W06 exact final release permits deletion with no lease journal writes | pass |
+| fractional-red-proven.txt-12 | LP10-W04 refreshed evidence cannot extend absolute source deadline | pass |
+| fractional-red-proven.txt-13 | LP10-W04 missing source ends at fixed evaluation cap | pass |
+| fractional-red-proven.txt-14 | LP10-W05 invalid source-wait basis stays partial/unknown: gap | pass |
+| fractional-red-proven.txt-15 | LP10-W05 invalid source-wait basis stays partial/unknown: deleted | pass |
+| fractional-red-proven.txt-16 | LP10-W05 invalid source-wait basis stays partial/unknown: corrupt | pass |
+| fractional-red-proven.txt-17 | LP10-W05 invalid source-wait basis stays partial/unknown: identity | pass |
+| fractional-red-proven.txt-18 | LP10-W05 invalid source-wait basis stays partial/unknown: duplicate | pass |
+| fractional-red-proven.txt-19 | LP10-W05 invalid source-wait basis stays partial/unknown: namespace | pass |
+| fractional-red-proven.txt-20 | LP10-W05 invalid source-wait basis stays partial/unknown: empty | pass |
+| fractional-red-proven.txt-21 | LP10-W05 invalid source-wait basis stays partial/unknown: throw | pass |
+| fractional-red-proven.txt-22 | LP10-W06 wait lease blocks deletion until exact worker cleanup | pass |
+| fractional-red-proven.txt-23 | LP10-W06 fractional start native proven preceding AU stays protected without decoded duration | fail |
+| fractional-red-proven.txt-24 | LP10-W11 runtime source budget opt-in preserves base budget | pass |
+
+#### 실행 build-boundaries.txt
+
+명령: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp10-bounded-wait-logs.5rrRcB/gst-cache ./server.sh build`, exit 0; elapsed 미집계(원출력 없음).
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| build-boundaries.txt | 전체 제품 빌드·링크 | pass |
+
+#### 실행 build-boundaries-final.txt
+
+명령: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp10-bounded-wait-logs.5rrRcB/gst-cache ./server.sh build`, exit 0; elapsed 미집계(원출력 없음).
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| build-boundaries-final.txt | 전체 제품 빌드·링크 | pass |
+
+#### 실행 green-boundaries.txt
+
+명령: `bash scripts/internal/verify_recording_bounded_wait.sh`, exit 0; elapsed seconds=8 source=bash-SECONDS.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| green-boundaries.txt-1 | LP10-W01 incomplete wait yields to later ready request | pass |
+| green-boundaries.txt-2 | LP10-W02 single renderer barrier does not block scheduler evaluation | pass |
+| green-boundaries.txt-3 | LP10-W02 ready queue never admits a second durable active renderer job | pass |
+| green-boundaries.txt-4 | LP10-W03 observed trailing identity waits beyond base budget for actual finalize | pass |
+| green-boundaries.txt-5 | LP10-W10 rolling incomplete never overwrites retained whole normal snapshot | pass |
+| green-boundaries.txt-6 | LP10-W10 initially incomplete snapshot never becomes invented complete | pass |
+| green-boundaries.txt-7 | LP10-W07 observed ten-source protection rejects atomically at eight | pass |
+| green-boundaries.txt-8 | LP10-W07 nine unobserved candidates do not consume protection slots | pass |
+| green-boundaries.txt-9 | LP10-W07 thirty-third lease rejects without partial token | pass |
+| green-boundaries.txt-10 | LP10-W06 shared lease survives one release and idempotent Open | pass |
+| green-boundaries.txt-11 | LP10-W06 foreign token cannot release owned protection | pass |
+| green-boundaries.txt-12 | LP10-W06 exact final release permits deletion with no lease journal writes | pass |
+| green-boundaries.txt-13 | LP10-W04 refreshed evidence cannot extend absolute source deadline | pass |
+| green-boundaries.txt-14 | LP10-W04 missing source ends at fixed evaluation cap | pass |
+| green-boundaries.txt-15 | LP10-W05 invalid source-wait basis stays partial/unknown: gap | pass |
+| green-boundaries.txt-16 | LP10-W05 invalid source-wait basis stays partial/unknown: deleted | pass |
+| green-boundaries.txt-17 | LP10-W05 invalid source-wait basis stays partial/unknown: corrupt | pass |
+| green-boundaries.txt-18 | LP10-W05 invalid source-wait basis stays partial/unknown: identity | pass |
+| green-boundaries.txt-19 | LP10-W05 invalid source-wait basis stays partial/unknown: duplicate | pass |
+| green-boundaries.txt-20 | LP10-W05 invalid source-wait basis stays partial/unknown: namespace | pass |
+| green-boundaries.txt-21 | LP10-W05 invalid source-wait basis stays partial/unknown: empty | pass |
+| green-boundaries.txt-22 | LP10-W05 invalid source-wait basis stays partial/unknown: throw | pass |
+| green-boundaries.txt-23 | LP10-W06 wait lease blocks deletion until exact worker cleanup | pass |
+| green-boundaries.txt-24 | LP10-W06 fractional start native proven preceding AU stays protected without decoded duration | pass |
+| green-boundaries.txt-25 | LP10-W12 live runtime lease protects before catalog destruction | pass |
+| green-boundaries.txt-26 | LP10-W12 accepted reference survives reopen without persisted runtime lease or invented job | pass |
+| green-boundaries.txt-27 | LP10-W09 concurrent Stop joins provider barrier without admission or leaked lease | pass |
+| green-boundaries.txt-28 | LP10-W08 UTC ready source protected through single-renderer durable handoff | pass |
+| green-boundaries.txt-29 | LP10-W08 shared inflight cap rejection leaves reference unaccepted | pass |
+| green-boundaries.txt-30 | LP10-W08 terminal handoff releases runtime and durable source protection | pass |
+| green-boundaries.txt-31 | LP10-W11 runtime source budget opt-in preserves base budget | pass |
+
+#### 실행 green-stop-handoff.txt
+
+명령: `bash scripts/internal/verify_recording_bounded_wait.sh`, exit 0; elapsed seconds=7 source=bash-SECONDS.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| green-stop-handoff.txt-1 | LP10-W01 incomplete wait yields to later ready request | pass |
+| green-stop-handoff.txt-2 | LP10-W02 single renderer barrier does not block scheduler evaluation | pass |
+| green-stop-handoff.txt-3 | LP10-W02 ready queue never admits a second durable active renderer job | pass |
+| green-stop-handoff.txt-4 | LP10-W09 Stop cleans active renderer and unadmitted ready lease without creating second job | pass |
+| green-stop-handoff.txt-5 | LP10-W03 observed trailing identity waits beyond base budget for actual finalize | pass |
+| green-stop-handoff.txt-6 | LP10-W10 rolling incomplete never overwrites retained whole normal snapshot | pass |
+| green-stop-handoff.txt-7 | LP10-W10 initially incomplete snapshot never becomes invented complete | pass |
+| green-stop-handoff.txt-8 | LP10-W07 observed ten-source protection rejects atomically at eight | pass |
+| green-stop-handoff.txt-9 | LP10-W07 nine unobserved candidates do not consume protection slots | pass |
+| green-stop-handoff.txt-10 | LP10-W07 thirty-third lease rejects without partial token | pass |
+| green-stop-handoff.txt-11 | LP10-W06 shared lease survives one release and idempotent Open | pass |
+| green-stop-handoff.txt-12 | LP10-W06 foreign token cannot release owned protection | pass |
+| green-stop-handoff.txt-13 | LP10-W06 exact final release permits deletion with no lease journal writes | pass |
+| green-stop-handoff.txt-14 | LP10-W04 refreshed evidence cannot extend absolute source deadline | pass |
+| green-stop-handoff.txt-15 | LP10-W04 missing source ends at fixed evaluation cap | pass |
+| green-stop-handoff.txt-16 | LP10-W05 invalid source-wait basis stays partial/unknown: gap | pass |
+| green-stop-handoff.txt-17 | LP10-W05 invalid source-wait basis stays partial/unknown: deleted | pass |
+| green-stop-handoff.txt-18 | LP10-W05 invalid source-wait basis stays partial/unknown: corrupt | pass |
+| green-stop-handoff.txt-19 | LP10-W05 invalid source-wait basis stays partial/unknown: identity | pass |
+| green-stop-handoff.txt-20 | LP10-W05 invalid source-wait basis stays partial/unknown: duplicate | pass |
+| green-stop-handoff.txt-21 | LP10-W05 invalid source-wait basis stays partial/unknown: namespace | pass |
+| green-stop-handoff.txt-22 | LP10-W05 invalid source-wait basis stays partial/unknown: empty | pass |
+| green-stop-handoff.txt-23 | LP10-W05 invalid source-wait basis stays partial/unknown: throw | pass |
+| green-stop-handoff.txt-24 | LP10-W06 wait lease blocks deletion until exact worker cleanup | pass |
+| green-stop-handoff.txt-25 | LP10-W06 fractional start native proven preceding AU stays protected without decoded duration | pass |
+| green-stop-handoff.txt-26 | LP10-W12 live runtime lease protects before catalog destruction | pass |
+| green-stop-handoff.txt-27 | LP10-W12 accepted reference survives reopen without persisted runtime lease or invented job | pass |
+| green-stop-handoff.txt-28 | LP10-W09 concurrent Stop joins provider barrier without admission or leaked lease | pass |
+| green-stop-handoff.txt-29 | LP10-W08 UTC ready source protected through single-renderer durable handoff | pass |
+| green-stop-handoff.txt-30 | LP10-W08 shared inflight cap rejection leaves reference unaccepted | pass |
+| green-stop-handoff.txt-31 | LP10-W08 UTC selected-only lease protects without observed identity or active durable job | pass |
+| green-stop-handoff.txt-32 | LP10-W08 terminal handoff releases runtime and durable source protection | pass |
+| green-stop-handoff.txt-33 | LP10-W11 runtime source budget opt-in preserves base budget | pass |
+
+#### 실행 green-final.txt
+
+명령: `bash scripts/internal/verify_recording_bounded_wait.sh`, exit 0; elapsed seconds=7 source=bash-SECONDS.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| green-final.txt-1 | LP10-W01 incomplete wait yields to later ready request | pass |
+| green-final.txt-2 | LP10-W02 single renderer barrier does not block scheduler evaluation | pass |
+| green-final.txt-3 | LP10-W02 ready queue never admits a second durable active renderer job | pass |
+| green-final.txt-4 | LP10-W09 Stop cleans active renderer and unadmitted ready lease without creating second job | pass |
+| green-final.txt-5 | LP10-W03 observed trailing identity waits beyond base budget for actual finalize | pass |
+| green-final.txt-6 | LP10-W10 rolling incomplete never overwrites retained whole normal snapshot | pass |
+| green-final.txt-7 | LP10-W10 initially incomplete snapshot never becomes invented complete | pass |
+| green-final.txt-8 | LP10-W07 observed ten-source protection rejects atomically at eight | pass |
+| green-final.txt-9 | LP10-W07 nine unobserved candidates do not consume protection slots | pass |
+| green-final.txt-10 | LP10-W07 thirty-third lease rejects without partial token | pass |
+| green-final.txt-11 | LP10-W06 shared lease survives one release and idempotent Open | pass |
+| green-final.txt-12 | LP10-W06 foreign token cannot release owned protection | pass |
+| green-final.txt-13 | LP10-W06 exact final release permits deletion with no lease journal writes | pass |
+| green-final.txt-14 | LP10-W04 refreshed evidence cannot extend absolute source deadline | pass |
+| green-final.txt-15 | LP10-W04 missing source ends at fixed evaluation cap | pass |
+| green-final.txt-16 | LP10-W05 invalid source-wait basis stays partial/unknown: gap | pass |
+| green-final.txt-17 | LP10-W05 invalid source-wait basis stays partial/unknown: deleted | pass |
+| green-final.txt-18 | LP10-W05 invalid source-wait basis stays partial/unknown: corrupt | pass |
+| green-final.txt-19 | LP10-W05 invalid source-wait basis stays partial/unknown: identity | pass |
+| green-final.txt-20 | LP10-W05 invalid source-wait basis stays partial/unknown: duplicate | pass |
+| green-final.txt-21 | LP10-W05 invalid source-wait basis stays partial/unknown: namespace | pass |
+| green-final.txt-22 | LP10-W05 invalid source-wait basis stays partial/unknown: empty | pass |
+| green-final.txt-23 | LP10-W05 invalid source-wait basis stays partial/unknown: throw | pass |
+| green-final.txt-24 | LP10-W06 wait lease blocks deletion until exact worker cleanup | pass |
+| green-final.txt-25 | LP10-W06 fractional start native proven preceding AU stays protected without decoded duration | pass |
+| green-final.txt-26 | LP10-W12 live runtime lease protects before catalog destruction | pass |
+| green-final.txt-27 | LP10-W12 accepted reference survives reopen without persisted runtime lease or invented job | pass |
+| green-final.txt-28 | LP10-W09 concurrent Stop joins provider barrier without admission or leaked lease | pass |
+| green-final.txt-29 | LP10-W08 UTC ready source protected through single-renderer durable handoff | pass |
+| green-final.txt-30 | LP10-W08 shared inflight cap rejection leaves reference unaccepted | pass |
+| green-final.txt-31 | LP10-W08 UTC selected-only lease protects without observed identity or active durable job | pass |
+| green-final.txt-32 | LP10-W08 terminal handoff releases runtime and durable source protection | pass |
+| green-final.txt-33 | LP10-W05 fractional source wait requires representable proven decoded overlap: valid | pass |
+| green-final.txt-34 | LP10-W05 fractional source wait requires representable proven decoded overlap: absent | pass |
+| green-final.txt-35 | LP10-W05 fractional source wait requires representable proven decoded overlap: overflow | pass |
+| green-final.txt-36 | LP10-W11 runtime source budget opt-in preserves base budget | pass |
+
+#### 실행 integration.txt
+
+명령: `bash scripts/internal/verify_recording_derived_event_integration.sh`, exit 0; elapsed seconds=12 source=bash-SECONDS.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| integration.txt-1 | E17 accepted 후 resolver nullopt는 기존 소유 유지·신규 저장 없음 | pass |
+| integration.txt-2 | E17 accepted 후 resolver 불일치는 기존 소유 유지·신규 저장 없음 | pass |
+| integration.txt-3 | E17 accepted 후 resolver 예외는 기존 소유 유지·신규 저장 없음 | pass |
+| integration.txt-4 | E17 accepted 후 resolver 미주입는 기존 소유 유지·신규 저장 없음 | pass |
+| integration.txt-5 | E02 단일 출력도 clip_path 승격 없이 목록·직접 decode·fully satisfied | pass |
+| integration.txt-6 | E09 동일 reference/선택 재요청 job ID 멱등 | pass |
+| integration.txt-7 | E03 미확인 pre 구간을 유지한 verified partial 출력 | pass |
+| integration.txt-8 | E07 immutable start/end/pre/post/namespace 보존 | pass |
+| integration.txt-9 | E10 Event 출력이 누적되어도 원본 snapshot은 continuous만 | pass |
+| integration.txt-10 | E04 provider의 동일 실제 decoder 증거 업데이트로 postroll 요청 충족 | pass |
+| integration.txt-11 | E05 시간 경과만으로 coverage 없이 unknown 종료 | pass |
+| integration.txt-12 | E06 provider namespace 변경을 새 증거로 혼합하지 않음 | pass |
+| integration.txt-13 | E09 같은 immutable reference의 증거/선택 갱신은 새 job·이전 partial 보존 | pass |
+| integration.txt-14 | E18 4097 frame 증거는 queue 접수 전 명시 거부 | pass |
+| integration.txt-15 | E06/E18 provider generation 변경는 unknown 종료 | pass |
+| integration.txt-16 | E06/E18 provider source 불일치는 unknown 종료 | pass |
+| integration.txt-17 | E06/E18 provider 예외는 unknown 종료 | pass |
+| integration.txt-18 | E06/E18 provider track 불일치는 unknown 종료 | pass |
+| integration.txt-19 | E06/E18 provider channel 불일치는 unknown 종료 | pass |
+| integration.txt-20 | E12 event quota 부족은 Intent/파일/내구 예약 없이 명시 거부 | pass |
+| integration.txt-21 | E12 disk provider 실패를 가용량 0 성공으로 숨기지 않고 Intent 없이 거부 | pass |
+| integration.txt-22 | E18 누적 261개 원본에서도 현재 반개구간 관련 1개만 조회 | pass |
+| integration.txt-23 | E18 반개구간 끝 접점은 이전 원본과 비중첩 | pass |
+| integration.txt-24 | E11 관련 missing binding은 누락하지 않고 snapshot에 보존 | pass |
+| integration.txt-25 | E11 관련 corrupt lifecycle은 동일 snapshot에 보존 | pass |
+| integration.txt-26 | E18 실제 관련 257개는 명시 cap 실패·잘린 confirmed 목록 없음 | pass |
+| integration.txt-27 | E04 실제 writer 후행 finalize와 같은 요청 증거 갱신으로 2출력 완료 | pass |
+| integration.txt-28 | E20 canonical accepted 중복은 원장 mutation 추가 없이 멱등 | pass |
+| integration.txt-29 | E20 동일 reference ID 다른 immutable 내용의 accepted 거부 | pass |
+| integration.txt-30 | E20 SQLite accepted projection의 exact reference 일치 | pass |
+| integration.txt-31 | E20 accepted marker checkpoint projection 일치 | pass |
+| integration.txt-32 | E15/E20 재시작 JSONL fallback accepted/no-job은 증거 발명 없이 managed unknown | pass |
+| integration.txt-33 | E15/E20 재시작 SQLite rebuild accepted/no-job은 증거 발명 없이 managed unknown | pass |
+| integration.txt-34 | E20 replay accepted 선행 참조 없음 거부 | pass |
+| integration.txt-35 | E20 replay accepted unknown 필드 거부 | pass |
+| integration.txt-36 | E20 replay accepted canonical 충돌 거부 | pass |
+| integration.txt-37 | E20 replay accepted 불완전 payload 거부 | pass |
+| integration.txt-38 | E08 동일 원본 snapshot의 명시 UTC 요청→실제 출력·독립 output UTC unknown | pass |
+| integration.txt-39 | E08 같은 UTC의 복수 원본 후보를 자동 단일 선택하지 않음 | pass |
+| integration.txt-40 | E11 UTC confirmed mapping 하나가 보여도 관련 corrupt 원본을 숨기지 않음 | pass |
+| integration.txt-41 | E11 실제 UTC worker도 same-lock corrupt 원본을 available로 승격하지 않음 | pass |
+| integration.txt-42 | E08 UTC unplaced를 원본 snapshot/선택에 보존 | pass |
+| integration.txt-43 | E18 opt-in UTC 후보 예산 초과는 부분 confirmed 결과 없이 실패 | pass |
+| integration.txt-44 | E11 삭제 대기 lifecycle도 원본 snapshot에서 누락하지 않음 | pass |
+| integration.txt-45 | E01 실제 H264 decoder→EventRecord→reference→내구 job·2출력 Complete | pass |
+| integration.txt-46 | E17 무주입 bridge 재생성에도 내구 managed 소유권 유지 | pass |
+| integration.txt-47 | E13 Stop 이후 신규 reference 저장 없음 | pass |
+| integration.txt-48 | E20 비권위 원장 조회 실패는 legacy 억제 unknown | pass |
+| integration.txt-49 | E17 실제 EventStorage managed clip 억제 및 snapshot hook 유지 | pass |
+| integration.txt-50 | E17 실제 EventStorage 기본 clip fallback 유지 및 snapshot hook 유지 | pass |
+| integration.txt-51 | E15 별도 프로세스 Ready _exit 후 보호 복원→bridge reconcile→동일 2출력·decode·commit 1개 | pass |
+| integration.txt-52 | E16 historical Complete와 terminal tombstone 현재 unavailable·재생성 없음 | pass |
+| integration.txt-53 | E13 active 포함 queue cap 포화는 새 accepted/예약 없이 거부 | pass |
+| integration.txt-54 | E14 실제 Run 중 동시 Stop 두 번→취소·단일 join·Failed cleanup 후 자원 해제 | pass |
+| integration.txt-55 | E18 reference job top-8은 wall 역행/재시작에도 동일 ID subset·truncated unknown | pass |
+| integration.txt-56 | E15 startup bounded8 more는 blocker·남은 보호 유지·자동 무한 reconcile 없음 | pass |
+
+#### 실행 diagnostics.txt
+
+명령: `bash scripts/internal/verify_recording_derived_event_integration.sh --diagnostics-only`, exit 0; elapsed seconds=4 source=bash-SECONDS.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| diagnostics.txt-1 | LP09-W01 disabled diagnostic preserves wait-exhausted result | pass |
+| diagnostics.txt-2 | LP09-W02 same decision snapshots and attempt timing | pass |
+| diagnostics.txt-3 | LP09-W03 callback can query worker and catalog without held locks | pass |
+| diagnostics.txt-4 | LP09-W04 callback exception preserves terminal policy | pass |
+| diagnostics.txt-5 | LP09-W07 deadline exhaustion remains immediate and distinct | pass |
+| diagnostics.txt-6 | LP09-W07 confirmed prefix remains immutable partial | pass |
+| diagnostics.txt-7 | LP09-W05 decoded identity and duration rejection categories | pass |
+| diagnostics.txt-8 | LP09-W05 namespace mismatch remains visible | pass |
+| diagnostics.txt-9 | LP09-W05 UTC has no invented decoded coordinate comparison | pass |
+| diagnostics.txt-10 | LP09-W06 value-only summaries bound sources frames and unknown ranges | pass |
+| diagnostics.txt-11 | LP09-W08 formatter hashes identifiers and fixes reason enums | pass |
+| diagnostics.txt-12 | LP09-W08 formatter refuses oversized source vector | pass |
+| diagnostics.txt-13 | LP09-W08 formatter refuses absent reference identity | pass |
+| diagnostics.txt-14 | LP09-W08 reference hash agrees with independent digest provider | pass |
+| diagnostics.txt-15 | LP09-Q02 first evaluation provider throw preserves strict rejection | pass |
+| diagnostics.txt-16 | LP09-Q02 first evaluation provider null preserves strict rejection | pass |
+| diagnostics.txt-17 | LP09-Q02 first evaluation provider namespace preserves strict rejection | pass |
+| diagnostics.txt-18 | LP09-Q02 first evaluation provider generation preserves strict rejection | pass |
+| diagnostics.txt-19 | LP09-Q02 first evaluation provider track preserves strict rejection | pass |
+| diagnostics.txt-20 | LP09-Q02 first evaluation provider 4097 preserves strict rejection | pass |
+| diagnostics.txt-21 | LP09-Q02 first evaluation provider source preserves strict rejection | pass |
+| diagnostics.txt-22 | LP09-Q02 first evaluation provider channel preserves strict rejection | pass |
+| diagnostics.txt-23 | LP09-Q03 Stop during first provider forbids admission after refresh | pass |
+| diagnostics.txt-24 | LP09-Q01 independent scheduler first evaluation consumes current evidence before blocked renderer releases | pass |
+| diagnostics.txt-25 | LP09-Q03 queued reference remains durably owned | pass |
+
+#### 실행 green-mapping-final.txt (최종 focused)
+
+명령: `bash scripts/internal/verify_recording_bounded_wait.sh`, exit 0; elapsed seconds=7 source=bash-SECONDS.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| green-mapping-final.txt (최종 focused)-1 | LP10-W01 incomplete wait yields to later ready request | pass |
+| green-mapping-final.txt (최종 focused)-2 | LP10-W02 single renderer barrier does not block scheduler evaluation | pass |
+| green-mapping-final.txt (최종 focused)-3 | LP10-W02 ready queue never admits a second durable active renderer job | pass |
+| green-mapping-final.txt (최종 focused)-4 | LP10-W09 Stop cleans active renderer and unadmitted ready lease without creating second job | pass |
+| green-mapping-final.txt (최종 focused)-5 | LP10-W03 observed trailing identity waits beyond base budget for actual finalize | pass |
+| green-mapping-final.txt (최종 focused)-6 | LP10-W10 rolling incomplete never overwrites retained whole normal snapshot | pass |
+| green-mapping-final.txt (최종 focused)-7 | LP10-W10 initially incomplete snapshot never becomes invented complete | pass |
+| green-mapping-final.txt (최종 focused)-8 | LP10-W07 observed ten-source protection rejects atomically at eight | pass |
+| green-mapping-final.txt (최종 focused)-9 | LP10-W07 nine unobserved candidates do not consume protection slots | pass |
+| green-mapping-final.txt (최종 focused)-10 | LP10-W07 thirty-third lease rejects without partial token | pass |
+| green-mapping-final.txt (최종 focused)-11 | LP10-W06 shared lease survives one release and idempotent Open | pass |
+| green-mapping-final.txt (최종 focused)-12 | LP10-W06 foreign token cannot release owned protection | pass |
+| green-mapping-final.txt (최종 focused)-13 | LP10-W06 exact final release permits deletion with no lease journal writes | pass |
+| green-mapping-final.txt (최종 focused)-14 | LP10-W04 refreshed evidence cannot extend absolute source deadline | pass |
+| green-mapping-final.txt (최종 focused)-15 | LP10-W04 missing source ends at fixed evaluation cap | pass |
+| green-mapping-final.txt (최종 focused)-16 | LP10-W05 invalid source-wait basis stays partial/unknown: gap | pass |
+| green-mapping-final.txt (최종 focused)-17 | LP10-W05 invalid source-wait basis stays partial/unknown: deleted | pass |
+| green-mapping-final.txt (최종 focused)-18 | LP10-W05 invalid source-wait basis stays partial/unknown: corrupt | pass |
+| green-mapping-final.txt (최종 focused)-19 | LP10-W05 invalid source-wait basis stays partial/unknown: identity | pass |
+| green-mapping-final.txt (최종 focused)-20 | LP10-W05 invalid source-wait basis stays partial/unknown: duplicate | pass |
+| green-mapping-final.txt (최종 focused)-21 | LP10-W05 invalid source-wait basis stays partial/unknown: namespace | pass |
+| green-mapping-final.txt (최종 focused)-22 | LP10-W05 invalid source-wait basis stays partial/unknown: empty | pass |
+| green-mapping-final.txt (최종 focused)-23 | LP10-W05 invalid source-wait basis stays partial/unknown: throw | pass |
+| green-mapping-final.txt (최종 focused)-24 | LP10-W06 wait lease blocks deletion until exact worker cleanup | pass |
+| green-mapping-final.txt (최종 focused)-25 | LP10-W06 fractional start native proven preceding AU stays protected without decoded duration | pass |
+| green-mapping-final.txt (최종 focused)-26 | LP10-W12 live runtime lease protects before catalog destruction | pass |
+| green-mapping-final.txt (최종 focused)-27 | LP10-W12 accepted reference survives reopen without persisted runtime lease or invented job | pass |
+| green-mapping-final.txt (최종 focused)-28 | LP10-W09 concurrent Stop joins provider barrier without admission or leaked lease | pass |
+| green-mapping-final.txt (최종 focused)-29 | LP10-W08 UTC ready source protected through single-renderer durable handoff | pass |
+| green-mapping-final.txt (최종 focused)-30 | LP10-W08 shared inflight cap rejection leaves reference unaccepted | pass |
+| green-mapping-final.txt (최종 focused)-31 | LP10-W08 UTC selected-only lease protects without observed identity or active durable job | pass |
+| green-mapping-final.txt (최종 focused)-32 | LP10-W08 terminal handoff releases runtime and durable source protection | pass |
+| green-mapping-final.txt (최종 focused)-33 | LP10-W05 fractional source wait requires representable proven decoded overlap: valid | pass |
+| green-mapping-final.txt (최종 focused)-34 | LP10-W05 fractional source wait requires representable proven decoded overlap: absent | pass |
+| green-mapping-final.txt (최종 focused)-35 | LP10-W05 fractional source wait requires representable proven decoded overlap: overflow | pass |
+| green-mapping-final.txt (최종 focused)-36 | LP10-W08 actual admission capacity rejection releases wait lease and reservation | pass |
+| green-mapping-final.txt (최종 focused)-37 | LP10-W11 constructor source budget clamp case=0 | pass |
+| green-mapping-final.txt (최종 focused)-38 | LP10-W11 constructor source budget clamp case=1 | pass |
+| green-mapping-final.txt (최종 focused)-39 | LP10-W11 constructor source budget clamp case=2 | pass |
+| green-mapping-final.txt (최종 focused)-40 | LP10-W11 constructor source budget clamp case=3 | pass |
+| green-mapping-final.txt (최종 focused)-41 | LP10-W11 runtime source budget opt-in preserves base budget | pass |
+
+#### 실행 native.txt
+
+명령: `bash scripts/internal/verify_recording_native_derived.sh`, exit 0; elapsed seconds=24 source=bash-SECONDS.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| native.txt-1 | LP09-S03 case0 observed native selection preserves complete/partial | pass |
+| native.txt-2 | LP09-S03 case0 observed native selection preserves complete/partial | pass |
+| native.txt-3 | LP09-S03 case0 worker uses new native profile without changing wait budget | pass |
+| native.txt-4 | LP09-S03 case0 actual native remux Ready Complete | pass |
+| native.txt-5 | LP09-S03 case0 full request and literal output count | pass |
+| native.txt-6 | LP09-S03 case0 physical file and decoded hashes | pass |
+| native.txt-7 | LP09-S03 case0 Ready rejects altered file timestamp with regenerated manifest | pass |
+| native.txt-8 | LP09-S03 case0 exact recovery sql0 | pass |
+| native.txt-9 | LP09-S03 case0 recovered reference completeness sql0 | pass |
+| native.txt-10 | LP09-S03 case0 timeline native interval and independent UTC placement sql0 | pass |
+| native.txt-11 | LP09-S03 case0 exact recovery sql1 | pass |
+| native.txt-12 | LP09-S03 case0 recovered reference completeness sql1 | pass |
+| native.txt-13 | LP09-S03 case0 timeline native interval and independent UTC placement sql1 | pass |
+| native.txt-14 | LP09-S03 case1 observed native selection preserves complete/partial | pass |
+| native.txt-15 | LP09-S03 case1 actual native remux Ready Complete | pass |
+| native.txt-16 | LP09-S03 case1 full request and literal output count | pass |
+| native.txt-17 | LP09-S03 case1 physical file and decoded hashes | pass |
+| native.txt-18 | LP09-S03 case1 Ready rejects altered file timestamp with regenerated manifest | pass |
+| native.txt-19 | LP09-S03 case1 exact recovery sql0 | pass |
+| native.txt-20 | LP09-S03 case1 recovered reference completeness sql0 | pass |
+| native.txt-21 | LP09-S03 case1 timeline native interval and independent UTC placement sql0 | pass |
+| native.txt-22 | LP09-S03 case1 exact recovery sql1 | pass |
+| native.txt-23 | LP09-S03 case1 recovered reference completeness sql1 | pass |
+| native.txt-24 | LP09-S03 case1 timeline native interval and independent UTC placement sql1 | pass |
+| native.txt-25 | LP09-S03 case2 observed native selection preserves complete/partial | pass |
+| native.txt-26 | LP09-S03 case2 actual native remux Ready Complete | pass |
+| native.txt-27 | LP09-S03 case2 full request and literal output count | pass |
+| native.txt-28 | LP09-S03 case2 physical file and decoded hashes | pass |
+| native.txt-29 | LP09-S03 case2 Ready rejects altered file timestamp with regenerated manifest | pass |
+| native.txt-30 | LP09-S03 case2 exact recovery sql0 | pass |
+| native.txt-31 | LP09-S03 case2 recovered reference completeness sql0 | pass |
+| native.txt-32 | LP09-S03 case2 timeline native interval and independent UTC placement sql0 | pass |
+| native.txt-33 | LP09-S03 case2 exact recovery sql1 | pass |
+| native.txt-34 | LP09-S03 case2 recovered reference completeness sql1 | pass |
+| native.txt-35 | LP09-S03 case2 timeline native interval and independent UTC placement sql1 | pass |
+| native.txt-36 | LP09-S03 case3 observed native selection preserves complete/partial | pass |
+| native.txt-37 | LP09-S03 case3 actual native remux Ready Complete | pass |
+| native.txt-38 | LP09-S03 case3 full request and literal output count | pass |
+| native.txt-39 | LP09-S03 case3 physical file and decoded hashes | pass |
+| native.txt-40 | LP09-S03 case3 Ready rejects altered file timestamp with regenerated manifest | pass |
+| native.txt-41 | LP09-S03 case3 exact recovery sql0 | pass |
+| native.txt-42 | LP09-S03 case3 recovered reference completeness sql0 | pass |
+| native.txt-43 | LP09-S03 case3 timeline native interval and independent UTC placement sql0 | pass |
+| native.txt-44 | LP09-S03 case3 exact recovery sql1 | pass |
+| native.txt-45 | LP09-S03 case3 recovered reference completeness sql1 | pass |
+| native.txt-46 | LP09-S03 case3 timeline native interval and independent UTC placement sql1 | pass |
+| native.txt-47 | LP09-S03 case4 observed native selection preserves complete/partial | pass |
+| native.txt-48 | LP09-S03 case4 actual native remux Ready Complete | pass |
+| native.txt-49 | LP09-S03 case4 full request and literal output count | pass |
+| native.txt-50 | LP09-S03 case4 physical file and decoded hashes | pass |
+| native.txt-51 | LP09-S03 case4 Ready rejects altered file timestamp with regenerated manifest | pass |
+| native.txt-52 | LP09-S03 case4 exact recovery sql0 | pass |
+| native.txt-53 | LP09-S03 case4 recovered reference completeness sql0 | pass |
+| native.txt-54 | LP09-S03 case4 timeline native interval and independent UTC placement sql0 | pass |
+| native.txt-55 | LP09-S03 case4 exact recovery sql1 | pass |
+| native.txt-56 | LP09-S03 case4 recovered reference completeness sql1 | pass |
+| native.txt-57 | LP09-S03 case4 timeline native interval and independent UTC placement sql1 | pass |
+| native.txt-58 | LP09-S03c native Ready child exit23 expected | pass |
+| native.txt-59 | LP09-S03c native Ready recovery same ID complete2 | pass |
+| native.txt-60 | LP09-S03c native recovery file hashes and resource cleanup | pass |
+
+#### 실행 default.txt
+
+명령: `bash scripts/internal/verify_recording_default_composition.sh`, exit 0; elapsed seconds=34 source=bash-SECONDS.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| default.txt-1 | D02-03 동일 source/channel/ns immutable snapshot 전달 | pass |
+| default.txt-2 | D02-03 다른 channel 증거 혼합 거부 | pass |
+| default.txt-3 | D02-03 stop namespace 증거 삭제 | pass |
+| default.txt-4 | D02-03 cache capacity 이전 namespace eviction | pass |
+| default.txt-5 | D02-03 전체 stop 후 publication/query 거부 | pass |
+| default.txt-6 | D02-01 신규 root 자동 내구 store identity | pass |
+| default.txt-7 | D02-01 재개방 동일 store identity | pass |
+| default.txt-8 | D02-01 서로 다른 root 난수 identity 구별 | pass |
+| default.txt-9 | D02-02 managed lease 동시 소유 거부 | pass |
+| default.txt-10 | D02-01 명시 ID 기존 계약 유지 | pass |
+| default.txt-11 | D02-02 명시 ID 충돌 원본 marker 보존 | pass |
+| default.txt-12 | D02-02 같은 init 내구 ID 복구 | pass |
+| default.txt-13 | D02-02 legacy nonempty 변환·삭제 거부 | pass |
+| default.txt-14 | D02-02 손상/unknown marker 덮어쓰기 거부 | pass |
+| default.txt-15 | D02-06 실제 H264 입력 준비 | pass |
+| default.txt-16 | D02-05 실제 V2 finalized startup 미디어 전수 검사 | pass |
+| default.txt-17 | D02-05 실제 V2 size/hash 손상 감지·catalog Mark | pass |
+| default.txt-18 | D02-10 default 준비16s·500ms·33회 예산 | pass |
+| default.txt-19 | D02-10 overflow 요청은60s/121회 capped 사유 보존 | pass |
+| default.txt-20 | D02-06 on 구성의 동일 managed store/catalog writer 결박 | pass |
+| default.txt-21 | D02-07 빈 저장소 runtime 복구 함수 | pass |
+| default.txt-22 | D02-06 off managed 형식 유지·미디어 비생산 | pass |
+| default.txt-23 | D02-04/11 raw key→numeric 참조·history null provider 접수·공개 record 불변 | pass |
+| default.txt-24 | D02-11 raw stream/channel/sourcecontext 모순은 신규 저장·접수 없음 | pass |
+| default.txt-25 | D02-06 off/on 재개방 동일 store identity | pass |
+| default.txt-26 | D02-07 실제 producer 시작 전 runtime 복구 | pass |
+| default.txt-27 | D02-06 실제 supervisor/session off 생산0·기존 segment 보존 | pass |
+| default.txt-28 | D02-08 실제 source/session 종료 owner0 | pass |
+| default.txt-29 | D02-06 off/on 재개방 동일 store identity | pass |
+| default.txt-30 | D02-07 실제 producer 시작 전 runtime 복구 | pass |
+| default.txt-31 | D02-06 실제 supervisor/session on 숫자 채널 V2 파일 생성 | pass |
+| default.txt-32 | D02-08 실제 source/session 종료 owner0 | pass |
+| default.txt-33 | D02-06 off/on 재개방 동일 store identity | pass |
+| default.txt-34 | D02-07 실제 producer 시작 전 runtime 복구 | pass |
+| default.txt-35 | D02-06 실제 supervisor/session off 생산0·기존 segment 보존 | pass |
+| default.txt-36 | D02-08 실제 source/session 종료 owner0 | pass |
+| default.txt-37 | D02-06 off/on 재개방 동일 store identity | pass |
+| default.txt-38 | D02-07 실제 producer 시작 전 runtime 복구 | pass |
+| default.txt-39 | D02-06 실제 supervisor/session on 숫자 채널 V2 파일 생성 | pass |
+| default.txt-40 | D02-08 실제 source/session 종료 owner0 | pass |
+| default.txt-41 | D02-04/10 실제 default10s+post5s 후행 finalize·동시 실제decoder cache·2출력 decode | pass |
+| default.txt-42 | D02-01 crypto-off OS CSPRNG 생성/재개방 identity | pass |
+| default.txt-43 | D02-08 provider 조회 재진입·동시 멱등·Stop 후 Submit 재검사 | pass |
+| default.txt-44 | D02-07 runtime startup committed-parent recovery/보호/물리검사 순서 | pass |
+| default.txt-45 | D02-07 runtime startup blocked-parent recovery/보호/물리검사 순서 | pass |
+| default.txt-46 | D02-07 runtime startup intent recovery/보호/물리검사 순서 | pass |
+
+#### 실행 jobs.txt
+
+명령: `bash scripts/internal/verify_recording_derived_jobs.sh`, exit 0; elapsed seconds=7 source=bash-SECONDS.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| jobs.txt-1 | J01 실제 선택→compact 내구 job 계약 왕복 | pass |
+| jobs.txt-2 | J17 무관source8개 추가에도 동일선택 jobID 유지 | pass |
+| jobs.txt-3 | J18 cleanup wall시계 역행 허용·순서는상태로검사 | pass |
+| jobs.txt-4 | J04 단일 Intent 원장·보호·예약 원자 가시성 | pass |
+| jobs.txt-5 | J19 후발 coordinator 일반·파생 admission 및 복구 차단 | pass |
+| jobs.txt-6 | J02 이후 시각 재Build ID 유지·선택 변경 새 ID | pass |
+| jobs.txt-7 | J03 unknown·중복·미지원 schema·불완전 JSON·4MiB·예약 상한·미구현 state 거부 | pass |
+| jobs.txt-8 | J16 소유 경로·attempt·order 계획 조작 거부 | pass |
+| jobs.txt-9 | J16 실제 2 source UUID 역순이어도 영속 order 순 출력 계획 | pass |
+| jobs.txt-10 | J08 나중 시각 재요청 최초 시각 유지·예약/경로 충돌·다른 catalog 거부 | pass |
+| jobs.txt-11 | J06 generic hold 감소로 job 보호 해제 불가·직접 삭제/corrupt 차단 | pass |
+| jobs.txt-12 | J14 cleanup Failed는 job 자원만 해제·wall 역행·terminal 자동 재시도 없음 | pass |
+| jobs.txt-13 | J05 pending·corrupt·tombstone·hash·binding 불일치 source 거부 | pass |
+| jobs.txt-14 | J07 실제 source 삭제/Intent 경쟁에서 둘 중 한 전이만 허용 | pass |
+| jobs.txt-15 | J10 checkpoint 전후 job·보호·예약 유지 | pass |
+| jobs.txt-16 | J09 SQLite·fallback·재build/reopen 내구 job 동등·중복 보호 가산 없음 | pass |
+| jobs.txt-17 | J10 replay 동일 중복 멱등·다른 내용/불완전/schema/전이/보호 상태 거부 | pass |
+| jobs.txt-18 | J11 같은 채널 memory+동시 durable 예약 합계 event quota 제한 | pass |
+| jobs.txt-19 | J12 durable outstanding을 continuous/event/derived disk 예약에 포함 | pass |
+| jobs.txt-20 | J13 snapshot/disk provider 실패는 생성·periodic·복구 삭제 차단 | pass |
+| jobs.txt-21 | J15 partial unknown·이유·후보·요청 시간축 그대로 보존 | pass |
+| jobs.txt-22 | J19 정확한 소유자 소멸 후 새 coordinator만 재결박 | pass |
+| jobs.txt-23 | J20 append 거부 후 원장 복원해도 공통 mutation 차단 | pass |
+
+#### 실행 no-crypto.txt
+
+명령: `bash scripts/internal/verify_recording_derived_event_integration.sh --diagnostics-no-crypto`, exit 0; elapsed seconds=4 source=bash-SECONDS.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| no-crypto.txt-1 | LP09-W08 no-OpenSSL formatter fails closed | pass |
+
+#### 소유 산출물 정리
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.8XpTN3 | 격리 실행·미디어·저장소·캐시 | 11507482B | 삭제 | 부재 확인 | red.txt 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.ETVnB2 | 격리 실행·미디어·저장소·캐시 | 11790041B | 삭제 | 부재 확인 | green-core.txt 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.VDWxuU | 격리 실행·미디어·저장소·캐시 | 15668215B | 삭제 | 부재 확인 | green-extended.txt 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.exLiI9 | 격리 실행·미디어·저장소·캐시 | 15470654B | 삭제 | 부재 확인 | green-extended-fixed.txt 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.o5zyeu | 격리 실행·미디어·저장소·캐시 | 15723098B | 삭제 | 부재 확인 | fractional-red.txt 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.inTH07 | 격리 실행·미디어·저장소·캐시 | 15775972B | 삭제 | 부재 확인 | fractional-red-fixed.txt 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.xAzShN | 격리 실행·미디어·저장소·캐시 | 15776100B | 삭제 | 부재 확인 | fractional-red-proven.txt 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.MgQ2Hf | 격리 실행·미디어·저장소·캐시 | 16912609B | 삭제 | 부재 확인 | green-boundaries.txt 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.Q2ApAj | 격리 실행·미디어·저장소·캐시 | 17186352B | 삭제 | 부재 확인 | green-stop-handoff.txt 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.J4QxAS | 격리 실행·미디어·저장소·캐시 | 17761856B | 삭제 | 부재 확인 | green-final.txt 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.zWPxfb | 격리 실행·미디어·저장소·캐시 | 15845022B | 삭제 | 부재 확인 | integration.txt 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.Ow7TYH | 격리 실행·미디어·저장소·캐시 | 10769312B | 삭제 | 부재 확인 | diagnostics.txt 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.b7x0iJ | 격리 실행·미디어·저장소·캐시 | 18782460B | 삭제 | 부재 확인 | green-mapping-final.txt (최종 focused) 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.2Ck6oD | 격리 실행·미디어·저장소·캐시 | 14608714B | 삭제 | 부재 확인 | native.txt 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-default-composition.xBTDlD | 격리 실행·미디어·저장소·캐시 | 14404850B | 삭제 | 부재 확인 | default.txt 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-jobs.k5O1bj | 격리 실행·미디어·저장소·캐시 | 9503087B | 삭제 | 부재 확인 | jobs.txt 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.zttTMV | 격리 실행·미디어·저장소·캐시 | 9994068B | 삭제 | 부재 확인 | no-crypto.txt 원출력 |
+| /private/tmp/lp10-bounded-wait-logs.5rrRcB | 실행 로그·공용 검증 GST 캐시 | 1680583B | 원출력 보존 후 삭제 | 부재 및 모든 wrapper root 부재 확인 | artifact cleanup-final |
+| docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp10-bounded-wait-output.txt | 비민감 원출력·환경·해시 | 99767B | 보존 | 21회 결과/실패/정리 근거 | 영상·원시 저장소·credential 미보존 |
+
+검증 전용 프로세스는 각 wrapper 종료 및 fixture의 Stop/join으로 종료했다. 이번 직접 fixture는 HTTP listen을 열지 않아 별도 HTTP 포트 대상은 없고, 기본 구성의 source owner0 종료는 D02-08로 확인했다. 다른 작업/사용자 데이터는 삭제하지 않았다.
+
 ## 2026-09-17 LP09 승인된 공통 소비와 미선택 원인
 
 ### 잔여1 선택 단위 완료 (2026-09-17)

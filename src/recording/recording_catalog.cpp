@@ -3,6 +3,7 @@
 #include "recording/recording_catalog.h"
 #include "recording_checkpoint_validation.h"
 #include "recording/recording_finalize_recovery.h"
+#include "recording/recording_presentation_interval.h"
 
 #include <algorithm>
 #include <atomic>
@@ -409,6 +410,7 @@ bool RecordingCatalog::SnapshotActiveDerivedJobs(std::size_t limit,std::vector<D
     if(error)error->clear();return true;
 }
 bool RecordingCatalog::DerivedJobProtectsLocked(const std::string& id) const {
+    for(const auto& [_,lease]:derived_wait_leases_)if(lease.source_ids.count(id))return true;
     for(const auto& [_,job]:derived_jobs_)if(DerivedJobActive(job)) {
         for(const auto& source:job.intent.sources)if(source.segment.segment_id==id)return true;
         for(const auto& output:job.intent.outputs)if(output.output_id==id)return true;
@@ -1778,6 +1780,89 @@ bool RecordingCatalog::IsDerivedReferenceAccepted(const std::string& id, bool* a
 bool RecordingCatalog::SnapshotDerivedSources(const RecordingConsumerReferenceV1& reference,
     std::vector<RecordingDerivedSourceSnapshotEntry>* result, std::string* error) const {
     std::lock_guard lock(mu_);
+    return SnapshotDerivedSourcesLocked(reference,result,error);
+}
+bool RecordingCatalog::SnapshotDerivedSourcesWithWaitLease(const RecordingConsumerReferenceV1& reference,
+    const std::vector<RecordingConsumerOriginalV1>& observed,std::uint64_t* token,
+    std::vector<RecordingDerivedSourceSnapshotEntry>* result,std::string* error,
+    const std::vector<RecordingConsumerOriginalV1>& native_overlap_only) {
+    std::lock_guard lock(mu_);
+    if(result)result->clear();
+    if(!token||!result||observed.size()>4096||native_overlap_only.size()>4096-observed.size())return Fail(error,"derived wait lease input/output cap");
+    const auto existing=derived_wait_leases_.find(*token);
+    if((*token&&existing==derived_wait_leases_.end())||(!*token&&derived_wait_leases_.size()>=32))
+        return Fail(error,"derived wait lease token/cap");
+    const auto identity=SerializeRecordingConsumerReferenceV1(reference);
+    if(identity.empty()||(existing!=derived_wait_leases_.end()&&existing->second.reference_json!=identity))
+        return Fail(error,"derived wait lease reference mismatch");
+    std::vector<RecordingDerivedSourceSnapshotEntry> snapshot;
+    if(!SnapshotDerivedSourcesLocked(reference,&snapshot,error))return false;
+    DerivedWaitLease next=existing==derived_wait_leases_.end()?DerivedWaitLease{identity,{}}:existing->second;
+    for(const auto& entry:snapshot)if(entry.lifecycle==RecordingLifecycle::Finalized&&!entry.deleted&&entry.binding&&
+        ValidateRecordingSourceBindingForSegment(*entry.binding,entry.segment,nullptr)) {
+        const auto& binding=*entry.binding;
+        const auto bound=[&](const auto& o){
+            if(!reference.original||o.source_generation!=reference.original->source_generation||
+               o.generation_order!=reference.original->generation_order||o.track_id!=reference.original->track_id||
+               o.source_generation!=binding.source_generation||o.generation_order!=binding.generation_order||o.track_id!=binding.track_id)return false;
+            const auto found=std::lower_bound(binding.samples.begin(),binding.samples.end(),o.ordinal,[](const auto& sample,std::uint64_t ordinal){return sample.ordinal<ordinal;});
+            return found!=binding.samples.end()&&found->ordinal==o.ordinal&&found->pts_ns==o.pts_ns;
+        };
+        bool matched=std::any_of(observed.begin(),observed.end(),bound);
+        // Missing decoded duration never invents source-wait coverage. This list only
+        // protects already proven native intervals under the same snapshot lock.
+        if(!matched&&binding.file_evidence&&reference.request&&reference.request->time_basis=="media-pts-ms") {
+            const auto& r=*reference.request;
+            const __int128 a=(static_cast<__int128>(r.start_ms)-r.pre_ms)*1000000,b=(static_cast<__int128>(r.end_ms)+r.post_ms)*1000000;
+            if(a>=std::numeric_limits<std::int64_t>::min()&&b<=std::numeric_limits<std::int64_t>::max()) {
+                const auto& proof=*binding.file_evidence;
+                matched=std::any_of(native_overlap_only.begin(),native_overlap_only.end(),[&](const auto& o){
+                    if(!bound(o))return false;
+                    const auto sample=std::lower_bound(proof.samples.begin(),proof.samples.end(),o.ordinal,[](const auto& s,std::uint64_t n){return s.ordinal<n;});
+                    PresentationInterval interval;
+                    return sample!=proof.samples.end()&&sample->ordinal==o.ordinal&&
+                        MakePresentationInterval(proof.writer_origin_ns,proof.timescale,sample->native_pts,sample->native_duration,&interval)&&
+                        ComparePresentationTime(interval.start,{static_cast<std::int64_t>(b),0,1})<0&&
+                        ComparePresentationTime(interval.end,{static_cast<std::int64_t>(a),0,1})>0;
+                });
+            }
+        }
+        if(!matched)continue;
+        next.source_ids.insert(entry.segment.segment_id);
+        if(next.source_ids.size()>8)return Fail(error,"derived wait lease source cap");
+    }
+    if(existing!=derived_wait_leases_.end())existing->second.source_ids.swap(next.source_ids);
+    else {
+        if(next_derived_wait_lease_==std::numeric_limits<std::uint64_t>::max())return Fail(error,"derived wait lease token exhausted");
+        const auto value=next_derived_wait_lease_+1;
+        derived_wait_leases_.emplace(value,std::move(next));next_derived_wait_lease_=value;*token=value;
+    }
+    result->swap(snapshot);if(error)error->clear();return true;
+}
+bool RecordingCatalog::ReleaseDerivedWaitLease(std::uint64_t token,std::string* error) {
+    std::lock_guard lock(mu_);
+    if(!token||derived_wait_leases_.erase(token)!=1)return Fail(error,"derived wait lease token missing");
+    if(error)error->clear();return true;
+}
+bool RecordingCatalog::RefreshDerivedWaitLeaseForIntent(const DerivedJobIntentV1& intent,std::uint64_t token,std::string* error) {
+    if(!ValidateDerivedJobIntent(intent,error))return false;
+    const auto identity=SerializeRecordingConsumerReferenceV1(intent.reference);
+    std::lock_guard lock(mu_);
+    const auto found=derived_wait_leases_.find(token);
+    if(found==derived_wait_leases_.end()||found->second.reference_json!=identity||!CanWriteLocked(error))
+        return Fail(error,"derived wait intent lease mismatch");
+    const auto existing=derived_jobs_.find(intent.job_id);
+    if(existing!=derived_jobs_.end()) {
+        auto same=intent;same.created_at_ms=existing->second.intent.created_at_ms;
+        if(SerializeDerivedJobIntent(same)!=SerializeDerivedJobIntent(existing->second.intent))return Fail(error,"derived wait intent conflict");
+    } else if(!ValidateDerivedJobSourcesLocked(intent,error))return false;
+    auto ids=found->second.source_ids;
+    for(const auto& source:intent.sources)ids.insert(source.segment.segment_id);
+    if(ids.size()>8)return Fail(error,"derived wait lease source cap");
+    found->second.source_ids.swap(ids);if(error)error->clear();return true;
+}
+bool RecordingCatalog::SnapshotDerivedSourcesLocked(const RecordingConsumerReferenceV1& reference,
+    std::vector<RecordingDerivedSourceSnapshotEntry>* result, std::string* error) const {
     if(result)result->clear();
     if(!result||!opened_||!options_.enable_v2_storage||!CanWriteLocked(error)||
        !ValidateRecordingConsumerReferenceV1(reference,error)||!reference.request)

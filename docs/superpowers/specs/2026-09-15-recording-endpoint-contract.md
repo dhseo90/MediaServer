@@ -6,6 +6,18 @@
 
 ## 결론과 적용 경계
 
+### 2026-09-17 LP10 제한 대기 정책 (사용자 후속1 승인)
+
+LP09의 대기 비변경 경계는 과거 승인 범위다. 이번 후속1은 대기 정책만 보완하며 공개 payload·저장 schema·원본 시간·기존 partial job은 변경하지 않는다. 실제 앱/누적 비용·장시간/UI/푸시는 이번 범위가 아니다.
+
+- scheduler는 요청당 한 번 평가 후 다음 due로 돌려보낸다. 별도 단일 renderer만 `DerivedJobService::Run`을 실행하여 대기 평가를 막지 않는다. 접수·대기·render를 합친 기존 queue capacity(최대32), 단일 Run 및 FIFO ready 순서를 유지한다. ready queue는 메모리 intent와 임시 lease만 보관하고 renderer가 실제 실행할 때 admission한다. 대기열 전체를 미리 내구Intent로 만들지 않아 기존 startup active8개 상한과 충돌하지 않는다. 원본확정 기한과 기존 출력생성 작업 예산은 별개이며60초내출력게시를 보장하지 않는다.
+- 기존 `wait_ms/max_attempts`는 일반 증거 부족의 예산으로 유지한다. runtime은 `source_wait_ms=60000`을 명시 활성화한다(내부 옵션 기본0). 정확 identity가 확인된 요청 관련 관측이 있으나 그 원본이 아직 유효 finalized 후보에 없는 경우만 접수 시점부터 최대60초/121평가의 원본 대기를 허용한다. 매 재접수/갱신으로 기한을 연장하지 않는다. 실제 gap·삭제·손상·잘못된 identity를 미래 원본으로 간주하지 않는다. 최종 상한에는 기존 partial/unknown 절차로 종료한다. 이60초는 성공 보장이 아닌 기존 절대 상한 재사용이다.
+- 원본 보호는 catalog 잠금 안의 snapshot+runtime lease 획득으로 원자화한다. 최대32lease/각8개 확정된 관련 continuous 원본만 보호하며 현재 삭제/손상 상태를 되돌리지 않는다. 미관측 후보까지 일괄 보호해 새 상한 거부를 만들지 않도록 대기 중에는 실제 관측 identity와 binding이 일치하는 요청 관련 원본만 보호한다. snapshot 자체는 후보를 자르지 않고 반환한다. 재평가 때 새 원본을 같은 lease에 추가한다. ready queue 전에는 UTC 포함 최종 intent의 모든 선택 source에 대해 현재 binding과 임시 보호를 원자 확인한다(관측 identity를 발명해 hold하지 않음). Intent 내구 보호가 확정된 뒤 lease를 해제한다. 오류·취소·종료도 정확한 소유 lease만 해제한다. 미확정 미래 파일은 보호 대상이 아니며 프로세스 재시작 시 임시 lease는 소멸, 기존 accepted/no-job unknown 복구 정책을 유지한다. SQLite/journal 형식은 바꾸지 않는다.
+- 분석 snapshot은 합성하지 않는다. namespace/source/channel/generation/order/track 검증을 매 갱신 유지하며 유효한 전체 snapshot을 통째로 보관한다. 이후 rolling cap으로 incomplete가 된 snapshot으로 이미 보관한 정상 snapshot을 덮어쓰지 않는다. 처음부터 incomplete였다면 그 사실을 보존한다. 없는 identity를 보충하거나 서로 다른 sequence의 중복 identity를 제거하지 않는다. 보관 상한은 요청당4096frame이다. provider의 잘못된 identity/빈 결과/예외는 기존 거부를 유지한다.
+- 단기 합격: 후행 확정 완료, 영원히 미확정 시 상한 종료, 진짜 gap partial, 대기·render중 다른 요청 평가, 원본삭제 경쟁·공유보호·상한 원자성, 정상/예외/Stop의 lease·내구 예약 정리, snapshot cap/namespace 보존, 기존 API/내구 byte/UTC 계약 회귀. 확정 원본8개를 넘는 요청을 잘라 complete로 만들지 않는다.
+
+메인 검토 보완: 요청 시작보다 앞선 프레임도 입증된 구간이 요청과 겹치면 제외하지 않는다. 유효 decoded duration의 overlap은 미확정 원본 대기 근거로 사용할 수 있다. duration이 없거나 유효하지 않은 앞 프레임은 저장된 strict native 구간의 정확한 overlap이 확인된 경우에만 이미 확정된 원본을 보호한다. 이 native-only 보호를 미래 끝점 추정이나 대기 연장 근거로 사용하지 않는다. 대기열 이동은 빈 슬롯 할당이 성공한 다음 예외 없는 소유권 이동을 수행하여 할당 실패 때문에 reference ID나 lease 소유권을 잃지 않게 한다.
+
 ### 2026-09-17 LP09 공통 소비 적용 조건
 
 적용 기록: 신규 job은 `h264-mp4-native-to-mpegts-video-only-v1` 및 `media-server.derived-selection-compact.v2`로 구별한다. 정확 구간과 원본 file_evidence를 identity에 포함하며 worker에서 명시 opt-in한다. `EvaluateNativeOutputCoverage`가 생성/Ready/조회에 공통 사용되고 복구도 동일 Ready 검증을 통과해야 한다. 공개 정수 coverage는 exact union 후 안쪽 정수 표현으로 제한한다. 실제 파일5종·Ready 중단복구는 중앙 LP09 잔여2 기록을 참조하며 실제 앱 전체 통합/대기 정책 완료를 의미하지 않는다.

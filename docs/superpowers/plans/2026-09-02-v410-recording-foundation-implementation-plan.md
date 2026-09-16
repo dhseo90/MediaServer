@@ -23,6 +23,24 @@ verifier.
 
 ## 전역 제약
 
+### 2026-09-17 LP10 후속1 실행 계획
+
+사용자 승인: 제한 대기 정책 개발 후 커밋·보고. 푸시/후속2/장시간/UI는 제외. spec은 종료점 계약의 LP10이며 기존 작업 브랜치에서 한 담당자를 재사용하고 메인이 설계·diff·최종 판정을 직접 검토한다. 모델 Astra/medium 유지, 하위 생성 금지. 중앙 기록을 진행 원장으로 사용하며 별도 중복 계획/정책 문서를 만들지 않는다.
+
+| 순서 | 구현·소유 파일 | 검증·완료 산출물 |
+| --- | --- | --- |
+| 1 | `recording_catalog.h/cpp`의 원자 snapshot/runtime 대기 lease; 내구 schema 불변 | 삭제경쟁·공유lease·8/32상한·정확해제 focused RED/GREEN |
+| 2 | `recording_derived_event_worker.h/cpp`의 재예약 scheduler/단일renderer, source대기 조건·상한, snapshot 보존 | 대기/render 공정성·후행확정·timeout/partial·Stop/exception focused RED/GREEN |
+| 3 | 관련 단기 회귀/빌드와 실제 diff 검토, 중앙 evidence 및 커밋 | 기존 integration/native/default/jobs·문서/diffcheck, 모든 소유 자원 정리 |
+
+교차 검토: 1의 runtime lease를 2가 소유하며 admission 후 내구 보호와 겹쳐 인계한다. Stop/예외에서 모든 lease와 render queue를 정리하지 못하면 완료 불가다. 2의 runtime source예산만 추가하고 기존 explicit fixture의 일반 예산은 유지한다. 3은 같은 증거를 이유 없이 재실행하지 않으며 현재 제품 변경 영향만 검증한다. 신규 실패는 동일 범위 원인 확인 후 수정하고 계약 확장 시 보고한다.
+
+- [x] LP10 catalog 보호 RED/GREEN
+- [x] LP10 scheduler/renderer/예산/증거 RED/GREEN
+- [x] LP10 관련 회귀·기록·메인 검토 완료. 사용자 승인 커밋의 실제 해시는 Git 기록을 따른다.
+
+LP10 결과: focused41 + 기존 영향 회귀211 = 개별252PASS/0FAIL, 제품 빌드 성공. 원출력21회·초기 실패·정리 및 개별 결과는 중앙 기록 LP10에 보존했다. 실제 앱/누적 catalog 비용·HTTP 통합은 실행하지 않았으며 LP09-4/5가 다음 순서다. allocator 실패 주입과 fractional 앞원본+후행 확정 결합 fixture는 미실행 한계로 기록했다. 푸시는 이번 승인 범위가 아니다.
+
 ### 2026-09-17 LP09 실행 묶음
 
 범위 source-of-truth는 [종료점 계약 LP09](../specs/2026-09-15-recording-endpoint-contract.md)다. 설계는 메인, 확정 구현은 기존 단일 담당자를 순차 재사용하고 메인이 diff/증거를 검토한다. 하위 에이전트·자동 추론 상향·푸시·장시간/UI는 제외한다. 이번 사용자는 1~5 순차 실행과 분할 커밋을 승인했다.
@@ -37,7 +55,7 @@ verifier.
 
 현재 단계3 부분 결과: 정확 구간 산술 LP09-N01~08은 8PASS 후 `12f87e46`으로 커밋했다. queued provider를 매 평가 앞으로 이동한 LP09-Q는 focused25/기존통합56 PASS 및 빌드 exit0이며 대기 상한/시도/partial 정책은 불변이다. 이후 사용자는 잔여1(선택)~2(저장/생성/복구)만 순차 승인했다. 잔여1 선택 API/fixture는 명시 opt-in으로63PASS, 출력cap/prefix회귀까지 보완하여 `fe5fe0d3`으로 커밋했다. 잔여2는 새 job profile·remux·Ready·복구·조회 공통 소비와 worker opt-in을 구현했다. 실제 파일5종/worker2출력/Ready 자식 중단 복구59PASS, codec12PASS와 build exit0이며 기존 소비 회귀 결과는 중앙 기록을 따른다. 실제 앱 분석 입력·HTTP 통합 및 대기 정책은 이 fixture 결과에 포함하지 않는다. 단계3 전체 체크는 유지한다.
 
-정책 결정 경계: 실제 타깃의 3750ms 대기 중 후행 원본은 후보에 없었고 writer의 관측 분할은 약8.333초였다. LP09 계약은 현재 wait/retry/queue/종결 정책 변경을 제외한다. 전체 요청의 완전 출력2개를 충족시키려면 제한 대기 정책 변경을 승인할지 판단이 필요하다. timeout만 늘리거나 현재 partial을 complete로 바꾸지 않는다. 메인은 이 범위 확장을 질문했으며 승인 전 해당 수정은 중단한다. 공통 소비의 관련 단기 회귀와 별개로 단계4 누적 저장/HTTP 비용 및 단계5 실제 통합은 남아 있다. Q 단위의56PASS나 native fixture59PASS를 단계4/5 전체 완료로 대체하지 않는다.
+LP09 당시 정책 경계: 실제 타깃의3750ms 대기 중 후행 원본은 후보에 없었고 writer의 관측 분할은 약8.333초였다. LP09에서는 wait/retry/queue/종결 변경을 제외하여 승인을 기다렸다. 이후 사용자가 제한 대기 후속1을 승인해 위 LP10으로 착수했다. timeout만 늘리거나 기존 partial을 complete로 바꾸지 않는 조건은 그대로다. 공통 소비의 관련 단기 회귀와 별개로 단계4 누적 저장/HTTP 비용 및 단계5 실제 통합은 남아 있다. Q 단위의56PASS나 native fixture59PASS를 단계4/5 전체 완료로 대체하지 않는다.
 
 - 2026-09-12 재편: S00~S08은 기존 개발 이력, Task 9는 종료·대체된 과거 실행계획이다.
   현재 S10 설계 기준은 [설계 명세의 S10 절](../specs/2026-09-02-v410-recording-search-foundation-design.md#s10-시간식별-계약),

@@ -72,6 +72,8 @@ struct DerivedEventWorkerOptions {
     // Opt-in; all aggregation/callback exceptions are isolated. Must be thread-safe/nonblocking.
     // Invoked outside worker/catalog locks with the exact selection decision inputs.
     std::function<void(const RecordingConsumerReferenceV1&,const DerivedEventAttemptDiagnostic&)> diagnostic{};
+    std::int64_t source_wait_ms{0};
+    std::size_t source_max_attempts{121};
 };
 DerivedEventWorkerOptions RecordingRuntimeEventBudget(std::int64_t segment_ms,std::int64_t post_ms);
 class DerivedEventWorker {
@@ -87,22 +89,32 @@ private:
         std::shared_ptr<const analysis::DecodedIntervalSnapshot> evidence;
         std::chrono::steady_clock::time_point deadline;
         std::chrono::steady_clock::time_point submitted;
+        std::chrono::steady_clock::time_point next_due;
+        std::chrono::steady_clock::time_point source_deadline;
+        std::size_t attempts{0};
+        std::uint64_t lease{0};
     };
+    struct RenderPending {Pending pending;DerivedJobIntentV1 intent;};
+    enum class Evaluation {Done,Retry,Ready};
     void Loop();
-    void Process(Pending);
+    void RenderLoop();
+    Evaluation Process(Pending&,DerivedJobIntentV1*);
+    void Finish(Pending&);
     void Status(const std::string&,const std::string&);
     RecordingCatalog& catalog_;
     RetentionCoordinator& retention_;
     DerivedJobService& service_;
     DerivedEventWorkerOptions options_;
-    std::mutex mu_,stop_mu_;
+    std::mutex mu_,stop_mu_,admission_mu_;
     std::condition_variable cv_;
     std::deque<Pending> queue_;
+    std::deque<RenderPending> render_queue_;
     std::unordered_set<std::string> inflight_;
     std::unordered_map<std::string,std::string> statuses_;
     std::deque<std::string> status_order_;
     std::string startup_error_;
     std::atomic<bool> stopped_{false};
     std::thread worker_;
+    std::thread renderer_;
 };
 }

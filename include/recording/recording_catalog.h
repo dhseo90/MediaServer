@@ -184,6 +184,13 @@ public:
     bool IsDerivedReferenceAccepted(const std::string& reference_id, bool* accepted, std::string* error) const;
     bool SnapshotDerivedSources(const RecordingConsumerReferenceV1&,
         std::vector<RecordingDerivedSourceSnapshotEntry>*, std::string* error) const;
+    // Runtime-only token: snapshot and bounded protection are acquired under the same lock.
+    bool SnapshotDerivedSourcesWithWaitLease(const RecordingConsumerReferenceV1&,
+        const std::vector<RecordingConsumerOriginalV1>& observed,std::uint64_t* token,
+        std::vector<RecordingDerivedSourceSnapshotEntry>*,std::string* error,
+        const std::vector<RecordingConsumerOriginalV1>& native_overlap_only = {});
+    bool ReleaseDerivedWaitLease(std::uint64_t token,std::string* error);
+    bool RefreshDerivedWaitLeaseForIntent(const DerivedJobIntentV1&,std::uint64_t token,std::string* error);
     bool QueryDerivedReferenceResult(const std::string& reference_id,
         RecordingDerivedReferenceResult*,std::string* error) const;
     bool PutReferencedObservation(const AnalysisObservationV2&, const RecordingConsumerReferenceV1&, std::string*);
@@ -218,6 +225,8 @@ private:
     const RetentionCoordinator* retention_owner_{nullptr};
     bool BeginDerivedJobIntent(const DerivedJobIntentV1&,bool* inserted,std::string* error);
     bool DerivedJobProtectsLocked(const std::string& segment_id) const;
+    bool SnapshotDerivedSourcesLocked(const RecordingConsumerReferenceV1&,
+        std::vector<RecordingDerivedSourceSnapshotEntry>*,std::string*) const;
     bool MediaV2EligibleLocked(const std::string& channel,const std::string& id) const;
     bool AdjustHoldCountLocked(const std::string& id,std::int64_t delta,std::string* error);
     bool ValidateDerivedJobSourcesLocked(const DerivedJobIntentV1&,std::string*) const;
@@ -274,6 +283,9 @@ private:
     std::unordered_map<std::string, RecordingOrderReservationV1> orders_v2_;
     std::unordered_map<std::string, std::string> media_relpaths_;
     std::unordered_map<std::string, std::uint64_t> hold_counts_;
+    struct DerivedWaitLease {std::string reference_json;std::unordered_set<std::string> source_ids;};
+    std::unordered_map<std::uint64_t,DerivedWaitLease> derived_wait_leases_;
+    std::uint64_t next_derived_wait_lease_{0};
     std::unordered_map<std::string, std::string> deletion_reasons_;
     std::unordered_map<std::string, EventRecordingLinkV1> event_links_;
     std::unordered_map<std::string, AnalysisObservationV1> observations_;
