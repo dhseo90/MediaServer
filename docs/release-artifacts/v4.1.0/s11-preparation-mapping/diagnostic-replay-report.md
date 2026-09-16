@@ -1,5 +1,337 @@
 # 보완 진단·독립 재현 기록
 
+## 2026-09-17 LP07 실제앱 재개 결과와 중단 판정
+
+LP07-01 실제앱1회는 exit0,30.834초,5PASS/0FAIL. timeline187개 모두 기존4초이내(max2771ms), complete 상태의 partial 출력1개다. 최초 intent→failed는 재현되지 않아 LP07-02 원인미확정, 03 제품수정·04 누적/완전성/통합은 선행조건 미충족으로 건너뜀이다. 한 번 더 반복하거나 과거 실패를 해결로 바꾸지 않는다. 이 단계는 AGENTS 8장의 원인미확정 경계에서 중단하며 실제앱 단기 결과/기록만 커밋한다.
+
+명령 `node scripts/internal/verify_recording_current_app.mjs --latency-only`, source HEAD8723ed90, 제품코드변경 없음. 기본권한 최초실행은 UDP bind EPERM(제품서버 미기동)으로 실패; 생성자료22,283,408B 정리. exit 도구직렬화오류로 미확보, summary 실패 명확. 동일명령 require_escalated 권한으로 실제앱1회 실행해 위 결과 확보. 추가 반복실행 없음. [환경선수실패 원출력](lp07-preflight-output.txt), [실제 원출력](lp07-actual-output.txt).
+
+실제 event PTS8633333333ns, 요청 media-pts-ms8633±750 → [7883000000,9383000000)ns. 보완된 mapping slice 관측은 동일요청 주변 finalized/playable 원본이1개에서2개로 변화한 것을 기록했다. `temporalOnly=true`이며 stored job이 실제로 선택한 원본 목록·failure 당시 snapshot을 증명하지 않는다. trigger의 sourceEndPts8266666666ns는 timeline mapping item의 끝값이므로 전체파일 종료점으로 단정하지 않는다. 같은원본 mapping에는8333333333ns까지의 구간도 관측됐다. 원본확정지연/선택시점/정밀도 등 어느 것이 partial 원인인지 이관측만으로 확정하지 않는다.
+
+failed 상태가 없어 basic/detail/replay 진단 분기는 실제앱에서 미실행이며 failure-UUID JSON 미생성이다. 실패입력이 없으므로 LP06 자체검증을 최초제품실패 원인확정으로 확대하지 않는다. 현재 worker는 complete 또는 제한대기소진 시 intent를 만들고 서비스 Run을 호출한다(src/recording/recording_derived_event_worker.cpp:163~185). 이코드와 관측은 부분결과 경로의 가능성을 설명하지만 최초 failed 원인의 직접증거는 아니다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 실제앱 단기1회 | 완료 | latency pass, 부분출력1, 실패미재현 | 원출력·exit0 |
+| 2 | 원인 확정 | 미완료 | 최초실패코드/입력 미확보 | failed 상태 없음 |
+| 3 | 확정원인 수정 | 건너뜀 | 추정 수정 금지 | 2번 미충족 |
+| 4 | 보류 작업 재개 | 건너뜀 | LP02·대기정책·통합 미실행 | 순차진행 선행조건 미충족 |
+| 5 | 동일 개발방식 | 일부 수행 | 검증완료된1번의 실행기록을 별도커밋, 제품커밋없음 | git log |
+
+### 실제 개별 결과
+
+HTTP 총293개, sequence1~293 연속 누락없음=true. 모든 HTTP·5개검사 아래에 보존한다. token start/end/consumed는 집계 source 없어 미집계. elapsed는 runner 원출력 기준이다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 검사-1 | S11-CI09 product-1 healthy isolated ICE | pass | 실제 latency-only 범위 |
+| 검사-2 | S11-CI07 run1 actual tuple EventRecord reference | pass | 실제 latency-only 범위 |
+| 검사-3 | P0-HTTP02 same-reference durable transition observed (not completeness) | pass | 실제 latency-only 범위 |
+| 검사-4 | P0-HTTP02 all timeline HTTP within unchanged 4000ms | pass | 실제 latency-only 범위 |
+| 검사-5 | S11-CI08 product-1 exit0 ports returned | pass | 실제 latency-only 범위 |
+| HTTP-1 | GET health; status=null; header/body/total=null/null/3ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-2 | GET health; status=null; header/body/total=null/null/1ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-3 | GET health; status=null; header/body/total=null/null/1ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-4 | GET health; status=null; header/body/total=null/null/1ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-5 | GET health; status=null; header/body/total=null/null/1ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-6 | GET health; status=null; header/body/total=null/null/1ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-7 | GET health; status=null; header/body/total=null/null/1ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-8 | GET health; status=null; header/body/total=null/null/1ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-9 | GET health; status=null; header/body/total=null/null/1ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-10 | GET health; status=null; header/body/total=null/null/1ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-11 | GET health; status=null; header/body/total=null/null/0ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-12 | GET health; status=null; header/body/total=null/null/0ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-13 | GET health; status=null; header/body/total=null/null/0ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-14 | GET health; status=null; header/body/total=null/null/0ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-15 | GET health; status=null; header/body/total=null/null/1ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-16 | GET health; status=null; header/body/total=null/null/0ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-17 | GET health; status=200; header/body/total=9/1/10ms; 15B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-18 | GET ice; status=200; header/body/total=2/0/2ms; 222B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-19 | POST source; status=201; header/body/total=83/0/84ms; 428B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-20 | POST tap-create; status=200; header/body/total=56/0/56ms; 1187B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-21 | GET tap; status=200; header/body/total=22/0/22ms; 4030B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-22 | GET tap; status=200; header/body/total=1/0/1ms; 5972B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-23 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-24 | GET tap; status=200; header/body/total=1/0/1ms; 5974B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-25 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-26 | GET tap; status=200; header/body/total=1/0/1ms; 6149B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-27 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-28 | GET tap; status=200; header/body/total=1/0/1ms; 6282B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-29 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-30 | GET tap; status=200; header/body/total=1/0/1ms; 6416B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-31 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-32 | GET tap; status=200; header/body/total=1/0/1ms; 6413B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-33 | GET timeline; status=200; header/body/total=0/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-34 | GET tap; status=200; header/body/total=1/0/1ms; 6552B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-35 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-36 | GET tap; status=200; header/body/total=1/0/1ms; 6676B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-37 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-38 | GET tap; status=200; header/body/total=1/0/1ms; 6812B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-39 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-40 | GET tap; status=200; header/body/total=1/0/1ms; 6954B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-41 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-42 | GET tap; status=200; header/body/total=1/0/1ms; 6944B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-43 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-44 | GET tap; status=200; header/body/total=1/0/1ms; 7088B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-45 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-46 | GET tap; status=200; header/body/total=1/0/1ms; 7230B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-47 | GET timeline; status=200; header/body/total=0/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-48 | GET tap; status=200; header/body/total=1/0/1ms; 7369B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-49 | GET timeline; status=200; header/body/total=0/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-50 | GET tap; status=200; header/body/total=1/0/1ms; 7497B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-51 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-52 | GET tap; status=200; header/body/total=1/0/1ms; 7493B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-53 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-54 | GET tap; status=200; header/body/total=1/0/1ms; 7634B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-55 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-56 | GET tap; status=200; header/body/total=1/0/1ms; 7763B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-57 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-58 | GET tap; status=200; header/body/total=1/0/1ms; 7899B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-59 | GET timeline; status=200; header/body/total=0/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-60 | GET tap; status=200; header/body/total=1/0/1ms; 8030B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-61 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-62 | GET tap; status=200; header/body/total=1/0/1ms; 8032B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-63 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-64 | GET tap; status=200; header/body/total=1/0/1ms; 8162B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-65 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-66 | GET tap; status=200; header/body/total=1/0/1ms; 8303B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-67 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-68 | GET tap; status=200; header/body/total=1/0/1ms; 8437B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-69 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-70 | GET tap; status=200; header/body/total=4/0/4ms; 8569B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-71 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-72 | GET tap; status=200; header/body/total=1/0/1ms; 8571B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-73 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-74 | GET tap; status=200; header/body/total=1/0/1ms; 8708B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-75 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-76 | GET tap; status=200; header/body/total=1/0/1ms; 8841B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-77 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-78 | GET tap; status=200; header/body/total=1/0/1ms; 8978B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-79 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-80 | GET tap; status=200; header/body/total=1/0/1ms; 9107B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-81 | GET timeline; status=200; header/body/total=2/0/2ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-82 | GET tap; status=200; header/body/total=1/0/1ms; 9112B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-83 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-84 | GET tap; status=200; header/body/total=1/0/1ms; 9248B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-85 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-86 | GET tap; status=200; header/body/total=1/0/1ms; 9383B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-87 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-88 | GET tap; status=200; header/body/total=1/0/1ms; 9513B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-89 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-90 | GET tap; status=200; header/body/total=2/0/2ms; 9650B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-91 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-92 | GET tap; status=200; header/body/total=1/0/1ms; 9648B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-93 | GET timeline; status=200; header/body/total=0/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-94 | GET tap; status=200; header/body/total=1/0/1ms; 10201B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-95 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-96 | GET tap; status=200; header/body/total=1/0/1ms; 10387B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-97 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-98 | GET tap; status=200; header/body/total=1/0/1ms; 10564B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-99 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-100 | GET tap; status=200; header/body/total=1/0/1ms; 10562B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-101 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-102 | GET tap; status=200; header/body/total=1/0/1ms; 10751B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-103 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-104 | GET tap; status=200; header/body/total=1/0/1ms; 10818B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-105 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-106 | GET tap; status=200; header/body/total=1/0/1ms; 10865B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-107 | GET timeline; status=200; header/body/total=0/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-108 | GET tap; status=200; header/body/total=1/0/1ms; 10921B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-109 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-110 | GET tap; status=200; header/body/total=1/0/1ms; 10916B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-111 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-112 | GET tap; status=200; header/body/total=1/0/1ms; 10969B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-113 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-114 | GET tap; status=200; header/body/total=1/0/1ms; 11013B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-115 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-116 | GET tap; status=200; header/body/total=1/0/1ms; 11066B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-117 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-118 | GET tap; status=200; header/body/total=1/0/1ms; 11119B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-119 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-120 | GET tap; status=200; header/body/total=1/0/1ms; 11117B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-121 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-122 | GET tap; status=200; header/body/total=1/0/1ms; 11150B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-123 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-124 | GET tap; status=200; header/body/total=1/0/1ms; 11196B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-125 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-126 | GET tap; status=200; header/body/total=1/0/1ms; 11244B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-127 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-128 | GET tap; status=200; header/body/total=1/0/1ms; 11298B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-129 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-130 | GET tap; status=200; header/body/total=1/0/1ms; 11298B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-131 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-132 | GET tap; status=200; header/body/total=1/0/1ms; 11334B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-133 | GET timeline; status=200; header/body/total=0/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-134 | GET tap; status=200; header/body/total=1/0/1ms; 11387B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-135 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-136 | GET tap; status=200; header/body/total=1/0/1ms; 11435B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-137 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-138 | GET tap; status=200; header/body/total=1/0/1ms; 11474B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-139 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-140 | GET tap; status=200; header/body/total=1/0/1ms; 11478B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-141 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-142 | GET tap; status=200; header/body/total=1/0/1ms; 11521B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-143 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-144 | GET tap; status=200; header/body/total=1/0/1ms; 11554B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-145 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-146 | GET tap; status=200; header/body/total=1/0/1ms; 11605B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-147 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-148 | GET tap; status=200; header/body/total=1/0/1ms; 11646B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-149 | GET timeline; status=200; header/body/total=0/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-150 | GET tap; status=200; header/body/total=1/0/1ms; 11650B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-151 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-152 | GET tap; status=200; header/body/total=1/0/1ms; 11696B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-153 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-154 | GET tap; status=200; header/body/total=1/0/1ms; 11741B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-155 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-156 | GET tap; status=200; header/body/total=1/0/1ms; 11785B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-157 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-158 | GET tap; status=200; header/body/total=1/0/1ms; 11836B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-159 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-160 | GET tap; status=200; header/body/total=1/0/1ms; 11837B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-161 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-162 | GET tap; status=200; header/body/total=1/0/1ms; 11882B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-163 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-164 | GET tap; status=200; header/body/total=1/0/1ms; 11922B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-165 | GET timeline; status=200; header/body/total=0/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-166 | GET tap; status=200; header/body/total=1/0/1ms; 11969B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-167 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-168 | GET tap; status=200; header/body/total=2/0/2ms; 12012B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-169 | GET timeline; status=200; header/body/total=0/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-170 | GET tap; status=200; header/body/total=1/0/1ms; 12010B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-171 | GET timeline; status=200; header/body/total=0/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-172 | GET tap; status=200; header/body/total=1/0/1ms; 12062B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-173 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-174 | GET tap; status=200; header/body/total=1/0/1ms; 12058B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-175 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-176 | GET tap; status=200; header/body/total=1/0/1ms; 12062B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-177 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-178 | GET tap; status=200; header/body/total=5/0/5ms; 12055B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-179 | GET timeline; status=200; header/body/total=14/0/14ms; 83461B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-180 | GET timeline; status=200; header/body/total=11/0/11ms; 28135B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-181 | GET tap; status=200; header/body/total=1/0/1ms; 12058B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-182 | GET timeline; status=200; header/body/total=11/0/11ms; 83461B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-183 | GET timeline; status=200; header/body/total=11/0/11ms; 28135B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-184 | GET tap; status=200; header/body/total=3/0/3ms; 12054B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-185 | GET timeline; status=200; header/body/total=12/0/12ms; 83461B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-186 | GET timeline; status=200; header/body/total=12/0/12ms; 28135B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-187 | PUT rule; status=200; header/body/total=5/0/5ms; 520B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-188 | GET tap-events; status=200; header/body/total=8/0/8ms; 9901B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-189 | PUT rule; status=200; header/body/total=1/0/1ms; 521B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-190 | GET timeline; status=200; header/body/total=12/0/12ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-191 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-192 | GET timeline; status=200; header/body/total=12/0/12ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-193 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-194 | GET timeline; status=200; header/body/total=12/0/12ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-195 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-196 | GET timeline; status=200; header/body/total=12/0/12ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-197 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-198 | GET timeline; status=200; header/body/total=12/0/12ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-199 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-200 | GET timeline; status=200; header/body/total=12/0/12ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-201 | GET timeline; status=200; header/body/total=11/0/11ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-202 | GET timeline; status=200; header/body/total=12/0/12ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-203 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-204 | GET timeline; status=200; header/body/total=12/0/12ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-205 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-206 | GET timeline; status=200; header/body/total=12/0/12ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-207 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-208 | GET timeline; status=200; header/body/total=12/0/12ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-209 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-210 | GET timeline; status=200; header/body/total=12/0/12ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-211 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-212 | GET timeline; status=200; header/body/total=12/0/13ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-213 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-214 | GET timeline; status=200; header/body/total=12/0/12ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-215 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-216 | GET timeline; status=200; header/body/total=12/0/13ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-217 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-218 | GET timeline; status=200; header/body/total=13/0/13ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-219 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-220 | GET timeline; status=200; header/body/total=12/0/12ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-221 | GET timeline; status=200; header/body/total=13/0/13ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-222 | GET timeline; status=200; header/body/total=13/0/13ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-223 | GET timeline; status=200; header/body/total=13/0/13ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-224 | GET timeline; status=200; header/body/total=12/0/13ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-225 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-226 | GET timeline; status=200; header/body/total=12/0/12ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-227 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-228 | GET timeline; status=200; header/body/total=12/0/13ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-229 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-230 | GET timeline; status=200; header/body/total=12/0/12ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-231 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-232 | GET timeline; status=200; header/body/total=12/0/12ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-233 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-234 | GET timeline; status=200; header/body/total=12/0/12ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-235 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-236 | GET timeline; status=200; header/body/total=12/0/12ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-237 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-238 | GET timeline; status=200; header/body/total=12/0/13ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-239 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-240 | GET timeline; status=200; header/body/total=12/0/13ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-241 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-242 | GET timeline; status=200; header/body/total=12/0/12ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-243 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-244 | GET timeline; status=200; header/body/total=12/0/12ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-245 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-246 | GET timeline; status=200; header/body/total=13/0/13ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-247 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-248 | GET timeline; status=200; header/body/total=12/0/12ms; 83397B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-249 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-250 | GET timeline; status=200; header/body/total=55/0/55ms; 83438B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-251 | GET timeline; status=200; header/body/total=299/0/299ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-252 | GET timeline; status=200; header/body/total=12/0/13ms; 83438B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-253 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-254 | GET timeline; status=200; header/body/total=13/0/13ms; 83438B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-255 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-256 | GET timeline; status=200; header/body/total=12/0/13ms; 83438B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-257 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-258 | GET timeline; status=200; header/body/total=13/0/13ms; 83438B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-259 | GET timeline; status=200; header/body/total=13/0/13ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-260 | GET timeline; status=200; header/body/total=13/0/13ms; 83438B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-261 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-262 | GET timeline; status=200; header/body/total=12/0/12ms; 83438B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-263 | GET timeline; status=200; header/body/total=13/0/13ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-264 | GET timeline; status=200; header/body/total=12/0/13ms; 83438B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-265 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-266 | GET timeline; status=200; header/body/total=12/0/12ms; 83438B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-267 | GET timeline; status=200; header/body/total=13/0/13ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-268 | GET timeline; status=200; header/body/total=13/0/13ms; 83438B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-269 | GET timeline; status=200; header/body/total=13/0/13ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-270 | GET timeline; status=200; header/body/total=12/0/12ms; 83438B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-271 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-272 | GET timeline; status=200; header/body/total=30/0/30ms; 83438B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-273 | GET timeline; status=200; header/body/total=13/0/13ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-274 | GET timeline; status=200; header/body/total=12/0/12ms; 83438B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-275 | GET timeline; status=200; header/body/total=12/0/12ms; 31431B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-276 | GET timeline; status=200; header/body/total=1326/0/1326ms; 113642B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-277 | GET timeline; status=200; header/body/total=1660/0/1660ms; 112809B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-278 | GET timeline; status=200; header/body/total=554/0/554ms; 82508B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-279 | GET timeline; status=200; header/body/total=148/0/148ms; 126046B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-280 | GET timeline; status=200; header/body/total=151/0/152ms; 112809B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-281 | GET timeline; status=200; header/body/total=149/0/149ms; 82508B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-282 | GET timeline; status=200; header/body/total=149/0/149ms; 82611B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-283 | GET timeline; status=200; header/body/total=148/0/148ms; 65407B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-284 | GET timeline; status=200; header/body/total=147/0/147ms; 126046B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-285 | GET timeline; status=200; header/body/total=149/0/149ms; 112809B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-286 | GET timeline; status=200; header/body/total=149/0/149ms; 82508B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-287 | GET timeline; status=200; header/body/total=147/0/147ms; 82611B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-288 | GET timeline; status=200; header/body/total=727/0/728ms; 65407B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-289 | GET timeline; status=200; header/body/total=1457/0/1457ms; 129105B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-290 | GET timeline; status=200; header/body/total=2771/0/2771ms; 121854B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-291 | GET timeline; status=200; header/body/total=876/0/876ms; 121885B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-292 | GET timeline; status=200; header/body/total=282/0/282ms; 102171B | pass | HTTP 관측만, 완전성 PASS 아님 |
+| HTTP-293 | DELETE tap; status=200; header/body/total=8/0/8ms; 26B | pass | HTTP 관측만, 완전성 PASS 아님 |
+
+### 정리
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-J53GFh | 기동 전 소유fixture/cache | 22283408B | 삭제 | rootAbsent=true,processes[] | preflight 출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-WDi1pN | 실제앱fixture/영상/DB/cache | 52592619B | PID43099 exit0/HTTP52456·RTSP52457·UDP반환후삭제 | rootAbsent=true/failureCount0, 별도 test ! -e 성공 | actual 출력 |
+
+안전요약 HTTP원출력/실행기록만 저장소보존. credentials/raw source URL/영상/원장본문은 이관하지 않았다. 후속진행 판단: 같은실패를무작정재시도하지 않고 과거미재현실패를 열린이슈로유지할지, 현재재현되는partial/대기정책을별도경로로먼저다룰지 사용자의 순서판단이필요하다. 이번 승인된순서를 임의변경하지 않는다.
+
 ## 2026-09-17 LP06-B 선보존 실행순서·정리 완료
 
 사용자1~4는 진단도구 구현·자체검증 범위로 완료했다. 최초 실제제품실패 원인은 여전히 미확정이다. 실제앱1회(후속5), 제품수정, 누적catalog, 전체build, UI/30분/120분, 푸시는 미실행이다. C++ commit a9f48fb2 후 JS 연결을 별도 커밋한다.

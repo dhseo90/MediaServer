@@ -1,0 +1,3 @@
+[fail] current actual app: bind EPERM 127.0.0.1
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-J53GFh","bytes":22283408,"rootAbsent":true,"failureCount":0,"processes":[],"evidencePreservedOrNotRequired":true,"udpClosed":true}
+{"mode":"current-http-latency","passed":0,"failed":1,"latencyPass":false,"actualEventPass":false,"restartPass":false,"expectedOutputCount":2,"observedOutputCounts":[],"cleanup":{"rootAbsent":true,"failureCount":0,"processes":[],"evidencePreservedOrNotRequired":true},"elapsedMs":879}

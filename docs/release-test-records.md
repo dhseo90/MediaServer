@@ -1,5 +1,29 @@
 # Release Test Records
 
+## 2026-09-17 LP07 잔여 1~4 순차 실행
+
+결과: LP07-01 실제앱1회 exit0/30.834초/5PASS, timeline187개max2771ms, partial1출력. 과거failed 미재현으로 LP07-02 원인미확정,03~04 건너뜀. 제품수정/누적검사/추가재현/푸시 없음. [전수 HTTP·상태·정리·중단근거](release-artifacts/v4.1.0/s11-preparation-mapping/diagnostic-replay-report.md), [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp07-actual-output.txt).
+
+첫 기본권한 실행은 UDP bind EPERM으로 제품서버 시작 전 실패했다(passed0/failed1,elapsed879ms,processes[]). 소유root22,283,408B 삭제/부재확인. 실행 결과를 도구 응답으로 직렬화하는 오류가 추가 발생해 exit코드는 도구에서 미확보이며 runner summary 실패는 보존했다. `ps` 확인도 sandbox 권한거부로 미확인; runner에서 자식서버 미생성을 확인한다. 같은 격리명령을 필요한 권한으로 재시도하며 제품실패재현 반복으로 계산하지 않는다. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp07-preflight-output.txt).
+
+사용자 승인: 보완 진단 후 실제앱1회 → 조건부 원인확정 → 확정원인 수정/관련회귀 → 보류 누적catalog·녹화완전성·실제통합을 순차 진행, 검증된 개발은 분할커밋. 실패 또는 원인미확정 시 뒤 단계는 진행하지 않는다. 푸시·장시간/UI는 이번 지시로 확대하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP07-01 | 보완 실제앱 단기1회 | `node scripts/internal/verify_recording_current_app.mjs --latency-only`; 기존 LP01 HTTP전수, LP05 mapping관측, LP06 기본/상세/재현 실패진단 및 cleanup 연결. source HEAD8723ed90, 빌드freshness 확인. partial 성공은 완전출력2개/재기동 PASS가 아님 | v4.1.0 |
+| LP07-02 | 원인 확정 | 실패코드·저장입력·파일대응 근거 대조, 미재현이면 미확정으로 기록 | v4.1.0 |
+| LP07-03 | 확정원인 수정 | LP07-02 근거 확정 뒤 파일/불변계약/반례를 등록하고 관련 단기검증 | v4.1.0 |
+| LP07-04 | 보류 작업 재개 | 앞 단계 해소 뒤 기존 LP02/WP/통합 정의 대조, 해당 실행 전 상세범위 확정 | v4.1.0 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 사용자 잔여1~4 순차승인 | LP07-01 및 조건부02~04 | 승인 |
+| 30분 | 미진행 | 이번 단기진단/개발 범위 밖 | S11 최종검증과 별도 | 미승인 |
+| 120분 | 미진행 | 이번 단기진단/개발 범위 밖 | S11 최종검증과 별도 | 미승인 |
+| UI | 미진행 | 내부 진단/HTTP 검증 | 실제브라우저 미포함 | 미승인 |
+
+정리: 기존 runner의 작업소유0700root·PID/HTTP/RTSP/UDP만 종료/삭제한다. 실패진단 보존미완료면 cleanup blocker로 남긴다. 실제실패시 안전요약 JSON만 저장소에 보존, rawmedia/credential은 복사하지 않는다. 명령·exit·개별결과·비민감 원출력은 실행후 중앙에서 연결한다.
+
 ## 2026-09-17 실패 진단 선보존 보완 실행 전 정의
 
 최종1~4 진단도구 구현·자체검증 완료: C++28개 유효(27+focused1), JS 최종49/49, 실제 typed C++→JS 연결1/1 PASS. 세 실행군은 별개이며 실제앱/제품실패원인 PASS가 아니다. [개별 결과·초기 실패·정리·범위](release-artifacts/v4.1.0/s11-preparation-mapping/diagnostic-replay-report.md), [JS 원출력](release-artifacts/v4.1.0/s11-preparation-mapping/failure-capture-output.txt). C++ a9f48fb2 커밋 완료, JS 연결은 별도커밋. 푸시/후속실제앱은 미수행.
