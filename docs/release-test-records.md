@@ -1,5 +1,27 @@
 # Release Test Records
 
+## 2026-09-17 LP09 승인된 공통 소비와 미선택 원인
+
+사용자 1~5 순차 실행/분할커밋 승인. 기존 endpoint 계약의 LP09와 foundation 실행계획을 따른다. 푸시·UI·장시간 제외. 1번 문서 적용 조건은 메인 직접 작성/상충 검토했다. `git diff --check` exit0, `./server.sh verify-docs-links` exit0(282md/8677links/22images/110anchors/0fail). 임시산출물 없음. token start/end/consumed 자동집계 없어 미집계, 문서검증 elapsed0.080초/source workspace2387dd85+문서변경. 제품 구현·실제앱 검증은 아직 미실행이다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP09-D01 | 적용 조건 문서 | 기존 시간/ID/지원/상한 보존과 새 관측identity-native구간 결박, 생성·복구·조회 일치·음성기준 대조 | v4.1.0 |
+| LP09-T01 | 선택 시도 안전 계측 | 시도/경과/deadline/종결, snapshot 후보 lifecycle/범위/identity·분석 증거 범위를 bounded 고정필드로 관측. callback 무잠금·예외격리·기존판정불변 자체검사 | v4.1.0 |
+| LP09-T02 | 실제 미선택 원인 | 기존 latency-only 동일입력1회, 새 내부 진단 고정필드만 수집·보존. 운영/외부 접근 없음. 선택 시점과 종료후 관측 구분 | v4.1.0 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 사용자1~5 개발 승인 | LP09-D/T, 구현 exact검사는 실행전 추가등록 | 승인 |
+| 30분 | 미진행 | 개발단계 단기검사 | S11 최종묶음과 별도 | 미승인 |
+| 120분 | 미진행 | 개발단계 단기검사 | S11 최종묶음과 별도 | 미승인 |
+| UI | 미진행 | 내부 녹화 경로 | 실제브라우저 제외 | 미승인 |
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP09-D01 diffcheck | 문서 whitespace 검사 exit0 | pass |
+| LP09-D01 docs-links | 문서 링크 검사 exit0 | pass |
+
 ## 2026-09-17 LP08 부분 출력 근거와 원인별 수정 실행 전 정의
 
 진단 도구 결과: C++ 전체34PASS 뒤 actual 연결 추가 및 guard 보완 영향9PASS(무관29개 증거 유지), JS57PASS. expected RED·초기 명령오류·전수 결과·정리는 [LP08 실행 기록](release-artifacts/v4.1.0/s11-preparation-mapping/diagnostic-replay-report.md)에 보존했다. 도구커밋3fa16a06 뒤 실제앱 C01은 exit0/39.495초/7PASS, HTTP284개/timeline181개max3755ms. 저장근거로 이번 partial은 선택 부족으로 확정(원본내1ns공백5개+뒤982,666,667ns미확정), 선택된 파일부분은 충족. 기존 선택 계약을 파일구간으로 대체하는 변경은 별도 확정이 필요해 3번 제품수정 보류, 4~5번 건너뜀. 최초failed 원인은 여전히 미확정. 진단 PASS로 제품수정/완전2출력/재기동을 대체하지 않는다.

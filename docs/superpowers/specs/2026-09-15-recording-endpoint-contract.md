@@ -6,6 +6,24 @@
 
 ## 결론과 적용 경계
 
+### 2026-09-17 LP09 공통 소비 적용 조건
+
+사용자는 LP08 재검토의 1~5(적용 조건 확정 → 다음 원본 미선택 원인 확인 → 확정 경로 구현 → 반례/회귀 → 실제 통합)를 순차 개발·분할 커밋하도록 승인했다. 이 절은 기존 native 구간 방향을 실제 소비에 적용할 조건이다. 기존 데이터 재해석, 공개 payload 변경, 입력 FPS 특례, 오차 허용 또는 원본 시각 역복원은 포함하지 않는다.
+
+**관측 식별과 구간을 분리한다.** 기존 timestamp-only 경로의 PTS+duration 판정은 유지한다. 새 경로는 같은 분석 namespace에서 실제 방출된 프레임의 정확한 source/channel/generation/order/track/ordinal/원본PTS를 확인하고, 그 identity에 대응하는 검증된 file_evidence sample의 native presentation 구간만 사용한다. 최근 프레임의 identity로 앞선 프레임을 보충하지 않는다. 파일이 존재한다는 이유로 관측하지 않은 프레임을 선택하지 않는다. duration 부재·절삭 자체는 새 경로의 파일 구간 근거가 아니며, 새 구간은 오직 관측 identity와 결박된 native 표에서 산출한다.
+
+**연결 조건:** namespace 불일치, nearest/ambiguous 연관, 중복 원본 대응, 손상된 binding/파일 hash/forward 변환, 미확정·삭제 원본, 표 상한 초과에는 새 Confirmed를 발급하지 않는다. 수락 ordinal과 VCL/sample 내용으로 확인한 기존 file_evidence를 재사용하며 단순 순번·가까운 PTS·동일 frame count를 대체 근거로 쓰지 않는다. 입력 원본의 정수PTS는 불변이다.
+
+**구간 계산:** 기존 3-A의 `O + native_tick * 1e9 / timescale` 정확 유리수와 반열림 합집합을 사용한다. 먼저 정확 구간에서 gap/overlap·요청 포함을 판정한 뒤 표시용 정수ns를 만든다. 정수ns 표현이 같은 양수 sub-ns gap도 없어지지 않는다. 마지막 샘플·VFR·B-frame도 자체 native 표와 검증된 edit profile만 사용하며 다음 PTS/FPS로 끝을 추정하지 않는다. 실제 gap·미관측 identity는 partial/unknown이다.
+
+**내구 적용 경계:** 신규 증거 소비를 기존 profile에 조용히 추가하지 않는다. 새 내부 profile/selection 버전으로 관측 identity 집합과 file_evidence의 불변 결박을 job identity에 포함한다. 생성·Ready 검증·재기동 복구·타임라인은 같은 구간 판정 함수를 사용한다. 기존 profile/job의 직렬화·ID·판정은 그대로 유지하며 이미 저장된 partial을 승격하지 않는다. 필요한 증거가 없는 입력은 기존 경로 또는 명시적 partial/unknown을 유지하고 녹화 지원 자체를 줄이지 않는다. 기존 원본8개·binding2MiB·job4MiB 상한을 늘리지 않는다. 신규 증거가 상한 안에 들어오지 않으면 명시적으로 새 경로를 사용할 수 없다고 처리하며 기존 녹화 자체를 중단하지 않는다.
+
+**대기와 분리:** 위 정확 구간 보완만으로 다음 원본의 확정 지연을 해결했다고 주장하지 않는다. 변경 전 각 재평가의 경과시간/시도/종결 사유, 후보 lifecycle·범위·binding 가용성, 분석 증거의 namespace/identity 및 범위를 안전하게 대조한다. 단일 후속 원본이 왜 미선택됐는지 확인한 뒤 해당 경로만 수정한다. 지금은 wait/retry/queue/종결 정책을 바꾸지 않는다. 단순 timeout 확대, 무제한 재접수, 기존 partial job 재작성은 제외한다.
+
+**필수 반례:** 30fps·30000/1001의 독립 절삭 공백, 실제1ns/sub-ns gap, VFR/B-frame/마지막 길이 부재, 동일내용 반복과 다른 generation/namespace, file_evidence 부재·손상·변조, 기존 job byte/ID/partial 보존, 생성/Ready/복구/조회 동일 판정, 상한과 잠금 비용. 새 양성만 추가하고 기존 timestamp-only 음성을 삭제하지 않는다. LP08의 파일 출력 충족은 선택된 앞부분에 한정되며, 뒤 원본의 원인은 아직 미확정이다.
+
+아래 과거 절의 “분석 구간을 대체하지 않는다”는 기존 timestamp-only profile에는 그대로 적용된다. LP09 신규 profile에서만 구간 길이의 원천을 위 조건으로 명시하며, 관측 존재·정확한 identity·namespace 검증은 대체하지 않는다. 기존 `complete` 필드의 전체 요청 포함 의미는 바꾸지 않는다.
+
 ### 2026-09-16 재검토 정정 및 3-A~4 재개
 
 사용자는 3-A 계약 보완, 3-B 수집·저장·복구, 4번 대기 정책을 순서대로 개발하고
