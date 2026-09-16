@@ -1,5 +1,12 @@
 # Release Evidence Index
 
+## 2026-09-16 녹화 3-B 구현·비용 경계
+
+- [중앙 실행 기록](release-test-records.md): 최소 중복 보완·최종FE193개·영향 회귀·build 완료. 운영지연 합격과 구분.
+- [최종 계측·개별 결과·정리](release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-report.md).
+- [초기 실패·비용 및 이후 oracle 무효 정정](release-artifacts/v4.1.0/s11-preparation-mapping/file-evidence-report.md).
+- 4번 대기 구현·후속5번 소비·S11은 미실행이다. Git 수행 상태는 중앙 기록을 따른다.
+
 ## 2026-09-16 녹화 3-A 실제 forward 결박
 
 - [종료점·원본 식별 계약](superpowers/specs/2026-09-15-recording-endpoint-contract.md): 원본 PTS와 파일 표시 구간 분리, 요청 포함 기준 유지.

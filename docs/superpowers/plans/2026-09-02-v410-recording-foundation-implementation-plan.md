@@ -3014,12 +3014,59 @@ v4.1.0 개발 완료는 다음이 모두 참일 때만 성립한다.
   실제 source binding 왕복·변조 거부·SQLite 및 journal 복구·상한/잠금 비용 검사를 사전등록하고
   예상 assertion RED → 구현 → GREEN 및 영향 회귀를 수행한다. 원본 데이터 소급 승격 금지.
   검증된 단계만 별도 커밋한다. 3-A 미확정이면 필드·증거를 임의로 설계하지 않는다.
+  초기 결과: optional file evidence/writer/Ready/복구를 구현하고 focused176개가 출력상 통과했다.
+  새 증거를 기존 job에 복제하여8원본 상한을 넘던 회귀는 비소비 projection으로 해소했다.
+  다만8×4096 AU 저장 합계9.983초(기존0.986초), checkpoint1.487초(기존0.343초)로 비용이 늘었다.
+  당시 비용·회귀 미해소로3-B 완료·커밋을 보류했다. [초기 전수 실행 기록](../../release-artifacts/v4.1.0/s11-preparation-mapping/file-evidence-report.md).
+  후속 FC01~05 최소 보완은 완료했다. 동일 payload 반복 해석을 제거하여8원본 잠금 점유 합계34.7% 감소,
+  최종FE193개·관련 회귀·전체build 통과다. 과거FE06 oracle 무효 정정과MP4 data reference 거부도 반영했다.
+  단, 최대1.227초 잠금 점유와 실제HTTP 지연의 허용 여부는 남아 있어3-B 전체 운영성능 합격으로 표시하지 않는다.
+  저장 구현·검증된 최소 보완 단위는 커밋 가능하며 [최종 비용 보완 기록](../../release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-report.md)을 따른다.
 - [ ] 4: 단일 worker의 요청별 재평가, 절대 steady deadline, 임시 provider busy와 identity 오류 구분,
   pending 원본 보호 및 Intent 전환/취소/재시작 정리를 구현한다. 기존 용량 상한·pipeline 정책 유지.
   긴 GOP·복수 요청·보존 경쟁·취소/상한을 사전등록 후 TDD/영향 회귀한다. timeout만 늘리지 않는다.
+  현재 WP01~10 사전등록/설계만 있고3-B 비용 미해소로 코드 구현·실행은 건너뛰었다.
 - [ ] 메인 diff/증거 직접 검토, docs links 및 diffcheck, 승인 범위 분할 커밋을 확인한다.
   미해소 실패·cleanup·미커밋이 없을 때 승인된 v4.1.0 푸시 후 원격 hash를 확인한다.
 
 후속 5번 공통 소비·실제 통합과 S11/장시간/브라우저/release action은 이번 개발에 섞지 않는다.
 3-B/4의 정확한 필드·테스트 구현은 선수 계약이 확정된 후 이 절에 보완한다. 지금은 그 두 단계의
 착수 가능한 상세 구현안이 확정됐다고 주장하지 않는다.
+
+### 4번 구현 준비: pending 대기·보존 경계
+
+#### 현재 선수: 사용자 승인된 3-B 비용 보완 재개
+
+FC01~05 실행 완료. 이번 최소 중복 보완의 합격과 잔여 운영 지연 판정을 구분한다.
+다음에는 누적 catalog·실제HTTP 지연의 조건/허용 기준을 고정하여 필요한 추가 보완을 판단한다.
+새로운 checkpoint 신뢰/주기/저장 구조를 이번 결과만으로 승인하지 않는다.
+
+현재 실행 범위는 FC01 계측 → FC02 최소 중복 보완 → FC03 동일 조건 비교 → FC04/05 회귀·build다.
+4번 코드는 이 묶음에 포함하지 않는다. 기존 저장 형식/바이트·원본 semantic 검증·손상 거부·1MiB 조건을
+유지하고, 단계별로 실제 비용 원인을 확인한 뒤 다음 수정 범위를 확정한다. 계측 도구는 테스트 전용이며
+제품 공개 API나 영구 진단 로그를 추가하지 않는다. 계측 source 삽입점과 정상 동작을 검사한다.
+동일/상이 checkpoint 후보, 기존/새 증거, 작은/누적 catalog를 비교하며 기존 오류를 사후 완화하지 않는다.
+마지막에 source-binding/write-boundaries/journal/checkpoint/finalize 영향 회귀, FE 및 지원·상한, 전체 build를
+확인한다. 새 구조나 전체 S11 검증을 자동 착수하지 않는다. 단위 의존성이 닫히고 해당 검증이 통과한
+변경만 분할 커밋하며, 현재 승인 범위가 모두 완료되고 미커밋/실패가 없으면 최종 푸시한다.
+
+3-B 검증 통과 후만 착수한다. worker의 FIFO 한 요청 안에서 대기하는 구조를 요청별
+`deadline/next_attempt/attempts` 재평가로 바꾼다. 대기만 하는 첫 요청이 준비된 뒤 요청의
+처리를 막지 않아야 한다. 실제 미디어 작업은 기존 단일 서비스·취소 경계를 유지한다.
+각 요청은 접수 시 고정된 steady deadline을 사용하고 재평가·busy·갱신으로 연장하지 않는다.
+기존60초/32요청/재시도 상한을 유지하며 늦은 GOP의 완전 결과를 보장하지 않는다.
+
+observer의 일시 잠금 경합/미확보는 명시된 unavailable로 구분한다. 실제 다른 identity/namespace
+자료는 기존처럼 거부한다. 시각·샘플·namespace를 섞어 새 증거를 만들지 않는다.
+selection complete와 실제 파일 finalize를 기준으로 진행하며 시간 경과 자체는 증거가 아니다.
+
+pending source 보호는 catalog 잠금 안에 요청 identity·범위와 수명이 제한된 내부 lease로
+등록하는 방식을 우선 검토한다. 삭제 예약/retention snapshot과 같은 검사에서 적용하여
+이미 확정된 원본뿐 아니라 대기 중 새로 finalize된 관련 원본도 삭제 경쟁에서 보호한다.
+메모리 lease를 내구 pin으로 변환하지 않는다. pending은 재시작 후 자료를 발명해 재개하지 않으며,
+내구 Intent 이후는 기존 복구/hold가 책임진다. Intent의 기존 내구 보호가 확보되기 전 lease를
+해제하지 않고, 취소·실패·종료는 소유 lease를 해제한다. 만료 이후에는 안전하게 재검증/거부한다.
+
+새로운 영구 pin·저장 정책·무제한 용량 예약·source pipeline 차단을 추가하지 않는다.
+정확한 lease API와 포화/만료 검사는 3-B 이후 실제 영향 범위를 대조해 확정하며,
+여기서 코드 구현·검증 완료를 주장하지 않는다.
