@@ -41,13 +41,23 @@ if [[ "$fc_label" == parse-* ]]; then
  fc_json="$fc_root/strict_json.cpp"
 fi
 if [[ "$fc_label" == compaction* ]]; then fc_main="$fc_script/recording_catalog_compaction_probe.cpp"; fi
+fc_compile_prefix=()
+if [[ "$fc_label" == scale-32* ]]; then
+ fc_main="$fc_script/recording_catalog_scale_probe.cpp"
+ fc_compile_prefix=(node "$fc_script/recording_catalog_cost_bounded.cjs" 60)
+fi
+shasum -a 256 "$fc_main" "$fc_script/recording_catalog_cost_probe_run.sh"
 node "$fc_script/recording_catalog_cost_probe_instrument.cjs" "$fc_repo" "$fc_root" "$fc_mode"
 read -r -a fc_flags <<< "$(pkg-config --cflags --libs gstreamer-1.0 gstreamer-app-1.0 sqlite3 openssl)"
-"${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$fc_root/include" -I"$fc_repo/include" -I"$fc_script" -I"$fc_repo/src/recording" \
+"${fc_compile_prefix[@]}" "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$fc_root/include" -I"$fc_repo/include" -I"$fc_script" -I"$fc_repo/src/recording" \
  -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_SQLITE3=1 -DMEDIA_SERVER_USE_OPENSSL=1 \
  "$fc_main" "$fc_repo/src/recording/gstreamer_segment_writer.cpp" \
  "$fc_root/recording_catalog.cpp" "$fc_root/recording_journal.cpp" "$fc_root/recording_contracts.cpp" \
  "$fc_repo/src/recording/recording_finalize_recovery.cpp" "$fc_repo/src/recording/recording_file_evidence.cpp" "$fc_repo/src/recording/recording_media_inspector.cpp" \
  "$fc_repo/src/recording/recording_derived_job.cpp" "$fc_repo/src/recording/recording_derived_job_ready.cpp" \
  "$fc_repo/src/recording/retention_coordinator.cpp" "$fc_json" "${fc_flags[@]}" -o "$fc_root/check"
-"$fc_root/check" "$fc_root"
+if [[ "$fc_label" == scale-32* ]]; then
+ node "$fc_script/recording_catalog_cost_bounded.cjs" 180 "$fc_root/check" "$fc_root"
+else
+ "$fc_root/check" "$fc_root"
+fi
