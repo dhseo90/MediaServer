@@ -12,6 +12,7 @@ import {dispatchTuple,correlatedEvent} from './recording_event_correlation.mjs';
 import {allTimelinePages,eventOutputs,verifyRestart,measuredHttpResponse,summarizeEventState,latencyTransitionOutputs} from './recording_current_app_helpers.mjs';
 import {failedWindowGate,requireFailedWindowDispatch,summarizeOverlappingSources} from './recording_current_app_helpers.mjs';
 import {captureFailureEvidence,captureCompletenessEvidence,removeDiagnosticRoot,runDiagnosticProbe} from './recording_failure_capture.mjs';
+import {createSelectionTraceCollector,matchSelectionTrace} from './recording_selection_trace.mjs';
 const reproduceFailedWindow=process.argv.length===3&&process.argv[2]==='--reproduce-failed-window';
 const latencyOnly=reproduceFailedWindow||(process.argv.slice(2).length===1&&process.argv[2]==='--latency-only');
 if(process.argv.length>2&&!latencyOnly)throw Error('unsupported-mode');
@@ -53,7 +54,7 @@ function environment(http,rtsp,stun){
     ANALYSIS_EVENT_STORAGE_ENABLED:1,ANALYSIS_EVENT_STORAGE_PATH:path.join(root,'events/events.jsonl'),ANALYSIS_EVENT_SNAPSHOT_HOOK_ENABLED:0,ANALYSIS_EVENT_SNAPSHOT_DIR:path.join(root,'events/snapshots'),
     ANALYSIS_EVENT_CLIP_HOOK_ENABLED:1,ANALYSIS_EVENT_CLIP_DIR:path.join(root,'events/clips'),ANALYSIS_EVENT_PRE_EVENT_MS:750,ANALYSIS_EVENT_POST_EVENT_MS:750,ANALYSIS_EVENT_POST_ENABLED:0,
     RECORDING_ENABLED:1,RECORDING_STORAGE_ROOT:path.join(root,'recordings'),RECORDING_SEGMENT_DURATION_SECONDS:2,RECORDING_RESERVED_FREE_BYTES:0,RECORDING_RETENTION_INTERVAL_MS:1000,
-    GST_CACHE_DIR:path.join(root,'gst-cache'),GST_PLUGIN_PROFILE:'headless',WEBRTC_STUN_SERVER:`stun://127.0.0.1:${stun}`,WEBRTC_TURN_SERVER:''};
+    VERIFY_RECORDING_SELECTION_TRACE:1,GST_CACHE_DIR:path.join(root,'gst-cache'),GST_PLUGIN_PROFILE:'headless',WEBRTC_STUN_SERVER:`stun://127.0.0.1:${stun}`,WEBRTC_TURN_SERVER:''};
   for(const [key,value] of Object.entries(values))env['MEDIA_SERVER_'+key]=String(value);return env;
 }
 async function response(app,route,options={}){
@@ -67,12 +68,13 @@ async function request(app,method,route,body){const r=await response(app,route,{
 async function launch(stun){
   const http=await reservePort(),rtsp=await reservePort();
   const child=spawn(path.join(repo,'server.sh'),['foreground'],{cwd:repo,env:environment(http,rtsp,stun),stdio:['ignore','pipe','pipe']});
-  const app={child,http,rtsp,base:`http://127.0.0.1:${http}`,logBytes:0,closed:false};processes.push(app);
+  const app={child,http,rtsp,base:`http://127.0.0.1:${http}`,logBytes:0,closed:false,selectionTrace:createSelectionTraceCollector()};processes.push(app);
   child.once('error',()=>{app.spawnError=true;});child.once('close',()=>{app.closed=true;});
   for(const stream of [child.stdout,child.stderr]){
     stream.setEncoding('utf8');
     stream.on('data',chunk=>{
       app.logBytes+=Buffer.byteLength(chunk);if(app.logBytes>4*MiB){app.logOverflow=true;child.kill('SIGTERM');}
+      if(stream===child.stderr&&!app.traceError)try{app.selectionTrace.append(chunk);}catch{app.traceError=true;}
     });
   }
   await until('health',async()=>{if(app.closed||app.spawnError||app.logOverflow)throw Error('app-start-failed');try{return (await response(app,'/health')).status===200;}catch(error){if(error.message==='actual-app-deadline')throw error;return false;}},15000);
@@ -168,6 +170,13 @@ try{
 }catch(error){failed++;primaryError=error;console.error(`[fail] current actual app: ${error instanceof Error?error.message:'unknown'}`);}
 const cleanup={rootAbsent:false,failureCount:0,processes:processEvidence};
 for(const app of processes)try{await stop(app);}catch{cleanup.failureCount++;}
+try{
+  const rows=processes.flatMap(app=>{if(app.traceError)throw Error('selection-trace-invalid');return app.selectionTrace.finish();});
+  // 검증된 고정 필드만 보존한다. 후속 복제본 진단과 별도로 남겨 진단 실패도 원인을 지우지 않는다.
+  for(const row of rows)console.log('[selection-attempt] '+JSON.stringify(row));
+  const reference=failedReference||completedReference;
+  if(reference)check(matchSelectionTrace(rows,crypto.createHash('sha256').update(reference).digest('hex')).length>0,'LP09-J02 actual reference decision-time trace complete');
+}catch{failed++;console.error('[fail] LP09-J02 selection trace unavailable');}
 let diagnosticCleanupAllowed=!failedReference&&!completedReference;
 if((failedReference||completedReference)&&processes.every(app=>app.stopped))try{
   if(performance.now()>=deadline)throw Error('diagnostic-deadline');

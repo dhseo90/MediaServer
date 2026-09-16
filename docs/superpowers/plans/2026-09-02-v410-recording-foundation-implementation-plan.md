@@ -28,7 +28,7 @@ verifier.
 범위 source-of-truth는 [종료점 계약 LP09](../specs/2026-09-15-recording-endpoint-contract.md)다. 설계는 메인, 확정 구현은 기존 단일 담당자를 순차 재사용하고 메인이 diff/증거를 검토한다. 하위 에이전트·자동 추론 상향·푸시·장시간/UI는 제외한다. 이번 사용자는 1~5 순차 실행과 분할 커밋을 승인했다.
 
 - [x] 1. 적용 조건: 관측 identity와 native 구간의 연결, 기존 profile 보존, 공통 소비/반례를 명시한다. 계약 문서 자체 모순/링크/diffcheck 통과. 설계 확정은 제품 구현 PASS가 아니다.
-- [ ] 2. 미선택 원인: `recording_derived_event_worker`의 선택 직전 snapshot과 시도 종료를 bounded 진단 callback으로 관측한다. 공개 route/schema 변경 없이 실제 앱 내부 로그의 고정 안전 필드만 수집한다. 자체검사로 callback 잠금/예외/상한·정책 불변을 확인하고 동일 실제 입력1회에서 원본·decoded·deadline을 분류한다. 임시자료 정리 및 결과 커밋.
+- [x] 2. 미선택 원인: `recording_derived_event_worker`의 선택 직전 snapshot과 시도 종료를 bounded 진단 callback으로 관측한다. 공개 route/schema 변경 없이 실제 앱 내부 로그의 고정 안전 필드만 수집한다. 자체검사로 callback 잠금/예외/상한·정책 불변을 확인하고 동일 실제 입력1회에서 원본·decoded·deadline을 분류한다. 임시자료 정리 및 결과 커밋. 실제1회 target9시도에서분석갱신정상·후행선택후보부재·3750ms종결확인. queued최초평가도접수증거로종결됨을별도관측. HTTP85행미확보이므로전체지연gate PASS는아니며중앙기록LP09참조.
 - [ ] 3. 확정 경로: 새 증거 소비는 selection/job/remux/Ready/복구/조회의 같은 계약으로 구현한다. 2번 원인에 맞춰 대기/증거 갱신 경로를 별도 단위로 수정한다. 구현 전 exact fixture/명령/기능ID를 중앙 기록에 등록하고 RED/GREEN·영향회귀 후 각 단위 커밋. 원인이 확정되지 않은 경로는 추정 구현하지 않는다.
 - [ ] 4. 회귀: 실제 gap/식별 불일치/증거 부재/손상/기존 profile 불변과 저장 상한·잠금 비용, 관련 빌드를 확인한다. 변경별 유효 증거를 재사용하고 무관 검증은 반복하지 않는다.
 - [ ] 5. 통합: 기존 누적catalog16/32·실제 완전 출력2개/HTTP hash·두 번째 기동 데이터 보존과 새 녹화·현재 통합 실행기를 순서대로 확인한다. 앞 단계 실패면 뒤 단계를 PASS로 대체하지 않는다. 최종 종합보고에 실제 커밋/미푸시와 미해소 항목을 명시한다.

@@ -5,8 +5,70 @@
 #include "recording/recording_derived_job_service.h"
 #include <algorithm>
 #include <limits>
+#include <sstream>
+#include <stdexcept>
+#if MEDIA_SERVER_USE_OPENSSL
+#include <openssl/evp.h>
+#endif
 
 namespace recording {
+std::string SerializeDerivedEventAttemptDiagnostic(const RecordingConsumerReferenceV1& reference,
+    const DerivedEventAttemptDiagnostic& value) {
+#if MEDIA_SERVER_USE_OPENSSL
+    const auto require=[](bool ok){if(!ok)throw std::runtime_error("derived-diagnostic-invalid");};
+    require(!reference.reference_id.empty()&&value.sources.size()<=256&&value.unknown_ranges.size()<=8);
+    const auto count=[&](std::size_t n){require(n<=9007199254740991ULL);return n;};
+    const auto integer=[](auto n){return '"'+std::to_string(n)+'"';};
+    const auto optional=[&](const std::optional<std::int64_t>& n){return n?integer(*n):std::string("null");};
+    const auto hash=[&](const std::string& text){
+        if(text.empty())return std::string("null");
+        std::array<unsigned char,EVP_MAX_MD_SIZE> bytes{};unsigned int length=0;
+        require(EVP_Digest(text.data(),text.size(),bytes.data(),&length,EVP_sha256(),nullptr)==1&&length==32);
+        std::string result="\"";const char* hex="0123456789abcdef";for(unsigned int i=0;i<length;++i){result+=hex[bytes[i]>>4];result+=hex[bytes[i]&15];}return result+'"';
+    };
+    std::ostringstream out;out<<std::boolalpha<<"{\"reference_sha256\":"<<hash(reference.reference_id)
+        <<",\"attempt\":"<<count(value.attempt)<<",\"attempt_limit\":"<<count(value.attempt_limit)<<",\"elapsed_ms\":"<<integer(value.elapsed_ms)<<",\"wait_ms\":"<<integer(value.wait_ms)
+        <<",\"deadline_exhausted\":"<<value.deadline_exhausted<<",\"attempt_exhausted\":"<<value.attempt_exhausted<<",\"selection_complete\":"<<value.selection_complete
+        <<",\"expanded_start_ns\":"<<integer(value.expanded_start_ns)<<",\"expanded_end_ns\":"<<integer(value.expanded_end_ns)<<",\"source_count\":"<<count(value.source_count)<<",\"unknown_count\":"<<count(value.unknown_count)
+        <<",\"sources_truncated\":"<<value.sources_truncated<<",\"unknown_truncated\":"<<value.unknown_truncated<<",\"sources\":[";
+    bool comma=false;for(const auto& s:value.sources){if(comma)out<<',';comma=true;const auto lifecycle=static_cast<int>(s.lifecycle);require(lifecycle>=0&&lifecycle<=5);
+        out<<"{\"segment_id_sha256\":"<<hash(s.segment_id)<<",\"media_epoch_id_sha256\":"<<hash(s.media_epoch_id)<<",\"source_generation_sha256\":"<<hash(s.source_generation)<<",\"track_id_sha256\":"<<hash(s.track_id)
+            <<",\"generation_order\":"<<integer(s.generation_order)<<",\"start_pts\":"<<integer(s.start_pts)<<",\"end_pts\":"<<optional(s.end_pts)<<",\"time_base_num\":"<<s.time_base_num<<",\"time_base_den\":"<<s.time_base_den
+            <<",\"lifecycle\":"<<lifecycle<<",\"deleted\":"<<s.deleted<<",\"binding_present\":"<<s.binding_present<<",\"binding_valid\":"<<s.binding_valid<<",\"available_for_selection\":"<<s.available_for_selection<<'}';
+    }
+    const auto& d=value.decoded;out<<"],\"decoded\":{\"namespace_valid\":"<<d.namespace_valid<<",\"range_comparable\":"<<d.range_comparable<<",\"incomplete\":"<<d.incomplete<<",\"frames_truncated\":"<<d.frames_truncated
+        <<",\"frame_count\":"<<count(d.frame_count)<<",\"relevant_count\":"<<count(d.relevant_count)<<",\"identity_matched\":"<<count(d.identity_matched)<<",\"identity_rejected\":"<<count(d.identity_rejected)
+        <<",\"generation_mismatch\":"<<count(d.generation_mismatch)<<",\"pts_mismatch\":"<<count(d.pts_mismatch)<<",\"duration_invalid\":"<<count(d.duration_invalid)
+        <<",\"minimum_pts_ns\":"<<optional(d.minimum_pts_ns)<<",\"maximum_pts_ns\":"<<optional(d.maximum_pts_ns)<<",\"maximum_valid_end_ns\":"<<optional(d.maximum_valid_end_ns)<<"},\"slice_state_counts\":[";
+    comma=false;for(auto n:value.slice_state_counts){if(comma)out<<',';comma=true;out<<count(n);}out<<"],\"reason_counts\":[";comma=false;for(auto n:value.reason_counts){if(comma)out<<',';comma=true;out<<count(n);}out<<"],\"unknown_ranges\":[";
+    comma=false;for(const auto& range:value.unknown_ranges){if(comma)out<<',';comma=true;const auto reason=static_cast<std::size_t>(range.reason);require(reason<static_cast<std::size_t>(DerivedEventDiagnosticReason::Count));out<<"{\"start_ns\":"<<integer(range.start_ns)<<",\"end_ns\":"<<integer(range.end_ns)<<",\"reason\":"<<reason<<'}';}
+    out<<"]}";auto result=out.str();require(result.size()<=256*1024);return result;
+#else
+    (void)reference;(void)value;throw std::runtime_error("derived-diagnostic-crypto-unavailable");
+#endif
+}
+DerivedEventAttemptDiagnostic BuildDerivedEventAttemptDiagnostic(
+    const std::vector<RecordingDerivedSourceSnapshotEntry>& snapshot,
+    const std::vector<DerivedSourceEvidence>& sources,const std::vector<bool>& valid,
+    const analysis::DecodedIntervalSnapshot& evidence,const DerivedRecordingSelection& selection) {
+    DerivedEventAttemptDiagnostic result;result.selection_complete=selection.complete;result.expanded_start_ns=selection.expanded_start_ns;result.expanded_end_ns=selection.expanded_end_ns;
+    result.source_count=snapshot.size();result.sources_truncated=snapshot.size()>256;
+    for(std::size_t i=0;i<std::min<std::size_t>(snapshot.size(),256);++i){const auto& s=snapshot[i];DerivedEventSourceDiagnostic item;item.segment_id=s.segment.segment_id;item.media_epoch_id=s.segment.media_epoch_id;item.start_pts=s.segment.media_start_pts;item.end_pts=s.segment.media_end_pts;item.time_base_num=s.segment.time_base_num;item.time_base_den=s.segment.time_base_den;item.lifecycle=s.lifecycle;item.deleted=s.deleted;item.binding_present=bool(s.binding);item.binding_valid=i<valid.size()&&valid[i];item.available_for_selection=i<sources.size()&&sources[i].available_for_selection;if(s.binding){item.source_generation=s.binding->source_generation;item.generation_order=s.binding->generation_order;item.track_id=s.binding->track_id;}result.sources.push_back(std::move(item));}
+    auto& d=result.decoded;d.namespace_valid=evidence.analysis_namespace==selection.reference.analysis_namespace;d.incomplete=evidence.incomplete;d.frame_count=evidence.frames.size();d.frames_truncated=evidence.frames.size()>4096;d.range_comparable=selection.reference.request&&selection.reference.request->time_basis=="media-pts-ms";
+    if(d.range_comparable)for(std::size_t i=0;i<std::min<std::size_t>(4096,evidence.frames.size());++i){const auto& frame=evidence.frames[i];const __int128 end=static_cast<__int128>(frame.analysis_pts_ns)+frame.duration_ns.value_or(0);const bool duration=frame.duration_ns&&*frame.duration_ns>0&&frame.analysis_pts_ns>=0&&end<=std::numeric_limits<std::int64_t>::max();
+        if(frame.analysis_pts_ns>=selection.expanded_end_ns||(duration?end<=selection.expanded_start_ns:frame.analysis_pts_ns<selection.expanded_start_ns))continue;
+        ++d.relevant_count;d.minimum_pts_ns=d.minimum_pts_ns?std::min(*d.minimum_pts_ns,frame.analysis_pts_ns):frame.analysis_pts_ns;d.maximum_pts_ns=d.maximum_pts_ns?std::max(*d.maximum_pts_ns,frame.analysis_pts_ns):frame.analysis_pts_ns;if(!duration)++d.duration_invalid;
+        const auto& original=frame.association.original;const auto& expected=selection.reference.original;
+        if(frame.association.quality!=analysis::SourceAssociationQuality::TimestampMatch||!original||!expected||original->source_generation.empty()||!original->generation_order||!original->ordinal||original->track_id.empty()){++d.identity_rejected;continue;}
+        if(original->source_generation!=expected->source_generation||original->generation_order!=expected->generation_order||original->track_id!=expected->track_id){++d.generation_mismatch;continue;}
+        if(frame.analysis_pts_ns<0||static_cast<std::uint64_t>(frame.analysis_pts_ns)!=original->pts_ns){++d.pts_mismatch;continue;}
+        ++d.identity_matched;if(duration&&d.namespace_valid){const auto e=static_cast<std::int64_t>(end);d.maximum_valid_end_ns=d.maximum_valid_end_ns?std::max(*d.maximum_valid_end_ns,e):e;}
+    }
+    if(selection.slices.size()>8194)throw std::runtime_error("derived-diagnostic-slice-cap");
+    static const std::array<const char*,9> reasons{{"multiple-time-or-recording-candidates","unconfirmed-interval-no-trusted-watermark","original-deleted","original-coverage-unconfirmed","direct-time-interval-only","multiple-utc-candidates","unconfirmed-utc-mapping","piecewise-utc-time-only","missing-original-identity"}};
+    for(const auto& slice:selection.slices){const auto state=static_cast<std::size_t>(slice.state);if(state<result.slice_state_counts.size())++result.slice_state_counts[state];const auto found=std::find(reasons.begin(),reasons.end(),slice.reason);const auto index=static_cast<std::size_t>(found-reasons.begin());++result.reason_counts[index];if(slice.state!=DerivedSliceState::Confirmed){++result.unknown_count;if(result.unknown_ranges.size()<8)result.unknown_ranges.push_back({slice.start_ns,slice.end_ns,static_cast<DerivedEventDiagnosticReason>(index)});}}
+    result.unknown_truncated=result.unknown_count>result.unknown_ranges.size();return result;
+}
 DerivedEventWorkerOptions RecordingRuntimeEventBudget(std::int64_t segment_ms,std::int64_t post_ms) {
     DerivedEventWorkerOptions options;
     const __int128 requested=static_cast<__int128>(std::max<std::int64_t>(0,segment_ms))+
@@ -70,8 +132,9 @@ bool DerivedEventWorker::Submit(const RecordingConsumerReferenceV1& reference,
     // 잠금으로 슬롯을 예약한 채 내구 접수부터 확정한다. 실패한 슬롯은 worker에 보이지 않는다.
     if(!catalog_.AcceptDerivedReference(reference,error))return false;
     inflight_.insert(reference.reference_id);
-    queue_.push_back({reference,std::move(evidence),std::chrono::steady_clock::now()+
-        std::chrono::milliseconds(options_.wait_ms)});
+    const auto submitted=std::chrono::steady_clock::now();
+    queue_.push_back({reference,std::move(evidence),submitted+
+        std::chrono::milliseconds(options_.wait_ms),submitted});
     statuses_[reference.reference_id]="pending";
     cv_.notify_one();
     if(error)error->clear();
@@ -160,7 +223,24 @@ void DerivedEventWorker::Process(Pending pending) {
         if(!SelectDerivedRecording(pending.reference,*pending.evidence,sources,utc_ptr,&selection,&error)) {
             Status(pending.reference.reference_id,error);return;
         }
-        const bool exhausted=attempt+1==options_.max_attempts||std::chrono::steady_clock::now()>=pending.deadline;
+        const auto decision_time=std::chrono::steady_clock::now();
+        const bool attempt_exhausted=attempt+1==options_.max_attempts;
+        const bool deadline_exhausted=decision_time>=pending.deadline;
+        const bool exhausted=attempt_exhausted||deadline_exhausted;
+        if(options_.diagnostic)try {
+            // Existing finalized binding validation is reused. Only unavailable lifecycle
+            // candidates need a separate validity check, and only for opt-in diagnostics.
+            std::vector<bool> valid;valid.reserve(snapshot.size());
+            for(std::size_t i=0;i<snapshot.size();++i){const auto& entry=snapshot[i];
+                valid.push_back((entry.lifecycle==RecordingLifecycle::Finalized||entry.deleted)?sources[i].available_for_selection:
+                    entry.binding&&ValidateRecordingSourceBindingForSegment(*entry.binding,entry.segment,nullptr));
+            }
+            auto diagnostic=BuildDerivedEventAttemptDiagnostic(snapshot,sources,valid,*pending.evidence,selection);
+            diagnostic.attempt=attempt+1;diagnostic.attempt_limit=options_.max_attempts;diagnostic.wait_ms=options_.wait_ms;
+            diagnostic.elapsed_ms=std::chrono::duration_cast<std::chrono::milliseconds>(decision_time-pending.submitted).count();
+            diagnostic.attempt_exhausted=attempt_exhausted;diagnostic.deadline_exhausted=deadline_exhausted;
+            options_.diagnostic(pending.reference,diagnostic);
+        }catch(...) { /* Observation must not change selection/admission/termination. */ }
         if(selection.complete||exhausted) {
             const bool confirmed=std::any_of(selection.slices.begin(),selection.slices.end(),[](const auto& slice){
                 return slice.state==DerivedSliceState::Confirmed&&slice.candidates.size()==1;

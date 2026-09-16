@@ -9,6 +9,22 @@
 | LP09-D01 | 적용 조건 문서 | 기존 시간/ID/지원/상한 보존과 새 관측identity-native구간 결박, 생성·복구·조회 일치·음성기준 대조 | v4.1.0 |
 | LP09-T01 | 선택 시도 안전 계측 | 시도/경과/deadline/종결, snapshot 후보 lifecycle/범위/identity·분석 증거 범위를 bounded 고정필드로 관측. callback 무잠금·예외격리·기존판정불변 자체검사 | v4.1.0 |
 | LP09-T02 | 실제 미선택 원인 | 기존 latency-only 동일입력1회, 새 내부 진단 고정필드만 수집·보존. 운영/외부 접근 없음. 선택 시점과 종료후 관측 구분 | v4.1.0 |
+| LP09-W01 | 관측 비활성 | callback 없이 기존 worker 결과 동일 | v4.1.0 |
+| LP09-W02 | 재평가 snapshot | 두 번 이상 attempt·elapsed·소진/selection·namespace·source 요약 대조 | v4.1.0 |
+| LP09-W03 | 잠금 경계 | callback에서 worker.Query/catalog 조회 재진입 완료 | v4.1.0 |
+| LP09-W04 | 관측 예외 | callback throws에도 기존 worker 결과 유지 | v4.1.0 |
+| LP09-W05 | 거부 분류 | missing/quality/generation/PTS/duration·unknown 이유를 고정 counter로 구분. UTC와 PTS는 range_comparable=false로 분리해 직접 비교 금지 | v4.1.0 |
+| LP09-W06 | 출력 상한 | sources256/frames4096 입력요약, unknown 예시8·총수/truncated 구분, 임의문자열 미표출 | v4.1.0 |
+| LP09-W07 | 정책 불변 | 기존 wait/attempt/부분종결 유지, 진단은 판정 변경 없음 | v4.1.0 |
+| LP09-W08 | 안전 직렬화 | typed 진단의 raw ID는SHA256/빈값null, 이유·상태는고정enum, numeric 범위/출력256KiB 상한 및 원문canary미노출. crypto미지원은표출거부 | v4.1.0 |
+| LP09-J01 | 로그 안전 파싱 | 고정 schema/count/enum/hash 외 필드 거부, chunk 분할/상한/중복·누락 판정 | v4.1.0 |
+| LP09-J02 | 실제 참조 결박 | actual event reference hash와 진단 hash 일치, 최소1회와종결관측 요구, 다른요청 섞기거부 | v4.1.0 |
+
+예정 명령: `./server.sh build`; `bash scripts/internal/verify_recording_derived_event_integration.sh --diagnostics-only`(stub callback 미호출 assertion 예상RED→GREEN), 기존 동일 integration 전체; `node --test scripts/internal/recording_selection_trace.test.mjs` 및 기존 helper 영향회귀; syntax/diffcheck/docs-links. 새 C++ 값타입 헤더만 추가한 무동작 stub을 먼저 빌드해 런타임 RED를 확인하며 컴파일 실패는 RED가 아니다. GStreamer/fixture/cache는 작업소유 root로격리하고 raw 로그·경로·ID는 출력하지 않는다.
+
+추가 명령: `bash scripts/internal/verify_recording_derived_event_integration.sh --diagnostics-no-crypto`는 crypto 미지원 formatter 거부만 확인한다. 혼합 feature 빌드를 실제 제품 runtime PASS로 사용하지 않는다.
+
+JS 회귀 exact: `node --test scripts/internal/recording_selection_trace.test.mjs scripts/internal/recording_failure_capture.test.mjs scripts/internal/recording_current_http_diagnostics.test.mjs scripts/internal/recording_current_latency.test.mjs scripts/internal/recording_current_integration.test.mjs scripts/internal/recording_current_state_diagnostics.test.mjs`. 첫 묶음은 존재하지 않는 `recording_current_app_helpers.test.mjs` 인자를 사용했으며 Node가 이를 검사하지 않고 기존32개만 실행(exit0)했다. 해당32개 결과만 인정하고 helper 회귀는 위 실제 파일로 실행한다.
 
 | 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
 | --- | --- | --- | --- | --- |
@@ -21,6 +37,182 @@
 | --- | --- | --- |
 | LP09-D01 diffcheck | 문서 whitespace 검사 exit0 | pass |
 | LP09-D01 docs-links | 문서 링크 검사 exit0 | pass |
+
+2번 준비: 제품 build exit0([원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp09-build-output.txt)). JS stub 예상RED8개 후 GREEN8개, 최종 관련회귀65개 exit0/481.568917ms. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp09-js-output.txt). 아래는 최종 실행 전수이며 최초 RED 이력은 원출력에 보존한다. 실제 앱 결과는 별도로 기록한다. token start/end/consumed는 자동집계 부재로 미집계(source=도구 원출력).
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| JS-1 | P0-DIAG01 정상 header/body 시간·안전 route 분류와 비밀 미노출 (0.726666ms) | pass |
+| JS-2 | P0-DIAG02 header timeout 고정 진단과 실패 유지 (0.313292ms) | pass |
+| JS-3 | P0-DIAG03 body timeout 부분 수신 측정·완료 거부 (0.13875ms) | pass |
+| JS-4 | S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박 (1.229459ms) | pass |
+| JS-5 | S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부 (0.483ms) | pass |
+| JS-6 | S11-CI02 nonzero 실패 후 나머지 미실행 (0.279666ms) | pass |
+| JS-7 | S11-CI02 signal 실패 후 나머지 미실행 (0.144167ms) | pass |
+| JS-8 | S11-CI02 output-limit 실패 후 나머지 미실행 (0.106208ms) | pass |
+| JS-9 | S11-CI02 summary-missing 실패 후 나머지 미실행 (0.097042ms) | pass |
+| JS-10 | S11-CI02 summary-duplicate 실패 후 나머지 미실행 (0.140791ms) | pass |
+| JS-11 | S11-CI02 cleanup-failed 실패 후 나머지 미실행 (0.10425ms) | pass |
+| JS-12 | S11-CI02 port-missing 실패 후 나머지 미실행 (0.108792ms) | pass |
+| JS-13 | S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리 (0.334375ms) | pass |
+| JS-14 | S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부 (0.526166ms) | pass |
+| JS-15 | S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup (4.922417ms) | pass |
+| JS-16 | S11-CI05 누락·중복item·불안정total·truncated·cap 거부 (0.248375ms) | pass |
+| JS-17 | S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부 (0.169375ms) | pass |
+| JS-18 | S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 (0.215584ms) | pass |
+| JS-19 | S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리 (0.185417ms) | pass |
+| JS-20 | S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 (0.141959ms) | pass |
+| JS-21 | LP04-A 목표 이전은 대기하고 해당 구간만 선택 (0.306917ms) | pass |
+| JS-22 | LP04-A 경계와 프레임을 놓치면 다른 구간으로 대체 금지 (0.157542ms) | pass |
+| JS-23 | LP04-A 실제 dispatch 정확 일치만 허용 (0.069458ms) | pass |
+| JS-24 | LP03-A failed는 완료 대기 대신 즉시 중단 (0.085583ms) | pass |
+| JS-25 | P0-HTTP01 pending은 전이 완료가 아님 (0.043958ms) | pass |
+| JS-26 | P0-HTTP01 partial은 지연 관측만 가능 (0.041458ms) | pass |
+| JS-27 | P0-HTTP01 다른 참조와 모순 파일은 거부 (0.06525ms) | pass |
+| JS-28 | P0-HTTP01 원래 완전 출력 검사는 부분 출력 거부 유지 (0.09925ms) | pass |
+| JS-29 | LP05-04 같은 원본의 앞선 비중첩 mapping 뒤 중첩 구간도 보존 (1.088875ms) | pass |
+| JS-30 | LP05-04 겹치는 원본 전수·경계 제외·미상 분리·비밀 미노출 (0.511583ms) | pass |
+| JS-31 | P0-STATE01 complete1 count와 기존 two-output 거부 구분 (0.233292ms) | pass |
+| JS-32 | P0-STATE02 pending partial complete2 변화와 8개 상한 (0.68975ms) | pass |
+| JS-33 | P0-STATE03 raw ID/path/unknown enum/request 비밀 미노출 (0.058708ms) | pass |
+| JS-34 | LP08-B01 완료 작업 안전 증거 선보존 (10.571708ms) | pass |
+| JS-35 | LP08-B02 field 증거 실패 시 정리 차단 (0.421708ms) | pass |
+| JS-36 | LP08-B02 enum 증거 실패 시 정리 차단 (0.249542ms) | pass |
+| JS-37 | LP08-B02 range 증거 실패 시 정리 차단 (0.241334ms) | pass |
+| JS-38 | LP08-B02 throw 증거 실패 시 정리 차단 (0.20975ms) | pass |
+| JS-39 | LP08-B02 timeout 증거 실패 시 정리 차단 (0.206459ms) | pass |
+| JS-40 | LP08-B02 existing 증거 실패 시 정리 차단 (5.556333ms) | pass |
+| JS-41 | LP08-B02 symlink 증거 실패 시 정리 차단 (3.825541ms) | pass |
+| JS-42 | LP06-B01 진단 파일을 재현 전에 보존 (23.200542ms) | pass |
+| JS-43 | LP06-B02 실제 자식 exit 뒤 최초 증거 유지 (42.825125ms) | pass |
+| JS-44 | LP06-B02 실제 자식 timeout 뒤 최초 증거 유지 (76.064333ms) | pass |
+| JS-45 | LP06-B03 진단 throw 시 재현·정리 거부 (0.349333ms) | pass |
+| JS-46 | LP06-B03 진단 unsafe 시 재현·정리 거부 (0.342125ms) | pass |
+| JS-47 | LP06-B04 최초 보존 실패 시 재현 금지 (4.09775ms) | pass |
+| JS-48 | LP06-B04 후속 보존 실패 시 최초 파일 유지 (20.46025ms) | pass |
+| JS-49 | LP06-B05 진단 미보존 root 정리 금지·소유권 불일치 거부 (0.865375ms) | pass |
+| JS-50 | LP06-B06 symlink 증거 덮어쓰기 거부 (4.737583ms) | pass |
+| JS-51 | LP06-B06 성공 결과 분리 보존·미등록 필드 거부 (22.92125ms) | pass |
+| JS-52 | LP06-B07 상세 수집 throw 시 기본 진단 유지·재현 금지 (7.929917ms) | pass |
+| JS-53 | LP06-B07 상세 수집 timeout 시 기본 진단 유지·재현 금지 (59.194458ms) | pass |
+| JS-54 | LP06-B07 상세 수집 identity 시 기본 진단 유지·재현 금지 (6.910458ms) | pass |
+| JS-55 | LP06-B07 상세 수집 persist 시 기본 진단 유지·재현 금지 (11.174958ms) | pass |
+| JS-56 | LP06-B08 기본 자식은 plugin 환경 준비 실패와 독립 (28.755542ms) | pass |
+| JS-57 | LP06-B09 만료 시 자식 미기동·남은 시간만 대기 (103.133959ms) | pass |
+| JS-58 | LP09-J01 분할 로그에서 안전한 행만 수집 (0.783125ms) | pass |
+| JS-59 | LP09-J01 extra 필드 거부 (0.155125ms) | pass |
+| JS-60 | LP09-J01 hash 필드 거부 (0.420291ms) | pass |
+| JS-61 | LP09-J01 enum 필드 거부 (0.054ms) | pass |
+| JS-62 | LP09-J01 range 필드 거부 (0.054917ms) | pass |
+| JS-63 | LP09-J01 count 필드 거부 (0.04325ms) | pass |
+| JS-64 | LP09-J01 로그 상한과 미완성 행 거부 (0.127167ms) | pass |
+| JS-65 | LP09-J02 정확한 참조와 연속 시도 종결 확인 (0.143583ms) | pass |
+
+LP09-2 결과: C++ focused14+formatter-off1+기존integration56 PASS. 최초fixture준비실패(참조선저장누락)는예상RED와분리해보존했다. [C++ 전수원출력/환경/정리](release-artifacts/v4.1.0/s11-preparation-mapping/lp09-worker-output.txt). 임시root7개삭제, 별도중간로그11,209B도통합후삭제. 빌드/JS/C++검사통과와실제원인판정은별도다.
+
+실제1회 exit0/45.144초/runner8PASS0FAIL, 대상참조연속9시도로 **후행원본선택후보가준비되기전3750ms종결**과앞부분1ns공백을분리했다. queued요청의접수snapshot첫평가문제도직접관측. [판정/전수시도/정리/HTTP미확보범위](release-artifacts/v4.1.0/s11-preparation-mapping/diagnostic-replay-report.md#2026-09-17-lp09-선택-당시-미선택-원인). HTTP원출력85행미확보로전체지연gate PASS에는사용하지않는다. 실제완전2출력·재기동·누적catalog는여전히미실행이며진단결과로대체하지않는다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| C++-1-1 | verify_recording_derived_event_integration.sh --diagnostics-only exit1; LP09 diagnostic fixture preparation exception | fail |
+| C++-2-1 | verify_recording_derived_event_integration.sh --diagnostics-only exit1; LP09-W01 disabled diagnostic preserves wait-exhausted result | pass |
+| C++-2-2 | verify_recording_derived_event_integration.sh --diagnostics-only exit1; LP09-W02 same decision snapshots and attempt timing | fail |
+| C++-2-3 | verify_recording_derived_event_integration.sh --diagnostics-only exit1; LP09-W03 callback can query worker and catalog without held locks | fail |
+| C++-2-4 | verify_recording_derived_event_integration.sh --diagnostics-only exit1; LP09-W04 callback exception preserves terminal policy | pass |
+| C++-2-5 | verify_recording_derived_event_integration.sh --diagnostics-only exit1; LP09-W07 deadline exhaustion remains immediate and distinct | fail |
+| C++-2-6 | verify_recording_derived_event_integration.sh --diagnostics-only exit1; LP09-W07 confirmed prefix remains immutable partial | fail |
+| C++-2-7 | verify_recording_derived_event_integration.sh --diagnostics-only exit1; LP09-W05 decoded identity and duration rejection categories | fail |
+| C++-2-8 | verify_recording_derived_event_integration.sh --diagnostics-only exit1; LP09-W05 namespace mismatch remains visible | pass |
+| C++-2-9 | verify_recording_derived_event_integration.sh --diagnostics-only exit1; LP09-W05 UTC has no invented decoded coordinate comparison | pass |
+| C++-2-10 | verify_recording_derived_event_integration.sh --diagnostics-only exit1; LP09-W06 value-only summaries bound sources frames and unknown ranges | fail |
+| C++-2-11 | verify_recording_derived_event_integration.sh --diagnostics-only exit1; LP09-W08 formatter hashes identifiers and fixes reason enums | fail |
+| C++-2-12 | verify_recording_derived_event_integration.sh --diagnostics-only exit1; LP09-W08 formatter refuses oversized source vector | fail |
+| C++-3-1 | verify_recording_derived_event_integration.sh --diagnostics-no-crypto exit1; LP09-W08 no-OpenSSL formatter fails closed | fail |
+| C++-4-1 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W01 disabled diagnostic preserves wait-exhausted result | pass |
+| C++-4-2 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W02 same decision snapshots and attempt timing | pass |
+| C++-4-3 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W03 callback can query worker and catalog without held locks | pass |
+| C++-4-4 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W04 callback exception preserves terminal policy | pass |
+| C++-4-5 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W07 deadline exhaustion remains immediate and distinct | pass |
+| C++-4-6 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W07 confirmed prefix remains immutable partial | pass |
+| C++-4-7 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W05 decoded identity and duration rejection categories | pass |
+| C++-4-8 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W05 namespace mismatch remains visible | pass |
+| C++-4-9 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W05 UTC has no invented decoded coordinate comparison | pass |
+| C++-4-10 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W06 value-only summaries bound sources frames and unknown ranges | pass |
+| C++-4-11 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W08 formatter hashes identifiers and fixes reason enums | pass |
+| C++-4-12 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W08 formatter refuses oversized source vector | pass |
+| C++-4-13 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W08 formatter refuses absent reference identity | pass |
+| C++-4-14 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W08 reference hash agrees with independent digest provider | pass |
+| C++-5-1 | verify_recording_derived_event_integration.sh --diagnostics-no-crypto exit0; LP09-W08 no-OpenSSL formatter fails closed | pass |
+| C++-6-1 | verify_recording_derived_event_integration.sh exit0; E17 accepted 후 resolver nullopt는 기존 소유 유지·신규 저장 없음 | pass |
+| C++-6-2 | verify_recording_derived_event_integration.sh exit0; E17 accepted 후 resolver 불일치는 기존 소유 유지·신규 저장 없음 | pass |
+| C++-6-3 | verify_recording_derived_event_integration.sh exit0; E17 accepted 후 resolver 예외는 기존 소유 유지·신규 저장 없음 | pass |
+| C++-6-4 | verify_recording_derived_event_integration.sh exit0; E17 accepted 후 resolver 미주입는 기존 소유 유지·신규 저장 없음 | pass |
+| C++-6-5 | verify_recording_derived_event_integration.sh exit0; E02 단일 출력도 clip_path 승격 없이 목록·직접 decode·fully satisfied | pass |
+| C++-6-6 | verify_recording_derived_event_integration.sh exit0; E09 동일 reference/선택 재요청 job ID 멱등 | pass |
+| C++-6-7 | verify_recording_derived_event_integration.sh exit0; E03 미확인 pre 구간을 유지한 verified partial 출력 | pass |
+| C++-6-8 | verify_recording_derived_event_integration.sh exit0; E07 immutable start/end/pre/post/namespace 보존 | pass |
+| C++-6-9 | verify_recording_derived_event_integration.sh exit0; E10 Event 출력이 누적되어도 원본 snapshot은 continuous만 | pass |
+| C++-6-10 | verify_recording_derived_event_integration.sh exit0; E04 provider의 동일 실제 decoder 증거 업데이트로 postroll 요청 충족 | pass |
+| C++-6-11 | verify_recording_derived_event_integration.sh exit0; E05 시간 경과만으로 coverage 없이 unknown 종료 | pass |
+| C++-6-12 | verify_recording_derived_event_integration.sh exit0; E06 provider namespace 변경을 새 증거로 혼합하지 않음 | pass |
+| C++-6-13 | verify_recording_derived_event_integration.sh exit0; E09 같은 immutable reference의 증거/선택 갱신은 새 job·이전 partial 보존 | pass |
+| C++-6-14 | verify_recording_derived_event_integration.sh exit0; E18 4097 frame 증거는 queue 접수 전 명시 거부 | pass |
+| C++-6-15 | verify_recording_derived_event_integration.sh exit0; E06/E18 provider generation 변경는 unknown 종료 | pass |
+| C++-6-16 | verify_recording_derived_event_integration.sh exit0; E06/E18 provider source 불일치는 unknown 종료 | pass |
+| C++-6-17 | verify_recording_derived_event_integration.sh exit0; E06/E18 provider 예외는 unknown 종료 | pass |
+| C++-6-18 | verify_recording_derived_event_integration.sh exit0; E06/E18 provider track 불일치는 unknown 종료 | pass |
+| C++-6-19 | verify_recording_derived_event_integration.sh exit0; E06/E18 provider channel 불일치는 unknown 종료 | pass |
+| C++-6-20 | verify_recording_derived_event_integration.sh exit0; E12 event quota 부족은 Intent/파일/내구 예약 없이 명시 거부 | pass |
+| C++-6-21 | verify_recording_derived_event_integration.sh exit0; E12 disk provider 실패를 가용량 0 성공으로 숨기지 않고 Intent 없이 거부 | pass |
+| C++-6-22 | verify_recording_derived_event_integration.sh exit0; E18 누적 261개 원본에서도 현재 반개구간 관련 1개만 조회 | pass |
+| C++-6-23 | verify_recording_derived_event_integration.sh exit0; E18 반개구간 끝 접점은 이전 원본과 비중첩 | pass |
+| C++-6-24 | verify_recording_derived_event_integration.sh exit0; E11 관련 missing binding은 누락하지 않고 snapshot에 보존 | pass |
+| C++-6-25 | verify_recording_derived_event_integration.sh exit0; E11 관련 corrupt lifecycle은 동일 snapshot에 보존 | pass |
+| C++-6-26 | verify_recording_derived_event_integration.sh exit0; E18 실제 관련 257개는 명시 cap 실패·잘린 confirmed 목록 없음 | pass |
+| C++-6-27 | verify_recording_derived_event_integration.sh exit0; E04 실제 writer 후행 finalize와 같은 요청 증거 갱신으로 2출력 완료 | pass |
+| C++-6-28 | verify_recording_derived_event_integration.sh exit0; E20 canonical accepted 중복은 원장 mutation 추가 없이 멱등 | pass |
+| C++-6-29 | verify_recording_derived_event_integration.sh exit0; E20 동일 reference ID 다른 immutable 내용의 accepted 거부 | pass |
+| C++-6-30 | verify_recording_derived_event_integration.sh exit0; E20 SQLite accepted projection의 exact reference 일치 | pass |
+| C++-6-31 | verify_recording_derived_event_integration.sh exit0; E20 accepted marker checkpoint projection 일치 | pass |
+| C++-6-32 | verify_recording_derived_event_integration.sh exit0; E15/E20 재시작 JSONL fallback accepted/no-job은 증거 발명 없이 managed unknown | pass |
+| C++-6-33 | verify_recording_derived_event_integration.sh exit0; E15/E20 재시작 SQLite rebuild accepted/no-job은 증거 발명 없이 managed unknown | pass |
+| C++-6-34 | verify_recording_derived_event_integration.sh exit0; E20 replay accepted 선행 참조 없음 거부 | pass |
+| C++-6-35 | verify_recording_derived_event_integration.sh exit0; E20 replay accepted unknown 필드 거부 | pass |
+| C++-6-36 | verify_recording_derived_event_integration.sh exit0; E20 replay accepted canonical 충돌 거부 | pass |
+| C++-6-37 | verify_recording_derived_event_integration.sh exit0; E20 replay accepted 불완전 payload 거부 | pass |
+| C++-6-38 | verify_recording_derived_event_integration.sh exit0; E08 동일 원본 snapshot의 명시 UTC 요청→실제 출력·독립 output UTC unknown | pass |
+| C++-6-39 | verify_recording_derived_event_integration.sh exit0; E08 같은 UTC의 복수 원본 후보를 자동 단일 선택하지 않음 | pass |
+| C++-6-40 | verify_recording_derived_event_integration.sh exit0; E11 UTC confirmed mapping 하나가 보여도 관련 corrupt 원본을 숨기지 않음 | pass |
+| C++-6-41 | verify_recording_derived_event_integration.sh exit0; E11 실제 UTC worker도 same-lock corrupt 원본을 available로 승격하지 않음 | pass |
+| C++-6-42 | verify_recording_derived_event_integration.sh exit0; E08 UTC unplaced를 원본 snapshot/선택에 보존 | pass |
+| C++-6-43 | verify_recording_derived_event_integration.sh exit0; E18 opt-in UTC 후보 예산 초과는 부분 confirmed 결과 없이 실패 | pass |
+| C++-6-44 | verify_recording_derived_event_integration.sh exit0; E11 삭제 대기 lifecycle도 원본 snapshot에서 누락하지 않음 | pass |
+| C++-6-45 | verify_recording_derived_event_integration.sh exit0; E01 실제 H264 decoder→EventRecord→reference→내구 job·2출력 Complete | pass |
+| C++-6-46 | verify_recording_derived_event_integration.sh exit0; E17 무주입 bridge 재생성에도 내구 managed 소유권 유지 | pass |
+| C++-6-47 | verify_recording_derived_event_integration.sh exit0; E13 Stop 이후 신규 reference 저장 없음 | pass |
+| C++-6-48 | verify_recording_derived_event_integration.sh exit0; E20 비권위 원장 조회 실패는 legacy 억제 unknown | pass |
+| C++-6-49 | verify_recording_derived_event_integration.sh exit0; E17 실제 EventStorage managed clip 억제 및 snapshot hook 유지 | pass |
+| C++-6-50 | verify_recording_derived_event_integration.sh exit0; E17 실제 EventStorage 기본 clip fallback 유지 및 snapshot hook 유지 | pass |
+| C++-6-51 | verify_recording_derived_event_integration.sh exit0; E15 별도 프로세스 Ready _exit 후 보호 복원→bridge reconcile→동일 2출력·decode·commit 1개 | pass |
+| C++-6-52 | verify_recording_derived_event_integration.sh exit0; E16 historical Complete와 terminal tombstone 현재 unavailable·재생성 없음 | pass |
+| C++-6-53 | verify_recording_derived_event_integration.sh exit0; E13 active 포함 queue cap 포화는 새 accepted/예약 없이 거부 | pass |
+| C++-6-54 | verify_recording_derived_event_integration.sh exit0; E14 실제 Run 중 동시 Stop 두 번→취소·단일 join·Failed cleanup 후 자원 해제 | pass |
+| C++-6-55 | verify_recording_derived_event_integration.sh exit0; E18 reference job top-8은 wall 역행/재시작에도 동일 ID subset·truncated unknown | pass |
+| C++-6-56 | verify_recording_derived_event_integration.sh exit0; E15 startup bounded8 more는 blocker·남은 보호 유지·자동 무한 reconcile 없음 | pass |
+| C++-7-1 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W01 disabled diagnostic preserves wait-exhausted result | pass |
+| C++-7-2 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W02 same decision snapshots and attempt timing | pass |
+| C++-7-3 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W03 callback can query worker and catalog without held locks | pass |
+| C++-7-4 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W04 callback exception preserves terminal policy | pass |
+| C++-7-5 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W07 deadline exhaustion remains immediate and distinct | pass |
+| C++-7-6 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W07 confirmed prefix remains immutable partial | pass |
+| C++-7-7 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W05 decoded identity and duration rejection categories | pass |
+| C++-7-8 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W05 namespace mismatch remains visible | pass |
+| C++-7-9 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W05 UTC has no invented decoded coordinate comparison | pass |
+| C++-7-10 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W06 value-only summaries bound sources frames and unknown ranges | pass |
+| C++-7-11 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W08 formatter hashes identifiers and fixes reason enums | pass |
+| C++-7-12 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W08 formatter refuses oversized source vector | pass |
+| C++-7-13 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W08 formatter refuses absent reference identity | pass |
+| C++-7-14 | verify_recording_derived_event_integration.sh --diagnostics-only exit0; LP09-W08 reference hash agrees with independent digest provider | pass |
 
 ## 2026-09-17 LP08 부분 출력 근거와 원인별 수정 실행 전 정의
 

@@ -1,5 +1,39 @@
 # 보완 진단·독립 재현 기록
 
+## 2026-09-17 LP09 선택 당시 미선택 원인
+
+LP09-1 계약 add6469b 뒤 opt-in 진단을 추가했다. `node scripts/internal/verify_recording_current_app.mjs --latency-only` 실제 localhost1회 exit0/45.144초, runner8PASS0FAIL. 공개 API·선택·대기·종결 정책은 불변이다. token start/end/consumed는 자동집계 없어 미집계.
+
+- 직접 관측: 대상참조 `ae1d8806…`의 요청[8,016,000,000,9,516,000,000)ns. 9번 모두 후보원본1개 [0,8,333,333,333), finalized/binding valid. 4번째1535ms부터 decoded의 마지막 유효끝9,533,333,333ns, 관련46프레임은identity모두일치하고 namespace/generation/PTS/duration거부0이었다. 최종3761ms에3750ms deadline과9회시도소진, partial1출력으로확정했다. 최대 decoded끝이 요청을 넘는다는 것만으로 내부1ns공백이 사라지지는 않는다.
+- 확정 범위: **후행 원본이 선택 snapshot에 들어오기 전 대기가 종료됐다.** 후행 분석증거를 받지 못했거나 identity불일치해서 그 원본을 버린 사례가 아니다. 실제 요청내 앞부분1ns공백3개는별도남는다. writer는설정2초가아닌다음keyframe에서확정하며, 같은실행에서후행원본[8,333,333,333,16,666,666,666)도나중에확정됐다. 후보부재관측을 writer내부의정확한Finalize시각/쓰기상태까지관측한것으로확대하지않는다.
+- 추가 직접 관측: 다른 queued참조는 최초선택이접수후9300ms/15857ms여서이미deadline이소진됐다. 해당최초선택의decoded끝은8,799,999,999ns로접수snapshot이었다. 코드상 latest_evidence 갱신은종결분기뒤라해당참조는첫평가전갱신없이종결가능하다. 대상참조와다른참조를합쳐판정하지않는다.
+- 후속 구현은 native관측identity-파일구간 공통소비와 원본확정대기/queued증거갱신을 분리한다. 단순timeout확대/기존partial재작성/분석identity대체는하지않는다. 최초과거failed작업의미수집오류원인이확정됐다는뜻도아니다.
+
+증거: [선택11행·실행 원출력](lp09-actual-output.txt), [저장 선택/Ready](completeness-d2f3b4c1-d0d6-4bd8-97e5-887e3e682a5e.json). 후자는원본rawmedia/재현bundle아니다. 수집도구출력상한으로HTTP294개중107~191번85행은미확보(209행만확보). runner의timeline185회max3592ms 보고는있지만, **이번전체HTTP gate PASS로사용하지않는다.** 선택11행/대상9회/종결/정리증거는누락없으며원인판정은이독립근거로한다. 누락기록을복원했다고꾸미거나단순증거재수집을위해제품실행을반복하지않았다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 시도1 | ref ae1d8806 / attempt1 / 3ms / 원본1 / decoded끝8799999999 / deadlinefalse / attemptsfalse | pass |
+| 시도2 | ref ae1d8806 / attempt2 / 511ms / 원본1 / decoded끝8799999999 / deadlinefalse / attemptsfalse | pass |
+| 시도3 | ref ae1d8806 / attempt3 / 1021ms / 원본1 / decoded끝9333333333 / deadlinefalse / attemptsfalse | pass |
+| 시도4 | ref ae1d8806 / attempt4 / 1535ms / 원본1 / decoded끝9533333333 / deadlinefalse / attemptsfalse | pass |
+| 시도5 | ref ae1d8806 / attempt5 / 2045ms / 원본1 / decoded끝9533333333 / deadlinefalse / attemptsfalse | pass |
+| 시도6 | ref ae1d8806 / attempt6 / 2556ms / 원본1 / decoded끝9533333333 / deadlinefalse / attemptsfalse | pass |
+| 시도7 | ref ae1d8806 / attempt7 / 3069ms / 원본1 / decoded끝9533333333 / deadlinefalse / attemptsfalse | pass |
+| 시도8 | ref ae1d8806 / attempt8 / 3579ms / 원본1 / decoded끝9533333333 / deadlinefalse / attemptsfalse | pass |
+| 시도9 | ref ae1d8806 / attempt9 / 3761ms / 원본1 / decoded끝9533333333 / deadlinetrue / attemptstrue | pass |
+| 시도10 | ref 31127469 / attempt1 / 9300ms / 원본1 / decoded끝8799999999 / deadlinetrue / attemptsfalse | pass |
+| 시도11 | ref ecb24ae6 / attempt1 / 15857ms / 원본2 / decoded끝8799999999 / deadlinetrue / attemptsfalse | pass |
+| 실제 참조 결박 | target SHA256 일치·연속1~9·종결관측 oracle | pass |
+| 별도 저장 진단 | 복제본 bytes/hash exact·Ready 요약보존·원본불변 | pass |
+| 프로세스 정리 | PID50632 exit0, HTTP56413/RTSP56414 closed, UDP closed | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| media-server-current-integration-EOw8iV (실제 절대경로는원출력) | 격리입력/서버저장소/복제본/GST캐시 | 84,068,641B | 소유권확인후삭제 | rootAbsent=true | runner cleanup |
+| completeness-d2f3b4c1-d0d6-4bd8-97e5-887e3e682a5e.json | 비민감typed시각·해시증거 | 파일크기는Git diff/실제파일로확인 | 보존 | 저장소상대링크 | partial원인대조 |
+
+
 ## 2026-09-17 LP08 실제 부분 출력 분류 및 수정 경계
 
 명령 `node scripts/internal/verify_recording_current_app.mjs --latency-only`, source 3fa16a06, 격리 localhost 권한 실행1회. exit0/39.495초/7PASS/0FAIL. HTTP284개 sequence1~284 전수 보존, timeline181개 모두 기존4000ms 이내(max3755ms). 출력1개 partial. [원출력](lp08-actual-output.txt), [선택·Ready 안전 증거](completeness-b63cceda-3b52-4773-be4d-a5de8bc6c5d9.json). JSON99,487B는 typed 저장 provenance·hashed 식별·구간 요약이며 raw media/개인정보/현재파일검사/재현 bundle은 아니다. token start/end/consumed는 도구집계미제공으로 미집계; elapsed는 runner.

@@ -9,6 +9,7 @@
 #include <atomic>
 #include <chrono>
 #include <csignal>
+#include <cstdlib>
 #include <filesystem>
 #include <iostream>
 #include <memory>
@@ -498,6 +499,13 @@ int RunMediaServerApplication(int argc, char** argv) {
         bridge_options.derived_service=&derived_job_service;
         bridge_options.derived_options=recording::RecordingRuntimeEventBudget(
             static_cast<std::int64_t>(config.recording_segment_duration_seconds)*1000,config.analysis_event_post_event_ms);
+        const char* selection_trace = std::getenv("MEDIA_SERVER_VERIFY_RECORDING_SELECTION_TRACE");
+        if (selection_trace && std::string(selection_trace) == "1") {
+            bridge_options.derived_options.diagnostic = [](const auto& reference, const auto& diagnostic) {
+                const auto safe = recording::SerializeDerivedEventAttemptDiagnostic(reference, diagnostic);
+                std::cerr << ("[recording-selection-attempt] " + safe + "\n");
+            };
+        }
         std::weak_ptr<recording::RecordingEvidenceObserver> weak_evidence=recording_evidence;
         bridge_options.derived_options.latest_evidence=[weak_evidence](const auto& reference) {
             if(auto observer=weak_evidence.lock())return observer->Latest(reference);

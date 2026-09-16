@@ -2,6 +2,8 @@
 #pragma once
 #include "analysis/analysis_types.h"
 #include "recording/recording_catalog.h"
+#include "recording/recording_derived_selection.h"
+#include <array>
 #include <atomic>
 #include <condition_variable>
 #include <deque>
@@ -15,6 +17,49 @@ struct DerivedEventEvidenceUpdate {
     std::string source_id,channel_id;
     std::shared_ptr<const analysis::DecodedIntervalSnapshot> evidence;
 };
+enum class DerivedEventDiagnosticReason {
+    MultipleTimeCandidates, UnconfirmedInterval, OriginalDeleted, OriginalCoverageUnconfirmed,
+    DirectTimeInterval, MultipleUtcCandidates, UnconfirmedUtcMapping, PiecewiseUtc,
+    MissingOriginalIdentity, Other, Count
+};
+struct DerivedEventSourceDiagnostic {
+    std::string segment_id,media_epoch_id,source_generation,track_id;
+    std::uint64_t generation_order{0};
+    std::int64_t start_pts{0};std::optional<std::int64_t> end_pts;
+    std::int32_t time_base_num{0},time_base_den{0};
+    RecordingLifecycle lifecycle{RecordingLifecycle::Unknown};
+    bool deleted{false},binding_present{false},binding_valid{false},available_for_selection{false};
+};
+struct DerivedEventDecodedDiagnostic {
+    // UTC request coordinates cannot be compared to decoded media PTS here.
+    bool namespace_valid{false},range_comparable{false},incomplete{false},frames_truncated{false};
+    std::size_t frame_count{0},relevant_count{0},identity_matched{0},identity_rejected{0},
+        generation_mismatch{0},pts_mismatch{0},duration_invalid{0};
+    std::optional<std::int64_t> minimum_pts_ns,maximum_pts_ns,maximum_valid_end_ns;
+};
+struct DerivedEventUnknownDiagnostic {
+    std::int64_t start_ns{0},end_ns{0};
+    DerivedEventDiagnosticReason reason{DerivedEventDiagnosticReason::Other};
+};
+struct DerivedEventAttemptDiagnostic {
+    // Decision-time snapshot. Callback duration is not included and is not added to the wait budget.
+    std::size_t attempt{0},attempt_limit{0};std::int64_t elapsed_ms{0},wait_ms{0};
+    bool deadline_exhausted{false},attempt_exhausted{false},selection_complete{false};
+    std::int64_t expanded_start_ns{0},expanded_end_ns{0};
+    std::size_t source_count{0},unknown_count{0};bool sources_truncated{false},unknown_truncated{false};
+    std::vector<DerivedEventSourceDiagnostic> sources;
+    DerivedEventDecodedDiagnostic decoded;
+    std::array<std::size_t,6> slice_state_counts{};
+    std::array<std::size_t,static_cast<std::size_t>(DerivedEventDiagnosticReason::Count)> reason_counts{};
+    std::vector<DerivedEventUnknownDiagnostic> unknown_ranges;
+};
+// Bounded value-only summary, not an admission API. IDs stay internal; external formatters must hash them.
+DerivedEventAttemptDiagnostic BuildDerivedEventAttemptDiagnostic(
+    const std::vector<RecordingDerivedSourceSnapshotEntry>&,
+    const std::vector<DerivedSourceEvidence>&,const std::vector<bool>& binding_valid,
+    const analysis::DecodedIntervalSnapshot&,const DerivedRecordingSelection&);
+std::string SerializeDerivedEventAttemptDiagnostic(const RecordingConsumerReferenceV1&,
+    const DerivedEventAttemptDiagnostic&);
 struct DerivedEventWorkerOptions {
     std::size_t queue_capacity{16},max_attempts{16};
     std::int64_t wait_ms{1000},retry_ms{100};
@@ -23,6 +68,9 @@ struct DerivedEventWorkerOptions {
     std::function<DerivedEventEvidenceUpdate(const RecordingConsumerReferenceV1&)> latest_evidence;
     std::function<std::int64_t()> now_ms;
     std::string budget_reason;
+    // Opt-in; all aggregation/callback exceptions are isolated. Must be thread-safe/nonblocking.
+    // Invoked outside worker/catalog locks with the exact selection decision inputs.
+    std::function<void(const RecordingConsumerReferenceV1&,const DerivedEventAttemptDiagnostic&)> diagnostic{};
 };
 DerivedEventWorkerOptions RecordingRuntimeEventBudget(std::int64_t segment_ms,std::int64_t post_ms);
 class DerivedEventWorker {
@@ -37,6 +85,7 @@ private:
         RecordingConsumerReferenceV1 reference;
         std::shared_ptr<const analysis::DecodedIntervalSnapshot> evidence;
         std::chrono::steady_clock::time_point deadline;
+        std::chrono::steady_clock::time_point submitted;
     };
     void Loop();
     void Process(Pending);

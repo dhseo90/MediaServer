@@ -1,0 +1,17 @@
+명령: MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_GST_PLUGIN_PROFILE=headless ./server.sh build
+결과: exit0
+[env] local override skipped
+[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+[2/2] build
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/event_recording_bridge.cpp.o
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_event_worker.cpp.o
+[  3%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_evidence_observer.cpp.o
+[  4%] Linking CXX static library libmedia_server_runtime.a
+[ 98%] Built target media_server_runtime
+[ 98%] Building CXX object CMakeFiles/media_server.dir/src/application/media_server_application.cpp.o
+[ 99%] Linking CXX executable media_server
+[100%] Built target media_server
+[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server

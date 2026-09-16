@@ -1,0 +1,390 @@
+lp09-js-red exit=1
+✖ LP09-J01 분할 로그에서 안전한 행만 수집 (0.273084ms)
+✖ LP09-J01 extra 필드 거부 (0.329875ms)
+✖ LP09-J01 hash 필드 거부 (0.068959ms)
+✖ LP09-J01 enum 필드 거부 (0.05925ms)
+✖ LP09-J01 range 필드 거부 (0.078792ms)
+✖ LP09-J01 count 필드 거부 (0.06025ms)
+✖ LP09-J01 로그 상한과 미완성 행 거부 (0.039166ms)
+✖ LP09-J02 정확한 참조와 연속 시도 종결 확인 (0.048083ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 0
+ℹ fail 8
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 31.747125
+
+✖ failing tests:
+
+test at scripts/internal/recording_selection_trace.test.mjs:5:1
+✖ LP09-J01 분할 로그에서 안전한 행만 수집 (0.273084ms)
+  TypeError: trace.createSelectionTraceCollector is not a function
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:5:54)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17)
+
+test at scripts/internal/recording_selection_trace.test.mjs:6:59
+✖ LP09-J01 extra 필드 거부 (0.329875ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /selection-trace-invalid/. Input:
+  
+  'TypeError: trace.validateSelectionTrace is not a function'
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: trace.validateSelectionTrace is not a function
+        at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:378
+        at getActual (node:assert:611:5)
+        at strict.throws (node:assert:759:24)
+        at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
+        at Test.runInAsyncScope (node:async_hooks:214:14)
+        at Test.run (node:internal/test_runner/test:1106:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+        at Test.postRun (node:internal/test_runner/test:1235:19)
+        at Test.run (node:internal/test_runner/test:1163:12)
+        at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3),
+    expected: /selection-trace-invalid/,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_selection_trace.test.mjs:6:59
+✖ LP09-J01 hash 필드 거부 (0.068959ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /selection-trace-invalid/. Input:
+  
+  'TypeError: trace.validateSelectionTrace is not a function'
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: trace.validateSelectionTrace is not a function
+        at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:378
+        at getActual (node:assert:611:5)
+        at strict.throws (node:assert:759:24)
+        at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
+        at Test.runInAsyncScope (node:async_hooks:214:14)
+        at Test.run (node:internal/test_runner/test:1106:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+        at Test.postRun (node:internal/test_runner/test:1235:19)
+        at Test.run (node:internal/test_runner/test:1163:12)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:788:7),
+    expected: /selection-trace-invalid/,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_selection_trace.test.mjs:6:59
+✖ LP09-J01 enum 필드 거부 (0.05925ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /selection-trace-invalid/. Input:
+  
+  'TypeError: trace.validateSelectionTrace is not a function'
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: trace.validateSelectionTrace is not a function
+        at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:378
+        at getActual (node:assert:611:5)
+        at strict.throws (node:assert:759:24)
+        at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
+        at Test.runInAsyncScope (node:async_hooks:214:14)
+        at Test.run (node:internal/test_runner/test:1106:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+        at Test.postRun (node:internal/test_runner/test:1235:19)
+        at Test.run (node:internal/test_runner/test:1163:12)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:788:7),
+    expected: /selection-trace-invalid/,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_selection_trace.test.mjs:6:59
+✖ LP09-J01 range 필드 거부 (0.078792ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /selection-trace-invalid/. Input:
+  
+  'TypeError: trace.validateSelectionTrace is not a function'
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: trace.validateSelectionTrace is not a function
+        at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:378
+        at getActual (node:assert:611:5)
+        at strict.throws (node:assert:759:24)
+        at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
+        at Test.runInAsyncScope (node:async_hooks:214:14)
+        at Test.run (node:internal/test_runner/test:1106:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+        at Test.postRun (node:internal/test_runner/test:1235:19)
+        at Test.run (node:internal/test_runner/test:1163:12)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:788:7),
+    expected: /selection-trace-invalid/,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_selection_trace.test.mjs:6:59
+✖ LP09-J01 count 필드 거부 (0.06025ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /selection-trace-invalid/. Input:
+  
+  'TypeError: trace.validateSelectionTrace is not a function'
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: TypeError: trace.validateSelectionTrace is not a function
+        at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:378
+        at getActual (node:assert:611:5)
+        at strict.throws (node:assert:759:24)
+        at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:6:361)
+        at Test.runInAsyncScope (node:async_hooks:214:14)
+        at Test.run (node:internal/test_runner/test:1106:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+        at Test.postRun (node:internal/test_runner/test:1235:19)
+        at Test.run (node:internal/test_runner/test:1163:12)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:788:7),
+    expected: /selection-trace-invalid/,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_selection_trace.test.mjs:7:1
+✖ LP09-J01 로그 상한과 미완성 행 거부 (0.039166ms)
+  TypeError: trace.createSelectionTraceCollector is not a function
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:7:52)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at scripts/internal/recording_selection_trace.test.mjs:8:1
+✖ LP09-J02 정확한 참조와 연속 시도 종결 확인 (0.048083ms)
+  TypeError: trace.matchSelectionTrace is not a function
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:8:65)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+
+lp09-js-green exit=0
+✔ LP09-J01 분할 로그에서 안전한 행만 수집 (0.726416ms)
+✔ LP09-J01 extra 필드 거부 (0.142417ms)
+✔ LP09-J01 hash 필드 거부 (0.329584ms)
+✔ LP09-J01 enum 필드 거부 (0.066042ms)
+✔ LP09-J01 range 필드 거부 (0.055333ms)
+✔ LP09-J01 count 필드 거부 (0.04275ms)
+✔ LP09-J01 로그 상한과 미완성 행 거부 (0.138666ms)
+✔ LP09-J02 정확한 참조와 연속 시도 종결 확인 (0.142583ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 32.92475
+
+
+lp09-js-all exit=0
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-WjCADY","bytes":819,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-VgKWrn","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-rVLsXB","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-UnSpNp","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-dp1L8q","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-IlRpN5","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-en9HDl","bytes":8,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-e1vxLs","bytes":96,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-AGR03x","bytes":1619,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-KKl7RX","bytes":1619,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-XEe3li","bytes":1620,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-7UefDj","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-o2VQX2","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-kMKXpg","bytes":8,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-d18iSe","bytes":1601,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-lN9s3m","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-FI2X15","bytes":98,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-wxFw0R","bytes":1954,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-9SqWAs","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-RNm5q9","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gPlpLc","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-bNQ0du","bytes":274,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Qbnnvd","bytes":97,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-yPz8Tm","bytes":163,"removed":true}
+✔ LP08-B01 완료 작업 안전 증거 선보존 (10.294958ms)
+✔ LP08-B02 field 증거 실패 시 정리 차단 (0.415917ms)
+✔ LP08-B02 enum 증거 실패 시 정리 차단 (0.258791ms)
+✔ LP08-B02 range 증거 실패 시 정리 차단 (0.237ms)
+✔ LP08-B02 throw 증거 실패 시 정리 차단 (0.210083ms)
+✔ LP08-B02 timeout 증거 실패 시 정리 차단 (0.196416ms)
+✔ LP08-B02 existing 증거 실패 시 정리 차단 (5.097916ms)
+✔ LP08-B02 symlink 증거 실패 시 정리 차단 (5.323209ms)
+✔ LP06-B01 진단 파일을 재현 전에 보존 (22.816958ms)
+✔ LP06-B02 실제 자식 exit 뒤 최초 증거 유지 (42.944541ms)
+✔ LP06-B02 실제 자식 timeout 뒤 최초 증거 유지 (75.124666ms)
+✔ LP06-B03 진단 throw 시 재현·정리 거부 (0.378209ms)
+✔ LP06-B03 진단 unsafe 시 재현·정리 거부 (0.289625ms)
+✔ LP06-B04 최초 보존 실패 시 재현 금지 (3.294166ms)
+✔ LP06-B04 후속 보존 실패 시 최초 파일 유지 (22.019792ms)
+✔ LP06-B05 진단 미보존 root 정리 금지·소유권 불일치 거부 (0.658208ms)
+✔ LP06-B06 symlink 증거 덮어쓰기 거부 (4.218959ms)
+✔ LP06-B06 성공 결과 분리 보존·미등록 필드 거부 (23.037ms)
+✔ LP06-B07 상세 수집 throw 시 기본 진단 유지·재현 금지 (7.746291ms)
+✔ LP06-B07 상세 수집 timeout 시 기본 진단 유지·재현 금지 (59.559916ms)
+✔ LP06-B07 상세 수집 identity 시 기본 진단 유지·재현 금지 (7.343708ms)
+✔ LP06-B07 상세 수집 persist 시 기본 진단 유지·재현 금지 (12.472583ms)
+✔ LP06-B08 기본 자식은 plugin 환경 준비 실패와 독립 (28.396917ms)
+✔ LP06-B09 만료 시 자식 미기동·남은 시간만 대기 (103.730792ms)
+✔ LP09-J01 분할 로그에서 안전한 행만 수집 (0.726625ms)
+✔ LP09-J01 extra 필드 거부 (0.146667ms)
+✔ LP09-J01 hash 필드 거부 (0.336375ms)
+✔ LP09-J01 enum 필드 거부 (0.07225ms)
+✔ LP09-J01 range 필드 거부 (0.057ms)
+✔ LP09-J01 count 필드 거부 (0.048333ms)
+✔ LP09-J01 로그 상한과 미완성 행 거부 (0.133375ms)
+✔ LP09-J02 정확한 참조와 연속 시도 종결 확인 (0.158083ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 474.049708
+
+lp09-js-final exit=0
+✔ P0-DIAG01 정상 header/body 시간·안전 route 분류와 비밀 미노출 (0.726666ms)
+✔ P0-DIAG02 header timeout 고정 진단과 실패 유지 (0.313292ms)
+✔ P0-DIAG03 body timeout 부분 수신 측정·완료 거부 (0.13875ms)
+✔ S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박 (1.229459ms)
+✔ S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부 (0.483ms)
+✔ S11-CI02 nonzero 실패 후 나머지 미실행 (0.279666ms)
+✔ S11-CI02 signal 실패 후 나머지 미실행 (0.144167ms)
+✔ S11-CI02 output-limit 실패 후 나머지 미실행 (0.106208ms)
+✔ S11-CI02 summary-missing 실패 후 나머지 미실행 (0.097042ms)
+✔ S11-CI02 summary-duplicate 실패 후 나머지 미실행 (0.140791ms)
+✔ S11-CI02 cleanup-failed 실패 후 나머지 미실행 (0.10425ms)
+✔ S11-CI02 port-missing 실패 후 나머지 미실행 (0.108792ms)
+✔ S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리 (0.334375ms)
+✔ S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부 (0.526166ms)
+✔ S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup (4.922417ms)
+✔ S11-CI05 누락·중복item·불안정total·truncated·cap 거부 (0.248375ms)
+✔ S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부 (0.169375ms)
+✔ S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 (0.215584ms)
+✔ S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리 (0.185417ms)
+✔ S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 (0.141959ms)
+✔ LP04-A 목표 이전은 대기하고 해당 구간만 선택 (0.306917ms)
+✔ LP04-A 경계와 프레임을 놓치면 다른 구간으로 대체 금지 (0.157542ms)
+✔ LP04-A 실제 dispatch 정확 일치만 허용 (0.069458ms)
+✔ LP03-A failed는 완료 대기 대신 즉시 중단 (0.085583ms)
+✔ P0-HTTP01 pending은 전이 완료가 아님 (0.043958ms)
+✔ P0-HTTP01 partial은 지연 관측만 가능 (0.041458ms)
+✔ P0-HTTP01 다른 참조와 모순 파일은 거부 (0.06525ms)
+✔ P0-HTTP01 원래 완전 출력 검사는 부분 출력 거부 유지 (0.09925ms)
+✔ LP05-04 같은 원본의 앞선 비중첩 mapping 뒤 중첩 구간도 보존 (1.088875ms)
+✔ LP05-04 겹치는 원본 전수·경계 제외·미상 분리·비밀 미노출 (0.511583ms)
+✔ P0-STATE01 complete1 count와 기존 two-output 거부 구분 (0.233292ms)
+✔ P0-STATE02 pending partial complete2 변화와 8개 상한 (0.68975ms)
+✔ P0-STATE03 raw ID/path/unknown enum/request 비밀 미노출 (0.058708ms)
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-FiVlIB","bytes":819,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-bJzjUN","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Q7Qugf","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-6UJpc1","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-t6NkmL","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-OVTEWh","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-KYNUEP","bytes":8,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-0mdqYg","bytes":96,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-u3srrh","bytes":1619,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-5dlaf6","bytes":1619,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-6wXlH5","bytes":1620,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-sWuACY","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-OdRlrS","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-se2eHP","bytes":8,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-FPdNb7","bytes":1601,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-XNBlNT","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Qrbdhm","bytes":98,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-EX83dY","bytes":1954,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-BXeNGp","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-FVink7","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-nsb372","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-UyN5fP","bytes":274,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-xHLpfC","bytes":97,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-e8GV7F","bytes":163,"removed":true}
+✔ LP08-B01 완료 작업 안전 증거 선보존 (10.571708ms)
+✔ LP08-B02 field 증거 실패 시 정리 차단 (0.421708ms)
+✔ LP08-B02 enum 증거 실패 시 정리 차단 (0.249542ms)
+✔ LP08-B02 range 증거 실패 시 정리 차단 (0.241334ms)
+✔ LP08-B02 throw 증거 실패 시 정리 차단 (0.20975ms)
+✔ LP08-B02 timeout 증거 실패 시 정리 차단 (0.206459ms)
+✔ LP08-B02 existing 증거 실패 시 정리 차단 (5.556333ms)
+✔ LP08-B02 symlink 증거 실패 시 정리 차단 (3.825541ms)
+✔ LP06-B01 진단 파일을 재현 전에 보존 (23.200542ms)
+✔ LP06-B02 실제 자식 exit 뒤 최초 증거 유지 (42.825125ms)
+✔ LP06-B02 실제 자식 timeout 뒤 최초 증거 유지 (76.064333ms)
+✔ LP06-B03 진단 throw 시 재현·정리 거부 (0.349333ms)
+✔ LP06-B03 진단 unsafe 시 재현·정리 거부 (0.342125ms)
+✔ LP06-B04 최초 보존 실패 시 재현 금지 (4.09775ms)
+✔ LP06-B04 후속 보존 실패 시 최초 파일 유지 (20.46025ms)
+✔ LP06-B05 진단 미보존 root 정리 금지·소유권 불일치 거부 (0.865375ms)
+✔ LP06-B06 symlink 증거 덮어쓰기 거부 (4.737583ms)
+✔ LP06-B06 성공 결과 분리 보존·미등록 필드 거부 (22.92125ms)
+✔ LP06-B07 상세 수집 throw 시 기본 진단 유지·재현 금지 (7.929917ms)
+✔ LP06-B07 상세 수집 timeout 시 기본 진단 유지·재현 금지 (59.194458ms)
+✔ LP06-B07 상세 수집 identity 시 기본 진단 유지·재현 금지 (6.910458ms)
+✔ LP06-B07 상세 수집 persist 시 기본 진단 유지·재현 금지 (11.174958ms)
+✔ LP06-B08 기본 자식은 plugin 환경 준비 실패와 독립 (28.755542ms)
+✔ LP06-B09 만료 시 자식 미기동·남은 시간만 대기 (103.133959ms)
+✔ LP09-J01 분할 로그에서 안전한 행만 수집 (0.783125ms)
+✔ LP09-J01 extra 필드 거부 (0.155125ms)
+✔ LP09-J01 hash 필드 거부 (0.420291ms)
+✔ LP09-J01 enum 필드 거부 (0.054ms)
+✔ LP09-J01 range 필드 거부 (0.054917ms)
+✔ LP09-J01 count 필드 거부 (0.04325ms)
+✔ LP09-J01 로그 상한과 미완성 행 거부 (0.127167ms)
+✔ LP09-J02 정확한 참조와 연속 시도 종결 확인 (0.143583ms)
+ℹ tests 65
+ℹ suites 0
+ℹ pass 65
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 481.568917
