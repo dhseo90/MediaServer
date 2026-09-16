@@ -1,0 +1,18 @@
+[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-NWtLoA bytes=14624652 removed=true
+✔ LP05-01 typed failed known0 (2288.631083ms)
+✔ LP05-01 typed failed known1 (1536.024083ms)
+✔ LP05-01 typed failed known2 (1528.9725ms)
+✔ LP05-02 typed failed unknown3 (1526.991375ms)
+✔ LP05-02 typed failed unknown4 (1567.808459ms)
+✔ LP05-03 complete mode still rejects failed job (1587.478666ms)
+✔ LP05-03 diagnostic rejects nonfailed state safely (1467.506ms)
+✔ LP05-03 rejects symlink copy without original mutation (1473.945416ms)
+✔ LP05-03 rejects hardlink copy without original mutation (1470.655375ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16185.87575

@@ -43,8 +43,9 @@ int main(int argc,char** argv){
             bytes+=static_cast<std::uint64_t>(current.st_size);Require(bytes<=512ULL*1024*1024,"copy-byte-bound");
         }
         recording::RecordingJournal journal(recording::RecordingJournal::ManagedOptions{copy,{}});
-        recording::RecordingCatalog::Options options(copy/"projection.sqlite",copy,true);options.enable_v2_storage=true;
-        recording::RecordingCatalog catalog(journal,options);std::string error;
+        std::string error;Require(journal.Open(&error),"copy-journal-open");
+        recording::RecordingCatalog::Options options(copy/"recording-catalog.sqlite3",copy,true);options.enable_v2_storage=true;
+        recording::RecordingCatalog catalog(journal,options);
         Require(catalog.Open(&error),"copy-catalog-open");
         recording::RecordingDerivedReferenceResult result;
         Require(catalog.QueryDerivedReferenceResult(reference,&result,&error)&&!result.truncated&&result.managed&&result.jobs.size()==1,"reference-job");

@@ -1,27 +1,29 @@
-// 실제 서버 없이 adapter의 원본/alias 거부를 검사한다.
-import test from 'node:test';
+import test,{before,after} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
-import {spawnSync} from 'node:child_process';
+import os from 'node:os';
+import crypto from 'node:crypto';
+import {execFileSync,spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-test('S11-CI11 adapter 원본선택·symlink·원본hardlink 거부와 원본불변',()=>{
-  const root=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'media-server-current-integration-unit-')));fs.chmodSync(root,0o700);
-  const directory=path.dirname(fileURLToPath(import.meta.url));
-  try{
-    for(const sub of ['recordings','projection-copy-1/recordings','tmp','gst-cache'])fs.mkdirSync(path.join(root,sub),{recursive:true,mode:0o700});
-    const original=path.join(root,'recordings/fixture'),copy=path.join(root,'projection-copy-1/recordings/fixture');fs.writeFileSync(original,'source-unchanged',{mode:0o600});
-    const before=fs.readFileSync(original),stat=fs.statSync(original);
-    const build=spawnSync('/bin/bash',[path.join(directory,'build_recording_current_archive_probe.sh'),root],{env:{PATH:process.env.PATH,HOME:root,TMPDIR:path.join(root,'tmp')},encoding:'utf8',timeout:30000});
-    assert.equal(build.status,0,'adapter compile 선수조건 실패: '+build.stderr);
-    const run=index=>spawnSync(path.join(root,'archive-probe'),[root,index,'reference-unit'],{env:{PATH:process.env.PATH},encoding:'utf8',timeout:5000});
-    let result=run('recordings');assert.equal(result.status,1);assert.match(result.stderr,/copy-index/);
-    fs.symlinkSync(original,copy);result=run('1');assert.equal(result.status,1);assert.match(result.stderr,/copy-entry-bound/);fs.unlinkSync(copy);
-    fs.linkSync(original,copy);result=run('1');assert.equal(result.status,1);assert.match(result.stderr,/copy-regular-single-link/);fs.unlinkSync(copy);
-    assert.deepEqual(fs.readFileSync(original),before);assert.equal(fs.statSync(original).ino,stat.ino);assert.equal(fs.statSync(original).nlink,1);
-  }finally{
-    let bytes=0;function size(dir){for(const item of fs.readdirSync(dir)){const file=path.join(dir,item),s=fs.lstatSync(file);if(s.isDirectory())size(file);else bytes+=s.size;}}size(root);
-    fs.rmSync(root,{recursive:true});assert(!fs.existsSync(root));console.log(`[cleanup] path=${root} bytes=${bytes} absent=true`);
-  }
+const here=path.dirname(fileURLToPath(import.meta.url)),repo=path.resolve(here,'../..');
+const root=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'media-server-archive-probe-tests-')));fs.chmodSync(root,0o700);
+const probe=path.join(root,'probe'),fixture=path.join(root,'fixture');
+function scan(dir){const rows=[];function walk(p){for(const name of fs.readdirSync(p).sort()){const full=path.join(p,name),s=fs.lstatSync(full);assert(!s.isSymbolicLink());if(s.isDirectory())walk(full);else rows.push([path.relative(dir,full),s.size,s.ino,s.nlink,crypto.createHash('sha256').update(fs.readFileSync(full)).digest('hex')]);}}walk(dir);return rows;}
+function run(binary,args){return spawnSync(binary,args,{encoding:'utf8',timeout:30000,maxBuffer:1024*1024});}
+function setup(mode){const dir=fs.mkdtempSync(path.join(root,'media-server-current-integration-'));fs.chmodSync(dir,0o700);const made=run(fixture,[dir,String(mode)]);assert.equal(made.status,0,'typed fixture must be created');assert.match(made.stdout,/fixtureTypedReadback/);const copy=path.join(dir,'projection-copy-1','recordings');fs.mkdirSync(path.dirname(copy),{mode:0o700});fs.cpSync(path.join(dir,'recordings'),copy,{recursive:true});return {dir,copy,original:path.join(dir,'recordings')};}
+function diagnose(f,args=['--diagnose-failed']){return run(probe,[f.dir,'1','job-service-ref',...args]);}
+before(()=>{
+ const archive=path.join(repo,'build-gst-onnx/libmedia_server_runtime.a');const stamp=fs.statSync(archive).mtimeMs;
+ function fresh(dir){for(const e of fs.readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,e.name);if(e.isDirectory())fresh(p);else if(/\.(h|hpp|cpp)$/.test(e.name))assert(fs.statSync(p).mtimeMs<=stamp,'runtime archive must match product source');}}fresh(path.join(repo,'include'));fresh(path.join(repo,'src'));
+ const tokens=fs.readFileSync(path.join(repo,'build-gst-onnx/CMakeFiles/media_server.dir/link.txt'),'utf8').trim().split(/\s+/);const index=tokens.indexOf('libmedia_server_runtime.a');assert(index>=0);const libs=[archive,...tokens.slice(index+1)];
+ const flags=execFileSync('bash',['-c','source "$1"; media_server_apply_homebrew_gst_env; pkg-config --cflags gstreamer-app-1.0 openssl sqlite3','probe-env',path.join(here,'env_common.sh')],{encoding:'utf8'}).trim().split(/\s+/);
+ for(const [source,out] of [['recording_current_archive_probe.cpp',probe],['recording_current_archive_probe_fixture.cpp',fixture]]){const result=run(process.env.CXX||'c++',['-std=c++17','-Wall','-Wextra','-Werror','-pthread','-I'+path.join(repo,'include'),...flags,'-DMEDIA_SERVER_USE_GSTREAMER=1','-DMEDIA_SERVER_USE_OPENSSL=1','-DMEDIA_SERVER_USE_SQLITE3=1',path.join(here,source),...libs,'-o',out]);if(result.status!==0)process.stderr.write(result.stderr||'compile failed\n');assert.equal(result.status,0,'compile '+source);}
 });
+after(()=>{let bytes=0;function size(p){const s=fs.lstatSync(p);if(s.isDirectory())for(const n of fs.readdirSync(p))size(path.join(p,n));else bytes+=s.size;}size(root);assert(path.basename(root).startsWith('media-server-archive-probe-tests-')&&!fs.lstatSync(root).isSymbolicLink());fs.rmSync(root,{recursive:true});console.log(`[cleanup] owned_root=${root} bytes=${bytes} removed=${!fs.existsSync(root)}`);assert(!fs.existsSync(root));});
+const known=['job-remux: file-original-timestamp-mismatch','job-remux: source-binding-incomplete','job-source-unavailable'];
+for(let i=0;i<5;i++)test(`LP05-${i<3?'01':'02'} typed failed ${i<3?'known'+i:'unknown'+i}`,()=>{const f=setup(i),before=scan(f.original),r=diagnose(f);assert.equal(r.status,0,'diagnostic must open typed offline Catalog');assert.equal(r.stderr,'');const value=JSON.parse(r.stdout);assert.deepEqual(value,{state:'failed',failureReason:known[i]||'unknown',sourceCount:2,outputCount:0,plannedOutputCount:2,fileReceiptCount:0,copyCatalogOpened:true});assert(!r.stdout.includes('private')&&!r.stdout.includes('canary'));assert.deepEqual(scan(f.original),before,'original bytes/inodes unchanged');});
+test('LP05-03 complete mode still rejects failed job',()=>{const f=setup(0),before=scan(f.original),r=diagnose(f,[]);assert.equal(r.status,1);assert.match(r.stderr,/complete-job/);assert.deepEqual(scan(f.original),before);});
+test('LP05-03 diagnostic rejects nonfailed state safely',()=>{const f=setup(5),before=scan(f.original),r=diagnose(f);assert.equal(r.status,1);assert.equal(r.stderr,'{"diagnosticError":"archive-probe-failed"}\n');assert.equal(r.stdout,'');assert.deepEqual(scan(f.original),before);});
+test('LP05-03 rejects original recordings index without mutation',()=>{const f=setup(0),before=scan(f.original),r=run(probe,[f.dir,'recordings','job-service-ref','--diagnose-failed']);assert.equal(r.status,1);assert.equal(r.stderr,'{"diagnosticError":"archive-probe-failed"}\n');assert.equal(r.stdout,'');assert.deepEqual(scan(f.original),before);});
+for(const kind of ['symlink','hardlink'])test(`LP05-03 rejects ${kind} copy without original mutation`,()=>{const f=setup(0);if(kind==='symlink'){fs.rmSync(f.copy,{recursive:true});fs.symlinkSync(f.original,f.copy);}else{const entry=scan(f.original)[0][0];fs.unlinkSync(path.join(f.copy,entry));fs.linkSync(path.join(f.original,entry),path.join(f.copy,entry));}const before=scan(f.original),r=diagnose(f);assert.equal(r.status,1);assert.equal(r.stderr,'{"diagnosticError":"archive-probe-failed"}\n');assert.equal(r.stdout,'');assert.deepEqual(scan(f.original),before);});

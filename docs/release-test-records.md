@@ -1,5 +1,71 @@
 # Release Test Records
 
+## 2026-09-16 보완 진단 1~5 단계 사전등록
+
+1번 결과: 검증기 journal.Open 누락과 managed SQLite 경로 불일치를 보완했다. 이는 제품 job 실패 원인과 별개다.
+`node --test scripts/internal/recording_current_archive_probe.test.mjs`: 최초6FAIL/3PASS(exit1), 보존용동일RED1회 뒤 최소수정9/9(exit0), 원본index거부 보강후10/10(exit0,17.241869초).
+중복 RED는 메인의 재실행중단 전달 전 시작된 실행이며 추가 반복하지 않았다. known/nonfailed 선수실패를 정상진단 증거로 쓰지 않는다.
+원출력: [RED](release-artifacts/v4.1.0/s11-preparation-mapping/archive-probe-test-red.txt), [GREEN](release-artifacts/v4.1.0/s11-preparation-mapping/archive-probe-test-green.txt), [최종10개](release-artifacts/v4.1.0/s11-preparation-mapping/archive-probe-test-green2.txt).
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP05-01 known0 | timestamp-mismatch typed 실패코드 | pass | 초기 catalog open 실패 후 pass |
+| LP05-01 known1 | source-binding-incomplete typed 실패코드 | pass | 초기 catalog open 실패 후 pass |
+| LP05-01 known2 | source-unavailable typed 실패코드 | pass | 초기 catalog open 실패 후 pass |
+| LP05-02 unknown3 | 경로·token 형태 원문 unknown 처리 | pass | 초기 catalog open 실패 후 pass |
+| LP05-02 unknown4 | known 접두부+추가원문 unknown 처리 | pass | 초기 catalog open 실패 후 pass |
+| LP05-03 complete | failed를 complete로 인정하지 않음 | pass | 초기 선수실패 후 정확 complete-job 거부 |
+| LP05-03 nonfailed | 진단에서 intent 거부 | pass | 초기 선수실패 증거는 무효, 수정 후 직접검증 |
+| LP05-03 original | 원본 index 직접선택 거부 | pass | 최종 추가검사 |
+| LP05-03 symlink | symlink 복제본 거부 | pass | 원본 hash/bytes/inode 불변 |
+| LP05-03 hardlink | hardlink 복제본 거부 | pass | 원본 hash/bytes/inode 불변 |
+
+모든 case 원본 해시·크기·inode 불변 확인. 소유 test root는 각 실행 finally에서 삭제하고 부재 확인했으며 실제 root/bytes는 위 원출력 cleanup에 보존했다.
+기존 complete 정상 출력2개 oracle는 이번 failed fixture로 검증하지 않았다. 제품수정·actual app 실행 없음. token start/end/consumed 집계 source 없음.
+
+승인: 실패 진단 자체검증→겹치는 원본 관측→최소 입력 확보→독립 C++ 재현→확정 원인 수정.
+각 단계 관련 검증·분할 커밋, 전체5단계 종료 뒤 푸시. 제품 안전 계약 변경·장시간/UI·릴리즈 외부 동작은 제외한다.
+메인 책임 아래 기존 단일 Astra/medium 담당자가 1번 typed Catalog fixture/진단 자체검사만 수행하며 하위 위임 금지.
+설계 스킬의 bounded 경로로 기존 승인안을 적용한다. 실패 자료는 격리된 로컬 fixture만 대상으로 하고 원문 비밀·raw URL을 출력하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP05-01 | 알려진 실패 코드 | typed failed job의 고정 코드3개 정확 출력 | v4.1.0 |
+| LP05-02 | 미등록 코드 | secret/path 포함 미등록 문자열은 unknown, 원문 출력 없음 | v4.1.0 |
+| LP05-03 | 복제본 격리 | 원본 선택·symlink·hardlink 거부, 원본 해시 불변 | v4.1.0 |
+| LP05-04 | 관련 원본 전수 관측 | 요청 PTS 범위와 겹치는 continuous 원본 전체의 안전 ID·시간·상태, 제한 초과 명시 | v4.1.0 |
+| LP05-05 | 실제1회·실패 입력 | 기존 실제 앱1회; 실패한 경우 typed Catalog에서 입력을 추출하고 원본불변 확인 | v4.1.0 |
+| LP05-06 | 독립 재현 | 확보된 실패입력이 있을 때 기존 C++ remux로 동일 실패 확인; 미확보면 미실행 | v4.1.0 |
+| LP05-07 | 원인 수정 | 원인확정 후 해당 경로의 RED/GREEN·영향회귀; 미확정이면 미실행 | v4.1.0 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 사용자1~5단계 승인 | LP05-01~07 | 승인; 후속은 선수조건 충족 필요 |
+| 30분 | 미진행 | 개발 중 진단 | LP05 | 미승인 |
+| 120분 | 미진행 | 개발 중 진단 | LP05 | 미승인 |
+| UI | 미진행 | 이번 개발 진단 범위 밖 | LP05 | 미승인 |
+
+이전 LP04 기록의 '목표 경계가 없다'는 단정 정정: 최신 관측 항목이 목표를 넘었을 뿐 전체 원본 부재를 입증하지 않았다. 고정 PTS 검사는 보조 진단이며 실제 제품 결함 PASS/FAIL을 대신하지 않는다.
+
+## 2026-09-16 실패 구간 지정 재현 사전등록
+
+결과: LP04-A 새3개 예상 RED 후 관련31/31 PASS. LP04-B 실제1회 exit1/20.386초,
+`reproduction-boundary-missed`: 원본 end가16.5초 아닌16.666666666초여서 dispatch 전 중단.
+기존 job 실패 원인은 미확정. 실패코드 수집·추가실행·누적검사·제품수정은 미수행.
+서버exit0·HTTP/RTSP/UDP 반환·소유root32,845,008B 삭제 완료.
+[전수 실행 결과·원출력·정리](release-artifacts/v4.1.0/s11-preparation-mapping/fixed-window-report.md).
+
+LP04: 사용자 승인된 검증기 수정·격리 단기 재현 1회. 제품·시스템 시각·이벤트 PTS 변조·timeout 변경 금지.
+실제 tap 최신 프레임을 사용하는 API이므로 시점 제어는 보장되지 않는다. 원본 end16500000000ns와 dispatch16900000000ns를 각각 확인하며 놓치면 재현조건 미충족으로 중단한다.
+트리거 tap은 이전 관측16766666666ns를 기준으로 도달/초과를 기록하며16900000000ns 초과시 거부한다. 요청 범위는 기존750ms pre/post로16150~17650ms다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP04-A | 구간 gate 자체검사 | 이른 구간 대기/목표 통과/놓친 경계 거부/dispatch 정확일치, RED→GREEN | v4.1.0 |
+| LP04-B | 실제1회 | `node scripts/internal/verify_recording_current_app.mjs --reproduce-failed-window`; 실패코드·cleanup 관측, 조건미충족은 PASS 아님 | v4.1.0 |
+
+안정화만 진행 대상/승인. 30분·120분·UI는 범위 밖/미승인. 실제 재현 후 추가 실행·제품 수정 없음.
+
 ## 2026-09-16 기존 변경 보존 커밋
 
 사용자가 현재 미커밋 변경의 분할 커밋·푸시를 승인했다. 검증기/실측 기록과 LP02 준비 초안을 분리한다.

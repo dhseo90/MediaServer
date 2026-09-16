@@ -1,0 +1,128 @@
+[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-7tVS0f bytes=14625212 removed=true
+✖ LP05-01 typed failed known0 (1982.208167ms)
+✖ LP05-01 typed failed known1 (1492.013958ms)
+✖ LP05-01 typed failed known2 (1455.502666ms)
+✖ LP05-02 typed failed unknown3 (1445.741708ms)
+✖ LP05-02 typed failed unknown4 (1514.334458ms)
+✖ LP05-03 complete mode still rejects failed job (1513.366458ms)
+✔ LP05-03 diagnostic rejects nonfailed state safely (1490.459416ms)
+✔ LP05-03 rejects symlink copy without original mutation (1469.0755ms)
+✔ LP05-03 rejects hardlink copy without original mutation (1462.796041ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 3
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 15313.422417
+
+✖ failing tests:
+
+test at scripts/internal/recording_current_archive_probe.test.mjs:25:21
+✖ LP05-01 typed failed known0 (1982.208167ms)
+  AssertionError [ERR_ASSERTION]: diagnostic must open typed offline Catalog
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:25:159)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_archive_probe.test.mjs:25:21
+✖ LP05-01 typed failed known1 (1492.013958ms)
+  AssertionError [ERR_ASSERTION]: diagnostic must open typed offline Catalog
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:25:159)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_archive_probe.test.mjs:25:21
+✖ LP05-01 typed failed known2 (1455.502666ms)
+  AssertionError [ERR_ASSERTION]: diagnostic must open typed offline Catalog
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:25:159)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_archive_probe.test.mjs:25:21
+✖ LP05-02 typed failed unknown3 (1445.741708ms)
+  AssertionError [ERR_ASSERTION]: diagnostic must open typed offline Catalog
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:25:159)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_archive_probe.test.mjs:25:21
+✖ LP05-02 typed failed unknown4 (1514.334458ms)
+  AssertionError [ERR_ASSERTION]: diagnostic must open typed offline Catalog
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:25:159)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_archive_probe.test.mjs:26:1
+✖ LP05-03 complete mode still rejects failed job (1513.366458ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /complete-job/. Input:
+  
+  '[fail] archive-probe copy-catalog-open\n'
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:26:150)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '[fail] archive-probe copy-catalog-open\n',
+    expected: /complete-job/,
+    operator: 'match',
+    diff: 'simple'
+  }

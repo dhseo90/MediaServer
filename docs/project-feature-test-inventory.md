@@ -1,5 +1,9 @@
 # Project Feature Test Inventory
 
+LP05-01~07: 실패코드 typed fixture/unknown redaction/복제본 격리/겹치는 원본 전수 관측/실제 실패입력 확보/독립재현/원인수정. 개별 정의는 중앙 release-test-records의 보완 진단 절을 따른다. 안정화 대상; 30분/120분/UI 이번 범위 밖(제품 수정의 최종 영역 판정은 실제 diff 후 별도).
+
+LP04-A/B: 실패 구간 PTS 지정 gate 자체검사와 실제 1회 재현. 안정화 대상, 30분/120분 비대상(단기 진단), UI 비대상(내부 검증기). 중앙기록의 실패 구간 지정 재현 사전등록 참조.
+
 진단 추가 LP03-A/B/C: 검증기 failed 즉시 중단, 종료 소유 복제본의 C++ Catalog 기반 whitelist 실패 코드 수집, 동일 실제 앱 1회. 안정화 대상; 30분/120분 비대상(이번 진단 범위 밖); UI 비대상(검증 도구). 정의·결과는 `docs/release-test-records.md`의 2026-09-16 실패 사유 제한 진단을 따른다.
 
 ### 2026-09-16 잔여 지연 판정
