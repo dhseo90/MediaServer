@@ -110,6 +110,8 @@ JS 회귀 exact: `node --test scripts/internal/recording_selection_trace.test.mj
 
 LP09-2 결과: C++ focused14+formatter-off1+기존integration56 PASS. 최초fixture준비실패(참조선저장누락)는예상RED와분리해보존했다. [C++ 전수원출력/환경/정리](release-artifacts/v4.1.0/s11-preparation-mapping/lp09-worker-output.txt). 임시root7개삭제, 별도중간로그11,209B도통합후삭제. 빌드/JS/C++검사통과와실제원인판정은별도다.
 
+커밋절차정정: 일반 `git diff --check`는미추적txt를검사하지못했고, stage후 `git diff --cached --check` exit2가JS RED원출력의공백전용10행을발견했다. 메인의명령결과분기누락으로43396853커밋이이실패뒤실행됐다. 이를정상gate통과로주장하지않는다. 원출력값/실패stack은보존하면서행끝공백만정리하고보정커밋한다. history rewrite/푸시는하지않는다.
+
 실제1회 exit0/45.144초/runner8PASS0FAIL, 대상참조연속9시도로 **후행원본선택후보가준비되기전3750ms종결**과앞부분1ns공백을분리했다. queued요청의접수snapshot첫평가문제도직접관측. [판정/전수시도/정리/HTTP미확보범위](release-artifacts/v4.1.0/s11-preparation-mapping/diagnostic-replay-report.md#2026-09-17-lp09-선택-당시-미선택-원인). HTTP원출력85행미확보로전체지연gate PASS에는사용하지않는다. 실제완전2출력·재기동·누적catalog는여전히미실행이며진단결과로대체하지않는다.
 
 | 제목 | 수행내용 | 결과(pass/fail) |
