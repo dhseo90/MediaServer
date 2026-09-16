@@ -1,5 +1,6 @@
 // 파일 용도: job 소유 receipt·실제 출처·Ready/종료의 단일 엄격 내구 shape.
 #include "recording/recording_derived_job.h"
+#include "recording/recording_native_coverage.h"
 #include "recording/recording_derived_remux.h"
 #include "domain/strict_json.h"
 #include <algorithm>
@@ -110,7 +111,9 @@ DerivedRemuxAu Au(const std::string& json) {
 }
 std::string Provenance(const DerivedRemuxOutput& p) {
     Need(p.verified_output&&p.output_modified&&p.caller_cleanup_required&&p.error.empty()&&p.size_bytes>0&&Sha(p.checksum_sha256)&&Sha(p.codec_sha256),"job-output-unverified");
-    Need(p.audio_omitted_reason=="derived-profile-video-only"&&p.actual_range_basis=="file-duration-on-source-pts-axis"&&p.original_association_quality=="complete-file-pts-to-binding-timestamp-match"&&p.output_payload_quality=="source-file-vcl-and-visible-decoded-pixels","job-output-quality");
+    const bool quality=(p.actual_range_basis=="file-duration-on-source-pts-axis"&&p.original_association_quality=="complete-file-pts-to-binding-timestamp-match")||
+        (p.actual_range_basis=="verified-native-presentation-interval"&&p.original_association_quality=="observed-identity-file-proof-vcl");
+    Need(p.audio_omitted_reason=="derived-profile-video-only"&&quality&&p.output_payload_quality=="source-file-vcl-and-visible-decoded-pixels","job-output-quality");
     Need(!p.access_units.empty()&&p.access_units.size()<=4096&&p.source_decoded_sha256==p.output_decoded_sha256,"job-output-evidence-cap");
     std::vector<std::string> aus;for(const auto& a:p.access_units)aus.push_back(Au(a));
     return J({{"segment_id",Q(p.segment_id)},{"store_id",Q(p.store_id)},{"source_id",Q(p.source_id)},{"media_epoch_id",Q(p.media_epoch_id)},
@@ -213,6 +216,8 @@ void Validate(const DerivedJobRecordV1& record) {
     bool fully=selection.complete&&ready.unfulfilled.empty();
     for(std::size_t i=0;i<ready.outputs.size();++i) {
         const auto& output=ready.outputs[i];const auto& s=output.segment;const auto& p=output.provenance;const auto& source=record.intent.sources[i];const auto& plan=record.intent.outputs[i];
+        const bool native=selection.native_file_intervals;
+        Need(p.actual_range_basis==(native?"verified-native-presentation-interval":"file-duration-on-source-pts-axis")&&p.original_association_quality==(native?"observed-identity-file-proof-vcl":"complete-file-pts-to-binding-timestamp-match"),"job-profile-output-quality");
         Need(output.source_index==i&&s.segment_id==plan.output_id&&s.order_request_id==plan.order_request_id&&s.order_sequence>previous_order&&s.store_id==source.segment.store_id&&s.source_id==source.segment.source_id&&s.channel_id==source.segment.channel_id,"job-output-identity");previous_order=s.order_sequence;
         Need(s.media_epoch_id==plan.output_id+"-epoch"&&s.media_epoch_id!=source.segment.media_epoch_id&&s.time_base_num==1&&s.time_base_den==1000000000&&s.retention_class==RecordingRetentionClass::Event&&s.container=="mpegts"&&s.video_codecs==std::vector<std::string>{"h264"}&&s.audio_codecs.empty()&&!s.pinned&&s.audio_omitted_reason==p.audio_omitted_reason&&s.size_bytes==p.size_bytes&&s.checksum_sha256==p.checksum_sha256,"job-output-independent-media");
         Need(p.segment_id==source.segment.segment_id&&p.store_id==source.segment.store_id&&p.source_id==source.segment.source_id&&p.media_epoch_id==source.segment.media_epoch_id,"job-provenance-source");
@@ -224,17 +229,21 @@ void Validate(const DerivedJobRecordV1& record) {
         }
         std::sort(requested.begin(),requested.end());
         Need(!requested.empty()&&p.requested_media_start_ns==requested.front().first&&p.requested_media_end_ns==requested.back().second,"job-provenance-request-range");
-        Need(p.source_origin_ns==MediaNs(source.segment.media_start_pts,source.segment),"job-source-origin");
+        Need(p.source_origin_ns==(native?source.binding.file_evidence->writer_origin_ns:MediaNs(source.segment.media_start_pts,source.segment)),"job-source-origin");
         std::int64_t start=std::numeric_limits<std::int64_t>::max(),end=0,original_start=start,original_end=0;std::set<std::uint64_t> ordinals;
         for(const auto& au:p.access_units) {
             const auto sample=std::find_if(source.binding.samples.begin(),source.binding.samples.end(),[&](const auto& x){return x.ordinal==au.ordinal&&x.pts_ns==static_cast<std::uint64_t>(au.original_pts_ns);});
-            Need(sample!=source.binding.samples.end()&&ordinals.insert(au.ordinal).second&&static_cast<__int128>(au.file_pts_ns)+p.source_origin_ns==au.original_pts_ns,"job-au-original-binding");
+            Need(sample!=source.binding.samples.end()&&ordinals.insert(au.ordinal).second&&(native||static_cast<__int128>(au.file_pts_ns)+p.source_origin_ns==au.original_pts_ns),"job-au-original-binding");
             start=std::min(start,au.output_pts_ns);end=std::max(end,End(au.output_pts_ns,au.output_duration_ns));original_start=std::min(original_start,au.original_pts_ns);original_end=std::max(original_end,End(au.original_pts_ns,au.file_duration_ns));
             actual.emplace_back(au.original_pts_ns,End(au.original_pts_ns,au.file_duration_ns));
         }
         std::sort(actual.begin(),actual.end());
         bool source_fully=true;
-        for(const auto& range:requested){
+        if(native) {
+            NativeCoverageResult coverage;Need(EvaluateNativeOutputCoverage(selection,source.segment,source.binding,p,&coverage),"job-native-output-coverage");
+            original_start=coverage.start;original_end=coverage.end;source_fully=coverage.satisfied;
+            for(const auto& gap:coverage.missing)expected_missing.insert(Missing(gap));
+        } else for(const auto& range:requested){
             auto cursor=range.first;
             for(const auto& interval:actual){
                 if(interval.second<=cursor||interval.first>=range.second)continue;

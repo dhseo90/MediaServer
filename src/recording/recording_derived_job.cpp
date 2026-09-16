@@ -159,6 +159,23 @@ namespace recording {
             )if(State(v)==s)return v;
             throw std::runtime_error("job-slice-state");
         }
+        std::string Time(const PresentationTime& t) {
+            Need(ValidPresentationTime(t),"job-presentation-time");
+            return "{\"ns\":"+std::to_string(t.ns)+",\"numerator\":"+std::to_string(t.numerator)+",\"denominator\":"+std::to_string(t.denominator)+"}";
+        }
+        PresentationTime Time(const std::string& raw) {
+            const auto d=Obj(raw,{"ns","numerator","denominator"});
+            PresentationTime t{N(d,"ns"),N<std::uint32_t>(d,"numerator"),N<std::uint32_t>(d,"denominator")};
+            Need(ValidPresentationTime(t),"job-presentation-time");return t;
+        }
+        std::string Interval(const PresentationInterval& p) {
+            Need(ValidPresentationInterval(p),"job-presentation-interval");
+            return "{\"start\":"+Time(p.start)+",\"end\":"+Time(p.end)+"}";
+        }
+        PresentationInterval Interval(const std::string& raw) {
+            const auto d=Obj(raw,{"start","end"});PresentationInterval p{Time(O(d,"start")),Time(O(d,"end"))};
+            Need(ValidPresentationInterval(p),"job-presentation-interval");return p;
+        }
         std::string Compact(const DerivedRecordingSelection& selection,const std::vector<DerivedSourceEvidence>& sources){
             Need(selection.slices.size()<=4096&&selection.unplaced.size()<=4096&&sources.size()<=256,"job-selection-cap");
             std::map<std::string,RecordingSegmentV2> table;
@@ -187,22 +204,25 @@ namespace recording {
                 std::vector<std::string> candidates;
                 Need(s.candidates.size()<=8,"job-candidate-cap");
                 for(const auto& c:s.candidates)candidates.push_back("{\"source\":"+std::to_string(indices.at(c.segment.segment_id))+",\"original\":"+Original(c.original)+",\"start\":"+std::to_string(c.media_start_pts)+",\"end\":"+std::to_string(c.media_end_pts)+",\"mapping\":"+(c.utc_mapping?std::to_string(MappingIndex(c.segment,*c.utc_mapping)):"null")+"}");
-                slices.push_back("{\"start\":"+std::to_string(s.start_ns)+",\"end\":"+std::to_string(s.end_ns)+",\"state\":"+Q(State(s.state))+",\"reason\":"+Q(s.reason)+",\"candidates\":"+Arr(candidates)+"}");
+                Need(selection.native_file_intervals==s.presentation.has_value(),"job-presentation-mode");
+                slices.push_back("{\"start\":"+std::to_string(s.start_ns)+",\"end\":"+std::to_string(s.end_ns)+",\"state\":"+Q(State(s.state))+",\"reason\":"+Q(s.reason)+",\"candidates\":"+Arr(candidates)+(s.presentation?",\"presentation\":"+Interval(*s.presentation):"")+"}");
             }
             for(const auto& c:selection.unplaced){
                 const auto& s=table.at(c.segment_id);
                 Need(c.store_id==s.store_id&&c.media_epoch_id==s.media_epoch_id&&c.order_sequence==s.order_sequence&&c.time_base_num==s.time_base_num&&c.time_base_den==s.time_base_den,"job-unplaced-conflict");
                 unplaced.push_back("{\"source\":"+std::to_string(indices.at(c.segment_id))+",\"mapping\":"+std::to_string(MappingIndex(s,c.mapping))+",\"start\":"+Num(c.media_start_pts)+",\"end\":"+Num(c.media_end_pts)+",\"reason\":"+Q(c.reason)+"}");
             }
-            return "{\"schema\":\"media-server.derived-selection-compact.v1\",\"start\":"+std::to_string(selection.expanded_start_ns)+",\"end\":"+std::to_string(selection.expanded_end_ns)+",\"complete\":"+(selection.complete?"true":"false")+",\"reason\":"+Q(selection.reason)+",\"segments\":"+Arr(segments)+",\"slices\":"+Arr(slices)+",\"unplaced\":"+Arr(unplaced)+"}";
+            return "{\"schema\":"+Q(selection.native_file_intervals?"media-server.derived-selection-compact.v2":"media-server.derived-selection-compact.v1")+",\"start\":"+std::to_string(selection.expanded_start_ns)+",\"end\":"+std::to_string(selection.expanded_end_ns)+",\"complete\":"+(selection.complete?"true":"false")+",\"reason\":"+Q(selection.reason)+",\"segments\":"+Arr(segments)+",\"slices\":"+Arr(slices)+",\"unplaced\":"+Arr(unplaced)+"}";
         }
         DerivedRecordingSelection Restore(const DerivedJobIntentV1& job){
             const auto d=Obj(job.selection_json,{
                 "schema","start","end","complete","reason","segments","slices","unplaced"
             }
             );
-            Need(S(d,"schema")=="media-server.derived-selection-compact.v1","job-selection-schema");
+            const bool native=job.profile=="h264-mp4-native-to-mpegts-video-only-v1";
+            Need(S(d,"schema")==std::string(native?"media-server.derived-selection-compact.v2":"media-server.derived-selection-compact.v1"),"job-selection-schema");
             DerivedRecordingSelection result;
+            result.native_file_intervals=native;
             result.reference=job.reference;
             result.expanded_start_ns=N(d,"start");
             result.expanded_end_ns=N(d,"end");
@@ -210,6 +230,7 @@ namespace recording {
             result.reason=S(d,"reason");
             Need(job.reference.request&&result.reason.size()<=1024,"job-selection-reference");
             const auto& r=*job.reference.request;
+            Need(!native||r.time_basis=="media-pts-ms","job-native-request-basis");
             Need(static_cast<__int128>(result.expanded_start_ns)==(static_cast<__int128>(r.start_ms)-r.pre_ms)*1000000&&static_cast<__int128>(result.expanded_end_ns)==(static_cast<__int128>(r.end_ms)+r.post_ms)*1000000&&result.expanded_start_ns<result.expanded_end_ns,"job-selection-request-range");
             std::vector<RecordingSegmentV2> segments;
             std::string previous;
@@ -221,9 +242,10 @@ namespace recording {
                 segments.push_back(s);
             }
             auto cursor=result.expanded_start_ns;
+            PresentationTime exact_cursor{cursor};
             bool complete=true;
             for(const auto& raw:A(d,"slices",4096)){
-                const auto d=Obj(raw,{
+                const auto d=native?Obj(raw,{"start","end","state","reason","candidates","presentation"}):Obj(raw,{
                     "start","end","state","reason","candidates"
                 }
                 );
@@ -232,7 +254,13 @@ namespace recording {
                 s.end_ns=N(d,"end");
                 s.state=State(S(d,"state"));
                 s.reason=S(d,"reason");
-                Need(s.start_ns==cursor&&s.start_ns<s.end_ns&&s.end_ns<=result.expanded_end_ns&&s.reason.size()<=1024,"job-slice-range");
+                if(native) {
+                    s.presentation=Interval(O(d,"presentation"));std::int64_t a=0,b=0;
+                    Need(ComparePresentationTime(s.presentation->start,exact_cursor)==0&&ComparePresentationTime(s.presentation->end,{result.expanded_end_ns})<=0&&
+                        PresentationEnvelope(*s.presentation,&a,&b)&&a==s.start_ns&&b==s.end_ns,"job-native-slice-range");
+                    exact_cursor=s.presentation->end;
+                } else Need(s.start_ns==cursor&&s.start_ns<s.end_ns&&s.end_ns<=result.expanded_end_ns,"job-slice-range");
+                Need(s.reason.size()<=1024,"job-slice-reason");
                 cursor=s.end_ns;
                 for(const auto& raw:A(d,"candidates",8)){
                     const auto c=Obj(raw,{
@@ -246,9 +274,11 @@ namespace recording {
                     item.original=Original(c,job.reference);
                     item.media_start_pts=N(c,"start");
                     item.media_end_pts=N(c,"end");
-                    Need(item.media_start_pts<item.media_end_pts&&item.media_start_pts>=item.segment.media_start_pts&&item.segment.media_end_pts&&item.media_end_pts<=*item.segment.media_end_pts,"job-candidate-range");
+                    if(native)Need(item.segment.time_base_num==1&&item.segment.time_base_den==1000000000&&item.media_start_pts==s.start_ns&&item.media_end_pts==s.end_ns,"job-native-candidate-envelope");
+                    else Need(item.media_start_pts<item.media_end_pts&&item.media_start_pts>=item.segment.media_start_pts&&item.segment.media_end_pts&&item.media_end_pts<=*item.segment.media_end_pts,"job-candidate-range");
                     const auto mapping=ON(c,"mapping");
                     if(mapping){
+                        Need(!native,"job-native-utc-mapping");
                         Need(*mapping>=0&&static_cast<std::size_t>(*mapping)<item.segment.mappings.size(),"job-mapping-index");
                         item.utc_mapping=item.segment.mappings[*mapping];
                     }
@@ -258,7 +288,7 @@ namespace recording {
                 complete&=s.state==DerivedSliceState::Confirmed;
                 result.slices.push_back(std::move(s));
             }
-            Need(!result.slices.empty()&&cursor==result.expanded_end_ns,"job-selection-incomplete-shape");
+            Need(!result.slices.empty()&&(native?ComparePresentationTime(exact_cursor,{result.expanded_end_ns})==0:cursor==result.expanded_end_ns),"job-selection-incomplete-shape");
             for(const auto& raw:A(d,"unplaced",4096)){
                 const auto c=Obj(raw,{
                     "source","mapping","start","end","reason"
@@ -282,6 +312,7 @@ namespace recording {
                 result.unplaced.push_back(std::move(item));
             }
             Need(result.complete==(complete&&result.unplaced.empty()),"job-completeness-conflict");
+            Need(!native||result.unplaced.empty(),"job-native-unplaced");
             return result;
         }
         std::string Sources(const DerivedJobIntentV1& job){
@@ -312,7 +343,8 @@ namespace recording {
             return "{\"schema\":"+Q(job.schema)+",\"job_id\":"+Q(job.job_id)+",\"attempt_id\":"+Q(job.attempt_id)+",\"protection_token\":"+Q(job.protection_token)+",\"profile\":"+Q(job.profile)+",\"reference\":"+SerializeRecordingConsumerReferenceV1(job.reference)+",\"selection\":"+job.selection_json+",\"sources\":"+Sources(job)+",\"outputs\":"+Arr(outputs)+",\"reserved_bytes\":"+std::to_string(job.reserved_bytes)+",\"created_at_ms\":"+std::to_string(job.created_at_ms)+"}";
         }
         DerivedRecordingSelection Validate(const DerivedJobIntentV1& job){
-            Need(job.schema=="media-server.derived-job-intent.v1"&&job.profile=="h264-mp4-to-mpegts-video-only-v1","job-schema-profile");
+            const bool native=job.profile=="h264-mp4-native-to-mpegts-video-only-v1";
+            Need(job.schema=="media-server.derived-job-intent.v1"&&(native||job.profile=="h264-mp4-to-mpegts-video-only-v1"),"job-schema-profile");
             Need(job.reserved_bytes>0&&job.reserved_bytes<=256*1024*1024&&job.created_at_ms>0&&!job.sources.empty()&&job.sources.size()<=8&&job.outputs.size()==job.sources.size(),"job-resource-cap");
             Need(ValidateRecordingConsumerReferenceV1(job.reference,nullptr)&&job.reference.request,"job-reference-invalid");
             const auto selection=Restore(job);
@@ -342,6 +374,20 @@ namespace recording {
                     "h264"
                 }
                 ,"job-source-binding-profile");
+                if(native) {
+                    Need(s.binding.file_evidence.has_value(),"job-native-proof-required");
+                    const auto& proof=*s.binding.file_evidence;
+                    for(const auto& slice:selection.slices)if(slice.state==DerivedSliceState::Confirmed&&slice.candidates[0].segment.segment_id==s.segment.segment_id) {
+                        const auto& c=slice.candidates[0];
+                        Need(c.original&&job.reference.original&&job.reference.association_quality=="timestamp-match"&&
+                            c.original->source_generation==job.reference.original->source_generation&&c.original->generation_order==job.reference.original->generation_order&&c.original->track_id==job.reference.original->track_id&&
+                            c.original->source_generation==s.binding.source_generation&&c.original->generation_order==s.binding.generation_order&&c.original->track_id==s.binding.track_id,"job-native-observed-identity");
+                        const auto sample=std::lower_bound(proof.samples.begin(),proof.samples.end(),c.original->ordinal,[](const auto& x,std::uint64_t ordinal){return x.ordinal<ordinal;});
+                        PresentationInterval interval;
+                        Need(sample!=proof.samples.end()&&sample->ordinal==c.original->ordinal&&sample->original_pts_ns>=0&&static_cast<std::uint64_t>(sample->original_pts_ns)==c.original->pts_ns&&MakePresentationInterval(proof.writer_origin_ns,proof.timescale,sample->native_pts,sample->native_duration,&interval)&&
+                            ComparePresentationTime(interval.start,slice.presentation->start)<=0&&ComparePresentationTime(interval.end,slice.presentation->end)>=0,"job-native-sample-coverage");
+                    }
+                }
             }
             Need(job.job_id==Identity(job)&&job.attempt_id==job.job_id+"-a1"&&job.protection_token==job.attempt_id+"-protect","job-identity-conflict");
             for(std::size_t i=0;
@@ -371,6 +417,7 @@ namespace recording {
         return Guard(error,[&]{
             Need(out,"job-output-null");
             DerivedJobIntentV1 job;
+            if(selection.native_file_intervals)job.profile="h264-mp4-native-to-mpegts-video-only-v1";
             job.reference=selection.reference;
             job.selection_json=Compact(selection,sources);
             job.reserved_bytes=bytes;
@@ -395,7 +442,7 @@ namespace recording {
                 legacy.store_id=b.store_id;legacy.media_epoch_id=b.media_epoch_id;legacy.source_generation=b.source_generation;
                 legacy.generation_order=b.generation_order;legacy.track_id=b.track_id;legacy.samples=b.samples;
                 legacy.index_complete=b.index_complete;legacy.last_accepted_ordinal=b.last_accepted_ordinal;legacy.incomplete_reason=b.incomplete_reason;
-                job.sources.push_back({source->segment,std::move(legacy)});
+                job.sources.push_back({source->segment,selection.native_file_intervals?b:std::move(legacy)});
             }
             std::sort(job.sources.begin(),job.sources.end(),[](const auto& a,const auto& b){
                 return a.segment.order_sequence<b.segment.order_sequence;

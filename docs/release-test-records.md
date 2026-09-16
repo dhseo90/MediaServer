@@ -88,6 +88,297 @@
 | /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.oS8UXv | 실행/로그 | 1371736B | 삭제 | 부재 확인 | 선택 원출력 |
 | /private/tmp/lp09-selection-prefix.XzwR14 | 실행/로그 | 6918B | 삭제 | 부재 확인 | 선택 원출력 |
 
+### 잔여2 소비 구현·검증 결과 (2026-09-17)
+
+새 내부 profile `h264-mp4-native-to-mpegts-video-only-v1` / compact.v2에 관측 identity·file_evidence·정확 구간을 결박했다. worker가 opt-in을 사용하고 job/remux/Ready/재개방/timeline이 같은 native coverage 함수를 소비한다. 기존 profile의 canonical bytes/hash는 불변이다. 표시 정수 범위는 exact union 이후 inward 표현이며 UTC 불명은 unplaced로 유지한다. wait/retry/deadline·공개 payload·기존 partial job은 변경하지 않았다.
+
+명령/원출력·중간 실패·cleanup: [소비 전수 원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp09-native-consumption-output.txt). source=fe5fe0d3+소비 변경. build exit0, native 최종 exit0/59PASS(Ready 자식의 별도1PASS 포함 원출력60행), codec+성능 exit0/12PASS. 기존 canonical SHA `529aff50132395c790a05ad68d735381b174966dc3099f00ba022a8ead494d5b`, serialize-record median29427us≤60000us. 이 수치는 기존 fixture 회귀이고 누적 catalog/실제 HTTP 지연 판정이 아니다. elapsed native24초; codec 전체 wall elapsed 미집계(개별 μs 측정 보존). token start/end/consumed 자동집계 부재로 미집계.
+
+실패 이력: codec 신규 미지원 RED9/1(최초 원출력 미보존, 요약만 있음) →10/0. remux 소비 RED23/8 → 타임라인 RED45/10. 선택 AU 누락 반례 RED10/1→12/0. 이후51/5·51/4는 중복PTS fixture source-count 및 UTC unplaced를 누락한 검증기 결함으로 기록했고 expected RED로 바꾸지 않았다. 준비를 바로잡아55/0. worker/crash 추가 시 `_exit` 선언 누락 컴파일 실패(exit1)를 `unistd.h` 추가로 보완한 뒤 worker legacy 호출 RED1/2(`file-original-timestamp-mismatch`)를 확인했다. opt-in 활성화/빌드 후 최종59/0. 원본의 실제 중복PTS end-to-end 실험은 보류이며 synthetic 엄격 유효 binding 반례만 통과했다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| native최종-1 | LP09-S03 case0 observed native selection preserves complete/partial | pass |
+| native최종-2 | LP09-S03 case0 observed native selection preserves complete/partial | pass |
+| native최종-3 | LP09-S03 case0 worker uses new native profile without changing wait budget | pass |
+| native최종-4 | LP09-S03 case0 actual native remux Ready Complete | pass |
+| native최종-5 | LP09-S03 case0 full request and literal output count | pass |
+| native최종-6 | LP09-S03 case0 physical file and decoded hashes | pass |
+| native최종-7 | LP09-S03 case0 Ready rejects altered file timestamp with regenerated manifest | pass |
+| native최종-8 | LP09-S03 case0 exact recovery sql0 | pass |
+| native최종-9 | LP09-S03 case0 recovered reference completeness sql0 | pass |
+| native최종-10 | LP09-S03 case0 timeline native interval and independent UTC placement sql0 | pass |
+| native최종-11 | LP09-S03 case0 exact recovery sql1 | pass |
+| native최종-12 | LP09-S03 case0 recovered reference completeness sql1 | pass |
+| native최종-13 | LP09-S03 case0 timeline native interval and independent UTC placement sql1 | pass |
+| native최종-14 | LP09-S03 case1 observed native selection preserves complete/partial | pass |
+| native최종-15 | LP09-S03 case1 actual native remux Ready Complete | pass |
+| native최종-16 | LP09-S03 case1 full request and literal output count | pass |
+| native최종-17 | LP09-S03 case1 physical file and decoded hashes | pass |
+| native최종-18 | LP09-S03 case1 Ready rejects altered file timestamp with regenerated manifest | pass |
+| native최종-19 | LP09-S03 case1 exact recovery sql0 | pass |
+| native최종-20 | LP09-S03 case1 recovered reference completeness sql0 | pass |
+| native최종-21 | LP09-S03 case1 timeline native interval and independent UTC placement sql0 | pass |
+| native최종-22 | LP09-S03 case1 exact recovery sql1 | pass |
+| native최종-23 | LP09-S03 case1 recovered reference completeness sql1 | pass |
+| native최종-24 | LP09-S03 case1 timeline native interval and independent UTC placement sql1 | pass |
+| native최종-25 | LP09-S03 case2 observed native selection preserves complete/partial | pass |
+| native최종-26 | LP09-S03 case2 actual native remux Ready Complete | pass |
+| native최종-27 | LP09-S03 case2 full request and literal output count | pass |
+| native최종-28 | LP09-S03 case2 physical file and decoded hashes | pass |
+| native최종-29 | LP09-S03 case2 Ready rejects altered file timestamp with regenerated manifest | pass |
+| native최종-30 | LP09-S03 case2 exact recovery sql0 | pass |
+| native최종-31 | LP09-S03 case2 recovered reference completeness sql0 | pass |
+| native최종-32 | LP09-S03 case2 timeline native interval and independent UTC placement sql0 | pass |
+| native최종-33 | LP09-S03 case2 exact recovery sql1 | pass |
+| native최종-34 | LP09-S03 case2 recovered reference completeness sql1 | pass |
+| native최종-35 | LP09-S03 case2 timeline native interval and independent UTC placement sql1 | pass |
+| native최종-36 | LP09-S03 case3 observed native selection preserves complete/partial | pass |
+| native최종-37 | LP09-S03 case3 actual native remux Ready Complete | pass |
+| native최종-38 | LP09-S03 case3 full request and literal output count | pass |
+| native최종-39 | LP09-S03 case3 physical file and decoded hashes | pass |
+| native최종-40 | LP09-S03 case3 Ready rejects altered file timestamp with regenerated manifest | pass |
+| native최종-41 | LP09-S03 case3 exact recovery sql0 | pass |
+| native최종-42 | LP09-S03 case3 recovered reference completeness sql0 | pass |
+| native최종-43 | LP09-S03 case3 timeline native interval and independent UTC placement sql0 | pass |
+| native최종-44 | LP09-S03 case3 exact recovery sql1 | pass |
+| native최종-45 | LP09-S03 case3 recovered reference completeness sql1 | pass |
+| native최종-46 | LP09-S03 case3 timeline native interval and independent UTC placement sql1 | pass |
+| native최종-47 | LP09-S03 case4 observed native selection preserves complete/partial | pass |
+| native최종-48 | LP09-S03 case4 actual native remux Ready Complete | pass |
+| native최종-49 | LP09-S03 case4 full request and literal output count | pass |
+| native최종-50 | LP09-S03 case4 physical file and decoded hashes | pass |
+| native최종-51 | LP09-S03 case4 Ready rejects altered file timestamp with regenerated manifest | pass |
+| native최종-52 | LP09-S03 case4 exact recovery sql0 | pass |
+| native최종-53 | LP09-S03 case4 recovered reference completeness sql0 | pass |
+| native최종-54 | LP09-S03 case4 timeline native interval and independent UTC placement sql0 | pass |
+| native최종-55 | LP09-S03 case4 exact recovery sql1 | pass |
+| native최종-56 | LP09-S03 case4 recovered reference completeness sql1 | pass |
+| native최종-57 | LP09-S03 case4 timeline native interval and independent UTC placement sql1 | pass |
+| native최종-58 | LP09-S03c native Ready child exit23 expected | pass |
+| native최종-59 | LP09-S03c native Ready recovery same ID complete2 | pass |
+| native최종-60 | LP09-S03c native recovery file hashes and resource cleanup | pass |
+| codec최종-1 | P0-PERF01 literal source1 sample250 slice45 complete | pass |
+| codec최종-2 | P0-PERF01 canonical record roundtrip unchanged | pass |
+| codec최종-3 | P0-PERF02 baseline canonical hash literal unchanged | pass |
+| codec최종-4 | P0-PERF02 host-scoped serialize-record median <=60000us | pass |
+| codec최종-5 | P0-PERF01 source mapping conflict rejected | pass |
+| codec최종-6 | P0-PERF01 selection table mapping conflict rejected | pass |
+| codec최종-7 | P0-PERF01 job identity forgery rejected | pass |
+| codec최종-8 | LP09-S03a native exact selection and proof survive job roundtrip | pass |
+| codec최종-9 | LP09-S03a noncontiguous exact slices rejected | pass |
+| codec최종-10 | LP09-S03a observed identity and native interval mismatch rejected | pass |
+| codec최종-11 | LP09-S03a native profile cannot drop file evidence | pass |
+| codec최종-12 | LP09-S03a overlapping substitute AU cannot replace selected identity | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-job-validation.NMf50r | 소유 fixture·registry·영상 | 5031896B | 삭제 | 부재 확인 | 소비 원출력 lp10-job-green |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.RR4Xft | 소유 fixture·registry·영상 | 10139087B | 삭제 | 부재 확인 | 소비 원출력 lp10-native-red |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.roxl7a | 소유 fixture·registry·영상 | 11735066B | 삭제 | 부재 확인 | 소비 원출력 lp10-native-green-initial |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-job-validation.3rHy6t | 소유 fixture·registry·영상 | 5147016B | 삭제 | 부재 확인 | 소비 원출력 lp10-identity-red |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-job-validation.I9mC14 | 소유 fixture·registry·영상 | 5147784B | 삭제 | 부재 확인 | 소비 원출력 lp10-identity-green |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.68gS8W | 소유 fixture·registry·영상 | 11927099B | 삭제 | 부재 확인 | 소비 원출력 lp10-dup-red |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.9KjXSM | 소유 fixture·registry·영상 | 11738394B | 삭제 | 부재 확인 | 소비 원출력 lp10-timeline-diagnostic |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.0p0nPu | 소유 fixture·registry·영상 | 11738778B | 삭제 | 부재 확인 | 소비 원출력 lp10-native-fixed |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.2hChzI | 소유 fixture·registry·영상 | 0B | 삭제 | 부재 확인 | 소비 원출력 lp10-worker-red-start |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.ZMwukr | 소유 fixture·registry·영상 | 8613353B | 삭제 | 부재 확인 | 소비 원출력 lp10-worker-red2 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.HLENhF | 소유 fixture·registry·영상 | 14417434B | 삭제 | 부재 확인 | 소비 원출력 lp10-native-final |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-job-validation.z3whSD | 소유 fixture·registry·영상 | 5148168B | 삭제 | 부재 확인 | 소비 원출력 lp10-codec-final |
+
+미실행: 실제 앱 decoder→이벤트/HTTP 전체 통합, 누적catalog16/32, 30분/UI/120분, 릴리즈 작업. native fixture는 실제 파일 writer/remux/decoded hash를 쓰지만 관측 identity 입력은 fixture adapter이므로 실제 앱 분석 경로 PASS로 확대하지 않는다. 관련 기존 소비 회귀는 별도 원출력과 아래 결과에 기록한다.
+
+
+### 잔여2 기존 소비 영향 회귀
+
+service43·remux31·event integration56·jobs23 총153PASS/0FAIL, 네 wrapper exit0. 개별 원출력/명령/종료와 환경은 [회귀 전수 증거](release-artifacts/v4.1.0/s11-preparation-mapping/lp09-consumption-regressions-output.txt). 소유 registry 격리, wrapper elapsed 합55초. 과거 profile fixture의 file evidence unavailable 경고는 legacy fallback 검증의 일부이며 새 proof 통과로 해석하지 않는다. 메인이 diff·아래 전수 assertion/exit/cleanup을 직접 대조했다. 기존 canonical 성능 회귀는 위 codec12PASS와 같으며 native 누적 비용 검사는 별도 후속이다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 기존회귀-1 | F12 실제 remux의 다른 selection 결박 거부 | pass |
+| 기존회귀-2 | F12 실제 remux provenance의 요청 범위 위조 거부 | pass |
+| 기존회귀-3 | F12 실제 remux의 foreign unfulfilled 범위 거부 | pass |
+| 기존회귀-4 | F01 실제 writer→선택→Intent→파생 파일→게시→Complete | pass |
+| 기존회귀-5 | F01 실제 catalog/file/hash/단일 commit/hold 해제/cleanup 및 직접 decode | pass |
+| 기존회귀-6 | F15 단일 service·동시 Run·외부 terminal release 거부 | pass |
+| 기존회귀-7 | F16 active source 삭제 거부·동일 사유 비보호 원본 삭제 positive control | pass |
+| 기존회귀-8 | F02 두 출력 독립 epoch·unknown UTC·실제 AU/visible 출처 보존 | pass |
+| 기존회귀-9 | F12 Complete 출처 전수 canonical roundtrip | pass |
+| 기존회귀-10 | F12 Ready 포함 Intent 잘못된 상태 거부 | pass |
+| 기존회귀-11 | F12 미지원 필드 엄격 거부 | pass |
+| 기존회귀-12 | F14 Ready JSON 4MiB 명시 상한 거부 | pass |
+| 기존회귀-13 | F12 출력 receipt inode 별칭 거부 | pass |
+| 기존회귀-14 | F03 Intent 생성 전 프로세스 중단 | pass |
+| 기존회귀-15 | F04 receipt 전 실물의 소유권 미확인 보호 유지 | pass |
+| 기존회귀-16 | F05 receipt 이후 Intent 중단 소유물 정리 | pass |
+| 기존회귀-17 | F06 Ready 중단 뒤 재렌더 없이 완료 | pass |
+| 기존회귀-18 | F07 첫 출력 link 중단 쌍 복구 | pass |
+| 기존회귀-19 | F07 두 번째 출력 link 중단 쌍 복구 | pass |
+| 기존회귀-20 | F08 전체 publish 후 commit 전 중단 | pass |
+| 기존회귀-21 | F09 원자 commit 후 cleanup 전 중단 | pass |
+| 기존회귀-22 | F10 첫 temp 삭제 중단 | pass |
+| 기존회귀-23 | F10 두 번째 temp 삭제 중단 | pass |
+| 기존회귀-24 | F10 attempt 디렉터리 삭제 중단 | pass |
+| 기존회귀-25 | F10 job 디렉터리 삭제 중단 | pass |
+| 기존회귀-26 | F10 Complete mutation 직전 중단 | pass |
+| 기존회귀-27 | F10 Failed cleanup attempt 삭제 중단 | pass |
+| 기존회귀-28 | F10 Failed cleanup job 삭제 중단 | pass |
+| 기존회귀-29 | F10 Failed mutation 직전 중단 | pass |
+| 기존회귀-30 | F11 hash 오류 거부·보호/예약 유지 | pass |
+| 기존회귀-31 | F11 missing 오류 거부·보호/예약 유지 | pass |
+| 기존회귀-32 | F11 foreign 오류 거부·보호/예약 유지 | pass |
+| 기존회귀-33 | F11 symlink 오류 거부·보호/예약 유지 | pass |
+| 기존회귀-34 | F11 fifo 오류 거부·보호/예약 유지 | pass |
+| 기존회귀-35 | F11 hardlink 오류 거부·보호/예약 유지 | pass |
+| 기존회귀-36 | F11 parent 오류 거부·보호/예약 유지 | pass |
+| 기존회귀-37 | F14 cancel-before-create 생성 중단·소유 cleanup·예약 해제 | pass |
+| 기존회귀-38 | F14 cancel 생성 중단·소유 cleanup·예약 해제 | pass |
+| 기존회귀-39 | F14 small 생성 중단·소유 cleanup·예약 해제 | pass |
+| 기존회귀-40 | F14 deadline 생성 중단·소유 cleanup·예약 해제 | pass |
+| 기존회귀-41 | F12 SQLite projection·journal fallback job/output 일치 | pass |
+| 기존회귀-42 | F12 SQLite rebuild·checkpoint 재개방 job/output 일치 | pass |
+| 기존회귀-43 | F13 Complete output tombstone 뒤 재생성 없음 | pass |
+| 기존회귀-44 | R14 단발 true→false 취소의 단조 고정 | pass |
+| 기존회귀-45 | D22 실제 분수frame 요청 선택 | pass |
+| 기존회귀-46 | R01 실제 source-AU→TS-AU payload·decode 일치 | pass |
+| 기존회귀-47 | R11 confirmed source 누락은 생성전 거부 | pass |
+| 기존회귀-48 | R03 분수 duration 미충족과 검증성공 분리 | pass |
+| 기존회귀-49 | R08 양수 byte 상한 필수 | pass |
+| 기존회귀-50 | R08 byte 상한 초과 전 중단·partial cleanup | pass |
+| 기존회귀-51 | R09 미지원 codec 명시 거부 | pass |
+| 기존회귀-52 | R09 ambiguous 자동 선택 금지 | pass |
+| 기존회귀-53 | R11 중복 segment 입력 거부 | pass |
+| 기존회귀-54 | R11 reference source 결박 불일치 거부 | pass |
+| 기존회귀-55 | R11 reference channel 결박 불일치 거부 | pass |
+| 기존회귀-56 | R06 원본·출력 별칭 거부 | pass |
+| 기존회귀-57 | R06 O_APPEND 출력 거부 | pass |
+| 기존회귀-58 | R07 원본 hash 불일치 거부 | pass |
+| 기존회귀-59 | R13 시작 전 취소·쓰기 없음 | pass |
+| 기존회귀-60 | R13 유효 전체시간 상한 필수 | pass |
+| 기존회귀-61 | R10 unknown 요청 보존·partial 출력 | pass |
+| 기존회귀-62 | R06 borrowed FD offset 보존 | pass |
+| 기존회귀-63 | R13 출력 후 취소·partial 소유권 보존 | pass |
+| 기존회귀-64 | R13 1ms 전체 deadline 초과는 검증성공 아님 | pass |
+| 기존회귀-65 | R07 출력 중 원본 변경 재확인 거부 | pass |
+| 기존회귀-66 | R02 B-frame 실제 seek·nonzero 원본축 | pass |
+| 기존회귀-67 | R04 요청 외 keyframe preroll·GOP 의존 범위 분리 | pass |
+| 기존회귀-68 | R12 162×94 visible plane 픽셀 대응 | pass |
+| 기존회귀-69 | R05 인접 same-epoch 실제 source별 독립 출력 | pass |
+| 기존회귀-70 | R06 output끼리 전체 inode 교차 거부 | pass |
+| 기존회귀-71 | R06 다른 source의 원본FD를 출력으로 거부 | pass |
+| 기존회귀-72 | R06 다른 segment의 중복 원본FD 거부 | pass |
+| 기존회귀-73 | R08 모든 출력 합계 byte 상한·부분 실패 목록 | pass |
+| 기존회귀-74 | R05 실제 epoch 변경 원본→독립 출력 목록 | pass |
+| 기존회귀-75 | E17 accepted 후 resolver nullopt는 기존 소유 유지·신규 저장 없음 | pass |
+| 기존회귀-76 | E17 accepted 후 resolver 불일치는 기존 소유 유지·신규 저장 없음 | pass |
+| 기존회귀-77 | E17 accepted 후 resolver 예외는 기존 소유 유지·신규 저장 없음 | pass |
+| 기존회귀-78 | E17 accepted 후 resolver 미주입는 기존 소유 유지·신규 저장 없음 | pass |
+| 기존회귀-79 | E02 단일 출력도 clip_path 승격 없이 목록·직접 decode·fully satisfied | pass |
+| 기존회귀-80 | E09 동일 reference/선택 재요청 job ID 멱등 | pass |
+| 기존회귀-81 | E03 미확인 pre 구간을 유지한 verified partial 출력 | pass |
+| 기존회귀-82 | E07 immutable start/end/pre/post/namespace 보존 | pass |
+| 기존회귀-83 | E10 Event 출력이 누적되어도 원본 snapshot은 continuous만 | pass |
+| 기존회귀-84 | E04 provider의 동일 실제 decoder 증거 업데이트로 postroll 요청 충족 | pass |
+| 기존회귀-85 | E05 시간 경과만으로 coverage 없이 unknown 종료 | pass |
+| 기존회귀-86 | E06 provider namespace 변경을 새 증거로 혼합하지 않음 | pass |
+| 기존회귀-87 | E09 같은 immutable reference의 증거/선택 갱신은 새 job·이전 partial 보존 | pass |
+| 기존회귀-88 | E18 4097 frame 증거는 queue 접수 전 명시 거부 | pass |
+| 기존회귀-89 | E06/E18 provider generation 변경는 unknown 종료 | pass |
+| 기존회귀-90 | E06/E18 provider source 불일치는 unknown 종료 | pass |
+| 기존회귀-91 | E06/E18 provider 예외는 unknown 종료 | pass |
+| 기존회귀-92 | E06/E18 provider track 불일치는 unknown 종료 | pass |
+| 기존회귀-93 | E06/E18 provider channel 불일치는 unknown 종료 | pass |
+| 기존회귀-94 | E12 event quota 부족은 Intent/파일/내구 예약 없이 명시 거부 | pass |
+| 기존회귀-95 | E12 disk provider 실패를 가용량 0 성공으로 숨기지 않고 Intent 없이 거부 | pass |
+| 기존회귀-96 | E18 누적 261개 원본에서도 현재 반개구간 관련 1개만 조회 | pass |
+| 기존회귀-97 | E18 반개구간 끝 접점은 이전 원본과 비중첩 | pass |
+| 기존회귀-98 | E11 관련 missing binding은 누락하지 않고 snapshot에 보존 | pass |
+| 기존회귀-99 | E11 관련 corrupt lifecycle은 동일 snapshot에 보존 | pass |
+| 기존회귀-100 | E18 실제 관련 257개는 명시 cap 실패·잘린 confirmed 목록 없음 | pass |
+| 기존회귀-101 | E04 실제 writer 후행 finalize와 같은 요청 증거 갱신으로 2출력 완료 | pass |
+| 기존회귀-102 | E20 canonical accepted 중복은 원장 mutation 추가 없이 멱등 | pass |
+| 기존회귀-103 | E20 동일 reference ID 다른 immutable 내용의 accepted 거부 | pass |
+| 기존회귀-104 | E20 SQLite accepted projection의 exact reference 일치 | pass |
+| 기존회귀-105 | E20 accepted marker checkpoint projection 일치 | pass |
+| 기존회귀-106 | E15/E20 재시작 JSONL fallback accepted/no-job은 증거 발명 없이 managed unknown | pass |
+| 기존회귀-107 | E15/E20 재시작 SQLite rebuild accepted/no-job은 증거 발명 없이 managed unknown | pass |
+| 기존회귀-108 | E20 replay accepted 선행 참조 없음 거부 | pass |
+| 기존회귀-109 | E20 replay accepted unknown 필드 거부 | pass |
+| 기존회귀-110 | E20 replay accepted canonical 충돌 거부 | pass |
+| 기존회귀-111 | E20 replay accepted 불완전 payload 거부 | pass |
+| 기존회귀-112 | E08 동일 원본 snapshot의 명시 UTC 요청→실제 출력·독립 output UTC unknown | pass |
+| 기존회귀-113 | E08 같은 UTC의 복수 원본 후보를 자동 단일 선택하지 않음 | pass |
+| 기존회귀-114 | E11 UTC confirmed mapping 하나가 보여도 관련 corrupt 원본을 숨기지 않음 | pass |
+| 기존회귀-115 | E11 실제 UTC worker도 same-lock corrupt 원본을 available로 승격하지 않음 | pass |
+| 기존회귀-116 | E08 UTC unplaced를 원본 snapshot/선택에 보존 | pass |
+| 기존회귀-117 | E18 opt-in UTC 후보 예산 초과는 부분 confirmed 결과 없이 실패 | pass |
+| 기존회귀-118 | E11 삭제 대기 lifecycle도 원본 snapshot에서 누락하지 않음 | pass |
+| 기존회귀-119 | E01 실제 H264 decoder→EventRecord→reference→내구 job·2출력 Complete | pass |
+| 기존회귀-120 | E17 무주입 bridge 재생성에도 내구 managed 소유권 유지 | pass |
+| 기존회귀-121 | E13 Stop 이후 신규 reference 저장 없음 | pass |
+| 기존회귀-122 | E20 비권위 원장 조회 실패는 legacy 억제 unknown | pass |
+| 기존회귀-123 | E17 실제 EventStorage managed clip 억제 및 snapshot hook 유지 | pass |
+| 기존회귀-124 | E17 실제 EventStorage 기본 clip fallback 유지 및 snapshot hook 유지 | pass |
+| 기존회귀-125 | E15 별도 프로세스 Ready _exit 후 보호 복원→bridge reconcile→동일 2출력·decode·commit 1개 | pass |
+| 기존회귀-126 | E16 historical Complete와 terminal tombstone 현재 unavailable·재생성 없음 | pass |
+| 기존회귀-127 | E13 active 포함 queue cap 포화는 새 accepted/예약 없이 거부 | pass |
+| 기존회귀-128 | E14 실제 Run 중 동시 Stop 두 번→취소·단일 join·Failed cleanup 후 자원 해제 | pass |
+| 기존회귀-129 | E18 reference job top-8은 wall 역행/재시작에도 동일 ID subset·truncated unknown | pass |
+| 기존회귀-130 | E15 startup bounded8 more는 blocker·남은 보호 유지·자동 무한 reconcile 없음 | pass |
+| 기존회귀-131 | J01 실제 선택→compact 내구 job 계약 왕복 | pass |
+| 기존회귀-132 | J17 무관source8개 추가에도 동일선택 jobID 유지 | pass |
+| 기존회귀-133 | J18 cleanup wall시계 역행 허용·순서는상태로검사 | pass |
+| 기존회귀-134 | J04 단일 Intent 원장·보호·예약 원자 가시성 | pass |
+| 기존회귀-135 | J19 후발 coordinator 일반·파생 admission 및 복구 차단 | pass |
+| 기존회귀-136 | J02 이후 시각 재Build ID 유지·선택 변경 새 ID | pass |
+| 기존회귀-137 | J03 unknown·중복·미지원 schema·불완전 JSON·4MiB·예약 상한·미구현 state 거부 | pass |
+| 기존회귀-138 | J16 소유 경로·attempt·order 계획 조작 거부 | pass |
+| 기존회귀-139 | J16 실제 2 source UUID 역순이어도 영속 order 순 출력 계획 | pass |
+| 기존회귀-140 | J08 나중 시각 재요청 최초 시각 유지·예약/경로 충돌·다른 catalog 거부 | pass |
+| 기존회귀-141 | J06 generic hold 감소로 job 보호 해제 불가·직접 삭제/corrupt 차단 | pass |
+| 기존회귀-142 | J14 cleanup Failed는 job 자원만 해제·wall 역행·terminal 자동 재시도 없음 | pass |
+| 기존회귀-143 | J05 pending·corrupt·tombstone·hash·binding 불일치 source 거부 | pass |
+| 기존회귀-144 | J07 실제 source 삭제/Intent 경쟁에서 둘 중 한 전이만 허용 | pass |
+| 기존회귀-145 | J10 checkpoint 전후 job·보호·예약 유지 | pass |
+| 기존회귀-146 | J09 SQLite·fallback·재build/reopen 내구 job 동등·중복 보호 가산 없음 | pass |
+| 기존회귀-147 | J10 replay 동일 중복 멱등·다른 내용/불완전/schema/전이/보호 상태 거부 | pass |
+| 기존회귀-148 | J11 같은 채널 memory+동시 durable 예약 합계 event quota 제한 | pass |
+| 기존회귀-149 | J12 durable outstanding을 continuous/event/derived disk 예약에 포함 | pass |
+| 기존회귀-150 | J13 snapshot/disk provider 실패는 생성·periodic·복구 삭제 차단 | pass |
+| 기존회귀-151 | J15 partial unknown·이유·후보·요청 시간축 그대로 보존 | pass |
+| 기존회귀-152 | J19 정확한 소유자 소멸 후 새 coordinator만 재결박 | pass |
+| 기존회귀-153 | J20 append 거부 후 원장 복원해도 공통 mutation 차단 | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-job-service.fzhkQO | 소유 fixture·영상 | 17704497B | 삭제 | 부재 확인 | 회귀 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.lXRoDR | 소유 fixture·영상 | 12751931B | 삭제 | 부재 확인 | 회귀 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.LDbLfS | 소유 fixture·영상 | 15652142B | 삭제 | 부재 확인 | 회귀 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-jobs.hskGKk | 소유 fixture·영상 | 9425919B | 삭제 | 부재 확인 | 회귀 원출력 |
+
+회귀 보존용 `/private/tmp/lp09-consumption-logs.68LloL`은 124354B였고, 초기 정리 검사가 plugin mirror symlink를 거부(exit1, 삭제 전)했다. 소유 helper/대상을 확인한 뒤 원본 plugin을 따라가지 않고 symlink277개만 unlink하여 root 부재를 확인했다. 제품 실패가 아닌 정리 준비 결함이며 이력을 회귀 artifact에 보존했다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| /private/tmp/lp09-consumption-logs.68LloL | 로그·소유 plugin mirror | 124354B | 대상 파일을 따르지 않고 소유 root 삭제 | 부재 확인 | 회귀 원출력 log-cache-cleanup |
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 잔여1 선택 구현·분할 커밋 | 완료 | native 선택63PASS, fe5fe0d3 | 위 선택 전수 결과 |
+| 2 | 잔여2 저장/생성/복구 연결·분할 커밋 | 구현·관련 단기 검증 완료, 커밋은 Git 이력 확인 | native59·codec12·기존153PASS 및 full build exit0 | 위 소비/회귀 전수 결과 |
+| 3 | 결과 보고 | 보고 대상 | 실제 앱/누적 비용/대기 정책은 별도 잔여 | 계획 LP09 경계 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 관련 단기 안정화 | 진행 대상 | 선택/새 profile/worker 소비 변경 | LP09-S01~03 및 영향 F/R/E/J | 개발 승인 범위 실행 완료 |
+| 실제 앱·누적 비용 | 미진행 | 이번 잔여1~2 범위 밖, 후속 LP09-4/5 | 계획 LP09 | 이번 미실행 |
+| 30분/120분 | 미진행 | 이번 개발 단위 후 최종 S11 별도 판정·승인 | 계획 검토 경계 | 이번 미실행; 릴리즈 PASS 아님 |
+| UI | 미진행 | 이번 내부 소비/worker 단위, 사용자 제외 | LP09-S03 | 미실행; 최종 UI PASS 아님 |
+
+최종 문서 검증: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links` exit0(failures0), `git diff --check` exit0. 이미지 변경 없음으로 assets 추가 실행 없음. 검증완료 스킬의 증거 대조와 메인의 실제 diff/전수 결과 확인을 거쳤으며 새 제품 수정 없이 기록만 갱신했다. 서버/포트 생성 없음, 소유 자식 종료 및 위 root 정리 완료. 이번 범위 푸시 승인 없음/푸시 미수행. 이후 누적 비용·실제 통합/릴리즈 완료까지 확대하지 않는다.
+
+커밋 준비 이력: 최초 stage는 sandbox의 index.lock 생성 제한(exit128)으로 미수행, 승인된 권한 경로로 stage했다. 신규 untracked 원출력의 EOF 빈 줄이 cached diffcheck에서 검출(exit2)되어 커밋하지 않고 그 빈 줄만 제거했다. 제품/검증 결과는 변경하지 않았으며 cached diffcheck 재통과 후에만 커밋한다.
+
 ### 3번 실행 전: 공통 정확 구간과 queued 증거 갱신
 
 2026-09-17 후속 사용자 승인: 잔여1(선택)~2(저장/생성/복구) 구현·분할커밋. 대기 정책 변경/푸시/실제 앱 전체·장시간/UI 제외. 선택은 `prefer_native=false` 기본의 명시 opt-in으로 먼저 검사하며 소비 구현 전 worker에서 활성화하지 않는다. 서로 다른 증명된 AU의 정확 overlap은 durable order/ordinal 순으로 atom별 한 후보를 결정한다. 동일 원본 identity 다중 결박은 거부하며 증거 없는 원본이 섞이면 전체 legacy fallback(새 혼합 profile 없음)이다.
@@ -101,6 +392,14 @@
 S03b/c exact 명령: `bash scripts/internal/verify_recording_native_derived.sh`. 격리 실제 writer의 30fps 2원본(요청8~9초), 30000/1001·B-frame·VFR 1원본(요청200~800ms 또는20~300ms), 관측 프레임 누락 partial을 각각 확인한다. native proof 사전조건 후 job service 출력 hash/decoded hash·Ready/Complete, SQLite·JSONL 재개방의 exact job 및 timeline 판정을 확인한다. 예상 RED는 구간 선택이 완료돼도 구형 remux의 원본PTS대조/Ready quality검증이 신규profile을 아직소비하지못하는 지점이다. 제품 빌드 선수조건, 실행 root/GST registry 격리 및 모든 종료 cleanup을 유지한다. 실제 앱/HTTP 풀통합·장시간/UI는 실행하지 않는다.
 
 S02 추가 반례: 유효4096sample에서4097exact slice 출력 상한을 초과하면 부분 output 없이 거부. 개별 미결박/invalid 관측이 있더라도 그 관측 이전의 증명된 prefix는 Confirmed 유지하고 이후는 보수적 unknown(시각위치불명은전역unknown)으로 둔다. 잘못된 관측 하나로 앞부분까지 사라지는 후퇴를 막되 뒤 구간 복원을 추정하지 않는다.
+
+S03a 추가 반례: 서로 다른 VCL/ordinal의 동일 native interval에서 선택 identity가 출력 AU에 없으면 다른 AU가 구간을 덮더라도 거부. S03b 추가 case5: 실제 원본 두 AU가 동일 PTS인 입력은 native에서 PTS unique map을 강제하지 않고 ordinal/VCL로 연결하며, 그로 인한 실제 시간 공백은 partial 유지. S03c 타임라인은 동일 mapping의 연속 native 구간이 절삭으로 조각나지 않고 Ready의 complete/partial과 일치해야 한다. 공개 정수 coverage는 exact union 이후 inward 표현을 사용하고 UTC 정확도를 승격하지 않는다.
+
+S03 검증 준비 결함 정정: case5에서 원본 PTS를 직접 중복시킨 입력은 writer가 한 원본을 생성한다는 fixture 전제가 실패(`source-count`)했다. 이를 예상 RED로 간주하지 않으며 실제 중복PTS end-to-end 지원 PASS로 사용하지 않는다. 해당 실험 case는 실행 대상에서 보류하고 엄격 유효 binding의 서로다른 ordinal/동일 PTS 구간은 S03a 반례로 검사한다. 실제 5종 파일 검사는 유지한다. B-frame/VFR fixture의 관측 UTC 불일치로 결과가 `unplaced_items`에 들어가는데 `items`만 검사한 것도 검증기 결함이었다. native media complete와 UTC배치를 분리하여 두 배열을 대조하고, 해당 두 case에는 UTC를 발명하지 않는 unplaced 조건을 추가한다. 최초 실패 이력을 보존하고 같은 관련 단기 검사를 재실행한다.
+
+S03c 추가: native 실제 ReadyDurable 직후 자식 exit23 → 새 catalog/service 재개방·Reconcile → 같은 ID의 2출력 Complete·hash·예약해제·임시경로정리. 검증 자식만45초 상한, 초과시 소유PID 정리하고 FAIL. 기존 소비 회귀 명령은 `bash scripts/internal/verify_recording_derived_job_service.sh`, `bash scripts/internal/verify_recording_derived_remux.sh`, `bash scripts/internal/verify_recording_derived_event_integration.sh`, `bash scripts/internal/verify_recording_derived_jobs.sh` 및 codec 저장검증 `bash scripts/internal/verify_recording_derived_job_validation.sh --performance-budget`. 각 실행은 작업소유 fixture만 사용하며 GST registry도 실행 root에 격리한다.
+
+S03b worker activation: `bash scripts/internal/verify_recording_native_derived.sh --worker`는 case0의 이미 확정된 실제2원본/관측증거를 worker.Submit→Query로 전달한다. 새profile 선택/2출력완전충족이 예상 GREEN이며 worker가 legacy 선택을호출하는현재는예상RED. 대기wait0/max_attempts1 조건은fixture상선수자료가모두존재하므로정책확대가아니다. 전체native fixture의case0도동일worker경로를사용한다.
 
 | 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
 | --- | --- | --- | --- |

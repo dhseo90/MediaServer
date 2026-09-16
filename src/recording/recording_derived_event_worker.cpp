@@ -233,7 +233,7 @@ void DerivedEventWorker::Process(Pending pending) {
             utc_ptr=&utc;
         }
         DerivedRecordingSelection selection;
-        if(!SelectDerivedRecording(pending.reference,*pending.evidence,sources,utc_ptr,&selection,&error)) {
+        if(!SelectDerivedRecording(pending.reference,*pending.evidence,sources,utc_ptr,&selection,&error,true)) {
             Status(pending.reference.reference_id,error);return;
         }
         const auto decision_time=std::chrono::steady_clock::now();

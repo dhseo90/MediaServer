@@ -1,0 +1,558 @@
+LP09 공통 소비 연결 영향 회귀 원출력 (2026-09-17)
+실행 source: HEAD fe5fe0d3b468ba1626234a9989cf664f1e564aae + 현재 미커밋 native job/remux/Ready/timeline/worker 소비 코드. 메인 제공 full build exit0 뒤 실행.
+범위: 등록된 네 단기 격리 wrapper 순차실행. 제품/테스트 코드 변경 없음. 실제앱/장시간/UI/commit/push 미실행.
+GST 실행(service/remux/integration)은 env -u GST_REGISTRY_1_0 -u MEDIA_SERVER_GST_MANAGED_REGISTRY MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp09-consumption-logs.68LloL/gst-cache MEDIA_SERVER_GST_PLUGIN_PROFILE=headless 를 앞에 붙임. wrapper 자체 RUN_DIR registry 사용; integration은 자체root cache로재설정. jobs는GST off.
+원출력의 file evidence unavailable 경고를 숨기지 않음. 기존 legacy fallback 회귀이며 이 경고 fixture를 native proof 발급 PASS로 확대하지 않음.
+요약: service43 + remux31(budget1+main30) + integration56 + jobs23 =153 PASS/0FAIL, 각wrapper exit0. elapsed28+7+12+8=55초(wrapperSECONDS합, 보존작업제외).
+token start/end/consumed: 미집계(도구 집계 미제공).
+
+COMMAND bash scripts/internal/verify_recording_derived_job_service.sh
+EXIT 0
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=0 index=0 durable_state_before_exit=true
+[child] mode=recover expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=interrupted-intent-no-retry
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=1 index=0 durable_state_before_exit=true
+[child] mode=recover expected=blocked observed_complete=0 blocked=1 resources_and_files=1 reason=job-unreceipted-ownership-unknown; cleanup: job-unreceipted-ownership-unknown
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=2 index=0 durable_state_before_exit=true
+[child] mode=recover expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=interrupted-intent-no-retry
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=3 index=0 durable_state_before_exit=true
+[decode] frames=10 eos=1 error_free=1
+[decode] frames=10 eos=1 error_free=1
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=4 index=0 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=4 index=1 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=5 index=1 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=6 index=0 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=7 index=0 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=7 index=1 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=8 index=0 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=8 index=1 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=9 index=0 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=2 index=0 durable_state_before_exit=true
+[fault] stage=8 index=0 durable_state_before_exit=true
+[child] mode=recover expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=interrupted-intent-no-retry
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=2 index=0 durable_state_before_exit=true
+[fault] stage=8 index=1 durable_state_before_exit=true
+[child] mode=recover expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=interrupted-intent-no-retry
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=2 index=0 durable_state_before_exit=true
+[fault] stage=9 index=0 durable_state_before_exit=true
+[child] mode=recover expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=interrupted-intent-no-retry
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=3 index=0 durable_state_before_exit=true
+[child] mode=recover expected=blocked observed_complete=0 blocked=1 resources_and_files=1 reason=job-file-integrity
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=3 index=0 durable_state_before_exit=true
+[child] mode=recover expected=blocked observed_complete=0 blocked=1 resources_and_files=1 reason=job-ready-file-missing
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=3 index=0 durable_state_before_exit=true
+[child] mode=recover expected=blocked observed_complete=0 blocked=1 resources_and_files=1 reason=job-file-ownership
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=3 index=0 durable_state_before_exit=true
+[child] mode=recover expected=blocked observed_complete=0 blocked=1 resources_and_files=1 reason=job-owned-open
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=3 index=0 durable_state_before_exit=true
+[child] mode=recover expected=blocked observed_complete=0 blocked=1 resources_and_files=1 reason=job-file-ownership
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=3 index=0 durable_state_before_exit=true
+[child] mode=recover expected=blocked observed_complete=0 blocked=1 resources_and_files=1 reason=job-ready-extra-hardlink
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=3 index=0 durable_state_before_exit=true
+[child] mode=recover expected=blocked observed_complete=0 blocked=1 resources_and_files=1 reason=job-parent-replaced
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[child] mode=cancel-before-create expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=job-cancelled-or-deadline
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[child] mode=cancel expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=job-cancelled-or-deadline
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[child] mode=small expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=job-remux: output-byte-budget-exceeded
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[child] mode=deadline expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=job-cancelled-or-deadline
+[pass] F12 실제 remux의 다른 selection 결박 거부
+[pass] F12 실제 remux provenance의 요청 범위 위조 거부
+[pass] F12 실제 remux의 foreign unfulfilled 범위 거부
+[pass] F01 실제 writer→선택→Intent→파생 파일→게시→Complete
+[decode] frames=10 eos=1 error_free=1
+[decode] frames=10 eos=1 error_free=1
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[pass] F01 실제 catalog/file/hash/단일 commit/hold 해제/cleanup 및 직접 decode
+[pass] F15 단일 service·동시 Run·외부 terminal release 거부
+[pass] F16 active source 삭제 거부·동일 사유 비보호 원본 삭제 positive control
+[pass] F02 두 출력 독립 epoch·unknown UTC·실제 AU/visible 출처 보존
+[pass] F12 Complete 출처 전수 canonical roundtrip
+[pass] F12 Ready 포함 Intent 잘못된 상태 거부
+[pass] F12 미지원 필드 엄격 거부
+[pass] F14 Ready JSON 4MiB 명시 상한 거부
+[pass] F12 출력 receipt inode 별칭 거부
+[detail] reason= outputs=2
+[pass] F03 Intent 생성 전 프로세스 중단
+[pass] F04 receipt 전 실물의 소유권 미확인 보호 유지
+[pass] F05 receipt 이후 Intent 중단 소유물 정리
+[pass] F06 Ready 중단 뒤 재렌더 없이 완료
+[pass] F07 첫 출력 link 중단 쌍 복구
+[pass] F07 두 번째 출력 link 중단 쌍 복구
+[pass] F08 전체 publish 후 commit 전 중단
+[pass] F09 원자 commit 후 cleanup 전 중단
+[pass] F10 첫 temp 삭제 중단
+[pass] F10 두 번째 temp 삭제 중단
+[pass] F10 attempt 디렉터리 삭제 중단
+[pass] F10 job 디렉터리 삭제 중단
+[pass] F10 Complete mutation 직전 중단
+[pass] F10 Failed cleanup attempt 삭제 중단
+[pass] F10 Failed cleanup job 삭제 중단
+[pass] F10 Failed mutation 직전 중단
+[pass] F11 hash 오류 거부·보호/예약 유지
+[pass] F11 missing 오류 거부·보호/예약 유지
+[pass] F11 foreign 오류 거부·보호/예약 유지
+[pass] F11 symlink 오류 거부·보호/예약 유지
+[pass] F11 fifo 오류 거부·보호/예약 유지
+[pass] F11 hardlink 오류 거부·보호/예약 유지
+[pass] F11 parent 오류 거부·보호/예약 유지
+[pass] F14 cancel-before-create 생성 중단·소유 cleanup·예약 해제
+[pass] F14 cancel 생성 중단·소유 cleanup·예약 해제
+[pass] F14 small 생성 중단·소유 cleanup·예약 해제
+[pass] F14 deadline 생성 중단·소유 cleanup·예약 해제
+[pass] F12 SQLite projection·journal fallback job/output 일치
+[pass] F12 SQLite rebuild·checkpoint 재개방 job/output 일치
+[pass] F13 Complete output tombstone 뒤 재생성 없음
+[summary] pass=43 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-job-service.fzhkQO bytes=17704497 removed=true
+[elapsed] seconds=28 source=bash-SECONDS
+
+COMMAND bash scripts/internal/verify_recording_derived_remux.sh
+EXIT 0
+[pass] R14 단발 true→false 취소의 단조 고정
+[summary] pass=1 fail=0
+[detail] decoded=60 slices=30 ambiguous=0 complete=1
+[pass] D22 실제 분수frame 요청 선택
+[provenance] case=fractional verified=1 fully=0 unfulfilled=20
+[output] segment=ad9e2b93-e839-4336-a368-ca40df4e7211 epoch=7c264343-1cc9-433c-acee-27f57a2b685f size=38164 sha256=7ffce62838bb4bb9804d633581347166e7975b3894af8515062305bd3608b03d range=7000000000:8000999999 request=7000000000:8001000000 seek_stream_ns=0 origin_ns=7000000000 basis=file-duration-on-source-pts-axis
+[au] ordinal=1 original=7000000000 file=0 file_duration=33366666 output=125000000 output_duration=33366666 recovered90k=11250 residual_numerator=0 source_vcl=a06f8acb8a438c49fca6adbdd2ce95e7d3a620f55453e7d1cc786ea3117c9ecc output_vcl=a06f8acb8a438c49fca6adbdd2ce95e7d3a620f55453e7d1cc786ea3117c9ecc
+[au] ordinal=2 original=7033366666 file=33366666 file_duration=33366666 output=158355555 output_duration=33366666 recovered90k=14252 residual_numerator=50000 source_vcl=84a662f9ad5835946a92f0c714350dc16109b80165027def0abb146794cd5305 output_vcl=84a662f9ad5835946a92f0c714350dc16109b80165027def0abb146794cd5305
+[au] ordinal=3 original=7066733333 file=66733333 file_duration=33366666 output=191722222 output_duration=33366666 recovered90k=17255 residual_numerator=20000 source_vcl=7ea75a5b2d17bcba69e3348047052db707423e438a2c473e8abb4c18300c4c5c output_vcl=7ea75a5b2d17bcba69e3348047052db707423e438a2c473e8abb4c18300c4c5c
+[au] ordinal=4 original=7100100000 file=100100000 file_duration=33366666 output=225100000 output_duration=33366666 recovered90k=20259 residual_numerator=0 source_vcl=07a73646d5414f4af3a06fa4dc001c30eb3cf545ee2813977b099697ed02e376 output_vcl=07a73646d5414f4af3a06fa4dc001c30eb3cf545ee2813977b099697ed02e376
+[au] ordinal=5 original=7133466666 file=133466666 file_duration=33366666 output=258455555 output_duration=33366666 recovered90k=23261 residual_numerator=50000 source_vcl=143cf42cd2c9f2676693d50f96b60f006f5f0df6f80dfe1c509ded568454ad22 output_vcl=143cf42cd2c9f2676693d50f96b60f006f5f0df6f80dfe1c509ded568454ad22
+[au] ordinal=6 original=7166833333 file=166833333 file_duration=33366666 output=291822222 output_duration=33366666 recovered90k=26264 residual_numerator=20000 source_vcl=feda9268b0615686fc99e8554f6cc8d1255551012f44478259eba509b4ca664f output_vcl=feda9268b0615686fc99e8554f6cc8d1255551012f44478259eba509b4ca664f
+[au] ordinal=7 original=7200200000 file=200200000 file_duration=33366666 output=325200000 output_duration=33366666 recovered90k=29268 residual_numerator=0 source_vcl=a3bf2ecd9df359b137ac8bce41a9a9022dc066599b1a71519dda12485fadab71 output_vcl=a3bf2ecd9df359b137ac8bce41a9a9022dc066599b1a71519dda12485fadab71
+[au] ordinal=8 original=7233566666 file=233566666 file_duration=33366666 output=358555555 output_duration=33366666 recovered90k=32270 residual_numerator=50000 source_vcl=24cd009f2a3d28be5950c5151353b9d1f9398233081f6cccf3eaea5134e77db2 output_vcl=24cd009f2a3d28be5950c5151353b9d1f9398233081f6cccf3eaea5134e77db2
+[au] ordinal=9 original=7266933333 file=266933333 file_duration=33366666 output=391922222 output_duration=33366666 recovered90k=35273 residual_numerator=20000 source_vcl=a9c1187d0c772b5e9979c21997aed967acdeae27b9c2f48d6b8374d5f9bc3abe output_vcl=a9c1187d0c772b5e9979c21997aed967acdeae27b9c2f48d6b8374d5f9bc3abe
+[au] ordinal=10 original=7300300000 file=300300000 file_duration=33366666 output=425300000 output_duration=33366666 recovered90k=38277 residual_numerator=0 source_vcl=06a621e99b7bfd4a0d2fedbbfdf75879e7389253c9b90a7b30e4b3bc0e4b6512 output_vcl=06a621e99b7bfd4a0d2fedbbfdf75879e7389253c9b90a7b30e4b3bc0e4b6512
+[au] ordinal=11 original=7333666666 file=333666666 file_duration=33366666 output=458655555 output_duration=33366666 recovered90k=41279 residual_numerator=50000 source_vcl=882f9408e1df359c76f9e409b287c016d03204c68220c590687ead5561f2223a output_vcl=882f9408e1df359c76f9e409b287c016d03204c68220c590687ead5561f2223a
+[au] ordinal=12 original=7367033333 file=367033333 file_duration=33366666 output=492022222 output_duration=33366666 recovered90k=44282 residual_numerator=20000 source_vcl=fdb605ecbb947123ce08dd482cda2a698f63075f88264f1db2149bd0efa69b44 output_vcl=fdb605ecbb947123ce08dd482cda2a698f63075f88264f1db2149bd0efa69b44
+[au] ordinal=13 original=7400400000 file=400400000 file_duration=33366666 output=525400000 output_duration=33366666 recovered90k=47286 residual_numerator=0 source_vcl=d8dff563296c03e43811241f9ea0cd852f5cab993c85eef4ea2dcb4bc4b3a86e output_vcl=d8dff563296c03e43811241f9ea0cd852f5cab993c85eef4ea2dcb4bc4b3a86e
+[au] ordinal=14 original=7433766666 file=433766666 file_duration=33366666 output=558755555 output_duration=33366666 recovered90k=50288 residual_numerator=50000 source_vcl=3d773b7d0c39aed26797838a130c808ca0fc3f3892bb818c5ea0ca76430bf90e output_vcl=3d773b7d0c39aed26797838a130c808ca0fc3f3892bb818c5ea0ca76430bf90e
+[au] ordinal=15 original=7467133333 file=467133333 file_duration=33366666 output=592122222 output_duration=33366666 recovered90k=53291 residual_numerator=20000 source_vcl=3d841b5564ab048f6c3de42e201938dbc2ff32840d950001d8f9e04510fd6c50 output_vcl=3d841b5564ab048f6c3de42e201938dbc2ff32840d950001d8f9e04510fd6c50
+[au] ordinal=16 original=7500500000 file=500500000 file_duration=33366666 output=625500000 output_duration=33366666 recovered90k=56295 residual_numerator=0 source_vcl=938a9afd6a99cb013526e94bafe7552bee7006452f743e7a1a78eff6c81e4773 output_vcl=938a9afd6a99cb013526e94bafe7552bee7006452f743e7a1a78eff6c81e4773
+[au] ordinal=17 original=7533866666 file=533866666 file_duration=33366666 output=658855555 output_duration=33366666 recovered90k=59297 residual_numerator=50000 source_vcl=48c6bc53bec63235927d73899c3d4cc1b124fd7c210d491e2ba1b844be817bfc output_vcl=48c6bc53bec63235927d73899c3d4cc1b124fd7c210d491e2ba1b844be817bfc
+[au] ordinal=18 original=7567233333 file=567233333 file_duration=33366666 output=692222222 output_duration=33366666 recovered90k=62300 residual_numerator=20000 source_vcl=ad6259dc181e6d651a01f54f0edd8a8337258959a94197c98f01a0d1ed605026 output_vcl=ad6259dc181e6d651a01f54f0edd8a8337258959a94197c98f01a0d1ed605026
+[au] ordinal=19 original=7600600000 file=600600000 file_duration=33366666 output=725600000 output_duration=33366666 recovered90k=65304 residual_numerator=0 source_vcl=64b6a4d89955a963d807a2faa179caaea50545331ddd8ea9564d7789a5b6db8c output_vcl=64b6a4d89955a963d807a2faa179caaea50545331ddd8ea9564d7789a5b6db8c
+[au] ordinal=20 original=7633966666 file=633966666 file_duration=33366666 output=758955555 output_duration=33366666 recovered90k=68306 residual_numerator=50000 source_vcl=203ff7b0f47283463fd4c2fab15bc496ec140c3ae34f8857ac030376404870fc output_vcl=203ff7b0f47283463fd4c2fab15bc496ec140c3ae34f8857ac030376404870fc
+[au] ordinal=21 original=7667333333 file=667333333 file_duration=33366666 output=792322222 output_duration=33366666 recovered90k=71309 residual_numerator=20000 source_vcl=75827e2bb5d4f5975f087ed1baa1253e39a98050bed64da619cbe1fdb304692a output_vcl=75827e2bb5d4f5975f087ed1baa1253e39a98050bed64da619cbe1fdb304692a
+[au] ordinal=22 original=7700700000 file=700700000 file_duration=33366666 output=825700000 output_duration=33366666 recovered90k=74313 residual_numerator=0 source_vcl=0e37a96c00c3daed38aca1711e8865f7b91f2c1a151aee9ba78b6f00d88c53ad output_vcl=0e37a96c00c3daed38aca1711e8865f7b91f2c1a151aee9ba78b6f00d88c53ad
+[au] ordinal=23 original=7734066666 file=734066666 file_duration=33366666 output=859055555 output_duration=33366666 recovered90k=77315 residual_numerator=50000 source_vcl=e512dc4c3ede2009a72b6da75697bc9fd946ebe7dda20508f98b89e4be097c4d output_vcl=e512dc4c3ede2009a72b6da75697bc9fd946ebe7dda20508f98b89e4be097c4d
+[au] ordinal=24 original=7767433333 file=767433333 file_duration=33366666 output=892422222 output_duration=33366666 recovered90k=80318 residual_numerator=20000 source_vcl=8a7e1dd58e159a874fcbdb3c800ae537101d675e40769090fc43b956e21f1fcb output_vcl=8a7e1dd58e159a874fcbdb3c800ae537101d675e40769090fc43b956e21f1fcb
+[au] ordinal=25 original=7800800000 file=800800000 file_duration=33366666 output=925800000 output_duration=33366666 recovered90k=83322 residual_numerator=0 source_vcl=94c459ccc22e679dc4e5823f6d3eebbf9c2890ccd224fcf2079f8ae95f6e430c output_vcl=94c459ccc22e679dc4e5823f6d3eebbf9c2890ccd224fcf2079f8ae95f6e430c
+[au] ordinal=26 original=7834166666 file=834166666 file_duration=33366666 output=959155555 output_duration=33366666 recovered90k=86324 residual_numerator=50000 source_vcl=57caa1dcc81aa744288efa4f0cfaa92f32e97af040417b03c14016cecae6fa36 output_vcl=57caa1dcc81aa744288efa4f0cfaa92f32e97af040417b03c14016cecae6fa36
+[au] ordinal=27 original=7867533333 file=867533333 file_duration=33366666 output=992522222 output_duration=33366666 recovered90k=89327 residual_numerator=20000 source_vcl=d2ebc47e2286a34ac874124cf0c7873b1e8e96165ab71c0d7fe56a559f525ed7 output_vcl=d2ebc47e2286a34ac874124cf0c7873b1e8e96165ab71c0d7fe56a559f525ed7
+[au] ordinal=28 original=7900900000 file=900900000 file_duration=33366666 output=1025900000 output_duration=33366666 recovered90k=92331 residual_numerator=0 source_vcl=5eafd0ded5583c076eb92d954a812c13188141dd8b7b13cb881c96a56b4d0b1a output_vcl=5eafd0ded5583c076eb92d954a812c13188141dd8b7b13cb881c96a56b4d0b1a
+[au] ordinal=29 original=7934266666 file=934266666 file_duration=33366666 output=1059255555 output_duration=33366666 recovered90k=95333 residual_numerator=50000 source_vcl=1b81336247c3726f425856e6fde6d00206ee19a516474d13de1c5b8b3ac4314b output_vcl=1b81336247c3726f425856e6fde6d00206ee19a516474d13de1c5b8b3ac4314b
+[au] ordinal=30 original=7967633333 file=967633333 file_duration=33366666 output=1092622222 output_duration=33366666 recovered90k=98336 residual_numerator=20000 source_vcl=483d8321995d5de3db589117f8909e19603d90fd186d7ab63ba29177c5abff19 output_vcl=483d8321995d5de3db589117f8909e19603d90fd186d7ab63ba29177c5abff19
+[unfulfilled] axis=original-pts-ns range=7066733332:7066733333 reason=file-duration-uncovered
+[unfulfilled] axis=original-pts-ns range=7100099999:7100100000 reason=file-duration-uncovered
+[unfulfilled] axis=original-pts-ns range=7166833332:7166833333 reason=file-duration-uncovered
+[unfulfilled] axis=original-pts-ns range=7200199999:7200200000 reason=file-duration-uncovered
+[unfulfilled] axis=original-pts-ns range=7266933332:7266933333 reason=file-duration-uncovered
+[unfulfilled] axis=original-pts-ns range=7300299999:7300300000 reason=file-duration-uncovered
+[unfulfilled] axis=original-pts-ns range=7367033332:7367033333 reason=file-duration-uncovered
+[unfulfilled] axis=original-pts-ns range=7400399999:7400400000 reason=file-duration-uncovered
+[unfulfilled] axis=original-pts-ns range=7467133332:7467133333 reason=file-duration-uncovered
+[unfulfilled] axis=original-pts-ns range=7500499999:7500500000 reason=file-duration-uncovered
+[unfulfilled] axis=original-pts-ns range=7567233332:7567233333 reason=file-duration-uncovered
+[unfulfilled] axis=original-pts-ns range=7600599999:7600600000 reason=file-duration-uncovered
+[unfulfilled] axis=original-pts-ns range=7667333332:7667333333 reason=file-duration-uncovered
+[unfulfilled] axis=original-pts-ns range=7700699999:7700700000 reason=file-duration-uncovered
+[unfulfilled] axis=original-pts-ns range=7767433332:7767433333 reason=file-duration-uncovered
+[unfulfilled] axis=original-pts-ns range=7800799999:7800800000 reason=file-duration-uncovered
+[unfulfilled] axis=original-pts-ns range=7867533332:7867533333 reason=file-duration-uncovered
+[unfulfilled] axis=original-pts-ns range=7900899999:7900900000 reason=file-duration-uncovered
+[unfulfilled] axis=original-pts-ns range=7967633332:7967633333 reason=file-duration-uncovered
+[unfulfilled] axis=original-pts-ns range=8000999999:8001000000 reason=file-duration-uncovered
+[detail] remux_error= outputs=1
+[pass] R01 실제 source-AU→TS-AU payload·decode 일치
+[pass] R11 confirmed source 누락은 생성전 거부
+[pass] R03 분수 duration 미충족과 검증성공 분리
+[pass] R08 양수 byte 상한 필수
+[pass] R08 byte 상한 초과 전 중단·partial cleanup
+[pass] R09 미지원 codec 명시 거부
+[pass] R09 ambiguous 자동 선택 금지
+[pass] R11 중복 segment 입력 거부
+[pass] R11 reference source 결박 불일치 거부
+[pass] R11 reference channel 결박 불일치 거부
+[pass] R06 원본·출력 별칭 거부
+[pass] R06 O_APPEND 출력 거부
+[pass] R07 원본 hash 불일치 거부
+[pass] R13 시작 전 취소·쓰기 없음
+[pass] R13 유효 전체시간 상한 필수
+[pass] R10 unknown 요청 보존·partial 출력
+[pass] R06 borrowed FD offset 보존
+[pass] R13 출력 후 취소·partial 소유권 보존
+[pass] R13 1ms 전체 deadline 초과는 검증성공 아님
+[pass] R07 출력 중 원본 변경 재확인 거부
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[provenance] case=bframe verified=1 fully=1 unfulfilled=0
+[output] segment=c85fd4f0-8051-444b-936d-9fcaae87382e epoch=48fc2b11-e6b4-47f7-8ec6-81c12e6fdd72 size=9212 sha256=1f5f8226b1468bc6dfabad01579f3521a56cea1403fe5b7e9f2e5d0b436c573a range=10200000000:11200000000 request=10400000000:11200000000 seek_stream_ns=1000000000 origin_ns=9000000000 basis=file-duration-on-source-pts-axis
+[au] ordinal=11 original=10200000000 file=1200000000 file_duration=100000000 output=325000000 output_duration=100000000 recovered90k=29250 residual_numerator=0 source_vcl=453e4896949ef8d27bc4aefbdc914b1a8ee2f8d9e8d43a094559e4c59eb51943 output_vcl=453e4896949ef8d27bc4aefbdc914b1a8ee2f8d9e8d43a094559e4c59eb51943
+[au] ordinal=12 original=10300000000 file=1300000000 file_duration=100000000 output=425000000 output_duration=100000000 recovered90k=38250 residual_numerator=0 source_vcl=5e531e6b93a24b1c43350fe8bd26216f5a6560b35021b2af262c12bbbb3ec30b output_vcl=5e531e6b93a24b1c43350fe8bd26216f5a6560b35021b2af262c12bbbb3ec30b
+[au] ordinal=13 original=10500000000 file=1500000000 file_duration=100000000 output=625000000 output_duration=100000000 recovered90k=56250 residual_numerator=0 source_vcl=a359e700b7572b0ef307cc0ecc84f741264deb5ee4d62d9ce1a62a13816570cc output_vcl=a359e700b7572b0ef307cc0ecc84f741264deb5ee4d62d9ce1a62a13816570cc
+[au] ordinal=14 original=10400000000 file=1400000000 file_duration=100000000 output=525000000 output_duration=100000000 recovered90k=47250 residual_numerator=0 source_vcl=5557c0375af4be237f7e8fd6590adc3bb957942c4c8e18c428451ad0d202dab3 output_vcl=5557c0375af4be237f7e8fd6590adc3bb957942c4c8e18c428451ad0d202dab3
+[au] ordinal=15 original=10700000000 file=1700000000 file_duration=100000000 output=825000000 output_duration=100000000 recovered90k=74250 residual_numerator=0 source_vcl=f520f8b919f6eb379a920f0549c7121ee5740916a52007d4f5381930678605e0 output_vcl=f520f8b919f6eb379a920f0549c7121ee5740916a52007d4f5381930678605e0
+[au] ordinal=16 original=10600000000 file=1600000000 file_duration=100000000 output=725000000 output_duration=100000000 recovered90k=65250 residual_numerator=0 source_vcl=79c93e12589f56161c107febb4a83535bd5ca9784a0a0c680a55eae13ccd4ec1 output_vcl=79c93e12589f56161c107febb4a83535bd5ca9784a0a0c680a55eae13ccd4ec1
+[au] ordinal=17 original=10800000000 file=1800000000 file_duration=100000000 output=925000000 output_duration=100000000 recovered90k=83250 residual_numerator=0 source_vcl=f672f157fa57d2619b520ed519510d8442e8c4b434c37dcb0d3ce271bcc533d2 output_vcl=f672f157fa57d2619b520ed519510d8442e8c4b434c37dcb0d3ce271bcc533d2
+[au] ordinal=18 original=10900000000 file=1900000000 file_duration=100000000 output=1025000000 output_duration=100000000 recovered90k=92250 residual_numerator=0 source_vcl=d2d0ee97b02a7e89d0d80124aa956b532a2a39e28b573ca36c5556ef44bf737f output_vcl=d2d0ee97b02a7e89d0d80124aa956b532a2a39e28b573ca36c5556ef44bf737f
+[au] ordinal=19 original=11100000000 file=2100000000 file_duration=100000000 output=1225000000 output_duration=100000000 recovered90k=110250 residual_numerator=0 source_vcl=a92ec9c5610b50f3ab026ededbba46c30d51897c35d652851b20858698269885 output_vcl=a92ec9c5610b50f3ab026ededbba46c30d51897c35d652851b20858698269885
+[au] ordinal=20 original=11000000000 file=2000000000 file_duration=100000000 output=1125000000 output_duration=100000000 recovered90k=101250 residual_numerator=0 source_vcl=879eb4f819b4c0149dc4dada61ebed2916b004746e0fdf276b24a26d33ed8fca output_vcl=879eb4f819b4c0149dc4dada61ebed2916b004746e0fdf276b24a26d33ed8fca
+[detail] bframe_error= outputs=1
+[pass] R02 B-frame 실제 seek·nonzero 원본축
+[pass] R04 요청 외 keyframe preroll·GOP 의존 범위 분리
+[pass] R12 162×94 visible plane 픽셀 대응
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[provenance] case=multi verified=1 fully=1 unfulfilled=0
+[output] segment=5d4915ee-d6be-4a9d-8986-d413f549e77d epoch=5460fc2a-583d-48d4-9e29-ab9fe8a33aab size=14476 sha256=9e5cf1edbd01dcf75bf24a8a4cca7048b01c3a08dbe68c0a57975220f14e4ad2 range=0:1000000000 request=0:1000000000 seek_stream_ns=0 origin_ns=0 basis=file-duration-on-source-pts-axis
+[au] ordinal=1 original=0 file=0 file_duration=100000000 output=125000000 output_duration=100000000 recovered90k=11250 residual_numerator=0 source_vcl=c8905834919f68d224b6183eaff91d65b2a0e0d308727195f8e21c6670796abf output_vcl=c8905834919f68d224b6183eaff91d65b2a0e0d308727195f8e21c6670796abf
+[au] ordinal=2 original=100000000 file=100000000 file_duration=100000000 output=225000000 output_duration=100000000 recovered90k=20250 residual_numerator=0 source_vcl=d954f8e53f13449d593071fc93e86fa39f416b697f2cc686803de9d4bac4e3d2 output_vcl=d954f8e53f13449d593071fc93e86fa39f416b697f2cc686803de9d4bac4e3d2
+[au] ordinal=3 original=200000000 file=200000000 file_duration=100000000 output=325000000 output_duration=100000000 recovered90k=29250 residual_numerator=0 source_vcl=96aead12d6d6f7a940cfea78a385ef408b6aae56fec6eae68962c8fbf9bc73ab output_vcl=96aead12d6d6f7a940cfea78a385ef408b6aae56fec6eae68962c8fbf9bc73ab
+[au] ordinal=4 original=300000000 file=300000000 file_duration=100000000 output=425000000 output_duration=100000000 recovered90k=38250 residual_numerator=0 source_vcl=da5ba7b0a71ce21cadcea218b2f21021c879c290e0b344aac2f27d3e87b92265 output_vcl=da5ba7b0a71ce21cadcea218b2f21021c879c290e0b344aac2f27d3e87b92265
+[au] ordinal=5 original=400000000 file=400000000 file_duration=100000000 output=525000000 output_duration=100000000 recovered90k=47250 residual_numerator=0 source_vcl=a2017bfb6c1c6039ccaa567148a8367d8b58e9e43223224b0c2ae7efdc3eb87a output_vcl=a2017bfb6c1c6039ccaa567148a8367d8b58e9e43223224b0c2ae7efdc3eb87a
+[au] ordinal=6 original=500000000 file=500000000 file_duration=100000000 output=625000000 output_duration=100000000 recovered90k=56250 residual_numerator=0 source_vcl=5b64d2925fc6b6c1fcffb6ed95c110a1be5d4064f5ed7e49f402a376b81faf3c output_vcl=5b64d2925fc6b6c1fcffb6ed95c110a1be5d4064f5ed7e49f402a376b81faf3c
+[au] ordinal=7 original=600000000 file=600000000 file_duration=100000000 output=725000000 output_duration=100000000 recovered90k=65250 residual_numerator=0 source_vcl=aeb4f3ae6340b704eaf9135161ef96618c16b9e198577246de104e6a4bb25186 output_vcl=aeb4f3ae6340b704eaf9135161ef96618c16b9e198577246de104e6a4bb25186
+[au] ordinal=8 original=700000000 file=700000000 file_duration=100000000 output=825000000 output_duration=100000000 recovered90k=74250 residual_numerator=0 source_vcl=d4cd424e45038ea1a1ed2b13ccc545d0a0eda2f824ff751e7bc46af3d50cf5c1 output_vcl=d4cd424e45038ea1a1ed2b13ccc545d0a0eda2f824ff751e7bc46af3d50cf5c1
+[au] ordinal=9 original=800000000 file=800000000 file_duration=100000000 output=925000000 output_duration=100000000 recovered90k=83250 residual_numerator=0 source_vcl=ae8ca8628ed9f90c98984225c65afa116a3c760273a1e2804ddbf39d5074ecc5 output_vcl=ae8ca8628ed9f90c98984225c65afa116a3c760273a1e2804ddbf39d5074ecc5
+[au] ordinal=10 original=900000000 file=900000000 file_duration=100000000 output=1025000000 output_duration=100000000 recovered90k=92250 residual_numerator=0 source_vcl=d0b742c05ebeb92c2be67772c02c82e98e1a9dce8ca2bf370001f0f999c17f87 output_vcl=d0b742c05ebeb92c2be67772c02c82e98e1a9dce8ca2bf370001f0f999c17f87
+[output] segment=7d0ac13e-76c5-40e4-861d-6a473b8320e4 epoch=5460fc2a-583d-48d4-9e29-ab9fe8a33aab size=14476 sha256=4671c7e898d6b13316dbab7a6d8317c3cb9a8c70b2e4b6e36b53c043e6acb366 range=1000000000:2000000000 request=1000000000:2000000000 seek_stream_ns=0 origin_ns=1000000000 basis=file-duration-on-source-pts-axis
+[au] ordinal=11 original=1000000000 file=0 file_duration=100000000 output=125000000 output_duration=100000000 recovered90k=11250 residual_numerator=0 source_vcl=882f9408e1df359c76f9e409b287c016d03204c68220c590687ead5561f2223a output_vcl=882f9408e1df359c76f9e409b287c016d03204c68220c590687ead5561f2223a
+[au] ordinal=12 original=1100000000 file=100000000 file_duration=100000000 output=225000000 output_duration=100000000 recovered90k=20250 residual_numerator=0 source_vcl=fdb605ecbb947123ce08dd482cda2a698f63075f88264f1db2149bd0efa69b44 output_vcl=fdb605ecbb947123ce08dd482cda2a698f63075f88264f1db2149bd0efa69b44
+[au] ordinal=13 original=1200000000 file=200000000 file_duration=100000000 output=325000000 output_duration=100000000 recovered90k=29250 residual_numerator=0 source_vcl=d8dff563296c03e43811241f9ea0cd852f5cab993c85eef4ea2dcb4bc4b3a86e output_vcl=d8dff563296c03e43811241f9ea0cd852f5cab993c85eef4ea2dcb4bc4b3a86e
+[au] ordinal=14 original=1300000000 file=300000000 file_duration=100000000 output=425000000 output_duration=100000000 recovered90k=38250 residual_numerator=0 source_vcl=3d773b7d0c39aed26797838a130c808ca0fc3f3892bb818c5ea0ca76430bf90e output_vcl=3d773b7d0c39aed26797838a130c808ca0fc3f3892bb818c5ea0ca76430bf90e
+[au] ordinal=15 original=1400000000 file=400000000 file_duration=100000000 output=525000000 output_duration=100000000 recovered90k=47250 residual_numerator=0 source_vcl=3d841b5564ab048f6c3de42e201938dbc2ff32840d950001d8f9e04510fd6c50 output_vcl=3d841b5564ab048f6c3de42e201938dbc2ff32840d950001d8f9e04510fd6c50
+[au] ordinal=16 original=1500000000 file=500000000 file_duration=100000000 output=625000000 output_duration=100000000 recovered90k=56250 residual_numerator=0 source_vcl=938a9afd6a99cb013526e94bafe7552bee7006452f743e7a1a78eff6c81e4773 output_vcl=938a9afd6a99cb013526e94bafe7552bee7006452f743e7a1a78eff6c81e4773
+[au] ordinal=17 original=1600000000 file=600000000 file_duration=100000000 output=725000000 output_duration=100000000 recovered90k=65250 residual_numerator=0 source_vcl=48c6bc53bec63235927d73899c3d4cc1b124fd7c210d491e2ba1b844be817bfc output_vcl=48c6bc53bec63235927d73899c3d4cc1b124fd7c210d491e2ba1b844be817bfc
+[au] ordinal=18 original=1700000000 file=700000000 file_duration=100000000 output=825000000 output_duration=100000000 recovered90k=74250 residual_numerator=0 source_vcl=ad6259dc181e6d651a01f54f0edd8a8337258959a94197c98f01a0d1ed605026 output_vcl=ad6259dc181e6d651a01f54f0edd8a8337258959a94197c98f01a0d1ed605026
+[au] ordinal=19 original=1800000000 file=800000000 file_duration=100000000 output=925000000 output_duration=100000000 recovered90k=83250 residual_numerator=0 source_vcl=64b6a4d89955a963d807a2faa179caaea50545331ddd8ea9564d7789a5b6db8c output_vcl=64b6a4d89955a963d807a2faa179caaea50545331ddd8ea9564d7789a5b6db8c
+[au] ordinal=20 original=1900000000 file=900000000 file_duration=100000000 output=1025000000 output_duration=100000000 recovered90k=92250 residual_numerator=0 source_vcl=203ff7b0f47283463fd4c2fab15bc496ec140c3ae34f8857ac030376404870fc output_vcl=203ff7b0f47283463fd4c2fab15bc496ec140c3ae34f8857ac030376404870fc
+[output] segment=c57519aa-64e0-40df-b625-e7c5348e301e epoch=5460fc2a-583d-48d4-9e29-ab9fe8a33aab size=15792 sha256=37a16c7960db7580d933f2e2becca79367055e93b397043dd6f757905cd2bff8 range=2000000000:3000000000 request=2000000000:3000000000 seek_stream_ns=0 origin_ns=2000000000 basis=file-duration-on-source-pts-axis
+[au] ordinal=21 original=2000000000 file=0 file_duration=100000000 output=125000000 output_duration=100000000 recovered90k=11250 residual_numerator=0 source_vcl=75827e2bb5d4f5975f087ed1baa1253e39a98050bed64da619cbe1fdb304692a output_vcl=75827e2bb5d4f5975f087ed1baa1253e39a98050bed64da619cbe1fdb304692a
+[au] ordinal=22 original=2100000000 file=100000000 file_duration=100000000 output=225000000 output_duration=100000000 recovered90k=20250 residual_numerator=0 source_vcl=0e37a96c00c3daed38aca1711e8865f7b91f2c1a151aee9ba78b6f00d88c53ad output_vcl=0e37a96c00c3daed38aca1711e8865f7b91f2c1a151aee9ba78b6f00d88c53ad
+[au] ordinal=23 original=2200000000 file=200000000 file_duration=100000000 output=325000000 output_duration=100000000 recovered90k=29250 residual_numerator=0 source_vcl=e512dc4c3ede2009a72b6da75697bc9fd946ebe7dda20508f98b89e4be097c4d output_vcl=e512dc4c3ede2009a72b6da75697bc9fd946ebe7dda20508f98b89e4be097c4d
+[au] ordinal=24 original=2300000000 file=300000000 file_duration=100000000 output=425000000 output_duration=100000000 recovered90k=38250 residual_numerator=0 source_vcl=8a7e1dd58e159a874fcbdb3c800ae537101d675e40769090fc43b956e21f1fcb output_vcl=8a7e1dd58e159a874fcbdb3c800ae537101d675e40769090fc43b956e21f1fcb
+[au] ordinal=25 original=2400000000 file=400000000 file_duration=100000000 output=525000000 output_duration=100000000 recovered90k=47250 residual_numerator=0 source_vcl=94c459ccc22e679dc4e5823f6d3eebbf9c2890ccd224fcf2079f8ae95f6e430c output_vcl=94c459ccc22e679dc4e5823f6d3eebbf9c2890ccd224fcf2079f8ae95f6e430c
+[au] ordinal=26 original=2500000000 file=500000000 file_duration=100000000 output=625000000 output_duration=100000000 recovered90k=56250 residual_numerator=0 source_vcl=57caa1dcc81aa744288efa4f0cfaa92f32e97af040417b03c14016cecae6fa36 output_vcl=57caa1dcc81aa744288efa4f0cfaa92f32e97af040417b03c14016cecae6fa36
+[au] ordinal=27 original=2600000000 file=600000000 file_duration=100000000 output=725000000 output_duration=100000000 recovered90k=65250 residual_numerator=0 source_vcl=d2ebc47e2286a34ac874124cf0c7873b1e8e96165ab71c0d7fe56a559f525ed7 output_vcl=d2ebc47e2286a34ac874124cf0c7873b1e8e96165ab71c0d7fe56a559f525ed7
+[au] ordinal=28 original=2700000000 file=700000000 file_duration=100000000 output=825000000 output_duration=100000000 recovered90k=74250 residual_numerator=0 source_vcl=5eafd0ded5583c076eb92d954a812c13188141dd8b7b13cb881c96a56b4d0b1a output_vcl=5eafd0ded5583c076eb92d954a812c13188141dd8b7b13cb881c96a56b4d0b1a
+[au] ordinal=29 original=2800000000 file=800000000 file_duration=100000000 output=925000000 output_duration=100000000 recovered90k=83250 residual_numerator=0 source_vcl=1b81336247c3726f425856e6fde6d00206ee19a516474d13de1c5b8b3ac4314b output_vcl=1b81336247c3726f425856e6fde6d00206ee19a516474d13de1c5b8b3ac4314b
+[au] ordinal=30 original=2900000000 file=900000000 file_duration=100000000 output=1025000000 output_duration=100000000 recovered90k=92250 residual_numerator=0 source_vcl=483d8321995d5de3db589117f8909e19603d90fd186d7ab63ba29177c5abff19 output_vcl=483d8321995d5de3db589117f8909e19603d90fd186d7ab63ba29177c5abff19
+[detail] multi_error= inputs=3 outputs=3
+[pass] R05 인접 same-epoch 실제 source별 독립 출력
+[pass] R06 output끼리 전체 inode 교차 거부
+[pass] R06 다른 source의 원본FD를 출력으로 거부
+[pass] R06 다른 segment의 중복 원본FD 거부
+[pass] R08 모든 출력 합계 byte 상한·부분 실패 목록
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[provenance] case=multi-epoch verified=1 fully=1 unfulfilled=0
+[output] segment=7c5a63b0-dbe9-4ff2-8319-bb07eb4034d0 epoch=c6761376-fc71-4181-9029-e23a0649b406 size=14476 sha256=9e5cf1edbd01dcf75bf24a8a4cca7048b01c3a08dbe68c0a57975220f14e4ad2 range=0:1000000000 request=0:1000000000 seek_stream_ns=0 origin_ns=0 basis=file-duration-on-source-pts-axis
+[au] ordinal=1 original=0 file=0 file_duration=100000000 output=125000000 output_duration=100000000 recovered90k=11250 residual_numerator=0 source_vcl=c8905834919f68d224b6183eaff91d65b2a0e0d308727195f8e21c6670796abf output_vcl=c8905834919f68d224b6183eaff91d65b2a0e0d308727195f8e21c6670796abf
+[au] ordinal=2 original=100000000 file=100000000 file_duration=100000000 output=225000000 output_duration=100000000 recovered90k=20250 residual_numerator=0 source_vcl=d954f8e53f13449d593071fc93e86fa39f416b697f2cc686803de9d4bac4e3d2 output_vcl=d954f8e53f13449d593071fc93e86fa39f416b697f2cc686803de9d4bac4e3d2
+[au] ordinal=3 original=200000000 file=200000000 file_duration=100000000 output=325000000 output_duration=100000000 recovered90k=29250 residual_numerator=0 source_vcl=96aead12d6d6f7a940cfea78a385ef408b6aae56fec6eae68962c8fbf9bc73ab output_vcl=96aead12d6d6f7a940cfea78a385ef408b6aae56fec6eae68962c8fbf9bc73ab
+[au] ordinal=4 original=300000000 file=300000000 file_duration=100000000 output=425000000 output_duration=100000000 recovered90k=38250 residual_numerator=0 source_vcl=da5ba7b0a71ce21cadcea218b2f21021c879c290e0b344aac2f27d3e87b92265 output_vcl=da5ba7b0a71ce21cadcea218b2f21021c879c290e0b344aac2f27d3e87b92265
+[au] ordinal=5 original=400000000 file=400000000 file_duration=100000000 output=525000000 output_duration=100000000 recovered90k=47250 residual_numerator=0 source_vcl=a2017bfb6c1c6039ccaa567148a8367d8b58e9e43223224b0c2ae7efdc3eb87a output_vcl=a2017bfb6c1c6039ccaa567148a8367d8b58e9e43223224b0c2ae7efdc3eb87a
+[au] ordinal=6 original=500000000 file=500000000 file_duration=100000000 output=625000000 output_duration=100000000 recovered90k=56250 residual_numerator=0 source_vcl=5b64d2925fc6b6c1fcffb6ed95c110a1be5d4064f5ed7e49f402a376b81faf3c output_vcl=5b64d2925fc6b6c1fcffb6ed95c110a1be5d4064f5ed7e49f402a376b81faf3c
+[au] ordinal=7 original=600000000 file=600000000 file_duration=100000000 output=725000000 output_duration=100000000 recovered90k=65250 residual_numerator=0 source_vcl=aeb4f3ae6340b704eaf9135161ef96618c16b9e198577246de104e6a4bb25186 output_vcl=aeb4f3ae6340b704eaf9135161ef96618c16b9e198577246de104e6a4bb25186
+[au] ordinal=8 original=700000000 file=700000000 file_duration=100000000 output=825000000 output_duration=100000000 recovered90k=74250 residual_numerator=0 source_vcl=d4cd424e45038ea1a1ed2b13ccc545d0a0eda2f824ff751e7bc46af3d50cf5c1 output_vcl=d4cd424e45038ea1a1ed2b13ccc545d0a0eda2f824ff751e7bc46af3d50cf5c1
+[au] ordinal=9 original=800000000 file=800000000 file_duration=100000000 output=925000000 output_duration=100000000 recovered90k=83250 residual_numerator=0 source_vcl=ae8ca8628ed9f90c98984225c65afa116a3c760273a1e2804ddbf39d5074ecc5 output_vcl=ae8ca8628ed9f90c98984225c65afa116a3c760273a1e2804ddbf39d5074ecc5
+[au] ordinal=10 original=900000000 file=900000000 file_duration=100000000 output=1025000000 output_duration=100000000 recovered90k=92250 residual_numerator=0 source_vcl=d0b742c05ebeb92c2be67772c02c82e98e1a9dce8ca2bf370001f0f999c17f87 output_vcl=d0b742c05ebeb92c2be67772c02c82e98e1a9dce8ca2bf370001f0f999c17f87
+[output] segment=3db9b743-4864-4dd7-be19-139789efe90f epoch=c6761376-fc71-4181-9029-e23a0649b406 size=14476 sha256=4671c7e898d6b13316dbab7a6d8317c3cb9a8c70b2e4b6e36b53c043e6acb366 range=1000000000:2000000000 request=1000000000:2000000000 seek_stream_ns=0 origin_ns=1000000000 basis=file-duration-on-source-pts-axis
+[au] ordinal=11 original=1000000000 file=0 file_duration=100000000 output=125000000 output_duration=100000000 recovered90k=11250 residual_numerator=0 source_vcl=882f9408e1df359c76f9e409b287c016d03204c68220c590687ead5561f2223a output_vcl=882f9408e1df359c76f9e409b287c016d03204c68220c590687ead5561f2223a
+[au] ordinal=12 original=1100000000 file=100000000 file_duration=100000000 output=225000000 output_duration=100000000 recovered90k=20250 residual_numerator=0 source_vcl=fdb605ecbb947123ce08dd482cda2a698f63075f88264f1db2149bd0efa69b44 output_vcl=fdb605ecbb947123ce08dd482cda2a698f63075f88264f1db2149bd0efa69b44
+[au] ordinal=13 original=1200000000 file=200000000 file_duration=100000000 output=325000000 output_duration=100000000 recovered90k=29250 residual_numerator=0 source_vcl=d8dff563296c03e43811241f9ea0cd852f5cab993c85eef4ea2dcb4bc4b3a86e output_vcl=d8dff563296c03e43811241f9ea0cd852f5cab993c85eef4ea2dcb4bc4b3a86e
+[au] ordinal=14 original=1300000000 file=300000000 file_duration=100000000 output=425000000 output_duration=100000000 recovered90k=38250 residual_numerator=0 source_vcl=3d773b7d0c39aed26797838a130c808ca0fc3f3892bb818c5ea0ca76430bf90e output_vcl=3d773b7d0c39aed26797838a130c808ca0fc3f3892bb818c5ea0ca76430bf90e
+[au] ordinal=15 original=1400000000 file=400000000 file_duration=100000000 output=525000000 output_duration=100000000 recovered90k=47250 residual_numerator=0 source_vcl=3d841b5564ab048f6c3de42e201938dbc2ff32840d950001d8f9e04510fd6c50 output_vcl=3d841b5564ab048f6c3de42e201938dbc2ff32840d950001d8f9e04510fd6c50
+[au] ordinal=16 original=1500000000 file=500000000 file_duration=100000000 output=625000000 output_duration=100000000 recovered90k=56250 residual_numerator=0 source_vcl=938a9afd6a99cb013526e94bafe7552bee7006452f743e7a1a78eff6c81e4773 output_vcl=938a9afd6a99cb013526e94bafe7552bee7006452f743e7a1a78eff6c81e4773
+[au] ordinal=17 original=1600000000 file=600000000 file_duration=100000000 output=725000000 output_duration=100000000 recovered90k=65250 residual_numerator=0 source_vcl=48c6bc53bec63235927d73899c3d4cc1b124fd7c210d491e2ba1b844be817bfc output_vcl=48c6bc53bec63235927d73899c3d4cc1b124fd7c210d491e2ba1b844be817bfc
+[au] ordinal=18 original=1700000000 file=700000000 file_duration=100000000 output=825000000 output_duration=100000000 recovered90k=74250 residual_numerator=0 source_vcl=ad6259dc181e6d651a01f54f0edd8a8337258959a94197c98f01a0d1ed605026 output_vcl=ad6259dc181e6d651a01f54f0edd8a8337258959a94197c98f01a0d1ed605026
+[au] ordinal=19 original=1800000000 file=800000000 file_duration=100000000 output=925000000 output_duration=100000000 recovered90k=83250 residual_numerator=0 source_vcl=64b6a4d89955a963d807a2faa179caaea50545331ddd8ea9564d7789a5b6db8c output_vcl=64b6a4d89955a963d807a2faa179caaea50545331ddd8ea9564d7789a5b6db8c
+[au] ordinal=20 original=1900000000 file=900000000 file_duration=100000000 output=1025000000 output_duration=100000000 recovered90k=92250 residual_numerator=0 source_vcl=203ff7b0f47283463fd4c2fab15bc496ec140c3ae34f8857ac030376404870fc output_vcl=203ff7b0f47283463fd4c2fab15bc496ec140c3ae34f8857ac030376404870fc
+[output] segment=a9352e2e-1a81-47cf-a360-268a7fac91c4 epoch=unused-restart size=15792 sha256=37a16c7960db7580d933f2e2becca79367055e93b397043dd6f757905cd2bff8 range=2000000000:3000000000 request=2000000000:3000000000 seek_stream_ns=0 origin_ns=2000000000 basis=file-duration-on-source-pts-axis
+[au] ordinal=21 original=2000000000 file=0 file_duration=100000000 output=125000000 output_duration=100000000 recovered90k=11250 residual_numerator=0 source_vcl=75827e2bb5d4f5975f087ed1baa1253e39a98050bed64da619cbe1fdb304692a output_vcl=75827e2bb5d4f5975f087ed1baa1253e39a98050bed64da619cbe1fdb304692a
+[au] ordinal=22 original=2100000000 file=100000000 file_duration=100000000 output=225000000 output_duration=100000000 recovered90k=20250 residual_numerator=0 source_vcl=0e37a96c00c3daed38aca1711e8865f7b91f2c1a151aee9ba78b6f00d88c53ad output_vcl=0e37a96c00c3daed38aca1711e8865f7b91f2c1a151aee9ba78b6f00d88c53ad
+[au] ordinal=23 original=2200000000 file=200000000 file_duration=100000000 output=325000000 output_duration=100000000 recovered90k=29250 residual_numerator=0 source_vcl=e512dc4c3ede2009a72b6da75697bc9fd946ebe7dda20508f98b89e4be097c4d output_vcl=e512dc4c3ede2009a72b6da75697bc9fd946ebe7dda20508f98b89e4be097c4d
+[au] ordinal=24 original=2300000000 file=300000000 file_duration=100000000 output=425000000 output_duration=100000000 recovered90k=38250 residual_numerator=0 source_vcl=8a7e1dd58e159a874fcbdb3c800ae537101d675e40769090fc43b956e21f1fcb output_vcl=8a7e1dd58e159a874fcbdb3c800ae537101d675e40769090fc43b956e21f1fcb
+[au] ordinal=25 original=2400000000 file=400000000 file_duration=100000000 output=525000000 output_duration=100000000 recovered90k=47250 residual_numerator=0 source_vcl=94c459ccc22e679dc4e5823f6d3eebbf9c2890ccd224fcf2079f8ae95f6e430c output_vcl=94c459ccc22e679dc4e5823f6d3eebbf9c2890ccd224fcf2079f8ae95f6e430c
+[au] ordinal=26 original=2500000000 file=500000000 file_duration=100000000 output=625000000 output_duration=100000000 recovered90k=56250 residual_numerator=0 source_vcl=57caa1dcc81aa744288efa4f0cfaa92f32e97af040417b03c14016cecae6fa36 output_vcl=57caa1dcc81aa744288efa4f0cfaa92f32e97af040417b03c14016cecae6fa36
+[au] ordinal=27 original=2600000000 file=600000000 file_duration=100000000 output=725000000 output_duration=100000000 recovered90k=65250 residual_numerator=0 source_vcl=d2ebc47e2286a34ac874124cf0c7873b1e8e96165ab71c0d7fe56a559f525ed7 output_vcl=d2ebc47e2286a34ac874124cf0c7873b1e8e96165ab71c0d7fe56a559f525ed7
+[au] ordinal=28 original=2700000000 file=700000000 file_duration=100000000 output=825000000 output_duration=100000000 recovered90k=74250 residual_numerator=0 source_vcl=5eafd0ded5583c076eb92d954a812c13188141dd8b7b13cb881c96a56b4d0b1a output_vcl=5eafd0ded5583c076eb92d954a812c13188141dd8b7b13cb881c96a56b4d0b1a
+[au] ordinal=29 original=2800000000 file=800000000 file_duration=100000000 output=925000000 output_duration=100000000 recovered90k=83250 residual_numerator=0 source_vcl=1b81336247c3726f425856e6fde6d00206ee19a516474d13de1c5b8b3ac4314b output_vcl=1b81336247c3726f425856e6fde6d00206ee19a516474d13de1c5b8b3ac4314b
+[au] ordinal=30 original=2900000000 file=900000000 file_duration=100000000 output=1025000000 output_duration=100000000 recovered90k=92250 residual_numerator=0 source_vcl=483d8321995d5de3db589117f8909e19603d90fd186d7ab63ba29177c5abff19 output_vcl=483d8321995d5de3db589117f8909e19603d90fd186d7ab63ba29177c5abff19
+[detail] multi_error= inputs=3 outputs=3
+[pass] R05 실제 epoch 변경 원본→독립 출력 목록
+[summary] pass=30 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-remux.lXRoDR bytes=12751931 removed=true
+[elapsed] seconds=7 source=bash-SECONDS
+
+COMMAND bash scripts/internal/verify_recording_derived_event_integration.sh
+EXIT 0
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[decode] frames=10 eos=1 error_free=1
+[decode] frames=10 eos=1 error_free=1
+[detail] E01 verified=1 fully_satisfied=1
+[pass] E17 accepted 후 resolver nullopt는 기존 소유 유지·신규 저장 없음
+[pass] E17 accepted 후 resolver 불일치는 기존 소유 유지·신규 저장 없음
+[pass] E17 accepted 후 resolver 예외는 기존 소유 유지·신규 저장 없음
+[pass] E17 accepted 후 resolver 미주입는 기존 소유 유지·신규 저장 없음
+[decode] frames=10 eos=1 error_free=1
+[pass] E02 단일 출력도 clip_path 승격 없이 목록·직접 decode·fully satisfied
+[pass] E09 동일 reference/선택 재요청 job ID 멱등
+[pass] E03 미확인 pre 구간을 유지한 verified partial 출력
+[pass] E07 immutable start/end/pre/post/namespace 보존
+[pass] E10 Event 출력이 누적되어도 원본 snapshot은 continuous만
+[pass] E04 provider의 동일 실제 decoder 증거 업데이트로 postroll 요청 충족
+[pass] E05 시간 경과만으로 coverage 없이 unknown 종료
+[pass] E06 provider namespace 변경을 새 증거로 혼합하지 않음
+[pass] E09 같은 immutable reference의 증거/선택 갱신은 새 job·이전 partial 보존
+[pass] E18 4097 frame 증거는 queue 접수 전 명시 거부
+[pass] E06/E18 provider generation 변경는 unknown 종료
+[pass] E06/E18 provider source 불일치는 unknown 종료
+[pass] E06/E18 provider 예외는 unknown 종료
+[pass] E06/E18 provider track 불일치는 unknown 종료
+[pass] E06/E18 provider channel 불일치는 unknown 종료
+[pass] E12 event quota 부족은 Intent/파일/내구 예약 없이 명시 거부
+[pass] E12 disk provider 실패를 가용량 0 성공으로 숨기지 않고 Intent 없이 거부
+[pass] E18 누적 261개 원본에서도 현재 반개구간 관련 1개만 조회
+[pass] E18 반개구간 끝 접점은 이전 원본과 비중첩
+[pass] E11 관련 missing binding은 누락하지 않고 snapshot에 보존
+[pass] E11 관련 corrupt lifecycle은 동일 snapshot에 보존
+[pass] E18 실제 관련 257개는 명시 cap 실패·잘린 confirmed 목록 없음
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] E04 실제 writer 후행 finalize와 같은 요청 증거 갱신으로 2출력 완료
+[detail] finalized_before=1 finalized_after=3 provider_requested=1
+[pass] E20 canonical accepted 중복은 원장 mutation 추가 없이 멱등
+[pass] E20 동일 reference ID 다른 immutable 내용의 accepted 거부
+[pass] E20 SQLite accepted projection의 exact reference 일치
+[pass] E20 accepted marker checkpoint projection 일치
+[pass] E15/E20 재시작 JSONL fallback accepted/no-job은 증거 발명 없이 managed unknown
+[pass] E15/E20 재시작 SQLite rebuild accepted/no-job은 증거 발명 없이 managed unknown
+[pass] E20 replay accepted 선행 참조 없음 거부
+[pass] E20 replay accepted unknown 필드 거부
+[pass] E20 replay accepted canonical 충돌 거부
+[pass] E20 replay accepted 불완전 payload 거부
+[decode] frames=10 eos=1 error_free=1
+[pass] E08 동일 원본 snapshot의 명시 UTC 요청→실제 출력·독립 output UTC unknown
+[pass] E08 같은 UTC의 복수 원본 후보를 자동 단일 선택하지 않음
+[pass] E11 UTC confirmed mapping 하나가 보여도 관련 corrupt 원본을 숨기지 않음
+[pass] E11 실제 UTC worker도 same-lock corrupt 원본을 available로 승격하지 않음
+[pass] E08 UTC unplaced를 원본 snapshot/선택에 보존
+[pass] E18 opt-in UTC 후보 예산 초과는 부분 confirmed 결과 없이 실패
+[pass] E11 삭제 대기 lifecycle도 원본 snapshot에서 누락하지 않음
+[pass] E01 실제 H264 decoder→EventRecord→reference→내구 job·2출력 Complete
+[detail] decoded=30 evidence=30 references=1 jobs=1
+[pass] E17 무주입 bridge 재생성에도 내구 managed 소유권 유지
+[pass] E13 Stop 이후 신규 reference 저장 없음
+[pass] E20 비권위 원장 조회 실패는 legacy 억제 unknown
+[summary] pass=48 fail=0
+[pass] E17 실제 EventStorage managed clip 억제 및 snapshot hook 유지
+[detail] stored=1 snapshot_failed=0 clip_failed=0 fallback=0
+[summary] pass=1 fail=0
+[pass] E17 실제 EventStorage 기본 clip fallback 유지 및 snapshot hook 유지
+[detail] stored=1 snapshot_failed=0 clip_failed=1 fallback=1
+[summary] pass=1 fail=0
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[process] ReadyDurable child exit=23 expected=23
+[decode] frames=10 eos=1 error_free=1
+[decode] frames=10 eos=1 error_free=1
+[pass] E15 별도 프로세스 Ready _exit 후 보호 복원→bridge reconcile→동일 2출력·decode·commit 1개
+[pass] E16 historical Complete와 terminal tombstone 현재 unavailable·재생성 없음
+[summary] pass=2 fail=0
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] E13 active 포함 queue cap 포화는 새 accepted/예약 없이 거부
+[pass] E14 실제 Run 중 동시 Stop 두 번→취소·단일 join·Failed cleanup 후 자원 해제
+[detail] stop_elapsed_ms=39 barrier_timeout=0 managed=1
+[summary] pass=2 fail=0
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] E18 reference job top-8은 wall 역행/재시작에도 동일 ID subset·truncated unknown
+[pass] E15 startup bounded8 more는 blocker·남은 보호 유지·자동 무한 reconcile 없음
+[summary] pass=2 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-event-integration.LDbLfS bytes=15652142 removed=true
+[elapsed] seconds=12 source=bash-SECONDS
+
+COMMAND bash scripts/internal/verify_recording_derived_jobs.sh
+EXIT 0
+[pass] J01 실제 선택→compact 내구 job 계약 왕복
+[detail] error=
+[pass] J17 무관source8개 추가에도 동일선택 jobID 유지
+[pass] J18 cleanup wall시계 역행 허용·순서는상태로검사
+[pass] J04 단일 Intent 원장·보호·예약 원자 가시성
+[pass] J19 후발 coordinator 일반·파생 admission 및 복구 차단
+[pass] J02 이후 시각 재Build ID 유지·선택 변경 새 ID
+[pass] J03 unknown·중복·미지원 schema·불완전 JSON·4MiB·예약 상한·미구현 state 거부
+[pass] J16 소유 경로·attempt·order 계획 조작 거부
+[pass] J16 실제 2 source UUID 역순이어도 영속 order 순 출력 계획
+[pass] J08 나중 시각 재요청 최초 시각 유지·예약/경로 충돌·다른 catalog 거부
+[pass] J06 generic hold 감소로 job 보호 해제 불가·직접 삭제/corrupt 차단
+[pass] J14 cleanup Failed는 job 자원만 해제·wall 역행·terminal 자동 재시도 없음
+[detail] J05 pending 예약 없음=1
+[detail] J05 corrupt 예약 없음=1
+[detail] J05 deleted 예약 없음=1
+[detail] J05 hash 예약 없음=1
+[detail] J05 binding 예약 없음=1
+[pass] J05 pending·corrupt·tombstone·hash·binding 불일치 source 거부
+[pass] J07 실제 source 삭제/Intent 경쟁에서 둘 중 한 전이만 허용
+[pass] J10 checkpoint 전후 job·보호·예약 유지
+[pass] J09 SQLite·fallback·재build/reopen 내구 job 동등·중복 보호 가산 없음
+[detail] J10 different 거부=derived job immutable 충돌
+[detail] J10 malformed 거부=derived job mutation 계약 거부
+[detail] J10 schema 거부=derived job mutation 계약 거부
+[detail] J10 transition 거부=derived job mutation 계약 거부
+[detail] J10 protected-state 거부=V2 상태 전이 거부
+[detail] J10 failed-without-intent 거부=derived job 최초 전이 거부
+[pass] J10 replay 동일 중복 멱등·다른 내용/불완전/schema/전이/보호 상태 거부
+[pass] J11 같은 채널 memory+동시 durable 예약 합계 event quota 제한
+[pass] J12 durable outstanding을 continuous/event/derived disk 예약에 포함
+[pass] J13 snapshot/disk provider 실패는 생성·periodic·복구 삭제 차단
+[pass] J15 partial unknown·이유·후보·요청 시간축 그대로 보존
+[pass] J19 정확한 소유자 소멸 후 새 coordinator만 재결박
+[pass] J20 append 거부 후 원장 복원해도 공통 mutation 차단
+[detail] injected=managed journal 미완결 tail 거부
+[detail] admission=created
+[summary] pass=23 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-jobs.hskGKk bytes=9425919 removed=true
+[elapsed] seconds=8 source=bash-SECONDS
+
+POST-RUN source/build/environment fingerprints
+fe5fe0d3b468ba1626234a9989cf664f1e564aae
+e65a97e2f5c3108b2560b41292a6feeb1194981733b92e5d68590ff1d427033a  src/recording/recording_derived_job.cpp
+b2e52b730312fa6da0e6a2843adf67e049810f81c80d48235e9118be71186d2e  src/recording/recording_derived_job_ready.cpp
+15eeb46186b0777cbd96412423e7adecbdd6eaaa81edc54ca0b31d01d3cfa69a  src/recording/recording_derived_remux.cpp
+dad8c1937e1565fde702469128f7cf0c1fd468524af17ee3c412fb00df753f0a  src/recording/recording_derived_event_worker.cpp
+003f2dda9d2e78ae200a008088f5915da2bd52576642fa0e854925681e0501e8  src/recording/recording_timeline_projection.cpp
+90d1845954f431501a4452d78827bd56fdb60d752920f55682a77cda3a5cd9ed  include/recording/recording_native_coverage.h
+095e344863755be49828ce4d53b16e933637f2bb49752b41e99d1f2908dc7a2c  build-gst-onnx/libmedia_server_runtime.a
+Darwin 27.0.0
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+Target: arm64-apple-darwin27.0.0
+Thread model: posix
+InstalledDir: /Library/Developer/CommandLineTools/usr/bin
+1.28.1
+3.51.0
+3.6.2
+
+RAW PRESERVATION CHECK
+[preserved] service bytes=14451 lines=199 exact=true
+[preserved] remux bytes=38165 lines=181 exact=true
+[preserved] integration bytes=6376 lines=92 exact=true
+[preserved] jobs bytes=2671 lines=40 exact=true
+Cleanup initial attempt exit1: Error: symlink (before any deletion).
+원인: 소유 GST cache의 gst_plugin_cache.py:94가 생성한 plugin mirror symlink277개를 임시로그정리검사가 일괄거부. 제품/회귀실패아님. helper/소유root/3개대표target확인 후 lstat 기준크기집계+symlink자체unlink로수정, 대상plugin 파일은따라가지않음.
+[log-cache-cleanup] path=/private/tmp/lp09-consumption-logs.68LloL bytes=124354 symlinks_unlinked_without_following=277 removed=true

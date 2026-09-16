@@ -1,6 +1,7 @@
 // 파일 용도: 같은 catalog 잠금의 V2 사실을 bounded 공개 timeline 값으로 투영한다.
 #include "recording/recording_catalog.h"
 #include "recording/recording_derived_selection.h"
+#include "recording/recording_native_coverage.h"
 #include <algorithm>
 #include <limits>
 #include <queue>
@@ -129,6 +130,17 @@ public:
             if(PtsNs(source,slice.candidates[0].media_start_pts,&a)&&PtsNs(source,slice.candidates[0].media_end_pts,&b))requested.emplace_back(a,b);
         }
         requested=Union(std::move(requested));
+        if(selection.native_file_intervals) {
+            NativeCoverageResult coverage;
+            if(!EvaluateNativeOutputCoverage(selection,source,job.intent.sources[index].binding,p,&coverage))throw std::runtime_error("timeline-native-coverage-invalid");
+            // 공개 정수 축은 정확 union의 안쪽 표현만 사용한다. sub-ns gap을 채우지 않는다.
+            const auto inward=[](const std::vector<PresentationInterval>& ranges){std::vector<Interval> result;for(const auto& r:ranges){const auto a=r.start.ns+(r.start.numerator?1:0),b=r.end.ns;if(a<b)result.emplace_back(a,b);}return result;};
+            actual=inward(coverage.actual);
+            std::vector<PresentationInterval> exact_requested,merged;
+            for(const auto& slice:selection.slices)if(slice.state==DerivedSliceState::Confirmed&&slice.candidates.front().segment.segment_id==source.segment_id)exact_requested.push_back(*slice.presentation);
+            if(!MergePresentationIntervals(std::move(exact_requested),&merged))throw std::runtime_error("timeline-native-range-cap");
+            requested=inward(merged);
+        }
         bool emitted=false;
         for(const auto& mapping:source.mappings){
             std::int64_t map_start=0,map_end=0;

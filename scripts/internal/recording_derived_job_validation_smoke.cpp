@@ -1,6 +1,7 @@
 // 합성 metadata의 canonical 검증 비용과 거부 계약만 측정한다. 실제 media 검증이 아니다.
 #include "recording/recording_derived_job.h"
 #include "recording/recording_derived_selection.h"
+#include "recording/recording_native_coverage.h"
 #include <openssl/sha.h>
 #include <chrono>
 #include <iomanip>
@@ -84,6 +85,31 @@ int main(int argc,char** argv) {
         check(SerializeDerivedJobIntent(bad).empty(),"P0-PERF01 selection table mapping conflict rejected");
         bad=job;bad.job_id="forged-job";
         check(SerializeDerivedJobIntent(bad).empty(),"P0-PERF01 job identity forgery rejected");
+        // 독립 literal 30fps: 정수 envelope와 native 정확 경계를 일부러 다르게 둔다.
+        auto ns=source;ns.segment.media_end_pts=100000000;ns.segment.mappings.clear();
+        ns.segment.mappings.push_back({"media-server.recording-utc-mapping.v1","native-map",0,100000000,"server-observation",100000000,200000000,1,"observed"});
+        ns.binding->samples.clear();ns.binding->last_accepted_ordinal=3;
+        RecordingFileEvidenceV1 proof;proof.file_size_bytes=ns.segment.size_bytes;proof.file_sha256=ns.segment.checksum_sha256;
+        proof.timescale=proof.movie_timescale=3000;proof.edit_duration=300;
+        for(int i=0;i<3;++i){const auto pts=static_cast<std::int64_t>(i)*1000000000/30;ns.binding->samples.push_back({static_cast<std::uint64_t>(i+1),static_cast<std::uint64_t>(pts)});RecordingFileSampleEvidenceV1 sample;sample.ordinal=i+1;sample.original_pts_ns=sample.original_dts_ns=sample.mux_pts_ns=sample.mux_dts_ns=pts;sample.original_duration_ns=sample.mux_duration_ns=33333333;sample.native_pts=sample.native_dts=i*100;sample.native_duration=100;sample.vcl_sha256=std::string(64,'b'+i);sample.sample_sha256=std::string(64,'c'+i);proof.samples.push_back(sample);}
+        ns.binding->file_evidence=proof;Need(ValidateRecordingSourceBindingForSegment(*ns.binding,ns.segment,&error));
+        DerivedRecordingSelection native;native.reference=ref;native.reference.original=RecordingConsumerOriginalV1{"gen",1,1,"video/0",0};native.reference.request=RecordingConsumerRequestV1{"media-pts-ms",0,100,0,0};native.expanded_end_ns=100000000;native.complete=true;native.native_file_intervals=true;native.reason="time-selection-only-not-playability";
+        const PresentationTime endpoints[]={{0},{33333333,1,3},{66666666,2,3},{100000000}};
+        for(int i=0;i<3;++i){DerivedSelectionSlice sl;sl.presentation=PresentationInterval{endpoints[i],endpoints[i+1]};sl.start_ns=endpoints[i].ns;sl.end_ns=endpoints[i+1].ns+(endpoints[i+1].numerator?1:0);sl.state=DerivedSliceState::Confirmed;sl.reason="observed-native-file-interval";DerivedSelectionCandidate c;c.segment=ns.segment;c.media_start_pts=sl.start_ns;c.media_end_pts=sl.end_ns;c.original=RecordingConsumerOriginalV1{"gen",1,static_cast<std::uint64_t>(i+1),"video/0",ns.binding->samples[i].pts_ns};sl.candidates.push_back(c);native.slices.push_back(sl);}
+        DerivedJobIntentV1 nj;const bool built=BuildDerivedJobIntent(native,{ns},4096,10,&nj,&error);
+        DerivedRecordingSelection restored;
+        check(built&&nj.profile=="h264-mp4-native-to-mpegts-video-only-v1"&&nj.sources[0].binding.file_evidence&&RestoreDerivedJobSelection(nj,&restored,&error)&&restored.native_file_intervals&&restored.complete&&restored.slices[0].presentation&&restored.slices[0].presentation->end.numerator==1,"LP09-S03a native exact selection and proof survive job roundtrip");
+        auto corrupt_native=native;corrupt_native.slices[0].presentation->end.numerator=2;
+        check(!BuildDerivedJobIntent(corrupt_native,{ns},4096,10,&nj,&error),"LP09-S03a noncontiguous exact slices rejected");
+        corrupt_native=native;corrupt_native.slices[1].candidates[0].original->ordinal=1;
+        check(!BuildDerivedJobIntent(corrupt_native,{ns},4096,10,&nj,&error),"LP09-S03a observed identity and native interval mismatch rejected");
+        auto no_proof=ns;no_proof.binding->file_evidence.reset();
+        check(!BuildDerivedJobIntent(native,{no_proof},4096,10,&nj,&error),"LP09-S03a native profile cannot drop file evidence");
+        auto overlap=ns;auto& second=overlap.binding->file_evidence->samples[1];second.original_pts_ns=second.mux_pts_ns=second.native_pts=0;overlap.binding->samples[1].pts_ns=0;
+        Need(ValidateRecordingSourceBindingForSegment(*overlap.binding,overlap.segment,&error));
+        auto selected=native;selected.slices.resize(1);selected.slices[0].presentation->end={33000000};selected.slices[0].end_ns=selected.slices[0].candidates[0].media_end_pts=33000000;
+        DerivedRemuxOutput substitute;DerivedRemuxAu au;au.ordinal=2;au.original_pts_ns=0;au.file_pts_ns=0;au.file_dts_ns=33333333;au.source_vcl_sha256=au.output_vcl_sha256=second.vcl_sha256;substitute.access_units.push_back(au);NativeCoverageResult coverage;
+        check(!EvaluateNativeOutputCoverage(selected,overlap.segment,*overlap.binding,substitute,&coverage),"LP09-S03a overlapping substitute AU cannot replace selected identity");
         std::cout<<"[summary] pass="<<pass<<" fail="<<fail<<'\n';return fail?1:0;
     } catch (...) {std::cout<<"[setup-fail] fixture-or-operation-rejected\n";return 2;}
 }

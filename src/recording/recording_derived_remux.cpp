@@ -1,6 +1,8 @@
 // 파일 용도: 보호된 원본 FD와 빈 출력 FD 사이의 실제 H264 remux·출처 검증.
 #include "recording/recording_derived_remux.h"
 #include "recording/recording_media_inspector.h"
+#include "recording/recording_file_evidence.h"
+#include "recording/recording_native_coverage.h"
 #include <algorithm>
 #include <atomic>
 #include <chrono>
@@ -282,6 +284,7 @@ DerivedRemuxResult DeriveRecordingH264Remux(const DerivedRemuxRequest& request) 
         Require(request.max_output_bytes>0&&request.max_output_bytes<=256*1024*1024,"invalid-output-budget");
         Require(!request.sources.empty()&&request.sources.size()<=8&&request.selection.slices.size()<=4096,"source-or-selection-cap");
         Require(ValidateRecordingConsumerReferenceV1(request.selection.reference,nullptr),"invalid-request-reference");
+        const bool native=request.selection.native_file_intervals;
         std::vector<struct stat> statuses;std::set<std::pair<dev_t,ino_t>> identities;
         std::map<std::string,const DerivedRemuxSource*> selected_sources;
         for(const auto& source:request.sources) {
@@ -331,18 +334,40 @@ DerivedRemuxResult DeriveRecordingH264Remux(const DerivedRemuxRequest& request) 
                 budget.Check();auto full=ReadAus(source.source_fd,source.segment.size_bytes,false,budget);
                 Require(source.binding.index_complete&&full.size()==source.binding.samples.size(),"source-binding-incomplete");
                 output.source_origin_ns=Ns(source.segment.media_start_pts,source.segment);
+                std::map<std::string,const RecordingFileSampleEvidenceV1*> native_samples;
+                if(native) {
+                    Require(source.binding.file_evidence&&VerifyRecordingFileEvidenceFd(source.source_fd,source.binding,nullptr),"native-file-proof-mismatch");budget.Check();
+                    output.source_origin_ns=source.binding.file_evidence->writer_origin_ns;
+                    output.actual_range_basis="verified-native-presentation-interval";
+                    output.original_association_quality="observed-identity-file-proof-vcl";
+                    for(const auto& sample:source.binding.file_evidence->samples)Require(native_samples.emplace(sample.vcl_sha256,&sample).second,"native-file-proof-ambiguous");
+                }
                 std::map<std::uint64_t,std::uint64_t> originals;
-                for(const auto& sample:source.binding.samples)Require(originals.emplace(sample.pts_ns,sample.ordinal).second,"duplicate-original-pts");
+                if(!native)for(const auto& sample:source.binding.samples)Require(originals.emplace(sample.pts_ns,sample.ordinal).second,"duplicate-original-pts");
                 std::set<std::uint64_t> used;
                 for(auto& au:full) {
-                    au.original=Checked(static_cast<__int128>(au.pts)+output.source_origin_ns);
-                    const auto original=originals.find(static_cast<std::uint64_t>(au.original));
-                    Require(original!=originals.end()&&used.insert(original->second).second,"file-original-timestamp-mismatch");au.ordinal=original->second;
+                    if(native) {
+                        const auto sample=native_samples.find(au.vcl);Require(sample!=native_samples.end(),"native-file-au-missing");
+                        au.original=sample->second->original_pts_ns;au.ordinal=sample->second->ordinal;
+                        DerivedRemuxAu p;p.ordinal=au.ordinal;p.original_pts_ns=au.original;p.file_pts_ns=au.pts;p.file_dts_ns=au.dts;p.source_vcl_sha256=p.output_vcl_sha256=au.vcl;PresentationInterval interval;
+                        Require(used.insert(au.ordinal).second&&NativeAuInterval(*source.binding.file_evidence,*sample->second,p,&interval),"native-file-au-time-mismatch");
+                    } else {
+                        au.original=Checked(static_cast<__int128>(au.pts)+output.source_origin_ns);
+                        const auto original=originals.find(static_cast<std::uint64_t>(au.original));
+                        Require(original!=originals.end()&&used.insert(original->second).second,"file-original-timestamp-mismatch");au.ordinal=original->second;
+                    }
                     if(!au.parameters.empty()){if(output.codec_sha256.empty())output.codec_sha256=au.parameters;else Require(output.codec_sha256==au.parameters,"codec-configuration-change");}
                 }
                 Require(!output.codec_sha256.empty(),"codec-parameters-missing");
                 std::size_t first=full.size(),last=0;
-                for(std::size_t i=0;i<full.size();++i)for(const auto& r:requested)if(full[i].original<r.second&&
+                if(native) {
+                    // 선택 때 실제 관측된 AU를 기준으로 decode 의존 구간만 확장한다.
+                    std::set<std::uint64_t> wanted;
+                    for(const auto& slice:request.selection.slices)if(slice.state==DerivedSliceState::Confirmed) {
+                        const auto& c=slice.candidates.front();if(c.segment.segment_id==source.segment.segment_id){Require(c.original.has_value(),"native-observed-identity-missing");wanted.insert(c.original->ordinal);}
+                    }
+                    for(std::size_t i=0;i<full.size();++i)if(wanted.count(full[i].ordinal)){first=std::min(first,i);last=std::max(last,i);}
+                } else for(std::size_t i=0;i<full.size();++i)for(const auto& r:requested)if(full[i].original<r.second&&
                     Checked(static_cast<__int128>(full[i].original)+full[i].duration)>r.first){first=std::min(first,i);last=std::max(last,i);}
                 Require(first<full.size(),"no-source-au-selected");while(first>0&&!full[first].idr)--first;Require(full[first].idr,"decode-preroll-unavailable");
                 std::size_t stop=last+1;while(stop<full.size()&&!full[stop].idr)++stop;
@@ -373,7 +398,12 @@ DerivedRemuxResult DeriveRecordingH264Remux(const DerivedRemuxRequest& request) 
                 Require(output.source_decoded_sha256==output.output_decoded_sha256,"output-decoded-frame-mismatch");
                 struct stat after{};Require(::fstat(source.source_fd,&after)==0&&Stable(statuses[index],after),"source-file-changed");
                 Require(FileHash(source.source_fd,source.segment.size_bytes,budget)==source.segment.checksum_sha256,"source-file-changed");
-                RecordMissing(selected,requested,source.segment.segment_id,result,output.request_fully_satisfied);
+                if(native) {
+                    NativeCoverageResult coverage;
+                    Require(EvaluateNativeOutputCoverage(request.selection,source.segment,source.binding,output,&coverage),"native-output-coverage-invalid");
+                    output.actual_original_start_ns=coverage.start;output.actual_original_end_ns=coverage.end;output.request_fully_satisfied=coverage.satisfied;
+                    result.unfulfilled.insert(result.unfulfilled.end(),coverage.missing.begin(),coverage.missing.end());
+                } else RecordMissing(selected,requested,source.segment.segment_id,result,output.request_fully_satisfied);
                 output.verified_output=true;
             } catch(const std::exception& e){output.error=e.what();result.error=e.what();result.outputs.push_back(std::move(output));break;}
             result.outputs.push_back(std::move(output));

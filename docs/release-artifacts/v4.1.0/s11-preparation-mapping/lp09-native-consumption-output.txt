@@ -1,0 +1,727 @@
+LP09 잔여2 내구 소비 원출력 — 2026-09-17
+독자: 구현/검증 담당. historical 실행 증거이며 작업 정책은 AGENTS.md, 판정은 release-test-records.md.
+source: fe5fe0d3 및 각 단계 작업트리. 중간 RED/fixture 오류는 최종 PASS로 지우지 않는다.
+실행: build는 MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_GST_PLUGIN_PROFILE=headless ./server.sh build.
+job/identity/codec은 bash scripts/internal/verify_recording_derived_job_validation.sh (최종/identity-green은 --performance-budget).
+native/dup/timeline은 bash scripts/internal/verify_recording_native_derived.sh (worker-red는 --worker).
+job 최초 RED 9pass/1fail의 원출력은 이 보존 목록에 없으며 요약을 원출력으로 복원하지 않는다.
+token start/end/consumed: 도구별 실제 집계 없음, 미집계. elapsed는 wrapper 출력/도구 wall_time_seconds.
+
+[실행 조각] lp10-job-green-start exit=running wall_time_seconds=1.0036775
+[build-profile] optimization=compiler-default NDEBUG=0 gstreamer=0 direct-source=1
+
+
+[실행 조각] lp10-job-green exit=0 wall_time_seconds=0.000001709
+[pass] P0-PERF01 literal source1 sample250 slice45 complete
+[fixture] sources=1 samples=250 slices=45 selection_bytes=72752 intent_bytes=144078 record_bytes=144206 sha256=529aff50132395c790a05ad68d735381b174966dc3099f00ba022a8ead494d5b
+[measure] operation=serialize-intent iteration=1 microseconds=14518
+[measure] operation=serialize-intent iteration=2 microseconds=14571
+[measure] operation=serialize-intent iteration=3 microseconds=14512
+[measure] operation=serialize-record iteration=1 microseconds=29079
+[measure] operation=serialize-record iteration=2 microseconds=28469
+[measure] operation=serialize-record iteration=3 microseconds=28556
+[measure] operation=parse-record iteration=1 microseconds=60965
+[measure] operation=parse-record iteration=2 microseconds=60638
+[measure] operation=parse-record iteration=3 microseconds=60913
+[measure] operation=restore-selection iteration=1 microseconds=13896
+[measure] operation=restore-selection iteration=2 microseconds=14156
+[measure] operation=restore-selection iteration=3 microseconds=14029
+[pass] P0-PERF01 canonical record roundtrip unchanged
+[pass] P0-PERF02 baseline canonical hash literal unchanged
+[pass] P0-PERF01 source mapping conflict rejected
+[pass] P0-PERF01 selection table mapping conflict rejected
+[pass] P0-PERF01 job identity forgery rejected
+[pass] LP09-S03a native exact selection and proof survive job roundtrip
+[pass] LP09-S03a noncontiguous exact slices rejected
+[pass] LP09-S03a observed identity and native interval mismatch rejected
+[pass] LP09-S03a native profile cannot drop file evidence
+[summary] pass=10 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-job-validation.NMf50r bytes=5031896 removed=true
+
+
+[실행 조각] lp10-build-red-start exit=running wall_time_seconds=1.003271667
+[env] local override skipped
+[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+[2/2] build
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/event_recording_bridge.cpp.o
+
+
+[실행 조각] lp10-build-red-end exit=0 wall_time_seconds=0.000005459
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_timeline_projection.cpp.o
+[  3%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_selection.cpp.o
+[  4%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_job.cpp.o
+[  5%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_job_ready.cpp.o
+[  5%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_job_service.cpp.o
+[  6%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_event_worker.cpp.o
+[  7%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_evidence_observer.cpp.o
+[  7%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_remux.cpp.o
+[  8%] Linking CXX static library libmedia_server_runtime.a
+[ 98%] Built target media_server_runtime
+[ 98%] Building CXX object CMakeFiles/media_server.dir/src/application/media_server_application.cpp.o
+[ 99%] Linking CXX executable media_server
+[100%] Built target media_server
+[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+
+
+[실행 조각] lp10-native-red-start exit=running wall_time_seconds=1.002789417
+
+
+[실행 조각] lp10-native-red exit=1 wall_time_seconds=0.000002125
+[pass] LP09-S03 case0 observed native selection preserves complete/partial
+[fail] LP09-S03 case0 actual native remux Ready Complete
+[diagnostic] reason=job-remux: file-original-timestamp-mismatch
+[pass] LP09-S03 case1 observed native selection preserves complete/partial
+[pass] LP09-S03 case1 actual native remux Ready Complete
+[fail] LP09-S03 case1 full request and literal output count
+[pass] LP09-S03 case1 physical file and decoded hashes
+[pass] LP09-S03 case1 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case1 exact recovery sql0
+[fail] LP09-S03 case1 recovered reference completeness sql0
+[pass] LP09-S03 case1 exact recovery sql1
+[fail] LP09-S03 case1 recovered reference completeness sql1
+[pass] LP09-S03 case2 observed native selection preserves complete/partial
+[fail] LP09-S03 case2 actual native remux Ready Complete
+[diagnostic] reason=job-remux: file-original-timestamp-mismatch
+[pass] LP09-S03 case3 observed native selection preserves complete/partial
+[pass] LP09-S03 case3 actual native remux Ready Complete
+[fail] LP09-S03 case3 full request and literal output count
+[pass] LP09-S03 case3 physical file and decoded hashes
+[pass] LP09-S03 case3 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case3 exact recovery sql0
+[fail] LP09-S03 case3 recovered reference completeness sql0
+[pass] LP09-S03 case3 exact recovery sql1
+[fail] LP09-S03 case3 recovered reference completeness sql1
+[pass] LP09-S03 case4 observed native selection preserves complete/partial
+[pass] LP09-S03 case4 actual native remux Ready Complete
+[pass] LP09-S03 case4 full request and literal output count
+[pass] LP09-S03 case4 physical file and decoded hashes
+[pass] LP09-S03 case4 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case4 exact recovery sql0
+[pass] LP09-S03 case4 recovered reference completeness sql0
+[pass] LP09-S03 case4 exact recovery sql1
+[pass] LP09-S03 case4 recovered reference completeness sql1
+[summary] pass=23 fail=8
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.RR4Xft bytes=10139087 removed=true
+[elapsed] seconds=9 source=bash-SECONDS
+
+
+[실행 조각] lp10-build-green-start exit=running wall_time_seconds=1.002797458
+[env] local override skipped
+[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+[2/2] build
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_timeline_projection.cpp.o
+
+
+[실행 조각] lp10-build-green-end exit=0 wall_time_seconds=0.000001167
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_selection.cpp.o
+[  3%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_job_ready.cpp.o
+[  3%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_remux.cpp.o
+[  4%] Linking CXX static library libmedia_server_runtime.a
+[ 98%] Built target media_server_runtime
+[ 99%] Linking CXX executable media_server
+[100%] Built target media_server
+[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+
+
+[실행 조각] lp10-native-green-start exit=running wall_time_seconds=1.002977417
+
+
+[실행 조각] lp10-native-green-initial exit=1 wall_time_seconds=0.000001
+[pass] LP09-S03 case0 observed native selection preserves complete/partial
+[pass] LP09-S03 case0 actual native remux Ready Complete
+[pass] LP09-S03 case0 full request and literal output count
+[pass] LP09-S03 case0 physical file and decoded hashes
+[pass] LP09-S03 case0 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case0 exact recovery sql0
+[pass] LP09-S03 case0 recovered reference completeness sql0
+[fail] LP09-S03 case0 timeline keeps native continuous interval unfragmented sql0
+[pass] LP09-S03 case0 exact recovery sql1
+[pass] LP09-S03 case0 recovered reference completeness sql1
+[fail] LP09-S03 case0 timeline keeps native continuous interval unfragmented sql1
+[pass] LP09-S03 case1 observed native selection preserves complete/partial
+[pass] LP09-S03 case1 actual native remux Ready Complete
+[pass] LP09-S03 case1 full request and literal output count
+[pass] LP09-S03 case1 physical file and decoded hashes
+[pass] LP09-S03 case1 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case1 exact recovery sql0
+[pass] LP09-S03 case1 recovered reference completeness sql0
+[fail] LP09-S03 case1 timeline keeps native continuous interval unfragmented sql0
+[pass] LP09-S03 case1 exact recovery sql1
+[pass] LP09-S03 case1 recovered reference completeness sql1
+[fail] LP09-S03 case1 timeline keeps native continuous interval unfragmented sql1
+[pass] LP09-S03 case2 observed native selection preserves complete/partial
+[pass] LP09-S03 case2 actual native remux Ready Complete
+[pass] LP09-S03 case2 full request and literal output count
+[pass] LP09-S03 case2 physical file and decoded hashes
+[pass] LP09-S03 case2 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case2 exact recovery sql0
+[pass] LP09-S03 case2 recovered reference completeness sql0
+[fail] LP09-S03 case2 timeline keeps native continuous interval unfragmented sql0
+[pass] LP09-S03 case2 exact recovery sql1
+[pass] LP09-S03 case2 recovered reference completeness sql1
+[fail] LP09-S03 case2 timeline keeps native continuous interval unfragmented sql1
+[pass] LP09-S03 case3 observed native selection preserves complete/partial
+[pass] LP09-S03 case3 actual native remux Ready Complete
+[pass] LP09-S03 case3 full request and literal output count
+[pass] LP09-S03 case3 physical file and decoded hashes
+[pass] LP09-S03 case3 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case3 exact recovery sql0
+[pass] LP09-S03 case3 recovered reference completeness sql0
+[fail] LP09-S03 case3 timeline keeps native continuous interval unfragmented sql0
+[pass] LP09-S03 case3 exact recovery sql1
+[pass] LP09-S03 case3 recovered reference completeness sql1
+[fail] LP09-S03 case3 timeline keeps native continuous interval unfragmented sql1
+[pass] LP09-S03 case4 observed native selection preserves complete/partial
+[pass] LP09-S03 case4 actual native remux Ready Complete
+[pass] LP09-S03 case4 full request and literal output count
+[pass] LP09-S03 case4 physical file and decoded hashes
+[pass] LP09-S03 case4 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case4 exact recovery sql0
+[pass] LP09-S03 case4 recovered reference completeness sql0
+[fail] LP09-S03 case4 timeline keeps native continuous interval unfragmented sql0
+[pass] LP09-S03 case4 exact recovery sql1
+[pass] LP09-S03 case4 recovered reference completeness sql1
+[fail] LP09-S03 case4 timeline keeps native continuous interval unfragmented sql1
+[summary] pass=45 fail=10
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.roxl7a bytes=11735066 removed=true
+[elapsed] seconds=19 source=bash-SECONDS
+
+
+[실행 조각] lp10-build-timeline exit=0 wall_time_seconds=0.000001083
+[  2%] Linking CXX static library libmedia_server_runtime.a
+[ 98%] Built target media_server_runtime
+[ 99%] Linking CXX executable media_server
+[100%] Built target media_server
+[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+
+
+[실행 조각] lp10-identity-red-start exit=running wall_time_seconds=1.002252042
+[build-profile] optimization=compiler-default NDEBUG=0 gstreamer=0 direct-source=1
+
+
+[실행 조각] lp10-identity-red exit=1 wall_time_seconds=0.000002458
+[pass] P0-PERF01 literal source1 sample250 slice45 complete
+[fixture] sources=1 samples=250 slices=45 selection_bytes=72752 intent_bytes=144078 record_bytes=144206 sha256=529aff50132395c790a05ad68d735381b174966dc3099f00ba022a8ead494d5b
+[measure] operation=serialize-intent iteration=1 microseconds=14859
+[measure] operation=serialize-intent iteration=2 microseconds=15164
+[measure] operation=serialize-intent iteration=3 microseconds=14609
+[measure] operation=serialize-record iteration=1 microseconds=28578
+[measure] operation=serialize-record iteration=2 microseconds=28825
+[measure] operation=serialize-record iteration=3 microseconds=28843
+[measure] operation=parse-record iteration=1 microseconds=61199
+[measure] operation=parse-record iteration=2 microseconds=60975
+[measure] operation=parse-record iteration=3 microseconds=61145
+[measure] operation=restore-selection iteration=1 microseconds=14163
+[measure] operation=restore-selection iteration=2 microseconds=13993
+[measure] operation=restore-selection iteration=3 microseconds=14036
+[pass] P0-PERF01 canonical record roundtrip unchanged
+[pass] P0-PERF02 baseline canonical hash literal unchanged
+[pass] P0-PERF01 source mapping conflict rejected
+[pass] P0-PERF01 selection table mapping conflict rejected
+[pass] P0-PERF01 job identity forgery rejected
+[pass] LP09-S03a native exact selection and proof survive job roundtrip
+[pass] LP09-S03a noncontiguous exact slices rejected
+[pass] LP09-S03a observed identity and native interval mismatch rejected
+[pass] LP09-S03a native profile cannot drop file evidence
+[fail] LP09-S03a overlapping substitute AU cannot replace selected identity
+[summary] pass=10 fail=1
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-job-validation.3rHy6t bytes=5147016 removed=true
+
+
+[실행 조각] lp10-identity-green-start exit=running wall_time_seconds=1.00246025
+[build-profile] optimization=compiler-default NDEBUG=0 gstreamer=0 direct-source=1
+
+
+[실행 조각] lp10-identity-green exit=0 wall_time_seconds=9.16e-7
+[pass] P0-PERF01 literal source1 sample250 slice45 complete
+[fixture] sources=1 samples=250 slices=45 selection_bytes=72752 intent_bytes=144078 record_bytes=144206 sha256=529aff50132395c790a05ad68d735381b174966dc3099f00ba022a8ead494d5b
+[measure] operation=serialize-intent iteration=1 microseconds=14978
+[measure] operation=serialize-intent iteration=2 microseconds=15273
+[measure] operation=serialize-intent iteration=3 microseconds=14942
+[measure] operation=serialize-record iteration=1 microseconds=29144
+[measure] operation=serialize-record iteration=2 microseconds=29236
+[measure] operation=serialize-record iteration=3 microseconds=29245
+[measure] operation=parse-record iteration=1 microseconds=62537
+[measure] operation=parse-record iteration=2 microseconds=62009
+[measure] operation=parse-record iteration=3 microseconds=61974
+[measure] operation=restore-selection iteration=1 microseconds=14176
+[measure] operation=restore-selection iteration=2 microseconds=14059
+[measure] operation=restore-selection iteration=3 microseconds=14319
+[pass] P0-PERF01 canonical record roundtrip unchanged
+[pass] P0-PERF02 baseline canonical hash literal unchanged
+[pass] P0-PERF02 host-scoped serialize-record median <=60000us
+[pass] P0-PERF01 source mapping conflict rejected
+[pass] P0-PERF01 selection table mapping conflict rejected
+[pass] P0-PERF01 job identity forgery rejected
+[pass] LP09-S03a native exact selection and proof survive job roundtrip
+[pass] LP09-S03a noncontiguous exact slices rejected
+[pass] LP09-S03a observed identity and native interval mismatch rejected
+[pass] LP09-S03a native profile cannot drop file evidence
+[pass] LP09-S03a overlapping substitute AU cannot replace selected identity
+[summary] pass=12 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-job-validation.I9mC14 bytes=5147784 removed=true
+
+
+[실행 조각] lp10-dup-red-start exit=running wall_time_seconds=1.001362209
+
+
+[실행 조각] lp10-dup-red exit=1 wall_time_seconds=4.886167625
+[pass] LP09-S03 case0 observed native selection preserves complete/partial
+[pass] LP09-S03 case0 actual native remux Ready Complete
+[pass] LP09-S03 case0 full request and literal output count
+[pass] LP09-S03 case0 physical file and decoded hashes
+[pass] LP09-S03 case0 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case0 exact recovery sql0
+[pass] LP09-S03 case0 recovered reference completeness sql0
+[pass] LP09-S03 case0 timeline keeps native continuous interval unfragmented sql0
+[pass] LP09-S03 case0 exact recovery sql1
+[pass] LP09-S03 case0 recovered reference completeness sql1
+[pass] LP09-S03 case0 timeline keeps native continuous interval unfragmented sql1
+[pass] LP09-S03 case1 observed native selection preserves complete/partial
+[pass] LP09-S03 case1 actual native remux Ready Complete
+[pass] LP09-S03 case1 full request and literal output count
+[pass] LP09-S03 case1 physical file and decoded hashes
+[pass] LP09-S03 case1 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case1 exact recovery sql0
+[pass] LP09-S03 case1 recovered reference completeness sql0
+[pass] LP09-S03 case1 timeline keeps native continuous interval unfragmented sql0
+[pass] LP09-S03 case1 exact recovery sql1
+[pass] LP09-S03 case1 recovered reference completeness sql1
+[pass] LP09-S03 case1 timeline keeps native continuous interval unfragmented sql1
+[pass] LP09-S03 case2 observed native selection preserves complete/partial
+[pass] LP09-S03 case2 actual native remux Ready Complete
+[pass] LP09-S03 case2 full request and literal output count
+[pass] LP09-S03 case2 physical file and decoded hashes
+[pass] LP09-S03 case2 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case2 exact recovery sql0
+[pass] LP09-S03 case2 recovered reference completeness sql0
+[fail] LP09-S03 case2 timeline keeps native continuous interval unfragmented sql0
+[pass] LP09-S03 case2 exact recovery sql1
+[pass] LP09-S03 case2 recovered reference completeness sql1
+[fail] LP09-S03 case2 timeline keeps native continuous interval unfragmented sql1
+[pass] LP09-S03 case3 observed native selection preserves complete/partial
+[pass] LP09-S03 case3 actual native remux Ready Complete
+[pass] LP09-S03 case3 full request and literal output count
+[pass] LP09-S03 case3 physical file and decoded hashes
+[pass] LP09-S03 case3 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case3 exact recovery sql0
+[pass] LP09-S03 case3 recovered reference completeness sql0
+[fail] LP09-S03 case3 timeline keeps native continuous interval unfragmented sql0
+[pass] LP09-S03 case3 exact recovery sql1
+[pass] LP09-S03 case3 recovered reference completeness sql1
+[fail] LP09-S03 case3 timeline keeps native continuous interval unfragmented sql1
+[pass] LP09-S03 case4 observed native selection preserves complete/partial
+[pass] LP09-S03 case4 actual native remux Ready Complete
+[pass] LP09-S03 case4 full request and literal output count
+[pass] LP09-S03 case4 physical file and decoded hashes
+[pass] LP09-S03 case4 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case4 exact recovery sql0
+[pass] LP09-S03 case4 recovered reference completeness sql0
+[pass] LP09-S03 case4 timeline keeps native continuous interval unfragmented sql0
+[pass] LP09-S03 case4 exact recovery sql1
+[pass] LP09-S03 case4 recovered reference completeness sql1
+[pass] LP09-S03 case4 timeline keeps native continuous interval unfragmented sql1
+[fail] native fixture: source-count
+[summary] pass=51 fail=5
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.68gS8W bytes=11927099 removed=true
+[elapsed] seconds=19 source=bash-SECONDS
+
+
+[실행 조각] lp10-build-native-final-start exit=running wall_time_seconds=1.002366083
+[env] local override skipped
+[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+[2/2] build
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_timeline_projection.cpp.o
+
+
+[실행 조각] lp10-build-native-final-end exit=0 wall_time_seconds=0.0000025
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_job_ready.cpp.o
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_remux.cpp.o
+[  3%] Linking CXX static library libmedia_server_runtime.a
+[ 98%] Built target media_server_runtime
+[ 99%] Linking CXX executable media_server
+[100%] Built target media_server
+[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+
+
+[실행 조각] lp10-timeline-diagnostic-start exit=running wall_time_seconds=1.002313833
+
+
+[실행 조각] lp10-timeline-diagnostic exit=1 wall_time_seconds=0.000001125
+[pass] LP09-S03 case0 observed native selection preserves complete/partial
+[pass] LP09-S03 case0 actual native remux Ready Complete
+[pass] LP09-S03 case0 full request and literal output count
+[pass] LP09-S03 case0 physical file and decoded hashes
+[pass] LP09-S03 case0 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case0 exact recovery sql0
+[pass] LP09-S03 case0 recovered reference completeness sql0
+[pass] LP09-S03 case0 timeline keeps native continuous interval unfragmented sql0
+[pass] LP09-S03 case0 exact recovery sql1
+[pass] LP09-S03 case0 recovered reference completeness sql1
+[pass] LP09-S03 case0 timeline keeps native continuous interval unfragmented sql1
+[pass] LP09-S03 case1 observed native selection preserves complete/partial
+[pass] LP09-S03 case1 actual native remux Ready Complete
+[pass] LP09-S03 case1 full request and literal output count
+[pass] LP09-S03 case1 physical file and decoded hashes
+[pass] LP09-S03 case1 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case1 exact recovery sql0
+[pass] LP09-S03 case1 recovered reference completeness sql0
+[pass] LP09-S03 case1 timeline keeps native continuous interval unfragmented sql0
+[pass] LP09-S03 case1 exact recovery sql1
+[pass] LP09-S03 case1 recovered reference completeness sql1
+[pass] LP09-S03 case1 timeline keeps native continuous interval unfragmented sql1
+[pass] LP09-S03 case2 observed native selection preserves complete/partial
+[pass] LP09-S03 case2 actual native remux Ready Complete
+[pass] LP09-S03 case2 full request and literal output count
+[pass] LP09-S03 case2 physical file and decoded hashes
+[pass] LP09-S03 case2 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case2 exact recovery sql0
+[pass] LP09-S03 case2 recovered reference completeness sql0
+[timeline-diagnostic] case=2 sql=0 count=0 consistent=1
+[native-table] origin=0 scale=3000
+[native-sample] ordinal=1 pts=200 duration=100
+[native-sample] ordinal=2 pts=400 duration=100
+[native-sample] ordinal=3 pts=300 duration=100
+[native-sample] ordinal=4 pts=700 duration=100
+[native-sample] ordinal=5 pts=500 duration=100
+[native-sample] ordinal=6 pts=600 duration=100
+[native-sample] ordinal=7 pts=1000 duration=100
+[native-sample] ordinal=8 pts=800 duration=100
+[native-sample] ordinal=9 pts=900 duration=100
+[native-sample] ordinal=10 pts=1300 duration=100
+[native-sample] ordinal=11 pts=1100 duration=100
+[native-sample] ordinal=12 pts=1200 duration=100
+[native-sample] ordinal=13 pts=1500 duration=100
+[native-sample] ordinal=14 pts=1400 duration=100
+[native-sample] ordinal=15 pts=1700 duration=100
+[native-sample] ordinal=16 pts=1600 duration=100
+[native-sample] ordinal=17 pts=2000 duration=100
+[native-sample] ordinal=18 pts=1800 duration=100
+[native-sample] ordinal=19 pts=1900 duration=100
+[native-sample] ordinal=20 pts=2300 duration=100
+[native-sample] ordinal=21 pts=2100 duration=100
+[native-sample] ordinal=22 pts=2200 duration=100
+[native-sample] ordinal=23 pts=2600 duration=100
+[native-sample] ordinal=24 pts=2400 duration=100
+[native-sample] ordinal=25 pts=2500 duration=100
+[native-sample] ordinal=26 pts=2900 duration=100
+[native-sample] ordinal=27 pts=2700 duration=100
+[native-sample] ordinal=28 pts=2800 duration=100
+[native-sample] ordinal=29 pts=3100 duration=100
+[native-sample] ordinal=30 pts=3000 duration=100
+[fail] LP09-S03 case2 timeline keeps native continuous interval unfragmented sql0
+[pass] LP09-S03 case2 exact recovery sql1
+[pass] LP09-S03 case2 recovered reference completeness sql1
+[timeline-diagnostic] case=2 sql=1 count=0 consistent=1
+[native-table] origin=0 scale=3000
+[native-sample] ordinal=1 pts=200 duration=100
+[native-sample] ordinal=2 pts=400 duration=100
+[native-sample] ordinal=3 pts=300 duration=100
+[native-sample] ordinal=4 pts=700 duration=100
+[native-sample] ordinal=5 pts=500 duration=100
+[native-sample] ordinal=6 pts=600 duration=100
+[native-sample] ordinal=7 pts=1000 duration=100
+[native-sample] ordinal=8 pts=800 duration=100
+[native-sample] ordinal=9 pts=900 duration=100
+[native-sample] ordinal=10 pts=1300 duration=100
+[native-sample] ordinal=11 pts=1100 duration=100
+[native-sample] ordinal=12 pts=1200 duration=100
+[native-sample] ordinal=13 pts=1500 duration=100
+[native-sample] ordinal=14 pts=1400 duration=100
+[native-sample] ordinal=15 pts=1700 duration=100
+[native-sample] ordinal=16 pts=1600 duration=100
+[native-sample] ordinal=17 pts=2000 duration=100
+[native-sample] ordinal=18 pts=1800 duration=100
+[native-sample] ordinal=19 pts=1900 duration=100
+[native-sample] ordinal=20 pts=2300 duration=100
+[native-sample] ordinal=21 pts=2100 duration=100
+[native-sample] ordinal=22 pts=2200 duration=100
+[native-sample] ordinal=23 pts=2600 duration=100
+[native-sample] ordinal=24 pts=2400 duration=100
+[native-sample] ordinal=25 pts=2500 duration=100
+[native-sample] ordinal=26 pts=2900 duration=100
+[native-sample] ordinal=27 pts=2700 duration=100
+[native-sample] ordinal=28 pts=2800 duration=100
+[native-sample] ordinal=29 pts=3100 duration=100
+[native-sample] ordinal=30 pts=3000 duration=100
+[fail] LP09-S03 case2 timeline keeps native continuous interval unfragmented sql1
+[pass] LP09-S03 case3 observed native selection preserves complete/partial
+[pass] LP09-S03 case3 actual native remux Ready Complete
+[pass] LP09-S03 case3 full request and literal output count
+[pass] LP09-S03 case3 physical file and decoded hashes
+[pass] LP09-S03 case3 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case3 exact recovery sql0
+[pass] LP09-S03 case3 recovered reference completeness sql0
+[timeline-diagnostic] case=3 sql=0 count=0 consistent=1
+[native-table] origin=0 scale=3000
+[native-sample] ordinal=1 pts=0 duration=60
+[native-sample] ordinal=2 pts=60 duration=150
+[native-sample] ordinal=3 pts=210 duration=60
+[native-sample] ordinal=4 pts=270 duration=150
+[native-sample] ordinal=5 pts=420 duration=60
+[native-sample] ordinal=6 pts=480 duration=150
+[native-sample] ordinal=7 pts=630 duration=60
+[native-sample] ordinal=8 pts=690 duration=150
+[native-sample] ordinal=9 pts=840 duration=60
+[native-sample] ordinal=10 pts=900 duration=150
+[native-sample] ordinal=11 pts=1050 duration=60
+[native-sample] ordinal=12 pts=1110 duration=100
+[fail] LP09-S03 case3 timeline keeps native continuous interval unfragmented sql0
+[pass] LP09-S03 case3 exact recovery sql1
+[pass] LP09-S03 case3 recovered reference completeness sql1
+[timeline-diagnostic] case=3 sql=1 count=0 consistent=1
+[native-table] origin=0 scale=3000
+[native-sample] ordinal=1 pts=0 duration=60
+[native-sample] ordinal=2 pts=60 duration=150
+[native-sample] ordinal=3 pts=210 duration=60
+[native-sample] ordinal=4 pts=270 duration=150
+[native-sample] ordinal=5 pts=420 duration=60
+[native-sample] ordinal=6 pts=480 duration=150
+[native-sample] ordinal=7 pts=630 duration=60
+[native-sample] ordinal=8 pts=690 duration=150
+[native-sample] ordinal=9 pts=840 duration=60
+[native-sample] ordinal=10 pts=900 duration=150
+[native-sample] ordinal=11 pts=1050 duration=60
+[native-sample] ordinal=12 pts=1110 duration=100
+[fail] LP09-S03 case3 timeline keeps native continuous interval unfragmented sql1
+[pass] LP09-S03 case4 observed native selection preserves complete/partial
+[pass] LP09-S03 case4 actual native remux Ready Complete
+[pass] LP09-S03 case4 full request and literal output count
+[pass] LP09-S03 case4 physical file and decoded hashes
+[pass] LP09-S03 case4 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case4 exact recovery sql0
+[pass] LP09-S03 case4 recovered reference completeness sql0
+[pass] LP09-S03 case4 timeline keeps native continuous interval unfragmented sql0
+[pass] LP09-S03 case4 exact recovery sql1
+[pass] LP09-S03 case4 recovered reference completeness sql1
+[pass] LP09-S03 case4 timeline keeps native continuous interval unfragmented sql1
+[summary] pass=51 fail=4
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.9KjXSM bytes=11738394 removed=true
+[elapsed] seconds=19 source=bash-SECONDS
+
+
+[실행 조각] lp10-build-native-coverage exit=0 wall_time_seconds=0.000002042
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_job.cpp.o
+[  3%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_job_ready.cpp.o
+[  3%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_remux.cpp.o
+[  4%] Linking CXX static library libmedia_server_runtime.a
+[ 98%] Built target media_server_runtime
+[ 99%] Linking CXX executable media_server
+[100%] Built target media_server
+[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+
+
+[실행 조각] lp10-native-fixed-start exit=running wall_time_seconds=1.003312167
+
+
+[실행 조각] lp10-native-fixed exit=0 wall_time_seconds=7.91e-7
+[pass] LP09-S03 case0 observed native selection preserves complete/partial
+[pass] LP09-S03 case0 actual native remux Ready Complete
+[pass] LP09-S03 case0 full request and literal output count
+[pass] LP09-S03 case0 physical file and decoded hashes
+[pass] LP09-S03 case0 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case0 exact recovery sql0
+[pass] LP09-S03 case0 recovered reference completeness sql0
+[pass] LP09-S03 case0 timeline native interval and independent UTC placement sql0
+[pass] LP09-S03 case0 exact recovery sql1
+[pass] LP09-S03 case0 recovered reference completeness sql1
+[pass] LP09-S03 case0 timeline native interval and independent UTC placement sql1
+[pass] LP09-S03 case1 observed native selection preserves complete/partial
+[pass] LP09-S03 case1 actual native remux Ready Complete
+[pass] LP09-S03 case1 full request and literal output count
+[pass] LP09-S03 case1 physical file and decoded hashes
+[pass] LP09-S03 case1 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case1 exact recovery sql0
+[pass] LP09-S03 case1 recovered reference completeness sql0
+[pass] LP09-S03 case1 timeline native interval and independent UTC placement sql0
+[pass] LP09-S03 case1 exact recovery sql1
+[pass] LP09-S03 case1 recovered reference completeness sql1
+[pass] LP09-S03 case1 timeline native interval and independent UTC placement sql1
+[pass] LP09-S03 case2 observed native selection preserves complete/partial
+[pass] LP09-S03 case2 actual native remux Ready Complete
+[pass] LP09-S03 case2 full request and literal output count
+[pass] LP09-S03 case2 physical file and decoded hashes
+[pass] LP09-S03 case2 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case2 exact recovery sql0
+[pass] LP09-S03 case2 recovered reference completeness sql0
+[pass] LP09-S03 case2 timeline native interval and independent UTC placement sql0
+[pass] LP09-S03 case2 exact recovery sql1
+[pass] LP09-S03 case2 recovered reference completeness sql1
+[pass] LP09-S03 case2 timeline native interval and independent UTC placement sql1
+[pass] LP09-S03 case3 observed native selection preserves complete/partial
+[pass] LP09-S03 case3 actual native remux Ready Complete
+[pass] LP09-S03 case3 full request and literal output count
+[pass] LP09-S03 case3 physical file and decoded hashes
+[pass] LP09-S03 case3 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case3 exact recovery sql0
+[pass] LP09-S03 case3 recovered reference completeness sql0
+[pass] LP09-S03 case3 timeline native interval and independent UTC placement sql0
+[pass] LP09-S03 case3 exact recovery sql1
+[pass] LP09-S03 case3 recovered reference completeness sql1
+[pass] LP09-S03 case3 timeline native interval and independent UTC placement sql1
+[pass] LP09-S03 case4 observed native selection preserves complete/partial
+[pass] LP09-S03 case4 actual native remux Ready Complete
+[pass] LP09-S03 case4 full request and literal output count
+[pass] LP09-S03 case4 physical file and decoded hashes
+[pass] LP09-S03 case4 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case4 exact recovery sql0
+[pass] LP09-S03 case4 recovered reference completeness sql0
+[pass] LP09-S03 case4 timeline native interval and independent UTC placement sql0
+[pass] LP09-S03 case4 exact recovery sql1
+[pass] LP09-S03 case4 recovered reference completeness sql1
+[pass] LP09-S03 case4 timeline native interval and independent UTC placement sql1
+[summary] pass=55 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.0p0nPu bytes=11738778 removed=true
+[elapsed] seconds=19 source=bash-SECONDS
+
+
+[실행 조각] lp10-worker-red-start exit=1 wall_time_seconds=0.659811292
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_native_derived_smoke.cpp:37:167: error: no member named '_exit' in the global namespace
+   37 |         DerivedJobService service(store.catalog,store.journal,{root,30000,[&](auto stage,auto){if(crash&&stage==DerivedJobProgress::ReadyDurable){std::cout.flush();::_exit(23);}}});DerivedJobRunResult run;
+      |                                                                                                                                                                       ^~~~~
+1 error generated.
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.2hChzI bytes=0 removed=true
+[elapsed] seconds=1 source=bash-SECONDS
+
+
+[실행 조각] lp10-worker-red2-start exit=running wall_time_seconds=1.002926333
+
+
+[실행 조각] lp10-worker-red2 exit=1 wall_time_seconds=0.000002
+[pass] LP09-S03 case0 observed native selection preserves complete/partial
+[fail] LP09-S03 case0 worker uses new native profile without changing wait budget
+[fail] LP09-S03 case0 actual native remux Ready Complete
+[diagnostic] reason=failed:job-remux: file-original-timestamp-mismatch
+[summary] pass=1 fail=2
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.ZMwukr bytes=8613353 removed=true
+[elapsed] seconds=3 source=bash-SECONDS
+
+
+[실행 조각] lp10-worker-build-start exit=running wall_time_seconds=1.003350708
+[env] local override skipped
+[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+[2/2] build
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_event_worker.cpp.o
+
+
+[실행 조각] lp10-worker-build-end exit=0 wall_time_seconds=0.000001875
+[  2%] Linking CXX static library libmedia_server_runtime.a
+[ 98%] Built target media_server_runtime
+[ 99%] Linking CXX executable media_server
+[100%] Built target media_server
+[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+
+
+[실행 조각] lp10-native-final-start exit=running wall_time_seconds=1.002495
+
+
+[실행 조각] lp10-native-final exit=0 wall_time_seconds=0.000001375
+[pass] LP09-S03 case0 observed native selection preserves complete/partial
+[pass] LP09-S03 case0 observed native selection preserves complete/partial
+[pass] LP09-S03 case0 worker uses new native profile without changing wait budget
+[pass] LP09-S03 case0 actual native remux Ready Complete
+[pass] LP09-S03 case0 full request and literal output count
+[pass] LP09-S03 case0 physical file and decoded hashes
+[pass] LP09-S03 case0 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case0 exact recovery sql0
+[pass] LP09-S03 case0 recovered reference completeness sql0
+[pass] LP09-S03 case0 timeline native interval and independent UTC placement sql0
+[pass] LP09-S03 case0 exact recovery sql1
+[pass] LP09-S03 case0 recovered reference completeness sql1
+[pass] LP09-S03 case0 timeline native interval and independent UTC placement sql1
+[pass] LP09-S03 case1 observed native selection preserves complete/partial
+[pass] LP09-S03 case1 actual native remux Ready Complete
+[pass] LP09-S03 case1 full request and literal output count
+[pass] LP09-S03 case1 physical file and decoded hashes
+[pass] LP09-S03 case1 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case1 exact recovery sql0
+[pass] LP09-S03 case1 recovered reference completeness sql0
+[pass] LP09-S03 case1 timeline native interval and independent UTC placement sql0
+[pass] LP09-S03 case1 exact recovery sql1
+[pass] LP09-S03 case1 recovered reference completeness sql1
+[pass] LP09-S03 case1 timeline native interval and independent UTC placement sql1
+[pass] LP09-S03 case2 observed native selection preserves complete/partial
+[pass] LP09-S03 case2 actual native remux Ready Complete
+[pass] LP09-S03 case2 full request and literal output count
+[pass] LP09-S03 case2 physical file and decoded hashes
+[pass] LP09-S03 case2 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case2 exact recovery sql0
+[pass] LP09-S03 case2 recovered reference completeness sql0
+[pass] LP09-S03 case2 timeline native interval and independent UTC placement sql0
+[pass] LP09-S03 case2 exact recovery sql1
+[pass] LP09-S03 case2 recovered reference completeness sql1
+[pass] LP09-S03 case2 timeline native interval and independent UTC placement sql1
+[pass] LP09-S03 case3 observed native selection preserves complete/partial
+[pass] LP09-S03 case3 actual native remux Ready Complete
+[pass] LP09-S03 case3 full request and literal output count
+[pass] LP09-S03 case3 physical file and decoded hashes
+[pass] LP09-S03 case3 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case3 exact recovery sql0
+[pass] LP09-S03 case3 recovered reference completeness sql0
+[pass] LP09-S03 case3 timeline native interval and independent UTC placement sql0
+[pass] LP09-S03 case3 exact recovery sql1
+[pass] LP09-S03 case3 recovered reference completeness sql1
+[pass] LP09-S03 case3 timeline native interval and independent UTC placement sql1
+[pass] LP09-S03 case4 observed native selection preserves complete/partial
+[pass] LP09-S03 case4 actual native remux Ready Complete
+[pass] LP09-S03 case4 full request and literal output count
+[pass] LP09-S03 case4 physical file and decoded hashes
+[pass] LP09-S03 case4 Ready rejects altered file timestamp with regenerated manifest
+[pass] LP09-S03 case4 exact recovery sql0
+[pass] LP09-S03 case4 recovered reference completeness sql0
+[pass] LP09-S03 case4 timeline native interval and independent UTC placement sql0
+[pass] LP09-S03 case4 exact recovery sql1
+[pass] LP09-S03 case4 recovered reference completeness sql1
+[pass] LP09-S03 case4 timeline native interval and independent UTC placement sql1
+[pass] LP09-S03c native Ready child exit23 expected
+[pass] LP09-S03c native Ready recovery same ID complete2
+[pass] LP09-S03c native recovery file hashes and resource cleanup
+[summary] pass=59 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-native-derived.HLENhF bytes=14417434 removed=true
+[elapsed] seconds=24 source=bash-SECONDS
+
+
+[실행 조각] lp10-codec-final-start exit=running wall_time_seconds=1.003556125
+[build-profile] optimization=compiler-default NDEBUG=0 gstreamer=0 direct-source=1
+
+
+[실행 조각] lp10-codec-final exit=0 wall_time_seconds=0.000002209
+[pass] P0-PERF01 literal source1 sample250 slice45 complete
+[fixture] sources=1 samples=250 slices=45 selection_bytes=72752 intent_bytes=144078 record_bytes=144206 sha256=529aff50132395c790a05ad68d735381b174966dc3099f00ba022a8ead494d5b
+[measure] operation=serialize-intent iteration=1 microseconds=15061
+[measure] operation=serialize-intent iteration=2 microseconds=15178
+[measure] operation=serialize-intent iteration=3 microseconds=15211
+[measure] operation=serialize-record iteration=1 microseconds=29427
+[measure] operation=serialize-record iteration=2 microseconds=29463
+[measure] operation=serialize-record iteration=3 microseconds=29315
+[measure] operation=parse-record iteration=1 microseconds=61678
+[measure] operation=parse-record iteration=2 microseconds=61612
+[measure] operation=parse-record iteration=3 microseconds=61511
+[measure] operation=restore-selection iteration=1 microseconds=14214
+[measure] operation=restore-selection iteration=2 microseconds=14093
+[measure] operation=restore-selection iteration=3 microseconds=14164
+[pass] P0-PERF01 canonical record roundtrip unchanged
+[pass] P0-PERF02 baseline canonical hash literal unchanged
+[pass] P0-PERF02 host-scoped serialize-record median <=60000us
+[pass] P0-PERF01 source mapping conflict rejected
+[pass] P0-PERF01 selection table mapping conflict rejected
+[pass] P0-PERF01 job identity forgery rejected
+[pass] LP09-S03a native exact selection and proof survive job roundtrip
+[pass] LP09-S03a noncontiguous exact slices rejected
+[pass] LP09-S03a observed identity and native interval mismatch rejected
+[pass] LP09-S03a native profile cannot drop file evidence
+[pass] LP09-S03a overlapping substitute AU cannot replace selected identity
+[summary] pass=12 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-job-validation.z3whSD bytes=5148168 removed=true

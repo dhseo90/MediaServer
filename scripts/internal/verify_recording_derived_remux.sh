@@ -4,7 +4,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 source "$SCRIPT_DIR/env_common.sh"
-media_server_apply_homebrew_gst_env
 BUILD_DIR="$ROOT_DIR/build-gst-onnx"
 RUN_DIR="$(mktemp -d "${TMPDIR:-/tmp}/media-server-derived-remux.XXXXXX")"
 RUN_DIR="$(cd "$RUN_DIR" && pwd -P)"
@@ -14,6 +13,8 @@ cleanup() {
   echo "[elapsed] seconds=$SECONDS source=bash-SECONDS"
 }
 trap cleanup EXIT
+export GST_REGISTRY="$RUN_DIR/registry.bin"
+media_server_apply_homebrew_gst_env
 read -r -a ORIGINAL_LINK < "$BUILD_DIR/CMakeFiles/media_server.dir/link.txt"
 LINK_LIBS=();found=0
 for token in "${ORIGINAL_LINK[@]}"; do
