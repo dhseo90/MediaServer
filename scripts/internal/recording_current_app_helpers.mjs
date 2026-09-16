@@ -4,6 +4,7 @@ export function latencyTransitionOutputs(page,eventId,referenceId){
   const rows=[...page.items,...page.unplacedItems].filter(x=>x.eventId===eventId);
   if(!rows.length)return null;
   need(rows.every(r=>r.kind==='event'&&r.referenceId===referenceId),'latency-lineage');
+  need(!rows.some(r=>r.jobState==='failed'),'latency-job-failed');
   if(rows.some(r=>r.jobState!=='complete'))return null;
   need(rows.every(r=>typeof r.jobId==='string'&&r.jobId.length>0&&r.jobId===rows[0].jobId),'latency-lineage');
   const outputs=new Map();

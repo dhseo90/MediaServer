@@ -12,7 +12,7 @@ import {dispatchTuple,correlatedEvent} from './recording_event_correlation.mjs';
 import {allTimelinePages,eventOutputs,verifyRestart,measuredHttpResponse,summarizeEventState,latencyTransitionOutputs} from './recording_current_app_helpers.mjs';
 const latencyOnly=process.argv.slice(2).length===1&&process.argv[2]==='--latency-only';
 if(process.argv.length>2&&!latencyOnly)throw Error('unsupported-mode');
-let latencyPass=false;
+let latencyPass=false,failedReference=null;
 const timelineTimings=[];
 const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const MiB=1024*1024,start=performance.now(),deadline=start+180000;
@@ -114,7 +114,7 @@ async function collectEvent(app,index){
     if(latencyOnly){
       rows=await until('latency-transition',async()=>{
         try{const page=await timeline(app);observe(page,'ok');return latencyTransitionOutputs(page,event.eventId,event.recordingLinkId);}
-        catch(e){if(e.message==='page-total-changed')return false;throw e;}
+        catch(e){if(e.message==='page-total-changed')return false;if(e.message==='latency-job-failed')failedReference=event.recordingLinkId;throw e;}
       },30000);
       check(rows.length>0,'P0-HTTP02 same-reference durable transition observed (not completeness)');
       const end=performance.now()+5000;
@@ -145,7 +145,7 @@ function archiveProbe(index,observed){
 try{
   for(const dir of ['input','state','events','recordings','tmp','gst-cache'])fs.mkdirSync(path.join(root,dir),{mode:0o700});
   fs.copyFileSync(path.join(repo,'video/imports/va_tracking_event_1280x720_30fps_h264.mp4'),path.join(root,'input/identity.mp4'));
-  if(!latencyOnly)execFileSync('/bin/bash',[path.join(repo,'scripts/internal/build_recording_current_archive_probe.sh'),root],{env:{PATH:process.env.PATH,HOME:root,TMPDIR:path.join(root,'tmp')},timeout:30000,stdio:['ignore','pipe','pipe']});
+  execFileSync('/bin/bash',[path.join(repo,'scripts/internal/build_recording_current_archive_probe.sh'),root],{env:{PATH:process.env.PATH,HOME:root,TMPDIR:path.join(root,'tmp')},timeout:30000,stdio:['ignore','pipe','pipe']});
   udp=dgram.createSocket('udp4');await new Promise((resolve,reject)=>{udp.once('error',reject);udp.bind(0,'127.0.0.1',resolve);});const stun=udp.address().port;
   const first=await launch(stun);
   await request(first,'POST','/ops/api/sources',{sourceId:'9101',displayName:'current isolated source',kind:'file',file:'identity.mp4',enabled:true,recording:{enabled:true,continuousMaxBytes:256*MiB,eventMaxBytes:256*MiB,continuousMaxAgeMs:3600000,eventMaxAgeMs:3600000,revision:1}});
@@ -161,6 +161,14 @@ try{
 }catch(error){failed++;primaryError=error;console.error(`[fail] current actual app: ${error instanceof Error?error.message:'unknown'}`);}
 const cleanup={rootAbsent:false,failureCount:0,processes:processEvidence};
 for(const app of processes)try{await stop(app);}catch{cleanup.failureCount++;}
+if(failedReference&&processes.every(app=>app.stopped))try{
+  const original=path.join(root,'recordings'),before=scan(original,{hash:true,strict:true}),copy=path.join(root,'projection-copy-1/recordings');
+  fs.mkdirSync(path.dirname(copy),{mode:0o700});fs.cpSync(original,copy,{recursive:true,dereference:false,errorOnExist:true});
+  check(JSON.stringify(before)===JSON.stringify(scan(copy,{hash:true,strict:true})),'LP03-B diagnostic copy bytes/hash exact');
+  const result=JSON.parse(execFileSync(path.join(root,'archive-probe'),[root,'1',failedReference,'--diagnose-failed'],{env:{PATH:process.env.PATH},timeout:15000,maxBuffer:MiB,encoding:'utf8',stdio:['ignore','pipe','pipe']}));
+  console.log('[job-failure-diagnostic] '+JSON.stringify(result));
+  check(JSON.stringify(before)===JSON.stringify(scan(original,{hash:true,strict:true})),'LP03-B original unchanged after diagnostic');
+}catch{failed++;console.error('[fail] LP03-B diagnostic unavailable');}
 if(udp)try{await new Promise(resolve=>udp.close(resolve));udpClosed=true;}catch{cleanup.failureCount++;}else udpClosed=true;
 let size=0;try{size=scan(root).bytes;const st=fs.lstatSync(root,{bigint:true});if(st.dev!==rootStat.dev||st.ino!==rootStat.ino||processes.some(p=>!p.stopped)||!udpClosed)throw Error('cleanup-ownership');fs.rmSync(root,{recursive:true});cleanup.rootAbsent=!fs.existsSync(root);}catch{cleanup.failureCount++;}
 console.log(`[cleanup] ${JSON.stringify({root,bytes:size,...cleanup,udpClosed})}`);

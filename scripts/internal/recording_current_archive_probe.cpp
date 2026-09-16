@@ -14,9 +14,17 @@ static std::string Quote(const std::string& value){
     for(unsigned char c:value){Require(c>=32,"control-character");if(c=='"'||c=='\\')out+='\\';out+=c;}
     return out+'"';
 }
+// 실패 원문을 정제해서 출력하지 않는다. 소스에서 확인한 정확한 상수만 통과시킨다.
+static const char* FailureCode(const std::string& reason){
+    for(const char* known:{"job-remux: file-original-timestamp-mismatch",
+                           "job-remux: source-binding-incomplete",
+                           "job-source-unavailable"})if(reason==known)return known;
+    return "unknown";
+}
 int main(int argc,char** argv){
+    const bool diagnostic=argc==5;
     try{
-        Require(argc==4,"arguments");
+        Require(argc==4||(diagnostic&&std::string(argv[4])=="--diagnose-failed"),"arguments");
         const fs::path root=argv[1];const std::string index=argv[2],reference=argv[3];
         Require(index=="1"||index=="2","copy-index");
         struct stat st{};Require(lstat(root.c_str(),&st)==0&&S_ISDIR(st.st_mode)&&st.st_uid==getuid()&&(st.st_mode&0777)==0700,"owned-root");
@@ -41,6 +49,16 @@ int main(int argc,char** argv){
         recording::RecordingDerivedReferenceResult result;
         Require(catalog.QueryDerivedReferenceResult(reference,&result,&error)&&!result.truncated&&result.managed&&result.jobs.size()==1,"reference-job");
         const auto& record=result.jobs.front().job;const auto& intent=record.intent;
+        if(diagnostic){
+            Require(record.state==recording::DerivedJobState::Failed,"failed-job");
+            std::cout<<"{\"state\":\"failed\",\"failureReason\":"<<Quote(FailureCode(record.failure_reason))
+                <<",\"sourceCount\":"<<intent.sources.size()
+                <<",\"outputCount\":"<<result.jobs.front().outputs.size()
+                <<",\"plannedOutputCount\":"<<intent.outputs.size()
+                <<",\"fileReceiptCount\":"<<record.files.size()
+                <<",\"copyCatalogOpened\":true}\n";
+            return 0;
+        }
         Require(record.state==recording::DerivedJobState::Complete&&record.ready&&record.ready->verified_output&&record.ready->request_fully_satisfied,"complete-job");
         Require(intent.reference.request&&intent.reference.original&&intent.reference.request->time_basis=="media-pts-ms","reference-axis");
         Require(intent.sources.size()==2&&intent.outputs.size()==2&&record.ready->outputs.size()==2,"literal-two-sources-outputs");
@@ -73,5 +91,10 @@ int main(int argc,char** argv){
             if(comma)std::cout<<',';comma=true;
             std::cout<<"{\"id\":"<<Quote(output.segment.segment_id)<<",\"relativePath\":"<<Quote(plan->final_relpath)<<",\"hash\":"<<Quote(output.segment.checksum_sha256)<<",\"bytes\":"<<Quote(std::to_string(output.segment.size_bytes))<<'}';}
         std::cout<<"],\"copyCatalogOpened\":true}\n";return 0;
-    }catch(const std::exception& e){std::cerr<<"[fail] archive-probe "<<e.what()<<'\n';return 1;}
+    }catch(const std::exception& e){
+        // filesystem 예외도 경로를 포함할 수 있으므로 진단 mode에는 원문을 내보내지 않는다.
+        if(diagnostic)std::cerr<<"{\"diagnosticError\":\"archive-probe-failed\"}\n";
+        else std::cerr<<"[fail] archive-probe "<<e.what()<<'\n';
+        return 1;
+    }
 }

@@ -1,5 +1,82 @@
 # Release Test Records
 
+## 2026-09-16 기존 변경 보존 커밋
+
+사용자가 현재 미커밋 변경의 분할 커밋·푸시를 승인했다. 검증기/실측 기록과 LP02 준비 초안을 분리한다.
+LP02는 JS·shell 구문만 확인했고 C++ 미컴파일·16/32 실행 미수행이다. 초안 보존은 LP02 완료/성능 PASS가 아니다.
+기존 LP03 자체검사 28개와 S11-CI11 adapter 격리검사를 함께 재실행하여 29/29, exit0,1601.119292ms.
+개별 28항목은 failure-diagnostic-report.md의 자체1~28과 동일 범위이며 이번에도 각각 PASS다.
+S11-CI11 원본선택·symlink·hardlink 거부/원본불변 PASS, 임시 root `media-server-current-integration-unit-49bbN1` 4310870B 삭제·부재 PASS.
+`node --check scripts/internal/recording_catalog_cost_bounded.cjs`, `bash -n scripts/internal/recording_catalog_cost_probe_run.sh`, `git diff --check` exit0.
+제품·실제 앱·장시간/UI 재실행 없음. token 집계 source 부재로 start/end/consumed 미집계.
+
+## 2026-09-16 실패 사유 제한 진단 사전등록
+
+실행 결과: LP03-A 예상 RED 4/5 → 수정 후 관련 28/28 PASS. 실제 앱 1회 exit0/27.202초,
+timeline150개 최대2036ms, complete/partial 출력1개. 이전 failed는 재현되지 않아 원인 미확정이다.
+LP03-B adapter 컴파일은 됐으나 실패 코드 수집 분기는 미실행이며 PASS가 아니다. 실제 dispatch8233ms로 이전16900ms와 다르다.
+서버exit0·포트·UDP 반환, 소유임시root 51,695,201B 삭제. 제품·누적catalog·커밋·푸시 없음.
+[원출력254 HTTP·결과·정리 기록](release-artifacts/v4.1.0/s11-preparation-mapping/failure-diagnostic-report.md).
+
+사용자 승인: 검증기만 보완하고 동일 실제 앱 단기 검사를 1회 실행한다. 제품·공개 API·timeout·누적 catalog·장시간·UI·커밋·푸시는 제외한다.
+메인은 JS fail-fast와 실행, 기존 단일 Astra/medium 담당자는 C++ 복제본 진단을 맡으며 재위임하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP03-A | 실패 즉시 중단 | 실제 helper에 failed 입력 시 즉시 오류; pending/partial/다른 참조/기존 완전 출력 검사 유지. RED 후 GREEN | v4.1.0 |
+| LP03-B | 실패 코드 안전 관측 | 종료한 검증 소유 저장소의 해시 동일 복제본만 기존 C++ Catalog로 열고 고정 whitelist 코드만 반환. 원본 불변 확인 | v4.1.0 |
+| LP03-C | 동일 실제 앱 1회 | `node scripts/internal/verify_recording_current_app.mjs --latency-only`; 실패는 PASS로 바꾸지 않고 원인·정리 보존 | v4.1.0 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 사용자 진단 보완 승인 | LP03-A/B/C | 승인 |
+| 30분 | 미진행 | 이번 범위 밖 | LP03 | 미승인 |
+| 120분 | 미진행 | 이번 범위 밖 | LP03 | 미승인 |
+| UI | 미진행 | 이번 범위 밖 | LP03 | 미승인 |
+
+실행 결과는 미실행 상태로 시작한다. token start/end/consumed는 집계 도구가 없어 미집계하며 elapsed/source는 실제 결과에 기록한다.
+
+## 2026-09-16 잔여 지연 판정 사전등록
+
+실행 결과: LP01은 exit1/51.703초, `latency-transition-timeout`이다. 관측 timeline494개는 모두
+HTTP200, p50/p95/p99/max=33/50/115/585ms,4초 초과0이다. 하지만 동일 이벤트 작업이
+not-created→intent→failed로 끝나 출력0이며 `latencyPass=false`다. 상세실패코드는 기존요약에 없어
+원인을확정하지않는다. 서버exit0·HTTP/RTSP/UDP 반환·48,057,398B 소유root삭제·메인부재확인을마쳤다.
+LP02는뒤단계미실행,3개테스트파일미컴파일초안만보존했다. 제품수정·커밋·푸시는없다.
+[개별 HTTP678행·검사결과·한계·정리](release-artifacts/v4.1.0/s11-preparation-mapping/latency-review-report.md).
+다음은실패사유를안전하게보존하는최소진단후원인확정이며,실패조건을완화하지않는다.
+
+사용자 승인: 누적 catalog와 실제HTTP를 측정하여 추가 보완 필요성을 보고한다.
+제품 수정·커밋·푸시·4번 대기·5번 통합 완료·S11/브라우저/장시간은 범위 밖이다.
+현재 기준은 `679273d8`과 그 제품을 빌드한 바이너리다. 기존 FC01~05 결과를 유지한다.
+원인 분석 스킬에 따라 원인 관측과 합격 판정을 구분한다. 단일 Astra/medium 담당자는 누적
+catalog 측정 준비를 맡고 메인이 실제HTTP와 최종 판정을 맡으며 동시에 부하 측정을 하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP01 / 기존 P0-HTTP02 재실행 | `node scripts/internal/verify_recording_current_app.mjs --latency-only` | 실제 제품·로컬파일·로컬ICE만 사용. 기존4초 HTTP/180초 전체 상한 유지. 같은 이벤트 참조 전이와 이후5초 조회의 status/header/body/total 기록. partial 관측 가능하나 완전출력/재기동 PASS 아님 | v4.1.0 |
+| LP02 | 누적 catalog 비용 | 기존4096 AU 비용fixture를16/32원본까지 확장할 최소 측정 준비. 정확 명령·용량·시간 상한은 실행 전 확정 | v4.1.0 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 사용자 지연 측정 지시 | LP01/LP02, 기존P0-HTTP02/FC03 | 격리 단기 측정 승인 |
+| 30분 | 미진행 | 이번 범위 밖 | AGENTS7.6 | 실행하지 않음 |
+| 120분 | 미진행 | 이번 범위 밖 | AGENTS7.6 | 실행하지 않음 |
+| UI | 미진행 | HTTP 측정이지 브라우저 확인이 아님 | LP01 | 실행하지 않음 |
+
+LP01은 실행별0700 root,512MiB/4096항목 제한,격리auth-off와loopback HTTP/RTSP/UDP만 사용한다.
+종료·포트반환·root부재가 모두 확인돼야 완료다. 실제 운영 계정/설정은 변경하지 않는다.
+원출력·기존상한 위반·실패도 보존하고4초 상한을 사용자 경험상의 허용 지연으로 새로 정의하지 않는다.
+token start/end/consumed는 집계 소스 부재로 미집계이며 elapsed/source는 원출력에 기록한다.
+
+LP02 확정: `bash scripts/internal/recording_catalog_cost_probe_run.sh scale-32`.
+한 Store에 실제4096 AU 원본을32개까지 순차 누적하고16/32지점 snapshot·명시checkpoint·
+journal/SQLite/media 크기와 최종 SQLite/JSONL 정확 복구를 확인한다. 별도의1/8/legacy 묶음은 반복하지 않는다.
+제품 코드는 수정하지 않고 테스트 fixture·runner 모드만 추가한다. 계측은 기존 FC와 같은 no-O/단일호출 조건이다.
+소유 root512MiB, 컴파일60초, 검사180초, 출력2MiB 상한은 검증 자원 제한이며 성능 합격 기준이 아니다.
+HTTP 검사가 정상 종료한 후 순차 실행하며 실패하면 뒤 단계는 보류한다. timeout 시 소유 프로세스
+TERM/KILL·대기 후 containment 확인과 root삭제/부재를 검사한다.
+
 ## 2026-09-16 3-B 저장 증거·비용 최소 보완 결과
 
 승인된 FC01~05 계측·최소 중복 제거·같은 조건 비교·영향 회귀·전체 빌드를 수행했다.

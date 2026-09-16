@@ -9,6 +9,7 @@ const latencyTransitionOutputs=(...args)=>{
 };
 const row={kind:'event',eventId:'event',referenceId:'ref',jobId:'job',jobState:'complete',completeness:'partial',catalogState:'finalized',playable:true,segmentId:'out',playbackUrl:'/ops/api/recordings/media/out'};
 const page=items=>({items,unplacedItems:[]});
+test('LP03-A failed는 완료 대기 대신 즉시 중단',()=>assert.throws(()=>latencyTransitionOutputs(page([{...row,jobState:'failed'}]),'event','ref'),/latency-job-failed/));
 test('P0-HTTP01 pending은 전이 완료가 아님',()=>assert.equal(latencyTransitionOutputs(page([{...row,jobState:'intent'}]),'event','ref'),null));
 test('P0-HTTP01 partial은 지연 관측만 가능',()=>assert.equal(latencyTransitionOutputs(page([row,row]),'event','ref').length,1));
 test('P0-HTTP01 다른 참조와 모순 파일은 거부',()=>{
