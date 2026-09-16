@@ -47,7 +47,108 @@ N 구현 결과: `recording_presentation_interval.h`에 정규화된 유리수 �
 
 S01~03은 중앙 사전 정의가 있었으나 inventory 명시 ID가 누락되어 보완했다. 보완 전 실행은 무효이며 보완 후 동일 RED만 확인했다. S 선택 API/fixture 초안은 미커밋, S03 소비 검사는 미실행이다. 전체 선택 기능 또는 단계3 완료로 간주하지 않는다.
 
-사용자 1~5 순차 실행/분할커밋 승인. 기존 endpoint 계약의 LP09와 foundation 실행계획을 따른다. 푸시·UI·장시간 제외. 1번 문서 적용 조건은 메인 직접 작성/상충 검토했다. `git diff --check` exit0, `./server.sh verify-docs-links` exit0(282md/8677links/22images/110anchors/0fail). 임시산출물 없음. token start/end/consumed 자동집계 없어 미집계, 문서검증 elapsed0.080초/source workspace2387dd85+문서변경. 제품 구현·실제앱 검증은 아직 미실행이다.
+### LP09-Q 증거 갱신 완료 (단계3 전체 완료 아님)
+
+worker의 기존 provider 검증을 매 선택 **앞**으로 이동하고 provider 반환 후 Stop을 다시 확인했다. 원래 deadline/retry/attempt/queue/partial 정책은 그대로다. 만료된 대기열 요청도 같은 namespace의 최신 실제 관측을 사용하며, 외부 정보로 identity를 보충하지 않는다. 메인이 diff와 아래 81개 실제 결과를 직접 대조했다.
+
+- 빌드: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_GST_PLUGIN_PROFILE=headless ./server.sh build` exit0, archive/application 재링크. source=4612d92d+worker/미연결 native API 헤더 초안. 아래 fixture 결과는 기존 legacy 선택 경로이며 새 native 소비 검증이 아니다.
+- `bash scripts/internal/verify_recording_derived_event_integration.sh --diagnostics-only`: expected RED exit1(15pass/10fail,5초) → GREEN exit0(25pass/0fail,4초).
+- `bash scripts/internal/verify_recording_derived_event_integration.sh`: exit0(56pass/0fail,11초), ReadyDurable 자식 exit23은 사전 정의된 장애주입 결과와 일치.
+- [원출력·지문·최초 RED](release-artifacts/v4.1.0/s11-preparation-mapping/lp09-worker-refresh-output.txt). file evidence unavailable 경고가 있는 기존 fixture이며, 이를 native 파일 증거 발급 PASS로 해석하지 않는다.
+- no-crypto formatter는 변경되지 않았고 기존 LP09 formatter-only 증거만 유지한다. 실제 앱/16·32 누적/장시간/UI는 이번 Q에서 미실행. token start/end/consumed 미집계(도구 집계 부재).
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| Q focused-1 | LP09-W01 disabled diagnostic preserves wait-exhausted result | pass |
+| Q focused-2 | LP09-W02 same decision snapshots and attempt timing | pass |
+| Q focused-3 | LP09-W03 callback can query worker and catalog without held locks | pass |
+| Q focused-4 | LP09-W04 callback exception preserves terminal policy | pass |
+| Q focused-5 | LP09-W07 deadline exhaustion remains immediate and distinct | pass |
+| Q focused-6 | LP09-W07 confirmed prefix remains immutable partial | pass |
+| Q focused-7 | LP09-W05 decoded identity and duration rejection categories | pass |
+| Q focused-8 | LP09-W05 namespace mismatch remains visible | pass |
+| Q focused-9 | LP09-W05 UTC has no invented decoded coordinate comparison | pass |
+| Q focused-10 | LP09-W06 value-only summaries bound sources frames and unknown ranges | pass |
+| Q focused-11 | LP09-W08 formatter hashes identifiers and fixes reason enums | pass |
+| Q focused-12 | LP09-W08 formatter refuses oversized source vector | pass |
+| Q focused-13 | LP09-W08 formatter refuses absent reference identity | pass |
+| Q focused-14 | LP09-W08 reference hash agrees with independent digest provider | pass |
+| Q focused-15 | LP09-Q02 first evaluation provider throw preserves strict rejection | pass |
+| Q focused-16 | LP09-Q02 first evaluation provider null preserves strict rejection | pass |
+| Q focused-17 | LP09-Q02 first evaluation provider namespace preserves strict rejection | pass |
+| Q focused-18 | LP09-Q02 first evaluation provider generation preserves strict rejection | pass |
+| Q focused-19 | LP09-Q02 first evaluation provider track preserves strict rejection | pass |
+| Q focused-20 | LP09-Q02 first evaluation provider 4097 preserves strict rejection | pass |
+| Q focused-21 | LP09-Q02 first evaluation provider source preserves strict rejection | pass |
+| Q focused-22 | LP09-Q02 first evaluation provider channel preserves strict rejection | pass |
+| Q focused-23 | LP09-Q03 Stop during first provider forbids admission after refresh | pass |
+| Q focused-24 | LP09-Q01 expired queued first evaluation consumes current evidence without deadline extension | pass |
+| Q focused-25 | LP09-Q03 queued reference remains durably owned | pass |
+| Q 영향 회귀-26 | E17 accepted 후 resolver nullopt는 기존 소유 유지·신규 저장 없음 | pass |
+| Q 영향 회귀-27 | E17 accepted 후 resolver 불일치는 기존 소유 유지·신규 저장 없음 | pass |
+| Q 영향 회귀-28 | E17 accepted 후 resolver 예외는 기존 소유 유지·신규 저장 없음 | pass |
+| Q 영향 회귀-29 | E17 accepted 후 resolver 미주입는 기존 소유 유지·신규 저장 없음 | pass |
+| Q 영향 회귀-30 | E02 단일 출력도 clip_path 승격 없이 목록·직접 decode·fully satisfied | pass |
+| Q 영향 회귀-31 | E09 동일 reference/선택 재요청 job ID 멱등 | pass |
+| Q 영향 회귀-32 | E03 미확인 pre 구간을 유지한 verified partial 출력 | pass |
+| Q 영향 회귀-33 | E07 immutable start/end/pre/post/namespace 보존 | pass |
+| Q 영향 회귀-34 | E10 Event 출력이 누적되어도 원본 snapshot은 continuous만 | pass |
+| Q 영향 회귀-35 | E04 provider의 동일 실제 decoder 증거 업데이트로 postroll 요청 충족 | pass |
+| Q 영향 회귀-36 | E05 시간 경과만으로 coverage 없이 unknown 종료 | pass |
+| Q 영향 회귀-37 | E06 provider namespace 변경을 새 증거로 혼합하지 않음 | pass |
+| Q 영향 회귀-38 | E09 같은 immutable reference의 증거/선택 갱신은 새 job·이전 partial 보존 | pass |
+| Q 영향 회귀-39 | E18 4097 frame 증거는 queue 접수 전 명시 거부 | pass |
+| Q 영향 회귀-40 | E06/E18 provider generation 변경는 unknown 종료 | pass |
+| Q 영향 회귀-41 | E06/E18 provider source 불일치는 unknown 종료 | pass |
+| Q 영향 회귀-42 | E06/E18 provider 예외는 unknown 종료 | pass |
+| Q 영향 회귀-43 | E06/E18 provider track 불일치는 unknown 종료 | pass |
+| Q 영향 회귀-44 | E06/E18 provider channel 불일치는 unknown 종료 | pass |
+| Q 영향 회귀-45 | E12 event quota 부족은 Intent/파일/내구 예약 없이 명시 거부 | pass |
+| Q 영향 회귀-46 | E12 disk provider 실패를 가용량 0 성공으로 숨기지 않고 Intent 없이 거부 | pass |
+| Q 영향 회귀-47 | E18 누적 261개 원본에서도 현재 반개구간 관련 1개만 조회 | pass |
+| Q 영향 회귀-48 | E18 반개구간 끝 접점은 이전 원본과 비중첩 | pass |
+| Q 영향 회귀-49 | E11 관련 missing binding은 누락하지 않고 snapshot에 보존 | pass |
+| Q 영향 회귀-50 | E11 관련 corrupt lifecycle은 동일 snapshot에 보존 | pass |
+| Q 영향 회귀-51 | E18 실제 관련 257개는 명시 cap 실패·잘린 confirmed 목록 없음 | pass |
+| Q 영향 회귀-52 | E04 실제 writer 후행 finalize와 같은 요청 증거 갱신으로 2출력 완료 | pass |
+| Q 영향 회귀-53 | E20 canonical accepted 중복은 원장 mutation 추가 없이 멱등 | pass |
+| Q 영향 회귀-54 | E20 동일 reference ID 다른 immutable 내용의 accepted 거부 | pass |
+| Q 영향 회귀-55 | E20 SQLite accepted projection의 exact reference 일치 | pass |
+| Q 영향 회귀-56 | E20 accepted marker checkpoint projection 일치 | pass |
+| Q 영향 회귀-57 | E15/E20 재시작 JSONL fallback accepted/no-job은 증거 발명 없이 managed unknown | pass |
+| Q 영향 회귀-58 | E15/E20 재시작 SQLite rebuild accepted/no-job은 증거 발명 없이 managed unknown | pass |
+| Q 영향 회귀-59 | E20 replay accepted 선행 참조 없음 거부 | pass |
+| Q 영향 회귀-60 | E20 replay accepted unknown 필드 거부 | pass |
+| Q 영향 회귀-61 | E20 replay accepted canonical 충돌 거부 | pass |
+| Q 영향 회귀-62 | E20 replay accepted 불완전 payload 거부 | pass |
+| Q 영향 회귀-63 | E08 동일 원본 snapshot의 명시 UTC 요청→실제 출력·독립 output UTC unknown | pass |
+| Q 영향 회귀-64 | E08 같은 UTC의 복수 원본 후보를 자동 단일 선택하지 않음 | pass |
+| Q 영향 회귀-65 | E11 UTC confirmed mapping 하나가 보여도 관련 corrupt 원본을 숨기지 않음 | pass |
+| Q 영향 회귀-66 | E11 실제 UTC worker도 same-lock corrupt 원본을 available로 승격하지 않음 | pass |
+| Q 영향 회귀-67 | E08 UTC unplaced를 원본 snapshot/선택에 보존 | pass |
+| Q 영향 회귀-68 | E18 opt-in UTC 후보 예산 초과는 부분 confirmed 결과 없이 실패 | pass |
+| Q 영향 회귀-69 | E11 삭제 대기 lifecycle도 원본 snapshot에서 누락하지 않음 | pass |
+| Q 영향 회귀-70 | E01 실제 H264 decoder→EventRecord→reference→내구 job·2출력 Complete | pass |
+| Q 영향 회귀-71 | E17 무주입 bridge 재생성에도 내구 managed 소유권 유지 | pass |
+| Q 영향 회귀-72 | E13 Stop 이후 신규 reference 저장 없음 | pass |
+| Q 영향 회귀-73 | E20 비권위 원장 조회 실패는 legacy 억제 unknown | pass |
+| Q 영향 회귀-74 | E17 실제 EventStorage managed clip 억제 및 snapshot hook 유지 | pass |
+| Q 영향 회귀-75 | E17 실제 EventStorage 기본 clip fallback 유지 및 snapshot hook 유지 | pass |
+| Q 영향 회귀-76 | E15 별도 프로세스 Ready _exit 후 보호 복원→bridge reconcile→동일 2출력·decode·commit 1개 | pass |
+| Q 영향 회귀-77 | E16 historical Complete와 terminal tombstone 현재 unavailable·재생성 없음 | pass |
+| Q 영향 회귀-78 | E13 active 포함 queue cap 포화는 새 accepted/예약 없이 거부 | pass |
+| Q 영향 회귀-79 | E14 실제 Run 중 동시 Stop 두 번→취소·단일 join·Failed cleanup 후 자원 해제 | pass |
+| Q 영향 회귀-80 | E18 reference job top-8은 wall 역행/재시작에도 동일 ID subset·truncated unknown | pass |
+| Q 영향 회귀-81 | E15 startup bounded8 more는 blocker·남은 보호 유지·자동 무한 reconcile 없음 | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR/media-server-derived-event-integration.3YsfaD | Q RED fixture | 10,666,976B | 삭제 | 부재 확인 | Q 원출력 |
+| TMPDIR/media-server-derived-event-integration.0VqTgC | Q GREEN fixture | 10,208,784B | 삭제 | 부재 확인 | Q 원출력 |
+| TMPDIR/media-server-derived-event-integration.7txmAg | Q 회귀 fixture | 15,288,968B | 삭제 | 부재 확인 | Q 원출력 |
+| /private/tmp/lp09-refresh-logs.Q5CFYV | 임시 로그 | 10,735B | 전수 원출력 이관 후 삭제 | 부재 확인 | Q 원출력 |
+
+사용자 1~5 순차 실행/분할커밋 승인. 기존 endpoint 계약의 LP09와 foundation 실행계획을 따른다. 푸시·UI·장시간 제외. 1번 문서 적용 조건은 메인 직접 작성/상충 검토했다. `git diff --check` exit0, `./server.sh verify-docs-links` exit0(282md/8677links/22images/110anchors/0fail). 임시산출물 없음. token start/end/consumed 자동집계 없어 미집계, 문서검증 elapsed0.080초/source workspace2387dd85+문서변경. **이는 1번 당시 기록이며** 이후 2번 실제 앱과 3번 단위 실행은 이 절의 개별 기록을 따른다.
 
 | 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
 | --- | --- | --- | --- |

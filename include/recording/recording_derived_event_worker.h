@@ -64,7 +64,8 @@ struct DerivedEventWorkerOptions {
     std::size_t queue_capacity{16},max_attempts{16};
     std::int64_t wait_ms{1000},retry_ms{100};
     std::uint64_t reserved_bytes{32*1024*1024};
-    // 잠금 밖 호출. 주입자는 thread-safe/nonblocking이어야 하며 강제 중단 thread를 만들지 않는다.
+    // 매 평가 전에 잠금 밖 호출(대기 중 만료된 요청 포함). 기한/시도 수를 연장하지 않는다.
+    // 주입자는 thread-safe/nonblocking이어야 하며 강제 중단 thread를 만들지 않는다.
     std::function<DerivedEventEvidenceUpdate(const RecordingConsumerReferenceV1&)> latest_evidence;
     std::function<std::int64_t()> now_ms;
     std::string budget_reason;

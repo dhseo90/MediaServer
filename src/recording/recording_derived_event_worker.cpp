@@ -190,6 +190,19 @@ void DerivedEventWorker::Process(Pending pending) {
     std::string error;
     for(std::size_t attempt=0;attempt<options_.max_attempts;++attempt) {
         if(stopped_) {Status(pending.reference.reference_id,"derived-worker-stopped");return;}
+        // Refresh before every decision, including an already-expired queued request.
+        // callback은 어떤 worker/catalog 잠금도 잡지 않은 상태에서만 실행한다.
+        if(options_.latest_evidence) {
+            DerivedEventEvidenceUpdate update;
+            try {update=options_.latest_evidence(pending.reference);}
+            catch(...) {Status(pending.reference.reference_id,"derived-evidence-provider-exception");return;}
+            if(update.source_id!=pending.reference.source_id||update.channel_id!=pending.reference.channel_id||
+               !update.evidence||!EvidenceMatches(pending.reference,*update.evidence)) {
+                Status(pending.reference.reference_id,"derived-evidence-provider-identity-mismatch");return;
+            }
+            pending.evidence=std::move(update.evidence);
+        }
+        if(stopped_) {Status(pending.reference.reference_id,"derived-worker-stopped");return;}
         std::vector<RecordingDerivedSourceSnapshotEntry> snapshot;
         if(!catalog_.SnapshotDerivedSources(pending.reference,&snapshot,&error)) {
             Status(pending.reference.reference_id,error);return;
@@ -263,17 +276,6 @@ void DerivedEventWorker::Process(Pending pending) {
                 run.job&&run.job->ready&&run.job->ready->request_fully_satisfied?"complete":"partial");
             else Status(pending.reference.reference_id,(run.blocked?"blocked:":"failed:")+run.reason);
             return;
-        }
-        // callback은 어떤 worker/catalog 잠금도 잡지 않은 상태에서만 실행한다.
-        if(options_.latest_evidence) {
-            DerivedEventEvidenceUpdate update;
-            try {update=options_.latest_evidence(pending.reference);}
-            catch(...) {Status(pending.reference.reference_id,"derived-evidence-provider-exception");return;}
-            if(update.source_id!=pending.reference.source_id||update.channel_id!=pending.reference.channel_id||
-               !update.evidence||!EvidenceMatches(pending.reference,*update.evidence)) {
-                Status(pending.reference.reference_id,"derived-evidence-provider-identity-mismatch");return;
-            }
-            pending.evidence=std::move(update.evidence);
         }
         std::unique_lock lock(mu_);
         cv_.wait_until(lock,std::min(pending.deadline,std::chrono::steady_clock::now()+
