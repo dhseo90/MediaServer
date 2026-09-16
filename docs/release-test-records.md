@@ -2,7 +2,7 @@
 
 ## 2026-09-17 LP08 부분 출력 근거와 원인별 수정 실행 전 정의
 
-진단 도구 결과: C++ 전체34PASS 뒤 actual 연결 추가 및 guard 보완 영향9PASS(무관29개 증거 유지), JS57PASS. expected RED·초기 명령오류·전수 결과·정리는 [LP08 실행 기록](release-artifacts/v4.1.0/s11-preparation-mapping/diagnostic-replay-report.md)에 보존했다. 실제앱 C01과 제품 원인수정은 아직 미실행이며 진단도구 PASS로 대체하지 않는다.
+진단 도구 결과: C++ 전체34PASS 뒤 actual 연결 추가 및 guard 보완 영향9PASS(무관29개 증거 유지), JS57PASS. expected RED·초기 명령오류·전수 결과·정리는 [LP08 실행 기록](release-artifacts/v4.1.0/s11-preparation-mapping/diagnostic-replay-report.md)에 보존했다. 도구커밋3fa16a06 뒤 실제앱 C01은 exit0/39.495초/7PASS, HTTP284개/timeline181개max3755ms. 저장근거로 이번 partial은 선택 부족으로 확정(원본내1ns공백5개+뒤982,666,667ns미확정), 선택된 파일부분은 충족. 기존 선택 계약을 파일구간으로 대체하는 변경은 별도 확정이 필요해 3번 제품수정 보류, 4~5번 건너뜀. 최초failed 원인은 여전히 미확정. 진단 PASS로 제품수정/완전2출력/재기동을 대체하지 않는다.
 
 사용자 승인 순서: 완료된 partial의 저장 근거 수집 → 선택/파일 구간 부족 분류 → 확정 경로만 수정 → 동일 조건·영향 회귀 → 누적 catalog/복수 출력/재기동 통합. 과거 failed 미재현은 별도 미해결로 유지하며 이번 partial 진단의 선수조건으로 삼지 않는다. 검증된 단위별 커밋; 푸시·장시간·UI는 이번 실행에 포함하지 않는다. 제품 수정은 진단 후 확정된 원인과 반례를 추가 등록한 뒤 실행한다.
 

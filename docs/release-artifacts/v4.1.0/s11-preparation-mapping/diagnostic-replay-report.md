@@ -1,5 +1,333 @@
 # 보완 진단·독립 재현 기록
 
+## 2026-09-17 LP08 실제 부분 출력 분류 및 수정 경계
+
+명령 `node scripts/internal/verify_recording_current_app.mjs --latency-only`, source 3fa16a06, 격리 localhost 권한 실행1회. exit0/39.495초/7PASS/0FAIL. HTTP284개 sequence1~284 전수 보존, timeline181개 모두 기존4000ms 이내(max3755ms). 출력1개 partial. [원출력](lp08-actual-output.txt), [선택·Ready 안전 증거](completeness-b63cceda-3b52-4773-be4d-a5de8bc6c5d9.json). JSON99,487B는 typed 저장 provenance·hashed 식별·구간 요약이며 raw media/개인정보/현재파일검사/재현 bundle은 아니다. token start/end/consumed는 도구집계미제공으로 미집계; elapsed는 runner.
+
+### 직접 확인과 추론 구분
+
+- **직접 확인:** 요청 [7,816,000,000,9,316,000,000)ns. 저장 selection61개 중 unknown45개, unfulfilled45개 모두 request-ns. 선택 원본1개 [0,8,333,333,333)ns. 앞 원본 내부에1ns 공백5개, 뒤 [8,333,333,333,9,316,000,000)ns는982,666,667ns 미확정이다(그 내부1ns조각10개는 뒤구간과 중복 합산하지 않음).
+- **직접 확인:** ready 출력1개의 requested=[7,816,000,000,8,333,333,333), actual=[0,8,333,333,333), 250AU/decoded250쌍hash일치, output.requestFullySatisfied=true. file-duration-uncovered 0개. 이는 **선택된 부분**의 파일 충족이며 전체1.5초 요청의 파일 충족이 아니다. 이번 partial 직접원인은 선택 부족으로 분류한다.
+- **직접 확인:** 저장된 job binding.fileEvidencePresent=false. 이는 BuildDerivedJobIntent의 의도된 기존13필드 projection이며 원본 catalog에 증거가 없었다는 뜻은 아니다. 현재 정상 호환 계약을 누락 버그로 바꾸지 않는다.
+- **구조상 후보, 미확정:** runtime 대기3750ms(segment2000+post750+1000)와 writer의 keyframe finalize, exhausted 부분job 고정 경로는 뒤 원본 미선택의 원인 후보다. 저장 job은 선택 원본만 담고 retry 당시 모든원본·decoded snapshot을 보존하지 않아 미확정 원본/decoded 미관측/identity 불일치를 여기서 확정할 수 없다. 나중 timeline의 원본2개를 당시 준비완료 증거로 소급하지 않는다.
+- **계약 경계:** 현행 [종료점 계약](../../../superpowers/specs/2026-09-15-recording-endpoint-contract.md)은 selection/decode와 파일 표시 구간의 별도 조건을 유지한다. 기존 Direct는 관측PTS+duration을 사용하며 file_evidence는 그 원본 duration의 역복원 증거가 아니다. 1ns를 임의 허용하거나 파일 구간으로 분석 선택을 조용히 대체하지 않는다. 새 native 구간과 관측 decoded identity를 연결할 조건·namespace/generation/ordinal·증거부재 fallback·실제gap 음성·신규 job identity와 Ready/복구/조회 공통 소비 경계를 명시해야 한다.
+
+### 단계 상태와 다음 결정
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 부분 출력 저장 근거 수집 | 완료 | 신규 도구·자체검증·실제앱1회·안전 JSON | 3fa16a06·위 원출력 |
+| 2 | 선택/파일 부족 분류 | 완료 | 이번 partial은 선택 부족; 뒤 원본 미선택의 세부원인은 미확정 | selection/ready 직접 대조 |
+| 3 | 확정 경로 수정 | 보류 | 앞1ns 구간 보완은 기존 선택 계약 변경이 필요; 뒤구간은 원인 후보 단계 | 현행 spec·Direct·worker |
+| 4 | 동일 조건·영향 회귀 | 건너뜀 | 제품 수정이 없으므로 수정회귀를 실행하지 않음 | 3번 선행조건 |
+| 5 | 누적·복수 출력·재기동 통합 | 건너뜀 | 아직 전체 요청충족/출력2개 미해결 | actualEventPass=false/restartPass=false |
+| 6 | 분할 커밋 방식 | 수행 | 도구와 완료된 조사기록을 분리; 제품수정 완료커밋 아님 | git log |
+
+**다음 순서 제안:** (1) 관측 identity와 입증된 native 구간 연결의 새 선택 계약을 승인 범위로 명확히 고정, 구간대체가 허용되는 조건과 반례 정의 → (2) 대기 시도별 준비 상태의 최소 계측으로 뒤 구간 미선택 원인 확정 → (3) 확정된 계약·경로 구현 및 영향회귀 → (4) 기존 누적catalog/완전출력2개·HTTP/hash·재기동·전체통합. 기존 failed 원인은 별도 미확정으로 유지한다. 새 근거 없이 앱 반복·timeout 증가·기존partial 승격을 하지 않았다. 푸시 가능 아니오(범위 미완료/새 푸시승인 없음), 수행 안 함. 장시간/UI/release action 미실행.
+
+### 실제 개별 결과
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 검사-1 | S11-CI09 product-1 healthy isolated ICE | pass | 실제 latency-only 범위 |
+| 검사-2 | S11-CI07 run1 actual tuple EventRecord reference | pass | 실제 latency-only 범위 |
+| 검사-3 | P0-HTTP02 same-reference durable transition observed (not completeness) | pass | 실제 latency-only 범위 |
+| 검사-4 | P0-HTTP02 all timeline HTTP within unchanged 4000ms | pass | 실제 latency-only 범위 |
+| 검사-5 | S11-CI08 product-1 exit0 ports returned | pass | 실제 latency-only 범위 |
+| 검사-6 | LP03-B diagnostic copy bytes/hash exact | pass | 실제 latency-only 범위 |
+| 검사-7 | LP03-B original unchanged after diagnostic | pass | 실제 latency-only 범위 |
+| HTTP-1 | GET health; status=null; header/body/total=null/null/3ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-2 | GET health; status=null; header/body/total=null/null/1ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-3 | GET health; status=null; header/body/total=null/null/1ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-4 | GET health; status=null; header/body/total=null/null/1ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-5 | GET health; status=null; header/body/total=null/null/1ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-6 | GET health; status=null; header/body/total=null/null/1ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-7 | GET health; status=null; header/body/total=null/null/1ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-8 | GET health; status=null; header/body/total=null/null/1ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-9 | GET health; status=null; header/body/total=null/null/1ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-10 | GET health; status=null; header/body/total=null/null/1ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-11 | GET health; status=null; header/body/total=null/null/1ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-12 | GET health; status=null; header/body/total=null/null/0ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-13 | GET health; status=null; header/body/total=null/null/0ms; 0B | fail | 기동 대기중 실패, 이후 정상응답 |
+| HTTP-14 | GET health; status=200; header/body/total=9/1/10ms; 15B | pass | 단기 HTTP 범위 |
+| HTTP-15 | GET ice; status=200; header/body/total=2/0/2ms; 222B | pass | 단기 HTTP 범위 |
+| HTTP-16 | POST source; status=201; header/body/total=78/0/78ms; 428B | pass | 단기 HTTP 범위 |
+| HTTP-17 | POST tap-create; status=200; header/body/total=49/0/49ms; 1187B | pass | 단기 HTTP 범위 |
+| HTTP-18 | GET tap; status=200; header/body/total=23/0/23ms; 4030B | pass | 단기 HTTP 범위 |
+| HTTP-19 | GET tap; status=200; header/body/total=1/0/1ms; 5972B | pass | 단기 HTTP 범위 |
+| HTTP-20 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-21 | GET tap; status=200; header/body/total=1/0/1ms; 5972B | pass | 단기 HTTP 범위 |
+| HTTP-22 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-23 | GET tap; status=200; header/body/total=1/0/1ms; 6154B | pass | 단기 HTTP 범위 |
+| HTTP-24 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-25 | GET tap; status=200; header/body/total=1/0/1ms; 6291B | pass | 단기 HTTP 범위 |
+| HTTP-26 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-27 | GET tap; status=200; header/body/total=1/0/1ms; 6417B | pass | 단기 HTTP 범위 |
+| HTTP-28 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-29 | GET tap; status=200; header/body/total=1/0/1ms; 6415B | pass | 단기 HTTP 범위 |
+| HTTP-30 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-31 | GET tap; status=200; header/body/total=1/0/1ms; 6553B | pass | 단기 HTTP 범위 |
+| HTTP-32 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-33 | GET tap; status=200; header/body/total=1/0/1ms; 6681B | pass | 단기 HTTP 범위 |
+| HTTP-34 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-35 | GET tap; status=200; header/body/total=1/0/1ms; 6815B | pass | 단기 HTTP 범위 |
+| HTTP-36 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-37 | GET tap; status=200; header/body/total=1/0/1ms; 6814B | pass | 단기 HTTP 범위 |
+| HTTP-38 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-39 | GET tap; status=200; header/body/total=1/0/1ms; 6955B | pass | 단기 HTTP 범위 |
+| HTTP-40 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-41 | GET tap; status=200; header/body/total=1/0/1ms; 7087B | pass | 단기 HTTP 범위 |
+| HTTP-42 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-43 | GET tap; status=200; header/body/total=1/0/1ms; 7226B | pass | 단기 HTTP 범위 |
+| HTTP-44 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-45 | GET tap; status=200; header/body/total=1/0/1ms; 7367B | pass | 단기 HTTP 범위 |
+| HTTP-46 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-47 | GET tap; status=200; header/body/total=1/0/1ms; 7364B | pass | 단기 HTTP 범위 |
+| HTTP-48 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-49 | GET tap; status=200; header/body/total=1/0/1ms; 7504B | pass | 단기 HTTP 범위 |
+| HTTP-50 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-51 | GET tap; status=200; header/body/total=1/0/1ms; 7625B | pass | 단기 HTTP 범위 |
+| HTTP-52 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-53 | GET tap; status=200; header/body/total=1/0/1ms; 7772B | pass | 단기 HTTP 범위 |
+| HTTP-54 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-55 | GET tap; status=200; header/body/total=1/0/1ms; 7770B | pass | 단기 HTTP 범위 |
+| HTTP-56 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-57 | GET tap; status=200; header/body/total=1/0/1ms; 7904B | pass | 단기 HTTP 범위 |
+| HTTP-58 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-59 | GET tap; status=200; header/body/total=1/0/1ms; 8042B | pass | 단기 HTTP 범위 |
+| HTTP-60 | GET timeline; status=200; header/body/total=0/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-61 | GET tap; status=200; header/body/total=1/0/1ms; 8159B | pass | 단기 HTTP 범위 |
+| HTTP-62 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-63 | GET tap; status=200; header/body/total=1/0/1ms; 8305B | pass | 단기 HTTP 범위 |
+| HTTP-64 | GET timeline; status=200; header/body/total=0/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-65 | GET tap; status=200; header/body/total=2/0/2ms; 8443B | pass | 단기 HTTP 범위 |
+| HTTP-66 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-67 | GET tap; status=200; header/body/total=1/0/1ms; 8435B | pass | 단기 HTTP 범위 |
+| HTTP-68 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-69 | GET tap; status=200; header/body/total=1/0/1ms; 8567B | pass | 단기 HTTP 범위 |
+| HTTP-70 | GET timeline; status=200; header/body/total=0/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-71 | GET tap; status=200; header/body/total=1/0/1ms; 8704B | pass | 단기 HTTP 범위 |
+| HTTP-72 | GET timeline; status=200; header/body/total=0/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-73 | GET tap; status=200; header/body/total=1/0/1ms; 8846B | pass | 단기 HTTP 범위 |
+| HTTP-74 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-75 | GET tap; status=200; header/body/total=1/0/1ms; 8977B | pass | 단기 HTTP 범위 |
+| HTTP-76 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-77 | GET tap; status=200; header/body/total=1/0/1ms; 8970B | pass | 단기 HTTP 범위 |
+| HTTP-78 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-79 | GET tap; status=200; header/body/total=1/0/1ms; 9117B | pass | 단기 HTTP 범위 |
+| HTTP-80 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-81 | GET tap; status=200; header/body/total=1/0/1ms; 9243B | pass | 단기 HTTP 범위 |
+| HTTP-82 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-83 | GET tap; status=200; header/body/total=1/0/1ms; 9243B | pass | 단기 HTTP 범위 |
+| HTTP-84 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-85 | GET tap; status=200; header/body/total=1/0/1ms; 9381B | pass | 단기 HTTP 범위 |
+| HTTP-86 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-87 | GET tap; status=200; header/body/total=1/0/1ms; 9514B | pass | 단기 HTTP 범위 |
+| HTTP-88 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-89 | GET tap; status=200; header/body/total=2/0/2ms; 10066B | pass | 단기 HTTP 범위 |
+| HTTP-90 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-91 | GET tap; status=200; header/body/total=1/0/1ms; 10066B | pass | 단기 HTTP 범위 |
+| HTTP-92 | GET timeline; status=200; header/body/total=0/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-93 | GET tap; status=200; header/body/total=1/0/1ms; 10249B | pass | 단기 HTTP 범위 |
+| HTTP-94 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-95 | GET tap; status=200; header/body/total=1/0/1ms; 10431B | pass | 단기 HTTP 범위 |
+| HTTP-96 | GET timeline; status=200; header/body/total=0/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-97 | GET tap; status=200; header/body/total=1/0/1ms; 10431B | pass | 단기 HTTP 범위 |
+| HTTP-98 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-99 | GET tap; status=200; header/body/total=1/0/1ms; 10613B | pass | 단기 HTTP 범위 |
+| HTTP-100 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-101 | GET tap; status=200; header/body/total=1/0/1ms; 10792B | pass | 단기 HTTP 범위 |
+| HTTP-102 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-103 | GET tap; status=200; header/body/total=1/0/1ms; 10860B | pass | 단기 HTTP 범위 |
+| HTTP-104 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-105 | GET tap; status=200; header/body/total=1/0/1ms; 10911B | pass | 단기 HTTP 범위 |
+| HTTP-106 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-107 | GET tap; status=200; header/body/total=1/0/1ms; 10907B | pass | 단기 HTTP 범위 |
+| HTTP-108 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-109 | GET tap; status=200; header/body/total=1/0/1ms; 10960B | pass | 단기 HTTP 범위 |
+| HTTP-110 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-111 | GET tap; status=200; header/body/total=1/0/1ms; 11007B | pass | 단기 HTTP 범위 |
+| HTTP-112 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-113 | GET tap; status=200; header/body/total=1/0/1ms; 11059B | pass | 단기 HTTP 범위 |
+| HTTP-114 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-115 | GET tap; status=200; header/body/total=1/0/1ms; 11058B | pass | 단기 HTTP 범위 |
+| HTTP-116 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-117 | GET tap; status=200; header/body/total=1/0/1ms; 11109B | pass | 단기 HTTP 범위 |
+| HTTP-118 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-119 | GET tap; status=200; header/body/total=1/0/1ms; 11153B | pass | 단기 HTTP 범위 |
+| HTTP-120 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-121 | GET tap; status=200; header/body/total=1/0/1ms; 11153B | pass | 단기 HTTP 범위 |
+| HTTP-122 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-123 | GET tap; status=200; header/body/total=1/0/1ms; 11198B | pass | 단기 HTTP 범위 |
+| HTTP-124 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-125 | GET tap; status=200; header/body/total=1/0/1ms; 11244B | pass | 단기 HTTP 범위 |
+| HTTP-126 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-127 | GET tap; status=200; header/body/total=1/0/1ms; 11282B | pass | 단기 HTTP 범위 |
+| HTTP-128 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-129 | GET tap; status=200; header/body/total=1/0/1ms; 11278B | pass | 단기 HTTP 범위 |
+| HTTP-130 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-131 | GET tap; status=200; header/body/total=1/0/1ms; 11331B | pass | 단기 HTTP 범위 |
+| HTTP-132 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-133 | GET tap; status=200; header/body/total=1/0/1ms; 11375B | pass | 단기 HTTP 범위 |
+| HTTP-134 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-135 | GET tap; status=200; header/body/total=1/0/1ms; 11416B | pass | 단기 HTTP 범위 |
+| HTTP-136 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-137 | GET tap; status=200; header/body/total=1/0/1ms; 11414B | pass | 단기 HTTP 범위 |
+| HTTP-138 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-139 | GET tap; status=200; header/body/total=1/0/1ms; 11464B | pass | 단기 HTTP 범위 |
+| HTTP-140 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-141 | GET tap; status=200; header/body/total=1/0/1ms; 11505B | pass | 단기 HTTP 범위 |
+| HTTP-142 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-143 | GET tap; status=200; header/body/total=1/0/1ms; 11554B | pass | 단기 HTTP 범위 |
+| HTTP-144 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-145 | GET tap; status=200; header/body/total=1/0/1ms; 11595B | pass | 단기 HTTP 범위 |
+| HTTP-146 | GET timeline; status=200; header/body/total=0/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-147 | GET tap; status=200; header/body/total=1/0/1ms; 11595B | pass | 단기 HTTP 범위 |
+| HTTP-148 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-149 | GET tap; status=200; header/body/total=1/0/1ms; 11636B | pass | 단기 HTTP 범위 |
+| HTTP-150 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-151 | GET tap; status=200; header/body/total=1/0/1ms; 11678B | pass | 단기 HTTP 범위 |
+| HTTP-152 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-153 | GET tap; status=200; header/body/total=1/0/1ms; 11723B | pass | 단기 HTTP 범위 |
+| HTTP-154 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-155 | GET tap; status=200; header/body/total=1/0/1ms; 11783B | pass | 단기 HTTP 범위 |
+| HTTP-156 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-157 | GET tap; status=200; header/body/total=1/0/1ms; 11783B | pass | 단기 HTTP 범위 |
+| HTTP-158 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-159 | GET tap; status=200; header/body/total=1/0/1ms; 11824B | pass | 단기 HTTP 범위 |
+| HTTP-160 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-161 | GET tap; status=200; header/body/total=1/0/1ms; 11866B | pass | 단기 HTTP 범위 |
+| HTTP-162 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-163 | GET tap; status=200; header/body/total=1/0/1ms; 11864B | pass | 단기 HTTP 범위 |
+| HTTP-164 | GET timeline; status=200; header/body/total=0/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-165 | GET tap; status=200; header/body/total=1/0/1ms; 11913B | pass | 단기 HTTP 범위 |
+| HTTP-166 | GET timeline; status=200; header/body/total=1/0/1ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-167 | GET tap; status=200; header/body/total=1/0/1ms; 11962B | pass | 단기 HTTP 범위 |
+| HTTP-168 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-169 | GET tap; status=200; header/body/total=1/0/1ms; 12001B | pass | 단기 HTTP 범위 |
+| HTTP-170 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-171 | GET tap; status=200; header/body/total=1/0/1ms; 12003B | pass | 단기 HTTP 범위 |
+| HTTP-172 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-173 | GET tap; status=200; header/body/total=1/0/1ms; 12050B | pass | 단기 HTTP 범위 |
+| HTTP-174 | GET timeline; status=200; header/body/total=0/0/0ms; 82B | pass | 단기 HTTP 범위 |
+| HTTP-175 | GET tap; status=200; header/body/total=1/0/1ms; 12048B | pass | 단기 HTTP 범위 |
+| HTTP-176 | GET timeline; status=200; header/body/total=13/0/13ms; 83451B | pass | 단기 HTTP 범위 |
+| HTTP-177 | GET timeline; status=200; header/body/total=14/0/14ms; 66085B | pass | 단기 HTTP 범위 |
+| HTTP-178 | GET tap; status=200; header/body/total=1/0/1ms; 12043B | pass | 단기 HTTP 범위 |
+| HTTP-179 | GET timeline; status=200; header/body/total=13/0/13ms; 83451B | pass | 단기 HTTP 범위 |
+| HTTP-180 | GET timeline; status=200; header/body/total=14/0/14ms; 66085B | pass | 단기 HTTP 범위 |
+| HTTP-181 | GET tap; status=200; header/body/total=1/0/1ms; 12039B | pass | 단기 HTTP 범위 |
+| HTTP-182 | GET timeline; status=200; header/body/total=13/0/13ms; 83451B | pass | 단기 HTTP 범위 |
+| HTTP-183 | GET timeline; status=200; header/body/total=14/0/14ms; 66085B | pass | 단기 HTTP 범위 |
+| HTTP-184 | PUT rule; status=200; header/body/total=8/0/8ms; 520B | pass | 단기 HTTP 범위 |
+| HTTP-185 | GET tap-events; status=200; header/body/total=9/0/9ms; 9882B | pass | 단기 HTTP 범위 |
+| HTTP-186 | PUT rule; status=200; header/body/total=2/0/2ms; 521B | pass | 단기 HTTP 범위 |
+| HTTP-187 | GET timeline; status=200; header/body/total=12/0/12ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-188 | GET timeline; status=200; header/body/total=14/0/14ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-189 | GET timeline; status=200; header/body/total=12/0/12ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-190 | GET timeline; status=200; header/body/total=14/0/14ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-191 | GET timeline; status=200; header/body/total=12/0/13ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-192 | GET timeline; status=200; header/body/total=13/0/14ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-193 | GET timeline; status=200; header/body/total=13/0/13ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-194 | GET timeline; status=200; header/body/total=13/0/14ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-195 | GET timeline; status=200; header/body/total=13/0/14ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-196 | GET timeline; status=200; header/body/total=13/0/13ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-197 | GET timeline; status=200; header/body/total=13/0/13ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-198 | GET timeline; status=200; header/body/total=13/0/13ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-199 | GET timeline; status=200; header/body/total=12/0/12ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-200 | GET timeline; status=200; header/body/total=12/0/13ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-201 | GET timeline; status=200; header/body/total=12/0/12ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-202 | GET timeline; status=200; header/body/total=12/0/13ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-203 | GET timeline; status=200; header/body/total=12/0/13ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-204 | GET timeline; status=200; header/body/total=12/0/12ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-205 | GET timeline; status=200; header/body/total=12/0/12ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-206 | GET timeline; status=200; header/body/total=13/0/13ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-207 | GET timeline; status=200; header/body/total=13/0/13ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-208 | GET timeline; status=200; header/body/total=14/0/14ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-209 | GET timeline; status=200; header/body/total=13/0/13ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-210 | GET timeline; status=200; header/body/total=13/0/14ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-211 | GET timeline; status=200; header/body/total=12/0/13ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-212 | GET timeline; status=200; header/body/total=13/0/13ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-213 | GET timeline; status=200; header/body/total=13/0/13ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-214 | GET timeline; status=200; header/body/total=13/0/13ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-215 | GET timeline; status=200; header/body/total=13/0/13ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-216 | GET timeline; status=200; header/body/total=13/0/13ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-217 | GET timeline; status=200; header/body/total=12/0/12ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-218 | GET timeline; status=200; header/body/total=14/0/14ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-219 | GET timeline; status=200; header/body/total=13/0/13ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-220 | GET timeline; status=200; header/body/total=13/0/13ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-221 | GET timeline; status=200; header/body/total=12/0/13ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-222 | GET timeline; status=200; header/body/total=13/0/13ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-223 | GET timeline; status=200; header/body/total=12/0/12ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-224 | GET timeline; status=200; header/body/total=14/0/14ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-225 | GET timeline; status=200; header/body/total=13/0/13ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-226 | GET timeline; status=200; header/body/total=13/0/14ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-227 | GET timeline; status=200; header/body/total=13/0/13ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-228 | GET timeline; status=200; header/body/total=13/0/14ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-229 | GET timeline; status=200; header/body/total=13/0/13ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-230 | GET timeline; status=200; header/body/total=13/0/14ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-231 | GET timeline; status=200; header/body/total=12/0/12ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-232 | GET timeline; status=200; header/body/total=13/0/13ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-233 | GET timeline; status=200; header/body/total=12/0/12ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-234 | GET timeline; status=200; header/body/total=15/0/15ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-235 | GET timeline; status=200; header/body/total=12/0/12ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-236 | GET timeline; status=200; header/body/total=13/0/13ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-237 | GET timeline; status=200; header/body/total=12/0/12ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-238 | GET timeline; status=200; header/body/total=13/0/13ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-239 | GET timeline; status=200; header/body/total=12/0/12ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-240 | GET timeline; status=200; header/body/total=13/0/13ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-241 | GET timeline; status=200; header/body/total=12/0/13ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-242 | GET timeline; status=200; header/body/total=13/0/14ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-243 | GET timeline; status=200; header/body/total=13/0/13ms; 83387B | pass | 단기 HTTP 범위 |
+| HTTP-244 | GET timeline; status=200; header/body/total=13/0/14ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-245 | GET timeline; status=200; header/body/total=177/0/177ms; 83428B | pass | 단기 HTTP 범위 |
+| HTTP-246 | GET timeline; status=200; header/body/total=380/0/381ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-247 | GET timeline; status=200; header/body/total=12/0/13ms; 83428B | pass | 단기 HTTP 범위 |
+| HTTP-248 | GET timeline; status=200; header/body/total=13/0/13ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-249 | GET timeline; status=200; header/body/total=13/0/13ms; 83428B | pass | 단기 HTTP 범위 |
+| HTTP-250 | GET timeline; status=200; header/body/total=14/0/14ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-251 | GET timeline; status=200; header/body/total=13/0/13ms; 83428B | pass | 단기 HTTP 범위 |
+| HTTP-252 | GET timeline; status=200; header/body/total=14/0/14ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-253 | GET timeline; status=200; header/body/total=13/0/13ms; 83428B | pass | 단기 HTTP 범위 |
+| HTTP-254 | GET timeline; status=200; header/body/total=14/0/14ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-255 | GET timeline; status=200; header/body/total=13/0/13ms; 83428B | pass | 단기 HTTP 범위 |
+| HTTP-256 | GET timeline; status=200; header/body/total=14/0/14ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-257 | GET timeline; status=200; header/body/total=13/0/13ms; 83428B | pass | 단기 HTTP 범위 |
+| HTTP-258 | GET timeline; status=200; header/body/total=13/0/14ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-259 | GET timeline; status=200; header/body/total=13/0/13ms; 83428B | pass | 단기 HTTP 범위 |
+| HTTP-260 | GET timeline; status=200; header/body/total=13/0/14ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-261 | GET timeline; status=200; header/body/total=13/0/13ms; 83428B | pass | 단기 HTTP 범위 |
+| HTTP-262 | GET timeline; status=200; header/body/total=13/0/14ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-263 | GET timeline; status=200; header/body/total=13/0/13ms; 83428B | pass | 단기 HTTP 범위 |
+| HTTP-264 | GET timeline; status=200; header/body/total=13/0/13ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-265 | GET timeline; status=200; header/body/total=13/0/13ms; 83428B | pass | 단기 HTTP 범위 |
+| HTTP-266 | GET timeline; status=200; header/body/total=13/0/14ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-267 | GET timeline; status=200; header/body/total=13/0/13ms; 83428B | pass | 단기 HTTP 범위 |
+| HTTP-268 | GET timeline; status=200; header/body/total=14/0/14ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-269 | GET timeline; status=200; header/body/total=12/0/13ms; 83428B | pass | 단기 HTTP 범위 |
+| HTTP-270 | GET timeline; status=200; header/body/total=14/0/14ms; 69381B | pass | 단기 HTTP 범위 |
+| HTTP-271 | GET timeline; status=200; header/body/total=1600/0/1601ms; 112290B | pass | 단기 HTTP 범위 |
+| HTTP-272 | GET timeline; status=200; header/body/total=2146/0/2147ms; 121967B | pass | 단기 HTTP 범위 |
+| HTTP-273 | GET timeline; status=200; header/body/total=529/0/530ms; 84986B | pass | 단기 HTTP 범위 |
+| HTTP-274 | GET timeline; status=200; header/body/total=174/0/174ms; 124373B | pass | 단기 HTTP 범위 |
+| HTTP-275 | GET timeline; status=200; header/body/total=176/0/176ms; 121967B | pass | 단기 HTTP 범위 |
+| HTTP-276 | GET timeline; status=200; header/body/total=174/0/174ms; 84986B | pass | 단기 HTTP 범위 |
+| HTTP-277 | GET timeline; status=200; header/body/total=204/0/204ms; 82574B | pass | 단기 HTTP 범위 |
+| HTTP-278 | GET timeline; status=200; header/body/total=176/0/176ms; 82533B | pass | 단기 HTTP 범위 |
+| HTTP-279 | GET timeline; status=200; header/body/total=174/0/174ms; 26485B | pass | 단기 HTTP 범위 |
+| HTTP-280 | GET timeline; status=200; header/body/total=171/0/172ms; 124373B | pass | 단기 HTTP 범위 |
+| HTTP-281 | GET timeline; status=200; header/body/total=172/0/172ms; 121967B | pass | 단기 HTTP 범위 |
+| HTTP-282 | GET timeline; status=200; header/body/total=868/0/868ms; 84986B | pass | 단기 HTTP 범위 |
+| HTTP-283 | GET timeline; status=200; header/body/total=3755/0/3755ms; 110965B | pass | 단기 HTTP 범위 |
+| HTTP-284 | DELETE tap; status=200; header/body/total=78/0/78ms; 26B | pass | 단기 HTTP 범위 |
+
+### 정리
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-J7uiTz | 작업소유 source/catalog/copy/cache | 81,176,678B | 안전 JSON 보존 후 삭제 | runner 부재확인 및 별도 test ! -e exit0 | 실제 원출력 |
+| PID44810, HTTP53031/RTSP53032, owned UDP | 검증 서버/소켓 | 비대상 | 종료 | 서버 exit0·포트 반환·UDPclosed=true | cleanup |
+
 ## 2026-09-17 LP08 완료 작업 진단 도구
 
 제품 코드/공개 schema/녹화 완전성 기준은 변경하지 않았다. 새 `--diagnose-completeness`는 작업소유 복제본에서 typed Complete+Ready를 읽어 선택과 파일 구간 부족을 별도 반환한다. 원문 식별자는 SHA-256, 이유는 고정 허용 목록만 출력한다. 실제 파일의 현재 유효성을 재검사한 결과 또는 재현 bundle로 주장하지 않는다. runner는 완료 참조를 보존하고 서버 종료 뒤 복제본 진단/0600 증거 저장/원본 hash 대조를 마쳐야 root를 정리한다.
