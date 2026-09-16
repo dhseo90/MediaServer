@@ -6,6 +6,7 @@
 #include "recording/recording_catalog.h"
 #include "recording/recording_writer_time_state.h"
 #include "recording/recording_write_boundaries.h"
+#include "recording/recording_file_evidence.h"
 #include <iostream>
 
 #include <chrono>
@@ -352,8 +353,15 @@ private:
         gst_app_src_set_caps(GST_APP_SRC(appsrc), caps);
         gst_caps_unref(caps);
         gst_bin_add_many(GST_BIN(pipeline), appsrc, parser, muxer, sink, nullptr);
-        if (!gst_element_link_many(appsrc, parser, muxer, sink, nullptr) ||
-            gst_element_set_state(pipeline, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
+        if (!gst_element_link_many(appsrc, parser, muxer, sink, nullptr)) {
+            ResetPipelineLocked();AbortSegmentFileLocked(partial_path,0);return false;
+        }
+        evidence_capture.reset();
+        if(v2_mode&&video_track.codec==media::CodecId::H264) {
+            try{evidence_capture=std::make_unique<RecordingFileEvidenceCollector>(v2_origin);evidence_capture->Attach(parser);}
+            catch(...){evidence_capture.reset();}
+        }
+        if (gst_element_set_state(pipeline, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
             ResetPipelineLocked();
             AbortSegmentFileLocked(partial_path, 0);
             return false;
@@ -419,6 +427,7 @@ private:
         if (!accepted) {
             if(v2_mode)InputFailureLocked("mux-push");return;
         }
+        if(v2_mode&&evidence_capture)evidence_capture->Accept(packet);
         current_payload_bytes = packet.payload.size() >
                                         std::numeric_limits<std::uint64_t>::max() -
                                             current_payload_bytes
@@ -497,6 +506,11 @@ private:
             current_v2.size_bytes=current.size_bytes;current_v2.checksum_sha256=current.checksum_sha256;
             current_v2.finalized_at_ms=current.finalized_at_ms;v2_time.Finish(&current_v2);
             std::string error;
+            if(evidence_capture) {
+                current_source.file_evidence=evidence_capture->Finish(partial_path,current_source,current_v2.size_bytes,current_v2.checksum_sha256,&error);
+                if(!current_source.file_evidence)std::cerr<<"[recording] file evidence unavailable: "<<error<<'\n';
+                evidence_capture.reset();
+            }
             if(!ValidateRecordingSegmentV2(current_v2,&error)) {
                 InputFailureLocked("final-metadata-invalid");BlockForRecoveryLocked();return;
             }
@@ -643,6 +657,7 @@ private:
     int partial_fd{-1};
     GstElement* pipeline{nullptr};
     GstElement* appsrc{nullptr};
+    std::unique_ptr<RecordingFileEvidenceCollector> evidence_capture;
     GstElement* parser{nullptr};
     GstElement* muxer{nullptr};
     GstElement* sink{nullptr};

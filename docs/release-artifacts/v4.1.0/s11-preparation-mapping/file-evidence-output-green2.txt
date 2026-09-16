@@ -1,0 +1,4 @@
+[run] label=green2 root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.iUlQTo
+[pass] FE01 actual writer file_evidence persisted
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.iUlQTo bytes=4646986 removed=true
+[elapsed] seconds=7 source=bash-SECONDS

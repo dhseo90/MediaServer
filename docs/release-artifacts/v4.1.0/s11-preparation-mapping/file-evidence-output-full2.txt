@@ -1,0 +1,31 @@
+[run] label=full2 root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.q5KYrR
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_file_evidence_smoke.cpp:93:31: error: 'auto' deduced as 'DerivedJobIntentV1' in declaration of 'projected' and deduced as 'Output' in declaration of 'legacy_input'
+   93 |  context="cap4096/legacy-job";auto projected=Job(o),legacy_input=o;legacy_input.binding.file_evidence.reset();const auto legacy=Job(legacy_input);
+      |                               ^              ~~~~~~              ~
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_file_evidence_smoke.cpp:104:86: error: 'BeginDerivedJobIntent' is a private member of 'recording::RecordingCatalog'
+  104 |   const auto changed=Job(altered);Check(ValidateDerivedJobIntent(changed,&error)&&!c.BeginDerivedJobIntent(changed,&inserted,&error),"FE08 live legacy rejects source/ordinal/PTS/hash variant"+std::to_string(change));
+      |                                                                                      ^
+/Users/dhseo/Workspace/mediaServer/include/recording/recording_catalog.h:219:10: note: declared private here
+  219 |     bool BeginDerivedJobIntent(const DerivedJobIntentV1&,bool* inserted,std::string* error);
+      |          ^
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_file_evidence_smoke.cpp:107:54: error: 'BeginDerivedJobIntent' is a private member of 'recording::RecordingCatalog'
+  107 |  Check(ValidateDerivedJobIntent(tampered,&error)&&!c.BeginDerivedJobIntent(tampered,&inserted,&error),"FE08 proof job requires full live evidence match");
+      |                                                      ^
+/Users/dhseo/Workspace/mediaServer/include/recording/recording_catalog.h:219:10: note: declared private here
+  219 |     bool BeginDerivedJobIntent(const DerivedJobIntentV1&,bool* inserted,std::string* error);
+      |          ^
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_file_evidence_smoke.cpp:108:10: error: 'BeginDerivedJobIntent' is a private member of 'recording::RecordingCatalog'
+  108 |  Check(c.BeginDerivedJobIntent(projected,&inserted,&error)&&inserted,"FE08 legacy job accepts exact live identity with optional proof");
+      |          ^
+/Users/dhseo/Workspace/mediaServer/include/recording/recording_catalog.h:219:10: note: declared private here
+  219 |     bool BeginDerivedJobIntent(const DerivedJobIntentV1&,bool* inserted,std::string* error);
+      |          ^
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_file_evidence_smoke.cpp:109:10: error: 'BeginDerivedJobIntent' is a private member of 'recording::RecordingCatalog'
+  109 |  Check(c.BeginDerivedJobIntent(proof,&inserted,&error)&&inserted,"FE08 proof job accepts exact full live proof");
+      |          ^
+/Users/dhseo/Workspace/mediaServer/include/recording/recording_catalog.h:219:10: note: declared private here
+  219 |     bool BeginDerivedJobIntent(const DerivedJobIntentV1&,bool* inserted,std::string* error);
+      |          ^
+5 errors generated.
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.q5KYrR bytes=0 removed=true
+[elapsed] seconds=7 source=bash-SECONDS

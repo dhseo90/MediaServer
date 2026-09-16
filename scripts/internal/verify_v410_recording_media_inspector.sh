@@ -16,7 +16,7 @@ if [[ ${1:-} == --limits ]]; then
  "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"${ROOT_DIR}/include" \
   "${SCRIPT_DIR}/recording_media_inspector_limits_smoke.cpp" \
   "${ROOT_DIR}/src/recording/recording_catalog.cpp" "${ROOT_DIR}/src/recording/recording_journal.cpp" \
- "${ROOT_DIR}/src/recording/recording_finalize_recovery.cpp" \
+ "${ROOT_DIR}/src/recording/recording_finalize_recovery.cpp" "${ROOT_DIR}/src/recording/recording_file_evidence.cpp" \
   "${ROOT_DIR}/src/recording/recording_derived_job.cpp" "${ROOT_DIR}/src/recording/recording_derived_job_ready.cpp" "${ROOT_DIR}/src/recording/recording_contracts.cpp" "${ROOT_DIR}/src/recording/retention_coordinator.cpp" \
   "${ROOT_DIR}/src/domain/strict_json.cpp" -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_SQLITE3=0 \
   "${GST_FLAGS[@]}" -o "$RUN_DIR/limits-smoke"
@@ -26,7 +26,7 @@ fi
 "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"${ROOT_DIR}/include" \
  "${SCRIPT_DIR}/recording_media_inspector_smoke.cpp" "${ROOT_DIR}/src/recording/recording_media_inspector.cpp" \
  "${ROOT_DIR}/src/recording/recording_catalog.cpp" "${ROOT_DIR}/src/recording/recording_journal.cpp" \
- "${ROOT_DIR}/src/recording/recording_finalize_recovery.cpp" \
+ "${ROOT_DIR}/src/recording/recording_finalize_recovery.cpp" "${ROOT_DIR}/src/recording/recording_file_evidence.cpp" \
  "${ROOT_DIR}/src/recording/recording_derived_job.cpp" "${ROOT_DIR}/src/recording/recording_derived_job_ready.cpp" "${ROOT_DIR}/src/recording/recording_contracts.cpp" "${ROOT_DIR}/src/recording/retention_coordinator.cpp" \
  "${ROOT_DIR}/src/domain/strict_json.cpp" -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_SQLITE3=0 \
  "${GST_FLAGS[@]}" -o "$RUN_DIR/smoke"

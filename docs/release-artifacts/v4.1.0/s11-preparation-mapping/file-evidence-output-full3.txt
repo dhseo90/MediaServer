@@ -1,0 +1,125 @@
+[run] label=full3 root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.saIuvT
+[pass] actual-1 FE02 writer start
+[pass] actual-1 FE04 bound finalized mutation segment0
+[pass] actual-1 FE04 bound finalized mutation segment1
+[measure] writer_push_finalize_us=93762 input_aus=300 segments=2
+[pass] actual-1 FE02 expected segment count
+[pass] TP01/segment0 FE01 actual evidence persisted
+[pass] TP01/segment0 FE02 physical native and hash verification
+[measure] file_verify_us=5163 file_bytes=227036
+[pass] TP01/segment1 FE01 actual evidence persisted
+[pass] TP01/segment1 FE02 physical native and hash verification
+[measure] file_verify_us=1058 file_bytes=46223
+[pass] actual-2 FE02 writer start
+[pass] actual-2 FE04 bound finalized mutation segment0
+[measure] writer_push_finalize_us=12719 input_aus=30 segments=1
+[pass] actual-2 FE02 expected segment count
+[pass] TP02/segment0 FE01 actual evidence persisted
+[pass] TP02/segment0 FE02 physical native and hash verification
+[measure] file_verify_us=655 file_bytes=28161
+[pass] actual-3 FE02 writer start
+[pass] actual-3 FE04 bound finalized mutation segment0
+[measure] writer_push_finalize_us=11891 input_aus=30 segments=1
+[pass] actual-3 FE02 expected segment count
+[pass] TP03/segment0 FE01 actual evidence persisted
+[pass] TP03/segment0 FE02 physical native and hash verification
+[measure] file_verify_us=497 file_bytes=19687
+[pass] actual-4 FE02 writer start
+[pass] actual-4 FE04 bound finalized mutation segment0
+[measure] writer_push_finalize_us=10612 input_aus=12 segments=1
+[pass] actual-4 FE02 expected segment count
+[pass] TP04/segment0 FE01 actual evidence persisted
+[pass] TP04/segment0 FE02 physical native and hash verification
+[measure] file_verify_us=273 file_bytes=11900
+[pass] TP01/contract FE01 strict evidence roundtrip
+[pass] TP01/contract FE01 absent existing bytes unchanged
+[pass] TP01/contract FE06 reject ordinal
+[pass] TP01/contract FE06 reject original PTS
+[pass] TP01/contract FE06 reject origin
+[pass] TP01/contract FE06 reject mux DTS
+[pass] TP01/contract FE06 reject native PTS
+[pass] TP01/contract FE06 reject native duration
+[pass] TP01/contract FE06 reject timescale
+[pass] TP01/contract FE06 reject duplicate VCL
+[pass] TP01/contract FE06 reject duplicate raw
+[pass] TP01/contract FE06 reject missing sample
+[pass] TP01/contract FE06 reject profile
+[pass] TP01/contract FE06 reject hash format
+[pass] TP01/contract FE06 reject overflow
+[pass] TP01/contract FE06 reject file hash binding
+[pass] TP01/contract FE06 JSON unknown field
+[pass] TP01/contract FE06 JSON duplicate field
+[pass] TP01/contract FE06 JSON oversize
+[pass] TP01/contract FE06 reject evidence version
+[pass] TP01/malformed FE03 reject zero box with recomputed file hash
+[pass] TP01/malformed FE03 reject duplicate box with recomputed file hash
+[pass] TP01/malformed FE03 reject outside mdat with recomputed file hash
+[pass] TP01/malformed FE03 reject table count with recomputed file hash
+[pass] TP01/malformed FE03 reject sample count overflow with recomputed file hash
+[pass] TP01/malformed FE03 reject box overflow with recomputed file hash
+[pass] TP01/malformed FE03 reject edit rate with recomputed file hash
+[pass] TP01/malformed FE03 reject edit version with recomputed file hash
+[pass] TP01/malformed FE03 reject truncated with recomputed file hash
+[pass] actual-1/sqlite/checkpoint FE05 journal reopen
+[pass] actual-1/sqlite/checkpoint FE05 SQLite reopen
+[pass] actual-1/sqlite/checkpoint FE05 exact evidence roundtrip
+[pass] actual-1/sqlite/checkpoint FE05 checkpoint
+[measure] checkpoint_us=14596
+[pass] actual-1/jsonl/replay FE05 journal reopen
+[pass] actual-1/jsonl/replay FE05 JSONL fallback reopen
+[pass] actual-1/jsonl/replay FE05 exact evidence roundtrip
+[pass] actual-1/ready FE04 write exact evidence Ready
+[pass] actual-1/ready FE05 Ready journal
+[pass] actual-1/ready FE05 Ready catalog
+[pass] actual-1/ready FE05 Ready replay actual file verification
+[pass] actual-1/ready FE04 Ready cleaned
+[pass] actual-1/ready FE06 forged sample hash physical Ready refusal
+[pass] cap4096 FE02 writer start
+[pass] cap4096 FE04 bound finalized mutation segment0
+[measure] writer_push_finalize_us=1275628 input_aus=4096 segments=1
+[pass] cap4096 FE07 4096 single segment
+[pass] cap4096/capacity FE07 actual4096 within2MiB
+[measure] binding_bytes=1077251 serialize_parse_us=101543
+[pass] cap4096/capacity FE07 structure-only validation iteration0
+[pass] cap4096/capacity FE07 structure-only validation iteration1
+[pass] cap4096/capacity FE07 structure-only validation iteration2
+[pass] cap4096/capacity FE07 structure-only validation iteration3
+[pass] cap4096/capacity FE07 structure-only validation iteration4
+[pass] cap4096/capacity FE07 structure-only validation iteration5
+[pass] cap4096/capacity FE07 structure-only validation iteration6
+[pass] cap4096/capacity FE07 structure-only validation iteration7
+[pass] cap4096/capacity FE07 structure-only validation iteration8
+[pass] cap4096/capacity FE07 structure-only validation iteration9
+[measure] structure_validate10_us=78643
+[pass] cap4096/capacity FE07 4097 structure refusal
+[observation] FE07 legacy=0 derived_sources=2 built=1 bytes=318229 parse=1 error=
+[pass] cap4096/capacity FE07 intent roundtrip source2 legacy0
+[observation] FE07 legacy=0 derived_sources=8 built=1 bytes=1269547 parse=1 error=
+[pass] cap4096/capacity FE07 intent roundtrip source8 legacy0
+[observation] FE07 legacy=1 derived_sources=2 built=1 bytes=318229 parse=1 error=
+[pass] cap4096/capacity FE07 intent roundtrip source2 legacy1
+[pass] cap4096/capacity FE08 projection preserves full intent bytes and ID source2
+[observation] FE07 legacy=1 derived_sources=8 built=1 bytes=1269547 parse=1 error=
+[pass] cap4096/capacity FE07 intent roundtrip source8 legacy1
+[pass] cap4096/capacity FE08 projection preserves full intent bytes and ID source8
+[pass] cap4096/sqlite/checkpoint FE05 journal reopen
+[pass] cap4096/sqlite/checkpoint FE05 SQLite reopen
+[pass] cap4096/sqlite/checkpoint FE05 exact evidence roundtrip
+[pass] cap4096/sqlite/checkpoint FE05 checkpoint
+[measure] checkpoint_us=186640
+[pass] cap4096/jsonl/replay FE05 journal reopen
+[pass] cap4096/jsonl/replay FE05 JSONL fallback reopen
+[pass] cap4096/jsonl/replay FE05 exact evidence roundtrip
+[pass] cap4096/legacy-job FE08 new job identity and bytes unchanged
+[pass] cap4096/legacy-job FE08 invalid optional proof is rejected before projection
+[pass] cap4096/legacy-job FE08 preexisting proof job retains proof and ID
+[pass] cap4096/legacy-job FE08 compatibility journal
+[pass] cap4096/legacy-job FE08 compatibility catalog
+[pass] cap4096/legacy-job FE08 live legacy rejects source/ordinal/PTS/hash variant0
+[pass] cap4096/legacy-job FE08 live legacy rejects source/ordinal/PTS/hash variant1
+[pass] cap4096/legacy-job FE08 live legacy rejects source/ordinal/PTS/hash variant2
+[pass] cap4096/legacy-job FE08 live legacy rejects source/ordinal/PTS/hash variant3
+[pass] cap4096/legacy-job FE08 proof job requires full live evidence match
+[fail] cap4096/legacy-job FE08 legacy job accepts exact live identity with optional proof
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.saIuvT bytes=14308493 removed=true
+[elapsed] seconds=13 source=bash-SECONDS

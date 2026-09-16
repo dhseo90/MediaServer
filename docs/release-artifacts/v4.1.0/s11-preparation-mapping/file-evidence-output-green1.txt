@@ -1,0 +1,13 @@
+[run] label=green1 root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.ZTRwmu
+/Users/dhseo/Workspace/mediaServer/src/recording/recording_file_evidence.cpp:79:51: error: 'auto' deduced as 'std::size_t' (aka 'unsigned long') in declaration of 'p' and deduced as 'std::uint64_t' (aka 'unsigned long long') in declaration of 'repeats'
+   79 |         for(std::size_t i=0;i<ts_count;++i){const auto p=stts.data+8+i*8,repeats=U(p,4,stts.end),delta=U(p+4,4,stts.end);Need(repeats&&repeats<=count-duration.size()&&delta,"mp4-stts-count");duration.insert(duration.end(),repeats,delta);}Need(duration.size()==count,"mp4-stts-total");
+      |                                                   ^      ~~~~~~~~~~~~~~~         ~~~~~~~~~~~~~~~
+/Users/dhseo/Workspace/mediaServer/src/recording/recording_file_evidence.cpp:81:60: error: 'auto' deduced as 'std::size_t' (aka 'unsigned long') in declaration of 'p' and deduced as 'std::uint64_t' (aka 'unsigned long long') in declaration of 'repeats'
+   81 |             for(std::size_t i=0;i<entries_count;++i){const auto p=ctts->data+8+i*8,repeats=U(p,4,ctts->end),raw=U(p+4,4,ctts->end);Need(repeats&&repeats<=count-index,"mp4-ctts-count");
+      |                                                            ^      ~~~~~~~~~~~~~~~~         ~~~~~~~~~~~~~~~~
+/Users/dhseo/Workspace/mediaServer/src/recording/recording_file_evidence.cpp:86:51: error: 'auto' deduced as 'std::size_t' (aka 'unsigned long') in declaration of 'p' and deduced as 'std::uint64_t' (aka 'unsigned long long') in declaration of 'first'
+   86 |         for(std::size_t i=0;i<sc_count;++i){const auto p=stsc.data+8+i*12,first=U(p,4,stsc.end),num=U(p+4,4,stsc.end),description=U(p+8,4,stsc.end);Need(first&&first<=chunk_count&&num&&num<=count&&description==1&&(i?first>runs.back().first:first==1),"mp4-stsc-run");runs.push_back({static_cast<std::size_t>(first),static_cast<std::size_t>(num)});}
+      |                                                   ^      ~~~~~~~~~~~~~~~~       ~~~~~~~~~~~~~~~
+3 errors generated.
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.ZTRwmu bytes=0 removed=true
+[elapsed] seconds=6 source=bash-SECONDS

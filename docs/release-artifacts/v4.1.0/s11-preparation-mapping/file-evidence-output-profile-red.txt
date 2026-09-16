@@ -1,0 +1,65 @@
+[run] label=profile-red root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.Rphuei
+[pass] actual-1 FE02 writer start
+[pass] actual-1 FE04 bound finalized mutation segment0
+[pass] actual-1 FE04 bound finalized mutation segment1
+[measure] writer_push_finalize_us=84261 input_aus=300 segments=2
+[pass] actual-1 FE02 expected segment count
+[pass] TP01/segment0 FE01 actual evidence persisted
+[pass] TP01/segment0 FE02 physical native and hash verification
+[measure] file_verify_us=5106 file_bytes=227036
+[pass] TP01/segment1 FE01 actual evidence persisted
+[pass] TP01/segment1 FE02 physical native and hash verification
+[measure] file_verify_us=1060 file_bytes=46223
+[pass] actual-2 FE02 writer start
+[pass] actual-2 FE04 bound finalized mutation segment0
+[measure] writer_push_finalize_us=11725 input_aus=30 segments=1
+[pass] actual-2 FE02 expected segment count
+[pass] TP02/segment0 FE01 actual evidence persisted
+[pass] TP02/segment0 FE02 physical native and hash verification
+[measure] file_verify_us=666 file_bytes=28161
+[pass] actual-3 FE02 writer start
+[pass] actual-3 FE04 bound finalized mutation segment0
+[measure] writer_push_finalize_us=11177 input_aus=30 segments=1
+[pass] actual-3 FE02 expected segment count
+[pass] TP03/segment0 FE01 actual evidence persisted
+[pass] TP03/segment0 FE02 physical native and hash verification
+[measure] file_verify_us=524 file_bytes=19687
+[pass] actual-4 FE02 writer start
+[pass] actual-4 FE04 bound finalized mutation segment0
+[measure] writer_push_finalize_us=10192 input_aus=12 segments=1
+[pass] actual-4 FE02 expected segment count
+[pass] TP04/segment0 FE01 actual evidence persisted
+[pass] TP04/segment0 FE02 physical native and hash verification
+[measure] file_verify_us=295 file_bytes=11900
+[pass] TP01/contract FE01 strict evidence roundtrip
+[pass] TP01/contract FE01 absent existing bytes unchanged
+[pass] TP01/contract FE06 reject ordinal
+[pass] TP01/contract FE06 reject original PTS
+[pass] TP01/contract FE06 reject origin
+[pass] TP01/contract FE06 reject mux DTS
+[pass] TP01/contract FE06 reject native PTS
+[pass] TP01/contract FE06 reject native duration
+[pass] TP01/contract FE06 reject timescale
+[pass] TP01/contract FE06 reject duplicate VCL
+[pass] TP01/contract FE06 reject duplicate raw
+[pass] TP01/contract FE06 reject missing sample
+[pass] TP01/contract FE06 reject profile
+[pass] TP01/contract FE06 reject hash format
+[pass] TP01/contract FE06 reject overflow
+[pass] TP01/contract FE06 reject file hash binding
+[pass] TP01/contract FE06 JSON unknown field
+[pass] TP01/contract FE06 JSON duplicate field
+[pass] TP01/contract FE06 JSON oversize
+[pass] TP01/contract FE06 reject evidence version
+[pass] TP01/malformed FE03 reject zero box with recomputed file hash
+[pass] TP01/malformed FE03 reject duplicate box with recomputed file hash
+[pass] TP01/malformed FE03 reject outside mdat with recomputed file hash
+[pass] TP01/malformed FE03 reject table count with recomputed file hash
+[pass] TP01/malformed FE03 reject sample count overflow with recomputed file hash
+[pass] TP01/malformed FE03 reject box overflow with recomputed file hash
+[pass] TP01/malformed FE03 reject edit rate with recomputed file hash
+[pass] TP01/malformed FE03 reject edit version with recomputed file hash
+[pass] TP01/malformed FE03 reject truncated with recomputed file hash
+[fail] TP01/malformed FE03 reject data reference index with recomputed file hash
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.Rphuei bytes=8450128 removed=true
+[elapsed] seconds=7 source=bash-SECONDS

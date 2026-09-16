@@ -1,0 +1,13 @@
+[pass] C323-A 거부 결과 불변
+[pass] C323-B 성공 원본 tuple
+[pass] C323-C 상한 이후 수락·거부
+[pass] C334-A 정상 순서
+[pass] C334-B validate 실패
+[pass] C334-C publish 실패
+[pass] C334-D commit 실패 보존
+[pass] C334-E clear 실패
+[summary] pass=8 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-write-boundaries.sEPJAR bytes=124725 removed=true
+[elapsed] seconds=1
+
+[run-result] command=bash scripts/internal/verify_recording_write_boundaries.sh exit=0 signal=null elapsed_ms=557 token_usage=unavailable

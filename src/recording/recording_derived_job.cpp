@@ -386,10 +386,16 @@ namespace recording {
                 }
                 );
                 Need(source!=sources.end()&&source->binding&&!source->deleted,"job-confirmed-source-missing");
-                job.sources.push_back({
-                    source->segment,*source->binding
-                }
-                );
+                Need(ValidateRecordingSourceBindingForSegment(*source->binding,source->segment,error),"job-source-binding-profile");
+                // 이 기존 profile은 file_evidence를 아직 소비하지 않는다. 새 job만 기존
+                // 13-field identity snapshot을 사용한다. Parse/Identity는 저장된 proof를 제거하지 않는다.
+                const auto& b=*source->binding;
+                RecordingSourceBindingV1 legacy;
+                legacy.schema=b.schema;legacy.segment_id=b.segment_id;legacy.source_id=b.source_id;legacy.channel_id=b.channel_id;
+                legacy.store_id=b.store_id;legacy.media_epoch_id=b.media_epoch_id;legacy.source_generation=b.source_generation;
+                legacy.generation_order=b.generation_order;legacy.track_id=b.track_id;legacy.samples=b.samples;
+                legacy.index_complete=b.index_complete;legacy.last_accepted_ordinal=b.last_accepted_ordinal;legacy.incomplete_reason=b.incomplete_reason;
+                job.sources.push_back({source->segment,std::move(legacy)});
             }
             std::sort(job.sources.begin(),job.sources.end(),[](const auto& a,const auto& b){
                 return a.segment.order_sequence<b.segment.order_sequence;

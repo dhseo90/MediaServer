@@ -1,5 +1,143 @@
 # Release Test Records
 
+## 2026-09-16 3-B 저장 증거·비용 최소 보완 결과
+
+승인된 FC01~05 계측·최소 중복 제거·같은 조건 비교·영향 회귀·전체 빌드를 수행했다.
+두 catalog 분기의 payload strict parse가 정상 경로당1회로 줄었으며 저장 바이트·ID·checkpoint1MiB·
+원본 semantic 검증은 유지했다. evidence8 잠금 점유 합계10.044716→6.562861초(34.7% 감소),
+최대1.908531→1.226518초다. 운영성능 합격 또는 모든 잠금 지연 해결로 보고하지 않는다.
+다음 P0에는 누적 catalog/실제 HTTP 지연 판정을 남긴다.
+
+[명령·개별 결과·실패→수정·비용·정리 전수 기록](release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-report.md).
+최종 FE193개, 관련 회귀(source20/boundaries8/checkpoint9/catalog246/finalize74/integration140/writer44),
+최종 build exit0을 직접 확인했다. 마지막 parser 보완은 FE 전체/build로 재검증하고 무관한 회귀는 유지했다.
+FE06의 과거 wrapper 음성은 무효 정정했으며 실제 Ready commit/recovery 경로에서 정확한 오류·원본보존·미반영과
+정상 양성을 검증했다. MP4 data reference 누락은 예상 RED 후 최소 profile 거부 검사를 보완했다.
+준비 실패와 과거 실패를 원출력에 보존했다. token start/end/consumed는 집계 소스 부재로 미집계,
+elapsed/source는 각 실행 로그, 소유 임시 root는 메인 부재 확인까지 기록했다.
+
+이번 범위의 구현/단기 검증은 완료했지만4번 대기·5번 새 증거 소비/실제 통합·S11 최종·UI/장시간은
+미실행이다. 커밋·푸시의 실제 결과는 수행 후 갱신한다.
+
+## 2026-09-16 3-B 비용 보완 재개 사전등록
+
+사용자 승인: 비용 구간별 계측 → 중복 처리 최소 보완 → 동일 조건 비교 → 영향 회귀·전체 빌드,
+의존성이 닫힌 작업 단위별 커밋과 최종 푸시. 기존 미커밋3-B를 보존한다.
+저장 바이트·ID·검증 의미·손상 거부·체크포인트1MiB 조건은 불변이다. 새 저장 포맷/sidecar,
+4번 대기 정책·5번 소비 전환·S11 최종 묶음·UI·장시간은 이번에 실행하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| FC01 | 비용 구간 계측 | 실제 catalog 호출의 잠금 대기/점유·bound 검증/직렬화·journal append·SQLite·checkpoint 하위단계 시간/횟수 구분. 계측 전후 기능 결과 동일 | v4.1.0 |
+| FC02 | 중복 처리 RED/GREEN | 확인한 중복을 잡는 결정적 횟수/실제 동작 검사와 원본 손상·후보 불일치 거부. 구현 전 예상 assertion 실패를 기록 | v4.1.0 |
+| FC03 | 같은 조건 비교 | 기존/새 증거, 작은/누적 catalog, 원본과 후보가 같은/다른 checkpoint의 바이트·복구 결과·시간 비교. 단일 시간을 운영성능 PASS로 확대하지 않음 | v4.1.0 |
+| FC04 | 관련 회귀 | source-binding, write-boundaries, checkpoint identity, managed journal, finalize recovery 관련 기존 격리 검사. 실제 명령·개별 결과 보존 | v4.1.0 |
+| FC05 | 제품 build·기존 지원·상한 | 전체 build, FE01~08 및 VP8 실파일/최악 숫자 envelope 경계. 지원/판정 완화 없음 | v4.1.0 |
+
+안정화만 진행 대상이며 개발·격리 단기 실행은 승인됐다. 30분/120분/UI는 이번 미진행이다.
+새 runner의 실제 명령은 담당자가 실행 전 이 기록과 연결하여 보고한다. 메인은 설계·diff·증거를 직접 검토하고,
+기존 단일 Astra/medium 담당자를 재사용한다. 하위 에이전트·외부 서비스·운영 데이터 접근은 금지한다.
+token start/end/consumed는 전용 집계 소스 부재로 미집계다. 소유 임시 root는 원출력 보존 후 정리한다.
+
+FC01 실행 명령: `bash scripts/internal/recording_catalog_cost_probe_run.sh baseline`.
+실제 FE4096 fixture 생성부를 재사용하고 작업 소유 임시 소스에 정확 일치 삽입점을 확인한 뒤
+RAII inclusive/exclusive timer를 넣는다. 제품 파일은 수정하지 않는다. 1/8개 원본 각각의 기존/새 증거를
+비교하고 SQLite·JSONL 최종 복구 동일성을 확인한다. 현재 제품 설정과 같은 최적화 없는 컴파일 조건을
+기록하며 이 측정을 O3/운영 HTTP·장시간 결과로 일반화하지 않는다. 상이 후보 검증은 FC03에서 따로 수행한다.
+
+FC02 명령은 `bash scripts/internal/recording_catalog_cost_probe_run.sh parse-red`와
+`bash scripts/internal/recording_catalog_cost_probe_run.sh parse-green`이다. 실제12AU fixture로
+bound/unbound × Apply/SQLite 분기의 원본 payload strict parse가 각각1회인지 검사한다.
+기존은4/3회 및3/2회이므로 해당 횟수 assertion만 예상 RED다. 임시 복사 header 접근과
+strict JSON 호출 카운터만 사용하며 제품 API를 노출하지 않는다. malformed/truncated·중복 키·
+segment/relpath/binding 타입·누락 거부 및 실패 후 memory/SQLite 부분 반영 없음도 확인한다.
+extra field는 기존 Apply 거부/내부 SQL 허용의 차이를 보존하며 내부SQL 검사를 admission 승인으로 해석하지 않는다.
+FC03 명령은 같은 runner의 `candidate`이며 기존1/8×4096 조건과 동일 계측을 비교한다.
+FC05에는 합성4096 binding의 큰 정수·최대 길이ID·escaped track roundtrip과 모든 숫자20자리로
+과대 산정한 직렬화 상한을 추가한다. 합성 증거를 실제 파일 대응/완전 녹화 증거로 사용하지 않는다.
+
+FC04/05 실행 예정 개별 명령(선수 FC02/03 통과 뒤 순차 진행):
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| FC05-build | `./server.sh build` | 현재 구성 전체 제품 빌드, 이후 archive 의존 검사 선수조건 | v4.1.0 |
+| FC04-source | `bash scripts/internal/verify_recording_source_binding.sh` | 원본 결박·복구·checkpoint 관련 회귀 | v4.1.0 |
+| FC04-boundaries | `bash scripts/internal/verify_recording_write_boundaries.sh` | 원자 확정/쓰기 경계 | v4.1.0 |
+| FC04-checkpoint | `bash scripts/internal/verify_recording_checkpoint_reproduction.sh` | 기존 identity 반례 및 실제 job checkpoint, diagnostic 모드 사용 안 함 | v4.1.0 |
+| FC04-journal | `bash scripts/internal/verify_v410_recording_catalog.sh` | managed journal·catalog 복구/손상 및 crypto-on/off 기존 검사 | v4.1.0 |
+| FC04-finalize | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh` | Ready 복구·손상 거부 | v4.1.0 |
+| FC04-finalize-integration | `bash scripts/internal/verify_v410_recording_finalize_recovery.sh --integration` | 실제 writer 및 복구 경계, 앱 전체 통합으로 확대 안 함 | v4.1.0 |
+| FC05-writer | `bash scripts/internal/verify_recording_managed_writer.sh` | 기존 실제 H264/VP8 생성·decode, UTC/PTS/generation 경계 유지 | v4.1.0 |
+| FC05-evidence | `bash scripts/internal/verify_recording_file_evidence.sh cost-final` | FE01~08 전체 및 합성 숫자폭 상한, 기존 job identity/proof 보존 포함 | v4.1.0 |
+
+제품 경로를 수정하지 않는 비용 계측 비교 도중에는 이 컴파일/회귀를 동시에 돌리지 않는다.
+모든 임시 저장소는 각 runner 소유이며 종료 시 원출력에 정리 결과를 보존한다.
+
+FC03 상이 후보 추가 명령: `bash scripts/internal/recording_catalog_cost_probe_run.sh compaction`.
+실제12AU 원본이 있는 catalog에 동일 event link를12회 갱신한다. 후보가 달라질 때 원본·후보
+semantic replay와 실제 rewrite를 모두 수행하고11개 receipt·최신 link·기존 segment/binding,
+SQLite/JSONL 재기동 결과를 보존하는지 검사한다. 대용량4096 비교를 반복하는 검사가 아니며
+상이 후보의 양방향 검증을 생략하지 않았음을 확인하는 별도 경계 검사다.
+
+FC05 검토 정정: 기존 FE06 `forged sample hash physical Ready refusal`는 V2 금지 wrapper에서
+먼저 거부되어 물리 검증의 증거가 아니었다. 과거 해당 결과행은 무효이며 제품 실패로 단정하지 않는다.
+새 FE06-R은 별도 관리 저장소의 정상 예약·실제 partial 파일·Ready를 만든 뒤
+`CommitFinalizeReadyV2`와 `RecoverFinalizeReadyTickets` 각각에서 위조 sample hash를 주입한다.
+정확한 `publish file evidence 실제 파일 불일치` 오류, 예약 외 mutation 없음, segment/binding 미반영,
+partial/Ready 보존·final 미생성을 확인한다. 동일 선수조건의 정상 Ready는 publish/commit/cleanup을 통과해야 한다.
+수정 후 명령은 `bash scripts/internal/verify_recording_file_evidence.sh ready-oracle-fixed`이며
+관련 없는 전체 회귀·빌드를 초기화하지 않는다. 제품 코드는 이 보완으로 바꾸지 않는다.
+
+추가 정적 검토에서 MP4의 `avc1.data_reference_index`와 `dinf/dref` self-contained 조건이
+제한 profile parser에 빠졌음을 확인했다. 외부 파일 접근이 발생했다는 주장이 아니라 미지원
+참조를 거부해야 하는 기존 계약의 누락이다. FE03에 index2·external url flags·dref count2의
+재계산 file hash 음성을 사전등록한다. `.../verify_recording_file_evidence.sh profile-red`는
+첫 data reference index 거부 assertion의 예상 RED, 최소 parser 보완 후 `ready-oracle-fixed`는
+전체 FE와 FE06-R을 재검증한다. 이 parser 수정 때문에 전체 build도 다시 실행하되,
+변경하지 않은 JSON parse/checkpoint 계측·catalog 회귀는 유지한다.
+
+## 2026-09-16 3-B 결과 — 기능 검사 통과, 저장 비용 미해소
+
+3-A는 `e48fb5e4`로 커밋했다. 3-B 새 파일 증거 수집·저장·손상 거부·복구 구현은
+`bash scripts/internal/verify_recording_file_evidence.sh cost-baseline`에서 exit0/176검사/34초다.
+그러나8×4096 AU 동일 조건에서 저장 합계가 기존0.986초→새 증거9.983초로 늘어 완료를 보류했다.
+4번 코드·실행은 건너뛰고3-B/4 커밋·최종 푸시는 하지 않았다. 실패한 것은176 assertion이 아니라
+단계 완료를 위한 비용 적합성 판단이다. 새로운 storage/checkpoint 안전 계약을 임의 적용하지 않는다.
+
+[개별530결과행·무효5행·최초 실패·비용·정리 전수 기록](release-artifacts/v4.1.0/s11-preparation-mapping/file-evidence-report.md).
+이 보존물은 이 중앙 기록의 상세 결과표다. 기존 source-binding/write-boundaries/finalize 회귀,
+전체 build, 명시적 VP8·최악 숫자 envelope 검증은 미실행이다. 전체 제품 PASS가 아니다.
+메인이 실제 diff·로그·checkpoint 호출 경계를 대조했으며10개 소유 임시 root의 부재를 확인했다.
+raw media는 보존하지 않았다. token start/end/consumed는 실제 집계 소스 부재로 미집계다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 3-B 기록 문서 링크 | `./server.sh verify-docs-links`, exit0. 276md/8610links/22images/110anchors, failures0 | pass | 기능·시각·제품 성능 검증을 대체하지 않음 |
+| 3-B 기록 diffcheck | `git diff --check`, exit0 | pass | 미커밋3-B를 완료로 판정한 것이 아님 |
+
+## 2026-09-16 4번 제한 대기 사전등록 — 선수3-B 합격 후 실행
+
+이번 등록 시점에는 미구현·미실행이다. 개발 승인 범위의 격리 단기 검사만 대상으로 하며
+후속5번 공통 소비·전체 실제 앱 통합·장시간·UI는 실행하지 않는다.
+예정 명령은 `bash scripts/internal/verify_recording_event_wait_policy.sh`다. 기존 관련 회귀는
+`verify_recording_derived_event_integration.sh`의 실제 이름·범위를 확인한 뒤 실행 전에 보완한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| WP01 | 요청별 공정성 | 첫 요청의 증거를 미확보 상태로 두고 준비된 둘째 요청이 먼저 처리되는지 bounded barrier로 확인. 실제 미디어 worker 수는1 | v4.1.0 |
+| WP02 | 일시 미확보 | provider의 명시적 unavailable을 재시도하되 다른 identity로 해석하지 않음 | v4.1.0 |
+| WP03 | 잘못된 증거 | source/channel/generation/namespace가 다른 update를 거부하고 기존 자료와 섞지 않음 | v4.1.0 |
+| WP04 | 제한 시간·횟수·큐 | steady 절대 deadline·최대시도·큐상한 유지. 갱신/busy/중복접수로 마감 연장 금지 | v4.1.0 |
+| WP05 | 대기 원본 보존 | 기존 관련 원본과 나중에 확정된 관련 원본 모두 삭제 예약에서 보호. 무관 원본 삭제 경로는 유지 | v4.1.0 |
+| WP06 | 보호 인계 | pending lease→내구 Intent 사이 보호 공백 없음. admission 실패 시 소유 lease 정리 | v4.1.0 |
+| WP07 | 취소·종료 | 대기·실행·동시 StopAndDrain 경계에서 제한 시간 내 join 및 소유 보호 해제 | v4.1.0 |
+| WP08 | 만료·복구 | 만료 보호 해제/상한 회수, 재기동 때 pending은 증거 없이 재개하지 않으며 기존 내구 job 복구 유지 | v4.1.0 |
+| WP09 | 확정 조건 | 실제 긴GOP 원본의 finalize 전후 재평가. 미확보 상한 도달 때 partial/unknown이며 경과시간만으로 complete 아님 | v4.1.0 |
+| WP10 | 용량·중복 경계 | quota/reserve 유지, queue/lease 포화와 중복 접수의 수량·수명 불변, 누수 없음 | v4.1.0 |
+
+실행 전 소유 mktemp root·서버/포트 비사용 또는 실제 사용 경계·정리 방법을 확인한다.
+실행 결과는 아직 없고 token start/end/consumed는 전용 집계 소스 부재로 미집계다.
+
 ## 2026-09-16 3-A~4 재개 및 forward 대응 사전등록
 
 승인 범위: 3-A 계약 보완 → 3-B 증거 수집·저장·복구 → 4번 대기 정책, 단계별 커밋과 최종 푸시.
@@ -40,9 +178,26 @@
 | FE05 | 저장·복구 | SQLite/JSONL fallback/checkpoint/restart 및 Ready 복구의 증거 바이트·판정 동일 | v4.1.0 |
 | FE06 | 변조 거부 | source/store/epoch/ordinal/hash/native ticks/timescale·누락/추가를 독립 변경해 거부 | v4.1.0 |
 | FE07 | 크기·잠금 비용 | 4096 상한·직렬화 크기, 실제 catalog commit/checkpoint 시간 측정. 비용 미확인을 성능 PASS로 쓰지 않음 | v4.1.0 |
-| FE08 | 기존 지원·미입증 입력 | 기존 no-evidence 직렬화 및 입력 녹화 유지, 미입증 profile/ambiguity에 새 증거·complete 없음 | v4.1.0 |
+| FE08 | 기존 지원·미입증 입력 | 기존 no-evidence 직렬화 및 입력 녹화 유지, 미입증 profile/ambiguity에 새 증거·complete 없음. 신규 기존-profile job projection 전후 ID/bytes/복구 동일, source/ordinal/PTS/segment hash 변조 거부, evidence 포함 job은 full strict. FE07의8원본 상한과 연결 | v4.1.0 |
 
-FE01~08은 현재 미실행이며 3-B 제품 PASS가 아니다. 의존성 설치·장시간·UI·후속5번은 포함하지 않는다.
+FE01~08의 최종 검증은 아직 미완료다. 의존성 설치·장시간·UI·후속5번은 포함하지 않는다.
+
+#### 3-B 최초 실행 이력
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| FE 실행 준비 최초 | `bash scripts/internal/verify_recording_file_evidence.sh`, exit1/6초. fixture의 미사용 `Shift` 함수가 `-Werror`에 걸림 | fail | 컴파일 준비 실패이며 예상 RED가 아님. 실제 fixture 사용으로 보완 |
+| FE01 예상 RED | 같은 명령 exit1/6초. 실제 writer의 확정 binding에 `file_evidence`가 없음 | fail | 사전 정의한 미구현 assertion과 일치. 구현 후 GREEN 및 FE02~08은 아직 미완료 |
+
+원출력: [준비 실패](release-artifacts/v4.1.0/s11-preparation-mapping/file-evidence-output-red.txt),
+[예상 RED](release-artifacts/v4.1.0/s11-preparation-mapping/file-evidence-output-red2.txt).
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR/media-server-file-evidence.gsTFfg | 소유 빌드 root | 0B | 삭제 | removed=true | 준비 실패 원출력 |
+| TMPDIR/media-server-file-evidence.G2Bfib | 소유 빌드·격리 녹화 root | 4377050B | 삭제 | removed=true | 예상 RED 원출력 |
+
+token start/end/consumed: 전용 집계 소스 부재로 미집계. elapsed는 각 runner의 SECONDS이며 전체 개발 시간과 다르다.
 
 `bash scripts/internal/recording_forward_probe_run.sh`: 최초 실행은 `/dev/fd` process substitution
 권한 오류 exit1. 일반 pipe로 실행 준비만 보완 후 exit0, 7초, 4PASS/0FAIL이다.

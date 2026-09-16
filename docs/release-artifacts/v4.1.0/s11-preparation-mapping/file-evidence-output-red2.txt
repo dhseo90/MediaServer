@@ -1,0 +1,4 @@
+[run] label=red2 root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.G2Bfib
+[fail] FE01 expected file_evidence on actual writer binding (feature absent)
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.G2Bfib bytes=4377050 removed=true
+[elapsed] seconds=6 source=bash-SECONDS

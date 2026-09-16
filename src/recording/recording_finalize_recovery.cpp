@@ -1,5 +1,6 @@
 // 파일 용도: 완료 증명 티켓을 이용한 녹화 최종화 복구.
 #include "recording/recording_finalize_recovery.h"
+#include "recording/recording_file_evidence.h"
 #include "recording/recording_write_boundaries.h"
 #include "recording/recording_catalog.h"
 #include "recording/recording_media_inspector.h"
@@ -122,13 +123,15 @@ bool Parse(const std::string& text,FinalizeReadyTicket* t,std::string* error){
     const auto partial=ingress::StrictJsonStringField(d,"partial"),final=ingress::StrictJsonStringField(d,"final");
     if(!version||version->type!=ingress::StrictJsonType::Number||(version->raw!="1"&&version->raw!="2"&&version->raw!="3")||!segment||!partial||!final||!d.Find("eventLink"))return Fail(error,"ready version/필수필드 실패");
     const bool bound=version->raw=="3";
-    if(d.members.size()!=(bound?6U:5U)||text.size()>(bound?2U:1U)*1024*1024)
+    // evidence binding <=2MiB + segment <=1MiB + bounded path/field overhead.
+    if(d.members.size()!=(bound?6U:5U)||text.size()>(bound?3U*1024*1024+16U*1024:1024U*1024))
         return Fail(error,"ready version별 field/크기 오류");
     *t=FinalizeReadyTicket{};
     if(bound) {
         const auto json=ingress::StrictJsonObjectField(d,"sourceBinding");RecordingSourceBindingV1 binding;
         if(!json||!ParseRecordingSourceBindingV1(*json,&binding,error))return Fail(error,"ready sourceBinding 오류");
         t->source_binding=std::move(binding);
+        if(!t->source_binding->file_evidence&&text.size()>2U*1024*1024)return Fail(error,"legacy ready envelope 크기 오류");
     }
     if(version->raw!="1") {RecordingSegmentV2 v;if(!ParseRecordingSegmentV2(*segment,&v,error))return false;t->segment_v2=v;}
     else if(!ParseRecordingSegmentV1(*segment,&t->segment,error))return false;
@@ -142,7 +145,7 @@ bool Read(const std::filesystem::path& root,const std::filesystem::path& relativ
     Fd fd(::openat(p.fd.fd,relative.filename().c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK));
     if(fd.fd<0){if(errno==ENOENT){*missing=true;return true;}return Fail(error,"ready 읽기 불가");}
     struct stat before{},after{},leaf{};
-    if(::fstat(fd.fd,&before)!=0||!S_ISREG(before.st_mode)||before.st_nlink!=1||before.st_size<=0||before.st_size>2*1024*1024)return Fail(error,"ready 파일 binding/크기 거부");
+    if(::fstat(fd.fd,&before)!=0||!S_ISREG(before.st_mode)||before.st_nlink!=1||before.st_size<=0||before.st_size>3*1024*1024+16*1024)return Fail(error,"ready 파일 binding/크기 거부");
     std::string text(static_cast<std::size_t>(before.st_size),'\0');std::size_t done=0;
     while(done<text.size()){const auto n=::pread(fd.fd,text.data()+done,text.size()-done,done);if(n<0&&errno==EINTR)continue;if(n<=0)return Fail(error,"ready read 실패");done+=n;}
     if(::fstat(fd.fd,&after)!=0||::fstatat(p.fd.fd,relative.filename().c_str(),&leaf,AT_SYMLINK_NOFOLLOW)!=0||
@@ -231,7 +234,8 @@ bool Quarantine(RecordingCatalog& catalog,const std::filesystem::path& root,cons
 
 bool WriteFinalizeReadyTicket(const std::filesystem::path& root,const FinalizeReadyTicket& ticket,std::string* error){
     if(!Validate(ticket,error))return false;const auto text=Serialize(ticket);
-    if(text.size()>(ticket.source_binding?2U:1U)*1024*1024)return Fail(error,"ready envelope 크기 거부");
+    const std::size_t envelope_limit=ticket.source_binding?(ticket.source_binding->file_evidence?3U*1024*1024+16U*1024:2U*1024*1024):1024U*1024;
+    if(text.size()>envelope_limit)return Fail(error,"ready envelope 크기 거부");
     Parent p;if(!p.Open(root,TicketPath(ticket)))return Fail(error,"ready parent 불가");
     Fd fd(::openat(p.fd.fd,TicketPath(ticket).filename().c_str(),O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600));
     if(fd.fd<0)return Fail(error,"ready 생성 충돌/실패");std::size_t done=0;
@@ -255,6 +259,10 @@ static bool PublishValidatedReady(const std::filesystem::path& root,const Finali
     const bool has_a=::fstatat(p.fd.fd,partial.c_str(),&a,AT_SYMLINK_NOFOLLOW)==0;const int a_error=errno;
     const bool has_b=::fstatat(p.fd.fd,final.c_str(),&b,AT_SYMLINK_NOFOLLOW)==0;const int b_error=errno;
     if((!has_a&&a_error!=ENOENT)||(!has_b&&b_error!=ENOENT)||(!has_a&&!has_b))return Fail(error,"publish media 불가");
+    if(t.source_binding&&t.source_binding->file_evidence) {
+        Fd media(::openat(p.fd.fd,(has_b?final:partial).c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK));
+        if(media.fd<0||!VerifyRecordingFileEvidenceFd(media.fd,*t.source_binding,error)||!p.Stable())return Fail(error,"publish file evidence 실제 파일 불일치");
+    }
     if(has_a&&has_b){
         if(!S_ISREG(a.st_mode)||!S_ISREG(b.st_mode)||!Same(a,b)||a.st_nlink!=2||b.st_nlink!=2||!p.Stable())return Fail(error,"publish 기존 final 충돌");
         if(t.segment_v2) {

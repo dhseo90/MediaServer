@@ -80,6 +80,25 @@ bool ParseRecordingSegmentV2(const std::string& json, RecordingSegmentV2* value,
 struct RecordingSourceSampleV1 {
     std::uint64_t ordinal{0}, pts_ns{0};
 };
+// file_evidence v1 sample tuple 순서. -1 original_duration만 원본 duration 부재를 뜻한다.
+// native 숫자는 track ticks; source identity PTS와 mapped file 표시 시각은 별개다.
+struct RecordingFileSampleEvidenceV1 {
+    std::uint64_t ordinal{0};
+    std::int64_t original_pts_ns{0}, original_dts_ns{0}, original_duration_ns{-1};
+    std::int64_t mux_pts_ns{0}, mux_dts_ns{0}, mux_duration_ns{0};
+    std::int64_t native_pts{0}, native_dts{0}, native_duration{0};
+    std::string vcl_sha256, sample_sha256;
+};
+struct RecordingFileEvidenceV1 {
+    std::uint32_t version{1};
+    std::string profile{"gst-qtmux-1.28.1-default-v1"};
+    std::int64_t writer_origin_ns{0};
+    std::uint64_t file_size_bytes{0};
+    std::string file_sha256;
+    std::uint32_t timescale{0}, movie_timescale{0};
+    std::int64_t edit_duration{0}, edit_media_time{0};
+    std::vector<RecordingFileSampleEvidenceV1> samples;
+};
 // appsrc 수락 연관이며 출력 decoded frame의 고유성·존재 증명이 아니다.
 struct RecordingSourceBindingV1 {
     std::string schema{"media-server.recording-source-binding.v1"};
@@ -91,7 +110,9 @@ struct RecordingSourceBindingV1 {
     bool index_complete{true};
     std::uint64_t last_accepted_ordinal{0};
     std::string incomplete_reason;
+    std::optional<RecordingFileEvidenceV1> file_evidence{};
 };
+bool ValidateRecordingFileEvidence(const RecordingSourceBindingV1&, std::string* error);
 bool ValidateRecordingSourceBindingV1(const RecordingSourceBindingV1&, std::string* error);
 bool ValidateRecordingSourceBindingForSegment(const RecordingSourceBindingV1&, const RecordingSegmentV2&, std::string* error);
 std::string SerializeRecordingSourceBindingV1(const RecordingSourceBindingV1&);

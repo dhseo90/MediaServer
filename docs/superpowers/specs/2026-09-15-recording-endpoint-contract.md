@@ -83,6 +83,20 @@ SQLite/JSONL/checkpoint 복구에서 같은 strict parser를 사용한다. field
 forward 표 불일치는 거부한다. 검증된 기존 object를 매 잠금 전이마다 전량 재파싱하지 않는다.
 파일을 실제 다시 검증해야 하는 finalize recovery와 순수 저장 구조 검증을 구분한다.
 
+#### 기존 파생 job의 비소비 경계
+
+기존 파생 job은 최대8개 원본 binding을 복제하며 JSON4MiB 상한을 갖는다. 선택적 증거를
+추가했다는 이유로 기존 profile의 저장량·ID·지원 원본 수가 달라지지 않게 신규 기존-profile job에는
+기존13필드를 모두 보존한 명시적 binding projection을 사용한다. 원본 catalog/Ready/bound mutation의
+`file_evidence`는 삭제하지 않는다. 생성·복구·타임라인이 새 증거를 소비하는 후속5번의 완료는 아니다.
+
+catalog의 live-source 대조도 job에 선택적 증거가 없는 경우에만 같은 projection을 비교한다.
+source/store/epoch/generation/track/ordinal/PTS/index와 segment 전체(파일 hash 포함)의 동일성은
+기존대로 검사한다. 이미 증거가 포함된 job은 projection하거나 ID를 재계산하지 않고 전량 strict 대조한다.
+기존 job은 새 증거의 변경을 identity에 포함하지 않는다는 한계를 명시하며, 그 job을 새 증거 기반
+완전 판정으로 승격하지 않는다. 후속5번은 새 증거의 불변 참조·소비와 job identity 경계를 별도로 확정해야 한다.
+이번에는 job/journal 상한을 늘리거나 이미 저장된 job을 재작성하지 않는다.
+
 ### 2026-09-15 3-A 선수 확인: 시간 변환의 식별 가능성
 
 이 절의 선택 요청·착수 중단 결론은 당시 이력이다. 현행 재개 판단은 위 2026-09-16 정정을 따른다.

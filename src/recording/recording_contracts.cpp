@@ -486,6 +486,38 @@ bool ParseRecordingConsumerReferenceV1(const std::string& json, RecordingConsume
     *output=std::move(v);ClearError(error);return true;
 }
 
+bool ValidateRecordingFileEvidence(const RecordingSourceBindingV1& b,std::string* error) {
+    if(!b.file_evidence)return true;
+    const auto& e=*b.file_evidence;
+    const auto hex=[](const std::string& s){return s.size()==64&&std::all_of(s.begin(),s.end(),[](char c){return (c>='0'&&c<='9')||(c>='a'&&c<='f');});};
+    if(e.version!=1||e.profile!="gst-qtmux-1.28.1-default-v1"||!b.index_complete||e.writer_origin_ns<0||
+       e.file_size_bytes==0||e.file_size_bytes>32U*1024*1024||!hex(e.file_sha256)||!e.timescale||
+       e.movie_timescale!=e.timescale||e.samples.empty()||e.samples.size()>4096||e.samples.size()!=b.samples.size()||
+       e.edit_duration<=0||e.edit_media_time<0)return Fail(error,"file evidence profile/bound 오류");
+    std::unordered_set<std::string> vcl,raw;
+    std::int64_t expected_dts=0,min_pts=std::numeric_limits<std::int64_t>::max(),max_end=0;
+    const auto round=[&](const __int128 ns){return (ns*e.timescale+500000000)/1000000000;};
+    for(std::size_t i=0;i<e.samples.size();++i) {
+        const auto& s=e.samples[i];const auto& original=b.samples[i];
+        if(s.ordinal!=original.ordinal||s.original_pts_ns<0||static_cast<std::uint64_t>(s.original_pts_ns)!=original.pts_ns||
+           s.original_dts_ns<0||s.original_duration_ns< -1||s.mux_pts_ns<0||s.mux_dts_ns<0||s.mux_duration_ns<=0||
+           s.original_pts_ns<e.writer_origin_ns||s.original_dts_ns<e.writer_origin_ns||
+           s.original_pts_ns-e.writer_origin_ns!=s.mux_pts_ns||s.original_dts_ns-e.writer_origin_ns!=s.mux_dts_ns||
+           s.native_pts<0||s.native_dts!=expected_dts||s.native_duration<=0||!hex(s.vcl_sha256)||!hex(s.sample_sha256)||
+           !vcl.insert(s.vcl_sha256).second||!raw.insert(s.sample_sha256).second)return Fail(error,"file evidence identity/timestamp/duplicate 오류");
+        const __int128 end_dts=i+1<e.samples.size()?e.samples[i+1].mux_dts_ns:static_cast<__int128>(s.mux_dts_ns)+s.mux_duration_ns;
+        const __int128 native_end=static_cast<__int128>(s.native_pts)+s.native_duration;
+        const __int128 decode_end=static_cast<__int128>(s.native_dts)+s.native_duration;
+        if(end_dts<=s.mux_dts_ns||end_dts>std::numeric_limits<std::int64_t>::max()||
+           native_end>std::numeric_limits<std::int64_t>::max()||decode_end>std::numeric_limits<std::int64_t>::max()||
+           round(s.mux_pts_ns)!=s.native_pts||round(s.mux_dts_ns)!=s.native_dts||
+           round(end_dts)-round(s.mux_dts_ns)!=s.native_duration)return Fail(error,"file evidence forward table 오류");
+        expected_dts=static_cast<std::int64_t>(decode_end);min_pts=std::min(min_pts,s.native_pts);max_end=std::max(max_end,static_cast<std::int64_t>(native_end));
+    }
+    if(e.samples.front().mux_dts_ns!=0||e.edit_media_time!=min_pts||e.edit_duration!=max_end-min_pts)
+        return Fail(error,"file evidence origin/edit 오류");
+    ClearError(error);return true;
+}
 bool ValidateRecordingSourceBindingV1(const RecordingSourceBindingV1& b, std::string* error) {
     if(b.schema!="media-server.recording-source-binding.v1" || b.samples.empty() || b.samples.size()>4096 ||
        b.generation_order==0 || b.track_id.empty() || b.track_id.size()>1024 ||
@@ -503,13 +535,15 @@ bool ValidateRecordingSourceBindingV1(const RecordingSourceBindingV1& b, std::st
     if(b.index_complete ? (b.last_accepted_ordinal!=prior||!b.incomplete_reason.empty()) :
        (b.samples.size()!=4096||b.last_accepted_ordinal<=prior||b.incomplete_reason!="sample-index-cap"))
         return Fail(error,"source binding completeness 오류");
-    // 모든 문자열·tuple 상한의 직렬화 최대 합은 512KiB 미만이다.
+    if(!ValidateRecordingFileEvidence(b,error))return false;
     ClearError(error);return true;
 }
 bool ValidateRecordingSourceBindingForSegment(const RecordingSourceBindingV1& b,const RecordingSegmentV2& s,std::string* error) {
     if(!ValidateRecordingSourceBindingV1(b,error)||!ValidateRecordingSegmentV2(s,error))return false;
     if(b.segment_id!=s.segment_id||b.source_id!=s.source_id||b.channel_id!=s.channel_id||
        b.store_id!=s.store_id||b.media_epoch_id!=s.media_epoch_id)return Fail(error,"source binding segment identity 불일치");
+    if(b.file_evidence&&(s.container!="mp4"||b.file_evidence->file_size_bytes!=s.size_bytes||
+       b.file_evidence->file_sha256!=s.checksum_sha256))return Fail(error,"file evidence segment file binding 불일치");
     const __int128 denominator=static_cast<__int128>(1000000000)*s.time_base_num;
     for(const auto& sample:b.samples) {
         const __int128 numerator=static_cast<__int128>(sample.pts_ns)*s.time_base_den;
@@ -529,13 +563,28 @@ std::string SerializeRecordingSourceBindingV1(const RecordingSourceBindingV1& b)
        <<",\"track_id\":"<<Quote(b.track_id)<<",\"samples\":[";
     for(std::size_t i=0;i<b.samples.size();++i){if(i)out<<',';out<<"{\"ordinal\":"<<b.samples[i].ordinal<<",\"pts_ns\":"<<b.samples[i].pts_ns<<'}';}
     out<<"],\"index_complete\":"<<(b.index_complete?"true":"false")<<",\"last_accepted_ordinal\":"<<b.last_accepted_ordinal
-       <<",\"incomplete_reason\":"<<Quote(b.incomplete_reason)<<'}';
-    auto text=out.str();return text.size()<=512*1024?text:std::string{};
+       <<",\"incomplete_reason\":"<<Quote(b.incomplete_reason);
+    if(b.file_evidence) {
+        const auto& e=*b.file_evidence;
+        out<<",\"file_evidence\":{\"version\":"<<e.version<<",\"profile\":"<<Quote(e.profile)
+           <<",\"origin\":"<<e.writer_origin_ns<<",\"bytes\":"<<e.file_size_bytes<<",\"sha256\":"<<Quote(e.file_sha256)
+           <<",\"timescale\":"<<e.timescale<<",\"movie_timescale\":"<<e.movie_timescale
+           <<",\"edit\":["<<e.edit_duration<<','<<e.edit_media_time<<",65536],\"samples\":[";
+        for(std::size_t i=0;i<e.samples.size();++i) {
+            const auto& s=e.samples[i];if(i)out<<',';
+            out<<'['<<s.ordinal<<','<<s.original_pts_ns<<','<<s.original_dts_ns<<','<<s.original_duration_ns<<','
+               <<s.mux_pts_ns<<','<<s.mux_dts_ns<<','<<s.mux_duration_ns<<','<<s.native_pts<<','<<s.native_dts<<','
+               <<s.native_duration<<','<<Quote(s.vcl_sha256)<<','<<Quote(s.sample_sha256)<<']';
+        }
+        out<<"]}";
+    }
+    out<<'}';auto text=out.str();return text.size()<=(b.file_evidence?2U*1024*1024:512U*1024)?text:std::string{};
 }
 bool ParseRecordingSourceBindingV1(const std::string& json,RecordingSourceBindingV1* output,std::string* error) {
-    if(!output||json.size()>512*1024)return Fail(error,"source binding JSON 상한/output 오류");
+    if(!output||json.size()>2U*1024*1024)return Fail(error,"source binding JSON 상한/output 오류");
     Document d;RecordingSourceBindingV1 b;
-    if(!ParseDocument(json,&d,error)||d.members.size()!=13)return Fail(error,"source binding field 집합 오류");
+    if(!ParseDocument(json,&d,error)||d.members.size()!=(d.Find("file_evidence")?14U:13U)||
+       (!d.Find("file_evidence")&&json.size()>512U*1024))return Fail(error,"source binding field 집합 오류");
     if(!RequiredString(d,"schema",&b.schema,error)||!RequiredString(d,"segment_id",&b.segment_id,error)||
        !RequiredString(d,"source_id",&b.source_id,error)||!RequiredString(d,"channel_id",&b.channel_id,error)||
        !RequiredString(d,"store_id",&b.store_id,error)||!RequiredString(d,"media_epoch_id",&b.media_epoch_id,error)||
@@ -548,6 +597,33 @@ bool ParseRecordingSourceBindingV1(const std::string& json,RecordingSourceBindin
         if(!ParseDocument(text,&item,error)||item.members.size()!=2||!RequiredInteger(item,"ordinal",&sample.ordinal,error)||
            !RequiredInteger(item,"pts_ns",&sample.pts_ns,error))return false;
         b.samples.push_back(sample);
+    }
+    if(const auto* field=d.Find("file_evidence")) {
+        Document ed;RecordingFileEvidenceV1 e;
+        if(field->type!=Type::Object||!ParseDocument(field->raw,&ed,error)||ed.members.size()!=9||
+           !RequiredInteger(ed,"version",&e.version,error)||!RequiredString(ed,"profile",&e.profile,error)||
+           !RequiredInteger(ed,"origin",&e.writer_origin_ns,error)||!RequiredInteger(ed,"bytes",&e.file_size_bytes,error)||
+           !RequiredString(ed,"sha256",&e.file_sha256,error)||!RequiredInteger(ed,"timescale",&e.timescale,error)||
+           !RequiredInteger(ed,"movie_timescale",&e.movie_timescale,error))return Fail(error,"file evidence fields 오류");
+        std::vector<std::string> values,tuples;const auto* edit=RequiredMember(ed,"edit",Type::Array,error);
+        std::int64_t rate=0;
+        if(!edit||!SplitArray(edit->raw,&values,error)||values.size()!=3||!ParseIntegerRaw(values[0],&e.edit_duration)||
+           !ParseIntegerRaw(values[1],&e.edit_media_time)||!ParseIntegerRaw(values[2],&rate)||rate!=65536)return Fail(error,"file evidence edit tuple 오류");
+        const auto* samples=RequiredMember(ed,"samples",Type::Array,error);
+        if(!samples||!SplitArray(samples->raw,&tuples,error)||tuples.empty()||tuples.size()>4096)return Fail(error,"file evidence sample count 오류");
+        for(const auto& tuple:tuples) {
+            RecordingFileSampleEvidenceV1 s;
+            if(!SplitArray(tuple,&values,error)||values.size()!=12||!ParseIntegerRaw(values[0],&s.ordinal)||
+               !ParseIntegerRaw(values[1],&s.original_pts_ns)||!ParseIntegerRaw(values[2],&s.original_dts_ns)||
+               !ParseIntegerRaw(values[3],&s.original_duration_ns)||!ParseIntegerRaw(values[4],&s.mux_pts_ns)||
+               !ParseIntegerRaw(values[5],&s.mux_dts_ns)||!ParseIntegerRaw(values[6],&s.mux_duration_ns)||
+               !ParseIntegerRaw(values[7],&s.native_pts)||!ParseIntegerRaw(values[8],&s.native_dts)||
+               !ParseIntegerRaw(values[9],&s.native_duration))return Fail(error,"file evidence sample tuple 오류");
+            // Hash 문자열에는 escaping을 허용하지 않는다. canonical lowercase hex만 검사한다.
+            for(std::size_t i=10;i<12;++i)if(values[i].size()!=66||values[i].front()!='"'||values[i].back()!='"')return Fail(error,"file evidence hash tuple 오류");
+            s.vcl_sha256=values[10].substr(1,64);s.sample_sha256=values[11].substr(1,64);e.samples.push_back(std::move(s));
+        }
+        b.file_evidence=std::move(e);
     }
     if(!ValidateRecordingSourceBindingV1(b,error))return false;
     *output=std::move(b);ClearError(error);return true;

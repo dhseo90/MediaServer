@@ -1,5 +1,32 @@
 # Project Feature Test Inventory
 
+### 2026-09-16 3-B 비용 보완
+
+| 기능 ID | 기능/검사 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| FC01 | 실제 저장 구간 비용 | 잠금·직렬화·journal·SQLite·checkpoint 분리 계측 | 비대상: 개발 계측 | 비대상: 개발 계측 | 비대상: 내부 계측 |
+| FC02 | 중복 처리 보완 | 예상 RED/GREEN, 원본·후보 손상 거부 유지 | S11 저장 반복 | S11 저장·복구 추이 | 비대상: 내부 계약 |
+| FC03 | 동일 조건 비교 | 기존/새 증거·작은/누적·동일/상이 후보 비교 | 비대상: 개발 비교 | 비대상: 개발 비교 | 비대상: 내부 계약 |
+| FC04 | 영향 회귀 | source-binding/write-boundaries/checkpoint/journal/finalize | S11 복구 | S11 복구 | 비대상: 내부 계약 |
+| FC05 | build·지원·상한 | 전체 build·FE01~08·VP8·최악 숫자 envelope | S11 녹화 | S11 녹화·자원 | 비대상: 내부 계약 |
+
+### 2026-09-16 4번 제한 대기 사전등록
+
+3-B 합격 후 실행한다. 아래 등록은 구현·실행 완료가 아니며 기존 파생 소비 판정은 유지한다.
+
+| 기능 ID | 기능/검사 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| WP01 | 요청별 재평가 공정성 | 첫 요청 미확보 중 준비된 두 번째 요청 처리, 단일 실제 미디어 작업 유지 | S11 이벤트 반복 | S11 요청·자원 추이 | 비대상: 내부 worker |
+| WP02 | 일시 unavailable | 명시된 provider unavailable은 제한 내 재평가, 잘못된 identity와 구분 | S11 증거 전달 | S11 증거 전달 | 비대상: 내부 worker |
+| WP03 | identity·namespace 거부 | 다른 source/channel/generation/namespace 증거를 혼합하지 않음 | 비대상: 결정적 검사 | 비대상: 결정적 검사 | 비대상: 내부 worker |
+| WP04 | 절대 마감·시도·큐 상한 | 접수 steady deadline 불변, busy/재접수로 연장하지 않음. 기존60초/32개/121회 경계 | S11 대기·종료 | S11 대기·자원 | 비대상: 내부 worker |
+| WP05 | pending 원본 보호 | 기존·대기 중 새 확정 관련 원본의 삭제 예약 거부, 무관 원본은 기존 보존 정책 | S11 보존 경쟁 | S11 보존·용량 | 비대상: 내부 catalog |
+| WP06 | Intent 보호 인계 | 내구 Intent 확보 전 임시 보호를 풀지 않음, 인계/실패의 보호·예약 누수 없음 | S11 이벤트·보존 | S11 자원·복구 | 비대상: 내부 catalog |
+| WP07 | 취소·종료 | 대기/실행 요청의 stop·drain·동시 종료에서 작업·보호 정리 | S11 lifecycle | S11 cleanup | 비대상: 내부 worker |
+| WP08 | 만료·재시작 | 만료 lease의 제한적 수명, 재시작 때 임시 증거를 발명하지 않음. 내구 Intent는 기존 복구 | S11 재기동 | S11 복구 | 비대상: 내부 catalog |
+| WP09 | 긴 GOP·미확보 결과 | 실제 원본 확정 뒤 재평가, 상한 내 미확보는 partial/unknown 유지. 시간만으로 complete 금지 | S11 실제 이벤트 | S11 녹화 지속 | 비대상: 내부 worker |
+| WP10 | 용량·중복 접수 | 기존 quota/reserve·pin/hold 유지, 포화·중복 요청으로 무제한 예약/보호 생성 금지 | S11 보존·접수 | S11 자원 추이 | 비대상: 내부 worker |
+
 ### 2026-09-16 3-B 파일 증거 저장 사전등록
 
 | 기능 ID | 기능/검사 | 안정화 | 30분 | 120분 | UI |
@@ -11,7 +38,7 @@
 | FE05 | 내구 복구 | SQLite·JSONL fallback·checkpoint·Ready 복구 일치 | S11 복구 조건 | S11 복구 조건 | 비대상: 내부 계약 |
 | FE06 | 증거 손상 거부 | identity/hash/ordinal/tick/timescale/field 변조 거부 | 비대상: 결정적 검사 | 비대상: 결정적 검사 | 비대상: 내부 계약 |
 | FE07 | 크기·잠금 비용 | 4096 경계, 직렬화 크기, 실제 catalog 전이·checkpoint 시간 기록 | S11 자원 조건 | S11 자원 조건 | 비대상: 내부 계약 |
-| FE08 | 증거 없는 입력 유지 | unsupported/ambiguous/기존 binding에 새 증거·complete를 발명하지 않고 기존 녹화 유지 | S11 현행 입력 조건 | S11 현행 입력 조건 | 비대상: 내부 계약 |
+| FE08 | 기존 지원·비소비 경계 유지 | unsupported/ambiguous/기존 binding의 녹화 유지. 신규 기존-profile job의13필드 projection은 기존 ID/bytes/8원본 상한 유지, 저장 증거는 보존. evidence 포함 job은 full strict | S11 현행 입력 조건 | S11 현행 입력 조건 | 비대상: 내부 계약 |
 
 실행은 3-A 합격 후다. 제품 TDD RED와 준비 실패를 구분하고 중앙 기록에 명령·개별 결과를 보존한다.
 

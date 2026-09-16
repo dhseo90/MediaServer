@@ -1,0 +1,10 @@
+[run] label=full4 root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.6Hxet2
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_file_evidence_smoke.cpp:109:167: error: no member named 'reason' in 'recording::DerivedJobAdmissionResult'
+  109 |   const auto changed=Job(altered);const auto result=coordinator.AdmitDerivedJob(c,changed,1);Check(ValidateDerivedJobIntent(changed,&error)&&!result.accepted&&result.reason==(change==3?"derived job live source snapshot 없음":"derived job live source 결박 거부"),"FE08 live legacy rejects source/ordinal/PTS/hash variant"+std::to_string(change));
+      |                                                                                                                                                                ~~~~~~ ^
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_file_evidence_smoke.cpp:113:90: error: no member named 'reason' in 'recording::DerivedJobAdmissionResult'
+  113 |  Check(ValidateDerivedJobIntent(tampered,&error)&&!bad_admission.accepted&&bad_admission.reason=="derived job live source 결박 거부","FE08 proof job requires full live evidence match");
+      |                                                                            ~~~~~~~~~~~~~ ^
+2 errors generated.
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.6Hxet2 bytes=0 removed=true
+[elapsed] seconds=7 source=bash-SECONDS

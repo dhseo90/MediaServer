@@ -1,0 +1,172 @@
+[run] label=parse-green owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.6xzyL2
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+Target: arm64-apple-darwin27.0.0
+Thread model: posix
+InstalledDir: /Library/Developer/CommandLineTools/usr/bin
+Darwin arm64
+1.28.1
+3.51.0
+3.6.2
+e48fb5e48d64f526d6cc5f3c0c06cb2f5b110a29
+d2d0032c689adaadcadd2e12fbfb0ceaaf6145fd766e8a5d40fa1c8e0a232e35  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_cost_probe.cpp
+c6d53e35e97d457c01745c8e4e584d2a6ad1b822dc0f1bcb4e55d0f1a991e6fe  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_cost_probe_timer.h
+e14cd7b9fc125ab9991079fd3c1118186586b3b113540715d3bafe75ffacc25f  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_cost_probe_instrument.cjs
+ab8fd786429d1ae19ed9b30ede4d0527a0d61fd1dbd8cc4258f9c642cc6d856e  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_file_evidence_smoke.cpp
+9f4540696ec44a809368ec0ba9dcc210dab6eba3580680a72b947518d7ce2241  /Users/dhseo/Workspace/mediaServer/src/recording/recording_file_evidence.cpp
+[source] file=recording_catalog.cpp original_sha256=d8d130590b972d5630f69865b1e067766a486914508871634445ac898753055e instrumented_sha256=28dab31343256f7b5f7497fc72cd90b2bb08a35e97cab8e39e048da7eca57ba6
+[source] file=recording_journal.cpp original_sha256=66e6447a7557644391828eb074eda9911d052f93f4753bec724c8112c1ad6e1e instrumented_sha256=6ce65683a70963aa8ce7d57225ae24994aff7ef07988a73f9cf64a730614a99b
+[source] file=recording_contracts.cpp original_sha256=960635a08aa900bebfae961cd9e534ab6b91fbace213e1a7416227e7292ec890 instrumented_sha256=a99bc03ee76dbbd7342d06ea2db70258451d371889eacd384be541bee574e1c6
+[source] file=recording_checkpoint_validation.h original_sha256=9fb510a3c47220476670996ecfeae97f6a3633d7e5fd5958bac641a0b876ce63 instrumented_sha256=82cf291d4837d3a5c02ef24b29d386bfeb5cfedd6eb95a1a9b1d30c68da33498
+[pass] FC01 exact insertion checks count=92
+[pass] FC02 temporary access/parser exact insertions=2 strict_original_sha256=be1057725d0a0b54d705543ce635da6c832e4c53fbec008e91ad63c9a1d0f58b header_original_sha256=e923f9ae493d59c9516163f1909c8973ded4b5f2d18676907ad6932cf3539df2
+[pass] actual12 FE02 writer start
+[pass] actual12 FE04 bound finalized mutation segment0
+[measure] writer_push_finalize_us=11952 input_aus=12 segments=1
+[pass] actual12 FC02 actual file evidence prerequisite
+[pass] FC02/unbound/apply/positive valid reservation prerequisite
+[pass] FC02/unbound/apply/positive actual reservation replay prerequisite
+[pass] FC02/unbound/apply/positive acceptance expected1
+[pass] FC02/unbound/apply/positive positive exact memory projection
+[parse-count] case=FC02/unbound/apply/positive expected=1 actual=1
+[pass] FC02/unbound/apply/positive original payload parsed once
+[pass] FC02/unbound/apply/truncated valid reservation prerequisite
+[pass] FC02/unbound/apply/truncated actual reservation replay prerequisite
+[pass] FC02/unbound/apply/truncated acceptance expected0
+[pass] FC02/unbound/apply/truncated no partial memory projection
+[pass] FC02/unbound/apply/duplicate-key valid reservation prerequisite
+[pass] FC02/unbound/apply/duplicate-key actual reservation replay prerequisite
+[pass] FC02/unbound/apply/duplicate-key acceptance expected0
+[pass] FC02/unbound/apply/duplicate-key no partial memory projection
+[pass] FC02/unbound/apply/segment-wrong-type valid reservation prerequisite
+[pass] FC02/unbound/apply/segment-wrong-type actual reservation replay prerequisite
+[pass] FC02/unbound/apply/segment-wrong-type acceptance expected0
+[pass] FC02/unbound/apply/segment-wrong-type no partial memory projection
+[pass] FC02/unbound/apply/relative-wrong-type valid reservation prerequisite
+[pass] FC02/unbound/apply/relative-wrong-type actual reservation replay prerequisite
+[pass] FC02/unbound/apply/relative-wrong-type acceptance expected0
+[pass] FC02/unbound/apply/relative-wrong-type no partial memory projection
+[pass] FC02/unbound/apply/missing-segment valid reservation prerequisite
+[pass] FC02/unbound/apply/missing-segment actual reservation replay prerequisite
+[pass] FC02/unbound/apply/missing-segment acceptance expected0
+[pass] FC02/unbound/apply/missing-segment no partial memory projection
+[pass] FC02/unbound/apply/missing-relative valid reservation prerequisite
+[pass] FC02/unbound/apply/missing-relative actual reservation replay prerequisite
+[pass] FC02/unbound/apply/missing-relative acceptance expected0
+[pass] FC02/unbound/apply/missing-relative no partial memory projection
+[pass] FC02/unbound/apply/unknown-extra-existing-boundary valid reservation prerequisite
+[pass] FC02/unbound/apply/unknown-extra-existing-boundary actual reservation replay prerequisite
+[pass] FC02/unbound/apply/unknown-extra-existing-boundary acceptance expected0
+[pass] FC02/unbound/apply/unknown-extra-existing-boundary no partial memory projection
+[pass] FC02/unbound/sql/positive valid reservation prerequisite
+[pass] FC02/unbound/sql/positive actual reservation replay prerequisite
+[pass] FC02/unbound/sql/positive acceptance expected1
+[pass] FC02/unbound/sql/positive positive SQL rows
+[parse-count] case=FC02/unbound/sql/positive expected=1 actual=1
+[pass] FC02/unbound/sql/positive original payload parsed once
+[pass] FC02/unbound/sql/truncated valid reservation prerequisite
+[pass] FC02/unbound/sql/truncated actual reservation replay prerequisite
+[pass] FC02/unbound/sql/truncated acceptance expected0
+[pass] FC02/unbound/sql/truncated rollback no partial SQL rows
+[pass] FC02/unbound/sql/duplicate-key valid reservation prerequisite
+[pass] FC02/unbound/sql/duplicate-key actual reservation replay prerequisite
+[pass] FC02/unbound/sql/duplicate-key acceptance expected0
+[pass] FC02/unbound/sql/duplicate-key rollback no partial SQL rows
+[pass] FC02/unbound/sql/segment-wrong-type valid reservation prerequisite
+[pass] FC02/unbound/sql/segment-wrong-type actual reservation replay prerequisite
+[pass] FC02/unbound/sql/segment-wrong-type acceptance expected0
+[pass] FC02/unbound/sql/segment-wrong-type rollback no partial SQL rows
+[pass] FC02/unbound/sql/relative-wrong-type valid reservation prerequisite
+[pass] FC02/unbound/sql/relative-wrong-type actual reservation replay prerequisite
+[pass] FC02/unbound/sql/relative-wrong-type acceptance expected0
+[pass] FC02/unbound/sql/relative-wrong-type rollback no partial SQL rows
+[pass] FC02/unbound/sql/missing-segment valid reservation prerequisite
+[pass] FC02/unbound/sql/missing-segment actual reservation replay prerequisite
+[pass] FC02/unbound/sql/missing-segment acceptance expected0
+[pass] FC02/unbound/sql/missing-segment rollback no partial SQL rows
+[pass] FC02/unbound/sql/missing-relative valid reservation prerequisite
+[pass] FC02/unbound/sql/missing-relative actual reservation replay prerequisite
+[pass] FC02/unbound/sql/missing-relative acceptance expected0
+[pass] FC02/unbound/sql/missing-relative rollback no partial SQL rows
+[pass] FC02/unbound/sql/unknown-extra-existing-boundary valid reservation prerequisite
+[pass] FC02/unbound/sql/unknown-extra-existing-boundary actual reservation replay prerequisite
+[pass] FC02/unbound/sql/unknown-extra-existing-boundary acceptance expected1
+[pass] FC02/unbound/sql/unknown-extra-existing-boundary positive SQL rows
+[pass] FC02/bound/apply/positive valid reservation prerequisite
+[pass] FC02/bound/apply/positive actual reservation replay prerequisite
+[pass] FC02/bound/apply/positive acceptance expected1
+[pass] FC02/bound/apply/positive positive exact memory projection
+[parse-count] case=FC02/bound/apply/positive expected=1 actual=1
+[pass] FC02/bound/apply/positive original payload parsed once
+[pass] FC02/bound/apply/truncated valid reservation prerequisite
+[pass] FC02/bound/apply/truncated actual reservation replay prerequisite
+[pass] FC02/bound/apply/truncated acceptance expected0
+[pass] FC02/bound/apply/truncated no partial memory projection
+[pass] FC02/bound/apply/duplicate-key valid reservation prerequisite
+[pass] FC02/bound/apply/duplicate-key actual reservation replay prerequisite
+[pass] FC02/bound/apply/duplicate-key acceptance expected0
+[pass] FC02/bound/apply/duplicate-key no partial memory projection
+[pass] FC02/bound/apply/segment-wrong-type valid reservation prerequisite
+[pass] FC02/bound/apply/segment-wrong-type actual reservation replay prerequisite
+[pass] FC02/bound/apply/segment-wrong-type acceptance expected0
+[pass] FC02/bound/apply/segment-wrong-type no partial memory projection
+[pass] FC02/bound/apply/relative-wrong-type valid reservation prerequisite
+[pass] FC02/bound/apply/relative-wrong-type actual reservation replay prerequisite
+[pass] FC02/bound/apply/relative-wrong-type acceptance expected0
+[pass] FC02/bound/apply/relative-wrong-type no partial memory projection
+[pass] FC02/bound/apply/missing-segment valid reservation prerequisite
+[pass] FC02/bound/apply/missing-segment actual reservation replay prerequisite
+[pass] FC02/bound/apply/missing-segment acceptance expected0
+[pass] FC02/bound/apply/missing-segment no partial memory projection
+[pass] FC02/bound/apply/missing-relative valid reservation prerequisite
+[pass] FC02/bound/apply/missing-relative actual reservation replay prerequisite
+[pass] FC02/bound/apply/missing-relative acceptance expected0
+[pass] FC02/bound/apply/missing-relative no partial memory projection
+[pass] FC02/bound/apply/binding-wrong-type valid reservation prerequisite
+[pass] FC02/bound/apply/binding-wrong-type actual reservation replay prerequisite
+[pass] FC02/bound/apply/binding-wrong-type acceptance expected0
+[pass] FC02/bound/apply/binding-wrong-type no partial memory projection
+[pass] FC02/bound/apply/unknown-extra-existing-boundary valid reservation prerequisite
+[pass] FC02/bound/apply/unknown-extra-existing-boundary actual reservation replay prerequisite
+[pass] FC02/bound/apply/unknown-extra-existing-boundary acceptance expected0
+[pass] FC02/bound/apply/unknown-extra-existing-boundary no partial memory projection
+[pass] FC02/bound/sql/positive valid reservation prerequisite
+[pass] FC02/bound/sql/positive actual reservation replay prerequisite
+[pass] FC02/bound/sql/positive acceptance expected1
+[pass] FC02/bound/sql/positive positive SQL rows
+[parse-count] case=FC02/bound/sql/positive expected=1 actual=1
+[pass] FC02/bound/sql/positive original payload parsed once
+[pass] FC02/bound/sql/truncated valid reservation prerequisite
+[pass] FC02/bound/sql/truncated actual reservation replay prerequisite
+[pass] FC02/bound/sql/truncated acceptance expected0
+[pass] FC02/bound/sql/truncated rollback no partial SQL rows
+[pass] FC02/bound/sql/duplicate-key valid reservation prerequisite
+[pass] FC02/bound/sql/duplicate-key actual reservation replay prerequisite
+[pass] FC02/bound/sql/duplicate-key acceptance expected0
+[pass] FC02/bound/sql/duplicate-key rollback no partial SQL rows
+[pass] FC02/bound/sql/segment-wrong-type valid reservation prerequisite
+[pass] FC02/bound/sql/segment-wrong-type actual reservation replay prerequisite
+[pass] FC02/bound/sql/segment-wrong-type acceptance expected0
+[pass] FC02/bound/sql/segment-wrong-type rollback no partial SQL rows
+[pass] FC02/bound/sql/relative-wrong-type valid reservation prerequisite
+[pass] FC02/bound/sql/relative-wrong-type actual reservation replay prerequisite
+[pass] FC02/bound/sql/relative-wrong-type acceptance expected0
+[pass] FC02/bound/sql/relative-wrong-type rollback no partial SQL rows
+[pass] FC02/bound/sql/missing-segment valid reservation prerequisite
+[pass] FC02/bound/sql/missing-segment actual reservation replay prerequisite
+[pass] FC02/bound/sql/missing-segment acceptance expected0
+[pass] FC02/bound/sql/missing-segment rollback no partial SQL rows
+[pass] FC02/bound/sql/missing-relative valid reservation prerequisite
+[pass] FC02/bound/sql/missing-relative actual reservation replay prerequisite
+[pass] FC02/bound/sql/missing-relative acceptance expected0
+[pass] FC02/bound/sql/missing-relative rollback no partial SQL rows
+[pass] FC02/bound/sql/binding-wrong-type valid reservation prerequisite
+[pass] FC02/bound/sql/binding-wrong-type actual reservation replay prerequisite
+[pass] FC02/bound/sql/binding-wrong-type acceptance expected0
+[pass] FC02/bound/sql/binding-wrong-type rollback no partial SQL rows
+[pass] FC02/bound/sql/unknown-extra-existing-boundary valid reservation prerequisite
+[pass] FC02/bound/sql/unknown-extra-existing-boundary actual reservation replay prerequisite
+[pass] FC02/bound/sql/unknown-extra-existing-boundary acceptance expected1
+[pass] FC02/bound/sql/unknown-extra-existing-boundary positive SQL rows
+[summary] FC02 passed=143 parse_assertion_failures=0 cases=34
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.6xzyL2 bytes=11990526 removed=true
+[exit] code=0 elapsed_seconds=7 token_usage=unavailable source=bash-SECONDS

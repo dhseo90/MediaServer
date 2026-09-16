@@ -1,0 +1,42 @@
+'use strict';
+// 승인된 임시 root 안에만 기계적 계측 복사본을 생성한다. 제품 파일은 쓰지 않는다.
+const fs=require('fs'),path=require('path'),crypto=require('crypto');
+const [repo,out,mode]=process.argv.slice(2);
+if(!repo||!out||!/^media-server-catalog-cost\.[A-Za-z0-9]+$/.test(path.basename(out))||fs.lstatSync(out).isSymbolicLink())throw Error('instrument root');
+const hash=s=>crypto.createHash('sha256').update(s).digest('hex');
+let count=0;
+function replace(s,from,to){if(s.split(from).length!==2)throw Error('exact insertion mismatch: '+from);++count;return s.replace(from,to);}
+function fn(s,name,label){const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');const r=new RegExp('^(?:inline )?(?:bool|std::string|std::vector<std::string>|RecordingJournalReplayResult)\\s+'+escaped+'\\([^;{}]*\\)\\s*(?:const\\s*)?\\{','gm');const m=[...s.matchAll(r)];if(m.length!==1)throw Error('function insertion mismatch '+name+' '+m.length);++count;return s.slice(0,m[0].index+m[0][0].length)+' fc::Scope fc_scope("'+label+'");'+s.slice(m[0].index+m[0][0].length);}
+for(const file of ['recording_catalog.cpp','recording_journal.cpp','recording_contracts.cpp','recording_checkpoint_validation.h']){
+ const original=fs.readFileSync(path.join(repo,'src/recording',file),'utf8');let s=original;
+ if(file==='recording_catalog.cpp'){
+  for(const name of ['CheckpointLocked','AppendAndApplyLocked','ValidateBoundLocked','CommitBoundLocked','ApplyMutationLocked','ProjectMutationSqliteLocked','ProjectionSignatureLocked'])s=fn(s,'RecordingCatalog::'+name,'catalog.'+name);
+  s=replace(s,'const auto original=journal_.Replay();','const auto original=fc::Measure("checkpoint.Replay",[&]{return journal_.Replay();});');
+  s=replace(s,'for(const auto& m:original.mutations)if(!before.ApplyMutationLocked(m,false,error))return false;','if(!fc::Measure("checkpoint.originalSemantic",[&]{for(const auto& m:original.mutations)if(!before.ApplyMutationLocked(m,false,error))return false;return true;}))return false;');
+  s=replace(s,'const bool identical=detail::SameCheckpointSequence(original.mutations,candidate);','const bool identical=detail::SameCheckpointSequence(original.mutations,candidate);fc::Event(identical?"candidate.identical":"candidate.different");');
+  s=replace(s,'for(const auto& m:candidate)if(!after.ApplyMutationLocked(m,false,error))return false;','if(!fc::Measure("checkpoint.candidateSemantic",[&]{for(const auto& m:candidate)if(!after.ApplyMutationLocked(m,false,error))return false;return true;}))return false;');
+  const lock='std::lock_guard lock(mu_);';const n=s.split(lock).length-1;if(n<10)throw Error('catalog lock insertions');
+  s=s.split(lock).join('std::unique_lock<std::mutex> lock(mu_,std::defer_lock);fc::Measure("catalog.lock.wait",[&]{lock.lock();});fc::Scope fc_hold("catalog.lock.hold");');count+=n;
+ }
+ if(file==='recording_journal.cpp'){
+  for(const name of ['SerializeRecordingMutationV1','ParseRecordingMutationV1','EnvelopeIdentity','IndexRecord','CompactRecords','JournalBytes'])s=fn(s,name,'journal.'+name);
+  for(const name of ['PrepareCheckpoint','CommitCheckpoint','AppendOwned','Replay'])s=fn(s,'RecordingJournal::'+name,'journal.'+name);
+  s=replace(s,'if(bytes!=JournalBytes(candidate))return Fail(error,"checkpoint 후보 불일치");','if(!fc::Measure("checkpoint.bytesCompare",[&]{return bytes==JournalBytes(candidate);}))return Fail(error,"checkpoint 후보 불일치");');
+  s=replace(s,'if(bytes.size()>=managed_state_->bytes)return true;','if(bytes.size()>=managed_state_->bytes){fc::Event("checkpoint.noWrite");return true;}fc::Scope fc_write("checkpoint.write");');
+ }
+ if(file==='recording_contracts.cpp')for(const name of ['ValidateRecordingFileEvidence','ValidateRecordingSourceBindingV1','ValidateRecordingSourceBindingForSegment','SerializeRecordingSourceBindingV1','ParseRecordingSourceBindingV1'])s=fn(s,name,'contracts.'+name);
+ if(file==='recording_checkpoint_validation.h')s=fn(s,'SameCheckpointSequence','checkpoint.SameSequence');
+ s='#include "recording_catalog_cost_probe_timer.h"\n'+s;
+ fs.writeFileSync(path.join(out,file),s);
+ console.log(`[source] file=${file} original_sha256=${hash(original)} instrumented_sha256=${hash(s)}`);
+}
+console.log(`[pass] FC01 exact insertion checks count=${count}`);
+if(mode==='parse'){
+ const file=path.join(repo,'include/recording/recording_catalog.h');const header=fs.readFileSync(file,'utf8');
+ const exposed=replace(header,'private:','public: // FC02 temporary test-only access');
+ fs.mkdirSync(path.join(out,'include/recording'),{recursive:true});fs.writeFileSync(path.join(out,'include/recording/recording_catalog.h'),exposed);
+ const strict=fs.readFileSync(path.join(repo,'src/domain/strict_json.cpp'),'utf8');
+ const instrumented='#include "recording_catalog_cost_probe_timer.h"\n'+replace(strict,'    StrictJsonParser parser(json, document, error_message);','    if(!fc::target_payload.empty()&&json==fc::target_payload)++fc::target_parses;\n    StrictJsonParser parser(json, document, error_message);');
+ fs.writeFileSync(path.join(out,'strict_json.cpp'),instrumented);
+ console.log(`[pass] FC02 temporary access/parser exact insertions=2 strict_original_sha256=${hash(strict)} header_original_sha256=${hash(header)}`);
+}

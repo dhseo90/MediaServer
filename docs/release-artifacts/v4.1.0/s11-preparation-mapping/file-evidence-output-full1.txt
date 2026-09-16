@@ -1,0 +1,127 @@
+[run] label=full1 root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.em26Tr
+[pass] FE02 writer start
+[pass] FE04 bound finalized mutation
+[pass] FE04 bound finalized mutation
+[measure] writer_push_finalize_us=93839 input_aus=300 segments=2
+[pass] FE02 expected segment count
+[pass] FE01 expected file_evidence on actual writer binding (feature absent)
+[pass] FE02 physical native and hash verification
+[measure] file_verify_us=5078 file_bytes=227036
+[pass] FE01 expected file_evidence on actual writer binding (feature absent)
+[pass] FE02 physical native and hash verification
+[measure] file_verify_us=1039 file_bytes=46223
+[pass] FE02 writer start
+[pass] FE04 bound finalized mutation
+[measure] writer_push_finalize_us=12466 input_aus=30 segments=1
+[pass] FE02 expected segment count
+[pass] FE01 expected file_evidence on actual writer binding (feature absent)
+[pass] FE02 physical native and hash verification
+[measure] file_verify_us=641 file_bytes=28161
+[pass] FE02 writer start
+[pass] FE04 bound finalized mutation
+[measure] writer_push_finalize_us=11932 input_aus=30 segments=1
+[pass] FE02 expected segment count
+[pass] FE01 expected file_evidence on actual writer binding (feature absent)
+[pass] FE02 physical native and hash verification
+[measure] file_verify_us=487 file_bytes=19687
+[pass] FE02 writer start
+[pass] FE04 bound finalized mutation
+[measure] writer_push_finalize_us=10494 input_aus=12 segments=1
+[pass] FE02 expected segment count
+[pass] FE01 expected file_evidence on actual writer binding (feature absent)
+[pass] FE02 physical native and hash verification
+[measure] file_verify_us=298 file_bytes=11900
+[pass] FE01 strict evidence roundtrip
+[pass] FE01 absent existing bytes unchanged
+[pass] FE06 reject ordinal
+[pass] FE06 reject original PTS
+[pass] FE06 reject origin
+[pass] FE06 reject mux DTS
+[pass] FE06 reject native PTS
+[pass] FE06 reject native duration
+[pass] FE06 reject timescale
+[pass] FE06 reject duplicate VCL
+[pass] FE06 reject duplicate raw
+[pass] FE06 reject missing sample
+[pass] FE06 reject profile
+[pass] FE06 reject hash format
+[pass] FE06 reject overflow
+[pass] FE06 reject file hash binding
+[pass] FE06 unknown duplicate or oversize JSON
+[pass] FE06 unknown duplicate or oversize JSON
+[pass] FE06 unknown duplicate or oversize JSON
+[pass] FE06 reject evidence version
+[pass] FE03 reject zero box with recomputed file hash
+[pass] FE03 reject duplicate box with recomputed file hash
+[pass] FE03 reject outside mdat with recomputed file hash
+[pass] FE03 reject table count with recomputed file hash
+[pass] FE03 reject sample count overflow with recomputed file hash
+[pass] FE03 reject box overflow with recomputed file hash
+[pass] FE03 reject edit rate with recomputed file hash
+[pass] FE03 reject edit version with recomputed file hash
+[pass] FE03 reject truncated with recomputed file hash
+[pass] FE05 journal reopen
+[pass] FE05 SQLite reopen
+[pass] FE05 exact evidence roundtrip
+[pass] FE05 checkpoint
+[measure] checkpoint_us=14699
+[pass] FE05 journal reopen
+[pass] FE05 JSONL fallback reopen
+[pass] FE05 exact evidence roundtrip
+[pass] FE04 write exact evidence Ready
+[pass] FE05 Ready journal
+[pass] FE05 Ready catalog
+[pass] FE05 Ready replay actual file verification
+[pass] FE04 Ready cleaned
+[pass] FE06 forged sample hash physical Ready refusal
+[pass] FE02 writer start
+[pass] FE04 bound finalized mutation
+[measure] writer_push_finalize_us=1288322 input_aus=4096 segments=1
+[pass] FE07 4096 single segment
+[pass] FE07 actual4096 within2MiB
+[measure] binding_bytes=1077251 serialize_parse_us=101899
+[pass] FE07 structure-only validation
+[pass] FE07 structure-only validation
+[pass] FE07 structure-only validation
+[pass] FE07 structure-only validation
+[pass] FE07 structure-only validation
+[pass] FE07 structure-only validation
+[pass] FE07 structure-only validation
+[pass] FE07 structure-only validation
+[pass] FE07 structure-only validation
+[pass] FE07 structure-only validation
+[measure] structure_validate10_us=79505
+[pass] FE07 4097 structure refusal
+[observation] FE07 legacy=0 derived_sources=2 built=1 bytes=2161313 parse=1 error=
+[pass] FE07 two evidence or legacy-eight intent roundtrip
+[observation] FE07 legacy=0 derived_sources=8 built=0 bytes=0 parse=0 error=job-json-cap
+[observation] FE07 legacy=1 derived_sources=2 built=1 bytes=318229 parse=1 error=
+[pass] FE07 two evidence or legacy-eight intent roundtrip
+[observation] FE07 legacy=1 derived_sources=8 built=1 bytes=1269547 parse=1 error=
+[pass] FE07 two evidence or legacy-eight intent roundtrip
+[pass] FE05 journal reopen
+[pass] FE05 SQLite reopen
+[pass] FE05 exact evidence roundtrip
+[pass] FE05 checkpoint
+[measure] checkpoint_us=185569
+[pass] FE05 journal reopen
+[pass] FE05 JSONL fallback reopen
+[pass] FE05 exact evidence roundtrip
+[pass] FE02 writer start
+[recording] file evidence unavailable: capture-profile-or-cap
+[pass] FE04 bound finalized mutation
+[measure] writer_push_finalize_us=283840 input_aus=4097 segments=1
+[pass] FE08 cap keeps existing recording
+[pass] FE02 writer start
+[recording] file evidence unavailable: ambiguous-original-vcl
+[pass] FE04 bound finalized mutation
+[measure] writer_push_finalize_us=6214 input_aus=12 segments=1
+[pass] FE08 ambiguous VCL keeps recording
+[pass] FE02 writer start
+[recording] file evidence unavailable: capture-profile-or-cap
+[pass] FE04 bound finalized mutation
+[measure] writer_push_finalize_us=4938 input_aus=12 segments=1
+[pass] FE08 unsupported original DTS keeps recording
+[summary] checks_pass=99 checks_fail=0 scope=file-evidence-storage-only derived-eight-cap=see-observation request_fully_satisfied=not-evaluated
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-file-evidence.em26Tr bytes=18860347 removed=true
+[elapsed] seconds=12 source=bash-SECONDS

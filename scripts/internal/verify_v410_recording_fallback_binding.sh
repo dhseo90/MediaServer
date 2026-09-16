@@ -21,7 +21,7 @@ cleanup() {
 }
 trap cleanup EXIT
 read -r -a CRYPTO <<< "$(pkg-config --cflags --libs openssl)"
-SOURCES=(recording_contracts recording_journal recording_catalog retention_coordinator event_recording_bridge event_clip_deriver recording_finalize_recovery recording_media_inspector recording_read_service)
+SOURCES=(recording_contracts recording_journal recording_catalog retention_coordinator event_recording_bridge event_clip_deriver recording_finalize_recovery recording_file_evidence recording_media_inspector recording_read_service)
 INPUTS=()
 for name in "${SOURCES[@]}"; do INPUTS+=("${ROOT_DIR}/src/recording/${name}.cpp"); done
 "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"${ROOT_DIR}/include" \

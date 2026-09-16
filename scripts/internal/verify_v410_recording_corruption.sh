@@ -14,7 +14,7 @@ trap cleanup EXIT
 read -r -a SQLITE_FLAGS <<< "$(pkg-config --cflags --libs sqlite3)"
 "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"${ROOT_DIR}/include" \
  "${SCRIPT_DIR}/recording_corruption_smoke.cpp" "${ROOT_DIR}/src/recording/recording_catalog.cpp" \
- "${ROOT_DIR}/src/recording/recording_finalize_recovery.cpp" \
+ "${ROOT_DIR}/src/recording/recording_finalize_recovery.cpp" "${ROOT_DIR}/src/recording/recording_file_evidence.cpp" \
  "${ROOT_DIR}/src/recording/recording_media_inspector.cpp" \
  "${ROOT_DIR}/src/recording/recording_journal.cpp" "${ROOT_DIR}/src/recording/recording_derived_job.cpp" "${ROOT_DIR}/src/recording/recording_derived_job_ready.cpp" "${ROOT_DIR}/src/recording/recording_contracts.cpp" \
  "${ROOT_DIR}/src/recording/retention_coordinator.cpp" "${ROOT_DIR}/src/domain/strict_json.cpp" \

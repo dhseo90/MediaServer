@@ -416,13 +416,23 @@ bool RecordingCatalog::DerivedJobProtectsLocked(const std::string& id) const {
     return false;
 }
 bool RecordingCatalog::ValidateDerivedJobSourcesLocked(const DerivedJobIntentV1& job,std::string* error) const {
+    const auto binding_matches=[](const RecordingSourceBindingV1& live,const RecordingSourceBindingV1& saved) {
+        if(saved.file_evidence)return SerializeRecordingSourceBindingV1(live)==SerializeRecordingSourceBindingV1(saved);
+        // 기존 job은 file_evidence 비소비 snapshot이다. 원본 identity의 모든 기존 필드는 동일해야 한다.
+        return live.schema==saved.schema&&live.segment_id==saved.segment_id&&live.source_id==saved.source_id&&
+            live.channel_id==saved.channel_id&&live.store_id==saved.store_id&&live.media_epoch_id==saved.media_epoch_id&&
+            live.source_generation==saved.source_generation&&live.generation_order==saved.generation_order&&live.track_id==saved.track_id&&
+            live.index_complete==saved.index_complete&&live.last_accepted_ordinal==saved.last_accepted_ordinal&&live.incomplete_reason==saved.incomplete_reason&&
+            live.samples.size()==saved.samples.size()&&std::equal(live.samples.begin(),live.samples.end(),saved.samples.begin(),
+                [](const auto& a,const auto& b){return a.ordinal==b.ordinal&&a.pts_ns==b.pts_ns;});
+    };
     for(const auto& source:job.sources) {
         const auto segment=segments_v2_.find(source.segment.segment_id);
         const auto binding=source_bindings_.find(source.segment.segment_id);
         if(segment==segments_v2_.end()||binding==source_bindings_.end()||
            EffectiveLifecycleV2Locked(source.segment.segment_id)!=RecordingLifecycle::Finalized||
            SerializeRecordingSegmentV2(segment->second)!=SerializeRecordingSegmentV2(source.segment)||
-           SerializeRecordingSourceBindingV1(binding->second)!=SerializeRecordingSourceBindingV1(source.binding)||
+           !binding_matches(binding->second,source.binding)||
            !media_relpaths_.count(source.segment.segment_id))return Fail(error,"derived job live source 결박 거부");
     }
     for(const auto& output:job.outputs) {
@@ -949,11 +959,12 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
         case RecordingMutationType::SegmentV2Finalized:
         case RecordingMutationType::SegmentV2BoundFinalized: {
             const bool bound=mutation.mutation_type==RecordingMutationType::SegmentV2BoundFinalized;
-            const auto segment_json=ObjectField(mutation.payload_json,"segment");
-            const auto relative=StringField(mutation.payload_json,"mediaRelpath");
             ingress::StrictJsonObjectDocument payload;
+            const bool parsed=ingress::ParseStrictJsonObjectDocument(mutation.payload_json,&payload,error);
+            const auto segment_json=ingress::StrictJsonObjectField(payload,"segment");
+            const auto relative=ingress::StrictJsonStringField(payload,"mediaRelpath");
             RecordingSegmentV2 v;
-            ok=ingress::ParseStrictJsonObjectDocument(mutation.payload_json,&payload,error) && payload.members.size()==(bound?3U:2U) &&
+            ok=parsed && payload.members.size()==(bound?3U:2U) &&
                segment_json && relative && ParseRecordingSegmentV2(*segment_json,&v,error) && v.segment_id==mutation.entity_id &&
                ValidateV2Locked(v,*relative,error);
             const auto order=orders_v2_.find(v.order_request_id);
@@ -961,7 +972,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                 order->second.channel_id!=v.channel_id || order->second.sequence!=v.order_sequence)) ok=Fail(error,"V2 예약 결박 오류");
             RecordingSourceBindingV1 binding;
             if(ok&&bound) {
-                const auto json=ObjectField(mutation.payload_json,"sourceBinding");
+                const auto json=ingress::StrictJsonObjectField(payload,"sourceBinding");
                 ok=json&&ParseRecordingSourceBindingV1(*json,&binding,error)&&
                    !segments_v2_.count(v.segment_id)&&ValidateRecordingSourceBindingForSegment(binding,v,error);
             }
@@ -2521,8 +2532,10 @@ bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mu
         sqlite3_finalize(statement);
     } else if (mutation.mutation_type == RecordingMutationType::SegmentV2Finalized ||
                mutation.mutation_type == RecordingMutationType::SegmentV2BoundFinalized) {
-        const auto json=ObjectField(mutation.payload_json,"segment");
-        const auto relative=StringField(mutation.payload_json,"mediaRelpath");RecordingSegmentV2 v;
+        ingress::StrictJsonObjectDocument payload;
+        if(!ingress::ParseStrictJsonObjectDocument(mutation.payload_json,&payload,error)){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+        const auto json=ingress::StrictJsonObjectField(payload,"segment");
+        const auto relative=ingress::StrictJsonStringField(payload,"mediaRelpath");RecordingSegmentV2 v;
         if(!json||!relative||!ParseRecordingSegmentV2(*json,&v,error)||
            sqlite3_prepare_v2(sqlite_db_,"INSERT OR IGNORE INTO recording_segments_v2 VALUES(?,?,?)",-1,&statement,nullptr)!=SQLITE_OK){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
         BindText(statement,1,v.segment_id);BindText(statement,2,SerializeRecordingSegmentV2(v));BindText(statement,3,*relative);
@@ -2532,7 +2545,7 @@ bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mu
         BindText(statement,1,v.segment_id);const bool state_ok=sqlite3_step(statement)==SQLITE_DONE;sqlite3_finalize(statement);
         if(!state_ok){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
         if(mutation.mutation_type==RecordingMutationType::SegmentV2BoundFinalized) {
-            const auto json=ObjectField(mutation.payload_json,"sourceBinding");RecordingSourceBindingV1 binding;
+            const auto json=ingress::StrictJsonObjectField(payload,"sourceBinding");RecordingSourceBindingV1 binding;
             if(!json||!ParseRecordingSourceBindingV1(*json,&binding,error)||
                sqlite3_prepare_v2(sqlite_db_,"INSERT INTO recording_source_bindings VALUES(?,?)",-1,&statement,nullptr)!=SQLITE_OK){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
             BindText(statement,1,v.segment_id);BindText(statement,2,SerializeRecordingSourceBindingV1(binding));

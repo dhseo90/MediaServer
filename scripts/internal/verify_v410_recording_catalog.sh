@@ -34,7 +34,7 @@ compile_catalog() {
   "${SCRIPT_DIR}/recording_catalog_smoke.cpp" \
   "${BUILD_DIR}/recording_journal.o" \
   "${ROOT_DIR}/src/recording/recording_catalog.cpp" \
- "${ROOT_DIR}/src/recording/recording_finalize_recovery.cpp" \
+ "${ROOT_DIR}/src/recording/recording_finalize_recovery.cpp" "${ROOT_DIR}/src/recording/recording_file_evidence.cpp" \
  "${ROOT_DIR}/src/recording/recording_media_inspector.cpp" \
   "${ROOT_DIR}/src/recording/retention_coordinator.cpp" \
   "${ROOT_DIR}/src/recording/recording_derived_job.cpp" "${ROOT_DIR}/src/recording/recording_derived_job_ready.cpp" "${ROOT_DIR}/src/recording/recording_contracts.cpp" \

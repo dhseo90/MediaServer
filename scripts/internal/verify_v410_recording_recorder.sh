@@ -29,7 +29,7 @@ fi
   "${ROOT_DIR}/src/ingress/source_view_registry.cpp" \
   "${ROOT_DIR}/src/ingress/source_view_application_service.cpp" \
   "${ROOT_DIR}/src/recording/gstreamer_segment_writer.cpp" \
-  "${ROOT_DIR}/src/recording/recording_finalize_recovery.cpp" \
+  "${ROOT_DIR}/src/recording/recording_finalize_recovery.cpp" "${ROOT_DIR}/src/recording/recording_file_evidence.cpp" \
   "${ROOT_DIR}/src/recording/recording_media_inspector.cpp" \
   "${ROOT_DIR}/src/recording/recording_catalog.cpp" \
   "${ROOT_DIR}/src/recording/recording_journal.cpp" \
