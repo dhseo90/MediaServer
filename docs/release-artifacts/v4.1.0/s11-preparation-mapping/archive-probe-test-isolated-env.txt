@@ -1,0 +1,21 @@
+[environment] ownedCache=true ownedRegistry=true headless=true compileAndRunSameEnv=true
+[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-irW1ve bytes=18181668 removed=true
+✔ LP05-01 typed failed known0 (1943.891375ms)
+✔ LP05-01 typed failed known1 (349.027958ms)
+✔ LP05-01 typed failed known2 (349.870208ms)
+✔ LP05-02 typed failed unknown3 (351.02025ms)
+✔ LP05-02 typed failed unknown4 (354.287333ms)
+✔ LP05-03 complete mode still rejects failed job (349.273625ms)
+✔ LP05-03 diagnostic rejects nonfailed state safely (281.090875ms)
+✔ LP05-03 rejects original recordings index without mutation (272.507958ms)
+✔ LP05-06 valid media with synthetic failed reason does not reproduce failure (593.471166ms)
+✔ LP05-03 rejects symlink copy without original mutation (274.731041ms)
+✔ LP05-03 rejects hardlink copy without original mutation (272.310959ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7009.710291

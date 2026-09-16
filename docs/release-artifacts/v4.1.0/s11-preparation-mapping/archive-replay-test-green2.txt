@@ -1,0 +1,10 @@
+[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-X9F7sQ bytes=11529930 removed=true
+✔ LP05-06 valid media with synthetic failed reason does not reproduce failure (3459.86025ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5054.658791

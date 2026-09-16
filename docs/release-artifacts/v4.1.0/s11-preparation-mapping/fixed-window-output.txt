@@ -1,0 +1,443 @@
+✔ P0-DIAG01 정상 header/body 시간·안전 route 분류와 비밀 미노출 (0.664083ms)
+✔ P0-DIAG02 header timeout 고정 진단과 실패 유지 (0.280959ms)
+✔ P0-DIAG03 body timeout 부분 수신 측정·완료 거부 (0.132583ms)
+✔ S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박 (0.74925ms)
+✔ S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부 (0.194958ms)
+✔ S11-CI02 nonzero 실패 후 나머지 미실행 (0.074375ms)
+✔ S11-CI02 signal 실패 후 나머지 미실행 (0.058208ms)
+✔ S11-CI02 output-limit 실패 후 나머지 미실행 (0.047833ms)
+✔ S11-CI02 summary-missing 실패 후 나머지 미실행 (0.040542ms)
+✔ S11-CI02 summary-duplicate 실패 후 나머지 미실행 (0.042792ms)
+✔ S11-CI02 cleanup-failed 실패 후 나머지 미실행 (0.04325ms)
+✔ S11-CI02 port-missing 실패 후 나머지 미실행 (0.049625ms)
+✔ S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리 (0.144834ms)
+✔ S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부 (0.684041ms)
+✔ S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup (4.443458ms)
+✔ S11-CI05 누락·중복item·불안정total·truncated·cap 거부 (0.171667ms)
+✔ S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부 (0.148291ms)
+✔ S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 (0.1905ms)
+✔ S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리 (0.143292ms)
+✔ S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 (0.070792ms)
+✔ LP04-A 목표 이전은 대기하고 해당 구간만 선택 (0.322084ms)
+✔ LP04-A 경계와 프레임을 놓치면 다른 구간으로 대체 금지 (0.151041ms)
+✔ LP04-A 실제 dispatch 정확 일치만 허용 (0.06825ms)
+✔ LP03-A failed는 완료 대기 대신 즉시 중단 (0.484916ms)
+✔ P0-HTTP01 pending은 전이 완료가 아님 (0.05025ms)
+✔ P0-HTTP01 partial은 지연 관측만 가능 (0.041417ms)
+✔ P0-HTTP01 다른 참조와 모순 파일은 거부 (0.064292ms)
+✔ P0-HTTP01 원래 완전 출력 검사는 부분 출력 거부 유지 (0.097958ms)
+✔ P0-STATE01 complete1 count와 기존 two-output 거부 구분 (0.570584ms)
+✔ P0-STATE02 pending partial complete2 변화와 8개 상한 (0.315416ms)
+✔ P0-STATE03 raw ID/path/unknown enum/request 비밀 미노출 (0.053875ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 31
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 42.145333
+
+[http-timing] {"sequence":1,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":3,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":2,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":1,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":3,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":1,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":4,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":1,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":5,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":1,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":6,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":1,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":7,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":1,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":8,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":1,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":9,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":1,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":10,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":1,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":11,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":1,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":12,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":0,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":13,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":0,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":14,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":0,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":15,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":0,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":16,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":0,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":17,"method":"GET","routeClass":"health","status":200,"headerElapsedMs":5,"bodyElapsedMs":1,"totalElapsedMs":6,"bytes":15,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":18,"method":"GET","routeClass":"ice","status":200,"headerElapsedMs":2,"bodyElapsedMs":0,"totalElapsedMs":2,"bytes":222,"phase":"complete","outcome":"ok"}
+[pass] S11-CI09 product-1 healthy isolated ICE
+[http-timing] {"sequence":19,"method":"POST","routeClass":"source","status":201,"headerElapsedMs":103,"bodyElapsedMs":0,"totalElapsedMs":103,"bytes":428,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":20,"method":"POST","routeClass":"tap-create","status":200,"headerElapsedMs":55,"bodyElapsedMs":0,"totalElapsedMs":55,"bytes":1187,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":21,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":23,"bodyElapsedMs":0,"totalElapsedMs":23,"bytes":4030,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":22,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":5966,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":23,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":24,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":5968,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":25,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":26,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":6144,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":27,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":28,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":6275,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":29,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":30,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":6413,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":31,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":32,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":6406,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":33,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":34,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":6544,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":35,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":36,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":6678,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":37,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":38,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":6813,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":39,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":40,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":6948,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":41,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":42,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":6947,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":43,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":44,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":7090,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":45,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":46,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":7228,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":47,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":48,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":7366,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":49,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":50,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":7366,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":51,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":52,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":7492,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":53,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":54,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":7630,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":55,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":56,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":7760,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":57,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":58,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":7896,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":59,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":60,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":7899,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":61,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":62,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":8028,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":63,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":64,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":8160,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":65,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":66,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":8300,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":67,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":68,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":8435,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":69,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":70,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":8431,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":71,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":72,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":8564,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":73,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":74,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":8707,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":75,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":76,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":8840,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":77,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":78,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":8976,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":79,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":80,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":8976,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":81,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":82,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":9111,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":83,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":84,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":9245,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":85,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":86,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":9383,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":87,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":88,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":9382,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":89,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":90,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":9514,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":91,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":92,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":9648,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":93,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":94,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10195,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":95,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":96,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10380,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":97,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":98,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10384,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":99,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":100,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10562,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":101,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":102,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10744,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":103,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":104,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10818,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":105,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":106,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10861,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":107,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":108,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10865,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":109,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":110,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10916,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":111,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":112,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10964,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":113,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":114,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11013,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":115,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":116,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":2,"bodyElapsedMs":0,"totalElapsedMs":2,"bytes":11060,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":117,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":118,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11066,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":119,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":120,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11114,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":121,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":122,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11149,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":123,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":124,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11190,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":125,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":126,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11192,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":127,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":128,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11240,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":129,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":130,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11292,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":131,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":132,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11332,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":133,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":134,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11385,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":135,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":136,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11384,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":137,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":138,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11431,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":139,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":140,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11476,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":141,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":142,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11523,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":143,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":144,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11561,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":145,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":146,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11553,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":147,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":148,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11611,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":149,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":150,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11648,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":151,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":152,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11694,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":153,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":154,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11696,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":155,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":156,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11738,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":157,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":158,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11785,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":159,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":160,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11828,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":161,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":162,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11872,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":163,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":164,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11878,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":165,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":166,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11918,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":167,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":168,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11967,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":169,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":170,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12011,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":171,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":172,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12058,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":173,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":174,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12061,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":175,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":176,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12053,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":177,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":178,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12059,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":179,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":12,"bodyElapsedMs":0,"totalElapsedMs":12,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"8233333333"}
+[http-timing] {"sequence":180,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12057,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":181,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"8366666666"}
+[http-timing] {"sequence":182,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12055,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":183,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":10,"bodyElapsedMs":0,"totalElapsedMs":10,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"8500000000"}
+[http-timing] {"sequence":184,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12049,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":185,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"8633333333"}
+[http-timing] {"sequence":186,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12047,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":187,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"8633333333"}
+[http-timing] {"sequence":188,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12051,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":189,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"8766666666"}
+[http-timing] {"sequence":190,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12054,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":191,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"8900000000"}
+[http-timing] {"sequence":192,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12049,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":193,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"9033333333"}
+[http-timing] {"sequence":194,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12049,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":195,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"9166666666"}
+[http-timing] {"sequence":196,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12049,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":197,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"9300000000"}
+[http-timing] {"sequence":198,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12043,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":199,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"9433333333"}
+[http-timing] {"sequence":200,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":4,"bodyElapsedMs":0,"totalElapsedMs":4,"bytes":12048,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":201,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":12,"bodyElapsedMs":0,"totalElapsedMs":12,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"9566666666"}
+[http-timing] {"sequence":202,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12048,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":203,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"9566666666"}
+[http-timing] {"sequence":204,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12044,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":205,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"9700000000"}
+[http-timing] {"sequence":206,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12047,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":207,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"9833333333"}
+[http-timing] {"sequence":208,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12043,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":209,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"9966666666"}
+[http-timing] {"sequence":210,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12056,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":211,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"10100000000"}
+[http-timing] {"sequence":212,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12057,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":213,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"10233333333"}
+[http-timing] {"sequence":214,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12060,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":215,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"10366666666"}
+[http-timing] {"sequence":216,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":5,"bodyElapsedMs":0,"totalElapsedMs":5,"bytes":12056,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":217,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"10500000000"}
+[http-timing] {"sequence":218,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12066,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":219,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"10500000000"}
+[http-timing] {"sequence":220,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12066,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":221,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"10633333333"}
+[http-timing] {"sequence":222,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12067,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":223,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"10766666666"}
+[http-timing] {"sequence":224,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12073,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":225,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"10900000000"}
+[http-timing] {"sequence":226,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12073,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":227,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"11033333333"}
+[http-timing] {"sequence":228,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12074,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":229,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":10,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"11166666666"}
+[http-timing] {"sequence":230,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12085,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":231,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":10,"bodyElapsedMs":0,"totalElapsedMs":10,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"11300000000"}
+[http-timing] {"sequence":232,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":2,"bodyElapsedMs":0,"totalElapsedMs":2,"bytes":12091,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":233,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"11433333333"}
+[http-timing] {"sequence":234,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12091,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":235,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"11433333333"}
+[http-timing] {"sequence":236,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12092,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":237,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"11566666666"}
+[http-timing] {"sequence":238,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12094,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":239,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"11700000000"}
+[http-timing] {"sequence":240,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12090,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":241,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"11833333333"}
+[http-timing] {"sequence":242,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12103,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":243,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"11966666666"}
+[http-timing] {"sequence":244,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12100,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":245,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":10,"bodyElapsedMs":0,"totalElapsedMs":10,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"12100000000"}
+[http-timing] {"sequence":246,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12111,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":247,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"12233333333"}
+[http-timing] {"sequence":248,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12109,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":249,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"12233333333"}
+[http-timing] {"sequence":250,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12114,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":251,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"12366666666"}
+[http-timing] {"sequence":252,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12106,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":253,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"12500000000"}
+[http-timing] {"sequence":254,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12111,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":255,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"12633333333"}
+[http-timing] {"sequence":256,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12128,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":257,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":12,"bodyElapsedMs":0,"totalElapsedMs":12,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"12766666666"}
+[http-timing] {"sequence":258,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12124,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":259,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"12900000000"}
+[http-timing] {"sequence":260,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12133,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":261,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":10,"bodyElapsedMs":0,"totalElapsedMs":10,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"13033333333"}
+[http-timing] {"sequence":262,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12130,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":263,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"13166666666"}
+[http-timing] {"sequence":264,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12125,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":265,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"13166666666"}
+[http-timing] {"sequence":266,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12273,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":267,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":12,"bodyElapsedMs":0,"totalElapsedMs":12,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"13300000000"}
+[http-timing] {"sequence":268,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12152,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":269,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"13433333333"}
+[http-timing] {"sequence":270,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12142,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":271,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"13566666666"}
+[http-timing] {"sequence":272,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12160,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":273,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"13700000000"}
+[http-timing] {"sequence":274,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10342,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":275,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"13833333333"}
+[http-timing] {"sequence":276,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10348,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":277,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"13966666666"}
+[http-timing] {"sequence":278,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10345,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":279,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"14100000000"}
+[http-timing] {"sequence":280,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10348,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":281,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"14100000000"}
+[http-timing] {"sequence":282,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10350,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":283,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"14233333333"}
+[http-timing] {"sequence":284,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12172,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":285,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"14366666666"}
+[http-timing] {"sequence":286,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12168,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":287,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"14500000000"}
+[http-timing] {"sequence":288,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10348,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":289,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":12,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"14633333333"}
+[http-timing] {"sequence":290,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10343,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":291,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"14766666666"}
+[http-timing] {"sequence":292,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":5,"bodyElapsedMs":0,"totalElapsedMs":5,"bytes":10345,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":293,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"14900000000"}
+[http-timing] {"sequence":294,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":4,"bodyElapsedMs":0,"totalElapsedMs":4,"bytes":12185,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":295,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"15033333333"}
+[http-timing] {"sequence":296,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12185,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":297,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"15033333333"}
+[http-timing] {"sequence":298,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12162,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":299,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"15166666666"}
+[http-timing] {"sequence":300,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12177,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":301,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"15300000000"}
+[http-timing] {"sequence":302,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10355,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":303,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"15433333333"}
+[http-timing] {"sequence":304,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10356,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":305,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"15566666666"}
+[http-timing] {"sequence":306,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10354,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":307,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"15700000000"}
+[http-timing] {"sequence":308,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12183,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":309,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"15833333333"}
+[http-timing] {"sequence":310,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12183,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":311,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"15833333333"}
+[http-timing] {"sequence":312,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12182,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":313,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"15966666666"}
+[http-timing] {"sequence":314,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12182,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":315,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"16100000000"}
+[http-timing] {"sequence":316,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12179,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":317,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"16233333333"}
+[http-timing] {"sequence":318,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12178,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":319,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"16366666666"}
+[http-timing] {"sequence":320,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12176,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":321,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57110,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"8200000000","tapPts":"16500000000"}
+[http-timing] {"sequence":322,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12176,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":323,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":22,"bodyElapsedMs":0,"totalElapsedMs":22,"bytes":83588,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":324,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":12,"bodyElapsedMs":0,"totalElapsedMs":12,"bytes":39637,"phase":"complete","outcome":"ok"}
+[reproduction-observation] {"sourceEndPts":"16666666666","tapPts":"16633333333"}
+[http-timing] {"sequence":325,"method":"DELETE","routeClass":"tap","status":200,"headerElapsedMs":82,"bodyElapsedMs":0,"totalElapsedMs":82,"bytes":26,"phase":"complete","outcome":"ok"}
+[fail] current actual app: reproduction-boundary-missed
+[pass] S11-CI08 product-1 exit0 ports returned
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-vc1uXF","bytes":32845008,"rootAbsent":true,"failureCount":0,"processes":[{"pid":36582,"exitCode":0,"signalCode":null,"graceful":true,"ports":[{"kind":"http","port":50480,"closed":true},{"kind":"rtsp","port":50481,"closed":true}]}],"udpClosed":true}
+{"mode":"current-http-latency","passed":2,"failed":1,"latencyPass":false,"actualEventPass":false,"restartPass":false,"expectedOutputCount":2,"observedOutputCounts":[],"cleanup":{"rootAbsent":true,"failureCount":0,"processes":[{"pid":36582,"exitCode":0,"signalCode":null,"graceful":true,"ports":[{"kind":"http","port":50480,"closed":true},{"kind":"rtsp","port":50481,"closed":true}]}]},"elapsedMs":20386}

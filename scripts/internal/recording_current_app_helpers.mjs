@@ -1,4 +1,30 @@
 // 공개 DTO 관측 helper. 원장 replay/parser를 구현하지 않는다.
+import {createHash} from 'node:crypto';
+export function summarizeOverlappingSources(page,eventMs){
+  need(Number.isSafeInteger(eventMs),'source-diagnostic-time');
+  const start=(BigInt(eventMs)-750n)*1000000n,end=(BigInt(eventMs)+750n)*1000000n;
+  const rows=[],seen=new Set(),segments=new Set();let unknownCount=0;
+  for(const row of [...page.items,...page.unplacedItems]){
+    if(row.kind!=='continuous')continue;
+    need(typeof row.segmentId==='string'&&row.segmentId.length<=512,'source-diagnostic-id');
+    const range=row.mediaRange,num=v=>typeof v==='string'&&/^-?\d{1,20}$/.test(v);
+    const key=JSON.stringify([row.segmentId,range?.startPts,range?.endPts,range?.timeBaseNum,range?.timeBaseDen,row.catalogState,row.playable]);
+    if(seen.has(key))continue;seen.add(key);
+    if(!range||range.timeBaseNum!=='1'||range.timeBaseDen!=='1000000000'||!num(range.startPts)||!num(range.endPts)){unknownCount++;continue;}
+    if(BigInt(range.startPts)>=end||BigInt(range.endPts)<=start)continue;
+    need(rows.length<128,'source-diagnostic-cap');
+    segments.add(row.segmentId);
+    rows.push({idHash:createHash('sha256').update(row.segmentId).digest('hex'),startPts:range.startPts,endPts:range.endPts,
+      catalogState:['finalized','deleted','corrupt','deletion-pending','unknown'].includes(row.catalogState)?row.catalogState:'other',playable:row.playable===true});
+  }
+  return {temporalOnly:true,viewBasis:'timeline-mapping-slices',segmentCount:segments.size,startNs:String(start),endNs:String(end),unknownCount,rows};
+}
+export function failedWindowGate(sourceEnd,tapPts){
+  need(sourceEnd<=16500000000n,'reproduction-boundary-missed');
+  need(tapPts<=16900000000n,'reproduction-frame-missed');
+  return sourceEnd===16500000000n&&tapPts>=16766666666n;
+}
+export function requireFailedWindowDispatch(pts){need(pts===16900000000,'reproduction-dispatch-mismatch');}
 // HTTP 지연 관측 전용이다. 요청 완전성·복수 출력 합격으로 사용하지 않는다.
 export function latencyTransitionOutputs(page,eventId,referenceId){
   const rows=[...page.items,...page.unplacedItems].filter(x=>x.eventId===eventId);

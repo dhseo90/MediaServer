@@ -2,6 +2,16 @@
 
 ## 2026-09-16 보완 진단 1~5 단계 사전등록
 
+실제1회 결과: exit0/31.709초,193timeline최대3590ms,partial1출력. failed미재현으로 실제실패입력/재현/제품수정 미완료다. overlap IDdedup 결함을추가발견해 실제전수관측증거를무효화하고 mapping반례RED→helper최종33/33 PASS로보완했다. 보완후 actual추가실행없음.
+[최종 개별결과·cleanup](release-artifacts/v4.1.0/s11-preparation-mapping/diagnostic-replay-report.md), [릴리즈 잔여 전수표](release-artifacts/v4.1.0/s11-preparation-mapping/release-readiness-20260916.md).
+
+LP05-04 추가 반례 사전등록: timeline_projection.cpp:95~97은 동일 원본을 mapping별 item으로 나누므로 ID만 dedup하면 뒤쪽 중첩 slice를 놓친다. 같은ID의 앞선비중첩/뒤쪽중첩2개 입력에서2slice·1segment를 확인한다. 기존 실제1회 관측 로그의 '모든원본' 증거는 무효이며 HTTP/partial 결과와 분리한다.
+
+2~4 준비 결과: LP05-04 및 관련 helper32/32 PASS. LP05-06 mode부재 RED→재현기 구현 후stderr plugin경고 FAIL→초기화 출력범위 보완 focused PASS.
+메인이 공유GST캐시 사용가능성을 추가 발견하여 test환경을 root-local cache/registry/headless로 고정, 영향11개 전수 exit0/7.010초로 재검증했다. 과거 cache위치는 미확인이며 공유cache 임의삭제 안함.
+[helper 개별결과](release-artifacts/v4.1.0/s11-preparation-mapping/diagnostic-replay-report.md), [환경격리11개](release-artifacts/v4.1.0/s11-preparation-mapping/archive-probe-test-isolated-env.txt), [재현기 RED](release-artifacts/v4.1.0/s11-preparation-mapping/archive-replay-test-red.txt), [경고실패](release-artifacts/v4.1.0/s11-preparation-mapping/archive-replay-test-green.txt), [focused GREEN](release-artifacts/v4.1.0/s11-preparation-mapping/archive-replay-test-green2.txt).
+실제 앱·실제 실패입력 재현은 이 준비검사와 구분한다. 임시 출력은 소유root 안에서만 생성하고 전부삭제했다. 원출력에 각 root/bytes/removed 기록을 보존했다.
+
 1번 결과: 검증기 journal.Open 누락과 managed SQLite 경로 불일치를 보완했다. 이는 제품 job 실패 원인과 별개다.
 `node --test scripts/internal/recording_current_archive_probe.test.mjs`: 최초6FAIL/3PASS(exit1), 보존용동일RED1회 뒤 최소수정9/9(exit0), 원본index거부 보강후10/10(exit0,17.241869초).
 중복 RED는 메인의 재실행중단 전달 전 시작된 실행이며 추가 반복하지 않았다. known/nonfailed 선수실패를 정상진단 증거로 쓰지 않는다.
@@ -37,6 +47,9 @@
 | LP05-05 | 실제1회·실패 입력 | 기존 실제 앱1회; 실패한 경우 typed Catalog에서 입력을 추출하고 원본불변 확인 | v4.1.0 |
 | LP05-06 | 독립 재현 | 확보된 실패입력이 있을 때 기존 C++ remux로 동일 실패 확인; 미확보면 미실행 | v4.1.0 |
 | LP05-07 | 원인 수정 | 원인확정 후 해당 경로의 RED/GREEN·영향회귀; 미확정이면 미실행 | v4.1.0 |
+
+LP05-06 자체검사 세부: typed fixture에 저장한 임의 failed 사유와 정상 원본을 기존 remux에 재입력한 결과가 다르면 sameFailure=false여야 한다. 복제본 source hash/원본 불변, 출력 FD 소유·종료 후 제거를 확인한다. unknown끼리 같다고 원인 재현으로 인정하지 않는다. 이 검사는 실제 앱 오류 재현 PASS가 아니다.
+실제 실행에서는 종료 소유 복제본 안에서 같은 typed intent/binding/source FD를 즉시 독립 재생성한 후 정리한다. 서버 live job을 재시도하거나 terminal 상태를 변경하지 않는다. remux 기본30초 및 부모기존15초 상한을 유지하며 서비스 당시 잔여budget과 동일하다고 주장하지 않는다.
 
 | 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
 | --- | --- | --- | --- | --- |

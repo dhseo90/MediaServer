@@ -10,7 +10,9 @@ import {reservePort,stopServer,assertPortClosed} from './verify_v410_recording_u
 import {assertLocalIceConfig} from './verify_local_ice_guard.mjs';
 import {dispatchTuple,correlatedEvent} from './recording_event_correlation.mjs';
 import {allTimelinePages,eventOutputs,verifyRestart,measuredHttpResponse,summarizeEventState,latencyTransitionOutputs} from './recording_current_app_helpers.mjs';
-const latencyOnly=process.argv.slice(2).length===1&&process.argv[2]==='--latency-only';
+import {failedWindowGate,requireFailedWindowDispatch,summarizeOverlappingSources} from './recording_current_app_helpers.mjs';
+const reproduceFailedWindow=process.argv.length===3&&process.argv[2]==='--reproduce-failed-window';
+const latencyOnly=reproduceFailedWindow||(process.argv.slice(2).length===1&&process.argv[2]==='--latency-only');
 if(process.argv.length>2&&!latencyOnly)throw Error('unsupported-mode');
 let latencyPass=false,failedReference=null;
 const timelineTimings=[];
@@ -98,18 +100,21 @@ async function collectEvent(app,index){
       const sources=[...page.items,...page.unplacedItems].filter(x=>x.kind==='continuous'&&x.mediaRange?.endPts!==null&&x.mediaRange?.timeBaseNum==='1'&&x.mediaRange?.timeBaseDen==='1000000000');
       if(!sources.length)return false;
       sources.sort((a,b)=>BigInt(a.orderSequence)<BigInt(b.orderSequence)?-1:1);const end=BigInt(sources.at(-1).mediaRange.endPts),delta=BigInt(pts)-end;
-      const ready=delta>=250000000n&&delta<=500000000n;
+      if(reproduceFailedWindow)console.log('[reproduction-observation] '+JSON.stringify({sourceEndPts:String(end),tapPts:String(pts)}));
+      const ready=reproduceFailedWindow?failedWindowGate(end,BigInt(pts)):delta>=250000000n&&delta<=500000000n;
       if(ready)console.log('[trigger-timing] '+JSON.stringify({run:index,sourceEndPts:end.toString(),tapPts:String(pts),delta:delta.toString()}));
       return ready;
     },30000);
     await request(app,'PUT',`/lab/analysis/rules/${ruleId}`,rule(ruleId));
     await until('actual-dispatch',async()=>{tuple=dispatchTuple(await request(app,'GET',`/lab/analysis/taps/${tap.tapId}/events?dispatch=1`),tap,ruleId);return tuple;},15000);
     console.log('[dispatch-timing] '+JSON.stringify({run:index,pts:String(tuple.pts)}));
+    if(reproduceFailedWindow)requireFailedWindowDispatch(tuple.pts);
     event=await until('durable-event',()=>correlatedEvent(events(),prior,tuple),10000);
     check(event.recordingLinkId&&event.channelId===tap.streamKey,`S11-CI07 run${index} actual tuple EventRecord reference`);
     await request(app,'PUT',`/lab/analysis/rules/${ruleId}`,rule(ruleId,false));
-    let lastState;
-    const observe=(page,reason)=>{if(!page)return;const state=summarizeEventState(page,event.eventId,event.recordingLinkId,reason),json=JSON.stringify(state);if(json!==lastState){console.log('[timeline-state] '+json);lastState=json;}};
+    let lastState,lastSources;
+    const observe=(page,reason)=>{if(!page)return;const state=summarizeEventState(page,event.eventId,event.recordingLinkId,reason),json=JSON.stringify(state);if(json!==lastState){console.log('[timeline-state] '+json);lastState=json;}
+      const sources=JSON.stringify(summarizeOverlappingSources(page,Math.trunc(tuple.pts/1000000)));if(sources!==lastSources){console.log('[overlapping-sources] '+sources);lastSources=sources;}};
     let rows;
     if(latencyOnly){
       rows=await until('latency-transition',async()=>{
@@ -165,7 +170,7 @@ if(failedReference&&processes.every(app=>app.stopped))try{
   const original=path.join(root,'recordings'),before=scan(original,{hash:true,strict:true}),copy=path.join(root,'projection-copy-1/recordings');
   fs.mkdirSync(path.dirname(copy),{mode:0o700});fs.cpSync(original,copy,{recursive:true,dereference:false,errorOnExist:true});
   check(JSON.stringify(before)===JSON.stringify(scan(copy,{hash:true,strict:true})),'LP03-B diagnostic copy bytes/hash exact');
-  const result=JSON.parse(execFileSync(path.join(root,'archive-probe'),[root,'1',failedReference,'--diagnose-failed'],{env:{PATH:process.env.PATH},timeout:15000,maxBuffer:MiB,encoding:'utf8',stdio:['ignore','pipe','pipe']}));
+  const result=JSON.parse(execFileSync('/bin/bash',['-c','set -e; source "$1"; media_server_apply_homebrew_gst_env; shift; exec "$@"','recording-replay',path.join(repo,'scripts/internal/env_common.sh'),path.join(root,'archive-probe'),root,'1',failedReference,'--replay-failed'],{env:{PATH:process.env.PATH,HOME:root,TMPDIR:path.join(root,'tmp'),MEDIA_SERVER_GST_CACHE_DIR:path.join(root,'gst-cache-replay'),MEDIA_SERVER_GST_PLUGIN_PROFILE:'headless'},timeout:15000,maxBuffer:MiB,encoding:'utf8',stdio:['ignore','pipe','pipe']}));
   console.log('[job-failure-diagnostic] '+JSON.stringify(result));
   check(JSON.stringify(before)===JSON.stringify(scan(original,{hash:true,strict:true})),'LP03-B original unchanged after diagnostic');
 }catch{failed++;console.error('[fail] LP03-B diagnostic unavailable');}

@@ -1,0 +1,30 @@
+[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-Dx1BTD bytes=10645898 removed=true
+✖ LP05-06 valid media with synthetic failed reason does not reproduce failure (1920.852792ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3389.87875
+
+✖ failing tests:
+
+test at scripts/internal/recording_current_archive_probe.test.mjs:29:1
+✖ LP05-06 valid media with synthetic failed reason does not reproduce failure (1920.852792ms)
+  AssertionError [ERR_ASSERTION]: offline typed remux replay must run
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:29:171)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
