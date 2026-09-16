@@ -1,5 +1,168 @@
 # 보완 진단·독립 재현 기록
 
+## 2026-09-17 LP06-A 기본·상세 진단 분리
+
+이번 사용자 승인 1~4 중 C++ 진단 도구 보완이다. 제품 src/include 변경·실제 앱 실행·최초 제품 실패 원인 확정은 아니다. 기본 진단 `--diagnose-basic`은 typed 실패 상태와 intent SHA만 반환하고, 상세 `--diagnose-failed`에서 저장된 선택 원본 식별/시간/binding 요약과 파일 hash 확보 여부를 반환한다. live snapshot을 stored intent로 오인하지 않으며 파일 부재/손상은 ResolveMedia의 fail-closed `unavailable`로 남긴다. 원본 영상/raw intent를 담은 재현 bundle은 아니다.
+
+오류 분류는 3개에서 exact 9개로 확장했다. 근거는 service.cpp 38/233/241, remux.cpp 44/232의 고정 상수다. 접미 원문은 unknown이며 임의 오류 원문은 출력하지 않는다. 기본 진단은 상세 파일검사보다 먼저 호출·보존하도록 다음 JS 작업에서 연결한다.
+
+실행: `node --test scripts/internal/recording_current_archive_probe.test.mjs`. 최초 26개 중 17 PASS/9 FAIL(새 필드/분류 미구현 7개 expected RED, media 수량 3개를 2개로 가정한 fixture 준비 오류 2개). fixture만 바로잡아 missing/corrupt 2개 expected RED 확인 후 구현, 26/26 PASS. 추가 basic mode expected RED 1개 후 전체27/27 PASS, 손상 basic focused1/1 PASS. 유효 증거 28개이며 한 번에28개를 실행한 것으로 표현하지 않는다. raw 출력에 명령의 결과·elapsed·개별 검사를 보존한다. focused 필터는 LP06-A03|LP06-A04, LP06-A08, LP06-A08 basic accepts corrupt 순서다. token start/end/consumed는 집계 source 없음으로 미집계, elapsed는 Node 출력이다.
+
+기존 제품 runtime archive의 source freshness를 확인한 뒤 진단/fixture를 -Wall/-Wextra/-Werror로 컴파일했다. 전체 제품 build는 제품 무변경으로 미실행. UI/30분/120분은 승인 범위 밖. 모든 실행 소유root는 아래 size/removed evidence대로 삭제되었으며 운영/공유 저장소는 건드리지 않았다. hash-error/mismatched race 강제검사는 미실행이며 해당 분기 검증을 주장하지 않는다.
+
+### archive-diagnose-lp06-red.txt
+
+[원출력](archive-diagnose-lp06-red.txt). ℹ tests 26; ℹ pass 17; ℹ fail 9; ℹ duration_ms 12862.169458.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| A-1 | LP06-A01-A02 stored safe evidence and validated file hashes without remux (2437.918625ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-2 | LP06-A03 missing copy media preserves failed diagnosis (184.477458ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-3 | LP06-A04 corrupt copy media preserves failed diagnosis (186.715125ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-4 | LP06-A05 code0 exact known (358.126833ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-5 | LP06-A06 code0 suffix unknown (373.359375ms) | pass | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-6 | LP06-A05 code1 exact known (355.121625ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-7 | LP06-A06 code1 suffix unknown (356.849791ms) | pass | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-8 | LP06-A05 code2 exact known (372.676958ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-9 | LP06-A06 code2 suffix unknown (357.405625ms) | pass | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-10 | LP06-A05 code3 exact known (352.605625ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-11 | LP06-A06 code3 suffix unknown (351.328709ms) | pass | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-12 | LP06-A05 code4 exact known (353.964125ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-13 | LP06-A06 code4 suffix unknown (349.799ms) | pass | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-14 | LP06-A05 code5 exact known (380.004958ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-15 | LP06-A06 code5 suffix unknown (349.575292ms) | pass | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-16 | LP05-01 typed failed known0 (352.651917ms) | pass | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-17 | LP05-01 typed failed known1 (352.996542ms) | pass | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-18 | LP05-01 typed failed known2 (353.109292ms) | pass | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-19 | LP05-02 typed failed unknown3 (352.026792ms) | pass | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-20 | LP05-02 typed failed unknown4 (354.121666ms) | pass | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-21 | LP05-03 complete mode still rejects failed job (350.57525ms) | pass | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-22 | LP05-03 diagnostic rejects nonfailed state safely (282.730916ms) | pass | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-23 | LP05-03 rejects original recordings index without mutation (271.912958ms) | pass | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-24 | LP05-06 valid media with synthetic failed reason does not reproduce failure (602.959833ms) | pass | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-25 | LP05-03 rejects symlink copy without original mutation (276.076166ms) | pass | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-26 | LP05-03 rejects hardlink copy without original mutation (277.362958ms) | pass | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-27 | failing tests: | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-28 | LP06-A01-A02 stored safe evidence and validated file hashes without remux (2437.918625ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-29 | LP06-A03 missing copy media preserves failed diagnosis (184.477458ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-30 | LP06-A04 corrupt copy media preserves failed diagnosis (186.715125ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-31 | LP06-A05 code0 exact known (358.126833ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-32 | LP06-A05 code1 exact known (355.121625ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-33 | LP06-A05 code2 exact known (372.676958ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-34 | LP06-A05 code3 exact known (352.605625ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-35 | LP06-A05 code4 exact known (353.964125ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-36 | LP06-A05 code5 exact known (380.004958ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+
+`[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-9O6kDj bytes=26189606 removed=true`
+
+### archive-diagnose-lp06-red2.txt
+
+[원출력](archive-diagnose-lp06-red2.txt). ℹ tests 2; ℹ pass 0; ℹ fail 2; ℹ duration_ms 3936.731416.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| A-1 | LP06-A03 missing copy media preserves failed diagnosis (1979.351084ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-2 | LP06-A04 corrupt copy media preserves failed diagnosis (353.95825ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-3 | failing tests: | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-4 | LP06-A03 missing copy media preserves failed diagnosis (1979.351084ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-5 | LP06-A04 corrupt copy media preserves failed diagnosis (353.95825ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+
+`[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-hOcNIF bytes=13603153 removed=true`
+
+### archive-diagnose-lp06-green.txt
+
+[원출력](archive-diagnose-lp06-green.txt). ℹ tests 26; ℹ pass 26; ℹ fail 0; ℹ duration_ms 13160.207291.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| A-1 | LP06-A01-A02 stored safe evidence and validated file hashes without remux (2279.472916ms) | pass | 해당 source/범위 검증 |
+| A-2 | LP06-A03 missing copy media preserves failed diagnosis (368.994ms) | pass | 해당 source/범위 검증 |
+| A-3 | LP06-A04 corrupt copy media preserves failed diagnosis (374.1075ms) | pass | 해당 source/범위 검증 |
+| A-4 | LP06-A05 code0 exact known (390.430833ms) | pass | 해당 source/범위 검증 |
+| A-5 | LP06-A06 code0 suffix unknown (371.967291ms) | pass | 해당 source/범위 검증 |
+| A-6 | LP06-A05 code1 exact known (373.746875ms) | pass | 해당 source/범위 검증 |
+| A-7 | LP06-A06 code1 suffix unknown (371.885583ms) | pass | 해당 source/범위 검증 |
+| A-8 | LP06-A05 code2 exact known (374.020041ms) | pass | 해당 source/범위 검증 |
+| A-9 | LP06-A06 code2 suffix unknown (373.855334ms) | pass | 해당 source/범위 검증 |
+| A-10 | LP06-A05 code3 exact known (376.086542ms) | pass | 해당 source/범위 검증 |
+| A-11 | LP06-A06 code3 suffix unknown (375.108292ms) | pass | 해당 source/범위 검증 |
+| A-12 | LP06-A05 code4 exact known (373.918958ms) | pass | 해당 source/범위 검증 |
+| A-13 | LP06-A06 code4 suffix unknown (376.797708ms) | pass | 해당 source/범위 검증 |
+| A-14 | LP06-A05 code5 exact known (375.24025ms) | pass | 해당 source/범위 검증 |
+| A-15 | LP06-A06 code5 suffix unknown (372.985333ms) | pass | 해당 source/범위 검증 |
+| A-16 | LP05-01 typed failed known0 (373.983666ms) | pass | 해당 source/범위 검증 |
+| A-17 | LP05-01 typed failed known1 (374.721ms) | pass | 해당 source/범위 검증 |
+| A-18 | LP05-01 typed failed known2 (404.0955ms) | pass | 해당 source/범위 검증 |
+| A-19 | LP05-02 typed failed unknown3 (372.908ms) | pass | 해당 source/범위 검증 |
+| A-20 | LP05-02 typed failed unknown4 (375.986791ms) | pass | 해당 source/범위 검증 |
+| A-21 | LP05-03 complete mode still rejects failed job (350.586709ms) | pass | 해당 source/범위 검증 |
+| A-22 | LP05-03 diagnostic rejects nonfailed state safely (283.310167ms) | pass | 해당 source/범위 검증 |
+| A-23 | LP05-03 rejects original recordings index without mutation (276.264708ms) | pass | 해당 source/범위 검증 |
+| A-24 | LP05-06 valid media with synthetic failed reason does not reproduce failure (629.25775ms) | pass | 해당 source/범위 검증 |
+| A-25 | LP05-03 rejects symlink copy without original mutation (275.041458ms) | pass | 해당 source/범위 검증 |
+| A-26 | LP05-03 rejects hardlink copy without original mutation (282.20925ms) | pass | 해당 source/범위 검증 |
+
+`[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-a3Ko43 bytes=26141775 removed=true`
+
+### archive-diagnose-basic-red.txt
+
+[원출력](archive-diagnose-basic-red.txt). ℹ tests 1; ℹ pass 0; ℹ fail 1; ℹ duration_ms 3644.646667.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| A-1 | LP06-A08 basic failure survives missing media without file inspection (2050.081958ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-2 | failing tests: | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+| A-3 | LP06-A08 basic failure survives missing media without file inspection (2050.081958ms) | fail | 초기 실패 보존; RED와 fixture 오류는 상단 참조 |
+
+`[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-QUCEss bytes=13120279 removed=true`
+
+### archive-diagnose-basic-green.txt
+
+[원출력](archive-diagnose-basic-green.txt). ℹ tests 27; ℹ pass 27; ℹ fail 0; ℹ duration_ms 13645.9.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| A-1 | LP06-A08 basic failure survives missing media without file inspection (2216.413375ms) | pass | 해당 source/범위 검증 |
+| A-2 | LP06-A01-A02 stored safe evidence and validated file hashes without remux (562.863083ms) | pass | 해당 source/범위 검증 |
+| A-3 | LP06-A03 missing copy media preserves failed diagnosis (382.6255ms) | pass | 해당 source/범위 검증 |
+| A-4 | LP06-A04 corrupt copy media preserves failed diagnosis (374.787083ms) | pass | 해당 source/범위 검증 |
+| A-5 | LP06-A05 code0 exact known (372.097458ms) | pass | 해당 source/범위 검증 |
+| A-6 | LP06-A06 code0 suffix unknown (374.108916ms) | pass | 해당 source/범위 검증 |
+| A-7 | LP06-A05 code1 exact known (375.667917ms) | pass | 해당 source/범위 검증 |
+| A-8 | LP06-A06 code1 suffix unknown (372.19575ms) | pass | 해당 source/범위 검증 |
+| A-9 | LP06-A05 code2 exact known (376.564334ms) | pass | 해당 source/범위 검증 |
+| A-10 | LP06-A06 code2 suffix unknown (376.0125ms) | pass | 해당 source/범위 검증 |
+| A-11 | LP06-A05 code3 exact known (375.63125ms) | pass | 해당 source/범위 검증 |
+| A-12 | LP06-A06 code3 suffix unknown (373.574416ms) | pass | 해당 source/범위 검증 |
+| A-13 | LP06-A05 code4 exact known (374.738125ms) | pass | 해당 source/범위 검증 |
+| A-14 | LP06-A06 code4 suffix unknown (376.39975ms) | pass | 해당 source/범위 검증 |
+| A-15 | LP06-A05 code5 exact known (373.490208ms) | pass | 해당 source/범위 검증 |
+| A-16 | LP06-A06 code5 suffix unknown (373.584666ms) | pass | 해당 source/범위 검증 |
+| A-17 | LP05-01 typed failed known0 (373.408791ms) | pass | 해당 source/범위 검증 |
+| A-18 | LP05-01 typed failed known1 (374.539666ms) | pass | 해당 source/범위 검증 |
+| A-19 | LP05-01 typed failed known2 (374.295375ms) | pass | 해당 source/범위 검증 |
+| A-20 | LP05-02 typed failed unknown3 (376.933917ms) | pass | 해당 source/범위 검증 |
+| A-21 | LP05-02 typed failed unknown4 (377.155209ms) | pass | 해당 source/범위 검증 |
+| A-22 | LP05-03 complete mode still rejects failed job (354.517833ms) | pass | 해당 source/범위 검증 |
+| A-23 | LP05-03 diagnostic rejects nonfailed state safely (283.18025ms) | pass | 해당 source/범위 검증 |
+| A-24 | LP05-03 rejects original recordings index without mutation (279.051042ms) | pass | 해당 source/범위 검증 |
+| A-25 | LP05-06 valid media with synthetic failed reason does not reproduce failure (620.866042ms) | pass | 해당 source/범위 검증 |
+| A-26 | LP05-03 rejects symlink copy without original mutation (274.928583ms) | pass | 해당 source/범위 검증 |
+| A-27 | LP05-03 rejects hardlink copy without original mutation (273.59425ms) | pass | 해당 source/범위 검증 |
+
+`[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-vyrkuU bytes=26642674 removed=true`
+
+### archive-diagnose-basic-corrupt-green.txt
+
+[원출력](archive-diagnose-basic-corrupt-green.txt). ℹ tests 1; ℹ pass 1; ℹ fail 0; ℹ duration_ms 3532.111834.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| A-1 | LP06-A08 basic failure survives corrupt media without file inspection (1892.549ms) | pass | 해당 source/범위 검증 |
+
+`[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-Xq4sAj bytes=13120318 removed=true`
+
+
 최종 문서검사: `git diff --check` exit0, `./server.sh verify-docs-links` exit0(282md/8655links/22images/110anchors,fail0). 실제root 부재도 별도 확인했다. 제품 전체빌드·UI/장시간·누적catalog·릴리즈 외부변경은미실행이다. 단기재현 준비와 실제 실패미재현을 분리해보고한다.
 
 독자: 녹화 개발·검증 담당자. lifecycle: 이번 실행 historical evidence. 정책 AGENTS.md, 중앙 기록 release-test-records.md를 따른다.

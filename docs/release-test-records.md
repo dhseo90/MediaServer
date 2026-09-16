@@ -1,5 +1,41 @@
 # Release Test Records
 
+## 2026-09-17 실패 진단 선보존 보완 실행 전 정의
+
+LP06-A 최종 유효 검사28개(전체27+손상basic focused1) PASS. 최초 expected RED 및 fixture 수량 오류를 모두 보존했다. [개별 실행 결과·정리](release-artifacts/v4.1.0/s11-preparation-mapping/diagnostic-replay-report.md). JS 실행순서 연결은 다음 커밋 범위이며 이 C++ 결과로 실제 제품실패 원인/앱PASS를 주장하지 않는다.
+
+승인 범위는 진단/재현 분리·안전 분류·최소 증거/정리·자체검증(1~4)이다. 제품 코드, 실제 앱 재현, UI/장시간, 푸시는 제외한다. 기존 시간제한을 늘리지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP06-A01 | 저장 입력 안전 요약 | intent SHA, 선택 원본 hashed 식별/PTS/timebase/binding 요약, remux 미호출·재현 bundle 아님 확인 | v4.1.0 |
+| LP06-A02 | 실제 파일 hash | 소유 복제본 FD hash/expected 대조·원본 불변 | v4.1.0 |
+| LP06-A03 | 원본 파일 부재 | 선택 파일 삭제 복제본에서 진단 성공·hash unavailable·원본 불변 | v4.1.0 |
+| LP06-A04 | 원본 파일 손상 | 손상 복제본 hash mismatch 또는 fail-closed unavailable, 거짓 일치 금지 | v4.1.0 |
+| LP06-A05 | 고정 실패코드 확장 | service 시간상한/attempt·output 생성, remux 시간·취소·출력크기 상한 6개 typed 저장 후 exact 분류 | v4.1.0 |
+| LP06-A06 | 오류 접미 원문 차단 | 신규 6개 코드에 경로/비밀 suffix 부착 시 unknown | v4.1.0 |
+| LP06-A07 | 기존 진단 회귀 | LP05 11개 검사·환경격리·소유 임시자료 정리 유지 | v4.1.0 |
+| LP06-A08 | 파일 검사 전 기본 진단 | --diagnose-basic은 파일 부재와 무관하게 실패코드·intent SHA 반환, 상세 진단과 같은 intent 결박 | v4.1.0 |
+| LP06-B01 | 진단 선보존 후 재현 | 실제 임시 증거 파일을 재현 callback 진입 시 읽어 최초 진단 존재 확인 | v4.1.0 |
+| LP06-B02 | 재현 오류·시간초과 | 자식 프로세스 nonzero/timeout 뒤 최초 증거 유지, 오류 원문 미노출 | v4.1.0 |
+| LP06-B03 | 진단 오류·잘못된 JSON | 재현 미실행, cleanup 허용 거부, 안전한 실패 분류 | v4.1.0 |
+| LP06-B04 | 증거 보존 실패 | 최초 보존 실패 시 재현/삭제 금지, 후속 보존 실패 시 최초 파일 유지 | v4.1.0 |
+| LP06-B05 | 정리 경계 | 선보존 미완료면 소유 root 유지, 정리 실패를 완료로 처리하지 않음 | v4.1.0 |
+| LP06-B06 | 파일 안전성 | 기존 파일·symlink 덮어쓰기 거부, 새 파일 0600, 원자 교체 | v4.1.0 |
+| LP06-B07 | 상세 수집 실패 독립화 | basic 선보존 뒤 상세수집 오류·timeout·보존실패·다른intent이면 재현 건너뜀, 최초 진단 유지 | v4.1.0 |
+
+메인 리뷰 보완: 상세 진단의 파일 검사도 timeout 가능하므로 basic(파일 접근 없음) → 선보존 → detail → 별도 보존 → replay 순서로 확정한다. 최초 결과와 후속 결과 파일은 덮어쓰지 않는다. 실패코드만 보존됐으면 최소 증거 수집 미완료를 명시하며 root 자동 삭제는 막는다. 충분한 안전 요약을 보존한 뒤 replay 실패한 경우에만 root 정리를 허용한다. 원본 영상 보존을 릴리즈 evidence로 승격하지 않는다.
+
+예정 명령: `node --test scripts/internal/recording_failure_capture.test.mjs`, 기존 archive-probe 및 helper 영향 검사, runner syntax, diffcheck/docs-links. 최초 expected RED는 선보존 함수 미구현 assertion이다. 결과는 실행 후 기록한다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 사용자 1~4 구현·자체검증 승인 | LP06-A/B, 내부 진단 도구 | 승인 |
+| 30분 | 미진행 | 진단 도구 보완, 제품 변경 없음 | 이번 범위 밖 | 미승인 |
+| 120분 | 미진행 | 진단 도구 보완, 제품 변경 없음 | 이번 범위 밖 | 미승인 |
+| UI | 미진행 | 내부 검증기, UI 없음 | 이번 범위 밖 | 미승인 |
+
+
 ## 2026-09-16 보완 진단 1~5 단계 사전등록
 
 실제1회 결과: exit0/31.709초,193timeline최대3590ms,partial1출력. failed미재현으로 실제실패입력/재현/제품수정 미완료다. overlap IDdedup 결함을추가발견해 실제전수관측증거를무효화하고 mapping반례RED→helper최종33/33 PASS로보완했다. 보완후 actual추가실행없음.

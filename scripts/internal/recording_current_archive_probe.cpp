@@ -25,7 +25,10 @@ static std::string Quote(const std::string& value){
 static const char* FailureCode(const std::string& reason){
     for(const char* known:{"job-remux: file-original-timestamp-mismatch",
                            "job-remux: source-binding-incomplete",
-                           "job-source-unavailable"})if(reason==known)return known;
+                           "job-source-unavailable", "job-cancelled-or-deadline",
+                           "job-attempt-create", "job-output-create",
+                           "job-remux: media-budget-exceeded", "job-remux: work-cancelled",
+                           "job-remux: output-byte-budget-exceeded"})if(reason==known)return known;
     return "unknown";
 }
 static std::string Sha(const std::string& value){
@@ -52,6 +55,35 @@ struct QuietStderr {
     QuietStderr(){saved=dup(STDERR_FILENO);const int quiet=open("/dev/null",O_WRONLY|O_CLOEXEC);if(saved<0||quiet<0){if(saved>=0)close(saved);if(quiet>=0)close(quiet);throw std::runtime_error("diagnostic-stderr");}const bool ok=dup2(quiet,STDERR_FILENO)>=0;close(quiet);if(!ok){close(saved);throw std::runtime_error("diagnostic-stderr");}}
     ~QuietStderr(){if(saved>=0){dup2(saved,STDERR_FILENO);close(saved);}}
 };
+// Stored selection summary only: no remux, raw intent, arbitrary error or path output.
+static std::string DiagnoseEvidence(recording::RecordingCatalog& catalog,const recording::DerivedJobRecordV1& record){
+    QuietStderr quiet;gst_init(nullptr,nullptr);
+    const auto captured=recording::SerializeDerivedJobRecord(record);
+    recording::RecordingReadService read(catalog);std::ostringstream sources,hashes;sources<<'[';hashes<<'[';bool comma=false;
+    for(const auto& source:record.intent.sources){
+        const auto& s=source.segment;const auto& b=source.binding;
+        Require(s.checksum_sha256.size()==64&&std::all_of(s.checksum_sha256.begin(),s.checksum_sha256.end(),[](char c){return(c>='0'&&c<='9')||(c>='a'&&c<='f');}),"stored-file-hash");
+        if(comma){sources<<',';hashes<<',';}comma=true;
+        sources<<"{\"segmentIdSha256\":"<<Quote(Sha(s.segment_id))<<",\"epochSha256\":"<<Quote(Sha(s.media_epoch_id))
+            <<",\"generationSha256\":"<<Quote(Sha(b.source_generation))<<",\"trackSha256\":"<<Quote(Sha(b.track_id))
+            <<",\"bindingSha256\":"<<Quote(Sha(recording::SerializeRecordingSourceBindingV1(b)))
+            <<",\"generationOrder\":"<<Quote(std::to_string(b.generation_order))<<",\"startPts\":"<<Quote(std::to_string(s.media_start_pts))
+            <<",\"endPts\":"<<(s.media_end_pts?Quote(std::to_string(*s.media_end_pts)):"null")
+            <<",\"timeBaseNum\":"<<s.time_base_num<<",\"timeBaseDen\":"<<s.time_base_den<<",\"sampleCount\":"<<b.samples.size()
+            <<",\"lastAcceptedOrdinal\":"<<Quote(std::to_string(b.last_accepted_ordinal))<<",\"indexComplete\":"<<(b.index_complete?"true":"false")
+            <<",\"fileEvidencePresent\":"<<(b.file_evidence?"true":"false")<<'}';
+        std::string actual;const char* status="unavailable";
+        try{auto media=read.ResolveMedia(s.channel_id,s.segment_id);if(media){status="hash-error";actual=FdSha(media->fd());status=actual==s.checksum_sha256?"matched":"mismatched";}}
+        catch(...){status="hash-error";actual.clear();}
+        hashes<<"{\"segmentIdSha256\":"<<Quote(Sha(s.segment_id))<<",\"expected\":"<<Quote(s.checksum_sha256)
+            <<",\"actual\":"<<(actual.empty()?"null":Quote(actual))<<",\"actualHashAvailable\":"<<(actual.empty()?"false":"true")
+            <<",\"matches\":"<<(actual.empty()?"null":actual==s.checksum_sha256?"true":"false")<<",\"status\":"<<Quote(status)<<'}';
+    }
+    sources<<']';hashes<<']';std::string error;std::optional<recording::DerivedJobRecordV1> after;
+    Require(catalog.FindDerivedJob(record.intent.job_id,&after,&error)&&after&&recording::SerializeDerivedJobRecord(*after)==captured,"diagnostic-record-unchanged");
+    return ",\"capturedIntentSha256\":"+Quote(Sha(recording::SerializeDerivedJobIntent(record.intent)))+
+        ",\"snapshotBasis\":\"offline-copy-at-query\",\"evidenceBasis\":\"persisted-job-intent\",\"fileHashBasis\":\"resolve-media-validated-fd\",\"reproducibleBundle\":false,\"remuxPerformed\":false,\"sourceEvidence\":"+sources.str()+",\"sourceFileHashes\":"+hashes.str();
+}
 static std::string Replay(recording::RecordingCatalog& catalog,const fs::path& root,const recording::DerivedJobRecordV1& record){
     QuietStderr quiet;gst_init(nullptr,nullptr);
     const auto captured=recording::SerializeDerivedJobRecord(record);const auto& intent=record.intent;std::string error;
@@ -89,7 +121,8 @@ int main(int argc,char** argv){
     const bool diagnostic=argc==5;
     try{
         const bool replay=diagnostic&&std::string(argv[4])=="--replay-failed";
-        Require(argc==4||(diagnostic&&(std::string(argv[4])=="--diagnose-failed"||replay)),"arguments");
+        const bool basic=diagnostic&&std::string(argv[4])=="--diagnose-basic";
+        Require(argc==4||(diagnostic&&(std::string(argv[4])=="--diagnose-failed"||replay||basic)),"arguments");
         const fs::path root=argv[1];const std::string index=argv[2],reference=argv[3];
         Require(index=="1"||index=="2","copy-index");
         struct stat st{};Require(lstat(root.c_str(),&st)==0&&S_ISDIR(st.st_mode)&&st.st_uid==getuid()&&(st.st_mode&0777)==0700,"owned-root");
@@ -118,12 +151,14 @@ int main(int argc,char** argv){
         if(diagnostic){
             Require(record.state==recording::DerivedJobState::Failed,"failed-job");
             if(replay){std::cout<<Replay(catalog,root,record)<<'\n';return 0;}
+            // Basic capture must precede any GStreamer/media inspection or replay.
+            const auto evidence=basic?",\"capturedIntentSha256\":"+Quote(Sha(recording::SerializeDerivedJobIntent(intent))):DiagnoseEvidence(catalog,record);
             std::cout<<"{\"state\":\"failed\",\"failureReason\":"<<Quote(FailureCode(record.failure_reason))
                 <<",\"sourceCount\":"<<intent.sources.size()
                 <<",\"outputCount\":"<<result.jobs.front().outputs.size()
                 <<",\"plannedOutputCount\":"<<intent.outputs.size()
                 <<",\"fileReceiptCount\":"<<record.files.size()
-                <<",\"copyCatalogOpened\":true}\n";
+                <<",\"copyCatalogOpened\":true"<<evidence<<"}\n";
             return 0;
         }
         Require(record.state==recording::DerivedJobState::Complete&&record.ready&&record.ready->verified_output&&record.ready->request_fully_satisfied,"complete-job");

@@ -1,0 +1,210 @@
+[environment] ownedCache=true ownedRegistry=true headless=true compileAndRunSameEnv=true
+[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-9O6kDj bytes=26189606 removed=true
+✖ LP06-A01-A02 stored safe evidence and validated file hashes without remux (2437.918625ms)
+✖ LP06-A03 missing copy media preserves failed diagnosis (184.477458ms)
+✖ LP06-A04 corrupt copy media preserves failed diagnosis (186.715125ms)
+✖ LP06-A05 code0 exact known (358.126833ms)
+✔ LP06-A06 code0 suffix unknown (373.359375ms)
+✖ LP06-A05 code1 exact known (355.121625ms)
+✔ LP06-A06 code1 suffix unknown (356.849791ms)
+✖ LP06-A05 code2 exact known (372.676958ms)
+✔ LP06-A06 code2 suffix unknown (357.405625ms)
+✖ LP06-A05 code3 exact known (352.605625ms)
+✔ LP06-A06 code3 suffix unknown (351.328709ms)
+✖ LP06-A05 code4 exact known (353.964125ms)
+✔ LP06-A06 code4 suffix unknown (349.799ms)
+✖ LP06-A05 code5 exact known (380.004958ms)
+✔ LP06-A06 code5 suffix unknown (349.575292ms)
+✔ LP05-01 typed failed known0 (352.651917ms)
+✔ LP05-01 typed failed known1 (352.996542ms)
+✔ LP05-01 typed failed known2 (353.109292ms)
+✔ LP05-02 typed failed unknown3 (352.026792ms)
+✔ LP05-02 typed failed unknown4 (354.121666ms)
+✔ LP05-03 complete mode still rejects failed job (350.57525ms)
+✔ LP05-03 diagnostic rejects nonfailed state safely (282.730916ms)
+✔ LP05-03 rejects original recordings index without mutation (271.912958ms)
+✔ LP05-06 valid media with synthetic failed reason does not reproduce failure (602.959833ms)
+✔ LP05-03 rejects symlink copy without original mutation (276.076166ms)
+✔ LP05-03 rejects hardlink copy without original mutation (277.362958ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 17
+ℹ fail 9
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 12862.169458
+
+✖ failing tests:
+
+test at scripts/internal/recording_current_archive_probe.test.mjs:38:1
+✖ LP06-A01-A02 stored safe evidence and validated file hashes without remux (2437.918625ms)
+  AssertionError [ERR_ASSERTION]: The "string" argument must be of type string. Received type undefined (undefined)
+      at safeEvidence (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:37:33)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:38:289)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /^[a-f0-9]{64}$/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_archive_probe.test.mjs:39:43
+✖ LP06-A03 missing copy media preserves failed diagnosis (184.477458ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  3 !== 2
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:39:252)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 3,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_archive_probe.test.mjs:39:43
+✖ LP06-A04 corrupt copy media preserves failed diagnosis (186.715125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  3 !== 2
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:39:252)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 3,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_archive_probe.test.mjs:41:69
+✖ LP06-A05 code0 exact known (358.126833ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'unknown'
+  - 'job-cancelled-or-deadline'
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:41:314)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'unknown',
+    expected: 'job-cancelled-or-deadline',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_archive_probe.test.mjs:41:69
+✖ LP06-A05 code1 exact known (355.121625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'unknown'
+  - 'job-attempt-create'
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:41:314)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'unknown',
+    expected: 'job-attempt-create',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_archive_probe.test.mjs:41:69
+✖ LP06-A05 code2 exact known (372.676958ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'unknown'
+  - 'job-output-create'
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:41:314)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'unknown',
+    expected: 'job-output-create',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_archive_probe.test.mjs:41:69
+✖ LP06-A05 code3 exact known (352.605625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'unknown'
+  - 'job-remux: media-budget-exceeded'
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:41:314)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'unknown',
+    expected: 'job-remux: media-budget-exceeded',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_archive_probe.test.mjs:41:69
+✖ LP06-A05 code4 exact known (353.964125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'unknown'
+  - 'job-remux: work-cancelled'
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:41:314)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'unknown',
+    expected: 'job-remux: work-cancelled',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_archive_probe.test.mjs:41:69
+✖ LP06-A05 code5 exact known (380.004958ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'unknown'
+  - 'job-remux: output-byte-budget-exceeded'
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:41:314)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'unknown',
+    expected: 'job-remux: output-byte-budget-exceeded',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

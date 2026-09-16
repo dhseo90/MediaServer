@@ -1,0 +1,31 @@
+[environment] ownedCache=true ownedRegistry=true headless=true compileAndRunSameEnv=true
+[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-QUCEss bytes=13120279 removed=true
+✖ LP06-A08 basic failure survives missing media without file inspection (2050.081958ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3644.646667
+
+✖ failing tests:
+
+test at scripts/internal/recording_current_archive_probe.test.mjs:37:1
+✖ LP06-A08 basic failure survives missing media without file inspection (2050.081958ms)
+  AssertionError [ERR_ASSERTION]: basic typed failure must not depend on media
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:37:386)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

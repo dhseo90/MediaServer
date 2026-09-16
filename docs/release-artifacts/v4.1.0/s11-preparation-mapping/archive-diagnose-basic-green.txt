@@ -1,0 +1,37 @@
+[environment] ownedCache=true ownedRegistry=true headless=true compileAndRunSameEnv=true
+[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-vyrkuU bytes=26642674 removed=true
+✔ LP06-A08 basic failure survives missing media without file inspection (2216.413375ms)
+✔ LP06-A01-A02 stored safe evidence and validated file hashes without remux (562.863083ms)
+✔ LP06-A03 missing copy media preserves failed diagnosis (382.6255ms)
+✔ LP06-A04 corrupt copy media preserves failed diagnosis (374.787083ms)
+✔ LP06-A05 code0 exact known (372.097458ms)
+✔ LP06-A06 code0 suffix unknown (374.108916ms)
+✔ LP06-A05 code1 exact known (375.667917ms)
+✔ LP06-A06 code1 suffix unknown (372.19575ms)
+✔ LP06-A05 code2 exact known (376.564334ms)
+✔ LP06-A06 code2 suffix unknown (376.0125ms)
+✔ LP06-A05 code3 exact known (375.63125ms)
+✔ LP06-A06 code3 suffix unknown (373.574416ms)
+✔ LP06-A05 code4 exact known (374.738125ms)
+✔ LP06-A06 code4 suffix unknown (376.39975ms)
+✔ LP06-A05 code5 exact known (373.490208ms)
+✔ LP06-A06 code5 suffix unknown (373.584666ms)
+✔ LP05-01 typed failed known0 (373.408791ms)
+✔ LP05-01 typed failed known1 (374.539666ms)
+✔ LP05-01 typed failed known2 (374.295375ms)
+✔ LP05-02 typed failed unknown3 (376.933917ms)
+✔ LP05-02 typed failed unknown4 (377.155209ms)
+✔ LP05-03 complete mode still rejects failed job (354.517833ms)
+✔ LP05-03 diagnostic rejects nonfailed state safely (283.18025ms)
+✔ LP05-03 rejects original recordings index without mutation (279.051042ms)
+✔ LP05-06 valid media with synthetic failed reason does not reproduce failure (620.866042ms)
+✔ LP05-03 rejects symlink copy without original mutation (274.928583ms)
+✔ LP05-03 rejects hardlink copy without original mutation (273.59425ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13645.9
