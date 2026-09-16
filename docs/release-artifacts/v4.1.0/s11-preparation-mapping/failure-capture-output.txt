@@ -1,0 +1,232 @@
+## helper-초기43
+exit=0
+✔ P0-DIAG01 정상 header/body 시간·안전 route 분류와 비밀 미노출 (0.701875ms)
+✔ P0-DIAG02 header timeout 고정 진단과 실패 유지 (0.309375ms)
+✔ P0-DIAG03 body timeout 부분 수신 측정·완료 거부 (0.136042ms)
+✔ S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박 (2.137ms)
+✔ S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부 (0.236666ms)
+✔ S11-CI02 nonzero 실패 후 나머지 미실행 (0.087542ms)
+✔ S11-CI02 signal 실패 후 나머지 미실행 (0.063542ms)
+✔ S11-CI02 output-limit 실패 후 나머지 미실행 (0.055167ms)
+✔ S11-CI02 summary-missing 실패 후 나머지 미실행 (0.054958ms)
+✔ S11-CI02 summary-duplicate 실패 후 나머지 미실행 (0.043958ms)
+✔ S11-CI02 cleanup-failed 실패 후 나머지 미실행 (0.044625ms)
+✔ S11-CI02 port-missing 실패 후 나머지 미실행 (0.049084ms)
+✔ S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리 (0.207875ms)
+✔ S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부 (0.232833ms)
+✔ S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup (4.840709ms)
+✔ S11-CI05 누락·중복item·불안정total·truncated·cap 거부 (0.1615ms)
+✔ S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부 (0.151708ms)
+✔ S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 (0.205083ms)
+✔ S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리 (0.157458ms)
+✔ S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 (0.078833ms)
+✔ LP04-A 목표 이전은 대기하고 해당 구간만 선택 (0.314542ms)
+✔ LP04-A 경계와 프레임을 놓치면 다른 구간으로 대체 금지 (0.158792ms)
+✔ LP04-A 실제 dispatch 정확 일치만 허용 (0.072333ms)
+✔ LP03-A failed는 완료 대기 대신 즉시 중단 (0.084667ms)
+✔ P0-HTTP01 pending은 전이 완료가 아님 (0.042542ms)
+✔ P0-HTTP01 partial은 지연 관측만 가능 (0.040209ms)
+✔ P0-HTTP01 다른 참조와 모순 파일은 거부 (0.070833ms)
+✔ P0-HTTP01 원래 완전 출력 검사는 부분 출력 거부 유지 (0.093125ms)
+✔ LP05-04 같은 원본의 앞선 비중첩 mapping 뒤 중첩 구간도 보존 (0.651875ms)
+✔ LP05-04 겹치는 원본 전수·경계 제외·미상 분리·비밀 미노출 (0.511334ms)
+✔ P0-STATE01 complete1 count와 기존 two-output 거부 구분 (0.241833ms)
+✔ P0-STATE02 pending partial complete2 변화와 8개 상한 (0.39275ms)
+✔ P0-STATE03 raw ID/path/unknown enum/request 비밀 미노출 (0.069125ms)
+✔ LP06-B01 진단 파일을 재현 전에 보존 (12.196875ms)
+✔ LP06-B02 실제 자식 exit 뒤 최초 증거 유지 (29.882875ms)
+✔ LP06-B02 실제 자식 timeout 뒤 최초 증거 유지 (61.972ms)
+✔ LP06-B03 진단 throw 시 재현·정리 거부 (0.377ms)
+✔ LP06-B03 진단 unsafe 시 재현·정리 거부 (0.240583ms)
+✔ LP06-B04 최초 보존 실패 시 재현 금지 (5.281125ms)
+✔ LP06-B04 후속 보존 실패 시 최초 파일 유지 (8.939459ms)
+✔ LP06-B05 진단 미보존 root 정리 금지·소유권 불일치 거부 (0.576916ms)
+✔ LP06-B06 symlink 증거 덮어쓰기 거부 (4.535833ms)
+✔ LP06-B06 성공 결과 분리 보존·미등록 필드 거부 (8.894125ms)
+ℹ tests 43
+ℹ suites 0
+ℹ pass 43
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 176.489084
+
+## capture-상세14
+exit=0
+✔ LP06-B01 진단 파일을 재현 전에 보존 (17.481709ms)
+✔ LP06-B02 실제 자식 exit 뒤 최초 증거 유지 (28.913916ms)
+✔ LP06-B02 실제 자식 timeout 뒤 최초 증거 유지 (65.626917ms)
+✔ LP06-B03 진단 throw 시 재현·정리 거부 (0.679334ms)
+✔ LP06-B03 진단 unsafe 시 재현·정리 거부 (0.268917ms)
+✔ LP06-B04 최초 보존 실패 시 재현 금지 (4.732792ms)
+✔ LP06-B04 후속 보존 실패 시 최초 파일 유지 (12.036167ms)
+✔ LP06-B05 진단 미보존 root 정리 금지·소유권 불일치 거부 (0.594875ms)
+✔ LP06-B06 symlink 증거 덮어쓰기 거부 (5.60425ms)
+✔ LP06-B06 성공 결과 분리 보존·미등록 필드 거부 (12.883625ms)
+✔ LP06-B07 상세 수집 throw 시 기본 진단 유지·재현 금지 (4.825042ms)
+✔ LP06-B07 상세 수집 timeout 시 기본 진단 유지·재현 금지 (57.716917ms)
+✔ LP06-B07 상세 수집 identity 시 기본 진단 유지·재현 금지 (5.432458ms)
+✔ LP06-B07 상세 수집 persist 시 기본 진단 유지·재현 금지 (8.744125ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 260.294875
+
+## 환경deadline-RED
+exit=1
+✖ LP06-B08 기본 자식은 plugin 환경 준비 실패와 독립 (1.293ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 32.323166
+
+✖ failing tests:
+
+test at scripts/internal/recording_failure_capture.test.mjs:22:1
+✖ LP06-B08 기본 자식은 plugin 환경 준비 실패와 독립 (1.293ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'undefined'
+  - 'function'
+
+      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_failure_capture.test.mjs:22:68
+      at owned (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_failure_capture.test.mjs:10:137)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_failure_capture.test.mjs:22:48)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+## capture-환경16
+exit=0
+✔ LP06-B01 진단 파일을 재현 전에 보존 (15.437417ms)
+✔ LP06-B02 실제 자식 exit 뒤 최초 증거 유지 (31.912834ms)
+✔ LP06-B02 실제 자식 timeout 뒤 최초 증거 유지 (65.686583ms)
+✔ LP06-B03 진단 throw 시 재현·정리 거부 (0.366666ms)
+✔ LP06-B03 진단 unsafe 시 재현·정리 거부 (0.385917ms)
+✔ LP06-B04 최초 보존 실패 시 재현 금지 (4.889084ms)
+✔ LP06-B04 후속 보존 실패 시 최초 파일 유지 (12.973791ms)
+✔ LP06-B05 진단 미보존 root 정리 금지·소유권 불일치 거부 (0.559708ms)
+✔ LP06-B06 symlink 증거 덮어쓰기 거부 (4.739375ms)
+✔ LP06-B06 성공 결과 분리 보존·미등록 필드 거부 (12.831084ms)
+✔ LP06-B07 상세 수집 throw 시 기본 진단 유지·재현 금지 (3.732541ms)
+✔ LP06-B07 상세 수집 timeout 시 기본 진단 유지·재현 금지 (56.396167ms)
+✔ LP06-B07 상세 수집 identity 시 기본 진단 유지·재현 금지 (4.631166ms)
+✔ LP06-B07 상세 수집 persist 시 기본 진단 유지·재현 금지 (9.107292ms)
+✔ LP06-B08 기본 자식은 plugin 환경 준비 실패와 독립 (26.336ms)
+✔ LP06-B09 만료 시 자식 미기동·남은 시간만 대기 (102.358584ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 388.348167
+
+## helper-최종49
+exit=0
+✔ P0-DIAG01 정상 header/body 시간·안전 route 분류와 비밀 미노출 (0.633542ms)
+✔ P0-DIAG02 header timeout 고정 진단과 실패 유지 (0.297166ms)
+✔ P0-DIAG03 body timeout 부분 수신 측정·완료 거부 (0.132625ms)
+✔ S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박 (1.172375ms)
+✔ S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부 (0.198833ms)
+✔ S11-CI02 nonzero 실패 후 나머지 미실행 (0.074333ms)
+✔ S11-CI02 signal 실패 후 나머지 미실행 (0.057167ms)
+✔ S11-CI02 output-limit 실패 후 나머지 미실행 (0.044125ms)
+✔ S11-CI02 summary-missing 실패 후 나머지 미실행 (0.058792ms)
+✔ S11-CI02 summary-duplicate 실패 후 나머지 미실행 (0.043792ms)
+✔ S11-CI02 cleanup-failed 실패 후 나머지 미실행 (0.041958ms)
+✔ S11-CI02 port-missing 실패 후 나머지 미실행 (0.047042ms)
+✔ S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리 (0.234ms)
+✔ S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부 (0.6265ms)
+✔ S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup (4.58925ms)
+✔ S11-CI05 누락·중복item·불안정total·truncated·cap 거부 (0.172416ms)
+✔ S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부 (0.160125ms)
+✔ S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 (0.189792ms)
+✔ S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리 (0.154125ms)
+✔ S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 (0.075459ms)
+✔ LP04-A 목표 이전은 대기하고 해당 구간만 선택 (0.2935ms)
+✔ LP04-A 경계와 프레임을 놓치면 다른 구간으로 대체 금지 (0.152208ms)
+✔ LP04-A 실제 dispatch 정확 일치만 허용 (0.067625ms)
+✔ LP03-A failed는 완료 대기 대신 즉시 중단 (0.082ms)
+✔ P0-HTTP01 pending은 전이 완료가 아님 (0.0415ms)
+✔ P0-HTTP01 partial은 지연 관측만 가능 (0.043292ms)
+✔ P0-HTTP01 다른 참조와 모순 파일은 거부 (0.063542ms)
+✔ P0-HTTP01 원래 완전 출력 검사는 부분 출력 거부 유지 (0.098083ms)
+✔ LP05-04 같은 원본의 앞선 비중첩 mapping 뒤 중첩 구간도 보존 (0.587875ms)
+✔ LP05-04 겹치는 원본 전수·경계 제외·미상 분리·비밀 미노출 (0.461458ms)
+✔ P0-STATE01 complete1 count와 기존 two-output 거부 구분 (0.226583ms)
+✔ P0-STATE02 pending partial complete2 변화와 8개 상한 (0.695875ms)
+✔ P0-STATE03 raw ID/path/unknown enum/request 비밀 미노출 (0.060916ms)
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-b2GAVT","bytes":1619,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-0BBlhV","bytes":1619,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-egFfZP","bytes":1620,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-S7YB8X","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-qCkYrK","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-IkW63W","bytes":8,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-lOKdH2","bytes":1601,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-xf4iL3","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-tBVw0a","bytes":98,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-uWHNav","bytes":1954,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-AMCFXy","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-kSmsCv","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-5IanNM","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-p5vhGI","bytes":274,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-fiPcPx","bytes":97,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gxy7YQ","bytes":163,"removed":true}
+✔ LP06-B01 진단 파일을 재현 전에 보존 (24.552834ms)
+✔ LP06-B02 실제 자식 exit 뒤 최초 증거 유지 (40.466041ms)
+✔ LP06-B02 실제 자식 timeout 뒤 최초 증거 유지 (73.862167ms)
+✔ LP06-B03 진단 throw 시 재현·정리 거부 (0.4055ms)
+✔ LP06-B03 진단 unsafe 시 재현·정리 거부 (0.467875ms)
+✔ LP06-B04 최초 보존 실패 시 재현 금지 (4.421ms)
+✔ LP06-B04 후속 보존 실패 시 최초 파일 유지 (18.74625ms)
+✔ LP06-B05 진단 미보존 root 정리 금지·소유권 불일치 거부 (0.739084ms)
+✔ LP06-B06 symlink 증거 덮어쓰기 거부 (3.350542ms)
+✔ LP06-B06 성공 결과 분리 보존·미등록 필드 거부 (23.628625ms)
+✔ LP06-B07 상세 수집 throw 시 기본 진단 유지·재현 금지 (7.0965ms)
+✔ LP06-B07 상세 수집 timeout 시 기본 진단 유지·재현 금지 (59.976625ms)
+✔ LP06-B07 상세 수집 identity 시 기본 진단 유지·재현 금지 (7.918208ms)
+✔ LP06-B07 상세 수집 persist 시 기본 진단 유지·재현 금지 (12.103583ms)
+✔ LP06-B08 기본 자식은 plugin 환경 준비 실패와 독립 (27.466125ms)
+✔ LP06-B09 만료 시 자식 미기동·남은 시간만 대기 (102.753708ms)
+ℹ tests 49
+ℹ suites 0
+ℹ pass 49
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 449.344
+
+## C++ 실제 연결
+exit=0
+[environment] ownedCache=true ownedRegistry=true headless=true compileAndRunSameEnv=true
+[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-XfPBy1 bytes=14965736 removed=true
+✔ LP06-B10 actual typed probe basic detail replay preserved independently (3654.104833ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5248.255708

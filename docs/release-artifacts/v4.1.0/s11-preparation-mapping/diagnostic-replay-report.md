@@ -1,5 +1,197 @@
 # 보완 진단·독립 재현 기록
 
+## 2026-09-17 LP06-B 선보존 실행순서·정리 완료
+
+사용자1~4는 진단도구 구현·자체검증 범위로 완료했다. 최초 실제제품실패 원인은 여전히 미확정이다. 실제앱1회(후속5), 제품수정, 누적catalog, 전체build, UI/30분/120분, 푸시는 미실행이다. C++ commit a9f48fb2 후 JS 연결을 별도 커밋한다.
+
+변경: recording_failure_capture.mjs의 captureFailureEvidence/runDiagnosticProbe/removeDiagnosticRoot, verify_recording_current_app.mjs의 실패정리 분기. 기본 결과 → 0600 exclusive 원자파일 보존·fsync → 상세 결과 별도 보존 → fresh복제본 재현 → 재현요약 별도 보존 순서다. 1MiB 요약상한·exact field/type/code 검사·unknown/redaction 유지. 원본 영상/raw intent는 저장소로 복사하지 않는다. 기본/상세 수집·보존 실패는 재현 건너뜀 및 root 정리 차단(cleanup blocker)이다. 상세까지 안전요약을 보존했다면 재현실패를 기록하고 소유root를 정리한다. 이 자료는 재현 bundle이 아니며, 나중에 영상 재실행이 필요하면 별도 자료 확보가 필요하다.
+
+안전요약은 실패 발생 시에만 docs/release-artifacts/v4.1.0/s11-preparation-mapping/failure-UUID.json(.details.json/.replay.json)에 남긴다. 이번 실제앱은 실행하지 않아 이러한 런타임 파일은 생성하지 않았다. 자체검사 증거 파일은 소유 임시root에 만들고 아래와 같이 삭제했다. 정리 실패 테스트는 증거미보존/소유권 불일치 거부를 검사했으며 OS permission/io-fault 강제주입은 미실행이다.
+
+메인 리뷰에서 상세검사 전 basic 필요성을 발견해 A08로 보완했다. 단일 담당자 읽기 리뷰의 plugin 환경 선행/진단별 신규예산 지적도 반영했다. basic은 환경 준비 없이 직접 실행하고, 상세/replay 자식은 min(기존15000ms, 전체deadline 잔여시간)을 사용한다. 전체180000ms·HTTP4000ms는 변경하지 않았다. 동기복제/hash/cleanup을 강제선점하는 wallclock 보장은 아니며 stage 진입과 child 실행 상한만 확인했다. 리뷰 재확인에서 추가 중요 결함 없음.
+
+### 명령과 실패 이력
+
+- 최초 LP06-B01: `node --test --test-name-pattern='LP06-B01' scripts/internal/recording_failure_capture.test.mjs`, exit1, 1FAIL/33.254917ms. captureFailureEvidence 미구현 undefined≠function 예상 RED. 구현후10/10 PASS(161.456792ms).
+- LP06-B07: `node --test --test-name-pattern='LP06-B07.*throw' scripts/internal/recording_failure_capture.test.mjs`, exit1, 1FAIL/36.11725ms. basic 선보존 미구현으로 not-run≠preserved 예상 RED, 구현후14/14 PASS.
+- LP06-B08: `node --test --test-name-pattern='LP06-B08' scripts/internal/recording_failure_capture.test.mjs`, exit1, runDiagnosticProbe 미구현 예상 RED → 16/16 PASS.
+- 최종: `node --test scripts/internal/recording_failure_capture.test.mjs scripts/internal/recording_current_state_diagnostics.test.mjs scripts/internal/recording_current_latency.test.mjs scripts/internal/recording_current_http_diagnostics.test.mjs scripts/internal/recording_current_integration.test.mjs`, exit0,49/49,449.344ms. 앞선43개는 기본10+기존33, 최종49개는 추가16+기존33이다.
+- C++ 연결: `node --test --test-name-pattern='LP06-B10' scripts/internal/recording_current_archive_probe.test.mjs`, exit0,1/1,5248.255708ms. 이후 추가한 directory fsync는 최종49개 파일보존 검사로 영향 확인; C++ schema/호출 경로는 유지되어 연결 결과 재사용.
+- `node --check scripts/internal/verify_recording_current_app.mjs`, `git diff --check`: exit0. `./server.sh verify-docs-links`: exit0,282md/8665links/22images/110anchors,fail0.
+
+B01/B07 초기 RED와 첫10개 GREEN은 대화의 실제 출력에서 위 수치·assertion을 기록했으며 원출력 전문 파일은 없음을 명시한다. 이후 각 실행 원출력과 모든 결과는 [failure-capture-output.txt](failure-capture-output.txt)에 보존한다. token start/end/consumed는 실제 집계 source 부재로 미집계, elapsed는 Node 측정이다.
+
+최종 staging 검사에서 신규 raw 출력의 assertion 공백행 두 곳에 trailing whitespace가 발견되어 `git diff --cached --check` exit2로 커밋 전 중단했다. 해당 공백만 정규화했으며 결과값·실패내역은 유지했다. Git 기본 실행은 index.lock 권한 오류(exit128)였고 승인된 권한 경로로 재시도했다. 제품/테스트 로직 변경은 없어 기능 재실행 대상이 아니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| helper-초기43-1 | P0-DIAG01 정상 header/body 시간·안전 route 분류와 비밀 미노출 (0.701875ms) | pass | 실행 source에 한정 |
+| helper-초기43-2 | P0-DIAG02 header timeout 고정 진단과 실패 유지 (0.309375ms) | pass | 실행 source에 한정 |
+| helper-초기43-3 | P0-DIAG03 body timeout 부분 수신 측정·완료 거부 (0.136042ms) | pass | 실행 source에 한정 |
+| helper-초기43-4 | S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박 (2.137ms) | pass | 실행 source에 한정 |
+| helper-초기43-5 | S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부 (0.236666ms) | pass | 실행 source에 한정 |
+| helper-초기43-6 | S11-CI02 nonzero 실패 후 나머지 미실행 (0.087542ms) | pass | 실행 source에 한정 |
+| helper-초기43-7 | S11-CI02 signal 실패 후 나머지 미실행 (0.063542ms) | pass | 실행 source에 한정 |
+| helper-초기43-8 | S11-CI02 output-limit 실패 후 나머지 미실행 (0.055167ms) | pass | 실행 source에 한정 |
+| helper-초기43-9 | S11-CI02 summary-missing 실패 후 나머지 미실행 (0.054958ms) | pass | 실행 source에 한정 |
+| helper-초기43-10 | S11-CI02 summary-duplicate 실패 후 나머지 미실행 (0.043958ms) | pass | 실행 source에 한정 |
+| helper-초기43-11 | S11-CI02 cleanup-failed 실패 후 나머지 미실행 (0.044625ms) | pass | 실행 source에 한정 |
+| helper-초기43-12 | S11-CI02 port-missing 실패 후 나머지 미실행 (0.049084ms) | pass | 실행 source에 한정 |
+| helper-초기43-13 | S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리 (0.207875ms) | pass | 실행 source에 한정 |
+| helper-초기43-14 | S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부 (0.232833ms) | pass | 실행 source에 한정 |
+| helper-초기43-15 | S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup (4.840709ms) | pass | 실행 source에 한정 |
+| helper-초기43-16 | S11-CI05 누락·중복item·불안정total·truncated·cap 거부 (0.1615ms) | pass | 실행 source에 한정 |
+| helper-초기43-17 | S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부 (0.151708ms) | pass | 실행 source에 한정 |
+| helper-초기43-18 | S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 (0.205083ms) | pass | 실행 source에 한정 |
+| helper-초기43-19 | S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리 (0.157458ms) | pass | 실행 source에 한정 |
+| helper-초기43-20 | S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 (0.078833ms) | pass | 실행 source에 한정 |
+| helper-초기43-21 | LP04-A 목표 이전은 대기하고 해당 구간만 선택 (0.314542ms) | pass | 실행 source에 한정 |
+| helper-초기43-22 | LP04-A 경계와 프레임을 놓치면 다른 구간으로 대체 금지 (0.158792ms) | pass | 실행 source에 한정 |
+| helper-초기43-23 | LP04-A 실제 dispatch 정확 일치만 허용 (0.072333ms) | pass | 실행 source에 한정 |
+| helper-초기43-24 | LP03-A failed는 완료 대기 대신 즉시 중단 (0.084667ms) | pass | 실행 source에 한정 |
+| helper-초기43-25 | P0-HTTP01 pending은 전이 완료가 아님 (0.042542ms) | pass | 실행 source에 한정 |
+| helper-초기43-26 | P0-HTTP01 partial은 지연 관측만 가능 (0.040209ms) | pass | 실행 source에 한정 |
+| helper-초기43-27 | P0-HTTP01 다른 참조와 모순 파일은 거부 (0.070833ms) | pass | 실행 source에 한정 |
+| helper-초기43-28 | P0-HTTP01 원래 완전 출력 검사는 부분 출력 거부 유지 (0.093125ms) | pass | 실행 source에 한정 |
+| helper-초기43-29 | LP05-04 같은 원본의 앞선 비중첩 mapping 뒤 중첩 구간도 보존 (0.651875ms) | pass | 실행 source에 한정 |
+| helper-초기43-30 | LP05-04 겹치는 원본 전수·경계 제외·미상 분리·비밀 미노출 (0.511334ms) | pass | 실행 source에 한정 |
+| helper-초기43-31 | P0-STATE01 complete1 count와 기존 two-output 거부 구분 (0.241833ms) | pass | 실행 source에 한정 |
+| helper-초기43-32 | P0-STATE02 pending partial complete2 변화와 8개 상한 (0.39275ms) | pass | 실행 source에 한정 |
+| helper-초기43-33 | P0-STATE03 raw ID/path/unknown enum/request 비밀 미노출 (0.069125ms) | pass | 실행 source에 한정 |
+| helper-초기43-34 | LP06-B01 진단 파일을 재현 전에 보존 (12.196875ms) | pass | 실행 source에 한정 |
+| helper-초기43-35 | LP06-B02 실제 자식 exit 뒤 최초 증거 유지 (29.882875ms) | pass | 실행 source에 한정 |
+| helper-초기43-36 | LP06-B02 실제 자식 timeout 뒤 최초 증거 유지 (61.972ms) | pass | 실행 source에 한정 |
+| helper-초기43-37 | LP06-B03 진단 throw 시 재현·정리 거부 (0.377ms) | pass | 실행 source에 한정 |
+| helper-초기43-38 | LP06-B03 진단 unsafe 시 재현·정리 거부 (0.240583ms) | pass | 실행 source에 한정 |
+| helper-초기43-39 | LP06-B04 최초 보존 실패 시 재현 금지 (5.281125ms) | pass | 실행 source에 한정 |
+| helper-초기43-40 | LP06-B04 후속 보존 실패 시 최초 파일 유지 (8.939459ms) | pass | 실행 source에 한정 |
+| helper-초기43-41 | LP06-B05 진단 미보존 root 정리 금지·소유권 불일치 거부 (0.576916ms) | pass | 실행 source에 한정 |
+| helper-초기43-42 | LP06-B06 symlink 증거 덮어쓰기 거부 (4.535833ms) | pass | 실행 source에 한정 |
+| helper-초기43-43 | LP06-B06 성공 결과 분리 보존·미등록 필드 거부 (8.894125ms) | pass | 실행 source에 한정 |
+| capture-상세14-1 | LP06-B01 진단 파일을 재현 전에 보존 (17.481709ms) | pass | 실행 source에 한정 |
+| capture-상세14-2 | LP06-B02 실제 자식 exit 뒤 최초 증거 유지 (28.913916ms) | pass | 실행 source에 한정 |
+| capture-상세14-3 | LP06-B02 실제 자식 timeout 뒤 최초 증거 유지 (65.626917ms) | pass | 실행 source에 한정 |
+| capture-상세14-4 | LP06-B03 진단 throw 시 재현·정리 거부 (0.679334ms) | pass | 실행 source에 한정 |
+| capture-상세14-5 | LP06-B03 진단 unsafe 시 재현·정리 거부 (0.268917ms) | pass | 실행 source에 한정 |
+| capture-상세14-6 | LP06-B04 최초 보존 실패 시 재현 금지 (4.732792ms) | pass | 실행 source에 한정 |
+| capture-상세14-7 | LP06-B04 후속 보존 실패 시 최초 파일 유지 (12.036167ms) | pass | 실행 source에 한정 |
+| capture-상세14-8 | LP06-B05 진단 미보존 root 정리 금지·소유권 불일치 거부 (0.594875ms) | pass | 실행 source에 한정 |
+| capture-상세14-9 | LP06-B06 symlink 증거 덮어쓰기 거부 (5.60425ms) | pass | 실행 source에 한정 |
+| capture-상세14-10 | LP06-B06 성공 결과 분리 보존·미등록 필드 거부 (12.883625ms) | pass | 실행 source에 한정 |
+| capture-상세14-11 | LP06-B07 상세 수집 throw 시 기본 진단 유지·재현 금지 (4.825042ms) | pass | 실행 source에 한정 |
+| capture-상세14-12 | LP06-B07 상세 수집 timeout 시 기본 진단 유지·재현 금지 (57.716917ms) | pass | 실행 source에 한정 |
+| capture-상세14-13 | LP06-B07 상세 수집 identity 시 기본 진단 유지·재현 금지 (5.432458ms) | pass | 실행 source에 한정 |
+| capture-상세14-14 | LP06-B07 상세 수집 persist 시 기본 진단 유지·재현 금지 (8.744125ms) | pass | 실행 source에 한정 |
+| 환경deadline-RED-1 | LP06-B08 기본 자식은 plugin 환경 준비 실패와 독립 (1.293ms) | fail | 예상 RED, 이후 GREEN |
+| 환경deadline-RED-2 | failing tests: | fail | 예상 RED, 이후 GREEN |
+| 환경deadline-RED-3 | LP06-B08 기본 자식은 plugin 환경 준비 실패와 독립 (1.293ms) | fail | 예상 RED, 이후 GREEN |
+| capture-환경16-1 | LP06-B01 진단 파일을 재현 전에 보존 (15.437417ms) | pass | 실행 source에 한정 |
+| capture-환경16-2 | LP06-B02 실제 자식 exit 뒤 최초 증거 유지 (31.912834ms) | pass | 실행 source에 한정 |
+| capture-환경16-3 | LP06-B02 실제 자식 timeout 뒤 최초 증거 유지 (65.686583ms) | pass | 실행 source에 한정 |
+| capture-환경16-4 | LP06-B03 진단 throw 시 재현·정리 거부 (0.366666ms) | pass | 실행 source에 한정 |
+| capture-환경16-5 | LP06-B03 진단 unsafe 시 재현·정리 거부 (0.385917ms) | pass | 실행 source에 한정 |
+| capture-환경16-6 | LP06-B04 최초 보존 실패 시 재현 금지 (4.889084ms) | pass | 실행 source에 한정 |
+| capture-환경16-7 | LP06-B04 후속 보존 실패 시 최초 파일 유지 (12.973791ms) | pass | 실행 source에 한정 |
+| capture-환경16-8 | LP06-B05 진단 미보존 root 정리 금지·소유권 불일치 거부 (0.559708ms) | pass | 실행 source에 한정 |
+| capture-환경16-9 | LP06-B06 symlink 증거 덮어쓰기 거부 (4.739375ms) | pass | 실행 source에 한정 |
+| capture-환경16-10 | LP06-B06 성공 결과 분리 보존·미등록 필드 거부 (12.831084ms) | pass | 실행 source에 한정 |
+| capture-환경16-11 | LP06-B07 상세 수집 throw 시 기본 진단 유지·재현 금지 (3.732541ms) | pass | 실행 source에 한정 |
+| capture-환경16-12 | LP06-B07 상세 수집 timeout 시 기본 진단 유지·재현 금지 (56.396167ms) | pass | 실행 source에 한정 |
+| capture-환경16-13 | LP06-B07 상세 수집 identity 시 기본 진단 유지·재현 금지 (4.631166ms) | pass | 실행 source에 한정 |
+| capture-환경16-14 | LP06-B07 상세 수집 persist 시 기본 진단 유지·재현 금지 (9.107292ms) | pass | 실행 source에 한정 |
+| capture-환경16-15 | LP06-B08 기본 자식은 plugin 환경 준비 실패와 독립 (26.336ms) | pass | 실행 source에 한정 |
+| capture-환경16-16 | LP06-B09 만료 시 자식 미기동·남은 시간만 대기 (102.358584ms) | pass | 실행 source에 한정 |
+| helper-최종49-1 | P0-DIAG01 정상 header/body 시간·안전 route 분류와 비밀 미노출 (0.633542ms) | pass | 실행 source에 한정 |
+| helper-최종49-2 | P0-DIAG02 header timeout 고정 진단과 실패 유지 (0.297166ms) | pass | 실행 source에 한정 |
+| helper-최종49-3 | P0-DIAG03 body timeout 부분 수신 측정·완료 거부 (0.132625ms) | pass | 실행 source에 한정 |
+| helper-최종49-4 | S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박 (1.172375ms) | pass | 실행 source에 한정 |
+| helper-최종49-5 | S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부 (0.198833ms) | pass | 실행 source에 한정 |
+| helper-최종49-6 | S11-CI02 nonzero 실패 후 나머지 미실행 (0.074333ms) | pass | 실행 source에 한정 |
+| helper-최종49-7 | S11-CI02 signal 실패 후 나머지 미실행 (0.057167ms) | pass | 실행 source에 한정 |
+| helper-최종49-8 | S11-CI02 output-limit 실패 후 나머지 미실행 (0.044125ms) | pass | 실행 source에 한정 |
+| helper-최종49-9 | S11-CI02 summary-missing 실패 후 나머지 미실행 (0.058792ms) | pass | 실행 source에 한정 |
+| helper-최종49-10 | S11-CI02 summary-duplicate 실패 후 나머지 미실행 (0.043792ms) | pass | 실행 source에 한정 |
+| helper-최종49-11 | S11-CI02 cleanup-failed 실패 후 나머지 미실행 (0.041958ms) | pass | 실행 source에 한정 |
+| helper-최종49-12 | S11-CI02 port-missing 실패 후 나머지 미실행 (0.047042ms) | pass | 실행 source에 한정 |
+| helper-최종49-13 | S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리 (0.234ms) | pass | 실행 source에 한정 |
+| helper-최종49-14 | S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부 (0.6265ms) | pass | 실행 source에 한정 |
+| helper-최종49-15 | S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup (4.58925ms) | pass | 실행 source에 한정 |
+| helper-최종49-16 | S11-CI05 누락·중복item·불안정total·truncated·cap 거부 (0.172416ms) | pass | 실행 source에 한정 |
+| helper-최종49-17 | S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부 (0.160125ms) | pass | 실행 source에 한정 |
+| helper-최종49-18 | S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 (0.189792ms) | pass | 실행 source에 한정 |
+| helper-최종49-19 | S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리 (0.154125ms) | pass | 실행 source에 한정 |
+| helper-최종49-20 | S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 (0.075459ms) | pass | 실행 source에 한정 |
+| helper-최종49-21 | LP04-A 목표 이전은 대기하고 해당 구간만 선택 (0.2935ms) | pass | 실행 source에 한정 |
+| helper-최종49-22 | LP04-A 경계와 프레임을 놓치면 다른 구간으로 대체 금지 (0.152208ms) | pass | 실행 source에 한정 |
+| helper-최종49-23 | LP04-A 실제 dispatch 정확 일치만 허용 (0.067625ms) | pass | 실행 source에 한정 |
+| helper-최종49-24 | LP03-A failed는 완료 대기 대신 즉시 중단 (0.082ms) | pass | 실행 source에 한정 |
+| helper-최종49-25 | P0-HTTP01 pending은 전이 완료가 아님 (0.0415ms) | pass | 실행 source에 한정 |
+| helper-최종49-26 | P0-HTTP01 partial은 지연 관측만 가능 (0.043292ms) | pass | 실행 source에 한정 |
+| helper-최종49-27 | P0-HTTP01 다른 참조와 모순 파일은 거부 (0.063542ms) | pass | 실행 source에 한정 |
+| helper-최종49-28 | P0-HTTP01 원래 완전 출력 검사는 부분 출력 거부 유지 (0.098083ms) | pass | 실행 source에 한정 |
+| helper-최종49-29 | LP05-04 같은 원본의 앞선 비중첩 mapping 뒤 중첩 구간도 보존 (0.587875ms) | pass | 실행 source에 한정 |
+| helper-최종49-30 | LP05-04 겹치는 원본 전수·경계 제외·미상 분리·비밀 미노출 (0.461458ms) | pass | 실행 source에 한정 |
+| helper-최종49-31 | P0-STATE01 complete1 count와 기존 two-output 거부 구분 (0.226583ms) | pass | 실행 source에 한정 |
+| helper-최종49-32 | P0-STATE02 pending partial complete2 변화와 8개 상한 (0.695875ms) | pass | 실행 source에 한정 |
+| helper-최종49-33 | P0-STATE03 raw ID/path/unknown enum/request 비밀 미노출 (0.060916ms) | pass | 실행 source에 한정 |
+| helper-최종49-34 | LP06-B01 진단 파일을 재현 전에 보존 (24.552834ms) | pass | 실행 source에 한정 |
+| helper-최종49-35 | LP06-B02 실제 자식 exit 뒤 최초 증거 유지 (40.466041ms) | pass | 실행 source에 한정 |
+| helper-최종49-36 | LP06-B02 실제 자식 timeout 뒤 최초 증거 유지 (73.862167ms) | pass | 실행 source에 한정 |
+| helper-최종49-37 | LP06-B03 진단 throw 시 재현·정리 거부 (0.4055ms) | pass | 실행 source에 한정 |
+| helper-최종49-38 | LP06-B03 진단 unsafe 시 재현·정리 거부 (0.467875ms) | pass | 실행 source에 한정 |
+| helper-최종49-39 | LP06-B04 최초 보존 실패 시 재현 금지 (4.421ms) | pass | 실행 source에 한정 |
+| helper-최종49-40 | LP06-B04 후속 보존 실패 시 최초 파일 유지 (18.74625ms) | pass | 실행 source에 한정 |
+| helper-최종49-41 | LP06-B05 진단 미보존 root 정리 금지·소유권 불일치 거부 (0.739084ms) | pass | 실행 source에 한정 |
+| helper-최종49-42 | LP06-B06 symlink 증거 덮어쓰기 거부 (3.350542ms) | pass | 실행 source에 한정 |
+| helper-최종49-43 | LP06-B06 성공 결과 분리 보존·미등록 필드 거부 (23.628625ms) | pass | 실행 source에 한정 |
+| helper-최종49-44 | LP06-B07 상세 수집 throw 시 기본 진단 유지·재현 금지 (7.0965ms) | pass | 실행 source에 한정 |
+| helper-최종49-45 | LP06-B07 상세 수집 timeout 시 기본 진단 유지·재현 금지 (59.976625ms) | pass | 실행 source에 한정 |
+| helper-최종49-46 | LP06-B07 상세 수집 identity 시 기본 진단 유지·재현 금지 (7.918208ms) | pass | 실행 source에 한정 |
+| helper-최종49-47 | LP06-B07 상세 수집 persist 시 기본 진단 유지·재현 금지 (12.103583ms) | pass | 실행 source에 한정 |
+| helper-최종49-48 | LP06-B08 기본 자식은 plugin 환경 준비 실패와 독립 (27.466125ms) | pass | 실행 source에 한정 |
+| helper-최종49-49 | LP06-B09 만료 시 자식 미기동·남은 시간만 대기 (102.753708ms) | pass | 실행 source에 한정 |
+| LP06-B10 | 실제 typed C++ basic/detail/replay → JS 선보존·별도복제본·원본 불변, exit0, 5248.255708ms | pass | 새 연결 focused1개; 최초 제품실패 재현 아님 |
+
+
+### 임시 자료 정리
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-b2GAVT | 검증 소유 임시 증거/자식 fixture | 1619B | 삭제 | removed=true | 최종49 출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-0BBlhV | 검증 소유 임시 증거/자식 fixture | 1619B | 삭제 | removed=true | 최종49 출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-egFfZP | 검증 소유 임시 증거/자식 fixture | 1620B | 삭제 | removed=true | 최종49 출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-S7YB8X | 검증 소유 임시 증거/자식 fixture | 0B | 삭제 | removed=true | 최종49 출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-qCkYrK | 검증 소유 임시 증거/자식 fixture | 0B | 삭제 | removed=true | 최종49 출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-IkW63W | 검증 소유 임시 증거/자식 fixture | 8B | 삭제 | removed=true | 최종49 출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-lOKdH2 | 검증 소유 임시 증거/자식 fixture | 1601B | 삭제 | removed=true | 최종49 출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-xf4iL3 | 검증 소유 임시 증거/자식 fixture | 0B | 삭제 | removed=true | 최종49 출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-tBVw0a | 검증 소유 임시 증거/자식 fixture | 98B | 삭제 | removed=true | 최종49 출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-uWHNav | 검증 소유 임시 증거/자식 fixture | 1954B | 삭제 | removed=true | 최종49 출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-AMCFXy | 검증 소유 임시 증거/자식 fixture | 266B | 삭제 | removed=true | 최종49 출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-kSmsCv | 검증 소유 임시 증거/자식 fixture | 266B | 삭제 | removed=true | 최종49 출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-5IanNM | 검증 소유 임시 증거/자식 fixture | 266B | 삭제 | removed=true | 최종49 출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-p5vhGI | 검증 소유 임시 증거/자식 fixture | 274B | 삭제 | removed=true | 최종49 출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-fiPcPx | 검증 소유 임시 증거/자식 fixture | 97B | 삭제 | removed=true | 최종49 출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gxy7YQ | 검증 소유 임시 증거/자식 fixture | 163B | 삭제 | removed=true | 최종49 출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-XfPBy1 | 실제 C++ 연결 fixture/media/cache | 14965736B | 삭제 | removed=true | B10 출력 |
+
+
+초기 helper 반복의 개별root 크기는 미계측이었다. 매 실행 finally의 root 삭제·부재 assertion은 수행했고, 최종16개부터 path/bytes/removed를 원출력에 추가했다. 네트워크 서버/포트는 이번 자체검사에서 기동하지 않았다. 오류·timeout용 자식은 spawnSync 종료 결과 확인, 최초/상세/재현 테스트 파일과 fake canary는 소유root에서 삭제했다.
+
+### 요청 대조 및 잔여
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 실패 진단과 독립 재현 분리 | 완료 | basic/detail/replay 독립보존 | LP06-A08/B01/B02/B10 |
+| 2 | 안전 오류 분류 | 완료 | exact9개·suffix unknown | LP06-A05/A06 |
+| 3 | 최소 증거/정리 | 완료 | 저장intent와파일측정구분·수집실패명시·cleanup차단 | LP06-A01~04/B04~07 |
+| 4 | 자체검증 | 완료 | C++28 유효, JS49, 실제C++연결1 | 위 개별결과 |
+| 5 | 분할커밋 | 수행 | C++ a9f48fb2, JS 연결·결과 기록은 이번 별도커밋 | git log |
+| 6 | 종합보고/잔여목록 | 수행 | 실제앱→원인확정→확정원인수정 순서 | 이번 범위밖 후속 |
+
+후속 P0: 보완 관측기의 실제앱 단기1회 → 실패코드/자료에 따른 원인확정(미재현이면그대로보고) → 확정원인만 수정·영향회귀. 이후 보류된 누적catalog16/32와 완전출력2개/재기동/전체통합을 재개한다. 이번 승인으로 실제앱·후속제품개발을 자동수행하지 않는다. 기존 누적 커밋의 푸시는 앞서 승인된 전체원인수정 완료조건 미충족으로 보류한다.
+
+
 ## 2026-09-17 LP06-A 기본·상세 진단 분리
 
 이번 사용자 승인 1~4 중 C++ 진단 도구 보완이다. 제품 src/include 변경·실제 앱 실행·최초 제품 실패 원인 확정은 아니다. 기본 진단 `--diagnose-basic`은 typed 실패 상태와 intent SHA만 반환하고, 상세 `--diagnose-failed`에서 저장된 선택 원본 식별/시간/binding 요약과 파일 hash 확보 여부를 반환한다. live snapshot을 stored intent로 오인하지 않으며 파일 부재/손상은 ResolveMedia의 fail-closed `unavailable`로 남긴다. 원본 영상/raw intent를 담은 재현 bundle은 아니다.

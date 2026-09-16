@@ -11,6 +11,7 @@ import {assertLocalIceConfig} from './verify_local_ice_guard.mjs';
 import {dispatchTuple,correlatedEvent} from './recording_event_correlation.mjs';
 import {allTimelinePages,eventOutputs,verifyRestart,measuredHttpResponse,summarizeEventState,latencyTransitionOutputs} from './recording_current_app_helpers.mjs';
 import {failedWindowGate,requireFailedWindowDispatch,summarizeOverlappingSources} from './recording_current_app_helpers.mjs';
+import {captureFailureEvidence,removeDiagnosticRoot,runDiagnosticProbe} from './recording_failure_capture.mjs';
 const reproduceFailedWindow=process.argv.length===3&&process.argv[2]==='--reproduce-failed-window';
 const latencyOnly=reproduceFailedWindow||(process.argv.slice(2).length===1&&process.argv[2]==='--latency-only');
 if(process.argv.length>2&&!latencyOnly)throw Error('unsupported-mode');
@@ -166,16 +167,30 @@ try{
 }catch(error){failed++;primaryError=error;console.error(`[fail] current actual app: ${error instanceof Error?error.message:'unknown'}`);}
 const cleanup={rootAbsent:false,failureCount:0,processes:processEvidence};
 for(const app of processes)try{await stop(app);}catch{cleanup.failureCount++;}
+let diagnosticCleanupAllowed=!failedReference;
 if(failedReference&&processes.every(app=>app.stopped))try{
-  const original=path.join(root,'recordings'),before=scan(original,{hash:true,strict:true}),copy=path.join(root,'projection-copy-1/recordings');
-  fs.mkdirSync(path.dirname(copy),{mode:0o700});fs.cpSync(original,copy,{recursive:true,dereference:false,errorOnExist:true});
-  check(JSON.stringify(before)===JSON.stringify(scan(copy,{hash:true,strict:true})),'LP03-B diagnostic copy bytes/hash exact');
-  const result=JSON.parse(execFileSync('/bin/bash',['-c','set -e; source "$1"; media_server_apply_homebrew_gst_env; shift; exec "$@"','recording-replay',path.join(repo,'scripts/internal/env_common.sh'),path.join(root,'archive-probe'),root,'1',failedReference,'--replay-failed'],{env:{PATH:process.env.PATH,HOME:root,TMPDIR:path.join(root,'tmp'),MEDIA_SERVER_GST_CACHE_DIR:path.join(root,'gst-cache-replay'),MEDIA_SERVER_GST_PLUGIN_PROFILE:'headless'},timeout:15000,maxBuffer:MiB,encoding:'utf8',stdio:['ignore','pipe','pipe']}));
-  console.log('[job-failure-diagnostic] '+JSON.stringify(result));
+  if(performance.now()>=deadline)throw Error('diagnostic-deadline');
+  const original=path.join(root,'recordings'),before=scan(original,{hash:true,strict:true});
+  function probe(index,mode){
+    if(performance.now()>=deadline)throw Error('diagnostic-deadline');
+    const copy=path.join(root,`projection-copy-${index}/recordings`);
+    if(!fs.existsSync(copy)){
+      fs.mkdirSync(path.dirname(copy),{mode:0o700});fs.cpSync(original,copy,{recursive:true,dereference:false,errorOnExist:true});
+      check(JSON.stringify(before)===JSON.stringify(scan(copy,{hash:true,strict:true})),'LP03-B diagnostic copy bytes/hash exact');scan(root);
+    }
+    return runDiagnosticProbe({binary:path.join(root,'archive-probe'),root,index,reference:failedReference,mode,environmentScript:path.join(repo,'scripts/internal/env_common.sh'),env:{PATH:process.env.PATH,HOME:root,TMPDIR:path.join(root,'tmp'),MEDIA_SERVER_GST_CACHE_DIR:path.join(root,'gst-cache-replay'),MEDIA_SERVER_GST_PLUGIN_PROFILE:'headless'},deadline});
+  }
+  // 원본/복구 쓰기 가능한 복제본은 분리한다. 안전 요약만 저장소에 보존하며 raw media는 보존하지 않는다.
+  const evidencePath=path.join(repo,'docs/release-artifacts/v4.1.0/s11-preparation-mapping',`failure-${crypto.randomUUID()}.json`);
+  const result=captureFailureEvidence({diagnose:()=>probe(1,'--diagnose-basic'),collect:()=>probe(1,'--diagnose-failed'),replay:()=>probe(2,'--replay-failed'),evidencePath});
+  diagnosticCleanupAllowed=result.cleanupAllowed;
+  console.log('[job-failure-diagnostic] '+JSON.stringify({...result,evidenceFile:path.basename(evidencePath)}));
+  if(result.diagnosticEvidenceStatus!=='preserved'||result.replayStatus!=='complete'||result.replayEvidenceStatus!=='preserved')failed++;
   check(JSON.stringify(before)===JSON.stringify(scan(original,{hash:true,strict:true})),'LP03-B original unchanged after diagnostic');
-}catch{failed++;console.error('[fail] LP03-B diagnostic unavailable');}
+}catch{diagnosticCleanupAllowed=false;failed++;console.error('[fail] LP03-B diagnostic unavailable');}
 if(udp)try{await new Promise(resolve=>udp.close(resolve));udpClosed=true;}catch{cleanup.failureCount++;}else udpClosed=true;
-let size=0;try{size=scan(root).bytes;const st=fs.lstatSync(root,{bigint:true});if(st.dev!==rootStat.dev||st.ino!==rootStat.ino||processes.some(p=>!p.stopped)||!udpClosed)throw Error('cleanup-ownership');fs.rmSync(root,{recursive:true});cleanup.rootAbsent=!fs.existsSync(root);}catch{cleanup.failureCount++;}
+let size=0;try{size=scan(root).bytes;if(processes.some(p=>!p.stopped)||!udpClosed)throw Error('cleanup-ownership');removeDiagnosticRoot(root,rootStat,diagnosticCleanupAllowed);cleanup.rootAbsent=!fs.existsSync(root);}catch{cleanup.failureCount++;}
+cleanup.evidencePreservedOrNotRequired=diagnosticCleanupAllowed;
 console.log(`[cleanup] ${JSON.stringify({root,bytes:size,...cleanup,udpClosed})}`);
 console.log(JSON.stringify({mode:latencyOnly?'current-http-latency':'current-actual-app',passed,failed,latencyPass,actualEventPass,restartPass,expectedOutputCount:2,observedOutputCounts,cleanup,elapsedMs:Math.round(performance.now()-start)}));
 process.exitCode=primaryError||cleanup.failureCount||!cleanup.rootAbsent?1:0;

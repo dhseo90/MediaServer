@@ -2,6 +2,8 @@
 
 ## 2026-09-17 실패 진단 선보존 보완 실행 전 정의
 
+최종1~4 진단도구 구현·자체검증 완료: C++28개 유효(27+focused1), JS 최종49/49, 실제 typed C++→JS 연결1/1 PASS. 세 실행군은 별개이며 실제앱/제품실패원인 PASS가 아니다. [개별 결과·초기 실패·정리·범위](release-artifacts/v4.1.0/s11-preparation-mapping/diagnostic-replay-report.md), [JS 원출력](release-artifacts/v4.1.0/s11-preparation-mapping/failure-capture-output.txt). C++ a9f48fb2 커밋 완료, JS 연결은 별도커밋. 푸시/후속실제앱은 미수행.
+
 LP06-A 최종 유효 검사28개(전체27+손상basic focused1) PASS. 최초 expected RED 및 fixture 수량 오류를 모두 보존했다. [개별 실행 결과·정리](release-artifacts/v4.1.0/s11-preparation-mapping/diagnostic-replay-report.md). JS 실행순서 연결은 다음 커밋 범위이며 이 C++ 결과로 실제 제품실패 원인/앱PASS를 주장하지 않는다.
 
 승인 범위는 진단/재현 분리·안전 분류·최소 증거/정리·자체검증(1~4)이다. 제품 코드, 실제 앱 재현, UI/장시간, 푸시는 제외한다. 기존 시간제한을 늘리지 않는다.
@@ -23,6 +25,9 @@ LP06-A 최종 유효 검사28개(전체27+손상basic focused1) PASS. 최초 exp
 | LP06-B05 | 정리 경계 | 선보존 미완료면 소유 root 유지, 정리 실패를 완료로 처리하지 않음 | v4.1.0 |
 | LP06-B06 | 파일 안전성 | 기존 파일·symlink 덮어쓰기 거부, 새 파일 0600, 원자 교체 | v4.1.0 |
 | LP06-B07 | 상세 수집 실패 독립화 | basic 선보존 뒤 상세수집 오류·timeout·보존실패·다른intent이면 재현 건너뜀, 최초 진단 유지 | v4.1.0 |
+| LP06-B08 | 기본 진단 환경 준비 분리 | plugin 환경 준비가 실패해도 basic 직접 실행, 상세 단계만 실패 | v4.1.0 |
+| LP06-B09 | 기존 deadline 유지 | 만료 시 자식 미기동, 남은 시간으로 자식 timeout 축소, 단계별 새 15초 예산 부여 금지 | v4.1.0 |
+| LP06-B10 | 실제 C++ 출력 연결 | typed fixture의 basic/detail/replay 실제 자식 출력으로 선보존 및 schema/intent 결박 검증 | v4.1.0 |
 
 메인 리뷰 보완: 상세 진단의 파일 검사도 timeout 가능하므로 basic(파일 접근 없음) → 선보존 → detail → 별도 보존 → replay 순서로 확정한다. 최초 결과와 후속 결과 파일은 덮어쓰지 않는다. 실패코드만 보존됐으면 최소 증거 수집 미완료를 명시하며 root 자동 삭제는 막는다. 충분한 안전 요약을 보존한 뒤 replay 실패한 경우에만 root 정리를 허용한다. 원본 영상 보존을 릴리즈 evidence로 승격하지 않는다.
 
