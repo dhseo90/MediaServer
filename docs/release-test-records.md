@@ -2,6 +2,51 @@
 
 ## 2026-09-17 LP09 승인된 공통 소비와 미선택 원인
 
+### 3번 실행 전: 공통 정확 구간과 queued 증거 갱신
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP09-N01 | native 정확 끝점 | 30fps 항별절삭 공백과 정확합산 끝점 구분 | v4.1.0 |
+| LP09-N02 | 분수 FPS | 30000/1001 정확 끝점과 정수투영 구분 | v4.1.0 |
+| LP09-N03 | 실제 누락 | 1ns 및0.5ns gap을 합집합에서도 보존 | v4.1.0 |
+| LP09-N04 | 파일간 overlap | 정수writer원점과native1/3ns overlap 합집합, 임의위상없음 | v4.1.0 |
+| LP09-N05 | VFR/B-frame/마지막 | 비단조presentation순서·각자duration·마지막을 자체표로계산 | v4.1.0 |
+| LP09-N06 | 무효/overflow | denominator0,음수,0duration,int64초과,비정규분수거부 | v4.1.0 |
+| LP09-N07 | 요청clip/표시분리 | 정확구간교집합·누락은유리수,표시floor/ceil은합격oracle아님 | v4.1.0 |
+| LP09-N08 | 상한 | 입력4096초과거부·sort/merge결정성 | v4.1.0 |
+| LP09-S01 | native 선택 | 실제관측identity와binding표가맞는30fps3프레임에만native정확구간으로100ms충족. 기존duration누락/절삭은identity증거와분리 | v4.1.0 |
+| LP09-S02 | native 거부/기존보존 | 중복identity·namespace·binding손상·증거부재에서legacy/unknown유지. 미관측프레임과실제gap충족승격금지 | v4.1.0 |
+| LP09-S03 | native 내구 소비 | 새compact/profile에정확경계와관측identity/파일증거결박. 기존job바이트/ID/partial불변,생성/Ready/복구공통판정 | v4.1.0 |
+| LP09-Q01 | queued 최초증거갱신 | 뒤요청의대기기한소진후첫선택도동일namespace 최신증거로판정·원래deadline불변 | v4.1.0 |
+| LP09-Q02 | provider 안전거부 | 첫평가provider예외·source/channel/generation/namespace/track/상한오류를기존거부기준으로처리 | v4.1.0 |
+| LP09-Q03 | 기존경로 회귀 | provider없음/partial/stop/queue/진단시도·소유보호 유지. provider 장벽중 StopAndDrain 뒤matching증거가돌아와도job/예약을생성하지않음(검증장벽상한2초) | v4.1.0 |
+
+N 명령: `bash scripts/internal/verify_recording_presentation_interval.sh`; 미구현stub에서N01~08 assertion RED후header-only 공통산술 구현. 이 검사는파일증거인증·선택·생성·복구연결 PASS가아니다. Q는기존worker통합fixture를확장하고 `bash scripts/internal/verify_recording_derived_event_integration.sh --diagnostics-only` 및전체를실행한다. 제품header변경후 `./server.sh build` 선수조건을유지한다. 공개schema·기존profile·timeout은불변이다.
+
+S01~02 명령: `bash scripts/internal/verify_recording_derived_selection.sh`. S03 exact실행fixture는소비코드구현전추가등록한다. 신규native slice에는정확분수경계를따로저장하고기존정수ns표시는외접범위일뿐완전성oracle로쓰지않는다.
+
+N 구현 결과: `recording_presentation_interval.h`에 정규화된 유리수 시각, exact 합집합·누락, 표시용 외접 범위를 분리했다. `[원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp09-native-output.txt)`. RED exit1(1pass/7fail) → GREEN exit0(8pass/0fail), elapsed 0.514/0.463초, source=4612d92d 이후 해당 신규 헤더/fixture. token start/end/consumed는 자동집계 부재로 미집계. 이 산술 단위만 검증됐으며 selection/job/remux/Ready/복구/조회 공통 소비는 미완료다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP09-N01 | 30fps 끝점: 절삭 duration 합과 정확 끝점 구분, RED 후 GREEN | pass |
+| LP09-N02 | 30000/1001 유리수 끝점, RED 후 GREEN | pass |
+| LP09-N03 | 실제 1ns/0.5ns gap 보존, RED 후 GREEN | pass |
+| LP09-N04 | 서로 다른 정수 원점의 1/3ns overlap 합집합, RED 후 GREEN | pass |
+| LP09-N05 | B-frame 비정렬 presentation/VFR 자체 길이, RED 후 GREEN | pass |
+| LP09-N06 | 무효 정규분수·native/ns overflow 거부, RED 단계부터 해당 음성 통과 | pass |
+| LP09-N07 | 표시용 반올림 범위로 정확 요청 미충족을 숨기지 않음, RED 후 GREEN | pass |
+| LP09-N08 | 4096 상한·결정적 union, RED 후 GREEN | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR/media-server-presentation-interval.UCdLHw | RED 실행 바이너리 | 71,608B | 소유 root 삭제 | 부재 확인 | N 원출력 |
+| TMPDIR/media-server-presentation-interval.e7402z | GREEN 실행 바이너리 | 112,312B | 소유 root 삭제 | 부재 확인 | N 원출력 |
+| TMPDIR/media-server-derived-selection.dhQSSI | S 등록 보완 전 RED 바이너리 | 1,088,888B | 삭제 | 부재 확인 | 완료 증거 무효, 이력만 보존 |
+| TMPDIR/media-server-derived-selection.s03L6f | S 등록 보완 후 RED 바이너리 | 1,088,888B | 삭제 | 부재 확인 | 30pass/2expected-fail, elapsed2초 |
+
+S01~03은 중앙 사전 정의가 있었으나 inventory 명시 ID가 누락되어 보완했다. 보완 전 실행은 무효이며 보완 후 동일 RED만 확인했다. S 선택 API/fixture 초안은 미커밋, S03 소비 검사는 미실행이다. 전체 선택 기능 또는 단계3 완료로 간주하지 않는다.
+
 사용자 1~5 순차 실행/분할커밋 승인. 기존 endpoint 계약의 LP09와 foundation 실행계획을 따른다. 푸시·UI·장시간 제외. 1번 문서 적용 조건은 메인 직접 작성/상충 검토했다. `git diff --check` exit0, `./server.sh verify-docs-links` exit0(282md/8677links/22images/110anchors/0fail). 임시산출물 없음. token start/end/consumed 자동집계 없어 미집계, 문서검증 elapsed0.080초/source workspace2387dd85+문서변경. 제품 구현·실제앱 검증은 아직 미실행이다.
 
 | 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
