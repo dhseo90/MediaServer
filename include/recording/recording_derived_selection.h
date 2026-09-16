@@ -2,6 +2,7 @@
 #pragma once
 #include "analysis/decoded_interval_evidence.h"
 #include "recording/recording_read_service.h"
+#include "recording/recording_presentation_interval.h"
 
 namespace recording {
 enum class DerivedSliceState { Confirmed, Unknown, Gap, Deleted, Ambiguous, AwaitingPostRoll };
@@ -23,6 +24,8 @@ struct DerivedSelectionSlice {
     DerivedSliceState state{DerivedSliceState::Unknown};
     std::vector<DerivedSelectionCandidate> candidates;
     std::string reason;
+    // 신규 native profile에서만 사용한다. start/end_ns는 표시·읽기용 외접 정수 범위다.
+    std::optional<PresentationInterval> presentation{};
 };
 struct DerivedRecordingSelection {
     RecordingConsumerReferenceV1 reference;
@@ -31,10 +34,12 @@ struct DerivedRecordingSelection {
     std::vector<RecordingRangeCandidate> unplaced;
     bool complete{false};
     std::string reason;
+    bool native_file_intervals{false};
 };
 // UTC range는 동일 catalog snapshot에서 확인한 결과를 전달한다. 새 원장 shape를 만들지 않는다.
 bool SelectDerivedRecording(const RecordingConsumerReferenceV1& reference,
     const analysis::DecodedIntervalSnapshot& evidence,
     const std::vector<DerivedSourceEvidence>& sources,
-    const RecordingRangeResult* utc_range, DerivedRecordingSelection* output, std::string* error);
+    const RecordingRangeResult* utc_range, DerivedRecordingSelection* output, std::string* error,
+    bool prefer_native=false);
 } // namespace recording

@@ -2,7 +2,105 @@
 
 ## 2026-09-17 LP09 승인된 공통 소비와 미선택 원인
 
+### 잔여1 선택 단위 완료 (2026-09-17)
+
+`SelectDerivedRecording(..., prefer_native=false)`를 명시 opt-in으로 확장했다. 실제 worker 활성화는 잔여2 완료 후에만 한다. main이 직접 검토해 출력4096 초과와 개별 불확실 관측의 유효prefix 소실을 발견했고, 반례 RED 후 같은 단위에서 수정했다. UTC/legacy 호출은 그대로다. strict 증거의 구조·identity 결박 검사이지 선택 단계에서 실제 파일 I/O 인증을 수행하는 것은 아니다.
+
+명령 `bash scripts/internal/verify_recording_derived_selection.sh`: 최종63PASS/0FAIL exit0,elapsed2초. 초기 native양성 RED2→3, 출력cap RED1, prefix RED4 이력은 [전수 원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp09-selection-output.txt)에 보존한다. source=7dff9f04+선택 변경(artifact에 최종 SHA256). 단기 회귀·빌드 exit0; 빌드는 잔여2 작업 중인 소스도 포함하므로 잔여2 완료 증거가 아니다. token start/end/consumed 자동집계 없어 미집계. 대기 정책·공개 payload·기존 job profile은 이 선택 커밋에서 바꾸지 않는다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 선택-1 | D01 callback 누적·불변 snapshot | pass |
+| 선택-2 | D02 유효0·fallback·duration/원본부재 | pass |
+| 선택-3 | LP09-S01 native fixture strict binding precondition | pass |
+| 선택-4 | LP09-S01 observed native intervals close only quantization gaps | pass |
+| 선택-5 | LP09-S01 observed identity is separate from input duration | pass |
+| 선택-6 | LP09-S02 file existence does not invent unobserved identity | pass |
+| 선택-7 | LP09-S02 legacy timestamp-only remains partial | pass |
+| 선택-8 | LP09-S02 native proof alone never enables legacy callers | pass |
+| 선택-9 | LP09-S02 native rejects duplicate | pass |
+| 선택-10 | LP09-S02 native rejects namespace | pass |
+| 선택-11 | LP09-S02 native rejects generation | pass |
+| 선택-12 | LP09-S02 native rejects track | pass |
+| 선택-13 | LP09-S02 native rejects ordinal | pass |
+| 선택-14 | LP09-S02 native rejects pts | pass |
+| 선택-15 | LP09-S02 native rejects nearest | pass |
+| 선택-16 | LP09-S02 native rejects proof | pass |
+| 선택-17 | LP09-S02 native rejects deleted | pass |
+| 선택-18 | LP09-S02 native rejects unavailable | pass |
+| 선택-19 | LP09-S02 native rejects source | pass |
+| 선택-20 | LP09-S02 native rejects channel | pass |
+| 선택-21 | LP09-S02 one observed identity cannot bind two files | pass |
+| 선택-22 | LP09-S02 mixed proof presence falls back to legacy | pass |
+| 선택-23 | LP09-S01 distinct AU overlap strict fixture | pass |
+| 선택-24 | LP09-S01 distinct observed overlapping AUs select deterministic ordinal | pass |
+| 선택-25 | LP09-S02 cross-file fractional gap strict fixtures | pass |
+| 선택-26 | LP09-S02 actual two-thirds ns gap stays missing before display rounding | pass |
+| 선택-27 | LP09-S01 one-third ns overlap uses durable order independent of input order | pass |
+| 선택-28 | LP09-S01 30000-over-1001 exact observed interval union | pass |
+| 선택-29 | LP09-S02 missing last native duration never extrapolates | pass |
+| 선택-30 | LP09-S02 native frame cap 4097 rejects without truncation | pass |
+| 선택-31 | LP09-S02 native source cap 257 rejects without truncation | pass |
+| 선택-32 | LP09-S02 4097 output atoms strict bounded-input fixture | pass |
+| 선택-33 | LP09-S02 4097 output slices reject atomically without truncation | pass |
+| 선택-34 | LP09-S02 prefix preserved before uncertain ordinal without suffix invention | pass |
+| 선택-35 | LP09-S02 prefix preserved before uncertain nearest without suffix invention | pass |
+| 선택-36 | LP09-S02 prefix preserved before uncertain absent without suffix invention | pass |
+| 선택-37 | LP09-S02 prefix unknown position rejects global completeness | pass |
+| 선택-38 | LP09-S02 prefix later outside-request unmatched observation remains irrelevant | pass |
+| 선택-39 | D04 exact union 정상 선택·파일식별 | pass |
+| 선택-40 | D03 pre/post·음수요청 보존 | pass |
+| 선택-41 | D03 ns 변환 overflow 거부 | pass |
+| 선택-42 | D05 한점 외삽 금지 | pass |
+| 선택-43 | D06 namespace 격리 | pass |
+| 선택-44 | D06 generation 합성 금지 | pass |
+| 선택-45 | D06 track 합성 금지 | pass |
+| 선택-46 | D07 중복 PTS 모호성 | pass |
+| 선택-47 | D07 복수 원본 후보 보존 | pass |
+| 선택-48 | D08 cap 초과범위 미확인 | pass |
+| 선택-49 | D09 삭제 원본 구분 | pass |
+| 선택-50 | D09 불완전 mapping을 영상공백으로 승격 금지 | pass |
+| 선택-51 | D09 epoch identity 유지 | pass |
+| 선택-52 | D11 비표현 유리수 잔차 거부 | pass |
+| 선택-53 | D12 watermark 없는 postroll 미확인 | pass |
+| 선택-54 | D13 source/channel 결박 | pass |
+| 선택-55 | D13 checksum 없는 원본 거부 | pass |
+| 선택-56 | D10 UTC 품질·불확실성 유지 | pass |
+| 선택-57 | D10 UTC 역행 복수후보 보존 | pass |
+| 선택-58 | D10 UTC unplaced 차단 | pass |
+| 선택-59 | D14 정상후보가 손상후보를 숨기지 않음 | pass |
+| 선택-60 | D15 queued sequence 미래제외 | pass |
+| 선택-61 | D16 namespace reset 과거eviction 격리 | pass |
+| 선택-62 | D17 decoder exact duration·fallback 격리 | pass |
+| 선택-63 | D21 namespace reset 이후 재eviction 최근작은구간 선택 | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.Xm3Ouf | 실행/로그 | 1089112B | 삭제 | 부재 확인 | 선택 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.Q7A74J | 실행/로그 | 1089560B | 삭제 | 부재 확인 | 선택 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.5MrBYQ | 실행/로그 | 1342328B | 삭제 | 부재 확인 | 선택 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.AQose3 | 실행/로그 | 1350792B | 삭제 | 부재 확인 | 선택 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.KsnJ0f | 실행/로그 | 1368888B | 삭제 | 부재 확인 | 선택 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.VRTaWS | 실행/로그 | 1370984B | 삭제 | 부재 확인 | 선택 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.sLlEcb | 실행/로그 | 1370984B | 삭제 | 부재 확인 | 선택 원출력 |
+| /private/tmp/lp09-selection-cap.0MyNyE | 실행/로그 | 6114B | 삭제 | 부재 확인 | 선택 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.DNAzD2 | 실행/로그 | 1371496B | 삭제 | 부재 확인 | 선택 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.oS8UXv | 실행/로그 | 1371736B | 삭제 | 부재 확인 | 선택 원출력 |
+| /private/tmp/lp09-selection-prefix.XzwR14 | 실행/로그 | 6918B | 삭제 | 부재 확인 | 선택 원출력 |
+
 ### 3번 실행 전: 공통 정확 구간과 queued 증거 갱신
+
+2026-09-17 후속 사용자 승인: 잔여1(선택)~2(저장/생성/복구) 구현·분할커밋. 대기 정책 변경/푸시/실제 앱 전체·장시간/UI 제외. 선택은 `prefer_native=false` 기본의 명시 opt-in으로 먼저 검사하며 소비 구현 전 worker에서 활성화하지 않는다. 서로 다른 증명된 AU의 정확 overlap은 durable order/ordinal 순으로 atom별 한 후보를 결정한다. 동일 원본 identity 다중 결박은 거부하며 증거 없는 원본이 섞이면 전체 legacy fallback(새 혼합 profile 없음)이다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP09-S03a | native job codec | `bash scripts/internal/verify_recording_derived_job_validation.sh`: 30fps literal exact3구간, 새 profile/증거 저장·복원, fraction/identity/proof 변조 거부, 기존 canonical hash 불변. 예상 RED는 새 profile/roundtrip 미지원 | v4.1.0 |
+| LP09-S03b | native 실제 생성 | 실제 writer 30fps/분수FPS/B-frame/VFR 파일 증거→선택→remux. native 표와 원본 identity/VCL 결박, 진짜 gap/누락은 complete 금지. 구체 fixture 명령은 구현 전 추가 | v4.1.0 |
+| LP09-S03c | native 내구 복구 | 실제 새 job Ready·journal/SQLite 재구성·timeline 판정 일치, 손상 거부, 기존 byte/ID 불변. 구체 fixture 명령은 구현 전 추가 | v4.1.0 |
+
+S03b/c exact 명령: `bash scripts/internal/verify_recording_native_derived.sh`. 격리 실제 writer의 30fps 2원본(요청8~9초), 30000/1001·B-frame·VFR 1원본(요청200~800ms 또는20~300ms), 관측 프레임 누락 partial을 각각 확인한다. native proof 사전조건 후 job service 출력 hash/decoded hash·Ready/Complete, SQLite·JSONL 재개방의 exact job 및 timeline 판정을 확인한다. 예상 RED는 구간 선택이 완료돼도 구형 remux의 원본PTS대조/Ready quality검증이 신규profile을 아직소비하지못하는 지점이다. 제품 빌드 선수조건, 실행 root/GST registry 격리 및 모든 종료 cleanup을 유지한다. 실제 앱/HTTP 풀통합·장시간/UI는 실행하지 않는다.
+
+S02 추가 반례: 유효4096sample에서4097exact slice 출력 상한을 초과하면 부분 output 없이 거부. 개별 미결박/invalid 관측이 있더라도 그 관측 이전의 증명된 prefix는 Confirmed 유지하고 이후는 보수적 unknown(시각위치불명은전역unknown)으로 둔다. 잘못된 관측 하나로 앞부분까지 사라지는 후퇴를 막되 뒤 구간 복원을 추정하지 않는다.
 
 | 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
 | --- | --- | --- | --- |

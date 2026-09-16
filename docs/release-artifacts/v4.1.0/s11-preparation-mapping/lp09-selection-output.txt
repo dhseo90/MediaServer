@@ -1,0 +1,566 @@
+LP09 S01/S02 관측 identity + 정확 native interval 선택
+2026-09-17. 제품파일: recording_derived_selection.cpp/.h. fixture: recording_derived_selection_smoke.cpp.
+TDD: prefer_native stub legacy동작에서 S01 2개 assertion RED, 반례 확장 후 overlapping distinct AU 양성까지 3개 RED. 컴파일/선수 오류 없음.
+GREEN 구현은 opt-in bool 기본false, UTC/legacy 불변. proof없는 eligible source는 전체legacy fallback(혼합profile 없음).
+관측identity중복/복수source는 ambiguous, 다른관측AU overlap은 durableorder/store/segment/ordinal 순으로유일선택.
+정확rational partition에서 판정 후 display용 외접정수ns 부여. 실파일 I/O는 선택에서 하지 않음; main의 job/remux/Ready 검증은 별도.
+아래 각 실행은 bash scripts/internal/verify_recording_derived_selection.sh (same approved command), 단기 격리 자체검증. 실제앱/장시간/UI/commit/push미실행.
+원출력 보존; 마지막 native gap/30000-over-1001/상한 반례는 GREEN 이후 동일범위 추가검증이며 사후 RED 주장하지 않음.
+token start/end/consumed 미집계(도구 집계없음), elapsed 아래 bash SECONDS. main build 미실행(이 runner는 직접compile).
+전량 이관한 임시로그 정리: [log-cleanup] path=/private/tmp/lp09-selection-logs.VB2OAk bytes=12144 removed=true
+
+PHASE red EXIT 1
+[pass] D01 callback 누적·불변 snapshot
+[pass] D02 유효0·fallback·duration/원본부재
+[pass] LP09-S01 native fixture strict binding precondition
+[fail] LP09-S01 observed native intervals close only quantization gaps
+[fail] LP09-S01 observed identity is separate from input duration
+[pass] LP09-S02 file existence does not invent unobserved identity
+[pass] LP09-S02 legacy timestamp-only remains partial
+[pass] D04 exact union 정상 선택·파일식별
+[pass] D03 pre/post·음수요청 보존
+[pass] D03 ns 변환 overflow 거부
+[pass] D05 한점 외삽 금지
+[pass] D06 namespace 격리
+[pass] D06 generation 합성 금지
+[pass] D06 track 합성 금지
+[pass] D07 중복 PTS 모호성
+[pass] D07 복수 원본 후보 보존
+[pass] D08 cap 초과범위 미확인
+[pass] D09 삭제 원본 구분
+[pass] D09 불완전 mapping을 영상공백으로 승격 금지
+[pass] D09 epoch identity 유지
+[pass] D11 비표현 유리수 잔차 거부
+[pass] D12 watermark 없는 postroll 미확인
+[pass] D13 source/channel 결박
+[pass] D13 checksum 없는 원본 거부
+[pass] D10 UTC 품질·불확실성 유지
+[pass] D10 UTC 역행 복수후보 보존
+[pass] D10 UTC unplaced 차단
+[pass] D14 정상후보가 손상후보를 숨기지 않음
+[pass] D15 queued sequence 미래제외
+[pass] D16 namespace reset 과거eviction 격리
+[pass] D17 decoder exact duration·fallback 격리
+[pass] D21 namespace reset 이후 재eviction 최근작은구간 선택
+[summary] pass=30 fail=2
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.Xm3Ouf bytes=1089112 removed=true
+[elapsed] seconds=2 source=bash-SECONDS
+
+PHASE red-cases EXIT 1
+[pass] D01 callback 누적·불변 snapshot
+[pass] D02 유효0·fallback·duration/원본부재
+[pass] LP09-S01 native fixture strict binding precondition
+[fail] LP09-S01 observed native intervals close only quantization gaps
+[fail] LP09-S01 observed identity is separate from input duration
+[pass] LP09-S02 file existence does not invent unobserved identity
+[pass] LP09-S02 legacy timestamp-only remains partial
+[pass] LP09-S02 native proof alone never enables legacy callers
+[pass] LP09-S02 native rejects duplicate
+[pass] LP09-S02 native rejects namespace
+[pass] LP09-S02 native rejects generation
+[pass] LP09-S02 native rejects track
+[pass] LP09-S02 native rejects ordinal
+[pass] LP09-S02 native rejects pts
+[pass] LP09-S02 native rejects nearest
+[pass] LP09-S02 native rejects proof
+[pass] LP09-S02 native rejects deleted
+[pass] LP09-S02 native rejects unavailable
+[pass] LP09-S02 native rejects source
+[pass] LP09-S02 native rejects channel
+[pass] LP09-S02 one observed identity cannot bind two files
+[pass] LP09-S02 mixed proof presence falls back to legacy
+[pass] LP09-S01 distinct AU overlap strict fixture
+[fail] LP09-S01 distinct observed overlapping AUs select deterministic ordinal
+[pass] D04 exact union 정상 선택·파일식별
+[pass] D03 pre/post·음수요청 보존
+[pass] D03 ns 변환 overflow 거부
+[pass] D05 한점 외삽 금지
+[pass] D06 namespace 격리
+[pass] D06 generation 합성 금지
+[pass] D06 track 합성 금지
+[pass] D07 중복 PTS 모호성
+[pass] D07 복수 원본 후보 보존
+[pass] D08 cap 초과범위 미확인
+[pass] D09 삭제 원본 구분
+[pass] D09 불완전 mapping을 영상공백으로 승격 금지
+[pass] D09 epoch identity 유지
+[pass] D11 비표현 유리수 잔차 거부
+[pass] D12 watermark 없는 postroll 미확인
+[pass] D13 source/channel 결박
+[pass] D13 checksum 없는 원본 거부
+[pass] D10 UTC 품질·불확실성 유지
+[pass] D10 UTC 역행 복수후보 보존
+[pass] D10 UTC unplaced 차단
+[pass] D14 정상후보가 손상후보를 숨기지 않음
+[pass] D15 queued sequence 미래제외
+[pass] D16 namespace reset 과거eviction 격리
+[pass] D17 decoder exact duration·fallback 격리
+[pass] D21 namespace reset 이후 재eviction 최근작은구간 선택
+[summary] pass=46 fail=3
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.Q7A74J bytes=1089560 removed=true
+[elapsed] seconds=2 source=bash-SECONDS
+
+PHASE green EXIT 0
+[pass] D01 callback 누적·불변 snapshot
+[pass] D02 유효0·fallback·duration/원본부재
+[pass] LP09-S01 native fixture strict binding precondition
+[pass] LP09-S01 observed native intervals close only quantization gaps
+[pass] LP09-S01 observed identity is separate from input duration
+[pass] LP09-S02 file existence does not invent unobserved identity
+[pass] LP09-S02 legacy timestamp-only remains partial
+[pass] LP09-S02 native proof alone never enables legacy callers
+[pass] LP09-S02 native rejects duplicate
+[pass] LP09-S02 native rejects namespace
+[pass] LP09-S02 native rejects generation
+[pass] LP09-S02 native rejects track
+[pass] LP09-S02 native rejects ordinal
+[pass] LP09-S02 native rejects pts
+[pass] LP09-S02 native rejects nearest
+[pass] LP09-S02 native rejects proof
+[pass] LP09-S02 native rejects deleted
+[pass] LP09-S02 native rejects unavailable
+[pass] LP09-S02 native rejects source
+[pass] LP09-S02 native rejects channel
+[pass] LP09-S02 one observed identity cannot bind two files
+[pass] LP09-S02 mixed proof presence falls back to legacy
+[pass] LP09-S01 distinct AU overlap strict fixture
+[pass] LP09-S01 distinct observed overlapping AUs select deterministic ordinal
+[pass] D04 exact union 정상 선택·파일식별
+[pass] D03 pre/post·음수요청 보존
+[pass] D03 ns 변환 overflow 거부
+[pass] D05 한점 외삽 금지
+[pass] D06 namespace 격리
+[pass] D06 generation 합성 금지
+[pass] D06 track 합성 금지
+[pass] D07 중복 PTS 모호성
+[pass] D07 복수 원본 후보 보존
+[pass] D08 cap 초과범위 미확인
+[pass] D09 삭제 원본 구분
+[pass] D09 불완전 mapping을 영상공백으로 승격 금지
+[pass] D09 epoch identity 유지
+[pass] D11 비표현 유리수 잔차 거부
+[pass] D12 watermark 없는 postroll 미확인
+[pass] D13 source/channel 결박
+[pass] D13 checksum 없는 원본 거부
+[pass] D10 UTC 품질·불확실성 유지
+[pass] D10 UTC 역행 복수후보 보존
+[pass] D10 UTC unplaced 차단
+[pass] D14 정상후보가 손상후보를 숨기지 않음
+[pass] D15 queued sequence 미래제외
+[pass] D16 namespace reset 과거eviction 격리
+[pass] D17 decoder exact duration·fallback 격리
+[pass] D21 namespace reset 이후 재eviction 최근작은구간 선택
+[summary] pass=49 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.5MrBYQ bytes=1342328 removed=true
+[elapsed] seconds=2 source=bash-SECONDS
+
+PHASE boundaries EXIT 0
+[pass] D01 callback 누적·불변 snapshot
+[pass] D02 유효0·fallback·duration/원본부재
+[pass] LP09-S01 native fixture strict binding precondition
+[pass] LP09-S01 observed native intervals close only quantization gaps
+[pass] LP09-S01 observed identity is separate from input duration
+[pass] LP09-S02 file existence does not invent unobserved identity
+[pass] LP09-S02 legacy timestamp-only remains partial
+[pass] LP09-S02 native proof alone never enables legacy callers
+[pass] LP09-S02 native rejects duplicate
+[pass] LP09-S02 native rejects namespace
+[pass] LP09-S02 native rejects generation
+[pass] LP09-S02 native rejects track
+[pass] LP09-S02 native rejects ordinal
+[pass] LP09-S02 native rejects pts
+[pass] LP09-S02 native rejects nearest
+[pass] LP09-S02 native rejects proof
+[pass] LP09-S02 native rejects deleted
+[pass] LP09-S02 native rejects unavailable
+[pass] LP09-S02 native rejects source
+[pass] LP09-S02 native rejects channel
+[pass] LP09-S02 one observed identity cannot bind two files
+[pass] LP09-S02 mixed proof presence falls back to legacy
+[pass] LP09-S01 distinct AU overlap strict fixture
+[pass] LP09-S01 distinct observed overlapping AUs select deterministic ordinal
+[pass] LP09-S02 cross-file fractional gap strict fixtures
+[pass] LP09-S02 actual two-thirds ns gap stays missing before display rounding
+[pass] LP09-S01 one-third ns overlap uses durable order independent of input order
+[pass] D04 exact union 정상 선택·파일식별
+[pass] D03 pre/post·음수요청 보존
+[pass] D03 ns 변환 overflow 거부
+[pass] D05 한점 외삽 금지
+[pass] D06 namespace 격리
+[pass] D06 generation 합성 금지
+[pass] D06 track 합성 금지
+[pass] D07 중복 PTS 모호성
+[pass] D07 복수 원본 후보 보존
+[pass] D08 cap 초과범위 미확인
+[pass] D09 삭제 원본 구분
+[pass] D09 불완전 mapping을 영상공백으로 승격 금지
+[pass] D09 epoch identity 유지
+[pass] D11 비표현 유리수 잔차 거부
+[pass] D12 watermark 없는 postroll 미확인
+[pass] D13 source/channel 결박
+[pass] D13 checksum 없는 원본 거부
+[pass] D10 UTC 품질·불확실성 유지
+[pass] D10 UTC 역행 복수후보 보존
+[pass] D10 UTC unplaced 차단
+[pass] D14 정상후보가 손상후보를 숨기지 않음
+[pass] D15 queued sequence 미래제외
+[pass] D16 namespace reset 과거eviction 격리
+[pass] D17 decoder exact duration·fallback 격리
+[pass] D21 namespace reset 이후 재eviction 최근작은구간 선택
+[summary] pass=52 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.AQose3 bytes=1350792 removed=true
+[elapsed] seconds=2 source=bash-SECONDS
+
+PHASE final EXIT 0
+[pass] D01 callback 누적·불변 snapshot
+[pass] D02 유효0·fallback·duration/원본부재
+[pass] LP09-S01 native fixture strict binding precondition
+[pass] LP09-S01 observed native intervals close only quantization gaps
+[pass] LP09-S01 observed identity is separate from input duration
+[pass] LP09-S02 file existence does not invent unobserved identity
+[pass] LP09-S02 legacy timestamp-only remains partial
+[pass] LP09-S02 native proof alone never enables legacy callers
+[pass] LP09-S02 native rejects duplicate
+[pass] LP09-S02 native rejects namespace
+[pass] LP09-S02 native rejects generation
+[pass] LP09-S02 native rejects track
+[pass] LP09-S02 native rejects ordinal
+[pass] LP09-S02 native rejects pts
+[pass] LP09-S02 native rejects nearest
+[pass] LP09-S02 native rejects proof
+[pass] LP09-S02 native rejects deleted
+[pass] LP09-S02 native rejects unavailable
+[pass] LP09-S02 native rejects source
+[pass] LP09-S02 native rejects channel
+[pass] LP09-S02 one observed identity cannot bind two files
+[pass] LP09-S02 mixed proof presence falls back to legacy
+[pass] LP09-S01 distinct AU overlap strict fixture
+[pass] LP09-S01 distinct observed overlapping AUs select deterministic ordinal
+[pass] LP09-S02 cross-file fractional gap strict fixtures
+[pass] LP09-S02 actual two-thirds ns gap stays missing before display rounding
+[pass] LP09-S01 one-third ns overlap uses durable order independent of input order
+[pass] LP09-S01 30000-over-1001 exact observed interval union
+[pass] LP09-S02 missing last native duration never extrapolates
+[pass] LP09-S02 native frame cap 4097 rejects without truncation
+[pass] LP09-S02 native source cap 257 rejects without truncation
+[pass] D04 exact union 정상 선택·파일식별
+[pass] D03 pre/post·음수요청 보존
+[pass] D03 ns 변환 overflow 거부
+[pass] D05 한점 외삽 금지
+[pass] D06 namespace 격리
+[pass] D06 generation 합성 금지
+[pass] D06 track 합성 금지
+[pass] D07 중복 PTS 모호성
+[pass] D07 복수 원본 후보 보존
+[pass] D08 cap 초과범위 미확인
+[pass] D09 삭제 원본 구분
+[pass] D09 불완전 mapping을 영상공백으로 승격 금지
+[pass] D09 epoch identity 유지
+[pass] D11 비표현 유리수 잔차 거부
+[pass] D12 watermark 없는 postroll 미확인
+[pass] D13 source/channel 결박
+[pass] D13 checksum 없는 원본 거부
+[pass] D10 UTC 품질·불확실성 유지
+[pass] D10 UTC 역행 복수후보 보존
+[pass] D10 UTC unplaced 차단
+[pass] D14 정상후보가 손상후보를 숨기지 않음
+[pass] D15 queued sequence 미래제외
+[pass] D16 namespace reset 과거eviction 격리
+[pass] D17 decoder exact duration·fallback 격리
+[pass] D21 namespace reset 이후 재eviction 최근작은구간 선택
+[summary] pass=56 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.KsnJ0f bytes=1368888 removed=true
+[elapsed] seconds=2 source=bash-SECONDS
+
+FINAL SOURCE / diffcheck exit0
+7dff9f04a570945cdf4ec0607d8a1ab7860371e0
+b8d5bb5cf89fe98420833eb47b21a552f07f92bdbc09f2d4b2dea2d49567bf63  src/recording/recording_derived_selection.cpp
+73432ce4a899bdd2f07b4ace9ef4ddf7b4016bcbb185f651fa9fb23820ad42b9  include/recording/recording_derived_selection.h
+79a01a313621fce1f27c814bd2d846f16f57b04b7619715753fe88813c8ec886  scripts/internal/recording_derived_selection_smoke.cpp
+873d80b3bb4a3059a1e40aae6aaa16853734722d12483daee4e34f4bbaa396fb  include/recording/recording_presentation_interval.h
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+Target: arm64-apple-darwin27.0.0
+Thread model: posix
+InstalledDir: /Library/Developer/CommandLineTools/usr/bin
+Darwin 27.0.0
+
+REVIEW FOLLOW-UP: native exact slice cap4096
+COMMAND bash scripts/internal/verify_recording_derived_selection.sh
+
+red EXIT 1
+[pass] D01 callback 누적·불변 snapshot
+[pass] D02 유효0·fallback·duration/원본부재
+[pass] LP09-S01 native fixture strict binding precondition
+[pass] LP09-S01 observed native intervals close only quantization gaps
+[pass] LP09-S01 observed identity is separate from input duration
+[pass] LP09-S02 file existence does not invent unobserved identity
+[pass] LP09-S02 legacy timestamp-only remains partial
+[pass] LP09-S02 native proof alone never enables legacy callers
+[pass] LP09-S02 native rejects duplicate
+[pass] LP09-S02 native rejects namespace
+[pass] LP09-S02 native rejects generation
+[pass] LP09-S02 native rejects track
+[pass] LP09-S02 native rejects ordinal
+[pass] LP09-S02 native rejects pts
+[pass] LP09-S02 native rejects nearest
+[pass] LP09-S02 native rejects proof
+[pass] LP09-S02 native rejects deleted
+[pass] LP09-S02 native rejects unavailable
+[pass] LP09-S02 native rejects source
+[pass] LP09-S02 native rejects channel
+[pass] LP09-S02 one observed identity cannot bind two files
+[pass] LP09-S02 mixed proof presence falls back to legacy
+[pass] LP09-S01 distinct AU overlap strict fixture
+[pass] LP09-S01 distinct observed overlapping AUs select deterministic ordinal
+[pass] LP09-S02 cross-file fractional gap strict fixtures
+[pass] LP09-S02 actual two-thirds ns gap stays missing before display rounding
+[pass] LP09-S01 one-third ns overlap uses durable order independent of input order
+[pass] LP09-S01 30000-over-1001 exact observed interval union
+[pass] LP09-S02 missing last native duration never extrapolates
+[pass] LP09-S02 native frame cap 4097 rejects without truncation
+[pass] LP09-S02 native source cap 257 rejects without truncation
+[pass] LP09-S02 4097 output atoms strict bounded-input fixture
+[fail] LP09-S02 4097 output slices reject atomically without truncation
+[pass] D04 exact union 정상 선택·파일식별
+[pass] D03 pre/post·음수요청 보존
+[pass] D03 ns 변환 overflow 거부
+[pass] D05 한점 외삽 금지
+[pass] D06 namespace 격리
+[pass] D06 generation 합성 금지
+[pass] D06 track 합성 금지
+[pass] D07 중복 PTS 모호성
+[pass] D07 복수 원본 후보 보존
+[pass] D08 cap 초과범위 미확인
+[pass] D09 삭제 원본 구분
+[pass] D09 불완전 mapping을 영상공백으로 승격 금지
+[pass] D09 epoch identity 유지
+[pass] D11 비표현 유리수 잔차 거부
+[pass] D12 watermark 없는 postroll 미확인
+[pass] D13 source/channel 결박
+[pass] D13 checksum 없는 원본 거부
+[pass] D10 UTC 품질·불확실성 유지
+[pass] D10 UTC 역행 복수후보 보존
+[pass] D10 UTC unplaced 차단
+[pass] D14 정상후보가 손상후보를 숨기지 않음
+[pass] D15 queued sequence 미래제외
+[pass] D16 namespace reset 과거eviction 격리
+[pass] D17 decoder exact duration·fallback 격리
+[pass] D21 namespace reset 이후 재eviction 최근작은구간 선택
+[summary] pass=57 fail=1
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.VRTaWS bytes=1370984 removed=true
+[elapsed] seconds=2 source=bash-SECONDS
+
+green EXIT 0
+[pass] D01 callback 누적·불변 snapshot
+[pass] D02 유효0·fallback·duration/원본부재
+[pass] LP09-S01 native fixture strict binding precondition
+[pass] LP09-S01 observed native intervals close only quantization gaps
+[pass] LP09-S01 observed identity is separate from input duration
+[pass] LP09-S02 file existence does not invent unobserved identity
+[pass] LP09-S02 legacy timestamp-only remains partial
+[pass] LP09-S02 native proof alone never enables legacy callers
+[pass] LP09-S02 native rejects duplicate
+[pass] LP09-S02 native rejects namespace
+[pass] LP09-S02 native rejects generation
+[pass] LP09-S02 native rejects track
+[pass] LP09-S02 native rejects ordinal
+[pass] LP09-S02 native rejects pts
+[pass] LP09-S02 native rejects nearest
+[pass] LP09-S02 native rejects proof
+[pass] LP09-S02 native rejects deleted
+[pass] LP09-S02 native rejects unavailable
+[pass] LP09-S02 native rejects source
+[pass] LP09-S02 native rejects channel
+[pass] LP09-S02 one observed identity cannot bind two files
+[pass] LP09-S02 mixed proof presence falls back to legacy
+[pass] LP09-S01 distinct AU overlap strict fixture
+[pass] LP09-S01 distinct observed overlapping AUs select deterministic ordinal
+[pass] LP09-S02 cross-file fractional gap strict fixtures
+[pass] LP09-S02 actual two-thirds ns gap stays missing before display rounding
+[pass] LP09-S01 one-third ns overlap uses durable order independent of input order
+[pass] LP09-S01 30000-over-1001 exact observed interval union
+[pass] LP09-S02 missing last native duration never extrapolates
+[pass] LP09-S02 native frame cap 4097 rejects without truncation
+[pass] LP09-S02 native source cap 257 rejects without truncation
+[pass] LP09-S02 4097 output atoms strict bounded-input fixture
+[pass] LP09-S02 4097 output slices reject atomically without truncation
+[pass] D04 exact union 정상 선택·파일식별
+[pass] D03 pre/post·음수요청 보존
+[pass] D03 ns 변환 overflow 거부
+[pass] D05 한점 외삽 금지
+[pass] D06 namespace 격리
+[pass] D06 generation 합성 금지
+[pass] D06 track 합성 금지
+[pass] D07 중복 PTS 모호성
+[pass] D07 복수 원본 후보 보존
+[pass] D08 cap 초과범위 미확인
+[pass] D09 삭제 원본 구분
+[pass] D09 불완전 mapping을 영상공백으로 승격 금지
+[pass] D09 epoch identity 유지
+[pass] D11 비표현 유리수 잔차 거부
+[pass] D12 watermark 없는 postroll 미확인
+[pass] D13 source/channel 결박
+[pass] D13 checksum 없는 원본 거부
+[pass] D10 UTC 품질·불확실성 유지
+[pass] D10 UTC 역행 복수후보 보존
+[pass] D10 UTC unplaced 차단
+[pass] D14 정상후보가 손상후보를 숨기지 않음
+[pass] D15 queued sequence 미래제외
+[pass] D16 namespace reset 과거eviction 격리
+[pass] D17 decoder exact duration·fallback 격리
+[pass] D21 namespace reset 이후 재eviction 최근작은구간 선택
+[summary] pass=58 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.sLlEcb bytes=1370984 removed=true
+[elapsed] seconds=2 source=bash-SECONDS
+
+Final diffcheck exit0/source/cleanup:
+7869f1185570409f1f7c0cbacdb2d82edb09e7f974826e15e7e9e696dd8e6ab6  src/recording/recording_derived_selection.cpp
+bb07a1768a19a9ee9e7cabcc4c0b29fc41e9ff85be711d10594d0fb2d786a18a  scripts/internal/recording_derived_selection_smoke.cpp
+[log-cleanup] path=/private/tmp/lp09-selection-cap.0MyNyE bytes=6114 removed=true
+
+한계: 개별 unmatched frame가 전역unknown을 설정하여 유효prefix까지 지우는 보수적처리는 메인에보고/판정대기, 이번cap변경에서수정하지않음.
+
+REVIEW FOLLOW-UP S02 prefix: 승인된국소불확실범위보완
+개별invalid/unmatched 관측은최초분석PTS부터요청끝unknown,음수PTS는globalunknown. namespace/source손상globalunknown 유지.
+COMMAND bash scripts/internal/verify_recording_derived_selection.sh
+
+red EXIT 1
+[pass] D01 callback 누적·불변 snapshot
+[pass] D02 유효0·fallback·duration/원본부재
+[pass] LP09-S01 native fixture strict binding precondition
+[pass] LP09-S01 observed native intervals close only quantization gaps
+[pass] LP09-S01 observed identity is separate from input duration
+[pass] LP09-S02 file existence does not invent unobserved identity
+[pass] LP09-S02 legacy timestamp-only remains partial
+[pass] LP09-S02 native proof alone never enables legacy callers
+[pass] LP09-S02 native rejects duplicate
+[pass] LP09-S02 native rejects namespace
+[pass] LP09-S02 native rejects generation
+[pass] LP09-S02 native rejects track
+[pass] LP09-S02 native rejects ordinal
+[pass] LP09-S02 native rejects pts
+[pass] LP09-S02 native rejects nearest
+[pass] LP09-S02 native rejects proof
+[pass] LP09-S02 native rejects deleted
+[pass] LP09-S02 native rejects unavailable
+[pass] LP09-S02 native rejects source
+[pass] LP09-S02 native rejects channel
+[pass] LP09-S02 one observed identity cannot bind two files
+[pass] LP09-S02 mixed proof presence falls back to legacy
+[pass] LP09-S01 distinct AU overlap strict fixture
+[pass] LP09-S01 distinct observed overlapping AUs select deterministic ordinal
+[pass] LP09-S02 cross-file fractional gap strict fixtures
+[pass] LP09-S02 actual two-thirds ns gap stays missing before display rounding
+[pass] LP09-S01 one-third ns overlap uses durable order independent of input order
+[pass] LP09-S01 30000-over-1001 exact observed interval union
+[pass] LP09-S02 missing last native duration never extrapolates
+[pass] LP09-S02 native frame cap 4097 rejects without truncation
+[pass] LP09-S02 native source cap 257 rejects without truncation
+[pass] LP09-S02 4097 output atoms strict bounded-input fixture
+[pass] LP09-S02 4097 output slices reject atomically without truncation
+[fail] LP09-S02 prefix preserved before uncertain ordinal without suffix invention
+[fail] LP09-S02 prefix preserved before uncertain nearest without suffix invention
+[fail] LP09-S02 prefix preserved before uncertain absent without suffix invention
+[fail] LP09-S02 prefix unknown position rejects global completeness
+[pass] LP09-S02 prefix later outside-request unmatched observation remains irrelevant
+[pass] D04 exact union 정상 선택·파일식별
+[pass] D03 pre/post·음수요청 보존
+[pass] D03 ns 변환 overflow 거부
+[pass] D05 한점 외삽 금지
+[pass] D06 namespace 격리
+[pass] D06 generation 합성 금지
+[pass] D06 track 합성 금지
+[pass] D07 중복 PTS 모호성
+[pass] D07 복수 원본 후보 보존
+[pass] D08 cap 초과범위 미확인
+[pass] D09 삭제 원본 구분
+[pass] D09 불완전 mapping을 영상공백으로 승격 금지
+[pass] D09 epoch identity 유지
+[pass] D11 비표현 유리수 잔차 거부
+[pass] D12 watermark 없는 postroll 미확인
+[pass] D13 source/channel 결박
+[pass] D13 checksum 없는 원본 거부
+[pass] D10 UTC 품질·불확실성 유지
+[pass] D10 UTC 역행 복수후보 보존
+[pass] D10 UTC unplaced 차단
+[pass] D14 정상후보가 손상후보를 숨기지 않음
+[pass] D15 queued sequence 미래제외
+[pass] D16 namespace reset 과거eviction 격리
+[pass] D17 decoder exact duration·fallback 격리
+[pass] D21 namespace reset 이후 재eviction 최근작은구간 선택
+[summary] pass=59 fail=4
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.DNAzD2 bytes=1371496 removed=true
+[elapsed] seconds=2 source=bash-SECONDS
+
+green EXIT 0
+[pass] D01 callback 누적·불변 snapshot
+[pass] D02 유효0·fallback·duration/원본부재
+[pass] LP09-S01 native fixture strict binding precondition
+[pass] LP09-S01 observed native intervals close only quantization gaps
+[pass] LP09-S01 observed identity is separate from input duration
+[pass] LP09-S02 file existence does not invent unobserved identity
+[pass] LP09-S02 legacy timestamp-only remains partial
+[pass] LP09-S02 native proof alone never enables legacy callers
+[pass] LP09-S02 native rejects duplicate
+[pass] LP09-S02 native rejects namespace
+[pass] LP09-S02 native rejects generation
+[pass] LP09-S02 native rejects track
+[pass] LP09-S02 native rejects ordinal
+[pass] LP09-S02 native rejects pts
+[pass] LP09-S02 native rejects nearest
+[pass] LP09-S02 native rejects proof
+[pass] LP09-S02 native rejects deleted
+[pass] LP09-S02 native rejects unavailable
+[pass] LP09-S02 native rejects source
+[pass] LP09-S02 native rejects channel
+[pass] LP09-S02 one observed identity cannot bind two files
+[pass] LP09-S02 mixed proof presence falls back to legacy
+[pass] LP09-S01 distinct AU overlap strict fixture
+[pass] LP09-S01 distinct observed overlapping AUs select deterministic ordinal
+[pass] LP09-S02 cross-file fractional gap strict fixtures
+[pass] LP09-S02 actual two-thirds ns gap stays missing before display rounding
+[pass] LP09-S01 one-third ns overlap uses durable order independent of input order
+[pass] LP09-S01 30000-over-1001 exact observed interval union
+[pass] LP09-S02 missing last native duration never extrapolates
+[pass] LP09-S02 native frame cap 4097 rejects without truncation
+[pass] LP09-S02 native source cap 257 rejects without truncation
+[pass] LP09-S02 4097 output atoms strict bounded-input fixture
+[pass] LP09-S02 4097 output slices reject atomically without truncation
+[pass] LP09-S02 prefix preserved before uncertain ordinal without suffix invention
+[pass] LP09-S02 prefix preserved before uncertain nearest without suffix invention
+[pass] LP09-S02 prefix preserved before uncertain absent without suffix invention
+[pass] LP09-S02 prefix unknown position rejects global completeness
+[pass] LP09-S02 prefix later outside-request unmatched observation remains irrelevant
+[pass] D04 exact union 정상 선택·파일식별
+[pass] D03 pre/post·음수요청 보존
+[pass] D03 ns 변환 overflow 거부
+[pass] D05 한점 외삽 금지
+[pass] D06 namespace 격리
+[pass] D06 generation 합성 금지
+[pass] D06 track 합성 금지
+[pass] D07 중복 PTS 모호성
+[pass] D07 복수 원본 후보 보존
+[pass] D08 cap 초과범위 미확인
+[pass] D09 삭제 원본 구분
+[pass] D09 불완전 mapping을 영상공백으로 승격 금지
+[pass] D09 epoch identity 유지
+[pass] D11 비표현 유리수 잔차 거부
+[pass] D12 watermark 없는 postroll 미확인
+[pass] D13 source/channel 결박
+[pass] D13 checksum 없는 원본 거부
+[pass] D10 UTC 품질·불확실성 유지
+[pass] D10 UTC 역행 복수후보 보존
+[pass] D10 UTC unplaced 차단
+[pass] D14 정상후보가 손상후보를 숨기지 않음
+[pass] D15 queued sequence 미래제외
+[pass] D16 namespace reset 과거eviction 격리
+[pass] D17 decoder exact duration·fallback 격리
+[pass] D21 namespace reset 이후 재eviction 최근작은구간 선택
+[summary] pass=63 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.oS8UXv bytes=1371736 removed=true
+[elapsed] seconds=2 source=bash-SECONDS
+
+Final diffcheck exit0/source/cleanup:
+1e0166ed8963bfe7a56f9607b4c87b3523d7e0e8f68f38c7d6e6e3d304533e1c  src/recording/recording_derived_selection.cpp
+45865426eefd650b36371330e97e543d8fb6f58cb809fa6f20868527c7e0147e  scripts/internal/recording_derived_selection_smoke.cpp
+[log-cleanup] path=/private/tmp/lp09-selection-prefix.XzwR14 bytes=6918 removed=true

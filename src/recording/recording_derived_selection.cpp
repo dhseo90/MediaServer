@@ -2,6 +2,7 @@
 #include "recording/recording_derived_selection.h"
 #include <algorithm>
 #include <limits>
+#include <map>
 #include <set>
 #include <tuple>
 
@@ -135,6 +136,118 @@ bool Media(const RecordingConsumerReferenceV1& r,const analysis::DecodedInterval
     }
     return true;
 }
+bool NativeMedia(const RecordingConsumerReferenceV1& r,const analysis::DecodedIntervalSnapshot& evidence,
+                 const std::vector<DerivedSourceEvidence>& sources,DerivedRecordingSelection& out) {
+    // A proof-less eligible source keeps the entire request on the legacy profile.
+    bool any_proof=false;
+    for(const auto& s:sources) {
+        if(s.segment.source_id!=r.source_id||s.segment.channel_id!=r.channel_id)continue;
+        if(SourceValid(s,r)&&s.binding&&!s.binding->file_evidence)return Media(r,evidence,sources,out);
+        any_proof|=s.binding&&s.binding->file_evidence.has_value();
+    }
+    if(!any_proof)return Media(r,evidence,sources,out);
+    out.native_file_intervals=true;
+    bool unknown=evidence.analysis_namespace!=r.analysis_namespace||!r.original||r.association_quality!="timestamp-match";
+    std::vector<bool> valid;
+    for(const auto& s:sources) {
+        const bool ok=SourceValid(s,r)&&s.binding&&s.binding->file_evidence&&
+            s.segment.time_base_num==1&&s.segment.time_base_den==1000000000&&
+            ValidateRecordingSourceBindingForSegment(*s.binding,s.segment,nullptr);
+        valid.push_back(ok);
+        if(s.segment.source_id==r.source_id&&s.segment.channel_id==r.channel_id&&!ok)unknown=true;
+    }
+    using Identity=std::tuple<std::string,std::uint64_t,std::string,std::uint64_t>;
+    std::map<Identity,std::size_t> observations;
+    const auto key=[](const analysis::OriginalSampleIdentity& o){return Identity{o.source_generation,o.generation_order,o.track_id,o.ordinal};};
+    for(const auto& f:evidence.frames)if(f.association.original)++observations[key(*f.association.original)];
+    struct Interval {PresentationInterval time;std::size_t source;analysis::OriginalSampleIdentity original;bool ambiguous;};
+    std::vector<Interval> intervals;
+    std::vector<PresentationTime> cuts{{out.expanded_start_ns,0,1},{out.expanded_end_ns,0,1}};
+    const auto less=[](const auto& a,const auto& b){return ComparePresentationTime(a,b)<0;};
+    const auto add_cut=[&](PresentationTime t){if(less(cuts[0],t)&&less(t,cuts[1]))cuts.push_back(t);};
+    std::optional<std::int64_t> uncertain_from;
+    const auto reject_observation=[&](std::int64_t pts) {
+        if(pts<0){unknown=true;return;}
+        if(pts>=out.expanded_start_ns&&pts<out.expanded_end_ns)
+            uncertain_from=std::min(uncertain_from.value_or(pts),pts);
+    };
+    std::size_t work=0;
+    for(const auto& f:evidence.frames) {
+        if(++work>2000000)return false;
+        if(f.association.quality!=analysis::SourceAssociationQuality::TimestampMatch||!f.association.original||
+           f.analysis_pts_ns<0||static_cast<std::uint64_t>(f.analysis_pts_ns)!=f.association.original->pts_ns||
+           !r.original||!SameGeneration(*f.association.original,*r.original)) {
+            reject_observation(f.analysis_pts_ns);
+            continue;
+        }
+        const auto& o=*f.association.original;
+        std::vector<std::size_t> matches;
+        for(std::size_t i=0;i<sources.size();++i) {
+            if(++work>2000000)return false;
+            if(valid[i]&&Bound(sources[i],o))matches.push_back(i);
+        }
+        if(matches.empty()) {
+            reject_observation(f.analysis_pts_ns);
+            continue;
+        }
+        for(const auto index:matches) {
+            const auto& proof=*sources[index].binding->file_evidence;
+            const auto sample=std::lower_bound(proof.samples.begin(),proof.samples.end(),o.ordinal,
+                [](const auto& s,std::uint64_t n){return s.ordinal<n;});
+            PresentationInterval time;
+            if(sample==proof.samples.end()||sample->ordinal!=o.ordinal||
+               !MakePresentationInterval(proof.writer_origin_ns,proof.timescale,sample->native_pts,sample->native_duration,&time))return false;
+            if(!less(time.start,cuts[1])||!less(cuts[0],time.end))continue;
+            add_cut(time.start);add_cut(time.end);
+            intervals.push_back({time,index,o,matches.size()!=1||observations[key(o)]!=1});
+            if(intervals.size()>4096)return false;
+        }
+    }
+    if(evidence.discarded_end_ns)add_cut({*evidence.discarded_end_ns,0,1});
+    if(uncertain_from)add_cut({*uncertain_from,0,1});
+    std::sort(cuts.begin(),cuts.end(),less);
+    cuts.erase(std::unique(cuts.begin(),cuts.end(),[](const auto& a,const auto& b){return ComparePresentationTime(a,b)==0;}),cuts.end());
+    if(cuts.size()>4097)return false; // At most 4096 exact atoms, including unknown intervals.
+    // Sweep starts/ends instead of rescanning all observations at every atom.
+    std::vector<std::size_t> starts,ends;
+    for(std::size_t i=0;i<intervals.size();++i){starts.push_back(i);ends.push_back(i);}
+    std::sort(starts.begin(),starts.end(),[&](auto a,auto b){return less(intervals[a].time.start,intervals[b].time.start);});
+    std::sort(ends.begin(),ends.end(),[&](auto a,auto b){return less(intervals[a].time.end,intervals[b].time.end);});
+    const auto durable_less=[&](std::size_t a,std::size_t b) {
+        const auto& x=intervals[a];const auto& y=intervals[b];const auto& xs=sources[x.source].segment;const auto& ys=sources[y.source].segment;
+        return std::tie(xs.order_sequence,xs.store_id,xs.segment_id,x.original.ordinal,a)<
+               std::tie(ys.order_sequence,ys.store_id,ys.segment_id,y.original.ordinal,b);
+    };
+    std::set<std::size_t,decltype(durable_less)> active(durable_less);
+    std::size_t start=0,end=0,ambiguous=0,deleted=0,candidates=0;
+    std::set<std::size_t> selected_sources;
+    for(std::size_t i=1;i<cuts.size();++i) {
+        const auto a=cuts[i-1],b=cuts[i];
+        while(start<starts.size()&&!less(a,intervals[starts[start]].time.start)) {
+            const auto n=starts[start++];active.insert(n);ambiguous+=intervals[n].ambiguous;deleted+=sources[intervals[n].source].deleted;
+        }
+        while(end<ends.size()&&!less(a,intervals[ends[end]].time.end)) {
+            const auto n=ends[end++];if(active.erase(n)){ambiguous-=intervals[n].ambiguous;deleted-=sources[intervals[n].source].deleted;}
+        }
+        DerivedSelectionSlice slice;slice.presentation=PresentationInterval{a,b};
+        if(!PresentationEnvelope(*slice.presentation,&slice.start_ns,&slice.end_ns))return false;
+        const bool discarded=evidence.incomplete&&(!evidence.discarded_end_ns||less(a,PresentationTime{*evidence.discarded_end_ns,0,1}));
+        // Unknown observation length cannot justify recovering a later suffix.
+        const bool uncertain=uncertain_from&&!less(a,PresentationTime{*uncertain_from,0,1});
+        if(ambiguous){slice.state=DerivedSliceState::Ambiguous;slice.reason="multiple-time-or-recording-candidates";}
+        else if(unknown||uncertain||discarded||active.empty()){slice.state=DerivedSliceState::Unknown;slice.reason="unconfirmed-interval-no-trusted-watermark";}
+        else if(deleted){slice.state=DerivedSliceState::Deleted;slice.reason="original-deleted";}
+        else {
+            const auto& chosen=intervals[*active.begin()];
+            if(++candidates>4096)return false;
+            selected_sources.insert(chosen.source);if(selected_sources.size()>8)return false;
+            slice.candidates.push_back(Candidate(sources[chosen.source],slice.start_ns,slice.end_ns,&chosen.original));
+            slice.state=DerivedSliceState::Confirmed;slice.reason="direct-time-interval-only";
+        }
+        out.slices.push_back(std::move(slice));
+    }
+    return true;
+}
 bool Utc(const RecordingConsumerReferenceV1& r,const std::vector<DerivedSourceEvidence>& sources,
          const RecordingRangeResult* range,DerivedRecordingSelection& out) {
     std::vector<std::int64_t> boundaries{out.expanded_start_ns,out.expanded_end_ns};
@@ -178,7 +291,7 @@ bool Utc(const RecordingConsumerReferenceV1& r,const std::vector<DerivedSourceEv
 }
 bool SelectDerivedRecording(const RecordingConsumerReferenceV1& reference,
     const analysis::DecodedIntervalSnapshot& evidence,const std::vector<DerivedSourceEvidence>& sources,
-    const RecordingRangeResult* utc_range,DerivedRecordingSelection* output,std::string* error) {
+    const RecordingRangeResult* utc_range,DerivedRecordingSelection* output,std::string* error,bool prefer_native) {
     if(output)*output={};const auto fail=[&](const char* message){if(error)*error=message;return false;};
     if(!output||!ValidateRecordingConsumerReferenceV1(reference,error)||!reference.request)return fail("invalid-derived-request");
     if(evidence.frames.size()>4096||sources.size()>256||(utc_range&&(utc_range->slices.size()>4096||utc_range->unplaced.size()>4096)))
@@ -187,7 +300,8 @@ bool SelectDerivedRecording(const RecordingConsumerReferenceV1& reference,
     if(!Int64((static_cast<__int128>(r.start_ms)-r.pre_ms)*1000000,&out.expanded_start_ns)||
        !Int64((static_cast<__int128>(r.end_ms)+r.post_ms)*1000000,&out.expanded_end_ns)||out.expanded_start_ns>=out.expanded_end_ns)
         return fail("derived-request-range-overflow-or-empty");
-    const bool ok=r.time_basis=="utc-ms"?Utc(reference,sources,utc_range,out):Media(reference,evidence,sources,out);
+    const bool ok=r.time_basis=="utc-ms"?Utc(reference,sources,utc_range,out):
+        (prefer_native?NativeMedia(reference,evidence,sources,out):Media(reference,evidence,sources,out));
     if(!ok)return fail("derived-selection-work-or-output-cap");
     out.complete=!out.slices.empty()&&out.unplaced.empty()&&std::all_of(out.slices.begin(),out.slices.end(),[](const auto& s){return s.state==DerivedSliceState::Confirmed;});
     out.reason=out.complete?"time-selection-only-not-playability":"interval-evidence-incomplete";
