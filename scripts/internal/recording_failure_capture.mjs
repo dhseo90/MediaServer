@@ -8,7 +8,7 @@ export function runDiagnosticProbe({binary,root,index,reference,mode,environment
   const remaining=Math.floor(deadline-performance.now());
   if(!Number.isFinite(remaining)||remaining<=0)throw Error('diagnostic-deadline');
   const args=[root,String(index),reference,mode];
-  const basic=mode==='--diagnose-basic';
+  const basic=['--diagnose-basic','--diagnose-completeness'].includes(mode);
   if(!basic&&!['--diagnose-failed','--replay-failed'].includes(mode))throw Error('diagnostic-mode');
   return JSON.parse(execFileSync(basic?binary:'/bin/bash',basic?args:['-c','set -e; source "$1"; media_server_apply_homebrew_gst_env; shift; exec "$@"','recording-diagnostic',environmentScript,binary,...args],{env,timeout:Math.min(15000,remaining),maxBuffer:1024*1024,encoding:'utf8',stdio:['ignore','pipe','pipe']}));
 }
@@ -50,6 +50,25 @@ function preserve(file,value){
   try{fd=fs.openSync(temporary,'wx',0o600);fs.writeFileSync(fd,text);fs.fsyncSync(fd);fs.closeSync(fd);fd=undefined;fs.linkSync(temporary,file);}
   finally{if(fd!==undefined)fs.closeSync(fd);if(fs.existsSync(temporary))fs.unlinkSync(temporary);}
   const directory=fs.openSync(parent,fs.constants.O_RDONLY);try{fs.fsyncSync(directory);}finally{fs.closeSync(directory);}
+}
+const choice=values=>value=>values.includes(value);
+const completenessReasons=choice(['unknown','multiple-time-or-recording-candidates','unconfirmed-interval-no-trusted-watermark','original-deleted','original-coverage-unconfirmed','direct-time-interval-only','multiple-utc-candidates','unconfirmed-utc-mapping','piecewise-utc-time-only','missing-original-identity','time-selection-only-not-playability','interval-evidence-incomplete','file-duration-uncovered']);
+const interval=(value,a,b)=>BigInt(value[a])<BigInt(value[b]);
+const completionSlice=value=>fields(value,{startNs:decimal,endNs:decimal,state:choice(['confirmed','unknown','gap','deleted','ambiguous','awaiting-post-roll']),reason:completenessReasons,candidateSegmentIdSha256:array(hash)})&&interval(value,'startNs','endNs');
+const completionSource=value=>fields(value,{segmentIdSha256:hash,epochSha256:hash,generationSha256:hash,trackSha256:hash,bindingSha256:hash,generationOrder:decimal,startPts:decimal,endPts:nullable(decimal),timeBaseNum:count,timeBaseDen:x=>count(x)&&x>0,sampleCount:count,indexComplete:bool,fileEvidencePresent:bool});
+const unfulfilled=value=>fields(value,{segmentIdSha256:nullable(hash),axis:choice(['request-ns','original-pts-ns','unknown']),reason:completenessReasons,start:decimal,end:decimal})&&interval(value,'start','end');
+const accessUnit=value=>fields(value,{ordinal:decimal,originalPtsNs:decimal,filePtsNs:decimal,fileDurationNs:decimal,outputPtsNs:decimal,outputDurationNs:decimal,sourceVclSha256:hash,outputVclSha256:hash});
+const completionOutput=value=>fields(value,{outputIdSha256:hash,sourceIndex:count,sourceSegmentIdSha256:hash,verifiedOutput:bool,requestFullySatisfied:bool,sizeBytes:decimal,checksumSha256:hash,sourceOriginNs:decimal,requestedStartNs:decimal,requestedEndNs:decimal,actualStartNs:decimal,actualEndNs:decimal,accessUnitCount:count,decodedSourceCount:count,decodedOutputCount:count,decodedHashesMatch:bool,actualRangeBasis:choice(['file-duration-on-source-pts-axis','unknown']),associationQuality:choice(['complete-file-pts-to-binding-timestamp-match','unknown']),payloadQuality:choice(['source-file-vcl-and-visible-decoded-pixels','unknown']),accessUnits:array(accessUnit)})&&value.accessUnitCount===value.accessUnits.length&&interval(value,'requestedStartNs','requestedEndNs')&&interval(value,'actualStartNs','actualEndNs');
+function completeness(value){
+  const selection=v=>fields(v,{complete:bool,reason:completenessReasons,expandedStartNs:decimal,expandedEndNs:decimal,slices:array(completionSlice)})&&interval(v,'expandedStartNs','expandedEndNs');
+  if(!fields(value,{state:literal('complete'),snapshotBasis:literal('offline-copy-at-query'),evidenceBasis:literal('persisted-job-intent-and-ready'),reproducibleBundle:literal(false),remuxPerformed:literal(false),capturedIntentSha256:hash,readySha256:hash,verifiedOutput:literal(true),requestFullySatisfied:bool,selection,sources:array(completionSource),unfulfilled:array(unfulfilled),outputs:array(completionOutput)})||value.outputs.some(o=>o.sourceIndex>=value.sources.length||o.sourceSegmentIdSha256!==value.sources[o.sourceIndex].segmentIdSha256))throw Error('unsafe-completeness');
+  return value;
+}
+export function captureCompletenessEvidence({collect,evidencePath}){
+  const result={diagnosticStatus:'not-run',evidenceStatus:'not-run',cleanupAllowed:false};let value;
+  try{value=completeness(collect());result.diagnosticStatus='complete';}catch(error){result.diagnosticStatus=error?.code==='ETIMEDOUT'?'timeout':'failed';return result;}
+  try{preserve(evidencePath,{diagnostic:value});result.evidenceStatus='preserved';result.cleanupAllowed=true;}catch{result.evidenceStatus='failed';}
+  return result;
 }
 export function captureFailureEvidence({diagnose,collect,replay,evidencePath}){
   const status={diagnosticStatus:'not-run',diagnosticEvidenceStatus:'not-run',detailStatus:'not-run',detailEvidenceStatus:'not-run',replayStatus:'not-run',replayEvidenceStatus:'not-run',cleanupAllowed:false};

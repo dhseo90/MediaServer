@@ -1,5 +1,172 @@
 # 보완 진단·독립 재현 기록
 
+## 2026-09-17 LP08 완료 작업 진단 도구
+
+제품 코드/공개 schema/녹화 완전성 기준은 변경하지 않았다. 새 `--diagnose-completeness`는 작업소유 복제본에서 typed Complete+Ready를 읽어 선택과 파일 구간 부족을 별도 반환한다. 원문 식별자는 SHA-256, 이유는 고정 허용 목록만 출력한다. 실제 파일의 현재 유효성을 재검사한 결과 또는 재현 bundle로 주장하지 않는다. runner는 완료 참조를 보존하고 서버 종료 뒤 복제본 진단/0600 증거 저장/원본 hash 대조를 마쳐야 root를 정리한다.
+
+JS 예상 RED: 함수 미구현 8개 실패(exit1), owned root8개 모두 삭제. 도구 출력은 2,357토큰 중 일부 잘려 전체 원출력은 미확보이며 undefined/function assertion과 나머지 동일 함수 부재 오류를 확인했다. 초기 회귀 명령 오기는 중앙 기록에 별도 보존했다. 최종 아래57개 exit0/475.190292ms. C++ 결과·명령·RED·cleanup은 [원출력](lp08-cpp-output.txt), JS [원출력](lp08-js-output.txt). runner `node --check` exit0, `git diff --check` exit0, docs-links exit0. token start/end/consumed는 자동 집계 수단 없어 미집계.
+
+### JS 개별 결과
+
+| 제목 | 테스트내용 | pass/fail |
+| --- | --- | --- |
+| P0-DIAG01 정상 header/body 시간·안전 route 분류와 비밀 미노출 | 사전등록 JS·기존 영향 회귀 | pass |
+| P0-DIAG02 header timeout 고정 진단과 실패 유지 | 사전등록 JS·기존 영향 회귀 | pass |
+| P0-DIAG03 body timeout 부분 수신 측정·완료 거부 | 사전등록 JS·기존 영향 회귀 | pass |
+| S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박 | 사전등록 JS·기존 영향 회귀 | pass |
+| S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부 | 사전등록 JS·기존 영향 회귀 | pass |
+| S11-CI02 nonzero 실패 후 나머지 미실행 | 사전등록 JS·기존 영향 회귀 | pass |
+| S11-CI02 signal 실패 후 나머지 미실행 | 사전등록 JS·기존 영향 회귀 | pass |
+| S11-CI02 output-limit 실패 후 나머지 미실행 | 사전등록 JS·기존 영향 회귀 | pass |
+| S11-CI02 summary-missing 실패 후 나머지 미실행 | 사전등록 JS·기존 영향 회귀 | pass |
+| S11-CI02 summary-duplicate 실패 후 나머지 미실행 | 사전등록 JS·기존 영향 회귀 | pass |
+| S11-CI02 cleanup-failed 실패 후 나머지 미실행 | 사전등록 JS·기존 영향 회귀 | pass |
+| S11-CI02 port-missing 실패 후 나머지 미실행 | 사전등록 JS·기존 영향 회귀 | pass |
+| S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리 | 사전등록 JS·기존 영향 회귀 | pass |
+| S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부 | 사전등록 JS·기존 영향 회귀 | pass |
+| S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup | 사전등록 JS·기존 영향 회귀 | pass |
+| S11-CI05 누락·중복item·불안정total·truncated·cap 거부 | 사전등록 JS·기존 영향 회귀 | pass |
+| S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부 | 사전등록 JS·기존 영향 회귀 | pass |
+| S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 | 사전등록 JS·기존 영향 회귀 | pass |
+| S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리 | 사전등록 JS·기존 영향 회귀 | pass |
+| S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP04-A 목표 이전은 대기하고 해당 구간만 선택 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP04-A 경계와 프레임을 놓치면 다른 구간으로 대체 금지 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP04-A 실제 dispatch 정확 일치만 허용 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP03-A failed는 완료 대기 대신 즉시 중단 | 사전등록 JS·기존 영향 회귀 | pass |
+| P0-HTTP01 pending은 전이 완료가 아님 | 사전등록 JS·기존 영향 회귀 | pass |
+| P0-HTTP01 partial은 지연 관측만 가능 | 사전등록 JS·기존 영향 회귀 | pass |
+| P0-HTTP01 다른 참조와 모순 파일은 거부 | 사전등록 JS·기존 영향 회귀 | pass |
+| P0-HTTP01 원래 완전 출력 검사는 부분 출력 거부 유지 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP05-04 같은 원본의 앞선 비중첩 mapping 뒤 중첩 구간도 보존 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP05-04 겹치는 원본 전수·경계 제외·미상 분리·비밀 미노출 | 사전등록 JS·기존 영향 회귀 | pass |
+| P0-STATE01 complete1 count와 기존 two-output 거부 구분 | 사전등록 JS·기존 영향 회귀 | pass |
+| P0-STATE02 pending partial complete2 변화와 8개 상한 | 사전등록 JS·기존 영향 회귀 | pass |
+| P0-STATE03 raw ID/path/unknown enum/request 비밀 미노출 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP08-B01 완료 작업 안전 증거 선보존 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP08-B02 field 증거 실패 시 정리 차단 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP08-B02 enum 증거 실패 시 정리 차단 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP08-B02 range 증거 실패 시 정리 차단 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP08-B02 throw 증거 실패 시 정리 차단 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP08-B02 timeout 증거 실패 시 정리 차단 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP08-B02 existing 증거 실패 시 정리 차단 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP08-B02 symlink 증거 실패 시 정리 차단 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP06-B01 진단 파일을 재현 전에 보존 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP06-B02 실제 자식 exit 뒤 최초 증거 유지 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP06-B02 실제 자식 timeout 뒤 최초 증거 유지 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP06-B03 진단 throw 시 재현·정리 거부 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP06-B03 진단 unsafe 시 재현·정리 거부 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP06-B04 최초 보존 실패 시 재현 금지 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP06-B04 후속 보존 실패 시 최초 파일 유지 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP06-B05 진단 미보존 root 정리 금지·소유권 불일치 거부 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP06-B06 symlink 증거 덮어쓰기 거부 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP06-B06 성공 결과 분리 보존·미등록 필드 거부 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP06-B07 상세 수집 throw 시 기본 진단 유지·재현 금지 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP06-B07 상세 수집 timeout 시 기본 진단 유지·재현 금지 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP06-B07 상세 수집 identity 시 기본 진단 유지·재현 금지 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP06-B07 상세 수집 persist 시 기본 진단 유지·재현 금지 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP06-B08 기본 자식은 plugin 환경 준비 실패와 독립 | 사전등록 JS·기존 영향 회귀 | pass |
+| LP06-B09 만료 시 자식 미기동·남은 시간만 대기 | 사전등록 JS·기존 영향 회귀 | pass |
+
+### JS 임시자료 정리
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-1lY4lg | 소유 fixture | 819B | 삭제 | 부재 확인 | JS 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-mPoPxJ | 소유 fixture | 0B | 삭제 | 부재 확인 | JS 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-B9qAup | 소유 fixture | 0B | 삭제 | 부재 확인 | JS 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-8ncG5P | 소유 fixture | 0B | 삭제 | 부재 확인 | JS 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gc7uWW | 소유 fixture | 0B | 삭제 | 부재 확인 | JS 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-RFkGhP | 소유 fixture | 0B | 삭제 | 부재 확인 | JS 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-yath9n | 소유 fixture | 8B | 삭제 | 부재 확인 | JS 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-XvQdNC | 소유 fixture | 96B | 삭제 | 부재 확인 | JS 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-WqjAIB | 소유 fixture | 1619B | 삭제 | 부재 확인 | JS 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-HGXwts | 소유 fixture | 1619B | 삭제 | 부재 확인 | JS 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-agluh8 | 소유 fixture | 1620B | 삭제 | 부재 확인 | JS 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-RAqVAI | 소유 fixture | 0B | 삭제 | 부재 확인 | JS 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Bw8nfI | 소유 fixture | 0B | 삭제 | 부재 확인 | JS 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-LNW4Yi | 소유 fixture | 8B | 삭제 | 부재 확인 | JS 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-8bQ6J5 | 소유 fixture | 1601B | 삭제 | 부재 확인 | JS 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-UdzGaq | 소유 fixture | 0B | 삭제 | 부재 확인 | JS 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-EzHvAL | 소유 fixture | 98B | 삭제 | 부재 확인 | JS 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-MpCXtt | 소유 fixture | 1954B | 삭제 | 부재 확인 | JS 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-suE12t | 소유 fixture | 266B | 삭제 | 부재 확인 | JS 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-QmoGW0 | 소유 fixture | 266B | 삭제 | 부재 확인 | JS 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-tadrrN | 소유 fixture | 266B | 삭제 | 부재 확인 | JS 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-vkyRqv | 소유 fixture | 274B | 삭제 | 부재 확인 | JS 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-MvTryv | 소유 fixture | 97B | 삭제 | 부재 확인 | JS 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-fN58rr | 소유 fixture | 163B | 삭제 | 부재 확인 | JS 원출력 |
+
+### C++ 개별 결과와 정리
+
+전체34개 PASS 뒤 새 actual C++→JS4개 추가, 최종 verified_output guard 변경 영향9개 PASS. 기존29개는 변경되지 않은 failed/legacy 경로의 전체34 실행 증거 유지. 최종38개 단일 실행으로 주장하지 않는다. RED 상세에 중복된 실패 제목도 아래 원출력 순서대로 보존한다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| C++-1 | LP08-A02-A03 completeness full typed control (2604.995625ms) | fail | 예상 RED, 뒤 GREEN 보존 |
+| C++-2 | LP08-A02-A03 completeness selection typed control (653.686833ms) | fail | 예상 RED, 뒤 GREEN 보존 |
+| C++-3 | LP08-A02-A03 completeness file typed control (753.157291ms) | fail | 예상 RED, 뒤 GREEN 보존 |
+| C++-4 | LP08-A02-A03 completeness redacted typed control (656.098ms) | fail | 예상 RED, 뒤 GREEN 보존 |
+| C++-5 | LP08-A01 completeness rejects failed and intent records (524.788334ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-6 | LP08-A02-A03 completeness full typed control (2604.995625ms) | fail | 예상 RED, 뒤 GREEN 보존 |
+| C++-7 | LP08-A02-A03 completeness selection typed control (653.686833ms) | fail | 예상 RED, 뒤 GREEN 보존 |
+| C++-8 | LP08-A02-A03 completeness file typed control (753.157291ms) | fail | 예상 RED, 뒤 GREEN 보존 |
+| C++-9 | LP08-A02-A03 completeness redacted typed control (656.098ms) | fail | 예상 RED, 뒤 GREEN 보존 |
+| C++-10 | LP08-A02-A03 completeness full typed control (3163.605916ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-11 | LP08-A02-A03 completeness selection typed control (1624.035291ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-12 | LP08-A02-A03 completeness file typed control (1917.312625ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-13 | LP08-A02-A03 completeness redacted typed control (1599.855417ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-14 | LP08-A01 completeness rejects failed and intent records (634.30425ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-15 | LP06-B10 actual typed probe basic detail replay preserved independently (2232.81125ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-16 | LP06-A08 basic failure survives corrupt media without file inspection (552.298333ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-17 | LP06-A08 basic failure survives missing media without file inspection (557.538333ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-18 | LP06-A01-A02 stored safe evidence and validated file hashes without remux (569.838083ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-19 | LP06-A03 missing copy media preserves failed diagnosis (371.542792ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-20 | LP06-A04 corrupt copy media preserves failed diagnosis (375.91875ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-21 | LP06-A05 code0 exact known (383.266333ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-22 | LP06-A06 code0 suffix unknown (380.476ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-23 | LP06-A05 code1 exact known (377.988083ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-24 | LP06-A06 code1 suffix unknown (378.273667ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-25 | LP06-A05 code2 exact known (377.843833ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-26 | LP06-A06 code2 suffix unknown (387.509125ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-27 | LP06-A05 code3 exact known (376.674417ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-28 | LP06-A06 code3 suffix unknown (376.357625ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-29 | LP06-A05 code4 exact known (378.20425ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-30 | LP06-A06 code4 suffix unknown (404.582291ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-31 | LP06-A05 code5 exact known (380.18325ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-32 | LP06-A06 code5 suffix unknown (380.571292ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-33 | LP05-01 typed failed known0 (381.129667ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-34 | LP05-01 typed failed known1 (377.360333ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-35 | LP05-01 typed failed known2 (381.212291ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-36 | LP05-02 typed failed unknown3 (380.594667ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-37 | LP05-02 typed failed unknown4 (383.979917ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-38 | LP05-03 complete mode still rejects failed job (356.036416ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-39 | LP05-03 diagnostic rejects nonfailed state safely (284.741ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-40 | LP05-03 rejects original recordings index without mutation (284.420209ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-41 | LP05-06 valid media with synthetic failed reason does not reproduce failure (628.662459ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-42 | LP05-03 rejects symlink copy without original mutation (281.783916ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-43 | LP05-03 rejects hardlink copy without original mutation (278.182292ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-44 | LP08-B03 actual completeness full probe to JS durable evidence (2499.508959ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-45 | LP08-B03 actual completeness selection probe to JS durable evidence (1103.0775ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-46 | LP08-B03 actual completeness file probe to JS durable evidence (1301.154125ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-47 | LP08-B03 actual completeness redacted probe to JS durable evidence (1116.365375ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-48 | LP08-B03 actual completeness full probe to JS durable evidence (2637.746167ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-49 | LP08-B03 actual completeness selection probe to JS durable evidence (1096.327375ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-50 | LP08-B03 actual completeness file probe to JS durable evidence (1292.153166ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-51 | LP08-B03 actual completeness redacted probe to JS durable evidence (1096.533542ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-52 | LP08-A02-A03 completeness full typed control (1631.87175ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-53 | LP08-A02-A03 completeness selection typed control (1600.258209ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-54 | LP08-A02-A03 completeness file typed control (1917.373666ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-55 | LP08-A02-A03 completeness redacted typed control (1605.665291ms) | pass | 명령·실행군은 원출력 참조 |
+| C++-56 | LP08-A01 completeness rejects failed and intent records (639.238834ms) | pass | 명령·실행군은 원출력 참조 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-BrEL8J | 소유 fixture | 17260040B | 삭제 | 부재 확인 | C++ 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-t8szU2 | 소유 fixture | 34149108B | 삭제 | 부재 확인 | C++ 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-3CIBfm | 소유 fixture | 16296156B | 삭제 | 부재 확인 | C++ 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-EsDoTg | 소유 fixture | 20913808B | 삭제 | 부재 확인 | C++ 원출력 |
+
 ## 2026-09-17 LP07 실제앱 재개 결과와 중단 판정
 
 LP07-01 실제앱1회는 exit0,30.834초,5PASS/0FAIL. timeline187개 모두 기존4초이내(max2771ms), complete 상태의 partial 출력1개다. 최초 intent→failed는 재현되지 않아 LP07-02 원인미확정, 03 제품수정·04 누적/완전성/통합은 선행조건 미충족으로 건너뜀이다. 한 번 더 반복하거나 과거 실패를 해결로 바꾸지 않는다. 이 단계는 AGENTS 8장의 원인미확정 경계에서 중단하며 실제앱 단기 결과/기록만 커밋한다.

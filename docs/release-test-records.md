@@ -1,5 +1,34 @@
 # Release Test Records
 
+## 2026-09-17 LP08 부분 출력 근거와 원인별 수정 실행 전 정의
+
+진단 도구 결과: C++ 전체34PASS 뒤 actual 연결 추가 및 guard 보완 영향9PASS(무관29개 증거 유지), JS57PASS. expected RED·초기 명령오류·전수 결과·정리는 [LP08 실행 기록](release-artifacts/v4.1.0/s11-preparation-mapping/diagnostic-replay-report.md)에 보존했다. 실제앱 C01과 제품 원인수정은 아직 미실행이며 진단도구 PASS로 대체하지 않는다.
+
+사용자 승인 순서: 완료된 partial의 저장 근거 수집 → 선택/파일 구간 부족 분류 → 확정 경로만 수정 → 동일 조건·영향 회귀 → 누적 catalog/복수 출력/재기동 통합. 과거 failed 미재현은 별도 미해결로 유지하며 이번 partial 진단의 선수조건으로 삼지 않는다. 검증된 단위별 커밋; 푸시·장시간·UI는 이번 실행에 포함하지 않는다. 제품 수정은 진단 후 확정된 원인과 반례를 추가 등록한 뒤 실행한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP08-A01 | 완료 작업 선택 근거 | C++ typed Catalog/RestoreDerivedJobSelection으로 선택 complete·요청·slice 상태/범위·hashed 원본 대응을 읽는다. complete 상태 외 진단 거부 | v4.1.0 |
+| LP08-A02 | 파일 구간 근거 | ready.unfulfilled·출력별 만족 여부·실제/요청 구간을 읽고 선택 부족과 파일 부족을 구분. full control 포함 | v4.1.0 |
+| LP08-A03 | 안전성·원본 불변 | 임의 문자열은 unknown, raw ID/path 미출력. 소유 복제본만 읽고 원본 hash/inode 불변, 기존 failed/기존 완전출력 probe 기준 유지 | v4.1.0 |
+| LP08-B01 | 안전 요약 보존 | 정확한 schema/고정 enum/범위 검증 뒤 0600 exclusive evidence 저장. 알 수 없는 필드·잘못된 값 거부 | v4.1.0 |
+| LP08-B02 | 보존 실패·정리 차단 | child 실패·timeout·잘못된 출력·기존 파일/symlink 시 증거 미보존 및 root 삭제 거부. 성공 시 보존 후 정리 | v4.1.0 |
+| LP08-B03 | 실제 typed 연결 | 실제 C++ 완료 작업 출력→JS validator→파일 선보존, 원본 불변 확인 | v4.1.0 |
+| LP08-C01 | 실제 partial 근거 1회 | `node scripts/internal/verify_recording_current_app.mjs --latency-only`; 기존 입력·시간 상한·HTTP oracle 유지. 종료 후 작업 복제본에서 완료 작업 증거 수집, 서버/포트/root 정리 | v4.1.0 |
+
+예정 자체검사: `node --test scripts/internal/recording_current_archive_probe.test.mjs`, `node --test scripts/internal/recording_failure_capture.test.mjs scripts/internal/recording_current_http_diagnostics.test.mjs scripts/internal/recording_current_latency.test.mjs scripts/internal/recording_current_integration.test.mjs scripts/internal/recording_current_state_diagnostics.test.mjs`, runner syntax, diffcheck/docs-links. 예상 RED는 새 진단 모드/보존 함수 부재이며 기존 검사 오류는 RED가 아니다. 개별 fixture 변형과 실제 결과는 실행 후 전수 기록한다.
+
+초기 JS 실행은 존재하지 않는 `recording_current_app_helpers.test.mjs` 인자를 잘못 지정했다. Node exit0이나 실제 출력은 capture24개뿐이므로 helper 회귀 PASS로 인정하지 않는다. 확인된 위 4개 helper 파일을 명시해 다시 실행한다. 함수 부재 expected RED8개와는 별개 실행 실수다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 사용자 권장 5단계 순차 실행 | LP08-A/B/C, 내부 진단과 실제 앱 단기검사 | 승인 |
+| 30분 | 미진행 | 이번 개발 단계 밖 | S11 최종 검증과 분리 | 미승인 |
+| 120분 | 미진행 | 이번 개발 단계 밖 | S11 최종 검증과 분리 | 미승인 |
+| UI | 미진행 | 내부 진단 및 HTTP만 확인 | 실제 브라우저 미포함 | 미승인 |
+
+정리: 기존 owned 0700 root만 사용, 증거 보존 전 삭제 금지. 안전 scalar/hashed 식별/구간 요약만 저장소 보존하고 raw media는 삭제한다. token start/end/consumed는 자동 집계 수단이 없어 미집계, elapsed/source는 각 실제 실행 기록에서 보고한다.
+
 ## 2026-09-17 LP07 잔여 1~4 순차 실행
 
 결과: LP07-01 실제앱1회 exit0/30.834초/5PASS, timeline187개max2771ms, partial1출력. 과거failed 미재현으로 LP07-02 원인미확정,03~04 건너뜀. 제품수정/누적검사/추가재현/푸시 없음. [전수 HTTP·상태·정리·중단근거](release-artifacts/v4.1.0/s11-preparation-mapping/diagnostic-replay-report.md), [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp07-actual-output.txt).

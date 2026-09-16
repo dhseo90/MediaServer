@@ -2,10 +2,35 @@
 #define main recording_service_fixture_unused_main
 #include "recording_derived_job_service_smoke.cpp"
 #undef main
+static void CompletenessFixture(const std::filesystem::path& root,const std::string& mode){
+ const bool fractional=mode=="file";Store store(root/"recordings");auto input=Encode(fractional?60:30,false,fractional);Shift(input,7000000000ULL);
+ recording::GStreamerSegmentWriter::Options options(store.root,fractional?10000:1000);options.managed_journal=&store.journal;options.managed_catalog=&store.catalog;options.managed_store_id="probe-store";
+ recording::GStreamerSegmentWriter writer(options);std::string error;
+ if(!writer.Start("probe-channel","unused",input.descriptor,[](auto,auto,auto*){return false;},&error))throw std::runtime_error("complete-writer");
+ for(const auto& p:input.packets)writer.Push(p,0);writer.Stop();
+ std::vector<recording::DerivedSourceEvidence> sources;for(const auto& s:store.Segments())sources.push_back({s,store.catalog.FindSourceBinding(s.segment_id),false});
+ analysis::DecodedIntervalCollector collector;
+ for(std::size_t i=0;i<input.packets.size();++i){if((mode=="selection"||mode=="redacted")&&i==5)continue;const auto& p=input.packets[i];analysis::DecodedIntervalEvidence e;e.analysis_pts_ns=p.pts;e.duration_ns=p.observation->duration_ns;
+  // Synthetic direct interval control isolates native file-duration coverage, not a decoder observation.
+  if(fractional&&i+1<input.packets.size())e.duration_ns=input.packets[i+1].pts-p.pts;
+  e.association={analysis::SourceAssociationQuality::TimestampMatch,analysis::OriginalSampleIdentity{p.observation->source_generation,p.observation->generation_order,p.observation->ordinal,p.track_id,*p.observation->pts_ns}};collector.Append(std::move(e));}
+ recording::RecordingConsumerReferenceV1 ref;ref.reference_id="job-service-ref";ref.kind="event";ref.owner_id="job-service-event";ref.source_id="probe-channel";ref.channel_id="probe-channel";ref.analysis_namespace="complete-control";ref.analysis_track_id="track-1";ref.association_quality="timestamp-match";ref.original=recording::RecordingConsumerOriginalV1{"probe-generation-a",1,1,"video-0",7000000000ULL};ref.request=recording::RecordingConsumerRequestV1{"media-pts-ms",7000,fractional?8001:8500,0,0};
+ recording::DerivedRecordingSelection selection;recording::DerivedJobIntentV1 intent;
+ if(!recording::SelectDerivedRecording(ref,*collector.Snapshot(ref.analysis_namespace),sources,nullptr,&selection,&error))throw std::runtime_error("complete-selection");
+ if(mode=="redacted"){selection.reason="private canary /private/location";for(auto& s:selection.slices)if(s.state!=recording::DerivedSliceState::Confirmed)s.reason="unconfirmed-interval-no-trusted-watermark /private/canary";}
+ if(!recording::BuildDerivedJobIntent(selection,sources,8*1024*1024,10,&intent,&error))throw std::runtime_error("complete-intent");
+ recording::RetentionCoordinator retention(store.catalog,[&]{return store.catalog.RetentionSnapshot();},[](auto* bytes,auto*){*bytes=1024ULL*1024*1024;return true;},[](const auto&,auto*){return false;},{0,1,store.root});
+ if(!retention.UpdateChannelPolicy("probe-channel",{1024ULL*1024*1024,0,1024ULL*1024*1024,0},&error)||!retention.AdmitDerivedJob(store.catalog,intent,10).accepted)throw std::runtime_error("complete-admit");
+ recording::DerivedJobService service(store.catalog,store.journal,{store.root,30000,{}});const auto result=service.Run(intent.job_id);
+ if(!result.complete||!result.job||result.job->state!=recording::DerivedJobState::Complete||!result.job->ready||!result.job->ready->verified_output)throw std::runtime_error("complete-run");
+ const bool full=mode=="full";if(result.job->ready->request_fully_satisfied!=full||selection.complete!=(full||fractional))throw std::runtime_error("complete-classification");
+ std::cout<<"{\"fixtureTypedReadback\":true}\n";
+}
 int main(int argc,char** argv){
  if(argc!=3)return 2;
  try{
   gst_init(nullptr,nullptr);const std::string mode=argv[2];
+  if(mode=="full"||mode=="file"||mode=="selection"||mode=="redacted"){CompletenessFixture(argv[1],mode);return 0;}
   const std::vector<std::string> reasons={"job-remux: file-original-timestamp-mismatch","job-remux: source-binding-incomplete","job-source-unavailable",
    "private failure /private/example/location?token=canary\nraw diagnostic", "job-source-unavailable /private/example/location", "",
    "job-cancelled-or-deadline", "job-attempt-create", "job-output-create", "job-remux: media-budget-exceeded", "job-remux: work-cancelled", "job-remux: output-byte-budget-exceeded"};

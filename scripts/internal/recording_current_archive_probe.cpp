@@ -34,6 +34,37 @@ static const char* FailureCode(const std::string& reason){
 static std::string Sha(const std::string& value){
     gchar* digest=g_compute_checksum_for_data(G_CHECKSUM_SHA256,reinterpret_cast<const guchar*>(value.data()),value.size());Require(digest,"digest");std::string result(digest);g_free(digest);return result;
 }
+static std::string SafeHash(const std::string& value){
+    Require(value.size()==64&&std::all_of(value.begin(),value.end(),[](char c){return(c>='0'&&c<='9')||(c>='a'&&c<='f');}),"safe-hash");return Quote(value);
+}
+static const char* CompletenessReason(const std::string& value){
+    for(const char* reason:{"multiple-time-or-recording-candidates","unconfirmed-interval-no-trusted-watermark","original-deleted","original-coverage-unconfirmed","direct-time-interval-only","multiple-utc-candidates","unconfirmed-utc-mapping","piecewise-utc-time-only","missing-original-identity","time-selection-only-not-playability","interval-evidence-incomplete","file-duration-uncovered"})if(value==reason)return reason;
+    return "unknown";
+}
+static const char* SliceState(recording::DerivedSliceState state){
+    switch(state){case recording::DerivedSliceState::Confirmed:return "confirmed";case recording::DerivedSliceState::Unknown:return "unknown";case recording::DerivedSliceState::Gap:return "gap";case recording::DerivedSliceState::Deleted:return "deleted";case recording::DerivedSliceState::Ambiguous:return "ambiguous";case recording::DerivedSliceState::AwaitingPostRoll:return "awaiting-post-roll";}return "unknown";
+}
+static std::string Completeness(const recording::DerivedJobRecordV1& record){
+    Require(record.state==recording::DerivedJobState::Complete&&record.ready&&record.ready->verified_output,"complete-ready");
+    const auto& intent=record.intent;const auto& ready=*record.ready;recording::DerivedRecordingSelection selection;std::string error;
+    Require(recording::RestoreDerivedJobSelection(intent,&selection,&error),"stored-selection");
+    std::ostringstream out;out<<std::boolalpha;
+    out<<"{\"state\":\"complete\",\"snapshotBasis\":\"offline-copy-at-query\",\"evidenceBasis\":\"persisted-job-intent-and-ready\",\"reproducibleBundle\":false,\"remuxPerformed\":false,\"capturedIntentSha256\":"<<Quote(Sha(recording::SerializeDerivedJobIntent(intent)))
+        <<",\"readySha256\":"<<Quote(Sha(recording::SerializeDerivedJobReady(ready)))<<",\"verifiedOutput\":"<<ready.verified_output<<",\"requestFullySatisfied\":"<<ready.request_fully_satisfied
+        <<",\"selection\":{\"complete\":"<<selection.complete<<",\"reason\":"<<Quote(CompletenessReason(selection.reason))<<",\"expandedStartNs\":"<<Quote(std::to_string(selection.expanded_start_ns))<<",\"expandedEndNs\":"<<Quote(std::to_string(selection.expanded_end_ns))<<",\"slices\":[";
+    bool comma=false;for(const auto& s:selection.slices){if(comma)out<<',';comma=true;out<<"{\"startNs\":"<<Quote(std::to_string(s.start_ns))<<",\"endNs\":"<<Quote(std::to_string(s.end_ns))<<",\"state\":"<<Quote(SliceState(s.state))<<",\"reason\":"<<Quote(CompletenessReason(s.reason))<<",\"candidateSegmentIdSha256\":[";bool candidateComma=false;for(const auto& c:s.candidates){if(candidateComma)out<<',';candidateComma=true;out<<Quote(Sha(c.segment.segment_id));}out<<"]}";}
+    out<<"]},\"sources\":[";comma=false;for(const auto& source:intent.sources){if(comma)out<<',';comma=true;const auto& s=source.segment;const auto& b=source.binding;
+        out<<"{\"segmentIdSha256\":"<<Quote(Sha(s.segment_id))<<",\"epochSha256\":"<<Quote(Sha(s.media_epoch_id))<<",\"generationSha256\":"<<Quote(Sha(b.source_generation))<<",\"trackSha256\":"<<Quote(Sha(b.track_id))<<",\"bindingSha256\":"<<Quote(Sha(recording::SerializeRecordingSourceBindingV1(b)))
+            <<",\"generationOrder\":"<<Quote(std::to_string(b.generation_order))<<",\"startPts\":"<<Quote(std::to_string(s.media_start_pts))<<",\"endPts\":"<<(s.media_end_pts?Quote(std::to_string(*s.media_end_pts)):"null")<<",\"timeBaseNum\":"<<s.time_base_num<<",\"timeBaseDen\":"<<s.time_base_den<<",\"sampleCount\":"<<b.samples.size()<<",\"indexComplete\":"<<b.index_complete<<",\"fileEvidencePresent\":"<<bool(b.file_evidence)<<'}';}
+    out<<"],\"unfulfilled\":[";comma=false;for(const auto& u:ready.unfulfilled){if(comma)out<<',';comma=true;out<<"{\"segmentIdSha256\":"<<(u.segment_id.empty()?"null":Quote(Sha(u.segment_id)))<<",\"axis\":"<<Quote(u.axis=="request-ns"?"request-ns":u.axis=="original-pts-ns"?"original-pts-ns":"unknown")<<",\"reason\":"<<Quote(CompletenessReason(u.reason))<<",\"start\":"<<Quote(std::to_string(u.start))<<",\"end\":"<<Quote(std::to_string(u.end))<<'}';}
+    out<<"],\"outputs\":[";comma=false;for(const auto& output:ready.outputs){if(comma)out<<',';comma=true;Require(output.source_index<intent.sources.size(),"source-index");const auto& p=output.provenance;
+        out<<"{\"outputIdSha256\":"<<Quote(Sha(output.segment.segment_id))<<",\"sourceIndex\":"<<output.source_index<<",\"sourceSegmentIdSha256\":"<<Quote(Sha(intent.sources[output.source_index].segment.segment_id))<<",\"verifiedOutput\":"<<p.verified_output<<",\"requestFullySatisfied\":"<<p.request_fully_satisfied<<",\"sizeBytes\":"<<Quote(std::to_string(p.size_bytes))<<",\"checksumSha256\":"<<SafeHash(p.checksum_sha256)
+            <<",\"sourceOriginNs\":"<<Quote(std::to_string(p.source_origin_ns))<<",\"requestedStartNs\":"<<Quote(std::to_string(p.requested_media_start_ns))<<",\"requestedEndNs\":"<<Quote(std::to_string(p.requested_media_end_ns))<<",\"actualStartNs\":"<<Quote(std::to_string(p.actual_original_start_ns))<<",\"actualEndNs\":"<<Quote(std::to_string(p.actual_original_end_ns))
+            <<",\"accessUnitCount\":"<<p.access_units.size()<<",\"decodedSourceCount\":"<<p.source_decoded_sha256.size()<<",\"decodedOutputCount\":"<<p.output_decoded_sha256.size()<<",\"decodedHashesMatch\":"<<(!p.source_decoded_sha256.empty()&&p.source_decoded_sha256==p.output_decoded_sha256)
+            <<",\"actualRangeBasis\":"<<Quote(p.actual_range_basis=="file-duration-on-source-pts-axis"?"file-duration-on-source-pts-axis":"unknown")<<",\"associationQuality\":"<<Quote(p.original_association_quality=="complete-file-pts-to-binding-timestamp-match"?"complete-file-pts-to-binding-timestamp-match":"unknown")<<",\"payloadQuality\":"<<Quote(p.output_payload_quality=="source-file-vcl-and-visible-decoded-pixels"?"source-file-vcl-and-visible-decoded-pixels":"unknown")<<",\"accessUnits\":[";
+        bool auComma=false;for(const auto& a:p.access_units){if(auComma)out<<',';auComma=true;out<<"{\"ordinal\":"<<Quote(std::to_string(a.ordinal))<<",\"originalPtsNs\":"<<Quote(std::to_string(a.original_pts_ns))<<",\"filePtsNs\":"<<Quote(std::to_string(a.file_pts_ns))<<",\"fileDurationNs\":"<<Quote(std::to_string(a.file_duration_ns))<<",\"outputPtsNs\":"<<Quote(std::to_string(a.output_pts_ns))<<",\"outputDurationNs\":"<<Quote(std::to_string(a.output_duration_ns))<<",\"sourceVclSha256\":"<<SafeHash(a.source_vcl_sha256)<<",\"outputVclSha256\":"<<SafeHash(a.output_vcl_sha256)<<'}';}out<<"]}";
+    }out<<"]}";auto result=out.str();Require(result.size()<1024*1024,"completeness-output-cap");return result;
+}
 static std::string FdSha(int fd){
     struct stat before{},after{};Require(fstat(fd,&before)==0&&S_ISREG(before.st_mode)&&before.st_size>=0&&before.st_size<=512LL*1024*1024,"source-stat");
     std::unique_ptr<GChecksum,decltype(&g_checksum_free)> sum(g_checksum_new(G_CHECKSUM_SHA256),g_checksum_free);Require(bool(sum),"checksum");std::array<guchar,65536> bytes{};off_t position=0;
@@ -122,7 +153,8 @@ int main(int argc,char** argv){
     try{
         const bool replay=diagnostic&&std::string(argv[4])=="--replay-failed";
         const bool basic=diagnostic&&std::string(argv[4])=="--diagnose-basic";
-        Require(argc==4||(diagnostic&&(std::string(argv[4])=="--diagnose-failed"||replay||basic)),"arguments");
+        const bool completeness=diagnostic&&std::string(argv[4])=="--diagnose-completeness";
+        Require(argc==4||(diagnostic&&(std::string(argv[4])=="--diagnose-failed"||replay||basic||completeness)),"arguments");
         const fs::path root=argv[1];const std::string index=argv[2],reference=argv[3];
         Require(index=="1"||index=="2","copy-index");
         struct stat st{};Require(lstat(root.c_str(),&st)==0&&S_ISDIR(st.st_mode)&&st.st_uid==getuid()&&(st.st_mode&0777)==0700,"owned-root");
@@ -149,6 +181,7 @@ int main(int argc,char** argv){
         Require(catalog.QueryDerivedReferenceResult(reference,&result,&error)&&!result.truncated&&result.managed&&result.jobs.size()==1,"reference-job");
         const auto& record=result.jobs.front().job;const auto& intent=record.intent;
         if(diagnostic){
+            if(completeness){std::cout<<Completeness(record)<<'\n';return 0;}
             Require(record.state==recording::DerivedJobState::Failed,"failed-job");
             if(replay){std::cout<<Replay(catalog,root,record)<<'\n';return 0;}
             // Basic capture must precede any GStreamer/media inspection or replay.

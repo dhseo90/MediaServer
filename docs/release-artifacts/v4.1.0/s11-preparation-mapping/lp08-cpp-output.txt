@@ -1,0 +1,204 @@
+LP08 C++ 진단 도구 자체검증 원출력
+제품 원인 해결/실제 앱 실행 증거 아님. raw media/intent/path secret 미보존.
+시각: 2026-09-17 Asia/Seoul. token start/end/consumed: 도구 집계 미제공으로 미집계.
+source: 각 실행 당시 workspace의 probe/fixture/test, 빌드 runtime archive freshness 검사 포함.
+최초 세 실행 개별 source hash는 별도 미수집. 아래 hash는 최종 실행 이후 직접 측정값이며 과거로 소급하지 않음.
+f8714424bf712a88833a0520c6f53cba74ec24f9edfbaaa1073343fe4fb3a05f  scripts/internal/recording_current_archive_probe.cpp
+4e90c01bbf471dd10442754bf8ed50b7884ed66acd657fb66a8a5e8491ce4689  scripts/internal/recording_current_archive_probe_fixture.cpp
+3268df4602de0b18ba22c6f6936c430c73cae2e174e4c29e4205fff4edcd2096  scripts/internal/recording_current_archive_probe.test.mjs
+fc5dd78eec8d60162ef0312590189c07527f325bbb0b7231720c7757a8511b83  scripts/internal/recording_failure_capture.mjs
+
+한계: file fixture의 direct interval은 input 인접PTS 차이로 만든 합성 control이며 실제 decoder 관측이 아님. writer/remux/service 저장은 실제 구현 사용. stdout cap1MiB, oversized path 미실행. 저장 provenance 요약은 현재 물리파일 검증이나 재현 bundle이 아님.
+
+COMMAND: node --test --test-name-pattern='LP08' scripts/internal/recording_current_archive_probe.test.mjs
+EXIT: 1
+NOTE: 모드 구현 전 예상 RED: 정상 실제 fixture 4개가 mode 미지원 assertion으로 실패. non-Complete 거부1 PASS.
+RAW OUTPUT:
+[environment] ownedCache=true ownedRegistry=true headless=true compileAndRunSameEnv=true
+[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-BrEL8J bytes=17260040 removed=true
+✖ LP08-A02-A03 completeness full typed control (2604.995625ms)
+✖ LP08-A02-A03 completeness selection typed control (653.686833ms)
+✖ LP08-A02-A03 completeness file typed control (753.157291ms)
+✖ LP08-A02-A03 completeness redacted typed control (656.098ms)
+✔ LP08-A01 completeness rejects failed and intent records (524.788334ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 1
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7093.478833
+
+✖ failing tests:
+
+test at scripts/internal/recording_current_archive_probe.test.mjs:38:58
+✖ LP08-A02-A03 completeness full typed control (2604.995625ms)
+  AssertionError [ERR_ASSERTION]: Complete job diagnostic mode must be supported
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:38:211)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_archive_probe.test.mjs:38:58
+✖ LP08-A02-A03 completeness selection typed control (653.686833ms)
+  AssertionError [ERR_ASSERTION]: Complete job diagnostic mode must be supported
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:38:211)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_archive_probe.test.mjs:38:58
+✖ LP08-A02-A03 completeness file typed control (753.157291ms)
+  AssertionError [ERR_ASSERTION]: Complete job diagnostic mode must be supported
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:38:211)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_archive_probe.test.mjs:38:58
+✖ LP08-A02-A03 completeness redacted typed control (656.098ms)
+  AssertionError [ERR_ASSERTION]: Complete job diagnostic mode must be supported
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_archive_probe.test.mjs:38:211)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+
+COMMAND: node --test scripts/internal/recording_current_archive_probe.test.mjs
+EXIT: 0
+NOTE: 구현 후 34/34 PASS. B03 추가/verified_output 명시 guard 보완 전.
+RAW OUTPUT:
+[environment] ownedCache=true ownedRegistry=true headless=true compileAndRunSameEnv=true
+[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-t8szU2 bytes=34149108 removed=true
+✔ LP08-A02-A03 completeness full typed control (3163.605916ms)
+✔ LP08-A02-A03 completeness selection typed control (1624.035291ms)
+✔ LP08-A02-A03 completeness file typed control (1917.312625ms)
+✔ LP08-A02-A03 completeness redacted typed control (1599.855417ms)
+✔ LP08-A01 completeness rejects failed and intent records (634.30425ms)
+✔ LP06-B10 actual typed probe basic detail replay preserved independently (2232.81125ms)
+✔ LP06-A08 basic failure survives corrupt media without file inspection (552.298333ms)
+✔ LP06-A08 basic failure survives missing media without file inspection (557.538333ms)
+✔ LP06-A01-A02 stored safe evidence and validated file hashes without remux (569.838083ms)
+✔ LP06-A03 missing copy media preserves failed diagnosis (371.542792ms)
+✔ LP06-A04 corrupt copy media preserves failed diagnosis (375.91875ms)
+✔ LP06-A05 code0 exact known (383.266333ms)
+✔ LP06-A06 code0 suffix unknown (380.476ms)
+✔ LP06-A05 code1 exact known (377.988083ms)
+✔ LP06-A06 code1 suffix unknown (378.273667ms)
+✔ LP06-A05 code2 exact known (377.843833ms)
+✔ LP06-A06 code2 suffix unknown (387.509125ms)
+✔ LP06-A05 code3 exact known (376.674417ms)
+✔ LP06-A06 code3 suffix unknown (376.357625ms)
+✔ LP06-A05 code4 exact known (378.20425ms)
+✔ LP06-A06 code4 suffix unknown (404.582291ms)
+✔ LP06-A05 code5 exact known (380.18325ms)
+✔ LP06-A06 code5 suffix unknown (380.571292ms)
+✔ LP05-01 typed failed known0 (381.129667ms)
+✔ LP05-01 typed failed known1 (377.360333ms)
+✔ LP05-01 typed failed known2 (381.212291ms)
+✔ LP05-02 typed failed unknown3 (380.594667ms)
+✔ LP05-02 typed failed unknown4 (383.979917ms)
+✔ LP05-03 complete mode still rejects failed job (356.036416ms)
+✔ LP05-03 diagnostic rejects nonfailed state safely (284.741ms)
+✔ LP05-03 rejects original recordings index without mutation (284.420209ms)
+✔ LP05-06 valid media with synthetic failed reason does not reproduce failure (628.662459ms)
+✔ LP05-03 rejects symlink copy without original mutation (281.783916ms)
+✔ LP05-03 rejects hardlink copy without original mutation (278.182292ms)
+ℹ tests 34
+ℹ suites 0
+ℹ pass 34
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 23869.498958
+
+
+COMMAND: node --test --test-name-pattern='LP08-B03' scripts/internal/recording_current_archive_probe.test.mjs
+EXIT: 0
+NOTE: 실제 C++→JS 4/4 PASS. 명시 verified_output guard 보완 전.
+RAW OUTPUT:
+[environment] ownedCache=true ownedRegistry=true headless=true compileAndRunSameEnv=true
+[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-3CIBfm bytes=16296156 removed=true
+✔ LP08-B03 actual completeness full probe to JS durable evidence (2499.508959ms)
+✔ LP08-B03 actual completeness selection probe to JS durable evidence (1103.0775ms)
+✔ LP08-B03 actual completeness file probe to JS durable evidence (1301.154125ms)
+✔ LP08-B03 actual completeness redacted probe to JS durable evidence (1116.365375ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7666.82175
+
+
+COMMAND: node --test --test-name-pattern='LP08' scripts/internal/recording_current_archive_probe.test.mjs
+EXIT: 0
+NOTE: 최종 guard 포함 영향9/9 PASS. 무관 기존29개는 전체34 PASS에서 유효증거 유지; 최종38개 단일suite 실행 주장이 아님.
+RAW OUTPUT:
+[environment] ownedCache=true ownedRegistry=true headless=true compileAndRunSameEnv=true
+[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-EsDoTg bytes=20913808 removed=true
+✔ LP08-B03 actual completeness full probe to JS durable evidence (2637.746167ms)
+✔ LP08-B03 actual completeness selection probe to JS durable evidence (1096.327375ms)
+✔ LP08-B03 actual completeness file probe to JS durable evidence (1292.153166ms)
+✔ LP08-B03 actual completeness redacted probe to JS durable evidence (1096.533542ms)
+✔ LP08-A02-A03 completeness full typed control (1631.87175ms)
+✔ LP08-A02-A03 completeness selection typed control (1600.258209ms)
+✔ LP08-A02-A03 completeness file typed control (1917.373666ms)
+✔ LP08-A02-A03 completeness redacted typed control (1605.665291ms)
+✔ LP08-A01 completeness rejects failed and intent records (639.238834ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 15182.378042
+
+
+FINAL: git diff --check exit 0. owned test roots above all removed=true. Four intermediate text logs consolidated here, then removed; no shared cache or raw source archive removed.
+

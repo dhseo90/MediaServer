@@ -1,0 +1,89 @@
+✔ P0-DIAG01 정상 header/body 시간·안전 route 분류와 비밀 미노출 (0.658334ms)
+✔ P0-DIAG02 header timeout 고정 진단과 실패 유지 (0.296208ms)
+✔ P0-DIAG03 body timeout 부분 수신 측정·완료 거부 (0.135208ms)
+✔ S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박 (1.135125ms)
+✔ S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부 (0.193666ms)
+✔ S11-CI02 nonzero 실패 후 나머지 미실행 (0.068167ms)
+✔ S11-CI02 signal 실패 후 나머지 미실행 (0.052666ms)
+✔ S11-CI02 output-limit 실패 후 나머지 미실행 (0.053084ms)
+✔ S11-CI02 summary-missing 실패 후 나머지 미실행 (0.052ms)
+✔ S11-CI02 summary-duplicate 실패 후 나머지 미실행 (0.045083ms)
+✔ S11-CI02 cleanup-failed 실패 후 나머지 미실행 (0.041625ms)
+✔ S11-CI02 port-missing 실패 후 나머지 미실행 (0.053375ms)
+✔ S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리 (0.161291ms)
+✔ S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부 (0.217042ms)
+✔ S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup (4.713625ms)
+✔ S11-CI05 누락·중복item·불안정total·truncated·cap 거부 (0.146458ms)
+✔ S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부 (0.134792ms)
+✔ S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 (0.176833ms)
+✔ S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리 (0.140292ms)
+✔ S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 (0.071708ms)
+✔ LP04-A 목표 이전은 대기하고 해당 구간만 선택 (0.292833ms)
+✔ LP04-A 경계와 프레임을 놓치면 다른 구간으로 대체 금지 (0.154416ms)
+✔ LP04-A 실제 dispatch 정확 일치만 허용 (0.069833ms)
+✔ LP03-A failed는 완료 대기 대신 즉시 중단 (0.082792ms)
+✔ P0-HTTP01 pending은 전이 완료가 아님 (0.042958ms)
+✔ P0-HTTP01 partial은 지연 관측만 가능 (0.038875ms)
+✔ P0-HTTP01 다른 참조와 모순 파일은 거부 (0.054875ms)
+✔ P0-HTTP01 원래 완전 출력 검사는 부분 출력 거부 유지 (0.088708ms)
+✔ LP05-04 같은 원본의 앞선 비중첩 mapping 뒤 중첩 구간도 보존 (0.587375ms)
+✔ LP05-04 겹치는 원본 전수·경계 제외·미상 분리·비밀 미노출 (0.853542ms)
+✔ P0-STATE01 complete1 count와 기존 two-output 거부 구분 (0.346875ms)
+✔ P0-STATE02 pending partial complete2 변화와 8개 상한 (0.763208ms)
+✔ P0-STATE03 raw ID/path/unknown enum/request 비밀 미노출 (0.066208ms)
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-1lY4lg","bytes":819,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-mPoPxJ","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-B9qAup","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-8ncG5P","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gc7uWW","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-RFkGhP","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-yath9n","bytes":8,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-XvQdNC","bytes":96,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-WqjAIB","bytes":1619,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-HGXwts","bytes":1619,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-agluh8","bytes":1620,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-RAqVAI","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Bw8nfI","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-LNW4Yi","bytes":8,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-8bQ6J5","bytes":1601,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-UdzGaq","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-EzHvAL","bytes":98,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-MpCXtt","bytes":1954,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-suE12t","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-QmoGW0","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-tadrrN","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-vkyRqv","bytes":274,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-MvTryv","bytes":97,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-fN58rr","bytes":163,"removed":true}
+✔ LP08-B01 완료 작업 안전 증거 선보존 (9.699916ms)
+✔ LP08-B02 field 증거 실패 시 정리 차단 (0.413375ms)
+✔ LP08-B02 enum 증거 실패 시 정리 차단 (0.240959ms)
+✔ LP08-B02 range 증거 실패 시 정리 차단 (0.24525ms)
+✔ LP08-B02 throw 증거 실패 시 정리 차단 (0.218417ms)
+✔ LP08-B02 timeout 증거 실패 시 정리 차단 (0.200083ms)
+✔ LP08-B02 existing 증거 실패 시 정리 차단 (4.975708ms)
+✔ LP08-B02 symlink 증거 실패 시 정리 차단 (4.470458ms)
+✔ LP06-B01 진단 파일을 재현 전에 보존 (22.805166ms)
+✔ LP06-B02 실제 자식 exit 뒤 최초 증거 유지 (42.18675ms)
+✔ LP06-B02 실제 자식 timeout 뒤 최초 증거 유지 (76.279542ms)
+✔ LP06-B03 진단 throw 시 재현·정리 거부 (0.429167ms)
+✔ LP06-B03 진단 unsafe 시 재현·정리 거부 (0.343375ms)
+✔ LP06-B04 최초 보존 실패 시 재현 금지 (4.952667ms)
+✔ LP06-B04 후속 보존 실패 시 최초 파일 유지 (19.99875ms)
+✔ LP06-B05 진단 미보존 root 정리 금지·소유권 불일치 거부 (0.718583ms)
+✔ LP06-B06 symlink 증거 덮어쓰기 거부 (4.18575ms)
+✔ LP06-B06 성공 결과 분리 보존·미등록 필드 거부 (23.015833ms)
+✔ LP06-B07 상세 수집 throw 시 기본 진단 유지·재현 금지 (8.743458ms)
+✔ LP06-B07 상세 수집 timeout 시 기본 진단 유지·재현 금지 (58.850833ms)
+✔ LP06-B07 상세 수집 identity 시 기본 진단 유지·재현 금지 (7.102083ms)
+✔ LP06-B07 상세 수집 persist 시 기본 진단 유지·재현 금지 (10.232042ms)
+✔ LP06-B08 기본 자식은 plugin 환경 준비 실패와 독립 (29.314666ms)
+✔ LP06-B09 만료 시 자식 미기동·남은 시간만 대기 (102.76575ms)
+ℹ tests 57
+ℹ suites 0
+ℹ pass 57
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 475.190292
