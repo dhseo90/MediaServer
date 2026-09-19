@@ -12,6 +12,121 @@
 정상 append에 전체 원장 검색을 추가하지 않는다. managed Open은 한 snapshot의 값과 handle을 사용하고 일시 Replay 값 사본은 남긴다.
 단일 Astra/medium 담당자는 제품/fixture/계측 adapter, 메인은 문서/runner/실행/직접 검토를 맡으며 하위 생성은 금지했다.
 
+### 2번 typed binding 공유 사전등록
+
+기준 `a6192c92`/ahead17/clean 뒤 새 fixture를 작성했다. 제품 구현 전이며 기본34/accepted55 oracle는 유지한다.
+같은 단일 Astra/medium 담당자가 fixture/제품을 맡고 메인이 문서/runner/실행/검토를 담당한다. 하위 생성 금지.
+이번 단위는 source binding의 const 소유 공유만 다룬다. checkpoint 재적용 시 기존 엄격 검증을 통과한 **새 ID**에 한해
+live의 같은 ID와 전체 canonical 동등성을 확인해 소유를 공유한다. 매 checkpoint 뒤 전체 map을 다시 비교하지 않는다.
+live 소유 풀은 호출 동안만 전달하고 cached shadow에 raw owner를 보관하지 않는다. 재사용 부적합은 정상 입력 거부가 아닌
+기존 독립 파싱/엄격 검증 경로로 복귀한다. 삭제된 binding 상세·공개 독립 값·저장 bytes는 보존한다. job/lazy 수명은 이후 단위다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-O10 | live/shadow typed 소유 | finalized·deleted·SQLite/JSONL 재open checkpoint의 실제 객체 주소 동일, 새 적용 ID만 공유 | v4.1.0 |
+| LP18-O11 | 값/바이트 독립성 | 공개 Find/Snapshot 값 수정 후 내부 불변, bound journal identity/canonical 확인 | v4.1.0 |
+| LP18-O12 | 거부/삭제 | 변경 binding·4종 identity 거부와 disk 불변, deleted 공개 숨김/내부 상세 보존; 새 공유 API null·불일치 반례는 GREEN 전 별도 등록 | v4.1.0 |
+| LP18-O13 | 복구/독립 검증 | 전체 replay projection과 SQLite/JSONL 재open canonical 동등성. lifetime/불일치 fallback은 구현 경계 확정 후 추가 | v4.1.0 |
+
+예상 RED 명령: `node scripts/internal/verify_recording_immutable_ownership.mjs red binding-01 binding`.
+기존55+신규13=68개이며 RED64PASS/4FAIL, GREEN68PASS/0FAIL이다. exact FAIL은 순서대로
+`LP18-O10 checkpoint shadow shares current live binding`, `LP18-O10 deleted checkpoint retains shared binding evidence`,
+`LP18-O10 reopened checkpoint shares live binding sqlite`, `LP18-O10 reopened checkpoint shares live binding fallback`다.
+12-byte owned fixture만 쓰며 실제 영상/HTTP PASS가 아니다. build·환경·다른 FAIL은 예상 RED로 처리하지 않는다.
+runner의 기존60초/1GiB/512MiB/2MiB 상한, source 불변·프로세스/임시물 정리를 유지한다.
+제품 구현 후 전체 build → binding GREEN → source-binding 기존 회귀 → cache/catalog/prepared → 작은 비교 순으로 진행한다.
+관련 source-binding 정확 명령·assertion은 실행 전에 연결한다. 코드 무변경 CP06 identity와 원장 writer44는 기존 증거를 유지하되
+실제 source-binding 소비 경계가 바뀌면 해당 writer 범위 재검증 필요성을 다시 판정한다. 장시간/UI/실제 HTTP는 아직 실행하지 않는다.
+
+binding-01 준비 실패: build exit1/2161ms, baseline에서 공유형 adapter 미사용 `-Werror`에 걸렸다.
+예상 RED가 아니며 제품 변경/다음 단계 실행 없음. 양 표현 adapter에 `[[maybe_unused]]`만 추가해 경고 정책은 유지한다.
+원출력 `lp18-ownership-red-binding-01.txt`, root153124B 삭제/그룹 부재/source 불변 확인. 같은 명령의 ID만 binding-02로 바꿔 재실행한다.
+
+binding-02 실제 RED: build exit0/2315ms, focused exit1/686ms, exact64PASS/4FAIL 일치.
+runner exit0/3017ms는 예상 RED 확인이지 제품 PASS가 아니다. source 불변·그룹 종료·root5803849B 삭제 확인.
+제품 구현을 같은 담당자에게 승인했다. 메인은 전체 diff와 소비 경계/원출력을 직접 검토한다.
+
+binding 영향 실행 명령의 사전 연결:
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-O13 binding 회귀 | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_source_binding.sh` | S10-C301~320 schema·ordinal·tuple·bound 단일 mutation·재open·corrupt/deleted·SQLite/JSONL 반례의 기존 개별 assertion 유지 | v4.1.0 |
+| LP18-O13 cache | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_checkpoint_cache.sh` | 기존47개, full/incremental·변조·pending/예외·비용 상한 유지. private Apply signature 계측은 새 인자만 적응 | v4.1.0 |
+| LP18-O13 catalog | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_v410_recording_catalog.sh` | 기존246개 의미와 원출력 전수 보존. tool 출력 상한20000으로 수집 | v4.1.0 |
+| LP18-O12 prepared | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_derived_transition_reuse.sh` | binding 소비가 바뀌는 job source 검증·한 번 사용11개 | v4.1.0 |
+| LP18-O10 계측 | `node scripts/internal/recording_catalog_comparison_run.mjs small lp18-binding-01` | 실제 writer32AU/2원본, A/B/C·삭제/재open99개와 계측1. typed 포인터별 중복 집계 방지 | v4.1.0 |
+
+이 단위는 encoder/pipeline 변경 없이 catalog 소유와 dereference만 바꾼다. writer 별도44개는 직전 accepted source 증거를 유지하고,
+binding의 실제 파일 연결은 소형 비교의 writer 생성/원본 대응·canonical 저장 검사로 영향 확인한다. 최종 전체 비용/HTTP나 모든 writer기능 PASS 주장이 아니다.
+
+binding GREEN 전 새 private API 반례9개를 추가 등록한다. 기존68개 의미는 그대로 두며 최종77PASS/0FAIL을 요구한다.
+명령: `node scripts/internal/verify_recording_immutable_ownership.mjs green binding-01 binding`.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-O12 unusable binding pool falls back to independent strict value null | null 최적화 풀 | 정상 strict apply·새 독립 handle·canonical 동일 | v4.1.0 |
+| LP18-O12 unusable binding pool falls back to independent strict value different-content | 같은ID 다른 내용 | pool값을 채택하지 않고 정상 입력 strict apply | v4.1.0 |
+| LP18-O12 unusable binding pool falls back to independent strict value different-id | 다른ID 풀 | 정상 입력 strict apply·별도 객체 | v4.1.0 |
+| LP18-O12 matching pool cannot bypass invalid binding input | 잘못된 입력 | 유효 pool이 있어도 source identity 불일치 거부, 수용 map 불변 | v4.1.0 |
+| LP18-O12 matching pool cannot bypass missing order | 예약 없는 입력 | 유효 pool이 있어도 거부·수용 map 불변 | v4.1.0 |
+| LP18-O10 binding survives source pool owner destruction | 소유 수명 | 풀 catalog 파괴 뒤 target이 불변 상세를 보존 | v4.1.0 |
+| LP18-O10 no-op checkpoint preserves handles without binding comparisons | 변경 없는 checkpoint | pool lookup/compare0, live/shadow handle 유지 | v4.1.0 |
+| LP18-O10 duplicate mutation does not recompare existing binding | 같은 mutation 재적용 | pool lookup/compare0, 기존 handle 유지 | v4.1.0 |
+| LP18-O10 new bound ID compares only its matching pool entry | 새 bound ID | pool lookup/compare 각1, 기존 ID handle 유지 | v4.1.0 |
+
+lookup/compare 카운터는 실행 소유의 source 복제본에서 exact insertion하며 제품 상태/분기는 바꾸지 않는다.
+LP17 소유 계측도 envelope와 별도 typed 포인터 집합으로 live→shadow를 센다. uniqueBindingObjects/sharedBindingReferences는 실제 객체/공유참조,
+logicalBindingSamples는 참조 논리량이고 기존 sample·string/vector capacity는 실제 typed 사본별이다. job 안의 독립 binding 값은 계속 따로 센다.
+
+binding GREEN-01 준비 실패: 전체 제품 build exit0 뒤 focused build exit1/2216ms.
+새 ID 검사에서 실제로 없는 `SerializeRecordingOrderReservationV1`를 호출했다. 원인 범위는 검사 준비 코드다.
+메인이 해당 부분을 실제 `ReserveRecordingOrder`와 Replay의 예약 기록으로 바꾸며 제품/기준/검사77개는 유지한다.
+source 불변·그룹 종료·root335407B 삭제, 원출력 `lp18-ownership-green-binding-01.txt` 보존.
+이후 단계는 실행하지 않았다. 제품 source가 같으므로 전체 build는 유지하고 focused ID binding-02로 같은 검사를 재실행한다.
+
+### typed binding 공유 구현·최종 결과
+
+제품의 `SourceBindingPool`은 const handle을 보관한다. Apply의 새 bound ID만 strict parse/segment·예약 검증 뒤
+호출-local pool과 전체 canonical을 대조한다. checkpoint에 저장되는 owner/raw pointer는 없으며 같은 기록/변경 없는 호출은
+pool 비교0, 새 bound ID는 조회/비교 각1이다. public 값·삭제 후 상세 증거·SQLite/JSONL bytes와 엄격 거부는 유지했다.
+메인이 소비자 사용처 전수 검색·실제 diff·원출력·개별 행수·SHA·cleanup을 직접 대조했다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| binding 전체 build | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build`, exit0 | PASS | 최종 제품 source 빌드. 이후 수정은 fixture 예약 준비뿐 |
+| binding focused 준비 | green binding-01, build exit1/2216ms | FAIL | 없는 예약 serializer. 제품 수정 없이 실제 API로 보완 |
+| binding focused 최종 | green binding-02, exit0/3078ms | PASS | 77개; build2367ms/focused695ms, 기존 RED64/4 보존 |
+| binding 기존 source | verify_recording_source_binding.sh exit0/7초 | PASS | S10-C301~320 20개 |
+| binding cache | verify_recording_checkpoint_cache.sh exit0/33초 | PASS | 47개, peak164560896B/536870912B. lock max1751634us, HTTP 판정 아님 |
+| binding catalog | verify_v410_recording_catalog.sh exit0 | PASS | 246개 원출력 전수. 15행의 끝 공백은 RAW_JSON_LINE JSON으로 무손실 보존 |
+| binding prepared | verify_recording_derived_transition_reuse.sh exit0/5초 | PASS | 11개/실제2출력·파일·SQLite, 기존 fixture의 file-evidence 경고 유지 |
+| binding 소형 비교 | small lp18-binding-01 exit0/9492ms/12phase | PASS | 32AU/2원본 A/B/C 기능99+계측1, 원출력246321B. 소유 경로 마스킹·비민감 fixture |
+
+소형 A/B의 checkpoint 후 shadow 계측: typed binding 객체0/공유참조2, 논리 sample64지만 별도 sample/fileSample 저장0이다.
+문자열 부분량은 accepted 단위9386B에서722B로 줄고 live는9360B로 같다. 부분 소유량만 입증하며 전체 heap/RSS 개선률이나
+누적 catalog/실제 HTTP 합격을 주장하지 않는다. 생성 영상·기대값·직렬화 바이트의 기존 oracle는 그대로 통과했다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| binding RED 준비 root | 빌드 복제본 | 153124B | runner 삭제 | removed=true | red-binding-01 |
+| binding RED root | 빌드/fixture | 5803849B | runner 삭제 | removed=true | red-binding-02 |
+| binding GREEN 준비 root | 빌드 복제본 | 335407B | runner 삭제 | removed=true | green-binding-01 |
+| binding GREEN root | 빌드/fixture | 6059283B | runner 삭제 | removed=true | green-binding-02 |
+| source root | 빌드/원장 fixture | 6591488B | runner 삭제 | removed=true | binding-source-01 |
+| cache root | 빌드/영상/cache | 16846887B | runner 삭제 | removed=true | binding-cache-01 |
+| catalog root | 빌드/원장 fixture | 26917814B | runner 삭제 | removed=true | binding-catalog-01 |
+| prepared root | 빌드/영상/cache | 9002186B | runner 삭제 | removed=true | binding-prepared-01 |
+| 비교 root | 빌드/영상/저장소/cache | 18771696B | runner 삭제 | removed=true | lp17-small-lp18-binding-01 |
+
+전수 결과·raw 링크는 [LP18 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md)에 보존했다.
+[binding 전체 빌드 원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-binding-build-01.txt)을 별도로 보존했다. 제품 hash: catalog.h `484496495b7c9d90f36220955c9f99e4a9d4e8e5eafb8bf3373ad7235f650aab`,
+catalog.cpp `48adb2b5ca6cf5958479e4e81a876311edf104b0b331e405f7cb1c78d98334ec`. token start/end/consumed는 집계 미제공으로 미집계.
+서버/포트 실행 없음. 장시간/UI/HTTP 미실행. job typed 중복·상세 RAM·재검증 비용은 여전히 남아 있어 2~5 전체 완료가 아니다.
+
+binding 마감 문서/공백: diffcheck exit0, 문서 링크 최종 exit0(285md/8794links/22images/116anchors/76indexed/201exclusions/failures0).
+UI 자산 무변경, 추가 임시물 없음. 신규10파일 공백/EOF 검사 exit0, 약0.11초(문서/공백 묶음 도구 시간).
+raw는 소유 경로를 마스킹한 비민감 fixture이며 원출력·source를 직접 대조했다. 제품 변경 이후 최종 build/회귀 source는 같고 커밋만 진행한다.
+
 ### 2번 accepted 공유 사전등록
 
 | 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
@@ -105,7 +220,7 @@ UI 자산 무변경, 추가 임시물 없음. 마지막 커밋 전 공백 검사
 | 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
 | --- | --- | --- | --- | --- |
 | 1 | 공통 소유·검증 경계 | 완료·커밋 | 1d13b08a, 불변 envelope·내용/상태 검사·RAM 소비자 조건 명시 | 누적 비용 계약 0절 |
-| 2 | 중복 보관 제거 | envelope·accepted 공유 구현·회귀 통과 | typed binding/job 상세 잔존, 전체 2번 미완료 | LP18-O01~09 전수 결과 |
+| 2 | 중복 보관 제거 | envelope·accepted·typed binding 공유 구현·회귀 통과 | typed job 상세 잔존, 전체 2번 미완료 | LP18-O01~13 전수 결과 |
 | 3 | 전이→checkpoint 재검증 제거 | 미착수 | 2번 선수 통과 뒤 내용 증명 재사용 | 구현계획 LP18 |
 | 4 | 상세 RAM 수명 | 미착수 | 기존 JSONL locator/활성 소유/재open 검증 필요 | 계약 0절 |
 | 5 | 회귀·실제 앱 | 미착수 | 기존4000ms/정리 포함, 장시간/UI 아님 | 계약 0절 |

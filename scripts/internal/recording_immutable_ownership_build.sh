@@ -16,6 +16,15 @@ fs.writeFileSync(path.join(out,'recording_journal.cpp'),'#include "recording/rec
 fs.writeFileSync(path.join(out,'ownership_flags'),source.includes('RecordingMutationHandles records;')?'-DLP18_SHARED_RECORDS=1':'');
 const catalogHeader=fs.readFileSync(path.join(repo,'include/recording/recording_catalog.h'),'utf8');
 fs.writeFileSync(path.join(out,'accepted_flags'),/unordered_map<std::string,\s*RecordingMutationHandle>\s+accepted_segment_state_mutations_/.test(catalogHeader)?'-DLP18_ACCEPTED_SHARED=1':'');
+const bindingShared=catalogHeader.includes('SourceBindingPool source_bindings_;');
+fs.writeFileSync(path.join(out,'binding_flags'),bindingShared?'-DLP18_BINDING_SHARED=1':'');
+let catalog=fs.readFileSync(path.join(repo,'src/recording/recording_catalog.cpp'),'utf8');
+if(bindingShared){
+ catalog=exact(catalog,'if(binding_pool)shared_binding=FindSourceBindingOwned(*binding_pool,v.segment_id);','if(binding_pool){++ownership_probe::binding_pool_lookups;shared_binding=FindSourceBindingOwned(*binding_pool,v.segment_id);}\n                if(shared_binding)++ownership_probe::binding_pool_comparisons;');
+}
+const counters='#include <cstddef>\nnamespace ownership_probe { std::size_t binding_pool_lookups=0,binding_pool_comparisons=0; void ResetBindingPoolCounts(){binding_pool_lookups=binding_pool_comparisons=0;} std::size_t BindingPoolLookups(){return binding_pool_lookups;} std::size_t BindingPoolComparisons(){return binding_pool_comparisons;} }\n';
+fs.writeFileSync(path.join(out,'recording_catalog.cpp'),counters+catalog);
+console.log('[instrument] catalog_sha256='+crypto.createHash('sha256').update(counters+catalog).digest('hex')+' binding_exact_insertions='+(bindingShared?1:0));
 for(const name of ['include/recording/recording_journal.h','include/recording/recording_catalog.h','src/recording/recording_journal.cpp','src/recording/recording_catalog.cpp','src/recording/recording_checkpoint_validation.h','scripts/internal/recording_immutable_ownership_smoke.cpp'])console.log('[source] '+JSON.stringify({name,sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(repo,name))).digest('hex')}));
 NODE
 read -r -a lp_original_link < "$lp_repo/build-gst-onnx/CMakeFiles/media_server.dir/link.txt"
@@ -28,6 +37,7 @@ test "$lp_found" = 1
 read -r -a lp_flags <<< "$(pkg-config --cflags gstreamer-app-1.0 openssl sqlite3)"
 lp_shared=(-DLP18_SHARED_RECORDS=0); if [[ -s "$lp_root/ownership_flags" ]];then lp_shared=(-DLP18_SHARED_RECORDS=1);fi
 lp_accepted=(-DLP18_ACCEPTED_SHARED=0); if [[ -s "$lp_root/accepted_flags" ]];then lp_accepted=(-DLP18_ACCEPTED_SHARED=1);fi
+lp_binding=(-DLP18_BINDING_SHARED=0); if [[ -s "$lp_root/binding_flags" ]];then lp_binding=(-DLP18_BINDING_SHARED=1);fi
 "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$lp_root/include" -I"$lp_repo/include" -I"$lp_script" -I"$lp_repo/src/recording" "${lp_flags[@]}" "${lp_shared[@]}" \
- "${lp_accepted[@]}" -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_SQLITE3=1 \
- "$lp_script/recording_immutable_ownership_smoke.cpp" "$lp_root/recording_journal.cpp" "$lp_repo/src/recording/recording_catalog.cpp" "${lp_libs[@]}" -o "$lp_root/check"
+ "${lp_accepted[@]}" "${lp_binding[@]}" -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_SQLITE3=1 \
+ "$lp_script/recording_immutable_ownership_smoke.cpp" "$lp_root/recording_journal.cpp" "$lp_root/recording_catalog.cpp" "${lp_libs[@]}" -o "$lp_root/check"

@@ -36,6 +36,11 @@ accepted canonical 사본도 같은 envelope 소유로 연결한다. Apply에 �
 duplicate의 전체 canonical·SQLite 최초 ordinal gate를 유지한다. managed Open의 값/핸들은 한 snapshot에서 만들며
 서로 다른 시점의 원장 목록을 ordinal만으로 결합하지 않는다. 공개 Replay와 Open의 일시 값 사본은 별도 경계다.
 
+typed binding은 먼저 내부 const 소유로 전환한다. shadow의 신규 bound 기록을 기존 규칙으로 엄격 검증한 뒤
+호출 동안 제공된 live 풀의 같은 ID와 canonical 전체를 대조해 같은 소유를 선택한다. checkpoint마다 전체 binding map을
+재직렬화하는 후처리는 추가하지 않는다. null/부적합 풀은 독립 엄격 경로로 복귀하며 raw owner를 shadow에 저장하지 않는다.
+public 조회·Snapshot은 독립 값, deleted binding은 역사 증거로 보존한다. 이 단계는 내용 검증 생략이나 RAM 내림이 아니다.
+
 내용 검증 재사용은 현재 live catalog가 정상이라는 사실만으로 shadow 전체를 신뢰하는 최적화가 아니다.
 내용 증명과 상태 전이 검증을 구분하며, shadow의 다른 prior state·예약·tombstone도 항상 검사한다.
 증명은 영속 PASS 플래그로 저장하지 않는다. O(H) 전체 typed 증명 캐시를 추가하는 방식도 채택하지 않는다.

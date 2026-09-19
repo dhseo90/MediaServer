@@ -1,0 +1,35 @@
+{"kind":"start","utc":"2026-09-19T13:51:10.548Z","mode":"red","id":"binding-01","suite":"binding","source":[{"name":"include/recording/recording_catalog.h","sha256":"3cd4c0dc056d3b417d444cc5636f7bfe8e575cf883972139df8f85775ea02aa7"},{"name":"include/recording/recording_journal.h","sha256":"d9abe40e76bbfc2b9a6014b1f73967d9aa493c6fea31c754d935dbf531278ea0"},{"name":"src/recording/recording_catalog.cpp","sha256":"e730a2d073354da594f4c094fdd02ffdc68bf8220cec9fedd34a86485e484138"},{"name":"src/recording/recording_journal.cpp","sha256":"72388b235e9d2746bbb341cb64c316d8b6665a2737adb98d668f5e8fca885997"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"31277f9aeadaa8cf911d5610bacad66becbfe8b5a1ebeeaeedb1b51ba3d6b8dd"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"984c8ae4a85c1bfb08511a9812ab3bc4c569a82902cbc3dc3554c8c6606623ff"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"4305bac467525463cb8af8946d1cd71296df96c5247872a3951ac6edcb652ce9"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"b092354fede296bbbd7e202e3b37dd65957e84d2664850c6c3065e63a0b05ced"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>"],"seconds":60}
+[source] {"name":"include/recording/recording_journal.h","sha256":"d9abe40e76bbfc2b9a6014b1f73967d9aa493c6fea31c754d935dbf531278ea0"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"3cd4c0dc056d3b417d444cc5636f7bfe8e575cf883972139df8f85775ea02aa7"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"72388b235e9d2746bbb341cb64c316d8b6665a2737adb98d668f5e8fca885997"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"e730a2d073354da594f4c094fdd02ffdc68bf8220cec9fedd34a86485e484138"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"31277f9aeadaa8cf911d5610bacad66becbfe8b5a1ebeeaeedb1b51ba3d6b8dd"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"984c8ae4a85c1bfb08511a9812ab3bc4c569a82902cbc3dc3554c8c6606623ff"}
+<repo>/scripts/internal/recording_immutable_ownership_smoke.cpp:155:40: error: unused function 'BindingAddress' [-Werror,-Wunused-function]
+  155 | inline const RecordingSourceBindingV1* BindingAddress(const std::shared_ptr<const RecordingSourceBindingV1>& value){return value.get();}
+      |                                        ^~~~~~~~~~~~~~
+1 error generated.
+        2.14 real         1.90 user         0.12 sys
+           292536320  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               45128  page reclaims
+                 464  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                 164  messages sent
+                   0  messages received
+                   3  signals received
+                  15  voluntary context switches
+                1365  involuntary context switches
+            73964231  instructions retired
+            35800535  cycles elapsed
+             1933720  peak memory footprint
+{"kind":"phase","label":"build","exit":1,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":2161,"groupPeakRssBytes":307347456}
+{"kind":"failure","code":"LP18_BUILD"}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":153124,"removed":true}
+{"kind":"result","utc":"2026-09-19T13:51:12.722Z","mode":"red","matched":false,"productPass":false,"elapsedMs":2175}

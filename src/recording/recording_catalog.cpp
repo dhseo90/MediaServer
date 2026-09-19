@@ -435,11 +435,11 @@ bool RecordingCatalog::ValidateDerivedJobSourcesLocked(const DerivedJobIntentV1&
     };
     for(const auto& source:job.sources) {
         const auto segment=segments_v2_.find(source.segment.segment_id);
-        const auto binding=source_bindings_.find(source.segment.segment_id);
-        if(segment==segments_v2_.end()||binding==source_bindings_.end()||
+        const auto binding=FindSourceBindingOwnedLocked(source.segment.segment_id);
+        if(segment==segments_v2_.end()||!binding||
            EffectiveLifecycleV2Locked(source.segment.segment_id)!=RecordingLifecycle::Finalized||
            SerializeRecordingSegmentV2(segment->second)!=SerializeRecordingSegmentV2(source.segment)||
-           !binding_matches(binding->second,source.binding)||
+           !binding_matches(*binding,source.binding)||
            !media_relpaths_.count(source.segment.segment_id))return Fail(error,"derived job live source 결박 거부");
     }
     for(const auto& output:job.outputs) {
@@ -577,7 +577,7 @@ std::vector<std::string> RecordingCatalog::ProjectionSignatureLocked() const {
     for(const auto& id:mutation_ids_)add("id",id,"");
     for(const auto& [id,v]:segments_)add("v1",id,SerializeRecordingSegmentV1(v));
     for(const auto& [id,v]:segments_v2_)add("v2",id,SerializeRecordingSegmentV2(v));
-    for(const auto& [id,v]:source_bindings_)add("source-binding",id,SerializeRecordingSourceBindingV1(v));
+    for(const auto& [id,v]:source_bindings_)add("source-binding",id,v?SerializeRecordingSourceBindingV1(*v):std::string());
     for(const auto& [id,v]:derived_jobs_)add("derived-job",id,SerializeDerivedJobRecord(v));
     for(const auto& [id,v]:consumer_references_)add("consumer-reference",id,SerializeRecordingConsumerReferenceV1(v));
     for(const auto& id:derived_accepted_references_)add("derived-reference-accepted",id,id);
@@ -617,14 +617,14 @@ bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error) {
         before=reuse?std::move(cached->shadow):std::make_unique<RecordingCatalog>(journal_,options_);
         cached.reset();
         for(std::size_t i=first;i<original.size();++i)
-            if(!before->ApplyMutationLocked(*original[i],false,error,nullptr,original[i]))return false;
+            if(!before->ApplyMutationLocked(*original[i],false,error,nullptr,original[i],&source_bindings_))return false;
         identical=detail::SameCheckpointSequence(original,candidate);
     } // 원본 핸들 vector는 이후 후보 검증/commit에 필요하지 않다.
     // 변경 후보는 전체 semantic replay와 양쪽 projection 비교를 유지한다.
     std::unique_ptr<RecordingCatalog> after;
     if(!identical){
         after=std::make_unique<RecordingCatalog>(journal_,options_);
-        for(const auto& m:candidate)if(!m||!after->ApplyMutationLocked(*m,false,error,nullptr,m))return false;
+        for(const auto& m:candidate)if(!m||!after->ApplyMutationLocked(*m,false,error,nullptr,m,&source_bindings_))return false;
         if(before->ProjectionSignatureLocked()!=after->ProjectionSignatureLocked())return Fail(error,"checkpoint 투영 불일치");
     }
     // original 초과는 full 검증, compact candidate가 상한 내이면 다음 호출용 보관 가능.
@@ -846,7 +846,8 @@ bool RecordingCatalog::RecoverWriterCleanupMarkersLocked(std::string* error) {
 
 bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                                            bool count_duplicate,
-                                           std::string* error,PreparedDerivedMutation* prepared,RecordingMutationHandle owned) {
+                                           std::string* error,PreparedDerivedMutation* prepared,RecordingMutationHandle owned,
+                                           const SourceBindingPool* binding_pool) {
     // 소유 주소는 검증 증명이 아니다. schema/enum을 포함한 원래 모든 필드를 확인한다.
     if(owned&&(owned->schema!=mutation.schema||owned->mutation_type!=mutation.mutation_type||
        owned->mutation_id!=mutation.mutation_id||owned->entity_id!=mutation.entity_id||
@@ -1061,8 +1062,16 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                    !segments_v2_.count(v.segment_id)&&ValidateRecordingSourceBindingForSegment(binding,v,error);
             }
             if(ok&&!bound&&source_bindings_.count(v.segment_id))ok=Fail(error,"bound downgrade 거부");
+            SourceBindingHandle shared_binding;
+            if(ok&&bound){
+                // 새 bound ID에 대해서만 조회한다. 풀은 이 호출의 최적화 후보이며 검증 증명이 아니다.
+                if(binding_pool)shared_binding=FindSourceBindingOwned(*binding_pool,v.segment_id);
+                if(shared_binding&&SerializeRecordingSourceBindingV1(*shared_binding)!=SerializeRecordingSourceBindingV1(binding))
+                    shared_binding.reset();
+                if(!shared_binding)shared_binding=std::make_shared<const RecordingSourceBindingV1>(std::move(binding));
+            }
             if (ok) {segments_v2_.emplace(v.segment_id,v);media_relpaths_[v.segment_id]=*relative;
-                if(bound)source_bindings_.emplace(v.segment_id,std::move(binding));}
+                if(bound)source_bindings_.emplace(v.segment_id,std::move(shared_binding));}
             break;
         }
         case RecordingMutationType::SegmentV2State: {
@@ -1213,9 +1222,9 @@ bool RecordingCatalog::ValidateManagedCandidateLocked(const RecordingSegmentV2& 
 bool RecordingCatalog::ValidateBoundLocked(const RecordingSegmentV2& s,const RecordingSourceBindingV1& b,
                                             const std::string& relative,std::string* error) const {
     if(!ValidateV2Locked(s,relative,error)||!ValidateRecordingSourceBindingForSegment(b,s,error))return false;
-    const auto old=source_bindings_.find(s.segment_id);
-    if(segments_v2_.count(s.segment_id) && old==source_bindings_.end())return Fail(error,"unbound 소급 결박 거부");
-    if(old!=source_bindings_.end()&&SerializeRecordingSourceBindingV1(old->second)!=SerializeRecordingSourceBindingV1(b))
+    const auto old=FindSourceBindingOwnedLocked(s.segment_id);
+    if(segments_v2_.count(s.segment_id) && !old)return Fail(error,"unbound 소급 결박 거부");
+    if(old&&SerializeRecordingSourceBindingV1(*old)!=SerializeRecordingSourceBindingV1(b))
         return Fail(error,"source binding immutable 충돌");
     return true;
 }
@@ -1281,11 +1290,17 @@ bool RecordingCatalog::RecoverBoundSegmentV2(const RecordingSegmentV2& s,const R
                                              const std::string& path,bool* inserted,std::string* error) {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);return CommitBoundLocked(s,b,path,true,inserted,error);
 }
+RecordingCatalog::SourceBindingHandle RecordingCatalog::FindSourceBindingOwned(const SourceBindingPool& pool,const std::string& id) {
+    const auto found=pool.find(id);return found==pool.end()?SourceBindingHandle{}:found->second;
+}
+RecordingCatalog::SourceBindingHandle RecordingCatalog::FindSourceBindingOwnedLocked(const std::string& id) const {
+    return FindSourceBindingOwned(source_bindings_,id);
+}
 std::optional<RecordingSourceBindingV1> RecordingCatalog::FindSourceBinding(const std::string& id) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
-    const auto found=source_bindings_.find(id);
-    if(!opened_||found==source_bindings_.end()||EffectiveLifecycleV2Locked(id)!=RecordingLifecycle::Finalized)return std::nullopt;
-    return found->second;
+    const auto found=FindSourceBindingOwnedLocked(id);
+    if(!opened_||!found||EffectiveLifecycleV2Locked(id)!=RecordingLifecycle::Finalized)return std::nullopt;
+    return *found;
 }
 bool RecordingCatalog::ResolveOriginalSample(const std::string& channel,const std::string& source,
     const std::string& generation,std::uint64_t order,const std::string& track,std::uint64_t ordinal,
@@ -1297,7 +1312,9 @@ bool RecordingCatalog::ResolveOriginalSample(const std::string& channel,const st
         return Fail(error,"source lookup 입력 오류");
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     if(!opened_)return Fail(error,"source lookup 미open");
-    for(const auto& [id,b]:source_bindings_) {
+    for(const auto& [id,handle]:source_bindings_) {
+        if(!handle)continue;
+        const auto& b=*handle;
         const auto segment=segments_v2_.find(id);
         if(segment==segments_v2_.end()||EffectiveLifecycleV2Locked(id)!=RecordingLifecycle::Finalized||
            b.channel_id!=channel||b.source_id!=source||b.source_generation!=generation||b.generation_order!=order||b.track_id!=track)continue;
@@ -1964,16 +1981,16 @@ bool RecordingCatalog::SnapshotDerivedSourcesLocked(const RecordingConsumerRefer
     for(const auto& [id,segment]:segments_v2_) {
         if(segment.source_id!=reference.source_id||segment.channel_id!=reference.channel_id||
            segment.retention_class!=RecordingRetentionClass::Continuous)continue;
-        const auto binding=source_bindings_.find(id);
-        const bool valid_binding=binding!=source_bindings_.end()&&
-            ValidateRecordingSourceBindingForSegment(binding->second,segment,nullptr);
+        const auto binding=FindSourceBindingOwnedLocked(id);
+        const bool valid_binding=binding&&
+            ValidateRecordingSourceBindingForSegment(*binding,segment,nullptr);
         const bool valid_segment=ValidateRecordingSegmentV2(segment,nullptr);
         bool unrelated=false;
         if(request.time_basis=="media-pts-ms") {
             if(valid_binding&&reference.original) {
                 const auto& original=*reference.original;
-                unrelated=binding->second.source_generation!=original.source_generation||
-                    binding->second.generation_order!=original.generation_order||binding->second.track_id!=original.track_id;
+                unrelated=binding->source_generation!=original.source_generation||
+                    binding->generation_order!=original.generation_order||binding->track_id!=original.track_id;
             }
             if(valid_segment&&segment.media_end_pts) {
                 const __int128 scale=static_cast<__int128>(segment.time_base_num)*1000000000;
@@ -1999,7 +2016,7 @@ bool RecordingCatalog::SnapshotDerivedSourcesLocked(const RecordingConsumerRefer
         }
         RecordingDerivedSourceSnapshotEntry entry;
         entry.segment=segment;
-        if(binding!=source_bindings_.end())entry.binding=binding->second;
+        if(binding)entry.binding=*binding;
         entry.lifecycle=EffectiveLifecycleV2Locked(id);
         entry.deleted=tombstones_v2_.count(id)!=0||entry.lifecycle==RecordingLifecycle::Deleted;
         result->push_back(std::move(entry));

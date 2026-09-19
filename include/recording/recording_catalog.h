@@ -214,6 +214,10 @@ public:
                                                   std::int64_t end_ms) const override;
 
 private:
+    using SourceBindingHandle = std::shared_ptr<const RecordingSourceBindingV1>;
+    using SourceBindingPool = std::unordered_map<std::string, SourceBindingHandle>;
+    static SourceBindingHandle FindSourceBindingOwned(const SourceBindingPool& pool,const std::string& id);
+    SourceBindingHandle FindSourceBindingOwnedLocked(const std::string& id) const;
     friend class RetentionCoordinator;
     friend class DerivedJobService;
     bool BindDerivedService(const void* owner);
@@ -275,7 +279,7 @@ private:
     bool ApplyMutationLocked(const RecordingMutationV1& mutation,
                              bool count_duplicate,
                              std::string* error,PreparedDerivedMutation* prepared=nullptr,
-                             RecordingMutationHandle owned = {});
+                             RecordingMutationHandle owned = {},const SourceBindingPool* binding_pool = nullptr);
     bool AppendAndApplyLocked(RecordingMutationV1 mutation, std::string* error,PreparedDerivedMutation* prepared=nullptr);
     bool OpenSqliteLocked(std::string* error);
     bool InitializeSqliteSchemaLocked(std::string* error);
@@ -304,7 +308,7 @@ private:
     std::unordered_set<std::size_t> accepted_segment_state_replay_ordinals_;
     std::unordered_map<std::string, RecordingSegmentV1> segments_;
     std::unordered_map<std::string, RecordingSegmentV2> segments_v2_;
-    std::unordered_map<std::string, RecordingSourceBindingV1> source_bindings_;
+    SourceBindingPool source_bindings_;
     std::unordered_map<std::string, DerivedJobRecordV1> derived_jobs_;
     std::unordered_set<std::string> derived_accepted_references_;
     std::unordered_map<std::string, RecordingSegmentStateV2> states_v2_;
