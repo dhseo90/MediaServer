@@ -5,13 +5,13 @@ lp_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 lp_repo="$(cd "$lp_script/../.." && pwd)"
 lp_root="${1:?owned root required}"
 lp_mode="${2:-envelope}"
-if [[ "$lp_mode" != envelope && "$lp_mode" != job ]];then exit 2;fi
+if [[ "$lp_mode" != envelope && "$lp_mode" != job && "$lp_mode" != content ]];then exit 2;fi
 node - "$lp_repo" "$lp_root" "$lp_mode" <<'NODE'
 const fs=require('fs'),path=require('path'),crypto=require('crypto'),[repo,out,mode]=process.argv.slice(2);
 if(!/^media-server-immutable-ownership\.[A-Za-z0-9]+$/.test(path.basename(out))||fs.lstatSync(out).isSymbolicLink()||fs.realpathSync(out)!==out)throw Error('LP18_ROOT');
 function exact(s,a,b){if(s.split(a).length!==2)throw Error('LP18_EXACT');return s.replace(a,b);}
 fs.mkdirSync(path.join(out,'include/recording'),{recursive:true});
-for(const name of ['recording_catalog.h','recording_journal.h']){const file=path.join(repo,'include/recording',name);fs.writeFileSync(path.join(out,'include/recording',name),exact(fs.readFileSync(file,'utf8'),'private:','public: // LP18 owned test copy'));}
+for(const name of ['recording_catalog.h','recording_journal.h']){const file=path.join(repo,'include/recording',name);let header=exact(fs.readFileSync(file,'utf8'),'private:','public: // LP18 owned test copy');if(mode==='content'&&name==='recording_catalog.h')header=exact(header,'class DerivedJobContentProof {','class DerivedJobContentProof { public: // LP18 owned negative test only');fs.writeFileSync(path.join(out,'include/recording',name),header);}
 const source=fs.readFileSync(path.join(repo,'src/recording/recording_journal.cpp'),'utf8');
 const helper='\nnamespace ownership_probe { using History=decltype(std::declval<recording::RecordingCatalog::CheckpointProjectionCache>().prefix); History JournalView(const recording::RecordingJournal& j){std::lock_guard lock(j.mu_);return j.managed_state_->records;} }\n';
 fs.writeFileSync(path.join(out,'recording_journal.cpp'),'#include "recording/recording_catalog.h"\n'+source+helper);
@@ -27,11 +27,23 @@ if(bindingShared){
  catalog=exact(catalog,'if(binding_pool)shared_binding=FindSourceBindingOwned(*binding_pool,v.segment_id);','if(binding_pool){++ownership_probe::binding_pool_lookups;shared_binding=FindSourceBindingOwned(*binding_pool,v.segment_id);}\n                if(shared_binding)++ownership_probe::binding_pool_comparisons;');
 }
 if(jobShared){catalog=exact(catalog,'const auto found=pool->find(record.intent.job_id);','++ownership_probe::job_pool_lookups;const auto found=pool->find(record.intent.job_id);\n        if(found!=pool->end()&&found->second)++ownership_probe::job_pool_comparisons;');}
+if(mode==='content'){
+ catalog=exact(catalog,'bool RecordingCatalog::UpdateDerivedJob(const void* owner,const DerivedJobRecordV1& record,std::string* error) {','bool RecordingCatalog::UpdateDerivedJob(const void* owner,const DerivedJobRecordV1& record,std::string* error) { proof_probe::Update proof_update(record);');
+ catalog=exact(catalog,'bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error,const DerivedJobContentProof* proof) {','bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error,const DerivedJobContentProof* proof) { proof_probe::Checkpoint proof_checkpoint;');
+ catalog=exact(catalog,'bool RecordingCatalog::ApplyDerivedJobMutationLocked(const RecordingMutationV1& mutation,std::string* error,bool apply,PreparedDerivedMutation* prepared,const DerivedJobPool* job_pool,const DerivedJobContentProof* proof) {','bool RecordingCatalog::ApplyDerivedJobMutationLocked(const RecordingMutationV1& mutation,std::string* error,bool apply,PreparedDerivedMutation* prepared,const DerivedJobPool* job_pool,const DerivedJobContentProof* proof) { proof_probe::Apply(mutation.payload_json);');
+ catalog=exact(catalog,'content_proof=DerivedJobContentProof{this,owned,prepared->applied};','content_proof=DerivedJobContentProof{this,owned,prepared->applied};\n    if(content_proof)proof_probe::Inspect(*content_proof);');
+ catalog='#include "recording_job_content_proof_counter.h"\n'+catalog;
+ const ready=fs.readFileSync(path.join(repo,'src/recording/recording_derived_job_ready.cpp'),'utf8');
+ const instrumented='#include "recording_job_content_proof_counter.h"\n'+exact(ready,'bool ParseDerivedJobRecord(const std::string& json,DerivedJobRecordV1* out,std::string* error) {','bool ParseDerivedJobRecord(const std::string& json,DerivedJobRecordV1* out,std::string* error) { proof_probe::Parse(json);');
+ fs.writeFileSync(path.join(out,'recording_derived_job_ready.cpp'),instrumented);
+ console.log('[instrument] proof_exact_insertions=5 proof_header_exact_insertions=1 ready_sha256='+crypto.createHash('sha256').update(instrumented).digest('hex'));
+}
 const counters='#include <cstddef>\nnamespace ownership_probe { std::size_t binding_pool_lookups=0,binding_pool_comparisons=0,job_pool_lookups=0,job_pool_comparisons=0; void ResetJobPoolCounts(){job_pool_lookups=job_pool_comparisons=0;} std::size_t JobPoolLookups(){return job_pool_lookups;} std::size_t JobPoolComparisons(){return job_pool_comparisons;} void ResetBindingPoolCounts(){binding_pool_lookups=binding_pool_comparisons=0;} std::size_t BindingPoolLookups(){return binding_pool_lookups;} std::size_t BindingPoolComparisons(){return binding_pool_comparisons;} }\n';
 fs.writeFileSync(path.join(out,'recording_catalog.cpp'),counters+catalog);
 console.log('[instrument] catalog_sha256='+crypto.createHash('sha256').update(counters+catalog).digest('hex')+' binding_exact_insertions='+(bindingShared?1:0)+' job_exact_insertions='+(jobShared?1:0));
 for(const name of ['include/recording/recording_journal.h','include/recording/recording_catalog.h','src/recording/recording_journal.cpp','src/recording/recording_catalog.cpp','src/recording/recording_checkpoint_validation.h','scripts/internal/recording_immutable_ownership_smoke.cpp'])console.log('[source] '+JSON.stringify({name,sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(repo,name))).digest('hex')}));
 if(mode==='job')for(const name of ['scripts/internal/recording_job_ownership_smoke.cpp','src/recording/recording_timeline_projection.cpp'])console.log('[source] '+JSON.stringify({name,sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(repo,name))).digest('hex')}));
+if(mode==='content')for(const name of ['scripts/internal/recording_job_content_proof_smoke.cpp','scripts/internal/recording_job_content_proof_counter.h','scripts/internal/recording_checkpoint_reproduction_smoke.cpp','src/recording/recording_derived_job_ready.cpp','src/recording/recording_timeline_projection.cpp'])console.log('[source] '+JSON.stringify({name,sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(repo,name))).digest('hex')}));
 NODE
 read -r -a lp_original_link < "$lp_repo/build-gst-onnx/CMakeFiles/media_server.dir/link.txt"
 lp_libs=(); lp_found=0
@@ -47,6 +59,7 @@ lp_binding=(-DLP18_BINDING_SHARED=0); if [[ -s "$lp_root/binding_flags" ]];then 
 lp_job=(-DLP18_JOB_SHARED=0); if [[ -s "$lp_root/job_flags" ]];then lp_job=(-DLP18_JOB_SHARED=1);fi
 lp_sources=("$lp_script/recording_immutable_ownership_smoke.cpp")
 if [[ "$lp_mode" == job ]];then lp_sources=("$lp_script/recording_job_ownership_smoke.cpp" "$lp_repo/src/recording/recording_timeline_projection.cpp");fi
+if [[ "$lp_mode" == content ]];then lp_sources=("$lp_script/recording_job_content_proof_smoke.cpp" "$lp_root/recording_derived_job_ready.cpp" "$lp_repo/src/recording/recording_timeline_projection.cpp");fi
 "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$lp_root/include" -I"$lp_repo/include" -I"$lp_script" -I"$lp_repo/src/recording" "${lp_flags[@]}" "${lp_shared[@]}" \
  "${lp_accepted[@]}" "${lp_binding[@]}" "${lp_job[@]}" -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_SQLITE3=1 \
  "${lp_sources[@]}" "$lp_root/recording_journal.cpp" "$lp_root/recording_catalog.cpp" "${lp_libs[@]}" -o "$lp_root/check"

@@ -257,7 +257,20 @@ private:
         PreparedDerivedMutation& operator=(const PreparedDerivedMutation&)=delete;
     };
     bool PreparedDerivedMatchesLocked(const RecordingMutationV1&,const PreparedDerivedMutation&,bool applied,std::string*) const;
-    bool ApplyDerivedJobMutationLocked(const RecordingMutationV1&,std::string*,bool apply=true,PreparedDerivedMutation* prepared=nullptr,const DerivedJobPool* job_pool=nullptr);
+    // 성공한 정상 전이 호출 안에서만 생성·소비한다. catalog/cache에는 저장하지 않는다.
+    class DerivedJobContentProof {
+        friend class RecordingCatalog;
+        const RecordingCatalog* owner;
+        RecordingMutationHandle envelope;
+        DerivedJobHandle record;
+        DerivedJobContentProof(const RecordingCatalog* source,RecordingMutationHandle mutation,DerivedJobHandle parsed)
+            :owner(source),envelope(std::move(mutation)),record(std::move(parsed)){}
+    public:
+        DerivedJobContentProof(const DerivedJobContentProof&)=default;
+        DerivedJobContentProof& operator=(const DerivedJobContentProof&)=default;
+    };
+    DerivedJobHandle ContentProofRecordLocked(const RecordingMutationV1&,const DerivedJobContentProof*) const;
+    bool ApplyDerivedJobMutationLocked(const RecordingMutationV1&,std::string*,bool apply=true,PreparedDerivedMutation* prepared=nullptr,const DerivedJobPool* job_pool=nullptr,const DerivedJobContentProof* proof=nullptr);
     RecordingLifecycle EffectiveLifecycleV2Locked(const std::string& id) const;
     bool OpenLocked(std::string* error);
     bool CanWriteLocked(std::string* error) const;
@@ -266,7 +279,7 @@ private:
         std::unique_ptr<RecordingCatalog> shadow;
     };
     std::unique_ptr<CheckpointProjectionCache> checkpoint_cache_;
-    bool CheckpointLocked(bool recover_only, std::string* error);
+    bool CheckpointLocked(bool recover_only, std::string* error,const DerivedJobContentProof* proof=nullptr);
     bool ValidateManagedCandidateLocked(const RecordingSegmentV2& segment, const std::string& relative, std::string* error) const;
     std::vector<std::string> ProjectionSignatureLocked() const;
     bool PreflightV2Locked(const RecordingJournalReplayResult& replay, std::string* error,
@@ -283,7 +296,7 @@ private:
                              bool count_duplicate,
                              std::string* error,PreparedDerivedMutation* prepared=nullptr,
                              RecordingMutationHandle owned = {},const SourceBindingPool* binding_pool = nullptr,
-                             const DerivedJobPool* job_pool = nullptr);
+                             const DerivedJobPool* job_pool = nullptr,const DerivedJobContentProof* proof = nullptr);
     bool AppendAndApplyLocked(RecordingMutationV1 mutation, std::string* error,PreparedDerivedMutation* prepared=nullptr);
     bool OpenSqliteLocked(std::string* error);
     bool InitializeSqliteSchemaLocked(std::string* error);

@@ -44,7 +44,10 @@ verifier.
 공개 Replay 값 반환·저장 바이트·손상 거부를 유지했다. accepted canonical 사본도 공유로 바꾸고 focused55·prepared11·cache47·catalog246·writer44·소형 기능99/계측1·전체 build를 통과했다.
 typed binding도 live/shadow const 소유로 공유하고 focused77·source20·cache47·catalog246·prepared11·소형 기능99/계측1·전체 build를 통과했다.
 새 ID만 전체 canonical 대조하며 no-op/duplicate은 pool 비교0을 확인했다. typed job도 const 소유로 연결하고 focused24·prepared11·jobs23·validation11·service43·timeline38·media46·retention24·cache47·catalog246·2-job 기능120/계측1·전체 build를 통과했다.
-2번의 journal/live/shadow 동일 기록 소유 보완은 완료했다. 공개/자기완결 snapshot과 과거 payload·상세 상주는 남았으며 3~4번과 구분한다. 다음은 내용 검증 재사용이며 3~5번은 미완료다.
+2번의 journal/live/shadow 동일 기록 소유 보완은 완료했다. 공개/자기완결 snapshot과 과거 payload·상세 상주는 남았으며 3~4번과 구분한다.
+3번 첫 호출-local 내용 proof는 focused25·job24·prepared11·cache47·catalog246·실제2-job 기능120/계측1·전체 build를 통과했다.
+정상 strict Parse8회와 복구/수동 Parse는 유지하고 같은 호출 자동 checkpoint의 current Parse2회만0회로 줄였다.
+상태 비교·과거 이력·중복 직렬화 비용은 남으며 3번 전체 및4~5번은 미완료다. 상세 실행/정리는 중앙 기록을 따른다.
 실행/수집 실패와 재검증은 중앙 기록에 보존했다.
 이후 3/4번은 같은 계약 안에서 변경 파일·반례를 구체화하고 실행 전 등록한다. 기록 없는 테스트를 사후 PASS로 만들지 않는다.
 

@@ -52,6 +52,15 @@ shadow는 자신의 전체 parse/전이 검증을 통과한 **해당 기록**만
 내용 증명과 상태 전이 검증을 구분하며, shadow의 다른 prior state·예약·tombstone도 항상 검사한다.
 증명은 영속 PASS 플래그로 저장하지 않는다. O(H) 전체 typed 증명 캐시를 추가하는 방식도 채택하지 않는다.
 
+3번 첫 재사용 단위는 정상 `UpdateDerivedJob`의 Prepared strict 파싱과 성공한 append/apply 뒤 mint한 호출-local 내용 증명이다.
+증명은 live owner와 실제 append의 불변 envelope·게시된 const record를 결박한다. 해당 owner/journal·현재 job·수용 envelope·
+전체 입력 필드/payload가 같은 경우에만 같은 호출의 자동 checkpoint에서 내용 Parse를 재사용한다. 주소만 같은 임의 입력은 신뢰하지 않는다.
+shadow의 Intent/receipt/Ready 동등성·현재 상태·source lifecycle/예약 검사는 그대로 수행하며 live Prepared의 상태검증 결과는 넘기지 않는다.
+증명은 SQL/자동 checkpoint까지 owned lifetime을 유지하지만 shadow/cache에 저장하지 않는다. manual/recovery checkpoint·새 입력·다른 owner·
+stale/mismatch·과거 이력은 strict fallback이다. 이것만으로 과거 이력 전수 처리나 모든 직렬화 비용이 없어졌다고 판정하지 않는다.
+증명 생성자는 catalog 내부에 봉인한다. 적격 판정에서 다시 전체 Serialize/Validate를 수행하지 않으며,
+성공한 strict Prepared 적용에서 생성한 불변 값의 출처와 전체 envelope 결박을 검사한다. 검사 복제본의 접근 노출은 제품 API가 아니다.
+
 ### RAM 수명 구현의 소비자 경계
 
 terminal Complete 작업도 `MediaV2EligibleLocked`가 출력의 유일 소유자·Ready·manifest·AU provenance를 검사한다.

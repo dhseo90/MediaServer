@@ -466,7 +466,24 @@ RecordingCatalog::DerivedJobHandle RecordingCatalog::ShareValidatedJob(DerivedJo
     }
     return std::make_shared<const DerivedJobRecordV1>(std::move(record));
 }
-bool RecordingCatalog::ApplyDerivedJobMutationLocked(const RecordingMutationV1& mutation,std::string* error,bool apply,PreparedDerivedMutation* prepared,const DerivedJobPool* job_pool) {
+RecordingCatalog::DerivedJobHandle RecordingCatalog::ContentProofRecordLocked(const RecordingMutationV1& mutation,const DerivedJobContentProof* proof) const {
+    if(!proof||!proof->owner||!proof->envelope||!proof->record)return {};
+    const auto& owner=*proof->owner;
+    if(&owner.journal_!=&journal_||!owner.opened_||!owner.derived_job_state_authoritative_||!journal_.OwnsCatalog(&owner))return {};
+    const auto current=owner.derived_jobs_.find(mutation.entity_id);
+    const auto accepted=owner.accepted_segment_state_mutations_.find(mutation.mutation_id);
+    if(current==owner.derived_jobs_.end()||current->second!=proof->record||
+       accepted==owner.accepted_segment_state_mutations_.end()||accepted->second!=proof->envelope)return {};
+    const auto& envelope=*proof->envelope;
+    if(envelope.schema!=mutation.schema||envelope.mutation_type!=mutation.mutation_type||
+       envelope.mutation_id!=mutation.mutation_id||envelope.entity_id!=mutation.entity_id||
+       envelope.occurred_at_ms!=mutation.occurred_at_ms||envelope.payload_json!=mutation.payload_json||
+       proof->record->intent.job_id!=mutation.entity_id)return {};
+    // 생성자는 성공한 strict Prepared 적용 뒤에만 호출한다. 불변 envelope의 정확한
+    // payload가 그때 검증한 parsed record와 결박되므로 여기서 Parse/Serialize를 반복하지 않는다.
+    return proof->record;
+}
+bool RecordingCatalog::ApplyDerivedJobMutationLocked(const RecordingMutationV1& mutation,std::string* error,bool apply,PreparedDerivedMutation* prepared,const DerivedJobPool* job_pool,const DerivedJobContentProof* proof) {
     recording::latency::Scope latency_scope(recording::latency::Operation::ApplyJob,recording::latency::Source::Catalog,__LINE__,false);
     if(prepared&&apply){
         if(!prepared->record||!PreparedDerivedMatchesLocked(mutation,*prepared,false,error))return false;
@@ -483,9 +500,12 @@ bool RecordingCatalog::ApplyDerivedJobMutationLocked(const RecordingMutationV1& 
     }
     if(prepared&&(prepared->phase!=PreparedDerivedMutation::Phase::Empty||prepared->owner!=this||prepared->payload!=mutation.payload_json))
         return Fail(error,"derived prepared 초기 결박 거부");
-    DerivedJobRecordV1 record;
-    if(!journal_.managed_||!options_.enable_v2_storage||!ParseDerivedJobRecord(mutation.payload_json,&record,error)||
-       record.intent.job_id!=mutation.entity_id)return Fail(error,"derived job mutation 계약 거부");
+    DerivedJobRecordV1 parsed_record;
+    const auto content=ContentProofRecordLocked(mutation,proof);
+    if(!journal_.managed_||!options_.enable_v2_storage||
+       (!content&&!ParseDerivedJobRecord(mutation.payload_json,&parsed_record,error)))return Fail(error,"derived job mutation 계약 거부");
+    const auto& record=content?*content:parsed_record;
+    if(record.intent.job_id!=mutation.entity_id)return Fail(error,"derived job mutation 계약 거부");
     const auto type=mutation.mutation_type;
     const bool initial=type==RecordingMutationType::DerivedJobIntent;
     const bool files=type==RecordingMutationType::DerivedJobFiles;
@@ -500,7 +520,7 @@ bool RecordingCatalog::ApplyDerivedJobMutationLocked(const RecordingMutationV1& 
     if(old==derived_jobs_.end()) {
         if(!initial||!record.files.empty()||record.ready||!ValidateDerivedJobSourcesLocked(record.intent,error))
             return Fail(error,"derived job 최초 전이 거부");
-        if(apply)derived_jobs_.emplace(mutation.entity_id,ShareValidatedJob(std::move(record),job_pool));return true;
+        if(apply)derived_jobs_.emplace(mutation.entity_id,content?content:ShareValidatedJob(std::move(parsed_record),job_pool));return true;
     }
     if(!old->second)return Fail(error,"derived null prior 거부");
     const auto& prior=*old->second;
@@ -532,10 +552,10 @@ bool RecordingCatalog::ApplyDerivedJobMutationLocked(const RecordingMutationV1& 
         }
     }
     if(!apply){
-        if(prepared){prepared->type=type;prepared->entity=mutation.entity_id;prepared->prior=old->second;prepared->prior_state=prior.state;prepared->prior_files=prior.files.size();prepared->record=std::make_shared<const DerivedJobRecordV1>(std::move(record));prepared->phase=PreparedDerivedMutation::Phase::Validated;}
+        if(prepared){prepared->type=type;prepared->entity=mutation.entity_id;prepared->prior=old->second;prepared->prior_state=prior.state;prepared->prior_files=prior.files.size();prepared->record=content?content:std::make_shared<const DerivedJobRecordV1>(std::move(parsed_record));prepared->phase=PreparedDerivedMutation::Phase::Validated;}
         return true;
     }
-    const auto published=ShareValidatedJob(std::move(record),job_pool);
+    const auto published=content?content:ShareValidatedJob(std::move(parsed_record),job_pool);
     if(committed) {
         // 하나의 mutation 아래 전체 결과와 provenance/job state를 함께 적용한다.
         for(std::size_t i=0;i<published->ready->outputs.size();++i) {
@@ -608,7 +628,8 @@ std::vector<std::string> RecordingCatalog::ProjectionSignatureLocked() const {
     std::sort(result.begin(),result.end());return result;
 }
 
-bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error) {
+bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error,const DerivedJobContentProof* proof) {
+    if(recover_only)proof=nullptr;
     recording::latency::Scope latency_scope(recording::latency::Operation::Checkpoint,recording::latency::Source::Catalog,__LINE__,false);
     // 모든 실패/예외는 지역 cache를 폐기한다. live catalog를 shadow로 사용하지 않는다.
     auto cached=std::move(checkpoint_cache_);
@@ -628,14 +649,14 @@ bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error) {
         before=reuse?std::move(cached->shadow):std::make_unique<RecordingCatalog>(journal_,options_);
         cached.reset();
         for(std::size_t i=first;i<original.size();++i)
-            if(!before->ApplyMutationLocked(*original[i],false,error,nullptr,original[i],&source_bindings_,&derived_jobs_))return false;
+            if(!before->ApplyMutationLocked(*original[i],false,error,nullptr,original[i],&source_bindings_,&derived_jobs_,proof))return false;
         identical=detail::SameCheckpointSequence(original,candidate);
     } // 원본 핸들 vector는 이후 후보 검증/commit에 필요하지 않다.
     // 변경 후보는 전체 semantic replay와 양쪽 projection 비교를 유지한다.
     std::unique_ptr<RecordingCatalog> after;
     if(!identical){
         after=std::make_unique<RecordingCatalog>(journal_,options_);
-        for(const auto& m:candidate)if(!m||!after->ApplyMutationLocked(*m,false,error,nullptr,m,&source_bindings_,&derived_jobs_))return false;
+        for(const auto& m:candidate)if(!m||!after->ApplyMutationLocked(*m,false,error,nullptr,m,&source_bindings_,&derived_jobs_,proof))return false;
         if(before->ProjectionSignatureLocked()!=after->ProjectionSignatureLocked())return Fail(error,"checkpoint 투영 불일치");
     }
     // original 초과는 full 검증, compact candidate가 상한 내이면 다음 호출용 보관 가능.
@@ -858,7 +879,7 @@ bool RecordingCatalog::RecoverWriterCleanupMarkersLocked(std::string* error) {
 bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                                            bool count_duplicate,
                                            std::string* error,PreparedDerivedMutation* prepared,RecordingMutationHandle owned,
-                                           const SourceBindingPool* binding_pool,const DerivedJobPool* job_pool) {
+                                           const SourceBindingPool* binding_pool,const DerivedJobPool* job_pool,const DerivedJobContentProof* proof) {
     // 소유 주소는 검증 증명이 아니다. schema/enum을 포함한 원래 모든 필드를 확인한다.
     if(owned&&(owned->schema!=mutation.schema||owned->mutation_type!=mutation.mutation_type||
        owned->mutation_id!=mutation.mutation_id||owned->entity_id!=mutation.entity_id||
@@ -895,7 +916,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
         case RecordingMutationType::DerivedJobCommitted:
         case RecordingMutationType::DerivedJobComplete:
         case RecordingMutationType::DerivedJobFailed:
-            ok=ApplyDerivedJobMutationLocked(mutation,error,true,prepared,job_pool);
+            ok=ApplyDerivedJobMutationLocked(mutation,error,true,prepared,job_pool,proof);
             break;
         case RecordingMutationType::ReferencedObservationPut: {
             ReferencedObservationV1 pair;
@@ -1138,7 +1159,11 @@ bool RecordingCatalog::AppendAndApplyLocked(RecordingMutationV1 mutation, std::s
     mutation.occurred_at_ms = mutation.occurred_at_ms == 0 ? NowMs() : mutation.occurred_at_ms;
     RecordingMutationHandle owned;
     if (!journal_.AppendOwned(mutation, this, error,&owned)) return false;
-    if (!ApplyMutationLocked(mutation, false, error,prepared,std::move(owned))) return false;
+    if (!ApplyMutationLocked(mutation, false, error,prepared,owned)) return false;
+    std::optional<DerivedJobContentProof> content_proof;
+    if(prepared&&prepared->phase==PreparedDerivedMutation::Phase::Applied&&
+       PreparedDerivedMatchesLocked(mutation,*prepared,true,nullptr))
+        content_proof=DerivedJobContentProof{this,owned,prepared->applied};
     if (sqlite_db_ != nullptr) {
         std::string projection_error;
         auto* projection_prepared=prepared&&prepared->phase==PreparedDerivedMutation::Phase::Applied?prepared:nullptr;
@@ -1150,7 +1175,7 @@ bool RecordingCatalog::AppendAndApplyLocked(RecordingMutationV1 mutation, std::s
         }
     }
     if(prepared)prepared->phase=PreparedDerivedMutation::Phase::Consumed;
-    return !journal_.CheckpointDue(this)||CheckpointLocked(false,error);
+    return !journal_.CheckpointDue(this)||CheckpointLocked(false,error,content_proof?&*content_proof:nullptr);
 }
 
 bool RecordingCatalog::PreflightV2Locked(const RecordingJournalReplayResult& replay,std::string* error,

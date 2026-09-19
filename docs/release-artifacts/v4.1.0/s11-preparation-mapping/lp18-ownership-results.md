@@ -3,6 +3,555 @@
 독자: 녹화 구현·검증 담당. 수명: 이번 단기 검사의 실패/RED/GREEN 보존형 전수 결과. 정책은 AGENTS.md이며 해석은 [중앙 기록](../../../release-test-records.md)의 LP18을 따른다.
 예상 RED의 assertion은 실제 FAIL로 남기며 제품 PASS로 바꾸지 않는다.
 
+## 호출-local 내용 증명 예상 RED
+
+[원출력](lp18-ownership-red-content-01.txt) — build exit0, focused exit1; 6PASS/1FAIL, source 불변·그룹 종료·root13567669B 삭제. elapsed30962ms, token 집계 미제공. 제품 PASS 아님.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. CP01 actual Ready Complete shape canonical files reservation | 실제 assertion | PASS | 사전등록한 RED 실제 결과 |
+| 2. CP02 bounded two jobs over 1MiB canonical transitions | 실제 assertion | PASS | 사전등록한 RED 실제 결과 |
+| 3. LP18-V01 every normal update strictly parses content once | 실제 assertion | PASS | 사전등록한 RED 실제 결과 |
+| 4. LP18-V01 automatic checkpoint applies current update payload | 실제 assertion | PASS | 사전등록한 RED 실제 결과 |
+| 5. LP18-V01 automatic checkpoint reuses current validated content without parsing | 실제 assertion | FAIL | 사전등록한 RED 실제 결과 |
+| 6. LP18-V04 managed reopen retains strict content parsing | 실제 assertion | PASS | 사전등록한 RED 실제 결과 |
+| 7. LP18-V04 manual checkpoint retains strict content parsing | 실제 assertion | PASS | 사전등록한 RED 실제 결과 |
+
+개별 assertion7행 대조. 원출력의 관측 카운터는 중앙 기록을 따른다.
+
+
+## 호출-local 내용 증명과 영향 회귀 전수 결과
+
+실제 개별 assertion과 원출력을 대조했다. token은 미집계(사용량 집계 미제공), 실제 HTTP·장시간/UI는 미실행이다.
+
+### lp18-ownership-green-content-01.txt
+
+[원출력](lp18-ownership-green-content-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. LP18-V03 valid content proof cannot bypass output reservation | 실제 assertion | PASS | 원출력 판정 |
+| 2. LP18-V03 valid content proof cannot bypass source deletion state | 실제 assertion | PASS | 원출력 판정 |
+| 3. LP18-V03 valid content proof cannot bypass source media binding | 실제 assertion | PASS | 원출력 판정 |
+| 4. LP18-V02 minted proof reuses owned content after state validation | 실제 assertion | PASS | 원출력 판정 |
+| 5. LP18-V02 schema mismatch retains strict outcome | 실제 assertion | PASS | 원출력 판정 |
+| 6. LP18-V02 type mismatch retains strict outcome | 실제 assertion | PASS | 원출력 판정 |
+| 7. LP18-V02 mutation ID mismatch retains strict outcome | 실제 assertion | PASS | 원출력 판정 |
+| 8. LP18-V02 entity mismatch retains strict outcome | 실제 assertion | PASS | 원출력 판정 |
+| 9. LP18-V02 time mismatch retains strict outcome | 실제 assertion | PASS | 원출력 판정 |
+| 10. LP18-V02 payload bytes mismatch retains strict outcome | 실제 assertion | PASS | 원출력 판정 |
+| 11. LP18-V03 invalid content rejects through strict fallback | 실제 assertion | PASS | 원출력 판정 |
+| 12. LP18-V02 null owner retains strict outcome | 실제 assertion | PASS | 원출력 판정 |
+| 13. LP18-V02 null envelope retains strict outcome | 실제 assertion | PASS | 원출력 판정 |
+| 14. LP18-V02 null record retains strict outcome | 실제 assertion | PASS | 원출력 판정 |
+| 15. LP18-V02 foreign owner retains strict outcome | 실제 assertion | PASS | 원출력 판정 |
+| 16. LP18-V02 equal-content replacement invalidates current proof ownership | 실제 assertion | PASS | 원출력 판정 |
+| 17. LP18-V02 equal-envelope replacement invalidates accepted proof ownership | 실제 assertion | PASS | 원출력 판정 |
+| 18. LP18-V03 valid content proof cannot bypass missing prior transition | 실제 assertion | PASS | 원출력 판정 |
+| 19. CP01 actual Ready Complete shape canonical files reservation | 실제 assertion | PASS | 원출력 판정 |
+| 20. CP02 bounded two jobs over 1MiB canonical transitions | 실제 assertion | PASS | 원출력 판정 |
+| 21. LP18-V01 every normal update strictly parses content once | 실제 assertion | PASS | 원출력 판정 |
+| 22. LP18-V01 automatic checkpoint applies current update payload | 실제 assertion | PASS | 원출력 판정 |
+| 23. LP18-V01 automatic checkpoint reuses current validated content without parsing | 실제 assertion | PASS | 원출력 판정 |
+| 24. LP18-V04 managed reopen retains strict content parsing | 실제 assertion | PASS | 원출력 판정 |
+| 25. LP18-V04 manual checkpoint retains strict content parsing | 실제 assertion | PASS | 원출력 판정 |
+
+개별 assertion 25행 대조. 명령·elapsed·source·cleanup은 원출력 및 중앙 기록을 따른다.
+
+### lp18-ownership-green-content-job-01.txt
+
+[원출력](lp18-ownership-green-content-job-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. LP18-J03 initial canonical and active source protection preserved | 실제 assertion | PASS | 원출력 판정 |
+| 2. LP18-J03 FindDerivedJob returns independent value | 실제 assertion | PASS | 원출력 판정 |
+| 3. LP18-J03 full and active snapshots return independent values | 실제 assertion | PASS | 원출력 판정 |
+| 4. LP18-J03 foreign Prepared owner rejected without transition | 실제 assertion | PASS | 원출력 판정 |
+| 5. LP18-J02 validated record is published as the same owned object | 실제 assertion | PASS | 원출력 판정 |
+| 6. LP18-J02 Prepared prior retains pre-publication canonical value | 실제 assertion | PASS | 원출력 판정 |
+| 7. LP18-J03 consumed Prepared cannot apply twice | 실제 assertion | PASS | 원출력 판정 |
+| 8. LP18-J03 invalid terminal transition preserves state and bytes | 실제 assertion | PASS | 원출력 판정 |
+| 9. LP18-J03 terminal protection and service owner released | 실제 assertion | PASS | 원출력 판정 |
+| 10. LP18-J01 checkpoint shares current live job object | 실제 assertion | PASS | 원출력 판정 |
+| 11. LP18-J03 null job pool uses independent strict value | 실제 assertion | PASS | 원출력 판정 |
+| 12. LP18-J03 different-content job pool uses independent strict value | 실제 assertion | PASS | 원출력 판정 |
+| 13. LP18-J03 different-id job pool uses independent strict value | 실제 assertion | PASS | 원출력 판정 |
+| 14. LP18-J02 equal-content replacement invalidates Prepared prior ownership | 실제 assertion | PASS | 원출력 판정 |
+| 15. LP18-J01 shared job survives pool owner destruction | 실제 assertion | PASS | 원출력 판정 |
+| 16. LP18-J01 no-op checkpoint preserves job handles without pool comparisons | 실제 assertion | PASS | 원출력 판정 |
+| 17. LP18-J01 newly applied job compares only matching current pool entry | 실제 assertion | PASS | 원출력 판정 |
+| 18. LP18-J01 duplicate job mutation performs no pool comparison | 실제 assertion | PASS | 원출력 판정 |
+| 19. LP18-J03 latest terminal pool cannot replace historical Intent | 실제 assertion | PASS | 원출력 판정 |
+| 20. LP18-J03 matching job pool cannot bypass strict state validation | 실제 assertion | PASS | 원출력 판정 |
+| 21. LP18-J03 null resident job rejects snapshots and retention authority | 실제 assertion | PASS | 원출력 판정 |
+| 22. LP18-J04 full journal bytes and terminal record roundtrip preserved | 실제 assertion | PASS | 원출력 판정 |
+| 23. LP18-J04 SQLite reopen preserves terminal canonical and release | 실제 assertion | PASS | 원출력 판정 |
+| 24. LP18-J04 JSONL reopen preserves terminal canonical and release | 실제 assertion | PASS | 원출력 판정 |
+
+개별 assertion 24행 대조. 명령·elapsed·source·cleanup은 원출력 및 중앙 기록을 따른다.
+
+### lp18-content-prepared-01.txt
+
+[원출력](lp18-content-prepared-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. LP14-C01 state=1 updates=1 full_parse=1 expected=1 | 실제 assertion | PASS | 원출력 판정 |
+| 2. LP14-C01 state=2 updates=1 full_parse=1 expected=1 | 실제 assertion | PASS | 원출력 판정 |
+| 3. LP14-C01 state=3 updates=1 full_parse=1 expected=1 | 실제 assertion | PASS | 원출력 판정 |
+| 4. LP14-C03 memory/sqlite canonical bytes and CompletedOracle | 실제 assertion | PASS | 원출력 판정 |
+| 5. LP14-C02 binding=payload rejected without apply | 실제 assertion | PASS | 원출력 판정 |
+| 6. LP14-C02 binding=type rejected without apply | 실제 assertion | PASS | 원출력 판정 |
+| 7. LP14-C02 binding=entity rejected without apply | 실제 assertion | PASS | 원출력 판정 |
+| 8. LP14-C02 binding=owner rejected without apply | 실제 assertion | PASS | 원출력 판정 |
+| 9. LP14-C02 binding=prior rejected without apply | 실제 assertion | PASS | 원출력 판정 |
+| 10. LP14-C02 duplicate envelope no-apply/conflict rejection | 실제 assertion | PASS | 원출력 판정 |
+| 11. LP14-C02 one-shot apply/reuse rejection | 실제 assertion | PASS | 원출력 판정 |
+
+개별 assertion 11행 대조. 명령·elapsed·source·cleanup은 원출력 및 중앙 기록을 따른다.
+
+### lp18-content-cache-01.txt
+
+[원출력](lp18-content-cache-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. LP15-C01 cold full applied=1 expected=1 | 실제 assertion | PASS | 원출력 판정 |
+| 2. LP15-C01 unchanged prefix applied=0 expected=0 | 실제 assertion | PASS | 원출력 판정 |
+| 3. LP15-C01 exact prefix suffix only applied=1 expected=1 | 실제 assertion | PASS | 원출력 판정 |
+| 4. LP15-C01 independent prefix shadow/full projection equality | 실제 assertion | PASS | 원출력 판정 |
+| 5. LP15-C01 full fallback schema applied=2 expected=2 | 실제 assertion | PASS | 원출력 판정 |
+| 6. LP15-C01 full fallback type applied=2 expected=2 | 실제 assertion | PASS | 원출력 판정 |
+| 7. LP15-C01 full fallback id applied=2 expected=2 | 실제 assertion | PASS | 원출력 판정 |
+| 8. LP15-C01 full fallback entity applied=2 expected=2 | 실제 assertion | PASS | 원출력 판정 |
+| 9. LP15-C01 full fallback time applied=2 expected=2 | 실제 assertion | PASS | 원출력 판정 |
+| 10. LP15-C01 full fallback payload applied=2 expected=2 | 실제 assertion | PASS | 원출력 판정 |
+| 11. LP15-C01 full fallback reorder applied=2 expected=2 | 실제 assertion | PASS | 원출력 판정 |
+| 12. LP15-C01 full fallback shrink applied=2 expected=2 | 실제 assertion | PASS | 원출력 판정 |
+| 13. LP15-C01 full fallback null-shadow applied=2 expected=2 | 실제 assertion | PASS | 원출력 판정 |
+| 14. LP15-C01 full fallback null-handle applied=2 expected=2 | 실제 assertion | PASS | 원출력 판정 |
+| 15. LP15-C01 Open clears cache applied=2 expected=2 | 실제 assertion | PASS | 원출력 판정 |
+| 16. LP15-C03 recover full/no-cache | 실제 assertion | PASS | 원출력 판정 |
+| 17. LP15-C03 after recover full applied=2 expected=2 | 실제 assertion | PASS | 원출력 판정 |
+| 18. LP15-C03 injected commit refusal discards cache | 실제 assertion | PASS | 원출력 판정 |
+| 19. LP15-C03 after commit refusal full applied=2 expected=2 | 실제 assertion | PASS | 원출력 판정 |
+| 20. LP15-C03 suffix exception discards cache | 실제 assertion | PASS | 원출력 판정 |
+| 21. LP15-C03 after exception full applied=3 expected=3 | 실제 assertion | PASS | 원출력 판정 |
+| 22. LP15-C03 public poisoned entry discards cache | 실제 assertion | PASS | 원출력 판정 |
+| 23. LP15-C03 after restored fixture full applied=3 expected=3 | 실제 assertion | PASS | 원출력 판정 |
+| 24. LP15-C04 exact byte charge boundary | 실제 assertion | PASS | 원출력 판정 |
+| 25. LP15-C04 overflow charge rejected | 실제 assertion | PASS | 원출력 판정 |
+| 26. LP15-C04 8192 records admitted | 실제 assertion | PASS | 원출력 판정 |
+| 27. LP15-C04 8193 records rejected | 실제 assertion | PASS | 원출력 판정 |
+| 28. LP15-C04 64MiB record charge admitted | 실제 assertion | PASS | 원출력 판정 |
+| 29. LP15-C04 64MiB plus one rejected | 실제 assertion | PASS | 원출력 판정 |
+| 30. LP15-C03 changed candidate prime applied=1 expected=1 | 실제 assertion | PASS | 원출력 판정 |
+| 31. LP15-C03 changed candidate suffix12 plus full candidate13 applied=25 expected=25 | 실제 assertion | PASS | 원출력 판정 |
+| 32. LP15-C03 changed candidate cache equals independent full projection | 실제 assertion | PASS | 원출력 판정 |
+| 33. LP15-C03 compacted candidate prefix reused applied=0 expected=0 | 실제 assertion | PASS | 원출력 판정 |
+| 34. LP15-C03 forced projection mismatch discards cache | 실제 assertion | PASS | 원출력 판정 |
+| 35. LP15-C04 overlimit prime applied=1 expected=1 | 실제 assertion | PASS | 원출력 판정 |
+| 36. LP15-C04 existing cache ignored for oversized original applied=8193 expected=8193 | 실제 assertion | PASS | 원출력 판정 |
+| 37. LP15-C04 oversized candidate not retained | 실제 assertion | PASS | 원출력 판정 |
+| 38. LP15-C04 next oversized checkpoint full applied=8193 expected=8193 | 실제 assertion | PASS | 원출력 판정 |
+| 39. CP01 actual Ready Complete shape canonical files reservation | 실제 assertion | PASS | 원출력 판정 |
+| 40. CP02 bounded two jobs over 1MiB canonical transitions | 실제 assertion | PASS | 원출력 판정 |
+| 41. LP15-C02 bounded automatic checkpoint and whole transition measurement | 실제 assertion | PASS | 원출력 판정 |
+| 42. LP15-C02 reopened full applied=18 expected=18 | 실제 assertion | PASS | 원출력 판정 |
+| 43. LP15-C02 actual unchanged prefix applied=0 expected=0 | 실제 assertion | PASS | 원출력 판정 |
+| 44. LP15-C02 actual suffix only applied=1 expected=1 | 실제 assertion | PASS | 원출력 판정 |
+| 45. LP15-C02 actual job shadow/full projection equality | 실제 assertion | PASS | 원출력 판정 |
+| 46. LP15-C03 illegal Ready after Complete suffix rejected by cached/full paths | 실제 assertion | PASS | 원출력 판정 |
+| 47. LP15-C04 peakRSS bytes=164626432 cap=536870912 | 실제 assertion | PASS | 원출력 판정 |
+
+개별 assertion 47행 대조. 명령·elapsed·source·cleanup은 원출력 및 중앙 기록을 따른다.
+
+### lp18-content-catalog-01.txt
+
+[원출력](lp18-content-catalog-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. journal open:  | 실제 assertion | PASS | 원출력 판정 |
+| 2. fallback catalog open:  | 실제 assertion | PASS | 원출력 판정 |
+| 3. SQLite off mode 표시 | 실제 assertion | PASS | 원출력 판정 |
+| 4. segment finalize journal+projection:  | 실제 assertion | PASS | 원출력 판정 |
+| 5. fallback range query | 실제 assertion | PASS | 원출력 판정 |
+| 6. event link FK 위반 거부 | 실제 assertion | PASS | 원출력 판정 |
+| 7. FK 위반 transaction/journal 전체 rollback | 실제 assertion | PASS | 원출력 판정 |
+| 8. 최초 durable mutation 1개 | 실제 assertion | PASS | 원출력 판정 |
+| 9. 동일 mutation 중복 append | 실제 assertion | PASS | 원출력 판정 |
+| 10. 손상 사이 정상 durable mutation 보존 | 실제 assertion | PASS | 원출력 판정 |
+| 11. 중간 corrupt line count | 실제 assertion | PASS | 원출력 판정 |
+| 12. 마지막 truncated line skip | 실제 assertion | PASS | 원출력 판정 |
+| 13. fallback replay open | 실제 assertion | PASS | 원출력 판정 |
+| 14. 같은 mutation idempotent replay | 실제 assertion | PASS | 원출력 판정 |
+| 15. 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | 실제 assertion | PASS | 원출력 판정 |
+| 16. 중복 replay row/합계 불증가 | 실제 assertion | PASS | 원출력 판정 |
+| 17. 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구:  | 실제 assertion | PASS | 원출력 판정 |
+| 18. writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | 실제 assertion | PASS | 원출력 판정 |
+| 19. v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | 실제 assertion | PASS | 원출력 판정 |
+| 20. SQLite catalog open/rebuild:  | 실제 assertion | PASS | 원출력 판정 |
+| 21. SQLite primary mode 표시 | 실제 assertion | PASS | 원출력 판정 |
+| 22. SQLite on/off range query ID·순서 parity | 실제 assertion | PASS | 원출력 판정 |
+| 23. journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | 실제 assertion | PASS | 원출력 판정 |
+| 24. journal 없는 손상 media orphan 구분 | 실제 assertion | PASS | 원출력 판정 |
+| 25. projection failover journal open:  | 실제 assertion | PASS | 원출력 판정 |
+| 26. projection failover catalog open:  | 실제 assertion | PASS | 원출력 판정 |
+| 27. 실제 SQLite INSERT 실패 trigger 설치 | 실제 assertion | PASS | 원출력 판정 |
+| 28. SQLite 투영 실패 뒤 journal+memory finalize 유지:  | 실제 assertion | PASS | 원출력 판정 |
+| 29. SQLite 투영 실패 즉시 JSONL fallback 전환 | 실제 assertion | PASS | 원출력 판정 |
+| 30. 재시작 rebuild 전 실패 trigger 제거 | 실제 assertion | PASS | 원출력 판정 |
+| 31. 투영 실패 직후 in-memory query 정합성 유지 | 실제 assertion | PASS | 원출력 판정 |
+| 32. projection failover 재시작 journal rebuild:  | 실제 assertion | PASS | 원출력 판정 |
+| 33. 재시작 후 journal에서 누락 SQLite projection 복구 | 실제 assertion | PASS | 원출력 판정 |
+| 34. 재시작 후 SQLite primary 복귀 | 실제 assertion | PASS | 원출력 판정 |
+| 35. 재시작 journal rebuild가 실제 SQLite row 복원 | 실제 assertion | PASS | 원출력 판정 |
+| 36. tombstone journal open:  | 실제 assertion | PASS | 원출력 판정 |
+| 37. tombstone catalog open:  | 실제 assertion | PASS | 원출력 판정 |
+| 38. tombstone 대상 segment finalize:  | 실제 assertion | PASS | 원출력 판정 |
+| 39. tombstone 대상 deletion request:  | 실제 assertion | PASS | 원출력 판정 |
+| 40. tombstone 완료 기록:  | 실제 assertion | PASS | 원출력 판정 |
+| 41. catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | 실제 assertion | PASS | 원출력 판정 |
+| 42. 손상 SQLite 격리 후 journal rebuild:  | 실제 assertion | PASS | 원출력 판정 |
+| 43. 손상 SQLite 원본 격리 | 실제 assertion | PASS | 원출력 판정 |
+| 44. 격리 SQLite 파일 보존 | 실제 assertion | PASS | 원출력 판정 |
+| 45. 격리 후 journal rebuild 결과 | 실제 assertion | PASS | 원출력 판정 |
+| 46. S10-3A future-schema journal read open | 실제 assertion | PASS | 원출력 판정 |
+| 47. S10-3A future-schema unsupported classification | 실제 assertion | PASS | 원출력 판정 |
+| 48. S10-3A future-schema catalog open denied | 실제 assertion | PASS | 원출력 판정 |
+| 49. S10-3A future-schema catalog retry denied | 실제 assertion | PASS | 원출력 판정 |
+| 50. S10-3A future-schema journal bytes preserved | 실제 assertion | PASS | 원출력 판정 |
+| 51. S10-3A future-schema SQLite bytes preserved | 실제 assertion | PASS | 원출력 판정 |
+| 52. S10-3A future-schema writer cleanup untouched | 실제 assertion | PASS | 원출력 판정 |
+| 53. S10-3A arbitrary-schema journal read open | 실제 assertion | PASS | 원출력 판정 |
+| 54. S10-3A arbitrary-schema unsupported classification | 실제 assertion | PASS | 원출력 판정 |
+| 55. S10-3A arbitrary-schema catalog open denied | 실제 assertion | PASS | 원출력 판정 |
+| 56. S10-3A arbitrary-schema catalog retry denied | 실제 assertion | PASS | 원출력 판정 |
+| 57. S10-3A arbitrary-schema journal bytes preserved | 실제 assertion | PASS | 원출력 판정 |
+| 58. S10-3A arbitrary-schema SQLite bytes preserved | 실제 assertion | PASS | 원출력 판정 |
+| 59. S10-3A arbitrary-schema writer cleanup untouched | 실제 assertion | PASS | 원출력 판정 |
+| 60. S10-3A empty-schema journal read open | 실제 assertion | PASS | 원출력 판정 |
+| 61. S10-3A empty-schema unsupported classification | 실제 assertion | PASS | 원출력 판정 |
+| 62. S10-3A empty-schema catalog open denied | 실제 assertion | PASS | 원출력 판정 |
+| 63. S10-3A empty-schema catalog retry denied | 실제 assertion | PASS | 원출력 판정 |
+| 64. S10-3A empty-schema journal bytes preserved | 실제 assertion | PASS | 원출력 판정 |
+| 65. S10-3A empty-schema SQLite bytes preserved | 실제 assertion | PASS | 원출력 판정 |
+| 66. S10-3A empty-schema writer cleanup untouched | 실제 assertion | PASS | 원출력 판정 |
+| 67. S10-3A future-type journal read open | 실제 assertion | PASS | 원출력 판정 |
+| 68. S10-3A future-type unsupported classification | 실제 assertion | PASS | 원출력 판정 |
+| 69. S10-3A future-type catalog open denied | 실제 assertion | PASS | 원출력 판정 |
+| 70. S10-3A future-type catalog retry denied | 실제 assertion | PASS | 원출력 판정 |
+| 71. S10-3A future-type journal bytes preserved | 실제 assertion | PASS | 원출력 판정 |
+| 72. S10-3A future-type SQLite bytes preserved | 실제 assertion | PASS | 원출력 판정 |
+| 73. S10-3A future-type writer cleanup untouched | 실제 assertion | PASS | 원출력 판정 |
+| 74. S10-3A malformed journal open | 실제 assertion | PASS | 원출력 판정 |
+| 75. S10-3A malformed JSON missing fields and wrong types remain corrupt | 실제 assertion | PASS | 원출력 판정 |
+| 76. S10-O01 reservation journal open | 실제 assertion | PASS | 원출력 판정 |
+| 77. S10-O01 first reservation returns four IDs and sequence one | 실제 assertion | PASS | 원출력 판정 |
+| 78. S10-O01 versioned reservation payload replays | 실제 assertion | PASS | 원출력 판정 |
+| 79. S10-O01 new reservation records actual occurred time | 실제 assertion | PASS | 원출력 판정 |
+| 80. S10-O02 identical retry preserves sequence and bytes | 실제 assertion | PASS | 원출력 판정 |
+| 81. S10-O03 reopened instance allocates next sequence | 실제 assertion | PASS | 원출력 판정 |
+| 82. S10-O03 new process resumes durable sequence | 실제 assertion | PASS | 원출력 판정 |
+| 83. S10-O04 different store rejected | 실제 assertion | PASS | 원출력 판정 |
+| 84. S10-O04 reused request with different segment rejected | 실제 assertion | PASS | 원출력 판정 |
+| 85. S10-O04 reused request with different channel rejected | 실제 assertion | PASS | 원출력 판정 |
+| 86. S10-O04 reused segment with different request rejected | 실제 assertion | PASS | 원출력 판정 |
+| 87. S10-O04 conflicts preserve original bytes | 실제 assertion | PASS | 원출력 판정 |
+| 88. S10-O05/O06 reject and preserve corrupt | 실제 assertion | PASS | 원출력 판정 |
+| 89. S10-O05/O06 reject and preserve unsupported-schema | 실제 assertion | PASS | 원출력 판정 |
+| 90. S10-O05/O06 reject and preserve unsupported-type | 실제 assertion | PASS | 원출력 판정 |
+| 91. S10-O05/O06 reject and preserve tail | 실제 assertion | PASS | 원출력 판정 |
+| 92. S10-O05/O06 reject and preserve payload-zero | 실제 assertion | PASS | 원출력 판정 |
+| 93. S10-O05/O06 reject and preserve payload-negative | 실제 assertion | PASS | 원출력 판정 |
+| 94. S10-O05/O06 reject and preserve payload-fraction | 실제 assertion | PASS | 원출력 판정 |
+| 95. S10-O05/O06 reject and preserve payload-overflow | 실제 assertion | PASS | 원출력 판정 |
+| 96. S10-O05/O06 reject and preserve duplicate-sequence | 실제 assertion | PASS | 원출력 판정 |
+| 97. S10-O05/O06 reject and preserve decreasing-sequence | 실제 assertion | PASS | 원출력 판정 |
+| 98. S10-O05/O06 reject and preserve duplicate-request | 실제 assertion | PASS | 원출력 판정 |
+| 99. S10-O05/O06 reject and preserve duplicate-segment | 실제 assertion | PASS | 원출력 판정 |
+| 100. S10-O05/O06 reject and preserve store-conflict | 실제 assertion | PASS | 원출력 판정 |
+| 101. S10-O05/O06 reject and preserve ordinary-before | 실제 assertion | PASS | 원출력 판정 |
+| 102. S10-O05/O06 reject and preserve ordinary-after | 실제 assertion | PASS | 원출력 판정 |
+| 103. S10-O05/O06 reject and preserve line-cap | 실제 assertion | PASS | 원출력 판정 |
+| 104. S10-O05 reservation entity envelope binding rejects mismatch | 실제 assertion | PASS | 원출력 판정 |
+| 105. S10-O05 reservation request envelope binding rejects mismatch | 실제 assertion | PASS | 원출력 판정 |
+| 106. S10-O01 strict reservation parser accepts versioned literal | 실제 assertion | PASS | 원출력 판정 |
+| 107. S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 실제 assertion | PASS | 원출력 판정 |
+| 108. S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 실제 assertion | PASS | 원출력 판정 |
+| 109. S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 실제 assertion | PASS | 원출력 판정 |
+| 110. S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 실제 assertion | PASS | 원출력 판정 |
+| 111. S10-O06 INT64_MAX identical retry remains valid | 실제 assertion | PASS | 원출력 판정 |
+| 112. S10-O06 sequence overflow rejected without write | 실제 assertion | PASS | 원출력 판정 |
+| 113. S10-O02 identical durable reservation duplicates remain idempotent | 실제 assertion | PASS | 원출력 판정 |
+| 114. S10-O06 sequence gaps remain valid and allocate above maximum | 실제 assertion | PASS | 원출력 판정 |
+| 115. S10-O07 four simultaneous processes finish reservations | 실제 assertion | PASS | 원출력 판정 |
+| 116. S10-O07 concurrent sequences are unique and complete | 실제 assertion | PASS | 원출력 판정 |
+| 117. S10-O07 next sequence follows concurrent reservations | 실제 assertion | PASS | 원출력 판정 |
+| 118. S10-O08 ordinary Append cannot reserve orders | 실제 assertion | PASS | 원출력 판정 |
+| 119. S10-O08 unopened journal rejected | 실제 assertion | PASS | 원출력 판정 |
+| 120. S10-O08 null result rejected | 실제 assertion | PASS | 원출력 판정 |
+| 121. S10-O08 invalid opaque ID rejected | 실제 assertion | PASS | 원출력 판정 |
+| 122. S10-O08 failed reservation does not expose tentative result | 실제 assertion | PASS | 원출력 판정 |
+| 123. S10-O09 unsafe file binding rejected and original preserved inode | 실제 assertion | PASS | 원출력 판정 |
+| 124. S10-O09 unsafe file binding rejected and original preserved parent | 실제 assertion | PASS | 원출력 판정 |
+| 125. S10-O09 unsafe file binding rejected and original preserved symlink | 실제 assertion | PASS | 원출력 판정 |
+| 126. S10-O09 unsafe file binding rejected and original preserved hardlink | 실제 assertion | PASS | 원출력 판정 |
+| 127. S10-O10 reservation and normal segment coexist in catalog | 실제 assertion | PASS | 원출력 판정 |
+| 128. S10-O04 reserve then finalize permits identical retry | 실제 assertion | PASS | 원출력 판정 |
+| 129. S10-O10 reservation survives catalog rebuild without changing segment query | 실제 assertion | PASS | 원출력 판정 |
+| 130. S10-O04 legacy segment cannot acquire retroactive reservation | 실제 assertion | PASS | 원출력 판정 |
+| 131. S10-M06 opened catalog accepts fresh exact reservation V2 finalize | 실제 assertion | PASS | 원출력 판정 |
+| 132. S10-M07 V2 find preserves complete metadata | 실제 assertion | PASS | 원출력 판정 |
+| 133. S10-M07 identical V2 recovery is idempotent | 실제 assertion | PASS | 원출력 판정 |
+| 134. S10-M07 V2 is absent from V1 range query | 실제 assertion | PASS | 원출력 판정 |
+| 135. S10-M07 V2 registered path is not orphan | 실제 assertion | PASS | 원출력 판정 |
+| 136. S10-M07 SQLite exact V2 JSON and path match | 실제 assertion | PASS | 원출력 판정 |
+| 137. S10-M07 JSONL restart preserves V2 exact payload | 실제 assertion | PASS | 원출력 판정 |
+| 138. S10-M06 wrong reservation tuple rejected store | 실제 assertion | PASS | 원출력 판정 |
+| 139. S10-M06 wrong reservation tuple rejected request | 실제 assertion | PASS | 원출력 판정 |
+| 140. S10-M06 wrong reservation tuple rejected segment | 실제 assertion | PASS | 원출력 판정 |
+| 141. S10-M06 wrong reservation tuple rejected channel | 실제 assertion | PASS | 원출력 판정 |
+| 142. S10-M06 wrong reservation tuple rejected sequence | 실제 assertion | PASS | 원출력 판정 |
+| 143. S10-M09 immutable V2 mapping mismatch rejected | 실제 assertion | PASS | 원출력 판정 |
+| 144. S10-M09 bad V2 startup retry preserves original state bad-payload | 실제 assertion | PASS | 원출력 판정 |
+| 145. S10-M09 bad V2 startup retry preserves original state missing-order | 실제 assertion | PASS | 원출력 판정 |
+| 146. S10-M09 bad V2 startup retry preserves original state bad-order | 실제 assertion | PASS | 원출력 판정 |
+| 147. S10-M09 bad V2 startup retry preserves original state conflicting-order | 실제 assertion | PASS | 원출력 판정 |
+| 148. S10-M09 bad V2 startup retry preserves original state tail | 실제 assertion | PASS | 원출력 판정 |
+| 149. S10-M09 bad V2 startup retry preserves original state corrupt | 실제 assertion | PASS | 원출력 판정 |
+| 150. S10-M09 bad V2 startup retry preserves original state unsafe-path | 실제 assertion | PASS | 원출력 판정 |
+| 151. S10-M09 default off rejects V2 before SQLite changes | 실제 assertion | PASS | 원출력 판정 |
+| 152. S10-M09 V2 replay namespace and deletion duplicate | 실제 assertion | PASS | 원출력 판정 |
+| 153. S10-M09 V2 replay namespace and deletion deleted | 실제 assertion | PASS | 원출력 판정 |
+| 154. S10-M09 V2 replay namespace and deletion v1-before | 실제 assertion | PASS | 원출력 판정 |
+| 155. S10-M09 V2 replay namespace and deletion v1-after | 실제 assertion | PASS | 원출력 판정 |
+| 156. S10-M09 V2 replay namespace and deletion deleted-before | 실제 assertion | PASS | 원출력 판정 |
+| 157. S10-M09 V2 replay namespace and deletion resurrection | 실제 assertion | PASS | 원출력 판정 |
+| 158. S10-M09 V2 replay namespace and deletion mutation-collision | 실제 assertion | PASS | 원출력 판정 |
+| 159. S10-M09 V2 finalize rejects missing media | 실제 assertion | PASS | 원출력 판정 |
+| 160. S10-M09 V2 finalize rejects directory media | 실제 assertion | PASS | 원출력 판정 |
+| 161. S10-M09 fresh candidate rejects mapping | 실제 assertion | PASS | 원출력 판정 |
+| 162. S10-M09 fresh candidate rejects path | 실제 assertion | PASS | 원출력 판정 |
+| 163. S10-M09 fresh candidate rejects tombstone | 실제 assertion | PASS | 원출력 판정 |
+| 164. S10-SW01 managed empty root opens with lifetime lease | 실제 assertion | PASS | 원출력 판정 |
+| 165. S10-SW02 same process second managed owner denied | 실제 assertion | PASS | 원출력 판정 |
+| 166. S10-SW03 different process owner and inherited use denied | 실제 assertion | PASS | 원출력 판정 |
+| 167. S10-SW12 managed duplicate descriptors are close-on-exec | 실제 assertion | PASS | 원출력 판정 |
+| 168. S10-SW05 managed reserve append replay use owned descriptor | 실제 assertion | PASS | 원출력 판정 |
+| 169. S10-SW06 raw managed access and legacy default path denied | 실제 assertion | PASS | 원출력 판정 |
+| 170. S10-SW01 managed Reserve rejects different store identity | 실제 assertion | PASS | 원출력 판정 |
+| 171. S10-SW10 catalog connection can inspect managed lease | 실제 assertion | PASS | 원출력 판정 |
+| 172. S10-SW04 owner destruction releases lease | 실제 assertion | PASS | 원출력 판정 |
+| 173. S10-SW01 managed reopen rejects different store identity | 실제 assertion | PASS | 원출력 판정 |
+| 174. S10-SW11 managed incomplete tail rejects append without changing bytes | 실제 assertion | PASS | 원출력 판정 |
+| 175. S10-SW07 legacy nonempty root preserved without conversion | 실제 assertion | PASS | 원출력 판정 |
+| 176. S10-SW08 partial initialization retry validates exact state lease | 실제 assertion | PASS | 원출력 판정 |
+| 177. S10-SW08 partial initialization retry validates exact state init | 실제 assertion | PASS | 원출력 판정 |
+| 178. S10-SW08 partial initialization retry validates exact state barrier | 실제 assertion | PASS | 원출력 판정 |
+| 179. S10-SW08 partial initialization retry validates exact state journal | 실제 assertion | PASS | 원출력 판정 |
+| 180. S10-SW08 partial initialization retry validates exact state incomplete | 실제 assertion | PASS | 원출력 판정 |
+| 181. S10-SW08 partial initialization retry validates exact state unknown | 실제 assertion | PASS | 원출력 판정 |
+| 182. S10-SW09 symlink inode and malformed marker rejected journal | 실제 assertion | PASS | 원출력 판정 |
+| 183. S10-SW09 symlink inode and malformed marker rejected marker | 실제 assertion | PASS | 원출력 판정 |
+| 184. S10-SW09 symlink inode and malformed marker rejected barrier | 실제 assertion | PASS | 원출력 판정 |
+| 185. S10-SW09 symlink inode and malformed marker rejected root-symlink | 실제 assertion | PASS | 원출력 판정 |
+| 186. S10-SB01 second managed catalog is denied | 실제 assertion | PASS | 원출력 판정 |
+| 187. S10-SB02 failed catalog cannot mutate journal or holds | 실제 assertion | PASS | 원출력 판정 |
+| 188. S10-SB03 attached catalog blocks unowned append but permits reservation | 실제 assertion | PASS | 원출력 판정 |
+| 189. S10-SB04 catalog destruction releases attachment | 실제 assertion | PASS | 원출력 판정 |
+| 190. S10-SB05 managed catalog rejects unsafe options outside | 실제 assertion | PASS | 원출력 판정 |
+| 191. S10-SB05 managed catalog rejects unsafe options dotdot | 실제 assertion | PASS | 원출력 판정 |
+| 192. S10-SB05 managed catalog rejects unsafe options media-symlink | 실제 assertion | PASS | 원출력 판정 |
+| 193. S10-SB05 managed catalog rejects unsafe options sqlite-symlink | 실제 assertion | PASS | 원출력 판정 |
+| 194. S10-SB05 managed catalog rejects unsafe options sqlite-hardlink | 실제 assertion | PASS | 원출력 판정 |
+| 195. S10-SB05 managed catalog rejects unsafe options disabled | 실제 assertion | PASS | 원출력 판정 |
+| 196. S10-SB06 failed open releases catalog attachment | 실제 assertion | PASS | 원출력 판정 |
+| 197. S10-SB07 managed SQLite sidecar rejected -wal symlink | 실제 assertion | PASS | 원출력 판정 |
+| 198. S10-SB07 managed SQLite sidecar rejected -wal hardlink | 실제 assertion | PASS | 원출력 판정 |
+| 199. S10-SB07 managed SQLite sidecar rejected -shm symlink | 실제 assertion | PASS | 원출력 판정 |
+| 200. S10-SB07 managed SQLite sidecar rejected -shm hardlink | 실제 assertion | PASS | 원출력 판정 |
+| 201. S10-SB07 managed SQLite sidecar rejected -journal symlink | 실제 assertion | PASS | 원출력 판정 |
+| 202. S10-SB07 managed SQLite sidecar rejected -journal hardlink | 실제 assertion | PASS | 원출력 판정 |
+| 203. S10-SC01 managed repeated event fixture is valid | 실제 assertion | PASS | 원출력 판정 |
+| 204. S10-SC02 managed reservations avoid history reads | 실제 assertion | PASS | 원출력 판정 |
+| 205. S10-SC03 managed V2 finalize avoids full replay | 실제 assertion | PASS | 원출력 판정 |
+| 206. S10-SC04 checkpoint reduces superseded event payload bytes | 실제 assertion | PASS | 원출력 판정 |
+| 207. S10-SC05 checkpoint preserves latest event and all record identities | 실제 assertion | PASS | 원출력 판정 |
+| 208. S10-SC06 checkpoint is idempotent and preserves V2 | 실제 assertion | PASS | 원출력 판정 |
+| 209. S10-SC08 receipt preserves retry identity and rejects direct append | 실제 assertion | PASS | 원출력 판정 |
+| 210. S10-SC09 checkpoint restart preserves SQLite and JSONL state sqlite | 실제 assertion | PASS | 원출력 판정 |
+| 211. S10-SC09 managed checkpoint SQL V2 payload and path | 실제 assertion | PASS | 원출력 판정 |
+| 212. S10-SC09 checkpoint restart preserves SQLite and JSONL state jsonl | 실제 assertion | PASS | 원출력 판정 |
+| 213. S10-SC10 checkpoint prefix recovers before writes | 실제 assertion | PASS | 원출력 판정 |
+| 214. S10-SC11 checkpoint mismatch preserves bytes and poisons owner | 실제 assertion | PASS | 원출력 판정 |
+| 215. S10-SC12 first accepted mutation controls latest event | 실제 assertion | PASS | 원출력 판정 |
+| 216. S10-SC16 automatic checkpoint uses accumulated growth | 실제 assertion | PASS | 원출력 판정 |
+| 217. S10-SC07 raw checkpoint is rejected | 실제 assertion | PASS | 원출력 판정 |
+| 218. S10-SC18 checkpoint syscall failure poisons and reopens write | 실제 assertion | PASS | 원출력 판정 |
+| 219. S10-SC21 poison rejects hold mutation write | 실제 assertion | PASS | 원출력 판정 |
+| 220. S10-SC18 checkpoint syscall failure poisons and reopens file-fsync | 실제 assertion | PASS | 원출력 판정 |
+| 221. S10-SC21 poison rejects hold mutation file-fsync | 실제 assertion | PASS | 원출력 판정 |
+| 222. S10-SC18 checkpoint syscall failure poisons and reopens rename | 실제 assertion | PASS | 원출력 판정 |
+| 223. S10-SC21 poison rejects hold mutation rename | 실제 assertion | PASS | 원출력 판정 |
+| 224. S10-SC18 checkpoint syscall failure poisons and reopens dir-fsync | 실제 assertion | PASS | 원출력 판정 |
+| 225. S10-SC21 poison rejects hold mutation dir-fsync | 실제 assertion | PASS | 원출력 판정 |
+| 226. S10-SC17 checkpoint preserves holds observations and deletion | 실제 assertion | PASS | 원출력 판정 |
+| 227. S10-SC17 checkpoint SQL hold observation tombstone | 실제 assertion | PASS | 원출력 판정 |
+| 228. S10-SC17 checkpoint preserves holds observations and deletion restart sqlite | 실제 assertion | PASS | 원출력 판정 |
+| 229. S10-SC17 checkpoint SQL restart observation tombstone | 실제 assertion | PASS | 원출력 판정 |
+| 230. S10-SC17 checkpoint preserves holds observations and deletion restart jsonl | 실제 assertion | PASS | 원출력 판정 |
+| 231. S10-SC19 invalid managed history remains unchanged malformed | 실제 assertion | PASS | 원출력 판정 |
+| 232. S10-SC19 invalid managed history remains unchanged unsupported | 실제 assertion | PASS | 원출력 판정 |
+| 233. S10-SC19 invalid managed history remains unchanged conflict | 실제 assertion | PASS | 원출력 판정 |
+| 234. S10-SC20 raw catalog rejects receipt before side effects | 실제 assertion | PASS | 원출력 판정 |
+| 235. S10-SC13 crypto off raw remains usable | 실제 assertion | PASS | 원출력 판정 |
+| 236. S10-SC14 crypto off checkpoint is rejected | 실제 assertion | PASS | 원출력 판정 |
+| 237. S10-SC15 crypto off receipt reopen is rejected | 실제 assertion | PASS | 원출력 판정 |
+| 238. source 저장 callback reconcile 연결 | 실제 assertion | PASS | 원출력 판정 |
+| 239. policy revision idempotency | 실제 assertion | PASS | 원출력 판정 |
+| 240. 5초 safety reconcile | 실제 assertion | PASS | 원출력 판정 |
+| 241. composition root 관리 저장소 선행 open | 실제 assertion | PASS | 원출력 판정 |
+| 242. composition helper journal 다음 catalog rebuild/open | 실제 assertion | PASS | 원출력 판정 |
+| 243. 서버 전 supervisor 시작 | 실제 assertion | PASS | 원출력 판정 |
+| 244. ingress 전 event bridge 등록 | 실제 assertion | PASS | 원출력 판정 |
+| 245. ingress 종료 뒤 recorder finalize | 실제 assertion | PASS | 원출력 판정 |
+| 246. composition root 시작/종료 순서 | 실제 assertion | PASS | 원출력 판정 |
+
+개별 assertion 246행 대조. 명령·elapsed·source·cleanup은 원출력 및 중앙 기록을 따른다.
+
+## 내용 proof 실제2-job 영향 확인
+
+[원출력](lp17-jobs-lp18-content-01.txt) — B/C는 캐시 on/off이며 구·신코드 비교가 아니다. 실제 HTTP·누적32원본 판정 아님.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. FC01 exact insertion checks count=97 | 실제 assertion | PASS | 원출력 순서 |
+| 2. D08.input-keyframes | 실제 assertion | PASS | 원출력 순서 |
+| 3. D08.source-shape | 실제 assertion | PASS | 원출력 순서 |
+| 4. D08.selection-complete | 실제 assertion | PASS | 원출력 순서 |
+| 5. D08.expected-intent-built | 실제 assertion | PASS | 원출력 순서 |
+| 6. D08.admission | 실제 assertion | PASS | 원출력 순서 |
+| 7. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 8. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 9. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 10. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 11. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 12. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 13. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 14. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 15. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 16. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 17. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 18. D08.ready-verified-proof | 실제 assertion | PASS | 원출력 순서 |
+| 19. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 20. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 21. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 22. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 23. D08.canonical-ready-preserved | 실제 assertion | PASS | 원출력 순서 |
+| 24. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 25. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 26. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 27. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 28. D08.canonical-ready-preserved | 실제 assertion | PASS | 원출력 순서 |
+| 29. D08.protection-released | 실제 assertion | PASS | 원출력 순서 |
+| 30. D08.run-complete | 실제 assertion | PASS | 원출력 순서 |
+| 31. D08.actual-output-hash | 실제 assertion | PASS | 원출력 순서 |
+| 32. D08.selection-complete | 실제 assertion | PASS | 원출력 순서 |
+| 33. D08.expected-intent-built | 실제 assertion | PASS | 원출력 순서 |
+| 34. D08.admission | 실제 assertion | PASS | 원출력 순서 |
+| 35. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 36. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 37. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 38. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 39. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 40. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 41. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 42. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 43. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 44. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 45. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 46. D08.ready-verified-proof | 실제 assertion | PASS | 원출력 순서 |
+| 47. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 48. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 49. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 50. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 51. D08.canonical-ready-preserved | 실제 assertion | PASS | 원출력 순서 |
+| 52. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 53. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 54. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 55. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 56. D08.canonical-ready-preserved | 실제 assertion | PASS | 원출력 순서 |
+| 57. D08.protection-released | 실제 assertion | PASS | 원출력 순서 |
+| 58. D08.run-complete | 실제 assertion | PASS | 원출력 순서 |
+| 59. D08.actual-output-hash | 실제 assertion | PASS | 원출력 순서 |
+| 60. CP01.actual-ready-complete-shape-canonical-files-reservation | 실제 assertion | PASS | 원출력 순서 |
+| 61. CP02.two-jobs-over-1MiB-canonical-transitions | 실제 assertion | PASS | 원출력 순서 |
+| 62. D08.input-keyframes | 실제 assertion | PASS | 원출력 순서 |
+| 63. D08.source-shape | 실제 assertion | PASS | 원출력 순서 |
+| 64. D08.selection-complete | 실제 assertion | PASS | 원출력 순서 |
+| 65. D08.expected-intent-built | 실제 assertion | PASS | 원출력 순서 |
+| 66. D08.admission | 실제 assertion | PASS | 원출력 순서 |
+| 67. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 68. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 69. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 70. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 71. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 72. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 73. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 74. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 75. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 76. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 77. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 78. D08.ready-verified-proof | 실제 assertion | PASS | 원출력 순서 |
+| 79. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 80. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 81. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 82. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 83. D08.canonical-ready-preserved | 실제 assertion | PASS | 원출력 순서 |
+| 84. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 85. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 86. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 87. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 88. D08.canonical-ready-preserved | 실제 assertion | PASS | 원출력 순서 |
+| 89. D08.protection-released | 실제 assertion | PASS | 원출력 순서 |
+| 90. D08.run-complete | 실제 assertion | PASS | 원출력 순서 |
+| 91. D08.actual-output-hash | 실제 assertion | PASS | 원출력 순서 |
+| 92. D08.selection-complete | 실제 assertion | PASS | 원출력 순서 |
+| 93. D08.expected-intent-built | 실제 assertion | PASS | 원출력 순서 |
+| 94. D08.admission | 실제 assertion | PASS | 원출력 순서 |
+| 95. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 96. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 97. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 98. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 99. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 100. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 101. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 102. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 103. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 104. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 105. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 106. D08.ready-verified-proof | 실제 assertion | PASS | 원출력 순서 |
+| 107. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 108. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 109. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 110. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 111. D08.canonical-ready-preserved | 실제 assertion | PASS | 원출력 순서 |
+| 112. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 113. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 114. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 115. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 116. D08.canonical-ready-preserved | 실제 assertion | PASS | 원출력 순서 |
+| 117. D08.protection-released | 실제 assertion | PASS | 원출력 순서 |
+| 118. D08.run-complete | 실제 assertion | PASS | 원출력 순서 |
+| 119. D08.actual-output-hash | 실제 assertion | PASS | 원출력 순서 |
+| 120. CP01.actual-ready-complete-shape-canonical-files-reservation | 실제 assertion | PASS | 원출력 순서 |
+| 121. CP02.two-jobs-over-1MiB-canonical-transitions | 실제 assertion | PASS | 원출력 순서 |
+
+개별121행(기능120/계측1)을 원출력과 대조했다. 명령/시각/정리/비용은 원출력, 요약 판정은 중앙 기록을 따른다.
+
 ## job 공유 최종 실행 전수 결과
 
 각 원출력에 명령·source/환경·시간·정리를 보존했다. 실제 scope만 PASS이며 실제 HTTP·장시간/UI 판정이 아니다. token은 집계 미제공이다.

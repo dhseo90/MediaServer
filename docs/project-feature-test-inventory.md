@@ -21,6 +21,10 @@
 | LP18-J02 | Prepared 게시·수명 | prior/검증후 record/applied 소유를 구분, 같은 호출 한 번 게시와 SQL projection 수명 유지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 | LP18-J03 | job 반환·전이 안전 | public snapshot 값 독립, foreign owner/stale prior/reuse·불법 전이 거부, 보호/재생/timeline 유지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 | LP18-J04 | job 복구·바이트 | SQLite/JSONL full replay·Ready/Complete·실파일·예약/hold·전이 canonical 동등성 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-V01 | 호출-local 내용 증명 | strict Prepared→append/apply→자동 checkpoint의 같은 immutable 내용 Parse 재사용. 전수 이력 증명 저장 금지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-V02 | 내용 증명 부적격 fallback | 다른 owner/journal·stale current·다른 envelope/전체 필드·null은 기존 strict 입력 검증으로 복귀 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-V03 | shadow 상태 독립 검증 | 잘못된 prior/예약/source 삭제·보호 조건은 유효 내용 증명과 무관하게 거부 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-V04 | 증명 수명·복구 | owner 밖/cache 보관 없음, manual/recovery/새 입력 strict와 공개 값·저장 bytes 유지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 
 등록은 실행/PASS가 아니다. 전체 승인 범위와 실제 수행/미수행은 중앙 기록 LP18을 따른다.
 

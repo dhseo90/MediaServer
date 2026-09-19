@@ -12,6 +12,108 @@
 정상 append에 전체 원장 검색을 추가하지 않는다. managed Open은 한 snapshot의 값과 handle을 사용하고 일시 Replay 값 사본은 남긴다.
 단일 Astra/medium 담당자는 제품/fixture/계측 adapter, 메인은 문서/runner/실행/직접 검토를 맡으며 하위 생성은 금지했다.
 
+### 3번 호출-local 내용 증명 첫 단위 착수
+
+시작 `a9bcd9fd`/v4.1.0/ahead19/clean. 기존 변경 정리 및1번 계약·2번 동일 내용 소유 보완을 분할 커밋했다.
+같은 단일 Astra/medium 담당자가 focused C++/private adapter 초안을 맡고, 메인이 안전 계약·문서·runner·실행·직접 검토를 맡는다.
+하위 생성·미승인 푸시/장시간/UI는 금지한다. 계약은 누적 비용 계약0절의 호출-local 증명 경계다.
+제품 구현 전에 exact RED assertion/명령/개수와 소유 root·정리 방법을 추가 등록한다. 현재는 테스트 초안 단계이며 실행/PASS가 아니다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-V01 | 같은 전이의 내용 재사용 | 실제 자동 checkpoint에서 이미 strict 검증한 같은 envelope/typed 값을 다시 Parse하지 않음 | v4.1.0 |
+| LP18-V02 | 부적격 proof | owner/journal/current/accepted/envelope 전체 불일치·null은 strict fallback, 정상 입력 거부로 바꾸지 않음 | v4.1.0 |
+| LP18-V03 | 상태검증 비공유 | shadow의 prior/예약/source lifecycle은 자체 검증, live의 Prepared는 넘기지 않음 | v4.1.0 |
+| LP18-V04 | 수명/복구 | 증명은 호출-local 소유, manual/recover/new input은 strict. public/storage 계약 불변 | v4.1.0 |
+
+3번 전체의 과거 이력/직렬화 비용 보완과4번 RAM 수명·5번 실제 HTTP는 이 첫 단위 PASS로 닫지 않는다.
+
+내용 proof RED exact 사전등록: `node scripts/internal/verify_recording_immutable_ownership.mjs red content-01 content`.
+기존 실제501 AU/2-job·1MiB 원장 fixture CP01/CP02 2개와 신규5개, 총7개다. 기존60초/1GiB/512MiB/2MiB guard·owned root cleanup 유지.
+예상 RED는6PASS/1FAIL, 유일 FAIL은 `LP18-V01 automatic checkpoint reuses current validated content without parsing`이다.
+다른 신규4개는 `LP18-V01 every normal update strictly parses content once`,
+`LP18-V01 automatic checkpoint applies current update payload`, `LP18-V04 managed reopen retains strict content parsing`,
+`LP18-V04 manual checkpoint retains strict content parsing`이다. 처음 두 조건으로 적용 없는 0회 PASS를 차단한다.
+ready parser 계측은 owned 복제본이며 payload 원문은 출력하지 않는다. 새 proof API 부정반례는 구현 후 실행 전 추가한다.
+
+content-01 RED: build exit0/3669ms, focused exit1/27278ms, exact6PASS/1FAIL. updates8/liveParses8,
+automaticCheckpoints2/currentApplications2/currentParses2, reopenParses4/manualParses1을 관측했다. wrapper exit0/30962ms는 예상 RED 확인뿐이다.
+source 불변·프로세스 그룹 종료·root13567669B 삭제를 확인하고 `lp18-ownership-red-content-01.txt`에 원출력을 보존했다.
+그 뒤 같은 담당자에게 제품 proof 구현·부정반례 작성을 맡겼으며 아직 GREEN/후속 회귀는 실행하지 않았다.
+
+GREEN 실행 전 신규18개를 추가 등록했다. 기존7개와 합쳐 oracle는25PASS/0FAIL이다.
+실제 정상 Ready/Complete에서 생성한 proof를 owned 복제본 관측부로만 검사한다. 부적격13개는 strict 결과를 대조하며
+입력이 유효하면 성공할 수 있다. 실제 불법 상태4개는 내용 재사용 여부와 관계없이 거부해야 한다. 시간제한60초는 유지한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-V02 minted proof reuses owned content after state validation | 실제 mint 값 | shadow prior 상태검증 후 같은 typed handle·내용 Parse0 | v4.1.0 |
+| LP18-V02 schema mismatch retains strict outcome | 입력 필드 불일치 | 기존 strict 결과·최종 canonical과 일치, 내용 Parse1 | v4.1.0 |
+| LP18-V02 type mismatch retains strict outcome | 입력 필드 불일치 | 기존 strict 결과·최종 canonical과 일치, 내용 Parse1 | v4.1.0 |
+| LP18-V02 mutation ID mismatch retains strict outcome | 입력 필드 불일치 | 기존 strict 결과·최종 canonical과 일치, 내용 Parse1 | v4.1.0 |
+| LP18-V02 entity mismatch retains strict outcome | 입력 필드 불일치 | 기존 strict 결과·최종 canonical과 일치, 내용 Parse1 | v4.1.0 |
+| LP18-V02 time mismatch retains strict outcome | 입력 필드 불일치 | 기존 strict 결과·최종 canonical과 일치, 내용 Parse1 | v4.1.0 |
+| LP18-V02 payload bytes mismatch retains strict outcome | 입력 필드 불일치 | 기존 strict 결과·최종 canonical과 일치, 내용 Parse1 | v4.1.0 |
+| LP18-V03 invalid content rejects through strict fallback | 불법 내용 {} | 기존 strict와 모두 거부, 내용 Parse1 | v4.1.0 |
+| LP18-V02 null owner retains strict outcome | 빈 proof 구성 | 기존 strict 결과·canonical 일치, 내용 Parse1 | v4.1.0 |
+| LP18-V02 null envelope retains strict outcome | 빈 proof 구성 | 기존 strict 결과·canonical 일치, 내용 Parse1 | v4.1.0 |
+| LP18-V02 null record retains strict outcome | 빈 proof 구성 | 기존 strict 결과·canonical 일치, 내용 Parse1 | v4.1.0 |
+| LP18-V02 foreign owner retains strict outcome | 다른 owner | 기존 strict 결과·canonical 일치, 내용 Parse1 | v4.1.0 |
+| LP18-V02 equal-content replacement invalidates current proof ownership | 현재 typed 소유 교체 | 동일 canonical이어도 소유 슬롯 교체 시 strict Parse1 | v4.1.0 |
+| LP18-V02 equal-envelope replacement invalidates accepted proof ownership | 수용 envelope 소유 교체 | 동일 내용이어도 소유 슬롯 교체 시 strict Parse1 | v4.1.0 |
+| LP18-V03 valid content proof cannot bypass missing prior transition | 상태/참조 불법 | 내용 Parse0이어도 적용 거부·미게시 | v4.1.0 |
+| LP18-V03 valid content proof cannot bypass output reservation | 상태/참조 불법 | 내용 Parse0이어도 적용 거부·미게시 | v4.1.0 |
+| LP18-V03 valid content proof cannot bypass source deletion state | 상태/참조 불법 | 내용 Parse0이어도 적용 거부·미게시 | v4.1.0 |
+| LP18-V03 valid content proof cannot bypass source media binding | 상태/참조 불법 | 내용 Parse0이어도 적용 거부·미게시 | v4.1.0 |
+
+검증 순서/증거 판정: 전체 build → content GREEN → 기존 job24 → Prepared11 → cache47 → catalog246 → 실제2-job B/C.
+명령은 각각 `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build`,
+`node scripts/internal/verify_recording_immutable_ownership.mjs green content-01 content`,
+`node scripts/internal/verify_recording_immutable_ownership.mjs green content-job-01 job`,
+`MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_derived_transition_reuse.sh`,
+`MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_checkpoint_cache.sh`,
+`MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_v410_recording_catalog.sh`,
+`node scripts/internal/recording_catalog_comparison_run.mjs jobs lp18-content-01`다.
+이전 step2 job의 소유·소비자 증거는 그 변경 경계의 기록으로 유지하되 proof의 신규 최적화 판정에는 위 회귀를 새로 요구한다.
+service/timeline/media/retention public 소비 표현은 이 단위에서 변경하지 않아 기존 결과를 유지하며 최종5번 판정 때 변화된 경계를 다시 대조한다.
+실제 HTTP·16/32누적·장시간/UI는 이 단위에서 미실행이다. 각 명령 exit0 확인 후에만 다음 명령을 실행한다.
+
+### 3번 첫 내용 재사용 단위 결과
+
+제품 diff 직접 검토: 생성자가 제한된 호출-local proof는 성공한 Prepared 적용의 실제 envelope/typed 소유를 결박한다.
+자동 checkpoint는 해당 내용만 재사용하고 shadow의 prior/예약/source 전이는 자체 검사한다. 적격 확인에 전체 Serialize를 다시 호출하지 않는다.
+manual/recovery/new/mismatch 입력은 원래 strict 경로다. 공개 API·원장 bytes·상한/timeout·media/coverage 정책은 바꾸지 않았다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP18-V 전체 build | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build`, exit0 | PASS | 실제 전체 C++ 빌드, elapsed 미집계; 원출력 lp18-content-build-01.txt |
+| LP18-V focused | green content-01 content, exit0/41275ms, 25개 | PASS | build3883ms/focused37375ms; 최초 RED6PASS/1FAIL 유지 |
+| LP18-J 소유 영향 | green content-job-01 job, exit0/3730ms, 24개 | PASS | 소유·복구·Prepared·public 반환 독립 |
+| LP18-V prepared 영향 | derived_transition_reuse.sh exit0/5초, 11개 | PASS | fixture file-evidence profile/bound 경고는 기존과 동일; 관련 기능 PASS 확대 금지 |
+| LP18-V cache 영향 | checkpoint_cache.sh exit0/36초, 47개 | PASS | peak164626432B, cap536870912B; full/pending/실패/상한·불법 Ready 전이 |
+| LP18-V catalog 영향 | verify_v410_recording_catalog.sh exit0, 246개 | PASS | 전체 도구 elapsed18512ms, SQL/JSONL·중단/손상·syscall·crypto-off |
+| LP18-V 실제2-job | comparison_run.mjs jobs lp18-content-01 exit0/30722ms, 기능120/계측1 | PASS | 입력 동일, 실제 출력/hash·state/receipt/보호; B/C peak157384704/111149056B는 캐시 on/off 관측 |
+
+내용 계측: updates8/liveParses8 유지, 자동 checkpoint2/currentApplications2에서 currentParses2→0.
+reopenParses4/manualParses1 유지. 추가18개 반례는 모두 통과했다. 추가 반례가 들어간 GREEN elapsed와 이전 RED elapsed를 성능 개선율로 비교하지 않는다.
+실제2-job 입력 hash는 `f8de1cd44038e7433d0c24b3f250f63704b80ba86b468178beb607f0e68ce82e`다.
+이는 첫 호출-local Parse 중복 제거 및 영향 회귀 판정이며, 전체 정상 전이 비용/상세 RAM/실제 HTTP 완료 판정이 아니다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| content focused owned root | 검사 binary/파일/registry | 13659961B | 종료 후 삭제 | removed=true | lp18-ownership-green-content-01.txt |
+| job 영향 owned root | 검사 binary/파일/registry | 6211829B | 종료 후 삭제 | removed=true | lp18-ownership-green-content-job-01.txt |
+| prepared owned root | 검사 자료 | 9047842B | trap 삭제 | removed=true | lp18-content-prepared-01.txt |
+| cache owned root | 검사 자료 | 16892239B | trap 삭제 | removed=true | lp18-content-cache-01.txt |
+| catalog owned root | 검사 자료 | 26957846B | trap 삭제 | removed=true | lp18-content-catalog-01.txt |
+| 실제2-job owned root | 검사 binary/파일/registry | 18647968B | 종료 후 삭제 | removed=true | lp17-jobs-lp18-content-01.txt |
+| build-gst-onnx | 기존 제품 build | 별도 임시 root 아님 | 보존 | 현재 제품 빌드 | lp18-content-build-01.txt |
+
+서버/포트 생성 없음, 모든 검사 그룹 종료. 명령·개별 assertion·source/시각·정리는 [LP18 전수 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md)와 raw 링크에 보존했다.
+token start/end/consumed는 집계 도구 미제공으로 미집계다. 3번 나머지 직렬화/검증 비용과4~5번은 미완료, 푸시·장시간/UI는 미실행이다.
+마감 문서 검사: `git diff --check` exit0, `verify-docs-links` exit0(285md/8816links/22images/116anchors/76indexed/201excluded/failures0).
+다음 envelope 비용 fixture 초안은 아직 미검증이며 이 소단위 커밋에 포함하지 않는다.
+
 ### 2번 typed job 소유 사전등록
 
 binding 공유는 `ee8c4a6f`로 커밋했고 시작 상태는 clean/ahead18이다. 같은 단일 Astra/medium 담당자가 테스트 초안을 작성하며
@@ -346,7 +448,7 @@ UI 자산 무변경, 추가 임시물 없음. 마지막 커밋 전 공백 검사
 | --- | --- | --- | --- | --- |
 | 1 | 공통 소유·검증 경계 | 완료·커밋 | 1d13b08a, 불변 envelope·내용/상태 검사·RAM 소비자 조건 명시 | 누적 비용 계약 0절 |
 | 2 | 중복 보관 제거 | journal/live/shadow envelope·accepted·typed binding/job 동일값 소유 구현·회귀 통과 | 공개/자기완결 snapshot과 과거 payload 상주는 남아 3~4번과 구분 | LP18-O01~13/J01~04 전수 결과 |
-| 3 | 전이→checkpoint 재검증 제거 | 미착수 | 2번 선수 통과 뒤 내용 증명 재사용 | 구현계획 LP18 |
+| 3 | 전이→checkpoint 재검증 제거 | 첫 호출-local Parse 재사용 구현·focused/영향 회귀 통과, 전체는 미완료 | 나머지 canonical 생성·상태 비교 검증 비용은 남음 | 구현계획 LP18·LP18-V01~04 전수 결과 |
 | 4 | 상세 RAM 수명 | 미착수 | 기존 JSONL locator/활성 소유/재open 검증 필요 | 계약 0절 |
 | 5 | 회귀·실제 앱 | 미착수 | 기존4000ms/정리 포함, 장시간/UI 아님 | 계약 0절 |
 

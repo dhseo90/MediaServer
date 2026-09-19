@@ -1,0 +1,79 @@
+{"kind":"start","utc":"2026-09-19T14:50:11.940Z","mode":"green","id":"content-job-01","suite":"job","source":[{"name":"include/recording/recording_catalog.h","sha256":"ec7bb80f4bbe5731edb932a836d84f3865a0d6f6daa4ab74aecc99170e7af0e8"},{"name":"include/recording/recording_journal.h","sha256":"d9abe40e76bbfc2b9a6014b1f73967d9aa493c6fea31c754d935dbf531278ea0"},{"name":"src/recording/recording_catalog.cpp","sha256":"979b5c6695bb2efd1c9bcc5e6506b4c39db44539c2fd17603a4b829a3d8d1f9e"},{"name":"src/recording/recording_journal.cpp","sha256":"72388b235e9d2746bbb341cb64c316d8b6665a2737adb98d668f5e8fca885997"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"31277f9aeadaa8cf911d5610bacad66becbfe8b5a1ebeeaeedb1b51ba3d6b8dd"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"e1656c143a3d206220c84b8d4a299c8ad53c879676ea7240631ef22067490dfc"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"c67fa73166a91e266420f5a7cd7b427150322bea1fbc8aac30fd8101a49b610f"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"f9cb769cdf92f05d5863918c72bc2ddd83d3d70e7aaa789eda314ce16e57bff4"},{"name":"scripts/internal/recording_job_ownership_smoke.cpp","sha256":"3b0520acf9edf18310ec4f49ec05f3be0501c3c28beff28bc7a5b023f85807e1"},{"name":"src/recording/recording_timeline_projection.cpp","sha256":"88c1b064d5ce595ea21c615ed8dce0cb14e54ad8030a420943b2d558daeba203"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>","job"],"seconds":60}
+[instrument] catalog_sha256=e3f68e2de8440ed75c84938a70cfc4f955810eb6ac31effc5640b3d1b96d024b binding_exact_insertions=1 job_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"d9abe40e76bbfc2b9a6014b1f73967d9aa493c6fea31c754d935dbf531278ea0"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"ec7bb80f4bbe5731edb932a836d84f3865a0d6f6daa4ab74aecc99170e7af0e8"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"72388b235e9d2746bbb341cb64c316d8b6665a2737adb98d668f5e8fca885997"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"979b5c6695bb2efd1c9bcc5e6506b4c39db44539c2fd17603a4b829a3d8d1f9e"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"31277f9aeadaa8cf911d5610bacad66becbfe8b5a1ebeeaeedb1b51ba3d6b8dd"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"e1656c143a3d206220c84b8d4a299c8ad53c879676ea7240631ef22067490dfc"}
+[source] {"name":"scripts/internal/recording_job_ownership_smoke.cpp","sha256":"3b0520acf9edf18310ec4f49ec05f3be0501c3c28beff28bc7a5b023f85807e1"}
+[source] {"name":"src/recording/recording_timeline_projection.cpp","sha256":"88c1b064d5ce595ea21c615ed8dce0cb14e54ad8030a420943b2d558daeba203"}
+        2.94 real         2.70 user         0.19 sys
+           293781504  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               69455  page reclaims
+                 624  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   9  messages sent
+                   0  messages received
+                   3  signals received
+                  21  voluntary context switches
+                2143  involuntary context switches
+            75735737  instructions retired
+            39249459  cycles elapsed
+             1950104  peak memory footprint
+{"kind":"phase","label":"build","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":2958,"groupPeakRssBytes":309805056}
+{"kind":"command","label":"focused","command":"<owned-root>/check","args":["<owned-root>"],"seconds":60}
+[pass] LP18-J03 initial canonical and active source protection preserved
+[pass] LP18-J03 FindDerivedJob returns independent value
+[pass] LP18-J03 full and active snapshots return independent values
+[pass] LP18-J03 foreign Prepared owner rejected without transition
+[pass] LP18-J02 validated record is published as the same owned object
+[pass] LP18-J02 Prepared prior retains pre-publication canonical value
+[pass] LP18-J03 consumed Prepared cannot apply twice
+[pass] LP18-J03 invalid terminal transition preserves state and bytes
+[pass] LP18-J03 terminal protection and service owner released
+[pass] LP18-J01 checkpoint shares current live job object
+[pass] LP18-J03 null job pool uses independent strict value
+[pass] LP18-J03 different-content job pool uses independent strict value
+[pass] LP18-J03 different-id job pool uses independent strict value
+[pass] LP18-J02 equal-content replacement invalidates Prepared prior ownership
+[pass] LP18-J01 shared job survives pool owner destruction
+[pass] LP18-J01 no-op checkpoint preserves job handles without pool comparisons
+[pass] LP18-J01 newly applied job compares only matching current pool entry
+[pass] LP18-J01 duplicate job mutation performs no pool comparison
+[pass] LP18-J03 latest terminal pool cannot replace historical Intent
+[pass] LP18-J03 matching job pool cannot bypass strict state validation
+[pass] LP18-J03 null resident job rejects snapshots and retention authority
+[pass] LP18-J04 full journal bytes and terminal record roundtrip preserved
+[pass] LP18-J04 SQLite reopen preserves terminal canonical and release
+[pass] LP18-J04 JSONL reopen preserves terminal canonical and release
+[summary] LP18 pass=24 fail=0
+        0.74 real         0.26 user         0.03 sys
+            37650432  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                4440  page reclaims
+                  40  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                  39  voluntary context switches
+                 205  involuntary context switches
+          5286830555  instructions retired
+          1198139188  cycles elapsed
+             6292152  peak memory footprint
+{"kind":"phase","label":"focused","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":757,"groupPeakRssBytes":2457600}
+{"kind":"oracle","mode":"green","expectedRed":false,"productPass":true,"matched":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":6211829,"removed":true}
+{"kind":"result","utc":"2026-09-19T14:50:15.669Z","mode":"green","matched":true,"productPass":true,"elapsedMs":3730}
