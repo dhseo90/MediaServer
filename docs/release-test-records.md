@@ -2,6 +2,116 @@
 
 ## 2026-09-19 LP18 불변 소유·검증·RAM 수명 보완
 
+### 3번 Intent 대조의 검증 재사용 착수(2026-09-20 KST)
+
+기준 커밋 `6e68852c`. 메인 안전 설계와 게시 경로 직접 검토 후 기존 단일 Astra/medium 담당자에게
+검사 준비만 위임했다. 제품 변경은 RED 확인 뒤 진행하며 하위 생성/에이전트 실행/커밋은 금지한다.
+사전 읽기 `rg`의 존재하지 않는 counter 파일명은 확인된 실제 이름으로 정정했으며 검사 실행 실패가 아니다.
+현재는 준비 상태로, 아래 실행/PASS는 아직 없다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 승인3번 내부 중복 검증 제거 | catalog ApplyDerivedJobMutationLocked / LP18-C01~02 | 관련 단기 승인 |
+| 30분 | 미진행 | 개발 중 변경·최종cut 아님 | AGENTS 7.6.2 | 이번 실행 안 함 |
+| 120분 | 미진행 | 개발 중 변경·최종cut 아님 | AGENTS 7.6.2 | 이번 실행 안 함 |
+| UI | 미진행 | 내부 저장 변경·브라우저 제외 유지 | LP18-C01~02 | 이번 실행 안 함 |
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-C01 정상 전이 | 실제 Encode30/2출력 5회 Apply | public Parse1·Validate/Restore 기존3→1·Json3 유지, hash/Complete/보호 | v4.1.0 |
+| LP18-C01 독립 전이 | strict Committed→Complete | Validate/Restore 기존3→1·전체 canonical 동등 | v4.1.0 |
+| LP18-C02 신뢰 경계 | noncanonical·공개 사본 Intent 변경·null prior | strict 거부·현재 소유/원장 bytes 불변, 기존 transition21항목도 유지 | v4.1.0 |
+| LP18-C 영향 | job context·sealed proof·Prepared·job/service·cache/catalog | 공개 최초 strict/상한·오류·복구·보호/충돌 유지, 변경된 제품에 관련 회귀만 실행 | v4.1.0 |
+| LP18-C 비용 | 기존 실제2-job 동일 입력 비교 | semantic/raw/source·B/C cache 모드·cleanup 확인, 코드 전후 속도 비교로 확대 금지 | v4.1.0 |
+| LP18-C build/docs | 전체 build·문서 links·diffcheck | 순차 exit0 확인 | v4.1.0 |
+
+명령은 `node scripts/internal/verify_recording_immutable_ownership.mjs red intent-01 intent-comparison`,
+구현 뒤 동일 suite의 `green intent-01`이다. 기존 소유 runner의 60초/1GiB RSS/512MiB 디스크/2MiB 출력 및
+프로세스 그룹·root·source hash 정리/불변 oracle를 유지한다. 정확 assertion/count는 실행 전에 아래 추가 등록한다.
+회귀 명령은 앞선 LP18-T와 같은 스크립트이며 context/proof도 각각 기존 suite로 실행한다.
+실제 HTTP·16/32누적·상세 RAM 내림은 이 부분검사의 결과로 대신하지 않는다.
+
+실행 전 exact 등록: 기존 transition21개에 아래7개를 추가한다. RED26PASS/2FAIL, GREEN28PASS이며
+FAIL 예상은 첫째·셋째 비용 assertion뿐이다. 제품 코드는 아직 변경하지 않았다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-C01 normal transitions validate and restore incoming Intent once | 실제5전이 비용 | Validate/Restore 각각1 | v4.1.0 |
+| LP18-C01 normal transitions retain three full Intent canonical generations | 실제5전이 전체값 대조 | Json3 유지 | v4.1.0 |
+| LP18-C01 changed-state direct Apply validates and restores incoming Intent once | 독립 Committed→Complete 비용 | Validate/Restore 각각1 | v4.1.0 |
+| LP18-C01 changed-state direct Apply retains three full Intent canonical generations | 독립 전체값 대조 | Json3 유지 | v4.1.0 |
+| LP18-C02 noncanonical payload rejects without owner or durable byte change | payload 공백 변조 | strict Parse1·거부/상태/bytes 불변 | v4.1.0 |
+| LP18-C02 modified public Intent copy cannot change immutable current job | public Find의 reserved_bytes 변경 재입력 | Complete manifest 불일치로 최초 Serialize1에서 거부/Parse0·기존 canonical/owner/bytes 불변 | v4.1.0 |
+| LP18-C02 null prior rejects after incoming strict Parse without publication | private 오류 주입 | Parse1·null 유지·bytes 불변 | v4.1.0 |
+
+최초 `red intent-01 intent-comparison`은 wrapper exit1, build0/4738ms, focused1/2304ms로
+25PASS/3FAIL이었다. 기대 비용2개 외 공개 Complete 사본 반례의 oracle가 잘못됐다.
+`RecordContext::Manifest`는 Intent 전체 canonical을 포함하며 Validate의 `job-ready-manifest`가
+변경된 사본을 Update의 최초 Serialize에서 거부한다. 따라서 기존처럼 Parse1/immutable 충돌을
+기대하는 것은 잘못이다. 제품은 변경하지 않고 검사만 Serialize1/Parse0/`derived service record 거부`로
+실행 전 정정했다. 독립 Intent 변경의 immutable 충돌 검사는 기존 T03에 계속 유지한다.
+최초 원출력 [intent-01](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-intent-01.txt)은
+예상 RED가 아닌 실제 검증 준비 실패로 보존한다. 8976088B 소유 root 삭제·그룹 정리·source 불변을 확인했다.
+AGENTS3.3의 동일 격리 검사 준비 결함으로 한정해 수정하고 `red intent-02 intent-comparison`으로 재검증한다.
+
+재검증 `red intent-02`는 wrapper0·build0/4555ms·focused1/2179ms, 정확26PASS/2FAIL로 예상 RED가 일치했다.
+정상5회/독립 전이 모두 Validate/Restore3, Json3, public Parse1이며 기대 비용2개만 실패했다.
+소유 root8976088B 삭제·그룹 정리·source 불변 확인 뒤 제품3파일의 catalog 전용 canonical을 구현한다.
+
+### Intent 대조 구현·회귀 결과
+
+제품 변경은 catalog Apply의 한 지점, 구현 전용 `CatalogIntentCanonical`, 기존 Json formatter 호출로 한정했다.
+생성자는 catalog만 접근하고 비복사·호출-local이다. strict incoming/proof·현재 prior 검사 뒤 전체 canonical을
+대조하며 생성 실패/상한 초과의 빈 값끼리 같다고 처리하지 않는다. 공개 Serialize/Parse와 상태/receipt/Ready/
+source/예약 검사는 유지했다. 메인과 기존 담당자의 읽기 검토에서 추가 수정 항목은 없었다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-C 최초 준비 검사 | red intent-01 wrapper1·25PASS/3FAIL. 위 manifest oracle 오류 포함, 제품 수정 전 | FAIL |
+| LP18-C 예상 RED | red intent-02 wrapper0·focused1·26PASS/2FAIL. 비용2개만 실패, 제품 PASS 아님 | FAIL |
+| LP18-C 전체 build | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build` exit0. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-intent-build-01.txt) | PASS |
+| LP18-C focused | `node scripts/internal/verify_recording_immutable_ownership.mjs green intent-01 intent-comparison` exit0/6955ms·28개. 실제5전이/직접전이 Validate·Restore3→1, Json3 유지 | PASS |
+| LP18-C 공개 context | 같은 runner `green intent-context-01 context` exit0/6573ms·31개. 공개 호출 strict·오류/cap/manifest/출력 초기화 | PASS |
+| LP18-C proof | 같은 runner `green intent-proof-01 content` exit0/17274ms·25개. 부적격 fallback·독립 shadow 상태·수동/복구 검사 | PASS |
+| LP18-C Prepared | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_derived_transition_reuse.sh` exit0/6초·11개, owner/prior/one-shot/SQL | PASS |
+| LP18-C jobs | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_derived_jobs.sh` exit0/9초·23개, immutable/상한/보호/재open | PASS |
+| LP18-C service | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_derived_job_service.sh` exit0/18초·default43개, 실제 출력/hash/decode·오류/복구 | PASS |
+| LP18-C cache | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_checkpoint_cache.sh` exit0/16초·47개, peak166739968B<기존536870912B 상한 | PASS |
+| LP18-C catalog | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_v410_recording_catalog.sh` exit0·246개, bytes/손상/원자복구/SQLite/JSONL/crypto-off | PASS |
+| LP18-C 실제2-job | `node scripts/internal/recording_catalog_comparison_run.mjs jobs lp18-intent-01` exit0/17374ms·4phase·기능120/계측1. 동일 입력·B/C 의미/정리 통과 | PASS |
+
+개별 전수 [결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md)의 첫 Intent 대조 절에
+모든575개 GREEN assertion과 최초28개·RED28개를 보존했다. raw의 공백 끝15개 catalog 행은 `RAW_JSON_LINE`으로
+손실 없이 저장했고 해제 후246개와 대조했다. 이는 고유 기능575개나 S11 전체 PASS가 아니다.
+2-job B/C peak157384704/104792064B, 입력 SHA `f8de1cd44038e7433d0c24b3f250f63704b80ba86b468178beb607f0e68ce82e` 동일.
+B/C는 cache on/off이며 코드 전후 성능 향상률로 사용하지 않는다. 원래 synthetic writer의 file-evidence 경고를 보존했고
+이 검사로 native 지원/UI/HTTP를 대신하지 않았다. 전체 build의 elapsed는 분할 polling으로 직접 집계하지 못했다.
+Prepared/jobs/service/cache elapsed는 원출력 bash-SECONDS다. catalog 도구 왕복은21350ms이나 제품 실행 시간으로 쓰지 않는다.
+token start/end/consumed는 개별 명령 집계원 부재로 미집계, source는 각 raw의 hash/환경 및 `6e68852c` 위 제품diff다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| red intent-01/02 소유 root | 각 실행 바이너리·임시원장·GST registry | 각각8976088B | runner 소유 확인 후 삭제 | 두 실행 모두 부재·group 정리 | 각 raw cleanup |
+| green intent-01 소유 root | 위와 같음 | 8977309B | 삭제 | 부재·group 정리 | focused raw |
+| green intent-context-01 소유 root | 위와 같음 | 8994549B | 삭제 | 부재·group 정리 | context raw |
+| green intent-proof-01 소유 root | 위와 같음 | 13667567B | 삭제 | 부재·group 정리 | proof raw |
+| transition-reuse.cDrQDj | 격리 Prepared fixture | 9055311B | 삭제 | 부재 | prepared raw |
+| derived-jobs.8199SP | 격리 작업 fixture | 9721775B | 삭제 | 부재 | jobs raw |
+| derived-job-service.lOZ9qj | 실제 임시영상/원장 | 18067268B | 삭제 | 부재 | service raw |
+| checkpoint-cache.HE8pEz | 격리 캐시 fixture | 16897613B | 삭제 | 부재·group 정리 | cache raw |
+| /tmp/media_server_v410_recording_catalog-71439 | 격리 catalog fixture | 26962542B | 삭제 | 부재 | catalog raw |
+| lp17 jobs lp18-intent-01 소유 root | 비교 실행/임시영상/원장 | 18657596B | 삭제 | 부재·group 정리·source 불변 | comparison raw |
+| release-artifacts의 위 raw11개·build1개·전수표 | 텍스트 증적 | 개별 raw에 보존 | Git 보존 | 비밀/운영자료 없음, 실패·전수·비용/정리 재현 목적 | 중앙 기록 |
+
+서버/listen port를 생성하지 않는 로컬 검사들이다. 새로운 cleanup blocker는 없다.
+이 단위와 이전 단위를 합쳐 3번의 정상 호출/자동 checkpoint 검증 재사용 구현·관련 단기 회귀를 마쳤다.
+신규/복구의 strict 검증, 서로 다른 공개 호출, 실제 상태/전체값 비교는 필요한 안전 경계로 남긴다.
+과거 상세 payload의 상주·checkpoint 전수 문자열의 일시 메모리 및 누적/HTTP 판정은 각각4번·5번의 미완료 대상이다.
+마감 docs-links 최초 exit1은 위 새 heading의 중점 문자 anchor 작성 오류1건이었다. 파일 첫 절 링크로 수정하고
+동일 명령부터 재검증한다. 대화/문서의 집계 초안577도 실제 전수575로 커밋 전에 바로잡았다.
+마감 재검증: `./server.sh verify-docs-links` exit0(285문서/8884링크/22이미지/116anchor),
+`git diff --check` exit0. 새 이미지/UI 변경이 없어 자산·실제 UI 검사는 반복하지 않았다.
+
 독자: 녹화 개발/검증 담당. 수명: 승인된 제품 보완 1~5번의 실행 기록. 정책은 AGENTS.md다.
 시작 기준은 기존 미커밋3묶음 정리 후 `afe9e462`, v4.1.0/ahead14/clean이다. 과거 실패는 이전 절에 보존했다.
 메인이 공통 소유/안전 계약을 직접 구체화했다. 단일 기존 Astra/medium 담당자는 cold 소비자 읽기 검토를 수행하며 하위 생성·수정·실행은 금지했다.

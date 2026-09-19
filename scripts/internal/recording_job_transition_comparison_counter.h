@@ -4,12 +4,12 @@
 #include <cstddef>
 namespace transition_compare_probe {
 enum class Phase {None,Update,Apply,Pool};
-struct Counts {std::size_t update=0,apply=0,pool=0,parses=0;};
+struct Counts {std::size_t update=0,apply=0,pool=0,parses=0,validates=0,restores=0,jsons=0;};
 inline Counts counts{};inline Phase phase=Phase::None;
 inline bool enabled=false,watch_updates=false;
 struct Row {unsigned state=0;std::size_t files=0;Counts counts;};
 inline std::array<Row,8> rows{};inline std::size_t used=0,dropped=0;
-inline Counts Difference(Counts a,Counts b){return {a.update-b.update,a.apply-b.apply,a.pool-b.pool,a.parses-b.parses};}
+inline Counts Difference(Counts a,Counts b){return {a.update-b.update,a.apply-b.apply,a.pool-b.pool,a.parses-b.parses,a.validates-b.validates,a.restores-b.restores,a.jsons-b.jsons};}
 struct Scope {Phase previous;explicit Scope(Phase next):previous(phase){if(enabled)phase=next;}~Scope(){phase=previous;}};
 struct UpdateScope {
  bool previous_enabled,capturing;Phase previous;Counts before;unsigned state;std::size_t files;
@@ -18,4 +18,7 @@ struct UpdateScope {
 };
 inline void Serialize(){if(enabled){if(phase==Phase::Update)++counts.update;else if(phase==Phase::Apply)++counts.apply;else if(phase==Phase::Pool)++counts.pool;}}
 inline void Parse(){if(enabled)++counts.parses;}
+inline void Validate(){if(enabled&&phase==Phase::Apply)++counts.validates;}
+inline void Restore(){if(enabled&&phase==Phase::Apply)++counts.restores;}
+inline void Json(){if(enabled&&phase==Phase::Apply)++counts.jsons;}
 }

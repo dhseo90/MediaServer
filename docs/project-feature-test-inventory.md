@@ -38,6 +38,11 @@
 
 등록은 실행/PASS가 아니다. 전체 승인 범위와 실제 수행/미수행은 중앙 기록 LP18을 따른다.
 
+| 기능 ID | 기능 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| LP18-C01 | 검증된 Intent의 호출-local 대조 | 실제5전이·독립 전이에서 strict Parse 유지, Apply Validate/Restore 각1회 및 전체 Json 대조 유지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-C02 | 대조 신뢰 경계 | noncanonical·공개 사본 변경·null prior 거부, malformed/immutable/상태·proof/Prepared fallback 기존 회귀 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+
 ## LP17 누적 비용·보관 계약의 계획된 검사
 
 아래는 설계 등록이며 구현/실행/PASS가 아니다. 진단 축·oracle는 구현계획 LP17, 저장 반례는 누적 비용 계약을 따른다.

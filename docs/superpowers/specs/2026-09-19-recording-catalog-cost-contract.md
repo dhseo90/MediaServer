@@ -79,6 +79,13 @@ BuildReady는 shape→selection 순서를 유지하고 확정된 지역 Intent �
 Apply의 incoming은 strict Parse canonical equality 또는 봉인 proof의 exact payload 결박을 통과한 문자열을 재사용한다.
 동일 shape의 prior와 pool 후보는 기존 전체 canonical 비교를 유지하고, 불변 Intent 대조를 shape 검사로 대체하지 않는다.
 
+불변 Intent 대조에서는 incoming strict Parse/proof와 현재 prior의 검증된 게시 경계를 통과한 뒤에만
+catalog 전용 호출-local canonical을 만든다. 기존 Json formatter·4MiB 상한·전체 문자열 동등성은 유지하고,
+동일 내용의 Validate/Restore만 반복하지 않는다. 생성자는 catalog에만 허용하며 새 입력을 받는 재사용 메서드,
+외부/Prepared/cache 보관은 없다. 생성 실패/빈 값은 동등으로 취급하지 않는다. 공개 Serialize/Parse는 항상 strict다.
+prior의 신뢰는 shared_ptr 주소가 아니라 strict Apply/Prepared 게시 경로에서 성립한다. 임의로 private map에
+삽입한 미검증 fixture 값의 유효성을 보장하는 계약으로 확대하지 않는다. source binding 등 하위 serializer는 유지한다.
+
 ### RAM 수명 구현의 소비자 경계
 
 terminal Complete 작업도 `MediaV2EligibleLocked`가 출력의 유일 소유자·Ready·manifest·AU provenance를 검사한다.

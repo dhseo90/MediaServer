@@ -3,6 +3,7 @@
 #include "recording/recording_catalog.h"
 #include "recording/recording_latency_trace.h"
 #include "recording_checkpoint_validation.h"
+#include "recording_derived_job_context.h"
 #include "recording/recording_finalize_recovery.h"
 #include "recording/recording_presentation_interval.h"
 
@@ -527,7 +528,10 @@ bool RecordingCatalog::ApplyDerivedJobMutationLocked(const RecordingMutationV1& 
     }
     if(!old->second)return Fail(error,"derived null prior 거부");
     const auto& prior=*old->second;
-    if(SerializeDerivedJobIntent(prior.intent)!=SerializeDerivedJobIntent(record.intent))return Fail(error,"derived job immutable 충돌");
+    // incoming은 위 strict Parse/proof, prior는 strict Apply/Prepared의 불변 게시 값이다.
+    // 호출-local 전체 canonical 대조는 유지하되 동일 내용의 Validate/Restore를 반복하지 않는다.
+    const detail::CatalogIntentCanonical prior_intent(prior.intent),incoming_intent(record.intent);
+    if(!prior_intent.Equals(incoming_intent))return Fail(error,"derived job immutable 충돌");
     // Parse의 canonical 검사 또는 봉인된 내용 증명이 incoming payload를 결박했다.
     // 상태/파일 수가 다르면 같은 Record일 수 없지만 아래 전이 검증은 계속한다.
     if(prior.state==record.state&&prior.files.size()==record.files.size()&&

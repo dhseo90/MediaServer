@@ -3,7 +3,7 @@
 ## 문서 상태
 
 - 2026-09-19 현재 우선: 사용자 승인 LP18 제품 보완(공통 소유/검증 계약→중복 보관→재검증→상세 RAM 수명→관련 회귀/실제 HTTP)에 착수했다.
-  journal/checkpoint envelope·accepted 기록·typed binding/job의 동일 상태 공유, 호출-local 내용 Parse 재사용·Intent 내부 반복 제거와 관련 단기 회귀는 통과했다. 공개/자기완결 snapshot·과거 payload 상주는 남으며 나머지 중복 처리·상세 RAM 수명·실제 HTTP는 미완료다.
+  journal/checkpoint envelope·accepted 기록·typed binding/job의 동일 상태 공유, 정상 호출/자동checkpoint 내용 Parse·Intent 반복 검증 제거와 관련 단기 회귀는 통과했다. 공개/자기완결 snapshot·과거 payload 상주는 남으며 상세 RAM 수명·누적/실제 HTTP는 미완료다.
   기존 미커밋 변경은3묶음으로 보존했고 공통 계약은 `1d13b08a`로 커밋했다. 제품 보완 전체 완료나 성능 PASS는 아니다.
   순서·직접 실행 결과는 상세 구현계획 LP18과 중앙 테스트 기록을 따른다. 푸시·장시간/UI는 이번 개발 범위 밖이다.
   앞선 LP17 판정 기준·비교 설계·저장 수명 안전 계약을 작성·재검토했다.

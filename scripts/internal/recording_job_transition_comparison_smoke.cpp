@@ -7,6 +7,9 @@
 namespace {
 using namespace recording;
 int comparison_pass=0,comparison_fail=0;
+#ifndef LP18_INTENT_COMPARISON
+#define LP18_INTENT_COMPARISON 0
+#endif
 void ComparisonNeed(bool value){if(!value)throw std::runtime_error("LP18_COMPARISON_SETUP");}
 void ComparisonCheck(bool value,const char* label){++(value?comparison_pass:comparison_fail);std::cout<<(value?"[pass] ":"[fail] ")<<label<<'\n';}
 template<class F>transition_compare_probe::Counts MeasureComparison(F call){transition_compare_probe::counts={};transition_compare_probe::enabled=true;call();transition_compare_probe::enabled=false;return transition_compare_probe::counts;}
@@ -23,6 +26,13 @@ void RunComparison(const std::filesystem::path& root){
  ComparisonCheck(parses,"LP18-T01 five normal updates retain exactly one public Parse each");
  ComparisonCheck(parses&&update,"LP18-T02 normal Update serializes only incoming record");
  ComparisonCheck(parses&&apply,"LP18-T02 normal Apply skips impossible duplicate Record serialization");
+ if(LP18_INTENT_COMPARISON){
+  bool strict=parses,json=parses;
+  for(std::size_t i=0;i<transition_compare_probe::used;++i){const auto& c=transition_compare_probe::rows[i].counts;strict=strict&&c.validates==1&&c.restores==1;json=json&&c.jsons==3;
+   std::cout<<"[intent-counts] transition="<<i<<" validates="<<c.validates<<" restores="<<c.restores<<" jsons="<<c.jsons<<'\n';}
+  ComparisonCheck(strict,"LP18-C01 normal transitions validate and restore incoming Intent once");
+  ComparisonCheck(json,"LP18-C01 normal transitions retain three full Intent canonical generations");
+ }
  const auto terminal=store.catalog.derived_jobs_.at(intent.job_id);const auto canonical=SerializeDerivedJobRecord(*terminal);const auto durable=ComparisonBytes(store.journal.path());std::string error;bool ok=false;
  auto measured=MeasureComparison([&]{ok=store.catalog.UpdateDerivedJob(&service,*terminal,&error);});
  ComparisonCheck(ok&&measured.update==2&&measured.apply==0&&measured.parses==0&&store.catalog.derived_jobs_.at(intent.job_id)==terminal&&ComparisonBytes(store.journal.path())==durable,"LP18-T03 identical public retry retains full comparison without append");
@@ -56,6 +66,11 @@ void RunComparison(const std::filesystem::path& root){
   ComparisonCheck(ok&&measured.parses==1&&SerializeDerivedJobRecord(*target.derived_jobs_.at(intent.job_id))==canonical,"LP18-T03 direct changed-state Apply preserves full terminal canonical");
   ComparisonCheck(ok&&measured.apply==0,"LP18-T02 changed-state direct Apply performs zero Record serializations");
   std::cout<<"[comparison-counts] directChangedApply="<<measured.apply<<'\n';
+  if(LP18_INTENT_COMPARISON){
+   ComparisonCheck(ok&&measured.parses==1&&measured.validates==1&&measured.restores==1,"LP18-C01 changed-state direct Apply validates and restores incoming Intent once");
+   ComparisonCheck(ok&&measured.jsons==3,"LP18-C01 changed-state direct Apply retains three full Intent canonical generations");
+   std::cout<<"[intent-counts] directChanged validates="<<measured.validates<<" restores="<<measured.restores<<" jsons="<<measured.jsons<<'\n';
+  }
  }
  for(const bool different_state:{true,false}){
   RecordingCatalog::DerivedJobPool pool;const auto candidate=different_state?terminal:std::make_shared<const DerivedJobRecordV1>(files);pool.emplace(intent.job_id,candidate);RecordingCatalog::DerivedJobHandle shared;
@@ -81,6 +96,19 @@ void RunComparison(const std::filesystem::path& root){
  }
  ++initial.intent.reserved_bytes;measured=MeasureComparison([&]{ok=store.catalog.UpdateDerivedJob(&service,initial,&error);});
  ComparisonCheck(!ok&&measured.parses==1&&error=="derived job immutable 충돌"&&store.catalog.derived_jobs_.at(intent.job_id)==terminal&&ComparisonBytes(store.journal.path())==durable,"LP18-T03 state and files prefilter cannot bypass immutable Intent collision");
+ if(LP18_INTENT_COMPARISON){
+  RecordingCatalog target(store.journal,Store::Options(root));target.derived_jobs_.emplace(intent.job_id,terminal);
+  auto noncanonical=complete_mutation;noncanonical.payload_json+=' ';
+  measured=MeasureComparison([&]{ok=target.ApplyDerivedJobMutationLocked(noncanonical,&error);});
+  ComparisonCheck(!ok&&measured.parses==1&&target.derived_jobs_.at(intent.job_id)==terminal&&ComparisonBytes(store.journal.path())==durable,"LP18-C02 noncanonical payload rejects without owner or durable byte change");
+  std::optional<DerivedJobRecordV1> public_copy;ComparisonNeed(store.catalog.FindDerivedJob(intent.job_id,&public_copy,&error)&&public_copy.has_value());++public_copy->intent.reserved_bytes;
+  measured=MeasureComparison([&]{ok=store.catalog.UpdateDerivedJob(&service,*public_copy,&error);});
+  // Complete의 manifest는 Intent 전체에 결박된다. 사본만 바꾸면 Apply 전에 strict Serialize가 거부한다.
+  ComparisonCheck(!ok&&measured.update==1&&measured.parses==0&&error=="derived service record 거부"&&SerializeDerivedJobRecord(*terminal)==canonical&&store.catalog.derived_jobs_.at(intent.job_id)==terminal&&ComparisonBytes(store.journal.path())==durable,"LP18-C02 modified public Intent copy cannot change immutable current job");
+  target.derived_jobs_.at(intent.job_id).reset();
+  measured=MeasureComparison([&]{ok=target.ApplyDerivedJobMutationLocked(complete_mutation,&error);});
+  ComparisonCheck(!ok&&measured.parses==1&&!target.derived_jobs_.at(intent.job_id)&&ComparisonBytes(store.journal.path())==durable,"LP18-C02 null prior rejects after incoming strict Parse without publication");
+ }
 }
 }
 int main(int argc,char** argv){if(argc!=2)return 2;gst_init(nullptr,nullptr);try{RunComparison(std::filesystem::path(argv[1])/"transition-comparison");std::cout<<"[summary] LP18 pass="<<comparison_pass<<" fail="<<comparison_fail<<'\n';return comparison_fail?1:0;}catch(...){std::cout<<"[setup-or-oracle-fail] LP18 fixed-transition-comparison-error\n";return 2;}}

@@ -503,6 +503,12 @@ namespace recording {
         }
         );
     }
+    detail::CatalogIntentCanonical::CatalogIntentCanonical(const DerivedJobIntentV1& job){
+        try{
+            canonical_=Json(job);
+            if(canonical_.size()>kCap)canonical_.clear();
+        }catch(...){canonical_.clear();}
+    }
     std::string SerializeDerivedJobIntent(const DerivedJobIntentV1& job){
         try{
             const auto context=detail::DerivedJobIntentContext::Analyze(job);

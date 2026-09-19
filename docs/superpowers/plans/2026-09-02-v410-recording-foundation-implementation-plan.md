@@ -47,7 +47,7 @@ typed binding도 live/shadow const 소유로 공유하고 focused77·source20·c
 2번의 journal/live/shadow 동일 기록 소유 보완은 완료했다. 공개/자기완결 snapshot과 과거 payload·상세 상주는 남았으며 3~4번과 구분한다.
 3번 첫 호출-local 내용 proof는 focused25·job24·prepared11·cache47·catalog246·실제2-job 기능120/계측1·전체 build를 통과했다.
 정상 strict Parse8회와 복구/수동 Parse는 유지하고 같은 호출 자동 checkpoint의 current Parse2회만0회로 줄였다.
-상태 비교·과거 이력·중복 직렬화 비용은 남으며 3번 전체 및4~5번은 미완료다. 상세 실행/정리는 중앙 기록을 따른다.
+이 첫 단위 당시 상태 비교·과거 이력·중복 직렬화 비용이 남아 3번 전체 및4~5번은 미완료였다. 후속 상태는 아래를 따른다.
 추가 envelope 비용 단위는 전체필드 대조 뒤 중복 canonical 생성을 제거했다. focused30·기존소유34·identity6·cache47·catalog246·실제2-job 기능120/계측1·전체build 통과.
 Intent 호출-local context도 구현했다. 실제 BuildReady의 Validate/Restore/Json9/9/13회와 각 public 호출 내부 반복을1/1/1회로 줄였다.
 focused31·literal/native11·prepared11·jobs23·service43·proof25·cache47·catalog246·실제2-job 기능120/계측1·전체build 통과.
@@ -56,7 +56,12 @@ focused31·literal/native11·prepared11·jobs23·service43·proof25·cache47·ca
 정상5전이 각각 Record 직렬화 Update2→1/Apply2→0 및 Parse1 유지. 동일 retry·불법 전이·immutable 충돌은 기존대로 검사한다.
 필요한 상태/불변 대조와 신규/복구 검증을 제거한 것은 아니며 상세 RAM 상주/최종 누적·HTTP는 미완료다.
 실행/수집 실패와 재검증은 중앙 기록에 보존했다.
-이후 3/4번은 같은 계약 안에서 변경 파일·반례를 구체화하고 실행 전 등록한다. 기록 없는 테스트를 사후 PASS로 만들지 않는다.
+마지막 Intent 대조는 strict incoming/검증된 prior의 전체 canonical을 유지하며 Apply Validate/Restore3→1로 줄였다.
+focused28·context31·proof25·prepared11·jobs23·service43·cache47·catalog246·실제2-job 기능120/계측1·전체build를 통과했다.
+3번의 정상 호출/자동 checkpoint 재사용 구현·관련 단기 회귀는 완료했다. 서로 다른 공개 입력의 strict 검사와
+상태/전체값 비교는 필요한 경계로 유지한다. 남은4번 상세 RAM 수명 및5번 누적/실제HTTP 판정을 대신하지 않는다.
+4번은 기존 JSONL의 안전한 위치 재획득→typed/cache 소비 연결→상주 해제/재open 순으로 같은 계약 안에서
+변경 파일·반례를 구체화하고 실행 전 등록한다. 기록 없는 테스트를 사후 PASS로 만들지 않는다.
 
 ### LP17 판정 기준 비교 설계 저장 계약
 
