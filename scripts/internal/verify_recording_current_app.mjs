@@ -11,13 +11,16 @@ import {assertLocalIceConfig} from './verify_local_ice_guard.mjs';
 import {dispatchTuple,correlatedEvent} from './recording_event_correlation.mjs';
 import {allTimelinePages,eventOutputs,verifyRestart,measuredHttpResponse,summarizeEventState,latencyTransitionOutputs} from './recording_current_app_helpers.mjs';
 import {failedWindowGate,requireFailedWindowDispatch,summarizeOverlappingSources} from './recording_current_app_helpers.mjs';
-import {captureFailureEvidence,captureCompletenessEvidence,removeDiagnosticRoot,runDiagnosticProbe} from './recording_failure_capture.mjs';
-import {createSelectionTraceCollector,matchSelectionTrace} from './recording_selection_trace.mjs';
+import {captureFailureEvidence,captureCompletenessEvidence,captureStateEvidence,removeDiagnosticRoot,runDiagnosticProbe,createWriterEvidenceCollector} from './recording_failure_capture.mjs';
+import {createSelectionTraceCollector,matchSelectionTrace,reportSelectionTraceFailure} from './recording_selection_trace.mjs';
 const reproduceFailedWindow=process.argv.length===3&&process.argv[2]==='--reproduce-failed-window';
 const latencyOnly=reproduceFailedWindow||(process.argv.slice(2).length===1&&process.argv[2]==='--latency-only');
 if(process.argv.length>2&&!latencyOnly)throw Error('unsupported-mode');
-let latencyPass=false,failedReference=null,completedReference=null;
+let latencyPass=false,failedReference=null,completedReference=null,diagnosticReference=null;
 const timelineTimings=[];
+// 이 fixture의 segment=2000ms, post=750ms, 기본 여유=1000ms,
+// retry=500ms와 LP10 원본 대기 예산에 결박한다. 임의 행별 예산은 허용하지 않는다.
+const selectionTraceBudget={baseWaitMs:3750,baseAttemptLimit:9,sourceWaitMs:60000,sourceAttemptLimit:121};
 const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const MiB=1024*1024,start=performance.now(),deadline=start+180000;
 const root=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'media-server-current-integration-')));
@@ -68,13 +71,14 @@ async function request(app,method,route,body){const r=await response(app,route,{
 async function launch(stun){
   const http=await reservePort(),rtsp=await reservePort();
   const child=spawn(path.join(repo,'server.sh'),['foreground'],{cwd:repo,env:environment(http,rtsp,stun),stdio:['ignore','pipe','pipe']});
-  const app={child,http,rtsp,base:`http://127.0.0.1:${http}`,logBytes:0,closed:false,selectionTrace:createSelectionTraceCollector()};processes.push(app);
+  const app={child,http,rtsp,base:`http://127.0.0.1:${http}`,logBytes:0,closed:false,selectionTrace:createSelectionTraceCollector(selectionTraceBudget),writerEvidence:createWriterEvidenceCollector()};processes.push(app);
   child.once('error',()=>{app.spawnError=true;});child.once('close',()=>{app.closed=true;});
   for(const stream of [child.stdout,child.stderr]){
     stream.setEncoding('utf8');
     stream.on('data',chunk=>{
       app.logBytes+=Buffer.byteLength(chunk);if(app.logBytes>4*MiB){app.logOverflow=true;child.kill('SIGTERM');}
       if(stream===child.stderr&&!app.traceError)try{app.selectionTrace.append(chunk);}catch{app.traceError=true;}
+      if(stream===child.stderr)app.writerEvidence.append(chunk);
     });
   }
   await until('health',async()=>{if(app.closed||app.spawnError||app.logOverflow)throw Error('app-start-failed');try{return (await response(app,'/health')).status===200;}catch(error){if(error.message==='actual-app-deadline')throw error;return false;}},15000);
@@ -85,6 +89,7 @@ async function stop(app){
   await stopServer(app.child);const ports=[];
   for(const [kind,port] of [['http',app.http],['rtsp',app.rtsp]]){await assertPortClosed(port);ports.push({kind,port,closed:true});}
   app.stopped=true;processEvidence.push({pid:app.child.pid,exitCode:app.child.exitCode,signalCode:app.child.signalCode,graceful:true,ports});
+  console.log('[writer-evidence-status] '+JSON.stringify(app.writerEvidence.finish()));
   check(true,`S11-CI08 product-${processEvidence.length} exit0 ports returned`);
 }
 function events(){const file=path.join(root,'events/events.jsonl');if(!fs.existsSync(file))return [];const size=fs.statSync(file).size;if(size>4*MiB)throw Error('event-jsonl-byte-cap');const text=fs.readFileSync(file,'utf8'),end=text.lastIndexOf('\n');if(end<0)return [];const lines=text.slice(0,end).split('\n').filter(Boolean);if(lines.length>8192)throw Error('event-record-cap');return lines.map(line=>JSON.parse(line));}
@@ -114,6 +119,7 @@ async function collectEvent(app,index){
     if(reproduceFailedWindow)requireFailedWindowDispatch(tuple.pts);
     event=await until('durable-event',()=>correlatedEvent(events(),prior,tuple),10000);
     check(event.recordingLinkId&&event.channelId===tap.streamKey,`S11-CI07 run${index} actual tuple EventRecord reference`);
+    diagnosticReference=event.recordingLinkId;
     await request(app,'PUT',`/lab/analysis/rules/${ruleId}`,rule(ruleId,false));
     let lastState,lastSources;
     const observe=(page,reason)=>{if(!page)return;const state=summarizeEventState(page,event.eventId,event.recordingLinkId,reason),json=JSON.stringify(state);if(json!==lastState){console.log('[timeline-state] '+json);lastState=json;}
@@ -175,10 +181,11 @@ try{
   // 검증된 고정 필드만 보존한다. 후속 복제본 진단과 별도로 남겨 진단 실패도 원인을 지우지 않는다.
   for(const row of rows)console.log('[selection-attempt] '+JSON.stringify(row));
   const reference=failedReference||completedReference;
-  if(reference)check(matchSelectionTrace(rows,crypto.createHash('sha256').update(reference).digest('hex')).length>0,'LP09-J02 actual reference decision-time trace complete');
-}catch{failed++;console.error('[fail] LP09-J02 selection trace unavailable');}
-let diagnosticCleanupAllowed=!failedReference&&!completedReference;
-if((failedReference||completedReference)&&processes.every(app=>app.stopped))try{
+  if(reference)check(matchSelectionTrace(rows,crypto.createHash('sha256').update(reference).digest('hex'),selectionTraceBudget).length>0,'LP09-J02 actual reference decision-time trace complete');
+}catch(error){failed++;let code='unknown';for(const app of processes)code=reportSelectionTraceFailure(app.selectionTrace,error,line=>console.log(line));console.error('[fail] LP09-J02 selection trace unavailable code='+code);}
+const needsDiagnostic=Boolean(failedReference||completedReference||((primaryError||failed||cleanup.failureCount)&&diagnosticReference));
+let diagnosticCleanupAllowed=!needsDiagnostic;
+if(needsDiagnostic&&processes.every(app=>app.stopped))try{
   if(performance.now()>=deadline)throw Error('diagnostic-deadline');
   const original=path.join(root,'recordings'),before=scan(original,{hash:true,strict:true});
   function probe(index,mode){
@@ -187,15 +194,22 @@ if((failedReference||completedReference)&&processes.every(app=>app.stopped))try{
     if(!fs.existsSync(copy)){
       fs.mkdirSync(path.dirname(copy),{mode:0o700});fs.cpSync(original,copy,{recursive:true,dereference:false,errorOnExist:true});
       check(JSON.stringify(before)===JSON.stringify(scan(copy,{hash:true,strict:true})),'LP03-B diagnostic copy bytes/hash exact');scan(root);
-    }
-    return runDiagnosticProbe({binary:path.join(root,'archive-probe'),root,index,reference:failedReference||completedReference,mode,environmentScript:path.join(repo,'scripts/internal/env_common.sh'),env:{PATH:process.env.PATH,HOME:root,TMPDIR:path.join(root,'tmp'),MEDIA_SERVER_GST_CACHE_DIR:path.join(root,'gst-cache-replay'),MEDIA_SERVER_GST_PLUGIN_PROFILE:'headless'},deadline});
+    }else if(mode==='--diagnose-state'&&JSON.stringify(before)!==JSON.stringify(scan(copy,{hash:true,strict:true})))throw Error('diagnostic-copy-stale');
+    return runDiagnosticProbe({binary:path.join(root,'archive-probe'),root,index,reference:diagnosticReference,mode,environmentScript:path.join(repo,'scripts/internal/env_common.sh'),env:{PATH:process.env.PATH,HOME:root,TMPDIR:path.join(root,'tmp'),MEDIA_SERVER_GST_CACHE_DIR:path.join(root,'gst-cache-replay'),MEDIA_SERVER_GST_PLUGIN_PROFILE:'headless'},deadline});
   }
   // 원본/복구 쓰기 가능한 복제본은 분리한다. 안전 요약만 저장소에 보존하며 raw media는 보존하지 않는다.
-  const evidencePath=path.join(repo,'docs/release-artifacts/v4.1.0/s11-preparation-mapping',`${failedReference?'failure':'completeness'}-${crypto.randomUUID()}.json`);
-  const result=failedReference?captureFailureEvidence({diagnose:()=>probe(1,'--diagnose-basic'),collect:()=>probe(1,'--diagnose-failed'),replay:()=>probe(2,'--replay-failed'),evidencePath}):captureCompletenessEvidence({collect:()=>probe(1,'--diagnose-completeness'),evidencePath});
-  diagnosticCleanupAllowed=result.cleanupAllowed;
-  console.log('[job-diagnostic] '+JSON.stringify({...result,evidenceFile:path.basename(evidencePath)}));
-  if(failedReference?(result.diagnosticEvidenceStatus!=='preserved'||result.replayStatus!=='complete'||result.replayEvidenceStatus!=='preserved'):result.evidenceStatus!=='preserved')failed++;
+  const evidencePath=path.join(repo,'docs/release-artifacts/v4.1.0/s11-preparation-mapping',`state-${crypto.randomUUID()}.json`);
+  const stateResult=captureStateEvidence({collect:()=>probe(1,'--diagnose-state'),evidencePath,expectedReferenceSha256:crypto.createHash('sha256').update(diagnosticReference).digest('hex')});
+  console.log('[job-state-diagnostic] '+JSON.stringify({...stateResult,evidenceFile:path.basename(evidencePath),detailRequested:Boolean(failedReference||completedReference)}));
+  if(!stateResult.cleanupAllowed)throw Error('state-evidence-unavailable');
+  diagnosticCleanupAllowed=true;
+  if(failedReference||completedReference){
+    const detailPath=evidencePath+'.detail.json';
+    const result=failedReference?captureFailureEvidence({diagnose:()=>probe(1,'--diagnose-basic'),collect:()=>probe(1,'--diagnose-failed'),replay:()=>probe(2,'--replay-failed'),evidencePath:detailPath}):captureCompletenessEvidence({collect:()=>probe(1,'--diagnose-completeness'),evidencePath:detailPath});
+    diagnosticCleanupAllowed=result.cleanupAllowed;
+    console.log('[job-diagnostic] '+JSON.stringify({...result,evidenceFile:path.basename(detailPath)}));
+    if(failedReference?(result.diagnosticEvidenceStatus!=='preserved'||result.replayStatus!=='complete'||result.replayEvidenceStatus!=='preserved'):result.evidenceStatus!=='preserved')failed++;
+  }
   check(JSON.stringify(before)===JSON.stringify(scan(original,{hash:true,strict:true})),'LP03-B original unchanged after diagnostic');
 }catch{diagnosticCleanupAllowed=false;failed++;console.error('[fail] LP03-B diagnostic unavailable');}
 if(udp)try{await new Promise(resolve=>udp.close(resolve));udpClosed=true;}catch{cleanup.failureCount++;}else udpClosed=true;

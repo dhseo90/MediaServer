@@ -1,5 +1,192 @@
 # Release Test Records
 
+## 2026-09-19 LP13 실패 보존·동시 계측 5단계
+
+승인: 진단 보존→동시 관측 준비→실제 진단1회→확정 원인 수정/영향 검증→실제 재확인·비용판정·분할 커밋/푸시. 각 단계의 완료를 구분한다. 공개 API/저장/schema/시간/ID/미디어 협상/판정/4000ms·180초 상한 불변. 장시간/UI/전체 재기동/릴리즈 외부 작업은 제외. 메인 설계·검토, 단일 Astra/medium 담당자 확정 구현(하위 생성 금지). 기존 LP11/12 변경·실패 이력은 보존한다.
+
+### 1단계 사전등록
+
+대상 이벤트 확인 즉시 진단 참조를 독립 보존하고 실패 종류와 분리한다. 기존 failed/complete 진단을 대체하지 않고 사후 복제본에서 absent/intent/ready/complete/failed 상태의 제한 요약을 먼저 저장한다. 정리 전 안전 요약·상태/증거 확보 여부를 확인하며 실패시 자료를 자동 삭제하지 않는다. 사후 상태를 실패 순간 상태로 주장하지 않는다. API 시간초과 자체는 계속 FAIL이다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP13-P01 | 참조 선등록 | 이벤트 발견 후 HTTP실패/중단에도 같은 reference 유지, 성공/실패 상태로 덮어쓰지 않음 | v4.1.0 |
+| LP13-P02 | 범용 사후 진단 | C++ Catalog 복제본에서 absent/intent/ready/committed/complete/failed 고정 상태·hash·개수, 원본 불변 | v4.1.0 |
+| LP13-P03 | 보존 실패와 정리 | 진단 timeout/오류/파일보존 실패시 cleanup 금지, 최초 실행 오류 보존 | v4.1.0 |
+| LP13-P04 | 비노출·정합 | exact schema/고정값·상한·identity 검증, 임의 원문/경로/비밀 거부 | v4.1.0 |
+| LP13-P05 | 기존 경계 회귀 | 기존 failed/replay/complete 및 trace/latency helper 회귀 | v4.1.0 |
+
+승인 focused: `node --test scripts/internal/recording_current_archive_probe.test.mjs scripts/internal/recording_failure_capture.test.mjs scripts/internal/recording_selection_trace.test.mjs scripts/internal/recording_current_latency.test.mjs` 및 새 참조/보존 helper 단위(추가시 이 절에 파일명 등록). 예상 RED는 HTTP실패 경로의 참조/범용 진단 부재이며 환경실패를 RED로 처리하지 않는다. 단기 격리 fixture만 사용하고 raw/개별표/exit/elapsed/source/cleanup 보존. 실제 앱 실행은 2단계 관측 설계·자체검증·메인 검토 후 1회만 한다. 토큰 실측 수단 부재시 미집계로 표시한다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 준비·관련 단기 안정화 | 진행 대상 | 승인5단계 | LP13-P01~05 및 후속 계측 등록 | 승인 |
+| 실제 앱 진단/재확인 | 조건부 진행 | 준비 완료 후 각1회 | LP13 3/5단계 | 승인·선수 PASS 필요 |
+| 30분/120분/UI/전체 재기동 | 미진행 | 이번 범위 밖 | S11/기존 통합 잔여 | 이번 미실행 |
+
+1단계 결과: 위 Node4파일 최종141PASS/0FAIL,exit0,35370ms. 신규기능부재 예상RED14→중간138→상한138→예상reference SHA정합 보완141. 최초RED 도구출력 잘림과 원출력확보용 동일RED 재실행을 이력에 명시했다. 다음 실행부터 첫 실행 원출력을 보존해 기록만을 위한 반복을 피한다. 실제 Catalog의6상태/복제본 원본 불변, 정리 차단, exact schema·예상reference 일치, 기존 진단/trace/latency 회귀를 확인했다. runner는 EventRecord 확인 직후 diagnosticReference를 등록하며 generic 요약을 먼저 보존한다. HTTP실패시 job실패라고 추정하지 않고 generic만, 명시 failed/complete일 때 기존 상세를 수행한다. 실제앱 연결 검증은2단계 이후이며 이번141검사를 실제HTTP PASS로 확대하지 않는다.
+
+메인이 helper/runner/probe의 실제diff·oracle·최종원출력을 직접 확인했다. [전수141개·원출력·정리182행·source SHA](release-artifacts/v4.1.0/s11-preparation-mapping/lp13-preparation-output.txt). 최종fixture/cache46563361B 삭제·부재, 모든 실행별root 정리 확인. token집계 수단 부재로 미집계. `git diff --check` 및 `node --check scripts/internal/verify_recording_current_app.mjs` exit0. 제품/공개계약 변경없음. 1단계 커밋에는 기존 LP11/12 진단 보완·실패자료를 함께 보존하되, 미커밋 AVC 제품 수정과 그 전용 테스트는 별도 후속 커밋 대상으로 남긴다.
+
+1단계 문서 검증: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links`, exit0(282파일/8702링크/22이미지/111anchor/실패0); `git diff --check` exit0. staging 후 최초 cached diffcheck는 기존 미추적 원출력5파일의 행말 공백72행을 발견했다(뒤 stat 명령과 묶여 단독exit 미보존). 해당 행만 `RAW_JSON_LINE:` JSON 문자열로 가역 표기하고 각 파일의 복원 SHA256을 명시했다. 읽기 검증으로5파일 원문 SHA 일치를 확인했으며 테스트를 재실행하거나 결과를 변경하지 않았다. 푸시는 전체 승인 범위 종료 후 수행할 예정이며 아직 미수행이다.
+
+## 2026-09-19 LP12-F05 재개와 중단
+
+사용자 승인 순서: 남은 임시root 정리→실제 앱 단기1회→저장 비용 판정→분할 커밋·푸시. 메인이 단순 실행을 직접 수행했다. 이전 제품/실행 파일 SHA와 현재 값이 같아 F01~04 단위·회귀·빌드는 재실행하지 않았다. 기존 사전등록 LP12-F05의 동일 명령/4000ms/180초 제한을 유지했다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 임시 디렉터리 정리 | 완료 | 이전 빈 root 소유/내용 확인 후 rmdir·부재 | 아래 정리 표 |
+| 2 | 실제 앱 단기1회 | 실행 완료·FAIL | exit1/39222ms,3PASS·1FAIL. 타임라인 요청438 header timeout4003ms | LP12-F05 원출력 |
+| 3 | 저장 비용 최종 판정 | 보류 | 앞 단계 실패. 기존32원본 잠금3849.605ms/체크포인트3555.478ms와 이번HTTP실패는 보완 필요 신호이나 인과관계 미확정 | LP11 및 현재 코드 읽기 대조 |
+| 4 | 분할 커밋·푸시 | 미수행 | 명시 승인 유지, 실제 단계 실패로 완료 조건 미충족 | AGENTS3/5/8 |
+
+writer 오류 집계는0/truncated=false, trace68행 중 complete4행은 source2/unknown0이다. 그러나 대상 마지막 timeline은 intent/출력0이며 생성 완료는 미확인이다. AVC 오류가 이번에 관측되지 않았다는 사실과 전체 생성 PASS를 구분한다. HTTP299건 중298건200·1건timeout. 원인 함수·잠금 소유는 아직 계측하지 않았으므로 checkpoint 탓으로 확정하지 않는다. `CheckpointDue`의1MiB 조건과 `CheckpointLocked`의 잠금 안 원본 semantic replay 경로는 직접 재확인했다. 해당 제품 코드는 이번에 수정하지 않았다.
+
+실패가 HTTP 단계라 failed/completed reference 미설정 상태였고 기존 runner가 fixture를 정리했다. 사후 catalog 진단/최종 job 상태·raw media는 확보하지 못했다. 안전 원출력520행/198272B와 HTTP439행·선택68행·개별 assertion 표는 [F05 기록](release-artifacts/v4.1.0/s11-preparation-mapping/lp12-framing-output.txt)에 전량 보존했다. 누락 증거를 추정 복원하지 않는다. 추가 테스트/제품 수정/장시간/UI/전체 통합/외부 release action 미실행.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| /private/tmp/lp12-framing-actual.rDEJu4 | 이전 실행 준비 빈root | 파일0B | rmdir | 부재 확인 | 재개 전 ls·후속 fs 확인 |
+| TMPDIR/media-server-current-integration-PVGPZA | 실제 앱 fixture | 52650282B | runner 정리 | 부재, PID24121 exit0·HTTP62222/RTSP62223/UDP 반환 | F05 cleanup |
+| /private/tmp/lp12-resume-actual.d5Rdbc | 소유 실행 로그 | 198272B | 저장소 raw 일치/제한 민감패턴 검사 뒤 파일·빈root 삭제 | 부재 확인 | 직접 비교·삭제 exit0 |
+| lp12-framing-output.txt | 비민감 실행/실패 기록 | raw198272B 및 전수표 추가 | 보존 | 실제 출력·시간·실패·정리 이력 | 중앙 링크 |
+
+토큰 start/end/consumed: 실제 집계 도구가 없어 미집계. elapsed39222ms, source=node performance 및 exec exit. 다음은 실제HTTP 지연 구간 계측과 HTTP 실패 때에도 대상 reference 진단을 남길 검증기 경계 검토다. 원인 미확정 상태에서 timeout 연장·반복 실행·다음 단계 구현을 하지 않는다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP12 재개 기록 diffcheck | `git diff --check`, exit0 | pass |
+| LP12 재개 문서 링크 | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links`, exit0;282파일/8701링크/22이미지/111anchor/실패0 | pass |
+
+## 2026-09-18 LP12 실제 생성 실패·누적 비용 판정
+
+사용자 승인: 후속1 실제 생성 실패 원인 확인·관련 수정 → 후속2 누적 저장 비용 개선 필요성 판정, 분할 커밋 후 최종 푸시. 기존 LP11 미커밋 진단 보완/실패 기록은 보존·검토하여 관련 범위로 정리한다. 기준795b3c15a. 메인 계약·원인 분석·검토·문서/커밋, 단일 기존 Astra/medium 담당자 구현, 하위 생성 금지. 공개 schema/시간/ID/내구 형식/partial 판정/timeout은 불변이다. 실제 앱 전체 재기동 묶음·S11 최종검증·장시간/UI/외부 release action은 이번 범위 밖이다.
+
+### 진단 준비 사전등록
+
+기존 실패 상세는 intent projection만 보여 주므로 원본 catalog와 구분할 진단이 필요하다. 기존 C++ Catalog를 복제본에서 읽고, 원본 binding/proof 존재·구조 유효성·intent와의 비교를 안전한 hash/boolean으로 기록한다. 같은 source/channel에서 기존 `SnapshotDerivedSources`가 요청 구간·generation으로 걸러 반환하는 관련 후보 전체를256상한/count/truncated로 구분한다. 상한 실패는 API가 결과를 비우므로 count:null/truncated:true로 표시하며 총계를 발명하지 않는다. **종료 후 복제본 관측이며 실패 당시 snapshot과 동일하다고 주장하지 않는다.** writer stderr는 기존 고정 오류 코드만 집계하고 원문/경로/URL/비밀은 버린다. 실행 전체 집계를 특정 원본에 결박하지 않는다. 제품 동작 변경 전 원인을 확정한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP12-D01 | projection 구별 | catalog proof 있음·legacy intent proof 없음, 원본 증거가 없다는 오판 방지 | v4.1.0 |
+| LP12-D02 | 증거 부재 | 양쪽 proof 없음·null 유효성·missing binding 구별 | v4.1.0 |
+| LP12-D03 | native 경로 | native intent profile과 proof 보존·일치 확인 | v4.1.0 |
+| LP12-D04 | 손상/부재 | 파일 부재·손상에도 basic/metadata 진단 보존, 구조검증을 파일 인증으로 승격 금지 | v4.1.0 |
+| LP12-D05 | 전체 후보·격리 | 선택 밖 eligible 후보·256상한/truncated, 원본 불변·복제본만 조회·기존 모드 회귀 | v4.1.0 |
+| LP12-D06 | writer 안전 수집 | fixed-code/unknown·split/cap·접미사 변조·원문 canary 비노출 | v4.1.0 |
+| LP12-D07 | 연결 | 실제 C++→JS exact schema, 상태/개수 정합·과거 trace23검사 영향 확인 | v4.1.0 |
+
+명령: `node --test scripts/internal/recording_current_archive_probe.test.mjs scripts/internal/recording_failure_capture.test.mjs scripts/internal/recording_selection_trace.test.mjs`. 예상 RED는 새 안전 진단 필드/수집 동작 부재이며 컴파일·환경 오류를 RED로 처리하지 않는다. 단위 통과·메인 검토 후 `node scripts/internal/verify_recording_current_app.mjs --latency-only` 실제 단기1회. 격리 loopback/owned root, 기존180초/HTTP4000ms 등 제한 유지. 결과/정리/환경/source/elapsed 원출력은 인접 LP12 artifact에 보존하고 token 집계 수단 부재면 미집계 사유를 적는다. 아직 실행 결과가 아니다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 진단·관련 단기 안정화 | 진행 대상 | 후속1 승인·기존 실패 원인 확인 | LP12-D01~07, LP11-02 | 승인 |
+| 누적 비용 추가 실행 | 조건부 진행 | 후속2는 필요성 판정, LP11 실측 우선 재사용 | LP11-01 | 1번 종료 후 필요한 범위만 정의 |
+| 30분/120분/UI·전체 재기동 | 미진행 | 이번1~2 밖 | S11·후속3 | 이번 실행 안 함 |
+
+진단 준비 첫 결과: 위3파일 묶음은 예상 RED87개 중85PASS/2FAIL(신규 intentProfile/collector 부재, exit1/29714.474125ms) 뒤103PASS/0FAIL(exit0/31908.627875ms)이다. 제품 변경 없이 기존 C++ catalog probe/typed fixture·JS 안전 수집/실제 runner를 보완했다. 실제30fps writer의 proof를 보유한 legacy/native intent와 미선택 proofless 관련후보를 구분했다. 256상한은 JS257요소 거부와 count:null 보존을 확인한 것이며 실제257원본 catalog 부하 검사는 아니다. 최초 실행에서 missing binding 직접 검사가 빠졌으므로 D02는 추가 focused 검사 전 완료로 인정하지 않는다. 원출력/source hash/61개 root 정리는 [LP12 단위 기록](release-artifacts/v4.1.0/s11-preparation-mapping/lp12-diagnostics-output.txt)에 보존한다. 제품 생성 실패 해결 여부는 실제 단기 결과로 별도 판정한다.
+
+D02 focused5개 PASS(exit0/88.424ms)로 정상 null 조합 수락/4모순 거부를 추가 확인했다(typed missing-binding catalog 구성은 아님). 실제 앱1회는 exit1/53802ms/7PASS·1FAIL이다. trace68행 및 종결 검사는 PASS, HTTP timeline254건 모두200·4초이내(max1517ms)이지만 생성은 `file-original-timestamp-mismatch`로 실패했다. 사후 catalog 선택2개/관련후보2개 모두 유효binding·proof없음이고 legacy intent/파일hash일치를 확인했다. writer 전체 집계 `capture-profile-or-cap`4회로 수집기 실패는 관측했으나 단계/필드 원인은 미확정이다. source별 결박은 아니다. raw444행/208435B·안전JSON3개를 위 LP12 artifact에 보존하고 owned app root79140245B 및 outer logroot209465B 삭제·부재, PID90516 exit0·HTTP62255/RTSP62256/UDP 반환을 확인했다. 임의 제품 수정/동일 무정보 반복 실행으로 넘어가지 않는다.
+
+### LP12-C01~07 최초 수집 실패 계측 사전등록
+
+새 근거는 원본 catalog proof부재와 수집기 축약 실패다. 기존 수락·거부 조건/샘플/시간/저장 형식은 변경하지 않고, 내부 Attach/Observe/Accept의 단계·고정 오류를 단일 atomic CAS로 최초1회 보존한다. PTS/DTS/duration은 서로 구분한다. 임의 예외 원문은 unknown, 로그 수집도 고정 조합만 수락한다. `src/recording/recording_file_evidence.cpp` 내부 계측과 실제 공통 timestamp helper, 전용 내부 smoke/runner, JS collector만 대상이다. 공개 header에 시험 전용 API를 만들지 않는다. 원인 후보(미확정): 파일 source의 AVC payload와 Accept의 AnnexB 고정 해석 차이. 실제 원인으로 단정하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP12-C01 | Accept 원본 필드 부재 | 기존 null proof 유지, 최초 accept-original-fields/고정 사유 보존; 예상 RED는 기존 축약 코드 반환 | v4.1.0 |
+| LP12-C02 | Accept 필드 구별 | PTS/DTS/duration invalid 및 VCL 부재 거부 조건 유지·각 단계 구별 | v4.1.0 |
+| LP12-C03 | Observe 시간 필드 | 실제 공통 helper에 invalid buffer PTS/DTS/duration 각각 주입·고정 원인 확인 | v4.1.0 |
+| LP12-C04 | 최초 실패 경합 | 순차/2thread 한정 경쟁, phase/code가 같은 winner로 원자 보존 | v4.1.0 |
+| LP12-C05 | 안전 예외 | exact code/임의 what canary→unknown, Finish no-throw 및 후속 Accept 무효 유지 | v4.1.0 |
+| LP12-C06 | Attach 실패 | 실제 unlinked parser의 mux-pad 실패, 기존 실패 동작 유지 | v4.1.0 |
+| LP12-C07 | JS 연결·영향 회귀 | 새 정확 조합 수락·suffix/unknown 거부, 기존 file-evidence 전수 및 전체 빌드 | v4.1.0 |
+
+승인 단기 명령: `bash scripts/internal/verify_recording_file_evidence_capture.sh`, `node --test scripts/internal/recording_failure_capture.test.mjs`, `bash scripts/internal/verify_recording_file_evidence.sh lp12-capture`, `MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_GST_PLUGIN_PROFILE=headless ./server.sh build`. 테스트 소유 외부 GST cache/root만 사용·보존 후 정리. 단위/영향회귀·빌드 PASS와 메인 검토 뒤 동일 `--latency-only` 단기1회로 새 단계 코드를 수집한다. timeout/합격 기준은 변경하지 않는다. 장시간/UI/다음 단계 미착수.
+
+
+계측 결과: C++20PASS, JS44PASS, 기존 file-evidence193PASS 및 전체 빌드 exit0. C01 예상 RED는 기존 축약 코드였으며 실제 수락/거부 조건은 유지했다. JS 최초 RED의 개별 shell exit는 보존되지 않았으므로 추정하지 않는다. 동일 실제 앱은 exit1/50644ms/7PASS·1FAIL, `capture-accept-vcl-vcl-missing`4회와 persisted/replay `file-original-timestamp-mismatch`를 확인했다. timeline258건 모두200/max1490ms이나 생성 실패이므로 latencyPass=false다. 사후 원본2개 proof부재·hash일치를 재확인했다. [C 원출력·정리](release-artifacts/v4.1.0/s11-preparation-mapping/lp12-capture-output.txt), [기존193개 회귀](release-artifacts/v4.1.0/s11-preparation-mapping/file-evidence-output-lp12-capture.txt). actual root79853261B·outer209142B 삭제/부재, PID91443 exit0·HTTP62828/RTSP62829/UDP 반환 완료. 추가 검증 root103353252B와 outer1622483B도 삭제/부재 확인했다. token 집계는 도구 부재로 미집계이며 elapsed/source는 원출력에 있다. 계측 PASS는 제품 실패 해결 PASS가 아니다.
+
+### LP12-F01~05 입력 framing 수정 사전등록
+
+C 계측 실제 앱은 `capture-accept-vcl-vcl-missing`4회를 확인했다. 로컬 입력 ffprobe는 H.264/avc1/is_avc=true/nal_length_size=4이고 Accept는 AnnexB 고정이다. writer가 appsrc에 실제 설정한 caps를 Attach에 전달하여 입력 NAL framing만 읽는다. fixed 단일 H264/AU, 명시 byte-stream 또는 avc/avc3를 구분하며 AVC는 codec_data 최소 헤더/version/예약bit/폭1·2·4를 확인한다. SPS/PPS/확장 전체 문법 검증기는 추가하지 않는다. 형식 불명/모순·잘못된 NAL 길이는 증거 거부, 기존 녹화·협상·payload·시간·hash·저장 계약은 유지한다. 실제 파일/VCL 검증 없이 proof를 발급하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP12-F01 | 실제 AVC writer | x264 AVC/AU·codec_data fixture 생성, finalize 뒤 proof 및 실제 native/hash 확인; 예상 RED는 finalize 성공 후 proof 부재 | v4.1.0 |
+| LP12-F02 | 명시 framing | byte-stream 및 AVC/avc3 NAL 폭1·2·4, 동일 VCL canonical hash 유지 | v4.1.0 |
+| LP12-F03 | 거부 경계 | caps 부재/형식·alignment 모순, codec_data 타입·짧은 헤더/version/reserved/폭3·잘못된 NAL 길이 거부 | v4.1.0 |
+| LP12-F04 | 영향 회귀 | capture smoke·기존 file-evidence·JS 안전 수집·전체 빌드, 기존 증거/시간/저장 계약 불변 | v4.1.0 |
+| LP12-F05 | 실제 앱 확인 | 메인 diff 검토 후 기존 latency-only 1회, 생성 상태·HTTP·안전 진단·정리 확인 | v4.1.0 |
+
+승인 명령: `bash scripts/internal/verify_recording_file_evidence_avc.sh`, `bash scripts/internal/verify_recording_file_evidence_capture.sh`, `bash scripts/internal/verify_recording_file_evidence.sh lp12-framing`, 위 D01~07의 Node3파일 묶음, headless/skip-local-env 전체 build. 단위/회귀·빌드 통과와 메인 검토 후 실제 단기1회는 별도 전달한다. 테스트 fixture Encode의 마지막 선택 인수만 추가하고 기본 byte-stream은 유지한다. 장시간/UI/전체 재기동은 미실행이며 이번 PASS로 대체하지 않는다. 소유 임시root/GST cache만 사용·정리하고 원출력·전수 결과·source hash를 보존한다.
+
+F01~04 결과: 실제 AVC writer 예상 RED(exit1,8초)→GREEN7PASS(exit0,8초), capture50PASS(exit0,2초), 기존 FE193PASS(exit0,29초), Node3파일110PASS(exit0,31993ms), 전체 build exit0. 중간6/47PASS에 원본 시간·순번과 avc3/byte-stream oracle을 추가해 최종7/50을 확인했다. 제품 변경은 `RecordingFileEvidenceCollector::Attach`의 실제 caps framing 추출과 `Accept`의 해당 NAL 폭 사용, writer의 appsrc caps ref 전달뿐이며 최초 실패 고정 코드도 보존한다. 메인이 diff·개별 oracle·원출력 직접 대조 완료. [F 원출력·source/build hash](release-artifacts/v4.1.0/s11-preparation-mapping/lp12-framing-output.txt), [FE193 전수](release-artifacts/v4.1.0/s11-preparation-mapping/file-evidence-output-lp12-framing.txt). F05 실제 앱 결과는 아래 별도 판정하며 위 단위 PASS로 대체하지 않는다.
+
+## 2026-09-17 LP11 누적 비용·실제 앱 통합 순차 확인
+
+실행 전 정의. 사용자 승인: 후속1 누적 catalog/HTTP 지연 → 후속2 실제 앱 통합, 각 단계 커밋 후 최종 푸시 및 릴리즈 잔여 목록. 기준 `795b3c15a`, 기존 단일 Astra/medium 담당자 재사용·하위 생성 금지, 메인이 범위/불변 계약/결과와 diff를 검토한다. 이번 승인에 S11 최종 장시간/UI 또는 PR/merge/tag/Release는 포함하지 않는다. 기존 timeout·합격 기준을 유지하며 partial을 complete로 승격하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP11-01 | 누적 catalog16/32 | `bash scripts/internal/recording_catalog_cost_probe_run.sh scale-32-lp11`; 동일 저장소4096sample 원본32개·16/32 checkpoint/snapshot·SQLite/JSONL 복구 동등성·잠금/직렬화/원장/SQLite 비용, 기존180초/512MiB 상한 | v4.1.0 |
+| LP11-02 | 실제 HTTP 지연 | `node scripts/internal/verify_recording_current_app.mjs --latency-only`; 실제 이벤트 내구 전이·timeline HTTP 기존4000ms 내, raw 로그/안전 trace/정리 보존. 완전2출력 판정과 분리 | v4.1.0 |
+| LP11-03 | 완전2출력·재기동 | `node scripts/internal/verify_recording_current_app.mjs`; 실제 분석/EventRecord/참조→완전2파일·HTTP/hash·격리 복제본 C++ 검증→재기동 기존 ID/hash 보존·새 이벤트/출력·정상 종료 | v4.1.0 |
+| LP11-04 | 단계 정리·완료 | 명령별 exit/모든 개별 결과·서버/포트/임시root 정리·source/build hash·문서/diffcheck를 대조한 뒤 해당 단계만 커밋 | v4.1.0 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 단기 안정화 | 진행 대상 | 후속1~2 명시 승인 | LP11-01~04 및 기존 LP02/S11-CI07~11 | 승인; 1 완료·커밋 후 2 |
+| 30분/120분/UI | 미진행 | 이번 범위는 단기 비용/통합 | AGENTS7.6/7.6.2, S11 최종 코드 판정 | 이번 실행하지 않음; 릴리즈 필수 여부와 별개 |
+| 외부 서비스/실기기 | 미진행 | loopback 격리 입력 사용 | actual app environment | 미승인 |
+
+원본 제품 schema/시간/ID/보존 정책과 LP10 대기 상한은 불변이다. runtime/검증 준비의 동일 범위 결함만 원인 확정 후 수정·focused/영향 회귀하며 계약 변경 필요 시 중단한다. 원출력 보존 전 임시자료를 삭제하지 않는다. 임시 인증은 필요 시 실행별 메모리 생성하며 원문을 기록하지 않는다. token start/end/consumed는 실제 집계 없으면 미집계로 남긴다. 위 정의는 실행 결과가 아니다.
+
+### LP11-01/02 실제 결과와 중단 경계
+
+누적 fixture exit0/113초, **174PASS(계측 삽입1+fixture173)**. 4096 AU 원본32개를 같은 catalog에 쌓았다. 16→32개 commit 잠금은2054.916→3849.605ms, 자동 checkpoint1762.082→3555.478ms, snapshot127.749→257.078ms다. SQLite reopen14594.482ms/비SQLite7036.515ms와 byte equality64검사도 보존했다. 계측 중첩값을 합산하지 않으며, 단일 스레드 검사·최적화 없는 빌드·운영 합격 수치 부재 때문에 운영 성능 PASS가 아니다. [누적 원출력 전수](release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-output-scale-32-lp11.txt).
+
+실제 앱 최초 실행은 loopback bind EPERM, exit1/851ms/0PASS인 환경 준비 실패다. 같은 명령의 권한 승인 후 실행은 exit1/34791ms/**6PASS·2FAIL**. timeline180건은 모두200/ok, 4000ms 초과0, p50=11ms/p95=22ms/p99=402ms/max550ms였으나 이벤트 작업이 intent→failed, 출력0으로 끝났다. 저장된 코드와 독립 replay 모두 `job-remux: file-original-timestamp-mismatch`다. `latency-job-failed`와 `LP09-J02 selection trace unavailable` 실패를 보존한다. 생성 실패로 latencyPass=false이며 실제 앱 통합 PASS가 아니다. trace 정상 예산 전환을 거부하는 별도 검증기 결함은 코드에서 확인했지만 실제 거부 행은 남지 않아 그 행의 원인을 단정하지 않는다.
+
+details의 fileEvidencePresent=false는 **persisted-job-intent의 legacy projection** 기준이다. 원본 catalog 증거가 없었음을 뜻하지 않는다. 원본파일 hash 일치·intent 불변과 replay 실패는 확인했지만 legacy profile 선택 근본 원인은 미확정이다. 제품 시간/저장 계약을 추측 수정하거나 timeout을 늘리지 않는다. LP11-03 및 해당 단계 커밋/최종 푸시는 앞 단계 실패로 건너뛴다. 원출력·명령·환경·빌드 hash·안전 실패 JSON은 [실행 기록](release-artifacts/v4.1.0/s11-preparation-mapping/lp11-stage1-output.txt)과 인접 failure JSON에 보존한다. 실제 생성 실패의 수정 완료를 주장하지 않는다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| 실행 TMPDIR/media-server-catalog-cost.SQaEWA | 누적 fixture 저장소 | 199676980B | 결과 보존 후 삭제 | 부재 확인 | LP11 원출력 |
+| 실행 TMPDIR/media-server-current-integration-RPXPck | bind 실패 fixture | 22547984B | 삭제 | 부재 확인·앱 미기동 | LP11 원출력 |
+| 실행 TMPDIR/media-server-current-integration-MzCFN8 | 실제 앱 fixture | 64790675B | 서버 종료·결과 보존 후 삭제 | PID62050 exit0, HTTP58561/RTSP58562/UDP 해제·부재 확인 | LP11 원출력 |
+| /private/tmp/lp11-execution.T7eoCI | 소유 로그/cache | 1648328B | 비민감 결과 이관 후 삭제 | 부재 확인 | cleanup-task 출력 |
+| docs/release-artifacts/v4.1.0/s11-preparation-mapping | 안전 계측/실패 자료 | 개별 크기는 원출력 참조 | 필요한 텍스트·안전 JSON 보존 | raw 영상/비밀 미보존 | 재현·오류 판정 이력 |
+
+token start/end/consumed: 실제 집계 수단 부재로 미집계. elapsed/source는 각 실행 원출력 참조. 30분/120분/UI/최종 전체 빌드는 이번 실행하지 않았다. 제품 코드 변경 없음.
+
+### LP11-T01~06 실행 전 정의
+
+실제 앱 첫 실행에서 영상 생성 실패와 trace 수집 실패가 함께 관측됐다. 영상 실패는 `file-original-timestamp-mismatch`로 보존됐으나, 거부된 trace 행은 없어 해당 행의 정확한 원인은 미확정이다. 코드 대조로 확인된 별도 결함은 LP10의 source/base 유효 예산 전환을 검증기가 거부한다는 것이다. 제품 변경·실제 앱 재실행 없이 아래 검증 준비만 보완한다. 명령은 `node --test scripts/internal/recording_selection_trace.test.mjs`; 예상 RED는 정상 예산 전환 거부다. 실제 프로필 두 쌍만 허용하며 절대 상한·exhausted 정합성·순서·범위·종결 조건은 유지한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP11-T01 | source→base 전환 | 60000ms/121→3750ms/9, 최종 attempt10은 exhausted=true일 때만 허용 | v4.1.0 |
+| LP11-T02 | base→source 전환 | 알려진 두 예산 쌍과 절대121회 경계 | v4.1.0 |
+| LP11-T03 | 상한·정합성 거부 | 임의 예산·122회·60001ms·거짓 exhausted/deadline 거부 | v4.1.0 |
+| LP11-T04 | 시퀀스 무결성 | 순번 누락·elapsed 역행·범위 변조·미종결·종결 뒤 행 거부 | v4.1.0 |
+| LP11-T05 | 안전 오류 보존 | 고정 허용 코드·accepted/rejected 개수·검증된 숫자만 반환, 원문/경로/ID canary 비노출 | v4.1.0 |
+| LP11-T06 | 기존 파서·runner 연결 | split/cap/incomplete 회귀와 앱 기동 없는 안전 상태 연결 검사 | v4.1.0 |
+
+### LP11 진단 준비 보완 결과
+
+`recording_selection_trace.mjs`의 validate/collector/match와 `verify_recording_current_app.mjs` 연결을 보완했다. 실제 fixture의 base3750ms/9회와 source60000ms/121회만 허용하고, 절대121회·60초·exhausted 일치·순번/elapsed/범위·종결 이후 행 거부를 검사한다. `reportSelectionTraceFailure`는 허용 코드·수집 개수·검증된 숫자만 남긴다. 공개/제품/저장 계약 변경은 없다. 메인이 실제 diff와 worker 예산 계산을 직접 대조했다.
+
+`node --test scripts/internal/recording_selection_trace.test.mjs` 최종 **23PASS/0FAIL, exit0,33.534ms**. 최초16PASS/6FAIL→22PASS, 공유 reporter 예상 RED22PASS/1FAIL→23PASS 이력을 그대로 보존했다. 실제 앱은 보완 후 재실행하지 않았으므로 기존 영상 생성/trace 수집 실패의 실제 통합 해결 PASS가 아니다. 전수 정의/실행 결과와 HTTP289요청 개별값은 [원출력 및 전수표](release-artifacts/v4.1.0/s11-preparation-mapping/lp11-stage1-output.txt)에 있다. 시험 소유 임시root13253B도 결과 이관 뒤 삭제·부재 확인했다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 문서 링크 | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links`, exit0; 최종282파일/8693링크/22이미지/111anchor/실패0(앞선8691링크 검사 뒤 결과 링크2개 추가하여 재실행) | pass |
+| diffcheck | `git diff --check`, exit0 | pass |
+
+현재 요청 전체는 미완료다. 1번 실제 생성 실패의 근본 원인이 확인되지 않아 AGENTS8 경계에서 멈췄고 2번·분할 커밋·푸시는 수행하지 않았다. 기존 LP10 커밋795b3c15a는 그대로 보존, 작업 branch는v4.1.0이며 원격보다1커밋 앞서고 이번 변경은 미커밋이다. 푸시 가능: 아니오(요청 단계 실패·미커밋 잔여). 다음은 **원본 catalog의 proof 상태와 legacy profile 선택 근거를 보존하는 진단 범위 확정**이며, projection 결과만으로 writer를 수정하지 않는다. 릴리즈 잔여8종 전수표는 [현재 감사](release-artifacts/v4.1.0/s11-preparation-mapping/release-readiness-20260916.md)의2026-09-17 절을 따른다.
+
 ## 2026-09-17 LP10 후속1 제한 원본 대기
 
 실행 전 정의. 기준9881bb7a, 작업 정책 AGENTS, 승인 spec LP10. main 설계/검토, 기존 단일 Astra medium 담당자 구현, 하위 금지. 승인 명령: `bash scripts/internal/verify_recording_bounded_wait.sh`(새 격리 실제 C++ fixture), `MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_GST_PLUGIN_PROFILE=headless ./server.sh build`; 영향회귀 `bash scripts/internal/verify_recording_derived_event_integration.sh`, `verify_recording_native_derived.sh`, `verify_recording_default_composition.sh`, `verify_recording_derived_jobs.sh`(모두 scripts/internal 아래), 문서 링크/diffcheck. 테스트 전용 시간 축소 옵션을 쓰되 제품의 상한/충족 기준을 완화하지 않는다. 모든 root/registry는 실행 소유로 생성·정리. 원출력·exit·elapsed와 실패이력 보존. token 집계 없으면 미집계로 남긴다. 아직 실행 결과 아님.

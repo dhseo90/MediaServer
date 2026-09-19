@@ -1,0 +1,1254 @@
+원문 보존 표기: RAW_JSON_LINE: 뒤 JSON 문자열을 디코딩하면 해당 원래 행(행말 공백 포함)이 된다. 이 설명 행을 제거하고 표기를 복원한 파일 SHA256=9bd77d07f0f4e13b4355fcf0789c551a03dc6115e65c35fde9a9339fecfb94ea. 검증 값/exit/순서는 변경하지 않았다.
+LP11 단계1 원출력/판정 — 2026-09-17 KST
+검증기 보완 최종 정리: [trace-cleanup] path=/private/tmp/lp11-trace-tests.H5EfVT bytes=13253 removed=true raw_all_preserved=true
+최종 actual verifier 주석 한글화 후 sha256=68abde93afbfe9e1508ed15978ba7de73a8ce27c5ccdf128b3421cab5dfb81b6 (아래 TDD sourcehash는 주석 변경 전; 실행로직 동일). git diff --check exit0.
+최종 cleanup 직접 출력: [cleanup-task] path=/private/tmp/lp11-execution.T7eoCI bytes=1648328 removed=true all_wrapper_roots_absent=true raw_preserved=true
+최초 HTTP 원출력572B/3행, 실제 HTTP 원출력59576B/307행을 모두 포함하여 보존 후 임시로그/cache 삭제. scale 원출력은 별도 파일 전량 유지.
+해석 주의: details의 fileEvidencePresent=false는 persisted-job-intent 기준이며 legacy projection이 proof를 제외한다. 이것만으로 원본 catalog의 proof 부재/collector 실패를 확정하지 않는다.
+source HEAD 795b3c15a4fe298296a3dd49d56986bc0d1ca706. 제품/검증기 수정 없음; 중앙md 동시수정은 메인 소유.
+실제 앱/시간/partial/LP10 상한 변경 없음. 하위 생성/커밋/푸시/2단계 실행 없음.
+token start/end/consumed: 실제 하위집계 API 없음으로 미집계.
+환경: Apple clang21.0.0 arm64 Darwin27, Gst1.28.1 SQLite3.51.0 OpenSSL3.6.2. C++17 최적화 없음.
+build media_server sha256=46e57eba73c35047080eb859c2a6e4c1030f679d35fd228a8cab056130dec04c
+build runtime.a sha256=234bde5fa2610f4aade7ab7cc77940636fa49e4d9f1975f45aac573f4e6f6e41
+verify_recording_current_app.mjs sha256=2693c3c959d19bf5a704f8141023f39944b89c06137b3368cf6c862c8942f2f5
+
+1) command:
+env -u GST_REGISTRY -u GST_REGISTRY_1_0 -u MEDIA_SERVER_GST_MANAGED_REGISTRY MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp11-execution.T7eoCI/gst-cache MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/recording_catalog_cost_probe_run.sh scale-32-lp11
+exit0, elapsed113s. raw: catalog-cost-output-scale-32-lp11.txt 495634B/2324행, PASS174(삽입검사1+fixture173), FAIL0.
+32×4096 AU 한 store, legacy 비교 없음. 16에서 명시checkpoint 후 이후자동조건 영향을 기록하고 횟수를 관측함.
+시간계측 inclusive는 중첩이므로 합산 금지, exclusive는 하위계측시간 제외, 계측overhead 미제거.
+16→32: commit wall2054.920→3849.607ms, catalog hold2054.916→3849.605ms.
+자동checkpoint1762.082→3555.478ms, snapshot hold127.749→257.078ms, 명시checkpoint hold1755.379→3542.872ms.
+원장17261180→34522476B. 자동checkpoint32회, 단일thread lockwait208ns는 동시경쟁 지연 근거가 아님.
+SQL reopen14594.482ms, nonSQL7036.515ms. strict source byte equality64검사.
+디스크199676980B, scale root삭제/부재확인. 180s/512MiB는 자원상한; 운영성능 허용값은 정의/판정 안 함.
+실측상 누적에 따라 original semantic replay/parse가 증가하지만 검증의미 생략/저장변경/최적화 수행 안 함.
+
+2) command: node scripts/internal/verify_recording_current_app.mjs --latency-only
+첫 sandbox 실행 exit1, elapsed851ms, loopback bind EPERM(준비환경 실패, 제품FAIL/예상RED 아님).
+root22547984B 삭제, 앱 프로세스 없음. 동일명령 require_escalated 승인 후 두번째 실행.
+두번째 exit1, elapsed34791ms, PASS6/FAIL2.
+실제 실패: latency-job-failed; LP09-J02 selection trace unavailable.
+timeline HTTP180개 전부200/ok, 4초 초과0; nearest-rank p50=11ms p95=22ms p99=402ms max550ms.
+전체 HTTP289개(초기 health 접속 오류 포함). timeline 지연관측만 양호하며 latencyPass=false: durable transition oracle 실패.
+same reference not-created→intent→failed, output0. 저장실패 job-remux: file-original-timestamp-mismatch.
+source2/plannedOutput2/fileReceipt2. replay exact sameFailure=true verifiedOutput=false, persistedRecordUnchanged=true.
+typed intent sha256=05c35544a2cfaecf1b360b0100cc54b00c5094f9ffa61a82035b63786ccf6e74
+안전진단3개: failure-94c84fa4-2720-4581-8a83-80d1d05c8c53.json, .json.details.json, .json.replay.json.
+복제본 종료시점진단이며 재현 bundle/실패순간 전체snapshot 아님. 원본불변 확인.
+앱 PID62050 exit0, HTTP58561/RTSP58562 closed, UDP closed; root64790675B 삭제/부재확인.
+실패 뒤2단계/자동추가검증/제품수정 중단. 실제앱 실패와 trace 미확보 각각 미해결.
+
+파일시각(birthtime→mtime는 파일작성 관측, 별도wall측정 추정 아님) 및 상세계측:
+[cost] operation=LP02/commit16 scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.CheckpointLocked/candidate.identical count=1 inclusive_ns=0 exclusive_ns=0
+[cost] operation=LP02/commit16 scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.CheckpointLocked/checkpoint.originalSemantic count=1 inclusive_ns=1751571666 exclusive_ns=33164
+[cost] operation=LP02/commit16 scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked count=32 inclusive_ns=1751538502 exclusive_ns=388360834
+[cost] operation=LP02/commit16 scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1 count=16 inclusive_ns=1236164249 exclusive_ns=1111982834
+[cost] operation=LP02/commit32 scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.CheckpointLocked/candidate.identical count=1 inclusive_ns=0 exclusive_ns=0
+[cost] operation=LP02/commit32 scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.CheckpointLocked/checkpoint.originalSemantic count=1 inclusive_ns=3530611667 exclusive_ns=63253
+[cost] operation=LP02/commit32 scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked count=64 inclusive_ns=3530548414 exclusive_ns=775462747
+[cost] operation=LP02/commit32 scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1 count=32 inclusive_ns=2499063959 exclusive_ns=2249428294
+{"file":"docs/release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-output-scale-32-lp11.txt","birthtime":"2026-09-16T22:52:31.724Z","mtime":"2026-09-16T22:54:24.844Z","bytes":495634}
+{"file":"/private/tmp/lp11-execution.T7eoCI/http.txt","birthtime":"2026-09-16T22:54:34.205Z","mtime":"2026-09-16T22:54:35.092Z","bytes":572}
+{"file":"/private/tmp/lp11-execution.T7eoCI/http-escalated.txt","birthtime":"2026-09-16T22:55:05.043Z","mtime":"2026-09-16T22:55:39.867Z","bytes":59576}
+
+=== HTTP initial sandbox raw exit1 ===
+[fail] current actual app: bind EPERM 127.0.0.1
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-RPXPck","bytes":22547984,"rootAbsent":true,"failureCount":0,"processes":[],"evidencePreservedOrNotRequired":true,"udpClosed":true}
+{"mode":"current-http-latency","passed":0,"failed":1,"latencyPass":false,"actualEventPass":false,"restartPass":false,"expectedOutputCount":2,"observedOutputCounts":[],"cleanup":{"rootAbsent":true,"failureCount":0,"processes":[],"evidencePreservedOrNotRequired":true},"elapsedMs":851}
+
+=== HTTP escalated raw exit1 ===
+[http-timing] {"sequence":1,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":3,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":2,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":1,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":3,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":1,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":4,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":1,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":5,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":2,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":6,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":2,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":7,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":2,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":8,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":1,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":9,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":1,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":10,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":1,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":11,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":0,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":12,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":0,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":13,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":0,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":14,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":0,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":15,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":0,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":16,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":1,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":17,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":0,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":18,"method":"GET","routeClass":"health","status":null,"headerElapsedMs":null,"bodyElapsedMs":null,"totalElapsedMs":0,"bytes":0,"phase":"header","outcome":"error"}
+[http-timing] {"sequence":19,"method":"GET","routeClass":"health","status":200,"headerElapsedMs":4,"bodyElapsedMs":1,"totalElapsedMs":5,"bytes":15,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":20,"method":"GET","routeClass":"ice","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":222,"phase":"complete","outcome":"ok"}
+[pass] S11-CI09 product-1 healthy isolated ICE
+[http-timing] {"sequence":21,"method":"POST","routeClass":"source","status":201,"headerElapsedMs":77,"bodyElapsedMs":0,"totalElapsedMs":77,"bytes":428,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":22,"method":"POST","routeClass":"tap-create","status":200,"headerElapsedMs":49,"bodyElapsedMs":0,"totalElapsedMs":49,"bytes":1187,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":23,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":24,"bodyElapsedMs":0,"totalElapsedMs":24,"bytes":4030,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":24,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":5946,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":25,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":26,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":5966,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":27,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":28,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":6142,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":29,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":30,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":6274,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":31,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":32,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":6405,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":33,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":34,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":6404,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":35,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":36,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":6540,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":37,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":38,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":3,"bodyElapsedMs":0,"totalElapsedMs":3,"bytes":6678,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":39,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":40,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":6814,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":41,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":42,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":6950,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":43,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":44,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":6952,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":45,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":46,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":7090,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":47,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":48,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":7221,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":49,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":50,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":7361,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":51,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":52,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":6,"bodyElapsedMs":0,"totalElapsedMs":6,"bytes":7497,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":53,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":54,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":7492,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":55,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":56,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":7632,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":57,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":58,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":7763,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":59,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":60,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":7898,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":61,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":62,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":7899,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":63,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":64,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":8029,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":65,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":66,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":8161,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":67,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":68,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":8300,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":69,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":70,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":8434,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":71,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":72,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":8436,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":73,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":74,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":8567,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":75,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":76,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":8708,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":77,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":78,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":8841,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":79,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":80,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":8976,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":81,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":82,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":8975,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":83,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":84,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":9113,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":85,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":86,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":9246,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":87,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":88,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":9382,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":89,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":90,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":9515,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":91,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":92,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":9515,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":93,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":94,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":9647,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":95,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":96,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10199,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":97,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":98,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10379,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":99,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":100,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10383,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":101,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":102,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10559,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":103,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":104,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10749,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":105,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":106,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10818,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":107,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":108,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10867,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":109,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":110,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10867,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":111,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":112,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10919,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":113,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":114,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":10963,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":115,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":116,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11010,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":117,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":118,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11068,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":119,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":120,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11068,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":121,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":122,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11115,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":123,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":124,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11150,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":125,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":126,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11196,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":127,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":128,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11196,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":129,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":130,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11244,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":131,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":132,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11298,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":133,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":134,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11340,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":135,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":136,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11388,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":137,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":138,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11386,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":139,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":140,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11434,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":141,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":142,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11471,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":143,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":144,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11518,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":145,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":146,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11563,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":147,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":148,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11563,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":149,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":150,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11614,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":151,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":152,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11651,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":153,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":154,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11698,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":155,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":156,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11743,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":157,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":158,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11745,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":159,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":160,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11787,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":161,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":162,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11837,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":163,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":164,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11882,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":165,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":166,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11882,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":167,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":168,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11918,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":169,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":170,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":11966,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":171,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":172,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12013,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":173,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":174,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12063,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":175,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":176,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12063,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":177,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":178,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12055,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":179,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":0,"bodyElapsedMs":0,"totalElapsedMs":0,"bytes":82,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":180,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12055,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":181,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":53814,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":182,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12060,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":183,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":53814,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":184,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12060,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":185,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":10,"bodyElapsedMs":0,"totalElapsedMs":10,"bytes":53814,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":186,"method":"GET","routeClass":"tap","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":12055,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":187,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":10,"bodyElapsedMs":0,"totalElapsedMs":10,"bytes":53814,"phase":"complete","outcome":"ok"}
+[trigger-timing] {"run":1,"sourceEndPts":"8300000000","tapPts":"8633333333","delta":"333333333"}
+[http-timing] {"sequence":188,"method":"PUT","routeClass":"rule","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":520,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":189,"method":"GET","routeClass":"tap-events","status":200,"headerElapsedMs":8,"bodyElapsedMs":0,"totalElapsedMs":8,"bytes":9901,"phase":"complete","outcome":"ok"}
+[dispatch-timing] {"run":1,"pts":"8633333333"}
+[pass] S11-CI07 run1 actual tuple EventRecord reference
+[http-timing] {"sequence":190,"method":"PUT","routeClass":"rule","status":200,"headerElapsedMs":1,"bodyElapsedMs":0,"totalElapsedMs":1,"bytes":521,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":191,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":10,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[timeline-state] {"reason":"ok","rowCount":1,"jobCount":0,"outputCount":0,"referenceMatches":true,"truncated":false,"rows":[{"jobState":"not-created","completeness":"unknown","catalogState":"absent","playable":false,"request":{"timeBasis":"media-pts-ms","startTimeMs":"8633","endTimeMs":"8633","preMs":"750","postMs":"750"}}]}
+[overlapping-sources] {"temporalOnly":true,"viewBasis":"timeline-mapping-slices","segmentCount":1,"startNs":"7883000000","endNs":"9383000000","unknownCount":0,"rows":[{"idHash":"063e9efd9ffdc5952bcc097e23252d59305508b876c74d797eb25e0fb8f25bb4","startPts":"8300000000","endPts":"8333333333","catalogState":"finalized","playable":true},{"idHash":"063e9efd9ffdc5952bcc097e23252d59305508b876c74d797eb25e0fb8f25bb4","startPts":"7566666666","endPts":"8266666666","catalogState":"finalized","playable":true},{"idHash":"063e9efd9ffdc5952bcc097e23252d59305508b876c74d797eb25e0fb8f25bb4","startPts":"8266666666","endPts":"8300000000","catalogState":"finalized","playable":true}]}
+[http-timing] {"sequence":192,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":193,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":194,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":195,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":196,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":197,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":198,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":199,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":200,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":201,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":202,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":203,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":204,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":205,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":206,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":207,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":208,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":209,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":210,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":211,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":212,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":213,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":214,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":215,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":216,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":217,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":12,"bodyElapsedMs":0,"totalElapsedMs":12,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":218,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":219,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":220,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":221,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":222,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":12,"bodyElapsedMs":0,"totalElapsedMs":12,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":223,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":224,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":225,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":226,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":227,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":228,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":229,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":230,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":231,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":232,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":233,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":234,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":235,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":236,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":237,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":238,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":239,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":12,"bodyElapsedMs":0,"totalElapsedMs":12,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":240,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":241,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":242,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":243,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":244,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":245,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":246,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":247,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":248,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":10,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":249,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":250,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":251,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":252,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":253,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":254,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":255,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":256,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":257,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":258,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":259,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":260,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":11,"bodyElapsedMs":0,"totalElapsedMs":11,"bytes":57046,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":261,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":22,"bodyElapsedMs":0,"totalElapsedMs":22,"bytes":84474,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":262,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":21,"bodyElapsedMs":0,"totalElapsedMs":21,"bytes":14953,"phase":"complete","outcome":"ok"}
+[overlapping-sources] {"temporalOnly":true,"viewBasis":"timeline-mapping-slices","segmentCount":2,"startNs":"7883000000","endNs":"9383000000","unknownCount":0,"rows":[{"idHash":"063e9efd9ffdc5952bcc097e23252d59305508b876c74d797eb25e0fb8f25bb4","startPts":"8300000000","endPts":"8333333333","catalogState":"finalized","playable":true},{"idHash":"063e9efd9ffdc5952bcc097e23252d59305508b876c74d797eb25e0fb8f25bb4","startPts":"7566666666","endPts":"8266666666","catalogState":"finalized","playable":true},{"idHash":"063e9efd9ffdc5952bcc097e23252d59305508b876c74d797eb25e0fb8f25bb4","startPts":"8266666666","endPts":"8300000000","catalogState":"finalized","playable":true},{"idHash":"55607b28cdcdd01a86b18f869f960eee6d529e988de263814e716180ff315bb8","startPts":"8333333333","endPts":"8433333333","catalogState":"finalized","playable":true},{"idHash":"55607b28cdcdd01a86b18f869f960eee6d529e988de263814e716180ff315bb8","startPts":"8433333333","endPts":"8466666666","catalogState":"finalized","playable":true},{"idHash":"55607b28cdcdd01a86b18f869f960eee6d529e988de263814e716180ff315bb8","startPts":"8466666666","endPts":"8733333333","catalogState":"finalized","playable":true},{"idHash":"55607b28cdcdd01a86b18f869f960eee6d529e988de263814e716180ff315bb8","startPts":"8733333333","endPts":"8766666666","catalogState":"finalized","playable":true},{"idHash":"55607b28cdcdd01a86b18f869f960eee6d529e988de263814e716180ff315bb8","startPts":"8766666666","endPts":"8966666666","catalogState":"finalized","playable":true},{"idHash":"55607b28cdcdd01a86b18f869f960eee6d529e988de263814e716180ff315bb8","startPts":"8966666666","endPts":"9000000000","catalogState":"finalized","playable":true},{"idHash":"55607b28cdcdd01a86b18f869f960eee6d529e988de263814e716180ff315bb8","startPts":"9000000000","endPts":"9100000000","catalogState":"finalized","playable":true},{"idHash":"55607b28cdcdd01a86b18f869f960eee6d529e988de263814e716180ff315bb8","startPts":"9100000000","endPts":"9133333333","catalogState":"finalized","playable":true},{"idHash":"55607b28cdcdd01a86b18f869f960eee6d529e988de263814e716180ff315bb8","startPts":"9133333333","endPts":"9166666666","catalogState":"finalized","playable":true},{"idHash":"55607b28cdcdd01a86b18f869f960eee6d529e988de263814e716180ff315bb8","startPts":"9166666666","endPts":"9200000000","catalogState":"finalized","playable":true},{"idHash":"55607b28cdcdd01a86b18f869f960eee6d529e988de263814e716180ff315bb8","startPts":"9200000000","endPts":"9600000000","catalogState":"finalized","playable":true}]}
+[http-timing] {"sequence":263,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":23,"bodyElapsedMs":0,"totalElapsedMs":23,"bytes":84474,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":264,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":167,"bodyElapsedMs":0,"totalElapsedMs":167,"bytes":14953,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":265,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":549,"bodyElapsedMs":0,"totalElapsedMs":550,"bytes":84515,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":266,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":22,"bodyElapsedMs":0,"totalElapsedMs":22,"bytes":14953,"phase":"complete","outcome":"ok"}
+[timeline-state] {"reason":"ok","rowCount":1,"jobCount":1,"outputCount":0,"referenceMatches":true,"truncated":false,"rows":[{"jobState":"intent","completeness":"unknown","catalogState":"absent","playable":false,"request":{"timeBasis":"media-pts-ms","startTimeMs":"8633","endTimeMs":"8633","preMs":"750","postMs":"750"}}]}
+[http-timing] {"sequence":267,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":22,"bodyElapsedMs":0,"totalElapsedMs":23,"bytes":84515,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":268,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":21,"bodyElapsedMs":0,"totalElapsedMs":21,"bytes":14953,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":269,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":22,"bodyElapsedMs":0,"totalElapsedMs":22,"bytes":84515,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":270,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":21,"bodyElapsedMs":0,"totalElapsedMs":21,"bytes":14953,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":271,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":23,"bodyElapsedMs":0,"totalElapsedMs":23,"bytes":84515,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":272,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":21,"bodyElapsedMs":0,"totalElapsedMs":21,"bytes":14953,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":273,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":22,"bodyElapsedMs":0,"totalElapsedMs":22,"bytes":84515,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":274,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":21,"bodyElapsedMs":0,"totalElapsedMs":21,"bytes":14953,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":275,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":21,"bodyElapsedMs":0,"totalElapsedMs":21,"bytes":84515,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":276,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":22,"bodyElapsedMs":0,"totalElapsedMs":22,"bytes":14953,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":277,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":22,"bodyElapsedMs":0,"totalElapsedMs":22,"bytes":84515,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":278,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":21,"bodyElapsedMs":0,"totalElapsedMs":21,"bytes":14953,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":279,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":22,"bodyElapsedMs":0,"totalElapsedMs":22,"bytes":84515,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":280,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":21,"bodyElapsedMs":0,"totalElapsedMs":21,"bytes":14953,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":281,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":23,"bodyElapsedMs":0,"totalElapsedMs":23,"bytes":84515,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":282,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":22,"bodyElapsedMs":0,"totalElapsedMs":22,"bytes":14953,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":283,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":22,"bodyElapsedMs":0,"totalElapsedMs":22,"bytes":84515,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":284,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":22,"bodyElapsedMs":0,"totalElapsedMs":22,"bytes":14953,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":285,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":22,"bodyElapsedMs":0,"totalElapsedMs":22,"bytes":84515,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":286,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":21,"bodyElapsedMs":0,"totalElapsedMs":21,"bytes":14953,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":287,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":402,"bodyElapsedMs":0,"totalElapsedMs":402,"bytes":84515,"phase":"complete","outcome":"ok"}
+[http-timing] {"sequence":288,"method":"GET","routeClass":"timeline","status":200,"headerElapsedMs":21,"bodyElapsedMs":0,"totalElapsedMs":21,"bytes":14953,"phase":"complete","outcome":"ok"}
+[timeline-state] {"reason":"ok","rowCount":1,"jobCount":1,"outputCount":0,"referenceMatches":true,"truncated":false,"rows":[{"jobState":"failed","completeness":"unknown","catalogState":"absent","playable":false,"request":{"timeBasis":"media-pts-ms","startTimeMs":"8633","endTimeMs":"8633","preMs":"750","postMs":"750"}}]}
+[http-timing] {"sequence":289,"method":"DELETE","routeClass":"tap","status":200,"headerElapsedMs":17,"bodyElapsedMs":0,"totalElapsedMs":17,"bytes":26,"phase":"complete","outcome":"ok"}
+[fail] current actual app: latency-job-failed
+[pass] S11-CI08 product-1 exit0 ports returned
+[fail] LP09-J02 selection trace unavailable
+[pass] LP03-B diagnostic copy bytes/hash exact
+[pass] LP03-B diagnostic copy bytes/hash exact
+[job-diagnostic] {"diagnosticStatus":"complete","diagnosticEvidenceStatus":"preserved","detailStatus":"complete","detailEvidenceStatus":"preserved","replayStatus":"complete","replayEvidenceStatus":"preserved","cleanupAllowed":true,"evidenceFile":"failure-94c84fa4-2720-4581-8a83-80d1d05c8c53.json"}
+[pass] LP03-B original unchanged after diagnostic
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-MzCFN8","bytes":64790675,"rootAbsent":true,"failureCount":0,"processes":[{"pid":62050,"exitCode":0,"signalCode":null,"graceful":true,"ports":[{"kind":"http","port":58561,"closed":true},{"kind":"rtsp","port":58562,"closed":true}]}],"evidencePreservedOrNotRequired":true,"udpClosed":true}
+{"mode":"current-http-latency","passed":6,"failed":2,"latencyPass":false,"actualEventPass":false,"restartPass":false,"expectedOutputCount":2,"observedOutputCounts":[],"cleanup":{"rootAbsent":true,"failureCount":0,"processes":[{"pid":62050,"exitCode":0,"signalCode":null,"graceful":true,"ports":[{"kind":"http","port":58561,"closed":true},{"kind":"rtsp","port":58562,"closed":true}]}],"evidencePreservedOrNotRequired":true},"elapsedMs":34791}
+
+
+## LP11-T01~06 검증기 보완 TDD 원출력
+
+제품/실제앱 재실행 없음. 기존 실제앱 FAIL 판정 유지. source proof 부재/collector 실패 원인 미확정 유지.
+변경은 명시적 fixture runtime profile 3750ms/9회 및60000ms/121회, exhausted 수식 정합과연속/종결만검증. 원본source 신뢰조건을 trace가재증명하지않음.
+TDD 스킬 절차: 정상전환 거부 RED→구현→GREEN, shared safe reporter RED→GREEN.
+sourcehash {"scripts/internal/recording_selection_trace.mjs":"2f6c09b869ef3d6f94beeb378fd7299c9c0fbe698c07d928e3ba16748a9ff390","scripts/internal/recording_selection_trace.test.mjs":"59a4a3c59ec67152ba991809ebbfa0f55fddd8c3af7635cf8897012b7a4b8534","scripts/internal/verify_recording_current_app.mjs":"b5b284b94806f30601f04c4da647016c2e52d20cd3b5d69eec406f0a99f20714"}
+
+### red.txt
+
+command: node --test scripts/internal/recording_selection_trace.test.mjs
+exit=1 start_file_birthtime=2026-09-16T23:03:40.179Z elapsed=아래 node duration_ms
+원출력 시작
+✔ LP09-J01 분할 로그에서 안전한 행만 수집 (1.00125ms)
+✔ LP09-J01 extra 필드 거부 (0.1755ms)
+✔ LP09-J01 hash 필드 거부 (0.075041ms)
+✔ LP09-J01 enum 필드 거부 (0.055417ms)
+✔ LP09-J01 range 필드 거부 (0.054167ms)
+✔ LP09-J01 count 필드 거부 (0.065792ms)
+✔ LP09-J01 로그 상한과 미완성 행 거부 (0.131292ms)
+✔ LP09-J02 정확한 참조와 연속 시도 종결 확인 (0.135667ms)
+✖ LP11-T01 source에서 base로 복귀한 초과 effective attempt 정상 종결 (0.4085ms)
+✖ LP11-T02 base에서 source 전환과 절대 attempt121 경계 (0.5475ms)
+✖ LP11-T03 budget-pair 정합성 거부 (0.099ms)
+✔ LP11-T03 attempt122 정합성 거부 (0.048ms)
+✔ LP11-T03 wait60001 정합성 거부 (0.031042ms)
+✔ LP11-T03 attempt-flag 정합성 거부 (0.065083ms)
+✔ LP11-T03 deadline-flag 정합성 거부 (0.060333ms)
+✔ LP11-T04 skip sequence 거부 (0.082542ms)
+✔ LP11-T04 elapsed sequence 거부 (0.036583ms)
+✔ LP11-T04 range sequence 거부 (0.0255ms)
+✔ LP11-T04 unterminated sequence 거부 (0.020709ms)
+✖ LP11-T04 after-terminal sequence 거부 (0.0575ms)
+✖ LP11-T05 parser 오류 증거는 고정 코드와 safe numeric counts만 보존 (0.311125ms)
+✖ LP11-T06 profile collector split 및 incomplete 안전 보고 (0.111375ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 16
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 38.885042
+
+✖ failing tests:
+
+test at scripts/internal/recording_selection_trace.test.mjs:11:1
+✖ LP11-T01 source에서 base로 복귀한 초과 effective attempt 정상 종결 (0.4085ms)
+  AssertionError [ERR_ASSERTION]: Got unwanted exception.
+  Actual message: "selection-trace-invalid"
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:13:9)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: Error: selection-trace-invalid
+        at Module.validateSelectionTrace (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.mjs:15:821)
+        at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:13:48
+        at Array.forEach (<anonymous>)
+        at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:13:31
+        at getActual (node:assert:611:5)
+        at strict.doesNotThrow (node:assert:779:32)
+        at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:13:9)
+        at Test.runInAsyncScope (node:async_hooks:214:14)
+        at Test.run (node:internal/test_runner/test:1106:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:788:18),
+    expected: undefined,
+    operator: 'doesNotThrow',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_selection_trace.test.mjs:16:1
+✖ LP11-T02 base에서 source 전환과 절대 attempt121 경계 (0.5475ms)
+  Error: selection-trace-sequence
+      at Module.matchSelectionTrace (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.mjs:24:303)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:18:25)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at scripts/internal/recording_selection_trace.test.mjs:20:91
+✖ LP11-T03 budget-pair 정합성 거부 (0.099ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:22:9)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /selection-trace/,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_selection_trace.test.mjs:24:78
+✖ LP11-T04 after-terminal sequence 거부 (0.0575ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:27:9)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /selection-trace/,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_selection_trace.test.mjs:29:1
+✖ LP11-T05 parser 오류 증거는 고정 코드와 safe numeric counts만 보존 (0.311125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+RAW_JSON_LINE: "  "
+  + 'undefined'
+  - 'function'
+RAW_JSON_LINE: "  "
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:33:9)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_selection_trace.test.mjs:37:1
+✖ LP11-T06 profile collector split 및 incomplete 안전 보고 (0.111375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+RAW_JSON_LINE: "  "
+  + 'undefined'
+  - 'function'
+RAW_JSON_LINE: "  "
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:39:9)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+원출력 끝
+
+### green.txt
+
+command: node --test scripts/internal/recording_selection_trace.test.mjs
+exit=0 start_file_birthtime=2026-09-16T23:05:02.109Z elapsed=아래 node duration_ms
+원출력 시작
+✔ LP09-J01 분할 로그에서 안전한 행만 수집 (0.963833ms)
+✔ LP09-J01 extra 필드 거부 (0.137125ms)
+✔ LP09-J01 hash 필드 거부 (0.053083ms)
+✔ LP09-J01 enum 필드 거부 (0.050875ms)
+✔ LP09-J01 range 필드 거부 (0.051458ms)
+✔ LP09-J01 count 필드 거부 (0.040834ms)
+✔ LP09-J01 로그 상한과 미완성 행 거부 (0.126542ms)
+✔ LP09-J02 정확한 참조와 연속 시도 종결 확인 (0.12675ms)
+✔ LP11-T01 source에서 base로 복귀한 초과 effective attempt 정상 종결 (0.650833ms)
+✔ LP11-T02 base에서 source 전환과 절대 attempt121 경계 (0.473583ms)
+✔ LP11-T03 budget-pair 정합성 거부 (0.097833ms)
+✔ LP11-T03 attempt122 정합성 거부 (0.040209ms)
+✔ LP11-T03 wait60001 정합성 거부 (0.027542ms)
+✔ LP11-T03 attempt-flag 정합성 거부 (0.04125ms)
+✔ LP11-T03 deadline-flag 정합성 거부 (0.027ms)
+✔ LP11-T04 skip sequence 거부 (0.052834ms)
+✔ LP11-T04 elapsed sequence 거부 (0.026208ms)
+✔ LP11-T04 range sequence 거부 (0.035875ms)
+✔ LP11-T04 unterminated sequence 거부 (0.036792ms)
+✔ LP11-T04 after-terminal sequence 거부 (0.113916ms)
+✔ LP11-T05 parser 오류 증거는 고정 코드와 safe numeric counts만 보존 (0.159083ms)
+✔ LP11-T06 profile collector split 및 incomplete 안전 보고 (0.055ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 34.002084
+원출력 끝
+
+### reporter-red.txt
+
+command: node --test scripts/internal/recording_selection_trace.test.mjs
+exit=1 start_file_birthtime=2026-09-16T23:05:31.693Z elapsed=아래 node duration_ms
+원출력 시작
+✔ LP09-J01 분할 로그에서 안전한 행만 수집 (1.050708ms)
+✔ LP09-J01 extra 필드 거부 (0.149208ms)
+✔ LP09-J01 hash 필드 거부 (0.054209ms)
+✔ LP09-J01 enum 필드 거부 (0.044958ms)
+✔ LP09-J01 range 필드 거부 (0.052583ms)
+✔ LP09-J01 count 필드 거부 (0.09125ms)
+✔ LP09-J01 로그 상한과 미완성 행 거부 (0.173417ms)
+✔ LP09-J02 정확한 참조와 연속 시도 종결 확인 (0.160708ms)
+✔ LP11-T01 source에서 base로 복귀한 초과 effective attempt 정상 종결 (0.721541ms)
+✔ LP11-T02 base에서 source 전환과 절대 attempt121 경계 (0.551375ms)
+✔ LP11-T03 budget-pair 정합성 거부 (0.06075ms)
+✔ LP11-T03 attempt122 정합성 거부 (0.031875ms)
+✔ LP11-T03 wait60001 정합성 거부 (0.026542ms)
+✔ LP11-T03 attempt-flag 정합성 거부 (0.044375ms)
+✔ LP11-T03 deadline-flag 정합성 거부 (0.036416ms)
+✔ LP11-T04 skip sequence 거부 (0.051375ms)
+✔ LP11-T04 elapsed sequence 거부 (0.028666ms)
+✔ LP11-T04 range sequence 거부 (0.0365ms)
+✔ LP11-T04 unterminated sequence 거부 (0.134708ms)
+✔ LP11-T04 after-terminal sequence 거부 (0.042334ms)
+✔ LP11-T05 parser 오류 증거는 고정 코드와 safe numeric counts만 보존 (0.175708ms)
+✔ LP11-T06 profile collector split 및 incomplete 안전 보고 (0.055ms)
+✖ LP11-T06 actual runner 공통 오류 reporter는 원문 없이 status를 출력 (0.34775ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 22
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 35.721833
+
+✖ failing tests:
+
+test at scripts/internal/recording_selection_trace.test.mjs:41:1
+✖ LP11-T06 actual runner 공통 오류 reporter는 원문 없이 status를 출력 (0.34775ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+RAW_JSON_LINE: "  "
+  + 'undefined'
+  - 'function'
+RAW_JSON_LINE: "  "
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_selection_trace.test.mjs:43:9)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+원출력 끝
+
+### final-green.txt
+
+command: node --test scripts/internal/recording_selection_trace.test.mjs
+exit=0 start_file_birthtime=2026-09-16T23:05:50.951Z elapsed=아래 node duration_ms
+원출력 시작
+✔ LP09-J01 분할 로그에서 안전한 행만 수집 (1.043583ms)
+✔ LP09-J01 extra 필드 거부 (0.149ms)
+✔ LP09-J01 hash 필드 거부 (0.054625ms)
+✔ LP09-J01 enum 필드 거부 (0.046625ms)
+✔ LP09-J01 range 필드 거부 (0.049459ms)
+✔ LP09-J01 count 필드 거부 (0.040291ms)
+✔ LP09-J01 로그 상한과 미완성 행 거부 (0.122ms)
+✔ LP09-J02 정확한 참조와 연속 시도 종결 확인 (0.140791ms)
+✔ LP11-T01 source에서 base로 복귀한 초과 effective attempt 정상 종결 (0.633334ms)
+✔ LP11-T02 base에서 source 전환과 절대 attempt121 경계 (0.510625ms)
+✔ LP11-T03 budget-pair 정합성 거부 (0.060833ms)
+✔ LP11-T03 attempt122 정합성 거부 (0.031542ms)
+✔ LP11-T03 wait60001 정합성 거부 (0.026791ms)
+✔ LP11-T03 attempt-flag 정합성 거부 (0.040791ms)
+✔ LP11-T03 deadline-flag 정합성 거부 (0.030917ms)
+✔ LP11-T04 skip sequence 거부 (0.051833ms)
+✔ LP11-T04 elapsed sequence 거부 (0.026875ms)
+✔ LP11-T04 range sequence 거부 (0.03575ms)
+✔ LP11-T04 unterminated sequence 거부 (0.134292ms)
+✔ LP11-T04 after-terminal sequence 거부 (0.020875ms)
+✔ LP11-T05 parser 오류 증거는 고정 코드와 safe numeric counts만 보존 (0.15475ms)
+✔ LP11-T06 profile collector split 및 incomplete 안전 보고 (0.06175ms)
+✔ LP11-T06 actual runner 공통 오류 reporter는 원문 없이 status를 출력 (0.078334ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 33.534083
+원출력 끝
+
+## LP11 실행 개별 결과 전수표
+
+다음 표는 실행당 모든 pass/fail 행을 그대로 분리한다. 반복실행을 독립기능수로 합산하지 않는다. 실패이력을 최종PASS로 소급승격하지 않는다.
+
+| 실행/번호 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| scale/1 | FC01 exact insertion checks count=95 | pass | exit0; 원출력별도 |
+| scale/2 | actual4096 FE02 writer start | pass | exit0; 원출력별도 |
+| scale/3 | actual4096 FE04 bound finalized mutation segment0 | pass | exit0; 원출력별도 |
+| scale/4 | actual4096 LP02 actual4096 prerequisite | pass | exit0; 원출력별도 |
+| scale/5 | LP02/commit1 reserve | pass | exit0; 원출력별도 |
+| scale/6 | LP02/commit1 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/7 | LP02/commit1 commit  | pass | exit0; 원출력별도 |
+| scale/8 | LP02/commit2 reserve | pass | exit0; 원출력별도 |
+| scale/9 | LP02/commit2 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/10 | LP02/commit2 commit  | pass | exit0; 원출력별도 |
+| scale/11 | LP02/commit3 reserve | pass | exit0; 원출력별도 |
+| scale/12 | LP02/commit3 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/13 | LP02/commit3 commit  | pass | exit0; 원출력별도 |
+| scale/14 | LP02/commit4 reserve | pass | exit0; 원출력별도 |
+| scale/15 | LP02/commit4 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/16 | LP02/commit4 commit  | pass | exit0; 원출력별도 |
+| scale/17 | LP02/commit5 reserve | pass | exit0; 원출력별도 |
+| scale/18 | LP02/commit5 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/19 | LP02/commit5 commit  | pass | exit0; 원출력별도 |
+| scale/20 | LP02/commit6 reserve | pass | exit0; 원출력별도 |
+| scale/21 | LP02/commit6 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/22 | LP02/commit6 commit  | pass | exit0; 원출력별도 |
+| scale/23 | LP02/commit7 reserve | pass | exit0; 원출력별도 |
+| scale/24 | LP02/commit7 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/25 | LP02/commit7 commit  | pass | exit0; 원출력별도 |
+| scale/26 | LP02/commit8 reserve | pass | exit0; 원출력별도 |
+| scale/27 | LP02/commit8 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/28 | LP02/commit8 commit  | pass | exit0; 원출력별도 |
+| scale/29 | LP02/commit9 reserve | pass | exit0; 원출력별도 |
+| scale/30 | LP02/commit9 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/31 | LP02/commit9 commit  | pass | exit0; 원출력별도 |
+| scale/32 | LP02/commit10 reserve | pass | exit0; 원출력별도 |
+| scale/33 | LP02/commit10 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/34 | LP02/commit10 commit  | pass | exit0; 원출력별도 |
+| scale/35 | LP02/commit11 reserve | pass | exit0; 원출력별도 |
+| scale/36 | LP02/commit11 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/37 | LP02/commit11 commit  | pass | exit0; 원출력별도 |
+| scale/38 | LP02/commit12 reserve | pass | exit0; 원출력별도 |
+| scale/39 | LP02/commit12 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/40 | LP02/commit12 commit  | pass | exit0; 원출력별도 |
+| scale/41 | LP02/commit13 reserve | pass | exit0; 원출력별도 |
+| scale/42 | LP02/commit13 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/43 | LP02/commit13 commit  | pass | exit0; 원출력별도 |
+| scale/44 | LP02/commit14 reserve | pass | exit0; 원출력별도 |
+| scale/45 | LP02/commit14 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/46 | LP02/commit14 commit  | pass | exit0; 원출력별도 |
+| scale/47 | LP02/commit15 reserve | pass | exit0; 원출력별도 |
+| scale/48 | LP02/commit15 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/49 | LP02/commit15 commit  | pass | exit0; 원출력별도 |
+| scale/50 | LP02/commit16 reserve | pass | exit0; 원출력별도 |
+| scale/51 | LP02/commit16 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/52 | LP02/commit16 commit  | pass | exit0; 원출력별도 |
+| scale/53 | LP02/sources16 snapshot exact count | pass | exit0; 원출력별도 |
+| scale/54 | LP02/sources16 explicit checkpoint | pass | exit0; 원출력별도 |
+| scale/55 | LP02/sources16 reservation and bound mutation count | pass | exit0; 원출력별도 |
+| scale/56 | LP02/commit17 reserve | pass | exit0; 원출력별도 |
+| scale/57 | LP02/commit17 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/58 | LP02/commit17 commit  | pass | exit0; 원출력별도 |
+| scale/59 | LP02/commit18 reserve | pass | exit0; 원출력별도 |
+| scale/60 | LP02/commit18 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/61 | LP02/commit18 commit  | pass | exit0; 원출력별도 |
+| scale/62 | LP02/commit19 reserve | pass | exit0; 원출력별도 |
+| scale/63 | LP02/commit19 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/64 | LP02/commit19 commit  | pass | exit0; 원출력별도 |
+| scale/65 | LP02/commit20 reserve | pass | exit0; 원출력별도 |
+| scale/66 | LP02/commit20 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/67 | LP02/commit20 commit  | pass | exit0; 원출력별도 |
+| scale/68 | LP02/commit21 reserve | pass | exit0; 원출력별도 |
+| scale/69 | LP02/commit21 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/70 | LP02/commit21 commit  | pass | exit0; 원출력별도 |
+| scale/71 | LP02/commit22 reserve | pass | exit0; 원출력별도 |
+| scale/72 | LP02/commit22 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/73 | LP02/commit22 commit  | pass | exit0; 원출력별도 |
+| scale/74 | LP02/commit23 reserve | pass | exit0; 원출력별도 |
+| scale/75 | LP02/commit23 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/76 | LP02/commit23 commit  | pass | exit0; 원출력별도 |
+| scale/77 | LP02/commit24 reserve | pass | exit0; 원출력별도 |
+| scale/78 | LP02/commit24 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/79 | LP02/commit24 commit  | pass | exit0; 원출력별도 |
+| scale/80 | LP02/commit25 reserve | pass | exit0; 원출력별도 |
+| scale/81 | LP02/commit25 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/82 | LP02/commit25 commit  | pass | exit0; 원출력별도 |
+| scale/83 | LP02/commit26 reserve | pass | exit0; 원출력별도 |
+| scale/84 | LP02/commit26 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/85 | LP02/commit26 commit  | pass | exit0; 원출력별도 |
+| scale/86 | LP02/commit27 reserve | pass | exit0; 원출력별도 |
+| scale/87 | LP02/commit27 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/88 | LP02/commit27 commit  | pass | exit0; 원출력별도 |
+| scale/89 | LP02/commit28 reserve | pass | exit0; 원출력별도 |
+| scale/90 | LP02/commit28 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/91 | LP02/commit28 commit  | pass | exit0; 원출력별도 |
+| scale/92 | LP02/commit29 reserve | pass | exit0; 원출력별도 |
+| scale/93 | LP02/commit29 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/94 | LP02/commit29 commit  | pass | exit0; 원출력별도 |
+| scale/95 | LP02/commit30 reserve | pass | exit0; 원출력별도 |
+| scale/96 | LP02/commit30 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/97 | LP02/commit30 commit  | pass | exit0; 원출력별도 |
+| scale/98 | LP02/commit31 reserve | pass | exit0; 원출력별도 |
+| scale/99 | LP02/commit31 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/100 | LP02/commit31 commit  | pass | exit0; 원출력별도 |
+| scale/101 | LP02/commit32 reserve | pass | exit0; 원출력별도 |
+| scale/102 | LP02/commit32 actual file outside catalog | pass | exit0; 원출력별도 |
+| scale/103 | LP02/commit32 commit  | pass | exit0; 원출력별도 |
+| scale/104 | LP02/sources32 snapshot exact count | pass | exit0; 원출력별도 |
+| scale/105 | LP02/sources32 explicit checkpoint | pass | exit0; 원출력별도 |
+| scale/106 | LP02/sources32 reservation and bound mutation count | pass | exit0; 원출력별도 |
+| scale/107 | LP02/recovery/sql1 journal reopen | pass | exit0; 원출력별도 |
+| scale/108 | LP02/recovery/sql1 catalog reopen | pass | exit0; 원출력별도 |
+| scale/109 | LP02/recovery/sql1 exact source scale-0 | pass | exit0; 원출력별도 |
+| scale/110 | LP02/recovery/sql1 exact source scale-1 | pass | exit0; 원출력별도 |
+| scale/111 | LP02/recovery/sql1 exact source scale-2 | pass | exit0; 원출력별도 |
+| scale/112 | LP02/recovery/sql1 exact source scale-3 | pass | exit0; 원출력별도 |
+| scale/113 | LP02/recovery/sql1 exact source scale-4 | pass | exit0; 원출력별도 |
+| scale/114 | LP02/recovery/sql1 exact source scale-5 | pass | exit0; 원출력별도 |
+| scale/115 | LP02/recovery/sql1 exact source scale-6 | pass | exit0; 원출력별도 |
+| scale/116 | LP02/recovery/sql1 exact source scale-7 | pass | exit0; 원출력별도 |
+| scale/117 | LP02/recovery/sql1 exact source scale-8 | pass | exit0; 원출력별도 |
+| scale/118 | LP02/recovery/sql1 exact source scale-9 | pass | exit0; 원출력별도 |
+| scale/119 | LP02/recovery/sql1 exact source scale-10 | pass | exit0; 원출력별도 |
+| scale/120 | LP02/recovery/sql1 exact source scale-11 | pass | exit0; 원출력별도 |
+| scale/121 | LP02/recovery/sql1 exact source scale-12 | pass | exit0; 원출력별도 |
+| scale/122 | LP02/recovery/sql1 exact source scale-13 | pass | exit0; 원출력별도 |
+| scale/123 | LP02/recovery/sql1 exact source scale-14 | pass | exit0; 원출력별도 |
+| scale/124 | LP02/recovery/sql1 exact source scale-15 | pass | exit0; 원출력별도 |
+| scale/125 | LP02/recovery/sql1 exact source scale-16 | pass | exit0; 원출력별도 |
+| scale/126 | LP02/recovery/sql1 exact source scale-17 | pass | exit0; 원출력별도 |
+| scale/127 | LP02/recovery/sql1 exact source scale-18 | pass | exit0; 원출력별도 |
+| scale/128 | LP02/recovery/sql1 exact source scale-19 | pass | exit0; 원출력별도 |
+| scale/129 | LP02/recovery/sql1 exact source scale-20 | pass | exit0; 원출력별도 |
+| scale/130 | LP02/recovery/sql1 exact source scale-21 | pass | exit0; 원출력별도 |
+| scale/131 | LP02/recovery/sql1 exact source scale-22 | pass | exit0; 원출력별도 |
+| scale/132 | LP02/recovery/sql1 exact source scale-23 | pass | exit0; 원출력별도 |
+| scale/133 | LP02/recovery/sql1 exact source scale-24 | pass | exit0; 원출력별도 |
+| scale/134 | LP02/recovery/sql1 exact source scale-25 | pass | exit0; 원출력별도 |
+| scale/135 | LP02/recovery/sql1 exact source scale-26 | pass | exit0; 원출력별도 |
+| scale/136 | LP02/recovery/sql1 exact source scale-27 | pass | exit0; 원출력별도 |
+| scale/137 | LP02/recovery/sql1 exact source scale-28 | pass | exit0; 원출력별도 |
+| scale/138 | LP02/recovery/sql1 exact source scale-29 | pass | exit0; 원출력별도 |
+| scale/139 | LP02/recovery/sql1 exact source scale-30 | pass | exit0; 원출력별도 |
+| scale/140 | LP02/recovery/sql1 exact source scale-31 | pass | exit0; 원출력별도 |
+| scale/141 | LP02/recovery/sql0 journal reopen | pass | exit0; 원출력별도 |
+| scale/142 | LP02/recovery/sql0 catalog reopen | pass | exit0; 원출력별도 |
+| scale/143 | LP02/recovery/sql0 exact source scale-0 | pass | exit0; 원출력별도 |
+| scale/144 | LP02/recovery/sql0 exact source scale-1 | pass | exit0; 원출력별도 |
+| scale/145 | LP02/recovery/sql0 exact source scale-2 | pass | exit0; 원출력별도 |
+| scale/146 | LP02/recovery/sql0 exact source scale-3 | pass | exit0; 원출력별도 |
+| scale/147 | LP02/recovery/sql0 exact source scale-4 | pass | exit0; 원출력별도 |
+| scale/148 | LP02/recovery/sql0 exact source scale-5 | pass | exit0; 원출력별도 |
+| scale/149 | LP02/recovery/sql0 exact source scale-6 | pass | exit0; 원출력별도 |
+| scale/150 | LP02/recovery/sql0 exact source scale-7 | pass | exit0; 원출력별도 |
+| scale/151 | LP02/recovery/sql0 exact source scale-8 | pass | exit0; 원출력별도 |
+| scale/152 | LP02/recovery/sql0 exact source scale-9 | pass | exit0; 원출력별도 |
+| scale/153 | LP02/recovery/sql0 exact source scale-10 | pass | exit0; 원출력별도 |
+| scale/154 | LP02/recovery/sql0 exact source scale-11 | pass | exit0; 원출력별도 |
+| scale/155 | LP02/recovery/sql0 exact source scale-12 | pass | exit0; 원출력별도 |
+| scale/156 | LP02/recovery/sql0 exact source scale-13 | pass | exit0; 원출력별도 |
+| scale/157 | LP02/recovery/sql0 exact source scale-14 | pass | exit0; 원출력별도 |
+| scale/158 | LP02/recovery/sql0 exact source scale-15 | pass | exit0; 원출력별도 |
+| scale/159 | LP02/recovery/sql0 exact source scale-16 | pass | exit0; 원출력별도 |
+| scale/160 | LP02/recovery/sql0 exact source scale-17 | pass | exit0; 원출력별도 |
+| scale/161 | LP02/recovery/sql0 exact source scale-18 | pass | exit0; 원출력별도 |
+| scale/162 | LP02/recovery/sql0 exact source scale-19 | pass | exit0; 원출력별도 |
+| scale/163 | LP02/recovery/sql0 exact source scale-20 | pass | exit0; 원출력별도 |
+| scale/164 | LP02/recovery/sql0 exact source scale-21 | pass | exit0; 원출력별도 |
+| scale/165 | LP02/recovery/sql0 exact source scale-22 | pass | exit0; 원출력별도 |
+| scale/166 | LP02/recovery/sql0 exact source scale-23 | pass | exit0; 원출력별도 |
+| scale/167 | LP02/recovery/sql0 exact source scale-24 | pass | exit0; 원출력별도 |
+| scale/168 | LP02/recovery/sql0 exact source scale-25 | pass | exit0; 원출력별도 |
+| scale/169 | LP02/recovery/sql0 exact source scale-26 | pass | exit0; 원출력별도 |
+| scale/170 | LP02/recovery/sql0 exact source scale-27 | pass | exit0; 원출력별도 |
+| scale/171 | LP02/recovery/sql0 exact source scale-28 | pass | exit0; 원출력별도 |
+| scale/172 | LP02/recovery/sql0 exact source scale-29 | pass | exit0; 원출력별도 |
+| scale/173 | LP02/recovery/sql0 exact source scale-30 | pass | exit0; 원출력별도 |
+| scale/174 | LP02/recovery/sql0 exact source scale-31 | pass | exit0; 원출력별도 |
+| HTTP 준비/1 | sandbox loopback bind EPERM | fail | exit1; 환경준비실패; 앱미시작; cleanup완료 |
+| HTTP 실제/1 | S11-CI09 product-1 healthy isolated ICE | pass | exit1; 근본원인미해결 |
+| HTTP 실제/2 | S11-CI07 run1 actual tuple EventRecord reference | pass | exit1; 근본원인미해결 |
+| HTTP 실제/3 | current actual app: latency-job-failed | fail | exit1; 근본원인미해결 |
+| HTTP 실제/4 | S11-CI08 product-1 exit0 ports returned | pass | exit1; 근본원인미해결 |
+| HTTP 실제/5 | LP09-J02 selection trace unavailable | fail | exit1; 근본원인미해결 |
+| HTTP 실제/6 | LP03-B diagnostic copy bytes/hash exact | pass | exit1; 근본원인미해결 |
+| HTTP 실제/7 | LP03-B diagnostic copy bytes/hash exact | pass | exit1; 근본원인미해결 |
+| HTTP 실제/8 | LP03-B original unchanged after diagnostic | pass | exit1; 근본원인미해결 |
+| red.txt/1 | LP09-J01 분할 로그에서 안전한 행만 수집 (1.00125ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| red.txt/2 | LP09-J01 extra 필드 거부 (0.1755ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| red.txt/3 | LP09-J01 hash 필드 거부 (0.075041ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| red.txt/4 | LP09-J01 enum 필드 거부 (0.055417ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| red.txt/5 | LP09-J01 range 필드 거부 (0.054167ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| red.txt/6 | LP09-J01 count 필드 거부 (0.065792ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| red.txt/7 | LP09-J01 로그 상한과 미완성 행 거부 (0.131292ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| red.txt/8 | LP09-J02 정확한 참조와 연속 시도 종결 확인 (0.135667ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| red.txt/9 | LP11-T01 source에서 base로 복귀한 초과 effective attempt 정상 종결 (0.4085ms) | fail | 예상 RED; 위 원출력 assertion 확인 |
+| red.txt/10 | LP11-T02 base에서 source 전환과 절대 attempt121 경계 (0.5475ms) | fail | 예상 RED; 위 원출력 assertion 확인 |
+| red.txt/11 | LP11-T03 budget-pair 정합성 거부 (0.099ms) | fail | 예상 RED; 위 원출력 assertion 확인 |
+| red.txt/12 | LP11-T03 attempt122 정합성 거부 (0.048ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| red.txt/13 | LP11-T03 wait60001 정합성 거부 (0.031042ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| red.txt/14 | LP11-T03 attempt-flag 정합성 거부 (0.065083ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| red.txt/15 | LP11-T03 deadline-flag 정합성 거부 (0.060333ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| red.txt/16 | LP11-T04 skip sequence 거부 (0.082542ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| red.txt/17 | LP11-T04 elapsed sequence 거부 (0.036583ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| red.txt/18 | LP11-T04 range sequence 거부 (0.0255ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| red.txt/19 | LP11-T04 unterminated sequence 거부 (0.020709ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| red.txt/20 | LP11-T04 after-terminal sequence 거부 (0.0575ms) | fail | 예상 RED; 위 원출력 assertion 확인 |
+| red.txt/21 | LP11-T05 parser 오류 증거는 고정 코드와 safe numeric counts만 보존 (0.311125ms) | fail | 예상 RED; 위 원출력 assertion 확인 |
+| red.txt/22 | LP11-T06 profile collector split 및 incomplete 안전 보고 (0.111375ms) | fail | 예상 RED; 위 원출력 assertion 확인 |
+| green.txt/1 | LP09-J01 분할 로그에서 안전한 행만 수집 (0.963833ms) | pass | 단위 검증; 실제 앱 아님 |
+| green.txt/2 | LP09-J01 extra 필드 거부 (0.137125ms) | pass | 단위 검증; 실제 앱 아님 |
+| green.txt/3 | LP09-J01 hash 필드 거부 (0.053083ms) | pass | 단위 검증; 실제 앱 아님 |
+| green.txt/4 | LP09-J01 enum 필드 거부 (0.050875ms) | pass | 단위 검증; 실제 앱 아님 |
+| green.txt/5 | LP09-J01 range 필드 거부 (0.051458ms) | pass | 단위 검증; 실제 앱 아님 |
+| green.txt/6 | LP09-J01 count 필드 거부 (0.040834ms) | pass | 단위 검증; 실제 앱 아님 |
+| green.txt/7 | LP09-J01 로그 상한과 미완성 행 거부 (0.126542ms) | pass | 단위 검증; 실제 앱 아님 |
+| green.txt/8 | LP09-J02 정확한 참조와 연속 시도 종결 확인 (0.12675ms) | pass | 단위 검증; 실제 앱 아님 |
+| green.txt/9 | LP11-T01 source에서 base로 복귀한 초과 effective attempt 정상 종결 (0.650833ms) | pass | 단위 검증; 실제 앱 아님 |
+| green.txt/10 | LP11-T02 base에서 source 전환과 절대 attempt121 경계 (0.473583ms) | pass | 단위 검증; 실제 앱 아님 |
+| green.txt/11 | LP11-T03 budget-pair 정합성 거부 (0.097833ms) | pass | 단위 검증; 실제 앱 아님 |
+| green.txt/12 | LP11-T03 attempt122 정합성 거부 (0.040209ms) | pass | 단위 검증; 실제 앱 아님 |
+| green.txt/13 | LP11-T03 wait60001 정합성 거부 (0.027542ms) | pass | 단위 검증; 실제 앱 아님 |
+| green.txt/14 | LP11-T03 attempt-flag 정합성 거부 (0.04125ms) | pass | 단위 검증; 실제 앱 아님 |
+| green.txt/15 | LP11-T03 deadline-flag 정합성 거부 (0.027ms) | pass | 단위 검증; 실제 앱 아님 |
+| green.txt/16 | LP11-T04 skip sequence 거부 (0.052834ms) | pass | 단위 검증; 실제 앱 아님 |
+| green.txt/17 | LP11-T04 elapsed sequence 거부 (0.026208ms) | pass | 단위 검증; 실제 앱 아님 |
+| green.txt/18 | LP11-T04 range sequence 거부 (0.035875ms) | pass | 단위 검증; 실제 앱 아님 |
+| green.txt/19 | LP11-T04 unterminated sequence 거부 (0.036792ms) | pass | 단위 검증; 실제 앱 아님 |
+| green.txt/20 | LP11-T04 after-terminal sequence 거부 (0.113916ms) | pass | 단위 검증; 실제 앱 아님 |
+| green.txt/21 | LP11-T05 parser 오류 증거는 고정 코드와 safe numeric counts만 보존 (0.159083ms) | pass | 단위 검증; 실제 앱 아님 |
+| green.txt/22 | LP11-T06 profile collector split 및 incomplete 안전 보고 (0.055ms) | pass | 단위 검증; 실제 앱 아님 |
+| reporter-red.txt/1 | LP09-J01 분할 로그에서 안전한 행만 수집 (1.050708ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| reporter-red.txt/2 | LP09-J01 extra 필드 거부 (0.149208ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| reporter-red.txt/3 | LP09-J01 hash 필드 거부 (0.054209ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| reporter-red.txt/4 | LP09-J01 enum 필드 거부 (0.044958ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| reporter-red.txt/5 | LP09-J01 range 필드 거부 (0.052583ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| reporter-red.txt/6 | LP09-J01 count 필드 거부 (0.09125ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| reporter-red.txt/7 | LP09-J01 로그 상한과 미완성 행 거부 (0.173417ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| reporter-red.txt/8 | LP09-J02 정확한 참조와 연속 시도 종결 확인 (0.160708ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| reporter-red.txt/9 | LP11-T01 source에서 base로 복귀한 초과 effective attempt 정상 종결 (0.721541ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| reporter-red.txt/10 | LP11-T02 base에서 source 전환과 절대 attempt121 경계 (0.551375ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| reporter-red.txt/11 | LP11-T03 budget-pair 정합성 거부 (0.06075ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| reporter-red.txt/12 | LP11-T03 attempt122 정합성 거부 (0.031875ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| reporter-red.txt/13 | LP11-T03 wait60001 정합성 거부 (0.026542ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| reporter-red.txt/14 | LP11-T03 attempt-flag 정합성 거부 (0.044375ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| reporter-red.txt/15 | LP11-T03 deadline-flag 정합성 거부 (0.036416ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| reporter-red.txt/16 | LP11-T04 skip sequence 거부 (0.051375ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| reporter-red.txt/17 | LP11-T04 elapsed sequence 거부 (0.028666ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| reporter-red.txt/18 | LP11-T04 range sequence 거부 (0.0365ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| reporter-red.txt/19 | LP11-T04 unterminated sequence 거부 (0.134708ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| reporter-red.txt/20 | LP11-T04 after-terminal sequence 거부 (0.042334ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| reporter-red.txt/21 | LP11-T05 parser 오류 증거는 고정 코드와 safe numeric counts만 보존 (0.175708ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| reporter-red.txt/22 | LP11-T06 profile collector split 및 incomplete 안전 보고 (0.055ms) | pass | 예상 RED; 위 원출력 assertion 확인 |
+| reporter-red.txt/23 | LP11-T06 actual runner 공통 오류 reporter는 원문 없이 status를 출력 (0.34775ms) | fail | 예상 RED; 위 원출력 assertion 확인 |
+| final-green.txt/1 | LP09-J01 분할 로그에서 안전한 행만 수집 (1.043583ms) | pass | 단위 검증; 실제 앱 아님 |
+| final-green.txt/2 | LP09-J01 extra 필드 거부 (0.149ms) | pass | 단위 검증; 실제 앱 아님 |
+| final-green.txt/3 | LP09-J01 hash 필드 거부 (0.054625ms) | pass | 단위 검증; 실제 앱 아님 |
+| final-green.txt/4 | LP09-J01 enum 필드 거부 (0.046625ms) | pass | 단위 검증; 실제 앱 아님 |
+| final-green.txt/5 | LP09-J01 range 필드 거부 (0.049459ms) | pass | 단위 검증; 실제 앱 아님 |
+| final-green.txt/6 | LP09-J01 count 필드 거부 (0.040291ms) | pass | 단위 검증; 실제 앱 아님 |
+| final-green.txt/7 | LP09-J01 로그 상한과 미완성 행 거부 (0.122ms) | pass | 단위 검증; 실제 앱 아님 |
+| final-green.txt/8 | LP09-J02 정확한 참조와 연속 시도 종결 확인 (0.140791ms) | pass | 단위 검증; 실제 앱 아님 |
+| final-green.txt/9 | LP11-T01 source에서 base로 복귀한 초과 effective attempt 정상 종결 (0.633334ms) | pass | 단위 검증; 실제 앱 아님 |
+| final-green.txt/10 | LP11-T02 base에서 source 전환과 절대 attempt121 경계 (0.510625ms) | pass | 단위 검증; 실제 앱 아님 |
+| final-green.txt/11 | LP11-T03 budget-pair 정합성 거부 (0.060833ms) | pass | 단위 검증; 실제 앱 아님 |
+| final-green.txt/12 | LP11-T03 attempt122 정합성 거부 (0.031542ms) | pass | 단위 검증; 실제 앱 아님 |
+| final-green.txt/13 | LP11-T03 wait60001 정합성 거부 (0.026791ms) | pass | 단위 검증; 실제 앱 아님 |
+| final-green.txt/14 | LP11-T03 attempt-flag 정합성 거부 (0.040791ms) | pass | 단위 검증; 실제 앱 아님 |
+| final-green.txt/15 | LP11-T03 deadline-flag 정합성 거부 (0.030917ms) | pass | 단위 검증; 실제 앱 아님 |
+| final-green.txt/16 | LP11-T04 skip sequence 거부 (0.051833ms) | pass | 단위 검증; 실제 앱 아님 |
+| final-green.txt/17 | LP11-T04 elapsed sequence 거부 (0.026875ms) | pass | 단위 검증; 실제 앱 아님 |
+| final-green.txt/18 | LP11-T04 range sequence 거부 (0.03575ms) | pass | 단위 검증; 실제 앱 아님 |
+| final-green.txt/19 | LP11-T04 unterminated sequence 거부 (0.134292ms) | pass | 단위 검증; 실제 앱 아님 |
+| final-green.txt/20 | LP11-T04 after-terminal sequence 거부 (0.020875ms) | pass | 단위 검증; 실제 앱 아님 |
+| final-green.txt/21 | LP11-T05 parser 오류 증거는 고정 코드와 safe numeric counts만 보존 (0.15475ms) | pass | 단위 검증; 실제 앱 아님 |
+| final-green.txt/22 | LP11-T06 profile collector split 및 incomplete 안전 보고 (0.06175ms) | pass | 단위 검증; 실제 앱 아님 |
+| final-green.txt/23 | LP11-T06 actual runner 공통 오류 reporter는 원문 없이 status를 출력 (0.078334ms) | pass | 단위 검증; 실제 앱 아님 |
+
+## LP11 실제 HTTP 개별 관측 전수표
+
+초기 health 연결 실패는 startup retry 관측이며 개별 요청 fail로 남긴다. timeline180개 모두200/ok/4초이내이지만 작업 전이실패로 전체latencyPass=false다. 경로원문 없이 기존 fixed routeClass만 보존한다.
+
+| sequence | method / routeClass | status | elapsed ms(header/body/total) | bytes | pass/fail | phase / outcome |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | GET / health | null | null/null/3 | 0 | fail | header / error |
+| 2 | GET / health | null | null/null/1 | 0 | fail | header / error |
+| 3 | GET / health | null | null/null/1 | 0 | fail | header / error |
+| 4 | GET / health | null | null/null/1 | 0 | fail | header / error |
+| 5 | GET / health | null | null/null/2 | 0 | fail | header / error |
+| 6 | GET / health | null | null/null/2 | 0 | fail | header / error |
+| 7 | GET / health | null | null/null/2 | 0 | fail | header / error |
+| 8 | GET / health | null | null/null/1 | 0 | fail | header / error |
+| 9 | GET / health | null | null/null/1 | 0 | fail | header / error |
+| 10 | GET / health | null | null/null/1 | 0 | fail | header / error |
+| 11 | GET / health | null | null/null/0 | 0 | fail | header / error |
+| 12 | GET / health | null | null/null/0 | 0 | fail | header / error |
+| 13 | GET / health | null | null/null/0 | 0 | fail | header / error |
+| 14 | GET / health | null | null/null/0 | 0 | fail | header / error |
+| 15 | GET / health | null | null/null/0 | 0 | fail | header / error |
+| 16 | GET / health | null | null/null/1 | 0 | fail | header / error |
+| 17 | GET / health | null | null/null/0 | 0 | fail | header / error |
+| 18 | GET / health | null | null/null/0 | 0 | fail | header / error |
+| 19 | GET / health | 200 | 4/1/5 | 15 | pass | complete / ok |
+| 20 | GET / ice | 200 | 1/0/1 | 222 | pass | complete / ok |
+| 21 | POST / source | 201 | 77/0/77 | 428 | pass | complete / ok |
+| 22 | POST / tap-create | 200 | 49/0/49 | 1187 | pass | complete / ok |
+| 23 | GET / tap | 200 | 24/0/24 | 4030 | pass | complete / ok |
+| 24 | GET / tap | 200 | 1/0/1 | 5946 | pass | complete / ok |
+| 25 | GET / timeline | 200 | 1/0/1 | 82 | pass | complete / ok |
+| 26 | GET / tap | 200 | 1/0/1 | 5966 | pass | complete / ok |
+| 27 | GET / timeline | 200 | 0/0/1 | 82 | pass | complete / ok |
+| 28 | GET / tap | 200 | 1/0/1 | 6142 | pass | complete / ok |
+| 29 | GET / timeline | 200 | 1/0/1 | 82 | pass | complete / ok |
+| 30 | GET / tap | 200 | 1/0/1 | 6274 | pass | complete / ok |
+| 31 | GET / timeline | 200 | 0/0/1 | 82 | pass | complete / ok |
+| 32 | GET / tap | 200 | 1/0/1 | 6405 | pass | complete / ok |
+| 33 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 34 | GET / tap | 200 | 1/0/1 | 6404 | pass | complete / ok |
+| 35 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 36 | GET / tap | 200 | 1/0/1 | 6540 | pass | complete / ok |
+| 37 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 38 | GET / tap | 200 | 3/0/3 | 6678 | pass | complete / ok |
+| 39 | GET / timeline | 200 | 1/0/1 | 82 | pass | complete / ok |
+| 40 | GET / tap | 200 | 1/0/1 | 6814 | pass | complete / ok |
+| 41 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 42 | GET / tap | 200 | 1/0/1 | 6950 | pass | complete / ok |
+| 43 | GET / timeline | 200 | 1/0/1 | 82 | pass | complete / ok |
+| 44 | GET / tap | 200 | 1/0/1 | 6952 | pass | complete / ok |
+| 45 | GET / timeline | 200 | 1/0/1 | 82 | pass | complete / ok |
+| 46 | GET / tap | 200 | 1/0/1 | 7090 | pass | complete / ok |
+| 47 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 48 | GET / tap | 200 | 1/0/1 | 7221 | pass | complete / ok |
+| 49 | GET / timeline | 200 | 0/0/1 | 82 | pass | complete / ok |
+| 50 | GET / tap | 200 | 1/0/1 | 7361 | pass | complete / ok |
+| 51 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 52 | GET / tap | 200 | 6/0/6 | 7497 | pass | complete / ok |
+| 53 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 54 | GET / tap | 200 | 1/0/1 | 7492 | pass | complete / ok |
+| 55 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 56 | GET / tap | 200 | 1/0/1 | 7632 | pass | complete / ok |
+| 57 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 58 | GET / tap | 200 | 1/0/1 | 7763 | pass | complete / ok |
+| 59 | GET / timeline | 200 | 1/0/1 | 82 | pass | complete / ok |
+| 60 | GET / tap | 200 | 1/0/1 | 7898 | pass | complete / ok |
+| 61 | GET / timeline | 200 | 1/0/1 | 82 | pass | complete / ok |
+| 62 | GET / tap | 200 | 1/0/1 | 7899 | pass | complete / ok |
+| 63 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 64 | GET / tap | 200 | 1/0/1 | 8029 | pass | complete / ok |
+| 65 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 66 | GET / tap | 200 | 1/0/1 | 8161 | pass | complete / ok |
+| 67 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 68 | GET / tap | 200 | 1/0/1 | 8300 | pass | complete / ok |
+| 69 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 70 | GET / tap | 200 | 1/0/1 | 8434 | pass | complete / ok |
+| 71 | GET / timeline | 200 | 1/0/1 | 82 | pass | complete / ok |
+| 72 | GET / tap | 200 | 1/0/1 | 8436 | pass | complete / ok |
+| 73 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 74 | GET / tap | 200 | 1/0/1 | 8567 | pass | complete / ok |
+| 75 | GET / timeline | 200 | 0/0/1 | 82 | pass | complete / ok |
+| 76 | GET / tap | 200 | 1/0/1 | 8708 | pass | complete / ok |
+| 77 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 78 | GET / tap | 200 | 1/0/1 | 8841 | pass | complete / ok |
+| 79 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 80 | GET / tap | 200 | 1/0/1 | 8976 | pass | complete / ok |
+| 81 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 82 | GET / tap | 200 | 1/0/1 | 8975 | pass | complete / ok |
+| 83 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 84 | GET / tap | 200 | 1/0/1 | 9113 | pass | complete / ok |
+| 85 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 86 | GET / tap | 200 | 1/0/1 | 9246 | pass | complete / ok |
+| 87 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 88 | GET / tap | 200 | 1/0/1 | 9382 | pass | complete / ok |
+| 89 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 90 | GET / tap | 200 | 1/0/1 | 9515 | pass | complete / ok |
+| 91 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 92 | GET / tap | 200 | 1/0/1 | 9515 | pass | complete / ok |
+| 93 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 94 | GET / tap | 200 | 1/0/1 | 9647 | pass | complete / ok |
+| 95 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 96 | GET / tap | 200 | 1/0/1 | 10199 | pass | complete / ok |
+| 97 | GET / timeline | 200 | 1/0/1 | 82 | pass | complete / ok |
+| 98 | GET / tap | 200 | 1/0/1 | 10379 | pass | complete / ok |
+| 99 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 100 | GET / tap | 200 | 1/0/1 | 10383 | pass | complete / ok |
+| 101 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 102 | GET / tap | 200 | 1/0/1 | 10559 | pass | complete / ok |
+| 103 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 104 | GET / tap | 200 | 1/0/1 | 10749 | pass | complete / ok |
+| 105 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 106 | GET / tap | 200 | 1/0/1 | 10818 | pass | complete / ok |
+| 107 | GET / timeline | 200 | 1/0/1 | 82 | pass | complete / ok |
+| 108 | GET / tap | 200 | 1/0/1 | 10867 | pass | complete / ok |
+| 109 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 110 | GET / tap | 200 | 1/0/1 | 10867 | pass | complete / ok |
+| 111 | GET / timeline | 200 | 0/0/1 | 82 | pass | complete / ok |
+| 112 | GET / tap | 200 | 1/0/1 | 10919 | pass | complete / ok |
+| 113 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 114 | GET / tap | 200 | 1/0/1 | 10963 | pass | complete / ok |
+| 115 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 116 | GET / tap | 200 | 1/0/1 | 11010 | pass | complete / ok |
+| 117 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 118 | GET / tap | 200 | 1/0/1 | 11068 | pass | complete / ok |
+| 119 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 120 | GET / tap | 200 | 1/0/1 | 11068 | pass | complete / ok |
+| 121 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 122 | GET / tap | 200 | 1/0/1 | 11115 | pass | complete / ok |
+| 123 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 124 | GET / tap | 200 | 1/0/1 | 11150 | pass | complete / ok |
+| 125 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 126 | GET / tap | 200 | 1/0/1 | 11196 | pass | complete / ok |
+| 127 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 128 | GET / tap | 200 | 1/0/1 | 11196 | pass | complete / ok |
+| 129 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 130 | GET / tap | 200 | 1/0/1 | 11244 | pass | complete / ok |
+| 131 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 132 | GET / tap | 200 | 1/0/1 | 11298 | pass | complete / ok |
+| 133 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 134 | GET / tap | 200 | 1/0/1 | 11340 | pass | complete / ok |
+| 135 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 136 | GET / tap | 200 | 1/0/1 | 11388 | pass | complete / ok |
+| 137 | GET / timeline | 200 | 0/0/1 | 82 | pass | complete / ok |
+| 138 | GET / tap | 200 | 1/0/1 | 11386 | pass | complete / ok |
+| 139 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 140 | GET / tap | 200 | 1/0/1 | 11434 | pass | complete / ok |
+| 141 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 142 | GET / tap | 200 | 1/0/1 | 11471 | pass | complete / ok |
+| 143 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 144 | GET / tap | 200 | 1/0/1 | 11518 | pass | complete / ok |
+| 145 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 146 | GET / tap | 200 | 1/0/1 | 11563 | pass | complete / ok |
+| 147 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 148 | GET / tap | 200 | 1/0/1 | 11563 | pass | complete / ok |
+| 149 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 150 | GET / tap | 200 | 1/0/1 | 11614 | pass | complete / ok |
+| 151 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 152 | GET / tap | 200 | 1/0/1 | 11651 | pass | complete / ok |
+| 153 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 154 | GET / tap | 200 | 1/0/1 | 11698 | pass | complete / ok |
+| 155 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 156 | GET / tap | 200 | 1/0/1 | 11743 | pass | complete / ok |
+| 157 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 158 | GET / tap | 200 | 1/0/1 | 11745 | pass | complete / ok |
+| 159 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 160 | GET / tap | 200 | 1/0/1 | 11787 | pass | complete / ok |
+| 161 | GET / timeline | 200 | 1/0/1 | 82 | pass | complete / ok |
+| 162 | GET / tap | 200 | 1/0/1 | 11837 | pass | complete / ok |
+| 163 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 164 | GET / tap | 200 | 1/0/1 | 11882 | pass | complete / ok |
+| 165 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 166 | GET / tap | 200 | 1/0/1 | 11882 | pass | complete / ok |
+| 167 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 168 | GET / tap | 200 | 1/0/1 | 11918 | pass | complete / ok |
+| 169 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 170 | GET / tap | 200 | 1/0/1 | 11966 | pass | complete / ok |
+| 171 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 172 | GET / tap | 200 | 1/0/1 | 12013 | pass | complete / ok |
+| 173 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 174 | GET / tap | 200 | 1/0/1 | 12063 | pass | complete / ok |
+| 175 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 176 | GET / tap | 200 | 1/0/1 | 12063 | pass | complete / ok |
+| 177 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 178 | GET / tap | 200 | 1/0/1 | 12055 | pass | complete / ok |
+| 179 | GET / timeline | 200 | 0/0/0 | 82 | pass | complete / ok |
+| 180 | GET / tap | 200 | 1/0/1 | 12055 | pass | complete / ok |
+| 181 | GET / timeline | 200 | 11/0/11 | 53814 | pass | complete / ok |
+| 182 | GET / tap | 200 | 1/0/1 | 12060 | pass | complete / ok |
+| 183 | GET / timeline | 200 | 11/0/11 | 53814 | pass | complete / ok |
+| 184 | GET / tap | 200 | 1/0/1 | 12060 | pass | complete / ok |
+| 185 | GET / timeline | 200 | 10/0/10 | 53814 | pass | complete / ok |
+| 186 | GET / tap | 200 | 1/0/1 | 12055 | pass | complete / ok |
+| 187 | GET / timeline | 200 | 10/0/10 | 53814 | pass | complete / ok |
+| 188 | PUT / rule | 200 | 1/0/1 | 520 | pass | complete / ok |
+| 189 | GET / tap-events | 200 | 8/0/8 | 9901 | pass | complete / ok |
+| 190 | PUT / rule | 200 | 1/0/1 | 521 | pass | complete / ok |
+| 191 | GET / timeline | 200 | 10/0/11 | 57046 | pass | complete / ok |
+| 192 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 193 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 194 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 195 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 196 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 197 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 198 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 199 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 200 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 201 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 202 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 203 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 204 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 205 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 206 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 207 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 208 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 209 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 210 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 211 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 212 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 213 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 214 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 215 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 216 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 217 | GET / timeline | 200 | 12/0/12 | 57046 | pass | complete / ok |
+| 218 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 219 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 220 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 221 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 222 | GET / timeline | 200 | 12/0/12 | 57046 | pass | complete / ok |
+| 223 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 224 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 225 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 226 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 227 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 228 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 229 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 230 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 231 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 232 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 233 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 234 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 235 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 236 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 237 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 238 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 239 | GET / timeline | 200 | 12/0/12 | 57046 | pass | complete / ok |
+| 240 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 241 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 242 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 243 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 244 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 245 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 246 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 247 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 248 | GET / timeline | 200 | 10/0/11 | 57046 | pass | complete / ok |
+| 249 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 250 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 251 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 252 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 253 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 254 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 255 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 256 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 257 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 258 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 259 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 260 | GET / timeline | 200 | 11/0/11 | 57046 | pass | complete / ok |
+| 261 | GET / timeline | 200 | 22/0/22 | 84474 | pass | complete / ok |
+| 262 | GET / timeline | 200 | 21/0/21 | 14953 | pass | complete / ok |
+| 263 | GET / timeline | 200 | 23/0/23 | 84474 | pass | complete / ok |
+| 264 | GET / timeline | 200 | 167/0/167 | 14953 | pass | complete / ok |
+| 265 | GET / timeline | 200 | 549/0/550 | 84515 | pass | complete / ok |
+| 266 | GET / timeline | 200 | 22/0/22 | 14953 | pass | complete / ok |
+| 267 | GET / timeline | 200 | 22/0/23 | 84515 | pass | complete / ok |
+| 268 | GET / timeline | 200 | 21/0/21 | 14953 | pass | complete / ok |
+| 269 | GET / timeline | 200 | 22/0/22 | 84515 | pass | complete / ok |
+| 270 | GET / timeline | 200 | 21/0/21 | 14953 | pass | complete / ok |
+| 271 | GET / timeline | 200 | 23/0/23 | 84515 | pass | complete / ok |
+| 272 | GET / timeline | 200 | 21/0/21 | 14953 | pass | complete / ok |
+| 273 | GET / timeline | 200 | 22/0/22 | 84515 | pass | complete / ok |
+| 274 | GET / timeline | 200 | 21/0/21 | 14953 | pass | complete / ok |
+| 275 | GET / timeline | 200 | 21/0/21 | 84515 | pass | complete / ok |
+| 276 | GET / timeline | 200 | 22/0/22 | 14953 | pass | complete / ok |
+| 277 | GET / timeline | 200 | 22/0/22 | 84515 | pass | complete / ok |
+| 278 | GET / timeline | 200 | 21/0/21 | 14953 | pass | complete / ok |
+| 279 | GET / timeline | 200 | 22/0/22 | 84515 | pass | complete / ok |
+| 280 | GET / timeline | 200 | 21/0/21 | 14953 | pass | complete / ok |
+| 281 | GET / timeline | 200 | 23/0/23 | 84515 | pass | complete / ok |
+| 282 | GET / timeline | 200 | 22/0/22 | 14953 | pass | complete / ok |
+| 283 | GET / timeline | 200 | 22/0/22 | 84515 | pass | complete / ok |
+| 284 | GET / timeline | 200 | 22/0/22 | 14953 | pass | complete / ok |
+| 285 | GET / timeline | 200 | 22/0/22 | 84515 | pass | complete / ok |
+| 286 | GET / timeline | 200 | 21/0/21 | 14953 | pass | complete / ok |
+| 287 | GET / timeline | 200 | 402/0/402 | 84515 | pass | complete / ok |
+| 288 | GET / timeline | 200 | 21/0/21 | 14953 | pass | complete / ok |
+| 289 | DELETE / tap | 200 | 17/0/17 | 26 | pass | complete / ok |
+
+전수 대조: scale pass/fail행174, HTTP 실제pass/fail행8, HTTP timing행289; 단위 RED22/중간GREEN22/reporterRED23/최종GREEN23. 원출력 추가 전에 known raw secret-canary 없음 확인(시험코드의 canary 원문은 실패로그에 출력되지 않음).

@@ -4,11 +4,32 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 
+// 현재 recorder의 고정 사유만 허용한다. source별 원인이나 실패 시점의 증거는 아니다.
+const writerCodes=new Set(('hash timestamp-unavailable empty-nal nal-size nal-width nal-header nal-bound vcl-missing mp4-field-bound mp4-depth mp4-box-count mp4-header mp4-zero-size-profile mp4-box-bound mp4-profile mp4-duplicate-box mp4-missing-box mp4-time-version mp4-timescale mp4-table-bound mp4-video-only mp4-data-reference-count mp4-self-contained-reference mp4-edit-profile mp4-edit-rate mp4-description-count mp4-avc-entry mp4-avcc-version mp4-stsz-version mp4-sample-count mp4-sample-size mp4-stts-version mp4-stts-count mp4-stts-total mp4-ctts-version mp4-ctts-count mp4-ctts-total mp4-chunk-table mp4-chunk-version mp4-stsc-version mp4-empty-chunks mp4-stsc-run mp4-mdat-offset mp4-mdat-containment mp4-native-overflow mp4-sample-total file-size-cap file-binding file-read file-hash-binding capture-profile-or-cap segment-unobserved capture-count file-open ambiguous-original-vcl native-count ambiguous-mux-raw mux-file-payload original-file-vcl finish-exception gstreamer-unavailable').split(' '));
+for(const code of ['file evidence profile/bound 오류','file evidence identity/timestamp/duplicate 오류','file evidence forward table 오류','file evidence origin/edit 오류'])writerCodes.add(code);
+// phase별 실제 검사 코드만 조합한다. 임의 capture-* prefix는 허용하지 않는다.
+const capturePhases={
+  'attach-input-caps':['input-caps','input-format','input-alignment','input-codec-data','input-avcc-header','input-nal-width','input-codec-conflict'],
+  'attach-core':['gstreamer-profile'],'attach-parser-pad':['parser-pad'],'attach-mux-pad':['mux-pad'],'attach-mux-element':['mux-element'],'attach-plugin':['plugin-profile'],'attach-probe':['probe-install'],
+  'observe-lock':[],'observe-segment':['segment-profile'],'observe-count':['sample-cap'],'observe-buffer-size':['buffer-cap'],
+  'observe-pts':['timestamp-unavailable'],'observe-dts':['timestamp-unavailable'],'observe-duration':['timestamp-unavailable'],
+  'observe-caps':['caps-unavailable'],'observe-avc':['avc-profile'],'observe-buffer-read':['buffer-read'],
+  'observe-vcl':['empty-nal','nal-size','nal-width','nal-header','nal-bound','vcl-missing','hash'],'observe-hash':['hash'],'observe-append':[],
+  'accept-lock':[],'accept-count':['sample-cap'],'accept-original-fields':['original-timestamp'],'accept-buffer-size':['buffer-cap'],
+  'accept-pts':['timestamp-unavailable'],'accept-dts':['timestamp-unavailable'],'accept-duration':['timestamp-unavailable'],
+  'accept-vcl':['empty-nal','nal-size','nal-width','nal-header','nal-bound','vcl-missing','hash'],'accept-append':[]};
+for(const [phase,reasons] of Object.entries(capturePhases))for(const reason of [...reasons,'unknown'])writerCodes.add(`capture-${phase}-${reason}`);
+export function createWriterEvidenceCollector(){
+  const prefix='[recording] file evidence unavailable: ';let pending='',discard=false,total=0,truncated=false,finished=false;const counts=new Map();
+  function line(text){if(!text.startsWith(prefix))return;if(total===4096){truncated=true;return;}const suffix=text.slice(prefix.length),code=writerCodes.has(suffix)?suffix:'unknown';total++;counts.set(code,(counts.get(code)??0)+1);}
+  return {append(chunk){if(finished)throw Error('writer-collector-finished');for(const part of String(chunk).split(/(?<=\n)/)){const ended=part.endsWith('\n');if(!discard){if(Buffer.byteLength(pending)+Buffer.byteLength(part)>4096){pending='';discard=true;truncated=true;}else pending+=part;}if(ended){if(!discard)line(pending.slice(0,-1));pending='';discard=false;}}},finish(){if(!finished){if(discard||pending)truncated=true;pending='';finished=true;}return {basis:'run-wide-stderr',sourceBindingEquivalent:false,total,truncated,counts:[...counts].sort(([a],[b])=>a<b?-1:a>b?1:0).map(([code,count])=>({code,count}))};}};
+}
+
 export function runDiagnosticProbe({binary,root,index,reference,mode,environmentScript,env,deadline}){
   const remaining=Math.floor(deadline-performance.now());
   if(!Number.isFinite(remaining)||remaining<=0)throw Error('diagnostic-deadline');
   const args=[root,String(index),reference,mode];
-  const basic=['--diagnose-basic','--diagnose-completeness'].includes(mode);
+  const basic=['--diagnose-state','--diagnose-basic','--diagnose-completeness'].includes(mode);
   if(!basic&&!['--diagnose-failed','--replay-failed'].includes(mode))throw Error('diagnostic-mode');
   return JSON.parse(execFileSync(basic?binary:'/bin/bash',basic?args:['-c','set -e; source "$1"; media_server_apply_homebrew_gst_env; shift; exec "$@"','recording-diagnostic',environmentScript,binary,...args],{env,timeout:Math.min(15000,remaining),maxBuffer:1024*1024,encoding:'utf8',stdio:['ignore','pipe','pipe']}));
 }
@@ -21,12 +42,19 @@ const bool=x=>typeof x==='boolean';
 const literal=x=>v=>v===x;
 const nullable=p=>x=>x===null||p(x);
 const array=p=>x=>Array.isArray(x)&&x.length<=4096&&x.every(p);
+const bounded=(limit,p)=>x=>Array.isArray(x)&&x.length<=limit&&x.every(p);
+const int32=x=>Number.isInteger(x)&&x>=-2147483648&&x<=2147483647;
+const proofSchema={segmentIdSha256:hash,segmentPresent:bool,bindingPresent:bool,bindingValid:nullable(bool),fileEvidencePresent:bool,fileEvidenceValid:nullable(bool),bindingSha256:nullable(hash)};
+const proofConsistent=x=>(x.bindingValid!==null)===(x.segmentPresent&&x.bindingPresent)&&(x.fileEvidenceValid!==null)===x.fileEvidencePresent&&(!x.fileEvidencePresent||x.bindingPresent)&&(!x.bindingSha256||x.bindingPresent);
+const catalogSource=x=>fields(x,{...proofSchema,segmentMatchesIntent:nullable(bool),bindingMatchesIntentWithoutFileEvidence:nullable(bool)})&&proofConsistent(x)&&(x.segmentMatchesIntent!==null)===x.segmentPresent&&(x.bindingMatchesIntentWithoutFileEvidence!==null)===x.bindingPresent;
+const candidate=x=>fields(x,{...proofSchema,selected:bool,lifecycle:x=>count(x)&&x<=5,deleted:bool,eligible:bool,startPts:decimal,endPts:nullable(decimal),timeBaseNum:int32,timeBaseDen:int32})&&proofConsistent(x)&&x.segmentPresent&&(!x.eligible||x.bindingValid===true);
+const candidates=x=>fields(x,{status:v=>['complete','cap-exceeded','unavailable'].includes(v),count:nullable(count),truncated:bool,items:bounded(256,candidate)})&&(x.status==='complete'?x.count===x.items.length&&!x.truncated:x.count===null&&x.items.length===0&&x.truncated===(x.status==='cap-exceeded'));
 function fields(value,schema){return value!==null&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).length===Object.keys(schema).length&&Object.entries(schema).every(([k,p])=>Object.hasOwn(value,k)&&p(value[k]));}
 const source=x=>fields(x,{segmentIdSha256:hash,epochSha256:hash,generationSha256:hash,trackSha256:hash,bindingSha256:hash,generationOrder:decimal,startPts:decimal,endPts:nullable(decimal),lastAcceptedOrdinal:decimal,timeBaseNum:count,timeBaseDen:x=>count(x)&&x>0,sampleCount:count,indexComplete:bool,fileEvidencePresent:bool});
 const file=x=>fields(x,{segmentIdSha256:hash,expected:hash,actual:nullable(hash),actualHashAvailable:bool,matches:nullable(bool),status:x=>['matched','mismatched','unavailable','hash-error'].includes(x)})&&
   (x.actualHashAvailable ? hash(x.actual)&&x.matches===(x.expected===x.actual)&&x.status===(x.matches?'matched':'mismatched') : x.actual===null&&x.matches===null&&['unavailable','hash-error'].includes(x.status));
 function diagnostic(value){
-  if(!fields(value,{state:literal('failed'),failureReason:x=>codes.has(x),sourceCount:count,outputCount:count,plannedOutputCount:count,fileReceiptCount:count,copyCatalogOpened:literal(true),capturedIntentSha256:hash,snapshotBasis:literal('offline-copy-at-query'),evidenceBasis:literal('persisted-job-intent'),fileHashBasis:literal('resolve-media-validated-fd'),reproducibleBundle:literal(false),remuxPerformed:literal(false),sourceEvidence:array(source),sourceFileHashes:array(file)})||value.sourceCount!==value.sourceEvidence.length||value.sourceCount!==value.sourceFileHashes.length||value.sourceEvidence.some((s,i)=>s.segmentIdSha256!==value.sourceFileHashes[i].segmentIdSha256))throw Error('unsafe-diagnostic');
+  if(!fields(value,{state:literal('failed'),failureReason:x=>codes.has(x),sourceCount:count,outputCount:count,plannedOutputCount:count,fileReceiptCount:count,copyCatalogOpened:literal(true),capturedIntentSha256:hash,snapshotBasis:literal('offline-copy-at-query'),evidenceBasis:literal('persisted-job-intent'),fileHashBasis:literal('resolve-media-validated-fd'),reproducibleBundle:literal(false),remuxPerformed:literal(false),sourceEvidence:bounded(8,source),sourceFileHashes:bounded(8,file),intentProfile:x=>['h264-mp4-to-mpegts-video-only-v1','h264-mp4-native-to-mpegts-video-only-v1','unknown'].includes(x),catalogEvidenceBasis:literal('offline-copy-catalog'),failureTimeEquivalent:literal(false),proofValidationBasis:literal('strict-structure-only'),catalogSourceEvidence:bounded(8,catalogSource),catalogCandidateScope:literal('request-related-snapshot'),catalogCandidates:candidates})||value.sourceCount!==value.sourceEvidence.length||value.sourceCount!==value.sourceFileHashes.length||value.sourceCount!==value.catalogSourceEvidence.length||value.sourceEvidence.some((s,i)=>s.segmentIdSha256!==value.sourceFileHashes[i].segmentIdSha256||s.segmentIdSha256!==value.catalogSourceEvidence[i].segmentIdSha256))throw Error('unsafe-diagnostic');
   return value;
 }
 function basic(value){
@@ -67,6 +95,19 @@ function completeness(value){
 export function captureCompletenessEvidence({collect,evidencePath}){
   const result={diagnosticStatus:'not-run',evidenceStatus:'not-run',cleanupAllowed:false};let value;
   try{value=completeness(collect());result.diagnosticStatus='complete';}catch(error){result.diagnosticStatus=error?.code==='ETIMEDOUT'?'timeout':'failed';return result;}
+  try{preserve(evidencePath,{diagnostic:value});result.evidenceStatus='preserved';result.cleanupAllowed=true;}catch{result.evidenceStatus='failed';}
+  return result;
+}
+export function captureStateEvidence({collect,evidencePath,expectedReferenceSha256}){
+  const result={diagnosticStatus:'not-run',evidenceStatus:'not-run',cleanupAllowed:false};let value;
+  try{
+    if(!hash(expectedReferenceSha256))throw Error('state-reference-required');
+    value=collect();const small=x=>count(x)&&x<=8;
+    if(value?.referenceSha256!==expectedReferenceSha256)throw Error('state-reference-mismatch');
+    if(!fields(value,{state:choice(['absent','intent','ready','committed','complete','failed']),managed:bool,jobCount:x=>x===0||x===1,referenceSha256:hash,capturedIntentSha256:nullable(hash),sourceCount:small,outputCount:small,plannedOutputCount:small,fileReceiptCount:x=>count(x)&&x<=4096,copyCatalogOpened:literal(true),snapshotBasis:literal('offline-copy-at-query'),failureTimeEquivalent:literal(false),remuxPerformed:literal(false)})||
+      (value.state==='absent'?(value.jobCount!==0||value.capturedIntentSha256!==null||['sourceCount','outputCount','plannedOutputCount','fileReceiptCount'].some(k=>value[k]!==0)):(value.jobCount!==1||!value.managed||!hash(value.capturedIntentSha256))))throw Error('unsafe-state-diagnostic');
+    result.diagnosticStatus='complete';
+  }catch(error){result.diagnosticStatus=error?.code==='ETIMEDOUT'?'timeout':'failed';return result;}
   try{preserve(evidencePath,{diagnostic:value});result.evidenceStatus='preserved';result.cleanupAllowed=true;}catch{result.evidenceStatus='failed';}
   return result;
 }

@@ -1,0 +1,1 @@
+{"diagnostic":{"state":"failed","failureReason":"job-remux: file-original-timestamp-mismatch","sourceCount":2,"outputCount":0,"plannedOutputCount":2,"fileReceiptCount":2,"copyCatalogOpened":true,"capturedIntentSha256":"ac78d3bd11803bc869a45db92ea93b502741fe34d7ee5010a4a3ab9014ddeb19"}}
