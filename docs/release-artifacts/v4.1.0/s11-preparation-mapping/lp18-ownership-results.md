@@ -3,6 +3,626 @@
 독자: 녹화 구현·검증 담당. 수명: 이번 단기 검사의 실패/RED/GREEN 보존형 전수 결과. 정책은 AGENTS.md이며 해석은 [중앙 기록](../../../release-test-records.md)의 LP18을 따른다.
 예상 RED의 assertion은 실제 FAIL로 남기며 제품 PASS로 바꾸지 않는다.
 
+## Envelope 중복 생성 제거: 최초 실패·수정·검증
+
+첫 RED의 oracle 오류와 재검증/최종 GREEN을 각각 보존한다. 실제 HTTP·장시간/UI 판정이 아니다.
+
+### lp18-ownership-red-envelope-cost-01.txt
+
+[원출력](lp18-ownership-red-envelope-cost-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. LP18-E01 independent value and owned sequences compare equal | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 2. LP18-E01 full field mismatch rejected schema | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 3. LP18-E01 full field mismatch rejected type | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 4. LP18-E01 full field mismatch rejected id | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 5. LP18-E01 full field mismatch rejected entity | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 6. LP18-E01 full field mismatch rejected time | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 7. LP18-E01 full field mismatch rejected payload | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 8. LP18-E01 sequence order remains significant | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 9. LP18-E01 sequence count remains significant | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 10. LP18-E01 null on either side remains rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 11. LP18-E01 identical invalid schema retains comparison result | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 12. LP18-E01 identical invalid enum retains comparison result | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 13. LP18-E01 enum canonical collision remains rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 14. LP18-E01 escape and control bytes retain exact comparison | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 15. LP18-E01 int64 boundaries retain exact comparison | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 16. LP18-E01 payload whitespace remains significant | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 17. LP18-E02 SameSequence performs zero envelope serializations | 실제 assertion | FAIL | 최초 실패 보존·해석은 중앙 기록 |
+| 18. LP18-E03 receipt candidate preparation preserves original bytes | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 19. LP18-E04 CommitCheckpoint builds JournalBytes exactly once | 실제 assertion | FAIL | 최초 실패 보존·해석은 중앙 기록 |
+| 20. LP18-E03 independent candidate publishes exact bytes and preserves prior owner | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 21. LP18-E03 compacted bytes retain independent full projection | 실제 assertion | FAIL | 최초 실패 보존·해석은 중앙 기록 |
+| 22. LP18-E03 invalid candidate rejected before byte building schema | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 23. LP18-E03 invalid candidate rejected before byte building type | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 24. LP18-E03 invalid candidate rejected before byte building id | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 25. LP18-E03 invalid candidate rejected before byte building entity | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 26. LP18-E03 invalid candidate rejected before byte building time | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 27. LP18-E03 invalid candidate rejected before byte building payload | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 28. LP18-E03 invalid candidate rejected before byte building order | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 29. LP18-E03 invalid candidate rejected before byte building count | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 30. LP18-E03 invalid candidate rejected before byte building null | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+
+개별 assertion 30행 대조. 명령·elapsed·source·cleanup은 원출력 및 중앙 기록을 따른다.
+
+### lp18-ownership-red-envelope-cost-02.txt
+
+[원출력](lp18-ownership-red-envelope-cost-02.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. LP18-E01 independent value and owned sequences compare equal | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 2. LP18-E01 full field mismatch rejected schema | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 3. LP18-E01 full field mismatch rejected type | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 4. LP18-E01 full field mismatch rejected id | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 5. LP18-E01 full field mismatch rejected entity | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 6. LP18-E01 full field mismatch rejected time | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 7. LP18-E01 full field mismatch rejected payload | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 8. LP18-E01 sequence order remains significant | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 9. LP18-E01 sequence count remains significant | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 10. LP18-E01 null on either side remains rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 11. LP18-E01 identical invalid schema retains comparison result | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 12. LP18-E01 identical invalid enum retains comparison result | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 13. LP18-E01 enum canonical collision remains rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 14. LP18-E01 escape and control bytes retain exact comparison | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 15. LP18-E01 int64 boundaries retain exact comparison | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 16. LP18-E01 payload whitespace remains significant | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 17. LP18-E02 SameSequence performs zero envelope serializations | 실제 assertion | FAIL | 최초 실패 보존·해석은 중앙 기록 |
+| 18. LP18-E03 receipt candidate preparation preserves original bytes | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 19. LP18-E04 CommitCheckpoint builds JournalBytes exactly once | 실제 assertion | FAIL | 최초 실패 보존·해석은 중앙 기록 |
+| 20. LP18-E03 independent candidate publishes exact bytes and preserves prior owner | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 21. LP18-E03 compacted bytes retain independent full projection | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 22. LP18-E03 invalid candidate rejected before byte building schema | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 23. LP18-E03 invalid candidate rejected before byte building type | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 24. LP18-E03 invalid candidate rejected before byte building id | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 25. LP18-E03 invalid candidate rejected before byte building entity | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 26. LP18-E03 invalid candidate rejected before byte building time | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 27. LP18-E03 invalid candidate rejected before byte building payload | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 28. LP18-E03 invalid candidate rejected before byte building order | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 29. LP18-E03 invalid candidate rejected before byte building count | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 30. LP18-E03 invalid candidate rejected before byte building null | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+
+개별 assertion 30행 대조. 명령·elapsed·source·cleanup은 원출력 및 중앙 기록을 따른다.
+
+### lp18-ownership-green-envelope-cost-01.txt
+
+[원출력](lp18-ownership-green-envelope-cost-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. LP18-E01 independent value and owned sequences compare equal | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 2. LP18-E01 full field mismatch rejected schema | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 3. LP18-E01 full field mismatch rejected type | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 4. LP18-E01 full field mismatch rejected id | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 5. LP18-E01 full field mismatch rejected entity | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 6. LP18-E01 full field mismatch rejected time | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 7. LP18-E01 full field mismatch rejected payload | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 8. LP18-E01 sequence order remains significant | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 9. LP18-E01 sequence count remains significant | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 10. LP18-E01 null on either side remains rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 11. LP18-E01 identical invalid schema retains comparison result | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 12. LP18-E01 identical invalid enum retains comparison result | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 13. LP18-E01 enum canonical collision remains rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 14. LP18-E01 escape and control bytes retain exact comparison | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 15. LP18-E01 int64 boundaries retain exact comparison | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 16. LP18-E01 payload whitespace remains significant | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 17. LP18-E02 SameSequence performs zero envelope serializations | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 18. LP18-E03 receipt candidate preparation preserves original bytes | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 19. LP18-E04 CommitCheckpoint builds JournalBytes exactly once | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 20. LP18-E03 independent candidate publishes exact bytes and preserves prior owner | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 21. LP18-E03 compacted bytes retain independent full projection | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 22. LP18-E03 invalid candidate rejected before byte building schema | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 23. LP18-E03 invalid candidate rejected before byte building type | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 24. LP18-E03 invalid candidate rejected before byte building id | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 25. LP18-E03 invalid candidate rejected before byte building entity | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 26. LP18-E03 invalid candidate rejected before byte building time | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 27. LP18-E03 invalid candidate rejected before byte building payload | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 28. LP18-E03 invalid candidate rejected before byte building order | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 29. LP18-E03 invalid candidate rejected before byte building count | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 30. LP18-E03 invalid candidate rejected before byte building null | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+
+개별 assertion 30행 대조. 명령·elapsed·source·cleanup은 원출력 및 중앙 기록을 따른다.
+
+### lp18-ownership-green-envelope-compat-01.txt
+
+[원출력](lp18-ownership-green-envelope-compat-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. LP18-O01 owner checked read view shares journal envelope | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 2. LP18-O01 shared journal original candidate envelopes | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 3. LP18-O01 public Replay value mutation remains isolated | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 4. LP18-O01 retained prefix shares journal envelope | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 5. LP18-O01 full canonical and projection oracle | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 6. LP18-O03 stale candidate after reservation rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 7. LP18-O03 foreign owner candidate rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 8. LP18-O04 exact field order or prefix mutation rejected schema | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 9. LP18-O04 standalone candidate fields rejected without disk change schema | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 10. LP18-O04 exact field order or prefix mutation rejected type | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 11. LP18-O04 standalone candidate fields rejected without disk change type | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 12. LP18-O04 exact field order or prefix mutation rejected id | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 13. LP18-O04 standalone candidate fields rejected without disk change id | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 14. LP18-O04 exact field order or prefix mutation rejected entity | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 15. LP18-O04 standalone candidate fields rejected without disk change entity | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 16. LP18-O04 exact field order or prefix mutation rejected time | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 17. LP18-O04 standalone candidate fields rejected without disk change time | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 18. LP18-O04 exact field order or prefix mutation rejected payload | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 19. LP18-O04 standalone candidate fields rejected without disk change payload | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 20. LP18-O04 exact field order or prefix mutation rejected reorder | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 21. LP18-O04 standalone candidate fields rejected without disk change reorder | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 22. LP18-O04 exact field order or prefix mutation rejected shrink | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 23. LP18-O04 standalone candidate fields rejected without disk change shrink | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 24. LP18-O04 null envelope safely rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 25. LP18-O02 only transformed receipts own new envelopes | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 26. LP18-O02 prepared receipts preserve original canonical bytes | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 27. LP18-O02 publication bytes and prior owned snapshot remain exact | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 28. LP18-O02 published journal and prefix share transformed receipt envelopes | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 29. LP18-O02 receipt independent full projection equality | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 30. LP18-O03 stale candidate after ordinary append rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 31. LP18-O05 8192 logical records admitted | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 32. LP18-O05 8193 aliases still rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 33. LP18-O05 64MiB logical bytes admitted | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 34. LP18-O05 64MiB plus one rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+
+개별 assertion 34행 대조. 명령·elapsed·source·cleanup은 원출력 및 중앙 기록을 따른다.
+
+### lp18-envelope-identity-01.txt
+
+[원출력](lp18-envelope-identity-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. CP06 exact canonical sequence equality | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 2. CP06 same length different payload rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 3. CP06 reordered sequence rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 4. CP06 different count rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 5. CP06 different schema despite canonical equality rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 6. CP06 different enum despite canonical equality rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+
+개별 assertion 6행 대조. 명령·elapsed·source·cleanup은 원출력 및 중앙 기록을 따른다.
+
+### lp18-envelope-cache-01.txt
+
+[원출력](lp18-envelope-cache-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. LP15-C01 cold full applied=1 expected=1 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 2. LP15-C01 unchanged prefix applied=0 expected=0 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 3. LP15-C01 exact prefix suffix only applied=1 expected=1 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 4. LP15-C01 independent prefix shadow/full projection equality | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 5. LP15-C01 full fallback schema applied=2 expected=2 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 6. LP15-C01 full fallback type applied=2 expected=2 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 7. LP15-C01 full fallback id applied=2 expected=2 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 8. LP15-C01 full fallback entity applied=2 expected=2 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 9. LP15-C01 full fallback time applied=2 expected=2 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 10. LP15-C01 full fallback payload applied=2 expected=2 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 11. LP15-C01 full fallback reorder applied=2 expected=2 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 12. LP15-C01 full fallback shrink applied=2 expected=2 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 13. LP15-C01 full fallback null-shadow applied=2 expected=2 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 14. LP15-C01 full fallback null-handle applied=2 expected=2 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 15. LP15-C01 Open clears cache applied=2 expected=2 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 16. LP15-C03 recover full/no-cache | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 17. LP15-C03 after recover full applied=2 expected=2 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 18. LP15-C03 injected commit refusal discards cache | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 19. LP15-C03 after commit refusal full applied=2 expected=2 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 20. LP15-C03 suffix exception discards cache | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 21. LP15-C03 after exception full applied=3 expected=3 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 22. LP15-C03 public poisoned entry discards cache | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 23. LP15-C03 after restored fixture full applied=3 expected=3 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 24. LP15-C04 exact byte charge boundary | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 25. LP15-C04 overflow charge rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 26. LP15-C04 8192 records admitted | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 27. LP15-C04 8193 records rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 28. LP15-C04 64MiB record charge admitted | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 29. LP15-C04 64MiB plus one rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 30. LP15-C03 changed candidate prime applied=1 expected=1 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 31. LP15-C03 changed candidate suffix12 plus full candidate13 applied=25 expected=25 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 32. LP15-C03 changed candidate cache equals independent full projection | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 33. LP15-C03 compacted candidate prefix reused applied=0 expected=0 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 34. LP15-C03 forced projection mismatch discards cache | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 35. LP15-C04 overlimit prime applied=1 expected=1 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 36. LP15-C04 existing cache ignored for oversized original applied=8193 expected=8193 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 37. LP15-C04 oversized candidate not retained | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 38. LP15-C04 next oversized checkpoint full applied=8193 expected=8193 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 39. CP01 actual Ready Complete shape canonical files reservation | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 40. CP02 bounded two jobs over 1MiB canonical transitions | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 41. LP15-C02 bounded automatic checkpoint and whole transition measurement | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 42. LP15-C02 reopened full applied=18 expected=18 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 43. LP15-C02 actual unchanged prefix applied=0 expected=0 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 44. LP15-C02 actual suffix only applied=1 expected=1 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 45. LP15-C02 actual job shadow/full projection equality | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 46. LP15-C03 illegal Ready after Complete suffix rejected by cached/full paths | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 47. LP15-C04 peakRSS bytes=167329792 cap=536870912 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+
+개별 assertion 47행 대조. 명령·elapsed·source·cleanup은 원출력 및 중앙 기록을 따른다.
+
+### lp18-envelope-catalog-01.txt
+
+[원출력](lp18-envelope-catalog-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. journal open:  | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 2. fallback catalog open:  | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 3. SQLite off mode 표시 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 4. segment finalize journal+projection:  | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 5. fallback range query | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 6. event link FK 위반 거부 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 7. FK 위반 transaction/journal 전체 rollback | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 8. 최초 durable mutation 1개 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 9. 동일 mutation 중복 append | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 10. 손상 사이 정상 durable mutation 보존 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 11. 중간 corrupt line count | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 12. 마지막 truncated line skip | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 13. fallback replay open | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 14. 같은 mutation idempotent replay | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 15. 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 16. 중복 replay row/합계 불증가 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 17. 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구:  | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 18. writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 19. v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 20. SQLite catalog open/rebuild:  | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 21. SQLite primary mode 표시 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 22. SQLite on/off range query ID·순서 parity | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 23. journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 24. journal 없는 손상 media orphan 구분 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 25. projection failover journal open:  | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 26. projection failover catalog open:  | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 27. 실제 SQLite INSERT 실패 trigger 설치 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 28. SQLite 투영 실패 뒤 journal+memory finalize 유지:  | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 29. SQLite 투영 실패 즉시 JSONL fallback 전환 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 30. 재시작 rebuild 전 실패 trigger 제거 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 31. 투영 실패 직후 in-memory query 정합성 유지 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 32. projection failover 재시작 journal rebuild:  | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 33. 재시작 후 journal에서 누락 SQLite projection 복구 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 34. 재시작 후 SQLite primary 복귀 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 35. 재시작 journal rebuild가 실제 SQLite row 복원 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 36. tombstone journal open:  | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 37. tombstone catalog open:  | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 38. tombstone 대상 segment finalize:  | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 39. tombstone 대상 deletion request:  | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 40. tombstone 완료 기록:  | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 41. catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 42. 손상 SQLite 격리 후 journal rebuild:  | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 43. 손상 SQLite 원본 격리 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 44. 격리 SQLite 파일 보존 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 45. 격리 후 journal rebuild 결과 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 46. S10-3A future-schema journal read open | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 47. S10-3A future-schema unsupported classification | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 48. S10-3A future-schema catalog open denied | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 49. S10-3A future-schema catalog retry denied | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 50. S10-3A future-schema journal bytes preserved | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 51. S10-3A future-schema SQLite bytes preserved | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 52. S10-3A future-schema writer cleanup untouched | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 53. S10-3A arbitrary-schema journal read open | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 54. S10-3A arbitrary-schema unsupported classification | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 55. S10-3A arbitrary-schema catalog open denied | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 56. S10-3A arbitrary-schema catalog retry denied | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 57. S10-3A arbitrary-schema journal bytes preserved | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 58. S10-3A arbitrary-schema SQLite bytes preserved | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 59. S10-3A arbitrary-schema writer cleanup untouched | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 60. S10-3A empty-schema journal read open | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 61. S10-3A empty-schema unsupported classification | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 62. S10-3A empty-schema catalog open denied | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 63. S10-3A empty-schema catalog retry denied | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 64. S10-3A empty-schema journal bytes preserved | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 65. S10-3A empty-schema SQLite bytes preserved | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 66. S10-3A empty-schema writer cleanup untouched | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 67. S10-3A future-type journal read open | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 68. S10-3A future-type unsupported classification | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 69. S10-3A future-type catalog open denied | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 70. S10-3A future-type catalog retry denied | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 71. S10-3A future-type journal bytes preserved | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 72. S10-3A future-type SQLite bytes preserved | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 73. S10-3A future-type writer cleanup untouched | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 74. S10-3A malformed journal open | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 75. S10-3A malformed JSON missing fields and wrong types remain corrupt | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 76. S10-O01 reservation journal open | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 77. S10-O01 first reservation returns four IDs and sequence one | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 78. S10-O01 versioned reservation payload replays | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 79. S10-O01 new reservation records actual occurred time | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 80. S10-O02 identical retry preserves sequence and bytes | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 81. S10-O03 reopened instance allocates next sequence | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 82. S10-O03 new process resumes durable sequence | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 83. S10-O04 different store rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 84. S10-O04 reused request with different segment rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 85. S10-O04 reused request with different channel rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 86. S10-O04 reused segment with different request rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 87. S10-O04 conflicts preserve original bytes | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 88. S10-O05/O06 reject and preserve corrupt | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 89. S10-O05/O06 reject and preserve unsupported-schema | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 90. S10-O05/O06 reject and preserve unsupported-type | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 91. S10-O05/O06 reject and preserve tail | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 92. S10-O05/O06 reject and preserve payload-zero | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 93. S10-O05/O06 reject and preserve payload-negative | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 94. S10-O05/O06 reject and preserve payload-fraction | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 95. S10-O05/O06 reject and preserve payload-overflow | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 96. S10-O05/O06 reject and preserve duplicate-sequence | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 97. S10-O05/O06 reject and preserve decreasing-sequence | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 98. S10-O05/O06 reject and preserve duplicate-request | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 99. S10-O05/O06 reject and preserve duplicate-segment | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 100. S10-O05/O06 reject and preserve store-conflict | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 101. S10-O05/O06 reject and preserve ordinary-before | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 102. S10-O05/O06 reject and preserve ordinary-after | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 103. S10-O05/O06 reject and preserve line-cap | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 104. S10-O05 reservation entity envelope binding rejects mismatch | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 105. S10-O05 reservation request envelope binding rejects mismatch | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 106. S10-O01 strict reservation parser accepts versioned literal | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 107. S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 108. S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 109. S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 110. S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 111. S10-O06 INT64_MAX identical retry remains valid | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 112. S10-O06 sequence overflow rejected without write | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 113. S10-O02 identical durable reservation duplicates remain idempotent | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 114. S10-O06 sequence gaps remain valid and allocate above maximum | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 115. S10-O07 four simultaneous processes finish reservations | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 116. S10-O07 concurrent sequences are unique and complete | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 117. S10-O07 next sequence follows concurrent reservations | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 118. S10-O08 ordinary Append cannot reserve orders | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 119. S10-O08 unopened journal rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 120. S10-O08 null result rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 121. S10-O08 invalid opaque ID rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 122. S10-O08 failed reservation does not expose tentative result | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 123. S10-O09 unsafe file binding rejected and original preserved inode | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 124. S10-O09 unsafe file binding rejected and original preserved parent | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 125. S10-O09 unsafe file binding rejected and original preserved symlink | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 126. S10-O09 unsafe file binding rejected and original preserved hardlink | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 127. S10-O10 reservation and normal segment coexist in catalog | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 128. S10-O04 reserve then finalize permits identical retry | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 129. S10-O10 reservation survives catalog rebuild without changing segment query | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 130. S10-O04 legacy segment cannot acquire retroactive reservation | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 131. S10-M06 opened catalog accepts fresh exact reservation V2 finalize | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 132. S10-M07 V2 find preserves complete metadata | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 133. S10-M07 identical V2 recovery is idempotent | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 134. S10-M07 V2 is absent from V1 range query | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 135. S10-M07 V2 registered path is not orphan | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 136. S10-M07 SQLite exact V2 JSON and path match | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 137. S10-M07 JSONL restart preserves V2 exact payload | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 138. S10-M06 wrong reservation tuple rejected store | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 139. S10-M06 wrong reservation tuple rejected request | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 140. S10-M06 wrong reservation tuple rejected segment | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 141. S10-M06 wrong reservation tuple rejected channel | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 142. S10-M06 wrong reservation tuple rejected sequence | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 143. S10-M09 immutable V2 mapping mismatch rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 144. S10-M09 bad V2 startup retry preserves original state bad-payload | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 145. S10-M09 bad V2 startup retry preserves original state missing-order | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 146. S10-M09 bad V2 startup retry preserves original state bad-order | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 147. S10-M09 bad V2 startup retry preserves original state conflicting-order | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 148. S10-M09 bad V2 startup retry preserves original state tail | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 149. S10-M09 bad V2 startup retry preserves original state corrupt | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 150. S10-M09 bad V2 startup retry preserves original state unsafe-path | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 151. S10-M09 default off rejects V2 before SQLite changes | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 152. S10-M09 V2 replay namespace and deletion duplicate | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 153. S10-M09 V2 replay namespace and deletion deleted | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 154. S10-M09 V2 replay namespace and deletion v1-before | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 155. S10-M09 V2 replay namespace and deletion v1-after | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 156. S10-M09 V2 replay namespace and deletion deleted-before | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 157. S10-M09 V2 replay namespace and deletion resurrection | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 158. S10-M09 V2 replay namespace and deletion mutation-collision | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 159. S10-M09 V2 finalize rejects missing media | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 160. S10-M09 V2 finalize rejects directory media | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 161. S10-M09 fresh candidate rejects mapping | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 162. S10-M09 fresh candidate rejects path | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 163. S10-M09 fresh candidate rejects tombstone | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 164. S10-SW01 managed empty root opens with lifetime lease | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 165. S10-SW02 same process second managed owner denied | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 166. S10-SW03 different process owner and inherited use denied | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 167. S10-SW12 managed duplicate descriptors are close-on-exec | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 168. S10-SW05 managed reserve append replay use owned descriptor | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 169. S10-SW06 raw managed access and legacy default path denied | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 170. S10-SW01 managed Reserve rejects different store identity | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 171. S10-SW10 catalog connection can inspect managed lease | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 172. S10-SW04 owner destruction releases lease | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 173. S10-SW01 managed reopen rejects different store identity | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 174. S10-SW11 managed incomplete tail rejects append without changing bytes | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 175. S10-SW07 legacy nonempty root preserved without conversion | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 176. S10-SW08 partial initialization retry validates exact state lease | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 177. S10-SW08 partial initialization retry validates exact state init | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 178. S10-SW08 partial initialization retry validates exact state barrier | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 179. S10-SW08 partial initialization retry validates exact state journal | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 180. S10-SW08 partial initialization retry validates exact state incomplete | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 181. S10-SW08 partial initialization retry validates exact state unknown | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 182. S10-SW09 symlink inode and malformed marker rejected journal | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 183. S10-SW09 symlink inode and malformed marker rejected marker | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 184. S10-SW09 symlink inode and malformed marker rejected barrier | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 185. S10-SW09 symlink inode and malformed marker rejected root-symlink | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 186. S10-SB01 second managed catalog is denied | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 187. S10-SB02 failed catalog cannot mutate journal or holds | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 188. S10-SB03 attached catalog blocks unowned append but permits reservation | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 189. S10-SB04 catalog destruction releases attachment | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 190. S10-SB05 managed catalog rejects unsafe options outside | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 191. S10-SB05 managed catalog rejects unsafe options dotdot | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 192. S10-SB05 managed catalog rejects unsafe options media-symlink | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 193. S10-SB05 managed catalog rejects unsafe options sqlite-symlink | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 194. S10-SB05 managed catalog rejects unsafe options sqlite-hardlink | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 195. S10-SB05 managed catalog rejects unsafe options disabled | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 196. S10-SB06 failed open releases catalog attachment | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 197. S10-SB07 managed SQLite sidecar rejected -wal symlink | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 198. S10-SB07 managed SQLite sidecar rejected -wal hardlink | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 199. S10-SB07 managed SQLite sidecar rejected -shm symlink | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 200. S10-SB07 managed SQLite sidecar rejected -shm hardlink | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 201. S10-SB07 managed SQLite sidecar rejected -journal symlink | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 202. S10-SB07 managed SQLite sidecar rejected -journal hardlink | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 203. S10-SC01 managed repeated event fixture is valid | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 204. S10-SC02 managed reservations avoid history reads | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 205. S10-SC03 managed V2 finalize avoids full replay | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 206. S10-SC04 checkpoint reduces superseded event payload bytes | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 207. S10-SC05 checkpoint preserves latest event and all record identities | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 208. S10-SC06 checkpoint is idempotent and preserves V2 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 209. S10-SC08 receipt preserves retry identity and rejects direct append | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 210. S10-SC09 checkpoint restart preserves SQLite and JSONL state sqlite | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 211. S10-SC09 managed checkpoint SQL V2 payload and path | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 212. S10-SC09 checkpoint restart preserves SQLite and JSONL state jsonl | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 213. S10-SC10 checkpoint prefix recovers before writes | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 214. S10-SC11 checkpoint mismatch preserves bytes and poisons owner | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 215. S10-SC12 first accepted mutation controls latest event | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 216. S10-SC16 automatic checkpoint uses accumulated growth | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 217. S10-SC07 raw checkpoint is rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 218. S10-SC18 checkpoint syscall failure poisons and reopens write | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 219. S10-SC21 poison rejects hold mutation write | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 220. S10-SC18 checkpoint syscall failure poisons and reopens file-fsync | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 221. S10-SC21 poison rejects hold mutation file-fsync | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 222. S10-SC18 checkpoint syscall failure poisons and reopens rename | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 223. S10-SC21 poison rejects hold mutation rename | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 224. S10-SC18 checkpoint syscall failure poisons and reopens dir-fsync | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 225. S10-SC21 poison rejects hold mutation dir-fsync | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 226. S10-SC17 checkpoint preserves holds observations and deletion | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 227. S10-SC17 checkpoint SQL hold observation tombstone | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 228. S10-SC17 checkpoint preserves holds observations and deletion restart sqlite | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 229. S10-SC17 checkpoint SQL restart observation tombstone | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 230. S10-SC17 checkpoint preserves holds observations and deletion restart jsonl | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 231. S10-SC19 invalid managed history remains unchanged malformed | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 232. S10-SC19 invalid managed history remains unchanged unsupported | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 233. S10-SC19 invalid managed history remains unchanged conflict | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 234. S10-SC20 raw catalog rejects receipt before side effects | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 235. S10-SC13 crypto off raw remains usable | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 236. S10-SC14 crypto off checkpoint is rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 237. S10-SC15 crypto off receipt reopen is rejected | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 238. source 저장 callback reconcile 연결 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 239. policy revision idempotency | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 240. 5초 safety reconcile | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 241. composition root 관리 저장소 선행 open | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 242. composition helper journal 다음 catalog rebuild/open | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 243. 서버 전 supervisor 시작 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 244. ingress 전 event bridge 등록 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 245. ingress 종료 뒤 recorder finalize | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+| 246. composition root 시작/종료 순서 | 실제 assertion | PASS | 최초 실패 보존·해석은 중앙 기록 |
+
+개별 assertion 246행 대조. 명령·elapsed·source·cleanup은 원출력 및 중앙 기록을 따른다.
+
+### lp17-jobs-lp18-envelope-01.txt
+
+[원출력](lp17-jobs-lp18-envelope-01.txt) — B/C 캐시 on/off, 기능120/계측1. 구·신코드 개선율 또는 실제 HTTP 판정이 아님.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. FC01 exact insertion checks count=97 | 실제 assertion | PASS | 원출력 순서 |
+| 2. D08.input-keyframes | 실제 assertion | PASS | 원출력 순서 |
+| 3. D08.source-shape | 실제 assertion | PASS | 원출력 순서 |
+| 4. D08.selection-complete | 실제 assertion | PASS | 원출력 순서 |
+| 5. D08.expected-intent-built | 실제 assertion | PASS | 원출력 순서 |
+| 6. D08.admission | 실제 assertion | PASS | 원출력 순서 |
+| 7. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 8. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 9. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 10. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 11. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 12. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 13. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 14. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 15. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 16. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 17. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 18. D08.ready-verified-proof | 실제 assertion | PASS | 원출력 순서 |
+| 19. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 20. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 21. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 22. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 23. D08.canonical-ready-preserved | 실제 assertion | PASS | 원출력 순서 |
+| 24. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 25. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 26. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 27. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 28. D08.canonical-ready-preserved | 실제 assertion | PASS | 원출력 순서 |
+| 29. D08.protection-released | 실제 assertion | PASS | 원출력 순서 |
+| 30. D08.run-complete | 실제 assertion | PASS | 원출력 순서 |
+| 31. D08.actual-output-hash | 실제 assertion | PASS | 원출력 순서 |
+| 32. D08.selection-complete | 실제 assertion | PASS | 원출력 순서 |
+| 33. D08.expected-intent-built | 실제 assertion | PASS | 원출력 순서 |
+| 34. D08.admission | 실제 assertion | PASS | 원출력 순서 |
+| 35. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 36. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 37. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 38. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 39. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 40. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 41. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 42. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 43. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 44. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 45. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 46. D08.ready-verified-proof | 실제 assertion | PASS | 원출력 순서 |
+| 47. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 48. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 49. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 50. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 51. D08.canonical-ready-preserved | 실제 assertion | PASS | 원출력 순서 |
+| 52. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 53. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 54. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 55. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 56. D08.canonical-ready-preserved | 실제 assertion | PASS | 원출력 순서 |
+| 57. D08.protection-released | 실제 assertion | PASS | 원출력 순서 |
+| 58. D08.run-complete | 실제 assertion | PASS | 원출력 순서 |
+| 59. D08.actual-output-hash | 실제 assertion | PASS | 원출력 순서 |
+| 60. CP01.actual-ready-complete-shape-canonical-files-reservation | 실제 assertion | PASS | 원출력 순서 |
+| 61. CP02.two-jobs-over-1MiB-canonical-transitions | 실제 assertion | PASS | 원출력 순서 |
+| 62. D08.input-keyframes | 실제 assertion | PASS | 원출력 순서 |
+| 63. D08.source-shape | 실제 assertion | PASS | 원출력 순서 |
+| 64. D08.selection-complete | 실제 assertion | PASS | 원출력 순서 |
+| 65. D08.expected-intent-built | 실제 assertion | PASS | 원출력 순서 |
+| 66. D08.admission | 실제 assertion | PASS | 원출력 순서 |
+| 67. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 68. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 69. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 70. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 71. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 72. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 73. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 74. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 75. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 76. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 77. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 78. D08.ready-verified-proof | 실제 assertion | PASS | 원출력 순서 |
+| 79. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 80. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 81. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 82. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 83. D08.canonical-ready-preserved | 실제 assertion | PASS | 원출력 순서 |
+| 84. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 85. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 86. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 87. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 88. D08.canonical-ready-preserved | 실제 assertion | PASS | 원출력 순서 |
+| 89. D08.protection-released | 실제 assertion | PASS | 원출력 순서 |
+| 90. D08.run-complete | 실제 assertion | PASS | 원출력 순서 |
+| 91. D08.actual-output-hash | 실제 assertion | PASS | 원출력 순서 |
+| 92. D08.selection-complete | 실제 assertion | PASS | 원출력 순서 |
+| 93. D08.expected-intent-built | 실제 assertion | PASS | 원출력 순서 |
+| 94. D08.admission | 실제 assertion | PASS | 원출력 순서 |
+| 95. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 96. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 97. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 98. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 99. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 100. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 101. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 102. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 103. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 104. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 105. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 106. D08.ready-verified-proof | 실제 assertion | PASS | 원출력 순서 |
+| 107. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 108. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 109. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 110. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 111. D08.canonical-ready-preserved | 실제 assertion | PASS | 원출력 순서 |
+| 112. D08.expected-state | 실제 assertion | PASS | 원출력 순서 |
+| 113. D08.canonical-intent | 실제 assertion | PASS | 원출력 순서 |
+| 114. D08.files-receipt | 실제 assertion | PASS | 원출력 순서 |
+| 115. D08.canonical-record-roundtrip | 실제 assertion | PASS | 원출력 순서 |
+| 116. D08.canonical-ready-preserved | 실제 assertion | PASS | 원출력 순서 |
+| 117. D08.protection-released | 실제 assertion | PASS | 원출력 순서 |
+| 118. D08.run-complete | 실제 assertion | PASS | 원출력 순서 |
+| 119. D08.actual-output-hash | 실제 assertion | PASS | 원출력 순서 |
+| 120. CP01.actual-ready-complete-shape-canonical-files-reservation | 실제 assertion | PASS | 원출력 순서 |
+| 121. CP02.two-jobs-over-1MiB-canonical-transitions | 실제 assertion | PASS | 원출력 순서 |
+
+개별121행 대조, 실제 명령·시각·정리/비용은 원출력에 보존했다.
+
 ## 호출-local 내용 증명 예상 RED
 
 [원출력](lp18-ownership-red-content-01.txt) — build exit0, focused exit1; 6PASS/1FAIL, source 불변·그룹 종료·root13567669B 삭제. elapsed30962ms, token 집계 미제공. 제품 PASS 아님.

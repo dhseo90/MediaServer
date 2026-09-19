@@ -1,0 +1,15 @@
+command: MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_checkpoint_reproduction.sh --identity-only
+exit: 0
+elapsedMs: 6532
+token start/end/consumed: 미집계 (실제 사용량 집계 미제공)
+source: 03839d85 + envelope 전체필드 비교/byte 생성 중복 제거
+
+[pass] CP06 exact canonical sequence equality
+[pass] CP06 same length different payload rejected
+[pass] CP06 reordered sequence rejected
+[pass] CP06 different count rejected
+[pass] CP06 different schema despite canonical equality rejected
+[pass] CP06 different enum despite canonical equality rejected
+[summary] pass=6 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-reproduction.FToFVQ bytes=1015211 removed=true
+[elapsed] seconds=1 source=bash-SECONDS

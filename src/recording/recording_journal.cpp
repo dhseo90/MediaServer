@@ -929,8 +929,9 @@ bool RecordingJournal::CommitCheckpoint(const void* owner,const RecordingMutatio
     RecordingMutationHandles expected;
     if(!CompactRecords(managed_state_->records,&expected,error))return false;
     if(expected.size()!=candidate.size()||!detail::SameCheckpointPrefix(expected,candidate))return Fail(error,"checkpoint 후보 필드 불일치");
+    // 현재 원장으로 재구성한 expected와 후보의 모든 필드가 같다. 같은 serializer의
+    // 결과를 다시 만들지 않고 이 bytes를 pending 검증·축소 판단·원자 쓰기에 함께 쓴다.
     const auto bytes=JournalBytes(expected);
-    if(bytes!=JournalBytes(candidate))return Fail(error,"checkpoint 후보 불일치");
     // 성공한 rename/fsync 뒤 할당하지 않고, 검증한 candidate와 같은 immutable envelope를 게시한다.
     RecordingMutationHandles published=candidate;
     if(pending){

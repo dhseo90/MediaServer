@@ -61,6 +61,11 @@ stale/mismatch·과거 이력은 strict fallback이다. 이것만으로 과거 �
 증명 생성자는 catalog 내부에 봉인한다. 적격 판정에서 다시 전체 Serialize/Validate를 수행하지 않으며,
 성공한 strict Prepared 적용에서 생성한 불변 값의 출처와 전체 envelope 결박을 검사한다. 검사 복제본의 접근 노출은 제품 API가 아니다.
 
+envelope 비교는 semantic 검증과 구분한다. serializer의 출력이 고정 schema/enum 이름을 쓰는 점을 고려해
+SameSequence는 기록 수·순서·null·schema/type/id/entity/time/payload 전체값으로 판정한다. canonical 임시 생성은 하지 않는다.
+CommitCheckpoint는 잠금 안의 현재 원장으로 재구성한 expected와 후보 전체값이 같은지 먼저 확인하고,
+동일 expected bytes 한 개만 pending-prefix·크기 판단·write/fsync/rename에 사용한다. 원자게시/poison/상한은 유지한다.
+
 ### RAM 수명 구현의 소비자 경계
 
 terminal Complete 작업도 `MediaV2EligibleLocked`가 출력의 유일 소유자·Ready·manifest·AU provenance를 검사한다.

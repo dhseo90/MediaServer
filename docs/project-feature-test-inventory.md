@@ -25,6 +25,10 @@
 | LP18-V02 | 내용 증명 부적격 fallback | 다른 owner/journal·stale current·다른 envelope/전체 필드·null은 기존 strict 입력 검증으로 복귀 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 | LP18-V03 | shadow 상태 독립 검증 | 잘못된 prior/예약/source 삭제·보호 조건은 유효 내용 증명과 무관하게 거부 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 | LP18-V04 | 증명 수명·복구 | owner 밖/cache 보관 없음, manual/recovery/새 입력 strict와 공개 값·저장 bytes 유지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-E01 | envelope 전체 비교 | count/순서/null/전체필드/제어문자/int64/공백·동일 부적격 입력의 비교 의미 유지. 비교는 strict semantic 검증 아님 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-E02 | 비교 중복 문자열 제거 | 두 SameSequence overload가 전체값을 비교하고 envelope 직렬화0 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-E03 | checkpoint 후보 게시 | stale/변조 후보 거부·receipt 원본/실제 저장 bytes·projection·pending/복구 의미 유지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-E04 | checkpoint byte 생성 재사용 | 현재 expected/candidate 전체값 대조 뒤 JournalBytes1회. strict/FS/소유/상한 불변 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 
 등록은 실행/PASS가 아니다. 전체 승인 범위와 실제 수행/미수행은 중앙 기록 LP18을 따른다.
 

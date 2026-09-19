@@ -32,15 +32,9 @@ inline bool SameCheckpointPrefix(const std::vector<RecordingMutationV1>& prefix,
 // catalog 내부 checkpoint 비교. 원본 semantic 검증을 대신하지 않는다.
 inline bool SameCheckpointSequence(const std::vector<RecordingMutationV1>& original,
                                    const std::vector<RecordingMutationV1>& candidate) {
-    if (original.size() != candidate.size()) return false;
-    for (std::size_t i = 0; i < original.size(); ++i) {
-        // Serializer는 schema를 고정하고 미지원 enum 이름을 합칠 수 있다.
-        if (original[i].schema != candidate[i].schema ||
-            original[i].mutation_type != candidate[i].mutation_type) return false;
-        const auto canonical = SerializeRecordingMutationV1(original[i]);
-        if (canonical.empty() || canonical != SerializeRecordingMutationV1(candidate[i])) return false;
-    }
-    return true;
+    // Envelope serializer는 검증을 수행하지 않는다. 고정 schema/enum 이름의 충돌을
+    // 포함한 원래 전체 필드를 대조하므로 canonical 임시 문자열은 필요하지 않다.
+    return original.size()==candidate.size()&&SameCheckpointPrefix(original,candidate);
 }
 // 공유 주소는 내용 검증의 증명이 아니다. 값 표현과 동일한 논리 charge/전체 비교를 유지한다.
 inline bool CheckpointCacheAdmissible(const RecordingMutationHandles& records) {
@@ -70,13 +64,6 @@ inline bool SameCheckpointPrefix(const RecordingMutationHandles& prefix,
 }
 inline bool SameCheckpointSequence(const RecordingMutationHandles& original,
                                    const RecordingMutationHandles& candidate) {
-    if(original.size()!=candidate.size())return false;
-    for(std::size_t i=0;i<original.size();++i) {
-        if(!original[i]||!candidate[i])return false;
-        if(original[i]->schema!=candidate[i]->schema||original[i]->mutation_type!=candidate[i]->mutation_type)return false;
-        const auto canonical=SerializeRecordingMutationV1(*original[i]);
-        if(canonical.empty()||canonical!=SerializeRecordingMutationV1(*candidate[i]))return false;
-    }
-    return true;
+    return original.size()==candidate.size()&&SameCheckpointPrefix(original,candidate);
 }
 }

@@ -12,6 +12,78 @@
 정상 append에 전체 원장 검색을 추가하지 않는다. managed Open은 한 snapshot의 값과 handle을 사용하고 일시 Replay 값 사본은 남긴다.
 단일 Astra/medium 담당자는 제품/fixture/계측 adapter, 메인은 문서/runner/실행/직접 검토를 맡으며 하위 생성은 금지했다.
 
+### 3번 envelope 중복 직렬화 제거 착수
+
+시작 커밋은 호출-local proof 구현/검증 `03839d85`다. 같은 단일 담당자는 신규 focused/계측, 메인은 계약/runner/등록/실행/직접 검토를 맡는다.
+이번 최소 범위: SameCheckpointSequence 두 overload를 count+전체필드 비교로 구성하고,
+CommitCheckpoint의 현재 expected/candidate exact 비교 뒤 canonical bytes를 한 번만 생성한다.
+schema/enum의 serializer 충돌은 계속 별도로 거부한다. semantic replay·owner/PID/FD/inode·pending-prefix·poison·원자게시/bytes·상한은 유지한다.
+Intent/Ready serializer는 실제 Validate/Restore도 수행하므로 이번 단순 중복 출력 제거에 섞지 않는다. no-write 조건 변경·새 파일/포맷/영속 증명 없음.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-E01 | 비교 의미 | 독립 handle·전체필드6·순서·count·null·동일 invalid schema/enum·enum 충돌·제어문자·int64·payload 공백 각각 검사 | v4.1.0 |
+| LP18-E02 | 비교 생성비용 | 두 overload에2개 동일 원본 입력, envelope Serialize0; 기존8 예상 RED | v4.1.0 |
+| LP18-E03 | 실제 checkpoint/거부 | receipt2개·원본 bytes 불변·독립 candidate 게시 bytes·full projection·변조9개는 byte 생성 전 거부 | v4.1.0 |
+| LP18-E04 | commit 생성비용 | 정확 후보 대조 뒤 JournalBytes1회; 기존2 예상 RED | v4.1.0 |
+
+사전등록 명령: `node scripts/internal/verify_recording_immutable_ownership.mjs red envelope-cost-01 envelope-cost`.
+GREEN은 같은 runner의 `green envelope-cost-01 envelope-cost`. fixture30개; RED28PASS/2FAIL, GREEN30PASS/0FAIL.
+정확 RED는 `LP18-E02 SameSequence performs zero envelope serializations`, `LP18-E04 CommitCheckpoint builds JournalBytes exactly once`다.
+나머지 모든 출력 label은 실행 전 신규 `recording_checkpoint_envelope_cost_smoke.cpp`에 고정하며 결과표에 개별 보존한다.
+기존60초·1GiB RSS/512MiB disk/2MiB output guard와 owned root·정리 그대로다. 제품 수정 전 RED부터 수행한다.
+이 검사는 encoder/서버/포트를 생성하지 않는다. 후속 영향 검증은 GREEN 뒤 실제 변경/계측 연결에 맞춰 실행 전 등록한다.
+첫 실행 envelope-cost-01은 build0/2364ms, focused1/628ms, 27PASS/3FAIL, wrapper1/3006ms로 예상 RED 불일치다.
+예상 비용2개(Serialize8/JournalBytes2) 외 `LP18-E03 compacted bytes retain independent full projection`가 실패했다.
+메인이 직접 확인한 원인: fixture Reserve는 journal에만 예약을 넣으므로 live catalog는 아직 예약2개를 반영하지 않았다.
+이를 압축 후 전체 replay와 비교한 oracle가 잘못됐다. 제품 변경 없이 압축 전 원본을 독립 replay한 결과와 압축 후 결과를 비교하도록 고친다.
+합격 기준은 full projection 동등성 그대로다. root5366469B 삭제/source불변/그룹 종료, 원출력 lp18-ownership-red-envelope-cost-01.txt 보존.
+동일 범위 재검증은 `node scripts/internal/verify_recording_immutable_ownership.mjs red envelope-cost-02 envelope-cost`, 예상28PASS/2FAIL 유지다.
+재검증은 build0/2366ms, focused1/619ms, exact28PASS/2FAIL, wrapper0/3000ms로 예상 RED가 일치했다. source불변·root5366469B 삭제 완료.
+이후 메인이 작은 제품 수정(SameSequence 전체필드 비교, JournalBytes 한 번 생성)과 cost adapter의 실제 계측 경계 이름을 직접 적용했다.
+`checkpoint.bytesCompare`는 제거됐고 기존 전체필드 대조를 `checkpoint.candidateFields`로 계측한다. 기존 시간 수치와 같은 범위라고 합산하지 않는다.
+
+GREEN 뒤 승인 영향 검증 사전등록(각 실제 exit0 뒤 다음 명령): 전체 `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build`,
+`node scripts/internal/verify_recording_immutable_ownership.mjs green envelope-compat-01 envelope`(기존34),
+`MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_checkpoint_reproduction.sh --identity-only`(CP06 6),
+`MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_checkpoint_cache.sh`(47),
+`MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_v410_recording_catalog.sh`(246),
+`node scripts/internal/recording_catalog_comparison_run.mjs jobs lp18-envelope-01`(기능120/계측1).
+기존 proof 전이 코드·state serializer·public 소비자는 무변경이라 직전 해당 증거를 유지한다. full catalog·cache는 변경된 bytes/비교의 손상·중단 복구를 새로 검사한다.
+실제 HTTP/누적16·32·장시간/UI는 아직 미실행이다.
+
+### envelope 비용 단위 최종 결과
+
+메인이 제품/fixture/계측 diff와 원출력 직접 대조. GREEN30개에서 SameSequence Serialize8→0, CommitCheckpoint JournalBytes2→1을 확인했다.
+첫 oracle 오류(27PASS/3FAIL)는 지우지 않았고 수정 후 예상 RED28PASS/2FAIL을 먼저 확인한 다음 제품 수정했다.
+저장 bytes·독립 full projection·변조 거부·중단/복구 의미를 유지하며 이 작은 비용 단위만 완료했다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP18-E focused GREEN | green envelope-cost-01 envelope-cost exit0/3005ms, 30개 | PASS | build2355ms/focused635ms, source불변 |
+| LP18-E 전체 build | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build` exit0/9951ms | PASS | 현재 archive/executable 갱신 |
+| LP18-E 기존 소유 | green envelope-compat-01 envelope exit0/3108ms, 34개 | PASS | stale/foreign/null/상한/receipt·public 반환 |
+| LP18-E 기존 identity | checkpoint_reproduction --identity-only exit0/1초, 6개 | PASS | schema/enum canonical 충돌 포함 |
+| LP18-E cache | checkpoint_cache exit0/36초, 47개 | PASS | peak167329792B, cap536870912B; 전이/pending/full fallback |
+| LP18-E catalog | verify_v410_recording_catalog exit0/19321ms, 246개 | PASS | receipt·소유·원자 확정/손상/SQLite·JSONL/crypto-off |
+| LP18-E 실제2-job | comparison_run jobs lp18-envelope-01 exit0/30597ms, 기능120/계측1 | PASS | B/C 입력동일·실제 출력/hash·전이/보호, 실제HTTP 아님 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| envelope focused owned root | 임시 검사 | 5366814B | 종료 후 삭제 | removed=true | lp18-ownership-green-envelope-cost-01.txt |
+| 기존 소유 owned root | 임시 검사 | 5516420B | 종료 후 삭제 | removed=true | lp18-ownership-green-envelope-compat-01.txt |
+| identity owned root | 임시 검사 | 1015211B | trap 삭제 | removed=true | lp18-envelope-identity-01.txt |
+| cache owned root | 임시 검사 | 16892207B | trap 삭제 | removed=true | lp18-envelope-cache-01.txt |
+| catalog owned root | 임시 검사 | 26957502B | trap 삭제 | removed=true | lp18-envelope-catalog-01.txt |
+| 실제2-job owned root | 임시 검사 | 18646166B | 종료 후 삭제 | removed=true | lp17-jobs-lp18-envelope-01.txt |
+| build-gst-onnx | 기존 제품 build | 작업 임시 root 아님 | 보존 | 현재 실행본 | lp18-envelope-build-01.txt |
+
+전수 결과/원출력은 [LP18 전수 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md)로 연결한다. token start/end/consumed는 집계 미제공.
+서버/포트 생성 없음·검사 그룹/소유 root 정리 완료. 내부 Intent 검증·선택 복원의 중복은 남아3번 전체 완료가 아니며4~5번 미완료.
+기존 문서/정책/상한은 완화하지 않았고 이번 푸시·장시간/UI는 미실행이다.
+마감 `git diff --check` exit0, `verify-docs-links` exit0(285md/8825links/22images/116anchors/76indexed/201excluded/failures0).
+다음 Intent 내부 검증 fixture 초안은 미검증이므로 이 소단위 커밋에는 포함하지 않는다.
+
 ### 3번 호출-local 내용 증명 첫 단위 착수
 
 시작 `a9bcd9fd`/v4.1.0/ahead19/clean. 기존 변경 정리 및1번 계약·2번 동일 내용 소유 보완을 분할 커밋했다.

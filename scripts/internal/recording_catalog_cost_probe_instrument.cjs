@@ -25,7 +25,7 @@ for(const file of ['recording_catalog.cpp','recording_journal.cpp','recording_co
  if(file==='recording_journal.cpp'){
   for(const name of ['SerializeRecordingMutationV1','ParseRecordingMutationV1','EnvelopeIdentity','IndexRecord','CompactRecords','JournalBytes'])s=fn(s,name,'journal.'+name);
   for(const name of ['ReadCheckpointRecords','PrepareCheckpoint','CommitCheckpoint','AppendOwned','Replay'])s=fn(s,'RecordingJournal::'+name,'journal.'+name);
-  s=replace(s,'if(bytes!=JournalBytes(candidate))return Fail(error,"checkpoint 후보 불일치");','if(!fc::Measure("checkpoint.bytesCompare",[&]{return bytes==JournalBytes(candidate);}))return Fail(error,"checkpoint 후보 불일치");');
+  s=replace(s,'if(expected.size()!=candidate.size()||!detail::SameCheckpointPrefix(expected,candidate))return Fail(error,"checkpoint 후보 필드 불일치");','if(!fc::Measure("checkpoint.candidateFields",[&]{return expected.size()==candidate.size()&&detail::SameCheckpointPrefix(expected,candidate);}))return Fail(error,"checkpoint 후보 필드 불일치");');
   s=replace(s,'if(bytes.size()>=managed_state_->bytes)return true;','if(bytes.size()>=managed_state_->bytes){fc::Event("checkpoint.noWrite");return true;}fc::Scope fc_write("checkpoint.write");');
  }
  if(file==='recording_contracts.cpp')for(const name of ['ValidateRecordingFileEvidence','ValidateRecordingSourceBindingV1','ValidateRecordingSourceBindingForSegment','SerializeRecordingSourceBindingV1','ParseRecordingSourceBindingV1'])s=fn(s,name,'contracts.'+name);
