@@ -1,0 +1,427 @@
+LP16 계측 도구 자체검증 증적
+범위: test-only macOS memory helper/phase runner, 실제 scale32/제품/실제앱 실행 아님.
+예상 RED: 초기 scaffold가 정상 time peak를 complete로 분류하지 못함.
+command: node --test scripts/internal/recording_process_memory_probe.test.mjs
+exit: 1
+RAW_JSON_LINE은 행말 공백을 JSON 문자열로 가역 보존한다.
+
+✖ LP16-M02 정상 macOS compiler/fixture RSS 분리 (0.492292ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 29.231417
+
+✖ failing tests:
+
+test at scripts/internal/recording_process_memory_probe.test.mjs:4:1
+✖ LP16-M02 정상 macOS compiler/fixture RSS 분리 (0.492292ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+RAW_JSON_LINE:"  "
+  + 'unknown'
+  - 'complete'
+RAW_JSON_LINE:"  "
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_process_memory_probe.test.mjs:7:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'unknown',
+    expected: 'complete',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+개별 결과: LP16-M02 정상 macOS compiler/fixture RSS 분리 | FAIL | 예상 assertion unknown != complete, 미구현 원인. 모듈/compile 실패 아님.
+RED 임시파일/자식: 없음.
+token start/end/consumed: usage 계수 미제공으로 미집계. elapsed: Node duration_ms 29.231417.
+
+=== 첫 GREEN ===
+command: node --test scripts/internal/recording_process_memory_probe.test.mjs (승격)
+exit: 0
+[pass] LP16-M01 macOS 자기 current/peak bytes
+[memory] {"stage":19,"sources":32,"currentRssBytes":1687552,"peakRssBytes":1687552,"unit":"bytes","peakScope":"process-lifetime"}
+[pass] LP16-M01 실제 고정 stage 출력
+[memory] {"stage":7,"sources":1,"currentRssBytes":100,"peakRssBytes":200,"unit":"bytes","peakScope":"process-lifetime"}
+[pass] LP16-M01 정상 주입값
+[memory-error] code=invalid-stage
+[pass] LP16-M01 잘못된 stage 거부
+[memory-error] code=invalid-stage
+[pass] LP16-M01 잘못된 source count 거부
+[memory-error] code=unavailable stage=19
+[pass] LP16-M01 측정 실패 거부
+[memory-error] code=unavailable stage=19
+[pass] LP16-M01 누락/zero 거부
+[memory-error] code=unavailable stage=19
+[pass] LP16-M01 안전 정수 초과 거부
+[cleanup] {"root":"/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-memory-selftest.nOVzg3","binaryBytes":39880,"removed":true}
+[memory] {"stage":0,"sources":0,"currentRssBytes":100,"peakRssBytes":200,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":1,"sources":0,"currentRssBytes":100,"peakRssBytes":201,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":2,"sources":0,"currentRssBytes":100,"peakRssBytes":202,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":3,"sources":0,"currentRssBytes":100,"peakRssBytes":203,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":4,"sources":0,"currentRssBytes":100,"peakRssBytes":204,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":5,"sources":0,"currentRssBytes":100,"peakRssBytes":205,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":6,"sources":1,"currentRssBytes":100,"peakRssBytes":206,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":7,"sources":1,"currentRssBytes":100,"peakRssBytes":207,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":6,"sources":16,"currentRssBytes":100,"peakRssBytes":208,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":7,"sources":16,"currentRssBytes":100,"peakRssBytes":209,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":8,"sources":16,"currentRssBytes":100,"peakRssBytes":210,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":9,"sources":16,"currentRssBytes":100,"peakRssBytes":211,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":10,"sources":16,"currentRssBytes":100,"peakRssBytes":212,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":11,"sources":16,"currentRssBytes":100,"peakRssBytes":213,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":6,"sources":32,"currentRssBytes":100,"peakRssBytes":214,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":7,"sources":32,"currentRssBytes":100,"peakRssBytes":215,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":8,"sources":32,"currentRssBytes":100,"peakRssBytes":216,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":9,"sources":32,"currentRssBytes":100,"peakRssBytes":217,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":10,"sources":32,"currentRssBytes":100,"peakRssBytes":218,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":11,"sources":32,"currentRssBytes":100,"peakRssBytes":219,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":12,"sources":32,"currentRssBytes":100,"peakRssBytes":220,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":13,"sources":32,"currentRssBytes":100,"peakRssBytes":221,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":14,"sources":32,"currentRssBytes":100,"peakRssBytes":222,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":15,"sources":32,"currentRssBytes":100,"peakRssBytes":223,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":16,"sources":32,"currentRssBytes":100,"peakRssBytes":224,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":17,"sources":32,"currentRssBytes":100,"peakRssBytes":225,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":18,"sources":32,"currentRssBytes":100,"peakRssBytes":226,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":19,"sources":32,"currentRssBytes":100,"peakRssBytes":227,"unit":"bytes","peakScope":"process-lifetime"}
+        0.02 real         0.01 user         0.00 sys
+            43171840  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                2796  page reclaims
+                  68  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+                  61  involuntary context switches
+           265736310  instructions retired
+            87105102  cycles elapsed
+            12273368  peak memory footprint
+[memory-phase] {"phase":"fixture","status":"complete","exitCode":0,"signal":null,"peakRssBytes":43171840,"unit":"bytes","scope":"timed-command","fixtureLimitBytes":536870912,"pass":true,"stagesValid":true,"outputOverflow":false,"spawnFailed":false}
+[memory] {"stage":0,"sources":0,"currentRssBytes":100,"peakRssBytes":200,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":1,"sources":0,"currentRssBytes":100,"peakRssBytes":201,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":2,"sources":0,"currentRssBytes":100,"peakRssBytes":202,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":3,"sources":0,"currentRssBytes":100,"peakRssBytes":203,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":4,"sources":0,"currentRssBytes":100,"peakRssBytes":204,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":5,"sources":0,"currentRssBytes":100,"peakRssBytes":205,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":6,"sources":1,"currentRssBytes":100,"peakRssBytes":206,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":7,"sources":1,"currentRssBytes":100,"peakRssBytes":207,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":6,"sources":16,"currentRssBytes":100,"peakRssBytes":208,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":7,"sources":16,"currentRssBytes":100,"peakRssBytes":209,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":8,"sources":16,"currentRssBytes":100,"peakRssBytes":210,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":9,"sources":16,"currentRssBytes":100,"peakRssBytes":211,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":10,"sources":16,"currentRssBytes":100,"peakRssBytes":212,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":11,"sources":16,"currentRssBytes":100,"peakRssBytes":213,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":6,"sources":32,"currentRssBytes":100,"peakRssBytes":214,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":7,"sources":32,"currentRssBytes":100,"peakRssBytes":215,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":8,"sources":32,"currentRssBytes":100,"peakRssBytes":216,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":9,"sources":32,"currentRssBytes":100,"peakRssBytes":217,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":10,"sources":32,"currentRssBytes":100,"peakRssBytes":218,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":11,"sources":32,"currentRssBytes":100,"peakRssBytes":219,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":12,"sources":32,"currentRssBytes":100,"peakRssBytes":220,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":13,"sources":32,"currentRssBytes":100,"peakRssBytes":221,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":14,"sources":32,"currentRssBytes":100,"peakRssBytes":222,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":15,"sources":32,"currentRssBytes":100,"peakRssBytes":223,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":16,"sources":32,"currentRssBytes":100,"peakRssBytes":224,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":17,"sources":32,"currentRssBytes":100,"peakRssBytes":225,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":18,"sources":32,"currentRssBytes":100,"peakRssBytes":226,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":19,"sources":32,"currentRssBytes":100,"peakRssBytes":227,"unit":"bytes","peakScope":"process-lifetime"}
+        0.02 real         0.01 user         0.00 sys
+            43286528  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                2802  page reclaims
+                  68  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+                  76  involuntary context switches
+           265822533  instructions retired
+            85459636  cycles elapsed
+            12355240  peak memory footprint
+[memory-phase] {"phase":"fixture","status":"failed","exitCode":7,"signal":null,"peakRssBytes":43286528,"unit":"bytes","scope":"timed-command","fixtureLimitBytes":536870912,"pass":false,"stagesValid":true,"outputOverflow":false,"spawnFailed":false}
+        0.02 real         0.01 user         0.00 sys
+            41451520  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                2692  page reclaims
+                  67  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+                  72  involuntary context switches
+           251552127  instructions retired
+            79146635  cycles elapsed
+            11404920  peak memory footprint
+[memory-phase] {"phase":"fixture","status":"unknown","exitCode":0,"signal":null,"peakRssBytes":41451520,"unit":"bytes","scope":"timed-command","fixtureLimitBytes":536870912,"pass":false,"stagesValid":false,"outputOverflow":false,"spawnFailed":false}
+✔ LP16-M02 정상 macOS compiler/fixture RSS 분리 (0.430458ms)
+✔ LP16-M02 time 누락 거부 (0.073ms)
+✔ LP16-M02 time 중복 거부 (0.030666ms)
+✔ LP16-M02 time 음수 거부 (0.036125ms)
+✔ LP16-M02 time 비숫자 거부 (0.033625ms)
+✔ LP16-M02 time overflow 거부 (0.039875ms)
+✔ LP16-M02 fixture cap과compiler 측정 분리 (0.118542ms)
+✔ LP16-M02 platform·phase·signal·exit 거부와관측보존 (0.097666ms)
+✔ LP16-M01 고정28stage 전수·누락·순서·추가필드·불완전값 (0.311667ms)
+✔ LP16-M01 실제 C++ macOS 자기RSS·오류경계8개 (565.617209ms)
+✔ LP16-M02 소유Node자식 exit0·분리time 관측 (63.507917ms)
+✔ LP16-M02 소유Node자식 exit7·분리time 관측 (48.146542ms)
+✔ LP16-M02 exit0이어도stage미확보는unknown (46.623334ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 761.43325
+
+첫 GREEN13개/내부C++8개 PASS. 이후 self/time peak cap교차반례를 추가했으므로 아래 최종 GREEN을 별도보존한다.
+
+=== 최종 GREEN: self/time 교차상한 보완 ===
+command: node --test scripts/internal/recording_process_memory_probe.test.mjs (승격)
+exit: 0
+[pass] LP16-M01 macOS 자기 current/peak bytes
+[memory] {"stage":19,"sources":32,"currentRssBytes":1687552,"peakRssBytes":1687552,"unit":"bytes","peakScope":"process-lifetime"}
+[pass] LP16-M01 실제 고정 stage 출력
+[memory] {"stage":7,"sources":1,"currentRssBytes":100,"peakRssBytes":200,"unit":"bytes","peakScope":"process-lifetime"}
+[pass] LP16-M01 정상 주입값
+[memory-error] code=invalid-stage
+[pass] LP16-M01 잘못된 stage 거부
+[memory-error] code=invalid-stage
+[pass] LP16-M01 잘못된 source count 거부
+[memory-error] code=unavailable stage=19
+[pass] LP16-M01 측정 실패 거부
+[memory-error] code=unavailable stage=19
+[pass] LP16-M01 누락/zero 거부
+[memory-error] code=unavailable stage=19
+[pass] LP16-M01 안전 정수 초과 거부
+[cleanup] {"root":"/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-memory-selftest.FU6Jet","binaryBytes":39880,"removed":true}
+[memory] {"stage":0,"sources":0,"currentRssBytes":100,"peakRssBytes":200,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":1,"sources":0,"currentRssBytes":100,"peakRssBytes":201,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":2,"sources":0,"currentRssBytes":100,"peakRssBytes":202,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":3,"sources":0,"currentRssBytes":100,"peakRssBytes":203,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":4,"sources":0,"currentRssBytes":100,"peakRssBytes":204,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":5,"sources":0,"currentRssBytes":100,"peakRssBytes":205,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":6,"sources":1,"currentRssBytes":100,"peakRssBytes":206,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":7,"sources":1,"currentRssBytes":100,"peakRssBytes":207,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":6,"sources":16,"currentRssBytes":100,"peakRssBytes":208,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":7,"sources":16,"currentRssBytes":100,"peakRssBytes":209,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":8,"sources":16,"currentRssBytes":100,"peakRssBytes":210,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":9,"sources":16,"currentRssBytes":100,"peakRssBytes":211,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":10,"sources":16,"currentRssBytes":100,"peakRssBytes":212,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":11,"sources":16,"currentRssBytes":100,"peakRssBytes":213,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":6,"sources":32,"currentRssBytes":100,"peakRssBytes":214,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":7,"sources":32,"currentRssBytes":100,"peakRssBytes":215,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":8,"sources":32,"currentRssBytes":100,"peakRssBytes":216,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":9,"sources":32,"currentRssBytes":100,"peakRssBytes":217,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":10,"sources":32,"currentRssBytes":100,"peakRssBytes":218,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":11,"sources":32,"currentRssBytes":100,"peakRssBytes":219,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":12,"sources":32,"currentRssBytes":100,"peakRssBytes":220,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":13,"sources":32,"currentRssBytes":100,"peakRssBytes":221,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":14,"sources":32,"currentRssBytes":100,"peakRssBytes":222,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":15,"sources":32,"currentRssBytes":100,"peakRssBytes":223,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":16,"sources":32,"currentRssBytes":100,"peakRssBytes":224,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":17,"sources":32,"currentRssBytes":100,"peakRssBytes":225,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":18,"sources":32,"currentRssBytes":100,"peakRssBytes":226,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":19,"sources":32,"currentRssBytes":100,"peakRssBytes":227,"unit":"bytes","peakScope":"process-lifetime"}
+        0.02 real         0.01 user         0.00 sys
+            43237376  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                2800  page reclaims
+                  68  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+                  53  involuntary context switches
+           265288925  instructions retired
+            87584965  cycles elapsed
+            12338880  peak memory footprint
+[memory-phase] {"phase":"fixture","status":"complete","exitCode":0,"signal":null,"peakRssBytes":43237376,"unit":"bytes","scope":"timed-command","fixtureLimitBytes":536870912,"pass":true,"stagesValid":true,"selfPeakRssBytes":227,"effectivePeakRssBytes":43237376,"outputOverflow":false,"spawnFailed":false}
+[memory] {"stage":0,"sources":0,"currentRssBytes":100,"peakRssBytes":200,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":1,"sources":0,"currentRssBytes":100,"peakRssBytes":201,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":2,"sources":0,"currentRssBytes":100,"peakRssBytes":202,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":3,"sources":0,"currentRssBytes":100,"peakRssBytes":203,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":4,"sources":0,"currentRssBytes":100,"peakRssBytes":204,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":5,"sources":0,"currentRssBytes":100,"peakRssBytes":205,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":6,"sources":1,"currentRssBytes":100,"peakRssBytes":206,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":7,"sources":1,"currentRssBytes":100,"peakRssBytes":207,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":6,"sources":16,"currentRssBytes":100,"peakRssBytes":208,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":7,"sources":16,"currentRssBytes":100,"peakRssBytes":209,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":8,"sources":16,"currentRssBytes":100,"peakRssBytes":210,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":9,"sources":16,"currentRssBytes":100,"peakRssBytes":211,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":10,"sources":16,"currentRssBytes":100,"peakRssBytes":212,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":11,"sources":16,"currentRssBytes":100,"peakRssBytes":213,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":6,"sources":32,"currentRssBytes":100,"peakRssBytes":214,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":7,"sources":32,"currentRssBytes":100,"peakRssBytes":215,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":8,"sources":32,"currentRssBytes":100,"peakRssBytes":216,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":9,"sources":32,"currentRssBytes":100,"peakRssBytes":217,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":10,"sources":32,"currentRssBytes":100,"peakRssBytes":218,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":11,"sources":32,"currentRssBytes":100,"peakRssBytes":219,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":12,"sources":32,"currentRssBytes":100,"peakRssBytes":220,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":13,"sources":32,"currentRssBytes":100,"peakRssBytes":221,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":14,"sources":32,"currentRssBytes":100,"peakRssBytes":222,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":15,"sources":32,"currentRssBytes":100,"peakRssBytes":223,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":16,"sources":32,"currentRssBytes":100,"peakRssBytes":224,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":17,"sources":32,"currentRssBytes":100,"peakRssBytes":225,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":18,"sources":32,"currentRssBytes":100,"peakRssBytes":226,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":19,"sources":32,"currentRssBytes":100,"peakRssBytes":227,"unit":"bytes","peakScope":"process-lifetime"}
+        0.02 real         0.01 user         0.00 sys
+            43237376  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                2799  page reclaims
+                  68  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+                  56  involuntary context switches
+           265449225  instructions retired
+            89626806  cycles elapsed
+            12338904  peak memory footprint
+[memory-phase] {"phase":"fixture","status":"failed","exitCode":7,"signal":null,"peakRssBytes":43237376,"unit":"bytes","scope":"timed-command","fixtureLimitBytes":536870912,"pass":false,"stagesValid":true,"selfPeakRssBytes":227,"effectivePeakRssBytes":43237376,"outputOverflow":false,"spawnFailed":false}
+        0.01 real         0.01 user         0.00 sys
+            41467904  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                2691  page reclaims
+                  67  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+                  44  involuntary context switches
+           248957067  instructions retired
+            74251647  cycles elapsed
+            11454096  peak memory footprint
+[memory-phase] {"phase":"fixture","status":"unknown","exitCode":0,"signal":null,"peakRssBytes":41467904,"unit":"bytes","scope":"timed-command","fixtureLimitBytes":536870912,"pass":false,"stagesValid":false,"selfPeakRssBytes":null,"effectivePeakRssBytes":41467904,"outputOverflow":false,"spawnFailed":false}
+✔ LP16-M02 정상 macOS compiler/fixture RSS 분리 (0.643541ms)
+✔ LP16-M02 time 누락 거부 (0.091291ms)
+✔ LP16-M02 time 중복 거부 (0.035583ms)
+✔ LP16-M02 time 음수 거부 (0.039042ms)
+✔ LP16-M02 time 비숫자 거부 (0.047458ms)
+✔ LP16-M02 time overflow 거부 (0.03275ms)
+✔ LP16-M02 fixture cap과compiler 측정 분리 (0.0485ms)
+✔ LP16-M02 platform·phase·signal·exit 거부와관측보존 (0.054917ms)
+✔ LP16-M01 고정28stage 전수·누락·순서·추가필드·불완전값 (0.207791ms)
+✔ LP16-M02 self/time peak 큰값으로cap판정·불일치허용 (0.578625ms)
+✔ LP16-M01 실제 C++ macOS 자기RSS·오류경계8개 (408.47475ms)
+✔ LP16-M02 소유Node자식 exit0·분리time 관측 (61.037417ms)
+✔ LP16-M02 소유Node자식 exit7·분리time 관측 (47.051792ms)
+✔ LP16-M02 exit0이어도stage미확보는unknown (41.884625ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 594.373792
+
+=== 개별 결과 전수 ===
+제목 | 결과 | 비고
+첫 GREEN: LP16-M01 macOS 자기 current/peak bytes | PASS | C++ 내부 oracle
+첫 GREEN: LP16-M01 실제 고정 stage 출력 | PASS | C++ 내부 oracle
+첫 GREEN: LP16-M01 정상 주입값 | PASS | C++ 내부 oracle
+첫 GREEN: LP16-M01 잘못된 stage 거부 | PASS | C++ 내부 oracle
+첫 GREEN: LP16-M01 잘못된 source count 거부 | PASS | C++ 내부 oracle
+첫 GREEN: LP16-M01 측정 실패 거부 | PASS | C++ 내부 oracle
+첫 GREEN: LP16-M01 누락/zero 거부 | PASS | C++ 내부 oracle
+첫 GREEN: LP16-M01 안전 정수 초과 거부 | PASS | C++ 내부 oracle
+첫 GREEN: LP16-M02 정상 macOS compiler/fixture RSS 분리 (0.430458ms) | PASS | Node 개별 test
+첫 GREEN: LP16-M02 time 누락 거부 (0.073ms) | PASS | Node 개별 test
+첫 GREEN: LP16-M02 time 중복 거부 (0.030666ms) | PASS | Node 개별 test
+첫 GREEN: LP16-M02 time 음수 거부 (0.036125ms) | PASS | Node 개별 test
+첫 GREEN: LP16-M02 time 비숫자 거부 (0.033625ms) | PASS | Node 개별 test
+첫 GREEN: LP16-M02 time overflow 거부 (0.039875ms) | PASS | Node 개별 test
+첫 GREEN: LP16-M02 fixture cap과compiler 측정 분리 (0.118542ms) | PASS | Node 개별 test
+첫 GREEN: LP16-M02 platform·phase·signal·exit 거부와관측보존 (0.097666ms) | PASS | Node 개별 test
+첫 GREEN: LP16-M01 고정28stage 전수·누락·순서·추가필드·불완전값 (0.311667ms) | PASS | Node 개별 test
+첫 GREEN: LP16-M01 실제 C++ macOS 자기RSS·오류경계8개 (565.617209ms) | PASS | Node 개별 test
+첫 GREEN: LP16-M02 소유Node자식 exit0·분리time 관측 (63.507917ms) | PASS | Node 개별 test
+첫 GREEN: LP16-M02 소유Node자식 exit7·분리time 관측 (48.146542ms) | PASS | Node 개별 test
+첫 GREEN: LP16-M02 exit0이어도stage미확보는unknown (46.623334ms) | PASS | Node 개별 test
+최종 GREEN: LP16-M01 macOS 자기 current/peak bytes | PASS | C++ 내부 oracle
+최종 GREEN: LP16-M01 실제 고정 stage 출력 | PASS | C++ 내부 oracle
+최종 GREEN: LP16-M01 정상 주입값 | PASS | C++ 내부 oracle
+최종 GREEN: LP16-M01 잘못된 stage 거부 | PASS | C++ 내부 oracle
+최종 GREEN: LP16-M01 잘못된 source count 거부 | PASS | C++ 내부 oracle
+최종 GREEN: LP16-M01 측정 실패 거부 | PASS | C++ 내부 oracle
+최종 GREEN: LP16-M01 누락/zero 거부 | PASS | C++ 내부 oracle
+최종 GREEN: LP16-M01 안전 정수 초과 거부 | PASS | C++ 내부 oracle
+최종 GREEN: LP16-M02 정상 macOS compiler/fixture RSS 분리 (0.643541ms) | PASS | Node 개별 test
+최종 GREEN: LP16-M02 time 누락 거부 (0.091291ms) | PASS | Node 개별 test
+최종 GREEN: LP16-M02 time 중복 거부 (0.035583ms) | PASS | Node 개별 test
+최종 GREEN: LP16-M02 time 음수 거부 (0.039042ms) | PASS | Node 개별 test
+최종 GREEN: LP16-M02 time 비숫자 거부 (0.047458ms) | PASS | Node 개별 test
+최종 GREEN: LP16-M02 time overflow 거부 (0.03275ms) | PASS | Node 개별 test
+최종 GREEN: LP16-M02 fixture cap과compiler 측정 분리 (0.0485ms) | PASS | Node 개별 test
+최종 GREEN: LP16-M02 platform·phase·signal·exit 거부와관측보존 (0.054917ms) | PASS | Node 개별 test
+최종 GREEN: LP16-M01 고정28stage 전수·누락·순서·추가필드·불완전값 (0.207791ms) | PASS | Node 개별 test
+최종 GREEN: LP16-M02 self/time peak 큰값으로cap판정·불일치허용 (0.578625ms) | PASS | Node 개별 test
+최종 GREEN: LP16-M01 실제 C++ macOS 자기RSS·오류경계8개 (408.47475ms) | PASS | Node 개별 test
+최종 GREEN: LP16-M02 소유Node자식 exit0·분리time 관측 (61.037417ms) | PASS | Node 개별 test
+최종 GREEN: LP16-M02 소유Node자식 exit7·분리time 관측 (47.051792ms) | PASS | Node 개별 test
+최종 GREEN: LP16-M02 exit0이어도stage미확보는unknown (41.884625ms) | PASS | Node 개별 test
+
+=== 측정 의미와 실행 경계 ===
+macOS만 지원/검증. 자기 current는 mach_task_basic_info.resident_size, 자기 peak는 getrusage(RUSAGE_SELF).ru_maxrss(bytes). peak는 프로세스 누적 high-water이며 구간 할당량/누수 지표가 아니다.
+compiler는 단일 CXX invocation와 하위 compiler의 time 관측이며 TU별 PID 전수 측정은 아니다. fixture는 직접 check 프로세스 time과자기단계관측을 별도보존한다. 전체 wrapper/compiler 값을 fixture512MiB 판정에 혼합하지 않는다.
+fixture cap판정은 유효한 자기peak/timepeak 중 큰 값. 정확일치 강제하지 않으며 current>peak도자동거부하지 않는다. 28개 exact단계·sources·schema 전수없음/누락/역행/잘못된값은 unknown으로 거부한다. cap초과에도 실제 exit와 측정값을 보존한다.
+고정 stage enum: 0 InputBefore / 1 InputAfter / 2 SourceBefore / 3 SourceAfter / 4 StoreBefore / 5 StoreAfter / 6 CommitBefore / 7 CommitAfter / 8 SnapshotBefore / 9 SnapshotAfter / 10 CheckpointBefore / 11 CheckpointAfter / 12 StoreReleased / 13 SqliteOpenBefore / 14 SqliteOpenAfter / 15 SqliteReleased / 16 JsonlOpenBefore / 17 JsonlOpenAfter / 18 JsonlReleased / 19 Finish.
+Finish는 return 직전이며 input/originals/outputs 등main 지역fixture 자료는 여전히 생존한다. StoreReleased·각재openReleased는 해당catalog/journal 소멸후지만 fixture 기대자료는유지한다. Snapshot은 기존수명대로CP까지생존하며 측정때문에해제시점을바꾸지않았다.
+기존173+계측1 oracle/명시최적화없음/60초compile/180초runtime/512MiB disk/2MiB출력 유지. 기존Bash3 env prefix·fc_completed EXIT보완 보존. process group은 bounded가소유하고memory_phase/time은그룹상속.
+자체검사 Node fixture의 28개 stage행은 합성이며 실제 scale32 측정이 아니다. 실제C++ 자기측정은 전용smoke에서확인했다. scale_probe 본체컴파일/scale32 실제데이터/실제앱/제품수정/커밋/푸시는담당자미실행.
+
+=== cleanup ===
+경로 | 종류 | 삭제 전 크기 | 조치 | 결과 | 근거
+media-server-memory-selftest.nOVzg3 | 첫GREEN소유 C++ binary | 39880B | finally삭제 | removed=true | 원출력
+media-server-memory-selftest.FU6Jet | 최종GREEN소유 C++ binary | 39880B | finally삭제 | removed=true | 원출력
+소유Node자식 각exit0/7/stage누락0 | 일회프로세스,listener없음 | 해당없음 | spawnSync 종료관측 | exit0/7/판정2,signalnull | 개별assertion
+이artifact | 안전원출력/전수표 | 현재파일크기 | 저장소보존 | 보존 | 최초RED·각GREEN
+
+=== 최종 hash ===
+1ddab92dd877e87492f8c547ae9070d9e2033735dcb8c0943a81cb88efcd6883 scripts/internal/recording_catalog_scale_probe.cpp
+0013a6504ce0883bebc208bb1a0381a3433694f9eda9b2a4513c0c2f4626b629 scripts/internal/recording_catalog_cost_probe_run.sh
+8b5775d1bda029b3a00d3a9c5100fdec43e4007f02f3cae31193ff7bdb2764ba scripts/internal/recording_process_memory_probe.h
+b21424f18b0d02d590e572369f8b1aa04eb73b646ad8a122001e39de2eb1c4a7 scripts/internal/recording_process_memory_probe_smoke.cpp
+2ef7bfe0d6f2506d7a5ec00c520195cf3977436dae0975749d76f7d4420e1c05 scripts/internal/recording_memory_phase.mjs
+75d6eea66b91a20ba3ce3abdf6807fae183222f85effd6800cc20b74cc2b39bc scripts/internal/recording_process_memory_probe.test.mjs
+bash -n scripts/internal/recording_catalog_cost_probe_run.sh: exit0, output empty.
+git diff --check: exit0, output empty.
+최종 Node14/14 PASS, 포함된C++8/8 PASS. duration_ms594.373792. 원래RED1 FAIL 유지. 소유작업종료·메인실행/검토대기.

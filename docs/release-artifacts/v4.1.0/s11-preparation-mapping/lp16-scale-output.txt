@@ -1,0 +1,222 @@
+LP16 분리 측정 1회
+명령: 격리 headless 환경의 bash scripts/internal/recording_catalog_cost_probe_run.sh scale-32-lp16
+원출력: catalog-cost-output-scale-32-lp16.txt
+원문 SHA256: f97bb584974781ab153c2c74fb4960889acc0c8060a66fca6539a8d58018e913
+전체 exit2 / 53초. 기능173+계측1 PASS, RSS 기준 FAIL. 제품/검증 기준 변경 없음.
+컴파일 peak294780928B; fixture 자기/time peak688848896B >536870912B. 기능 본체exit0과 자원판정exit2를 구별한다.
+단계별 원측정(bytes)
+[memory-phase] {"phase":"compiler","status":"complete","exitCode":0,"signal":null,"peakRssBytes":294780928,"unit":"bytes","scope":"timed-command","fixtureLimitBytes":null,"pass":true,"stagesValid":null,"selfPeakRssBytes":null,"effectivePeakRssBytes":294780928,"outputOverflow":false,"spawnFailed":false}
+[memory] {"stage":0,"sources":0,"currentRssBytes":16482304,"peakRssBytes":16482304,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":1,"sources":0,"currentRssBytes":27656192,"peakRssBytes":27656192,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":2,"sources":0,"currentRssBytes":27656192,"peakRssBytes":27656192,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":3,"sources":0,"currentRssBytes":62095360,"peakRssBytes":63471616,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":4,"sources":0,"currentRssBytes":62111744,"peakRssBytes":63471616,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":5,"sources":0,"currentRssBytes":62406656,"peakRssBytes":63471616,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":6,"sources":1,"currentRssBytes":62439424,"peakRssBytes":63471616,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":7,"sources":1,"currentRssBytes":65044480,"peakRssBytes":65044480,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":6,"sources":16,"currentRssBytes":300433408,"peakRssBytes":300433408,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":7,"sources":16,"currentRssBytes":319717376,"peakRssBytes":319717376,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":8,"sources":16,"currentRssBytes":322289664,"peakRssBytes":322289664,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":9,"sources":16,"currentRssBytes":337559552,"peakRssBytes":337559552,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":10,"sources":16,"currentRssBytes":337559552,"peakRssBytes":337559552,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":11,"sources":16,"currentRssBytes":337559552,"peakRssBytes":337559552,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":6,"sources":32,"currentRssBytes":570572800,"peakRssBytes":570572800,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":7,"sources":32,"currentRssBytes":650838016,"peakRssBytes":650838016,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":8,"sources":32,"currentRssBytes":653475840,"peakRssBytes":653475840,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":9,"sources":32,"currentRssBytes":688848896,"peakRssBytes":688848896,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":10,"sources":32,"currentRssBytes":688848896,"peakRssBytes":688848896,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":11,"sources":32,"currentRssBytes":688848896,"peakRssBytes":688848896,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":12,"sources":32,"currentRssBytes":476659712,"peakRssBytes":688848896,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":13,"sources":32,"currentRssBytes":476659712,"peakRssBytes":688848896,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":14,"sources":32,"currentRssBytes":487604224,"peakRssBytes":688848896,"unit":"bytes","peakScope":"process-lifetime"}
+[scale-recovery] sql=1 open_us=14654608
+[memory] {"stage":15,"sources":32,"currentRssBytes":478773248,"peakRssBytes":688848896,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":16,"sources":32,"currentRssBytes":478806016,"peakRssBytes":688848896,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":17,"sources":32,"currentRssBytes":478806016,"peakRssBytes":688848896,"unit":"bytes","peakScope":"process-lifetime"}
+[scale-recovery] sql=0 open_us=7057890
+[memory] {"stage":18,"sources":32,"currentRssBytes":478806016,"peakRssBytes":688848896,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":19,"sources":32,"currentRssBytes":478806016,"peakRssBytes":688848896,"unit":"bytes","peakScope":"process-lifetime"}
+[memory-phase] {"phase":"fixture","status":"failed","exitCode":0,"signal":null,"peakRssBytes":688848896,"unit":"bytes","scope":"timed-command","fixtureLimitBytes":536870912,"pass":false,"stagesValid":true,"selfPeakRssBytes":688848896,"effectivePeakRssBytes":688848896,"outputOverflow":false,"spawnFailed":false}
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.qxauKj bytes=199717396 removed=true
+[exit] code=2 elapsed_seconds=53 token_usage=unavailable source=bash-SECONDS
+
+개별 결과
+제목 | 테스트내용 | pass/fail | 비고
+FC01 exact insertion checks count=95 | 원출력 해당 assertion | PASS | 이번 실행
+actual4096 FE02 writer start | 원출력 해당 assertion | PASS | 이번 실행
+actual4096 FE04 bound finalized mutation segment0 | 원출력 해당 assertion | PASS | 이번 실행
+actual4096 LP02 actual4096 prerequisite | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit1 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit1 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit1 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit2 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit2 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit2 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit3 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit3 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit3 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit4 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit4 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit4 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit5 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit5 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit5 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit6 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit6 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit6 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit7 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit7 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit7 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit8 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit8 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit8 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit9 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit9 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit9 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit10 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit10 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit10 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit11 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit11 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit11 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit12 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit12 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit12 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit13 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit13 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit13 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit14 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit14 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit14 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit15 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit15 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit15 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit16 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit16 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit16 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/sources16 snapshot exact count | 원출력 해당 assertion | PASS | 이번 실행
+LP02/sources16 explicit checkpoint | 원출력 해당 assertion | PASS | 이번 실행
+LP02/sources16 reservation and bound mutation count | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit17 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit17 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit17 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit18 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit18 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit18 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit19 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit19 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit19 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit20 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit20 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit20 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit21 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit21 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit21 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit22 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit22 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit22 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit23 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit23 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit23 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit24 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit24 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit24 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit25 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit25 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit25 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit26 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit26 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit26 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit27 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit27 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit27 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit28 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit28 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit28 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit29 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit29 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit29 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit30 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit30 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit30 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit31 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit31 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit31 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit32 reserve | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit32 actual file outside catalog | 원출력 해당 assertion | PASS | 이번 실행
+LP02/commit32 commit  | 원출력 해당 assertion | PASS | 이번 실행
+LP02/sources32 snapshot exact count | 원출력 해당 assertion | PASS | 이번 실행
+LP02/sources32 explicit checkpoint | 원출력 해당 assertion | PASS | 이번 실행
+LP02/sources32 reservation and bound mutation count | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 journal reopen | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 catalog reopen | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-0 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-1 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-2 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-3 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-4 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-5 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-6 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-7 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-8 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-9 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-10 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-11 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-12 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-13 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-14 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-15 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-16 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-17 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-18 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-19 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-20 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-21 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-22 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-23 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-24 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-25 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-26 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-27 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-28 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-29 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-30 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql1 exact source scale-31 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 journal reopen | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 catalog reopen | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-0 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-1 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-2 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-3 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-4 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-5 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-6 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-7 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-8 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-9 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-10 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-11 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-12 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-13 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-14 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-15 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-16 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-17 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-18 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-19 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-20 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-21 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-22 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-23 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-24 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-25 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-26 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-27 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-28 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-29 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-30 | 원출력 해당 assertion | PASS | 이번 실행
+LP02/recovery/sql0 exact source scale-31 | 원출력 해당 assertion | PASS | 이번 실행
+LP16-M03 fixture RSS | 자기/time max 688848896B | FAIL | 기능 PASS와 별도
+
+메모리 최고치가 누적32 snapshot 이후에 관측되고 catalog해제 후476659712B로 내려왔다. 복구에서 이 peak를 넘지 않았다. fixture 기대값도 생존하므로 제품 단독RSS/누수/캐시만의 원인으로 단정하지 않는다.
+검사 root199717396B 삭제/부재. 외부 GST cache 정리는 중앙기록에 추가한다. token start/end/consumed: 계수 미제공으로 미집계; elapsed53초 source=bash-SECONDS.

@@ -16,8 +16,10 @@ fi
 fc_parent="$(cd "${TMPDIR:-/tmp}" && pwd -P)"
 fc_root="$(mktemp -d "$fc_parent/media-server-catalog-cost.XXXXXX")"
 SECONDS=0
+fc_completed=0
 cleanup(){
  local result=$?
+ if [[ "$result" == 0 && "$fc_completed" != 1 ]]; then result=1; fi
  trap - EXIT
  node -e 'const f=require("fs"),p=require("path"),r=process.argv[1];if(p.dirname(r)!==process.argv[2]||!/^media-server-catalog-cost\.[A-Za-z0-9]+$/.test(p.basename(r))||f.lstatSync(r).isSymbolicLink())throw Error("cleanup containment");function size(x){const s=f.lstatSync(x);return s.isDirectory()?f.readdirSync(x).reduce((n,k)=>n+size(p.join(x,k)),0):s.size}const bytes=size(r);f.rmSync(r,{recursive:true});console.log(`[cleanup] path=${r} bytes=${bytes} removed=${!f.existsSync(r)}`);if(f.existsSync(r))process.exit(1)' "$fc_root" "$fc_parent"
  printf '[exit] code=%s elapsed_seconds=%s token_usage=unavailable source=bash-SECONDS\n' "$result" "$SECONDS"
@@ -41,12 +43,15 @@ if [[ "$fc_label" == parse-* ]]; then
  fc_json="$fc_root/strict_json.cpp"
 fi
 if [[ "$fc_label" == compaction* ]]; then fc_main="$fc_script/recording_catalog_compaction_probe.cpp"; fi
-fc_compile_prefix=()
+fc_compile_prefix=(env)
 if [[ "$fc_label" == scale-32* ]]; then
  fc_main="$fc_script/recording_catalog_scale_probe.cpp"
- fc_compile_prefix=(node "$fc_script/recording_catalog_cost_bounded.cjs" 60)
+ fc_compile_prefix=(node "$fc_script/recording_catalog_cost_bounded.cjs" 60 node "$fc_script/recording_memory_phase.mjs" compiler)
 fi
 shasum -a 256 "$fc_main" "$fc_script/recording_catalog_cost_probe_run.sh"
+if [[ "$fc_label" == scale-32* ]]; then
+ shasum -a 256 "$fc_script/recording_process_memory_probe.h" "$fc_script/recording_memory_phase.mjs"
+fi
 node "$fc_script/recording_catalog_cost_probe_instrument.cjs" "$fc_repo" "$fc_root" "$fc_mode"
 read -r -a fc_flags <<< "$(pkg-config --cflags --libs gstreamer-1.0 gstreamer-app-1.0 sqlite3 openssl)"
 "${fc_compile_prefix[@]}" "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$fc_root/include" -I"$fc_repo/include" -I"$fc_script" -I"$fc_repo/src/recording" \
@@ -57,7 +62,8 @@ read -r -a fc_flags <<< "$(pkg-config --cflags --libs gstreamer-1.0 gstreamer-ap
  "$fc_repo/src/recording/recording_derived_job.cpp" "$fc_repo/src/recording/recording_derived_job_ready.cpp" \
  "$fc_repo/src/recording/retention_coordinator.cpp" "$fc_json" "${fc_flags[@]}" -o "$fc_root/check"
 if [[ "$fc_label" == scale-32* ]]; then
- node "$fc_script/recording_catalog_cost_bounded.cjs" 180 "$fc_root/check" "$fc_root"
+ node "$fc_script/recording_catalog_cost_bounded.cjs" 180 node "$fc_script/recording_memory_phase.mjs" fixture "$fc_root/check" "$fc_root"
 else
  "$fc_root/check" "$fc_root"
 fi
+fc_completed=1

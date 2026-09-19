@@ -43,6 +43,23 @@ LP16 1단계 cached diffcheck는 LP15 raw출력2개33행의행말공백으로exi
 
 LP16 2단계 파일등록: `recording_catalog_scale_probe.cpp`/`recording_catalog_cost_probe_run.sh`, 신규test-only `recording_process_memory_probe.h`/`recording_process_memory_probe_smoke.cpp`/`recording_memory_phase.mjs`/`recording_process_memory_probe.test.mjs`(모두scripts/internal). 명령 `node --test scripts/internal/recording_process_memory_probe.test.mjs`, `bash -n scripts/internal/recording_catalog_cost_probe_run.sh`, `git diff --check`. 자체검증은macOS mach/getrusage bytes·고정stage/누락실패거부,time단위/누락중복비숫자/fixture512MiB거부와compiler별도관측,격리자식exit0/7보존. 첫원출력/전수/cleanup은 `lp16-memory-output.txt`. 실제scale32본실행은자체검증·메인리뷰후별도실행. 제품파일무변경·기존runtime/compile상한유지.
 
+2단계 본실행 사전등록: 자체검증 및 메인 diff 검토 후 `bash scripts/internal/recording_catalog_cost_probe_run.sh scale-32-lp16` 1회. 기존 GST 관련 환경변수를 제거하고 새 소유 0700 임시 루트의 headless cache, `MEDIA_SERVER_SKIP_LOCAL_ENV=1`로 실행한다. compiler 60초, fixture 180초, 디스크512MiB/출력2MiB 유지. macOS time 계측 권한은 도구로 요청한다. 자기 peak와 time peak 중 큰 관측으로 fixture 상한을 판정하며 어느 한쪽 누락도 PASS가 아니다. 원출력은 `catalog-cost-output-scale-32-lp16.txt`, 외부 cache는 보존할 비민감 증거 확인 후 정리. 이 결과로 3단계 최소 보완 여부를 결정하고, 원인 미확정이면 실제 앱으로 넘어가지 않는다.
+
+1단계 커밋 `7da6c9df`. 2단계 도구 자체검증 Node14/14(내부C++8/8), syntax/diffcheck exit0. 예상 RED1→GREEN13→최종14를 [원출력·개별 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp16-memory-output.txt)에 보존. 메인이 diff와 결과/hash를 대조한 뒤 scale32 1회 실행: 53초/exit2, 기능173+계측1 PASS이나 fixture RSS688848896B로512MiB 초과. compiler294780928B와 별도. [전수 결과·28단계 측정](release-artifacts/v4.1.0/s11-preparation-mapping/lp16-scale-output.txt). 누적32 snapshot 이후 최고치, catalog 해제 후476659712B, 복구는 최고치를 높이지 않았다. 이는 제품 단독 RSS나 누수 확정이 아니다.
+
+3단계 최소 보완 결정: CheckpointLocked의 사용 완료된 original Replay 사본이 CommitCheckpoint 내부 expected/직렬화 사본과 중첩되는 수명은 코드로 확정했다. original의 오류 검사→prefix 선택→suffix 적용→동일 후보 판정 순서를 유지하고 해당 scope 종료 후 commit한다. 변경 후보의 독립 projection 비교 뒤 next에 선택되지 않은 shadow도 해제한다. 캐시 상한·저장 바이트·검증 의미·손상 거부·원자 commit·잠금은 불변이다. 이 보완만으로 전체 RSS 기준을 충족한다고 미리 단정하지 않는다. 구현 diff 검토와 영향 회귀 후 같은 fixture 한 번으로 효과를 판정하며 새 근거 없이 반복하지 않는다. fixture 데이터량/기대값을 줄여 PASS를 만들지 않는다.
+
+3~4단계 사전등록 LP16-M04: `bash scripts/internal/verify_recording_checkpoint_cache.sh`, `bash scripts/internal/verify_v410_recording_catalog.sh`, `./server.sh build`, `git diff --check`; 기존 LP15 cache43·CP2·RSS1과 catalog246개의 동일 oracle 유지. 내부 수명만 변경하고 클래스 배치/API/다른 서비스 경로는 불변이므로 소스가 그대로인 reuse/jobs/service/validation의 LP15 유효334 중 해당88개 증거는 유지한다. 전체 build 후 고유 label `scale-32-lp16-lifetime`으로 동일 조건 비교1회. 새 기준/시간 확대 금지. 비용 결과 미충족 시 실제 앱 단계 보류.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| `media-server-catalog-cost.qxauKj` | scale32 소유 fixture | 199717396B | runner EXIT 정리 | removed=true | 원출력 |
+| `/private/tmp/lp16-scale.8g6Msc` | 소유 GST cache | 1587084B, 파일2·symlink277 | UID/realpath/lstat·열린 파일 없음 확인 후 링크 미추적 삭제 | removed=true | main 정리 exit0 |
+
+누적 검사 원출력은 행말 공백만 JSON 행으로 가역 보존했고 헤더에 원문 SHA를 기록했다. 삭제한 media/cache는 재생성 가능한 검증 자료다. token 계수 미제공으로 미집계.
+
+2단계 commit 전 cached diffcheck는 자체검증 보고부 EOF 빈행1개로 exit2였다. 원출력이 아닌 마지막 보고부 빈행만 제거했다. 제품/검증 결과 변경 없음.
+
 ## 2026-09-19 LP15 체크포인트 증분 검증
 
 독자: 녹화 저장 개발/검증 담당. lifecycle: 실행별 보존 기록. 정책은 AGENTS.md이며 이 절은 승인된6단계 계약/실행 정의다. 승인 순서: 계약→독립 검사→구현→비용/안전회귀→실제앱→분할커밋/푸시. LP14실패와 기존AVC 변경 보존. 실제앱은 독립비용 판정 이후,HTTP4000ms/총180초 불변. 장시간/UI/릴리즈 외부 작업 제외.
