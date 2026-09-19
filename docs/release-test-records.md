@@ -1,5 +1,42 @@
 # Release Test Records
 
+## 2026-09-19 LP18 불변 소유·검증·RAM 수명 보완
+
+독자: 녹화 개발/검증 담당. 수명: 승인된 제품 보완 1~5번의 실행 기록. 정책은 AGENTS.md다.
+시작 기준은 기존 미커밋3묶음 정리 후 `afe9e462`, v4.1.0/ahead14/clean이다. 과거 실패는 이전 절에 보존했다.
+메인이 공통 소유/안전 계약을 직접 구체화했다. 단일 기존 Astra/medium 담당자는 cold 소비자 읽기 검토를 수행하며 하위 생성·수정·실행은 금지했다.
+이후 확정 구현은 같은 담당자를 재사용한다. 외부 기술/의존성/스키마·영속 포맷·partial/complete·보존 정책 변경은 없다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 공통 소유·검증 경계 | 계약 작성 | 불변 envelope, 내용 증명과 상태 검사, 무효화·RAM 내림의 소비자 조건 명시 | 누적 비용 계약 0절 |
+| 2 | 중복 보관 제거 | 구현 전 | 첫 단위 journal/checkpoint immutable 공유, typed 상세 잔존 별도 판정 | LP18-O01~06 |
+| 3 | 전이→checkpoint 재검증 제거 | 미착수 | 2번 선수 통과 뒤 내용 증명 재사용 | 구현계획 LP18 |
+| 4 | 상세 RAM 수명 | 미착수 | 기존 JSONL locator/활성 소유/재open 검증 필요 | 계약 0절 |
+| 5 | 회귀·실제 앱 | 미착수 | 기존4000ms/정리 포함, 장시간/UI 아님 | 계약 0절 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 문서·공백 | 진행 대상 | 1번 계약·검사 등록 | LP18-DOC | 이번 단기 승인 |
+| focused/영향/build | 진행 대상 | 2~4 제품 변경 | LP18-O01~06, 기존 LP14/15 및 catalog 회귀 | 구현과 사전등록 뒤 순차 |
+| 실제 비용·HTTP | 조건부 진행 | 5번 명시 승인 | LP17 비교/LP15-A01 기존 HTTP4초 | 선수 통과 후 |
+| 30분/120분/UI | 미진행 | 이번 개발 단기 범위 밖 | AGENTS7.6 | 이번 실행 없음, 최종 S11 대체 불가 |
+
+실행 전 정의 LP18-DOC: `git diff --check` → `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links`.
+원출력/결과는 이 절에 보존한다. 문서만 변경하므로 제품 RED/GREEN은 해당되지 않는다.
+token start/end/consumed는 실제 집계 미제공으로 미집계. 새 임시 산출물 없음.
+
+LP18-DOC 첫 실행: diffcheck exit0, 링크 exit1(계약 0절 anchor 오류1개). 파일 링크와 명시적인 0절 안내로 수정한다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP18-DOC 최초 링크 | verify-docs-links exit1/約0.02초, anchor1개 부재 | FAIL | 링크만 수정, 제품 무변경 |
+| LP18-DOC 공백 | git diff --check exit0/約0.01초 | PASS | 최초·수정 후 모두 오류 없음 |
+| LP18-DOC 링크 재검증 | verify-docs-links exit0/約0.01초 | PASS | 284md/8758links/22images/116anchors/indexed76/exclusions200/failures0 |
+
+단일 담당자의 읽기 검토와 메인 코드 대조 결과: terminal job과 deleted binding도 상세 조회 의무가 있어 삭제하지 않는다.
+1번 계약 산출물만 완료이며 2~5번 제품 구현·검증은 아직 완료하지 않았다. 문서 검증의 source는 afe9e462+LP18 문서4개다.
+
 ## 2026-09-19 기존 미커밋 변경 분할 보존
 
 사용자 최신 지시는 승인된 제품 보완 1~5번에 착수하기 전에 필요한 기존 미커밋 변경을 커밋하는 것이다.
