@@ -26,6 +26,12 @@
 #ifndef LP18_CHECKPOINT_SNAPSHOT
 #define LP18_CHECKPOINT_SNAPSHOT 0
 #endif
+#ifndef LP18_LOGICAL_SUITE
+#define LP18_LOGICAL_SUITE 0
+#endif
+#ifndef LP18_LOGICAL_REFS
+#define LP18_LOGICAL_REFS 0
+#endif
 using namespace recording;
 namespace {
 int passed=0,failed=0;
@@ -115,6 +121,10 @@ void CryptoResident(const std::filesystem::path& root){
  std::string release_error;Need(s.journal.ReleaseRecordResidents(&s.owner,&release_error));
  Need(Canonical(*Acquire(s,rows[0]))==Canonical(m));
 #endif
+#if LP18_LOGICAL_REFS
+ RecordingJournalRecordRefs refs;RecordingMutationHandle logical;std::string ref_error;
+ Need(s.journal.ReadRecordRefs(&s.owner,&refs,&ref_error)&&refs.size()==1&&s.journal.AcquireRecordRef(&s.owner,refs[0],&logical,&ref_error)&&logical&&Canonical(*logical)==Canonical(m));
+#endif
  Check(!MEDIA_SERVER_USE_OPENSSL&&Canonical(*value)==Canonical(m)&&s.journal.OwnsCatalog(&s.owner),"LP18-L10 crypto-off managed append acquires exact resident value only");
  const auto before=Bytes(s.journal.path());RecordingMutationHandle out;std::string error;Need(s.journal.AppendOwned(m,&s.owner,&error,&out));
  Check(out&&Canonical(*out)==Canonical(m)&&Locations(s).size()==1&&Bytes(s.journal.path())==before,"LP18-L10 crypto-off retry preserves resident value and physical row count");
@@ -185,6 +195,46 @@ void ColdRecords(const std::filesystem::path& root){
  {Store s(root/"large");const auto large=Mutation("cold-large",16*1024*1024);Append(s,large);const auto rows=Locations(s);std::weak_ptr<const RecordingMutationV1> weak;{auto value=Acquire(s,rows[0]);weak=value;}const auto before=Bytes(s.journal.path());Release(s);Check(!weak.expired()&&Canonical(*Acquire(s,rows[0]))==Canonical(large)&&Bytes(s.journal.path())==before,"LP18-L16 oversized resident fallback survives release unchanged");}
  {Store s(root/"reservation");RecordingOrderReservationV1 first,again;std::string error;Need(s.journal.ReserveRecordingOrder("location-store","cold-request","cold-segment","cold-channel",&first,&error));const auto rows=Locations(s);const auto before=Bytes(s.journal.path());Release(s);Need(s.journal.ReserveRecordingOrder("location-store","cold-request","cold-segment","cold-channel",&again,&error));Check(first.sequence==again.sequence&&Locations(s)==rows&&Bytes(s.journal.path())==before&&Acquire(s,rows[0])->mutation_type==RecordingMutationType::RecordingOrderReserved,"LP18-L13 cold Reserve retry preserves sequence and physical row count");}
 }
+#if LP18_LOGICAL_REFS
+RecordingJournalRecordRefs Refs(Store& s){RecordingJournalRecordRefs refs;std::string error;Need(s.journal.ReadRecordRefs(&s.owner,&refs,&error));return refs;}
+RecordingMutationHandle RefAcquire(Store& s,const RecordingJournalRecordRefHandle& ref){RecordingMutationHandle value;std::string error;Need(s.journal.AcquireRecordRef(&s.owner,ref,&value,&error)&&value);return value;}
+bool RefReject(Store& s,const void* owner,const RecordingJournalRecordRefHandle& ref){auto value=std::make_shared<const RecordingMutationV1>(Mutation("ref-sentinel"));std::string error;return !s.journal.AcquireRecordRef(owner,ref,&value,&error)&&!value;}
+void LogicalRecords(const std::filesystem::path& root){
+ const auto m=Mutation("logical-one");
+ {Store s(root/"basic"),other(root/"foreign");Append(s,m);Append(other,m);auto refs=Refs(s);Need(refs.size()==1);Release(s);auto reader=RefAcquire(s,refs[0]);
+  Check(Canonical(*reader)==Canonical(m),"LP18-L21 logical ref cold acquire preserves complete canonical value");
+  std::weak_ptr<const RecordingMutationV1> weak=reader;reader.reset();Check(weak.expired(),"LP18-L21 logical ref acquisition does not retain a strong resident");reader=RefAcquire(s,refs[0]);Release(s);
+  Check(Canonical(*reader)==Canonical(m),"LP18-L21 logical ref reader survives resident release");
+  Append(s,Mutation("logical-two"));RecordingOrderReservationV1 order;std::string error;Need(s.journal.ReserveRecordingOrder("location-store","logical-request","logical-segment","logical-channel",&order,&error));auto current=Refs(s);
+  Check(current.size()==3&&current[0]==refs[0],"LP18-L22 logical refs remain unchanged after append and Reserve");const auto before=Bytes(s.journal.path());Append(s,m);RecordingOrderReservationV1 again;Need(s.journal.ReserveRecordingOrder("location-store","logical-request","logical-segment","logical-channel",&again,&error));
+  Check(Refs(s)==current&&Bytes(s.journal.path())==before&&again.sequence==order.sequence,"LP18-L22 logical ref retries preserve row count and durable bytes");int foreign=0;
+  Check(RefReject(s,&s.owner,{})&&RefReject(s,&foreign,refs[0])&&RefReject(s,nullptr,refs[0])&&RefReject(s,&s.owner,Refs(other)[0])&&!s.journal.poisoned_,"LP18-L24 null and foreign logical refs clear output without poisoning");
+ }
+ {const auto path=root/"physical";std::filesystem::path file;{Store s(path);file=s.journal.path();}const auto bytes=Canonical(m)+"\n"+Canonical(m)+"\n";Write(file,bytes);Store s(path);auto refs=Refs(s);Release(s);
+  Check(refs.size()==2&&refs[0]!=refs[1]&&Canonical(*RefAcquire(s,refs[0]))==Canonical(m)&&Canonical(*RefAcquire(s,refs[1]))==Canonical(m)&&Bytes(file)==bytes,"LP18-L21 logical refs distinguish duplicate IDs by physical row ordinal");
+ }
+ {Store s(root/"checkpoint");const auto first=Mutation("logical-first",2000);Append(s,first);auto refs=Refs(s);auto reader=RefAcquire(s,refs[0]);RecordingMutationHandles candidate;std::string error;Need(s.journal.PrepareCheckpoint(&s.owner,&candidate,&error));const auto before=Bytes(s.journal.path());Need(s.journal.CommitCheckpoint(&s.owner,candidate,false,&error));
+  Check(Refs(s)==refs&&Bytes(s.journal.path())==before,"LP18-L23 no-write checkpoint preserves logical refs");Write(s.root/".recording-checkpoint.tmp",before.substr(0,10));Need(s.journal.CommitCheckpoint(&s.owner,candidate,true,&error));
+  Check(Refs(s)==refs&&Bytes(s.journal.path())==before&&!std::filesystem::exists(s.root/".recording-checkpoint.tmp"),"LP18-L23 recover-only checkpoint preserves logical refs");Append(s,Mutation("logical-last",2000));refs=Refs(s);Need(s.journal.PrepareCheckpoint(&s.owner,&candidate,&error));const auto unswapped=Bytes(s.journal.path());location_probe::throw_ref=true;
+  Check(!s.journal.CommitCheckpoint(&s.owner,candidate,false,&error)&&!location_probe::throw_ref&&!s.journal.poisoned_&&Refs(s)==refs&&Bytes(s.journal.path())==unswapped&&!std::filesystem::exists(s.root/".recording-checkpoint.tmp"),"LP18-L25 checkpoint ref preparation failure preserves bytes and current refs");
+  const auto expected=Canonical(*candidate[0])+"\n"+Canonical(*candidate[1])+"\n";Need(s.journal.CommitCheckpoint(&s.owner,candidate,false,&error));auto after=Refs(s);Release(s);
+  Check(after.size()==2&&after[0]!=refs[0]&&after[1]==refs[1]&&RefAcquire(s,after[0])->mutation_type==RecordingMutationType::EventLinkReceipt&&Canonical(*RefAcquire(s,after[1]))==Canonical(*candidate[1])&&Bytes(s.journal.path())==expected,"LP18-L23 receipt swap preserves refs only for full-field identical rows");
+  Check(RefReject(s,&s.owner,refs[0])&&!s.journal.poisoned_,"LP18-L23 changed receipt rejects old logical ref without poisoning");
+  Check(Canonical(*reader)==Canonical(first),"LP18-L23 old owned original survives changed logical ref replacement");
+ }
+ {const auto path=root/"reopen";RecordingJournalRecordRefHandle old;{Store s(path);Append(s,m);old=Refs(s)[0];}Store s(path);Check(RefReject(s,&s.owner,old)&&!s.journal.poisoned_&&Canonical(*RefAcquire(s,Refs(s)[0]))==Canonical(m),"LP18-L24 reopen rejects prior journal lineage without poisoning");}
+ {Store s(root/"large");const auto large=Mutation("logical-large",16*1024*1024);Append(s,large);auto refs=Refs(s);Release(s);Check(Canonical(*RefAcquire(s,refs[0]))==Canonical(large),"LP18-L21 resident fallback remains available through logical refs");}
+ for(int kind=0;kind<3;++kind){Store s(root/("tamper-"+std::to_string(kind)));Append(s,m);auto refs=Refs(s);Release(s);auto bytes=Bytes(s.journal.path());if(kind==0){const auto at=bytes.find("xxx");Need(at!=std::string::npos);bytes[at]='y';Write(s.journal.path(),bytes);}else if(kind==1){Need(::truncate(s.journal.path().c_str(),static_cast<off_t>(bytes.size()-1))==0);}else{std::filesystem::rename(s.journal.path(),s.root/"old.jsonl");Write(s.journal.path(),bytes);}
+  Check(RefReject(s,&s.owner,refs[0])&&s.journal.poisoned_&&s.journal.Replay().io_error_count>0,kind==0?"LP18-L24 logical ref acquire detects same-size raw tamper and poisons":kind==1?"LP18-L24 logical ref truncation clears output and poisons":"LP18-L24 logical ref inode replacement clears output and poisons");
+ }
+ {Store s(root/"acquire-exception");Append(s,m);auto refs=Refs(s);Release(s);location_probe::throw_acquire=true;Check(RefReject(s,&s.owner,refs[0])&&!location_probe::throw_acquire&&s.journal.poisoned_,"LP18-L25 logical ref Acquire exception clears output and poisons");}
+ {Store s(root/"fork");Append(s,m);auto refs=Refs(s);const pid_t pid=::fork();Need(pid>=0);if(pid==0){RecordingJournalRecordRefs denied;std::string error;const bool ok=RefReject(s,&s.owner,refs[0])&&!s.journal.ReadRecordRefs(&s.owner,&denied,&error);::_exit(ok?0:1);}int status=0;Need(::waitpid(pid,&status,0)==pid);Check(WIFEXITED(status)&&WEXITSTATUS(status)==0&&!s.journal.poisoned_&&Canonical(*RefAcquire(s,refs[0]))==Canonical(m),"LP18-L24 logical ref fork rejects while parent remains valid");}
+ {Store s(root/"append-exception");RecordingMutationHandle out;std::string error;location_probe::throw_ref=true;Check(!s.journal.AppendOwned(m,&s.owner,&error,&out)&&!location_probe::throw_ref&&!out&&s.journal.poisoned_&&s.journal.Replay().io_error_count>0&&Bytes(s.journal.path())==Canonical(m)+"\n","LP18-L25 append ref mint exception poisons after durable write");}
+ {Store s(root/"append-exception");auto refs=Refs(s);Check(refs.size()==1&&Canonical(*RefAcquire(s,refs[0]))==Canonical(m),"LP18-L25 append ref exception reopens exactly one durable record");}
+ {Store s(root/"reserve-exception");RecordingOrderReservationV1 out;std::string error;location_probe::throw_ref=true;Check(!s.journal.ReserveRecordingOrder("location-store","ref-request","ref-segment","ref-channel",&out,&error)&&!location_probe::throw_ref&&out.sequence==0&&s.journal.poisoned_&&s.journal.Replay().io_error_count>0,"LP18-L25 Reserve ref mint exception withholds result and poisons");}
+ {Store s(root/"reserve-exception");auto refs=Refs(s);const auto before=Bytes(s.journal.path());RecordingOrderReservationV1 out;std::string error;Need(s.journal.ReserveRecordingOrder("location-store","ref-request","ref-segment","ref-channel",&out,&error));Check(refs.size()==1&&Refs(s)==refs&&out.sequence==1&&RefAcquire(s,refs[0])->mutation_type==RecordingMutationType::RecordingOrderReserved&&Bytes(s.journal.path())==before,"LP18-L25 Reserve ref exception reopens and retries the same reservation");}
+}
+#endif
 #if LP18_CHECKPOINT_SNAPSHOT
 void CheckpointSnapshots(const std::filesystem::path& root){
  using Snapshot=RecordingCheckpointReadSnapshotHandle;
@@ -244,6 +294,16 @@ void CheckpointSnapshots(const std::filesystem::path& root){
 #endif
 }
 int main(int argc,char** argv){if(argc!=2)return 2;try{const std::filesystem::path root=argv[1];
+ if(LP18_LOGICAL_SUITE){
+  {Store s(root/"logical-baseline");const auto m=Mutation("logical-baseline");Append(s,m);auto replay=s.journal.Replay();const bool valid=replay.io_error_count==0&&replay.mutations.size()==1&&Canonical(replay.mutations[0])==Canonical(m);if(!replay.mutations.empty())replay.mutations[0].payload_json="{}";Check(valid&&Bytes(s.journal.path())==Canonical(m)+"\n"&&Canonical(s.journal.Replay().mutations.at(0))==Canonical(m),"LP18-L21 logical ref baseline preserves raw bytes and independent Replay value");}
+  Check(LP18_LOGICAL_REFS!=0,"LP18-L21 journal logical record ref capability exists");
+#if LP18_LOGICAL_REFS
+  LogicalRecords(root/"logical");
+#else
+  std::cout<<"[not-run] LP18 logical ref scenarios=24 reason=capability-unavailable\n";
+#endif
+  std::cout<<"[summary] LP18 pass="<<passed<<" fail="<<failed<<'\n';return failed?1:0;
+ }
  if(LP18_CHECKPOINT_SNAPSHOT_SUITE){
   {Store s(root/"snapshot-baseline");const auto m=Mutation("snapshot-baseline");Append(s,m);const auto replay=s.journal.Replay();Check(replay.io_error_count==0&&replay.mutations.size()==1&&Canonical(replay.mutations[0])==Canonical(m),"LP18-L17 snapshot baseline Replay preserves complete canonical value");}
   Check(LP18_CHECKPOINT_SNAPSHOT!=0,"LP18-L17 checkpoint read snapshot capability exists");

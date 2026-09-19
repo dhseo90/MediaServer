@@ -16,6 +16,9 @@ using RecordingJournalRecordLocationHandle = std::shared_ptr<const RecordingJour
 using RecordingJournalRecordLocations = std::vector<RecordingJournalRecordLocationHandle>;
 class RecordingCheckpointReadSnapshot;
 using RecordingCheckpointReadSnapshotHandle = std::shared_ptr<const RecordingCheckpointReadSnapshot>;
+class RecordingJournalRecordRef;
+using RecordingJournalRecordRefHandle = std::shared_ptr<const RecordingJournalRecordRef>;
+using RecordingJournalRecordRefs = std::vector<RecordingJournalRecordRefHandle>;
 
 enum class RecordingMutationType {
     SegmentFinalized,
@@ -112,6 +115,9 @@ private:
     bool ReadCheckpointRecords(const void* owner, RecordingMutationHandles* records, std::string* error,
                                RecordingCheckpointReadSnapshotHandle* snapshot = nullptr) const;
     bool ReadRecordLocations(const void* owner, RecordingJournalRecordLocations* records, std::string* error) const;
+    bool ReadRecordRefs(const void* owner, RecordingJournalRecordRefs* refs, std::string* error) const;
+    bool AcquireRecordRef(const void* owner, const RecordingJournalRecordRefHandle& ref,
+                          RecordingMutationHandle* record, std::string* error) const;
     bool AcquireLocatedRecord(const void* owner, const RecordingJournalRecordLocationHandle& location,
                              RecordingMutationHandle* record, std::string* error) const;
     bool ReleaseRecordResidents(const void* owner, std::string* error);

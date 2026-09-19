@@ -13,8 +13,8 @@ Superpowers 스킬은 현재 제공되지 않아 사용을 주장하지 않으�
 | --- | --- | --- | --- | --- |
 | 1 | 저장 기준 검증 보완 | 완료 | 순수14·실제46 PASS, 예상 RED2건 보존. HW 해결 아님 | 아래 WR 결과 |
 | 2 | 위치 재획득 마감 | 완료 | 기존 위치 증거37SHA 일치·service43·2job 기능120/계측1 통과 | LP18-L01~10·아래 결과 |
-| 3 | 실제 RAM 수명 적용 | 진행 중 | 명시 cold 재획득·호출-local checkpoint 구현/단기 검증 완료. 자동 소비 연결은 아직 없음 | 누적 비용 계약0절·아래 결과 |
-| 4 | 분할 커밋·보고 | 단계별 수행 | 기준·위치·cold 기반 커밋 완료, snapshot 단위 커밋 준비. 단계3 전체는 미완료 | AGENTS3/5 |
+| 3 | 실제 RAM 수명 적용 | 진행 중 | 명시 cold 재획득·호출-local checkpoint·논리ref 기반 구현/단기 검증 완료. 자동 소비 연결은 아직 없음 | 누적 비용 계약0절·아래 결과 |
+| 4 | 분할 커밋·보고 | 단계별 수행 | 기준·위치·cold·snapshot 커밋 완료, 논리ref 단위 커밋 준비. 단계3 전체는 미완료 | AGENTS3/5 |
 
 | 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
 | --- | --- | --- | --- | --- |
@@ -312,6 +312,94 @@ fallback도 정상 입력을 거부하는 cache 상한으로 바꾸지 않았다
 
 snapshot 마감 문서 링크 검사 exit0(285md/8922links/22images/116anchors/실패0),
 diffcheck·수정된 shell2개/JS2개 문법 검사 exit0. 제품/테스트 소스는 위 검증 뒤 변경하지 않았다.
+
+### 3번 논리 기록 참조 기반 착수
+
+직전 호출-local snapshot 단위는 `98acc571`로 커밋했다. 다음은 위치가 바뀌어도 동일 기록인지 구분하는
+journal 내부 논리 참조 기반이다. 공개/영속 API 변경과 catalog 자동 소비·RAM 전체 완료는 포함하지 않는다.
+동일 단일 Astra/medium 담당자는 journal/header·위치 fixture/runner6파일만 맡고 하위 위임/커밋하지 않는다.
+메인이 계약·실행 전 정의·직접 검토·최종 기록/커밋을 담당한다.
+
+RED: `node scripts/internal/verify_recording_immutable_ownership.mjs red journal-logical-01 journal-logical`.
+baseline1PASS/capability1FAIL·나머지24미실행만 예상 RED. GREEN은 아래26개 전수 PASS여야 한다.
+이후 같은 runner의 journal-cold22, journal-location32, journal-checkpoint-snapshot28,
+journal-location-crypto-off3을 순서대로 실행한다. crypto-off는 기존3개 oracle/개수에 logical 획득값 동일 검사를 결합한다.
+기존 group/RSS/time/disk/output/원출력/cleanup을 유지하고 process 관측 필요 권한을 사용한다.
+원인불명 실패 뒤 다음 단위는 진행하지 않으며 정상 입력·저장 바이트·timeout을 바꾸지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-L21 logical ref cold acquire preserves complete canonical value | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+| LP18-L21 logical ref acquisition does not retain a strong resident | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+| LP18-L21 logical ref reader survives resident release | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+| LP18-L22 logical refs remain unchanged after append and Reserve | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+| LP18-L22 logical ref retries preserve row count and durable bytes | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+| LP18-L24 null and foreign logical refs clear output without poisoning | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+| LP18-L21 logical refs distinguish duplicate IDs by physical row ordinal | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+| LP18-L23 no-write checkpoint preserves logical refs | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+| LP18-L23 recover-only checkpoint preserves logical refs | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+| LP18-L25 checkpoint ref preparation failure preserves bytes and current refs | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+| LP18-L23 receipt swap preserves refs only for full-field identical rows | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+| LP18-L23 changed receipt rejects old logical ref without poisoning | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+| LP18-L23 old owned original survives changed logical ref replacement | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+| LP18-L24 reopen rejects prior journal lineage without poisoning | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+| LP18-L21 resident fallback remains available through logical refs | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+| LP18-L24 logical ref acquire detects same-size raw tamper and poisons | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+| LP18-L24 logical ref truncation clears output and poisons | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+| LP18-L24 logical ref inode replacement clears output and poisons | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+| LP18-L25 logical ref Acquire exception clears output and poisons | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+| LP18-L24 logical ref fork rejects while parent remains valid | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+| LP18-L25 append ref mint exception poisons after durable write | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+| LP18-L25 append ref exception reopens exactly one durable record | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+| LP18-L25 Reserve ref mint exception withholds result and poisons | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+| LP18-L25 Reserve ref exception reopens and retries the same reservation | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+| LP18-L21 logical ref baseline preserves raw bytes and independent Replay value | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+| LP18-L21 journal logical record ref capability exists | 논리 참조의 수명·예외 계약 | 실제 원장/owned 값/참조 동일성·출력 초기화·poison·정리 직접 대조 | v4.1.0 |
+
+logical GREEN26·cold22·location32·snapshot28·crypto-off3 통과 뒤 실제 checkpoint 게시 영향의
+`node scripts/internal/verify_recording_immutable_ownership.mjs green logical-cost-01 envelope-cost`(기존30개),
+`MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build`와 기존 cache47을 순서대로 확인한다.
+캐시의 시스템 자원 관측에는 승인된 권한을 사용한다. 이번 추가는 논리 참조의 checkpoint 게시 영향만 다루며
+기존 실제2-job 증거를 전체 자동 RAM 완료로 올리지 않는다. 상세 결과는 실행 뒤 기록한다.
+
+### 논리 참조 기반 실제 결과
+
+메인이6파일 diff·실제26개 반례와 기존 영향 회귀 원출력을 직접 확인했다.
+logical ref는 ordinal/lineage만 보관한다. checkpoint는 같은 ordinal의 원본/게시값6필드가 모두 같을 때만
+기존ref를 유지하고 변경 receipt에는새ref를 준다. 새 위치/ref표는 파일교체 전 준비하고 성공뒤 move 게시한다.
+cold 획득은 현재물리위치 strict 검사이며 외부payload를 ref주소만으로신뢰하지 않는다. typed/cold자동연결은없다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| lp18-ownership-red-journal-logical-01.txt | build exit0·focused exit1, 1PASS/1FAIL·3072ms·신규24미실행, 예상RED 일치 | FAIL |
+| lp18-ownership-green-journal-logical-01.txt | build exit0·focused exit0, 26PASS/0FAIL·3075ms | PASS |
+| lp18-ownership-green-logical-cold-01.txt | build exit0·focused exit0, 22PASS/0FAIL·3887ms | PASS |
+| lp18-ownership-green-logical-location-01.txt | build exit0·focused exit0, 32PASS/0FAIL·4041ms | PASS |
+| lp18-ownership-green-logical-snapshot-01.txt | build exit0·focused exit0, 28PASS/0FAIL·2951ms | PASS |
+| lp18-ownership-green-logical-crypto-01.txt | build exit0·focused exit0, 3PASS/0FAIL·2846ms | PASS |
+| lp18-ownership-green-logical-cost-01.txt | build exit0·focused exit0, 30PASS/0FAIL·3084ms | PASS |
+| logical 전체 빌드 | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build`, exit0·19초·runtime/server100% | PASS |
+| logical cache 회귀 | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_checkpoint_cache.sh`, 47PASS·exit0·16초·peakRSS163184640B | PASS |
+
+focused143행(RED2+GREEN/회귀141)·cache47행을 원출력과 전수 대조했다. 원출력과 개별 결과는 `lp18-ownership-results.md`에 연결했다.
+새 제품실패 없음. 기존 환경/HW/누적 비용 실패는 보존하며 전체 RAM/HTTP 완료로 대체하지 않는다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| lp18-ownership-red-journal-logical-01.txt의 owned-root | binary/격리원장 | 5107442B | guard종료 후삭제 | removed true | 같은원출력 cleanup |
+| lp18-ownership-green-journal-logical-01.txt의 owned-root | binary/격리원장 | 21985519B | guard종료 후삭제 | removed true | 같은원출력 cleanup |
+| lp18-ownership-green-logical-cold-01.txt의 owned-root | binary/격리원장 | 21964748B | guard종료 후삭제 | removed true | 같은원출력 cleanup |
+| lp18-ownership-green-logical-location-01.txt의 owned-root | binary/격리원장 | 22054629B | guard종료 후삭제 | removed true | 같은원출력 cleanup |
+| lp18-ownership-green-logical-snapshot-01.txt의 owned-root | binary/격리원장 | 5538000B | guard종료 후삭제 | removed true | 같은원출력 cleanup |
+| lp18-ownership-green-logical-crypto-01.txt의 owned-root | binary/격리원장 | 5156681B | guard종료 후삭제 | removed true | 같은원출력 cleanup |
+| lp18-ownership-green-logical-cost-01.txt의 owned-root | binary/격리원장 | 5521711B | guard종료 후삭제 | removed true | 같은원출력 cleanup |
+| cache EDvCil | 계측 binary/격리원장 | 17027761B | trap삭제 | 부재 확인 | logical-cache-01 |
+| 해당 원출력9개 | 비민감 수치/실패/개별 결과 | 파일별 실제크기 | 저장소 보존 | credential/raw미디어 없음 | provenance·반례 근거 |
+
+source불변·group정리true. token start/end/consumed는 개별 집계 도구 부재로 미집계. 실제 elapsed/source는 원출력에 보존한다.
+
+logical 마감 문서 링크 exit0(285md/8930links/22images/116anchors/실패0), 공백 검사exit0.
+검증 뒤 제품/fixture 변경은 없고 이 단위의 검증·기록 파일만 커밋한다. 푸시는 수행하지 않는다.
 
 ## 2026-09-20 LP18 잔여 1~3 순차 실행
 

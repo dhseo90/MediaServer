@@ -491,15 +491,31 @@ struct RecordingJournalRecordLocation {
     std::int64_t occurred_at_ms{0};
     RecordingMutationHandle resident_fallback;
 };
+// 논리 참조는 원장 수명과 물리 순서만 식별한다. 내용/물리 위치/소유자 포인터를 보관하지 않는다.
+class RecordingJournalRecordRef {
+    friend class RecordingJournal;
+    friend struct ManagedJournalState;
+    RecordingJournalRecordRef()=default;
+    std::shared_ptr<const char> lineage;
+    std::size_t ordinal{0};
+public:
+    ~RecordingJournalRecordRef()=default;
+};
 struct ManagedJournalState {
     OrderHistoryIndex order;
     RecordingMutationHandles records;
     std::shared_ptr<const char> generation{std::make_shared<const char>(0)};
     RecordingJournalRecordLocations locations;
+    std::shared_ptr<const char> lineage{std::make_shared<const char>(0)};
+    RecordingJournalRecordRefs refs;
     std::unordered_map<std::string,std::string> identities;
     std::uint64_t bytes{0};
     std::uint64_t revision{0};
     bool checkpoint_pending{false};
+    static RecordingJournalRecordRefHandle MakeRef(const std::shared_ptr<const char>& lineage,std::size_t ordinal) {
+        auto ref=std::shared_ptr<RecordingJournalRecordRef>(new RecordingJournalRecordRef);
+        ref->lineage=lineage;ref->ordinal=ordinal;return ref;
+    }
 };
 // journal만 mint한다. 외부에는 const opaque handle만 공개하며 어느 소유자도 저장하지 않는다.
 class RecordingCheckpointReadSnapshot {
@@ -575,10 +591,11 @@ bool IndexRecord(ManagedJournalState* state,const RecordingMutationV1& mutation,
     if(!owned)owned=std::make_shared<const RecordingMutationV1>(mutation);
     const auto location=MakeLocation(state->generation,state->records.size(),offset,raw,owned,digest);
     if(!location)return Fail(error,"managed 위치 생성 실패");
+    const auto ref=ManagedJournalState::MakeRef(state->lineage,state->records.size());
     if(state->revision==std::numeric_limits<std::uint64_t>::max())return Fail(error,"managed revision 상한");
     if(!state->order.Consume(mutation,error))return false;
     state->identities.emplace(mutation.mutation_id,identity);state->records.push_back(std::move(owned));
-    state->locations.push_back(location);++state->revision;return true;
+    state->locations.push_back(location);state->refs.push_back(ref);++state->revision;return true;
     }catch(...){return Fail(error,"managed index 준비 실패");}
 }
 bool CompactRecords(const RecordingMutationHandles& original,RecordingMutationHandles* result,std::string* error) {
@@ -981,6 +998,35 @@ bool RecordingJournal::ReadRecordLocations(const void* owner,RecordingJournalRec
     try{*records=managed_state_->locations;}catch(...){records->clear();return Fail(error,"located 목록 자원 부족");}
     if(error)error->clear();return true;
 }
+bool RecordingJournal::ReadRecordRefs(const void* owner,RecordingJournalRecordRefs* refs,std::string* error) const {
+    if(refs)refs->clear();
+#if !defined(_WIN32)
+    if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
+#endif
+    std::lock_guard lock(mu_);
+    if(!refs||!managed_||!owner||owner!=catalog_owner_)return Fail(error,"logical ref owner/output 거부");
+    if(!CheckManagedStateLocked(error))return false;
+    if(managed_state_->refs.size()!=managed_state_->records.size()||managed_state_->refs.size()!=managed_state_->locations.size()){
+        poisoned_=true;return Fail(error,"logical ref index 불일치");
+    }
+    try{*refs=managed_state_->refs;}catch(...){refs->clear();return Fail(error,"logical ref 목록 자원 실패");}
+    if(error)error->clear();return true;
+}
+bool RecordingJournal::AcquireRecordRef(const void* owner,const RecordingJournalRecordRefHandle& ref,
+    RecordingMutationHandle* record,std::string* error) const {
+    if(record)record->reset();
+#if !defined(_WIN32)
+    if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
+#endif
+    std::lock_guard lock(mu_);
+    if(!record||!managed_||!owner||owner!=catalog_owner_)return Fail(error,"logical ref owner/output 거부");
+    if(!CheckManagedStateLocked(error))return false;
+    if(!ref||ref->lineage!=managed_state_->lineage||ref->ordinal>=managed_state_->refs.size()||
+       managed_state_->refs[ref->ordinal]!=ref)return Fail(error,"logical ref stale/foreign 거부");
+    if(ref->ordinal>=managed_state_->locations.size()){poisoned_=true;return Fail(error,"logical ref 위치 불일치");}
+    // 객체 일치는 mint 계보만 확인한다. 실제 내용은 현재 물리 위치에서 매번 엄격 재검증한다.
+    return AcquireLocatedRecordLocked(managed_state_->locations[ref->ordinal],record,error);
+}
 bool RecordingJournal::AcquireLocatedRecord(const void* owner,const RecordingJournalRecordLocationHandle& location,
     RecordingMutationHandle* record,std::string* error) const {
     if(record)record->reset();
@@ -1109,11 +1155,11 @@ bool RecordingJournal::CommitCheckpoint(const void* owner,const RecordingMutatio
     if(parent.value<0)return Fail(error,"checkpoint parent 오류");
     const bool pending=Present(parent.value,temporary);
     if(recover_only&&!pending)return true;
-    RecordingMutationHandles expected;
-    if(CheckpointSnapshotMatchesLocked(owner,snapshot)){
+    RecordingMutationHandles expected,original;
+    const bool snapshot_matches=CheckpointSnapshotMatchesLocked(owner,snapshot);
+    if(snapshot_matches){
         if(!CompactRecords(snapshot->records,&expected,error))return false;
     }else{
-        RecordingMutationHandles original;
         if(!AcquireCheckpointRecordsLocked(&original,error)||!CompactRecords(original,&expected,error))return false;
     }
     if(expected.size()!=candidate.size()||!detail::SameCheckpointPrefix(expected,candidate))return Fail(error,"checkpoint 후보 필드 불일치");
@@ -1135,10 +1181,12 @@ bool RecordingJournal::CommitCheckpoint(const void* owner,const RecordingMutatio
     checkpoint_checked_bytes_=managed_state_->bytes;
     if(bytes.size()>=managed_state_->bytes)return true;
     // 동일 직렬화의 span을 사용한다. 파일 교체 성공 뒤 새로운 할당/세대 혼합을 하지 않는다.
-    std::shared_ptr<const char> generation;RecordingJournalRecordLocations locations;
+    std::shared_ptr<const char> generation;RecordingJournalRecordLocations locations;RecordingJournalRecordRefs refs;
     try {
+    const auto& source_records=snapshot_matches?snapshot->records:original;
+    if(source_records.size()!=published.size()||managed_state_->refs.size()!=published.size())return Fail(error,"checkpoint logical ref 순서 불일치");
     generation=std::make_shared<const char>(0);
-    locations.reserve(published.size());
+    locations.reserve(published.size());refs.reserve(published.size());
     for(std::size_t i=0;i<published.size();++i){
         const auto raw=std::string_view(bytes).substr(spans[i].first,spans[i].second);
         const auto identity=published[i]->mutation_type==RecordingMutationType::EventLinkReceipt?
@@ -1146,6 +1194,11 @@ bool RecordingJournal::CommitCheckpoint(const void* owner,const RecordingMutatio
         const auto location=MakeLocation(generation,i,spans[i].first,raw,published[i],identity);
         if(!location)return Fail(error,"checkpoint 위치 준비 실패");
         locations.push_back(location);
+        const auto& old=source_records[i];const auto& next=published[i];const auto& current_ref=managed_state_->refs[i];
+        if(!old||!next||!current_ref||current_ref->lineage!=managed_state_->lineage||current_ref->ordinal!=i)return Fail(error,"checkpoint logical ref 결박 오류");
+        const bool same=old->schema==next->schema&&old->mutation_type==next->mutation_type&&old->mutation_id==next->mutation_id&&
+            old->entity_id==next->entity_id&&old->occurred_at_ms==next->occurred_at_ms&&old->payload_json==next->payload_json;
+        refs.push_back(same?current_ref:ManagedJournalState::MakeRef(managed_state_->lineage,i));
     }
     }catch(...){return Fail(error,"checkpoint 위치 자원 준비 실패");}
     OwnedFd stage(::openat(parent.value,temporary,O_RDWR|O_APPEND|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0640));
@@ -1158,6 +1211,7 @@ bool RecordingJournal::CommitCheckpoint(const void* owner,const RecordingMutatio
     if(!Sync(parent.value)){poisoned_=true;return Fail(error,"checkpoint directory fsync 불확실");}
     ::close(managed_fd_);managed_fd_=stage.value;stage.value=-1;device_=static_cast<std::uint64_t>(staged.st_dev);inode_=staged.st_ino;
     managed_state_->records=std::move(published);managed_state_->locations=std::move(locations);managed_state_->generation=generation;
+    managed_state_->refs=std::move(refs);
     managed_state_->bytes=bytes.size();checkpoint_checked_bytes_=bytes.size();return true;
 #else
     (void)candidate;(void)recover_only;return Fail(error,"checkpoint unsupported");

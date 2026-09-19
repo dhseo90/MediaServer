@@ -98,6 +98,35 @@ checkpoint 파일 교체 시 기존 reader의 FD/불변 값 수명은 보존하�
 
 ### 단계 합격 경계
 
+#### 자동 해제까지의 내부 참조 연결 순서
+
+물리 위치와 논리 기록 참조를 구분한다. journal이 봉인해 생성한 논리 참조는 저장소 수명 lineage와
+물리 행 ordinal을 식별하며 payload·raw owner·옛 FD를 붙잡지 않는다. checkpoint가 같은 위치의 원본/게시값을
+전체 필드로 대조해 동일한 경우에만 참조를 유지한다. receipt 치환은 새 참조이며 이전 참조가 새 내용을 읽어서는 안 된다.
+참조 획득은 현재 원장 소유권·현재 참조표·현재 위치의 strict 읽기를 거친다. 주소/hash만으로 외부 입력을 신뢰하지 않는다.
+교체될 참조표는 rename 전에 준비하고 성공 뒤에는 할당 없이 함께 게시한다. 이 기반 자체는 자동 해제 완료가 아니다.
+
+후속 소비 연결은 다음 경계를 닫은 뒤에만 자동으로 resident를 내린다.
+
+- accepted/prefix의 기록 참조는 같은 Read/Append snapshot에서 실제 envelope와 결박한다. 별도 시점 목록의 ordinal을
+  임의로 맞추지 않는다. 내용이 같은 봉인 참조의 출처를 입증하지 못하면 전체값 대조/기존 resident 경로로 복귀한다.
+  duplicate 전체값·SQLite ordinal·cache 논리64MiB/8192 기준은 유지한다.
+- shadow는 raw catalog owner를 저장하지 않는다. 필요 시 journal의 현재 attachment에 결박된 읽기 capability를
+  사용하고 detach/reopen 뒤에는 무효다. caller owned 값은 capability가 끝나도 독립 수명을 갖는다.
+- binding의 channel/source/generation/order/track 및 job의 channel/reference/state/output·활성 보호 색인을
+  상세 samples/Intent/Ready와 분리한다. 무관한 행을 필터링하기 위해 상세를 전수 재획득하지 않는다.
+  public 전체 snapshot처럼 호출 자체가 전체 값을 요구하는 경우만 일시 전체 materialization을 허용한다.
+- 활성 job·Prepared·반환 reader는 strong 소유를 유지한다. Complete/Failed·삭제 binding은 필요한 내구 증거를
+  없애지 않고 상세의 RAM 소유만 해제한다. live와 retained shadow를 함께 적용해야 한다.
+- cold 읽기 오류는 정상적인 부재와 구별해 내부 실패/불확실 상태로 남긴다. bool/error 조회는 실패와 빈 out,
+  optional 조회는 값 없음과 원장 불확실을 유지한다. 보호 판정은 보수적으로 유지하고 투영 비교의 빈 값끼리 같음을
+  성공으로 처리하지 않는다. 공개 API/JSON 형식은 바꾸지 않는다.
+- Open의 전체 strict 검증과 SQLite fallback/재구축은 유지한다. 성공 종료 뒤 비활성 상세가 계속 상주하지 않아야
+  하며 전체 replay의 일시 peak와 정상 운용 보관량은 별도 측정한다. crypto-off/대형 행은 기존 resident fallback이다.
+
+위 소비 구현은 미완료다. 실제 자동 해제 전 active reader·변조·삭제·재open·선택 조회 재획득 수 반례와
+기존 의미/보호/복구 회귀를 등록하고 검증한다. 메모리 수치나 실제 HTTP 합격을 설계만으로 주장하지 않는다.
+
 #### 4번 첫 단위: 기존 JSONL 위치 재획득
 
 구현 상태: 위치 재획득 자체 반례와 승인된 SW writer 영향 회귀, service/2-job를 통과해 primitive 단위를 마감한다.

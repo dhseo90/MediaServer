@@ -1,5 +1,17 @@
 # Project Feature Test Inventory
 
+## LP18 논리 기록 참조 기반 사전등록
+
+| 기능 ID | 항목 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| LP18-L21 | 논리 참조·비상주 획득 | 물리 중복 행 구분·전체값/독립 Replay·owned 수명·대형/crypto-off fallback | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 CLI |
+| LP18-L22 | append/예약 불변성 | 기존 참조 유지·재시도 행수/바이트/예약번호 불변 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 CLI |
+| LP18-L23 | checkpoint 참조 게시 | no-write/recover-only 유지·전체필드 동일행만 유지·receipt 새참조·이전독자 생존 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 CLI |
+| LP18-L24 | 참조 권한·변조 거부 | null/foreign/oldlineage/fork 거부·raw변조/절단/inode교체 failclosed | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 CLI |
+| LP18-L25 | 할당 실패 원자성 | append/예약 durable뒤 poison·재open/재시도·checkpoint 교체전 실패 원본보존·Acquire out초기화 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 CLI |
+
+원출력별26개 정의/결과는 중앙 LP18 기록을 따른다. 자동 RAM 수명 완료가 아니다.
+
 ## LP18 저장 기준 디코더 검증 보완
 
 | 기능 ID | 항목 | 안정화 | 30분 | 120분 | UI |

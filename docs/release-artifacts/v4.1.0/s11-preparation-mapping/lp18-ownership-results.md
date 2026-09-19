@@ -1,5 +1,259 @@
 # LP18 공유 소유 focused 개별 결과
 
+### lp18-logical-cache-01.txt
+
+[원출력](lp18-logical-cache-01.txt), 6459B.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP15-C01 cold full applied=1 expected=1 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C01 unchanged prefix applied=0 expected=0 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C01 exact prefix suffix only applied=1 expected=1 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C01 independent prefix shadow/full projection equality | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C01 full fallback schema applied=2 expected=2 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C01 full fallback type applied=2 expected=2 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C01 full fallback id applied=2 expected=2 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C01 full fallback entity applied=2 expected=2 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C01 full fallback time applied=2 expected=2 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C01 full fallback payload applied=2 expected=2 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C01 full fallback reorder applied=2 expected=2 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C01 full fallback shrink applied=2 expected=2 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C01 full fallback null-shadow applied=2 expected=2 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C01 full fallback null-handle applied=2 expected=2 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C01 Open clears cache applied=2 expected=2 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C03 recover full/no-cache | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C03 after recover full applied=2 expected=2 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C03 injected commit refusal discards cache | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C03 after commit refusal full applied=2 expected=2 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C03 suffix exception discards cache | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C03 after exception full applied=3 expected=3 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C03 public poisoned entry discards cache | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C03 after restored fixture full applied=3 expected=3 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C04 exact byte charge boundary | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C04 overflow charge rejected | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C04 8192 records admitted | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C04 8193 records rejected | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C04 64MiB record charge admitted | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C04 64MiB plus one rejected | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C03 changed candidate prime applied=1 expected=1 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C03 changed candidate suffix12 plus full candidate13 applied=25 expected=25 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C03 changed candidate cache equals independent full projection | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C03 compacted candidate prefix reused applied=0 expected=0 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C03 forced projection mismatch discards cache | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C04 overlimit prime applied=1 expected=1 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C04 existing cache ignored for oversized original applied=8193 expected=8193 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C04 oversized candidate not retained | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C04 next oversized checkpoint full applied=8193 expected=8193 | 실제 checkpoint 영향 회귀 | PASS |
+| CP01 actual Ready Complete shape canonical files reservation | 실제 checkpoint 영향 회귀 | PASS |
+| CP02 bounded two jobs over 1MiB canonical transitions | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C02 bounded automatic checkpoint and whole transition measurement | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C02 reopened full applied=18 expected=18 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C02 actual unchanged prefix applied=0 expected=0 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C02 actual suffix only applied=1 expected=1 | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C02 actual job shadow/full projection equality | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C03 illegal Ready after Complete suffix rejected by cached/full paths | 실제 checkpoint 영향 회귀 | PASS |
+| LP15-C04 peakRSS bytes=163184640 cap=536870912 | 실제 checkpoint 영향 회귀 | PASS |
+
+
+## 논리 기록 참조 기반 결과
+
+사전등록 LP18-L21~25. 예상 RED와 GREEN/회귀는 별도 실행이며 자동 RAM 해제 완료가 아니다.
+
+### lp18-ownership-red-journal-logical-01.txt
+
+[원출력](lp18-ownership-red-journal-logical-01.txt), 6013B.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-L21 logical ref baseline preserves raw bytes and independent Replay value | 해당 원출력 focused 검사 | PASS |
+| LP18-L21 journal logical record ref capability exists | 해당 원출력 focused 검사 | FAIL |
+
+미실행: 신규24개, capability 없음. GREEN에서 별도 실행한다.
+
+### lp18-ownership-green-journal-logical-01.txt
+
+[원출력](lp18-ownership-green-journal-logical-01.txt), 7741B.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-L21 logical ref baseline preserves raw bytes and independent Replay value | 해당 원출력 focused 검사 | PASS |
+| LP18-L21 journal logical record ref capability exists | 해당 원출력 focused 검사 | PASS |
+| LP18-L21 logical ref cold acquire preserves complete canonical value | 해당 원출력 focused 검사 | PASS |
+| LP18-L21 logical ref acquisition does not retain a strong resident | 해당 원출력 focused 검사 | PASS |
+| LP18-L21 logical ref reader survives resident release | 해당 원출력 focused 검사 | PASS |
+| LP18-L22 logical refs remain unchanged after append and Reserve | 해당 원출력 focused 검사 | PASS |
+| LP18-L22 logical ref retries preserve row count and durable bytes | 해당 원출력 focused 검사 | PASS |
+| LP18-L24 null and foreign logical refs clear output without poisoning | 해당 원출력 focused 검사 | PASS |
+| LP18-L21 logical refs distinguish duplicate IDs by physical row ordinal | 해당 원출력 focused 검사 | PASS |
+| LP18-L23 no-write checkpoint preserves logical refs | 해당 원출력 focused 검사 | PASS |
+| LP18-L23 recover-only checkpoint preserves logical refs | 해당 원출력 focused 검사 | PASS |
+| LP18-L25 checkpoint ref preparation failure preserves bytes and current refs | 해당 원출력 focused 검사 | PASS |
+| LP18-L23 receipt swap preserves refs only for full-field identical rows | 해당 원출력 focused 검사 | PASS |
+| LP18-L23 changed receipt rejects old logical ref without poisoning | 해당 원출력 focused 검사 | PASS |
+| LP18-L23 old owned original survives changed logical ref replacement | 해당 원출력 focused 검사 | PASS |
+| LP18-L24 reopen rejects prior journal lineage without poisoning | 해당 원출력 focused 검사 | PASS |
+| LP18-L21 resident fallback remains available through logical refs | 해당 원출력 focused 검사 | PASS |
+| LP18-L24 logical ref acquire detects same-size raw tamper and poisons | 해당 원출력 focused 검사 | PASS |
+| LP18-L24 logical ref truncation clears output and poisons | 해당 원출력 focused 검사 | PASS |
+| LP18-L24 logical ref inode replacement clears output and poisons | 해당 원출력 focused 검사 | PASS |
+| LP18-L25 logical ref Acquire exception clears output and poisons | 해당 원출력 focused 검사 | PASS |
+| LP18-L24 logical ref fork rejects while parent remains valid | 해당 원출력 focused 검사 | PASS |
+| LP18-L25 append ref mint exception poisons after durable write | 해당 원출력 focused 검사 | PASS |
+| LP18-L25 append ref exception reopens exactly one durable record | 해당 원출력 focused 검사 | PASS |
+| LP18-L25 Reserve ref mint exception withholds result and poisons | 해당 원출력 focused 검사 | PASS |
+| LP18-L25 Reserve ref exception reopens and retries the same reservation | 해당 원출력 focused 검사 | PASS |
+
+### lp18-ownership-green-logical-cold-01.txt
+
+[원출력](lp18-ownership-green-logical-cold-01.txt), 7338B.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-L11 cold baseline Replay preserves complete canonical value | 해당 원출력 focused 검사 | PASS |
+| LP18-L11 explicit resident release capability exists | 해당 원출력 focused 검사 | PASS |
+| LP18-L11 release expires unowned reloadable resident | 해당 원출력 focused 검사 | PASS |
+| LP18-L11 release preserves tokens and durable bytes | 해당 원출력 focused 검사 | PASS |
+| LP18-L12 cold acquire restores complete canonical value | 해당 원출력 focused 검사 | PASS |
+| LP18-L12 active owned reader survives release and reacquisition | 해당 원출력 focused 검사 | PASS |
+| LP18-L12 public Replay restores cold records as independent values | 해당 원출력 focused 검사 | PASS |
+| LP18-L13 cold Append retry preserves identity bytes and row count | 해당 원출력 focused 검사 | PASS |
+| LP18-L13 cold original ID collision rejects without mutation | 해당 원출력 focused 검사 | PASS |
+| LP18-L11 release rejects foreign and null owners without poison | 해당 원출력 focused 검사 | PASS |
+| LP18-L12 reopened records support explicit release and cold acquire | 해당 원출력 focused 검사 | PASS |
+| LP18-L14 checkpoint record view restores cold full values | 해당 원출력 focused 검사 | PASS |
+| LP18-L14 cold no-write checkpoint preserves generation | 해당 원출력 focused 검사 | PASS |
+| LP18-L14 cold recover-only cleanup preserves generation | 해당 원출력 focused 검사 | PASS |
+| LP18-L14 cold receipt swap rebinds tokens and preserves old reader | 해당 원출력 focused 검사 | PASS |
+| LP18-L13 cold receipt retry retains original envelope without append | 해당 원출력 focused 검사 | PASS |
+| LP18-L15 cold same-size tamper poisons and clears output | 해당 원출력 focused 검사 | PASS |
+| LP18-L15 cold truncation poisons and clears output | 해당 원출력 focused 검사 | PASS |
+| LP18-L15 cold inode replacement poisons and clears output | 해당 원출력 focused 검사 | PASS |
+| LP18-L15 cold allocation failure clears output and poisons | 해당 원출력 focused 검사 | PASS |
+| LP18-L16 oversized resident fallback survives release unchanged | 해당 원출력 focused 검사 | PASS |
+| LP18-L13 cold Reserve retry preserves sequence and physical row count | 해당 원출력 focused 검사 | PASS |
+
+### lp18-ownership-green-logical-location-01.txt
+
+[원출력](lp18-ownership-green-logical-location-01.txt), 8325B.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-L01 baseline managed Replay preserves full canonical record | 해당 원출력 focused 검사 | PASS |
+| LP18-L01 journal located record capability exists | 해당 원출력 focused 검사 | PASS |
+| LP18-L02 acquired record retains complete canonical value | 해당 원출력 focused 검사 | PASS |
+| LP18-L02 public Replay mutation cannot alter acquired immutable value | 해당 원출력 focused 검사 | PASS |
+| LP18-L03 Append retry preserves physical row count and original value | 해당 원출력 focused 검사 | PASS |
+| LP18-L03 Reserve retry preserves physical row count and sequence | 해당 원출력 focused 검사 | PASS |
+| LP18-L02 reopen reconstructs located original and reservation records | 해당 원출력 focused 검사 | PASS |
+| LP18-L04 blank lines whitespace and 64KiB crossing retain exact row order | 해당 원출력 focused 검사 | PASS |
+| LP18-L04 repeated mutation ID retains separate physical row tokens | 해당 원출력 focused 검사 | PASS |
+| LP18-L04 located reads preserve accepted noncanonical envelope bytes | 해당 원출력 focused 검사 | PASS |
+| LP18-L05 no-write checkpoint keeps existing location generation usable | 해당 원출력 focused 검사 | PASS |
+| LP18-L05 recover-only pending cleanup keeps existing generation usable | 해당 원출력 focused 검사 | PASS |
+| LP18-L05 receipt swap rebinds all locations to exact committed bytes | 해당 원출력 focused 검사 | PASS |
+| LP18-L05 stale location rejects and clears output without poisoning current journal | 해당 원출력 focused 검사 | PASS |
+| LP18-L05 previously acquired owned record survives receipt file replacement | 해당 원출력 focused 검사 | PASS |
+| LP18-L05 retry after receipt returns original type without new location | 해당 원출력 focused 검사 | PASS |
+| LP18-L06 null token clears output without poisoning | 해당 원출력 focused 검사 | PASS |
+| LP18-L06 foreign or null owner rejects without poisoning | 해당 원출력 focused 검사 | PASS |
+| LP18-L06 other journal token rejects without poisoning | 해당 원출력 focused 검사 | PASS |
+| LP18-L06 fork rejects located access while parent retains valid ownership | 해당 원출력 focused 검사 | PASS |
+| LP18-L07 same-size raw tamper poisons and clears output despite resident handle | 해당 원출력 focused 검사 | PASS |
+| LP18-L07 truncation poisons and clears output | 해당 원출력 focused 검사 | PASS |
+| LP18-L07 inode replacement poisons and clears output | 해당 원출력 focused 검사 | PASS |
+| LP18-L08 oversized append remains available through resident fallback only | 해당 원출력 focused 검사 | PASS |
+| LP18-L08 oversized retry preserves original value and durable row count | 해당 원출력 focused 검사 | PASS |
+| LP18-L09 append location exception clears output and poisons after durable write | 해당 원출력 focused 검사 | PASS |
+| LP18-L09 append exception reopens exactly one durable original record | 해당 원출력 focused 검사 | PASS |
+| LP18-L09 reserve location exception withholds result and poisons after durable write | 해당 원출력 focused 검사 | PASS |
+| LP18-L09 reserve exception reopens reservation and retry does not duplicate it | 해당 원출력 focused 검사 | PASS |
+| LP18-L09 checkpoint location exception preserves bytes and usable generation without poison | 해당 원출력 focused 검사 | PASS |
+| LP18-L09 checkpoint retries successfully after location preparation exception | 해당 원출력 focused 검사 | PASS |
+| LP18-L09 acquire allocation exception poisons clears output and retains old owned value | 해당 원출력 focused 검사 | PASS |
+
+### lp18-ownership-green-logical-snapshot-01.txt
+
+[원출력](lp18-ownership-green-logical-snapshot-01.txt), 8217B.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-L17 snapshot baseline Replay preserves complete canonical value | 해당 원출력 focused 검사 | PASS |
+| LP18-L17 checkpoint read snapshot capability exists | 해당 원출력 focused 검사 | PASS |
+| LP18-L17 snapshot binds complete immutable original values | 해당 원출력 focused 검사 | PASS |
+| LP18-L18 snapshot reads each cold original exactly once | 해당 원출력 focused 검사 | PASS |
+| LP18-L17 external owned vector mutation cannot alter snapshot original | 해당 원출력 focused 검사 | PASS |
+| LP18-L18 Prepare and Commit reuse snapshot without repeated cold reads | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 snapshot no-write checkpoint preserves exact bytes and tokens | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 recover-only snapshot cleanup retains generation and exact bytes | 해당 원출력 focused 검사 | PASS |
+| LP18-L17 snapshot release leaves no journal or cache strong resident | 해당 원출력 focused 검사 | PASS |
+| LP18-L18 null snapshot retains strict repeated-read fallback and exact receipt bytes | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 appended history invalidates snapshot and rejects stale candidate | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 reserved history invalidates snapshot and rejects stale candidate | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 detach and same-owner reattach require strict snapshot fallback | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 identical foreign journal snapshot uses strict local fallback | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison schema | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison id | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison entity | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison time | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison type | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison payload | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison order | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison count | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison null | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 receipt swap invalidates snapshot while old owned original survives | 해당 원출력 focused 검사 | PASS |
+| LP18-L20 explicit Acquire rechecks same-size raw tamper despite owned snapshot | 해당 원출력 focused 검사 | PASS |
+| LP18-L20 snapshot acquisition exception clears both outputs and poisons | 해당 원출력 focused 검사 | PASS |
+| LP18-L17 snapshot preserves duplicate physical rows and noncanonical envelope bytes | 해당 원출력 focused 검사 | PASS |
+| LP18-L18 catalog Checkpoint reuses one cold snapshot with exact bytes and projection | 해당 원출력 focused 검사 | PASS |
+
+### lp18-ownership-green-logical-crypto-01.txt
+
+[원출력](lp18-ownership-green-logical-crypto-01.txt), 6128B.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-L10 crypto-off managed append acquires exact resident value only | 해당 원출력 focused 검사 | PASS |
+| LP18-L10 crypto-off retry preserves resident value and physical row count | 해당 원출력 focused 검사 | PASS |
+| LP18-L10 crypto-off checkpoint remains rejected with owner and resident value intact | 해당 원출력 focused 검사 | PASS |
+
+### lp18-ownership-green-logical-cost-01.txt
+
+[원출력](lp18-ownership-green-logical-cost-01.txt), 7314B.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-E01 independent value and owned sequences compare equal | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 full field mismatch rejected schema | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 full field mismatch rejected type | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 full field mismatch rejected id | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 full field mismatch rejected entity | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 full field mismatch rejected time | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 full field mismatch rejected payload | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 sequence order remains significant | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 sequence count remains significant | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 null on either side remains rejected | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 identical invalid schema retains comparison result | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 identical invalid enum retains comparison result | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 enum canonical collision remains rejected | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 escape and control bytes retain exact comparison | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 int64 boundaries retain exact comparison | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 payload whitespace remains significant | 해당 원출력 focused 검사 | PASS |
+| LP18-E02 SameSequence performs zero envelope serializations | 해당 원출력 focused 검사 | PASS |
+| LP18-E03 receipt candidate preparation preserves original bytes | 해당 원출력 focused 검사 | PASS |
+| LP18-E04 CommitCheckpoint builds JournalBytes exactly once | 해당 원출력 focused 검사 | PASS |
+| LP18-E03 independent candidate publishes exact bytes and preserves prior owner | 해당 원출력 focused 검사 | PASS |
+| LP18-E03 compacted bytes retain independent full projection | 해당 원출력 focused 검사 | PASS |
+| LP18-E03 invalid candidate rejected before byte building schema | 해당 원출력 focused 검사 | PASS |
+| LP18-E03 invalid candidate rejected before byte building type | 해당 원출력 focused 검사 | PASS |
+| LP18-E03 invalid candidate rejected before byte building id | 해당 원출력 focused 검사 | PASS |
+| LP18-E03 invalid candidate rejected before byte building entity | 해당 원출력 focused 검사 | PASS |
+| LP18-E03 invalid candidate rejected before byte building time | 해당 원출력 focused 검사 | PASS |
+| LP18-E03 invalid candidate rejected before byte building payload | 해당 원출력 focused 검사 | PASS |
+| LP18-E03 invalid candidate rejected before byte building order | 해당 원출력 focused 검사 | PASS |
+| LP18-E03 invalid candidate rejected before byte building count | 해당 원출력 focused 검사 | PASS |
+| LP18-E03 invalid candidate rejected before byte building null | 해당 원출력 focused 검사 | PASS |
+
+
 ### lp18-snapshot-cache-01.txt
 
 [원출력](lp18-snapshot-cache-01.txt). 기능·자원 실패 및 재실행을 분리한다.

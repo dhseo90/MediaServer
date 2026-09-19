@@ -85,6 +85,9 @@ Read→Prepare→Commit을2회 읽기로 연결했다(기본/null 경로6회). f
 cost30·cache47·2job 기능120/계측1·전체build 통과. cache 최초 RSS 관측 권한 실패는 보존하고 같은 기준으로 재검증했다.
 owner 재연결/append/예약/receipt swap 뒤에는 strict fallback이며 후보 전체값과 저장/복구 검증을 유지했다.
 아직 자동 resident 해제와 accepted/prefix/live·shadow typed 소비 연결은 미구현이다. 단기 PASS를 RAM 전체 완료로 확대하지 않는다.
+호출-local 단위 커밋은 `98acc571`이다. 이어 논리 기록 ref(ordinal/lineage)를 추가해 동일 내용의 CP위치 교체만
+참조를 유지하고 receipt 변경은 새참조로 구분했다. focused26·cold22·location32·snapshot28·cryptooff3·cost30·cache47·전체build 통과.
+상세payload/owner raw포인터를 ref에 축적하지 않는다. 실제 소비 연결 전 기반이며 자동해제는 아직 미구현이다.
 
 ### LP17 판정 기준 비교 설계 저장 계약
 

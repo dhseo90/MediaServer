@@ -5,10 +5,10 @@ lp_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 lp_repo="$(cd "$lp_script/../.." && pwd)"
 lp_root="${1:?owned root required}"
 lp_mode="${2:-envelope}"
-if [[ "$lp_mode" != envelope && "$lp_mode" != job && "$lp_mode" != content && "$lp_mode" != envelope-cost && "$lp_mode" != context && "$lp_mode" != transition-comparison && "$lp_mode" != intent-comparison && "$lp_mode" != journal-location && "$lp_mode" != journal-location-crypto-off && "$lp_mode" != journal-cold && "$lp_mode" != journal-checkpoint-snapshot ]];then exit 2;fi
+if [[ "$lp_mode" != envelope && "$lp_mode" != job && "$lp_mode" != content && "$lp_mode" != envelope-cost && "$lp_mode" != context && "$lp_mode" != transition-comparison && "$lp_mode" != intent-comparison && "$lp_mode" != journal-location && "$lp_mode" != journal-location-crypto-off && "$lp_mode" != journal-cold && "$lp_mode" != journal-checkpoint-snapshot && "$lp_mode" != journal-logical ]];then exit 2;fi
 node - "$lp_repo" "$lp_root" "$lp_mode" <<'NODE'
 const fs=require('fs'),path=require('path'),crypto=require('crypto'),[repo,out,mode]=process.argv.slice(2);
-const locationMode=['journal-location','journal-location-crypto-off','journal-cold','journal-checkpoint-snapshot'].includes(mode);
+const locationMode=['journal-location','journal-location-crypto-off','journal-cold','journal-checkpoint-snapshot','journal-logical'].includes(mode);
 if(!/^media-server-immutable-ownership\.[A-Za-z0-9]+$/.test(path.basename(out))||fs.lstatSync(out).isSymbolicLink()||fs.realpathSync(out)!==out)throw Error('LP18_ROOT');
 function exact(s,a,b){if(s.split(a).length!==2)throw Error('LP18_EXACT');return s.replace(a,b);}
 fs.mkdirSync(path.join(out,'include/recording'),{recursive:true});
@@ -21,6 +21,10 @@ if(locationMode&&source.includes('RecordingJournal::AcquireLocatedRecord(')){
  journal=exact(journal,"std::string raw(static_cast<std::size_t>(location->length),'\\0');","location_probe::BeforeAcquire();std::string raw(static_cast<std::size_t>(location->length),'\\0');");
  journal='#include "recording_journal_location_counter.h"\n'+journal;
  console.log('[instrument] location_exception_exact_insertions=2');
+}
+if(locationMode&&source.includes('RecordingJournal::AcquireRecordRef(')){
+ journal=exact(journal,'auto ref=std::shared_ptr<RecordingJournalRecordRef>(new RecordingJournalRecordRef);','location_probe::BeforeRef();auto ref=std::shared_ptr<RecordingJournalRecordRef>(new RecordingJournalRecordRef);');
+ console.log('[instrument] logical_ref_exception_exact_insertions=1');
 }
 if(mode==='envelope-cost'){
  journal=exact(journal,'std::string SerializeRecordingMutationV1(const RecordingMutationV1& value) {','std::string SerializeRecordingMutationV1(const RecordingMutationV1& value) { ++envelope_cost_probe::serializations;');
@@ -46,6 +50,9 @@ if(locationMode){
  const snapshotCount=(header.match(/using RecordingCheckpointReadSnapshotHandle\s*=/g)||[]).length;
  if(snapshotCount>1)throw Error('LP18_SNAPSHOT_DECLARATIONS');
  fs.writeFileSync(path.join(out,'snapshot_flags'),'-DLP18_CHECKPOINT_SNAPSHOT='+Number(snapshotCount===1));
+ const refCounts=['ReadRecordRefs','AcquireRecordRef'].map(name=>(header.match(new RegExp('\\b'+name+'\\s*\\(','g'))||[]).length);
+ if(!refCounts.every(n=>n===0)&&!refCounts.every(n=>n===1))throw Error('LP18_REF_DECLARATIONS');
+ fs.writeFileSync(path.join(out,'ref_flags'),'-DLP18_LOGICAL_REFS='+Number(refCounts.every(n=>n===1)));
  console.log('[instrument] location_declarations='+counts.join(',')+' location_header_sha256='+crypto.createHash('sha256').update(header).digest('hex'));
 }
 fs.writeFileSync(path.join(out,'accepted_flags'),/unordered_map<std::string,\s*RecordingMutationHandle>\s+accepted_segment_state_mutations_/.test(catalogHeader)?'-DLP18_ACCEPTED_SHARED=1':'');
@@ -129,9 +136,11 @@ lp_job=(-DLP18_JOB_SHARED=0); if [[ -s "$lp_root/job_flags" ]];then lp_job=(-DLP
 lp_sources=("$lp_script/recording_immutable_ownership_smoke.cpp")
 lp_location_crypto=(-DLP18_LOCATION_CRYPTO_OFF=0)
 if [[ "$lp_mode" == journal-location-crypto-off ]];then lp_location_crypto=(-DLP18_LOCATION_CRYPTO_OFF=1 -UMEDIA_SERVER_USE_OPENSSL -DMEDIA_SERVER_USE_OPENSSL=0);fi
-if [[ "$lp_mode" == journal-location || "$lp_mode" == journal-location-crypto-off || "$lp_mode" == journal-cold || "$lp_mode" == journal-checkpoint-snapshot ]];then read -r lp_location_flag < "$lp_root/location_flags" || [[ -n "$lp_location_flag" ]];read -r lp_cold_flag < "$lp_root/cold_flags" || [[ -n "$lp_cold_flag" ]];lp_flags+=("$lp_location_flag" "$lp_cold_flag");lp_sources=("$lp_script/recording_journal_location_smoke.cpp");fi
+if [[ "$lp_mode" == journal-location || "$lp_mode" == journal-location-crypto-off || "$lp_mode" == journal-cold || "$lp_mode" == journal-checkpoint-snapshot || "$lp_mode" == journal-logical ]];then read -r lp_location_flag < "$lp_root/location_flags" || [[ -n "$lp_location_flag" ]];read -r lp_cold_flag < "$lp_root/cold_flags" || [[ -n "$lp_cold_flag" ]];lp_flags+=("$lp_location_flag" "$lp_cold_flag");lp_sources=("$lp_script/recording_journal_location_smoke.cpp");fi
 if [[ "$lp_mode" == journal-cold ]];then lp_flags+=(-DLP18_COLD_SUITE=1);fi
 if [[ "$lp_mode" == journal-checkpoint-snapshot ]];then read -r lp_snapshot_flag < "$lp_root/snapshot_flags" || [[ -n "$lp_snapshot_flag" ]];lp_flags+=("$lp_snapshot_flag" -DLP18_CHECKPOINT_SNAPSHOT_SUITE=1);fi
+if [[ "$lp_mode" == journal-logical || "$lp_mode" == journal-location-crypto-off ]];then read -r lp_ref_flag < "$lp_root/ref_flags" || [[ -n "$lp_ref_flag" ]];lp_flags+=("$lp_ref_flag");fi
+if [[ "$lp_mode" == journal-logical ]];then lp_flags+=(-DLP18_LOGICAL_SUITE=1);fi
 if [[ "$lp_mode" == intent-comparison ]];then lp_flags+=(-DLP18_INTENT_COMPARISON=1);lp_sources=("$lp_script/recording_job_transition_comparison_smoke.cpp" "$lp_root/recording_derived_job.cpp" "$lp_root/recording_derived_job_ready.cpp" "$lp_repo/src/recording/recording_timeline_projection.cpp");fi
 if [[ "$lp_mode" == job ]];then lp_sources=("$lp_script/recording_job_ownership_smoke.cpp" "$lp_repo/src/recording/recording_timeline_projection.cpp");fi
 if [[ "$lp_mode" == content ]];then lp_sources=("$lp_script/recording_job_content_proof_smoke.cpp" "$lp_root/recording_derived_job_ready.cpp" "$lp_repo/src/recording/recording_timeline_projection.cpp");fi
