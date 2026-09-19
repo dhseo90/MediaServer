@@ -1,5 +1,275 @@
 # Release Test Records
 
+## 2026-09-19 기존 미커밋 변경 분할 보존
+
+사용자 최신 지시는 승인된 제품 보완 1~5번에 착수하기 전에 필요한 기존 미커밋 변경을 커밋하는 것이다.
+이 절은 Git 정리 기록이며 아래 LP12/LP16/LP17 최초 실패와 당시 미커밋 상태를 소급 변경하지 않는다.
+메인이 diff·검증 원출력·현재 소스 SHA-256을 대조했다. 새 제품 수정·테스트 재실행·푸시는 하지 않는다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 필요한 기존 변경부터 커밋 | 분할 커밋 대상 확정 | AVC 입력/안전 진단, checkpoint 임시 수명, LP17 진단 도구·기록의 3묶음 | 현재 diff와 아래 증거 |
+| 2 | 승인한 제품 보완 1~5 순차 진행 | 대기 | 기존 변경 커밋 후 공통 소유·검증 계약부터 시작 | 최신 사용자 지시 |
+| 3 | 개발 중 분할 커밋 | 승인 유지 | 각 범위의 구현·관련 검증·기록 통과 후 커밋 | AGENTS 5.1 |
+
+| 묶음 | 현재 변경과 직접 검증 | 판정·남은 경계 |
+| --- | --- | --- |
+| LP12 AVC·capture | 제품 3개와 fixture/검사 소스의 보존 SHA 일치. AVC7/capture50/FE193/Node110 PASS, build exit0 | 기능 보완 증거 유지. 실제 앱 HTTP 해결로 확대하지 않음. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp12-framing-output.txt) |
+| LP16 임시 수명 | catalog SHA `09ad247d036f5aa1199fa24b66180b89bf49e067995057e470b5b58b50ef6beb` 일치. cache46/catalog246 PASS, build exit0 | 검증된 수명 보완만 보존. 32원본 RSS 681492480B/기존 기준 초과 FAIL 유지. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp16-lifetime-output.txt) |
+| LP17 진단 | 자체11·소형99·원본741·작업120개 assertion 및 정리 증거 유지 | 진단 완료이지 제품 자원/HTTP PASS가 아님. [전수 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp17-results.md) |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 공백·문서 링크 | 진행 대상 | 현재 미커밋 파일의 커밋 정리와 본 기록 추가 | AGENTS 7.1, LP12/16/17 | 단기 승인 범위 |
+| 제품 회귀·비교 본실행 | 미진행 | 동일 소스의 유효 증거 재사용, 이번 제품 변경 없음 | 위 SHA/기존 결과 | 새 제품 보완 단계에서 영향 재판정 |
+| 실제 HTTP·30분·120분·UI | 미진행 | 커밋 정리와 별도 단계 | AGENTS 7.6 | 이번 정리에서는 실행하지 않음 |
+
+실행 전 정의: `git diff --check`와 미추적 대상 공백 확인 → `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links`.
+UI 자산 변경이 없어 직전 LP17 자산10개 증거는 유지하며 반복 실행하지 않는다. 새 임시 산출물은 없음.
+token start/end/consumed는 도구 집계 미제공으로 미집계, elapsed/source는 아래 실제 명령 결과에 기록한다.
+
+첫 미추적 공백 검사 exit1: `lp17-results.md`의 EOF 빈 줄 1개. 제품/원출력 오류가 아니며 파생 표의 마지막 빈 줄만 제거했다.
+직전 LP17의 신규 파일 공백 PASS는 이 파일의 최종 EOF 상태를 보장하지 못했으므로 현재 커밋 증거에는 사용하지 않는다.
+공백 실패 뒤 링크 검사를 실행한 순차 중단 절차 누락도 보존한다(해당 링크는 exit0/8757개). 수정 후 두 명령을 순서대로 다시 확인한다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 미추적 공백 최초 | Node EOF 검사 exit1, 약0.01초 | FAIL | 결과표 EOF 빈 줄만 확인; 이후 제거 |
+| 커밋 전 tracked 공백 | `git diff --check` exit0, 약0.01초 | PASS | 오류 출력 없음 |
+| 미추적 공백 재검증 | Node27파일 trailing whitespace/EOF 검사 exit0, 약0.01초 | PASS | `{files:27,whitespacePass:true}` |
+| 문서 링크 재검증 | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links` exit0, 약0.01초 | PASS | 284md/8757links/22images/116anchors/indexed76/exclusions199/failures0 |
+
+source는 기존 HEAD dba06d47+위 미커밋 변경. 시간은 실행 도구 관측의 근사값이며 테스트 본실행을 재측정한 값이 아니다.
+Git 쓰기 최초 시도는 sandbox index.lock 권한으로 exit128이었으며 stage되지 않았다. 승인된 Git 쓰기 권한으로 재실행했다.
+AVC·진단은 `882ed33c`, 임시 사본 수명·실패 보존은 `4e592c35`로 커밋했다. 마지막 묶음은 LP17 도구·문서·증적이다.
+이번 커밋은 유효한 기능 수정과 진단을 보존하는 것이며 미완료 제품 목표를 완료로 판정하는 행위가 아니다. 푸시 수행 없음.
+
+
+## 2026-09-19 LP17 비교 도구 구현과 원인 측정
+
+독자: 녹화 개발/검증 담당. 수명: 이번 단기 진단 실행 기록. 정책 source-of-truth는 AGENTS.md다.
+최신 사용자는 미완료 상태의 중간 푸시를 거부하고 1~3번 진행을 요청했다. 이번 순서는 비교 도구 구현→작은 입력 자체검증→원인 비교다.
+설계는 직전 LP17 계약을 따르며 제품 구조 수정·실제 HTTP·장시간/UI·푸시는 제외한다. 원래 RSS FAIL/HTTP 미확인은 보존한다.
+메인은 판정/실행 상한/runner/증적/리뷰, 단일 Astra/medium 담당자는 확정 C++ fixture·소유 복제본 계측·빌드 도구를 맡는다. 하위 생성 금지.
+시작 HEAD dba06d47, branch v4.1.0/ahead11. 기존 AVC·LP16 미커밋 코드와 증적은 보존하며 이번 수정과 구분한다.
+
+### 실행 전 정의
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP17-H01 | 판정 분리 | 512MiB 초과 관측은 historicalRssPass=false; 관측/기능/정리 충족 때 진단만 유효, 제품 PASS 금지 | v4.1.0 |
+| LP17-H02 | 비정상 관측 거부 | RSS 누락/0/overflow/역행·오염된 JSON/잘못된 owner 수량 거부 | v4.1.0 |
+| LP17-H03 | 완료 oracle | summary 누락/중복/잘못된 mode·arm/count·fail>0 및 exit0만으로 성공 금지 | v4.1.0 |
+| LP17-H04 | 프로세스 그룹 관측 | ps의 고정 숫자/상태 필드·KiB→B·같은 소유 PGID만 합산, 읽기 실패는 미확인 | v4.1.0 |
+| LP17-H05 | 실행 안전 상한 | group RSS/디스크/출력/시간 상한을 기존 제품 RSS 판정과 분리, 초과 시 중단 | v4.1.0 |
+| LP17-H06 | 실행 종료 | 소유 자식 정상/비정상 exit와 신호 결과를 보존하고 원문 오류 대신 고정 실패 코드 기록 | v4.1.0 |
+| LP17-H07 | timeout 정리 | 짧은 격리 자식의 timeout→그룹 종료→부재 확인. 뒤 단계 실행 금지 | v4.1.0 |
+| LP17-H08 | 출력 상한 | 격리 자식 출력 초과 시 상한만 보존하고 그룹 종료, 거짓 summary 수용 금지 | v4.1.0 |
+| LP17-H09 | 소유 root 정리 | root UID/종류/부모/이름 확인, 내부 symlink 미추적, 외부 target 보존, 삭제 전 크기/부재 확인 | v4.1.0 |
+| LP17-H10 | 입력 불변 | seed/source hash 전후 대조, 변조 거부. 기대값은 scaled catalog 응답으로 작성하지 않음 | v4.1.0 |
+| LP17-H11 | 고아 자식 종료 | 부모 exit0이어도 소유 자식이 남으면 정상 완료로 판정하지 않고 child-remains→그룹 종료→부재 확인 | v4.1.0 |
+| LP17-D01~07 소형 | 작은 입력 통합 | 별도 prepare32AU/2원본→A/B/C 각각 scale·삭제·새 SQL/JSONL 프로세스. canonical bytes·cache 대조·정리 oracle | v4.1.0 |
+| LP17-D01~07 본 비교 | 기존 크기 진단 | prepare4096AU/32원본, 동일 1/16/32 구간·원본 검사 의미 유지. 세 군 관측과 삭제/재개방을 분리 | v4.1.0 |
+| LP17-D08 | 실제 크기 2-job 대조 | 기존 두 작업 전이·출력 hash·complete/보호 해제 oracle, B/C 별도 프로세스 및 전이별 잠금/소유량 | v4.1.0 |
+
+명령(구현 후 실행): `node --test scripts/internal/recording_catalog_comparison.test.mjs`,
+`node scripts/internal/recording_catalog_comparison_run.mjs small <고유-run-id>`,
+`node scripts/internal/recording_catalog_comparison_run.mjs sources <고유-run-id>`,
+`node scripts/internal/recording_catalog_comparison_run.mjs jobs <고유-run-id>`.
+runner는 승인된 소유 root에서 `recording_catalog_comparison_build.sh`로 준비하며 기존 제품 경로는 수정하지 않는다.
+runtime 정적 라이브러리는 관련 source의 빌드 신선도를 먼저 확인한다. 기존 실패 검증기를 우회 호출하지 않는다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화: 도구/소형/원인 비교 | 진행 대상 | 최신 미완료 정리 요청, LP17 설계의 후속 작업 | LP17-H01~11/D01~08 | 이번 요청 범위, 소형 통과 후 본 비교 |
+| 실제 HTTP·제품 영향 전체 | 미진행 | 원인 비교와 제품 보완 범위 확정이 먼저 | LP17 비용 계약 | 이번 자동 실행 안 함 |
+| 30분/120분/UI | 미진행 | 이번 단기 진단 범위 밖 | AGENTS7.6 | 미실행, S11 대체 불가 |
+
+실행 안전 제안: 단일 비교 프로세스 그룹 RSS 1GiB, compiler60초/실행180초, 소유 root512MiB, 출력2MiB.
+이는 제품 합격 기준이 아니라 중단 가드다. 호스트 총24GiB·swap0(읽기 확인), 시작 시 free+inactive+speculative 최소2GiB를 확인한다.
+RSS는 자기 process peak와 시간 도구를 기록하고 그룹 RSS는250ms 간격으로 관측한다. 관측 간격 사이의 자식 peak까지 정확히 안다고 하지 않는다.
+기존536870912B 결과는 별도 historicalRssPass로 남긴다. 관측/기능/정리/실행 안전 실패면 뒤 군 중단, 기존 RSS 초과만으로 진단을 제품 FAIL/PASS와 혼동하지 않는다.
+소유 프로세스는 순차 실행하며 각 군의 필요 진단·hash를 보존한 뒤 해당 store를 정리해 디스크를 중첩하지 않는다.
+초기 sandbox의 hw.memsize 읽기 EPERM은 승인된 읽기 재호출로 확인했다. 제품/테스트 실패로 기록하지 않는다.
+
+실행 상태와 최초 실패는 아래에 보존한다. token start/end/consumed는 작업별 집계 수단 미제공으로 미집계.
+
+최초 자체검증 guard-01은 headless 환경 준비 exit1로 본문 미실행이었다. 허용 환경에 HOME을 전달하지 않은 상태에서
+공통 환경 함수의 brew --prefix가 HOME 필요로 실패함을 별도 읽기 호출(exit1/homeRequired=true)로 확인했다.
+제품 회귀/예상 RED가 아니다. 확인된 GStreamer 설치 prefix를 진단 자식에 명시해 공통 함수의 경로 추측을 제거하며
+운영 환경·제품 공통 스크립트는 수정하지 않는다. 소유 root0B·그룹 종료·삭제 확인. 원출력 lp17-selftest-guard-01.txt 보존.
+guard-02는 자체검증11/11·exit0였으나 Node24의 기본 spec 출력과 wrapper의 TAP 총계 기대가 달라 전체 판정은 exit1이었다.
+출력 reporter를 tap으로 명시해 재실행한다. 최초 전체 실패는 유지하며 root62691B와 자체검증의 소유 임시 root를 모두 정리했다.
+guard-03은11/11 및 wrapper exit0, root62691B 정리까지 통과했다.
+small fixture-01은 runtime freshness 중 resource-observation으로 SIGTERM, C++ 빌드/본문 미실행이었다.
+관측 경계가 뭉쳐 있어 원인 확정 불가였으므로 process/disk·고정 오류 코드만 분리 보존하도록 보완했다.
+사전등록 LP17-H05 환경 단독 진단: `node scripts/internal/recording_catalog_comparison_run.mjs environment observe-01`.
+동일 headless 준비와1초 소유 Node를 관측해 환경 준비·ps·디스크 관측 실패를 구별하며 제품 빌드를 재실행하지 않는다.
+환경 단독 observe-01은 exit0·정리62691B였다. fixture-02에서 runtime freshness와 비교 바이너리2개 빌드가 통과했고
+prepare32AU/2원본6개 통과 후 scale-A의 삭제 후 binding 기대 검사에서 실패했다. FindSourceBinding은 Finalized만 반환하며
+삭제 대상은 숨기는 것이 실제 계약이었다. 테스트가 공개 조회와 내부 잔존 증거를 혼동한 원인을 확인했으며,
+삭제 후 공개 조회는 부재, 내부 binding/tombstone은 원래 canonical과 일치하도록 oracle만 보완한다. 제품 변경 없음.
+최초 자원 관측 실패는 후속 관측에서 재현되지 않았고 원인이 확정된 것으로 쓰지 않는다. B/C·재개방은 미실행,
+fixture-02 root18459460B와 그룹 종료/정리 완료, 최초 실패 원출력을 보존한다.
+fixture-03은 A의 scale/SQL/JSONL과 B scale 통과 후 B SQL 결과 처리 중 process/INVALID_OBSERVATION으로 중단했다.
+C++는 exit0·7개 검사 및 시각 관측을 남겼지만 가드 실패 때문에 전체 PASS로 쓰지 않는다. root18478948B 정리 완료.
+읽기 ps200회에서는 문제가 재현되지 않았고 최초 거부 행을 보존하지 않았으므로 정확한 행의 상태는 미확정이다.
+코드 대조로 가드가 소유 PGID 밖 모든 프로세스의 RSS·상태 문자열까지 동일 whitelist로 검증하는 결함을 확인했다.
+PID/PGID로 대상을 먼저 좁히고 소유 대상 숫자는 엄격 검증, 알 수 없는 상태는 살아 있음으로 취급하도록 보완한다.
+음수 외부 PGID/외부 미확인 RSS/소유 '?' 상태 및 소유 RSS 미확인 거부를 H04에 추가한다. 종료/상한 기준은 유지한다.
+
+guard-04는11/11·exit0, fixture-04는 prepare6+세 군 각각 scale17/SQLite7/JSONL7=99 assertion·exit0이었다.
+본 비교 `full comparison-01`은 prepare6+세 군 각각 scale111/SQLite67/JSONL67=741 assertion을 통과했다.
+하지만 뒤 D08/job-B의 최초 Ready에서 새 도구가 기존 CP01에 없는 request_fully_satisfied=true를 요구해 실패했다.
+직전 expected-state/intent/files/canonical roundtrip은 통과했고 Ready 직렬화 검증은 verified_output=true를 요구하므로
+실패 조건은 요청 구간 미충족이다. 정확한 gap 값은 최초 출력에 없어 미확인이다. 이는 제품 실패의 근거가 아니다.
+기존 CP01의 작업 종결·실파일 hash·보호 해제와 요청 전구간 충족은 다르다. 최초 실패를 지우지 않고
+Ready의 검증된 출력·canonical 검증·이후 바이트 불변은 유지하며 충족 여부/미충족 구간을 별도 진단한다.
+job-C는 건너뛰었다. 본 비교 총281813ms/exit1, root66134810B·그룹 종료/정리 완료, source hash 불변이다.
+
+같은 단계의 안전한 수정/재검증(AGENTS3.3): 도구 oracle만 원래 CP01 의미로 복원하고 실패한 D08만 재실행한다.
+원본 A/B/C 제품·계측·fixture는 수정하지 않으며 741개 PASS를 인계 때문에 재실행하지 않는다.
+runner의 통합 full 모드는 sources/jobs로 분리했다. 각 실행의 기존2MiB 원출력·1GiB RSS·180초 phase 상한을 유지하고,
+32원본 전수 출력에 2-job 출력을 더해 원출력이 잘리거나 실패한 작업 때문에 전체를 반복하는 것을 방지한다.
+최초 full 명령/결과는 당시 소스의 실제 기록으로 보존한다. 새 실행 명령은 위 등록을 따른다.
+H11의 이전 등록명은 '판정별 전수 기록'으로 너무 넓었으며 실제 고아 자식 검사와 맞지 않았다.
+이전 H11 결과는 해당 명명으로 유효 증거로 쓰지 않고 위 고정 등록 후 guard-05에서 H01~11을 재검증한다.
+판정별 원출력/전수 결과 보존은 D07 실행 기록의 별도 의무로 유지한다.
+
+### 1~3번 최종 결과와 관측 한계
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 미완료 비교 도구 구현 | 완료 | 격리 seed·동일 A/B/C·잠금/소유량·새 프로세스 복구·안전 가드 및 실패 분리 구현 | comparison 계열8개 파일, 메인 직접 전문/diff 검토 |
+| 2 | 자체검증과 준비 결함 정리 | 완료 | 최종 H01~11 11PASS, 소형99PASS. 최초 준비/관측/oracle 실패와 H11 등록 정정 보존 | 아래 원출력 및 전수 표 |
+| 3 | 원인 비교와 다음 수정 범위 판정 | 진단 완료, 제품 해결 아님 | 본 원본 비교741PASS와 수정 후 D08 120PASS. 테스트 보관·캐시·상세 이력 잔존을 구별 | 아래 직접 수치·미확정 경계 |
+| 4 | 미완료 중간 푸시 거부 | 준수 | 이번 커밋/푸시 없음. 기존11개 미푸시 커밋과 기존 AVC/LP16 미커밋 변경 보존 | HEAD dba06d47, v4.1.0 ahead11 |
+
+최종 guard-05는 exit0/11PASS/697ms, jobs comparison-01은 exit0/B60+C60PASS/28534ms다.
+두 job 군은 동일501AU 입력 hash `f8de1cd44038e7433d0c24b3f250f63704b80ba86b468178beb607f0e68ce82e`를 확인했다.
+최초 full 묶음은 여전히 FAIL이며 성공한 원본 phase와 수정 후 jobs 증거를 결합해 D01~08 진단 범위만 닫는다.
+최종 유효 자체11+소형99+원본741+작업120=971개 검사이며 runtime freshness/컴파일 계측 삽입/정리는 별도다.
+실행12회의 원출력은 총2705602B, 기록된 실행시간 합338715ms다. 전체 대화 작업시간/토큰 소모를 이 값으로 대체하지 않는다.
+
+실제 개별 command/assertion/실패/cleanup 1137개 출력 행과 phase 판정·원출력 hash는
+[LP17 전수 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp17-results.md)에 보존했다.
+각 C++ summary가 존재한 phase는 원출력 pass 행과 총계를 대조해 누락0이었다.
+최종 원출력: [자체검증](release-artifacts/v4.1.0/s11-preparation-mapping/lp17-selftest-guard-05.txt),
+[소형](release-artifacts/v4.1.0/s11-preparation-mapping/lp17-small-fixture-04.txt),
+[본 비교와 최초 job 실패](release-artifacts/v4.1.0/s11-preparation-mapping/lp17-full-comparison-01.txt),
+[job 한정 재검증](release-artifacts/v4.1.0/s11-preparation-mapping/lp17-jobs-comparison-01.txt).
+
+#### 원인 구분: 직접 측정과 해석
+
+| 비교 조건 | 32원본 peak RSS | commit16/32 catalog lock 점유(ms) | 전체 scale 시간(ms) | 기존512MiB 충족 |
+| --- | --- | --- | --- | --- |
+| A 현행 캐시·전체 기대 객체 보관 | 698089472B /665.75MiB | 431.701 /422.418 | 29391 | 아니오 |
+| B 현행 캐시·항목별 기대값 읽기 | 643088384B /613.297MiB | 404.296 /418.747 | 29326 | 아니오 |
+| C 캐시 보관/재사용 해제·항목별 읽기 | 546177024B /520.875MiB | 2020.962 /3766.917 | 91496 | 아니오 |
+
+직접 관측: A→B peak 차이52.453MiB, B→C92.422MiB. C의32번째 commit 내 checkpoint는3479.623ms,
+B는129.681ms였다. 비교는 단일 순차 실행이며 통계적 효과/운영 성능/정확한 heap 귀속 비율을 뜻하지 않는다.
+전체 wall time에는 검사 I/O·oracle가 있으므로 제품 속도 비교에는 개별 product/fc scope를 사용한다.
+**판정:** 테스트 기대 객체도 비용에 기여하지만 그것만 줄여 해결되지 않는다. 캐시도 공간 비용이 있으나 끄면
+누적 이력 재검증 시간이 크게 늘므로 캐시 제거를 제품 해결안으로 채택하지 않는다. LP16 RSS 실패는 유지한다.
+
+| 삭제 전후 직접 관측(B) | 삭제 전 | 삭제 후·checkpoint | 새 SQLite /JSONL 프로세스 |
+| --- | --- | --- | --- |
+| live 원본 binding /원본 sample /파일 sample | 32 /131072 /131072 | 32 /131072 /131072 | 각각 같은 수량 재구성 |
+| journal record /관측 문자열 bytes | 64 /34521092 | 66 /34522742 | 각각66 /34522742 |
+| tombstone | 0 | 1 | 각각1 |
+| shadow binding /prefix record | 32 /64 | 32 /66 | 각각0 /0(재개방 직후 캐시 없음) |
+| peak RSS | scale613.297MiB | 같은 프로세스 peak 유지 | SQLite378.484MiB /JSONL249.094MiB |
+
+삭제 대상 실제 영상은 없고 공개 segment/binding/media path 조회에서도 숨겨졌으며 다른31개 파일은 검증됐다.
+그러나 source binding 상세가 내구 이력에서 다시 구성되는 것은 직접 확인됐다. 단순 allocator 잔류만으로
+설명할 수 없는 **논리적인 상세 데이터 보관**이 존재한다. RSS가 해제 즉시 내려가지 않은 관측만으로 누수라고 단정하지 않는다.
+journal/live/shadow/prefix/fixture/snapshot 수치는 부분 문자열·vector capacity 관측이다. map node/bucket,
+order index·일부 AU 내부 문자열·GStreamer/SQLite·allocator·임시 객체를 전수 계측하지 않았고 SSO 중첩 가능성도 있어 합을 RSS로 쓰지 않는다.
+
+| D08 같은501AU/2작업 | B 캐시 유지 | C 캐시 해제 | 의미 |
+| --- | --- | --- | --- |
+| peak RSS | 157073408B /149.797MiB | 117178368B /111.75MiB | source32와 다른 부하, 메모리 기여 단순 합산 금지 |
+| 두 번째 Committed 경계 lock 합계/획득 수 | 1750.156ms /2회 | 2667.370ms /2회 | 최대 단일 lock/HTTP 응답시간이 아님 |
+| 같은 경계 checkpoint 1회 | 1223.124ms | 2140.098ms | 쓰기 없음·동일 후보지만 검증 비용 존재 |
+| checkpoint.originalSemantic | 1220.660ms /suffix6개 Apply | 2137.604ms /전체 재생 | B는 cache.reused, C는 fullReplay |
+| 원장 실제 CommitCheckpoint | 1.334ms | 1.423ms | 이번 경계의 큰 비용을 fsync/쓰기 탓으로 돌릴 근거 없음 |
+| 최종 job/완료/실파일hash·보호해제 | 2작업 /60검사 PASS | 2작업 /60검사 PASS | 원래 CP01/02 의미 유지 |
+| 요청 전구간 충족 | 각 작업 false | 각 작업 false | file-duration-uncovered 1ns 구간15개, partial 유지 |
+
+원래 CP01의 두 Ready/Complete 캡처·파일·canonical·보호 해제와 CP02의1MiB 초과 원장 의미는 유지했다.
+본 원본 검사의 기존173개 의미도 대응되며, 삭제 대상 scale-0의 SQL/JSONL 두 조회는
+finalized 공개 조회에서 tombstone/internal binding 동일성+공개 숨김으로 확장했다. 동일 상태의173개 재실행이라고 표현하지 않는다.
+독립 expected intent는 admission 전에 생성한다. 최초 Ready 전체 바이트는 제품 결과를 엄격 검증 후 보관해
+후속 Committed/Complete 불변을 비교하므로 최초 Ready를 독립 예측한 것으로 주장하지 않는다.
+callback 사이 productElapsedUs에는 oracle 지역 객체 소멸 같은 꼬리 비용이 섞일 수 있어 위 lock/checkpoint는 fc scope로 판정했다.
+Ready의1ns 미충족은3.1~4.5초의 매100ms 종료점 직전 `[종료점-1ns,종료점)` 15개다.
+이는 이번501AU fixture의 관측이며 과거 실제 앱 실패 구간과 동일한 원인으로 확정하지 않았고 완전 녹화 PASS도 아니다.
+
+#### 후속 제품 수정의 좁힌 경계
+
+1. 동일 immutable 증거·검증 결과의 공유/재사용을 정상 전이→checkpoint 경계까지 연결할 상세 설계가 우선이다.
+   새 suffix6개도1.22초인 근거가 있으므로 'prefix를 더 캐시하면 끝'으로 판단하지 않는다.
+   owner/내용/세대/전이의 검증 증명, 무효화/실패 fallback과 저장 바이트·손상 거부·복구 의미를 함께 고정한다.
+2. 활성/복구 의무와 역사 증거를 분리해 상세 RAM 보관과 재개방 비용의 수명을 정한다.
+   이번 삭제 관측은 임의 삭제 권한이 아니다. 우선 저장 포맷을 바꾸지 않는 소유/불변 공유 범위를 검토하고,
+   영구 회수/참조 정규화가 필요하면 별도 계약으로 진행한다. 새 전역 RSS 한도를 임의로 만들지 않는다.
+3. 제품 적용 뒤 해당 독립 비용·손상/복구 회귀로 확인하고 실제 앱 HTTP4000ms 경계로 돌아간다.
+   종료점·대기·완전 출력 두 개 검증은 별도 잔여로 유지하며 비용 진단 PASS로 대신 닫지 않는다.
+
+#### 환경·소스·정리·미실행
+
+macOS Darwin27.0.0 arm64, Node24.13.0, Apple Clang21.0.0, GStreamer1.28.1, SQLite3.51.0.
+CMake runtime의 실제 flags는 `-std=c++17`이며 명시적 최적화 플래그가 없다. 도구는 같은 flags/include/정적 archive에
+검사 소유 catalog/journal/contracts 계측 복제본을 링크했다. 대표 운영 최적화 성능이라고 주장하지 않는다.
+runtime target 신선도와 진단 바이너리2개 빌드만 수행했으며 전체 app build와 다르다.
+본 비교와 최종 job의 제품 catalog SHA-256은 `09ad247d036f5aa1199fa24b66180b89bf49e067995057e470b5b58b50ef6beb`,
+journal은 `66e6447a7557644391828eb074eda9911d052f93f4753bec724c8112c1ad6e1e`로 동일하다.
+새 job oracle/runner 분리만 수정했으며 source A/B/C의 계측/fixture/제품 코드에는 영향이 없으므로741개 증거를 유지한다.
+실행별 source manifest·instrument/binary/seed hash는 원출력에 있으며 mutation 시각/ID는 군별 provenance로 남겼다.
+실행 절대 시작/종료 UTC는 runner가 별도로 기록하지 않았고 elapsed만 직접 보존했다. 파일 시각으로 실행 시각을 추정 보충하지 않는다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| 소유 root: guard-01/02/03/04/05 | 임시 환경·registry | 0 /62691 /62691 /62691 /62691B | 그룹 종료 뒤 삭제 | 각각 부재 확인 | 원출력 cleanup |
+| 소유 root: observe-01 | 환경 단독 | 62691B | 동일 | 부재 확인 | 원출력 cleanup |
+| 소유 root: fixture-01/02/03/04 | 빌드·seed·임시 영상/저장소 | 62691 /18459460 /18478948 /18222321B | 동일 | 각각 부재 확인 | 각 store 선정리도 전수 표에 기록 |
+| 소유 root: comparison-01 full | 빌드·seed·실패 job | 66134810B | 동일 | 부재 확인 | A/B/C store 선정리 후 잔여 root |
+| 소유 root: comparison-01 jobs | 빌드·registry | 17923801B | 동일 | 부재 확인 | B/C job store 각5147594B 선정리 |
+| LP17 원출력12개 | 비민감 계측/실패 증적 | 2705602B | 저장소 보존 | root/repo 치환, 비밀번호·운영 URL·raw error 미수집 | 재현·전수 결과·원인 분석 목적 |
+| lp17-results.md | 위 원출력 파생 전수 표 | 파일 크기는 Git diff 참조 | 보존 | 중앙 기록에서만 연결 | 최초 실패와 실제 assertion 누락 방지 |
+| 기존 AVC·LP16 미커밋 자료/제품 변경 | 이전 작업 소유 | 이번 삭제 비대상 | 보존 | 임의 stage/수정/삭제 없음 | 시작 status와 구분 |
+
+| 항목 | 실행/완료 상태 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- |
+| LP17 도구·관련 단기 원인 비교 | 완료 | 기존 RSS FAIL/제품 자원 합격/HTTP 해결 아님 |
+| 제품 구조 보완·정량 운영 예산 | 미완료·이번 미구현 | 설계/실측으로 제품 코드 완료를 대체하지 않음 |
+| 실제 HTTP·복수 완전 출력·서버 재기동 통합 | 미실행 | 독립 SQLite/JSONL 재개방과 실제 서버 재기동은 다름 |
+| 전체 app build·30분·UI·120분/S11 | 미실행 | 이번 진단 범위 밖, 기존 릴리즈 blocker 유지 |
+| 신규 커밋·푸시 | 미수행 | 사용자가 미완료 중간 푸시 거부, 제품 미해결과 미커밋 유지 |
+
+푸시 가능: 아니오(제품 잔여와 미커밋 변경 존재, 중간 저장 푸시 거부). 푸시 수행: 아니오.
+최종 문서 검사는 앞 명령 exit0을 확인한 뒤 순차 실행했다. 실제 UI/제품 검사가 아니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP17 최종 공백 | git diff --check exit0 | PASS | 기존 dirty 변경 포함, 오류 출력 없음 |
+| LP17 신규 파일 공백 | 신규 comparison8개·원출력12개·전수 표1개,21파일 trailing space/EOF 검사 exit0 | PASS | 기존 미추적 AVC/LP16은 새 변경과 구분 |
+| LP17 최종 링크 | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links exit0 | PASS | 284md/8754링크/22이미지/116anchor, indexed76/exclusion199, fail0 |
+| LP17 자산01 | README uses only representative product UI screenshots | PASS | verify-docs-ui-assets exit0 |
+| LP17 자산02 | English README uses English UI screenshots | PASS | 같은 실행 |
+| LP17 자산03 | UI guide keeps product screenshots in the shared asset set | PASS | 같은 실행 |
+| LP17 자산04 | docs UI asset policy documents capture rules | PASS | 같은 실행 |
+| LP17 자산05 | managed UI asset manifest stays complete | PASS | 같은 실행 |
+| LP17 자산06 | capture script owns every documented UI asset | PASS | 같은 실행 |
+| LP17 자산07 | docs capture covers current screenshots | PASS | 같은 실행 |
+| LP17 자산08 | representative screenshot docs do not point at stale visual baselines | PASS | 같은 실행 |
+| LP17 자산09 | docs UI asset directory contains managed PNG files | PASS | 같은 실행 |
+| LP17 자산10 | VA documentation images keep full video frame bounds | PASS | 같은 실행, 총10PASS/0FAIL |
+
+이번 변경은 comparison 도구8개, 관련 문서6개, 원출력12개와 전수 표1개다.
+이전 LP16이 수정했던 이 중앙 기록의 후반 절도 그대로 유지했다. 새 제품 수정·커밋·푸시는 없다.
+
 ## 2026-09-19 LP17 판정 기준·원인 구분 설계·저장 수명 계약
 
 독자: 현재 단계 개발/검증 담당. 수명: 이번 설계 작업의 실행 기록. 정책 source-of-truth는 AGENTS.md다.
@@ -209,6 +479,34 @@ LP16 2단계 파일등록: `recording_catalog_scale_probe.cpp`/`recording_catalo
 누적 검사 원출력은 행말 공백만 JSON 행으로 가역 보존했고 헤더에 원문 SHA를 기록했다. 삭제한 media/cache는 재생성 가능한 검증 자료다. token 계수 미제공으로 미집계.
 
 2단계 commit 전 cached diffcheck는 자체검증 보고부 EOF 빈행1개로 exit2였다. 원출력이 아닌 마지막 보고부 빈행만 제거했다. 제품/검증 결과 변경 없음.
+
+### LP16 종료 판정: 자원 기준 미충족
+
+2단계 계측 도구와 최초 측정 기록은 `e22a1603`으로 분할 커밋했다. 메인이 제품 수명 보완 diff·journal 비소유 shadow 해제·예외 경계와 [빌드/292개 회귀 전수](release-artifacts/v4.1.0/s11-preparation-mapping/lp16-lifetime-output.txt)를 직접 검토했다. build exit0, cache46/catalog246 PASS. 클래스 배치·공개 계약·저장 바이트·검증 및 commit 순서 불변. 이전88개 서비스 관련 회귀는 동일 코드/관련 경계 근거로 유지하며 이번 재실행으로 표시하지 않는다.
+
+동일 scale32 비교1회는53초/exit2였다. 기능173+계측1 PASS이나 fixture peak681492480B(약650MiB)로 기준536870912B 초과. 앞선688848896B보다7356416B 낮게 관측했지만 단일 비교이므로 차이 전체의 인과효과나 반복 성능을 보장하지 않는다. [전후 원측정·개별 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp16-scale-output.txt), [후속 원출력](release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-output-scale-32-lp16-lifetime.txt). 사용 완료 사본의 중첩은 줄였으나 이것을 주원인 해결로 보고할 수 없다. 남은 메모리가 제품 상태·테스트 기대자료·allocator 잔류 중 어디에 속하는지는 아직 확정되지 않았다. 새 근거 없는 최적화 반복 및 기준 완화를 하지 않고 다음 단계에서 중단한다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 측정 대상/기준 정정 | 완료·커밋 | wrapper 혼합 판정 정정, compiler/fixture/디스크/캐시 분리 | 7da6c9df |
+| 2 | 발생 구간 계측 | 부분 완료·도구 커밋 | 28단계 측정, fixture 누적32 snapshot 최고치 확인. 세부 보관 귀속 미확정 | e22a1603, LP16 원측정 |
+| 3 | 근거 있는 최소 보완 | 구현·회귀 통과, 목표 미달 | 사용 완료 원본/비선택 shadow 수명 축소. RSS 해결 아님 | catalog.cpp, LP16 수명 증적 |
+| 4 | 관련 자원/안전 회귀 | 안전 PASS·자원 FAIL | build/292회귀 및 기능173+계측1 PASS, fixture650MiB | 전수 기록 |
+| 5 | 실제 앱 재확인 | 건너뜀 | 자원 기준 미충족. HTTP4000ms·종료 재검사 미실행 | 선수 실패 |
+| 6 | 분할 커밋·최종 푸시 | 부분 수행 | 완료 도구/계약2커밋, 미해결 제품 보완 미커밋·푸시 보류 | 현재 git 상태 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| `media-server-checkpoint-cache.e3AZT2` | 회귀 fixture | 16728254B | runner 정리 | removed=true | 수명 증적 |
+| `/tmp/media_server_v410_recording_catalog-39378` | catalog 회귀 fixture | 26753462B | 소유 확인 후 삭제 | removed=true | 수명 증적 |
+| `media-server-catalog-cost.BOWDt2` | 후속 scale fixture | 199717723B | runner EXIT 정리 | removed=true | 후속 원출력 |
+| `/private/tmp/lp16-lifetime.C4dR1n` | 소유 GST cache | 1587924B, 파일2·symlink277 | UID/realpath/lstat·열린 파일 없음, 링크 미추적 삭제 | removed=true | main 정리 exit0 |
+
+원출력은 저장소에 보존하고 재생성 가능한 media/cache만 삭제했다. 이 범위 cleanup 완료. 참고용 `ps` 읽기는 sandbox 권한으로 exit1이었으며 제품 검증 실패나 프로세스 부재 증거로 사용하지 않았다. 소유 자식 종료와 runner 정리/lsof를 근거로 삼았다.
+
+남은 작업은 제품 상태와 fixture 기대자료의 할당·생존량을 구별하는 읽기/진단 설계부터다. 캐시 prefix의64MiB 입장 기준은 shadow 포함 전체 RSS 상한이 아니므로 이를 근거 없이 전체 프로세스 보장으로 확대하지 않는다. 확인된 귀속에 맞춰 최소 변경 범위를 다시 정한 후 영향 회귀→동일 자원 판정→실제 앱을 진행해야 한다. 기존 AVC 변경은 보존했으며 이번 수명 보완과 함께 미커밋 상태다. 전체30분/UI/120분·릴리즈·새 의존성 설치는 미실행. 푸시 가능: 아니오(현재 승인 범위 자원 FAIL/미커밋), 푸시 수행: 아니오. token start/end/consumed는 실측 계수 미제공으로 미집계.
+
+최종 기록 점검: diffcheck exit0, 원출력2개 JSON행 복원 SHA 일치, 신규 artifact 공백/EOF 검사 PASS. `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links` exit0(282파일/8727링크/22이미지/111anchor/실패0). 현재 branch v4.1.0, upstream 대비 ahead10. 이번2커밋 외 누적8커밋을 새 작업 완료로 세지 않는다.
 
 ## 2026-09-19 LP15 체크포인트 증분 검증
 

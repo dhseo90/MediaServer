@@ -1,0 +1,927 @@
+{"kind":"preflight","mode":"small","id":"fixture-03","head":"dba06d47bd4a237406bf0a30d26eb58b8bea4deb","sourceManifest":"14d738f9760480c73330654eed1c7b951846040578b6d0c21e4a102f13c7edf3","physicalBytes":25769803776,"reclaimableEstimateBytes":10645110784,"rssSafetyBytes":1073741824,"historicalRssBytes":536870912,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable","productPass":false}
+{"kind":"command","label":"runtime-freshness","command":"cmake","args":["--build","<repo>/build-gst-onnx","--target","media_server_runtime","--parallel","2"],"seconds":60,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+[100%] Built target media_server_runtime
+        0.33 real         0.18 user         0.04 sys
+            25706496  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               13647  page reclaims
+                  90  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                  10  signals received
+                  12  voluntary context switches
+                 264  involuntary context switches
+           377729036  instructions retired
+           108058148  cycles elapsed
+             3277448  peak memory footprint
+{"kind":"phase-result","label":"runtime-freshness","diagnosticPass":true,"historicalRssPass":null,"observationValid":null,"semanticPass":null,"cleanupPass":true,"exitCode":0,"signal":null,"stopReason":null,"elapsedMs":344,"groupPeakRssBytes":35323904,"observationFailure":null,"outputBytes":818}
+{"kind":"command","label":"compile","command":"bash","args":["<repo>/scripts/internal/recording_catalog_comparison_build.sh","<owned-root>"],"seconds":60,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+[source] file=recording_catalog.cpp original_sha256=09ad247d036f5aa1199fa24b66180b89bf49e067995057e470b5b58b50ef6beb instrumented_sha256=0cdbc97ffa3438b2d2ce36ea2cc98d8791646bcd5f8291686bd9ae35b2e69dfd
+[source] file=recording_journal.cpp original_sha256=66e6447a7557644391828eb074eda9911d052f93f4753bec724c8112c1ad6e1e instrumented_sha256=6ce65683a70963aa8ce7d57225ae24994aff7ef07988a73f9cf64a730614a99b
+[source] file=recording_contracts.cpp original_sha256=960635a08aa900bebfae961cd9e534ab6b91fbace213e1a7416227e7292ec890 instrumented_sha256=a99bc03ee76dbbd7342d06ea2db70258451d371889eacd384be541bee574e1c6
+[source] file=recording_checkpoint_validation.h original_sha256=9fdc31e2dd404b163c2d71e1bbb9edd5c70d3ef525bb762d8ef8f5d426e705df instrumented_sha256=46e7a8ac804d5f117496d54997b8b0d53c715ce5829fec018b1e81f002556b93
+[pass] FC01 exact insertion checks count=95
+[lp17] {"kind":"instrument","file":"recording_catalog.h","originalSha256":"e36505bcd9517d04946e94446420d5e49e7d18e07c1fe8e6d91d52011f9b3264","instrumentedSha256":"f9f265651b3978bd0f9132e3d0bb136f74a04d485eda325f4185d1b8cfb89476"}
+[lp17] {"kind":"instrument","file":"recording_journal.h","originalSha256":"97c6bb6b91379b45d69fe3c40ee8e709f6b51ccd26c928f9e47110c4d60736fe","instrumentedSha256":"283a3008a9759f164c40e2de0829879ea57fc8a7fda3ba2b7b9769f4f21f371a"}
+[lp17] {"kind":"instrument","file":"recording_catalog.cpp","originalSha256":"0cdbc97ffa3438b2d2ce36ea2cc98d8791646bcd5f8291686bd9ae35b2e69dfd","instrumentedSha256":"fbe4bd5a4d9aa0e79a8390bac824d9435a4e215237bd4440fdf9fd6f471a2b3b"}
+[lp17] {"kind":"instrument","file":"recording_journal.cpp","originalSha256":"6ce65683a70963aa8ce7d57225ae24994aff7ef07988a73f9cf64a730614a99b","instrumentedSha256":"1f5cebd7712e8493a6c335ee32d90922d01c25290a0a0778760ae56fa7947ae0"}
+[lp17] {"kind":"instrumentSummary","exactEdits":5,"cacheChange":"retention-and-reuse-only"}
+[lp17] {"kind":"binary","name":"comparison","sha256":"622de3c4d0cc002dbf3f361669e260afc219f3382f39f42565a30b9164ef61ed"}
+[lp17] {"kind":"binary","name":"comparison-job","sha256":"1e0ddae9571422d1d25a20f3e05c8c0bb198d96960aabbd8d46a7b7f2e59a307"}
+        4.05 real         3.78 user         0.32 sys
+           302825472  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              109733  page reclaims
+                1189  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  13  messages sent
+                   5  messages received
+                   2  signals received
+                  17  voluntary context switches
+                4347  involuntary context switches
+            58404311  instructions retired
+            29735169  cycles elapsed
+             1687960  peak memory footprint
+{"kind":"phase-result","label":"compile","diagnosticPass":true,"historicalRssPass":null,"observationValid":null,"semanticPass":null,"cleanupPass":true,"exitCode":0,"signal":null,"stopReason":null,"elapsedMs":4070,"groupPeakRssBytes":366182400,"observationFailure":null,"outputBytes":2905}
+{"kind":"command","label":"prepare","command":"<owned-root>/comparison","args":["prepare","<owned-root>/seed","32","2"],"seconds":180,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+[lp17] {"kind":"memory","stage":"prepare_before","sources":0,"currentRssBytes":38764544,"peakRssBytes":38764544}
+[pass] recorded FE02 writer start
+[pass] recorded FE04 bound finalized mutation segment0
+[measure] writer_push_finalize_us=17636 input_aus=32 segments=1
+[pass] LP17/prepare LP02.actual4096-prerequisite
+[pass] LP17/prepare seed.input-count
+[pass] LP17/prepare seed.input-identity-all-samples
+[pass] LP17/prepare seed.physical-evidence
+[lp17] {"kind":"memory","stage":"prepare_after","sources":2,"currentRssBytes":50331648,"peakRssBytes":50429952}
+[lp17] {"kind":"summary","mode":"prepare","arm":"seed","samples":32,"count":2,"pass":6,"fail":0}
+        1.67 real         1.09 user         0.14 sys
+           156975104  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               70205  page reclaims
+                  60  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  16  messages sent
+                  15  messages received
+                   0  signals received
+                  57  voluntary context switches
+                1414  involuntary context switches
+          3870254657  instructions retired
+           893173057  cycles elapsed
+            15008488  peak memory footprint
+{"kind":"phase-result","label":"prepare","historicalRssPass":true,"observationValid":true,"semanticPass":true,"cleanupPass":true,"diagnosticPass":true,"peakRssBytes":156975104,"stopReason":null,"exitCode":0,"signal":null,"summary":{"kind":"summary","mode":"prepare","arm":"seed","samples":32,"count":2,"pass":6,"fail":0},"elapsedMs":1684,"groupPeakRssBytes":184369152,"observationFailure":null,"outputBytes":1433}
+{"kind":"seed","sha256":"5a78514a238cb7aacfff17d49e488d5dfca00a02476d87db72d49d82e88f5fa1","samples":32,"count":2}
+{"kind":"command","label":"scale-A","command":"<owned-root>/comparison","args":["scale","<owned-root>/seed","<owned-root>/store-A","A","32","2"],"seconds":180,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":44}
+[lp17] {"kind":"memory","stage":"fixture_before","sources":0,"currentRssBytes":36323328,"peakRssBytes":37552128}
+[lp17] {"kind":"memory","stage":"store_after","sources":0,"currentRssBytes":37912576,"peakRssBytes":37912576}
+[lp17] {"kind":"owner","stage":"store_after","owner":"journal","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"store_after","owner":"live","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"store_after","owner":"shadow","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"store_after","owner":"prefix","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":56}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":263}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":945}
+[lp17] {"kind":"timing","stage":"reserve","domain":"product","elapsedUs":840}
+[cost] operation=reserve scope=journal.IndexRecord count=1 inclusive_ns=699709 exclusive_ns=28793
+[cost] operation=reserve scope=journal.IndexRecord/journal.EnvelopeIdentity count=1 inclusive_ns=670916 exclusive_ns=668041
+[cost] operation=reserve scope=journal.IndexRecord/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=2875 exclusive_ns=2875
+[cost] operation=reserve scope=journal.SerializeRecordingMutationV1 count=1 inclusive_ns=1666 exclusive_ns=1666
+[pass] LP17/commit1 LP02.reserve
+[pass] LP17/commit1 LP02.actual-file-outside-catalog
+[lp17] {"kind":"timing","stage":"physical_verify","domain":"oracle","elapsedUs":681}
+[lp17] {"kind":"memory","stage":"commit_before","sources":1,"currentRssBytes":40796160,"peakRssBytes":40796160}
+[lp17] {"kind":"owner","stage":"commit_before","owner":"journal","records":1,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":314,"stringCapacity":359,"vectorCapacityBytes":112,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"commit_before","owner":"live","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"commit_before","owner":"shadow","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"commit_before","owner":"prefix","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"timing","stage":"commit","domain":"product","elapsedUs":3334}
+[cost] operation=commit scope=catalog.lock.hold count=1 inclusive_ns=3333583 exclusive_ns=958
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked count=1 inclusive_ns=3332625 exclusive_ns=197625
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked count=1 inclusive_ns=2852875 exclusive_ns=56375
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked count=1 inclusive_ns=1113292 exclusive_ns=393333
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1 count=1 inclusive_ns=639542 exclusive_ns=576375
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=63167 exclusive_ns=3167
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=60000 exclusive_ns=60000
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment count=1 inclusive_ns=78000 exclusive_ns=17625
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=60375 exclusive_ns=2458
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=57917 exclusive_ns=57917
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=2417 exclusive_ns=2417
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked count=1 inclusive_ns=1185500 exclusive_ns=386542
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked/contracts.ParseRecordingSourceBindingV1 count=1 inclusive_ns=619750 exclusive_ns=556000
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=63750 exclusive_ns=2584
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=61166 exclusive_ns=61166
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked/contracts.SerializeRecordingSourceBindingV1 count=1 inclusive_ns=179208 exclusive_ns=116750
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=62458 exclusive_ns=2249
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=60209 exclusive_ns=60209
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned count=1 inclusive_ns=497708 exclusive_ns=187166
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.EnvelopeIdentity count=1 inclusive_ns=7042 exclusive_ns=5125
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=1917 exclusive_ns=1917
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord count=1 inclusive_ns=54291 exclusive_ns=19291
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord/journal.EnvelopeIdentity count=1 inclusive_ns=35000 exclusive_ns=31084
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=3916 exclusive_ns=3916
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.ParseRecordingMutationV1 count=1 inclusive_ns=246750 exclusive_ns=246750
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=2459 exclusive_ns=2459
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.ValidateBoundLocked count=1 inclusive_ns=105667 exclusive_ns=22417
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.ValidateBoundLocked/contracts.ValidateRecordingSourceBindingForSegment count=1 inclusive_ns=83250 exclusive_ns=18416
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.ValidateBoundLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=64834 exclusive_ns=3334
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.ValidateBoundLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=61500 exclusive_ns=61500
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/contracts.SerializeRecordingSourceBindingV1 count=1 inclusive_ns=176458 exclusive_ns=112833
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=63625 exclusive_ns=2375
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=61250 exclusive_ns=61250
+[cost] operation=commit scope=catalog.lock.wait count=1 inclusive_ns=83 exclusive_ns=83
+[pass] LP17/commit1 LP02.commit
+[lp17] {"kind":"owner","stage":"commit_after","owner":"fixture","records":0,"samples":64,"fileSamples":64,"mappings":2,"stringBytes":9284,"stringCapacity":10644,"vectorCapacityBytes":10384,"jobs":0,"segments":2,"bindings":2,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"memory","stage":"commit_after","sources":1,"currentRssBytes":41222144,"peakRssBytes":41222144}
+[lp17] {"kind":"owner","stage":"commit_after","owner":"journal","records":2,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":9929,"stringCapacity":10014,"vectorCapacityBytes":224,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"commit_after","owner":"live","records":0,"samples":32,"fileSamples":32,"mappings":1,"stringBytes":14315,"stringCapacity":14997,"vectorCapacityBytes":4776,"jobs":0,"segments":1,"bindings":1,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"commit_after","owner":"shadow","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"commit_after","owner":"prefix","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":70}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":264}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":882}
+[lp17] {"kind":"timing","stage":"reserve","domain":"product","elapsedUs":166}
+[cost] operation=reserve scope=journal.IndexRecord count=1 inclusive_ns=23541 exclusive_ns=18499
+[cost] operation=reserve scope=journal.IndexRecord/journal.EnvelopeIdentity count=1 inclusive_ns=5042 exclusive_ns=3542
+[cost] operation=reserve scope=journal.IndexRecord/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=1500 exclusive_ns=1500
+[cost] operation=reserve scope=journal.SerializeRecordingMutationV1 count=1 inclusive_ns=1417 exclusive_ns=1417
+[pass] LP17/commit2 LP02.reserve
+[pass] LP17/commit2 LP02.actual-file-outside-catalog
+[lp17] {"kind":"timing","stage":"physical_verify","domain":"oracle","elapsedUs":674}
+[lp17] {"kind":"memory","stage":"commit_before","sources":2,"currentRssBytes":41271296,"peakRssBytes":41271296}
+[lp17] {"kind":"owner","stage":"commit_before","owner":"journal","records":3,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":10243,"stringCapacity":10373,"vectorCapacityBytes":448,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"commit_before","owner":"live","records":0,"samples":32,"fileSamples":32,"mappings":1,"stringBytes":14315,"stringCapacity":14997,"vectorCapacityBytes":4776,"jobs":0,"segments":1,"bindings":1,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"commit_before","owner":"shadow","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"commit_before","owner":"prefix","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"timing","stage":"commit","domain":"product","elapsedUs":3129}
+[cost] operation=commit scope=catalog.lock.hold count=1 inclusive_ns=3128250 exclusive_ns=792
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked count=1 inclusive_ns=3127458 exclusive_ns=201125
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked count=1 inclusive_ns=2649375 exclusive_ns=52916
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked count=1 inclusive_ns=1035750 exclusive_ns=335709
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1 count=1 inclusive_ns=623083 exclusive_ns=559542
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=63541 exclusive_ns=2582
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=60959 exclusive_ns=60959
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment count=1 inclusive_ns=75375 exclusive_ns=15959
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=59416 exclusive_ns=2249
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=57167 exclusive_ns=57167
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=1583 exclusive_ns=1583
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked count=1 inclusive_ns=1164000 exclusive_ns=368708
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked/contracts.ParseRecordingSourceBindingV1 count=1 inclusive_ns=620875 exclusive_ns=558417
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=62458 exclusive_ns=2625
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=59833 exclusive_ns=59833
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked/contracts.SerializeRecordingSourceBindingV1 count=1 inclusive_ns=174417 exclusive_ns=115126
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=59291 exclusive_ns=2375
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=56916 exclusive_ns=56916
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned count=1 inclusive_ns=396709 exclusive_ns=140626
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.EnvelopeIdentity count=1 inclusive_ns=6375 exclusive_ns=4625
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=1750 exclusive_ns=1750
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord count=1 inclusive_ns=12708 exclusive_ns=3542
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord/journal.EnvelopeIdentity count=1 inclusive_ns=9166 exclusive_ns=6458
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=2708 exclusive_ns=2708
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.ParseRecordingMutationV1 count=1 inclusive_ns=234875 exclusive_ns=234875
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=2125 exclusive_ns=2125
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.ValidateBoundLocked count=1 inclusive_ns=98875 exclusive_ns=18292
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.ValidateBoundLocked/contracts.ValidateRecordingSourceBindingForSegment count=1 inclusive_ns=80583 exclusive_ns=16791
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.ValidateBoundLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=63792 exclusive_ns=2417
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.ValidateBoundLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=61375 exclusive_ns=61375
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/contracts.SerializeRecordingSourceBindingV1 count=1 inclusive_ns=178083 exclusive_ns=114042
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=64041 exclusive_ns=2166
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=61875 exclusive_ns=61875
+[cost] operation=commit scope=catalog.lock.wait count=1 inclusive_ns=42 exclusive_ns=42
+[pass] LP17/commit2 LP02.commit
+[lp17] {"kind":"owner","stage":"commit_after","owner":"fixture","records":0,"samples":96,"fileSamples":96,"mappings":3,"stringBytes":13926,"stringCapacity":15950,"vectorCapacityBytes":15992,"jobs":0,"segments":3,"bindings":3,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"memory","stage":"commit_after","sources":2,"currentRssBytes":41369600,"peakRssBytes":41369600}
+[lp17] {"kind":"owner","stage":"commit_after","owner":"journal","records":4,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":19858,"stringCapacity":20028,"vectorCapacityBytes":448,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"commit_after","owner":"live","records":0,"samples":64,"fileSamples":64,"mappings":2,"stringBytes":28630,"stringCapacity":29994,"vectorCapacityBytes":9552,"jobs":0,"segments":2,"bindings":2,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"commit_after","owner":"shadow","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"commit_after","owner":"prefix","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":59}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":273}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":1020}
+[lp17] {"kind":"memory","stage":"snapshot_before","sources":2,"currentRssBytes":41730048,"peakRssBytes":41730048}
+[lp17] {"kind":"owner","stage":"snapshot_before","owner":"journal","records":4,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":19858,"stringCapacity":20028,"vectorCapacityBytes":448,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"snapshot_before","owner":"live","records":0,"samples":64,"fileSamples":64,"mappings":2,"stringBytes":28630,"stringCapacity":29994,"vectorCapacityBytes":9552,"jobs":0,"segments":2,"bindings":2,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"snapshot_before","owner":"shadow","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"snapshot_before","owner":"prefix","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"timing","stage":"snapshot","domain":"product","elapsedUs":271}
+[cost] operation=snapshot scope=catalog.lock.hold count=1 inclusive_ns=269917 exclusive_ns=117459
+[cost] operation=snapshot scope=catalog.lock.hold/contracts.ValidateRecordingSourceBindingForSegment count=2 inclusive_ns=152458 exclusive_ns=31249
+[cost] operation=snapshot scope=catalog.lock.hold/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=2 inclusive_ns=121209 exclusive_ns=4001
+[cost] operation=snapshot scope=catalog.lock.hold/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=2 inclusive_ns=117208 exclusive_ns=117208
+[cost] operation=snapshot scope=catalog.lock.wait count=1 inclusive_ns=83 exclusive_ns=83
+[pass] LP17/snapshot2 LP02.snapshot-exact-count
+[lp17] {"kind":"owner","stage":"snapshot_after","owner":"snapshot","records":0,"samples":64,"fileSamples":64,"mappings":2,"stringBytes":9284,"stringCapacity":10628,"vectorCapacityBytes":11152,"jobs":0,"segments":2,"bindings":2,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"memory","stage":"snapshot_after","sources":2,"currentRssBytes":41779200,"peakRssBytes":41779200}
+[lp17] {"kind":"owner","stage":"snapshot_after","owner":"journal","records":4,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":19858,"stringCapacity":20028,"vectorCapacityBytes":448,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"snapshot_after","owner":"live","records":0,"samples":64,"fileSamples":64,"mappings":2,"stringBytes":28630,"stringCapacity":29994,"vectorCapacityBytes":9552,"jobs":0,"segments":2,"bindings":2,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"snapshot_after","owner":"shadow","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"snapshot_after","owner":"prefix","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":55}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":275}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":875}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":56}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":274}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":880}
+[pass] LP17/snapshot2 snapshot.canonical-all
+[lp17] {"kind":"timing","stage":"snapshot_compare","domain":"oracle","elapsedUs":3166}
+[lp17] {"kind":"memory","stage":"checkpoint_before","sources":2,"currentRssBytes":41795584,"peakRssBytes":41795584}
+[lp17] {"kind":"owner","stage":"checkpoint_before","owner":"journal","records":4,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":19858,"stringCapacity":20028,"vectorCapacityBytes":448,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"checkpoint_before","owner":"live","records":0,"samples":64,"fileSamples":64,"mappings":2,"stringBytes":28630,"stringCapacity":29994,"vectorCapacityBytes":9552,"jobs":0,"segments":2,"bindings":2,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"checkpoint_before","owner":"shadow","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"checkpoint_before","owner":"prefix","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"timing","stage":"explicit_checkpoint","domain":"product","elapsedUs":2524}
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold count=1 inclusive_ns=2523208 exclusive_ns=55458
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked count=1 inclusive_ns=2467750 exclusive_ns=57876
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/cache.fullReplay count=1 inclusive_ns=0 exclusive_ns=0
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/candidate.identical count=1 inclusive_ns=0 exclusive_ns=0
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.Replay count=1 inclusive_ns=87541 exclusive_ns=708
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.Replay/journal.Replay count=1 inclusive_ns=86833 exclusive_ns=86833
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.SameSequence count=1 inclusive_ns=15083 exclusive_ns=4666
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.SameSequence/journal.SerializeRecordingMutationV1 count=8 inclusive_ns=10417 exclusive_ns=10417
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic count=1 inclusive_ns=2137708 exclusive_ns=2374
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked count=4 inclusive_ns=2135334 exclusive_ns=709542
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1 count=2 inclusive_ns=1248834 exclusive_ns=1119042
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=2 inclusive_ns=129792 exclusive_ns=4793
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=2 inclusive_ns=124999 exclusive_ns=124999
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment count=2 inclusive_ns=173166 exclusive_ns=36708
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=2 inclusive_ns=136458 exclusive_ns=4333
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=2 inclusive_ns=132125 exclusive_ns=132125
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/journal.SerializeRecordingMutationV1 count=2 inclusive_ns=3792 exclusive_ns=3792
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint count=1 inclusive_ns=113375 exclusive_ns=93167
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.bytesCompare count=1 inclusive_ns=9125 exclusive_ns=1250
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.bytesCompare/journal.JournalBytes count=1 inclusive_ns=7875 exclusive_ns=3584
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.bytesCompare/journal.JournalBytes/journal.SerializeRecordingMutationV1 count=4 inclusive_ns=4291 exclusive_ns=4291
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.noWrite count=1 inclusive_ns=0 exclusive_ns=0
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.CompactRecords count=1 inclusive_ns=1875 exclusive_ns=1875
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.JournalBytes count=1 inclusive_ns=9208 exclusive_ns=4334
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.JournalBytes/journal.SerializeRecordingMutationV1 count=4 inclusive_ns=4874 exclusive_ns=4874
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.PrepareCheckpoint count=1 inclusive_ns=56167 exclusive_ns=54251
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.PrepareCheckpoint/journal.CompactRecords count=1 inclusive_ns=1916 exclusive_ns=1916
+[cost] operation=explicit_checkpoint scope=catalog.lock.wait count=1 inclusive_ns=84 exclusive_ns=84
+[pass] LP17/snapshot2 LP02.explicit-checkpoint
+[lp17] {"kind":"memory","stage":"checkpoint_after","sources":2,"currentRssBytes":41893888,"peakRssBytes":41893888}
+[lp17] {"kind":"owner","stage":"checkpoint_after","owner":"journal","records":4,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":19858,"stringCapacity":20028,"vectorCapacityBytes":448,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"checkpoint_after","owner":"live","records":0,"samples":64,"fileSamples":64,"mappings":2,"stringBytes":28630,"stringCapacity":29994,"vectorCapacityBytes":9552,"jobs":0,"segments":2,"bindings":2,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"checkpoint_after","owner":"shadow","records":0,"samples":64,"fileSamples":64,"mappings":2,"stringBytes":28656,"stringCapacity":30038,"vectorCapacityBytes":9552,"jobs":0,"segments":2,"bindings":2,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"checkpoint_after","owner":"prefix","records":4,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":19442,"stringCapacity":19560,"vectorCapacityBytes":448,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[pass] LP17/snapshot2 LP02.reservation-bound-mutation-count
+[lp17] {"kind":"memory","stage":"delete_before","sources":2,"currentRssBytes":41893888,"peakRssBytes":41893888}
+[lp17] {"kind":"owner","stage":"delete_before","owner":"journal","records":4,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":19858,"stringCapacity":20028,"vectorCapacityBytes":448,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"delete_before","owner":"live","records":0,"samples":64,"fileSamples":64,"mappings":2,"stringBytes":28630,"stringCapacity":29994,"vectorCapacityBytes":9552,"jobs":0,"segments":2,"bindings":2,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"delete_before","owner":"shadow","records":0,"samples":64,"fileSamples":64,"mappings":2,"stringBytes":28656,"stringCapacity":30038,"vectorCapacityBytes":9552,"jobs":0,"segments":2,"bindings":2,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"delete_before","owner":"prefix","records":4,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":19442,"stringCapacity":19560,"vectorCapacityBytes":448,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":54}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":281}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":984}
+[pass] LP17/delete delete.original-canonical
+[lp17] {"kind":"timing","stage":"canonical_compare","domain":"oracle","elapsedUs":395}
+[lp17] {"kind":"timing","stage":"delete_pending","domain":"product","elapsedUs":382}
+[cost] operation=delete_pending scope=catalog.lock.hold count=1 inclusive_ns=380416 exclusive_ns=73916
+[cost] operation=delete_pending scope=catalog.lock.hold/catalog.AppendAndApplyLocked count=1 inclusive_ns=306500 exclusive_ns=55833
+[cost] operation=delete_pending scope=catalog.lock.hold/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked count=1 inclusive_ns=16083 exclusive_ns=15125
+[cost] operation=delete_pending scope=catalog.lock.hold/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=958 exclusive_ns=958
+[cost] operation=delete_pending scope=catalog.lock.hold/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked count=1 inclusive_ns=56250 exclusive_ns=56250
+[cost] operation=delete_pending scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned count=1 inclusive_ns=178334 exclusive_ns=141043
+[cost] operation=delete_pending scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.EnvelopeIdentity count=1 inclusive_ns=4458 exclusive_ns=3583
+[cost] operation=delete_pending scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=875 exclusive_ns=875
+[cost] operation=delete_pending scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord count=1 inclusive_ns=7708 exclusive_ns=4416
+[cost] operation=delete_pending scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord/journal.EnvelopeIdentity count=1 inclusive_ns=3292 exclusive_ns=2042
+[cost] operation=delete_pending scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=1250 exclusive_ns=1250
+[cost] operation=delete_pending scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.ParseRecordingMutationV1 count=1 inclusive_ns=23625 exclusive_ns=23625
+[cost] operation=delete_pending scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=1500 exclusive_ns=1500
+[cost] operation=delete_pending scope=catalog.lock.wait count=1 inclusive_ns=42 exclusive_ns=42
+[pass] LP17/delete delete.pending
+[pass] LP17/delete delete.unlink
+[lp17] {"kind":"timing","stage":"delete_tombstone","domain":"product","elapsedUs":891}
+[cost] operation=delete_tombstone scope=catalog.lock.hold count=1 inclusive_ns=890041 exclusive_ns=139916
+[cost] operation=delete_tombstone scope=catalog.lock.hold/catalog.AppendAndApplyLocked count=1 inclusive_ns=750125 exclusive_ns=51541
+[cost] operation=delete_tombstone scope=catalog.lock.hold/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked count=1 inclusive_ns=165792 exclusive_ns=164500
+[cost] operation=delete_tombstone scope=catalog.lock.hold/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=1292 exclusive_ns=1292
+[cost] operation=delete_tombstone scope=catalog.lock.hold/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked count=1 inclusive_ns=203042 exclusive_ns=203042
+[cost] operation=delete_tombstone scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned count=1 inclusive_ns=329750 exclusive_ns=147710
+[cost] operation=delete_tombstone scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.EnvelopeIdentity count=1 inclusive_ns=2666 exclusive_ns=1666
+[cost] operation=delete_tombstone scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=1000 exclusive_ns=1000
+[cost] operation=delete_tombstone scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord count=1 inclusive_ns=11291 exclusive_ns=4124
+[cost] operation=delete_tombstone scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord/journal.EnvelopeIdentity count=1 inclusive_ns=7167 exclusive_ns=3792
+[cost] operation=delete_tombstone scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=3375 exclusive_ns=3375
+[cost] operation=delete_tombstone scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.ParseRecordingMutationV1 count=1 inclusive_ns=166833 exclusive_ns=166833
+[cost] operation=delete_tombstone scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=1250 exclusive_ns=1250
+[cost] operation=delete_tombstone scope=catalog.lock.wait count=1 inclusive_ns=42 exclusive_ns=42
+[pass] LP17/delete delete.tombstone
+[lp17] {"kind":"timing","stage":"delete_checkpoint","domain":"product","elapsedUs":596}
+[cost] operation=delete_checkpoint scope=catalog.lock.hold count=1 inclusive_ns=596083 exclusive_ns=65458
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked count=1 inclusive_ns=530625 exclusive_ns=61499
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/cache.reused count=1 inclusive_ns=0 exclusive_ns=0
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/candidate.identical count=1 inclusive_ns=0 exclusive_ns=0
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.Replay count=1 inclusive_ns=92625 exclusive_ns=667
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.Replay/journal.Replay count=1 inclusive_ns=91958 exclusive_ns=91958
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.SameSequence count=1 inclusive_ns=19334 exclusive_ns=5917
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.SameSequence/journal.SerializeRecordingMutationV1 count=12 inclusive_ns=13417 exclusive_ns=13417
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic count=1 inclusive_ns=171542 exclusive_ns=1085
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked count=2 inclusive_ns=170457 exclusive_ns=168081
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/journal.SerializeRecordingMutationV1 count=2 inclusive_ns=2376 exclusive_ns=2376
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint count=1 inclusive_ns=131000 exclusive_ns=98208
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.bytesCompare count=1 inclusive_ns=13959 exclusive_ns=1959
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.bytesCompare/journal.JournalBytes count=1 inclusive_ns=12000 exclusive_ns=5876
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.bytesCompare/journal.JournalBytes/journal.SerializeRecordingMutationV1 count=6 inclusive_ns=6124 exclusive_ns=6124
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.noWrite count=1 inclusive_ns=0 exclusive_ns=0
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.CompactRecords count=1 inclusive_ns=2458 exclusive_ns=2458
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.JournalBytes count=1 inclusive_ns=16375 exclusive_ns=9584
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.JournalBytes/journal.SerializeRecordingMutationV1 count=6 inclusive_ns=6791 exclusive_ns=6791
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.PrepareCheckpoint count=1 inclusive_ns=54625 exclusive_ns=51875
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.PrepareCheckpoint/journal.CompactRecords count=1 inclusive_ns=2750 exclusive_ns=2750
+[cost] operation=delete_checkpoint scope=catalog.lock.wait count=1 inclusive_ns=0 exclusive_ns=0
+[pass] LP17/delete delete.checkpoint
+[pass] LP17/delete delete.binding-preserved
+[pass] LP17/delete deleted.public-hidden
+[lp17] {"kind":"timing","stage":"canonical_compare","domain":"oracle","elapsedUs":389}
+[lp17] {"kind":"owner","stage":"delete_after","owner":"fixture","records":0,"samples":64,"fileSamples":64,"mappings":2,"stringBytes":9284,"stringCapacity":10612,"vectorCapacityBytes":11216,"jobs":0,"segments":2,"bindings":2,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"memory","stage":"delete_after","sources":2,"currentRssBytes":42008576,"peakRssBytes":42008576}
+[lp17] {"kind":"owner","stage":"delete_after","owner":"journal","records":6,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":21498,"stringCapacity":21746,"vectorCapacityBytes":896,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"delete_after","owner":"live","records":0,"samples":64,"fileSamples":64,"mappings":3,"stringBytes":30720,"stringCapacity":32246,"vectorCapacityBytes":9720,"jobs":0,"segments":3,"bindings":2,"tombstones":1,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"delete_after","owner":"shadow","records":0,"samples":64,"fileSamples":64,"mappings":3,"stringBytes":30746,"stringCapacity":32290,"vectorCapacityBytes":9720,"jobs":0,"segments":3,"bindings":2,"tombstones":1,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"delete_after","owner":"prefix","records":6,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":20868,"stringCapacity":21044,"vectorCapacityBytes":672,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"mutation","index":0,"mutationId":"scale-order-0","occurredAtMs":1789820105166,"type":16}
+[lp17] {"kind":"mutation","index":1,"mutationId":"mut-1789820105168-1","occurredAtMs":1789820105168,"type":18}
+[lp17] {"kind":"mutation","index":2,"mutationId":"scale-order-1","occurredAtMs":1789820105173,"type":16}
+[lp17] {"kind":"mutation","index":3,"mutationId":"mut-1789820105174-2","occurredAtMs":1789820105174,"type":18}
+[lp17] {"kind":"mutation","index":4,"mutationId":"mut-1789820105186-3","occurredAtMs":1789820105186,"type":19}
+[lp17] {"kind":"mutation","index":5,"mutationId":"mut-1789820105187-4","occurredAtMs":1789820105187,"type":20}
+[lp17] {"kind":"owner","stage":"store_released","owner":"fixture","records":0,"samples":64,"fileSamples":64,"mappings":2,"stringBytes":9284,"stringCapacity":10612,"vectorCapacityBytes":11216,"jobs":0,"segments":2,"bindings":2,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"memory","stage":"store_released","sources":2,"currentRssBytes":41762816,"peakRssBytes":42008576}
+[lp17] {"kind":"summary","mode":"scale","arm":"A","samples":32,"count":2,"pass":17,"fail":0}
+        0.25 real         0.15 user         0.02 sys
+            42024960  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                5106  page reclaims
+                  44  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                  23  voluntary context switches
+                 137  involuntary context switches
+          3554716842  instructions retired
+           764060059  cycles elapsed
+             9421496  peak memory footprint
+{"kind":"phase-result","label":"scale-A","historicalRssPass":true,"observationValid":true,"semanticPass":true,"cleanupPass":true,"diagnosticPass":true,"peakRssBytes":42024960,"stopReason":null,"exitCode":0,"signal":null,"summary":{"kind":"summary","mode":"scale","arm":"A","samples":32,"count":2,"pass":17,"fail":0},"elapsedMs":277,"groupPeakRssBytes":43270144,"observationFailure":null,"outputBytes":48976}
+{"kind":"command","label":"reopen-A-sqlite","command":"<owned-root>/comparison","args":["reopen","<owned-root>/seed","<owned-root>/store-A","A","32","2","sqlite"],"seconds":180,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":44}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":54}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":290}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":1052}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":65}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":273}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":924}
+[lp17] {"kind":"timing","stage":"journal_open","domain":"product","elapsedUs":1723}
+[cost] operation=journal_open scope=journal.IndexRecord count=6 inclusive_ns=699665 exclusive_ns=41082
+[cost] operation=journal_open scope=journal.IndexRecord/journal.EnvelopeIdentity count=6 inclusive_ns=658583 exclusive_ns=649416
+[cost] operation=journal_open scope=journal.IndexRecord/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=6 inclusive_ns=9167 exclusive_ns=9167
+[cost] operation=journal_open scope=journal.ParseRecordingMutationV1 count=6 inclusive_ns=680414 exclusive_ns=680414
+[pass] LP17/reopen/sqlite LP02.journal-reopen
+[lp17] {"kind":"memory","stage":"reopen_before","sources":2,"currentRssBytes":39862272,"peakRssBytes":39862272}
+[lp17] {"kind":"timing","stage":"catalog_open","domain":"product","elapsedUs":13885}
+[cost] operation=catalog_open scope=catalog.lock.hold count=1 inclusive_ns=13883958 exclusive_ns=4228496
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ApplyMutationLocked count=18 inclusive_ns=6811251 exclusive_ns=2488250
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1 count=6 inclusive_ns=3814125 exclusive_ns=3431626
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=6 inclusive_ns=382499 exclusive_ns=14457
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=6 inclusive_ns=368042 exclusive_ns=368042
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment count=6 inclusive_ns=482834 exclusive_ns=102042
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=6 inclusive_ns=380792 exclusive_ns=13292
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=6 inclusive_ns=367500 exclusive_ns=367500
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ApplyMutationLocked/journal.SerializeRecordingMutationV1 count=12 inclusive_ns=26042 exclusive_ns=26042
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ProjectMutationSqliteLocked count=6 inclusive_ns=2652167 exclusive_ns=1044125
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ProjectMutationSqliteLocked/contracts.ParseRecordingSourceBindingV1 count=2 inclusive_ns=1253042 exclusive_ns=1125418
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ProjectMutationSqliteLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=2 inclusive_ns=127624 exclusive_ns=5124
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ProjectMutationSqliteLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=2 inclusive_ns=122500 exclusive_ns=122500
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ProjectMutationSqliteLocked/contracts.SerializeRecordingSourceBindingV1 count=2 inclusive_ns=355000 exclusive_ns=229042
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ProjectMutationSqliteLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=2 inclusive_ns=125958 exclusive_ns=4459
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ProjectMutationSqliteLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=2 inclusive_ns=121499 exclusive_ns=121499
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.lock.hold count=2 inclusive_ns=167 exclusive_ns=167
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.lock.wait count=2 inclusive_ns=167 exclusive_ns=167
+[cost] operation=catalog_open scope=catalog.lock.hold/journal.Replay count=2 inclusive_ns=185084 exclusive_ns=185084
+[cost] operation=catalog_open scope=catalog.lock.hold/journal.SerializeRecordingMutationV1 count=4 inclusive_ns=6626 exclusive_ns=6626
+[cost] operation=catalog_open scope=catalog.lock.wait count=1 inclusive_ns=83 exclusive_ns=83
+[pass] LP17/reopen/sqlite LP02.catalog-reopen
+[lp17] {"kind":"memory","stage":"reopen_after","sources":2,"currentRssBytes":41123840,"peakRssBytes":41123840}
+[lp17] {"kind":"owner","stage":"reopen_after","owner":"journal","records":6,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":21498,"stringCapacity":21746,"vectorCapacityBytes":896,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"reopen_after","owner":"live","records":0,"samples":64,"fileSamples":64,"mappings":3,"stringBytes":30746,"stringCapacity":32290,"vectorCapacityBytes":9720,"jobs":0,"segments":3,"bindings":2,"tombstones":1,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"reopen_after","owner":"shadow","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"reopen_after","owner":"prefix","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[pass] LP17/reopen/sqlite/0 LP02.exact-source
+[pass] LP17/reopen/sqlite/0 deleted.public-hidden
+[lp17] {"kind":"timing","stage":"canonical_compare","domain":"oracle","elapsedUs":379}
+[pass] LP17/reopen/sqlite/0 reopen.deleted-state
+[pass] LP17/reopen/sqlite/1 LP02.exact-source
+[lp17] {"kind":"timing","stage":"canonical_compare","domain":"oracle","elapsedUs":377}
+[pass] LP17/reopen/sqlite/1 reopen.remaining-media
+[lp17] {"kind":"owner","stage":"reopen_verified","owner":"fixture","records":0,"samples":64,"fileSamples":64,"mappings":2,"stringBytes":9284,"stringCapacity":10676,"vectorCapacityBytes":11216,"jobs":0,"segments":2,"bindings":2,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"memory","stage":"reopen_verified","sources":2,"currentRssBytes":41320448,"peakRssBytes":41320448}
+[lp17] {"kind":"owner","stage":"reopen_verified","owner":"journal","records":6,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":21498,"stringCapacity":21746,"vectorCapacityBytes":896,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"reopen_verified","owner":"live","records":0,"samples":64,"fileSamples":64,"mappings":3,"stringBytes":30746,"stringCapacity":32290,"vectorCapacityBytes":9720,"jobs":0,"segments":3,"bindings":2,"tombstones":1,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"reopen_verified","owner":"shadow","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"reopen_verified","owner":"prefix","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"mutation","index":0,"mutationId":"scale-order-0","occurredAtMs":1789820105166,"type":16}
+[lp17] {"kind":"mutation","index":1,"mutationId":"mut-1789820105168-1","occurredAtMs":1789820105168,"type":18}
+[lp17] {"kind":"mutation","index":2,"mutationId":"scale-order-1","occurredAtMs":1789820105173,"type":16}
+[lp17] {"kind":"mutation","index":3,"mutationId":"mut-1789820105174-2","occurredAtMs":1789820105174,"type":18}
+[lp17] {"kind":"mutation","index":4,"mutationId":"mut-1789820105186-3","occurredAtMs":1789820105186,"type":19}
+[lp17] {"kind":"mutation","index":5,"mutationId":"mut-1789820105187-4","occurredAtMs":1789820105187,"type":20}
+[lp17] {"kind":"memory","stage":"reopen_released","sources":2,"currentRssBytes":41091072,"peakRssBytes":41320448}
+[lp17] {"kind":"summary","mode":"reopen","arm":"A","samples":32,"count":2,"pass":7,"fail":0}
+        0.24 real         0.14 user         0.02 sys
+            41353216  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                5072  page reclaims
+                  44  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                  16  voluntary context switches
+                 134  involuntary context switches
+          3383643208  instructions retired
+           723660802  cycles elapsed
+             8995488  peak memory footprint
+{"kind":"phase-result","label":"reopen-A-sqlite","historicalRssPass":true,"observationValid":true,"semanticPass":true,"cleanupPass":true,"diagnosticPass":true,"peakRssBytes":41353216,"stopReason":null,"exitCode":0,"signal":null,"summary":{"kind":"summary","mode":"reopen","arm":"A","samples":32,"count":2,"pass":7,"fail":0},"elapsedMs":274,"groupPeakRssBytes":0,"observationFailure":null,"outputBytes":9748}
+{"kind":"command","label":"reopen-A-jsonl","command":"<owned-root>/comparison","args":["reopen","<owned-root>/seed","<owned-root>/store-A","A","32","2","jsonl"],"seconds":180,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":43}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":53}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":266}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":970}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":59}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":274}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":914}
+[lp17] {"kind":"timing","stage":"journal_open","domain":"product","elapsedUs":1762}
+[cost] operation=journal_open scope=journal.IndexRecord count=6 inclusive_ns=712751 exclusive_ns=43169
+[cost] operation=journal_open scope=journal.IndexRecord/journal.EnvelopeIdentity count=6 inclusive_ns=669582 exclusive_ns=660290
+[cost] operation=journal_open scope=journal.IndexRecord/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=6 inclusive_ns=9292 exclusive_ns=9292
+[cost] operation=journal_open scope=journal.ParseRecordingMutationV1 count=6 inclusive_ns=711043 exclusive_ns=711043
+[pass] LP17/reopen/jsonl LP02.journal-reopen
+[lp17] {"kind":"memory","stage":"reopen_before","sources":2,"currentRssBytes":39960576,"peakRssBytes":39960576}
+[lp17] {"kind":"timing","stage":"catalog_open","domain":"product","elapsedUs":4870}
+[cost] operation=catalog_open scope=catalog.lock.hold count=1 inclusive_ns=4869708 exclusive_ns=235748
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ApplyMutationLocked count=12 inclusive_ns=4547335 exclusive_ns=1688335
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1 count=4 inclusive_ns=2528250 exclusive_ns=2271249
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=4 inclusive_ns=257001 exclusive_ns=10418
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=4 inclusive_ns=246583 exclusive_ns=246583
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment count=4 inclusive_ns=317750 exclusive_ns=68333
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=4 inclusive_ns=249417 exclusive_ns=8750
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=4 inclusive_ns=240667 exclusive_ns=240667
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ApplyMutationLocked/journal.SerializeRecordingMutationV1 count=8 inclusive_ns=13000 exclusive_ns=13000
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.lock.hold count=1 inclusive_ns=125 exclusive_ns=125
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.lock.wait count=1 inclusive_ns=167 exclusive_ns=167
+[cost] operation=catalog_open scope=catalog.lock.hold/journal.Replay count=1 inclusive_ns=86333 exclusive_ns=86333
+[cost] operation=catalog_open scope=catalog.lock.wait count=1 inclusive_ns=84 exclusive_ns=84
+[pass] LP17/reopen/jsonl LP02.catalog-reopen
+[lp17] {"kind":"memory","stage":"reopen_after","sources":2,"currentRssBytes":40173568,"peakRssBytes":40173568}
+[lp17] {"kind":"owner","stage":"reopen_after","owner":"journal","records":6,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":21498,"stringCapacity":21746,"vectorCapacityBytes":896,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"reopen_after","owner":"live","records":0,"samples":64,"fileSamples":64,"mappings":3,"stringBytes":30746,"stringCapacity":32290,"vectorCapacityBytes":9720,"jobs":0,"segments":3,"bindings":2,"tombstones":1,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"reopen_after","owner":"shadow","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"reopen_after","owner":"prefix","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[pass] LP17/reopen/jsonl/0 LP02.exact-source
+[pass] LP17/reopen/jsonl/0 deleted.public-hidden
+[lp17] {"kind":"timing","stage":"canonical_compare","domain":"oracle","elapsedUs":380}
+[pass] LP17/reopen/jsonl/0 reopen.deleted-state
+[pass] LP17/reopen/jsonl/1 LP02.exact-source
+[lp17] {"kind":"timing","stage":"canonical_compare","domain":"oracle","elapsedUs":397}
+[pass] LP17/reopen/jsonl/1 reopen.remaining-media
+[lp17] {"kind":"owner","stage":"reopen_verified","owner":"fixture","records":0,"samples":64,"fileSamples":64,"mappings":2,"stringBytes":9284,"stringCapacity":10676,"vectorCapacityBytes":11216,"jobs":0,"segments":2,"bindings":2,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"memory","stage":"reopen_verified","sources":2,"currentRssBytes":40370176,"peakRssBytes":40370176}
+[lp17] {"kind":"owner","stage":"reopen_verified","owner":"journal","records":6,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":21498,"stringCapacity":21746,"vectorCapacityBytes":896,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"reopen_verified","owner":"live","records":0,"samples":64,"fileSamples":64,"mappings":3,"stringBytes":30746,"stringCapacity":32290,"vectorCapacityBytes":9720,"jobs":0,"segments":3,"bindings":2,"tombstones":1,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"reopen_verified","owner":"shadow","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"reopen_verified","owner":"prefix","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"mutation","index":0,"mutationId":"scale-order-0","occurredAtMs":1789820105166,"type":16}
+[lp17] {"kind":"mutation","index":1,"mutationId":"mut-1789820105168-1","occurredAtMs":1789820105168,"type":18}
+[lp17] {"kind":"mutation","index":2,"mutationId":"scale-order-1","occurredAtMs":1789820105173,"type":16}
+[lp17] {"kind":"mutation","index":3,"mutationId":"mut-1789820105174-2","occurredAtMs":1789820105174,"type":18}
+[lp17] {"kind":"mutation","index":4,"mutationId":"mut-1789820105186-3","occurredAtMs":1789820105186,"type":19}
+[lp17] {"kind":"mutation","index":5,"mutationId":"mut-1789820105187-4","occurredAtMs":1789820105187,"type":20}
+[lp17] {"kind":"memory","stage":"reopen_released","sources":2,"currentRssBytes":40370176,"peakRssBytes":40370176}
+[lp17] {"kind":"summary","mode":"reopen","arm":"A","samples":32,"count":2,"pass":7,"fail":0}
+        0.24 real         0.14 user         0.01 sys
+            40632320  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                4996  page reclaims
+                  44  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+                 129  involuntary context switches
+          3277084606  instructions retired
+           698369585  cycles elapsed
+             8766112  peak memory footprint
+{"kind":"phase-result","label":"reopen-A-jsonl","historicalRssPass":true,"observationValid":true,"semanticPass":true,"cleanupPass":true,"diagnosticPass":true,"peakRssBytes":40632320,"stopReason":null,"exitCode":0,"signal":null,"summary":{"kind":"summary","mode":"reopen","arm":"A","samples":32,"count":2,"pass":7,"fail":0},"elapsedMs":253,"groupPeakRssBytes":0,"observationFailure":null,"outputBytes":8127}
+{"kind":"store-cleanup","store":"<owned-root>/store-A","bytes":256627,"removed":true}
+{"kind":"command","label":"scale-B","command":"<owned-root>/comparison","args":["scale","<owned-root>/seed","<owned-root>/store-B","B","32","2"],"seconds":180,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":61}
+[lp17] {"kind":"memory","stage":"fixture_before","sources":0,"currentRssBytes":36438016,"peakRssBytes":37650432}
+[lp17] {"kind":"memory","stage":"store_after","sources":0,"currentRssBytes":37928960,"peakRssBytes":37928960}
+[lp17] {"kind":"owner","stage":"store_after","owner":"journal","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"store_after","owner":"live","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"store_after","owner":"shadow","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"store_after","owner":"prefix","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":72}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":282}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":948}
+[lp17] {"kind":"timing","stage":"reserve","domain":"product","elapsedUs":942}
+[cost] operation=reserve scope=journal.IndexRecord count=1 inclusive_ns=796208 exclusive_ns=27041
+[cost] operation=reserve scope=journal.IndexRecord/journal.EnvelopeIdentity count=1 inclusive_ns=769167 exclusive_ns=764959
+[cost] operation=reserve scope=journal.IndexRecord/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=4208 exclusive_ns=4208
+[cost] operation=reserve scope=journal.SerializeRecordingMutationV1 count=1 inclusive_ns=1625 exclusive_ns=1625
+[pass] LP17/commit1 LP02.reserve
+[pass] LP17/commit1 LP02.actual-file-outside-catalog
+[lp17] {"kind":"timing","stage":"physical_verify","domain":"oracle","elapsedUs":716}
+[lp17] {"kind":"memory","stage":"commit_before","sources":1,"currentRssBytes":40730624,"peakRssBytes":40730624}
+[lp17] {"kind":"owner","stage":"commit_before","owner":"journal","records":1,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":314,"stringCapacity":359,"vectorCapacityBytes":112,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"commit_before","owner":"live","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"commit_before","owner":"shadow","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"commit_before","owner":"prefix","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"timing","stage":"commit","domain":"product","elapsedUs":3177}
+[cost] operation=commit scope=catalog.lock.hold count=1 inclusive_ns=3176333 exclusive_ns=917
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked count=1 inclusive_ns=3175416 exclusive_ns=205749
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked count=1 inclusive_ns=2683459 exclusive_ns=56334
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked count=1 inclusive_ns=1034708 exclusive_ns=342207
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1 count=1 inclusive_ns=613625 exclusive_ns=551667
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=61958 exclusive_ns=2500
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=59458 exclusive_ns=59458
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment count=1 inclusive_ns=77042 exclusive_ns=16583
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=60459 exclusive_ns=2459
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=58000 exclusive_ns=58000
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=1834 exclusive_ns=1834
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked count=1 inclusive_ns=1175583 exclusive_ns=382249
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked/contracts.ParseRecordingSourceBindingV1 count=1 inclusive_ns=613750 exclusive_ns=546000
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=67750 exclusive_ns=2584
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=65166 exclusive_ns=65166
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked/contracts.SerializeRecordingSourceBindingV1 count=1 inclusive_ns=179584 exclusive_ns=115626
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=63958 exclusive_ns=2500
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=61458 exclusive_ns=61458
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned count=1 inclusive_ns=416834 exclusive_ns=145959
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.EnvelopeIdentity count=1 inclusive_ns=7750 exclusive_ns=5875
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=1875 exclusive_ns=1875
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord count=1 inclusive_ns=16791 exclusive_ns=5750
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord/journal.EnvelopeIdentity count=1 inclusive_ns=11041 exclusive_ns=7416
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=3625 exclusive_ns=3625
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.ParseRecordingMutationV1 count=1 inclusive_ns=243959 exclusive_ns=243959
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=2375 exclusive_ns=2375
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.ValidateBoundLocked count=1 inclusive_ns=106667 exclusive_ns=24501
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.ValidateBoundLocked/contracts.ValidateRecordingSourceBindingForSegment count=1 inclusive_ns=82166 exclusive_ns=19666
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.ValidateBoundLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=62500 exclusive_ns=4000
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.ValidateBoundLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=58500 exclusive_ns=58500
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/contracts.SerializeRecordingSourceBindingV1 count=1 inclusive_ns=179541 exclusive_ns=116208
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=63333 exclusive_ns=2416
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=60917 exclusive_ns=60917
+[cost] operation=commit scope=catalog.lock.wait count=1 inclusive_ns=41 exclusive_ns=41
+[pass] LP17/commit1 LP02.commit
+[lp17] {"kind":"owner","stage":"commit_after","owner":"fixture","records":0,"samples":32,"fileSamples":32,"mappings":1,"stringBytes":4642,"stringCapacity":5338,"vectorCapacityBytes":4776,"jobs":0,"segments":1,"bindings":1,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"memory","stage":"commit_after","sources":1,"currentRssBytes":41123840,"peakRssBytes":41123840}
+[lp17] {"kind":"owner","stage":"commit_after","owner":"journal","records":2,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":9929,"stringCapacity":10014,"vectorCapacityBytes":224,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"commit_after","owner":"live","records":0,"samples":32,"fileSamples":32,"mappings":1,"stringBytes":14315,"stringCapacity":14997,"vectorCapacityBytes":4776,"jobs":0,"segments":1,"bindings":1,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"commit_after","owner":"shadow","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"commit_after","owner":"prefix","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":82}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":288}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":876}
+[lp17] {"kind":"timing","stage":"reserve","domain":"product","elapsedUs":157}
+[cost] operation=reserve scope=journal.IndexRecord count=1 inclusive_ns=19042 exclusive_ns=15208
+[cost] operation=reserve scope=journal.IndexRecord/journal.EnvelopeIdentity count=1 inclusive_ns=3834 exclusive_ns=2417
+[cost] operation=reserve scope=journal.IndexRecord/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=1417 exclusive_ns=1417
+[cost] operation=reserve scope=journal.SerializeRecordingMutationV1 count=1 inclusive_ns=1375 exclusive_ns=1375
+[pass] LP17/commit2 LP02.reserve
+[pass] LP17/commit2 LP02.actual-file-outside-catalog
+[lp17] {"kind":"timing","stage":"physical_verify","domain":"oracle","elapsedUs":681}
+[lp17] {"kind":"memory","stage":"commit_before","sources":2,"currentRssBytes":41156608,"peakRssBytes":41156608}
+[lp17] {"kind":"owner","stage":"commit_before","owner":"journal","records":3,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":10243,"stringCapacity":10373,"vectorCapacityBytes":448,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"commit_before","owner":"live","records":0,"samples":32,"fileSamples":32,"mappings":1,"stringBytes":14315,"stringCapacity":14997,"vectorCapacityBytes":4776,"jobs":0,"segments":1,"bindings":1,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"commit_before","owner":"shadow","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"commit_before","owner":"prefix","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"timing","stage":"commit","domain":"product","elapsedUs":3255}
+[cost] operation=commit scope=catalog.lock.hold count=1 inclusive_ns=3253792 exclusive_ns=709
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked count=1 inclusive_ns=3253083 exclusive_ns=201708
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked count=1 inclusive_ns=2776333 exclusive_ns=53499
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked count=1 inclusive_ns=1132959 exclusive_ns=331502
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1 count=1 inclusive_ns=714208 exclusive_ns=641958
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=72250 exclusive_ns=3792
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=68458 exclusive_ns=68458
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment count=1 inclusive_ns=84708 exclusive_ns=18083
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=66625 exclusive_ns=3250
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=63375 exclusive_ns=63375
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=2541 exclusive_ns=2541
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked count=1 inclusive_ns=1190166 exclusive_ns=391042
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked/contracts.ParseRecordingSourceBindingV1 count=1 inclusive_ns=619958 exclusive_ns=555999
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=63959 exclusive_ns=2709
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=61250 exclusive_ns=61250
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked/contracts.SerializeRecordingSourceBindingV1 count=1 inclusive_ns=179166 exclusive_ns=116124
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=63042 exclusive_ns=2459
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=60583 exclusive_ns=60583
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned count=1 inclusive_ns=399709 exclusive_ns=141169
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.EnvelopeIdentity count=1 inclusive_ns=6208 exclusive_ns=4458
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=1750 exclusive_ns=1750
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord count=1 inclusive_ns=13666 exclusive_ns=3791
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord/journal.EnvelopeIdentity count=1 inclusive_ns=9875 exclusive_ns=6375
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=3500 exclusive_ns=3500
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.ParseRecordingMutationV1 count=1 inclusive_ns=236583 exclusive_ns=236583
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=2083 exclusive_ns=2083
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.ValidateBoundLocked count=1 inclusive_ns=98667 exclusive_ns=18292
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.ValidateBoundLocked/contracts.ValidateRecordingSourceBindingForSegment count=1 inclusive_ns=80375 exclusive_ns=16583
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.ValidateBoundLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=63792 exclusive_ns=2334
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/catalog.ValidateBoundLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=61458 exclusive_ns=61458
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/contracts.SerializeRecordingSourceBindingV1 count=1 inclusive_ns=176375 exclusive_ns=112459
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=63916 exclusive_ns=2166
+[cost] operation=commit scope=catalog.lock.hold/catalog.CommitBoundLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=61750 exclusive_ns=61750
+[cost] operation=commit scope=catalog.lock.wait count=1 inclusive_ns=83 exclusive_ns=83
+[pass] LP17/commit2 LP02.commit
+[lp17] {"kind":"owner","stage":"commit_after","owner":"fixture","records":0,"samples":32,"fileSamples":32,"mappings":1,"stringBytes":4642,"stringCapacity":5338,"vectorCapacityBytes":4776,"jobs":0,"segments":1,"bindings":1,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"memory","stage":"commit_after","sources":2,"currentRssBytes":41238528,"peakRssBytes":41238528}
+[lp17] {"kind":"owner","stage":"commit_after","owner":"journal","records":4,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":19858,"stringCapacity":20028,"vectorCapacityBytes":448,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"commit_after","owner":"live","records":0,"samples":64,"fileSamples":64,"mappings":2,"stringBytes":28630,"stringCapacity":29994,"vectorCapacityBytes":9552,"jobs":0,"segments":2,"bindings":2,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"commit_after","owner":"shadow","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"commit_after","owner":"prefix","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":68}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":266}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":881}
+[lp17] {"kind":"memory","stage":"snapshot_before","sources":2,"currentRssBytes":41533440,"peakRssBytes":41533440}
+[lp17] {"kind":"owner","stage":"snapshot_before","owner":"journal","records":4,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":19858,"stringCapacity":20028,"vectorCapacityBytes":448,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"snapshot_before","owner":"live","records":0,"samples":64,"fileSamples":64,"mappings":2,"stringBytes":28630,"stringCapacity":29994,"vectorCapacityBytes":9552,"jobs":0,"segments":2,"bindings":2,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"snapshot_before","owner":"shadow","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"snapshot_before","owner":"prefix","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"timing","stage":"snapshot","domain":"product","elapsedUs":267}
+[cost] operation=snapshot scope=catalog.lock.hold count=1 inclusive_ns=266708 exclusive_ns=110749
+[cost] operation=snapshot scope=catalog.lock.hold/contracts.ValidateRecordingSourceBindingForSegment count=2 inclusive_ns=155959 exclusive_ns=31751
+[cost] operation=snapshot scope=catalog.lock.hold/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=2 inclusive_ns=124208 exclusive_ns=3834
+[cost] operation=snapshot scope=catalog.lock.hold/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=2 inclusive_ns=120374 exclusive_ns=120374
+[cost] operation=snapshot scope=catalog.lock.wait count=1 inclusive_ns=83 exclusive_ns=83
+[pass] LP17/snapshot2 LP02.snapshot-exact-count
+[lp17] {"kind":"owner","stage":"snapshot_after","owner":"snapshot","records":0,"samples":64,"fileSamples":64,"mappings":2,"stringBytes":9284,"stringCapacity":10628,"vectorCapacityBytes":11152,"jobs":0,"segments":2,"bindings":2,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"memory","stage":"snapshot_after","sources":2,"currentRssBytes":41582592,"peakRssBytes":41582592}
+[lp17] {"kind":"owner","stage":"snapshot_after","owner":"journal","records":4,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":19858,"stringCapacity":20028,"vectorCapacityBytes":448,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"snapshot_after","owner":"live","records":0,"samples":64,"fileSamples":64,"mappings":2,"stringBytes":28630,"stringCapacity":29994,"vectorCapacityBytes":9552,"jobs":0,"segments":2,"bindings":2,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"snapshot_after","owner":"shadow","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"snapshot_after","owner":"prefix","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":55}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":278}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":882}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":64}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":286}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":880}
+[pass] LP17/snapshot2 snapshot.canonical-all
+[lp17] {"kind":"timing","stage":"snapshot_compare","domain":"oracle","elapsedUs":3206}
+[lp17] {"kind":"memory","stage":"checkpoint_before","sources":2,"currentRssBytes":41582592,"peakRssBytes":41582592}
+[lp17] {"kind":"owner","stage":"checkpoint_before","owner":"journal","records":4,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":19858,"stringCapacity":20028,"vectorCapacityBytes":448,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"checkpoint_before","owner":"live","records":0,"samples":64,"fileSamples":64,"mappings":2,"stringBytes":28630,"stringCapacity":29994,"vectorCapacityBytes":9552,"jobs":0,"segments":2,"bindings":2,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"checkpoint_before","owner":"shadow","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"checkpoint_before","owner":"prefix","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"timing","stage":"explicit_checkpoint","domain":"product","elapsedUs":2634}
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold count=1 inclusive_ns=2632833 exclusive_ns=54583
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked count=1 inclusive_ns=2578250 exclusive_ns=58000
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/cache.fullReplay count=1 inclusive_ns=0 exclusive_ns=0
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/candidate.identical count=1 inclusive_ns=0 exclusive_ns=0
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.Replay count=1 inclusive_ns=88792 exclusive_ns=709
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.Replay/journal.Replay count=1 inclusive_ns=88083 exclusive_ns=88083
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.SameSequence count=1 inclusive_ns=16792 exclusive_ns=4751
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.SameSequence/journal.SerializeRecordingMutationV1 count=8 inclusive_ns=12041 exclusive_ns=12041
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic count=1 inclusive_ns=2211500 exclusive_ns=2916
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked count=4 inclusive_ns=2208584 exclusive_ns=759499
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1 count=2 inclusive_ns=1277959 exclusive_ns=1139668
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=2 inclusive_ns=138291 exclusive_ns=5916
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=2 inclusive_ns=132375 exclusive_ns=132375
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment count=2 inclusive_ns=164959 exclusive_ns=35416
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=2 inclusive_ns=129543 exclusive_ns=4792
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=2 inclusive_ns=124751 exclusive_ns=124751
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/journal.SerializeRecordingMutationV1 count=2 inclusive_ns=6167 exclusive_ns=6167
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint count=1 inclusive_ns=151416 exclusive_ns=128665
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.bytesCompare count=1 inclusive_ns=9417 exclusive_ns=1084
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.bytesCompare/journal.JournalBytes count=1 inclusive_ns=8333 exclusive_ns=4041
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.bytesCompare/journal.JournalBytes/journal.SerializeRecordingMutationV1 count=4 inclusive_ns=4292 exclusive_ns=4292
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.noWrite count=1 inclusive_ns=0 exclusive_ns=0
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.CompactRecords count=1 inclusive_ns=3250 exclusive_ns=3250
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.JournalBytes count=1 inclusive_ns=10084 exclusive_ns=5125
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.JournalBytes/journal.SerializeRecordingMutationV1 count=4 inclusive_ns=4959 exclusive_ns=4959
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.PrepareCheckpoint count=1 inclusive_ns=51750 exclusive_ns=49584
+[cost] operation=explicit_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.PrepareCheckpoint/journal.CompactRecords count=1 inclusive_ns=2166 exclusive_ns=2166
+[cost] operation=explicit_checkpoint scope=catalog.lock.wait count=1 inclusive_ns=83 exclusive_ns=83
+[pass] LP17/snapshot2 LP02.explicit-checkpoint
+[lp17] {"kind":"memory","stage":"checkpoint_after","sources":2,"currentRssBytes":41697280,"peakRssBytes":41697280}
+[lp17] {"kind":"owner","stage":"checkpoint_after","owner":"journal","records":4,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":19858,"stringCapacity":20028,"vectorCapacityBytes":448,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"checkpoint_after","owner":"live","records":0,"samples":64,"fileSamples":64,"mappings":2,"stringBytes":28630,"stringCapacity":29994,"vectorCapacityBytes":9552,"jobs":0,"segments":2,"bindings":2,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"checkpoint_after","owner":"shadow","records":0,"samples":64,"fileSamples":64,"mappings":2,"stringBytes":28656,"stringCapacity":30038,"vectorCapacityBytes":9552,"jobs":0,"segments":2,"bindings":2,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"checkpoint_after","owner":"prefix","records":4,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":19442,"stringCapacity":19560,"vectorCapacityBytes":448,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[pass] LP17/snapshot2 LP02.reservation-bound-mutation-count
+[lp17] {"kind":"memory","stage":"delete_before","sources":2,"currentRssBytes":41697280,"peakRssBytes":41697280}
+[lp17] {"kind":"owner","stage":"delete_before","owner":"journal","records":4,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":19858,"stringCapacity":20028,"vectorCapacityBytes":448,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"delete_before","owner":"live","records":0,"samples":64,"fileSamples":64,"mappings":2,"stringBytes":28630,"stringCapacity":29994,"vectorCapacityBytes":9552,"jobs":0,"segments":2,"bindings":2,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"delete_before","owner":"shadow","records":0,"samples":64,"fileSamples":64,"mappings":2,"stringBytes":28656,"stringCapacity":30038,"vectorCapacityBytes":9552,"jobs":0,"segments":2,"bindings":2,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"delete_before","owner":"prefix","records":4,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":19442,"stringCapacity":19560,"vectorCapacityBytes":448,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":62}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":281}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":912}
+[pass] LP17/delete delete.original-canonical
+[lp17] {"kind":"timing","stage":"canonical_compare","domain":"oracle","elapsedUs":376}
+[lp17] {"kind":"timing","stage":"delete_pending","domain":"product","elapsedUs":410}
+[cost] operation=delete_pending scope=catalog.lock.hold count=1 inclusive_ns=409625 exclusive_ns=65000
+[cost] operation=delete_pending scope=catalog.lock.hold/catalog.AppendAndApplyLocked count=1 inclusive_ns=344625 exclusive_ns=55709
+[cost] operation=delete_pending scope=catalog.lock.hold/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked count=1 inclusive_ns=14542 exclusive_ns=13584
+[cost] operation=delete_pending scope=catalog.lock.hold/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=958 exclusive_ns=958
+[cost] operation=delete_pending scope=catalog.lock.hold/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked count=1 inclusive_ns=65083 exclusive_ns=65083
+[cost] operation=delete_pending scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned count=1 inclusive_ns=209291 exclusive_ns=170667
+[cost] operation=delete_pending scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.EnvelopeIdentity count=1 inclusive_ns=6292 exclusive_ns=5375
+[cost] operation=delete_pending scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=917 exclusive_ns=917
+[cost] operation=delete_pending scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord count=1 inclusive_ns=8416 exclusive_ns=4499
+[cost] operation=delete_pending scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord/journal.EnvelopeIdentity count=1 inclusive_ns=3917 exclusive_ns=2125
+[cost] operation=delete_pending scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=1792 exclusive_ns=1792
+[cost] operation=delete_pending scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.ParseRecordingMutationV1 count=1 inclusive_ns=22666 exclusive_ns=22666
+[cost] operation=delete_pending scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=1250 exclusive_ns=1250
+[cost] operation=delete_pending scope=catalog.lock.wait count=1 inclusive_ns=41 exclusive_ns=41
+[pass] LP17/delete delete.pending
+[pass] LP17/delete delete.unlink
+[lp17] {"kind":"timing","stage":"delete_tombstone","domain":"product","elapsedUs":860}
+[cost] operation=delete_tombstone scope=catalog.lock.hold count=1 inclusive_ns=859875 exclusive_ns=144000
+[cost] operation=delete_tombstone scope=catalog.lock.hold/catalog.AppendAndApplyLocked count=1 inclusive_ns=715875 exclusive_ns=55083
+[cost] operation=delete_tombstone scope=catalog.lock.hold/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked count=1 inclusive_ns=150875 exclusive_ns=149792
+[cost] operation=delete_tombstone scope=catalog.lock.hold/catalog.AppendAndApplyLocked/catalog.ApplyMutationLocked/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=1083 exclusive_ns=1083
+[cost] operation=delete_tombstone scope=catalog.lock.hold/catalog.AppendAndApplyLocked/catalog.ProjectMutationSqliteLocked count=1 inclusive_ns=191542 exclusive_ns=191542
+[cost] operation=delete_tombstone scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned count=1 inclusive_ns=318375 exclusive_ns=147083
+[cost] operation=delete_tombstone scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.EnvelopeIdentity count=1 inclusive_ns=2625 exclusive_ns=1625
+[cost] operation=delete_tombstone scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=1000 exclusive_ns=1000
+[cost] operation=delete_tombstone scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord count=1 inclusive_ns=7000 exclusive_ns=3166
+[cost] operation=delete_tombstone scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord/journal.EnvelopeIdentity count=1 inclusive_ns=3834 exclusive_ns=2418
+[cost] operation=delete_tombstone scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.IndexRecord/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=1416 exclusive_ns=1416
+[cost] operation=delete_tombstone scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.ParseRecordingMutationV1 count=1 inclusive_ns=160333 exclusive_ns=160333
+[cost] operation=delete_tombstone scope=catalog.lock.hold/catalog.AppendAndApplyLocked/journal.AppendOwned/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=1334 exclusive_ns=1334
+[cost] operation=delete_tombstone scope=catalog.lock.wait count=1 inclusive_ns=42 exclusive_ns=42
+[pass] LP17/delete delete.tombstone
+[lp17] {"kind":"timing","stage":"delete_checkpoint","domain":"product","elapsedUs":571}
+[cost] operation=delete_checkpoint scope=catalog.lock.hold count=1 inclusive_ns=570875 exclusive_ns=54250
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked count=1 inclusive_ns=516625 exclusive_ns=57751
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/cache.reused count=1 inclusive_ns=0 exclusive_ns=0
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/candidate.identical count=1 inclusive_ns=0 exclusive_ns=0
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.Replay count=1 inclusive_ns=90875 exclusive_ns=625
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.Replay/journal.Replay count=1 inclusive_ns=90250 exclusive_ns=90250
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.SameSequence count=1 inclusive_ns=18083 exclusive_ns=5498
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.SameSequence/journal.SerializeRecordingMutationV1 count=12 inclusive_ns=12585 exclusive_ns=12585
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic count=1 inclusive_ns=164791 exclusive_ns=1124
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked count=2 inclusive_ns=163667 exclusive_ns=161709
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/journal.SerializeRecordingMutationV1 count=2 inclusive_ns=1958 exclusive_ns=1958
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint count=1 inclusive_ns=131458 exclusive_ns=92625
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.bytesCompare count=1 inclusive_ns=20334 exclusive_ns=2793
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.bytesCompare/journal.JournalBytes count=1 inclusive_ns=17541 exclusive_ns=5956
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.bytesCompare/journal.JournalBytes/journal.SerializeRecordingMutationV1 count=6 inclusive_ns=11585 exclusive_ns=11585
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.noWrite count=1 inclusive_ns=0 exclusive_ns=0
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.CompactRecords count=1 inclusive_ns=2291 exclusive_ns=2291
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.JournalBytes count=1 inclusive_ns=16208 exclusive_ns=9499
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.JournalBytes/journal.SerializeRecordingMutationV1 count=6 inclusive_ns=6709 exclusive_ns=6709
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.PrepareCheckpoint count=1 inclusive_ns=53667 exclusive_ns=51209
+[cost] operation=delete_checkpoint scope=catalog.lock.hold/catalog.CheckpointLocked/journal.PrepareCheckpoint/journal.CompactRecords count=1 inclusive_ns=2458 exclusive_ns=2458
+[cost] operation=delete_checkpoint scope=catalog.lock.wait count=1 inclusive_ns=42 exclusive_ns=42
+[pass] LP17/delete delete.checkpoint
+[pass] LP17/delete delete.binding-preserved
+[pass] LP17/delete deleted.public-hidden
+[lp17] {"kind":"timing","stage":"canonical_compare","domain":"oracle","elapsedUs":393}
+[lp17] {"kind":"owner","stage":"delete_after","owner":"fixture","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"memory","stage":"delete_after","sources":2,"currentRssBytes":41795584,"peakRssBytes":41795584}
+[lp17] {"kind":"owner","stage":"delete_after","owner":"journal","records":6,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":21498,"stringCapacity":21746,"vectorCapacityBytes":896,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"delete_after","owner":"live","records":0,"samples":64,"fileSamples":64,"mappings":3,"stringBytes":30720,"stringCapacity":32246,"vectorCapacityBytes":9720,"jobs":0,"segments":3,"bindings":2,"tombstones":1,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"delete_after","owner":"shadow","records":0,"samples":64,"fileSamples":64,"mappings":3,"stringBytes":30746,"stringCapacity":32290,"vectorCapacityBytes":9720,"jobs":0,"segments":3,"bindings":2,"tombstones":1,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"delete_after","owner":"prefix","records":6,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":20868,"stringCapacity":21044,"vectorCapacityBytes":672,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"mutation","index":0,"mutationId":"scale-order-0","occurredAtMs":1789820106060,"type":16}
+[lp17] {"kind":"mutation","index":1,"mutationId":"mut-1789820106062-1","occurredAtMs":1789820106062,"type":18}
+[lp17] {"kind":"mutation","index":2,"mutationId":"scale-order-1","occurredAtMs":1789820106066,"type":16}
+[lp17] {"kind":"mutation","index":3,"mutationId":"mut-1789820106068-2","occurredAtMs":1789820106068,"type":18}
+[lp17] {"kind":"mutation","index":4,"mutationId":"mut-1789820106080-3","occurredAtMs":1789820106080,"type":19}
+[lp17] {"kind":"mutation","index":5,"mutationId":"mut-1789820106081-4","occurredAtMs":1789820106081,"type":20}
+[lp17] {"kind":"owner","stage":"store_released","owner":"fixture","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"memory","stage":"store_released","sources":2,"currentRssBytes":41549824,"peakRssBytes":41795584}
+[lp17] {"kind":"summary","mode":"scale","arm":"B","samples":32,"count":2,"pass":17,"fail":0}
+        0.25 real         0.15 user         0.02 sys
+            41811968  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                5094  page reclaims
+                  44  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                  22  voluntary context switches
+                 131  involuntary context switches
+          3574599738  instructions retired
+           768247012  cycles elapsed
+             9208504  peak memory footprint
+{"kind":"phase-result","label":"scale-B","historicalRssPass":true,"observationValid":true,"semanticPass":true,"cleanupPass":true,"diagnosticPass":true,"peakRssBytes":41811968,"stopReason":null,"exitCode":0,"signal":null,"summary":{"kind":"summary","mode":"scale","arm":"B","samples":32,"count":2,"pass":17,"fail":0},"elapsedMs":276,"groupPeakRssBytes":43073536,"observationFailure":null,"outputBytes":48947}
+{"kind":"command","label":"reopen-B-sqlite","command":"<owned-root>/comparison","args":["reopen","<owned-root>/seed","<owned-root>/store-B","B","32","2","sqlite"],"seconds":180,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":45}
+[lp17] {"kind":"timing","stage":"journal_open","domain":"product","elapsedUs":1819}
+[cost] operation=journal_open scope=journal.IndexRecord count=6 inclusive_ns=713417 exclusive_ns=46584
+[cost] operation=journal_open scope=journal.IndexRecord/journal.EnvelopeIdentity count=6 inclusive_ns=666833 exclusive_ns=648708
+[cost] operation=journal_open scope=journal.IndexRecord/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=6 inclusive_ns=18125 exclusive_ns=18125
+[cost] operation=journal_open scope=journal.ParseRecordingMutationV1 count=6 inclusive_ns=741167 exclusive_ns=741167
+[pass] LP17/reopen/sqlite LP02.journal-reopen
+[lp17] {"kind":"memory","stage":"reopen_before","sources":2,"currentRssBytes":39780352,"peakRssBytes":39780352}
+[lp17] {"kind":"timing","stage":"catalog_open","domain":"product","elapsedUs":12452}
+[cost] operation=catalog_open scope=catalog.lock.hold count=1 inclusive_ns=12451583 exclusive_ns=2709250
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ApplyMutationLocked count=18 inclusive_ns=6945083 exclusive_ns=2596749
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1 count=6 inclusive_ns=3846916 exclusive_ns=3455459
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=6 inclusive_ns=391457 exclusive_ns=16958
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=6 inclusive_ns=374499 exclusive_ns=374499
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment count=6 inclusive_ns=482000 exclusive_ns=102874
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=6 inclusive_ns=379126 exclusive_ns=13166
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=6 inclusive_ns=365960 exclusive_ns=365960
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ApplyMutationLocked/journal.SerializeRecordingMutationV1 count=12 inclusive_ns=19418 exclusive_ns=19418
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ProjectMutationSqliteLocked count=6 inclusive_ns=2601834 exclusive_ns=989417
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ProjectMutationSqliteLocked/contracts.ParseRecordingSourceBindingV1 count=2 inclusive_ns=1255292 exclusive_ns=1126626
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ProjectMutationSqliteLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=2 inclusive_ns=128666 exclusive_ns=4832
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ProjectMutationSqliteLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=2 inclusive_ns=123834 exclusive_ns=123834
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ProjectMutationSqliteLocked/contracts.SerializeRecordingSourceBindingV1 count=2 inclusive_ns=357125 exclusive_ns=230041
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ProjectMutationSqliteLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=2 inclusive_ns=127084 exclusive_ns=4376
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.ProjectMutationSqliteLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=2 inclusive_ns=122708 exclusive_ns=122708
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.lock.hold count=2 inclusive_ns=208 exclusive_ns=208
+[cost] operation=catalog_open scope=catalog.lock.hold/catalog.lock.wait count=2 inclusive_ns=208 exclusive_ns=208
+[cost] operation=catalog_open scope=catalog.lock.hold/journal.Replay count=2 inclusive_ns=188208 exclusive_ns=188208
+[cost] operation=catalog_open scope=catalog.lock.hold/journal.SerializeRecordingMutationV1 count=4 inclusive_ns=6792 exclusive_ns=6792
+[cost] operation=catalog_open scope=catalog.lock.wait count=1 inclusive_ns=83 exclusive_ns=83
+[pass] LP17/reopen/sqlite LP02.catalog-reopen
+[lp17] {"kind":"memory","stage":"reopen_after","sources":2,"currentRssBytes":41287680,"peakRssBytes":41287680}
+[lp17] {"kind":"owner","stage":"reopen_after","owner":"journal","records":6,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":21498,"stringCapacity":21746,"vectorCapacityBytes":896,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"reopen_after","owner":"live","records":0,"samples":64,"fileSamples":64,"mappings":3,"stringBytes":30746,"stringCapacity":32290,"vectorCapacityBytes":9720,"jobs":0,"segments":3,"bindings":2,"tombstones":1,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"reopen_after","owner":"shadow","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"reopen_after","owner":"prefix","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":65}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":279}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":892}
+[pass] LP17/reopen/sqlite/0 LP02.exact-source
+[pass] LP17/reopen/sqlite/0 deleted.public-hidden
+[lp17] {"kind":"timing","stage":"canonical_compare","domain":"oracle","elapsedUs":379}
+[pass] LP17/reopen/sqlite/0 reopen.deleted-state
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":57}
+[lp17] {"kind":"timing","stage":"expected_read","domain":"oracle","elapsedUs":275}
+[lp17] {"kind":"timing","stage":"expected_parse","domain":"oracle","elapsedUs":913}
+[pass] LP17/reopen/sqlite/1 LP02.exact-source
+[lp17] {"kind":"timing","stage":"canonical_compare","domain":"oracle","elapsedUs":380}
+[pass] LP17/reopen/sqlite/1 reopen.remaining-media
+[lp17] {"kind":"owner","stage":"reopen_verified","owner":"fixture","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"memory","stage":"reopen_verified","sources":2,"currentRssBytes":41451520,"peakRssBytes":41451520}
+[lp17] {"kind":"owner","stage":"reopen_verified","owner":"journal","records":6,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":21498,"stringCapacity":21746,"vectorCapacityBytes":896,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"reopen_verified","owner":"live","records":0,"samples":64,"fileSamples":64,"mappings":3,"stringBytes":30746,"stringCapacity":32290,"vectorCapacityBytes":9720,"jobs":0,"segments":3,"bindings":2,"tombstones":1,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"reopen_verified","owner":"shadow","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"owner","stage":"reopen_verified","owner":"prefix","records":0,"samples":0,"fileSamples":0,"mappings":0,"stringBytes":0,"stringCapacity":0,"vectorCapacityBytes":0,"jobs":0,"segments":0,"bindings":0,"tombstones":0,"accessUnits":0}
+[lp17] {"kind":"mutation","index":0,"mutationId":"scale-order-0","occurredAtMs":1789820106060,"type":16}
+[lp17] {"kind":"mutation","index":1,"mutationId":"mut-1789820106062-1","occurredAtMs":1789820106062,"type":18}
+[lp17] {"kind":"mutation","index":2,"mutationId":"scale-order-1","occurredAtMs":1789820106066,"type":16}
+[lp17] {"kind":"mutation","index":3,"mutationId":"mut-1789820106068-2","occurredAtMs":1789820106068,"type":18}
+[lp17] {"kind":"mutation","index":4,"mutationId":"mut-1789820106080-3","occurredAtMs":1789820106080,"type":19}
+[lp17] {"kind":"mutation","index":5,"mutationId":"mut-1789820106081-4","occurredAtMs":1789820106081,"type":20}
+[lp17] {"kind":"memory","stage":"reopen_released","sources":2,"currentRssBytes":41222144,"peakRssBytes":41451520}
+[lp17] {"kind":"summary","mode":"reopen","arm":"B","samples":32,"count":2,"pass":7,"fail":0}
+        0.25 real         0.14 user         0.02 sys
+            41484288  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                5070  page reclaims
+                  44  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                  16  voluntary context switches
+                 125  involuntary context switches
+          3385375380  instructions retired
+           725086164  cycles elapsed
+             9142944  peak memory footprint
+{"kind":"phase-result","label":"reopen-B-sqlite","historicalRssPass":true,"observationValid":true,"semanticPass":true,"cleanupPass":true,"diagnosticPass":false,"peakRssBytes":41484288,"stopReason":"resource-observation","exitCode":0,"signal":null,"summary":{"kind":"summary","mode":"reopen","arm":"B","samples":32,"count":2,"pass":7,"fail":0},"elapsedMs":273,"groupPeakRssBytes":0,"observationFailure":{"part":"process","code":"INVALID_OBSERVATION"},"outputBytes":9735}
+{"kind":"diagnostic-failure","code":"phase-failed","nextPhases":"not-run"}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":18478948,"removed":true}
+{"kind":"run-result","mode":"small","id":"fixture-03","diagnosticPass":false,"failure":"phase-failed","phases":8,"elapsedMs":7782,"productPass":false,"tokenConsumed":null}

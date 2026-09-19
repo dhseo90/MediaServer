@@ -1,0 +1,26 @@
+{"kind":"preflight","mode":"selftest","id":"guard-01","head":"dba06d47bd4a237406bf0a30d26eb58b8bea4deb","sourceManifest":"25117d6cee149e791bb462fff8c2483c43f07e417856645a7ff6cf7203b3575d","physicalBytes":25769803776,"reclaimableEstimateBytes":10542546944,"rssSafetyBytes":1073741824,"historicalRssBytes":536870912,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable","productPass":false}
+{"kind":"command","label":"runner-selftest","command":"/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node","args":["--test","<repo>/scripts/internal/recording_catalog_comparison.test.mjs"],"seconds":60,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+
+        0.00 real         0.00 user         0.00 sys
+             2621440  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                1489  page reclaims
+                   7  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   2  signals received
+                   5  voluntary context switches
+                  45  involuntary context switches
+            24486046  instructions retired
+            10923239  cycles elapsed
+             1753496  peak memory footprint
+{"kind":"phase-result","label":"runner-selftest","diagnosticPass":false,"historicalRssPass":null,"observationValid":null,"semanticPass":null,"cleanupPass":true,"exitCode":1,"signal":null,"stopReason":null,"elapsedMs":22,"groupPeakRssBytes":0,"outputBytes":777}
+{"kind":"diagnostic-failure","code":"phase-failed","nextPhases":"not-run"}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":0,"removed":true}
+{"kind":"run-result","mode":"selftest","id":"guard-01","diagnosticPass":false,"failure":"phase-failed","phases":1,"elapsedMs":154,"productPass":false,"tokenConsumed":null}

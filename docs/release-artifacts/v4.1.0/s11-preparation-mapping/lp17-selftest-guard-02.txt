@@ -1,0 +1,51 @@
+{"kind":"preflight","mode":"selftest","id":"guard-02","head":"dba06d47bd4a237406bf0a30d26eb58b8bea4deb","sourceManifest":"7b8966fa39a2187cb5f049f3b8e4545064292b209151d9b6685d714237f86360","physicalBytes":25769803776,"reclaimableEstimateBytes":10480058368,"rssSafetyBytes":1073741824,"historicalRssBytes":536870912,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable","productPass":false}
+{"kind":"command","label":"runner-selftest","command":"/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node","args":["--test","<repo>/scripts/internal/recording_catalog_comparison.test.mjs"],"seconds":60,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+✔ LP17-H01 기존 RSS 실패와 유효 진단 분리 (0.531625ms)
+✔ LP17-H02 관측 누락·손상·역행·잘못된 owner 거부 (0.234083ms)
+✔ LP17-H03 완료 summary 누락·중복·다른 작업·실패 거부 (0.406792ms)
+✔ LP17-H04 process group 단위와 외부·zombie 제외 (0.364459ms)
+✔ LP17-H05 실행 안전 상한·기능 실패·정리 실패 분리 (0.151583ms)
+[selftest-cleanup] {"bytes":0,"removed":true}
+✔ LP17-H06 실제 소유 자식 exit0/7와 그룹 종료 확인 (61.880042ms)
+[selftest-cleanup] {"bytes":0,"removed":true}
+✔ LP17-H07 실제 timeout 자식 종료와 뒤 단계 차단 (120.210083ms)
+[selftest-cleanup] {"bytes":0,"removed":true}
+[selftest-cleanup] {"bytes":89,"removed":true}
+[selftest-cleanup] {"bytes":9,"removed":true}
+[selftest-cleanup] {"bytes":101,"removed":true}
+✔ LP17-H08 출력 초과 종료와 보존량 상한 (34.636292ms)
+✔ LP17-H09 정리 소유권·symlink target 보존 (0.879583ms)
+✔ LP17-H10 입력 manifest 변조와 symlink 거부 (0.926166ms)
+[selftest-cleanup] {"bytes":0,"removed":true}
+✔ LP17-H11 자식만 남긴 종료를 정상 완료로 오인하지 않음 (149.369ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 416.255042
+        0.59 real         0.15 user         0.09 sys
+            74285056  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               26264  page reclaims
+                 371  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                 154  messages sent
+                  48  messages received
+                   3  signals received
+                   5  voluntary context switches
+                 669  involuntary context switches
+           704810735  instructions retired
+           224583670  cycles elapsed
+            17172760  peak memory footprint
+{"kind":"phase-result","label":"runner-selftest","diagnosticPass":true,"historicalRssPass":null,"observationValid":null,"semanticPass":null,"cleanupPass":true,"exitCode":0,"signal":null,"stopReason":null,"elapsedMs":614,"groupPeakRssBytes":136708096,"outputBytes":2057}
+{"kind":"diagnostic-failure","code":"phase-failed","nextPhases":"not-run"}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":62691,"removed":true}
+{"kind":"run-result","mode":"selftest","id":"guard-02","diagnosticPass":false,"failure":"phase-failed","phases":1,"elapsedMs":746,"productPass":false,"tokenConsumed":null}

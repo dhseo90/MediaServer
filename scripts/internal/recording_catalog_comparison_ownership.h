@@ -1,0 +1,22 @@
+#pragma once
+// LP17 검사 복제본 전용. 아래 수치는 부분 payload/capacity이며 heap/RSS 귀속 합계가 아니다.
+#include "recording/recording_catalog.h"
+#include "recording_process_memory_probe.h"
+#include <iostream>
+namespace lp17 {
+inline bool cache_off=false;
+struct Owned {
+ std::uint64_t records=0,samples=0,fileSamples=0,mappings=0,stringBytes=0,stringCapacity=0,vectorCapacityBytes=0,jobs=0,segments=0,bindings=0,tombstones=0,accessUnits=0;
+};
+inline void String(Owned& n,const std::string& s){n.stringBytes+=s.size();n.stringCapacity+=s.capacity();}
+template<class T> inline void Vector(Owned& n,const std::vector<T>& v){n.vectorCapacityBytes+=v.capacity()*sizeof(T);}
+inline void Segment(Owned& n,const recording::RecordingSegmentV2& s){++n.segments;n.mappings+=s.mappings.size();Vector(n,s.mappings);for(const auto& m:s.mappings)for(const auto* p:{&m.schema,&m.mapping_id,&m.provenance,&m.reason})String(n,*p);for(const auto* p:{&s.schema,&s.segment_id,&s.source_id,&s.channel_id,&s.store_id,&s.order_request_id,&s.media_epoch_id,&s.container,&s.checksum_sha256})String(n,*p);}
+inline void Binding(Owned& n,const recording::RecordingSourceBindingV1& b){++n.bindings;n.samples+=b.samples.size();Vector(n,b.samples);for(const auto* p:{&b.schema,&b.segment_id,&b.source_id,&b.channel_id,&b.store_id,&b.media_epoch_id,&b.source_generation,&b.track_id,&b.incomplete_reason})String(n,*p);if(b.file_evidence){const auto& f=*b.file_evidence;n.fileSamples+=f.samples.size();Vector(n,f.samples);String(n,f.profile);String(n,f.file_sha256);for(const auto& s:f.samples){String(n,s.sample_sha256);String(n,s.vcl_sha256);}}}
+inline void Mutations(Owned& n,const std::vector<recording::RecordingMutationV1>& v){n.records+=v.size();Vector(n,v);for(const auto& m:v){String(n,m.schema);String(n,m.mutation_id);String(n,m.entity_id);String(n,m.payload_json);}}
+inline void Catalog(Owned& n,const recording::RecordingCatalog& c){for(const auto& e:c.segments_v2_)Segment(n,e.second);for(const auto& e:c.source_bindings_)Binding(n,e.second);for(const auto& id:c.mutation_ids_)String(n,id);for(const auto& e:c.accepted_segment_state_mutations_){String(n,e.first);String(n,e.second);}n.tombstones=c.tombstones_v2_.size();for(const auto& e:c.tombstones_v2_){String(n,e.first);String(n,e.second.tombstone_id);String(n,e.second.deletion_reason);Segment(n,e.second.segment);}n.jobs=c.derived_jobs_.size();for(const auto& e:c.derived_jobs_){const auto& j=e.second;String(n,j.intent.selection_json);Vector(n,j.intent.sources);for(const auto& s:j.intent.sources){Segment(n,s.segment);Binding(n,s.binding);}if(j.ready){Vector(n,j.ready->outputs);for(const auto& output:j.ready->outputs){Segment(n,output.segment);const auto& p=output.provenance;n.accessUnits+=p.access_units.size();Vector(n,p.access_units);Vector(n,p.source_decoded_sha256);Vector(n,p.output_decoded_sha256);for(const auto& hash:p.source_decoded_sha256)String(n,hash);for(const auto& hash:p.output_decoded_sha256)String(n,hash);}}}}
+inline void Emit(const char* stage,const char* owner,const Owned& n){std::cout<<"[lp17] {\"kind\":\"owner\",\"stage\":\""<<stage<<"\",\"owner\":\""<<owner<<"\",\"records\":"<<n.records<<",\"samples\":"<<n.samples<<",\"fileSamples\":"<<n.fileSamples<<",\"mappings\":"<<n.mappings<<",\"stringBytes\":"<<n.stringBytes<<",\"stringCapacity\":"<<n.stringCapacity<<",\"vectorCapacityBytes\":"<<n.vectorCapacityBytes<<",\"jobs\":"<<n.jobs<<",\"segments\":"<<n.segments<<",\"bindings\":"<<n.bindings<<",\"tombstones\":"<<n.tombstones<<",\"accessUnits\":"<<n.accessUnits<<"}\n";}
+// 정의는 복제 journal.cpp의 ManagedJournalState 정의 뒤에 삽입한다. Replay/복사/직렬화 없음.
+Owned Journal(const recording::RecordingJournal&);
+void Provenance(const recording::RecordingJournal&);
+inline void Observe(const char* stage,unsigned sources,const recording::RecordingCatalog* c=nullptr){recording_memory_probe::Sample s;if(!recording_memory_probe::Read(&s)||!s.current||!s.peak)throw std::runtime_error("LP17_MEMORY");std::cout<<"[lp17] {\"kind\":\"memory\",\"stage\":\""<<stage<<"\",\"sources\":"<<sources<<",\"currentRssBytes\":"<<s.current<<",\"peakRssBytes\":"<<s.peak<<"}\n";if(c){Emit(stage,"journal",Journal(c->journal_));Owned live,shadow,prefix;Catalog(live,*c);if(c->checkpoint_cache_){Mutations(prefix,c->checkpoint_cache_->prefix);if(c->checkpoint_cache_->shadow)Catalog(shadow,*c->checkpoint_cache_->shadow);}Emit(stage,"live",live);Emit(stage,"shadow",shadow);Emit(stage,"prefix",prefix);if(cache_off&&(prefix.records||shadow.bindings||shadow.jobs))throw std::runtime_error("LP17_CACHE_OFF");}}
+}

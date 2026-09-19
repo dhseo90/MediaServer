@@ -1,5 +1,11 @@
 # Release Evidence Index
 
+## 2026-09-19 LP17 누적 비용 원인 비교
+
+- [중앙 기록](release-test-records.md#2026-09-19-lp17-비교-도구-구현과-원인-측정): 비교 도구·최초 실패/수정·원본32와2-job 진단. 제품 자원/HTTP 해결과 구분.
+- [원출력 연결과 개별 전수 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp17-results.md): 부분 phase와 실행 묶음 결과를 각각 보존.
+- 제품 구조 적용·실제 앱 통합·S11은 이 진단으로 완료되지 않는다.
+
 ## 2026-09-16 녹화 3-B 구현·비용 경계
 
 - [중앙 실행 기록](release-test-records.md): 최소 중복 보완·최종FE193개·영향 회귀·build 완료. 운영지연 합격과 구분.

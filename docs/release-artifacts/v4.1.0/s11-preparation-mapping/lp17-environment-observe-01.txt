@@ -1,0 +1,25 @@
+{"kind":"preflight","mode":"environment","id":"observe-01","head":"dba06d47bd4a237406bf0a30d26eb58b8bea4deb","sourceManifest":"70e47b1eee86a101b1b4b1baa068606d6112c927d870b18db364a02324ebccdd","physicalBytes":25769803776,"reclaimableEstimateBytes":10466869248,"rssSafetyBytes":1073741824,"historicalRssBytes":536870912,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable","productPass":false}
+{"kind":"command","label":"environment-observation","command":"/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node","args":["-e","setTimeout(()=>{},1000)"],"seconds":5,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+
+        1.13 real         0.02 user         0.00 sys
+            52592640  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                4521  page reclaims
+                  73  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+                 112  involuntary context switches
+           570656908  instructions retired
+           163393818  cycles elapsed
+            12093288  peak memory footprint
+{"kind":"phase-result","label":"environment-observation","diagnosticPass":true,"historicalRssPass":null,"observationValid":null,"semanticPass":null,"cleanupPass":true,"exitCode":0,"signal":null,"stopReason":null,"elapsedMs":1151,"groupPeakRssBytes":53624832,"observationFailure":null,"outputBytes":777}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":62691,"removed":true}
+{"kind":"run-result","mode":"environment","id":"observe-01","diagnosticPass":true,"failure":null,"phases":1,"elapsedMs":1300,"productPass":false,"tokenConsumed":null}

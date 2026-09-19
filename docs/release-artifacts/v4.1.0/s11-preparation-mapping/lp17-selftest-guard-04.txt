@@ -1,0 +1,107 @@
+{"kind":"preflight","mode":"selftest","id":"guard-04","head":"dba06d47bd4a237406bf0a30d26eb58b8bea4deb","sourceManifest":"e36db39040f6fbacd870c3860738b7af63f5075e0a15913b09556e259b663ab3","physicalBytes":25769803776,"reclaimableEstimateBytes":10603642880,"rssSafetyBytes":1073741824,"historicalRssBytes":536870912,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable","productPass":false}
+{"kind":"command","label":"runner-selftest","command":"/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node","args":["--test","--test-reporter=tap","<repo>/scripts/internal/recording_catalog_comparison.test.mjs"],"seconds":60,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+TAP version 13
+# Subtest: LP17-H01 기존 RSS 실패와 유효 진단 분리
+ok 1 - LP17-H01 기존 RSS 실패와 유효 진단 분리
+  ---
+  duration_ms: 0.530792
+  type: 'test'
+  ...
+# Subtest: LP17-H02 관측 누락·손상·역행·잘못된 owner 거부
+ok 2 - LP17-H02 관측 누락·손상·역행·잘못된 owner 거부
+  ---
+  duration_ms: 0.219042
+  type: 'test'
+  ...
+# Subtest: LP17-H03 완료 summary 누락·중복·다른 작업·실패 거부
+ok 3 - LP17-H03 완료 summary 누락·중복·다른 작업·실패 거부
+  ---
+  duration_ms: 0.425666
+  type: 'test'
+  ...
+# Subtest: LP17-H04 process group 단위와 외부·zombie 제외
+ok 4 - LP17-H04 process group 단위와 외부·zombie 제외
+  ---
+  duration_ms: 0.381334
+  type: 'test'
+  ...
+# Subtest: LP17-H05 실행 안전 상한·기능 실패·정리 실패 분리
+ok 5 - LP17-H05 실행 안전 상한·기능 실패·정리 실패 분리
+  ---
+  duration_ms: 0.169916
+  type: 'test'
+  ...
+# [selftest-cleanup] {"bytes":0,"removed":true}
+# Subtest: LP17-H06 실제 소유 자식 exit0/7와 그룹 종료 확인
+ok 6 - LP17-H06 실제 소유 자식 exit0/7와 그룹 종료 확인
+  ---
+  duration_ms: 58.624083
+  type: 'test'
+  ...
+# [selftest-cleanup] {"bytes":0,"removed":true}
+# Subtest: LP17-H07 실제 timeout 자식 종료와 뒤 단계 차단
+ok 7 - LP17-H07 실제 timeout 자식 종료와 뒤 단계 차단
+  ---
+  duration_ms: 119.195417
+  type: 'test'
+  ...
+# [selftest-cleanup] {"bytes":0,"removed":true}
+# [selftest-cleanup] {"bytes":89,"removed":true}
+# [selftest-cleanup] {"bytes":9,"removed":true}
+# [selftest-cleanup] {"bytes":101,"removed":true}
+# Subtest: LP17-H08 출력 초과 종료와 보존량 상한
+ok 8 - LP17-H08 출력 초과 종료와 보존량 상한
+  ---
+  duration_ms: 35.759458
+  type: 'test'
+  ...
+# Subtest: LP17-H09 정리 소유권·symlink target 보존
+ok 9 - LP17-H09 정리 소유권·symlink target 보존
+  ---
+  duration_ms: 1.023542
+  type: 'test'
+  ...
+# Subtest: LP17-H10 입력 manifest 변조와 symlink 거부
+ok 10 - LP17-H10 입력 manifest 변조와 symlink 거부
+  ---
+  duration_ms: 0.984875
+  type: 'test'
+  ...
+# [selftest-cleanup] {"bytes":0,"removed":true}
+# Subtest: LP17-H11 자식만 남긴 종료를 정상 완료로 오인하지 않음
+ok 11 - LP17-H11 자식만 남긴 종료를 정상 완료로 오인하지 않음
+  ---
+  duration_ms: 151.064708
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 413.719375
+        0.55 real         0.14 user         0.09 sys
+            68337664  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               25988  page reclaims
+                 367  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                 188  messages sent
+                  43  messages received
+                   3  signals received
+                   5  voluntary context switches
+                 674  involuntary context switches
+           728268114  instructions retired
+           235258015  cycles elapsed
+            17484032  peak memory footprint
+{"kind":"phase-result","label":"runner-selftest","diagnosticPass":true,"historicalRssPass":null,"observationValid":null,"semanticPass":null,"cleanupPass":true,"exitCode":0,"signal":null,"stopReason":null,"elapsedMs":567,"groupPeakRssBytes":131907584,"observationFailure":null,"outputBytes":3301}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":62691,"removed":true}
+{"kind":"run-result","mode":"selftest","id":"guard-04","diagnosticPass":true,"failure":null,"phases":1,"elapsedMs":699,"productPass":false,"tokenConsumed":null}
