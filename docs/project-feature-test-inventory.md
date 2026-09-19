@@ -1,5 +1,18 @@
 # Project Feature Test Inventory
 
+## LP15 체크포인트 증분 검증 사전등록
+
+| 기능 ID | 기능 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| LP15-C01 | 정확prefix/증분·무효화 | 전체/증분 동등성·필드/순서/축소 반례 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부저장 |
+| LP15-C02 | 큰작업전이/자동checkpoint | 실제source증거·상태전이·적용횟수·비용 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부저장 |
+| LP15-C03 | 변경후보·복구 | 손상/중단/commit오류·SQLite/fallback | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부저장 |
+| LP15-C04 | 보관상한 | 64MiB/8192 경계·overflow·peakRSS | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부저장 |
+| LP15-C05 | 누적비용 | 동일16/32원본·복구bytes·job전이별도 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부저장 |
+| LP15-A01 | 실제앱HTTP | 선수PASS후 latency-only 4초 기준 | 이번미실행 | 이번미실행 | 이번미실행 |
+
+실행 source-of-truth: release-test-records.md의 LP15. 현재는 등록이며 PASS가 아니다.
+
 LP14-C01~04: 동일잠금·동일전이의canonical검증재사용, context오용거부·내구/복구/기존서비스회귀. 중앙LP14 3단계정의. 안정화: 신규focused·jobs/service/validation·build. 30분/120분: 이번미실행·S11 별도. UI: 내부재사용 비대상, API/실제앱은4단계.
 
 LP14-D01~04: 종료 정상 판정과 프로세스/포트 회수·진단 안전성을 분리한다. exact 정의는 중앙 LP14. 안정화: 종료 helper/실제 격리 자식·기존 진단 회귀. 30분/120분: 이번 미실행. UI: 검증기 내부 비대상. 비정상 종료는 FAIL 유지.
