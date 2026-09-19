@@ -42,4 +42,41 @@ inline bool SameCheckpointSequence(const std::vector<RecordingMutationV1>& origi
     }
     return true;
 }
+// 공유 주소는 내용 검증의 증명이 아니다. 값 표현과 동일한 논리 charge/전체 비교를 유지한다.
+inline bool CheckpointCacheAdmissible(const RecordingMutationHandles& records) {
+    if(records.size()>kCheckpointCacheRecords)return false;
+    std::size_t bytes=0;
+    for(const auto& handle:records) {
+        if(!handle)return false;
+        const auto& m=*handle;
+        if(!AddCheckpointCacheCharge(sizeof(m),&bytes)||
+           !AddCheckpointCacheCharge(m.schema.size(),&bytes)||
+           !AddCheckpointCacheCharge(m.mutation_id.size(),&bytes)||
+           !AddCheckpointCacheCharge(m.entity_id.size(),&bytes)||
+           !AddCheckpointCacheCharge(m.payload_json.size(),&bytes))return false;
+    }
+    return true;
+}
+inline bool SameCheckpointPrefix(const RecordingMutationHandles& prefix,
+                                 const RecordingMutationHandles& records) {
+    if(prefix.size()>records.size())return false;
+    for(std::size_t i=0;i<prefix.size();++i) {
+        if(!prefix[i]||!records[i])return false;
+        const auto& a=*prefix[i];const auto& b=*records[i];
+        if(a.schema!=b.schema||a.mutation_type!=b.mutation_type||a.mutation_id!=b.mutation_id||
+           a.entity_id!=b.entity_id||a.occurred_at_ms!=b.occurred_at_ms||a.payload_json!=b.payload_json)return false;
+    }
+    return true;
+}
+inline bool SameCheckpointSequence(const RecordingMutationHandles& original,
+                                   const RecordingMutationHandles& candidate) {
+    if(original.size()!=candidate.size())return false;
+    for(std::size_t i=0;i<original.size();++i) {
+        if(!original[i]||!candidate[i])return false;
+        if(original[i]->schema!=candidate[i]->schema||original[i]->mutation_type!=candidate[i]->mutation_type)return false;
+        const auto canonical=SerializeRecordingMutationV1(*original[i]);
+        if(canonical.empty()||canonical!=SerializeRecordingMutationV1(*candidate[i]))return false;
+    }
+    return true;
+}
 }

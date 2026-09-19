@@ -31,17 +31,20 @@ void PrefixCases(const std::filesystem::path& root){
  CheckCount(store,"LP15-C01 unchanged prefix",0);
  Suffix(store,"cache-suffix");CheckCount(store,"LP15-C01 exact prefix suffix only",1);
  FullOracle(store,"LP15-C01 independent prefix shadow/full projection equality");
- for(const std::string field:{"schema","type","id","entity","time","payload","reorder","shrink","null-shadow"}){
+ for(const std::string field:{"schema","type","id","entity","time","payload","reorder","shrink","null-shadow","null-handle"}){
   Need(store.catalog.checkpoint_cache_!=nullptr);auto& cache=*store.catalog.checkpoint_cache_;
-  if(field=="schema")cache.prefix[0].schema+="x";
-  if(field=="type")cache.prefix[0].mutation_type=RecordingMutationType::Unknown;
-  if(field=="id")cache.prefix[0].mutation_id+="x";
-  if(field=="entity")cache.prefix[0].entity_id+="x";
-  if(field=="time")++cache.prefix[0].occurred_at_ms;
-  if(field=="payload")cache.prefix[0].payload_json[0]='[';
+  auto changed=*cache.prefix[0];
+  if(field=="schema")changed.schema+="x";
+  if(field=="type")changed.mutation_type=RecordingMutationType::Unknown;
+  if(field=="id")changed.mutation_id+="x";
+  if(field=="entity")changed.entity_id+="x";
+  if(field=="time")++changed.occurred_at_ms;
+  if(field=="payload")changed.payload_json[0]='[';
+  cache.prefix[0]=std::make_shared<const RecordingMutationV1>(std::move(changed));
   if(field=="reorder")std::swap(cache.prefix[0],cache.prefix[1]);
   if(field=="shrink")cache.prefix.push_back(cache.prefix[0]);
   if(field=="null-shadow")cache.shadow.reset();
+  if(field=="null-handle")cache.prefix[0].reset();
   CheckCount(store,("LP15-C01 full fallback "+field).c_str(),2);
  }
  std::string error;Need(store.catalog.Open(&error));CheckCount(store,"LP15-C01 Open clears cache",2);

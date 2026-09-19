@@ -15,6 +15,7 @@
 
 #include "domain/strict_json.h"
 #include "recording/recording_contracts.h"
+#include "recording_checkpoint_validation.h"
 
 #ifndef MEDIA_SERVER_USE_OPENSSL
 #define MEDIA_SERVER_USE_OPENSSL 0
@@ -480,7 +481,7 @@ struct OrderHistoryIndex {
 
 struct ManagedJournalState {
     OrderHistoryIndex order;
-    std::vector<RecordingMutationV1> records;
+    RecordingMutationHandles records;
     std::unordered_map<std::string,std::string> identities;
     std::uint64_t bytes{0};
     bool checkpoint_pending{false};
@@ -513,29 +514,34 @@ bool IndexRecord(ManagedJournalState* state,const RecordingMutationV1& mutation,
     const auto old=state->identities.find(mutation.mutation_id);
     if(old!=state->identities.end()&&old->second!=identity)return Fail(error,"managed mutation ID 충돌");
     if(!state->order.Consume(mutation,error))return false;
-    state->identities.emplace(mutation.mutation_id,identity);state->records.push_back(mutation);return true;
+    state->identities.emplace(mutation.mutation_id,identity);state->records.push_back(std::make_shared<const RecordingMutationV1>(mutation));return true;
 }
-bool CompactRecords(const std::vector<RecordingMutationV1>& original,std::vector<RecordingMutationV1>* result,std::string* error) {
+bool CompactRecords(const RecordingMutationHandles& original,RecordingMutationHandles* result,std::string* error) {
 #if !MEDIA_SERVER_USE_OPENSSL
     (void)original;(void)result;return Fail(error,"managed checkpoint crypto 미지원");
 #else
     std::unordered_set<std::string> seen,receipts;std::unordered_map<std::string,std::string> latest;
-    for(const auto& m:original)if(seen.insert(m.mutation_id).second) {
+    if(!result)return Fail(error,"checkpoint 후보 output 없음");
+    for(const auto& handle:original) {
+        if(!handle)return Fail(error,"checkpoint null 기록 거부");
+        const auto& m=*handle;if(seen.insert(m.mutation_id).second) {
         if(m.mutation_type==RecordingMutationType::EventLinkCreated)latest[m.entity_id]=m.mutation_id;
         if(m.mutation_type==RecordingMutationType::EventLinkReceipt)receipts.insert(m.mutation_id);
+        }
     }
     *result=original;
-    for(auto& m:*result)if(m.mutation_type==RecordingMutationType::EventLinkCreated&&
-        (receipts.count(m.mutation_id)||latest.at(m.entity_id)!=m.mutation_id)){
-        const auto digest=EnvelopeIdentity(m);if(digest.empty())return Fail(error,"checkpoint digest 실패");
-        m.mutation_type=RecordingMutationType::EventLinkReceipt;
-        m.payload_json="{\"schema\":\"media-server.recording-receipt.v1\",\"originalType\":\"event_link_created\",\"originalSha256\":\""+digest+"\"}";
+    for(auto& handle:*result)if(handle->mutation_type==RecordingMutationType::EventLinkCreated&&
+        (receipts.count(handle->mutation_id)||latest.at(handle->entity_id)!=handle->mutation_id)){
+        const auto digest=EnvelopeIdentity(*handle);if(digest.empty())return Fail(error,"checkpoint digest 실패");
+        auto receipt=*handle;receipt.mutation_type=RecordingMutationType::EventLinkReceipt;
+        receipt.payload_json="{\"schema\":\"media-server.recording-receipt.v1\",\"originalType\":\"event_link_created\",\"originalSha256\":\""+digest+"\"}";
+        handle=std::make_shared<const RecordingMutationV1>(std::move(receipt));
     }
     return true;
 #endif
 }
-std::string JournalBytes(const std::vector<RecordingMutationV1>& records) {
-    std::string bytes;for(const auto& m:records)bytes+=SerializeRecordingMutationV1(m)+"\n";return bytes;
+std::string JournalBytes(const RecordingMutationHandles& records) {
+    std::string bytes;for(const auto& m:records){if(!m)return {};bytes+=SerializeRecordingMutationV1(*m)+"\n";}return bytes;
 }
 }
 
@@ -862,7 +868,27 @@ bool RecordingJournal::Append(const RecordingMutationV1& mutation, std::string* 
     return AppendOwned(mutation, nullptr, error);
 }
 
-bool RecordingJournal::PrepareCheckpoint(const void* owner,std::vector<RecordingMutationV1>* candidate,std::string* error) const {
+bool RecordingJournal::ReadCheckpointRecords(const void* owner,RecordingMutationHandles* records,std::string* error) const {
+#if !defined(_WIN32)
+    if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
+#endif
+    std::lock_guard lock(mu_);
+    if(!managed_||!owner||owner!=catalog_owner_||!records||!CheckManagedStateLocked(error))return Fail(error,"checkpoint owner/state 거부");
+#if !defined(_WIN32)
+    // Replay의 안전한 parent/FD/inode 재확인을 유지한다. 반환 vector는 소유 핸들의 독립 사본이다.
+    OwnedFd parent(OpenParent(io_path_,false));struct stat directory{},status{};
+    if(!opened_||parent.value<0||::fstat(parent.value,&directory)!=0||
+       parent_device_!=static_cast<std::uint64_t>(directory.st_dev)||parent_inode_!=directory.st_ino)return Fail(error,"checkpoint parent 거부");
+    OwnedFd fd(::fcntl(managed_fd_,F_DUPFD_CLOEXEC,0));
+    if(fd.value<0||!Regular(fd.value,&status)||device_!=static_cast<std::uint64_t>(status.st_dev)||inode_!=status.st_ino||
+       !Same(parent.value,io_path_.filename().string(),fd.value,status))return Fail(error,"checkpoint FD 결박 거부");
+    for(const auto& handle:managed_state_->records)if(!handle)return Fail(error,"checkpoint null 기록 거부");
+    *records=managed_state_->records;return true;
+#else
+    return Fail(error,"checkpoint unsupported");
+#endif
+}
+bool RecordingJournal::PrepareCheckpoint(const void* owner,RecordingMutationHandles* candidate,std::string* error) const {
 #if !defined(_WIN32)
     if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
 #endif
@@ -887,7 +913,7 @@ bool RecordingJournal::CheckpointPending() const {
     return false;
 #endif
 }
-bool RecordingJournal::CommitCheckpoint(const void* owner,const std::vector<RecordingMutationV1>& candidate,bool recover_only,std::string* error) {
+bool RecordingJournal::CommitCheckpoint(const void* owner,const RecordingMutationHandles& candidate,bool recover_only,std::string* error) {
 #if !defined(_WIN32)
     if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
 #endif
@@ -898,10 +924,13 @@ bool RecordingJournal::CommitCheckpoint(const void* owner,const std::vector<Reco
     if(parent.value<0)return Fail(error,"checkpoint parent 오류");
     const bool pending=Present(parent.value,temporary);
     if(recover_only&&!pending)return true;
-    std::vector<RecordingMutationV1> expected;
+    RecordingMutationHandles expected;
     if(!CompactRecords(managed_state_->records,&expected,error))return false;
+    if(expected.size()!=candidate.size()||!detail::SameCheckpointPrefix(expected,candidate))return Fail(error,"checkpoint 후보 필드 불일치");
     const auto bytes=JournalBytes(expected);
     if(bytes!=JournalBytes(candidate))return Fail(error,"checkpoint 후보 불일치");
+    // 성공한 rename/fsync 뒤 할당하지 않고, 검증한 candidate와 같은 immutable envelope를 게시한다.
+    RecordingMutationHandles published=candidate;
     if(pending){
         OwnedFd stage(::openat(parent.value,temporary,O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK));struct stat status{};
         if(stage.value<0||!Regular(stage.value,&status)||status.st_size<0||static_cast<std::uint64_t>(status.st_size)>bytes.size()){poisoned_=true;return Fail(error,"checkpoint 잔여 원본 보존");}
@@ -922,7 +951,7 @@ bool RecordingJournal::CommitCheckpoint(const void* owner,const std::vector<Reco
     if(::renameat(parent.value,temporary,parent.value,io_path_.filename().c_str())!=0){poisoned_=true;return Fail(error,"checkpoint rename 실패");}
     if(!Sync(parent.value)){poisoned_=true;return Fail(error,"checkpoint directory fsync 불확실");}
     ::close(managed_fd_);managed_fd_=stage.value;stage.value=-1;device_=static_cast<std::uint64_t>(staged.st_dev);inode_=staged.st_ino;
-    managed_state_->records=std::move(expected);managed_state_->bytes=bytes.size();checkpoint_checked_bytes_=bytes.size();return true;
+    managed_state_->records=std::move(published);managed_state_->bytes=bytes.size();checkpoint_checked_bytes_=bytes.size();return true;
 #else
     (void)candidate;(void)recover_only;return Fail(error,"checkpoint unsupported");
 #endif
@@ -1044,7 +1073,7 @@ RecordingJournalReplayResult RecordingJournal::Replay() const {
     if (fd.value < 0 || (!managed_&&!Lock(fd.value, LOCK_SH)) || !Regular(fd.value, &status) ||
         device_ != static_cast<std::uint64_t>(status.st_dev) || inode_ != status.st_ino ||
         !Same(parent.value, name, fd.value, status)) { ++result.io_error_count; return result; }
-    if(managed_){result.mutations=managed_state_->records;return result;}
+    if(managed_){result.mutations.reserve(managed_state_->records.size());for(const auto& handle:managed_state_->records){if(!handle){result.mutations.clear();++result.io_error_count;return result;}result.mutations.push_back(*handle);}return result;}
     std::string bytes(static_cast<std::size_t>(status.st_size), '\0');
     if (!ReadAt(fd.value, 0, &bytes)) { ++result.io_error_count; return result; }
 #else

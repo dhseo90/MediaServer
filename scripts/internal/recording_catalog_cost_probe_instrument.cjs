@@ -6,15 +6,15 @@ if(!repo||!out||!/^media-server-catalog-cost\.[A-Za-z0-9]+$/.test(path.basename(
 const hash=s=>crypto.createHash('sha256').update(s).digest('hex');
 let count=0;
 function replace(s,from,to){if(s.split(from).length!==2)throw Error('exact insertion mismatch: '+from);++count;return s.replace(from,to);}
-function fn(s,name,label){const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');const r=new RegExp('^(?:inline )?(?:bool|std::string|std::vector<std::string>|RecordingJournalReplayResult)\\s+'+escaped+'\\([^;{}]*\\)\\s*(?:const\\s*)?\\{','gm');const m=[...s.matchAll(r)];if(m.length!==1)throw Error('function insertion mismatch '+name+' '+m.length);++count;return s.slice(0,m[0].index+m[0][0].length)+' fc::Scope fc_scope("'+label+'");'+s.slice(m[0].index+m[0][0].length);}
+function fn(s,name,label,expected=1){const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');const r=new RegExp('^(?:inline )?(?:bool|std::string|std::vector<std::string>|RecordingJournalReplayResult)\\s+'+escaped+'\\([^;{}]*\\)\\s*(?:const\\s*)?\\{','gm');const matches=[...s.matchAll(r)];if(matches.length!==expected)throw Error('function insertion mismatch '+name+' '+matches.length);for(const m of matches.reverse()){++count;s=s.slice(0,m.index+m[0].length)+' fc::Scope fc_scope("'+label+'");'+s.slice(m.index+m[0].length);}return s;}
 for(const file of ['recording_catalog.cpp','recording_journal.cpp','recording_contracts.cpp','recording_checkpoint_validation.h']){
  const original=fs.readFileSync(path.join(repo,'src/recording',file),'utf8');let s=original;
  if(file==='recording_catalog.cpp'){
   for(const name of ['CheckpointLocked','AppendAndApplyLocked','ValidateBoundLocked','CommitBoundLocked','ApplyMutationLocked','ProjectMutationSqliteLocked','ProjectionSignatureLocked'])s=fn(s,'RecordingCatalog::'+name,'catalog.'+name);
-  s=replace(s,'const auto original=journal_.Replay();','const auto original=fc::Measure("checkpoint.Replay",[&]{return journal_.Replay();});');
-  s=replace(s,'for(std::size_t i=first;i<original.mutations.size();++i)\n            if(!before->ApplyMutationLocked(original.mutations[i],false,error))return false;','if(!fc::Measure("checkpoint.originalSemantic",[&]{for(std::size_t i=first;i<original.mutations.size();++i)if(!before->ApplyMutationLocked(original.mutations[i],false,error))return false;return true;}))return false;');
-  s=replace(s,'identical=detail::SameCheckpointSequence(original.mutations,candidate);','identical=detail::SameCheckpointSequence(original.mutations,candidate);fc::Event(identical?"candidate.identical":"candidate.different");');
-  s=replace(s,'for(const auto& m:candidate)if(!after->ApplyMutationLocked(m,false,error))return false;','if(!fc::Measure("checkpoint.candidateSemantic",[&]{for(const auto& m:candidate)if(!after->ApplyMutationLocked(m,false,error))return false;return true;}))return false;');
+  s=replace(s,'if(!journal_.ReadCheckpointRecords(this,&original,error))return false;','if(!fc::Measure("checkpoint.ReadCheckpointRecords",[&]{return journal_.ReadCheckpointRecords(this,&original,error);}))return false;');
+  s=replace(s,'for(std::size_t i=first;i<original.size();++i)\n            if(!before->ApplyMutationLocked(*original[i],false,error))return false;','if(!fc::Measure("checkpoint.originalSemantic",[&]{for(std::size_t i=first;i<original.size();++i)if(!before->ApplyMutationLocked(*original[i],false,error))return false;return true;}))return false;');
+  s=replace(s,'identical=detail::SameCheckpointSequence(original,candidate);','identical=detail::SameCheckpointSequence(original,candidate);fc::Event(identical?"candidate.identical":"candidate.different");');
+  s=replace(s,'for(const auto& m:candidate)if(!m||!after->ApplyMutationLocked(*m,false,error))return false;','if(!fc::Measure("checkpoint.candidateSemantic",[&]{for(const auto& m:candidate)if(!m||!after->ApplyMutationLocked(*m,false,error))return false;return true;}))return false;');
   const legacy='std::lock_guard lock(mu_);',traced='recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);';
   const legacyCount=s.split(legacy).length-1,tracedCount=s.split(traced).length-1;
   if((legacyCount>0)===(tracedCount>0)||legacyCount+tracedCount<10)throw Error('catalog lock insertions');
@@ -24,12 +24,12 @@ for(const file of ['recording_catalog.cpp','recording_journal.cpp','recording_co
  }
  if(file==='recording_journal.cpp'){
   for(const name of ['SerializeRecordingMutationV1','ParseRecordingMutationV1','EnvelopeIdentity','IndexRecord','CompactRecords','JournalBytes'])s=fn(s,name,'journal.'+name);
-  for(const name of ['PrepareCheckpoint','CommitCheckpoint','AppendOwned','Replay'])s=fn(s,'RecordingJournal::'+name,'journal.'+name);
+  for(const name of ['ReadCheckpointRecords','PrepareCheckpoint','CommitCheckpoint','AppendOwned','Replay'])s=fn(s,'RecordingJournal::'+name,'journal.'+name);
   s=replace(s,'if(bytes!=JournalBytes(candidate))return Fail(error,"checkpoint 후보 불일치");','if(!fc::Measure("checkpoint.bytesCompare",[&]{return bytes==JournalBytes(candidate);}))return Fail(error,"checkpoint 후보 불일치");');
   s=replace(s,'if(bytes.size()>=managed_state_->bytes)return true;','if(bytes.size()>=managed_state_->bytes){fc::Event("checkpoint.noWrite");return true;}fc::Scope fc_write("checkpoint.write");');
  }
  if(file==='recording_contracts.cpp')for(const name of ['ValidateRecordingFileEvidence','ValidateRecordingSourceBindingV1','ValidateRecordingSourceBindingForSegment','SerializeRecordingSourceBindingV1','ParseRecordingSourceBindingV1'])s=fn(s,name,'contracts.'+name);
- if(file==='recording_checkpoint_validation.h')s=fn(s,'SameCheckpointSequence','checkpoint.SameSequence');
+ if(file==='recording_checkpoint_validation.h')s=fn(s,'SameCheckpointSequence','checkpoint.SameSequence',2);
  s='#include "recording_catalog_cost_probe_timer.h"\n'+s;
  fs.writeFileSync(path.join(out,file),s);
  console.log(`[source] file=${file} original_sha256=${hash(original)} instrumented_sha256=${hash(s)}`);

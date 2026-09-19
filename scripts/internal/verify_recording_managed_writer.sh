@@ -11,6 +11,9 @@ cleanup() {
   printf '[elapsed] seconds=%s source=bash-SECONDS\n' "$SECONDS"
 }
 trap cleanup EXIT
+export MEDIA_SERVER_GST_CACHE_DIR="$writer_run/gst-cache" MEDIA_SERVER_GST_PLUGIN_PROFILE=headless
+export GST_REGISTRY="$writer_run/registry.bin" GST_REGISTRY_1_0="$writer_run/registry.bin"
+unset GST_PLUGIN_PATH GST_PLUGIN_PATH_1_0 GST_PLUGIN_SYSTEM_PATH GST_PLUGIN_SYSTEM_PATH_1_0 MEDIA_SERVER_GST_MANAGED_REGISTRY MEDIA_SERVER_GST_MANAGED_PLUGIN_PATH MEDIA_SERVER_GST_INPUT_PLUGIN_PATH
 source "$writer_script/env_common.sh"
 media_server_apply_homebrew_gst_env
 read -r -a writer_flags <<< "$(pkg-config --cflags --libs gstreamer-1.0 gstreamer-app-1.0 sqlite3 openssl)"

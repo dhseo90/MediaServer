@@ -40,6 +40,8 @@ verifier.
 | 5 | 관련 회귀·비용·실제 HTTP | 작은 입력→2-job→16/32원본/삭제/재개방 통과 후 기존4초. 최종 S11 전체 묶음 아님 |
 
 2번 첫 단위의 focused는 LP18-O01~06이며 실행 전 중앙 기록에 정확한 명령과 실패/정리 oracle를 연결한다.
+첫 단위 journal/checkpoint const envelope 공유는 구현·focused34·cache47·catalog246·writer44·prepared11·identity6·소형 기능99/계측1·전체 build를 통과했다.
+공개 Replay 값 반환·저장 바이트·손상 거부를 유지했다. 다음은 accepted canonical 사본 공유이며 typed/live/shadow 상세와 3~5번은 미완료다.
 이후 3/4번은 같은 계약 안에서 변경 파일·반례를 구체화하고 실행 전 등록한다. 기록 없는 테스트를 사후 PASS로 만들지 않는다.
 
 ### LP17 판정 기준 비교 설계 저장 계약

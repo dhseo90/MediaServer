@@ -9,8 +9,8 @@
 
 | 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
 | --- | --- | --- | --- | --- |
-| 1 | 공통 소유·검증 경계 | 계약 작성 | 불변 envelope, 내용 증명과 상태 검사, 무효화·RAM 내림의 소비자 조건 명시 | 누적 비용 계약 0절 |
-| 2 | 중복 보관 제거 | 구현 전 | 첫 단위 journal/checkpoint immutable 공유, typed 상세 잔존 별도 판정 | LP18-O01~06 |
+| 1 | 공통 소유·검증 경계 | 완료·커밋 | 1d13b08a, 불변 envelope·내용/상태 검사·RAM 소비자 조건 명시 | 누적 비용 계약 0절 |
+| 2 | 중복 보관 제거 | 첫 단위 구현·회귀 통과 | journal/checkpoint immutable 공유. accepted canonical·typed 상세 잔존, 전체 2번 미완료 | LP18-O01~06 전수 결과 |
 | 3 | 전이→checkpoint 재검증 제거 | 미착수 | 2번 선수 통과 뒤 내용 증명 재사용 | 구현계획 LP18 |
 | 4 | 상세 RAM 수명 | 미착수 | 기존 JSONL locator/활성 소유/재open 검증 필요 | 계약 0절 |
 | 5 | 회귀·실제 앱 | 미착수 | 기존4000ms/정리 포함, 장시간/UI 아님 | 계약 0절 |
@@ -30,12 +30,114 @@ LP18-DOC 첫 실행: diffcheck exit0, 링크 exit1(계약 0절 anchor 오류1개
 
 | 제목 | 테스트내용 | pass/fail | 비고 |
 | --- | --- | --- | --- |
-| LP18-DOC 최초 링크 | verify-docs-links exit1/約0.02초, anchor1개 부재 | FAIL | 링크만 수정, 제품 무변경 |
-| LP18-DOC 공백 | git diff --check exit0/約0.01초 | PASS | 최초·수정 후 모두 오류 없음 |
-| LP18-DOC 링크 재검증 | verify-docs-links exit0/約0.01초 | PASS | 284md/8758links/22images/116anchors/indexed76/exclusions200/failures0 |
+| LP18-DOC 최초 링크 | verify-docs-links exit1/약0.02초, anchor1개 부재 | FAIL | 링크만 수정, 제품 무변경 |
+| LP18-DOC 공백 | git diff --check exit0/약0.01초 | PASS | 최초·수정 후 모두 오류 없음 |
+| LP18-DOC 링크 재검증 | verify-docs-links exit0/약0.01초 | PASS | 284md/8758links/22images/116anchors/indexed76/exclusions200/failures0 |
 
 단일 담당자의 읽기 검토와 메인 코드 대조 결과: terminal job과 deleted binding도 상세 조회 의무가 있어 삭제하지 않는다.
 1번 계약 산출물만 완료이며 2~5번 제품 구현·검증은 아직 완료하지 않았다. 문서 검증의 source는 afe9e462+LP18 문서4개다.
+
+### 2번 첫 단위의 영향 회귀 정의
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-O04/05 cache | `bash scripts/internal/verify_recording_checkpoint_cache.sh` | LP15-C01~04 exact prefix·schema/type/ID/entity/time/payload/reorder/shrink/null, full fallback, pending/recover·예외·commit거부·상한과2-job 검사 의미 유지 | v4.1.0 |
+| LP18-O06 catalog | `bash scripts/internal/verify_v410_recording_catalog.sh` | 기존246개: managed lease/fork/inode, receipt/예약, S10-SC01~16 byte·pending·fsync/rename·SQLite/JSONL·crypto-off 반례, composition 연결 | v4.1.0 |
+| LP18-O06 identity | `bash scripts/internal/verify_recording_checkpoint_reproduction.sh --identity-only` | CP06 canonical 결과가 같더라도 schema/enum 차이 거부, 동일 길이 payload·순서·개수 반례 유지 | v4.1.0 |
+| LP18-O06 build | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build` | 공개 header 변경 영향 전체 C++ 빌드, 테스트 fixture 빌드와 구분 | v4.1.0 |
+| LP18-O06 managed writer | `bash scripts/internal/verify_recording_managed_writer.sh` | 실제 writer·중복/원자 확정·복구·저장소 결박. runner 생성 root와 headless registry만 사용 | v4.1.0 |
+| LP18-O06 prepared 전이 | `bash scripts/internal/verify_recording_derived_transition_reuse.sh` | owner/prior/type/entity/payload 위조·중복/한번 소비·실제 job과 SQLite 바이트 oracle 유지 | v4.1.0 |
+| LP18-O04 null cache | 기존 cache runner 안의 신규 null-handle 변조 | 유효 원장으로 전체 검증 fallback, 기존 46개에1개 추가되어47개 | v4.1.0 |
+| LP18-O06 계측 적응 | `node scripts/internal/recording_catalog_comparison_run.mjs small lp18-shared-01` | 변경 계측의32AU/2원본 A/B/C 및 삭제·SQL/JSONL 재개방99개 기존 oracle 유지. 공유 payload 중복 집계 금지; 전체32원본 비용 판정 아님 | v4.1.0 |
+
+실행 순서: 새 공유 focused RED/GREEN → 전체 build → cache/catalog → managed writer/prepared 전이/identity-only.
+cache/전이 runner는 runtime archive를 연결하므로 journal/header ABI 변경 뒤 전체 build를 먼저 한다.
+계측 적응 검사는 위 영향 회귀 통과 후 수행한다. LP17 runner의 호스트/그룹/디스크/출력 안전 상한은 유지한다.
+제품 diff를 메인이 검토한 뒤 이 순서대로 실행한다. 실패 후 다음 명령은 실행하지 않고 같은 단계의 안전한 수정만 한다.
+기존 checkpoint identity는 새 focused/기존 runner 연결 상태를 확인한 뒤 실행하며 없는 명령을 PASS로 대체하지 않는다.
+각 명령은 생성한 격리 root만 정리하며 별도의 운영 저장소·실제 서버 포트를 열지 않는다.
+원출력 개별 assertion/summary/exit/시간/source와 삭제 전 크기·부재를 저장소 증적으로 보존한다.
+
+### LP18-O01~05 focused 실행 전 정의
+
+명령은 `node scripts/internal/verify_recording_immutable_ownership.mjs red baseline-01`, 이후 동일 runner의 `green shared-01`이다.
+runner는 독립 build/check 프로세스(각60초, 그룹1GiB, 디스크512MiB, 원출력2MiB)를 기존 LP17 guard로 보호하고,
+생성한 `media-server-immutable-ownership.*` root의 UID/부모/종류/부재를 확인한다. 알려지지 않은 예외 원문은 출력하지 않는다.
+focused fixture는 기존/공유 표현에 공통 adapter를 사용한다. RED 예상은 아래3개 assertion만이며 build/환경/다른 FAIL은 RED가 아니다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-O01 동일 소유 | journal→original→candidate/copy/prefix | 동일 immutable envelope 주소 공유, 기존 값 복제에서는 최초2개 주소 assertion만 FAIL 예상 | v4.1.0 |
+| LP18-O01 반환 분리 | 공개 Replay 값 수정 | 내부 canonical/실제 원장 불변, 독립 full replay와 shadow projection 일치 | v4.1.0 |
+| LP18-O02 receipt | 오래된 EventLink2개 치환 | 치환만 새 값·나머지 alias, 원본 snapshot 불변·게시 bytes/full projection 동일; baseline alias assertion만 FAIL 예상 | v4.1.0 |
+| LP18-O03 경쟁/owner | 예약·일반 append 후 stale 후보, 다른 owner | CommitCheckpoint 거부 | v4.1.0 |
+| LP18-O04 변조 | schema/type/id/entity/time/payload/reorder/shrink와 신규 null handle | exact prefix/sequence 거부, null은 조회·입장·commit 안전 거부 | v4.1.0 |
+| LP18-O05 상한 | 8192/8193·64MiB/1byte 초과 | 공유 alias여도 기존 논리 예산 상한 유지 | v4.1.0 |
+
+예상 RED의 실제 라벨: `LP18-O01 shared journal original candidate envelopes`, `LP18-O01 retained prefix shares journal envelope`,
+`LP18-O02 only transformed receipts own new envelopes`. baseline20PASS/3FAIL, 신규 null 반례 포함 GREEN24PASS/0FAIL을 대조한다.
+GREEN 전 runtime archive가 연결되는 검사 ABI의 일치를 위해 제품 전체 build를 선행한다. 원출력은 runner가 저장소에 직접 보존한다.
+
+focused baseline-01 첫 시도는 예상 RED가 아니다. macOS `/bin/bash`의 `set -u`에서 빈 `lp_shared` 배열 참조로
+build.sh28행이 exit1/152ms로 종료했다. 제품 assertion 미실행. 검사 준비의 shell 호환 결함만 수정하고 동일 baseline을 재개한다.
+원출력: `lp18-ownership-red-baseline-01.txt`. source 불변, 자식 그룹 부재, 소유 root149344B 삭제 완료, 전체166ms.
+
+baseline-02는 빈 배열 보완 후 컴파일에 도달했으나 공용 media fixture의 미사용 Encode/Shift가 `-Werror`로 거부되어 exit1/2134ms였다.
+제품 assertion은 미실행이며 예상 RED로 분류하지 않는다. 검사 TU의 사용 범위만 보완하고 warning 정책은 유지한다.
+원출력: `lp18-ownership-red-baseline-02.txt`. source 불변, 자식 그룹 부재, 소유 root149344B 삭제 완료, 전체2147ms.
+
+baseline-03: build exit0/2144ms, focused exit1/651ms/20PASS·예상3FAIL 정확 일치. 미구현 원인은 journal/candidate/prefix의 값 복제로
+동일 envelope 주소가 공유되지 않는 것이다. 제품 PASS가 아닌 예상 RED 확인 후 승인된 공유 구현으로 진행한다.
+원출력: `lp18-ownership-red-baseline-03.txt`. source 불변, 자식 그룹 부재, 소유 root5059907B 삭제 완료, 전체2809ms.
+O04의 동일 라벨8개는 원출력 순서와 고정 소스 loop의 schema/type/id/entity/time/payload/reorder/shrink 순서로 식별한다.
+GREEN 출력은 field명을 덧붙이되 assertion/순서/합격 기준은 바꾸지 않는다. 라벨만 보완한 것을 이유로 baseline을 반복하지 않는다.
+개별 assertion·명령·정리 전수는 [LP18 focused 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md)에 연결한다.
+
+GREEN 실행 전 추가 등록: owner-checked read 실제 공유1개, standalone 후보8개 필드/순서 변조 시 disk 불변 거부,
+receipt 게시 후 journal/prefix 공유1개를 추가한다. 기존23+null1+추가10=34개이며 기존 assertion 삭제·완화는 없다.
+명령은 동일 runner `green shared-01`, 정확한 summary34PASS/0FAIL을 요구한다. fixture는 encoder 없는 최소 managed Store만 사용한다.
+
+실행 전 writer runner 검토: 기존 스크립트가 외부 GST cache 변수를 상속할 수 있어 이번 실행의 registry/cache를
+기존 생성 root 하위로 명시하고 headless profile을 고정했다. 제품/검사 oracle 변경은 없으며 성공/실패 시 기존 root와 함께 정리한다.
+
+### 2번 첫 공유 단위 결과
+
+제품: `ManagedJournalState::records`, `CompactRecords`, `ReadCheckpointRecords`, `CommitCheckpoint`와 catalog
+`CheckpointLocked`/prefix가 소유한 const envelope를 공유한다. receipt만 새 값을 만들며 공개 Replay는 독립 값이다.
+메인은 실제 diff와 원출력을 대조했다. 저장 바이트·정확 필드 대조·전체 semantic replay·owner/FD 결박·논리64MiB/8192 상한은 유지했다.
+`accepted_segment_state_mutations_`의 canonical 문자열과 live/shadow typed 상세는 남는다. 전체 RAM/HTTP 해결로 보고하지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP18 전체 build | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build`, exit0 | PASS | 공개 header 영향 전체 빌드. elapsed 미집계 |
+| LP18 focused GREEN | 동일 runner green shared-01, exit0/2855ms, 34개 | PASS | build2201ms·focused639ms. 최초 준비 실패2개와 예상 RED3개 보존 |
+| LP18 cache | cache runner exit0/33초, 47개 | PASS | LP15 44+CP01/02 2+RSS1. peak167362560B |
+| LP18 catalog | catalog runner exit0, 246개 | PASS | elapsed 미집계, SQLite/JSONL·손상·원자 확정 포함 |
+| LP18 writer | managed writer runner exit0/10초, 44개 | PASS | fixture의 file-evidence profile/bound 경고 존재; 이 검사를 file-evidence 기능 PASS로 확대하지 않음 |
+| LP18 prepared | derived transition runner exit0/5초, 11개 | PASS | 위조·한 번 소비·메모리/SQLite canonical. fixture profile/bound 경고 유지 |
+| LP18 identity | checkpoint reproduction --identity-only exit0/1초, 6개 | PASS | schema/enum·동일 길이·순서·개수 반례 |
+| LP18 작은 비교 | comparison small lp18-shared-01 exit0/9346ms, 12phase | PASS | 기능99+계측1개. 32AU/2원본이며 32원본 비용/실제 HTTP 판정 아님 |
+
+모든 개별 assertion·명령·정리 결과는 [LP18 전수 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md), 원출력은 각 절 링크에 보존한다.
+작은 비교 원출력231673B는 비용·공유 소유 관측 보존 목적이다. 경로는 runner에서 owned-root/repo로 마스킹하며 credential/raw media는 없다.
+원출력 후행 공백은 RAW_JSON_LINE 인코딩으로 보존했다. 개별 결과 행과 대조했으며 실행 중 서버 포트는 열지 않았다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| focused GREEN 소유 root | 빌드/fixture/cache | 5110669B | runner 삭제 | removed=true | GREEN 원출력 |
+| checkpoint cache 소유 root | 빌드/fixture/cache | 16778539B | runner 삭제 | removed=true | cache 원출력 |
+| catalog 소유 root | 빌드/fixture | 26849718B | runner 삭제 | removed=true | catalog 원출력 |
+| managed writer 소유 root | 빌드/영상/cache | 16596907B | runner 삭제 | removed=true | writer 원출력 |
+| prepared 소유 root | 빌드/영상/cache | 8921774B | runner 삭제 | removed=true | 전이 원출력 |
+| identity 소유 root | 빌드/fixture/cache | 1013691B | runner 삭제 | removed=true | identity 원출력 |
+| 작은 비교 소유 root | 빌드/영상/저장소/cache | 18468398B | runner 삭제 | removed=true | 비교 원출력 |
+
+source는 1d13b08a+이번 공유 구현이며 정확 SHA는 focused·cache·비교 원출력에 있다. 토큰 집계는 미제공으로 미집계다.
+첫 공유 단위만 커밋 가능하며 다음은 accepted canonical 중복 제거다. 3~5번·장시간/UI·푸시는 미실행이다.
+
+마감 문서 검사: `git diff --check` exit0, 미추적15파일 trailing/EOF 검사 exit0,
+`MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links` exit0(285md/8772links/22images/116anchors/76indexed/200exclusions/failures0).
+문서/공백 검사 각각 도구 관측 약0.01~0.02초, 별도 임시물 없음. 기존 UI 자산은 변경되지 않았다.
 
 ## 2026-09-19 기존 미커밋 변경 분할 보존
 

@@ -604,28 +604,27 @@ bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error) {
     if(recover_only)cached.reset();
     if(!journal_.managed_||!options_.enable_v2_storage||!journal_.OwnsCatalog(this))
         return Fail(error,"managed checkpoint 소유권/지원 없음");
-    std::vector<RecordingMutationV1> candidate;
+    RecordingMutationHandles candidate;
     std::unique_ptr<RecordingCatalog> before;
     bool identical=false;
     {
-        const auto original=journal_.Replay();
-        if(original.io_error_count||original.corrupt_line_count||original.unsupported_record_count||original.truncated_tail_count)
-            return Fail(error,"checkpoint 원장 불완전");
+        RecordingMutationHandles original;
+        if(!journal_.ReadCheckpointRecords(this,&original,error))return false;
         if(!journal_.PrepareCheckpoint(this,&candidate,error))return false;
-        const bool reuse=cached&&cached->shadow&&detail::CheckpointCacheAdmissible(original.mutations)&&
-            detail::SameCheckpointPrefix(cached->prefix,original.mutations);
+        const bool reuse=cached&&cached->shadow&&detail::CheckpointCacheAdmissible(original)&&
+            detail::SameCheckpointPrefix(cached->prefix,original);
         const auto first=reuse?cached->prefix.size():0;
         before=reuse?std::move(cached->shadow):std::make_unique<RecordingCatalog>(journal_,options_);
         cached.reset();
-        for(std::size_t i=first;i<original.mutations.size();++i)
-            if(!before->ApplyMutationLocked(original.mutations[i],false,error))return false;
-        identical=detail::SameCheckpointSequence(original.mutations,candidate);
-    } // 원본 Replay 사본은 이후 후보 검증/commit에 필요하지 않다.
+        for(std::size_t i=first;i<original.size();++i)
+            if(!before->ApplyMutationLocked(*original[i],false,error))return false;
+        identical=detail::SameCheckpointSequence(original,candidate);
+    } // 원본 핸들 vector는 이후 후보 검증/commit에 필요하지 않다.
     // 변경 후보는 전체 semantic replay와 양쪽 projection 비교를 유지한다.
     std::unique_ptr<RecordingCatalog> after;
     if(!identical){
         after=std::make_unique<RecordingCatalog>(journal_,options_);
-        for(const auto& m:candidate)if(!after->ApplyMutationLocked(m,false,error))return false;
+        for(const auto& m:candidate)if(!m||!after->ApplyMutationLocked(*m,false,error))return false;
         if(before->ProjectionSignatureLocked()!=after->ProjectionSignatureLocked())return Fail(error,"checkpoint 투영 불일치");
     }
     // original 초과는 full 검증, compact candidate가 상한 내이면 다음 호출용 보관 가능.

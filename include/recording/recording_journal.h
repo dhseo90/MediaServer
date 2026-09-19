@@ -47,6 +47,10 @@ struct RecordingMutationV1 {
     std::string payload_json{"{}"};
 };
 
+// 내부 checkpoint 소유 핸들. 공개 mutation/Replay는 기존 독립 값 반환을 유지한다.
+using RecordingMutationHandle = std::shared_ptr<const RecordingMutationV1>;
+using RecordingMutationHandles = std::vector<RecordingMutationHandle>;
+
 struct RecordingJournalReplayResult {
     std::vector<RecordingMutationV1> mutations;
     std::size_t corrupt_line_count{0};
@@ -99,8 +103,9 @@ private:
     bool LoadManagedStateLocked(std::string* error);
     bool CheckManagedStateLocked(std::string* error) const;
     bool ManagedOrderMatches(const RecordingOrderReservationV1& order, std::string* error) const;
-    bool PrepareCheckpoint(const void* owner, std::vector<RecordingMutationV1>* candidate, std::string* error) const;
-    bool CommitCheckpoint(const void* owner, const std::vector<RecordingMutationV1>& candidate, bool recover_only, std::string* error);
+    bool ReadCheckpointRecords(const void* owner, RecordingMutationHandles* records, std::string* error) const;
+    bool PrepareCheckpoint(const void* owner, RecordingMutationHandles* candidate, std::string* error) const;
+    bool CommitCheckpoint(const void* owner, const RecordingMutationHandles& candidate, bool recover_only, std::string* error);
     bool CheckpointDue(const void* owner) const;
     bool CheckpointPending() const;
     std::unique_ptr<ManagedJournalState> managed_state_;

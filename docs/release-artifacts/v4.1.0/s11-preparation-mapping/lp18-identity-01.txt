@@ -1,0 +1,14 @@
+LP18 checkpoint identity 회귀
+명령: MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_GST_PLUGIN_PROFILE=headless bash scripts/internal/verify_recording_checkpoint_reproduction.sh --identity-only
+exit: 0
+elapsed: 1초 (bash SECONDS)
+token start/end/consumed: 미집계(도구 집계 미제공)
+[pass] CP06 exact canonical sequence equality
+[pass] CP06 same length different payload rejected
+[pass] CP06 reordered sequence rejected
+[pass] CP06 different count rejected
+[pass] CP06 different schema despite canonical equality rejected
+[pass] CP06 different enum despite canonical equality rejected
+[summary] pass=6 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-reproduction.vZhAqI bytes=1013691 removed=true
+[elapsed] seconds=1 source=bash-SECONDS

@@ -255,7 +255,7 @@ private:
     bool OpenLocked(std::string* error);
     bool CanWriteLocked(std::string* error) const;
     struct CheckpointProjectionCache {
-        std::vector<RecordingMutationV1> prefix;
+        RecordingMutationHandles prefix;
         std::unique_ptr<RecordingCatalog> shadow;
     };
     std::unique_ptr<CheckpointProjectionCache> checkpoint_cache_;
