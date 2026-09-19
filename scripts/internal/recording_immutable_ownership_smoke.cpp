@@ -8,7 +8,7 @@
 #include <sqlite3.h>
 using namespace recording;
 namespace ownership_probe {
-using History=decltype(std::declval<RecordingCatalog::CheckpointProjectionCache>().prefix);
+using History=RecordingMutationHandles;
 History JournalView(const RecordingJournal&);
 void ResetBindingPoolCounts();
 std::size_t BindingPoolLookups();
@@ -28,6 +28,8 @@ struct Store {
 int passed=0,failed=0;
 void Check(bool ok,const std::string& label){++(ok?passed:failed);std::cout<<(ok?"[pass] ":"[fail] ")<<label<<'\n';}
 void Need(bool ok){if(!ok)throw std::runtime_error("LP18_SETUP");}
+RecordingMutationHandle AcceptedOwned(RecordingJournal& journal,const RecordingMutationLink& link){RecordingMutationHandle value;Need(journal.AcquireMutationLink(link,&value,nullptr));return value;}
+ownership_probe::History PrefixOwned(Store& s){ownership_probe::History values;for(const auto& link:s.catalog.checkpoint_cache_->prefix)values.push_back(AcceptedOwned(s.journal,link));return values;}
 void Reserve(Store& s,const std::string& id){RecordingOrderReservationV1 order;std::string error;Need(s.journal.ReserveRecordingOrder("probe-store",id,id,"probe-channel",&order,&error));}
 std::string Canonical(const ownership_probe::History& values){std::string out;for(const auto& p:values){const auto* m=ownership_probe::Get(p);Need(m!=nullptr);out+=SerializeRecordingMutationV1(*m)+"\n";}return out;}
 std::string Bytes(const std::filesystem::path& file){std::ifstream in(file,std::ios::binary);Need(static_cast<bool>(in));return {std::istreambuf_iterator<char>(in),{}};}
@@ -43,9 +45,10 @@ void AliasAndValue(const std::filesystem::path& root){
  auto replay=s.journal.Replay();replay.mutations[0].payload_json="{}";
  Check(Canonical(ownership_probe::JournalView(s.journal))==durable&&Bytes(s.journal.path())==durable,"LP18-O01 public Replay value mutation remains isolated");
  Need(s.catalog.Checkpoint(&error));Need(s.catalog.checkpoint_cache_&&s.catalog.checkpoint_cache_->prefix.size()==1);
- Check(ownership_probe::Get(original[0])==ownership_probe::Get(s.catalog.checkpoint_cache_->prefix[0]),"LP18-O01 retained prefix shares journal envelope");
+ const auto prefix=PrefixOwned(s);
+ Check(ownership_probe::Get(original[0])==ownership_probe::Get(prefix[0]),"LP18-O01 retained prefix shares journal envelope");
  RecordingCatalog full(s.journal,Store::Options(root));bool valid=true;for(const auto& m:s.journal.Replay().mutations)valid=full.ApplyMutationLocked(m,false,&error)&&valid;
- Check(valid&&Canonical(s.catalog.checkpoint_cache_->prefix)==durable&&s.catalog.checkpoint_cache_->shadow->ProjectionSignatureLocked()==full.ProjectionSignatureLocked(),"LP18-O01 full canonical and projection oracle");
+ Check(valid&&Canonical(prefix)==durable&&s.catalog.checkpoint_cache_->shadow->ProjectionSignatureLocked()==full.ProjectionSignatureLocked(),"LP18-O01 full canonical and projection oracle");
  Reserve(s,"owner-second");Check(!s.journal.CommitCheckpoint(&s.catalog,candidate,false,&error),"LP18-O03 stale candidate after reservation rejected");
  ownership_probe::History current;Need(s.journal.PrepareCheckpoint(&s.catalog,&current,&error));int wrong_owner=0;
  Check(!s.journal.CommitCheckpoint(&wrong_owner,current,false,&error),"LP18-O03 foreign owner candidate rejected");
@@ -72,7 +75,8 @@ void Receipts(const std::filesystem::path& root){
  const auto expected=Canonical(candidate);Need(s.catalog.Checkpoint(&error));Check(Bytes(s.journal.path())==expected&&Canonical(original)==before,"LP18-O02 publication bytes and prior owned snapshot remain exact");
 #if LP18_SHARED_RECORDS
  const auto published=ownership_probe::JournalView(s.journal);bool aliases=s.catalog.checkpoint_cache_&&published.size()==s.catalog.checkpoint_cache_->prefix.size();
- if(aliases)for(std::size_t i=0;i<published.size();++i)aliases=aliases&&ownership_probe::Get(published[i])==ownership_probe::Get(s.catalog.checkpoint_cache_->prefix[i]);
+ const auto prefix=PrefixOwned(s);
+ if(aliases)for(std::size_t i=0;i<published.size();++i)aliases=aliases&&ownership_probe::Get(published[i])==ownership_probe::Get(prefix[i]);
  Check(aliases,"LP18-O02 published journal and prefix share transformed receipt envelopes");
 #endif
  RecordingCatalog full(s.journal,Store::Options(root));bool ok=true;for(const auto& m:s.journal.Replay().mutations)ok=full.ApplyMutationLocked(m,false,&error)&&ok;
@@ -87,23 +91,23 @@ void Bounds(){
 }
 // baseline 문자열과 GREEN envelope 표현을 모두 실제 동작으로 검사한다.
 using Accepted=typename decltype(std::declval<RecordingCatalog>().accepted_segment_state_mutations_)::mapped_type;
-std::string AcceptedBytes(const Accepted& value){
+std::string AcceptedBytes(const RecordingMutationHandle& value){
 #if LP18_ACCEPTED_SHARED
  return value?SerializeRecordingMutationV1(*value):std::string();
 #else
  return value;
 #endif
 }
-const RecordingMutationV1* AcceptedAddress(const Accepted& value){
+const RecordingMutationV1* AcceptedAddress(const RecordingMutationHandle& value){
 #if LP18_ACCEPTED_SHARED
  return value.get();
 #else
  (void)value;return nullptr;
 #endif
 }
-Accepted AcceptedValue(const RecordingMutationV1& value){
+Accepted AcceptedValue(RecordingJournal& journal,const RecordingMutationV1& value){
 #if LP18_ACCEPTED_SHARED
- return std::make_shared<const RecordingMutationV1>(value);
+ Accepted link;Need(journal.MakeMutationLink({},value,std::make_shared<const RecordingMutationV1>(value),&link,nullptr));return link;
 #else
  return SerializeRecordingMutationV1(value);
 #endif
@@ -120,7 +124,7 @@ void SeedAccepted(Store& store){const unsigned char bytes[]={0,0,0,12,'f','t','y
 int SqlSegments(RecordingCatalog& catalog){sqlite3_stmt* stmt=nullptr;Need(sqlite3_prepare_v2(catalog.sqlite_db_,"SELECT count(*) FROM recording_segments",-1,&stmt,nullptr)==SQLITE_OK);Need(sqlite3_step(stmt)==SQLITE_ROW);const int result=sqlite3_column_int(stmt,0);sqlite3_finalize(stmt);return result;}
 void AcceptedSharing(const std::filesystem::path& root){
  RecordingMutationV1 durable;
- {Store s(root);SeedAccepted(s);auto records=ownership_probe::JournalView(s.journal);Need(records.size()==1);durable=*records[0];const auto& live=s.catalog.accepted_segment_state_mutations_.at(durable.mutation_id);
+ {Store s(root);SeedAccepted(s);auto records=ownership_probe::JournalView(s.journal);Need(records.size()==1);durable=*records[0];const auto live=AcceptedOwned(s.journal,s.catalog.accepted_segment_state_mutations_.at(durable.mutation_id));
   Check(AcceptedAddress(live)==records[0].get(),"LP18-O07 append accepted shares journal envelope");
 #if LP18_ACCEPTED_SHARED
   std::string error;RecordingMutationHandle retry=records[0];const auto disk=Bytes(s.journal.path());
@@ -132,19 +136,19 @@ void AcceptedSharing(const std::filesystem::path& root){
   const bool alias_retry=s.journal.AppendOwned(*alias,&s.catalog,&error,&alias);
   Check(alias_retry&&alias&&detail::SameCheckpointPrefix(RecordingMutationHandles{alias},records)&&Bytes(s.journal.path())==disk,"LP18-O09 borrowed input survives aliased output reset");
 #endif
-  Need(s.catalog.Checkpoint(nullptr));Need(s.catalog.checkpoint_cache_&&s.catalog.checkpoint_cache_->shadow);const auto& shadow=s.catalog.checkpoint_cache_->shadow->accepted_segment_state_mutations_.at(durable.mutation_id);
+  Need(s.catalog.Checkpoint(nullptr));Need(s.catalog.checkpoint_cache_&&s.catalog.checkpoint_cache_->shadow);const auto shadow=AcceptedOwned(s.journal,s.catalog.checkpoint_cache_->shadow->accepted_segment_state_mutations_.at(durable.mutation_id));
   Check(AcceptedAddress(shadow)==records[0].get()&&AcceptedAddress(live)==AcceptedAddress(shadow),"LP18-O07 checkpoint accepted shares live journal envelope");
   Check(AcceptedBytes(live)==SerializeRecordingMutationV1(durable)&&AcceptedBytes(shadow)==AcceptedBytes(live)&&Bytes(s.journal.path())==Canonical(records),"LP18-O07 accepted full canonical and durable bytes unchanged");}
- for(bool sql:{true,false}){RecordingJournal journal(RecordingJournal::ManagedOptions{root,"probe-store"});std::string error;Need(journal.Open(&error));auto options=Store::Options(root);options.prefer_sqlite=sql;RecordingCatalog catalog(journal,options);Need(catalog.Open(&error));auto records=ownership_probe::JournalView(journal);Need(records.size()==1);const auto id=durable.mutation_id;const auto& accepted=catalog.accepted_segment_state_mutations_.at(id);const std::string mode=sql?"sqlite":"fallback";
+ for(bool sql:{true,false}){RecordingJournal journal(RecordingJournal::ManagedOptions{root,"probe-store"});std::string error;Need(journal.Open(&error));auto options=Store::Options(root);options.prefer_sqlite=sql;RecordingCatalog catalog(journal,options);Need(catalog.Open(&error));auto records=ownership_probe::JournalView(journal);Need(records.size()==1);const auto id=durable.mutation_id;const auto accepted=AcceptedOwned(journal,catalog.accepted_segment_state_mutations_.at(id));const std::string mode=sql?"sqlite":"fallback";
   Check(AcceptedAddress(accepted)==records[0].get(),"LP18-O08 reopen accepted shares journal envelope "+mode);
   Check(catalog.catalog_mode_==(sql?"sqlite-primary":"jsonl-fallback")&&AcceptedBytes(accepted)==SerializeRecordingMutationV1(durable)&&catalog.accepted_segment_state_replay_ordinals_.count(0)==1&&catalog.segments_.count(durable.entity_id)==1,"LP18-O08 reopen canonical ordinal and projection preserved "+mode);
-  if(sql){const auto saved=accepted;bool gates=SqlSegments(catalog)==1;catalog.accepted_segment_state_replay_ordinals_.clear();Need(catalog.RebuildSqliteLocked(&error));gates=gates&&SqlSegments(catalog)==0;catalog.accepted_segment_state_replay_ordinals_.insert(0);auto changed=durable;++changed.occurred_at_ms;catalog.accepted_segment_state_mutations_[id]=AcceptedValue(changed);Need(catalog.RebuildSqliteLocked(&error));gates=gates&&SqlSegments(catalog)==0;catalog.accepted_segment_state_mutations_[id]=saved;Need(catalog.RebuildSqliteLocked(&error));gates=gates&&SqlSegments(catalog)==1;Check(gates,"LP18-O08 SQLite rebuild requires canonical and ordinal gates");}
+  if(sql){const auto saved=catalog.accepted_segment_state_mutations_.at(id);bool gates=SqlSegments(catalog)==1;catalog.accepted_segment_state_replay_ordinals_.clear();Need(catalog.RebuildSqliteLocked(&error));gates=gates&&SqlSegments(catalog)==0;catalog.accepted_segment_state_replay_ordinals_.insert(0);auto changed=durable;++changed.occurred_at_ms;catalog.accepted_segment_state_mutations_[id]=AcceptedValue(journal,changed);Need(catalog.RebuildSqliteLocked(&error));gates=gates&&SqlSegments(catalog)==0;catalog.accepted_segment_state_mutations_[id]=saved;Need(catalog.RebuildSqliteLocked(&error));gates=gates&&SqlSegments(catalog)==1;Check(gates,"LP18-O08 SQLite rebuild requires canonical and ordinal gates");}
  }
  RecordingJournal journal(RecordingJournal::ManagedOptions{root,"probe-store"});std::string error;Need(journal.Open(&error));
  for(const char* field:{"schema","type","id","entity","time","payload"}){RecordingCatalog catalog(journal,Store::Options(root));auto altered=durable;const std::string name=field;if(name=="schema")altered.schema+="x";if(name=="type")altered.mutation_type=RecordingMutationType::Unknown;if(name=="id")altered.mutation_id+="x";if(name=="entity")altered.entity_id+="x";if(name=="time")++altered.occurred_at_ms;if(name=="payload")altered.payload_json+=" ";const auto handle=std::make_shared<const RecordingMutationV1>(altered);
   Check(!ApplyOwned(catalog,durable,handle,&error)&&catalog.mutation_ids_.empty()&&catalog.accepted_segment_state_mutations_.empty()&&catalog.segments_.empty(),"LP18-O09 supplied envelope mismatch rejected "+name);}
  {RecordingCatalog catalog(journal,Store::Options(root));auto invalid=durable;invalid.payload_json="{}";const auto handle=std::make_shared<const RecordingMutationV1>(invalid);Check(!ApplyOwned(catalog,invalid,handle,&error)&&catalog.mutation_ids_.empty()&&catalog.accepted_segment_state_mutations_.empty(),"LP18-O09 failed apply registers no accepted envelope");}
- {RecordingCatalog catalog(journal,Store::Options(root));auto handle=std::make_shared<const RecordingMutationV1>(durable);Need(ApplyOwned(catalog,durable,handle,&error));Check(AcceptedAddress(catalog.accepted_segment_state_mutations_.at(durable.mutation_id))==handle.get(),"LP18-O09 supplied exact envelope is retained");auto different=durable;++different.occurred_at_ms;const bool duplicate=catalog.ApplyMutationLocked(durable,true,&error);const bool conflict=catalog.ApplyMutationLocked(different,true,&error);Check(duplicate&&!conflict&&catalog.accepted_segment_state_mutations_.size()==1&&AcceptedBytes(catalog.accepted_segment_state_mutations_.at(durable.mutation_id))==SerializeRecordingMutationV1(durable),"LP18-O09 duplicate full canonical acceptance and collision rejection preserved");}
+ {RecordingCatalog catalog(journal,Store::Options(root));auto handle=std::make_shared<const RecordingMutationV1>(durable);Need(ApplyOwned(catalog,durable,handle,&error));const auto retained=AcceptedOwned(journal,catalog.accepted_segment_state_mutations_.at(durable.mutation_id));Check(AcceptedAddress(retained)==handle.get(),"LP18-O09 supplied exact envelope is retained");auto different=durable;++different.occurred_at_ms;const bool duplicate=catalog.ApplyMutationLocked(durable,true,&error);const bool conflict=catalog.ApplyMutationLocked(different,true,&error);const auto after_duplicate=AcceptedOwned(journal,catalog.accepted_segment_state_mutations_.at(durable.mutation_id));Check(duplicate&&!conflict&&catalog.accepted_segment_state_mutations_.size()==1&&AcceptedBytes(after_duplicate)==SerializeRecordingMutationV1(durable),"LP18-O09 duplicate full canonical acceptance and collision rejection preserved");}
 #if LP18_ACCEPTED_SHARED
  {Store s(root/"retry-receipt");EventRecordingLinkV1 link;link.link_id="retry-link";link.event_id="retry-event";link.source_id=link.channel_id="probe-channel";link.time_basis="utc-ms";link.status=EventRecordingLinkStatus::Pending;link.created_at_ms=1000;link.requested_range={1000,2000};
   for(unsigned i=0;i<3;++i){link.updated_at_ms=1000+i;link.completeness_reason=std::string(200,'x');Need(s.catalog.PutEventLink(link,&error));}

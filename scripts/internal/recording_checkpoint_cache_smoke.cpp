@@ -33,18 +33,19 @@ void PrefixCases(const std::filesystem::path& root){
  FullOracle(store,"LP15-C01 independent prefix shadow/full projection equality");
  for(const std::string field:{"schema","type","id","entity","time","payload","reorder","shrink","null-shadow","null-handle"}){
   Need(store.catalog.checkpoint_cache_!=nullptr);auto& cache=*store.catalog.checkpoint_cache_;
-  auto changed=*cache.prefix[0];
+  RecordingMutationHandle prefix_owned;Need(store.journal.AcquireMutationLink(cache.prefix[0],&prefix_owned,nullptr));
+  auto changed=*prefix_owned;
   if(field=="schema")changed.schema+="x";
   if(field=="type")changed.mutation_type=RecordingMutationType::Unknown;
   if(field=="id")changed.mutation_id+="x";
   if(field=="entity")changed.entity_id+="x";
   if(field=="time")++changed.occurred_at_ms;
   if(field=="payload")changed.payload_json[0]='[';
-  cache.prefix[0]=std::make_shared<const RecordingMutationV1>(std::move(changed));
+  Need(store.journal.MakeMutationLink({},changed,std::make_shared<const RecordingMutationV1>(changed),&cache.prefix[0],nullptr));
   if(field=="reorder")std::swap(cache.prefix[0],cache.prefix[1]);
   if(field=="shrink")cache.prefix.push_back(cache.prefix[0]);
   if(field=="null-shadow")cache.shadow.reset();
-  if(field=="null-handle")cache.prefix[0].reset();
+  if(field=="null-handle")cache.prefix[0]={};
   CheckCount(store,("LP15-C01 full fallback "+field).c_str(),2);
  }
  std::string error;Need(store.catalog.Open(&error));CheckCount(store,"LP15-C01 Open clears cache",2);

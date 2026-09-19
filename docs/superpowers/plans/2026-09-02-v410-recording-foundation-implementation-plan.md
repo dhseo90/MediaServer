@@ -88,6 +88,10 @@ owner 재연결/append/예약/receipt swap 뒤에는 strict fallback이며 후�
 호출-local 단위 커밋은 `98acc571`이다. 이어 논리 기록 ref(ordinal/lineage)를 추가해 동일 내용의 CP위치 교체만
 참조를 유지하고 receipt 변경은 새참조로 구분했다. focused26·cold22·location32·snapshot28·cryptooff3·cost30·cache47·전체build 통과.
 상세payload/owner raw포인터를 ref에 축적하지 않는다. 실제 소비 연결 전 기반이며 자동해제는 아직 미구현이다.
+논리 ref는 `121d711e`로 커밋했다. 다음 accepted/prefix 소비 단위는 같은 Read/Append의 봉인된 view를
+thin 참조로 연결하고 cold 획득·전체값/ordinal·손상/권한·cache fallback을 유지했다. focused30·계측3·
+envelope34/accepted55/content25/logical26/snapshot28·cache47/prepared11/catalog246·2job 기능120/계측1/입력동일1·전체build 통과.
+기록·계측은 메인이 직접 대조했고 기존 논리량의 의미를 유지했다. typed 상세/자동 해제와 실제RAM/HTTP 판정은 남는다.
 
 ### LP17 판정 기준 비교 설계 저장 계약
 

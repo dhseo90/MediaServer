@@ -1,5 +1,849 @@
 # LP18 공유 소유 focused 개별 결과
 
+### lp17-jobs-thin-01.txt
+
+[원출력](lp17-jobs-thin-01.txt), 225838B. exit0·16538ms, 기능120/계측1·입력동일1 PASS. product 전체 PASS 아님.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| FC01 exact insertion checks count=97 | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.input-keyframes | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.source-shape | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.selection-complete | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.expected-intent-built | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.admission | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.expected-state | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-intent | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-record-roundtrip | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.expected-state | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-intent | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.files-receipt | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-record-roundtrip | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.expected-state | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-intent | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.files-receipt | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-record-roundtrip | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.ready-verified-proof | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.expected-state | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-intent | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.files-receipt | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-record-roundtrip | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-ready-preserved | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.expected-state | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-intent | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.files-receipt | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-record-roundtrip | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-ready-preserved | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.protection-released | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.run-complete | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.actual-output-hash | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.selection-complete | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.expected-intent-built | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.admission | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.expected-state | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-intent | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-record-roundtrip | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.expected-state | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-intent | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.files-receipt | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-record-roundtrip | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.expected-state | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-intent | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.files-receipt | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-record-roundtrip | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.ready-verified-proof | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.expected-state | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-intent | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.files-receipt | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-record-roundtrip | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-ready-preserved | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.expected-state | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-intent | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.files-receipt | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-record-roundtrip | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-ready-preserved | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.protection-released | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.run-complete | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.actual-output-hash | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| CP01.actual-ready-complete-shape-canonical-files-reservation | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| CP02.two-jobs-over-1MiB-canonical-transitions | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.input-keyframes | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.source-shape | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.selection-complete | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.expected-intent-built | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.admission | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.expected-state | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-intent | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-record-roundtrip | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.expected-state | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-intent | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.files-receipt | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-record-roundtrip | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.expected-state | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-intent | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.files-receipt | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-record-roundtrip | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.ready-verified-proof | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.expected-state | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-intent | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.files-receipt | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-record-roundtrip | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-ready-preserved | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.expected-state | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-intent | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.files-receipt | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-record-roundtrip | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-ready-preserved | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.protection-released | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.run-complete | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.actual-output-hash | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.selection-complete | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.expected-intent-built | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.admission | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.expected-state | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-intent | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-record-roundtrip | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.expected-state | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-intent | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.files-receipt | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-record-roundtrip | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.expected-state | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-intent | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.files-receipt | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-record-roundtrip | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.ready-verified-proof | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.expected-state | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-intent | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.files-receipt | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-record-roundtrip | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-ready-preserved | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.expected-state | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-intent | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.files-receipt | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-record-roundtrip | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.canonical-ready-preserved | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.protection-released | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.run-complete | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| D08.actual-output-hash | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| CP01.actual-ready-complete-shape-canonical-files-reservation | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| CP02.two-jobs-over-1MiB-canonical-transitions | 원출력 실제 assertion(동일 제목은 B/C 각각 실행) | PASS |
+| LP17 job-input-equality | 동일 입력 SHA 일치=true | PASS |
+
+
+### lp18-ownership-green-catalog-thin-01.txt
+
+[원출력](lp18-ownership-green-catalog-thin-01.txt), 8256B. wrapper exit0 / 3128ms.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-L26 thin-link baseline preserves complete canonical journal bytes | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L26 sealed view and thin-link capability exists | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L26 same-read views preserve physical duplicate order and resist external owned-vector mutation | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L30 cold Read exception clears prefilled owned and view outputs and poisons | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L30 primed cold prefix reuses current read once with exact bytes and projection | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L26 same-read sealed view binds exact owned envelope | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L26 same-append sealed view binds exact new envelope | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L27 accepted live shadow and prefix release detailed envelope ownership | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L27 accepted cold acquisition preserves canonical and durable bytes | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L27 accepted cold acquisition remains transient | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L28 shadow reads through current attachment authority | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L27 prefix cold acquisition preserves full envelope | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L29 accepted duplicate retains full canonical collision rejection | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L30 prefix mismatch falls back to full replay without rejecting valid input | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L26 mismatched sealed view rejects before registration schema | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L26 mismatched sealed view rejects before registration type | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L26 mismatched sealed view rejects before registration id | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L26 mismatched sealed view rejects before registration entity | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L26 mismatched sealed view rejects before registration time | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L26 mismatched sealed view rejects before registration payload | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L26 raw Apply without view preserves resident fallback | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L28 foreign sealed authority cannot become fallback provenance | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L28 detached authority blocks cold read while owned reader survives | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L28 same-address reattach does not revive old authority | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L29 reopen preserves thin canonical ordinal and projection sqlite | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L29 SQLite rebuild keeps ordinal gate with thin links | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L29 SQLite rebuild keeps full canonical gate with thin links | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L29 reopen preserves thin canonical ordinal and projection fallback | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L26 receipt retry returns original without binding receipt view | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L30 cold thin-link corruption fails closed instead of cache fallback | 같은 이름 원출력의 실제 assertion | PASS |
+
+### lp18-ownership-green-catalog-thin-02.txt
+
+[원출력](lp18-ownership-green-catalog-thin-02.txt), 8256B. wrapper exit0 / 3069ms.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-L26 thin-link baseline preserves complete canonical journal bytes | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L26 sealed view and thin-link capability exists | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L26 same-read views preserve physical duplicate order and resist external owned-vector mutation | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L30 cold Read exception clears prefilled owned and view outputs and poisons | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L30 primed cold prefix reuses current read once with exact bytes and projection | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L26 same-read sealed view binds exact owned envelope | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L26 same-append sealed view binds exact new envelope | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L27 accepted live shadow and prefix release detailed envelope ownership | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L27 accepted cold acquisition preserves canonical and durable bytes | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L27 accepted cold acquisition remains transient | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L28 shadow reads through current attachment authority | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L27 prefix cold acquisition preserves full envelope | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L29 accepted duplicate retains full canonical collision rejection | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L30 prefix mismatch falls back to full replay without rejecting valid input | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L26 mismatched sealed view rejects before registration schema | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L26 mismatched sealed view rejects before registration type | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L26 mismatched sealed view rejects before registration id | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L26 mismatched sealed view rejects before registration entity | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L26 mismatched sealed view rejects before registration time | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L26 mismatched sealed view rejects before registration payload | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L26 raw Apply without view preserves resident fallback | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L28 foreign sealed authority cannot become fallback provenance | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L28 detached authority blocks cold read while owned reader survives | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L28 same-address reattach does not revive old authority | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L29 reopen preserves thin canonical ordinal and projection sqlite | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L29 SQLite rebuild keeps ordinal gate with thin links | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L29 SQLite rebuild keeps full canonical gate with thin links | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L29 reopen preserves thin canonical ordinal and projection fallback | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L26 receipt retry returns original without binding receipt view | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L30 cold thin-link corruption fails closed instead of cache fallback | 같은 이름 원출력의 실제 assertion | PASS |
+
+### lp18-ownership-green-thin-accepted-01.txt
+
+[원출력](lp18-ownership-green-thin-accepted-01.txt), 8207B. wrapper exit0 / 2854ms.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-O01 owner checked read view shares journal envelope | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O01 shared journal original candidate envelopes | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O01 public Replay value mutation remains isolated | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O01 retained prefix shares journal envelope | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O01 full canonical and projection oracle | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O03 stale candidate after reservation rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O03 foreign owner candidate rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 exact field order or prefix mutation rejected schema | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change schema | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 exact field order or prefix mutation rejected type | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change type | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 exact field order or prefix mutation rejected id | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change id | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 exact field order or prefix mutation rejected entity | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change entity | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 exact field order or prefix mutation rejected time | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change time | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 exact field order or prefix mutation rejected payload | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change payload | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 exact field order or prefix mutation rejected reorder | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change reorder | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 exact field order or prefix mutation rejected shrink | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change shrink | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 null envelope safely rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O02 only transformed receipts own new envelopes | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O02 prepared receipts preserve original canonical bytes | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O02 publication bytes and prior owned snapshot remain exact | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O02 published journal and prefix share transformed receipt envelopes | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O02 receipt independent full projection equality | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O03 stale candidate after ordinary append rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O05 8192 logical records admitted | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O05 8193 aliases still rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O05 64MiB logical bytes admitted | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O05 64MiB plus one rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O07 append accepted shares journal envelope | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 successful append retry returns exact input envelope | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 failed append clears prior output handle | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 borrowed input survives aliased output reset | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O07 checkpoint accepted shares live journal envelope | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O07 accepted full canonical and durable bytes unchanged | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O08 reopen accepted shares journal envelope sqlite | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O08 reopen canonical ordinal and projection preserved sqlite | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O08 SQLite rebuild requires canonical and ordinal gates | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O08 reopen accepted shares journal envelope fallback | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O08 reopen canonical ordinal and projection preserved fallback | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 supplied envelope mismatch rejected schema | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 supplied envelope mismatch rejected type | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 supplied envelope mismatch rejected id | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 supplied envelope mismatch rejected entity | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 supplied envelope mismatch rejected time | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 supplied envelope mismatch rejected payload | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 failed apply registers no accepted envelope | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 supplied exact envelope is retained | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 duplicate full canonical acceptance and collision rejection preserved | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 compacted receipt retry returns original input envelope | 같은 이름 원출력의 실제 assertion | PASS |
+
+### lp18-ownership-green-thin-accepted-02.txt
+
+[원출력](lp18-ownership-green-thin-accepted-02.txt), 8207B. wrapper exit0 / 3051ms.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-O01 owner checked read view shares journal envelope | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O01 shared journal original candidate envelopes | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O01 public Replay value mutation remains isolated | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O01 retained prefix shares journal envelope | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O01 full canonical and projection oracle | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O03 stale candidate after reservation rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O03 foreign owner candidate rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 exact field order or prefix mutation rejected schema | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change schema | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 exact field order or prefix mutation rejected type | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change type | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 exact field order or prefix mutation rejected id | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change id | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 exact field order or prefix mutation rejected entity | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change entity | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 exact field order or prefix mutation rejected time | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change time | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 exact field order or prefix mutation rejected payload | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change payload | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 exact field order or prefix mutation rejected reorder | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change reorder | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 exact field order or prefix mutation rejected shrink | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change shrink | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 null envelope safely rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O02 only transformed receipts own new envelopes | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O02 prepared receipts preserve original canonical bytes | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O02 publication bytes and prior owned snapshot remain exact | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O02 published journal and prefix share transformed receipt envelopes | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O02 receipt independent full projection equality | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O03 stale candidate after ordinary append rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O05 8192 logical records admitted | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O05 8193 aliases still rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O05 64MiB logical bytes admitted | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O05 64MiB plus one rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O07 append accepted shares journal envelope | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 successful append retry returns exact input envelope | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 failed append clears prior output handle | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 borrowed input survives aliased output reset | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O07 checkpoint accepted shares live journal envelope | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O07 accepted full canonical and durable bytes unchanged | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O08 reopen accepted shares journal envelope sqlite | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O08 reopen canonical ordinal and projection preserved sqlite | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O08 SQLite rebuild requires canonical and ordinal gates | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O08 reopen accepted shares journal envelope fallback | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O08 reopen canonical ordinal and projection preserved fallback | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 supplied envelope mismatch rejected schema | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 supplied envelope mismatch rejected type | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 supplied envelope mismatch rejected id | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 supplied envelope mismatch rejected entity | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 supplied envelope mismatch rejected time | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 supplied envelope mismatch rejected payload | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 failed apply registers no accepted envelope | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 supplied exact envelope is retained | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 duplicate full canonical acceptance and collision rejection preserved | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O09 compacted receipt retry returns original input envelope | 같은 이름 원출력의 실제 assertion | PASS |
+
+### lp18-ownership-green-thin-content-01.txt
+
+[원출력](lp18-ownership-green-thin-content-01.txt), 9320B. wrapper exit0 / 17566ms.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-V03 valid content proof cannot bypass output reservation | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-V03 valid content proof cannot bypass source deletion state | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-V03 valid content proof cannot bypass source media binding | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-V02 minted proof reuses owned content after state validation | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-V02 schema mismatch retains strict outcome | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-V02 type mismatch retains strict outcome | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-V02 mutation ID mismatch retains strict outcome | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-V02 entity mismatch retains strict outcome | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-V02 time mismatch retains strict outcome | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-V02 payload bytes mismatch retains strict outcome | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-V03 invalid content rejects through strict fallback | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-V02 null owner retains strict outcome | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-V02 null envelope retains strict outcome | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-V02 null record retains strict outcome | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-V02 foreign owner retains strict outcome | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-V02 equal-content replacement invalidates current proof ownership | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-V02 equal-envelope replacement invalidates accepted proof ownership | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-V03 valid content proof cannot bypass missing prior transition | 같은 이름 원출력의 실제 assertion | PASS |
+| CP01 actual Ready Complete shape canonical files reservation | 같은 이름 원출력의 실제 assertion | PASS |
+| CP02 bounded two jobs over 1MiB canonical transitions | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-V01 every normal update strictly parses content once | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-V01 automatic checkpoint applies current update payload | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-V01 automatic checkpoint reuses current validated content without parsing | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-V04 managed reopen retains strict content parsing | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-V04 manual checkpoint retains strict content parsing | 같은 이름 원출력의 실제 assertion | PASS |
+
+### lp18-ownership-green-thin-envelope-01.txt
+
+[원출력](lp18-ownership-green-thin-envelope-01.txt), 6860B. wrapper exit0 / 3010ms.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-O01 owner checked read view shares journal envelope | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O01 shared journal original candidate envelopes | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O01 public Replay value mutation remains isolated | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O01 retained prefix shares journal envelope | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O01 full canonical and projection oracle | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O03 stale candidate after reservation rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O03 foreign owner candidate rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 exact field order or prefix mutation rejected schema | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change schema | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 exact field order or prefix mutation rejected type | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change type | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 exact field order or prefix mutation rejected id | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change id | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 exact field order or prefix mutation rejected entity | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change entity | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 exact field order or prefix mutation rejected time | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change time | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 exact field order or prefix mutation rejected payload | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change payload | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 exact field order or prefix mutation rejected reorder | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change reorder | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 exact field order or prefix mutation rejected shrink | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change shrink | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O04 null envelope safely rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O02 only transformed receipts own new envelopes | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O02 prepared receipts preserve original canonical bytes | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O02 publication bytes and prior owned snapshot remain exact | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O02 published journal and prefix share transformed receipt envelopes | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O02 receipt independent full projection equality | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O03 stale candidate after ordinary append rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O05 8192 logical records admitted | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O05 8193 aliases still rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O05 64MiB logical bytes admitted | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-O05 64MiB plus one rejected | 같은 이름 원출력의 실제 assertion | PASS |
+
+### lp18-ownership-green-thin-logical-01.txt
+
+[원출력](lp18-ownership-green-thin-logical-01.txt), 7738B. wrapper exit0 / 3072ms.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-L21 logical ref baseline preserves raw bytes and independent Replay value | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L21 journal logical record ref capability exists | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L21 logical ref cold acquire preserves complete canonical value | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L21 logical ref acquisition does not retain a strong resident | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L21 logical ref reader survives resident release | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L22 logical refs remain unchanged after append and Reserve | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L22 logical ref retries preserve row count and durable bytes | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L24 null and foreign logical refs clear output without poisoning | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L21 logical refs distinguish duplicate IDs by physical row ordinal | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L23 no-write checkpoint preserves logical refs | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L23 recover-only checkpoint preserves logical refs | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L25 checkpoint ref preparation failure preserves bytes and current refs | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L23 receipt swap preserves refs only for full-field identical rows | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L23 changed receipt rejects old logical ref without poisoning | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L23 old owned original survives changed logical ref replacement | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L24 reopen rejects prior journal lineage without poisoning | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L21 resident fallback remains available through logical refs | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L24 logical ref acquire detects same-size raw tamper and poisons | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L24 logical ref truncation clears output and poisons | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L24 logical ref inode replacement clears output and poisons | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L25 logical ref Acquire exception clears output and poisons | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L24 logical ref fork rejects while parent remains valid | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L25 append ref mint exception poisons after durable write | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L25 append ref exception reopens exactly one durable record | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L25 Reserve ref mint exception withholds result and poisons | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L25 Reserve ref exception reopens and retries the same reservation | 같은 이름 원출력의 실제 assertion | PASS |
+
+### lp18-ownership-green-thin-metrics-01.txt
+
+[원출력](lp18-ownership-green-thin-metrics-01.txt), 6504B. wrapper exit0 / 3078ms.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-L31 weak link logical charge excludes strong payload | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L31 resident fallback counts one strong envelope | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L31 shared fallback counts two logical links and one payload | 같은 이름 원출력의 실제 assertion | PASS |
+
+### lp18-ownership-green-thin-snapshot-01.txt
+
+[원출력](lp18-ownership-green-thin-snapshot-01.txt), 8214B. wrapper exit0 / 2965ms.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-L17 snapshot baseline Replay preserves complete canonical value | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L17 checkpoint read snapshot capability exists | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L17 snapshot binds complete immutable original values | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L18 snapshot reads each cold original exactly once | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L17 external owned vector mutation cannot alter snapshot original | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L18 Prepare and Commit reuse snapshot without repeated cold reads | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L19 snapshot no-write checkpoint preserves exact bytes and tokens | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L19 recover-only snapshot cleanup retains generation and exact bytes | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L17 snapshot release leaves no journal or cache strong resident | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L18 null snapshot retains strict repeated-read fallback and exact receipt bytes | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L19 appended history invalidates snapshot and rejects stale candidate | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L19 reserved history invalidates snapshot and rejects stale candidate | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L19 detach and same-owner reattach require strict snapshot fallback | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L19 identical foreign journal snapshot uses strict local fallback | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison schema | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison id | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison entity | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison time | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison type | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison payload | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison order | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison count | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison null | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L19 receipt swap invalidates snapshot while old owned original survives | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L20 explicit Acquire rechecks same-size raw tamper despite owned snapshot | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L20 snapshot acquisition exception clears both outputs and poisons | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L17 snapshot preserves duplicate physical rows and noncanonical envelope bytes | 같은 이름 원출력의 실제 assertion | PASS |
+| LP18-L18 catalog Checkpoint reuses one cold snapshot with exact bytes and projection | 같은 이름 원출력의 실제 assertion | PASS |
+
+### lp18-thin-cache-01.txt
+
+[원출력](lp18-thin-cache-01.txt), 7626B. 실제 명령·exit·시간·정리는 중앙 LP18 기록 참조.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP15-C01 cold full applied=1 expected=1 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C01 unchanged prefix applied=0 expected=0 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C01 exact prefix suffix only applied=1 expected=1 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C01 independent prefix shadow/full projection equality | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C01 full fallback schema applied=2 expected=2 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C01 full fallback type applied=2 expected=2 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C01 full fallback id applied=2 expected=2 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C01 full fallback entity applied=2 expected=2 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C01 full fallback time applied=2 expected=2 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C01 full fallback payload applied=2 expected=2 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C01 full fallback reorder applied=2 expected=2 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C01 full fallback shrink applied=2 expected=2 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C01 full fallback null-shadow applied=2 expected=2 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C01 full fallback null-handle applied=2 expected=2 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C01 Open clears cache applied=2 expected=2 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C03 recover full/no-cache | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C03 after recover full applied=2 expected=2 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C03 injected commit refusal discards cache | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C03 after commit refusal full applied=2 expected=2 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C03 suffix exception discards cache | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C03 after exception full applied=3 expected=3 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C03 public poisoned entry discards cache | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C03 after restored fixture full applied=3 expected=3 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C04 exact byte charge boundary | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C04 overflow charge rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C04 8192 records admitted | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C04 8193 records rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C04 64MiB record charge admitted | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C04 64MiB plus one rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C03 changed candidate prime applied=1 expected=1 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C03 changed candidate suffix12 plus full candidate13 applied=25 expected=25 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C03 changed candidate cache equals independent full projection | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C03 compacted candidate prefix reused applied=0 expected=0 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C03 forced projection mismatch discards cache | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C04 overlimit prime applied=1 expected=1 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C04 existing cache ignored for oversized original applied=8193 expected=8193 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C04 oversized candidate not retained | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C04 next oversized checkpoint full applied=8193 expected=8193 | 같은 이름 원출력의 실제 assertion | PASS |
+| CP01 actual Ready Complete shape canonical files reservation | 같은 이름 원출력의 실제 assertion | PASS |
+| CP02 bounded two jobs over 1MiB canonical transitions | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C02 bounded automatic checkpoint and whole transition measurement | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C02 reopened full applied=18 expected=18 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C02 actual unchanged prefix applied=0 expected=0 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C02 actual suffix only applied=1 expected=1 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C02 actual job shadow/full projection equality | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C03 illegal Ready after Complete suffix rejected by cached/full paths | 같은 이름 원출력의 실제 assertion | PASS |
+| LP15-C04 peakRSS bytes=163774464 cap=536870912 | 같은 이름 원출력의 실제 assertion | PASS |
+
+### lp18-thin-catalog-01.txt
+
+[원출력](lp18-thin-catalog-01.txt), 15464B(줄끝 공백 정규화 전15479B). 실제 명령·exit·시간·정리는 중앙 LP18 기록 참조.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| journal open:  | 같은 이름 원출력의 실제 assertion | PASS |
+| fallback catalog open:  | 같은 이름 원출력의 실제 assertion | PASS |
+| SQLite off mode 표시 | 같은 이름 원출력의 실제 assertion | PASS |
+| segment finalize journal+projection:  | 같은 이름 원출력의 실제 assertion | PASS |
+| fallback range query | 같은 이름 원출력의 실제 assertion | PASS |
+| event link FK 위반 거부 | 같은 이름 원출력의 실제 assertion | PASS |
+| FK 위반 transaction/journal 전체 rollback | 같은 이름 원출력의 실제 assertion | PASS |
+| 최초 durable mutation 1개 | 같은 이름 원출력의 실제 assertion | PASS |
+| 동일 mutation 중복 append | 같은 이름 원출력의 실제 assertion | PASS |
+| 손상 사이 정상 durable mutation 보존 | 같은 이름 원출력의 실제 assertion | PASS |
+| 중간 corrupt line count | 같은 이름 원출력의 실제 assertion | PASS |
+| 마지막 truncated line skip | 같은 이름 원출력의 실제 assertion | PASS |
+| fallback replay open | 같은 이름 원출력의 실제 assertion | PASS |
+| 같은 mutation idempotent replay | 같은 이름 원출력의 실제 assertion | PASS |
+| 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | 같은 이름 원출력의 실제 assertion | PASS |
+| 중복 replay row/합계 불증가 | 같은 이름 원출력의 실제 assertion | PASS |
+| 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구:  | 같은 이름 원출력의 실제 assertion | PASS |
+| writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | 같은 이름 원출력의 실제 assertion | PASS |
+| v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | 같은 이름 원출력의 실제 assertion | PASS |
+| SQLite catalog open/rebuild:  | 같은 이름 원출력의 실제 assertion | PASS |
+| SQLite primary mode 표시 | 같은 이름 원출력의 실제 assertion | PASS |
+| SQLite on/off range query ID·순서 parity | 같은 이름 원출력의 실제 assertion | PASS |
+| journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | 같은 이름 원출력의 실제 assertion | PASS |
+| journal 없는 손상 media orphan 구분 | 같은 이름 원출력의 실제 assertion | PASS |
+| projection failover journal open:  | 같은 이름 원출력의 실제 assertion | PASS |
+| projection failover catalog open:  | 같은 이름 원출력의 실제 assertion | PASS |
+| 실제 SQLite INSERT 실패 trigger 설치 | 같은 이름 원출력의 실제 assertion | PASS |
+| SQLite 투영 실패 뒤 journal+memory finalize 유지:  | 같은 이름 원출력의 실제 assertion | PASS |
+| SQLite 투영 실패 즉시 JSONL fallback 전환 | 같은 이름 원출력의 실제 assertion | PASS |
+| 재시작 rebuild 전 실패 trigger 제거 | 같은 이름 원출력의 실제 assertion | PASS |
+| 투영 실패 직후 in-memory query 정합성 유지 | 같은 이름 원출력의 실제 assertion | PASS |
+| projection failover 재시작 journal rebuild:  | 같은 이름 원출력의 실제 assertion | PASS |
+| 재시작 후 journal에서 누락 SQLite projection 복구 | 같은 이름 원출력의 실제 assertion | PASS |
+| 재시작 후 SQLite primary 복귀 | 같은 이름 원출력의 실제 assertion | PASS |
+| 재시작 journal rebuild가 실제 SQLite row 복원 | 같은 이름 원출력의 실제 assertion | PASS |
+| tombstone journal open:  | 같은 이름 원출력의 실제 assertion | PASS |
+| tombstone catalog open:  | 같은 이름 원출력의 실제 assertion | PASS |
+| tombstone 대상 segment finalize:  | 같은 이름 원출력의 실제 assertion | PASS |
+| tombstone 대상 deletion request:  | 같은 이름 원출력의 실제 assertion | PASS |
+| tombstone 완료 기록:  | 같은 이름 원출력의 실제 assertion | PASS |
+| catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | 같은 이름 원출력의 실제 assertion | PASS |
+| 손상 SQLite 격리 후 journal rebuild:  | 같은 이름 원출력의 실제 assertion | PASS |
+| 손상 SQLite 원본 격리 | 같은 이름 원출력의 실제 assertion | PASS |
+| 격리 SQLite 파일 보존 | 같은 이름 원출력의 실제 assertion | PASS |
+| 격리 후 journal rebuild 결과 | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A future-schema journal read open | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A future-schema unsupported classification | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A future-schema catalog open denied | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A future-schema catalog retry denied | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A future-schema journal bytes preserved | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A future-schema SQLite bytes preserved | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A future-schema writer cleanup untouched | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A arbitrary-schema journal read open | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A arbitrary-schema unsupported classification | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A arbitrary-schema catalog open denied | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A arbitrary-schema catalog retry denied | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A arbitrary-schema journal bytes preserved | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A arbitrary-schema SQLite bytes preserved | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A arbitrary-schema writer cleanup untouched | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A empty-schema journal read open | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A empty-schema unsupported classification | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A empty-schema catalog open denied | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A empty-schema catalog retry denied | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A empty-schema journal bytes preserved | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A empty-schema SQLite bytes preserved | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A empty-schema writer cleanup untouched | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A future-type journal read open | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A future-type unsupported classification | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A future-type catalog open denied | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A future-type catalog retry denied | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A future-type journal bytes preserved | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A future-type SQLite bytes preserved | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A future-type writer cleanup untouched | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A malformed journal open | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-3A malformed JSON missing fields and wrong types remain corrupt | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O01 reservation journal open | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O01 first reservation returns four IDs and sequence one | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O01 versioned reservation payload replays | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O01 new reservation records actual occurred time | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O02 identical retry preserves sequence and bytes | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O03 reopened instance allocates next sequence | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O03 new process resumes durable sequence | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O04 different store rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O04 reused request with different segment rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O04 reused request with different channel rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O04 reused segment with different request rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O04 conflicts preserve original bytes | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O05/O06 reject and preserve corrupt | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O05/O06 reject and preserve unsupported-schema | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O05/O06 reject and preserve unsupported-type | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O05/O06 reject and preserve tail | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O05/O06 reject and preserve payload-zero | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O05/O06 reject and preserve payload-negative | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O05/O06 reject and preserve payload-fraction | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O05/O06 reject and preserve payload-overflow | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O05/O06 reject and preserve duplicate-sequence | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O05/O06 reject and preserve decreasing-sequence | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O05/O06 reject and preserve duplicate-request | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O05/O06 reject and preserve duplicate-segment | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O05/O06 reject and preserve store-conflict | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O05/O06 reject and preserve ordinary-before | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O05/O06 reject and preserve ordinary-after | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O05/O06 reject and preserve line-cap | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O05 reservation entity envelope binding rejects mismatch | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O05 reservation request envelope binding rejects mismatch | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O01 strict reservation parser accepts versioned literal | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O06 INT64_MAX identical retry remains valid | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O06 sequence overflow rejected without write | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O02 identical durable reservation duplicates remain idempotent | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O06 sequence gaps remain valid and allocate above maximum | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O07 four simultaneous processes finish reservations | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O07 concurrent sequences are unique and complete | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O07 next sequence follows concurrent reservations | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O08 ordinary Append cannot reserve orders | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O08 unopened journal rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O08 null result rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O08 invalid opaque ID rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O08 failed reservation does not expose tentative result | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O09 unsafe file binding rejected and original preserved inode | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O09 unsafe file binding rejected and original preserved parent | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O09 unsafe file binding rejected and original preserved symlink | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O09 unsafe file binding rejected and original preserved hardlink | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O10 reservation and normal segment coexist in catalog | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O04 reserve then finalize permits identical retry | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O10 reservation survives catalog rebuild without changing segment query | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-O04 legacy segment cannot acquire retroactive reservation | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M06 opened catalog accepts fresh exact reservation V2 finalize | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M07 V2 find preserves complete metadata | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M07 identical V2 recovery is idempotent | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M07 V2 is absent from V1 range query | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M07 V2 registered path is not orphan | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M07 SQLite exact V2 JSON and path match | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M07 JSONL restart preserves V2 exact payload | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M06 wrong reservation tuple rejected store | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M06 wrong reservation tuple rejected request | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M06 wrong reservation tuple rejected segment | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M06 wrong reservation tuple rejected channel | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M06 wrong reservation tuple rejected sequence | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M09 immutable V2 mapping mismatch rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M09 bad V2 startup retry preserves original state bad-payload | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M09 bad V2 startup retry preserves original state missing-order | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M09 bad V2 startup retry preserves original state bad-order | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M09 bad V2 startup retry preserves original state conflicting-order | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M09 bad V2 startup retry preserves original state tail | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M09 bad V2 startup retry preserves original state corrupt | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M09 bad V2 startup retry preserves original state unsafe-path | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M09 default off rejects V2 before SQLite changes | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M09 V2 replay namespace and deletion duplicate | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M09 V2 replay namespace and deletion deleted | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M09 V2 replay namespace and deletion v1-before | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M09 V2 replay namespace and deletion v1-after | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M09 V2 replay namespace and deletion deleted-before | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M09 V2 replay namespace and deletion resurrection | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M09 V2 replay namespace and deletion mutation-collision | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M09 V2 finalize rejects missing media | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M09 V2 finalize rejects directory media | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M09 fresh candidate rejects mapping | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M09 fresh candidate rejects path | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-M09 fresh candidate rejects tombstone | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SW01 managed empty root opens with lifetime lease | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SW02 same process second managed owner denied | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SW03 different process owner and inherited use denied | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SW12 managed duplicate descriptors are close-on-exec | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SW05 managed reserve append replay use owned descriptor | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SW06 raw managed access and legacy default path denied | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SW01 managed Reserve rejects different store identity | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SW10 catalog connection can inspect managed lease | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SW04 owner destruction releases lease | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SW01 managed reopen rejects different store identity | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SW11 managed incomplete tail rejects append without changing bytes | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SW07 legacy nonempty root preserved without conversion | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SW08 partial initialization retry validates exact state lease | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SW08 partial initialization retry validates exact state init | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SW08 partial initialization retry validates exact state barrier | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SW08 partial initialization retry validates exact state journal | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SW08 partial initialization retry validates exact state incomplete | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SW08 partial initialization retry validates exact state unknown | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SW09 symlink inode and malformed marker rejected journal | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SW09 symlink inode and malformed marker rejected marker | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SW09 symlink inode and malformed marker rejected barrier | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SW09 symlink inode and malformed marker rejected root-symlink | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SB01 second managed catalog is denied | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SB02 failed catalog cannot mutate journal or holds | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SB03 attached catalog blocks unowned append but permits reservation | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SB04 catalog destruction releases attachment | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SB05 managed catalog rejects unsafe options outside | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SB05 managed catalog rejects unsafe options dotdot | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SB05 managed catalog rejects unsafe options media-symlink | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SB05 managed catalog rejects unsafe options sqlite-symlink | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SB05 managed catalog rejects unsafe options sqlite-hardlink | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SB05 managed catalog rejects unsafe options disabled | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SB06 failed open releases catalog attachment | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SB07 managed SQLite sidecar rejected -wal symlink | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SB07 managed SQLite sidecar rejected -wal hardlink | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SB07 managed SQLite sidecar rejected -shm symlink | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SB07 managed SQLite sidecar rejected -shm hardlink | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SB07 managed SQLite sidecar rejected -journal symlink | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SB07 managed SQLite sidecar rejected -journal hardlink | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC01 managed repeated event fixture is valid | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC02 managed reservations avoid history reads | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC03 managed V2 finalize avoids full replay | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC04 checkpoint reduces superseded event payload bytes | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC05 checkpoint preserves latest event and all record identities | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC06 checkpoint is idempotent and preserves V2 | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC08 receipt preserves retry identity and rejects direct append | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC09 checkpoint restart preserves SQLite and JSONL state sqlite | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC09 managed checkpoint SQL V2 payload and path | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC09 checkpoint restart preserves SQLite and JSONL state jsonl | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC10 checkpoint prefix recovers before writes | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC11 checkpoint mismatch preserves bytes and poisons owner | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC12 first accepted mutation controls latest event | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC16 automatic checkpoint uses accumulated growth | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC07 raw checkpoint is rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC18 checkpoint syscall failure poisons and reopens write | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC21 poison rejects hold mutation write | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC18 checkpoint syscall failure poisons and reopens file-fsync | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC21 poison rejects hold mutation file-fsync | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC18 checkpoint syscall failure poisons and reopens rename | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC21 poison rejects hold mutation rename | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC18 checkpoint syscall failure poisons and reopens dir-fsync | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC21 poison rejects hold mutation dir-fsync | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC17 checkpoint preserves holds observations and deletion | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC17 checkpoint SQL hold observation tombstone | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC17 checkpoint preserves holds observations and deletion restart sqlite | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC17 checkpoint SQL restart observation tombstone | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC17 checkpoint preserves holds observations and deletion restart jsonl | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC19 invalid managed history remains unchanged malformed | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC19 invalid managed history remains unchanged unsupported | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC19 invalid managed history remains unchanged conflict | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC20 raw catalog rejects receipt before side effects | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC13 crypto off raw remains usable | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC14 crypto off checkpoint is rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| S10-SC15 crypto off receipt reopen is rejected | 같은 이름 원출력의 실제 assertion | PASS |
+| source 저장 callback reconcile 연결 | 같은 이름 원출력의 실제 assertion | PASS |
+| policy revision idempotency | 같은 이름 원출력의 실제 assertion | PASS |
+| 5초 safety reconcile | 같은 이름 원출력의 실제 assertion | PASS |
+| composition root 관리 저장소 선행 open | 같은 이름 원출력의 실제 assertion | PASS |
+| composition helper journal 다음 catalog rebuild/open | 같은 이름 원출력의 실제 assertion | PASS |
+| 서버 전 supervisor 시작 | 같은 이름 원출력의 실제 assertion | PASS |
+| ingress 전 event bridge 등록 | 같은 이름 원출력의 실제 assertion | PASS |
+| ingress 종료 뒤 recorder finalize | 같은 이름 원출력의 실제 assertion | PASS |
+| composition root 시작/종료 순서 | 같은 이름 원출력의 실제 assertion | PASS |
+
+### lp18-thin-prepared-01.txt
+
+[원출력](lp18-thin-prepared-01.txt), 2853B. 실제 명령·exit·시간·정리는 중앙 LP18 기록 참조.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP14-C01 state=1 updates=1 full_parse=1 expected=1 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP14-C01 state=2 updates=1 full_parse=1 expected=1 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP14-C01 state=3 updates=1 full_parse=1 expected=1 | 같은 이름 원출력의 실제 assertion | PASS |
+| LP14-C03 memory/sqlite canonical bytes and CompletedOracle | 같은 이름 원출력의 실제 assertion | PASS |
+| LP14-C02 binding=payload rejected without apply | 같은 이름 원출력의 실제 assertion | PASS |
+| LP14-C02 binding=type rejected without apply | 같은 이름 원출력의 실제 assertion | PASS |
+| LP14-C02 binding=entity rejected without apply | 같은 이름 원출력의 실제 assertion | PASS |
+| LP14-C02 binding=owner rejected without apply | 같은 이름 원출력의 실제 assertion | PASS |
+| LP14-C02 binding=prior rejected without apply | 같은 이름 원출력의 실제 assertion | PASS |
+| LP14-C02 duplicate envelope no-apply/conflict rejection | 같은 이름 원출력의 실제 assertion | PASS |
+| LP14-C02 one-shot apply/reuse rejection | 같은 이름 원출력의 실제 assertion | PASS |
+
+### lp18-ownership-red-catalog-thin-01.txt
+
+[원출력](lp18-ownership-red-catalog-thin-01.txt). 예상 RED: focused exit1, wrapper0, 전체2931ms. source 불변·5347544B 정리 완료.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-L26 thin-link baseline preserves complete canonical journal bytes | 기준 바이트 대조 | PASS |
+| LP18-L26 sealed view and thin-link capability exists | 사전등록한 기능 부재 예상 RED; 제품 PASS 아님 | FAIL |
+
+| 제목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| LP18-L26 same-read views preserve physical duplicate order and resist external owned-vector mutation | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L30 cold Read exception clears prefilled owned and view outputs and poisons | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L30 primed cold prefix reuses current read once with exact bytes and projection | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L26 same-read sealed view binds exact owned envelope | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L26 same-append sealed view binds exact new envelope | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L27 accepted live shadow and prefix release detailed envelope ownership | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L27 accepted cold acquisition preserves canonical and durable bytes | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L27 accepted cold acquisition remains transient | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L28 shadow reads through current attachment authority | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L27 prefix cold acquisition preserves full envelope | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L29 accepted duplicate retains full canonical collision rejection | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L30 prefix mismatch falls back to full replay without rejecting valid input | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L26 mismatched sealed view rejects before registration schema | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L26 mismatched sealed view rejects before registration type | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L26 mismatched sealed view rejects before registration id | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L26 mismatched sealed view rejects before registration entity | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L26 mismatched sealed view rejects before registration time | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L26 mismatched sealed view rejects before registration payload | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L26 raw Apply without view preserves resident fallback | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L28 foreign sealed authority cannot become fallback provenance | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L28 detached authority blocks cold read while owned reader survives | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L28 same-address reattach does not revive old authority | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L29 reopen preserves thin canonical ordinal and projection sqlite | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L29 SQLite rebuild keeps ordinal gate with thin links | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L29 SQLite rebuild keeps full canonical gate with thin links | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L29 reopen preserves thin canonical ordinal and projection fallback | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L26 receipt retry returns original without binding receipt view | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+| LP18-L30 cold thin-link corruption fails closed instead of cache fallback | thin 소비 반례 | capability 미구현으로 not-run | GREEN 미실행 |
+
 ### lp18-logical-cache-01.txt
 
 [원출력](lp18-logical-cache-01.txt), 6459B.

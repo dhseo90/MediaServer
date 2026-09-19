@@ -29,7 +29,9 @@ bool BindingOracle(Store& store,const recording::DerivedJobIntentV1& intent){
  recording::RecordingCatalog::PreparedDerivedMutation duplicate(&store.catalog,payload);
  if(!store.catalog.ApplyDerivedJobMutationLocked(mutation,&error,false,&duplicate))throw std::runtime_error("duplicate-prepare");
  store.catalog.mutation_ids_.insert(mutation.mutation_id);
- store.catalog.accepted_segment_state_mutations_[mutation.mutation_id]=std::make_shared<const recording::RecordingMutationV1>(mutation);
+ recording::RecordingMutationLink duplicate_link;
+ if(!store.journal.MakeMutationLink({},mutation,std::make_shared<const recording::RecordingMutationV1>(mutation),&duplicate_link,&error))throw std::runtime_error("duplicate-link");
+ store.catalog.accepted_segment_state_mutations_[mutation.mutation_id]=std::move(duplicate_link);
  const bool duplicate_ok=store.catalog.ApplyMutationLocked(mutation,false,&error,&duplicate)&&
   duplicate.phase==recording::RecordingCatalog::PreparedDerivedMutation::Phase::Validated&&
   store.catalog.derived_jobs_.at(intent.job_id)->state==recording::DerivedJobState::Intent;

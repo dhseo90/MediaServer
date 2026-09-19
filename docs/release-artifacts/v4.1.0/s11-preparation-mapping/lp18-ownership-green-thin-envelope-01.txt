@@ -1,0 +1,87 @@
+{"kind":"start","utc":"2026-09-19T23:23:36.685Z","mode":"green","id":"thin-envelope-01","suite":"envelope","source":[{"name":"include/recording/recording_catalog.h","sha256":"341761d7b66efd06ad094bb76df1a9798489a2b05695f4de9e0b10d438617037"},{"name":"include/recording/recording_journal.h","sha256":"fe603e9dfa21cafa1bcfab4242b245adb7cff9d992fafd130cd7da3a21c0c944"},{"name":"src/recording/recording_catalog.cpp","sha256":"816345f71b506cde4c561fca1067a038ee12d618f3588b3d36fda5381680e0b0"},{"name":"src/recording/recording_journal.cpp","sha256":"00947f13a4fdc68f9d1a0396f39438fbb96d53808420b6bd857aa76c1c0b7067"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"21f07f7a98419c39c20a46eb5913dc9948bdbb8d341b0efe33b8ab3ad3980508"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"231526ff8c06ee4e908586eb40f14f7824213b18a29c7213650dc6e0050bf630"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"f7a983ec801f91d8d9e0a61240b783dac962c8753dd5455282095b286fbabc0c"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>"],"seconds":60}
+[instrument] catalog_sha256=b864ea20c98837c62d91db276b44a0b4e417db0699e746f5b262ba703165adb0 binding_exact_insertions=1 job_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"fe603e9dfa21cafa1bcfab4242b245adb7cff9d992fafd130cd7da3a21c0c944"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"341761d7b66efd06ad094bb76df1a9798489a2b05695f4de9e0b10d438617037"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"00947f13a4fdc68f9d1a0396f39438fbb96d53808420b6bd857aa76c1c0b7067"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"816345f71b506cde4c561fca1067a038ee12d618f3588b3d36fda5381680e0b0"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"21f07f7a98419c39c20a46eb5913dc9948bdbb8d341b0efe33b8ab3ad3980508"}
+        2.43 real         2.24 user         0.14 sys
+           310296576  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               58559  page reclaims
+                 596  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   7  messages sent
+                   0  messages received
+                   3  signals received
+                  15  voluntary context switches
+                2155  involuntary context switches
+            77614273  instructions retired
+            34652248  cycles elapsed
+             2064792  peak memory footprint
+{"kind":"phase","label":"build","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":2443,"groupPeakRssBytes":323174400}
+{"kind":"command","label":"focused","command":"<owned-root>/check","args":["<owned-root>"],"seconds":60}
+[pass] LP18-O01 owner checked read view shares journal envelope
+[pass] LP18-O01 shared journal original candidate envelopes
+[pass] LP18-O01 public Replay value mutation remains isolated
+[pass] LP18-O01 retained prefix shares journal envelope
+[pass] LP18-O01 full canonical and projection oracle
+[pass] LP18-O03 stale candidate after reservation rejected
+[pass] LP18-O03 foreign owner candidate rejected
+[pass] LP18-O04 exact field order or prefix mutation rejected schema
+[pass] LP18-O04 standalone candidate fields rejected without disk change schema
+[pass] LP18-O04 exact field order or prefix mutation rejected type
+[pass] LP18-O04 standalone candidate fields rejected without disk change type
+[pass] LP18-O04 exact field order or prefix mutation rejected id
+[pass] LP18-O04 standalone candidate fields rejected without disk change id
+[pass] LP18-O04 exact field order or prefix mutation rejected entity
+[pass] LP18-O04 standalone candidate fields rejected without disk change entity
+[pass] LP18-O04 exact field order or prefix mutation rejected time
+[pass] LP18-O04 standalone candidate fields rejected without disk change time
+[pass] LP18-O04 exact field order or prefix mutation rejected payload
+[pass] LP18-O04 standalone candidate fields rejected without disk change payload
+[pass] LP18-O04 exact field order or prefix mutation rejected reorder
+[pass] LP18-O04 standalone candidate fields rejected without disk change reorder
+[pass] LP18-O04 exact field order or prefix mutation rejected shrink
+[pass] LP18-O04 standalone candidate fields rejected without disk change shrink
+[pass] LP18-O04 null envelope safely rejected
+[pass] LP18-O02 only transformed receipts own new envelopes
+[pass] LP18-O02 prepared receipts preserve original canonical bytes
+[pass] LP18-O02 publication bytes and prior owned snapshot remain exact
+[pass] LP18-O02 published journal and prefix share transformed receipt envelopes
+[pass] LP18-O02 receipt independent full projection equality
+[pass] LP18-O03 stale candidate after ordinary append rejected
+[pass] LP18-O05 8192 logical records admitted
+[pass] LP18-O05 8193 aliases still rejected
+[pass] LP18-O05 64MiB logical bytes admitted
+[pass] LP18-O05 64MiB plus one rejected
+[summary] LP18 pass=34 fail=0
+        0.54 real         0.14 user         0.03 sys
+           172474368  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               12668  page reclaims
+                  40  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                  38  voluntary context switches
+                 124  involuntary context switches
+          3266480313  instructions retired
+           722591721  cycles elapsed
+           141820696  peak memory footprint
+{"kind":"phase","label":"focused","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":552,"groupPeakRssBytes":29605888}
+{"kind":"oracle","mode":"green","expectedRed":false,"productPass":true,"matched":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":5771025,"removed":true}
+{"kind":"result","utc":"2026-09-19T23:23:39.694Z","mode":"green","matched":true,"productPass":true,"elapsedMs":3010}

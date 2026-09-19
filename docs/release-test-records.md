@@ -13,8 +13,8 @@ Superpowers 스킬은 현재 제공되지 않아 사용을 주장하지 않으�
 | --- | --- | --- | --- | --- |
 | 1 | 저장 기준 검증 보완 | 완료 | 순수14·실제46 PASS, 예상 RED2건 보존. HW 해결 아님 | 아래 WR 결과 |
 | 2 | 위치 재획득 마감 | 완료 | 기존 위치 증거37SHA 일치·service43·2job 기능120/계측1 통과 | LP18-L01~10·아래 결과 |
-| 3 | 실제 RAM 수명 적용 | 진행 중 | 명시 cold 재획득·호출-local checkpoint·논리ref 기반 구현/단기 검증 완료. 자동 소비 연결은 아직 없음 | 누적 비용 계약0절·아래 결과 |
-| 4 | 분할 커밋·보고 | 단계별 수행 | 기준·위치·cold·snapshot 커밋 완료, 논리ref 단위 커밋 준비. 단계3 전체는 미완료 | AGENTS3/5 |
+| 3 | 실제 RAM 수명 적용 | 진행 중 | cold·호출-local checkpoint·논리ref·accepted/prefix 소비 연결 검증 완료. typed/자동 해제는 아직 없음 | 누적 비용 계약0절·아래 결과 |
+| 4 | 분할 커밋·보고 | 단계별 수행 | 기준·위치·cold·snapshot·논리ref 커밋 완료, accepted/prefix 단위 커밋 준비. 단계3 전체는 미완료 | AGENTS3/5 |
 
 | 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
 | --- | --- | --- | --- | --- |
@@ -400,6 +400,145 @@ source불변·group정리true. token start/end/consumed는 개별 집계 도구 
 
 logical 마감 문서 링크 exit0(285md/8930links/22images/116anchors/실패0), 공백 검사exit0.
 검증 뒤 제품/fixture 변경은 없고 이 단위의 검증·기록 파일만 커밋한다. 푸시는 수행하지 않는다.
+
+### 3번 accepted·prefix 소비 연결 실행 전 정의
+
+선행 논리 참조 단위는 `121d711e`로 커밋했다. 이번 단위는 journal sealed view와 accepted/prefix의
+얇은 참조만 연결하며 typed binding/job·자동 해제·실제 HTTP/전체 RAM 비용은 아직 제외한다.
+기존 canonical 6필드·ordinal·손상 거부·복구·64MiB/8192 논리 입장 한도를 유지한다.
+
+명령: `node scripts/internal/verify_recording_immutable_ownership.mjs red catalog-thin-01 catalog-thin`.
+기반1PASS/capability1FAIL와28 not-run만 예상 RED다. 이후 같은 runner의 green 모드에서 exact30PASS를 요구한다.
+빌드/환경/정리 오류는 예상 RED가 아니다. runner의 기존60초/1GiB RSS/512MiB disk/2MiB output과 소유 root 정리를 유지한다.
+ps/sysctl 권한이 필요한 기존 runner는 승인된 격리 실행 권한으로 시작한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-L26 thin-link baseline preserves complete canonical journal bytes | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L26 sealed view and thin-link capability exists | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L26 same-read views preserve physical duplicate order and resist external owned-vector mutation | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L30 cold Read exception clears prefilled owned and view outputs and poisons | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L30 primed cold prefix reuses current read once with exact bytes and projection | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L26 same-read sealed view binds exact owned envelope | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L26 same-append sealed view binds exact new envelope | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L27 accepted live shadow and prefix release detailed envelope ownership | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L27 accepted cold acquisition preserves canonical and durable bytes | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L27 accepted cold acquisition remains transient | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L28 shadow reads through current attachment authority | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L27 prefix cold acquisition preserves full envelope | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L29 accepted duplicate retains full canonical collision rejection | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L30 prefix mismatch falls back to full replay without rejecting valid input | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L26 mismatched sealed view rejects before registration schema | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L26 mismatched sealed view rejects before registration type | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L26 mismatched sealed view rejects before registration id | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L26 mismatched sealed view rejects before registration entity | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L26 mismatched sealed view rejects before registration time | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L26 mismatched sealed view rejects before registration payload | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L26 raw Apply without view preserves resident fallback | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L28 foreign sealed authority cannot become fallback provenance | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L28 detached authority blocks cold read while owned reader survives | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L28 same-address reattach does not revive old authority | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L29 reopen preserves thin canonical ordinal and projection sqlite | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L29 SQLite rebuild keeps ordinal gate with thin links | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L29 SQLite rebuild keeps full canonical gate with thin links | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L29 reopen preserves thin canonical ordinal and projection fallback | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L26 receipt retry returns original without binding receipt view | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+| LP18-L30 cold thin-link corruption fails closed instead of cache fallback | accepted/prefix 비상주 소비 | 격리 원장·실제 private 경로의 전체값/바이트·권한·raw read·복구 직접 assertion | v4.1.0 |
+
+관련 회귀는 기존 envelope34·accepted55·content25·logical26·snapshot28·cache47·catalog246·prepared11·2job 기능120/계측1,
+전체 build를 변경 경계에 따라 순차 사용한다. 기존 정의를 유지하고 typed/job 변경이 생기면 먼저 범위를 재판단한다.
+LP17 계측은 실제 strong 소유의 기존 통계를 유지하고 weak lock으로 소유를 부풀리지 않는다.
+직접 코드 리뷰로 의미를 확정했다. 기존 records/logicalEnvelopeBytes는 참조별 논리량이므로 weak link도 포함한다.
+uniqueEnvelopes/stringCapacity 등 실제 소유 통계는 resident fallback만 센다. 처음의 strong-only 해석은 이 두 논리 필드에는 맞지 않아 정정한다.
+추가 논리 통계는 logicalLinkCount/logicalEnvelopeChargeBytes(기존 논리 입장 charge), weakLinkCount,
+residentFallbackLinkCount로 분리한다. vectorCapacityBytes는 기존 generic vector의 capacity×element-size 합계이므로
+현재 thin-link vector 자체의 실제 용량을 계수한다. 이를 envelope-only 용량으로 해석했던 실행 전 지시를 정정한다.
+이는 실행 전 정의이며 아직 전체 결과가 아니다.
+
+계측 자체검사는 같은 catalog-thin fixture의 별도 ownership-metrics 모드로 아래3개를 실행한다.
+기존30개·GREEN oracle은 변경하지 않는다. runner/빌드 source hash에 계측 header를 포함하고 기존 guard/cleanup을 유지한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-L31 weak link logical charge excludes strong payload | weak 논리량과 소유량 분리 | records1/logical charge·weak1·unique/string0 직접 assertion | v4.1.0 |
+| LP18-L31 resident fallback counts one strong envelope | fallback 소유 | 논리1·실체1·기존문자열/바이트 산식 일치 | v4.1.0 |
+| LP18-L31 shared fallback counts two logical links and one payload | 공유 fallback 중복 제거 | 논리2·실체1·shared1·문자열 단일계수 | v4.1.0 |
+
+RED 실제: 위 catalog-thin 명령 wrapper exit0, focused exit1·1PASS/1FAIL·28 not-run으로 예상과 일치했다.
+전체2931ms/focused615ms. source 변경 없음, 소유 root5347544B 삭제·부재 확인.
+capability 부재의 예상 RED이며 제품 PASS가 아니다. 원출력 `lp18-ownership-red-catalog-thin-01.txt`.
+
+### 3번 accepted·prefix 소비 연결 결과
+
+제품4파일의 private 참조 구조만 변경했다. journal은 같은 Read/Append의 owned value·논리ref·attachment를 봉인하고,
+catalog accepted/prefix는 view 자체 대신 얇은 참조를 보관한다. duplicate canonical·SQLite ordinal/full값 gate와
+checkpoint 후보의 전체필드/투영 검증을 유지했다. 새 입력의 view 불일치는 등록 전에 거부하며 cache 불일치는 full replay,
+실제 cold 손상은 poison/fail-closed다. Open recover-only는 파일을 바꾸지 않아 불필요한 두 번째 Read를 넣지 않았다.
+SQLite rebuild도 이미 검증된 같은 Read의 값을 사용하되 canonical과ordinal을 계속 대조한다.
+메인이 전체 제품diff·관련 fixture/계측 adapter와 원출력별 개별 결과를 직접 대조했다.
+
+최종 제품 source: catalog.cpp `816345f71b506cde4c561fca1067a038ee12d618f3588b3d36fda5381680e0b0`,
+journal.cpp `00947f13a4fdc68f9d1a0396f39438fbb96d53808420b6bd857aa76c1c0b7067`.
+typed binding/job와 자동 journal 해제는 아직 연결하지 않았다. 실제 RAM/누적비용/HTTP 완료가 아니다.
+처음 thin30 통과 후 현재 Read 활용 보완을 반영해 thin30을 다시 실행했다. accepted55 첫 통과 이후
+duplicate 뒤 실제 map 재획득을 확인하도록 oracle를 보완해 해당55개만 다시 실행했다. 다른 유효 단기 결과는 유지했다.
+과거 RED/FAIL은 삭제하지 않으며 전체30분/UI를 재시작하지 않았다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| lp18-ownership-green-catalog-thin-01.txt | green runner·build/focused exit0·30개·3128ms | PASS |
+| lp18-ownership-green-catalog-thin-02.txt | green runner·build/focused exit0·30개·3069ms | PASS |
+| lp18-ownership-green-thin-accepted-01.txt | green runner·build/focused exit0·55개·2854ms | PASS |
+| lp18-ownership-green-thin-accepted-02.txt | green runner·build/focused exit0·55개·3051ms | PASS |
+| lp18-ownership-green-thin-content-01.txt | green runner·build/focused exit0·25개·17566ms | PASS |
+| lp18-ownership-green-thin-envelope-01.txt | green runner·build/focused exit0·34개·3010ms | PASS |
+| lp18-ownership-green-thin-logical-01.txt | green runner·build/focused exit0·26개·3072ms | PASS |
+| lp18-ownership-green-thin-metrics-01.txt | green runner·build/focused exit0·3개·3078ms | PASS |
+| lp18-ownership-green-thin-snapshot-01.txt | green runner·build/focused exit0·28개·2965ms | PASS |
+| LP18 thin 전체 build | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build` exit0·19초, lp18-thin-build-01.txt | PASS |
+| LP18 thin checkpoint 회귀 | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_checkpoint_cache.sh` exit0·16초,47개/최대RSS163774464B/최대전이잠금450924us, lp18-thin-cache-01.txt | PASS |
+| LP18 thin prepared 회귀 | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_derived_transition_reuse.sh` exit0·4.71초(time)/5초(wrapper),11개, lp18-thin-prepared-01.txt | PASS |
+| LP18 thin catalog 회귀 | 명시 mktemp 소유 BUILD_DIR의 `bash scripts/internal/verify_v410_recording_catalog.sh` exit0·13.23초(time),246개(본문234/crypto3/연결9), lp18-thin-catalog-01.txt | PASS |
+| LP18 thin 2-job | `node scripts/internal/recording_catalog_comparison_run.mjs jobs thin-01` exit0·16538ms, 기능B60/C60·계측1·입력동일1 | PASS |
+
+소유 runner는60초/1GiB RSS 등 기존 guard, cache는60초/512MiB disk/RSS를 유지했다.
+prepared/catalog 직접 wrapper는 별도 RSS guard가 없으며 있다고 보고하지 않는다.
+2-job B/C의 실행6134/5057ms·RSS156991488/104415232B, source 불변과 입력 SHA
+`f8de1cd44038e7433d0c24b3f250f63704b80ba86b468178beb607f0e68ce82e` 일치를 확인했다.
+캐시 B의 live/shadow/prefix 논리행13/12/17·논리bytes2840409/2520628/2523069는 유지하며 weak link13/12/17,
+fallback0이다. prefix 자체 vector 용량은 이전272B에서1224B로 늘었다. 추가 참조 metadata가 공짜라고 하지 않는다.
+이번 단일 2-job은 큰 시간 회귀 징후가 없지만 서로 다른 source의 단일 실행으로 성능 개선/동등을 확정하지 않는다.
+매행 FD 검사·cold 재획득 비용과 실제 HTTP는 이후 판정한다. runner productPass=false는 이 진단이 제품 전체 PASS가 아님을 뜻한다.
+
+원출력별711개 assertion과 입력동일1건은 [개별 전수 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md)에 보존한다.
+build는 기존 build-gst-onnx 산출물을 갱신했고 삭제 대상 임시 root가 없다. 모든 검사는 서버/port를 기동하지 않았다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| lp18-ownership-green-catalog-thin-01.txt의 owned-root | 계측 binary/격리 원장 | 7757306B | runner 삭제 | 부재 확인 | cleanup removed=true·source unchanged |
+| lp18-ownership-green-catalog-thin-02.txt의 owned-root | 계측 binary/격리 원장 | 7757561B | runner 삭제 | 부재 확인 | cleanup removed=true·source unchanged |
+| lp18-ownership-green-thin-accepted-01.txt의 owned-root | 계측 binary/격리 원장 | 6150507B | runner 삭제 | 부재 확인 | cleanup removed=true·source unchanged |
+| lp18-ownership-green-thin-accepted-02.txt의 owned-root | 계측 binary/격리 원장 | 6150507B | runner 삭제 | 부재 확인 | cleanup removed=true·source unchanged |
+| lp18-ownership-green-thin-content-01.txt의 owned-root | 계측 binary/격리 원장 | 13898350B | runner 삭제 | 부재 확인 | cleanup removed=true·source unchanged |
+| lp18-ownership-green-thin-envelope-01.txt의 owned-root | 계측 binary/격리 원장 | 5771025B | runner 삭제 | 부재 확인 | cleanup removed=true·source unchanged |
+| lp18-ownership-green-thin-logical-01.txt의 owned-root | 계측 binary/격리 원장 | 22066254B | runner 삭제 | 부재 확인 | cleanup removed=true·source unchanged |
+| lp18-ownership-green-thin-metrics-01.txt의 owned-root | 계측 binary/격리 원장 | 5520788B | runner 삭제 | 부재 확인 | cleanup removed=true·source unchanged |
+| lp18-ownership-green-thin-snapshot-01.txt의 owned-root | 계측 binary/격리 원장 | 5602399B | runner 삭제 | 부재 확인 | cleanup removed=true·source unchanged |
+| media-server-checkpoint-cache.Bz1hrl | 계측 binary/격리 원장 | 17110467B | trap삭제 | 부재 확인 | thin-cache-01 cleanup |
+| media-server-transition-reuse.dp1b9r | 계측 binary/격리 원장 | 9267543B | trap삭제 | 부재 확인 | thin-prepared-01 cleanup |
+| /private/tmp/media-server-thin-catalog.5iIk6W | compile/격리 원장 | 27382990B | trap삭제 | 부재 확인 | thin-catalog-01 cleanup |
+| lp17 jobs thin-01 job-B/job-C | 각 격리 원장 | 각각5147594B | runner삭제 | 부재 확인 | store-cleanup |
+| lp17 jobs thin-01 owned-root | 계측 source/binary | 19357394B | runner삭제 | 부재 확인 | cleanup |
+
+마감: `./server.sh verify-docs-links` exit0(도구 wall0.04초), md285/local links8945/images22/anchors116/fail0.
+`git diff --check` exit0, 제품 두 source SHA가 위 최종값과 일치한다. 이미지 변경은 없어 자산/시각 검사는 이번 단위 미실행이다.
+이 단위는 관련 단기 검증·기록을 충족해 별도 커밋 대상이다. typed/자동해제·누적/HTTP/장시간/UI·푸시 미실행은 유지한다.
+
+커밋 직전 staged 공백 검사에서 새 catalog 원출력15행의 trailing space가 발견돼 exit2로 커밋을 중단했다.
+앞선 unstaged diffcheck는 신규 미추적 원출력을 포함하지 않았다. 기능 검증 실패로 바꾸지 않는다.
+해당 원출력의 줄끝 공백만 제거했으며 명령·수치·판정·행 순서는 불변이다. 15479→15464B.
+정규화 전 SHA `8b1d1bd8c632079a0645fc34c0a56aff93c6023eb69524d271e41402160c6737`, 후 SHA `4c267ac818ac0002200d8f4579e5df26f6380f25201ef84b025e02b031b65cae`. 원출력 형식 정규화를 기록하고 staged 검사를 다시 확인한다.
+동일 `git diff --cached --check` 재검증 exit0. 테스트 재실행 없이 보존물 형식 결함만 마감했다.
 
 ## 2026-09-20 LP18 잔여 1~3 순차 실행
 

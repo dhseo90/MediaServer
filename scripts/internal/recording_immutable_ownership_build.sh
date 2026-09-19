@@ -5,16 +5,16 @@ lp_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 lp_repo="$(cd "$lp_script/../.." && pwd)"
 lp_root="${1:?owned root required}"
 lp_mode="${2:-envelope}"
-if [[ "$lp_mode" != envelope && "$lp_mode" != job && "$lp_mode" != content && "$lp_mode" != envelope-cost && "$lp_mode" != context && "$lp_mode" != transition-comparison && "$lp_mode" != intent-comparison && "$lp_mode" != journal-location && "$lp_mode" != journal-location-crypto-off && "$lp_mode" != journal-cold && "$lp_mode" != journal-checkpoint-snapshot && "$lp_mode" != journal-logical ]];then exit 2;fi
+if [[ "$lp_mode" != envelope && "$lp_mode" != job && "$lp_mode" != content && "$lp_mode" != envelope-cost && "$lp_mode" != context && "$lp_mode" != transition-comparison && "$lp_mode" != intent-comparison && "$lp_mode" != journal-location && "$lp_mode" != journal-location-crypto-off && "$lp_mode" != journal-cold && "$lp_mode" != journal-checkpoint-snapshot && "$lp_mode" != journal-logical && "$lp_mode" != catalog-thin ]];then exit 2;fi
 node - "$lp_repo" "$lp_root" "$lp_mode" <<'NODE'
 const fs=require('fs'),path=require('path'),crypto=require('crypto'),[repo,out,mode]=process.argv.slice(2);
-const locationMode=['journal-location','journal-location-crypto-off','journal-cold','journal-checkpoint-snapshot','journal-logical'].includes(mode);
+const locationMode=['journal-location','journal-location-crypto-off','journal-cold','journal-checkpoint-snapshot','journal-logical','catalog-thin'].includes(mode);
 if(!/^media-server-immutable-ownership\.[A-Za-z0-9]+$/.test(path.basename(out))||fs.lstatSync(out).isSymbolicLink()||fs.realpathSync(out)!==out)throw Error('LP18_ROOT');
 function exact(s,a,b){if(s.split(a).length!==2)throw Error('LP18_EXACT');return s.replace(a,b);}
 fs.mkdirSync(path.join(out,'include/recording'),{recursive:true});
 for(const name of ['recording_catalog.h','recording_journal.h']){const file=path.join(repo,'include/recording',name);let header=exact(fs.readFileSync(file,'utf8'),'private:','public: // LP18 owned test copy');if(mode==='content'&&name==='recording_catalog.h')header=exact(header,'class DerivedJobContentProof {','class DerivedJobContentProof { public: // LP18 owned negative test only');fs.writeFileSync(path.join(out,'include/recording',name),header);}
 const source=fs.readFileSync(path.join(repo,'src/recording/recording_journal.cpp'),'utf8');
-const helper='\nnamespace ownership_probe { using History=decltype(std::declval<recording::RecordingCatalog::CheckpointProjectionCache>().prefix); History JournalView(const recording::RecordingJournal& j){std::lock_guard lock(j.mu_);return j.managed_state_->records;} }\n';
+const helper='\nnamespace ownership_probe { using History=recording::RecordingMutationHandles; History JournalView(const recording::RecordingJournal& j){std::lock_guard lock(j.mu_);return j.managed_state_->records;} }\n';
 let journal=source;
 if(locationMode&&source.includes('RecordingJournal::AcquireLocatedRecord(')){
  journal=exact(journal,'auto location=std::make_shared<RecordingJournalRecordLocation>();','location_probe::BeforeLocation();auto location=std::make_shared<RecordingJournalRecordLocation>();');
@@ -53,9 +53,12 @@ if(locationMode){
  const refCounts=['ReadRecordRefs','AcquireRecordRef'].map(name=>(header.match(new RegExp('\\b'+name+'\\s*\\(','g'))||[]).length);
  if(!refCounts.every(n=>n===0)&&!refCounts.every(n=>n===1))throw Error('LP18_REF_DECLARATIONS');
  fs.writeFileSync(path.join(out,'ref_flags'),'-DLP18_LOGICAL_REFS='+Number(refCounts.every(n=>n===1)));
+ const thinCount=(header.match(/class RecordingMutationLink\b/g)||[]).length;
+ if(thinCount>1)throw Error('LP18_THIN_DECLARATIONS');
+ fs.writeFileSync(path.join(out,'thin_flags'),'-DLP18_THIN_LINKS='+Number(thinCount===1));
  console.log('[instrument] location_declarations='+counts.join(',')+' location_header_sha256='+crypto.createHash('sha256').update(header).digest('hex'));
 }
-fs.writeFileSync(path.join(out,'accepted_flags'),/unordered_map<std::string,\s*RecordingMutationHandle>\s+accepted_segment_state_mutations_/.test(catalogHeader)?'-DLP18_ACCEPTED_SHARED=1':'');
+fs.writeFileSync(path.join(out,'accepted_flags'),/unordered_map<std::string,\s*RecordingMutation(?:Handle|Link)>\s+accepted_segment_state_mutations_/.test(catalogHeader)?'-DLP18_ACCEPTED_SHARED=1':'');
 const bindingShared=catalogHeader.includes('SourceBindingPool source_bindings_;');
 const jobShared=catalogHeader.includes('DerivedJobPool derived_jobs_;');
 fs.writeFileSync(path.join(out,'job_flags'),jobShared?'-DLP18_JOB_SHARED=1':'');
@@ -120,6 +123,7 @@ if(mode==='envelope-cost')for(const name of ['scripts/internal/recording_checkpo
 if(mode==='context')for(const name of ['scripts/internal/recording_job_validation_context_smoke.cpp','scripts/internal/recording_job_validation_context_counter.h','scripts/internal/recording_immutable_ownership_build.sh','scripts/internal/recording_derived_job_service_smoke.cpp','scripts/internal/recording_media_test_fixture.h','src/recording/recording_derived_job.cpp','src/recording/recording_derived_job_ready.cpp','src/recording/recording_derived_job_context.h','src/recording/recording_timeline_projection.cpp'])console.log('[source] '+JSON.stringify({name,sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(repo,name))).digest('hex')}));
 if(mode==='transition-comparison'||mode==='intent-comparison')for(const name of ['scripts/internal/recording_job_transition_comparison_smoke.cpp','scripts/internal/recording_job_transition_comparison_counter.h','scripts/internal/recording_immutable_ownership_build.sh','scripts/internal/recording_derived_job_service_smoke.cpp','scripts/internal/recording_media_test_fixture.h','src/recording/recording_derived_job.cpp','src/recording/recording_derived_job_ready.cpp','src/recording/recording_derived_job_context.h','src/recording/recording_timeline_projection.cpp'])console.log('[source] '+JSON.stringify({name,sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(repo,name))).digest('hex')}));
 if(locationMode)for(const name of ['scripts/internal/recording_journal_location_smoke.cpp','scripts/internal/recording_journal_location_counter.h','scripts/internal/recording_immutable_ownership_build.sh'])console.log('[source] '+JSON.stringify({name,sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(repo,name))).digest('hex')}));
+if(mode==='catalog-thin')console.log('[source] '+JSON.stringify({name:'scripts/internal/recording_catalog_thin_link_smoke.cpp',sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(repo,'scripts/internal/recording_catalog_thin_link_smoke.cpp'))).digest('hex')}));
 NODE
 read -r -a lp_original_link < "$lp_repo/build-gst-onnx/CMakeFiles/media_server.dir/link.txt"
 lp_libs=(); lp_found=0
@@ -141,6 +145,7 @@ if [[ "$lp_mode" == journal-cold ]];then lp_flags+=(-DLP18_COLD_SUITE=1);fi
 if [[ "$lp_mode" == journal-checkpoint-snapshot ]];then read -r lp_snapshot_flag < "$lp_root/snapshot_flags" || [[ -n "$lp_snapshot_flag" ]];lp_flags+=("$lp_snapshot_flag" -DLP18_CHECKPOINT_SNAPSHOT_SUITE=1);fi
 if [[ "$lp_mode" == journal-logical || "$lp_mode" == journal-location-crypto-off ]];then read -r lp_ref_flag < "$lp_root/ref_flags" || [[ -n "$lp_ref_flag" ]];lp_flags+=("$lp_ref_flag");fi
 if [[ "$lp_mode" == journal-logical ]];then lp_flags+=(-DLP18_LOGICAL_SUITE=1);fi
+if [[ "$lp_mode" == catalog-thin ]];then read -r lp_thin_flag < "$lp_root/thin_flags" || [[ -n "$lp_thin_flag" ]];lp_flags+=("$lp_thin_flag");lp_sources=("$lp_script/recording_catalog_thin_link_smoke.cpp");fi
 if [[ "$lp_mode" == intent-comparison ]];then lp_flags+=(-DLP18_INTENT_COMPARISON=1);lp_sources=("$lp_script/recording_job_transition_comparison_smoke.cpp" "$lp_root/recording_derived_job.cpp" "$lp_root/recording_derived_job_ready.cpp" "$lp_repo/src/recording/recording_timeline_projection.cpp");fi
 if [[ "$lp_mode" == job ]];then lp_sources=("$lp_script/recording_job_ownership_smoke.cpp" "$lp_repo/src/recording/recording_timeline_projection.cpp");fi
 if [[ "$lp_mode" == content ]];then lp_sources=("$lp_script/recording_job_content_proof_smoke.cpp" "$lp_root/recording_derived_job_ready.cpp" "$lp_repo/src/recording/recording_timeline_projection.cpp");fi

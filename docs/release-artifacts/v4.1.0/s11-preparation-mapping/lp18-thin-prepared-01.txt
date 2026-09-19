@@ -1,0 +1,47 @@
+341761d7b66efd06ad094bb76df1a9798489a2b05695f4de9e0b10d438617037  include/recording/recording_catalog.h
+fe603e9dfa21cafa1bcfab4242b245adb7cff9d992fafd130cd7da3a21c0c944  include/recording/recording_journal.h
+816345f71b506cde4c561fca1067a038ee12d618f3588b3d36fda5381680e0b0  src/recording/recording_catalog.cpp
+00947f13a4fdc68f9d1a0396f39438fbb96d53808420b6bd857aa76c1c0b7067  src/recording/recording_journal.cpp
+[source] {"name":"recording_catalog.cpp","sha256":"816345f71b506cde4c561fca1067a038ee12d618f3588b3d36fda5381680e0b0"}
+[source] {"name":"recording_derived_job_ready.cpp","sha256":"74f304446afb62c9abc48c2f13fa65281f9c942becabfbbbb3612458eac3f184"}
+[environment] ownedCache=true ownedRegistry=true privateHeaderCopy=true productSerializerUnchanged=true
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[pass] LP14-C01 state=1 updates=1 full_parse=1 expected=1
+[pass] LP14-C01 state=2 updates=1 full_parse=1 expected=1
+[pass] LP14-C01 state=3 updates=1 full_parse=1 expected=1
+[pass] LP14-C03 memory/sqlite canonical bytes and CompletedOracle
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP14-C02 binding=payload rejected without apply
+[pass] LP14-C02 binding=type rejected without apply
+[pass] LP14-C02 binding=entity rejected without apply
+[pass] LP14-C02 binding=owner rejected without apply
+[pass] LP14-C02 binding=prior rejected without apply
+[pass] LP14-C02 duplicate envelope no-apply/conflict rejection
+[pass] LP14-C02 one-shot apply/reuse rejection
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-transition-reuse.dp1b9r","bytes":9267543,"removed":true}
+[exit] code=0 elapsed_seconds=5 source=bash-SECONDS
+real 4.71
+user 4.02
+sys 0.38
+           310280192  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              149725  page reclaims
+                 695  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                 130  messages sent
+                 130  messages received
+                   5  signals received
+                 207  voluntary context switches
+                4547  involuntary context switches
+            68584217  instructions retired
+            33199095  cycles elapsed
+             2179480  peak memory footprint

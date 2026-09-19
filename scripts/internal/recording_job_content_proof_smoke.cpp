@@ -46,7 +46,9 @@ void Inspect(const RecordingCatalog::DerivedJobContentProof& minted){
    const char* labels[]={"LP18-V02 null owner retains strict outcome","LP18-V02 null envelope retains strict outcome","LP18-V02 null record retains strict outcome","LP18-V02 foreign owner retains strict outcome"};fallback(mutation,changed,labels[field]);
   }
   {const auto saved=live.derived_jobs_.at(id);live.derived_jobs_.at(id)=std::make_shared<const DerivedJobRecordV1>(*saved);fallback(mutation,minted,"LP18-V02 equal-content replacement invalidates current proof ownership");live.derived_jobs_.at(id)=saved;}
-  {auto& slot=live.accepted_segment_state_mutations_.at(mutation.mutation_id);const auto saved=slot;slot=std::make_shared<const RecordingMutationV1>(*saved);fallback(mutation,minted,"LP18-V02 equal-envelope replacement invalidates accepted proof ownership");slot=saved;}
+  {auto& slot=live.accepted_segment_state_mutations_.at(mutation.mutation_id);const auto saved=slot;RecordingMutationHandle owned;
+   if(!live.journal_.AcquireMutationLink(saved,&owned,nullptr)||!live.journal_.MakeMutationLink({},*owned,std::make_shared<const RecordingMutationV1>(*owned),&slot,nullptr))throw std::runtime_error("PROOF_LINK");
+   fallback(mutation,minted,"LP18-V02 equal-envelope replacement invalidates accepted proof ownership");slot=saved;}
   {RecordingCatalog out(live.journal_,live.options_);target=mutation.payload_json;phase=Phase::Negative;const auto before=negative_parses;
    ProofCheck(!out.ApplyMutationLocked(mutation,false,nullptr,nullptr,{},nullptr,nullptr,&minted)&&out.derived_jobs_.empty()&&negative_parses==before,"LP18-V03 valid content proof cannot bypass missing prior transition");}
  }else{

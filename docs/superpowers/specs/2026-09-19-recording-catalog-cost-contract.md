@@ -127,6 +127,17 @@ checkpoint 파일 교체 시 기존 reader의 FD/불변 값 수명은 보존하�
 위 소비 구현은 미완료다. 실제 자동 해제 전 active reader·변조·삭제·재open·선택 조회 재획득 수 반례와
 기존 의미/보호/복구 회귀를 등록하고 검증한다. 메모리 수치나 실제 HTTP 합격을 설계만으로 주장하지 않는다.
 
+첫 소비 단위는 accepted/prefix다. journal 내부 sealed owned view 하나로 같은 Append/Read mutex 안의
+envelope·논리ref·attachment를 결박한다. catalog는 view의 전체값과 입력이 같을 때만 thin link를 추출한다.
+view 자체를 보관하지 않고 논리ref/attachment/weak envelope만 남긴다. 신규 view 없는 raw/legacy 입력은 기존
+resident fallback이며, 제공된 view가 다른 입력/owner라면 등록 전에 실패한다. ref와 값을 임의 tuple로 조합하지 않는다.
+Append retry는 새로운 view 없이 기존 원본 반환을 유지할 수 있다. 특히 receipt 교체 뒤 원본 EventLink 반환을
+receipt ref와 결박하지 않는다. 정상 duplicate는 기존 accepted thin entry를 fallback으로 덮어쓰지 않는다.
+prefix는 현재 sealed snapshot과 같은 불변 ref의 검증된 계보를 이용해 현재 owned 값을 소비할 수 있지만,
+외부 candidate 전체 필드·projection 비교와 accepted duplicate의 전체 canonical 비교는 생략하지 않는다.
+authority/ref 불일치는 cache full fallback, 실제 cold 변조/I/O 오류는 fail-closed다. 변경 receipt는 작은 resident
+fallback으로 유지할 수 있다. 이 단위에서는 typed 상세와 자동 journal 해제를 아직 바꾸지 않는다.
+
 #### 4번 첫 단위: 기존 JSONL 위치 재획득
 
 구현 상태: 위치 재획득 자체 반례와 승인된 SW writer 영향 회귀, service/2-job를 통과해 primitive 단위를 마감한다.

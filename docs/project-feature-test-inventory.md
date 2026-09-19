@@ -1,5 +1,18 @@
 # Project Feature Test Inventory
 
+## LP18 accepted·prefix 비상주 소비 사전등록
+
+| 기능 ID | 항목 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| LP18-L26 | sealed view와 입력 결박 | 같은 Read/Append·물리 중복 순서·6필드 반례·raw fallback·receipt retry | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-L27 | accepted/prefix 소유 수명 | live/shadow/prefix strong 해제·transient cold 획득·전체값/바이트 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-L28 | 참조 소비 권한 | shadow 현재 attachment·foreign/detach/동일 주소 재attach 거부 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-L29 | 수용·복구 의미 | canonical 충돌·ordinal/full canonical SQLite gate·SQLite/fallback 재open | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-L30 | 재사용·실패 경계 | cache mismatch 전체 replay·실제 손상 failclosed·예외 출력 clear·cold prefix N회 read | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-L31 | 논리량과 실제 strong 소유 계측 | weak 논리량/strong0·fallback1·동일 fallback2참조/1실체 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 검증 계측 |
+
+중앙 LP18 기록의 exact30개와 기존 관련 회귀를 적용한다. typed binding/job·자동 해제는 후속 단위다.
+
 ## LP18 논리 기록 참조 기반 사전등록
 
 | 기능 ID | 항목 | 안정화 | 30분 | 120분 | UI |

@@ -275,7 +275,7 @@ private:
     bool OpenLocked(std::string* error);
     bool CanWriteLocked(std::string* error) const;
     struct CheckpointProjectionCache {
-        RecordingMutationHandles prefix;
+        RecordingMutationLinks prefix;
         std::unique_ptr<RecordingCatalog> shadow;
     };
     std::unique_ptr<CheckpointProjectionCache> checkpoint_cache_;
@@ -286,9 +286,9 @@ private:
                            const RecordingSegmentV2* candidate = nullptr,
                            const std::string& relative = {},
                            const RecordingSourceBindingV1* binding = nullptr,
-                           const RecordingMutationHandles& owned = {}) const;
+                           const RecordingMutationHandles& owned = {},const RecordingJournalOwnedViews& views = {}) const;
     bool ReadCatalogReplay(RecordingMutationHandles* owned, RecordingJournalReplayResult* replay,
-                           std::string* error) const;
+                           std::string* error,RecordingJournalOwnedViews* views = nullptr) const;
     bool ValidateBoundLocked(const RecordingSegmentV2&,const RecordingSourceBindingV1&,const std::string&,std::string*) const;
     bool CommitBoundLocked(const RecordingSegmentV2&,const RecordingSourceBindingV1&,const std::string&,bool,bool*,std::string*);
     bool ValidateV2Locked(const RecordingSegmentV2& segment, const std::string& relative, std::string* error) const;
@@ -296,7 +296,8 @@ private:
                              bool count_duplicate,
                              std::string* error,PreparedDerivedMutation* prepared=nullptr,
                              RecordingMutationHandle owned = {},const SourceBindingPool* binding_pool = nullptr,
-                             const DerivedJobPool* job_pool = nullptr,const DerivedJobContentProof* proof = nullptr);
+                             const DerivedJobPool* job_pool = nullptr,const DerivedJobContentProof* proof = nullptr,
+                             const RecordingJournalOwnedViewHandle& view = {});
     bool AppendAndApplyLocked(RecordingMutationV1 mutation, std::string* error,PreparedDerivedMutation* prepared=nullptr);
     bool OpenSqliteLocked(std::string* error);
     bool InitializeSqliteSchemaLocked(std::string* error);
@@ -321,7 +322,7 @@ private:
     RecordingCatalogRecoveryReport recovery_report_;
     std::unordered_set<std::string> mutation_ids_;
     // 이 두 상태 mutation은 메모리가 실제 수용한 최초 envelope만 SQL로 재생한다.
-    std::unordered_map<std::string, RecordingMutationHandle> accepted_segment_state_mutations_;
+    std::unordered_map<std::string, RecordingMutationLink> accepted_segment_state_mutations_;
     std::unordered_set<std::size_t> accepted_segment_state_replay_ordinals_;
     std::unordered_map<std::string, RecordingSegmentV1> segments_;
     std::unordered_map<std::string, RecordingSegmentV2> segments_v2_;

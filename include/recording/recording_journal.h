@@ -58,6 +58,25 @@ struct RecordingMutationV1 {
 // 내부 checkpoint 소유 핸들. 공개 mutation/Replay는 기존 독립 값 반환을 유지한다.
 using RecordingMutationHandle = std::shared_ptr<const RecordingMutationV1>;
 using RecordingMutationHandles = std::vector<RecordingMutationHandle>;
+class RecordingJournalOwnedView;
+using RecordingJournalOwnedViewHandle = std::shared_ptr<const RecordingJournalOwnedView>;
+using RecordingJournalOwnedViews = std::vector<RecordingJournalOwnedViewHandle>;
+
+// 상세 값은 호출자가 명시적으로 획득한다. 약한 링크를 원시 포인터로 노출하지 않는다.
+class RecordingMutationLink {
+    friend class RecordingJournal;
+    RecordingJournalRecordRefHandle ref_;
+    std::shared_ptr<const char> authority_;
+    std::weak_ptr<const RecordingMutationV1> weak_;
+    RecordingMutationHandle resident_;
+    std::size_t logical_charge_{0};
+public:
+    RecordingMutationLink()=default;
+    RecordingMutationHandle ResidentOwned() const { return resident_; }
+    std::size_t LogicalCharge() const { return logical_charge_; }
+    bool IsWeakLink() const { return static_cast<bool>(ref_); }
+};
+using RecordingMutationLinks = std::vector<RecordingMutationLink>;
 
 struct RecordingJournalReplayResult {
     std::vector<RecordingMutationV1> mutations;
@@ -108,12 +127,20 @@ private:
     void DetachCatalog(const void* owner);
     bool OwnsCatalog(const void* owner) const;
     bool AppendOwned(const RecordingMutationV1& mutation, const void* owner, std::string* error,
-                     RecordingMutationHandle* appended = nullptr);
+                     RecordingMutationHandle* appended = nullptr, RecordingJournalOwnedViewHandle* view = nullptr);
     bool LoadManagedStateLocked(std::string* error);
     bool CheckManagedStateLocked(std::string* error) const;
     bool ManagedOrderMatches(const RecordingOrderReservationV1& order, std::string* error) const;
     bool ReadCheckpointRecords(const void* owner, RecordingMutationHandles* records, std::string* error,
-                               RecordingCheckpointReadSnapshotHandle* snapshot = nullptr) const;
+                               RecordingCheckpointReadSnapshotHandle* snapshot = nullptr,
+                               RecordingJournalOwnedViews* views = nullptr) const;
+    bool MakeMutationLink(const RecordingJournalOwnedViewHandle& view, const RecordingMutationV1& mutation,
+                          RecordingMutationHandle fallback, RecordingMutationLink* link, std::string* error) const;
+    bool AcquireMutationLink(const RecordingMutationLink& link, RecordingMutationHandle* record, std::string* error) const;
+    bool MatchMutationLinkView(const RecordingMutationLink& link, const RecordingJournalOwnedViewHandle& view,
+                              bool* matches, std::string* error) const;
+    bool MutationLinkOwns(const RecordingMutationLink& link, const RecordingMutationHandle& record) const;
+    bool OwnedViewMatchesLocked(const RecordingJournalOwnedViewHandle& view) const;
     bool ReadRecordLocations(const void* owner, RecordingJournalRecordLocations* records, std::string* error) const;
     bool ReadRecordRefs(const void* owner, RecordingJournalRecordRefs* refs, std::string* error) const;
     bool AcquireRecordRef(const void* owner, const RecordingJournalRecordRefHandle& ref,

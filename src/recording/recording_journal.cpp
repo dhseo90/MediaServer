@@ -501,6 +501,17 @@ class RecordingJournalRecordRef {
 public:
     ~RecordingJournalRecordRef()=default;
 };
+// 같은 잠금 안에서 얻은 값·논리 참조·현재 attachment를 결박하는 호출-local 증거다.
+class RecordingJournalOwnedView {
+    friend class RecordingJournal;
+    RecordingJournalOwnedView()=default;
+    const RecordingJournal* journal{nullptr};
+    RecordingMutationHandle record;
+    RecordingJournalRecordRefHandle ref;
+    std::shared_ptr<const char> authority;
+public:
+    ~RecordingJournalOwnedView()=default;
+};
 struct ManagedJournalState {
     OrderHistoryIndex order;
     RecordingMutationHandles records;
@@ -955,8 +966,8 @@ bool RecordingJournal::Append(const RecordingMutationV1& mutation, std::string* 
 }
 
 bool RecordingJournal::ReadCheckpointRecords(const void* owner,RecordingMutationHandles* records,std::string* error,
-    RecordingCheckpointReadSnapshotHandle* snapshot) const {
-    if(records)records->clear();if(snapshot)snapshot->reset();
+    RecordingCheckpointReadSnapshotHandle* snapshot,RecordingJournalOwnedViews* views) const {
+    if(records)records->clear();if(snapshot)snapshot->reset();if(views)views->clear();
 #if !defined(_WIN32)
     if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
 #endif
@@ -971,20 +982,104 @@ bool RecordingJournal::ReadCheckpointRecords(const void* owner,RecordingMutation
     if(fd.value<0||!Regular(fd.value,&status)||device_!=static_cast<std::uint64_t>(status.st_dev)||inode_!=status.st_ino||
        !Same(parent.value,io_path_.filename().string(),fd.value,status))return Fail(error,"checkpoint FD 결박 거부");
     if(!AcquireCheckpointRecordsLocked(records,error))return false;
-    if(snapshot){
+    if(snapshot||views){
         try {
+            RecordingJournalOwnedViews prepared_views;
+            if(views){
+                if(managed_state_->refs.size()!=records->size()){records->clear();poisoned_=true;return Fail(error,"owned view 순서 불일치");}
+                prepared_views.reserve(records->size());
+                for(std::size_t i=0;i<records->size();++i){
+                    auto view=std::shared_ptr<RecordingJournalOwnedView>(new RecordingJournalOwnedView);
+                    view->journal=this;view->record=(*records)[i];view->ref=managed_state_->refs[i];view->authority=catalog_attachment_;
+                    prepared_views.push_back(std::move(view));
+                }
+            }
+            if(snapshot){
             auto value=std::shared_ptr<RecordingCheckpointReadSnapshot>(new RecordingCheckpointReadSnapshot);
             value->journal=this;value->owner=owner;value->pid=owner_pid_;value->attachment=catalog_attachment_;
             value->generation=managed_state_->generation;value->bytes=managed_state_->bytes;value->revision=managed_state_->revision;
             value->records=*records;
             if(!CheckManagedStateLocked(error)){records->clear();return false;}
             *snapshot=std::move(value);
-        }catch(...){records->clear();snapshot->reset();return Fail(error,"checkpoint snapshot 자원 실패");}
+            }
+            if(views)*views=std::move(prepared_views);
+        }catch(...){records->clear();if(snapshot)snapshot->reset();if(views)views->clear();return Fail(error,"checkpoint snapshot 자원 실패");}
     }
     return true;
 #else
     return Fail(error,"checkpoint unsupported");
 #endif
+}
+bool RecordingJournal::OwnedViewMatchesLocked(const RecordingJournalOwnedViewHandle& view) const {
+    return view&&view->journal==this&&view->record&&view->ref&&catalog_attachment_&&
+        view->authority==catalog_attachment_&&managed_state_&&view->ref->lineage==managed_state_->lineage&&
+        view->ref->ordinal<managed_state_->refs.size()&&managed_state_->refs[view->ref->ordinal]==view->ref;
+}
+namespace {
+bool SameOwnedEnvelope(const RecordingMutationV1& a,const RecordingMutationV1& b) {
+    return a.schema==b.schema&&a.mutation_id==b.mutation_id&&a.mutation_type==b.mutation_type&&
+        a.entity_id==b.entity_id&&a.occurred_at_ms==b.occurred_at_ms&&a.payload_json==b.payload_json;
+}
+}
+bool RecordingJournal::MakeMutationLink(const RecordingJournalOwnedViewHandle& view,const RecordingMutationV1& mutation,
+    RecordingMutationHandle fallback,RecordingMutationLink* link,std::string* error) const {
+    if(link)*link={};
+    if(!link)return Fail(error,"mutation link output 없음");
+    if(fallback&&!SameOwnedEnvelope(*fallback,mutation))return Fail(error,"mutation link 값 불일치");
+    RecordingMutationLink result;
+    if(view){
+#if !defined(_WIN32)
+        if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
+#endif
+        std::lock_guard lock(mu_);
+        if(!CheckManagedStateLocked(error)||!OwnedViewMatchesLocked(view)||!SameOwnedEnvelope(*view->record,mutation))
+            return Fail(error,"mutation link 출처 불일치");
+        result.ref_=view->ref;result.authority_=view->authority;result.weak_=view->record;
+    }else{
+        try{result.resident_=fallback?std::move(fallback):std::make_shared<const RecordingMutationV1>(mutation);}
+        catch(...){return Fail(error,"mutation link 자원 실패");}
+    }
+    result.logical_charge_=sizeof(mutation)+mutation.schema.size()+mutation.mutation_id.size()+mutation.entity_id.size()+mutation.payload_json.size();
+    *link=std::move(result);if(error)error->clear();return true;
+}
+bool RecordingJournal::AcquireMutationLink(const RecordingMutationLink& link,RecordingMutationHandle* record,std::string* error) const {
+    if(record)record->reset();if(!record)return Fail(error,"mutation link output 없음");
+    if(!link.ref_){if(!link.resident_)return Fail(error,"mutation link 값 없음");*record=link.resident_;if(error)error->clear();return true;}
+#if !defined(_WIN32)
+    if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
+#endif
+    std::lock_guard lock(mu_);
+    if(!CheckManagedStateLocked(error))return false;
+    const auto& ref=link.ref_;
+    if(!catalog_attachment_||link.authority_!=catalog_attachment_||ref->lineage!=managed_state_->lineage||
+       ref->ordinal>=managed_state_->refs.size()||managed_state_->refs[ref->ordinal]!=ref)return Fail(error,"mutation link 권한/계보 거부");
+    if(ref->ordinal>=managed_state_->locations.size()){poisoned_=true;return Fail(error,"mutation link 위치 불일치");}
+    return AcquireLocatedRecordLocked(managed_state_->locations[ref->ordinal],record,error);
+}
+bool RecordingJournal::MatchMutationLinkView(const RecordingMutationLink& link,const RecordingJournalOwnedViewHandle& view,
+    bool* matches,std::string* error) const {
+    if(matches)*matches=false;if(!matches)return Fail(error,"mutation link 비교 output 없음");
+#if !defined(_WIN32)
+    if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
+#endif
+    std::lock_guard lock(mu_);
+    if(!CheckManagedStateLocked(error))return false;
+    // 이전 cache의 권한/계보 불일치는 현재 읽기의 전체 replay로 복구한다.
+    if(!OwnedViewMatchesLocked(view))return true;
+    if(link.ref_)*matches=link.authority_==view->authority&&link.ref_==view->ref;
+    else *matches=link.resident_&&SameOwnedEnvelope(*link.resident_,*view->record);
+    return true;
+}
+bool RecordingJournal::MutationLinkOwns(const RecordingMutationLink& link,const RecordingMutationHandle& record) const {
+    if(!record)return false;
+    if(!link.ref_)return link.resident_==record;
+#if !defined(_WIN32)
+    if(managed_&&owner_pid_!=::getpid())return false;
+#endif
+    std::lock_guard lock(mu_);
+    return CheckManagedStateLocked(nullptr)&&catalog_attachment_&&link.authority_==catalog_attachment_&&
+        link.ref_->lineage==managed_state_->lineage&&link.ref_->ordinal<managed_state_->refs.size()&&
+        managed_state_->refs[link.ref_->ordinal]==link.ref_&&link.weak_.lock()==record;
 }
 bool RecordingJournal::ReadRecordLocations(const void* owner,RecordingJournalRecordLocations* records,std::string* error) const {
     if(records)records->clear();
@@ -1259,10 +1354,10 @@ bool RecordingJournal::OwnsCatalog(const void* owner) const {
     std::lock_guard lock(mu_);return owner&&catalog_owner_==owner&&CheckManagedStateLocked(nullptr);
 }
 bool RecordingJournal::AppendOwned(const RecordingMutationV1& mutation, const void* owner, std::string* error,
-                                   RecordingMutationHandle* appended) {
+                                   RecordingMutationHandle* appended,RecordingJournalOwnedViewHandle* view) {
     // 입력이 *appended를 빌린 경우에도 결과 초기화가 입력의 마지막 소유자를 제거하지 않는다.
     const RecordingMutationHandle input_lifetime=appended?*appended:RecordingMutationHandle{};
-    if(appended)appended->reset();
+    if(appended)appended->reset();if(view)view->reset();
 #if !defined(_WIN32)
     if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork/미open 사용 거부");
 #endif
@@ -1292,6 +1387,12 @@ bool RecordingJournal::AppendOwned(const RecordingMutationV1& mutation, const vo
         }
         if(managed_state_->order.requests.count(parsed.mutation_id))return Fail(error,"managed 예약 ID 충돌");
     }
+    std::shared_ptr<RecordingJournalOwnedView> prepared_view;
+    if(view&&managed_&&owner){
+        try{prepared_view=std::shared_ptr<RecordingJournalOwnedView>(new RecordingJournalOwnedView);
+            prepared_view->journal=this;prepared_view->record=owned;prepared_view->authority=catalog_attachment_;
+        }catch(...){return Fail(error,"append owned view 자원 실패");}
+    }
 #if !defined(_WIN32)
     OwnedFd parent(OpenParent(io_path_, false));
     struct stat directory {};
@@ -1320,6 +1421,7 @@ bool RecordingJournal::AppendOwned(const RecordingMutationV1& mutation, const vo
 #endif
     if (error != nullptr) error->clear();
     if(appended)*appended=owned;
+    if(prepared_view){prepared_view->ref=managed_state_->refs.back();*view=std::move(prepared_view);}
     return true;
 }
 

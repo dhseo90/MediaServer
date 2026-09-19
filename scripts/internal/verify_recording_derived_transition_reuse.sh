@@ -35,6 +35,7 @@ const exact=(s,a,b)=>{if(s.split(a).length!==2)throw Error('exact instrumentatio
 fs.mkdirSync(path.join(out,'include/recording'),{recursive:true});
 const header=fs.readFileSync(path.join(repo,'include/recording/recording_catalog.h'),'utf8');
 fs.writeFileSync(path.join(out,'include/recording/recording_catalog.h'),exact(header,'private:','public: // owned verification copy'));
+fs.writeFileSync(path.join(out,'include/recording/recording_journal.h'),exact(fs.readFileSync(path.join(repo,'include/recording/recording_journal.h'),'utf8'),'private:','public: // owned verification copy'));
 fs.writeFileSync(path.join(out,'recording_derived_transition_counter.h'),'#pragma once\n#include <array>\n#include <cstdint>\n#include <cstdlib>\nnamespace reuse_probe { inline bool enabled=false;inline std::uint64_t parses=0;inline std::array<std::uint64_t,5> updates{},parse_counts{};struct Measure { bool active;unsigned state;std::uint64_t before; explicit Measure(unsigned s):active(enabled),state(s),before(parses){if(active&&state>=updates.size())std::abort();} ~Measure(){if(active){++updates[state];parse_counts[state]+=parses-before;}}};}\n');
 for(const name of ['recording_catalog.cpp','recording_derived_job_ready.cpp']){
  const original=fs.readFileSync(path.join(repo,'src/recording',name),'utf8');let text=original;
