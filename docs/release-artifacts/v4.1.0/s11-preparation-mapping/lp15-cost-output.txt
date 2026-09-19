@@ -1,0 +1,340 @@
+# LP15 4단계 비용 검사와 메모리 중단
+
+LP16 보존정정: 참조 raw artifact가 RAW_JSON_LINE 가역표기이면 첫 안내행을 제외하고 JSON문자열을원문행으로복원한뒤 time후미를결합한다. 기존wrapper SHA와원래실패이력은유지한다. wrapper RSS를fixture한도로직접판정한결론은중앙LP16에서측정대상불일치로정정/보류했다.
+
+source HEAD=e9bdde5a; 기존 AVC미커밋 및 비용runner의 Bash3/exit보완 포함. 실제앱 미실행. token start/end/consumed=미집계(실측수단없음).
+
+첫 compaction은 빈배열 nounset 오류로 검사미실행인데 EXIT trap이0을보고했다. 실제판정FAIL. 동일단계에서 prefix=(env),본문완료표식없는EXIT0→1 보완. guard자체검사 normal0/explicit17/unbound1 각PASS, bash-n exit0. 제품/시간상한 변경없음.
+
+## compaction.log
+
+명령: 격리headless 환경에서 /usr/bin/time -l bash scripts/internal/recording_catalog_cost_probe_run.sh compaction-lp15
+원출력의검사부분: catalog-cost-output-compaction-lp15.txt
+원출력SHA256: 3563834afeed005598654635b87f19b727a41dbf007f248dceae16e39c78c1e9
+아래 time후미를위artifact에붙이면원출력복원가능. time측정은컴파일/runner/fixture를포함한wrapper이며fixture단독RSS가아니다.
+        0.23 real         0.16 user         0.07 sys
+            65077248  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               26951  page reclaims
+                 352  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                  10  signals received
+                  47  voluntary context switches
+                 507  involuntary context switches
+            20018148  instructions retired
+            11296023  cycles elapsed
+             1540504  peak memory footprint
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1 | FC01 exact insertion checks count=95 | PASS | 개별기능/계측검사 |
+
+개별pass행=1
+
+## compaction-fix1.log
+
+명령: 격리headless 환경에서 /usr/bin/time -l bash scripts/internal/recording_catalog_cost_probe_run.sh compaction-lp15-fix1
+원출력의검사부분: catalog-cost-output-compaction-lp15-fix1.txt
+원출력SHA256: f5c7bb9baf3325993243aaf9aa79fc74912718540eab99b0e52fdafecffe0fc0
+아래 time후미를위artifact에붙이면원출력복원가능. time측정은컴파일/runner/fixture를포함한wrapper이며fixture단독RSS가아니다.
+        8.24 real         7.23 user         0.66 sys
+           295190528  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              233012  page reclaims
+                2059  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  15  messages sent
+                  15  messages received
+                  10  signals received
+                 174  voluntary context switches
+                6119  involuntary context switches
+            19876934  instructions retired
+            11152562  cycles elapsed
+             1540504  peak memory footprint
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1 | FC01 exact insertion checks count=95 | PASS | 개별기능/계측검사 |
+| 2 | actual12 FE02 writer start | PASS | 개별기능/계측검사 |
+| 3 | actual12 FE04 bound finalized mutation segment0 | PASS | 개별기능/계측검사 |
+| 4 | actual12 FC03 actual source evidence prerequisite | PASS | 개별기능/계측검사 |
+| 5 | FC03/different-candidate event revision0 | PASS | 개별기능/계측검사 |
+| 6 | FC03/different-candidate event revision1 | PASS | 개별기능/계측검사 |
+| 7 | FC03/different-candidate event revision2 | PASS | 개별기능/계측검사 |
+| 8 | FC03/different-candidate event revision3 | PASS | 개별기능/계측검사 |
+| 9 | FC03/different-candidate event revision4 | PASS | 개별기능/계측검사 |
+| 10 | FC03/different-candidate event revision5 | PASS | 개별기능/계측검사 |
+| 11 | FC03/different-candidate event revision6 | PASS | 개별기능/계측검사 |
+| 12 | FC03/different-candidate event revision7 | PASS | 개별기능/계측검사 |
+| 13 | FC03/different-candidate event revision8 | PASS | 개별기능/계측검사 |
+| 14 | FC03/different-candidate event revision9 | PASS | 개별기능/계측검사 |
+| 15 | FC03/different-candidate event revision10 | PASS | 개별기능/계측검사 |
+| 16 | FC03/different-candidate event revision11 | PASS | 개별기능/계측검사 |
+| 17 | FC03/different-candidate actual checkpoint  | PASS | 개별기능/계측검사 |
+| 18 | FC03/different-candidate different candidate observed | PASS | 개별기능/계측검사 |
+| 19 | FC03/different-candidate both semantic replays observed | PASS | 개별기능/계측검사 |
+| 20 | FC03/different-candidate actual write branch observed | PASS | 개별기능/계측검사 |
+| 21 | FC03/different-candidate record count preserved and journal reduced | PASS | 개별기능/계측검사 |
+| 22 | FC03/different-candidate mutation identity ordinal0 | PASS | 개별기능/계측검사 |
+| 23 | FC03/different-candidate mutation identity ordinal1 | PASS | 개별기능/계측검사 |
+| 24 | FC03/different-candidate mutation identity ordinal2 | PASS | 개별기능/계측검사 |
+| 25 | FC03/different-candidate mutation identity ordinal3 | PASS | 개별기능/계측검사 |
+| 26 | FC03/different-candidate mutation identity ordinal4 | PASS | 개별기능/계측검사 |
+| 27 | FC03/different-candidate mutation identity ordinal5 | PASS | 개별기능/계측검사 |
+| 28 | FC03/different-candidate mutation identity ordinal6 | PASS | 개별기능/계측검사 |
+| 29 | FC03/different-candidate mutation identity ordinal7 | PASS | 개별기능/계측검사 |
+| 30 | FC03/different-candidate mutation identity ordinal8 | PASS | 개별기능/계측검사 |
+| 31 | FC03/different-candidate mutation identity ordinal9 | PASS | 개별기능/계측검사 |
+| 32 | FC03/different-candidate mutation identity ordinal10 | PASS | 개별기능/계측검사 |
+| 33 | FC03/different-candidate mutation identity ordinal11 | PASS | 개별기능/계측검사 |
+| 34 | FC03/different-candidate mutation identity ordinal12 | PASS | 개별기능/계측검사 |
+| 35 | FC03/different-candidate mutation identity ordinal13 | PASS | 개별기능/계측검사 |
+| 36 | FC03/different-candidate exact11 superseded receipts | PASS | 개별기능/계측검사 |
+| 37 | FC03/different-candidate reopen journal sql1 | PASS | 개별기능/계측검사 |
+| 38 | FC03/different-candidate reopen catalog sql1 | PASS | 개별기능/계측검사 |
+| 39 | FC03/different-candidate exact source and latest event recovery sql1 | PASS | 개별기능/계측검사 |
+| 40 | FC03/different-candidate reopen journal sql0 | PASS | 개별기능/계측검사 |
+| 41 | FC03/different-candidate reopen catalog sql0 | PASS | 개별기능/계측검사 |
+| 42 | FC03/different-candidate exact source and latest event recovery sql0 | PASS | 개별기능/계측검사 |
+
+개별pass행=42
+
+## scale32.log
+
+명령: 격리headless 환경에서 /usr/bin/time -l bash scripts/internal/recording_catalog_cost_probe_run.sh scale-32-lp15
+원출력의검사부분: catalog-cost-output-scale-32-lp15.txt
+원출력SHA256: 4ff8f31cd97687df540aff74f344ee006268759e1fa23ad518eea33526187712
+아래 time후미를위artifact에붙이면원출력복원가능. time측정은컴파일/runner/fixture를포함한wrapper이며fixture단독RSS가아니다.
+       52.30 real        50.78 user         1.04 sys
+           697221120  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              218195  page reclaims
+                2063  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  12  messages sent
+                  12  messages received
+                  11  signals received
+                 652  voluntary context switches
+               43338  involuntary context switches
+            20038710  instructions retired
+            11993262  cycles elapsed
+             1540504  peak memory footprint
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1 | FC01 exact insertion checks count=95 | PASS | 개별기능/계측검사 |
+| 2 | actual4096 FE02 writer start | PASS | 개별기능/계측검사 |
+| 3 | actual4096 FE04 bound finalized mutation segment0 | PASS | 개별기능/계측검사 |
+| 4 | actual4096 LP02 actual4096 prerequisite | PASS | 개별기능/계측검사 |
+| 5 | LP02/commit1 reserve | PASS | 개별기능/계측검사 |
+| 6 | LP02/commit1 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 7 | LP02/commit1 commit  | PASS | 개별기능/계측검사 |
+| 8 | LP02/commit2 reserve | PASS | 개별기능/계측검사 |
+| 9 | LP02/commit2 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 10 | LP02/commit2 commit  | PASS | 개별기능/계측검사 |
+| 11 | LP02/commit3 reserve | PASS | 개별기능/계측검사 |
+| 12 | LP02/commit3 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 13 | LP02/commit3 commit  | PASS | 개별기능/계측검사 |
+| 14 | LP02/commit4 reserve | PASS | 개별기능/계측검사 |
+| 15 | LP02/commit4 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 16 | LP02/commit4 commit  | PASS | 개별기능/계측검사 |
+| 17 | LP02/commit5 reserve | PASS | 개별기능/계측검사 |
+| 18 | LP02/commit5 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 19 | LP02/commit5 commit  | PASS | 개별기능/계측검사 |
+| 20 | LP02/commit6 reserve | PASS | 개별기능/계측검사 |
+| 21 | LP02/commit6 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 22 | LP02/commit6 commit  | PASS | 개별기능/계측검사 |
+| 23 | LP02/commit7 reserve | PASS | 개별기능/계측검사 |
+| 24 | LP02/commit7 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 25 | LP02/commit7 commit  | PASS | 개별기능/계측검사 |
+| 26 | LP02/commit8 reserve | PASS | 개별기능/계측검사 |
+| 27 | LP02/commit8 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 28 | LP02/commit8 commit  | PASS | 개별기능/계측검사 |
+| 29 | LP02/commit9 reserve | PASS | 개별기능/계측검사 |
+| 30 | LP02/commit9 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 31 | LP02/commit9 commit  | PASS | 개별기능/계측검사 |
+| 32 | LP02/commit10 reserve | PASS | 개별기능/계측검사 |
+| 33 | LP02/commit10 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 34 | LP02/commit10 commit  | PASS | 개별기능/계측검사 |
+| 35 | LP02/commit11 reserve | PASS | 개별기능/계측검사 |
+| 36 | LP02/commit11 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 37 | LP02/commit11 commit  | PASS | 개별기능/계측검사 |
+| 38 | LP02/commit12 reserve | PASS | 개별기능/계측검사 |
+| 39 | LP02/commit12 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 40 | LP02/commit12 commit  | PASS | 개별기능/계측검사 |
+| 41 | LP02/commit13 reserve | PASS | 개별기능/계측검사 |
+| 42 | LP02/commit13 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 43 | LP02/commit13 commit  | PASS | 개별기능/계측검사 |
+| 44 | LP02/commit14 reserve | PASS | 개별기능/계측검사 |
+| 45 | LP02/commit14 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 46 | LP02/commit14 commit  | PASS | 개별기능/계측검사 |
+| 47 | LP02/commit15 reserve | PASS | 개별기능/계측검사 |
+| 48 | LP02/commit15 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 49 | LP02/commit15 commit  | PASS | 개별기능/계측검사 |
+| 50 | LP02/commit16 reserve | PASS | 개별기능/계측검사 |
+| 51 | LP02/commit16 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 52 | LP02/commit16 commit  | PASS | 개별기능/계측검사 |
+| 53 | LP02/sources16 snapshot exact count | PASS | 개별기능/계측검사 |
+| 54 | LP02/sources16 explicit checkpoint | PASS | 개별기능/계측검사 |
+| 55 | LP02/sources16 reservation and bound mutation count | PASS | 개별기능/계측검사 |
+| 56 | LP02/commit17 reserve | PASS | 개별기능/계측검사 |
+| 57 | LP02/commit17 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 58 | LP02/commit17 commit  | PASS | 개별기능/계측검사 |
+| 59 | LP02/commit18 reserve | PASS | 개별기능/계측검사 |
+| 60 | LP02/commit18 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 61 | LP02/commit18 commit  | PASS | 개별기능/계측검사 |
+| 62 | LP02/commit19 reserve | PASS | 개별기능/계측검사 |
+| 63 | LP02/commit19 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 64 | LP02/commit19 commit  | PASS | 개별기능/계측검사 |
+| 65 | LP02/commit20 reserve | PASS | 개별기능/계측검사 |
+| 66 | LP02/commit20 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 67 | LP02/commit20 commit  | PASS | 개별기능/계측검사 |
+| 68 | LP02/commit21 reserve | PASS | 개별기능/계측검사 |
+| 69 | LP02/commit21 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 70 | LP02/commit21 commit  | PASS | 개별기능/계측검사 |
+| 71 | LP02/commit22 reserve | PASS | 개별기능/계측검사 |
+| 72 | LP02/commit22 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 73 | LP02/commit22 commit  | PASS | 개별기능/계측검사 |
+| 74 | LP02/commit23 reserve | PASS | 개별기능/계측검사 |
+| 75 | LP02/commit23 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 76 | LP02/commit23 commit  | PASS | 개별기능/계측검사 |
+| 77 | LP02/commit24 reserve | PASS | 개별기능/계측검사 |
+| 78 | LP02/commit24 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 79 | LP02/commit24 commit  | PASS | 개별기능/계측검사 |
+| 80 | LP02/commit25 reserve | PASS | 개별기능/계측검사 |
+| 81 | LP02/commit25 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 82 | LP02/commit25 commit  | PASS | 개별기능/계측검사 |
+| 83 | LP02/commit26 reserve | PASS | 개별기능/계측검사 |
+| 84 | LP02/commit26 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 85 | LP02/commit26 commit  | PASS | 개별기능/계측검사 |
+| 86 | LP02/commit27 reserve | PASS | 개별기능/계측검사 |
+| 87 | LP02/commit27 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 88 | LP02/commit27 commit  | PASS | 개별기능/계측검사 |
+| 89 | LP02/commit28 reserve | PASS | 개별기능/계측검사 |
+| 90 | LP02/commit28 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 91 | LP02/commit28 commit  | PASS | 개별기능/계측검사 |
+| 92 | LP02/commit29 reserve | PASS | 개별기능/계측검사 |
+| 93 | LP02/commit29 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 94 | LP02/commit29 commit  | PASS | 개별기능/계측검사 |
+| 95 | LP02/commit30 reserve | PASS | 개별기능/계측검사 |
+| 96 | LP02/commit30 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 97 | LP02/commit30 commit  | PASS | 개별기능/계측검사 |
+| 98 | LP02/commit31 reserve | PASS | 개별기능/계측검사 |
+| 99 | LP02/commit31 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 100 | LP02/commit31 commit  | PASS | 개별기능/계측검사 |
+| 101 | LP02/commit32 reserve | PASS | 개별기능/계측검사 |
+| 102 | LP02/commit32 actual file outside catalog | PASS | 개별기능/계측검사 |
+| 103 | LP02/commit32 commit  | PASS | 개별기능/계측검사 |
+| 104 | LP02/sources32 snapshot exact count | PASS | 개별기능/계측검사 |
+| 105 | LP02/sources32 explicit checkpoint | PASS | 개별기능/계측검사 |
+| 106 | LP02/sources32 reservation and bound mutation count | PASS | 개별기능/계측검사 |
+| 107 | LP02/recovery/sql1 journal reopen | PASS | 개별기능/계측검사 |
+| 108 | LP02/recovery/sql1 catalog reopen | PASS | 개별기능/계측검사 |
+| 109 | LP02/recovery/sql1 exact source scale-0 | PASS | 개별기능/계측검사 |
+| 110 | LP02/recovery/sql1 exact source scale-1 | PASS | 개별기능/계측검사 |
+| 111 | LP02/recovery/sql1 exact source scale-2 | PASS | 개별기능/계측검사 |
+| 112 | LP02/recovery/sql1 exact source scale-3 | PASS | 개별기능/계측검사 |
+| 113 | LP02/recovery/sql1 exact source scale-4 | PASS | 개별기능/계측검사 |
+| 114 | LP02/recovery/sql1 exact source scale-5 | PASS | 개별기능/계측검사 |
+| 115 | LP02/recovery/sql1 exact source scale-6 | PASS | 개별기능/계측검사 |
+| 116 | LP02/recovery/sql1 exact source scale-7 | PASS | 개별기능/계측검사 |
+| 117 | LP02/recovery/sql1 exact source scale-8 | PASS | 개별기능/계측검사 |
+| 118 | LP02/recovery/sql1 exact source scale-9 | PASS | 개별기능/계측검사 |
+| 119 | LP02/recovery/sql1 exact source scale-10 | PASS | 개별기능/계측검사 |
+| 120 | LP02/recovery/sql1 exact source scale-11 | PASS | 개별기능/계측검사 |
+| 121 | LP02/recovery/sql1 exact source scale-12 | PASS | 개별기능/계측검사 |
+| 122 | LP02/recovery/sql1 exact source scale-13 | PASS | 개별기능/계측검사 |
+| 123 | LP02/recovery/sql1 exact source scale-14 | PASS | 개별기능/계측검사 |
+| 124 | LP02/recovery/sql1 exact source scale-15 | PASS | 개별기능/계측검사 |
+| 125 | LP02/recovery/sql1 exact source scale-16 | PASS | 개별기능/계측검사 |
+| 126 | LP02/recovery/sql1 exact source scale-17 | PASS | 개별기능/계측검사 |
+| 127 | LP02/recovery/sql1 exact source scale-18 | PASS | 개별기능/계측검사 |
+| 128 | LP02/recovery/sql1 exact source scale-19 | PASS | 개별기능/계측검사 |
+| 129 | LP02/recovery/sql1 exact source scale-20 | PASS | 개별기능/계측검사 |
+| 130 | LP02/recovery/sql1 exact source scale-21 | PASS | 개별기능/계측검사 |
+| 131 | LP02/recovery/sql1 exact source scale-22 | PASS | 개별기능/계측검사 |
+| 132 | LP02/recovery/sql1 exact source scale-23 | PASS | 개별기능/계측검사 |
+| 133 | LP02/recovery/sql1 exact source scale-24 | PASS | 개별기능/계측검사 |
+| 134 | LP02/recovery/sql1 exact source scale-25 | PASS | 개별기능/계측검사 |
+| 135 | LP02/recovery/sql1 exact source scale-26 | PASS | 개별기능/계측검사 |
+| 136 | LP02/recovery/sql1 exact source scale-27 | PASS | 개별기능/계측검사 |
+| 137 | LP02/recovery/sql1 exact source scale-28 | PASS | 개별기능/계측검사 |
+| 138 | LP02/recovery/sql1 exact source scale-29 | PASS | 개별기능/계측검사 |
+| 139 | LP02/recovery/sql1 exact source scale-30 | PASS | 개별기능/계측검사 |
+| 140 | LP02/recovery/sql1 exact source scale-31 | PASS | 개별기능/계측검사 |
+| 141 | LP02/recovery/sql0 journal reopen | PASS | 개별기능/계측검사 |
+| 142 | LP02/recovery/sql0 catalog reopen | PASS | 개별기능/계측검사 |
+| 143 | LP02/recovery/sql0 exact source scale-0 | PASS | 개별기능/계측검사 |
+| 144 | LP02/recovery/sql0 exact source scale-1 | PASS | 개별기능/계측검사 |
+| 145 | LP02/recovery/sql0 exact source scale-2 | PASS | 개별기능/계측검사 |
+| 146 | LP02/recovery/sql0 exact source scale-3 | PASS | 개별기능/계측검사 |
+| 147 | LP02/recovery/sql0 exact source scale-4 | PASS | 개별기능/계측검사 |
+| 148 | LP02/recovery/sql0 exact source scale-5 | PASS | 개별기능/계측검사 |
+| 149 | LP02/recovery/sql0 exact source scale-6 | PASS | 개별기능/계측검사 |
+| 150 | LP02/recovery/sql0 exact source scale-7 | PASS | 개별기능/계측검사 |
+| 151 | LP02/recovery/sql0 exact source scale-8 | PASS | 개별기능/계측검사 |
+| 152 | LP02/recovery/sql0 exact source scale-9 | PASS | 개별기능/계측검사 |
+| 153 | LP02/recovery/sql0 exact source scale-10 | PASS | 개별기능/계측검사 |
+| 154 | LP02/recovery/sql0 exact source scale-11 | PASS | 개별기능/계측검사 |
+| 155 | LP02/recovery/sql0 exact source scale-12 | PASS | 개별기능/계측검사 |
+| 156 | LP02/recovery/sql0 exact source scale-13 | PASS | 개별기능/계측검사 |
+| 157 | LP02/recovery/sql0 exact source scale-14 | PASS | 개별기능/계측검사 |
+| 158 | LP02/recovery/sql0 exact source scale-15 | PASS | 개별기능/계측검사 |
+| 159 | LP02/recovery/sql0 exact source scale-16 | PASS | 개별기능/계측검사 |
+| 160 | LP02/recovery/sql0 exact source scale-17 | PASS | 개별기능/계측검사 |
+| 161 | LP02/recovery/sql0 exact source scale-18 | PASS | 개별기능/계측검사 |
+| 162 | LP02/recovery/sql0 exact source scale-19 | PASS | 개별기능/계측검사 |
+| 163 | LP02/recovery/sql0 exact source scale-20 | PASS | 개별기능/계측검사 |
+| 164 | LP02/recovery/sql0 exact source scale-21 | PASS | 개별기능/계측검사 |
+| 165 | LP02/recovery/sql0 exact source scale-22 | PASS | 개별기능/계측검사 |
+| 166 | LP02/recovery/sql0 exact source scale-23 | PASS | 개별기능/계측검사 |
+| 167 | LP02/recovery/sql0 exact source scale-24 | PASS | 개별기능/계측검사 |
+| 168 | LP02/recovery/sql0 exact source scale-25 | PASS | 개별기능/계측검사 |
+| 169 | LP02/recovery/sql0 exact source scale-26 | PASS | 개별기능/계측검사 |
+| 170 | LP02/recovery/sql0 exact source scale-27 | PASS | 개별기능/계측검사 |
+| 171 | LP02/recovery/sql0 exact source scale-28 | PASS | 개별기능/계측검사 |
+| 172 | LP02/recovery/sql0 exact source scale-29 | PASS | 개별기능/계측검사 |
+| 173 | LP02/recovery/sql0 exact source scale-30 | PASS | 개별기능/계측검사 |
+| 174 | LP02/recovery/sql0 exact source scale-31 | PASS | 개별기능/계측검사 |
+
+개별pass행=174
+
+## 비용 판정
+
+| 범위 | 기존 LP11 | LP15 | 단위 |
+| --- | --- | --- | --- |
+| 16원본 commit 잠금 | 2054.916 | 411.843 | ms |
+| 32원본 commit 잠금 | 3849.605 | 427.415 | ms |
+| 16원본 자동 checkpoint | 1762.082 | 120.368 | ms |
+| 32원본 자동 checkpoint | 3555.478 | 136.402 | ms |
+| 32원본 명시 checkpoint | 3542.872 | 19.467 | ms |
+
+단일실행·동일fixture/O0계측프로필이며운영SLO보장/동시부하결과가아니다. scale32 기능173+계측1=174PASS,자동CP32회. 복구open은SQLite14640.551ms/JSONL7069.873ms로전체검증유지.
+
+RSS 판정: compaction wrapper295190528B는512MiB이내. scale32 wrapper697221120B는536870912B초과로자원판정FAIL. wrapper프로세스중어디의peak인지와기존baseline RSS는미확인. cache로인한증가량·누수로단정하지않는다. 원장34522476B·disk199716628B는RSS와다르다. 실제앱실행선수미충족,추가반복/제품수정없음.
+
+읽기로 확인한 보완후보: semantic검증/동일판정후 원본Replay사본 수명종료, 양방향비교후선택되지않은shadow 수명종료. 현재commit의expected/serialized문자열과동시에생존한다. 효과/원인귀속은미확정이므로미적용. 다음은compiler/fixture·누적/복구별peak를구분한후효과를판정해야한다.
+
+## 정리
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 결과 |
+| --- | --- | --- | --- | --- |
+| TMPDIR/media-server-catalog-cost.aqcgGe | 준비실패 소유source복제 | 336061B | runner삭제 | 부재 |
+| TMPDIR/media-server-catalog-cost.h6tNkY | compaction fixture | 5781562B | runner삭제 | 부재 |
+| TMPDIR/media-server-catalog-cost.e76KCm | scale32 fixture | 199716628B | runner삭제 | 부재 |
+
+outer root는원출력후미/SHA보존후별도정리기록. 실패단계미커밋,최종푸시미수행.

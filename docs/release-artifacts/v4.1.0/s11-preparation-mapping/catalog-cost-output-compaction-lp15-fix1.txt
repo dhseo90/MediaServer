@@ -1,0 +1,115 @@
+# 가역보존: RAW_JSON_LINE: 뒤 JSON 문자열을 원문행으로 복원하고 이 첫줄을 제외. 원출력 SHA256=b7461632f6860b82dd2e1212d79ce13e3b27d0ac6c7a8d5083a658e3f0732094
+[run] label=compaction-lp15-fix1 owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.h6tNkY
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+Target: arm64-apple-darwin27.0.0
+Thread model: posix
+InstalledDir: /Library/Developer/CommandLineTools/usr/bin
+Darwin arm64
+1.28.1
+3.51.0
+3.6.2
+e9bdde5a65ade6d01da31de35cf9d8f7563d25d2
+d2d0032c689adaadcadd2e12fbfb0ceaaf6145fd766e8a5d40fa1c8e0a232e35  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_cost_probe.cpp
+c6d53e35e97d457c01745c8e4e584d2a6ad1b822dc0f1bcb4e55d0f1a991e6fe  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_cost_probe_timer.h
+946d3674dc05fb35a9467233438e2ccc477f19df0c9f0dcda745fa62020c3a9f  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_cost_probe_instrument.cjs
+2561b2236c7af59e9645d51eb87a32a73595c5cecbdcc699cfd66fda2a2fe0c1  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_file_evidence_smoke.cpp
+85db9367ae66d997330cb8f9febe24febb2b5ff76b6363c6de3ccadc3fea0a71  /Users/dhseo/Workspace/mediaServer/src/recording/recording_file_evidence.cpp
+798a7203ea36498414769fa27427e4bc835ed02960583bc59b3a6d31d519503e  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_compaction_probe.cpp
+97281c5069883c8f6642b822702df86e4fa23e48ce10bdded2962d88dc6c4501  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_cost_probe_run.sh
+[source] file=recording_catalog.cpp original_sha256=d0d21e36d9e71cca0dad307057696e077f09af6585d497e99fdbdd76eb168780 instrumented_sha256=0ff5464546b3b9f34d2267253aa6c785529700942d12fc3519b93825880cc229
+[source] file=recording_journal.cpp original_sha256=66e6447a7557644391828eb074eda9911d052f93f4753bec724c8112c1ad6e1e instrumented_sha256=6ce65683a70963aa8ce7d57225ae24994aff7ef07988a73f9cf64a730614a99b
+[source] file=recording_contracts.cpp original_sha256=960635a08aa900bebfae961cd9e534ab6b91fbace213e1a7416227e7292ec890 instrumented_sha256=a99bc03ee76dbbd7342d06ea2db70258451d371889eacd384be541bee574e1c6
+[source] file=recording_checkpoint_validation.h original_sha256=9fdc31e2dd404b163c2d71e1bbb9edd5c70d3ef525bb762d8ef8f5d426e705df instrumented_sha256=46e7a8ac804d5f117496d54997b8b0d53c715ce5829fec018b1e81f002556b93
+[pass] FC01 exact insertion checks count=95
+[pass] actual12 FE02 writer start
+[pass] actual12 FE04 bound finalized mutation segment0
+[measure] writer_push_finalize_us=10510 input_aus=12 segments=1
+[pass] actual12 FC03 actual source evidence prerequisite
+[pass] FC03/different-candidate event revision0
+[pass] FC03/different-candidate event revision1
+[pass] FC03/different-candidate event revision2
+[pass] FC03/different-candidate event revision3
+[pass] FC03/different-candidate event revision4
+[pass] FC03/different-candidate event revision5
+[pass] FC03/different-candidate event revision6
+[pass] FC03/different-candidate event revision7
+[pass] FC03/different-candidate event revision8
+[pass] FC03/different-candidate event revision9
+[pass] FC03/different-candidate event revision10
+[pass] FC03/different-candidate event revision11
+RAW_JSON_LINE: "[pass] FC03/different-candidate actual checkpoint "
+[pass] FC03/different-candidate different candidate observed
+[pass] FC03/different-candidate both semantic replays observed
+[pass] FC03/different-candidate actual write branch observed
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold count=1 inclusive_ns=2586958 exclusive_ns=49374
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked count=1 inclusive_ns=2537584 exclusive_ns=62918
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/candidate.different count=1 inclusive_ns=0 exclusive_ns=0
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/catalog.ProjectionSignatureLocked count=2 inclusive_ns=248958 exclusive_ns=93707
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/catalog.ProjectionSignatureLocked/contracts.SerializeRecordingSourceBindingV1 count=2 inclusive_ns=155251 exclusive_ns=101127
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/catalog.ProjectionSignatureLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=2 inclusive_ns=54124 exclusive_ns=4458
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/catalog.ProjectionSignatureLocked/contracts.SerializeRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=2 inclusive_ns=49666 exclusive_ns=49666
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/catalog.lock.hold count=1 inclusive_ns=83 exclusive_ns=83
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/catalog.lock.wait count=1 inclusive_ns=84 exclusive_ns=84
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.Replay count=1 inclusive_ns=85041 exclusive_ns=958
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.Replay/journal.Replay count=1 inclusive_ns=84083 exclusive_ns=84083
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.SameSequence count=1 inclusive_ns=9792 exclusive_ns=2666
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.SameSequence/journal.SerializeRecordingMutationV1 count=4 inclusive_ns=7126 exclusive_ns=7126
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.candidateSemantic count=1 inclusive_ns=601000 exclusive_ns=6084
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.candidateSemantic/catalog.ApplyMutationLocked count=14 inclusive_ns=594916 exclusive_ns=274750
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.candidateSemantic/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1 count=1 inclusive_ns=273875 exclusive_ns=245083
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.candidateSemantic/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=28792 exclusive_ns=4001
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.candidateSemantic/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=24791 exclusive_ns=24791
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.candidateSemantic/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment count=1 inclusive_ns=44833 exclusive_ns=17833
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.candidateSemantic/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=27000 exclusive_ns=2375
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.candidateSemantic/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=24625 exclusive_ns=24625
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.candidateSemantic/catalog.ApplyMutationLocked/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=1458 exclusive_ns=1458
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic count=1 inclusive_ns=1063041 exclusive_ns=7750
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked count=14 inclusive_ns=1055291 exclusive_ns=737582
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1 count=1 inclusive_ns=270417 exclusive_ns=241834
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=28583 exclusive_ns=2874
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ParseRecordingSourceBindingV1/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=25709 exclusive_ns=25709
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment count=1 inclusive_ns=45167 exclusive_ns=18208
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1 count=1 inclusive_ns=26959 exclusive_ns=2501
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/contracts.ValidateRecordingSourceBindingForSegment/contracts.ValidateRecordingSourceBindingV1/contracts.ValidateRecordingFileEvidence count=1 inclusive_ns=24458 exclusive_ns=24458
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/checkpoint.originalSemantic/catalog.ApplyMutationLocked/journal.SerializeRecordingMutationV1 count=1 inclusive_ns=2125 exclusive_ns=2125
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint count=1 inclusive_ns=379500 exclusive_ns=91125
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.bytesCompare count=1 inclusive_ns=21083 exclusive_ns=916
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.bytesCompare/journal.JournalBytes count=1 inclusive_ns=20167 exclusive_ns=8125
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.bytesCompare/journal.JournalBytes/journal.SerializeRecordingMutationV1 count=14 inclusive_ns=12042 exclusive_ns=12042
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/checkpoint.write count=1 inclusive_ns=211875 exclusive_ns=211875
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.CompactRecords count=1 inclusive_ns=34834 exclusive_ns=13418
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.CompactRecords/journal.EnvelopeIdentity count=11 inclusive_ns=21416 exclusive_ns=11374
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.CompactRecords/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=11 inclusive_ns=10042 exclusive_ns=10042
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.JournalBytes count=1 inclusive_ns=20583 exclusive_ns=8624
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/journal.CommitCheckpoint/journal.JournalBytes/journal.SerializeRecordingMutationV1 count=14 inclusive_ns=11959 exclusive_ns=11959
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/journal.PrepareCheckpoint count=1 inclusive_ns=87167 exclusive_ns=48959
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/journal.PrepareCheckpoint/journal.CompactRecords count=1 inclusive_ns=38208 exclusive_ns=16084
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/journal.PrepareCheckpoint/journal.CompactRecords/journal.EnvelopeIdentity count=11 inclusive_ns=22124 exclusive_ns=11917
+[cost] operation=FC03/different-candidate scope=catalog.lock.hold/catalog.CheckpointLocked/journal.PrepareCheckpoint/journal.CompactRecords/journal.EnvelopeIdentity/journal.SerializeRecordingMutationV1 count=11 inclusive_ns=10207 exclusive_ns=10207
+[cost] operation=FC03/different-candidate scope=catalog.lock.wait count=1 inclusive_ns=0 exclusive_ns=0
+[pass] FC03/different-candidate record count preserved and journal reduced
+[pass] FC03/different-candidate mutation identity ordinal0
+[pass] FC03/different-candidate mutation identity ordinal1
+[pass] FC03/different-candidate mutation identity ordinal2
+[pass] FC03/different-candidate mutation identity ordinal3
+[pass] FC03/different-candidate mutation identity ordinal4
+[pass] FC03/different-candidate mutation identity ordinal5
+[pass] FC03/different-candidate mutation identity ordinal6
+[pass] FC03/different-candidate mutation identity ordinal7
+[pass] FC03/different-candidate mutation identity ordinal8
+[pass] FC03/different-candidate mutation identity ordinal9
+[pass] FC03/different-candidate mutation identity ordinal10
+[pass] FC03/different-candidate mutation identity ordinal11
+[pass] FC03/different-candidate mutation identity ordinal12
+[pass] FC03/different-candidate mutation identity ordinal13
+[pass] FC03/different-candidate exact11 superseded receipts
+[compaction] before_bytes=15248 after_bytes=9979 before_records=14 after_records=14 receipts=11
+[pass] FC03/different-candidate reopen journal sql1
+[pass] FC03/different-candidate reopen catalog sql1
+[pass] FC03/different-candidate exact source and latest event recovery sql1
+[pass] FC03/different-candidate reopen journal sql0
+[pass] FC03/different-candidate reopen catalog sql0
+[pass] FC03/different-candidate exact source and latest event recovery sql0
+[summary] FC03 compaction passed=41
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.h6tNkY bytes=5781562 removed=true
+[exit] code=0 elapsed_seconds=9 token_usage=unavailable source=bash-SECONDS

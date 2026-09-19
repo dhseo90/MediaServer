@@ -1,5 +1,48 @@
 # Release Test Records
 
+## 2026-09-19 LP16 측정 경계 정정·메모리 귀속
+
+독자: 현재 녹화 개발/검증 담당. lifecycle: 실행별 증적. AGENTS.md가정책source-of-truth이며사용자는측정기준→발생구간→필요한최소보완→관련검증→실제앱→분할커밋/푸시6단계를승인했다. main은설계/판정/커밋/푸시,기존단일Astra/medium담당자는확정검증기구현. 하위생성금지. 기존AVC·LP15실패/미커밋보존.
+
+### 1단계 측정 대상과 정정
+
+LP15의512MiB RSS는이번설계에서추가한fixture 자원기준이며기존제품릴리즈기준이아니다. 기존512MiB는소유임시디스크상한이었다. LP15 scale wrapper697221120B는컴파일을포함하므로fixture512MiB와직접대조한자원FAIL은측정대상불일치로판정보류로정정한다. 원래관측값/FAIL보고이력은삭제하지않고제품누수/캐시증가/PASS어느쪽도추정하지않는다. 영향은LP15미커밋비용판정기록이며이미통과한semantic회귀/커밋은무효화하지않는다.
+
+| 대상 | 기준·측정 | 판정 경계 |
+| --- | --- | --- |
+| 소유임시디스크 | 기존512MiB·180초runtime/60초compile/출력2MiB 유지 | RSS와구별 |
+| 캐시보관입장 | envelope문자열+record구조64MiB/8192records | 전체프로세스메모리가아님 |
+| 컴파일 | 단일 CXX 호출과 그 하위 컴파일 프로세스를 포함한 실행 peakRSS/exit 별도 기록 | TU별 PID 전수 계측은 아님. fixture/실제서버512MiB판정에혼합금지 |
+| C++독립fixture | 프로세스자체 peakRSS512MiB를유지하고단계별current/peak관측 | 테스트기대자료·원본·snapshot복사도포함,제품만의RSS라고하지않음 |
+| 실제서버 | 기존HTTP4000ms·정상종료·진단/정리 | 별도근거없는제품전체RSS512MiB상한을신설하지않음 |
+
+### 2단계 실행 전 정의
+
+제품파일은수정하지않고scale32 fixture에서입력생성/원본생성/1·16·32누적/조회snapshot/명시checkpoint/저장소해제/SQLite·JSONL재개방/종료에고정stage별process currentRSS와누적peakRSS를보존한다. peak는high-water라서구간별할당량/누수증거로오인하지않는다. compiler와fixture실행을각각측정한다. 기존동등성oracle·데이터량·타임아웃·디스크·출력상한불변. 같은코드계측1회후귀속에필요한경우에만동일fixture의변경전비교를정의하고실행한다. 무근거반복금지.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP16-M01 | 계측정합 | macOS자기프로세스current/peak·고정stage·단위·오류시미확인거부,주소/원문비밀미출력 | v4.1.0 |
+| LP16-M02 | 분리측정 | compiler/fixture exit/RSS별도,누적1/16/32·조회/복구phase원출력 | v4.1.0 |
+| LP16-M03 | 기존oracle유지 | source/원장/복구동등성173+계측1,기존상한·원출력·cleanup | v4.1.0 |
+| LP16-M04 | 귀속/보완판정 | fixture보관/제품구간구별,필요시동일조건기준비교,원인에따라제품/도구/무수정결정 | v4.1.0 |
+
+파일/실행명령은담당자제안후첫실행전에추가한다. 같은시점의메모리만으로원인단정하지않고코드수명과대조한다. 3단계제품수정은확정원인/불변계약내최소범위만허용. 실제앱/장시간/UI/릴리즈에자동확대하지않는다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 계측/독립비용·필요한회귀 | 진행 대상 | 사용자6단계 | LP16-M01~04 | 승인 |
+| 실제앱단기 | 조건부 진행 | 귀속/자원/관련회귀판정후 | LP16 5단계 | 승인·선수필요 |
+| 30분/120분/UI/릴리즈 | 미진행 | 이번범위밖 | 현재사용자요청 | 미실행 |
+
+현재1단계읽기대조·계약정정완료,제품수정/제품테스트없음. `git diff --check` exit0, `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links` exit0(282파일/8722링크/22이미지/111anchor/실패0). 이전LP15비용실패자료를historical로함께보존하며PASS로바꾸지않는다. token start/end/consumed 실측미집계.
+
+LP16 1단계 cached diffcheck는 LP15 raw출력2개33행의행말공백으로exit2였다. 해당행만 RAW_JSON_LINE JSON으로가역보존하고원문SHA를명시한다. 복원검증후commit하며원래테스트결과는변경하지않는다.
+
+복원 검증 exit0: compaction `b7461632f6860b82dd2e1212d79ce13e3b27d0ac6c7a8d5083a658e3f0732094`, scale32 `9269679a5f13a1da47943b56185de9e4abf9479f57e733e791f66df141f32617` 모두 기록된 원문 SHA와 일치. 수정 후 `git diff --check` exit0. 이번 문서 검증은 제품/비용 검사를 재실행하지 않았다.
+
+LP16 2단계 파일등록: `recording_catalog_scale_probe.cpp`/`recording_catalog_cost_probe_run.sh`, 신규test-only `recording_process_memory_probe.h`/`recording_process_memory_probe_smoke.cpp`/`recording_memory_phase.mjs`/`recording_process_memory_probe.test.mjs`(모두scripts/internal). 명령 `node --test scripts/internal/recording_process_memory_probe.test.mjs`, `bash -n scripts/internal/recording_catalog_cost_probe_run.sh`, `git diff --check`. 자체검증은macOS mach/getrusage bytes·고정stage/누락실패거부,time단위/누락중복비숫자/fixture512MiB거부와compiler별도관측,격리자식exit0/7보존. 첫원출력/전수/cleanup은 `lp16-memory-output.txt`. 실제scale32본실행은자체검증·메인리뷰후별도실행. 제품파일무변경·기존runtime/compile상한유지.
+
 ## 2026-09-19 LP15 체크포인트 증분 검증
 
 독자: 녹화 저장 개발/검증 담당. lifecycle: 실행별 보존 기록. 정책은 AGENTS.md이며 이 절은 승인된6단계 계약/실행 정의다. 승인 순서: 계약→독립 검사→구현→비용/안전회귀→실제앱→분할커밋/푸시. LP14실패와 기존AVC 변경 보존. 실제앱은 독립비용 판정 이후,HTTP4000ms/총180초 불변. 장시간/UI/릴리즈 외부 작업 제외.
@@ -41,6 +84,38 @@ LP15 1단계 최초 cached diffcheck는 LP14 원출력 artifact의 보고부 EOF
 LP15 2~3단계 결과: cache focused43+기존CP2+RSS1=46PASS, 기존catalog246/reuse11/jobs23/service43/validation11=334PASS, 전체build와diffcheck exit0. [원출력·전수·source hash·cleanup](release-artifacts/v4.1.0/s11-preparation-mapping/lp15-checkpoint-output.txt). 최종peakRSS167116800B(이번macOS time-l), 실제2job 자동checkpoint2회: 최초11건전체916174us, 다음17건중prefix11재사용/suffix6검증1231167us. UpdateDerivedJob8회 최대hold1760516us. RED에는시간미측정이므로직접개선율미산정. 원본/증분/압축후보의독립전체projection대조·불법Ready거부·실제8193원장상한/full전환·오류폐기통과. 첫time권한오류는승격GREEN에서해소했으며과거미확보이력유지. 상한은캐시입장기준이지전체RSS보장이아니다.
 
 메인은 header/helper/catalog 전체diff·fixture/runner·원출력/hash를 직접대조했다. 제품journal구현/API/저장bytes·시간/ID·원자교체·HTTP상한 불변. 변경후보를다음실제prefix와재대조하는경계를확인했다. 비용instrument의원본/후보루프 exact삽입만새포인터구문과맞췄고 측정의미불변이다. 독립compaction/scale32/실제앱은아직미실행이며단계전체완료가아니다. token실측미집계.
+
+LP15 4단계 첫 compaction 준비FAIL: macOS Bash3 `fc_compile_prefix[@]: unbound variable`로검사본체미실행. 기존EXIT trap이exit0을반환해겉종료코드0이었으나PASS아님. `catalog-cost-output-compaction-lp15.txt` 최초출력보존,소유root336061B삭제확인. 준비범위수정으로 빈prefix를명시env로바꾸고 정상본문완료표식없으면EXIT0도1로전환한다. 회귀정의: 동일guard의정상0/명시17/unbound실패비0, shell syntax; 수정후 `compaction-lp15-fix1` 비용검사. 원래compaction출력덮어쓰기금지. 제품수정/상한변경없음.
+
+### LP15 4단계 결과·중단
+
+2~3단계 커밋 `e9bdde5a` 완료. 준비runner의정상0/명시17/unbound1 guard자체검사3개 및syntax통과. 수정후compaction41PASS/exit0/9초, 원장15248→9979B·11receipt/최신event/SQL·JSONL복구동일. scale32 기능173+계측1=174PASS/exit0/52초·자동CP32회. 단,자원판정은FAIL이다. [원출력위치·복원SHA/time후미·개별전수·비용판정](release-artifacts/v4.1.0/s11-preparation-mapping/lp15-cost-output.txt), [최초준비실패](release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-output-compaction-lp15.txt), [compaction](release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-output-compaction-lp15-fix1.txt), [scale32](release-artifacts/v4.1.0/s11-preparation-mapping/catalog-cost-output-scale-32-lp15.txt).
+
+동일fixture/O0계측프로필단일관측: 16/32 commit잠금2054.916/3849.605ms→411.843/427.415ms, 자동CP1762.082/3555.478ms→120.368/136.402ms,32명시CP3542.872→19.467ms. 실시간동시부하SLO나모든크기보장아님. 원장34522476B, SQLite/JSONL복구14640.551/7069.873ms는전체검증유지.
+
+이번메인설계에서정한peakRSS512MiB 조건에대해 scale32 wrapper697221120B(약665MiB)>536870912B로FAIL. 측정은컴파일/runner/fixture포함 wrapper이며compiler/fixture·누적/복구중어느단계인지미확인이다. LP11 baselineRSS미측정으로증가량/새캐시원인/누수단정금지. 실제앱LP15-A01은실행하지않는다. 추가반복/메모리기준완화/추정제품수정없음.
+
+읽기상보완후보는 원본Replay사본과선택되지않은shadow를의미검증·비교완료뒤commit전에폐기해동시생존을줄이는것이다. 실제효과는미확인. 다음조건은프로세스/단계별메모리귀속과기존대비를먼저확인한후동일계약의수명보완·관련자원/회귀판정이다. 같은원인미확정상태의전체검증반복은하지않는다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR/media-server-catalog-cost.aqcgGe | 준비실패 소유source | 336061B | runner삭제 | 부재 | 최초출력 |
+| TMPDIR/media-server-catalog-cost.h6tNkY | compaction 소유fixture | 5781562B | runner삭제 | 부재 | 실행출력 |
+| TMPDIR/media-server-catalog-cost.e76KCm | scale32 소유fixture | 199716628B | runner삭제 | 부재 | 실행출력 |
+| /private/tmp/lp15-cost.WoAfgp | log/GST cache | 2083464B·5파일·277심볼릭링크 | 원출력분할보존SHA/열린파일없음/소유uid확인후삭제 | 부재 | cleanup exit0·링크대상미추적 |
+
+최초정리사전검사는headless cache의symlink를일괄거부해exit1이었으며삭제하지않았다. 이어lstat으로링크277개/모든uid소유/특수파일없음을확인하고링크를따라가지않는삭제를수행했다. 로그3개는각기존artifact+time후미로원문복원가능함을확인했다. 재생성가능한fixture/cache만삭제했으며원본영상은별도복구보존하지않았다. token start/end/consumed 실측미집계.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 재사용계약 | 완료·커밋 | 독립shadow/exactprefix/무효화/상한 | 5d1f3afd |
+| 2 | 독립검사 | 완료·구현과함께커밋 | RED4→최종46PASS | e9bdde5a |
+| 3 | 누적비용구현 | 구현·관련회귀완료·커밋 | 기존334PASS/build | e9bdde5a |
+| 4 | 비용/자원/안전판정 | 기능PASS·자원FAIL | wrapperRSS상한초과 | LP15 비용출력 |
+| 5 | 실제앱재확인 | 미실행 | 선수조건실패 | 이번실행없음 |
+| 6 | 최종커밋/푸시 | 일부커밋·최종보류 | AVC/runner/비용기록미커밋 | 현재Git상태 |
+
+푸시 가능: 아니오, 수행하지않음. 장시간/UI/전체실제복수출력·재기동/릴리즈작업 미실행. 실패단계는커밋하지않고기존통과커밋은유지한다.
 
 ## 2026-09-19 LP14 종료 진단·보존 자료·전이 비용 보완
 

@@ -1,0 +1,25 @@
+[run] label=compaction-lp15 owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.aqcgGe
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+Target: arm64-apple-darwin27.0.0
+Thread model: posix
+InstalledDir: /Library/Developer/CommandLineTools/usr/bin
+Darwin arm64
+1.28.1
+3.51.0
+3.6.2
+e9bdde5a65ade6d01da31de35cf9d8f7563d25d2
+d2d0032c689adaadcadd2e12fbfb0ceaaf6145fd766e8a5d40fa1c8e0a232e35  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_cost_probe.cpp
+c6d53e35e97d457c01745c8e4e584d2a6ad1b822dc0f1bcb4e55d0f1a991e6fe  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_cost_probe_timer.h
+946d3674dc05fb35a9467233438e2ccc477f19df0c9f0dcda745fa62020c3a9f  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_cost_probe_instrument.cjs
+2561b2236c7af59e9645d51eb87a32a73595c5cecbdcc699cfd66fda2a2fe0c1  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_file_evidence_smoke.cpp
+85db9367ae66d997330cb8f9febe24febb2b5ff76b6363c6de3ccadc3fea0a71  /Users/dhseo/Workspace/mediaServer/src/recording/recording_file_evidence.cpp
+798a7203ea36498414769fa27427e4bc835ed02960583bc59b3a6d31d519503e  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_compaction_probe.cpp
+f60640159e9ff8b36bda5cfb618ae78a5da1c2cb86a23335f0e409af7d1bf88b  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_cost_probe_run.sh
+[source] file=recording_catalog.cpp original_sha256=d0d21e36d9e71cca0dad307057696e077f09af6585d497e99fdbdd76eb168780 instrumented_sha256=0ff5464546b3b9f34d2267253aa6c785529700942d12fc3519b93825880cc229
+[source] file=recording_journal.cpp original_sha256=66e6447a7557644391828eb074eda9911d052f93f4753bec724c8112c1ad6e1e instrumented_sha256=6ce65683a70963aa8ce7d57225ae24994aff7ef07988a73f9cf64a730614a99b
+[source] file=recording_contracts.cpp original_sha256=960635a08aa900bebfae961cd9e534ab6b91fbace213e1a7416227e7292ec890 instrumented_sha256=a99bc03ee76dbbd7342d06ea2db70258451d371889eacd384be541bee574e1c6
+[source] file=recording_checkpoint_validation.h original_sha256=9fdc31e2dd404b163c2d71e1bbb9edd5c70d3ef525bb762d8ef8f5d426e705df instrumented_sha256=46e7a8ac804d5f117496d54997b8b0d53c715ce5829fec018b1e81f002556b93
+[pass] FC01 exact insertion checks count=95
+/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_cost_probe_run.sh: line 52: fc_compile_prefix[@]: unbound variable
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.aqcgGe bytes=336061 removed=true
+[exit] code=0 elapsed_seconds=0 token_usage=unavailable source=bash-SECONDS
