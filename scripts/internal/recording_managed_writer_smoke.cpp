@@ -3,6 +3,7 @@
 #include "recording/recording_catalog.h"
 #include "recording/recording_finalize_recovery.h"
 #include "media/gstreamer_sample_observation.h"
+#include "recording_writer_decode_diagnostics.h"
 #include <gst/app/gstappsink.h>
 #include <gst/gst.h>
 #include <algorithm>
@@ -54,21 +55,29 @@ Encoded Encode(bool h264,int frames=60,bool bframes=false,bool actual_probe=fals
     }
     gst_element_set_state(pipe,GST_STATE_NULL);gst_object_unref(sink);gst_object_unref(pipe);return out;
 }
-int Decode(const std::filesystem::path& path,std::vector<std::uint64_t>* timestamps=nullptr,int max_frames=1000) {
+int Decode(const std::filesystem::path& path,std::vector<std::uint64_t>* timestamps=nullptr,int max_frames=1000,const char* diagnostic=nullptr,
+           bool failure_rows_only=false,int expected_count=-1,std::uint64_t expected_first=GST_CLOCK_TIME_NONE,bool software=false) {
     gchar* uri=g_filename_to_uri(path.c_str(),nullptr,nullptr);
-    const std::string launch=std::string("uridecodebin uri=\"")+uri+"\" ! videoconvert ! appsink name=out sync=false";g_free(uri);
+    std::string launch=std::string("uridecodebin uri=\"")+uri+"\" ! videoconvert ! appsink name=out sync=false";g_free(uri);
+    if(software){gchar* escaped=g_strescape(path.c_str(),nullptr);launch=std::string("filesrc location=\"")+escaped+"\" ! qtdemux ! h264parse ! avdec_h264 ! videoconvert ! appsink name=out sync=false";g_free(escaped);}
     GError* error=nullptr;GstElement* pipe=gst_parse_launch(launch.c_str(),&error);
-    if(error){g_error_free(error);if(pipe)gst_object_unref(pipe);return -1;}
-    GstElement* sink=gst_bin_get_by_name(GST_BIN(pipe),"out");gst_element_set_state(pipe,GST_STATE_PLAYING);
-    int count=0;bool eos=false;
+    if(error){if(diagnostic){writer_decode_diagnostics::PrintFile(diagnostic,"launch-failure",writer_decode_diagnostics::File(path));std::cout<<"[writer-diag-decode] case="<<diagnostic<<" reason=launch-failure domain="<<error->domain<<" code="<<error->code<<'\n';}g_error_free(error);if(pipe)gst_object_unref(pipe);return -1;}
+    std::unique_ptr<writer_decode_diagnostics::Trace> trace;if(diagnostic)trace=std::make_unique<writer_decode_diagnostics::Trace>(diagnostic,path,pipe,software);
+    GstElement* sink=gst_bin_get_by_name(GST_BIN(pipe),"out");const auto playing=gst_element_set_state(pipe,GST_STATE_PLAYING);
+    int count=0;bool eos=false;std::uint64_t first=GST_CLOCK_TIME_NONE;
     while(true) {
         GstSample* sample=gst_app_sink_try_pull_sample(GST_APP_SINK(sink),3*GST_SECOND);
         if(!sample){eos=gst_app_sink_is_eos(GST_APP_SINK(sink));break;}
+        if(trace)trace->Sample(gst_sample_get_buffer(sample));
+        if(count==0)first=GST_BUFFER_PTS(gst_sample_get_buffer(sample));
         if(timestamps)timestamps->push_back(GST_BUFFER_PTS(gst_sample_get_buffer(sample)));
         ++count;gst_sample_unref(sample);
         if(count>max_frames)break;
     }
-    gst_element_set_state(pipe,GST_STATE_NULL);gst_object_unref(sink);gst_object_unref(pipe);return eos?count:-1;
+    if(trace)trace->Bus(pipe);
+    gst_element_set_state(pipe,GST_STATE_NULL);
+    if(trace){const bool matched=eos&&count==expected_count&&(expected_first==GST_CLOCK_TIME_NONE||first==expected_first);trace->Report(count,eos,playing,playing==GST_STATE_CHANGE_FAILURE?"start-failure":eos?"eos":count>max_frames?"frame-limit":"null-before-eos",!failure_rows_only||!matched);trace.reset();}
+    gst_object_unref(sink);gst_object_unref(pipe);return eos?count:-1;
 }
 struct Store {
     std::filesystem::path root;
@@ -92,8 +101,11 @@ struct Store {
         }
         return out;
     }
-    int Frames(const std::vector<recording::RecordingSegmentV2>& segments) {
-        int n=0;for(const auto& s:segments){const int k=Decode(root/"channel-1"/(s.segment_id+(s.container=="mp4"?".mp4":".webm")));if(k<0)return -1;n+=k;}return n;
+    int Frames(const std::vector<recording::RecordingSegmentV2>& segments,bool diagnostic=false) {
+        constexpr const char* labels[]={"wr01_h264_0","wr01_h264_1","wr01_h264_2"};std::size_t index=0;
+        int n=0;for(const auto& s:segments){const char* label=diagnostic&&index<3?labels[index]:nullptr;
+            if(label)std::cout<<"[writer-diag-catalog] case="<<label<<" bytes="<<s.size_bytes<<" sha256="<<writer_decode_diagnostics::SafeFactory(s.checksum_sha256.c_str())<<" media_start="<<s.media_start_pts<<" media_end="<<(s.media_end_pts?std::to_string(*s.media_end_pts):"unknown")<<'\n';
+            const int k=Decode(root/"channel-1"/(s.segment_id+(s.container=="mp4"?".mp4":".webm")),nullptr,1000,label);if(k<0)return -1;n+=k;++index;}return n;
     }
 };
 bool Run(Store& store,const Encoded& input,std::int64_t duration=2000,bool repeat=false) {
@@ -105,14 +117,60 @@ bool Run(Store& store,const Encoded& input,std::int64_t duration=2000,bool repea
 bool HasUnknown(const std::vector<recording::RecordingSegmentV2>& segments) {
     for(const auto& s:segments)for(const auto& m:s.mappings)if(m.provenance=="unknown")return true;return false;
 }
+int DecoderComparison(const std::filesystem::path& root,bool only_bframes=false){
+    const auto need=[](bool ok){if(!ok)throw std::runtime_error("decoder-comparison-prepare");};
+    // 생성은 각 입력/저장소당 한 번만 수행한다. 이후 round에서는 이 네 파일만 읽는다.
+    const auto h264=only_bframes?Encoded{}:Encode(true,60),bframes=Encode(true,30,true);
+    if(!only_bframes)writer_decode_diagnostics::InputRows("comparison_wr01",h264);writer_decode_diagnostics::InputRows("comparison_wr05",bframes);
+    Store normal(root/"decoder-comparison-normal"),reordered(root/"decoder-comparison-bframes");
+    if(!only_bframes)need(Run(normal,h264));need(Run(reordered,bframes,100000));const auto normal_segments=normal.Segments(),reordered_segments=reordered.Segments();
+    need((only_bframes||normal_segments.size()==3)&&reordered_segments.size()==1&&reordered_segments[0].media_start_pts==0&&HasUnknown(reordered_segments));
+    need(!bframes.packets.empty()&&bframes.packets.front().observation&&bframes.packets.front().observation->pts_ns&&*bframes.packets.front().observation->pts_ns==200000000);
+    struct FileCase {const char* label;std::filesystem::path path;int frames;std::uint64_t expected_first;writer_decode_diagnostics::FileFacts fixed;};
+    std::vector<FileCase> files;constexpr const char* labels[]={"comparison_wr01_0","comparison_wr01_1","comparison_wr01_2"};
+    const auto add=[&](const char* label,Store& store,const recording::RecordingSegmentV2& segment,int frames,std::uint64_t first){
+        const auto path=store.root/"channel-1"/(segment.segment_id+".mp4");const auto fixed=writer_decode_diagnostics::File(path);
+        need(segment.container=="mp4"&&fixed.hashed&&fixed.bytes==segment.size_bytes&&fixed.sha==segment.checksum_sha256);
+        files.push_back({label,path,frames,first,fixed});
+        std::cout<<"[decoder-comparison-fixed] case="<<label<<" expected_count="<<frames<<" first_pts_checked="<<(first!=GST_CLOCK_TIME_NONE)<<" expected_first_pts="<<(first==GST_CLOCK_TIME_NONE?0:first)<<" bytes="<<fixed.bytes<<" sha256="<<fixed.sha<<'\n';
+    };
+    if(!only_bframes)for(std::size_t i=0;i<3;++i)add(labels[i],normal,normal_segments[i],20,GST_CLOCK_TIME_NONE);
+    add("comparison_wr05",reordered,reordered_segments[0],30,200000000);
+    const auto unchanged=[&](const FileCase& file){const auto now=writer_decode_diagnostics::File(file.path);return now.hashed&&now.bytes==file.fixed.bytes&&now.sha==file.fixed.sha;};
+    unsigned attempts=0;
+    for(unsigned round=1;round<=16;++round)for(const auto& file:files){
+        need(unchanged(file));std::vector<std::uint64_t> timestamps;
+        std::cout<<"[decoder-comparison-attempt] round="<<round<<" case="<<file.label<<" decoder=auto\n";
+        const int decoded=Decode(file.path,&timestamps,1000,file.label,true,file.frames,file.expected_first);++attempts;
+        need(unchanged(file));const bool matched=decoded==file.frames&&(file.expected_first==GST_CLOCK_TIME_NONE||(!timestamps.empty()&&timestamps.front()==file.expected_first));
+        std::cout<<"[decoder-comparison-result] round="<<round<<" case="<<file.label<<" decoder=auto matched="<<matched<<" count="<<decoded<<" first_pts_available="<<!timestamps.empty()<<" first_pts="<<(timestamps.empty()?0:timestamps.front())<<" file_unchanged=1\n";
+        if(matched)continue;
+        auto* software=gst_element_factory_find("avdec_h264");
+        if(!software)std::cout<<"[decoder-comparison-software] case="<<file.label<<" status=not-run reason=factory-unavailable\n";
+        else {
+            gst_object_unref(software);need(unchanged(file));std::vector<std::uint64_t> software_pts;
+            const int decoded_sw=Decode(file.path,&software_pts,1000,file.label,false,file.frames,file.expected_first,true);
+            need(unchanged(file));const bool sw_matched=decoded_sw==file.frames&&(file.expected_first==GST_CLOCK_TIME_NONE||(!software_pts.empty()&&software_pts.front()==file.expected_first));
+            std::cout<<"[decoder-comparison-software] case="<<file.label<<" status=observed matched="<<sw_matched<<" count="<<decoded_sw<<" first_pts_available="<<!software_pts.empty()<<" first_pts="<<(software_pts.empty()?0:software_pts.front())<<" file_unchanged=1\n";
+        }
+        std::cout<<"[decoder-comparison-summary] outcome=auto-failure original_failure_preserved=1 auto_attempts="<<attempts<<'\n';return 1;
+    }
+    std::cout<<"[decoder-comparison-summary] outcome=not-reproduced rounds=16 files="<<files.size()<<" auto_attempts="<<attempts<<" software_attempts=0 cause_resolved=0\n";return 3;
+}
 }
 int main(int argc,char** argv) {
+    if(argc==3&&(std::string(argv[2])=="--decoder-comparison"||std::string(argv[2])=="--decoder-comparison-bframes")){
+        gst_init(nullptr,nullptr);try{return DecoderComparison(argv[1],std::string(argv[2])=="--decoder-comparison-bframes");}catch(...){std::cout<<"[decoder-comparison-summary] outcome=preparation-failure reason=fixed-comparison-error\n";return 2;}
+    }
     if(argc!=2)return 2;gst_init(nullptr,nullptr);const std::filesystem::path root(argv[1]);
     try {
         const auto h264=Encode(true),vp8=Encode(false);
         for(const auto& pair:std::vector<std::pair<std::string,const Encoded*>>{{"h264",&h264},{"vp8",&vp8}}) {
+            if(pair.first=="h264")writer_decode_diagnostics::InputRows("wr01_h264",*pair.second);
             Store s(root/pair.first);const bool ran=Run(s,*pair.second);auto segments=s.Segments();
-            Check(ran&&segments.size()==3&&s.Frames(segments)==60,"WR01 "+pair.first+" managed segments decode all frames without legacy callback or snapshot");
+            const int frames=ran&&segments.size()==3?s.Frames(segments,pair.first=="h264"):-2;
+            std::cout<<"[measure] WR01 codec="<<pair.first<<" ran="<<ran<<" segments="<<segments.size()<<" frames="<<frames<<" decode_attempted="<<(ran&&segments.size()==3)<<'\n';
+            Check(ran&&segments.size()==3&&frames==60,"WR01 "+pair.first+" managed segments decode all frames without legacy callback or snapshot");
             bool bound=segments.size()==3;
             std::uint64_t next=1;
             for(const auto& segment:segments) {
@@ -237,10 +295,17 @@ int main(int argc,char** argv) {
             Check(ran&&segments.size()==6&&previous_order>0&&segments[3].order_sequence>previous_order&&segments[3].segment_id!=previous_id&&s.Frames(segments)==120,
                   "WR06 reopened store allocates fresh IDs and increasing durable order");
         }
-        const auto bframes=Encode(true,30,true);Store bs(root/"bframes");bool b_ok=Run(bs,bframes,100000);auto bseg=bs.Segments();
+        const auto bframes=Encode(true,30,true);writer_decode_diagnostics::InputRows("wr05_bframes",bframes);Store bs(root/"bframes");bool b_ok=Run(bs,bframes,100000);auto bseg=bs.Segments();
         std::vector<std::uint64_t> decoded_pts;int decoded=-1;
-        if(bseg.size()==1)decoded=Decode(bs.root/"channel-1"/(bseg[0].segment_id+".mp4"),&decoded_pts);
+        if(bseg.size()==1){std::cout<<"[writer-diag-catalog] case=wr05_bframes bytes="<<bseg[0].size_bytes<<" sha256="<<writer_decode_diagnostics::SafeFactory(bseg[0].checksum_sha256.c_str())<<" media_start="<<bseg[0].media_start_pts<<" media_end="<<(bseg[0].media_end_pts?std::to_string(*bseg[0].media_end_pts):"unknown")<<'\n';decoded=Decode(bs.root/"channel-1"/(bseg[0].segment_id+".mp4"),&decoded_pts,1000,"wr05_bframes");}
         const auto first_pts=*bframes.packets.front().observation->pts_ns;
+        // WR05의 여러 판정 중 실제 실패한 경계를 남긴다. 합격식·대기시간은 변경하지 않는다.
+        std::cout<<"[measure] WR05 ran="<<b_ok<<" segments="<<bseg.size()
+                 <<" media_start_pts="<<(bseg.size()==1?std::to_string(bseg[0].media_start_pts):"unavailable")
+                 <<" input_first_pts="<<first_pts<<" decoded_count="<<decoded
+                 <<" decoded_pts_count="<<decoded_pts.size()
+                 <<" decoded_first_pts="<<(decoded_pts.empty()?"unavailable":std::to_string(decoded_pts.front()))
+                 <<" has_unknown="<<HasUnknown(bseg)<<'\n';
         Check(b_ok&&bseg.size()==1&&bseg[0].media_start_pts==0&&first_pts>0&&decoded==30&&!decoded_pts.empty()&&
               decoded_pts.front()==first_pts&&HasUnknown(bseg),"WR05 actual H264 reordering preserves decode timestamps and mux origin");
         std::uint64_t maximum_end=0;

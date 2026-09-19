@@ -1,5 +1,20 @@
 # Project Feature Test Inventory
 
+## LP18 writer 경계 진단 사전등록
+
+| 기능 ID | 항목 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| LP18-WD01 | 동일 입력·파일 근거 | WR01/WR05 packet 시간/크기/hash, catalog·파일 전후 hash 일치 관측 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 격리 CLI |
+| LP18-WD02 | 실제 디코딩 경계 | 자동 선택 demux/parser/decoder의 buffer·SEGMENT·EOS, 제한128행·누락 명시 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 격리 CLI |
+| LP18-WD03 | 디코딩 종료 분류 | PLAYING 반환·appsink 수치·bus 안전 오류·고정 종료 이유, 기존 oracle/시간제한 불변 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 격리 CLI |
+| LP18-WD04 | 진단 출처·정리 | source/환경/실행 시각·44개 결과·소유 root 삭제 확인 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 격리 CLI |
+| LP18-WD05 | 동일 파일 반복 대조 | 한번 생성4파일 최대16round·최초실패중단·각 count/EOS/WR05 PTS/SHA | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 격리 CLI |
+| LP18-WD06 | decoder 실패 경계 | 같은실패파일 software1회대조·기존FAIL 유지·미가용미실행 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 격리 CLI |
+| LP18-WD07 | 미재현 종료 | 미재현exit3·원인해소PASS금지·기록/정리·다음단계보류 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 격리 CLI |
+| LP18-WD08 | WR05 독립 경계 | WD05가WR01에서중단된 뒤 WR05파일만같은16회상한·최초실패시SW1회대조. WR01원인으로소급확정금지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 격리 CLI |
+
+관측 정의이며 실행/PASS가 아니다. 중앙 기록의 2026-09-20 LP18 잔여1~3을 따른다.
+
 ## LP18 불변 소유 첫 구현 사전등록
 
 | 기능 ID | 기능 | 안정화 | 30분 | 120분 | UI |

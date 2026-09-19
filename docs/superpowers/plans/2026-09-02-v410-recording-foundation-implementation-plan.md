@@ -66,6 +66,11 @@ focused28·context31·proof25·prepared11·jobs23·service43·cache47·catalog24
 그러나 writer44개에서 최초 WR05가 FAIL, 숫자 출력만 추가한 진단1회에서는 WR05 PASS/WR01 H264 FAIL로
 실패 경계가 달라졌다. 공통 원인 및 위치 변경의 인과관계는 미확정이므로 이 단위는 미커밋/중단이다.
 service/2-job/소비 연결·eviction/5번은 건너뛰었다. 실패와 임시 정리는 중앙 LP18 기록에 보존했다.
+2026-09-20 후속1번 진단은 기본44PASS 후 동일 파일 제한 대조에서 WR01 20→19, WR05 30→29를
+`vtdec_hw` 입력/출력 경계로 분리했다. 파일 SHA 불변이며 같은파일 avdec_h264는 각각20/30이었다.
+정확한 plugin/VideoToolbox 내부 결함은 미확정, 제품 데이터나 timeout 수정 근거는 없다. 실패는 소급 PASS로 바꾸지 않는다.
+writer 저장 oracle/SW 고정과 auto/HW 미해결 항목 분리 여부는 사용자 결정 대기다.
+따라서 후속2번 위치 마감·3번RAM 적용은 보류하고1번 진단/증거만 별도 커밋한다. 중앙 기록 WD01~08을 따른다.
 
 ### LP17 판정 기준 비교 설계 저장 계약
 

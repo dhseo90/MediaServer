@@ -1,5 +1,132 @@
 # Release Test Records
 
+## 2026-09-20 LP18 잔여 1~3 순차 실행
+
+사용자 승인: 실패 원인 진단 → 위치 재획득 단위 마감 → 실제 RAM 수명 적용, 단계별 커밋.
+시작 HEAD `fc920a1ab`, branch `v4.1.0`, 로컬 추적 ref 대비 ahead25. 기존 미완료 위치 코드와 실패 기록을 보존한다.
+푸시·누적 비용/HTTP 최종 판정·S11 장시간/UI·릴리즈 실행은 이번 범위 밖이다.
+메인이 계약·진단·실행·직접 diff 검토·최종 판정, 기존 단일 Astra/medium 담당자는 지정 진단 fixture만 구현하며 하위 위임은 금지한다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | WR01/WR05 원인 진단 | 진단 완료 | 양쪽 제한 재현에서 vtdec_hw 입력/출력 경계의 프레임 감소 확인. plugin/OS 내부 세부 원인은 미확정 | WD05/08 원출력과 아래 확정 경계 |
+| 2 | 위치 단위 마감 | 정책 결정 대기 | 저장 oracle/SW 고정과 자동선택 미해결 이슈 분리 여부 질문. 아직 수정·영향검증 마감/제품커밋 안 함 | AGENTS8 검증 대체 승인, service/2-job 미실행 |
+| 3 | 실제 RAM 수명 적용 | 건너뜀 | 2번 미완료로 소비 연결/상주 해제 착수하지 않음 | LP18-4 계약 |
+| 4 | 분할 커밋 | 1번만 대상 | 진단 도구·출처·실패 증거만 별도 커밋. 미완료 제품코드 제외 | AGENTS3.1/5.1 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 요청1~3의 원인 분리·관련 단기 검증 | WR01/WR05, LP18-L, 아래 WD 정의 | 승인, 단계 순서 유지 |
+| 30분 | 미진행 | 개발 중·최종cut 아님 | AGENTS7.6.2 | 이번 실행 없음 |
+| 120분 | 미진행 | 개발 중·최종cut 아님 | AGENTS7.6.2 | 이번 실행 없음 |
+| UI | 미진행 | 내부 저장 작업·사용자 브라우저 제외 유지 | AGENTS7.6.2 | 이번 실행 없음 |
+
+### 1번 실행 전 진단 정의
+
+명령은 `bash scripts/internal/verify_recording_managed_writer.sh`. 기존44개 assertion·실제 입력/pipeline·decoder 자동 선택·
+sample 대기3초·writer EOS5초를 바꾸지 않는다. 관측 대상은 최초 WR01 H264 파일3개와 WR05 B-frame 파일1개다.
+추가 출력은 관측이며 별도 PASS를 만들어 기존 실패를 대신하지 않는다. 입력/파일 SHA와 비민감 수치만 보존하고 미디어는 소유 root에서 정리한다.
+다시 실패하면 같은 파일에서 관측된 최초 불일치 경계를 먼저 판단하고 근거 없이 전체44개를 반복하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-WD01 입력·파일 일치 | 입력 packet PTS/DTS/duration/크기/SHA와 finalized 파일 읽기 전후 SHA/size | WR01/WR05 동일 실행·catalog 파일 SHA 대조, 원문/URI 출력 금지 | v4.1.0 |
+| LP18-WD02 디코딩 경계 | 실제 demux/parser/decoder factory, sink/src buffer·SEGMENT·EOS | 최대128행/대상 경계와 누락 계수, frame 순서/시간 손실 최초 위치 식별 | v4.1.0 |
+| LP18-WD03 종료 이유 | PLAYING 반환, appsink count/PTS·EOS·bus 오류 domain/code·elapsed | raw 오류/debug를 출력하지 않고 고정 이유 분류. 기존 Decode 반환/시간제한 유지 | v4.1.0 |
+| LP18-WD04 환경·정리 | source hash/HEAD·시각·platform·의존성·root 삭제 | 컴파일/실행 exit와 기존44개 결과 전수, 소유 임시파일 제거 확인 | v4.1.0 |
+
+token start/end/consumed: 개별 사용량 집계 도구가 없어 미집계. elapsed와 source는 각 실제 명령 원출력에 기록한다.
+실행 결과는 실행 후 기록하며 현재 등록을 PASS로 해석하지 않는다.
+
+첫 진단 빌드 exit1/6초: 추가 catalog 출력 두 곳이 optional 종료점을 직접 stream에 전달해 컴파일 실패했다.
+실제 writer44개는 미실행이며 예상RED가 아니다. 원인은 진단 준비 코드로 확정되어 optional을 숫자/unknown으로 출력하도록 수정한다.
+처음 compiler 출력은 도구 한도에 의해 일부 잘렸으며 복원하지 않는다. 보존: `lp18-writer-boundary-build-failure-01.txt`.
+소유 root `media-server-managed-writer.WUuPnx` 62691B는 trap에서 삭제·부재 확인했다. 다음 실행은 tee로 원출력을 먼저 보존한다.
+동일 단계의 격리 준비 결함 수정(AGENTS3.3)이며 제품·oracle·시간제한 변경은 없다.
+
+수정 후 같은 명령 exit0/11초·44PASS/0FAIL. 원출력 `lp18-writer-boundary-01.txt`180031B와 개별44행을
+`lp18-ownership-results.md`에 보존했다. WR01 H264 파일3개의 demux/parser/decoder/appsink가 각각20프레임,
+WR05가각30프레임·첫PTS200000000ns이며4파일 모두 catalog/읽기전/후 hash·size가 같았다.
+자동 선택은 `qtdemux → h264parse → vtdec_hw`, source/provenance는 원출력에 보존. 누락행/미관측경계/오류0.
+bus EOS가 첫파일0회인 것은 appsink EOS 시점의 비대기 snapshot이며 오류로 추정하지 않는다.
+root `media-server-managed-writer.iVKiyJ`16857323B는 trap에서 삭제·부재 확인했다.
+과거43PASS/1FAIL 두 실행의 원인은 이 통과로 해소되지 않았다. 제품 원인/환경 원인 중 어느 쪽도 아직 단정하지 않는다.
+
+### 1번 제한 대조 추가 정의
+
+새 직접 근거는 실제 자동선택 `vtdec_hw`와 정상 실행의 동일 파일/20·30프레임 경계다.
+원본을 한 번만 생성하고 같은4파일을 최대16회 재읽기하여 파일 생성 변동과 디코더 실행 변동을 분리한다.
+전체44개 반복·warmup 후 PASS 선택·decoder 교체로 합격 대체는 하지 않는다.
+GStreamer1.28.1 공식 appsink 구현은 NULL을 stopped/EOS/timeout에 모두 반환하며, vtdec finish는 drain을 호출한다.
+이 일반 구현 사실만으로 이번 실패 원인을 지정할 수 없다.
+참고: [appsink](https://github.com/GStreamer/gstreamer/blob/1.28.1/subprojects/gst-plugins-base/gst-libs/gst/app/gstappsink.c),
+[vtdec](https://github.com/GStreamer/gstreamer/blob/1.28.1/subprojects/gst-plugins-bad/sys/applemedia/vtdec.c).
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-WD05 동일 파일 대조 | 단일 생성된 WR01 H2643파일/WR05파일을 최대16round로 자동 decode | round별 기존 count/EOS·WR05 firstPTS 조건과 SHA 유지. 최초 실패시 즉시 반복 종료 | v4.1.0 |
+| LP18-WD06 실패 경계 분리 | 최초 실패 파일을 명시적 avdec_h264로1회만 대조 | 같은파일·3초/프레임상한, auto FAIL 유지(exit1); SW미가용은 미실행, 자동선택이나제품 변경금지 | v4.1.0 |
+| LP18-WD07 미재현 경계 | 16round 모두 정상이어도 원인해소PASS 금지 | not-reproduced/exit3·2/3번 보류. 성공round 수치만, 실패경계 상세행 보존 | v4.1.0 |
+
+대조는 명시 `--decoder-comparison`일 때만 실행한다. 기존 기본44개 경로는 그대로다.
+raw 오류·URI는 출력하지 않고 자체 생성된 미디어는 기존 소유 root와 함께 정리한다.
+이번 대조에서도 원인 구분이 안 되면 자동 반복/제품 수정 없이 미확정을 보고한다.
+
+대조01: exit1/9초, round6 WR01 두번째 파일(총22번째 auto)에서 count19로 실패. 동일 파일은 앞선5회 모두20이며
+해시 `28814a426ea98be79492acbaee78cf8a21c8fa47ab6ff2f6287e230407361415`/21128B가 매번 동일했다.
+qtdemux20→h264parse20→vtdec_hw 입력20/출력19→appsink19. 누락 PTS는1900000000ns, EOS1/오류0,
+rows_dropped0/unobserved0이다. 같은 파일 SW대조는 avdec_h264 입력20/출력20·모든PTS·EOS 정상이다.
+이 재현의 최초 불일치는 decoder 내부 경계로 확정되며 파일 생성/변조·demux/parser·3초 timeout 탓이 아니다.
+VideoToolbox 내부와 plugin drain 사이의 정확한 결함까지 확정한 것은 아니다. 과거 수치 없는 WR05도 같은 원인이라 단정하지 않는다.
+원출력 `lp18-writer-decoder-comparison-01.txt`. root `media-server-managed-writer.fg3YFo`7307720B 삭제·부재확인.
+auto실패는 그대로FAIL이며 SW통과로 대체하지 않았다. 검사 정책 변경은 사용자에게 별도로 질문했다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-WD08 WR05 독립 대조 | 위 대조가 WR01에서 종료되어 미확정인 B-frame 경계만 확인 | `bash scripts/internal/verify_recording_managed_writer.sh --decoder-comparison-bframes`; Bframe파일1회생성·최대16round·최초실패시동일SW1회. 기존시간/판정 유지·미재현exit3 | v4.1.0 |
+
+이번 추가는 WR01을 통과할 때까지 재실행하는 것이 아니다. 분리된 WR05 진단만 한 번 실행하고 정책 결정 전에 제품을 수정하지 않는다.
+
+### 최종 직접 판정과 마감 경계
+
+WR05 전용 대조 exit1/8초, 같은파일의 round7에서30→29프레임. 파일 SHA
+`5badf89459bd6cd8478e67921010bf5c52ea710cca0d7c24e96237ab66fd15e8`/22339B는 전후/대조 모두 동일하다.
+demux/parser/decoder입력30, vtdec_hw출력/appsink29, EOS1·bus오류0, drop/unobserved0.
+출력에서2.6/2.7/3.1초 PTS는 없고2.8초가3회 관측됐다. 동일파일 avdec_h264는30프레임·0.2~3.1초
+각0.1초 간격으로 출력했다. 시각 중복은 관측 사실이며 기존 WR05가 전 PTS를 검사했다고 확대하지 않는다.
+root `media-server-managed-writer.jjKddk`7235459B 삭제·부재확인. 원출력 `lp18-writer-bframe-comparison-01.txt`124669B.
+
+두 실패 재현은 파일을 새로 생성하지 않고 같은 SHA 파일을 읽었으므로 이번 count 실패의 최초 경계를
+하드웨어 자동 디코딩으로 좁혔다. 과거 로그에 없는 세부 수치를 소급 복원하지 않는다. `vtdec_hw` plugin·
+VideoToolbox/driver·EOS drain의 내부 원인 중 어느 것인지는 추가 조사 대상이며 설치 패키지를 임의 변경하지 않는다.
+원래44개 통과 실행은 유지하지만 두 자동선택 재현 FAIL도 그대로 남긴다. 검증시간 연장·warmup·retry PASS 선택·rank 변경은 없다.
+
+제품 직접 확인: `src/analysis/raw_video_decoder.cpp:70`, `src/recording/recording_derived_remux.cpp:205`는 명시적 avdec_h264다.
+`src/core/source_factory.cpp:1562`, `src/ingress/gst_pipeline_builder.cpp:14`는 자동 decode 경로가 있어
+환경 문제라는 이유로 제품 영향 전체를 없다고 판정하지 않는다. 이 제품 경로들의 실제 실패/무영향은 이번 범위에서 미확인이다.
+권장 후속은 writer 저장 검증을 명시적 SW로 분리하되 auto/HW 실패를 독립 미해결로 보존하는 것이다.
+이는 기존 검증 방법 변경이므로 AGENTS8에 따라 사용자 결정을 요청했으며 아직 적용하지 않았다.
+2번의 관련 service/2-job와3번 RAM 수명은 건너뜀. 전체1~3 완료 또는 제품/릴리즈 PASS가 아니다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR/media-server-managed-writer.WUuPnx | 진단 빌드 소유 root | 62691B | trap 삭제 | 부재 확인 | 첫 빌드 실패 원출력 |
+| TMPDIR/media-server-managed-writer.iVKiyJ | 실제44개 미디어/registry/binary | 16857323B | trap 삭제 | 부재 확인 | boundary01 원출력 |
+| TMPDIR/media-server-managed-writer.fg3YFo | 동일파일 대조 미디어/registry/binary | 7307720B | trap 삭제 | 부재 확인 | decoder-comparison01 원출력 |
+| TMPDIR/media-server-managed-writer.jjKddk | WR05 대조 미디어/registry/binary | 7235459B | trap 삭제 | 부재 확인 | bframe-comparison01 원출력 |
+| docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-writer-*.txt 중 이번4파일 | 수치/출처/최초실패 원출력 | 개별실행 위 수치 | 보존 | 미디어·credential·raw decoder 오류/debug 없음. compiler 최초 출력 일부누락 명시 | WD01~08·개별75결과행(44+23+8) |
+
+검증/변경 파일은 writer fixture·진단header·실행wrapper와 관련 등록/기록/계획이다. 제품 수정은 이번 진단에서0이며
+기존 위치 기반6파일은 미커밋 그대로 남긴다. 진단 요청은 실패를 재현/분리하는 산출물을 달성했으므로 이 진단 단위만 커밋한다.
+미해결 writer를 수정 완료한 커밋이나 위치/RAM 단계 완료 커밋으로 표현하지 않는다. 실제hash는 Git와 최종보고에 남긴다.
+푸시 가능: 아니오 — 2/3번 미완료·기존 제품 미커밋, 푸시 미수행. 30분/120분/UI/실제HTTP 미실행.
+
+마감 확인: docs-links exit0(md285/link8901/image22/anchor116/실패0), shell문법·tracked diffcheck exit0.
+원출력4파일447467B, 개별75행(73PASS/2FAIL)을 대조했다. 이는 실행들의 합계이지 suite73PASS라는 판정이 아니다.
+명시4개 소유 root 부재를 다시 확인했고, 제한적인 private-key/GitHub/OpenAI token 패턴 신호0이었다(전면보안감사 아님).
+문서 감사 elapsed는 도구wall_time_seconds=0.027600041이며 테스트 실행시간은 각 raw의8/9/11초를 사용한다.
+최초compiler 실패6초와 출력 일부누락도 그대로 보존한다. 서버/포트 사용은 없었고 추가 패키지 설치/수정은 없다.
+
 ## 2026-09-20 LP18 미커밋 정리와 조건부 푸시 판정
 
 사용자 요청: 남은 미커밋을 정리하고 불필요하면 삭제, 푸시 가능할 때만 푸시, 잔여 이슈 재정리.

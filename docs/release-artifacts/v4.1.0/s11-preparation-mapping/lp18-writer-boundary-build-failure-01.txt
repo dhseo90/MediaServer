@@ -1,0 +1,51 @@
+[command] MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_managed_writer.sh
+[capture] compiler output was truncated by tool max_output_tokens; omitted text cannot be reconstructed
+Warning: truncated output (original token count: 10227)
+Total output lines: 308
+
+[environment] started_utc=2026-09-19T21:41:15Z platform=Darwin machine=arm64
+[environment] head=fc920a1ab4ac492fbb7d50c4843c9f74cb77ece2
+1.28.1
+1.28.1
+3.51.0
+3.6.2
+[source] include/media/gstreamer_sample_observation.h sha256=162a865f5d1bee7494f9c3304f3fd40eae9df1b25416b0447ac08c4b30f506fa
+[source] include/recording/analysis_observation_projector.h sha256=6644d80c4834d3e9f3ce0c4e07a1ffe4cb2add043c1530b0b233cef4794bb8f9
+[source] include/recording/event_clip_deriver.h sha256=102b94dc8bc45ada6f8ba4061b07de635d11efdba4670d41c1a1900802b6ea26
+[source] include/recording/event_recording_bridge.h sha256=850d8091b7532efaefd30882645279528fcfb23e1f14824e470941d6e237a97e
+[source] include/recording/gstreamer_segment_writer.h sha256=7b80fd26b4c1bef3f8582001fd07d33e47e37f273ede2b497f1965d5e2c96504
+[source] include/recording/recording_catalog.h sha256=ec7bb80f4bbe5731edb932a836d84f3865a0d6f6daa4ab74aecc99170e7af0e8
+[source] include/recording/recording_contracts.h sha256=666a153c91bb0ce3975f414a8e1b050bf35d570faff4682ebe84dca3f8dec3b4
+[source] include/recording/recording_derived_event_worker.h sha256=61fefd5f782c301b0f6c9eb134a4a9f20bae973d66c1dce063112333029bed9f
+[source] include/recording/recording_derived_job.h sha256=2b1fcfc038b31a6ee837e197ab6c3edfbb2662b4b75972db1e3f9f5b0068490d
+[source] include/recording/recording_derived_job_service.h sha256=c9d36026b944776042ceec9971de8d32bc5678a350ced743d32fd3f58488ea48
+[source] include/recording/recording_derived_provenance.h sha256=91793af640c245645fe36598caa92c4e78ef2a26a8a8c7a6b78790c25f5d653d
+[source] include/recording/recording_derived_remux.h sha256=c472084448d56a32fd12b959c7ce25d1081be4cc555a87b65be55d92b1af6046
+[source] include/recording/recording_derived_selection.h sha256=73432ce4a899bdd2f07b4ace9ef4ddf7b4016bcbb185f651fa9fb23820ad42b9
+[source] include/recording/recording_evidence_observer.h sha256=baeccf8cd0b1e93943b2024b9f00998f116f50f38e9439082c372a7890e1f262
+[source] include/recording/recording_file_evidence.h sha256=8cef26a1cc78d07459b4b37249057de67c68e5505cd7763a438e7bd0ab0ce9ad
+[source] include/recording/recording_finalize_recovery.h sha256=49145922f006c10dada5effd9342a684ebea51f96cb0833769232342a7752ab0
+[source] include/recording/recording_journal.h sha256=680391f36ffe2546634a07ade66a6ef271f3260fce24d7935799dea076ef27eb
+[source] include/recording/recording_latency_trace.h sha256=da89d6b98f473f4c985b05f0d6c3f3a1045e…9027 tokens truncated…sdk/usr/include/c++/v1/__ostream/basic_ostream.h:152:18: note: candidate function not viable: no known conversion from 'std::optional<std::int64_t>' (aka 'optional<long long>') to 'float' for 1st argument
+  152 |   basic_ostream& operator<<(float __f);
+      |                  ^          ~~~~~~~~~
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__ostream/basic_ostream.h:153:18: note: candidate function not viable: no known conversion from 'std::optional<std::int64_t>' (aka 'optional<long long>') to 'double' for 1st argument
+  153 |   basic_ostream& operator<<(double __f);
+      |                  ^          ~~~~~~~~~~
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__ostream/basic_ostream.h:154:18: note: candidate function not viable: no known conversion from 'std::optional<std::int64_t>' (aka 'optional<long long>') to 'long double' for 1st argument
+  154 |   basic_ostream& operator<<(long double __f);
+      |                  ^          ~~~~~~~~~~~~~~~
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__ostream/basic_ostream.h:155:18: note: candidate function not viable: no known conversion from 'std::optional<std::int64_t>' (aka 'optional<long long>') to 'const void *' for 1st argument; take the address of the argument with &
+  155 |   basic_ostream& operator<<(const void* __p);
+      |                  ^          ~~~~~~~~~~~~~~~
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__ostream/basic_ostream.h:163:18: note: candidate function not viable: no known conversion from 'std::optional<std::int64_t>' (aka 'optional<long long>') to 'basic_streambuf<char_type, traits_type> *' (aka 'basic_streambuf<char, std::char_traits<char>> *') for 1st argument
+  163 |   basic_ostream& operator<<(basic_streambuf<char_type, traits_type>* __sb);
+      |                  ^          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__ostream/basic_ostream.h:168:40: note: candidate function not viable: no known conversion from 'std::optional<std::int64_t>' (aka 'optional<long long>') to 'nullptr_t' (aka 'std::nullptr_t') for 1st argument
+  168 |   _LIBCPP_HIDE_FROM_ABI basic_ostream& operator<<(nullptr_t) { return *this << "nullptr"; }
+      |                                        ^          ~~~~~~~~~
+2 errors generated.
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.WUuPnx bytes=62691 removed=true
+[elapsed] seconds=6 source=bash-SECONDS
+
+[tool-exit] 1

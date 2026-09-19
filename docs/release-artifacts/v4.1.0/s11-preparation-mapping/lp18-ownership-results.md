@@ -3,6 +3,104 @@
 독자: 녹화 구현·검증 담당. 수명: 이번 단기 검사의 실패/RED/GREEN 보존형 전수 결과. 정책은 AGENTS.md이며 해석은 [중앙 기록](../../../release-test-records.md)의 LP18을 따른다.
 예상 RED의 assertion은 실제 FAIL로 남기며 제품 PASS로 바꾸지 않는다.
 
+## writer 경계 관측
+
+[첫 진단 빌드 실패](lp18-writer-boundary-build-failure-01.txt): exit1/진단 optional 출력 오류. 실제44개 미실행·compiler 원출력 일부 누락.
+
+[lp18-writer-boundary-01 원출력](lp18-writer-boundary-01.txt): 수정 후 exit0, 44PASS/0FAIL. 과거 실패를 재현하거나 원인을 해소한 것으로 확대하지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. WR01 h264 managed segments decode all frames without legacy callback or snapshot | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 2. S10-C321 h264 실제 수락 원본 tuple과 segment 결박 | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 3. WR01 vp8 managed segments decode all frames without legacy callback or snapshot | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 4. S10-C321 vp8 실제 수락 원본 tuple과 segment 결박 | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 5. WR02 UTC-only change preserves media splits frames and independent mapping | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 6. WR03 UTC-only change preserves media splits frames and independent mapping | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 7. WR04 UTC-only change preserves media splits frames and independent mapping | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 8. WR05 duplicate PTS with advancing DTS preserves media and unknown mapping | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 9. WR06 explicit generation reset creates a new media epoch | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 10. S10-C326 세대별 원본 결박 분리 | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 11. WR07 repeated observations and processing UTC do not duplicate media | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 12. S10-C325 분할·재전달의 segment별 수락 범위 | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 13. S10-C322 keyframe 대기·다른 track·빈 입력·replay 제외 | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 14. S10-C324 색인 상한 뒤에도 실제4100프레임 저장·미색인 꼬리 표시 | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 15. WR08 missing final duration preserves media with unknown end | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 16. WR09 mapping budget retains bounded unknown tail and all frames | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 17. WR01 invalid binding rejects before writes journal | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 18. WR01 invalid binding rejects before writes catalog | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 19. WR01 invalid binding rejects before writes root | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 20. WR01 invalid binding rejects before writes store | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 21. WR01 invalid binding rejects before writes lease | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 22. WR01 invalid binding rejects before writes incomplete | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 23. WR08 clock process change preserves same-generation media with unknown comparison | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 24. WR08 invalid duration leaves unknown end zero | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 25. WR08 invalid duration leaves unknown end overflow | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 26. WR08 unsafe original input cannot become finalized observation | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 27. WR08 unsafe original input cannot become finalized pts | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 28. WR08 unsafe original input cannot become finalized range | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 29. WR07 older generation cache cannot switch media backwards | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 30. WR07 unrelated video track cannot change selected track identity | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 31. WR06 reopened store allocates fresh IDs and increasing durable order | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 32. WR05 actual H264 reordering preserves decode timestamps and mux origin | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 33. WR05 reordered segment end covers maximum presented frame end | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 34. S10-C327 실제 B-frame 원본PTS·ordinal 보존 | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 35. WR08 missing maximum PTS frame duration keeps reordered end unknown | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 36. WR09 failed active commit preserves ready order and quota reservation | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 37. WR09 restart recovers the same durable segment and all frames | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 38. WR08 excessive clock width preserves media as unknown | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 39. WR08 zero generation order cannot become finalized | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 40. WR08 media observation quality normal | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 41. WR08 media observation quality fast | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 42. WR08 media observation quality drift | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 43. WR08 media observation quality fast-step | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+| 44. WR01 actual appsink observation flows through managed writer and decode | 기존 writer44개 assertion / exit0 | PASS | 이번 관측 통과, 과거 실패 원인 해소 아님 |
+
+### lp18-writer-decoder-comparison-01.txt
+
+[원출력](lp18-writer-decoder-comparison-01.txt). 최초 자동선택 실패에서 중단했으며 SW대조가 원래 FAIL을 대체하지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. comparison_wr01_0 auto round 1 | count=20, firstPTS=0, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 2. comparison_wr01_1 auto round 1 | count=20, firstPTS=0, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 3. comparison_wr01_2 auto round 1 | count=20, firstPTS=0, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 4. comparison_wr05 auto round 1 | count=30, firstPTS=200000000, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 5. comparison_wr01_0 auto round 2 | count=20, firstPTS=0, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 6. comparison_wr01_1 auto round 2 | count=20, firstPTS=0, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 7. comparison_wr01_2 auto round 2 | count=20, firstPTS=0, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 8. comparison_wr05 auto round 2 | count=30, firstPTS=200000000, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 9. comparison_wr01_0 auto round 3 | count=20, firstPTS=0, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 10. comparison_wr01_1 auto round 3 | count=20, firstPTS=0, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 11. comparison_wr01_2 auto round 3 | count=20, firstPTS=0, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 12. comparison_wr05 auto round 3 | count=30, firstPTS=200000000, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 13. comparison_wr01_0 auto round 4 | count=20, firstPTS=0, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 14. comparison_wr01_1 auto round 4 | count=20, firstPTS=0, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 15. comparison_wr01_2 auto round 4 | count=20, firstPTS=0, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 16. comparison_wr05 auto round 4 | count=30, firstPTS=200000000, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 17. comparison_wr01_0 auto round 5 | count=20, firstPTS=0, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 18. comparison_wr01_1 auto round 5 | count=20, firstPTS=0, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 19. comparison_wr01_2 auto round 5 | count=20, firstPTS=0, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 20. comparison_wr05 auto round 5 | count=30, firstPTS=200000000, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 21. comparison_wr01_0 auto round 6 | count=20, firstPTS=0, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 22. comparison_wr01_1 auto round 6 | count=19, firstPTS=0, file_unchanged=1 | FAIL | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 23. comparison_wr01_1 avdec_h264 round 동일실패파일 대조 | count=20, firstPTS=0, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+
+### lp18-writer-bframe-comparison-01.txt
+
+[원출력](lp18-writer-bframe-comparison-01.txt). 최초 자동선택 실패에서 중단했으며 SW대조가 원래 FAIL을 대체하지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. comparison_wr05 auto round 1 | count=30, firstPTS=200000000, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 2. comparison_wr05 auto round 2 | count=30, firstPTS=200000000, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 3. comparison_wr05 auto round 3 | count=30, firstPTS=200000000, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 4. comparison_wr05 auto round 4 | count=30, firstPTS=200000000, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 5. comparison_wr05 auto round 5 | count=30, firstPTS=200000000, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 6. comparison_wr05 auto round 6 | count=30, firstPTS=200000000, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 7. comparison_wr05 auto round 7 | count=29, firstPTS=200000000, file_unchanged=1 | FAIL | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+| 8. comparison_wr05 avdec_h264 round 동일실패파일 대조 | count=30, firstPTS=200000000, file_unchanged=1 | PASS | 기존 count/EOS/WR05 첫PTS 판정·최초실패 보존 |
+
 ## 위치 기반: RED·GREEN·writer 영향 실패
 
 ### lp18-location-build-01.txt
