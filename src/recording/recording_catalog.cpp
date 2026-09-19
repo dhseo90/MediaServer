@@ -359,7 +359,8 @@ bool RecordingCatalog::UpdateDerivedJob(const void* owner,const DerivedJobRecord
     const auto payload=SerializeDerivedJobRecord(record);
     const auto found=derived_jobs_.find(record.intent.job_id);
     if(payload.empty()||found==derived_jobs_.end()||!found->second)return Fail(error,"derived service record 거부");
-    if(SerializeDerivedJobRecord(*found->second)==payload)return true;
+    if(found->second->state==record.state&&found->second->files.size()==record.files.size()&&
+       SerializeDerivedJobRecord(*found->second)==payload)return true;
     RecordingMutationV1 mutation;mutation.entity_id=record.intent.job_id;mutation.payload_json=payload;
     switch(record.state) {
         case DerivedJobState::Intent:mutation.mutation_type=RecordingMutationType::DerivedJobFiles;break;
@@ -462,7 +463,9 @@ bool RecordingCatalog::PreparedDerivedMatchesLocked(const RecordingMutationV1& m
 RecordingCatalog::DerivedJobHandle RecordingCatalog::ShareValidatedJob(DerivedJobRecordV1 record,const DerivedJobPool* pool) {
     if(pool){
         const auto found=pool->find(record.intent.job_id);
-        if(found!=pool->end()&&found->second&&SerializeDerivedJobRecord(*found->second)==SerializeDerivedJobRecord(record))return found->second;
+        if(found!=pool->end()&&found->second&&found->second->state==record.state&&
+           found->second->files.size()==record.files.size()&&
+           SerializeDerivedJobRecord(*found->second)==SerializeDerivedJobRecord(record))return found->second;
     }
     return std::make_shared<const DerivedJobRecordV1>(std::move(record));
 }
@@ -525,7 +528,10 @@ bool RecordingCatalog::ApplyDerivedJobMutationLocked(const RecordingMutationV1& 
     if(!old->second)return Fail(error,"derived null prior 거부");
     const auto& prior=*old->second;
     if(SerializeDerivedJobIntent(prior.intent)!=SerializeDerivedJobIntent(record.intent))return Fail(error,"derived job immutable 충돌");
-    if(SerializeDerivedJobRecord(prior)==SerializeDerivedJobRecord(record))return true;
+    // Parse의 canonical 검사 또는 봉인된 내용 증명이 incoming payload를 결박했다.
+    // 상태/파일 수가 다르면 같은 Record일 수 없지만 아래 전이 검증은 계속한다.
+    if(prior.state==record.state&&prior.files.size()==record.files.size()&&
+       SerializeDerivedJobRecord(prior)==mutation.payload_json)return true;
     if(initial)return Fail(error,"derived job Intent 재기록 충돌");
     for(std::size_t i=0;i<prior.files.size();++i)
         if(i>=record.files.size()||SerializeDerivedJobFile(prior.files[i])!=SerializeDerivedJobFile(record.files[i]))

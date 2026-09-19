@@ -32,6 +32,9 @@
 | LP18-I01 | 작업 단위 내부 검증 | 실제 작업의 각 상태 canonical/출력·hash와 공개 호출 최초 strict 검증 유지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 | LP18-I02 | Intent 분석 결과 재사용 | 공개 Serialize/Parse·BuildReady 호출 안의 Validate/Restore/Json 각1회, 단일입력 context는 외부/영속 재사용 금지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 | LP18-I03 | 새 입력·부적격 증거 | 동일주소 변경 후 새 호출 strict·manifest/receipt/AU/coverage 거부·실패 output 초기화/기존cap·오류 유지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-T01 | 전이 입력 엄격성 | 실제2출력5회 update의 public Parse 각1회·완전 출력/hash/보호 해제 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-T02 | 동등 불가능 기록 비교 | state/files 개수로 canonical 불일치가 확정되면 Record 중복 생성 생략. 엄격 파싱한 incoming canonical만 재사용 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-T03 | 동일 가능 후보와 전이 거부 | retry·same-shape 충돌은 full 비교, immutable Intent/Ready 역전이/불완전 receipt/잘못된 payload 거부·소유/내구 bytes 유지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 
 등록은 실행/PASS가 아니다. 전체 승인 범위와 실제 수행/미수행은 중앙 기록 LP18을 따른다.
 

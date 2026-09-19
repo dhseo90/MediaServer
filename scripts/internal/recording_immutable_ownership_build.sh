@@ -5,7 +5,7 @@ lp_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 lp_repo="$(cd "$lp_script/../.." && pwd)"
 lp_root="${1:?owned root required}"
 lp_mode="${2:-envelope}"
-if [[ "$lp_mode" != envelope && "$lp_mode" != job && "$lp_mode" != content && "$lp_mode" != envelope-cost && "$lp_mode" != context ]];then exit 2;fi
+if [[ "$lp_mode" != envelope && "$lp_mode" != job && "$lp_mode" != content && "$lp_mode" != envelope-cost && "$lp_mode" != context && "$lp_mode" != transition-comparison ]];then exit 2;fi
 node - "$lp_repo" "$lp_root" "$lp_mode" <<'NODE'
 const fs=require('fs'),path=require('path'),crypto=require('crypto'),[repo,out,mode]=process.argv.slice(2);
 if(!/^media-server-immutable-ownership\.[A-Za-z0-9]+$/.test(path.basename(out))||fs.lstatSync(out).isSymbolicLink()||fs.realpathSync(out)!==out)throw Error('LP18_ROOT');
@@ -46,6 +46,19 @@ if(mode==='content'){
  fs.writeFileSync(path.join(out,'recording_derived_job_ready.cpp'),instrumented);
  console.log('[instrument] proof_exact_insertions=5 proof_header_exact_insertions=1 ready_sha256='+crypto.createHash('sha256').update(instrumented).digest('hex'));
 }
+if(mode==='transition-comparison'){
+ for(const [signature,observer] of [
+  ['bool RecordingCatalog::UpdateDerivedJob(const void* owner,const DerivedJobRecordV1& record,std::string* error) {','transition_compare_probe::UpdateScope comparison_update(record);'],
+  ['bool RecordingCatalog::ApplyDerivedJobMutationLocked(const RecordingMutationV1& mutation,std::string* error,bool apply,PreparedDerivedMutation* prepared,const DerivedJobPool* job_pool,const DerivedJobContentProof* proof) {','transition_compare_probe::Scope comparison_apply(transition_compare_probe::Phase::Apply);'],
+  ['RecordingCatalog::DerivedJobHandle RecordingCatalog::ShareValidatedJob(DerivedJobRecordV1 record,const DerivedJobPool* pool) {','transition_compare_probe::Scope comparison_pool(transition_compare_probe::Phase::Pool);']
+ ])catalog=exact(catalog,signature,signature+' '+observer);
+ catalog='#include "recording_job_transition_comparison_counter.h"\n'+catalog;
+ const original=fs.readFileSync(path.join(repo,'src/recording/recording_derived_job_ready.cpp'),'utf8');let ready=original;
+ for(const [signature,observer] of [['std::string SerializeDerivedJobRecord(const DerivedJobRecordV1& record){','Serialize'],['bool ParseDerivedJobRecord(const std::string& json,DerivedJobRecordV1* out,std::string* error) {','Parse']])ready=exact(ready,signature,signature+' transition_compare_probe::'+observer+'();');
+ ready='#include "recording_job_transition_comparison_counter.h"\n'+ready;
+ fs.writeFileSync(path.join(out,'recording_derived_job_ready.cpp'),ready);
+ console.log('[instrument] transition_exact_insertions=5 ready_original_sha256='+crypto.createHash('sha256').update(original).digest('hex')+' ready_instrumented_sha256='+crypto.createHash('sha256').update(ready).digest('hex'));
+}
 if(mode==='context'){
  for(const name of ['recording_derived_job.cpp','recording_derived_job_ready.cpp']){
   const original=fs.readFileSync(path.join(repo,'src/recording',name),'utf8');let text=original;
@@ -69,6 +82,7 @@ if(mode==='job')for(const name of ['scripts/internal/recording_job_ownership_smo
 if(mode==='content')for(const name of ['scripts/internal/recording_job_content_proof_smoke.cpp','scripts/internal/recording_job_content_proof_counter.h','scripts/internal/recording_checkpoint_reproduction_smoke.cpp','src/recording/recording_derived_job_ready.cpp','src/recording/recording_timeline_projection.cpp'])console.log('[source] '+JSON.stringify({name,sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(repo,name))).digest('hex')}));
 if(mode==='envelope-cost')for(const name of ['scripts/internal/recording_checkpoint_envelope_cost_smoke.cpp','scripts/internal/recording_immutable_ownership_build.sh'])console.log('[source] '+JSON.stringify({name,sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(repo,name))).digest('hex')}));
 if(mode==='context')for(const name of ['scripts/internal/recording_job_validation_context_smoke.cpp','scripts/internal/recording_job_validation_context_counter.h','scripts/internal/recording_immutable_ownership_build.sh','scripts/internal/recording_derived_job_service_smoke.cpp','scripts/internal/recording_media_test_fixture.h','src/recording/recording_derived_job.cpp','src/recording/recording_derived_job_ready.cpp','src/recording/recording_derived_job_context.h','src/recording/recording_timeline_projection.cpp'])console.log('[source] '+JSON.stringify({name,sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(repo,name))).digest('hex')}));
+if(mode==='transition-comparison')for(const name of ['scripts/internal/recording_job_transition_comparison_smoke.cpp','scripts/internal/recording_job_transition_comparison_counter.h','scripts/internal/recording_immutable_ownership_build.sh','scripts/internal/recording_derived_job_service_smoke.cpp','scripts/internal/recording_media_test_fixture.h','src/recording/recording_derived_job.cpp','src/recording/recording_derived_job_ready.cpp','src/recording/recording_derived_job_context.h','src/recording/recording_timeline_projection.cpp'])console.log('[source] '+JSON.stringify({name,sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(repo,name))).digest('hex')}));
 NODE
 read -r -a lp_original_link < "$lp_repo/build-gst-onnx/CMakeFiles/media_server.dir/link.txt"
 lp_libs=(); lp_found=0
@@ -86,6 +100,7 @@ lp_sources=("$lp_script/recording_immutable_ownership_smoke.cpp")
 if [[ "$lp_mode" == job ]];then lp_sources=("$lp_script/recording_job_ownership_smoke.cpp" "$lp_repo/src/recording/recording_timeline_projection.cpp");fi
 if [[ "$lp_mode" == content ]];then lp_sources=("$lp_script/recording_job_content_proof_smoke.cpp" "$lp_root/recording_derived_job_ready.cpp" "$lp_repo/src/recording/recording_timeline_projection.cpp");fi
 if [[ "$lp_mode" == envelope-cost ]];then lp_sources=("$lp_script/recording_checkpoint_envelope_cost_smoke.cpp");fi
+if [[ "$lp_mode" == transition-comparison ]];then lp_sources=("$lp_script/recording_job_transition_comparison_smoke.cpp" "$lp_root/recording_derived_job_ready.cpp" "$lp_repo/src/recording/recording_timeline_projection.cpp");fi
 if [[ "$lp_mode" == context ]];then lp_sources=("$lp_script/recording_job_validation_context_smoke.cpp" "$lp_root/recording_derived_job.cpp" "$lp_root/recording_derived_job_ready.cpp" "$lp_repo/src/recording/recording_timeline_projection.cpp");fi
 "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$lp_root/include" -I"$lp_repo/include" -I"$lp_script" -I"$lp_repo/src/recording" "${lp_flags[@]}" "${lp_shared[@]}" \
  "${lp_accepted[@]}" "${lp_binding[@]}" "${lp_job[@]}" -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_SQLITE3=1 \

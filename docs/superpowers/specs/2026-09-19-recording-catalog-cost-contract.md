@@ -74,6 +74,11 @@ BuildReady는 shape→selection 순서를 유지하고 확정된 지역 Intent �
 모든 공개 호출은 새 strict 분석을 수행하며 manifest·receipt·AU·native·coverage·unfulfilled 검사와 오류/출력 초기화를 유지한다.
 이 context는 상주 캐시나 과거 상태 증명이 아니며 catalog의 별도 상태 비교 호출까지 자동으로 없애지는 않는다.
 
+전이의 duplicate 비교는 incoming의 엄격 검사 뒤에만 좁힌다. state 또는 files 개수가 다르면 같은 canonical Record일 수 없으므로
+동등 비교를 위한 Record 생성만 생략하고 기존 상태·receipt·Ready·source/예약 검사를 계속한다.
+Apply의 incoming은 strict Parse canonical equality 또는 봉인 proof의 exact payload 결박을 통과한 문자열을 재사용한다.
+동일 shape의 prior와 pool 후보는 기존 전체 canonical 비교를 유지하고, 불변 Intent 대조를 shape 검사로 대체하지 않는다.
+
 ### RAM 수명 구현의 소비자 경계
 
 terminal Complete 작업도 `MediaV2EligibleLocked`가 출력의 유일 소유자·Ready·manifest·AU provenance를 검사한다.

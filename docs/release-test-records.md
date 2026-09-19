@@ -12,6 +12,119 @@
 정상 append에 전체 원장 검색을 추가하지 않는다. managed Open은 한 snapshot의 값과 handle을 사용하고 일시 Replay 값 사본은 남긴다.
 단일 Astra/medium 담당자는 제품/fixture/계측 adapter, 메인은 문서/runner/실행/직접 검토를 맡으며 하위 생성은 금지했다.
 
+### 3번 전이 동등성 비교 착수
+
+시작 `bfc280e1`/ahead22/clean. Intent context는 분할 커밋했고 아래는 별도 비교 단위다.
+메인 고정 범위: Update는 먼저 incoming을 strict Serialize하고 state/files count가 같은 후보만 기존 canonical 비교한다.
+Apply는 Parse의 canonical 동일성 또는 봉인 proof의 exact payload 결박을 통과한 이후에만 incoming payload를 재사용한다.
+prior state/files count가 다르면 duplicate는 불가능하며 같으면 prior의 full Serialize와 payload를 비교한다.
+ShareValidatedJob도 같은 state/files count에서만 기존 full canonical 비교를 한다. 다른 경우는 독립 validated 값으로 보관한다.
+immutable Intent·receipt·state·source lifecycle·reservation 검증은 변경하지 않고 public/저장/API·시간제한·상한도 유지한다.
+이 prefilter가 내용 검증을 대체하지 않으며 invalid incoming은 이전과 같이 먼저 거부된다. 새 캐시/영속 증명을 추가하지 않는다.
+단일 기존 Astra/medium 담당자는 fixture/counter/owned builder, 메인은 등록/runner/제품diff/실행/커밋을 담당한다. 하위생성 금지.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-T01 실제 작업 | 소형 Encode30 기반 실제2출력 | Complete 실제file/hash/commit/보호해제·5회 update마다 public Parse1 | v4.1.0 |
+| LP18-T02 정상Update | incoming/old Record 호출 수 | 기존2→1, 최초 strict Serialize 유지 | v4.1.0 |
+| LP18-T02 정상Apply | 변화한 state/files의 duplicate 비교 | Record Serialize 기존2→0, public Parse1 유지 | v4.1.0 |
+| LP18-T02 동일Apply | 동일 canonical 재시도 | 기존2→1, prior full 비교·incoming canonical 재사용 | v4.1.0 |
+| LP18-T02 독립 전이 | Committed→Complete | Record Serialize 기존2→0, terminal canonical 동일 | v4.1.0 |
+| LP18-T02 pool | 다른 state/다른 files 각각 | Serialize 기존2→0, 들어온 validated 값과 canonical 유지 | v4.1.0 |
+| LP18-T03 retry/충돌 | 동일 retry 및 같은 shape의 다른 terminal canonical | 동일 retry full2회·append 없음, 다른 내용 전이 거부·원장/owner 불변 | v4.1.0 |
+| LP18-T03 상태/증거 오류 | Complete 뒤 Ready·receipt 누락·malformed payload·Intent 변경 | strict/현재 전이 거부, state/bytes 유지 | v4.1.0 |
+| LP18-T03 pool 예외 | 같은 shape 동일/다른 canonical·null/absent | 같은 shape full2회 유지, 동일만 alias; 없거나 null은 독립값 | v4.1.0 |
+
+메인 직접 읽기: fixture85행/counter21행 및 builder diff를 대조했다. runner는 기존 bounded/임시정리/원출력 보존을 재사용한다.
+명령은 `node scripts/internal/verify_recording_immutable_ownership.mjs red transition-01 transition-comparison`, 이후 동일 `green transition-01 transition-comparison`이다.
+21개: RED15PASS/6FAIL, GREEN21PASS. 정확 RED 라벨은 `LP18-T02 ` 뒤 아래 순서다.
+
+1. normal Update serializes only incoming record
+2. normal Apply skips impossible duplicate Record serialization
+3. identical Apply serializes only prior record
+4. changed-state direct Apply performs zero Record serializations
+5. different-state pool performs zero Record serializations
+6. different-files pool performs zero Record serializations
+
+계측은 owned catalog의 Update/Apply/Pool 진입과 owned ready.cpp의 public SerializeRecord/ParseRecord 진입 exact5개다.
+기존 job_pool_comparisons는 same-ID 후보 검사 횟수 의미 그대로이며 이 신규 실제 Serialize 횟수와 혼용하지 않는다.
+binary root 인자, phase60초/RSS1GiB/디스크512MiB/output2MiB/source SHA·불변/프로세스그룹·owned root 삭제를 유지한다.
+현재 전체 archive는 bfc280e1 Context 구현과 일치한다. 새 제품 수정 전 RED이며 예상 비용을 실행 PASS로 사용하지 않는다.
+최초 `red transition-01`은 빌드 exit1/3603ms(wrapper3619ms): 새 fixture가 `<fstream>`을 직접 include하지 않아 ifstream 불완전 타입 오류다.
+focused 미실행이며 예상 RED가 아니다. source 불변·프로세스그룹 종료·소유root372519B 삭제 확인.
+제품 코드는 무변경이다. AGENTS3.3의 격리된 검증 준비 오류로 메인이 include만 보완하고
+`node scripts/internal/verify_recording_immutable_ownership.mjs red transition-02 transition-comparison`으로 동일21개를 재실행한다.
+재실행은 build0/3958ms,focused1/2122ms,정확15PASS/6FAIL,wrapper0/6095ms. 예상한6개 비용 assertion만 실패했고 의미/상태15개는 통과했다.
+source 불변·프로세스그룹 종료·소유root8940361B 삭제 확인. 메인이 승인 설계대로 제품 비교3곳만 수정했다.
+
+구현 후 순차 실행 정의(각 exit0 뒤 다음 실행):
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-T build | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build` | catalog 전체 runtime/executable 갱신 | v4.1.0 |
+| LP18-T GREEN | `node scripts/internal/verify_recording_immutable_ownership.mjs green transition-01 transition-comparison` | 위21개 oracle/동일 상한·정리 | v4.1.0 |
+| LP18-T 소유 | `node scripts/internal/verify_recording_immutable_ownership.mjs green transition-job-01 job` | 기존24개 alias/prior/public copy·동일 후보 probe 의미 | v4.1.0 |
+| LP18-T prepared | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_derived_transition_reuse.sh` | 기존11개 Parse1/owner/prior/재사용/SQL | v4.1.0 |
+| LP18-T jobs | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_derived_jobs.sh` | 기존23개 immutable/cap/전이/보호/재open | v4.1.0 |
+| LP18-T service | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_derived_job_service.sh` | 기존default43개 실제출력·오류/중단 복구 | v4.1.0 |
+| LP18-T proof | `node scripts/internal/verify_recording_immutable_ownership.mjs green transition-proof-01 content` | 기존25개 proof/state/foreign fallback | v4.1.0 |
+| LP18-T cache | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_checkpoint_cache.sh` | 기존47개 full/cache/state/상한 | v4.1.0 |
+| LP18-T catalog | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_v410_recording_catalog.sh` | 기존246개 bytes/원자복구/SQLite/JSONL/crypto-off | v4.1.0 |
+| LP18-T 실제2-job | `node scripts/internal/recording_catalog_comparison_run.mjs jobs lp18-transition-01` | 기능120/계측1·실제큰입력/해시·상태/정리 | v4.1.0 |
+
+Context 내부·literal/native parser는 이번 무변경으로 직전 증거 유지, 호출자전이 경계는 위 회귀에서 다시 확인한다.
+5번 최종 누적/HTTP 및 S11 장시간/UI는 이번 단위 PASS로 대체하지 않는다.
+
+### 3번 전이 동등성 비교 결과
+
+제품 diff는 Update/Apply/ShareValidatedJob의 비교3곳이다. 메인 직접 검토와 기존 단일 담당자의 읽기 검토에서
+strict 검사→entity/type-state→prior→immutable Intent 순서 뒤에 prefilter가 있음을 확인했다.
+같지 않은 shape는 성공 반환이 아니라 기존 receipt/state/Ready/source/reservation 검사로 이어진다.
+private ShareValidatedJob는 이미 검증된 값이 입력이라는 기존 계약이다. 임의로 양쪽 strict-invalid 값을 private map/helper에 넣는 동작은 정상 소비자 계약이 아니다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-T 최초 준비 실패 | red transition-01 build exit1/3603ms, `<fstream>` 누락. focused 미실행, 제품 무변경. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-transition-01.txt) | FAIL |
+| LP18-T 예상RED | red transition-02 build0/3958ms,focused1/2122ms,정확15PASS/6FAIL,wrapper0/6095ms. 제품 PASS 아님. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-transition-02.txt) | FAIL |
+| LP18-T build | 사전등록 전체build exit0. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-transition-build-01.txt) | PASS |
+| LP18-T GREEN | exit0,21개,build3946ms/focused2119ms/wrapper6081ms. 정상Update2→1/Apply2→0/Parse1 유지. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-transition-01.txt) | PASS |
+| LP18-T 소유 | exit0/3672ms,24개. job alias/prior/값독립·재open·동일 후보 probe 유지. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-transition-job-01.txt) | PASS |
+| LP18-T prepared | exit0/9481ms,11개. Parse1/결박/SQL/한번 적용. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-transition-prepared-02.txt) | PASS |
+| LP18-T jobs | exit0/12901ms,23개. immutable/cap/전이/보호/재open. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-transition-jobs-02.txt) | PASS |
+| LP18-T service | exit0/22406ms,default43개. 실제 출력/중단 복구/거부. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-transition-service-02.txt) | PASS |
+| LP18-T proof | exit0/19671ms,25개. public Parse8/자동checkpoint current0·reopen4/manual1 유지. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-transition-proof-01.txt) | PASS |
+| LP18-T cache | exit0/22813ms,47개. 기존peakRSS상한536870912B 대비166887424B. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-transition-cache-02.txt) | PASS |
+| LP18-T catalog | exit0/17307ms,246개. bytes/원자복구/SQLite/JSONL/crypto-off. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-transition-catalog-02.txt) | PASS |
+| LP18-T 실제2-job | exit0/17434ms,기능120/계측1. 동일입력/실제출력/hash·terminal/보호해제. B/C peakRSS157253632/104595456B. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp17-jobs-lp18-transition-01.txt) | PASS |
+
+GREEN 전수561개(계측1 포함)는 [개별 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md)와 원출력 행수로 대조했다.
+큰2-job 도구 반환은 잘렸으나 저장된214814B 전체 원출력에서121개·4개phase·source불변/정리를 확인했다.
+기존 합성 writer file-evidence profile/bound 경고는 보존했고 실제 native/UI/HTTP 지원 판정으로 확대하지 않았다.
+실행 UTC2026-09-19T15:33~15:41/KST2026-09-20. source/hash/명령은 원출력에 있다. build duration은 분리 호출로 미집계,
+그 외는 runner/도구 외곽 duration이다. token start/end/consumed는 명령별 실제 집계 도구가 없어 미집계다.
+build 원출력 최초 이관용 patch 형식 오류는 파일 변경 없이 거부됐고, 수집한 동일 원출력으로 이관했다. 재빌드/결과 대체 없음.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| 최초RED 소유root | owned 소스/실패빌드 | 372519B | runner 정리 | 삭제 확인 | 첫 실패 source/group/cleanup |
+| 재RED 소유root | 소형2출력·바이너리/GST | 8940361B | runner 정리 | 삭제 확인 | 재RED source/group/cleanup |
+| GREEN 소유root | 소형2출력·바이너리/GST | 8940837B | runner 정리 | 삭제 확인 | GREEN source/group/cleanup |
+| 소유 회귀root | job/reopen fixture | 6232986B | runner 정리 | 삭제 확인 | job raw |
+| prepared root | owned 소스/작업 fixture | 9054333B | trap 정리 | 삭제 확인 | prepared raw |
+| jobs root | catalog/보호 fixture | 9721103B | trap 정리 | 삭제 확인 | jobs raw |
+| service root | 실제출력/중단 복구·GST | 18066596B | trap 정리 | 삭제 확인 | service raw |
+| proof root | 실제 큰job/재개방 | 13666573B | runner 정리 | 삭제 확인 | proof raw |
+| cache root | full/cache/상한 fixture | 16896619B | runner 정리 | 삭제 확인 | cache raw |
+| catalog root | SQLite/JSONL/crypto-off | 26961886B | trap 정리 | 삭제 확인 | catalog raw |
+| 2-job root | 바이너리·B/C 비교자료 | 18655266B | runner 정리 | 삭제 확인 | 4 phase/두 store/source/group/cleanup |
+| 원출력/전수표 | 비민감 명령·측정·hash·실패 이력 | Git diff 목록 | 저장소 보존 | 보존 | 원영상/credential 없음 |
+| build-gst-onnx | 기존 제품 build | 해당 없음 | 유지 | 갱신 | 임시 정리 대상 아님 |
+
+서버·listen 포트 생성 없음. 운영/외부/실제브라우저/장시간은 미실행이다. 같은 공개호출 내부 중복과 동등 불가능 비교는 줄였지만
+서로 다른 상태의 immutable Intent 비교·신규/복구 입력 검사는 유지한다. 상세 RAM 상주와 최종 누적/HTTP는 이 결과로 완료하지 않는다.
+마감: `./server.sh verify-docs-links` exit0(285md/8870links/22images/116anchors/indexed76/excluded201/failure0),
+`git diff --check` exit0. 푸시는 이번 범위 밖으로 실행하지 않는다.
+
 ### 3번 Intent 내부 검증 context 착수
 
 시작 `ddc42417`/ahead21. 기존 내용 proof와 envelope 중복 생성 제거를 분할 커밋했다. 같은 단일 Astra/medium 담당자가

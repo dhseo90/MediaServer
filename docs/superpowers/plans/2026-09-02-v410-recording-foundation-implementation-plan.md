@@ -52,6 +52,9 @@ typed binding도 live/shadow const 소유로 공유하고 focused77·source20·c
 Intent 호출-local context도 구현했다. 실제 BuildReady의 Validate/Restore/Json9/9/13회와 각 public 호출 내부 반복을1/1/1회로 줄였다.
 focused31·literal/native11·prepared11·jobs23·service43·proof25·cache47·catalog246·실제2-job 기능120/계측1·전체build 통과.
 외부에 반환한 값의 새 호출은 strict 재검증한다. catalog의 개별 상태 비교 호출 및 비활성 RAM 상주/최종 HTTP는 여전히 남는다.
+이어 동등 불가능한 전이/pool 비교를 좁혔다. focused21·소유24·prepared11·jobs23·service43·proof25·cache47·catalog246·실제2-job 기능120/계측1·전체build 통과.
+정상5전이 각각 Record 직렬화 Update2→1/Apply2→0 및 Parse1 유지. 동일 retry·불법 전이·immutable 충돌은 기존대로 검사한다.
+필요한 상태/불변 대조와 신규/복구 검증을 제거한 것은 아니며 상세 RAM 상주/최종 누적·HTTP는 미완료다.
 실행/수집 실패와 재검증은 중앙 기록에 보존했다.
 이후 3/4번은 같은 계약 안에서 변경 파일·반례를 구체화하고 실행 전 등록한다. 기록 없는 테스트를 사후 PASS로 만들지 않는다.
 
