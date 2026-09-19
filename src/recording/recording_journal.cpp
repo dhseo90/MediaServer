@@ -498,7 +498,21 @@ struct ManagedJournalState {
     RecordingJournalRecordLocations locations;
     std::unordered_map<std::string,std::string> identities;
     std::uint64_t bytes{0};
+    std::uint64_t revision{0};
     bool checkpoint_pending{false};
+};
+// journal만 mint한다. 외부에는 const opaque handle만 공개하며 어느 소유자도 저장하지 않는다.
+class RecordingCheckpointReadSnapshot {
+    friend class RecordingJournal;
+    RecordingCheckpointReadSnapshot()=default;
+    const RecordingJournal* journal{nullptr};
+    const void* owner{nullptr};
+    std::int64_t pid{0};
+    std::shared_ptr<const char> attachment,generation;
+    std::uint64_t bytes{0},revision{0};
+    RecordingMutationHandles records;
+public:
+    ~RecordingCheckpointReadSnapshot()=default;
 };
 
 namespace {
@@ -561,9 +575,10 @@ bool IndexRecord(ManagedJournalState* state,const RecordingMutationV1& mutation,
     if(!owned)owned=std::make_shared<const RecordingMutationV1>(mutation);
     const auto location=MakeLocation(state->generation,state->records.size(),offset,raw,owned,digest);
     if(!location)return Fail(error,"managed 위치 생성 실패");
+    if(state->revision==std::numeric_limits<std::uint64_t>::max())return Fail(error,"managed revision 상한");
     if(!state->order.Consume(mutation,error))return false;
     state->identities.emplace(mutation.mutation_id,identity);state->records.push_back(std::move(owned));
-    state->locations.push_back(location);return true;
+    state->locations.push_back(location);++state->revision;return true;
     }catch(...){return Fail(error,"managed index 준비 실패");}
 }
 bool CompactRecords(const RecordingMutationHandles& original,RecordingMutationHandles* result,std::string* error) {
@@ -922,7 +937,9 @@ bool RecordingJournal::Append(const RecordingMutationV1& mutation, std::string* 
     return AppendOwned(mutation, nullptr, error);
 }
 
-bool RecordingJournal::ReadCheckpointRecords(const void* owner,RecordingMutationHandles* records,std::string* error) const {
+bool RecordingJournal::ReadCheckpointRecords(const void* owner,RecordingMutationHandles* records,std::string* error,
+    RecordingCheckpointReadSnapshotHandle* snapshot) const {
+    if(records)records->clear();if(snapshot)snapshot->reset();
 #if !defined(_WIN32)
     if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
 #endif
@@ -936,7 +953,18 @@ bool RecordingJournal::ReadCheckpointRecords(const void* owner,RecordingMutation
     OwnedFd fd(::fcntl(managed_fd_,F_DUPFD_CLOEXEC,0));
     if(fd.value<0||!Regular(fd.value,&status)||device_!=static_cast<std::uint64_t>(status.st_dev)||inode_!=status.st_ino||
        !Same(parent.value,io_path_.filename().string(),fd.value,status))return Fail(error,"checkpoint FD 결박 거부");
-    return AcquireCheckpointRecordsLocked(records,error);
+    if(!AcquireCheckpointRecordsLocked(records,error))return false;
+    if(snapshot){
+        try {
+            auto value=std::shared_ptr<RecordingCheckpointReadSnapshot>(new RecordingCheckpointReadSnapshot);
+            value->journal=this;value->owner=owner;value->pid=owner_pid_;value->attachment=catalog_attachment_;
+            value->generation=managed_state_->generation;value->bytes=managed_state_->bytes;value->revision=managed_state_->revision;
+            value->records=*records;
+            if(!CheckManagedStateLocked(error)){records->clear();return false;}
+            *snapshot=std::move(value);
+        }catch(...){records->clear();snapshot->reset();return Fail(error,"checkpoint snapshot 자원 실패");}
+    }
+    return true;
 #else
     return Fail(error,"checkpoint unsupported");
 #endif
@@ -1034,12 +1062,20 @@ bool RecordingJournal::AcquireCheckpointRecordsLocked(RecordingMutationHandles* 
         return true;
     }catch(...){records->clear();poisoned_=true;return Fail(error,"checkpoint cold 자원 실패");}
 }
-bool RecordingJournal::PrepareCheckpoint(const void* owner,RecordingMutationHandles* candidate,std::string* error) const {
+bool RecordingJournal::CheckpointSnapshotMatchesLocked(const void* owner,const RecordingCheckpointReadSnapshotHandle& snapshot) const {
+    return snapshot&&snapshot->journal==this&&snapshot->owner==owner&&owner==catalog_owner_&&
+        catalog_attachment_&&snapshot->attachment==catalog_attachment_&&snapshot->pid==owner_pid_&&
+        snapshot->generation==managed_state_->generation&&snapshot->bytes==managed_state_->bytes&&
+        snapshot->revision==managed_state_->revision&&snapshot->records.size()==managed_state_->records.size();
+}
+bool RecordingJournal::PrepareCheckpoint(const void* owner,RecordingMutationHandles* candidate,std::string* error,
+    const RecordingCheckpointReadSnapshotHandle& snapshot) const {
 #if !defined(_WIN32)
     if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
 #endif
     std::lock_guard lock(mu_);
     if(!managed_||!owner||owner!=catalog_owner_||!candidate||!CheckManagedStateLocked(error))return Fail(error,"checkpoint owner/state 거부");
+    if(CheckpointSnapshotMatchesLocked(owner,snapshot))return CompactRecords(snapshot->records,candidate,error);
     RecordingMutationHandles original;
     if(!AcquireCheckpointRecordsLocked(&original,error))return false;
     return CompactRecords(original,candidate,error);
@@ -1061,7 +1097,8 @@ bool RecordingJournal::CheckpointPending() const {
     return false;
 #endif
 }
-bool RecordingJournal::CommitCheckpoint(const void* owner,const RecordingMutationHandles& candidate,bool recover_only,std::string* error) {
+bool RecordingJournal::CommitCheckpoint(const void* owner,const RecordingMutationHandles& candidate,bool recover_only,std::string* error,
+    const RecordingCheckpointReadSnapshotHandle& snapshot) {
 #if !defined(_WIN32)
     if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
 #endif
@@ -1073,7 +1110,9 @@ bool RecordingJournal::CommitCheckpoint(const void* owner,const RecordingMutatio
     const bool pending=Present(parent.value,temporary);
     if(recover_only&&!pending)return true;
     RecordingMutationHandles expected;
-    {
+    if(CheckpointSnapshotMatchesLocked(owner,snapshot)){
+        if(!CompactRecords(snapshot->records,&expected,error))return false;
+    }else{
         RecordingMutationHandles original;
         if(!AcquireCheckpointRecordsLocked(&original,error)||!CompactRecords(original,&expected,error))return false;
     }
@@ -1144,6 +1183,7 @@ bool RecordingJournal::AttachCatalog(const void* owner, const std::filesystem::p
             if(!S_ISREG(status.st_mode)||status.st_nlink!=1)return Fail(error,"managed sqlite unsafe file");
         } else if(errno!=ENOENT)return Fail(error,"managed sqlite stat 실패");
     }
+    try{catalog_attachment_=std::make_shared<const char>(0);}catch(...){return Fail(error,"managed catalog attachment 자원 실패");}
     catalog_owner_=owner;return true;
 #else
     (void)owner;(void)media;(void)sqlite;(void)enable_v2;
@@ -1155,7 +1195,7 @@ void RecordingJournal::DetachCatalog(const void* owner) {
 #if !defined(_WIN32)
     if(owner_pid_!=::getpid())return;
 #endif
-    std::lock_guard lock(mu_);if(catalog_owner_==owner)catalog_owner_=nullptr;
+    std::lock_guard lock(mu_);if(catalog_owner_==owner){catalog_owner_=nullptr;catalog_attachment_.reset();}
 }
 bool RecordingJournal::OwnsCatalog(const void* owner) const {
     if(!managed_)return true;

@@ -647,12 +647,13 @@ bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error,con
     if(!journal_.managed_||!options_.enable_v2_storage||!journal_.OwnsCatalog(this))
         return Fail(error,"managed checkpoint 소유권/지원 없음");
     RecordingMutationHandles candidate;
+    RecordingCheckpointReadSnapshotHandle read_snapshot;
     std::unique_ptr<RecordingCatalog> before;
     bool identical=false;
     {
         RecordingMutationHandles original;
-        if(!journal_.ReadCheckpointRecords(this,&original,error))return false;
-        if(!journal_.PrepareCheckpoint(this,&candidate,error))return false;
+        if(!journal_.ReadCheckpointRecords(this,&original,error,&read_snapshot))return false;
+        if(!journal_.PrepareCheckpoint(this,&candidate,error,read_snapshot))return false;
         const bool reuse=cached&&cached->shadow&&detail::CheckpointCacheAdmissible(original)&&
             detail::SameCheckpointPrefix(cached->prefix,original);
         const auto first=reuse?cached->prefix.size():0;
@@ -677,7 +678,7 @@ bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error,con
     }
     // 최종 비교가 끝난 비선택 shadow는 commit의 사본/직렬화와 겹치지 않는다.
     before.reset();after.reset();
-    if(!journal_.CommitCheckpoint(this,candidate,recover_only,error))return false;
+    if(!journal_.CommitCheckpoint(this,candidate,recover_only,error,read_snapshot))return false;
     if(next){next->prefix=std::move(candidate);checkpoint_cache_=std::move(next);}
     return true;
 }

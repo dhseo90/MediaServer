@@ -14,6 +14,8 @@ struct ManagedJournalState;
 struct RecordingJournalRecordLocation;
 using RecordingJournalRecordLocationHandle = std::shared_ptr<const RecordingJournalRecordLocation>;
 using RecordingJournalRecordLocations = std::vector<RecordingJournalRecordLocationHandle>;
+class RecordingCheckpointReadSnapshot;
+using RecordingCheckpointReadSnapshotHandle = std::shared_ptr<const RecordingCheckpointReadSnapshot>;
 
 enum class RecordingMutationType {
     SegmentFinalized,
@@ -107,7 +109,8 @@ private:
     bool LoadManagedStateLocked(std::string* error);
     bool CheckManagedStateLocked(std::string* error) const;
     bool ManagedOrderMatches(const RecordingOrderReservationV1& order, std::string* error) const;
-    bool ReadCheckpointRecords(const void* owner, RecordingMutationHandles* records, std::string* error) const;
+    bool ReadCheckpointRecords(const void* owner, RecordingMutationHandles* records, std::string* error,
+                               RecordingCheckpointReadSnapshotHandle* snapshot = nullptr) const;
     bool ReadRecordLocations(const void* owner, RecordingJournalRecordLocations* records, std::string* error) const;
     bool AcquireLocatedRecord(const void* owner, const RecordingJournalRecordLocationHandle& location,
                              RecordingMutationHandle* record, std::string* error) const;
@@ -115,14 +118,18 @@ private:
     bool AcquireLocatedRecordLocked(const RecordingJournalRecordLocationHandle& location,
                                     RecordingMutationHandle* record, std::string* error) const;
     bool AcquireCheckpointRecordsLocked(RecordingMutationHandles* records, std::string* error) const;
-    bool PrepareCheckpoint(const void* owner, RecordingMutationHandles* candidate, std::string* error) const;
-    bool CommitCheckpoint(const void* owner, const RecordingMutationHandles& candidate, bool recover_only, std::string* error);
+    bool CheckpointSnapshotMatchesLocked(const void* owner,const RecordingCheckpointReadSnapshotHandle& snapshot) const;
+    bool PrepareCheckpoint(const void* owner, RecordingMutationHandles* candidate, std::string* error,
+                           const RecordingCheckpointReadSnapshotHandle& snapshot = {}) const;
+    bool CommitCheckpoint(const void* owner, const RecordingMutationHandles& candidate, bool recover_only, std::string* error,
+                          const RecordingCheckpointReadSnapshotHandle& snapshot = {});
     bool CheckpointDue(const void* owner) const;
     bool CheckpointPending() const;
     std::unique_ptr<ManagedJournalState> managed_state_;
     mutable bool poisoned_{false};
     std::uint64_t checkpoint_checked_bytes_{0};
     const void* catalog_owner_{nullptr};
+    std::shared_ptr<const char> catalog_attachment_;
     bool OpenManagedLocked(std::string* error);
     bool ManagedBindingLocked() const;
     bool managed_{false};

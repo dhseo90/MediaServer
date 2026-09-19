@@ -80,6 +80,11 @@ WR-OR01~04로 기존 판정의 중간PTS 반례 RED2건을 확인한 뒤 순수1
 focused22·기존 위치32/crypto-off3/envelope34/envelope-cost30 및 전체build를 통과했다.
 최초 권한 준비실패와 예상 RED는 중앙에 별도 보존했다. 아직 자동 해제·accepted/typed/cache 소비 연결은 없으며
 cold CP의 동일 기록 반복 읽기까지 호출-local 수명으로 다룬 뒤 실제 RAM 수명을 판정한다.
+명시 cold 기반 커밋은 `86131a3b`다. 이어 호출-local checkpoint snapshot으로 실제 catalog cold2행의
+Read→Prepare→Commit을2회 읽기로 연결했다(기본/null 경로6회). focused28·cold22·location32·envelope34·
+cost30·cache47·2job 기능120/계측1·전체build 통과. cache 최초 RSS 관측 권한 실패는 보존하고 같은 기준으로 재검증했다.
+owner 재연결/append/예약/receipt swap 뒤에는 strict fallback이며 후보 전체값과 저장/복구 검증을 유지했다.
+아직 자동 resident 해제와 accepted/prefix/live·shadow typed 소비 연결은 미구현이다. 단기 PASS를 RAM 전체 완료로 확대하지 않는다.
 
 ### LP17 판정 기준 비교 설계 저장 계약
 

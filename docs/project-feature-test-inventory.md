@@ -90,6 +90,15 @@
 | LP18-L15 | journal 비상주 재획득 | cold 손상/예외의 poison·outclear·정상 빈 결과와 구분 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 | LP18-L16 | journal 비상주 재획득 | 큰 기록의 기존 resident fallback과 원장 불변 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 
+## LP18 호출-local checkpoint 원본
+
+| 기능 ID | 기능 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| LP18-L17 | snapshot 소유·불변 | private 봉인·외부 vector 독립·호출 종료 weak 소멸·물리 중복/비정규 입력 유지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-L18 | snapshot 읽기 재사용 | cold 최초1회·Prepare/Commit 추가0·null strict fallback·실제 catalog 전체 흐름 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-L19 | snapshot 무효화·후보 검증 | append/예약/동일주소 재attach/foreign/receipt 교체·후보9종 반례·no-write/recover bytes | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-L20 | snapshot 오류 격리 | 명시 Acquire의 실제 행 tamper 검사·획득 예외 outclear/poison | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+
 ## LP17 누적 비용·보관 계약의 계획된 검사
 
 아래는 설계 등록이며 구현/실행/PASS가 아니다. 진단 축·oracle는 구현계획 LP17, 저장 반례는 누적 비용 계약을 따른다.

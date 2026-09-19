@@ -1,5 +1,439 @@
 # LP18 공유 소유 focused 개별 결과
 
+### lp18-snapshot-cache-01.txt
+
+[원출력](lp18-snapshot-cache-01.txt). 기능·자원 실패 및 재실행을 분리한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 1. LP15-C01 cold full applied=1 expected=1 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 2. LP15-C01 unchanged prefix applied=0 expected=0 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 3. LP15-C01 exact prefix suffix only applied=1 expected=1 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 4. LP15-C01 independent prefix shadow/full projection equality | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 5. LP15-C01 full fallback schema applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 6. LP15-C01 full fallback type applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 7. LP15-C01 full fallback id applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 8. LP15-C01 full fallback entity applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 9. LP15-C01 full fallback time applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 10. LP15-C01 full fallback payload applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 11. LP15-C01 full fallback reorder applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 12. LP15-C01 full fallback shrink applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 13. LP15-C01 full fallback null-shadow applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 14. LP15-C01 full fallback null-handle applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 15. LP15-C01 Open clears cache applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 16. LP15-C03 recover full/no-cache | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 17. LP15-C03 after recover full applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 18. LP15-C03 injected commit refusal discards cache | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 19. LP15-C03 after commit refusal full applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 20. LP15-C03 suffix exception discards cache | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 21. LP15-C03 after exception full applied=3 expected=3 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 22. LP15-C03 public poisoned entry discards cache | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 23. LP15-C03 after restored fixture full applied=3 expected=3 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 24. LP15-C04 exact byte charge boundary | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 25. LP15-C04 overflow charge rejected | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 26. LP15-C04 8192 records admitted | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 27. LP15-C04 8193 records rejected | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 28. LP15-C04 64MiB record charge admitted | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 29. LP15-C04 64MiB plus one rejected | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 30. LP15-C03 changed candidate prime applied=1 expected=1 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 31. LP15-C03 changed candidate suffix12 plus full candidate13 applied=25 expected=25 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 32. LP15-C03 changed candidate cache equals independent full projection | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 33. LP15-C03 compacted candidate prefix reused applied=0 expected=0 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 34. LP15-C03 forced projection mismatch discards cache | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 35. LP15-C04 overlimit prime applied=1 expected=1 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 36. LP15-C04 existing cache ignored for oversized original applied=8193 expected=8193 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 37. LP15-C04 oversized candidate not retained | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 38. LP15-C04 next oversized checkpoint full applied=8193 expected=8193 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 39. CP01 actual Ready Complete shape canonical files reservation | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 40. CP02 bounded two jobs over 1MiB canonical transitions | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 41. LP15-C02 bounded automatic checkpoint and whole transition measurement | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 42. LP15-C02 reopened full applied=18 expected=18 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 43. LP15-C02 actual unchanged prefix applied=0 expected=0 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 44. LP15-C02 actual suffix only applied=1 expected=1 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 45. LP15-C02 actual job shadow/full projection equality | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 46. LP15-C03 illegal Ready after Complete suffix rejected by cached/full paths | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 47. LP15-C04 peakRSS bytes=null cap=536870912 | 원출력 등장 순서·해당 실행의 독립 검사 | FAIL |
+
+### lp18-snapshot-cache-02.txt
+
+[원출력](lp18-snapshot-cache-02.txt). 기능·자원 실패 및 재실행을 분리한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 1. LP15-C01 cold full applied=1 expected=1 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 2. LP15-C01 unchanged prefix applied=0 expected=0 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 3. LP15-C01 exact prefix suffix only applied=1 expected=1 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 4. LP15-C01 independent prefix shadow/full projection equality | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 5. LP15-C01 full fallback schema applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 6. LP15-C01 full fallback type applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 7. LP15-C01 full fallback id applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 8. LP15-C01 full fallback entity applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 9. LP15-C01 full fallback time applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 10. LP15-C01 full fallback payload applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 11. LP15-C01 full fallback reorder applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 12. LP15-C01 full fallback shrink applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 13. LP15-C01 full fallback null-shadow applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 14. LP15-C01 full fallback null-handle applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 15. LP15-C01 Open clears cache applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 16. LP15-C03 recover full/no-cache | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 17. LP15-C03 after recover full applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 18. LP15-C03 injected commit refusal discards cache | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 19. LP15-C03 after commit refusal full applied=2 expected=2 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 20. LP15-C03 suffix exception discards cache | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 21. LP15-C03 after exception full applied=3 expected=3 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 22. LP15-C03 public poisoned entry discards cache | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 23. LP15-C03 after restored fixture full applied=3 expected=3 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 24. LP15-C04 exact byte charge boundary | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 25. LP15-C04 overflow charge rejected | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 26. LP15-C04 8192 records admitted | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 27. LP15-C04 8193 records rejected | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 28. LP15-C04 64MiB record charge admitted | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 29. LP15-C04 64MiB plus one rejected | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 30. LP15-C03 changed candidate prime applied=1 expected=1 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 31. LP15-C03 changed candidate suffix12 plus full candidate13 applied=25 expected=25 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 32. LP15-C03 changed candidate cache equals independent full projection | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 33. LP15-C03 compacted candidate prefix reused applied=0 expected=0 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 34. LP15-C03 forced projection mismatch discards cache | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 35. LP15-C04 overlimit prime applied=1 expected=1 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 36. LP15-C04 existing cache ignored for oversized original applied=8193 expected=8193 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 37. LP15-C04 oversized candidate not retained | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 38. LP15-C04 next oversized checkpoint full applied=8193 expected=8193 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 39. CP01 actual Ready Complete shape canonical files reservation | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 40. CP02 bounded two jobs over 1MiB canonical transitions | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 41. LP15-C02 bounded automatic checkpoint and whole transition measurement | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 42. LP15-C02 reopened full applied=18 expected=18 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 43. LP15-C02 actual unchanged prefix applied=0 expected=0 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 44. LP15-C02 actual suffix only applied=1 expected=1 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 45. LP15-C02 actual job shadow/full projection equality | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 46. LP15-C03 illegal Ready after Complete suffix rejected by cached/full paths | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 47. LP15-C04 peakRSS bytes=162693120 cap=536870912 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+
+### lp17-jobs-lp18-snapshot-01.txt
+
+[원출력](lp17-jobs-lp18-snapshot-01.txt). 기능·자원 실패 및 재실행을 분리한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 1. FC01 exact insertion checks count=97 | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 2. D08.input-keyframes | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 3. D08.source-shape | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 4. D08.selection-complete | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 5. D08.expected-intent-built | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 6. D08.admission | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 7. D08.expected-state | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 8. D08.canonical-intent | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 9. D08.canonical-record-roundtrip | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 10. D08.expected-state | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 11. D08.canonical-intent | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 12. D08.files-receipt | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 13. D08.canonical-record-roundtrip | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 14. D08.expected-state | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 15. D08.canonical-intent | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 16. D08.files-receipt | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 17. D08.canonical-record-roundtrip | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 18. D08.ready-verified-proof | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 19. D08.expected-state | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 20. D08.canonical-intent | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 21. D08.files-receipt | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 22. D08.canonical-record-roundtrip | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 23. D08.canonical-ready-preserved | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 24. D08.expected-state | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 25. D08.canonical-intent | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 26. D08.files-receipt | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 27. D08.canonical-record-roundtrip | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 28. D08.canonical-ready-preserved | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 29. D08.protection-released | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 30. D08.run-complete | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 31. D08.actual-output-hash | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 32. D08.selection-complete | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 33. D08.expected-intent-built | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 34. D08.admission | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 35. D08.expected-state | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 36. D08.canonical-intent | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 37. D08.canonical-record-roundtrip | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 38. D08.expected-state | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 39. D08.canonical-intent | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 40. D08.files-receipt | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 41. D08.canonical-record-roundtrip | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 42. D08.expected-state | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 43. D08.canonical-intent | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 44. D08.files-receipt | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 45. D08.canonical-record-roundtrip | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 46. D08.ready-verified-proof | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 47. D08.expected-state | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 48. D08.canonical-intent | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 49. D08.files-receipt | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 50. D08.canonical-record-roundtrip | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 51. D08.canonical-ready-preserved | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 52. D08.expected-state | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 53. D08.canonical-intent | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 54. D08.files-receipt | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 55. D08.canonical-record-roundtrip | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 56. D08.canonical-ready-preserved | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 57. D08.protection-released | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 58. D08.run-complete | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 59. D08.actual-output-hash | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 60. CP01.actual-ready-complete-shape-canonical-files-reservation | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 61. CP02.two-jobs-over-1MiB-canonical-transitions | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 62. D08.input-keyframes | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 63. D08.source-shape | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 64. D08.selection-complete | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 65. D08.expected-intent-built | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 66. D08.admission | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 67. D08.expected-state | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 68. D08.canonical-intent | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 69. D08.canonical-record-roundtrip | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 70. D08.expected-state | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 71. D08.canonical-intent | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 72. D08.files-receipt | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 73. D08.canonical-record-roundtrip | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 74. D08.expected-state | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 75. D08.canonical-intent | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 76. D08.files-receipt | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 77. D08.canonical-record-roundtrip | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 78. D08.ready-verified-proof | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 79. D08.expected-state | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 80. D08.canonical-intent | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 81. D08.files-receipt | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 82. D08.canonical-record-roundtrip | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 83. D08.canonical-ready-preserved | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 84. D08.expected-state | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 85. D08.canonical-intent | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 86. D08.files-receipt | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 87. D08.canonical-record-roundtrip | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 88. D08.canonical-ready-preserved | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 89. D08.protection-released | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 90. D08.run-complete | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 91. D08.actual-output-hash | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 92. D08.selection-complete | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 93. D08.expected-intent-built | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 94. D08.admission | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 95. D08.expected-state | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 96. D08.canonical-intent | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 97. D08.canonical-record-roundtrip | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 98. D08.expected-state | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 99. D08.canonical-intent | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 100. D08.files-receipt | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 101. D08.canonical-record-roundtrip | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 102. D08.expected-state | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 103. D08.canonical-intent | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 104. D08.files-receipt | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 105. D08.canonical-record-roundtrip | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 106. D08.ready-verified-proof | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 107. D08.expected-state | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 108. D08.canonical-intent | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 109. D08.files-receipt | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 110. D08.canonical-record-roundtrip | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 111. D08.canonical-ready-preserved | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 112. D08.expected-state | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 113. D08.canonical-intent | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 114. D08.files-receipt | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 115. D08.canonical-record-roundtrip | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 116. D08.canonical-ready-preserved | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 117. D08.protection-released | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 118. D08.run-complete | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 119. D08.actual-output-hash | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 120. CP01.actual-ready-complete-shape-canonical-files-reservation | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+| 121. CP02.two-jobs-over-1MiB-canonical-transitions | 원출력 등장 순서·해당 실행의 독립 검사 | PASS |
+
+## 호출-local checkpoint snapshot 결과
+
+실행 전 정의는 중앙 기록 LP18-L17~20이다. 아래 개별 행은 보존 원출력에서 전수 추출했다.
+RED의 capability FAIL만 예상 RED이며 나머지26개는 미실행이다. GREEN 및 영향 회귀와 분리한다.
+
+### lp18-ownership-red-checkpoint-snapshot-01.txt
+
+[원출력](lp18-ownership-red-checkpoint-snapshot-01.txt), 6037B.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-L17 snapshot baseline Replay preserves complete canonical value | 해당 원출력 focused 검사 | PASS |
+| LP18-L17 checkpoint read snapshot capability exists | 해당 원출력 focused 검사 | FAIL |
+
+미실행: [not-run] LP18 checkpoint snapshot scenarios=26 reason=capability-unavailable.
+
+### lp18-ownership-green-checkpoint-snapshot-01.txt
+
+[원출력](lp18-ownership-green-checkpoint-snapshot-01.txt), 8166B.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-L17 snapshot baseline Replay preserves complete canonical value | 해당 원출력 focused 검사 | PASS |
+| LP18-L17 checkpoint read snapshot capability exists | 해당 원출력 focused 검사 | PASS |
+| LP18-L17 snapshot binds complete immutable original values | 해당 원출력 focused 검사 | PASS |
+| LP18-L18 snapshot reads each cold original exactly once | 해당 원출력 focused 검사 | PASS |
+| LP18-L17 external owned vector mutation cannot alter snapshot original | 해당 원출력 focused 검사 | PASS |
+| LP18-L18 Prepare and Commit reuse snapshot without repeated cold reads | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 snapshot no-write checkpoint preserves exact bytes and tokens | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 recover-only snapshot cleanup retains generation and exact bytes | 해당 원출력 focused 검사 | PASS |
+| LP18-L17 snapshot release leaves no journal or cache strong resident | 해당 원출력 focused 검사 | PASS |
+| LP18-L18 null snapshot retains strict repeated-read fallback and exact receipt bytes | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 appended history invalidates snapshot and rejects stale candidate | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 reserved history invalidates snapshot and rejects stale candidate | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 detach and same-owner reattach require strict snapshot fallback | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 identical foreign journal snapshot uses strict local fallback | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison schema | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison id | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison entity | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison time | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison type | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison payload | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison order | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison count | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison null | 해당 원출력 focused 검사 | PASS |
+| LP18-L19 receipt swap invalidates snapshot while old owned original survives | 해당 원출력 focused 검사 | PASS |
+| LP18-L20 explicit Acquire rechecks same-size raw tamper despite owned snapshot | 해당 원출력 focused 검사 | PASS |
+| LP18-L20 snapshot acquisition exception clears both outputs and poisons | 해당 원출력 focused 검사 | PASS |
+| LP18-L17 snapshot preserves duplicate physical rows and noncanonical envelope bytes | 해당 원출력 focused 검사 | PASS |
+| LP18-L18 catalog Checkpoint reuses one cold snapshot with exact bytes and projection | 해당 원출력 focused 검사 | PASS |
+
+### lp18-ownership-green-snapshot-cold-01.txt
+
+[원출력](lp18-ownership-green-snapshot-cold-01.txt), 7285B.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-L11 cold baseline Replay preserves complete canonical value | 해당 원출력 focused 검사 | PASS |
+| LP18-L11 explicit resident release capability exists | 해당 원출력 focused 검사 | PASS |
+| LP18-L11 release expires unowned reloadable resident | 해당 원출력 focused 검사 | PASS |
+| LP18-L11 release preserves tokens and durable bytes | 해당 원출력 focused 검사 | PASS |
+| LP18-L12 cold acquire restores complete canonical value | 해당 원출력 focused 검사 | PASS |
+| LP18-L12 active owned reader survives release and reacquisition | 해당 원출력 focused 검사 | PASS |
+| LP18-L12 public Replay restores cold records as independent values | 해당 원출력 focused 검사 | PASS |
+| LP18-L13 cold Append retry preserves identity bytes and row count | 해당 원출력 focused 검사 | PASS |
+| LP18-L13 cold original ID collision rejects without mutation | 해당 원출력 focused 검사 | PASS |
+| LP18-L11 release rejects foreign and null owners without poison | 해당 원출력 focused 검사 | PASS |
+| LP18-L12 reopened records support explicit release and cold acquire | 해당 원출력 focused 검사 | PASS |
+| LP18-L14 checkpoint record view restores cold full values | 해당 원출력 focused 검사 | PASS |
+| LP18-L14 cold no-write checkpoint preserves generation | 해당 원출력 focused 검사 | PASS |
+| LP18-L14 cold recover-only cleanup preserves generation | 해당 원출력 focused 검사 | PASS |
+| LP18-L14 cold receipt swap rebinds tokens and preserves old reader | 해당 원출력 focused 검사 | PASS |
+| LP18-L13 cold receipt retry retains original envelope without append | 해당 원출력 focused 검사 | PASS |
+| LP18-L15 cold same-size tamper poisons and clears output | 해당 원출력 focused 검사 | PASS |
+| LP18-L15 cold truncation poisons and clears output | 해당 원출력 focused 검사 | PASS |
+| LP18-L15 cold inode replacement poisons and clears output | 해당 원출력 focused 검사 | PASS |
+| LP18-L15 cold allocation failure clears output and poisons | 해당 원출력 focused 검사 | PASS |
+| LP18-L16 oversized resident fallback survives release unchanged | 해당 원출력 focused 검사 | PASS |
+| LP18-L13 cold Reserve retry preserves sequence and physical row count | 해당 원출력 focused 검사 | PASS |
+
+### lp18-ownership-green-snapshot-location-01.txt
+
+[원출력](lp18-ownership-green-snapshot-location-01.txt), 8272B.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-L01 baseline managed Replay preserves full canonical record | 해당 원출력 focused 검사 | PASS |
+| LP18-L01 journal located record capability exists | 해당 원출력 focused 검사 | PASS |
+| LP18-L02 acquired record retains complete canonical value | 해당 원출력 focused 검사 | PASS |
+| LP18-L02 public Replay mutation cannot alter acquired immutable value | 해당 원출력 focused 검사 | PASS |
+| LP18-L03 Append retry preserves physical row count and original value | 해당 원출력 focused 검사 | PASS |
+| LP18-L03 Reserve retry preserves physical row count and sequence | 해당 원출력 focused 검사 | PASS |
+| LP18-L02 reopen reconstructs located original and reservation records | 해당 원출력 focused 검사 | PASS |
+| LP18-L04 blank lines whitespace and 64KiB crossing retain exact row order | 해당 원출력 focused 검사 | PASS |
+| LP18-L04 repeated mutation ID retains separate physical row tokens | 해당 원출력 focused 검사 | PASS |
+| LP18-L04 located reads preserve accepted noncanonical envelope bytes | 해당 원출력 focused 검사 | PASS |
+| LP18-L05 no-write checkpoint keeps existing location generation usable | 해당 원출력 focused 검사 | PASS |
+| LP18-L05 recover-only pending cleanup keeps existing generation usable | 해당 원출력 focused 검사 | PASS |
+| LP18-L05 receipt swap rebinds all locations to exact committed bytes | 해당 원출력 focused 검사 | PASS |
+| LP18-L05 stale location rejects and clears output without poisoning current journal | 해당 원출력 focused 검사 | PASS |
+| LP18-L05 previously acquired owned record survives receipt file replacement | 해당 원출력 focused 검사 | PASS |
+| LP18-L05 retry after receipt returns original type without new location | 해당 원출력 focused 검사 | PASS |
+| LP18-L06 null token clears output without poisoning | 해당 원출력 focused 검사 | PASS |
+| LP18-L06 foreign or null owner rejects without poisoning | 해당 원출력 focused 검사 | PASS |
+| LP18-L06 other journal token rejects without poisoning | 해당 원출력 focused 검사 | PASS |
+| LP18-L06 fork rejects located access while parent retains valid ownership | 해당 원출력 focused 검사 | PASS |
+| LP18-L07 same-size raw tamper poisons and clears output despite resident handle | 해당 원출력 focused 검사 | PASS |
+| LP18-L07 truncation poisons and clears output | 해당 원출력 focused 검사 | PASS |
+| LP18-L07 inode replacement poisons and clears output | 해당 원출력 focused 검사 | PASS |
+| LP18-L08 oversized append remains available through resident fallback only | 해당 원출력 focused 검사 | PASS |
+| LP18-L08 oversized retry preserves original value and durable row count | 해당 원출력 focused 검사 | PASS |
+| LP18-L09 append location exception clears output and poisons after durable write | 해당 원출력 focused 검사 | PASS |
+| LP18-L09 append exception reopens exactly one durable original record | 해당 원출력 focused 검사 | PASS |
+| LP18-L09 reserve location exception withholds result and poisons after durable write | 해당 원출력 focused 검사 | PASS |
+| LP18-L09 reserve exception reopens reservation and retry does not duplicate it | 해당 원출력 focused 검사 | PASS |
+| LP18-L09 checkpoint location exception preserves bytes and usable generation without poison | 해당 원출력 focused 검사 | PASS |
+| LP18-L09 checkpoint retries successfully after location preparation exception | 해당 원출력 focused 검사 | PASS |
+| LP18-L09 acquire allocation exception poisons clears output and retains old owned value | 해당 원출력 focused 검사 | PASS |
+
+### lp18-ownership-green-snapshot-envelope-01.txt
+
+[원출력](lp18-ownership-green-snapshot-envelope-01.txt), 6864B.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-O01 owner checked read view shares journal envelope | 해당 원출력 focused 검사 | PASS |
+| LP18-O01 shared journal original candidate envelopes | 해당 원출력 focused 검사 | PASS |
+| LP18-O01 public Replay value mutation remains isolated | 해당 원출력 focused 검사 | PASS |
+| LP18-O01 retained prefix shares journal envelope | 해당 원출력 focused 검사 | PASS |
+| LP18-O01 full canonical and projection oracle | 해당 원출력 focused 검사 | PASS |
+| LP18-O03 stale candidate after reservation rejected | 해당 원출력 focused 검사 | PASS |
+| LP18-O03 foreign owner candidate rejected | 해당 원출력 focused 검사 | PASS |
+| LP18-O04 exact field order or prefix mutation rejected schema | 해당 원출력 focused 검사 | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change schema | 해당 원출력 focused 검사 | PASS |
+| LP18-O04 exact field order or prefix mutation rejected type | 해당 원출력 focused 검사 | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change type | 해당 원출력 focused 검사 | PASS |
+| LP18-O04 exact field order or prefix mutation rejected id | 해당 원출력 focused 검사 | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change id | 해당 원출력 focused 검사 | PASS |
+| LP18-O04 exact field order or prefix mutation rejected entity | 해당 원출력 focused 검사 | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change entity | 해당 원출력 focused 검사 | PASS |
+| LP18-O04 exact field order or prefix mutation rejected time | 해당 원출력 focused 검사 | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change time | 해당 원출력 focused 검사 | PASS |
+| LP18-O04 exact field order or prefix mutation rejected payload | 해당 원출력 focused 검사 | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change payload | 해당 원출력 focused 검사 | PASS |
+| LP18-O04 exact field order or prefix mutation rejected reorder | 해당 원출력 focused 검사 | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change reorder | 해당 원출력 focused 검사 | PASS |
+| LP18-O04 exact field order or prefix mutation rejected shrink | 해당 원출력 focused 검사 | PASS |
+| LP18-O04 standalone candidate fields rejected without disk change shrink | 해당 원출력 focused 검사 | PASS |
+| LP18-O04 null envelope safely rejected | 해당 원출력 focused 검사 | PASS |
+| LP18-O02 only transformed receipts own new envelopes | 해당 원출력 focused 검사 | PASS |
+| LP18-O02 prepared receipts preserve original canonical bytes | 해당 원출력 focused 검사 | PASS |
+| LP18-O02 publication bytes and prior owned snapshot remain exact | 해당 원출력 focused 검사 | PASS |
+| LP18-O02 published journal and prefix share transformed receipt envelopes | 해당 원출력 focused 검사 | PASS |
+| LP18-O02 receipt independent full projection equality | 해당 원출력 focused 검사 | PASS |
+| LP18-O03 stale candidate after ordinary append rejected | 해당 원출력 focused 검사 | PASS |
+| LP18-O05 8192 logical records admitted | 해당 원출력 focused 검사 | PASS |
+| LP18-O05 8193 aliases still rejected | 해당 원출력 focused 검사 | PASS |
+| LP18-O05 64MiB logical bytes admitted | 해당 원출력 focused 검사 | PASS |
+| LP18-O05 64MiB plus one rejected | 해당 원출력 focused 검사 | PASS |
+
+### lp18-ownership-green-snapshot-cost-01.txt
+
+[원출력](lp18-ownership-green-snapshot-cost-01.txt), 7316B.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-E01 independent value and owned sequences compare equal | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 full field mismatch rejected schema | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 full field mismatch rejected type | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 full field mismatch rejected id | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 full field mismatch rejected entity | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 full field mismatch rejected time | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 full field mismatch rejected payload | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 sequence order remains significant | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 sequence count remains significant | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 null on either side remains rejected | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 identical invalid schema retains comparison result | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 identical invalid enum retains comparison result | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 enum canonical collision remains rejected | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 escape and control bytes retain exact comparison | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 int64 boundaries retain exact comparison | 해당 원출력 focused 검사 | PASS |
+| LP18-E01 payload whitespace remains significant | 해당 원출력 focused 검사 | PASS |
+| LP18-E02 SameSequence performs zero envelope serializations | 해당 원출력 focused 검사 | PASS |
+| LP18-E03 receipt candidate preparation preserves original bytes | 해당 원출력 focused 검사 | PASS |
+| LP18-E04 CommitCheckpoint builds JournalBytes exactly once | 해당 원출력 focused 검사 | PASS |
+| LP18-E03 independent candidate publishes exact bytes and preserves prior owner | 해당 원출력 focused 검사 | PASS |
+| LP18-E03 compacted bytes retain independent full projection | 해당 원출력 focused 검사 | PASS |
+| LP18-E03 invalid candidate rejected before byte building schema | 해당 원출력 focused 검사 | PASS |
+| LP18-E03 invalid candidate rejected before byte building type | 해당 원출력 focused 검사 | PASS |
+| LP18-E03 invalid candidate rejected before byte building id | 해당 원출력 focused 검사 | PASS |
+| LP18-E03 invalid candidate rejected before byte building entity | 해당 원출력 focused 검사 | PASS |
+| LP18-E03 invalid candidate rejected before byte building time | 해당 원출력 focused 검사 | PASS |
+| LP18-E03 invalid candidate rejected before byte building payload | 해당 원출력 focused 검사 | PASS |
+| LP18-E03 invalid candidate rejected before byte building order | 해당 원출력 focused 검사 | PASS |
+| LP18-E03 invalid candidate rejected before byte building count | 해당 원출력 focused 검사 | PASS |
+| LP18-E03 invalid candidate rejected before byte building null | 해당 원출력 focused 검사 | PASS |
+
+
 독자: 녹화 구현·검증 담당. 수명: 이번 단기 검사의 실패/RED/GREEN 보존형 전수 결과. 정책은 AGENTS.md이며 해석은 [중앙 기록](../../../release-test-records.md)의 LP18을 따른다.
 예상 RED의 assertion은 실제 FAIL로 남기며 제품 PASS로 바꾸지 않는다.
 

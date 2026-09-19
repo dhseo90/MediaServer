@@ -1,5 +1,6 @@
 // LP18 locator 기반만 검사한다. resident 해제나 전체 RAM 절감을 주장하지 않는다.
 #include "recording/recording_journal.h"
+#include "recording/recording_catalog.h"
 #include "recording_journal_location_counter.h"
 #include <filesystem>
 #include <fstream>
@@ -18,6 +19,12 @@
 #endif
 #ifndef LP18_COLD_RECORDS
 #define LP18_COLD_RECORDS 0
+#endif
+#ifndef LP18_CHECKPOINT_SNAPSHOT_SUITE
+#define LP18_CHECKPOINT_SNAPSHOT_SUITE 0
+#endif
+#ifndef LP18_CHECKPOINT_SNAPSHOT
+#define LP18_CHECKPOINT_SNAPSHOT 0
 #endif
 using namespace recording;
 namespace {
@@ -178,10 +185,75 @@ void ColdRecords(const std::filesystem::path& root){
  {Store s(root/"large");const auto large=Mutation("cold-large",16*1024*1024);Append(s,large);const auto rows=Locations(s);std::weak_ptr<const RecordingMutationV1> weak;{auto value=Acquire(s,rows[0]);weak=value;}const auto before=Bytes(s.journal.path());Release(s);Check(!weak.expired()&&Canonical(*Acquire(s,rows[0]))==Canonical(large)&&Bytes(s.journal.path())==before,"LP18-L16 oversized resident fallback survives release unchanged");}
  {Store s(root/"reservation");RecordingOrderReservationV1 first,again;std::string error;Need(s.journal.ReserveRecordingOrder("location-store","cold-request","cold-segment","cold-channel",&first,&error));const auto rows=Locations(s);const auto before=Bytes(s.journal.path());Release(s);Need(s.journal.ReserveRecordingOrder("location-store","cold-request","cold-segment","cold-channel",&again,&error));Check(first.sequence==again.sequence&&Locations(s)==rows&&Bytes(s.journal.path())==before&&Acquire(s,rows[0])->mutation_type==RecordingMutationType::RecordingOrderReserved,"LP18-L13 cold Reserve retry preserves sequence and physical row count");}
 }
+#if LP18_CHECKPOINT_SNAPSHOT
+void CheckpointSnapshots(const std::filesystem::path& root){
+ using Snapshot=RecordingCheckpointReadSnapshotHandle;
+ {Store s(root/"local");const auto m=Mutation("snapshot-one");Append(s,m);const auto rows=Locations(s);const auto before=Bytes(s.journal.path());Release(s);RecordingMutationHandles owned,candidate;Snapshot snapshot;std::string error;location_probe::raw_reads=0;
+  Need(s.journal.ReadCheckpointRecords(&s.owner,&owned,&error,&snapshot));
+  Check(snapshot&&owned.size()==1&&Canonical(*owned[0])==Canonical(m),"LP18-L17 snapshot binds complete immutable original values");
+  Check(location_probe::raw_reads==1,"LP18-L18 snapshot reads each cold original exactly once");
+  std::weak_ptr<const RecordingMutationV1> weak=owned[0];owned[0]=std::make_shared<const RecordingMutationV1>(Mutation("outside-copy"));
+  Need(s.journal.PrepareCheckpoint(&s.owner,&candidate,&error,snapshot));
+  Check(candidate.size()==1&&Canonical(*candidate[0])==Canonical(m),"LP18-L17 external owned vector mutation cannot alter snapshot original");
+  Need(s.journal.CommitCheckpoint(&s.owner,candidate,false,&error,snapshot));
+  Check(location_probe::raw_reads==1,"LP18-L18 Prepare and Commit reuse snapshot without repeated cold reads");
+  Check(Locations(s)==rows&&Bytes(s.journal.path())==before,"LP18-L19 snapshot no-write checkpoint preserves exact bytes and tokens");
+  Write(s.root/".recording-checkpoint.tmp",before.substr(0,10));Need(s.journal.CommitCheckpoint(&s.owner,candidate,true,&error,snapshot));
+  Check(location_probe::raw_reads==1&&Locations(s)==rows&&Bytes(s.journal.path())==before&&!std::filesystem::exists(s.root/".recording-checkpoint.tmp"),"LP18-L19 recover-only snapshot cleanup retains generation and exact bytes");
+  candidate.clear();owned.clear();snapshot.reset();Check(weak.expired(),"LP18-L17 snapshot release leaves no journal or cache strong resident");
+ }
+ {Store s(root/"default");Append(s,Mutation("default-one",2000));Append(s,Mutation("default-two",2000));Release(s);RecordingMutationHandles owned,candidate;std::string error;location_probe::raw_reads=0;
+  Need(s.journal.ReadCheckpointRecords(&s.owner,&owned,&error));Need(s.journal.PrepareCheckpoint(&s.owner,&candidate,&error));const auto expected=Canonical(*candidate[0])+"\n"+Canonical(*candidate[1])+"\n";Need(s.journal.CommitCheckpoint(&s.owner,candidate,false,&error,{}));
+  Check(location_probe::raw_reads==6&&Bytes(s.journal.path())==expected,"LP18-L18 null snapshot retains strict repeated-read fallback and exact receipt bytes");
+ }
+ for(int kind=0;kind<2;++kind){Store s(root/("stale-"+std::to_string(kind)));Append(s,Mutation("stale-one"));Release(s);RecordingMutationHandles owned,candidate;Snapshot snapshot;std::string error;Need(s.journal.ReadCheckpointRecords(&s.owner,&owned,&error,&snapshot));Need(s.journal.PrepareCheckpoint(&s.owner,&candidate,&error,snapshot));
+  if(kind==0)Append(s,Mutation("stale-two"));else{RecordingOrderReservationV1 order;Need(s.journal.ReserveRecordingOrder("location-store","snapshot-request","snapshot-segment","snapshot-channel",&order,&error));}
+  Release(s);const auto before=Bytes(s.journal.path());location_probe::raw_reads=0;const bool ok=s.journal.CommitCheckpoint(&s.owner,candidate,false,&error,snapshot);
+  Check(!ok&&location_probe::raw_reads==2&&Bytes(s.journal.path())==before&&!s.journal.poisoned_,kind==0?"LP18-L19 appended history invalidates snapshot and rejects stale candidate":"LP18-L19 reserved history invalidates snapshot and rejects stale candidate");
+ }
+ {Store s(root/"detach");Append(s,Mutation("detach-one"));Release(s);RecordingMutationHandles owned,candidate;Snapshot snapshot;std::string error;Need(s.journal.ReadCheckpointRecords(&s.owner,&owned,&error,&snapshot));Need(s.journal.PrepareCheckpoint(&s.owner,&candidate,&error,snapshot));s.journal.DetachCatalog(&s.owner);Need(s.journal.AttachCatalog(&s.owner,s.root,s.root/"recording-catalog.sqlite3",true,&error));location_probe::raw_reads=0;
+  Check(s.journal.CommitCheckpoint(&s.owner,candidate,false,&error,snapshot)&&location_probe::raw_reads==1,"LP18-L19 detach and same-owner reattach require strict snapshot fallback");
+ }
+ {Store s(root/"foreign-a"),other(root/"foreign-b");const auto m=Mutation("foreign-same");Append(s,m);Append(other,m);Release(s);Release(other);RecordingMutationHandles owned,candidate;Snapshot snapshot;std::string error;Need(s.journal.ReadCheckpointRecords(&s.owner,&owned,&error,&snapshot));Need(s.journal.PrepareCheckpoint(&s.owner,&candidate,&error,snapshot));location_probe::raw_reads=0;
+  Check(other.journal.CommitCheckpoint(&other.owner,candidate,false,&error,snapshot)&&location_probe::raw_reads==1,"LP18-L19 identical foreign journal snapshot uses strict local fallback");
+ }
+ {Store s(root/"candidate");Append(s,Mutation("candidate-one",2000));Append(s,Mutation("candidate-two",2000));Release(s);RecordingMutationHandles owned,candidate;Snapshot snapshot;std::string error;Need(s.journal.ReadCheckpointRecords(&s.owner,&owned,&error,&snapshot));Need(s.journal.PrepareCheckpoint(&s.owner,&candidate,&error,snapshot));const auto before=Bytes(s.journal.path());
+  const char* fields[]={"schema","id","entity","time","type","payload","order","count","null"};
+  for(int field=0;field<9;++field){auto bad=candidate;auto m=*bad[0];if(field==0)m.schema="wrong";if(field==1)m.mutation_id+="x";if(field==2)m.entity_id+="x";if(field==3)++m.occurred_at_ms;if(field==4)m.mutation_type=RecordingMutationType::Unknown;if(field==5)m.payload_json="{}";bad[0]=std::make_shared<const RecordingMutationV1>(m);if(field==6)std::swap(bad[0],bad[1]);if(field==7)bad.pop_back();if(field==8)bad[0].reset();Check(!s.journal.CommitCheckpoint(&s.owner,bad,false,&error,snapshot)&&Bytes(s.journal.path())==before&&!s.journal.poisoned_,(std::string("LP18-L19 snapshot does not bypass complete candidate field and order comparison ")+fields[field]).c_str());}
+  const auto expected=Canonical(*candidate[0])+"\n"+Canonical(*candidate[1])+"\n";for(auto& handle:candidate)handle=std::make_shared<const RecordingMutationV1>(*handle);Need(s.journal.CommitCheckpoint(&s.owner,candidate,false,&error,snapshot));Release(s);location_probe::raw_reads=0;RecordingMutationHandles current;Need(s.journal.PrepareCheckpoint(&s.owner,&current,&error,snapshot));
+  Check(location_probe::raw_reads==2&&Bytes(s.journal.path())==expected&&current[0]->mutation_type==RecordingMutationType::EventLinkReceipt&&owned[0]->mutation_type==RecordingMutationType::EventLinkCreated,"LP18-L19 receipt swap invalidates snapshot while old owned original survives");
+ }
+ {Store s(root/"tamper");Append(s,Mutation("snapshot-tamper"));Release(s);RecordingMutationHandles owned;Snapshot snapshot;std::string error;Need(s.journal.ReadCheckpointRecords(&s.owner,&owned,&error,&snapshot));const auto rows=Locations(s);auto bytes=Bytes(s.journal.path());const auto at=bytes.find("xxx");Need(at!=std::string::npos);bytes[at]='y';Write(s.journal.path(),bytes);
+  Check(Reject(s,&s.owner,rows[0])&&s.journal.poisoned_&&owned.size()==1,"LP18-L20 explicit Acquire rechecks same-size raw tamper despite owned snapshot");
+ }
+ {Store s(root/"exception");Append(s,Mutation("snapshot-exception"));Release(s);RecordingMutationHandles owned;Snapshot snapshot;std::string error;Need(s.journal.ReadCheckpointRecords(&s.owner,&owned,&error,&snapshot));location_probe::throw_acquire=true;
+  Check(!s.journal.ReadCheckpointRecords(&s.owner,&owned,&error,&snapshot)&&!snapshot&&owned.empty()&&s.journal.poisoned_&&!location_probe::throw_acquire,"LP18-L20 snapshot acquisition exception clears both outputs and poisons");
+ }
+ {const auto path=root/"physical";std::filesystem::path journal;{Store s(path);journal=s.journal.path();}const auto m=Mutation("snapshot-physical",70000);auto text=Canonical(m);text.insert(1," \t");const auto bytes="\n"+text+"\n\n"+text+"\n";Write(journal,bytes);Store s(path);Release(s);RecordingMutationHandles owned,candidate;Snapshot snapshot;std::string error;location_probe::raw_reads=0;Need(s.journal.ReadCheckpointRecords(&s.owner,&owned,&error,&snapshot));Need(s.journal.PrepareCheckpoint(&s.owner,&candidate,&error,snapshot));
+  Check(location_probe::raw_reads==2&&owned.size()==2&&Canonical(*owned[0])==Canonical(m)&&Canonical(*owned[1])==Canonical(m)&&Bytes(journal)==bytes,"LP18-L17 snapshot preserves duplicate physical rows and noncanonical envelope bytes");
+ }
+ {const auto path=root/"catalog";RecordingJournal journal(RecordingJournal::ManagedOptions{path,"snapshot-store"});RecordingCatalog::Options options(path/"recording-catalog.sqlite3",path,true);options.enable_v2_storage=true;RecordingCatalog catalog(journal,options);std::string error;Need(journal.Open(&error)&&catalog.Open(&error));
+  for(const char* id:{"snapshot-order-one","snapshot-order-two"}){RecordingOrderReservationV1 order;Need(journal.ReserveRecordingOrder("snapshot-store",id,id,"snapshot-channel",&order,&error));}
+  const auto replay=journal.Replay();Need(replay.io_error_count==0&&replay.mutations.size()==2);RecordingCatalog full(journal,options);for(const auto& m:replay.mutations)Need(full.ApplyMutationLocked(m,false,&error));const auto projection=full.ProjectionSignatureLocked();const auto before=Bytes(journal.path());
+  Need(journal.ReleaseRecordResidents(&catalog,&error));location_probe::raw_reads=0;const bool ok=catalog.Checkpoint(&error);
+  Check(ok&&location_probe::raw_reads==replay.mutations.size()&&Bytes(journal.path())==before&&catalog.checkpoint_cache_&&catalog.checkpoint_cache_->shadow&&catalog.checkpoint_cache_->shadow->ProjectionSignatureLocked()==projection,"LP18-L18 catalog Checkpoint reuses one cold snapshot with exact bytes and projection");
+ }
+}
+#endif
 #endif
 #endif
 }
 int main(int argc,char** argv){if(argc!=2)return 2;try{const std::filesystem::path root=argv[1];
+ if(LP18_CHECKPOINT_SNAPSHOT_SUITE){
+  {Store s(root/"snapshot-baseline");const auto m=Mutation("snapshot-baseline");Append(s,m);const auto replay=s.journal.Replay();Check(replay.io_error_count==0&&replay.mutations.size()==1&&Canonical(replay.mutations[0])==Canonical(m),"LP18-L17 snapshot baseline Replay preserves complete canonical value");}
+  Check(LP18_CHECKPOINT_SNAPSHOT!=0,"LP18-L17 checkpoint read snapshot capability exists");
+#if LP18_CHECKPOINT_SNAPSHOT
+  CheckpointSnapshots(root/"snapshot");
+#else
+  std::cout<<"[not-run] LP18 checkpoint snapshot scenarios=26 reason=capability-unavailable\n";
+#endif
+  std::cout<<"[summary] LP18 pass="<<passed<<" fail="<<failed<<'\n';return failed?1:0;
+ }
  if(LP18_COLD_SUITE){
   {Store s(root/"cold-baseline");const auto m=Mutation("cold-baseline");Append(s,m);const auto replay=s.journal.Replay();Check(replay.io_error_count==0&&replay.mutations.size()==1&&Canonical(replay.mutations[0])==Canonical(m),"LP18-L11 cold baseline Replay preserves complete canonical value");}
   Check(LP18_COLD_RECORDS!=0,"LP18-L11 explicit resident release capability exists");

@@ -1,0 +1,79 @@
+[source] {"name":"include/recording/recording_catalog.h","sha256":"ec7bb80f4bbe5731edb932a836d84f3865a0d6f6daa4ab74aecc99170e7af0e8"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"d0791c60410512342f24dc6c33167f22e60a46ae80d12ac1daff72fcea046d39"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"}
+[source] {"name":"scripts/internal/recording_checkpoint_cache_smoke.cpp","sha256":"19b0007a5c31484b8908901890a69dac35919a1a827ce75819d4f0cbcf78a7f1"}
+[source] {"name":"scripts/internal/verify_recording_checkpoint_cache.sh","sha256":"2f8614bb539fcdd07962cbbb356ddd0485a4ef5349e71153329aeefe11248813"}
+[environment] ownedCache=true ownedRegistry=true productFilesUnchanged=true instrumentation=checkpoint-scope-apply-count
+[pass] LP15-C01 cold full applied=1 expected=1
+[pass] LP15-C01 unchanged prefix applied=0 expected=0
+[pass] LP15-C01 exact prefix suffix only applied=1 expected=1
+[pass] LP15-C01 independent prefix shadow/full projection equality
+[pass] LP15-C01 full fallback schema applied=2 expected=2
+[pass] LP15-C01 full fallback type applied=2 expected=2
+[pass] LP15-C01 full fallback id applied=2 expected=2
+[pass] LP15-C01 full fallback entity applied=2 expected=2
+[pass] LP15-C01 full fallback time applied=2 expected=2
+[pass] LP15-C01 full fallback payload applied=2 expected=2
+[pass] LP15-C01 full fallback reorder applied=2 expected=2
+[pass] LP15-C01 full fallback shrink applied=2 expected=2
+[pass] LP15-C01 full fallback null-shadow applied=2 expected=2
+[pass] LP15-C01 full fallback null-handle applied=2 expected=2
+[pass] LP15-C01 Open clears cache applied=2 expected=2
+[pass] LP15-C03 recover full/no-cache
+[pass] LP15-C03 after recover full applied=2 expected=2
+[pass] LP15-C03 injected commit refusal discards cache
+[pass] LP15-C03 after commit refusal full applied=2 expected=2
+[pass] LP15-C03 suffix exception discards cache
+[pass] LP15-C03 after exception full applied=3 expected=3
+[pass] LP15-C03 public poisoned entry discards cache
+[pass] LP15-C03 after restored fixture full applied=3 expected=3
+[pass] LP15-C04 exact byte charge boundary
+[pass] LP15-C04 overflow charge rejected
+[pass] LP15-C04 8192 records admitted
+[pass] LP15-C04 8193 records rejected
+[pass] LP15-C04 64MiB record charge admitted
+[pass] LP15-C04 64MiB plus one rejected
+[pass] LP15-C03 changed candidate prime applied=1 expected=1
+[pass] LP15-C03 changed candidate suffix12 plus full candidate13 applied=25 expected=25
+[pass] LP15-C03 changed candidate cache equals independent full projection
+[pass] LP15-C03 compacted candidate prefix reused applied=0 expected=0
+[pass] LP15-C03 forced projection mismatch discards cache
+[pass] LP15-C04 overlimit prime applied=1 expected=1
+[pass] LP15-C04 existing cache ignored for oversized original applied=8193 expected=8193
+[pass] LP15-C04 oversized candidate not retained
+[pass] LP15-C04 next oversized checkpoint full applied=8193 expected=8193
+[shape] state=1 bytes=319533 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=33f1b818bcc6f3af662db1824c47a17a33b102e8d3d56312c2f56614b0b5238c
+[record-cost] iteration=1 serialize_us=28943 parse_us=77434
+[record-cost] iteration=2 serialize_us=28990 parse_us=77702
+[record-cost] iteration=3 serialize_us=28823 parse_us=77269
+[shape] state=3 bytes=319548 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=8d677052224bcae325dbddc03cc9dcc2d839377a8aff9091f6821eb44030fa10
+[record-cost] iteration=1 serialize_us=29127 parse_us=77299
+[record-cost] iteration=2 serialize_us=28625 parse_us=77671
+[record-cost] iteration=3 serialize_us=28979 parse_us=78598
+[shape] state=1 bytes=319533 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=cab5250f3b1744f71aacb80b38df210107f0b3aea4c64dc65db5afce1360fe5d
+[record-cost] iteration=1 serialize_us=28782 parse_us=77017
+[record-cost] iteration=2 serialize_us=28690 parse_us=77187
+[record-cost] iteration=3 serialize_us=28891 parse_us=77340
+[shape] state=3 bytes=319548 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=836c4ff3c42bd8a97405c94f6210ab1496507ce869f3a4fde7de694e8778d1ac
+[record-cost] iteration=1 serialize_us=28972 parse_us=77155
+[record-cost] iteration=2 serialize_us=28801 parse_us=77298
+[record-cost] iteration=3 serialize_us=28827 parse_us=77032
+[pass] CP01 actual Ready Complete shape canonical files reservation
+[pass] CP02 bounded two jobs over 1MiB canonical transitions
+[automatic-checkpoint] index=0 original_records=11 reused_prefix=0 original_applied=11 total_applied=11 duration_us=203023
+[automatic-checkpoint] index=1 original_records=17 reused_prefix=11 original_applied=6 total_applied=6 duration_us=311961
+[transition-hold] count=8 max_us=453079 scope=UpdateDerivedJob-lock-acquired-to-before-unlock
+[pass] LP15-C02 bounded automatic checkpoint and whole transition measurement
+[shape] LP15-C02 records=18 bytes=2843063 ready=2 committed=2 complete=2
+[pass] LP15-C02 reopened full applied=18 expected=18
+[pass] LP15-C02 actual unchanged prefix applied=0 expected=0
+[pass] LP15-C02 actual suffix only applied=1 expected=1
+[pass] LP15-C02 actual job shadow/full projection equality
+[pass] LP15-C03 illegal Ready after Complete suffix rejected by cached/full paths
+[summary] LP15 pass=44 fail=0
+       13.24 real        11.60 user         1.02 sys
+time: sysctl kern.clockrate: Operation not permitted
+[fail] LP15-C04 peakRSS bytes=null cap=536870912
+[bounded] {"code":1,"signal":null,"limit":false,"outputBytes":4562,"runtimeCapSeconds":60,"diskCapBytes":536870912,"peakRssBytes":null}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.moXQmy","bytes":16982833,"removed":true}
+[exit] code=2 elapsed_seconds=15 source=bash-SECONDS

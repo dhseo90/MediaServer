@@ -138,6 +138,17 @@ Replay/ReadCheckpointRecords/Prepare/Commit도 같은 lock 아래 필요한 cold
 이 단계에는 제품의 자동 해제 호출을 아직 연결하지 않는다. journal primitive만으로 accepted/prefix/live/shadow
 전체 보관 수명 완료라고 주장하지 않으며 다음 소비 연결·비활성 해제·재open 검증까지 별도로 마쳐야 한다.
 
+#### 자동 내림 전의 호출-local checkpoint 원본
+
+`86131a3b`는 명시 해제/재획득 기반이다. cold 원본을 Read→Prepare→Commit마다 다시 읽지 않도록
+private opaque snapshot이 한 호출 동안 검증된 immutable 원본을 소유한다. snapshot은 원장·catalog attachment
+고유 토큰·PID·물리 세대·현재 bytes/순서 개수를 결박한다. 같은 owner 주소로 재attach해도 이전 증명은 재사용하지 않는다.
+Prepare/Commit의 매번 owner/lease/FD 상태 검사와 전체 후보 필드 대조·semantic projection·원자 쓰기는 유지한다.
+부적격/null/다른 journal/append·예약·교체 뒤 snapshot은 현재 원장의 기존 strict 경로로 복귀한다.
+후보가 낡았으면 기존 후보 대조에서 거부한다. snapshot을 cache/live 상태나 영속 PASS로 보관하지 않는다.
+공개 값이나 반환 vector 변경이 봉인된 원본을 바꾸지 않으며, 명시 위치 재획득은 실제 행을 계속 재검사한다.
+등록한 counter로 cold 행 읽기 수와 source/bytes·예외·재소유 반례를 대조한다. 구현/실행 전이면 PASS가 아니다.
+
 1. 계약: 위 소유/검증/무효화/소비자 경계와 실행 순서가 기존 불변 계약과 일치한다. 문서 PASS는 제품 PASS가 아니다.
 2. 중복 보관: 불변 alias 공유 및 외부 반환값 독립성, receipt 원본 보존, 후보 경쟁/충돌/상한 검사를 통과한다. typed/상세 잔존을 숨기지 않는다.
 3. 검증 재사용: 실제 큰 job 전이에 동일 내용 파싱·검증이 반복되지 않으며 잘못된 재사용·불법 전이·손상은 기존대로 거부된다.

@@ -13,8 +13,8 @@ Superpowers 스킬은 현재 제공되지 않아 사용을 주장하지 않으�
 | --- | --- | --- | --- | --- |
 | 1 | 저장 기준 검증 보완 | 완료 | 순수14·실제46 PASS, 예상 RED2건 보존. HW 해결 아님 | 아래 WR 결과 |
 | 2 | 위치 재획득 마감 | 완료 | 기존 위치 증거37SHA 일치·service43·2job 기능120/계측1 통과 | LP18-L01~10·아래 결과 |
-| 3 | 실제 RAM 수명 적용 | 진행 중 | 229d82a5 뒤 resident 없는 재획득 기반부터 TDD. 자동 소비 연결은 아직 없음 | 누적 비용 계약0절 |
-| 4 | 분할 커밋·보고 | 단계별 수행 예정 | 해당 단위 구현/회귀/기록 통과 뒤 지정 파일만 커밋 | AGENTS3/5 |
+| 3 | 실제 RAM 수명 적용 | 진행 중 | 명시 cold 재획득·호출-local checkpoint 구현/단기 검증 완료. 자동 소비 연결은 아직 없음 | 누적 비용 계약0절·아래 결과 |
+| 4 | 분할 커밋·보고 | 단계별 수행 | 기준·위치·cold 기반 커밋 완료, snapshot 단위 커밋 준비. 단계3 전체는 미완료 | AGENTS3/5 |
 
 | 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
 | --- | --- | --- | --- | --- |
@@ -213,6 +213,105 @@ source/UTC/명령/exit·토큰 미집계 이유는 각 원출력에 보존했다
 
 빌드 전체 wall elapsed는 비동기 실행에서 따로 계측하지 못했으며 추정하지 않는다. 원출력은 실행 도구에 있고
 위 필수 실제값을 중앙에 보존했다. build-gst-onnx는 기존 빌드 디렉터리이며 삭제 대상 임시 fixture가 아니다.
+
+### 3번 호출-local checkpoint 원본 착수
+
+명시 해제 기반은 `86131a3b`로 커밋했다. 다음은 cold 기록의 Read→Prepare→Commit 중복 읽기 보완이며
+세부 불변 계약은 누적 비용 계약0절이다. 자동 해제·typed/cache 소비 전체 완료는 여전히 아니다.
+동일 담당자는 journal/header·catalog의 CheckpointLocked와 해당 fixture/runner만 소유하고,
+메인은 나머지 소비 경계를 읽기 검토하며 문서/직접 판정을 맡는다. 제품 성능/실제HTTP와 장시간/UI는 실행하지 않는다.
+`node scripts/internal/verify_recording_immutable_ownership.mjs red checkpoint-snapshot-01 journal-checkpoint-snapshot`을
+실행한다. baseline1PASS/capability1FAIL·26개not-run만 예상RED이며 build/환경 오류는 RED가 아니다.
+GREEN은 아래28개 PASS. snapshotless 기존 위치32/cold22/envelope34/envelope-cost30/cache47을 영향 회귀한다.
+서버/미디어 없이 기존 소유 fixture·guard와 원출력/정리 절차를 유지한다. 실제 catalog 사례는 private 호출을
+건너뛴 대체 PASS가 아니라 정상 catalog.Checkpoint 전체 흐름에서 cold 원본의 실제 읽기 수를 확인한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-L17 snapshot binds complete immutable original values | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L18 snapshot reads each cold original exactly once | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L17 external owned vector mutation cannot alter snapshot original | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L18 Prepare and Commit reuse snapshot without repeated cold reads | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L19 snapshot no-write checkpoint preserves exact bytes and tokens | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L19 recover-only snapshot cleanup retains generation and exact bytes | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L17 snapshot release leaves no journal or cache strong resident | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L18 null snapshot retains strict repeated-read fallback and exact receipt bytes | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L19 appended history invalidates snapshot and rejects stale candidate | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L19 reserved history invalidates snapshot and rejects stale candidate | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L19 detach and same-owner reattach require strict snapshot fallback | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L19 identical foreign journal snapshot uses strict local fallback | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L19 receipt swap invalidates snapshot while old owned original survives | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L20 explicit Acquire rechecks same-size raw tamper despite owned snapshot | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L20 snapshot acquisition exception clears both outputs and poisons | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L17 snapshot preserves duplicate physical rows and noncanonical envelope bytes | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L18 catalog Checkpoint reuses one cold snapshot with exact bytes and projection | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L17 snapshot baseline Replay preserves complete canonical value | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L17 checkpoint read snapshot capability exists | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison schema | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison id | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison entity | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison time | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison type | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison payload | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison order | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison count | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+| LP18-L19 snapshot does not bypass complete candidate field and order comparison null | 호출-local snapshot과 기존 거부 계약 | 원출력 개별 Check·cold raw-read counter·원장/토큰/소유값 직접 대조 | v4.1.0 |
+
+snapshot GREEN28·cold22·location32·envelope34·envelope-cost30 모두 PASS, 각 원출력/정리 보존.
+전체 build exit0/19초. cache 첫 실행 `lp18-snapshot-cache-01.txt`은 기능46개 PASS이나
+`/usr/bin/time -l`의 `sysctl kern.clockrate: Operation not permitted`로 RSS 수집 실패(null),
+자원 판정 FAIL/전체 exit2다. 제품 기능 실패/예상RED로 바꾸지 않는다. 소유 root moXQmy
+16982833B 삭제·부재 확인. 같은 코드/상한을 유지하고 승인된 권한 실행으로 재검증한다.
+실행 명령: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_checkpoint_cache.sh`.
+뒤 자동 해제 구현/커밋은 이 재검증 통과 전 진행하지 않는다.
+
+호출 인자를 변경한 계측 adapter의 영향도 확인한다. cache 재검증 통과 뒤
+`node scripts/internal/recording_catalog_comparison_run.mjs jobs lp18-snapshot-01`을 실행한다.
+기존 LP17-J B/C 각60개와 계측1개 정의·소유 입력/시간/RSS/디스크/정리 기준을 유지한다.
+이것은 격리2-job 영향 회귀이며 실제 앱 HTTP나16/32 최종 비용 판정이 아니다.
+
+### 호출-local snapshot 단위 마감
+
+메인이 제품/fixture/계측 diff와 원출력을 직접 대조했다. 후보 전체 필드·순서·null·변경 후보 semantic/projection,
+owner/PID/attachment/FD·크기·세대·revision 경계와 원자 쓰기를 유지한다. 유효 호출-local snapshot은
+실제 catalog의 cold2행을 합계2회 읽는다. 기본/null 경로의 같은2행 Read→Prepare→Commit은6회다.
+외부 vector 변경은 snapshot 불변값을 바꾸지 않고, append/예약/receipt 교체/owner 재연결은 재사용을 무효화한다.
+fallback도 정상 입력을 거부하는 cache 상한으로 바꾸지 않았다. snapshot은 journal/cache에 상주시키지 않는다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| snapshot RED | exact1PASS/1FAIL, 신규26 미실행, focused exit1·2917ms. capability FAIL만 예상 RED | FAIL |
+| snapshot GREEN | 28PASS, build/focused exit0·2964ms | PASS |
+| snapshot cold 영향 | 22PASS·exit0·3940ms | PASS |
+| snapshot 위치 영향 | 32PASS·exit0·4031ms | PASS |
+| snapshot envelope 영향 | 34PASS·exit0·2972ms | PASS |
+| snapshot envelope-cost 영향 | 30PASS·exit0·2976ms | PASS |
+| snapshot 전체 build | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build`, exit0·19초·100% | PASS |
+| snapshot cache 최초 실행 | 기능46PASS·자원1FAIL, RSS 조회 권한 거부, exit2·15초 | FAIL |
+| snapshot cache 권한 재검증 | 같은 명령/코드/상한,47PASS·exit0·15초, peakRSS162693120B | PASS |
+| snapshot 2-job 계측 | exact97+추가5, compile exit0·4472ms | PASS |
+| snapshot 2-job B/C | 각60PASS,6419/5027ms, 입력SHA동일·source불변, 전체 exit0·16851ms | PASS |
+| snapshot 2-job 준비 | runtime freshness exit0·641ms | PASS |
+| snapshot 전수 결과 | focused148행(RED2+GREEN146), cache94행, 2job121행을 원출력과 대조 | PASS |
+
+원출력/개별 결과는 `lp18-ownership-results.md`에서 연결한다. 도구 표시가 잘린2job 원출력도 파일214799B에 전부 보존했다.
+과거 누적 RSS 실패·HW 실패·실제 HTTP/최종 비용 미확인은 이 단기 결과로 닫지 않는다. token 집계는 기존 사유로 미집계다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| snapshot RED owned-root | binary/격리 원장 | 5072963B | guard 종료 후 삭제 | removed true | RED 원출력 |
+| snapshot GREEN owned-root | binary/격리 원장 | 5488547B | guard 종료 후 삭제 | removed true | GREEN 원출력 |
+| snapshot cold owned-root | 반례 fixture | 21915279B | guard 종료 후 삭제 | removed true | cold 원출력 |
+| snapshot location owned-root | 반례 fixture | 22005176B | guard 종료 후 삭제 | removed true | location 원출력 |
+| snapshot envelope owned-root | 반례 fixture | 5638681B | guard 종료 후 삭제 | removed true | envelope 원출력 |
+| snapshot cost owned-root | 계측 fixture | 5472563B | guard 종료 후 삭제 | removed true | cost 원출력 |
+| cache moXQmy/pyZoHs | 첫 실패/재검증 fixture | 각16982833B | trap 삭제 | 모두 부재 | cache01/02 |
+| 2job B/C store | 입력/출력/원장 fixture | 각5147594B | group 종료 후 삭제 | 모두 부재 | jobs 원출력 |
+| 2job 최종 owned-root | 계측 binary 등 | 18958059B | guard 종료 후 삭제 | removed true | jobs 원출력 |
+| 비민감 원출력10개 | SHA·수치·개별 결과 | 해당 파일 실제 크기 | 저장소 보존 | credential/raw 영상 없음 | 실패 이력과 구현 근거 |
+
+snapshot 마감 문서 링크 검사 exit0(285md/8922links/22images/116anchors/실패0),
+diffcheck·수정된 shell2개/JS2개 문법 검사 exit0. 제품/테스트 소스는 위 검증 뒤 변경하지 않았다.
 
 ## 2026-09-20 LP18 잔여 1~3 순차 실행
 
