@@ -1,5 +1,29 @@
 # Release Test Records
 
+## 2026-09-19 LP14 종료 진단·보존 자료·전이 비용 보완
+
+사용자 승인: 종료 진단 분리→보존 자료 사후 진단/정리→전체 전이 비용 개선→관련 회귀/실제 앱/누적 비용→분할 커밋/최종 푸시. 공개 계약·저장 바이트·손상 거부·복구·HTTP4000ms/총180초 불변. 정상 종료 FAIL과 자료 접근 안전성을 분리하며, 프로세스 종료/포트가 미확인인 저장소는 읽기 probe를 실행하지 않는다. main이 설계·원인·검토·커밋/푸시를 맡고 기존 단일 Astra/medium 담당자를 재사용한다. 하위 생성 금지.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP14-D01 | 종료 사실 분리 | exit0/비정상exit/signal/강제종료/미종료와 포트별 결과를 고정 schema로 기록, 원문 예외 비노출 | v4.1.0 |
+| LP14-D02 | 진단 안전성 | 정상 종료 FAIL 유지, 종료 관측+포트 해제만 복제본 진단 허용, 원본에 probe 금지 | v4.1.0 |
+| LP14-D03 | 실패 보존 | stop/port 오류에도 PID·exit·signal·writer 요약 보존, 최초 HTTP 오류 유지, 중복 stop의 최초 결과 유지 | v4.1.0 |
+| LP14-D04 | 회귀 | 새 `recording_process_cleanup.mjs`/`.test.mjs` 및 기존 failure/latency/selection helper 회귀 | v4.1.0 |
+
+실행 명령: `node --test scripts/internal/recording_process_cleanup.test.mjs scripts/internal/recording_failure_capture.test.mjs scripts/internal/recording_current_latency.test.mjs scripts/internal/recording_selection_trace.test.mjs`, `node --check scripts/internal/verify_recording_current_app.mjs`, `git diff --check`. 소유 격리 process/fixture만 사용한다. 예상 RED는 종료 상태별 진단 분리 미구현 assertion이며 환경 오류는 RED가 아니다. 첫 실행 원출력·개별 결과·cleanup을 `lp14-cleanup-output.txt`에 보존한다. 실제 앱 재기동은 이 단계에 포함하지 않는다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 종료 helper·영향 단기 회귀 | 진행 대상 | 사용자1단계 개발 승인 | LP14-D01~04 | 승인 |
+| 보존 자료 복제본 진단 | 조건부 진행 | 종료/안전 확인 후 사용자2단계 | LP13 보존root·LP14-D02 | 승인·선수조건 필요 |
+| 전이 focused/실제 앱/누적 비용 | 조건부 진행 | 사용자3~4단계 | 후속 구현 전 exact 등록 | 승인·선수조건 필요 |
+| 30분/120분/UI/릴리즈 작업 | 미진행 | 이번 범위 밖 | 현재 개발 단계 | 미실행 |
+
+2단계 실행 전 정의(LP14-R01~03): 기존 소유root `media-server-current-integration-Gv9R6R`의 프로세스/열린파일 부재를 확인하고 원본 모든 파일hash·inode를 기록한 뒤 `projection-copy-1/recordings`에 독립 복사한다. 보존 EventRecord 참조4개 각각을 기존 `archive-probe --diagnose-state`로 조회하고 `captureStateEvidence`로 고정요약을 저장한다(각15초·묶음180초,1MiB출력상한 유지). 당초 대상 reference가 로그에 직접 남지 않았으므로4개를 후보 전수로 명시하고 대상 하나로 추정하지 않는다. 원본불변/복제본비공유inode/요약4개 보존 뒤 정리하며, 실패시삭제하지않는다. 과거 정상exit·정확포트는 복원불가로 유지하고 현재quiescence와구분한다. 실행용 짧은 스크립트는 소유 임시root에 apply_patch로 작성하고 사전 검토 후 실행한다. 추가 실제서버 기동·remux는 하지 않는다.
+
+LP14 1단계 결과: helper14/14(exit0,77.935ms), 기존 LP13 등록4Node141/141(exit0,35437ms), syntax/diffcheck exit0. 정상종료와archiveSafe 분리·두포트독립확인·최초결과보존·고정오류비노출을 확인했다. 실제Node 자식exit0/7은 확인했으며 포트는 주입검사로 실제서버PASS가 아니다. 메인이 helper/test/runner diff와결과를직접검토했다. [원출력·155개 전수·정리60행·hash](release-artifacts/v4.1.0/s11-preparation-mapping/lp14-cleanup-output.txt). 실제앱 미실행, 이전보존root 미변경. 이번커밋은 LP13 실패기록과 LP14 진단보완만 포함하고 기존AVC 제품변경은별도보존한다. token실측미집계.
+
 ## 2026-09-19 LP13 실패 보존·동시 계측 5단계
 
 승인: 진단 보존→동시 관측 준비→실제 진단1회→확정 원인 수정/영향 검증→실제 재확인·비용판정·분할 커밋/푸시. 각 단계의 완료를 구분한다. 공개 API/저장/schema/시간/ID/미디어 협상/판정/4000ms·180초 상한 불변. 장시간/UI/전체 재기동/릴리즈 외부 작업은 제외. 메인 설계·검토, 단일 Astra/medium 담당자 확정 구현(하위 생성 금지). 기존 LP11/12 변경·실패 이력은 보존한다.
@@ -55,6 +79,17 @@ LP13-T05 추가 영향: `recording_catalog_cost_probe_instrument.cjs`가 기존 
 ### 3단계 실제 앱 진단 사전등록
 
 LP13-A01: `node scripts/internal/verify_recording_current_app.mjs --latency-only` 1회. 기존 격리 headless GST 환경/소유 cache를 사용하며 HTTP4000ms·총180초·로그4MiB·fixture512MiB 불변이다. LP13-T 준비/빌드/검토/커밋 후 실행한다. 원출력은 시작부터 소유 임시파일에 보존한다. client timelineOrdinal와 서비스 request를 연결하고 동일 mutex의 owner/대기 구간, phase, 대상 job 사후 요약을 확보한다. 실패시 원인을 확정할 증거가 충분한지 먼저 판단하며 무근거 반복·timeout 확대·다음 단계 PASS 처리를 하지 않는다. 종료/포트/UDP·정리와 안전 증거 보존을 확인한다.
+
+3단계 결과: 위 실제 앱1회 exit1/36840ms,2PASS·1FAIL, HTTP 요청387/timeline283이4003ms header timeout. [원출력·개별 HTTP](release-artifacts/v4.1.0/s11-preparation-mapping/lp13-actual-output.txt), [안전 계측1859행](release-artifacts/v4.1.0/s11-preparation-mapping/latency-dd734324-2787-434b-8277-4bada5518c90.json). 서비스283개 대응과 phase 전수 확보, trace complete/code none. 요청283 서버5440.230ms 중catalog잠금대기5367.625ms. 동일mutex1의thread229 `UpdateDerivedJob`이3609.162ms와1750.501ms 연속 점유했다. 첫 점유의Append2771.141ms 안에Checkpoint1764.085ms, ApplyJob586.291/584.230ms·SQLite381.890ms 등이 포함된다. inclusive값은 합산하지 않는다. 마지막FinishTimelineV2의ListEventLinks/AdjustHoldCount가 각각3609.406/1751.704ms 대기한 근거로 실제 잠금경합 인과를 확인했다. 체크포인트만 유일 원인이라는 주장은 하지 않는다.
+
+정상 종료 확인 실패로 `stop(app)`이 완료되지 않아 generic 사후job 진단은 건너뛰었다. runner가 stop 예외의종류·PID/exit/port를 남기지 않아 강제종료/비정상exit/포트확인실패는 구분불가다. 승격된 `ps -axo pid,ppid,stat,comm` 조회에media_server/server.sh없음(파이프rg exit1), 정확 실행포트 해제와종료exit는 미확인. 새 TLS계측이원인이라는 근거도 없다. 원출력은 저장소로 보존했고 실제앱 추가실행·제품원인수정·비용측정·푸시 미실행이다. AGENTS8의cleanup미확인으로4~5단계 중단. 정상종료와실제리소스회수를분리해안전한exit/signal/port고정진단을남기는보완 및현재root 사후진단/정리판단이 먼저필요하다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR/media-server-current-integration-Gv9R6R | 실행소유fixture/원장/영상/probe | 56206175B | 자동삭제차단 | 보존·cleanup blocker | 종료/사후진단 미확인 |
+| /private/tmp/lp13-actual.rixdP5 | 실행소유raw log/cache | raw208211문자,전체byte미계측 | 삭제보류 | 원출력저장소보존,root남음 | 실패증거정리판단필요 |
+
+1단계63e41d2c·2단계88ef2ca6 커밋완료. 2단계cached diffcheck 최초2개원출력공백 발견(exit2)→RAW_JSON_LINE 가역표기로보존→exit0 후커밋했다. 3단계는실패로커밋하지않음. token실측미집계. 푸시가능아니오: 미해결종료/cleanup·제품수정/비용판정잔여 및미커밋변경, 푸시미수행.
 
 ## 2026-09-19 LP12-F05 재개와 중단
 

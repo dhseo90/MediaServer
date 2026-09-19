@@ -13,6 +13,7 @@ import {allTimelinePages,eventOutputs,verifyRestart,measuredHttpResponse,summari
 import {failedWindowGate,requireFailedWindowDispatch,summarizeOverlappingSources} from './recording_current_app_helpers.mjs';
 import {captureFailureEvidence,captureCompletenessEvidence,captureStateEvidence,removeDiagnosticRoot,runDiagnosticProbe,createWriterEvidenceCollector} from './recording_failure_capture.mjs';
 import {createLatencyTraceCollector,preserveLatencyEvidence} from './recording_latency_trace.mjs';
+import {createProcessCleanup,processStartEvidence} from './recording_process_cleanup.mjs';
 import {createSelectionTraceCollector,matchSelectionTrace,reportSelectionTraceFailure} from './recording_selection_trace.mjs';
 const reproduceFailedWindow=process.argv.length===3&&process.argv[2]==='--reproduce-failed-window';
 const latencyOnly=reproduceFailedWindow||(process.argv.slice(2).length===1&&process.argv[2]==='--latency-only');
@@ -29,7 +30,7 @@ fs.chmodSync(root,0o700);const rootStat=fs.lstatSync(root,{bigint:true});
 let passed=0,failed=0,actualEventPass=false,restartPass=false,udp,udpClosed=false;
 const observedOutputCounts=[];
 let cancelled=false;process.on('SIGTERM',()=>{cancelled=true;});process.on('SIGINT',()=>{cancelled=true;});
-const processes=[],processEvidence=[];let primaryError;
+const processes=[],processEvidence=[];let primaryError,processEvidencePreserved=true;
 let httpSequence=0;
 const check=(condition,label)=>{if(!condition)throw Error(label);passed++;console.log(`[pass] ${label}`);};
 function scan(directory,{hash=false,strict=false}={}){
@@ -74,6 +75,9 @@ async function launch(stun){
   const http=await reservePort(),rtsp=await reservePort();
   const child=spawn(path.join(repo,'server.sh'),['foreground'],{cwd:repo,env:environment(http,rtsp,stun),stdio:['ignore','pipe','pipe']});
   const app={child,http,rtsp,base:`http://127.0.0.1:${http}`,logBytes:0,closed:false,ordinal:processes.length+1,timelineSequence:0,latencyTrace:createLatencyTraceCollector(),selectionTrace:createSelectionTraceCollector(selectionTraceBudget),writerEvidence:createWriterEvidenceCollector()};processes.push(app);
+  const ports=[{kind:'http',port:http},{kind:'rtsp',port:rtsp}];
+  app.collectCleanup=createProcessCleanup({child,ports,stopServer,assertPortClosed});
+  console.log('[process-start] '+JSON.stringify({processOrdinal:app.ordinal,...processStartEvidence(child,ports)}));
   child.once('error',()=>{app.spawnError=true;});child.once('close',()=>{app.closed=true;});
   for(const stream of [child.stdout,child.stderr]){
     stream.setEncoding('utf8');
@@ -88,12 +92,24 @@ async function launch(stun){
   assertLocalIceConfig(await request(app,'GET','/webrtc/config'),stun);check(true,`S11-CI09 product-${processes.length} healthy isolated ICE`);return app;
 }
 async function stop(app){
-  if(app.stopped)return;
-  await stopServer(app.child);const ports=[];
-  for(const [kind,port] of [['http',app.http],['rtsp',app.rtsp]]){await assertPortClosed(port);ports.push({kind,port,closed:true});}
-  app.stopped=true;processEvidence.push({pid:app.child.pid,exitCode:app.child.exitCode,signalCode:app.child.signalCode,graceful:true,ports});
-  console.log('[writer-evidence-status] '+JSON.stringify(app.writerEvidence.finish()));
-  check(true,`S11-CI08 product-${processEvidence.length} exit0 ports returned`);
+  if(app.stopPromise)return app.stopPromise;
+  app.stopPromise=(async()=>{
+    const result=await app.collectCleanup();app.archiveSafe=result.archiveSafe;app.stopped=result.normalShutdownPass;
+    processEvidence.push(result);
+    console.log('[process-stop] '+JSON.stringify({processOrdinal:app.ordinal,...result}));
+    // writer 안전 요약은 정상 종료 PASS와 독립적으로 첫 종료 시도 뒤 한 번 기록한다.
+    console.log('[writer-evidence-status] '+JSON.stringify(app.writerEvidence.finish()));
+    const evidencePath=path.join(repo,'docs/release-artifacts/v4.1.0/s11-preparation-mapping',`process-${crypto.randomUUID()}.json`);
+    let fd;
+    try{
+      fd=fs.openSync(evidencePath,'wx',0o600);fs.writeFileSync(fd,JSON.stringify(result)+'\n');fs.fsyncSync(fd);fs.closeSync(fd);fd=undefined;
+      const directory=fs.openSync(path.dirname(evidencePath),'r');try{fs.fsyncSync(directory);}finally{fs.closeSync(directory);}
+      console.log('[process-evidence] '+JSON.stringify({processOrdinal:app.ordinal,evidenceFile:path.basename(evidencePath)}));
+    }catch{processEvidencePreserved=false;throw Error('process-evidence-unavailable');}finally{if(fd!==undefined)fs.closeSync(fd);}
+    if(!result.normalShutdownPass)throw Error('process-cleanup-failed');
+    check(true,`S11-CI08 product-${app.ordinal} exit0 ports returned`);
+  })();
+  return app.stopPromise;
 }
 function events(){const file=path.join(root,'events/events.jsonl');if(!fs.existsSync(file))return [];const size=fs.statSync(file).size;if(size>4*MiB)throw Error('event-jsonl-byte-cap');const text=fs.readFileSync(file,'utf8'),end=text.lastIndexOf('\n');if(end<0)return [];const lines=text.slice(0,end).split('\n').filter(Boolean);if(lines.length>8192)throw Error('event-record-cap');return lines.map(line=>JSON.parse(line));}
 const queryStart=Date.now()-60000,queryEnd=Date.now()+240000;
@@ -198,7 +214,7 @@ try{
 }catch(error){failed++;let code='unknown';for(const app of processes)code=reportSelectionTraceFailure(app.selectionTrace,error,line=>console.log(line));console.error('[fail] LP09-J02 selection trace unavailable code='+code);}
 const needsDiagnostic=Boolean(failedReference||completedReference||((primaryError||failed||cleanup.failureCount)&&diagnosticReference));
 let diagnosticCleanupAllowed=!needsDiagnostic;
-if(needsDiagnostic&&processes.every(app=>app.stopped))try{
+if(needsDiagnostic&&processes.every(app=>app.archiveSafe))try{
   if(performance.now()>=deadline)throw Error('diagnostic-deadline');
   const original=path.join(root,'recordings'),before=scan(original,{hash:true,strict:true});
   function probe(index,mode){
@@ -226,8 +242,8 @@ if(needsDiagnostic&&processes.every(app=>app.stopped))try{
   check(JSON.stringify(before)===JSON.stringify(scan(original,{hash:true,strict:true})),'LP03-B original unchanged after diagnostic');
 }catch{diagnosticCleanupAllowed=false;failed++;console.error('[fail] LP03-B diagnostic unavailable');}
 if(udp)try{await new Promise(resolve=>udp.close(resolve));udpClosed=true;}catch{cleanup.failureCount++;}else udpClosed=true;
-let size=0;try{size=scan(root).bytes;if(processes.some(p=>!p.stopped)||!udpClosed)throw Error('cleanup-ownership');removeDiagnosticRoot(root,rootStat,diagnosticCleanupAllowed&&latencyEvidencePreserved);cleanup.rootAbsent=!fs.existsSync(root);}catch{cleanup.failureCount++;}
-cleanup.evidencePreservedOrNotRequired=diagnosticCleanupAllowed&&latencyEvidencePreserved;
+let size=0;try{size=scan(root).bytes;if(processes.some(p=>!p.archiveSafe)||!udpClosed)throw Error('cleanup-ownership');removeDiagnosticRoot(root,rootStat,diagnosticCleanupAllowed&&latencyEvidencePreserved&&processEvidencePreserved);cleanup.rootAbsent=!fs.existsSync(root);}catch{cleanup.failureCount++;}
+cleanup.evidencePreservedOrNotRequired=diagnosticCleanupAllowed&&latencyEvidencePreserved&&processEvidencePreserved;
 console.log(`[cleanup] ${JSON.stringify({root,bytes:size,...cleanup,udpClosed})}`);
 console.log(JSON.stringify({mode:latencyOnly?'current-http-latency':'current-actual-app',passed,failed,latencyPass,actualEventPass,restartPass,expectedOutputCount:2,observedOutputCounts,cleanup,elapsedMs:Math.round(performance.now()-start)}));
 process.exitCode=primaryError||failed||cleanup.failureCount||!cleanup.rootAbsent?1:0;
