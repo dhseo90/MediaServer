@@ -1,5 +1,106 @@
 # Release Test Records
 
+## 2026-09-20 LP18 기준 검증 분리 후 위치·RAM 수명 순차 마감
+
+사용자 승인: 기준 검증 보완 → 통과 후 위치 재획득 마감 → 상세 RAM 수명 적용, 단계별 분할 커밋.
+시작 HEAD `dd34dcece`, `v4.1.0`, 로컬 추적 ref 대비 ahead26. 기존 위치 제품/검증 변경6개를 보존한다.
+메인은 계약·기록·직접 diff/증거 판정, 기존 단일 Astra/medium 담당자는 확정된 검증 구현을 맡으며 하위 위임하지 않는다.
+Superpowers 스킬은 현재 제공되지 않아 사용을 주장하지 않으며 설계·TDD·원인 분석·직접 검토 절차를 적용한다.
+제품 디코더/전역 rank·저장 바이트·공개 API·시간/ID/보존 정책·timeout은 변경하지 않는다.
+자동선택 HW의 기존 WR01/WR05 FAIL과 제품 영향 미확인은 그대로 유지하며 SW PASS로 대체하지 않는다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 저장 기준 검증 보완 | 완료 | 순수14·실제46 PASS, 예상 RED2건 보존. HW 해결 아님 | 아래 WR 결과 |
+| 2 | 위치 재획득 마감 | 선수 대기 | 기존 위치32·crypto-off3 등 동일 source 증거를 대조하고 남은 service/2-job 실행 | LP18-L01~10 |
+| 3 | 실제 RAM 수명 적용 | 선수 대기 | 2번 통과/커밋 후 소비 연결·상주 해제·재open 검증 | 누적 비용 계약0절 |
+| 4 | 분할 커밋·보고 | 단계별 수행 예정 | 해당 단위 구현/회귀/기록 통과 뒤 지정 파일만 커밋 | AGENTS3/5 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 승인된 기준 검증·위치·RAM 수명 변경의 focused/영향 회귀 | LP18-WR/LP18-L 및 후속 RAM 사전등록 | 관련 단기 승인 |
+| 30분 | 미진행 | 개발 중이며 최종cut 아님 | AGENTS7.6.2 | 이번 실행 없음 |
+| 120분 | 미진행 | 개발 중이며 최종cut 아님 | AGENTS7.6.2 | 이번 실행 없음 |
+| UI | 미진행 | 내부 저장 작업·브라우저 제외 유지 | AGENTS7.6.2 | 이번 실행 없음 |
+
+푸시·실제 HTTP/16·32 누적 최종 비용·S11 전체 묶음·릴리즈는 이번 실행에서 제외한다.
+토큰 start/end/consumed는 개별 집계 도구가 없어 미집계. 각 명령의 실제 elapsed/source/exit와 정리를 보존한다.
+실행 전 정의와 실제 결과는 아래에 추가하며 이 착수 기록은 PASS가 아니다.
+
+### 1번 기준 검증 RED 사전등록
+
+명령: `bash scripts/internal/verify_recording_managed_writer.sh --decode-oracle-tests`.
+실제 WR05에서 사용하는 기존 count/first 공통 판정을 추출한 상태에서 아래2개 반례만 예상 FAIL이다.
+5개 중3PASS/2FAIL·exit1만 예상 RED로 인정한다. 빌드/환경 오류는 RED가 아니며 기본44개/자동선택 진단은 이때 실행하지 않는다.
+소유 임시 root·registry/binary는 기존 wrapper trap으로 정리하고 원출력 `lp18-writer-oracle-red-01.txt`를 보존한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| WR-OR01 exact presentation PTS is accepted | 전체 PTS 정상 대조 | fixture 공통 helper의 정상 시퀀스 승인 | v4.1.0 |
+| WR-OR01 same-count middle duplicate is rejected | 같은 개수/첫PTS의 중간 중복 | 기존 WR05 helper에서 예상 FAIL, 전체 equality 구현 후 PASS | v4.1.0 |
+| WR-OR01 same-count middle omission is rejected | 같은 개수/첫PTS의 중간 누락 | 다른 PTS로 치환한 반례. 기존 helper 예상 FAIL | v4.1.0 |
+| WR-OR02 legitimate duplicate PTS is preserved | 합법적인 중복 입력 | 예상값에도 있는 중복은 거부하지 않음 | v4.1.0 |
+| WR-OR02 input presentation order is independent of decode order | 입력 기반 정렬 | B-frame 입력 DTS순과 presentation PTS순 구분·중복보존 | v4.1.0 |
+
+RED 실제: 위 명령 exit1/7초, 정확3PASS/2FAIL. 중간 중복·누락2건만 실패해 예상과 일치했다.
+원출력 `lp18-writer-oracle-red-01.txt`, wrapper1/tee0. 소유 root `media-server-managed-writer.HGA88G`
+5302939B는 trap 삭제·부재 확인. 기본 writer44개와 HW진단은 실행하지 않았다.
+
+### 1번 GREEN·영향 실행 전 정의
+
+동일 `--decode-oracle-tests`는 기존5+아래9=14개. 순수 상태 반례는 관측 오류를 생산하는 GStreamer 자체검사와 구별한다.
+이후 기본 `bash scripts/internal/verify_recording_managed_writer.sh`는 기존44개 의미를 보존하고 아래 실제2개를 더해46개다.
+기본 writer 경로만 명시 H264/VP8 기준 디코더로 고정한다. 기존 비교2모드의 자동선택/판정과 과거FAIL은 유지한다.
+WR05는 기존 첫PTS·30프레임 조건에 입력 AU의 mux원점 보정/presentation 정렬(중복보존) 전체 equality를 추가한다.
+제품·전역 decoder rank·시간제한·원본 encoder 설정은 바꾸지 않는다. 두 실행 통과 전 위치/RAM 후속 실행·커밋하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| WR-OR03 clean reference lifecycle is accepted | 상태 oracle 정상 | 명시 decoder/config·PLAYING·유효PTS·EOS·무오류·상한 정상 | v4.1.0 |
+| WR-OR03 missing required decoder is rejected | 상태 oracle 반례 | 필수 factory 없음은 실패 | v4.1.0 |
+| WR-OR03 incorrect decoder configuration is rejected | 상태 oracle 반례 | factory/손상 출력 설정 불일치는 실패 | v4.1.0 |
+| WR-OR03 PLAYING failure is rejected | 상태 oracle 반례 | 시작 실패를 EOS count로 승인하지 않음 | v4.1.0 |
+| WR-OR03 bus ERROR is rejected | 상태 oracle 반례 | 버스 오류를 독립 실패로 판정 | v4.1.0 |
+| WR-OR03 corrupted buffer is rejected | 상태 oracle 반례 | 관측된 손상 buffer 거부 | v4.1.0 |
+| WR-OR03 invalid presentation timestamp is rejected | 상태 oracle 반례 | NONE/잘못된 PTS 거부 | v4.1.0 |
+| WR-OR03 missing EOS is rejected | 상태 oracle 반례 | sample NULL/timeout을 EOS로 간주하지 않음 | v4.1.0 |
+| WR-OR03 frame limit exhaustion is rejected | 상태 oracle 반례 | 기존 frame 상한 초과 거부 | v4.1.0 |
+| WR-OR04 truncated writer MP4 is rejected and original bytes remain unchanged | 실제 파일 손상 | 정상 writer 파일의 소유 복제본 일부 truncate 후 decode 거부·원본 SHA/size 일치 | v4.1.0 |
+| WR-OR04 missing decoder pipeline fails without automatic fallback | 실제 필수 decoder 부재 | 없는 factory 지정한 pipeline 생성 실패, auto 대체 경로 없음 | v4.1.0 |
+
+### 1번 실제 결과·검토·정리
+
+`--decode-oracle-tests` GREEN exit0/7초/14PASS, 기본 writer exit0/12초/46PASS.
+원출력 `lp18-writer-oracle-green-01.txt`8877B·`lp18-writer-reference-01.txt`44672B,
+개별 결과60행은 `lp18-ownership-results.md`와 원출력을 대조했다. RED5행도 별도 보존했다.
+실제 avdec_h264(output-corrupt=0)/vp8dec를 확인했으며 WR01 각20·WR05 30프레임과 전체 presentation PTS가 일치했다.
+손상 MP4 복제본은 설정 정상·count0/EOS0/bus ERROR2로 거부, 없는 factory는 parse 실패로 거부했다.
+원본 SHA/size는 변하지 않았다. 오류는 domain/code만 보존했고 경고 수치는 관측이며 합격식에 임의 추가하지 않았다.
+corrupted 관측은 decoder sink/src/appsink(각 bit1/2/4)이며 모든 비트스트림 손상 검출을 보장하지 않는다.
+메인이 실제 diff를 검토해 자동선택 진단 함수 본문/기준과 기존44개 조건·시간제한이 유지됨을 확인했다.
+새 기준의 FAIL 우회나 HW 제품 영향 해소를 뜻하지 않는다. 제품 변경0, 기존 위치6개는 이 커밋에서 제외한다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR/media-server-managed-writer.HGA88G | RED binary/registry 소유 root | 5302939B | trap 삭제 | 부재 확인 | RED 원출력 |
+| TMPDIR/media-server-managed-writer.wBln4y | GREEN binary/registry 소유 root | 5322315B | trap 삭제 | 부재 확인 | GREEN 원출력 |
+| 기본46 원출력의 cleanup path | 실제 영상·손상 사본·registry/binary 소유 root | 16932062B | trap 삭제 | 부재 확인 | reference01 원출력 |
+| 위 원출력3개 | 비민감 수치·소스 SHA·실패/통과 기록 | 파일별 원출력 | 보존 | 미디어·credential 없음 | 중앙 정의와 개별65행 |
+
+문서 링크 검사 exit0(md285/links8902/images22/anchors116/실패0), 도구 elapsed0.051256583초.
+추가 결과 링크 반영 뒤 최종 diff/문서 링크를 확인하고 이 단위만 커밋한다. 토큰 집계는 위 사유로 미집계다.
+
+### 2번 위치 단위의 영향 검증 계획
+
+1번 완료·커밋 후 기존 `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_derived_job_service.sh`
+43개와 `node scripts/internal/recording_catalog_comparison_run.mjs jobs lp18-location-01`의 B/C 실제2-job
+각60개·입력동일성1개를 순서대로 실행한다. 격리 root/프로세스·원출력/환경·정리는 기존 도구를 유지한다.
+각 case 정의는 기존 service/LP17-J 전수 정의를 재사용하며 원출력 개별행을 이번 결과표에도 보존한다.
+후자는 제품 전체 성능 PASS가 아닌 의미/관측 비교이며 RSS 기존 실패 이력과 실제 HTTP 미확인을 유지한다.
+기존 location32/crypto-off3/envelope30/owned34/cache47/prepared11/catalog246/build와 같은 코드 증거는
+소스·범위·환경을 대조해 유지하고 인계만으로 재실행하지 않는다. 이번 writer46은 강화된 SW 저장 기준이며
+기존 HW FAIL을 소급 무효화하지 않는다. 제품 변경이 생기면 해당 증거의 영향을 다시 판단한다.
+
 ## 2026-09-20 LP18 잔여 1~3 순차 실행
 
 사용자 승인: 실패 원인 진단 → 위치 재획득 단위 마감 → 실제 RAM 수명 적용, 단계별 커밋.

@@ -5,6 +5,91 @@
 
 ## writer 경계 관측
 
+### 저장 기준 oracle 반례
+
+[lp18-writer-oracle-red-01 원출력](lp18-writer-oracle-red-01.txt): 실제 WR05 공통 count/first 판정의 반례.
+예상3PASS/2FAIL·exit1과 일치했다. 7초·소유 root5302939B 정리 확인. 제품/기본44개 실행 결과가 아니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| WR-OR01 exact presentation PTS is accepted | `--decode-oracle-tests`, exit1 | PASS | RED 실행의 정상 반례 |
+| WR-OR02 legitimate duplicate PTS is preserved | `--decode-oracle-tests`, exit1 | PASS | 합법적 중복 유지 |
+| WR-OR02 input presentation order is independent of decode order | `--decode-oracle-tests`, exit1 | PASS | 입력 presentation 정렬 |
+| WR-OR01 same-count middle duplicate is rejected | `--decode-oracle-tests`, exit1 | FAIL | 예상 RED: 중간 중복을 기존 판정이 승인함 |
+| WR-OR01 same-count middle omission is rejected | `--decode-oracle-tests`, exit1 | FAIL | 예상 RED: 중간 누락을 기존 판정이 승인함 |
+
+### 저장 기준 GREEN과 실제 파일 회귀
+
+[lp18-writer-oracle-green-01.txt 원출력](lp18-writer-oracle-green-01.txt): exit0, 14PASS/0FAIL. HW 자동선택 검증의 PASS가 아니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| WR-OR01 exact presentation PTS is accepted | 판정 자체검사14개 / exit0 | PASS | 등록 범위만 통과 |
+| WR-OR02 legitimate duplicate PTS is preserved | 판정 자체검사14개 / exit0 | PASS | 등록 범위만 통과 |
+| WR-OR02 input presentation order is independent of decode order | 판정 자체검사14개 / exit0 | PASS | 등록 범위만 통과 |
+| WR-OR01 same-count middle duplicate is rejected | 판정 자체검사14개 / exit0 | PASS | 동일 반례 RED 실패 후 GREEN |
+| WR-OR01 same-count middle omission is rejected | 판정 자체검사14개 / exit0 | PASS | 동일 반례 RED 실패 후 GREEN |
+| WR-OR03 clean reference lifecycle is accepted | 판정 자체검사14개 / exit0 | PASS | 등록 범위만 통과 |
+| WR-OR03 missing required decoder is rejected | 판정 자체검사14개 / exit0 | PASS | 등록 범위만 통과 |
+| WR-OR03 incorrect decoder configuration is rejected | 판정 자체검사14개 / exit0 | PASS | 등록 범위만 통과 |
+| WR-OR03 PLAYING failure is rejected | 판정 자체검사14개 / exit0 | PASS | 등록 범위만 통과 |
+| WR-OR03 bus ERROR is rejected | 판정 자체검사14개 / exit0 | PASS | 등록 범위만 통과 |
+| WR-OR03 corrupted buffer is rejected | 판정 자체검사14개 / exit0 | PASS | 등록 범위만 통과 |
+| WR-OR03 invalid presentation timestamp is rejected | 판정 자체검사14개 / exit0 | PASS | 등록 범위만 통과 |
+| WR-OR03 missing EOS is rejected | 판정 자체검사14개 / exit0 | PASS | 등록 범위만 통과 |
+| WR-OR03 frame limit exhaustion is rejected | 판정 자체검사14개 / exit0 | PASS | 등록 범위만 통과 |
+
+[lp18-writer-reference-01.txt 원출력](lp18-writer-reference-01.txt): exit0, 46PASS/0FAIL. HW 자동선택 검증의 PASS가 아니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| WR01 h264 managed segments decode all frames without legacy callback or snapshot | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| S10-C321 h264 실제 수락 원본 tuple과 segment 결박 | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR-OR04 truncated writer MP4 is rejected and original bytes remain unchanged | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR-OR04 missing decoder pipeline fails without automatic fallback | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR01 vp8 managed segments decode all frames without legacy callback or snapshot | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| S10-C321 vp8 실제 수락 원본 tuple과 segment 결박 | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR02 UTC-only change preserves media splits frames and independent mapping | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR03 UTC-only change preserves media splits frames and independent mapping | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR04 UTC-only change preserves media splits frames and independent mapping | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR05 duplicate PTS with advancing DTS preserves media and unknown mapping | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR06 explicit generation reset creates a new media epoch | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| S10-C326 세대별 원본 결박 분리 | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR07 repeated observations and processing UTC do not duplicate media | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| S10-C325 분할·재전달의 segment별 수락 범위 | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| S10-C322 keyframe 대기·다른 track·빈 입력·replay 제외 | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| S10-C324 색인 상한 뒤에도 실제4100프레임 저장·미색인 꼬리 표시 | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR08 missing final duration preserves media with unknown end | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR09 mapping budget retains bounded unknown tail and all frames | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR01 invalid binding rejects before writes journal | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR01 invalid binding rejects before writes catalog | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR01 invalid binding rejects before writes root | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR01 invalid binding rejects before writes store | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR01 invalid binding rejects before writes lease | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR01 invalid binding rejects before writes incomplete | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR08 clock process change preserves same-generation media with unknown comparison | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR08 invalid duration leaves unknown end zero | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR08 invalid duration leaves unknown end overflow | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR08 unsafe original input cannot become finalized observation | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR08 unsafe original input cannot become finalized pts | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR08 unsafe original input cannot become finalized range | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR07 older generation cache cannot switch media backwards | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR07 unrelated video track cannot change selected track identity | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR06 reopened store allocates fresh IDs and increasing durable order | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR05 actual H264 reordering preserves decode timestamps and mux origin | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR05 reordered segment end covers maximum presented frame end | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| S10-C327 실제 B-frame 원본PTS·ordinal 보존 | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR08 missing maximum PTS frame duration keeps reordered end unknown | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR09 failed active commit preserves ready order and quota reservation | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR09 restart recovers the same durable segment and all frames | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR08 excessive clock width preserves media as unknown | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR08 zero generation order cannot become finalized | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR08 media observation quality normal | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR08 media observation quality fast | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR08 media observation quality drift | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR08 media observation quality fast-step | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+| WR01 actual appsink observation flows through managed writer and decode | 실제 SW 저장 기준46개 / exit0 | PASS | 등록 범위만 통과 |
+
 [첫 진단 빌드 실패](lp18-writer-boundary-build-failure-01.txt): exit1/진단 optional 출력 오류. 실제44개 미실행·compiler 원출력 일부 누락.
 
 [lp18-writer-boundary-01 원출력](lp18-writer-boundary-01.txt): 수정 후 exit0, 44PASS/0FAIL. 과거 실패를 재현하거나 원인을 해소한 것으로 확대하지 않는다.

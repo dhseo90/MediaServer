@@ -4,9 +4,11 @@
 #include "recording/recording_finalize_recovery.h"
 #include "media/gstreamer_sample_observation.h"
 #include "recording_writer_decode_diagnostics.h"
+#include "recording_writer_decode_oracle.h"
 #include <gst/app/gstappsink.h>
 #include <gst/gst.h>
 #include <algorithm>
+#include <atomic>
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -55,7 +57,7 @@ Encoded Encode(bool h264,int frames=60,bool bframes=false,bool actual_probe=fals
     }
     gst_element_set_state(pipe,GST_STATE_NULL);gst_object_unref(sink);gst_object_unref(pipe);return out;
 }
-int Decode(const std::filesystem::path& path,std::vector<std::uint64_t>* timestamps=nullptr,int max_frames=1000,const char* diagnostic=nullptr,
+int DecodeDiagnostic(const std::filesystem::path& path,std::vector<std::uint64_t>* timestamps=nullptr,int max_frames=1000,const char* diagnostic=nullptr,
            bool failure_rows_only=false,int expected_count=-1,std::uint64_t expected_first=GST_CLOCK_TIME_NONE,bool software=false) {
     gchar* uri=g_filename_to_uri(path.c_str(),nullptr,nullptr);
     std::string launch=std::string("uridecodebin uri=\"")+uri+"\" ! videoconvert ! appsink name=out sync=false";g_free(uri);
@@ -78,6 +80,42 @@ int Decode(const std::filesystem::path& path,std::vector<std::uint64_t>* timesta
     gst_element_set_state(pipe,GST_STATE_NULL);
     if(trace){const bool matched=eos&&count==expected_count&&(expected_first==GST_CLOCK_TIME_NONE||first==expected_first);trace->Report(count,eos,playing,playing==GST_STATE_CHANGE_FAILURE?"start-failure":eos?"eos":count>max_frames?"frame-limit":"null-before-eos",!failure_rows_only||!matched);trace.reset();}
     gst_object_unref(sink);gst_object_unref(pipe);return eos?count:-1;
+}
+// 기준 저장 검증은 명시 SW decoder만 사용한다. 자동 선택 진단은 위 함수에 그대로 둔다.
+struct ReferenceObservation {
+    std::atomic<unsigned> corrupted{0},invalid_pts{0};std::mutex mu;
+    std::array<std::pair<unsigned,int>,16> errors{},warnings{};std::size_t error_count=0,warning_count=0;
+    struct PadContext {ReferenceObservation* owner;unsigned boundary;};
+    void Buffer(GstBuffer* buffer,unsigned boundary){if(GST_BUFFER_FLAG_IS_SET(buffer,GST_BUFFER_FLAG_CORRUPTED))corrupted.fetch_or(boundary);if(!GST_BUFFER_PTS_IS_VALID(buffer))invalid_pts.fetch_or(boundary);}
+    static GstPadProbeReturn Probe(GstPad*,GstPadProbeInfo* info,gpointer data){if(GST_PAD_PROBE_INFO_TYPE(info)&GST_PAD_PROBE_TYPE_BUFFER){auto* buffer=GST_PAD_PROBE_INFO_BUFFER(info);auto& context=*static_cast<PadContext*>(data);if(buffer)context.owner->Buffer(buffer,context.boundary);}return GST_PAD_PROBE_OK;}
+    static GstBusSyncReply Bus(GstBus*,GstMessage* message,gpointer data){const bool warning=GST_MESSAGE_TYPE(message)==GST_MESSAGE_WARNING;if(warning||GST_MESSAGE_TYPE(message)==GST_MESSAGE_ERROR){auto& self=*static_cast<ReferenceObservation*>(data);GError* error=nullptr;if(warning)gst_message_parse_warning(message,&error,nullptr);else gst_message_parse_error(message,&error,nullptr);{std::lock_guard lock(self.mu);auto& rows=warning?self.warnings:self.errors;auto& count=warning?self.warning_count:self.error_count;if(count<rows.size())rows[count]={error?error->domain:0,error?error->code:0};++count;}if(error)g_error_free(error);}return GST_BUS_PASS;}
+};
+int Decode(const std::filesystem::path& path,std::vector<std::uint64_t>* timestamps=nullptr,int max_frames=1000,const char* diagnostic=nullptr,
+           writer_decode_oracle::Status* result=nullptr,const char* requested_decoder=nullptr){
+    writer_decode_oracle::Status status;status.decoder_available=false;status.configured=false;status.started=false;status.eos=false;
+    const bool h264=path.extension()==".mp4";const char* expected=h264?"avdec_h264":"vp8dec";const char* requested=requested_decoder?requested_decoder:expected;
+    gchar* escaped=g_strescape(path.c_str(),nullptr);const std::string launch=std::string("filesrc location=\"")+escaped+"\" ! "+(h264?"qtdemux ! h264parse ! ":"matroskademux ! ")+requested+" name=reference_decoder ! videoconvert ! appsink name=out sync=false";g_free(escaped);
+    GError* error=nullptr;GstElement* pipe=gst_parse_launch(launch.c_str(),&error);
+    if(error||!pipe){std::cout<<"[writer-reference] factory="<<writer_decode_diagnostics::SafeFactory(requested)<<" reason=decoder-unavailable domain="<<(error?error->domain:0)<<" code="<<(error?error->code:0)<<'\n';if(error)g_error_free(error);if(pipe){gst_element_set_state(pipe,GST_STATE_NULL);gst_object_unref(pipe);}if(result)*result=status;return -1;}
+    auto* decoder=gst_bin_get_by_name(GST_BIN(pipe),"reference_decoder");auto* sink=gst_bin_get_by_name(GST_BIN(pipe),"out");
+    auto* factory=decoder?gst_element_get_factory(decoder):nullptr;const auto selected=writer_decode_diagnostics::SafeFactory(factory?gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(factory)):nullptr);
+    status.decoder_available=decoder&&sink&&selected==expected;
+    gboolean output_corrupt=TRUE;
+    if(status.decoder_available){if(h264){const auto* property=g_object_class_find_property(G_OBJECT_GET_CLASS(decoder),"output-corrupt");if(property&&G_PARAM_SPEC_VALUE_TYPE(property)==G_TYPE_BOOLEAN&&(property->flags&G_PARAM_WRITABLE)&&(property->flags&G_PARAM_READABLE)){g_object_set(decoder,"output-corrupt",FALSE,nullptr);g_object_get(decoder,"output-corrupt",&output_corrupt,nullptr);status.configured=!output_corrupt;}}else status.configured=true;}
+    ReferenceObservation observation;auto* bus=gst_element_get_bus(pipe);gst_bus_set_sync_handler(bus,ReferenceObservation::Bus,&observation,nullptr);
+    GstPad* pads[2]={decoder?gst_element_get_static_pad(decoder,"sink"):nullptr,decoder?gst_element_get_static_pad(decoder,"src"):nullptr};gulong probes[2]={0,0};
+    ReferenceObservation::PadContext contexts[2]={{&observation,1},{&observation,2}};
+    for(unsigned i=0;i<2;++i)if(pads[i])probes[i]=gst_pad_add_probe(pads[i],GST_PAD_PROBE_TYPE_BUFFER,ReferenceObservation::Probe,&contexts[i],nullptr);
+    status.configured=status.configured&&pads[0]&&pads[1]&&probes[0]&&probes[1];int count=0;
+    if(status.decoder_available&&status.configured){status.started=gst_element_set_state(pipe,GST_STATE_PLAYING)!=GST_STATE_CHANGE_FAILURE;
+        if(status.started)while(true){GstSample* sample=gst_app_sink_try_pull_sample(GST_APP_SINK(sink),3*GST_SECOND);if(!sample){status.eos=gst_app_sink_is_eos(GST_APP_SINK(sink));break;}auto* buffer=gst_sample_get_buffer(sample);observation.Buffer(buffer,4);if(timestamps)timestamps->push_back(GST_BUFFER_PTS(buffer));++count;gst_sample_unref(sample);if(count>max_frames){status.limit=true;break;}}
+    }
+    gst_element_set_state(pipe,GST_STATE_NULL);gst_bus_set_sync_handler(bus,nullptr,nullptr,nullptr);
+    status.corrupted=observation.corrupted.load()!=0;status.invalid_pts=observation.invalid_pts.load()!=0;
+    {std::lock_guard lock(observation.mu);status.bus_error=observation.error_count!=0;for(std::size_t i=0;i<std::min(observation.error_count,observation.errors.size());++i)std::cout<<"[writer-reference-error] domain="<<observation.errors[i].first<<" code="<<observation.errors[i].second<<'\n';for(std::size_t i=0;i<std::min(observation.warning_count,observation.warnings.size());++i)std::cout<<"[writer-reference-warning] domain="<<observation.warnings[i].first<<" code="<<observation.warnings[i].second<<'\n';}
+    std::cout<<"[writer-reference] case="<<(diagnostic?diagnostic:"reference")<<" factory="<<selected<<" output_corrupt_applicable="<<h264<<" output_corrupt="<<(h264?static_cast<int>(output_corrupt):-1)<<" configured="<<status.configured<<" count="<<count<<" eos="<<status.eos<<" corrupt_boundary_bits="<<observation.corrupted.load()<<" invalid_pts_boundary_bits="<<observation.invalid_pts.load()<<" bus_errors="<<observation.error_count<<" bus_warnings="<<observation.warning_count<<" reason="<<writer_decode_oracle::Failure(status)<<'\n';
+    for(unsigned i=0;i<2;++i)if(pads[i]){if(probes[i])gst_pad_remove_probe(pads[i],probes[i]);gst_object_unref(pads[i]);}gst_object_unref(bus);if(decoder)gst_object_unref(decoder);if(sink)gst_object_unref(sink);gst_object_unref(pipe);
+    if(result)*result=status;return writer_decode_oracle::Accepted(status)?count:-1;
 }
 struct Store {
     std::filesystem::path root;
@@ -117,6 +155,26 @@ bool Run(Store& store,const Encoded& input,std::int64_t duration=2000,bool repea
 bool HasUnknown(const std::vector<recording::RecordingSegmentV2>& segments) {
     for(const auto& s:segments)for(const auto& m:s.mappings)if(m.provenance=="unknown")return true;return false;
 }
+int DecodeOracleTests(){
+    using namespace writer_decode_oracle;
+    const std::vector<std::uint64_t> expected{200,300,400,500};
+    Check(MatchesPresentation(expected,expected),"WR-OR01 exact presentation PTS is accepted");
+    const std::vector<std::uint64_t> duplicate{0,100,100,200};
+    Check(MatchesPresentation(duplicate,duplicate),"WR-OR02 legitimate duplicate PTS is preserved");
+    Check(Presentation({400,200,500,300})==expected,"WR-OR02 input presentation order is independent of decode order");
+    Check(!MatchesPresentation(expected,{200,300,300,500}),"WR-OR01 same-count middle duplicate is rejected");
+    Check(!MatchesPresentation(expected,{200,300,500,600}),"WR-OR01 same-count middle omission is rejected");
+    const Status clean;Check(Accepted(clean),"WR-OR03 clean reference lifecycle is accepted");
+    auto value=clean;value.decoder_available=false;Check(!Accepted(value),"WR-OR03 missing required decoder is rejected");
+    value=clean;value.configured=false;Check(!Accepted(value),"WR-OR03 incorrect decoder configuration is rejected");
+    value=clean;value.started=false;Check(!Accepted(value),"WR-OR03 PLAYING failure is rejected");
+    value=clean;value.bus_error=true;Check(!Accepted(value),"WR-OR03 bus ERROR is rejected");
+    value=clean;value.corrupted=true;Check(!Accepted(value),"WR-OR03 corrupted buffer is rejected");
+    value=clean;value.invalid_pts=true;Check(!Accepted(value),"WR-OR03 invalid presentation timestamp is rejected");
+    value=clean;value.eos=false;Check(!Accepted(value),"WR-OR03 missing EOS is rejected");
+    value=clean;value.limit=true;Check(!Accepted(value),"WR-OR03 frame limit exhaustion is rejected");
+    std::cout<<"[summary] pass="<<passes<<" fail="<<failures<<'\n';return failures?1:0;
+}
 int DecoderComparison(const std::filesystem::path& root,bool only_bframes=false){
     const auto need=[](bool ok){if(!ok)throw std::runtime_error("decoder-comparison-prepare");};
     // 생성은 각 입력/저장소당 한 번만 수행한다. 이후 round에서는 이 네 파일만 읽는다.
@@ -141,7 +199,7 @@ int DecoderComparison(const std::filesystem::path& root,bool only_bframes=false)
     for(unsigned round=1;round<=16;++round)for(const auto& file:files){
         need(unchanged(file));std::vector<std::uint64_t> timestamps;
         std::cout<<"[decoder-comparison-attempt] round="<<round<<" case="<<file.label<<" decoder=auto\n";
-        const int decoded=Decode(file.path,&timestamps,1000,file.label,true,file.frames,file.expected_first);++attempts;
+        const int decoded=DecodeDiagnostic(file.path,&timestamps,1000,file.label,true,file.frames,file.expected_first);++attempts;
         need(unchanged(file));const bool matched=decoded==file.frames&&(file.expected_first==GST_CLOCK_TIME_NONE||(!timestamps.empty()&&timestamps.front()==file.expected_first));
         std::cout<<"[decoder-comparison-result] round="<<round<<" case="<<file.label<<" decoder=auto matched="<<matched<<" count="<<decoded<<" first_pts_available="<<!timestamps.empty()<<" first_pts="<<(timestamps.empty()?0:timestamps.front())<<" file_unchanged=1\n";
         if(matched)continue;
@@ -149,7 +207,7 @@ int DecoderComparison(const std::filesystem::path& root,bool only_bframes=false)
         if(!software)std::cout<<"[decoder-comparison-software] case="<<file.label<<" status=not-run reason=factory-unavailable\n";
         else {
             gst_object_unref(software);need(unchanged(file));std::vector<std::uint64_t> software_pts;
-            const int decoded_sw=Decode(file.path,&software_pts,1000,file.label,false,file.frames,file.expected_first,true);
+            const int decoded_sw=DecodeDiagnostic(file.path,&software_pts,1000,file.label,false,file.frames,file.expected_first,true);
             need(unchanged(file));const bool sw_matched=decoded_sw==file.frames&&(file.expected_first==GST_CLOCK_TIME_NONE||(!software_pts.empty()&&software_pts.front()==file.expected_first));
             std::cout<<"[decoder-comparison-software] case="<<file.label<<" status=observed matched="<<sw_matched<<" count="<<decoded_sw<<" first_pts_available="<<!software_pts.empty()<<" first_pts="<<(software_pts.empty()?0:software_pts.front())<<" file_unchanged=1\n";
         }
@@ -159,6 +217,7 @@ int DecoderComparison(const std::filesystem::path& root,bool only_bframes=false)
 }
 }
 int main(int argc,char** argv) {
+    if(argc==3&&std::string(argv[2])=="--decode-oracle-tests")return DecodeOracleTests();
     if(argc==3&&(std::string(argv[2])=="--decoder-comparison"||std::string(argv[2])=="--decoder-comparison-bframes")){
         gst_init(nullptr,nullptr);try{return DecoderComparison(argv[1],std::string(argv[2])=="--decoder-comparison-bframes");}catch(...){std::cout<<"[decoder-comparison-summary] outcome=preparation-failure reason=fixed-comparison-error\n";return 2;}
     }
@@ -186,6 +245,19 @@ int main(int argc,char** argv) {
                 bound=bound&&binding->last_accepted_ordinal==next-1;
             }
             Check(bound&&next==61,"S10-C321 "+pair.first+" 실제 수락 원본 tuple과 segment 결박");
+            if(pair.first=="h264"){
+                bool damaged_rejected=false,missing_rejected=false;
+                if(ran&&segments.size()==3&&frames==60){
+                    const auto original=s.root/"channel-1"/(segments[0].segment_id+".mp4");const auto before=writer_decode_diagnostics::File(original);
+                    const auto damaged=s.root/"oracle-truncated.mp4";std::error_code copy_error;std::filesystem::copy_file(original,damaged,copy_error);if(copy_error)throw std::runtime_error("oracle-copy-failed");std::filesystem::resize_file(damaged,before.bytes/2,copy_error);if(copy_error)throw std::runtime_error("oracle-truncate-failed");const auto damaged_bytes=std::filesystem::file_size(damaged,copy_error);if(copy_error)throw std::runtime_error("oracle-size-failed");
+                    writer_decode_oracle::Status damaged_status;const int decoded=Decode(damaged,nullptr,1000,"truncated-copy",&damaged_status);const auto after=writer_decode_diagnostics::File(original);
+                    damaged_rejected=before.hashed&&before.bytes>128&&after.hashed&&before.sha==after.sha&&before.bytes==after.bytes&&damaged_bytes==before.bytes/2&&decoded<0&&damaged_status.decoder_available&&damaged_status.configured;
+                    writer_decode_oracle::Status missing_status;const int missing=Decode(original,nullptr,1000,"missing-decoder",&missing_status,"lp18_missing_required_decoder");const auto final=writer_decode_diagnostics::File(original);
+                    missing_rejected=missing<0&&!missing_status.decoder_available&&!missing_status.started&&final.hashed&&final.sha==before.sha&&final.bytes==before.bytes;
+                }
+                Check(damaged_rejected,"WR-OR04 truncated writer MP4 is rejected and original bytes remain unchanged");
+                Check(missing_rejected,"WR-OR04 missing decoder pipeline fails without automatic fallback");
+            }
         }
         for(const auto& c:std::vector<std::pair<std::string,std::pair<int,std::int64_t>>>{{"WR02",{15,-4034000000LL}},{"WR03",{20,-4034000000LL}},{"WR04",{15,4034000000LL}}}) {
             auto shifted=h264;for(std::size_t i=c.second.first;i<shifted.packets.size();++i)shifted.packets[i].observation->observed_utc_ns+=c.second.second;
@@ -299,7 +371,13 @@ int main(int argc,char** argv) {
         std::vector<std::uint64_t> decoded_pts;int decoded=-1;
         if(bseg.size()==1){std::cout<<"[writer-diag-catalog] case=wr05_bframes bytes="<<bseg[0].size_bytes<<" sha256="<<writer_decode_diagnostics::SafeFactory(bseg[0].checksum_sha256.c_str())<<" media_start="<<bseg[0].media_start_pts<<" media_end="<<(bseg[0].media_end_pts?std::to_string(*bseg[0].media_end_pts):"unknown")<<'\n';decoded=Decode(bs.root/"channel-1"/(bseg[0].segment_id+".mp4"),&decoded_pts,1000,"wr05_bframes");}
         const auto first_pts=*bframes.packets.front().observation->pts_ns;
-        // WR05의 여러 판정 중 실제 실패한 경계를 남긴다. 합격식·대기시간은 변경하지 않는다.
+        // writer는 첫 AU의 min(PTS,DTS)를 mux 원점으로 뺀다. 관측된 decode 값이나
+        // catalog 결과를 기대값으로 쓰지 않고 동일 입력 AU 전체로 presentation을 산출한다.
+        const auto mux_origin=std::min(first_pts,bframes.packets.front().observation->dts_ns.value_or(first_pts));
+        std::vector<std::uint64_t> expected_presentation;
+        for(const auto& packet:bframes.packets){if(!packet.observation||!packet.observation->pts_ns||*packet.observation->pts_ns<mux_origin)throw std::runtime_error("oracle-input-timestamp");expected_presentation.push_back(*packet.observation->pts_ns-mux_origin);}
+        expected_presentation=writer_decode_oracle::Presentation(std::move(expected_presentation));
+        // 기존 count/첫 PTS/원점 판정과 대기시간을 유지하고 전체 presentation 대조를 추가한다.
         std::cout<<"[measure] WR05 ran="<<b_ok<<" segments="<<bseg.size()
                  <<" media_start_pts="<<(bseg.size()==1?std::to_string(bseg[0].media_start_pts):"unavailable")
                  <<" input_first_pts="<<first_pts<<" decoded_count="<<decoded
@@ -307,7 +385,7 @@ int main(int argc,char** argv) {
                  <<" decoded_first_pts="<<(decoded_pts.empty()?"unavailable":std::to_string(decoded_pts.front()))
                  <<" has_unknown="<<HasUnknown(bseg)<<'\n';
         Check(b_ok&&bseg.size()==1&&bseg[0].media_start_pts==0&&first_pts>0&&decoded==30&&!decoded_pts.empty()&&
-              decoded_pts.front()==first_pts&&HasUnknown(bseg),"WR05 actual H264 reordering preserves decode timestamps and mux origin");
+              decoded_pts.front()==first_pts&&writer_decode_oracle::MatchesPresentation(expected_presentation,decoded_pts)&&HasUnknown(bseg),"WR05 actual H264 reordering preserves decode timestamps and mux origin");
         std::uint64_t maximum_end=0;
         for(const auto& p:bframes.packets)maximum_end=std::max(maximum_end,*p.observation->pts_ns+*p.observation->duration_ns);
         Check(bseg.size()==1&&bseg[0].media_end_pts==static_cast<std::int64_t>(maximum_end),

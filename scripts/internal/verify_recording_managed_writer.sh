@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 파일 용도: 실제 미디어와 managed V2 writer의 격리 단기 계약을 검사한다.
 set -euo pipefail
-if [[ $# -gt 1 || ( $# -eq 1 && $1 != --decoder-comparison && $1 != --decoder-comparison-bframes ) ]]; then
+if [[ $# -gt 1 || ( $# -eq 1 && $1 != --decoder-comparison && $1 != --decoder-comparison-bframes && $1 != --decode-oracle-tests ) ]]; then
   printf '[fail] 지원하지 않는 writer 검사 인자\n' >&2
   exit 2
 fi
@@ -29,6 +29,7 @@ const root = process.argv[2];
 const files = ['scripts/internal/verify_recording_managed_writer.sh',
   'scripts/internal/recording_managed_writer_smoke.cpp',
   'scripts/internal/recording_writer_decode_diagnostics.h',
+  'scripts/internal/recording_writer_decode_oracle.h',
   'include/media/gstreamer_sample_observation.h',
   ...fs.readdirSync(path.join(root, 'include/recording')).filter(n => n.endsWith('.h')).map(n => 'include/recording/' + n),
   ...fs.readdirSync(path.join(root, 'src/recording')).filter(n => n.endsWith('.cpp')).map(n => 'src/recording/' + n),

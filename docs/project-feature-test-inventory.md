@@ -1,5 +1,16 @@
 # Project Feature Test Inventory
 
+## LP18 저장 기준 디코더 검증 보완
+
+| 기능 ID | 항목 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| LP18-WR-OR01 | 전체 PTS 기준 | 실제 WR05 공통 판정 helper의 정상·동일 개수/첫PTS이지만 중간 중복/누락 반례 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 격리 CLI |
+| LP18-WR-OR02 | 입력 기반 예상값 | 입력 observation PTS의 presentation 정렬·정상 duplicate PTS 보존. catalog 결과를 기대값으로 사용하지 않음 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 격리 CLI |
+| LP18-WR-OR03 | 엄격한 기준 디코딩 | 명시 avdec_h264(output-corrupt=false)/vp8dec 실제 factory 확인·시작/bus/손상/시간값/EOS/상한 실패 거부 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 격리 CLI |
+| LP18-WR-OR04 | 실제 실패 경로 | writer 정상 파일 복제본 truncate 거부·원본 hash 불변, 미가용 decoder의 실제 pipeline 생성 실패·자동 fallback 없음 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 격리 CLI |
+
+자동선택 HW WD01~08의 FAIL/미확인은 유지한다. 현재 등록은 실행 전 정의이며 PASS가 아니다.
+
 ## LP18 writer 경계 진단 사전등록
 
 | 기능 ID | 항목 | 안정화 | 30분 | 120분 | UI |
