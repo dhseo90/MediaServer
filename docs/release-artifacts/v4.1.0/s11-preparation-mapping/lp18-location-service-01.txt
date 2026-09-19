@@ -1,0 +1,199 @@
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=0 index=0 durable_state_before_exit=true
+[child] mode=recover expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=interrupted-intent-no-retry
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=1 index=0 durable_state_before_exit=true
+[child] mode=recover expected=blocked observed_complete=0 blocked=1 resources_and_files=1 reason=job-unreceipted-ownership-unknown; cleanup: job-unreceipted-ownership-unknown
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=2 index=0 durable_state_before_exit=true
+[child] mode=recover expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=interrupted-intent-no-retry
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=3 index=0 durable_state_before_exit=true
+[decode] frames=10 eos=1 error_free=1
+[decode] frames=10 eos=1 error_free=1
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=4 index=0 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=4 index=1 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=5 index=1 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=6 index=0 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=7 index=0 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=7 index=1 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=8 index=0 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=8 index=1 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=9 index=0 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=2 index=0 durable_state_before_exit=true
+[fault] stage=8 index=0 durable_state_before_exit=true
+[child] mode=recover expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=interrupted-intent-no-retry
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=2 index=0 durable_state_before_exit=true
+[fault] stage=8 index=1 durable_state_before_exit=true
+[child] mode=recover expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=interrupted-intent-no-retry
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=2 index=0 durable_state_before_exit=true
+[fault] stage=9 index=0 durable_state_before_exit=true
+[child] mode=recover expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=interrupted-intent-no-retry
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=3 index=0 durable_state_before_exit=true
+[child] mode=recover expected=blocked observed_complete=0 blocked=1 resources_and_files=1 reason=job-file-integrity
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=3 index=0 durable_state_before_exit=true
+[child] mode=recover expected=blocked observed_complete=0 blocked=1 resources_and_files=1 reason=job-ready-file-missing
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=3 index=0 durable_state_before_exit=true
+[child] mode=recover expected=blocked observed_complete=0 blocked=1 resources_and_files=1 reason=job-file-ownership
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=3 index=0 durable_state_before_exit=true
+[child] mode=recover expected=blocked observed_complete=0 blocked=1 resources_and_files=1 reason=job-owned-open
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=3 index=0 durable_state_before_exit=true
+[child] mode=recover expected=blocked observed_complete=0 blocked=1 resources_and_files=1 reason=job-file-ownership
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=3 index=0 durable_state_before_exit=true
+[child] mode=recover expected=blocked observed_complete=0 blocked=1 resources_and_files=1 reason=job-ready-extra-hardlink
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=3 index=0 durable_state_before_exit=true
+[child] mode=recover expected=blocked observed_complete=0 blocked=1 resources_and_files=1 reason=job-parent-replaced
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[child] mode=cancel-before-create expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=job-cancelled-or-deadline
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[child] mode=cancel expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=job-cancelled-or-deadline
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[child] mode=small expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=job-remux: output-byte-budget-exceeded
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[child] mode=deadline expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=job-cancelled-or-deadline
+[pass] F12 실제 remux의 다른 selection 결박 거부
+[pass] F12 실제 remux provenance의 요청 범위 위조 거부
+[pass] F12 실제 remux의 foreign unfulfilled 범위 거부
+[pass] F01 실제 writer→선택→Intent→파생 파일→게시→Complete
+[decode] frames=10 eos=1 error_free=1
+[decode] frames=10 eos=1 error_free=1
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[pass] F01 실제 catalog/file/hash/단일 commit/hold 해제/cleanup 및 직접 decode
+[pass] F15 단일 service·동시 Run·외부 terminal release 거부
+[pass] F16 active source 삭제 거부·동일 사유 비보호 원본 삭제 positive control
+[pass] F02 두 출력 독립 epoch·unknown UTC·실제 AU/visible 출처 보존
+[pass] F12 Complete 출처 전수 canonical roundtrip
+[pass] F12 Ready 포함 Intent 잘못된 상태 거부
+[pass] F12 미지원 필드 엄격 거부
+[pass] F14 Ready JSON 4MiB 명시 상한 거부
+[pass] F12 출력 receipt inode 별칭 거부
+[detail] reason= outputs=2
+[pass] F03 Intent 생성 전 프로세스 중단
+[pass] F04 receipt 전 실물의 소유권 미확인 보호 유지
+[pass] F05 receipt 이후 Intent 중단 소유물 정리
+[pass] F06 Ready 중단 뒤 재렌더 없이 완료
+[pass] F07 첫 출력 link 중단 쌍 복구
+[pass] F07 두 번째 출력 link 중단 쌍 복구
+[pass] F08 전체 publish 후 commit 전 중단
+[pass] F09 원자 commit 후 cleanup 전 중단
+[pass] F10 첫 temp 삭제 중단
+[pass] F10 두 번째 temp 삭제 중단
+[pass] F10 attempt 디렉터리 삭제 중단
+[pass] F10 job 디렉터리 삭제 중단
+[pass] F10 Complete mutation 직전 중단
+[pass] F10 Failed cleanup attempt 삭제 중단
+[pass] F10 Failed cleanup job 삭제 중단
+[pass] F10 Failed mutation 직전 중단
+[pass] F11 hash 오류 거부·보호/예약 유지
+[pass] F11 missing 오류 거부·보호/예약 유지
+[pass] F11 foreign 오류 거부·보호/예약 유지
+[pass] F11 symlink 오류 거부·보호/예약 유지
+[pass] F11 fifo 오류 거부·보호/예약 유지
+[pass] F11 hardlink 오류 거부·보호/예약 유지
+[pass] F11 parent 오류 거부·보호/예약 유지
+[pass] F14 cancel-before-create 생성 중단·소유 cleanup·예약 해제
+[pass] F14 cancel 생성 중단·소유 cleanup·예약 해제
+[pass] F14 small 생성 중단·소유 cleanup·예약 해제
+[pass] F14 deadline 생성 중단·소유 cleanup·예약 해제
+[pass] F12 SQLite projection·journal fallback job/output 일치
+[pass] F12 SQLite rebuild·checkpoint 재개방 job/output 일치
+[pass] F13 Complete output tombstone 뒤 재생성 없음
+[summary] pass=43 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-job-service.KnDkyz bytes=18126724 removed=true
+[elapsed] seconds=18 source=bash-SECONDS

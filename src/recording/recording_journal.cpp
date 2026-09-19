@@ -9,6 +9,8 @@
 #include <sstream>
 #include <chrono>
 #include <limits>
+#include <string_view>
+#include <stdexcept>
 #include <unordered_map>
 #include <unordered_set>
 #include <sys/stat.h>
@@ -479,15 +481,38 @@ struct OrderHistoryIndex {
 };
 }
 
+// 외부에 정의를 공개하지 않는다. 토큰은 특정 journal 파일 세대의 물리 행 하나를 가리킨다.
+struct RecordingJournalRecordLocation {
+    std::shared_ptr<const char> generation;
+    std::size_t ordinal{0};
+    std::uint64_t offset{0},length{0};
+    std::string raw_sha256,record_identity,schema,mutation_id,entity_id;
+    RecordingMutationType type{RecordingMutationType::Unknown};
+    std::int64_t occurred_at_ms{0};
+    RecordingMutationHandle resident_fallback;
+};
 struct ManagedJournalState {
     OrderHistoryIndex order;
     RecordingMutationHandles records;
+    std::shared_ptr<const char> generation{std::make_shared<const char>(0)};
+    RecordingJournalRecordLocations locations;
     std::unordered_map<std::string,std::string> identities;
     std::uint64_t bytes{0};
     bool checkpoint_pending{false};
 };
 
 namespace {
+std::string RawHash(std::string_view text) {
+#if MEDIA_SERVER_USE_OPENSSL
+    unsigned char bytes[EVP_MAX_MD_SIZE];unsigned int length=0;
+    if(EVP_Digest(text.data(),text.size(),bytes,&length,EVP_sha256(),nullptr)!=1||length!=32)return {};
+    constexpr char hex[]="0123456789abcdef";std::string result;result.reserve(64);
+    for(unsigned int i=0;i<length;++i){result.push_back(hex[bytes[i]>>4]);result.push_back(hex[bytes[i]&15]);}
+    return result;
+#else
+    (void)text;return {};
+#endif
+}
 std::string EnvelopeIdentity(const RecordingMutationV1& mutation) {
     if(mutation.mutation_type==RecordingMutationType::EventLinkReceipt) {
         ingress::StrictJsonObjectDocument d;std::string error;
@@ -496,17 +521,36 @@ std::string EnvelopeIdentity(const RecordingMutationV1& mutation) {
     }
     const auto text=SerializeRecordingMutationV1(mutation);
 #if MEDIA_SERVER_USE_OPENSSL
-    unsigned char bytes[EVP_MAX_MD_SIZE];unsigned int length=0;
-    if(EVP_Digest(text.data(),text.size(),bytes,&length,EVP_sha256(),nullptr)!=1||length!=32)return {};
-    constexpr char hex[]="0123456789abcdef";std::string result;result.reserve(64);
-    for(unsigned int i=0;i<length;++i){result.push_back(hex[bytes[i]>>4]);result.push_back(hex[bytes[i]&15]);}
-    return result;
+    return RawHash(text);
 #else
     return text;
 #endif
 }
+RecordingJournalRecordLocationHandle MakeLocation(const std::shared_ptr<const char>& generation,
+    std::size_t ordinal,std::uint64_t offset,std::string_view raw,const RecordingMutationHandle& record,
+    const std::string& identity) {
+    try {
+    if(!record||raw.empty()||raw.back()!='\n')return {};
+    auto location=std::make_shared<RecordingJournalRecordLocation>();
+    location->generation=generation;location->ordinal=ordinal;location->offset=offset;location->length=raw.size();
+    location->schema=record->schema;location->mutation_id=record->mutation_id;location->entity_id=record->entity_id;
+    location->type=record->mutation_type;location->occurred_at_ms=record->occurred_at_ms;
+    // 기존 Append에는 16MiB 제한이 없다. 기존 수용 입력/crypto-off를 새로 거부하지 않는다.
+    if(!MEDIA_SERVER_USE_OPENSSL||raw.size()>16*1024*1024+1)location->resident_fallback=record;
+    else {
+        location->raw_sha256=RawHash(raw);location->record_identity=identity;
+        if(location->raw_sha256.empty()||identity.empty())return {};
+    }
+    return location;
+    }catch(...){return {};}
+}
+bool LocationMetadataMatches(const RecordingJournalRecordLocation& location,const RecordingMutationV1& record) {
+    return location.schema==record.schema&&location.mutation_id==record.mutation_id&&location.entity_id==record.entity_id&&
+        location.type==record.mutation_type&&location.occurred_at_ms==record.occurred_at_ms;
+}
 bool IndexRecord(ManagedJournalState* state,const RecordingMutationV1& mutation,std::string* error,
-                 RecordingMutationHandle owned) {
+                 RecordingMutationHandle owned,std::string_view raw,std::uint64_t offset) {
+    try {
 #if !MEDIA_SERVER_USE_OPENSSL
     if(mutation.mutation_type==RecordingMutationType::EventLinkReceipt)return Fail(error,"managed receipt crypto 미지원");
 #endif
@@ -515,8 +559,12 @@ bool IndexRecord(ManagedJournalState* state,const RecordingMutationV1& mutation,
     const auto old=state->identities.find(mutation.mutation_id);
     if(old!=state->identities.end()&&old->second!=identity)return Fail(error,"managed mutation ID 충돌");
     if(!owned)owned=std::make_shared<const RecordingMutationV1>(mutation);
+    const auto location=MakeLocation(state->generation,state->records.size(),offset,raw,owned,digest);
+    if(!location)return Fail(error,"managed 위치 생성 실패");
     if(!state->order.Consume(mutation,error))return false;
-    state->identities.emplace(mutation.mutation_id,identity);state->records.push_back(std::move(owned));return true;
+    state->identities.emplace(mutation.mutation_id,identity);state->records.push_back(std::move(owned));
+    state->locations.push_back(location);return true;
+    }catch(...){return Fail(error,"managed index 준비 실패");}
 }
 bool CompactRecords(const RecordingMutationHandles& original,RecordingMutationHandles* result,std::string* error) {
 #if !MEDIA_SERVER_USE_OPENSSL
@@ -542,8 +590,11 @@ bool CompactRecords(const RecordingMutationHandles& original,RecordingMutationHa
     return true;
 #endif
 }
-std::string JournalBytes(const RecordingMutationHandles& records) {
-    std::string bytes;for(const auto& m:records){if(!m)return {};bytes+=SerializeRecordingMutationV1(*m)+"\n";}return bytes;
+std::string JournalBytes(const RecordingMutationHandles& records,std::vector<std::pair<std::size_t,std::size_t>>* spans=nullptr) {
+    if(spans){spans->clear();spans->reserve(records.size());}
+    std::string bytes;for(const auto& m:records){if(!m)return {};const auto offset=bytes.size();
+        bytes+=SerializeRecordingMutationV1(*m)+"\n";if(spans)spans->emplace_back(offset,bytes.size()-offset);}
+    return bytes;
 }
 }
 
@@ -571,15 +622,16 @@ bool RecordingJournal::LoadManagedStateLocked(std::string* error) {
 #if !defined(_WIN32)
     auto state=std::make_unique<ManagedJournalState>();struct stat status{};
     if(!Regular(managed_fd_,&status)||status.st_size<0)return Fail(error,"managed index fd 오류");
-    char block[65536];std::string line;off_t offset=0;
+    char block[65536];std::string line;off_t offset=0;std::uint64_t line_start=0;
     while(offset<status.st_size){
         const auto wanted=static_cast<std::size_t>(std::min<off_t>(sizeof(block),status.st_size-offset));
         ssize_t count;do{count=::pread(managed_fd_,block,wanted,offset);}while(count<0&&errno==EINTR);
-        if(count<=0)return Fail(error,"managed index read 실패");offset+=count;
+        if(count<=0)return Fail(error,"managed index read 실패");const auto block_start=offset;offset+=count;
         for(ssize_t i=0;i<count;++i){
             if(block[i]=='\n'){
-                if(!line.empty()){RecordingMutationV1 m;if(!ParseRecordingMutationV1(line,&m,error)||!IndexRecord(state.get(),m,error,{}))return false;}
-                line.clear();
+                if(!line.empty()){RecordingMutationV1 m;if(!ParseRecordingMutationV1(line,&m,error))return false;
+                    line.push_back('\n');if(!IndexRecord(state.get(),m,error,{},line,line_start))return false;}
+                line.clear();line_start=static_cast<std::uint64_t>(block_start+i+1);
             }else{if(line.size()>=16*1024*1024)return Fail(error,"managed record 상한");line.push_back(block[i]);}
         }
     }
@@ -818,7 +870,7 @@ bool RecordingJournal::ReserveRecordingOrder(const std::string& store_id, const 
             if(managed_)poisoned_=true;return Fail(error, "recording order write/fsync 실패");
         }
         if(managed_){
-            if(!IndexRecord(managed_state_.get(),mutation,error,{})){poisoned_=true;return false;}
+            if(!IndexRecord(managed_state_.get(),mutation,error,{},durable,managed_state_->bytes)){poisoned_=true;return false;}
             managed_state_->bytes+=durable.size();
         }
         *result = std::move(order);
@@ -890,6 +942,57 @@ bool RecordingJournal::ReadCheckpointRecords(const void* owner,RecordingMutation
     return Fail(error,"checkpoint unsupported");
 #endif
 }
+bool RecordingJournal::ReadRecordLocations(const void* owner,RecordingJournalRecordLocations* records,std::string* error) const {
+    if(records)records->clear();
+#if !defined(_WIN32)
+    if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
+#endif
+    std::lock_guard lock(mu_);
+    if(!records||!managed_||!owner||owner!=catalog_owner_)return Fail(error,"located owner/output 거부");
+    if(!CheckManagedStateLocked(error))return false;
+    if(managed_state_->records.size()!=managed_state_->locations.size()){poisoned_=true;return Fail(error,"located index 불일치");}
+    try{*records=managed_state_->locations;}catch(...){records->clear();return Fail(error,"located 목록 자원 부족");}
+    if(error)error->clear();return true;
+}
+bool RecordingJournal::AcquireLocatedRecord(const void* owner,const RecordingJournalRecordLocationHandle& location,
+    RecordingMutationHandle* record,std::string* error) const {
+    if(record)record->reset();
+#if !defined(_WIN32)
+    if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
+#endif
+    std::lock_guard lock(mu_);
+    if(!record||!managed_||!owner||owner!=catalog_owner_)return Fail(error,"located owner/output 거부");
+    if(!CheckManagedStateLocked(error))return false;
+    if(!location||location->generation!=managed_state_->generation||location->ordinal>=managed_state_->locations.size()||
+       managed_state_->locations[location->ordinal]!=location)return Fail(error,"located 다른 세대/토큰 거부");
+#if !defined(_WIN32)
+    const auto corrupt=[&](){poisoned_=true;return Fail(error,"located 기록 손상/읽기 불확실: 재open 필요");};
+    try {
+    if(location->length==0||location->offset>managed_state_->bytes||location->length>managed_state_->bytes-location->offset||
+       location->offset>static_cast<std::uint64_t>(std::numeric_limits<off_t>::max())||
+       location->length>static_cast<std::uint64_t>(std::numeric_limits<off_t>::max())-location->offset||
+       location->ordinal>=managed_state_->records.size())return corrupt();
+    const auto current=managed_state_->records[location->ordinal];
+    if(!current||!LocationMetadataMatches(*location,*current))return corrupt();
+    if(location->resident_fallback){
+        if(location->resident_fallback!=current||!CheckManagedStateLocked(error))return corrupt();
+        *record=current;if(error)error->clear();return true;
+    }
+    if(location->length>16*1024*1024+1)return corrupt();
+    std::string raw(static_cast<std::size_t>(location->length),'\0');
+    if(!ReadAt(managed_fd_,static_cast<off_t>(location->offset),&raw)||raw.back()!='\n'||
+       RawHash(raw)!=location->raw_sha256)return corrupt();
+    RecordingMutationV1 parsed;
+    if(!ParseRecordingMutationV1(raw,&parsed,nullptr)||!LocationMetadataMatches(*location,parsed)||
+       EnvelopeIdentity(parsed)!=location->record_identity||parsed.payload_json!=current->payload_json||
+       !CheckManagedStateLocked(error))return corrupt();
+    // 이 첫 단위는 강한 소유를 유지한다. 실제 읽기 검증을 생략하는 weak-hit 경로는 없다.
+    *record=current;if(error)error->clear();return true;
+    }catch(...){return corrupt();}
+#else
+    return Fail(error,"located unsupported");
+#endif
+}
 bool RecordingJournal::PrepareCheckpoint(const void* owner,RecordingMutationHandles* candidate,std::string* error) const {
 #if !defined(_WIN32)
     if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
@@ -931,7 +1034,8 @@ bool RecordingJournal::CommitCheckpoint(const void* owner,const RecordingMutatio
     if(expected.size()!=candidate.size()||!detail::SameCheckpointPrefix(expected,candidate))return Fail(error,"checkpoint 후보 필드 불일치");
     // 현재 원장으로 재구성한 expected와 후보의 모든 필드가 같다. 같은 serializer의
     // 결과를 다시 만들지 않고 이 bytes를 pending 검증·축소 판단·원자 쓰기에 함께 쓴다.
-    const auto bytes=JournalBytes(expected);
+    std::vector<std::pair<std::size_t,std::size_t>> spans;
+    const auto bytes=JournalBytes(expected,&spans);
     // 성공한 rename/fsync 뒤 할당하지 않고, 검증한 candidate와 같은 immutable envelope를 게시한다.
     RecordingMutationHandles published=candidate;
     if(pending){
@@ -945,6 +1049,20 @@ bool RecordingJournal::CommitCheckpoint(const void* owner,const RecordingMutatio
     if(recover_only)return true;
     checkpoint_checked_bytes_=managed_state_->bytes;
     if(bytes.size()>=managed_state_->bytes)return true;
+    // 동일 직렬화의 span을 사용한다. 파일 교체 성공 뒤 새로운 할당/세대 혼합을 하지 않는다.
+    std::shared_ptr<const char> generation;RecordingJournalRecordLocations locations;
+    try {
+    generation=std::make_shared<const char>(0);
+    locations.reserve(published.size());
+    for(std::size_t i=0;i<published.size();++i){
+        const auto raw=std::string_view(bytes).substr(spans[i].first,spans[i].second);
+        const auto identity=published[i]->mutation_type==RecordingMutationType::EventLinkReceipt?
+            EnvelopeIdentity(*published[i]):RawHash(raw.substr(0,raw.size()-1));
+        const auto location=MakeLocation(generation,i,spans[i].first,raw,published[i],identity);
+        if(!location)return Fail(error,"checkpoint 위치 준비 실패");
+        locations.push_back(location);
+    }
+    }catch(...){return Fail(error,"checkpoint 위치 자원 준비 실패");}
     OwnedFd stage(::openat(parent.value,temporary,O_RDWR|O_APPEND|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0640));
     if(stage.value<0||!Lock(stage.value,LOCK_EX|LOCK_NB)||!WriteAll(stage.value,bytes)||!Sync(stage.value)){
         poisoned_=true;return Fail(error,"checkpoint 준비 실패: 원본 보존");
@@ -954,7 +1072,8 @@ bool RecordingJournal::CommitCheckpoint(const void* owner,const RecordingMutatio
     if(::renameat(parent.value,temporary,parent.value,io_path_.filename().c_str())!=0){poisoned_=true;return Fail(error,"checkpoint rename 실패");}
     if(!Sync(parent.value)){poisoned_=true;return Fail(error,"checkpoint directory fsync 불확실");}
     ::close(managed_fd_);managed_fd_=stage.value;stage.value=-1;device_=static_cast<std::uint64_t>(staged.st_dev);inode_=staged.st_ino;
-    managed_state_->records=std::move(published);managed_state_->bytes=bytes.size();checkpoint_checked_bytes_=bytes.size();return true;
+    managed_state_->records=std::move(published);managed_state_->locations=std::move(locations);managed_state_->generation=generation;
+    managed_state_->bytes=bytes.size();checkpoint_checked_bytes_=bytes.size();return true;
 #else
     (void)candidate;(void)recover_only;return Fail(error,"checkpoint unsupported");
 #endif
@@ -1052,7 +1171,7 @@ bool RecordingJournal::AppendOwned(const RecordingMutationV1& mutation, const vo
     } else if (!RepairTail(parent.value, name, fd.value, status)) return Fail(error, "journal tail 내구격리/복구 실패");
     if (!Same(parent.value, name, fd.value, status)) return Fail(error, "journal append inode 재대조 실패");
     if (!WriteAll(fd.value, durable) || !Sync(fd.value)) {if(managed_)poisoned_=true;return Fail(error, "journal write/fsync 실패");}
-    if(managed_){if(!IndexRecord(managed_state_.get(),parsed,error,owned)){poisoned_=true;return false;}managed_state_->bytes+=durable.size();}
+    if(managed_){if(!IndexRecord(managed_state_.get(),parsed,error,owned,durable,managed_state_->bytes)){poisoned_=true;return false;}managed_state_->bytes+=durable.size();}
 #else
     std::ofstream output(path_, std::ios::binary | std::ios::app);
     output << durable;

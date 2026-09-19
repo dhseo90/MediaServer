@@ -1,0 +1,2 @@
+{"kind":"diagnostic-failure","code":"preflight-host","nextPhases":"not-run"}
+{"kind":"run-result","mode":"jobs","id":"lp18-location-01","diagnosticPass":false,"failure":"preflight-host","phases":0,"elapsedMs":3,"productPass":false,"tokenConsumed":null}

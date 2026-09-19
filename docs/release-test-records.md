@@ -12,7 +12,7 @@ Superpowers 스킬은 현재 제공되지 않아 사용을 주장하지 않으�
 | 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
 | --- | --- | --- | --- | --- |
 | 1 | 저장 기준 검증 보완 | 완료 | 순수14·실제46 PASS, 예상 RED2건 보존. HW 해결 아님 | 아래 WR 결과 |
-| 2 | 위치 재획득 마감 | 선수 대기 | 기존 위치32·crypto-off3 등 동일 source 증거를 대조하고 남은 service/2-job 실행 | LP18-L01~10 |
+| 2 | 위치 재획득 마감 | 완료 | 기존 위치 증거37SHA 일치·service43·2job 기능120/계측1 통과 | LP18-L01~10·아래 결과 |
 | 3 | 실제 RAM 수명 적용 | 선수 대기 | 2번 통과/커밋 후 소비 연결·상주 해제·재open 검증 | 누적 비용 계약0절 |
 | 4 | 분할 커밋·보고 | 단계별 수행 예정 | 해당 단위 구현/회귀/기록 통과 뒤 지정 파일만 커밋 | AGENTS3/5 |
 
@@ -100,6 +100,41 @@ corrupted 관측은 decoder sink/src/appsink(각 bit1/2/4)이며 모든 비트�
 기존 location32/crypto-off3/envelope30/owned34/cache47/prepared11/catalog246/build와 같은 코드 증거는
 소스·범위·환경을 대조해 유지하고 인계만으로 재실행하지 않는다. 이번 writer46은 강화된 SW 저장 기준이며
 기존 HW FAIL을 소급 무효화하지 않는다. 제품 변경이 생기면 해당 증거의 영향을 다시 판단한다.
+
+첫 단위 커밋: `f0ce8748`(저장 기준 검증). Git index 쓰기는 sandbox에서 최초 거부됐고 승인된 권한 호출 뒤
+stage/check/commit exit0으로 수행했다. 최종 docs-links는8904links/실패0, staged diffcheck와 shell문법도0이었다.
+
+2번 service 실제: exit0/18초/43PASS, 원출력 `lp18-location-service-01.txt` 보존.
+소유 root `media-server-derived-job-service.KnDkyz`18126724B 삭제·부재 확인. 기존 fixture의 profile/bound
+unavailable 관측은 보존했으며 전체 입력 profile 지원 PASS로 확대하지 않는다.
+2-job 첫 `jobs lp18-location-01`은3ms/exit1, preflight-host에서 중단했고 phase0·제품 미실행이다.
+직접 조회에서 `/usr/sbin/sysctl -n hw.memsize`가 sandbox Operation not permitted인 것을 확인했다.
+임시 root 생성 전 실패해 정리 대상은 없으며 실패 원출력은 `lp17-jobs-lp18-location-01.txt`다.
+권한 승인 후 동일 검사 `jobs lp18-location-02`를 수행한다. RSS/time/disk/output 안전 기준·제품은 변경하지 않는다.
+
+재실행 exit0/17137ms, runtime-freshness699ms·compile4592ms·job-B6511ms·job-C5020ms 모두exit0.
+기능은 B60/C60·계측준비1 PASS, B/C 입력 SHA 일치·source 불변·프로세스 정리 true였다.
+peak RSS B157253632B/C104726528B(프로세스), 이번2-job의 기존536870912B 관측 기준은 충족하지만
+과거 누적 원본 RSS FAIL이나 실제 HTTP 미확인·RAM 수명 구현 완료를 대신하지 않는다.
+도구 출력 표시 일부는 길이 때문에 잘렸으나 원출력214812B는 파일에 전부 보존했다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 위치2-job 최초 선수검사 | jobs lp18-location-01, exit1, sandbox sysctl 거부·phase0 | FAIL |
+| 위치2-job runtime 준비 | jobs lp18-location-02, target media_server_runtime, exit0 | PASS |
+| 위치2-job 계측 빌드 | 동일 실행 compile, exit0·exact97/추가5·원본/복제SHA 보존 | PASS |
+| 위치2-job B 의미·관측 | 501sample·2job, 60PASS·유효관측/기준RSS true | PASS |
+| 위치2-job C 의미·관측 | 같은입력·캐시 없는 진단대조, 60PASS·유효관측/기준RSS true | PASS |
+| 위치2-job 입력/제품 불변 | canonical 입력SHA 같음·실행 source manifest 불변 | PASS |
+| 위치2-job 종료·정리 | 각 groupClean true·두store와최종root 삭제·부재확인 | PASS |
+
+개별164행(service43+비교121)은 `lp18-ownership-results.md`에 보존했다.
+두store 각5147594B·마지막 소유 root18893198B는 삭제·부재 확인했다. 최종root 크기는 이미 삭제한 store를 포함하지 않는다.
+원출력은 service14451B·비교214812B·최초 권한실패 JSON2행만 보존하며 미디어/credential은 남기지 않는다.
+기존 위치32/crypto-off3/envelope30/owned34 로그의 source37항목을 현재와 직접 대조해 불일치0,
+기록된 cleanup 모두true를 확인했다. 기존 cache47/prepared11/catalog246/전체build도 같은 제품 변경 범위에서 유지한다.
+메인·단일 담당자의 실제6파일 검토에서 새 차단 결함을 발견하지 않았다. 위치 primitive만 완료이며 강한 소유 해제는 아직 없다.
+소비 연결 전의 위치6개와 이번 단계 기록만 커밋한다. 전체 build를 인계만으로 다시 돌리지 않았으며 runtime-freshness는 위 실제 수행이다.
 
 ## 2026-09-20 LP18 잔여 1~3 순차 실행
 

@@ -3,6 +3,182 @@
 독자: 녹화 구현·검증 담당. 수명: 이번 단기 검사의 실패/RED/GREEN 보존형 전수 결과. 정책은 AGENTS.md이며 해석은 [중앙 기록](../../../release-test-records.md)의 LP18을 따른다.
 예상 RED의 assertion은 실제 FAIL로 남기며 제품 PASS로 바꾸지 않는다.
 
+## 위치 재획득 영향 회귀 마감
+
+[lp18-location-service-01.txt 원출력](lp18-location-service-01.txt): exit0. 43개 개별 행; 실제 HTTP/메모리 수명 완료 판정 아님.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. F12 실제 remux의 다른 selection 결박 거부 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 2. F12 실제 remux provenance의 요청 범위 위조 거부 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 3. F12 실제 remux의 foreign unfulfilled 범위 거부 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 4. F01 실제 writer→선택→Intent→파생 파일→게시→Complete | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 5. F01 실제 catalog/file/hash/단일 commit/hold 해제/cleanup 및 직접 decode | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 6. F15 단일 service·동시 Run·외부 terminal release 거부 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 7. F16 active source 삭제 거부·동일 사유 비보호 원본 삭제 positive control | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 8. F02 두 출력 독립 epoch·unknown UTC·실제 AU/visible 출처 보존 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 9. F12 Complete 출처 전수 canonical roundtrip | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 10. F12 Ready 포함 Intent 잘못된 상태 거부 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 11. F12 미지원 필드 엄격 거부 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 12. F14 Ready JSON 4MiB 명시 상한 거부 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 13. F12 출력 receipt inode 별칭 거부 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 14. F03 Intent 생성 전 프로세스 중단 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 15. F04 receipt 전 실물의 소유권 미확인 보호 유지 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 16. F05 receipt 이후 Intent 중단 소유물 정리 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 17. F06 Ready 중단 뒤 재렌더 없이 완료 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 18. F07 첫 출력 link 중단 쌍 복구 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 19. F07 두 번째 출력 link 중단 쌍 복구 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 20. F08 전체 publish 후 commit 전 중단 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 21. F09 원자 commit 후 cleanup 전 중단 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 22. F10 첫 temp 삭제 중단 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 23. F10 두 번째 temp 삭제 중단 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 24. F10 attempt 디렉터리 삭제 중단 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 25. F10 job 디렉터리 삭제 중단 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 26. F10 Complete mutation 직전 중단 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 27. F10 Failed cleanup attempt 삭제 중단 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 28. F10 Failed cleanup job 삭제 중단 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 29. F10 Failed mutation 직전 중단 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 30. F11 hash 오류 거부·보호/예약 유지 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 31. F11 missing 오류 거부·보호/예약 유지 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 32. F11 foreign 오류 거부·보호/예약 유지 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 33. F11 symlink 오류 거부·보호/예약 유지 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 34. F11 fifo 오류 거부·보호/예약 유지 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 35. F11 hardlink 오류 거부·보호/예약 유지 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 36. F11 parent 오류 거부·보호/예약 유지 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 37. F14 cancel-before-create 생성 중단·소유 cleanup·예약 해제 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 38. F14 cancel 생성 중단·소유 cleanup·예약 해제 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 39. F14 small 생성 중단·소유 cleanup·예약 해제 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 40. F14 deadline 생성 중단·소유 cleanup·예약 해제 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 41. F12 SQLite projection·journal fallback job/output 일치 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 42. F12 SQLite rebuild·checkpoint 재개방 job/output 일치 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+| 43. F13 Complete output tombstone 뒤 재생성 없음 | 격리 service 복구·취소·보호 / exit0 | PASS | 사전등록 기존 case |
+
+[lp17-jobs-lp18-location-02.txt 원출력](lp17-jobs-lp18-location-02.txt): exit0. 121개 개별 행; 실제 HTTP/메모리 수명 완료 판정 아님.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. FC01 exact insertion checks count=97 | 격리 B/C 실제2-job 비교 / exit0 | PASS | 계측 준비 검사 |
+| 2. D08.input-keyframes | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 3. D08.source-shape | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 4. D08.selection-complete | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 5. D08.expected-intent-built | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 6. D08.admission | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 7. D08.expected-state | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 8. D08.canonical-intent | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 9. D08.canonical-record-roundtrip | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 10. D08.expected-state | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 11. D08.canonical-intent | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 12. D08.files-receipt | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 13. D08.canonical-record-roundtrip | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 14. D08.expected-state | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 15. D08.canonical-intent | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 16. D08.files-receipt | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 17. D08.canonical-record-roundtrip | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 18. D08.ready-verified-proof | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 19. D08.expected-state | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 20. D08.canonical-intent | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 21. D08.files-receipt | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 22. D08.canonical-record-roundtrip | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 23. D08.canonical-ready-preserved | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 24. D08.expected-state | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 25. D08.canonical-intent | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 26. D08.files-receipt | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 27. D08.canonical-record-roundtrip | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 28. D08.canonical-ready-preserved | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 29. D08.protection-released | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 30. D08.run-complete | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 31. D08.actual-output-hash | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 32. D08.selection-complete | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 33. D08.expected-intent-built | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 34. D08.admission | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 35. D08.expected-state | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 36. D08.canonical-intent | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 37. D08.canonical-record-roundtrip | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 38. D08.expected-state | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 39. D08.canonical-intent | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 40. D08.files-receipt | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 41. D08.canonical-record-roundtrip | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 42. D08.expected-state | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 43. D08.canonical-intent | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 44. D08.files-receipt | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 45. D08.canonical-record-roundtrip | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 46. D08.ready-verified-proof | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 47. D08.expected-state | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 48. D08.canonical-intent | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 49. D08.files-receipt | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 50. D08.canonical-record-roundtrip | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 51. D08.canonical-ready-preserved | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 52. D08.expected-state | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 53. D08.canonical-intent | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 54. D08.files-receipt | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 55. D08.canonical-record-roundtrip | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 56. D08.canonical-ready-preserved | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 57. D08.protection-released | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 58. D08.run-complete | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 59. D08.actual-output-hash | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 60. CP01.actual-ready-complete-shape-canonical-files-reservation | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 61. CP02.two-jobs-over-1MiB-canonical-transitions | 격리 B/C 실제2-job 비교 / exit0 | PASS | B군 |
+| 62. D08.input-keyframes | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 63. D08.source-shape | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 64. D08.selection-complete | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 65. D08.expected-intent-built | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 66. D08.admission | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 67. D08.expected-state | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 68. D08.canonical-intent | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 69. D08.canonical-record-roundtrip | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 70. D08.expected-state | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 71. D08.canonical-intent | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 72. D08.files-receipt | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 73. D08.canonical-record-roundtrip | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 74. D08.expected-state | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 75. D08.canonical-intent | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 76. D08.files-receipt | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 77. D08.canonical-record-roundtrip | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 78. D08.ready-verified-proof | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 79. D08.expected-state | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 80. D08.canonical-intent | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 81. D08.files-receipt | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 82. D08.canonical-record-roundtrip | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 83. D08.canonical-ready-preserved | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 84. D08.expected-state | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 85. D08.canonical-intent | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 86. D08.files-receipt | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 87. D08.canonical-record-roundtrip | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 88. D08.canonical-ready-preserved | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 89. D08.protection-released | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 90. D08.run-complete | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 91. D08.actual-output-hash | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 92. D08.selection-complete | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 93. D08.expected-intent-built | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 94. D08.admission | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 95. D08.expected-state | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 96. D08.canonical-intent | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 97. D08.canonical-record-roundtrip | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 98. D08.expected-state | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 99. D08.canonical-intent | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 100. D08.files-receipt | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 101. D08.canonical-record-roundtrip | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 102. D08.expected-state | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 103. D08.canonical-intent | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 104. D08.files-receipt | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 105. D08.canonical-record-roundtrip | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 106. D08.ready-verified-proof | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 107. D08.expected-state | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 108. D08.canonical-intent | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 109. D08.files-receipt | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 110. D08.canonical-record-roundtrip | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 111. D08.canonical-ready-preserved | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 112. D08.expected-state | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 113. D08.canonical-intent | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 114. D08.files-receipt | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 115. D08.canonical-record-roundtrip | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 116. D08.canonical-ready-preserved | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 117. D08.protection-released | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 118. D08.run-complete | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 119. D08.actual-output-hash | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 120. CP01.actual-ready-complete-shape-canonical-files-reservation | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+| 121. CP02.two-jobs-over-1MiB-canonical-transitions | 격리 B/C 실제2-job 비교 / exit0 | PASS | C군 |
+
 ## writer 경계 관측
 
 ### 저장 기준 oracle 반례

@@ -11,6 +11,9 @@
 
 namespace recording {
 struct ManagedJournalState;
+struct RecordingJournalRecordLocation;
+using RecordingJournalRecordLocationHandle = std::shared_ptr<const RecordingJournalRecordLocation>;
+using RecordingJournalRecordLocations = std::vector<RecordingJournalRecordLocationHandle>;
 
 enum class RecordingMutationType {
     SegmentFinalized,
@@ -105,6 +108,9 @@ private:
     bool CheckManagedStateLocked(std::string* error) const;
     bool ManagedOrderMatches(const RecordingOrderReservationV1& order, std::string* error) const;
     bool ReadCheckpointRecords(const void* owner, RecordingMutationHandles* records, std::string* error) const;
+    bool ReadRecordLocations(const void* owner, RecordingJournalRecordLocations* records, std::string* error) const;
+    bool AcquireLocatedRecord(const void* owner, const RecordingJournalRecordLocationHandle& location,
+                             RecordingMutationHandle* record, std::string* error) const;
     bool PrepareCheckpoint(const void* owner, RecordingMutationHandles* candidate, std::string* error) const;
     bool CommitCheckpoint(const void* owner, const RecordingMutationHandles& candidate, bool recover_only, std::string* error);
     bool CheckpointDue(const void* owner) const;
