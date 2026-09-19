@@ -3,6 +3,607 @@
 독자: 녹화 구현·검증 담당. 수명: 이번 단기 검사의 실패/RED/GREEN 보존형 전수 결과. 정책은 AGENTS.md이며 해석은 [중앙 기록](../../../release-test-records.md)의 LP18을 따른다.
 예상 RED의 assertion은 실제 FAIL로 남기며 제품 PASS로 바꾸지 않는다.
 
+## 위치 기반: RED·GREEN·writer 영향 실패
+
+### lp18-location-build-01.txt
+
+[원출력](lp18-location-build-01.txt)
+
+개별 assertion 출력 없음. 실제 명령·exit는 원출력과 중앙 기록에 보존하며 결과를 추정 생성하지 않는다.
+
+### lp18-location-cache-01.txt
+
+[원출력](lp18-location-cache-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. LP15-C01 cold full applied=1 expected=1 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 2. LP15-C01 unchanged prefix applied=0 expected=0 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 3. LP15-C01 exact prefix suffix only applied=1 expected=1 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 4. LP15-C01 independent prefix shadow/full projection equality | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 5. LP15-C01 full fallback schema applied=2 expected=2 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 6. LP15-C01 full fallback type applied=2 expected=2 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 7. LP15-C01 full fallback id applied=2 expected=2 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 8. LP15-C01 full fallback entity applied=2 expected=2 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 9. LP15-C01 full fallback time applied=2 expected=2 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 10. LP15-C01 full fallback payload applied=2 expected=2 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 11. LP15-C01 full fallback reorder applied=2 expected=2 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 12. LP15-C01 full fallback shrink applied=2 expected=2 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 13. LP15-C01 full fallback null-shadow applied=2 expected=2 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 14. LP15-C01 full fallback null-handle applied=2 expected=2 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 15. LP15-C01 Open clears cache applied=2 expected=2 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 16. LP15-C03 recover full/no-cache | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 17. LP15-C03 after recover full applied=2 expected=2 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 18. LP15-C03 injected commit refusal discards cache | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 19. LP15-C03 after commit refusal full applied=2 expected=2 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 20. LP15-C03 suffix exception discards cache | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 21. LP15-C03 after exception full applied=3 expected=3 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 22. LP15-C03 public poisoned entry discards cache | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 23. LP15-C03 after restored fixture full applied=3 expected=3 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 24. LP15-C04 exact byte charge boundary | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 25. LP15-C04 overflow charge rejected | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 26. LP15-C04 8192 records admitted | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 27. LP15-C04 8193 records rejected | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 28. LP15-C04 64MiB record charge admitted | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 29. LP15-C04 64MiB plus one rejected | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 30. LP15-C03 changed candidate prime applied=1 expected=1 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 31. LP15-C03 changed candidate suffix12 plus full candidate13 applied=25 expected=25 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 32. LP15-C03 changed candidate cache equals independent full projection | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 33. LP15-C03 compacted candidate prefix reused applied=0 expected=0 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 34. LP15-C03 forced projection mismatch discards cache | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 35. LP15-C04 overlimit prime applied=1 expected=1 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 36. LP15-C04 existing cache ignored for oversized original applied=8193 expected=8193 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 37. LP15-C04 oversized candidate not retained | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 38. LP15-C04 next oversized checkpoint full applied=8193 expected=8193 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 39. CP01 actual Ready Complete shape canonical files reservation | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 40. CP02 bounded two jobs over 1MiB canonical transitions | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 41. LP15-C02 bounded automatic checkpoint and whole transition measurement | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 42. LP15-C02 reopened full applied=18 expected=18 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 43. LP15-C02 actual unchanged prefix applied=0 expected=0 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 44. LP15-C02 actual suffix only applied=1 expected=1 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 45. LP15-C02 actual job shadow/full projection equality | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 46. LP15-C03 illegal Ready after Complete suffix rejected by cached/full paths | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 47. LP15-C04 peakRSS bytes=162611200 cap=536870912 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+
+### lp18-location-catalog-01.txt
+
+[원출력](lp18-location-catalog-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. journal open:  | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 2. fallback catalog open:  | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 3. SQLite off mode 표시 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 4. segment finalize journal+projection:  | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 5. fallback range query | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 6. event link FK 위반 거부 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 7. FK 위반 transaction/journal 전체 rollback | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 8. 최초 durable mutation 1개 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 9. 동일 mutation 중복 append | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 10. 손상 사이 정상 durable mutation 보존 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 11. 중간 corrupt line count | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 12. 마지막 truncated line skip | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 13. fallback replay open | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 14. 같은 mutation idempotent replay | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 15. 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 16. 중복 replay row/합계 불증가 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 17. 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구:  | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 18. writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 19. v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 20. SQLite catalog open/rebuild:  | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 21. SQLite primary mode 표시 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 22. SQLite on/off range query ID·순서 parity | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 23. journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 24. journal 없는 손상 media orphan 구분 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 25. projection failover journal open:  | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 26. projection failover catalog open:  | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 27. 실제 SQLite INSERT 실패 trigger 설치 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 28. SQLite 투영 실패 뒤 journal+memory finalize 유지:  | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 29. SQLite 투영 실패 즉시 JSONL fallback 전환 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 30. 재시작 rebuild 전 실패 trigger 제거 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 31. 투영 실패 직후 in-memory query 정합성 유지 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 32. projection failover 재시작 journal rebuild:  | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 33. 재시작 후 journal에서 누락 SQLite projection 복구 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 34. 재시작 후 SQLite primary 복귀 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 35. 재시작 journal rebuild가 실제 SQLite row 복원 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 36. tombstone journal open:  | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 37. tombstone catalog open:  | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 38. tombstone 대상 segment finalize:  | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 39. tombstone 대상 deletion request:  | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 40. tombstone 완료 기록:  | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 41. catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 42. 손상 SQLite 격리 후 journal rebuild:  | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 43. 손상 SQLite 원본 격리 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 44. 격리 SQLite 파일 보존 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 45. 격리 후 journal rebuild 결과 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 46. S10-3A future-schema journal read open | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 47. S10-3A future-schema unsupported classification | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 48. S10-3A future-schema catalog open denied | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 49. S10-3A future-schema catalog retry denied | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 50. S10-3A future-schema journal bytes preserved | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 51. S10-3A future-schema SQLite bytes preserved | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 52. S10-3A future-schema writer cleanup untouched | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 53. S10-3A arbitrary-schema journal read open | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 54. S10-3A arbitrary-schema unsupported classification | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 55. S10-3A arbitrary-schema catalog open denied | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 56. S10-3A arbitrary-schema catalog retry denied | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 57. S10-3A arbitrary-schema journal bytes preserved | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 58. S10-3A arbitrary-schema SQLite bytes preserved | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 59. S10-3A arbitrary-schema writer cleanup untouched | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 60. S10-3A empty-schema journal read open | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 61. S10-3A empty-schema unsupported classification | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 62. S10-3A empty-schema catalog open denied | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 63. S10-3A empty-schema catalog retry denied | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 64. S10-3A empty-schema journal bytes preserved | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 65. S10-3A empty-schema SQLite bytes preserved | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 66. S10-3A empty-schema writer cleanup untouched | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 67. S10-3A future-type journal read open | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 68. S10-3A future-type unsupported classification | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 69. S10-3A future-type catalog open denied | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 70. S10-3A future-type catalog retry denied | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 71. S10-3A future-type journal bytes preserved | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 72. S10-3A future-type SQLite bytes preserved | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 73. S10-3A future-type writer cleanup untouched | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 74. S10-3A malformed journal open | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 75. S10-3A malformed JSON missing fields and wrong types remain corrupt | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 76. S10-O01 reservation journal open | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 77. S10-O01 first reservation returns four IDs and sequence one | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 78. S10-O01 versioned reservation payload replays | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 79. S10-O01 new reservation records actual occurred time | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 80. S10-O02 identical retry preserves sequence and bytes | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 81. S10-O03 reopened instance allocates next sequence | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 82. S10-O03 new process resumes durable sequence | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 83. S10-O04 different store rejected | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 84. S10-O04 reused request with different segment rejected | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 85. S10-O04 reused request with different channel rejected | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 86. S10-O04 reused segment with different request rejected | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 87. S10-O04 conflicts preserve original bytes | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 88. S10-O05/O06 reject and preserve corrupt | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 89. S10-O05/O06 reject and preserve unsupported-schema | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 90. S10-O05/O06 reject and preserve unsupported-type | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 91. S10-O05/O06 reject and preserve tail | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 92. S10-O05/O06 reject and preserve payload-zero | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 93. S10-O05/O06 reject and preserve payload-negative | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 94. S10-O05/O06 reject and preserve payload-fraction | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 95. S10-O05/O06 reject and preserve payload-overflow | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 96. S10-O05/O06 reject and preserve duplicate-sequence | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 97. S10-O05/O06 reject and preserve decreasing-sequence | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 98. S10-O05/O06 reject and preserve duplicate-request | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 99. S10-O05/O06 reject and preserve duplicate-segment | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 100. S10-O05/O06 reject and preserve store-conflict | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 101. S10-O05/O06 reject and preserve ordinary-before | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 102. S10-O05/O06 reject and preserve ordinary-after | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 103. S10-O05/O06 reject and preserve line-cap | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 104. S10-O05 reservation entity envelope binding rejects mismatch | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 105. S10-O05 reservation request envelope binding rejects mismatch | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 106. S10-O01 strict reservation parser accepts versioned literal | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 107. S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 108. S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 109. S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 110. S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 111. S10-O06 INT64_MAX identical retry remains valid | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 112. S10-O06 sequence overflow rejected without write | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 113. S10-O02 identical durable reservation duplicates remain idempotent | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 114. S10-O06 sequence gaps remain valid and allocate above maximum | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 115. S10-O07 four simultaneous processes finish reservations | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 116. S10-O07 concurrent sequences are unique and complete | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 117. S10-O07 next sequence follows concurrent reservations | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 118. S10-O08 ordinary Append cannot reserve orders | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 119. S10-O08 unopened journal rejected | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 120. S10-O08 null result rejected | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 121. S10-O08 invalid opaque ID rejected | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 122. S10-O08 failed reservation does not expose tentative result | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 123. S10-O09 unsafe file binding rejected and original preserved inode | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 124. S10-O09 unsafe file binding rejected and original preserved parent | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 125. S10-O09 unsafe file binding rejected and original preserved symlink | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 126. S10-O09 unsafe file binding rejected and original preserved hardlink | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 127. S10-O10 reservation and normal segment coexist in catalog | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 128. S10-O04 reserve then finalize permits identical retry | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 129. S10-O10 reservation survives catalog rebuild without changing segment query | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 130. S10-O04 legacy segment cannot acquire retroactive reservation | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 131. S10-M06 opened catalog accepts fresh exact reservation V2 finalize | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 132. S10-M07 V2 find preserves complete metadata | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 133. S10-M07 identical V2 recovery is idempotent | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 134. S10-M07 V2 is absent from V1 range query | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 135. S10-M07 V2 registered path is not orphan | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 136. S10-M07 SQLite exact V2 JSON and path match | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 137. S10-M07 JSONL restart preserves V2 exact payload | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 138. S10-M06 wrong reservation tuple rejected store | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 139. S10-M06 wrong reservation tuple rejected request | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 140. S10-M06 wrong reservation tuple rejected segment | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 141. S10-M06 wrong reservation tuple rejected channel | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 142. S10-M06 wrong reservation tuple rejected sequence | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 143. S10-M09 immutable V2 mapping mismatch rejected | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 144. S10-M09 bad V2 startup retry preserves original state bad-payload | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 145. S10-M09 bad V2 startup retry preserves original state missing-order | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 146. S10-M09 bad V2 startup retry preserves original state bad-order | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 147. S10-M09 bad V2 startup retry preserves original state conflicting-order | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 148. S10-M09 bad V2 startup retry preserves original state tail | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 149. S10-M09 bad V2 startup retry preserves original state corrupt | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 150. S10-M09 bad V2 startup retry preserves original state unsafe-path | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 151. S10-M09 default off rejects V2 before SQLite changes | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 152. S10-M09 V2 replay namespace and deletion duplicate | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 153. S10-M09 V2 replay namespace and deletion deleted | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 154. S10-M09 V2 replay namespace and deletion v1-before | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 155. S10-M09 V2 replay namespace and deletion v1-after | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 156. S10-M09 V2 replay namespace and deletion deleted-before | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 157. S10-M09 V2 replay namespace and deletion resurrection | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 158. S10-M09 V2 replay namespace and deletion mutation-collision | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 159. S10-M09 V2 finalize rejects missing media | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 160. S10-M09 V2 finalize rejects directory media | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 161. S10-M09 fresh candidate rejects mapping | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 162. S10-M09 fresh candidate rejects path | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 163. S10-M09 fresh candidate rejects tombstone | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 164. S10-SW01 managed empty root opens with lifetime lease | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 165. S10-SW02 same process second managed owner denied | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 166. S10-SW03 different process owner and inherited use denied | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 167. S10-SW12 managed duplicate descriptors are close-on-exec | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 168. S10-SW05 managed reserve append replay use owned descriptor | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 169. S10-SW06 raw managed access and legacy default path denied | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 170. S10-SW01 managed Reserve rejects different store identity | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 171. S10-SW10 catalog connection can inspect managed lease | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 172. S10-SW04 owner destruction releases lease | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 173. S10-SW01 managed reopen rejects different store identity | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 174. S10-SW11 managed incomplete tail rejects append without changing bytes | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 175. S10-SW07 legacy nonempty root preserved without conversion | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 176. S10-SW08 partial initialization retry validates exact state lease | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 177. S10-SW08 partial initialization retry validates exact state init | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 178. S10-SW08 partial initialization retry validates exact state barrier | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 179. S10-SW08 partial initialization retry validates exact state journal | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 180. S10-SW08 partial initialization retry validates exact state incomplete | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 181. S10-SW08 partial initialization retry validates exact state unknown | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 182. S10-SW09 symlink inode and malformed marker rejected journal | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 183. S10-SW09 symlink inode and malformed marker rejected marker | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 184. S10-SW09 symlink inode and malformed marker rejected barrier | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 185. S10-SW09 symlink inode and malformed marker rejected root-symlink | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 186. S10-SB01 second managed catalog is denied | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 187. S10-SB02 failed catalog cannot mutate journal or holds | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 188. S10-SB03 attached catalog blocks unowned append but permits reservation | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 189. S10-SB04 catalog destruction releases attachment | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 190. S10-SB05 managed catalog rejects unsafe options outside | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 191. S10-SB05 managed catalog rejects unsafe options dotdot | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 192. S10-SB05 managed catalog rejects unsafe options media-symlink | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 193. S10-SB05 managed catalog rejects unsafe options sqlite-symlink | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 194. S10-SB05 managed catalog rejects unsafe options sqlite-hardlink | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 195. S10-SB05 managed catalog rejects unsafe options disabled | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 196. S10-SB06 failed open releases catalog attachment | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 197. S10-SB07 managed SQLite sidecar rejected -wal symlink | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 198. S10-SB07 managed SQLite sidecar rejected -wal hardlink | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 199. S10-SB07 managed SQLite sidecar rejected -shm symlink | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 200. S10-SB07 managed SQLite sidecar rejected -shm hardlink | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 201. S10-SB07 managed SQLite sidecar rejected -journal symlink | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 202. S10-SB07 managed SQLite sidecar rejected -journal hardlink | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 203. S10-SC01 managed repeated event fixture is valid | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 204. S10-SC02 managed reservations avoid history reads | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 205. S10-SC03 managed V2 finalize avoids full replay | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 206. S10-SC04 checkpoint reduces superseded event payload bytes | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 207. S10-SC05 checkpoint preserves latest event and all record identities | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 208. S10-SC06 checkpoint is idempotent and preserves V2 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 209. S10-SC08 receipt preserves retry identity and rejects direct append | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 210. S10-SC09 checkpoint restart preserves SQLite and JSONL state sqlite | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 211. S10-SC09 managed checkpoint SQL V2 payload and path | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 212. S10-SC09 checkpoint restart preserves SQLite and JSONL state jsonl | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 213. S10-SC10 checkpoint prefix recovers before writes | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 214. S10-SC11 checkpoint mismatch preserves bytes and poisons owner | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 215. S10-SC12 first accepted mutation controls latest event | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 216. S10-SC16 automatic checkpoint uses accumulated growth | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 217. S10-SC07 raw checkpoint is rejected | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 218. S10-SC18 checkpoint syscall failure poisons and reopens write | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 219. S10-SC21 poison rejects hold mutation write | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 220. S10-SC18 checkpoint syscall failure poisons and reopens file-fsync | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 221. S10-SC21 poison rejects hold mutation file-fsync | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 222. S10-SC18 checkpoint syscall failure poisons and reopens rename | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 223. S10-SC21 poison rejects hold mutation rename | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 224. S10-SC18 checkpoint syscall failure poisons and reopens dir-fsync | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 225. S10-SC21 poison rejects hold mutation dir-fsync | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 226. S10-SC17 checkpoint preserves holds observations and deletion | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 227. S10-SC17 checkpoint SQL hold observation tombstone | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 228. S10-SC17 checkpoint preserves holds observations and deletion restart sqlite | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 229. S10-SC17 checkpoint SQL restart observation tombstone | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 230. S10-SC17 checkpoint preserves holds observations and deletion restart jsonl | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 231. S10-SC19 invalid managed history remains unchanged malformed | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 232. S10-SC19 invalid managed history remains unchanged unsupported | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 233. S10-SC19 invalid managed history remains unchanged conflict | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 234. S10-SC20 raw catalog rejects receipt before side effects | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 235. S10-SC13 crypto off raw remains usable | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 236. S10-SC14 crypto off checkpoint is rejected | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 237. S10-SC15 crypto off receipt reopen is rejected | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 238. source 저장 callback reconcile 연결 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 239. policy revision idempotency | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 240. 5초 safety reconcile | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 241. composition root 관리 저장소 선행 open | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 242. composition helper journal 다음 catalog rebuild/open | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 243. 서버 전 supervisor 시작 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 244. ingress 전 event bridge 등록 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 245. ingress 종료 뒤 recorder finalize | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 246. composition root 시작/종료 순서 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+
+### lp18-location-prepared-01.txt
+
+[원출력](lp18-location-prepared-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. LP14-C01 state=1 updates=1 full_parse=1 expected=1 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 2. LP14-C01 state=2 updates=1 full_parse=1 expected=1 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 3. LP14-C01 state=3 updates=1 full_parse=1 expected=1 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 4. LP14-C03 memory/sqlite canonical bytes and CompletedOracle | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 5. LP14-C02 binding=payload rejected without apply | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 6. LP14-C02 binding=type rejected without apply | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 7. LP14-C02 binding=entity rejected without apply | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 8. LP14-C02 binding=owner rejected without apply | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 9. LP14-C02 binding=prior rejected without apply | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 10. LP14-C02 duplicate envelope no-apply/conflict rejection | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 11. LP14-C02 one-shot apply/reuse rejection | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+
+### lp18-location-writer-01.txt
+
+[원출력](lp18-location-writer-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. WR01 h264 managed segments decode all frames without legacy callback or snapshot | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 2. S10-C321 h264 실제 수락 원본 tuple과 segment 결박 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 3. WR01 vp8 managed segments decode all frames without legacy callback or snapshot | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 4. S10-C321 vp8 실제 수락 원본 tuple과 segment 결박 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 5. WR02 UTC-only change preserves media splits frames and independent mapping | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 6. WR03 UTC-only change preserves media splits frames and independent mapping | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 7. WR04 UTC-only change preserves media splits frames and independent mapping | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 8. WR05 duplicate PTS with advancing DTS preserves media and unknown mapping | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 9. WR06 explicit generation reset creates a new media epoch | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 10. S10-C326 세대별 원본 결박 분리 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 11. WR07 repeated observations and processing UTC do not duplicate media | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 12. S10-C325 분할·재전달의 segment별 수락 범위 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 13. S10-C322 keyframe 대기·다른 track·빈 입력·replay 제외 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 14. S10-C324 색인 상한 뒤에도 실제4100프레임 저장·미색인 꼬리 표시 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 15. WR08 missing final duration preserves media with unknown end | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 16. WR09 mapping budget retains bounded unknown tail and all frames | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 17. WR01 invalid binding rejects before writes journal | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 18. WR01 invalid binding rejects before writes catalog | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 19. WR01 invalid binding rejects before writes root | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 20. WR01 invalid binding rejects before writes store | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 21. WR01 invalid binding rejects before writes lease | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 22. WR01 invalid binding rejects before writes incomplete | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 23. WR08 clock process change preserves same-generation media with unknown comparison | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 24. WR08 invalid duration leaves unknown end zero | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 25. WR08 invalid duration leaves unknown end overflow | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 26. WR08 unsafe original input cannot become finalized observation | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 27. WR08 unsafe original input cannot become finalized pts | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 28. WR08 unsafe original input cannot become finalized range | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 29. WR07 older generation cache cannot switch media backwards | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 30. WR07 unrelated video track cannot change selected track identity | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 31. WR06 reopened store allocates fresh IDs and increasing durable order | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 32. WR05 actual H264 reordering preserves decode timestamps and mux origin | 원출력의 개별 assertion | FAIL | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 33. WR05 reordered segment end covers maximum presented frame end | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 34. S10-C327 실제 B-frame 원본PTS·ordinal 보존 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 35. WR08 missing maximum PTS frame duration keeps reordered end unknown | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 36. WR09 failed active commit preserves ready order and quota reservation | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 37. WR09 restart recovers the same durable segment and all frames | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 38. WR08 excessive clock width preserves media as unknown | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 39. WR08 zero generation order cannot become finalized | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 40. WR08 media observation quality normal | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 41. WR08 media observation quality fast | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 42. WR08 media observation quality drift | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 43. WR08 media observation quality fast-step | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 44. WR01 actual appsink observation flows through managed writer and decode | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+
+### lp18-location-writer-diagnostic-01.txt
+
+[원출력](lp18-location-writer-diagnostic-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. WR01 h264 managed segments decode all frames without legacy callback or snapshot | 원출력의 개별 assertion | FAIL | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 2. S10-C321 h264 실제 수락 원본 tuple과 segment 결박 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 3. WR01 vp8 managed segments decode all frames without legacy callback or snapshot | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 4. S10-C321 vp8 실제 수락 원본 tuple과 segment 결박 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 5. WR02 UTC-only change preserves media splits frames and independent mapping | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 6. WR03 UTC-only change preserves media splits frames and independent mapping | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 7. WR04 UTC-only change preserves media splits frames and independent mapping | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 8. WR05 duplicate PTS with advancing DTS preserves media and unknown mapping | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 9. WR06 explicit generation reset creates a new media epoch | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 10. S10-C326 세대별 원본 결박 분리 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 11. WR07 repeated observations and processing UTC do not duplicate media | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 12. S10-C325 분할·재전달의 segment별 수락 범위 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 13. S10-C322 keyframe 대기·다른 track·빈 입력·replay 제외 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 14. S10-C324 색인 상한 뒤에도 실제4100프레임 저장·미색인 꼬리 표시 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 15. WR08 missing final duration preserves media with unknown end | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 16. WR09 mapping budget retains bounded unknown tail and all frames | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 17. WR01 invalid binding rejects before writes journal | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 18. WR01 invalid binding rejects before writes catalog | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 19. WR01 invalid binding rejects before writes root | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 20. WR01 invalid binding rejects before writes store | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 21. WR01 invalid binding rejects before writes lease | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 22. WR01 invalid binding rejects before writes incomplete | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 23. WR08 clock process change preserves same-generation media with unknown comparison | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 24. WR08 invalid duration leaves unknown end zero | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 25. WR08 invalid duration leaves unknown end overflow | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 26. WR08 unsafe original input cannot become finalized observation | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 27. WR08 unsafe original input cannot become finalized pts | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 28. WR08 unsafe original input cannot become finalized range | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 29. WR07 older generation cache cannot switch media backwards | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 30. WR07 unrelated video track cannot change selected track identity | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 31. WR06 reopened store allocates fresh IDs and increasing durable order | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 32. WR05 actual H264 reordering preserves decode timestamps and mux origin | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 33. WR05 reordered segment end covers maximum presented frame end | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 34. S10-C327 실제 B-frame 원본PTS·ordinal 보존 | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 35. WR08 missing maximum PTS frame duration keeps reordered end unknown | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 36. WR09 failed active commit preserves ready order and quota reservation | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 37. WR09 restart recovers the same durable segment and all frames | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 38. WR08 excessive clock width preserves media as unknown | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 39. WR08 zero generation order cannot become finalized | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 40. WR08 media observation quality normal | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 41. WR08 media observation quality fast | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 42. WR08 media observation quality drift | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 43. WR08 media observation quality fast-step | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 44. WR01 actual appsink observation flows through managed writer and decode | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+
+### lp18-ownership-green-location-01.txt
+
+[원출력](lp18-ownership-green-location-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. LP18-L01 baseline managed Replay preserves full canonical record | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 2. LP18-L01 journal located record capability exists | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 3. LP18-L02 acquired record retains complete canonical value | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 4. LP18-L02 public Replay mutation cannot alter acquired immutable value | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 5. LP18-L03 Append retry preserves physical row count and original value | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 6. LP18-L03 Reserve retry preserves physical row count and sequence | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 7. LP18-L02 reopen reconstructs located original and reservation records | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 8. LP18-L04 blank lines whitespace and 64KiB crossing retain exact row order | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 9. LP18-L04 repeated mutation ID retains separate physical row tokens | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 10. LP18-L04 located reads preserve accepted noncanonical envelope bytes | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 11. LP18-L05 no-write checkpoint keeps existing location generation usable | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 12. LP18-L05 recover-only pending cleanup keeps existing generation usable | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 13. LP18-L05 receipt swap rebinds all locations to exact committed bytes | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 14. LP18-L05 stale location rejects and clears output without poisoning current journal | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 15. LP18-L05 previously acquired owned record survives receipt file replacement | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 16. LP18-L05 retry after receipt returns original type without new location | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 17. LP18-L06 null token clears output without poisoning | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 18. LP18-L06 foreign or null owner rejects without poisoning | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 19. LP18-L06 other journal token rejects without poisoning | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 20. LP18-L06 fork rejects located access while parent retains valid ownership | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 21. LP18-L07 same-size raw tamper poisons and clears output despite resident handle | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 22. LP18-L07 truncation poisons and clears output | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 23. LP18-L07 inode replacement poisons and clears output | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+
+### lp18-ownership-green-location-02.txt
+
+[원출력](lp18-ownership-green-location-02.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. LP18-L01 baseline managed Replay preserves full canonical record | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 2. LP18-L01 journal located record capability exists | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 3. LP18-L02 acquired record retains complete canonical value | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 4. LP18-L02 public Replay mutation cannot alter acquired immutable value | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 5. LP18-L03 Append retry preserves physical row count and original value | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 6. LP18-L03 Reserve retry preserves physical row count and sequence | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 7. LP18-L02 reopen reconstructs located original and reservation records | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 8. LP18-L04 blank lines whitespace and 64KiB crossing retain exact row order | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 9. LP18-L04 repeated mutation ID retains separate physical row tokens | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 10. LP18-L04 located reads preserve accepted noncanonical envelope bytes | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 11. LP18-L05 no-write checkpoint keeps existing location generation usable | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 12. LP18-L05 recover-only pending cleanup keeps existing generation usable | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 13. LP18-L05 receipt swap rebinds all locations to exact committed bytes | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 14. LP18-L05 stale location rejects and clears output without poisoning current journal | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 15. LP18-L05 previously acquired owned record survives receipt file replacement | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 16. LP18-L05 retry after receipt returns original type without new location | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 17. LP18-L06 null token clears output without poisoning | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 18. LP18-L06 foreign or null owner rejects without poisoning | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 19. LP18-L06 other journal token rejects without poisoning | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 20. LP18-L06 fork rejects located access while parent retains valid ownership | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 21. LP18-L07 same-size raw tamper poisons and clears output despite resident handle | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 22. LP18-L07 truncation poisons and clears output | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 23. LP18-L07 inode replacement poisons and clears output | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 24. LP18-L08 oversized append remains available through resident fallback only | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 25. LP18-L08 oversized retry preserves original value and durable row count | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 26. LP18-L09 append location exception clears output and poisons after durable write | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 27. LP18-L09 append exception reopens exactly one durable original record | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 28. LP18-L09 reserve location exception withholds result and poisons after durable write | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 29. LP18-L09 reserve exception reopens reservation and retry does not duplicate it | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 30. LP18-L09 checkpoint location exception preserves bytes and usable generation without poison | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 31. LP18-L09 checkpoint retries successfully after location preparation exception | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 32. LP18-L09 acquire allocation exception poisons clears output and retains old owned value | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+
+### lp18-ownership-green-location-crypto-off-01.txt
+
+[원출력](lp18-ownership-green-location-crypto-off-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. LP18-L10 crypto-off managed append acquires exact resident value only | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 2. LP18-L10 crypto-off retry preserves resident value and physical row count | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 3. LP18-L10 crypto-off checkpoint remains rejected with owner and resident value intact | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+
+### lp18-ownership-green-location-envelope-01.txt
+
+[원출력](lp18-ownership-green-location-envelope-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. LP18-E01 independent value and owned sequences compare equal | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 2. LP18-E01 full field mismatch rejected schema | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 3. LP18-E01 full field mismatch rejected type | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 4. LP18-E01 full field mismatch rejected id | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 5. LP18-E01 full field mismatch rejected entity | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 6. LP18-E01 full field mismatch rejected time | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 7. LP18-E01 full field mismatch rejected payload | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 8. LP18-E01 sequence order remains significant | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 9. LP18-E01 sequence count remains significant | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 10. LP18-E01 null on either side remains rejected | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 11. LP18-E01 identical invalid schema retains comparison result | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 12. LP18-E01 identical invalid enum retains comparison result | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 13. LP18-E01 enum canonical collision remains rejected | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 14. LP18-E01 escape and control bytes retain exact comparison | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 15. LP18-E01 int64 boundaries retain exact comparison | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 16. LP18-E01 payload whitespace remains significant | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 17. LP18-E02 SameSequence performs zero envelope serializations | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 18. LP18-E03 receipt candidate preparation preserves original bytes | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 19. LP18-E04 CommitCheckpoint builds JournalBytes exactly once | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 20. LP18-E03 independent candidate publishes exact bytes and preserves prior owner | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 21. LP18-E03 compacted bytes retain independent full projection | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 22. LP18-E03 invalid candidate rejected before byte building schema | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 23. LP18-E03 invalid candidate rejected before byte building type | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 24. LP18-E03 invalid candidate rejected before byte building id | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 25. LP18-E03 invalid candidate rejected before byte building entity | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 26. LP18-E03 invalid candidate rejected before byte building time | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 27. LP18-E03 invalid candidate rejected before byte building payload | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 28. LP18-E03 invalid candidate rejected before byte building order | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 29. LP18-E03 invalid candidate rejected before byte building count | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 30. LP18-E03 invalid candidate rejected before byte building null | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+
+### lp18-ownership-green-location-owned-01.txt
+
+[원출력](lp18-ownership-green-location-owned-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. LP18-O01 owner checked read view shares journal envelope | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 2. LP18-O01 shared journal original candidate envelopes | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 3. LP18-O01 public Replay value mutation remains isolated | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 4. LP18-O01 retained prefix shares journal envelope | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 5. LP18-O01 full canonical and projection oracle | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 6. LP18-O03 stale candidate after reservation rejected | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 7. LP18-O03 foreign owner candidate rejected | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 8. LP18-O04 exact field order or prefix mutation rejected schema | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 9. LP18-O04 standalone candidate fields rejected without disk change schema | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 10. LP18-O04 exact field order or prefix mutation rejected type | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 11. LP18-O04 standalone candidate fields rejected without disk change type | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 12. LP18-O04 exact field order or prefix mutation rejected id | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 13. LP18-O04 standalone candidate fields rejected without disk change id | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 14. LP18-O04 exact field order or prefix mutation rejected entity | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 15. LP18-O04 standalone candidate fields rejected without disk change entity | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 16. LP18-O04 exact field order or prefix mutation rejected time | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 17. LP18-O04 standalone candidate fields rejected without disk change time | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 18. LP18-O04 exact field order or prefix mutation rejected payload | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 19. LP18-O04 standalone candidate fields rejected without disk change payload | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 20. LP18-O04 exact field order or prefix mutation rejected reorder | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 21. LP18-O04 standalone candidate fields rejected without disk change reorder | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 22. LP18-O04 exact field order or prefix mutation rejected shrink | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 23. LP18-O04 standalone candidate fields rejected without disk change shrink | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 24. LP18-O04 null envelope safely rejected | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 25. LP18-O02 only transformed receipts own new envelopes | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 26. LP18-O02 prepared receipts preserve original canonical bytes | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 27. LP18-O02 publication bytes and prior owned snapshot remain exact | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 28. LP18-O02 published journal and prefix share transformed receipt envelopes | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 29. LP18-O02 receipt independent full projection equality | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 30. LP18-O03 stale candidate after ordinary append rejected | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 31. LP18-O05 8192 logical records admitted | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 32. LP18-O05 8193 aliases still rejected | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 33. LP18-O05 64MiB logical bytes admitted | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 34. LP18-O05 64MiB plus one rejected | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+
+### lp18-ownership-red-location-01.txt
+
+[원출력](lp18-ownership-red-location-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 1. LP18-L01 baseline managed Replay preserves full canonical record | 원출력의 개별 assertion | PASS | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+| 2. LP18-L01 journal located record capability exists | 원출력의 개별 assertion | FAIL | 실행 범위·과거 실패·정리 한계는 중앙 기록 |
+
 ## Intent 대조: 준비 실패·RED·GREEN 및 영향 회귀
 
 ### lp18-ownership-red-intent-01.txt

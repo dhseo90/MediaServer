@@ -1,6 +1,292 @@
 # Release Test Records
 
+## 2026-09-20 LP18 미커밋 정리와 조건부 푸시 판정
+
+사용자 요청: 남은 미커밋을 정리하고 불필요하면 삭제, 푸시 가능할 때만 푸시, 잔여 이슈 재정리.
+이번 범위는 LP18 미커밋 분류·기록 정합성과 조건부 푸시 판단이다. 실패 원인 진단 실행·제품 수정·
+S11/릴리즈 전수 검증을 추가 승인받은 것으로 해석하지 않는다. 메인이 직접 처리하며 새 위임은 없다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 미커밋 정리 | 분류 완료 | 총24개: 문서/증적17개, 제품/검증코드7개. 기록은 별도 문서 커밋 대상, 실패 단계 코드는 보존 | 아래 파일 분류·Git diff |
+| 2 | 불필요하면 삭제 | 판단 완료 | 불필요한 파일 없음. 미완료 구현과 필요한 실패 기록을 버리지 않음, 실제 삭제0 | 위치 소비 예정 경계·실행별 원출력 |
+| 3 | 가능할 때 푸시 | 불가 판정 | WR01/WR05 실패 원인 미확정, 현재 위치 단위 영향 회귀 미완료. 푸시 미수행 | AGENTS3.1/5.2/8·아래 중단 기록 |
+| 4 | 잔여 이슈 | 정리 완료 | 현재 LP18 안에서 진단→위치 단위 마감→RAM 수명→비용/HTTP→커밋·푸시 순서 | 아래 잔여 순서 |
+
+기준은 branch/VERSION/CMake/build-cache 모두4.1.0. 시작 HEAD `bca60c94`, 로컬 origin 추적 ref 대비
+ahead24/behind0이다. 현재 푸시 불가가 확정되어 fetch/원격 조회는 하지 않았으며 원격 최신 동기화를 주장하지 않는다.
+기존 누적 커밋을 원격으로 보내는 것은 이번 문서 정리 커밋 하나만 보내는 것과 다르다.
+
+### 파일 분류와 보존 결정
+
+| 파일 | 분류 | 판단·처리 | 근거 |
+| --- | --- | --- | --- |
+| include/recording/recording_journal.h | 제품 | 미커밋 보존 | opaque 위치 재획득 선언. 아직 전체 영향 회귀 미충족 |
+| src/recording/recording_journal.cpp | 제품 | 미커밋 보존 | Load/Append/Reserve/checkpoint의 위치 생성·strict 재읽기. API가 아직 소비되지 않아도 쓰기 경로 변경이 있어 실패와 비인과를 단정 못함 |
+| scripts/internal/recording_immutable_ownership_build.sh | 검증 | 제품과 함께 미커밋 보존 | 신규 위치/crypto-off 격리 컴파일·예외 주입, 기존 envelope 계측 호환 |
+| scripts/internal/verify_recording_immutable_ownership.mjs | 검증 | 제품과 함께 미커밋 보존 | 위치32/crypto-off3 oracle·source/정리 증거 |
+| scripts/internal/recording_journal_location_smoke.cpp | 검증 | 제품과 함께 미커밋 보존 | 실제 위치/세대/손상/예외/기존 지원 반례, 빈 placeholder 아님 |
+| scripts/internal/recording_journal_location_counter.h | 검증 | 제품과 함께 미커밋 보존 | 소유 복제본에서만 사용하는 one-shot 예외. 제품 fault hook 아님 |
+| scripts/internal/recording_managed_writer_smoke.cpp | 검증 진단 | 미커밋 보존 | WR05의8개 비민감 값 출력. 실패 원인 해소나 전체 PASS로 커밋하지 않음 |
+| docs/project-feature-test-inventory.md | 사전 정의 | 기록 전용 커밋 대상 | LP18-L01~10 정의이며 기능 완료 표시는 아님 |
+| docs/release-test-records.md | 중앙 기록 | 기록 전용 커밋 대상 | 실행·실패·정리·미실행과 이번 분류 |
+| docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md | 개별 결과 | 기록 전용 커밋 대상 | 원출력516개 행 대조, 예상RED/실제 실패 모두 보존 |
+| docs/superpowers/plans/2026-09-02-v410-recording-foundation-implementation-plan.md | 구현 순서 | 기록 전용 커밋 대상 | LP18-4 미완료·중단,5 미실행 상태 |
+| docs/superpowers/specs/2026-09-19-recording-catalog-cost-contract.md | 구현 계약 | 기록 전용 커밋 대상 | 위치 재획득 경계와 미완료 명시. RAM 완료 주장 없음 |
+| 아래 위치 단위 표의 텍스트12개 | 원출력 | 기록 전용 커밋 대상 | 합계83271B. 첫 실패/진단·RED/GREEN·서로 다른 회귀를 구분하므로 중복 폐기하지 않음 |
+
+기록 커밋은 실패한 제품 단계를 완료 커밋하는 것이 아니다. 제품/검증 코드7개는 커밋 대상에서 명시적으로 제외한다.
+실행 당시 제품 source SHA는 원출력에 보존되어 있으며 문서 commit 자체의 제품 상태가 해당 dirty source와 같다고 주장하지 않는다.
+현재 focused GREEN4개 원출력의37개 source SHA를 직접 대조해 전부 일치했다. 이 읽기 대조는 테스트 재실행이 아니다.
+변경24개 파일의 제한적인 private-key/token/password 패턴 점검에서 신호0개였다. 전면 보안 감사/비밀 전수 검출 보장은 아니다.
+기존 임시 미디어는 이전 실행에서 이미 정리되었으며 이번에는 추가 삭제·프로세스 기동·계정/운영 데이터 접근을 하지 않는다.
+
+### 현재 단계 잔여 순서
+
+| 순서 | 우선순위 | 잔여 이슈 | 해야 할 일·완료 기준 | 근거 유형·범위 |
+| --- | --- | --- | --- | --- |
+| 1 | P0 | WR01/WR05 실패 원인 분리 | 같은 입력·파일의 프레임 수/PTS·DTS/EOS·오류/decoder/hash를 확보하여 생성·저장·디코딩 중 실패 경계 확정. 무작정 전체 반복/시간확대 금지 | 프로젝트 직접 확인: 두 writer exit1. 진단 설계는 제안 |
+| 2 | P0 | 위치 기반 첫 단위 마감 | 확정 원인에 필요한 수정과 동일 검사·영향 회귀. 건너뛴 service/2-job 확인 후 현재 제품/검증코드 커밋 | 프로젝트 직접 확인: LP18-L 자체검사와 실패/미실행 경계 |
+| 3 | P0 | 상세 정보 RAM 수명 실제 적용 | journal/accepted/cache/typed 소비자를 안전한 재획득에 연결. 활성 owned reader·작업·복구/삭제 증거 보호, 비활성 해제·재open 뒤 재상주 방지 | 승인 LP18-4 계약. 영구 삭제·새 저장 형식은 범위 밖 |
+| 4 | P0 | 누적 비용·실제 HTTP 판정 | 작은 입력→실제2-job→16/32원본·삭제/재open→실제HTTP. 기존4초 및 안전 기준으로 비용/회복·정리 판정 | 승인 LP18-5. 다른 코드의 과거 PASS로 대체 불가 |
+| 5 | 마감 | 제품 변경 분할 커밋·조건부 푸시 | 해당 영향 회귀와 기록 일치 확인, 실패/미커밋 해소 후 원격 상태 재확인·승인된 push | AGENTS 직접 규칙5장·이번 조건부 푸시 지시 |
+
+이번 잔여 목록은 LP18 작업 범위이며 릴리즈 전수 감사 결과가 아니다. S11 최종 장시간/UI/릴리즈 행위는 실행하지 않는다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화: 문서/정리 정합성 | 진행 대상 | 이번 문서 정리 | AGENTS7.1, 위 파일 분류/원출력 | 문서 링크·diff check만 실행 |
+| 안정화: 제품/실패 재현 | 미진행 | 이번 요청은 정리·푸시 판정, 원인 미확정 중단 유지 | WR01/WR05, AGENTS8 | 추가 실행 안 함 |
+| 30분 | 미진행 | 이번 정리 범위 밖 | AGENTS7.6.2 | 이번 승인/실행 없음 |
+| 120분 | 미진행 | 이번 정리 범위 밖 | AGENTS7.6.2 | 이번 승인/실행 없음 |
+| UI | 미진행 | 이번 정리 범위 밖 | AGENTS7.6.2 | 이번 승인/실행 없음 |
+
+문서 검증: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links` exit0
+(md285/link8897/image22/anchor116/실패0). elapsed는 실행 도구가 반환한 wall_time_seconds=0.000007이며
+제품 검증 시간으로 해석하지 않는다. token start/end/consumed 미집계(개별 사용량 집계 없음).
+커밋은 이전 동일 범위의 분할 커밋 승인(AGENTS5.1 유지)에 따라 문서/증적17개만 대상으로 한다.
+실제 커밋 hash는 Git 기록과 최종 보고에서 확인하며 현재 실패한 코드7개는 포함하지 않는다.
+첫 `git diff --cached --check`는 신규 로그4개의 `[tool-exit]` 뒤 불필요한 EOF 빈 줄로 exit2였다.
+이전 unstaged diff check는 미추적 파일을 검사하지 않으므로 그 PASS를 신규 파일 검사로 확대하지 않는다.
+도구 원출력·assertion·exit 본문을 바꾸지 않고 wrapper 끝 빈 줄1개씩만 제거한 뒤 동일 staged 검사를 재실행한다.
+실패 후 뒤 커밋은 실행하지 않았으며, 이 형식 보완은 현재 정리 범위 안에서 처리한다.
+보완 후 동일 `git diff --cached --check` exit0, staged 이름/통계17개 전부 docs 경로이며 제품/검증 코드0개임을 확인했다.
+
 ## 2026-09-19 LP18 불변 소유·검증·RAM 수명 보완
+
+### 4번 위치 재획득 기반 착수
+
+시작 `bca60c94`/ahead24/clean. 3번까지 분할 커밋했고 이번 단위는 기존 JSONL의 내부 locator다.
+메인이 계약/제품/실행/증거 검토, 같은 단일 Astra/medium 담당자가 focused fixture/adapter만 맡으며 하위금지다.
+제품API/저장 형식·보존·시간·ID는 변경하지 않는다. 기존 resident 소유를 아직 내리지 않으므로 RAM 개선 완료가 아니다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 승인4번의 내구 재획득 기반 | journal Load/Append/Reserve/Checkpoint / LP18-L01~03 | 관련 단기 승인 |
+| 30분 | 미진행 | 개발 중이며 최종cut 아님 | AGENTS7.6.2 | 이번 실행 없음 |
+| 120분 | 미진행 | 개발 중이며 최종cut 아님 | AGENTS7.6.2 | 이번 실행 없음 |
+| UI | 미진행 | 내부 저장·사용자 브라우저 제외 | LP18-L01~03 | 이번 실행 없음 |
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-L01 위치 기반 | managed 기록 재읽기·canonical 동등·반환 값 독립 | opaque 토큰과 실제 파일을 통한 strict 재획득 | v4.1.0 |
+| LP18-L02 실제 offset | 빈줄·64KiB 블록 교차·비정규 envelope·같은 ID 반복 행 | raw offset/개수/순서/내용을 독립 비교 | v4.1.0 |
+| LP18-L02 재시도/교체 | Append/Reserve retry·CP no-write/recover-only/실제 receipt 교체 | retry 행 무증가·교체만 세대 변경·old 토큰 거부·old owned 값 생존 | v4.1.0 |
+| LP18-L03 경계 거부 | null/다른 owner/journal/fork·변조/truncate/inode | out clear·호출 거부와 실제오염 poison 구분 | v4.1.0 |
+| LP18-L 영향 | 소유/envelope 비용·cache·catalog·관련 job/writer·build | 저장 bytes/strict복구·기존crypto-off·JournalBytes1회 유지 | v4.1.0 |
+
+focused는 기존 runner 새 `journal-location` suite이며 60초·1GiB RSS/512MiB disk/2MiB output·owned root 정리를 유지한다.
+API 미구현 baseline에서 이름 탐지만으로 PASS하지 않는다. 기존 Replay 실동작 뒤 위치 capability 예상 FAIL을
+보고하고 나머지 신규 항목은 미실행이다. GREEN은 실제 재획득/반례 전수이며 정확 라벨/count를 실행 전에 확정한다.
+3번의 유효 증거는 소유/상태 변경 범위에 맞춰 부분 재검증하고 전체 S11·UI/장시간을 자동 재실행하지 않는다.
+
+### 위치 기반 실행 전 exact 항목
+
+등록 당시 계획: 기본 Replay 1PASS/미구현 capability 1FAIL이 RED 예상이며 나머지21개는 명시적 미실행이다.
+첫 GREEN은 아래23개 전수, 제품 runtime/메모리 완료 판정과 구분한다. 실제 실행과 후속32개 확장은 아래 결과를 따른다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-L02 acquired record retains complete canonical value | 격리 journal 위치 fixture | 실제 private API·원장 bytes·오류/소유/출력/세대 대조 | v4.1.0 |
+| LP18-L02 public Replay mutation cannot alter acquired immutable value | 격리 journal 위치 fixture | 실제 private API·원장 bytes·오류/소유/출력/세대 대조 | v4.1.0 |
+| LP18-L03 Append retry preserves physical row count and original value | 격리 journal 위치 fixture | 실제 private API·원장 bytes·오류/소유/출력/세대 대조 | v4.1.0 |
+| LP18-L03 Reserve retry preserves physical row count and sequence | 격리 journal 위치 fixture | 실제 private API·원장 bytes·오류/소유/출력/세대 대조 | v4.1.0 |
+| LP18-L02 reopen reconstructs located original and reservation records | 격리 journal 위치 fixture | 실제 private API·원장 bytes·오류/소유/출력/세대 대조 | v4.1.0 |
+| LP18-L04 blank lines whitespace and 64KiB crossing retain exact row order | 격리 journal 위치 fixture | 실제 private API·원장 bytes·오류/소유/출력/세대 대조 | v4.1.0 |
+| LP18-L04 repeated mutation ID retains separate physical row tokens | 격리 journal 위치 fixture | 실제 private API·원장 bytes·오류/소유/출력/세대 대조 | v4.1.0 |
+| LP18-L04 located reads preserve accepted noncanonical envelope bytes | 격리 journal 위치 fixture | 실제 private API·원장 bytes·오류/소유/출력/세대 대조 | v4.1.0 |
+| LP18-L05 no-write checkpoint keeps existing location generation usable | 격리 journal 위치 fixture | 실제 private API·원장 bytes·오류/소유/출력/세대 대조 | v4.1.0 |
+| LP18-L05 recover-only pending cleanup keeps existing generation usable | 격리 journal 위치 fixture | 실제 private API·원장 bytes·오류/소유/출력/세대 대조 | v4.1.0 |
+| LP18-L05 receipt swap rebinds all locations to exact committed bytes | 격리 journal 위치 fixture | 실제 private API·원장 bytes·오류/소유/출력/세대 대조 | v4.1.0 |
+| LP18-L05 stale location rejects and clears output without poisoning current journal | 격리 journal 위치 fixture | 실제 private API·원장 bytes·오류/소유/출력/세대 대조 | v4.1.0 |
+| LP18-L05 previously acquired owned record survives receipt file replacement | 격리 journal 위치 fixture | 실제 private API·원장 bytes·오류/소유/출력/세대 대조 | v4.1.0 |
+| LP18-L05 retry after receipt returns original type without new location | 격리 journal 위치 fixture | 실제 private API·원장 bytes·오류/소유/출력/세대 대조 | v4.1.0 |
+| LP18-L06 null token clears output without poisoning | 격리 journal 위치 fixture | 실제 private API·원장 bytes·오류/소유/출력/세대 대조 | v4.1.0 |
+| LP18-L06 foreign or null owner rejects without poisoning | 격리 journal 위치 fixture | 실제 private API·원장 bytes·오류/소유/출력/세대 대조 | v4.1.0 |
+| LP18-L06 other journal token rejects without poisoning | 격리 journal 위치 fixture | 실제 private API·원장 bytes·오류/소유/출력/세대 대조 | v4.1.0 |
+| LP18-L06 fork rejects located access while parent retains valid ownership | 격리 journal 위치 fixture | 실제 private API·원장 bytes·오류/소유/출력/세대 대조 | v4.1.0 |
+| LP18-L07 same-size raw tamper poisons and clears output despite resident handle | 격리 journal 위치 fixture | 실제 private API·원장 bytes·오류/소유/출력/세대 대조 | v4.1.0 |
+| LP18-L07 truncation poisons and clears output | 격리 journal 위치 fixture | 실제 private API·원장 bytes·오류/소유/출력/세대 대조 | v4.1.0 |
+| LP18-L07 inode replacement poisons and clears output | 격리 journal 위치 fixture | 실제 private API·원장 bytes·오류/소유/출력/세대 대조 | v4.1.0 |
+| LP18-L01 baseline managed Replay preserves full canonical record | 격리 journal 위치 fixture | 실제 private API·원장 bytes·오류/소유/출력/세대 대조 | v4.1.0 |
+| LP18-L01 journal located record capability exists | 격리 journal 위치 fixture | 실제 private API·원장 bytes·오류/소유/출력/세대 대조 | v4.1.0 |
+
+명령: `node scripts/internal/verify_recording_immutable_ownership.mjs red location-01 journal-location`, 구현 후 `green location-01 journal-location`.
+
+실제 RED: wrapper0, build0/2377ms·focused1/643ms, Replay1PASS/capability1FAIL·21미실행으로 예상과 일치.
+실제 첫 GREEN: wrapper0/2964ms, build0/2271ms·focused0/675ms,23PASS·미실행0. 두 실행 모두
+source 불변/group cleanup/소유 root 삭제(각4999731/5190092B)를 확인했다. 아직 전체 회귀/커밋 전이다.
+읽기 검토 후 새 위치 생성/목록 복사/재획득의 예외 반환 경계를 보완한다. Index는 내구write뒤 실패 시
+false→caller poison, CP 위치 준비는 write전 실패이므로 false/기존상태 유지, Acquire는 outclear/poison이다.
+이 보완과 16MiB초과 resident fallback을 별도 반례로 추가해 실행 전 등록한 뒤 focused를 재실행한다.
+첫 GREEN을 최종 수정 코드의 전체 PASS로 재사용하지 않는다. 메인과 담당자의 direct diff 검토를 수행했다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18 위치 예외 | 복제 cpp의 one-shot 예외만 주입 | Append/Reserve의 내구write뒤 생성 실패→false/poison/재open, CP write전 실패→기존바이트/세대, Acquire실패→outclear/poison/old값 유지 | v4.1.0 |
+| LP18 큰 행 fallback | 기존Append 허용인 16MiB초과 | 신규 거부 없음·resident 같은 값·retry 위치 무증가. cold파일 재검증 PASS 아님 | v4.1.0 |
+| LP18 crypto-off fallback | OpenSSL 없이 같은journal 구현 컴파일 | managedAppend/Acquire/retry 보존·기존CP거부, resident지원만 판정 | v4.1.0 |
+
+전체 build exit0, catalog 기존246개 exit0·cleanup27136350B 부재 확인(원출력 별도 보존).
+crypto-off의 SC13은 raw Append/Replay, SC14 managedOpen/CP거부, SC15receiptOpen거부이므로
+이 기존 결과로 새 managed Acquire fallback까지 PASS 처리하지 않고 별도 focused를 준비한다.
+예외 주입은 검사 복제본에만 존재하며 제품 콜백/환경 옵션을 추가하지 않는다.
+
+### 위치 예외·기존 지원 추가 실행 전 정의
+
+`node scripts/internal/verify_recording_immutable_ownership.mjs green location-02 journal-location`은 기존23+아래9=32개,
+`green location-crypto-off-01 journal-location-crypto-off`는 별도 빌드의 아래3개를 검사한다.
+최초23개 GREEN 뒤 예외 경계가 바뀌었으므로 현재 코드에서32개를 다시 실행한다. RED 반복 실행은 하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-L08 oversized append remains available through resident fallback only | 격리 journal 위치 fixture | 원장·출력·fallback 동일 값 | v4.1.0 |
+| LP18-L08 oversized retry preserves original value and durable row count | 격리 journal 위치 fixture | 원장 불변·retry 행 무증가 | v4.1.0 |
+| LP18-L09 append location exception clears output and poisons after durable write | 위치 준비 예외 | 내구write 후 false·outclear·poison | v4.1.0 |
+| LP18-L09 append exception reopens exactly one durable original record | 위치 준비 예외 | 재open 원본1행 복구 | v4.1.0 |
+| LP18-L09 reserve location exception withholds result and poisons after durable write | 예약 예외 | 결과 미게시·poison | v4.1.0 |
+| LP18-L09 reserve exception reopens reservation and retry does not duplicate it | 예약 예외 | 재open/retry 순서·행수 일치 | v4.1.0 |
+| LP18-L09 checkpoint location exception preserves bytes and usable generation without poison | CP 준비 예외 | write전 실패·기존 bytes/세대 유지 | v4.1.0 |
+| LP18-L09 checkpoint retries successfully after location preparation exception | CP 준비 예외 | 재시도 성공·이전 토큰 거부·old owned 값 유지 | v4.1.0 |
+| LP18-L09 acquire allocation exception poisons clears output and retains old owned value | 재획득 예외 | poison·빈 출력·old owned 값 유지 | v4.1.0 |
+| LP18-L10 crypto-off managed append acquires exact resident value only | crypto-off 별도 빌드 | owner·resident 값 일치 | v4.1.0 |
+| LP18-L10 crypto-off retry preserves resident value and physical row count | crypto-off 별도 빌드 | retry 원장·행수 불변 | v4.1.0 |
+| LP18-L10 crypto-off checkpoint remains rejected with owner and resident value intact | crypto-off 별도 빌드 | 기존 CP 거부·정상 owner/값 유지 | v4.1.0 |
+
+영향 회귀 실행 예정: ownership runner `green location-envelope-01 envelope-cost` 30개,
+`green location-owned-01 envelope` 34개, 기존 checkpoint-cache47·prepared11·writer·실제 service43·jobs 비교120+계측1.
+이미 현재 제품 코드로 통과한 전체 build/catalog246은 인계만으로 재실행하지 않는다.
+
+### 위치 단위 writer 영향 회귀 실패와 진단 준비
+
+`lp18-location-writer-01.txt`: `verify_recording_managed_writer.sh` exit1,43PASS/1FAIL,
+실패 라벨은 `WR05 actual H264 reordering preserves decode timestamps and mux origin`이다.
+WR05 마지막 표시 프레임 종료점/S10-C327 원본PTS·ordinal과 나머지43개는 PASS다. 전체 PASS가 아니다.
+이 실행의 8개 하위조건 값은 기존 검증기에 출력이 없어 실패한 하위조건은 아직 미확정이다.
+10초(bash-SECONDS), 임시root16783435B 삭제·부재 확인. 뒤 service/jobs는 실행하지 않았다.
+이전 LP18 writer/accepted-writer 기록에는 동일 WR05 PASS가 있다. 현재 product diff는 journal 위치 정보와
+내부 읽기이며 writer/codec/타임스탬프 합격식은 바뀌지 않았다. 이것만으로 비인과를 단정하지 않는다.
+
+동일 단계의 검증 준비 결함(실패한 하위조건 출력 부재)을 메인이 회수하여 보완한다.
+수정은 검증기 WR05 앞의 비민감 숫자/boolean 출력뿐이다. 시스템 시각·제품·encoder/decoder·기준·timeout을 바꾸지 않는다.
+다음 단기1회에서 `ran/segments/media_start_pts/input_first_pts/decoded_count/decoded_pts_count/decoded_first_pts/has_unknown`
+8개를 보존하고 기존44개를 그대로 판정한다. 출력만 추가하여 이전 실패를 RED/PASS로 바꾸지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| WR05 하위조건 진단 | 기존 실제 H264 B-frame 검사 | 동일 `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_managed_writer.sh`; 8개 값과 기존 assertion44개·exit/정리를 보존 | v4.1.0 |
+
+기존 기록 원인은 미확정이며 재현되지 않아도 원인 확정으로 승격하거나 반복 실행하지 않는다.
+
+### 위치 단위 중단 결과(2026-09-20 KST)
+
+기준 `bca60c94` 이후 위치 제품 diff는 유지한 채, WR05 숫자 출력만 추가한 진단 실행도 exit1/43PASS/1FAIL이다.
+이번에는 `WR01 h264 managed segments decode all frames without legacy callback or snapshot`이 FAIL이고,
+WR05는 ran=1/segments=1/media_start_pts=0/input_first_pts=200000000/decoded_count=30/
+decoded_pts_count=30/decoded_first_pts=200000000/has_unknown=1로 PASS다.
+이를 최초 WR05 수정 완료로 해석하지 않는다. 첫 실패 하위조건과 두 실패의 공통 원인은 미확정이며,
+기존 제품 로직·encoder/decoder·timeout/합격식은 바꾸지 않았다. 환경 원인 또는 journal 비인과도 확정하지 않았다.
+AGENTS3.3/8의 원인 미확정·교차 회귀 경계로 후속 실행/제품 수정/현재 단계 커밋을 보류한다.
+새 진단 수정은 비민감 출력뿐이며, 다음 실행 권한을 자동 확장하지 않는다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 기존 유효 미커밋부터 커밋 | 완료 | 882ed33c/4e592c35/afe9e462, 불필요하여 버린 변경 없음 | Git 및 LP18 앞선 기록 |
+| 2 | 권장1번 공통 경계 | 완료 | 1d13b08a 계약 커밋 | 누적 비용 계약0절 |
+| 3 | 권장2번 공유 소유 | 완료 | eb599f4c~a9bcd9fd, 내용 공유·외부 값 독립 | 기존 LP18 개별 결과 |
+| 4 | 권장3번 호출 검증 재사용 | 완료 | 03839d85~bca60c94, strict 신규/복구 및 상태검사 유지 | 기존 LP18 개별 결과 |
+| 5 | 권장4번 RAM 수명 | 일부·중단 | 위치 기반 focused 통과, writer 회귀 실패. 실제 eviction 미구현 | 이번 원출력/개별 결과 |
+| 6 | 권장5번 비용·HTTP | 미실행 | 4번 미해결. 16/32·현재 HTTP4초 판정 안 함 | 순서/중단 경계 |
+| 7 | 단계별 분할 커밋 | 일부 완료 | 기존3+이번1~3의10=13개 커밋. 현재 위치/진단 변경은 실패로 미커밋 | HEAD bca60c94/ahead24 |
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| 위치 baseline RED | `node scripts/internal/verify_recording_immutable_ownership.mjs red location-01 journal-location`; wrapper0/build0/focused1,1PASS1FAIL·21미실행. 예상 assertion만 일치 | fail |
+| 위치 최초 GREEN | 동일 runner `green location-01 journal-location`; wrapper0/build0/focused0,23PASS. 예외 보완 전 범위 | pass |
+| 위치 최종 focused | 동일 runner `green location-02 journal-location`; wrapper0/build0/focused0,32PASS,4142ms | pass |
+| crypto-off | 동일 runner `green location-crypto-off-01 journal-location-crypto-off`; wrapper0/build0/focused0,3PASS,2816ms | pass |
+| envelope 비용 | 동일 runner `green location-envelope-01 envelope-cost`; wrapper0/build0/focused0,30PASS,3105ms | pass |
+| 공유 소유 | 동일 runner `green location-owned-01 envelope`; wrapper0/build0/focused0,34PASS,3131ms | pass |
+| 전체 build | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build`; exit0, 전체 targets100%. aggregate elapsed 미집계 | pass |
+| catalog 회귀 | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_v410_recording_catalog.sh`; exit0,246PASS. aggregate elapsed 미집계 | pass |
+| checkpoint 회귀 | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_checkpoint_cache.sh`; exit0,47PASS,16초·peak162611200B/기존cap536870912B | pass |
+| Prepared 회귀 | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_derived_transition_reuse.sh`; exit0,11PASS,4초 | pass |
+| writer 첫 실행 | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_managed_writer.sh`; exit1,43PASS1FAIL(WR05),10초 | fail |
+| writer 숫자 진단 | 동일 명령, stdout8개만 추가; exit1,43PASS1FAIL(WR01 H264),10초. WR05 PASS는 최초 원인 해소가 아님 | fail |
+
+모든 assertion516행(개별513PASS/3FAIL, 예상RED 포함)은 [개별 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md)의 위치 기반 절에 원출력과 연결했다.
+위 집계는 현재 suite PASS가 아니며 이전23개/RED/서로 다른 실패 실행을 합산한 보존 행수다.
+runner 원출력에는 source SHA·시작/종료UTC·단계elapsed·process group/소유root 정리 결과가 있다.
+build/catalog/writer는 원출력 전체를 보존했고 부족한 최초 WR05 subcondition은 추정 복원하지 않았다.
+합성 입력의 `file evidence profile/bound 오류` 경고도 삭제하지 않았다. 해당 경고를 이번 실패 원인으로 단정하지 않는다.
+token start/end/consumed는 미집계(개별 집계 도구 없음), source는 실행 원출력. 시간을 token으로 추정하지 않는다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| RED runner 소유root | 컴파일/격리journal | 4999731B | 삭제 | 부재 | red-location-01 cleanup |
+| 최초 GREEN runner 소유root | 컴파일/격리journal | 5190092B | 삭제 | 부재 | green-location-01 cleanup |
+| 최종 focused runner 소유root | 컴파일/격리journal | 21972570B | 삭제 | 부재 | green-location-02 cleanup |
+| crypto-off runner 소유root | 컴파일/격리journal | 5073838B | 삭제 | 부재 | crypto-off 원출력 |
+| envelope runner 소유root | 컴파일/격리journal | 5456598B | 삭제 | 부재 | envelope 원출력 |
+| owned runner 소유root | 컴파일/격리journal | 5606236B | 삭제 | 부재 | owned 원출력 |
+| /tmp/media_server_v410_recording_catalog-73149 | 격리catalog/media | 27136350B | 삭제 | 부재 | catalog 원출력 |
+| TMPDIR/media-server-checkpoint-cache.b7PCKq | 컴파일/격리저장소 | 16973629B | 삭제 | 부재 | cache 원출력 |
+| TMPDIR/media-server-transition-reuse.JfI2uV | 컴파일/격리저장소 | 9131327B | 삭제 | 부재 | prepared 원출력 |
+| TMPDIR/media-server-managed-writer.RhAZZm | 첫 실패 영상/저장소 | 16783435B | 삭제 | 부재 재확인 | writer 첫 원출력·fs.existsSync |
+| TMPDIR/media-server-managed-writer.ClrqDI | 진단 영상/저장소 | 16783707B | 삭제 | 부재 재확인 | writer 진단 원출력·fs.existsSync |
+| docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-location-build-01.txt | 비민감 실행 텍스트 | 3352B | 보존 | 원출력 유지, raw media/비밀 없음 | 개별 결과 링크 |
+| docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-location-cache-01.txt | 비민감 실행 텍스트 | 6573B | 보존 | 원출력 유지, raw media/비밀 없음 | 개별 결과 링크 |
+| docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-location-catalog-01.txt | 비민감 실행 텍스트 | 14553B | 보존 | 원출력 유지, raw media/비밀 없음 | 개별 결과 링크 |
+| docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-location-prepared-01.txt | 비민감 실행 텍스트 | 1810B | 보존 | 원출력 유지, raw media/비밀 없음 | 개별 결과 링크 |
+| docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-location-writer-01.txt | 비민감 실행 텍스트 | 7973B | 보존 | 원출력 유지, raw media/비밀 없음 | 개별 결과 링크 |
+| docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-location-writer-diagnostic-01.txt | 비민감 실행 텍스트 | 8129B | 보존 | 원출력 유지, raw media/비밀 없음 | 개별 결과 링크 |
+| docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-location-01.txt | 비민감 실행 텍스트 | 6921B | 보존 | 원출력 유지, raw media/비밀 없음 | 개별 결과 링크 |
+| docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-location-02.txt | 비민감 실행 텍스트 | 8263B | 보존 | 원출력 유지, raw media/비밀 없음 | 개별 결과 링크 |
+| docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-location-crypto-off-01.txt | 비민감 실행 텍스트 | 6079B | 보존 | 원출력 유지, raw media/비밀 없음 | 개별 결과 링크 |
+| docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-location-envelope-01.txt | 비민감 실행 텍스트 | 7320B | 보존 | 원출력 유지, raw media/비밀 없음 | 개별 결과 링크 |
+| docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-location-owned-01.txt | 비민감 실행 텍스트 | 6860B | 보존 | 원출력 유지, raw media/비밀 없음 | 개별 결과 링크 |
+| docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-location-01.txt | 비민감 실행 텍스트 | 5438B | 보존 | 원출력 유지, raw media/비밀 없음 | 개별 결과 링크 |
+
+TMPDIR은 `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T`이다. read-only process 확인은 처음 sandbox에서 거부됐고,
+권한 경유 후 인자 없이 comm/PID만 확인했다. 작업 소유 writer/check/probe 및 제품서버 실행 파일 일치0개다.
+서버/listen 포트·운영 데이터·사용자 계정은 이 단위에서 생성/접근하지 않았다. 기존 build 산출물은 정상 개발 산출물로 유지한다.
+
+| 제목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| 이후 service43·실제2job 비교 | 현행 위치 변경 영향 회귀 | writer 실패 뒤 건너뜀 | 현재 위치 단위 전체 회귀 미완료 |
+| RAM eviction/cold consumer | journal/accepted/cache·typed 소비 변경 | locator 영향 실패와 불명확 원인부터 판단 | 위치 API 존재가 RAM 절감 완료는 아님 |
+| 16/32·삭제/재open·HTTP | 권장5번 현재 최종 비용 | 4번 미완료 | 앞선 다른 코드 PASS로 대체 안 함 |
+| 30분/120분/UI | S11 최종 묶음 | 이번 개발 범위 밖/미실행 | 버전 완료 아님 |
+| 위치 변경 커밋/푸시 | 현재 dirty stage | 회귀 미해결, 푸시도 이번 범위 아님 | 기존 커밋만 보존, 푸시 가능 아니오 |
+
+다음 판단 제안: WR01/WR05 공통 경로의 입력 packet→생성 파일→demux/decoder 관측을 같은 fixture/파일에서
+분리하고, 구간별 프레임 수·PTS/DTS·EOS/오류·선택 decoder 및 파일 hash를 먼저 확보한다.
+기존44개 전체의 무작정 반복, decoder 고정이나 시간 확대를 통한 PASS는 하지 않는다. 진단 범위 승인 뒤 진행한다.
+
+중단 기록 정합성만 확인: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links` exit0
+(md285/local link8897/image22/anchor116/실패0), `git diff --check` exit0.
+이는 실패한 writer의 대체 PASS 또는 뒤 제품 단계 실행이 아니다. HEAD는 bca60c94/ahead24를 유지하며
+현재 위치/진단/기록 변경은 미커밋, 이번 푸시 수행 없음이다.
 
 ### 3번 Intent 대조의 검증 재사용 착수(2026-09-20 KST)
 

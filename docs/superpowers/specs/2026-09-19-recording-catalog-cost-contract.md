@@ -98,6 +98,30 @@ checkpoint 파일 교체 시 기존 reader의 FD/불변 값 수명은 보존하�
 
 ### 단계 합격 경계
 
+#### 4번 첫 단위: 기존 JSONL 위치 재획득
+
+구현 상태: 위치 재획득 자체 반례는 통과했으나 writer 영향 회귀의 원인 미확정 실패로 미커밋이다.
+이 절은 안전 계약이지4번 완료 판정이 아니다. 상세 결과는 중앙 LP18 기록을 따른다.
+
+공개 API/영속 형식은 바꾸지 않는다. journal 전용 opaque location은 물리 행마다 세대 소유 식별,
+ordinal·offset·실제 LF 포함 길이·raw SHA와 parsed envelope metadata/canonical identity를 보유한다.
+빈 줄도 offset에는 포함하고 동일 ID 반복 행은 순서/개수를 유지한다. 비정규 공백/필드 순서의 기존 수용을 유지한다.
+Load/새 Append/Reserve/실제 checkpoint 교체에서만 위치를 생성하며 retry는 위치를 늘리지 않는다.
+checkpoint 위치는 같은 한 번의 JournalBytes 생성으로 얻은 span에서 교체 전에 준비하고, rename/디렉터리 fsync 후
+FD/inode/bytes와 함께 게시한다. no-write/recover-only는 기존 세대를 유지한다. old generation은 현재 FD에 재해석하지 않는다.
+
+private `ReadRecordLocations`/`AcquireLocatedRecord`는 owner/PID·lease·parent/FD/inode·현재 크기와 세대를 먼저
+검사한다. 기존 16MiB 행 경계 안에서 bounded pread 후 raw hash·strict Parse·metadata/내용 결박·읽기 후 FD 상태를
+검사한다. 같은 inode/길이 변조도 **읽은 행**에서 탐지한다. 전수 파일 감사를 한 것으로 확대하지 않는다.
+null/다른 owner/다른 journal/stale token은 거부만 하고, 실제 읽기/변조 불확실은 poison 경계를 따른다. 실패 out은 비운다.
+이미 반환한 const 값은 원장 교체 뒤에도 소유자가 놓을 때까지 살아 있다. 외부 값 반환은 여전히 독립 값이다.
+crypto-off 또는 기존 Append가 수용한 16MiB 초과 행은 새로 거부하지 않고 resident 경로를 유지한다.
+그 예외에서 RAM 해제나 파일 본문 재검증까지 됐다고 주장하지 않는다.
+
+이 단위는 location 기반만 연결한다. 기존 journal 강한 소유 및 typed/cache 소유 해제는 후속 연결 전까지 유지한다.
+따라서 locator의 자체 PASS는 RAM 상주 개선이나4번 전체 완료가 아니다. 다음 소비 연결 때는 checkpoint 교체 후
+유효한 새 위치 재결박, 활성 owned reader 보호, cold lookup 실패 전달을 함께 검증해야 한다.
+
 1. 계약: 위 소유/검증/무효화/소비자 경계와 실행 순서가 기존 불변 계약과 일치한다. 문서 PASS는 제품 PASS가 아니다.
 2. 중복 보관: 불변 alias 공유 및 외부 반환값 독립성, receipt 원본 보존, 후보 경쟁/충돌/상한 검사를 통과한다. typed/상세 잔존을 숨기지 않는다.
 3. 검증 재사용: 실제 큰 job 전이에 동일 내용 파싱·검증이 반복되지 않으며 잘못된 재사용·불법 전이·손상은 기존대로 거부된다.

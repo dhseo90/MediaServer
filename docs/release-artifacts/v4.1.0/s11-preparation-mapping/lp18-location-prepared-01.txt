@@ -1,0 +1,26 @@
+[command] MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_derived_transition_reuse.sh
+[source] {"name":"recording_catalog.cpp","sha256":"ba798e3ead907f721714a069f890542a7a3dda7cfc04493a22eed0ab4c3d0609"}
+[source] {"name":"recording_derived_job_ready.cpp","sha256":"74f304446afb62c9abc48c2f13fa65281f9c942becabfbbbb3612458eac3f184"}
+[environment] ownedCache=true ownedRegistry=true privateHeaderCopy=true productSerializerUnchanged=true
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[pass] LP14-C01 state=1 updates=1 full_parse=1 expected=1
+[pass] LP14-C01 state=2 updates=1 full_parse=1 expected=1
+[pass] LP14-C01 state=3 updates=1 full_parse=1 expected=1
+[pass] LP14-C03 memory/sqlite canonical bytes and CompletedOracle
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP14-C02 binding=payload rejected without apply
+[pass] LP14-C02 binding=type rejected without apply
+[pass] LP14-C02 binding=entity rejected without apply
+[pass] LP14-C02 binding=owner rejected without apply
+[pass] LP14-C02 binding=prior rejected without apply
+[pass] LP14-C02 duplicate envelope no-apply/conflict rejection
+[pass] LP14-C02 one-shot apply/reuse rejection
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-transition-reuse.JfI2uV","bytes":9131327,"removed":true}
+[exit] code=0 elapsed_seconds=4 source=bash-SECONDS
+
+[tool-exit] 0

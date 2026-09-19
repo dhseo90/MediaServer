@@ -42,6 +42,16 @@
 | --- | --- | --- | --- | --- | --- |
 | LP18-C01 | 검증된 Intent의 호출-local 대조 | 실제5전이·독립 전이에서 strict Parse 유지, Apply Validate/Restore 각1회 및 전체 Json 대조 유지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 | LP18-C02 | 대조 신뢰 경계 | noncanonical·공개 사본 변경·null prior 거부, malformed/immutable/상태·proof/Prepared fallback 기존 회귀 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-L01 | 내구 위치 재획득 | 기존 JSONL 행별 offset/길이·raw hash·strict 내용 및 owned 반환 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-L02 | 위치/세대·retry | 빈줄/블록/공백/중복 행·Append/Reserve retry·checkpoint 교체/no-write/recover-only | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-L03 | 재획득 안전 경계 | 다른 owner/journal/fork/stale/null·동일 길이 변조/truncate/inode·실패 outclear/poison | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-L04 | 물리 행 복원 | 빈줄/공백/64KiB블록 교차·반복 ID 물리 순서/토큰 분리 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-L05 | 위치 교체와 소유 수명 | no-write/recover-only/receipt swap·stale·old owned 수명·원래 retry 값 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-L06 | 위치 접근 권한 | null/owner/journal/fork 거부·outclear·정상 부모 상태 유지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-L07 | 위치 파일 손상 | 같은 길이 변조/줄임/inode 교체 poison·빈 출력·기존 owned 값 불변 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-L08 | 큰 기록의 기존 지원 | 16MiB 초과 Append/retry의 resident fallback·동일 값·행 무증가. cold 재획득 대상 아님 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-L09 | 위치 자원 예외 | Append/Reserve 내구write 뒤 poison/재open, CP write전 기존 세대 유지, Acquire outclear/poison | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-L10 | 암호화 미사용 지원 | 별도 crypto-off 빌드의 managed Append/Acquire/retry·기존 checkpoint 거부. resident 반환만 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 
 ## LP17 누적 비용·보관 계약의 계획된 검사
 

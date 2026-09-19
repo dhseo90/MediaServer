@@ -62,6 +62,10 @@ focused28·context31·proof25·prepared11·jobs23·service43·cache47·catalog24
 상태/전체값 비교는 필요한 경계로 유지한다. 남은4번 상세 RAM 수명 및5번 누적/실제HTTP 판정을 대신하지 않는다.
 4번은 기존 JSONL의 안전한 위치 재획득→typed/cache 소비 연결→상주 해제/재open 순으로 같은 계약 안에서
 변경 파일·반례를 구체화하고 실행 전 등록한다. 기록 없는 테스트를 사후 PASS로 만들지 않는다.
+4번 위치 기반을 구현해 focused32/crypto-off3/envelope30/owned34/cache47/prepared11/catalog246·전체build는 통과했다.
+그러나 writer44개에서 최초 WR05가 FAIL, 숫자 출력만 추가한 진단1회에서는 WR05 PASS/WR01 H264 FAIL로
+실패 경계가 달라졌다. 공통 원인 및 위치 변경의 인과관계는 미확정이므로 이 단위는 미커밋/중단이다.
+service/2-job/소비 연결·eviction/5번은 건너뛰었다. 실패와 임시 정리는 중앙 LP18 기록에 보존했다.
 
 ### LP17 판정 기준 비교 설계 저장 계약
 
