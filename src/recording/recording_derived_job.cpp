@@ -1,6 +1,7 @@
 // 파일 용도: 내부 파생 job의 compact 선택·엄격 JSON 계약.
 #include "recording/recording_derived_job.h"
 #include "recording/recording_derived_selection.h"
+#include "recording_derived_job_context.h"
 #include "domain/strict_json.h"
 #include <algorithm>
 #include <array>
@@ -342,12 +343,13 @@ namespace recording {
             for(const auto& o:job.outputs)outputs.push_back("{\"source\":"+std::to_string(o.source_index)+",\"id\":"+Q(o.output_id)+",\"order\":"+Q(o.order_request_id)+",\"temporary\":"+Q(o.temporary_relpath)+",\"final\":"+Q(o.final_relpath)+"}");
             return "{\"schema\":"+Q(job.schema)+",\"job_id\":"+Q(job.job_id)+",\"attempt_id\":"+Q(job.attempt_id)+",\"protection_token\":"+Q(job.protection_token)+",\"profile\":"+Q(job.profile)+",\"reference\":"+SerializeRecordingConsumerReferenceV1(job.reference)+",\"selection\":"+job.selection_json+",\"sources\":"+Sources(job)+",\"outputs\":"+Arr(outputs)+",\"reserved_bytes\":"+std::to_string(job.reserved_bytes)+",\"created_at_ms\":"+std::to_string(job.created_at_ms)+"}";
         }
-        DerivedRecordingSelection Validate(const DerivedJobIntentV1& job){
+        struct IntentAnalysis {DerivedRecordingSelection selection;std::string canonical;};
+        IntentAnalysis Validate(const DerivedJobIntentV1& job){
             const bool native=job.profile=="h264-mp4-native-to-mpegts-video-only-v1";
             Need(job.schema=="media-server.derived-job-intent.v1"&&(native||job.profile=="h264-mp4-to-mpegts-video-only-v1"),"job-schema-profile");
             Need(job.reserved_bytes>0&&job.reserved_bytes<=256*1024*1024&&job.created_at_ms>0&&!job.sources.empty()&&job.sources.size()<=8&&job.outputs.size()==job.sources.size(),"job-resource-cap");
             Need(ValidateRecordingConsumerReferenceV1(job.reference,nullptr)&&job.reference.request,"job-reference-invalid");
-            const auto selection=Restore(job);
+            auto selection=Restore(job);
             std::map<std::string,std::string> selected;
             for(const auto& s:selection.slices){
                 Need(s.state!=DerivedSliceState::Ambiguous,"job-ambiguous-selection");
@@ -397,8 +399,8 @@ namespace recording {
                 const auto id=job.job_id+"-o"+std::to_string(i);
                 Need(o.source_index==i&&o.output_id==id&&o.order_request_id==id+"-order"&&o.temporary_relpath==".derived-jobs/"+job.job_id+"/"+job.attempt_id+"/"+id+".partial.ts"&&o.final_relpath==job.reference.channel_id+"/"+id+".ts","job-output-ownership-plan");
             }
-            Need(Json(job).size()<=kCap,"job-json-cap");
-            return selection;
+            auto canonical=Json(job);Need(canonical.size()<=kCap,"job-json-cap");
+            return {std::move(selection),std::move(canonical)};
         }
         template<class Fn>bool Guard(std::string* error,Fn fn){
             try{
@@ -411,6 +413,22 @@ namespace recording {
                 return false;
             }
         }
+    }
+    detail::DerivedJobIntentContext detail::DerivedJobIntentContext::Analyze(const DerivedJobIntentV1& job){
+        auto analyzed=Validate(job);
+        return DerivedJobIntentContext(job,std::move(analyzed.selection),std::move(analyzed.canonical));
+    }
+    void detail::DerivedJobIntentContext::CheckSelection(const DerivedRecordingSelection& selection) const {
+        const auto& job=intent_;
+        Need(SerializeRecordingConsumerReferenceV1(selection.reference)==SerializeRecordingConsumerReferenceV1(job.reference),"job-remux-reference-conflict");
+        std::vector<DerivedSourceEvidence> sources;
+        const auto document=Obj(job.selection_json,{"schema","start","end","complete","reason","segments","slices","unplaced"});
+        for(const auto& raw:A(document,"segments",8)){
+            DerivedSourceEvidence source;
+            Need(ParseRecordingSegmentV2(raw,&source.segment,nullptr),"job-selection-source");
+            sources.push_back(std::move(source));
+        }
+        Need(Compact(selection,sources)==job.selection_json,"job-remux-selection-conflict");
     }
     bool BuildDerivedJobIntent(const DerivedRecordingSelection& selection,const std::vector<DerivedSourceEvidence>& sources,std::uint64_t bytes,std::int64_t now,DerivedJobIntentV1* out,std::string* error){
         if(out)*out={};
@@ -469,22 +487,14 @@ namespace recording {
     bool RestoreDerivedJobSelection(const DerivedJobIntentV1& job,DerivedRecordingSelection* out,std::string* error){
         return Guard(error,[&]{
             Need(out,"job-selection-output-null");
-            *out=Validate(job);
+            *out=Validate(job).selection;
         }
         );
     }
     bool MatchesDerivedJobSelection(const DerivedJobIntentV1& job,const DerivedRecordingSelection& selection,std::string* error){
         return Guard(error,[&]{
-            Validate(job);
-            Need(SerializeRecordingConsumerReferenceV1(selection.reference)==SerializeRecordingConsumerReferenceV1(job.reference),"job-remux-reference-conflict");
-            std::vector<DerivedSourceEvidence> sources;
-            const auto document=Obj(job.selection_json,{"schema","start","end","complete","reason","segments","slices","unplaced"});
-            for(const auto& raw:A(document,"segments",8)){
-                DerivedSourceEvidence source;
-                Need(ParseRecordingSegmentV2(raw,&source.segment,nullptr),"job-selection-source");
-                sources.push_back(std::move(source));
-            }
-            Need(Compact(selection,sources)==job.selection_json,"job-remux-selection-conflict");
+            const auto context=detail::DerivedJobIntentContext::Analyze(job);
+            context.CheckSelection(selection);
         });
     }
     bool ValidateDerivedJobIntent(const DerivedJobIntentV1& job,std::string* error){
@@ -495,17 +505,14 @@ namespace recording {
     }
     std::string SerializeDerivedJobIntent(const DerivedJobIntentV1& job){
         try{
-            Validate(job);
-            return Json(job);
+            const auto context=detail::DerivedJobIntentContext::Analyze(job);
+            return context.Canonical();
         }
         catch(...){
             return {};
         }
     }
-    bool ParseDerivedJobIntent(const std::string& json,DerivedJobIntentV1* out,std::string* error){
-        if(out)*out={};
-        return Guard(error,[&]{
-            Need(out,"job-output-null");
+    detail::DerivedJobIntentContext detail::DerivedJobIntentContext::Parse(const std::string& json,DerivedJobIntentV1& destination){
             const auto d=Obj(json,{
                 "schema","job_id","attempt_id","protection_token","profile","reference","selection","sources","outputs","reserved_bytes","created_at_ms"
             }
@@ -516,7 +523,7 @@ namespace recording {
             job.attempt_id=S(d,"attempt_id");
             job.protection_token=S(d,"protection_token");
             job.profile=S(d,"profile");
-            Need(ParseRecordingConsumerReferenceV1(O(d,"reference"),&job.reference,error),"job-reference-parse");
+            Need(ParseRecordingConsumerReferenceV1(O(d,"reference"),&job.reference,nullptr),"job-reference-parse");
             job.selection_json=O(d,"selection");
             job.reserved_bytes=N<std::uint64_t>(d,"reserved_bytes");
             job.created_at_ms=N(d,"created_at_ms");
@@ -526,7 +533,7 @@ namespace recording {
                 }
                 );
                 DerivedJobSourceV1 s;
-                Need(ParseRecordingSegmentV2(O(d,"segment"),&s.segment,error)&&ParseRecordingSourceBindingV1(O(d,"binding"),&s.binding,error),"job-source-parse");
+                Need(ParseRecordingSegmentV2(O(d,"segment"),&s.segment,nullptr)&&ParseRecordingSourceBindingV1(O(d,"binding"),&s.binding,nullptr),"job-source-parse");
                 job.sources.push_back(s);
             }
             for(const auto& raw:A(d,"outputs",8)){
@@ -539,9 +546,18 @@ namespace recording {
                 }
                 );
             }
-            Validate(job);
-            Need(Json(job)==json,"job-noncanonical-or-unknown-nested-field");
-            *out=std::move(job);
+            destination=std::move(job);
+            auto context=Analyze(destination);
+            Need(context.Canonical()==json,"job-noncanonical-or-unknown-nested-field");
+            return context;
+    }
+    bool ParseDerivedJobIntent(const std::string& json,DerivedJobIntentV1* out,std::string* error){
+        if(out)*out={};
+        return Guard(error,[&]{
+            Need(out,"job-output-null");
+            DerivedJobIntentV1 job;
+            [[maybe_unused]] const auto context=detail::DerivedJobIntentContext::Parse(json,job);
+            *out=std::move(job); // context는 이동 이후 소비하지 않는다.
         }
         );
     }

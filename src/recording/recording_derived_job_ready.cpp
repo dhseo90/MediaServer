@@ -2,6 +2,7 @@
 #include "recording/recording_derived_job.h"
 #include "recording/recording_native_coverage.h"
 #include "recording/recording_derived_remux.h"
+#include "recording_derived_job_context.h"
 #include "domain/strict_json.h"
 #include <algorithm>
 #include <array>
@@ -169,8 +170,38 @@ DerivedJobReadyV1 Ready(const std::string& json) {
     Need(Ready(ready)==json,"job-ready-canonical");return ready;
 }
 std::string Files(const DerivedJobRecordV1& record){std::vector<std::string> files;for(const auto& f:record.files)files.push_back(File(f));return A(files);}
-std::string Manifest(const DerivedJobRecordV1& record) {
-    auto ready=*record.ready;ready.manifest_sha256.clear();return Hash(SerializeDerivedJobIntent(record.intent)+Files(record)+Ready(ready));
+// 이 context는 자기 record의 Intent만 분석한다. 다른 record/Intent와 결과를
+// 조합하는 생성자나 소비 API를 노출하지 않는다. files/ready/state만 이후 채워질 수 있다.
+class RecordContext {
+    const DerivedJobRecordV1& record_;
+    detail::DerivedJobIntentContext intent_;
+    struct RecordTag {};struct BuildTag {};struct ParseTag {};
+    static detail::DerivedJobIntentContext AnalyzeIntent(const DerivedJobRecordV1& record,const char* reason){
+        try{return detail::DerivedJobIntentContext::Analyze(record.intent);}
+        catch(const std::exception&){throw std::runtime_error(reason);}
+    }
+    static detail::DerivedJobIntentContext ParseIntent(DerivedJobRecordV1& record,const std::string& json){
+        try{return detail::DerivedJobIntentContext::Parse(json,record.intent);}
+        catch(const std::exception&){throw std::runtime_error("job-record-intent");}
+    }
+    RecordContext(const DerivedJobRecordV1& record,RecordTag):record_(record),intent_(AnalyzeIntent(record,"job-record-intent")){}
+    RecordContext(const DerivedJobRecordV1& record,BuildTag):record_(record),intent_(AnalyzeIntent(record,"job-ready-selection-conflict")){}
+    RecordContext(DerivedJobRecordV1& record,const std::string& json,ParseTag):record_(record),intent_(ParseIntent(record,json)){}
+public:
+    RecordContext(const RecordContext&)=delete;
+    RecordContext& operator=(const RecordContext&)=delete;
+    static RecordContext ForRecord(const DerivedJobRecordV1& record){return RecordContext(record,RecordTag{});}
+    static RecordContext ForBuild(const DerivedJobRecordV1& record){return RecordContext(record,BuildTag{});}
+    static RecordContext ForParse(DerivedJobRecordV1& record,const std::string& json){return RecordContext(record,json,ParseTag{});}
+    bool Matches(const DerivedRecordingSelection& selection) const {
+        try{intent_.CheckSelection(selection);return true;}catch(const std::exception&){return false;}
+    }
+    std::string Manifest() const;
+    void Validate() const;
+    std::string Record() const;
+};
+std::string RecordContext::Manifest() const {
+    auto ready=*record_.ready;ready.manifest_sha256.clear();return Hash(intent_.Canonical()+Files(record_)+Ready(ready));
 }
 std::string State(DerivedJobState state) {
     switch(state){case DerivedJobState::Intent:return "intent";case DerivedJobState::Ready:return "ready";case DerivedJobState::Committed:return "committed";case DerivedJobState::Complete:return "complete";case DerivedJobState::Failed:return "failed";}throw std::runtime_error("job-state");
@@ -188,8 +219,9 @@ using MissingKey=std::tuple<std::string,std::string,std::string,std::int64_t,std
 MissingKey Missing(const DerivedRemuxUnfulfilled& value) {
     return {value.segment_id,value.axis,value.reason,value.start,value.end};
 }
-void Validate(const DerivedJobRecordV1& record) {
-    Need(ValidateDerivedJobIntent(record.intent,nullptr)&&record.files.size()<=record.intent.outputs.size(),"job-record-intent");
+void RecordContext::Validate() const {
+    const auto& record=record_;
+    Need(record.files.size()<=record.intent.outputs.size(),"job-record-intent");
     std::set<std::pair<std::uint64_t,std::uint64_t>> file_identities;
     for(std::size_t i=0;i<record.files.size();++i) {
         const auto& f=record.files[i];Need(f.output_index==i,"job-receipt-prefix");File(f);
@@ -206,9 +238,9 @@ void Validate(const DerivedJobRecordV1& record) {
     Need(record.state==DerivedJobState::Failed?(!record.failure_reason.empty()&&record.failure_reason.size()<=1024):record.failure_reason.empty(),"job-failure-state");
     if(record.state==DerivedJobState::Intent||record.state==DerivedJobState::Failed){Need(!record.ready,"job-premature-ready");return;}
     Need(record.ready&&record.files.size()==record.intent.outputs.size()&&record.ready->outputs.size()==record.intent.outputs.size(),"job-ready-source-closure");
-    const auto& ready=*record.ready;Ready(ready);Need(Sha(ready.manifest_sha256)&&Manifest(record)==ready.manifest_sha256,"job-ready-manifest");
+    const auto& ready=*record.ready;Ready(ready);Need(Sha(ready.manifest_sha256)&&Manifest()==ready.manifest_sha256,"job-ready-manifest");
     std::uint64_t total=0;std::int64_t previous_order=0;
-    DerivedRecordingSelection selection;Need(RestoreDerivedJobSelection(record.intent,&selection,nullptr),"job-ready-selection");
+    const auto& selection=intent_.Selection();
     std::multiset<MissingKey> expected_missing,actual_missing;
     for(const auto& slice:selection.slices)if(slice.state!=DerivedSliceState::Confirmed)
         expected_missing.emplace("","request-ns",slice.reason,slice.start_ns,slice.end_ns);
@@ -266,8 +298,9 @@ void Validate(const DerivedJobRecordV1& record) {
     Need(ready.request_fully_satisfied==fully,"job-ready-fully-satisfied");
     Need(expected_missing==actual_missing,"job-unfulfilled-selection-binding");
 }
-std::string Record(const DerivedJobRecordV1& record) {
-    Validate(record);const auto json=J({{"schema",Q("media-server.derived-job-record.v1")},{"intent",SerializeDerivedJobIntent(record.intent)},
+std::string RecordContext::Record() const {
+    const auto& record=record_;
+    Validate();const auto json=J({{"schema",Q("media-server.derived-job-record.v1")},{"intent",intent_.Canonical()},
         {"state",Q(State(record.state))},{"reason",Q(record.failure_reason)},{"cleaned_at_ms",std::to_string(record.cleaned_at_ms)},
         {"files",Files(record)},{"ready",record.ready?Ready(*record.ready):"null"}});
     Need(json.size()<=kCap,"job-record-envelope-cap");return json;
@@ -276,16 +309,16 @@ std::string Record(const DerivedJobRecordV1& record) {
 
 std::string SerializeDerivedJobFile(const DerivedJobFileV1& f){try{return File(f);}catch(...){return {};}}
 std::string SerializeDerivedJobReady(const DerivedJobReadyV1& r){try{return Ready(r);}catch(...){return {};}}
-std::string SerializeDerivedJobRecord(const DerivedJobRecordV1& record){try{return Record(record);}catch(...){return {};}}
+std::string SerializeDerivedJobRecord(const DerivedJobRecordV1& record){try{return RecordContext::ForRecord(record).Record();}catch(...){return {};}}
 bool ParseDerivedJobRecord(const std::string& json,DerivedJobRecordV1* out,std::string* error) {
     if(out)*out={};
     try {
         Need(out,"job-record-output");const auto d=O(json,{"schema","intent","state","reason","cleaned_at_ms","files","ready"});
         Need(S(d,"schema")=="media-server.derived-job-record.v1","job-record-schema");DerivedJobRecordV1 record;
-        Need(ParseDerivedJobIntent(Raw(d,"intent"),&record.intent,error),"job-record-intent");record.state=State(S(d,"state"));record.failure_reason=S(d,"reason");record.cleaned_at_ms=N(d,"cleaned_at_ms");
+        const auto context=RecordContext::ForParse(record,Raw(d,"intent"));record.state=State(S(d,"state"));record.failure_reason=S(d,"reason");record.cleaned_at_ms=N(d,"cleaned_at_ms");
         for(const auto& raw:Rows(d,"files",8))record.files.push_back(File(raw));
         if(d.Find("ready")->type!=Type::Null)record.ready=Ready(Raw(d,"ready"));
-        Need(Record(record)==json,"job-record-canonical");*out=std::move(record);if(error)error->clear();return true;
+        Need(context.Record()==json,"job-record-canonical");*out=std::move(record);if(error)error->clear();return true; // context는 이동 뒤 소비하지 않는다.
     }catch(const std::exception& e){if(error)*error=e.what();return false;}
 }
 bool BuildDerivedJobReady(const DerivedJobRecordV1& input,const DerivedRemuxResult& remux,
@@ -293,11 +326,13 @@ bool BuildDerivedJobReady(const DerivedJobRecordV1& input,const DerivedRemuxResu
     if(out)*out={};
     try {
         Need(out&&input.state==DerivedJobState::Intent&&remux.verified_output&&remux.error.empty()&&orders.size()==input.intent.outputs.size()&&remux.outputs.size()==orders.size(),"job-ready-input");
-        Need(MatchesDerivedJobSelection(input.intent,remux.selection,nullptr),"job-ready-selection-conflict");
-        DerivedJobRecordV1 record=input;record.state=DerivedJobState::Ready;DerivedJobReadyV1 ready;
+        DerivedJobRecordV1 record=input;
+        const auto context=RecordContext::ForBuild(record);
+        Need(context.Matches(remux.selection),"job-ready-selection-conflict");
+        record.state=DerivedJobState::Ready;DerivedJobReadyV1 ready;
         ready.verified_output=remux.verified_output;ready.request_fully_satisfied=remux.request_fully_satisfied;ready.unfulfilled=remux.unfulfilled;ready.ready_at_ms=now;
         for(std::size_t i=0;i<orders.size();++i) {
-            DerivedJobReadyOutputV1 output;output.source_index=i;output.provenance=remux.outputs[i];const auto& p=output.provenance;const auto& source=input.intent.sources[i].segment;const auto& plan=input.intent.outputs[i];auto& s=output.segment;
+            DerivedJobReadyOutputV1 output;output.source_index=i;output.provenance=remux.outputs[i];const auto& p=output.provenance;const auto& source=record.intent.sources[i].segment;const auto& plan=record.intent.outputs[i];auto& s=output.segment;
             s.segment_id=plan.output_id;s.order_request_id=plan.order_request_id;s.order_sequence=orders[i];s.source_id=source.source_id;s.channel_id=source.channel_id;s.store_id=source.store_id;s.media_epoch_id=plan.output_id+"-epoch";
             s.media_start_pts=std::numeric_limits<std::int64_t>::max();std::int64_t end=0;
             for(const auto& au:p.access_units){s.media_start_pts=std::min(s.media_start_pts,au.output_pts_ns);end=std::max(end,End(au.output_pts_ns,au.output_duration_ns));}s.media_end_pts=end;
@@ -305,7 +340,7 @@ bool BuildDerivedJobReady(const DerivedJobRecordV1& input,const DerivedRemuxResu
             s.mappings={{"media-server.recording-utc-mapping.v1",plan.output_id+"-utc-unavailable",s.media_start_pts,s.media_end_pts,"unknown",std::nullopt,std::nullopt,std::nullopt,"derived-output-utc-unavailable"}};
             ready.outputs.push_back(std::move(output));
         }
-        record.ready=std::move(ready);record.ready->manifest_sha256=Manifest(record);Validate(record);Need(!Record(record).empty(),"job-ready-cap");*out=std::move(record);if(error)error->clear();return true;
+        record.ready=std::move(ready);record.ready->manifest_sha256=context.Manifest();Need(!context.Record().empty(),"job-ready-cap");*out=std::move(record);if(error)error->clear();return true; // context는 이동 뒤 소비하지 않는다.
     }catch(const std::exception& e){if(error)*error=e.what();return false;}
 }
 } // namespace recording

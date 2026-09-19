@@ -1,0 +1,26 @@
+#pragma once
+// 구현 전용. 입력 Intent는 생성부터 마지막 소비까지 변경되지 않아야 한다.
+// 공개 API/보관 cache가 아니며 호출의 지역 입력보다 오래 살아서는 안 된다.
+#include "recording/recording_derived_job.h"
+#include "recording/recording_derived_selection.h"
+#include <utility>
+namespace recording::detail {
+class DerivedJobIntentContext {
+    const DerivedJobIntentV1& intent_;
+    DerivedRecordingSelection selection_;
+    std::string canonical_;
+    DerivedJobIntentContext(const DerivedJobIntentV1& intent,DerivedRecordingSelection selection,std::string canonical)
+        :intent_(intent),selection_(std::move(selection)),canonical_(std::move(canonical)){}
+    DerivedJobIntentContext(DerivedJobIntentContext&&)=default;
+public:
+    DerivedJobIntentContext(const DerivedJobIntentContext&)=delete;
+    DerivedJobIntentContext& operator=(const DerivedJobIntentContext&)=delete;
+    static DerivedJobIntentContext Analyze(const DerivedJobIntentV1&);
+    static DerivedJobIntentContext Analyze(DerivedJobIntentV1&&)=delete;
+    // destination은 호출자 지역 변수다. 성공 후 Intent를 변경/이동하면 더 소비하지 않는다.
+    static DerivedJobIntentContext Parse(const std::string&,DerivedJobIntentV1& destination);
+    const DerivedRecordingSelection& Selection() const {return selection_;}
+    const std::string& Canonical() const {return canonical_;}
+    void CheckSelection(const DerivedRecordingSelection&) const;
+};
+}

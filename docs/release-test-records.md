@@ -12,6 +12,113 @@
 정상 append에 전체 원장 검색을 추가하지 않는다. managed Open은 한 snapshot의 값과 handle을 사용하고 일시 Replay 값 사본은 남긴다.
 단일 Astra/medium 담당자는 제품/fixture/계측 adapter, 메인은 문서/runner/실행/직접 검토를 맡으며 하위 생성은 금지했다.
 
+### 3번 Intent 내부 검증 context 착수
+
+시작 `ddc42417`/ahead21. 기존 내용 proof와 envelope 중복 생성 제거를 분할 커밋했다. 같은 단일 Astra/medium 담당자가
+신규 fixture/counter·owned 복제본 빌드 연결을 맡고 메인은 수명/안전 설계·사전등록/runner·실행/직접 검토를 맡는다. 하위 생성 금지.
+목적은 공개 호출 안에서 이미 엄격 검사한 동일 Intent의 선택 복원/canonical 결과를 되풀이하지 않는 것이다.
+메인 설계: 생성자가 제한된 private 호출-local context가 단일 입력과 selection/canonical을 결박한다.
+새 Intent와 옛 context를 조합하거나 영속/catalog/history에 저장하지 않는다. public skip_validate 및 저장/API/상한 변경 없음.
+Serialize/BuildReady의 Intent는 검사 시작부터 마지막 소비까지 불변으로 두고, Parse의 local→out 이동 뒤 context를 사용하지 않는다.
+새 공개 호출(같은 주소의 변경 입력 포함)은 항상 새로운 strict 분석. receipt/manifest/AU/native/coverage·unfulfilled/state 검증과 public 실패 출력/오류 순서는 유지한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-I01 실제 작업 | 실제 Encode30/2출력 service job | 파일/hash/inode·commit/보호해제, 실제 원장 각 상태와 public canonical 비교 | v4.1.0 |
+| LP18-I01 최초검증 | 모든 측정 public 호출 | private Validate/Restore/Json 모두 비영, 실제 BuildReady 호출1회 | v4.1.0 |
+| LP18-I02 build-ready | 실제 service BuildReady | 각1회; baseline 정적 예상9/9/13 | v4.1.0 |
+| LP18-I02 serialize-intent/parse-intent | Intent public 양방향 | 각각1/1/1; baseline 정적 예상1/1/2 | v4.1.0 |
+| LP18-I02 serialize/parse-record-intent | Intent 상태 | 각각1/1/1; baseline serialize2/2/3 parse3/3/5 | v4.1.0 |
+| LP18-I02 serialize/parse-record-failed | Failed 상태 | 각각1/1/1; baseline serialize2/2/3 parse3/3/5 | v4.1.0 |
+| LP18-I02 serialize/parse-record-ready | Ready 상태 | 각각1/1/1; baseline serialize4/4/6 parse5/5/8 | v4.1.0 |
+| LP18-I02 serialize/parse-record-committed | Committed 상태 | 각각1/1/1; baseline serialize4/4/6 parse5/5/8 | v4.1.0 |
+| LP18-I02 serialize/parse-record-complete | Complete 상태 | 각각1/1/1; baseline serialize4/4/6 parse5/5/8 | v4.1.0 |
+| LP18-I03 변경 입력 | 같은 주소 Intent/manifest 변경 | 새 호출 거부·Parse 실패 output 초기화 | v4.1.0 |
+| LP18-I03 receipt | 실제2출력 file identity alias | 잘못된 receipt 직렬화 거부 | v4.1.0 |
+| LP18-I03 Ready 재구성 | 실제 remux 값 재구성 | positive Ready canonical 일치, AU/coverage 각 변조 거부·BuildReady output 초기화 | v4.1.0 |
+| LP18-I03 오류 순서 | BuildReady shape/selection 및 Intent parse 오류 | shape 오류가 selection보다 먼저, selection 고정 오류 유지, 잘못된 Intent ID 엄격 오류·출력 초기화 | v4.1.0 |
+
+사전등록 명령: `node scripts/internal/verify_recording_immutable_ownership.mjs red context-01 context`, 동일 GREEN은 `green context-01 context`.
+최초 RED는 총28개/15PASS/13FAIL이다. 구현 검토 후 오류 순서 반례3개를 실행 전에 추가하여 GREEN은 총31PASS를 요구한다.
+추가 라벨: `LP18-I03 BuildReady input shape failure precedes selection validation`, `LP18-I03 BuildReady selection mismatch preserves failure mapping`,
+`LP18-I03 public Intent parse preserves strict error and clears output`. 기존 RED를 확대하여 실행했다고 주장하지 않는다.
+정확 RED FAIL은 `LP18-I02 single strict context ` 뒤 build-ready, serialize-intent, parse-intent,
+serialize-record-intent, parse-record-intent, serialize-record-failed, parse-record-failed, serialize-record-ready, parse-record-ready,
+serialize-record-committed, parse-record-committed, serialize-record-complete, parse-record-complete 순서다.
+측정은 private 함수 진입 observer만 추가한 소유 복제본이며 정상/오류 분기는 바꾸지 않는다. 정적 예상 횟수를 실행 PASS로 쓰지 않는다.
+기존60초·1GiB RSS/512MiB disk/2MiB output 및 root 정리 유지. 제품 변경 전 RED, 이후 전체 archive 재build/직접회귀는 실행 전 별도 등록한다.
+실제 HTTP·16/32누적·장시간/UI는 아직 미실행이다.
+context-01 RED 실제: build exit0/4494ms, focused exit1/2209ms, exact15PASS/13FAIL, wrapper exit0/6718ms.
+13개 호출의 Validate/Restore/Json 횟수가 위 정적 예상과 전부 일치했다. root8968941B 삭제·source불변·프로세스그룹 종료.
+기존 합성 writer fixture의 file-evidence profile/bound 경고3회는 그대로 보존한다. 실제 native file-evidence 전체 PASS로 확대하지 않는다.
+이제 동일 담당자에게 private context/두 serializer 구현을 맡긴다. 메인은 입력수명·canonical·오류·합격/회귀 경계를 직접 검토한다.
+
+context 구현 후 영향 검증 사전등록: 각 명령 exit0 뒤에만 다음을 실행한다. 실패 시 같은 단계 안전 수정과 최초 실패 보존을 적용한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-I 전체 build | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build` | 두 번역단위/private header·기존 전체 archive/executable 연결 | v4.1.0 |
+| LP18-I GREEN | `node scripts/internal/verify_recording_immutable_ownership.mjs green context-01 context` | 위31개 정확 oracle, 새 입력·실제출력·내부횟수/정리 | v4.1.0 |
+| LP18-I literal/native | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_derived_job_validation.sh` | 기존11개 literal canonical hash/위조/native 정확 구간. optional performance-budget 이번 호출하지 않음 | v4.1.0 |
+| LP18-I prepared | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_derived_transition_reuse.sh` | 기존11개 public Parse 진입정확1·owner/payload/prior/한번 적용·SQL canonical | v4.1.0 |
+| LP18-I jobs | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_derived_jobs.sh` | 기존23개 unknown/nested/cap·예약/보호/재open/Failed·partial 보존 | v4.1.0 |
+| LP18-I service | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_derived_job_service.sh` | 기존 default43개 remux/Ready/Complete·manifest/AU/foreign range·중단 복구/보호/용량 | v4.1.0 |
+| LP18-I proof | `node scripts/internal/verify_recording_immutable_ownership.mjs green context-proof-01 content` | 직전25개 public Parse1·자동checkpoint0·부적격fallback1·상태 거부 | v4.1.0 |
+| LP18-I cache | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_checkpoint_cache.sh` | 47개 actual job shadow/full·cached/new/state/손상/상한 | v4.1.0 |
+| LP18-I catalog | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_v410_recording_catalog.sh` | 246개 current bytes/pending/원자복구/SQLite·JSONL·crypto-off | v4.1.0 |
+| LP18-I 실제2-job | `node scripts/internal/recording_catalog_comparison_run.mjs jobs lp18-context-01` | 기능120/계측1·큰 실제 입력/state·outputhash·자원/잠금 비용을 테스트 oracle와 분리 | v4.1.0 |
+
+public media/timeline/retention의 caller 표현은 이번 무변경으로 직전 LP18-J 소비자 증거를 유지한다.
+해당 공통 직렬화의 바이트/결과 의미는 신규 context/literal/service/복구 회귀로 다시 확인하고 최종5번에서 전체 변경 경계를 대조한다.
+모든 명령은 소유 격리 데이터이며 운영/외부 서비스·실제브라우저·장시간을 포함하지 않는다.
+
+### 3번 Intent Context 구현·회귀 결과
+
+메인이 두 제품 번역단위·private context·fixture/계측 diff를 직접 대조했다. strict factory만 생성하며 전체 Intent 추가 사본은 없다.
+RecordContext는 자기 record만 결박하고 Parse public out 이동 뒤 재소비하지 않는다. BuildReady shape/selection 오류 순서와
+manifest/receipt/AU/native/coverage/unfulfilled 검사를 유지한다. Context를 catalog/history에 저장하거나 새 public skip_validate를 만들지 않았다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-I 전체 build | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build`, exit0. configure/runtime/최종 executable 완료. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-context-build-01.txt) | PASS |
+| LP18-I GREEN | 사전등록 명령 exit0, build4488ms/focused2085ms/wrapper6589ms,31개. BuildReady9/9/13→1/1/1 및 모든 측정 public 호출1/1/1. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-context-01.txt) | PASS |
+| LP18-I literal/native | 사전등록 명령 exit0/15927ms,11개. 기존 literal canonical hash·변조/native 거부. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-context-validation-01.txt) | PASS |
+| LP18-I prepared | exit0/10739ms,11개. 정상 전이 public Parse1회·결박 거부·일회 소비·SQL canonical. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-context-prepared-01.txt) | PASS |
+| LP18-I jobs | exit0/12656ms,23개. 상한/상태/예약/보호·재open·partial. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-context-jobs-01.txt) | PASS |
+| LP18-I service | exit0/24488ms,default43개. 실제2출력/중단 복구·변조·소유/취소/상한·SQLite/fallback. optional 묶음 미실행. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-context-service-01.txt) | PASS |
+| LP18-I proof | exit0/23964ms,25개. 정상Parse8/자동checkpoint current Parse0·reopen4/manual1 유지. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-context-proof-01.txt) | PASS |
+| LP18-I cache | exit0/26197ms,47개. peakRSS166543360B,기존536870912B 이하. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-context-cache-01.txt) | PASS |
+| LP18-I catalog | exit0/17758ms,246개. canonical/pending/원자 복구/SQLite/JSONL/crypto-off·composition. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-context-catalog-01.txt) | PASS |
+| LP18-I 실제2-job | exit0/20271ms,기능120/계측1. 동일 입력 hash·실제 출력/hash·완전 상태·보호 해제. B/C peakRSS157270016/104316928B. B/C는 캐시 유무 대조이며 제품 전후 성능으로 혼용하지 않음. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp17-jobs-lp18-context-01.txt) | PASS |
+
+모든 개별 assertion은 [LP18 전수표](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md)에 원출력 행수와 대조해 보존했다.
+첫 RED28개(15PASS/13FAIL)를 지우지 않았고, 오류순서3개 사전등록 추가 후 GREEN31개다. 총 GREEN assertion558개에는 계측1개를 포함한다.
+source SHA와 정확한 명령/시간/원출력은 각 파일에 보존했다. build elapsed는 호출 간 집계 부재로 미집계이며 다른 시간은 runner 또는 도구 외곽 측정이다.
+token start/end/consumed는 모두 미집계(명령별 실제 사용량 집계 도구 부재). 실행 UTC2026-09-19T15:08~15:22/KST2026-09-20.
+합성 writer의 기존 file-evidence profile/bound 경고는 원출력에 보존했다. native 전체 지원/실제 HTTP PASS로 확대하지 않는다.
+도구의 큰2-job 반환은 일부 잘렸으나 runner가 저장한214909B 전체 원출력에서121개 assertion 및4개 phase/정리를 직접 대조했다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| Context RED 소유 root | 컴파일·GST registry·소형 녹화 | 8968941B | runner 정리 | 삭제 확인 | RED source/프로세스그룹/cleanup |
+| Context GREEN 소유 root | 동일 | 8992852B | runner 정리 | 삭제 확인 | GREEN cleanup |
+| validation 소유 root | 독립 바이너리 | 5427528B | trap 정리 | 삭제 확인 | validation 원출력 |
+| prepared 소유 root | 소형 media·검사 복제본 | 9053857B | trap 정리 | 삭제 확인 | prepared 원출력 |
+| jobs 소유 root | catalog/검증 바이너리 | 9721103B | trap 정리 | 삭제 확인 | jobs 원출력 |
+| service 소유 root | 격리 녹화/재생성·GST registry | 18066596B | trap 정리 | 삭제 확인 | service 원출력 |
+| proof 소유 root | 큰job·owned 계측 | 13666097B | runner 정리 | 삭제 확인 | proof source/프로세스그룹/cleanup |
+| cache 소유 root | cached/full 동등성 fixture | 16896143B | runner 정리 | 삭제 확인 | cache 원출력 |
+| catalog 소유 root | SQLite/JSONL/crypto-off fixture | 26961886B | trap 정리 | 삭제 확인 | catalog 원출력 |
+| 2-job 소유 root | 비교 바이너리/두 arm 자료 | 18654310B | runner 정리 | 삭제 확인 | source/4개 phase/group/cleanup |
+| 위 원출력·전수표 | 비민감 명령/측정/최초실패·hash | Git diff 목록 | 저장소 보존 | 보존 | 원영상/credential 없음, 추적 가능한 최소 실행 증거 |
+| build-gst-onnx | 기존 제품 build | 해당 없음 | 유지 | 기존 build 갱신 | 소유 임시자료 아님 |
+
+서버/HTTP/listen 포트는 이번 명령들이 생성하지 않았다. 운영 데이터·외부 서비스·실제브라우저·장시간/UI는 미실행이다.
+3번 Context 단위는 완료했으나 catalog의 개별 상태 비교 호출·4번 비활성 RAM 수명·5번 실제 HTTP/누적 판정은 미완료다.
+다음 구현 전에 실제 비용/불변 결박을 확인하고 같은 승인 범위 안에서 분할한다. 무조건 테스트 반복이나 timeout 확대는 하지 않는다.
+마감 문서 검사: `./server.sh verify-docs-links` exit0,285개 md/8846개 local link/22개 image/116개 anchor/76개 색인/201개 제외/실패0.
+`git diff --check`는 커밋 직전 exit0 확인 대상으로 실행한다. 문서 링크 검사는 실제 UI 판정이 아니다.
+
 ### 3번 envelope 중복 직렬화 제거 착수
 
 시작 커밋은 호출-local proof 구현/검증 `03839d85`다. 같은 단일 담당자는 신규 focused/계측, 메인은 계약/runner/등록/실행/직접 검토를 맡는다.

@@ -29,6 +29,9 @@
 | LP18-E02 | 비교 중복 문자열 제거 | 두 SameSequence overload가 전체값을 비교하고 envelope 직렬화0 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 | LP18-E03 | checkpoint 후보 게시 | stale/변조 후보 거부·receipt 원본/실제 저장 bytes·projection·pending/복구 의미 유지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 | LP18-E04 | checkpoint byte 생성 재사용 | 현재 expected/candidate 전체값 대조 뒤 JournalBytes1회. strict/FS/소유/상한 불변 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-I01 | 작업 단위 내부 검증 | 실제 작업의 각 상태 canonical/출력·hash와 공개 호출 최초 strict 검증 유지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-I02 | Intent 분석 결과 재사용 | 공개 Serialize/Parse·BuildReady 호출 안의 Validate/Restore/Json 각1회, 단일입력 context는 외부/영속 재사용 금지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-I03 | 새 입력·부적격 증거 | 동일주소 변경 후 새 호출 strict·manifest/receipt/AU/coverage 거부·실패 output 초기화/기존cap·오류 유지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 
 등록은 실행/PASS가 아니다. 전체 승인 범위와 실제 수행/미수행은 중앙 기록 LP18을 따른다.
 

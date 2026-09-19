@@ -49,7 +49,9 @@ typed binding도 live/shadow const 소유로 공유하고 focused77·source20·c
 정상 strict Parse8회와 복구/수동 Parse는 유지하고 같은 호출 자동 checkpoint의 current Parse2회만0회로 줄였다.
 상태 비교·과거 이력·중복 직렬화 비용은 남으며 3번 전체 및4~5번은 미완료다. 상세 실행/정리는 중앙 기록을 따른다.
 추가 envelope 비용 단위는 전체필드 대조 뒤 중복 canonical 생성을 제거했다. focused30·기존소유34·identity6·cache47·catalog246·실제2-job 기능120/계측1·전체build 통과.
-내용/상태 serializer의 내부 검증·복원 반복은 다음 보완 대상이며 이를 단순 문자열 비교와 혼합하지 않는다.
+Intent 호출-local context도 구현했다. 실제 BuildReady의 Validate/Restore/Json9/9/13회와 각 public 호출 내부 반복을1/1/1회로 줄였다.
+focused31·literal/native11·prepared11·jobs23·service43·proof25·cache47·catalog246·실제2-job 기능120/계측1·전체build 통과.
+외부에 반환한 값의 새 호출은 strict 재검증한다. catalog의 개별 상태 비교 호출 및 비활성 RAM 상주/최종 HTTP는 여전히 남는다.
 실행/수집 실패와 재검증은 중앙 기록에 보존했다.
 이후 3/4번은 같은 계약 안에서 변경 파일·반례를 구체화하고 실행 전 등록한다. 기록 없는 테스트를 사후 PASS로 만들지 않는다.
 

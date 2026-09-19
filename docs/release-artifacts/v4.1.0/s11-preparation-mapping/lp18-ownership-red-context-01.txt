@@ -1,0 +1,109 @@
+{"kind":"start","utc":"2026-09-19T15:08:58.733Z","mode":"red","id":"context-01","suite":"context","source":[{"name":"include/recording/recording_catalog.h","sha256":"ec7bb80f4bbe5731edb932a836d84f3865a0d6f6daa4ab74aecc99170e7af0e8"},{"name":"include/recording/recording_journal.h","sha256":"d9abe40e76bbfc2b9a6014b1f73967d9aa493c6fea31c754d935dbf531278ea0"},{"name":"src/recording/recording_catalog.cpp","sha256":"979b5c6695bb2efd1c9bcc5e6506b4c39db44539c2fd17603a4b829a3d8d1f9e"},{"name":"src/recording/recording_journal.cpp","sha256":"27f31d566e0f6206bf17f373491341047b3b5f03cb3471d402b59776011c50d5"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"e1656c143a3d206220c84b8d4a299c8ad53c879676ea7240631ef22067490dfc"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"dd97773dc86e0eac58659b1f72319ad4760b27dea1a2c654622872d84b2b6ec4"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"da07cd9f0a448c6ebee5d6ece554c6b3f25e7936a69e0e8e4aacafefbaddca8a"},{"name":"scripts/internal/recording_job_validation_context_smoke.cpp","sha256":"60e1db4dbba082b35a3195a2424b6fe77622da0f8f505b3f58f053cba5039c9b"},{"name":"scripts/internal/recording_job_validation_context_counter.h","sha256":"487fb6abce0aa91024fc90033aa6b7f557c0932dc22c1d513cedc43887c7c462"},{"name":"src/recording/recording_derived_job.cpp","sha256":"e65a97e2f5c3108b2560b41292a6feeb1194981733b92e5d68590ff1d427033a"},{"name":"src/recording/recording_derived_job_ready.cpp","sha256":"b2e52b730312fa6da0e6a2843adf67e049810f81c80d48235e9118be71186d2e"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>","context"],"seconds":60}
+[instrument] context_file=recording_derived_job.cpp original_sha256=e65a97e2f5c3108b2560b41292a6feeb1194981733b92e5d68590ff1d427033a instrumented_sha256=09079d859ee601f8bb1b1bf18b700fc276f0587d1c0652fdbda0740d4574d153
+[instrument] context_file=recording_derived_job_ready.cpp original_sha256=b2e52b730312fa6da0e6a2843adf67e049810f81c80d48235e9118be71186d2e instrumented_sha256=f4b436ed0658edfa234f70577103e53d353b89489b93f4ca38245bc2fd6f2bab
+[instrument] context_exact_insertions=4
+[instrument] catalog_sha256=e3f68e2de8440ed75c84938a70cfc4f955810eb6ac31effc5640b3d1b96d024b binding_exact_insertions=1 job_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"d9abe40e76bbfc2b9a6014b1f73967d9aa493c6fea31c754d935dbf531278ea0"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"ec7bb80f4bbe5731edb932a836d84f3865a0d6f6daa4ab74aecc99170e7af0e8"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"27f31d566e0f6206bf17f373491341047b3b5f03cb3471d402b59776011c50d5"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"979b5c6695bb2efd1c9bcc5e6506b4c39db44539c2fd17603a4b829a3d8d1f9e"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"e1656c143a3d206220c84b8d4a299c8ad53c879676ea7240631ef22067490dfc"}
+[source] {"name":"scripts/internal/recording_job_validation_context_smoke.cpp","sha256":"60e1db4dbba082b35a3195a2424b6fe77622da0f8f505b3f58f053cba5039c9b"}
+[source] {"name":"scripts/internal/recording_job_validation_context_counter.h","sha256":"487fb6abce0aa91024fc90033aa6b7f557c0932dc22c1d513cedc43887c7c462"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"dd97773dc86e0eac58659b1f72319ad4760b27dea1a2c654622872d84b2b6ec4"}
+[source] {"name":"scripts/internal/recording_derived_job_service_smoke.cpp","sha256":"f46baaba2214439a123fb42567a8b2a4aea8b61c3d5418e45e66d54e7c33225c"}
+[source] {"name":"scripts/internal/recording_media_test_fixture.h","sha256":"404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6"}
+[source] {"name":"src/recording/recording_derived_job.cpp","sha256":"e65a97e2f5c3108b2560b41292a6feeb1194981733b92e5d68590ff1d427033a"}
+[source] {"name":"src/recording/recording_derived_job_ready.cpp","sha256":"b2e52b730312fa6da0e6a2843adf67e049810f81c80d48235e9118be71186d2e"}
+[source] {"name":"src/recording/recording_timeline_projection.cpp","sha256":"88c1b064d5ce595ea21c615ed8dce0cb14e54ad8030a420943b2d558daeba203"}
+        4.47 real         4.16 user         0.27 sys
+           294010880  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               99128  page reclaims
+                 844  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  18  messages sent
+                   0  messages received
+                   1  signals received
+                  18  voluntary context switches
+                3224  involuntary context switches
+            76199206  instructions retired
+            36238289  cycles elapsed
+             1982872  peak memory footprint
+{"kind":"phase","label":"build","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":4494,"groupPeakRssBytes":309903360}
+{"kind":"command","label":"focused","command":"<owned-root>/check","args":["<owned-root>"],"seconds":60}
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[pass] LP18-I01 actual Complete retains files hashes commit and protection release
+[pass] LP18-I01 actual BuildReady executes nonzero strict work once
+[context-counts] operation=build-ready validate=9 restore=9 json=13
+[fail] LP18-I02 single strict context build-ready
+[pass] LP18-I01 public Intent canonical roundtrip preserved
+[context-counts] operation=serialize-intent validate=1 restore=1 json=2
+[fail] LP18-I02 single strict context serialize-intent
+[context-counts] operation=parse-intent validate=1 restore=1 json=2
+[fail] LP18-I02 single strict context parse-intent
+[pass] LP18-I01 record canonical roundtrip intent
+[context-counts] operation=serialize-record-intent validate=2 restore=2 json=3
+[fail] LP18-I02 single strict context serialize-record-intent
+[context-counts] operation=parse-record-intent validate=3 restore=3 json=5
+[fail] LP18-I02 single strict context parse-record-intent
+[pass] LP18-I01 record canonical roundtrip failed
+[context-counts] operation=serialize-record-failed validate=2 restore=2 json=3
+[fail] LP18-I02 single strict context serialize-record-failed
+[context-counts] operation=parse-record-failed validate=3 restore=3 json=5
+[fail] LP18-I02 single strict context parse-record-failed
+[pass] LP18-I01 record canonical roundtrip ready
+[context-counts] operation=serialize-record-ready validate=4 restore=4 json=6
+[fail] LP18-I02 single strict context serialize-record-ready
+[context-counts] operation=parse-record-ready validate=5 restore=5 json=8
+[fail] LP18-I02 single strict context parse-record-ready
+[pass] LP18-I01 record canonical roundtrip committed
+[context-counts] operation=serialize-record-committed validate=4 restore=4 json=6
+[fail] LP18-I02 single strict context serialize-record-committed
+[context-counts] operation=parse-record-committed validate=5 restore=5 json=8
+[fail] LP18-I02 single strict context parse-record-committed
+[pass] LP18-I01 record canonical roundtrip complete
+[context-counts] operation=serialize-record-complete validate=4 restore=4 json=6
+[fail] LP18-I02 single strict context serialize-record-complete
+[context-counts] operation=parse-record-complete validate=5 restore=5 json=8
+[fail] LP18-I02 single strict context parse-record-complete
+[pass] LP18-I01 every measured public call retains first strict work
+[pass] LP18-I03 same-address changed Intent cannot reuse prior validation
+[pass] LP18-I03 same-address manifest change rejects and Parse clears output
+[pass] LP18-I03 receipt alias remains rejected
+[pass] LP18-I03 reconstructed actual remux retains Ready canonical positive control
+[pass] LP18-I03 BuildReady rejects altered au and clears output
+[pass] LP18-I03 BuildReady rejects altered coverage and clears output
+[summary] LP18 pass=15 fail=13
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+        2.19 real         1.56 user         0.16 sys
+           157237248  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               72567  page reclaims
+                  65  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                 104  messages sent
+                  94  messages received
+                   0  signals received
+                 120  voluntary context switches
+                2120  involuntary context switches
+         13128636745  instructions retired
+          3001828783  cycles elapsed
+            34833176  peak memory footprint
+{"kind":"phase","label":"focused","exit":1,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":2209,"groupPeakRssBytes":186040320}
+{"kind":"oracle","mode":"red","expectedRed":true,"productPass":false,"matched":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":8968941,"removed":true}
+{"kind":"result","utc":"2026-09-19T15:09:05.450Z","mode":"red","matched":true,"productPass":false,"elapsedMs":6718}

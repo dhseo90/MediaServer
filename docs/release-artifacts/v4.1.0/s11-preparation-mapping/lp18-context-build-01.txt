@@ -1,0 +1,17 @@
+command: MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build
+exit: 0
+elapsed: not aggregated across tool calls
+token start/end/consumed: unavailable (no per-command usage source)
+[env] local override skipped
+[1/2] configure: <repo>/build-gst-onnx (ai=1, youtube=0)
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: <repo>/build-gst-onnx
+[2/2] build
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_job.cpp.o
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_job_ready.cpp.o
+[  3%] Linking CXX static library libmedia_server_runtime.a
+[ 98%] Built target media_server_runtime
+[ 99%] Linking CXX executable media_server
+[100%] Built target media_server
+[done] build=<repo>/build-gst-onnx/media_server

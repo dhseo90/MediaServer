@@ -5,7 +5,7 @@ lp_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 lp_repo="$(cd "$lp_script/../.." && pwd)"
 lp_root="${1:?owned root required}"
 lp_mode="${2:-envelope}"
-if [[ "$lp_mode" != envelope && "$lp_mode" != job && "$lp_mode" != content && "$lp_mode" != envelope-cost ]];then exit 2;fi
+if [[ "$lp_mode" != envelope && "$lp_mode" != job && "$lp_mode" != content && "$lp_mode" != envelope-cost && "$lp_mode" != context ]];then exit 2;fi
 node - "$lp_repo" "$lp_root" "$lp_mode" <<'NODE'
 const fs=require('fs'),path=require('path'),crypto=require('crypto'),[repo,out,mode]=process.argv.slice(2);
 if(!/^media-server-immutable-ownership\.[A-Za-z0-9]+$/.test(path.basename(out))||fs.lstatSync(out).isSymbolicLink()||fs.realpathSync(out)!==out)throw Error('LP18_ROOT');
@@ -46,6 +46,21 @@ if(mode==='content'){
  fs.writeFileSync(path.join(out,'recording_derived_job_ready.cpp'),instrumented);
  console.log('[instrument] proof_exact_insertions=5 proof_header_exact_insertions=1 ready_sha256='+crypto.createHash('sha256').update(instrumented).digest('hex'));
 }
+if(mode==='context'){
+ for(const name of ['recording_derived_job.cpp','recording_derived_job_ready.cpp']){
+  const original=fs.readFileSync(path.join(repo,'src/recording',name),'utf8');let text=original;
+  if(name==='recording_derived_job.cpp'){
+   for(const [signature,observer] of [['IntentAnalysis Validate(const DerivedJobIntentV1& job){','Validate'],['DerivedRecordingSelection Restore(const DerivedJobIntentV1& job){','Restore'],['std::string Json(const DerivedJobIntentV1& job){','Json']])text=exact(text,signature,signature+' intent_context_probe::'+observer+'();');
+  }else{
+   const signature='bool BuildDerivedJobReady(const DerivedJobRecordV1& input,const DerivedRemuxResult& remux,\n    const std::vector<std::int64_t>& orders,std::int64_t now,DerivedJobRecordV1* out,std::string* error) {';
+   text=exact(text,signature,signature+' intent_context_probe::BuildScope context_build;');
+  }
+  text='#include "recording_job_validation_context_counter.h"\n'+text;
+  fs.writeFileSync(path.join(out,name),text);
+  console.log('[instrument] context_file='+name+' original_sha256='+crypto.createHash('sha256').update(original).digest('hex')+' instrumented_sha256='+crypto.createHash('sha256').update(text).digest('hex'));
+ }
+ console.log('[instrument] context_exact_insertions=4');
+}
 const counters='#include <cstddef>\nnamespace ownership_probe { std::size_t binding_pool_lookups=0,binding_pool_comparisons=0,job_pool_lookups=0,job_pool_comparisons=0; void ResetJobPoolCounts(){job_pool_lookups=job_pool_comparisons=0;} std::size_t JobPoolLookups(){return job_pool_lookups;} std::size_t JobPoolComparisons(){return job_pool_comparisons;} void ResetBindingPoolCounts(){binding_pool_lookups=binding_pool_comparisons=0;} std::size_t BindingPoolLookups(){return binding_pool_lookups;} std::size_t BindingPoolComparisons(){return binding_pool_comparisons;} }\n';
 fs.writeFileSync(path.join(out,'recording_catalog.cpp'),counters+catalog);
 console.log('[instrument] catalog_sha256='+crypto.createHash('sha256').update(counters+catalog).digest('hex')+' binding_exact_insertions='+(bindingShared?1:0)+' job_exact_insertions='+(jobShared?1:0));
@@ -53,6 +68,7 @@ for(const name of ['include/recording/recording_journal.h','include/recording/re
 if(mode==='job')for(const name of ['scripts/internal/recording_job_ownership_smoke.cpp','src/recording/recording_timeline_projection.cpp'])console.log('[source] '+JSON.stringify({name,sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(repo,name))).digest('hex')}));
 if(mode==='content')for(const name of ['scripts/internal/recording_job_content_proof_smoke.cpp','scripts/internal/recording_job_content_proof_counter.h','scripts/internal/recording_checkpoint_reproduction_smoke.cpp','src/recording/recording_derived_job_ready.cpp','src/recording/recording_timeline_projection.cpp'])console.log('[source] '+JSON.stringify({name,sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(repo,name))).digest('hex')}));
 if(mode==='envelope-cost')for(const name of ['scripts/internal/recording_checkpoint_envelope_cost_smoke.cpp','scripts/internal/recording_immutable_ownership_build.sh'])console.log('[source] '+JSON.stringify({name,sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(repo,name))).digest('hex')}));
+if(mode==='context')for(const name of ['scripts/internal/recording_job_validation_context_smoke.cpp','scripts/internal/recording_job_validation_context_counter.h','scripts/internal/recording_immutable_ownership_build.sh','scripts/internal/recording_derived_job_service_smoke.cpp','scripts/internal/recording_media_test_fixture.h','src/recording/recording_derived_job.cpp','src/recording/recording_derived_job_ready.cpp','src/recording/recording_derived_job_context.h','src/recording/recording_timeline_projection.cpp'])console.log('[source] '+JSON.stringify({name,sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(repo,name))).digest('hex')}));
 NODE
 read -r -a lp_original_link < "$lp_repo/build-gst-onnx/CMakeFiles/media_server.dir/link.txt"
 lp_libs=(); lp_found=0
@@ -70,6 +86,7 @@ lp_sources=("$lp_script/recording_immutable_ownership_smoke.cpp")
 if [[ "$lp_mode" == job ]];then lp_sources=("$lp_script/recording_job_ownership_smoke.cpp" "$lp_repo/src/recording/recording_timeline_projection.cpp");fi
 if [[ "$lp_mode" == content ]];then lp_sources=("$lp_script/recording_job_content_proof_smoke.cpp" "$lp_root/recording_derived_job_ready.cpp" "$lp_repo/src/recording/recording_timeline_projection.cpp");fi
 if [[ "$lp_mode" == envelope-cost ]];then lp_sources=("$lp_script/recording_checkpoint_envelope_cost_smoke.cpp");fi
+if [[ "$lp_mode" == context ]];then lp_sources=("$lp_script/recording_job_validation_context_smoke.cpp" "$lp_root/recording_derived_job.cpp" "$lp_root/recording_derived_job_ready.cpp" "$lp_repo/src/recording/recording_timeline_projection.cpp");fi
 "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$lp_root/include" -I"$lp_repo/include" -I"$lp_script" -I"$lp_repo/src/recording" "${lp_flags[@]}" "${lp_shared[@]}" \
  "${lp_accepted[@]}" "${lp_binding[@]}" "${lp_job[@]}" -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_SQLITE3=1 \
  "${lp_sources[@]}" "$lp_root/recording_journal.cpp" "$lp_root/recording_catalog.cpp" "${lp_libs[@]}" -o "$lp_root/check"

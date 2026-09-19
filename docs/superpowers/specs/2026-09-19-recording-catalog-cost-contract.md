@@ -66,6 +66,14 @@ SameSequence는 기록 수·순서·null·schema/type/id/entity/time/payload 전
 CommitCheckpoint는 잠금 안의 현재 원장으로 재구성한 expected와 후보 전체값이 같은지 먼저 확인하고,
 동일 expected bytes 한 개만 pending-prefix·크기 판단·write/fsync/rename에 사용한다. 원자게시/poison/상한은 유지한다.
 
+Intent의 내부 반복은 `recording_derived_job_context.h`의 구현 전용 context로 분리한다. 최초 엄격 검사에서 얻은
+선택 복원값과 상한 검사한 canonical을 호출 안에서 소유하며 입력 Intent는 마지막 소비까지 불변이다.
+새 입력과 옛 context를 조합하는 소비 API는 없고, RecordContext는 자기 record의 Intent만 분석한다.
+Parse는 지역 Intent를 채운 뒤 strict/canonical 검사를 하고 public out 이동 후 context를 소비하지 않는다.
+BuildReady는 shape→selection 순서를 유지하고 확정된 지역 Intent 이외의 ready/state만 채운다.
+모든 공개 호출은 새 strict 분석을 수행하며 manifest·receipt·AU·native·coverage·unfulfilled 검사와 오류/출력 초기화를 유지한다.
+이 context는 상주 캐시나 과거 상태 증명이 아니며 catalog의 별도 상태 비교 호출까지 자동으로 없애지는 않는다.
+
 ### RAM 수명 구현의 소비자 경계
 
 terminal Complete 작업도 `MediaV2EligibleLocked`가 출력의 유일 소유자·Ready·manifest·AU provenance를 검사한다.
