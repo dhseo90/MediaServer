@@ -185,6 +185,9 @@ finalized media는 catalog에 다시 연결한다. 불완전 media는 안전하�
 
 ### Catalog와 journal
 
+2026-09-19 보완 설계: [catalog 누적 비용·보관 수명 계약](2026-09-19-recording-catalog-cost-contract.md).
+현재 구현의 전체 이력 보관과 조회 잠금 안 checkpoint 비용에 대한 설계 기준이며, 적용·성능 검증 완료가 아니다.
+
 SQLite가 compile된 환경에서는 SQLite를 primary query catalog로 사용한다. schema
 version, transaction, foreign key와 지원 가능한 WAL을 사용한다. JSONL journal은
 append-only이며 다음과 같은 idempotent domain mutation을 기록한다.

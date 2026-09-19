@@ -1,5 +1,155 @@
 # Release Test Records
 
+## 2026-09-19 LP17 판정 기준·원인 구분 설계·저장 수명 계약
+
+독자: 현재 단계 개발/검증 담당. 수명: 이번 설계 작업의 실행 기록. 정책 source-of-truth는 AGENTS.md다.
+최초 요청은 재판정 1~3번 설계였다. 후속 요청은 추론 수준 상향 후 같은 1~3번 재검토·마무리·커밋·푸시다.
+제품 구조 구현(4번)·비교 본실행·실제 앱은 여전히 제외한다. 아래 최초 실행 기록과 후속 재검토/Git 판정을 구분한다.
+이전 LP16 제품 변경·실패 기록과 미커밋 AVC 보완을 보존한다. 메인이 직접 범위·계약·증거를 검토하며 추가 에이전트는 없다.
+실제 모델 설정을 바꿨다는 주장은 하지 않는다. 세션에 없는 Superpowers 스킬을 사용했다고 주장하지 않고 설계/반례/직접 검토 절차를 적용한다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 문제·판정 기준 고정 | 문서 작성 | HTTP4000ms/제품 의미/검사 RSS/디스크/캐시 입장/미선정 제품 예산 구분 | 누적 비용 계약 1절 |
+| 2 | 한 번의 원인 구분용 비교 설계 | 설계 작성·미실행 | A 기존/B 기대값 보관 분리/C 캐시 대조, 삭제·새 프로세스 재개방·반증·중단 조건 | 구현계획 LP17 |
+| 3 | 저장 구조 보완 계약 확정 | 안전·수명 기준 작성 | 증분 처리/복구 분리·원자 게시·참조 폐쇄·회수 근거. 구체 형식/정량 예산은 미선정 | 누적 비용 계약 2~6절 |
+| 4 | AGENTS.md 준수 확인 | 직접 대조 | 1.3 메인 책임,3 범위 제한,5 별도 Git 권한,7 증거/문서 검증,8 실패 경계,12 문서 분리 적용 | 현재 AGENTS.md 및 이번 diff |
+
+설계 source-of-truth: [누적 비용·보관 수명 계약](superpowers/specs/2026-09-19-recording-catalog-cost-contract.md).
+실행 순서 source-of-truth: [구현계획 LP17](superpowers/plans/2026-09-02-v410-recording-foundation-implementation-plan.md#lp17-판정-기준-비교-설계-저장-계약).
+기존 foundation·로드맵에는 링크와 현재 상태만 반영한다. 새 파일은 비용/수명 설계의 별도 유지 주기로 분리했으며 실행 로그를 그 안에 넣지 않는다.
+
+### 실행 전 정의와 테스트 필요성
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP17-DOC01 | 정책/설계 직접 검토 | scope·안전 계약·미확정·동일 비교/반증·역사 실패 보존을 실제 코드와 대조 | v4.1.0 |
+| LP17-DOC02 | 공백 검사 | `git diff --check`와 새 설계 파일의 no-index 공백 검사, 새 파일 존재 차이와 오류를 구분 | v4.1.0 |
+| LP17-DOC03 | 문서 링크 검사 | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links` 명령/exit/summary | v4.1.0 |
+| LP17-DOC04 | UI 자산 문서 검사 | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-ui-assets` 명령/exit/summary. 실제 UI PASS 아님 | v4.1.0 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화: 문서 검사 | 진행 대상 | 이번 문서 변경 및 AGENTS7.1 | LP17-DOC01~04 | 이번 개발에 포함 |
+| 안정화: 비교 도구/제품 검사·빌드·실제 앱 | 미진행 | 이번은 설계, 구체 runner/이번 제품 diff 없음 | LP17-D01~08/C01~08 | 이번 실행 범위 아님 |
+| 30분 | 미진행 | 이번 설계 범위 밖, S11 필요성은 유지 | AGENTS7.6 | 미실행 |
+| 120분 | 미진행 | 이번 설계 범위 밖, S11 판정은 별도 | AGENTS7.6.2 | 미실행 |
+| UI 풀테스트 | 미진행 | 이번 문서 자산 검사로 대체하지 않음 | AGENTS7.6.3 | 미실행 |
+
+LP17-D01~08과 C01~08은 계획된 진단/반례 ID다. D08은 아래 후속 재검토에서 추가했다.
+개별 수행내용·예상 결과는 위 source-of-truth 표에 정의한다.
+구체 runner를 구현할 때 inventory/실행 명령·상세 oracle를 다시 연결한 뒤 실행한다. 현재 등록은 제품 기능 PASS가 아니다.
+원래 LP16 RSS FAIL·실제 HTTP 미확인·원인 귀속 미확정은 유지한다. 진단 목적과 제품 합격을 구분하는 문서만으로 실패를 해소하지 않는다.
+
+현재 baseline HEAD `e22a16032d86bcb81bfb01c4f91e67a92d5a703f`, branch v4.1.0, upstream 대비 ahead10.
+시작 시 catalog dirty hash `09ad247d036f5aa1199fa24b66180b89bf49e067995057e470b5b58b50ef6beb`,
+journal `66e6447a7557644391828eb074eda9911d052f93f4753bec724c8112c1ad6e1e`,
+scale fixture `1ddab92dd877e87492f8c547ae9070d9e2033735dcb8c0943a81cb88efcd6883`.
+실행 결과는 아래에 별도 기록한다. token start/end/consumed는 실제 계수 미제공으로 미집계. 임시 서버/포트/media 산출물은 생성하지 않는다.
+
+최초 문서 링크 검사는 exit1, 신규 LP17 heading의 가운데점과 참조 anchor 불일치3건이었다.
+heading을 공백 구분으로 고정하고 참조3개를 맞췄다. `git diff --check`는 exit0였고 신규 파일 no-index는
+진단 출력 없이 파일 존재 차이 exit1이었다. 링크 FAIL 뒤 같은 도구 호출에서 자산 검사가 실행된 것은
+실패 후 순차 중단 절차의 누락이며 이를 준수했다고 보고하지 않는다. 자산 결과는10 PASS/0 FAIL이었다.
+수정 후에는 각 명령 exit를 확인한 뒤 다음 명령으로 진행한다. 최초 실패는 아래 결과표에 보존한다.
+
+### LP17 최초 문서 검증 결과
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP17-DOC01 | 정책/설계/실제 코드 대조, 세 군의 한 변수 비교·미확정·후속 구현 경계 명시 | PASS | 메인 직접 검토. 원인 확정·제품 적용 PASS가 아님 |
+| LP17-DOC02 | git diff --check exit0/출력 없음, 신규 문서 no-index 진단 없음 | PASS | no-index exit1은 /dev/null 대비 신규 파일 차이, 공백 오류 아님 |
+| LP17-DOC03 최초 | verify-docs-links exit1, anchor3건 불일치 | FAIL | release-test-records·새 계약·로드맵의 LP17 절 링크 |
+| LP17-DOC03 수정 후 | verify-docs-links exit0,283파일/8734링크/22이미지/114anchor/실패0 | PASS | 제목/참조 수정, 최초 실패 유지 |
+| LP17-DOC04-01 | README uses only representative product UI screenshots | PASS | 자산 문서 검사, 최초/수정 후 동일 |
+| LP17-DOC04-02 | English README uses English UI screenshots | PASS | 동일 |
+| LP17-DOC04-03 | UI guide keeps product screenshots in the shared asset set | PASS | 동일 |
+| LP17-DOC04-04 | docs UI asset policy documents capture rules | PASS | 동일 |
+| LP17-DOC04-05 | managed UI asset manifest stays complete | PASS | 동일 |
+| LP17-DOC04-06 | capture script owns every documented UI asset | PASS | 동일 |
+| LP17-DOC04-07 | docs capture covers current screenshots | PASS | 동일 |
+| LP17-DOC04-08 | representative screenshot docs do not point at stale visual baselines | PASS | 동일 |
+| LP17-DOC04-09 | docs UI asset directory contains managed PNG files | PASS | 동일 |
+| LP17-DOC04-10 | VA documentation images keep full video frame bounds | PASS | 동일 |
+
+명령은 실행 전 정의와 같으며 최종 asset exit0/pass10/fail0, links index76/exclusions198이다.
+문서 변경 범위: 신규 비용 계약, 기존 foundation 연결, 구현계획 LP17, 로드맵 현재 상태, inventory 계획 ID, 이 중앙 기록(6개).
+새 코드/의존성·제품 실행·미디어 생성 없음. catalog/journal/scale fixture 종료 hash는 위 시작 hash와 모두 동일하다.
+기존 미커밋 제품 코드와 증적을 덮어쓰거나 stage하지 않았다. 현재 HEAD/upstream ahead10은 시작과 동일하다.
+
+| 항목 | 실행 상태 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- |
+| 비교 runner·A/B/C 측정·삭제/재개방 진단 | 미실행 | 설계만 작성. 실제 메모리 귀속·성능/자원 해결 주장 불가 |
+| 제품 구조 구현·정량 예산 선정 | 미완료 | 안전 계약과 구체 구현/용량 선택은 별개 |
+| 실제 HTTP/전체 통합·30분/UI/120분 | 미실행 | 이번 문서 검사로 대체 불가 |
+| 커밋·푸시 | 미수행 | 이번 설계 범위의 Git 작업은 실행하지 않음; 기존 실패/미커밋 유지 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| 이번 임시 서버/포트/media | 없음 | 0 | 생성/삭제 없음 | 해당 없음 | 문서 명령만 실행 |
+| 설계 및 중앙 기록 6개 | 저장소 문서 | diff 참조 | 보존 | 미커밋 | 이번 요청 산출물 |
+
+최초 작업 종료 시 푸시 가능: 아니오(미해결 제품 자원 판정·미커밋, 당시 설계 작업). 푸시 수행: 아니오.
+token start/end/consumed 및 전체 elapsed는 작업 묶음 계수/시작 시각을 수집하지 않아 미집계다.
+개별 문서 명령 종료/summary는 위 실제 도구 출력에 근거하며 실행시간을 추정해 채우지 않는다.
+
+### LP17 후속 재검토와 마감
+
+메인이 1~3번의 실제 문서와 catalog/journal/scale/2-job fixture를 직접 대조했다.
+미확정 구조·실험 설계는 AGENTS1.3에 따라 메인 책임으로 처리했으며 제품 수정이나 서브에이전트 실행은 하지 않았다.
+사용자의 추론 수준 상향을 존중하되 도구로 모델 설정을 변경했다는 주장은 하지 않는다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 판정 기준 재검토 | 설계 완료 | 기존 RSS 실패, 진단 유효성, 기능 동등성, 실행 안전 상한 구분; HTTP4000ms 유지 | 비용 계약 1절·계획 비교 진행 조건 |
+| 2 | 원인 구분 비교 재검토 | 설계 완료·미실행 | 별도 준비 프로세스·같은 입력/기대 파일·제품/검사 I/O 구간 구분·캐시 대조만 변경; D08 작업 전이 축 추가 | 구현계획 LP17·inventory D01~08 |
+| 3 | 저장 구조 계약 재검토 | 안전 계약 완료・제품 미적용 | RAM 내림/재획득과 영구 삭제 구분, 상세 의무/역사 영수증 구분, 캐시 부적합은 전체 검증 복귀 | 비용 계약 2~6절·C01/C04 |
+| 4 | 마무리 후 커밋·푸시 | 진행 전 확인 | 이번 문서만 stage 예정. 같은 브랜치 push에는 기존10커밋이 함께 포함됨을 알리고 중간 저장 승인 확인 중 | HEAD e22a16032·origin 대비 ahead10 |
+
+직접 대조 근거: `RecordingCatalog::CheckpointLocked`의 원본/후보/검증 shadow와
+`RecordingJournal::CommitCheckpoint`의 전체 바이트 대조, `CompactRecords`의 event receipt 한정 치환,
+`SegmentV2Deleted`의 binding 미회수, scale fixture의 전체 outputs/snapshot 생존과 동일 원본 구간 복제,
+checkpoint 재현 fixture의 실제 크기 2-job 전이. 별도 heap 귀속 실측이나 현재 HTTP 원인 해결 증거는 아니다.
+
+수정한 설계 결함: 기존 RSS FAIL이면 모든 비교를 무조건 멈추는 조건과 A/B/C 원인 분리 목표의 충돌,
+기대 파일 준비/읽기 비용 혼입, source-only 검사의 작업 전이 대표성 부족,
+RAM 내림과 영구 회수 조건 혼합, 캐시 무효화만으로 정상 입력도 거부할 수 있는 표현을 바로잡았다.
+분리된 진단 실행에는 명시된 진행 조건·안전 상한·실행 승인 확인이 먼저 필요하다. 현재는 설계 완료이지 본실행 준비 완료가 아니다.
+포맷을 유지하는 최소 보완에 새 포맷/전체 제품 자원 SLO 선정까지 자동 요구하지 않도록 진입 조건도 좁혔다.
+
+관련 문서 검사 LP17-DOC01~04는 보완 뒤 순차 실행했고 각 종료코드 성공을 확인한 뒤 다음 검사로 진행했다.
+아래는 이번 후속 재검토의 실제 결과이며 최초 링크 실패/절차 누락 이력은 위에 그대로 보존한다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP17-DOC01 재검토 | 실제 코드/fixture/계약 대조, 계획 D8·반례 C8의 inventory 연결 Node 읽기 검사 exit0 | PASS | 제품/원인 측정 PASS 아님 |
+| LP17-DOC02 재검토 | git diff --check exit0, 신규 계약 문서의 행말 공백/EOF Node 검사 exit0 | PASS | 제품 및 기존 미커밋 변경 보존 |
+| LP17-DOC03 재검토 | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links exit0; 283파일/8734링크/22이미지/114anchor/index76/exclusions198/실패0 | PASS | 이번 보완 후 실행 |
+| LP17-DOC04-01 재검토 | README uses only representative product UI screenshots | PASS | verify-docs-ui-assets exit0, 자산 문서 검사 |
+| LP17-DOC04-02 재검토 | English README uses English UI screenshots | PASS | 의도된 영문 UI 문서 자산 |
+| LP17-DOC04-03 재검토 | UI guide keeps product screenshots in the shared asset set | PASS | 공유 자산 참조 |
+| LP17-DOC04-04 재검토 | docs UI asset policy documents capture rules | PASS | 캡처 규칙 문서 |
+| LP17-DOC04-05 재검토 | managed UI asset manifest stays complete | PASS | manifest 완전성 |
+| LP17-DOC04-06 재검토 | capture script owns every documented UI asset | PASS | 캡처 스크립트 매핑 |
+| LP17-DOC04-07 재검토 | docs capture covers current screenshots | PASS | 현재 캡처 목록 |
+| LP17-DOC04-08 재검토 | representative screenshot docs do not point at stale visual baselines | PASS | 과거 baseline 혼용 없음 |
+| LP17-DOC04-09 재검토 | docs UI asset directory contains managed PNG files | PASS | 관리 대상 PNG |
+| LP17-DOC04-10 재검토 | VA documentation images keep full video frame bounds | PASS | 정적 자산 경계, 실제 UI PASS 아님 |
+
+자산 명령: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-ui-assets`, exit0/pass10/fail0.
+catalog/journal/scale SHA256은 위 시작 값과 각각 일치했다. 제품 코드·AGENTS.md 자체는 이번에 수정하지 않았다.
+검증 후 결과표 추가는 결과/설계/링크 대상을 바꾸지 않는 기록 변경이며 최종 index 공백/범위 확인은 커밋 직전에 수행한다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| 이번 임시 서버/포트/media | 없음 | 0 | 생성/삭제 없음 | 해당 없음 | 문서 검사·읽기만 실행 |
+| LP17 문서6개 | 저장소 설계/계획/등록/기록 | Git diff 참조 | 이번 커밋 대상으로 보존 | 제품 변경 및 LP16 후속 원출력 제외 | 사용자 지정 1~3번 |
+| 기존 AVC·LP16 미커밋 코드/원출력 | 이전 작업 산출물 | 이번 삭제 대상 아님 | 원상 보존, stage 제외 | 미해결 상태 유지 | 범위 밖 변경/실패를 섞지 않음 |
+
+token start/end/consumed: 실제 작업별 계수 미제공으로 미집계. elapsed: 턴 시작 시각을 수집하지 않아 전체 시간 미집계.
+source: 도구의 실제 명령·exit·원출력 및 읽기 대조. 결과를 예상값으로 채우지 않았다.
+다음은 비교 도구 구현/작은 입력 자체검증, 실행 안전 조건 확정 뒤 원인 비교다. 제품 4번·실제 앱·S11은 미실행이다.
+
 ## 2026-09-19 LP16 측정 경계 정정·메모리 귀속
 
 독자: 현재 녹화 개발/검증 담당. lifecycle: 실행별 증적. AGENTS.md가정책source-of-truth이며사용자는측정기준→발생구간→필요한최소보완→관련검증→실제앱→분할커밋/푸시6단계를승인했다. main은설계/판정/커밋/푸시,기존단일Astra/medium담당자는확정검증기구현. 하위생성금지. 기존AVC·LP15실패/미커밋보존.
