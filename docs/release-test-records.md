@@ -24,6 +24,15 @@
 
 LP14 1단계 결과: helper14/14(exit0,77.935ms), 기존 LP13 등록4Node141/141(exit0,35437ms), syntax/diffcheck exit0. 정상종료와archiveSafe 분리·두포트독립확인·최초결과보존·고정오류비노출을 확인했다. 실제Node 자식exit0/7은 확인했으며 포트는 주입검사로 실제서버PASS가 아니다. 메인이 helper/test/runner diff와결과를직접검토했다. [원출력·155개 전수·정리60행·hash](release-artifacts/v4.1.0/s11-preparation-mapping/lp14-cleanup-output.txt). 실제앱 미실행, 이전보존root 미변경. 이번커밋은 LP13 실패기록과 LP14 진단보완만 포함하고 기존AVC 제품변경은별도보존한다. token실측미집계.
 
+LP14 1단계 커밋 `587e82c6`. 2단계 결과: 보존root 사후복제본 후보4개 조회 exit0, complete/failed/absent/absent. complete에는출력2개, failed에는고정 `job-cancelled-or-deadline`이 저장돼있었다. 당초대상 식별/실패당시상태와구분한다. [요약·명령·전수·재현 스크립트](release-artifacts/v4.1.0/s11-preparation-mapping/lp14-retained-output.txt), [후보1](release-artifacts/v4.1.0/s11-preparation-mapping/lp14-retained-state-1.json), [후보2](release-artifacts/v4.1.0/s11-preparation-mapping/lp14-retained-state-2.json), [후보3](release-artifacts/v4.1.0/s11-preparation-mapping/lp14-retained-state-3.json), [후보4](release-artifacts/v4.1.0/s11-preparation-mapping/lp14-retained-state-4.json). `ps`/MediaServer TCP listener/root open-file 조회 모두대상없음,프로브모두종료. 마지막원본manifest SHA `9d32183ab220a9fa3d8c10e2ec6ea6cceb4017dd7ae3d96e03041e0904852373` 일치. 실제앱재기동/재생성없음. token/정확elapsed 미집계.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR/media-server-current-integration-Gv9R6R | 소유fixture·원본/복제본·probe | 87903420B/313파일 | 소유0700·open-file부재·원본불변·증거이관후삭제 | 부재확인 | 노드정리exit0 |
+| /private/tmp/lp13-actual.rixdP5 | 원출력·임시진단스크립트 | 216032B/5파일 | 안전원출력/스크립트이관후삭제 | 부재확인 | 노드정리exit0 |
+
+이전cleanup미완료의임시자료정리는해소됐지만 과거정상종료를PASS로고치지않는다. 재생성가능한검증용자료만삭제했고영상원본은별도복구보존하지않았다. 이번 단계PASS는사후진단/정리완료일뿐제품HTTP/녹화전체PASS가아니다.
+
 ## 2026-09-19 LP13 실패 보존·동시 계측 5단계
 
 승인: 진단 보존→동시 관측 준비→실제 진단1회→확정 원인 수정/영향 검증→실제 재확인·비용판정·분할 커밋/푸시. 각 단계의 완료를 구분한다. 공개 API/저장/schema/시간/ID/미디어 협상/판정/4000ms·180초 상한 불변. 장시간/UI/전체 재기동/릴리즈 외부 작업은 제외. 메인 설계·검토, 단일 Astra/medium 담당자 확정 구현(하위 생성 금지). 기존 LP11/12 변경·실패 이력은 보존한다.

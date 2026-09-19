@@ -1,0 +1,66 @@
+LP14-R01~03 보존 자료 사후 진단. 명령: node retained-diagnosis.mjs / node retained-failure.mjs, 각각 exit0. 실제앱/재생성 없음. 실행 당시 프로세스/리스너/open-file 읽기조회0. 과거 exit/port는 미확인 유지.
+
+제목 | 수행내용 | 결과(pass/fail)
+--- | --- | ---
+R01 | 원본14파일·32043933B·독립inode 복제·hash 일치 | pass
+R02-1 | 후보1 complete,출력2 | pass
+R02-2 | 후보2 failed,출력0,고정실패코드 수집 | pass
+R02-3 | 후보3 absent | pass
+R02-4 | 후보4 absent | pass
+R03 | 최초4조회 전후 원본hash/inode불변 | pass
+
+진단 성공을 제품 실패 해결/정상 종료 PASS로 확대하지 않는다. token/정확elapsed 미집계(별도실행집계없음),각probe15초·묶음180초 상한.
+
+--- retained.log ---
+{"stage":"copy","files":14,"bytes":32043933,"manifestSha256":"9d32183ab220a9fa3d8c10e2ec6ea6cceb4017dd7ae3d96e03041e0904852373","independentInodes":true,"candidates":4,"originalTargetIdentified":false}
+{"candidate":1,"referenceSha256":"4f53af15664b74ca3004462752d9aef75c86bb62d5b112b45136e40c153efc7c","diagnosticStatus":"complete","evidenceStatus":"preserved","cleanupAllowed":true}
+{"diagnostic":{"state":"complete","managed":true,"jobCount":1,"referenceSha256":"4f53af15664b74ca3004462752d9aef75c86bb62d5b112b45136e40c153efc7c","capturedIntentSha256":"7613615b1e167e26d3686d0fe9e11223d628579d4eb628abb0a25749a6b459a0","sourceCount":2,"outputCount":2,"plannedOutputCount":2,"fileReceiptCount":2,"copyCatalogOpened":true,"snapshotBasis":"offline-copy-at-query","failureTimeEquivalent":false,"remuxPerformed":false}}
+{"candidate":2,"referenceSha256":"8dfa87d6b8fdd8c760383b205a2434e67aeaa472c768100753376ed10ad2ca08","diagnosticStatus":"complete","evidenceStatus":"preserved","cleanupAllowed":true}
+{"diagnostic":{"state":"failed","managed":true,"jobCount":1,"referenceSha256":"8dfa87d6b8fdd8c760383b205a2434e67aeaa472c768100753376ed10ad2ca08","capturedIntentSha256":"7d41b23b652c689edaf7858024df2f638d9b8e6cf7937aa7989f8ec300df2fd9","sourceCount":2,"outputCount":0,"plannedOutputCount":2,"fileReceiptCount":0,"copyCatalogOpened":true,"snapshotBasis":"offline-copy-at-query","failureTimeEquivalent":false,"remuxPerformed":false}}
+{"candidate":3,"referenceSha256":"71f9a3b71d1a47976b94a0ac15bf8b313d5b6285067bdfd4e8f9a5c82b021c7e","diagnosticStatus":"complete","evidenceStatus":"preserved","cleanupAllowed":true}
+{"diagnostic":{"state":"absent","managed":true,"jobCount":0,"referenceSha256":"71f9a3b71d1a47976b94a0ac15bf8b313d5b6285067bdfd4e8f9a5c82b021c7e","capturedIntentSha256":null,"sourceCount":0,"outputCount":0,"plannedOutputCount":0,"fileReceiptCount":0,"copyCatalogOpened":true,"snapshotBasis":"offline-copy-at-query","failureTimeEquivalent":false,"remuxPerformed":false}}
+{"candidate":4,"referenceSha256":"7747127cbd44ba029f41638687d87600b9820ac656f7efb42c513291be7f91f0","diagnosticStatus":"complete","evidenceStatus":"preserved","cleanupAllowed":true}
+{"diagnostic":{"state":"absent","managed":true,"jobCount":0,"referenceSha256":"7747127cbd44ba029f41638687d87600b9820ac656f7efb42c513291be7f91f0","capturedIntentSha256":null,"sourceCount":0,"outputCount":0,"plannedOutputCount":0,"fileReceiptCount":0,"copyCatalogOpened":true,"snapshotBasis":"offline-copy-at-query","failureTimeEquivalent":false,"remuxPerformed":false}}
+{"originalUnchanged":true,"remuxPerformed":false,"normalShutdownRetrospectivePass":false}
+
+--- retained-failure.log ---
+{"candidate":2,"referenceSha256":"8dfa87d6b8fdd8c760383b205a2434e67aeaa472c768100753376ed10ad2ca08","diagnostic":{"state":"failed","failureReason":"job-cancelled-or-deadline","sourceCount":2,"outputCount":0,"plannedOutputCount":2,"fileReceiptCount":0,"copyCatalogOpened":true,"capturedIntentSha256":"7d41b23b652c689edaf7858024df2f638d9b8e6cf7937aa7989f8ec300df2fd9"}}
+
+--- retained-diagnosis.mjs ---
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import {captureStateEvidence,runDiagnosticProbe} from '/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_failure_capture.mjs';
+const root='/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-Gv9R6R';
+const repo='/Users/dhseo/Workspace/mediaServer',original=path.join(root,'recordings'),copy=path.join(root,'projection-copy-1/recordings');
+const sha=x=>crypto.createHash('sha256').update(x).digest('hex');
+const st=fs.lstatSync(root);if(st.isSymbolicLink()||!st.isDirectory()||st.uid!==process.getuid()||(st.mode&0o777)!==0o700||fs.realpathSync(root)!==root)throw Error('root-ownership');
+function scan(base){const rows=[];let bytes=0;function visit(p){for(const name of fs.readdirSync(p).sort()){const file=path.join(p,name),s=fs.lstatSync(file);if(s.isSymbolicLink())throw Error('symlink');if(s.isDirectory()){visit(file);continue;}if(!s.isFile()||s.nlink!==1)throw Error('file-type');bytes+=s.size;if(bytes>512*1024*1024||rows.length>=4096)throw Error('scan-cap');rows.push({path:path.relative(base,file),bytes:s.size,sha:sha(fs.readFileSync(file)),inode:s.ino});}}visit(base);return {rows,bytes};}
+const before=scan(original);if(fs.existsSync(path.dirname(copy)))throw Error('copy-exists');fs.mkdirSync(path.dirname(copy),{mode:0o700});fs.cpSync(original,copy,{recursive:true,errorOnExist:true,dereference:false});
+const copied=scan(copy),withoutInode=s=>s.rows.map(({inode,...r})=>r);
+if(JSON.stringify(withoutInode(before))!==JSON.stringify(withoutInode(copied))||before.rows.some((r,i)=>r.inode===copied.rows[i].inode))throw Error('copy-equality');
+const references=[...new Set(fs.readFileSync(path.join(root,'events/events.jsonl'),'utf8').trim().split('\n').map(JSON.parse).map(r=>r.recordingLinkId))];
+if(references.length!==4||references.some(r=>typeof r!=='string'||!r||r.length>256))throw Error('reference-set');
+const deadline=performance.now()+180000;
+console.log(JSON.stringify({stage:'copy',files:before.rows.length,bytes:before.bytes,manifestSha256:sha(JSON.stringify(withoutInode(before))),independentInodes:true,candidates:4,originalTargetIdentified:false}));
+for(const [i,reference] of references.entries()){
+ const expectedReferenceSha256=sha(reference),evidencePath=path.join(repo,'docs/release-artifacts/v4.1.0/s11-preparation-mapping',`lp14-retained-state-${i+1}.json`);
+ const result=captureStateEvidence({expectedReferenceSha256,evidencePath,collect:()=>runDiagnosticProbe({binary:path.join(root,'archive-probe'),root,index:1,reference,mode:'--diagnose-state',env:{PATH:process.env.PATH,HOME:root,TMPDIR:path.join(root,'tmp')},deadline})});
+ console.log(JSON.stringify({candidate:i+1,referenceSha256:expectedReferenceSha256,...result}));
+ if(!result.cleanupAllowed)throw Error('state-diagnostic-failed');
+ console.log(fs.readFileSync(evidencePath,'utf8').trim());
+}
+if(JSON.stringify(before)!==JSON.stringify(scan(original)))throw Error('original-changed');
+console.log(JSON.stringify({originalUnchanged:true,remuxPerformed:false,normalShutdownRetrospectivePass:false}));
+
+--- retained-failure.mjs ---
+import fs from 'node:fs';import crypto from 'node:crypto';
+import {runDiagnosticProbe} from '/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_failure_capture.mjs';
+const root='/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-Gv9R6R';
+const expected=JSON.parse(fs.readFileSync('/Users/dhseo/Workspace/mediaServer/docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp14-retained-state-2.json')).diagnostic;
+const reference=fs.readFileSync(root+'/events/events.jsonl','utf8').trim().split('\n').map(JSON.parse).find(r=>crypto.createHash('sha256').update(r.recordingLinkId).digest('hex')===expected.referenceSha256)?.recordingLinkId;if(!reference)throw Error('reference-missing');
+const x=runDiagnosticProbe({binary:root+'/archive-probe',root,index:1,reference,mode:'--diagnose-basic',env:{PATH:process.env.PATH,HOME:root,TMPDIR:root+'/tmp'},deadline:performance.now()+15000});
+const keys=['state','failureReason','sourceCount','outputCount','plannedOutputCount','fileReceiptCount','copyCatalogOpened','capturedIntentSha256'];
+const codes=['unknown','job-remux: file-original-timestamp-mismatch','job-remux: source-binding-incomplete','job-source-unavailable','job-cancelled-or-deadline','job-attempt-create','job-output-create','job-remux: media-budget-exceeded','job-remux: work-cancelled','job-remux: output-byte-budget-exceeded'];
+if(Object.keys(x).length!==keys.length||!keys.every(k=>Object.hasOwn(x,k))||!codes.includes(x.failureReason)||keys.filter(k=>k!=='failureReason').some(k=>x[k]!==expected[k]))throw Error('diagnostic-schema');
+console.log(JSON.stringify({candidate:2,referenceSha256:expected.referenceSha256,diagnostic:x}));
