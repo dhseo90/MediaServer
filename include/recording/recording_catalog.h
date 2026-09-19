@@ -230,7 +230,26 @@ private:
     bool MediaV2EligibleLocked(const std::string& channel,const std::string& id) const;
     bool AdjustHoldCountLocked(const std::string& id,std::int64_t delta,std::string* error);
     bool ValidateDerivedJobSourcesLocked(const DerivedJobIntentV1&,std::string*) const;
-    bool ApplyDerivedJobMutationLocked(const RecordingMutationV1&,std::string*,bool apply=true);
+    // UpdateDerivedJob의 동일 mutex 호출 안에서만 사용한다. replay/외부 입력에는 전달하지 않는다.
+    struct PreparedDerivedMutation {
+        enum class Phase { Empty, Validated, Applied, Consumed };
+        const RecordingCatalog* owner;
+        const std::string& payload;
+        RecordingMutationType type{RecordingMutationType::Unknown};
+        std::string entity;
+        const DerivedJobRecordV1* prior{nullptr};
+        DerivedJobState prior_state{DerivedJobState::Intent};
+        std::size_t prior_files{0};
+        std::optional<DerivedJobRecordV1> record;
+        const DerivedJobRecordV1* applied{nullptr};
+        Phase phase{Phase::Empty};
+        PreparedDerivedMutation(const RecordingCatalog* catalog,const std::string& canonical)
+            :owner(catalog),payload(canonical){}
+        PreparedDerivedMutation(const PreparedDerivedMutation&)=delete;
+        PreparedDerivedMutation& operator=(const PreparedDerivedMutation&)=delete;
+    };
+    bool PreparedDerivedMatchesLocked(const RecordingMutationV1&,const PreparedDerivedMutation&,bool applied,std::string*) const;
+    bool ApplyDerivedJobMutationLocked(const RecordingMutationV1&,std::string*,bool apply=true,PreparedDerivedMutation* prepared=nullptr);
     RecordingLifecycle EffectiveLifecycleV2Locked(const std::string& id) const;
     bool OpenLocked(std::string* error);
     bool CanWriteLocked(std::string* error) const;
@@ -246,12 +265,12 @@ private:
     bool ValidateV2Locked(const RecordingSegmentV2& segment, const std::string& relative, std::string* error) const;
     bool ApplyMutationLocked(const RecordingMutationV1& mutation,
                              bool count_duplicate,
-                             std::string* error);
-    bool AppendAndApplyLocked(RecordingMutationV1 mutation, std::string* error);
+                             std::string* error,PreparedDerivedMutation* prepared=nullptr);
+    bool AppendAndApplyLocked(RecordingMutationV1 mutation, std::string* error,PreparedDerivedMutation* prepared=nullptr);
     bool OpenSqliteLocked(std::string* error);
     bool InitializeSqliteSchemaLocked(std::string* error);
     bool RebuildSqliteLocked(std::string* error);
-    bool ProjectMutationSqliteLocked(const RecordingMutationV1& mutation, std::string* error);
+    bool ProjectMutationSqliteLocked(const RecordingMutationV1& mutation, std::string* error,PreparedDerivedMutation* prepared=nullptr);
     bool RecoverWriterCleanupMarkersLocked(std::string* error);
     bool FinalizeSegmentLocked(const RecordingSegmentV1& segment,
                                const std::string& media_path,

@@ -33,6 +33,25 @@ LP14 1단계 커밋 `587e82c6`. 2단계 결과: 보존root 사후복제본 후�
 
 이전cleanup미완료의임시자료정리는해소됐지만 과거정상종료를PASS로고치지않는다. 재생성가능한검증용자료만삭제했고영상원본은별도복구보존하지않았다. 이번 단계PASS는사후진단/정리완료일뿐제품HTTP/녹화전체PASS가아니다.
 
+### LP14 3단계 전이 검증 재사용 사전등록
+
+private transaction-local prepared context를UpdateDerivedJob에한정한다. canonical fullparse1회와기존transition/source/order검증은수행하고 동일mutex보유기간의memoryapply/SQLite만재사용한다. owner/type/entity/payload/prior상태/소비단계결박을확인한다. 원장append/fsync·mutation bookkeeping·SQLitefallback·checkpoint순서/바이트·공개parser/serializer는불변. replay/checkpoint/BeginIntent/FailCleanup는기존full검증을유지한다. 전역캐시·잠금해제·검증삭제는범위밖이다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP14-C01 | 실제전이 재사용 | Ready/Committed/Complete 정상전이에서 동일record fullparse3→1, 저장canonical bytes동일 | v4.1.0 |
+| LP14-C02 | 잘못된context 거부 | payload/type/entity/owner/prior/reuse 불일치 및context외부payload strict거부 | v4.1.0 |
+| LP14-C03 | 내구/복구 | SQLite/fallback/rebuild/checkpoint 결과·mutationID/order/원자확정 유지 | v4.1.0 |
+| LP14-C04 | 전체 영향 | 기존derived jobs/service/validation회귀·전체build, 잠금/HTTP actual은4단계 | v4.1.0 |
+
+신규 `recording_derived_transition_reuse_smoke.cpp`, `verify_recording_derived_transition_reuse.sh`를격리실행한다. 명령 `bash scripts/internal/verify_recording_derived_transition_reuse.sh`, 기존 `verify_recording_derived_jobs.sh`/`verify_recording_derived_job_service.sh`/`verify_recording_derived_job_validation.sh`(각bash), `./server.sh build`, `git diff --check`. 최초실행원출력/개별결과/정리는 `lp14-transition-output.txt`. 예상 RED는정상전이parse횟수3회가1회기대와불일치이며환경/빌드오류는RED아님. 기존비용계측연결이변경signature와정합하는지도확인한다. 실제앱/scale32는focused·영향검사와메인검토후4단계에서수행한다.
+
+LP14 3단계 결과: focused11/11, jobs23/23, service43/43, validation11/11 및build/diffcheck exit0. 최초Ready/Committed/Complete parse3회 RED3→최종각1회 GREEN. context 결박/일회소비/중복envelope·canonical bytes·J09/J10/F12 SQLite/fallback/rebuild/checkpoint회귀통과. [원출력·개별결과·hash·정리](release-artifacts/v4.1.0/s11-preparation-mapping/lp14-transition-output.txt). 메인이header/cpp/fixture/runner 실제diff를검토했고 prepared는constpayload/동일mu 호출수명에한정되며장기캐시가아님을확인했다. 공개serializer/parser·원장순서/저장bytes·시간/ID 불변,기존AVC수정은미커밋별도보존. 실제HTTP 개선은아직미확인. token실측미집계.
+
+### LP14 4단계 실제 앱·비용 판정 사전등록
+
+LP14-A01: `node scripts/internal/verify_recording_current_app.mjs --latency-only`를소유headless GST cache에서1회실행. build와준비PASS·3단계커밋후진행. 원출력처음부터보존,HTTP4000ms/총180초·로그4MiB·fixture512MiB불변. process-start/stop 고정관측과원인trace·job사후요약/cleanup을확인한다. LP14-A02: A01 성공후 `bash scripts/internal/recording_catalog_cost_probe_run.sh scale-32-lp14`로기존16/32원본4096AU·checkpoint/복구동등성과같은프로필비교. 기존32원본합격관측을성능SLO로오인하지않고추가보완필요성을판정한다. 실패시뒤단계보류·확보증거로원인/범위판정,무근거반복금지. 전체실제복수출력·재기동통합및장시간/UI는범위밖이다.
+
 ## 2026-09-19 LP13 실패 보존·동시 계측 5단계
 
 승인: 진단 보존→동시 관측 준비→실제 진단1회→확정 원인 수정/영향 검증→실제 재확인·비용판정·분할 커밋/푸시. 각 단계의 완료를 구분한다. 공개 API/저장/schema/시간/ID/미디어 협상/판정/4000ms·180초 상한 불변. 장시간/UI/전체 재기동/릴리즈 외부 작업은 제외. 메인 설계·검토, 단일 Astra/medium 담당자 확정 구현(하위 생성 금지). 기존 LP11/12 변경·실패 이력은 보존한다.

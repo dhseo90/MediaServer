@@ -1,5 +1,7 @@
 # Project Feature Test Inventory
 
+LP14-C01~04: 동일잠금·동일전이의canonical검증재사용, context오용거부·내구/복구/기존서비스회귀. 중앙LP14 3단계정의. 안정화: 신규focused·jobs/service/validation·build. 30분/120분: 이번미실행·S11 별도. UI: 내부재사용 비대상, API/실제앱은4단계.
+
 LP14-D01~04: 종료 정상 판정과 프로세스/포트 회수·진단 안전성을 분리한다. exact 정의는 중앙 LP14. 안정화: 종료 helper/실제 격리 자식·기존 진단 회귀. 30분/120분: 이번 미실행. UI: 검증기 내부 비대상. 비정상 종료는 FAIL 유지.
 
 LP13-T01~05: 검증 opt-in 시간/잠금소유/HTTP순번 동시 관측, 기본off·경합·중첩·상한·실제연결. 중앙 LP13 2단계 정의 참조. 안정화: 전용C++/JS 및 관련회귀·build. 30분/120분: 이번 미실행. UI: 내부계측 비대상. 계측PASS를 실제운영 지연PASS로 대체하지 않는다.

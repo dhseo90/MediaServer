@@ -373,8 +373,9 @@ bool RecordingCatalog::UpdateDerivedJob(const void* owner,const DerivedJobRecord
         orders_v2_[order.request_id]=order;
     }
     // append 전에 전체 전이를 검증한다. catalog 전체 복제나 output 부분 적용은 하지 않는다.
-    if(!ApplyDerivedJobMutationLocked(mutation,error,false))return false;
-    if(!AppendAndApplyLocked(std::move(mutation),error)){derived_job_state_authoritative_=false;return false;}
+    PreparedDerivedMutation prepared(this,payload);
+    if(!ApplyDerivedJobMutationLocked(mutation,error,false,&prepared))return false;
+    if(!AppendAndApplyLocked(std::move(mutation),error,&prepared)){derived_job_state_authoritative_=false;return false;}
     return true;
 }
 
@@ -445,8 +446,33 @@ bool RecordingCatalog::ValidateDerivedJobSourcesLocked(const DerivedJobIntentV1&
     }
     return true;
 }
-bool RecordingCatalog::ApplyDerivedJobMutationLocked(const RecordingMutationV1& mutation,std::string* error,bool apply) {
+bool RecordingCatalog::PreparedDerivedMatchesLocked(const RecordingMutationV1& mutation,const PreparedDerivedMutation& prepared,bool applied,std::string* error) const {
+    const auto expected=applied?PreparedDerivedMutation::Phase::Applied:PreparedDerivedMutation::Phase::Validated;
+    if(prepared.owner!=this||prepared.phase!=expected||prepared.type!=mutation.mutation_type||
+       prepared.entity!=mutation.entity_id||prepared.payload!=mutation.payload_json)
+        return Fail(error,"derived prepared mutation 결박 거부");
+    const auto old=derived_jobs_.find(mutation.entity_id);
+    if(old==derived_jobs_.end()||(!applied&&(&old->second!=prepared.prior||old->second.state!=prepared.prior_state||old->second.files.size()!=prepared.prior_files))||
+       (applied && &old->second!=prepared.applied))return Fail(error,"derived prepared prior 결박 거부");
+    return true;
+}
+bool RecordingCatalog::ApplyDerivedJobMutationLocked(const RecordingMutationV1& mutation,std::string* error,bool apply,PreparedDerivedMutation* prepared) {
     recording::latency::Scope latency_scope(recording::latency::Operation::ApplyJob,recording::latency::Source::Catalog,__LINE__,false);
+    if(prepared&&apply){
+        if(!prepared->record||!PreparedDerivedMatchesLocked(mutation,*prepared,false,error))return false;
+        auto& record=*prepared->record;
+        // 검증 이후 AppendOwned는 catalog 상태를 변경하거나 외부 callback을 호출하지 않는다.
+        // 같은 mu_ 소유 안에서 기존 transition 검증 결과를 단 한 번 소비한다.
+        prepared->phase=PreparedDerivedMutation::Phase::Consumed;
+        if(mutation.mutation_type==RecordingMutationType::DerivedJobCommitted)for(std::size_t i=0;i<record.ready->outputs.size();++i){
+            const auto& s=record.ready->outputs[i].segment;segments_v2_.emplace(s.segment_id,s);media_relpaths_[s.segment_id]=record.intent.outputs[i].final_relpath;
+        }
+        auto& destination=derived_jobs_.find(mutation.entity_id)->second;destination=std::move(record);
+        prepared->record.reset();prepared->applied=&destination;prepared->phase=PreparedDerivedMutation::Phase::Applied;
+        return true;
+    }
+    if(prepared&&(prepared->phase!=PreparedDerivedMutation::Phase::Empty||prepared->owner!=this||prepared->payload!=mutation.payload_json))
+        return Fail(error,"derived prepared 초기 결박 거부");
     DerivedJobRecordV1 record;
     if(!journal_.managed_||!options_.enable_v2_storage||!ParseDerivedJobRecord(mutation.payload_json,&record,error)||
        record.intent.job_id!=mutation.entity_id)return Fail(error,"derived job mutation 계약 거부");
@@ -494,7 +520,10 @@ bool RecordingCatalog::ApplyDerivedJobMutationLocked(const RecordingMutationV1& 
                 return Fail(error,"derived output 예약 결박 오류");
         }
     }
-    if(!apply)return true;
+    if(!apply){
+        if(prepared){prepared->type=type;prepared->entity=mutation.entity_id;prepared->prior=&prior;prepared->prior_state=prior.state;prepared->prior_files=prior.files.size();prepared->record=std::move(record);prepared->phase=PreparedDerivedMutation::Phase::Validated;}
+        return true;
+    }
     if(committed) {
         // 하나의 mutation 아래 전체 결과와 provenance/job state를 함께 적용한다.
         for(std::size_t i=0;i<record.ready->outputs.size();++i) {
@@ -775,7 +804,8 @@ bool RecordingCatalog::RecoverWriterCleanupMarkersLocked(std::string* error) {
 
 bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                                            bool count_duplicate,
-                                           std::string* error) {
+                                           std::string* error,PreparedDerivedMutation* prepared) {
+    if(prepared&&!PreparedDerivedMatchesLocked(mutation,*prepared,false,error))return false;
     const bool segment_state = mutation.mutation_type == RecordingMutationType::ReferencedObservationPut ||
                                mutation.mutation_type == RecordingMutationType::DerivedReferenceAccepted ||
                                IsDerivedJobMutation(mutation.mutation_type) ||
@@ -805,7 +835,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
         case RecordingMutationType::DerivedJobCommitted:
         case RecordingMutationType::DerivedJobComplete:
         case RecordingMutationType::DerivedJobFailed:
-            ok=ApplyDerivedJobMutationLocked(mutation,error);
+            ok=ApplyDerivedJobMutationLocked(mutation,error,true,prepared);
             break;
         case RecordingMutationType::ReferencedObservationPut: {
             ReferencedObservationV1 pair;
@@ -1032,22 +1062,25 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
     return ok;
 }
 
-bool RecordingCatalog::AppendAndApplyLocked(RecordingMutationV1 mutation, std::string* error) {
+bool RecordingCatalog::AppendAndApplyLocked(RecordingMutationV1 mutation, std::string* error,PreparedDerivedMutation* prepared) {
     recording::latency::Scope latency_scope(recording::latency::Operation::Append,recording::latency::Source::Catalog,__LINE__,false);
     if(!CanWriteLocked(error))return false;
+    if(prepared&&!PreparedDerivedMatchesLocked(mutation,*prepared,false,error))return false;
     mutation.mutation_id = mutation.mutation_id.empty() ? NextMutationId() : mutation.mutation_id;
     mutation.occurred_at_ms = mutation.occurred_at_ms == 0 ? NowMs() : mutation.occurred_at_ms;
     if (!journal_.AppendOwned(mutation, this, error)) return false;
-    if (!ApplyMutationLocked(mutation, false, error)) return false;
+    if (!ApplyMutationLocked(mutation, false, error,prepared)) return false;
     if (sqlite_db_ != nullptr) {
         std::string projection_error;
-        if (!ProjectMutationSqliteLocked(mutation, &projection_error)) {
+        auto* projection_prepared=prepared&&prepared->phase==PreparedDerivedMutation::Phase::Applied?prepared:nullptr;
+        if (!ProjectMutationSqliteLocked(mutation, &projection_error,projection_prepared)) {
             ++recovery_report_.projection_error_count;
             CloseSqliteLocked();
             catalog_mode_ = "jsonl-fallback";
             if (error != nullptr) error->clear();
         }
     }
+    if(prepared)prepared->phase=PreparedDerivedMutation::Phase::Consumed;
     return !journal_.CheckpointDue(this)||CheckpointLocked(false,error);
 }
 
@@ -2545,11 +2578,12 @@ bool RecordingCatalog::RebuildSqliteLocked(std::string* error) {
 #endif
 }
 
-bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mutation, std::string* error) {
+bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mutation, std::string* error,PreparedDerivedMutation* prepared) {
     recording::latency::Scope latency_scope(recording::latency::Operation::Sqlite,recording::latency::Source::Catalog,__LINE__,false);
 #if !MEDIA_SERVER_USE_SQLITE3
-    (void)mutation; (void)error; return true;
+    (void)mutation; (void)error; (void)prepared; return true;
 #else
+    if(prepared){if(!PreparedDerivedMatchesLocked(mutation,*prepared,true,error))return false;prepared->phase=PreparedDerivedMutation::Phase::Consumed;}
     if (!Exec(sqlite_db_, "BEGIN", error)) return false;
     sqlite3_stmt* statement = nullptr;
     if (sqlite3_prepare_v2(sqlite_db_, "INSERT OR IGNORE INTO recording_mutations VALUES(?,?,?,?)", -1, &statement, nullptr) != SQLITE_OK) { Exec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, sqlite3_errmsg(sqlite_db_)); }
@@ -2566,10 +2600,11 @@ bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mu
     }
     if (!inserted) return Exec(sqlite_db_, "COMMIT", error);
     if(IsDerivedJobMutation(mutation.mutation_type)) {
-        DerivedJobRecordV1 job;
-        if(!ParseDerivedJobRecord(mutation.payload_json,&job,error)||
+        DerivedJobRecordV1 parsed_job;
+        if((!prepared&&!ParseDerivedJobRecord(mutation.payload_json,&parsed_job,error))||
            sqlite3_prepare_v2(sqlite_db_,"INSERT OR REPLACE INTO recording_derived_jobs VALUES(?,?)",-1,&statement,nullptr)!=SQLITE_OK){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
-        BindText(statement,1,job.intent.job_id);BindText(statement,2,SerializeDerivedJobRecord(job));
+        const auto& job=prepared?*prepared->applied:parsed_job;
+        BindText(statement,1,job.intent.job_id);BindText(statement,2,prepared?prepared->payload:SerializeDerivedJobRecord(job));
         const bool ok=sqlite3_step(statement)==SQLITE_DONE;sqlite3_finalize(statement);
         if(!ok){Exec(sqlite_db_,"ROLLBACK",nullptr);return Fail(error,"derived job SQLite projection 실패");}
         if(mutation.mutation_type==RecordingMutationType::DerivedJobCommitted) {
