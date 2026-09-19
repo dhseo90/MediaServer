@@ -10,6 +10,9 @@
 | LP18-O04 | 캐시 내용/순서 변조 | 전체 필드·payload/ID 충돌·순서·축소·null handle 반례, 기존 전체 검증 경계 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 | LP18-O05 | 공유 보관 입장 | 64MiB/8192 논리 상한 유지, 외부 반환값 계약·fallback | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 | LP18-O06 | 복구와 영향 | 중단/pending/SQLite·JSONL·2-job·손상/전이 거부 및 build | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-O07 | accepted 원장 소유 공유 | 정상 append·live·shadow의 같은 불변 envelope 소유, public Replay 독립 값 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-O08 | accepted 복구와 투영 | 동일 managed snapshot의 preflight/live 소유, SQLite·JSONL 재open 및 최초 수용 ordinal gate | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-O09 | accepted 결박·실패 | 모든 envelope 필드 불일치 거부, 실패 apply 미등록, canonical 중복/충돌 거부·prepared 의미 유지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 
 등록은 실행/PASS가 아니다. 전체 승인 범위와 실제 수행/미수행은 중앙 기록 LP18을 따른다.
 

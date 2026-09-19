@@ -14,6 +14,8 @@ const source=fs.readFileSync(path.join(repo,'src/recording/recording_journal.cpp
 const helper='\nnamespace ownership_probe { using History=decltype(std::declval<recording::RecordingCatalog::CheckpointProjectionCache>().prefix); History JournalView(const recording::RecordingJournal& j){std::lock_guard lock(j.mu_);return j.managed_state_->records;} }\n';
 fs.writeFileSync(path.join(out,'recording_journal.cpp'),'#include "recording/recording_catalog.h"\n'+source+helper);
 fs.writeFileSync(path.join(out,'ownership_flags'),source.includes('RecordingMutationHandles records;')?'-DLP18_SHARED_RECORDS=1':'');
+const catalogHeader=fs.readFileSync(path.join(repo,'include/recording/recording_catalog.h'),'utf8');
+fs.writeFileSync(path.join(out,'accepted_flags'),/unordered_map<std::string,\s*RecordingMutationHandle>\s+accepted_segment_state_mutations_/.test(catalogHeader)?'-DLP18_ACCEPTED_SHARED=1':'');
 for(const name of ['include/recording/recording_journal.h','include/recording/recording_catalog.h','src/recording/recording_journal.cpp','src/recording/recording_catalog.cpp','src/recording/recording_checkpoint_validation.h','scripts/internal/recording_immutable_ownership_smoke.cpp'])console.log('[source] '+JSON.stringify({name,sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(repo,name))).digest('hex')}));
 NODE
 read -r -a lp_original_link < "$lp_repo/build-gst-onnx/CMakeFiles/media_server.dir/link.txt"
@@ -25,6 +27,7 @@ done
 test "$lp_found" = 1
 read -r -a lp_flags <<< "$(pkg-config --cflags gstreamer-app-1.0 openssl sqlite3)"
 lp_shared=(-DLP18_SHARED_RECORDS=0); if [[ -s "$lp_root/ownership_flags" ]];then lp_shared=(-DLP18_SHARED_RECORDS=1);fi
+lp_accepted=(-DLP18_ACCEPTED_SHARED=0); if [[ -s "$lp_root/accepted_flags" ]];then lp_accepted=(-DLP18_ACCEPTED_SHARED=1);fi
 "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$lp_root/include" -I"$lp_repo/include" -I"$lp_script" -I"$lp_repo/src/recording" "${lp_flags[@]}" "${lp_shared[@]}" \
- -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_SQLITE3=1 \
+ "${lp_accepted[@]}" -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_SQLITE3=1 \
  "$lp_script/recording_immutable_ownership_smoke.cpp" "$lp_root/recording_journal.cpp" "$lp_repo/src/recording/recording_catalog.cpp" "${lp_libs[@]}" -o "$lp_root/check"

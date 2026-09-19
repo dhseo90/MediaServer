@@ -32,6 +32,10 @@ journal 잠금 밖에서 mutable vector/string의 참조를 빌리지 않는다.
 기존 64MiB/8192 입장 계산은 공유 여부와 관계없이 논리 envelope 크기를 기준으로 유지한다.
 이 첫 공유 구현은 전체 상세 RAM의 상한이나 typed 소유 통합 완료가 아니며, 남는 parsed live/shadow 소유량을 별도로 계측한다.
 
+accepted canonical 사본도 같은 envelope 소유로 연결한다. Apply에 소유 핸들을 제공할 때 모든 필드를 대조하고,
+duplicate의 전체 canonical·SQLite 최초 ordinal gate를 유지한다. managed Open의 값/핸들은 한 snapshot에서 만들며
+서로 다른 시점의 원장 목록을 ordinal만으로 결합하지 않는다. 공개 Replay와 Open의 일시 값 사본은 별도 경계다.
+
 내용 검증 재사용은 현재 live catalog가 정상이라는 사실만으로 shadow 전체를 신뢰하는 최적화가 아니다.
 내용 증명과 상태 전이 검증을 구분하며, shadow의 다른 prior state·예약·tombstone도 항상 검사한다.
 증명은 영속 PASS 플래그로 저장하지 않는다. O(H) 전체 typed 증명 캐시를 추가하는 방식도 채택하지 않는다.

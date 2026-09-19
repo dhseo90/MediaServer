@@ -40,8 +40,8 @@ source=exact(source,'if(before->ProjectionSignatureLocked()!=after->ProjectionSi
 source=exact(source,'    const auto first=reuse?cached->prefix.size():0;','    const auto first=reuse?cached->prefix.size():0; cache_scope.first=first;cache_scope.records=original.size();');
 source=exact(source,'    if(!journal_.CommitCheckpoint(this,candidate,recover_only,error))return false;','    if(cache_probe::fail_commit||!journal_.CommitCheckpoint(this,candidate,recover_only,error))return false;');
 source=exact(source,'bool RecordingCatalog::UpdateDerivedJob(const void* owner,const DerivedJobRecordV1& record,std::string* error) {\n    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);','bool RecordingCatalog::UpdateDerivedJob(const void* owner,const DerivedJobRecordV1& record,std::string* error) {\n    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__); cache_probe::Hold hold_scope;');
-source=exact(source,'std::string* error,PreparedDerivedMutation* prepared) {\n    if(prepared&&!PreparedDerivedMatchesLocked(mutation,*prepared,false,error))return false;',
- 'std::string* error,PreparedDerivedMutation* prepared) {\n    if(cache_probe::depth){++cache_probe::applied;if(cache_probe::throw_apply)throw std::runtime_error("owned-injection");}\n    if(prepared&&!PreparedDerivedMatchesLocked(mutation,*prepared,false,error))return false;');
+source=exact(source,'std::string* error,PreparedDerivedMutation* prepared,RecordingMutationHandle owned) {',
+ 'std::string* error,PreparedDerivedMutation* prepared,RecordingMutationHandle owned) {\n    if(cache_probe::depth){++cache_probe::applied;if(cache_probe::throw_apply)throw std::runtime_error("owned-injection");}');
 fs.writeFileSync(path.join(out,'recording_checkpoint_cache_counter.h'),`#pragma once
 #include <array>
 #include <chrono>

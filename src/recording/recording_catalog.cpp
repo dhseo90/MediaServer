@@ -617,14 +617,14 @@ bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error) {
         before=reuse?std::move(cached->shadow):std::make_unique<RecordingCatalog>(journal_,options_);
         cached.reset();
         for(std::size_t i=first;i<original.size();++i)
-            if(!before->ApplyMutationLocked(*original[i],false,error))return false;
+            if(!before->ApplyMutationLocked(*original[i],false,error,nullptr,original[i]))return false;
         identical=detail::SameCheckpointSequence(original,candidate);
     } // 원본 핸들 vector는 이후 후보 검증/commit에 필요하지 않다.
     // 변경 후보는 전체 semantic replay와 양쪽 projection 비교를 유지한다.
     std::unique_ptr<RecordingCatalog> after;
     if(!identical){
         after=std::make_unique<RecordingCatalog>(journal_,options_);
-        for(const auto& m:candidate)if(!m||!after->ApplyMutationLocked(*m,false,error))return false;
+        for(const auto& m:candidate)if(!m||!after->ApplyMutationLocked(*m,false,error,nullptr,m))return false;
         if(before->ProjectionSignatureLocked()!=after->ProjectionSignatureLocked())return Fail(error,"checkpoint 투영 불일치");
     }
     // original 초과는 full 검증, compact candidate가 상한 내이면 다음 호출용 보관 가능.
@@ -640,11 +640,29 @@ bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error) {
     return true;
 }
 
+bool RecordingCatalog::ReadCatalogReplay(RecordingMutationHandles* owned,RecordingJournalReplayResult* replay,
+                                         std::string* error) const {
+    if(!owned||!replay)return Fail(error,"catalog replay output 없음");
+    owned->clear();*replay={};
+    if(!journal_.managed_){*replay=journal_.Replay();return true;}
+    // 한 owner/FD 검증 snapshot으로 값 Replay와 소유 핸들을 함께 만든다.
+    // 공개 Replay의 독립 값 계약은 유지하며 이 일시 값 사본은 아직 제거하지 않는다.
+    if(!journal_.ReadCheckpointRecords(this,owned,error)){++replay->io_error_count;return false;}
+    replay->mutations.reserve(owned->size());
+    for(const auto& handle:*owned){
+        if(!handle){owned->clear();replay->mutations.clear();++replay->io_error_count;return Fail(error,"catalog null envelope 거부");}
+        replay->mutations.push_back(*handle);
+    }
+    return true;
+}
+
 bool RecordingCatalog::OpenLocked(std::string* error) {
-    const auto replay = journal_.Replay();
+    RecordingMutationHandles owned;
+    RecordingJournalReplayResult replay;
+    if(!ReadCatalogReplay(&owned,&replay,error))return false;
     if (replay.io_error_count != 0) return Fail(error, "journal replay I/O 오류로 catalog open 거부");
     if (replay.unsupported_record_count != 0) return Fail(error, "미지원 journal record로 catalog open 거부");
-    if (!PreflightV2Locked(replay,error)) return false;
+    if (!PreflightV2Locked(replay,error,nullptr,{},nullptr,owned)) return false;
     if(journal_.managed_&&journal_.CheckpointPending()&&!CheckpointLocked(true,error))return false;
     recovery_report_.corrupt_line_count = replay.corrupt_line_count;
     recovery_report_.truncated_tail_count = replay.truncated_tail_count;
@@ -652,7 +670,7 @@ bool RecordingCatalog::OpenLocked(std::string* error) {
         const auto& mutation = replay.mutations[ordinal];
         const bool already_applied = mutation_ids_.count(mutation.mutation_id) != 0;
         std::string apply_error;
-        if (!ApplyMutationLocked(mutation, true, &apply_error)) ++recovery_report_.projection_error_count;
+        if (!ApplyMutationLocked(mutation, true, &apply_error,nullptr,owned.empty()?RecordingMutationHandle{}:owned[ordinal])) ++recovery_report_.projection_error_count;
         else {
             ++recovery_report_.replayed_mutation_count;
             if (!already_applied && (mutation.mutation_type == RecordingMutationType::SegmentFinalized ||
@@ -828,7 +846,12 @@ bool RecordingCatalog::RecoverWriterCleanupMarkersLocked(std::string* error) {
 
 bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                                            bool count_duplicate,
-                                           std::string* error,PreparedDerivedMutation* prepared) {
+                                           std::string* error,PreparedDerivedMutation* prepared,RecordingMutationHandle owned) {
+    // 소유 주소는 검증 증명이 아니다. schema/enum을 포함한 원래 모든 필드를 확인한다.
+    if(owned&&(owned->schema!=mutation.schema||owned->mutation_type!=mutation.mutation_type||
+       owned->mutation_id!=mutation.mutation_id||owned->entity_id!=mutation.entity_id||
+       owned->occurred_at_ms!=mutation.occurred_at_ms||owned->payload_json!=mutation.payload_json))
+        return Fail(error,"accepted envelope 전체 필드 불일치");
     if(prepared&&!PreparedDerivedMatchesLocked(mutation,*prepared,false,error))return false;
     const bool segment_state = mutation.mutation_type == RecordingMutationType::ReferencedObservationPut ||
                                mutation.mutation_type == RecordingMutationType::DerivedReferenceAccepted ||
@@ -840,11 +863,12 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                                mutation.mutation_type == RecordingMutationType::SegmentV2Finalized ||
                                mutation.mutation_type == RecordingMutationType::SegmentV2BoundFinalized ||
                                mutation.mutation_type == RecordingMutationType::CorruptionDetected;
+    if(segment_state&&!owned)owned=std::make_shared<const RecordingMutationV1>(mutation);
     if (!mutation_ids_.insert(mutation.mutation_id).second) {
         if (segment_state) {
             const auto accepted = accepted_segment_state_mutations_.find(mutation.mutation_id);
             if (accepted == accepted_segment_state_mutations_.end() ||
-                accepted->second != SerializeRecordingMutationV1(mutation))
+                !accepted->second || SerializeRecordingMutationV1(*accepted->second) != SerializeRecordingMutationV1(mutation))
                 return Fail(error, "segment state mutation ID envelope 불일치");
         }
         if (count_duplicate) ++recovery_report_.duplicate_mutation_count;
@@ -1082,7 +1106,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
     }
     if (!ok) mutation_ids_.erase(mutation.mutation_id);
     else if (segment_state) accepted_segment_state_mutations_.emplace(
-        mutation.mutation_id, SerializeRecordingMutationV1(mutation));
+        mutation.mutation_id, std::move(owned));
     return ok;
 }
 
@@ -1092,8 +1116,9 @@ bool RecordingCatalog::AppendAndApplyLocked(RecordingMutationV1 mutation, std::s
     if(prepared&&!PreparedDerivedMatchesLocked(mutation,*prepared,false,error))return false;
     mutation.mutation_id = mutation.mutation_id.empty() ? NextMutationId() : mutation.mutation_id;
     mutation.occurred_at_ms = mutation.occurred_at_ms == 0 ? NowMs() : mutation.occurred_at_ms;
-    if (!journal_.AppendOwned(mutation, this, error)) return false;
-    if (!ApplyMutationLocked(mutation, false, error,prepared)) return false;
+    RecordingMutationHandle owned;
+    if (!journal_.AppendOwned(mutation, this, error,&owned)) return false;
+    if (!ApplyMutationLocked(mutation, false, error,prepared,std::move(owned))) return false;
     if (sqlite_db_ != nullptr) {
         std::string projection_error;
         auto* projection_prepared=prepared&&prepared->phase==PreparedDerivedMutation::Phase::Applied?prepared:nullptr;
@@ -1110,7 +1135,8 @@ bool RecordingCatalog::AppendAndApplyLocked(RecordingMutationV1 mutation, std::s
 
 bool RecordingCatalog::PreflightV2Locked(const RecordingJournalReplayResult& replay,std::string* error,
                                        const RecordingSegmentV2* candidate,const std::string& relative,
-                                       const RecordingSourceBindingV1* binding) const {
+                                       const RecordingSourceBindingV1* binding,const RecordingMutationHandles& owned) const {
+    if(!owned.empty()&&owned.size()!=replay.mutations.size())return Fail(error,"preflight owned 기록 개수 불일치");
     bool orders=false,v2=false;
     std::unordered_set<std::string> v2_ids;
     for(const auto& m:replay.mutations) {
@@ -1133,7 +1159,9 @@ bool RecordingCatalog::PreflightV2Locked(const RecordingJournalReplayResult& rep
     // Open 실패가 live memory/SQLite/cleanup에 부분 상태를 남기지 않도록 임시 투영한다.
     RecordingCatalog scratch(journal_,options_);
     std::unordered_map<std::string,RecordingMutationV1> seen;
-    for(const auto& m:replay.mutations) {
+    for(std::size_t ordinal=0;ordinal<replay.mutations.size();++ordinal) {
+        const auto& m=replay.mutations[ordinal];
+        if(!owned.empty()&&!owned[ordinal])return Fail(error,"preflight null envelope 거부");
         const auto old=seen.find(m.mutation_id);
         if(old!=seen.end()&&(m.mutation_type==RecordingMutationType::ReferencedObservationPut||
            m.mutation_type==RecordingMutationType::DerivedReferenceAccepted||
@@ -1147,7 +1175,7 @@ bool RecordingCatalog::PreflightV2Locked(const RecordingJournalReplayResult& rep
            old->second.mutation_type==RecordingMutationType::SegmentV2Finalized)&&
            SerializeRecordingMutationV1(old->second)!=SerializeRecordingMutationV1(m))return Fail(error,"V2 mutation ID 충돌");
         seen.emplace(m.mutation_id,m);
-        const bool accepted=scratch.ApplyMutationLocked(m,false,error);
+        const bool accepted=scratch.ApplyMutationLocked(m,false,error,nullptr,owned.empty()?RecordingMutationHandle{}:owned[ordinal]);
         if(!accepted&&(journal_.managed_||m.mutation_type==RecordingMutationType::DerivedReferenceAccepted||m.mutation_type==RecordingMutationType::ReferencedObservationPut||m.mutation_type==RecordingMutationType::ConsumerReferencePut||m.mutation_type==RecordingMutationType::SegmentV2Finalized||v2_ids.count(m.entity_id)))return false;
     }
     if(candidate) {
@@ -2578,10 +2606,12 @@ bool RecordingCatalog::RebuildSqliteLocked(std::string* error) {
 #if !MEDIA_SERVER_USE_SQLITE3
     (void)error; return true;
 #else
-    const auto replay = journal_.Replay();
+    RecordingMutationHandles owned;
+    RecordingJournalReplayResult replay;
+    if(!ReadCatalogReplay(&owned,&replay,error))return false;
     if (replay.io_error_count != 0) return Fail(error, "journal replay I/O 오류로 SQLite rebuild 거부");
     if (replay.unsupported_record_count != 0) return Fail(error, "미지원 journal record로 SQLite rebuild 거부");
-    if (!PreflightV2Locked(replay,error)) return false;
+    if (!PreflightV2Locked(replay,error,nullptr,{},nullptr,owned)) return false;
     if (!Exec(sqlite_db_, "BEGIN; DELETE FROM recording_derived_accepted_references; DELETE FROM recording_derived_jobs; DELETE FROM recording_referenced_observations; DELETE FROM recording_consumer_references; DELETE FROM recording_source_bindings; DELETE FROM recording_event_link_segments; DELETE FROM recording_event_links; DELETE FROM recording_observations; DELETE FROM recording_observations_v2; DELETE FROM recording_segment_states_v2; DELETE FROM recording_segments_v2; DELETE FROM recording_segments; DELETE FROM recording_tombstones; DELETE FROM recording_mutations; COMMIT;", error)) return false;
     for (std::size_t ordinal = 0; ordinal < replay.mutations.size(); ++ordinal) {
         const auto& mutation = replay.mutations[ordinal];
@@ -2594,7 +2624,7 @@ bool RecordingCatalog::RebuildSqliteLocked(std::string* error) {
             const auto accepted = accepted_segment_state_mutations_.find(mutation.mutation_id);
             if (accepted_segment_state_replay_ordinals_.count(ordinal) == 0 ||
                 accepted == accepted_segment_state_mutations_.end() ||
-                accepted->second != SerializeRecordingMutationV1(mutation)) continue;
+                !accepted->second || SerializeRecordingMutationV1(*accepted->second) != SerializeRecordingMutationV1(mutation)) continue;
         }
         if (!ProjectMutationSqliteLocked(mutation, error)) return false;
     }

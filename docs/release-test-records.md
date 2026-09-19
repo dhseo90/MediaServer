@@ -7,10 +7,105 @@
 메인이 공통 소유/안전 계약을 직접 구체화했다. 단일 기존 Astra/medium 담당자는 cold 소비자 읽기 검토를 수행하며 하위 생성·수정·실행은 금지했다.
 이후 확정 구현은 같은 담당자를 재사용한다. 외부 기술/의존성/스키마·영속 포맷·partial/complete·보존 정책 변경은 없다.
 
+현재 첫 공유 단위 커밋은 `eb599f4c`다. 이어서 2번의 accepted canonical 중복 제거를 같은 담당자에게 맡겼다.
+이 구현은 상세 typed 증명이나 lazy RAM 정책을 추가하지 않는다. 기존 Serialize 전체값·최초 ordinal 검사를 유지하며
+정상 append에 전체 원장 검색을 추가하지 않는다. managed Open은 한 snapshot의 값과 handle을 사용하고 일시 Replay 값 사본은 남긴다.
+단일 Astra/medium 담당자는 제품/fixture/계측 adapter, 메인은 문서/runner/실행/직접 검토를 맡으며 하위 생성은 금지했다.
+
+### 2번 accepted 공유 사전등록
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-O07 | append/live/shadow accepted 공유 | LP18 focused에 원장과 accepted map alias·내용 동일성 검사를 추가. 구형 string 보관에서 해당 alias만 RED 예상 | v4.1.0 |
+| LP18-O08 | 재open 동일 소유/투영 | 같은 snapshot으로 preflight/live를 구성, SQLite/fallback 재open에서 canonical·alias·ordinal gate 확인 | v4.1.0 |
+| LP18-O09 | 재사용 결박과 오류 | schema/type/id/entity/time/payload mismatch, 실패 apply 미등록, canonical retry·충돌. prepared 전이의 기존 oracle 유지 | v4.1.0 |
+
+실행은 fixture의 exact 예상 실패·summary를 확정하여 아래에 추가한 뒤 한다. 첫 공유 단위의 기존34개를 유지한다.
+관련 회귀는 전체 build → accepted focused GREEN → prepared11 → cache47 → catalog246 → 작은 비교99/계측1이다.
+각 실행의 새 source와 영향에 따라 기존 writer44·identity6의 재사용 가능 여부를 직접 판정한다. 실제 HTTP/장시간/UI는 아직 실행하지 않는다.
+
+accepted focused 실행 전 exact 정의: `node scripts/internal/verify_recording_immutable_ownership.mjs red accepted-01 accepted`.
+기존34개+신규17개이며 RED40PASS/11FAIL, GREEN51PASS/0FAIL을 요구한다. 첫 공유 단위 envelope suite의 기존 oracle는 유지한다.
+예상 FAIL은 순서대로 O07 append accepted shares journal envelope, checkpoint accepted shares live journal envelope;
+O08 reopen accepted shares journal envelope sqlite, fallback; O09 supplied envelope mismatch rejected schema/type/id/entity/time/payload;
+O09 supplied exact envelope is retained다(각 앞에는 `LP18-` 기능 ID). 구형 string 보관/owned handle 미전달만 예상 RED이며 준비 오류는 RED가 아니다.
+추가6개 PASS oracle는 canonical/영속 바이트, SQLite/fallback 투영·ordinal, SQLite 양쪽 gate, failed apply 미등록, duplicate canonical 충돌이다.
+이 focused는 encoder 없는12B V1 fixture로 공통 수용 경계만 검사하며 현행 녹화 자체를 이 fixture로 대체하지 않는다.
+소유 root/자원/정리 상한은 앞선 runner 그대로이며 원출력은 고유 파일에 보존한다.
+
+accepted-01 실제 RED: build exit0/2238ms, focused exit1/644ms, 정확40PASS/예상11FAIL 일치,
+runner exit0/2897ms는 예상 RED 일치일 뿐 제품 PASS가 아니다. source 불변·자식 그룹 부재·소유 root5325801B 삭제 완료.
+원출력 `lp18-ownership-red-accepted-01.txt`를 보존하고 같은 승인 범위의 제품 구현으로 진행했다.
+
+GREEN 전 O09 추가3개 사전등록: 성공한 동일ID AppendOwned retry는 모든 필드가 같은 입력 envelope를 반환하고 disk 불변;
+충돌 retry 실패는 미리 채운 output handle을 비우고 disk 불변; receipt로 compact된 EventLink의 원본 retry는
+EventLinkCreated 입력을 반환하며 receipt 원장 불변이다. 새 private output API 검사이므로 baseline51개 증거는 그대로 보존한다.
+GREEN은54PASS/0FAIL이며 명령은 `node scripts/internal/verify_recording_immutable_ownership.mjs green accepted-01 accepted`다.
+이번 append/Index 연결 변경의 writer 영향은 기존 writer44를 재실행해 확인한다. CP06 identity helper 무변경 증거6개는 유지한다.
+
+구현 후 정적 검토에서 private `AppendOwned(*output,...,&output)`의 출력 초기화가 입력 마지막 소유자를 해제할 수 있는
+수명 결함을 발견했다. 실제 제품 호출은 별도 mutation 값/빈 output이지만 같은 private 계약 안에서 지역 소유를 유지하도록 수정한다.
+수정 전 전체 build는 exit0였고 실제 runtime 실패는 관측하지 않았다. 수정 후 전체 build 명령을 다시 실행하며 이전 빌드를 최종 증거로 쓰지 않는다.
+실행 전 추가 정의 O09: 유일 소유 output이 입력을 빌려준 동일 인자 재시도에서 입력 전체 필드·원장 bytes가 유지되어야 한다.
+이1개를 추가해 최종 GREEN 예상55PASS/0FAIL이며 baseline51개 예상 RED 기록은 그대로 남긴다. 합격 기준 완화는 없다.
+
+accepted catalog 최초 실행은 exit0, summary234/0·crypto3·composition9·정리26904486B를 확인했으나
+메인 tool 출력 상한1500에 의해 중간138개 assertion 원출력이 누락되어 전수 증거로는 무효다.
+잘린 출력과 관측108행은 `lp18-accepted-catalog-01.txt`에 그대로 남긴다. code0만 확인하고 writer를 시작한 뒤 누락을 발견했으며,
+writer는 종료·정리까지 확인하되 이후 단계는 보류한다. 제품 수정/기준 완화 없이 같은 catalog 명령1회를 충분한 출력 상한으로 재수집한다.
+이 재실행은 제품 회귀 반복이 아니라 증거 수집 오류 보완이다. 과거 다른 source의 원출력으로 현재 결과를 재구성하지 않는다.
+
+### accepted 공유 구현·최종 결과
+
+제품: accepted map은 canonical 문자열 대신 const envelope를 보관한다. AppendOwned는 쓰기 전에 핸들을 준비하고
+fsync/index 뒤 반환한다. Apply는 제공 핸들의 schema/type/ID/entity/time/payload 전부를 대조한 뒤 수용하며,
+중복 ID는 기존 전체 canonical 비교, SQLite는 기존 최초 ordinal+canonical gate를 유지한다.
+managed Open/preflight/SQLite rebuild는 한 owner/FD 검증 snapshot에서 값과 핸들을 함께 만들고 checkpoint shadow에도 같은 핸들을 넘긴다.
+공개 Replay·API·저장 포맷·시간/ID·보존 정책은 변경하지 않았다. 정상 append에 전체 원장 ID 검색을 추가하지 않았다.
+메인이 실제 diff·원출력·개별 행수·source SHA·정리를 대조했다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| accepted 전체 build | 최종 build-02 exit0 | PASS | 첫 build 뒤 alias 수명 수정, 최종 명령 재실행. 전체 elapsed 미집계 |
+| accepted focused | green accepted-01 accepted, build2263ms/focused646ms/전체2924ms, exit0 | PASS |55개, 예상 RED40PASS/11FAIL 별도 보존 |
+| accepted prepared | transition runner exit0/5초/11개 | PASS | owner/prior/한 번 소비·실제2출력/SQLite bytes |
+| accepted cache | cache runner exit0/33초/47개 | PASS | peak173670400B/기존536870912B 내, whole lock1744231us는 fixture 측정이며 HTTP 아님 |
+| accepted catalog 최초 수집 | exit0이나 원출력108행만 보존 | FAIL | 제품 실패 아님. 전수 증거 미충족, 동일 명령 재수집 |
+| accepted catalog 최종 | catalog-02 exit0/246개 원출력 확인 | PASS | 제품 무수정으로 재수집, 전체 elapsed 미집계 |
+| accepted writer | writer runner exit0/10초/44개 | PASS | file-evidence profile/bound 경고는 기존 fixture 범위. 현행 file-evidence 전체 기능 PASS로 대체하지 않음 |
+| accepted 작은 비교 | small lp18-accepted-01 exit0/9420ms/12phase | PASS | 기능99+계측1, A/B/C 각각 삭제·SQLite/JSONL 새 프로세스 재open |
+
+소형 A/B의 checkpoint 후 계측: live 문자열 부분량28630→9360B, shadow28656→9386B,
+accepted 참조는 각각 sharedEnvelopeReferences=2, uniqueEnvelopes=0이다. 재open live는30746→9814B, shared4/unique0이다.
+이는 같은32AU/2원본 모양에서 별도 canonical 사본의 제거를 확인한 부분 문자열 계측이다. 전체 heap/RSS 감소율이나 최종 비용 합격을 뜻하지 않는다.
+비교 원출력227147B는 이 관측과 개별 assertion 보존 목적이며 소유 경로 마스킹·비민감 fixture만 포함한다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| accepted RED 소유 root | 빌드/fixture/cache | 5325801B | runner 삭제 | removed=true | focused RED |
+| accepted GREEN 소유 root | 빌드/fixture/cache | 5580337B | runner 삭제 | removed=true | focused GREEN |
+| accepted prepared 소유 root | 빌드/영상/cache | 8987448B | runner 삭제 | removed=true | prepared01 |
+| accepted cache 소유 root | 빌드/영상/cache | 16832133B | runner 삭제 | removed=true | cache01 |
+| accepted catalog 최초 소유 root | 빌드/fixture | 26904486B | runner 삭제 | removed=true | catalog01, 출력 누락은 보존 |
+| accepted writer 소유 root | 빌드/영상/cache | 16649067B | runner 삭제 | removed=true | writer01 |
+| accepted catalog 최종 소유 root | 빌드/fixture | 26904486B | runner 삭제 | removed=true | catalog02 |
+| accepted 비교 소유 root | 빌드/영상/저장소/cache | 18665182B | runner 삭제 | removed=true | 비교 원출력 |
+
+전수 행은 [LP18 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md)의 accepted 절에 있으며 모든 raw 링크를 포함한다.
+현재 source는 eb599f4c+accepted 구현이다. 상세 SHA는 focused/회귀/비교 raw에 보존했다. token start/end/consumed는 집계 미제공으로 미집계.
+기존 CP06 identity helper와 해당6개 oracle 무변경으로 직전 결과를 유지한다. 서버/포트는 열지 않았다.
+남은 것은 typed binding/job live/shadow 소유, 정상 전이→checkpoint 내용 재검증, 상세 RAM 수명과 실제 비용/HTTP다.
+Open의 일시 Replay 값·preflight seen 사본, map 키와 identity 문자열도 아직 유지된다. 현재 공유 단위의 통과를 2~5번 전체 완료로 확대하지 않는다.
+
+accepted 마감: diffcheck exit0, 미추적10파일 공백/EOF 검사 exit0,
+문서 링크 exit0(285md/8783links/22images/116anchors/76indexed/201exclusions/failures0), 각각 도구 관측 약0.01~0.02초.
+파생 결과표 직접 리뷰 중 RED summary를 관측 PASS로 쓰지 않도록 FAIL/예상 RED로 바로잡았다. 새 링크·제품 변경은 없다.
+UI 자산 무변경, 추가 임시물 없음. 마지막 커밋 전 공백 검사를 다시 확인한다.
+
 | 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
 | --- | --- | --- | --- | --- |
 | 1 | 공통 소유·검증 경계 | 완료·커밋 | 1d13b08a, 불변 envelope·내용/상태 검사·RAM 소비자 조건 명시 | 누적 비용 계약 0절 |
-| 2 | 중복 보관 제거 | 첫 단위 구현·회귀 통과 | journal/checkpoint immutable 공유. accepted canonical·typed 상세 잔존, 전체 2번 미완료 | LP18-O01~06 전수 결과 |
+| 2 | 중복 보관 제거 | envelope·accepted 공유 구현·회귀 통과 | typed binding/job 상세 잔존, 전체 2번 미완료 | LP18-O01~09 전수 결과 |
 | 3 | 전이→checkpoint 재검증 제거 | 미착수 | 2번 선수 통과 뒤 내용 증명 재사용 | 구현계획 LP18 |
 | 4 | 상세 RAM 수명 | 미착수 | 기존 JSONL locator/활성 소유/재open 검증 필요 | 계약 0절 |
 | 5 | 회귀·실제 앱 | 미착수 | 기존4000ms/정리 포함, 장시간/UI 아님 | 계약 0절 |

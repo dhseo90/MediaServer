@@ -1,0 +1,116 @@
+LP18 accepted managed writer 회귀
+명령: MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_managed_writer.sh
+exit: 0
+token start/end/consumed: 미집계(집계 미제공)
+
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] WR01 h264 managed segments decode all frames without legacy callback or snapshot
+[pass] S10-C321 h264 실제 수락 원본 tuple과 segment 결박
+[pass] WR01 vp8 managed segments decode all frames without legacy callback or snapshot
+[pass] S10-C321 vp8 실제 수락 원본 tuple과 segment 결박
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] WR02 UTC-only change preserves media splits frames and independent mapping
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] WR03 UTC-only change preserves media splits frames and independent mapping
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] WR04 UTC-only change preserves media splits frames and independent mapping
+[pass] WR05 duplicate PTS with advancing DTS preserves media and unknown mapping
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] WR06 explicit generation reset creates a new media epoch
+[pass] S10-C326 세대별 원본 결박 분리
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] WR07 repeated observations and processing UTC do not duplicate media
+[pass] S10-C325 분할·재전달의 segment별 수락 범위
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] S10-C322 keyframe 대기·다른 track·빈 입력·replay 제외
+[pass] S10-C324 색인 상한 뒤에도 실제4100프레임 저장·미색인 꼬리 표시
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] WR08 missing final duration preserves media with unknown end
+[pass] WR09 mapping budget retains bounded unknown tail and all frames
+[pass] WR01 invalid binding rejects before writes journal
+[pass] WR01 invalid binding rejects before writes catalog
+[pass] WR01 invalid binding rejects before writes root
+[pass] WR01 invalid binding rejects before writes store
+[pass] WR01 invalid binding rejects before writes lease
+[pass] WR01 invalid binding rejects before writes incomplete
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] WR08 clock process change preserves same-generation media with unknown comparison
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] WR08 invalid duration leaves unknown end zero
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: capture-accept-duration-timestamp-unavailable
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR08 invalid duration leaves unknown end overflow
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR08 unsafe original input cannot become finalized observation
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR08 unsafe original input cannot become finalized pts
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] WR08 unsafe original input cannot become finalized range
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] WR07 older generation cache cannot switch media backwards
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] WR07 unrelated video track cannot change selected track identity
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] WR06 reopened store allocates fresh IDs and increasing durable order
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] WR05 actual H264 reordering preserves decode timestamps and mux origin
+[pass] WR05 reordered segment end covers maximum presented frame end
+[pass] S10-C327 실제 B-frame 원본PTS·ordinal 보존
+[measure] bframe_last_end_ns=3100000000 maximum_end_ns=3200000000
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] WR08 missing maximum PTS frame duration keeps reordered end unknown
+[recording] finalize recovery pending; writer admission blocked until restart
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] WR09 failed active commit preserves ready order and quota reservation
+[pass] WR09 restart recovers the same durable segment and all frames
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording-v2] input rejected reason=original-timestamp-unavailable
+[pass] WR08 excessive clock width preserves media as unknown
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] WR08 zero generation order cannot become finalized
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] WR08 media observation quality normal
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] WR08 media observation quality fast
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] WR08 media observation quality drift
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] WR08 media observation quality fast-step
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] WR01 actual appsink observation flows through managed writer and decode
+[summary] pass=44 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-managed-writer.NOM7KO bytes=16649067 removed=true
+[elapsed] seconds=10 source=bash-SECONDS

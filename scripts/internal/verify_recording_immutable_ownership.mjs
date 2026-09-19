@@ -7,8 +7,8 @@ import {fileURLToPath} from 'node:url';
 import {runBounded,treeBytes,limits} from './recording_catalog_comparison_guard.mjs';
 
 const here=path.dirname(fileURLToPath(import.meta.url)),repo=path.resolve(here,'../..');
-const [mode,id,...extra]=process.argv.slice(2);
-if(!['red','green'].includes(mode)||!id||!/^[a-z0-9-]{1,40}$/.test(id)||extra.length)throw Error('LP18_ARGUMENTS');
+const [mode,id,suite='envelope',...extra]=process.argv.slice(2);
+if(!['red','green'].includes(mode)||!['envelope','accepted'].includes(suite)||!id||!/^[a-z0-9-]{1,40}$/.test(id)||extra.length)throw Error('LP18_ARGUMENTS');
 const output=path.join(repo,'docs/release-artifacts/v4.1.0/s11-preparation-mapping',`lp18-ownership-${mode}-${id}.txt`);
 const log=fs.openSync(output,'wx',0o600),start=Date.now();let root=null,bytes=0,clean=true,ok=false;
 const names=['include/recording/recording_catalog.h','include/recording/recording_journal.h','src/recording/recording_catalog.cpp','src/recording/recording_journal.cpp','src/recording/recording_checkpoint_validation.h','scripts/internal/recording_immutable_ownership_smoke.cpp','scripts/internal/recording_immutable_ownership_build.sh','scripts/internal/verify_recording_immutable_ownership.mjs'];
@@ -24,13 +24,14 @@ async function phase(label,command,args){
 }
 try{
  root=fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()),'media-server-immutable-ownership.'));fs.chmodSync(root,0o700);
- before=manifest();emit({kind:'start',utc:new Date().toISOString(),mode,id,source:before,tokenStart:null,tokenEnd:null,tokenConsumed:null,tokenSource:'unavailable'});
+ before=manifest();emit({kind:'start',utc:new Date().toISOString(),mode,id,suite,source:before,tokenStart:null,tokenEnd:null,tokenConsumed:null,tokenSource:'unavailable'});
  const built=await phase('build','bash',[path.join(here,'recording_immutable_ownership_build.sh'),root]);if(built.code!==0)throw Error('LP18_BUILD');
- const run=await phase('focused',path.join(root,'check'),[root]);
+ const run=await phase('focused',path.join(root,'check'),suite==='accepted'?[root,'accepted']:[root]);
  const failures=run.stdout.split('\n').filter(l=>l.startsWith('[fail] ')).map(l=>l.slice(7));
- const expected=['LP18-O01 shared journal original candidate envelopes','LP18-O01 retained prefix shares journal envelope','LP18-O02 only transformed receipts own new envelopes'];
+ const expected=suite==='accepted'?['LP18-O07 append accepted shares journal envelope','LP18-O07 checkpoint accepted shares live journal envelope','LP18-O08 reopen accepted shares journal envelope sqlite','LP18-O08 reopen accepted shares journal envelope fallback',...['schema','type','id','entity','time','payload'].map(field=>'LP18-O09 supplied envelope mismatch rejected '+field),'LP18-O09 supplied exact envelope is retained']:['LP18-O01 shared journal original candidate envelopes','LP18-O01 retained prefix shares journal envelope','LP18-O02 only transformed receipts own new envelopes'];
  const summary=run.stdout.match(/^\[summary\] LP18 pass=(\d+) fail=(\d+)$/gm)||[];
- ok=summary.length===1&&(mode==='red'?run.code===1&&JSON.stringify(failures)===JSON.stringify(expected)&&summary[0]==='[summary] LP18 pass=20 fail=3':run.code===0&&failures.length===0&&summary[0]==='[summary] LP18 pass=34 fail=0');
+ const expectedSummary=suite==='accepted'?(mode==='red'?'[summary] LP18 pass=40 fail=11':'[summary] LP18 pass=55 fail=0'):(mode==='red'?'[summary] LP18 pass=20 fail=3':'[summary] LP18 pass=34 fail=0');
+ ok=summary.length===1&&summary[0]===expectedSummary&&(mode==='red'?run.code===1&&JSON.stringify(failures)===JSON.stringify(expected):run.code===0&&failures.length===0);
  emit({kind:'oracle',mode,expectedRed:mode==='red'&&ok,productPass:mode==='green'&&ok,matched:ok});
 }catch(e){emit({kind:'failure',code:['LP18_LOG_CAP','LP18_PHASE_GUARD','LP18_BUILD'].includes(e?.message)?e.message:'LP18_PREPARATION_OR_ORACLE'});ok=false;}
 finally{

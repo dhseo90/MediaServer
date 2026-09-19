@@ -99,7 +99,8 @@ private:
                        const std::filesystem::path& sqlite, bool enable_v2, std::string* error);
     void DetachCatalog(const void* owner);
     bool OwnsCatalog(const void* owner) const;
-    bool AppendOwned(const RecordingMutationV1& mutation, const void* owner, std::string* error);
+    bool AppendOwned(const RecordingMutationV1& mutation, const void* owner, std::string* error,
+                     RecordingMutationHandle* appended = nullptr);
     bool LoadManagedStateLocked(std::string* error);
     bool CheckManagedStateLocked(std::string* error) const;
     bool ManagedOrderMatches(const RecordingOrderReservationV1& order, std::string* error) const;

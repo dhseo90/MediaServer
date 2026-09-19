@@ -505,7 +505,8 @@ std::string EnvelopeIdentity(const RecordingMutationV1& mutation) {
     return text;
 #endif
 }
-bool IndexRecord(ManagedJournalState* state,const RecordingMutationV1& mutation,std::string* error) {
+bool IndexRecord(ManagedJournalState* state,const RecordingMutationV1& mutation,std::string* error,
+                 RecordingMutationHandle owned) {
 #if !MEDIA_SERVER_USE_OPENSSL
     if(mutation.mutation_type==RecordingMutationType::EventLinkReceipt)return Fail(error,"managed receipt crypto 미지원");
 #endif
@@ -513,8 +514,9 @@ bool IndexRecord(ManagedJournalState* state,const RecordingMutationV1& mutation,
     const auto identity=std::to_string(mutation.entity_id.size())+":"+mutation.entity_id+":"+std::to_string(mutation.occurred_at_ms)+":"+digest;
     const auto old=state->identities.find(mutation.mutation_id);
     if(old!=state->identities.end()&&old->second!=identity)return Fail(error,"managed mutation ID 충돌");
+    if(!owned)owned=std::make_shared<const RecordingMutationV1>(mutation);
     if(!state->order.Consume(mutation,error))return false;
-    state->identities.emplace(mutation.mutation_id,identity);state->records.push_back(std::make_shared<const RecordingMutationV1>(mutation));return true;
+    state->identities.emplace(mutation.mutation_id,identity);state->records.push_back(std::move(owned));return true;
 }
 bool CompactRecords(const RecordingMutationHandles& original,RecordingMutationHandles* result,std::string* error) {
 #if !MEDIA_SERVER_USE_OPENSSL
@@ -576,7 +578,7 @@ bool RecordingJournal::LoadManagedStateLocked(std::string* error) {
         if(count<=0)return Fail(error,"managed index read 실패");offset+=count;
         for(ssize_t i=0;i<count;++i){
             if(block[i]=='\n'){
-                if(!line.empty()){RecordingMutationV1 m;if(!ParseRecordingMutationV1(line,&m,error)||!IndexRecord(state.get(),m,error))return false;}
+                if(!line.empty()){RecordingMutationV1 m;if(!ParseRecordingMutationV1(line,&m,error)||!IndexRecord(state.get(),m,error,{}))return false;}
                 line.clear();
             }else{if(line.size()>=16*1024*1024)return Fail(error,"managed record 상한");line.push_back(block[i]);}
         }
@@ -816,7 +818,7 @@ bool RecordingJournal::ReserveRecordingOrder(const std::string& store_id, const 
             if(managed_)poisoned_=true;return Fail(error, "recording order write/fsync 실패");
         }
         if(managed_){
-            if(!IndexRecord(managed_state_.get(),mutation,error)){poisoned_=true;return false;}
+            if(!IndexRecord(managed_state_.get(),mutation,error,{})){poisoned_=true;return false;}
             managed_state_->bytes+=durable.size();
         }
         *result = std::move(order);
@@ -996,7 +998,11 @@ bool RecordingJournal::OwnsCatalog(const void* owner) const {
 #endif
     std::lock_guard lock(mu_);return owner&&catalog_owner_==owner&&CheckManagedStateLocked(nullptr);
 }
-bool RecordingJournal::AppendOwned(const RecordingMutationV1& mutation, const void* owner, std::string* error) {
+bool RecordingJournal::AppendOwned(const RecordingMutationV1& mutation, const void* owner, std::string* error,
+                                   RecordingMutationHandle* appended) {
+    // 입력이 *appended를 빌린 경우에도 결과 초기화가 입력의 마지막 소유자를 제거하지 않는다.
+    const RecordingMutationHandle input_lifetime=appended?*appended:RecordingMutationHandle{};
+    if(appended)appended->reset();
 #if !defined(_WIN32)
     if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork/미open 사용 거부");
 #endif
@@ -1012,13 +1018,17 @@ bool RecordingJournal::AppendOwned(const RecordingMutationV1& mutation, const vo
     const std::string line = SerializeRecordingMutationV1(mutation);
     if (!ParseRecordingMutationV1(line, &parsed, error)) return false;
     const std::string durable = line + "\n";
+    // 내구 쓰기 전에 envelope를 준비한다. retry는 compact receipt가 아니라 원래 입력을 반환한다.
+    const auto owned=(managed_||appended)?std::make_shared<const RecordingMutationV1>(parsed):RecordingMutationHandle{};
     if(managed_) {
         const auto digest=EnvelopeIdentity(parsed);const auto old=managed_state_->identities.find(parsed.mutation_id);
         if(digest.empty())return Fail(error,"managed digest 실패");
         const auto identity=std::to_string(parsed.entity_id.size())+":"+parsed.entity_id+":"+std::to_string(parsed.occurred_at_ms)+":"+digest;
         if(old!=managed_state_->identities.end()){
             if(old->second!=identity)return Fail(error,"managed mutation ID 충돌");
-            if(!Sync(managed_fd_)){poisoned_=true;return Fail(error,"managed 재시도 fsync 실패");}return true;
+            if(!Sync(managed_fd_)){poisoned_=true;return Fail(error,"managed 재시도 fsync 실패");}
+            if(appended)*appended=owned;
+            return true;
         }
         if(managed_state_->order.requests.count(parsed.mutation_id))return Fail(error,"managed 예약 ID 충돌");
     }
@@ -1041,7 +1051,7 @@ bool RecordingJournal::AppendOwned(const RecordingMutationV1& mutation, const vo
     } else if (!RepairTail(parent.value, name, fd.value, status)) return Fail(error, "journal tail 내구격리/복구 실패");
     if (!Same(parent.value, name, fd.value, status)) return Fail(error, "journal append inode 재대조 실패");
     if (!WriteAll(fd.value, durable) || !Sync(fd.value)) {if(managed_)poisoned_=true;return Fail(error, "journal write/fsync 실패");}
-    if(managed_){if(!IndexRecord(managed_state_.get(),parsed,error)){poisoned_=true;return false;}managed_state_->bytes+=durable.size();}
+    if(managed_){if(!IndexRecord(managed_state_.get(),parsed,error,owned)){poisoned_=true;return false;}managed_state_->bytes+=durable.size();}
 #else
     std::ofstream output(path_, std::ios::binary | std::ios::app);
     output << durable;
@@ -1049,6 +1059,7 @@ bool RecordingJournal::AppendOwned(const RecordingMutationV1& mutation, const vo
     if (!output) return Fail(error, "journal write/flush 실패");
 #endif
     if (error != nullptr) error->clear();
+    if(appended)*appended=owned;
     return true;
 }
 

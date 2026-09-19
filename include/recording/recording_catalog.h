@@ -265,13 +265,17 @@ private:
     bool PreflightV2Locked(const RecordingJournalReplayResult& replay, std::string* error,
                            const RecordingSegmentV2* candidate = nullptr,
                            const std::string& relative = {},
-                           const RecordingSourceBindingV1* binding = nullptr) const;
+                           const RecordingSourceBindingV1* binding = nullptr,
+                           const RecordingMutationHandles& owned = {}) const;
+    bool ReadCatalogReplay(RecordingMutationHandles* owned, RecordingJournalReplayResult* replay,
+                           std::string* error) const;
     bool ValidateBoundLocked(const RecordingSegmentV2&,const RecordingSourceBindingV1&,const std::string&,std::string*) const;
     bool CommitBoundLocked(const RecordingSegmentV2&,const RecordingSourceBindingV1&,const std::string&,bool,bool*,std::string*);
     bool ValidateV2Locked(const RecordingSegmentV2& segment, const std::string& relative, std::string* error) const;
     bool ApplyMutationLocked(const RecordingMutationV1& mutation,
                              bool count_duplicate,
-                             std::string* error,PreparedDerivedMutation* prepared=nullptr);
+                             std::string* error,PreparedDerivedMutation* prepared=nullptr,
+                             RecordingMutationHandle owned = {});
     bool AppendAndApplyLocked(RecordingMutationV1 mutation, std::string* error,PreparedDerivedMutation* prepared=nullptr);
     bool OpenSqliteLocked(std::string* error);
     bool InitializeSqliteSchemaLocked(std::string* error);
@@ -296,7 +300,7 @@ private:
     RecordingCatalogRecoveryReport recovery_report_;
     std::unordered_set<std::string> mutation_ids_;
     // 이 두 상태 mutation은 메모리가 실제 수용한 최초 envelope만 SQL로 재생한다.
-    std::unordered_map<std::string, std::string> accepted_segment_state_mutations_;
+    std::unordered_map<std::string, RecordingMutationHandle> accepted_segment_state_mutations_;
     std::unordered_set<std::size_t> accepted_segment_state_replay_ordinals_;
     std::unordered_map<std::string, RecordingSegmentV1> segments_;
     std::unordered_map<std::string, RecordingSegmentV2> segments_v2_;
