@@ -4,6 +4,7 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <string>
@@ -253,6 +254,11 @@ private:
     RecordingLifecycle EffectiveLifecycleV2Locked(const std::string& id) const;
     bool OpenLocked(std::string* error);
     bool CanWriteLocked(std::string* error) const;
+    struct CheckpointProjectionCache {
+        std::vector<RecordingMutationV1> prefix;
+        std::unique_ptr<RecordingCatalog> shadow;
+    };
+    std::unique_ptr<CheckpointProjectionCache> checkpoint_cache_;
     bool CheckpointLocked(bool recover_only, std::string* error);
     bool ValidateManagedCandidateLocked(const RecordingSegmentV2& segment, const std::string& relative, std::string* error) const;
     std::vector<std::string> ProjectionSignatureLocked() const;

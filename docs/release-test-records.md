@@ -9,7 +9,7 @@
 1. live catalog를 신뢰하는 대신 checkpoint의 독립 ApplyMutationLocked(...,false)를 통과한 shadow projection과 정확한 원장prefix를 private cache 한 개로 보관한다. 공개 API/저장/시간/ID 계약은 불변이다.
 2. 매 호출 owner/lease/원장상태 확인·Replay/PrepareCheckpoint를 유지한다. 이전prefix의 모든 envelope 필드(schema/type/id/entity/time/payload)와 순서가 정확히 같을 때만 suffix를 순차 적용한다. ID/hash/파일크기만으로 재사용하지 않는다.
 3. cache는 호출 시작에 지역소유로 이동하고 모든 실패/예외/commit거부에서 폐기한다. 새payload parse와 source/receipt/order/중복/상태전이 검사는 생략하지 않는다.
-4. 후보가 원본과 다르면 후보 전체검증·양쪽 ProjectionSignature 비교를 유지한다. CommitCheckpoint의 후보 재대조·pending·fsync/rename 순서는 불변이다. commit성공 뒤 채택된 시퀀스와 해당shadow만 다음cache로 보관한다.
+4. 후보가 원본과 다르면 후보 전체검증·양쪽 ProjectionSignature 비교를 유지한다. CommitCheckpoint의 후보 재대조·pending·fsync/rename 순서는 불변이다. commit성공 뒤 검증한 후보 시퀀스와 해당shadow만 다음cache로 보관한다. commit은 크기감소없으면 noWrite 성공일수있으므로 실제채택을무조건추정하지않고 다음호출의실제원장prefix와반드시재대조한다. 후보와실제원장이달라졌다면전체검증이다.
 5. recover_only는 cache를 사용/보관하지 않는다. 새catalog/Open진입, prefix변경/축소, 검증오류, 보관상한 초과는 전체검증으로 전환한다. 상한은 보관envelope 문자열+record구조64MiB/8192records다. 이는 RSS상한과 다르며 실제 fixture peakRSS도 측정해512MiB 이내 여부를 별도판정한다. 상한초과는 캐시 미보관이지 검증 생략이 아니다.
 6. 기존 잠금을 유지한다. 잠금 밖 검증/비동기화·주기확대·검증삭제는 범위밖이다. shadow는 journal owner attach/SQLite open을 하지 않는다. 메모리 캐시는 디스크에 쓰거나 재시작간 재사용하지 않는다.
 
@@ -22,7 +22,7 @@
 | LP15-C05 | 누적비용 | 기존16/32원본4096AU scale, 이전/신규비용과bytes복구동등성; job전이fixture별도 | v4.1.0 |
 | LP15-A01 | 실제앱 | 독립/회귀/build 통과후 latency-only1회,HTTP4초/정상종료/진단/정리 | v4.1.0 |
 
-새파일/명령/예상RED는2단계에서 실행 전에 등록한다. 동일/변경후보·복구·보관량·peakRSS가 미확인이면 실제앱으로 넘어가지 않는다. 후보변경/상한초과의 전체검증까지 상수시간이라고 주장하지 않는다.
+2단계 신규파일: `scripts/internal/recording_checkpoint_cache_smoke.cpp`, `scripts/internal/verify_recording_checkpoint_cache.sh`. 명령 `bash scripts/internal/verify_recording_checkpoint_cache.sh`. 기존 reproduction fixture의 실제250sample·Ready/Complete2job/>1MiB 구성 재사용. 제품수정없이 소유 catalog 복제본의 checkpoint 내부 Apply횟수를 계측한다. 최초전체N, 무변경0, 정확prefix+예약suffix1회를 기대하며 기존코드 N/N+1 assertion이 예상RED다. 소형/실제job 두축, 명령60초/출력4MiB/fixture512MiB 유지, `/usr/bin/time -l` peakRSS 기록. 최초 원출력·개별결과·cleanup은 `lp15-checkpoint-output.txt`. 환경/compile 실패는RED가아니다. 필드/상한/오류반례는GREEN구현전 확장등록한다. 동일/변경후보·복구·보관량·peakRSS가 미확인이면 실제앱으로 넘어가지 않는다. 후보변경/상한초과의 전체검증까지 상수시간이라고 주장하지 않는다.
 
 | 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
 | --- | --- | --- | --- | --- |
@@ -32,7 +32,15 @@
 
 1단계 코드읽기 결과: 원본전체재생·변경후보전체재생, 이벤트링크만압축, commit 후보재계산/byte대조 확인. 제품수정/제품테스트 없음. `git diff --check` exit0, `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links` exit0(282파일/8716링크/22이미지/111anchor/실패0). 최초 LP14 실패자료를 historical evidence로 함께 보존하되 해당 실패를 PASS로 승격하지 않는다. 개선폭/최종PASS 미확인. token실측미집계.
 
-LP15 1단계 최초 cached diffcheck는 LP14 원출력 artifact의 보고부 EOF 공백1행으로 exit2였다. 원출력 구간이 아닌 마지막 빈행만 제거 후 재확인한다. 제품/테스트 결과 변경 없음.
+LP15 1단계 최초 cached diffcheck는 LP14 원출력 artifact의 보고부 EOF 공백1행으로 exit2였다. 원출력 구간이 아닌 마지막 빈행만 제거 후 exit0. 제품/테스트 결과 변경 없음. 계약커밋 `5d1f3afd`.
+
+2단계 최초 RED: exit1/32초, 소형cold1/실제job cold18 및재사용CP01~02 통과, unchanged/suffix 네assertion이 기대0/1과불일치(1/2·18/19)했다. [원출력·8개전수·cleanup](release-artifacts/v4.1.0/s11-preparation-mapping/lp15-checkpoint-output.txt). 실제job18records/2843054B. 환경오류별도: time의 sysctl권한거부로peakRSS 미확인. 이를RED로합치지않으며 GREEN실행은 필요한측정권한을도구로요청한다. 소유fixture13494715B 삭제/부재. 메인이fixture·runner·RED출력 직접검토. 테스트단독커밋은GREEN까지보류한다.
+
+3~4단계 추가등록: 같은fixture에 prefix모든필드·순서·축소·상한/overflow·캐시보관/폐기·recover_only·Open초기화·후보변경·잘못된전이/commit실패 반례를추가한다. 소유복제본에서전체경로와증분 projection을대조한다. 승인명령은 위cache runner, `bash scripts/internal/verify_v410_recording_catalog.sh`, `bash scripts/internal/verify_recording_derived_transition_reuse.sh`, `bash scripts/internal/verify_recording_derived_jobs.sh`, `bash scripts/internal/verify_recording_derived_job_service.sh`, `bash scripts/internal/verify_recording_derived_job_validation.sh`, `./server.sh build`, `git diff --check`. header배치변경후runtime archive는build부터갱신한다. 이후 `bash scripts/internal/recording_catalog_cost_probe_run.sh compaction-lp15`, `bash scripts/internal/recording_catalog_cost_probe_run.sh scale-32-lp15`를고유출력/격리cache로수행한다. 각runner의기존runtime/출력/disk상한유지, peakRSS512MiB는disk상한과별도판정한다. 최초실행 원출력·실패수정이력·전수검사·cleanup보존. 앞선검사실패는같은단계원인수정외뒤단계진행금지.
+
+LP15 2~3단계 결과: cache focused43+기존CP2+RSS1=46PASS, 기존catalog246/reuse11/jobs23/service43/validation11=334PASS, 전체build와diffcheck exit0. [원출력·전수·source hash·cleanup](release-artifacts/v4.1.0/s11-preparation-mapping/lp15-checkpoint-output.txt). 최종peakRSS167116800B(이번macOS time-l), 실제2job 자동checkpoint2회: 최초11건전체916174us, 다음17건중prefix11재사용/suffix6검증1231167us. UpdateDerivedJob8회 최대hold1760516us. RED에는시간미측정이므로직접개선율미산정. 원본/증분/압축후보의독립전체projection대조·불법Ready거부·실제8193원장상한/full전환·오류폐기통과. 첫time권한오류는승격GREEN에서해소했으며과거미확보이력유지. 상한은캐시입장기준이지전체RSS보장이아니다.
+
+메인은 header/helper/catalog 전체diff·fixture/runner·원출력/hash를 직접대조했다. 제품journal구현/API/저장bytes·시간/ID·원자교체·HTTP상한 불변. 변경후보를다음실제prefix와재대조하는경계를확인했다. 비용instrument의원본/후보루프 exact삽입만새포인터구문과맞췄고 측정의미불변이다. 독립compaction/scale32/실제앱은아직미실행이며단계전체완료가아니다. token실측미집계.
 
 ## 2026-09-19 LP14 종료 진단·보존 자료·전이 비용 보완
 

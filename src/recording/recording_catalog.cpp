@@ -294,6 +294,7 @@ RecordingCatalog::~RecordingCatalog() {
 
 bool RecordingCatalog::Open(std::string* error) {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
+    checkpoint_cache_.reset();
     if (opened_) return journal_.OwnsCatalog(this);
     if(!journal_.AttachCatalog(this,options_.media_root,options_.sqlite_path,options_.enable_v2_storage,error))return false;
     if(OpenLocked(error))return true;
@@ -381,7 +382,8 @@ bool RecordingCatalog::UpdateDerivedJob(const void* owner,const DerivedJobRecord
 
 bool RecordingCatalog::Checkpoint(std::string* error) {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
-    return opened_ && CanWriteLocked(error) && CheckpointLocked(false,error);
+    if(!opened_||!CanWriteLocked(error)){checkpoint_cache_.reset();return false;}
+    return CheckpointLocked(false,error);
 }
 
 bool RecordingCatalog::FindDerivedJob(const std::string& id,
@@ -597,6 +599,9 @@ std::vector<std::string> RecordingCatalog::ProjectionSignatureLocked() const {
 
 bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error) {
     recording::latency::Scope latency_scope(recording::latency::Operation::Checkpoint,recording::latency::Source::Catalog,__LINE__,false);
+    // 모든 실패/예외는 지역 cache를 폐기한다. live catalog를 shadow로 사용하지 않는다.
+    auto cached=std::move(checkpoint_cache_);
+    if(recover_only)cached.reset();
     if(!journal_.managed_||!options_.enable_v2_storage||!journal_.OwnsCatalog(this))
         return Fail(error,"managed checkpoint 소유권/지원 없음");
     const auto original=journal_.Replay();
@@ -604,16 +609,30 @@ bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error) {
         return Fail(error,"checkpoint 원장 불완전");
     std::vector<RecordingMutationV1> candidate;
     if(!journal_.PrepareCheckpoint(this,&candidate,error))return false;
-    RecordingCatalog before(journal_,options_),after(journal_,options_);
-    for(const auto& m:original.mutations)if(!before.ApplyMutationLocked(m,false,error))return false;
+    const bool reuse=cached&&cached->shadow&&detail::CheckpointCacheAdmissible(original.mutations)&&
+        detail::SameCheckpointPrefix(cached->prefix,original.mutations);
+    const auto first=reuse?cached->prefix.size():0;
+    auto before=reuse?std::move(cached->shadow):std::make_unique<RecordingCatalog>(journal_,options_);
+    cached.reset();
+    for(std::size_t i=first;i<original.mutations.size();++i)
+        if(!before->ApplyMutationLocked(original.mutations[i],false,error))return false;
     const bool identical=detail::SameCheckpointSequence(original.mutations,candidate);
-    // 원본 semantic replay는 위에서 항상 수행한다. byte-exact 같은 입력만
-    // 동일 projection 결과를 재사용하며 다른 후보는 기존 양방향 검증을 유지한다.
+    // 변경 후보는 전체 semantic replay와 양쪽 projection 비교를 유지한다.
+    std::unique_ptr<RecordingCatalog> after;
     if(!identical){
-        for(const auto& m:candidate)if(!after.ApplyMutationLocked(m,false,error))return false;
-        if(before.ProjectionSignatureLocked()!=after.ProjectionSignatureLocked())return Fail(error,"checkpoint 투영 불일치");
+        after=std::make_unique<RecordingCatalog>(journal_,options_);
+        for(const auto& m:candidate)if(!after->ApplyMutationLocked(m,false,error))return false;
+        if(before->ProjectionSignatureLocked()!=after->ProjectionSignatureLocked())return Fail(error,"checkpoint 투영 불일치");
     }
-    return journal_.CommitCheckpoint(this,candidate,recover_only,error);
+    // original 초과는 full 검증, compact candidate가 상한 내이면 다음 호출용 보관 가능.
+    std::unique_ptr<CheckpointProjectionCache> next;
+    if(!recover_only&&detail::CheckpointCacheAdmissible(candidate)){
+        next=std::make_unique<CheckpointProjectionCache>();
+        next->shadow=identical?std::move(before):std::move(after);
+    }
+    if(!journal_.CommitCheckpoint(this,candidate,recover_only,error))return false;
+    if(next){next->prefix=std::move(candidate);checkpoint_cache_=std::move(next);}
+    return true;
 }
 
 bool RecordingCatalog::OpenLocked(std::string* error) {

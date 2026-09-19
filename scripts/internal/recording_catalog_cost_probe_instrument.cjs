@@ -12,9 +12,9 @@ for(const file of ['recording_catalog.cpp','recording_journal.cpp','recording_co
  if(file==='recording_catalog.cpp'){
   for(const name of ['CheckpointLocked','AppendAndApplyLocked','ValidateBoundLocked','CommitBoundLocked','ApplyMutationLocked','ProjectMutationSqliteLocked','ProjectionSignatureLocked'])s=fn(s,'RecordingCatalog::'+name,'catalog.'+name);
   s=replace(s,'const auto original=journal_.Replay();','const auto original=fc::Measure("checkpoint.Replay",[&]{return journal_.Replay();});');
-  s=replace(s,'for(const auto& m:original.mutations)if(!before.ApplyMutationLocked(m,false,error))return false;','if(!fc::Measure("checkpoint.originalSemantic",[&]{for(const auto& m:original.mutations)if(!before.ApplyMutationLocked(m,false,error))return false;return true;}))return false;');
+  s=replace(s,'for(std::size_t i=first;i<original.mutations.size();++i)\n        if(!before->ApplyMutationLocked(original.mutations[i],false,error))return false;','if(!fc::Measure("checkpoint.originalSemantic",[&]{for(std::size_t i=first;i<original.mutations.size();++i)if(!before->ApplyMutationLocked(original.mutations[i],false,error))return false;return true;}))return false;');
   s=replace(s,'const bool identical=detail::SameCheckpointSequence(original.mutations,candidate);','const bool identical=detail::SameCheckpointSequence(original.mutations,candidate);fc::Event(identical?"candidate.identical":"candidate.different");');
-  s=replace(s,'for(const auto& m:candidate)if(!after.ApplyMutationLocked(m,false,error))return false;','if(!fc::Measure("checkpoint.candidateSemantic",[&]{for(const auto& m:candidate)if(!after.ApplyMutationLocked(m,false,error))return false;return true;}))return false;');
+  s=replace(s,'for(const auto& m:candidate)if(!after->ApplyMutationLocked(m,false,error))return false;','if(!fc::Measure("checkpoint.candidateSemantic",[&]{for(const auto& m:candidate)if(!after->ApplyMutationLocked(m,false,error))return false;return true;}))return false;');
   const legacy='std::lock_guard lock(mu_);',traced='recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);';
   const legacyCount=s.split(legacy).length-1,tracedCount=s.split(traced).length-1;
   if((legacyCount>0)===(tracedCount>0)||legacyCount+tracedCount<10)throw Error('catalog lock insertions');

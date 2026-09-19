@@ -1,0 +1,1303 @@
+LP15 2단계 첫 RED 원출력/전수 결과
+명령: bash scripts/internal/verify_recording_checkpoint_cache.sh
+exit: 1
+사전등록: docs/release-test-records.md LP15-C01/C02, main 확인 후 실행.
+제품 파일 변경 없음. compile 포함 elapsed32초; check 하위 프로세스 제한60초는 compile 시간을 포함하지 않는다.
+예상 RED: 캐시 미구현이므로 unchanged/suffix 적용 횟수가 각각0/1 기대를 초과.
+관측: 독립 1/2, 실제 job18/19로 네 assertion 예상과 일치. 최초 full1/reopened full18은 PASS.
+실제 크기: source1/sample250/mapping250/slice45/AU250 Ready319533B·Complete319548B, job2개 원장18records/2843054B.
+RSS 별도 문제: /usr/bin/time -l이 sysctl kern.clockrate Operation not permitted로 peakRSS를 출력하지 않았다. 이는 예상 RED가 아니며 peakRSS512MiB 판정은 미확인. disk512MiB cap과 다르다. 메인에 보고하고 3단계 구현 승인 대기.
+원출력은 첫 tool output부터 축적했고 출력만을 위한 재실행 없음. 소유 source 복제본과 fixture/cache는 실행 종료 trap이 크기13494715B 확인 후 삭제·부재확인했다. 원출력에 비밀/URL/raw media 없음.
+token start/end/consumed: 실제 usage 계수 미제공으로 미집계. elapsed source=bash SECONDS 및 time real.
+
+=== RAW OUTPUT ===
+[source] {"name":"include/recording/recording_catalog.h","sha256":"70841a18d9991d56965794d65e0b581160fd32bb9fd87ebf06262af93f6791c1"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"d2f03a7bc3472921dbd3099b2021fdddf586eeb8b539c30dcb789631d7f31581"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"9fb510a3c47220476670996ecfeae97f6a3633d7e5fd5958bac641a0b876ce63"}
+[source] {"name":"scripts/internal/recording_checkpoint_cache_smoke.cpp","sha256":"fb6beb6a30c71ed05217b9ea1e0ee64fa2037665378df111953fbb0d2f20dea1"}
+[source] {"name":"scripts/internal/verify_recording_checkpoint_cache.sh","sha256":"c21984d4e755aa3804425af825526972af02476629cfd0e81098f396cdfac7c0"}
+[environment] ownedCache=true ownedRegistry=true productFilesUnchanged=true instrumentation=checkpoint-scope-apply-count
+[pass] LP15-C01 cold full applied=1 expected=1
+[fail] LP15-C01 unchanged prefix applied=1 expected=0
+[fail] LP15-C01 exact prefix suffix only applied=2 expected=1
+[shape] state=1 bytes=319533 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=e40e943f2978514a8572740df28faaa4d7404356e421da7bae5410b5b04d4312
+[record-cost] iteration=1 serialize_us=80574 parse_us=144383
+[record-cost] iteration=2 serialize_us=79902 parse_us=145749
+[record-cost] iteration=3 serialize_us=80423 parse_us=144979
+[shape] state=3 bytes=319548 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=612e96d3d8d7b655c4d0f91e1cd85eb915b8df5ca6964d8d92f46b4b7cea78b3
+[record-cost] iteration=1 serialize_us=80001 parse_us=145845
+[record-cost] iteration=2 serialize_us=80021 parse_us=144481
+[record-cost] iteration=3 serialize_us=79669 parse_us=145661
+[shape] state=1 bytes=319533 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=daa89f34003092c43798bd68058db24beb7c77dda55bc5bfbfb7e1e2e25a8f0d
+[record-cost] iteration=1 serialize_us=79885 parse_us=146154
+[record-cost] iteration=2 serialize_us=80980 parse_us=146885
+[record-cost] iteration=3 serialize_us=79997 parse_us=146958
+[shape] state=3 bytes=319548 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=c2981c07a394dc0bb04426dca2026cf2464739c5bc6d78811e03834ff3fadcca
+[record-cost] iteration=1 serialize_us=80022 parse_us=147030
+[record-cost] iteration=2 serialize_us=79687 parse_us=145488
+[record-cost] iteration=3 serialize_us=79829 parse_us=146010
+[pass] CP01 actual Ready Complete shape canonical files reservation
+[pass] CP02 bounded two jobs over 1MiB canonical transitions
+[shape] LP15-C02 records=18 bytes=2843054 ready=2 committed=2 complete=2
+[pass] LP15-C02 reopened full applied=18 expected=18
+[fail] LP15-C02 actual unchanged prefix applied=18 expected=0
+[fail] LP15-C02 actual suffix only applied=19 expected=1
+[summary] LP15 pass=2 fail=4
+       30.49 real        29.70 user         0.36 sys
+time: sysctl kern.clockrate: Operation not permitted
+[bounded] {"code":1,"signal":null,"limit":false,"outputBytes":2012,"runtimeCapSeconds":60,"diskCapBytes":536870912}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.BFWcIL","bytes":13494715,"removed":true}
+[exit] code=1 elapsed_seconds=32 source=bash-SECONDS
+
+=== 개별 전수표 ===
+제목/내용 | 결과 | 비고
+LP15-C01 cold full applied=1 expected=1 | PASS | checkpoint 계측 assertion
+LP15-C01 unchanged prefix applied=1 expected=0 | FAIL | checkpoint 계측 assertion
+LP15-C01 exact prefix suffix only applied=2 expected=1 | FAIL | checkpoint 계측 assertion
+CP01 actual Ready Complete shape canonical files reservation | PASS | 재사용 fixture oracle
+CP02 bounded two jobs over 1MiB canonical transitions | PASS | 재사용 fixture oracle
+LP15-C02 reopened full applied=18 expected=18 | PASS | checkpoint 계측 assertion
+LP15-C02 actual unchanged prefix applied=18 expected=0 | FAIL | checkpoint 계측 assertion
+LP15-C02 actual suffix only applied=19 expected=1 | FAIL | checkpoint 계측 assertion
+
+=== 미확인/미실행 ===
+peakRSS512MiB: 미확인(도구 sysctl 권한오류). 캐시필드/변경후보/상한/오류반례 GREEN: 미실행. build/관련회귀/scale32/실제앱/커밋/푸시: 미실행.
+
+=== 3단계 구현 후 build 및 첫 GREEN ===
+RED의 자동checkpoint/UpdateDerivedJob hold 시간은 미계측이며 추가 baseline 재실행하지 않았다.
+peakRSS 측정은 이번 macOS /usr/bin/time -l만 검증한다. Linux 지원/실측 PASS 주장이 아니다.
+
+command: ./server.sh build
+exit: 0
+[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+[2/2] build
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/event_recording_bridge.cpp.o
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/gstreamer_segment_writer.cpp.o
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_media_inspector.cpp.o
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_finalize_recovery.cpp.o
+[  3%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_startup_recovery.cpp.o
+[  4%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_catalog.cpp.o
+[  5%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/analysis_observation_projector.cpp.o
+[  5%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_read_service.cpp.o
+[  6%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_timeline_projection.cpp.o
+[  7%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_selection.cpp.o
+[  8%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_job.cpp.o
+[  9%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_job_ready.cpp.o
+[  9%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_job_service.cpp.o
+[ 10%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_event_worker.cpp.o
+[ 11%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_evidence_observer.cpp.o
+[ 12%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_runtime_composition.cpp.o
+[ 12%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_remux.cpp.o
+[ 13%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/recording_application_service.cpp.o
+[ 14%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/retention_coordinator.cpp.o
+[ 15%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_http_server.cpp.o
+[ 16%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_http_server_ops_foundation.cpp.o
+[ 17%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_http_server_ops_workflows.cpp.o
+[ 17%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_http_server_ops_incidents.cpp.o
+[ 18%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/webrtc_http_server_runtime.cpp.o
+[ 19%] Linking CXX static library libmedia_server_runtime.a
+[ 98%] Built target media_server_runtime
+[ 98%] Building CXX object CMakeFiles/media_server.dir/src/application/media_server_application.cpp.o
+[ 99%] Linking CXX executable media_server
+[100%] Built target media_server
+[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+
+
+command: bash scripts/internal/verify_recording_checkpoint_cache.sh (승격 실행)
+exit: 0
+[source] {"name":"include/recording/recording_catalog.h","sha256":"e36505bcd9517d04946e94446420d5e49e7d18e07c1fe8e6d91d52011f9b3264"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"d0d21e36d9e71cca0dad307057696e077f09af6585d497e99fdbdd76eb168780"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"9fdc31e2dd404b163c2d71e1bbb9edd5c70d3ef525bb762d8ef8f5d426e705df"}
+[source] {"name":"scripts/internal/recording_checkpoint_cache_smoke.cpp","sha256":"404562792c3c5ca7fb75eaa48361991d04cb06762997db447f38d36346f81720"}
+[source] {"name":"scripts/internal/verify_recording_checkpoint_cache.sh","sha256":"fdda727625f0a28773163fb8cdbfae3cdbf503ae7c314abe6fb5d56103eed299"}
+[environment] ownedCache=true ownedRegistry=true productFilesUnchanged=true instrumentation=checkpoint-scope-apply-count
+[pass] LP15-C01 cold full applied=1 expected=1
+[pass] LP15-C01 unchanged prefix applied=0 expected=0
+[pass] LP15-C01 exact prefix suffix only applied=1 expected=1
+[pass] LP15-C01 full fallback schema applied=2 expected=2
+[pass] LP15-C01 full fallback type applied=2 expected=2
+[pass] LP15-C01 full fallback id applied=2 expected=2
+[pass] LP15-C01 full fallback entity applied=2 expected=2
+[pass] LP15-C01 full fallback time applied=2 expected=2
+[pass] LP15-C01 full fallback payload applied=2 expected=2
+[pass] LP15-C01 full fallback shrink applied=2 expected=2
+[pass] LP15-C01 full fallback null-shadow applied=2 expected=2
+[pass] LP15-C01 Open clears cache applied=2 expected=2
+[pass] LP15-C03 recover full/no-cache
+[pass] LP15-C03 after recover full applied=2 expected=2
+[pass] LP15-C03 injected commit refusal discards cache
+[pass] LP15-C03 after commit refusal full applied=2 expected=2
+[pass] LP15-C03 suffix exception discards cache
+[pass] LP15-C03 after exception full applied=3 expected=3
+[pass] LP15-C03 public poisoned entry discards cache
+[pass] LP15-C03 after restored fixture full applied=3 expected=3
+[pass] LP15-C04 exact byte charge boundary
+[pass] LP15-C04 overflow charge rejected
+[pass] LP15-C04 8192 records admitted
+[pass] LP15-C04 8193 records rejected
+[pass] LP15-C04 64MiB record charge admitted
+[pass] LP15-C04 64MiB plus one rejected
+[shape] state=1 bytes=319533 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=275428c2228914057f05ff7a7fe0a9d5f90a258f729d65dd446e93c698d66e65
+[record-cost] iteration=1 serialize_us=80508 parse_us=145774
+[record-cost] iteration=2 serialize_us=79633 parse_us=145211
+[record-cost] iteration=3 serialize_us=80452 parse_us=146332
+[shape] state=3 bytes=319548 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=82d731d728ad8ccfad31cd3d42d4c8f037b92377efcc1c77531a963bb3c29c0a
+[record-cost] iteration=1 serialize_us=79201 parse_us=145474
+[record-cost] iteration=2 serialize_us=80619 parse_us=145544
+[record-cost] iteration=3 serialize_us=79490 parse_us=145012
+[shape] state=1 bytes=319533 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=ad3780574f118483de6eb296724868ad05e2f4a12918fbc38cf58a2cfc58eb5e
+[record-cost] iteration=1 serialize_us=79893 parse_us=146280
+[record-cost] iteration=2 serialize_us=79596 parse_us=145336
+[record-cost] iteration=3 serialize_us=80687 parse_us=145756
+[shape] state=3 bytes=319548 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=f9bdac050e7e41a39cb980218426b8a484799ffc75141b0cec548ad5f7fe0fbd
+[record-cost] iteration=1 serialize_us=79206 parse_us=145949
+[record-cost] iteration=2 serialize_us=79774 parse_us=145243
+[record-cost] iteration=3 serialize_us=79329 parse_us=145582
+[pass] CP01 actual Ready Complete shape canonical files reservation
+[pass] CP02 bounded two jobs over 1MiB canonical transitions
+[automatic-checkpoint] index=0 original_records=11 reused_prefix=0 original_applied=11 total_applied=11 duration_us=945857
+[automatic-checkpoint] index=1 original_records=17 reused_prefix=11 original_applied=6 total_applied=6 duration_us=1234698
+[transition-hold] count=8 max_us=1766221 scope=UpdateDerivedJob-lock-acquired-to-before-unlock
+[pass] LP15-C02 bounded automatic checkpoint and whole transition measurement
+[shape] LP15-C02 records=18 bytes=2843054 ready=2 committed=2 complete=2
+[pass] LP15-C02 reopened full applied=18 expected=18
+[pass] LP15-C02 actual unchanged prefix applied=0 expected=0
+[pass] LP15-C02 actual suffix only applied=1 expected=1
+[summary] LP15 pass=30 fail=0
+       24.63 real        23.76 user         0.35 sys
+           177225728  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               73559  page reclaims
+                1992  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                 109  messages sent
+                  90  messages received
+                   0  signals received
+                 194  voluntary context switches
+               18611  involuntary context switches
+        490062937049  instructions retired
+         99530975709  cycles elapsed
+           151257856  peak memory footprint
+[pass] LP15-C04 peakRSS bytes=177225728 cap=536870912
+[bounded] {"code":0,"signal":null,"limit":false,"outputBytes":4299,"runtimeCapSeconds":60,"diskCapBytes":536870912,"peakRssBytes":177225728}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.ILYBb3","bytes":13527777,"removed":true}
+[exit] code=0 elapsed_seconds=27 source=bash-SECONDS
+
+
+첫 GREEN 전수 결과
+제목/내용 | 결과 | 비고
+LP15-C01 cold full applied=1 expected=1 | PASS | 최초 GREEN
+LP15-C01 unchanged prefix applied=0 expected=0 | PASS | 최초 GREEN
+LP15-C01 exact prefix suffix only applied=1 expected=1 | PASS | 최초 GREEN
+LP15-C01 full fallback schema applied=2 expected=2 | PASS | 최초 GREEN
+LP15-C01 full fallback type applied=2 expected=2 | PASS | 최초 GREEN
+LP15-C01 full fallback id applied=2 expected=2 | PASS | 최초 GREEN
+LP15-C01 full fallback entity applied=2 expected=2 | PASS | 최초 GREEN
+LP15-C01 full fallback time applied=2 expected=2 | PASS | 최초 GREEN
+LP15-C01 full fallback payload applied=2 expected=2 | PASS | 최초 GREEN
+LP15-C01 full fallback shrink applied=2 expected=2 | PASS | 최초 GREEN
+LP15-C01 full fallback null-shadow applied=2 expected=2 | PASS | 최초 GREEN
+LP15-C01 Open clears cache applied=2 expected=2 | PASS | 최초 GREEN
+LP15-C03 recover full/no-cache | PASS | 최초 GREEN
+LP15-C03 after recover full applied=2 expected=2 | PASS | 최초 GREEN
+LP15-C03 injected commit refusal discards cache | PASS | 최초 GREEN
+LP15-C03 after commit refusal full applied=2 expected=2 | PASS | 최초 GREEN
+LP15-C03 suffix exception discards cache | PASS | 최초 GREEN
+LP15-C03 after exception full applied=3 expected=3 | PASS | 최초 GREEN
+LP15-C03 public poisoned entry discards cache | PASS | 최초 GREEN
+LP15-C03 after restored fixture full applied=3 expected=3 | PASS | 최초 GREEN
+LP15-C04 exact byte charge boundary | PASS | 최초 GREEN
+LP15-C04 overflow charge rejected | PASS | 최초 GREEN
+LP15-C04 8192 records admitted | PASS | 최초 GREEN
+LP15-C04 8193 records rejected | PASS | 최초 GREEN
+LP15-C04 64MiB record charge admitted | PASS | 최초 GREEN
+LP15-C04 64MiB plus one rejected | PASS | 최초 GREEN
+CP01 actual Ready Complete shape canonical files reservation | PASS | 최초 GREEN
+CP02 bounded two jobs over 1MiB canonical transitions | PASS | 최초 GREEN
+LP15-C02 bounded automatic checkpoint and whole transition measurement | PASS | 최초 GREEN
+LP15-C02 reopened full applied=18 expected=18 | PASS | 최초 GREEN
+LP15-C02 actual unchanged prefix applied=0 expected=0 | PASS | 최초 GREEN
+LP15-C02 actual suffix only applied=1 expected=1 | PASS | 최초 GREEN
+LP15-C04 peakRSS bytes=177225728 cap=536870912 | PASS | 최초 GREEN
+
+=== 3단계 확장 GREEN 최종 ===
+command: bash scripts/internal/verify_recording_checkpoint_cache.sh (승격 time-l)
+exit: 0
+[source] {"name":"include/recording/recording_catalog.h","sha256":"e36505bcd9517d04946e94446420d5e49e7d18e07c1fe8e6d91d52011f9b3264"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"d0d21e36d9e71cca0dad307057696e077f09af6585d497e99fdbdd76eb168780"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"9fdc31e2dd404b163c2d71e1bbb9edd5c70d3ef525bb762d8ef8f5d426e705df"}
+[source] {"name":"scripts/internal/recording_checkpoint_cache_smoke.cpp","sha256":"ad6086e5383870e61a3a617ae666d8f063153a7d95506abce8fe3521b21b7ff1"}
+[source] {"name":"scripts/internal/verify_recording_checkpoint_cache.sh","sha256":"6b45ad7faeda2c8ac93cd027bf6353a6a32f777942f42bea668bc320e30fb346"}
+[environment] ownedCache=true ownedRegistry=true productFilesUnchanged=true instrumentation=checkpoint-scope-apply-count
+[pass] LP15-C01 cold full applied=1 expected=1
+[pass] LP15-C01 unchanged prefix applied=0 expected=0
+[pass] LP15-C01 exact prefix suffix only applied=1 expected=1
+[pass] LP15-C01 independent prefix shadow/full projection equality
+[pass] LP15-C01 full fallback schema applied=2 expected=2
+[pass] LP15-C01 full fallback type applied=2 expected=2
+[pass] LP15-C01 full fallback id applied=2 expected=2
+[pass] LP15-C01 full fallback entity applied=2 expected=2
+[pass] LP15-C01 full fallback time applied=2 expected=2
+[pass] LP15-C01 full fallback payload applied=2 expected=2
+[pass] LP15-C01 full fallback reorder applied=2 expected=2
+[pass] LP15-C01 full fallback shrink applied=2 expected=2
+[pass] LP15-C01 full fallback null-shadow applied=2 expected=2
+[pass] LP15-C01 Open clears cache applied=2 expected=2
+[pass] LP15-C03 recover full/no-cache
+[pass] LP15-C03 after recover full applied=2 expected=2
+[pass] LP15-C03 injected commit refusal discards cache
+[pass] LP15-C03 after commit refusal full applied=2 expected=2
+[pass] LP15-C03 suffix exception discards cache
+[pass] LP15-C03 after exception full applied=3 expected=3
+[pass] LP15-C03 public poisoned entry discards cache
+[pass] LP15-C03 after restored fixture full applied=3 expected=3
+[pass] LP15-C04 exact byte charge boundary
+[pass] LP15-C04 overflow charge rejected
+[pass] LP15-C04 8192 records admitted
+[pass] LP15-C04 8193 records rejected
+[pass] LP15-C04 64MiB record charge admitted
+[pass] LP15-C04 64MiB plus one rejected
+[pass] LP15-C03 changed candidate prime applied=1 expected=1
+[pass] LP15-C03 changed candidate suffix12 plus full candidate13 applied=25 expected=25
+[pass] LP15-C03 changed candidate cache equals independent full projection
+[pass] LP15-C03 compacted candidate prefix reused applied=0 expected=0
+[pass] LP15-C03 forced projection mismatch discards cache
+[pass] LP15-C04 overlimit prime applied=1 expected=1
+[pass] LP15-C04 existing cache ignored for oversized original applied=8193 expected=8193
+[pass] LP15-C04 oversized candidate not retained
+[pass] LP15-C04 next oversized checkpoint full applied=8193 expected=8193
+[shape] state=1 bytes=319533 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=90338dcfb056a09bebca8f4ddbb23c332822e314dd43623ba357d5455d139db7
+[record-cost] iteration=1 serialize_us=80902 parse_us=146678
+[record-cost] iteration=2 serialize_us=79979 parse_us=144719
+[record-cost] iteration=3 serialize_us=79468 parse_us=145754
+[shape] state=3 bytes=319548 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=297b9711b1a6ed28a6b8ac71f6ceb729a3872d2a44f6d0ce31667dfbe4f4a72d
+[record-cost] iteration=1 serialize_us=78934 parse_us=144566
+[record-cost] iteration=2 serialize_us=79814 parse_us=145407
+[record-cost] iteration=3 serialize_us=79660 parse_us=144421
+[shape] state=1 bytes=319533 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=feed01341bd767aff6de9b2b4ff3ed0a0c66e24e704ed83de161e29fb98f254f
+[record-cost] iteration=1 serialize_us=80623 parse_us=146058
+[record-cost] iteration=2 serialize_us=79362 parse_us=144597
+[record-cost] iteration=3 serialize_us=79222 parse_us=146328
+[shape] state=3 bytes=319548 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=5d2ca34b20a6cc7a74e523912ccf2ff85b2393790e293873b1582cbb6f245b94
+[record-cost] iteration=1 serialize_us=79190 parse_us=144764
+[record-cost] iteration=2 serialize_us=80062 parse_us=146515
+[record-cost] iteration=3 serialize_us=79327 parse_us=144843
+[pass] CP01 actual Ready Complete shape canonical files reservation
+[pass] CP02 bounded two jobs over 1MiB canonical transitions
+[automatic-checkpoint] index=0 original_records=11 reused_prefix=0 original_applied=11 total_applied=11 duration_us=916174
+[automatic-checkpoint] index=1 original_records=17 reused_prefix=11 original_applied=6 total_applied=6 duration_us=1231167
+[transition-hold] count=8 max_us=1760516 scope=UpdateDerivedJob-lock-acquired-to-before-unlock
+[pass] LP15-C02 bounded automatic checkpoint and whole transition measurement
+[shape] LP15-C02 records=18 bytes=2843063 ready=2 committed=2 complete=2
+[pass] LP15-C02 reopened full applied=18 expected=18
+[pass] LP15-C02 actual unchanged prefix applied=0 expected=0
+[pass] LP15-C02 actual suffix only applied=1 expected=1
+[pass] LP15-C02 actual job shadow/full projection equality
+[pass] LP15-C03 illegal Ready after Complete suffix rejected by cached/full paths
+[summary] LP15 pass=43 fail=0
+       31.87 real        30.21 user         1.13 sys
+           167116800  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               76785  page reclaims
+                  63  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                 110  messages sent
+                  91  messages received
+                   0  signals received
+                8906  voluntary context switches
+               23102  involuntary context switches
+        637646918489  instructions retired
+        130612523473  cycles elapsed
+           141001448  peak memory footprint
+[pass] LP15-C04 peakRSS bytes=167116800 cap=536870912
+[bounded] {"code":0,"signal":null,"limit":false,"outputBytes":5184,"runtimeCapSeconds":60,"diskCapBytes":536870912,"peakRssBytes":167116800}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.mNxrKC","bytes":16727923,"removed":true}
+[exit] code=0 elapsed_seconds=34 source=bash-SECONDS
+
+확장 GREEN 전수 결과
+제목/내용 | 결과 | 비고
+LP15-C01 cold full applied=1 expected=1 | PASS | 확장 GREEN
+LP15-C01 unchanged prefix applied=0 expected=0 | PASS | 확장 GREEN
+LP15-C01 exact prefix suffix only applied=1 expected=1 | PASS | 확장 GREEN
+LP15-C01 independent prefix shadow/full projection equality | PASS | 확장 GREEN
+LP15-C01 full fallback schema applied=2 expected=2 | PASS | 확장 GREEN
+LP15-C01 full fallback type applied=2 expected=2 | PASS | 확장 GREEN
+LP15-C01 full fallback id applied=2 expected=2 | PASS | 확장 GREEN
+LP15-C01 full fallback entity applied=2 expected=2 | PASS | 확장 GREEN
+LP15-C01 full fallback time applied=2 expected=2 | PASS | 확장 GREEN
+LP15-C01 full fallback payload applied=2 expected=2 | PASS | 확장 GREEN
+LP15-C01 full fallback reorder applied=2 expected=2 | PASS | 확장 GREEN
+LP15-C01 full fallback shrink applied=2 expected=2 | PASS | 확장 GREEN
+LP15-C01 full fallback null-shadow applied=2 expected=2 | PASS | 확장 GREEN
+LP15-C01 Open clears cache applied=2 expected=2 | PASS | 확장 GREEN
+LP15-C03 recover full/no-cache | PASS | 확장 GREEN
+LP15-C03 after recover full applied=2 expected=2 | PASS | 확장 GREEN
+LP15-C03 injected commit refusal discards cache | PASS | 확장 GREEN
+LP15-C03 after commit refusal full applied=2 expected=2 | PASS | 확장 GREEN
+LP15-C03 suffix exception discards cache | PASS | 확장 GREEN
+LP15-C03 after exception full applied=3 expected=3 | PASS | 확장 GREEN
+LP15-C03 public poisoned entry discards cache | PASS | 확장 GREEN
+LP15-C03 after restored fixture full applied=3 expected=3 | PASS | 확장 GREEN
+LP15-C04 exact byte charge boundary | PASS | 확장 GREEN
+LP15-C04 overflow charge rejected | PASS | 확장 GREEN
+LP15-C04 8192 records admitted | PASS | 확장 GREEN
+LP15-C04 8193 records rejected | PASS | 확장 GREEN
+LP15-C04 64MiB record charge admitted | PASS | 확장 GREEN
+LP15-C04 64MiB plus one rejected | PASS | 확장 GREEN
+LP15-C03 changed candidate prime applied=1 expected=1 | PASS | 확장 GREEN
+LP15-C03 changed candidate suffix12 plus full candidate13 applied=25 expected=25 | PASS | 확장 GREEN
+LP15-C03 changed candidate cache equals independent full projection | PASS | 확장 GREEN
+LP15-C03 compacted candidate prefix reused applied=0 expected=0 | PASS | 확장 GREEN
+LP15-C03 forced projection mismatch discards cache | PASS | 확장 GREEN
+LP15-C04 overlimit prime applied=1 expected=1 | PASS | 확장 GREEN
+LP15-C04 existing cache ignored for oversized original applied=8193 expected=8193 | PASS | 확장 GREEN
+LP15-C04 oversized candidate not retained | PASS | 확장 GREEN
+LP15-C04 next oversized checkpoint full applied=8193 expected=8193 | PASS | 확장 GREEN
+CP01 actual Ready Complete shape canonical files reservation | PASS | 확장 GREEN
+CP02 bounded two jobs over 1MiB canonical transitions | PASS | 확장 GREEN
+LP15-C02 bounded automatic checkpoint and whole transition measurement | PASS | 확장 GREEN
+LP15-C02 reopened full applied=18 expected=18 | PASS | 확장 GREEN
+LP15-C02 actual unchanged prefix applied=0 expected=0 | PASS | 확장 GREEN
+LP15-C02 actual suffix only applied=1 expected=1 | PASS | 확장 GREEN
+LP15-C02 actual job shadow/full projection equality | PASS | 확장 GREEN
+LP15-C03 illegal Ready after Complete suffix rejected by cached/full paths | PASS | 확장 GREEN
+LP15-C04 peakRSS bytes=167116800 cap=536870912 | PASS | 확장 GREEN
+
+=== 관련 회귀 원출력 ===
+RAW_JSON_LINE: 접두 행은 행말 공백을 포함한 원문 한 줄을 JSON 문자열로 가역 보존한다.
+
+command: bash scripts/internal/verify_v410_recording_catalog.sh
+exit: 0
+RAW_JSON_LINE:"[pass] journal open: "
+RAW_JSON_LINE:"[pass] fallback catalog open: "
+[pass] SQLite off mode 표시
+RAW_JSON_LINE:"[pass] segment finalize journal+projection: "
+[pass] fallback range query
+[pass] event link FK 위반 거부
+[pass] FK 위반 transaction/journal 전체 rollback
+[pass] 최초 durable mutation 1개
+[pass] 동일 mutation 중복 append
+[pass] 손상 사이 정상 durable mutation 보존
+[pass] 중간 corrupt line count
+[pass] 마지막 truncated line skip
+[pass] fallback replay open
+[pass] 같은 mutation idempotent replay
+[pass] 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존
+[pass] 중복 replay row/합계 불증가
+RAW_JSON_LINE:"[pass] 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구: "
+[pass] writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed
+[pass] v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed
+RAW_JSON_LINE:"[pass] SQLite catalog open/rebuild: "
+[pass] SQLite primary mode 표시
+[pass] SQLite on/off range query ID·순서 parity
+[pass] journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분
+[pass] journal 없는 손상 media orphan 구분
+RAW_JSON_LINE:"[pass] projection failover journal open: "
+RAW_JSON_LINE:"[pass] projection failover catalog open: "
+[pass] 실제 SQLite INSERT 실패 trigger 설치
+RAW_JSON_LINE:"[pass] SQLite 투영 실패 뒤 journal+memory finalize 유지: "
+[pass] SQLite 투영 실패 즉시 JSONL fallback 전환
+[pass] 재시작 rebuild 전 실패 trigger 제거
+[pass] 투영 실패 직후 in-memory query 정합성 유지
+RAW_JSON_LINE:"[pass] projection failover 재시작 journal rebuild: "
+[pass] 재시작 후 journal에서 누락 SQLite projection 복구
+[pass] 재시작 후 SQLite primary 복귀
+[pass] 재시작 journal rebuild가 실제 SQLite row 복원
+RAW_JSON_LINE:"[pass] tombstone journal open: "
+RAW_JSON_LINE:"[pass] tombstone catalog open: "
+RAW_JSON_LINE:"[pass] tombstone 대상 segment finalize: "
+RAW_JSON_LINE:"[pass] tombstone 대상 deletion request: "
+RAW_JSON_LINE:"[pass] tombstone 완료 기록: "
+[pass] catalog finalize가 tombstone segment ID 재사용을 거부해야 함
+RAW_JSON_LINE:"[pass] 손상 SQLite 격리 후 journal rebuild: "
+[pass] 손상 SQLite 원본 격리
+[pass] 격리 SQLite 파일 보존
+[pass] 격리 후 journal rebuild 결과
+[pass] S10-3A future-schema journal read open
+[pass] S10-3A future-schema unsupported classification
+[pass] S10-3A future-schema catalog open denied
+[pass] S10-3A future-schema catalog retry denied
+[pass] S10-3A future-schema journal bytes preserved
+[pass] S10-3A future-schema SQLite bytes preserved
+[pass] S10-3A future-schema writer cleanup untouched
+[pass] S10-3A arbitrary-schema journal read open
+[pass] S10-3A arbitrary-schema unsupported classification
+[pass] S10-3A arbitrary-schema catalog open denied
+[pass] S10-3A arbitrary-schema catalog retry denied
+[pass] S10-3A arbitrary-schema journal bytes preserved
+[pass] S10-3A arbitrary-schema SQLite bytes preserved
+[pass] S10-3A arbitrary-schema writer cleanup untouched
+[pass] S10-3A empty-schema journal read open
+[pass] S10-3A empty-schema unsupported classification
+[pass] S10-3A empty-schema catalog open denied
+[pass] S10-3A empty-schema catalog retry denied
+[pass] S10-3A empty-schema journal bytes preserved
+[pass] S10-3A empty-schema SQLite bytes preserved
+[pass] S10-3A empty-schema writer cleanup untouched
+[pass] S10-3A future-type journal read open
+[pass] S10-3A future-type unsupported classification
+[pass] S10-3A future-type catalog open denied
+[pass] S10-3A future-type catalog retry denied
+[pass] S10-3A future-type journal bytes preserved
+[pass] S10-3A future-type SQLite bytes preserved
+[pass] S10-3A future-type writer cleanup untouched
+[pass] S10-3A malformed journal open
+[pass] S10-3A malformed JSON missing fields and wrong types remain corrupt
+[pass] S10-O01 reservation journal open
+[pass] S10-O01 first reservation returns four IDs and sequence one
+[pass] S10-O01 versioned reservation payload replays
+[pass] S10-O01 new reservation records actual occurred time
+[pass] S10-O02 identical retry preserves sequence and bytes
+[pass] S10-O03 reopened instance allocates next sequence
+[pass] S10-O03 new process resumes durable sequence
+[pass] S10-O04 different store rejected
+[pass] S10-O04 reused request with different segment rejected
+[pass] S10-O04 reused request with different channel rejected
+[pass] S10-O04 reused segment with different request rejected
+[pass] S10-O04 conflicts preserve original bytes
+[pass] S10-O05/O06 reject and preserve corrupt
+[pass] S10-O05/O06 reject and preserve unsupported-schema
+[pass] S10-O05/O06 reject and preserve unsupported-type
+[pass] S10-O05/O06 reject and preserve tail
+[pass] S10-O05/O06 reject and preserve payload-zero
+[pass] S10-O05/O06 reject and preserve payload-negative
+[pass] S10-O05/O06 reject and preserve payload-fraction
+[pass] S10-O05/O06 reject and preserve payload-overflow
+[pass] S10-O05/O06 reject and preserve duplicate-sequence
+[pass] S10-O05/O06 reject and preserve decreasing-sequence
+[pass] S10-O05/O06 reject and preserve duplicate-request
+[pass] S10-O05/O06 reject and preserve duplicate-segment
+[pass] S10-O05/O06 reject and preserve store-conflict
+[pass] S10-O05/O06 reject and preserve ordinary-before
+[pass] S10-O05/O06 reject and preserve ordinary-after
+[pass] S10-O05/O06 reject and preserve line-cap
+[pass] S10-O05 reservation entity envelope binding rejects mismatch
+[pass] S10-O05 reservation request envelope binding rejects mismatch
+[pass] S10-O01 strict reservation parser accepts versioned literal
+[pass] S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys
+[pass] S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys
+[pass] S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys
+[pass] S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys
+[pass] S10-O06 INT64_MAX identical retry remains valid
+[pass] S10-O06 sequence overflow rejected without write
+[pass] S10-O02 identical durable reservation duplicates remain idempotent
+[pass] S10-O06 sequence gaps remain valid and allocate above maximum
+[pass] S10-O07 four simultaneous processes finish reservations
+[pass] S10-O07 concurrent sequences are unique and complete
+[pass] S10-O07 next sequence follows concurrent reservations
+[pass] S10-O08 ordinary Append cannot reserve orders
+[pass] S10-O08 unopened journal rejected
+[pass] S10-O08 null result rejected
+[pass] S10-O08 invalid opaque ID rejected
+[pass] S10-O08 failed reservation does not expose tentative result
+[pass] S10-O09 unsafe file binding rejected and original preserved inode
+[pass] S10-O09 unsafe file binding rejected and original preserved parent
+[pass] S10-O09 unsafe file binding rejected and original preserved symlink
+[pass] S10-O09 unsafe file binding rejected and original preserved hardlink
+[pass] S10-O10 reservation and normal segment coexist in catalog
+[pass] S10-O04 reserve then finalize permits identical retry
+[pass] S10-O10 reservation survives catalog rebuild without changing segment query
+[pass] S10-O04 legacy segment cannot acquire retroactive reservation
+[pass] S10-M06 opened catalog accepts fresh exact reservation V2 finalize
+[pass] S10-M07 V2 find preserves complete metadata
+[pass] S10-M07 identical V2 recovery is idempotent
+[pass] S10-M07 V2 is absent from V1 range query
+[pass] S10-M07 V2 registered path is not orphan
+[pass] S10-M07 SQLite exact V2 JSON and path match
+[pass] S10-M07 JSONL restart preserves V2 exact payload
+[pass] S10-M06 wrong reservation tuple rejected store
+[pass] S10-M06 wrong reservation tuple rejected request
+[pass] S10-M06 wrong reservation tuple rejected segment
+[pass] S10-M06 wrong reservation tuple rejected channel
+[pass] S10-M06 wrong reservation tuple rejected sequence
+[pass] S10-M09 immutable V2 mapping mismatch rejected
+[pass] S10-M09 bad V2 startup retry preserves original state bad-payload
+[pass] S10-M09 bad V2 startup retry preserves original state missing-order
+[pass] S10-M09 bad V2 startup retry preserves original state bad-order
+[pass] S10-M09 bad V2 startup retry preserves original state conflicting-order
+[pass] S10-M09 bad V2 startup retry preserves original state tail
+[pass] S10-M09 bad V2 startup retry preserves original state corrupt
+[pass] S10-M09 bad V2 startup retry preserves original state unsafe-path
+[pass] S10-M09 default off rejects V2 before SQLite changes
+[pass] S10-M09 V2 replay namespace and deletion duplicate
+[pass] S10-M09 V2 replay namespace and deletion deleted
+[pass] S10-M09 V2 replay namespace and deletion v1-before
+[pass] S10-M09 V2 replay namespace and deletion v1-after
+[pass] S10-M09 V2 replay namespace and deletion deleted-before
+[pass] S10-M09 V2 replay namespace and deletion resurrection
+[pass] S10-M09 V2 replay namespace and deletion mutation-collision
+[pass] S10-M09 V2 finalize rejects missing media
+[pass] S10-M09 V2 finalize rejects directory media
+[pass] S10-M09 fresh candidate rejects mapping
+[pass] S10-M09 fresh candidate rejects path
+[pass] S10-M09 fresh candidate rejects tombstone
+[pass] S10-SW01 managed empty root opens with lifetime lease
+[pass] S10-SW02 same process second managed owner denied
+[pass] S10-SW03 different process owner and inherited use denied
+[pass] S10-SW12 managed duplicate descriptors are close-on-exec
+[pass] S10-SW05 managed reserve append replay use owned descriptor
+[pass] S10-SW06 raw managed access and legacy default path denied
+[pass] S10-SW01 managed Reserve rejects different store identity
+[pass] S10-SW10 catalog connection can inspect managed lease
+[pass] S10-SW04 owner destruction releases lease
+[pass] S10-SW01 managed reopen rejects different store identity
+[pass] S10-SW11 managed incomplete tail rejects append without changing bytes
+[pass] S10-SW07 legacy nonempty root preserved without conversion
+[pass] S10-SW08 partial initialization retry validates exact state lease
+[pass] S10-SW08 partial initialization retry validates exact state init
+[pass] S10-SW08 partial initialization retry validates exact state barrier
+[pass] S10-SW08 partial initialization retry validates exact state journal
+[pass] S10-SW08 partial initialization retry validates exact state incomplete
+[pass] S10-SW08 partial initialization retry validates exact state unknown
+[pass] S10-SW09 symlink inode and malformed marker rejected journal
+[pass] S10-SW09 symlink inode and malformed marker rejected marker
+[pass] S10-SW09 symlink inode and malformed marker rejected barrier
+[pass] S10-SW09 symlink inode and malformed marker rejected root-symlink
+[pass] S10-SB01 second managed catalog is denied
+[pass] S10-SB02 failed catalog cannot mutate journal or holds
+[pass] S10-SB03 attached catalog blocks unowned append but permits reservation
+[pass] S10-SB04 catalog destruction releases attachment
+[pass] S10-SB05 managed catalog rejects unsafe options outside
+[pass] S10-SB05 managed catalog rejects unsafe options dotdot
+[pass] S10-SB05 managed catalog rejects unsafe options media-symlink
+[pass] S10-SB05 managed catalog rejects unsafe options sqlite-symlink
+[pass] S10-SB05 managed catalog rejects unsafe options sqlite-hardlink
+[pass] S10-SB05 managed catalog rejects unsafe options disabled
+[pass] S10-SB06 failed open releases catalog attachment
+[pass] S10-SB07 managed SQLite sidecar rejected -wal symlink
+[pass] S10-SB07 managed SQLite sidecar rejected -wal hardlink
+[pass] S10-SB07 managed SQLite sidecar rejected -shm symlink
+[pass] S10-SB07 managed SQLite sidecar rejected -shm hardlink
+[pass] S10-SB07 managed SQLite sidecar rejected -journal symlink
+[pass] S10-SB07 managed SQLite sidecar rejected -journal hardlink
+[pass] S10-SC01 managed repeated event fixture is valid
+[pass] S10-SC02 managed reservations avoid history reads
+[pass] S10-SC03 managed V2 finalize avoids full replay
+[pass] S10-SC04 checkpoint reduces superseded event payload bytes
+[pass] S10-SC05 checkpoint preserves latest event and all record identities
+[pass] S10-SC06 checkpoint is idempotent and preserves V2
+[pass] S10-SC08 receipt preserves retry identity and rejects direct append
+[pass] S10-SC09 checkpoint restart preserves SQLite and JSONL state sqlite
+[pass] S10-SC09 managed checkpoint SQL V2 payload and path
+[pass] S10-SC09 checkpoint restart preserves SQLite and JSONL state jsonl
+[pass] S10-SC10 checkpoint prefix recovers before writes
+[pass] S10-SC11 checkpoint mismatch preserves bytes and poisons owner
+[pass] S10-SC12 first accepted mutation controls latest event
+[pass] S10-SC16 automatic checkpoint uses accumulated growth
+[pass] S10-SC07 raw checkpoint is rejected
+[pass] S10-SC18 checkpoint syscall failure poisons and reopens write
+[pass] S10-SC21 poison rejects hold mutation write
+[pass] S10-SC18 checkpoint syscall failure poisons and reopens file-fsync
+[pass] S10-SC21 poison rejects hold mutation file-fsync
+[pass] S10-SC18 checkpoint syscall failure poisons and reopens rename
+[pass] S10-SC21 poison rejects hold mutation rename
+[pass] S10-SC18 checkpoint syscall failure poisons and reopens dir-fsync
+[pass] S10-SC21 poison rejects hold mutation dir-fsync
+[pass] S10-SC17 checkpoint preserves holds observations and deletion
+[pass] S10-SC17 checkpoint SQL hold observation tombstone
+[pass] S10-SC17 checkpoint preserves holds observations and deletion restart sqlite
+[pass] S10-SC17 checkpoint SQL restart observation tombstone
+[pass] S10-SC17 checkpoint preserves holds observations and deletion restart jsonl
+[pass] S10-SC19 invalid managed history remains unchanged malformed
+[pass] S10-SC19 invalid managed history remains unchanged unsupported
+[pass] S10-SC19 invalid managed history remains unchanged conflict
+[pass] S10-SC20 raw catalog rejects receipt before side effects
+[verify-v410-recording-catalog] pass=234 fail=0
+[pass] S10-SC13 crypto off raw remains usable
+[pass] S10-SC14 crypto off checkpoint is rejected
+[pass] S10-SC15 crypto off receipt reopen is rejected
+[pass] source 저장 callback reconcile 연결
+[pass] policy revision idempotency
+[pass] 5초 safety reconcile
+[pass] composition root 관리 저장소 선행 open
+[pass] composition helper journal 다음 catalog rebuild/open
+[pass] 서버 전 supervisor 시작
+[pass] ingress 전 event bridge 등록
+[pass] ingress 종료 뒤 recorder finalize
+[pass] composition root 시작/종료 순서
+[cleanup] path=/tmp/media_server_v410_recording_catalog-33434 bytes=26753462 removed=true
+
+command: bash scripts/internal/verify_recording_derived_transition_reuse.sh
+exit: 0
+[source] {"name":"recording_catalog.cpp","sha256":"d0d21e36d9e71cca0dad307057696e077f09af6585d497e99fdbdd76eb168780"}
+[source] {"name":"recording_derived_job_ready.cpp","sha256":"b2e52b730312fa6da0e6a2843adf67e049810f81c80d48235e9118be71186d2e"}
+[environment] ownedCache=true ownedRegistry=true privateHeaderCopy=true productSerializerUnchanged=true
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[pass] LP14-C01 state=1 updates=1 full_parse=1 expected=1
+[pass] LP14-C01 state=2 updates=1 full_parse=1 expected=1
+[pass] LP14-C01 state=3 updates=1 full_parse=1 expected=1
+[pass] LP14-C03 memory/sqlite canonical bytes and CompletedOracle
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP14-C02 binding=payload rejected without apply
+[pass] LP14-C02 binding=type rejected without apply
+[pass] LP14-C02 binding=entity rejected without apply
+[pass] LP14-C02 binding=owner rejected without apply
+[pass] LP14-C02 binding=prior rejected without apply
+[pass] LP14-C02 duplicate envelope no-apply/conflict rejection
+[pass] LP14-C02 one-shot apply/reuse rejection
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-transition-reuse.4bzAZX","bytes":8875925,"removed":true}
+[exit] code=0 elapsed_seconds=5 source=bash-SECONDS
+
+command: bash scripts/internal/verify_recording_derived_jobs.sh
+exit: 0
+[pass] J01 실제 선택→compact 내구 job 계약 왕복
+[detail] error=
+[pass] J17 무관source8개 추가에도 동일선택 jobID 유지
+[pass] J18 cleanup wall시계 역행 허용·순서는상태로검사
+[pass] J04 단일 Intent 원장·보호·예약 원자 가시성
+[pass] J19 후발 coordinator 일반·파생 admission 및 복구 차단
+[pass] J02 이후 시각 재Build ID 유지·선택 변경 새 ID
+[pass] J03 unknown·중복·미지원 schema·불완전 JSON·4MiB·예약 상한·미구현 state 거부
+[pass] J16 소유 경로·attempt·order 계획 조작 거부
+[pass] J16 실제 2 source UUID 역순이어도 영속 order 순 출력 계획
+[pass] J08 나중 시각 재요청 최초 시각 유지·예약/경로 충돌·다른 catalog 거부
+[pass] J06 generic hold 감소로 job 보호 해제 불가·직접 삭제/corrupt 차단
+[pass] J14 cleanup Failed는 job 자원만 해제·wall 역행·terminal 자동 재시도 없음
+[detail] J05 pending 예약 없음=1
+[detail] J05 corrupt 예약 없음=1
+[detail] J05 deleted 예약 없음=1
+[detail] J05 hash 예약 없음=1
+[detail] J05 binding 예약 없음=1
+[pass] J05 pending·corrupt·tombstone·hash·binding 불일치 source 거부
+[pass] J07 실제 source 삭제/Intent 경쟁에서 둘 중 한 전이만 허용
+[pass] J10 checkpoint 전후 job·보호·예약 유지
+[pass] J09 SQLite·fallback·재build/reopen 내구 job 동등·중복 보호 가산 없음
+[detail] J10 different 거부=derived job immutable 충돌
+[detail] J10 malformed 거부=derived job mutation 계약 거부
+[detail] J10 schema 거부=derived job mutation 계약 거부
+[detail] J10 transition 거부=derived job mutation 계약 거부
+[detail] J10 protected-state 거부=V2 상태 전이 거부
+[detail] J10 failed-without-intent 거부=derived job 최초 전이 거부
+[pass] J10 replay 동일 중복 멱등·다른 내용/불완전/schema/전이/보호 상태 거부
+[pass] J11 같은 채널 memory+동시 durable 예약 합계 event quota 제한
+[pass] J12 durable outstanding을 continuous/event/derived disk 예약에 포함
+[pass] J13 snapshot/disk provider 실패는 생성·periodic·복구 삭제 차단
+[pass] J15 partial unknown·이유·후보·요청 시간축 그대로 보존
+[pass] J19 정확한 소유자 소멸 후 새 coordinator만 재결박
+[pass] J20 append 거부 후 원장 복원해도 공통 mutation 차단
+[detail] injected=managed journal 미완결 tail 거부
+[detail] admission=created
+[summary] pass=23 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-jobs.iF3VFn bytes=9566655 removed=true
+[elapsed] seconds=8 source=bash-SECONDS
+
+command: MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh
+exit: 0
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=0 index=0 durable_state_before_exit=true
+[child] mode=recover expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=interrupted-intent-no-retry
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=1 index=0 durable_state_before_exit=true
+[child] mode=recover expected=blocked observed_complete=0 blocked=1 resources_and_files=1 reason=job-unreceipted-ownership-unknown; cleanup: job-unreceipted-ownership-unknown
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=2 index=0 durable_state_before_exit=true
+[child] mode=recover expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=interrupted-intent-no-retry
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=3 index=0 durable_state_before_exit=true
+[decode] frames=10 eos=1 error_free=1
+[decode] frames=10 eos=1 error_free=1
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=4 index=0 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=4 index=1 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=5 index=1 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=6 index=0 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=7 index=0 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=7 index=1 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=8 index=0 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=8 index=1 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=9 index=0 durable_state_before_exit=true
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[child] mode=recover expected=complete observed_complete=1 blocked=0 resources_and_files=1 reason=
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=2 index=0 durable_state_before_exit=true
+[fault] stage=8 index=0 durable_state_before_exit=true
+[child] mode=recover expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=interrupted-intent-no-retry
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=2 index=0 durable_state_before_exit=true
+[fault] stage=8 index=1 durable_state_before_exit=true
+[child] mode=recover expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=interrupted-intent-no-retry
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=2 index=0 durable_state_before_exit=true
+[fault] stage=9 index=0 durable_state_before_exit=true
+[child] mode=recover expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=interrupted-intent-no-retry
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=3 index=0 durable_state_before_exit=true
+[child] mode=recover expected=blocked observed_complete=0 blocked=1 resources_and_files=1 reason=job-file-integrity
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=3 index=0 durable_state_before_exit=true
+[child] mode=recover expected=blocked observed_complete=0 blocked=1 resources_and_files=1 reason=job-ready-file-missing
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=3 index=0 durable_state_before_exit=true
+[child] mode=recover expected=blocked observed_complete=0 blocked=1 resources_and_files=1 reason=job-file-ownership
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=3 index=0 durable_state_before_exit=true
+[child] mode=recover expected=blocked observed_complete=0 blocked=1 resources_and_files=1 reason=job-owned-open
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=3 index=0 durable_state_before_exit=true
+[child] mode=recover expected=blocked observed_complete=0 blocked=1 resources_and_files=1 reason=job-file-ownership
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=3 index=0 durable_state_before_exit=true
+[child] mode=recover expected=blocked observed_complete=0 blocked=1 resources_and_files=1 reason=job-ready-extra-hardlink
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[fault] stage=3 index=0 durable_state_before_exit=true
+[child] mode=recover expected=blocked observed_complete=0 blocked=1 resources_and_files=1 reason=job-parent-replaced
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[child] mode=cancel-before-create expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=job-cancelled-or-deadline
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[child] mode=cancel expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=job-cancelled-or-deadline
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[child] mode=small expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=job-remux: output-byte-budget-exceeded
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[child] mode=deadline expected=failed observed_complete=0 blocked=0 resources_and_files=1 reason=job-cancelled-or-deadline
+[pass] F12 실제 remux의 다른 selection 결박 거부
+[pass] F12 실제 remux provenance의 요청 범위 위조 거부
+[pass] F12 실제 remux의 foreign unfulfilled 범위 거부
+[pass] F01 실제 writer→선택→Intent→파생 파일→게시→Complete
+[decode] frames=10 eos=1 error_free=1
+[decode] frames=10 eos=1 error_free=1
+[oracle] committed_mutations=1 outputs=2 metadata_file_hash_inode_checked=true
+[pass] F01 실제 catalog/file/hash/단일 commit/hold 해제/cleanup 및 직접 decode
+[pass] F15 단일 service·동시 Run·외부 terminal release 거부
+[pass] F16 active source 삭제 거부·동일 사유 비보호 원본 삭제 positive control
+[pass] F02 두 출력 독립 epoch·unknown UTC·실제 AU/visible 출처 보존
+[pass] F12 Complete 출처 전수 canonical roundtrip
+[pass] F12 Ready 포함 Intent 잘못된 상태 거부
+[pass] F12 미지원 필드 엄격 거부
+[pass] F14 Ready JSON 4MiB 명시 상한 거부
+[pass] F12 출력 receipt inode 별칭 거부
+[detail] reason= outputs=2
+[pass] F03 Intent 생성 전 프로세스 중단
+[pass] F04 receipt 전 실물의 소유권 미확인 보호 유지
+[pass] F05 receipt 이후 Intent 중단 소유물 정리
+[pass] F06 Ready 중단 뒤 재렌더 없이 완료
+[pass] F07 첫 출력 link 중단 쌍 복구
+[pass] F07 두 번째 출력 link 중단 쌍 복구
+[pass] F08 전체 publish 후 commit 전 중단
+[pass] F09 원자 commit 후 cleanup 전 중단
+[pass] F10 첫 temp 삭제 중단
+[pass] F10 두 번째 temp 삭제 중단
+[pass] F10 attempt 디렉터리 삭제 중단
+[pass] F10 job 디렉터리 삭제 중단
+[pass] F10 Complete mutation 직전 중단
+[pass] F10 Failed cleanup attempt 삭제 중단
+[pass] F10 Failed cleanup job 삭제 중단
+[pass] F10 Failed mutation 직전 중단
+[pass] F11 hash 오류 거부·보호/예약 유지
+[pass] F11 missing 오류 거부·보호/예약 유지
+[pass] F11 foreign 오류 거부·보호/예약 유지
+[pass] F11 symlink 오류 거부·보호/예약 유지
+[pass] F11 fifo 오류 거부·보호/예약 유지
+[pass] F11 hardlink 오류 거부·보호/예약 유지
+[pass] F11 parent 오류 거부·보호/예약 유지
+[pass] F14 cancel-before-create 생성 중단·소유 cleanup·예약 해제
+[pass] F14 cancel 생성 중단·소유 cleanup·예약 해제
+[pass] F14 small 생성 중단·소유 cleanup·예약 해제
+[pass] F14 deadline 생성 중단·소유 cleanup·예약 해제
+[pass] F12 SQLite projection·journal fallback job/output 일치
+[pass] F12 SQLite rebuild·checkpoint 재개방 job/output 일치
+[pass] F13 Complete output tombstone 뒤 재생성 없음
+[summary] pass=43 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-job-service.3RZwAf bytes=17829361 removed=true
+[elapsed] seconds=26 source=bash-SECONDS
+
+command: bash scripts/internal/verify_recording_derived_job_validation.sh
+exit: 0
+[build-profile] optimization=compiler-default NDEBUG=0 gstreamer=0 direct-source=1
+[pass] P0-PERF01 literal source1 sample250 slice45 complete
+[fixture] sources=1 samples=250 slices=45 selection_bytes=72752 intent_bytes=144078 record_bytes=144206 sha256=529aff50132395c790a05ad68d735381b174966dc3099f00ba022a8ead494d5b
+[measure] operation=serialize-intent iteration=1 microseconds=14868
+[measure] operation=serialize-intent iteration=2 microseconds=14827
+[measure] operation=serialize-intent iteration=3 microseconds=14708
+[measure] operation=serialize-record iteration=1 microseconds=28757
+[measure] operation=serialize-record iteration=2 microseconds=29023
+[measure] operation=serialize-record iteration=3 microseconds=28740
+[measure] operation=parse-record iteration=1 microseconds=61038
+[measure] operation=parse-record iteration=2 microseconds=61209
+[measure] operation=parse-record iteration=3 microseconds=61063
+[measure] operation=restore-selection iteration=1 microseconds=14184
+[measure] operation=restore-selection iteration=2 microseconds=14129
+[measure] operation=restore-selection iteration=3 microseconds=14214
+[pass] P0-PERF01 canonical record roundtrip unchanged
+[pass] P0-PERF02 baseline canonical hash literal unchanged
+[pass] P0-PERF01 source mapping conflict rejected
+[pass] P0-PERF01 selection table mapping conflict rejected
+[pass] P0-PERF01 job identity forgery rejected
+[pass] LP09-S03a native exact selection and proof survive job roundtrip
+[pass] LP09-S03a noncontiguous exact slices rejected
+[pass] LP09-S03a observed identity and native interval mismatch rejected
+[pass] LP09-S03a native profile cannot drop file evidence
+[pass] LP09-S03a overlapping substitute AU cannot replace selected identity
+[summary] pass=11 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-job-validation.mEpwyY bytes=5289704 removed=true
+
+=== 관련 회귀 개별 전수 ===
+명령 | 제목/내용 | 결과
+bash scripts/internal/verify_v410_recording_catalog.sh | journal open: | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | fallback catalog open: | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | SQLite off mode 표시 | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | segment finalize journal+projection: | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | fallback range query | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | event link FK 위반 거부 | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | FK 위반 transaction/journal 전체 rollback | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | 최초 durable mutation 1개 | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | 동일 mutation 중복 append | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | 손상 사이 정상 durable mutation 보존 | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | 중간 corrupt line count | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | 마지막 truncated line skip | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | fallback replay open | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | 같은 mutation idempotent replay | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | 중복 replay row/합계 불증가 | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구: | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | SQLite catalog open/rebuild: | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | SQLite primary mode 표시 | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | SQLite on/off range query ID·순서 parity | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | journal 없는 손상 media orphan 구분 | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | projection failover journal open: | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | projection failover catalog open: | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | 실제 SQLite INSERT 실패 trigger 설치 | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | SQLite 투영 실패 뒤 journal+memory finalize 유지: | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | SQLite 투영 실패 즉시 JSONL fallback 전환 | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | 재시작 rebuild 전 실패 trigger 제거 | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | 투영 실패 직후 in-memory query 정합성 유지 | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | projection failover 재시작 journal rebuild: | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | 재시작 후 journal에서 누락 SQLite projection 복구 | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | 재시작 후 SQLite primary 복귀 | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | 재시작 journal rebuild가 실제 SQLite row 복원 | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | tombstone journal open: | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | tombstone catalog open: | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | tombstone 대상 segment finalize: | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | tombstone 대상 deletion request: | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | tombstone 완료 기록: | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | 손상 SQLite 격리 후 journal rebuild: | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | 손상 SQLite 원본 격리 | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | 격리 SQLite 파일 보존 | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | 격리 후 journal rebuild 결과 | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A future-schema journal read open | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A future-schema unsupported classification | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A future-schema catalog open denied | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A future-schema catalog retry denied | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A future-schema journal bytes preserved | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A future-schema SQLite bytes preserved | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A future-schema writer cleanup untouched | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A arbitrary-schema journal read open | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A arbitrary-schema unsupported classification | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A arbitrary-schema catalog open denied | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A arbitrary-schema catalog retry denied | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A arbitrary-schema journal bytes preserved | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A arbitrary-schema SQLite bytes preserved | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A arbitrary-schema writer cleanup untouched | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A empty-schema journal read open | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A empty-schema unsupported classification | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A empty-schema catalog open denied | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A empty-schema catalog retry denied | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A empty-schema journal bytes preserved | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A empty-schema SQLite bytes preserved | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A empty-schema writer cleanup untouched | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A future-type journal read open | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A future-type unsupported classification | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A future-type catalog open denied | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A future-type catalog retry denied | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A future-type journal bytes preserved | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A future-type SQLite bytes preserved | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A future-type writer cleanup untouched | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A malformed journal open | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-3A malformed JSON missing fields and wrong types remain corrupt | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O01 reservation journal open | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O01 first reservation returns four IDs and sequence one | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O01 versioned reservation payload replays | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O01 new reservation records actual occurred time | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O02 identical retry preserves sequence and bytes | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O03 reopened instance allocates next sequence | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O03 new process resumes durable sequence | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O04 different store rejected | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O04 reused request with different segment rejected | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O04 reused request with different channel rejected | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O04 reused segment with different request rejected | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O04 conflicts preserve original bytes | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O05/O06 reject and preserve corrupt | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O05/O06 reject and preserve unsupported-schema | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O05/O06 reject and preserve unsupported-type | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O05/O06 reject and preserve tail | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O05/O06 reject and preserve payload-zero | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O05/O06 reject and preserve payload-negative | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O05/O06 reject and preserve payload-fraction | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O05/O06 reject and preserve payload-overflow | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O05/O06 reject and preserve duplicate-sequence | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O05/O06 reject and preserve decreasing-sequence | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O05/O06 reject and preserve duplicate-request | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O05/O06 reject and preserve duplicate-segment | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O05/O06 reject and preserve store-conflict | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O05/O06 reject and preserve ordinary-before | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O05/O06 reject and preserve ordinary-after | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O05/O06 reject and preserve line-cap | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O05 reservation entity envelope binding rejects mismatch | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O05 reservation request envelope binding rejects mismatch | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O01 strict reservation parser accepts versioned literal | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O06 INT64_MAX identical retry remains valid | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O06 sequence overflow rejected without write | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O02 identical durable reservation duplicates remain idempotent | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O06 sequence gaps remain valid and allocate above maximum | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O07 four simultaneous processes finish reservations | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O07 concurrent sequences are unique and complete | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O07 next sequence follows concurrent reservations | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O08 ordinary Append cannot reserve orders | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O08 unopened journal rejected | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O08 null result rejected | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O08 invalid opaque ID rejected | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O08 failed reservation does not expose tentative result | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O09 unsafe file binding rejected and original preserved inode | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O09 unsafe file binding rejected and original preserved parent | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O09 unsafe file binding rejected and original preserved symlink | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O09 unsafe file binding rejected and original preserved hardlink | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O10 reservation and normal segment coexist in catalog | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O04 reserve then finalize permits identical retry | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O10 reservation survives catalog rebuild without changing segment query | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-O04 legacy segment cannot acquire retroactive reservation | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M06 opened catalog accepts fresh exact reservation V2 finalize | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M07 V2 find preserves complete metadata | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M07 identical V2 recovery is idempotent | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M07 V2 is absent from V1 range query | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M07 V2 registered path is not orphan | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M07 SQLite exact V2 JSON and path match | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M07 JSONL restart preserves V2 exact payload | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M06 wrong reservation tuple rejected store | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M06 wrong reservation tuple rejected request | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M06 wrong reservation tuple rejected segment | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M06 wrong reservation tuple rejected channel | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M06 wrong reservation tuple rejected sequence | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M09 immutable V2 mapping mismatch rejected | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M09 bad V2 startup retry preserves original state bad-payload | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M09 bad V2 startup retry preserves original state missing-order | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M09 bad V2 startup retry preserves original state bad-order | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M09 bad V2 startup retry preserves original state conflicting-order | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M09 bad V2 startup retry preserves original state tail | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M09 bad V2 startup retry preserves original state corrupt | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M09 bad V2 startup retry preserves original state unsafe-path | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M09 default off rejects V2 before SQLite changes | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M09 V2 replay namespace and deletion duplicate | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M09 V2 replay namespace and deletion deleted | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M09 V2 replay namespace and deletion v1-before | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M09 V2 replay namespace and deletion v1-after | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M09 V2 replay namespace and deletion deleted-before | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M09 V2 replay namespace and deletion resurrection | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M09 V2 replay namespace and deletion mutation-collision | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M09 V2 finalize rejects missing media | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M09 V2 finalize rejects directory media | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M09 fresh candidate rejects mapping | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M09 fresh candidate rejects path | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-M09 fresh candidate rejects tombstone | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SW01 managed empty root opens with lifetime lease | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SW02 same process second managed owner denied | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SW03 different process owner and inherited use denied | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SW12 managed duplicate descriptors are close-on-exec | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SW05 managed reserve append replay use owned descriptor | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SW06 raw managed access and legacy default path denied | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SW01 managed Reserve rejects different store identity | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SW10 catalog connection can inspect managed lease | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SW04 owner destruction releases lease | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SW01 managed reopen rejects different store identity | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SW11 managed incomplete tail rejects append without changing bytes | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SW07 legacy nonempty root preserved without conversion | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SW08 partial initialization retry validates exact state lease | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SW08 partial initialization retry validates exact state init | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SW08 partial initialization retry validates exact state barrier | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SW08 partial initialization retry validates exact state journal | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SW08 partial initialization retry validates exact state incomplete | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SW08 partial initialization retry validates exact state unknown | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SW09 symlink inode and malformed marker rejected journal | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SW09 symlink inode and malformed marker rejected marker | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SW09 symlink inode and malformed marker rejected barrier | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SW09 symlink inode and malformed marker rejected root-symlink | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SB01 second managed catalog is denied | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SB02 failed catalog cannot mutate journal or holds | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SB03 attached catalog blocks unowned append but permits reservation | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SB04 catalog destruction releases attachment | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SB05 managed catalog rejects unsafe options outside | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SB05 managed catalog rejects unsafe options dotdot | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SB05 managed catalog rejects unsafe options media-symlink | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SB05 managed catalog rejects unsafe options sqlite-symlink | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SB05 managed catalog rejects unsafe options sqlite-hardlink | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SB05 managed catalog rejects unsafe options disabled | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SB06 failed open releases catalog attachment | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SB07 managed SQLite sidecar rejected -wal symlink | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SB07 managed SQLite sidecar rejected -wal hardlink | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SB07 managed SQLite sidecar rejected -shm symlink | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SB07 managed SQLite sidecar rejected -shm hardlink | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SB07 managed SQLite sidecar rejected -journal symlink | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SB07 managed SQLite sidecar rejected -journal hardlink | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC01 managed repeated event fixture is valid | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC02 managed reservations avoid history reads | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC03 managed V2 finalize avoids full replay | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC04 checkpoint reduces superseded event payload bytes | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC05 checkpoint preserves latest event and all record identities | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC06 checkpoint is idempotent and preserves V2 | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC08 receipt preserves retry identity and rejects direct append | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC09 checkpoint restart preserves SQLite and JSONL state sqlite | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC09 managed checkpoint SQL V2 payload and path | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC09 checkpoint restart preserves SQLite and JSONL state jsonl | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC10 checkpoint prefix recovers before writes | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC11 checkpoint mismatch preserves bytes and poisons owner | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC12 first accepted mutation controls latest event | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC16 automatic checkpoint uses accumulated growth | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC07 raw checkpoint is rejected | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC18 checkpoint syscall failure poisons and reopens write | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC21 poison rejects hold mutation write | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC18 checkpoint syscall failure poisons and reopens file-fsync | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC21 poison rejects hold mutation file-fsync | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC18 checkpoint syscall failure poisons and reopens rename | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC21 poison rejects hold mutation rename | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC18 checkpoint syscall failure poisons and reopens dir-fsync | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC21 poison rejects hold mutation dir-fsync | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC17 checkpoint preserves holds observations and deletion | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC17 checkpoint SQL hold observation tombstone | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC17 checkpoint preserves holds observations and deletion restart sqlite | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC17 checkpoint SQL restart observation tombstone | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC17 checkpoint preserves holds observations and deletion restart jsonl | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC19 invalid managed history remains unchanged malformed | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC19 invalid managed history remains unchanged unsupported | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC19 invalid managed history remains unchanged conflict | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC20 raw catalog rejects receipt before side effects | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC13 crypto off raw remains usable | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC14 crypto off checkpoint is rejected | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | S10-SC15 crypto off receipt reopen is rejected | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | source 저장 callback reconcile 연결 | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | policy revision idempotency | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | 5초 safety reconcile | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | composition root 관리 저장소 선행 open | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | composition helper journal 다음 catalog rebuild/open | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | 서버 전 supervisor 시작 | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | ingress 전 event bridge 등록 | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | ingress 종료 뒤 recorder finalize | PASS
+bash scripts/internal/verify_v410_recording_catalog.sh | composition root 시작/종료 순서 | PASS
+bash scripts/internal/verify_recording_derived_transition_reuse.sh | LP14-C01 state=1 updates=1 full_parse=1 expected=1 | PASS
+bash scripts/internal/verify_recording_derived_transition_reuse.sh | LP14-C01 state=2 updates=1 full_parse=1 expected=1 | PASS
+bash scripts/internal/verify_recording_derived_transition_reuse.sh | LP14-C01 state=3 updates=1 full_parse=1 expected=1 | PASS
+bash scripts/internal/verify_recording_derived_transition_reuse.sh | LP14-C03 memory/sqlite canonical bytes and CompletedOracle | PASS
+bash scripts/internal/verify_recording_derived_transition_reuse.sh | LP14-C02 binding=payload rejected without apply | PASS
+bash scripts/internal/verify_recording_derived_transition_reuse.sh | LP14-C02 binding=type rejected without apply | PASS
+bash scripts/internal/verify_recording_derived_transition_reuse.sh | LP14-C02 binding=entity rejected without apply | PASS
+bash scripts/internal/verify_recording_derived_transition_reuse.sh | LP14-C02 binding=owner rejected without apply | PASS
+bash scripts/internal/verify_recording_derived_transition_reuse.sh | LP14-C02 binding=prior rejected without apply | PASS
+bash scripts/internal/verify_recording_derived_transition_reuse.sh | LP14-C02 duplicate envelope no-apply/conflict rejection | PASS
+bash scripts/internal/verify_recording_derived_transition_reuse.sh | LP14-C02 one-shot apply/reuse rejection | PASS
+bash scripts/internal/verify_recording_derived_jobs.sh | J01 실제 선택→compact 내구 job 계약 왕복 | PASS
+bash scripts/internal/verify_recording_derived_jobs.sh | J17 무관source8개 추가에도 동일선택 jobID 유지 | PASS
+bash scripts/internal/verify_recording_derived_jobs.sh | J18 cleanup wall시계 역행 허용·순서는상태로검사 | PASS
+bash scripts/internal/verify_recording_derived_jobs.sh | J04 단일 Intent 원장·보호·예약 원자 가시성 | PASS
+bash scripts/internal/verify_recording_derived_jobs.sh | J19 후발 coordinator 일반·파생 admission 및 복구 차단 | PASS
+bash scripts/internal/verify_recording_derived_jobs.sh | J02 이후 시각 재Build ID 유지·선택 변경 새 ID | PASS
+bash scripts/internal/verify_recording_derived_jobs.sh | J03 unknown·중복·미지원 schema·불완전 JSON·4MiB·예약 상한·미구현 state 거부 | PASS
+bash scripts/internal/verify_recording_derived_jobs.sh | J16 소유 경로·attempt·order 계획 조작 거부 | PASS
+bash scripts/internal/verify_recording_derived_jobs.sh | J16 실제 2 source UUID 역순이어도 영속 order 순 출력 계획 | PASS
+bash scripts/internal/verify_recording_derived_jobs.sh | J08 나중 시각 재요청 최초 시각 유지·예약/경로 충돌·다른 catalog 거부 | PASS
+bash scripts/internal/verify_recording_derived_jobs.sh | J06 generic hold 감소로 job 보호 해제 불가·직접 삭제/corrupt 차단 | PASS
+bash scripts/internal/verify_recording_derived_jobs.sh | J14 cleanup Failed는 job 자원만 해제·wall 역행·terminal 자동 재시도 없음 | PASS
+bash scripts/internal/verify_recording_derived_jobs.sh | J05 pending·corrupt·tombstone·hash·binding 불일치 source 거부 | PASS
+bash scripts/internal/verify_recording_derived_jobs.sh | J07 실제 source 삭제/Intent 경쟁에서 둘 중 한 전이만 허용 | PASS
+bash scripts/internal/verify_recording_derived_jobs.sh | J10 checkpoint 전후 job·보호·예약 유지 | PASS
+bash scripts/internal/verify_recording_derived_jobs.sh | J09 SQLite·fallback·재build/reopen 내구 job 동등·중복 보호 가산 없음 | PASS
+bash scripts/internal/verify_recording_derived_jobs.sh | J10 replay 동일 중복 멱등·다른 내용/불완전/schema/전이/보호 상태 거부 | PASS
+bash scripts/internal/verify_recording_derived_jobs.sh | J11 같은 채널 memory+동시 durable 예약 합계 event quota 제한 | PASS
+bash scripts/internal/verify_recording_derived_jobs.sh | J12 durable outstanding을 continuous/event/derived disk 예약에 포함 | PASS
+bash scripts/internal/verify_recording_derived_jobs.sh | J13 snapshot/disk provider 실패는 생성·periodic·복구 삭제 차단 | PASS
+bash scripts/internal/verify_recording_derived_jobs.sh | J15 partial unknown·이유·후보·요청 시간축 그대로 보존 | PASS
+bash scripts/internal/verify_recording_derived_jobs.sh | J19 정확한 소유자 소멸 후 새 coordinator만 재결박 | PASS
+bash scripts/internal/verify_recording_derived_jobs.sh | J20 append 거부 후 원장 복원해도 공통 mutation 차단 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F12 실제 remux의 다른 selection 결박 거부 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F12 실제 remux provenance의 요청 범위 위조 거부 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F12 실제 remux의 foreign unfulfilled 범위 거부 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F01 실제 writer→선택→Intent→파생 파일→게시→Complete | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F01 실제 catalog/file/hash/단일 commit/hold 해제/cleanup 및 직접 decode | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F15 단일 service·동시 Run·외부 terminal release 거부 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F16 active source 삭제 거부·동일 사유 비보호 원본 삭제 positive control | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F02 두 출력 독립 epoch·unknown UTC·실제 AU/visible 출처 보존 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F12 Complete 출처 전수 canonical roundtrip | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F12 Ready 포함 Intent 잘못된 상태 거부 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F12 미지원 필드 엄격 거부 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F14 Ready JSON 4MiB 명시 상한 거부 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F12 출력 receipt inode 별칭 거부 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F03 Intent 생성 전 프로세스 중단 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F04 receipt 전 실물의 소유권 미확인 보호 유지 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F05 receipt 이후 Intent 중단 소유물 정리 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F06 Ready 중단 뒤 재렌더 없이 완료 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F07 첫 출력 link 중단 쌍 복구 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F07 두 번째 출력 link 중단 쌍 복구 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F08 전체 publish 후 commit 전 중단 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F09 원자 commit 후 cleanup 전 중단 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F10 첫 temp 삭제 중단 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F10 두 번째 temp 삭제 중단 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F10 attempt 디렉터리 삭제 중단 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F10 job 디렉터리 삭제 중단 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F10 Complete mutation 직전 중단 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F10 Failed cleanup attempt 삭제 중단 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F10 Failed cleanup job 삭제 중단 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F10 Failed mutation 직전 중단 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F11 hash 오류 거부·보호/예약 유지 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F11 missing 오류 거부·보호/예약 유지 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F11 foreign 오류 거부·보호/예약 유지 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F11 symlink 오류 거부·보호/예약 유지 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F11 fifo 오류 거부·보호/예약 유지 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F11 hardlink 오류 거부·보호/예약 유지 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F11 parent 오류 거부·보호/예약 유지 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F14 cancel-before-create 생성 중단·소유 cleanup·예약 해제 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F14 cancel 생성 중단·소유 cleanup·예약 해제 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F14 small 생성 중단·소유 cleanup·예약 해제 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F14 deadline 생성 중단·소유 cleanup·예약 해제 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F12 SQLite projection·journal fallback job/output 일치 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F12 SQLite rebuild·checkpoint 재개방 job/output 일치 | PASS
+MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/lp15-service-cache.SVeLal MEDIA_SERVER_GST_PLUGIN_PROFILE=headless MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=0 bash scripts/internal/verify_recording_derived_job_service.sh | F13 Complete output tombstone 뒤 재생성 없음 | PASS
+bash scripts/internal/verify_recording_derived_job_validation.sh | P0-PERF01 literal source1 sample250 slice45 complete | PASS
+bash scripts/internal/verify_recording_derived_job_validation.sh | P0-PERF01 canonical record roundtrip unchanged | PASS
+bash scripts/internal/verify_recording_derived_job_validation.sh | P0-PERF02 baseline canonical hash literal unchanged | PASS
+bash scripts/internal/verify_recording_derived_job_validation.sh | P0-PERF01 source mapping conflict rejected | PASS
+bash scripts/internal/verify_recording_derived_job_validation.sh | P0-PERF01 selection table mapping conflict rejected | PASS
+bash scripts/internal/verify_recording_derived_job_validation.sh | P0-PERF01 job identity forgery rejected | PASS
+bash scripts/internal/verify_recording_derived_job_validation.sh | LP09-S03a native exact selection and proof survive job roundtrip | PASS
+bash scripts/internal/verify_recording_derived_job_validation.sh | LP09-S03a noncontiguous exact slices rejected | PASS
+bash scripts/internal/verify_recording_derived_job_validation.sh | LP09-S03a observed identity and native interval mismatch rejected | PASS
+bash scripts/internal/verify_recording_derived_job_validation.sh | LP09-S03a native profile cannot drop file evidence | PASS
+bash scripts/internal/verify_recording_derived_job_validation.sh | LP09-S03a overlapping substitute AU cannot replace selected identity | PASS
+
+=== 계약/관측 경계 ===
+64MiB는 envelope 문자열길이+sizeof(record)의 보관 입장상한이며 shadow/allocator/전체RSS상한이 아니다. 원본이 초과하면 기존cache도 사용하지 않는다. compact 후보가 상한내이면 commit성공 뒤 다음 비교용으로 보관할 수 있다.
+CommitCheckpoint 성공이 항상 후보 bytes를 실제 원장으로 채택했다는 뜻은 아니다(noWrite 가능). 보관된 검증후보는 다음 호출 실제 원장의 exact prefix와 다시 비교하며 다르면 full replay한다. journal API/체크/시간/ID/fsync/rename 순서 변경없음.
+불법 Ready suffix와 commit-refusal/projection-mismatch/예외는 소유 catalog.cpp 복제본에서만 주입했다. 실제 write/fsync/rename/dir-fsync 실패·pending prefix/mismatch 복구는 별도 기존 catalog회귀 SC10/11/18/21의 결과이다.
+최종 focused 결과 자체43+기존CP2+RSS1=46 PASS, catalog246+reuse11+jobs23+service43+validation11=334 PASS. 첫 RED 네 실패와 RSS미확보는 유지하며 최종 GREEN으로 과거를 덮어쓰지 않는다.
+실제앱·scale32·독립compaction비용·장시간/UI·커밋/푸시는 미실행. 비용계측 exact-loop 연결만 수정했고 본 실행은 메인 검토 후 별도다.
+
+=== 최종 cleanup / hash / 종료 ===
+경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거
+media-server-checkpoint-cache.BFWcIL | RED 소유 fixture/source/cache | 13494715B | 삭제 | removed=true | 첫 원출력
+media-server-checkpoint-cache.ILYBb3 | 첫 GREEN 소유 fixture/source/cache | 13527777B | 삭제 | removed=true | 첫 GREEN 원출력
+media-server-checkpoint-cache.mNxrKC | 최종 GREEN 소유 fixture/source/cache | 16727923B | 삭제 | removed=true | 확장 GREEN 원출력
+/tmp/media_server_v410_recording_catalog-33434 | catalog 회귀 fixture/binary | 26753462B | 삭제 | removed=true | catalog cleanup
+media-server-transition-reuse.4bzAZX | LP14 전이 회귀 fixture | 8875925B | 삭제 | removed=true | reuse cleanup
+media-server-derived-jobs.iF3VFn | job 회귀 fixture | 9566655B | 삭제 | removed=true | jobs cleanup
+media-server-derived-job-service.3RZwAf | service 회귀 fixture/media | 17829361B | 삭제 | removed=true | service cleanup
+media-server-job-validation.mEpwyY | validation binary | 5289704B | 삭제 | removed=true | validation cleanup
+/private/tmp/lp15-service-cache.SVeLal | 별도 소유 GST cache | 62691B | realpath/비symlink/내용 확인 후 삭제 | removed=true, exit0 | Node cleanup
+이 artifact | 안전 원출력/개별표 | 현재 파일 크기 | 보존 | 저장소 보존 | LP15 RED/환경실패/GREEN/회귀
+
+최종 source SHA256:
+e36505bcd9517d04946e94446420d5e49e7d18e07c1fe8e6d91d52011f9b3264 include/recording/recording_catalog.h
+d0d21e36d9e71cca0dad307057696e077f09af6585d497e99fdbdd76eb168780 src/recording/recording_catalog.cpp
+9fdc31e2dd404b163c2d71e1bbb9edd5c70d3ef525bb762d8ef8f5d426e705df src/recording/recording_checkpoint_validation.h
+ad6086e5383870e61a3a617ae666d8f063153a7d95506abce8fe3521b21b7ff1 scripts/internal/recording_checkpoint_cache_smoke.cpp
+6b45ad7faeda2c8ac93cd027bf6353a6a32f777942f42bea668bc320e30fb346 scripts/internal/verify_recording_checkpoint_cache.sh
+946d3674dc05fb35a9467233438e2ccc477f19df0c9f0dcda745fa62020c3a9f scripts/internal/recording_catalog_cost_probe_instrument.cjs
+
+기존 AVC 파일은 담당자가 수정하지 않았다. 현재 hash(시작 전 별도 hash 미집계이므로 전후 hash 측정으로 과장하지 않음):
+8cef26a1cc78d07459b4b37249057de67c68e5505cd7763a438e7bd0ab0ce9ad include/recording/recording_file_evidence.h
+56f49d6a7af30dc7ea5a3bb2fd023778035892c474d07cbfc67edf5e57b8cd43 src/recording/gstreamer_segment_writer.cpp
+85db9367ae66d997330cb8f9febe24febb2b5ff76b6363c6de3ccadc3fea0a71 src/recording/recording_file_evidence.cpp
+404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6 scripts/internal/recording_media_test_fixture.h
+
+최종 git diff --check exit0, output empty. 소유 소스 변경 종료·관련 회귀 전부 exit0. 메인 비용검사/실제앱 판정 대기. 커밋/푸시 미수행.
