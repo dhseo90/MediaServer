@@ -1,0 +1,62 @@
+{"kind":"start","utc":"2026-09-19T22:29:06.452Z","mode":"red","id":"journal-cold-02","suite":"journal-cold","source":[{"name":"include/recording/recording_catalog.h","sha256":"ec7bb80f4bbe5731edb932a836d84f3865a0d6f6daa4ab74aecc99170e7af0e8"},{"name":"include/recording/recording_journal.h","sha256":"680391f36ffe2546634a07ade66a6ef271f3260fce24d7935799dea076ef27eb"},{"name":"src/recording/recording_catalog.cpp","sha256":"ba798e3ead907f721714a069f890542a7a3dda7cfc04493a22eed0ab4c3d0609"},{"name":"src/recording/recording_journal.cpp","sha256":"ae3f92e9cf4522876e0c97343a6920ddca9db1099968973485e32fad827f7f2f"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"e1656c143a3d206220c84b8d4a299c8ad53c879676ea7240631ef22067490dfc"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"9e3d89dc43a91b0e669276934cb6d4ec4cc13ccf059bd04e1bfbdbc3b1ba00bf"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"f53f1a0cedb09ad08302fb879dcf67890614f2c80619e67f286e56289ef6aba6"},{"name":"scripts/internal/recording_journal_location_smoke.cpp","sha256":"8e10b6beb24245256029071f6cbbb37d2ac70d67e072b705e444f0c8be7cf974"},{"name":"scripts/internal/recording_journal_location_counter.h","sha256":"43da29f7ddbbaa372a2345128116e895e151543aa62a515c6d98ba7c283078b4"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>","journal-cold"],"seconds":60}
+[instrument] location_exception_exact_insertions=2
+[instrument] location_journal_original_sha256=ae3f92e9cf4522876e0c97343a6920ddca9db1099968973485e32fad827f7f2f location_journal_instrumented_sha256=dc0a5a5a5c34f587166f33030a7bce88eb217c42639133d57cc4677ac51d404d
+[instrument] location_declarations=1,1 location_header_sha256=680391f36ffe2546634a07ade66a6ef271f3260fce24d7935799dea076ef27eb
+[instrument] catalog_sha256=7b68327f9ab8e8cbd8f707c8435b2e13ea660ee2046b7c4b773b8be818c7dd23 binding_exact_insertions=1 job_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"680391f36ffe2546634a07ade66a6ef271f3260fce24d7935799dea076ef27eb"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"ec7bb80f4bbe5731edb932a836d84f3865a0d6f6daa4ab74aecc99170e7af0e8"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"ae3f92e9cf4522876e0c97343a6920ddca9db1099968973485e32fad827f7f2f"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"ba798e3ead907f721714a069f890542a7a3dda7cfc04493a22eed0ab4c3d0609"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"e1656c143a3d206220c84b8d4a299c8ad53c879676ea7240631ef22067490dfc"}
+[source] {"name":"scripts/internal/recording_journal_location_smoke.cpp","sha256":"8e10b6beb24245256029071f6cbbb37d2ac70d67e072b705e444f0c8be7cf974"}
+[source] {"name":"scripts/internal/recording_journal_location_counter.h","sha256":"43da29f7ddbbaa372a2345128116e895e151543aa62a515c6d98ba7c283078b4"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"9e3d89dc43a91b0e669276934cb6d4ec4cc13ccf059bd04e1bfbdbc3b1ba00bf"}
+        2.24 real         1.96 user         0.14 sys
+           302694400  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               50920  page reclaims
+                2881  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  13  messages sent
+                   0  messages received
+                   2  signals received
+                 348  voluntary context switches
+                2862  involuntary context switches
+            78454775  instructions retired
+            36836244  cycles elapsed
+             2048408  peak memory footprint
+{"kind":"phase","label":"build","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":2261,"groupPeakRssBytes":318947328}
+{"kind":"command","label":"focused","command":"<owned-root>/check","args":["<owned-root>"],"seconds":60}
+[pass] LP18-L11 cold baseline Replay preserves complete canonical value
+[fail] LP18-L11 explicit resident release capability exists
+[not-run] LP18 cold record scenarios=20 reason=capability-unavailable
+[summary] LP18 pass=1 fail=1
+        0.61 real         0.14 user         0.02 sys
+            34275328  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                4184  page reclaims
+                  55  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                   7  voluntary context switches
+                 139  involuntary context switches
+          2965846632  instructions retired
+           651349043  cycles elapsed
+             5325472  peak memory footprint
+{"kind":"phase","label":"focused","exit":1,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":628,"groupPeakRssBytes":2490368}
+{"kind":"oracle","mode":"red","expectedRed":true,"productPass":false,"matched":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":5068033,"removed":true}
+{"kind":"result","utc":"2026-09-19T22:29:09.355Z","mode":"red","matched":true,"productPass":false,"elapsedMs":2904}

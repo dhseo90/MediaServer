@@ -79,6 +79,17 @@
 | LP18-L09 | 위치 자원 예외 | Append/Reserve 내구write 뒤 poison/재open, CP write전 기존 세대 유지, Acquire outclear/poison | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 | LP18-L10 | 암호화 미사용 지원 | 별도 crypto-off 빌드의 managed Append/Acquire/retry·기존 checkpoint 거부. resident 반환만 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 
+## LP18 journal cold 재획득 기반
+
+| 기능 ID | 기능 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| LP18-L11 | journal 비상주 재획득 | 명시 private release·weak 소멸·owner/원장 불변 확인 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-L12 | journal 비상주 재획득 | 위치에서 strict 재획득·기존 owned reader/공개 Replay 독립값·재open 확인 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-L13 | journal 비상주 재획득 | 원래 retry·충돌 거부·예약 sequence·물리 행수 확인 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-L14 | journal 비상주 재획득 | cold 후보·no-write/recover-only/실제 swap·이전 reader 확인 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-L15 | journal 비상주 재획득 | cold 손상/예외의 poison·outclear·정상 빈 결과와 구분 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-L16 | journal 비상주 재획득 | 큰 기록의 기존 resident fallback과 원장 불변 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+
 ## LP17 누적 비용·보관 계약의 계획된 검사
 
 아래는 설계 등록이며 구현/실행/PASS가 아니다. 진단 축·oracle는 구현계획 LP17, 저장 반례는 누적 비용 계약을 따른다.

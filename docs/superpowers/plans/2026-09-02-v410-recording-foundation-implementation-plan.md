@@ -76,6 +76,10 @@ WR-OR01~04로 기존 판정의 중간PTS 반례 RED2건을 확인한 뒤 순수1
 최초2-job은 sandbox 시스템 조회에서 phase0 실패했고 권한 승인 후 같은 기준으로 통과했으며 첫 실패도 보존했다.
 위치 primitive를 마감·커밋한 뒤3번RAM 소비 연결/해제로 진행한다. 아직 RAM/실제HTTP/버전 전체 완료는 아니다.
 중앙 최신 LP18 기록을 따른다.
+위치 기반은 `229d82a5`로 커밋했다. 뒤이어 명시 journal resident 해제와 cold 재획득을 구현해
+focused22·기존 위치32/crypto-off3/envelope34/envelope-cost30 및 전체build를 통과했다.
+최초 권한 준비실패와 예상 RED는 중앙에 별도 보존했다. 아직 자동 해제·accepted/typed/cache 소비 연결은 없으며
+cold CP의 동일 기록 반복 읽기까지 호출-local 수명으로 다룬 뒤 실제 RAM 수명을 판정한다.
 
 ### LP17 판정 기준 비교 설계 저장 계약
 

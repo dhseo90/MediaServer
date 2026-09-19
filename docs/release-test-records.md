@@ -13,7 +13,7 @@ Superpowers 스킬은 현재 제공되지 않아 사용을 주장하지 않으�
 | --- | --- | --- | --- | --- |
 | 1 | 저장 기준 검증 보완 | 완료 | 순수14·실제46 PASS, 예상 RED2건 보존. HW 해결 아님 | 아래 WR 결과 |
 | 2 | 위치 재획득 마감 | 완료 | 기존 위치 증거37SHA 일치·service43·2job 기능120/계측1 통과 | LP18-L01~10·아래 결과 |
-| 3 | 실제 RAM 수명 적용 | 선수 대기 | 2번 통과/커밋 후 소비 연결·상주 해제·재open 검증 | 누적 비용 계약0절 |
+| 3 | 실제 RAM 수명 적용 | 진행 중 | 229d82a5 뒤 resident 없는 재획득 기반부터 TDD. 자동 소비 연결은 아직 없음 | 누적 비용 계약0절 |
 | 4 | 분할 커밋·보고 | 단계별 수행 예정 | 해당 단위 구현/회귀/기록 통과 뒤 지정 파일만 커밋 | AGENTS3/5 |
 
 | 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
@@ -135,6 +135,84 @@ peak RSS B157253632B/C104726528B(프로세스), 이번2-job의 기존536870912B 
 기록된 cleanup 모두true를 확인했다. 기존 cache47/prepared11/catalog246/전체build도 같은 제품 변경 범위에서 유지한다.
 메인·단일 담당자의 실제6파일 검토에서 새 차단 결함을 발견하지 않았다. 위치 primitive만 완료이며 강한 소유 해제는 아직 없다.
 소비 연결 전의 위치6개와 이번 단계 기록만 커밋한다. 전체 build를 인계만으로 다시 돌리지 않았으며 runtime-freshness는 위 실제 수행이다.
+
+위치 단위 커밋 `229d82a5` 완료. 최종 diffcheck·docs-links(8906links/실패0) 통과 후 지정13파일만 커밋했다.
+현재3번은 journal resident 없는 재획득 기반→envelope/typed/cache 소비 연결→실제 비활성 해제·재open 순서다.
+첫 기반은 명시 private release만 추가하며 제품 자동호출·전체 RAM 완료 판정은 뒤 단위와 구분한다.
+메인이 계약·catalog 소비 경계를 맡고 동일 담당자는 journal 기반/fixture6파일만 수정한다. 서로 같은 파일을 수정하지 않는다.
+
+### 3번 journal cold 기반 사전등록
+
+`node scripts/internal/verify_recording_immutable_ownership.mjs red journal-cold-01 journal-cold`는 제품 API가
+없는 상태의 baseline1PASS/capability1FAIL 및 신규20개 not-run만 예상 RED다. GREEN은 아래22개 전수PASS다.
+실행 root/프로세스·원출력·source/정리는 기존60초/1GiB RSS/512MiB disk/2MiB output guard를 유지한다.
+기존 location32·crypto-off3도 영향 검증한다. crypto-off3은 release 호출 뒤 기존 동일 oracle를 검사하도록 강화한다.
+명시 release의 기반 검사이며 제품 자동 내림·catalog/typed/cache 보관 수명 완료를 대신하지 않는다.
+이후 기존 envelope34(`green cold-envelope-01 envelope`)와 envelope-cost30(`green cold-cost-01 envelope-cost`)를
+동일 runner에서 순차 실행한다. 기존 개별 정의/상한을 유지하며 journal의 resident 경로 및 checkpoint bytes 영향 회귀다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-L11 cold baseline Replay preserves complete canonical value | journal cold 재획득 | 명시 private release·weak 소멸·owner/원장 불변 확인 | v4.1.0 |
+| LP18-L11 explicit resident release capability exists | journal cold 재획득 | 명시 private release·weak 소멸·owner/원장 불변 확인 | v4.1.0 |
+| LP18-L11 release expires unowned reloadable resident | journal cold 재획득 | 명시 private release·weak 소멸·owner/원장 불변 확인 | v4.1.0 |
+| LP18-L11 release preserves tokens and durable bytes | journal cold 재획득 | 명시 private release·weak 소멸·owner/원장 불변 확인 | v4.1.0 |
+| LP18-L12 cold acquire restores complete canonical value | journal cold 재획득 | 위치에서 strict 재획득·기존 owned reader/공개 Replay 독립값·재open 확인 | v4.1.0 |
+| LP18-L12 active owned reader survives release and reacquisition | journal cold 재획득 | 위치에서 strict 재획득·기존 owned reader/공개 Replay 독립값·재open 확인 | v4.1.0 |
+| LP18-L12 public Replay restores cold records as independent values | journal cold 재획득 | 위치에서 strict 재획득·기존 owned reader/공개 Replay 독립값·재open 확인 | v4.1.0 |
+| LP18-L13 cold Append retry preserves identity bytes and row count | journal cold 재획득 | 원래 retry·충돌 거부·예약 sequence·물리 행수 확인 | v4.1.0 |
+| LP18-L13 cold original ID collision rejects without mutation | journal cold 재획득 | 원래 retry·충돌 거부·예약 sequence·물리 행수 확인 | v4.1.0 |
+| LP18-L11 release rejects foreign and null owners without poison | journal cold 재획득 | 명시 private release·weak 소멸·owner/원장 불변 확인 | v4.1.0 |
+| LP18-L12 reopened records support explicit release and cold acquire | journal cold 재획득 | 위치에서 strict 재획득·기존 owned reader/공개 Replay 독립값·재open 확인 | v4.1.0 |
+| LP18-L14 checkpoint record view restores cold full values | journal cold 재획득 | cold 후보·no-write/recover-only/실제 swap·이전 reader 확인 | v4.1.0 |
+| LP18-L14 cold no-write checkpoint preserves generation | journal cold 재획득 | cold 후보·no-write/recover-only/실제 swap·이전 reader 확인 | v4.1.0 |
+| LP18-L14 cold recover-only cleanup preserves generation | journal cold 재획득 | cold 후보·no-write/recover-only/실제 swap·이전 reader 확인 | v4.1.0 |
+| LP18-L14 cold receipt swap rebinds tokens and preserves old reader | journal cold 재획득 | cold 후보·no-write/recover-only/실제 swap·이전 reader 확인 | v4.1.0 |
+| LP18-L13 cold receipt retry retains original envelope without append | journal cold 재획득 | 원래 retry·충돌 거부·예약 sequence·물리 행수 확인 | v4.1.0 |
+| LP18-L15 cold same-size tamper poisons and clears output | journal cold 재획득 | cold 손상/예외의 poison·outclear·정상 빈 결과와 구분 | v4.1.0 |
+| LP18-L15 cold truncation poisons and clears output | journal cold 재획득 | cold 손상/예외의 poison·outclear·정상 빈 결과와 구분 | v4.1.0 |
+| LP18-L15 cold inode replacement poisons and clears output | journal cold 재획득 | cold 손상/예외의 poison·outclear·정상 빈 결과와 구분 | v4.1.0 |
+| LP18-L15 cold allocation failure clears output and poisons | journal cold 재획득 | cold 손상/예외의 poison·outclear·정상 빈 결과와 구분 | v4.1.0 |
+| LP18-L16 oversized resident fallback survives release unchanged | journal cold 재획득 | 큰 기록의 기존 resident fallback과 원장 불변 | v4.1.0 |
+| LP18-L13 cold Reserve retry preserves sequence and physical row count | journal cold 재획득 | 원래 retry·충돌 거부·예약 sequence·물리 행수 확인 | v4.1.0 |
+
+### 3번 journal cold 기반 실제 결과
+
+최초 RED01은 `/bin/ps` EPERM으로 build SIGTERM/255ms, 전체259ms/exit1이었다. 제품 실행0이며 예상 RED가 아니다.
+권한 승인 후 소유 root 참조 프로세스0 확인·필수 실패 로그 보존 후 `media-server-immutable-ownership.IoIkBa`
+0700 소유 디렉터리349671B만 삭제·부재를 확인했다. 원출력의 최초 cleanup=false는 덮어쓰지 않는다.
+RED02는 build0/focused1, 정확1PASS/1FAIL 및20not-run·전체2904ms로 예상에 일치했다.
+GREEN22·기존location32·crypto-off3·envelope34·envelope-cost30은 모두 build/focused0, 합계121PASS다.
+메인은 제품/도구 실제diff·원출력 개별행123개와 최초 준비실패1행을 직접 대조했다.
+L12는 reader 반환 뒤 reset만으로 weak 소멸을 확인해 영구 재상주하지 않음을 검사했다.
+crypto-off는 release 뒤 기존3개 조건, 16MiB초과는 strong fallback을 유지한다.
+원출력7개와 개별 결과는 `lp18-ownership-results.md`의 journal cold 절에서 연결한다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| IoIkBa | RED01 소유 임시 root | 349671B | 권한 승인·프로세스 부재 후 삭제 | 부재 확인 | 최초 권한 실패·후속 직접 확인 |
+| RED02 owned-root | binary/격리 원장 | 5068033B | guard 종료 후 삭제 | removed true | red-journal-cold-02 원출력 |
+| cold GREEN owned-root | 손상/대형 행/재open fixture | 21903992B | guard 종료 후 삭제 | removed true | green-journal-cold-01 원출력 |
+| location GREEN owned-root | 기존 위치 fixture | 21993857B | guard 종료 후 삭제 | removed true | green-journal-cold-location-01 원출력 |
+| crypto-off owned-root | 별도 빌드/fixture | 5076805B | guard 종료 후 삭제 | removed true | green-journal-cold-crypto-01 원출력 |
+| envelope owned-root | 공유·후보 fixture | 5610990B | guard 종료 후 삭제 | removed true | green-cold-envelope-01 원출력 |
+| envelope-cost owned-root | 직렬화 계측 fixture | 5461384B | guard 종료 후 삭제 | removed true | green-cold-cost-01 원출력 |
+
+각 GREEN 총시간은3853/3947/2681/3049/2957ms, source unchanged·groupClean 모두true다.
+source/UTC/명령/exit·토큰 미집계 이유는 각 원출력에 보존했다. 원출력 크기는 순서대로3957/5989/7284/8276/6080/6859/7311B다.
+자동 release는 아직 없다. cold checkpoint는 Read→Prepare→Commit 경로에서 동일 행을 최대3회 엄격하게 다시 읽는다
+(정적 직접 확인이며 실측 비용 수치 아님). 다음 실제 소비 연결에서 호출-local owned 수명으로 이 중복을 다뤄야 한다.
+이 기반만으로 RAM 수명/최종 비용/실제HTTP 완료를 판정하지 않는다.
+제품 journal/header 변경의 전체 빌드와 문서 링크·공백을 확인했다. 이 기반 단위만 커밋한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| cold 전체 빌드 | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build`, configure·media_server_runtime·media_server 100%, exit0. 서버 실행 없음 | PASS |
+| cold 문서 링크 | `./server.sh verify-docs-links`, exit0·md285/links8913/images22/anchors116/failures0, 도구39ms | PASS |
+| cold 공백 | `git diff --check`, exit0·출력 없음 | PASS |
+
+빌드 전체 wall elapsed는 비동기 실행에서 따로 계측하지 못했으며 추정하지 않는다. 원출력은 실행 도구에 있고
+위 필수 실제값을 중앙에 보존했다. build-gst-onnx는 기존 빌드 디렉터리이며 삭제 대상 임시 fixture가 아니다.
 
 ## 2026-09-20 LP18 잔여 1~3 순차 실행
 

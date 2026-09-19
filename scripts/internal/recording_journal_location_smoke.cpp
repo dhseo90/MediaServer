@@ -13,6 +13,12 @@
 #ifndef LP18_LOCATION_CRYPTO_OFF
 #define LP18_LOCATION_CRYPTO_OFF 0
 #endif
+#ifndef LP18_COLD_SUITE
+#define LP18_COLD_SUITE 0
+#endif
+#ifndef LP18_COLD_RECORDS
+#define LP18_COLD_RECORDS 0
+#endif
 using namespace recording;
 namespace {
 int passed=0,failed=0;
@@ -98,6 +104,10 @@ void LargeResident(const std::filesystem::path& root){
 }
 void CryptoResident(const std::filesystem::path& root){
  Store s(root);const auto m=Mutation("crypto-resident");Append(s,m);auto rows=Locations(s);Need(rows.size()==1);const auto value=Acquire(s,rows[0]);
+#if LP18_COLD_RECORDS
+ std::string release_error;Need(s.journal.ReleaseRecordResidents(&s.owner,&release_error));
+ Need(Canonical(*Acquire(s,rows[0]))==Canonical(m));
+#endif
  Check(!MEDIA_SERVER_USE_OPENSSL&&Canonical(*value)==Canonical(m)&&s.journal.OwnsCatalog(&s.owner),"LP18-L10 crypto-off managed append acquires exact resident value only");
  const auto before=Bytes(s.journal.path());RecordingMutationHandle out;std::string error;Need(s.journal.AppendOwned(m,&s.owner,&error,&out));
  Check(out&&Canonical(*out)==Canonical(m)&&Locations(s).size()==1&&Bytes(s.journal.path())==before,"LP18-L10 crypto-off retry preserves resident value and physical row count");
@@ -129,9 +139,59 @@ void LocationExceptions(const std::filesystem::path& root){
   Check(Reject(s,&s.owner,rows[0])&&!location_probe::throw_acquire&&s.journal.poisoned_&&s.journal.Replay().io_error_count>0&&Canonical(*retained)==Canonical(m),"LP18-L09 acquire allocation exception poisons clears output and retains old owned value");
  }
 }
+#if LP18_COLD_RECORDS
+void Release(Store& s){std::string error;Need(s.journal.ReleaseRecordResidents(&s.owner,&error));}
+void ColdRecords(const std::filesystem::path& root){
+ const auto m=Mutation("cold-original");
+ {Store s(root/"basic");Append(s,m);const auto rows=Locations(s);const auto before=Bytes(s.journal.path());
+  std::weak_ptr<const RecordingMutationV1> weak;{auto value=Acquire(s,rows[0]);weak=value;}
+  Release(s);
+  Check(weak.expired(),"LP18-L11 release expires unowned reloadable resident");
+  Check(Locations(s)==rows&&Bytes(s.journal.path())==before,"LP18-L11 release preserves tokens and durable bytes");
+  auto reader=Acquire(s,rows[0]);const bool canonical=reader&&Canonical(*reader)==Canonical(m);std::weak_ptr<const RecordingMutationV1> transient=reader;reader.reset();
+  Check(canonical&&transient.expired(),"LP18-L12 cold acquire restores complete canonical value");reader=Acquire(s,rows[0]);
+  Release(s);Check(Canonical(*reader)==Canonical(m)&&Canonical(*Acquire(s,rows[0]))==Canonical(m),"LP18-L12 active owned reader survives release and reacquisition");
+  reader.reset();Release(s);const auto replay=s.journal.Replay();
+  Check(replay.io_error_count==0&&replay.mutations.size()==1&&Canonical(replay.mutations[0])==Canonical(m),"LP18-L12 public Replay restores cold records as independent values");
+  RecordingMutationHandle retry;std::string error;Need(s.journal.AppendOwned(m,&s.owner,&error,&retry));
+  Check(retry&&Canonical(*retry)==Canonical(m)&&Locations(s)==rows&&Bytes(s.journal.path())==before,"LP18-L13 cold Append retry preserves identity bytes and row count");
+  auto conflict=m;conflict.payload_json="{}";retry=std::make_shared<const RecordingMutationV1>(m);
+  Check(!s.journal.AppendOwned(conflict,&s.owner,&error,&retry)&&!retry&&Bytes(s.journal.path())==before&&!s.journal.poisoned_,"LP18-L13 cold original ID collision rejects without mutation");
+  int foreign=0;Check(!s.journal.ReleaseRecordResidents(&foreign,&error)&&!s.journal.ReleaseRecordResidents(nullptr,&error)&&!s.journal.poisoned_&&Canonical(*Acquire(s,rows[0]))==Canonical(m),"LP18-L11 release rejects foreign and null owners without poison");
+ }
+ {Store s(root/"basic");Release(s);const auto rows=Locations(s);Check(rows.size()==1&&Canonical(*Acquire(s,rows[0]))==Canonical(m),"LP18-L12 reopened records support explicit release and cold acquire");}
+ {Store s(root/"checkpoint");const auto first=Mutation("cold-first",2000);Append(s,first);auto rows=Locations(s);const auto token=rows[0];auto reader=Acquire(s,token);Release(s);RecordingMutationHandles candidate;std::string error;
+  Need(s.journal.ReadCheckpointRecords(&s.owner,&candidate,&error));Check(candidate.size()==1&&Canonical(*candidate[0])==Canonical(first),"LP18-L14 checkpoint record view restores cold full values");candidate.clear();
+  Need(s.journal.PrepareCheckpoint(&s.owner,&candidate,&error));const auto before=Bytes(s.journal.path());Need(s.journal.CommitCheckpoint(&s.owner,candidate,false,&error));
+  Check(Locations(s)==rows&&Bytes(s.journal.path())==before&&Canonical(*Acquire(s,token))==Canonical(first),"LP18-L14 cold no-write checkpoint preserves generation");candidate.clear();Release(s);
+  Write(s.root/".recording-checkpoint.tmp",before.substr(0,10));Need(s.journal.PrepareCheckpoint(&s.owner,&candidate,&error));Need(s.journal.CommitCheckpoint(&s.owner,candidate,true,&error));
+  Check(Locations(s)==rows&&Bytes(s.journal.path())==before&&!std::filesystem::exists(s.root/".recording-checkpoint.tmp"),"LP18-L14 cold recover-only cleanup preserves generation");candidate.clear();
+  Append(s,Mutation("cold-second",2000));Release(s);Need(s.journal.PrepareCheckpoint(&s.owner,&candidate,&error));Need(candidate.size()==2);const auto expected=Canonical(*candidate[0])+"\n"+Canonical(*candidate[1])+"\n";Need(s.journal.CommitCheckpoint(&s.owner,candidate,false,&error));candidate.clear();Release(s);rows=Locations(s);
+  Check(rows.size()==2&&Acquire(s,rows[0])->mutation_type==RecordingMutationType::EventLinkReceipt&&Bytes(s.journal.path())==expected&&Reject(s,&s.owner,token)&&!s.journal.poisoned_&&Canonical(*reader)==Canonical(first),"LP18-L14 cold receipt swap rebinds tokens and preserves old reader");
+  RecordingMutationHandle retry;Need(s.journal.AppendOwned(first,&s.owner,&error,&retry));Check(retry&&Canonical(*retry)==Canonical(first)&&Locations(s)==rows&&Bytes(s.journal.path())==expected,"LP18-L13 cold receipt retry retains original envelope without append");
+ }
+ for(int kind=0;kind<3;++kind){Store s(root/("tamper-"+std::to_string(kind)));Append(s,m);const auto rows=Locations(s);Release(s);auto bytes=Bytes(s.journal.path());
+  if(kind==0){const auto at=bytes.find("xxx");Need(at!=std::string::npos);bytes[at]='y';Write(s.journal.path(),bytes);}else if(kind==1){Need(::truncate(s.journal.path().c_str(),static_cast<off_t>(bytes.size()-1))==0);}else{std::filesystem::rename(s.journal.path(),s.root/"old.jsonl");Write(s.journal.path(),bytes);}
+  Check(Reject(s,&s.owner,rows[0])&&s.journal.poisoned_&&s.journal.Replay().io_error_count>0,kind==0?"LP18-L15 cold same-size tamper poisons and clears output":kind==1?"LP18-L15 cold truncation poisons and clears output":"LP18-L15 cold inode replacement poisons and clears output");
+ }
+ {Store s(root/"allocation");Append(s,m);const auto rows=Locations(s);Release(s);location_probe::throw_acquire=true;Check(Reject(s,&s.owner,rows[0])&&!location_probe::throw_acquire&&s.journal.poisoned_,"LP18-L15 cold allocation failure clears output and poisons");}
+ {Store s(root/"large");const auto large=Mutation("cold-large",16*1024*1024);Append(s,large);const auto rows=Locations(s);std::weak_ptr<const RecordingMutationV1> weak;{auto value=Acquire(s,rows[0]);weak=value;}const auto before=Bytes(s.journal.path());Release(s);Check(!weak.expired()&&Canonical(*Acquire(s,rows[0]))==Canonical(large)&&Bytes(s.journal.path())==before,"LP18-L16 oversized resident fallback survives release unchanged");}
+ {Store s(root/"reservation");RecordingOrderReservationV1 first,again;std::string error;Need(s.journal.ReserveRecordingOrder("location-store","cold-request","cold-segment","cold-channel",&first,&error));const auto rows=Locations(s);const auto before=Bytes(s.journal.path());Release(s);Need(s.journal.ReserveRecordingOrder("location-store","cold-request","cold-segment","cold-channel",&again,&error));Check(first.sequence==again.sequence&&Locations(s)==rows&&Bytes(s.journal.path())==before&&Acquire(s,rows[0])->mutation_type==RecordingMutationType::RecordingOrderReserved,"LP18-L13 cold Reserve retry preserves sequence and physical row count");}
+}
+#endif
 #endif
 }
 int main(int argc,char** argv){if(argc!=2)return 2;try{const std::filesystem::path root=argv[1];
+ if(LP18_COLD_SUITE){
+  {Store s(root/"cold-baseline");const auto m=Mutation("cold-baseline");Append(s,m);const auto replay=s.journal.Replay();Check(replay.io_error_count==0&&replay.mutations.size()==1&&Canonical(replay.mutations[0])==Canonical(m),"LP18-L11 cold baseline Replay preserves complete canonical value");}
+  Check(LP18_COLD_RECORDS!=0,"LP18-L11 explicit resident release capability exists");
+#if LP18_COLD_RECORDS
+  ColdRecords(root/"cold");
+#else
+  std::cout<<"[not-run] LP18 cold record scenarios=20 reason=capability-unavailable\n";
+#endif
+  std::cout<<"[summary] LP18 pass="<<passed<<" fail="<<failed<<'\n';return failed?1:0;
+ }
  if(LP18_LOCATION_CRYPTO_OFF){
 #if LP18_LOCATED_RECORDS
   CryptoResident(root/"location-crypto-off");

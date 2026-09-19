@@ -111,6 +111,10 @@ private:
     bool ReadRecordLocations(const void* owner, RecordingJournalRecordLocations* records, std::string* error) const;
     bool AcquireLocatedRecord(const void* owner, const RecordingJournalRecordLocationHandle& location,
                              RecordingMutationHandle* record, std::string* error) const;
+    bool ReleaseRecordResidents(const void* owner, std::string* error);
+    bool AcquireLocatedRecordLocked(const RecordingJournalRecordLocationHandle& location,
+                                    RecordingMutationHandle* record, std::string* error) const;
+    bool AcquireCheckpointRecordsLocked(RecordingMutationHandles* records, std::string* error) const;
     bool PrepareCheckpoint(const void* owner, RecordingMutationHandles* candidate, std::string* error) const;
     bool CommitCheckpoint(const void* owner, const RecordingMutationHandles& candidate, bool recover_only, std::string* error);
     bool CheckpointDue(const void* owner) const;

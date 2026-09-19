@@ -936,8 +936,7 @@ bool RecordingJournal::ReadCheckpointRecords(const void* owner,RecordingMutation
     OwnedFd fd(::fcntl(managed_fd_,F_DUPFD_CLOEXEC,0));
     if(fd.value<0||!Regular(fd.value,&status)||device_!=static_cast<std::uint64_t>(status.st_dev)||inode_!=status.st_ino||
        !Same(parent.value,io_path_.filename().string(),fd.value,status))return Fail(error,"checkpoint FD 결박 거부");
-    for(const auto& handle:managed_state_->records)if(!handle)return Fail(error,"checkpoint null 기록 거부");
-    *records=managed_state_->records;return true;
+    return AcquireCheckpointRecordsLocked(records,error);
 #else
     return Fail(error,"checkpoint unsupported");
 #endif
@@ -962,6 +961,12 @@ bool RecordingJournal::AcquireLocatedRecord(const void* owner,const RecordingJou
 #endif
     std::lock_guard lock(mu_);
     if(!record||!managed_||!owner||owner!=catalog_owner_)return Fail(error,"located owner/output 거부");
+    return AcquireLocatedRecordLocked(location,record,error);
+}
+bool RecordingJournal::AcquireLocatedRecordLocked(const RecordingJournalRecordLocationHandle& location,
+    RecordingMutationHandle* record,std::string* error) const {
+    if(record)record->reset();
+    if(!record||!managed_)return Fail(error,"located output/state 거부");
     if(!CheckManagedStateLocked(error))return false;
     if(!location||location->generation!=managed_state_->generation||location->ordinal>=managed_state_->locations.size()||
        managed_state_->locations[location->ordinal]!=location)return Fail(error,"located 다른 세대/토큰 거부");
@@ -973,9 +978,9 @@ bool RecordingJournal::AcquireLocatedRecord(const void* owner,const RecordingJou
        location->length>static_cast<std::uint64_t>(std::numeric_limits<off_t>::max())-location->offset||
        location->ordinal>=managed_state_->records.size())return corrupt();
     const auto current=managed_state_->records[location->ordinal];
-    if(!current||!LocationMetadataMatches(*location,*current))return corrupt();
+    if(current&&!LocationMetadataMatches(*location,*current))return corrupt();
     if(location->resident_fallback){
-        if(location->resident_fallback!=current||!CheckManagedStateLocked(error))return corrupt();
+        if(!current||location->resident_fallback!=current||!CheckManagedStateLocked(error))return corrupt();
         *record=current;if(error)error->clear();return true;
     }
     if(location->length>16*1024*1024+1)return corrupt();
@@ -984,14 +989,50 @@ bool RecordingJournal::AcquireLocatedRecord(const void* owner,const RecordingJou
        RawHash(raw)!=location->raw_sha256)return corrupt();
     RecordingMutationV1 parsed;
     if(!ParseRecordingMutationV1(raw,&parsed,nullptr)||!LocationMetadataMatches(*location,parsed)||
-       EnvelopeIdentity(parsed)!=location->record_identity||parsed.payload_json!=current->payload_json||
+       EnvelopeIdentity(parsed)!=location->record_identity||(current&&parsed.payload_json!=current->payload_json)||
        !CheckManagedStateLocked(error))return corrupt();
-    // 이 첫 단위는 강한 소유를 유지한다. 실제 읽기 검증을 생략하는 weak-hit 경로는 없다.
-    *record=current;if(error)error->clear();return true;
+    // 재획득은 호출자의 owned 수명에만 둔다. journal resident를 다시 채우지 않는다.
+    auto acquired=current?current:std::make_shared<const RecordingMutationV1>(std::move(parsed));
+    if(!CheckManagedStateLocked(error))return corrupt();
+    *record=std::move(acquired);if(error)error->clear();return true;
     }catch(...){return corrupt();}
 #else
     return Fail(error,"located unsupported");
 #endif
+}
+bool RecordingJournal::ReleaseRecordResidents(const void* owner,std::string* error) {
+#if !defined(_WIN32)
+    if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
+#endif
+    std::lock_guard lock(mu_);
+    if(!managed_||!owner||owner!=catalog_owner_)return Fail(error,"resident release owner 거부");
+    if(!CheckManagedStateLocked(error))return false;
+    if(managed_state_->records.size()!=managed_state_->locations.size()){poisoned_=true;return Fail(error,"resident index 불일치");}
+    // 모든 slot의 재획득 근거를 먼저 확인한다. 해제 자체는 할당·파일 쓰기가 없다.
+    for(std::size_t i=0;i<managed_state_->locations.size();++i){
+        const auto& location=managed_state_->locations[i];
+        if(!location||location->generation!=managed_state_->generation||location->ordinal!=i||
+           (!location->resident_fallback&&(location->raw_sha256.empty()||location->record_identity.empty()))){
+            poisoned_=true;return Fail(error,"resident 위치 불일치");
+        }
+    }
+    for(std::size_t i=0;i<managed_state_->records.size();++i)
+        if(!managed_state_->locations[i]->resident_fallback)managed_state_->records[i].reset();
+    if(error)error->clear();return true;
+}
+bool RecordingJournal::AcquireCheckpointRecordsLocked(RecordingMutationHandles* records,std::string* error) const {
+    if(!records)return Fail(error,"checkpoint output 없음");
+    records->clear();
+    try {
+        if(managed_state_->records.size()!=managed_state_->locations.size()){poisoned_=true;return Fail(error,"checkpoint 위치 불일치");}
+        records->reserve(managed_state_->records.size());
+        for(std::size_t i=0;i<managed_state_->records.size();++i){
+            auto value=managed_state_->records[i];
+            if(!value&&!AcquireLocatedRecordLocked(managed_state_->locations[i],&value,error)){records->clear();return false;}
+            records->push_back(std::move(value));
+        }
+        return true;
+    }catch(...){records->clear();poisoned_=true;return Fail(error,"checkpoint cold 자원 실패");}
 }
 bool RecordingJournal::PrepareCheckpoint(const void* owner,RecordingMutationHandles* candidate,std::string* error) const {
 #if !defined(_WIN32)
@@ -999,7 +1040,9 @@ bool RecordingJournal::PrepareCheckpoint(const void* owner,RecordingMutationHand
 #endif
     std::lock_guard lock(mu_);
     if(!managed_||!owner||owner!=catalog_owner_||!candidate||!CheckManagedStateLocked(error))return Fail(error,"checkpoint owner/state 거부");
-    return CompactRecords(managed_state_->records,candidate,error);
+    RecordingMutationHandles original;
+    if(!AcquireCheckpointRecordsLocked(&original,error))return false;
+    return CompactRecords(original,candidate,error);
 }
 bool RecordingJournal::CheckpointDue(const void* owner) const {
 #if !defined(_WIN32)
@@ -1030,7 +1073,10 @@ bool RecordingJournal::CommitCheckpoint(const void* owner,const RecordingMutatio
     const bool pending=Present(parent.value,temporary);
     if(recover_only&&!pending)return true;
     RecordingMutationHandles expected;
-    if(!CompactRecords(managed_state_->records,&expected,error))return false;
+    {
+        RecordingMutationHandles original;
+        if(!AcquireCheckpointRecordsLocked(&original,error)||!CompactRecords(original,&expected,error))return false;
+    }
     if(expected.size()!=candidate.size()||!detail::SameCheckpointPrefix(expected,candidate))return Fail(error,"checkpoint 후보 필드 불일치");
     // 현재 원장으로 재구성한 expected와 후보의 모든 필드가 같다. 같은 serializer의
     // 결과를 다시 만들지 않고 이 bytes를 pending 검증·축소 판단·원자 쓰기에 함께 쓴다.
@@ -1204,7 +1250,17 @@ RecordingJournalReplayResult RecordingJournal::Replay() const {
     if (fd.value < 0 || (!managed_&&!Lock(fd.value, LOCK_SH)) || !Regular(fd.value, &status) ||
         device_ != static_cast<std::uint64_t>(status.st_dev) || inode_ != status.st_ino ||
         !Same(parent.value, name, fd.value, status)) { ++result.io_error_count; return result; }
-    if(managed_){result.mutations.reserve(managed_state_->records.size());for(const auto& handle:managed_state_->records){if(!handle){result.mutations.clear();++result.io_error_count;return result;}result.mutations.push_back(*handle);}return result;}
+    if(managed_){
+        try{
+            result.mutations.reserve(managed_state_->records.size());
+            for(std::size_t i=0;i<managed_state_->records.size();++i){
+                auto value=managed_state_->records[i];
+                if(!value&&(i>=managed_state_->locations.size()||!AcquireLocatedRecordLocked(managed_state_->locations[i],&value,nullptr))){result.mutations.clear();++result.io_error_count;return result;}
+                result.mutations.push_back(*value);
+            }
+        }catch(...){result.mutations.clear();++result.io_error_count;poisoned_=true;}
+        return result;
+    }
     std::string bytes(static_cast<std::size_t>(status.st_size), '\0');
     if (!ReadAt(fd.value, 0, &bytes)) { ++result.io_error_count; return result; }
 #else

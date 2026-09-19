@@ -3,6 +3,171 @@
 독자: 녹화 구현·검증 담당. 수명: 이번 단기 검사의 실패/RED/GREEN 보존형 전수 결과. 정책은 AGENTS.md이며 해석은 [중앙 기록](../../../release-test-records.md)의 LP18을 따른다.
 예상 RED의 assertion은 실제 FAIL로 남기며 제품 PASS로 바꾸지 않는다.
 
+## journal resident 해제·cold 재획득 기반
+
+최초 RED01은 process 관측 권한 부족으로 준비 실패(검사0). 예상 RED가 아니다.
+권한 승인 뒤 동일 RED02의 capability1건 FAIL·baseline1PASS와 미실행20개를 분리 보존한다.
+GREEN은 자동 해제/typed/cache 소비 완료가 아닌 private 기반 및 resident 영향 검사다.
+
+[lp18-ownership-green-cold-cost-01.txt 원출력](lp18-ownership-green-cold-cost-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP18-E01 independent value and owned sequences compare equal | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E01 full field mismatch rejected schema | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E01 full field mismatch rejected type | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E01 full field mismatch rejected id | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E01 full field mismatch rejected entity | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E01 full field mismatch rejected time | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E01 full field mismatch rejected payload | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E01 sequence order remains significant | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E01 sequence count remains significant | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E01 null on either side remains rejected | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E01 identical invalid schema retains comparison result | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E01 identical invalid enum retains comparison result | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E01 enum canonical collision remains rejected | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E01 escape and control bytes retain exact comparison | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E01 int64 boundaries retain exact comparison | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E01 payload whitespace remains significant | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E02 SameSequence performs zero envelope serializations | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E03 receipt candidate preparation preserves original bytes | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E04 CommitCheckpoint builds JournalBytes exactly once | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E03 independent candidate publishes exact bytes and preserves prior owner | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E03 compacted bytes retain independent full projection | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E03 invalid candidate rejected before byte building schema | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E03 invalid candidate rejected before byte building type | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E03 invalid candidate rejected before byte building id | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E03 invalid candidate rejected before byte building entity | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E03 invalid candidate rejected before byte building time | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E03 invalid candidate rejected before byte building payload | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E03 invalid candidate rejected before byte building order | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E03 invalid candidate rejected before byte building count | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-E03 invalid candidate rejected before byte building null | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+
+[lp18-ownership-green-cold-envelope-01.txt 원출력](lp18-ownership-green-cold-envelope-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP18-O01 owner checked read view shares journal envelope | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O01 shared journal original candidate envelopes | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O01 public Replay value mutation remains isolated | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O01 retained prefix shares journal envelope | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O01 full canonical and projection oracle | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O03 stale candidate after reservation rejected | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O03 foreign owner candidate rejected | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O04 exact field order or prefix mutation rejected schema | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O04 standalone candidate fields rejected without disk change schema | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O04 exact field order or prefix mutation rejected type | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O04 standalone candidate fields rejected without disk change type | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O04 exact field order or prefix mutation rejected id | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O04 standalone candidate fields rejected without disk change id | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O04 exact field order or prefix mutation rejected entity | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O04 standalone candidate fields rejected without disk change entity | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O04 exact field order or prefix mutation rejected time | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O04 standalone candidate fields rejected without disk change time | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O04 exact field order or prefix mutation rejected payload | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O04 standalone candidate fields rejected without disk change payload | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O04 exact field order or prefix mutation rejected reorder | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O04 standalone candidate fields rejected without disk change reorder | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O04 exact field order or prefix mutation rejected shrink | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O04 standalone candidate fields rejected without disk change shrink | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O04 null envelope safely rejected | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O02 only transformed receipts own new envelopes | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O02 prepared receipts preserve original canonical bytes | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O02 publication bytes and prior owned snapshot remain exact | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O02 published journal and prefix share transformed receipt envelopes | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O02 receipt independent full projection equality | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O03 stale candidate after ordinary append rejected | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O05 8192 logical records admitted | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O05 8193 aliases still rejected | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O05 64MiB logical bytes admitted | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-O05 64MiB plus one rejected | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+
+[lp18-ownership-green-journal-cold-01.txt 원출력](lp18-ownership-green-journal-cold-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP18-L11 cold baseline Replay preserves complete canonical value | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L11 explicit resident release capability exists | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L11 release expires unowned reloadable resident | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L11 release preserves tokens and durable bytes | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L12 cold acquire restores complete canonical value | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L12 active owned reader survives release and reacquisition | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L12 public Replay restores cold records as independent values | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L13 cold Append retry preserves identity bytes and row count | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L13 cold original ID collision rejects without mutation | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L11 release rejects foreign and null owners without poison | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L12 reopened records support explicit release and cold acquire | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L14 checkpoint record view restores cold full values | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L14 cold no-write checkpoint preserves generation | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L14 cold recover-only cleanup preserves generation | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L14 cold receipt swap rebinds tokens and preserves old reader | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L13 cold receipt retry retains original envelope without append | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L15 cold same-size tamper poisons and clears output | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L15 cold truncation poisons and clears output | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L15 cold inode replacement poisons and clears output | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L15 cold allocation failure clears output and poisons | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L16 oversized resident fallback survives release unchanged | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L13 cold Reserve retry preserves sequence and physical row count | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+
+[lp18-ownership-green-journal-cold-crypto-01.txt 원출력](lp18-ownership-green-journal-cold-crypto-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP18-L10 crypto-off managed append acquires exact resident value only | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L10 crypto-off retry preserves resident value and physical row count | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L10 crypto-off checkpoint remains rejected with owner and resident value intact | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+
+[lp18-ownership-green-journal-cold-location-01.txt 원출력](lp18-ownership-green-journal-cold-location-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP18-L01 baseline managed Replay preserves full canonical record | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L01 journal located record capability exists | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L02 acquired record retains complete canonical value | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L02 public Replay mutation cannot alter acquired immutable value | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L03 Append retry preserves physical row count and original value | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L03 Reserve retry preserves physical row count and sequence | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L02 reopen reconstructs located original and reservation records | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L04 blank lines whitespace and 64KiB crossing retain exact row order | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L04 repeated mutation ID retains separate physical row tokens | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L04 located reads preserve accepted noncanonical envelope bytes | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L05 no-write checkpoint keeps existing location generation usable | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L05 recover-only pending cleanup keeps existing generation usable | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L05 receipt swap rebinds all locations to exact committed bytes | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L05 stale location rejects and clears output without poisoning current journal | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L05 previously acquired owned record survives receipt file replacement | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L05 retry after receipt returns original type without new location | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L06 null token clears output without poisoning | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L06 foreign or null owner rejects without poisoning | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L06 other journal token rejects without poisoning | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L06 fork rejects located access while parent retains valid ownership | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L07 same-size raw tamper poisons and clears output despite resident handle | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L07 truncation poisons and clears output | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L07 inode replacement poisons and clears output | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L08 oversized append remains available through resident fallback only | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L08 oversized retry preserves original value and durable row count | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L09 append location exception clears output and poisons after durable write | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L09 append exception reopens exactly one durable original record | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L09 reserve location exception withholds result and poisons after durable write | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L09 reserve exception reopens reservation and retry does not duplicate it | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L09 checkpoint location exception preserves bytes and usable generation without poison | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L09 checkpoint retries successfully after location preparation exception | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+| LP18-L09 acquire allocation exception poisons clears output and retains old owned value | 동일 소유 fixture·원출력 대조 | PASS | 사전등록 단기 검사 |
+
+[lp18-ownership-red-journal-cold-01.txt 원출력](lp18-ownership-red-journal-cold-01.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| process 관측 선수조건 | build SIGTERM / resource-observation·259ms·제품 미실행 | FAIL | ps EPERM, 사후 정리 완료 |
+
+[lp18-ownership-red-journal-cold-02.txt 원출력](lp18-ownership-red-journal-cold-02.txt)
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP18-L11 cold baseline Replay preserves complete canonical value | 동일 소유 fixture·원출력 대조 | PASS | 예상 RED, 제품 PASS 아님 |
+| LP18-L11 explicit resident release capability exists | 동일 소유 fixture·원출력 대조 | FAIL | 예상 RED, 제품 PASS 아님 |
+
 ## 위치 재획득 영향 회귀 마감
 
 [lp18-location-service-01.txt 원출력](lp18-location-service-01.txt): exit0. 43개 개별 행; 실제 HTTP/메모리 수명 완료 판정 아님.

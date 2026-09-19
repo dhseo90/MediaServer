@@ -125,6 +125,19 @@ crypto-off 또는 기존 Append가 수용한 16MiB 초과 행은 새로 거부�
 따라서 locator의 자체 PASS는 RAM 상주 개선이나4번 전체 완료가 아니다. 다음 소비 연결 때는 checkpoint 교체 후
 유효한 새 위치 재결박, 활성 owned reader 보호, cold lookup 실패 전달을 함께 검증해야 한다.
 
+#### 4번 다음 단위: resident 없는 위치 재획득
+
+위치 primitive 커밋은 `229d82a5`다. 자동 해제에 앞서 private 명시 해제/재획득을 독립 검증한다.
+해제는 owner/원장 상태를 확인한 뒤 재읽기 가능한 행의 journal 강한 참조만 놓는다. 내구 행·ID·위치·순서와
+crypto-off/기존16MiB초과 resident fallback은 유지한다. 이미 반환한 owned reader를 강제로 무효화하지 않는다.
+resident가 없으면 trusted 위치의 raw LF 포함 SHA·strict envelope Parse·전체 metadata·canonical identity와
+읽기 전후 FD/owner/세대를 검사해 새 const owned 값을 만든다. resident가 있으면 기존 전체 payload 대조도 유지한다.
+실제 누락/손상·읽기 불확실은 빈 정상값으로 대체하지 않고 outclear/poison 경계로 전달한다.
+Replay/ReadCheckpointRecords/Prepare/Commit도 같은 lock 아래 필요한 cold 행을 재획득해 기존 반환·후보 의미를 유지한다.
+일시 조회가 상세를 무조건 다시 상주시키지 않아야 하며, 위치/owned 수명은 no-write/recover-only/실제 교체별로 검사한다.
+이 단계에는 제품의 자동 해제 호출을 아직 연결하지 않는다. journal primitive만으로 accepted/prefix/live/shadow
+전체 보관 수명 완료라고 주장하지 않으며 다음 소비 연결·비활성 해제·재open 검증까지 별도로 마쳐야 한다.
+
 1. 계약: 위 소유/검증/무효화/소비자 경계와 실행 순서가 기존 불변 계약과 일치한다. 문서 PASS는 제품 PASS가 아니다.
 2. 중복 보관: 불변 alias 공유 및 외부 반환값 독립성, receipt 원본 보존, 후보 경쟁/충돌/상한 검사를 통과한다. typed/상세 잔존을 숨기지 않는다.
 3. 검증 재사용: 실제 큰 job 전이에 동일 내용 파싱·검증이 반복되지 않으며 잘못된 재사용·불법 전이·손상은 기존대로 거부된다.
