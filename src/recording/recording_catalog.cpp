@@ -604,19 +604,23 @@ bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error) {
     if(recover_only)cached.reset();
     if(!journal_.managed_||!options_.enable_v2_storage||!journal_.OwnsCatalog(this))
         return Fail(error,"managed checkpoint 소유권/지원 없음");
-    const auto original=journal_.Replay();
-    if(original.io_error_count||original.corrupt_line_count||original.unsupported_record_count||original.truncated_tail_count)
-        return Fail(error,"checkpoint 원장 불완전");
     std::vector<RecordingMutationV1> candidate;
-    if(!journal_.PrepareCheckpoint(this,&candidate,error))return false;
-    const bool reuse=cached&&cached->shadow&&detail::CheckpointCacheAdmissible(original.mutations)&&
-        detail::SameCheckpointPrefix(cached->prefix,original.mutations);
-    const auto first=reuse?cached->prefix.size():0;
-    auto before=reuse?std::move(cached->shadow):std::make_unique<RecordingCatalog>(journal_,options_);
-    cached.reset();
-    for(std::size_t i=first;i<original.mutations.size();++i)
-        if(!before->ApplyMutationLocked(original.mutations[i],false,error))return false;
-    const bool identical=detail::SameCheckpointSequence(original.mutations,candidate);
+    std::unique_ptr<RecordingCatalog> before;
+    bool identical=false;
+    {
+        const auto original=journal_.Replay();
+        if(original.io_error_count||original.corrupt_line_count||original.unsupported_record_count||original.truncated_tail_count)
+            return Fail(error,"checkpoint 원장 불완전");
+        if(!journal_.PrepareCheckpoint(this,&candidate,error))return false;
+        const bool reuse=cached&&cached->shadow&&detail::CheckpointCacheAdmissible(original.mutations)&&
+            detail::SameCheckpointPrefix(cached->prefix,original.mutations);
+        const auto first=reuse?cached->prefix.size():0;
+        before=reuse?std::move(cached->shadow):std::make_unique<RecordingCatalog>(journal_,options_);
+        cached.reset();
+        for(std::size_t i=first;i<original.mutations.size();++i)
+            if(!before->ApplyMutationLocked(original.mutations[i],false,error))return false;
+        identical=detail::SameCheckpointSequence(original.mutations,candidate);
+    } // 원본 Replay 사본은 이후 후보 검증/commit에 필요하지 않다.
     // 변경 후보는 전체 semantic replay와 양쪽 projection 비교를 유지한다.
     std::unique_ptr<RecordingCatalog> after;
     if(!identical){
@@ -630,6 +634,8 @@ bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error) {
         next=std::make_unique<CheckpointProjectionCache>();
         next->shadow=identical?std::move(before):std::move(after);
     }
+    // 최종 비교가 끝난 비선택 shadow는 commit의 사본/직렬화와 겹치지 않는다.
+    before.reset();after.reset();
     if(!journal_.CommitCheckpoint(this,candidate,recover_only,error))return false;
     if(next){next->prefix=std::move(candidate);checkpoint_cache_=std::move(next);}
     return true;

@@ -1,0 +1,682 @@
+LP16 최소 수명 보완 검증
+범위: CheckpointLocked의 사용 완료 원본Replay/비선택shadow 수명축소 및 비용계측exact구문 대응. 공개계약/바이트/검증순서/상한/잠금 불변.
+순서: build→checkpoint cache→catalog→diffcheck. RSS512MiB해결 또는제품전체원인확정주장없음.
+원출력은 최초tool output부터축적. token start/end/consumed는 실제usage계수 미제공으로 미집계.
+
+command: MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build
+exit: 0
+[env] local override skipped
+[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+[2/2] build
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_catalog.cpp.o
+[  2%] Linking CXX static library libmedia_server_runtime.a
+[ 98%] Built target media_server_runtime
+[ 99%] Linking CXX executable media_server
+[100%] Built target media_server
+[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+
+command: bash scripts/internal/verify_recording_checkpoint_cache.sh (승격 time-l)
+exit: 0
+[source] {"name":"include/recording/recording_catalog.h","sha256":"e36505bcd9517d04946e94446420d5e49e7d18e07c1fe8e6d91d52011f9b3264"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"09ad247d036f5aa1199fa24b66180b89bf49e067995057e470b5b58b50ef6beb"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"9fdc31e2dd404b163c2d71e1bbb9edd5c70d3ef525bb762d8ef8f5d426e705df"}
+[source] {"name":"scripts/internal/recording_checkpoint_cache_smoke.cpp","sha256":"ad6086e5383870e61a3a617ae666d8f063153a7d95506abce8fe3521b21b7ff1"}
+[source] {"name":"scripts/internal/verify_recording_checkpoint_cache.sh","sha256":"6b45ad7faeda2c8ac93cd027bf6353a6a32f777942f42bea668bc320e30fb346"}
+[environment] ownedCache=true ownedRegistry=true productFilesUnchanged=true instrumentation=checkpoint-scope-apply-count
+[pass] LP15-C01 cold full applied=1 expected=1
+[pass] LP15-C01 unchanged prefix applied=0 expected=0
+[pass] LP15-C01 exact prefix suffix only applied=1 expected=1
+[pass] LP15-C01 independent prefix shadow/full projection equality
+[pass] LP15-C01 full fallback schema applied=2 expected=2
+[pass] LP15-C01 full fallback type applied=2 expected=2
+[pass] LP15-C01 full fallback id applied=2 expected=2
+[pass] LP15-C01 full fallback entity applied=2 expected=2
+[pass] LP15-C01 full fallback time applied=2 expected=2
+[pass] LP15-C01 full fallback payload applied=2 expected=2
+[pass] LP15-C01 full fallback reorder applied=2 expected=2
+[pass] LP15-C01 full fallback shrink applied=2 expected=2
+[pass] LP15-C01 full fallback null-shadow applied=2 expected=2
+[pass] LP15-C01 Open clears cache applied=2 expected=2
+[pass] LP15-C03 recover full/no-cache
+[pass] LP15-C03 after recover full applied=2 expected=2
+[pass] LP15-C03 injected commit refusal discards cache
+[pass] LP15-C03 after commit refusal full applied=2 expected=2
+[pass] LP15-C03 suffix exception discards cache
+[pass] LP15-C03 after exception full applied=3 expected=3
+[pass] LP15-C03 public poisoned entry discards cache
+[pass] LP15-C03 after restored fixture full applied=3 expected=3
+[pass] LP15-C04 exact byte charge boundary
+[pass] LP15-C04 overflow charge rejected
+[pass] LP15-C04 8192 records admitted
+[pass] LP15-C04 8193 records rejected
+[pass] LP15-C04 64MiB record charge admitted
+[pass] LP15-C04 64MiB plus one rejected
+[pass] LP15-C03 changed candidate prime applied=1 expected=1
+[pass] LP15-C03 changed candidate suffix12 plus full candidate13 applied=25 expected=25
+[pass] LP15-C03 changed candidate cache equals independent full projection
+[pass] LP15-C03 compacted candidate prefix reused applied=0 expected=0
+[pass] LP15-C03 forced projection mismatch discards cache
+[pass] LP15-C04 overlimit prime applied=1 expected=1
+[pass] LP15-C04 existing cache ignored for oversized original applied=8193 expected=8193
+[pass] LP15-C04 oversized candidate not retained
+[pass] LP15-C04 next oversized checkpoint full applied=8193 expected=8193
+[shape] state=1 bytes=319533 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=eed371fccb3ad36712dc051cb38874a851935d8fadea9ebfeb6a4311a0004102
+[record-cost] iteration=1 serialize_us=81361 parse_us=146500
+[record-cost] iteration=2 serialize_us=80790 parse_us=149326
+[record-cost] iteration=3 serialize_us=80741 parse_us=146438
+[shape] state=3 bytes=319548 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=0b3fcdd3495eb9ed79b2aab7bc984aafba25146f5d2ad2af95b541b914bd7562
+[record-cost] iteration=1 serialize_us=81096 parse_us=147491
+[record-cost] iteration=2 serialize_us=80514 parse_us=146585
+[record-cost] iteration=3 serialize_us=81153 parse_us=148240
+[shape] state=1 bytes=319533 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=533b87e1e5de20b5b4ace97d715c3073834cbee73da630803c6c225a1c8826d1
+[record-cost] iteration=1 serialize_us=80310 parse_us=147215
+[record-cost] iteration=2 serialize_us=80991 parse_us=147360
+[record-cost] iteration=3 serialize_us=80583 parse_us=146705
+[shape] state=3 bytes=319548 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=995096d91cdd5763fa3c02065d930ace7bb06e4c4a1b43b67f5c00e2cca2f6ce
+[record-cost] iteration=1 serialize_us=81369 parse_us=147009
+[record-cost] iteration=2 serialize_us=80588 parse_us=147107
+[record-cost] iteration=3 serialize_us=81004 parse_us=146889
+[pass] CP01 actual Ready Complete shape canonical files reservation
+[pass] CP02 bounded two jobs over 1MiB canonical transitions
+[automatic-checkpoint] index=0 original_records=11 reused_prefix=0 original_applied=11 total_applied=11 duration_us=932292
+[automatic-checkpoint] index=1 original_records=17 reused_prefix=11 original_applied=6 total_applied=6 duration_us=1249085
+[transition-hold] count=8 max_us=1785342 scope=UpdateDerivedJob-lock-acquired-to-before-unlock
+[pass] LP15-C02 bounded automatic checkpoint and whole transition measurement
+[shape] LP15-C02 records=18 bytes=2843063 ready=2 committed=2 complete=2
+[pass] LP15-C02 reopened full applied=18 expected=18
+[pass] LP15-C02 actual unchanged prefix applied=0 expected=0
+[pass] LP15-C02 actual suffix only applied=1 expected=1
+[pass] LP15-C02 actual job shadow/full projection equality
+[pass] LP15-C03 illegal Ready after Complete suffix rejected by cached/full paths
+[summary] LP15 pass=43 fail=0
+       32.47 real        30.52 user         1.18 sys
+           165134336  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               72412  page reclaims
+                4383  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                 109  messages sent
+                  90  messages received
+                   0  signals received
+                8912  voluntary context switches
+               24321  involuntary context switches
+        637596552363  instructions retired
+        131679962287  cycles elapsed
+           139051800  peak memory footprint
+[pass] LP15-C04 peakRSS bytes=165134336 cap=536870912
+[bounded] {"code":0,"signal":null,"limit":false,"outputBytes":5184,"runtimeCapSeconds":60,"diskCapBytes":536870912,"peakRssBytes":165134336}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.e3AZT2","bytes":16728254,"removed":true}
+[exit] code=0 elapsed_seconds=35 source=bash-SECONDS
+
+[LP16 수명 보완 catalog 회귀 원출력]
+RAW_JSON_LINE:"[pass] journal open: "
+RAW_JSON_LINE:"[pass] fallback catalog open: "
+[pass] SQLite off mode 표시
+RAW_JSON_LINE:"[pass] segment finalize journal+projection: "
+[pass] fallback range query
+[pass] event link FK 위반 거부
+[pass] FK 위반 transaction/journal 전체 rollback
+[pass] 최초 durable mutation 1개
+[pass] 동일 mutation 중복 append
+[pass] 손상 사이 정상 durable mutation 보존
+[pass] 중간 corrupt line count
+[pass] 마지막 truncated line skip
+[pass] fallback replay open
+[pass] 같은 mutation idempotent replay
+[pass] 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존
+[pass] 중복 replay row/합계 불증가
+RAW_JSON_LINE:"[pass] 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구: "
+[pass] writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed
+[pass] v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed
+RAW_JSON_LINE:"[pass] SQLite catalog open/rebuild: "
+[pass] SQLite primary mode 표시
+[pass] SQLite on/off range query ID·순서 parity
+[pass] journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분
+[pass] journal 없는 손상 media orphan 구분
+RAW_JSON_LINE:"[pass] projection failover journal open: "
+RAW_JSON_LINE:"[pass] projection failover catalog open: "
+[pass] 실제 SQLite INSERT 실패 trigger 설치
+RAW_JSON_LINE:"[pass] SQLite 투영 실패 뒤 journal+memory finalize 유지: "
+[pass] SQLite 투영 실패 즉시 JSONL fallback 전환
+[pass] 재시작 rebuild 전 실패 trigger 제거
+[pass] 투영 실패 직후 in-memory query 정합성 유지
+RAW_JSON_LINE:"[pass] projection failover 재시작 journal rebuild: "
+[pass] 재시작 후 journal에서 누락 SQLite projection 복구
+[pass] 재시작 후 SQLite primary 복귀
+[pass] 재시작 journal rebuild가 실제 SQLite row 복원
+RAW_JSON_LINE:"[pass] tombstone journal open: "
+RAW_JSON_LINE:"[pass] tombstone catalog open: "
+RAW_JSON_LINE:"[pass] tombstone 대상 segment finalize: "
+RAW_JSON_LINE:"[pass] tombstone 대상 deletion request: "
+RAW_JSON_LINE:"[pass] tombstone 완료 기록: "
+[pass] catalog finalize가 tombstone segment ID 재사용을 거부해야 함
+RAW_JSON_LINE:"[pass] 손상 SQLite 격리 후 journal rebuild: "
+[pass] 손상 SQLite 원본 격리
+[pass] 격리 SQLite 파일 보존
+[pass] 격리 후 journal rebuild 결과
+[pass] S10-3A future-schema journal read open
+[pass] S10-3A future-schema unsupported classification
+[pass] S10-3A future-schema catalog open denied
+[pass] S10-3A future-schema catalog retry denied
+[pass] S10-3A future-schema journal bytes preserved
+[pass] S10-3A future-schema SQLite bytes preserved
+[pass] S10-3A future-schema writer cleanup untouched
+[pass] S10-3A arbitrary-schema journal read open
+[pass] S10-3A arbitrary-schema unsupported classification
+[pass] S10-3A arbitrary-schema catalog open denied
+[pass] S10-3A arbitrary-schema catalog retry denied
+[pass] S10-3A arbitrary-schema journal bytes preserved
+[pass] S10-3A arbitrary-schema SQLite bytes preserved
+[pass] S10-3A arbitrary-schema writer cleanup untouched
+[pass] S10-3A empty-schema journal read open
+[pass] S10-3A empty-schema unsupported classification
+[pass] S10-3A empty-schema catalog open denied
+[pass] S10-3A empty-schema catalog retry denied
+[pass] S10-3A empty-schema journal bytes preserved
+[pass] S10-3A empty-schema SQLite bytes preserved
+[pass] S10-3A empty-schema writer cleanup untouched
+[pass] S10-3A future-type journal read open
+[pass] S10-3A future-type unsupported classification
+[pass] S10-3A future-type catalog open denied
+[pass] S10-3A future-type catalog retry denied
+[pass] S10-3A future-type journal bytes preserved
+[pass] S10-3A future-type SQLite bytes preserved
+[pass] S10-3A future-type writer cleanup untouched
+[pass] S10-3A malformed journal open
+[pass] S10-3A malformed JSON missing fields and wrong types remain corrupt
+[pass] S10-O01 reservation journal open
+[pass] S10-O01 first reservation returns four IDs and sequence one
+[pass] S10-O01 versioned reservation payload replays
+[pass] S10-O01 new reservation records actual occurred time
+[pass] S10-O02 identical retry preserves sequence and bytes
+[pass] S10-O03 reopened instance allocates next sequence
+[pass] S10-O03 new process resumes durable sequence
+[pass] S10-O04 different store rejected
+[pass] S10-O04 reused request with different segment rejected
+[pass] S10-O04 reused request with different channel rejected
+[pass] S10-O04 reused segment with different request rejected
+[pass] S10-O04 conflicts preserve original bytes
+[pass] S10-O05/O06 reject and preserve corrupt
+[pass] S10-O05/O06 reject and preserve unsupported-schema
+[pass] S10-O05/O06 reject and preserve unsupported-type
+[pass] S10-O05/O06 reject and preserve tail
+[pass] S10-O05/O06 reject and preserve payload-zero
+[pass] S10-O05/O06 reject and preserve payload-negative
+[pass] S10-O05/O06 reject and preserve payload-fraction
+[pass] S10-O05/O06 reject and preserve payload-overflow
+[pass] S10-O05/O06 reject and preserve duplicate-sequence
+[pass] S10-O05/O06 reject and preserve decreasing-sequence
+[pass] S10-O05/O06 reject and preserve duplicate-request
+[pass] S10-O05/O06 reject and preserve duplicate-segment
+[pass] S10-O05/O06 reject and preserve store-conflict
+[pass] S10-O05/O06 reject and preserve ordinary-before
+[pass] S10-O05/O06 reject and preserve ordinary-after
+[pass] S10-O05/O06 reject and preserve line-cap
+[pass] S10-O05 reservation entity envelope binding rejects mismatch
+[pass] S10-O05 reservation request envelope binding rejects mismatch
+[pass] S10-O01 strict reservation parser accepts versioned literal
+[pass] S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys
+[pass] S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys
+[pass] S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys
+[pass] S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys
+[pass] S10-O06 INT64_MAX identical retry remains valid
+[pass] S10-O06 sequence overflow rejected without write
+[pass] S10-O02 identical durable reservation duplicates remain idempotent
+[pass] S10-O06 sequence gaps remain valid and allocate above maximum
+[pass] S10-O07 four simultaneous processes finish reservations
+[pass] S10-O07 concurrent sequences are unique and complete
+[pass] S10-O07 next sequence follows concurrent reservations
+[pass] S10-O08 ordinary Append cannot reserve orders
+[pass] S10-O08 unopened journal rejected
+[pass] S10-O08 null result rejected
+[pass] S10-O08 invalid opaque ID rejected
+[pass] S10-O08 failed reservation does not expose tentative result
+[pass] S10-O09 unsafe file binding rejected and original preserved inode
+[pass] S10-O09 unsafe file binding rejected and original preserved parent
+[pass] S10-O09 unsafe file binding rejected and original preserved symlink
+[pass] S10-O09 unsafe file binding rejected and original preserved hardlink
+[pass] S10-O10 reservation and normal segment coexist in catalog
+[pass] S10-O04 reserve then finalize permits identical retry
+[pass] S10-O10 reservation survives catalog rebuild without changing segment query
+[pass] S10-O04 legacy segment cannot acquire retroactive reservation
+[pass] S10-M06 opened catalog accepts fresh exact reservation V2 finalize
+[pass] S10-M07 V2 find preserves complete metadata
+[pass] S10-M07 identical V2 recovery is idempotent
+[pass] S10-M07 V2 is absent from V1 range query
+[pass] S10-M07 V2 registered path is not orphan
+[pass] S10-M07 SQLite exact V2 JSON and path match
+[pass] S10-M07 JSONL restart preserves V2 exact payload
+[pass] S10-M06 wrong reservation tuple rejected store
+[pass] S10-M06 wrong reservation tuple rejected request
+[pass] S10-M06 wrong reservation tuple rejected segment
+[pass] S10-M06 wrong reservation tuple rejected channel
+[pass] S10-M06 wrong reservation tuple rejected sequence
+[pass] S10-M09 immutable V2 mapping mismatch rejected
+[pass] S10-M09 bad V2 startup retry preserves original state bad-payload
+[pass] S10-M09 bad V2 startup retry preserves original state missing-order
+[pass] S10-M09 bad V2 startup retry preserves original state bad-order
+[pass] S10-M09 bad V2 startup retry preserves original state conflicting-order
+[pass] S10-M09 bad V2 startup retry preserves original state tail
+[pass] S10-M09 bad V2 startup retry preserves original state corrupt
+[pass] S10-M09 bad V2 startup retry preserves original state unsafe-path
+[pass] S10-M09 default off rejects V2 before SQLite changes
+[pass] S10-M09 V2 replay namespace and deletion duplicate
+[pass] S10-M09 V2 replay namespace and deletion deleted
+[pass] S10-M09 V2 replay namespace and deletion v1-before
+[pass] S10-M09 V2 replay namespace and deletion v1-after
+[pass] S10-M09 V2 replay namespace and deletion deleted-before
+[pass] S10-M09 V2 replay namespace and deletion resurrection
+[pass] S10-M09 V2 replay namespace and deletion mutation-collision
+[pass] S10-M09 V2 finalize rejects missing media
+[pass] S10-M09 V2 finalize rejects directory media
+[pass] S10-M09 fresh candidate rejects mapping
+[pass] S10-M09 fresh candidate rejects path
+[pass] S10-M09 fresh candidate rejects tombstone
+[pass] S10-SW01 managed empty root opens with lifetime lease
+[pass] S10-SW02 same process second managed owner denied
+[pass] S10-SW03 different process owner and inherited use denied
+[pass] S10-SW12 managed duplicate descriptors are close-on-exec
+[pass] S10-SW05 managed reserve append replay use owned descriptor
+[pass] S10-SW06 raw managed access and legacy default path denied
+[pass] S10-SW01 managed Reserve rejects different store identity
+[pass] S10-SW10 catalog connection can inspect managed lease
+[pass] S10-SW04 owner destruction releases lease
+[pass] S10-SW01 managed reopen rejects different store identity
+[pass] S10-SW11 managed incomplete tail rejects append without changing bytes
+[pass] S10-SW07 legacy nonempty root preserved without conversion
+[pass] S10-SW08 partial initialization retry validates exact state lease
+[pass] S10-SW08 partial initialization retry validates exact state init
+[pass] S10-SW08 partial initialization retry validates exact state barrier
+[pass] S10-SW08 partial initialization retry validates exact state journal
+[pass] S10-SW08 partial initialization retry validates exact state incomplete
+[pass] S10-SW08 partial initialization retry validates exact state unknown
+[pass] S10-SW09 symlink inode and malformed marker rejected journal
+[pass] S10-SW09 symlink inode and malformed marker rejected marker
+[pass] S10-SW09 symlink inode and malformed marker rejected barrier
+[pass] S10-SW09 symlink inode and malformed marker rejected root-symlink
+[pass] S10-SB01 second managed catalog is denied
+[pass] S10-SB02 failed catalog cannot mutate journal or holds
+[pass] S10-SB03 attached catalog blocks unowned append but permits reservation
+[pass] S10-SB04 catalog destruction releases attachment
+[pass] S10-SB05 managed catalog rejects unsafe options outside
+[pass] S10-SB05 managed catalog rejects unsafe options dotdot
+[pass] S10-SB05 managed catalog rejects unsafe options media-symlink
+[pass] S10-SB05 managed catalog rejects unsafe options sqlite-symlink
+[pass] S10-SB05 managed catalog rejects unsafe options sqlite-hardlink
+[pass] S10-SB05 managed catalog rejects unsafe options disabled
+[pass] S10-SB06 failed open releases catalog attachment
+[pass] S10-SB07 managed SQLite sidecar rejected -wal symlink
+[pass] S10-SB07 managed SQLite sidecar rejected -wal hardlink
+[pass] S10-SB07 managed SQLite sidecar rejected -shm symlink
+[pass] S10-SB07 managed SQLite sidecar rejected -shm hardlink
+[pass] S10-SB07 managed SQLite sidecar rejected -journal symlink
+[pass] S10-SB07 managed SQLite sidecar rejected -journal hardlink
+[pass] S10-SC01 managed repeated event fixture is valid
+[pass] S10-SC02 managed reservations avoid history reads
+[pass] S10-SC03 managed V2 finalize avoids full replay
+[pass] S10-SC04 checkpoint reduces superseded event payload bytes
+[pass] S10-SC05 checkpoint preserves latest event and all record identities
+[pass] S10-SC06 checkpoint is idempotent and preserves V2
+[pass] S10-SC08 receipt preserves retry identity and rejects direct append
+[pass] S10-SC09 checkpoint restart preserves SQLite and JSONL state sqlite
+[pass] S10-SC09 managed checkpoint SQL V2 payload and path
+[pass] S10-SC09 checkpoint restart preserves SQLite and JSONL state jsonl
+[pass] S10-SC10 checkpoint prefix recovers before writes
+[pass] S10-SC11 checkpoint mismatch preserves bytes and poisons owner
+[pass] S10-SC12 first accepted mutation controls latest event
+[pass] S10-SC16 automatic checkpoint uses accumulated growth
+[pass] S10-SC07 raw checkpoint is rejected
+[pass] S10-SC18 checkpoint syscall failure poisons and reopens write
+[pass] S10-SC21 poison rejects hold mutation write
+[pass] S10-SC18 checkpoint syscall failure poisons and reopens file-fsync
+[pass] S10-SC21 poison rejects hold mutation file-fsync
+[pass] S10-SC18 checkpoint syscall failure poisons and reopens rename
+[pass] S10-SC21 poison rejects hold mutation rename
+[pass] S10-SC18 checkpoint syscall failure poisons and reopens dir-fsync
+[pass] S10-SC21 poison rejects hold mutation dir-fsync
+[pass] S10-SC17 checkpoint preserves holds observations and deletion
+[pass] S10-SC17 checkpoint SQL hold observation tombstone
+[pass] S10-SC17 checkpoint preserves holds observations and deletion restart sqlite
+[pass] S10-SC17 checkpoint SQL restart observation tombstone
+[pass] S10-SC17 checkpoint preserves holds observations and deletion restart jsonl
+[pass] S10-SC19 invalid managed history remains unchanged malformed
+[pass] S10-SC19 invalid managed history remains unchanged unsupported
+[pass] S10-SC19 invalid managed history remains unchanged conflict
+[pass] S10-SC20 raw catalog rejects receipt before side effects
+[verify-v410-recording-catalog] pass=234 fail=0
+[pass] S10-SC13 crypto off raw remains usable
+[pass] S10-SC14 crypto off checkpoint is rejected
+[pass] S10-SC15 crypto off receipt reopen is rejected
+[pass] source 저장 callback reconcile 연결
+[pass] policy revision idempotency
+[pass] 5초 safety reconcile
+[pass] composition root 관리 저장소 선행 open
+[pass] composition helper journal 다음 catalog rebuild/open
+[pass] 서버 전 supervisor 시작
+[pass] ingress 전 event bridge 등록
+[pass] ingress 종료 뒤 recorder finalize
+[pass] composition root 시작/종료 순서
+[cleanup] path=/tmp/media_server_v410_recording_catalog-39378 bytes=26753462 removed=true
+[exit] code=0
+
+[개별 결과 전수표]
+제목 | 테스트내용 | pass/fail | 비고
+cache-1 | LP15-C01 cold full applied=1 expected=1 | PASS | 최초 실행 exit 0
+cache-2 | LP15-C01 unchanged prefix applied=0 expected=0 | PASS | 최초 실행 exit 0
+cache-3 | LP15-C01 exact prefix suffix only applied=1 expected=1 | PASS | 최초 실행 exit 0
+cache-4 | LP15-C01 independent prefix shadow/full projection equality | PASS | 최초 실행 exit 0
+cache-5 | LP15-C01 full fallback schema applied=2 expected=2 | PASS | 최초 실행 exit 0
+cache-6 | LP15-C01 full fallback type applied=2 expected=2 | PASS | 최초 실행 exit 0
+cache-7 | LP15-C01 full fallback id applied=2 expected=2 | PASS | 최초 실행 exit 0
+cache-8 | LP15-C01 full fallback entity applied=2 expected=2 | PASS | 최초 실행 exit 0
+cache-9 | LP15-C01 full fallback time applied=2 expected=2 | PASS | 최초 실행 exit 0
+cache-10 | LP15-C01 full fallback payload applied=2 expected=2 | PASS | 최초 실행 exit 0
+cache-11 | LP15-C01 full fallback reorder applied=2 expected=2 | PASS | 최초 실행 exit 0
+cache-12 | LP15-C01 full fallback shrink applied=2 expected=2 | PASS | 최초 실행 exit 0
+cache-13 | LP15-C01 full fallback null-shadow applied=2 expected=2 | PASS | 최초 실행 exit 0
+cache-14 | LP15-C01 Open clears cache applied=2 expected=2 | PASS | 최초 실행 exit 0
+cache-15 | LP15-C03 recover full/no-cache | PASS | 최초 실행 exit 0
+cache-16 | LP15-C03 after recover full applied=2 expected=2 | PASS | 최초 실행 exit 0
+cache-17 | LP15-C03 injected commit refusal discards cache | PASS | 최초 실행 exit 0
+cache-18 | LP15-C03 after commit refusal full applied=2 expected=2 | PASS | 최초 실행 exit 0
+cache-19 | LP15-C03 suffix exception discards cache | PASS | 최초 실행 exit 0
+cache-20 | LP15-C03 after exception full applied=3 expected=3 | PASS | 최초 실행 exit 0
+cache-21 | LP15-C03 public poisoned entry discards cache | PASS | 최초 실행 exit 0
+cache-22 | LP15-C03 after restored fixture full applied=3 expected=3 | PASS | 최초 실행 exit 0
+cache-23 | LP15-C04 exact byte charge boundary | PASS | 최초 실행 exit 0
+cache-24 | LP15-C04 overflow charge rejected | PASS | 최초 실행 exit 0
+cache-25 | LP15-C04 8192 records admitted | PASS | 최초 실행 exit 0
+cache-26 | LP15-C04 8193 records rejected | PASS | 최초 실행 exit 0
+cache-27 | LP15-C04 64MiB record charge admitted | PASS | 최초 실행 exit 0
+cache-28 | LP15-C04 64MiB plus one rejected | PASS | 최초 실행 exit 0
+cache-29 | LP15-C03 changed candidate prime applied=1 expected=1 | PASS | 최초 실행 exit 0
+cache-30 | LP15-C03 changed candidate suffix12 plus full candidate13 applied=25 expected=25 | PASS | 최초 실행 exit 0
+cache-31 | LP15-C03 changed candidate cache equals independent full projection | PASS | 최초 실행 exit 0
+cache-32 | LP15-C03 compacted candidate prefix reused applied=0 expected=0 | PASS | 최초 실행 exit 0
+cache-33 | LP15-C03 forced projection mismatch discards cache | PASS | 최초 실행 exit 0
+cache-34 | LP15-C04 overlimit prime applied=1 expected=1 | PASS | 최초 실행 exit 0
+cache-35 | LP15-C04 existing cache ignored for oversized original applied=8193 expected=8193 | PASS | 최초 실행 exit 0
+cache-36 | LP15-C04 oversized candidate not retained | PASS | 최초 실행 exit 0
+cache-37 | LP15-C04 next oversized checkpoint full applied=8193 expected=8193 | PASS | 최초 실행 exit 0
+cache-38 | CP01 actual Ready Complete shape canonical files reservation | PASS | 최초 실행 exit 0
+cache-39 | CP02 bounded two jobs over 1MiB canonical transitions | PASS | 최초 실행 exit 0
+cache-40 | LP15-C02 bounded automatic checkpoint and whole transition measurement | PASS | 최초 실행 exit 0
+cache-41 | LP15-C02 reopened full applied=18 expected=18 | PASS | 최초 실행 exit 0
+cache-42 | LP15-C02 actual unchanged prefix applied=0 expected=0 | PASS | 최초 실행 exit 0
+cache-43 | LP15-C02 actual suffix only applied=1 expected=1 | PASS | 최초 실행 exit 0
+cache-44 | LP15-C02 actual job shadow/full projection equality | PASS | 최초 실행 exit 0
+cache-45 | LP15-C03 illegal Ready after Complete suffix rejected by cached/full paths | PASS | 최초 실행 exit 0
+cache-46 | LP15-C04 peakRSS bytes=165134336 cap=536870912 | PASS | 최초 실행 exit 0
+catalog-1 | journal open:  | PASS | 최초 실행 exit 0
+catalog-2 | fallback catalog open:  | PASS | 최초 실행 exit 0
+catalog-3 | SQLite off mode 표시 | PASS | 최초 실행 exit 0
+catalog-4 | segment finalize journal+projection:  | PASS | 최초 실행 exit 0
+catalog-5 | fallback range query | PASS | 최초 실행 exit 0
+catalog-6 | event link FK 위반 거부 | PASS | 최초 실행 exit 0
+catalog-7 | FK 위반 transaction/journal 전체 rollback | PASS | 최초 실행 exit 0
+catalog-8 | 최초 durable mutation 1개 | PASS | 최초 실행 exit 0
+catalog-9 | 동일 mutation 중복 append | PASS | 최초 실행 exit 0
+catalog-10 | 손상 사이 정상 durable mutation 보존 | PASS | 최초 실행 exit 0
+catalog-11 | 중간 corrupt line count | PASS | 최초 실행 exit 0
+catalog-12 | 마지막 truncated line skip | PASS | 최초 실행 exit 0
+catalog-13 | fallback replay open | PASS | 최초 실행 exit 0
+catalog-14 | 같은 mutation idempotent replay | PASS | 최초 실행 exit 0
+catalog-15 | 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | PASS | 최초 실행 exit 0
+catalog-16 | 중복 replay row/합계 불증가 | PASS | 최초 실행 exit 0
+catalog-17 | 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구:  | PASS | 최초 실행 exit 0
+catalog-18 | writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | PASS | 최초 실행 exit 0
+catalog-19 | v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | PASS | 최초 실행 exit 0
+catalog-20 | SQLite catalog open/rebuild:  | PASS | 최초 실행 exit 0
+catalog-21 | SQLite primary mode 표시 | PASS | 최초 실행 exit 0
+catalog-22 | SQLite on/off range query ID·순서 parity | PASS | 최초 실행 exit 0
+catalog-23 | journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | PASS | 최초 실행 exit 0
+catalog-24 | journal 없는 손상 media orphan 구분 | PASS | 최초 실행 exit 0
+catalog-25 | projection failover journal open:  | PASS | 최초 실행 exit 0
+catalog-26 | projection failover catalog open:  | PASS | 최초 실행 exit 0
+catalog-27 | 실제 SQLite INSERT 실패 trigger 설치 | PASS | 최초 실행 exit 0
+catalog-28 | SQLite 투영 실패 뒤 journal+memory finalize 유지:  | PASS | 최초 실행 exit 0
+catalog-29 | SQLite 투영 실패 즉시 JSONL fallback 전환 | PASS | 최초 실행 exit 0
+catalog-30 | 재시작 rebuild 전 실패 trigger 제거 | PASS | 최초 실행 exit 0
+catalog-31 | 투영 실패 직후 in-memory query 정합성 유지 | PASS | 최초 실행 exit 0
+catalog-32 | projection failover 재시작 journal rebuild:  | PASS | 최초 실행 exit 0
+catalog-33 | 재시작 후 journal에서 누락 SQLite projection 복구 | PASS | 최초 실행 exit 0
+catalog-34 | 재시작 후 SQLite primary 복귀 | PASS | 최초 실행 exit 0
+catalog-35 | 재시작 journal rebuild가 실제 SQLite row 복원 | PASS | 최초 실행 exit 0
+catalog-36 | tombstone journal open:  | PASS | 최초 실행 exit 0
+catalog-37 | tombstone catalog open:  | PASS | 최초 실행 exit 0
+catalog-38 | tombstone 대상 segment finalize:  | PASS | 최초 실행 exit 0
+catalog-39 | tombstone 대상 deletion request:  | PASS | 최초 실행 exit 0
+catalog-40 | tombstone 완료 기록:  | PASS | 최초 실행 exit 0
+catalog-41 | catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | PASS | 최초 실행 exit 0
+catalog-42 | 손상 SQLite 격리 후 journal rebuild:  | PASS | 최초 실행 exit 0
+catalog-43 | 손상 SQLite 원본 격리 | PASS | 최초 실행 exit 0
+catalog-44 | 격리 SQLite 파일 보존 | PASS | 최초 실행 exit 0
+catalog-45 | 격리 후 journal rebuild 결과 | PASS | 최초 실행 exit 0
+catalog-46 | S10-3A future-schema journal read open | PASS | 최초 실행 exit 0
+catalog-47 | S10-3A future-schema unsupported classification | PASS | 최초 실행 exit 0
+catalog-48 | S10-3A future-schema catalog open denied | PASS | 최초 실행 exit 0
+catalog-49 | S10-3A future-schema catalog retry denied | PASS | 최초 실행 exit 0
+catalog-50 | S10-3A future-schema journal bytes preserved | PASS | 최초 실행 exit 0
+catalog-51 | S10-3A future-schema SQLite bytes preserved | PASS | 최초 실행 exit 0
+catalog-52 | S10-3A future-schema writer cleanup untouched | PASS | 최초 실행 exit 0
+catalog-53 | S10-3A arbitrary-schema journal read open | PASS | 최초 실행 exit 0
+catalog-54 | S10-3A arbitrary-schema unsupported classification | PASS | 최초 실행 exit 0
+catalog-55 | S10-3A arbitrary-schema catalog open denied | PASS | 최초 실행 exit 0
+catalog-56 | S10-3A arbitrary-schema catalog retry denied | PASS | 최초 실행 exit 0
+catalog-57 | S10-3A arbitrary-schema journal bytes preserved | PASS | 최초 실행 exit 0
+catalog-58 | S10-3A arbitrary-schema SQLite bytes preserved | PASS | 최초 실행 exit 0
+catalog-59 | S10-3A arbitrary-schema writer cleanup untouched | PASS | 최초 실행 exit 0
+catalog-60 | S10-3A empty-schema journal read open | PASS | 최초 실행 exit 0
+catalog-61 | S10-3A empty-schema unsupported classification | PASS | 최초 실행 exit 0
+catalog-62 | S10-3A empty-schema catalog open denied | PASS | 최초 실행 exit 0
+catalog-63 | S10-3A empty-schema catalog retry denied | PASS | 최초 실행 exit 0
+catalog-64 | S10-3A empty-schema journal bytes preserved | PASS | 최초 실행 exit 0
+catalog-65 | S10-3A empty-schema SQLite bytes preserved | PASS | 최초 실행 exit 0
+catalog-66 | S10-3A empty-schema writer cleanup untouched | PASS | 최초 실행 exit 0
+catalog-67 | S10-3A future-type journal read open | PASS | 최초 실행 exit 0
+catalog-68 | S10-3A future-type unsupported classification | PASS | 최초 실행 exit 0
+catalog-69 | S10-3A future-type catalog open denied | PASS | 최초 실행 exit 0
+catalog-70 | S10-3A future-type catalog retry denied | PASS | 최초 실행 exit 0
+catalog-71 | S10-3A future-type journal bytes preserved | PASS | 최초 실행 exit 0
+catalog-72 | S10-3A future-type SQLite bytes preserved | PASS | 최초 실행 exit 0
+catalog-73 | S10-3A future-type writer cleanup untouched | PASS | 최초 실행 exit 0
+catalog-74 | S10-3A malformed journal open | PASS | 최초 실행 exit 0
+catalog-75 | S10-3A malformed JSON missing fields and wrong types remain corrupt | PASS | 최초 실행 exit 0
+catalog-76 | S10-O01 reservation journal open | PASS | 최초 실행 exit 0
+catalog-77 | S10-O01 first reservation returns four IDs and sequence one | PASS | 최초 실행 exit 0
+catalog-78 | S10-O01 versioned reservation payload replays | PASS | 최초 실행 exit 0
+catalog-79 | S10-O01 new reservation records actual occurred time | PASS | 최초 실행 exit 0
+catalog-80 | S10-O02 identical retry preserves sequence and bytes | PASS | 최초 실행 exit 0
+catalog-81 | S10-O03 reopened instance allocates next sequence | PASS | 최초 실행 exit 0
+catalog-82 | S10-O03 new process resumes durable sequence | PASS | 최초 실행 exit 0
+catalog-83 | S10-O04 different store rejected | PASS | 최초 실행 exit 0
+catalog-84 | S10-O04 reused request with different segment rejected | PASS | 최초 실행 exit 0
+catalog-85 | S10-O04 reused request with different channel rejected | PASS | 최초 실행 exit 0
+catalog-86 | S10-O04 reused segment with different request rejected | PASS | 최초 실행 exit 0
+catalog-87 | S10-O04 conflicts preserve original bytes | PASS | 최초 실행 exit 0
+catalog-88 | S10-O05/O06 reject and preserve corrupt | PASS | 최초 실행 exit 0
+catalog-89 | S10-O05/O06 reject and preserve unsupported-schema | PASS | 최초 실행 exit 0
+catalog-90 | S10-O05/O06 reject and preserve unsupported-type | PASS | 최초 실행 exit 0
+catalog-91 | S10-O05/O06 reject and preserve tail | PASS | 최초 실행 exit 0
+catalog-92 | S10-O05/O06 reject and preserve payload-zero | PASS | 최초 실행 exit 0
+catalog-93 | S10-O05/O06 reject and preserve payload-negative | PASS | 최초 실행 exit 0
+catalog-94 | S10-O05/O06 reject and preserve payload-fraction | PASS | 최초 실행 exit 0
+catalog-95 | S10-O05/O06 reject and preserve payload-overflow | PASS | 최초 실행 exit 0
+catalog-96 | S10-O05/O06 reject and preserve duplicate-sequence | PASS | 최초 실행 exit 0
+catalog-97 | S10-O05/O06 reject and preserve decreasing-sequence | PASS | 최초 실행 exit 0
+catalog-98 | S10-O05/O06 reject and preserve duplicate-request | PASS | 최초 실행 exit 0
+catalog-99 | S10-O05/O06 reject and preserve duplicate-segment | PASS | 최초 실행 exit 0
+catalog-100 | S10-O05/O06 reject and preserve store-conflict | PASS | 최초 실행 exit 0
+catalog-101 | S10-O05/O06 reject and preserve ordinary-before | PASS | 최초 실행 exit 0
+catalog-102 | S10-O05/O06 reject and preserve ordinary-after | PASS | 최초 실행 exit 0
+catalog-103 | S10-O05/O06 reject and preserve line-cap | PASS | 최초 실행 exit 0
+catalog-104 | S10-O05 reservation entity envelope binding rejects mismatch | PASS | 최초 실행 exit 0
+catalog-105 | S10-O05 reservation request envelope binding rejects mismatch | PASS | 최초 실행 exit 0
+catalog-106 | S10-O01 strict reservation parser accepts versioned literal | PASS | 최초 실행 exit 0
+catalog-107 | S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | PASS | 최초 실행 exit 0
+catalog-108 | S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | PASS | 최초 실행 exit 0
+catalog-109 | S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | PASS | 최초 실행 exit 0
+catalog-110 | S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | PASS | 최초 실행 exit 0
+catalog-111 | S10-O06 INT64_MAX identical retry remains valid | PASS | 최초 실행 exit 0
+catalog-112 | S10-O06 sequence overflow rejected without write | PASS | 최초 실행 exit 0
+catalog-113 | S10-O02 identical durable reservation duplicates remain idempotent | PASS | 최초 실행 exit 0
+catalog-114 | S10-O06 sequence gaps remain valid and allocate above maximum | PASS | 최초 실행 exit 0
+catalog-115 | S10-O07 four simultaneous processes finish reservations | PASS | 최초 실행 exit 0
+catalog-116 | S10-O07 concurrent sequences are unique and complete | PASS | 최초 실행 exit 0
+catalog-117 | S10-O07 next sequence follows concurrent reservations | PASS | 최초 실행 exit 0
+catalog-118 | S10-O08 ordinary Append cannot reserve orders | PASS | 최초 실행 exit 0
+catalog-119 | S10-O08 unopened journal rejected | PASS | 최초 실행 exit 0
+catalog-120 | S10-O08 null result rejected | PASS | 최초 실행 exit 0
+catalog-121 | S10-O08 invalid opaque ID rejected | PASS | 최초 실행 exit 0
+catalog-122 | S10-O08 failed reservation does not expose tentative result | PASS | 최초 실행 exit 0
+catalog-123 | S10-O09 unsafe file binding rejected and original preserved inode | PASS | 최초 실행 exit 0
+catalog-124 | S10-O09 unsafe file binding rejected and original preserved parent | PASS | 최초 실행 exit 0
+catalog-125 | S10-O09 unsafe file binding rejected and original preserved symlink | PASS | 최초 실행 exit 0
+catalog-126 | S10-O09 unsafe file binding rejected and original preserved hardlink | PASS | 최초 실행 exit 0
+catalog-127 | S10-O10 reservation and normal segment coexist in catalog | PASS | 최초 실행 exit 0
+catalog-128 | S10-O04 reserve then finalize permits identical retry | PASS | 최초 실행 exit 0
+catalog-129 | S10-O10 reservation survives catalog rebuild without changing segment query | PASS | 최초 실행 exit 0
+catalog-130 | S10-O04 legacy segment cannot acquire retroactive reservation | PASS | 최초 실행 exit 0
+catalog-131 | S10-M06 opened catalog accepts fresh exact reservation V2 finalize | PASS | 최초 실행 exit 0
+catalog-132 | S10-M07 V2 find preserves complete metadata | PASS | 최초 실행 exit 0
+catalog-133 | S10-M07 identical V2 recovery is idempotent | PASS | 최초 실행 exit 0
+catalog-134 | S10-M07 V2 is absent from V1 range query | PASS | 최초 실행 exit 0
+catalog-135 | S10-M07 V2 registered path is not orphan | PASS | 최초 실행 exit 0
+catalog-136 | S10-M07 SQLite exact V2 JSON and path match | PASS | 최초 실행 exit 0
+catalog-137 | S10-M07 JSONL restart preserves V2 exact payload | PASS | 최초 실행 exit 0
+catalog-138 | S10-M06 wrong reservation tuple rejected store | PASS | 최초 실행 exit 0
+catalog-139 | S10-M06 wrong reservation tuple rejected request | PASS | 최초 실행 exit 0
+catalog-140 | S10-M06 wrong reservation tuple rejected segment | PASS | 최초 실행 exit 0
+catalog-141 | S10-M06 wrong reservation tuple rejected channel | PASS | 최초 실행 exit 0
+catalog-142 | S10-M06 wrong reservation tuple rejected sequence | PASS | 최초 실행 exit 0
+catalog-143 | S10-M09 immutable V2 mapping mismatch rejected | PASS | 최초 실행 exit 0
+catalog-144 | S10-M09 bad V2 startup retry preserves original state bad-payload | PASS | 최초 실행 exit 0
+catalog-145 | S10-M09 bad V2 startup retry preserves original state missing-order | PASS | 최초 실행 exit 0
+catalog-146 | S10-M09 bad V2 startup retry preserves original state bad-order | PASS | 최초 실행 exit 0
+catalog-147 | S10-M09 bad V2 startup retry preserves original state conflicting-order | PASS | 최초 실행 exit 0
+catalog-148 | S10-M09 bad V2 startup retry preserves original state tail | PASS | 최초 실행 exit 0
+catalog-149 | S10-M09 bad V2 startup retry preserves original state corrupt | PASS | 최초 실행 exit 0
+catalog-150 | S10-M09 bad V2 startup retry preserves original state unsafe-path | PASS | 최초 실행 exit 0
+catalog-151 | S10-M09 default off rejects V2 before SQLite changes | PASS | 최초 실행 exit 0
+catalog-152 | S10-M09 V2 replay namespace and deletion duplicate | PASS | 최초 실행 exit 0
+catalog-153 | S10-M09 V2 replay namespace and deletion deleted | PASS | 최초 실행 exit 0
+catalog-154 | S10-M09 V2 replay namespace and deletion v1-before | PASS | 최초 실행 exit 0
+catalog-155 | S10-M09 V2 replay namespace and deletion v1-after | PASS | 최초 실행 exit 0
+catalog-156 | S10-M09 V2 replay namespace and deletion deleted-before | PASS | 최초 실행 exit 0
+catalog-157 | S10-M09 V2 replay namespace and deletion resurrection | PASS | 최초 실행 exit 0
+catalog-158 | S10-M09 V2 replay namespace and deletion mutation-collision | PASS | 최초 실행 exit 0
+catalog-159 | S10-M09 V2 finalize rejects missing media | PASS | 최초 실행 exit 0
+catalog-160 | S10-M09 V2 finalize rejects directory media | PASS | 최초 실행 exit 0
+catalog-161 | S10-M09 fresh candidate rejects mapping | PASS | 최초 실행 exit 0
+catalog-162 | S10-M09 fresh candidate rejects path | PASS | 최초 실행 exit 0
+catalog-163 | S10-M09 fresh candidate rejects tombstone | PASS | 최초 실행 exit 0
+catalog-164 | S10-SW01 managed empty root opens with lifetime lease | PASS | 최초 실행 exit 0
+catalog-165 | S10-SW02 same process second managed owner denied | PASS | 최초 실행 exit 0
+catalog-166 | S10-SW03 different process owner and inherited use denied | PASS | 최초 실행 exit 0
+catalog-167 | S10-SW12 managed duplicate descriptors are close-on-exec | PASS | 최초 실행 exit 0
+catalog-168 | S10-SW05 managed reserve append replay use owned descriptor | PASS | 최초 실행 exit 0
+catalog-169 | S10-SW06 raw managed access and legacy default path denied | PASS | 최초 실행 exit 0
+catalog-170 | S10-SW01 managed Reserve rejects different store identity | PASS | 최초 실행 exit 0
+catalog-171 | S10-SW10 catalog connection can inspect managed lease | PASS | 최초 실행 exit 0
+catalog-172 | S10-SW04 owner destruction releases lease | PASS | 최초 실행 exit 0
+catalog-173 | S10-SW01 managed reopen rejects different store identity | PASS | 최초 실행 exit 0
+catalog-174 | S10-SW11 managed incomplete tail rejects append without changing bytes | PASS | 최초 실행 exit 0
+catalog-175 | S10-SW07 legacy nonempty root preserved without conversion | PASS | 최초 실행 exit 0
+catalog-176 | S10-SW08 partial initialization retry validates exact state lease | PASS | 최초 실행 exit 0
+catalog-177 | S10-SW08 partial initialization retry validates exact state init | PASS | 최초 실행 exit 0
+catalog-178 | S10-SW08 partial initialization retry validates exact state barrier | PASS | 최초 실행 exit 0
+catalog-179 | S10-SW08 partial initialization retry validates exact state journal | PASS | 최초 실행 exit 0
+catalog-180 | S10-SW08 partial initialization retry validates exact state incomplete | PASS | 최초 실행 exit 0
+catalog-181 | S10-SW08 partial initialization retry validates exact state unknown | PASS | 최초 실행 exit 0
+catalog-182 | S10-SW09 symlink inode and malformed marker rejected journal | PASS | 최초 실행 exit 0
+catalog-183 | S10-SW09 symlink inode and malformed marker rejected marker | PASS | 최초 실행 exit 0
+catalog-184 | S10-SW09 symlink inode and malformed marker rejected barrier | PASS | 최초 실행 exit 0
+catalog-185 | S10-SW09 symlink inode and malformed marker rejected root-symlink | PASS | 최초 실행 exit 0
+catalog-186 | S10-SB01 second managed catalog is denied | PASS | 최초 실행 exit 0
+catalog-187 | S10-SB02 failed catalog cannot mutate journal or holds | PASS | 최초 실행 exit 0
+catalog-188 | S10-SB03 attached catalog blocks unowned append but permits reservation | PASS | 최초 실행 exit 0
+catalog-189 | S10-SB04 catalog destruction releases attachment | PASS | 최초 실행 exit 0
+catalog-190 | S10-SB05 managed catalog rejects unsafe options outside | PASS | 최초 실행 exit 0
+catalog-191 | S10-SB05 managed catalog rejects unsafe options dotdot | PASS | 최초 실행 exit 0
+catalog-192 | S10-SB05 managed catalog rejects unsafe options media-symlink | PASS | 최초 실행 exit 0
+catalog-193 | S10-SB05 managed catalog rejects unsafe options sqlite-symlink | PASS | 최초 실행 exit 0
+catalog-194 | S10-SB05 managed catalog rejects unsafe options sqlite-hardlink | PASS | 최초 실행 exit 0
+catalog-195 | S10-SB05 managed catalog rejects unsafe options disabled | PASS | 최초 실행 exit 0
+catalog-196 | S10-SB06 failed open releases catalog attachment | PASS | 최초 실행 exit 0
+catalog-197 | S10-SB07 managed SQLite sidecar rejected -wal symlink | PASS | 최초 실행 exit 0
+catalog-198 | S10-SB07 managed SQLite sidecar rejected -wal hardlink | PASS | 최초 실행 exit 0
+catalog-199 | S10-SB07 managed SQLite sidecar rejected -shm symlink | PASS | 최초 실행 exit 0
+catalog-200 | S10-SB07 managed SQLite sidecar rejected -shm hardlink | PASS | 최초 실행 exit 0
+catalog-201 | S10-SB07 managed SQLite sidecar rejected -journal symlink | PASS | 최초 실행 exit 0
+catalog-202 | S10-SB07 managed SQLite sidecar rejected -journal hardlink | PASS | 최초 실행 exit 0
+catalog-203 | S10-SC01 managed repeated event fixture is valid | PASS | 최초 실행 exit 0
+catalog-204 | S10-SC02 managed reservations avoid history reads | PASS | 최초 실행 exit 0
+catalog-205 | S10-SC03 managed V2 finalize avoids full replay | PASS | 최초 실행 exit 0
+catalog-206 | S10-SC04 checkpoint reduces superseded event payload bytes | PASS | 최초 실행 exit 0
+catalog-207 | S10-SC05 checkpoint preserves latest event and all record identities | PASS | 최초 실행 exit 0
+catalog-208 | S10-SC06 checkpoint is idempotent and preserves V2 | PASS | 최초 실행 exit 0
+catalog-209 | S10-SC08 receipt preserves retry identity and rejects direct append | PASS | 최초 실행 exit 0
+catalog-210 | S10-SC09 checkpoint restart preserves SQLite and JSONL state sqlite | PASS | 최초 실행 exit 0
+catalog-211 | S10-SC09 managed checkpoint SQL V2 payload and path | PASS | 최초 실행 exit 0
+catalog-212 | S10-SC09 checkpoint restart preserves SQLite and JSONL state jsonl | PASS | 최초 실행 exit 0
+catalog-213 | S10-SC10 checkpoint prefix recovers before writes | PASS | 최초 실행 exit 0
+catalog-214 | S10-SC11 checkpoint mismatch preserves bytes and poisons owner | PASS | 최초 실행 exit 0
+catalog-215 | S10-SC12 first accepted mutation controls latest event | PASS | 최초 실행 exit 0
+catalog-216 | S10-SC16 automatic checkpoint uses accumulated growth | PASS | 최초 실행 exit 0
+catalog-217 | S10-SC07 raw checkpoint is rejected | PASS | 최초 실행 exit 0
+catalog-218 | S10-SC18 checkpoint syscall failure poisons and reopens write | PASS | 최초 실행 exit 0
+catalog-219 | S10-SC21 poison rejects hold mutation write | PASS | 최초 실행 exit 0
+catalog-220 | S10-SC18 checkpoint syscall failure poisons and reopens file-fsync | PASS | 최초 실행 exit 0
+catalog-221 | S10-SC21 poison rejects hold mutation file-fsync | PASS | 최초 실행 exit 0
+catalog-222 | S10-SC18 checkpoint syscall failure poisons and reopens rename | PASS | 최초 실행 exit 0
+catalog-223 | S10-SC21 poison rejects hold mutation rename | PASS | 최초 실행 exit 0
+catalog-224 | S10-SC18 checkpoint syscall failure poisons and reopens dir-fsync | PASS | 최초 실행 exit 0
+catalog-225 | S10-SC21 poison rejects hold mutation dir-fsync | PASS | 최초 실행 exit 0
+catalog-226 | S10-SC17 checkpoint preserves holds observations and deletion | PASS | 최초 실행 exit 0
+catalog-227 | S10-SC17 checkpoint SQL hold observation tombstone | PASS | 최초 실행 exit 0
+catalog-228 | S10-SC17 checkpoint preserves holds observations and deletion restart sqlite | PASS | 최초 실행 exit 0
+catalog-229 | S10-SC17 checkpoint SQL restart observation tombstone | PASS | 최초 실행 exit 0
+catalog-230 | S10-SC17 checkpoint preserves holds observations and deletion restart jsonl | PASS | 최초 실행 exit 0
+catalog-231 | S10-SC19 invalid managed history remains unchanged malformed | PASS | 최초 실행 exit 0
+catalog-232 | S10-SC19 invalid managed history remains unchanged unsupported | PASS | 최초 실행 exit 0
+catalog-233 | S10-SC19 invalid managed history remains unchanged conflict | PASS | 최초 실행 exit 0
+catalog-234 | S10-SC20 raw catalog rejects receipt before side effects | PASS | 최초 실행 exit 0
+catalog-235 | S10-SC13 crypto off raw remains usable | PASS | 최초 실행 exit 0
+catalog-236 | S10-SC14 crypto off checkpoint is rejected | PASS | 최초 실행 exit 0
+catalog-237 | S10-SC15 crypto off receipt reopen is rejected | PASS | 최초 실행 exit 0
+catalog-238 | source 저장 callback reconcile 연결 | PASS | 최초 실행 exit 0
+catalog-239 | policy revision idempotency | PASS | 최초 실행 exit 0
+catalog-240 | 5초 safety reconcile | PASS | 최초 실행 exit 0
+catalog-241 | composition root 관리 저장소 선행 open | PASS | 최초 실행 exit 0
+catalog-242 | composition helper journal 다음 catalog rebuild/open | PASS | 최초 실행 exit 0
+catalog-243 | 서버 전 supervisor 시작 | PASS | 최초 실행 exit 0
+catalog-244 | ingress 전 event bridge 등록 | PASS | 최초 실행 exit 0
+catalog-245 | ingress 종료 뒤 recorder finalize | PASS | 최초 실행 exit 0
+catalog-246 | composition root 시작/종료 순서 | PASS | 최초 실행 exit 0
+
+[정리 전수표]
+경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거
+/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.e3AZT2 | 소유 cache fixture | 16728254 B | runner 정리 | 삭제·부재 확인 | 원출력 removed=true
+/tmp/media_server_v410_recording_catalog-39378 | 소유 catalog fixture | 26753462 B | runner 정리 | 삭제·부재 확인 | 원출력 removed=true
+
+[고정 source SHA-256]
+src/recording/recording_catalog.cpp 09ad247d036f5aa1199fa24b66180b89bf49e067995057e470b5b58b50ef6beb
+scripts/internal/recording_catalog_cost_probe_instrument.cjs d937b9f794a33efc4eed9092092fca1b4667c80adac25780c90c345003845f69
+scripts/internal/verify_recording_checkpoint_cache.sh 6b45ad7faeda2c8ac93cd027bf6353a6a32f777942f42bea668bc320e30fb346
+
+[판정 범위]
+build exit 0 → cache 46 PASS/exit 0 → catalog 246 PASS/exit 0 순서 준수. 이 실행의 최초 실패 없음.
+기존 AVC 변경은 수정하지 않고 현재 작업 트리로 빌드하였다. 공개 API/layout/저장 바이트/검증/commit 순서/캐시 상한/잠금 범위 불변.
+원본 Replay와 선택되지 않은 shadow 수명만 축소하였다. 전체 RSS 원인이나 실제 scale fixture 512 MiB 통과를 이 결과로 주장하지 않는다.
+실제 scale/앱·커밋·푸시는 담당 범위 밖으로 미실행. 중앙 문서/inventory는 메인 담당.
+[공백 검사]
+git diff --check: exit 0, 출력 없음, PASS.
+git diff --no-index --check /dev/null docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp16-lifetime-output.txt: exit 1, 출력 없음. no-index의 새 파일 차이 exit이며 공백 오류 진단 없음. 미추적 증적까지 검사하였고 EOF 빈행 없음.
+최초 결합 명령은 no-index 차이 exit 1로 끝났으며, 두 명령을 분리하여 각각 exit와 무출력을 확인했다. 테스트 실패나 예상 RED로 분류하지 않는다.

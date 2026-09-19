@@ -220,3 +220,223 @@ LP16-M03 fixture RSS | 자기/time max 688848896B | FAIL | 기능 PASS와 별도
 
 메모리 최고치가 누적32 snapshot 이후에 관측되고 catalog해제 후476659712B로 내려왔다. 복구에서 이 peak를 넘지 않았다. fixture 기대값도 생존하므로 제품 단독RSS/누수/캐시만의 원인으로 단정하지 않는다.
 검사 root199717396B 삭제/부재. 외부 GST cache 정리는 중앙기록에 추가한다. token start/end/consumed: 계수 미제공으로 미집계; elapsed53초 source=bash-SECONDS.
+
+
+=== 최소 수명 보완 후 동일 조건 비교 ===
+명령: bash scripts/internal/recording_catalog_cost_probe_run.sh scale-32-lp16-lifetime (격리 headless cache)
+원출력: catalog-cost-output-scale-32-lp16-lifetime.txt
+원문 SHA256: cb6d70807eefcda47ce73ebd0fc99ce681afbe45d8437e0b7fc72afa1484f9b0
+전체 exit2/53초. 기능173+계측1 PASS, 자원 FAIL. compiler294682624B; fixture681492480B.
+[memory-phase] {"phase":"compiler","status":"complete","exitCode":0,"signal":null,"peakRssBytes":294682624,"unit":"bytes","scope":"timed-command","fixtureLimitBytes":null,"pass":true,"stagesValid":null,"selfPeakRssBytes":null,"effectivePeakRssBytes":294682624,"outputOverflow":false,"spawnFailed":false}
+[memory] {"stage":0,"sources":0,"currentRssBytes":16465920,"peakRssBytes":16465920,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":1,"sources":0,"currentRssBytes":27574272,"peakRssBytes":27574272,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":2,"sources":0,"currentRssBytes":27574272,"peakRssBytes":27574272,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":3,"sources":0,"currentRssBytes":61800448,"peakRssBytes":63176704,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":4,"sources":0,"currentRssBytes":61816832,"peakRssBytes":63176704,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":5,"sources":0,"currentRssBytes":62160896,"peakRssBytes":63176704,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":6,"sources":1,"currentRssBytes":62177280,"peakRssBytes":63176704,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":7,"sources":1,"currentRssBytes":63733760,"peakRssBytes":63733760,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":6,"sources":16,"currentRssBytes":297402368,"peakRssBytes":297402368,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":7,"sources":16,"currentRssBytes":311050240,"peakRssBytes":311050240,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":8,"sources":16,"currentRssBytes":313638912,"peakRssBytes":313638912,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":9,"sources":16,"currentRssBytes":328925184,"peakRssBytes":328925184,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":10,"sources":16,"currentRssBytes":328925184,"peakRssBytes":328925184,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":11,"sources":16,"currentRssBytes":328925184,"peakRssBytes":328925184,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":6,"sources":32,"currentRssBytes":563200000,"peakRssBytes":563200000,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":7,"sources":32,"currentRssBytes":643465216,"peakRssBytes":643465216,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":8,"sources":32,"currentRssBytes":646103040,"peakRssBytes":646103040,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":9,"sources":32,"currentRssBytes":681492480,"peakRssBytes":681492480,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":10,"sources":32,"currentRssBytes":681492480,"peakRssBytes":681492480,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":11,"sources":32,"currentRssBytes":681492480,"peakRssBytes":681492480,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":12,"sources":32,"currentRssBytes":469303296,"peakRssBytes":681492480,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":13,"sources":32,"currentRssBytes":469303296,"peakRssBytes":681492480,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":14,"sources":32,"currentRssBytes":480673792,"peakRssBytes":681492480,"unit":"bytes","peakScope":"process-lifetime"}
+[scale-recovery] sql=1 open_us=14589655
+[memory] {"stage":15,"sources":32,"currentRssBytes":471842816,"peakRssBytes":681492480,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":16,"sources":32,"currentRssBytes":471842816,"peakRssBytes":681492480,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":17,"sources":32,"currentRssBytes":474529792,"peakRssBytes":681492480,"unit":"bytes","peakScope":"process-lifetime"}
+[scale-recovery] sql=0 open_us=7089657
+[memory] {"stage":18,"sources":32,"currentRssBytes":474529792,"peakRssBytes":681492480,"unit":"bytes","peakScope":"process-lifetime"}
+[memory] {"stage":19,"sources":32,"currentRssBytes":474529792,"peakRssBytes":681492480,"unit":"bytes","peakScope":"process-lifetime"}
+[memory-phase] {"phase":"fixture","status":"failed","exitCode":0,"signal":null,"peakRssBytes":681492480,"unit":"bytes","scope":"timed-command","fixtureLimitBytes":536870912,"pass":false,"stagesValid":true,"selfPeakRssBytes":681492480,"effectivePeakRssBytes":681492480,"outputOverflow":false,"spawnFailed":false}
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.BOWDt2 bytes=199717723 removed=true
+[exit] code=2 elapsed_seconds=53 token_usage=unavailable source=bash-SECONDS
+
+제목 | 테스트내용 | pass/fail | 비고
+FC01 exact insertion checks count=95 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+actual4096 FE02 writer start | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+actual4096 FE04 bound finalized mutation segment0 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+actual4096 LP02 actual4096 prerequisite | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit1 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit1 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit1 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit2 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit2 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit2 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit3 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit3 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit3 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit4 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit4 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit4 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit5 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit5 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit5 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit6 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit6 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit6 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit7 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit7 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit7 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit8 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit8 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit8 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit9 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit9 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit9 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit10 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit10 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit10 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit11 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit11 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit11 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit12 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit12 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit12 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit13 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit13 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit13 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit14 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit14 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit14 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit15 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit15 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit15 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit16 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit16 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit16 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/sources16 snapshot exact count | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/sources16 explicit checkpoint | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/sources16 reservation and bound mutation count | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit17 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit17 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit17 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit18 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit18 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit18 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit19 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit19 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit19 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit20 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit20 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit20 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit21 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit21 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit21 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit22 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit22 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit22 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit23 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit23 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit23 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit24 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit24 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit24 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit25 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit25 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit25 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit26 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit26 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit26 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit27 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit27 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit27 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit28 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit28 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit28 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit29 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit29 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit29 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit30 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit30 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit30 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit31 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit31 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit31 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit32 reserve | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit32 actual file outside catalog | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/commit32 commit  | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/sources32 snapshot exact count | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/sources32 explicit checkpoint | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/sources32 reservation and bound mutation count | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 journal reopen | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 catalog reopen | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-0 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-1 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-2 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-3 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-4 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-5 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-6 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-7 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-8 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-9 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-10 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-11 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-12 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-13 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-14 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-15 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-16 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-17 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-18 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-19 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-20 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-21 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-22 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-23 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-24 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-25 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-26 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-27 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-28 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-29 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-30 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql1 exact source scale-31 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 journal reopen | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 catalog reopen | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-0 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-1 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-2 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-3 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-4 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-5 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-6 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-7 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-8 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-9 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-10 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-11 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-12 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-13 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-14 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-15 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-16 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-17 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-18 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-19 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-20 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-21 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-22 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-23 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-24 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-25 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-26 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-27 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-28 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-29 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-30 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP02/recovery/sql0 exact source scale-31 | 수명 보완 후 동일 assertion | PASS | 두 번째 비교 실행
+LP16-M03 fixture RSS | 자기/time max 681492480B | FAIL | 기준536870912B 유지
+
+판정: 단일 전후 관측 688848896→681492480B(-7356416B,약7MiB). 반복분포가 없어 이 차이 전체를 보완의 인과효과로 단정하지 않는다. 최소 수명 보완은 회귀 통과했지만 자원 합격 기준을 만족시키지 못했다. 추가 추정 최적화/실제앱/푸시를 진행하지 않는다. 기존 fixture 기대값·snapshot과 제품보관/allocator 잔류의 귀속은 아직 분리되지 않았다.
