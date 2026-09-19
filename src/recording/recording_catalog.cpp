@@ -12,6 +12,7 @@
 #include <fstream>
 #include <limits>
 #include <sstream>
+#include <stdexcept>
 
 #if defined(__APPLE__) || defined(__linux__)
 #include <fcntl.h>
@@ -357,8 +358,8 @@ bool RecordingCatalog::UpdateDerivedJob(const void* owner,const DerivedJobRecord
     if(!owner||derived_service_owner_!=owner||!opened_||!CanWriteLocked(error))return Fail(error,"derived service 소유권/원장 거부");
     const auto payload=SerializeDerivedJobRecord(record);
     const auto found=derived_jobs_.find(record.intent.job_id);
-    if(payload.empty()||found==derived_jobs_.end())return Fail(error,"derived service record 거부");
-    if(SerializeDerivedJobRecord(found->second)==payload)return true;
+    if(payload.empty()||found==derived_jobs_.end()||!found->second)return Fail(error,"derived service record 거부");
+    if(SerializeDerivedJobRecord(*found->second)==payload)return true;
     RecordingMutationV1 mutation;mutation.entity_id=record.intent.job_id;mutation.payload_json=payload;
     switch(record.state) {
         case DerivedJobState::Intent:mutation.mutation_type=RecordingMutationType::DerivedJobFiles;break;
@@ -392,14 +393,14 @@ bool RecordingCatalog::FindDerivedJob(const std::string& id,
     if(result)result->reset();
     if(!result||!opened_||!derived_job_state_authoritative_||!CanWriteLocked(error))return Fail(error,"derived job snapshot 미확인");
     const auto found=derived_jobs_.find(id);
-    if(found!=derived_jobs_.end())*result=found->second;
+    if(found!=derived_jobs_.end()){if(!found->second)return Fail(error,"derived null job 거부");*result=*found->second;}
     if(error)error->clear();return true;
 }
 bool RecordingCatalog::SnapshotDerivedJobs(std::vector<DerivedJobRecordV1>* result,std::string* error) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     if(result)result->clear();
     if(!result||!opened_||!derived_job_state_authoritative_||!CanWriteLocked(error))return Fail(error,"derived job snapshot 미확인");
-    for(const auto& [_,job]:derived_jobs_)result->push_back(job);
+    for(const auto& [_,job]:derived_jobs_){if(!job){result->clear();return Fail(error,"derived null job 거부");}result->push_back(*job);}
     std::sort(result->begin(),result->end(),[](const auto& a,const auto& b){return a.intent.job_id<b.intent.job_id;});
     if(error)error->clear();return true;
 }
@@ -407,18 +408,18 @@ bool RecordingCatalog::SnapshotActiveDerivedJobs(std::size_t limit,std::vector<D
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     if(result)result->clear();if(more)*more=false;
     if(!result||!more||limit==0||limit>8||!opened_||!derived_job_state_authoritative_||!CanWriteLocked(error))return Fail(error,"derived active snapshot 미확인/상한");
-    for(const auto& [_,job]:derived_jobs_)if(DerivedJobActive(job)){
+    for(const auto& [_,job]:derived_jobs_){if(!job){result->clear();*more=false;return Fail(error,"derived null job 거부");}if(DerivedJobActive(*job)){
         if(result->size()==limit){*more=true;break;}
-        result->push_back(job);
-    }
+        result->push_back(*job);
+    }}
     if(error)error->clear();return true;
 }
 bool RecordingCatalog::DerivedJobProtectsLocked(const std::string& id) const {
     for(const auto& [_,lease]:derived_wait_leases_)if(lease.source_ids.count(id))return true;
-    for(const auto& [_,job]:derived_jobs_)if(DerivedJobActive(job)) {
-        for(const auto& source:job.intent.sources)if(source.segment.segment_id==id)return true;
-        for(const auto& output:job.intent.outputs)if(output.output_id==id)return true;
-    }
+    for(const auto& [_,job]:derived_jobs_){if(!job)return true;if(DerivedJobActive(*job)) {
+        for(const auto& source:job->intent.sources)if(source.segment.segment_id==id)return true;
+        for(const auto& output:job->intent.outputs)if(output.output_id==id)return true;
+    }}
     return false;
 }
 bool RecordingCatalog::ValidateDerivedJobSourcesLocked(const DerivedJobIntentV1& job,std::string* error) const {
@@ -454,23 +455,30 @@ bool RecordingCatalog::PreparedDerivedMatchesLocked(const RecordingMutationV1& m
        prepared.entity!=mutation.entity_id||prepared.payload!=mutation.payload_json)
         return Fail(error,"derived prepared mutation 결박 거부");
     const auto old=derived_jobs_.find(mutation.entity_id);
-    if(old==derived_jobs_.end()||(!applied&&(&old->second!=prepared.prior||old->second.state!=prepared.prior_state||old->second.files.size()!=prepared.prior_files))||
-       (applied && &old->second!=prepared.applied))return Fail(error,"derived prepared prior 결박 거부");
+    if(old==derived_jobs_.end()||!old->second||(!applied&&(old->second!=prepared.prior||old->second->state!=prepared.prior_state||old->second->files.size()!=prepared.prior_files))||
+       (applied && old->second!=prepared.applied))return Fail(error,"derived prepared prior 결박 거부");
     return true;
 }
-bool RecordingCatalog::ApplyDerivedJobMutationLocked(const RecordingMutationV1& mutation,std::string* error,bool apply,PreparedDerivedMutation* prepared) {
+RecordingCatalog::DerivedJobHandle RecordingCatalog::ShareValidatedJob(DerivedJobRecordV1 record,const DerivedJobPool* pool) {
+    if(pool){
+        const auto found=pool->find(record.intent.job_id);
+        if(found!=pool->end()&&found->second&&SerializeDerivedJobRecord(*found->second)==SerializeDerivedJobRecord(record))return found->second;
+    }
+    return std::make_shared<const DerivedJobRecordV1>(std::move(record));
+}
+bool RecordingCatalog::ApplyDerivedJobMutationLocked(const RecordingMutationV1& mutation,std::string* error,bool apply,PreparedDerivedMutation* prepared,const DerivedJobPool* job_pool) {
     recording::latency::Scope latency_scope(recording::latency::Operation::ApplyJob,recording::latency::Source::Catalog,__LINE__,false);
     if(prepared&&apply){
         if(!prepared->record||!PreparedDerivedMatchesLocked(mutation,*prepared,false,error))return false;
-        auto& record=*prepared->record;
+        const auto& record=*prepared->record;
         // 검증 이후 AppendOwned는 catalog 상태를 변경하거나 외부 callback을 호출하지 않는다.
         // 같은 mu_ 소유 안에서 기존 transition 검증 결과를 단 한 번 소비한다.
         prepared->phase=PreparedDerivedMutation::Phase::Consumed;
         if(mutation.mutation_type==RecordingMutationType::DerivedJobCommitted)for(std::size_t i=0;i<record.ready->outputs.size();++i){
             const auto& s=record.ready->outputs[i].segment;segments_v2_.emplace(s.segment_id,s);media_relpaths_[s.segment_id]=record.intent.outputs[i].final_relpath;
         }
-        auto& destination=derived_jobs_.find(mutation.entity_id)->second;destination=std::move(record);
-        prepared->record.reset();prepared->applied=&destination;prepared->phase=PreparedDerivedMutation::Phase::Applied;
+        auto& destination=derived_jobs_.find(mutation.entity_id)->second;destination=std::move(prepared->record);
+        prepared->applied=destination;prepared->phase=PreparedDerivedMutation::Phase::Applied;
         return true;
     }
     if(prepared&&(prepared->phase!=PreparedDerivedMutation::Phase::Empty||prepared->owner!=this||prepared->payload!=mutation.payload_json))
@@ -492,9 +500,10 @@ bool RecordingCatalog::ApplyDerivedJobMutationLocked(const RecordingMutationV1& 
     if(old==derived_jobs_.end()) {
         if(!initial||!record.files.empty()||record.ready||!ValidateDerivedJobSourcesLocked(record.intent,error))
             return Fail(error,"derived job 최초 전이 거부");
-        if(apply)derived_jobs_.emplace(mutation.entity_id,std::move(record));return true;
+        if(apply)derived_jobs_.emplace(mutation.entity_id,ShareValidatedJob(std::move(record),job_pool));return true;
     }
-    const auto& prior=old->second;
+    if(!old->second)return Fail(error,"derived null prior 거부");
+    const auto& prior=*old->second;
     if(SerializeDerivedJobIntent(prior.intent)!=SerializeDerivedJobIntent(record.intent))return Fail(error,"derived job immutable 충돌");
     if(SerializeDerivedJobRecord(prior)==SerializeDerivedJobRecord(record))return true;
     if(initial)return Fail(error,"derived job Intent 재기록 충돌");
@@ -523,26 +532,28 @@ bool RecordingCatalog::ApplyDerivedJobMutationLocked(const RecordingMutationV1& 
         }
     }
     if(!apply){
-        if(prepared){prepared->type=type;prepared->entity=mutation.entity_id;prepared->prior=&prior;prepared->prior_state=prior.state;prepared->prior_files=prior.files.size();prepared->record=std::move(record);prepared->phase=PreparedDerivedMutation::Phase::Validated;}
+        if(prepared){prepared->type=type;prepared->entity=mutation.entity_id;prepared->prior=old->second;prepared->prior_state=prior.state;prepared->prior_files=prior.files.size();prepared->record=std::make_shared<const DerivedJobRecordV1>(std::move(record));prepared->phase=PreparedDerivedMutation::Phase::Validated;}
         return true;
     }
+    const auto published=ShareValidatedJob(std::move(record),job_pool);
     if(committed) {
         // 하나의 mutation 아래 전체 결과와 provenance/job state를 함께 적용한다.
-        for(std::size_t i=0;i<record.ready->outputs.size();++i) {
-            const auto& s=record.ready->outputs[i].segment;
+        for(std::size_t i=0;i<published->ready->outputs.size();++i) {
+            const auto& s=published->ready->outputs[i].segment;
             segments_v2_.emplace(s.segment_id,s);
-            media_relpaths_[s.segment_id]=record.intent.outputs[i].final_relpath;
+            media_relpaths_[s.segment_id]=published->intent.outputs[i].final_relpath;
         }
     }
-    old->second=std::move(record);return true;
+    old->second=published;return true;
 }
 bool RecordingCatalog::BeginDerivedJobIntent(const DerivedJobIntentV1& value,bool* inserted,std::string* error) {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);if(inserted)*inserted=false;
     if(!opened_||!journal_.managed_||!derived_job_state_authoritative_||!CanWriteLocked(error)||!ValidateDerivedJobIntent(value,error))return false;
     const auto old=derived_jobs_.find(value.job_id);
     if(old!=derived_jobs_.end()) {
-        auto same=value;same.created_at_ms=old->second.intent.created_at_ms;
-        if(SerializeDerivedJobIntent(same)!=SerializeDerivedJobIntent(old->second.intent))return Fail(error,"derived job immutable 충돌");
+        if(!old->second)return Fail(error,"derived null job 거부");
+        auto same=value;same.created_at_ms=old->second->intent.created_at_ms;
+        if(SerializeDerivedJobIntent(same)!=SerializeDerivedJobIntent(old->second->intent))return Fail(error,"derived job immutable 충돌");
         if(error)error->clear();return true;
     }
     if(!ValidateDerivedJobSourcesLocked(value,error))return false;
@@ -559,12 +570,12 @@ bool RecordingCatalog::FailDerivedJobAfterCleanup(const std::string& id,const st
     if(derived_service_owner_)return Fail(error,"derived service 실행 소유 중 외부 terminal release 거부");
     if(!opened_||!derived_job_state_authoritative_||!CanWriteLocked(error))return Fail(error,"derived job cleanup snapshot 미확인");
     const auto found=derived_jobs_.find(id);
-    if(found==derived_jobs_.end()||found->second.intent.attempt_id!=attempt)return Fail(error,"derived job cleanup 소유권 거부");
-    auto record=found->second;record.state=DerivedJobState::Failed;record.failure_reason=reason;record.cleaned_at_ms=cleaned;
+    if(found==derived_jobs_.end()||!found->second||found->second->intent.attempt_id!=attempt)return Fail(error,"derived job cleanup 소유권 거부");
+    auto record=*found->second;record.state=DerivedJobState::Failed;record.failure_reason=reason;record.cleaned_at_ms=cleaned;
     const auto payload=SerializeDerivedJobRecord(record);
     if(payload.empty())return Fail(error,"derived job cleanup payload 거부");
-    if(found->second.state==DerivedJobState::Failed)return SerializeDerivedJobRecord(found->second)==payload;
-    if(found->second.state!=DerivedJobState::Intent)return Fail(error,"derived job cleanup 전이 거부");
+    if(found->second->state==DerivedJobState::Failed)return SerializeDerivedJobRecord(*found->second)==payload;
+    if(found->second->state!=DerivedJobState::Intent)return Fail(error,"derived job cleanup 전이 거부");
     RecordingMutationV1 mutation;mutation.mutation_type=RecordingMutationType::DerivedJobFailed;mutation.entity_id=id;mutation.payload_json=payload;
     if(!AppendAndApplyLocked(std::move(mutation),error)){derived_job_state_authoritative_=false;return false;}return true;
 }
@@ -578,7 +589,7 @@ std::vector<std::string> RecordingCatalog::ProjectionSignatureLocked() const {
     for(const auto& [id,v]:segments_)add("v1",id,SerializeRecordingSegmentV1(v));
     for(const auto& [id,v]:segments_v2_)add("v2",id,SerializeRecordingSegmentV2(v));
     for(const auto& [id,v]:source_bindings_)add("source-binding",id,v?SerializeRecordingSourceBindingV1(*v):std::string());
-    for(const auto& [id,v]:derived_jobs_)add("derived-job",id,SerializeDerivedJobRecord(v));
+    for(const auto& [id,v]:derived_jobs_){if(!v)throw std::runtime_error("derived null projection");add("derived-job",id,SerializeDerivedJobRecord(*v));}
     for(const auto& [id,v]:consumer_references_)add("consumer-reference",id,SerializeRecordingConsumerReferenceV1(v));
     for(const auto& id:derived_accepted_references_)add("derived-reference-accepted",id,id);
     for(const auto& [id,v]:referenced_observations_)add("referenced-observation",id,SerializeReferencedObservationV1(v));
@@ -617,14 +628,14 @@ bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error) {
         before=reuse?std::move(cached->shadow):std::make_unique<RecordingCatalog>(journal_,options_);
         cached.reset();
         for(std::size_t i=first;i<original.size();++i)
-            if(!before->ApplyMutationLocked(*original[i],false,error,nullptr,original[i],&source_bindings_))return false;
+            if(!before->ApplyMutationLocked(*original[i],false,error,nullptr,original[i],&source_bindings_,&derived_jobs_))return false;
         identical=detail::SameCheckpointSequence(original,candidate);
     } // 원본 핸들 vector는 이후 후보 검증/commit에 필요하지 않다.
     // 변경 후보는 전체 semantic replay와 양쪽 projection 비교를 유지한다.
     std::unique_ptr<RecordingCatalog> after;
     if(!identical){
         after=std::make_unique<RecordingCatalog>(journal_,options_);
-        for(const auto& m:candidate)if(!m||!after->ApplyMutationLocked(*m,false,error,nullptr,m,&source_bindings_))return false;
+        for(const auto& m:candidate)if(!m||!after->ApplyMutationLocked(*m,false,error,nullptr,m,&source_bindings_,&derived_jobs_))return false;
         if(before->ProjectionSignatureLocked()!=after->ProjectionSignatureLocked())return Fail(error,"checkpoint 투영 불일치");
     }
     // original 초과는 full 검증, compact candidate가 상한 내이면 다음 호출용 보관 가능.
@@ -847,7 +858,7 @@ bool RecordingCatalog::RecoverWriterCleanupMarkersLocked(std::string* error) {
 bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                                            bool count_duplicate,
                                            std::string* error,PreparedDerivedMutation* prepared,RecordingMutationHandle owned,
-                                           const SourceBindingPool* binding_pool) {
+                                           const SourceBindingPool* binding_pool,const DerivedJobPool* job_pool) {
     // 소유 주소는 검증 증명이 아니다. schema/enum을 포함한 원래 모든 필드를 확인한다.
     if(owned&&(owned->schema!=mutation.schema||owned->mutation_type!=mutation.mutation_type||
        owned->mutation_id!=mutation.mutation_id||owned->entity_id!=mutation.entity_id||
@@ -884,7 +895,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
         case RecordingMutationType::DerivedJobCommitted:
         case RecordingMutationType::DerivedJobComplete:
         case RecordingMutationType::DerivedJobFailed:
-            ok=ApplyDerivedJobMutationLocked(mutation,error,true,prepared);
+            ok=ApplyDerivedJobMutationLocked(mutation,error,true,prepared,job_pool);
             break;
         case RecordingMutationType::ReferencedObservationPut: {
             ReferencedObservationV1 pair;
@@ -1397,11 +1408,11 @@ bool RecordingCatalog::MediaV2EligibleLocked(const std::string& channel,const st
     const DerivedJobRecordV1* owner=nullptr;
     const DerivedJobReadyOutputV1* output=nullptr;
     std::size_t index=0;
-    for(const auto& entry:derived_jobs_)for(std::size_t i=0;i<entry.second.intent.outputs.size();++i){
-        if(entry.second.intent.outputs[i].output_id!=id)continue;
+    for(const auto& entry:derived_jobs_){if(!entry.second)return false;for(std::size_t i=0;i<entry.second->intent.outputs.size();++i){
+        if(entry.second->intent.outputs[i].output_id!=id)continue;
         if(owner)return false;
-        owner=&entry.second;index=i;
-    }
+        owner=entry.second.get();index=i;
+    }}
     if(!owner||owner->state!=DerivedJobState::Complete||!owner->ready||!owner->ready->verified_output||
        index>=owner->ready->outputs.size()||index>=owner->intent.sources.size())return false;
     output=&owner->ready->outputs[index];
@@ -1960,8 +1971,9 @@ bool RecordingCatalog::RefreshDerivedWaitLeaseForIntent(const DerivedJobIntentV1
         return Fail(error,"derived wait intent lease mismatch");
     const auto existing=derived_jobs_.find(intent.job_id);
     if(existing!=derived_jobs_.end()) {
-        auto same=intent;same.created_at_ms=existing->second.intent.created_at_ms;
-        if(SerializeDerivedJobIntent(same)!=SerializeDerivedJobIntent(existing->second.intent))return Fail(error,"derived wait intent conflict");
+        if(!existing->second)return Fail(error,"derived null job 거부");
+        auto same=intent;same.created_at_ms=existing->second->intent.created_at_ms;
+        if(SerializeDerivedJobIntent(same)!=SerializeDerivedJobIntent(existing->second->intent))return Fail(error,"derived wait intent conflict");
     } else if(!ValidateDerivedJobSourcesLocked(intent,error))return false;
     auto ids=found->second.source_ids;
     for(const auto& source:intent.sources)ids.insert(source.segment.segment_id);
@@ -2035,14 +2047,14 @@ bool RecordingCatalog::QueryDerivedReferenceResult(const std::string& id,
     if(!result||!opened_||!options_.enable_v2_storage||!CanWriteLocked(error)||!ValidateOpaqueId(id,error))
         return Fail(error,"derived reference result 조회 상태/입력 거부");
     result->managed=derived_accepted_references_.count(id)!=0;
-    std::vector<const DerivedJobRecordV1*> selected;
-    for(const auto& [_,job]:derived_jobs_)if(job.intent.reference.reference_id==id) {
+    std::vector<DerivedJobHandle> selected;
+    for(const auto& [_,job]:derived_jobs_){if(!job){*result={};return Fail(error,"derived null job 거부");}if(job->intent.reference.reference_id==id) {
         result->managed=true;
-        selected.push_back(&job);
-        std::sort(selected.begin(),selected.end(),[](const auto* a,const auto* b){return a->intent.job_id<b->intent.job_id;});
+        selected.push_back(job);
+        std::sort(selected.begin(),selected.end(),[](const auto& a,const auto& b){return a->intent.job_id<b->intent.job_id;});
         if(selected.size()>8) {result->truncated=true;selected.pop_back();}
-    }
-    for(const auto* job:selected) {
+    }}
+    for(const auto& job:selected) {
         RecordingDerivedReferenceJob item;
         item.job=*job;
         if(job->ready)for(const auto& output:job->ready->outputs) {
@@ -2227,7 +2239,7 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshot() const {
     struct RetentionSnapshot snapshot;
     snapshot.authoritative=opened_&&derived_job_state_authoritative_&&CanWriteLocked(nullptr);
     if(!snapshot.authoritative)snapshot.error="catalog reservation snapshot 미확인";
-    for(const auto& [id,job]:derived_jobs_)if(DerivedJobActive(job))snapshot.durable_reservations.push_back({id,job.intent.reference.channel_id,job.intent.reserved_bytes});
+    for(const auto& [id,job]:derived_jobs_){if(!job){snapshot.authoritative=false;snapshot.error="derived null reservation";snapshot.durable_reservations.clear();return snapshot;}if(DerivedJobActive(*job))snapshot.durable_reservations.push_back({id,job->intent.reference.channel_id,job->intent.reserved_bytes});}
     for(const auto& [id,v]:segments_v2_) {
         const auto lifecycle=EffectiveLifecycleV2Locked(id);
         const auto path=media_relpaths_.find(id);

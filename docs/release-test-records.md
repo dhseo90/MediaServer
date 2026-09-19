@@ -12,6 +12,131 @@
 정상 append에 전체 원장 검색을 추가하지 않는다. managed Open은 한 snapshot의 값과 handle을 사용하고 일시 Replay 값 사본은 남긴다.
 단일 Astra/medium 담당자는 제품/fixture/계측 adapter, 메인은 문서/runner/실행/직접 검토를 맡으며 하위 생성은 금지했다.
 
+### 2번 typed job 소유 사전등록
+
+binding 공유는 `ee8c4a6f`로 커밋했고 시작 상태는 clean/ahead18이다. 같은 단일 Astra/medium 담당자가 테스트 초안을 작성하며
+메인은 계약/문서/runner/실행/직접 검토를 맡는다. 제품 구현 전 RED의 정확 assertion·개수를 추가한 뒤 실행한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-J01 | 현재 record 소유 | live/shadow 최종 job 주소 공유. historical Files/Ready를 Complete로 치환하지 않음 | v4.1.0 |
+| LP18-J02 | Prepared 수명 | 후보 소유 그대로 현재 슬롯에 게시, prior는 이전 canonical 값 유지, applied는 SQL 경계까지 생존 | v4.1.0 |
+| LP18-J03 | 외부/오류 | Find/Snapshot 변조 격리, 같은 owner·phase·payload·현재 prior 검사, 한 번 사용·실패 미게시 | v4.1.0 |
+| LP18-J04 | 복구/소비 | strict full replay·SQL/JSONL·Ready/Complete/보호/재생/timeline 실제 oracle. 합격은 검증 실행 뒤 판단 | v4.1.0 |
+
+공개 구조/저장 포맷/전이 조건/coverage 정책은 바꾸지 않는다. Prepared는 live의 같은 mutex 호출만 소유하며 shadow로 넘기지 않는다.
+shadow 공유는 해당 입력을 엄격히 parse/전이 검증한 뒤 새 적용 ID의 현재 live canonical이 같은 경우만 한다.
+과거 이력마다 typed record를 보관하거나 전체 map 추가 비교는 하지 않는다. pool이 부적합하면 독립 strict 입력으로 복귀한다.
+header map 표현이 바뀌면 timeline을 포함한 전체 archive를 새로 build한 뒤 GREEN/회귀를 실행한다. 구형 archive 링크를 ABI 통과로 쓰지 않는다.
+기존 기본34/accepted55/binding77 검사 의미는 유지하며 이번 job focused에는 필요한 최소 fixture만 사용한다.
+정확 회귀 명령/검사·cleanup은 초안 연결 뒤 실행 전 추가한다. 실제 HTTP·장시간/UI·푸시는 아직 실행하지 않는다.
+
+job 회귀 실행 준비의 직접 확인: service/timeline/media/retention verifier가 공통 GST 환경의 기본 repository cache를 사용할 수 있었다.
+이번 실행 전 네 runner를 기존 소유 RUN_DIR의 headless cache/registry로 결박한다. 제품·필수 factory·판정/상한은 바꾸지 않는다.
+현재 repository cache를 삭제하지 않으며 새 실행 산출물만 기존 runner trap의 정리 대상으로 둔다.
+실행 전 `bash -n`으로 변경 runner 네 개 구문 검사하고, 이후 실제 해당 회귀의 종료/정리 출력으로 동작을 확인한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-J04 runner 격리 준비 | `bash -n` 대상 service/public_timeline/public_media/retention_v2 네 runner | 환경 적용을 trap 설정 뒤 수행, headless·registry/cache 경로 소유 root 결박, inherited plugin 경로 제외 | v4.1.0 |
+| LP18-J03 prepared | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_derived_transition_reuse.sh` | 기존11개 prior/owner/phase/payload·한 번 적용·canonical/SQL. handle 형식 적응 시 의미 유지 | v4.1.0 |
+| LP18-J04 jobs | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_derived_jobs.sh` | 계약/보호/예약·경쟁·cleanup·재open·strict 입력 전체 | v4.1.0 |
+| LP18-J04 validation | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_derived_job_validation.sh` | 기존 literal canonical/hash·native 증거·입력 손상 거부. 별도 performance-budget은 이번 호출하지 않음 | v4.1.0 |
+| LP18-J04 service | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_derived_job_service.sh` | 실제 Ready/Committed/Complete·출력 hash·중단 복구·보호 해제 | v4.1.0 |
+| LP18-J03 public timeline | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_public_timeline.sh` | job owner/coverage/reference 상태와 순서, 공개 값·시간 의미 | v4.1.0 |
+| LP18-J03 public media | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_public_media.sh` | Complete 출력·삭제 원본·권한/보호·손상/미확정 거부. fixture/API이며 UI 아님 | v4.1.0 |
+| LP18-J03 retention | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_retention_v2.sh` | GST on/off 보존·재생/삭제 경쟁과 보호의 기존 전수 검사 | v4.1.0 |
+| LP18-J04 cache/catalog | 기존 verify_recording_checkpoint_cache.sh와 verify_v410_recording_catalog.sh | 47/246개 strict/full fallback·전이·원장/SQL 복구 의미 유지 | v4.1.0 |
+| LP18-J01 소유 계측 | `node scripts/internal/recording_catalog_comparison_run.mjs jobs lp18-job-01` | 실제2-job B/C 입력 동등·current/shadow·파일/정리. 다음 3~5 단계 전체 비용 판정과 구분 | v4.1.0 |
+
+GREEN 뒤 실행 순서: prepared → jobs → validation → service → timeline → media → retention → cache/catalog → 2-job 계측이다.
+상품질 변경 없이 소유 표현을 바꾸므로 media streaming/codec/WebRTC 경로는 비대상이며 위 media는 녹화 제공 자격의 직접 영향 검사다.
+전체 build는 GREEN 앞에, 실패 시 다음 명령은 실행하지 않는다. 모든 개별 assertion/exit/정리를 보존한다.
+
+job focused exact 사전등록: `node scripts/internal/verify_recording_immutable_ownership.mjs red job-01 job`.
+encoder 없는 기존 선택/Intent→Failed fixture, 총13개. RED10PASS/3FAIL, GREEN13PASS/0FAIL.
+정확 FAIL은 순서대로 `LP18-J02 validated record is published as the same owned object`,
+`LP18-J02 Prepared prior retains pre-publication canonical value`, `LP18-J01 checkpoint shares current live job object`다.
+나머지10개는 initial canonical/protection, Find 값 독립, full/active snapshot 독립, foreign Prepared owner 거부,
+Consumed 재사용 거부, terminal 전이 거부/bytes, 보호/service owner 해제, 원장 bytes·record 왕복,
+SQLite 및 JSONL 재open terminal canonical/release다. 세 소유 조건 외 실패는 예상 RED가 아니다.
+job 빌드는 catalog/journal/timeline 현재 소스를 직접 컴파일해 representation mismatch를 막고, 기존 runner 상한/정리를 유지한다.
+앞선 runner 격리 구문 검사는 네 `bash -n` 각각 exit0, 실행 임시물 없음(도구 시간 약0.01초)이다. 실제 회귀는 아직 실행하지 않았다.
+
+job RED 실제 결과: build exit0/2890ms, focused exit1/693ms로 정확한 10PASS/3FAIL이 일치했다.
+runner exit0/3598ms는 예상 RED 확인이며 제품 PASS가 아니다. source 불변·프로세스 그룹 종료·소유 root6155212B 삭제를 확인했다.
+원출력은 `lp18-ownership-red-job-01.txt`에 보존했다. 제품 구현 및 새 private 경계 반례를 같은 담당자가 작성 중이다.
+기존13개는 유지하고 새 반례의 정확한 항목·GREEN 개수를 실행 전에 등록한다.
+
+job GREEN 실행 전 추가11개를 등록하며 최종 oracle는 24PASS/0FAIL이다. 기존 RED의 13개 결과는 바꾸지 않는다.
+focused의 historical 상태는 실제 Intent→Failed이며, Files/Ready→Complete는 실제 서비스/cache/2-job 회귀로 확인한다.
+가짜 Complete record를 만들어 허용하지 않는다. 조회/비교 계측은 소유 source 복제본에만 exact insertion한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-J03 null job pool uses independent strict value | null 풀 값 | strict 정상 적용·독립 handle·전체 canonical 일치 | v4.1.0 |
+| LP18-J03 different-content job pool uses independent strict value | 같은 ID 다른 값 | 입력과 다른 최적화 값을 거부하고 독립 strict 경로 | v4.1.0 |
+| LP18-J03 different-id job pool uses independent strict value | 다른 ID 풀 | 다른 작업 참조로 대신하지 않음 | v4.1.0 |
+| LP18-J02 equal-content replacement invalidates Prepared prior ownership | prior 교체 | canonical이 같아도 현재 owner 슬롯이 바뀌면 Prepared 거부 | v4.1.0 |
+| LP18-J01 shared job survives pool owner destruction | owner 수명 | 원 소유 catalog 파괴 후 공유 객체 생존·canonical 유지 | v4.1.0 |
+| LP18-J01 no-op checkpoint preserves job handles without pool comparisons | 변경 없는 checkpoint | pool 조회/비교0·양쪽 handle 유지 | v4.1.0 |
+| LP18-J01 newly applied job compares only matching current pool entry | 신규 적용 job | 해당 ID 조회/비교 각1·현재 객체 공유 | v4.1.0 |
+| LP18-J01 duplicate job mutation performs no pool comparison | 중복 mutation | pool 조회/비교0 | v4.1.0 |
+| LP18-J03 latest terminal pool cannot replace historical Intent | 과거 상태 보존 | terminal live 풀로 과거 Intent를 치환하지 않음 | v4.1.0 |
+| LP18-J03 matching job pool cannot bypass strict state validation | strict 거부 | 유효 풀이 있어도 mutation/state 모순을 거부 | v4.1.0 |
+| LP18-J03 null resident job rejects snapshots and retention authority | null 내부 값 | snapshot·retention authority 거부 및 보호의 보수적 유지 | v4.1.0 |
+
+### typed job 공유 구현·최종 결과
+
+메인이 제품/runner/계측 diff와 실제 원출력을 직접 대조했다. `derived_jobs_`의 현재값과 Prepared의 prior/record/applied는
+const 소유 handle이다. 검증한 후보는 한 번 게시되고 SQL projection까지 생존한다. checkpoint는 strict parse·자체 전이
+검증 뒤 새 적용 ID의 전체 canonical이 같은 경우만 live와 공유한다. historical 상태와 public 독립 값은 유지했다.
+catalog/timeline/재생/보존의 직접 소비를 연결했고 null 내부값은 거부 또는 보호 우선이다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| job 전체 build | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build`, exit0 | PASS | elapsed 미집계. polling 상태 저장 helper 오류는 보존된 chunk를 다시 읽어 복원, build 재실행/출력 유실 없음 |
+| job focused | green job-01, exit0/3723ms | PASS | 24개, build2954ms/focused753ms. 최초 RED10/3 보존 |
+| job prepared | verify_recording_derived_transition_reuse.sh, exit0/5초 | PASS | 11개, owner/prior/phase·SQL/canonical·실제2출력 |
+| job 계약 | verify_recording_derived_jobs.sh, exit0/8초 | PASS | 23개, 보호·예약·동시 전이·재open |
+| job validation | verify_recording_derived_job_validation.sh, exit0 | PASS | 11개, literal hash/strict 거부. 별도 performance-budget 미실행 |
+| job service | verify_recording_derived_job_service.sh, exit0/26초 | PASS | 기본43개, 실제 파일/중단 복구/Complete·SQLite/JSONL. closing/budget 별도 그룹은 미실행 |
+| job timeline | verify_recording_public_timeline.sh, exit0/9초 | PASS | 38개. 실제 브라우저 아님 |
+| job media | verify_recording_public_media.sh, exit0/3초 | PASS | 46개. partial 제공/권한/원본 삭제·파일 손상/hold |
+| job retention | verify_recording_retention_v2.sh, exit0/15초 | PASS | GST1 22개/GST0 2개 |
+| job cache | verify_recording_checkpoint_cache.sh, exit0/36초 | PASS | 47개, peak164823040B/536870912B. 전이 잠금 max2453474us는 관측값이며 HTTP 합격 아님 |
+| job catalog | verify_v410_recording_catalog.sh, exit0 | PASS | 246개. trailing whitespace 원출력은 JSON 행으로 무손실 보존 |
+| job 비교 | jobs lp18-job-01, exit0/31761ms | PASS | 실제2-job B/C 각각60개+계측1, 입력 hash 동등·4phase·원출력218107B |
+
+2-job B의 첫/두 번째 Committed에서 shadow의 고유 job 객체0/공유참조1·2를 확인했다. 그 뒤 Complete로 진행하면
+shadow에 남은 이전 Committed는 다른 상태이므로 독립 객체로 유지된다. 마지막 관측은 고유1/공유1이며 오류나 전체 메모리 해소가 아니다.
+job B/C peak RSS는157351936/108920832B이며 캐시 on/off 대조다. 이전 구현 대비 개선률·제품 운용 상한·실제 HTTP PASS로 사용하지 않는다.
+기존 synthetic writer fixture의 `file evidence profile/bound` 경고는 prepared/service/timeline/media에 남았으며 해당 파일 증거 지원 PASS로 확대하지 않는다.
+GST runner 네 개는 owned cache/registry에서 실행했고 product/plugin 정책 변경·기존 repository cache 삭제는 하지 않았다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| job RED root | 빌드/fixture | 6155212B | runner 삭제 | removed=true | red-job-01 |
+| job GREEN root | 빌드/fixture | 6199685B | runner 삭제 | removed=true | green-job-01 |
+| prepared root | 빌드/영상/cache | 9035506B | runner 삭제 | removed=true | job-prepared-01 |
+| jobs root | 빌드/원장 fixture | 9691583B | runner 삭제 | removed=true | job-jobs-01 |
+| validation root | 빌드/계약 fixture | 5414408B | runner 삭제 | removed=true | job-validation-01 |
+| service root | 빌드/영상/cache/중단 복구 | 18036900B | runner 삭제 | removed=true | job-service-01 |
+| timeline root | 빌드/영상/cache | 34920027B | runner 삭제 | removed=true | job-timeline-01 |
+| media root | 빌드/영상/cache | 8804772B | runner 삭제 | removed=true | job-media-01 |
+| retention root | GST on/off 빌드/영상 | 13192852B | runner 삭제 | removed=true | job-retention-01 |
+| cache root | 빌드/영상/cache | 16863567B | runner 삭제 | removed=true | job-cache-01 |
+| catalog root | 빌드/원장 fixture | 26948774B | runner 삭제 | removed=true | job-catalog-01 |
+| 비교 root | 빌드/영상/저장소 | 18598600B | runner 삭제 | removed=true | lp17-jobs-lp18-job-01 |
+
+[개별 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md)에 raw 링크와 전수 assertion을 연결했다.
+[전체 빌드](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-job-build-01.txt)는 별도 보존했다.
+token start/end/consumed는 실제 집계 미제공이다. 서버/포트 실행 없음, UI·장시간·실제 HTTP·푸시 미실행.
+2번의 journal/live/shadow 동일 기록 중복 소유 보완을 마쳤다. 공개 값·job의 자기완결 source/Ready snapshot,
+과거 원장 payload와 비활성 상세 상주, 반복 Parse/Serialize는 남았으며 후속3~4번 대상으로 구분한다.
+문서 링크 검사 exit0(285md/8808links/22images/116anchors/76indexed/201exclusions/0fail), `git diff --check` exit0을 확인했다.
+커밋 전 Node 보존 검사 exit0: 새 원출력13개 공백/EOF 오류0, prepared11/jobs23/validation11/service43/timeline38/media46/retention24/cache47/catalog246행의 기대값·FAIL0 일치. 최종 `git diff --check` exit0이다.
+
 ### 2번 typed binding 공유 사전등록
 
 기준 `a6192c92`/ahead17/clean 뒤 새 fixture를 작성했다. 제품 구현 전이며 기본34/accepted55 oracle는 유지한다.
@@ -220,7 +345,7 @@ UI 자산 무변경, 추가 임시물 없음. 마지막 커밋 전 공백 검사
 | 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
 | --- | --- | --- | --- | --- |
 | 1 | 공통 소유·검증 경계 | 완료·커밋 | 1d13b08a, 불변 envelope·내용/상태 검사·RAM 소비자 조건 명시 | 누적 비용 계약 0절 |
-| 2 | 중복 보관 제거 | envelope·accepted·typed binding 공유 구현·회귀 통과 | typed job 상세 잔존, 전체 2번 미완료 | LP18-O01~13 전수 결과 |
+| 2 | 중복 보관 제거 | journal/live/shadow envelope·accepted·typed binding/job 동일값 소유 구현·회귀 통과 | 공개/자기완결 snapshot과 과거 payload 상주는 남아 3~4번과 구분 | LP18-O01~13/J01~04 전수 결과 |
 | 3 | 전이→checkpoint 재검증 제거 | 미착수 | 2번 선수 통과 뒤 내용 증명 재사용 | 구현계획 LP18 |
 | 4 | 상세 RAM 수명 | 미착수 | 기존 JSONL locator/활성 소유/재open 검증 필요 | 계약 0절 |
 | 5 | 회귀·실제 앱 | 미착수 | 기존4000ms/정리 포함, 장시간/UI 아님 | 계약 0절 |

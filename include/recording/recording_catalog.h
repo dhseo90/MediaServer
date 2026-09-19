@@ -218,6 +218,9 @@ private:
     using SourceBindingPool = std::unordered_map<std::string, SourceBindingHandle>;
     static SourceBindingHandle FindSourceBindingOwned(const SourceBindingPool& pool,const std::string& id);
     SourceBindingHandle FindSourceBindingOwnedLocked(const std::string& id) const;
+    using DerivedJobHandle = std::shared_ptr<const DerivedJobRecordV1>;
+    using DerivedJobPool = std::unordered_map<std::string, DerivedJobHandle>;
+    static DerivedJobHandle ShareValidatedJob(DerivedJobRecordV1 record,const DerivedJobPool* pool);
     friend class RetentionCoordinator;
     friend class DerivedJobService;
     bool BindDerivedService(const void* owner);
@@ -242,11 +245,11 @@ private:
         const std::string& payload;
         RecordingMutationType type{RecordingMutationType::Unknown};
         std::string entity;
-        const DerivedJobRecordV1* prior{nullptr};
+        DerivedJobHandle prior;
         DerivedJobState prior_state{DerivedJobState::Intent};
         std::size_t prior_files{0};
-        std::optional<DerivedJobRecordV1> record;
-        const DerivedJobRecordV1* applied{nullptr};
+        DerivedJobHandle record;
+        DerivedJobHandle applied;
         Phase phase{Phase::Empty};
         PreparedDerivedMutation(const RecordingCatalog* catalog,const std::string& canonical)
             :owner(catalog),payload(canonical){}
@@ -254,7 +257,7 @@ private:
         PreparedDerivedMutation& operator=(const PreparedDerivedMutation&)=delete;
     };
     bool PreparedDerivedMatchesLocked(const RecordingMutationV1&,const PreparedDerivedMutation&,bool applied,std::string*) const;
-    bool ApplyDerivedJobMutationLocked(const RecordingMutationV1&,std::string*,bool apply=true,PreparedDerivedMutation* prepared=nullptr);
+    bool ApplyDerivedJobMutationLocked(const RecordingMutationV1&,std::string*,bool apply=true,PreparedDerivedMutation* prepared=nullptr,const DerivedJobPool* job_pool=nullptr);
     RecordingLifecycle EffectiveLifecycleV2Locked(const std::string& id) const;
     bool OpenLocked(std::string* error);
     bool CanWriteLocked(std::string* error) const;
@@ -279,7 +282,8 @@ private:
     bool ApplyMutationLocked(const RecordingMutationV1& mutation,
                              bool count_duplicate,
                              std::string* error,PreparedDerivedMutation* prepared=nullptr,
-                             RecordingMutationHandle owned = {},const SourceBindingPool* binding_pool = nullptr);
+                             RecordingMutationHandle owned = {},const SourceBindingPool* binding_pool = nullptr,
+                             const DerivedJobPool* job_pool = nullptr);
     bool AppendAndApplyLocked(RecordingMutationV1 mutation, std::string* error,PreparedDerivedMutation* prepared=nullptr);
     bool OpenSqliteLocked(std::string* error);
     bool InitializeSqliteSchemaLocked(std::string* error);
@@ -309,7 +313,7 @@ private:
     std::unordered_map<std::string, RecordingSegmentV1> segments_;
     std::unordered_map<std::string, RecordingSegmentV2> segments_v2_;
     SourceBindingPool source_bindings_;
-    std::unordered_map<std::string, DerivedJobRecordV1> derived_jobs_;
+    DerivedJobPool derived_jobs_;
     std::unordered_set<std::string> derived_accepted_references_;
     std::unordered_map<std::string, RecordingSegmentStateV2> states_v2_;
     std::unordered_map<std::string, RecordingTombstoneV2> tombstones_v2_;

@@ -13,11 +13,14 @@
 | LP18-O07 | accepted 원장 소유 공유 | 정상 append·live·shadow의 같은 불변 envelope 소유, public Replay 독립 값 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 | LP18-O08 | accepted 복구와 투영 | 동일 managed snapshot의 preflight/live 소유, SQLite·JSONL 재open 및 최초 수용 ordinal gate | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 | LP18-O09 | accepted 결박·실패 | 모든 envelope 필드 불일치 거부, 실패 apply 미등록, canonical 중복/충돌 거부·prepared 의미 유지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
-
 | LP18-O10 | typed binding 공유 | checkpoint의 새 적용 ID만 엄격 검사 후 live const 소유 공유, 전체 map 재비교 금지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 | LP18-O11 | binding 반환·바이트 | public Find/Snapshot 값 독립성·canonical/원장 bytes 유지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 | LP18-O12 | binding 거부·수명 | 같은 ID 변경/identity 불일치 거부, 삭제 뒤 내부 증거 유지, null·부적합 재사용 엄격 fallback | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 | LP18-O13 | binding 복구 | SQLite/JSONL 재open·독립 full replay 의미 동등성, shadow owner 수명 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-J01 | 현재 job 불변 소유 | live/checkpoint 같은 최종 record 공유, 과거 상태를 현재값으로 대체 금지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-J02 | Prepared 게시·수명 | prior/검증후 record/applied 소유를 구분, 같은 호출 한 번 게시와 SQL projection 수명 유지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-J03 | job 반환·전이 안전 | public snapshot 값 독립, foreign owner/stale prior/reuse·불법 전이 거부, 보호/재생/timeline 유지 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP18-J04 | job 복구·바이트 | SQLite/JSONL full replay·Ready/Complete·실파일·예약/hold·전이 canonical 동등성 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
 
 등록은 실행/PASS가 아니다. 전체 승인 범위와 실제 수행/미수행은 중앙 기록 LP18을 따른다.
 

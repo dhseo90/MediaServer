@@ -15,7 +15,9 @@ cleanup() {
  echo "[elapsed] seconds=$SECONDS source=bash-SECONDS"
 }
 trap cleanup EXIT
-export GST_REGISTRY="$RUN_DIR/registry.bin"
+export MEDIA_SERVER_GST_CACHE_DIR="$RUN_DIR/gst-cache" MEDIA_SERVER_GST_PLUGIN_PROFILE=headless
+export GST_REGISTRY="$RUN_DIR/registry.bin" GST_REGISTRY_1_0="$RUN_DIR/registry.bin"
+unset GST_PLUGIN_PATH GST_PLUGIN_PATH_1_0 GST_PLUGIN_SYSTEM_PATH GST_PLUGIN_SYSTEM_PATH_1_0 MEDIA_SERVER_GST_MANAGED_REGISTRY MEDIA_SERVER_GST_MANAGED_PLUGIN_PATH MEDIA_SERVER_GST_INPUT_PLUGIN_PATH
 media_server_apply_homebrew_gst_env
 read -r -a ORIGINAL_LINK < "$BUILD_DIR/CMakeFiles/media_server.dir/link.txt"
 LINK_LIBS=();found=0

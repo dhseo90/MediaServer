@@ -41,6 +41,13 @@ typed binding은 먼저 내부 const 소유로 전환한다. shadow의 신규 bo
 재직렬화하는 후처리는 추가하지 않는다. null/부적합 풀은 독립 엄격 경로로 복귀하며 raw owner를 shadow에 저장하지 않는다.
 public 조회·Snapshot은 독립 값, deleted binding은 역사 증거로 보존한다. 이 단계는 내용 검증 생략이나 RAM 내림이 아니다.
 
+typed job은 현재 상태 하나만 const 소유로 보관하고 Prepared의 prior/검증후 후보/applied를 owned handle로 구분한다.
+검증후 후보는 같은 mutex 호출에서 한 번 게시하며 SQL projection 종료까지 수명을 보유한다. 이전 record 소유는 현재 map 슬롯을
+가리키는 raw 주소가 아니라 불변 값이다. owner/phase/payload/current prior/state/files 조건은 계속 검사한다.
+shadow는 자신의 전체 parse/전이 검증을 통과한 **해당 기록**만 live의 같은 job ID/canonical 최종값과 대조해 공유한다.
+과거 Files/Ready 입력을 현재 Complete 값으로 치환하지 않고, 전체 이력의 typed proof를 새로 축적하지 않는다.
+활성 보호/retention·Complete의 출력 소유/Ready/provenance·timeline 소비와 public 값 독립성을 유지한다.
+
 내용 검증 재사용은 현재 live catalog가 정상이라는 사실만으로 shadow 전체를 신뢰하는 최적화가 아니다.
 내용 증명과 상태 전이 검증을 구분하며, shadow의 다른 prior state·예약·tombstone도 항상 검사한다.
 증명은 영속 PASS 플래그로 저장하지 않는다. O(H) 전체 typed 증명 캐시를 추가하는 방식도 채택하지 않는다.

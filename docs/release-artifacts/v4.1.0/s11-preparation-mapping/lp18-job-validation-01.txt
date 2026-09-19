@@ -1,0 +1,32 @@
+command: MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_derived_job_validation.sh
+exit: 0
+elapsedMs: 8248 (호출·polling 포함)
+token: 집계 미제공
+
+[build-profile] optimization=compiler-default NDEBUG=0 gstreamer=0 direct-source=1
+[pass] P0-PERF01 literal source1 sample250 slice45 complete
+[fixture] sources=1 samples=250 slices=45 selection_bytes=72752 intent_bytes=144078 record_bytes=144206 sha256=529aff50132395c790a05ad68d735381b174966dc3099f00ba022a8ead494d5b
+[measure] operation=serialize-intent iteration=1 microseconds=14876
+[measure] operation=serialize-intent iteration=2 microseconds=14765
+[measure] operation=serialize-intent iteration=3 microseconds=14785
+[measure] operation=serialize-record iteration=1 microseconds=28765
+[measure] operation=serialize-record iteration=2 microseconds=28751
+[measure] operation=serialize-record iteration=3 microseconds=28755
+[measure] operation=parse-record iteration=1 microseconds=61366
+[measure] operation=parse-record iteration=2 microseconds=61153
+[measure] operation=parse-record iteration=3 microseconds=61078
+[measure] operation=restore-selection iteration=1 microseconds=14192
+[measure] operation=restore-selection iteration=2 microseconds=14105
+[measure] operation=restore-selection iteration=3 microseconds=14018
+[pass] P0-PERF01 canonical record roundtrip unchanged
+[pass] P0-PERF02 baseline canonical hash literal unchanged
+[pass] P0-PERF01 source mapping conflict rejected
+[pass] P0-PERF01 selection table mapping conflict rejected
+[pass] P0-PERF01 job identity forgery rejected
+[pass] LP09-S03a native exact selection and proof survive job roundtrip
+[pass] LP09-S03a noncontiguous exact slices rejected
+[pass] LP09-S03a observed identity and native interval mismatch rejected
+[pass] LP09-S03a native profile cannot drop file evidence
+[pass] LP09-S03a overlapping substitute AU cannot replace selected identity
+[summary] pass=11 fail=0
+[cleanup] path=<owned-root> bytes=5414408 removed=true

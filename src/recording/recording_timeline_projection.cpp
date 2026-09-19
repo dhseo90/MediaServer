@@ -190,11 +190,11 @@ bool RecordingCatalog::SnapshotTimelineV2(const RecordingTimelineQuery& query,Re
         Collector collector(query);
         for(const auto& entry:segments_v2_){const auto& segment=entry.second;if(segment.channel_id!=query.channel_id)continue;
             if(segment.retention_class==RecordingRetentionClass::Continuous){collector.Source(segment,EffectiveLifecycleV2Locked(entry.first));continue;}
-            bool owned=false;for(const auto& job:derived_jobs_)for(const auto& plan:job.second.intent.outputs)if(plan.output_id==entry.first)owned=true;
+            bool owned=false;for(const auto& job:derived_jobs_){if(!job.second)throw std::runtime_error("timeline-job-unavailable");for(const auto& plan:job.second->intent.outputs)if(plan.output_id==entry.first)owned=true;}
             if(!owned){auto row=Base(segment,EffectiveLifecycleV2Locked(entry.first));row.item_id="orphan-event:"+Key(entry.first);
                 row.completeness="unknown";row.unavailable_reason="output-binding-unavailable";collector.Add(std::move(row));}
         }
-        for(const auto& entry:derived_jobs_){const auto& job=entry.second;if(job.intent.reference.channel_id!=query.channel_id)continue;
+        for(const auto& entry:derived_jobs_){if(!entry.second)throw std::runtime_error("timeline-job-unavailable");const auto& job=*entry.second;if(job.intent.reference.channel_id!=query.channel_id)continue;
             if(!job.ready||job.ready->outputs.empty()){collector.Reference(job.intent.reference,&job);continue;}
             for(std::size_t i=0;i<job.ready->outputs.size();++i){
                 if(i>=job.intent.sources.size())throw std::runtime_error("timeline-job-invalid");
@@ -207,7 +207,7 @@ bool RecordingCatalog::SnapshotTimelineV2(const RecordingTimelineQuery& query,Re
         }
         for(const auto& id:derived_accepted_references_){const auto ref=consumer_references_.find(id);
             if(ref==consumer_references_.end()||ref->second.channel_id!=query.channel_id)continue;
-            bool has_job=false;for(const auto& entry:derived_jobs_)if(entry.second.intent.reference.reference_id==id){has_job=true;break;}
+            bool has_job=false;for(const auto& entry:derived_jobs_){if(!entry.second)throw std::runtime_error("timeline-job-unavailable");if(entry.second->intent.reference.reference_id==id){has_job=true;break;}}
             if(!has_job)collector.Reference(ref->second,nullptr);
         }
         collector.Finish(result);if(error)error->clear();return true;
