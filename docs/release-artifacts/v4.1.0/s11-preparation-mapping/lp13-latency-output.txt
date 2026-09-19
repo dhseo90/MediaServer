@@ -1,0 +1,588 @@
+원출력 행말공백은 RAW_JSON_LINE: JSON 문자열로 가역 표기. 이 첫 행 제거·해당 행 디코딩 시 SHA256=c7692c8f893b9135f0ec09e7b86b1718be0f19b1a57897b3a8e77930282e69b0.
+LP13 stage2 준비: 최초 실행부터 tool 원출력 확보. 실제앱 미실행.
+
+기존4Node 회귀 (build 후)
+command: node --test scripts/internal/recording_current_archive_probe.test.mjs scripts/internal/recording_failure_capture.test.mjs scripts/internal/recording_selection_trace.test.mjs scripts/internal/recording_current_latency.test.mjs
+exit: 0
+[environment] ownedCache=true ownedRegistry=true headless=true compileAndRunSameEnv=true
+[cleanup] owned_root=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-Hw6Ju5 bytes=46626497 removed=true
+✔ LP13-P02 typed generic intent 원본 불변 (2194.482209ms)
+✔ LP13-P02 typed generic ready 원본 불변 (670.948958ms)
+✔ LP13-P02 typed generic committed 원본 불변 (865.958916ms)
+✔ LP13-P02 typed generic complete 원본 불변 (1064.757833ms)
+✔ LP13-P02 typed generic failed 원본 불변 (343.339875ms)
+✔ LP13-P02 typed generic absent 원본 불변 (277.399ms)
+✔ LP12-D02-D03 proof-legacy actual catalog proof와 intent 구분 (786.602292ms)
+✔ LP12-D02-D03 proof-native actual catalog proof와 intent 구분 (1120.048542ms)
+✔ LP12-D02-D03 proof-candidate actual catalog proof와 intent 구분 (794.428125ms)
+✔ LP12-D01 catalog 원본과 persisted legacy intent를 독립 진단 (360.677ms)
+✔ LP08-B03 actual completeness full probe to JS durable evidence (1078.039125ms)
+✔ LP08-B03 actual completeness selection probe to JS durable evidence (1060.619708ms)
+✔ LP08-B03 actual completeness file probe to JS durable evidence (1254.67575ms)
+✔ LP08-B03 actual completeness redacted probe to JS durable evidence (1058.992416ms)
+✔ LP08-A02-A03 completeness full typed control (1583.288916ms)
+✔ LP08-A02-A03 completeness selection typed control (1565.301708ms)
+✔ LP08-A02-A03 completeness file typed control (1874.7075ms)
+✔ LP08-A02-A03 completeness redacted typed control (1610.127417ms)
+✔ LP08-A01 completeness rejects failed and intent records (617.578791ms)
+✔ LP06-B10 actual typed probe basic detail replay preserved independently (2038.670125ms)
+✔ LP06-A08 basic failure survives corrupt media without file inspection (531.533708ms)
+✔ LP06-A08 basic failure survives missing media without file inspection (529.336459ms)
+✔ LP06-A01-A02 stored safe evidence and validated file hashes without remux (547.355834ms)
+✔ LP06-A03 missing copy media preserves failed diagnosis (358.278125ms)
+✔ LP06-A04 corrupt copy media preserves failed diagnosis (358.484125ms)
+✔ LP06-A05 code0 exact known (363.809459ms)
+✔ LP06-A06 code0 suffix unknown (362.657125ms)
+✔ LP06-A05 code1 exact known (363.29475ms)
+✔ LP06-A06 code1 suffix unknown (366.098792ms)
+✔ LP06-A05 code2 exact known (365.787958ms)
+✔ LP06-A06 code2 suffix unknown (360.879792ms)
+✔ LP06-A05 code3 exact known (364.240667ms)
+✔ LP06-A06 code3 suffix unknown (365.520791ms)
+✔ LP06-A05 code4 exact known (363.384083ms)
+✔ LP06-A06 code4 suffix unknown (365.560208ms)
+✔ LP06-A05 code5 exact known (363.911125ms)
+✔ LP06-A06 code5 suffix unknown (363.27375ms)
+✔ LP05-01 typed failed known0 (362.860917ms)
+✔ LP05-01 typed failed known1 (365.377625ms)
+✔ LP05-01 typed failed known2 (367.204125ms)
+✔ LP05-02 typed failed unknown3 (366.98525ms)
+✔ LP05-02 typed failed unknown4 (363.517ms)
+✔ LP05-03 complete mode still rejects failed job (342.2435ms)
+✔ LP05-03 diagnostic rejects nonfailed state safely (274.426834ms)
+✔ LP05-03 rejects original recordings index without mutation (265.035458ms)
+✔ LP05-06 valid media with synthetic failed reason does not reproduce failure (602.190291ms)
+✔ LP05-03 rejects symlink copy without original mutation (268.071542ms)
+✔ LP05-03 rejects hardlink copy without original mutation (265.987875ms)
+✔ LP04-A 목표 이전은 대기하고 해당 구간만 선택 (0.294917ms)
+✔ LP04-A 경계와 프레임을 놓치면 다른 구간으로 대체 금지 (0.160667ms)
+✔ LP04-A 실제 dispatch 정확 일치만 허용 (0.069584ms)
+✔ LP03-A failed는 완료 대기 대신 즉시 중단 (0.0865ms)
+✔ P0-HTTP01 pending은 전이 완료가 아님 (0.045334ms)
+✔ P0-HTTP01 partial은 지연 관측만 가능 (0.042875ms)
+✔ P0-HTTP01 다른 참조와 모순 파일은 거부 (0.062958ms)
+✔ P0-HTTP01 원래 완전 출력 검사는 부분 출력 거부 유지 (0.09725ms)
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-4evdpK","bytes":819,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ZIIJjA","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-T9Trlr","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-5Ac47D","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Z8wZaZ","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-By9K5V","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-8EGf4m","bytes":8,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gw8qiV","bytes":96,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-kQd28t","bytes":3006,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-wfcG68","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Me2bH8","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-KmxIBJ","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-HlKZdJ","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-L9uCZ3","bytes":2654,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gk7iG1","bytes":2654,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-AAn7w0","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-jwoAE0","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-UtcHWW","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-OdCKQP","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-JrRIgF","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-TuvTds","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ecWCH2","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-3C5aXi","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-2z3cYY","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-fPHfoO","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ZSSvWF","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-YOOWdw","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-2FQdal","bytes":370,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-4NjOir","bytes":431,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-yOZwN1","bytes":430,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-WjpEql","bytes":434,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-bCCP0i","bytes":433,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-x5fyOV","bytes":431,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-qj0fTc","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-FljtkY","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-mww6Xw","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-amai6s","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-THsxNY","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-QLetPT","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-6V4gZ1","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-me5paR","bytes":8,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-jW1Zta","bytes":2732,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-BNQL9T","bytes":2732,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-tL03wG","bytes":2733,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-h5Hzka","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-xNY8jq","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-XKhWFl","bytes":8,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Lomv9w","bytes":2714,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-B6dmPX","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-D50KDi","bytes":98,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-7gBghM","bytes":3067,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-nE8tSt","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-fkb823","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Ti2kga","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-fopmLk","bytes":274,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-XsOD2e","bytes":97,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-qB3EHV","bytes":163,"removed":true}
+✔ LP12-F04 input framing 고정 오류만 안전 집계 (0.648458ms)
+✔ LP12-C07 exact phase/code와 unknown 고정 조합만 수집 (0.101666ms)
+✔ LP12-D06 writer fixed 사유만 집계하고 원문을 보존하지 않음 (0.299625ms)
+✔ LP08-B01 완료 작업 안전 증거 선보존 (12.099208ms)
+✔ LP08-B02 field 증거 실패 시 정리 차단 (0.338709ms)
+✔ LP08-B02 enum 증거 실패 시 정리 차단 (0.270166ms)
+✔ LP08-B02 range 증거 실패 시 정리 차단 (0.247959ms)
+✔ LP08-B02 throw 증거 실패 시 정리 차단 (0.212958ms)
+✔ LP08-B02 timeout 증거 실패 시 정리 차단 (0.218791ms)
+✔ LP08-B02 existing 증거 실패 시 정리 차단 (5.623959ms)
+✔ LP08-B02 symlink 증거 실패 시 정리 차단 (3.717625ms)
+✔ LP12-D02 missing binding valid (20.998958ms)
+✔ LP12-D02 missing binding binding-valid (7.815ms)
+✔ LP12-D02 missing binding proof-present (7.934834ms)
+✔ LP12-D02 missing binding binding-hash (8.236625ms)
+✔ LP12-D02 missing binding matches (8.055958ms)
+✔ LP12-D04 cap-exceeded count 미확인 보존 (23.993542ms)
+✔ LP12-D04 unavailable count 미확인 보존 (21.93575ms)
+✔ LP12-D05 catalog schema raw 변조 거부 (8.063583ms)
+✔ LP12-D05 catalog schema profile 변조 거부 (7.892875ms)
+✔ LP12-D05 catalog schema scope 변조 거부 (8.952209ms)
+✔ LP12-D05 catalog schema id 변조 거부 (9.008375ms)
+✔ LP12-D05 catalog schema validity 변조 거부 (9.422791ms)
+✔ LP12-D05 catalog schema lifecycle 변조 거부 (7.307917ms)
+✔ LP12-D05 catalog schema count 변조 거부 (9.100375ms)
+✔ LP12-D05 catalog schema cap 변조 거부 (6.933416ms)
+✔ LP12-D05 catalog schema truncated 변조 거부 (7.968417ms)
+✔ LP12-D06 newline 없는 fixed prefix tail은 known 인정 금지 (0.102208ms)
+✔ LP12-D06 line/count cap 및 다음 정상행 복구 (1.358417ms)
+✔ LP13-P04 expected reference missing 거부 (0.367916ms)
+✔ LP13-P04 expected reference mismatch 거부 (0.292875ms)
+✔ LP13-P04 expected reference invalid 거부 (0.19875ms)
+✔ LP13-P01 generic absent HTTP 실패 증거 보존 (7.664375ms)
+✔ LP13-P01 generic intent HTTP 실패 증거 보존 (7.851416ms)
+✔ LP13-P01 generic ready HTTP 실패 증거 보존 (6.977917ms)
+✔ LP13-P01 generic committed HTTP 실패 증거 보존 (7.994417ms)
+✔ LP13-P01 generic complete HTTP 실패 증거 보존 (6.047292ms)
+✔ LP13-P01 generic failed HTTP 실패 증거 보존 (8.096958ms)
+✔ LP13-P01 generic field 실패 시 cleanup 차단 (0.313667ms)
+✔ LP13-P01 generic state 실패 시 cleanup 차단 (0.204166ms)
+✔ LP13-P01 generic count 실패 시 cleanup 차단 (0.200667ms)
+✔ LP13-P01 generic hash 실패 시 cleanup 차단 (0.191333ms)
+✔ LP13-P01 generic absent 실패 시 cleanup 차단 (0.201167ms)
+✔ LP13-P01 generic throw 실패 시 cleanup 차단 (0.211ms)
+✔ LP13-P01 generic timeout 실패 시 cleanup 차단 (0.171791ms)
+✔ LP13-P01 generic persist 실패 시 cleanup 차단 (4.544583ms)
+✔ LP06-B01 진단 파일을 재현 전에 보존 (23.866833ms)
+✔ LP06-B02 실제 자식 exit 뒤 최초 증거 유지 (42.039083ms)
+✔ LP06-B02 실제 자식 timeout 뒤 최초 증거 유지 (77.051667ms)
+✔ LP06-B03 진단 throw 시 재현·정리 거부 (0.308458ms)
+✔ LP06-B03 진단 unsafe 시 재현·정리 거부 (0.196ms)
+✔ LP06-B04 최초 보존 실패 시 재현 금지 (4.419458ms)
+✔ LP06-B04 후속 보존 실패 시 최초 파일 유지 (21.105875ms)
+✔ LP06-B05 진단 미보존 root 정리 금지·소유권 불일치 거부 (0.531792ms)
+✔ LP06-B06 symlink 증거 덮어쓰기 거부 (4.453792ms)
+✔ LP06-B06 성공 결과 분리 보존·미등록 필드 거부 (23.945625ms)
+✔ LP06-B07 상세 수집 throw 시 기본 진단 유지·재현 금지 (8.798375ms)
+✔ LP06-B07 상세 수집 timeout 시 기본 진단 유지·재현 금지 (61.288417ms)
+✔ LP06-B07 상세 수집 identity 시 기본 진단 유지·재현 금지 (7.735625ms)
+✔ LP06-B07 상세 수집 persist 시 기본 진단 유지·재현 금지 (12.306209ms)
+✔ LP06-B08 기본 자식은 plugin 환경 준비 실패와 독립 (22.117792ms)
+✔ LP06-B09 만료 시 자식 미기동·남은 시간만 대기 (102.881333ms)
+✔ LP09-J01 분할 로그에서 안전한 행만 수집 (1.650542ms)
+✔ LP09-J01 extra 필드 거부 (0.176667ms)
+✔ LP09-J01 hash 필드 거부 (0.06625ms)
+✔ LP09-J01 enum 필드 거부 (0.057542ms)
+✔ LP09-J01 range 필드 거부 (0.06225ms)
+✔ LP09-J01 count 필드 거부 (0.042583ms)
+✔ LP09-J01 로그 상한과 미완성 행 거부 (0.144625ms)
+✔ LP09-J02 정확한 참조와 연속 시도 종결 확인 (0.137416ms)
+✔ LP11-T01 source에서 base로 복귀한 초과 effective attempt 정상 종결 (0.879708ms)
+✔ LP11-T02 base에서 source 전환과 절대 attempt121 경계 (0.483083ms)
+✔ LP11-T03 budget-pair 정합성 거부 (0.073541ms)
+✔ LP11-T03 attempt122 정합성 거부 (0.120209ms)
+✔ LP11-T03 wait60001 정합성 거부 (0.137ms)
+✔ LP11-T03 attempt-flag 정합성 거부 (0.075792ms)
+✔ LP11-T03 deadline-flag 정합성 거부 (0.070042ms)
+✔ LP11-T04 skip sequence 거부 (0.169041ms)
+✔ LP11-T04 elapsed sequence 거부 (0.074958ms)
+✔ LP11-T04 range sequence 거부 (0.044459ms)
+✔ LP11-T04 unterminated sequence 거부 (0.168167ms)
+✔ LP11-T04 after-terminal sequence 거부 (0.031541ms)
+✔ LP11-T05 parser 오류 증거는 고정 코드와 safe numeric counts만 보존 (0.178917ms)
+✔ LP11-T06 profile collector split 및 incomplete 안전 보고 (0.059208ms)
+✔ LP11-T06 actual runner 공통 오류 reporter는 원문 없이 status를 출력 (0.078333ms)
+ℹ tests 141
+ℹ suites 0
+ℹ pass 141
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 34509.057958
+
+최종 개별 결과 전수 163행
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP13-T01 collector 존재 | 승인 standalone/4Node 묶음 0.586625ms | pass |
+| LP13-T01 disabled/invalid null 무출력 | 승인 standalone/4Node 묶음 343.130667ms | pass |
+| LP13-T01 disabled/invalid "" 무출력 | 승인 standalone/4Node 묶음 45.727208ms | pass |
+| LP13-T01 disabled/invalid "0" 무출력 | 승인 standalone/4Node 묶음 45.483667ms | pass |
+| LP13-T01 disabled/invalid "true" 무출력 | 승인 standalone/4Node 묶음 40.314375ms | pass |
+| LP13-T01 disabled/invalid "01" 무출력 | 승인 standalone/4Node 묶음 39.72025ms | pass |
+| LP13-T01 disabled/invalid "1 " 무출력 | 승인 standalone/4Node 묶음 47.352125ms | pass |
+| LP13-T02 fast aggregate count/sum/max 정확 | 승인 standalone/4Node 묶음 6.937208ms | pass |
+| LP13-T04 부분증거 parent/target 실패와 phase누락 미완료 | 승인 standalone/4Node 묶음 15.092791ms | pass |
+| LP13-T02 실제 동일 mutex 경합·다른 mutex·unlock 후 sink | 승인 standalone/4Node 묶음 37.949041ms | pass |
+| LP13-T03 600 poll·15fastlocks/poll·5400worker 합성 예산 | 승인 standalone/4Node 묶음 69.990916ms | pass |
+| LP13-T03 1800 poll·15fastlocks/poll·5400worker 합성 예산 | 승인 standalone/4Node 묶음 285.022625ms | pass |
+| LP13-T03 tls-cap 손실 명시 | 승인 standalone/4Node 묶음 2.467167ms | pass |
+| LP13-T03 cap 손실 명시 | 승인 standalone/4Node 묶음 24.102667ms | pass |
+| LP13-T04 split·safe부분보존·순번누락 | 승인 standalone/4Node 묶음 11.509792ms | pass |
+| LP13-T04 enum 거부 | 승인 standalone/4Node 묶음 0.114541ms | pass |
+| LP13-T04 numeric 거부 | 승인 standalone/4Node 묶음 0.039208ms | pass |
+| LP13-T04 time 거부 | 승인 standalone/4Node 묶음 0.024125ms | pass |
+| LP13-T04 count 거부 | 승인 standalone/4Node 묶음 0.031541ms | pass |
+| LP13-T04 linecap 거부 | 승인 standalone/4Node 묶음 0.023541ms | pass |
+| LP13-T04 incomplete 거부 | 승인 standalone/4Node 묶음 0.021083ms | pass |
+| LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거부 | 승인 standalone/4Node 묶음 52.712417ms | pass |
+| LP13-P02 typed generic intent 원본 불변 | 승인 standalone/4Node 묶음 2194.482209ms | pass |
+| LP13-P02 typed generic ready 원본 불변 | 승인 standalone/4Node 묶음 670.948958ms | pass |
+| LP13-P02 typed generic committed 원본 불변 | 승인 standalone/4Node 묶음 865.958916ms | pass |
+| LP13-P02 typed generic complete 원본 불변 | 승인 standalone/4Node 묶음 1064.757833ms | pass |
+| LP13-P02 typed generic failed 원본 불변 | 승인 standalone/4Node 묶음 343.339875ms | pass |
+| LP13-P02 typed generic absent 원본 불변 | 승인 standalone/4Node 묶음 277.399ms | pass |
+| LP12-D02-D03 proof-legacy actual catalog proof와 intent 구분 | 승인 standalone/4Node 묶음 786.602292ms | pass |
+| LP12-D02-D03 proof-native actual catalog proof와 intent 구분 | 승인 standalone/4Node 묶음 1120.048542ms | pass |
+| LP12-D02-D03 proof-candidate actual catalog proof와 intent 구분 | 승인 standalone/4Node 묶음 794.428125ms | pass |
+| LP12-D01 catalog 원본과 persisted legacy intent를 독립 진단 | 승인 standalone/4Node 묶음 360.677ms | pass |
+| LP08-B03 actual completeness full probe to JS durable evidence | 승인 standalone/4Node 묶음 1078.039125ms | pass |
+| LP08-B03 actual completeness selection probe to JS durable evidence | 승인 standalone/4Node 묶음 1060.619708ms | pass |
+| LP08-B03 actual completeness file probe to JS durable evidence | 승인 standalone/4Node 묶음 1254.67575ms | pass |
+| LP08-B03 actual completeness redacted probe to JS durable evidence | 승인 standalone/4Node 묶음 1058.992416ms | pass |
+| LP08-A02-A03 completeness full typed control | 승인 standalone/4Node 묶음 1583.288916ms | pass |
+| LP08-A02-A03 completeness selection typed control | 승인 standalone/4Node 묶음 1565.301708ms | pass |
+| LP08-A02-A03 completeness file typed control | 승인 standalone/4Node 묶음 1874.7075ms | pass |
+| LP08-A02-A03 completeness redacted typed control | 승인 standalone/4Node 묶음 1610.127417ms | pass |
+| LP08-A01 completeness rejects failed and intent records | 승인 standalone/4Node 묶음 617.578791ms | pass |
+| LP06-B10 actual typed probe basic detail replay preserved independently | 승인 standalone/4Node 묶음 2038.670125ms | pass |
+| LP06-A08 basic failure survives corrupt media without file inspection | 승인 standalone/4Node 묶음 531.533708ms | pass |
+| LP06-A08 basic failure survives missing media without file inspection | 승인 standalone/4Node 묶음 529.336459ms | pass |
+| LP06-A01-A02 stored safe evidence and validated file hashes without remux | 승인 standalone/4Node 묶음 547.355834ms | pass |
+| LP06-A03 missing copy media preserves failed diagnosis | 승인 standalone/4Node 묶음 358.278125ms | pass |
+| LP06-A04 corrupt copy media preserves failed diagnosis | 승인 standalone/4Node 묶음 358.484125ms | pass |
+| LP06-A05 code0 exact known | 승인 standalone/4Node 묶음 363.809459ms | pass |
+| LP06-A06 code0 suffix unknown | 승인 standalone/4Node 묶음 362.657125ms | pass |
+| LP06-A05 code1 exact known | 승인 standalone/4Node 묶음 363.29475ms | pass |
+| LP06-A06 code1 suffix unknown | 승인 standalone/4Node 묶음 366.098792ms | pass |
+| LP06-A05 code2 exact known | 승인 standalone/4Node 묶음 365.787958ms | pass |
+| LP06-A06 code2 suffix unknown | 승인 standalone/4Node 묶음 360.879792ms | pass |
+| LP06-A05 code3 exact known | 승인 standalone/4Node 묶음 364.240667ms | pass |
+| LP06-A06 code3 suffix unknown | 승인 standalone/4Node 묶음 365.520791ms | pass |
+| LP06-A05 code4 exact known | 승인 standalone/4Node 묶음 363.384083ms | pass |
+| LP06-A06 code4 suffix unknown | 승인 standalone/4Node 묶음 365.560208ms | pass |
+| LP06-A05 code5 exact known | 승인 standalone/4Node 묶음 363.911125ms | pass |
+| LP06-A06 code5 suffix unknown | 승인 standalone/4Node 묶음 363.27375ms | pass |
+| LP05-01 typed failed known0 | 승인 standalone/4Node 묶음 362.860917ms | pass |
+| LP05-01 typed failed known1 | 승인 standalone/4Node 묶음 365.377625ms | pass |
+| LP05-01 typed failed known2 | 승인 standalone/4Node 묶음 367.204125ms | pass |
+| LP05-02 typed failed unknown3 | 승인 standalone/4Node 묶음 366.98525ms | pass |
+| LP05-02 typed failed unknown4 | 승인 standalone/4Node 묶음 363.517ms | pass |
+| LP05-03 complete mode still rejects failed job | 승인 standalone/4Node 묶음 342.2435ms | pass |
+| LP05-03 diagnostic rejects nonfailed state safely | 승인 standalone/4Node 묶음 274.426834ms | pass |
+| LP05-03 rejects original recordings index without mutation | 승인 standalone/4Node 묶음 265.035458ms | pass |
+| LP05-06 valid media with synthetic failed reason does not reproduce failure | 승인 standalone/4Node 묶음 602.190291ms | pass |
+| LP05-03 rejects symlink copy without original mutation | 승인 standalone/4Node 묶음 268.071542ms | pass |
+| LP05-03 rejects hardlink copy without original mutation | 승인 standalone/4Node 묶음 265.987875ms | pass |
+| LP04-A 목표 이전은 대기하고 해당 구간만 선택 | 승인 standalone/4Node 묶음 0.294917ms | pass |
+| LP04-A 경계와 프레임을 놓치면 다른 구간으로 대체 금지 | 승인 standalone/4Node 묶음 0.160667ms | pass |
+| LP04-A 실제 dispatch 정확 일치만 허용 | 승인 standalone/4Node 묶음 0.069584ms | pass |
+| LP03-A failed는 완료 대기 대신 즉시 중단 | 승인 standalone/4Node 묶음 0.0865ms | pass |
+| P0-HTTP01 pending은 전이 완료가 아님 | 승인 standalone/4Node 묶음 0.045334ms | pass |
+| P0-HTTP01 partial은 지연 관측만 가능 | 승인 standalone/4Node 묶음 0.042875ms | pass |
+| P0-HTTP01 다른 참조와 모순 파일은 거부 | 승인 standalone/4Node 묶음 0.062958ms | pass |
+| P0-HTTP01 원래 완전 출력 검사는 부분 출력 거부 유지 | 승인 standalone/4Node 묶음 0.09725ms | pass |
+| LP12-F04 input framing 고정 오류만 안전 집계 | 승인 standalone/4Node 묶음 0.648458ms | pass |
+| LP12-C07 exact phase/code와 unknown 고정 조합만 수집 | 승인 standalone/4Node 묶음 0.101666ms | pass |
+| LP12-D06 writer fixed 사유만 집계하고 원문을 보존하지 않음 | 승인 standalone/4Node 묶음 0.299625ms | pass |
+| LP08-B01 완료 작업 안전 증거 선보존 | 승인 standalone/4Node 묶음 12.099208ms | pass |
+| LP08-B02 field 증거 실패 시 정리 차단 | 승인 standalone/4Node 묶음 0.338709ms | pass |
+| LP08-B02 enum 증거 실패 시 정리 차단 | 승인 standalone/4Node 묶음 0.270166ms | pass |
+| LP08-B02 range 증거 실패 시 정리 차단 | 승인 standalone/4Node 묶음 0.247959ms | pass |
+| LP08-B02 throw 증거 실패 시 정리 차단 | 승인 standalone/4Node 묶음 0.212958ms | pass |
+| LP08-B02 timeout 증거 실패 시 정리 차단 | 승인 standalone/4Node 묶음 0.218791ms | pass |
+| LP08-B02 existing 증거 실패 시 정리 차단 | 승인 standalone/4Node 묶음 5.623959ms | pass |
+| LP08-B02 symlink 증거 실패 시 정리 차단 | 승인 standalone/4Node 묶음 3.717625ms | pass |
+| LP12-D02 missing binding valid | 승인 standalone/4Node 묶음 20.998958ms | pass |
+| LP12-D02 missing binding binding-valid | 승인 standalone/4Node 묶음 7.815ms | pass |
+| LP12-D02 missing binding proof-present | 승인 standalone/4Node 묶음 7.934834ms | pass |
+| LP12-D02 missing binding binding-hash | 승인 standalone/4Node 묶음 8.236625ms | pass |
+| LP12-D02 missing binding matches | 승인 standalone/4Node 묶음 8.055958ms | pass |
+| LP12-D04 cap-exceeded count 미확인 보존 | 승인 standalone/4Node 묶음 23.993542ms | pass |
+| LP12-D04 unavailable count 미확인 보존 | 승인 standalone/4Node 묶음 21.93575ms | pass |
+| LP12-D05 catalog schema raw 변조 거부 | 승인 standalone/4Node 묶음 8.063583ms | pass |
+| LP12-D05 catalog schema profile 변조 거부 | 승인 standalone/4Node 묶음 7.892875ms | pass |
+| LP12-D05 catalog schema scope 변조 거부 | 승인 standalone/4Node 묶음 8.952209ms | pass |
+| LP12-D05 catalog schema id 변조 거부 | 승인 standalone/4Node 묶음 9.008375ms | pass |
+| LP12-D05 catalog schema validity 변조 거부 | 승인 standalone/4Node 묶음 9.422791ms | pass |
+| LP12-D05 catalog schema lifecycle 변조 거부 | 승인 standalone/4Node 묶음 7.307917ms | pass |
+| LP12-D05 catalog schema count 변조 거부 | 승인 standalone/4Node 묶음 9.100375ms | pass |
+| LP12-D05 catalog schema cap 변조 거부 | 승인 standalone/4Node 묶음 6.933416ms | pass |
+| LP12-D05 catalog schema truncated 변조 거부 | 승인 standalone/4Node 묶음 7.968417ms | pass |
+| LP12-D06 newline 없는 fixed prefix tail은 known 인정 금지 | 승인 standalone/4Node 묶음 0.102208ms | pass |
+| LP12-D06 line/count cap 및 다음 정상행 복구 | 승인 standalone/4Node 묶음 1.358417ms | pass |
+| LP13-P04 expected reference missing 거부 | 승인 standalone/4Node 묶음 0.367916ms | pass |
+| LP13-P04 expected reference mismatch 거부 | 승인 standalone/4Node 묶음 0.292875ms | pass |
+| LP13-P04 expected reference invalid 거부 | 승인 standalone/4Node 묶음 0.19875ms | pass |
+| LP13-P01 generic absent HTTP 실패 증거 보존 | 승인 standalone/4Node 묶음 7.664375ms | pass |
+| LP13-P01 generic intent HTTP 실패 증거 보존 | 승인 standalone/4Node 묶음 7.851416ms | pass |
+| LP13-P01 generic ready HTTP 실패 증거 보존 | 승인 standalone/4Node 묶음 6.977917ms | pass |
+| LP13-P01 generic committed HTTP 실패 증거 보존 | 승인 standalone/4Node 묶음 7.994417ms | pass |
+| LP13-P01 generic complete HTTP 실패 증거 보존 | 승인 standalone/4Node 묶음 6.047292ms | pass |
+| LP13-P01 generic failed HTTP 실패 증거 보존 | 승인 standalone/4Node 묶음 8.096958ms | pass |
+| LP13-P01 generic field 실패 시 cleanup 차단 | 승인 standalone/4Node 묶음 0.313667ms | pass |
+| LP13-P01 generic state 실패 시 cleanup 차단 | 승인 standalone/4Node 묶음 0.204166ms | pass |
+| LP13-P01 generic count 실패 시 cleanup 차단 | 승인 standalone/4Node 묶음 0.200667ms | pass |
+| LP13-P01 generic hash 실패 시 cleanup 차단 | 승인 standalone/4Node 묶음 0.191333ms | pass |
+| LP13-P01 generic absent 실패 시 cleanup 차단 | 승인 standalone/4Node 묶음 0.201167ms | pass |
+| LP13-P01 generic throw 실패 시 cleanup 차단 | 승인 standalone/4Node 묶음 0.211ms | pass |
+| LP13-P01 generic timeout 실패 시 cleanup 차단 | 승인 standalone/4Node 묶음 0.171791ms | pass |
+| LP13-P01 generic persist 실패 시 cleanup 차단 | 승인 standalone/4Node 묶음 4.544583ms | pass |
+| LP06-B01 진단 파일을 재현 전에 보존 | 승인 standalone/4Node 묶음 23.866833ms | pass |
+| LP06-B02 실제 자식 exit 뒤 최초 증거 유지 | 승인 standalone/4Node 묶음 42.039083ms | pass |
+| LP06-B02 실제 자식 timeout 뒤 최초 증거 유지 | 승인 standalone/4Node 묶음 77.051667ms | pass |
+| LP06-B03 진단 throw 시 재현·정리 거부 | 승인 standalone/4Node 묶음 0.308458ms | pass |
+| LP06-B03 진단 unsafe 시 재현·정리 거부 | 승인 standalone/4Node 묶음 0.196ms | pass |
+| LP06-B04 최초 보존 실패 시 재현 금지 | 승인 standalone/4Node 묶음 4.419458ms | pass |
+| LP06-B04 후속 보존 실패 시 최초 파일 유지 | 승인 standalone/4Node 묶음 21.105875ms | pass |
+| LP06-B05 진단 미보존 root 정리 금지·소유권 불일치 거부 | 승인 standalone/4Node 묶음 0.531792ms | pass |
+| LP06-B06 symlink 증거 덮어쓰기 거부 | 승인 standalone/4Node 묶음 4.453792ms | pass |
+| LP06-B06 성공 결과 분리 보존·미등록 필드 거부 | 승인 standalone/4Node 묶음 23.945625ms | pass |
+| LP06-B07 상세 수집 throw 시 기본 진단 유지·재현 금지 | 승인 standalone/4Node 묶음 8.798375ms | pass |
+| LP06-B07 상세 수집 timeout 시 기본 진단 유지·재현 금지 | 승인 standalone/4Node 묶음 61.288417ms | pass |
+| LP06-B07 상세 수집 identity 시 기본 진단 유지·재현 금지 | 승인 standalone/4Node 묶음 7.735625ms | pass |
+| LP06-B07 상세 수집 persist 시 기본 진단 유지·재현 금지 | 승인 standalone/4Node 묶음 12.306209ms | pass |
+| LP06-B08 기본 자식은 plugin 환경 준비 실패와 독립 | 승인 standalone/4Node 묶음 22.117792ms | pass |
+| LP06-B09 만료 시 자식 미기동·남은 시간만 대기 | 승인 standalone/4Node 묶음 102.881333ms | pass |
+| LP09-J01 분할 로그에서 안전한 행만 수집 | 승인 standalone/4Node 묶음 1.650542ms | pass |
+| LP09-J01 extra 필드 거부 | 승인 standalone/4Node 묶음 0.176667ms | pass |
+| LP09-J01 hash 필드 거부 | 승인 standalone/4Node 묶음 0.06625ms | pass |
+| LP09-J01 enum 필드 거부 | 승인 standalone/4Node 묶음 0.057542ms | pass |
+| LP09-J01 range 필드 거부 | 승인 standalone/4Node 묶음 0.06225ms | pass |
+| LP09-J01 count 필드 거부 | 승인 standalone/4Node 묶음 0.042583ms | pass |
+| LP09-J01 로그 상한과 미완성 행 거부 | 승인 standalone/4Node 묶음 0.144625ms | pass |
+| LP09-J02 정확한 참조와 연속 시도 종결 확인 | 승인 standalone/4Node 묶음 0.137416ms | pass |
+| LP11-T01 source에서 base로 복귀한 초과 effective attempt 정상 종결 | 승인 standalone/4Node 묶음 0.879708ms | pass |
+| LP11-T02 base에서 source 전환과 절대 attempt121 경계 | 승인 standalone/4Node 묶음 0.483083ms | pass |
+| LP11-T03 budget-pair 정합성 거부 | 승인 standalone/4Node 묶음 0.073541ms | pass |
+| LP11-T03 attempt122 정합성 거부 | 승인 standalone/4Node 묶음 0.120209ms | pass |
+| LP11-T03 wait60001 정합성 거부 | 승인 standalone/4Node 묶음 0.137ms | pass |
+| LP11-T03 attempt-flag 정합성 거부 | 승인 standalone/4Node 묶음 0.075792ms | pass |
+| LP11-T03 deadline-flag 정합성 거부 | 승인 standalone/4Node 묶음 0.070042ms | pass |
+| LP11-T04 skip sequence 거부 | 승인 standalone/4Node 묶음 0.169041ms | pass |
+| LP11-T04 elapsed sequence 거부 | 승인 standalone/4Node 묶음 0.074958ms | pass |
+| LP11-T04 range sequence 거부 | 승인 standalone/4Node 묶음 0.044459ms | pass |
+| LP11-T04 unterminated sequence 거부 | 승인 standalone/4Node 묶음 0.168167ms | pass |
+| LP11-T04 after-terminal sequence 거부 | 승인 standalone/4Node 묶음 0.031541ms | pass |
+| LP11-T05 parser 오류 증거는 고정 코드와 safe numeric counts만 보존 | 승인 standalone/4Node 묶음 0.178917ms | pass |
+| LP11-T06 profile collector split 및 incomplete 안전 보고 | 승인 standalone/4Node 묶음 0.059208ms | pass |
+| LP11-T06 actual runner 공통 오류 reporter는 원문 없이 status를 출력 | 승인 standalone/4Node 묶음 0.078333ms | pass |
+cleanup 원출력 대조
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-t68X2l | 격리 fixture/증거/cache | 423409 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-JJyGIl | 격리 fixture/증거/cache | 423863 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-archive-probe-tests-Hw6Ju5 | archive probe fixture/cache/binary | 46626497 | 삭제 | 부재 확인 | after hook |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-4evdpK | 격리 fixture/증거/cache | 819 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ZIIJjA | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-T9Trlr | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-5Ac47D | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Z8wZaZ | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-By9K5V | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-8EGf4m | 격리 fixture/증거/cache | 8 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gw8qiV | 격리 fixture/증거/cache | 96 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-kQd28t | 격리 fixture/증거/cache | 3006 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-wfcG68 | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Me2bH8 | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-KmxIBJ | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-HlKZdJ | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-L9uCZ3 | 격리 fixture/증거/cache | 2654 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gk7iG1 | 격리 fixture/증거/cache | 2654 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-AAn7w0 | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-jwoAE0 | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-UtcHWW | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-OdCKQP | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-JrRIgF | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-TuvTds | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ecWCH2 | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-3C5aXi | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-2z3cYY | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-fPHfoO | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ZSSvWF | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-YOOWdw | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-2FQdal | 격리 fixture/증거/cache | 370 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-4NjOir | 격리 fixture/증거/cache | 431 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-yOZwN1 | 격리 fixture/증거/cache | 430 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-WjpEql | 격리 fixture/증거/cache | 434 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-bCCP0i | 격리 fixture/증거/cache | 433 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-x5fyOV | 격리 fixture/증거/cache | 431 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-qj0fTc | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-FljtkY | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-mww6Xw | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-amai6s | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-THsxNY | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-QLetPT | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-6V4gZ1 | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-me5paR | 격리 fixture/증거/cache | 8 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-jW1Zta | 격리 fixture/증거/cache | 2732 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-BNQL9T | 격리 fixture/증거/cache | 2732 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-tL03wG | 격리 fixture/증거/cache | 2733 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-h5Hzka | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-xNY8jq | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-XKhWFl | 격리 fixture/증거/cache | 8 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Lomv9w | 격리 fixture/증거/cache | 2714 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-B6dmPX | 격리 fixture/증거/cache | 0 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-D50KDi | 격리 fixture/증거/cache | 98 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-7gBghM | 격리 fixture/증거/cache | 3067 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-nE8tSt | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-fkb823 | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Ti2kga | 격리 fixture/증거/cache | 266 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-fopmLk | 격리 fixture/증거/cache | 274 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-XsOD2e | 격리 fixture/증거/cache | 97 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-qB3EHV | 격리 fixture/증거/cache | 163 | 삭제 | 부재 확인 | 해당 테스트 소유 finally |
+중간 GREEN19 root /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-i6kvpB 423462 bytes removed=true는 도구 원출력 확인(위 원문보존 누락 경계 유지).
+검증: git diff --check exit0; node --check scripts/internal/verify_recording_current_app.mjs exit0.
+Source/build SHA256:
+da89d6b98f473f4c985b05f0d6c3f3a1045e43890d8a228ced8c83d20de05739  include/recording/recording_latency_trace.h
+29511c1130eecf5845e6e1d346b64e6595b301149805b97e6b41c62146a0fb8f  src/recording/recording_catalog.cpp
+1eda6f56da9911ff36ec94451788064cf7bb4c7e4762b29a11b85d83fedb9eab  src/recording/recording_timeline_projection.cpp
+45a4c4f73f4ee292a78907c91cad324d40fc7d2a17eb0bbdcc7406f51d7568d7  src/recording/recording_read_service.cpp
+1b753c093a8ffe3d4154db5a395c0b42ff201820079822b873d64ff115e28430  src/ingress/recording_application_service.cpp
+070dcceeffe2a9d86b265d5bbb29ce481eebec75feabe0ac1b2c439f356282bb  scripts/internal/recording_latency_trace.mjs
+e15bf7a1bed3741e20e5bcb12c595e5e8c5ff20d1ee513abcc53b9a63e74c728  scripts/internal/recording_latency_trace.test.mjs
+0ccd017633b18192d5a0750e96b658591a07788837866c76c0fa7b14670096ec  scripts/internal/recording_latency_trace_smoke.cpp
+6f762d3d27bbdfb331c5d268790cb9b2a8477953fe1168559a610969e6f37913  scripts/internal/verify_recording_current_app.mjs
+17f3a659195504e29e462d9cb209efd376eaaa5ee739311f6ce6e664aa0bb38b  scripts/internal/recording_catalog_cost_probe_instrument.cjs
+eefa660cb25e0068ed34e84e04d64ba82181819ed52efda51391b2fe2e0492b1  build-gst-onnx/libmedia_server_runtime.a
+a72528c33359f61c4ad9a8a5290fc583e4a9ce41f68290bd73d3af6d943edac7  build-gst-onnx/media_server
+
+계측 해석: b=steady trace시작 상대ns wait시작, a=acquire완료, e=unlock직전(실제unlock완료시각과동일하지않음). k0=lock span;k1=phase;k2=빠른구간 집계;k3=손실발생표시(n1은정확누락건수가아님). op1 lock,2 Timeline,3 QueryTimeline,4 FinishTimelineV2,5 JSON serialize,6 CheckpointLocked,7 AppendAndApplyLocked,8 ApplyDerivedJobMutationLocked,9 ProjectMutationSqliteLocked,10 ValidateDerivedJobSourcesLocked. source1 catalog,2 projection,3 read,4 application,5 smoke. line은위sourcehash와같이해석. m은프로세스내관측mutex주소매핑숫자(주소원문없음,주소재사용시다른생명주기동일번호가능). 요청없는worker fast는thread별256회또는thread종료에집계. fast=<1ms wait및hold,모든잠금측정하고상세만생략.
+합성1800poll은10822행/1487284bytes. 180초시점ns숫자길이증가를begin/acquired/end각각최대12자리로계산해도추가상한약390KB,합계2MiB이내. 실제slow다발/다른로그로cap가능하므로실제앱PASS증거아님. 전체4MiB/180초/HTTP4000ms 불변.
+미실행: 실제앱/장시간/UI/scale32비용실험/커밋/푸시. runtime 코드계측은기본off,제품schema/API/시간/ID/미디어불변. mutex.lock예외는원래처럼전파;진단자체는noexcept와고정배열을사용. token start/end/consumed 미집계(서브에이전트실제집계도구없음); elapsed는각원출력duration_ms,build별도elapsed미계측. source=실제Node/C++/build/tool출력.
+
+
+최종 standalone (runner/보존/phase누락/env key없음/fast집계 보완 후)
+command: node --test scripts/internal/recording_latency_trace.test.mjs
+exit: 0
+[load] {"requests":600,"locks":15000,"rows":3622,"bytes":497269,"sha256":"32aa2db78fce00dfd92cfda4c185397b58b9d87df31b789ba6af42239a8068ee"}
+[load] {"requests":1800,"locks":34200,"rows":10822,"bytes":1487284,"sha256":"df5b24f585bb21b5e23f741945ebadd8bfead6a0722a9508acfb11b2be2cf8de"}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-JJyGIl","bytes":423863,"removed":true}
+✔ LP13-T01 collector 존재 (0.586625ms)
+✔ LP13-T01 disabled/invalid null 무출력 (343.130667ms)
+✔ LP13-T01 disabled/invalid "" 무출력 (45.727208ms)
+✔ LP13-T01 disabled/invalid "0" 무출력 (45.483667ms)
+✔ LP13-T01 disabled/invalid "true" 무출력 (40.314375ms)
+✔ LP13-T01 disabled/invalid "01" 무출력 (39.72025ms)
+✔ LP13-T01 disabled/invalid "1 " 무출력 (47.352125ms)
+✔ LP13-T02 fast aggregate count/sum/max 정확 (6.937208ms)
+✔ LP13-T04 부분증거 parent/target 실패와 phase누락 미완료 (15.092791ms)
+✔ LP13-T02 실제 동일 mutex 경합·다른 mutex·unlock 후 sink (37.949041ms)
+✔ LP13-T03 600 poll·15fastlocks/poll·5400worker 합성 예산 (69.990916ms)
+✔ LP13-T03 1800 poll·15fastlocks/poll·5400worker 합성 예산 (285.022625ms)
+✔ LP13-T03 tls-cap 손실 명시 (2.467167ms)
+✔ LP13-T03 cap 손실 명시 (24.102667ms)
+✔ LP13-T04 split·safe부분보존·순번누락 (11.509792ms)
+✔ LP13-T04 enum 거부 (0.114541ms)
+✔ LP13-T04 numeric 거부 (0.039208ms)
+✔ LP13-T04 time 거부 (0.024125ms)
+✔ LP13-T04 count 거부 (0.031541ms)
+✔ LP13-T04 linecap 거부 (0.023541ms)
+✔ LP13-T04 incomplete 거부 (0.021083ms)
+✔ LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거부 (52.712417ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1318.529584
+
+build command: ./server.sh build
+exit: 0
+[1/2] configure: /Users/dhseo/Workspace/mediaServer/build-gst-onnx (ai=1, youtube=0)
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/dhseo/Workspace/mediaServer/build-gst-onnx
+[2/2] build
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_catalog.cpp.o
+[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_read_service.cpp.o
+[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_timeline_projection.cpp.o
+[  3%] Building CXX object CMakeFiles/media_server_runtime.dir/src/ingress/recording_application_service.cpp.o
+[  4%] Linking CXX static library libmedia_server_runtime.a
+[ 98%] Built target media_server_runtime
+[ 99%] Linking CXX executable media_server
+[100%] Built target media_server
+[done] build=/Users/dhseo/Workspace/mediaServer/build-gst-onnx/media_server
+
+RED command: node --test scripts/internal/recording_latency_trace.test.mjs
+exit: 1
+✖ LP13-T01 collector 존재 (0.490208ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 27.768084
+
+✖ failing tests:
+
+test at scripts/internal/recording_latency_trace.test.mjs:4:1
+✖ LP13-T01 collector 존재 (0.490208ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+RAW_JSON_LINE: "  "
+  + 'undefined'
+  - 'function'
+RAW_JSON_LINE: "  "
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_latency_trace.test.mjs:4:41)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+첫 GREEN19 (이후 runner/보존검사 보완 전)
+exit:0
+[load] {"requests":600,"locks":15000,"rows":3622,"bytes":497327,"sha256":"8f8e5c2584a77d4a69104d1fb2e02ff0e5b34d81f79cb43a886cc580cd9f9a06"}
+[load] {"requests":1800,"locks":34200,"rows":10822,"bytes":1500214,"sha256":"1ad2901380d1438673794d4e7513bf99fb09101635839f30eecb0b7ac5a61062"}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-t68X2l","bytes":423409,"removed":true}
+✔ LP13-T01 collector 존재 (0.603542ms)
+✔ LP13-T01 disabled/invalid "" 무출력 (353.850125ms)
+✔ LP13-T01 disabled/invalid "0" 무출력 (37.25ms)
+✔ LP13-T01 disabled/invalid "true" 무출력 (43.9585ms)
+✔ LP13-T01 disabled/invalid "01" 무출력 (46.70525ms)
+✔ LP13-T01 disabled/invalid "1 " 무출력 (45.875333ms)
+✔ LP13-T02 실제 동일 mutex 경합·다른 mutex·unlock 후 sink (44.024667ms)
+✔ LP13-T03 600 poll·15fastlocks/poll·5400worker 합성 예산 (32.498584ms)
+✔ LP13-T03 1800 poll·15fastlocks/poll·5400worker 합성 예산 (43.502583ms)
+✔ LP13-T03 tls-cap 손실 명시 (1.91975ms)
+✔ LP13-T03 cap 손실 명시 (24.672292ms)
+✔ LP13-T04 split·safe부분보존·순번누락 (13.966291ms)
+✔ LP13-T04 enum 거부 (0.068125ms)
+✔ LP13-T04 numeric 거부 (0.039ms)
+✔ LP13-T04 time 거부 (0.025291ms)
+✔ LP13-T04 count 거부 (0.030416ms)
+✔ LP13-T04 linecap 거부 (0.0285ms)
+✔ LP13-T04 incomplete 거부 (0.018292ms)
+✔ LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거부 (49.318833ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1077.342417
+
+중간 runner 연결 후 GREEN19(exit0,1055.336083ms) 도구 원출력은 대화에 확보됐으나 store 저장 누락; 이 파일에는 최종 변경 후 원출력을 보존한다. 해당 실행을 이유로 추가 재실행하지 않음.

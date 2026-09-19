@@ -30,6 +30,32 @@
 
 1단계 문서 검증: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links`, exit0(282파일/8702링크/22이미지/111anchor/실패0); `git diff --check` exit0. staging 후 최초 cached diffcheck는 기존 미추적 원출력5파일의 행말 공백72행을 발견했다(뒤 stat 명령과 묶여 단독exit 미보존). 해당 행만 `RAW_JSON_LINE:` JSON 문자열로 가역 표기하고 각 파일의 복원 SHA256을 명시했다. 읽기 검증으로5파일 원문 SHA 일치를 확인했으며 테스트를 재실행하거나 결과를 변경하지 않았다. 푸시는 전체 승인 범위 종료 후 수행할 예정이며 아직 미수행이다.
 
+1단계 커밋: `63e41d2c` — HTTP 실패의 대상 상태와 진단 증거 보존. 최종 cached diffcheck exit0. 이전 AVC 제품/전용 테스트 변경은 미커밋으로 보존하고 실제 앱 생성 PASS를 주장하지 않는다.
+
+### 2단계 지연 동시 관측 사전등록
+
+계측량 사전 검토: playable 항목마다 media 보호 조회가 여러 catalog 잠금을 사용하므로 모든 잠금을 행별 출력하면600poll만으로9000행을 넘을 수 있다. 모든 잠금을 측정하되 wait/hold≥1ms 및 timeline snapshot은 개별 구간을 보존하고 나머지는 요청/worker별 count·sum·max로 집계한다. 1ms미만 세부 구간 생략을 명시하며 시간초과 판정은 바꾸지 않는다. TLS128행, 프로세스16384행·trace2MiB 및 기존 전체로그4MiB 상한을 유지하고 drop/invalid/미종결/상관누락은 진단 미완료다.600poll·2항목(최소9000잠금)과1800poll 상당 합성 예산을 확인한다. 안전한 부분 증거·고정 상태 저장 실패는 root 삭제를 차단한다.
+
+제품 판정 변경 없이 `MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=1`에서만 내부 시간 계측을 켠다. 실제 timeline 처리 순번, catalog mutex의 대기/획득/해제 구간 및 작업 위치, checkpoint·mutation검증·SQLite 등 큰 하위 구간을 같은 프로세스 monotonic 시간축으로 기록한다. 공개 API/schema/header·시간계약·예산은 변경하지 않는다. 고정 enum/소스행·숫자만 사용하며 주소·원본ID·URL·임의문자열을 출력하지 않는다. 잠금 안 stderr I/O 금지, bounded 스레드 수집 후 unlock/외부 scope 종료에 출력한다. 기록 상한/누락은 명시하고 계측없음·잘림을 정상증거로 쓰지 않는다. 계측의 오버헤드와 실제 운영성능은 구분한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP13-T01 | 기본 off | 미설정/잘못된값에서 출력없음·기존 lock 수명 유지 | v4.1.0 |
+| LP13-T02 | 경합 상관 | 실제2thread 동일mutex owner/waiter·서로다른mutex 구별, start≤acquire≤end | v4.1.0 |
+| LP13-T03 | 내부 구간 | 큰 하위phase와 소유lock/HTTP순번 연결, 중첩값 중복합산 금지 | v4.1.0 |
+| LP13-T04 | 안전/상한 | 고정숫자schema·split/invalid/overflow/누락 거부·주소/문자열 비노출, unlock후 출력 | v4.1.0 |
+| LP13-T05 | 실제 경로 연결 | catalog·timeline·서비스·runner 연결, 단위/기존 진단 회귀·전체 빌드, 코드hash 기록 | v4.1.0 |
+
+LP13-T05 추가 영향: `recording_catalog_cost_probe_instrument.cjs`가 기존 lock 문자열에 의존한다. 새 wrapper도 정확히 확인한 뒤 동일 임시 fc 잠금 계측으로 바꾸도록 연결하고 자체 준비검사에 포함한다. 이번 단계에서는 누적 비용 본 실행을 하지 않으며 기존 비용 측정 의미·flags·상한은 유지한다.
+
+구현 대상은 `include/recording/recording_latency_trace.h`, `scripts/internal/recording_latency_trace.mjs`, `scripts/internal/recording_latency_trace.test.mjs`, `scripts/internal/recording_latency_trace_smoke.cpp`와 기존 catalog/projection/read/application/실제 앱 runner다. 명령은 `node --test scripts/internal/recording_latency_trace.test.mjs`(C++17/pthread 자체검사 포함), 위 LP13-P 기존 Node 4개 묶음, `./server.sh build`, `git diff --check`다. 예상 RED는 새 관측 계약 미구현이며 환경/컴파일 오류를 RED로 인정하지 않는다. 원출력은 첫 실행부터 `lp13-latency-output.txt`에 보존한다. 정상시간·의도한경합은 자체검사이며 실제 제품 HTTP PASS가 아니다. 3단계 실제 앱1회는 준비검사·빌드·메인 검토 및2단계 커밋 이후 실행한다. 결과 보존/cleanup은1단계 경계를 유지한다.
+
+2단계 결과: standalone22/22 PASS(exit0,1318.53ms), 전체 build exit0, 기존4Node141/141 PASS(exit0,34509ms), syntax/diffcheck exit0. 1800poll·34200잠금 합성10822행/1487284B로 trace2MiB 이내였다. 기본off, 실제경합, 잠금해제후출력, 상한/누락, 부분증거보존과 기존 비용 계측 연결을 확인했다. 메인은 실제diff와 계측·수집·보존 oracle을 직접 검토했다. e는 unlock직전 시각이며 inclusive phase는 중복합산하지 않는다. 합성/준비 PASS는 실제 HTTP/영상생성 PASS가 아니다. [전수163개·원출력·정리60행·source/build SHA](release-artifacts/v4.1.0/s11-preparation-mapping/lp13-latency-output.txt). 중간GREEN19의 store 보존누락을 기록하고 최종22 원출력을 보존했다. token 실측 미집계. AVC 수정은 아직 별도 미커밋이다.
+
+### 3단계 실제 앱 진단 사전등록
+
+LP13-A01: `node scripts/internal/verify_recording_current_app.mjs --latency-only` 1회. 기존 격리 headless GST 환경/소유 cache를 사용하며 HTTP4000ms·총180초·로그4MiB·fixture512MiB 불변이다. LP13-T 준비/빌드/검토/커밋 후 실행한다. 원출력은 시작부터 소유 임시파일에 보존한다. client timelineOrdinal와 서비스 request를 연결하고 동일 mutex의 owner/대기 구간, phase, 대상 job 사후 요약을 확보한다. 실패시 원인을 확정할 증거가 충분한지 먼저 판단하며 무근거 반복·timeout 확대·다음 단계 PASS 처리를 하지 않는다. 종료/포트/UDP·정리와 안전 증거 보존을 확인한다.
+
 ## 2026-09-19 LP12-F05 재개와 중단
 
 사용자 승인 순서: 남은 임시root 정리→실제 앱 단기1회→저장 비용 판정→분할 커밋·푸시. 메인이 단순 실행을 직접 수행했다. 이전 제품/실행 파일 SHA와 현재 값이 같아 F01~04 단위·회귀·빌드는 재실행하지 않았다. 기존 사전등록 LP12-F05의 동일 명령/4000ms/180초 제한을 유지했다.

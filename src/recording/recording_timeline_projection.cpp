@@ -1,5 +1,6 @@
 // 파일 용도: 같은 catalog 잠금의 V2 사실을 bounded 공개 timeline 값으로 투영한다.
 #include "recording/recording_catalog.h"
+#include "recording/recording_latency_trace.h"
 #include "recording/recording_derived_selection.h"
 #include "recording/recording_native_coverage.h"
 #include <algorithm>
@@ -181,7 +182,7 @@ private:
 };
 } // namespace
 bool RecordingCatalog::SnapshotTimelineV2(const RecordingTimelineQuery& query,RecordingTimelineResult* result,std::string* error) const {
-    std::lock_guard lock(mu_);
+    recording::latency::Lock lock(mu_,recording::latency::Source::Projection,__LINE__,true);
     if(!result||!opened_||!derived_job_state_authoritative_){if(error)*error="timeline-catalog-unavailable";return false;}
     result->v2_projection=options_.enable_v2_storage;
     if(!result->v2_projection)return true;
@@ -213,6 +214,7 @@ bool RecordingCatalog::SnapshotTimelineV2(const RecordingTimelineQuery& query,Re
     }catch(const std::exception&){*result={};if(error)*error="timeline-projection-unavailable";return false;}
 }
 bool RecordingReadService::FinishTimelineV2(const RecordingTimelineQuery& query,RecordingTimelineResult* result,std::string* error) const {
+    recording::latency::Scope latency_scope(recording::latency::Operation::Finish,recording::latency::Source::Projection,__LINE__,true);
     try {
         std::unordered_map<std::string,std::pair<bool,std::string>> media;
         auto available=[&](RecordingTimelineItem& item){

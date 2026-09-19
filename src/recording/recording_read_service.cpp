@@ -1,5 +1,6 @@
 // 파일 용도: 운영 timeline의 조회 전용 투영.
 #include "recording/recording_read_service.h"
+#include "recording/recording_latency_trace.h"
 #include "recording/recording_media_inspector.h"
 #include <algorithm>
 #include <charconv>
@@ -483,6 +484,7 @@ std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveMedia(
 bool RecordingReadService::QueryTimeline(const RecordingTimelineQuery& query,
                                          RecordingTimelineResult* result,
                                          std::string* error) const {
+    recording::latency::Scope latency_scope(recording::latency::Operation::Query,recording::latency::Source::Read,__LINE__,true);
     if (!result) {
         if (error) *error = "timeline result is required";
         return false;

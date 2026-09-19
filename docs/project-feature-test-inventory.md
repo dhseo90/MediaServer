@@ -1,5 +1,7 @@
 # Project Feature Test Inventory
 
+LP13-T01~05: 검증 opt-in 시간/잠금소유/HTTP순번 동시 관측, 기본off·경합·중첩·상한·실제연결. 중앙 LP13 2단계 정의 참조. 안정화: 전용C++/JS 및 관련회귀·build. 30분/120분: 이번 미실행. UI: 내부계측 비대상. 계측PASS를 실제운영 지연PASS로 대체하지 않는다.
+
 LP13-P01~05: HTTP 실패와 독립된 참조 선등록·범용 사후 상태·정리 보존 경계·비노출/회귀. exact 정의는 중앙 LP13 사전등록. 안정화: 격리 Node/C++ probe 단위. 30분/120분: 이번 미실행. UI: 검증기 내부 비대상. 준비 PASS가 제품 생성/지연 PASS가 아님.
 
 LP12-F01~05: 실제 AVC writer·명시 입력 framing·거부 경계·회귀·실제 앱 생성 확인. 중앙 LP12-F 사전등록 참조. 안정화: AVC/capture/file-evidence/JS/build 후 실제 단기1회. 30분/120분: 이번 미실행·S11 영향판정 별도. UI: 내부 수집 비대상, 실제 UI PASS 대체 불가.

@@ -1,5 +1,6 @@
 // 파일 용도: 녹화 HTTP 응답의 범위·숫자·JSON 계약을 transport와 분리한다.
 #include "ingress/recording_application_service.h"
+#include "recording/recording_latency_trace.h"
 #include <charconv>
 #include <sstream>
 #include <limits>
@@ -145,6 +146,7 @@ ApplicationServiceResult RecordingApplicationService::Status(const ChannelAuthor
 
 ApplicationServiceResult RecordingApplicationService::Timeline(
     const std::unordered_map<std::string, std::string>& query, const ChannelAuthorizer& authorize) const {
+    recording::latency::Scope latency_scope(recording::latency::Operation::Timeline,recording::latency::Source::Application,__LINE__,true,true);
     const auto channel = query.find("channelId");
     if (channel == query.end() || channel->second.empty() || channel->second.size()>256 ||
         channel->second.find('\0')!=std::string::npos) return BadQuery();
@@ -169,6 +171,7 @@ ApplicationServiceResult RecordingApplicationService::Timeline(
     recording::RecordingTimelineResult result;
     if (!reader_.QueryTimeline(parsed, &result, nullptr)) return {503,"Service Unavailable","{\"error\":\"recording timeline unavailable\"}"};
     try {
+    recording::latency::Scope serialize_scope(recording::latency::Operation::Serialize,recording::latency::Source::Application,__LINE__,true);
     TimelineBuffer buffer;std::ostream out(&buffer);out.exceptions(std::ios::badbit|std::ios::failbit);
     out << std::boolalpha << "{\"total\":" << result.total << ",\"unplacedTotal\":"<<result.unplaced_total<<",\"offset\":" << offset
         << ",\"limit\":" << limit << ",\"items\":[";

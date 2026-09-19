@@ -15,7 +15,11 @@ for(const file of ['recording_catalog.cpp','recording_journal.cpp','recording_co
   s=replace(s,'for(const auto& m:original.mutations)if(!before.ApplyMutationLocked(m,false,error))return false;','if(!fc::Measure("checkpoint.originalSemantic",[&]{for(const auto& m:original.mutations)if(!before.ApplyMutationLocked(m,false,error))return false;return true;}))return false;');
   s=replace(s,'const bool identical=detail::SameCheckpointSequence(original.mutations,candidate);','const bool identical=detail::SameCheckpointSequence(original.mutations,candidate);fc::Event(identical?"candidate.identical":"candidate.different");');
   s=replace(s,'for(const auto& m:candidate)if(!after.ApplyMutationLocked(m,false,error))return false;','if(!fc::Measure("checkpoint.candidateSemantic",[&]{for(const auto& m:candidate)if(!after.ApplyMutationLocked(m,false,error))return false;return true;}))return false;');
-  const lock='std::lock_guard lock(mu_);';const n=s.split(lock).length-1;if(n<10)throw Error('catalog lock insertions');
+  const legacy='std::lock_guard lock(mu_);',traced='recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);';
+  const legacyCount=s.split(legacy).length-1,tracedCount=s.split(traced).length-1;
+  if((legacyCount>0)===(tracedCount>0)||legacyCount+tracedCount<10)throw Error('catalog lock insertions');
+  if(process.env.MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE==='1')throw Error('cost probe requires latency trace disabled');
+  const lock=tracedCount?traced:legacy,n=legacyCount+tracedCount;
   s=s.split(lock).join('std::unique_lock<std::mutex> lock(mu_,std::defer_lock);fc::Measure("catalog.lock.wait",[&]{lock.lock();});fc::Scope fc_hold("catalog.lock.hold");');count+=n;
  }
  if(file==='recording_journal.cpp'){
