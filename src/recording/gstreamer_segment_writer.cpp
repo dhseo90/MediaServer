@@ -358,7 +358,11 @@ private:
         }
         evidence_capture.reset();
         if(v2_mode&&video_track.codec==media::CodecId::H264) {
-            try{evidence_capture=std::make_unique<RecordingFileEvidenceCollector>(v2_origin);evidence_capture->Attach(parser);}
+            try{
+                const auto release=[](GstCaps* caps){if(caps)gst_caps_unref(caps);};
+                std::unique_ptr<GstCaps,decltype(release)> input_caps(gst_app_src_get_caps(GST_APP_SRC(appsrc)),release);
+                evidence_capture=std::make_unique<RecordingFileEvidenceCollector>(v2_origin);evidence_capture->Attach(parser,input_caps.get());
+            }
             catch(...){evidence_capture.reset();}
         }
         if (gst_element_set_state(pipeline, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {

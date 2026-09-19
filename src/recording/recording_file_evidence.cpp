@@ -4,6 +4,8 @@
 #include <atomic>
 #include <limits>
 #include <mutex>
+#include <cstring>
+#include <string_view>
 #include <stdexcept>
 #include <unordered_map>
 #include <unordered_set>
@@ -21,6 +23,68 @@ constexpr std::size_t kSamples=4096,kBytes=32U*1024*1024;
 void Need(bool value,const char* reason){if(!value)throw std::runtime_error(reason);}
 std::string Hash(const unsigned char* data,std::size_t size){gchar* p=g_compute_checksum_for_data(G_CHECKSUM_SHA256,data,size);Need(p,"hash");std::string s(p);g_free(p);return s;}
 std::int64_t Time(GstClockTime t){Need(GST_CLOCK_TIME_IS_VALID(t)&&t<=static_cast<std::uint64_t>(INT64_MAX),"timestamp-unavailable");return static_cast<std::int64_t>(t);}
+// 진단은 수락 조건을 바꾸지 않는다. 단계/코드를 한 원자값으로 최초 한 번만 보존한다.
+enum class CapturePhase : std::uint16_t {AttachCore,AttachParserPad,AttachMuxPad,AttachMuxElement,AttachPlugin,AttachProbe,
+    ObserveLock,ObserveSegment,ObserveCount,ObserveBufferSize,ObservePts,ObserveDts,ObserveDuration,ObserveCaps,ObserveAvc,ObserveBufferRead,ObserveVcl,ObserveHash,ObserveAppend,
+    AcceptLock,AcceptCount,AcceptOriginalFields,AcceptBufferSize,AcceptPts,AcceptDts,AcceptDuration,AcceptVcl,AcceptAppend,AttachInputCaps};
+struct CapturePhaseSpec {const char* name;const char* reasons;};
+constexpr CapturePhaseSpec kCapturePhases[]={
+    {"attach-core","gstreamer-profile"},{"attach-parser-pad","parser-pad"},{"attach-mux-pad","mux-pad"},{"attach-mux-element","mux-element"},{"attach-plugin","plugin-profile"},{"attach-probe","probe-install"},
+    {"observe-lock",""},{"observe-segment","segment-profile"},{"observe-count","sample-cap"},{"observe-buffer-size","buffer-cap"},
+    {"observe-pts","timestamp-unavailable"},{"observe-dts","timestamp-unavailable"},{"observe-duration","timestamp-unavailable"},
+    {"observe-caps","caps-unavailable"},{"observe-avc","avc-profile"},{"observe-buffer-read","buffer-read"},
+    {"observe-vcl","empty-nal nal-size nal-width nal-header nal-bound vcl-missing hash"},{"observe-hash","hash"},{"observe-append",""},
+    {"accept-lock",""},{"accept-count","sample-cap"},{"accept-original-fields","original-timestamp"},{"accept-buffer-size","buffer-cap"},
+    {"accept-pts","timestamp-unavailable"},{"accept-dts","timestamp-unavailable"},{"accept-duration","timestamp-unavailable"},
+    {"accept-vcl","empty-nal nal-size nal-width nal-header nal-bound vcl-missing hash"},{"accept-append",""},
+    {"attach-input-caps","input-caps input-format input-alignment input-codec-data input-avcc-header input-nal-width input-codec-conflict"}};
+constexpr const char* kCaptureCodes[]={"unknown","gstreamer-profile","parser-pad","mux-pad","mux-element","plugin-profile","probe-install","segment-profile","sample-cap","buffer-cap","timestamp-unavailable","caps-unavailable","avc-profile","buffer-read","empty-nal","nal-size","nal-width","nal-header","nal-bound","vcl-missing","hash","original-timestamp","input-caps","input-format","input-alignment","input-codec-data","input-avcc-header","input-nal-width","input-codec-conflict"};
+bool ExactToken(std::string_view list,std::string_view value) noexcept {
+    while(!list.empty()){const auto end=list.find(' ');if(list.substr(0,end)==value)return true;if(end==std::string_view::npos)break;list.remove_prefix(end+1);}return false;
+}
+struct CaptureFailure {
+    std::atomic<std::uint32_t> packed{0};
+    void Record(CapturePhase phase,const char* what=nullptr) noexcept {
+        const auto p=static_cast<std::uint16_t>(phase);std::uint16_t code=0;
+        if(p>=std::size(kCapturePhases))return;
+        if(what)for(std::uint16_t i=1;i<std::size(kCaptureCodes);++i)if(std::strcmp(what,kCaptureCodes[i])==0&&ExactToken(kCapturePhases[p].reasons,kCaptureCodes[i])){code=i;break;}
+        std::uint32_t expected=0;packed.compare_exchange_strong(expected,((static_cast<std::uint32_t>(p)+1)<<16)|code);
+    }
+    bool Failed() const noexcept {return packed.load()!=0;}
+    std::string Reason() const {
+        const auto value=packed.load();if(!value)return {};const auto phase=(value>>16)-1,code=value&65535;
+        if(phase>=std::size(kCapturePhases)||code>=std::size(kCaptureCodes))return "capture-unknown";
+        return std::string("capture-")+kCapturePhases[phase].name+"-"+kCaptureCodes[code];
+    }
+};
+void ReadMuxTimes(GstBuffer* buffer,RecordingFileSampleEvidenceV1& sample,CapturePhase& phase){
+    phase=CapturePhase::ObservePts;sample.mux_pts_ns=Time(GST_BUFFER_PTS(buffer));
+    phase=CapturePhase::ObserveDts;sample.mux_dts_ns=Time(GST_BUFFER_DTS(buffer));
+    phase=CapturePhase::ObserveDuration;sample.mux_duration_ns=Time(GST_BUFFER_DURATION(buffer));
+}
+unsigned InputNalWidth(const GstCaps* caps){
+    Need(caps&&gst_caps_is_fixed(caps)&&gst_caps_get_size(caps)==1,"input-caps");
+    const auto* structure=gst_caps_get_structure(caps,0);Need(gst_structure_has_name(structure,"video/x-h264"),"input-caps");
+    const auto* alignment=gst_structure_get_string(structure,"alignment");Need(alignment&&std::strcmp(alignment,"au")==0,"input-alignment");
+    const auto* format=gst_structure_get_string(structure,"stream-format");Need(format,"input-format");
+    const auto* value=gst_structure_get_value(structure,"codec_data");
+    if(std::strcmp(format,"byte-stream")==0){Need(!value,"input-codec-conflict");return 0;}
+    Need(std::strcmp(format,"avc")==0||std::strcmp(format,"avc3")==0,"input-format");
+    Need(value&&GST_VALUE_HOLDS_BUFFER(value),"input-codec-data");auto* buffer=gst_value_get_buffer(value);
+    Need(buffer&&gst_buffer_get_size(buffer)>=7&&gst_buffer_get_size(buffer)<=kBytes,"input-avcc-header");
+    // NAL framing에 필요한 최소 헤더만 읽는다. SPS/PPS/확장 전체를 검증하는 parser가 아니다.
+    unsigned char header[5]{};Need(gst_buffer_extract(buffer,0,header,sizeof(header))==sizeof(header)&&header[0]==1&&(header[4]&0xfc)==0xfc,"input-avcc-header");
+    const unsigned width=(header[4]&3)+1;Need(width==1||width==2||width==4,"input-nal-width");return width;
+}
+const char* FixedFinishReason(const char* what) noexcept {
+    static constexpr const char* allowed[]={"hash","empty-nal","nal-size","nal-width","nal-header","nal-bound","vcl-missing",
+        "mp4-field-bound","mp4-depth","mp4-box-count","mp4-header","mp4-zero-size-profile","mp4-box-bound","mp4-profile","mp4-duplicate-box","mp4-missing-box","mp4-time-version","mp4-timescale","mp4-table-bound","mp4-video-only","mp4-data-reference-count","mp4-self-contained-reference","mp4-edit-profile","mp4-edit-rate","mp4-description-count","mp4-avc-entry","mp4-avcc-version","mp4-stsz-version","mp4-sample-count","mp4-sample-size","mp4-stts-version","mp4-stts-count","mp4-stts-total","mp4-ctts-version","mp4-ctts-count","mp4-ctts-total","mp4-chunk-table","mp4-chunk-version","mp4-stsc-version","mp4-empty-chunks","mp4-stsc-run","mp4-mdat-offset","mp4-mdat-containment","mp4-native-overflow","mp4-sample-total",
+        "file-size-cap","file-binding","file-read","file-hash-binding","segment-unobserved","capture-count","file-open","ambiguous-original-vcl","native-count","ambiguous-mux-raw","mux-file-payload","original-file-vcl",
+        "file evidence profile/bound 오류","file evidence identity/timestamp/duplicate 오류","file evidence forward table 오류","file evidence origin/edit 오류"};
+    if(what)for(const auto* code:allowed)if(std::strcmp(what,code)==0)return code;
+    return "finish-exception";
+}
+void SetFinishReason(std::string* reason,const char* fixed) noexcept {if(reason)try{*reason=fixed;}catch(...){reason->clear();}}
 std::string Vcl(const std::vector<unsigned char>& b,unsigned width) {
     std::vector<unsigned char> canonical;
     auto append=[&](std::size_t first,std::size_t last){Need(first<last,"empty-nal");const unsigned type=b[first]&31;if(type!=1&&type!=5)return;
@@ -112,31 +176,33 @@ void MatchNative(const Native& n,const RecordingFileEvidenceV1& e) {
 }
 }
 struct RecordingFileEvidenceCollector::Impl {
-    std::mutex mutex;std::int64_t origin;std::string failure;std::atomic<bool> failed{false};GstPad* pad=nullptr;gulong probe=0;bool segment=false;
+    std::mutex mutex;std::int64_t origin;CaptureFailure failure;unsigned input_width=0;GstPad* pad=nullptr;gulong probe=0;bool segment=false;
     std::vector<RecordingFileSampleEvidenceV1> accepted,mux;
     explicit Impl(std::int64_t o):origin(o){accepted.reserve(kSamples);mux.reserve(kSamples);}
     ~Impl(){if(pad){if(probe)gst_pad_remove_probe(pad,probe);gst_object_unref(pad);}}
     static GstPadProbeReturn Observe(GstPad* pad,GstPadProbeInfo* info,gpointer pointer) noexcept {
-        auto& self=*static_cast<Impl*>(pointer);
+        auto& self=*static_cast<Impl*>(pointer);auto phase=CapturePhase::ObserveLock;
         try {
-            std::lock_guard lock(self.mutex);if(self.failed.load()||!self.failure.empty())return GST_PAD_PROBE_OK;
+            std::lock_guard lock(self.mutex);if(self.failure.Failed())return GST_PAD_PROBE_OK;
             if(GST_PAD_PROBE_INFO_TYPE(info)&GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM){auto* event=GST_PAD_PROBE_INFO_EVENT(info);
-                if(GST_EVENT_TYPE(event)==GST_EVENT_SEGMENT){const GstSegment* s=nullptr;gst_event_parse_segment(event,&s);Need(s&&s->format==GST_FORMAT_TIME&&s->start==0&&s->time==0&&s->base==0&&s->offset==0&&s->rate==1&&s->applied_rate==1,"segment-profile");self.segment=true;}}
-            if(GST_PAD_PROBE_INFO_TYPE(info)&GST_PAD_PROBE_TYPE_BUFFER){Need(self.mux.size()<kSamples,"sample-cap");auto* b=GST_PAD_PROBE_INFO_BUFFER(info);Need(gst_buffer_get_size(b)<=kBytes,"buffer-cap");
-                RecordingFileSampleEvidenceV1 sample;sample.mux_pts_ns=Time(GST_BUFFER_PTS(b));sample.mux_dts_ns=Time(GST_BUFFER_DTS(b));sample.mux_duration_ns=Time(GST_BUFFER_DURATION(b));
-                auto* caps=gst_pad_get_current_caps(pad);Need(caps,"caps-unavailable");const auto* structure=gst_caps_get_structure(caps,0);const auto* format=gst_structure_get_string(structure,"stream-format");const auto* value=gst_structure_get_value(structure,"codec_data");
+                if(GST_EVENT_TYPE(event)==GST_EVENT_SEGMENT){phase=CapturePhase::ObserveSegment;const GstSegment* s=nullptr;gst_event_parse_segment(event,&s);Need(s&&s->format==GST_FORMAT_TIME&&s->start==0&&s->time==0&&s->base==0&&s->offset==0&&s->rate==1&&s->applied_rate==1,"segment-profile");self.segment=true;}}
+            if(GST_PAD_PROBE_INFO_TYPE(info)&GST_PAD_PROBE_TYPE_BUFFER){phase=CapturePhase::ObserveCount;Need(self.mux.size()<kSamples,"sample-cap");auto* b=GST_PAD_PROBE_INFO_BUFFER(info);phase=CapturePhase::ObserveBufferSize;Need(gst_buffer_get_size(b)<=kBytes,"buffer-cap");
+                RecordingFileSampleEvidenceV1 sample;ReadMuxTimes(b,sample,phase);
+                phase=CapturePhase::ObserveCaps;auto* caps=gst_pad_get_current_caps(pad);Need(caps,"caps-unavailable");phase=CapturePhase::ObserveAvc;const auto* structure=gst_caps_get_structure(caps,0);const auto* format=gst_structure_get_string(structure,"stream-format");const auto* value=gst_structure_get_value(structure,"codec_data");
                 auto* codec=value&&GST_VALUE_HOLDS_BUFFER(value)?gst_value_get_buffer(value):nullptr;unsigned char head[5]{};const bool valid=format&&std::string(format)=="avc"&&codec&&gst_buffer_extract(codec,0,head,5)==5;gst_caps_unref(caps);Need(valid,"avc-profile");
-                std::vector<unsigned char> bytes(gst_buffer_get_size(b));Need(gst_buffer_extract(b,0,bytes.data(),bytes.size())==bytes.size(),"buffer-read");sample.vcl_sha256=Vcl(bytes,(head[4]&3)+1);sample.sample_sha256=Hash(bytes.data(),bytes.size());self.mux.push_back(std::move(sample));}
-        }catch(...){self.failed.store(true);}
+                phase=CapturePhase::ObserveBufferRead;std::vector<unsigned char> bytes(gst_buffer_get_size(b));Need(gst_buffer_extract(b,0,bytes.data(),bytes.size())==bytes.size(),"buffer-read");phase=CapturePhase::ObserveVcl;sample.vcl_sha256=Vcl(bytes,(head[4]&3)+1);phase=CapturePhase::ObserveHash;sample.sample_sha256=Hash(bytes.data(),bytes.size());phase=CapturePhase::ObserveAppend;self.mux.push_back(std::move(sample));}
+        }catch(const std::exception& e){self.failure.Record(phase,e.what());}catch(...){self.failure.Record(phase);}
         return GST_PAD_PROBE_OK;
     }
 };
 RecordingFileEvidenceCollector::RecordingFileEvidenceCollector(std::int64_t o):impl_(std::make_unique<Impl>(o)){}
 RecordingFileEvidenceCollector::~RecordingFileEvidenceCollector()=default;
-bool RecordingFileEvidenceCollector::Attach(GstElement* parser) noexcept {
+bool RecordingFileEvidenceCollector::Attach(GstElement* parser,const GstCaps* input_caps) noexcept {
+    auto phase=CapturePhase::AttachCore;
     try{guint major=0,minor=0,micro=0,nano=0;gst_version(&major,&minor,&micro,&nano);Need(major==1&&minor==28&&micro==1&&nano==0,"gstreamer-profile");
-        auto* src=gst_element_get_static_pad(parser,"src");Need(src,"parser-pad");impl_->pad=gst_pad_get_peer(src);gst_object_unref(src);Need(impl_->pad,"mux-pad");
-        auto* mux=gst_pad_get_parent_element(impl_->pad);Need(mux,"mux-element");
+        phase=CapturePhase::AttachInputCaps;impl_->input_width=InputNalWidth(input_caps);
+        phase=CapturePhase::AttachParserPad;auto* src=gst_element_get_static_pad(parser,"src");Need(src,"parser-pad");phase=CapturePhase::AttachMuxPad;impl_->pad=gst_pad_get_peer(src);gst_object_unref(src);Need(impl_->pad,"mux-pad");
+        phase=CapturePhase::AttachMuxElement;auto* mux=gst_pad_get_parent_element(impl_->pad);Need(mux,"mux-element");phase=CapturePhase::AttachPlugin;
         auto* mux_factory=gst_element_get_factory(mux);
         bool versions=mux_factory&&std::string(gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(mux_factory)))=="mp4mux";
         for(auto* element:{parser,mux}) {
@@ -146,18 +212,19 @@ bool RecordingFileEvidenceCollector::Attach(GstElement* parser) noexcept {
             if(plugin)gst_object_unref(plugin);
         }
         gst_object_unref(mux);Need(versions,"plugin-profile");
-        impl_->probe=gst_pad_add_probe(impl_->pad,static_cast<GstPadProbeType>(GST_PAD_PROBE_TYPE_BUFFER|GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM),Impl::Observe,impl_.get(),nullptr);Need(impl_->probe,"probe-install");return true;
-    }catch(...){impl_->failed.store(true);return false;}
+        phase=CapturePhase::AttachProbe;impl_->probe=gst_pad_add_probe(impl_->pad,static_cast<GstPadProbeType>(GST_PAD_PROBE_TYPE_BUFFER|GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM),Impl::Observe,impl_.get(),nullptr);Need(impl_->probe,"probe-install");return true;
+    }catch(const std::exception& e){impl_->failure.Record(phase,e.what());return false;}catch(...){impl_->failure.Record(phase);return false;}
 }
 void RecordingFileEvidenceCollector::Accept(const media::Packet& packet) noexcept {
-    try{std::lock_guard lock(impl_->mutex);if(impl_->failed.load()||!impl_->failure.empty())return;Need(impl_->accepted.size()<kSamples,"sample-cap");Need(packet.observation&&packet.observation->pts_ns&&packet.observation->dts_ns,"original-timestamp");const auto& o=*packet.observation;Need(packet.payload.size()<=kBytes,"buffer-cap");
-        RecordingFileSampleEvidenceV1 sample;sample.ordinal=o.ordinal;sample.original_pts_ns=Time(*o.pts_ns);sample.original_dts_ns=Time(*o.dts_ns);sample.original_duration_ns=o.duration_ns?Time(*o.duration_ns):-1;
-        sample.vcl_sha256=Vcl(packet.payload,0);impl_->accepted.push_back(std::move(sample));
-    }catch(...){impl_->failed.store(true);}
+    auto phase=CapturePhase::AcceptLock;
+    try{std::lock_guard lock(impl_->mutex);if(impl_->failure.Failed())return;phase=CapturePhase::AcceptCount;Need(impl_->accepted.size()<kSamples,"sample-cap");phase=CapturePhase::AcceptOriginalFields;Need(packet.observation&&packet.observation->pts_ns&&packet.observation->dts_ns,"original-timestamp");const auto& o=*packet.observation;phase=CapturePhase::AcceptBufferSize;Need(packet.payload.size()<=kBytes,"buffer-cap");
+        RecordingFileSampleEvidenceV1 sample;sample.ordinal=o.ordinal;phase=CapturePhase::AcceptPts;sample.original_pts_ns=Time(*o.pts_ns);phase=CapturePhase::AcceptDts;sample.original_dts_ns=Time(*o.dts_ns);phase=CapturePhase::AcceptDuration;sample.original_duration_ns=o.duration_ns?Time(*o.duration_ns):-1;
+        phase=CapturePhase::AcceptVcl;sample.vcl_sha256=Vcl(packet.payload,impl_->input_width);phase=CapturePhase::AcceptAppend;impl_->accepted.push_back(std::move(sample));
+    }catch(const std::exception& e){impl_->failure.Record(phase,e.what());}catch(...){impl_->failure.Record(phase);}
 }
 std::optional<RecordingFileEvidenceV1> RecordingFileEvidenceCollector::Finish(const std::filesystem::path& path,const RecordingSourceBindingV1& binding,std::uint64_t bytes,const std::string& sha,std::string* reason) noexcept {
     int fd=-1;
-    try {std::lock_guard lock(impl_->mutex);Need(!impl_->failed.load(),"capture-profile-or-cap");Need(impl_->failure.empty(),impl_->failure.c_str());Need(impl_->segment,"segment-unobserved");Need(binding.index_complete&&impl_->accepted.size()==binding.samples.size()&&impl_->mux.size()==binding.samples.size(),"capture-count");
+    try {std::lock_guard lock(impl_->mutex);if(impl_->failure.Failed()){if(reason)*reason=impl_->failure.Reason();return std::nullopt;}Need(impl_->segment,"segment-unobserved");Need(binding.index_complete&&impl_->accepted.size()==binding.samples.size()&&impl_->mux.size()==binding.samples.size(),"capture-count");
         fd=::open(path.c_str(),O_RDONLY|O_CLOEXEC|O_NOFOLLOW);Need(fd>=0,"file-open");const auto data=ReadFile(fd,bytes,sha);::close(fd);fd=-1;const auto native=Mp4(data).Read();
         RecordingFileEvidenceV1 evidence;evidence.writer_origin_ns=impl_->origin;evidence.file_size_bytes=bytes;evidence.file_sha256=sha;evidence.timescale=native.timescale;evidence.movie_timescale=native.movie_timescale;evidence.edit_duration=native.edit_duration;evidence.edit_media_time=native.edit_time;
         std::unordered_map<std::string,const RecordingFileSampleEvidenceV1*> accepted;
@@ -169,7 +236,7 @@ std::optional<RecordingFileEvidenceV1> RecordingFileEvidenceCollector::Finish(co
             sample.mux_pts_ns=m->second->mux_pts_ns;sample.mux_dts_ns=m->second->mux_dts_ns;sample.mux_duration_ns=m->second->mux_duration_ns;
             sample.native_pts=n.pts;sample.native_dts=n.dts;sample.native_duration=n.duration;sample.sample_sha256=n.raw;evidence.samples.push_back(std::move(sample));}
         auto candidate=binding;candidate.file_evidence=evidence;std::string error;if(!ValidateRecordingFileEvidence(candidate,&error))throw std::runtime_error(error);if(reason)reason->clear();return evidence;
-    }catch(const std::exception& e){if(fd>=0)::close(fd);if(reason)*reason=e.what();return std::nullopt;}catch(...){if(fd>=0)::close(fd);if(reason)*reason="finish-exception";return std::nullopt;}
+    }catch(const std::exception& e){if(fd>=0)::close(fd);SetFinishReason(reason,FixedFinishReason(e.what()));return std::nullopt;}catch(...){if(fd>=0)::close(fd);SetFinishReason(reason,"finish-exception");return std::nullopt;}
 }
 bool VerifyRecordingFileEvidenceFd(int fd,const RecordingSourceBindingV1& binding,std::string* error) {
     if(!binding.file_evidence)return true;
@@ -182,7 +249,7 @@ namespace recording {
 struct RecordingFileEvidenceCollector::Impl{};
 RecordingFileEvidenceCollector::RecordingFileEvidenceCollector(std::int64_t):impl_(std::make_unique<Impl>()){}
 RecordingFileEvidenceCollector::~RecordingFileEvidenceCollector()=default;
-bool RecordingFileEvidenceCollector::Attach(GstElement*) noexcept{return false;}
+bool RecordingFileEvidenceCollector::Attach(GstElement*,const GstCaps*) noexcept{return false;}
 void RecordingFileEvidenceCollector::Accept(const media::Packet&) noexcept{}
 std::optional<RecordingFileEvidenceV1> RecordingFileEvidenceCollector::Finish(const std::filesystem::path&,const RecordingSourceBindingV1&,std::uint64_t,const std::string&,std::string* reason) noexcept{if(reason)*reason="gstreamer-unavailable";return {};}
 bool VerifyRecordingFileEvidenceFd(int,const RecordingSourceBindingV1& b,std::string* error){if(!b.file_evidence)return true;if(error)*error="gstreamer-unavailable";return false;}

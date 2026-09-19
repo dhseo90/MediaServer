@@ -5,13 +5,14 @@
 #include <filesystem>
 #include <memory>
 typedef struct _GstElement GstElement;
+typedef struct _GstCaps GstCaps;
 namespace recording {
 class RecordingFileEvidenceCollector {
 public:
     explicit RecordingFileEvidenceCollector(std::int64_t origin);
     ~RecordingFileEvidenceCollector();
     RecordingFileEvidenceCollector(const RecordingFileEvidenceCollector&)=delete;
-    bool Attach(GstElement* parser) noexcept;
+    bool Attach(GstElement* parser,const GstCaps* input_caps) noexcept;
     void Accept(const media::Packet&) noexcept;
     std::optional<RecordingFileEvidenceV1> Finish(const std::filesystem::path&,const RecordingSourceBindingV1&,
         std::uint64_t bytes,const std::string& sha256,std::string* reason) noexcept;
