@@ -1,0 +1,52 @@
+{"kind":"preflight","mode":"query-selftest","id":"lp21-01","head":"38b32a3a691f9a70a1a0ad70cceb8bd60acf79e1","sourceManifest":"ebc4a68bfd965c5e1ee7b5761ca69b0ce02e0bfc17d88e058e6928a66c494ae6","physicalBytes":25769803776,"reclaimableEstimateBytes":10864345088,"rssSafetyBytes":1073741824,"historicalRssBytes":536870912,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable","productPass":false}
+{"kind":"command","label":"query-selftest","command":"/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node","args":["--test","--test-reporter=tap","<repo>/scripts/internal/recording_catalog_query.test.mjs"],"seconds":60,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+TAP version 13
+# Subtest: LP21-H01 query thread totals and maxima retain separate ownership
+ok 1 - LP21-H01 query thread totals and maxima retain separate ownership
+  ---
+  duration_ms: 1.063583
+  type: 'test'
+  ...
+# Subtest: LP21-H02 missing mixed duplicated and artificial timing observations reject
+ok 2 - LP21-H02 missing mixed duplicated and artificial timing observations reject
+  ---
+  duration_ms: 0.233167
+  type: 'test'
+  ...
+# Subtest: LP21-H03 default sources cost output remains unchanged
+ok 3 - LP21-H03 default sources cost output remains unchanged
+  ---
+  duration_ms: 0.172292
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 46.180167
+        0.21 real         0.07 user         0.01 sys
+            63438848  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                9620  page reclaims
+                 155  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  44  messages sent
+                   5  messages received
+                   0  signals received
+                   0  voluntary context switches
+                 258  involuntary context switches
+           702175356  instructions retired
+           215544830  cycles elapsed
+            17041712  peak memory footprint
+{"kind":"phase-result","label":"query-selftest","diagnosticPass":true,"historicalRssPass":null,"observationValid":null,"semanticPass":null,"cleanupPass":true,"exitCode":0,"signal":null,"stopReason":null,"elapsedMs":228,"groupPeakRssBytes":0,"observationFailure":null,"outputBytes":1496}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":62691,"removed":true}
+{"kind":"run-result","mode":"query-selftest","id":"lp21-01","diagnosticPass":true,"failure":null,"phases":1,"elapsedMs":419,"productPass":false,"tokenConsumed":null}

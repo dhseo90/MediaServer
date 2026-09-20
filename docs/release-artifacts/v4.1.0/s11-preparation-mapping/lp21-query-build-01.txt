@@ -1,0 +1,41 @@
+# LP21 query 경고 정리 컴파일 전용
+명령: node --input-type=module -e 'import fs from "node:fs";import os from "node:os";import path from "node:path";import crypto from "node:crypto";import {runBounded,cleanupOwned} from "./scripts/internal/recording_catalog_comparison_guard.mjs";const names=["recording_catalog_comparison_build.sh","recording_catalog_comparison_instrument.cjs","recording_catalog_comparison_run.mjs","recording_catalog_cost_probe_timer.h","recording_catalog_query_counter.h","recording_catalog_query_guard.mjs","recording_catalog_query_probe.cpp","recording_catalog_query.test.mjs"];const hashes=()=>Object.fromEntries(names.map(n=>[n,crypto.createHash("sha256").update(fs.readFileSync("scripts/internal/"+n)).digest("hex")]));const before=hashes(),root=fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()),"media-server-catalog-cost."));fs.chmodSync(root,0o700);const start=performance.now();let r;try{r=await runBounded({root,command:"/bin/bash",args:["scripts/internal/recording_catalog_comparison_build.sh",root,"query"],env:{PATH:process.env.PATH,TMPDIR:os.tmpdir()},seconds:60});console.log(r.stdout.split(root).join("<owned-root>"));console.log(r.stderr.split(root).join("<owned-root>"));const unchanged=JSON.stringify(before)===JSON.stringify(hashes()),warnings=(r.stderr.match(/warning:/g)||[]).length;console.log(JSON.stringify({kind:"compile-only",code:r.code,signal:r.signal,stopReason:r.stopReason,groupClean:r.groupClean,groupPeakRssBytes:r.groupPeakRssBytes,warnings,sourceUnchanged:unchanged,source:before,elapsedMs:Math.round(performance.now()-start)}));process.exitCode=r.code===0&&!r.signal&&!r.stopReason&&r.groupClean&&unchanged&&warnings===0?0:1;}finally{if(r?.groupClean)console.log(JSON.stringify({kind:"cleanup",...cleanupOwned(root)}));else{console.log(JSON.stringify({kind:"cleanup",removed:false,root}));process.exitCode=1;}}'
+exit: 0
+범위: 격리 query build만, 실제 fixture 미실행
+token start/end/consumed: 전용 집계 미제공
+
+[source] file=recording_catalog.cpp original_sha256=04e0a85d2d96c36eae79fcc14779c61fc00bd81d6fb0504a722d7c459dcee888 instrumented_sha256=3a172d0de439a6234d24370c9f61ceb591cafc73083a600ba9a088be71248dae
+[source] file=recording_journal.cpp original_sha256=1c8732f4641440494296b172f2a97d8b094c2b750214abeb29b206baa5b4350d instrumented_sha256=d2ea487ac654f9c56431b8b03734995e09f70ca03447a1ec083a2c906d97344a
+[source] file=recording_contracts.cpp original_sha256=960635a08aa900bebfae961cd9e534ab6b91fbace213e1a7416227e7292ec890 instrumented_sha256=a99bc03ee76dbbd7342d06ea2db70258451d371889eacd384be541bee574e1c6
+[source] file=recording_checkpoint_validation.h original_sha256=8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc instrumented_sha256=ff16e542cbd5f7dca026ef95cc621eb68008426ace3e6e5bbe44ea2c91714d05
+[pass] FC01 exact insertion checks count=102
+[lp17] {"kind":"instrument","file":"recording_catalog.h","originalSha256":"7e453c72605d441f00136be2153a08ef3697abae708d04a5151c017ef003a620","instrumentedSha256":"588f4874f34b4fa5a6f03ef2b51a0b4422f6b6cfc83413c5e26880fc84407b9f"}
+[lp17] {"kind":"instrument","file":"recording_journal.h","originalSha256":"44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5","instrumentedSha256":"9da1a57a52b7b63145a5716819df6c61b432b586b74b9f229e1dc8def22ae8ec"}
+[lp17] {"kind":"instrument","file":"recording_catalog.cpp","originalSha256":"3a172d0de439a6234d24370c9f61ceb591cafc73083a600ba9a088be71248dae","instrumentedSha256":"e89b44d98c707a1af389919f69991e3252b7c6d9331f3b58fad3dd08058f3e06"}
+[lp17] {"kind":"instrument","file":"recording_journal.cpp","originalSha256":"d2ea487ac654f9c56431b8b03734995e09f70ca03447a1ec083a2c906d97344a","instrumentedSha256":"2bfa09ff3ccd7dc7f9c02f935e566ff5edd22fb887682aeea5135a0a25644aef"}
+[lp17] {"kind":"instrumentSummary","exactEdits":11,"cacheChange":"retention-and-reuse-only"}
+[lp17] {"kind":"instrument","file":"recording_catalog_query_seed.h","originalSha256":"f8ca1e34423b1f7a65b40ea7f0143e1227324baa79c828bd6b5631ca8582c5b1","instrumentedSha256":"ff394ec3e654a8f2e4b816bfc7be1b35246d5858d7ddac47a6928ace3df4e4c2"}
+[lp17] {"kind":"binary","name":"comparison","sha256":"32152534530db2f16101a1022fe664ab081f99a5e5165404bb19faa11d6df8e2"}
+[lp17] {"kind":"binary","name":"comparison-query","sha256":"94cd56c007f80ab51d1dd90ce7f3fb82df9604f4c558bbf66ee4857732958ce7"}
+
+        4.73 real         4.31 user         0.34 sys
+           337330176  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              114240  page reclaims
+                4452  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  14  messages sent
+                   5  messages received
+                   3  signals received
+                1111  voluntary context switches
+                4413  involuntary context switches
+            19475368  instructions retired
+            12777885  cycles elapsed
+             1524120  peak memory footprint
+
+{"kind":"compile-only","code":0,"signal":null,"stopReason":null,"groupClean":true,"groupPeakRssBytes":395018240,"warnings":0,"sourceUnchanged":true,"source":{"recording_catalog_comparison_build.sh":"4da7a365442a0015fa48644220a4b246a79106ae2819f6465e799024e895241e","recording_catalog_comparison_instrument.cjs":"2cff9d89a07c1355c22539196cc78f6c4206aef449bb494d20b3cbdae7284b19","recording_catalog_comparison_run.mjs":"5ee5bc6ed5633bc8eb53242476946ecec360eb6f0e8a9bfdc7355996e53fb1c1","recording_catalog_cost_probe_timer.h":"10c4ee8a317736406bacaa58a03cc6ec8e503d9c606c2d0ff4de32eb17fe88bc","recording_catalog_query_counter.h":"415a0a1a35a72a835fdc51fbdd239c08930ca51078c86f70b08a234aecfece7c","recording_catalog_query_guard.mjs":"ff53ed30366af034ddaf944e504b248c287334c3de5dd63507ee0b3323fab676","recording_catalog_query_probe.cpp":"86c16fb7afe15c7dc61a65a9aec57892737d196326e360e0a8bf48edfec1e29e","recording_catalog_query.test.mjs":"fb802a78af01c59486f4c8c870b9837280224cb83180d8ffc74f03327bdd8714"},"elapsedMs":4751}
+{"kind":"cleanup","bytes":16788550,"removed":true}

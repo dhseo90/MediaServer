@@ -1,5 +1,105 @@
 # LP18 공유 소유 focused 개별 결과
 
+## LP21 동시 조회 도구와 측정 결과
+
+실제 HTTP/카메라32개 검증이 아닌 격리 catalog 비교다. 제품 수정 없음. token 집계 미제공, 명령·source/exit/elapsed는 원출력에 보존한다.
+
+### lp17-query-selftest-lp21-01
+
+[원출력](lp17-query-selftest-lp21-01.txt), 2761B, SHA256 `9b123788830e9fbd7c8520ad75d77a486add50eeab32d9bfacd21ae3c6916488`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| LP21-H01 query thread totals and maxima retain separate ownership | 원출력5행 | PASS | 실제 결과 |
+| LP21-H02 missing mixed duplicated and artificial timing observations reject | 원출력11행 | PASS | 실제 결과 |
+| LP21-H03 default sources cost output remains unchanged | 원출력17행 | PASS | 실제 결과 |
+| phase query-selftest exit0 | 원출력49행 | PASS | 실제 결과 |
+
+### lp17-selftest-lp21-01
+
+[원출력](lp17-selftest-lp21-01.txt), 5416B, SHA256 `972a94b6b130d50fd936d439f5f4bc7b536481ab5e5d292cb299e296ce5c0fcb`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| LP20-C04 임시 파일 삭제 경쟁은 동일 root의 전체 관측으로 재확인 | 원출력7행 | PASS | 실제 결과 |
+| LP20-C04 반복 관측 실패·권한 실패·root 교체는 계속 거부 | 원출력13행 | PASS | 실제 결과 |
+| LP19-H01 계측 손실 없는 왕복 | 원출력19행 | PASS | 실제 결과 |
+| LP19-H02 잘못된 축약 표현 거부 | 원출력25행 | PASS | 실제 결과 |
+| LP17-H01 기존 RSS 실패와 유효 진단 분리 | 원출력31행 | PASS | 실제 결과 |
+| LP17-H02 관측 누락·손상·역행·잘못된 owner 거부 | 원출력37행 | PASS | 실제 결과 |
+| LP17-H03 완료 summary 누락·중복·다른 작업·실패 거부 | 원출력43행 | PASS | 실제 결과 |
+| LP17-H04 process group 단위와 외부·zombie 제외 | 원출력49행 | PASS | 실제 결과 |
+| LP17-H05 실행 안전 상한·기능 실패·정리 실패 분리 | 원출력55행 | PASS | 실제 결과 |
+| LP17-H06 실제 소유 자식 exit0/7와 그룹 종료 확인 | 원출력62행 | PASS | 실제 결과 |
+| LP17-H07 실제 timeout 자식 종료와 뒤 단계 차단 | 원출력69행 | PASS | 실제 결과 |
+| LP17-H08 출력 초과 종료와 보존량 상한 | 원출력79행 | PASS | 실제 결과 |
+| LP17-H09 정리 소유권·symlink target 보존 | 원출력85행 | PASS | 실제 결과 |
+| LP17-H10 입력 manifest 변조와 symlink 거부 | 원출력91행 | PASS | 실제 결과 |
+| LP17-H11 자식만 남긴 종료를 정상 완료로 오인하지 않음 | 원출력98행 | PASS | 실제 결과 |
+| phase runner-selftest exit0 | 원출력130행 | PASS | 실제 결과 |
+
+### lp17-query-lp21-01
+
+[원출력](lp17-query-lp21-01.txt), 57106B, SHA256 `41c17931d0611ac1ce96f85779618556336033ec47b16f937a95df6f906e4c47`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| phase runtime-freshness exit0 | 원출력22행 | PASS | 실제 결과 |
+| FC01 exact insertion checks count=102 | 원출력28행 | PASS | 실제 결과 |
+| phase compile exit0 | 원출력72행 | PASS | 실제 결과 |
+| recorded FE02 writer start | 원출력75행 | PASS | 실제 결과 |
+| recorded FE04 bound finalized mutation segment0 | 원출력76행 | PASS | 실제 결과 |
+| LP17/prepare LP02.actual4096-prerequisite | 원출력78행 | PASS | 실제 결과 |
+| LP17/prepare seed.input-count | 원출력79행 | PASS | 실제 결과 |
+| LP17/prepare seed.input-identity-all-samples | 원출력80행 | PASS | 실제 결과 |
+| LP17/prepare seed.physical-evidence | 원출력81행 | PASS | 실제 결과 |
+| phase prepare exit0 | 원출력102행 | PASS | 실제 결과 |
+| LP21-Q01 fixture separates total sources from two relevant 4096-sample bindings | 원출력155행 | PASS | 실제 결과 |
+| LP21-Q01 quiet wait queries preserve canonical bytes and cold detail | 원출력157행 | PASS | 실제 결과 |
+| LP21-Q02 natural overlap preserves exact snapshots and all normal writes | 원출력180행 | PASS | 실제 결과 |
+| LP21-Q02 forced unrelated Apply falls back once without performance timing | 원출력226행 | PASS | 실제 결과 |
+| LP21-Q03 both selected sources stay protected until exact lease release | 원출력227행 | PASS | 실제 결과 |
+| LP21-Q03 released sources regain the existing deletion behavior | 원출력228행 | PASS | 실제 결과 |
+| phase query-16 exit0 | 원출력249행 | PASS | 실제 결과 |
+| query-16 thread/measurement oracle | 원출력250행 | PASS | 실제 결과 |
+| LP21-Q01 fixture separates total sources from two relevant 4096-sample bindings | 원출력351행 | PASS | 실제 결과 |
+| LP21-Q01 quiet wait queries preserve canonical bytes and cold detail | 원출력353행 | PASS | 실제 결과 |
+| LP21-Q02 natural overlap preserves exact snapshots and all normal writes | 원출력376행 | PASS | 실제 결과 |
+| LP21-Q02 forced unrelated Apply falls back once without performance timing | 원출력422행 | PASS | 실제 결과 |
+| LP21-Q03 both selected sources stay protected until exact lease release | 원출력423행 | PASS | 실제 결과 |
+| LP21-Q03 released sources regain the existing deletion behavior | 원출력424행 | PASS | 실제 결과 |
+| phase query-32 exit0 | 원출력445행 | PASS | 실제 결과 |
+| query-32 thread/measurement oracle | 원출력446행 | PASS | 실제 결과 |
+
+### lp21-query-build-01
+
+[원출력](lp21-query-build-01.txt), 6223B, SHA256 `7074d01f2f22f4a5cc38a7ffe7ad4ee0d52069a27622cb6c9d841303efa54a0b`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| FC01 exact insertion checks count=102 | 원출력11행 | PASS | 실제 결과 |
+| LP21-H04 warning0·source不변·group종료 | 원출력40행 | PASS | 실제 결과 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| `<owned-root>` | 소유 격리fixture/산출물 | 62691B | 삭제 | 부재 확인 | lp17-query-selftest-lp21-01.txt:51 |
+| `<selftest-owned-root>` | 소유 격리fixture/산출물 | 5B | 삭제 | 부재 확인 | lp17-selftest-lp21-01.txt:4 |
+| `<selftest-owned-root>` | 소유 격리fixture/산출물 | 0B | 삭제 | 부재 확인 | lp17-selftest-lp21-01.txt:5 |
+| `<selftest-owned-root>` | 소유 격리fixture/산출물 | 0B | 삭제 | 부재 확인 | lp17-selftest-lp21-01.txt:60 |
+| `<selftest-owned-root>` | 소유 격리fixture/산출물 | 0B | 삭제 | 부재 확인 | lp17-selftest-lp21-01.txt:67 |
+| `<selftest-owned-root>` | 소유 격리fixture/산출물 | 0B | 삭제 | 부재 확인 | lp17-selftest-lp21-01.txt:74 |
+| `<selftest-owned-root>` | 소유 격리fixture/산출물 | 89B | 삭제 | 부재 확인 | lp17-selftest-lp21-01.txt:75 |
+| `<selftest-owned-root>` | 소유 격리fixture/산출물 | 9B | 삭제 | 부재 확인 | lp17-selftest-lp21-01.txt:76 |
+| `<selftest-owned-root>` | 소유 격리fixture/산출물 | 101B | 삭제 | 부재 확인 | lp17-selftest-lp21-01.txt:77 |
+| `<selftest-owned-root>` | 소유 격리fixture/산출물 | 0B | 삭제 | 부재 확인 | lp17-selftest-lp21-01.txt:96 |
+| `<owned-root>` | 소유 격리fixture/산출물 | 62691B | 삭제 | 부재 확인 | lp17-selftest-lp21-01.txt:132 |
+| `<owned-root>/query-16` | 소유 격리fixture/산출물 | 94153600B | 삭제 | 부재 확인 | lp17-query-lp21-01.txt:251 |
+| `<owned-root>/query-32` | 소유 격리fixture/산출물 | 188084768B | 삭제 | 부재 확인 | lp17-query-lp21-01.txt:447 |
+| `<owned-root>` | 소유 격리fixture/산출물 | 64151889B | 삭제 | 부재 확인 | lp17-query-lp21-01.txt:449 |
+| `<owned-root>` | 소유 격리fixture/산출물 | 16788550B | 삭제 | 부재 확인 | lp21-query-build-01.txt:41 |
+
+위 raw4개는 비민감 수치·검사·source hash·정리 증적만 보존한다. 실제 영상·자격증명은 보존하지 않는다.
+
 ## LP20 종료 판정 개별 결과
 
 실제 앱 서버 실행이 아니라 실제 producer helper의 주입 fixture/검증기 자체검사다. 제품 C++는3번 이후 변경 없음.

@@ -6,10 +6,11 @@ import crypto from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {limits,runBounded,classify,manifest,cleanupOwned,treeBytes} from './recording_catalog_comparison_guard.mjs';
+import {validateQuery} from './recording_catalog_query_guard.mjs';
 
 const here=path.dirname(fileURLToPath(import.meta.url)),repo=path.resolve(here,'../..');
 const [mode,id,...extra]=process.argv.slice(2);
- if(!['environment','selftest','small','sources','jobs'].includes(mode)||!id||!/^[a-z0-9-]{1,48}$/.test(id)||extra.length)throw Error('comparison-arguments');
+ if(!['query','query-selftest','environment','selftest','small','sources','jobs'].includes(mode)||!id||!/^[a-z0-9-]{1,48}$/.test(id)||extra.length)throw Error('comparison-arguments');
 const output=path.join(repo,'docs/release-artifacts/v4.1.0/s11-preparation-mapping',`lp17-${mode}-${id}.txt`);
 const fd=fs.openSync(output,'wx',0o600);let recorded=0,root=null,canClean=true,ok=false,failure=null,artifactOverflow=false;
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
@@ -27,7 +28,7 @@ function read(command,args){const r=spawnSync(command,args,{encoding:'utf8',maxB
 function sources(){
  const names=read('git',['ls-files','src','include','scripts/internal']).trim().split('\n');
  // 신규 진단 파일도 provenance에 포함한다. dirty 제품을 숨긴 HEAD-only 비교는 금지한다.
- for(const n of fs.readdirSync(here).filter(n=>n.startsWith('recording_catalog_comparison')))names.push('scripts/internal/'+n);
+ for(const n of fs.readdirSync(here).filter(n=>n.startsWith('recording_catalog_comparison')||n.startsWith('recording_catalog_query')))names.push('scripts/internal/'+n);
  const unique=[...new Set(names)].sort();return sha(unique.map(n=>n+'\0'+sha(fs.readFileSync(path.join(repo,n)))).join('\n'));
 }
 const start=Date.now();let sourceBefore=null,seedBefore=null;
@@ -53,7 +54,7 @@ async function phase(label,command,args,expected=null,seconds=180){
  return r.stdout;
 }
 function cleanStore(store){
- if(!canClean||path.dirname(store)!==root||!/^store-[ABC]$|^job-[BC]$/.test(path.basename(store))||fs.lstatSync(store).isSymbolicLink())throw Error('cleanup-ownership');
+ if(!canClean||path.dirname(store)!==root||!/^store-[ABC]$|^job-[BC]$|^query-(16|32)$/.test(path.basename(store))||fs.lstatSync(store).isSymbolicLink())throw Error('cleanup-ownership');
  const bytes=treeBytes(store);fs.rmSync(store,{recursive:true});emit({kind:'store-cleanup',store,bytes,removed:!fs.existsSync(store)});
  if(fs.existsSync(store))throw Error('cleanup-remains');
 }
@@ -69,16 +70,19 @@ try{
   rssSafetyBytes:limits.rss,historicalRssBytes:limits.historicalRss,tokenStart:null,tokenEnd:null,tokenConsumed:null,tokenSource:'unavailable',productPass:false});
  if(mode==='environment'){
   await phase('environment-observation',process.execPath,['-e','setTimeout(()=>{},1000)'],null,5);
+ }else if(mode==='query-selftest'){
+  const stdout=await phase('query-selftest',process.execPath,['--test','--test-reporter=tap',path.join(here,'recording_catalog_query.test.mjs')],null,60);
+  if(!stdout.includes('# pass 3')||!stdout.includes('# fail 0'))throw Error('phase-failed');
  }else if(mode==='selftest'){
   const stdout=await phase('runner-selftest',process.execPath,['--test','--test-reporter=tap',path.join(here,'recording_catalog_comparison.test.mjs')],null,60);
   if(!stdout.includes('# pass 15')||!stdout.includes('# fail 0'))throw Error('phase-failed');
  }else{
   // 빌드 준비는 원인 비교가 아니다. 신선하지 않은 runtime으로 측정을 시작하지 않는다.
   await phase('runtime-freshness','cmake',['--build',path.join(repo,'build-gst-onnx'),'--target','media_server_runtime','--parallel','2'],null,60);
-  await phase('compile','bash',[path.join(here,'recording_catalog_comparison_build.sh'),root],null,60);
+  await phase('compile','bash',[path.join(here,'recording_catalog_comparison_build.sh'),root,...(mode==='query'?['query']:[])],null,60);
   // 원본 비교와 작업 비교는 각각 2MiB 증적 상한을 갖는 독립 실행이다.
   // 실패한 작업만 재검증할 수 있게 하며 통과한 source 비교를 반복하지 않는다.
-  if(mode!=='jobs'){
+  if(mode!=='jobs'&&mode!=='query'){
   const samples=mode==='small'?32:4096,count=mode==='small'?2:32,seed=path.join(root,'seed'),binary=path.join(root,'comparison');
   await phase('prepare',binary,['prepare',seed,String(samples),String(count)],{mode:'prepare',arm:'seed',samples,count});
   seedBefore=manifest(seed);emit({kind:'seed',sha256:seedBefore,samples,count});
@@ -89,6 +93,17 @@ try{
    if(manifest(seed)!==seedBefore)throw Error('seed-changed');
    cleanStore(store);
   }
+  }
+  if(mode==='query'){
+   const seed=path.join(root,'seed');
+   await phase('prepare',path.join(root,'comparison'),['prepare',seed,'4096','32'],{mode:'prepare',arm:'seed',samples:4096,count:32});
+   seedBefore=manifest(seed);emit({kind:'query-seed',sha256:seedBefore,samples:4096,count:32});
+   for(const total of [16,32]){
+    const store=path.join(root,'query-'+total);
+    const stdout=await phase('query-'+total,path.join(root,'comparison-query'),[seed,store,String(total)]);
+    const valid=validateQuery(stdout,total);emit({kind:'query-oracle',total,valid});if(!valid)throw Error('phase-failed');
+    if(manifest(seed)!==seedBefore)throw Error('seed-changed');cleanStore(store);
+   }
   }
   if(mode==='jobs'){
    const inputs=[];

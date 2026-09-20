@@ -60,6 +60,58 @@ token start/end/consumed는 전용 집계 부재로 미집계, elapsed/명령/ex
 준비 문서 검증: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links` exit0/0.052855초,
 md285·links9015·images22·anchors122·failures0. 신규 임시물/서버/포트 없음. 준비 계약·사전등록만 분할 커밋하며 제품/측정 PASS가 아니다.
 
+### LP21 신규 query 도구 실행 전 정의
+
+메인이 초기 diff를 직접 검토해 overlap의 정상 mutation 비교를 bare reference가 아닌 실제 reference wrapper로
+맞추도록 요청했다. 실행 전 발견이므로 테스트 실패 이력은 아니다. query는 기존4096 AU 실제 Encode/Record seed와
+canonical/hash를 재사용하고 ID/order 및 비관련 generation만 명시적 fixture로 구성한다. PTS/ordinal/native proof는 바꾸지 않는다.
+synthetic 식별 배치 비용 검사이며 실제32개 입력 카메라 또는 실제EventRecord 검증으로 확대하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP21-H01 | thread 합계/최장 상관 | 정상 요약 수용·단독 max 변조 거부 | v4.1.0 |
+| LP21-H02 | 관측 누락/혼합/중복 거부 | forced 없음·중복thread·다른thread cost·인위timing·0분모·file증거false 각각 거부 | v4.1.0 |
+| LP21-H03 | 기존 순차 출력 보존 | default Dump에 maximum 출력 추가 없이 기존 inclusive/exclusive 형식 유지 | v4.1.0 |
+| LP21-Q01 fixture | 실제 file evidence4096·관련2개 | total16/32 각각 strict binding/file 검증·cold 상태·2개 예상 source 고정 | v4.1.0 |
+| LP21-Q01 quiet | 쓰기 없는8조회 | canonical/원문bytes 동등·cold·반환2·lease보호2·복귀0 | v4.1.0 |
+| LP21-Q02 overlap | 정상 public쓰기16회와조회8회 | thread별 호출/복귀/쓰기수·시간원자료·기존 원본/hash 불변·새 mutation집합 정확성 | v4.1.0 |
+| LP21-Q02 forced | 무관Apply 결정적겹침1회 | 계측을 끄고 parse barrier 중 Apply 완료→복귀1회→최신결과/lease 유지 | v4.1.0 |
+| LP21-Q03 protected | lease 보유중 삭제 | 선택된2개 모두 RequestDeletion 거부, 정확token 해제 성공 | v4.1.0 |
+| LP21-Q03 released | 보호해제 이후 삭제 | 두원본이 기존 deletion pending으로 전이 가능, 삭제정책 변경 없음 | v4.1.0 |
+
+명령은 `node scripts/internal/recording_catalog_comparison_run.mjs query-selftest lp21-01`(신규3개),
+`node scripts/internal/recording_catalog_comparison_run.mjs selftest lp21-01`(공통15회귀),
+`node scripts/internal/recording_catalog_comparison_run.mjs query lp21-01`(prepare 기존4개 및query16/32 각각6개) 순서다.
+기존 helper 준비 assertion은 기존seed 검증으로 별도 기록한다. 새 비용 진단은 기능부재 예상RED가 아니다.
+query-only 계측/출력은 sources에 섞지 않는다. quiet/overlap은 단일start gate만 두고 반복until-pass를 하지 않는다.
+forced 인위대기는 성능값에 포함하지 않는다. thread_local 활성/수집은 각스레드 안에서 하고join 뒤 순서대로 출력한다.
+메인은 실행전 도구동결·원본불변/소유root/group정리·원출력보존·기대결과를 확인한다. 사전등록은 PASS가 아니다.
+
+신규자체3/기존15개 및 query16/32각6개는 모두exit0. query의prepare는 기존핵심4+writerhelper2=6개다.
+최초 query compile에 검증코드의 indentation1·generated helper unused3 경고가 있었다(빌드exit0).
+메인은 loop범위 동일한 brace/줄바꿈 및 미사용 helper3개의 maybe_unused 속성만 보완한다.
+제품·입력·측정식·assertion 의미는 동일하므로 기존 query 수치는 유지하고 전체query를 반복하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP21-H04 경고 정리 컴파일 | query mode 소유복제본 빌드만 | Node의 기존runBounded로 build.sh query를60초/기존RSS·disk·output상한 아래 실행. warning0·exit0·source불변·group/root정리. 실제fixture 미실행 | v4.1.0 |
+
+query_*_after RSS에는 Phase 안에서 보존 중인 독립oracle 원장 before/after/full문자열과 Replay vector가 포함된다.
+제품 누수/steady-state RSS로 해석하지 않는다. 시간측정은 해당oracle을 제외하며 entry Cold 검사는 비상주 의미를 별도로 확인했다.
+
+query 도구 결과: 신규자체3(exit0/419ms), 공통15(exit0/692ms), query(exit0/80273ms·5phase).
+query16/32각6개+prepare6+계측삽입1=19개 직접assertion PASS, 두query 관측schema와 모든정리 PASS.
+quiet/overlap 각8조회, overlap은16정상쓰기 중복없이 보존·각1회복귀. 최장 query16은284.421/433.576ms,
+query32는284.232/433.230ms. 최장잠금16은24.999/298.813ms,32는24.842/298.116ms다.
+보호계산8회합계126~129ms는 잠금시간 안에 포함된다. 인위forced는 계측제외·각1회복귀·삭제보호/해제 PASS.
+한 번의 유한burst에서1/8이라는 관측을 지속부하의 일반복귀율로 확대하지 않는다. 전체32후보 일반조회는 다음sources가 담당한다.
+경고정리 compile-only exit0/4751ms·warning0, 두binary SHA가 최초query 실행과 **동일**하다.
+따라서 기존측정/의미 증거를 유지한다. 소유root16788550B 삭제·부재, source불변·group종료 확인.
+이 단위는 신규 도구와 보호조회 측정의 완료이며 누적sources/2-job·실제HTTP·통합은 아직 미실행이다.
+커밋 전 staged diffcheck는 원출력 파일 끝의 빈 줄1개로 exit2였다. 그 빈 줄만 제거했으며
+원출력1~41행·실행 결과는 그대로다. 정규화 전 SHA256은 `a6788d035e86d09e044b3ccdfe5c8d26935d2eefab0d6e2f35d3427e8a7467ba`였다.
+개별assertion/phase/원출력hash 및 소유정리15행은 [LP21 도구 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md#lp21-동시-조회-도구와-측정-결과)에 보존했다.
+
 ## 2026-09-20 LP20 미커밋 정리·비용/조회/종료 계약 보완
 
 최신 승인: 미커밋 분류·정리·커밋 후 1 공동 합격 기준 → 2 정상 저장 비용 → 3 조회 잠금 →
