@@ -1,5 +1,114 @@
 # Release Test Records
 
+## LP24 재개: 1-A 검증 준비 정합·1-B 복구 판정
+
+사용자 승인: 1-A와1-B를 순차 개발·관련 단기 검증·분할 커밋 후 종합 보고한다. 2~6 제품 개발·실제 앱·장시간/UI는 이번 범위 밖이다.
+시작 HEAD24647b8f1, 추적 origin 대비 ahead50/behind0(원격 재조회 아님). 기존 LP22 제품5/검사4와 LP24 복구 초안을 보존한다.
+메인이 계약/복구 코드/실제 실행/기록/커밋을 맡고, 기존 단일 Astra/medium 담당자는 검증기4파일 구현만 맡는다. 하위 위임과 담당자의 실행은 금지한다.
+직접 확인한 준비 결함: 실제 worker는 prefer_native=true이지만 새 대형 fixture는 기본false로 legacy 선택을 했고 BuildIntent에서 file_evidence를 제외했다.
+realistic06 당시 상세 코드는 미보존이며07의 같은 생성 조건에서 legacy file-original-timestamp-mismatch를 직접 확인했다. 과거 실패는 보존한다.
+
+| 번호 | 사용자 지시 | 상태 | 완료 기준 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1-A | 검증 준비·진단 보완 | 완료·커밋 준비 | 준비 분리/안전진단 자체검사5PASS, legacy 원인 확인, native4작업/8출력·미충족 대조 통과 | LP24-RH02~05, R15 및10 원출력 |
+| 1-B | 복구 개선 판정 | 선수 대기 | SQL/JSONL 각각15초·내용/파일 동등성·손상/수명 회귀, 제품 복구 변경 별도 커밋 | LP24-R01~16 |
+| 보고 | 종합 보고·후속 재산정 | 예정 | 실패/미실행/미커밋 구분, 현재 스텝 내부 후속만 제시 | AGENTS3/5/6/13 |
+
+불변: 영속 바이트·ID·UTC/unknown·미디어/권한 계약·검증 시간제한 유지. 기존14/214·build의 source와 영향 경계를 대조하며 무관 검증은 재실행하지 않는다.
+준비 실패 때 result의 complete/blocked/job state/ready/verified/output 수와 고정 허용 오류만 기록한다. 임의 reason·경로·비밀 원문은 출력하지 않는다.
+legacy 진단은 종전 입력/프로필로 첫 작업까지만1회, native 준비는 같은 입력 규모의 현행 프로필로4작업을 확인한다. 준비 전용 실행은 복구로 자동 진행하지 않는다.
+현재 실패가 알려진 검증 구성 결함과 일치하면 같은 단계에서 보완한다. 다른 미확정 제품 계약 오류이면 상태를 보존하고 중단한다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 1-A/1-B 개발·관련 단기 검증 | LP24-RH02~05/R01~16 | 이번 승인 |
+| 30분 | 미진행 | 단기 개발 범위 밖, 최종 blocker 유지 | AGENTS7.6.2 | 이번 비범위 |
+| 120분 | 미진행 | 이번 실행 범위 밖, 필요성 폐기 아님 | AGENTS7.6.2 | 이번 비범위 |
+| UI | 미진행 | 브라우저 제외 유지 | AGENTS7.6.3 | 이번 비범위 |
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP24-RH02 준비 전용 실행계획 | legacy/native 준비 분리 | `node --test scripts/internal/recording_recovery_content.test.mjs`; 준비 전용에 복구 phase가 없어야 함 | v4.1.0 |
+| LP24-RH03 안전진단 필드·비밀 거부 | 상태와 고정 오류 분류 | 정상/unknown·미확보 null, 임의 reason/필드·누락·중복 거부 | v4.1.0 |
+| LP24-RH04 native 준비 경로·증거 결박 | 실제 worker와 같은 profile | native selection/intent profile/선택원본2·출력계획2/파일증거2 일치. legacy는 false/증거0 | v4.1.0 |
+| LP24-RH05 실패/진단 누락 판정 | 준비FAIL과 진단 성공 분리 | native FAIL/진단 누락/timeout/signal은 PASS 불가. legacy 실패는 진단 관측이지 제품PASS 아님 | v4.1.0 |
+| LP24-R15-L legacy 준비 진단 | 첫 작업 실패 상세 확보 | 6원본/1500AU/같은 jitter와 첫 요청·기존false, 준비 전용1회, 오류코드/상태 보존 | v4.1.0 |
+| LP24-R15-N native 준비 | 현행 입력·완료 산출물 | 기존R15 동일 규모/4Complete·8파일·원장24전이, partial/full 별도 기록·hash 확인 | v4.1.0 |
+
+자체검사 예상 RED는 신규 준비/진단 기능의 assertion이며 import/컴파일 실패를 RED로 인정하지 않는다. 등록 후 메인만 실행한다.
+실제 준비/복구는 기존 compile60초·준비60초·복구15초·RSS1GiB·disk512MiB·출력2MiB를 유지한다.
+소유 media-server-catalog-cost 임시 root/GST registry/자식 정리와 원출력 source/build hash를 보존한다. 인증·서버·포트는 사용하지 않는다.
+token start/end/consumed는 집계 도구 미제공으로 미집계, elapsed/source는 실제 명령 결과를 남긴다.
+
+### 1-A 실행 결과
+
+`node --test scripts/internal/recording_recovery_content.test.mjs` 최초 exit1/38.524584ms, RH01 PASS1·RH02~05 FAIL4.
+신규 export가 미구현인 정확한 assertion으로 실패했으며 import/환경 오류는 아니다. [실제 결과 발췌](release-artifacts/v4.1.0/s11-preparation-mapping/lp24-preparation-selftest-red.txt)에 보존했고 전체 stack 원출력 보존은 아니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP24-RH01 | 기존 RED/GREEN 판정 | PASS | 기존 기능 유지, 최초 RED 실행의 결과 |
+| LP24-RH02 | 준비 전용 실행계획 함수·복구 분리 | FAIL | 예상 RED: 함수 미구현 |
+| LP24-RH03 | 안전진단 필드·비밀 거부 | FAIL | 예상 RED: 진단 판정 함수 미구현 |
+| LP24-RH04 | native 준비 경로·증거 결박 | FAIL | 예상 RED: 진단 판정 함수 미구현 |
+| LP24-RH05 | 실패/진단 누락 판정 | FAIL | 예상 RED: 진단 판정 함수 미구현 |
+
+최초 자체검사의 임시 산출물/서버/포트: 없음.
+
+RH01~05 GREEN exit0/5PASS/34.450042ms는 [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp24-preparation-selftest-green.txt)에 보존했다.
+[07 legacy 준비 진단](release-artifacts/v4.1.0/s11-preparation-mapping/lp24-recovery-07-green.txt): compile3989ms/준비3623ms, runner exit0은 진단 완료다.
+첫 작업은 file-original-timestamp-mismatch로 Failed, proof0/legacy였다. 제품PASS가 아니다. source 불변·groupClean, 임시13171240B 삭제.
+[08 native 준비](release-artifacts/v4.1.0/s11-preparation-mapping/lp24-recovery-08-green.txt): compile3929ms/준비6849ms, exit1.
+작업0/1은 각각 fullySatisfied=true·verified2출력, 세 번째 작업 prepare-selection에서 실패했다. 원인은 Select 실패/complete=false가 미분리된 assertion이었다.
+source 불변·groupClean, 임시21583074B 삭제. 15초 복구/뒤 단계는 실행하지 않았다.
+
+같은1-A 보완 근거: R15는 4Complete/8검증파일과 partial/full을 구분하는 계약이다. 제품 BuildIntent는 Confirmed 원본을 선택하고
+Ready 검증은 Unknown을 unfulfilled에 정확히 결박한다. fixture의 selected.complete 전제는 이 계약보다 강하다.
+선택 API 성공/native·Confirmed 존재/모호·삭제0/unplaced0·원본2/출력2/proof2는 유지하고, 선택 상태 수·정확 유리수 빈 구간을 기록한다.
+Unknown을 허용하되 결과의 request-ns 미충족 구간과 정확히 대조하고 fullySatisfied 자동 승격을 금지한다.
+R15-N의 이 보완은 재실행 전에 등록했으며 테스트 준비만 수정한다. 기존08 실패와 제품 미확인은 보존한다.
+
+09는 컴파일 exit1/3668ms: 새 multiset 비교의 `<set>` 직접 include 누락이다. 실행 전 오류이며 예상 RED/제품 실패가 아니다.
+필수 `<set>`/`<tuple>` include를 보완한다. source 불변·groupClean, 임시336019B 삭제; native 준비/복구는 미실행이다.
+
+### 1-A 최종 결과와 정리
+
+[10 native 준비](release-artifacts/v4.1.0/s11-preparation-mapping/lp24-recovery-10-green.txt) exit0, compile3922ms/준비14912ms.
+1500AU·6원본·954mapping·6파일증거, 4Complete·8검증출력·24전이/44원장행·12161669B다.
+작업0/1/3은 요청 전체 충족, 작업2는 `[24999999999+1/3,25000000000)ns`의2/3ns 빈 구간을 Unknown/미충족1개로 보존했다.
+이는 파일 유리수 구간과 정수 입력 원점의 경계 관측이며 시스템 시계 변경/미디어 정책 수정/partial 자동 승격이 아니다.
+제품15초 복구 판정·실제 앱/HTTP/후속2~6은 여전히 미실행이다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP24-RH01 | 기존 RED/GREEN/대형 결과 판정 | PASS | GREEN 자체검사 exit0 |
+| LP24-RH02 | 준비 전용 계획 | PASS | 최초 예상 RED 후 GREEN |
+| LP24-RH03 | 안전진단·원문 거부 | PASS | 최초 예상 RED 후 GREEN |
+| LP24-RH04 | native profile·2source/2proof/2output 결박 | PASS | 최초 예상 RED 후 GREEN |
+| LP24-RH05 | 실패/누락과 cleanup 게이트 | PASS | 최초 예상 RED 후 GREEN |
+| LP24-R15-L | legacy 첫 작업의 상태/안전코드 진단 | PASS | 실제 작업은 Failed; 진단만 성공, 제품PASS 아님 |
+| LP24-R15-N compile | 09 누락 include → 10 strict compile | PASS | 09 exit1 보존,10 exit0 |
+| LP24-R15-N selection | native선택4건·상태/미확인 유리수 구간 | PASS | 08 complete 전제 실패 후 조건 분리, unknown 보존 |
+| LP24-R15-N job0 | Complete·2파일 SHA·전체 충족 | PASS |10 증거 |
+| LP24-R15-N job1 | Complete·2파일 SHA·전체 충족 | PASS |10 증거 |
+| LP24-R15-N job2 | Complete·2파일 SHA·미충족 정확 대조 | PASS | full 아님; 미확인 구간 보존 |
+| LP24-R15-N job3 | Complete·2파일 SHA·전체 충족 | PASS |10 증거 |
+| LP24-R15-N shape | 입력1500/6원본/4작업/8파일/24전이 | PASS | canonical·원장/파일 기대값 준비 |
+| LP24-R15 정리 | source 불변·groupClean·소유 root 부재 | PASS |07~10 전부 정리됨 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR/media-server-catalog-cost.0K4MSF |07 격리 빌드·영상·DB·registry |13171240B | 삭제 | removed=true |07 cleanup, 절대 경로는 원출력 |
+| TMPDIR/media-server-catalog-cost.l5Tngg |08 같은 종류 |21583074B | 삭제 | removed=true |08 cleanup |
+| TMPDIR/media-server-catalog-cost.3m4rJP |09 컴파일 복제본 |336019B | 삭제 | removed=true |09 cleanup |
+| TMPDIR/media-server-catalog-cost.GAL6kb |10 격리 빌드·영상·DB·registry |31109668B | 삭제 | removed=true |10 cleanup |
+
+서버/포트/인증 사용 없음. 로그만 실패 재발 방지·판정 근거로 보존하며 영상/DB/registry는 삭제했다.
+1-A 커밋에는 검증기/등록/실행기록만 넣는다. 복구 제품 변경과 기존LP22 제품5/검사4는 별도 보존한다.
+문서 링크 최초검사 exit1: 신규 중앙 링크의 수동 anchor 불일치1건. 파일 링크+최상단 절 안내로 보완했다. 제품/검사 실패가 아니다.
+수정 후 `./server.sh verify-docs-links` exit0(285문서/9109링크/실패0), `git diff --check` exit0. 이미지 변경 없어 자산 검사는 미실행이다.
+stage 후 공백검사에서 새 자체검사 로그의 EOF 빈 행1건을 발견해 제거했다(실제 결과 값은 불변).
+
 ## 2026-09-20 LP24 복구·시간 표출·완료 관측 순차 마감
 
 사용자 승인: 재산정1~6 순차 개발, 단기 영향 검증, 통과 단위 분할 커밋, 최종 푸시 가능할 때 푸시.
@@ -9,12 +118,12 @@ Superpowers 설치 스킬은 제공되지 않아 설계·TDD·원인 분석·검
 
 | 번호 | 사용자 지시 | 처리 상태 | 결과/완료 기준 | 근거 |
 | --- | --- | --- | --- | --- |
-| 1 | 복구·SQLite 재투영 중복 제거 | 진행 중 | 첫 엄격 검증·전이·손상 거부 유지, 기존15초 진단 | LP23-D, 아래 LP24-R |
-| 2 | 시간 정확도와 표출 단위 분리 | 대기 | unknown·원본 증거·불연속·재생 식별 보존 | LP23-U, 1번 통과 후 구현 |
-| 3 | 완료 관측과 페이지 전수 검사 분리 | 대기 | 지속 변경 중 완료 관측과 별도 누락/중복 검사를 모두 유지 | LP22-O, 기존30초 관측 |
-| 4 | 기존 LP22 제품5/검사4 및 영향 회귀 | 대기 | 미완료 변경의 직접 diff·현재 코드 회귀 마감 | LP22-R |
-| 5 | 실제 HTTP·현행 통합 | 대기 | HTTP4000ms·완전2출력·파일 hash·재기동·5단계 | P0-HTTP02, S11-CI |
-| 6 | 분할 커밋·푸시 판단 | 대기 | 통과 단위만 커밋, 미완료/실패/cleanup 남으면 푸시 불가 | AGENTS3/5/6 |
+| 1 | 복구·SQLite 재투영 중복 제거 | 부분 완료·중단 | 신규14/영향214·build 통과, R15 생성 준비 실패로15초 진단 미실행 | LP24-R 및 아래 중단 결과 |
+| 2 | 시간 정확도와 표출 단위 분리 | 보류 | 1번 미완료. 공개 표출 그룹/구성원 반환 변경 질문에 답변 대기 | LP23-U, 1번 통과 후 구현 |
+| 3 | 완료 관측과 페이지 전수 검사 분리 | 건너뜀 | 앞 단계 미완료, 기존30초 기준 유지 | LP22-O |
+| 4 | 기존 LP22 제품5/검사4 및 영향 회귀 | 건너뜀 | 기존 변경 보존, 이 단계 마감 검증 미실행 | LP22-R |
+| 5 | 실제 HTTP·현행 통합 | 건너뜀 | HTTP4000ms·완전2출력·hash·재기동·5단계 미실행 | P0-HTTP02, S11-CI |
+| 6 | 분할 커밋·푸시 판단 | 일부 수행 | fa180f506 계획,24647b8f1 기존검사 보완 커밋. 미완료 제품/신규검사 미커밋·푸시 불가 | AGENTS3/5/6 |
 
 반복 방지: 원인과 예상 assertion을 먼저 고정한다. 기능 단위 focused→영향 회귀를 완료하고 다음 단계로 간다.
 같은 코드/환경의 유효 증거는 재사용한다. 실제 앱은1~4 통과 후 실행하며 실패하면 보존 진단으로 원인을 구분한다.
@@ -74,7 +183,7 @@ GREEN 전 RH01은 `LP24-RH01 RED와 GREEN 판정 자체검사`로 확장한다. 
 ABI 변경 뒤 `./server.sh build` exit0과 현재 header/archive 신선도를 확인한 다음 같은 최소 fixture의 GREEN을 실행한다.
 이 초기5 GREEN은 R06~16 반례·실제15초·최종 영향 회귀의 대체가 아니다.
 
-현재 결과: RH01 자체검사·최초 RED·최소5 GREEN과 기존 영향 회귀214개 완료. 신규 R06~16/실제규모는 미실행이며1번 전체 완료가 아니다.
+현재 결과: RH01·최초 RED·신규 R01~14·기존 영향 회귀214개와build 완료. R15 생성 준비 실패로 R16 15초 진단 미실행이며1번 전체 완료가 아니다.
 token start/end/consumed는 전용 집계 미제공으로 미집계, elapsed는 실제 명령에서 수집한다.
 
 ### LP24-R 최초 RED 결과
@@ -99,6 +208,43 @@ stderr `file evidence profile/bound 오류`3행을 보존했다. fixture의 Comp
 R06~16은 미실행이며 실제15초 진단·전체 통합 evidence로 사용할 수 없다. 후속 구현 후 같은 focused 및 해당 반례를 검증한다.
 
 ### LP24-R 최소 GREEN과 영향 회귀 사전등록
+
+신규 반례 실행 전 보완: RH01 자체검사는14개 full 제목/누락·중복·실패, 실제규모 준비/진단/전체의미 oracle와
+비교 baseline timeout 분리를 포함한다. `full`은 R01~14를 실행하고 R15~16은 미실행으로 남긴다.
+`realistic`은6원본·1500AU·mapping900~1500·원본 fileEvidence6개·4Complete/8출력 fixture를 사용한다.
+prepare에서 만든 독립 intent SHA와 target 조회를 대조한다. 각 job의 requestFullySatisfied/미충족 수는 별도 보고하며
+Complete 상태만으로 전체 요청 충족이라고 하지 않는다. 15초 범위는 새 프로세스의 journal/catalog Open→target 조회→
+Intent SHA→소멸/종료다. 4job canonical·SQL 문자열·14file SHA·원장 바이트 전수 검사는 별도60초 focused 구간이다.
+비교용 strict(no-cache)15초 timeout은 별도 관측이며 현 제품의 성공/실패를 대체하지 않는다.
+현 제품 SQL/JSONL 중 하나라도15초를 넘거나 전수 의미 검사가 실패하면 R16 PASS가 아니다.
+원래 비교와 의미 검사까지 전부15초에 묶으려던 초안은 실행 전에 비용 경계가 달라지는 문제를 발견해 분리했다.
+순서: RH01 자체검사→`green lp24-recovery-03 full`→통과 후 `green lp24-recovery-04 realistic`.
+
+실제 후속: RH01 확장1PASS/35.294ms(exit0). full03은13PASS/1준비FAIL(exit1), 고정 stage=negative-r14였다.
+시험이 managed 원장 대신 legacy barrier `recording-mutations.jsonl`을 읽고 쓰려 한 원인이다.
+R11의 첫 PASS도 빈 pending을 사용했으므로 준비 결함으로 유효 증거에서 제외했다. 원출력/최초실패는 보존한다.
+소유 journal.path()의 실제 경로를 사용하고10바이트 prefix가 비어 있지 않고 전체와 다름을 확인하도록 시험만 보완했다.
+full04 14PASS 후 메인/담당자의 메시지 교차로 같은 경로 helper 보완·full05 14PASS가 추가 실행됐다.
+제품 변경 없이 통과했지만 불필요한 왕복/추가 실행이었음을 기록하며, 이후 담당자는 동결·추가 실행 금지 상태다.
+최종 full05 compile3987ms/native3611ms, exit0/source불변/groupClean·소유11387937B 삭제.
+원출력은 `lp24-recovery-03/04/05-green.txt`, 자체검사는 `lp24-recovery-selftest-03.txt`다.
+현실규모는 파일명 충돌을 피한 `node scripts/internal/verify_recording_recovery_content.mjs green lp24-recovery-06 realistic`로
+메인이 직접1회 실행한다. 최초 strict6·나머지3단계parse0/SQLserialize0, 작은fixture의 전체 요청 충족2출력은 확인됐다.
+소형 fixture의 기존 file-evidence profile/bound 경고3행은 보존하며, 경고 없음/원본 fileEvidence완전이라고 주장하지 않는다.
+
+realistic06 실제 결과: compile3986ms exit0 뒤 첫 prepare-run3223ms exit1, signal/상한 초과는 없었다.
+완료·job 존재·Ready·verified·2출력의 복합 조건 중 어느 항이 실패했는지는 원출력에 없어 미확정이다.
+따라서 복구15초 실패 또는 제품 회귀라고 단정하지 않고, 진단 부족을 확인한 메인이 추가 실행/제품 수정을 중단했다.
+SQL/JSONL15초·strict 비교·전체 파일 검사는 건너뛰었다. source불변/groupClean·소유13170392B 삭제 완료.
+고정 stage만으로 상태/오류 분류를 충분히 보존하지 못한 검증기 설계 부족을 인정한다. 최초 실패코드·실제 job 상태/hash는
+미확보이며 삭제된 자료를 추정 복원하지 않는다. 다음은 반환된 boolean/state/outputCount와 고정 allowlist 오류코드의
+안전한 기록을 보완한 뒤 같은 준비구간만1회 확인하는 진단이다. AGENTS8의 원인 미확정 중단 경계에 따라 사용자 판단을 기다린다.
+[신규검사 전수·최초 실패·미실행·정리](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md)의 최상단 LP24절에 기록했다.
+실패한 제품/새시험 단계는 커밋하지 않았다. 조건부 푸시 요건 미충족으로 푸시하지 않았으며 원격 상태도 새로 조회하지 않았다.
+
+중단 기록 정합 확인: `./server.sh verify-docs-links` exit0, markdown285/local links9103/images22/anchors130/indexed76/exclusions201/failures0.
+`git diff --check` exit0. 이미지 변경이 없어 기존 자산 검증 증거를 유지했으며 새 자산 검사는 실행하지 않았다.
+마감 HEAD24647b8f1, 추적 origin 대비 ahead50/behind0이며 원격 최신 상태를 뜻하지 않는다.
 
 동일 최소 fixture GREEN: [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp24-recovery-02-green.txt), runner exit0,
 compile3776ms·focused2367ms/5PASS. first strict parse6, actual/rebuild/projection parse0·projection serialize0,

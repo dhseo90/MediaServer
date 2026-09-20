@@ -1,0 +1,26 @@
+명령: node --test scripts/internal/recording_recovery_content.test.mjs
+exit: 1
+원출력 중 결과와 각 assertion의 실제값/기대값을 보존한다. 전체 Node stack 반복은 생략했으며 완전 원출력이라고 주장하지 않는다.
+
+✔ LP24-RH01 RED와 GREEN 판정 자체검사 (2.195666ms)
+✖ LP24-RH02 준비 전용 실행계획 (0.333ms)
+✖ LP24-RH03 안전진단 필드·비밀 거부 (0.096583ms)
+✖ LP24-RH04 native 준비 경로·증거 결박 (0.075458ms)
+✖ LP24-RH05 실패/진단 누락 판정 (0.066167ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 1
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 38.524584
+
+RH02 line113: AssertionError [ERR_ASSERTION]: 준비 전용 실행계획은 복구를 자동 실행하지 않아야 한다
+actual: undefined; expected: function; operator: strictEqual
+RH03/04/05 preparationInspector line108:
+AssertionError [ERR_ASSERTION]: 준비 진단의 안전성과 성공을 분리하는 판정이 필요하다
+actual: undefined; expected: function; operator: strictEqual
+
+예상 RED: 신규 기능4개 assertion이 사전 정의와 일치. import/환경 오류가 아니며 제품 PASS가 아니다.
+임시 산출물·서버·포트: 없음. token start/end/consumed: 미집계(집계 도구 미제공).

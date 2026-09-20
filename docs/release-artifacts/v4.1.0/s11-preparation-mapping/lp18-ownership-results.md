@@ -1,5 +1,73 @@
 # LP18 공유 소유 focused 개별 결과
 
+최신1-A 준비 정합 결과는 [중앙 기록](../../../release-test-records.md)의 최상단 LP24 재개 절을 따른다.
+아래 LP24 준비 실패는 당시 이력이며07~10의 후속 진단/보완으로 덮어쓰지 않는다.1-B15초 복구 판정은 아직 미실행이다.
+
+## LP24 신규 복구 반례와 실제 크기 준비 실패
+
+현재 판정: 신규 반례 R01~14와 기존 영향 회귀214개는 통과했지만, R15 실제 크기 fixture 생성에서 실패하여 R16 15초 복구 진단은 미실행이다. 1번 제품 단계는 미완료이며2번은 보류,3~5번은 건너뜀이다. 6번은 계획·기존검사 보완의 분할 커밋2개만 수행했다. 제품 변경은 미커밋으로 보존하고 실제 HTTP/통합·장시간·UI·푸시는 실행하지 않았다.
+
+### 실행·정리
+
+명령은 node scripts/internal/verify_recording_recovery_content.mjs green lp24-recovery-<번호> <suite>다. 각 원출력에 전체 인자·source/build/binary hash·환경·RSS가 있다.
+
+| 실행 / suite | compile exit/ms | native exit/ms | 실제 결과·한계 | 소유 temp 삭제 전 크기/정리 |
+| --- | --- | --- | --- | --- |
+| [03](lp24-recovery-03-green.txt) / full | 0/4094 | 1/3865 | 13PASS/1FAIL; negative-r14 준비 실패, R11 PASS도 무효 | 11387806B / removed=true, groupClean=true |
+| [04](lp24-recovery-04-green.txt) / full | 0/3927 | 0/3607 | 14PASS/0FAIL; 14개 PASS | 11387857B / removed=true, groupClean=true |
+| [05](lp24-recovery-05-green.txt) / full | 0/3987 | 0/3611 | 14PASS/0FAIL; 14개 PASS | 11387937B / removed=true, groupClean=true |
+| [06](lp24-recovery-06-green.txt) / realistic | 0/3986 | 1/3223 | 0PASS/1FAIL; prepare-run 실패, 진단 미실행 | 13170392B / removed=true, groupClean=true |
+
+RH01 확장 자체검사 [원출력](lp24-recovery-selftest-03.txt): exit0/1PASS/35.294ms, 임시 산출물 없음. 모든 native 실행의 source-check unchanged=true, 서버·포트 사용 없음. token start/end/consumed는 집계 미제공으로 미집계다. 모든 시험용 영상·DB·registry는 작업 소유 root와 함께 삭제됐으며, 저장소에는 크기가 제한된 로그만 보존한다.
+
+### 개별 결과
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP24-RH01 | RED/GREEN/full/현실규모 판정·거짓 결과와 baseline timeout 분리 | PASS | 자체검사1개 안의 assertion, 위 원출력 |
+| recovery first preflight retains strict content validation | 등록된 복구 개별 assertion / 고정 단계 태그 | PASS | 03:PASS → 04:PASS → 05:PASS |
+| recovery actual apply reuses validated content and preserves transitions | 등록된 복구 개별 assertion / 고정 단계 태그 | PASS | 03:PASS → 04:PASS → 05:PASS |
+| recovery sqlite preflight and projection reuse exact validated content | 등록된 복구 개별 assertion / 고정 단계 태그 | PASS | 03:PASS → 04:PASS → 05:PASS |
+| recovery sqlite and jsonl return identical public values and durable bytes | 등록된 복구 개별 assertion / 고정 단계 태그 | PASS | 03:PASS → 04:PASS → 05:PASS |
+| recovery new open performs fresh strict validation | 등록된 복구 개별 assertion / 고정 단계 태그 | PASS | 03:PASS → 04:PASS → 05:PASS |
+| recovery proof rejects changed envelope identity and payload | 등록된 복구 개별 assertion / 고정 단계 태그 | PASS | 03:PASS → 04:PASS → 05:PASS |
+| recovery proof preserves physical ordinal and duplicate collision rules | 등록된 복구 개별 assertion / 고정 단계 태그 | PASS | 03:PASS → 04:PASS → 05:PASS |
+| recovery proof never substitutes latest job for historical transition | 등록된 복구 개별 assertion / 고정 단계 태그 | PASS | 03:PASS → 04:PASS → 05:PASS |
+| recovery reused content preserves reservation source deletion and hold checks | 등록된 복구 개별 assertion / 고정 단계 태그 | PASS | 03:PASS → 04:PASS → 05:PASS |
+| recovery journal change invalidates reuse and retains strict corruption rejection | 등록된 복구 개별 assertion / 고정 단계 태그 | PASS | 03:PASS → 04:PASS → 05:PASS |
+| recovery pending checkpoint uses strict fallback | 등록된 복구 개별 assertion / 고정 단계 태그 | PASS | 03:PASS → 04:PASS → 05:PASS;03은 잘못된 경로로 빈 pending을 사용해 무효,04/05의 유효10바이트 prefix 검사로 재검증 |
+| recovery budget exhaustion and admission exception preserve strict results | 등록된 복구 개별 assertion / 고정 단계 태그 | PASS | 03:PASS → 04:PASS → 05:PASS |
+| recovery proof ownership ends on success failure and exception | 등록된 복구 개별 assertion / 고정 단계 태그 | PASS | 03:PASS → 04:PASS → 05:PASS |
+| recovery fixed fixture preparation failure | 등록된 복구 개별 assertion / 고정 단계 태그 | FAIL | 03:FAIL → 06:FAIL;03은시험원장경로/수정후PASS,06은첫job생성결과상세미확보 |
+| recovery noncanonical binding preserves existing sqlite canonical bytes | 등록된 복구 개별 assertion / 고정 단계 태그 | PASS | 04:PASS → 05:PASS |
+
+| 항목 | 실행 상태 | 사유 | 완료 evidence 불가 경계 |
+| --- | --- | --- | --- |
+| R15 현실규모 fixture | 일부 실행·FAIL | 첫 prepare-run의 복합 조건 실패 |4Complete/8output 성립 미확인 |
+| R16 SQL/JSONL15초 진단 | 미실행 | R15 선수 실패 | timeout 실패/성능 PASS 어느 쪽도 주장 불가 |
+| strict 비교/전수 canonical·SQL·14file SHA | 미실행 | R15 선수 실패 | 기존자료와 동등성 미판정 |
+| 단계2 공개표출 그룹 계약 | 승인 답변 대기 | unknown 그룹 구성원/원본 구간 반환 변경 여부 | 원장/UTC/ID 임의 변경 금지 |
+| 단계3~6·실제HTTP/현행통합/푸시 | 건너뜀 |1번 미완료 |14+214 PASS로 대체 금지 |
+
+### 신규 검사 정리 전수
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.V0kIBt | LP24-03 격리 빌드·영상·DB·registry | 11387806B | 소유 root 삭제 | 부재 재확인 | 해당 raw cleanup/groupClean 및 현재 exists=false |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.h4c7Zj | LP24-04 격리 빌드·영상·DB·registry | 11387857B | 소유 root 삭제 | 부재 재확인 | 해당 raw cleanup/groupClean 및 현재 exists=false |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.tyEzhJ | LP24-05 격리 빌드·영상·DB·registry | 11387937B | 소유 root 삭제 | 부재 재확인 | 해당 raw cleanup/groupClean 및 현재 exists=false |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.Y2Q44L | LP24-06 격리 빌드·영상·DB·registry | 13170392B | 소유 root 삭제 | 부재 재확인 | 해당 raw cleanup/groupClean 및 현재 exists=false |
+
+### 원인 확인과 다음 재개 조건
+
+full03의 시험 경로는 legacy barrier를 원장으로 잘못 취급했다. 실제 journal.path()와 비어 있지 않은10바이트 prefix로 보완했고 full04/05는14개 모두 통과했다. full05는 담당자/메인 메시지 교차로 생긴 추가 실행이며 효율적이었다고 주장하지 않는다. 이후 담당자 동결, 현실규모는 메인이1회만 실행했다.
+
+realistic06은 prepare-sources/selection/admit 이후 첫 prepare-run에서 멈췄다. compile3986ms, prepare3223ms, stopReason/signal없음. 이는15초진단 시간초과가 아니다. 코드상 service.Run 반환값의 complete/job/state/ready/verified_output/output수2 조건을 한 번에 확인하므로 현재 원출력으로 어느 항이 실패했는지는 확정할 수 없다. DerivedJobRunResult는 blocked/reason/job을 제공하지만 이번 fixture가 그것을 기록하지 않았다. 생성 실패 원인을 복구 최적화나 UTC에 귀속시키지 않는다.
+
+현재 확보한 것은 명령·입력 생성 코드/인자·source/build/binary hash·고정 prepare-run 단계·exit·시간·메모리·정리 결과다. 당시 job 상태/실패 코드/생성 파일의 hash는 미확보다. 삭제된 자료를 추정 복원하거나 동일한 바이트를 다시 만들 수 있다고 주장하지 않는다.
+
+다음은 시험에 complete/blocked/hasJob/state/hasReady/verified/outputCount를 분리 기록하고, 기존 archive-probe와 같은 고정 허용목록 오류코드(미등록 unknown)만 보존하는 진단 보완이다. 비밀/경로/오류 원문 출력은 금지한다. 같은 준비구간1회로 원인을 구분한 뒤 기존 요청 범위의 결함인지, 별도 미디어 계약 변경이 필요한지 판정해야 한다. 원인 미확정 상태에서 제품·timeout·합격 조건을 바꾸거나 반복 재실행하지 않고 AGENTS8에 따라 사용자 판단을 기다린다.
+
 ## LP24 복구 변경 영향 회귀와 기존 검사 준비 보완
 
 제품 recovery 변경의 실제 규모/반례 마감 전 영향 회귀다. 기존 content 검사의 no-op/due 선수조건과 thin 검사의 cold 재획득 oracle를 보완했다. 첫 실패를 예상 RED로 바꾸지 않는다. 제품 주기·저장 바이트·권한·손상 거부·시간제한은 변경하지 않았다.

@@ -1,0 +1,75 @@
+{"kind":"preflight","mode":"green","id":"lp24-recovery-04","suite":"full","source":[{"file":"include/recording/recording_catalog.h","sha256":"bde3f884cda391fe971654cd66b2592a51aa084b5a0c76634890bf34ed066705"},{"file":"include/recording/recording_journal.h","sha256":"44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5"},{"file":"include/recording/recording_read_service.h","sha256":"d734267d8a83851d45f188467c22c1f3f3319b5adb87d2de1bc3075738dc2d90"},{"file":"src/recording/recording_catalog.cpp","sha256":"3e295748699d737e31a2812d5a4d97280241a29ba83600b38ea425c89f314146"},{"file":"src/recording/recording_read_service.cpp","sha256":"c37210ae7c0f363420c0924f6c4cd67872d776936af8a11275ffcd044f334f4c"},{"file":"src/recording/recording_timeline_projection.cpp","sha256":"fb946f8672c75104c9d3fc8f36b636ef406f987135b8e1ac6e70b5d092fa78a7"},{"file":"src/recording/recording_derived_job_ready.cpp","sha256":"74f304446afb62c9abc48c2f13fa65281f9c942becabfbbbb3612458eac3f184"},{"file":"src/recording/recording_derived_job_context.h","sha256":"10f047b9718e22dddc1a7b59d478af10ad2a828ddf256f3a14792ae7365e4891"},{"file":"scripts/internal/recording_recovery_content_smoke.cpp","sha256":"2fdf547669906bffab3fad4038069ab70ba61be46f907ffc68d95b59fc8f40f8"},{"file":"scripts/internal/recording_recovery_content_counter.h","sha256":"d613e9253855a1c10d80721f88cb4c94072a73cd222fba958df109d36062b4ae"},{"file":"scripts/internal/recording_recovery_content.test.mjs","sha256":"6c0ae8dbc80161c82fab8faff45163133f0b258cdb16b0e3d527aca6ebf4e531"},{"file":"scripts/internal/verify_recording_recovery_content.mjs","sha256":"0c614e50277ac110dab5cd410be2b4bcd84e469621cf8aa7389ea228fbb954ba"},{"file":"scripts/internal/recording_public_media_smoke.cpp","sha256":"759037f3287bd76578dfb4471f14d1c61888e567efb31d8894227d0cd1e1af2e"},{"file":"scripts/internal/recording_checkpoint_reproduction_smoke.cpp","sha256":"bd17fd384eb18c076891e31c3cfcf3950122e14a068775c2cffb4a63f6c3bcf3"},{"file":"scripts/internal/recording_media_test_fixture.h","sha256":"404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6"},{"file":"scripts/internal/recording_catalog_comparison_guard.mjs","sha256":"a018b80c06f6679e75b973181e3188cda8431b84a1e4d356c4f7b6bb5699f432"},{"file":"scripts/internal/env_common.sh","sha256":"4ebe528dd90c10cc340211e77de9746df78fa4fd599cb3b01289ebf6ccadd3d8"}],"limits":{"compileSeconds":60,"focusedSeconds":60,"realisticRecoverySeconds":15,"rss":1073741824,"disk":536870912,"output":2097152},"notRun":2}
+{"kind":"build-fingerprint","archiveSha256":"1fd6317f446f6208ce52369cdc814a09f16f70cc8c9a67903cedcbcfbb8c87ee","archiveMtimeMs":1789888936264.057,"linkSha256":"5d12a03a5881afda98a824de697ff6828ecfece7e5fea9664a9b90ffe6d5f563","flagsSha256":"d2999733c56ba98545ed715da5865b7ed350f5fddb5411b31f115936d4a7a37a","serverSha256":"96ae889595a4f60aaf919dedd085f3fcc313a071bf7303345a04f8e558acf361","platform":"darwin","arch":"arm64","node":"v24.13.0"}
+{"kind":"copy","file":"recording_catalog.cpp","insertions":5,"originalSha256":"3e295748699d737e31a2812d5a4d97280241a29ba83600b38ea425c89f314146","instrumentedSha256":"4a0a62acaa5dfd585bf6f923c1d6fe866a4e32eb5109c9f1cab884ac2bb6b2da"}
+{"kind":"copy","file":"recording_read_service.cpp","insertions":0,"originalSha256":"c37210ae7c0f363420c0924f6c4cd67872d776936af8a11275ffcd044f334f4c","instrumentedSha256":"c37210ae7c0f363420c0924f6c4cd67872d776936af8a11275ffcd044f334f4c"}
+{"kind":"copy","file":"recording_timeline_projection.cpp","insertions":0,"originalSha256":"fb946f8672c75104c9d3fc8f36b636ef406f987135b8e1ac6e70b5d092fa78a7","instrumentedSha256":"fb946f8672c75104c9d3fc8f36b636ef406f987135b8e1ac6e70b5d092fa78a7"}
+{"kind":"copy","file":"recording_derived_job_ready.cpp","insertions":2,"originalSha256":"74f304446afb62c9abc48c2f13fa65281f9c942becabfbbbb3612458eac3f184","instrumentedSha256":"8579f1a9c1f7498d1619a78e2222b659a7894d932e273337c60c55579b7c116e"}
+{"kind":"command","name":"compile","command":"c++","args":["-std=c++17","-Wall","-Wextra","-Werror","-pthread","-DMEDIA_SERVER_USE_GSTREAMER=1","-DMEDIA_SERVER_USE_OPENSSL=1","-DMEDIA_SERVER_USE_SQLITE3=1","-I/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.h4c7Zj/include","-I/Users/dhseo/Workspace/mediaServer/include","-I/Users/dhseo/Workspace/mediaServer/src/recording","-I/Users/dhseo/Workspace/mediaServer/scripts/internal","-include","/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_recovery_content_counter.h","-I/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0","-I/opt/homebrew/Cellar/glib/2.86.4/include","-I/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi","-I/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0","-I/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include","-I/opt/homebrew/opt/gettext/include","-I/opt/homebrew/Cellar/pcre2/10.47_1/include","-I/opt/homebrew/Cellar/openssl@3/3.6.2/include","-DLP24_RECOVERY_CONTENT=1","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.h4c7Zj/recording_catalog.cpp","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.h4c7Zj/recording_read_service.cpp","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.h4c7Zj/recording_timeline_projection.cpp","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.h4c7Zj/recording_derived_job_ready.cpp","/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_recovery_content_smoke.cpp","/Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib","/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib","/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib","/opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib","/opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib","/opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib","/opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib","/opt/homebrew/opt/gettext/lib/libintl.dylib","/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd","/opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib","/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib","/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib","/opt/homebrew/lib/libonnxruntime.dylib","-o","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.h4c7Zj/check"]}
+
+        3.91 real         3.73 user         0.24 sys
+           322240512  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               84953  page reclaims
+                 808  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   6  voluntary context switches
+                2939  involuntary context switches
+            98614988  instructions retired
+            49365794  cycles elapsed
+             3162472  peak memory footprint
+
+{"kind":"phase","name":"compile","expected":true,"code":0,"signal":null,"stopReason":null,"groupClean":true,"groupPeakRssBytes":329302016,"observationFailure":null,"outputBytes":777,"elapsedMs":3927}
+{"kind":"focused-binary","sha256":"77971ea2876f200361291aae081850b1e6e90a75e90f140603be712b55e0fa74","bytes":7306424}
+{"kind":"command","name":"focused","command":"/bin/bash","args":["-c","set -euo pipefail; source \"$1\"; export MEDIA_SERVER_GST_CACHE_DIR=\"$2/gst-cache\" MEDIA_SERVER_GST_PLUGIN_PROFILE=headless GST_REGISTRY=\"$2/registry.bin\" GST_REGISTRY_1_0=\"$2/registry.bin\"; unset GST_PLUGIN_PATH GST_PLUGIN_PATH_1_0 GST_PLUGIN_SYSTEM_PATH GST_PLUGIN_SYSTEM_PATH_1_0 MEDIA_SERVER_GST_MANAGED_REGISTRY MEDIA_SERVER_GST_MANAGED_PLUGIN_PATH MEDIA_SERVER_GST_INPUT_PLUGIN_PATH; media_server_apply_homebrew_gst_env; shift 3; exec \"$@\"","recovery-content","/Users/dhseo/Workspace/mediaServer/scripts/internal/env_common.sh","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.h4c7Zj","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.h4c7Zj/check","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.h4c7Zj/check","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.h4c7Zj","full"]}
+[recovery-small-shape] {"state":"complete","verifiedOutput":true,"outputs":2,"requestFullySatisfied":true,"unfulfilled":0}
+[pass] recovery first preflight retains strict content validation
+[pass] recovery actual apply reuses validated content and preserves transitions
+[pass] recovery sqlite preflight and projection reuse exact validated content
+[pass] recovery sqlite and jsonl return identical public values and durable bytes
+[pass] recovery new open performs fresh strict validation
+[recovery-count] {"jobMutations":6,"firstPreflightParses":6,"actualApplyParses":0,"rebuildPreflightParses":0,"projectionParses":0,"projectionSerializes":0}
+[recovery-cost] {"openUs":50897,"firstPreflightSerializes":0,"actualApplySerializes":0,"rebuildPreflightSerializes":0,"projectionSerializes":0,"realisticFixture":false}
+[pass] recovery proof rejects changed envelope identity and payload
+[pass] recovery proof preserves physical ordinal and duplicate collision rules
+[pass] recovery proof never substitutes latest job for historical transition
+[pass] recovery reused content preserves reservation source deletion and hold checks
+[pass] recovery journal change invalidates reuse and retains strict corruption rejection
+[pass] recovery pending checkpoint uses strict fallback
+[pass] recovery budget exhaustion and admission exception preserve strict results
+[pass] recovery proof ownership ends on success failure and exception
+[pass] recovery noncanonical binding preserves existing sqlite canonical bytes
+[not-run] realistic fifteen-second fixture: 2
+[summary] pass=14 fail=0
+
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+        3.59 real         2.81 user         0.28 sys
+           157122560  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               72796  page reclaims
+                  87  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                 103  messages sent
+                  93  messages received
+                   0  signals received
+                 276  voluntary context switches
+                2741  involuntary context switches
+         39881884192  instructions retired
+          8937698560  cycles elapsed
+            36307736  peak memory footprint
+
+{"kind":"phase","name":"focused","expected":true,"code":0,"signal":null,"stopReason":null,"groupClean":true,"groupPeakRssBytes":184549376,"observationFailure":null,"outputBytes":2567,"elapsedMs":3607}
+{"kind":"source-check","unchanged":true}
+{"kind":"cleanup","bytes":11387857,"removed":true}

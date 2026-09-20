@@ -1,0 +1,63 @@
+{"kind":"preflight","mode":"green","id":"lp24-recovery-08","suite":"prepare-native","plan":["compile","prepare-native"],"source":[{"file":"include/recording/recording_catalog.h","sha256":"bde3f884cda391fe971654cd66b2592a51aa084b5a0c76634890bf34ed066705"},{"file":"include/recording/recording_journal.h","sha256":"44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5"},{"file":"include/recording/recording_read_service.h","sha256":"d734267d8a83851d45f188467c22c1f3f3319b5adb87d2de1bc3075738dc2d90"},{"file":"src/recording/recording_catalog.cpp","sha256":"3e295748699d737e31a2812d5a4d97280241a29ba83600b38ea425c89f314146"},{"file":"src/recording/recording_read_service.cpp","sha256":"c37210ae7c0f363420c0924f6c4cd67872d776936af8a11275ffcd044f334f4c"},{"file":"src/recording/recording_timeline_projection.cpp","sha256":"fb946f8672c75104c9d3fc8f36b636ef406f987135b8e1ac6e70b5d092fa78a7"},{"file":"src/recording/recording_derived_job_ready.cpp","sha256":"74f304446afb62c9abc48c2f13fa65281f9c942becabfbbbb3612458eac3f184"},{"file":"src/recording/recording_derived_job_context.h","sha256":"10f047b9718e22dddc1a7b59d478af10ad2a828ddf256f3a14792ae7365e4891"},{"file":"scripts/internal/recording_recovery_content_smoke.cpp","sha256":"1b03dd47e12ee9edba463b0c0699b13ad093e37456fcb0a7f07fccc2d521b377"},{"file":"scripts/internal/recording_recovery_content_counter.h","sha256":"d613e9253855a1c10d80721f88cb4c94072a73cd222fba958df109d36062b4ae"},{"file":"scripts/internal/recording_recovery_content.test.mjs","sha256":"ef9065b328cf2613066357d3517b8b49c6d7293768c035820f1ef8d0f56316e2"},{"file":"scripts/internal/verify_recording_recovery_content.mjs","sha256":"0857d46d1a205fc51f33aa51c188aa0822591836de222d31d9acece6e6afdc0b"},{"file":"scripts/internal/recording_public_media_smoke.cpp","sha256":"759037f3287bd76578dfb4471f14d1c61888e567efb31d8894227d0cd1e1af2e"},{"file":"scripts/internal/recording_checkpoint_reproduction_smoke.cpp","sha256":"bd17fd384eb18c076891e31c3cfcf3950122e14a068775c2cffb4a63f6c3bcf3"},{"file":"scripts/internal/recording_media_test_fixture.h","sha256":"404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6"},{"file":"scripts/internal/recording_catalog_comparison_guard.mjs","sha256":"a018b80c06f6679e75b973181e3188cda8431b84a1e4d356c4f7b6bb5699f432"},{"file":"scripts/internal/env_common.sh","sha256":"4ebe528dd90c10cc340211e77de9746df78fa4fd599cb3b01289ebf6ccadd3d8"}],"limits":{"compileSeconds":60,"focusedSeconds":60,"realisticRecoverySeconds":15,"rss":1073741824,"disk":536870912,"output":2097152},"notRun":16}
+{"kind":"build-fingerprint","archiveSha256":"1fd6317f446f6208ce52369cdc814a09f16f70cc8c9a67903cedcbcfbb8c87ee","archiveMtimeMs":1789888936264.057,"linkSha256":"5d12a03a5881afda98a824de697ff6828ecfece7e5fea9664a9b90ffe6d5f563","flagsSha256":"d2999733c56ba98545ed715da5865b7ed350f5fddb5411b31f115936d4a7a37a","serverSha256":"96ae889595a4f60aaf919dedd085f3fcc313a071bf7303345a04f8e558acf361","platform":"darwin","arch":"arm64","node":"v24.13.0"}
+{"kind":"copy","file":"recording_catalog.cpp","insertions":5,"originalSha256":"3e295748699d737e31a2812d5a4d97280241a29ba83600b38ea425c89f314146","instrumentedSha256":"4a0a62acaa5dfd585bf6f923c1d6fe866a4e32eb5109c9f1cab884ac2bb6b2da"}
+{"kind":"copy","file":"recording_read_service.cpp","insertions":0,"originalSha256":"c37210ae7c0f363420c0924f6c4cd67872d776936af8a11275ffcd044f334f4c","instrumentedSha256":"c37210ae7c0f363420c0924f6c4cd67872d776936af8a11275ffcd044f334f4c"}
+{"kind":"copy","file":"recording_timeline_projection.cpp","insertions":0,"originalSha256":"fb946f8672c75104c9d3fc8f36b636ef406f987135b8e1ac6e70b5d092fa78a7","instrumentedSha256":"fb946f8672c75104c9d3fc8f36b636ef406f987135b8e1ac6e70b5d092fa78a7"}
+{"kind":"copy","file":"recording_derived_job_ready.cpp","insertions":2,"originalSha256":"74f304446afb62c9abc48c2f13fa65281f9c942becabfbbbb3612458eac3f184","instrumentedSha256":"8579f1a9c1f7498d1619a78e2222b659a7894d932e273337c60c55579b7c116e"}
+{"kind":"command","name":"compile","command":"c++","args":["-std=c++17","-Wall","-Wextra","-Werror","-pthread","-DMEDIA_SERVER_USE_GSTREAMER=1","-DMEDIA_SERVER_USE_OPENSSL=1","-DMEDIA_SERVER_USE_SQLITE3=1","-I/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.l5Tngg/include","-I/Users/dhseo/Workspace/mediaServer/include","-I/Users/dhseo/Workspace/mediaServer/src/recording","-I/Users/dhseo/Workspace/mediaServer/scripts/internal","-include","/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_recovery_content_counter.h","-I/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0","-I/opt/homebrew/Cellar/glib/2.86.4/include","-I/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi","-I/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0","-I/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include","-I/opt/homebrew/opt/gettext/include","-I/opt/homebrew/Cellar/pcre2/10.47_1/include","-I/opt/homebrew/Cellar/openssl@3/3.6.2/include","-DLP24_RECOVERY_CONTENT=1","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.l5Tngg/recording_catalog.cpp","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.l5Tngg/recording_read_service.cpp","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.l5Tngg/recording_timeline_projection.cpp","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.l5Tngg/recording_derived_job_ready.cpp","/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_recovery_content_smoke.cpp","/Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib","/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib","/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib","/opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib","/opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib","/opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib","/opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib","/opt/homebrew/opt/gettext/lib/libintl.dylib","/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd","/opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib","/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib","/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib","/opt/homebrew/lib/libonnxruntime.dylib","-o","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.l5Tngg/check"]}
+
+        3.91 real         3.69 user         0.24 sys
+           322355200  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               84795  page reclaims
+                1011  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                 195  voluntary context switches
+                3377  involuntary context switches
+           100138894  instructions retired
+            45315341  cycles elapsed
+             3178880  peak memory footprint
+
+{"kind":"phase","name":"compile","expected":true,"code":0,"signal":null,"stopReason":null,"groupClean":true,"groupPeakRssBytes":329891840,"observationFailure":null,"outputBytes":777,"elapsedMs":3929}
+{"kind":"focused-binary","sha256":"66194593ad9513fd1379cb36a0dfc6c6fc8cd823ea08bd82ebb2ae25261091a5","bytes":7307352}
+{"kind":"command","name":"prepare-native","command":"/bin/bash","args":["-c","set -euo pipefail; source \"$1\"; export MEDIA_SERVER_GST_CACHE_DIR=\"$2/gst-cache\" MEDIA_SERVER_GST_PLUGIN_PROFILE=headless GST_REGISTRY=\"$2/registry.bin\" GST_REGISTRY_1_0=\"$2/registry.bin\"; unset GST_PLUGIN_PATH GST_PLUGIN_PATH_1_0 GST_PLUGIN_SYSTEM_PATH GST_PLUGIN_SYSTEM_PATH_1_0 MEDIA_SERVER_GST_MANAGED_REGISTRY MEDIA_SERVER_GST_MANAGED_PLUGIN_PATH MEDIA_SERVER_GST_INPUT_PLUGIN_PATH; media_server_apply_homebrew_gst_env; shift 3; exec \"$@\"","recovery-content","/Users/dhseo/Workspace/mediaServer/scripts/internal/env_common.sh","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.l5Tngg","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.l5Tngg/check","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.l5Tngg/check","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.l5Tngg","prepare-native"],"seconds":60}
+[recovery-prepare-diagnostic] {"phase":"before","index":0,"profile":"native","selectionNative":true,"selectedSources":2,"plannedOutputs":2,"bindingProofs":2,"complete":null,"blocked":null,"hasJob":null,"state":null,"hasReady":null,"verifiedOutput":null,"outputCount":null,"requestFullySatisfied":null,"reason":null}
+[recovery-prepare-diagnostic] {"phase":"after","index":0,"profile":"native","selectionNative":true,"selectedSources":2,"plannedOutputs":2,"bindingProofs":2,"complete":true,"blocked":false,"hasJob":true,"state":"complete","hasReady":true,"verifiedOutput":true,"outputCount":2,"requestFullySatisfied":true,"reason":"none"}
+[recovery-job-proof] {"index":0,"state":"complete","verifiedOutput":true,"outputs":2,"requestFullySatisfied":true,"unfulfilled":0,"canonicalBytes":631381,"canonicalSha256":"2f80e79af3fc6e4996e26d5339bd5ab1754b31f16718971b359ea43049ce32e6"}
+[recovery-prepare-diagnostic] {"phase":"before","index":1,"profile":"native","selectionNative":true,"selectedSources":2,"plannedOutputs":2,"bindingProofs":2,"complete":null,"blocked":null,"hasJob":null,"state":null,"hasReady":null,"verifiedOutput":null,"outputCount":null,"requestFullySatisfied":null,"reason":null}
+[recovery-prepare-diagnostic] {"phase":"after","index":1,"profile":"native","selectionNative":true,"selectedSources":2,"plannedOutputs":2,"bindingProofs":2,"complete":true,"blocked":false,"hasJob":true,"state":"complete","hasReady":true,"verifiedOutput":true,"outputCount":2,"requestFullySatisfied":true,"reason":"none"}
+[recovery-job-proof] {"index":1,"state":"complete","verifiedOutput":true,"outputs":2,"requestFullySatisfied":true,"unfulfilled":0,"canonicalBytes":633929,"canonicalSha256":"69c793a133760d3b68fed99a1366c668b0a7982030b65c77578563da10b430d3"}
+[recovery-error] stage=prepare-selection class=preparation-exception
+[fail] recovery fixed fixture preparation failure
+[summary] pass=0 fail=1
+
+        6.83 real         6.22 user         0.30 sys
+           157106176  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               69648  page reclaims
+                4381  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                 174  messages sent
+                 169  messages received
+                   0  signals received
+                 198  voluntary context switches
+               19569  involuntary context switches
+        113635509051  instructions retired
+         23424007948  cycles elapsed
+            54559512  peak memory footprint
+
+{"kind":"preparation-diagnostic","profile":"native","prepared":false,"diagnosticsPreserved":true,"productPass":false}
+{"kind":"phase","name":"prepare-native","expected":false,"code":1,"signal":null,"stopReason":null,"groupClean":true,"groupPeakRssBytes":180109312,"observationFailure":null,"outputBytes":2674,"elapsedMs":6849}
+{"kind":"source-check","unchanged":true}
+{"kind":"cleanup","bytes":21583074,"removed":true}
