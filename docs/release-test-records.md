@@ -1,5 +1,165 @@
 # Release Test Records
 
+## LP25 시간 표시·완료 관측·통합 순차 마감
+
+사용자 승인: 잔여1~5 순차 개발, 단기 영향 검증, 통과 단위 분할 커밋, 모두 마무리되면 푸시.
+시작 HEAD `5767ba54d`, origin 추적 대비 ahead52/behind0(원격 미조회). 기존 LP22 제품5/검사4 변경 보존.
+메인이 계약·최종 판정, 단일 Astra/medium 담당자가 확정 구현을 수행한다. 하위 위임 금지.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과/완료 기준 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 시간 정확도·표시 단위 분리 | 완료 | 기본 mapping 호환, opt-in 그룹·66검사/빌드 통과 | LP25-T01~08 |
+| 2 | 완료 관측·전수 페이지 분리 | 대기 | 동일 job 완료30초·HTTP4초, 페이지 실패 별도 | LP25-O01~04 |
+| 3 | LP22 마감 | 대기 | bounded context·손상·권한·수명 회귀 | LP22-R |
+| 4 | 실제 앱·현행 통합 | 대기 | HTTP4초·완전2출력·hash·재기동·5단계 | P0-HTTP02/S11-CI |
+| 5 | 기록·커밋·푸시 | 대기 | 앞 단계 통과, 승인 범위 clean 확인 후 푸시 | AGENTS5 |
+
+### 1번 반환 계약과 비범위
+
+기본 timeline은 기존 mapping 행/ID/합계/페이지 그대로다. `unplacedUnit=file`을 명시한 요청만
+시간 미확인 행을 동일 원본 또는 출력 파일별 컨테이너로 반환한다. `mapping`/누락은 기본,
+다른 값은400이며 기존 channel 권한 검사가 우선한다. 공개 반환 범위를 확정하는1번 승인에 따라
+기존 소비자를 깨지 않는 opt-in 확장만 수행한다. UI 호출·레이아웃·화면 검증은 이번1번에서 변경하지 않는다.
+그룹은 연속 시간 구간이나 UTC 정확도를 뜻하지 않는다. known UTC 행/우선순위/중첩은 그대로,
+unknown은 UTC null·이벤트에 숨기지 않음을 유지한다. 파일·작업·참조·수명 상태가 다른 항목을 섞지 않는다.
+구성원의 기존 itemId, mappingId, provenance, uncertainty, 원래 mediaRange와 원본 mapping PTS/시간단위,
+이유를 독립 보존한다. 불연속·미확정 종료점·정수 변환 오차를 합쳐 채우지 않는다.
+공개 가능한 opaque segment 식별만 사용하며 source/store/epoch 원문은 노출하지 않는다.
+mapping reason은 저장 계약상 자유 문자열이므로 공개 응답은 제품의 고정 allowlist 코드만 반환하고
+그 밖은 `unclassified`로 표시한다. 원래 reason은 저장소에 그대로 보존하고 경로/URL 원문은 내보내지 않는다.
+외부 그룹 mediaRange는 실제 파일 범위이고 구성원의 연속 coverage/seek를 보장하지 않는다.
+partial→complete 승격, 저장 bytes/선택/UTC 정책/복구/재생 대상 변경은 금지한다.
+그룹은 Source/Output 한 파일에 한정해 구성하며64MiB append 전 예산·known4096 상한을 유지한다.
+전역 전체 구성원 캐시·재귀 DTO·운영 데이터·자격증명·외부 호출은 비범위다.
+
+### 실행 전 정의
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP25-T01 | 기본 응답 호환 | 기존 mapping ID/total/JSON/페이지와 명시 mapping 동일 | v4.1.0 |
+| LP25-T02 | 파일별 그룹 | unknown 합계·안정 ID·별도 페이지·UTC null | v4.1.0 |
+| LP25-T03 | 구성원 보존 | ID/PTS/품질·이유/불연속·null 종료점·raw 식별 비노출 | v4.1.0 |
+| LP25-T04 | 그룹 경계 | 다른 원본/출력/작업·placeholder·known 행 분리 | v4.1.0 |
+| LP25-T05 | 이벤트와 재생 | complete/partial 유지·동일 실제 파일/unknown 미숨김 | v4.1.0 |
+| LP25-T06 | 입력·권한 | 잘못된 단위400, 권한403 우선 | v4.1.0 |
+| LP25-T07 | 수명 | 손상/삭제 재생 거부·재개방 동일 | v4.1.0 |
+| LP25-T08 | 상한 | 4352 unknown 구성원·파일 페이지·known4096/64MiB 방어 | v4.1.0 |
+| LP25-O01 | terminal 독립 보존 | 앞 페이지 complete 뒤 total 변경에도 관측 보존·전수 실패 | v4.1.0 |
+| LP25-O02 | 혼합·계보 | ready/complete 혼합·다른 참조/job·failed·잘못된 media 거부 | v4.1.0 |
+| LP25-O03 | 예산·오류 | complete 없는 변화30초 실패·complete 후HTTP실패 보존 | v4.1.0 |
+| LP25-O04 | 전수 조건 | 누락/중복 거부·정확히2출력·재기동·5단계 fail-fast 유지 | v4.1.0 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 이번 제품/API/검증 도구 변경·LP22 | LP25-T/O, LP22-R, P0-HTTP02/S11-CI | 사용자1~5 승인·순차 |
+| 30분 | 미진행 | 이번 단기 범위 밖·S11 최종cut 별도 | AGENTS7.6 | 이번 실행 안 함 |
+| 120분 | 미진행 | 이번 단기 범위 밖·S11 최종cut 별도 | AGENTS7.6.2 | 이번 실행 안 함 |
+| UI 풀테스트 | 미진행 | 사용자 브라우저 제외·UI 변경 없음 | AGENTS7.6.3/7.9 | 이번 실행 안 함 |
+
+신규 focused assertion의 미구현 실패만 예상 RED다. 빌드/환경 실패는 RED가 아니다.
+실패 뒤 단계는 보류한다. 기존1-A/1-B 유효 증거는 인계 때문에 반복하지 않는다.
+token start/end/consumed: 미집계(실제 집계 도구 없음). elapsed/source는 실행별 기록한다.
+### 1번 결과
+
+전체 `./server.sh build` exit0([빌드 로그](release-artifacts/v4.1.0/s11-preparation-mapping/lp25-build-01.txt)),
+public timeline GREEN exit0,66PASS/0FAIL,14초([전수 로그](release-artifacts/v4.1.0/s11-preparation-mapping/lp25-timeline-02-green.txt)).
+API opt-in 계약 구현·관련 focused 회귀 완료이며 실제 화면 전환이나 실제 앱 통합 PASS는 아니다.
+archive SHA256 `408366261ba29cb2a510b8b6c6077615058ea4790696414658a223927b1c739f`.
+제품 변경은 timeline DTO/Collector Source·Output·AddMapping/Timeline query·JSON이며 저장 원장·시간 판정·재생 대상은 불변이다.
+검증 source에는 기존 LP22가 포함된다. 해당 코드 마감은3번이며 다른 checkout 검증을 주장하지 않는다.
+Auth 권한 순서·기본 응답은 직접 검사했다. UI/인증 정책은 미변경이며 현행 HTTP 회귀는4번이다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| D3B-01 actual V2 원본·문자열 UTC·독립 unplaced 응답 (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-14 mismatch/nonintegral mapping은 unplaced (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-14 mismatch/nonintegral mapping은 unplaced (2) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-02 문법/범위 오류400 (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-02 문법/범위 오류400 (2) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-02 문법/범위 오류400 (3) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-02 문법/범위 오류400 (4) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-02 문법/범위 오류400 (5) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-02 문법/범위 오류400 (6) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-02 권한 거부403 (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| LP25-T01 omitted/mapping exact JSON identity (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| LP25-T06 invalid unplacedUnit 400 (1) | 최초 예상 RED 후 구현 GREEN | PASS | 02-green exit0 |
+| LP25-T06 authorize before invalid unit (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| LP25-T06 invalid unplacedUnit 400 (2) | 최초 예상 RED 후 구현 GREEN | PASS | 02-green exit0 |
+| LP25-T06 authorize before invalid unit (2) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| LP25-T06 invalid unplacedUnit 400 (3) | 최초 예상 RED 후 구현 GREEN | PASS | 02-green exit0 |
+| LP25-T06 authorize before invalid unit (3) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-13 Intent placeholder no file/null time (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-13 accepted/no-job 상태 보존 (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-05 Ready 출력 시간과 재생불가 분리 (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-05 Committed 출력 시간과 재생불가 분리 (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-05 실제 검증된 파생2출력 시간/파일 독립 (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-07 같은 UTC 다른 segment/epoch는 원본 숨김 없음 (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-13 출력 생성 뒤 job placeholder 없음 (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-07 page 밖 이벤트도 원본 전체 충족 판정 (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-06 일부 중첩 원본은 보존 (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-04 재조회 stable itemId/order (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-12 요청축/문자열/공개 whitelist (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-08 동일 size 변조 출력은 비재생 (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-08 파일 누락 Complete와 재생불가/숨김 분리 (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-08 실제 tombstone 출력 deleted 보존 (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-09 source tombstone 뒤 durable UTC 투영 (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-05 partial 요청 실제 출력 jobComplete (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-14 actual 출력 mismatch mapping은 unplaced·partial 파일 제공 분리 (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-13 Failed placeholder no file/null time (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| LP25-T04 failed placeholder unchanged without group members (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-03/04 UTC0와 same-file 다중 mapping 독립 ID (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-03 int64 최대 UTC ns 문자열 정밀도 (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-11 관련 없는 known4352 누적은 짧은 질의 허용 (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-11 실제 관련4352 상한 명시 실패 (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-02/11 관련 상한503 (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-10/11 unknown4354 count와 bounded 첫 페이지 (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-10 known/unplaced 독립 동일 offset 페이지 (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| LP25-T08 4352 unknown mappings become 17 files plus 2 invalid files (1) | 최초 예상 RED 후 구현 GREEN | PASS | 02-green exit0 |
+| LP25-T02 file group stable opaque IDs null UTC and all member identities (1) | 최초 예상 RED 후 구현 GREEN | PASS | 02-green exit0 |
+| LP25-T03 invalid fractional mapping provenance uncertainty and source PTS retained (1) | 최초 예상 RED 후 구현 GREEN | PASS | 02-green exit0 |
+| LP25-T08 file-unit page boundaries exact and stable including empty last page (1) | 최초 예상 RED 후 구현 GREEN | PASS | 02-green exit0 |
+| LP25-T08 known 4096 cap unchanged in file mode (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-11 offset+limit overflow 명시 실패 (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-11 전체 unknown deep-copy 없이35074 첫 페이지 허용 (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| D3B-11 deep offset64MiB workspace 초과는 결과 없이 명시 실패 (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| LP25-T03 nonadjacent unknown members preserve gap and outer file range (1) | 최초 예상 RED 후 구현 GREEN | PASS | 02-green exit0 |
+| LP25-T03 null end PTS remains null and fixed writer reason is preserved (1) | 추가 등록 후 GREEN 실행 | PASS | 02-green exit0 |
+| LP25-T04 mixed known rows exact and distinct files never coalesce (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| LP25-T03 group public whitelist excludes raw source store epoch and paths (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| LP25-T04 intent placeholder unchanged alongside file groups (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| LP25-T05 full two output file groups preserve request playback and members (1) | 최초 예상 RED 후 구현 GREEN | PASS | 02-green exit0 |
+| LP25-T07 corrupt output remains grouped and not playable (1) | 최초 예상 RED 후 구현 GREEN | PASS | 02-green exit0 |
+| LP25-T07 tombstone output preserves group provenance and cannot play (1) | 최초 예상 RED 후 구현 GREEN | PASS | 02-green exit0 |
+| LP25-T07 reopen exact group IDs member provenance and deleted state (1) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| LP25-T04 intent placeholder unchanged alongside file groups (2) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| LP25-T05 partial two output file groups preserve request playback and members (1) | 최초 예상 RED 후 구현 GREEN | PASS | 02-green exit0 |
+| LP25-T07 corrupt output remains grouped and not playable (2) | 최초 예상 RED 후 구현 GREEN | PASS | 02-green exit0 |
+| LP25-T07 tombstone output preserves group provenance and cannot play (2) | 최초 예상 RED 후 구현 GREEN | PASS | 02-green exit0 |
+| LP25-T07 reopen exact group IDs member provenance and deleted state (2) | 기존/호환 회귀 RED·GREEN 양쪽 확인 | PASS | 02-green exit0 |
+| LP25-T08 file-unit accumulated workspace cap rejects without partial response (1) | 추가 등록 후 GREEN 실행 | PASS | 02-green exit0 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR/media-server-public-timeline.2cWEQY | 테스트 영상/저장소/registry/실행파일 |48056627B |소유 runner 삭제 |removed=true |02-green |
+
+문서 링크 검사285문서/9114링크/실패0, exit0. 작업 공백 검사 exit0 후 stage 검사에서 신규 txt3개의
+EOF 빈 줄이 발견돼 제거했다(원출력 내용 불변). 재검증 뒤 커밋하며 이미지 미변경으로 자산 검사 미실행.
+
+### 1번 TDD RED
+
+GREEN 전 T03에 null end PTS와 writer 고정 reason 확인, T08에 파일 그룹 누적64MiB 초과 시
+부분 결과 없이 거부하는 직접 반례를 추가했다. 기존 mapping deep-offset cap 결과로 신규 그룹 cap을 대체하지 않는다.
+
+`bash scripts/internal/verify_recording_public_timeline.sh`: exit1,50PASS/14FAIL,37초。
+기존 D3B 전부 PASS. 신규 옵션 미구현에 따른 invalid unit400 및 파일 그룹/member14 assertion만 예상 RED와 일치한다.
+원출력·모든 개별 제목/결과는 [RED 전수 로그](release-artifacts/v4.1.0/s11-preparation-mapping/lp25-timeline-01-red.txt)에 보존한다.
+50PASS에는 기존 회귀와 변경 전에도 성립하는 호환/권한/known cap 등이 포함된다. 그룹 기능 PASS가 아니다.
+제품 수정 전 실행이며 최초RED를 보존한 채 승인 구현을 이어간다. 커밋·푸시 미수행.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR/media-server-public-timeline.35IstD | 테스트 영상/저장소/registry/실행파일 |36759992B |소유 runner 삭제 |removed=true |RED 원출력 |
+
 ## LP24 재개: 1-A 검증 준비 정합·1-B 복구 판정
 
 사용자 승인: 1-A와1-B를 순차 개발·관련 단기 검증·분할 커밋 후 종합 보고한다. 2~6 제품 개발·실제 앱·장시간/UI는 이번 범위 밖이다.

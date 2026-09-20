@@ -6,8 +6,31 @@
 #include "recording/recording_derived_job_service.h"
 #include "recording/recording_derived_selection.h"
 #include <limits>
+#include "domain/strict_json.h"
+using JsonObject=ingress::StrictJsonObjectDocument;
+JsonObject Json(const std::string& text){
+    JsonObject result;std::string error;
+    if(!ingress::ParseStrictJsonObjectDocument(text,&result,&error))throw std::runtime_error("fixture-json:"+error);
+    return result;
+}
+std::string Field(const JsonObject& value,const std::string& key){
+    const auto* field=value.Find(key);return field?(field->type==ingress::StrictJsonType::String?field->string_value:field->raw):"";
+}
+std::vector<JsonObject> Objects(const JsonObject& value,const std::string& key){
+    const auto* field=value.Find(key);std::vector<JsonObject> result;
+    if(!field||field->type!=ingress::StrictJsonType::Array)return result;
+    bool quoted=false,escape=false;int depth=0;std::size_t begin=0;
+    for(std::size_t i=0;i<field->raw.size();++i){const char c=field->raw[i];
+        if(quoted){if(escape)escape=false;else if(c=='\\')escape=true;else if(c=='"')quoted=false;continue;}
+        if(c=='"'){quoted=true;continue;}if(c=='{'){if(depth++==0)begin=i;}
+        if(c=='}'&&--depth==0)result.push_back(Json(field->raw.substr(begin,i-begin+1)));
+    }
+    return result;
+}
+std::string OpaqueKey(const std::string& value){return std::to_string(value.size())+":"+value;}
 recording::RecordingSegmentV2 MappedSource(Store& store, recording::RecordingSegmentV2 source,
-    const std::string& id, int count, std::optional<std::int64_t> utc, bool same_time=false) {
+    const std::string& id, int count, std::optional<std::int64_t> utc, bool same_time=false,bool alternating_unknown=false,
+    const std::string& unknown_reason="fixture-unplaced",bool open_tail=false) {
     const auto old=store.catalog.FindSegmentMediaLocation(source.segment_id);
     source.segment_id=id; source.order_request_id=id+"-order"; source.media_epoch_id=id+"-epoch";
     recording::RecordingOrderReservationV1 order; std::string error;
@@ -15,11 +38,13 @@ recording::RecordingSegmentV2 MappedSource(Store& store, recording::RecordingSeg
     source.order_sequence=order.sequence; source.time_base_num=1; source.time_base_den=1000000000;
     source.media_start_pts=0; source.media_end_pts=count; source.mappings.clear();
     for(int i=0;i<count;++i){
-        const auto a=utc?std::optional<std::int64_t>(*utc+(same_time?0:i)):std::nullopt;
+        const bool known=utc&&!(alternating_unknown&&i%2==0);
+        const auto a=known?std::optional<std::int64_t>(*utc+(same_time?0:i)):std::nullopt;
         const auto b=a?std::optional<std::int64_t>(*a+1):std::nullopt;
         source.mappings.push_back({"media-server.recording-utc-mapping.v1",id+"-map-"+std::to_string(i),i,i+1,
-            utc?"source-capture":"unknown",a,b,utc?std::optional<std::int64_t>(0):std::nullopt,utc?"":"fixture-unplaced"});
+            known?"source-capture":"unknown",a,b,known?std::optional<std::int64_t>(0):std::nullopt,known?"":unknown_reason});
     }
+    if(open_tail){source.media_end_pts.reset();source.mappings.back().end_pts.reset();}
     const auto path=store.root/(source.channel_id+"/"+id+".mp4"); std::filesystem::copy_file(old->first/old->second,path);
     if(!store.catalog.FinalizeSegmentV2(source,path.string(),&error))throw std::runtime_error(error);
     return source;
@@ -105,6 +130,16 @@ int main(int argc,char** argv){
     }
     check(app.Timeline(query,[](const auto&){return false;}).status==403,"D3B-02 권한 거부403");
     {
+        auto explicit_mapping=query;explicit_mapping["unplacedUnit"]="mapping";
+        check(app.Timeline(explicit_mapping,[](const auto&){return true;}).body==app.Timeline(query,[](const auto&){return true;}).body,
+            "LP25-T01 omitted/mapping exact JSON identity");
+        for(const auto& value:{"","files","FILE"}){
+            auto invalid=query;invalid["unplacedUnit"]=value;
+            check(app.Timeline(invalid,[](const auto&){return true;}).status==400,"LP25-T06 invalid unplacedUnit 400");
+            check(app.Timeline(invalid,[](const auto&){return false;}).status==403,"LP25-T06 authorize before invalid unit");
+        }
+    }
+    {
         Store jobs(std::filesystem::path(argv[1])/"jobs");const auto intent=PrepareMedia(jobs,false);
         recording::RecordingReadService job_reader(jobs.catalog);ingress::RecordingApplicationService job_app(job_reader,jobs.catalog,true,{});
         recording::RecordingTimelineQuery q{"probe-channel",1789200000000LL,1789200003000LL,0,100};
@@ -179,6 +214,9 @@ int main(int argc,char** argv){
         recording::RecordingReadService read(failed.catalog);recording::RecordingTimelineResult t;
         check(read.QueryTimeline({"probe-channel",0,1,0,100},&t,&error)&&t.unplaced_total==1&&
             t.unplaced_items[0].job_state=="failed"&&!t.unplaced_items[0].playable&&t.unplaced_items[0].segment_id.empty(),"D3B-13 Failed placeholder no file/null time");
+        ingress::RecordingApplicationService failed_app(read,failed.catalog,true,{});auto grouped=query;grouped["unplacedUnit"]="file";
+        check(failed_app.Timeline(grouped,[](const auto&){return true;}).body==failed_app.Timeline(query,[](const auto&){return true;}).body,
+            "LP25-T04 failed placeholder unchanged without group members");
     }
     {
         MappedSource(store,original,"utc-zero",2,0,true);
@@ -202,12 +240,127 @@ int main(int argc,char** argv){
         const auto first=t.unplaced_items[0].item_id;
         check(reader.QueryTimeline({"probe-channel",0,1,1,1},&t,&error)&&t.items.size()==1&&t.unplaced_items.size()==1&&
             t.unplaced_items[0].item_id>first&&t.unplaced_total==4354,"D3B-10 known/unplaced 독립 동일 offset 페이지");
+        auto grouped=query;grouped["startTimeMs"]="0";grouped["endTimeMs"]="1";grouped["unplacedUnit"]="file";grouped["limit"]="1000";
+        const auto grouped_response=app.Timeline(grouped,[](const auto&){return true;});const auto grouped_json=Json(grouped_response.body);
+        const auto groups=Objects(grouped_json,"unplacedItems");
+        check(grouped_response.status==200&&Field(grouped_json,"total")=="2"&&Field(grouped_json,"unplacedTotal")=="19"&&groups.size()==19,
+            "LP25-T08 4352 unknown mappings become 17 files plus 2 invalid files");
+        bool members_ok=groups.size()==19,invalid_preserved=false;std::size_t member_count=0;
+        for(const auto& group:groups){const auto members=Objects(group,"members");const auto id=Field(group,"segmentId");member_count+=members.size();
+            members_ok=members_ok&&Field(group,"itemId")=="v2-file-group:"+OpaqueKey(id)+OpaqueKey("")&&
+                Field(group,"rangeBasis")=="file-group"&&Field(group,"utcRange")=="null"&&Field(group,"startTimeMs")=="null"&&Field(group,"endTimeMs")=="null"&&Field(group,"hideByEvent")=="false";
+            for(const auto& member:members){const auto mapping=Field(member,"mappingId");
+                members_ok=members_ok&&Field(member,"itemId")=="v2-source:"+OpaqueKey(id)+OpaqueKey(mapping)&&Field(member,"sourceSegmentId")==id&&
+                    Field(member,"sourceMappingRange")==Field(member,"mediaRange")&&!Field(member,"unavailableReason").empty()&&
+                    (Field(member,"mappingProvenance")!="unknown"||Field(member,"reason")=="unclassified");
+                if(id=="nonintegral-source")invalid_preserved=Field(member,"mappingProvenance")=="source-capture"&&Field(member,"uncertaintyNs")=="0"&&
+                    Field(Json(Field(member,"sourceMappingRange")),"timeBaseDen")=="3";
+            }
+        }
+        check(members_ok&&member_count==4354,"LP25-T02 file group stable opaque IDs null UTC and all member identities");
+        check(invalid_preserved,"LP25-T03 invalid fractional mapping provenance uncertainty and source PTS retained");
+        grouped["limit"]="1";std::vector<std::string> paged_ids;bool pages_ok=true;
+        for(std::size_t i=0;i<groups.size()+1;++i){grouped["offset"]=std::to_string(i);const auto p=Json(app.Timeline(grouped,[](const auto&){return true;}).body);const auto rows=Objects(p,"unplacedItems");
+            pages_ok=pages_ok&&Field(p,"unplacedTotal")=="19"&&rows.size()==(i<groups.size()?1:0);
+            if(!rows.empty())paged_ids.push_back(Field(rows.front(),"itemId"));}
+        std::vector<std::string> full_ids;for(const auto& group:groups)full_ids.push_back(Field(group,"itemId"));
+        check(pages_ok&&paged_ids==full_ids,"LP25-T08 file-unit page boundaries exact and stable including empty last page");
+        grouped["startTimeMs"]="1000";grouped["endTimeMs"]="1001";grouped["offset"]="0";
+        check(app.Timeline(grouped,[](const auto&){return true;}).status==503,"LP25-T08 known 4096 cap unchanged in file mode");
         check(!reader.QueryTimeline({"probe-channel",0,1,std::numeric_limits<std::size_t>::max(),1},&t,&error),"D3B-11 offset+limit overflow 명시 실패");
         for(int i=0;i<120;++i)MappedSource(store,original,"deep-"+std::string(85,'x')+"-"+std::to_string(i),256,std::nullopt);
         check(reader.QueryTimeline({"probe-channel",0,1,0,1},&t,&error)&&t.unplaced_total==35074&&t.unplaced_items.size()==1,
             "D3B-11 전체 unknown deep-copy 없이35074 첫 페이지 허용");
         check(!reader.QueryTimeline({"probe-channel",0,1,40000,1},&t,&error)&&t.items.empty()&&t.unplaced_items.empty(),
             "D3B-11 deep offset64MiB workspace 초과는 결과 없이 명시 실패");
+    }
+    {
+        const std::string private_reason="rtsp://fixture-user:fixture-secret@private-source.invalid/stream";
+        const auto mixed=MappedSource(store,original,"mixed-file",4,0,false,true,private_reason);
+        const auto open=MappedSource(store,original,"open-tail",2,std::nullopt,false,false,"end-duration-unavailable",true);
+        auto q=query;q["startTimeMs"]="0";q["endTimeMs"]="1";q["limit"]="1000";
+        const auto baseline=Json(app.Timeline(q,[](const auto&){return true;}).body);q["unplacedUnit"]="file";
+        const auto response=app.Timeline(q,[](const auto&){return true;});const auto grouped=Json(response.body);const auto rows=Objects(grouped,"unplacedItems");
+        const auto found=std::find_if(rows.begin(),rows.end(),[&](const auto& row){return Field(row,"segmentId")==mixed.segment_id;});
+        bool separate=false;
+        if(found!=rows.end()){const auto members=Objects(*found,"members");
+            separate=members.size()==2&&Field(members[0],"mappingId")=="mixed-file-map-0"&&Field(members[1],"mappingId")=="mixed-file-map-2"&&
+                Field(members[0],"reason")=="unclassified"&&Field(members[1],"reason")=="unclassified"&&
+                Field(Json(Field(members[0],"mediaRange")),"endPts")=="1"&&Field(Json(Field(members[1],"mediaRange")),"startPts")=="2"&&
+                Field(Json(Field(*found,"mediaRange")),"startPts")=="0"&&Field(Json(Field(*found,"mediaRange")),"endPts")=="4";
+        }
+        check(response.status==200&&separate,"LP25-T03 nonadjacent unknown members preserve gap and outer file range");
+        const auto open_group=std::find_if(rows.begin(),rows.end(),[&](const auto& row){return Field(row,"segmentId")==open.segment_id;});
+        bool nullable=false;
+        if(open_group!=rows.end()){const auto members=Objects(*open_group,"members");
+            nullable=members.size()==2&&Field(Json(Field(*open_group,"mediaRange")),"endPts")=="null"&&
+                Field(Json(Field(members.back(),"mediaRange")),"endPts")=="null"&&Field(Json(Field(members.back(),"sourceMappingRange")),"endPts")=="null"&&
+                Field(members.back(),"reason")=="end-duration-unavailable";
+        }
+        check(nullable,"LP25-T03 null end PTS remains null and fixed writer reason is preserved");
+        check(Field(baseline,"items")==Field(grouped,"items")&&Field(baseline,"total")==Field(grouped,"total"),
+            "LP25-T04 mixed known rows exact and distinct files never coalesce");
+        check(response.body.find("probe-store")==std::string::npos&&response.body.find("mixed-file-epoch")==std::string::npos&&
+            response.body.find("source_id")==std::string::npos&&response.body.find(store.root.string())==std::string::npos&&response.body.find(private_reason)==std::string::npos&&
+            response.body.find("fixture-secret")==std::string::npos&&store.catalog.FindSegmentV2ById(mixed.segment_id)->mappings.front().reason==private_reason,
+            "LP25-T03 group public whitelist excludes raw source store epoch and paths");
+    }
+    for(const bool partial:{false,true}){
+        const auto root=std::filesystem::path(argv[1])/(partial?"lp25-partial":"lp25-full");std::string retained_json;
+        auto q=query;q["unplacedUnit"]="file";q["limit"]="1000";
+        {
+            Store fixture(root);const auto intent=PrepareMedia(fixture,partial,1);
+            recording::RecordingReadService read(fixture.catalog);ingress::RecordingApplicationService application(read,fixture.catalog,true,{});
+            auto baseline_query=q;baseline_query.erase("unplacedUnit");
+            const auto before=Json(application.Timeline(q,[](const auto&){return true;}).body);
+            const auto pending=Objects(before,"unplacedItems");
+            check(std::count_if(pending.begin(),pending.end(),[](const auto& row){return Field(row,"jobState")=="intent"&&Field(row,"segmentId")=="null"&&!row.Find("members");})==1,
+                "LP25-T04 intent placeholder unchanged alongside file groups");
+            recording::DerivedJobService service(fixture.catalog,fixture.journal,{fixture.root,30000,{}});
+            if(!service.Run(intent.job_id).complete)throw std::runtime_error("lp25-job-complete");
+            const auto old=Json(application.Timeline(baseline_query,[](const auto&){return true;}).body);const auto legacy=Objects(old,"unplacedItems");
+            const auto grouped=Json(application.Timeline(q,[](const auto&){return true;}).body);const auto rows=Objects(grouped,"unplacedItems");
+            bool outputs_ok=true;std::size_t output_count=0;
+            for(const auto& row:rows){if(Field(row,"kind")!="event")continue;++output_count;
+                const auto id=Field(row,"segmentId");const auto members=Objects(row,"members");
+                std::vector<JsonObject> previous;for(const auto& r:legacy)if(Field(r,"segmentId")==id)previous.push_back(r);
+                outputs_ok=outputs_ok&&!members.empty()&&members.size()==previous.size()&&Field(row,"jobId")==intent.job_id&&
+                    Field(row,"referenceId")==intent.reference.reference_id&&Field(row,"completeness")== (partial?"partial":"complete")&&
+                    Field(row,"itemId")=="v2-file-group:"+OpaqueKey(id)+OpaqueKey(intent.job_id)&&Field(row,"playable")=="true";
+                for(const auto& member:members){const auto match=std::find_if(previous.begin(),previous.end(),[&](const auto& p){return Field(p,"itemId")==Field(member,"itemId");});
+                    outputs_ok=outputs_ok&&match!=previous.end()&&Field(*match,"mediaRange")==Field(member,"mediaRange")&&
+                        Field(row,"playbackUrl")==Field(*match,"playbackUrl")&&!Field(member,"mappingId").empty()&&!Field(member,"sourceSegmentId").empty()&&member.Find("sourceMappingRange");
+                }
+            }
+            check(outputs_ok&&output_count==2,partial?"LP25-T05 partial two output file groups preserve request playback and members":"LP25-T05 full two output file groups preserve request playback and members");
+            const auto output=intent.outputs.front();
+            {std::fstream file(fixture.root/output.final_relpath,std::ios::in|std::ios::out|std::ios::binary);char byte=0;file.read(&byte,1);const char changed=byte^1;file.seekp(0);file.write(&changed,1);file.flush();
+                const auto corrupt=Objects(Json(application.Timeline(q,[](const auto&){return true;}).body),"unplacedItems");
+                check(std::count_if(corrupt.begin(),corrupt.end(),[&](const auto& row){return Field(row,"segmentId")==output.output_id&&Field(row,"playable")=="false"&&Field(row,"playbackUrl").empty()&&!Objects(row,"members").empty();})==1,
+                    "LP25-T07 corrupt output remains grouped and not playable");
+                file.seekp(0);file.write(&byte,1);file.flush();}
+            std::optional<recording::DerivedJobRecordV1> job;fixture.catalog.FindDerivedJob(intent.job_id,&job,&error);
+            recording::RecordingTombstoneV2 tomb;tomb.tombstone_id="lp25-delete";tomb.segment=job->ready->outputs.front().segment;tomb.deletion_reason="event-capacity";tomb.deleted_at_ms=30;
+            if(!fixture.catalog.RequestDeletion(output.output_id,tomb.deletion_reason,&error)||!std::filesystem::remove(fixture.root/output.final_relpath)||!fixture.catalog.CompleteDeletionV2(tomb,&error))throw std::runtime_error(error);
+            retained_json=application.Timeline(q,[](const auto&){return true;}).body;
+            const auto deleted=Objects(Json(retained_json),"unplacedItems");
+            check(std::count_if(deleted.begin(),deleted.end(),[&](const auto& row){return Field(row,"segmentId")==output.output_id&&Field(row,"catalogState")=="deleted"&&Field(row,"playable")=="false"&&!Objects(row,"members").empty();})==1,
+                "LP25-T07 tombstone output preserves group provenance and cannot play");
+        }
+        Store reopened(root);recording::RecordingReadService read(reopened.catalog);ingress::RecordingApplicationService application(read,reopened.catalog,true,{});
+        check(application.Timeline(q,[](const auto&){return true;}).body==retained_json,"LP25-T07 reopen exact group IDs member provenance and deleted state");
+    }
+    {
+        // 기존 120 deep 파일 + 64 파일의 compact member 누적만으로 64MiB를 넘긴다.
+        // 마지막에 배치하여 앞선 정상 조회/상태 회귀 fixture를 변경하지 않는다.
+        for(int i=0;i<64;++i)MappedSource(store,original,"cap-deep-"+std::string(85,'x')+"-"+std::to_string(i),256,std::nullopt);
+        recording::RecordingTimelineQuery cap{"probe-channel",0,1,60000,1};cap.unplaced_file_units=true;
+        recording::RecordingTimelineResult result;
+        const bool rejected=!reader.QueryTimeline(cap,&result,&error)&&result.items.empty()&&result.unplaced_items.empty()&&result.total==0&&result.unplaced_total==0;
+        auto q=query;q["startTimeMs"]="0";q["endTimeMs"]="1";q["offset"]="60000";q["limit"]="1";q["unplacedUnit"]="file";
+        const auto response=app.Timeline(q,[](const auto&){return true;});
+        check(rejected&&response.status==503&&response.body=="{\"error\":\"recording timeline unavailable\"}",
+            "LP25-T08 file-unit accumulated workspace cap rejects without partial response");
     }
     std::cout<<"[summary] pass="<<pass<<" fail="<<fail<<'\n';return fail?1:0;
 }

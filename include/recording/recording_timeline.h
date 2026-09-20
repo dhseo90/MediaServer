@@ -7,6 +7,7 @@ struct RecordingTimelineQuery {
     std::string channel_id;
     std::int64_t start_ms{0},end_ms{0};
     std::size_t offset{0},limit{100};
+    bool unplaced_file_units{false};
 };
 struct RecordingTimelineCoverage {
     // 내부 우선 표시 대조 전용. raw source/store/epoch는 JSON으로 직렬화하지 않는다.
@@ -16,6 +17,16 @@ struct RecordingTimelineCoverage {
 struct RecordingTimelineOverlap {
     std::string item_id;
     std::int64_t start_ns{0},end_ns{0};
+};
+// 파일 그룹의 구성 mapping 증거. 재귀 item/내부 source-store-epoch 식별자는 포함하지 않는다.
+struct RecordingTimelineMember {
+    std::string item_id,mapping_id,mapping_provenance,reason,unavailable_reason;
+    std::optional<std::int64_t> uncertainty_ns,media_start_pts,media_end_pts;
+    std::string media_axis,source_segment_id;
+    std::int32_t time_base_num{1},time_base_den{1000000000};
+    std::int64_t source_start_pts{0};
+    std::optional<std::int64_t> source_end_pts;
+    std::int32_t source_time_base_num{1},source_time_base_den{1000000000};
 };
 struct RecordingTimelineItem {
     std::string segment_id,channel_id,kind;
@@ -38,6 +49,7 @@ struct RecordingTimelineItem {
     std::optional<RecordingConsumerRequestV1> request;
     std::vector<RecordingTimelineCoverage> coverage;
     std::vector<RecordingTimelineOverlap> event_overlaps;
+    std::vector<RecordingTimelineMember> members;
 };
 struct RecordingTimelineResult {
     std::vector<RecordingTimelineItem> items,unplaced_items;

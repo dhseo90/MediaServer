@@ -56,8 +56,18 @@ std::size_t Bytes(const RecordingTimelineItem& v){
         &v.mapping_provenance,&v.mapping_id,&v.media_axis})size+=s->size();
     if(v.request)size+=sizeof(*v.request)+v.request->time_basis.size();
     for(const auto& c:v.coverage)size+=sizeof(c)+c.source_id.size()+c.store_id.size()+c.epoch_id.size()+c.segment_id.size();
+    for(const auto& m:v.members)size+=sizeof(m)+m.item_id.size()+m.mapping_id.size()+m.mapping_provenance.size()+m.reason.size()+
+        m.unavailable_reason.size()+m.media_axis.size()+m.source_segment_id.size();
     // vector/string의 여유 capacity까지 보수적으로 계상하는 논리 workspace 예산이다.
     return size*2;
+}
+const char* PublicMappingReason(const std::string& reason){
+    // writer가 생성하는 고정 코드만 공개한다. 저장 원문의 임의 URL/자격증명은 공개하지 않는다.
+    for(const auto* code:{"pts-reordering-or-duplicate","decode-preroll","clock-unavailable","media-observation-divergence",
+        "uncertainty-overflow","mapping-budget-exceeded","clock-comparison-unavailable","no-accepted-observation",
+        "end-duration-unavailable","utc-end-overflow","server-clock-media-extrapolation","derived-output-utc-unavailable"})
+        if(reason==code)return code;
+    return reason.empty()?"":"unclassified";
 }
 RecordingTimelineItem Base(const RecordingSegmentV2& s,RecordingLifecycle state){
     RecordingTimelineItem item;item.segment_id=s.segment_id;item.channel_id=s.channel_id;
@@ -82,6 +92,7 @@ public:
             item.start_ms=FloorMs(*item.utc_start_ns);item.end_ms=FloorMs(*item.utc_end_ns);
             const auto bytes=Bytes(item);
             if(known.size()>=kKnownRows||bytes>kBytes-known_bytes)throw std::runtime_error("timeline-related-limit");
+            CheckCombined(bytes);
             known_bytes+=bytes;known.push_back(std::move(item));return;
         }
         item.unplaced=true;item.utc_start_ns.reset();item.utc_end_ns.reset();item.coverage.clear();
@@ -91,9 +102,11 @@ public:
         if(unknown.size()==take&&!unknown.empty()){unknown_bytes-=Bytes(unknown.top());unknown.pop();}
         const auto bytes=Bytes(item);
         if(bytes>kBytes-unknown_bytes)throw std::runtime_error("timeline-unplaced-page-limit");
+        CheckCombined(bytes);
         unknown_bytes+=bytes;unknown.push(std::move(item));
     }
     void Source(const RecordingSegmentV2& source,RecordingLifecycle state){
+        std::optional<RecordingTimelineItem> group;
         for(const auto& mapping:source.mappings){
             auto item=Base(source,state);item.item_id="v2-source:"+Key(source.segment_id)+Key(mapping.mapping_id);
             item.mapping_id=mapping.mapping_id;item.mapping_provenance=mapping.provenance;item.uncertainty_ns=mapping.uncertainty_ns;
@@ -103,8 +116,9 @@ public:
                 item.utc_start_ns=mapping.utc_start_ns;item.utc_end_ns=mapping.utc_end_ns;
                 item.coverage.push_back({source.source_id,source.store_id,source.media_epoch_id,source.segment_id,a,b});
             }else item.unavailable_reason=mapping.provenance=="unknown"?"utc-unavailable":"mapping-inconsistent";
-            Add(std::move(item));
+            AddMapping(std::move(item),source,source,mapping,group);
         }
+        FlushGroup(group);
     }
     void Reference(const RecordingConsumerReferenceV1& ref,const DerivedJobRecordV1* job){
         RecordingTimelineItem item;item.item_id=job?"job-state:"+Key(job->intent.job_id):"reference-state:"+Key(ref.reference_id);
@@ -143,12 +157,15 @@ public:
             if(!MergePresentationIntervals(std::move(exact_requested),&merged))throw std::runtime_error("timeline-native-range-cap");
             requested=inward(merged);
         }
-        bool emitted=false;
+        bool emitted=false;std::optional<RecordingTimelineItem> group;
         for(const auto& mapping:source.mappings){
             std::int64_t map_start=0,map_end=0;
             if(!mapping.end_pts||!PtsNs(source,mapping.start_pts,&map_start)||!PtsNs(source,*mapping.end_pts,&map_end)){
                 auto item=base;item.item_id="v2-event-mapping-unplaced:"+Key(output.segment.segment_id)+Key(mapping.mapping_id);
-                item.unavailable_reason="mapping-inconsistent";Add(std::move(item));emitted=true;continue;
+                item.unavailable_reason="mapping-inconsistent";
+                // 기존 mapping 응답은 그대로 두고 opt-in member에서 원 mapping 증거를 복원한다.
+                if(query.unplaced_file_units){item.mapping_id=mapping.mapping_id;item.mapping_provenance=mapping.provenance;item.uncertainty_ns=mapping.uncertainty_ns;}
+                AddMapping(std::move(item),output.segment,source,mapping,group);emitted=true;continue;
             }
             for(const auto& interval:actual){
                 const auto a=std::max(interval.first,map_start),b=std::min(interval.second,map_end);if(a>=b)continue;
@@ -160,10 +177,15 @@ public:
                     for(const auto& range:requested){const auto x=std::max(a,range.first),y=std::min(b,range.second);
                         if(x<y)item.coverage.push_back({source.source_id,source.store_id,source.media_epoch_id,source.segment_id,x,y});}
                 }else item.unavailable_reason=mapping.provenance=="unknown"?"utc-unavailable":"mapping-inconsistent";
-                Add(std::move(item));emitted=true;
+                AddMapping(std::move(item),output.segment,source,mapping,group);emitted=true;
             }
         }
         if(!emitted){base.item_id="v2-event-unplaced:"+Key(output.segment.segment_id);base.unavailable_reason="utc-unavailable";Add(std::move(base));}
+        if(group&&(!metadata_matches||job.state!=DerivedJobState::Complete)){
+            CheckCombined(64); // guard 문자열 변경도 보유 중 group 예산 안에서 처리한다.
+            group->unavailable_reason=!metadata_matches?"output-binding-unavailable":"job-not-complete";
+        }
+        FlushGroup(group);
     }
     void Finish(RecordingTimelineResult* result){
         result->items=std::move(known);result->total=result->items.size();result->unplaced_total=unknown_count;
@@ -174,8 +196,41 @@ public:
             known_bytes+=bytes;result->unplaced_items.push_back(std::move(rows[i]));}
     }
 private:
+    void CheckCombined(std::size_t additional) const {
+        if(query.unplaced_file_units&&(known_bytes>kBytes-unknown_bytes||group_bytes>kBytes-known_bytes-unknown_bytes||
+            additional>kBytes-known_bytes-unknown_bytes-group_bytes))throw std::runtime_error("timeline-group-workspace-limit");
+    }
+    void AddMapping(RecordingTimelineItem item,const RecordingSegmentV2& file,const RecordingSegmentV2& source,
+                    const RecordingUtcMappingV1& mapping,std::optional<RecordingTimelineItem>& group){
+        if(!query.unplaced_file_units||(item.utc_start_ns&&item.utc_end_ns)){Add(std::move(item));return;}
+        if(!group){
+            CheckCombined(Bytes(item)+2*(file.segment_id.size()+item.job_id.size()+64));
+            group=item;group->item_id="v2-file-group:"+Key(file.segment_id)+Key(item.job_id);group->range_basis="file-group";
+            group->media_start_pts=file.media_start_pts;group->media_end_pts=file.media_end_pts;
+            group->time_base_num=file.time_base_num;group->time_base_den=file.time_base_den;
+            group->mapping_id.clear();group->mapping_provenance.clear();group->uncertainty_ns.reset();group->coverage.clear();
+            group_bytes=Bytes(*group);
+        }
+        const std::string reason=PublicMappingReason(mapping.reason);
+        const auto bytes=2*(sizeof(RecordingTimelineMember)+item.item_id.size()+mapping.mapping_id.size()+mapping.provenance.size()+
+            reason.size()+item.unavailable_reason.size()+item.media_axis.size()+source.segment_id.size());
+        // 누적 member의 vector 성장과 retained known/unknown heap을 합쳐 append 전에 확인한다.
+        CheckCombined(bytes);
+        RecordingTimelineMember member;
+        member.item_id=std::move(item.item_id);member.mapping_id=mapping.mapping_id;member.mapping_provenance=mapping.provenance;
+        member.uncertainty_ns=mapping.uncertainty_ns;member.reason=reason;member.unavailable_reason=std::move(item.unavailable_reason);
+        member.media_axis=std::move(item.media_axis);member.media_start_pts=item.media_start_pts;member.media_end_pts=item.media_end_pts;
+        member.time_base_num=item.time_base_num;member.time_base_den=item.time_base_den;
+        member.source_segment_id=source.segment_id;member.source_start_pts=mapping.start_pts;member.source_end_pts=mapping.end_pts;
+        member.source_time_base_num=source.time_base_num;member.source_time_base_den=source.time_base_den;
+        group->members.push_back(std::move(member));group_bytes+=bytes;
+    }
+    void FlushGroup(std::optional<RecordingTimelineItem>& group){
+        if(!group)return;
+        group_bytes=0;Add(std::move(*group));group.reset();
+    }
     struct Less {bool operator()(const RecordingTimelineItem& a,const RecordingTimelineItem& b)const{return a.item_id<b.item_id;}};
-    const RecordingTimelineQuery& query;std::size_t take{0},known_bytes{0},unknown_bytes{0},unknown_count{0};
+    const RecordingTimelineQuery& query;std::size_t take{0},known_bytes{0},unknown_bytes{0},unknown_count{0},group_bytes{0};
     std::vector<RecordingTimelineItem> known;
     struct Heap:std::priority_queue<RecordingTimelineItem,std::vector<RecordingTimelineItem>,Less>{
         std::vector<RecordingTimelineItem> Release(){return std::move(this->c);}

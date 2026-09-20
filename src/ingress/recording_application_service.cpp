@@ -80,7 +80,24 @@ void TimelineJson(std::ostream& out,const recording::RecordingTimelineItem& item
     for(std::size_t i=0;i<item.event_overlaps.size();++i){if(i)out<<',';const auto& overlap=item.event_overlaps[i];
         out<<"{\"itemId\":"<<Quote(overlap.item_id)<<",\"timeBasis\":\"source-media-ns\",\"startNs\":"<<Quote(std::to_string(overlap.start_ns))
            <<",\"endNs\":"<<Quote(std::to_string(overlap.end_ns))<<'}';}
-    out<<"]}";
+    out<<']';
+    if(!item.members.empty()){
+        out<<",\"members\":[";
+        for(std::size_t i=0;i<item.members.size();++i){if(i)out<<',';const auto& member=item.members[i];
+            out<<"{\"itemId\":"<<Quote(member.item_id)<<",\"mappingId\":"<<Quote(member.mapping_id)
+               <<",\"mappingProvenance\":"<<Quote(member.mapping_provenance)<<",\"uncertaintyNs\":"<<Decimal(member.uncertainty_ns)
+               <<",\"reason\":"<<Quote(member.reason)<<",\"unavailableReason\":"<<Quote(member.unavailable_reason)
+               <<",\"mediaRange\":";
+            if(member.media_start_pts)out<<"{\"timeBasis\":"<<Quote(member.media_axis)<<",\"startPts\":"<<Decimal(member.media_start_pts)
+                <<",\"endPts\":"<<Decimal(member.media_end_pts)<<",\"timeBaseNum\":"<<Quote(std::to_string(member.time_base_num))
+                <<",\"timeBaseDen\":"<<Quote(std::to_string(member.time_base_den))<<'}';else out<<"null";
+            out<<",\"sourceSegmentId\":"<<Quote(member.source_segment_id)<<",\"sourceMappingRange\":{\"timeBasis\":\"segment-media-pts\",\"startPts\":"
+               <<Quote(std::to_string(member.source_start_pts))<<",\"endPts\":"<<Decimal(member.source_end_pts)
+               <<",\"timeBaseNum\":"<<Quote(std::to_string(member.source_time_base_num))<<",\"timeBaseDen\":"<<Quote(std::to_string(member.source_time_base_den))<<"}}";
+        }
+        out<<']';
+    }
+    out<<'}';
 }
 ApplicationServiceResult BadQuery() { return {400, "Bad Request", "{\"error\":\"invalid recording query\"}"}; }
 }  // namespace
@@ -153,6 +170,11 @@ ApplicationServiceResult RecordingApplicationService::Timeline(
     if (!authorize || !authorize(channel->second)) return {403, "Forbidden", "{\"error\":\"recording channel forbidden\"}"};
     recording::RecordingTimelineQuery parsed;
     parsed.channel_id = channel->second;
+    const auto unit=query.find("unplacedUnit");
+    if(unit!=query.end()){
+        if(unit->second!="mapping"&&unit->second!="file")return BadQuery();
+        parsed.unplaced_file_units=unit->second=="file";
+    }
     auto number = [&](const char* key, std::uint64_t default_value, bool required, std::uint64_t* value) {
         const auto it = query.find(key);
         if (it == query.end()) { *value = default_value; return !required; }
