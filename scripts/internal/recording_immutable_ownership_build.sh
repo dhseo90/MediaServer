@@ -5,9 +5,10 @@ lp_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 lp_repo="$(cd "$lp_script/../.." && pwd)"
 lp_root="${1:?owned root required}"
 lp_mode="${2:-envelope}"
-if [[ "$lp_mode" != envelope && "$lp_mode" != job && "$lp_mode" != content && "$lp_mode" != envelope-cost && "$lp_mode" != context && "$lp_mode" != transition-comparison && "$lp_mode" != intent-comparison && "$lp_mode" != journal-location && "$lp_mode" != journal-location-crypto-off && "$lp_mode" != journal-cold && "$lp_mode" != journal-checkpoint-snapshot && "$lp_mode" != journal-logical && "$lp_mode" != catalog-thin && "$lp_mode" != typed-lifetime && "$lp_mode" != typed-lifetime-crypto-off ]];then exit 2;fi
+if [[ "$lp_mode" != automatic-noop && "$lp_mode" != automatic-noop-crypto-off && "$lp_mode" != envelope && "$lp_mode" != job && "$lp_mode" != content && "$lp_mode" != envelope-cost && "$lp_mode" != context && "$lp_mode" != transition-comparison && "$lp_mode" != intent-comparison && "$lp_mode" != journal-location && "$lp_mode" != journal-location-crypto-off && "$lp_mode" != journal-cold && "$lp_mode" != journal-checkpoint-snapshot && "$lp_mode" != journal-logical && "$lp_mode" != catalog-thin && "$lp_mode" != typed-lifetime && "$lp_mode" != typed-lifetime-crypto-off ]];then exit 2;fi
 node - "$lp_repo" "$lp_root" "$lp_mode" <<'NODE'
 const fs=require('fs'),path=require('path'),crypto=require('crypto'),[repo,out,mode]=process.argv.slice(2);
+const noopMode=['automatic-noop','automatic-noop-crypto-off'].includes(mode);
 const locationMode=['journal-location','journal-location-crypto-off','journal-cold','journal-checkpoint-snapshot','journal-logical','catalog-thin','typed-lifetime','typed-lifetime-crypto-off'].includes(mode);
 if(!/^media-server-immutable-ownership\.[A-Za-z0-9]+$/.test(path.basename(out))||fs.lstatSync(out).isSymbolicLink()||fs.realpathSync(out)!==out)throw Error('LP18_ROOT');
 function exact(s,a,b){if(s.split(a).length!==2)throw Error('LP18_EXACT');return s.replace(a,b);}
@@ -16,6 +17,17 @@ for(const name of ['recording_catalog.h','recording_journal.h']){const file=path
 const source=fs.readFileSync(path.join(repo,'src/recording/recording_journal.cpp'),'utf8');
 const helper='\nnamespace ownership_probe { using History=recording::RecordingMutationHandles; History JournalView(const recording::RecordingJournal& j){History out;if(!j.ReadCheckpointRecords(j.catalog_owner_,&out,nullptr))throw std::runtime_error("LP18_JOURNAL_VIEW");return out;} }\n';
 let journal=source;
+if(noopMode){
+ journal=exact(journal,'std::string SerializeRecordingMutationV1(const RecordingMutationV1& value) {','std::string SerializeRecordingMutationV1(const RecordingMutationV1& value) { if(noop_probe::capture)++noop_probe::serializes;');
+ const parse='bool ParseRecordingMutationV1(const std::string& json,\n                              RecordingMutationV1* value,\n                              std::string* error) {';
+ journal=exact(journal,parse,parse+' if(noop_probe::capture)++noop_probe::parses;');
+ journal=exact(journal,'    return true;\n}\nbool SafePath(','    if(noop_probe::capture){++noop_probe::reads;noop_probe::bytes+=bytes->size();}\n    return true;\n}\nbool SafePath(');
+ journal='#include "recording_checkpoint_noop_counter.h"\n'+journal;
+ const h=fs.readFileSync(path.join(repo,'include/recording/recording_journal.h'),'utf8');
+ const count=(h.match(/\bTryAutomaticCheckpointNoop\s*\(/g)||[]).length;if(count>1)throw Error('LP20_DECLARATIONS');
+ fs.writeFileSync(path.join(out,'noop_flags'),'-DLP20_AUTO_NOOP='+Number(count===1));
+ console.log('[instrument] noop_journal_exact_insertions=3 original_sha256='+crypto.createHash('sha256').update(source).digest('hex')+' instrumented_sha256='+crypto.createHash('sha256').update(journal).digest('hex'));
+}
 if(['typed-lifetime','typed-lifetime-crypto-off'].includes(mode)){
  journal=exact(journal,'for(std::size_t i=managed_state_->resident_checked;i<managed_state_->locations.size();++i){','for(std::size_t i=managed_state_->resident_checked;i<managed_state_->locations.size();++i){++location_probe::release_visits;');
  console.log('[instrument] typed_resident_release_visit_exact_insertions=1');
@@ -74,6 +86,13 @@ const jobShared=catalogHeader.includes('DerivedJobPool derived_jobs_;');
 fs.writeFileSync(path.join(out,'job_flags'),jobShared?'-DLP18_JOB_SHARED=1':'');
 fs.writeFileSync(path.join(out,'binding_flags'),bindingShared?'-DLP18_BINDING_SHARED=1':'');
 let catalog=fs.readFileSync(path.join(repo,'src/recording/recording_catalog.cpp'),'utf8');
+if(noopMode){
+ catalog=exact(catalog,'    if(prepared)prepared->phase=PreparedDerivedMutation::Phase::Consumed;','    if(prepared)prepared->phase=PreparedDerivedMutation::Phase::Consumed;\n    noop_probe::Scope noop_scope;');
+ catalog=exact(catalog,'    bool ok = true;\n    switch (mutation.mutation_type) {','    noop_probe::Apply(this);\n    bool ok = true;\n    switch (mutation.mutation_type) {');
+ catalog='#include "recording_checkpoint_noop_counter.h"\n'+catalog;
+ console.log('[instrument] noop_catalog_exact_insertions=2');
+ for(const name of ['scripts/internal/recording_checkpoint_noop_smoke.cpp','scripts/internal/recording_checkpoint_noop_counter.h','scripts/internal/recording_typed_lifetime_smoke.cpp'])console.log('[source] '+JSON.stringify({name,sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(repo,name))).digest('hex')}));
+}
 if(bindingShared){
  catalog=exact(catalog,'if(binding_pool)shared_binding=FindSourceBindingOwned(*binding_pool,v.segment_id);','if(binding_pool){++ownership_probe::binding_pool_lookups;shared_binding=FindSourceBindingOwned(*binding_pool,v.segment_id);}\n                if(shared_binding)++ownership_probe::binding_pool_comparisons;');
 }
@@ -149,7 +168,7 @@ lp_binding=(-DLP18_BINDING_SHARED=0); if [[ -s "$lp_root/binding_flags" ]];then 
 lp_job=(-DLP18_JOB_SHARED=0); if [[ -s "$lp_root/job_flags" ]];then lp_job=(-DLP18_JOB_SHARED=1);fi
 lp_sources=("$lp_script/recording_immutable_ownership_smoke.cpp")
 lp_location_crypto=(-DLP18_LOCATION_CRYPTO_OFF=0)
-if [[ "$lp_mode" == journal-location-crypto-off || "$lp_mode" == typed-lifetime-crypto-off ]];then lp_location_crypto=(-DLP18_LOCATION_CRYPTO_OFF=1 -UMEDIA_SERVER_USE_OPENSSL -DMEDIA_SERVER_USE_OPENSSL=0);fi
+if [[ "$lp_mode" == automatic-noop-crypto-off || "$lp_mode" == journal-location-crypto-off || "$lp_mode" == typed-lifetime-crypto-off ]];then lp_location_crypto=(-DLP18_LOCATION_CRYPTO_OFF=1 -UMEDIA_SERVER_USE_OPENSSL -DMEDIA_SERVER_USE_OPENSSL=0);fi
 if [[ "$lp_mode" == journal-location || "$lp_mode" == journal-location-crypto-off || "$lp_mode" == journal-cold || "$lp_mode" == journal-checkpoint-snapshot || "$lp_mode" == journal-logical ]];then read -r lp_location_flag < "$lp_root/location_flags" || [[ -n "$lp_location_flag" ]];read -r lp_cold_flag < "$lp_root/cold_flags" || [[ -n "$lp_cold_flag" ]];lp_flags+=("$lp_location_flag" "$lp_cold_flag");lp_sources=("$lp_script/recording_journal_location_smoke.cpp");fi
 if [[ "$lp_mode" == journal-cold ]];then lp_flags+=(-DLP18_COLD_SUITE=1);fi
 if [[ "$lp_mode" == journal-checkpoint-snapshot ]];then read -r lp_snapshot_flag < "$lp_root/snapshot_flags" || [[ -n "$lp_snapshot_flag" ]];lp_flags+=("$lp_snapshot_flag" -DLP18_CHECKPOINT_SNAPSHOT_SUITE=1);fi
@@ -163,6 +182,7 @@ if [[ "$lp_mode" == content ]];then lp_sources=("$lp_script/recording_job_conten
 if [[ "$lp_mode" == envelope-cost ]];then lp_sources=("$lp_script/recording_checkpoint_envelope_cost_smoke.cpp");fi
 if [[ "$lp_mode" == transition-comparison ]];then lp_sources=("$lp_script/recording_job_transition_comparison_smoke.cpp" "$lp_root/recording_derived_job_ready.cpp" "$lp_repo/src/recording/recording_timeline_projection.cpp");fi
 if [[ "$lp_mode" == context ]];then lp_sources=("$lp_script/recording_job_validation_context_smoke.cpp" "$lp_root/recording_derived_job.cpp" "$lp_root/recording_derived_job_ready.cpp" "$lp_repo/src/recording/recording_timeline_projection.cpp");fi
+if [[ "$lp_mode" == automatic-noop || "$lp_mode" == automatic-noop-crypto-off ]];then read -r lp_noop_flag < "$lp_root/noop_flags" || [[ -n "$lp_noop_flag" ]];lp_flags+=("$lp_noop_flag" -DLP18_TYPED_LIFETIME=1);lp_sources=("$lp_script/recording_checkpoint_noop_smoke.cpp" "$lp_repo/src/recording/recording_timeline_projection.cpp");fi
 "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$lp_root/include" -I"$lp_repo/include" -I"$lp_script" -I"$lp_repo/src/recording" "${lp_flags[@]}" "${lp_shared[@]}" \
  "${lp_accepted[@]}" "${lp_binding[@]}" "${lp_job[@]}" -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_SQLITE3=1 \
  "${lp_location_crypto[@]}" "${lp_sources[@]}" "$lp_root/recording_journal.cpp" "$lp_root/recording_catalog.cpp" "${lp_libs[@]}" -o "$lp_root/check"

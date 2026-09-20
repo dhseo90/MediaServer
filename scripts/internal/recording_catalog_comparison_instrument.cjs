@@ -22,6 +22,8 @@ for(const name of ['recording_catalog.cpp','recording_journal.cpp']){
   // 성공한 실제 행 읽기를 호출/바이트로 구분한다. 검사 복제본 전용이며 payload를 출력하지 않는다.
   s=exact(s,"       RawHash(raw)!=location->raw_sha256)return corrupt();\n    RecordingMutationV1 parsed;",
    "       RawHash(raw)!=location->raw_sha256)return corrupt();\n    if(fc::enabled){++fc::metrics[\"journal.locatedRawRead.calls\"].count;fc::metrics[\"journal.locatedRawRead.bytes\"].count+=raw.size();}\n    RecordingMutationV1 parsed;");
+  s=exact(s,'                poisoned_=true;return Fail(error,"automatic checkpoint 원문 손상/읽기 실패");\n            }',
+   '                poisoned_=true;return Fail(error,"automatic checkpoint 원문 손상/읽기 실패");\n            }\n            if(fc::enabled){++fc::metrics["journal.noopRawRead.calls"].count;fc::metrics["journal.noopRawRead.bytes"].count+=raw.size();}');
   s+=String.raw`
 namespace lp17 {
 Owned Journal(const recording::RecordingJournal& j,EnvelopeOwners* seen){

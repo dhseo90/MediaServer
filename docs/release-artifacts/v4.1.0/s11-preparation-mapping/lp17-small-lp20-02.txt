@@ -1,0 +1,39 @@
+{"kind":"preflight","mode":"small","id":"lp20-02","head":"942822783e704ab0fe73514911b0f53bde2a9f79","sourceManifest":"3fc4f1e19846462777fb3655700ae1998c54e3252627e7d79a62f31b09b09dca","physicalBytes":25769803776,"reclaimableEstimateBytes":10658562048,"rssSafetyBytes":1073741824,"historicalRssBytes":536870912,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable","productPass":false}
+{"kind":"command","label":"runtime-freshness","command":"cmake","args":["--build","<repo>/build-gst-onnx","--target","media_server_runtime","--parallel","2"],"seconds":60,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+[100%] Built target media_server_runtime
+        0.74 real         0.36 user         0.21 sys
+            51396608  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               14930  page reclaims
+                 353  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                  10  signals received
+                 290  voluntary context switches
+                 777  involuntary context switches
+           395299964  instructions retired
+           117604258  cycles elapsed
+             3293832  peak memory footprint
+{"kind":"phase-result","label":"runtime-freshness","diagnosticPass":true,"historicalRssPass":null,"observationValid":null,"semanticPass":null,"cleanupPass":true,"exitCode":0,"signal":null,"stopReason":null,"elapsedMs":762,"groupPeakRssBytes":102891520,"observationFailure":null,"outputBytes":818}
+{"kind":"command","label":"compile","command":"bash","args":["<repo>/scripts/internal/recording_catalog_comparison_build.sh","<owned-root>"],"seconds":60,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+[source] file=recording_catalog.cpp original_sha256=f6a576bb8ec8daa888e14ac055d0d217067a907fd7d3075418c9af2ce0ae0245 instrumented_sha256=f071484a3b0c61418e55e9a298a03266f24d3223d78cda641b480904ca5894c2
+[source] file=recording_journal.cpp original_sha256=1c8732f4641440494296b172f2a97d8b094c2b750214abeb29b206baa5b4350d instrumented_sha256=d2ea487ac654f9c56431b8b03734995e09f70ca03447a1ec083a2c906d97344a
+[source] file=recording_contracts.cpp original_sha256=960635a08aa900bebfae961cd9e534ab6b91fbace213e1a7416227e7292ec890 instrumented_sha256=a99bc03ee76dbbd7342d06ea2db70258451d371889eacd384be541bee574e1c6
+[source] file=recording_checkpoint_validation.h original_sha256=8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc instrumented_sha256=ff16e542cbd5f7dca026ef95cc621eb68008426ace3e6e5bbe44ea2c91714d05
+[pass] FC01 exact insertion checks count=98
+[lp17] {"kind":"instrument","file":"recording_catalog.h","originalSha256":"51711847478b54e2593acfb29aa8d430a96f244a461a0864a255ece7bbff4037","instrumentedSha256":"98284dfab7f5a6e0c8dec651df99a840364625cce65764dbf5587afca9a26908"}
+[lp17] {"kind":"instrument","file":"recording_journal.h","originalSha256":"44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5","instrumentedSha256":"9da1a57a52b7b63145a5716819df6c61b432b586b74b9f229e1dc8def22ae8ec"}
+[lp17] {"kind":"instrument","file":"recording_catalog.cpp","originalSha256":"f071484a3b0c61418e55e9a298a03266f24d3223d78cda641b480904ca5894c2","instrumentedSha256":"bbc90af929b00e6e48c02bb1d0e7dbd15850dd07337ee72ae55b47c3f06919ba"}
+[lp17] {"kind":"instrument","file":"recording_journal.cpp","originalSha256":"d2ea487ac654f9c56431b8b03734995e09f70ca03447a1ec083a2c906d97344a","instrumentedSha256":"2bfa09ff3ccd7dc7f9c02f935e566ff5edd22fb887682aeea5135a0a25644aef"}
+[lp17] {"kind":"instrumentSummary","exactEdits":7,"cacheChange":"retention-and-reuse-only"}
+
+{"kind":"phase-result","label":"compile","diagnosticPass":false,"historicalRssPass":null,"observationValid":null,"semanticPass":null,"cleanupPass":true,"exitCode":null,"signal":"SIGTERM","stopReason":"resource-observation","elapsedMs":1537,"groupPeakRssBytes":395804672,"observationFailure":{"part":"disk","code":"ENOENT"},"outputBytes":1882}
+{"kind":"diagnostic-failure","code":"phase-failed","nextPhases":"not-run"}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":3481447,"removed":true}
+{"kind":"run-result","mode":"small","id":"lp20-02","diagnosticPass":false,"failure":"phase-failed","phases":2,"elapsedMs":2504,"productPass":false,"tokenConsumed":null}

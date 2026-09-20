@@ -297,9 +297,11 @@ RecordingCatalog::~RecordingCatalog() {
 bool RecordingCatalog::Open(std::string* error) {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     checkpoint_cache_.reset();
-    if (opened_) return journal_.OwnsCatalog(this);
+    if (opened_) {const bool owns=journal_.OwnsCatalog(this);if(!owns)automatic_noop_eligible_=false;return owns;}
+    const bool first_open=!automatic_noop_open_attempted_;
+    automatic_noop_open_attempted_=true;automatic_noop_eligible_=false;
     if(!journal_.AttachCatalog(this,options_.media_root,options_.sqlite_path,options_.enable_v2_storage,error))return false;
-    if(OpenLocked(error))return true;
+    if(OpenLocked(error)){automatic_noop_eligible_=first_open;return true;}
     opened_=false;checkpoint_cache_.reset();CloseSqliteLocked();journal_.DetachCatalog(this);return false;
 }
 
@@ -1220,7 +1222,15 @@ bool RecordingCatalog::AppendAndApplyLocked(RecordingMutationV1 mutation, std::s
     RecordingMutationHandle owned;
     RecordingJournalOwnedViewHandle view;
     if (!journal_.AppendOwned(mutation, this, error,&owned,&view)) return false;
-    if (!ApplyMutationLocked(mutation, false, error,prepared,owned,nullptr,nullptr,nullptr,view)) return false;
+    try {
+        if (!ApplyMutationLocked(mutation, false, error,prepared,owned,nullptr,nullptr,nullptr,view)) {
+            automatic_noop_eligible_=false;journal_.InvalidateAutomaticCheckpointNoop(this);return false;
+        }
+    }catch(...){
+        // 기존 예외/authority/재시도 의미는 유지한다. 중간 insert된 ID를 성공 증명으로
+        // 오인하지 않도록 이 attachment의 자동 no-op만 비적격으로 만든다.
+        automatic_noop_eligible_=false;journal_.InvalidateAutomaticCheckpointNoop(this);throw;
+    }
     std::optional<DerivedJobContentProof> content_proof;
     if(prepared&&prepared->phase==PreparedDerivedMutation::Phase::Applied&&
        PreparedDerivedMatchesLocked(mutation,*prepared,true,nullptr))
@@ -1236,7 +1246,14 @@ bool RecordingCatalog::AppendAndApplyLocked(RecordingMutationV1 mutation, std::s
         }
     }
     if(prepared)prepared->phase=PreparedDerivedMutation::Phase::Consumed;
-    if(journal_.CheckpointDue(this)&&!CheckpointLocked(false,error,content_proof?&*content_proof:nullptr))return false;
+    if(journal_.CheckpointDue(this)){
+        bool handled=false;
+        if(automatic_noop_eligible_&&!journal_.TryAutomaticCheckpointNoop(this,mutation_ids_,&handled,error)){
+            checkpoint_cache_.reset();if(!journal_.OwnsCatalog(this))derived_job_state_authoritative_=false;
+            return false;
+        }
+        if(!handled&&!CheckpointLocked(false,error,content_proof?&*content_proof:nullptr))return false;
+    }
     return !journal_.managed_||ReleaseInactiveDetailsLocked(&mutation.entity_id,error);
 }
 

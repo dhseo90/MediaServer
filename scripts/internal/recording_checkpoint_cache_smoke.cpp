@@ -135,10 +135,13 @@ void ActualCases(const std::filesystem::path& root){
  auto input=Encode(501,false,false,160,90,30,250);Shift(input,0);
  Need(input.packets[250].is_key_frame&&input.packets[500].is_key_frame);
  cache_probe::count=cache_probe::dropped=cache_probe::holds=0;cache_probe::max_hold_us=0;
+ cache_probe::automatic_attempts=cache_probe::automatic_noops=cache_probe::automatic_fallbacks=cache_probe::automatic_strict=cache_probe::noop_dropped=0;
  CheckpointCase(root,input);
  for(std::size_t i=0;i<cache_probe::count;++i){const auto& row=cache_probe::rows[i];std::cout<<"[automatic-checkpoint] index="<<i<<" original_records="<<row.records<<" reused_prefix="<<row.first<<" original_applied="<<row.records-row.first<<" total_applied="<<row.applied<<" duration_us="<<row.us<<'\n';}
+ for(std::size_t i=0;i<cache_probe::automatic_noops&&i<cache_probe::noop_us.size();++i)std::cout<<"[automatic-checkpoint-noop] index="<<i<<" duration_us="<<cache_probe::noop_us[i]<<'\n';
+ std::cout<<"[automatic-checkpoint-paths] attempts="<<cache_probe::automatic_attempts<<" noop="<<cache_probe::automatic_noops<<" fallback="<<cache_probe::automatic_fallbacks<<" strict="<<cache_probe::automatic_strict<<'\n';
  std::cout<<"[transition-hold] count="<<cache_probe::holds<<" max_us="<<cache_probe::max_hold_us<<" scope=UpdateDerivedJob-lock-acquired-to-before-unlock\n";
- Check(cache_probe::count>0&&cache_probe::dropped==0&&cache_probe::holds>0,"LP15-C02 bounded automatic checkpoint and whole transition measurement");
+ Check(cache_probe::automatic_attempts>0&&cache_probe::automatic_attempts==cache_probe::automatic_noops+cache_probe::automatic_fallbacks&&cache_probe::automatic_strict==cache_probe::automatic_fallbacks&&cache_probe::dropped==0&&cache_probe::noop_dropped==0&&cache_probe::holds>0,"LP15-C02 bounded automatic checkpoint and whole transition measurement");
  Store store(root);const auto history=store.journal.Replay();
  std::size_t ready=0,committed=0,complete=0,bytes=0;
  for(const auto& mutation:history.mutations){

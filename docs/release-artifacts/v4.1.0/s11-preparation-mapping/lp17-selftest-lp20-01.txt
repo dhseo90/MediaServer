@@ -1,0 +1,133 @@
+{"kind":"preflight","mode":"selftest","id":"lp20-01","head":"942822783e704ab0fe73514911b0f53bde2a9f79","sourceManifest":"596837c27b4cb45b92c01584e9554425707895c55b7202b39474ddf6f138b26c","physicalBytes":25769803776,"reclaimableEstimateBytes":10865475584,"rssSafetyBytes":1073741824,"historicalRssBytes":536870912,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable","productPass":false}
+{"kind":"command","label":"runner-selftest","command":"/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node","args":["--test","--test-reporter=tap","<repo>/scripts/internal/recording_catalog_comparison.test.mjs"],"seconds":60,"rssSafetyBytes":1073741824,"diskCapBytes":536870912,"outputCapBytes":2097152}
+TAP version 13
+# [selftest-cleanup] {"bytes":5,"removed":true}
+# [selftest-cleanup] {"bytes":0,"removed":true}
+# Subtest: LP20-C04 임시 파일 삭제 경쟁은 동일 root의 전체 관측으로 재확인
+ok 1 - LP20-C04 임시 파일 삭제 경쟁은 동일 root의 전체 관측으로 재확인
+  ---
+  duration_ms: 1.193125
+  type: 'test'
+  ...
+# Subtest: LP20-C04 반복 관측 실패·권한 실패·root 교체는 계속 거부
+ok 2 - LP20-C04 반복 관측 실패·권한 실패·root 교체는 계속 거부
+  ---
+  duration_ms: 1.761458
+  type: 'test'
+  ...
+# Subtest: LP19-H01 계측 손실 없는 왕복
+ok 3 - LP19-H01 계측 손실 없는 왕복
+  ---
+  duration_ms: 1.14875
+  type: 'test'
+  ...
+# Subtest: LP19-H02 잘못된 축약 표현 거부
+ok 4 - LP19-H02 잘못된 축약 표현 거부
+  ---
+  duration_ms: 0.314209
+  type: 'test'
+  ...
+# Subtest: LP17-H01 기존 RSS 실패와 유효 진단 분리
+ok 5 - LP17-H01 기존 RSS 실패와 유효 진단 분리
+  ---
+  duration_ms: 0.124666
+  type: 'test'
+  ...
+# Subtest: LP17-H02 관측 누락·손상·역행·잘못된 owner 거부
+ok 6 - LP17-H02 관측 누락·손상·역행·잘못된 owner 거부
+  ---
+  duration_ms: 0.157542
+  type: 'test'
+  ...
+# Subtest: LP17-H03 완료 summary 누락·중복·다른 작업·실패 거부
+ok 7 - LP17-H03 완료 summary 누락·중복·다른 작업·실패 거부
+  ---
+  duration_ms: 0.091333
+  type: 'test'
+  ...
+# Subtest: LP17-H04 process group 단위와 외부·zombie 제외
+ok 8 - LP17-H04 process group 단위와 외부·zombie 제외
+  ---
+  duration_ms: 0.166333
+  type: 'test'
+  ...
+# Subtest: LP17-H05 실행 안전 상한·기능 실패·정리 실패 분리
+ok 9 - LP17-H05 실행 안전 상한·기능 실패·정리 실패 분리
+  ---
+  duration_ms: 0.152459
+  type: 'test'
+  ...
+# [selftest-cleanup] {"bytes":0,"removed":true}
+# Subtest: LP17-H06 실제 소유 자식 exit0/7와 그룹 종료 확인
+ok 10 - LP17-H06 실제 소유 자식 exit0/7와 그룹 종료 확인
+  ---
+  duration_ms: 63.841583
+  type: 'test'
+  ...
+# [selftest-cleanup] {"bytes":0,"removed":true}
+# Subtest: LP17-H07 실제 timeout 자식 종료와 뒤 단계 차단
+ok 11 - LP17-H07 실제 timeout 자식 종료와 뒤 단계 차단
+  ---
+  duration_ms: 120.001
+  type: 'test'
+  ...
+# [selftest-cleanup] {"bytes":0,"removed":true}
+# [selftest-cleanup] {"bytes":89,"removed":true}
+# [selftest-cleanup] {"bytes":9,"removed":true}
+# [selftest-cleanup] {"bytes":101,"removed":true}
+# Subtest: LP17-H08 출력 초과 종료와 보존량 상한
+ok 12 - LP17-H08 출력 초과 종료와 보존량 상한
+  ---
+  duration_ms: 35.764625
+  type: 'test'
+  ...
+# Subtest: LP17-H09 정리 소유권·symlink target 보존
+ok 13 - LP17-H09 정리 소유권·symlink target 보존
+  ---
+  duration_ms: 1.037458
+  type: 'test'
+  ...
+# Subtest: LP17-H10 입력 manifest 변조와 symlink 거부
+ok 14 - LP17-H10 입력 manifest 변조와 symlink 거부
+  ---
+  duration_ms: 0.887167
+  type: 'test'
+  ...
+# [selftest-cleanup] {"bytes":0,"removed":true}
+# Subtest: LP17-H11 자식만 남긴 종료를 정상 완료로 오인하지 않음
+ok 15 - LP17-H11 자식만 남긴 종료를 정상 완료로 오인하지 않음
+  ---
+  duration_ms: 150.467416
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 423.953542
+        0.59 real         0.15 user         0.09 sys
+            69500928  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               26071  page reclaims
+                 369  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                 224  messages sent
+                  54  messages received
+                   3  signals received
+                   7  voluntary context switches
+                 862  involuntary context switches
+           738287934  instructions retired
+           238742643  cycles elapsed
+            18336120  peak memory footprint
+{"kind":"phase-result","label":"runner-selftest","diagnosticPass":true,"historicalRssPass":null,"observationValid":null,"semanticPass":null,"cleanupPass":true,"exitCode":0,"signal":null,"stopReason":null,"elapsedMs":604,"groupPeakRssBytes":133332992,"observationFailure":null,"outputBytes":4147}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":62691,"removed":true}
+{"kind":"run-result","mode":"selftest","id":"lp20-01","diagnosticPass":true,"failure":null,"phases":1,"elapsedMs":796,"productPass":false,"tokenConsumed":null}

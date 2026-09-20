@@ -349,6 +349,8 @@ private:
     Options options_;
     mutable std::mutex mu_;
     bool opened_{false};
+    // 첫 Open 전체 성공만 자동 no-op의 기원이다. 실패한 같은 인스턴스는 strict로 남긴다.
+    bool automatic_noop_open_attempted_{false},automatic_noop_eligible_{false};
     mutable bool derived_job_state_authoritative_{true};
     std::string catalog_mode_{"jsonl-fallback"};
     RecordingCatalogRecoveryReport recovery_report_;

@@ -1,0 +1,41 @@
+{"kind":"start","utc":"2026-09-20T01:33:45.825Z","mode":"green","id":"automatic-noop-crypto-01","suite":"automatic-noop-crypto-off","source":[{"name":"include/recording/recording_catalog.h","sha256":"6cf4dc3b39b3a1fb438bc5ee5871cc9436fa517a7e581f196d5cee54e9be11e0"},{"name":"include/recording/recording_journal.h","sha256":"44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5"},{"name":"src/recording/recording_catalog.cpp","sha256":"ef9229e59a1a3c392ff57a477c88450c2b3b1c9699102ec54aa8bf039a538d29"},{"name":"src/recording/recording_journal.cpp","sha256":"1c8732f4641440494296b172f2a97d8b094c2b750214abeb29b206baa5b4350d"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"26ae55a98948bff3b23473b6f187c13c0699e9b75e6979ef127293c6b4804e7c"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"eca9cfc51b08197d6b86281d969631cb7016ee2b8ee8a702466eef0440d9a373"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"7d252e81bcaa388c7fb980b65dedee521f2325bdfe0fc3c89c17a7a038cb7834"},{"name":"scripts/internal/recording_typed_lifetime_smoke.cpp","sha256":"799db3381b918ed73b0a41bcf8bb740cb786865f7d0b4acdc75240c27a0cb0d2"},{"name":"src/recording/recording_timeline_projection.cpp","sha256":"7ec0b822f8b85be8be0d32e6b24e0ff79967c65740d0ae055121bbe4906b9493"},{"name":"scripts/internal/recording_catalog_comparison_ownership.h","sha256":"be2d37648f37f72c8600b37f0a8aceaeab74ae2ef9e0b3aca6f00a72bf725c7f"},{"name":"scripts/internal/recording_process_memory_probe.h","sha256":"8b5775d1bda029b3a00d3a9c5100fdec43e4007f02f3cae31193ff7bdb2764ba"},{"name":"scripts/internal/recording_journal_location_counter.h","sha256":"d9f0a0297b87c655b762bbba3779061f6ac975b3219e2e471fbcf690021390c9"},{"name":"scripts/internal/recording_checkpoint_noop_smoke.cpp","sha256":"31f15041b040a3f5080708b1c6dea965a448fc19d8b11e75d5b361b2e669645d"},{"name":"scripts/internal/recording_checkpoint_noop_counter.h","sha256":"a6a6d6e96288f407da2f7bb69720a7437a826a8556328a747894a2f1e09d21b3"},{"name":"scripts/internal/recording_typed_lifetime_smoke.cpp","sha256":"799db3381b918ed73b0a41bcf8bb740cb786865f7d0b4acdc75240c27a0cb0d2"},{"name":"src/recording/recording_timeline_projection.cpp","sha256":"7ec0b822f8b85be8be0d32e6b24e0ff79967c65740d0ae055121bbe4906b9493"},{"name":"scripts/internal/recording_catalog_comparison_ownership.h","sha256":"be2d37648f37f72c8600b37f0a8aceaeab74ae2ef9e0b3aca6f00a72bf725c7f"},{"name":"scripts/internal/recording_process_memory_probe.h","sha256":"8b5775d1bda029b3a00d3a9c5100fdec43e4007f02f3cae31193ff7bdb2764ba"},{"name":"scripts/internal/recording_journal_location_counter.h","sha256":"d9f0a0297b87c655b762bbba3779061f6ac975b3219e2e471fbcf690021390c9"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>","automatic-noop-crypto-off"],"seconds":60}
+[instrument] noop_journal_exact_insertions=3 original_sha256=1c8732f4641440494296b172f2a97d8b094c2b750214abeb29b206baa5b4350d instrumented_sha256=7f488ae532118b86223af75bfecbe94124929b7f8959b331e982f17dca550cae
+[instrument] noop_catalog_exact_insertions=2
+[source] {"name":"scripts/internal/recording_checkpoint_noop_smoke.cpp","sha256":"31f15041b040a3f5080708b1c6dea965a448fc19d8b11e75d5b361b2e669645d"}
+[source] {"name":"scripts/internal/recording_checkpoint_noop_counter.h","sha256":"a6a6d6e96288f407da2f7bb69720a7437a826a8556328a747894a2f1e09d21b3"}
+[source] {"name":"scripts/internal/recording_typed_lifetime_smoke.cpp","sha256":"799db3381b918ed73b0a41bcf8bb740cb786865f7d0b4acdc75240c27a0cb0d2"}
+[instrument] catalog_sha256=5d36618b2fb6f55492f7d4481aff5f0eb68b33c926efb1ab0419ed42ef453c37 binding_exact_insertions=1 job_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"6cf4dc3b39b3a1fb438bc5ee5871cc9436fa517a7e581f196d5cee54e9be11e0"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"1c8732f4641440494296b172f2a97d8b094c2b750214abeb29b206baa5b4350d"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"ef9229e59a1a3c392ff57a477c88450c2b3b1c9699102ec54aa8bf039a538d29"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"26ae55a98948bff3b23473b6f187c13c0699e9b75e6979ef127293c6b4804e7c"}
+<repo>/scripts/internal/recording_checkpoint_noop_smoke.cpp:39:6: error: unused function 'NoopCases' [-Werror,-Wunused-function]
+   39 | void NoopCases(const std::filesystem::path& root){
+      |      ^~~~~~~~~
+1 error generated.
+        3.00 real         2.70 user         0.17 sys
+           308248576  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               60902  page reclaims
+                 572  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  84  messages sent
+                   0  messages received
+                   2  signals received
+                  17  voluntary context switches
+                2083  involuntary context switches
+            80402449  instructions retired
+            38626385  cycles elapsed
+             2081176  peak memory footprint
+{"kind":"phase","label":"build","exit":1,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":3014,"groupPeakRssBytes":318586880}
+{"kind":"failure","code":"LP18_BUILD"}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":391528,"removed":true}
+{"kind":"result","utc":"2026-09-20T01:33:48.852Z","mode":"green","matched":false,"productPass":false,"elapsedMs":3029}

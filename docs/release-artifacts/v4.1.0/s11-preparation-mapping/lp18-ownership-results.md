@@ -1,5 +1,594 @@
 # LP18 공유 소유 focused 개별 결과
 
+## LP20 정상 저장 비용 개별 결과
+
+실행별 최초 실패와 재검증을 모두 보존한다. 자동 checkpoint 개선은 실제 HTTP·최종 비용 PASS가 아니다. token start/end/consumed는 집계 미제공으로 미집계다.
+
+### lp17-selftest-lp20-01
+
+[원출력](lp17-selftest-lp20-01.txt), 5415B, SHA256 `adde1d2247d11df08ec086de9ed7002cad67bd44c7589bca96b31e0fcd69dfb1`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| LP20-C04 임시 파일 삭제 경쟁은 동일 root의 전체 관측으로 재확인 | 원출력7행 | PASS | 직접 관측 |
+| LP20-C04 반복 관측 실패·권한 실패·root 교체는 계속 거부 | 원출력13행 | PASS | 직접 관측 |
+| LP19-H01 계측 손실 없는 왕복 | 원출력19행 | PASS | 직접 관측 |
+| LP19-H02 잘못된 축약 표현 거부 | 원출력25행 | PASS | 직접 관측 |
+| LP17-H01 기존 RSS 실패와 유효 진단 분리 | 원출력31행 | PASS | 직접 관측 |
+| LP17-H02 관측 누락·손상·역행·잘못된 owner 거부 | 원출력37행 | PASS | 직접 관측 |
+| LP17-H03 완료 summary 누락·중복·다른 작업·실패 거부 | 원출력43행 | PASS | 직접 관측 |
+| LP17-H04 process group 단위와 외부·zombie 제외 | 원출력49행 | PASS | 직접 관측 |
+| LP17-H05 실행 안전 상한·기능 실패·정리 실패 분리 | 원출력55행 | PASS | 직접 관측 |
+| LP17-H06 실제 소유 자식 exit0/7와 그룹 종료 확인 | 원출력62행 | PASS | 직접 관측 |
+| LP17-H07 실제 timeout 자식 종료와 뒤 단계 차단 | 원출력69행 | PASS | 직접 관측 |
+| LP17-H08 출력 초과 종료와 보존량 상한 | 원출력79행 | PASS | 직접 관측 |
+| LP17-H09 정리 소유권·symlink target 보존 | 원출력85행 | PASS | 직접 관측 |
+| LP17-H10 입력 manifest 변조와 symlink 거부 | 원출력91행 | PASS | 직접 관측 |
+| LP17-H11 자식만 남긴 종료를 정상 완료로 오인하지 않음 | 원출력98행 | PASS | 직접 관측 |
+| runner-selftest exit=0 elapsed=604ms | 원출력130행 | PASS | 직접 관측 |
+
+종료·정리/원본 불변 원출력:
+
+```text
+# [selftest-cleanup] {"bytes":5,"removed":true}
+# [selftest-cleanup] {"bytes":0,"removed":true}
+# [selftest-cleanup] {"bytes":0,"removed":true}
+# [selftest-cleanup] {"bytes":0,"removed":true}
+# [selftest-cleanup] {"bytes":0,"removed":true}
+# [selftest-cleanup] {"bytes":89,"removed":true}
+# [selftest-cleanup] {"bytes":9,"removed":true}
+# [selftest-cleanup] {"bytes":101,"removed":true}
+# [selftest-cleanup] {"bytes":0,"removed":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":62691,"removed":true}
+{"kind":"run-result","mode":"selftest","id":"lp20-01","diagnosticPass":true,"failure":null,"phases":1,"elapsedMs":796,"productPass":false,"tokenConsumed":null}
+```
+
+### lp17-small-lp20-01
+
+[원출력](lp17-small-lp20-01.txt), 245B, SHA256 `eadebdc81c91e0bd92487de1b94e48ea572284a3d822cd27b03d57e17d00304e`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| preflight-host | 원출력1행 | FAIL | 초기 실패 보존·상세 원인은 중앙 기록 |
+
+종료·정리/원본 불변 원출력:
+
+```text
+{"kind":"run-result","mode":"small","id":"lp20-01","diagnosticPass":false,"failure":"preflight-host","phases":0,"elapsedMs":6,"productPass":false,"tokenConsumed":null}
+```
+
+### lp17-small-lp20-02
+
+[원출력](lp17-small-lp20-02.txt), 4577B, SHA256 `1357b69d0f83f906db680d94218ef29d346566c411590574f07e3e4edbc10fbf`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| runtime-freshness exit=0 elapsed=762ms | 원출력22행 | PASS | 직접 관측 |
+| FC01 exact insertion checks count=98 | 원출력28행 | PASS | 직접 관측 |
+| compile exit=null elapsed=1537ms | 원출력35행 | FAIL | 초기 실패 보존·상세 원인은 중앙 기록 |
+| phase-failed | 원출력36행 | FAIL | 초기 실패 보존·상세 원인은 중앙 기록 |
+
+종료·정리/원본 불변 원출력:
+
+```text
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":3481447,"removed":true}
+{"kind":"run-result","mode":"small","id":"lp20-02","diagnosticPass":false,"failure":"phase-failed","phases":2,"elapsedMs":2504,"productPass":false,"tokenConsumed":null}
+```
+
+### lp17-small-lp20-03
+
+[원출력](lp17-small-lp20-03.txt), 195930B, SHA256 `e37716756cb998a940d5b156c973f2e425ea423ac7ee7fa5612d60973b08a956`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| runtime-freshness exit=0 elapsed=363ms | 원출력22행 | PASS | 직접 관측 |
+| FC01 exact insertion checks count=98 | 원출력28행 | PASS | 직접 관측 |
+| compile exit=0 elapsed=4758ms | 원출력54행 | PASS | 직접 관측 |
+| recorded FE02 writer start | 원출력57행 | PASS | 직접 관측 |
+| recorded FE04 bound finalized mutation segment0 | 원출력58행 | PASS | 직접 관측 |
+| LP17/prepare LP02.actual4096-prerequisite | 원출력60행 | PASS | 직접 관측 |
+| LP17/prepare seed.input-count | 원출력61행 | PASS | 직접 관측 |
+| LP17/prepare seed.input-identity-all-samples | 원출력62행 | PASS | 직접 관측 |
+| LP17/prepare seed.physical-evidence | 원출력63행 | PASS | 직접 관측 |
+| prepare exit=0 elapsed=2184ms | 원출력84행 | PASS | 직접 관측 |
+| LP17/commit1 LP02.reserve | 원출력101행 | PASS | 직접 관측 |
+| LP17/commit1 LP02.actual-file-outside-catalog | 원출력102행 | PASS | 직접 관측 |
+| LP17/commit1 LP02.commit | 원출력142행 | PASS | 직접 관측 |
+| LP17/commit2 LP02.reserve | 원출력156행 | PASS | 직접 관측 |
+| LP17/commit2 LP02.actual-file-outside-catalog | 원출력157행 | PASS | 직접 관측 |
+| LP17/commit2 LP02.commit | 원출력197행 | PASS | 직접 관측 |
+| LP17/snapshot2 LP02.snapshot-exact-count | 원출력226행 | PASS | 직접 관측 |
+| LP17/snapshot2 snapshot.canonical-all | 원출력239행 | PASS | 직접 관측 |
+| LP17/snapshot2 LP02.explicit-checkpoint | 원출력276행 | PASS | 직접 관측 |
+| LP17/snapshot2 LP02.reservation-bound-mutation-count | 원출력282행 | PASS | 직접 관측 |
+| LP17/delete delete.original-canonical | 원출력291행 | PASS | 직접 관측 |
+| LP17/delete delete.pending | 원출력306행 | PASS | 직접 관측 |
+| LP17/delete delete.unlink | 원출력307행 | PASS | 직접 관측 |
+| LP17/delete delete.tombstone | 원출력321행 | PASS | 직접 관측 |
+| LP17/delete delete.checkpoint | 원출력346행 | PASS | 직접 관측 |
+| LP17/delete delete.binding-preserved | 원출력347행 | PASS | 직접 관측 |
+| LP17/delete deleted.public-hidden | 원출력348행 | PASS | 직접 관측 |
+| scale-A exit=0 elapsed=286ms | 원출력383행 | PASS | 직접 관측 |
+| LP17/reopen/sqlite LP02.journal-reopen | 원출력396행 | PASS | 직접 관측 |
+| LP17/reopen/sqlite LP02.catalog-reopen | 원출력419행 | PASS | 직접 관측 |
+| LP17/reopen/sqlite/0 LP02.exact-source | 원출력425행 | PASS | 직접 관측 |
+| LP17/reopen/sqlite/0 deleted.public-hidden | 원출력426행 | PASS | 직접 관측 |
+| LP17/reopen/sqlite/0 reopen.deleted-state | 원출력428행 | PASS | 직접 관측 |
+| LP17/reopen/sqlite/1 LP02.exact-source | 원출력429행 | PASS | 직접 관측 |
+| LP17/reopen/sqlite/1 reopen.remaining-media | 원출력431행 | PASS | 직접 관측 |
+| reopen-A-sqlite exit=0 elapsed=277ms | 원출력464행 | PASS | 직접 관측 |
+| LP17/reopen/jsonl LP02.journal-reopen | 원출력477행 | PASS | 직접 관측 |
+| LP17/reopen/jsonl LP02.catalog-reopen | 원출력492행 | PASS | 직접 관측 |
+| LP17/reopen/jsonl/0 LP02.exact-source | 원출력498행 | PASS | 직접 관측 |
+| LP17/reopen/jsonl/0 deleted.public-hidden | 원출력499행 | PASS | 직접 관측 |
+| LP17/reopen/jsonl/0 reopen.deleted-state | 원출력501행 | PASS | 직접 관측 |
+| LP17/reopen/jsonl/1 LP02.exact-source | 원출력502행 | PASS | 직접 관측 |
+| LP17/reopen/jsonl/1 reopen.remaining-media | 원출력504행 | PASS | 직접 관측 |
+| reopen-A-jsonl exit=0 elapsed=261ms | 원출력537행 | PASS | 직접 관측 |
+| LP17/commit1 LP02.reserve | 원출력554행 | PASS | 직접 관측 |
+| LP17/commit1 LP02.actual-file-outside-catalog | 원출력555행 | PASS | 직접 관측 |
+| LP17/commit1 LP02.commit | 원출력595행 | PASS | 직접 관측 |
+| LP17/commit2 LP02.reserve | 원출력609행 | PASS | 직접 관측 |
+| LP17/commit2 LP02.actual-file-outside-catalog | 원출력610행 | PASS | 직접 관측 |
+| LP17/commit2 LP02.commit | 원출력650행 | PASS | 직접 관측 |
+| LP17/snapshot2 LP02.snapshot-exact-count | 원출력679행 | PASS | 직접 관측 |
+| LP17/snapshot2 snapshot.canonical-all | 원출력692행 | PASS | 직접 관측 |
+| LP17/snapshot2 LP02.explicit-checkpoint | 원출력729행 | PASS | 직접 관측 |
+| LP17/snapshot2 LP02.reservation-bound-mutation-count | 원출력735행 | PASS | 직접 관측 |
+| LP17/delete delete.original-canonical | 원출력744행 | PASS | 직접 관측 |
+| LP17/delete delete.pending | 원출력759행 | PASS | 직접 관측 |
+| LP17/delete delete.unlink | 원출력760행 | PASS | 직접 관측 |
+| LP17/delete delete.tombstone | 원출력774행 | PASS | 직접 관측 |
+| LP17/delete delete.checkpoint | 원출력799행 | PASS | 직접 관측 |
+| LP17/delete delete.binding-preserved | 원출력800행 | PASS | 직접 관측 |
+| LP17/delete deleted.public-hidden | 원출력801행 | PASS | 직접 관측 |
+| scale-B exit=0 elapsed=288ms | 원출력836행 | PASS | 직접 관측 |
+| LP17/reopen/sqlite LP02.journal-reopen | 원출력843행 | PASS | 직접 관측 |
+| LP17/reopen/sqlite LP02.catalog-reopen | 원출력866행 | PASS | 직접 관측 |
+| LP17/reopen/sqlite/0 LP02.exact-source | 원출력875행 | PASS | 직접 관측 |
+| LP17/reopen/sqlite/0 deleted.public-hidden | 원출력876행 | PASS | 직접 관측 |
+| LP17/reopen/sqlite/0 reopen.deleted-state | 원출력878행 | PASS | 직접 관측 |
+| LP17/reopen/sqlite/1 LP02.exact-source | 원출력882행 | PASS | 직접 관측 |
+| LP17/reopen/sqlite/1 reopen.remaining-media | 원출력884행 | PASS | 직접 관측 |
+| reopen-B-sqlite exit=0 elapsed=276ms | 원출력917행 | PASS | 직접 관측 |
+| LP17/reopen/jsonl LP02.journal-reopen | 원출력924행 | PASS | 직접 관측 |
+| LP17/reopen/jsonl LP02.catalog-reopen | 원출력939행 | PASS | 직접 관측 |
+| LP17/reopen/jsonl/0 LP02.exact-source | 원출력948행 | PASS | 직접 관측 |
+| LP17/reopen/jsonl/0 deleted.public-hidden | 원출력949행 | PASS | 직접 관측 |
+| LP17/reopen/jsonl/0 reopen.deleted-state | 원출력951행 | PASS | 직접 관측 |
+| LP17/reopen/jsonl/1 LP02.exact-source | 원출력955행 | PASS | 직접 관측 |
+| LP17/reopen/jsonl/1 reopen.remaining-media | 원출력957행 | PASS | 직접 관측 |
+| reopen-B-jsonl exit=0 elapsed=274ms | 원출력990행 | PASS | 직접 관측 |
+| LP17/commit1 LP02.reserve | 원출력1007행 | PASS | 직접 관측 |
+| LP17/commit1 LP02.actual-file-outside-catalog | 원출력1008행 | PASS | 직접 관측 |
+| LP17/commit1 LP02.commit | 원출력1048행 | PASS | 직접 관측 |
+| LP17/commit2 LP02.reserve | 원출력1062행 | PASS | 직접 관측 |
+| LP17/commit2 LP02.actual-file-outside-catalog | 원출력1063행 | PASS | 직접 관측 |
+| LP17/commit2 LP02.commit | 원출력1103행 | PASS | 직접 관측 |
+| LP17/snapshot2 LP02.snapshot-exact-count | 원출력1132행 | PASS | 직접 관측 |
+| LP17/snapshot2 snapshot.canonical-all | 원출력1145행 | PASS | 직접 관측 |
+| LP17/snapshot2 LP02.explicit-checkpoint | 원출력1184행 | PASS | 직접 관측 |
+| LP17/snapshot2 LP02.reservation-bound-mutation-count | 원출력1190행 | PASS | 직접 관측 |
+| LP17/delete delete.original-canonical | 원출력1199행 | PASS | 직접 관측 |
+| LP17/delete delete.pending | 원출력1214행 | PASS | 직접 관측 |
+| LP17/delete delete.unlink | 원출력1215행 | PASS | 직접 관측 |
+| LP17/delete delete.tombstone | 원출력1229행 | PASS | 직접 관측 |
+| LP17/delete delete.checkpoint | 원출력1262행 | PASS | 직접 관측 |
+| LP17/delete delete.binding-preserved | 원출력1263행 | PASS | 직접 관측 |
+| LP17/delete deleted.public-hidden | 원출력1264행 | PASS | 직접 관측 |
+| scale-C exit=0 elapsed=290ms | 원출력1299행 | PASS | 직접 관측 |
+| LP17/reopen/sqlite LP02.journal-reopen | 원출력1306행 | PASS | 직접 관측 |
+| LP17/reopen/sqlite LP02.catalog-reopen | 원출력1329행 | PASS | 직접 관측 |
+| LP17/reopen/sqlite/0 LP02.exact-source | 원출력1338행 | PASS | 직접 관측 |
+| LP17/reopen/sqlite/0 deleted.public-hidden | 원출력1339행 | PASS | 직접 관측 |
+| LP17/reopen/sqlite/0 reopen.deleted-state | 원출력1341행 | PASS | 직접 관측 |
+| LP17/reopen/sqlite/1 LP02.exact-source | 원출력1345행 | PASS | 직접 관측 |
+| LP17/reopen/sqlite/1 reopen.remaining-media | 원출력1347행 | PASS | 직접 관측 |
+| reopen-C-sqlite exit=0 elapsed=276ms | 원출력1380행 | PASS | 직접 관측 |
+| LP17/reopen/jsonl LP02.journal-reopen | 원출력1387행 | PASS | 직접 관측 |
+| LP17/reopen/jsonl LP02.catalog-reopen | 원출력1402행 | PASS | 직접 관측 |
+| LP17/reopen/jsonl/0 LP02.exact-source | 원출력1411행 | PASS | 직접 관측 |
+| LP17/reopen/jsonl/0 deleted.public-hidden | 원출력1412행 | PASS | 직접 관측 |
+| LP17/reopen/jsonl/0 reopen.deleted-state | 원출력1414행 | PASS | 직접 관측 |
+| LP17/reopen/jsonl/1 LP02.exact-source | 원출력1418행 | PASS | 직접 관측 |
+| LP17/reopen/jsonl/1 reopen.remaining-media | 원출력1420행 | PASS | 직접 관측 |
+| reopen-C-jsonl exit=0 elapsed=274ms | 원출력1453행 | PASS | 직접 관측 |
+
+종료·정리/원본 불변 원출력:
+
+```text
+{"kind":"store-cleanup","store":"<owned-root>/store-A","bytes":256627,"removed":true}
+{"kind":"store-cleanup","store":"<owned-root>/store-B","bytes":256627,"removed":true}
+{"kind":"store-cleanup","store":"<owned-root>/store-C","bytes":256627,"removed":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":19680752,"removed":true}
+{"kind":"run-result","mode":"small","id":"lp20-03","diagnosticPass":true,"failure":null,"phases":12,"elapsedMs":10290,"productPass":false,"tokenConsumed":null}
+```
+
+### lp18-ownership-green-automatic-noop-01
+
+[원출력](lp18-ownership-green-automatic-noop-01.txt), 8538B, SHA256 `55b0b3dae9a4fd3c49ba4fc9b749878ebf8bd31c5a9cc0bae7e2bb065ec27110`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| build exit=0 elapsed=3497ms | 원출력33행 | PASS | 직접 관측 |
+| LP20-C01 automatic checkpoint preserves exact bytes and full projection | 원출력35행 | PASS | 직접 관측 |
+| LP20-C01 automatic checkpoint still reads durable raw evidence | 원출력36행 | PASS | 직접 관측 |
+| LP20-C04 automatic checkpoint leaves inactive binding detail nonresident | 원출력37행 | PASS | 직접 관측 |
+| LP20-C01 canonical automatic checkpoint skips historical envelope Parse and Serialize | 원출력38행 | PASS | 직접 관측 |
+| LP20-C02 same-size raw tamper rejects automatic no-op | 원출력40행 | PASS | 직접 관측 |
+| LP20-C02 truncated raw evidence rejects automatic no-op | 원출력41행 | PASS | 직접 관측 |
+| LP20-C02 replaced inode rejects automatic no-op | 원출력42행 | PASS | 직접 관측 |
+| LP20-C02 foreign owner cannot claim automatic no-op | 원출력43행 | PASS | 직접 관측 |
+| LP20-C02 detached owner cannot claim automatic no-op | 원출력44행 | PASS | 직접 관측 |
+| LP20-C03 durable but unapplied mutation requires strict fallback | 원출력45행 | PASS | 직접 관측 |
+| LP20-C03 noncanonical envelope retains strict rewrite | 원출력46행 | PASS | 직접 관측 |
+| LP20-C03 blank lines retain strict rewrite | 원출력47행 | PASS | 직접 관측 |
+| LP20-C03 identical duplicate physical rows preserve ordinal bytes | 원출력48행 | PASS | 직접 관측 |
+| LP20-C03 latest single EventLink remains no-op eligible | 원출력49행 | PASS | 직접 관측 |
+| LP20-C03 superseded EventLink requires strict receipt candidate | 원출력50행 | PASS | 직접 관측 |
+| LP20-C03 committed receipt and latest EventLink regain no-op eligibility | 원출력51행 | PASS | 직접 관측 |
+| LP20-C03 pending prefix uses existing strict recovery | 원출력52행 | PASS | 직접 관측 |
+| LP20-C03 mismatched pending prefix preserves original and rejects | 원출력53행 | PASS | 직접 관측 |
+| LP20-C03 manual checkpoint remains strict | 원출력54행 | PASS | 직접 관측 |
+| LP20-C03 Apply exception preserves authority but disables automatic no-op | 원출력55행 | PASS | 직접 관측 |
+| LP20-C03 oversized accepted row preserves resident strict fallback | 원출력56행 | PASS | 직접 관측 |
+| focused exit=0 elapsed=2343ms | 원출력76행 | PASS | 직접 관측 |
+
+종료·정리/원본 불변 원출력:
+
+```text
+{"kind":"oracle","mode":"green","expectedRed":false,"productPass":true,"matched":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":27134359,"removed":true}
+{"kind":"result","utc":"2026-09-20T01:33:09.120Z","mode":"green","matched":true,"productPass":true,"elapsedMs":5865}
+```
+
+### lp18-ownership-green-automatic-noop-02
+
+[원출력](lp18-ownership-green-automatic-noop-02.txt), 8780B, SHA256 `3333950ddcb321ef8cf63c645c90a86b51c9af243d2012a0ef33bbe2e9be6201`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| build exit=0 elapsed=3588ms | 원출력33행 | PASS | 직접 관측 |
+| LP20-C01 automatic checkpoint preserves exact bytes and full projection | 원출력35행 | PASS | 직접 관측 |
+| LP20-C01 automatic checkpoint still reads durable raw evidence | 원출력36행 | PASS | 직접 관측 |
+| LP20-C04 automatic checkpoint leaves inactive binding detail nonresident | 원출력37행 | PASS | 직접 관측 |
+| LP20-C01 canonical automatic checkpoint skips historical envelope Parse and Serialize | 원출력38행 | PASS | 직접 관측 |
+| LP20-C02 same-size raw tamper rejects automatic no-op | 원출력40행 | PASS | 직접 관측 |
+| LP20-C02 truncated raw evidence rejects automatic no-op | 원출력41행 | PASS | 직접 관측 |
+| LP20-C02 replaced inode rejects automatic no-op | 원출력42행 | PASS | 직접 관측 |
+| LP20-C02 foreign owner cannot claim automatic no-op | 원출력43행 | PASS | 직접 관측 |
+| LP20-C02 detached owner cannot claim automatic no-op | 원출력44행 | PASS | 직접 관측 |
+| LP20-C03 durable but unapplied mutation requires strict fallback | 원출력45행 | PASS | 직접 관측 |
+| LP20-C03 noncanonical envelope retains strict rewrite | 원출력46행 | PASS | 직접 관측 |
+| LP20-C03 blank lines retain strict rewrite | 원출력47행 | PASS | 직접 관측 |
+| LP20-C03 identical duplicate physical rows preserve ordinal bytes | 원출력48행 | PASS | 직접 관측 |
+| LP20-C03 latest single EventLink remains no-op eligible | 원출력49행 | PASS | 직접 관측 |
+| LP20-C03 superseded EventLink requires strict receipt candidate | 원출력50행 | PASS | 직접 관측 |
+| LP20-C03 committed receipt and latest EventLink regain no-op eligibility | 원출력51행 | PASS | 직접 관측 |
+| LP20-C03 pending prefix uses existing strict recovery | 원출력52행 | PASS | 직접 관측 |
+| LP20-C03 mismatched pending prefix preserves original and rejects | 원출력53행 | PASS | 직접 관측 |
+| LP20-C03 manual checkpoint remains strict | 원출력54행 | PASS | 직접 관측 |
+| LP20-C03 Apply exception preserves authority but disables automatic no-op | 원출력55행 | PASS | 직접 관측 |
+| LP20-C03 failed Apply disables automatic no-op without changing authority | 원출력56행 | PASS | 직접 관측 |
+| LP20-C03 failed Open retry remains strict on the same catalog instance | 원출력57행 | PASS | 직접 관측 |
+| LP20-C03 exceptional Open retry remains strict on the same catalog instance | 원출력58행 | PASS | 직접 관측 |
+| LP20-C03 oversized accepted row preserves resident strict fallback | 원출력59행 | PASS | 직접 관측 |
+| focused exit=0 elapsed=2545ms | 원출력79행 | PASS | 직접 관측 |
+
+종료·정리/원본 불변 원출력:
+
+```text
+{"kind":"oracle","mode":"green","expectedRed":false,"productPass":true,"matched":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":29805355,"removed":true}
+{"kind":"result","utc":"2026-09-20T01:38:43.694Z","mode":"green","matched":true,"productPass":true,"elapsedMs":6160}
+```
+
+### lp18-ownership-green-automatic-noop-crypto-01
+
+[원출력](lp18-ownership-green-automatic-noop-crypto-01.txt), 6215B, SHA256 `5e3fc97bf51da47f64d27eb1a55052b5651bee4d10c97d0577f7cdd48576a7b7`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| build exit=1 elapsed=3014ms | 원출력37행 | FAIL | 초기 실패 보존·상세 원인은 중앙 기록 |
+
+종료·정리/원본 불변 원출력:
+
+```text
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":391528,"removed":true}
+{"kind":"result","utc":"2026-09-20T01:33:48.852Z","mode":"green","matched":false,"productPass":false,"elapsedMs":3029}
+```
+
+### lp18-ownership-green-automatic-noop-crypto-02
+
+[원출력](lp18-ownership-green-automatic-noop-crypto-02.txt), 7157B, SHA256 `f7caa478f40ac9206a6b2d716e826ded46da380c35cf83ec6ef32e4ef9bba729`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| build exit=0 elapsed=3379ms | 원출력33행 | PASS | 직접 관측 |
+| LP20-C03 crypto-off preserves checkpoint rejection and resident support | 원출력35행 | PASS | 직접 관측 |
+| focused exit=0 elapsed=585ms | 원출력55행 | PASS | 직접 관측 |
+
+종료·정리/원본 불변 원출력:
+
+```text
+{"kind":"oracle","mode":"green","expectedRed":false,"productPass":true,"matched":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":6448175,"removed":true}
+{"kind":"result","utc":"2026-09-20T01:39:01.106Z","mode":"green","matched":true,"productPass":true,"elapsedMs":3979}
+```
+
+### lp18-ownership-green-automatic-noop-location-01
+
+[원출력](lp18-ownership-green-automatic-noop-location-01.txt), 8332B, SHA256 `be4abf4af462b9cd55eb765c0e2ec072ed6f52631806523c5f86b7ec8b570764`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| build exit=0 elapsed=2431ms | 원출력35행 | PASS | 직접 관측 |
+| LP18-L01 baseline managed Replay preserves full canonical record | 원출력37행 | PASS | 직접 관측 |
+| LP18-L01 journal located record capability exists | 원출력38행 | PASS | 직접 관측 |
+| LP18-L02 acquired record retains complete canonical value | 원출력39행 | PASS | 직접 관측 |
+| LP18-L02 public Replay mutation cannot alter acquired immutable value | 원출력40행 | PASS | 직접 관측 |
+| LP18-L03 Append retry preserves physical row count and original value | 원출력41행 | PASS | 직접 관측 |
+| LP18-L03 Reserve retry preserves physical row count and sequence | 원출력42행 | PASS | 직접 관측 |
+| LP18-L02 reopen reconstructs located original and reservation records | 원출력43행 | PASS | 직접 관측 |
+| LP18-L04 blank lines whitespace and 64KiB crossing retain exact row order | 원출력44행 | PASS | 직접 관측 |
+| LP18-L04 repeated mutation ID retains separate physical row tokens | 원출력45행 | PASS | 직접 관측 |
+| LP18-L04 located reads preserve accepted noncanonical envelope bytes | 원출력46행 | PASS | 직접 관측 |
+| LP18-L05 no-write checkpoint keeps existing location generation usable | 원출력47행 | PASS | 직접 관측 |
+| LP18-L05 recover-only pending cleanup keeps existing generation usable | 원출력48행 | PASS | 직접 관측 |
+| LP18-L05 receipt swap rebinds all locations to exact committed bytes | 원출력49행 | PASS | 직접 관측 |
+| LP18-L05 stale location rejects and clears output without poisoning current journal | 원출력50행 | PASS | 직접 관측 |
+| LP18-L05 previously acquired owned record survives receipt file replacement | 원출력51행 | PASS | 직접 관측 |
+| LP18-L05 retry after receipt returns original type without new location | 원출력52행 | PASS | 직접 관측 |
+| LP18-L06 null token clears output without poisoning | 원출력53행 | PASS | 직접 관측 |
+| LP18-L06 foreign or null owner rejects without poisoning | 원출력54행 | PASS | 직접 관측 |
+| LP18-L06 other journal token rejects without poisoning | 원출력55행 | PASS | 직접 관측 |
+| LP18-L06 fork rejects located access while parent retains valid ownership | 원출력56행 | PASS | 직접 관측 |
+| LP18-L07 same-size raw tamper poisons and clears output despite resident handle | 원출력57행 | PASS | 직접 관측 |
+| LP18-L07 truncation poisons and clears output | 원출력58행 | PASS | 직접 관측 |
+| LP18-L07 inode replacement poisons and clears output | 원출력59행 | PASS | 직접 관측 |
+| LP18-L08 oversized append remains available through resident fallback only | 원출력60행 | PASS | 직접 관측 |
+| LP18-L08 oversized retry preserves original value and durable row count | 원출력61행 | PASS | 직접 관측 |
+| LP18-L09 append location exception clears output and poisons after durable write | 원출력62행 | PASS | 직접 관측 |
+| LP18-L09 append exception reopens exactly one durable original record | 원출력63행 | PASS | 직접 관측 |
+| LP18-L09 reserve location exception withholds result and poisons after durable write | 원출력64행 | PASS | 직접 관측 |
+| LP18-L09 reserve exception reopens reservation and retry does not duplicate it | 원출력65행 | PASS | 직접 관측 |
+| LP18-L09 checkpoint location exception preserves bytes and usable generation without poison | 원출력66행 | PASS | 직접 관측 |
+| LP18-L09 checkpoint retries successfully after location preparation exception | 원출력67행 | PASS | 직접 관측 |
+| LP18-L09 acquire allocation exception poisons clears output and retains old owned value | 원출력68행 | PASS | 직접 관측 |
+| focused exit=0 elapsed=1833ms | 원출력88행 | PASS | 직접 관측 |
+
+종료·정리/원본 불변 원출력:
+
+```text
+{"kind":"oracle","mode":"green","expectedRed":false,"productPass":true,"matched":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":22145376,"removed":true}
+{"kind":"result","utc":"2026-09-20T01:39:43.007Z","mode":"green","matched":true,"productPass":true,"elapsedMs":4288}
+```
+
+### lp18-ownership-green-automatic-noop-logical-01
+
+[원출력](lp18-ownership-green-automatic-noop-logical-01.txt), 7748B, SHA256 `fac6eb9aafaa9a8652aa750a9aa01318919c8f0ababe95d9966709c73416fee7`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| build exit=0 elapsed=2425ms | 원출력35행 | PASS | 직접 관측 |
+| LP18-L21 logical ref baseline preserves raw bytes and independent Replay value | 원출력37행 | PASS | 직접 관측 |
+| LP18-L21 journal logical record ref capability exists | 원출력38행 | PASS | 직접 관측 |
+| LP18-L21 logical ref cold acquire preserves complete canonical value | 원출력39행 | PASS | 직접 관측 |
+| LP18-L21 logical ref acquisition does not retain a strong resident | 원출력40행 | PASS | 직접 관측 |
+| LP18-L21 logical ref reader survives resident release | 원출력41행 | PASS | 직접 관측 |
+| LP18-L22 logical refs remain unchanged after append and Reserve | 원출력42행 | PASS | 직접 관측 |
+| LP18-L22 logical ref retries preserve row count and durable bytes | 원출력43행 | PASS | 직접 관측 |
+| LP18-L24 null and foreign logical refs clear output without poisoning | 원출력44행 | PASS | 직접 관측 |
+| LP18-L21 logical refs distinguish duplicate IDs by physical row ordinal | 원출력45행 | PASS | 직접 관측 |
+| LP18-L23 no-write checkpoint preserves logical refs | 원출력46행 | PASS | 직접 관측 |
+| LP18-L23 recover-only checkpoint preserves logical refs | 원출력47행 | PASS | 직접 관측 |
+| LP18-L25 checkpoint ref preparation failure preserves bytes and current refs | 원출력48행 | PASS | 직접 관측 |
+| LP18-L23 receipt swap preserves refs only for full-field identical rows | 원출력49행 | PASS | 직접 관측 |
+| LP18-L23 changed receipt rejects old logical ref without poisoning | 원출력50행 | PASS | 직접 관측 |
+| LP18-L23 old owned original survives changed logical ref replacement | 원출력51행 | PASS | 직접 관측 |
+| LP18-L24 reopen rejects prior journal lineage without poisoning | 원출력52행 | PASS | 직접 관측 |
+| LP18-L21 resident fallback remains available through logical refs | 원출력53행 | PASS | 직접 관측 |
+| LP18-L24 logical ref acquire detects same-size raw tamper and poisons | 원출력54행 | PASS | 직접 관측 |
+| LP18-L24 logical ref truncation clears output and poisons | 원출력55행 | PASS | 직접 관측 |
+| LP18-L24 logical ref inode replacement clears output and poisons | 원출력56행 | PASS | 직접 관측 |
+| LP18-L25 logical ref Acquire exception clears output and poisons | 원출력57행 | PASS | 직접 관측 |
+| LP18-L24 logical ref fork rejects while parent remains valid | 원출력58행 | PASS | 직접 관측 |
+| LP18-L25 append ref mint exception poisons after durable write | 원출력59행 | PASS | 직접 관측 |
+| LP18-L25 append ref exception reopens exactly one durable record | 원출력60행 | PASS | 직접 관측 |
+| LP18-L25 Reserve ref mint exception withholds result and poisons | 원출력61행 | PASS | 직접 관측 |
+| LP18-L25 Reserve ref exception reopens and retries the same reservation | 원출력62행 | PASS | 직접 관측 |
+| focused exit=0 elapsed=695ms | 원출력82행 | PASS | 직접 관측 |
+
+종료·정리/원본 불변 원출력:
+
+```text
+{"kind":"oracle","mode":"green","expectedRed":false,"productPass":true,"matched":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":22075626,"removed":true}
+{"kind":"result","utc":"2026-09-20T01:40:09.057Z","mode":"green","matched":true,"productPass":true,"elapsedMs":3138}
+```
+
+### lp18-ownership-green-automatic-noop-typed-01
+
+[원출력](lp18-ownership-green-automatic-noop-typed-01.txt), 9257B, SHA256 `095df173ea73ca7bb078d30f2572a286af9d47fee63d1e56d2245a38a7dc0cd3`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| build exit=0 elapsed=3233ms | 원출력38행 | PASS | 직접 관측 |
+| LP18-R01 inactive binding releases resident detail after durable append | 원출력40행 | PASS | 직접 관측 |
+| LP18-R10 cold binding metrics retain logical samples without strong ownership | 원출력41행 | PASS | 직접 관측 |
+| LP18-R02 active job retains owned detail and source protection | 원출력42행 | PASS | 직접 관측 |
+| LP18-R10 active job metrics count resident ownership | 원출력43행 | PASS | 직접 관측 |
+| LP18-R03 durable journal preserves complete canonical bytes | 원출력44행 | PASS | 직접 관측 |
+| LP18-R03 public job value mutation remains isolated | 원출력45행 | PASS | 직접 관측 |
+| LP18-R02 previously returned owned reader survives terminal publication | 원출력46행 | PASS | 직접 관측 |
+| LP18-R10 terminal job metrics exclude external reader ownership | 원출력47행 | PASS | 직접 관측 |
+| LP18-R01 terminal live and historical active shadow release resident detail | 원출력48행 | PASS | 직접 관측 |
+| LP18-R01 normal append releases reloadable journal envelope resident | 원출력49행 | PASS | 직접 관측 |
+| LP18-R03 owned reads do not rewrite durable evidence | 원출력50행 | PASS | 직접 관측 |
+| LP18-R04 cold binding reacquires complete canonical detail transiently | 원출력51행 | PASS | 직접 관측 |
+| LP18-R04 cold terminal job reacquires complete canonical detail transiently | 원출력52행 | PASS | 직접 관측 |
+| LP18-R04 external owned reader does not bypass cold durable validation | 원출력53행 | PASS | 직접 관측 |
+| LP18-R04 full public snapshot owns independent values without resident refill | 원출력54행 | PASS | 직접 관측 |
+| LP18-R05 original lookup acquires only matching binding metadata | 원출력55행 | PASS | 직접 관측 |
+| LP18-R05 job lookup acquires only requested terminal record | 원출력56행 | PASS | 직접 관측 |
+| LP18-R05 protection and reservation filters avoid terminal detail reads | 원출력57행 | PASS | 직접 관측 |
+| LP18-R08 counts cold checkpoint durable reacquisition without semantic change | 원출력58행 | PASS | 직접 관측 |
+| LP18-R06 SQLite reopen leaves inactive typed detail nonresident | 원출력60행 | PASS | 직접 관측 |
+| LP18-R06 JSONL fallback reopen leaves inactive typed detail nonresident | 원출력61행 | PASS | 직접 관측 |
+| LP18-R06 reopen retains active job detail and protection | 원출력62행 | PASS | 직접 관측 |
+| LP18-R06 deleted binding remains internally reacquirable and publicly hidden | 원출력63행 | PASS | 직접 관측 |
+| LP18-R07 detached authority clears typed output and marks uncertainty | 원출력64행 | PASS | 직접 관측 |
+| LP18-R07 cold binding corruption returns no value and marks uncertainty | 원출력65행 | PASS | 직접 관측 |
+| LP18-R07 cold job corruption clears public snapshot and marks uncertainty | 원출력66행 | PASS | 직접 관측 |
+| LP18-R07 cold acquisition exception clears output and marks uncertainty | 원출력67행 | PASS | 직접 관측 |
+| LP18-R07 public checkpoint cold projection failure returns false without escaping exception | 원출력68행 | PASS | 직접 관측 |
+| LP18-R08 repeated resident release visits no previously checked rows | 원출력69행 | PASS | 직접 관측 |
+| LP18-R08 append resident release visits only new suffix rows | 원출력70행 | PASS | 직접 관측 |
+| LP18-R08 checkpoint replacement resets release cursor for new generation | 원출력71행 | PASS | 직접 관측 |
+| LP18-R11 timeline collector limit does not poison catalog or block subsequent append | 원출력72행 | PASS | 직접 관측 |
+| LP18-R09 raw Apply preserves typed resident fallback | 원출력73행 | PASS | 직접 관측 |
+| LP18-R09 oversized physical row preserves typed resident fallback | 원출력74행 | PASS | 직접 관측 |
+| focused exit=0 elapsed=2085ms | 원출력94행 | PASS | 직접 관측 |
+
+종료·정리/원본 불변 원출력:
+
+```text
+{"kind":"oracle","mode":"green","expectedRed":false,"productPass":true,"matched":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":27975576,"removed":true}
+{"kind":"result","utc":"2026-09-20T01:40:31.302Z","mode":"green","matched":true,"productPass":true,"elapsedMs":5342}
+```
+
+### lp18-ownership-red-automatic-noop-01
+
+[원출력](lp18-ownership-red-automatic-noop-01.txt), 7497B, SHA256 `90609f5c0c01862138d4e463ce454fae06de8f023a4d7b20dba64bc9ba7f4788`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| build exit=0 elapsed=3608ms | 원출력33행 | PASS | 직접 관측 |
+| LP20-C01 automatic checkpoint preserves exact bytes and full projection | 원출력35행 | FAIL | 초기 실패 보존·상세 원인은 중앙 기록 |
+| LP20-C01 automatic checkpoint still reads durable raw evidence | 원출력36행 | PASS | 직접 관측 |
+| LP20-C04 automatic checkpoint leaves inactive binding detail nonresident | 원출력37행 | PASS | 직접 관측 |
+| LP20-C01 canonical automatic checkpoint skips historical envelope Parse and Serialize | 원출력38행 | FAIL | 초기 실패 보존·상세 원인은 중앙 기록 |
+| focused exit=1 elapsed=753ms | 원출력60행 | FAIL | 초기 실패 보존·상세 원인은 중앙 기록 |
+
+종료·정리/원본 불변 원출력:
+
+```text
+{"kind":"oracle","mode":"red","expectedRed":false,"productPass":false,"matched":false}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":7640516,"removed":true}
+{"kind":"result","utc":"2026-09-20T01:28:53.151Z","mode":"red","matched":false,"productPass":false,"elapsedMs":4376}
+```
+
+### lp18-ownership-red-automatic-noop-02
+
+[원출력](lp18-ownership-red-automatic-noop-02.txt), 7494B, SHA256 `ab535e3815272fb1fac49bebde9fccfe46fd46cb30939240fd44b595bc0af66f`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| build exit=0 elapsed=3626ms | 원출력33행 | PASS | 직접 관측 |
+| LP20-C01 automatic checkpoint preserves exact bytes and full projection | 원출력35행 | PASS | 직접 관측 |
+| LP20-C01 automatic checkpoint still reads durable raw evidence | 원출력36행 | PASS | 직접 관측 |
+| LP20-C04 automatic checkpoint leaves inactive binding detail nonresident | 원출력37행 | PASS | 직접 관측 |
+| LP20-C01 canonical automatic checkpoint skips historical envelope Parse and Serialize | 원출력38행 | FAIL | 초기 실패 보존·상세 원인은 중앙 기록 |
+| focused exit=1 elapsed=762ms | 원출력60행 | FAIL | 초기 실패 보존·상세 원인은 중앙 기록 |
+
+종료·정리/원본 불변 원출력:
+
+```text
+{"kind":"oracle","mode":"red","expectedRed":true,"productPass":false,"matched":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":7657028,"removed":true}
+{"kind":"result","utc":"2026-09-20T01:29:58.966Z","mode":"red","matched":true,"productPass":false,"elapsedMs":4404}
+```
+
+### lp20-build-01
+
+[원출력](lp20-build-01.txt), 14427B, SHA256 `a7afee8041ae476eddf41833f4d27fc0474aea929f8a1935ecfc026a9aa479d5`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+
+종료·정리/원본 불변 원출력:
+
+```text
+
+```
+
+### lp20-cache-01
+
+[원출력](lp20-cache-01.txt), 6817B, SHA256 `5f1e1c3acce554d5e0afdfcd84f8887615591e5f183f1f01598590c141f32513`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| LP15-C01 cold full applied=1 expected=1 | 원출력8행 | PASS | 직접 관측 |
+| LP15-C01 unchanged prefix applied=0 expected=0 | 원출력9행 | PASS | 직접 관측 |
+| LP15-C01 exact prefix suffix only applied=1 expected=1 | 원출력10행 | PASS | 직접 관측 |
+| LP15-C01 independent prefix shadow/full projection equality | 원출력11행 | PASS | 직접 관측 |
+| LP15-C01 full fallback schema applied=2 expected=2 | 원출력12행 | PASS | 직접 관측 |
+| LP15-C01 full fallback type applied=2 expected=2 | 원출력13행 | PASS | 직접 관측 |
+| LP15-C01 full fallback id applied=2 expected=2 | 원출력14행 | PASS | 직접 관측 |
+| LP15-C01 full fallback entity applied=2 expected=2 | 원출력15행 | PASS | 직접 관측 |
+| LP15-C01 full fallback time applied=2 expected=2 | 원출력16행 | PASS | 직접 관측 |
+| LP15-C01 full fallback payload applied=2 expected=2 | 원출력17행 | PASS | 직접 관측 |
+| LP15-C01 full fallback reorder applied=2 expected=2 | 원출력18행 | PASS | 직접 관측 |
+| LP15-C01 full fallback shrink applied=2 expected=2 | 원출력19행 | PASS | 직접 관측 |
+| LP15-C01 full fallback null-shadow applied=2 expected=2 | 원출력20행 | PASS | 직접 관측 |
+| LP15-C01 full fallback null-handle applied=2 expected=2 | 원출력21행 | PASS | 직접 관측 |
+| LP15-C01 Open clears cache applied=2 expected=2 | 원출력22행 | PASS | 직접 관측 |
+| LP15-C03 recover full/no-cache | 원출력23행 | PASS | 직접 관측 |
+| LP15-C03 after recover full applied=2 expected=2 | 원출력24행 | PASS | 직접 관측 |
+| LP15-C03 injected commit refusal discards cache | 원출력25행 | PASS | 직접 관측 |
+| LP15-C03 after commit refusal full applied=2 expected=2 | 원출력26행 | PASS | 직접 관측 |
+| LP15-C03 suffix exception discards cache | 원출력27행 | PASS | 직접 관측 |
+| LP15-C03 after exception full applied=3 expected=3 | 원출력28행 | PASS | 직접 관측 |
+| LP15-C03 public poisoned entry discards cache | 원출력29행 | PASS | 직접 관측 |
+| LP15-C03 after restored fixture full applied=3 expected=3 | 원출력30행 | PASS | 직접 관측 |
+| LP15-C04 exact byte charge boundary | 원출력31행 | PASS | 직접 관측 |
+| LP15-C04 overflow charge rejected | 원출력32행 | PASS | 직접 관측 |
+| LP15-C04 8192 records admitted | 원출력33행 | PASS | 직접 관측 |
+| LP15-C04 8193 records rejected | 원출력34행 | PASS | 직접 관측 |
+| LP15-C04 64MiB record charge admitted | 원출력35행 | PASS | 직접 관측 |
+| LP15-C04 64MiB plus one rejected | 원출력36행 | PASS | 직접 관측 |
+| LP15-C03 changed candidate prime applied=1 expected=1 | 원출력37행 | PASS | 직접 관측 |
+| LP15-C03 changed candidate suffix12 plus full candidate13 applied=25 expected=25 | 원출력38행 | PASS | 직접 관측 |
+| LP15-C03 changed candidate cache equals independent full projection | 원출력39행 | PASS | 직접 관측 |
+| LP15-C03 compacted candidate prefix reused applied=0 expected=0 | 원출력40행 | PASS | 직접 관측 |
+| LP15-C03 forced projection mismatch discards cache | 원출력41행 | PASS | 직접 관측 |
+| LP18-R07 ordinary projection exception preserves authority and retry eligibility | 원출력42행 | PASS | 직접 관측 |
+| LP18-R07 uncertain projection returns false and preserves durable bytes | 원출력43행 | PASS | 직접 관측 |
+| LP15-C04 overlimit prime applied=1 expected=1 | 원출력44행 | PASS | 직접 관측 |
+| LP15-C04 existing cache ignored for oversized original applied=8193 expected=8193 | 원출력45행 | PASS | 직접 관측 |
+| LP15-C04 oversized candidate not retained | 원출력46행 | PASS | 직접 관측 |
+| LP15-C04 next oversized checkpoint full applied=8193 expected=8193 | 원출력47행 | PASS | 직접 관측 |
+| CP01 actual Ready Complete shape canonical files reservation | 원출력64행 | PASS | 직접 관측 |
+| CP02 bounded two jobs over 1MiB canonical transitions | 원출력65행 | PASS | 직접 관측 |
+| LP15-C02 bounded automatic checkpoint and whole transition measurement | 원출력70행 | PASS | 직접 관측 |
+| LP15-C02 reopened full applied=18 expected=18 | 원출력72행 | PASS | 직접 관측 |
+| LP15-C02 actual unchanged prefix applied=0 expected=0 | 원출력73행 | PASS | 직접 관측 |
+| LP15-C02 actual suffix only applied=1 expected=1 | 원출력74행 | PASS | 직접 관측 |
+| LP15-C02 actual job shadow/full projection equality | 원출력75행 | PASS | 직접 관측 |
+| LP15-C03 illegal Ready after Complete suffix rejected by cached/full paths | 원출력76행 | PASS | 직접 관측 |
+| LP15-C04 peakRSS bytes=163643392 cap=536870912 | 원출력96행 | PASS | 직접 관측 |
+
+종료·정리/원본 불변 원출력:
+
+```text
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.DTc8nF","bytes":17523133,"removed":true}
+[exit] code=0 elapsed_seconds=19 source=bash-SECONDS
+```
+
 ## LP19 현재16/32 누적 진단 개별 결과
 
 [원출력](lp17-sources-lp19-01.txt), 2042775B, SHA256 `9694ed374a8853e1299e4341e3fa59d60468c4bffb19586373b490eade257489`.

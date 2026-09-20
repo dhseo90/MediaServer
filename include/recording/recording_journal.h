@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <unordered_set>
 
 namespace recording {
 struct ManagedJournalState;
@@ -158,6 +159,9 @@ private:
     bool CommitCheckpoint(const void* owner, const RecordingMutationHandles& candidate, bool recover_only, std::string* error,
                           const RecordingCheckpointReadSnapshotHandle& snapshot = {});
     bool CheckpointDue(const void* owner) const;
+    bool TryAutomaticCheckpointNoop(const void* owner,const std::unordered_set<std::string>& accepted,
+                                    bool* handled,std::string* error);
+    void InvalidateAutomaticCheckpointNoop(const void* owner);
     bool CheckpointPending() const;
     std::unique_ptr<ManagedJournalState> managed_state_;
     mutable bool poisoned_{false};

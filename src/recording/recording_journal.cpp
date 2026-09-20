@@ -491,6 +491,7 @@ struct RecordingJournalRecordLocation {
     RecordingMutationType type{RecordingMutationType::Unknown};
     std::int64_t occurred_at_ms{0};
     RecordingMutationHandle resident_fallback;
+    bool canonical_raw{false};
 };
 // 논리 참조는 원장 수명과 물리 순서만 식별한다. 내용/물리 위치/소유자 포인터를 보관하지 않는다.
 class RecordingJournalRecordRef {
@@ -525,6 +526,7 @@ struct ManagedJournalState {
     std::uint64_t bytes{0};
     std::uint64_t revision{0};
     bool checkpoint_pending{false};
+    bool automatic_noop_disabled{false};
     static RecordingJournalRecordRefHandle MakeRef(const std::shared_ptr<const char>& lineage,std::size_t ordinal) {
         auto ref=std::shared_ptr<RecordingJournalRecordRef>(new RecordingJournalRecordRef);
         ref->lineage=lineage;ref->ordinal=ordinal;return ref;
@@ -571,13 +573,14 @@ std::string EnvelopeIdentity(const RecordingMutationV1& mutation) {
 }
 RecordingJournalRecordLocationHandle MakeLocation(const std::shared_ptr<const char>& generation,
     std::size_t ordinal,std::uint64_t offset,std::string_view raw,const RecordingMutationHandle& record,
-    const std::string& identity) {
+    const std::string& identity,bool canonical_raw=false) {
     try {
     if(!record||raw.empty()||raw.back()!='\n')return {};
     auto location=std::make_shared<RecordingJournalRecordLocation>();
     location->generation=generation;location->ordinal=ordinal;location->offset=offset;location->length=raw.size();
     location->schema=record->schema;location->mutation_id=record->mutation_id;location->entity_id=record->entity_id;
     location->type=record->mutation_type;location->occurred_at_ms=record->occurred_at_ms;
+    location->canonical_raw=canonical_raw;
     location->logical_charge=sizeof(RecordingMutationV1)+record->schema.size()+record->mutation_id.size()+record->entity_id.size()+record->payload_json.size();
     // 기존 Append에는 16MiB 제한이 없다. 기존 수용 입력/crypto-off를 새로 거부하지 않는다.
     if(!MEDIA_SERVER_USE_OPENSSL||raw.size()>16*1024*1024+1)location->resident_fallback=record;
@@ -598,12 +601,17 @@ bool IndexRecord(ManagedJournalState* state,const RecordingMutationV1& mutation,
 #if !MEDIA_SERVER_USE_OPENSSL
     if(mutation.mutation_type==RecordingMutationType::EventLinkReceipt)return Fail(error,"managed receipt crypto 미지원");
 #endif
-    const auto digest=EnvelopeIdentity(mutation);if(digest.empty())return Fail(error,"envelope digest 실패");
+    // 최초 엄격 수용 때의 formatter 결과를 identity와 raw 적격 판정에 함께 쓴다.
+    const auto canonical=SerializeRecordingMutationV1(mutation);
+    const auto digest=mutation.mutation_type==RecordingMutationType::EventLinkReceipt?EnvelopeIdentity(mutation):
+        (MEDIA_SERVER_USE_OPENSSL?RawHash(canonical):canonical);
+    if(digest.empty())return Fail(error,"envelope digest 실패");
     const auto identity=std::to_string(mutation.entity_id.size())+":"+mutation.entity_id+":"+std::to_string(mutation.occurred_at_ms)+":"+digest;
     const auto old=state->identities.find(mutation.mutation_id);
     if(old!=state->identities.end()&&old->second!=identity)return Fail(error,"managed mutation ID 충돌");
     if(!owned)owned=std::make_shared<const RecordingMutationV1>(mutation);
-    const auto location=MakeLocation(state->generation,state->records.size(),offset,raw,owned,digest);
+    const bool canonical_raw=raw.size()==canonical.size()+1&&raw.back()=='\n'&&raw.substr(0,canonical.size())==canonical;
+    const auto location=MakeLocation(state->generation,state->records.size(),offset,raw,owned,digest,canonical_raw);
     if(!location)return Fail(error,"managed 위치 생성 실패");
     const auto ref=ManagedJournalState::MakeRef(state->lineage,state->records.size());
     if(state->revision==std::numeric_limits<std::uint64_t>::max())return Fail(error,"managed revision 상한");
@@ -1237,6 +1245,72 @@ bool RecordingJournal::PrepareCheckpoint(const void* owner,RecordingMutationHand
     if(!AcquireCheckpointRecordsLocked(&original,error))return false;
     return CompactRecords(original,candidate,error);
 }
+void RecordingJournal::InvalidateAutomaticCheckpointNoop(const void* owner) {
+#if !defined(_WIN32)
+    if(managed_&&owner_pid_!=::getpid())return;
+#endif
+    std::lock_guard lock(mu_);
+    if(managed_&&managed_state_&&owner&&owner==catalog_owner_)managed_state_->automatic_noop_disabled=true;
+}
+bool RecordingJournal::TryAutomaticCheckpointNoop(const void* owner,
+    const std::unordered_set<std::string>& accepted,bool* handled,std::string* error) {
+    if(handled)*handled=false;
+#if !defined(_WIN32)
+    if(managed_&&owner_pid_!=::getpid())return Fail(error,"managed fork 거부");
+#endif
+    std::lock_guard lock(mu_);
+    if(!handled||!managed_||!owner||owner!=catalog_owner_||!catalog_attachment_||!CheckManagedStateLocked(error))
+        return Fail(error,"automatic checkpoint owner/state 거부");
+#if !defined(_WIN32) && MEDIA_SERVER_USE_OPENSSL
+    auto& state=*managed_state_;
+    if(state.automatic_noop_disabled)return true;
+    OwnedFd parent(OpenParent(io_path_,false));
+    if(parent.value<0)return Fail(error,"automatic checkpoint parent 오류");
+    // pending은 메모리 표시뿐 아니라 실제 파일도 확인하고 기존 복구 경로로 보낸다.
+    if(state.checkpoint_pending||Present(parent.value,".recording-checkpoint.tmp"))return true;
+    try {
+        if(state.locations.size()!=state.records.size()||state.refs.size()!=state.records.size()){
+            poisoned_=true;return Fail(error,"automatic checkpoint index 불일치");
+        }
+        std::unordered_set<std::string> seen,receipts;
+        std::unordered_map<std::string,std::string> latest;
+        std::uint64_t offset=0;
+        for(std::size_t i=0;i<state.locations.size();++i){
+            const auto& row=state.locations[i];const auto& ref=state.refs[i];
+            if(!row||!ref||row->generation!=state.generation||row->ordinal!=i||
+               ref->lineage!=state.lineage||ref->ordinal!=i){poisoned_=true;return Fail(error,"automatic checkpoint 위치 불일치");}
+            // 이 표시는 최초 strict 입력과 formatter 전체 바이트 대조로만 생성된다.
+            // 빈줄/비정규 envelope/큰 행은 여기서 최적화하지 않는다.
+            if(!row->canonical_raw||row->resident_fallback||row->raw_sha256.empty()||row->record_identity.empty()||
+               row->offset!=offset||row->length==0||offset>state.bytes||row->length>state.bytes-offset)return true;
+            offset+=row->length;
+            if(row->type!=RecordingMutationType::RecordingOrderReserved&&!accepted.count(row->mutation_id))return true;
+            // CompactRecords의 첫 ID/latest/receipt 규칙을 얇은 불변 메타데이터로 그대로 대조한다.
+            if(seen.insert(row->mutation_id).second){
+                if(row->type==RecordingMutationType::EventLinkCreated)latest[row->entity_id]=row->mutation_id;
+                if(row->type==RecordingMutationType::EventLinkReceipt)receipts.insert(row->mutation_id);
+            }
+        }
+        if(offset!=state.bytes)return true;
+        for(const auto& row:state.locations)
+            if(row->type==RecordingMutationType::EventLinkCreated&&
+               (receipts.count(row->mutation_id)||latest.at(row->entity_id)!=row->mutation_id))return true;
+        // 같은 잠금/attachment/세대 안에서 원문 전체를 다시 읽는다. hash만 받은 외부
+        // 입력을 신뢰하는 API가 아니며, 새 입력·복구의 strict Parse는 생략하지 않는다.
+        for(const auto& row:state.locations){
+            std::string raw(static_cast<std::size_t>(row->length),'\0');
+            if(!ReadAt(managed_fd_,static_cast<off_t>(row->offset),&raw)||raw.back()!='\n'||RawHash(raw)!=row->raw_sha256){
+                poisoned_=true;return Fail(error,"automatic checkpoint 원문 손상/읽기 실패");
+            }
+        }
+        if(!CheckManagedStateLocked(error))return false;
+        if(Present(parent.value,".recording-checkpoint.tmp"))return true;
+        checkpoint_checked_bytes_=state.bytes;*handled=true;if(error)error->clear();return true;
+    }catch(...){return Fail(error,"automatic checkpoint 증명 자원 실패");}
+#else
+    (void)accepted;return true;
+#endif
+}
 bool RecordingJournal::CheckpointDue(const void* owner) const {
 #if !defined(_WIN32)
     if(managed_&&owner_pid_!=::getpid())return false;
@@ -1302,7 +1376,7 @@ bool RecordingJournal::CommitCheckpoint(const void* owner,const RecordingMutatio
         const auto raw=std::string_view(bytes).substr(spans[i].first,spans[i].second);
         const auto identity=published[i]->mutation_type==RecordingMutationType::EventLinkReceipt?
             EnvelopeIdentity(*published[i]):RawHash(raw.substr(0,raw.size()-1));
-        const auto location=MakeLocation(generation,i,spans[i].first,raw,published[i],identity);
+        const auto location=MakeLocation(generation,i,spans[i].first,raw,published[i],identity,true);
         if(!location)return Fail(error,"checkpoint 위치 준비 실패");
         locations.push_back(location);
         const auto& old=source_records[i];const auto& next=published[i];const auto& current_ref=managed_state_->refs[i];
@@ -1349,6 +1423,7 @@ bool RecordingJournal::AttachCatalog(const void* owner, const std::filesystem::p
         } else if(errno!=ENOENT)return Fail(error,"managed sqlite stat 실패");
     }
     try{catalog_attachment_=std::make_shared<const char>(0);}catch(...){return Fail(error,"managed catalog attachment 자원 실패");}
+    managed_state_->automatic_noop_disabled=false;
     catalog_owner_=owner;return true;
 #else
     (void)owner;(void)media;(void)sqlite;(void)enable_v2;

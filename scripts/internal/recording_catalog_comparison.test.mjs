@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {limits,observations,classify,processGroup,cleanupOwned,manifest,runBounded} from './recording_catalog_comparison_guard.mjs';
+import {limits,observations,classify,processGroup,cleanupOwned,manifest,runBounded,liveTreeBytes,treeBytes} from './recording_catalog_comparison_guard.mjs';
 
 const expected={mode:'reopen',arm:'A',samples:32,count:2};
 const line=v=>'[lp17] '+JSON.stringify(v)+'\n';
@@ -13,6 +13,20 @@ const text=()=>['reopen_before','reopen_after','reopen_verified','reopen_release
 const input=()=>({stdout:text(),stderr:'650000000 maximum resident set size\n',code:0,signal:null,stopReason:null,groupClean:true,expected});
 const root=()=>{const p=fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()),'media-server-catalog-cost.'));fs.chmodSync(p,0o700);return p;};
 function finish(p){const result=cleanupOwned(p);console.log('[selftest-cleanup] '+JSON.stringify(result));assert(result.removed);}
+
+test('LP20-C04 임시 파일 삭제 경쟁은 동일 root의 전체 관측으로 재확인',()=>{
+ const p=root();try{fs.writeFileSync(path.join(p,'kept'),'12345',{flag:'wx'});let calls=0;
+  assert.equal(liveTreeBytes(p,()=>{if(++calls===1)throw Object.assign(Error(),{code:'ENOENT'});return treeBytes(p);}),5);
+  assert.equal(calls,2);assert.equal(liveTreeBytes(p),5);
+ }finally{finish(p);}
+});
+test('LP20-C04 반복 관측 실패·권한 실패·root 교체는 계속 거부',()=>{
+ const p=root();try{for(const code of ['ENOENT','EACCES']){let calls=0;
+  assert.throws(()=>liveTreeBytes(p,()=>{++calls;throw Object.assign(Error(),{code});}));assert.equal(calls,code==='ENOENT'?2:1);}
+  const moved=p+'-moved';try{assert.throws(()=>liveTreeBytes(p,()=>{fs.renameSync(p,moved);fs.mkdirSync(p);throw Object.assign(Error(),{code:'ENOENT'});}));}
+  finally{fs.rmdirSync(p);fs.renameSync(moved,p);}
+ }finally{finish(p);}
+});
 
 const ownerColumns='records samples fileSamples mappings stringBytes stringCapacity vectorCapacityBytes jobs segments bindings tombstones accessUnits uniqueEnvelopes sharedEnvelopeReferences logicalEnvelopeBytes uniqueBindingObjects sharedBindingReferences logicalBindingSamples uniqueJobObjects sharedJobReferences logicalLinkCount logicalEnvelopeChargeBytes weakLinkCount residentFallbackLinkCount coldEnvelopes residentBindings coldBindings residentJobs coldJobs entryStorageBytes locationStorageBytes'.split(' ');
 const packed=()=>({kind:'owner-packed',version:1,stage:'after-commit',owner:'live',values:ownerColumns.map((_,i)=>i===30?Number.MAX_SAFE_INTEGER:i)});

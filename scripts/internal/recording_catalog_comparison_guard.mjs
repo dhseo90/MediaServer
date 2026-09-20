@@ -27,6 +27,16 @@ export function treeBytes(root){
  if(!s.isDirectory())throw Error('unsupported-owned-entry');
  return fs.readdirSync(root).reduce((n,name)=>n+treeBytes(path.join(root,name)),0);
 }
+// 실행 중 컴파일러가 목록 조회 직후 임시 파일을 지울 수 있다. 소유 root가
+// 동일할 때에만 전체 관측을 한 번 다시 수행한다. 정리 시 treeBytes는 계속 strict다.
+export function liveTreeBytes(root,scan=treeBytes){
+ const before=fs.lstatSync(root);
+ if(!before.isDirectory()||before.isSymbolicLink())throw Error('unsupported-owned-entry');
+ const same=()=>{const after=fs.lstatSync(root);if(!after.isDirectory()||after.isSymbolicLink()||
+  after.dev!==before.dev||after.ino!==before.ino)throw Error('unsupported-owned-entry');};
+ try{const bytes=scan(root);same();return bytes;}
+ catch(e){if(e?.code!=='ENOENT')throw e;same();const bytes=scan(root);same();return bytes;}
+}
 export function manifest(root){
  const entries=[];
  function walk(p){const s=fs.lstatSync(p);if(s.isSymbolicLink()||(!s.isFile()&&!s.isDirectory()))throw Error('manifest-entry');
@@ -143,7 +153,7 @@ export async function runBounded({root,command,args=[],env=process.env,seconds=l
   const group=readGroup(child.pid);groupPeakRssBytes=Math.max(groupPeakRssBytes,group.rssBytes);
   if(group.rssBytes>rssCap)stop('rss-safety-cap');
  }catch(e){failedObservation('process',e);return;}
- try{if(treeBytes(root)>diskCap)stop('disk-cap');}catch(e){failedObservation('disk',e);}};
+ try{if(liveTreeBytes(root)>diskCap)stop('disk-cap');}catch(e){failedObservation('disk',e);}};
  poll=setInterval(monitor,250);timer=setTimeout(()=>stop('timeout'),seconds*1000);
  const ended=await new Promise(resolve=>child.once('close',(code,signalName)=>resolve({code,signal:signalName})));
  closed=true;clearInterval(poll);clearTimeout(timer);

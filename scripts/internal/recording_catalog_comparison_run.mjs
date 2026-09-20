@@ -71,7 +71,7 @@ try{
   await phase('environment-observation',process.execPath,['-e','setTimeout(()=>{},1000)'],null,5);
  }else if(mode==='selftest'){
   const stdout=await phase('runner-selftest',process.execPath,['--test','--test-reporter=tap',path.join(here,'recording_catalog_comparison.test.mjs')],null,60);
-  if(!stdout.includes('# pass 13')||!stdout.includes('# fail 0'))throw Error('phase-failed');
+  if(!stdout.includes('# pass 15')||!stdout.includes('# fail 0'))throw Error('phase-failed');
  }else{
   // 빌드 준비는 원인 비교가 아니다. 신선하지 않은 runtime으로 측정을 시작하지 않는다.
   await phase('runtime-freshness','cmake',['--build',path.join(repo,'build-gst-onnx'),'--target','media_server_runtime','--parallel','2'],null,60);

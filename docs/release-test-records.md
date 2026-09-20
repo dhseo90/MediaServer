@@ -56,6 +56,59 @@
 전수표754 PASS행/정리4개/종료/공백/민감 패턴9항목 일치. `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links`
 exit0/0.052초, md285·links8979·images22·anchors118·failures0. 검사 신규 임시파일/서버/포트 없음.
 
+### 2번 자동 checkpoint 실행 전 정의
+
+`node scripts/internal/verify_recording_immutable_ownership.mjs red automatic-noop-01 automatic-noop`.
+예상 focused exit1/3PASS·1FAIL, exact 실패는 `LP20-C01 canonical automatic checkpoint skips historical envelope Parse and Serialize`.
+제품 무수정 상태의 실제 자동CP Parse/Serialize 계측이며 API 부재/컴파일/환경 실패는 RED가 아니다.
+나머지17개는 기능 부재로 미실행이다. 구현 후 GREEN 기본21/crypto-off1을 별도 실행한다.
+반례는 tamper3·owner2·미적용1·physical3·EventLink/receipt3·pending2·manual1·Apply예외1·oversize1이다.
+각 Check 제목은 `recording_checkpoint_noop_smoke.cpp`에 사전 정의했다. guard는 기존60초·1GiB RSS·512MiB disk·2MiB 출력,
+소유 root/자식 프로세스 정리·source 불변 검사 그대로다. 일반 Apply 예외 시 authority를 새로 변경하지 않고
+새 no-op만 비적격 처리하여 strict fallback·기존 예외를 보존한다. 실제 앱·전체 통합은 실행하지 않는다.
+
+첫 RED 준비는 build0/focused1·2PASS/2FAIL로 예상3PASS/1FAIL과 불일치했다. 과거 Parse2/Serialize5는
+기대 비용 실패와 일치하지만, 추가 projection 비교 실패는 journal-only 예약 ID까지 담은 재생 결과를
+live catalog와 동일 집합으로 비교한 fixture 결함이다. 이 실행 전체를 예상 RED로 인정하지 않는다.
+원출력 `lp18-ownership-red-automatic-noop-01.txt`, 소유 root7640516B 삭제·부재 확인.
+제품 무변경 상태에서 예약 ID의 독립 경계를 바로잡고 실제 live 상태 대조를 유지해 동일 RED를 재실행한다.
+
+RED02는 expected3PASS/1FAIL(Parse2/Serialize5)과 일치했다. 첫 GREEN21개 통과 뒤 메인 코드 검토에서
+같은 catalog 인스턴스의 Open 실패/예외 재시도 경계를 추가했다. 이 경계도 기존 실패/authority 의미는 그대로 두고
+새 자동 no-op 적격성만 보수적으로 해제한다. 추가 실행 전 정의(C03): failed Open 재시도·exceptional Open 재시도·
+failed Apply 뒤 no-op 비적격의3개 exact 반례, 최종 GREEN24개/crypto1개로 등록한다.
+crypto01은 fixture의 비사용 NoopCases 함수 `-Werror` 빌드 실패로 제품 실패/예상RED가 아니다.
+build1·소유root391528B 삭제 확인 후 maybe_unused 표시만 보완하여 crypto02로 동일 검증 재개한다.
+
+LP20-C04 비용 계측도 새 no-op 함수 시간과 `journal.noopRawRead.calls/bytes`를 별도 관측하도록 연결한다.
+기존 locatedRawRead는 strict 위치 획득만 뜻하며 새 경로의 전체 원문 읽기를0으로 보고하지 않는다.
+`node scripts/internal/recording_catalog_comparison_run.mjs small lp20-01`로 실제 계측 컴파일·100개 의미 검사와
+12phase·source/정리를 확인한다. 이 작은 입력은1MiB 미만이므로 no-op 호출 여부는 위 실크기24개와 cache49에서
+직접 판정한다. 16/32 공동 비용·실제 HTTP는3번 조회 개선 이후의 후속 검증으로 남긴다.
+
+small lp20-01은 sysctl EPERM으로 preflight-host exit1/6ms, 실행root 생성 전 중단했다.
+권한 승인 후 lp20-02는 compile 중 disk 관측 ENOENT로 중단(exit1/2504ms), 그룹 종료·root3481447B 삭제 확인.
+이는 제품 assertion 실패가 아니라 실행 중 파일 목록/크기 조회 사이의 삭제를 처리하지 못하는 관측 경계다.
+소유 root inode/dev를 전후 확인하고 ENOENT일 때 전체 크기 관측1회만 다시 수행하도록 검사 도구를 보완한다.
+두 번째 실패·다른 errno·root 교체는 계속 FAIL, 정리 시 strict 검사·disk/RSS/시간 상한은 유지한다.
+LP20-C04 추가 실행 전 정의: 일시 ENOENT 뒤 전체 바이트 재확인, 반복 ENOENT/EACCES/root 교체 거부2개.
+자체검사15개→작은 비교 순서로 재검증하며 원 실패2개를 보존한다. 실제 앱/다음 단계는 아직 미실행이다.
+
+### 2번 결과
+
+최종 automatic-noop24/crypto-off1/location32/logical26/typed34/cache49, 모두 exit0.
+자동 no-op의 과거 envelope Parse/Serialize는0/0, 원문 읽기6회1051371B이며 상세 비상주 유지.
+실제 크기의2-job cache 검사에서 자동CP2회 모두 no-op, 각각607/1133µs, 전이 잠금8회 중 최대163366µs였다.
+이 값은 검사2-job 범위이며 HTTP 응답·누적32개 지연의 합격을 뜻하지 않는다.
+전체 빌드 `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build` exit0, 관측55002ms.
+비교 도구 자체15개 exit0/796ms, 작은 비교 lp20-03 exit0/10290ms·100개 개별/12phase 통과.
+제품 source 불변과 프로세스 그룹·소유 임시root 정리를 확인했다. 정리된 파일은 검증 전용으로 재생성 가능하다.
+manual/recovery/changed candidate strict 검증·저장 바이트·공개 API·삭제 보호·기존 HTTP4000ms는 유지한다.
+canonical/raw 적격·같은 catalog 적용 성공이 증명된 자동CP만 과거 JSON 처리를 줄이며 전체 raw 읽기/SHA와 O(H) 순회는 남는다.
+전수 assertion·실패 이력·정리/수치·hash는 [LP20 개별 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md#lp20-정상-저장-비용-개별-결과),
+전체 빌드는 [build01](release-artifacts/v4.1.0/s11-preparation-mapping/lp20-build-01.txt)에 보존했다.
+2번 구현은 완료하며3번 조회 잠금·4번 종료 oracle와16/32·실제 HTTP/통합 판정은 아직 미완료다.
+
 ## 2026-09-20 LP19 누적 비용 → 실제 HTTP → 실제 이벤트 통합
 
 사용자 승인: 1~3번 순차 개발·관련 단기 검증·분할 커밋, 전체 범위가 푸시 가능하면 마지막 푸시.

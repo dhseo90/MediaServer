@@ -36,6 +36,7 @@ fs.mkdirSync(path.join(out,'include/recording'),{recursive:true});
 fs.writeFileSync(path.join(out,'include/recording/recording_catalog.h'),exact(fs.readFileSync(path.join(repo,'include/recording/recording_catalog.h'),'utf8'),'private:','public: // owned test copy'));
 fs.writeFileSync(path.join(out,'include/recording/recording_journal.h'),exact(fs.readFileSync(path.join(repo,'include/recording/recording_journal.h'),'utf8'),'private:','public: // owned test copy'));
 let source=exact(original,'bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error,const DerivedJobContentProof* proof) {','bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error,const DerivedJobContentProof* proof) { cache_probe::Scope cache_scope;');
+source=exact(source,'    if(journal_.CheckpointDue(this)){\n        bool handled=false;','    if(journal_.CheckpointDue(this)){\n        bool handled=false;cache_probe::Automatic automatic_scope(handled);');
 const readCurrent='        if(!journal_.ReadCheckpointRecords(this,&original,error,&read_snapshot,&views)){\n            if(!journal_.OwnsCatalog(this))derived_job_state_authoritative_=false;\n            return false;\n        }';
 source=exact(source,readCurrent,readCurrent+'if(cache_probe::bad_suffix){original.push_back(std::make_shared<const RecordingMutationV1>(*cache_probe::bad_suffix));views.push_back({});}');
 source=exact(source,'if(before->ProjectionSignatureLocked()!=after->ProjectionSignatureLocked())','if(cache_probe::mismatch||before->ProjectionSignatureLocked()!=after->ProjectionSignatureLocked())');
@@ -60,14 +61,17 @@ inline unsigned projection_exception=0,projection_exceptions=0;
 inline std::optional<recording::RecordingMutationV1> bad_suffix;
 struct Row{std::size_t records,first,applied;long long us;};
 inline std::array<Row,128> rows{};inline std::size_t count=0,dropped=0,holds=0;inline long long max_hold_us=0;
-struct Scope{std::size_t before=applied,first=0,records=0;Clock::time_point start=Clock::now();Scope(){++depth;}~Scope(){--depth;const Row row{records,first,applied-before,std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-start).count()};if(count<rows.size())rows[count++]=row;else ++dropped;}};
+inline std::size_t automatic_depth=0,automatic_attempts=0,automatic_noops=0,automatic_fallbacks=0,automatic_strict=0,noop_dropped=0;
+inline std::array<long long,128> noop_us{};
+struct Automatic{bool& handled;Clock::time_point start=Clock::now();explicit Automatic(bool& value):handled(value){++automatic_depth;++automatic_attempts;}~Automatic(){--automatic_depth;if(handled){if(automatic_noops<noop_us.size())noop_us[automatic_noops]=std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-start).count();else ++noop_dropped;++automatic_noops;}else ++automatic_fallbacks;}};
+struct Scope{std::size_t before=applied,first=0,records=0;Clock::time_point start=Clock::now();Scope(){++depth;if(automatic_depth)++automatic_strict;}~Scope(){--depth;const Row row{records,first,applied-before,std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-start).count()};if(count<rows.size())rows[count++]=row;else ++dropped;}};
 struct Hold{Clock::time_point start=Clock::now();~Hold(){++holds;const auto us=std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-start).count();if(us>max_hold_us)max_hold_us=us;}};
 }
 `);
 const instrumented='#include "recording_checkpoint_cache_counter.h"\n'+source;
 fs.writeFileSync(path.join(out,'recording_catalog.cpp'),instrumented);
 for(const name of ['include/recording/recording_catalog.h','src/recording/recording_catalog.cpp','src/recording/recording_checkpoint_validation.h','scripts/internal/recording_checkpoint_cache_smoke.cpp','scripts/internal/verify_recording_checkpoint_cache.sh'])console.log('[source] '+JSON.stringify({name,sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(repo,name))).digest('hex')}));
-console.log('[environment] ownedCache=true ownedRegistry=true productFilesUnchanged=true instrumentation=checkpoint-scope-apply-count projectionExceptionExactInsertions=1');
+console.log('[environment] ownedCache=true ownedRegistry=true productFilesUnchanged=true instrumentation=checkpoint-scope-apply-count projectionExceptionExactInsertions=1 automaticNoopExactInsertions=1');
 console.log('[instrument] catalog_original_sha256='+crypto.createHash('sha256').update(original).digest('hex')+' catalog_instrumented_sha256='+crypto.createHash('sha256').update(instrumented).digest('hex'));
 NODE
 read -r -a ORIGINAL_LINK < "$BUILD_DIR/CMakeFiles/media_server.dir/link.txt"
