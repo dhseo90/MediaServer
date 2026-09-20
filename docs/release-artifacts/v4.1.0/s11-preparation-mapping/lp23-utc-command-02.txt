@@ -1,0 +1,14 @@
+node --input-type=module - <<'JS'
+import fs from 'node:fs';import crypto from 'node:crypto';import path from 'node:path';import {runBounded,treeBytes} from './scripts/internal/recording_catalog_comparison_guard.mjs';
+const first=JSON.parse(fs.readFileSync('docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp23-utc-run-01.json')),root='/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-utc-diagnostic-x65YwB',s=fs.lstatSync(root),sha=x=>crypto.createHash('sha256').update(x).digest('hex');
+if(root!==first.root||s.isSymbolicLink()||!s.isDirectory()||s.uid!==process.getuid()||s.dev!==first.cleanup.identity.dev||s.ino!==first.cleanup.identity.ino)throw Error('owned-root');
+const binary=path.join(root,'utc-diagnostic'),fixture=path.resolve('video/imports/va_tracking_event_1280x720_30fps_h264.mp4');
+if(sha(fs.readFileSync(binary))!==first.binarySha256||sha(fs.readFileSync(fixture))!==first.inputSha256||first.source.some(x=>sha(fs.readFileSync(x.file))!==x.sha256))throw Error('fingerprint');
+const env={PATH:process.env.PATH,TMPDIR:root,LANG:'C',LC_ALL:'C',HOMEBREW_PREFIX:'/opt/homebrew',MEDIA_SERVER_GST_PLUGIN_PROFILE:'headless',MEDIA_SERVER_GST_CACHE_DIR:path.join(root,'gst-cache')};
+const command='/bin/bash',args=['-c','set -e; source "$1"; media_server_apply_homebrew_gst_env; shift; exec "$@"','utc-diagnostic',path.resolve('scripts/internal/env_common.sh'),binary,'--file',fixture];
+const result=await runBounded({root,command,args,env,seconds:15});
+const sourceUnchanged=first.source.every(x=>sha(fs.readFileSync(x.file))===x.sha256),inputUnchanged=sha(fs.readFileSync(fixture))===first.inputSha256;
+const pass=result.code===0&&!result.signal&&!result.stopReason&&result.groupClean&&sourceUnchanged&&inputUnchanged&&result.stdout.includes('[summary] pass=1 fail=0')&&(result.stdout.match(/^\[utc-observation\] /gm)||[]).length===250&&result.stdout.includes('"pipelineNull":true');
+console.log(JSON.stringify({schema:'lp23-utc-actual-retry-v1',root,command,args,environmentChange:{HOMEBREW_PREFIX:'/opt/homebrew'},binarySha256:first.binarySha256,source:first.source,inputSha256:first.inputSha256,result,sourceUnchanged,inputUnchanged,pass,applicationPass:false,cleanup:{bytes:treeBytes(root),removed:false}}));
+process.exitCode=pass?0:1;
+JS

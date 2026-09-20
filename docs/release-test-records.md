@@ -13,8 +13,8 @@
 | 번호 | 사용자 지시 | 상태 | 완료 조건 | 근거 |
 | --- | --- | --- | --- | --- |
 | 1 | 사후 진단 지연·임시 자료 정리 | 진단·정리 완료, SQLite 제품 실패 유지 | 반복 검증/적용·SQLite 재투영 병목 확인, JSONL 상태/상세 확보, 원본 불변 후180358628B 삭제 | 아래 LP23-D 결과 |
-| 2 | UTC unknown 원인 확정·계약 | 미착수 | 실제 대응 세분화 근거, 입력 관측/실제 불연속 구분, 보존할 정확도·경계와 후속 범위 판정 | 앞선 읽기 집계945/942·writer time state |
-| 3 | 분할 커밋·종합 보고 | 미수행 | 통과 단위만 커밋, 제품 미완료/후속 범위 구분 | AGENTS3/5/6 |
+| 2 | UTC unknown 원인 확정·계약 | 분석·계약 정리 완료 | 합성8/실입력1 PASS. 시계 안정 상태의 unknown 증가 확인. 과거 OS 시계 보정 여부는 미확인 유지 | 아래 LP23-U 결과 |
+| 3 | 분할 커밋·종합 보고 | 1번 커밋 완료·2번 별도 커밋 대상 | 0b395450 진단·정리. 2번 분석/검사만 후속 커밋, 미완료 제품9파일 제외 | AGENTS3/5/6 |
 
 | 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/기능 ID | 실행 승인 상태 |
 | --- | --- | --- | --- | --- |
@@ -75,6 +75,49 @@ Open preflight3.392초·apply3.278초·rebuild preflight3.431초, SQLite open0.0
 동일 입력 fixture만 저장소에 남는다. 실패 시점의 모든 바이트를 독립 재실행할 수 있다고 주장하지 않는다.
 기존 LP22 제품5/검사4 미커밋은 그대로 남고, 이 단계 커밋은 진단 도구·정리 및 이전 실패 기록만 대상으로 한다.
 token start/end/consumed: 미집계(집계 도구 미제공), elapsed/source는 각 원출력에 기록했다.
+
+### LP23-U 실행 전 정의
+
+기존 `RecordingWriterTimeState` 헤더를 직접 사용하는 작은 진단 검사다. 제품/시스템 시각을 바꾸지 않고
+합성 observation의 시계와 PTS를 각각 통제한다. 과거 실행의 mono/UTC 원관측은 저장되지 않아 그 실행에서 실제
+시계 보정이 있었는지는 복원하지 않는다. 새 실입력 관측은 해당 코드의 동작 확인이며 과거 실패의 동일 재현이 아니다.
+단일 담당자 Astra/medium 재사용·하위 금지. 신규 `scripts/internal/recording_utc_observation_diagnostic.cpp`만 소유한다.
+메인이 설계/검토/실행/보고를 맡으며 담당자는 검사 작성만 한다. 실제 실행 전 main 리뷰한다.
+컴파일60초·실행15초·출력2MiB·RSS1GiB·소유 disk512MiB 유지. 실행 출력은 고정 검사명·개수·상대 delta만,
+raw source URL/절대 UTC/원문/credential은 남기지 않는다. 소유 temp와 GST registry는 실행 후 삭제한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP23-U01 stable cadence | 시계·PTS 일치 | estimated1·unknown0 | v4.1.0 |
+| LP23-U02 stable clocks jittered observation | UTC−mono 일정, 관측 cadence만 ±5ms | unknown 쌍 생성·마지막 estimated, 시계 jump 불필요 입증 | v4.1.0 |
+| LP23-U03 clock steps | PTS/mono 일정·UTC ±100ms 이동 각각 | 시간 mapping 분리, media divergence와 구별 | v4.1.0 |
+| LP23-U04 duplicate and backward PTS | PTS 중복·역행 각각 | 원본 전체 unknown 안전장치 유지 | v4.1.0 |
+| LP23-U05 invalid clock | clock identity 부재·불가능 mono bracket 각각 | unknown 유지·UTC 추정 생성 금지 | v4.1.0 |
+| LP23-U06 exact error boundary | 기존2ms error의 정확한 경계/초과 | 경계와1ns 초과 결과 구별, 기준 변경 없음 | v4.1.0 |
+| LP23-U07 segment reset | Start 후 새 세그먼트 | 이전 mapping/anchor를 새 원본에 넘기지 않음 | v4.1.0 |
+| LP23-U08 bounds and absent end | 256 mapping 상한·duration 없는 끝 | unknown tail·끝 불명 안전장치 유지 | v4.1.0 |
+| LP23-U09 actual local input | 기존 H264/30fps fixture 첫250 sample | source_factory와 같은 queue/h264parse/appsink(sync=true) 및 실제 pad observation/header 경로. mono/PTS delta·UTC−mono residual·mapping reason만 수집 | v4.1.0 |
+
+U09는 실제 앱의 분석/녹화 backpressure 재현이 아니다. unknown 발생 여부 자체를 PASS 기준으로 강요하지 않는다.
+250개 유효 관측·기존 writer 판정·정상 pipeline 종료/정리가 PASS 기준이며 발생 비율은 측정값이다.
+후속 계약은 원본 식별/PTS/파일 증거·정확도·불연속/삭제/보호를 보존하며, unknown→estimated 승격·단순 임계값 완화·
+mapping 삭제·현재시각 덮어쓰기·페이지 검사 완화는 이번에 하지 않는다.
+
+### LP23-U 결과와 후속 판정
+
+신규 진단 C++의 compile exit0/508ms, 합성8 PASS/333ms. 실제 입력 최초 실행은 Homebrew 준비 실패 exit1/25ms였다.
+최소 환경에 HOME이 없어 `brew --prefix`가 거부된 것을 독립 확인했다. 이는 예상 RED나 제품 실패가 아니며 최초 실패로 보존한다.
+HOME을 변경하지 않고 이미 확인된 `HOMEBREW_PREFIX=/opt/homebrew`를 명시하여 같은 바이너리의 실입력만 재개했다.
+재실행 exit0/9797ms,250샘플·pipeline NULL·group 종료·source/input 불변 PASS. 소유 임시1875084B 삭제/부재 확인.
+실입력 mapping161/unknown160(각 이유80), UTC−mono 최대 residual28250ns, media−mono 최대 차33262812ns,
+관측 창 최대1959ns, 인접 관측249쌍 중 PTS−mono 차2ms 초과125개였다.
+합성 U02는 UTC−mono가 정확히 일정해도 mapping9개 중8개 unknown. U03의 실제 합성 시계 ±100ms 이동은
+PTS/mono가 일치할 때 estimated2개로 분리됐다. 따라서 unknown을 UTC 변환/시계 역행으로 단정하는 해석은 맞지 않는다.
+과거 mono/UTC 원관측 부재는 복원하지 않았으며 새 실행에서 모든 시스템의 jitter 분포까지 일반화하지 않는다.
+상세 개별 결과·보존 계약·우선순위는 [UTC 분석](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md#lp23-utc-unknown-분석과-보존-계약)을 따른다.
+제품 파일/기존 LP22 검사9개는 이번에 수정하지 않았고 미커밋 상태를 유지한다. 푸시 가능 아니오/미수행:
+실제 앱·SQLite 복구 실패와 기존 제품 미커밋이 남고, 이번에는 푸시 지시도 없다.
+30분/120분/UI/전체 build·실제 앱 재기동/현행5단계 통합은 이번 범위 밖 미실행이며 최종 evidence가 아니다.
 
 ## 2026-09-20 LP22 완료 관측 원인 분리와 실제 통합 마감
 

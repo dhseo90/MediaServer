@@ -1,0 +1,13 @@
+{
+  "schema": "lp23-utc-cleanup-v1",
+  "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-utc-diagnostic-x65YwB",
+  "bytes": 1875084,
+  "removed": true,
+  "evidence": [
+    "lp23-utc-run-01.json",
+    "lp23-utc-run-02.json"
+  ],
+  "groupClean": true,
+  "sourceUnchanged": true,
+  "portsCreated": false
+}

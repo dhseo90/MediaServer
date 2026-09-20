@@ -1,5 +1,131 @@
 # LP18 공유 소유 focused 개별 결과
 
+## LP23 UTC unknown 분석과 보존 계약
+
+범위: 기존 시간 판정의 원인 구분·정확도/보존 경계 설계. 제품 수정/타임라인 축약/완료 관측 변경은 후속이다.
+아래 원인 해석은 보존 물리 자료와 코드 직접 대조이며, LP23-U 실행 결과는 별도로 기록한다.
+
+| 대상 | 직접 확인 | 의미·한계 |
+| --- | --- | --- |
+| 보존 source6개 | mapping185/191/190/100/191/88, 전체945개 중 unknown942개 | 프레임 수가 아니라 구간 레코드 수 |
+| unknown 이유 | media-observation-divergence471·clock-comparison-unavailable471 | UTC 시계 역행의 직접 증거가 아님 |
+| 입력 관측 | gstreamer_sample_observation.h BindLocked: appsink sink pad에서 PTS와 mono-before/UTC/mono-after 결박 | source_factory가 동일 관측을 전달, writer 수락 후 Accept. 실제 촬영 시각을 뜻하지 않음 |
+| UTC 비교 | UTC 진행량−mono 진행량 >50ms+관측오차이면 split | 다른 조건이 정상이면 새로운 estimated 구간, 무조건 unknown은 아님 |
+| media 비교 | PTS 진행량−mono 진행량 절대값 >Half(anchor)+Half(now)+2ms | 시계 안정과 별개로 1배속 관측 cadence의 일치까지 요구 |
+| unknown 전이 | 이전 mapping을 unknown으로 변경→새 unknown→anchor 해제→다음 유효 관측으로 estimated 재시작 | 반복 차이마다 두 이유가 쌍으로 누적되는 구조 |
+| projection | source mapping별 행, event의 mapping×실제 출력 교차별 행 | 저장 구간 증가가 API 행 증가로 직접 확대 |
+| unknown range | UTC 부재로 시간 범위 밖이라는 증명이 불가하여 unplaced에 포함 | 단순 UTC 필터로 삭제하면 누락 위험 |
+| 페이지/완료 | 요청별 현재 snapshot, 모든 페이지의 total/unplacedTotal 일치 후에 완료 판정 | 지속 쓰기 중 전체 페이지 재시작 가능. job Complete와 조회 전체 완주는 별도 계약 |
+
+소스: `include/recording/recording_writer_time_state.h` Accept/Finish,
+`include/media/gstreamer_sample_observation.h` BindLocked, `src/core/source_factory.cpp` BuildFilePipelineLaunch/BuildSampleFromGst,
+`src/recording/gstreamer_segment_writer.cpp` PushBufferLocked,
+`src/recording/recording_timeline_projection.cpp` Collector,
+`scripts/internal/recording_current_app_helpers.mjs` allTimelinePages.
+LP22 마지막2350 unplaced는 당시 앞5개 source unknown854 + 네 job의 원본 첫2개 unknown374×4와 일치한다.
+이는 저장 자료/행 확장 구조의 대조이지 종료 후 원장을 새로 실행한 timeline oracle는 아니다.
+
+### 보완 계약의 결정 경계
+
+1. 원본 파일/PTS/epoch/순서/선택·완전성 증거와 UTC 정확도를 분리한다. UTC unknown을 원본 부재 또는 녹화 실패로 바꾸지 않는다.
+2. UTC는 현재 입력 관측 기준의 estimated이며 촬영 시각의 정확한 보장으로 표현하지 않는다. mono−UTC 시계 대응의 오차와
+   media−mono 관측 cadence의 오차를 분리해 원인/허용 불확실성을 정의한다. 현재2ms/50ms 임계값을 임의 확대하지 않는다.
+3. 기존 unknown은 근거 없이 estimated/현재시각/0으로 승격하지 않는다. 새 시간 모델의 기준점·구간 변환·불확실성 산식은
+   해당 모델이 실제로 보장하는 범위가 입증된 뒤 제품에 적용한다. 파일 재생과 live 입력의 전송 지연 의미를 같다고 가정하지 않는다.
+4. 상세 mapping·원본 식별/시간 불연속/세그먼트·삭제·pin/hold 증거는 유지한다. 단순 인접 unknown 병합·필드 삭제를 저장 최적화로 적용하지 않는다.
+   표출용 묶음은 원본 상세와 별개로 설계하고 구성원·PTS 범위·품질·안정 ID·재생 대상이 보존되어야 한다.
+   공개 DTO/ID 의미가 달라지면 후속 구현 전에 승인 경계를 확정한다.
+5. 작업 완료 관측은 해당 job의 내구 상태와 출력 확인으로 판정하고, 전체 목록의 일관성/누락 검사는 독립시킨다.
+   첫 페이지만 검사하거나 total 검사 삭제로 기존 전수 판정을 통과시키지 않는다. 조회 snapshot/지속 변경의 페이지 계약은 별도 해결 대상이다.
+
+과거 관측의 mono/UTC 원시 쌍은 저장되지 않았으므로 특정 OS 시계 보정·스케줄러·분석 부하의 기여율을 소급 확정할 수 없다.
+확정할 수 있는 것은 실제 저장된 분기 이유와 현재 코드가 이를 증폭시키는 경로다. 새 진단은 이 구별을 검증하며
+과거 실행을 완전히 재현했다거나 모든 unknown이 지터 때문이라고 주장하지 않는다.
+
+### LP23-U 실행 결과
+
+메인 직접 diff/불변 경계 검토 후 실행. 제품 source·입력 hash 불변. token start/end/consumed 미집계(전용 집계 부재).
+실제 재현 명령/환경: [command01](lp23-utc-command-01.txt)·[command02](lp23-utc-command-02.txt).
+compile/합성/최초 준비 실패 [run01](lp23-utc-run-01.json), 실입력 재개 [run02](lp23-utc-run-02.json).
+최초 run의 실제 입력은 준비 단계에서 exit1/25ms: 격리 환경에 HOME이 없어 `brew --prefix`가 거부됐다.
+별도 동일 최소 환경의 `brew --prefix` 관측은 exit1, 고정 오류 `Error: $HOME must be set to run brew.`였다.
+HOME 재지정 없이 확인된 HOMEBREW_PREFIX=/opt/homebrew를 전달해 해결했다. 제품/시간제한/합격 기준은 변경하지 않았다.
+합성8 PASS는 같은 binary/source이므로 재실행하지 않았다. 실행 파일 SHA256은 두 기록에서 동일하다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP23-U compile | c++17/Wall/Wextra/Werror/GStreamer | PASS | exit0,508ms |
+| LP23-U01 stable cadence | 9샘플 PTS/mono/UTC 일치 | PASS | estimated1/unknown0 |
+| LP23-U02 stable clocks jittered observation | 시계 offset 일정·홀수 관측5ms 지연 | PASS | mapping9,unknown8(각이유4),estimated1 |
+| LP23-U03 clock-step-back | UTC −100ms·PTS/mono 일정 | PASS | estimated2·unknown0 |
+| LP23-U03 clock-step-forward | UTC +100ms·PTS/mono 일정 | PASS | estimated2·unknown0 |
+| LP23-U04 pts-duplicate | 중복 PTS | PASS | 전체unknown1 |
+| LP23-U04 pts-backward | 역행 PTS | PASS | 전체unknown1 |
+| LP23-U05 clock-identity-missing | clock identity 부재 | PASS | unknown9·estimated0 |
+| LP23-U05 clock-bracket-reversed | mono 창 역전 | PASS | unknown9·estimated0 |
+| LP23-U05 clock-bracket-wide | mono 창5ms 초과 | PASS | unknown9·estimated0 |
+| LP23-U06 boundary-exact | 정확히2ms 차이 | PASS | estimated1 |
+| LP23-U06 boundary-over | 2ms+1ns 차이 | PASS | unknown2 |
+| LP23-U07 reset | Start 후 anchor/mapping 초기화 | PASS | 새 원본 estimated1·ID/시작점 분리 |
+| LP23-U08 mapping-budget | 300번 UTC split 입력 | PASS | mapping256·마지막 unknown tail |
+| LP23-U08 missing-duration | 마지막 duration 부재 | PASS | media_end 없음·끝 unknown |
+| LP23-U08 duration-overflow | 끝 덧셈 int64 overflow | PASS | 끝 unknown |
+| LP23-U08 signed-bound | UINT64_MAX PTS | PASS | Signed 거부 |
+| LP23-U synthetic summary | 위 합성8개 묶음 | PASS | exit0,333ms,8PASS0FAIL |
+| LP23-U09 최초 준비 | Homebrew 경로 발견 | FAIL | exit1,25ms. 영상 probe 미실행·RED 아님 |
+| LP23-U09 actual local input | 동일 fixture250샘플, 실제 observation/TimeState | PASS | 재개 exit0,9797ms,1PASS0FAIL |
+| LP23-U09 종료·불변 | NULL/source/input/group·정리 | PASS | source/input 불변·group 종료·temp1875084B 삭제 |
+
+250샘플 전체 상대값은 run02의 `[utc-observation]`250행에 보존했다. 원출력 8개/1개 PASS 제목과 합계 대조 완료.
+입력은 기존 fixture SHA256 `02d046c3df9acd44b2dd5d2fd50db46b6b1f8c3b3b5b44c3dd710bdc50cff2fa`이며,
+최종 compile source SHA256 `ea2108224270dade5d9ca91f04edb9055283835fdbaa167cafc2151fc48d1ca8`이다.
+
+| 관측 | 값 | 해석 |
+| --- | --- | --- |
+| 전체 mapping/unknown | 161/160,unknown 두 이유 각80 | 시계 큰 이동 없이도 높은 unknown 비율 |
+| 첫 관측 대비 UTC−mono 최대 차 | 28250ns(0.02825ms) | 이번 실행에는50ms 시계 split을 설명할 신호 없음 |
+| PTS 진행량−mono 진행량 최대 차 | 33262812ns(33.262812ms) | UTC 읽기 오차와 별개의 관측 cadence 차이 |
+| mono 관측 창 최대 | 1959ns | 5ms ClockValid 상한 안 |
+| 두 번째 프레임 | PTS33333333ns 진행, mono70521ns 진행 | startup에서 거의 붙어 도착한 관측 |
+| 인접 mono 간격 min/max | 70521/43075021ns | 일정한33.333ms PTS와 다름 |
+| 인접 PTS−mono 차2ms 초과 | 125/249쌍 | anchor 기준 writer 판정과 다른 보조 집계, exact 분기 횟수 아님 |
+| 인접 UTC−mono 차 최대 | 1271ns | 이번 관측에서 시계 차이보다 cadence 차이가 큼 |
+
+원인 결론: 이 입력의 안정적인 시계에서도 현재의 media−mono 오차 조건이 unknown 쌍을 생성한다.
+Clock read bracket의 정확도와 미디어 전달 cadence의 변동을 하나의 작은 오차 예산으로 처리하는 점,
+unknown 뒤 anchor 초기화/재획득 반복, 상세 mapping별 표출이 함께 비용/행 수를 키운다.
+따라서 단순 UTC 변환 변경·OS 시계 탓·timeout 연장으로 해결하지 않는다. 기존 관측 모델의2ms 정확도를
+실제 입력이 보장하는지 판단하고, 보장하지 못한 구간의 품질과 원본/재생 가능성을 분리하는 위 계약을 적용해야 한다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| media-server-utc-diagnostic-x65YwB | 진단 binary·소유 headless registry | 1875084B | 삭제 | 부재 확인, 생성 포트 없음 | [cleanup](lp23-utc-cleanup-01.json) |
+| lp23-utc-run/command 자료 | 비민감 원출력·상대 관측·명령 | 파일별 실제 크기 | 저장소 보존 | 원인·재현 명령·불변 증거 | 위 링크 |
+
+### LP23 이후 현재 단계 잔여 순서
+
+다음 목록은 제안이며 이번1~2 승인으로 구현/실행하지 않았다. 릴리즈 전수 감사가 아니라 현재 P0의 후속이다.
+
+| 순서 | 우선순위 | 이슈·이유 | 완료 기준·예상 검증 | 범위 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | P0 | 복구/Open·SQLite 재투영 중복 처리 보완 | 새 journal의 엄격 최초 검증·전이/손상 거부를 유지하고 동일 검증 결과만 재사용. 현실 크기 자료의 정상15초 진단·복구 결과/저장 byte 비교 | 이번15초 실패 위치 확정. 삭제 원장의 byte-exact 재현 대신 보존 크기/구조를 명시한 fixture 필요 |
+| 2 | P0 | 시간 정확도·표출 단위 분리 적용 | UTC/mono와 media cadence의 오차·입력 종류별 보장 범위 확정 후 구현. unknown 보존·불연속/ID/재생 대상 유지·상한·새 근거 없는 승격 거부 | LP23-U01~09 및945/942 저장 결과 |
+| 3 | P0 | 완료 관측과 전체 목록 검증 분리 | 대상 job 내구Complete/출력 증거와 전체 페이지 일관성 각각 검사. 지속 쓰기/총계변경/누락/중복 반례 유지 | LP22 Complete 후 page-total-changed 반복 |
+| 4 | P0 | 영향 회귀·기존 LP22 제품 초안 마감 | 기존 요청내 재사용 제품5/검사4와 위 변경 대조, 손상/삭제·hold/메모리 회귀 후 분할 커밋. 실패 초안은 현재 완료로 취급하지 않음 | 현재9개 제품/검사 미커밋 |
+| 5 | P0 | 실제 HTTP·이벤트 통합 | 기존HTTP4초·완료관측30초 유지, 완전출력2개/HTTP·파일hash/두 번째 기동 보존·신규 녹화·현행5단계 확인, 종료/정리 | 현재 실제 앱 및 통합 미완료 |
+| 6 | 마감 | 기록·푸시 가능 재판정 | 위 실패/미커밋 해소와 문서 정합 후 사용자 승인 범위의 push 판단 | AGENTS3/5. 이번 push 미승인 |
+
+30분/UI/120분 등 S11 최종cut은 현재 단기 P0를 닫고 기존 evidence 유지/무효 범위를 대조한 뒤 별도 실행 범위를 확정한다.
+이번 진단 PASS로 이 최종 검증을 완료했다고 보지 않는다.
+
+마감 문서 검사: [links02](lp23-docs-links-02.txt) exit0/285문서·9079링크·130anchor/실패0,
+[diffcheck02](lp23-diffcheck-02.txt) exit0. 자산·이미지·자산 정책은 이후 변경이 없어 앞선 assets01의10PASS를 유지한다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP23-U docs-links | 분석·결과·근거 링크 | PASS | exit0 |
+| LP23-U diffcheck | 새 진단 코드/문서 공백 | PASS | exit0 |
+
 ## LP23 사후 진단과 정리
 
 독자/수명: 현재 원인 분석·후속 회귀 담당자용 실행 증거다. 중앙 LP23 기록의 상세이며 제품 완료 판정을 대체하지 않는다.
