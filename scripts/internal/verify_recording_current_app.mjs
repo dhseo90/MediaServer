@@ -9,7 +9,7 @@ import {fileURLToPath} from 'node:url';
 import {reservePort,stopServer,assertPortClosed} from './verify_v410_recording_ui_contract.mjs';
 import {assertLocalIceConfig} from './verify_local_ice_guard.mjs';
 import {dispatchTuple,correlatedEvent} from './recording_event_correlation.mjs';
-import {allTimelinePages,eventOutputs,verifyRestart,measuredHttpResponse,summarizeEventState,latencyTransitionOutputs} from './recording_current_app_helpers.mjs';
+import {allTimelinePages,eventOutputs,verifyRestart,measuredHttpResponse,summarizeEventState,createTerminalObservation} from './recording_current_app_helpers.mjs';
 import {failedWindowGate,requireFailedWindowDispatch,summarizeOverlappingSources} from './recording_current_app_helpers.mjs';
 import {captureFailureEvidence,captureCompletenessEvidence,captureStateEvidence,removeDiagnosticRoot,runDiagnosticProbe,createWriterEvidenceCollector} from './recording_failure_capture.mjs';
 import {createLatencyTraceCollector,preserveLatencyEvidence} from './recording_latency_trace.mjs';
@@ -23,6 +23,8 @@ let latencyPass=false,failedReference=null,completedReference=null,diagnosticRef
 const pageObservation=createTimelineObservation({reference:()=>diagnosticReference,report:row=>console.log('[timeline-page-observation] '+JSON.stringify(row))});
 let transitionObservationInvalid=0;
 const timelineTimings=[];
+const timelineUnplacedUnit='file',terminalObservations=[];
+console.log('[timeline-query-mode] '+JSON.stringify({unplacedUnit:timelineUnplacedUnit,knownUnit:'mapping',maxLeafItems:4096,maxBytes:64*1024*1024}));
 // 이 fixture의 segment=2000ms, post=750ms, 기본 여유=1000ms,
 // retry=500ms와 LP10 원본 대기 예산에 결박한다. 임의 행별 예산은 허용하지 않는다.
 const selectionTraceBudget={baseWaitMs:3750,baseAttemptLimit:9,sourceWaitMs:60000,sourceAttemptLimit:121};
@@ -117,12 +119,12 @@ async function stop(app){
 }
 function events(){const file=path.join(root,'events/events.jsonl');if(!fs.existsSync(file))return [];const size=fs.statSync(file).size;if(size>4*MiB)throw Error('event-jsonl-byte-cap');const text=fs.readFileSync(file,'utf8'),end=text.lastIndexOf('\n');if(end<0)return [];const lines=text.slice(0,end).split('\n').filter(Boolean);if(lines.length>8192)throw Error('event-record-cap');return lines.map(line=>JSON.parse(line));}
 const queryStart=Date.now()-60000,queryEnd=Date.now()+240000;
-async function timeline(app){
+async function timeline(app,consumePage){
   const cycle=pageObservation.begin(app.ordinal);
   return allTimelinePages(async(offset,limit)=>{
-    try{return await request(app,'GET',`/ops/api/recordings/timeline?channelId=9101&startTimeMs=${queryStart}&endTimeMs=${queryEnd}&offset=${offset}&limit=${limit}`);}
+    try{return await request(app,'GET',`/ops/api/recordings/timeline?channelId=9101&startTimeMs=${queryStart}&endTimeMs=${queryEnd}&offset=${offset}&limit=${limit}&unplacedUnit=${timelineUnplacedUnit}`);}
     finally{cycle.ordinal(app.timelineSequence);}
-  },{observe:cycle.observe});
+  },{observe:cycle.observe,consumePage});
 }
 function rule(id,enabled=true){return {id,priority:100,enabled,match:{sourceKind:'file',route:'http'},analysis:{classes:['person']},event:{type:'presence',minConfidence:0.25,region:{type:'polygon',points:[{x:0,y:0},{x:1,y:0},{x:1,y:1},{x:0,y:1}]}},eventActions:{highlight:{enabled:true,mode:'blink',target:'matched-object',durationMs:1500,color:'#00ff00'},post:{enabled:false,method:'POST',url:'',payloadFormat:'media-server.va.event.v1'}}};}
 async function collectEvent(app,index){
@@ -152,23 +154,47 @@ async function collectEvent(app,index){
     await request(app,'PUT',`/lab/analysis/rules/${ruleId}`,rule(ruleId,false));
     let lastState,lastSources;
     const observe=(page,reason)=>{if(!page)return;const state=summarizeEventState(page,event.eventId,event.recordingLinkId,reason),json=JSON.stringify(state);if(json!==lastState){console.log('[timeline-state] '+json);lastState=json;}
-      const sources=JSON.stringify(summarizeOverlappingSources(page,Math.trunc(tuple.pts/1000000)));if(sources!==lastSources){console.log('[overlapping-sources] '+sources);lastSources=sources;}};
+      const sources=JSON.stringify(summarizeOverlappingSources(page,Math.trunc(tuple.pts/1000000),{unplacedUnit:timelineUnplacedUnit}));if(sources!==lastSources){console.log('[overlapping-sources] '+sources);lastSources=sources;}};
     let rows;
-    const observedWait=run=>observeTransitionWait(run,{ordinal:()=>app.timelineSequence,referenceSha256:crypto.createHash('sha256').update(event.recordingLinkId).digest('hex'),processOrdinal:app.ordinal,deadlineMs:30000,report:row=>console.log('[transition-observation] '+JSON.stringify(row)),invalid:()=>{transitionObservationInvalid++;}});
+    const terminal=createTerminalObservation(event.eventId,event.recordingLinkId);
+    const consumePage=page=>terminal.consume(page,{timelineOrdinal:app.timelineSequence});
+    let fullPageStatus='not-observed',changedCycles=0;
+    const observedTimeline=async()=>{
+      try{const page=await timeline(app,consumePage);fullPageStatus='complete';return page;}
+      catch(error){
+        fullPageStatus=error.message==='page-total-changed'?'page-total-changed':'error';
+        if(error.message==='page-total-changed')changedCycles++;
+        if(error.message==='latency-job-failed')failedReference=event.recordingLinkId;
+        throw error;
+      }
+    };
+    const observedWait=async run=>{
+      const referenceSha256=crypto.createHash('sha256').update(event.recordingLinkId).digest('hex');let outcome='error';
+      try{
+        const value=await observeTransitionWait(run,{ordinal:()=>app.timelineSequence,referenceSha256,processOrdinal:app.ordinal,deadlineMs:30000,
+          report:row=>console.log('[transition-observation] '+JSON.stringify({...row,scope:latencyOnly?'terminal-observation':'full-page-two-outputs'})),invalid:()=>{transitionObservationInvalid++;}});
+        outcome='complete';return value;
+      }catch(error){outcome=error.message.endsWith('-timeout')?'timeout':'error';throw error;}
+      finally{
+        const summary={processOrdinal:app.ordinal,referenceSha256,unplacedUnit:timelineUnplacedUnit,...terminal.status(),fullPageStatus,changedCycles,waitOutcome:outcome};
+        terminalObservations.push(summary);console.log('[terminal-observation] '+JSON.stringify(summary));
+      }
+    };
     if(latencyOnly){
       rows=await observedWait(()=>until('latency-transition',async()=>{
-        try{const page=await timeline(app);observe(page,'ok');return latencyTransitionOutputs(page,event.eventId,event.recordingLinkId);}
-        catch(e){if(e.message==='page-total-changed')return false;if(e.message==='latency-job-failed')failedReference=event.recordingLinkId;throw e;}
+        try{const page=await observedTimeline();observe(page,'ok');}
+        catch(e){if(e.message!=='page-total-changed')throw e;}
+        const observed=terminal.outputs();return observed.length?observed:false;
       },30000));
       check(rows.length>0,'P0-HTTP02 same-reference durable transition observed (not completeness)');
       completedReference=event.recordingLinkId;
       const end=performance.now()+5000;
-      do{try{await timeline(app);}catch(e){if(e.message!=='page-total-changed')throw e;}await pause(100);}while(performance.now()<end);
+      do{try{await observedTimeline();}catch(e){if(e.message!=='page-total-changed')throw e;}await pause(100);}while(performance.now()<end);
       check(timelineTimings.length>0&&timelineTimings.every(t=>t.status===200&&t.outcome==='ok'&&t.totalElapsedMs<=4000),'P0-HTTP02 all timeline HTTP within unchanged 4000ms');
       console.log('[latency-result] '+JSON.stringify({requests:timelineTimings.length,maxMs:Math.max(...timelineTimings.map(t=>t.totalElapsedMs)),outputCount:rows.length,completeness:rows.map(r=>['complete','partial','unknown'].includes(r.completeness)?r.completeness:'other')}));
       latencyPass=true;return null;
     }
-    try{rows=await observedWait(()=>until('complete-two-outputs',async()=>{let page;try{page=await timeline(app);const outputs=eventOutputs(page,event.eventId,event.recordingLinkId);observe(page,'ok');return outputs;}catch(e){
+    try{rows=await observedWait(()=>until('complete-two-outputs',async()=>{let page;try{page=await observedTimeline();const outputs=eventOutputs(page,event.eventId,event.recordingLinkId);observe(page,'ok');return outputs;}catch(e){
       observe(page,e.message);
       if(['event-absent','event-not-complete','page-total-changed','expected-two-output-files'].includes(e.message))return false;throw e;}},30000));
     }catch(e){if(lastState)console.log('[timeline-final-state] '+lastState);throw e;}
@@ -274,5 +300,5 @@ if(udp)try{await new Promise(resolve=>udp.close(resolve));udpClosed=true;}catch{
 let size=0;try{size=scan(root).bytes;if(processes.some(p=>!p.archiveSafe)||!udpClosed)throw Error('cleanup-ownership');removeDiagnosticRoot(root,rootStat,diagnosticCleanupAllowed&&latencyEvidencePreserved&&processEvidencePreserved&&completionEvidencePreserved);cleanup.rootAbsent=!fs.existsSync(root);}catch{cleanup.failureCount++;}
 cleanup.evidencePreservedOrNotRequired=diagnosticCleanupAllowed&&latencyEvidencePreserved&&processEvidencePreserved&&completionEvidencePreserved;
 console.log(`[cleanup] ${JSON.stringify({root,bytes:size,...cleanup,udpClosed})}`);
-console.log(JSON.stringify({mode:latencyOnly?'current-http-latency':'current-actual-app',passed,failed,latencyPass,actualEventPass,restartPass,expectedOutputCount:2,observedOutputCounts,cleanup,elapsedMs:Math.round(performance.now()-start)}));
+console.log(JSON.stringify({mode:latencyOnly?'current-http-latency':'current-actual-app',timelineUnplacedUnit,terminalObservations,passed,failed,latencyPass,actualEventPass,restartPass,expectedOutputCount:2,observedOutputCounts,cleanup,elapsedMs:Math.round(performance.now()-start)}));
 process.exitCode=primaryError||failed||cleanup.failureCount||!cleanup.rootAbsent?1:0;

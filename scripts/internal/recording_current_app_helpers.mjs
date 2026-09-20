@@ -1,6 +1,7 @@
 // 공개 DTO 관측 helper. 원장 replay/parser를 구현하지 않는다.
 import {createHash} from 'node:crypto';
-export function summarizeOverlappingSources(page,eventMs){
+export function summarizeOverlappingSources(page,eventMs,{unplacedUnit='mapping'}={}){
+  need(['mapping','file'].includes(unplacedUnit),'source-diagnostic-unit');
   need(Number.isSafeInteger(eventMs),'source-diagnostic-time');
   const start=(BigInt(eventMs)-750n)*1000000n,end=(BigInt(eventMs)+750n)*1000000n;
   const rows=[],seen=new Set(),segments=new Set();let unknownCount=0;
@@ -17,7 +18,7 @@ export function summarizeOverlappingSources(page,eventMs){
     rows.push({idHash:createHash('sha256').update(row.segmentId).digest('hex'),startPts:range.startPts,endPts:range.endPts,
       catalogState:['finalized','deleted','corrupt','deletion-pending','unknown'].includes(row.catalogState)?row.catalogState:'other',playable:row.playable===true});
   }
-  return {temporalOnly:true,viewBasis:'timeline-mapping-slices',segmentCount:segments.size,startNs:String(start),endNs:String(end),unknownCount,rows};
+  return {temporalOnly:true,viewBasis:unplacedUnit==='file'?'timeline-known-mappings-unplaced-file-groups':'timeline-mapping-slices',segmentCount:segments.size,startNs:String(start),endNs:String(end),unknownCount,rows};
 }
 export function failedWindowGate(sourceEnd,tapPts){
   need(sourceEnd<=16500000000n,'reproduction-boundary-missed');
@@ -39,6 +40,39 @@ export function latencyTransitionOutputs(page,eventId,referenceId){
     outputs.set(row.segmentId,row);
   }
   return [...outputs.values()];
+}
+// 검증된 개별 페이지에서 terminal을 본 사실만 보존한다. 전체 조회/두 출력 PASS를 만들지 않는다.
+export function createTerminalObservation(eventId,referenceId,{now=()=>performance.now()}={}){
+  const outputs=new Map(),states=new Set();let job=null,firstObservedMs=null,firstPageOffset=null,firstTimelineOrdinal=null,failure=null;
+  return {consume(page,{timelineOrdinal=null}={}){
+    if(failure)throw failure;
+    try{
+      const matched=[...page.items,...page.unplacedItems].filter(row=>row.eventId===eventId||row.referenceId===referenceId);
+      for(const row of matched){
+        need(row.kind==='event'&&row.eventId===eventId&&row.referenceId===referenceId,'latency-lineage');
+        need(['not-created','intent','ready','committed','complete','failed'].includes(row.jobState),'latency-state');
+        need(row.jobState!=='failed','latency-job-failed');
+        if(row.jobState==='not-created'&&row.jobId===''){
+          need(row.segmentId===null&&row.completeness==='unknown'&&row.catalogState==='absent'&&row.playable===false,'latency-lineage');
+          states.add(row.jobState);continue;
+        }
+        need(typeof row.jobId==='string'&&row.jobId.length>0&&(!job||job===row.jobId),'latency-lineage');job=row.jobId;
+        states.add(row.jobState);
+        if(row.jobState!=='complete')continue;
+        latencyTransitionOutputs({items:[row],unplacedItems:[]},eventId,referenceId);
+        need(outputs.has(row.segmentId)||outputs.size<8,'terminal-observation-cap');
+        // job 출력 상한8에 결박한다. 전체 DTO/member 배열은 full-page 결과에만 보존한다.
+        const value=Object.fromEntries(['kind','eventId','referenceId','jobId','jobState','segmentId','catalogState','playable','playbackUrl','completeness'].map(key=>[key,row[key]]));
+        need(Buffer.byteLength(JSON.stringify(value))<=8192,'terminal-observation-cap');
+        outputs.set(row.segmentId,value);
+        if(firstObservedMs===null){const at=now();need(Number.isFinite(at)&&at>=0,'terminal-clock');
+          need(timelineOrdinal===null||(Number.isSafeInteger(timelineOrdinal)&&timelineOrdinal>0),'terminal-ordinal');
+          firstObservedMs=at;firstPageOffset=page.offset;firstTimelineOrdinal=timelineOrdinal;}
+      }
+    }catch(error){failure=error;throw error;}
+  },outputs(){if(failure)throw failure;return [...outputs.values()];},
+  status(){return {terminalObserved:firstObservedMs!==null,firstObservedMs,firstPageOffset,firstTimelineOrdinal,mixedStates:states.size>1,
+    observedOutputCount:outputs.size,fullOutputPass:false,invalid:failure!==null};}};
 }
 export function summarizeEventState(page,eventId,referenceId,reason){
   const matched=[...page.items,...page.unplacedItems].filter(x=>x.eventId===eventId);
@@ -83,26 +117,39 @@ export async function measuredHttpResponse({route,method='GET',request,report,no
   }
 }
 function need(ok,reason){if(!ok)throw Error(reason);}
-export async function allTimelinePages(fetchPage,{limit=100,maxItems=4096,maxBytes=64*1024*1024,observe}={}){
+export async function allTimelinePages(fetchPage,{limit=100,maxItems=4096,maxBytes=64*1024*1024,observe,consumePage}={}){
   // 관측 callback 실패는 원래 페이지 결과/예외를 덮지 않는다.
   const notify=event=>{try{observe?.(event);}catch{}};
   try{
   need(Number.isSafeInteger(limit)&&limit>0&&limit<=1000,'page-limit');
-  const items=[],unplacedItems=[],seen=new Set();let total,unplacedTotal,bytes=0;
+  const items=[],unplacedItems=[],seen=new Set();let total,unplacedTotal,bytes=0,leaves=0;
   for(let offset=0;;offset+=limit){
     const page=await fetchPage(offset,limit);
     notify({kind:'page',offset,page});
-    need(!page.truncated&&Number.isSafeInteger(page.total)&&page.total>=0&&Number.isSafeInteger(page.unplacedTotal)&&page.unplacedTotal>=0,'page-total');
-    if(total===undefined){total=page.total;unplacedTotal=page.unplacedTotal;}
-    need(page.total===total&&page.unplacedTotal===unplacedTotal,'page-total-changed');
-    need(total+unplacedTotal<=maxItems&&page.offset===offset&&page.limit===limit,'page-bound');
-    for(const [key,target,count] of [['items',items,total],['unplacedItems',unplacedItems,unplacedTotal]]){
+    need(page&&!page.truncated&&Number.isSafeInteger(page.total)&&page.total>=0&&Number.isSafeInteger(page.unplacedTotal)&&page.unplacedTotal>=0,'page-total');
+    need(page.total+page.unplacedTotal<=maxItems&&page.offset===offset&&page.limit===limit,'page-bound');
+    const pageIds=new Set();
+    const identify=item=>{need(item&&typeof item.itemId==='string'&&item.itemId.length>0&&!pageIds.has(item.itemId),'duplicate-item');pageIds.add(item.itemId);};
+    for(const [key,count] of [['items',page.total],['unplacedItems',page.unplacedTotal]]){
       need(Array.isArray(page[key])&&page[key].length===Math.min(limit,Math.max(0,count-offset)),'page-incomplete');
       for(const item of page[key]){
-        need(typeof item.itemId==='string'&&item.itemId.length>0&&!seen.has(item.itemId),'duplicate-item');seen.add(item.itemId);
-        bytes+=Buffer.byteLength(JSON.stringify(item));need(bytes<=maxBytes,'page-byte-cap');target.push(item);
+        identify(item);
+        if(item.rangeBasis==='file-group'){
+          need(Array.isArray(item.members)&&item.members.length>0,'group-members');
+          leaves+=item.members.length;
+          need(leaves<=maxItems,'page-bound');
+          for(const member of item.members){identify(member);need(!Object.hasOwn(member,'members'),'group-members');}
+        }else{need(!Object.hasOwn(item,'members'),'group-members');leaves++;}
+        need(leaves<=maxItems,'page-bound');
+        bytes+=Buffer.byteLength(JSON.stringify(item));need(bytes<=maxBytes,'page-byte-cap');
       }
     }
+    // 이 callback은 진단 observe와 달리 오류를 삼키지 않는다. cross-page 실패와 별개로 관측한다.
+    await consumePage?.(page);
+    if(total===undefined){total=page.total;unplacedTotal=page.unplacedTotal;}
+    need(page.total===total&&page.unplacedTotal===unplacedTotal,'page-total-changed');
+    for(const id of pageIds){need(!seen.has(id),'duplicate-item');seen.add(id);}
+    items.push(...page.items);unplacedItems.push(...page.unplacedItems);
     if(offset+limit>=Math.max(total,unplacedTotal)){notify({kind:'complete'});return {total,unplacedTotal,items,unplacedItems};}
   }
   }catch(error){notify({kind:'failure',code:error?.message==='page-total-changed'?'page-total-changed':'page-failure'});throw error;}

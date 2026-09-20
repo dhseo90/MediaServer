@@ -1,0 +1,452 @@
+command: node --test scripts/internal/recording_current_observation.test.mjs scripts/internal/recording_current_integration.test.mjs scripts/internal/recording_current_latency.test.mjs
+exit: 1
+✔ S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박 (0.850042ms)
+✔ LP20-X01 실제 종료 producer의 정상 두 결과를 수용 (0.12375ms)
+✔ LP20-X02 schema 누락는 정상 종료로 승인하지 않음 (0.170334ms)
+✔ LP20-X02 schema 불일치는 정상 종료로 승인하지 않음 (0.109ms)
+✔ LP20-X02 반복 종료는 정상 종료로 승인하지 않음 (0.099916ms)
+✔ LP20-X02 PID 누락는 정상 종료로 승인하지 않음 (0.109041ms)
+✔ LP20-X02 exit 비정상는 정상 종료로 승인하지 않음 (0.069042ms)
+✔ LP20-X02 signal 관측는 정상 종료로 승인하지 않음 (0.062625ms)
+✔ LP20-X02 종료 미관측는 정상 종료로 승인하지 않음 (0.06475ms)
+✔ LP20-X02 stop 오류는 정상 종료로 승인하지 않음 (0.095667ms)
+✔ LP20-X02 강제 종료는 정상 종료로 승인하지 않음 (0.092917ms)
+✔ LP20-X02 강제 여부 미확인는 정상 종료로 승인하지 않음 (0.07ms)
+✔ LP20-X02 normalExit 실패는 정상 종료로 승인하지 않음 (0.060625ms)
+✔ LP20-X02 normalShutdown 실패는 정상 종료로 승인하지 않음 (0.060834ms)
+✔ LP20-X02 archive 불가는 정상 종료로 승인하지 않음 (0.0515ms)
+✔ LP20-X02 ports 누락는 정상 종료로 승인하지 않음 (0.057208ms)
+✔ LP20-X02 port 수 부족는 정상 종료로 승인하지 않음 (0.05175ms)
+✔ LP20-X02 port kind 중복는 정상 종료로 승인하지 않음 (0.062334ms)
+✔ LP20-X02 port 미해제는 정상 종료로 승인하지 않음 (0.059125ms)
+✔ LP20-X02 port 상태 모순는 정상 종료로 승인하지 않음 (0.052334ms)
+✔ LP20-X02 port 코드 모순는 정상 종료로 승인하지 않음 (0.052334ms)
+✔ LP20-X02 port 범위 오류는 정상 종료로 승인하지 않음 (0.051792ms)
+✔ LP20-X02 graceful-only 구형 결과는 정상 종료로 승인하지 않음 (0.058ms)
+✔ LP20-X02 정상 flag 누락는 정상 종료로 승인하지 않음 (0.052625ms)
+✔ S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부 (0.183583ms)
+✔ S11-CI02 nonzero 실패 후 나머지 미실행 (0.094084ms)
+✔ S11-CI02 signal 실패 후 나머지 미실행 (0.025584ms)
+✔ S11-CI02 output-limit 실패 후 나머지 미실행 (0.039292ms)
+✔ S11-CI02 summary-missing 실패 후 나머지 미실행 (0.02825ms)
+✔ S11-CI02 summary-duplicate 실패 후 나머지 미실행 (0.028666ms)
+✔ S11-CI02 cleanup-failed 실패 후 나머지 미실행 (0.028959ms)
+✔ S11-CI02 port-missing 실패 후 나머지 미실행 (0.026166ms)
+✔ S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리 (0.356542ms)
+✔ S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부 (0.142667ms)
+✔ S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup (4.71575ms)
+✔ S11-CI05 누락·중복item·불안정total·truncated·cap 거부 (0.195083ms)
+✔ S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부 (0.153292ms)
+✔ S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 (0.214792ms)
+✔ S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리 (0.167083ms)
+✔ S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 (0.065208ms)
+✔ LP25-O04 group members survive full collection and literal two output validation (0.062916ms)
+✖ LP25-O04 within group duplicate rejects grouped page before completion consumer (0.2485ms)
+✖ LP25-O04 across groups duplicate rejects grouped page before completion consumer (0.040791ms)
+✖ LP25-O04 member collides with outer ID rejects grouped page before completion consumer (0.0355ms)
+✖ LP25-O04 missing members rejects grouped page before completion consumer (0.034667ms)
+✖ LP25-O04 empty members rejects grouped page before completion consumer (0.03ms)
+✖ LP25-O04 leaf cap rejects grouped page before completion consumer (0.03175ms)
+✔ LP25-O04 members byte cap rejects grouped page before completion consumer (0.037875ms)
+✔ LP04-A 목표 이전은 대기하고 해당 구간만 선택 (0.332292ms)
+✔ LP04-A 경계와 프레임을 놓치면 다른 구간으로 대체 금지 (0.15525ms)
+✔ LP04-A 실제 dispatch 정확 일치만 허용 (0.070583ms)
+✔ LP03-A failed는 완료 대기 대신 즉시 중단 (0.087542ms)
+✔ P0-HTTP01 pending은 전이 완료가 아님 (0.043459ms)
+✔ P0-HTTP01 partial은 지연 관측만 가능 (0.039584ms)
+✔ P0-HTTP01 다른 참조와 모순 파일은 거부 (0.058584ms)
+✔ P0-HTTP01 원래 완전 출력 검사는 부분 출력 거부 유지 (0.089875ms)
+✖ LP25-O02 terminal partial output is observation only and never completeness evidence (0.386459ms)
+✖ LP25-O04 source diagnostics state explicit file-group basis without changing default mapping basis (0.401709ms)
+✔ LP22-O01 optional page observation preserves values and captures every page (0.705084ms)
+✔ LP22-O02 callback exceptions do not replace original page failure (0.271125ms)
+✔ LP22-O03 same total ready complete mixture retains individual page states (0.644958ms)
+✔ LP22-O04 changed totals fail then a fresh cycle fetches every page again (0.452875ms)
+✔ LP22-O05 late complete observation cannot erase the original transition timeout (0.159125ms)
+✔ LP22-O04 wait keeps late successful return and reports its client deadline overrun (0.072542ms)
+✔ LP22-O06 diagnostic report failure remains explicit without hiding primary error (0.090792ms)
+✖ LP25-O01 complete page survives later total change while full collection fails (0.396584ms)
+✖ LP25-O01 changed page is independently validated and observed before total mismatch (0.086ms)
+✖ LP25-O02 ready complete mixture is observed but never promoted to complete full page (0.103167ms)
+✖ LP25-O02 strict consumer exceptions propagate independently of swallowed diagnostic errors (0.08775ms)
+✖ LP25-O02 reference conflict after complete cannot disappear behind prior terminal observation (0.063417ms)
+✖ LP25-O02 job conflict after complete cannot disappear behind prior terminal observation (0.04ms)
+✖ LP25-O02 failed conflict after complete cannot disappear behind prior terminal observation (0.05575ms)
+✖ LP25-O02 media conflict after complete cannot disappear behind prior terminal observation (0.05425ms)
+✖ LP25-O03 complete observation cannot erase a following HTTP failure (0.070791ms)
+✖ LP25-O03 no terminal state retains original thirty second wait timeout (0.061417ms)
+✔ LP25-O04 invalid offset page is rejected before strict consumer (0.061208ms)
+✔ LP25-O04 invalid limit page is rejected before strict consumer (0.028208ms)
+✔ LP25-O04 invalid count page is rejected before strict consumer (0.036458ms)
+✔ LP25-O04 invalid duplicate page is rejected before strict consumer (0.035459ms)
+✔ LP25-O04 invalid truncated page is rejected before strict consumer (0.02975ms)
+ℹ tests 80
+ℹ suites 0
+ℹ pass 62
+ℹ fail 18
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 52.555
+
+✖ failing tests:
+
+test at scripts/internal/recording_current_integration.test.mjs:133:3
+✖ LP25-O04 within group duplicate rejects grouped page before completion consumer (0.2485ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_integration.test.mjs:135:3)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /duplicate-item/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_integration.test.mjs:133:3
+✖ LP25-O04 across groups duplicate rejects grouped page before completion consumer (0.040791ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_integration.test.mjs:135:3)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /duplicate-item/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_integration.test.mjs:133:3
+✖ LP25-O04 member collides with outer ID rejects grouped page before completion consumer (0.0355ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_integration.test.mjs:135:3)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /duplicate-item/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_integration.test.mjs:133:3
+✖ LP25-O04 missing members rejects grouped page before completion consumer (0.034667ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_integration.test.mjs:135:3)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /group-members/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_integration.test.mjs:133:3
+✖ LP25-O04 empty members rejects grouped page before completion consumer (0.03ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_integration.test.mjs:135:3)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /group-members/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_integration.test.mjs:133:3
+✖ LP25-O04 leaf cap rejects grouped page before completion consumer (0.03175ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_integration.test.mjs:135:3)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /page-bound/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_latency.test.mjs:37:1
+✖ LP25-O02 terminal partial output is observation only and never completeness evidence (0.386459ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'undefined'
+  - 'function'
+
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_latency.test.mjs:38:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_latency.test.mjs:43:1
+✖ LP25-O04 source diagnostics state explicit file-group basis without changing default mapping basis (0.401709ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'timeline-mapping-slices'
+  - 'timeline-known-mappings-unplaced-file-groups'
+              ^
+
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_latency.test.mjs:47:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'timeline-mapping-slices',
+    expected: 'timeline-known-mappings-unplaced-file-groups',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_observation.test.mjs:58:1
+✖ LP25-O01 complete page survives later total change while full collection fails (0.396584ms)
+  AssertionError [ERR_ASSERTION]: LP25 strict terminal observation helper must exist
+  + actual - expected
+
+  + 'undefined'
+  - 'function'
+
+      at terminalObservation (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_observation.test.mjs:55:10)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_observation.test.mjs:59:32)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_observation.test.mjs:66:1
+✖ LP25-O01 changed page is independently validated and observed before total mismatch (0.086ms)
+  AssertionError [ERR_ASSERTION]: LP25 strict terminal observation helper must exist
+  + actual - expected
+
+  + 'undefined'
+  - 'function'
+
+      at terminalObservation (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_observation.test.mjs:55:10)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_observation.test.mjs:67:21)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_observation.test.mjs:72:1
+✖ LP25-O02 ready complete mixture is observed but never promoted to complete full page (0.103167ms)
+  AssertionError [ERR_ASSERTION]: LP25 strict terminal observation helper must exist
+  + actual - expected
+
+  + 'undefined'
+  - 'function'
+
+      at terminalObservation (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_observation.test.mjs:55:10)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_observation.test.mjs:73:21)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_observation.test.mjs:80:1
+✖ LP25-O02 strict consumer exceptions propagate independently of swallowed diagnostic errors (0.08775ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_observation.test.mjs:82:3)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_observation.test.mjs:88:3
+✖ LP25-O02 reference conflict after complete cannot disappear behind prior terminal observation (0.063417ms)
+  AssertionError [ERR_ASSERTION]: LP25 strict terminal observation helper must exist
+  + actual - expected
+
+  + 'undefined'
+  - 'function'
+
+      at terminalObservation (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_observation.test.mjs:55:10)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_observation.test.mjs:89:21)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_observation.test.mjs:88:3
+✖ LP25-O02 job conflict after complete cannot disappear behind prior terminal observation (0.04ms)
+  AssertionError [ERR_ASSERTION]: LP25 strict terminal observation helper must exist
+  + actual - expected
+
+  + 'undefined'
+  - 'function'
+
+      at terminalObservation (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_observation.test.mjs:55:10)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_observation.test.mjs:89:21)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_observation.test.mjs:88:3
+✖ LP25-O02 failed conflict after complete cannot disappear behind prior terminal observation (0.05575ms)
+  AssertionError [ERR_ASSERTION]: LP25 strict terminal observation helper must exist
+  + actual - expected
+
+  + 'undefined'
+  - 'function'
+
+      at terminalObservation (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_observation.test.mjs:55:10)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_observation.test.mjs:89:21)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_observation.test.mjs:88:3
+✖ LP25-O02 media conflict after complete cannot disappear behind prior terminal observation (0.05425ms)
+  AssertionError [ERR_ASSERTION]: LP25 strict terminal observation helper must exist
+  + actual - expected
+
+  + 'undefined'
+  - 'function'
+
+      at terminalObservation (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_observation.test.mjs:55:10)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_observation.test.mjs:89:21)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_observation.test.mjs:94:1
+✖ LP25-O03 complete observation cannot erase a following HTTP failure (0.070791ms)
+  AssertionError [ERR_ASSERTION]: LP25 strict terminal observation helper must exist
+  + actual - expected
+
+  + 'undefined'
+  - 'function'
+
+      at terminalObservation (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_observation.test.mjs:55:10)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_observation.test.mjs:95:21)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_observation.test.mjs:100:1
+✖ LP25-O03 no terminal state retains original thirty second wait timeout (0.061417ms)
+  AssertionError [ERR_ASSERTION]: LP25 strict terminal observation helper must exist
+  + actual - expected
+
+  + 'undefined'
+  - 'function'
+
+      at terminalObservation (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_observation.test.mjs:55:10)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_observation.test.mjs:101:31)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

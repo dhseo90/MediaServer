@@ -9,7 +9,7 @@
 | 번호 | 사용자 지시 | 처리 상태 | 결과/완료 기준 | 근거 |
 | --- | --- | --- | --- | --- |
 | 1 | 시간 정확도·표시 단위 분리 | 완료 | 기본 mapping 호환, opt-in 그룹·66검사/빌드 통과 | LP25-T01~08 |
-| 2 | 완료 관측·전수 페이지 분리 | 대기 | 동일 job 완료30초·HTTP4초, 페이지 실패 별도 | LP25-O01~04 |
+| 2 | 완료 관측·전수 페이지 분리 | 완료 | 신규/기존/계측112PASS, 원래 시간제한 유지 | LP25-O01~04 |
 | 3 | LP22 마감 | 대기 | bounded context·손상·권한·수명 회귀 | LP22-R |
 | 4 | 실제 앱·현행 통합 | 대기 | HTTP4초·완전2출력·hash·재기동·5단계 | P0-HTTP02/S11-CI |
 | 5 | 기록·커밋·푸시 | 대기 | 앞 단계 통과, 승인 범위 clean 확인 후 푸시 | AGENTS5 |
@@ -60,6 +60,174 @@ partial→complete 승격, 저장 bytes/선택/UTC 정책/복구/재생 대상 �
 실패 뒤 단계는 보류한다. 기존1-A/1-B 유효 증거는 인계 때문에 반복하지 않는다.
 token start/end/consumed: 미집계(실제 집계 도구 없음). elapsed/source는 실행별 기록한다.
 ### 1번 결과
+
+1번 커밋 `e1817593` 완료. LP22 projection 기존4hunk는 index에서만 제외했고 작업파일 SHA 불변을 확인했다.
+분리 보조패치 `/private/tmp/media-server-lp25-stage.BpdRtH/lp22-projection.patch`는
+소유 파일·빈 부모를 삭제하고 부재 확인했다. 원본 제품/데이터 삭제 없음.
+
+### 2번 관측 계약
+
+진단 callback과 별도로 오류를 전파하는 검증용 페이지 consumer를 사용한다. 각 페이지 shape/count/offset/limit,
+ID·byte 상한 검증 후 관측을 보존한다. total이 다음 페이지에서 바뀌어도 기존 완료 관측을 지우지 않되 전수 조회는 실패다.
+작업 완료30초·HTTP4초·실행180초 예산은 유지하며 단계 분리로 시간을 더 부여하지 않는다.
+동일 event/reference/job의 complete·finalized·playable·정확한 media URL만 terminal 관측이다.
+이 관측은 모든 출력/요청 완전성을 뜻하지 않는다. 전수 조회의 누락/중복 및 `eventOutputs` 완전2출력 기준은 그대로다.
+실제 current-app 검증기는 `unplacedUnit=file`을 명시한다. 구성원까지 전체 byte64MiB/leaf4096/ID중복 검사를 유지해
+그룹 외피를 줄인 것을 원본 누락 숨김으로 사용하지 않는다. 기본 mapping 공개 응답은1번66검사로 확인했다.
+late HTTP/strict consumer 오류를 삼키지 않으며 완료 관측 성공과 전수 페이지 실패를 따로 보고한다.
+
+2번 예상 RED: 위 observation/integration/latency 세 Node test를 실행해80개 중62PASS/18FAIL,
+exit1/52.555ms. 신규 helper 부재·strict consumer/member 검사·진단 basis 미구현 assertion18개만 실패했고 기존 회귀는 통과했다.
+[RED 원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp25-observation-01-red.txt)에 모든 개별 결과와 assertion을 보존한다.
+stage 공백 검사에서 Node assertion 출력의 공백만 있는22개 줄을 발견해 후행 공백만 정규화했다.
+결과·수치·오류 내용은 변경하지 않았으며 정규화 뒤 index 공백 검사를 다시 수행한다.
+네트워크·서버·임시 산출물 없음. 실패를 예상 RED로 확인한 뒤 같은 범위 구현을 진행한다.
+O02 보완 반례: 같은 관측기의 cycle 누적 output도 제품의 최대8개(`recording_derived_job.cpp` job-resource-cap)를
+넘으면 거부한다. 전체 member payload를 cycle마다 보관하지 않고 완료 관측에 필요한 값만 유지한다.
+O01 보완 반례: total 변경으로 페이지가 밀려 앞 페이지 ID가 다시 나오는 경우 기존 `page-total-changed` 우선 판정을
+유지하고, total이 같은 페이지 간 중복은 여전히 실패다. 개별 페이지 안의 중복/잘못된 shape는 관측 전에 거부한다.
+
+### 3번 예정 영향 검증
+
+2번 결과: 위3개 test와 `recording_completion_trace.test.mjs`, `recording_latency_trace.test.mjs`의
+관련 계측 회귀를 실행해112PASS/0FAIL,exit0/1353.897417ms.
+[전수 원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp25-observation-02-green.txt).
+구현 helper/current-app 및 테스트5파일을 메인이 직접 검토했다. 기존 page-total-changed 우선순위·HTTP오류 전파,
+late 결과 관측을 유지하고 time budget을 늘리지 않았다. 실제 앱 실행은 아직4번으로 남아 있다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP22-T01 trace off and invalid environment emit nothing | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP22-T02 trace hashes canary identity and rejects unknown raw fields | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP22-T02 trace count and byte caps emit one explicit loss | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP22-T03 partial lines and malformed clocks fail closed | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP22-T03 delayed emission retains event chronology across four references | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP22-T04 invalid durable transitions and missing observation remain distinct | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP20-X01 실제 종료 producer의 정상 두 결과를 수용 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP20-X02 schema 누락는 정상 종료로 승인하지 않음 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP20-X02 schema 불일치는 정상 종료로 승인하지 않음 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP20-X02 반복 종료는 정상 종료로 승인하지 않음 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP20-X02 PID 누락는 정상 종료로 승인하지 않음 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP20-X02 exit 비정상는 정상 종료로 승인하지 않음 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP20-X02 signal 관측는 정상 종료로 승인하지 않음 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP20-X02 종료 미관측는 정상 종료로 승인하지 않음 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP20-X02 stop 오류는 정상 종료로 승인하지 않음 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP20-X02 강제 종료는 정상 종료로 승인하지 않음 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP20-X02 강제 여부 미확인는 정상 종료로 승인하지 않음 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP20-X02 normalExit 실패는 정상 종료로 승인하지 않음 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP20-X02 normalShutdown 실패는 정상 종료로 승인하지 않음 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP20-X02 archive 불가는 정상 종료로 승인하지 않음 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP20-X02 ports 누락는 정상 종료로 승인하지 않음 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP20-X02 port 수 부족는 정상 종료로 승인하지 않음 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP20-X02 port kind 중복는 정상 종료로 승인하지 않음 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP20-X02 port 미해제는 정상 종료로 승인하지 않음 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP20-X02 port 상태 모순는 정상 종료로 승인하지 않음 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP20-X02 port 코드 모순는 정상 종료로 승인하지 않음 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP20-X02 port 범위 오류는 정상 종료로 승인하지 않음 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP20-X02 graceful-only 구형 결과는 정상 종료로 승인하지 않음 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP20-X02 정상 flag 누락는 정상 종료로 승인하지 않음 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| S11-CI02 nonzero 실패 후 나머지 미실행 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| S11-CI02 signal 실패 후 나머지 미실행 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| S11-CI02 output-limit 실패 후 나머지 미실행 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| S11-CI02 summary-missing 실패 후 나머지 미실행 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| S11-CI02 summary-duplicate 실패 후 나머지 미실행 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| S11-CI02 cleanup-failed 실패 후 나머지 미실행 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| S11-CI02 port-missing 실패 후 나머지 미실행 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| S11-CI05 누락·중복item·불안정total·truncated·cap 거부 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O04 group members survive full collection and literal two output validation | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O04 within group duplicate rejects grouped page before completion consumer | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O04 across groups duplicate rejects grouped page before completion consumer | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O04 member collides with outer ID rejects grouped page before completion consumer | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O04 missing members rejects grouped page before completion consumer | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O04 empty members rejects grouped page before completion consumer | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O04 leaf cap rejects grouped page before completion consumer | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O04 members byte cap rejects grouped page before completion consumer | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP04-A 목표 이전은 대기하고 해당 구간만 선택 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP04-A 경계와 프레임을 놓치면 다른 구간으로 대체 금지 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP04-A 실제 dispatch 정확 일치만 허용 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP03-A failed는 완료 대기 대신 즉시 중단 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| P0-HTTP01 pending은 전이 완료가 아님 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| P0-HTTP01 partial은 지연 관측만 가능 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| P0-HTTP01 다른 참조와 모순 파일은 거부 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| P0-HTTP01 원래 완전 출력 검사는 부분 출력 거부 유지 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O02 terminal partial output is observation only and never completeness evidence | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O04 source diagnostics state explicit file-group basis without changing default mapping basis | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP22-O01 optional page observation preserves values and captures every page | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP22-O02 callback exceptions do not replace original page failure | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP22-O03 same total ready complete mixture retains individual page states | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP22-O04 changed totals fail then a fresh cycle fetches every page again | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP22-O05 late complete observation cannot erase the original transition timeout | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP22-O04 wait keeps late successful return and reports its client deadline overrun | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP22-O06 diagnostic report failure remains explicit without hiding primary error | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O01 complete page survives later total change while full collection fails | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O01 changed page is independently validated and observed before total mismatch | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O01 cross-page duplicate with stable total remains fatal | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O01 cross-page duplicate with total change retains retry reason | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O02 ready complete mixture is observed but never promoted to complete full page | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O02 strict consumer exceptions propagate independently of swallowed diagnostic errors | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O02 reference conflict after complete cannot disappear behind prior terminal observation | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O02 job conflict after complete cannot disappear behind prior terminal observation | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O02 state conflict after complete cannot disappear behind prior terminal observation | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O02 failed conflict after complete cannot disappear behind prior terminal observation | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O02 media conflict after complete cannot disappear behind prior terminal observation | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O03 complete observation cannot erase a following HTTP failure | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O03 no terminal state retains original thirty second wait timeout | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O02 terminal retention stays bounded across cycles and does not retain group members | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O04 invalid offset page is rejected before strict consumer | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O04 invalid limit page is rejected before strict consumer | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O04 invalid count page is rejected before strict consumer | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O04 invalid duplicate page is rejected before strict consumer | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP25-O04 invalid truncated page is rejected before strict consumer | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP13-T01 collector 존재 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP13-T01 disabled/invalid null 무출력 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP13-T01 disabled/invalid "" 무출력 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP13-T01 disabled/invalid "0" 무출력 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP13-T01 disabled/invalid "true" 무출력 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP13-T01 disabled/invalid "01" 무출력 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP13-T01 disabled/invalid "1 " 무출력 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP13-T02 fast aggregate count/sum/max 정확 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP13-T04 부분증거 parent/target 실패와 phase누락 미완료 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP13-T02 실제 동일 mutex 경합·다른 mutex·unlock 후 sink | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP13-T03 600 poll·15fastlocks/poll·5400worker 합성 예산 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP13-T03 1800 poll·15fastlocks/poll·5400worker 합성 예산 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP13-T03 tls-cap 손실 명시 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP13-T03 cap 손실 명시 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP13-T04 split·safe부분보존·순번누락 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP13-T04 enum 거부 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP13-T04 numeric 거부 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP13-T04 time 거부 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP13-T04 count 거부 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP13-T04 linecap 거부 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP13-T04 incomplete 거부 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+| LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거부 | 02-green 실제 assertion | PASS | 최초 RED는01-red 보존 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR/media-server-completion-HLjCQW | 계측 compile 임시물 |62584B |삭제 |removed=true |02-green |
+| TMPDIR/media-server-latency-sY3aI5 | 계측 compile 임시물 |506835B |삭제 |removed=true |02-green |
+| /private/tmp/media-server-lp25-stage.BpdRtH | 1번 index 분리 patch |3551B |파일/빈부모 삭제 |부재 확인 exit0 |소유 patch 정리 |
+
+### 3번 실행 계획
+
+2번 통과·커밋 뒤 순차 실행한다. LP22 제품5파일은 새 기능이 아니라 앞서 구현한 요청 내 재사용 변경의 마감이다.
+기존 LP22-R01~09/RH01~02 정의를 사용하며 비용·strict fallback·hold/예외/손상 거부를 재확인한다.
+runner source fingerprint에 이번 공유 DTO `recording_timeline.h`도 포함한다.
+`node --test scripts/internal/recording_job_read_context.test.mjs` →
+`node scripts/internal/verify_recording_job_read_context.mjs green lp22-media-lp25-01` →
+`bash scripts/internal/verify_recording_public_media.sh` 순서다. 신규1번 public timeline66개는 동일 소스로 이미 통과하여 재실행하지 않는다.
+완료 계측은2번 영향 검증에 함께 포함하며 중복 실행하지 않는다. focused runner의 compile/run60초와 RSS1GiB·disk512MiB는 그대로다.
+현재 위3번 명령은 미실행이며 사전 준비 기록을 PASS로 사용하지 않는다.
+
+### 1번 직접 검증 결과
 
 전체 `./server.sh build` exit0([빌드 로그](release-artifacts/v4.1.0/s11-preparation-mapping/lp25-build-01.txt)),
 public timeline GREEN exit0,66PASS/0FAIL,14초([전수 로그](release-artifacts/v4.1.0/s11-preparation-mapping/lp25-timeline-02-green.txt)).

@@ -34,3 +34,15 @@ test('P0-HTTP01 다른 참조와 모순 파일은 거부',()=>{
   assert.throws(()=>latencyTransitionOutputs(page([{...row,playbackUrl:'/other'}]),'event','ref'),/latency-media/);
 });
 test('P0-HTTP01 원래 완전 출력 검사는 부분 출력 거부 유지',()=>assert.throws(()=>eventOutputs(page([row]),'event','ref'),/event-not-complete/));
+test('LP25-O02 terminal partial output is observation only and never completeness evidence',()=>{
+  assert.equal(typeof helpers.createTerminalObservation,'function');
+  const observation=helpers.createTerminalObservation('event','ref');observation.consume({...page([{...row,itemId:'partial'}]),offset:0});
+  assert.equal(observation.status().terminalObserved,true);assert.equal(observation.status().fullOutputPass,false);
+  assert.throws(()=>eventOutputs(page(observation.outputs()),'event','ref'),/event-not-complete/);
+});
+test('LP25-O04 source diagnostics state explicit file-group basis without changing default mapping basis',()=>{
+  const source={kind:'continuous',segmentId:'source',catalogState:'finalized',playable:true,mediaRange:{startPts:'0',endPts:'1000000000',timeBaseNum:'1',timeBaseDen:'1000000000'}};
+  assert.equal(helpers.summarizeOverlappingSources(page([source]),500).viewBasis,'timeline-mapping-slices');
+  const grouped=helpers.summarizeOverlappingSources(page([source]),500,{unplacedUnit:'file'});
+  assert.equal(grouped.viewBasis,'timeline-known-mappings-unplaced-file-groups');assert.equal(grouped.temporalOnly,true);
+});

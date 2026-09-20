@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {allTimelinePages} from './recording_current_app_helpers.mjs';
 import {latencyTransitionOutputs} from './recording_current_app_helpers.mjs';
+import * as helpers from './recording_current_app_helpers.mjs';
 import {createTimelineObservation,observeTransitionWait,boundedUntil} from './recording_completion_trace.mjs';
 const page=(offset=0,total=1,state='ready')=>({total,unplacedTotal:0,offset,limit:1,truncated:false,items:[{itemId:`i${offset}`,jobState:state}],unplacedItems:[]});
 test('LP22-O01 optional page observation preserves values and captures every page',async()=>{
@@ -46,4 +47,84 @@ test('LP22-O06 diagnostic report failure remains explicit without hiding primary
   const original=Error('primary');const o=createTimelineObservation({report:()=>{throw Error('diagnostic');}}),c=o.begin(1);
   await assert.rejects(allTimelinePages(async()=>{throw original;},{observe:c.observe}),e=>e===original);
   assert.equal(o.status().invalid,1);assert.equal(o.status().summaries[0].kind,'failure');
+});
+const terminalRow=(id,state='complete')=>({itemId:id,kind:'event',eventId:'event',referenceId:'ref',jobId:'job',jobState:state,
+  segmentId:id,catalogState:'finalized',playable:true,playbackUrl:`/ops/api/recordings/media/${id}`,completeness:'complete'});
+const terminalPage=(offset,total,row)=>({...page(offset,total),items:[row]});
+function terminalObservation(options={}){
+  assert.equal(typeof helpers.createTerminalObservation,'function','LP25 strict terminal observation helper must exist');
+  return helpers.createTerminalObservation('event','ref',options);
+}
+test('LP25-O01 complete page survives later total change while full collection fails',async()=>{
+  let now=10;const observation=terminalObservation({now:()=>now});
+  await assert.rejects(allTimelinePages(async offset=>{now+=10;return terminalPage(offset,offset?3:2,terminalRow(`out${offset}`));},
+    {limit:1,consumePage:observation.consume}),/page-total-changed/);
+  assert.equal(observation.status().terminalObserved,true);assert.equal(observation.status().firstObservedMs,20);
+  assert.equal(observation.status().firstPageOffset,0);assert.equal(observation.status().fullOutputPass,false);
+  assert.equal(observation.outputs().length,2);
+});
+test('LP25-O01 changed page is independently validated and observed before total mismatch',async()=>{
+  const observation=terminalObservation();
+  await assert.rejects(allTimelinePages(async offset=>terminalPage(offset,offset?3:2,terminalRow(`out${offset}`,offset?'complete':'ready')),
+    {limit:1,consumePage:observation.consume}),/page-total-changed/);
+  assert.equal(observation.status().terminalObserved,true);assert.equal(observation.status().firstPageOffset,1);
+});
+for(const changed of [false,true])test(`LP25-O01 cross-page duplicate ${changed?'with total change retains retry reason':'with stable total remains fatal'}`,async()=>{
+  const observation=terminalObservation();
+  await assert.rejects(allTimelinePages(async offset=>terminalPage(offset,changed&&offset?3:2,terminalRow('same')),
+    {limit:1,consumePage:observation.consume}),changed?/page-total-changed/:/duplicate-item/);
+  assert.equal(observation.status().terminalObserved,true);
+});
+test('LP25-O02 ready complete mixture is observed but never promoted to complete full page',async()=>{
+  const observation=terminalObservation();
+  const value=await allTimelinePages(async offset=>terminalPage(offset,2,terminalRow(`out${offset}`,offset?'complete':'ready')),
+    {limit:1,consumePage:observation.consume});
+  assert.equal(observation.status().terminalObserved,true);assert.equal(observation.status().mixedStates,true);
+  assert.equal(latencyTransitionOutputs(value,'event','ref'),null);
+  assert.throws(()=>helpers.eventOutputs(value,'event','ref'),/event-not-complete/);
+});
+test('LP25-O02 strict consumer exceptions propagate independently of swallowed diagnostic errors',async()=>{
+  const error=Error('strict-failure');let consumed=0;
+  await assert.rejects(allTimelinePages(async()=>page(),{limit:1,observe:()=>{throw Error('diagnostic');},consumePage:()=>{consumed++;throw error;}}),e=>e===error);
+  assert.equal(consumed,1);
+});
+for(const [name,change,code] of [
+  ['reference',{referenceId:'another'},'latency-lineage'],['job',{jobId:'another'},'latency-lineage'],
+  ['state',{jobState:'unrecognized'},'latency-state'],
+  ['failed',{jobState:'failed'},'latency-job-failed'],['media',{playbackUrl:'/wrong'},'latency-media']
+])test(`LP25-O02 ${name} conflict after complete cannot disappear behind prior terminal observation`,async()=>{
+  const observation=terminalObservation();
+  await assert.rejects(allTimelinePages(async offset=>terminalPage(offset,2,{...terminalRow(`out${offset}`),...(offset?change:{})}),
+    {limit:1,consumePage:observation.consume}),new RegExp(code));
+  assert.equal(observation.status().terminalObserved,true);
+});
+test('LP25-O03 complete observation cannot erase a following HTTP failure',async()=>{
+  const observation=terminalObservation(),error=Error('http-header-timeout');
+  await assert.rejects(allTimelinePages(async offset=>{if(offset)throw error;return terminalPage(0,2,terminalRow('out'));},
+    {limit:1,consumePage:observation.consume}),e=>e===error);
+  assert.equal(observation.status().terminalObserved,true);
+});
+test('LP25-O03 no terminal state retains original thirty second wait timeout',async()=>{
+  let now=0;const observation=terminalObservation({now:()=>now});
+  await assert.rejects(boundedUntil('latency-transition',async()=>{
+    await allTimelinePages(async()=>terminalPage(0,1,terminalRow('out','ready')),{limit:1,consumePage:observation.consume});
+    now=29999;return observation.outputs().length?observation.outputs():false;
+  },{now:()=>now,deadline:180000,pause:async ms=>{now+=ms;},budget:()=>{}}),/latency-transition-timeout/);
+  assert.equal(observation.status().terminalObserved,false);assert.equal(now,30099);
+});
+test('LP25-O02 terminal retention stays bounded across cycles and does not retain group members',()=>{
+  const observation=terminalObservation();
+  for(let i=0;i<8;i++)observation.consume(terminalPage(0,1,{...terminalRow(`out${i}`),members:[{itemId:`member${i}`}]}),{timelineOrdinal:i+1});
+  assert.equal(observation.outputs().length,8);assert.equal(observation.status().firstTimelineOrdinal,1);
+  assert.ok(observation.outputs().every(row=>!Object.hasOwn(row,'members')));
+  assert.throws(()=>observation.consume(terminalPage(0,1,terminalRow('ninth'))),/terminal-observation-cap/);
+  assert.equal(observation.status().terminalObserved,true);assert.equal(observation.status().invalid,true);
+});
+for(const [name,change] of [
+  ['offset',p=>({...p,offset:9})],['limit',p=>({...p,limit:2})],['count',p=>({...p,items:[]})],
+  ['duplicate',p=>({...p,total:2,limit:2,items:[p.items[0],p.items[0]]})],['truncated',p=>({...p,truncated:true})]
+])test(`LP25-O04 invalid ${name} page is rejected before strict consumer`,async()=>{
+  let called=0;const p=change(terminalPage(0,1,terminalRow('out')));
+  await assert.rejects(allTimelinePages(async()=>p,{limit:name==='duplicate'?2:1,consumePage:()=>{called++;}}));
+  assert.equal(called,0);
 });
