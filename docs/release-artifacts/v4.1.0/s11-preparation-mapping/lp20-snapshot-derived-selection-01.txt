@@ -1,0 +1,81 @@
+[command] bash scripts/internal/verify_recording_derived_selection.sh
+[exit] 0
+[source-after] shasum -a 256 rechecked all nine listed files after the three sequential scripts; all hashes match source-sha256 below.
+[token] unavailable: tool has no token usage counter
+[source-sha256]
+7e453c72605d441f00136be2153a08ef3697abae708d04a5151c017ef003a620  include/recording/recording_catalog.h
+04e0a85d2d96c36eae79fcc14779c61fc00bd81d6fb0504a722d7c459dcee888  src/recording/recording_catalog.cpp
+edadd7fc0a92ce9664d2749475c49054673a970a7d3215db12d1cecd32eb48da  build-gst-onnx/libmedia_server_runtime.a
+f16a3d4ffadb9bd1ab4e40b2b0ceb7616e854791c624d49304f758fc5df37782  scripts/internal/verify_recording_bounded_wait.sh
+189475847aba5154f0fbdce99034bb838c104900e771acb998113dd719d9b393  scripts/internal/recording_bounded_wait_smoke.cpp
+7d882ce3455c79477c9ab4484f5ea2e84f1e7108fcc54da8107f7ff3cc91c4aa  scripts/internal/verify_recording_derived_event_integration.sh
+3be788107337d1d1328c167116c4e328da696bd471c4cc939cf0880edff1bc21  scripts/internal/recording_derived_event_integration_smoke.cpp
+a782b967aba4e088530e411168d33d48a3823d22fcd100fb35a0b96a3e65ecfd  scripts/internal/verify_recording_derived_selection.sh
+45865426eefd650b36371330e97e543d8fb6f58cb809fa6f20868527c7e0147e  scripts/internal/recording_derived_selection_smoke.cpp
+[raw-output]
+[pass] D01 callback 누적·불변 snapshot
+[pass] D02 유효0·fallback·duration/원본부재
+[pass] LP09-S01 native fixture strict binding precondition
+[pass] LP09-S01 observed native intervals close only quantization gaps
+[pass] LP09-S01 observed identity is separate from input duration
+[pass] LP09-S02 file existence does not invent unobserved identity
+[pass] LP09-S02 legacy timestamp-only remains partial
+[pass] LP09-S02 native proof alone never enables legacy callers
+[pass] LP09-S02 native rejects duplicate
+[pass] LP09-S02 native rejects namespace
+[pass] LP09-S02 native rejects generation
+[pass] LP09-S02 native rejects track
+[pass] LP09-S02 native rejects ordinal
+[pass] LP09-S02 native rejects pts
+[pass] LP09-S02 native rejects nearest
+[pass] LP09-S02 native rejects proof
+[pass] LP09-S02 native rejects deleted
+[pass] LP09-S02 native rejects unavailable
+[pass] LP09-S02 native rejects source
+[pass] LP09-S02 native rejects channel
+[pass] LP09-S02 one observed identity cannot bind two files
+[pass] LP09-S02 mixed proof presence falls back to legacy
+[pass] LP09-S01 distinct AU overlap strict fixture
+[pass] LP09-S01 distinct observed overlapping AUs select deterministic ordinal
+[pass] LP09-S02 cross-file fractional gap strict fixtures
+[pass] LP09-S02 actual two-thirds ns gap stays missing before display rounding
+[pass] LP09-S01 one-third ns overlap uses durable order independent of input order
+[pass] LP09-S01 30000-over-1001 exact observed interval union
+[pass] LP09-S02 missing last native duration never extrapolates
+[pass] LP09-S02 native frame cap 4097 rejects without truncation
+[pass] LP09-S02 native source cap 257 rejects without truncation
+[pass] LP09-S02 4097 output atoms strict bounded-input fixture
+[pass] LP09-S02 4097 output slices reject atomically without truncation
+[pass] LP09-S02 prefix preserved before uncertain ordinal without suffix invention
+[pass] LP09-S02 prefix preserved before uncertain nearest without suffix invention
+[pass] LP09-S02 prefix preserved before uncertain absent without suffix invention
+[pass] LP09-S02 prefix unknown position rejects global completeness
+[pass] LP09-S02 prefix later outside-request unmatched observation remains irrelevant
+[pass] D04 exact union 정상 선택·파일식별
+[pass] D03 pre/post·음수요청 보존
+[pass] D03 ns 변환 overflow 거부
+[pass] D05 한점 외삽 금지
+[pass] D06 namespace 격리
+[pass] D06 generation 합성 금지
+[pass] D06 track 합성 금지
+[pass] D07 중복 PTS 모호성
+[pass] D07 복수 원본 후보 보존
+[pass] D08 cap 초과범위 미확인
+[pass] D09 삭제 원본 구분
+[pass] D09 불완전 mapping을 영상공백으로 승격 금지
+[pass] D09 epoch identity 유지
+[pass] D11 비표현 유리수 잔차 거부
+[pass] D12 watermark 없는 postroll 미확인
+[pass] D13 source/channel 결박
+[pass] D13 checksum 없는 원본 거부
+[pass] D10 UTC 품질·불확실성 유지
+[pass] D10 UTC 역행 복수후보 보존
+[pass] D10 UTC unplaced 차단
+[pass] D14 정상후보가 손상후보를 숨기지 않음
+[pass] D15 queued sequence 미래제외
+[pass] D16 namespace reset 과거eviction 격리
+[pass] D17 decoder exact duration·fallback 격리
+[pass] D21 namespace reset 이후 재eviction 최근작은구간 선택
+[summary] pass=63 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-selection.aSFsZr bytes=1371736 removed=true
+[elapsed] seconds=2 source=bash-SECONDS

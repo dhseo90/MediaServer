@@ -1,0 +1,8 @@
+command: node scripts/internal/verify_recording_immutable_ownership.mjs green snapshot-location-01 journal-location
+exit: 1
+observed error: EEXIST file already exists
+existing artifact: docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-snapshot-location-01.txt
+The runner refused fs.openSync(output, 'wx') before root creation/build/product execution.
+The tool output budget truncated part of the Node stack. This record preserves the observed failure and does not reconstruct omitted raw output.
+cleanup: no new root or test child created; existing artifact was not overwritten.
+next isolated run ID: lp20-snapshot-location-01

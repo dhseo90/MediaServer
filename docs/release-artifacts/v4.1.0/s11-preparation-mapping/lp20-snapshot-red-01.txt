@@ -1,0 +1,37 @@
+{"kind":"start","utc":"2026-09-20T01:49:44.979Z","mode":"red","id":"01","suite":"snapshot-offload","source":[{"name":"include/recording/recording_catalog.h","sha256":"51711847478b54e2593acfb29aa8d430a96f244a461a0864a255ece7bbff4037"},{"name":"include/recording/recording_journal.h","sha256":"44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5"},{"name":"src/recording/recording_catalog.cpp","sha256":"f6a576bb8ec8daa888e14ac055d0d217067a907fd7d3075418c9af2ce0ae0245"},{"name":"src/recording/recording_journal.cpp","sha256":"1c8732f4641440494296b172f2a97d8b094c2b750214abeb29b206baa5b4350d"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"26ae55a98948bff3b23473b6f187c13c0699e9b75e6979ef127293c6b4804e7c"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"4c8a4dd41cd5101a810f568a8401d4c284afb5b2fa53c6f605efb41b53fe60da"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"cb42098bd95361b1e2e75a78a17e1664f55981e0edc4a3a229060f5fab57a120"},{"name":"scripts/internal/recording_snapshot_offload_smoke.cpp","sha256":"9e6ca7ce5767af18d3a59dc5172c5a5212a82b68bbe2424fd80ccf389873b77c"},{"name":"scripts/internal/recording_snapshot_offload_counter.h","sha256":"3e38e17d4a65337f369512b5a6774726304905dfd23e81540634d3398f2ea4d6"},{"name":"scripts/internal/recording_typed_lifetime_smoke.cpp","sha256":"799db3381b918ed73b0a41bcf8bb740cb786865f7d0b4acdc75240c27a0cb0d2"},{"name":"src/recording/recording_timeline_projection.cpp","sha256":"7ec0b822f8b85be8be0d32e6b24e0ff79967c65740d0ae055121bbe4906b9493"},{"name":"scripts/internal/recording_catalog_comparison_ownership.h","sha256":"be2d37648f37f72c8600b37f0a8aceaeab74ae2ef9e0b3aca6f00a72bf725c7f"},{"name":"scripts/internal/recording_process_memory_probe.h","sha256":"8b5775d1bda029b3a00d3a9c5100fdec43e4007f02f3cae31193ff7bdb2764ba"},{"name":"scripts/internal/recording_journal_location_counter.h","sha256":"d9f0a0297b87c655b762bbba3779061f6ac975b3219e2e471fbcf690021390c9"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>","snapshot-offload"],"seconds":60}
+[instrument] snapshot_catalog_exact_insertions=1
+[instrument] catalog_sha256=72de6e5f81051d16b997193690810a4d6ff576d423c7f7af307fcf97c770a552 binding_exact_insertions=1 job_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"51711847478b54e2593acfb29aa8d430a96f244a461a0864a255ece7bbff4037"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"1c8732f4641440494296b172f2a97d8b094c2b750214abeb29b206baa5b4350d"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"f6a576bb8ec8daa888e14ac055d0d217067a907fd7d3075418c9af2ce0ae0245"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"26ae55a98948bff3b23473b6f187c13c0699e9b75e6979ef127293c6b4804e7c"}
+<repo>/scripts/internal/recording_snapshot_offload_smoke.cpp:14:83: error: 'auto' deduced as 'std::vector<std::string>' (aka 'vector<basic_string<char>>') in declaration of 'canonical' and deduced as 'std::string' (aka 'basic_string<char>') in declaration of 'bytes'
+   14 |  Need(s.catalog.SnapshotDerivedSourcesLocked(reference,&expected,&s.error));const auto canonical=Canonical(expected),bytes=Bytes(s.journal.path());
+      |                                                                                   ^              ~~~~~~~~~~~~~~~~~~~       ~~~~~~~~~~~~~~~~~~~~~~~
+1 error generated.
+        2.98 real         2.69 user         0.17 sys
+           309149696  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               61109  page reclaims
+                 588  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                 177  messages sent
+                   0  messages received
+                   3  signals received
+                  49  voluntary context switches
+                1596  involuntary context switches
+            79120159  instructions retired
+            35272091  cycles elapsed
+             2081176  peak memory footprint
+{"kind":"phase","label":"build","exit":1,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":3003,"groupPeakRssBytes":319045632}
+{"kind":"failure","code":"LP18_BUILD"}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":391861,"removed":true}
+{"kind":"result","utc":"2026-09-20T01:49:47.995Z","mode":"red","matched":false,"productPass":false,"elapsedMs":3017}

@@ -1,0 +1,126 @@
+[command] bash scripts/internal/verify_recording_bounded_wait.sh
+[exit] 0
+[source-after] shasum -a 256 rechecked all nine listed files after the three sequential scripts; all hashes match source-sha256 below.
+[token] unavailable: tool has no token usage counter
+[source-sha256]
+7e453c72605d441f00136be2153a08ef3697abae708d04a5151c017ef003a620  include/recording/recording_catalog.h
+04e0a85d2d96c36eae79fcc14779c61fc00bd81d6fb0504a722d7c459dcee888  src/recording/recording_catalog.cpp
+edadd7fc0a92ce9664d2749475c49054673a970a7d3215db12d1cecd32eb48da  build-gst-onnx/libmedia_server_runtime.a
+f16a3d4ffadb9bd1ab4e40b2b0ceb7616e854791c624d49304f758fc5df37782  scripts/internal/verify_recording_bounded_wait.sh
+189475847aba5154f0fbdce99034bb838c104900e771acb998113dd719d9b393  scripts/internal/recording_bounded_wait_smoke.cpp
+7d882ce3455c79477c9ab4484f5ea2e84f1e7108fcc54da8107f7ff3cc91c4aa  scripts/internal/verify_recording_derived_event_integration.sh
+3be788107337d1d1328c167116c4e328da696bd471c4cc939cf0880edff1bc21  scripts/internal/recording_derived_event_integration_smoke.cpp
+a782b967aba4e088530e411168d33d48a3823d22fcd100fb35a0b96a3e65ecfd  scripts/internal/verify_recording_derived_selection.sh
+45865426eefd650b36371330e97e543d8fb6f58cb809fa6f20868527c7e0147e  scripts/internal/recording_derived_selection_smoke.cpp
+[raw-output]
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP10-W01 incomplete wait yields to later ready request
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP10-W02 single renderer barrier does not block scheduler evaluation
+[pass] LP10-W02 ready queue never admits a second durable active renderer job
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP10-W09 Stop cleans active renderer and unadmitted ready lease without creating second job
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP10-W03 observed trailing identity waits beyond base budget for actual finalize
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP10-W10 rolling incomplete never overwrites retained whole normal snapshot
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP10-W10 initially incomplete snapshot never becomes invented complete
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP10-W07 observed ten-source protection rejects atomically at eight
+[pass] LP10-W07 nine unobserved candidates do not consume protection slots
+[pass] LP10-W07 thirty-third lease rejects without partial token
+[pass] LP10-W06 shared lease survives one release and idempotent Open
+[pass] LP10-W06 foreign token cannot release owned protection
+[pass] LP10-W06 exact final release permits deletion with no lease journal writes
+[pass] LP10-W04 refreshed evidence cannot extend absolute source deadline
+[pass] LP10-W04 missing source ends at fixed evaluation cap
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP10-W05 invalid source-wait basis stays partial/unknown: gap
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP10-W05 invalid source-wait basis stays partial/unknown: deleted
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP10-W05 invalid source-wait basis stays partial/unknown: corrupt
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP10-W05 invalid source-wait basis stays partial/unknown: identity
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP10-W05 invalid source-wait basis stays partial/unknown: duplicate
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP10-W05 invalid source-wait basis stays partial/unknown: namespace
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP10-W05 invalid source-wait basis stays partial/unknown: empty
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP10-W05 invalid source-wait basis stays partial/unknown: throw
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP10-W06 wait lease blocks deletion until exact worker cleanup
+[pass] LP10-W06 fractional start native proven preceding AU stays protected without decoded duration
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP10-W12 live runtime lease protects before catalog destruction
+[pass] LP10-W12 accepted reference survives reopen without persisted runtime lease or invented job
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP10-W09 concurrent Stop joins provider barrier without admission or leaked lease
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP10-W08 UTC ready source protected through single-renderer durable handoff
+[pass] LP10-W08 shared inflight cap rejection leaves reference unaccepted
+[pass] LP10-W08 UTC selected-only lease protects without observed identity or active durable job
+[pass] LP10-W08 terminal handoff releases runtime and durable source protection
+[pass] LP10-W05 fractional source wait requires representable proven decoded overlap: valid
+[pass] LP10-W05 fractional source wait requires representable proven decoded overlap: absent
+[pass] LP10-W05 fractional source wait requires representable proven decoded overlap: overflow
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] LP10-W08 actual admission capacity rejection releases wait lease and reservation
+[pass] LP10-W11 constructor source budget clamp case=0
+[pass] LP10-W11 constructor source budget clamp case=1
+[pass] LP10-W11 constructor source budget clamp case=2
+[pass] LP10-W11 constructor source budget clamp case=3
+[pass] LP10-W11 runtime source budget opt-in preserves base budget
+[summary] pass=41 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-bounded-wait.EESP5Q bytes=19259580 removed=true
+[elapsed] seconds=6 source=bash-SECONDS

@@ -5,7 +5,7 @@ lp_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 lp_repo="$(cd "$lp_script/../.." && pwd)"
 lp_root="${1:?owned root required}"
 lp_mode="${2:-envelope}"
-if [[ "$lp_mode" != automatic-noop && "$lp_mode" != automatic-noop-crypto-off && "$lp_mode" != envelope && "$lp_mode" != job && "$lp_mode" != content && "$lp_mode" != envelope-cost && "$lp_mode" != context && "$lp_mode" != transition-comparison && "$lp_mode" != intent-comparison && "$lp_mode" != journal-location && "$lp_mode" != journal-location-crypto-off && "$lp_mode" != journal-cold && "$lp_mode" != journal-checkpoint-snapshot && "$lp_mode" != journal-logical && "$lp_mode" != catalog-thin && "$lp_mode" != typed-lifetime && "$lp_mode" != typed-lifetime-crypto-off ]];then exit 2;fi
+if [[ "$lp_mode" != snapshot-offload && "$lp_mode" != automatic-noop && "$lp_mode" != automatic-noop-crypto-off && "$lp_mode" != envelope && "$lp_mode" != job && "$lp_mode" != content && "$lp_mode" != envelope-cost && "$lp_mode" != context && "$lp_mode" != transition-comparison && "$lp_mode" != intent-comparison && "$lp_mode" != journal-location && "$lp_mode" != journal-location-crypto-off && "$lp_mode" != journal-cold && "$lp_mode" != journal-checkpoint-snapshot && "$lp_mode" != journal-logical && "$lp_mode" != catalog-thin && "$lp_mode" != typed-lifetime && "$lp_mode" != typed-lifetime-crypto-off ]];then exit 2;fi
 node - "$lp_repo" "$lp_root" "$lp_mode" <<'NODE'
 const fs=require('fs'),path=require('path'),crypto=require('crypto'),[repo,out,mode]=process.argv.slice(2);
 const noopMode=['automatic-noop','automatic-noop-crypto-off'].includes(mode);
@@ -86,6 +86,14 @@ const jobShared=catalogHeader.includes('DerivedJobPool derived_jobs_;');
 fs.writeFileSync(path.join(out,'job_flags'),jobShared?'-DLP18_JOB_SHARED=1':'');
 fs.writeFileSync(path.join(out,'binding_flags'),bindingShared?'-DLP18_BINDING_SHARED=1':'');
 let catalog=fs.readFileSync(path.join(repo,'src/recording/recording_catalog.cpp'),'utf8');
+if(mode==='snapshot-offload'){
+ fs.writeFileSync(path.join(out,'snapshot_flags'),'-DLP20_SNAPSHOT_OFFLOAD='+Number(catalogHeader.includes('bool PrepareDerivedSourceSnapshot(')));
+ if(catalogHeader.includes('bool PrepareDerivedSourceSnapshot('))catalog=exact(catalog,'                    if(!binding&&(!journal_.AcquireMutationLink(entry.mutation,&mutation,error)||!mutation)){','                    snapshot_probe::Acquire();\n                    if(!binding&&(!journal_.AcquireMutationLink(entry.mutation,&mutation,error)||!mutation)){');
+ catalog=exact(catalog,'!ParseRecordingSourceBindingV1(*binding_json,&binding,error)', '!([&](){snapshot_probe::Parse();return ParseRecordingSourceBindingV1(*binding_json,&binding,error);}())');
+ catalog=exact(catalog,'bool RecordingCatalog::SnapshotDerivedSourcesLocked(const RecordingConsumerReferenceV1& reference,\n    std::vector<RecordingDerivedSourceSnapshotEntry>* result, std::string* error) const {','bool RecordingCatalog::SnapshotDerivedSourcesLocked(const RecordingConsumerReferenceV1& reference,\n    std::vector<RecordingDerivedSourceSnapshotEntry>* result, std::string* error) const { ++snapshot_probe::locked_snapshots;');
+ catalog='#include "recording_snapshot_offload_counter.h"\n'+catalog;
+ console.log('[instrument] snapshot_catalog_exact_insertions='+(catalogHeader.includes('bool PrepareDerivedSourceSnapshot(')?3:2));
+}
 if(noopMode){
  catalog=exact(catalog,'    if(prepared)prepared->phase=PreparedDerivedMutation::Phase::Consumed;','    if(prepared)prepared->phase=PreparedDerivedMutation::Phase::Consumed;\n    noop_probe::Scope noop_scope;');
  catalog=exact(catalog,'    bool ok = true;\n    switch (mutation.mutation_type) {','    noop_probe::Apply(this);\n    bool ok = true;\n    switch (mutation.mutation_type) {');
@@ -183,6 +191,7 @@ if [[ "$lp_mode" == envelope-cost ]];then lp_sources=("$lp_script/recording_chec
 if [[ "$lp_mode" == transition-comparison ]];then lp_sources=("$lp_script/recording_job_transition_comparison_smoke.cpp" "$lp_root/recording_derived_job_ready.cpp" "$lp_repo/src/recording/recording_timeline_projection.cpp");fi
 if [[ "$lp_mode" == context ]];then lp_sources=("$lp_script/recording_job_validation_context_smoke.cpp" "$lp_root/recording_derived_job.cpp" "$lp_root/recording_derived_job_ready.cpp" "$lp_repo/src/recording/recording_timeline_projection.cpp");fi
 if [[ "$lp_mode" == automatic-noop || "$lp_mode" == automatic-noop-crypto-off ]];then read -r lp_noop_flag < "$lp_root/noop_flags" || [[ -n "$lp_noop_flag" ]];lp_flags+=("$lp_noop_flag" -DLP18_TYPED_LIFETIME=1);lp_sources=("$lp_script/recording_checkpoint_noop_smoke.cpp" "$lp_repo/src/recording/recording_timeline_projection.cpp");fi
+if [[ "$lp_mode" == snapshot-offload ]];then read -r lp_snapshot_flag < "$lp_root/snapshot_flags" || [[ -n "$lp_snapshot_flag" ]];lp_flags+=("$lp_snapshot_flag" -DLP18_TYPED_LIFETIME=1);lp_sources=("$lp_script/recording_snapshot_offload_smoke.cpp" "$lp_repo/src/recording/recording_timeline_projection.cpp");fi
 "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$lp_root/include" -I"$lp_repo/include" -I"$lp_script" -I"$lp_repo/src/recording" "${lp_flags[@]}" "${lp_shared[@]}" \
  "${lp_accepted[@]}" "${lp_binding[@]}" "${lp_job[@]}" -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_SQLITE3=1 \
  "${lp_location_crypto[@]}" "${lp_sources[@]}" "$lp_root/recording_journal.cpp" "$lp_root/recording_catalog.cpp" "${lp_libs[@]}" -o "$lp_root/check"

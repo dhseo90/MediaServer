@@ -232,6 +232,8 @@ private:
     static SourceBindingHandle FindSourceBindingOwned(const SourceBindingPool& pool,const std::string& id);
     SourceBindingHandle FindSourceBindingOwnedLocked(const std::string& id) const;
     bool AcquireSourceBindingOwnedLocked(const std::string& id,SourceBindingHandle* out,std::string* error) const;
+    static bool MaterializeSourceBinding(const SourceBindingEntry&,const RecordingSegmentV2&,
+        const RecordingMutationHandle&,SourceBindingHandle*,std::string*);
     using DerivedJobHandle = std::shared_ptr<const DerivedJobRecordV1>;
     struct DerivedJobEntry {
         std::string id,channel,reference;
@@ -267,6 +269,11 @@ private:
     bool DerivedJobProtectsLocked(const std::string& segment_id) const;
     bool SnapshotDerivedSourcesLocked(const RecordingConsumerReferenceV1&,
         std::vector<RecordingDerivedSourceSnapshotEntry>*,std::string*) const;
+    static bool DerivedSourceRelevant(const RecordingConsumerReferenceV1&,const RecordingSegmentV2&,const SourceBindingEntry*);
+    bool PrepareDerivedSourceSnapshot(const RecordingConsumerReferenceV1&,
+        std::vector<RecordingDerivedSourceSnapshotEntry>*,std::optional<std::uint64_t>*,std::string*) const;
+    bool FinishDerivedSourceSnapshotLocked(const RecordingConsumerReferenceV1&,
+        std::vector<RecordingDerivedSourceSnapshotEntry>*,const std::optional<std::uint64_t>&,std::string*) const;
     bool MediaV2EligibleLocked(const std::string& channel,const std::string& id) const;
     bool AdjustHoldCountLocked(const std::string& id,std::int64_t delta,std::string* error);
     bool ValidateDerivedJobSourcesLocked(const DerivedJobIntentV1&,std::string*) const;
@@ -351,6 +358,9 @@ private:
     bool opened_{false};
     // 첫 Open 전체 성공만 자동 no-op의 기원이다. 실패한 같은 인스턴스는 strict로 남긴다.
     bool automatic_noop_open_attempted_{false},automatic_noop_eligible_{false};
+    // 적용 실패/예외도 포함한다. 포화 후에는 잠금 밖 조회를 다시 허용하지 않는다.
+    std::uint64_t source_snapshot_revision_{0};
+    bool source_snapshot_revision_valid_{true};
     mutable bool derived_job_state_authoritative_{true};
     std::string catalog_mode_{"jsonl-fallback"};
     RecordingCatalogRecoveryReport recovery_report_;

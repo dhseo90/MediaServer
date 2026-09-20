@@ -109,6 +109,91 @@ canonical/raw 적격·같은 catalog 적용 성공이 증명된 자동CP만 과�
 전체 빌드는 [build01](release-artifacts/v4.1.0/s11-preparation-mapping/lp20-build-01.txt)에 보존했다.
 2번 구현은 완료하며3번 조회 잠금·4번 종료 oracle와16/32·실제 HTTP/통합 판정은 아직 미완료다.
 
+### 3번 조회 잠금 실행 전 계약
+
+2번 커밋 `9e9adea2` 후 착수. 후보 전체·256 상한·정렬·독립 반환값은 유지하고 상세 binding 파싱/검증을
+catalog mutex 밖에서 수행한다. 잠금 안에서 후보의 얇은 메타데이터·불변 segment·revision을 잡고,
+원장 소유 입력을 한 항목씩 획득하여 raw envelope 전수를 별도로 쌓지 않는다. 반환 직전 revision/authority/owner를
+재확인하고 wait lease는 동일 최종 잠금 안에서 확정한다. 변동 시 기존 locked 경로로1회 fallback하며
+새 오류/부분 결과/무한 재시도를 도입하지 않는다. 새 정상 입력 거부·후보 축소·topN 최적화는 금지한다.
+모든 적용 시도에서 private revision을 무효화하고 overflow는 기존 locked 경로로만 보낸다.
+손상/예외는 기존 fail-closed와 빈 결과를 유지한다. 외부 API/파일 형식·미디어·보존 정책 변경 없음.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP20-Q01 파싱 중 독립 조회 진행 | 원장 획득 후 heavy parse를 멈춘 시험 복제본 | 다른 스레드의 ListEventLinks가 완료됨. 기존 잠금 방식의 실패를 예상RED로 특정 | v4.1.0 |
+| LP20-Q01 전체 후보·반환 독립성 | 모든 관련 원본·정렬·비상주 반환·값 수정 | 기존 locked 결과/canonical 대조, snapshot 변경이 catalog에 영향 없음 | v4.1.0 |
+| LP20-Q02 조회 중 삭제/상태 전이 | parse barrier 동안 source 상태 변경 | revision 불일치 시 최신 locked 결과, stale 성공/lease 보호 유실 없음 | v4.1.0 |
+| LP20-Q02 실패·보호 경계 | 손상·owner·오류 초기화·token/reference/cap | 기존 거부 유지, wait lease 최종 확정 원자성, overflow fallback | v4.1.0 |
+
+실행은 직접 소유 catalog 복제본의 신규 focused→제품 동결·전체 빌드→typed/location/logical·기존
+derived wait/selection 관련 회귀 순서다. private revision 추가에 따른 ABI 변경을 구 runtime과 섞지 않는다.
+16/32 최종 비용과 실제 HTTP4000ms 판정은 후속이며 이번 focused 결과로 대체하지 않는다.
+
+신규 snapshot-offload 첫 RED는5개로 제한한다: parse barrier 도달, barrier 중 ListEventLinks 완료,
+기존 locked 경로와 모든 반환 canonical 동등, 공개값 독립성, 정상 wait lease 등록.
+예상4PASS/1FAIL이며 두 번째 병행 조회만 실패해야 한다. 해제/join은 성공·실패 모두 보장한다.
+추가 GREEN 반례는 구현 전 exact 목록을 이어서 등록한다.
+
+snapshot RED01은 fixture의 서로 다른 타입을 한 auto 선언에 섞은 컴파일 오류(build1/3003ms)로
+제품 검사 전에 멈췄다. 예상RED가 아니다. 제품 무변경/source 불변·root391861B 삭제를 확인하고
+선언만 분리해 동일 RED02로 재검증한다. 원출력 `lp20-snapshot-red-01.txt` 보존.
+
+RED02는4PASS/1FAIL·유일 병행 조회 실패로 예상과 일치했다(build0/3509ms,focused1/1197ms).
+원본 불변·소유root6667770B 정리 확인. GREEN01은 아래23개, exit0을 기대한다.
+명령: `node scripts/internal/verify_recording_immutable_ownership.mjs green 01 snapshot-offload`.
+시험용 Acquire bad_alloc은 기존 outclear/uncertainty/false를 유지해야 하며 공개 예외로 바뀌면 FAIL이다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP20-Q01 snapshot reaches actual cold binding parse barrier | snapshot-offload focused | 직접 소유 Store/실제 cold parse·barrier·정상 및 반례 assertion | v4.1.0 |
+| LP20-Q01 independent query completes while snapshot binding parse is paused | snapshot-offload focused | 직접 소유 Store/실제 cold parse·barrier·정상 및 반례 assertion | v4.1.0 |
+| LP20-Q01 complete snapshot preserves locked canonical projection and durable bytes | snapshot-offload focused | 직접 소유 Store/실제 cold parse·barrier·정상 및 반례 assertion | v4.1.0 |
+| LP20-Q01 public snapshot values remain independent across calls | snapshot-offload focused | 직접 소유 Store/실제 cold parse·barrier·정상 및 반례 assertion | v4.1.0 |
+| LP20-Q02 wait lease atomically protects the returned source snapshot | snapshot-offload focused | 직접 소유 Store/실제 cold parse·barrier·정상 및 반례 assertion | v4.1.0 |
+| LP20-Q02 acquisition exception clears output and returns uncertainty without throwing | snapshot-offload focused | 직접 소유 Store/실제 cold parse·barrier·정상 및 반례 assertion | v4.1.0 |
+| LP20-Q01 resident fallback retains binding validation and canonical value | snapshot-offload focused | 직접 소유 Store/실제 cold parse·barrier·정상 및 반례 assertion | v4.1.0 |
+| LP20-Q01 all relevant candidates preserve deterministic ordering | snapshot-offload focused | 직접 소유 Store/실제 cold parse·barrier·정상 및 반례 assertion | v4.1.0 |
+| LP20-Q02 resident binding mismatch is rejected by unchanged segment validation | snapshot-offload focused | 직접 소유 Store/실제 cold parse·barrier·정상 및 반례 assertion | v4.1.0 |
+| LP20-Q01 unrelated generation is filtered before cold materialization | snapshot-offload focused | 직접 소유 Store/실제 cold parse·barrier·정상 및 반례 assertion | v4.1.0 |
+| LP20-Q02 concurrent deletion falls back once to current lifecycle | snapshot-offload focused | 직접 소유 Store/실제 cold parse·barrier·정상 및 반례 assertion | v4.1.0 |
+| LP20-Q02 successful Apply invalidates prepared snapshot and falls back once | snapshot-offload focused | 직접 소유 Store/실제 cold parse·barrier·정상 및 반례 assertion | v4.1.0 |
+| LP20-Q02 failed Apply also invalidates prepared snapshot | snapshot-offload focused | 직접 소유 Store/실제 cold parse·barrier·정상 및 반례 assertion | v4.1.0 |
+| LP20-Q02 released wait token is rejected at final atomic publication | snapshot-offload focused | 직접 소유 Store/실제 cold parse·barrier·정상 및 반례 assertion | v4.1.0 |
+| LP20-Q02 concurrent wait lease cap is rechecked before registration | snapshot-offload focused | 직접 소유 Store/실제 cold parse·barrier·정상 및 반례 assertion | v4.1.0 |
+| LP20-Q02 wait input cap rejects before any detail parsing | snapshot-offload focused | 직접 소유 Store/실제 cold parse·barrier·정상 및 반례 assertion | v4.1.0 |
+| LP20-Q02 wait reference mismatch preserves original lease | snapshot-offload focused | 직접 소유 Store/실제 cold parse·barrier·정상 및 반례 assertion | v4.1.0 |
+| LP20-Q02 detached owner cannot publish prepared snapshot | snapshot-offload focused | 직접 소유 Store/실제 cold parse·barrier·정상 및 반례 assertion | v4.1.0 |
+| LP20-Q02 strict cold tamper clears output and marks uncertainty | snapshot-offload focused | 직접 소유 Store/실제 cold parse·barrier·정상 및 반례 assertion | v4.1.0 |
+| LP20-Q02 lost authority prevents prepared snapshot publication | snapshot-offload focused | 직접 소유 Store/실제 cold parse·barrier·정상 및 반례 assertion | v4.1.0 |
+| LP20-Q02 saturated revision permanently uses locked snapshot fallback | snapshot-offload focused | 직접 소유 Store/실제 cold parse·barrier·정상 및 반례 assertion | v4.1.0 |
+| LP20-Q02 full candidate cap rejects without partial output or poisoning | snapshot-offload focused | 직접 소유 Store/실제 cold parse·barrier·정상 및 반례 assertion | v4.1.0 |
+| LP20-Q02 source protection cap rejects without partial lease registration | snapshot-offload focused | 직접 소유 Store/실제 cold parse·barrier·정상 및 반례 assertion | v4.1.0 |
+
+global revision은 무관 Apply에도 보수적으로 fallback을 유발한다. 지속적 쓰기에서의 빈도·총 잠금 비용은
+16/32 및 실제 HTTP 후속 측정으로 판정하며 이번 단위가 전체 지연을 해소했다고 주장하지 않는다.
+
+GREEN01은23PASS/0FAIL·exit0, build3553ms/focused1298ms/총4886ms였다. source 불변·root11168599B 삭제 확인.
+메인이 MaterializeSourceBinding·공통 DerivedSourceRelevant·prepare/finalize·wait lease의 diff를 직접 대조했다.
+전체 build02 exit0/관측46989ms, 두 제품 파일 SHA는 GREEN01과 동일하다. 기존 관련 회귀는 그 뒤 순차 실행한다.
+WithWaitLease의 최종 보호 검증은 잠금 안에 유지한다. 이를 포함한 전체 응답 지연은 후속 실제 측정 대상이다.
+
+typed34회귀는 exit0/5469ms·source 불변·root28047328B 삭제 확인. 이어 location의 실행ID
+`snapshot-location-01`이 기존 증적과 충돌하여 EEXIST/exit1로 root 생성·빌드·제품 실행 전에 거부됐다.
+기존 증적은 덮어쓰지 않았다. 최초 명령·잘린 stack 출력 경계는 `lp20-snapshot-location-preparation-01.txt`에 보존한다.
+같은 검증을 고유 ID `lp20-snapshot-location-01` 및 `lp20-snapshot-logical-01`로 실행한다.
+
+3번 관련6회귀는 typed34/location32/logical26/bounded-wait41/derived-event56/selection63 모두 exit0이다.
+신규23개 포함275PASS, ReadyDurable child23은 예상 복구 종료다. 모든 소유root 부재 확인·제품 원본/아카이브 불변.
+분할 커밋 전 Apply 경계에 걸리는 앞2번 automatic-noop24개를 `green lp20-snapshot-noop-01 automatic-noop`으로
+교차 확인한다. journal 제품 자체는2번 이후 변경하지 않았다. 세 shell 검증에는 별도RSS guard가 없으며
+이를 새로 실행한 안전 상한으로 주장하지 않는다. 신규 focused에는 기존 bounded guard가 적용됐다.
+
+자동CP 교차24개도 exit0/5780ms, source 불변·root29877091B 삭제 확인으로3번 총299PASS다.
+전수 검사/실패·정리·hash는 [조회 개별 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md#lp20-조회-잠금-개별-결과),
+빌드는 [build02](release-artifacts/v4.1.0/s11-preparation-mapping/lp20-build-02.txt)다.
+후보 전체·256cap·정렬·독립값·손상 거부/보호를 유지한 조회 단위 구현은 완료했다. 비용 총량·실제 HTTP는 후속에 남긴다.
+
 ## 2026-09-20 LP19 누적 비용 → 실제 HTTP → 실제 이벤트 통합
 
 사용자 승인: 1~3번 순차 개발·관련 단기 검증·분할 커밋, 전체 범위가 푸시 가능하면 마지막 푸시.

@@ -939,6 +939,8 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                                            std::string* error,PreparedDerivedMutation* prepared,RecordingMutationHandle owned,
                                            const SourceBindingPool* binding_pool,const DerivedJobPool* job_pool,const DerivedJobContentProof* proof,
                                            const RecordingJournalOwnedViewHandle& view) {
+    if(source_snapshot_revision_==std::numeric_limits<std::uint64_t>::max())source_snapshot_revision_valid_=false;
+    else ++source_snapshot_revision_;
     // 소유 주소는 검증 증명이 아니다. schema/enum을 포함한 원래 모든 필드를 확인한다.
     if(owned&&(owned->schema!=mutation.schema||owned->mutation_type!=mutation.mutation_type||
        owned->mutation_id!=mutation.mutation_id||owned->entity_id!=mutation.entity_id||
@@ -1426,6 +1428,24 @@ RecordingCatalog::DerivedJobEntry::DerivedJobEntry(DerivedJobHandle value,Record
     for(const auto& value:resident->intent.outputs)output_ids.push_back(value.output_id);
     for(const auto& value:resident->intent.sources)source_ids.push_back(value.segment.segment_id);
 }
+bool RecordingCatalog::MaterializeSourceBinding(const SourceBindingEntry& entry,const RecordingSegmentV2& original,
+    const RecordingMutationHandle& mutation,SourceBindingHandle* out,std::string* error) {
+    if(out)out->reset();
+    if(!out||!mutation||mutation->entity_id!=entry.id||mutation->mutation_type!=RecordingMutationType::SegmentV2BoundFinalized)
+        return Fail(error,"source binding 상세 재획득 거부");
+    ingress::StrictJsonObjectDocument payload;RecordingSegmentV2 segment;RecordingSourceBindingV1 binding;
+    if(!ingress::ParseStrictJsonObjectDocument(mutation->payload_json,&payload,error)||payload.members.size()!=3)return false;
+    const auto segment_json=ingress::StrictJsonObjectField(payload,"segment");
+    const auto binding_json=ingress::StrictJsonObjectField(payload,"sourceBinding");
+    const auto path=ingress::StrictJsonStringField(payload,"mediaRelpath");
+    if(!segment_json||!binding_json||!path||!ParseRecordingSegmentV2(*segment_json,&segment,error)||
+       !ParseRecordingSourceBindingV1(*binding_json,&binding,error)||!ValidateRecordingSourceBindingForSegment(binding,segment,error)||
+       SerializeRecordingSegmentV2(segment)!=SerializeRecordingSegmentV2(original)||
+       binding.segment_id!=entry.id||binding.channel_id!=entry.channel||binding.source_id!=entry.source||
+       binding.source_generation!=entry.generation||binding.generation_order!=entry.order||binding.track_id!=entry.track||binding.samples.size()!=entry.sample_count)
+        return Fail(error,"source binding 상세 재획득 거부");
+    *out=std::make_shared<const RecordingSourceBindingV1>(std::move(binding));return true;
+}
 bool RecordingCatalog::AcquireSourceBindingOwnedLocked(const std::string& id,SourceBindingHandle* out,std::string* error) const {
     if(out)out->reset();
     const auto failed=[&](){derived_job_state_authoritative_=false;return Fail(error,"source binding 상세 재획득 거부");};
@@ -1437,19 +1457,10 @@ bool RecordingCatalog::AcquireSourceBindingOwnedLocked(const std::string& id,Sou
         RecordingMutationHandle mutation;
         if(!journal_.AcquireMutationLink(entry.mutation,&mutation,error)||!mutation||
            mutation->entity_id!=id||mutation->mutation_type!=RecordingMutationType::SegmentV2BoundFinalized)return failed();
-        ingress::StrictJsonObjectDocument payload;RecordingSegmentV2 segment;RecordingSourceBindingV1 binding;
-        if(!ingress::ParseStrictJsonObjectDocument(mutation->payload_json,&payload,error)||payload.members.size()!=3)return failed();
-        const auto segment_json=ingress::StrictJsonObjectField(payload,"segment");
-        const auto binding_json=ingress::StrictJsonObjectField(payload,"sourceBinding");
-        const auto path=ingress::StrictJsonStringField(payload,"mediaRelpath");
         const auto original=segments_v2_.find(id);
-        if(!segment_json||!binding_json||!path||!ParseRecordingSegmentV2(*segment_json,&segment,error)||
-           !ParseRecordingSourceBindingV1(*binding_json,&binding,error)||!ValidateRecordingSourceBindingForSegment(binding,segment,error)||
-           original==segments_v2_.end()||SerializeRecordingSegmentV2(segment)!=SerializeRecordingSegmentV2(original->second)||
-           binding.segment_id!=entry.id||binding.channel_id!=entry.channel||binding.source_id!=entry.source||
-           binding.source_generation!=entry.generation||binding.generation_order!=entry.order||binding.track_id!=entry.track||binding.samples.size()!=entry.sample_count)return failed();
+        if(original==segments_v2_.end()||!MaterializeSourceBinding(entry,original->second,mutation,out,error))return failed();
         // 삭제/현재 미디어 상태가 아니라, 원장에 저장한 불변 원본 결박을 검증한다.
-        *out=std::make_shared<const RecordingSourceBindingV1>(std::move(binding));entry.weak=*out;return true;
+        entry.weak=*out;return true;
     }catch(...){if(out)out->reset();return failed();}
 }
 bool RecordingCatalog::AcquireDerivedJobOwnedLocked(const std::string& id,DerivedJobHandle* out,std::string* error) const {
@@ -2094,13 +2105,27 @@ bool RecordingCatalog::IsDerivedReferenceAccepted(const std::string& id, bool* a
 }
 bool RecordingCatalog::SnapshotDerivedSources(const RecordingConsumerReferenceV1& reference,
     std::vector<RecordingDerivedSourceSnapshotEntry>* result, std::string* error) const {
+    std::optional<std::uint64_t> revision;
+    if(!PrepareDerivedSourceSnapshot(reference,result,&revision,error))return false;
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
-    return SnapshotDerivedSourcesLocked(reference,result,error);
+    return FinishDerivedSourceSnapshotLocked(reference,result,revision,error);
 }
 bool RecordingCatalog::SnapshotDerivedSourcesWithWaitLease(const RecordingConsumerReferenceV1& reference,
     const std::vector<RecordingConsumerOriginalV1>& observed,std::uint64_t* token,
     std::vector<RecordingDerivedSourceSnapshotEntry>* result,std::string* error,
     const std::vector<RecordingConsumerOriginalV1>& native_overlap_only) {
+    // 잠금 밖 준비 전에 기존 입력/토큰 거부 순서를 유지한다. 등록 직전에 다시 확인한다.
+    {
+        recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
+        if(result)result->clear();
+        if(!token||!result||observed.size()>4096||native_overlap_only.size()>4096-observed.size())return Fail(error,"derived wait lease input/output cap");
+        const auto existing=derived_wait_leases_.find(*token);
+        if((*token&&existing==derived_wait_leases_.end())||(!*token&&derived_wait_leases_.size()>=32))return Fail(error,"derived wait lease token/cap");
+        const auto identity=SerializeRecordingConsumerReferenceV1(reference);
+        if(identity.empty()||(existing!=derived_wait_leases_.end()&&existing->second.reference_json!=identity))return Fail(error,"derived wait lease reference mismatch");
+    }
+    std::vector<RecordingDerivedSourceSnapshotEntry> snapshot;std::optional<std::uint64_t> revision;
+    if(!PrepareDerivedSourceSnapshot(reference,&snapshot,&revision,error))return false;
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     if(result)result->clear();
     if(!token||!result||observed.size()>4096||native_overlap_only.size()>4096-observed.size())return Fail(error,"derived wait lease input/output cap");
@@ -2110,8 +2135,7 @@ bool RecordingCatalog::SnapshotDerivedSourcesWithWaitLease(const RecordingConsum
     const auto identity=SerializeRecordingConsumerReferenceV1(reference);
     if(identity.empty()||(existing!=derived_wait_leases_.end()&&existing->second.reference_json!=identity))
         return Fail(error,"derived wait lease reference mismatch");
-    std::vector<RecordingDerivedSourceSnapshotEntry> snapshot;
-    if(!SnapshotDerivedSourcesLocked(reference,&snapshot,error))return false;
+    if(!FinishDerivedSourceSnapshotLocked(reference,&snapshot,revision,error))return false;
     DerivedWaitLease next=existing==derived_wait_leases_.end()?DerivedWaitLease{identity,{}}:existing->second;
     for(const auto& entry:snapshot)if(entry.lifecycle==RecordingLifecycle::Finalized&&!entry.deleted&&entry.binding&&
         ValidateRecordingSourceBindingForSegment(*entry.binding,entry.segment,nullptr)) {
@@ -2178,27 +2202,19 @@ bool RecordingCatalog::RefreshDerivedWaitLeaseForIntent(const DerivedJobIntentV1
     if(ids.size()>8)return Fail(error,"derived wait lease source cap");
     found->second.source_ids.swap(ids);if(error)error->clear();return true;
 }
-bool RecordingCatalog::SnapshotDerivedSourcesLocked(const RecordingConsumerReferenceV1& reference,
-    std::vector<RecordingDerivedSourceSnapshotEntry>* result, std::string* error) const {
-    if(result)result->clear();
-    if(!result||!opened_||!derived_job_state_authoritative_||!options_.enable_v2_storage||!CanWriteLocked(error)||
-       !ValidateRecordingConsumerReferenceV1(reference,error)||!reference.request)
-        return Fail(error,"derived source snapshot 상태/입력 거부");
+bool RecordingCatalog::DerivedSourceRelevant(const RecordingConsumerReferenceV1& reference,
+    const RecordingSegmentV2& segment,const SourceBindingEntry* metadata) {
+    if(segment.source_id!=reference.source_id||segment.channel_id!=reference.channel_id||segment.retention_class!=RecordingRetentionClass::Continuous)return false;
     const auto& request=*reference.request;
-    // 모든 중간 곱은 int64×int32×10^9 이하이며 __int128 범위 안이다.
     const __int128 begin=(static_cast<__int128>(request.start_ms)-request.pre_ms)*1000000;
     const __int128 end=(static_cast<__int128>(request.end_ms)+request.post_ms)*1000000;
-    for(const auto& [id,segment]:segments_v2_) {
-        if(segment.source_id!=reference.source_id||segment.channel_id!=reference.channel_id||
-           segment.retention_class!=RecordingRetentionClass::Continuous)continue;
-        const auto metadata=source_bindings_.find(id);
         const bool valid_segment=ValidateRecordingSegmentV2(segment,nullptr);
         bool unrelated=false;
         if(request.time_basis=="media-pts-ms") {
-            if(metadata!=source_bindings_.end()&&metadata->second&&reference.original) {
+            if(metadata&&*metadata&&reference.original) {
                 const auto& original=*reference.original;
-                unrelated=metadata->second.generation!=original.source_generation||
-                    metadata->second.order!=original.generation_order||metadata->second.track!=original.track_id;
+                unrelated=metadata->generation!=original.source_generation||
+                    metadata->order!=original.generation_order||metadata->track!=original.track_id;
             }
             if(valid_segment&&segment.media_end_pts) {
                 const __int128 scale=static_cast<__int128>(segment.time_base_num)*1000000000;
@@ -2217,7 +2233,88 @@ bool RecordingCatalog::SnapshotDerivedSourcesLocked(const RecordingConsumerRefer
                 }
             }
         }
-        if(unrelated)continue;
+    return !unrelated;
+}
+bool RecordingCatalog::PrepareDerivedSourceSnapshot(const RecordingConsumerReferenceV1& reference,
+    std::vector<RecordingDerivedSourceSnapshotEntry>* result,std::optional<std::uint64_t>* revision,std::string* error) const {
+    if(result)result->clear();
+    revision->reset();
+    struct Candidate {RecordingDerivedSourceSnapshotEntry output;std::optional<SourceBindingEntry> binding;};
+    std::vector<Candidate> candidates;std::uint64_t captured=0;
+    {
+        recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
+        if(!result||!opened_||!derived_job_state_authoritative_||!options_.enable_v2_storage||!CanWriteLocked(error)||
+           !ValidateRecordingConsumerReferenceV1(reference,error)||!reference.request)
+            return Fail(error,"derived source snapshot 상태/입력 거부");
+        if(!source_snapshot_revision_valid_)return true;
+        captured=source_snapshot_revision_;
+    for(const auto& [id,segment]:segments_v2_) {
+        const auto metadata=source_bindings_.find(id);
+        if(!DerivedSourceRelevant(reference,segment,metadata==source_bindings_.end()?nullptr:&metadata->second))continue;
+        Candidate candidate;candidate.output.segment=segment;
+        candidate.output.lifecycle=EffectiveLifecycleV2Locked(id);
+        candidate.output.deleted=tombstones_v2_.count(id)!=0||candidate.output.lifecycle==RecordingLifecycle::Deleted;
+        if(metadata!=source_bindings_.end())candidate.binding=metadata->second;
+        candidates.push_back(std::move(candidate));
+        // 상한 초과의 기존 상세 검증/거부 순서는 locked 경로에 맡긴다.
+        if(candidates.size()>256)return true;
+    }
+    }
+    for(auto& candidate:candidates) {
+        if(candidate.binding) {
+            SourceBindingHandle binding;RecordingMutationHandle mutation;bool materialized=false;
+            {
+                recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
+                if(!source_snapshot_revision_valid_||source_snapshot_revision_!=captured){result->clear();return true;}
+                if(!derived_job_state_authoritative_||!CanWriteLocked(error)){result->clear();return false;}
+                const auto& entry=*candidate.binding;
+                if(!entry){derived_job_state_authoritative_=false;result->clear();return Fail(error,"source binding 상세 재획득 거부");}
+                binding=entry.resident;
+                try {
+                    if(!binding&&(!journal_.AcquireMutationLink(entry.mutation,&mutation,error)||!mutation)){
+                        derived_job_state_authoritative_=false;result->clear();return Fail(error,"source binding 상세 재획득 거부");
+                    }
+                }catch(...){derived_job_state_authoritative_=false;result->clear();return Fail(error,"source binding 상세 재획득 거부");}
+            }
+            // 원문은 이 한 항목의 계산 동안만 소유한다. mutable catalog/weak에는 접근하지 않는다.
+            try {
+                if(!binding)materialized=MaterializeSourceBinding(*candidate.binding,candidate.output.segment,mutation,&binding,error);
+                else materialized=ValidateRecordingSourceBindingForSegment(*binding,candidate.output.segment,error);
+            }catch(...){materialized=false;}
+            if(!materialized||!binding) {
+                recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
+                result->clear();
+                if(!source_snapshot_revision_valid_||source_snapshot_revision_!=captured)return true;
+                derived_job_state_authoritative_=false;return Fail(error,"source binding 상세 재획득 거부");
+            }
+            candidate.output.binding=*binding;
+        }
+        result->push_back(std::move(candidate.output));
+    }
+    std::sort(result->begin(),result->end(),[](const auto& a,const auto& b){
+        return std::tie(a.segment.store_id,a.segment.order_sequence,a.segment.segment_id)<
+               std::tie(b.segment.store_id,b.segment.order_sequence,b.segment.segment_id);
+    });
+    *revision=captured;return true;
+}
+bool RecordingCatalog::FinishDerivedSourceSnapshotLocked(const RecordingConsumerReferenceV1& reference,
+    std::vector<RecordingDerivedSourceSnapshotEntry>* result,const std::optional<std::uint64_t>& revision,std::string* error) const {
+    if(!revision||!source_snapshot_revision_valid_||source_snapshot_revision_!=*revision)
+        return SnapshotDerivedSourcesLocked(reference,result,error);
+    if(!opened_||!derived_job_state_authoritative_||!CanWriteLocked(error)){
+        result->clear();return Fail(error,"derived source snapshot 상태/입력 거부");
+    }
+    if(error)error->clear();return true;
+}
+bool RecordingCatalog::SnapshotDerivedSourcesLocked(const RecordingConsumerReferenceV1& reference,
+    std::vector<RecordingDerivedSourceSnapshotEntry>* result, std::string* error) const {
+    if(result)result->clear();
+    if(!result||!opened_||!derived_job_state_authoritative_||!options_.enable_v2_storage||!CanWriteLocked(error)||
+       !ValidateRecordingConsumerReferenceV1(reference,error)||!reference.request)
+        return Fail(error,"derived source snapshot 상태/입력 거부");
+    for(const auto& [id,segment]:segments_v2_) {
+        const auto metadata=source_bindings_.find(id);
+        if(!DerivedSourceRelevant(reference,segment,metadata==source_bindings_.end()?nullptr:&metadata->second))continue;
         SourceBindingHandle binding;
         if(!AcquireSourceBindingOwnedLocked(id,&binding,error)||(metadata!=source_bindings_.end()&&!binding)){
             result->clear();return false;
