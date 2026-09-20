@@ -1,5 +1,67 @@
 # Release Test Records
 
+## 2026-09-20 LP22 완료 관측 원인 분리와 실제 통합 마감
+
+사용자 승인: 재검토한1~5 순차 개발·관련 단기검증·분할커밋, 모두 문제없으면 푸시 후 종합보고.
+시작 HEAD1c65b1a6, origin 추적 대비ahead43/behind0. 기존8개 미커밋은 LP21 실패의 비민감자료/상태기록이다.
+그 실패를 PASS로 변경하지 않고 이번 진단 선수 기록으로 보존한다. 운영/외부 데이터·브라우저·30분·120분·release action은 이번 비범위다.
+메인은 설계/원인/최종판정, 기존 단일Astra/medium 담당자는 확정 진단구현과단기자체검증, 하위위임금지.
+
+| 번호 | 사용자 지시 | 상태 | 완료 조건 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 진단 기준·누락 보완 | 진행 중 | 요청별 대기/내구전이·페이지별 상태·일반실패 증거 연결 | 아래 고정계약 |
+| 2 | 진단 도구 자체검증 | 미실행 | late/mixed/total-change/invalid·loss·cleanup 독립검사 | LP22-T/O |
+| 3 | 원인 구분 단기1회 | 미실행 | 앞단계통과후 실제앱, 단일서버시계/요청순번으로 원인분리 | P0-HTTP02 |
+| 4 | 확인 원인 최소수정·회귀 | 미착수 | 독립재현/영향회귀→동일 실제HTTP; 불변조건 유지 | 원인확정이 선수 |
+| 5 | 현행5단계 통합 | 미실행 | 완전2출력·hash·재기동·정리 전수통과 | S11-CI01/07~11 |
+| 6 | 분할커밋·조건부푸시 | 미수행 | 통과단위만커밋, 실패/미확인/cleanup없을때푸시 | 사용자명시·AGENTS5 |
+
+### 실행 전 계약
+
+- 공개API/페이로드/schema·저장byte·시간/ID·녹화/삭제/보호·지원범위를 바꾸지 않는다. 기존4000ms HTTP,30000ms 전이관측,
+  180000ms 전체실행·페이지100·실제4참조 발생 조건을 유지한다. 원인분리 전 이벤트 하나로 축소하거나 timeout 확대로 PASS를 만들지 않는다.
+- 진단은 opt-in 내부stderr 고정필드만, reference/job은SHA256만 출력한다. raw URL·오류원문·credential·임의JSON 금지.
+  서버는 기존latency::Now의steady 상대축으로만 비교한다. JS 시계는 페이지cycle/요청시간용이며 서버축과 직접 빼지 않는다.
+  producer/collector 각각 cap·무출력off·누락명시·예외격리. 새 장기캐시/원문상주/추가source보관을 만들지 않는다.
+- 접수→선택후render대기→실행시작→실제 내구전이→실행종료를 구별한다. UpdateDerivedJob 성공 뒤의 상태만 내구 성공으로 표시한다.
+  페이지별offset/total/unplacedTotal/대상상태분포와 동일서버 request순번을 기록해 total불변상태혼합도 관측한다.
+- projection의 매체확인·우선순위/overlap·정렬/page 비용을 구분한다. 페이지전수/완전성/재생보호를 줄이지 않는다.
+- 일반실패도 diagnosticReference로선택증거를 대조한다. 선택진행중과선택증거누락을구분하고 최초실패를 진단실패로덮지 않는다.
+  사후complete는 최소상세 수집 후보이지 실행중PASS가 아니다. 원본/복제본불변과증거보존 전에는 정리완료로처리하지 않는다.
+- 먼저 도구자체검증, 이후 단기1회로 원인을분리한다. 원인미확정이면 자동반복/무관제품수정 없이 중단한다.
+  기존LP21 sources742/jobs121/query 등의 유효증거는 계측만으로 전부재실행하지 않는다. 기능수정 영향은4번에서 별도판정한다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 진단/자체검증/해당회귀/단기실제앱/현행통합 | LP22-T/O, P0-HTTP02, S11-CI | 이번 승인 |
+| 30분 | 미진행 | 현재원인분리·개발묶음아님 | AGENTS7.6.2 | 이번 비범위 |
+| 120분 | 미진행 | 최종cut필요성폐기아님, 현재실행범위아님 | AGENTS7.6.2 | 이번 비범위 |
+| UI | 미진행 | 기존브라우저제외 유지 | AGENTS7.6.3 | 이번 비범위 |
+
+### 신규 기능 실행 전 정의
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP22-T01 | opt-in·비민감 | off/invalid env무출력·hash/고정enum만·카나리원문불포함 | v4.1.0 |
+| LP22-T02 | 상태·시간 연결 | 4reference분리·성공내구전이만·늦은완료와실행종료구별 | v4.1.0 |
+| LP22-T03 | 유한증거 | count/byte/부분행/숫자범위 cap·loss명시·기존정상행보존 | v4.1.0 |
+| LP22-T04 | projection 비용 | media/overlap/page단계·서버request·elapsed상관·원래반환값유지 | v4.1.0 |
+| LP22-O01 | 페이지옵저버 | callback유무같은반환·기존전수조건·상태분포·offset/cycle연결 | v4.1.0 |
+| LP22-O02 | 총계변경 | total/unplacedTotal변경의기존거부와재시작사유보존 | v4.1.0 |
+| LP22-O03 | 상태혼합 | 동일total ready/complete혼합을완료로승격하지않음 | v4.1.0 |
+| LP22-O04 | 시각·timeout | fake clock으로대기시작/종료·late완료구분, 서로다른시계차감금지 | v4.1.0 |
+| LP22-O05 | 일반실패선택 | 일반timeout의대상참조대조·pending과누락구분 | v4.1.0 |
+| LP22-O06 | 사후진단 | 원래실패보존·complete상세는사후자료·미확보/정리실패를가리지않음 | v4.1.0 |
+
+검증기예정명령: Node test의 `recording_completion_trace.test.mjs`, `recording_current_observation.test.mjs` 및
+기존 `recording_current_latency.test.mjs`, `recording_current_integration.test.mjs`, `recording_selection_trace.test.mjs`,
+`recording_failure_capture.test.mjs`, `recording_latency_trace.test.mjs` 영향묶음. 세부 case명/RED expected assertion은 실행전에추가한다.
+빌드는 `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build`를계측제품변경후 실행하며 실제앱앞선수다.
+모든실행은 소유root/환경/port정리·원출력·개별결과·source/hash를보존한다. token start/end/consumed는 전용집계부재시미집계로명시한다.
+준비문서검증: docs-links exit0/0.037654초(md285/links9028/images22/anchors125/failure0), diffcheck exit0.
+기존 LP21 원출력/latency/process/state4개 파일의size/SHA256은 개별결과표와 재대조해 일치했다.
+이번 첫문서커밋은 실패결과보존과LP22진단선수의 준비만 완료하며 실패한HTTP 단계완료커밋이 아니다.
+
 ## 2026-09-20 LP21 누적·동시 비용 → 실제 HTTP → 현행 통합
 
 최신 승인: 권장 순서1~3을 순차 실행하고 통과한 단위는 분할 커밋한다. 마지막에는 푸시 가능 여부와
@@ -11,10 +73,10 @@
 | 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
 | --- | --- | --- | --- | --- |
 | 1 | 누적·동시 비용 확인 | 완료 | sources742·jobs121·동시query19 및 도구 자체18 PASS, 한계 명시 | 아래 LP21 비용 판정 |
-| 2 | 실제 HTTP 단기 확인 | 미실행 | 1번 선수 충족 후 latency-only | P0-HTTP02 |
-| 3 | 현행 통합 한 번 실행 | 미실행 | 2번 이후 기존5단계 안에서 실제 앱·재기동 확인 | S11-CI01/07~11 |
-| 4 | 분할 커밋 | 진행 중 | 준비38b32a3a·query a807e828, 비용 증적은 후속 커밋 | AGENTS3/5 |
-| 5 | 푸시 가능 판정·잔여 보고 | 미완료 | 위 단계 결과와 누적 미해소를 직접 대조 | AGENTS5.2/6 |
+| 2 | 실제 HTTP 단기 확인 | 실행 완료·FAIL | 319 timeline HTTP200/최장2514ms, 전이대기30000ms 내 완료 관측 실패 | 아래 LP21 HTTP 실패 |
+| 3 | 현행 통합 한 번 실행 | 건너뜀 | 2번 실패로5단계/두기동을 시작하지 않음 | AGENTS3/8 |
+| 4 | 분할 커밋 | 통과 단위3개 수행 | 준비38b32a3a·query a807e828·비용1c65b1a6, 실패 단계는 미커밋 | AGENTS3/5 |
+| 5 | 푸시 가능 판정·잔여 보고 | 판정 완료 | 불가: 전이 관측 FAIL·통합 미실행·실패 증적 미커밋. 푸시 미수행 | AGENTS5.2/6 |
 
 | 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/기능 ID | 실행 승인 상태 |
 | --- | --- | --- | --- | --- |
@@ -138,9 +200,51 @@ B Ready 단일잠금138.357/137.339ms, Complete124.591/124.253ms이며 자동no-
 제품 `AppendAndApplyLocked`의 적격no-op/부적격strict 분기로 설명된다. 같은 입력의 임의 반복이나 timeout 변경 없이
 이번 비용 조건에서 실제HTTP 단기 확인으로 진입 가능하다고 판정한다. 후보변경·복구 strict 경계는 기존 LP20 안전 회귀와 이 재개방 결과를 함께 사용한다.
 개별 결과884행·소유정리7행과 원출력 hash는 [누적·작업 전이 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md#lp21-누적-저장소와-작업-전이-개별-결과)에 보존했다.
-2번 HTTP와3번 실제 통합은 아직 미실행이며, 실패 시 이 단기 비용 PASS를 대체 근거로 쓰지 않는다.
+위 비용 마감 시점에는2번 HTTP와3번 실제 통합은 미실행이었다. 이후2번 결과는 아래에 별도 보존하며 비용 PASS로 대체하지 않는다.
 비용 기록의 문서검증: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links` exit0/0.038575초,
 md285·links9023·images22·anchors124·failures0. `git diff --check` exit0. 문서검증 신규 임시물 없음.
+
+### LP21 HTTP 실패·종료 진단과 다음 조건
+
+`node scripts/internal/verify_recording_current_app.mjs --latency-only`는1회 실행해 exit1/59575ms,
+5PASS/1FAIL(`latency-transition-timeout`)이다. HEAD1c65b1a6, 제품 변경 없음. 4초 HTTP/30초 전이대기/180초 전체 제한을 그대로 사용했다.
+원출력427 HTTP관측 전수와6 assertion, trace2746행/원출력/사후상태/종료 증거의 hash 및 정리는
+[LP21 HTTP 기록](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md#lp21-실제-http-1회-실패-기록)에 보존했다.
+
+확정 사실:
+
+- timeline319요청은 전부200/ok, 최장2514ms다. 과거 HTTP4초 timeout은 이번에는 관측되지 않았지만 전이 관측을 포함한 P0-HTTP02는 FAIL이다.
+- 실행 중 표시 상태는 not-created→intent→ready까지였다. ready 요약의truncated=true는370개 매핑 행 중8개만 보여주는 **진단 요약** 제한이며 API 페이지 truncated와 다르다.
+- 선택 trace의17번째 시도에서 source2개·selection_complete=true·unknown0. 후행 원본이 끝까지 없었다거나 선택이 실패했다고 주장하지 않는다.
+- 정상 종료 뒤 복제본 상태는 complete, source2/output2/planned2/receipt2였다. `failureTimeEquivalent:false`이므로 실패 시점 완료나HTTP 재생 PASS로 소급하지 않는다.
+- 가장 느린 서버timeline 요청318은2512.716ms, 그 중 Finish1965.405ms다. 이번 기록의 가장 긴 catalog/projection 단일점유는786.736ms다.
+  과거 UpdateDerivedJob 약4초 점유와 같은 원인으로 단정하지 않는다.
+- 정상exit0·강제종료 없음·HTTP64226/RTSP64227 반환·UDP 종료·157511193B 소유root 삭제/부재 확인. 원본과 진단복제 전후hash불변 PASS.
+
+읽기 대조로 확인한 경계와 미확정:
+
+`allTimelinePages`는 limit100으로 total이 같은 모든 페이지를 모으고, 값이 바뀌면 상위에서 재시작한다.
+`SnapshotTimelineV2`는 페이지마다 작업/원본에서 전체 관련 투영을 구성하고,
+`FinishTimelineV2`는 media확인·event우선순위/overlap 계산 후 마지막에 page를 자른다.
+따라서 전이 뒤 늘어난 행의 전체 구성·매체 검사 반복과 페이지 안정성 문제가 후보이나,
+현재 로그에 offset/총계변경 횟수/대상job의 complete전이 시각이 없어 **시간초과의 단일 근본 원인은 아직 확정하지 못했다**.
+사후complete를 근거로검사timeout을 늘리거나 완료확인/페이지전수 조건을 제거하지 않는다.
+원출력 단순 읽기 집계 중 JS 연산자 오타1회(exit1)는 수정해 재집계했으며 제품/검증 재실행이 아니다.
+
+다음 순서(모두 이번 실제 통합 마감 경계, 새 구현/검증 자동 착수 없음):
+
+| 순서 | 우선순위 | 잔여 이슈 | 완료 기준·이유 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | P0 | 완료 관측 실패 원인 분리 | 페이지 offset/total 변경·대상job 전이/공개상태 시점을 같은실행에서 대조하고, 보존된 동일규모 projection의 media/coverage 비용을 분리. 진단만을 위한 무근거 반복 금지 | 실제FAIL + 읽기대조/제안 |
+| 2 | P0 | 확정 원인의 최소 보완·동일HTTP 검사 | canonical·완전성·범위·event우선순위·4000/30000ms를 유지하고 원인경계만 수정. 정상전이·완료관측·정리까지 PASS | 기존 합격 계약 |
+| 3 | P0 | 현행5단계 실제 통합 | API35/Auth38/lifecycle12/default46/실제앱25. 실제 완전2출력·파일hash·두기동 보존/새녹화·정리 후 커밋/푸시 재판정 | 원래 승인 범위, 이번은 건너뜀 |
+
+기존 hardware decode 영향과 S10 코드고정/S11 최종 안정화·30분·UI·필요120분은 별도 미완료이며 이번 실패로 전부 재시작하지 않는다.
+진단 부족으로2번을 미해소 중단하고3번을 건너뛴다(AGENTS3.3/8). 제품/도구 추가 수정·재실행·실패단계 커밋/푸시 없음.
+미커밋은 이 실패의 비민감 증적·상태기록이며 불필요한 제품 초안이 아니다. 이번 실패자료를 삭제하거나 완료 커밋에 섞지 않는다.
+최종 상태 문서검증: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links` exit0/0.035355초,
+md285·links9028·images22·anchors125·failures0. `git diff --check` exit0. 테스트 신규 실행·임시물 생성 없음.
+
 
 ## 2026-09-20 LP20 미커밋 정리·비용/조회/종료 계약 보완
 

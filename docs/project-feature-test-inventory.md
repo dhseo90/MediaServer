@@ -1,5 +1,22 @@
 # Project Feature Test Inventory
 
+## LP22 완료 관측 진단 사전등록
+
+| 기능 ID | 항목 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| LP22-T01 | 진단opt-in/비민감 | off/invalid/고정필드/hash/카나리 | S11최종cut판정 | S11최종cut판정 | 비대상: 내부진단 |
+| LP22-T02 | 상태·시간 | 4참조분리·실제내구전이·late완료 | S11최종cut판정 | S11최종cut판정 | 비대상: 내부진단 |
+| LP22-T03 | 유한증거 | count/byte/부분행/시각cap·loss·부분보존 | S11최종cut판정 | S11최종cut판정 | 비대상: 내부진단 |
+| LP22-T04 | projection 비용 | request별media/overlap/page·반환불변 | S11최종cut판정 | S11최종cut판정 | 비대상: 내부진단 |
+| LP22-O01 | 페이지관측 | callback동등·offset/상태/주기 | S11최종cut판정 | S11최종cut판정 | 비대상: 검증기 |
+| LP22-O02 | 총계변경 | 재시작사유·기존거부 | S11최종cut판정 | S11최종cut판정 | 비대상: 검증기 |
+| LP22-O03 | 상태혼합 | 동일total의ready/complete·거짓완료거부 | S11최종cut판정 | S11최종cut판정 | 비대상: 검증기 |
+| LP22-O04 | 시각·timeout | fake clock·시계축분리·late완료 | S11최종cut판정 | S11최종cut판정 | 비대상: 검증기 |
+| LP22-O05 | 일반실패선택 | 대상참조·pending/누락분리 | S11최종cut판정 | S11최종cut판정 | 비대상: 검증기 |
+| LP22-O06 | 사후진단·정리 | 실패보존·complete상세·정리오류노출 | S11최종cut판정 | S11최종cut판정 | 비대상: 검증기 |
+
+세부 실행전정의/결과는 중앙 LP22에 기록한다. 기존공개schema·HTTP/페이지·녹화정책을 바꾸는 기능이 아니다.
+
 ## LP21 누적·동시 비용 확인 사전등록
 
 | 기능 ID | 항목 | 안정화 | 30분 | 120분 | UI |
