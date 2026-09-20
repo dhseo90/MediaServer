@@ -1,5 +1,81 @@
 # Release Test Records
 
+## 2026-09-20 LP23 사후 진단·정리와 UTC unknown 원인 분석
+
+사용자 승인: 잔여1~2 순차 수행, 통과 단위 분할 커밋, 분석 결과와 후속 이슈 재산정. 푸시는 이번 요청에 포함하지 않는다.
+시작 HEAD fa4eb328, 추적 origin 대비 ahead46/behind0. 기존 LP22 제품5파일·검사4파일은 보존하며 이번 진단/분석과 섞어 완료 커밋하지 않는다.
+기존 LP22 실패 기록·원출력은 최초 실패를 유지한 채 이번 결과의 선수 근거로 함께 보존한다.
+범위: 종료된 검증 소유 자료의 복제본 진단, 원본 불변·최소 증거 확보·정리, 시간 대응 unknown의 원인/보존 경계 설계.
+비범위: 제품 시간/저장/조회/API/ID 정책 변경, 타임라인 축약 구현, 완료 관측 합격 기준 변경, 실제 앱 통합·장시간·UI·release action.
+메인이 원인/계약/증거/정리를 맡고 기존 단일 Astra/medium 담당자는 격리 진단 도구만 구현한다. 하위 위임은 금지한다.
+사용 가능한 Superpowers 스킬은 제공되지 않아 설계·원인 분리·사전등록·검토 절차를 직접 적용한다.
+
+| 번호 | 사용자 지시 | 상태 | 완료 조건 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 사후 진단 지연·임시 자료 정리 | 진단·정리 완료, SQLite 제품 실패 유지 | 반복 검증/적용·SQLite 재투영 병목 확인, JSONL 상태/상세 확보, 원본 불변 후180358628B 삭제 | 아래 LP23-D 결과 |
+| 2 | UTC unknown 원인 확정·계약 | 미착수 | 실제 대응 세분화 근거, 입력 관측/실제 불연속 구분, 보존할 정확도·경계와 후속 범위 판정 | 앞선 읽기 집계945/942·writer time state |
+| 3 | 분할 커밋·종합 보고 | 미수행 | 통과 단위만 커밋, 제품 미완료/후속 범위 구분 | AGENTS3/5/6 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 진단 도구 자체검사·보존 자료 한정 비용 구분·원인 분석 검증 | LP23-D, 후속 등록 LP23-U | 이번1~2 승인 |
+| 30분 | 미진행 | 현재 단기 진단/설계 범위 밖 | AGENTS7.6.2 | 이번 비범위 |
+| 120분 | 미진행 | 최종cut 필요성 폐기 아님 | AGENTS7.6.2 | 이번 비범위 |
+| UI | 미진행 | 현재 내부 진단/분석에 UI 없음 | AGENTS7.6.3 | 이번 비범위 |
+
+### LP23-D 실행 전 정의
+
+제품 파일은 바꾸지 않는다. 기존 C++ archive probe/catalog의 작업 소유 복사본에 고정 phase 계측만 넣는다.
+정상 제품 서버는 실행하지 않으며 journal/Catalog Open은 별도 소유 복제본에만 허용한다.
+원본 root는 TMPDIR/media-server-current-integration-FKdtx1, 대상 reference는 SHA256
+`268a395031147be5bd22b4c3459cf4777478e0fbdf111c76b3918c1ea2cb24b9`로만 선택·보고한다.
+서버/진단 프로세스 부재 확인 뒤 원본 파일·부모 containment/소유권/종류/hash를 확인하고 사후 불변을 비교한다.
+raw reference·source URL·credential·원문 오류·미디어는 Git에 저장하지 않는다.
+개별 실행 상한은 compile60초, probe15초(기존 유지), 전체120초, 소유 disk512MiB/RSS1GiB/출력2MiB다.
+계측 행은 고정 enum/steady 마이크로초(`atUs`/`elapsedUs`)/개수만 즉시 내보내고 cap/누락을 명시한다. timeout은 원래 진단 FAIL로 남기며
+마지막 phase 확보를 진단 성공과 구별한다. 측정 도구가 timeout 뒤 임의 재실행하거나 원본을 제거하지 않는다.
+필요한 비교는 같은 엄격 journal 검증을 사용하는 기존 prefer_sqlite=false 경로로 한정하고,
+SQLite 복구/실제 앱/전체 재기동 PASS의 대체로 쓰지 않는다. 제품 기본과 timeout을 변경하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP23-D01 phase·시간 수집 | 시작/완료/중첩/누락/timeout 구별 | 고정 enum·단조 시각·잘못된 순서·부분행·cap의 자체검사 | v4.1.0 |
+| LP23-D02 비민감·격리 | 승인 root/참조/hash·소유 복제본만 | unknown/원문 필드 거부, 경로·링크·다른 소유자 거부, 원본 Open 불가 구조 | v4.1.0 |
+| LP23-D03 원인 구분 | journal/read/preflight/apply/SQLite/rebuild/query/직렬화 단계 | 소유 소스 복사본의 strict anchor 계측·15초 상한·종료 후 부분 증거 보존 | v4.1.0 |
+| LP23-D04 상태 자료 | 기존 엄격 JSONL 경로 비교 | 같은 자료·대상·검증, 모드 명시, SQLite PASS로 확대 금지 | v4.1.0 |
+| LP23-D05 불변·정리 | 원본/source/build 불변·자식 종료·소유 temp 정리 | hash·종류·크기·종료 결과, 실패 시 필요한 증거 보존 후 대상 한정 삭제 | v4.1.0 |
+
+실행 결과/정리/미실행은 아래에 실제 수행 후 기입한다. 토큰 start/end/consumed는 전용 집계가 없으면 미집계 사유를 쓰고 elapsed는 실제 명령에서 수집한다.
+
+자체검사 명령: `node --test scripts/internal/recording_archive_diagnostic_profile.test.mjs`.
+첫 실제 명령: `node scripts/internal/recording_archive_diagnostic_profile.mjs <검증 소유 보존 root> lp23-sqlite-state-01 --state`.
+실행 전 main이 diff/격리/판정을 검토한다. 미지원 옵션·구현 준비 오류는 실제15초 실패 원인으로 해석하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP23-DH01 phase nesting and completed diagnostic remain distinct from app PASS | 계측/합격 경계 | 중첩·종료 관측과 명령 성공/실제 앱 PASS 구분 | v4.1.0 |
+| LP23-DH02 timeout preserves last open phase without synthetic completion | 중단 자료 | timeout의 열린 phase 보존·가짜 end 생성 금지 | v4.1.0 |
+| LP23-DH03 partial malformed unknown and secret-bearing trace rows reject | 오류·비민감 | 부분행/손상/미등록/비밀 field 거부 | v4.1.0 |
+| LP23-DH04 owned nofollow copy preserves every byte and rejects foreign scope | 격리·복제 | symlink/범위/소유 위반 거부·모든 bytes 일치 | v4.1.0 |
+| LP23-DH05 changed original or unconfirmed child blocks cleanup | 정리 경계 | 원본 변경·자식 종료 불명확이면 삭제 불가 | v4.1.0 |
+| LP23-DH06 exact instrumentation drift and trace bounds fail closed | 계측/상한 | anchor drift·trace cap 거부 | v4.1.0 |
+
+### LP23-D 결과
+
+상세 개별 결과·원출력·정리: [LP23 사후 진단](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md#lp23-사후-진단과-정리).
+자체검사 최초/최종 각6 PASS, 최종465.576ms. 최초 정리 크기 미계측을 보존하며 최종4개 합성 root56887B 삭제 확인.
+실제 SQLite 상태 진단은15초 timeout으로 FAIL, 열린 단계는 `rebuild-project`였다. 원장 Open0.473초,
+Open preflight3.392초·apply3.278초·rebuild preflight3.431초, SQLite open0.0038초·clear0.00054초였다.
+따라서 이 실행의 주원인은 초기 SQLite 연결이나 HTTP가 아니라 전체 내용 반복 검증/적용 및 SQLite 재투영이다.
+재투영 내부의 파싱·직렬화·SQL 각각의 정확한 점유율은 이번 단계 계측으로 확정하지 않았다.
+같은 엄격 JSONL 경로의 상태/상세 진단은 각각7844/7660ms로 PASS. 대상 Complete·원본2/출력2·full=true·미충족0을
+기존 출력 validator로 보존하고 실제 출력 파일 SHA256도 대조했다. 이는 종료 후 상태이며 실행 중 관측/SQLite 복구 PASS가 아니다.
+원본 recordings의 디렉터리 구조/파일 byte hash와 제품 source가 세 실행 모두 불변이었다. 프로세스·포트 부재 확인 후
+최소 상태/상세/구간/파일 hash/명령·환경 자료를 보존하고 기존180358628B를 삭제했다. 원본 영상·전체 원장은 복원 불가이며
+동일 입력 fixture만 저장소에 남는다. 실패 시점의 모든 바이트를 독립 재실행할 수 있다고 주장하지 않는다.
+기존 LP22 제품5/검사4 미커밋은 그대로 남고, 이 단계 커밋은 진단 도구·정리 및 이전 실패 기록만 대상으로 한다.
+token start/end/consumed: 미집계(집계 도구 미제공), elapsed/source는 각 원출력에 기록했다.
+
 ## 2026-09-20 LP22 완료 관측 원인 분리와 실제 통합 마감
 
 사용자 승인: 재검토한1~5 순차 개발·관련 단기검증·분할커밋, 모두 문제없으면 푸시 후 종합보고.
@@ -12,9 +88,9 @@
 | 1 | 진단 기준·누락 보완 | 구현 완료 | worker→catalog 내구전이, projection4단계, 페이지/wait/사후진단 연결 | 아래 고정계약·직접diff |
 | 2 | 진단 도구 자체검증 | 완료 | 최종168PASS·전체build exit0, 최초RED/기대치오류 보존 | LP22-T/O·상세결과 |
 | 3 | 원인 구분 단기1회 | 진단 완료·실제 HTTP FAIL | 5PASS1FAIL, 대상job 실행중Complete·HTTP214 반복검증3.209초 확인 | 아래 LP22 실제1회·원출력 |
-| 4 | 확인 원인 최소수정·회귀 | 진행 중 | 요청내 불변job 재사용 계약·focused 사전등록. 제품수정/재검증은 남음 | 아래 LP22-R |
-| 5 | 현행5단계 통합 | 미실행 | 완전2출력·hash·재기동·정리 전수통과 | S11-CI01/07~11 |
-| 6 | 분할커밋·조건부푸시 | 일부 수행 | 4462a252·25946e73 커밋, 푸시보류. 실패한HTTP는완료커밋아님 | 사용자명시·AGENTS5 |
+| 4 | 확인 원인 최소수정·회귀 | 부분 구현·실제 앱 FAIL | 요청 내 재사용·최종129PASS·build exit0. 실제 앱은 완료 관측 및 사후 진단 시간초과, 임시 자료 정리 blocker | 아래 HTTP02·LP22-R |
+| 5 | 현행5단계 통합 | 건너뜀 | 4번 실패·정리 미완료로 완전2출력·hash·재기동 검증은 실행하지 않음 | S11-CI01/07~11·AGENTS8 |
+| 6 | 분할커밋·조건부푸시 | 3개 커밋·푸시 불가/미수행 | 4462a252·25946e73·fa4eb328. 4번 제품·검사·결과는 미커밋으로 보존, 실패 단계를 커밋하지 않음 | 사용자명시·AGENTS3/5/8 |
 
 ### 실행 전 계약
 
@@ -149,6 +225,11 @@ reloadable link는현재CanReleaseMutationLink로기원을확인하고resident f
 
 LP22-R 초기 focused 실행 전 정의(제품 수정 전 예상 RED):
 
+선수 도구 자체검사 명령: `node --test scripts/internal/recording_job_read_context.test.mjs`, 예상2PASS.
+`LP22-RH01 exact RED and GREEN bind every label summary and actual parse counts`는각제목/summary/실제Parse횟수5→1을결박한다.
+`LP22-RH02 missing summary different failure stop signal and unclean group reject`는다른FAIL·누락·중단·정리미확인을거부한다.
+자체검사import는runner실행/임시root를만들지않는다. runBounded의기존자원/소유guard는변경하지않는다.
+
 | 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
 | --- | --- | --- | --- |
 | LP22-R01 fixture actual Complete two outputs | 실제자료 선수 | 기존PrepareMedia의Encode/실제writer/파생2출력 fixture 재사용 | v4.1.0 |
@@ -168,6 +249,87 @@ R03만5회 대1회로FAIL하는4PASS1FAIL을예상한다. R05초기RED는hold0�
 `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links` exit0/0.00498125초,
 md285·links9045·images22·anchors126·failures0. 새실행없음·제품미수정, 진단완료와HTTP FAIL을구분해분할커밋한다.
 raw/진단자료5개와문서만대상이며작성중focused테스트는이커밋에서제외한다.
+
+4번 영향 검증 계획: 제품 소스 수정 후 `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build`를 먼저 실행하여
+archive/header/TU가 같은 빌드인지 확인한다. LP22-R GREEN과 손상·현재상태·예산·수명 반례 통과 후
+`bash scripts/internal/verify_recording_public_media.sh`의 기존 D3A 전수,
+`bash scripts/internal/verify_recording_public_timeline.sh`의 기존 D3B 전수,
+`node --test scripts/internal/recording_latency_trace.test.mjs`의 기존22개를 순차 확인한다.
+등록된 기존 개별 정의·실행 경로를 그대로 사용하며 실제 결과는 아래 상세 기록에 전수 보존한다.
+기존LP21 source/작업전이/체크포인트 검증은 해당쓰기·복구·상주해제 구현이 바뀌지 않으므로 유지한다.
+요청내 임시소유와매체조회 재검증은 이번 LP22-R/D3A/D3B·단기HTTP에서 새로 판정한다.
+이는 누적32원본 전체를 재실행하거나 기존비용문제를 자동해결로 선언하는 것이 아니다.
+
+LP22-R 초기RED 직접확인: RH자체검사2PASS/exit0 후, 등록명령의compile exit0/3856ms,
+focused exit1/2376ms·4PASS1FAIL(R03만)·Parse5/5, wrapper는예상RED일치로exit0.
+제품변경없음·source불변·소유9,050,631B삭제/부재. 세부결과와한계는
+[LP22 요청 내 검증 재사용 focused](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md#lp22-요청-내-검증-재사용-focused)를따른다.
+따라서같은단계의승인된제품구현으로이어가며추가실제앱실행은GREEN/영향회귀전금지한다.
+
+LP22-R GREEN 실행 전 추가 정의. 기존R01~05와아래16개총21개, 예상21PASS/Parse1·1.
+R01은ready.request_fully_satisfied도확인하고R02는NULL-context strict와최적화전수응답을대조한다.
+R05는실제context의strong수명종료뒤weak.expired까지확인한다. 동결제품의전체build exit0·경고/오류없음.
+명령 `node scripts/internal/verify_recording_job_read_context.mjs green lp22-media-02`.
+runner변경후같은RH01/02두개도다시검사하며새21개판정연결을포함한다. 실제앱/후속회귀는이들통과후다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP22-R06 changed saved envelope falls back to strict parsing | 저장된봉투내용불일치 | strict재파싱으로복귀·동일정상결과 | v4.1.0 |
+| LP22-R06 replaced current mutation rejects without stale reuse | 현재원장연결교체 | 옛내용으로재사용하지않고거부 | v4.1.0 |
+| LP22-R06 same resident with invalid provenance retains strict validation | 같은resident주소·기원무효 | 포인터동일만으로strict검증생략금지 | v4.1.0 |
+| LP22-R07 changed current state rejects playback | 현재상태변화 | 미완료재생거부 | v4.1.0 |
+| LP22-R07 changed thin metadata rejects stale content | 현재요약metadata변경 | oldjob재사용거부 | v4.1.0 |
+| LP22-R07 changed current source segment rejects stale content | 현재원본segment전체값변경 | 엄격동등검사·오래된내용거부 | v4.1.0 |
+| LP22-R07 changed output path preserves strict rejection | 현재출력경로변경 | 기존strict거부와동일 | v4.1.0 |
+| LP22-R07 duplicate output owner rejects playback | 출력소유중복 | 다른job와충돌거부 | v4.1.0 |
+| LP22-R07 deleted output rejects playback | 출력삭제상태 | 새재생거부·hold0 | v4.1.0 |
+| LP22-R08 byte budget fallback preserves full timeline and owned limit | 원문논리8MiB예산 | 시험복제본예산잔량0·동일전수응답·소유합계상한;실제대형RSS증거아님 | v4.1.0 |
+| LP22-R08 job budget fallback preserves strict playback | 최대8job재사용예산 | 시험복제본슬롯충족·정상입력은strict로제공;실제9job성능검사아님 | v4.1.0 |
+| LP22-R08 admission allocation failure preserves authority and strict result | 선택적저장할당예외 | 소유소스복제본주입·catalog권위유지·strict정상결과 | v4.1.0 |
+| LP22-R09 file tamper rejects and releases holds | 실파일내용변조 | 실제파일검사유지·hold0 | v4.1.0 |
+| LP22-R09 media exception releases context and holds | 매체검사경계예외 | 소유소스복제본주입·상세weak해제·hold0 | v4.1.0 |
+| LP22-R09 same size journal tamper rejects and clears owned output | 같은크기원장변조 | 별도Store·현재원문검사·출력소유반환거부 | v4.1.0 |
+| LP22-R09 detached authority rejects cold context reuse | 원장권위분리 | 별도Store·원래권위기원의cold자료재사용거부 | v4.1.0 |
+
+GREEN02 최초결과는17PASS4FAIL·exit1, Parse1/1이다. 실패는R07 state/thin/source/duplicate 네항목으로보존한다.
+기존fixture Holds는실제hold_counts_에DerivedJobProtectsLocked의보수적삭제보호1을더한RetentionSnapshot값이다.
+의도된불확실상태에서이값을0으로요구한검증준비결함을직접확인했다(catalog.cpp:431,2635~2636).
+제품은바꾸지않고소유fixture에서실제FD hold_counts_의0과불확실상태의보존보호유지를각각검사한다.
+동일21개와기존시간제한으로 `node scripts/internal/verify_recording_job_read_context.mjs green lp22-media-03` 재검사한다.
+재생거부/실제hold/보수적보호의개별관측도고정값으로보존하며최초실패를예상RED로바꾸지않는다.
+GREEN02의source불변·compile4167ms/focused2945ms·소유10110296B삭제/부재를확인했으며후속검증은실행하지않았다.
+
+GREEN03 최종21PASS·Parse1/1, compile3959ms/focused2694ms·exit0·groupClean/source불변,
+소유10110536B삭제/부재. 4개반례는각rejected=true/fdHolds=0/authority=false/retentionProtection=2였다.
+제품수정없이검증해석만분리했고최초17/4실패도보존했다. 최종RH2, D3A46, D3B38, 계측22도각exit0으로통과했다.
+최종단기묶음129PASS·전체build exit0·diffcheck0, 제품5파일과binary SHA는build02이후변하지않았다.
+전수개별결과·원출력·정리는상세결과의LP22-R절에보존했다. 해당 diffcheck는 HTTP02 실행 전 결과이며,
+HTTP02 실패 후 작성한 아래 기록의 문서 검증까지 통과했다는 뜻은 아니다.
+
+### LP22 HTTP02 재검증 실패와 중단
+
+`node scripts/internal/verify_recording_current_app.mjs --latency-only` 1회, exit1/61215ms/4PASS2FAIL.
+source는 fa4eb328과 미커밋 제품5파일, binary SHA256은 `1676967e74f4e93a648083b52565cf1821f77f93625d54856f4d709e469403a6`이다.
+HTTP4000ms·관측30000ms·실행180000ms·4참조·페이지100은 변경하지 않았다.
+
+- 직접 확인: timeline297요청 모두200, 최장2091ms. 다만 완료 관측 검사가 실패해 `latencyPass=false`이며 전체 HTTP 검사 PASS가 아니다.
+- 직접 확인: 대상 job은 서버 steady 축23.707215458초에 Complete였다. 그 뒤 페이지에 Complete가 관측됐지만
+  cycle161~165가 모두 `page-total-changed`로 폐기되어 전체 페이지를 반환하지 못했다. wait은33073.771375ms 후
+  `latency-transition-timeout`이었다. 서버/JS 시계를 서로 빼거나 작업 미완료라고 해석하지 않는다.
+- 직접 확인: 사후 복제본의 최초 bytes/hash 일치는 통과했으나 기본 상태 진단이15초 상한에서 timeout이었다.
+  상태 evidence는 생성되지 않았으며 사후 원본 불변 검사는 실행되지 않았다. probe 내부 지연 원인은 아직 미확정이다.
+- 정리: PID22005 exit0, HTTP50119/RTSP50120 및 UDP 해제. 필수 사후 자료를 확보하지 못해 소유 root180358628B를
+  임시 보존했다. 프로세스 종료와 디렉터리 정리 완료를 구분하며 cleanup blocker를 유지한다.
+
+전수 HTTP·페이지·전이·개별 assertion·자료 hash·정리 기록은
+[HTTP02 상세 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md#lp22-http02-재검증-실패와-중단)를 따른다.
+AGENTS8에 따라 재실행·후속 통합·실패 단계 커밋·푸시를 중단했다. 기존 3개 커밋은 유지하고 제품/검증 초안을 삭제하지 않았다.
+토큰 start/end/consumed는 전용 집계 부재로 미집계이며 elapsed는 실행 summary의61215ms다.
+
+잔여 순서(제안): 보존 자료의 안전한 사후 진단·정리 → 변경되는 전체 목록과 대상 완료 관측의 계약 분리 검토 →
+확정된 범위의 자체검사·동일 단기 HTTP → 현행5단계 통합 → 커밋/푸시 재판정.
+첫 페이지의 Complete만으로 합격시키거나 timeout을 늘리는 변경은 승인/실행하지 않았다.
+장시간·브라우저·릴리즈 검증은 이번에 실행하지 않았으며 다음 단계도 자동 착수하지 않는다.
 
 ## 2026-09-20 LP21 누적·동시 비용 → 실제 HTTP → 현행 통합
 

@@ -1,0 +1,13 @@
+command: node --test scripts/internal/recording_job_read_context.test.mjs
+exit: 0
+✔ LP22-RH01 exact RED and GREEN bind every label summary and actual parse counts (0.395084ms)
+✔ LP22-RH02 missing summary different failure stop signal and unclean group reject (0.06225ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 35.170208
+cleanup: no owned temporary files or child processes were created by these pure tests

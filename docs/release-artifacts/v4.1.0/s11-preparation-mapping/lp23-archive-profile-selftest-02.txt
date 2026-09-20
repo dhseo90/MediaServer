@@ -1,0 +1,22 @@
+command: node --test scripts/internal/recording_archive_diagnostic_profile.test.mjs
+exit: 0
+[profile-selftest-cleanup] {"bytes":433,"removed":true}
+[profile-selftest-cleanup] {"bytes":142,"removed":true}
+[profile-selftest-cleanup] {"bytes":1,"removed":true}
+[profile-native] {"compileExit":0,"runExit":0,"sourceSha256":"ba5448b720bb359358ab71258daaeec685769e654260b4a1131cd357d460a078","binarySha256":"c13f3479cb6e1e9147dfaf3a1d95537ff76b73c1a5e780d0fb3fe68b8cca1aeb"}
+[profile-selftest-cleanup] {"bytes":56311,"removed":true}
+✔ LP23-DH01 phase nesting and completed diagnostic remain distinct from app PASS (1.053084ms)
+✔ LP23-DH02 timeout preserves last open phase without synthetic completion (0.127625ms)
+✔ LP23-DH03 partial malformed unknown and secret-bearing trace rows reject (11.360792ms)
+✔ LP23-DH04 owned nofollow copy preserves every byte and rejects foreign scope (6.079667ms)
+✔ LP23-DH05 changed original or unconfirmed child blocks cleanup (0.885334ms)
+✔ LP23-DH06 exact instrumentation drift and trace bounds fail closed (410.34025ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 465.575667
+scope: 4 owned synthetic roots removed and absence asserted; no preserved original opened or modified

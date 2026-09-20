@@ -1,0 +1,12 @@
+command: ./server.sh verify-docs-links
+exit: 0
+elapsed: 0.050299208s
+
+== Docs link verification summary ==
+- markdown files: 285
+- local links: 9070
+- local images: 22
+- local anchors: 129
+- indexed docs: 76
+- index coverage exclusions: 201
+- failures: 0

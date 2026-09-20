@@ -1,0 +1,63 @@
+{"kind":"preflight","mode":"red","id":"lp22-media-01","source":[{"file":"include/recording/recording_catalog.h","sha256":"7e453c72605d441f00136be2153a08ef3697abae708d04a5151c017ef003a620"},{"file":"include/recording/recording_read_service.h","sha256":"b03d18b6c18e4154141896822b6b1f6c971635940257918cffcb8cd48a7044f6"},{"file":"src/recording/recording_catalog.cpp","sha256":"fceb73399cab058ea4433a6d7530d3fa9cabd90f6f8091d675d0b022f9d334c6"},{"file":"src/recording/recording_read_service.cpp","sha256":"45a4c4f73f4ee292a78907c91cad324d40fc7d2a17eb0bbdcc7406f51d7568d7"},{"file":"src/recording/recording_timeline_projection.cpp","sha256":"6f98f7fe2ea25b3bed371f90834cbbef4c91f420527e7194e7bc99445bd74ed4"},{"file":"src/recording/recording_derived_job_ready.cpp","sha256":"74f304446afb62c9abc48c2f13fa65281f9c942becabfbbbb3612458eac3f184"},{"file":"src/recording/recording_derived_job_context.h","sha256":"10f047b9718e22dddc1a7b59d478af10ad2a828ddf256f3a14792ae7365e4891"},{"file":"scripts/internal/recording_job_read_context_smoke.cpp","sha256":"be813a942a71e7231c39ae143977f9a467ec3bac726b09a53cc5e668b7cdfa89"},{"file":"scripts/internal/recording_job_read_context_counter.h","sha256":"58e77d8660a816e8e4179aad523461a5aff2843b870efe2e07f9d0dbb4fba2be"},{"file":"scripts/internal/recording_job_read_context.test.mjs","sha256":"7342e01f32a639ee7f9a2a5e4f3f00773d561f14e69c525d15ddffce74fc27db"},{"file":"scripts/internal/recording_public_media_smoke.cpp","sha256":"759037f3287bd76578dfb4471f14d1c61888e567efb31d8894227d0cd1e1af2e"},{"file":"scripts/internal/recording_media_test_fixture.h","sha256":"404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6"},{"file":"scripts/internal/recording_catalog_comparison_guard.mjs","sha256":"a018b80c06f6679e75b973181e3188cda8431b84a1e4d356c4f7b6bb5699f432"},{"file":"scripts/internal/verify_recording_job_read_context.mjs","sha256":"6253ef75229b3a9e2e0da7d6683c5f13be7e686a24cbeb04e0d002e4b8e1a2ff"},{"file":"scripts/internal/env_common.sh","sha256":"4ebe528dd90c10cc340211e77de9746df78fa4fd599cb3b01289ebf6ccadd3d8"}],"limits":{"compileSeconds":60,"runSeconds":60,"rss":1073741824,"disk":536870912,"output":2097152}}
+{"kind":"build-fingerprint","archiveSha256":"cf0a39f674cb11aeb74b96ab38573e782760acc036251f9112f0caf9957630a2","linkSha256":"1e2b4ed6e612a927e5965049634799ea546a0869f9d8ecaf7badfba666541c7d","serverSha256":"240eecd1fe55156e5b2e91c0c102742bd4fcd558b45f40d28c2a1f2d0c7dac45","archiveMtimeMs":1789877179548.3335,"platform":"darwin","arch":"arm64","node":"v24.13.0"}
+{"kind":"copy","file":"recording_catalog.cpp","originalSha256":"fceb73399cab058ea4433a6d7530d3fa9cabd90f6f8091d675d0b022f9d334c6","instrumentedSha256":"fceb73399cab058ea4433a6d7530d3fa9cabd90f6f8091d675d0b022f9d334c6","insertions":0}
+{"kind":"copy","file":"recording_read_service.cpp","originalSha256":"45a4c4f73f4ee292a78907c91cad324d40fc7d2a17eb0bbdcc7406f51d7568d7","instrumentedSha256":"45a4c4f73f4ee292a78907c91cad324d40fc7d2a17eb0bbdcc7406f51d7568d7","insertions":0}
+{"kind":"copy","file":"recording_timeline_projection.cpp","originalSha256":"6f98f7fe2ea25b3bed371f90834cbbef4c91f420527e7194e7bc99445bd74ed4","instrumentedSha256":"6f98f7fe2ea25b3bed371f90834cbbef4c91f420527e7194e7bc99445bd74ed4","insertions":0}
+{"kind":"copy","file":"recording_derived_job_ready.cpp","originalSha256":"74f304446afb62c9abc48c2f13fa65281f9c942becabfbbbb3612458eac3f184","instrumentedSha256":"748eb6e6bed05948fab72eb15fa13d30522c1a9f96a4391dad381091e5bff304","insertions":1}
+{"kind":"command","phase":"compile","command":"c++","args":["-std=c++17","-Wall","-Wextra","-Werror","-pthread","-DMEDIA_SERVER_USE_GSTREAMER=1","-DMEDIA_SERVER_USE_OPENSSL=1","-DMEDIA_SERVER_USE_SQLITE3=1","-I/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.kvprQM/include","-I/Users/dhseo/Workspace/mediaServer/include","-I/Users/dhseo/Workspace/mediaServer/src/recording","-I/Users/dhseo/Workspace/mediaServer/scripts/internal","-include","/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_job_read_context_counter.h","-I/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0","-I/opt/homebrew/Cellar/glib/2.86.4/include","-I/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi","-I/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0","-I/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include","-I/opt/homebrew/opt/gettext/include","-I/opt/homebrew/Cellar/pcre2/10.47_1/include","-I/opt/homebrew/Cellar/openssl@3/3.6.2/include","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.kvprQM/recording_catalog.cpp","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.kvprQM/recording_read_service.cpp","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.kvprQM/recording_timeline_projection.cpp","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.kvprQM/recording_derived_job_ready.cpp","/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_job_read_context_smoke.cpp","/Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib","/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib","/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib","/opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib","/opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib","/opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib","/opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib","/opt/homebrew/opt/gettext/lib/libintl.dylib","/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd","/opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib","/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib","/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib","/opt/homebrew/lib/libonnxruntime.dylib","-o","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.kvprQM/check"]}
+
+        3.84 real         3.54 user         0.23 sys
+           318586880  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               81772  page reclaims
+                1065  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                1295  voluntary context switches
+                3085  involuntary context switches
+           113444360  instructions retired
+            55534729  cycles elapsed
+             3146112  peak memory footprint
+
+{"kind":"phase","name":"compile","pass":0,"fail":0,"expected":true,"code":0,"signal":null,"stopReason":null,"groupClean":true,"groupPeakRssBytes":328892416,"observationFailure":null,"outputBytes":777,"elapsedMs":3856}
+{"kind":"focused-binary","sha256":"9fffb412fe605f9e40e789a738a6d5c8699d2fa7eeedc2c72a6ba1db427430dd","bytes":6694296}
+{"kind":"command","phase":"focused","command":"/bin/bash","args":["-c","set -euo pipefail; source \"$1\"; export MEDIA_SERVER_GST_CACHE_DIR=\"$2/gst-cache\" MEDIA_SERVER_GST_PLUGIN_PROFILE=headless GST_REGISTRY=\"$2/registry.bin\" GST_REGISTRY_1_0=\"$2/registry.bin\"; unset GST_PLUGIN_PATH GST_PLUGIN_PATH_1_0 GST_PLUGIN_SYSTEM_PATH GST_PLUGIN_SYSTEM_PATH_1_0 MEDIA_SERVER_GST_MANAGED_REGISTRY MEDIA_SERVER_GST_MANAGED_PLUGIN_PATH MEDIA_SERVER_GST_INPUT_PLUGIN_PATH; media_server_apply_homebrew_gst_env; exec \"$3\" \"$2\"","read-context","/Users/dhseo/Workspace/mediaServer/scripts/internal/env_common.sh","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.kvprQM","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.kvprQM/check"]}
+[pass] LP22-R01 fixture actual Complete two outputs
+[pass] LP22-R02 public timeline canonical and media bytes unchanged
+[fail] LP22-R03 same job two outputs parse strictly once per request
+[pass] LP22-R04 next request revalidates cold job
+[pass] LP22-R05 context and media holds released after request
+[read-context-count] {"firstParses":5,"secondParses":5}
+[summary] pass=4 fail=1
+
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+        2.36 real         1.38 user         0.22 sys
+           157270016  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               68254  page reclaims
+                4381  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                 223  messages sent
+                 213  messages received
+                   0  signals received
+                 343  voluntary context switches
+                4171  involuntary context switches
+          9885103450  instructions retired
+          2282482577  cycles elapsed
+            33964824  peak memory footprint
+
+{"kind":"phase","name":"focused","pass":4,"fail":1,"expected":true,"code":1,"signal":null,"stopReason":null,"groupClean":true,"groupPeakRssBytes":180387840,"observationFailure":null,"outputBytes":1381,"elapsedMs":2376}
+{"kind":"source-check","unchanged":true}
+{"kind":"cleanup","bytes":9050631,"removed":true}

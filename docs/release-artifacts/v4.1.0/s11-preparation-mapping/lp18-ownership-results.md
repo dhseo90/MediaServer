@@ -1,5 +1,925 @@
 # LP18 공유 소유 focused 개별 결과
 
+## LP23 사후 진단과 정리
+
+독자/수명: 현재 원인 분석·후속 회귀 담당자용 실행 증거다. 중앙 LP23 기록의 상세이며 제품 완료 판정을 대체하지 않는다.
+source: fa4eb328 + 이전 LP22 미커밋 제품5, fingerprint/명령/환경/상한은 아래 원출력. 제품 변경 없음.
+token start/end/consumed 미집계(전용 집계 미제공). 신규 도구는 자체검사와 실제 소유 복제본 실행을 분리했다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP23-DH01 | phase 중첩·완료와 앱 PASS 구분·elapsed 일치 | PASS | 최초/최종 각1, 최종 반례 보완 |
+| LP23-DH02 | timeout 열린 단계 보존 | PASS | 가짜 end 없음 |
+| LP23-DH03 | 손상·미등록·비밀 field 거부 | PASS | 기존 state validator 재사용 |
+| LP23-DH04 | 소유 복제·빈 디렉터리·링크 거부 | PASS | 원본 모든 byte 대조 |
+| LP23-DH05 | 원본 변경·자식 불명확 시 정리 차단 | PASS | 합성 fixture |
+| LP23-DH06 | anchor drift·native trace cap | PASS | compile/run0, 256행에 loss 포함 |
+| LP23 SQLite compile | c++ 원본 복사 계측 빌드 | PASS | exit0,1986ms |
+| LP23 SQLite state | 기존15초 상태 진단 | FAIL | SIGTERM/timeout,15014ms, RSS104857600B, query 미도달 |
+| LP23 SQLite 보존·정리 | 원본/source 불변·group 종료·temp 삭제 | PASS | 87282509B 삭제 |
+| LP23 JSONL state compile | 동일 입력·기존 strict JSONL | PASS | exit0,1930ms |
+| LP23 JSONL state | Complete 상태 수집 | PASS | exit0,7844ms, RSS79364096B, 원본2/출력2 |
+| LP23 JSONL state 보존·정리 | 기존 validator·원본/source 불변·group 종료 | PASS | 83912318B 삭제 |
+| LP23 JSONL detail compile | 동일 strict JSONL 상세 | PASS | exit0,2064ms |
+| LP23 JSONL detail | 구간·선택·출력·해시 증거 | PASS | exit0,7660ms, RSS78708736B, full=true/미충족0 |
+| LP23 JSONL detail 보존·정리 | 기존 validator·원본/source 불변·group 종료 | PASS | 83912318B 삭제 |
+| LP23 원본 출력 해시 | 출력2개의 저장 SHA256/size와 실제 파일 대조 | PASS | 두 출력 모두 일치 |
+| LP23 원본 actor/port | ps 관련 프로세스·lsof50119/50120 없음 | PASS | 두 명령 exit1/무출력=일치 항목 없음 |
+| LP23 원본 정리 | 증거 이관 후 정확한 소유 root만 삭제 | PASS | 180358628B,48파일/277링크, 부재 확인 |
+
+자체검사 명령 `node --test scripts/internal/recording_archive_diagnostic_profile.test.mjs`,
+[최초](lp23-archive-profile-selftest-01.txt) exit0/681.985ms,
+[최종](lp23-archive-profile-selftest-02.txt) exit0/465.576ms. 최초 정리 byte 미측정, 최종4개 root56887B 삭제.
+실제 명령은 `node scripts/internal/recording_archive_diagnostic_profile.mjs <검증 소유 root> <run-id> [--jsonl] [--state]`.
+[SQLite 상태](lp23-sqlite-state-01.txt), [JSONL 상태](lp23-jsonl-state-01.txt),
+[JSONL 상세](lp23-jsonl-completeness-01.txt)에 정확한 compile/run args·출력 SHA·phase·cleanup을 보존했다.
+전체 elapsed는 각각17341/10096/10049ms. 실제 서버·HTTP·재기동·UI·장시간은 미실행이다.
+
+| 단계 | SQLite 관측 ms | JSONL 상태 ms | 판정 |
+| --- | --- | --- | --- |
+| journal-open | 472.667 | 468.848 | 원장 열기 비용 |
+| open-replay | 1.139 | 1.081 | 기존 owned replay 획득 |
+| open-preflight | 3391.998 | 3386.126 | 전체 scratch 검증 |
+| open-apply | 3277.848 | 3273.310 | 실제 상태에 전체 적용 |
+| sqlite-open | 3.764 | 해당 없음 | 연결 자체가 주원인 아님 |
+| rebuild-replay | 0.527 | 해당 없음 | 재투영 준비 |
+| rebuild-preflight | 3431.458 | 해당 없음 | 전체 scratch 재검증 |
+| rebuild-clear | 0.542 | 해당 없음 | 테이블 비우기 |
+| rebuild-project | 10582.169ms 시점 진입 후 timeout | 해당 없음 | 전체 투영 내부 세부 비중 미확정 |
+| query | 미도달 | 179.562 | 상태 조회 |
+| output | 미도달 | 31.181 | 안전한 상태 직렬화/flush |
+| destruct | 미도달 | 0.181 | 성공 경로 정상 파괴 |
+
+SQLite의 세 전체 검증/적용 합10101.304ms로, timeout 연장 대신 Open/재투영 재사용 경계 보완이 후속이다.
+JSONL 비교는 기존 검증을 건너뛴 PASS가 아니며 SQLite 투영을 실행하지 않는 별도 경로다. 제품 기본을 바꾸지 않았다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| 기존 소유 root(media-server-current-integration-FKdtx1) | 임시 영상·원장·실행파일·registry | 180358628B | 삭제 | 부재 확인, 복원 불가 | [사전 manifest](lp23-cleanup-manifest-01.json)·[정리 결과](lp23-cleanup-result-01.json) |
+| 각 profile 소유 root | 계측 소스/실행파일·복제본 | 87282509/83912318/83912318B | 삭제 | 세 root 모두 부재 | 각 profile 원출력 |
+| LP23 비민감 자료 | 상태/상세·물리 구간·hash·계측 | 개별 manifest 참조 | Git 보존 | 최소 진단·분석 근거 | [상태](lp23-jsonl-state-01.json)·[상세](lp23-jsonl-completeness-01.json)·[물리 구간](lp23-preserved-physical-summary-01.json) |
+
+원본 불변 manifest SHA256 `942d8712f385e2e85e033e3c59054f69522e8a4f2dad554da65cb96f81dfa84e`.
+물리 원장945 mapping/942 unknown 집계는 Catalog 복구 PASS가 아니다. JSONL 상세의 Complete도 종료 후 관측이며
+실행 중 완료 관측 실패를 없애지 않는다. raw media/full journal을 이관하지 않아 byte-exact 재현 bundle은 없다.
+
+문서 마감: [links01](lp23-docs-links-01.txt) exit0/285문서·9070링크·22이미지·129anchor/실패0,
+[assets01](lp23-docs-assets-01.txt) exit0/10PASS,
+[diffcheck01](lp23-diffcheck-01.txt) exit0. 실제 UI 검증이 아니라 문서 정책 검사다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| docs-links | 로컬 문서·링크·anchor | PASS | failures0 |
+| README uses only representative product UI screenshots | 자산 정책 | PASS | 기존 명령 |
+| English README uses English UI screenshots | 자산 정책 | PASS | 기존 명령 |
+| UI guide keeps product screenshots in the shared asset set | 자산 정책 | PASS | 기존 명령 |
+| docs UI asset policy documents capture rules | 자산 정책 | PASS | 기존 명령 |
+| managed UI asset manifest stays complete | 자산 정책 | PASS | 기존 명령 |
+| capture script owns every documented UI asset | 자산 정책 | PASS | 기존 명령 |
+| docs capture covers current screenshots | 자산 정책 | PASS | 기존 명령 |
+| representative screenshot docs do not point at stale visual baselines | 자산 정책 | PASS | 기존 명령 |
+| docs UI asset directory contains managed PNG files | 자산 정책 | PASS | 기존 명령 |
+| VA documentation images keep full video frame bounds | 자산 정책 | PASS | 기존 명령 |
+| diffcheck | 공백 오류 | PASS | exit0 |
+
+## LP22 HTTP02 재검증 실패와 중단
+
+독자/수명: 현재 단계 담당자의 실패 원인·정리 재개용 실행 증거다. 중앙 테스트 기록 LP22의 상세 자료이며 정책을 대체하지 않는다.
+명령 `node scripts/internal/verify_recording_current_app.mjs --latency-only`, exit1, elapsed61215ms, 4PASS/2FAIL.
+token start/end/consumed는 전용 집계 부재로 미집계다. 제품/환경은 아래 LP22-R의 build02 fingerprint와 동일하며
+실행 source는 `fa4eb328` + 미커밋 제품5파일, binary SHA256
+`1676967e74f4e93a648083b52565cf1821f77f93625d54856f4d709e469403a6`이다.
+HTTP4000ms·관측30000ms·전체180000ms·페이지100·4참조 조건을 유지했다.
+
+### 실행 결과와 해석
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| S11-CI09 product-1 healthy isolated ICE | 기동·격리 ICE | PASS | health 준비 중 오류18회 이후 기동 성공 |
+| S11-CI07 run1 actual tuple EventRecord reference | 실제 분석 tuple과 저장 이벤트 참조 | PASS | 출력 완전성 PASS는 아님 |
+| current actual app | latency-transition-timeout | FAIL | 전체 페이지 조회가 총계 변경으로 반복 폐기 |
+| S11-CI08 product-1 exit0 ports returned | PID22005 종료·HTTP50119/RTSP50120 해제 | PASS | signal 없음·강제 종료 없음 |
+| LP03-B diagnostic copy bytes/hash exact | 진단 시작 전 복제 bytes/hash | PASS | 진단 뒤 원본 불변을 확인한 것은 아님 |
+| LP03-B diagnostic unavailable | 기본 상태 진단 | FAIL | timeout, evidenceStatus=not-run, cleanupAllowed=false |
+
+직접 확인: HTTP406회 중 timeline297회는 모두200/outcome=ok, 최장2091ms다. 이전 HTTP01 최장4002ms와 달리
+이번에는 HTTP 시간초과가 없다. 그러나 완료 관측이 실패해 후속 `P0-HTTP02 all timeline HTTP within unchanged 4000ms`
+assertion은 도달하지 못했고 `latencyPass=false`다. 두 실행은 동적 자료량·요청 시점이 달라 같은 부하의 개선율로 계산하지 않는다.
+
+대상 reference SHA256 `268a395031147be5bd22b4c3459cf4777478e0fbdf111c76b3918c1ea2cb24b9`,
+job SHA256 `a5b73abe03744f5d67f9434dffe5e1afdeb877cc3867478fc71aea7516de1734`.
+동일 서버 steady 상대축에서 Submitted10.100841708s, Queued18.458441458s, Started18.458467083s,
+Admitted18.876848417s, Ready23.030828917s, Committed23.437813750s, Complete23.707215458s, Ended23.707506s였다.
+나머지3개 job도29.188236833/35.275127042/41.511967375s에 Complete를 기록했다.
+전이 trace1220행/194889B, loss 없음이며 이 기록만으로 완전 출력2개·매체 hash·재기동 PASS를 주장하지 않는다.
+
+JS 관측축은 시작11748.319542ms(직전 timeline85), 종료44822.090917ms, elapsed33073.771375ms,
+deadline30000ms, outcome=timeout/returnedAfterBudget=true였다. 서버 시각과 JS 시각을 직접 차감하지 않았다.
+cycle160(timeline272~275)까지 전체 조회가 완료됐지만, 이후에는 아래5개 cycle 모두 총계 변경으로 실패했다.
+
+| cycle | timeline 범위 | 페이지 수 | elapsed(ms) | 관측 결과 |
+| --- | --- | --- | --- | --- |
+| 161 | 276~283 | 8 | 4318.448250 | 첫 페이지 Ready99, 뒤 페이지 Complete100/100/77. offset700에서 unplacedTotal751→941, 상태 혼합과 총계 변경 |
+| 162 | 284~287 | 4 | 3337.608042 | page-total-changed |
+| 163 | 288~289 | 2 | 1543.130542 | unplacedTotal1314→1414 |
+| 164 | 290~293 | 4 | 4867.318708 | total6→8, unplacedTotal1414→1787 |
+| 165 | 294~297 | 4 | 5818.400250 | total8→11, unplacedTotal1787→2350 |
+
+원인 구분: 이 실행의 완료 관측 실패는 job 미완료가 아니라, 증가 중인 전체 목록의 일관된 페이지 수집을 선행조건으로 삼는
+검증 경로가 대상 Complete를 반환하지 못한 것이다. unplaced 행 증가의 세부 생성 근거/정상성은 아직 별도 판정하지 않았다.
+첫 페이지 하나로 전체 합격을 대신하거나 목록 일관성 검사를 삭제하지 않았다. 관측 계약 분리의 범위·반례를 먼저 확정해야 한다.
+
+현재 가장 느린 timeline296은 서버2090.437ms, Snapshot 잠금824.798ms, Finish1264.678ms였다.
+AcquireMedia(1715행)6회 hold120.662ms/wait1.339ms, Validate(1729행)8회 hold118.982ms/wait290.747ms다.
+HTTP01 request214의 반복 검증 hold3208.552ms와 직접 동일 부하 비교는 아니다.
+새 원인에 대해 추가 제품 수정/앱 반복 실행은 하지 않았다.
+
+### 사후 진단·정리 중단 경계
+
+사후 기본 상태 진단은 `recording_failure_capture.mjs:34`의 `min(15000,remaining)` 상한에서 timeout이었다.
+전체 실행180초를 초과한 것이 아니다. probe 내부 Open/복구/읽기 어느 구간인지 아직 미확정이며 성능·손상 원인을 추정 확정하지 않는다.
+`state-59526bfc-036d-4151-a33a-477f20397a60.json`은 예정 이름일 뿐 생성되지 않았다.
+복제 직전/직후 일치만 PASS이고, 진단 뒤 원본 불변 검사는 미실행이다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR/media-server-current-integration-FKdtx1 | 소유 입력·녹화·원장·진단 복제본·registry·probe | 180358628B | 필수 사후 evidence 미확보로 임시 보존 | rootAbsent=false, cleanup failureCount1 | HTTP02 cleanup 원출력 |
+| 아래 비민감 자료3개 | 저장소 실행 기록 | 947506B | 원출력·계측·종료 결과 보존 | 존재·hash 확인 | 아래 hash 표 |
+
+실제 root는 `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-FKdtx1`이다.
+디렉터리·동일 소유자·비symlink·realpath 일치를 읽기로 확인했고, symlink를 따르지 않은 크기180358628B가 실행 결과와 일치했다.
+regular 파일48개, symlink277개가 있으며 외부 링크 대상은 읽거나 삭제하지 않았다. 임시 경로는 최종 완료 evidence가 아니다.
+대용량 미디어를 Git으로 이관하거나 영구 보존한 것이 아니라 진단/정리 판단 전 임시 보존이며 cleanup blocker다.
+
+종료 결과는 PID22005 exit0/exitedObserved=true/normalShutdownPass=true/archiveSafe=true,
+signal=null/forcedTermination=not-used, HTTP50119/RTSP50120 closed, UDP closed다.
+추가 읽기 `ps -axo pid=,ppid=,stat=,comm= | rg '(^[[:space:]]*22005[[:space:]]|media_server|archive-probe)'`는
+exit1/일치 없음이었다. 앞선 전체 ps 출력은 잘렸으므로 부재 근거로 사용하지 않는다.
+재실행·kill·추가 삭제는 하지 않았다.
+
+| 상태 | 대상 | 이유·완료 증거 경계 |
+| --- | --- | --- |
+| 미실행 | 사후 원본 불변·기본 상태 evidence | probe timeout 이후 해당 assertion 미도달 |
+| 건너뜀 | 현행5단계 통합·두 완전 출력/HTTP hash·재기동 | 선수 HTTP 검사와 cleanup 실패 |
+| 미실행 | 30분·120분·UI·릴리즈 | 이번 실행 범위 아님 |
+| 미수행 | 4번 변경 커밋·전체 푸시 | 전체 완료 조건 미충족; 앞선3개 진단 커밋은 유지 |
+| 미실행 | 실패 후 문서 검증 | AGENTS8 중단 뒤 결과 기록·읽기 대조만 수행 |
+
+### 원출력·크기·hash
+
+| 자료 | bytes | SHA256 | 보존 사유 |
+| --- | --- | --- | --- |
+| [lp22-http-02.txt](lp22-http-02.txt) | 553854 | 68c2881b5cb1191b044e2f25d2ba918415c9f48b7cc589821bcd4727d92167ac | 명령/exit/source·모든 요청/페이지/전이·실패/정리 |
+| [latency-8b6c090a-5366-435c-a615-36da781ea24a.json](latency-8b6c090a-5366-435c-a615-36da781ea24a.json) | 393248 | b1fe1e9e1d3bdf34faea9d918e60ba3255716c1718bdffefeea03066727b4441 | 완결 계측2797행, HTTP297/297 상관 |
+| [process-1b2e236e-ebd4-43f6-8d98-822e82748a28.json](process-1b2e236e-ebd4-43f6-8d98-822e82748a28.json) | 404 | f93fbfe612909e71be3a67be4f190f76fadce625939cfb5ea493509d097c0877 | 서버 종료·포트 결과 |
+
+### HTTP 개별 관측 전수
+
+아래406행은 HTTP 전달 관측의 개별 PASS/FAIL이며 suite4PASS/2FAIL assertion 합계와 구분한다.
+초기 health18회는 준비 대기의 연결 오류이며 최종 기동 실패가 아니다. URI의 동적 ID·원문 query는 출력하지 않는다.
+timeline 행의 `states`는 선택된 대상 참조의 페이지별 분포다. source URL/credential/raw 응답 본문은 보존하지 않는다.
+행별 원출력 번호는 `lp22-http-02.txt` 기준이다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| HTTP1 | GET `/health`; status=없음; 3ms; 0B | FAIL | 원출력5행; 기동 준비 중 연결 오류 |
+| HTTP2 | GET `/health`; status=없음; 1ms; 0B | FAIL | 원출력6행; 기동 준비 중 연결 오류 |
+| HTTP3 | GET `/health`; status=없음; 1ms; 0B | FAIL | 원출력7행; 기동 준비 중 연결 오류 |
+| HTTP4 | GET `/health`; status=없음; 1ms; 0B | FAIL | 원출력8행; 기동 준비 중 연결 오류 |
+| HTTP5 | GET `/health`; status=없음; 1ms; 0B | FAIL | 원출력9행; 기동 준비 중 연결 오류 |
+| HTTP6 | GET `/health`; status=없음; 1ms; 0B | FAIL | 원출력10행; 기동 준비 중 연결 오류 |
+| HTTP7 | GET `/health`; status=없음; 1ms; 0B | FAIL | 원출력11행; 기동 준비 중 연결 오류 |
+| HTTP8 | GET `/health`; status=없음; 0ms; 0B | FAIL | 원출력12행; 기동 준비 중 연결 오류 |
+| HTTP9 | GET `/health`; status=없음; 1ms; 0B | FAIL | 원출력13행; 기동 준비 중 연결 오류 |
+| HTTP10 | GET `/health`; status=없음; 1ms; 0B | FAIL | 원출력14행; 기동 준비 중 연결 오류 |
+| HTTP11 | GET `/health`; status=없음; 1ms; 0B | FAIL | 원출력15행; 기동 준비 중 연결 오류 |
+| HTTP12 | GET `/health`; status=없음; 0ms; 0B | FAIL | 원출력16행; 기동 준비 중 연결 오류 |
+| HTTP13 | GET `/health`; status=없음; 0ms; 0B | FAIL | 원출력17행; 기동 준비 중 연결 오류 |
+| HTTP14 | GET `/health`; status=없음; 0ms; 0B | FAIL | 원출력18행; 기동 준비 중 연결 오류 |
+| HTTP15 | GET `/health`; status=없음; 0ms; 0B | FAIL | 원출력19행; 기동 준비 중 연결 오류 |
+| HTTP16 | GET `/health`; status=없음; 1ms; 0B | FAIL | 원출력20행; 기동 준비 중 연결 오류 |
+| HTTP17 | GET `/health`; status=없음; 0ms; 0B | FAIL | 원출력21행; 기동 준비 중 연결 오류 |
+| HTTP18 | GET `/health`; status=없음; 0ms; 0B | FAIL | 원출력22행; 기동 준비 중 연결 오류 |
+| HTTP19 | GET `/health`; status=200; 6ms; 15B | PASS | 원출력23행; HTTP 관측 |
+| HTTP20 | GET `/webrtc/config`; status=200; 1ms; 222B | PASS | 원출력24행; HTTP 관측 |
+| HTTP21 | POST `/ops/api/sources`; status=201; 82ms; 428B | PASS | 원출력26행; HTTP 관측 |
+| HTTP22 | POST `/lab/analysis/taps`; status=200; 49ms; 1187B | PASS | 원출력27행; HTTP 관측 |
+| HTTP23 | GET `/lab/analysis/taps/{tapId}`; status=200; 22ms; 4030B | PASS | 원출력28행; HTTP 관측 |
+| HTTP24 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 5960B | PASS | 원출력29행; HTTP 관측 |
+| HTTP25 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력30행; timeline1; cycle1; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP26 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 5973B | PASS | 원출력33행; HTTP 관측 |
+| HTTP27 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력34행; timeline2; cycle2; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP28 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 6148B | PASS | 원출력37행; HTTP 관측 |
+| HTTP29 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력38행; timeline3; cycle3; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP30 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 6280B | PASS | 원출력41행; HTTP 관측 |
+| HTTP31 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력42행; timeline4; cycle4; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP32 | GET `/lab/analysis/taps/{tapId}`; status=200; 2ms; 6415B | PASS | 원출력45행; HTTP 관측 |
+| HTTP33 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력46행; timeline5; cycle5; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP34 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 6546B | PASS | 원출력49행; HTTP 관측 |
+| HTTP35 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력50행; timeline6; cycle6; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP36 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 6549B | PASS | 원출력53행; HTTP 관측 |
+| HTTP37 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력54행; timeline7; cycle7; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP38 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 6682B | PASS | 원출력57행; HTTP 관측 |
+| HTTP39 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력58행; timeline8; cycle8; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP40 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 6810B | PASS | 원출력61행; HTTP 관측 |
+| HTTP41 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력62행; timeline9; cycle9; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP42 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 6944B | PASS | 원출력65행; HTTP 관측 |
+| HTTP43 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력66행; timeline10; cycle10; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP44 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 7087B | PASS | 원출력69행; HTTP 관측 |
+| HTTP45 | GET `/ops/api/recordings/timeline`; status=200; 0ms; 82B | PASS | 원출력70행; timeline11; cycle11; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP46 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 7088B | PASS | 원출력73행; HTTP 관측 |
+| HTTP47 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력74행; timeline12; cycle12; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP48 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 7228B | PASS | 원출력77행; HTTP 관측 |
+| HTTP49 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력78행; timeline13; cycle13; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP50 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 7367B | PASS | 원출력81행; HTTP 관측 |
+| HTTP51 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력82행; timeline14; cycle14; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP52 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 7499B | PASS | 원출력85행; HTTP 관측 |
+| HTTP53 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력86행; timeline15; cycle15; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP54 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 7638B | PASS | 원출력89행; HTTP 관측 |
+| HTTP55 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력90행; timeline16; cycle16; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP56 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 7632B | PASS | 원출력93행; HTTP 관측 |
+| HTTP57 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력94행; timeline17; cycle17; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP58 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 7767B | PASS | 원출력97행; HTTP 관측 |
+| HTTP59 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력98행; timeline18; cycle18; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP60 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 7898B | PASS | 원출력101행; HTTP 관측 |
+| HTTP61 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력102행; timeline19; cycle19; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP62 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 8036B | PASS | 원출력105행; HTTP 관측 |
+| HTTP63 | GET `/ops/api/recordings/timeline`; status=200; 0ms; 82B | PASS | 원출력106행; timeline20; cycle20; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP64 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 8172B | PASS | 원출력109행; HTTP 관측 |
+| HTTP65 | GET `/ops/api/recordings/timeline`; status=200; 0ms; 82B | PASS | 원출력110행; timeline21; cycle21; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP66 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 8174B | PASS | 원출력113행; HTTP 관측 |
+| HTTP67 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력114행; timeline22; cycle22; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP68 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 8306B | PASS | 원출력117행; HTTP 관측 |
+| HTTP69 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력118행; timeline23; cycle23; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP70 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 8432B | PASS | 원출력121행; HTTP 관측 |
+| HTTP71 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력122행; timeline24; cycle24; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP72 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 8569B | PASS | 원출력125행; HTTP 관측 |
+| HTTP73 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력126행; timeline25; cycle25; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP74 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 8713B | PASS | 원출력129행; HTTP 관측 |
+| HTTP75 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력130행; timeline26; cycle26; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP76 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 8713B | PASS | 원출력133행; HTTP 관측 |
+| HTTP77 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력134행; timeline27; cycle27; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP78 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 8848B | PASS | 원출력137행; HTTP 관측 |
+| HTTP79 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력138행; timeline28; cycle28; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP80 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 8978B | PASS | 원출력141행; HTTP 관측 |
+| HTTP81 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력142행; timeline29; cycle29; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP82 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 9116B | PASS | 원출력145행; HTTP 관측 |
+| HTTP83 | GET `/ops/api/recordings/timeline`; status=200; 0ms; 82B | PASS | 원출력146행; timeline30; cycle30; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP84 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 9245B | PASS | 원출력149행; HTTP 관측 |
+| HTTP85 | GET `/ops/api/recordings/timeline`; status=200; 0ms; 82B | PASS | 원출력150행; timeline31; cycle31; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP86 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 9251B | PASS | 원출력153행; HTTP 관측 |
+| HTTP87 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력154행; timeline32; cycle32; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP88 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 9385B | PASS | 원출력157행; HTTP 관측 |
+| HTTP89 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력158행; timeline33; cycle33; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP90 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 9516B | PASS | 원출력161행; HTTP 관측 |
+| HTTP91 | GET `/ops/api/recordings/timeline`; status=200; 0ms; 82B | PASS | 원출력162행; timeline34; cycle34; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP92 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 9656B | PASS | 원출력165행; HTTP 관측 |
+| HTTP93 | GET `/ops/api/recordings/timeline`; status=200; 0ms; 82B | PASS | 원출력166행; timeline35; cycle35; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP94 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 10209B | PASS | 원출력169행; HTTP 관측 |
+| HTTP95 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력170행; timeline36; cycle36; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP96 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 10199B | PASS | 원출력173행; HTTP 관측 |
+| HTTP97 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력174행; timeline37; cycle37; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP98 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 10391B | PASS | 원출력177행; HTTP 관측 |
+| HTTP99 | GET `/ops/api/recordings/timeline`; status=200; 0ms; 82B | PASS | 원출력178행; timeline38; cycle38; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP100 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 10570B | PASS | 원출력181행; HTTP 관측 |
+| HTTP101 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력182행; timeline39; cycle39; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP102 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 10753B | PASS | 원출력185행; HTTP 관측 |
+| HTTP103 | GET `/ops/api/recordings/timeline`; status=200; 0ms; 82B | PASS | 원출력186행; timeline40; cycle40; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP104 | GET `/lab/analysis/taps/{tapId}`; status=200; 5ms; 10819B | PASS | 원출력189행; HTTP 관측 |
+| HTTP105 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력190행; timeline41; cycle41; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP106 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 10821B | PASS | 원출력193행; HTTP 관측 |
+| HTTP107 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력194행; timeline42; cycle42; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP108 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 10863B | PASS | 원출력197행; HTTP 관측 |
+| HTTP109 | GET `/ops/api/recordings/timeline`; status=200; 0ms; 82B | PASS | 원출력198행; timeline43; cycle43; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP110 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 10913B | PASS | 원출력201행; HTTP 관측 |
+| HTTP111 | GET `/ops/api/recordings/timeline`; status=200; 0ms; 82B | PASS | 원출력202행; timeline44; cycle44; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP112 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 10967B | PASS | 원출력205행; HTTP 관측 |
+| HTTP113 | GET `/ops/api/recordings/timeline`; status=200; 0ms; 82B | PASS | 원출력206행; timeline45; cycle45; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP114 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 10965B | PASS | 원출력209행; HTTP 관측 |
+| HTTP115 | GET `/ops/api/recordings/timeline`; status=200; 0ms; 82B | PASS | 원출력210행; timeline46; cycle46; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP116 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11010B | PASS | 원출력213행; HTTP 관측 |
+| HTTP117 | GET `/ops/api/recordings/timeline`; status=200; 0ms; 82B | PASS | 원출력214행; timeline47; cycle47; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP118 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11072B | PASS | 원출력217행; HTTP 관측 |
+| HTTP119 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력218행; timeline48; cycle48; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP120 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11117B | PASS | 원출력221행; HTTP 관측 |
+| HTTP121 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력222행; timeline49; cycle49; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP122 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11113B | PASS | 원출력225행; HTTP 관측 |
+| HTTP123 | GET `/ops/api/recordings/timeline`; status=200; 0ms; 82B | PASS | 원출력226행; timeline50; cycle50; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP124 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11157B | PASS | 원출력229행; HTTP 관측 |
+| HTTP125 | GET `/ops/api/recordings/timeline`; status=200; 0ms; 82B | PASS | 원출력230행; timeline51; cycle51; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP126 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11198B | PASS | 원출력233행; HTTP 관측 |
+| HTTP127 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력234행; timeline52; cycle52; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP128 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11247B | PASS | 원출력237행; HTTP 관측 |
+| HTTP129 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력238행; timeline53; cycle53; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP130 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11298B | PASS | 원출력241행; HTTP 관측 |
+| HTTP131 | GET `/ops/api/recordings/timeline`; status=200; 0ms; 82B | PASS | 원출력242행; timeline54; cycle54; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP132 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11298B | PASS | 원출력245행; HTTP 관측 |
+| HTTP133 | GET `/ops/api/recordings/timeline`; status=200; 0ms; 82B | PASS | 원출력246행; timeline55; cycle55; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP134 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11337B | PASS | 원출력249행; HTTP 관측 |
+| HTTP135 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력250행; timeline56; cycle56; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP136 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11387B | PASS | 원출력253행; HTTP 관측 |
+| HTTP137 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력254행; timeline57; cycle57; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP138 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11432B | PASS | 원출력257행; HTTP 관측 |
+| HTTP139 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력258행; timeline58; cycle58; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP140 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11473B | PASS | 원출력261행; HTTP 관측 |
+| HTTP141 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력262행; timeline59; cycle59; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP142 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11476B | PASS | 원출력265행; HTTP 관측 |
+| HTTP143 | GET `/ops/api/recordings/timeline`; status=200; 0ms; 82B | PASS | 원출력266행; timeline60; cycle60; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP144 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11523B | PASS | 원출력269행; HTTP 관측 |
+| HTTP145 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력270행; timeline61; cycle61; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP146 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11562B | PASS | 원출력273행; HTTP 관측 |
+| HTTP147 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력274행; timeline62; cycle62; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP148 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11612B | PASS | 원출력277행; HTTP 관측 |
+| HTTP149 | GET `/ops/api/recordings/timeline`; status=200; 0ms; 82B | PASS | 원출력278행; timeline63; cycle63; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP150 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11614B | PASS | 원출력281행; HTTP 관측 |
+| HTTP151 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력282행; timeline64; cycle64; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP152 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11656B | PASS | 원출력285행; HTTP 관측 |
+| HTTP153 | GET `/ops/api/recordings/timeline`; status=200; 0ms; 82B | PASS | 원출력286행; timeline65; cycle65; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP154 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11701B | PASS | 원출력289행; HTTP 관측 |
+| HTTP155 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력290행; timeline66; cycle66; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP156 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11742B | PASS | 원출력293행; HTTP 관측 |
+| HTTP157 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력294행; timeline67; cycle67; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP158 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11778B | PASS | 원출력297행; HTTP 관측 |
+| HTTP159 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력298행; timeline68; cycle68; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP160 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11778B | PASS | 원출력301행; HTTP 관측 |
+| HTTP161 | GET `/ops/api/recordings/timeline`; status=200; 0ms; 82B | PASS | 원출력302행; timeline69; cycle69; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP162 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11954B | PASS | 원출력305행; HTTP 관측 |
+| HTTP163 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력306행; timeline70; cycle70; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP164 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11873B | PASS | 원출력309행; HTTP 관측 |
+| HTTP165 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력310행; timeline71; cycle71; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP166 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11920B | PASS | 원출력313행; HTTP 관측 |
+| HTTP167 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력314행; timeline72; cycle72; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP168 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11958B | PASS | 원출력317행; HTTP 관측 |
+| HTTP169 | GET `/ops/api/recordings/timeline`; status=200; 0ms; 82B | PASS | 원출력318행; timeline73; cycle73; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP170 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 11964B | PASS | 원출력321행; HTTP 관측 |
+| HTTP171 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력322행; timeline74; cycle74; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP172 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 12016B | PASS | 원출력325행; HTTP 관측 |
+| HTTP173 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력326행; timeline75; cycle75; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP174 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 12057B | PASS | 원출력329행; HTTP 관측 |
+| HTTP175 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력330행; timeline76; cycle76; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP176 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 12058B | PASS | 원출력333행; HTTP 관측 |
+| HTTP177 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력334행; timeline77; cycle77; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP178 | GET `/lab/analysis/taps/{tapId}`; status=200; 2ms; 12057B | PASS | 원출력337행; HTTP 관측 |
+| HTTP179 | GET `/ops/api/recordings/timeline`; status=200; 0ms; 82B | PASS | 원출력338행; timeline78; cycle78; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP180 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 12054B | PASS | 원출력341행; HTTP 관측 |
+| HTTP181 | GET `/ops/api/recordings/timeline`; status=200; 1ms; 82B | PASS | 원출력342행; timeline79; cycle79; offset0; total0; unplaced0; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP182 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 12043B | PASS | 원출력345행; HTTP 관측 |
+| HTTP183 | GET `/ops/api/recordings/timeline`; status=200; 16ms; 83447B | PASS | 원출력346행; timeline80; cycle80; offset0; total1; unplaced184; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP184 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 69385B | PASS | 원출력348행; timeline81; cycle80; offset100; total1; unplaced184; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP185 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 12047B | PASS | 원출력351행; HTTP 관측 |
+| HTTP186 | GET `/ops/api/recordings/timeline`; status=200; 12ms; 83447B | PASS | 원출력352행; timeline82; cycle81; offset0; total1; unplaced184; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP187 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 69385B | PASS | 원출력354행; timeline83; cycle81; offset100; total1; unplaced184; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP188 | GET `/lab/analysis/taps/{tapId}`; status=200; 1ms; 12044B | PASS | 원출력357행; HTTP 관측 |
+| HTTP189 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83447B | PASS | 원출력358행; timeline84; cycle82; offset0; total1; unplaced184; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP190 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 69385B | PASS | 원출력360행; timeline85; cycle82; offset100; total1; unplaced184; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP191 | PUT `/lab/analysis/rules/{ruleId}`; status=200; 2ms; 520B | PASS | 원출력364행; HTTP 관측 |
+| HTTP192 | GET `/lab/analysis/taps/{tapId}/events`; status=200; 11ms; 9889B | PASS | 원출력365행; HTTP 관측 |
+| HTTP193 | PUT `/lab/analysis/rules/{ruleId}`; status=200; 2ms; 521B | PASS | 원출력368행; HTTP 관측 |
+| HTTP194 | GET `/ops/api/recordings/timeline`; status=200; 29ms; 83383B | PASS | 원출력370행; timeline86; cycle83; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP195 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 72681B | PASS | 원출력372행; timeline87; cycle83; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP196 | GET `/ops/api/recordings/timeline`; status=200; 12ms; 83383B | PASS | 원출력377행; timeline88; cycle84; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP197 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 72681B | PASS | 원출력379행; timeline89; cycle84; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP198 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력382행; timeline90; cycle85; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP199 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력384행; timeline91; cycle85; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP200 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력387행; timeline92; cycle86; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP201 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 72681B | PASS | 원출력389행; timeline93; cycle86; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP202 | GET `/ops/api/recordings/timeline`; status=200; 16ms; 83383B | PASS | 원출력392행; timeline94; cycle87; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP203 | GET `/ops/api/recordings/timeline`; status=200; 17ms; 72681B | PASS | 원출력394행; timeline95; cycle87; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP204 | GET `/ops/api/recordings/timeline`; status=200; 12ms; 83383B | PASS | 원출력397행; timeline96; cycle88; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP205 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 72681B | PASS | 원출력399행; timeline97; cycle88; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP206 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력402행; timeline98; cycle89; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP207 | GET `/ops/api/recordings/timeline`; status=200; 15ms; 72681B | PASS | 원출력404행; timeline99; cycle89; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP208 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 83383B | PASS | 원출력407행; timeline100; cycle90; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP209 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력409행; timeline101; cycle90; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP210 | GET `/ops/api/recordings/timeline`; status=200; 16ms; 83383B | PASS | 원출력412행; timeline102; cycle91; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP211 | GET `/ops/api/recordings/timeline`; status=200; 17ms; 72681B | PASS | 원출력414행; timeline103; cycle91; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP212 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력417행; timeline104; cycle92; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP213 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력419행; timeline105; cycle92; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP214 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력422행; timeline106; cycle93; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP215 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 72681B | PASS | 원출력424행; timeline107; cycle93; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP216 | GET `/ops/api/recordings/timeline`; status=200; 12ms; 83383B | PASS | 원출력427행; timeline108; cycle94; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP217 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 72681B | PASS | 원출력429행; timeline109; cycle94; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP218 | GET `/ops/api/recordings/timeline`; status=200; 17ms; 83383B | PASS | 원출력432행; timeline110; cycle95; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP219 | GET `/ops/api/recordings/timeline`; status=200; 17ms; 72681B | PASS | 원출력434행; timeline111; cycle95; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP220 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력437행; timeline112; cycle96; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP221 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 72681B | PASS | 원출력439행; timeline113; cycle96; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP222 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력442행; timeline114; cycle97; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP223 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 72681B | PASS | 원출력444행; timeline115; cycle97; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP224 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력447행; timeline116; cycle98; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP225 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 72681B | PASS | 원출력449행; timeline117; cycle98; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP226 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 83383B | PASS | 원출력452행; timeline118; cycle99; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP227 | GET `/ops/api/recordings/timeline`; status=200; 17ms; 72681B | PASS | 원출력454행; timeline119; cycle99; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP228 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력457행; timeline120; cycle100; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP229 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 72681B | PASS | 원출력459행; timeline121; cycle100; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP230 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력462행; timeline122; cycle101; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP231 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력464행; timeline123; cycle101; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP232 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력467행; timeline124; cycle102; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP233 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력469행; timeline125; cycle102; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP234 | GET `/ops/api/recordings/timeline`; status=200; 16ms; 83383B | PASS | 원출력472행; timeline126; cycle103; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP235 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력474행; timeline127; cycle103; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP236 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력477행; timeline128; cycle104; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP237 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 72681B | PASS | 원출력479행; timeline129; cycle104; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP238 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력482행; timeline130; cycle105; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP239 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력484행; timeline131; cycle105; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP240 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력487행; timeline132; cycle106; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP241 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력489행; timeline133; cycle106; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP242 | GET `/ops/api/recordings/timeline`; status=200; 15ms; 83383B | PASS | 원출력492행; timeline134; cycle107; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP243 | GET `/ops/api/recordings/timeline`; status=200; 17ms; 72681B | PASS | 원출력494행; timeline135; cycle107; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP244 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력497행; timeline136; cycle108; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP245 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 72681B | PASS | 원출력499행; timeline137; cycle108; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP246 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력502행; timeline138; cycle109; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP247 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 72681B | PASS | 원출력504행; timeline139; cycle109; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP248 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력507행; timeline140; cycle110; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP249 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력509행; timeline141; cycle110; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP250 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력512행; timeline142; cycle111; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP251 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 72681B | PASS | 원출력514행; timeline143; cycle111; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP252 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력517행; timeline144; cycle112; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP253 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력519행; timeline145; cycle112; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP254 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력522행; timeline146; cycle113; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP255 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력524행; timeline147; cycle113; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP256 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력527행; timeline148; cycle114; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP257 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력529행; timeline149; cycle114; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP258 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 83383B | PASS | 원출력532행; timeline150; cycle115; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP259 | GET `/ops/api/recordings/timeline`; status=200; 15ms; 72681B | PASS | 원출력534행; timeline151; cycle115; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP260 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력537행; timeline152; cycle116; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP261 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력539행; timeline153; cycle116; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP262 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력542행; timeline154; cycle117; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP263 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 72681B | PASS | 원출력544행; timeline155; cycle117; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP264 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력547행; timeline156; cycle118; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP265 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 72681B | PASS | 원출력549행; timeline157; cycle118; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP266 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력552행; timeline158; cycle119; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP267 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력554행; timeline159; cycle119; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP268 | GET `/ops/api/recordings/timeline`; status=200; 12ms; 83383B | PASS | 원출력557행; timeline160; cycle120; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP269 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 72681B | PASS | 원출력559행; timeline161; cycle120; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP270 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력562행; timeline162; cycle121; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP271 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력564행; timeline163; cycle121; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP272 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력567행; timeline164; cycle122; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP273 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력569행; timeline165; cycle122; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP274 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력572행; timeline166; cycle123; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP275 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력574행; timeline167; cycle123; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP276 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력577행; timeline168; cycle124; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP277 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 72681B | PASS | 원출력579행; timeline169; cycle124; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP278 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 83383B | PASS | 원출력582행; timeline170; cycle125; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP279 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력584행; timeline171; cycle125; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP280 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력587행; timeline172; cycle126; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP281 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 72681B | PASS | 원출력589행; timeline173; cycle126; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP282 | GET `/ops/api/recordings/timeline`; status=200; 17ms; 83383B | PASS | 원출력592행; timeline174; cycle127; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP283 | GET `/ops/api/recordings/timeline`; status=200; 18ms; 72681B | PASS | 원출력594행; timeline175; cycle127; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP284 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력597행; timeline176; cycle128; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP285 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력599행; timeline177; cycle128; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP286 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력602행; timeline178; cycle129; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP287 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력604행; timeline179; cycle129; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP288 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력607행; timeline180; cycle130; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP289 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력609행; timeline181; cycle130; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP290 | GET `/ops/api/recordings/timeline`; status=200; 17ms; 83383B | PASS | 원출력612행; timeline182; cycle131; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP291 | GET `/ops/api/recordings/timeline`; status=200; 18ms; 72681B | PASS | 원출력614행; timeline183; cycle131; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP292 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력617행; timeline184; cycle132; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP293 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 72681B | PASS | 원출력619행; timeline185; cycle132; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP294 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력622행; timeline186; cycle133; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP295 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력624행; timeline187; cycle133; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP296 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력627행; timeline188; cycle134; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP297 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력629행; timeline189; cycle134; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP298 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 83383B | PASS | 원출력632행; timeline190; cycle135; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP299 | GET `/ops/api/recordings/timeline`; status=200; 18ms; 72681B | PASS | 원출력634행; timeline191; cycle135; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP300 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력637행; timeline192; cycle136; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP301 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력639행; timeline193; cycle136; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP302 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력642행; timeline194; cycle137; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP303 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력644행; timeline195; cycle137; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP304 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력647행; timeline196; cycle138; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP305 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 72681B | PASS | 원출력649행; timeline197; cycle138; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP306 | GET `/ops/api/recordings/timeline`; status=200; 16ms; 83383B | PASS | 원출력652행; timeline198; cycle139; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP307 | GET `/ops/api/recordings/timeline`; status=200; 17ms; 72681B | PASS | 원출력654행; timeline199; cycle139; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP308 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력657행; timeline200; cycle140; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP309 | GET `/ops/api/recordings/timeline`; status=200; 14ms; 72681B | PASS | 원출력659행; timeline201; cycle140; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP310 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력662행; timeline202; cycle141; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP311 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 72681B | PASS | 원출력664행; timeline203; cycle141; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP312 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 83383B | PASS | 원출력667행; timeline204; cycle142; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP313 | GET `/ops/api/recordings/timeline`; status=200; 13ms; 72681B | PASS | 원출력669행; timeline205; cycle142; offset100; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP314 | GET `/ops/api/recordings/timeline`; status=200; 88ms; 83383B | PASS | 원출력672행; timeline206; cycle143; offset0; total1; unplaced188; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP315 | GET `/ops/api/recordings/timeline`; status=200; 26ms; 82733B | PASS | 원출력674행; timeline207; cycle143; offset100; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP316 | GET `/ops/api/recordings/timeline`; status=200; 24ms; 84589B | PASS | 원출력677행; timeline208; cycle144; offset0; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":1} |
+| HTTP317 | GET `/ops/api/recordings/timeline`; status=200; 25ms; 82733B | PASS | 원출력679행; timeline209; cycle144; offset100; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP318 | GET `/ops/api/recordings/timeline`; status=200; 74ms; 82456B | PASS | 원출력681행; timeline210; cycle144; offset200; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP319 | GET `/ops/api/recordings/timeline`; status=200; 411ms; 64435B | PASS | 원출력683행; timeline211; cycle144; offset300; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP320 | GET `/ops/api/recordings/timeline`; status=200; 276ms; 84630B | PASS | 원출력687행; timeline212; cycle145; offset0; total2; unplaced378; states={"intent":1,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP321 | GET `/ops/api/recordings/timeline`; status=200; 30ms; 82733B | PASS | 원출력689행; timeline213; cycle145; offset100; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP322 | GET `/ops/api/recordings/timeline`; status=200; 29ms; 82456B | PASS | 원출력691행; timeline214; cycle145; offset200; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP323 | GET `/ops/api/recordings/timeline`; status=200; 28ms; 64435B | PASS | 원출력693행; timeline215; cycle145; offset300; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP324 | GET `/ops/api/recordings/timeline`; status=200; 24ms; 84630B | PASS | 원출력697행; timeline216; cycle146; offset0; total2; unplaced378; states={"intent":1,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP325 | GET `/ops/api/recordings/timeline`; status=200; 76ms; 82733B | PASS | 원출력699행; timeline217; cycle146; offset100; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP326 | GET `/ops/api/recordings/timeline`; status=200; 29ms; 82456B | PASS | 원출력701행; timeline218; cycle146; offset200; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP327 | GET `/ops/api/recordings/timeline`; status=200; 28ms; 64435B | PASS | 원출력703행; timeline219; cycle146; offset300; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP328 | GET `/ops/api/recordings/timeline`; status=200; 24ms; 84630B | PASS | 원출력706행; timeline220; cycle147; offset0; total2; unplaced378; states={"intent":1,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP329 | GET `/ops/api/recordings/timeline`; status=200; 30ms; 82733B | PASS | 원출력708행; timeline221; cycle147; offset100; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP330 | GET `/ops/api/recordings/timeline`; status=200; 82ms; 82456B | PASS | 원출력710행; timeline222; cycle147; offset200; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP331 | GET `/ops/api/recordings/timeline`; status=200; 29ms; 64435B | PASS | 원출력712행; timeline223; cycle147; offset300; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP332 | GET `/ops/api/recordings/timeline`; status=200; 25ms; 84630B | PASS | 원출력715행; timeline224; cycle148; offset0; total2; unplaced378; states={"intent":1,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP333 | GET `/ops/api/recordings/timeline`; status=200; 26ms; 82733B | PASS | 원출력717행; timeline225; cycle148; offset100; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP334 | GET `/ops/api/recordings/timeline`; status=200; 30ms; 82456B | PASS | 원출력719행; timeline226; cycle148; offset200; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP335 | GET `/ops/api/recordings/timeline`; status=200; 28ms; 64435B | PASS | 원출력721행; timeline227; cycle148; offset300; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP336 | GET `/ops/api/recordings/timeline`; status=200; 25ms; 84630B | PASS | 원출력724행; timeline228; cycle149; offset0; total2; unplaced378; states={"intent":1,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP337 | GET `/ops/api/recordings/timeline`; status=200; 25ms; 82733B | PASS | 원출력726행; timeline229; cycle149; offset100; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP338 | GET `/ops/api/recordings/timeline`; status=200; 27ms; 82456B | PASS | 원출력728행; timeline230; cycle149; offset200; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP339 | GET `/ops/api/recordings/timeline`; status=200; 28ms; 64435B | PASS | 원출력730행; timeline231; cycle149; offset300; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP340 | GET `/ops/api/recordings/timeline`; status=200; 25ms; 84630B | PASS | 원출력733행; timeline232; cycle150; offset0; total2; unplaced378; states={"intent":1,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP341 | GET `/ops/api/recordings/timeline`; status=200; 26ms; 82733B | PASS | 원출력735행; timeline233; cycle150; offset100; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP342 | GET `/ops/api/recordings/timeline`; status=200; 27ms; 82456B | PASS | 원출력737행; timeline234; cycle150; offset200; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP343 | GET `/ops/api/recordings/timeline`; status=200; 27ms; 64435B | PASS | 원출력739행; timeline235; cycle150; offset300; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP344 | GET `/ops/api/recordings/timeline`; status=200; 27ms; 84630B | PASS | 원출력742행; timeline236; cycle151; offset0; total2; unplaced378; states={"intent":1,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP345 | GET `/ops/api/recordings/timeline`; status=200; 26ms; 82733B | PASS | 원출력744행; timeline237; cycle151; offset100; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP346 | GET `/ops/api/recordings/timeline`; status=200; 27ms; 82456B | PASS | 원출력746행; timeline238; cycle151; offset200; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP347 | GET `/ops/api/recordings/timeline`; status=200; 27ms; 64435B | PASS | 원출력748행; timeline239; cycle151; offset300; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP348 | GET `/ops/api/recordings/timeline`; status=200; 24ms; 84630B | PASS | 원출력751행; timeline240; cycle152; offset0; total2; unplaced378; states={"intent":1,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP349 | GET `/ops/api/recordings/timeline`; status=200; 25ms; 82733B | PASS | 원출력753행; timeline241; cycle152; offset100; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP350 | GET `/ops/api/recordings/timeline`; status=200; 26ms; 82456B | PASS | 원출력755행; timeline242; cycle152; offset200; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP351 | GET `/ops/api/recordings/timeline`; status=200; 27ms; 64435B | PASS | 원출력757행; timeline243; cycle152; offset300; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP352 | GET `/ops/api/recordings/timeline`; status=200; 24ms; 84630B | PASS | 원출력760행; timeline244; cycle153; offset0; total2; unplaced378; states={"intent":1,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP353 | GET `/ops/api/recordings/timeline`; status=200; 25ms; 82733B | PASS | 원출력762행; timeline245; cycle153; offset100; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP354 | GET `/ops/api/recordings/timeline`; status=200; 27ms; 82456B | PASS | 원출력764행; timeline246; cycle153; offset200; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP355 | GET `/ops/api/recordings/timeline`; status=200; 28ms; 64435B | PASS | 원출력766행; timeline247; cycle153; offset300; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP356 | GET `/ops/api/recordings/timeline`; status=200; 24ms; 84630B | PASS | 원출력769행; timeline248; cycle154; offset0; total2; unplaced378; states={"intent":1,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP357 | GET `/ops/api/recordings/timeline`; status=200; 26ms; 82733B | PASS | 원출력771행; timeline249; cycle154; offset100; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP358 | GET `/ops/api/recordings/timeline`; status=200; 26ms; 82456B | PASS | 원출력773행; timeline250; cycle154; offset200; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP359 | GET `/ops/api/recordings/timeline`; status=200; 28ms; 64435B | PASS | 원출력775행; timeline251; cycle154; offset300; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP360 | GET `/ops/api/recordings/timeline`; status=200; 24ms; 84630B | PASS | 원출력778행; timeline252; cycle155; offset0; total2; unplaced378; states={"intent":1,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP361 | GET `/ops/api/recordings/timeline`; status=200; 26ms; 82733B | PASS | 원출력780행; timeline253; cycle155; offset100; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP362 | GET `/ops/api/recordings/timeline`; status=200; 30ms; 82456B | PASS | 원출력782행; timeline254; cycle155; offset200; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP363 | GET `/ops/api/recordings/timeline`; status=200; 28ms; 64435B | PASS | 원출력784행; timeline255; cycle155; offset300; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP364 | GET `/ops/api/recordings/timeline`; status=200; 24ms; 84630B | PASS | 원출력787행; timeline256; cycle156; offset0; total2; unplaced378; states={"intent":1,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP365 | GET `/ops/api/recordings/timeline`; status=200; 25ms; 82733B | PASS | 원출력789행; timeline257; cycle156; offset100; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP366 | GET `/ops/api/recordings/timeline`; status=200; 27ms; 82456B | PASS | 원출력791행; timeline258; cycle156; offset200; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP367 | GET `/ops/api/recordings/timeline`; status=200; 27ms; 64435B | PASS | 원출력793행; timeline259; cycle156; offset300; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP368 | GET `/ops/api/recordings/timeline`; status=200; 25ms; 84630B | PASS | 원출력796행; timeline260; cycle157; offset0; total2; unplaced378; states={"intent":1,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP369 | GET `/ops/api/recordings/timeline`; status=200; 25ms; 82733B | PASS | 원출력798행; timeline261; cycle157; offset100; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP370 | GET `/ops/api/recordings/timeline`; status=200; 28ms; 82456B | PASS | 원출력800행; timeline262; cycle157; offset200; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP371 | GET `/ops/api/recordings/timeline`; status=200; 27ms; 64435B | PASS | 원출력802행; timeline263; cycle157; offset300; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP372 | GET `/ops/api/recordings/timeline`; status=200; 24ms; 84630B | PASS | 원출력805행; timeline264; cycle158; offset0; total2; unplaced378; states={"intent":1,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP373 | GET `/ops/api/recordings/timeline`; status=200; 25ms; 82733B | PASS | 원출력807행; timeline265; cycle158; offset100; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP374 | GET `/ops/api/recordings/timeline`; status=200; 27ms; 82456B | PASS | 원출력809행; timeline266; cycle158; offset200; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP375 | GET `/ops/api/recordings/timeline`; status=200; 29ms; 64435B | PASS | 원출력811행; timeline267; cycle158; offset300; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP376 | GET `/ops/api/recordings/timeline`; status=200; 25ms; 84630B | PASS | 원출력814행; timeline268; cycle159; offset0; total2; unplaced378; states={"intent":1,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP377 | GET `/ops/api/recordings/timeline`; status=200; 26ms; 82733B | PASS | 원출력816행; timeline269; cycle159; offset100; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP378 | GET `/ops/api/recordings/timeline`; status=200; 27ms; 82456B | PASS | 원출력818행; timeline270; cycle159; offset200; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP379 | GET `/ops/api/recordings/timeline`; status=200; 28ms; 64435B | PASS | 원출력820행; timeline271; cycle159; offset300; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP380 | GET `/ops/api/recordings/timeline`; status=200; 24ms; 84630B | PASS | 원출력823행; timeline272; cycle160; offset0; total2; unplaced378; states={"intent":1,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP381 | GET `/ops/api/recordings/timeline`; status=200; 25ms; 82733B | PASS | 원출력825행; timeline273; cycle160; offset100; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP382 | GET `/ops/api/recordings/timeline`; status=200; 30ms; 82456B | PASS | 원출력827행; timeline274; cycle160; offset200; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP383 | GET `/ops/api/recordings/timeline`; status=200; 27ms; 64435B | PASS | 원출력829행; timeline275; cycle160; offset300; total2; unplaced378; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP384 | GET `/ops/api/recordings/timeline`; status=200; 921ms; 114778B | PASS | 원출력832행; timeline276; cycle161; offset0; total4; unplaced751; states={"intent":0,"ready":99,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP385 | GET `/ops/api/recordings/timeline`; status=200; 953ms; 122059B | PASS | 원출력834행; timeline277; cycle161; offset100; total4; unplaced751; states={"intent":0,"ready":0,"committed":0,"complete":100,"failed":0,"other":0} |
+| HTTP386 | GET `/ops/api/recordings/timeline`; status=200; 385ms; 122151B | PASS | 원출력836행; timeline278; cycle161; offset200; total4; unplaced751; states={"intent":0,"ready":0,"committed":0,"complete":100,"failed":0,"other":0} |
+| HTTP387 | GET `/ops/api/recordings/timeline`; status=200; 384ms; 113121B | PASS | 원출력838행; timeline279; cycle161; offset300; total4; unplaced751; states={"intent":0,"ready":0,"committed":0,"complete":77,"failed":0,"other":0} |
+| HTTP388 | GET `/ops/api/recordings/timeline`; status=200; 386ms; 82681B | PASS | 원출력840행; timeline280; cycle161; offset400; total4; unplaced751; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP389 | GET `/ops/api/recordings/timeline`; status=200; 428ms; 82621B | PASS | 원출력842행; timeline281; cycle161; offset500; total4; unplaced751; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP390 | GET `/ops/api/recordings/timeline`; status=200; 403ms; 82518B | PASS | 원출력844행; timeline282; cycle161; offset600; total4; unplaced751; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP391 | GET `/ops/api/recordings/timeline`; status=200; 445ms; 82591B | PASS | 원출력846행; timeline283; cycle161; offset700; total4; unplaced941; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP392 | GET `/ops/api/recordings/timeline`; status=200; 381ms; 125913B | PASS | 원출력849행; timeline284; cycle162; offset0; total4; unplaced941; states={"intent":0,"ready":0,"committed":0,"complete":99,"failed":0,"other":0} |
+| HTTP393 | GET `/ops/api/recordings/timeline`; status=200; 385ms; 122059B | PASS | 원출력851행; timeline285; cycle162; offset100; total4; unplaced941; states={"intent":0,"ready":0,"committed":0,"complete":100,"failed":0,"other":0} |
+| HTTP394 | GET `/ops/api/recordings/timeline`; status=200; 1260ms; 122151B | PASS | 원출력853행; timeline286; cycle162; offset200; total4; unplaced941; states={"intent":0,"ready":0,"committed":0,"complete":100,"failed":0,"other":0} |
+| HTTP395 | GET `/ops/api/recordings/timeline`; status=200; 1305ms; 122149B | PASS | 원출력855행; timeline287; cycle162; offset300; total6; unplaced1314; states={"intent":0,"ready":0,"committed":0,"complete":24,"failed":0,"other":0} |
+| HTTP396 | GET `/ops/api/recordings/timeline`; status=200; 782ms; 129454B | PASS | 원출력858행; timeline288; cycle163; offset0; total6; unplaced1314; states={"intent":0,"ready":0,"committed":0,"complete":2,"failed":0,"other":0} |
+| HTTP397 | GET `/ops/api/recordings/timeline`; status=200; 756ms; 122060B | PASS | 원출력860행; timeline289; cycle163; offset100; total6; unplaced1414; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP398 | GET `/ops/api/recordings/timeline`; status=200; 755ms; 129454B | PASS | 원출력863행; timeline290; cycle164; offset0; total6; unplaced1414; states={"intent":0,"ready":0,"committed":0,"complete":2,"failed":0,"other":0} |
+| HTTP399 | GET `/ops/api/recordings/timeline`; status=200; 755ms; 122060B | PASS | 원출력865행; timeline291; cycle164; offset100; total6; unplaced1414; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP400 | GET `/ops/api/recordings/timeline`; status=200; 1970ms; 122155B | PASS | 원출력867행; timeline292; cycle164; offset200; total6; unplaced1414; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP401 | GET `/ops/api/recordings/timeline`; status=200; 1380ms; 122171B | PASS | 원출력869행; timeline293; cycle164; offset300; total8; unplaced1787; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP402 | GET `/ops/api/recordings/timeline`; status=200; 1123ms; 132996B | PASS | 원출력872행; timeline294; cycle165; offset0; total8; unplaced1787; states={"intent":0,"ready":0,"committed":0,"complete":2,"failed":0,"other":0} |
+| HTTP403 | GET `/ops/api/recordings/timeline`; status=200; 1141ms; 122060B | PASS | 원출력874행; timeline295; cycle165; offset100; total8; unplaced1787; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP404 | GET `/ops/api/recordings/timeline`; status=200; 2091ms; 122158B | PASS | 원출력876행; timeline296; cycle165; offset200; total8; unplaced1787; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP405 | GET `/ops/api/recordings/timeline`; status=200; 1456ms; 122170B | PASS | 원출력878행; timeline297; cycle165; offset300; total11; unplaced2350; states={"intent":0,"ready":0,"committed":0,"complete":0,"failed":0,"other":0} |
+| HTTP406 | DELETE `/lab/analysis/taps/{tapId}`; status=200; 16ms; 26B | PASS | 원출력882행; HTTP 관측 |
+
+
+## LP22 요청 내 검증 재사용 focused
+
+실행 전 정의는 중앙 LP22-R이다. token start/end/consumed는 전용 집계 부재로 미집계이며
+동일 시간제한·실제 파일 fixture·정리 조건을 유지한다. 초기 RED에서 제품 변경은 없었다.
+
+명령 `node scripts/internal/verify_recording_job_read_context.mjs red lp22-media-01`:
+compile exit0/3856ms, focused exit1/2376ms, 예상RED판정 wrapper exit0. 제품기능 PASS라는 의미가 아니다.
+[원출력](lp22-read-context-red-lp22-media-01.txt)의 source/header/archive/link/binary SHA와 부모/자식 출력을 보존했다.
+원출력10152B, SHA256 `6ff625e8a0132c313132e77290c4a9d3ea4a957c8f3c8e355531f1a1b8d79692`.
+소유 4TU의 public Parse 함수에만 계수를 추가했고 제품 source unchanged=true다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP22-R01 fixture actual Complete two outputs | 실제writer/파생파일2개·서로다른output ID | PASS | GREEN에서 요청완전성도 확인 예정 |
+| LP22-R02 public timeline canonical and media bytes unchanged | 조회응답과실제파일bytes동등 | PASS | RED는기존경로끼리동등, GREEN은strict/context대조 예정 |
+| LP22-R03 same job two outputs parse strictly once per request | 기대1회·실제5회 | FAIL | 사전등록한 유일한 예상RED; 0회/준비실패를인정하지않음 |
+| LP22-R04 next request revalidates cold job | 다음요청Parse5회·같은응답 | PASS | 요청간재사용없음 |
+| LP22-R05 context and media holds released after request | 출력hold0 | PASS | 초기에는context미구현, 실제객체해제PASS로확대하지않음 |
+
+focused self RSS157270016B, group peak180387840B. 이는작은fixture의직접값이지실제누적서버RSS상한보장이아니다.
+stderr에 기존fixture의 `file evidence profile/bound`3행이있으며삭제하지않았다.
+PrepareMedia와과거동일fixture에도존재하는원본file-evidence한계다. 파생실파일출력·조회 검증과구분한다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR/media-server-catalog-cost.kvprQM | LP22소유4TU·binary·영상·원장·registry | 9050631B | 원출력보존후제거 | removed=true·groupClean=true | RED원출력 |
+| 위원출력파일 | 비민감실행자료 | 10152B | 저장소보존 | source/compile/focused/cleanup전수보존 | 임시영상은최종증거로링크하지않음 |
+
+초기RH01/02는담당자의도구원출력전달기준각0.394458/0.063375ms, suite34.994084ms·exit0/2PASS였다.
+전달받은개별값만기록하고없는원출력파일을추정복원하지않는다. GREENrunner판정변경후동일2개최종실행원출력을별도보존한다.
+
+제품5파일수정후 [전체build](lp22-build-02.txt) exit0·경고/오류없음. 전체wall시간은미집계다.
+빌드직후media_server SHA256 `1676967e74f4e93a648083b52565cf1821f77f93625d54856f4d709e469403a6`.
+catalog.cpp `0f445644cf9b27289b0b26790883ab2c32a97c26815b836fa903711acf1cdac0`,
+catalog.h `26b0111e835ac5e8c08d21f2f8625cc6a9fe6de5776abf31af8b14092b231f6c`,
+read_service.cpp `c37210ae7c0f363420c0924f6c4cd67872d776936af8a11275ffcd044f334f4c`,
+read_service.h `d734267d8a83851d45f188467c22c1f3f3319b5adb87d2de1bc3075738dc2d90`,
+timeline_projection.cpp `fb946f8672c75104c9d3fc8f36b636ef406f987135b8e1ac6e70b5d092fa78a7`.
+
+### LP22-R 및 영향 회귀 실행 전수
+
+최종 유효 묶음은 focused21 + 최종RH2 + D3A46 + D3B38 + 계측22 =129PASS다.
+GREEN02의17PASS4FAIL과RH02의이전결과도보존하며최종합계에중복산입하지않는다.
+실제HTTP는별도실행으로판정하고현재이표만으로통합PASS를만들지않는다.
+
+#### lp22-latency-trace-03.txt
+
+[원출력](lp22-latency-trace-03.txt) 1969B, SHA256 `93b97a7e59367162e694e5690489ed68b8da2449ea82f6a8680d68c5e5381b50`.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP13-T01 collector 존재 (0.877875ms) | 개별1, 원출력7행 | PASS | 해당실행직접결과 |
+| LP13-T01 disabled/invalid null 무출력 (265.115292ms) | 개별2, 원출력8행 | PASS | 해당실행직접결과 |
+| LP13-T01 disabled/invalid "" 무출력 (41.829375ms) | 개별3, 원출력9행 | PASS | 해당실행직접결과 |
+| LP13-T01 disabled/invalid "0" 무출력 (46.828792ms) | 개별4, 원출력10행 | PASS | 해당실행직접결과 |
+| LP13-T01 disabled/invalid "true" 무출력 (44.439208ms) | 개별5, 원출력11행 | PASS | 해당실행직접결과 |
+| LP13-T01 disabled/invalid "01" 무출력 (46.021875ms) | 개별6, 원출력12행 | PASS | 해당실행직접결과 |
+| LP13-T01 disabled/invalid "1 " 무출력 (44.752ms) | 개별7, 원출력13행 | PASS | 해당실행직접결과 |
+| LP13-T02 fast aggregate count/sum/max 정확 (5.317458ms) | 개별8, 원출력14행 | PASS | 해당실행직접결과 |
+| LP13-T04 부분증거 parent/target 실패와 phase누락 미완료 (21.55175ms) | 개별9, 원출력15행 | PASS | 해당실행직접결과 |
+| LP13-T02 실제 동일 mutex 경합·다른 mutex·unlock 후 sink (46.76125ms) | 개별10, 원출력16행 | PASS | 해당실행직접결과 |
+| LP13-T03 600 poll·15fastlocks/poll·5400worker 합성 예산 (71.745541ms) | 개별11, 원출력17행 | PASS | 해당실행직접결과 |
+| LP13-T03 1800 poll·15fastlocks/poll·5400worker 합성 예산 (362.295709ms) | 개별12, 원출력18행 | PASS | 해당실행직접결과 |
+| LP13-T03 tls-cap 손실 명시 (2.28325ms) | 개별13, 원출력19행 | PASS | 해당실행직접결과 |
+| LP13-T03 cap 손실 명시 (25.067125ms) | 개별14, 원출력20행 | PASS | 해당실행직접결과 |
+| LP13-T04 split·safe부분보존·순번누락 (12.405375ms) | 개별15, 원출력21행 | PASS | 해당실행직접결과 |
+| LP13-T04 enum 거부 (0.082208ms) | 개별16, 원출력22행 | PASS | 해당실행직접결과 |
+| LP13-T04 numeric 거부 (0.032042ms) | 개별17, 원출력23행 | PASS | 해당실행직접결과 |
+| LP13-T04 time 거부 (0.0245ms) | 개별18, 원출력24행 | PASS | 해당실행직접결과 |
+| LP13-T04 count 거부 (0.028584ms) | 개별19, 원출력25행 | PASS | 해당실행직접결과 |
+| LP13-T04 linecap 거부 (0.019583ms) | 개별20, 원출력26행 | PASS | 해당실행직접결과 |
+| LP13-T04 incomplete 거부 (0.017875ms) | 개별21, 원출력27행 | PASS | 해당실행직접결과 |
+| LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거부 (58.601041ms) | 개별22, 원출력28행 | PASS | 해당실행직접결과 |
+
+실행·정리 원자료:
+
+```text
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-Us9sLP","bytes":499780,"removed":true}
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1398.964041
+```
+
+#### lp22-public-media-01.txt
+
+[원출력](lp22-public-media-01.txt) 2813B, SHA256 `db3b55e8e49633cb2e25b616e091ddb1b22055f029ca409290da7920996decdd`.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| D3A-05 미완료 출력 거부 | 개별1, 원출력7행 | PASS | 해당실행직접결과 |
+| D3A-05 미완료 출력 거부 | 개별2, 원출력8행 | PASS | 해당실행직접결과 |
+| D3A-05 미완료 출력 거부 | 개별3, 원출력9행 | PASS | 해당실행직접결과 |
+| D3A-05 미완료 출력 거부 | 개별4, 원출력10행 | PASS | 해당실행직접결과 |
+| D3A-02 요청 충족 상태 구분 | 개별5, 원출력11행 | PASS | 해당실행직접결과 |
+| D3A-01 실제 검증된 Event 출력 제공 | 개별6, 원출력12행 | PASS | 해당실행직접결과 |
+| D3A-03 권한/다른 채널 거부 | 개별7, 원출력13행 | PASS | 해당실행직접결과 |
+| D3A-01 application V2 채널 권한 후 제공 | 개별8, 원출력14행 | PASS | 해당실행직접결과 |
+| D3A-06 제공 중 삭제 거부 | 개별9, 원출력15행 | PASS | 해당실행직접결과 |
+| D3A-06 fd 해제 후 hold0 | 개별10, 원출력16행 | PASS | 해당실행직접결과 |
+| D3A-01 실제 검증된 Event 출력 제공 | 개별11, 원출력17행 | PASS | 해당실행직접결과 |
+| D3A-03 권한/다른 채널 거부 | 개별12, 원출력18행 | PASS | 해당실행직접결과 |
+| D3A-01 application V2 채널 권한 후 제공 | 개별13, 원출력19행 | PASS | 해당실행직접결과 |
+| D3A-06 제공 중 삭제 거부 | 개별14, 원출력20행 | PASS | 해당실행직접결과 |
+| D3A-06 fd 해제 후 hold0 | 개별15, 원출력21행 | PASS | 해당실행직접결과 |
+| D3A-04 실제 파일 있는 manual Event 거부 | 개별16, 원출력22행 | PASS | 해당실행직접결과 |
+| D3A-07 immutable metadata 다른 결박 거부 | 개별17, 원출력23행 | PASS | 해당실행직접결과 |
+| D3A-08 원본 보존 삭제 완료 | 개별18, 원출력24행 | PASS | 해당실행직접결과 |
+| D3A-08 원본 보존 삭제 완료 | 개별19, 원출력25행 | PASS | 해당실행직접결과 |
+| D3A-08 원본 삭제 뒤 검증된 출력 제공 | 개별20, 원출력26행 | PASS | 해당실행직접결과 |
+| D3A-07 실제 파일 크기 변조 거부·hold0 | 개별21, 원출력27행 | PASS | 해당실행직접결과 |
+| D3A-07 동일 크기 파일 내용 변조 거부·hold0 | 개별22, 원출력28행 | PASS | 해당실행직접결과 |
+| D3A-06 hold 해제 후 삭제 전이·새 제공 거부 | 개별23, 원출력29행 | PASS | 해당실행직접결과 |
+| D3A-05 미완료 출력 거부 | 개별24, 원출력32행 | PASS | 해당실행직접결과 |
+| D3A-05 미완료 출력 거부 | 개별25, 원출력33행 | PASS | 해당실행직접결과 |
+| D3A-05 미완료 출력 거부 | 개별26, 원출력34행 | PASS | 해당실행직접결과 |
+| D3A-05 미완료 출력 거부 | 개별27, 원출력35행 | PASS | 해당실행직접결과 |
+| D3A-02 요청 충족 상태 구분 | 개별28, 원출력36행 | PASS | 해당실행직접결과 |
+| D3A-02 partial 출력 제공 | 개별29, 원출력37행 | PASS | 해당실행직접결과 |
+| D3A-03 권한/다른 채널 거부 | 개별30, 원출력38행 | PASS | 해당실행직접결과 |
+| D3A-01 application V2 채널 권한 후 제공 | 개별31, 원출력39행 | PASS | 해당실행직접결과 |
+| D3A-06 제공 중 삭제 거부 | 개별32, 원출력40행 | PASS | 해당실행직접결과 |
+| D3A-06 fd 해제 후 hold0 | 개별33, 원출력41행 | PASS | 해당실행직접결과 |
+| D3A-02 partial 출력 제공 | 개별34, 원출력42행 | PASS | 해당실행직접결과 |
+| D3A-03 권한/다른 채널 거부 | 개별35, 원출력43행 | PASS | 해당실행직접결과 |
+| D3A-01 application V2 채널 권한 후 제공 | 개별36, 원출력44행 | PASS | 해당실행직접결과 |
+| D3A-06 제공 중 삭제 거부 | 개별37, 원출력45행 | PASS | 해당실행직접결과 |
+| D3A-06 fd 해제 후 hold0 | 개별38, 원출력46행 | PASS | 해당실행직접결과 |
+| D3A-04 실제 파일 있는 manual Event 거부 | 개별39, 원출력47행 | PASS | 해당실행직접결과 |
+| D3A-07 immutable metadata 다른 결박 거부 | 개별40, 원출력48행 | PASS | 해당실행직접결과 |
+| D3A-08 원본 보존 삭제 완료 | 개별41, 원출력49행 | PASS | 해당실행직접결과 |
+| D3A-08 원본 보존 삭제 완료 | 개별42, 원출력50행 | PASS | 해당실행직접결과 |
+| D3A-08 원본 삭제 뒤 검증된 출력 제공 | 개별43, 원출력51행 | PASS | 해당실행직접결과 |
+| D3A-07 실제 파일 크기 변조 거부·hold0 | 개별44, 원출력52행 | PASS | 해당실행직접결과 |
+| D3A-07 동일 크기 파일 내용 변조 거부·hold0 | 개별45, 원출력53행 | PASS | 해당실행직접결과 |
+| D3A-06 hold 해제 후 삭제 전이·새 제공 거부 | 개별46, 원출력54행 | PASS | 해당실행직접결과 |
+
+실행·정리 원자료:
+
+```text
+[summary] pass=46 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-public-media.Al0lPt bytes=9129396 removed=true
+[elapsed] seconds=3 source=bash-SECONDS
+```
+
+#### lp22-public-timeline-01.txt
+
+[원출력](lp22-public-timeline-01.txt) 3148B, SHA256 `0a4728730e72b228c6829056177294b3766c673e5066a2412e34a0a50ea93364`.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| D3B-01 actual V2 원본·문자열 UTC·독립 unplaced 응답 | 개별1, 원출력6행 | PASS | 해당실행직접결과 |
+| D3B-14 mismatch/nonintegral mapping은 unplaced | 개별2, 원출력7행 | PASS | 해당실행직접결과 |
+| D3B-14 mismatch/nonintegral mapping은 unplaced | 개별3, 원출력8행 | PASS | 해당실행직접결과 |
+| D3B-02 문법/범위 오류400 | 개별4, 원출력9행 | PASS | 해당실행직접결과 |
+| D3B-02 문법/범위 오류400 | 개별5, 원출력10행 | PASS | 해당실행직접결과 |
+| D3B-02 문법/범위 오류400 | 개별6, 원출력11행 | PASS | 해당실행직접결과 |
+| D3B-02 문법/범위 오류400 | 개별7, 원출력12행 | PASS | 해당실행직접결과 |
+| D3B-02 문법/범위 오류400 | 개별8, 원출력13행 | PASS | 해당실행직접결과 |
+| D3B-02 문법/범위 오류400 | 개별9, 원출력14행 | PASS | 해당실행직접결과 |
+| D3B-02 권한 거부403 | 개별10, 원출력15행 | PASS | 해당실행직접결과 |
+| D3B-13 Intent placeholder no file/null time | 개별11, 원출력19행 | PASS | 해당실행직접결과 |
+| D3B-13 accepted/no-job 상태 보존 | 개별12, 원출력20행 | PASS | 해당실행직접결과 |
+| D3B-05 Ready 출력 시간과 재생불가 분리 | 개별13, 원출력21행 | PASS | 해당실행직접결과 |
+| D3B-05 Committed 출력 시간과 재생불가 분리 | 개별14, 원출력22행 | PASS | 해당실행직접결과 |
+| D3B-05 실제 검증된 파생2출력 시간/파일 독립 | 개별15, 원출력23행 | PASS | 해당실행직접결과 |
+| D3B-07 같은 UTC 다른 segment/epoch는 원본 숨김 없음 | 개별16, 원출력24행 | PASS | 해당실행직접결과 |
+| D3B-13 출력 생성 뒤 job placeholder 없음 | 개별17, 원출력25행 | PASS | 해당실행직접결과 |
+| D3B-07 page 밖 이벤트도 원본 전체 충족 판정 | 개별18, 원출력26행 | PASS | 해당실행직접결과 |
+| D3B-06 일부 중첩 원본은 보존 | 개별19, 원출력27행 | PASS | 해당실행직접결과 |
+| D3B-04 재조회 stable itemId/order | 개별20, 원출력28행 | PASS | 해당실행직접결과 |
+| D3B-12 요청축/문자열/공개 whitelist | 개별21, 원출력29행 | PASS | 해당실행직접결과 |
+| D3B-08 동일 size 변조 출력은 비재생 | 개별22, 원출력30행 | PASS | 해당실행직접결과 |
+| D3B-08 파일 누락 Complete와 재생불가/숨김 분리 | 개별23, 원출력31행 | PASS | 해당실행직접결과 |
+| D3B-08 실제 tombstone 출력 deleted 보존 | 개별24, 원출력32행 | PASS | 해당실행직접결과 |
+| D3B-09 source tombstone 뒤 durable UTC 투영 | 개별25, 원출력33행 | PASS | 해당실행직접결과 |
+| D3B-05 partial 요청 실제 출력 jobComplete | 개별26, 원출력37행 | PASS | 해당실행직접결과 |
+| D3B-14 actual 출력 mismatch mapping은 unplaced·partial 파일 제공 분리 | 개별27, 원출력38행 | PASS | 해당실행직접결과 |
+| D3B-13 Failed placeholder no file/null time | 개별28, 원출력41행 | PASS | 해당실행직접결과 |
+| D3B-03/04 UTC0와 same-file 다중 mapping 독립 ID | 개별29, 원출력42행 | PASS | 해당실행직접결과 |
+| D3B-03 int64 최대 UTC ns 문자열 정밀도 | 개별30, 원출력43행 | PASS | 해당실행직접결과 |
+| D3B-11 관련 없는 known4352 누적은 짧은 질의 허용 | 개별31, 원출력44행 | PASS | 해당실행직접결과 |
+| D3B-11 실제 관련4352 상한 명시 실패 | 개별32, 원출력45행 | PASS | 해당실행직접결과 |
+| D3B-02/11 관련 상한503 | 개별33, 원출력46행 | PASS | 해당실행직접결과 |
+| D3B-10/11 unknown4354 count와 bounded 첫 페이지 | 개별34, 원출력47행 | PASS | 해당실행직접결과 |
+| D3B-10 known/unplaced 독립 동일 offset 페이지 | 개별35, 원출력48행 | PASS | 해당실행직접결과 |
+| D3B-11 offset+limit overflow 명시 실패 | 개별36, 원출력49행 | PASS | 해당실행직접결과 |
+| D3B-11 전체 unknown deep-copy 없이35074 첫 페이지 허용 | 개별37, 원출력50행 | PASS | 해당실행직접결과 |
+| D3B-11 deep offset64MiB workspace 초과는 결과 없이 명시 실패 | 개별38, 원출력51행 | PASS | 해당실행직접결과 |
+
+실행·정리 원자료:
+
+```text
+[summary] pass=38 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-public-timeline.auPPRL bytes=35261147 removed=true
+[elapsed] seconds=8 source=bash-SECONDS
+```
+
+#### lp22-read-context-green-lp22-media-02.txt
+
+[원출력](lp22-read-context-green-lp22-media-02.txt) 11795B, SHA256 `f8d0c0097674e1cd57885c11ce51767eb855d763be861231625cef01bec8152a`.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP22-R01 fixture actual Complete two outputs | 개별1, 원출력31행 | PASS | 최초실패이력·GREEN03과구분 |
+| LP22-R02 public timeline canonical and media bytes unchanged | 개별2, 원출력32행 | PASS | 최초실패이력·GREEN03과구분 |
+| LP22-R03 same job two outputs parse strictly once per request | 개별3, 원출력33행 | PASS | 최초실패이력·GREEN03과구분 |
+| LP22-R04 next request revalidates cold job | 개별4, 원출력34행 | PASS | 최초실패이력·GREEN03과구분 |
+| LP22-R05 context and media holds released after request | 개별5, 원출력35행 | PASS | 최초실패이력·GREEN03과구분 |
+| LP22-R06 changed saved envelope falls back to strict parsing | 개별6, 원출력37행 | PASS | 최초실패이력·GREEN03과구분 |
+| LP22-R06 replaced current mutation rejects without stale reuse | 개별7, 원출력38행 | PASS | 최초실패이력·GREEN03과구분 |
+| LP22-R06 same resident with invalid provenance retains strict validation | 개별8, 원출력39행 | PASS | 최초실패이력·GREEN03과구분 |
+| LP22-R07 changed current state rejects playback | 개별9, 원출력40행 | FAIL | 최초실패이력·GREEN03과구분 |
+| LP22-R07 changed thin metadata rejects stale content | 개별10, 원출력41행 | FAIL | 최초실패이력·GREEN03과구분 |
+| LP22-R07 changed current source segment rejects stale content | 개별11, 원출력42행 | FAIL | 최초실패이력·GREEN03과구분 |
+| LP22-R07 changed output path preserves strict rejection | 개별12, 원출력43행 | PASS | 최초실패이력·GREEN03과구분 |
+| LP22-R07 duplicate output owner rejects playback | 개별13, 원출력44행 | FAIL | 최초실패이력·GREEN03과구분 |
+| LP22-R07 deleted output rejects playback | 개별14, 원출력45행 | PASS | 최초실패이력·GREEN03과구분 |
+| LP22-R08 byte budget fallback preserves full timeline and owned limit | 개별15, 원출력46행 | PASS | 최초실패이력·GREEN03과구분 |
+| LP22-R08 job budget fallback preserves strict playback | 개별16, 원출력47행 | PASS | 최초실패이력·GREEN03과구분 |
+| LP22-R08 admission allocation failure preserves authority and strict result | 개별17, 원출력48행 | PASS | 최초실패이력·GREEN03과구분 |
+| LP22-R09 file tamper rejects and releases holds | 개별18, 원출력49행 | PASS | 최초실패이력·GREEN03과구분 |
+| LP22-R09 media exception releases context and holds | 개별19, 원출력50행 | PASS | 최초실패이력·GREEN03과구분 |
+| LP22-R09 same size journal tamper rejects and clears owned output | 개별20, 원출력51행 | PASS | 최초실패이력·GREEN03과구분 |
+| LP22-R09 detached authority rejects cold context reuse | 개별21, 원출력52행 | PASS | 최초실패이력·GREEN03과구분 |
+
+실행·정리 원자료:
+
+```text
+{"kind":"phase","name":"compile","pass":0,"fail":0,"expected":true,"code":0,"signal":null,"stopReason":null,"groupClean":true,"groupPeakRssBytes":333070336,"observationFailure":null,"outputBytes":777,"elapsedMs":4167}
+[read-context-count] {"firstParses":1,"secondParses":1}
+[summary] pass=17 fail=4
+{"kind":"phase","name":"focused","pass":17,"fail":4,"expected":false,"code":1,"signal":null,"stopReason":null,"groupClean":true,"groupPeakRssBytes":193101824,"observationFailure":null,"outputBytes":2866,"elapsedMs":2945}
+{"kind":"source-check","unchanged":true}
+{"kind":"cleanup","bytes":10110296,"removed":true}
+```
+
+#### lp22-read-context-green-lp22-media-03.txt
+
+[원출력](lp22-read-context-green-lp22-media-03.txt) 12272B, SHA256 `ee2f402eb613d8bac77731091908b0c018abf525c064b65c36101d047624b9d9`.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP22-R01 fixture actual Complete two outputs | 개별1, 원출력31행 | PASS | 해당실행직접결과 |
+| LP22-R02 public timeline canonical and media bytes unchanged | 개별2, 원출력32행 | PASS | 해당실행직접결과 |
+| LP22-R03 same job two outputs parse strictly once per request | 개별3, 원출력33행 | PASS | 해당실행직접결과 |
+| LP22-R04 next request revalidates cold job | 개별4, 원출력34행 | PASS | 해당실행직접결과 |
+| LP22-R05 context and media holds released after request | 개별5, 원출력35행 | PASS | 해당실행직접결과 |
+| LP22-R06 changed saved envelope falls back to strict parsing | 개별6, 원출력37행 | PASS | 해당실행직접결과 |
+| LP22-R06 replaced current mutation rejects without stale reuse | 개별7, 원출력38행 | PASS | 해당실행직접결과 |
+| LP22-R06 same resident with invalid provenance retains strict validation | 개별8, 원출력39행 | PASS | 해당실행직접결과 |
+| LP22-R07 changed current state rejects playback | 개별9, 원출력41행 | PASS | 해당실행직접결과 |
+| LP22-R07 changed thin metadata rejects stale content | 개별10, 원출력43행 | PASS | 해당실행직접결과 |
+| LP22-R07 changed current source segment rejects stale content | 개별11, 원출력45행 | PASS | 해당실행직접결과 |
+| LP22-R07 changed output path preserves strict rejection | 개별12, 원출력46행 | PASS | 해당실행직접결과 |
+| LP22-R07 duplicate output owner rejects playback | 개별13, 원출력48행 | PASS | 해당실행직접결과 |
+| LP22-R07 deleted output rejects playback | 개별14, 원출력49행 | PASS | 해당실행직접결과 |
+| LP22-R08 byte budget fallback preserves full timeline and owned limit | 개별15, 원출력50행 | PASS | 해당실행직접결과 |
+| LP22-R08 job budget fallback preserves strict playback | 개별16, 원출력51행 | PASS | 해당실행직접결과 |
+| LP22-R08 admission allocation failure preserves authority and strict result | 개별17, 원출력52행 | PASS | 해당실행직접결과 |
+| LP22-R09 file tamper rejects and releases holds | 개별18, 원출력53행 | PASS | 해당실행직접결과 |
+| LP22-R09 media exception releases context and holds | 개별19, 원출력54행 | PASS | 해당실행직접결과 |
+| LP22-R09 same size journal tamper rejects and clears owned output | 개별20, 원출력55행 | PASS | 해당실행직접결과 |
+| LP22-R09 detached authority rejects cold context reuse | 개별21, 원출력56행 | PASS | 해당실행직접결과 |
+
+실행·정리 원자료:
+
+```text
+{"kind":"phase","name":"compile","pass":0,"fail":0,"expected":true,"code":0,"signal":null,"stopReason":null,"groupClean":true,"groupPeakRssBytes":328630272,"observationFailure":null,"outputBytes":777,"elapsedMs":3959}
+[read-context-count] {"firstParses":1,"secondParses":1}
+[read-context-rejection] {"case":"state","rejected":true,"fdHolds":0,"authoritative":false,"retentionProtection":2}
+[read-context-rejection] {"case":"metadata","rejected":true,"fdHolds":0,"authoritative":false,"retentionProtection":2}
+[read-context-rejection] {"case":"source","rejected":true,"fdHolds":0,"authoritative":false,"retentionProtection":2}
+[read-context-rejection] {"case":"duplicate-owner","rejected":true,"fdHolds":0,"authoritative":false,"retentionProtection":2}
+[summary] pass=21 fail=0
+{"kind":"phase","name":"focused","pass":21,"fail":0,"expected":true,"code":0,"signal":null,"stopReason":null,"groupClean":true,"groupPeakRssBytes":190021632,"observationFailure":null,"outputBytes":3344,"elapsedMs":2694}
+{"kind":"source-check","unchanged":true}
+{"kind":"cleanup","bytes":10110536,"removed":true}
+```
+
+#### lp22-read-context-selftest-02.txt
+
+[원출력](lp22-read-context-selftest-02.txt) 475B, SHA256 `78735830d1a43e4328315da23eebe33e1ac86f0afbf2ce4a0095c6b80a148eab`.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP22-RH01 exact RED and GREEN bind every label summary and actual parse counts (0.395084ms) | 개별1, 원출력3행 | PASS | 해당실행직접결과 |
+| LP22-RH02 missing summary different failure stop signal and unclean group reject (0.06225ms) | 개별2, 원출력4행 | PASS | 해당실행직접결과 |
+
+실행·정리 원자료:
+
+```text
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 35.170208
+cleanup: no owned temporary files or child processes were created by these pure tests
+```
+
+#### lp22-read-context-selftest-03.txt
+
+[원출력](lp22-read-context-selftest-03.txt) 476B, SHA256 `6712f05d7319e3fb9371a229a233660ada8e7aae1aed39c7c829a20f02a3af96`.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP22-RH01 exact RED and GREEN bind every label summary and actual parse counts (0.570375ms) | 개별1, 원출력3행 | PASS | 해당실행직접결과 |
+| LP22-RH02 missing summary different failure stop signal and unclean group reject (0.123417ms) | 개별2, 원출력4행 | PASS | 해당실행직접결과 |
+
+실행·정리 원자료:
+
+```text
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 32.779625
+cleanup: no owned temporary files or child processes were created by these pure tests
+```
+
 ## LP22 진단 구현 자체검증
 
 현재 LP22 진단 준비/원인 분리의 전수 결과다. 제품 지연 해결·실제 HTTP·통합 완료로 확대하지 않는다.

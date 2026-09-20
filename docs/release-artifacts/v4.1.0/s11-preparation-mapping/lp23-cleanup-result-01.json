@@ -1,0 +1,11 @@
+{
+  "schema": "lp23-cleanup-result-v1",
+  "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-FKdtx1",
+  "bytes": 180358628,
+  "files": 48,
+  "links": 277,
+  "removed": true,
+  "originalUnchangedBeforeRemoval": true,
+  "evidenceRetained": true,
+  "mediaRecoverable": false
+}
