@@ -1,0 +1,18 @@
+command: node --test scripts/internal/recording_completion_trace.test.mjs scripts/internal/recording_current_observation.test.mjs
+exit: 0
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-completion-QvF4Tm","bytes":62584,"removed":true}
+✔ LP22-T01 trace off and invalid environment emit nothing (469.805041ms)
+✔ LP22-T02 trace hashes canary identity and rejects unknown raw fields (15.547417ms)
+✔ LP22-T02 trace count and byte caps emit one explicit loss (19.918875ms)
+✔ LP22-T03 partial lines and malformed clocks fail closed (3.483417ms)
+✔ LP22-T03 delayed emission retains event chronology across four references (0.6545ms)
+✔ LP22-T04 invalid durable transitions and missing observation remain distinct (0.106916ms)
+✔ LP22-O01 optional page observation preserves values and captures every page (0.680667ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 886.686416

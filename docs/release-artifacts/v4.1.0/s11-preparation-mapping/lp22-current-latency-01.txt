@@ -1,0 +1,18 @@
+command: node --test scripts/internal/recording_current_latency.test.mjs
+exit: 0
+✔ LP04-A 목표 이전은 대기하고 해당 구간만 선택 (0.307ms)
+✔ LP04-A 경계와 프레임을 놓치면 다른 구간으로 대체 금지 (0.18525ms)
+✔ LP04-A 실제 dispatch 정확 일치만 허용 (0.088166ms)
+✔ LP03-A failed는 완료 대기 대신 즉시 중단 (0.090083ms)
+✔ P0-HTTP01 pending은 전이 완료가 아님 (0.045458ms)
+✔ P0-HTTP01 partial은 지연 관측만 가능 (0.041917ms)
+✔ P0-HTTP01 다른 참조와 모순 파일은 거부 (0.074292ms)
+✔ P0-HTTP01 원래 완전 출력 검사는 부분 출력 거부 유지 (0.118208ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 36.275875

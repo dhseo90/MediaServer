@@ -9,8 +9,8 @@
 
 | 번호 | 사용자 지시 | 상태 | 완료 조건 | 근거 |
 | --- | --- | --- | --- | --- |
-| 1 | 진단 기준·누락 보완 | 진행 중 | 요청별 대기/내구전이·페이지별 상태·일반실패 증거 연결 | 아래 고정계약 |
-| 2 | 진단 도구 자체검증 | 미실행 | late/mixed/total-change/invalid·loss·cleanup 독립검사 | LP22-T/O |
+| 1 | 진단 기준·누락 보완 | 구현 완료 | worker→catalog 내구전이, projection4단계, 페이지/wait/사후진단 연결 | 아래 고정계약·직접diff |
+| 2 | 진단 도구 자체검증 | 완료 | 최종168PASS·전체build exit0, 최초RED/기대치오류 보존 | LP22-T/O·상세결과 |
 | 3 | 원인 구분 단기1회 | 미실행 | 앞단계통과후 실제앱, 단일서버시계/요청순번으로 원인분리 | P0-HTTP02 |
 | 4 | 확인 원인 최소수정·회귀 | 미착수 | 독립재현/영향회귀→동일 실제HTTP; 불변조건 유지 | 원인확정이 선수 |
 | 5 | 현행5단계 통합 | 미실행 | 완전2출력·hash·재기동·정리 전수통과 | S11-CI01/07~11 |
@@ -61,6 +61,61 @@
 준비문서검증: docs-links exit0/0.037654초(md285/links9028/images22/anchors125/failure0), diffcheck exit0.
 기존 LP21 원출력/latency/process/state4개 파일의size/SHA256은 개별결과표와 재대조해 일치했다.
 이번 첫문서커밋은 실패결과보존과LP22진단선수의 준비만 완료하며 실패한HTTP 단계완료커밋이 아니다.
+
+LP22-O01 예상RED: `node --test scripts/internal/recording_current_observation.test.mjs`의
+`LP22-O01 optional page observation preserves values and captures every page` 한개. 기존helper 반환값동등은유지하나
+옵션미구현으로관측rows=[]가page/page/complete와다른assertion에서 실패해야 한다. 예상0PASS/1FAIL·exit1.
+import/명령/환경오류는예상RED가아니다. 원출력 `lp22-observation-red-01.txt`에 보존하고동일범위구현으로이어간다.
+신규C++trace는기존기능부재를가장한RED를만들지않고off/비밀/경계/정확성의실제자체검증으로판정한다.
+
+`node --test scripts/internal/recording_completion_trace.test.mjs` 실행 전 개별 정의(예상6PASS):
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP22-T01 trace off and invalid environment emit nothing | 비활성 무출력 | 소유 임시root의 native smoke, compile30초/run10초·정리 | v4.1.0 |
+| LP22-T02 trace hashes canary identity and rejects unknown raw fields | 식별 정보 보호 | 카나리 SHA만 출력, 임의 필드 거부 | v4.1.0 |
+| LP22-T02 trace count and byte caps emit one explicit loss | 유한 생산자 | count/byte 상한과 단일 loss 행(상위 T03 계약도 적용) | v4.1.0 |
+| LP22-T03 partial lines and malformed clocks fail closed | 손상 증거 거부 | 부분 행/숫자·시각 범위 거부, 정상 증거 보존 | v4.1.0 |
+| LP22-T03 delayed emission retains event chronology across four references | 시계·참조 분리 | 출력 순서와 실제 경계 시각 구별, 4참조 분리 | v4.1.0 |
+| LP22-T04 invalid durable transitions and missing observation remain distinct | 상태 판정 | 잘못된 전이·누락·projection 관측을 구별 | v4.1.0 |
+
+native smoke는 서버 기동이 아니며 기존 latency smoke처럼 격리된 컴파일·실행만 한다.
+
+`node --test scripts/internal/recording_current_observation.test.mjs` 최종 실행 전 정의(예상7PASS):
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP22-O01 optional page observation preserves values and captures every page | 페이지 반환 동등 | observer 유무 동등·offset/cycle 전수 | v4.1.0 |
+| LP22-O02 callback exceptions do not replace original page failure | 예외 보존 | 원래 Error 동일 객체·정상 반환도 유지 | v4.1.0 |
+| LP22-O03 same total ready complete mixture retains individual page states | 상태 혼합 | 실제 latencyTransitionOutputs가 null 유지 | v4.1.0 |
+| LP22-O04 changed totals fail then a fresh cycle fetches every page again | 총계 변경 | 기존 거부 후 호출자가 새 cycle로 offset0부터 조회(O02 상위 계약도 적용) | v4.1.0 |
+| LP22-O05 late complete observation cannot erase the original transition timeout | 실제 wait 경계 | 공유 boundedUntil을 fake clock29999ms ready→pause→timeout 후 사후complete 관측. 원래 timeout 유지 | v4.1.0 |
+| LP22-O04 wait keeps late successful return and reports its client deadline overrun | 늦은 반환 | deadline 전 시작한 fn의30001ms truthy 반환은 기존대로 유지, returnedAfterBudget/ordinal 기록 | v4.1.0 |
+| LP22-O06 diagnostic report failure remains explicit without hiding primary error | 진단 오류 | 별도 invalid 기록과 원래실패 동시 보존 | v4.1.0 |
+
+T02의 카나리는 독립 SHA 예상값 대조를 보완해 T6 최종 재검사한다. 위 경계는 허용 시간을 늘리거나
+기존 until의 late return 의미를 사후 변경하는 것이 아니라 정확히 관측하는 검사다.
+제품3cpp/header 동결 뒤 전체build exit0, 경고/오류 출력 없음. 산출binary와 원출력 hash는 최종 자체검증 기록에서 보존한다.
+
+LP22 영향회귀 최초 실패: `recording_latency_trace.test.mjs` exit1/21PASS1FAIL,
+LP13-T05의 오래된 literal66 대 실제70이다. test 도입88ef2ca66에는66개, 현HEAD와이번작업파일에는각70개이며
+LP20 조회 잠금 분리까지 추가된4개가 원인이다. 이번 진단diff는 기존catalog lock개수를 바꾸지 않았다.
+이는 제품 잠금 회귀가 아닌 검사 기대치 미적응이며 최초실패를 보존한다. 3.3에 따라 같은 검증준비 범위에서 보완한다.
+재검사 전 정의: LP13-T05에서 원본의 정확한 traced wrapper 전수를 독립적으로 세고(현재70),
+변환 결과의 wait/hold 각각과1:1 대조·원본wrapper잔존0·trace중복활성거부를 확인한다.
+66을70으로만 치환하지 않고 단일치환 계약을 검사한다. 명령은 동일test파일(22개), 예상22PASS.
+exact wait+hold pair와각각의개수를대조하고, 시험용변환문자열에서 pair1개삭제/복제/hold한쪽삭제 반례를 각각 거부해야 한다.
+추가4지점은 cd7172a28의 WithWaitLease1·PrepareDerivedSourceSnapshot3이며 그 부모66→해당커밋70을직접대조했다.
+다른 검사는 이미 통과한 동일 범위 결과를 유지하고 실제앱은 이 회귀 통과 전 시작하지 않는다.
+
+1~2번 최종: 신규13·기존영향8/40/23/62/22 합계168PASS, 각각exit0. 전체build exit0·경고/오류없음.
+LP13-T05 재검사 input/pair/wait/hold=70·잔존0, 누락/복제 반례 거부. 원출력의 공백/끝빈줄만 정규화했다.
+메인은 실제diff·개별원출력·제품hash를 직접대조했다. 변경은 opt-in 내부 관측, 동일until/페이지oracle,
+일반실패 진단·cleanup 보존경계 및 과거count검사 보완이다. 새로운 녹화/조회 정책 또는 timeout변경은 없다.
+구현: `recording_completion_trace.h`의 Emit/Point; worker Submit/Loop/RenderLoop; Catalog UpdateDerivedJob;
+FinishTimelineV2; JS createTimelineObservation/observeTransitionWait/boundedUntil/allTimelinePages 및 실제앱 사후진단.
+전수결과·정리·환경·fingerprint: [LP22 상세 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md#lp22-진단-구현-자체검증).
+첫 준비커밋4462a252 이후 이단위 분할커밋을 진행한다. 실제HTTP/통합 미실행이므로 푸시가능은 아직아니오다.
 
 ## 2026-09-20 LP21 누적·동시 비용 → 실제 HTTP → 현행 통합
 

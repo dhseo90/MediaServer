@@ -1,6 +1,7 @@
 // 파일 용도: 같은 catalog 잠금의 V2 사실을 bounded 공개 timeline 값으로 투영한다.
 #include "recording/recording_catalog.h"
 #include "recording/recording_latency_trace.h"
+#include "recording/recording_completion_trace.h"
 #include "recording/recording_derived_selection.h"
 #include "recording/recording_native_coverage.h"
 #include <algorithm>
@@ -218,6 +219,8 @@ bool RecordingReadService::FinishTimelineV2(const RecordingTimelineQuery& query,
     recording::latency::Scope latency_scope(recording::latency::Operation::Finish,recording::latency::Source::Projection,__LINE__,true);
     try {
         std::unordered_map<std::string,std::pair<bool,std::string>> media;
+        auto phase_started=completion::Now();
+        const auto input_rows=result->items.size()+result->unplaced_items.size();
         auto available=[&](RecordingTimelineItem& item){
             if(item.segment_id.empty())return;
             if(item.catalog_state!="finalized"||
@@ -234,6 +237,9 @@ bool RecordingReadService::FinishTimelineV2(const RecordingTimelineQuery& query,
         };
         for(auto& row:result->items)available(row);
         for(auto& row:result->unplaced_items)available(row);
+        auto phase_ended=completion::Now();
+        completion::Emit(completion::Event::Media,phase_started,phase_ended,{},{},input_rows,media.size());
+        phase_started=phase_ended;
         std::size_t bytes=0;
         for(const auto& row:result->items)bytes+=Bytes(row);
         for(const auto& row:result->unplaced_items)bytes+=Bytes(row);
@@ -260,16 +266,24 @@ bool RecordingReadService::FinishTimelineV2(const RecordingTimelineQuery& query,
             auto& ids=original.superseded_by_event_ids;std::sort(ids.begin(),ids.end());ids.erase(std::unique(ids.begin(),ids.end()),ids.end());
             std::sort(original.event_overlaps.begin(),original.event_overlaps.end(),[](const auto& a,const auto& b){return std::tie(a.item_id,a.start_ns,a.end_ns)<std::tie(b.item_id,b.start_ns,b.end_ns);});
         }
+        phase_ended=completion::Now();
+        completion::Emit(completion::Event::Overlap,phase_started,phase_ended,{},{},result->items.size());
+        phase_started=phase_ended;
         std::sort(result->items.begin(),result->items.end(),[](const auto& a,const auto& b){
             if(a.utc_start_ns!=b.utc_start_ns)return a.utc_start_ns>b.utc_start_ns;
             if(a.display_priority!=b.display_priority)return a.display_priority>b.display_priority;
             return a.item_id<b.item_id;
         });
+        phase_ended=completion::Now();
+        completion::Emit(completion::Event::Sort,phase_started,phase_ended,{},{},result->items.size());
+        phase_started=phase_ended;
         const auto begin=std::min(query.offset,result->items.size());
         const auto count=std::min(query.limit,result->items.size()-begin);
         std::vector<RecordingTimelineItem> page;page.reserve(count);
         for(std::size_t i=0;i<count;++i)page.push_back(std::move(result->items[begin+i]));
-        result->items=std::move(page);if(error)error->clear();return true;
+        result->items=std::move(page);
+        completion::Emit(completion::Event::Page,phase_started,completion::Now(),{},{},result->items.size(),query.offset,query.limit);
+        if(error)error->clear();return true;
     }catch(const std::exception&){*result={};if(error)*error="timeline-projection-unavailable";return false;}
 }
 } // namespace recording

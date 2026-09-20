@@ -1,0 +1,36 @@
+command: node --test scripts/internal/recording_latency_trace.test.mjs
+exit: 0
+[load] {"requests":600,"locks":15000,"rows":3622,"bytes":497142,"sha256":"e2813b76e1f34f44e235c131a3ecbb53193df481df08563ddca5b2dcddf59792"}
+[load] {"requests":1800,"locks":34200,"rows":10822,"bytes":1487539,"sha256":"5b6e8ac3ba97daebbdc7f092bed9369dd26a023cb841d04d3462b1ffcc9a3cce"}
+[wrapper-pairs] {"input":70,"pairs":70,"wait":70,"hold":70,"remaining":0}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-FojkAv","bytes":494255,"removed":true}
+✔ LP13-T01 collector 존재 (0.658375ms)
+✔ LP13-T01 disabled/invalid null 무출력 (187.604541ms)
+✔ LP13-T01 disabled/invalid "" 무출력 (43.974125ms)
+✔ LP13-T01 disabled/invalid "0" 무출력 (39.585292ms)
+✔ LP13-T01 disabled/invalid "true" 무출력 (37.055292ms)
+✔ LP13-T01 disabled/invalid "01" 무출력 (45.588583ms)
+✔ LP13-T01 disabled/invalid "1 " 무출력 (45.617834ms)
+✔ LP13-T02 fast aggregate count/sum/max 정확 (6.899333ms)
+✔ LP13-T04 부분증거 parent/target 실패와 phase누락 미완료 (16.16875ms)
+✔ LP13-T02 실제 동일 mutex 경합·다른 mutex·unlock 후 sink (40.717834ms)
+✔ LP13-T03 600 poll·15fastlocks/poll·5400worker 합성 예산 (71.153875ms)
+✔ LP13-T03 1800 poll·15fastlocks/poll·5400worker 합성 예산 (284.110125ms)
+✔ LP13-T03 tls-cap 손실 명시 (2.370833ms)
+✔ LP13-T03 cap 손실 명시 (24.148458ms)
+✔ LP13-T04 split·safe부분보존·순번누락 (11.6185ms)
+✔ LP13-T04 enum 거부 (0.089167ms)
+✔ LP13-T04 numeric 거부 (0.033334ms)
+✔ LP13-T04 time 거부 (0.024583ms)
+✔ LP13-T04 count 거부 (0.029792ms)
+✔ LP13-T04 linecap 거부 (0.021333ms)
+✔ LP13-T04 incomplete 거부 (0.01875ms)
+✔ LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거부 (56.227125ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1185.312375

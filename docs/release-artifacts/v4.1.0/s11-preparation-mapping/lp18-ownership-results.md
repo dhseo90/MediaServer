@@ -1,5 +1,324 @@
 # LP18 공유 소유 focused 개별 결과
 
+## LP22 진단 구현 자체검증
+
+현재 LP22 진단 준비/원인 분리의 전수 결과다. 제품 지연 해결·실제 HTTP·통합 완료로 확대하지 않는다.
+실행 전 정의와 권한은 중앙 `release-test-records.md` LP22이며 토큰 start/end/consumed는 전용 집계 부재로 미집계다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP22-O01 optional page observation preserves values and captures every page · RED | `node --test scripts/internal/recording_current_observation.test.mjs`, exit1, Node duration36.133083ms | FAIL | 사전등록한 rows=[] 대 page/page/complete assertion 일치. 예상 RED이며 완료 PASS 아님 |
+| LP22-T01 trace off and invalid environment emit nothing | 첫 GREEN 개별1 | PASS | native smoke, 비활성 환경6종 |
+| LP22-T02 trace hashes canary identity and rejects unknown raw fields | 첫 GREEN 개별2 | PASS | 이후 독립 SHA 예상값 보완의 최종 재검사 별도 |
+| LP22-T02 trace count and byte caps emit one explicit loss | 첫 GREEN 개별3 | PASS | count/byte 두 경계 |
+| LP22-T03 partial lines and malformed clocks fail closed | 첫 GREEN 개별4 | PASS | 부분행/시간 거부 |
+| LP22-T03 delayed emission retains event chronology across four references | 첫 GREEN 개별5 | PASS | 출력 순서가 달라도 경계 시각 비교 |
+| LP22-T04 invalid durable transitions and missing observation remain distinct | 첫 GREEN 개별6 | PASS | 내구 전이·관측 누락 분리 |
+| LP22-O01 optional page observation preserves values and captures every page · GREEN | 첫 GREEN 개별7 | PASS | 동일 반환값과 page/page/complete 관측. 앞선 RED 후 통과 |
+
+첫 GREEN 명령: `node --test scripts/internal/recording_completion_trace.test.mjs scripts/internal/recording_current_observation.test.mjs`,
+exit0/7PASS, Node duration886.686416ms. RED 파일의 tool wall_time_seconds는 검사 전체 소요가 아니므로 위 Node duration을 사용한다.
+원출력: [예상 RED](lp22-observation-red-01.txt), [첫 GREEN](lp22-completion-green-01.txt).
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| RED 임시물 | 없음 | 0 | 없음 | 서버/포트/root 생성 없음 | RED 원출력 |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-completion-QvF4Tm` | smoke binary | 62584B | 소유 root 삭제 | removed=true·부재 assertion PASS | 첫 GREEN cleanup 행 |
+
+### LP22 자체검증·영향 회귀 원출력 전수
+
+#### lp22-build-01.txt
+
+명령: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build`; exit: 0.
+[원출력](lp22-build-01.txt) 912B, SHA256 `9a293d9a1d6f3345ead66013a88af45f9d9fa0678fd8594007e124c4a38910d1`.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 전체 C++ build | 기존 configure→compile→link 실제 실행 | PASS | exit0·경고/오류 출력 없음. 전체 wall time 정확 집계 없음 |
+
+#### lp22-current-integration-01.txt
+
+명령: `node --test scripts/internal/recording_current_integration.test.mjs`; exit: 0, ℹ tests 40, ℹ pass 40, ℹ fail 0, ℹ duration_ms 43.813125.
+[원출력](lp22-current-integration-01.txt) 3506B, SHA256 `6ec5a7f23d9b6da389f4c725e30b690ff4c5f73644235ea445ca8ed359ee9512`.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박 | 원출력3행 | PASS | 해당 실행의 직접 결과 |
+| LP20-X01 실제 종료 producer의 정상 두 결과를 수용 | 원출력4행 | PASS | 해당 실행의 직접 결과 |
+| LP20-X02 schema 누락는 정상 종료로 승인하지 않음 | 원출력5행 | PASS | 해당 실행의 직접 결과 |
+| LP20-X02 schema 불일치는 정상 종료로 승인하지 않음 | 원출력6행 | PASS | 해당 실행의 직접 결과 |
+| LP20-X02 반복 종료는 정상 종료로 승인하지 않음 | 원출력7행 | PASS | 해당 실행의 직접 결과 |
+| LP20-X02 PID 누락는 정상 종료로 승인하지 않음 | 원출력8행 | PASS | 해당 실행의 직접 결과 |
+| LP20-X02 exit 비정상는 정상 종료로 승인하지 않음 | 원출력9행 | PASS | 해당 실행의 직접 결과 |
+| LP20-X02 signal 관측는 정상 종료로 승인하지 않음 | 원출력10행 | PASS | 해당 실행의 직접 결과 |
+| LP20-X02 종료 미관측는 정상 종료로 승인하지 않음 | 원출력11행 | PASS | 해당 실행의 직접 결과 |
+| LP20-X02 stop 오류는 정상 종료로 승인하지 않음 | 원출력12행 | PASS | 해당 실행의 직접 결과 |
+| LP20-X02 강제 종료는 정상 종료로 승인하지 않음 | 원출력13행 | PASS | 해당 실행의 직접 결과 |
+| LP20-X02 강제 여부 미확인는 정상 종료로 승인하지 않음 | 원출력14행 | PASS | 해당 실행의 직접 결과 |
+| LP20-X02 normalExit 실패는 정상 종료로 승인하지 않음 | 원출력15행 | PASS | 해당 실행의 직접 결과 |
+| LP20-X02 normalShutdown 실패는 정상 종료로 승인하지 않음 | 원출력16행 | PASS | 해당 실행의 직접 결과 |
+| LP20-X02 archive 불가는 정상 종료로 승인하지 않음 | 원출력17행 | PASS | 해당 실행의 직접 결과 |
+| LP20-X02 ports 누락는 정상 종료로 승인하지 않음 | 원출력18행 | PASS | 해당 실행의 직접 결과 |
+| LP20-X02 port 수 부족는 정상 종료로 승인하지 않음 | 원출력19행 | PASS | 해당 실행의 직접 결과 |
+| LP20-X02 port kind 중복는 정상 종료로 승인하지 않음 | 원출력20행 | PASS | 해당 실행의 직접 결과 |
+| LP20-X02 port 미해제는 정상 종료로 승인하지 않음 | 원출력21행 | PASS | 해당 실행의 직접 결과 |
+| LP20-X02 port 상태 모순는 정상 종료로 승인하지 않음 | 원출력22행 | PASS | 해당 실행의 직접 결과 |
+| LP20-X02 port 코드 모순는 정상 종료로 승인하지 않음 | 원출력23행 | PASS | 해당 실행의 직접 결과 |
+| LP20-X02 port 범위 오류는 정상 종료로 승인하지 않음 | 원출력24행 | PASS | 해당 실행의 직접 결과 |
+| LP20-X02 graceful-only 구형 결과는 정상 종료로 승인하지 않음 | 원출력25행 | PASS | 해당 실행의 직접 결과 |
+| LP20-X02 정상 flag 누락는 정상 종료로 승인하지 않음 | 원출력26행 | PASS | 해당 실행의 직접 결과 |
+| S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부 | 원출력27행 | PASS | 해당 실행의 직접 결과 |
+| S11-CI02 nonzero 실패 후 나머지 미실행 | 원출력28행 | PASS | 해당 실행의 직접 결과 |
+| S11-CI02 signal 실패 후 나머지 미실행 | 원출력29행 | PASS | 해당 실행의 직접 결과 |
+| S11-CI02 output-limit 실패 후 나머지 미실행 | 원출력30행 | PASS | 해당 실행의 직접 결과 |
+| S11-CI02 summary-missing 실패 후 나머지 미실행 | 원출력31행 | PASS | 해당 실행의 직접 결과 |
+| S11-CI02 summary-duplicate 실패 후 나머지 미실행 | 원출력32행 | PASS | 해당 실행의 직접 결과 |
+| S11-CI02 cleanup-failed 실패 후 나머지 미실행 | 원출력33행 | PASS | 해당 실행의 직접 결과 |
+| S11-CI02 port-missing 실패 후 나머지 미실행 | 원출력34행 | PASS | 해당 실행의 직접 결과 |
+| S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리 | 원출력35행 | PASS | 해당 실행의 직접 결과 |
+| S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부 | 원출력36행 | PASS | 해당 실행의 직접 결과 |
+| S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup | 원출력37행 | PASS | 해당 실행의 직접 결과 |
+| S11-CI05 누락·중복item·불안정total·truncated·cap 거부 | 원출력38행 | PASS | 해당 실행의 직접 결과 |
+| S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부 | 원출력39행 | PASS | 해당 실행의 직접 결과 |
+| S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 | 원출력40행 | PASS | 해당 실행의 직접 결과 |
+| S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리 | 원출력41행 | PASS | 해당 실행의 직접 결과 |
+| S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 | 원출력42행 | PASS | 해당 실행의 직접 결과 |
+
+#### lp22-current-latency-01.txt
+
+명령: `node --test scripts/internal/recording_current_latency.test.mjs`; exit: 0, ℹ tests 8, ℹ pass 8, ℹ fail 0, ℹ duration_ms 36.275875.
+[원출력](lp22-current-latency-01.txt) 771B, SHA256 `2c997116919581599446ec00701a837f34fe7e1d422e37f57faaa367da771346`.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP04-A 목표 이전은 대기하고 해당 구간만 선택 | 원출력3행 | PASS | 해당 실행의 직접 결과 |
+| LP04-A 경계와 프레임을 놓치면 다른 구간으로 대체 금지 | 원출력4행 | PASS | 해당 실행의 직접 결과 |
+| LP04-A 실제 dispatch 정확 일치만 허용 | 원출력5행 | PASS | 해당 실행의 직접 결과 |
+| LP03-A failed는 완료 대기 대신 즉시 중단 | 원출력6행 | PASS | 해당 실행의 직접 결과 |
+| P0-HTTP01 pending은 전이 완료가 아님 | 원출력7행 | PASS | 해당 실행의 직접 결과 |
+| P0-HTTP01 partial은 지연 관측만 가능 | 원출력8행 | PASS | 해당 실행의 직접 결과 |
+| P0-HTTP01 다른 참조와 모순 파일은 거부 | 원출력9행 | PASS | 해당 실행의 직접 결과 |
+| P0-HTTP01 원래 완전 출력 검사는 부분 출력 거부 유지 | 원출력10행 | PASS | 해당 실행의 직접 결과 |
+
+#### lp22-failure-capture-01.txt
+
+명령: `node --test scripts/internal/recording_failure_capture.test.mjs`; exit: 0, ℹ tests 62, ℹ pass 62, ℹ fail 0, ℹ duration_ms 734.461084.
+[원출력](lp22-failure-capture-01.txt) 11757B, SHA256 `fd3c83a79559ae1bbaccd48f340b05849611a284624346e76bec4d749c187874`.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP12-F04 input framing 고정 오류만 안전 집계 | 원출력60행 | PASS | 해당 실행의 직접 결과 |
+| LP12-C07 exact phase/code와 unknown 고정 조합만 수집 | 원출력61행 | PASS | 해당 실행의 직접 결과 |
+| LP12-D06 writer fixed 사유만 집계하고 원문을 보존하지 않음 | 원출력62행 | PASS | 해당 실행의 직접 결과 |
+| LP08-B01 완료 작업 안전 증거 선보존 | 원출력63행 | PASS | 해당 실행의 직접 결과 |
+| LP08-B02 field 증거 실패 시 정리 차단 | 원출력64행 | PASS | 해당 실행의 직접 결과 |
+| LP08-B02 enum 증거 실패 시 정리 차단 | 원출력65행 | PASS | 해당 실행의 직접 결과 |
+| LP08-B02 range 증거 실패 시 정리 차단 | 원출력66행 | PASS | 해당 실행의 직접 결과 |
+| LP08-B02 throw 증거 실패 시 정리 차단 | 원출력67행 | PASS | 해당 실행의 직접 결과 |
+| LP08-B02 timeout 증거 실패 시 정리 차단 | 원출력68행 | PASS | 해당 실행의 직접 결과 |
+| LP08-B02 existing 증거 실패 시 정리 차단 | 원출력69행 | PASS | 해당 실행의 직접 결과 |
+| LP08-B02 symlink 증거 실패 시 정리 차단 | 원출력70행 | PASS | 해당 실행의 직접 결과 |
+| LP12-D02 missing binding valid | 원출력71행 | PASS | 해당 실행의 직접 결과 |
+| LP12-D02 missing binding binding-valid | 원출력72행 | PASS | 해당 실행의 직접 결과 |
+| LP12-D02 missing binding proof-present | 원출력73행 | PASS | 해당 실행의 직접 결과 |
+| LP12-D02 missing binding binding-hash | 원출력74행 | PASS | 해당 실행의 직접 결과 |
+| LP12-D02 missing binding matches | 원출력75행 | PASS | 해당 실행의 직접 결과 |
+| LP12-D04 cap-exceeded count 미확인 보존 | 원출력76행 | PASS | 해당 실행의 직접 결과 |
+| LP12-D04 unavailable count 미확인 보존 | 원출력77행 | PASS | 해당 실행의 직접 결과 |
+| LP12-D05 catalog schema raw 변조 거부 | 원출력78행 | PASS | 해당 실행의 직접 결과 |
+| LP12-D05 catalog schema profile 변조 거부 | 원출력79행 | PASS | 해당 실행의 직접 결과 |
+| LP12-D05 catalog schema scope 변조 거부 | 원출력80행 | PASS | 해당 실행의 직접 결과 |
+| LP12-D05 catalog schema id 변조 거부 | 원출력81행 | PASS | 해당 실행의 직접 결과 |
+| LP12-D05 catalog schema validity 변조 거부 | 원출력82행 | PASS | 해당 실행의 직접 결과 |
+| LP12-D05 catalog schema lifecycle 변조 거부 | 원출력83행 | PASS | 해당 실행의 직접 결과 |
+| LP12-D05 catalog schema count 변조 거부 | 원출력84행 | PASS | 해당 실행의 직접 결과 |
+| LP12-D05 catalog schema cap 변조 거부 | 원출력85행 | PASS | 해당 실행의 직접 결과 |
+| LP12-D05 catalog schema truncated 변조 거부 | 원출력86행 | PASS | 해당 실행의 직접 결과 |
+| LP12-D06 newline 없는 fixed prefix tail은 known 인정 금지 | 원출력87행 | PASS | 해당 실행의 직접 결과 |
+| LP12-D06 line/count cap 및 다음 정상행 복구 | 원출력88행 | PASS | 해당 실행의 직접 결과 |
+| LP13-P04 expected reference missing 거부 | 원출력89행 | PASS | 해당 실행의 직접 결과 |
+| LP13-P04 expected reference mismatch 거부 | 원출력90행 | PASS | 해당 실행의 직접 결과 |
+| LP13-P04 expected reference invalid 거부 | 원출력91행 | PASS | 해당 실행의 직접 결과 |
+| LP13-P01 generic absent HTTP 실패 증거 보존 | 원출력92행 | PASS | 해당 실행의 직접 결과 |
+| LP13-P01 generic intent HTTP 실패 증거 보존 | 원출력93행 | PASS | 해당 실행의 직접 결과 |
+| LP13-P01 generic ready HTTP 실패 증거 보존 | 원출력94행 | PASS | 해당 실행의 직접 결과 |
+| LP13-P01 generic committed HTTP 실패 증거 보존 | 원출력95행 | PASS | 해당 실행의 직접 결과 |
+| LP13-P01 generic complete HTTP 실패 증거 보존 | 원출력96행 | PASS | 해당 실행의 직접 결과 |
+| LP13-P01 generic failed HTTP 실패 증거 보존 | 원출력97행 | PASS | 해당 실행의 직접 결과 |
+| LP13-P01 generic field 실패 시 cleanup 차단 | 원출력98행 | PASS | 해당 실행의 직접 결과 |
+| LP13-P01 generic state 실패 시 cleanup 차단 | 원출력99행 | PASS | 해당 실행의 직접 결과 |
+| LP13-P01 generic count 실패 시 cleanup 차단 | 원출력100행 | PASS | 해당 실행의 직접 결과 |
+| LP13-P01 generic hash 실패 시 cleanup 차단 | 원출력101행 | PASS | 해당 실행의 직접 결과 |
+| LP13-P01 generic absent 실패 시 cleanup 차단 | 원출력102행 | PASS | 해당 실행의 직접 결과 |
+| LP13-P01 generic throw 실패 시 cleanup 차단 | 원출력103행 | PASS | 해당 실행의 직접 결과 |
+| LP13-P01 generic timeout 실패 시 cleanup 차단 | 원출력104행 | PASS | 해당 실행의 직접 결과 |
+| LP13-P01 generic persist 실패 시 cleanup 차단 | 원출력105행 | PASS | 해당 실행의 직접 결과 |
+| LP06-B01 진단 파일을 재현 전에 보존 | 원출력106행 | PASS | 해당 실행의 직접 결과 |
+| LP06-B02 실제 자식 exit 뒤 최초 증거 유지 | 원출력107행 | PASS | 해당 실행의 직접 결과 |
+| LP06-B02 실제 자식 timeout 뒤 최초 증거 유지 | 원출력108행 | PASS | 해당 실행의 직접 결과 |
+| LP06-B03 진단 throw 시 재현·정리 거부 | 원출력109행 | PASS | 해당 실행의 직접 결과 |
+| LP06-B03 진단 unsafe 시 재현·정리 거부 | 원출력110행 | PASS | 해당 실행의 직접 결과 |
+| LP06-B04 최초 보존 실패 시 재현 금지 | 원출력111행 | PASS | 해당 실행의 직접 결과 |
+| LP06-B04 후속 보존 실패 시 최초 파일 유지 | 원출력112행 | PASS | 해당 실행의 직접 결과 |
+| LP06-B05 진단 미보존 root 정리 금지·소유권 불일치 거부 | 원출력113행 | PASS | 해당 실행의 직접 결과 |
+| LP06-B06 symlink 증거 덮어쓰기 거부 | 원출력114행 | PASS | 해당 실행의 직접 결과 |
+| LP06-B06 성공 결과 분리 보존·미등록 필드 거부 | 원출력115행 | PASS | 해당 실행의 직접 결과 |
+| LP06-B07 상세 수집 throw 시 기본 진단 유지·재현 금지 | 원출력116행 | PASS | 해당 실행의 직접 결과 |
+| LP06-B07 상세 수집 timeout 시 기본 진단 유지·재현 금지 | 원출력117행 | PASS | 해당 실행의 직접 결과 |
+| LP06-B07 상세 수집 identity 시 기본 진단 유지·재현 금지 | 원출력118행 | PASS | 해당 실행의 직접 결과 |
+| LP06-B07 상세 수집 persist 시 기본 진단 유지·재현 금지 | 원출력119행 | PASS | 해당 실행의 직접 결과 |
+| LP06-B08 기본 자식은 plugin 환경 준비 실패와 독립 | 원출력120행 | PASS | 해당 실행의 직접 결과 |
+| LP06-B09 만료 시 자식 미기동·남은 시간만 대기 | 원출력121행 | PASS | 해당 실행의 직접 결과 |
+
+정리 원출력: `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-3lTnW9","bytes":819,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-mIQL5k","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-WqRYaX","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-mUiUAj","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-RUU5zh","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-7dIGVv","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-pcHQPY","bytes":8,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-GAClns","bytes":96,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gWPX6u","bytes":3006,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-iQDArS","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-1gUn5O","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-THltqw","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-3oOAfc","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-TrkRQX","bytes":2654,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-HnHXM5","bytes":2654,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-kNLnAs","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-wNYqt5","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-QRAsV8","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ug470w","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-GUS2do","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-qSXnSS","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-dikZPL","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-VaI2NW","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-AkuznP","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-U8TvqS","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-1TIyDN","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gyfQyB","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-u7RIC4","bytes":370,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-vJ0pF9","bytes":431,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-wIapTk","bytes":430,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-dfbqC7","bytes":434,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ceRwZY","bytes":433,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-vANQ6a","bytes":431,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ThlJMN","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-H7DWbJ","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Hvh0Q5","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-CZ3rnf","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-4w60Dy","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-eiAXnF","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-JuTf7O","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-1k8hyr","bytes":8,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-KIr3RL","bytes":2732,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-pQ2tR8","bytes":2732,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-nRyS3T","bytes":2733,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-MlvIrk","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gEalO2","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-vNA20U","bytes":8,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ZXGLCw","bytes":2714,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-1dGiLp","bytes":0,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-CoD7FH","bytes":98,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ZkRRsG","bytes":3067,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-VMAq78","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-uizL4t","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-vLifeh","bytes":266,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-DZLI5M","bytes":274,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-hYZ72q","bytes":97,"removed":true}`; `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-6Vqr3F","bytes":163,"removed":true}`
+
+#### lp22-latency-trace-01.txt
+
+명령: `node --test scripts/internal/recording_latency_trace.test.mjs`; exit: 1, ℹ tests 22, ℹ pass 21, ℹ fail 1, ℹ duration_ms 1282.911417.
+[원출력](lp22-latency-trace-01.txt) 2635B, SHA256 `ce6d5c31f9476211aa0fb87a30aa11c16e7fd02de70d89c3e58509cfff1c4600`.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP13-T01 collector 존재 | 원출력6행 | PASS | 해당 실행의 직접 결과 |
+| LP13-T01 disabled/invalid null 무출력 | 원출력7행 | PASS | 해당 실행의 직접 결과 |
+| LP13-T01 disabled/invalid "" 무출력 | 원출력8행 | PASS | 해당 실행의 직접 결과 |
+| LP13-T01 disabled/invalid "0" 무출력 | 원출력9행 | PASS | 해당 실행의 직접 결과 |
+| LP13-T01 disabled/invalid "true" 무출력 | 원출력10행 | PASS | 해당 실행의 직접 결과 |
+| LP13-T01 disabled/invalid "01" 무출력 | 원출력11행 | PASS | 해당 실행의 직접 결과 |
+| LP13-T01 disabled/invalid "1 " 무출력 | 원출력12행 | PASS | 해당 실행의 직접 결과 |
+| LP13-T02 fast aggregate count/sum/max 정확 | 원출력13행 | PASS | 해당 실행의 직접 결과 |
+| LP13-T04 부분증거 parent/target 실패와 phase누락 미완료 | 원출력14행 | PASS | 해당 실행의 직접 결과 |
+| LP13-T02 실제 동일 mutex 경합·다른 mutex·unlock 후 sink | 원출력15행 | PASS | 해당 실행의 직접 결과 |
+| LP13-T03 600 poll·15fastlocks/poll·5400worker 합성 예산 | 원출력16행 | PASS | 해당 실행의 직접 결과 |
+| LP13-T03 1800 poll·15fastlocks/poll·5400worker 합성 예산 | 원출력17행 | PASS | 해당 실행의 직접 결과 |
+| LP13-T03 tls-cap 손실 명시 | 원출력18행 | PASS | 해당 실행의 직접 결과 |
+| LP13-T03 cap 손실 명시 | 원출력19행 | PASS | 해당 실행의 직접 결과 |
+| LP13-T04 split·safe부분보존·순번누락 | 원출력20행 | PASS | 해당 실행의 직접 결과 |
+| LP13-T04 enum 거부 | 원출력21행 | PASS | 해당 실행의 직접 결과 |
+| LP13-T04 numeric 거부 | 원출력22행 | PASS | 해당 실행의 직접 결과 |
+| LP13-T04 time 거부 | 원출력23행 | PASS | 해당 실행의 직접 결과 |
+| LP13-T04 count 거부 | 원출력24행 | PASS | 해당 실행의 직접 결과 |
+| LP13-T04 linecap 거부 | 원출력25행 | PASS | 해당 실행의 직접 결과 |
+| LP13-T04 incomplete 거부 | 원출력26행 | PASS | 해당 실행의 직접 결과 |
+| LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거부 | 원출력27행 | FAIL | 기존66 literal 미적응. 예상 RED 아님, 수정 후 재검사 별도 |
+
+정리 원출력: `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-EXJ64a","bytes":494255,"removed":true}`
+
+#### lp22-observation-completion-green-02.txt
+
+명령: `node --test scripts/internal/recording_current_observation.test.mjs scripts/internal/recording_completion_trace.test.mjs`; exit: 0, ℹ tests 13, ℹ pass 13, ℹ fail 0, ℹ duration_ms 539.9495.
+[원출력](lp22-observation-completion-green-02.txt) 1531B, SHA256 `7b26d56b582917a20e08a465aa14f1a3ff9ef9a162370d97d292decefff5e67f`.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP22-T01 trace off and invalid environment emit nothing | 원출력4행 | PASS | 해당 실행의 직접 결과 |
+| LP22-T02 trace hashes canary identity and rejects unknown raw fields | 원출력5행 | PASS | 해당 실행의 직접 결과 |
+| LP22-T02 trace count and byte caps emit one explicit loss | 원출력6행 | PASS | 해당 실행의 직접 결과 |
+| LP22-T03 partial lines and malformed clocks fail closed | 원출력7행 | PASS | 해당 실행의 직접 결과 |
+| LP22-T03 delayed emission retains event chronology across four references | 원출력8행 | PASS | 해당 실행의 직접 결과 |
+| LP22-T04 invalid durable transitions and missing observation remain distinct | 원출력9행 | PASS | 해당 실행의 직접 결과 |
+| LP22-O01 optional page observation preserves values and captures every page | 원출력10행 | PASS | 해당 실행의 직접 결과 |
+| LP22-O02 callback exceptions do not replace original page failure | 원출력11행 | PASS | 해당 실행의 직접 결과 |
+| LP22-O03 same total ready complete mixture retains individual page states | 원출력12행 | PASS | 해당 실행의 직접 결과 |
+| LP22-O04 changed totals fail then a fresh cycle fetches every page again | 원출력13행 | PASS | 해당 실행의 직접 결과 |
+| LP22-O05 late complete observation cannot erase the original transition timeout | 원출력14행 | PASS | 해당 실행의 직접 결과 |
+| LP22-O04 wait keeps late successful return and reports its client deadline overrun | 원출력15행 | PASS | 해당 실행의 직접 결과 |
+| LP22-O06 diagnostic report failure remains explicit without hiding primary error | 원출력16행 | PASS | 해당 실행의 직접 결과 |
+
+정리 원출력: `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-completion-pKFlNZ","bytes":62584,"removed":true}`
+
+#### lp22-selection-trace-01.txt
+
+명령: `node --test scripts/internal/recording_selection_trace.test.mjs`; exit: 0, ℹ tests 23, ℹ pass 23, ℹ fail 0, ℹ duration_ms 33.730791.
+[원출력](lp22-selection-trace-01.txt) 1604B, SHA256 `31c7ede756a9cd014ba049467d2ef84e647b2a999cb8b31384217a395adb6c36`.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP09-J01 분할 로그에서 안전한 행만 수집 | 원출력3행 | PASS | 해당 실행의 직접 결과 |
+| LP09-J01 extra 필드 거부 | 원출력4행 | PASS | 해당 실행의 직접 결과 |
+| LP09-J01 hash 필드 거부 | 원출력5행 | PASS | 해당 실행의 직접 결과 |
+| LP09-J01 enum 필드 거부 | 원출력6행 | PASS | 해당 실행의 직접 결과 |
+| LP09-J01 range 필드 거부 | 원출력7행 | PASS | 해당 실행의 직접 결과 |
+| LP09-J01 count 필드 거부 | 원출력8행 | PASS | 해당 실행의 직접 결과 |
+| LP09-J01 로그 상한과 미완성 행 거부 | 원출력9행 | PASS | 해당 실행의 직접 결과 |
+| LP09-J02 정확한 참조와 연속 시도 종결 확인 | 원출력10행 | PASS | 해당 실행의 직접 결과 |
+| LP11-T01 source에서 base로 복귀한 초과 effective attempt 정상 종결 | 원출력11행 | PASS | 해당 실행의 직접 결과 |
+| LP11-T02 base에서 source 전환과 절대 attempt121 경계 | 원출력12행 | PASS | 해당 실행의 직접 결과 |
+| LP11-T03 budget-pair 정합성 거부 | 원출력13행 | PASS | 해당 실행의 직접 결과 |
+| LP11-T03 attempt122 정합성 거부 | 원출력14행 | PASS | 해당 실행의 직접 결과 |
+| LP11-T03 wait60001 정합성 거부 | 원출력15행 | PASS | 해당 실행의 직접 결과 |
+| LP11-T03 attempt-flag 정합성 거부 | 원출력16행 | PASS | 해당 실행의 직접 결과 |
+| LP11-T03 deadline-flag 정합성 거부 | 원출력17행 | PASS | 해당 실행의 직접 결과 |
+| LP11-T04 skip sequence 거부 | 원출력18행 | PASS | 해당 실행의 직접 결과 |
+| LP11-T04 elapsed sequence 거부 | 원출력19행 | PASS | 해당 실행의 직접 결과 |
+| LP11-T04 range sequence 거부 | 원출력20행 | PASS | 해당 실행의 직접 결과 |
+| LP11-T04 unterminated sequence 거부 | 원출력21행 | PASS | 해당 실행의 직접 결과 |
+| LP11-T04 after-terminal sequence 거부 | 원출력22행 | PASS | 해당 실행의 직접 결과 |
+| LP11-T05 parser 오류 증거는 고정 코드와 safe numeric counts만 보존 | 원출력23행 | PASS | 해당 실행의 직접 결과 |
+| LP11-T06 profile collector split 및 incomplete 안전 보고 | 원출력24행 | PASS | 해당 실행의 직접 결과 |
+| LP11-T06 actual runner 공통 오류 reporter는 원문 없이 status를 출력 | 원출력25행 | PASS | 해당 실행의 직접 결과 |
+
+### LP22 최종 자체검증 판정
+
+최종6명령 168PASS(13+8+40+23+62+22), 전체 C++ build exit0다. 최초 RED1FAIL과 회귀1FAIL을 위에 보존했다.
+기존 LP21 비용742/작업121 증거를 진단 삽입만으로 반복하지 않았다. 실제 HTTP/5단계통합은 아직 미실행이다.
+LP13-T05의66→70 원인은 cd7172a28이며 현재는 입력↔변환70쌍/한쪽누락·삭제·복제 거부로 확인한다.
+원출력의 공백-only 행과 마지막 빈 줄만 정규화했다. 검사본문/개별수치/실패내용은 변경하지 않았다.
+
+명령: `node --test scripts/internal/recording_latency_trace.test.mjs`; exit: 0, ℹ tests 22, ℹ pass 22, ℹ fail 0, ℹ duration_ms 1185.312375.
+[원출력](lp22-latency-trace-02.txt) 1973B SHA256 `5dac35a5279fe581ab05b716c8fa487641f9bae0fbaff9740e18dba05b831ff8`.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP13-T01 collector 존재 | 원출력7행 | PASS | 기존 영향 회귀 재검사 |
+| LP13-T01 disabled/invalid null 무출력 | 원출력8행 | PASS | 기존 영향 회귀 재검사 |
+| LP13-T01 disabled/invalid "" 무출력 | 원출력9행 | PASS | 기존 영향 회귀 재검사 |
+| LP13-T01 disabled/invalid "0" 무출력 | 원출력10행 | PASS | 기존 영향 회귀 재검사 |
+| LP13-T01 disabled/invalid "true" 무출력 | 원출력11행 | PASS | 기존 영향 회귀 재검사 |
+| LP13-T01 disabled/invalid "01" 무출력 | 원출력12행 | PASS | 기존 영향 회귀 재검사 |
+| LP13-T01 disabled/invalid "1 " 무출력 | 원출력13행 | PASS | 기존 영향 회귀 재검사 |
+| LP13-T02 fast aggregate count/sum/max 정확 | 원출력14행 | PASS | 기존 영향 회귀 재검사 |
+| LP13-T04 부분증거 parent/target 실패와 phase누락 미완료 | 원출력15행 | PASS | 기존 영향 회귀 재검사 |
+| LP13-T02 실제 동일 mutex 경합·다른 mutex·unlock 후 sink | 원출력16행 | PASS | 기존 영향 회귀 재검사 |
+| LP13-T03 600 poll·15fastlocks/poll·5400worker 합성 예산 | 원출력17행 | PASS | 기존 영향 회귀 재검사 |
+| LP13-T03 1800 poll·15fastlocks/poll·5400worker 합성 예산 | 원출력18행 | PASS | 기존 영향 회귀 재검사 |
+| LP13-T03 tls-cap 손실 명시 | 원출력19행 | PASS | 기존 영향 회귀 재검사 |
+| LP13-T03 cap 손실 명시 | 원출력20행 | PASS | 기존 영향 회귀 재검사 |
+| LP13-T04 split·safe부분보존·순번누락 | 원출력21행 | PASS | 기존 영향 회귀 재검사 |
+| LP13-T04 enum 거부 | 원출력22행 | PASS | 기존 영향 회귀 재검사 |
+| LP13-T04 numeric 거부 | 원출력23행 | PASS | 기존 영향 회귀 재검사 |
+| LP13-T04 time 거부 | 원출력24행 | PASS | 기존 영향 회귀 재검사 |
+| LP13-T04 count 거부 | 원출력25행 | PASS | 기존 영향 회귀 재검사 |
+| LP13-T04 linecap 거부 | 원출력26행 | PASS | 기존 영향 회귀 재검사 |
+| LP13-T04 incomplete 거부 | 원출력27행 | PASS | 기존 영향 회귀 재검사 |
+| LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거부 | 원출력28행 | PASS | 최초 FAIL 후1:1 대응 검사로 보완·동일22개 재검사 |
+
+정리: `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-FojkAv","bytes":494255,"removed":true}`
+
+환경: macOS27.0/26A428 arm64, Node v24.13.0, GStreamer1.28.1, OpenSSL3.6.2.
+제품 동결 fingerprint:
+
+| 파일 | SHA256 |
+| --- | --- |
+| media_server binary | `240eecd1fe55156e5b2e91c0c102742bd4fcd558b45f40d28c2a1f2d0c7dac45` |
+| recording_catalog.cpp | `fceb73399cab058ea4433a6d7530d3fa9cabd90f6f8091d675d0b022f9d334c6` |
+| recording_derived_event_worker.cpp | `b7e64aebb1198cfb9486eeec7cd8f1e3205a6a7db0745eaaa0100728cb886c90` |
+| recording_timeline_projection.cpp | `6f98f7fe2ea25b3bed371f90834cbbef4c91f420527e7194e7bc99445bd74ed4` |
+| recording_completion_trace.h | `708ab75284c4fc61b66e45ca370a4b3f573b1a47c60a36526714206b12eef910` |
+
+정규화 전 원출력 식별(정규화 후 파일만 보존):
+
+| 파일 | 정규화 전 byte/SHA256 | 정규화 후 byte/SHA256 |
+| --- | --- | --- |
+| lp22-completion-green-01.txt | 979 / `1f292031afa0e3e3355ab6df5b0626d347c305caf903696b76dd1c5c3604e96e` | 978 / `a302c209a3c939aa1a4637ec2d29a1aa2f6a842911a301b3cf0d8d5eba7a4658` |
+| lp22-current-integration-01.txt | 3507 / `cc13e68b4a9abb6a4a951296ad5d7b466ca8cf376ed42df6a7a1e47c460f8504` | 3506 / `6ec5a7f23d9b6da389f4c725e30b690ff4c5f73644235ea445ca8ed359ee9512` |
+| lp22-current-latency-01.txt | 772 / `db4103da2b0a8a34bde5b1b711d42edf769fc4d49c1ee0b4571d58983c269f85` | 771 / `2c997116919581599446ec00701a837f34fe7e1d422e37f57faaa367da771346` |
+| lp22-failure-capture-01.txt | 11758 / `9c89437bdcb25e827cd7c21a64c63373656cb86eedc0415b3b02d84102e55e8f` | 11757 / `fd3c83a79559ae1bbaccd48f340b05849611a284624346e76bec4d749c187874` |
+| lp22-latency-trace-01.txt | 2640 / `3dc3ba7c88c6ce7f568ea1f0fbd67c61dce7c2cc767807b9e5c3693e1efcffd3` | 2635 / `ce6d5c31f9476211aa0fb87a30aa11c16e7fd02de70d89c3e58509cfff1c4600` |
+| lp22-observation-completion-green-02.txt | 1532 / `56264e6a5300c8225420cc7baa3d02916e5f543fbcb1cd25abdfc520d2e07c3b` | 1531 / `7b26d56b582917a20e08a465aa14f1a3ff9ef9a162370d97d292decefff5e67f` |
+| lp22-observation-red-01.txt | 1183 / `398fdc1bd02a15f94f3f478cf5efd4dbc7fabe07b943e519a0f2ce09b7f6cd11` | 1178 / `a46908881e6666e7d8dceb91245992a80cd3d988a4a37d400c4fba88b54f26fd` |
+| lp22-selection-trace-01.txt | 1605 / `9b2c9f064d04f617b2af639752d71908e143bea1d41b76a0e40abd5b34f2d482` | 1604 / `31c7ede756a9cd014ba049467d2ef84e647b2a999cb8b31384217a395adb6c36` |
+
 ## LP21 실제 HTTP 1회 실패 기록
 
 명령 `node scripts/internal/verify_recording_current_app.mjs --latency-only`, exit1/59575ms. HEAD1c65b1a6, 제품 무변경.

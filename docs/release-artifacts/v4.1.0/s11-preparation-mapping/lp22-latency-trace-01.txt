@@ -1,0 +1,55 @@
+command: node --test scripts/internal/recording_latency_trace.test.mjs
+exit: 1
+[load] {"requests":600,"locks":15000,"rows":3622,"bytes":497036,"sha256":"f7f48e029af0a2053cb36d334d7d163046ebcbf794281034c70594c927467981"}
+[load] {"requests":1800,"locks":34200,"rows":10822,"bytes":1487093,"sha256":"6ddbacc0965ba6c87055116cd16f457bc8a332d895fe95f04160ac47df977b98"}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-EXJ64a","bytes":494255,"removed":true}
+✔ LP13-T01 collector 존재 (0.633458ms)
+✔ LP13-T01 disabled/invalid null 무출력 (261.881959ms)
+✔ LP13-T01 disabled/invalid "" 무출력 (41.893834ms)
+✔ LP13-T01 disabled/invalid "0" 무출력 (45.450667ms)
+✔ LP13-T01 disabled/invalid "true" 무출력 (45.008291ms)
+✔ LP13-T01 disabled/invalid "01" 무출력 (45.800209ms)
+✔ LP13-T01 disabled/invalid "1 " 무출력 (44.730917ms)
+✔ LP13-T02 fast aggregate count/sum/max 정확 (6.110834ms)
+✔ LP13-T04 부분증거 parent/target 실패와 phase누락 미완료 (16.933708ms)
+✔ LP13-T02 실제 동일 mutex 경합·다른 mutex·unlock 후 sink (35.546542ms)
+✔ LP13-T03 600 poll·15fastlocks/poll·5400worker 합성 예산 (70.202459ms)
+✔ LP13-T03 1800 poll·15fastlocks/poll·5400worker 합성 예산 (292.337583ms)
+✔ LP13-T03 tls-cap 손실 명시 (2.314083ms)
+✔ LP13-T03 cap 손실 명시 (24.727666ms)
+✔ LP13-T04 split·safe부분보존·순번누락 (12.409209ms)
+✔ LP13-T04 enum 거부 (0.098959ms)
+✔ LP13-T04 numeric 거부 (0.033167ms)
+✔ LP13-T04 time 거부 (0.027667ms)
+✔ LP13-T04 count 거부 (0.029ms)
+✔ LP13-T04 linecap 거부 (0.061ms)
+✔ LP13-T04 incomplete 거부 (0.033708ms)
+✖ LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거부 (33.567208ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 21
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1282.911417
+
+✖ failing tests:
+
+test at scripts/internal/recording_latency_trace.test.mjs:27:1
+✖ LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거부 (33.567208ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  70 !== 66
+
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_latency_trace.test.mjs:27:580)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 70,
+    expected: 66,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

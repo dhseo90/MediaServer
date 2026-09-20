@@ -2,6 +2,7 @@
 // 동작 요약: idempotent replay, FK 검증, 손상 DB 격리와 range query parity를 구현한다.
 #include "recording/recording_catalog.h"
 #include "recording/recording_latency_trace.h"
+#include "recording/recording_completion_trace.h"
 #include "recording_checkpoint_validation.h"
 #include "recording_derived_job_context.h"
 #include "recording/recording_finalize_recovery.h"
@@ -383,6 +384,13 @@ bool RecordingCatalog::UpdateDerivedJob(const void* owner,const DerivedJobRecord
     PreparedDerivedMutation prepared(this,payload);
     if(!ApplyDerivedJobMutationLocked(mutation,error,false,&prepared))return false;
     if(!AppendAndApplyLocked(std::move(mutation),error,&prepared)){derived_job_state_authoritative_=false;return false;}
+    switch(record.state){
+        case DerivedJobState::Ready:completion::Point(completion::Event::Ready,record.intent.reference.reference_id,record.intent.job_id);break;
+        case DerivedJobState::Committed:completion::Point(completion::Event::Committed,record.intent.reference.reference_id,record.intent.job_id);break;
+        case DerivedJobState::Complete:completion::Point(completion::Event::Complete,record.intent.reference.reference_id,record.intent.job_id);break;
+        case DerivedJobState::Failed:completion::Point(completion::Event::Failed,record.intent.reference.reference_id,record.intent.job_id);break;
+        case DerivedJobState::Intent:break;
+    }
     return true;
 }
 

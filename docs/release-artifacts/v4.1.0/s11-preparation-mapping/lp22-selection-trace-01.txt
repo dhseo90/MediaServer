@@ -1,0 +1,33 @@
+command: node --test scripts/internal/recording_selection_trace.test.mjs
+exit: 0
+✔ LP09-J01 분할 로그에서 안전한 행만 수집 (0.975625ms)
+✔ LP09-J01 extra 필드 거부 (0.153209ms)
+✔ LP09-J01 hash 필드 거부 (0.060667ms)
+✔ LP09-J01 enum 필드 거부 (0.095791ms)
+✔ LP09-J01 range 필드 거부 (0.072833ms)
+✔ LP09-J01 count 필드 거부 (0.093833ms)
+✔ LP09-J01 로그 상한과 미완성 행 거부 (0.166833ms)
+✔ LP09-J02 정확한 참조와 연속 시도 종결 확인 (0.145458ms)
+✔ LP11-T01 source에서 base로 복귀한 초과 effective attempt 정상 종결 (0.637ms)
+✔ LP11-T02 base에서 source 전환과 절대 attempt121 경계 (0.48125ms)
+✔ LP11-T03 budget-pair 정합성 거부 (0.062958ms)
+✔ LP11-T03 attempt122 정합성 거부 (0.0335ms)
+✔ LP11-T03 wait60001 정합성 거부 (0.026791ms)
+✔ LP11-T03 attempt-flag 정합성 거부 (0.042334ms)
+✔ LP11-T03 deadline-flag 정합성 거부 (0.032292ms)
+✔ LP11-T04 skip sequence 거부 (0.051916ms)
+✔ LP11-T04 elapsed sequence 거부 (0.026167ms)
+✔ LP11-T04 range sequence 거부 (0.037458ms)
+✔ LP11-T04 unterminated sequence 거부 (0.138542ms)
+✔ LP11-T04 after-terminal sequence 거부 (0.031333ms)
+✔ LP11-T05 parser 오류 증거는 고정 코드와 safe numeric counts만 보존 (0.152875ms)
+✔ LP11-T06 profile collector split 및 incomplete 안전 보고 (0.051ms)
+✔ LP11-T06 actual runner 공통 오류 reporter는 원문 없이 status를 출력 (0.074042ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 33.730791

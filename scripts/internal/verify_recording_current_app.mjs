@@ -15,10 +15,13 @@ import {captureFailureEvidence,captureCompletenessEvidence,captureStateEvidence,
 import {createLatencyTraceCollector,preserveLatencyEvidence} from './recording_latency_trace.mjs';
 import {createProcessCleanup,processStartEvidence} from './recording_process_cleanup.mjs';
 import {createSelectionTraceCollector,matchSelectionTrace,reportSelectionTraceFailure} from './recording_selection_trace.mjs';
+import {createCompletionTraceCollector,summarizeCompletion,createTimelineObservation,observeTransitionWait,boundedUntil} from './recording_completion_trace.mjs';
 const reproduceFailedWindow=process.argv.length===3&&process.argv[2]==='--reproduce-failed-window';
 const latencyOnly=reproduceFailedWindow||(process.argv.slice(2).length===1&&process.argv[2]==='--latency-only');
 if(process.argv.length>2&&!latencyOnly)throw Error('unsupported-mode');
 let latencyPass=false,failedReference=null,completedReference=null,diagnosticReference=null;
+const pageObservation=createTimelineObservation({reference:()=>diagnosticReference,report:row=>console.log('[timeline-page-observation] '+JSON.stringify(row))});
+let transitionObservationInvalid=0;
 const timelineTimings=[];
 // 이 fixture의 segment=2000ms, post=750ms, 기본 여유=1000ms,
 // retry=500ms와 LP10 원본 대기 예산에 결박한다. 임의 행별 예산은 허용하지 않는다.
@@ -48,7 +51,7 @@ function scan(directory,{hash=false,strict=false}={}){
 }
 function budget(){if(cancelled)throw Error('actual-app-cancelled');if(processes.some(p=>p.logOverflow))throw Error('app-log-cap');if(performance.now()>deadline)throw Error('actual-app-deadline');scan(root);}
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-async function until(label,fn,timeout=30000){const end=Math.min(deadline,performance.now()+timeout);while(performance.now()<end){budget();const result=await fn();if(result)return result;await pause(100);}throw Error(label+'-timeout');}
+async function until(label,fn,timeout=30000){return boundedUntil(label,fn,{deadline,timeout,pause,budget});}
 function environment(http,rtsp,stun){
   const env={PATH:process.env.PATH,HOME:root,TMPDIR:path.join(root,'tmp'),GST_REGISTRY:path.join(root,'gst-cache/registry.bin'),GST_REGISTRY_1_0:path.join(root,'gst-cache/registry.bin')};
   const values={SKIP_LOCAL_ENV:1,SKIP_BUILD:1,AUTH_MODE:'off',ENABLE_AI:1,ENABLE_LAB:1,ENABLE_OPS:1,ENABLE_CLIENT:1,ENABLE_YOUTUBE_SOURCE:0,
@@ -74,7 +77,7 @@ async function request(app,method,route,body){const r=await response(app,route,{
 async function launch(stun){
   const http=await reservePort(),rtsp=await reservePort();
   const child=spawn(path.join(repo,'server.sh'),['foreground'],{cwd:repo,env:environment(http,rtsp,stun),stdio:['ignore','pipe','pipe']});
-  const app={child,http,rtsp,base:`http://127.0.0.1:${http}`,logBytes:0,closed:false,ordinal:processes.length+1,timelineSequence:0,latencyTrace:createLatencyTraceCollector(),selectionTrace:createSelectionTraceCollector(selectionTraceBudget),writerEvidence:createWriterEvidenceCollector()};processes.push(app);
+  const app={child,http,rtsp,base:`http://127.0.0.1:${http}`,logBytes:0,closed:false,ordinal:processes.length+1,timelineSequence:0,latencyTrace:createLatencyTraceCollector(),selectionTrace:createSelectionTraceCollector(selectionTraceBudget),completionTrace:createCompletionTraceCollector(),writerEvidence:createWriterEvidenceCollector()};processes.push(app);
   const ports=[{kind:'http',port:http},{kind:'rtsp',port:rtsp}];
   app.collectCleanup=createProcessCleanup({child,ports,stopServer,assertPortClosed});
   console.log('[process-start] '+JSON.stringify({processOrdinal:app.ordinal,...processStartEvidence(child,ports)}));
@@ -84,6 +87,7 @@ async function launch(stun){
     stream.on('data',chunk=>{
       app.logBytes+=Buffer.byteLength(chunk);if(app.logBytes>4*MiB){app.logOverflow=true;child.kill('SIGTERM');}
       if(stream===child.stderr&&!app.traceError)try{app.selectionTrace.append(chunk);}catch{app.traceError=true;}
+      if(stream===child.stderr&&!app.completionError)try{app.completionTrace.append(chunk);}catch{app.completionError=true;}
       if(stream===child.stderr)app.writerEvidence.append(chunk);
       if(stream===child.stderr)app.latencyTrace.append(chunk);
     });
@@ -113,7 +117,13 @@ async function stop(app){
 }
 function events(){const file=path.join(root,'events/events.jsonl');if(!fs.existsSync(file))return [];const size=fs.statSync(file).size;if(size>4*MiB)throw Error('event-jsonl-byte-cap');const text=fs.readFileSync(file,'utf8'),end=text.lastIndexOf('\n');if(end<0)return [];const lines=text.slice(0,end).split('\n').filter(Boolean);if(lines.length>8192)throw Error('event-record-cap');return lines.map(line=>JSON.parse(line));}
 const queryStart=Date.now()-60000,queryEnd=Date.now()+240000;
-async function timeline(app){return allTimelinePages((offset,limit)=>request(app,'GET',`/ops/api/recordings/timeline?channelId=9101&startTimeMs=${queryStart}&endTimeMs=${queryEnd}&offset=${offset}&limit=${limit}`));}
+async function timeline(app){
+  const cycle=pageObservation.begin(app.ordinal);
+  return allTimelinePages(async(offset,limit)=>{
+    try{return await request(app,'GET',`/ops/api/recordings/timeline?channelId=9101&startTimeMs=${queryStart}&endTimeMs=${queryEnd}&offset=${offset}&limit=${limit}`);}
+    finally{cycle.ordinal(app.timelineSequence);}
+  },{observe:cycle.observe});
+}
 function rule(id,enabled=true){return {id,priority:100,enabled,match:{sourceKind:'file',route:'http'},analysis:{classes:['person']},event:{type:'presence',minConfidence:0.25,region:{type:'polygon',points:[{x:0,y:0},{x:1,y:0},{x:1,y:1},{x:0,y:1}]}},eventActions:{highlight:{enabled:true,mode:'blink',target:'matched-object',durationMs:1500,color:'#00ff00'},post:{enabled:false,method:'POST',url:'',payloadFormat:'media-server.va.event.v1'}}};}
 async function collectEvent(app,index){
   const prior=new Set(events().map(e=>e.eventId)),ruleId=String(9101+index);
@@ -144,11 +154,12 @@ async function collectEvent(app,index){
     const observe=(page,reason)=>{if(!page)return;const state=summarizeEventState(page,event.eventId,event.recordingLinkId,reason),json=JSON.stringify(state);if(json!==lastState){console.log('[timeline-state] '+json);lastState=json;}
       const sources=JSON.stringify(summarizeOverlappingSources(page,Math.trunc(tuple.pts/1000000)));if(sources!==lastSources){console.log('[overlapping-sources] '+sources);lastSources=sources;}};
     let rows;
+    const observedWait=run=>observeTransitionWait(run,{ordinal:()=>app.timelineSequence,referenceSha256:crypto.createHash('sha256').update(event.recordingLinkId).digest('hex'),processOrdinal:app.ordinal,deadlineMs:30000,report:row=>console.log('[transition-observation] '+JSON.stringify(row)),invalid:()=>{transitionObservationInvalid++;}});
     if(latencyOnly){
-      rows=await until('latency-transition',async()=>{
+      rows=await observedWait(()=>until('latency-transition',async()=>{
         try{const page=await timeline(app);observe(page,'ok');return latencyTransitionOutputs(page,event.eventId,event.recordingLinkId);}
         catch(e){if(e.message==='page-total-changed')return false;if(e.message==='latency-job-failed')failedReference=event.recordingLinkId;throw e;}
-      },30000);
+      },30000));
       check(rows.length>0,'P0-HTTP02 same-reference durable transition observed (not completeness)');
       completedReference=event.recordingLinkId;
       const end=performance.now()+5000;
@@ -157,9 +168,9 @@ async function collectEvent(app,index){
       console.log('[latency-result] '+JSON.stringify({requests:timelineTimings.length,maxMs:Math.max(...timelineTimings.map(t=>t.totalElapsedMs)),outputCount:rows.length,completeness:rows.map(r=>['complete','partial','unknown'].includes(r.completeness)?r.completeness:'other')}));
       latencyPass=true;return null;
     }
-    try{rows=await until('complete-two-outputs',async()=>{let page;try{page=await timeline(app);const outputs=eventOutputs(page,event.eventId,event.recordingLinkId);observe(page,'ok');return outputs;}catch(e){
+    try{rows=await observedWait(()=>until('complete-two-outputs',async()=>{let page;try{page=await timeline(app);const outputs=eventOutputs(page,event.eventId,event.recordingLinkId);observe(page,'ok');return outputs;}catch(e){
       observe(page,e.message);
-      if(['event-absent','event-not-complete','page-total-changed','expected-two-output-files'].includes(e.message))return false;throw e;}},30000);
+      if(['event-absent','event-not-complete','page-total-changed','expected-two-output-files'].includes(e.message))return false;throw e;}},30000));
     }catch(e){if(lastState)console.log('[timeline-final-state] '+lastState);throw e;}
     check(rows.length===2,`S11-CI07 run${index} literal two output files all pages`);
     const outputs=[];for(const row of rows){const r=await response(app,row.playbackUrl);check(r.status===200&&r.bytes.length>0,`S11-CI07 run${index} output${outputs.length+1} HTTP200`);outputs.push({id:row.segmentId,hash:crypto.createHash('sha256').update(r.bytes).digest('hex'),bytes:r.bytes.length});}
@@ -211,8 +222,25 @@ try{
   for(const row of rows)console.log('[selection-attempt] '+JSON.stringify(row));
   const reference=failedReference||completedReference;
   if(reference)check(matchSelectionTrace(rows,crypto.createHash('sha256').update(reference).digest('hex'),selectionTraceBudget).length>0,'LP09-J02 actual reference decision-time trace complete');
+  else if(diagnosticReference){
+    const hash=crypto.createHash('sha256').update(diagnosticReference).digest('hex'),selected=rows.filter(row=>row.reference_sha256===hash);
+    let status='terminal-observed';try{matchSelectionTrace(rows,hash,selectionTraceBudget);}catch(error){status=error.message==='selection-trace-terminal-missing'?'terminal-not-observed':selected.length?'invalid':'observation-missing';}
+    console.log('[selection-observation-status] '+JSON.stringify({referenceSha256:hash,attempts:selected.length,status}));
+  }
 }catch(error){failed++;let code='unknown';for(const app of processes)code=reportSelectionTraceFailure(app.selectionTrace,error,line=>console.log(line));console.error('[fail] LP09-J02 selection trace unavailable code='+code);}
 const needsDiagnostic=Boolean(failedReference||completedReference||((primaryError||failed||cleanup.failureCount)&&diagnosticReference));
+let completionEvidencePreserved=true;
+try{
+  for(const app of processes){
+    const rows=app.completionTrace.finish();
+    for(const row of rows)console.log('[completion-event] '+JSON.stringify({processOrdinal:app.ordinal,...row}));
+    console.log('[completion-observation-status] '+JSON.stringify({processOrdinal:app.ordinal,...app.completionTrace.status(),selected:diagnosticReference?summarizeCompletion(rows,crypto.createHash('sha256').update(diagnosticReference).digest('hex')):null}));
+    if(app.completionError||app.completionTrace.status().status==='loss')completionEvidencePreserved=false;
+  }
+  console.log('[timeline-page-observation-status] '+JSON.stringify(pageObservation.status()));
+  if(pageObservation.status().invalid||transitionObservationInvalid)completionEvidencePreserved=false;
+}catch{completionEvidencePreserved=false;console.error('[completion-observation-status] {"status":"invalid"}');}
+if(!completionEvidencePreserved)failed++;
 let diagnosticCleanupAllowed=!needsDiagnostic;
 if(needsDiagnostic&&processes.every(app=>app.archiveSafe))try{
   if(performance.now()>=deadline)throw Error('diagnostic-deadline');
@@ -228,11 +256,12 @@ if(needsDiagnostic&&processes.every(app=>app.archiveSafe))try{
   }
   // 원본/복구 쓰기 가능한 복제본은 분리한다. 안전 요약만 저장소에 보존하며 raw media는 보존하지 않는다.
   const evidencePath=path.join(repo,'docs/release-artifacts/v4.1.0/s11-preparation-mapping',`state-${crypto.randomUUID()}.json`);
-  const stateResult=captureStateEvidence({collect:()=>probe(1,'--diagnose-state'),evidencePath,expectedReferenceSha256:crypto.createHash('sha256').update(diagnosticReference).digest('hex')});
-  console.log('[job-state-diagnostic] '+JSON.stringify({...stateResult,evidenceFile:path.basename(evidencePath),detailRequested:Boolean(failedReference||completedReference)}));
+  let diagnosedState=null;
+  const stateResult=captureStateEvidence({collect:()=>{const value=probe(1,'--diagnose-state');diagnosedState=value.state;return value;},evidencePath,expectedReferenceSha256:crypto.createHash('sha256').update(diagnosticReference).digest('hex')});
+  console.log('[job-state-diagnostic] '+JSON.stringify({...stateResult,evidenceFile:path.basename(evidencePath),detailRequested:Boolean(failedReference||completedReference||(stateResult.cleanupAllowed&&diagnosedState==='complete'))}));
   if(!stateResult.cleanupAllowed)throw Error('state-evidence-unavailable');
   diagnosticCleanupAllowed=true;
-  if(failedReference||completedReference){
+  if(failedReference||completedReference||diagnosedState==='complete'){
     const detailPath=evidencePath+'.detail.json';
     const result=failedReference?captureFailureEvidence({diagnose:()=>probe(1,'--diagnose-basic'),collect:()=>probe(1,'--diagnose-failed'),replay:()=>probe(2,'--replay-failed'),evidencePath:detailPath}):captureCompletenessEvidence({collect:()=>probe(1,'--diagnose-completeness'),evidencePath:detailPath});
     diagnosticCleanupAllowed=result.cleanupAllowed;
@@ -242,8 +271,8 @@ if(needsDiagnostic&&processes.every(app=>app.archiveSafe))try{
   check(JSON.stringify(before)===JSON.stringify(scan(original,{hash:true,strict:true})),'LP03-B original unchanged after diagnostic');
 }catch{diagnosticCleanupAllowed=false;failed++;console.error('[fail] LP03-B diagnostic unavailable');}
 if(udp)try{await new Promise(resolve=>udp.close(resolve));udpClosed=true;}catch{cleanup.failureCount++;}else udpClosed=true;
-let size=0;try{size=scan(root).bytes;if(processes.some(p=>!p.archiveSafe)||!udpClosed)throw Error('cleanup-ownership');removeDiagnosticRoot(root,rootStat,diagnosticCleanupAllowed&&latencyEvidencePreserved&&processEvidencePreserved);cleanup.rootAbsent=!fs.existsSync(root);}catch{cleanup.failureCount++;}
-cleanup.evidencePreservedOrNotRequired=diagnosticCleanupAllowed&&latencyEvidencePreserved&&processEvidencePreserved;
+let size=0;try{size=scan(root).bytes;if(processes.some(p=>!p.archiveSafe)||!udpClosed)throw Error('cleanup-ownership');removeDiagnosticRoot(root,rootStat,diagnosticCleanupAllowed&&latencyEvidencePreserved&&processEvidencePreserved&&completionEvidencePreserved);cleanup.rootAbsent=!fs.existsSync(root);}catch{cleanup.failureCount++;}
+cleanup.evidencePreservedOrNotRequired=diagnosticCleanupAllowed&&latencyEvidencePreserved&&processEvidencePreserved&&completionEvidencePreserved;
 console.log(`[cleanup] ${JSON.stringify({root,bytes:size,...cleanup,udpClosed})}`);
 console.log(JSON.stringify({mode:latencyOnly?'current-http-latency':'current-actual-app',passed,failed,latencyPass,actualEventPass,restartPass,expectedOutputCount:2,observedOutputCounts,cleanup,elapsedMs:Math.round(performance.now()-start)}));
 process.exitCode=primaryError||failed||cleanup.failureCount||!cleanup.rootAbsent?1:0;

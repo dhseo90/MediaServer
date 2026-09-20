@@ -1,0 +1,129 @@
+command: node --test scripts/internal/recording_failure_capture.test.mjs
+exit: 0
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-3lTnW9","bytes":819,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-mIQL5k","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-WqRYaX","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-mUiUAj","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-RUU5zh","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-7dIGVv","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-pcHQPY","bytes":8,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-GAClns","bytes":96,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gWPX6u","bytes":3006,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-iQDArS","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-1gUn5O","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-THltqw","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-3oOAfc","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-TrkRQX","bytes":2654,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-HnHXM5","bytes":2654,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-kNLnAs","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-wNYqt5","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-QRAsV8","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ug470w","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-GUS2do","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-qSXnSS","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-dikZPL","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-VaI2NW","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-AkuznP","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-U8TvqS","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-1TIyDN","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gyfQyB","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-u7RIC4","bytes":370,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-vJ0pF9","bytes":431,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-wIapTk","bytes":430,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-dfbqC7","bytes":434,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ceRwZY","bytes":433,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-vANQ6a","bytes":431,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ThlJMN","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-H7DWbJ","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-Hvh0Q5","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-CZ3rnf","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-4w60Dy","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-eiAXnF","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-JuTf7O","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-1k8hyr","bytes":8,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-KIr3RL","bytes":2732,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-pQ2tR8","bytes":2732,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-nRyS3T","bytes":2733,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-MlvIrk","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-gEalO2","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-vNA20U","bytes":8,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ZXGLCw","bytes":2714,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-1dGiLp","bytes":0,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-CoD7FH","bytes":98,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-ZkRRsG","bytes":3067,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-VMAq78","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-uizL4t","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-vLifeh","bytes":266,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-DZLI5M","bytes":274,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-hYZ72q","bytes":97,"removed":true}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/recording-capture-6Vqr3F","bytes":163,"removed":true}
+✔ LP12-F04 input framing 고정 오류만 안전 집계 (0.65225ms)
+✔ LP12-C07 exact phase/code와 unknown 고정 조합만 수집 (0.111125ms)
+✔ LP12-D06 writer fixed 사유만 집계하고 원문을 보존하지 않음 (0.307667ms)
+✔ LP08-B01 완료 작업 안전 증거 선보존 (10.152917ms)
+✔ LP08-B02 field 증거 실패 시 정리 차단 (0.372458ms)
+✔ LP08-B02 enum 증거 실패 시 정리 차단 (0.528333ms)
+✔ LP08-B02 range 증거 실패 시 정리 차단 (0.432125ms)
+✔ LP08-B02 throw 증거 실패 시 정리 차단 (0.215625ms)
+✔ LP08-B02 timeout 증거 실패 시 정리 차단 (0.208166ms)
+✔ LP08-B02 existing 증거 실패 시 정리 차단 (4.017542ms)
+✔ LP08-B02 symlink 증거 실패 시 정리 차단 (4.759209ms)
+✔ LP12-D02 missing binding valid (23.023292ms)
+✔ LP12-D02 missing binding binding-valid (6.804583ms)
+✔ LP12-D02 missing binding proof-present (9.201333ms)
+✔ LP12-D02 missing binding binding-hash (7.811333ms)
+✔ LP12-D02 missing binding matches (7.929834ms)
+✔ LP12-D04 cap-exceeded count 미확인 보존 (24.146458ms)
+✔ LP12-D04 unavailable count 미확인 보존 (23.948375ms)
+✔ LP12-D05 catalog schema raw 변조 거부 (6.915417ms)
+✔ LP12-D05 catalog schema profile 변조 거부 (8.208916ms)
+✔ LP12-D05 catalog schema scope 변조 거부 (7.699958ms)
+✔ LP12-D05 catalog schema id 변조 거부 (7.999417ms)
+✔ LP12-D05 catalog schema validity 변조 거부 (8.0225ms)
+✔ LP12-D05 catalog schema lifecycle 변조 거부 (8.565875ms)
+✔ LP12-D05 catalog schema count 변조 거부 (7.961416ms)
+✔ LP12-D05 catalog schema cap 변조 거부 (8.061167ms)
+✔ LP12-D05 catalog schema truncated 변조 거부 (8.040708ms)
+✔ LP12-D06 newline 없는 fixed prefix tail은 known 인정 금지 (0.216833ms)
+✔ LP12-D06 line/count cap 및 다음 정상행 복구 (2.051708ms)
+✔ LP13-P04 expected reference missing 거부 (0.562625ms)
+✔ LP13-P04 expected reference mismatch 거부 (0.66425ms)
+✔ LP13-P04 expected reference invalid 거부 (0.468041ms)
+✔ LP13-P01 generic absent HTTP 실패 증거 보존 (8.786625ms)
+✔ LP13-P01 generic intent HTTP 실패 증거 보존 (7.053833ms)
+✔ LP13-P01 generic ready HTTP 실패 증거 보존 (8.206542ms)
+✔ LP13-P01 generic committed HTTP 실패 증거 보존 (7.916375ms)
+✔ LP13-P01 generic complete HTTP 실패 증거 보존 (7.928625ms)
+✔ LP13-P01 generic failed HTTP 실패 증거 보존 (6.8985ms)
+✔ LP13-P01 generic field 실패 시 cleanup 차단 (0.618ms)
+✔ LP13-P01 generic state 실패 시 cleanup 차단 (0.586167ms)
+✔ LP13-P01 generic count 실패 시 cleanup 차단 (0.357708ms)
+✔ LP13-P01 generic hash 실패 시 cleanup 차단 (0.37625ms)
+✔ LP13-P01 generic absent 실패 시 cleanup 차단 (0.4195ms)
+✔ LP13-P01 generic throw 실패 시 cleanup 차단 (0.516084ms)
+✔ LP13-P01 generic timeout 실패 시 cleanup 차단 (0.380292ms)
+✔ LP13-P01 generic persist 실패 시 cleanup 차단 (3.988875ms)
+✔ LP06-B01 진단 파일을 재현 전에 보존 (25.019625ms)
+✔ LP06-B02 실제 자식 exit 뒤 최초 증거 유지 (51.955417ms)
+✔ LP06-B02 실제 자식 timeout 뒤 최초 증거 유지 (75.996708ms)
+✔ LP06-B03 진단 throw 시 재현·정리 거부 (0.457625ms)
+✔ LP06-B03 진단 unsafe 시 재현·정리 거부 (0.617416ms)
+✔ LP06-B04 최초 보존 실패 시 재현 금지 (3.6405ms)
+✔ LP06-B04 후속 보존 실패 시 최초 파일 유지 (21.447625ms)
+✔ LP06-B05 진단 미보존 root 정리 금지·소유권 불일치 거부 (0.926541ms)
+✔ LP06-B06 symlink 증거 덮어쓰기 거부 (4.723417ms)
+✔ LP06-B06 성공 결과 분리 보존·미등록 필드 거부 (25.014708ms)
+✔ LP06-B07 상세 수집 throw 시 기본 진단 유지·재현 금지 (7.739708ms)
+✔ LP06-B07 상세 수집 timeout 시 기본 진단 유지·재현 금지 (63.054833ms)
+✔ LP06-B07 상세 수집 identity 시 기본 진단 유지·재현 금지 (8.7795ms)
+✔ LP06-B07 상세 수집 persist 시 기본 진단 유지·재현 금지 (12.394667ms)
+✔ LP06-B08 기본 자식은 plugin 환경 준비 실패와 독립 (29.760125ms)
+✔ LP06-B09 만료 시 자식 미기동·남은 시간만 대기 (104.121875ms)
+ℹ tests 62
+ℹ suites 0
+ℹ pass 62
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 734.461084

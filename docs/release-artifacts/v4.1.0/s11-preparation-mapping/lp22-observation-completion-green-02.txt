@@ -1,0 +1,24 @@
+command: node --test scripts/internal/recording_current_observation.test.mjs scripts/internal/recording_completion_trace.test.mjs
+exit: 0
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-completion-pKFlNZ","bytes":62584,"removed":true}
+✔ LP22-T01 trace off and invalid environment emit nothing (161.081083ms)
+✔ LP22-T02 trace hashes canary identity and rejects unknown raw fields (5.764625ms)
+✔ LP22-T02 trace count and byte caps emit one explicit loss (16.764666ms)
+✔ LP22-T03 partial lines and malformed clocks fail closed (3.166958ms)
+✔ LP22-T03 delayed emission retains event chronology across four references (0.347791ms)
+✔ LP22-T04 invalid durable transitions and missing observation remain distinct (0.083125ms)
+✔ LP22-O01 optional page observation preserves values and captures every page (0.610167ms)
+✔ LP22-O02 callback exceptions do not replace original page failure (0.303208ms)
+✔ LP22-O03 same total ready complete mixture retains individual page states (0.36675ms)
+✔ LP22-O04 changed totals fail then a fresh cycle fetches every page again (0.55775ms)
+✔ LP22-O05 late complete observation cannot erase the original transition timeout (0.2ms)
+✔ LP22-O04 wait keeps late successful return and reports its client deadline overrun (0.090459ms)
+✔ LP22-O06 diagnostic report failure remains explicit without hiding primary error (0.083875ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 539.9495

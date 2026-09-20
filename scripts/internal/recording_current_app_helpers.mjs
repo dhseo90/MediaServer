@@ -83,11 +83,15 @@ export async function measuredHttpResponse({route,method='GET',request,report,no
   }
 }
 function need(ok,reason){if(!ok)throw Error(reason);}
-export async function allTimelinePages(fetchPage,{limit=100,maxItems=4096,maxBytes=64*1024*1024}={}){
+export async function allTimelinePages(fetchPage,{limit=100,maxItems=4096,maxBytes=64*1024*1024,observe}={}){
+  // 관측 callback 실패는 원래 페이지 결과/예외를 덮지 않는다.
+  const notify=event=>{try{observe?.(event);}catch{}};
+  try{
   need(Number.isSafeInteger(limit)&&limit>0&&limit<=1000,'page-limit');
   const items=[],unplacedItems=[],seen=new Set();let total,unplacedTotal,bytes=0;
   for(let offset=0;;offset+=limit){
     const page=await fetchPage(offset,limit);
+    notify({kind:'page',offset,page});
     need(!page.truncated&&Number.isSafeInteger(page.total)&&page.total>=0&&Number.isSafeInteger(page.unplacedTotal)&&page.unplacedTotal>=0,'page-total');
     if(total===undefined){total=page.total;unplacedTotal=page.unplacedTotal;}
     need(page.total===total&&page.unplacedTotal===unplacedTotal,'page-total-changed');
@@ -99,8 +103,9 @@ export async function allTimelinePages(fetchPage,{limit=100,maxItems=4096,maxByt
         bytes+=Buffer.byteLength(JSON.stringify(item));need(bytes<=maxBytes,'page-byte-cap');target.push(item);
       }
     }
-    if(offset+limit>=Math.max(total,unplacedTotal))return {total,unplacedTotal,items,unplacedItems};
+    if(offset+limit>=Math.max(total,unplacedTotal)){notify({kind:'complete'});return {total,unplacedTotal,items,unplacedItems};}
   }
+  }catch(error){notify({kind:'failure',code:error?.message==='page-total-changed'?'page-total-changed':'page-failure'});throw error;}
 }
 function decimal(value){need(typeof value==='string'&&/^-?(0|[1-9]\d*)$/.test(value),'precision-string');return BigInt(value);}
 export function eventOutputs(page,eventId,referenceId){

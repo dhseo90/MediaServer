@@ -1,5 +1,6 @@
 // 파일 용도: bounded 이벤트 증거 대기와 내구 job 실행. 기본 production에는 자동 연결하지 않는다.
 #include "recording/recording_derived_event_worker.h"
+#include "recording/recording_completion_trace.h"
 #include "analysis/decoded_interval_evidence.h"
 #include "recording/recording_derived_selection.h"
 #include "recording/recording_derived_job_service.h"
@@ -180,6 +181,7 @@ bool DerivedEventWorker::Submit(const RecordingConsumerReferenceV1& reference,
         submitted+std::chrono::milliseconds(std::max(options_.wait_ms,options_.source_wait_ms)),0,0});}
     catch(...) {inflight_.erase(reference.reference_id);throw;}
     statuses_[reference.reference_id]="pending";
+    completion::Point(completion::Event::Submitted,reference.reference_id);
     cv_.notify_all();
     if(error)error->clear();
     return true;
@@ -248,7 +250,8 @@ void DerivedEventWorker::Loop() {
                     static_assert(std::is_nothrow_move_assignable_v<Pending>);
                     static_assert(std::is_nothrow_move_assignable_v<DerivedJobIntentV1>);
                     if(result==Evaluation::Retry){queue_.emplace_back();queue_.back()=std::move(pending);}
-                    else {render_queue_.emplace_back();render_queue_.back().pending=std::move(pending);render_queue_.back().intent=std::move(intent);}
+                    else {render_queue_.emplace_back();render_queue_.back().pending=std::move(pending);render_queue_.back().intent=std::move(intent);
+                        completion::Point(completion::Event::Queued,render_queue_.back().pending.reference.reference_id,render_queue_.back().intent.job_id);}
                     cv_.notify_all();continue;
                 }
             }
@@ -266,6 +269,7 @@ void DerivedEventWorker::RenderLoop() {
             ready=std::move(render_queue_.front());render_queue_.pop_front();
         }
         const auto& id=ready.pending.reference.reference_id;
+        completion::Point(completion::Event::Started,id,ready.intent.job_id);
         try {
             if(stopped_)Status(id,"derived-worker-stopped");
             else {
@@ -276,11 +280,14 @@ void DerivedEventWorker::RenderLoop() {
                 }
                 if(!admission.accepted)Status(id,"derived-admission-rejected:"+admission.message);
                 else {
+                    completion::Point(completion::Event::Admitted,id,ready.intent.job_id);
                     // The durable Intent now protects sources before this runtime token is released.
                     std::string error;
                     if(!catalog_.ReleaseDerivedWaitLease(ready.pending.lease,&error))throw std::runtime_error("derived-wait-lease-release");
                     ready.pending.lease=0;
-                    const auto run=service_.Run(ready.intent.job_id,[this]{return stopped_.load();});
+                    const auto run=[&]{try{return service_.Run(ready.intent.job_id,[this]{return stopped_.load();});}
+                        catch(...){completion::Point(completion::Event::Ended,id,ready.intent.job_id,2);throw;}}();
+                    completion::Point(completion::Event::Ended,id,ready.intent.job_id,run.complete?1:0);
                     if(run.complete)Status(id,run.job&&run.job->ready&&run.job->ready->request_fully_satisfied?"complete":"partial");
                     else Status(id,(run.blocked?"blocked:":"failed:")+run.reason);
                 }
