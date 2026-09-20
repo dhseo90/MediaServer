@@ -252,7 +252,23 @@ private:
         explicit operator bool() const {return !id.empty();}
     };
     using DerivedJobPool = std::unordered_map<std::string, DerivedJobEntry>;
+    // 한 QueryTimeline 호출만 소유한다. 외부 입력이나 다음 요청의 검증 증명으로 저장하지 않는다.
+    struct JobReadContext {
+        struct Entry { DerivedJobHandle job; RecordingMutationHandle envelope; RecordingMutationLink link; };
+        const RecordingCatalog* owner{nullptr};
+        std::vector<Entry> entries;
+        std::size_t charge{0};
+        std::size_t budget{8U*1024U*1024U};
+    };
     bool AcquireDerivedJobOwnedLocked(const std::string& id,DerivedJobHandle* out,std::string* error) const;
+    bool AcquireDerivedJobOwnedWithEnvelopeLocked(const std::string&,DerivedJobHandle*,RecordingMutationHandle*,std::string*) const;
+    bool AcquireJobForReadLocked(const std::string&,DerivedJobHandle*,JobReadContext*,std::string*,bool* strict_content=nullptr) const;
+    bool JobReadCurrentLocked(const DerivedJobEntry&,const DerivedJobRecordV1&) const;
+    bool SnapshotTimelineWithContext(const RecordingTimelineQuery&,RecordingTimelineResult*,std::string*,JobReadContext*) const;
+    bool AcquireMediaWithContext(const std::string&,const std::string&,RecordingSegmentV2*,
+        std::pair<std::filesystem::path,std::filesystem::path>*,std::string*,JobReadContext*);
+    bool ValidateMediaWithContext(const RecordingSegmentV2&,const std::pair<std::filesystem::path,std::filesystem::path>&,JobReadContext*) const;
+    friend class RecordingReadService;
     bool ReleaseInactiveDetailsLocked(const std::string* changed,std::string* error);
     static DerivedJobHandle ShareValidatedJob(DerivedJobRecordV1 record,const DerivedJobPool* pool);
     friend class RetentionCoordinator;
@@ -274,7 +290,7 @@ private:
         std::vector<RecordingDerivedSourceSnapshotEntry>*,std::optional<std::uint64_t>*,std::string*) const;
     bool FinishDerivedSourceSnapshotLocked(const RecordingConsumerReferenceV1&,
         std::vector<RecordingDerivedSourceSnapshotEntry>*,const std::optional<std::uint64_t>&,std::string*) const;
-    bool MediaV2EligibleLocked(const std::string& channel,const std::string& id) const;
+    bool MediaV2EligibleLocked(const std::string& channel,const std::string& id,JobReadContext* context=nullptr) const;
     bool AdjustHoldCountLocked(const std::string& id,std::int64_t delta,std::string* error);
     bool ValidateDerivedJobSourcesLocked(const DerivedJobIntentV1&,std::string*) const;
     // UpdateDerivedJob의 동일 mutex 호출 안에서만 사용한다. replay/외부 입력에는 전달하지 않는다.

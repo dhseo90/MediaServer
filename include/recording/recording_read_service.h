@@ -108,6 +108,8 @@ public:
 private:
     RecordingCatalog& catalog_;
     bool FinishTimelineV2(const RecordingTimelineQuery&,RecordingTimelineResult*,std::string*) const;
+    bool FinishTimelineWithContext(const RecordingTimelineQuery&,RecordingTimelineResult*,std::string*,RecordingCatalog::JobReadContext*) const;
+    std::unique_ptr<ResolvedRecordingMedia> ResolveMediaWithContext(const std::string&,const std::string&,RecordingCatalog::JobReadContext*) const;
     std::filesystem::path event_root_;
 };
 

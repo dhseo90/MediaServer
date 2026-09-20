@@ -10,7 +10,7 @@
 | --- | --- | --- | --- | --- |
 | 1 | 시간 정확도·표시 단위 분리 | 완료 | 기본 mapping 호환, opt-in 그룹·66검사/빌드 통과 | LP25-T01~08 |
 | 2 | 완료 관측·전수 페이지 분리 | 완료 | 신규/기존/계측112PASS, 원래 시간제한 유지 | LP25-O01~04 |
-| 3 | LP22 마감 | 대기 | bounded context·손상·권한·수명 회귀 | LP22-R |
+| 3 | LP22 마감 | 완료 | 자체2/focused21/media46 PASS·정리 확인 | LP22-R |
 | 4 | 실제 앱·현행 통합 | 대기 | HTTP4초·완전2출력·hash·재기동·5단계 | P0-HTTP02/S11-CI |
 | 5 | 기록·커밋·푸시 | 대기 | 앞 단계 통과, 승인 범위 clean 확인 후 푸시 | AGENTS5 |
 
@@ -226,6 +226,119 @@ runner source fingerprint에 이번 공유 DTO `recording_timeline.h`도 포함�
 `bash scripts/internal/verify_recording_public_media.sh` 순서다. 신규1번 public timeline66개는 동일 소스로 이미 통과하여 재실행하지 않는다.
 완료 계측은2번 영향 검증에 함께 포함하며 중복 실행하지 않는다. focused runner의 compile/run60초와 RSS1GiB·disk512MiB는 그대로다.
 현재 위3번 명령은 미실행이며 사전 준비 기록을 PASS로 사용하지 않는다.
+
+3번 실행: RH 자체검사2PASS/exit0/30.471042ms. 첫 focused `green lp22-media-lp25-01`은
+compile 직전 자원 관측용 ps가 sandbox EPERM으로 거부돼255ms에 중단(exit1,resource-observation,
+groupClean=false). 제품 assertion은 미실행이며 RED/제품 회귀가 아니다. 원출력은
+`lp22-read-context-green-lp22-media-lp25-01.txt`에 보존했다. 기존 시간/자원 상한은 변경하지 않는다.
+권한 승인 후 소유 compiler 경로의 잔존 프로세스가0임을 확인했다. 최초 정리 보조 명령은 괄호 문법 오류로
+실행 전 실패했으며 이를 수정해 동일 소유 root만 정리한다. 권한을 부여한 동일 검증을 새 run-id로 실행한다.
+
+### 3번 완료 결과
+
+LP22 기존 제품5파일·검사4파일의 마감을 완료했다. 자체검사2PASS, 권한을 부여한 focused02는21PASS/0FAIL/exit0,
+compile3871ms·실행2595ms, 요청별 strict parse1/1이다. group peak RSS177061888B, source 불변·groupClean=true,
+소유 임시물10205142B 삭제 확인. public media는46PASS/0FAIL/exit0/3초이며9227508B 정리 확인.
+[자체검사](release-artifacts/v4.1.0/s11-preparation-mapping/lp25-read-context-selftest.txt),
+[focused02 전수](release-artifacts/v4.1.0/s11-preparation-mapping/lp22-read-context-green-lp22-media-lp25-02.txt),
+[재생 전수](release-artifacts/v4.1.0/s11-preparation-mapping/lp25-public-media.txt).
+첫 실행의 [환경 실패](release-artifacts/v4.1.0/s11-preparation-mapping/lp22-read-context-green-lp22-media-lp25-01.txt)는 유지하며
+잔존 프로세스0 확인 후356234B를 삭제했다. 제품·운영 데이터 삭제 없음.
+전체 빌드/66 timeline/112 관측 검사는 동일 제품 source로 앞 단계에서 통과했으므로 재실행하지 않고 유지한다.
+8job/8MiB 요청 내 소유·정확 envelope/current 상태 대조·부적합 시 strict fallback,
+손상 거부·삭제 보호·예외 시 hold 해제를 확인했다. 시간/저장/API 기본 동작의 완화 없음.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP22-RH01 exact RED and GREEN bind every label summary and actual parse counts | 자체검사 exit0 | PASS | 첫 실행 환경 실패와 구분 |
+| LP22-RH02 missing summary different failure stop signal and unclean group reject | 자체검사 exit0 | PASS | 첫 실행 환경 실패와 구분 |
+| LP22-R01 fixture actual Complete two outputs | focused02 exit0 | PASS | 첫 실행 환경 실패와 구분 |
+| LP22-R02 public timeline canonical and media bytes unchanged | focused02 exit0 | PASS | 첫 실행 환경 실패와 구분 |
+| LP22-R03 same job two outputs parse strictly once per request | focused02 exit0 | PASS | 첫 실행 환경 실패와 구분 |
+| LP22-R04 next request revalidates cold job | focused02 exit0 | PASS | 첫 실행 환경 실패와 구분 |
+| LP22-R05 context and media holds released after request | focused02 exit0 | PASS | 첫 실행 환경 실패와 구분 |
+| LP22-R06 changed saved envelope falls back to strict parsing | focused02 exit0 | PASS | 첫 실행 환경 실패와 구분 |
+| LP22-R06 replaced current mutation rejects without stale reuse | focused02 exit0 | PASS | 첫 실행 환경 실패와 구분 |
+| LP22-R06 same resident with invalid provenance retains strict validation | focused02 exit0 | PASS | 첫 실행 환경 실패와 구분 |
+| LP22-R07 changed current state rejects playback | focused02 exit0 | PASS | 첫 실행 환경 실패와 구분 |
+| LP22-R07 changed thin metadata rejects stale content | focused02 exit0 | PASS | 첫 실행 환경 실패와 구분 |
+| LP22-R07 changed current source segment rejects stale content | focused02 exit0 | PASS | 첫 실행 환경 실패와 구분 |
+| LP22-R07 changed output path preserves strict rejection | focused02 exit0 | PASS | 첫 실행 환경 실패와 구분 |
+| LP22-R07 duplicate output owner rejects playback | focused02 exit0 | PASS | 첫 실행 환경 실패와 구분 |
+| LP22-R07 deleted output rejects playback | focused02 exit0 | PASS | 첫 실행 환경 실패와 구분 |
+| LP22-R08 byte budget fallback preserves full timeline and owned limit | focused02 exit0 | PASS | 첫 실행 환경 실패와 구분 |
+| LP22-R08 job budget fallback preserves strict playback | focused02 exit0 | PASS | 첫 실행 환경 실패와 구분 |
+| LP22-R08 admission allocation failure preserves authority and strict result | focused02 exit0 | PASS | 첫 실행 환경 실패와 구분 |
+| LP22-R09 file tamper rejects and releases holds | focused02 exit0 | PASS | 첫 실행 환경 실패와 구분 |
+| LP22-R09 media exception releases context and holds | focused02 exit0 | PASS | 첫 실행 환경 실패와 구분 |
+| LP22-R09 same size journal tamper rejects and clears owned output | focused02 exit0 | PASS | 첫 실행 환경 실패와 구분 |
+| LP22-R09 detached authority rejects cold context reuse | focused02 exit0 | PASS | 첫 실행 환경 실패와 구분 |
+| D3A-05 미완료 출력 거부 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-05 미완료 출력 거부 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-05 미완료 출력 거부 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-05 미완료 출력 거부 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-02 요청 충족 상태 구분 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-01 실제 검증된 Event 출력 제공 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-03 권한/다른 채널 거부 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-01 application V2 채널 권한 후 제공 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-06 제공 중 삭제 거부 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-06 fd 해제 후 hold0 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-01 실제 검증된 Event 출력 제공 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-03 권한/다른 채널 거부 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-01 application V2 채널 권한 후 제공 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-06 제공 중 삭제 거부 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-06 fd 해제 후 hold0 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-04 실제 파일 있는 manual Event 거부 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-07 immutable metadata 다른 결박 거부 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-08 원본 보존 삭제 완료 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-08 원본 보존 삭제 완료 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-08 원본 삭제 뒤 검증된 출력 제공 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-07 실제 파일 크기 변조 거부·hold0 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-07 동일 크기 파일 내용 변조 거부·hold0 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-06 hold 해제 후 삭제 전이·새 제공 거부 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-05 미완료 출력 거부 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-05 미완료 출력 거부 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-05 미완료 출력 거부 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-05 미완료 출력 거부 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-02 요청 충족 상태 구분 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-02 partial 출력 제공 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-03 권한/다른 채널 거부 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-01 application V2 채널 권한 후 제공 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-06 제공 중 삭제 거부 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-06 fd 해제 후 hold0 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-02 partial 출력 제공 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-03 권한/다른 채널 거부 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-01 application V2 채널 권한 후 제공 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-06 제공 중 삭제 거부 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-06 fd 해제 후 hold0 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-04 실제 파일 있는 manual Event 거부 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-07 immutable metadata 다른 결박 거부 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-08 원본 보존 삭제 완료 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-08 원본 보존 삭제 완료 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-08 원본 삭제 뒤 검증된 출력 제공 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-07 실제 파일 크기 변조 거부·hold0 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-07 동일 크기 파일 내용 변조 거부·hold0 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+| D3A-06 hold 해제 후 삭제 전이·새 제공 거부 | public media exit0 | PASS | complete/partial 각 fixture의 개별 출력 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR/media-server-catalog-cost.fbQuzw | 환경 실패 compile 임시물 |356234B |소유 프로세스0 확인 후 삭제 |removed=true |첫 환경 실패 후 정리 |
+| TMPDIR/media-server-catalog-cost.4kj6mm | focused02 임시물 |10205142B |삭제 |removed=true |focused02 원출력 |
+| TMPDIR/media-server-public-media.hdV46j | public media fixture |9227508B |삭제 |removed=true |public media 원출력 |
+
+### 4번 실행 전 고정 계획
+
+3번 커밋 후 `./server.sh verify-v410-recording-foundation --current-integration`을 한 번 실행한다.
+동일 actual-app을 latency-only로 먼저 실행하지 않는다. 기존5단계가 HTTP API35 → auth38 → lifecycle12 →
+default composition46 → actual-app25를 순차 수행한다(합156개). 실패 시 뒤 단계는 미실행이다.
+actual-app의 요청별 HTTP4초, 작업대기30초, 총180초를 유지하고 모든 timeline 응답 시간도 원출력과 대조한다.
+완료 관측만으로 통합 PASS를 만들지 않으며 각 기동의 완전2출력·전체 페이지·HTTP/hash·기존 파일 보존·새 녹화와
+두 기동 정상 종료·포트/임시 root 정리를 모두 요구한다. fullFoundation/resourceTrend/UI PASS와 분리한다.
+격리 root0700·별도 HOME/TMPDIR·loopback HTTP/RTSP/로컬STUN·외부TURN/Event POST 비활성 조건이다.
+인증 fixture는 매회 임시 난수5개를 메모리 함수 인자로만 사용하고 종료 시 참조를 비운다.
+현재 HTTP-auth 실행 경로는 지정5환경변수 주입 방식이 아니며 운영 계정 변경/비밀번호 원문 저장은 하지 않는다.
+전체 출력은 소유 임시 로그에 보존한 뒤 안전한 수치·개별 결과·정리 증거를 저장소로 이관한다.
+브라우저/장시간/릴리즈 작업은 실행하지 않는다.
 
 ### 1번 직접 검증 결과
 

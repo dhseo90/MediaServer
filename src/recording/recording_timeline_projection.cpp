@@ -238,6 +238,9 @@ private:
 };
 } // namespace
 bool RecordingCatalog::SnapshotTimelineV2(const RecordingTimelineQuery& query,RecordingTimelineResult* result,std::string* error) const {
+    return SnapshotTimelineWithContext(query,result,error,nullptr);
+}
+bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery& query,RecordingTimelineResult* result,std::string* error,JobReadContext* context) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Projection,__LINE__,true);
     if(!result||!opened_||!derived_job_state_authoritative_){if(error)*error="timeline-catalog-unavailable";return false;}
     result->v2_projection=options_.enable_v2_storage;
@@ -251,7 +254,7 @@ bool RecordingCatalog::SnapshotTimelineV2(const RecordingTimelineQuery& query,Re
                 row.completeness="unknown";row.unavailable_reason="output-binding-unavailable";collector.Add(std::move(row));}
         }
         for(const auto& entry:derived_jobs_){if(!entry.second)throw std::runtime_error("timeline-job-unavailable");if(entry.second.channel!=query.channel_id)continue;
-            DerivedJobHandle owned;if(!AcquireDerivedJobOwnedLocked(entry.first,&owned,error)||!owned)throw std::runtime_error("timeline-job-unavailable");const auto& job=*owned;
+            DerivedJobHandle owned;if(!AcquireJobForReadLocked(entry.first,&owned,context,error)||!owned)throw std::runtime_error("timeline-job-unavailable");const auto& job=*owned;
             if(!job.ready||job.ready->outputs.empty()){collector.Reference(job.intent.reference,&job);continue;}
             for(std::size_t i=0;i<job.ready->outputs.size();++i){
                 if(i>=job.intent.sources.size())throw std::runtime_error("timeline-job-invalid");
@@ -271,6 +274,9 @@ bool RecordingCatalog::SnapshotTimelineV2(const RecordingTimelineQuery& query,Re
     }catch(const std::exception&){*result={};if(error)*error="timeline-projection-unavailable";return false;}
 }
 bool RecordingReadService::FinishTimelineV2(const RecordingTimelineQuery& query,RecordingTimelineResult* result,std::string* error) const {
+    return FinishTimelineWithContext(query,result,error,nullptr);
+}
+bool RecordingReadService::FinishTimelineWithContext(const RecordingTimelineQuery& query,RecordingTimelineResult* result,std::string* error,RecordingCatalog::JobReadContext* context) const {
     recording::latency::Scope latency_scope(recording::latency::Operation::Finish,recording::latency::Source::Projection,__LINE__,true);
     try {
         std::unordered_map<std::string,std::pair<bool,std::string>> media;
@@ -282,7 +288,7 @@ bool RecordingReadService::FinishTimelineV2(const RecordingTimelineQuery& query,
                (item.kind=="event"&&(item.job_state!="complete"||item.unavailable_reason=="output-binding-unavailable")))return;
             auto found=media.find(item.segment_id);
             if(found==media.end()){
-                auto fd=ResolveMedia(query.channel_id,item.segment_id);
+                auto fd=ResolveMediaWithContext(query.channel_id,item.segment_id,context);
                 found=media.emplace(item.segment_id,std::make_pair(bool(fd),fd?fd->content_type():"")).first;
             }
             item.playable=found->second.first;item.content_type=found->second.second;

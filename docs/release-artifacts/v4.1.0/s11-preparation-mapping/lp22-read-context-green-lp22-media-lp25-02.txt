@@ -1,0 +1,89 @@
+{"kind":"preflight","mode":"green","id":"lp22-media-lp25-02","source":[{"file":"include/recording/recording_catalog.h","sha256":"bde3f884cda391fe971654cd66b2592a51aa084b5a0c76634890bf34ed066705"},{"file":"include/recording/recording_read_service.h","sha256":"d734267d8a83851d45f188467c22c1f3f3319b5adb87d2de1bc3075738dc2d90"},{"file":"include/recording/recording_journal.h","sha256":"44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5"},{"file":"include/recording/recording_timeline.h","sha256":"1c737d60e4bc8926e5fad7ce2b33e0a7133bc3375c5fc70ccf5c67e584d12b2a"},{"file":"src/recording/recording_catalog.cpp","sha256":"3e295748699d737e31a2812d5a4d97280241a29ba83600b38ea425c89f314146"},{"file":"src/recording/recording_read_service.cpp","sha256":"c37210ae7c0f363420c0924f6c4cd67872d776936af8a11275ffcd044f334f4c"},{"file":"src/recording/recording_timeline_projection.cpp","sha256":"7b2085dbd356a7617b780d6dd6f565172b4fa0778606782859ba0bbe4db0331c"},{"file":"src/recording/recording_derived_job_ready.cpp","sha256":"74f304446afb62c9abc48c2f13fa65281f9c942becabfbbbb3612458eac3f184"},{"file":"src/recording/recording_derived_job_context.h","sha256":"10f047b9718e22dddc1a7b59d478af10ad2a828ddf256f3a14792ae7365e4891"},{"file":"scripts/internal/recording_job_read_context_smoke.cpp","sha256":"863579f36ae3f084d98c50f05d60b9a7f38169179eb4689ad72db34f01967bcc"},{"file":"scripts/internal/recording_job_read_context_counter.h","sha256":"76ed8747ac87a171060585c5e64fc6925279a5e2833ab3486020a6fd9424ab4d"},{"file":"scripts/internal/recording_job_read_context.test.mjs","sha256":"5fa123c571102b3bb9edc0ffea73a7e21aafd936ce752a52d033c04046b1f3f8"},{"file":"scripts/internal/recording_public_media_smoke.cpp","sha256":"759037f3287bd76578dfb4471f14d1c61888e567efb31d8894227d0cd1e1af2e"},{"file":"scripts/internal/recording_media_test_fixture.h","sha256":"404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6"},{"file":"scripts/internal/recording_catalog_comparison_guard.mjs","sha256":"a018b80c06f6679e75b973181e3188cda8431b84a1e4d356c4f7b6bb5699f432"},{"file":"scripts/internal/verify_recording_job_read_context.mjs","sha256":"b10b396df3539b0e5ff3748d8143276774a60bbdd76e6ac0bef99592765f0c63"},{"file":"scripts/internal/env_common.sh","sha256":"4ebe528dd90c10cc340211e77de9746df78fa4fd599cb3b01289ebf6ccadd3d8"}],"limits":{"compileSeconds":60,"runSeconds":60,"rss":1073741824,"disk":536870912,"output":2097152}}
+{"kind":"build-fingerprint","archiveSha256":"408366261ba29cb2a510b8b6c6077615058ea4790696414658a223927b1c739f","linkSha256":"1e2b4ed6e612a927e5965049634799ea546a0869f9d8ecaf7badfba666541c7d","serverSha256":"6e844231f21de76cc08aa5148fcb7ddd878d7e8c72c962a85bc2f861e19020f8","archiveMtimeMs":1789939305489.1233,"platform":"darwin","arch":"arm64","node":"v24.13.0"}
+{"kind":"copy","file":"recording_catalog.cpp","originalSha256":"3e295748699d737e31a2812d5a4d97280241a29ba83600b38ea425c89f314146","instrumentedSha256":"c820ca4003cdd47b47083a283c88c96e9e440d007a22131d3f37fd0f95636a89","insertions":1}
+{"kind":"copy","file":"recording_read_service.cpp","originalSha256":"c37210ae7c0f363420c0924f6c4cd67872d776936af8a11275ffcd044f334f4c","instrumentedSha256":"9936d1d3ae8a0293f7109e259939356c5fe0f7acd131f6144da5f20f2fe42f73","insertions":4}
+{"kind":"copy","file":"recording_timeline_projection.cpp","originalSha256":"7b2085dbd356a7617b780d6dd6f565172b4fa0778606782859ba0bbe4db0331c","instrumentedSha256":"7b2085dbd356a7617b780d6dd6f565172b4fa0778606782859ba0bbe4db0331c","insertions":0}
+{"kind":"copy","file":"recording_derived_job_ready.cpp","originalSha256":"74f304446afb62c9abc48c2f13fa65281f9c942becabfbbbb3612458eac3f184","instrumentedSha256":"7d9d5303b6596d9463c843db20c0860598c4a5ee429c410b918e4cdb1bf7eeed","insertions":2}
+{"kind":"command","phase":"compile","command":"c++","args":["-std=c++17","-Wall","-Wextra","-Werror","-pthread","-DMEDIA_SERVER_USE_GSTREAMER=1","-DMEDIA_SERVER_USE_OPENSSL=1","-DMEDIA_SERVER_USE_SQLITE3=1","-I/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.4kj6mm/include","-I/Users/dhseo/Workspace/mediaServer/include","-I/Users/dhseo/Workspace/mediaServer/src/recording","-I/Users/dhseo/Workspace/mediaServer/scripts/internal","-include","/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_job_read_context_counter.h","-I/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0","-I/opt/homebrew/Cellar/glib/2.86.4/include","-I/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi","-I/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0","-I/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include","-I/opt/homebrew/opt/gettext/include","-I/opt/homebrew/Cellar/pcre2/10.47_1/include","-I/opt/homebrew/Cellar/openssl@3/3.6.2/include","-DLP22_JOB_READ_CONTEXT=1","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.4kj6mm/recording_catalog.cpp","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.4kj6mm/recording_read_service.cpp","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.4kj6mm/recording_timeline_projection.cpp","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.4kj6mm/recording_derived_job_ready.cpp","/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_job_read_context_smoke.cpp","/Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib","/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib","/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib","/opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib","/opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib","/opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib","/opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib","/opt/homebrew/opt/gettext/lib/libintl.dylib","/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd","/opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib","/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib","/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib","/opt/homebrew/lib/libonnxruntime.dylib","-o","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.4kj6mm/check"]}
+
+        3.85 real         3.68 user         0.24 sys
+           323387392  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               84906  page reclaims
+                 814  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   6  voluntary context switches
+                3026  involuntary context switches
+           100564398  instructions retired
+            48762084  cycles elapsed
+             3195240  peak memory footprint
+
+{"kind":"phase","name":"compile","pass":0,"fail":0,"expected":true,"code":0,"signal":null,"stopReason":null,"groupClean":true,"groupPeakRssBytes":330661888,"observationFailure":null,"outputBytes":777,"elapsedMs":3871}
+{"kind":"focused-binary","sha256":"bf9397cb7149936f5b7090a873d282043ea274bd2b9b0bb3c9e904ce305bee8a","bytes":6961256}
+{"kind":"command","phase":"focused","command":"/bin/bash","args":["-c","set -euo pipefail; source \"$1\"; export MEDIA_SERVER_GST_CACHE_DIR=\"$2/gst-cache\" MEDIA_SERVER_GST_PLUGIN_PROFILE=headless GST_REGISTRY=\"$2/registry.bin\" GST_REGISTRY_1_0=\"$2/registry.bin\"; unset GST_PLUGIN_PATH GST_PLUGIN_PATH_1_0 GST_PLUGIN_SYSTEM_PATH GST_PLUGIN_SYSTEM_PATH_1_0 MEDIA_SERVER_GST_MANAGED_REGISTRY MEDIA_SERVER_GST_MANAGED_PLUGIN_PATH MEDIA_SERVER_GST_INPUT_PLUGIN_PATH; media_server_apply_homebrew_gst_env; exec \"$3\" \"$2\"","read-context","/Users/dhseo/Workspace/mediaServer/scripts/internal/env_common.sh","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.4kj6mm","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.4kj6mm/check"]}
+[pass] LP22-R01 fixture actual Complete two outputs
+[pass] LP22-R02 public timeline canonical and media bytes unchanged
+[pass] LP22-R03 same job two outputs parse strictly once per request
+[pass] LP22-R04 next request revalidates cold job
+[pass] LP22-R05 context and media holds released after request
+[read-context-count] {"firstParses":1,"secondParses":1}
+[pass] LP22-R06 changed saved envelope falls back to strict parsing
+[pass] LP22-R06 replaced current mutation rejects without stale reuse
+[pass] LP22-R06 same resident with invalid provenance retains strict validation
+[read-context-rejection] {"case":"state","rejected":true,"fdHolds":0,"authoritative":false,"retentionProtection":2}
+[pass] LP22-R07 changed current state rejects playback
+[read-context-rejection] {"case":"metadata","rejected":true,"fdHolds":0,"authoritative":false,"retentionProtection":2}
+[pass] LP22-R07 changed thin metadata rejects stale content
+[read-context-rejection] {"case":"source","rejected":true,"fdHolds":0,"authoritative":false,"retentionProtection":2}
+[pass] LP22-R07 changed current source segment rejects stale content
+[pass] LP22-R07 changed output path preserves strict rejection
+[read-context-rejection] {"case":"duplicate-owner","rejected":true,"fdHolds":0,"authoritative":false,"retentionProtection":2}
+[pass] LP22-R07 duplicate output owner rejects playback
+[pass] LP22-R07 deleted output rejects playback
+[pass] LP22-R08 byte budget fallback preserves full timeline and owned limit
+[pass] LP22-R08 job budget fallback preserves strict playback
+[pass] LP22-R08 admission allocation failure preserves authority and strict result
+[pass] LP22-R09 file tamper rejects and releases holds
+[pass] LP22-R09 media exception releases context and holds
+[pass] LP22-R09 same size journal tamper rejects and clears owned output
+[pass] LP22-R09 detached authority rejects cold context reuse
+[summary] pass=21 fail=0
+
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+        2.58 real         1.84 user         0.23 sys
+           157171712  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               72881  page reclaims
+                  90  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                 497  messages sent
+                 467  messages received
+                   0  signals received
+                 427  voluntary context switches
+                3745  involuntary context switches
+         19866042266  instructions retired
+          4540553075  cycles elapsed
+            35504944  peak memory footprint
+
+{"kind":"phase","name":"focused","pass":21,"fail":0,"expected":true,"code":0,"signal":null,"stopReason":null,"groupClean":true,"groupPeakRssBytes":177061888,"observationFailure":null,"outputBytes":3344,"elapsedMs":2595}
+{"kind":"source-check","unchanged":true}
+{"kind":"cleanup","bytes":10205142,"removed":true}

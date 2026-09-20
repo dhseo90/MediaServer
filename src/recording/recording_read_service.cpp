@@ -365,6 +365,10 @@ ResolvedRecordingMedia::~ResolvedRecordingMedia() {
 
 std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveMedia(
     const std::string& channel_id, const std::string& segment_id) const {
+    return ResolveMediaWithContext(channel_id,segment_id,nullptr);
+}
+std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveMediaWithContext(
+    const std::string& channel_id,const std::string& segment_id,RecordingCatalog::JobReadContext* context) const {
     if (!ValidateOpaqueId(segment_id, nullptr)) return {};
     const auto segment = catalog_.FindSegmentById(segment_id);
     const auto segment_v2 = catalog_.FindSegmentV2ById(segment_id);
@@ -388,13 +392,13 @@ std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveMedia(
         std::string error;
         RecordingSegmentV2 current;
         std::pair<std::filesystem::path,std::filesystem::path> location;
-        if(!catalog_.AcquireMediaV2(channel_id,segment_id,&current,&location,&error))return {};
+        if(!catalog_.AcquireMediaWithContext(channel_id,segment_id,&current,&location,&error,context))return {};
         media->catalog_=&catalog_;media->segment_id_=segment_id;
         media->fd_=OpenMedia(location.first,location.second);
         const auto inspected=InspectRecordingPhysicalMediaFd(media->fd_,{
             current.container,current.video_codecs,current.size_bytes,
             current.checksum_sha256,current.retention_class});
-        if(inspected.state!=MediaInspectionState::Healthy||!catalog_.ValidateMediaV2(current,location))return {};
+        if(inspected.state!=MediaInspectionState::Healthy||!catalog_.ValidateMediaWithContext(current,location,context))return {};
         media->size_bytes_=current.size_bytes;
         if(current.container=="mp4")media->content_type_="video/mp4";
         else if(current.container=="webm")media->content_type_="video/webm";
@@ -497,8 +501,9 @@ bool RecordingReadService::QueryTimeline(const RecordingTimelineQuery& query,
         if (error) *error = "invalid timeline query";
         return false;
     }
-    if(!catalog_.SnapshotTimelineV2(query,result,error))return false;
-    if(result->v2_projection)return FinishTimelineV2(query,result,error);
+    RecordingCatalog::JobReadContext context;
+    if(!catalog_.SnapshotTimelineWithContext(query,result,error,&context))return false;
+    if(result->v2_projection)return FinishTimelineWithContext(query,result,error,&context);
     const auto segments = catalog_.QuerySegments(query.channel_id, query.start_ms, query.end_ms);
     std::vector<EventRecordingLinkV1> links;
     for (auto& link : AllLinks(catalog_))

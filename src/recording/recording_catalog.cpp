@@ -1543,7 +1543,11 @@ bool RecordingCatalog::AcquireSourceBindingOwnedLocked(const std::string& id,Sou
     }catch(...){if(out)out->reset();return failed();}
 }
 bool RecordingCatalog::AcquireDerivedJobOwnedLocked(const std::string& id,DerivedJobHandle* out,std::string* error) const {
+    return AcquireDerivedJobOwnedWithEnvelopeLocked(id,out,nullptr,error);
+}
+bool RecordingCatalog::AcquireDerivedJobOwnedWithEnvelopeLocked(const std::string& id,DerivedJobHandle* out,RecordingMutationHandle* envelope,std::string* error) const {
     if(out)out->reset();
+    if(envelope)envelope->reset();
     const auto failed=[&](){derived_job_state_authoritative_=false;return Fail(error,"derived job 상세 재획득 거부");};
     try {
         if(!out)return failed();
@@ -1567,8 +1571,72 @@ bool RecordingCatalog::AcquireDerivedJobOwnedLocked(const std::string& id,Derive
             if(source.segment.segment_id!=entry.source_ids[i]||original==segments_v2_.end()||
                SerializeRecordingSegmentV2(original->second)!=SerializeRecordingSegmentV2(source.segment)||
                !ValidateRecordingSourceBindingForSegment(source.binding,source.segment,error))return failed();}
-        *out=std::make_shared<const DerivedJobRecordV1>(std::move(record));entry.weak=*out;return true;
+        *out=std::make_shared<const DerivedJobRecordV1>(std::move(record));entry.weak=*out;if(envelope)*envelope=std::move(mutation);return true;
     }catch(...){if(out)out->reset();return failed();}
+}
+bool RecordingCatalog::JobReadCurrentLocked(const DerivedJobEntry& entry,const DerivedJobRecordV1& record) const {
+    if(!entry||record.intent.job_id!=entry.id||record.intent.reference.channel_id!=entry.channel||
+       record.intent.reference.reference_id!=entry.reference||record.state!=entry.state||record.files.size()!=entry.files||
+       record.intent.reserved_bytes!=entry.reserved_bytes||record.intent.outputs.size()!=entry.output_ids.size()||
+       record.intent.sources.size()!=entry.source_ids.size())return false;
+    for(std::size_t i=0;i<record.intent.outputs.size();++i)if(record.intent.outputs[i].output_id!=entry.output_ids[i])return false;
+    for(std::size_t i=0;i<record.intent.sources.size();++i){const auto& source=record.intent.sources[i];
+        const auto current=segments_v2_.find(source.segment.segment_id);
+        if(source.segment.segment_id!=entry.source_ids[i]||current==segments_v2_.end()||
+           SerializeRecordingSegmentV2(current->second)!=SerializeRecordingSegmentV2(source.segment))return false;}
+    return true;
+}
+bool RecordingCatalog::AcquireJobForReadLocked(const std::string& id,DerivedJobHandle* out,JobReadContext* context,std::string* error,bool* strict_content) const {
+    if(strict_content)*strict_content=false;
+    if(!context)return AcquireDerivedJobOwnedLocked(id,out,error);
+    if(out)out->reset();
+    const auto found=derived_jobs_.find(id);
+    if(!out||found==derived_jobs_.end()||!found->second)return AcquireDerivedJobOwnedLocked(id,out,error);
+    const auto& entry=found->second;
+    // 다른 catalog의 호출 자료는 증명으로 사용하지 않는다.
+    if(context->owner&&context->owner!=this)return AcquireDerivedJobOwnedLocked(id,out,error);
+    const auto acquire_envelope=[&](RecordingMutationHandle* envelope){
+        try {if(journal_.OwnsCatalog(this)&&journal_.AcquireMutationLink(entry.mutation,envelope,error)&&*envelope)return true;}
+        catch(...){}
+        envelope->reset();out->reset();derived_job_state_authoritative_=false;
+        return Fail(error,"derived job 상세 재획득 거부");
+    };
+    try {
+        for(const auto& saved:context->entries){if(!saved.job||saved.job->intent.job_id!=id)continue;
+            RecordingMutationHandle current;
+            const bool provenance=journal_.CanReleaseMutationLink(saved.link)||journal_.MutationLinkOwns(saved.link,saved.envelope);
+            if(!provenance||!saved.envelope)break;
+            if(!acquire_envelope(&current))return false;
+            const auto& a=*current;const auto& b=*saved.envelope;
+            if(a.schema==b.schema&&a.mutation_id==b.mutation_id&&a.entity_id==b.entity_id&&
+               a.mutation_type==b.mutation_type&&a.occurred_at_ms==b.occurred_at_ms&&a.payload_json==b.payload_json&&
+               JobReadCurrentLocked(entry,*saved.job)){*out=saved.job;if(strict_content)*strict_content=true;return true;}
+            break;
+        }
+        RecordingMutationHandle envelope;
+        if(!AcquireDerivedJobOwnedWithEnvelopeLocked(id,out,&envelope,error)||!*out)return false;
+        // 비완료 snapshot에는 기존에 없던 전체 직렬화 검증을 추가하지 않는다.
+        if((*out)->state!=DerivedJobState::Complete||context->entries.size()>=8)return true;
+        const auto charge=entry.mutation.LogicalCharge();
+        if(charge>context->budget||context->charge>context->budget-charge)return true;
+        if(!envelope){
+            const auto canonical=SerializeDerivedJobRecord(**out);
+            if(canonical.empty())return true;
+            if(!acquire_envelope(&envelope))return false;
+            if(envelope->payload_json!=canonical)return true;
+        }
+        if(envelope->entity_id!=id||envelope->mutation_type!=RecordingMutationType::DerivedJobComplete||!JobReadCurrentLocked(entry,**out)||
+           !(journal_.CanReleaseMutationLink(entry.mutation)||journal_.MutationLinkOwns(entry.mutation,envelope)))return true;
+        // 재사용 예산의 할당 실패는 정상 입력의 실패/권위 상실로 바꾸지 않는다.
+        try {context->entries.push_back({*out,envelope,entry.mutation});}
+        catch(...){return true;}
+        context->owner=this;context->charge+=charge;if(strict_content)*strict_content=true;
+        return true;
+    }catch(...){
+        // 선택적 증명 보관/비교 실패는 기존 strict 획득의 결과를 대신하지 않는다.
+        if(strict_content)*strict_content=false;
+        return AcquireDerivedJobOwnedLocked(id,out,error);
+    }
 }
 bool RecordingCatalog::ReleaseInactiveDetailsLocked(const std::string* changed,std::string* error) {
     try {
@@ -1683,7 +1751,7 @@ RecordingLifecycle RecordingCatalog::EffectiveLifecycleV2Locked(const std::strin
     const auto state=states_v2_.find(id);
     return state==states_v2_.end()?RecordingLifecycle::Finalized:state->second.lifecycle;
 }
-bool RecordingCatalog::MediaV2EligibleLocked(const std::string& channel,const std::string& id) const {
+bool RecordingCatalog::MediaV2EligibleLocked(const std::string& channel,const std::string& id,JobReadContext* context) const {
     const auto found=segments_v2_.find(id);
     if(!opened_||!derived_job_state_authoritative_||segments_.count(id)||found==segments_v2_.end()||
        found->second.channel_id!=channel||EffectiveLifecycleV2Locked(id)!=RecordingLifecycle::Finalized)return false;
@@ -1692,27 +1760,32 @@ bool RecordingCatalog::MediaV2EligibleLocked(const std::string& channel,const st
     if(segment.retention_class==RecordingRetentionClass::Continuous)return true;
     if(segment.retention_class!=RecordingRetentionClass::Event)return false;
     DerivedJobHandle owner;
+    bool strict_content=false;
     const DerivedJobReadyOutputV1* output=nullptr;
     std::size_t index=0;
     for(const auto& entry:derived_jobs_){if(!entry.second)return false;for(std::size_t i=0;i<entry.second.output_ids.size();++i){
         if(entry.second.output_ids[i]!=id)continue;
         if(owner)return false;
-        if(!AcquireDerivedJobOwnedLocked(entry.first,&owner,nullptr)||!owner)return false;index=i;
+        if(!AcquireJobForReadLocked(entry.first,&owner,context,nullptr,&strict_content)||!owner)return false;index=i;
     }}
     if(!owner||owner->state!=DerivedJobState::Complete||!owner->ready||!owner->ready->verified_output||
        index>=owner->ready->outputs.size()||index>=owner->intent.sources.size())return false;
     output=&owner->ready->outputs[index];
     // strict record 검사로 source_index/선택/manifest/AU 출처 결박을 확인한다. 현재 원본 파일은 요구하지 않는다.
-    if(output->source_index!=index||!output->provenance.verified_output||SerializeDerivedJobRecord(*owner).empty()||
+    if(output->source_index!=index||!output->provenance.verified_output||(!strict_content&&SerializeDerivedJobRecord(*owner).empty())||
        SerializeRecordingSegmentV2(output->segment)!=SerializeRecordingSegmentV2(segment))return false;
     const auto path=media_relpaths_.find(id);
     return path!=media_relpaths_.end()&&path->second==owner->intent.outputs[index].final_relpath;
 }
 bool RecordingCatalog::AcquireMediaV2(const std::string& channel,const std::string& id,RecordingSegmentV2* segment,
     std::pair<std::filesystem::path,std::filesystem::path>* location,std::string* error) {
+    return AcquireMediaWithContext(channel,id,segment,location,error,nullptr);
+}
+bool RecordingCatalog::AcquireMediaWithContext(const std::string& channel,const std::string& id,RecordingSegmentV2* segment,
+    std::pair<std::filesystem::path,std::filesystem::path>* location,std::string* error,JobReadContext* context) {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
     if(segment)*segment={};if(location)*location={};
-    if(!segment||!location||!MediaV2EligibleLocked(channel,id))return Fail(error,"V2 media 결박/상태 거부");
+    if(!segment||!location||!MediaV2EligibleLocked(channel,id,context))return Fail(error,"V2 media 결박/상태 거부");
     const auto path=media_relpaths_.find(id);
     if(path==media_relpaths_.end())return Fail(error,"V2 media 경로 없음");
     *segment=segments_v2_.at(id);*location={options_.media_root,path->second};
@@ -1720,8 +1793,12 @@ bool RecordingCatalog::AcquireMediaV2(const std::string& channel,const std::stri
 }
 bool RecordingCatalog::ValidateMediaV2(const RecordingSegmentV2& segment,
     const std::pair<std::filesystem::path,std::filesystem::path>& location) const {
+    return ValidateMediaWithContext(segment,location,nullptr);
+}
+bool RecordingCatalog::ValidateMediaWithContext(const RecordingSegmentV2& segment,
+    const std::pair<std::filesystem::path,std::filesystem::path>& location,JobReadContext* context) const {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);
-    if(!MediaV2EligibleLocked(segment.channel_id,segment.segment_id))return false;
+    if(!MediaV2EligibleLocked(segment.channel_id,segment.segment_id,context))return false;
     const auto path=media_relpaths_.find(segment.segment_id);
     return path!=media_relpaths_.end()&&location.first==options_.media_root&&location.second==path->second&&
         SerializeRecordingSegmentV2(segment)==SerializeRecordingSegmentV2(segments_v2_.at(segment.segment_id));
