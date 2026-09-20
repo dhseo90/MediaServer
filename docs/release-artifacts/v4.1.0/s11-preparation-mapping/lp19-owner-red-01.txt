@@ -1,0 +1,70 @@
+✖ LP19-H01 계측 손실 없는 왕복 (3.94075ms)
+✖ LP19-H02 잘못된 축약 표현 거부 (0.275ms)
+✔ LP17-H01 기존 RSS 실패와 유효 진단 분리 (0.143166ms)
+✔ LP17-H02 관측 누락·손상·역행·잘못된 owner 거부 (0.183083ms)
+✔ LP17-H03 완료 summary 누락·중복·다른 작업·실패 거부 (0.098958ms)
+✔ LP17-H04 process group 단위와 외부·zombie 제외 (0.397875ms)
+✔ LP17-H05 실행 안전 상한·기능 실패·정리 실패 분리 (0.160958ms)
+[selftest-cleanup] {"bytes":0,"removed":true}
+✔ LP17-H06 실제 소유 자식 exit0/7와 그룹 종료 확인 (65.202625ms)
+[selftest-cleanup] {"bytes":0,"removed":true}
+✔ LP17-H07 실제 timeout 자식 종료와 뒤 단계 차단 (121.141834ms)
+[selftest-cleanup] {"bytes":0,"removed":true}
+[selftest-cleanup] {"bytes":89,"removed":true}
+[selftest-cleanup] {"bytes":9,"removed":true}
+[selftest-cleanup] {"bytes":101,"removed":true}
+✔ LP17-H08 출력 초과 종료와 보존량 상한 (35.884833ms)
+✔ LP17-H09 정리 소유권·symlink target 보존 (1.234209ms)
+✔ LP17-H10 입력 manifest 변조와 symlink 거부 (1.207917ms)
+[selftest-cleanup] {"bytes":0,"removed":true}
+✔ LP17-H11 자식만 남긴 종료를 정상 완료로 오인하지 않음 (148.234083ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 11
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 413.251917
+
+✖ failing tests:
+
+test at scripts/internal/recording_catalog_comparison.test.mjs:20:1
+✖ LP19-H01 계측 손실 없는 왕복 (3.94075ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(r.valid)
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_comparison.test.mjs:22:2)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_catalog_comparison.test.mjs:29:1
+✖ LP19-H02 잘못된 축약 표현 거부 (0.275ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert(!observations(text()+line(row),expected).valid)
+  
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_comparison.test.mjs:36:3)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

@@ -7,6 +7,19 @@ import {spawn, spawnSync} from 'node:child_process';
 
 export const limits=Object.freeze({historicalRss:536870912,rss:1073741824,disk:536870912,output:2097152,seconds:180});
 const number=v=>Number.isSafeInteger(v)&&v>=0;
+// version 1의 열 순서는 C++ Emit과 함께 고정한다. 기존 객체형은 과거 부분 계측도 허용한다.
+export const ownerColumns=Object.freeze('records samples fileSamples mappings stringBytes stringCapacity vectorCapacityBytes jobs segments bindings tombstones accessUnits uniqueEnvelopes sharedEnvelopeReferences logicalEnvelopeBytes uniqueBindingObjects sharedBindingReferences logicalBindingSamples uniqueJobObjects sharedJobReferences logicalLinkCount logicalEnvelopeChargeBytes weakLinkCount residentFallbackLinkCount coldEnvelopes residentBindings coldBindings residentJobs coldJobs entryStorageBytes locationStorageBytes'.split(' '));
+export function normalizeOwner(row){
+ if(!row||typeof row!=='object'||Array.isArray(row)||!['owner','owner-packed'].includes(row.kind)||
+  !['journal','live','shadow','prefix','fixture','snapshot'].includes(row.owner)||typeof row.stage!=='string'||!/^[a-z0-9_-]+$/.test(row.stage))throw Error('owner-format');
+ if(row.kind==='owner-packed'){
+  if(Object.keys(row).sort().join(',')!=='kind,owner,stage,values,version'||row.version!==1||
+   !Array.isArray(row.values)||row.values.length!==ownerColumns.length||!row.values.every(number))throw Error('owner-packed-format');
+  return {kind:'owner',stage:row.stage,owner:row.owner,...Object.fromEntries(ownerColumns.map((key,i)=>[key,row.values[i]]))};
+ }
+ for(const [key,value] of Object.entries(row))if(!['kind','owner','stage'].includes(key)&&(!ownerColumns.includes(key)||!number(value)))throw Error('owner-format');
+ return {...row};
+}
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 export function treeBytes(root){
  const s=fs.lstatSync(root);
@@ -54,7 +67,7 @@ function readGroup(pgid){
 export function observations(stdout,expected){
  const rows=[];let valid=true,peak=0;
  for(const line of stdout.split('\n').filter(l=>l.startsWith('[lp17] '))){
-  try{const row=JSON.parse(line.slice(7));if(!row||typeof row!=='object'||Array.isArray(row))throw Error();rows.push(row);}catch{valid=false;}
+  try{const row=JSON.parse(line.slice(7));if(!row||typeof row!=='object'||Array.isArray(row))throw Error();rows.push(['owner','owner-packed'].includes(row.kind)?normalizeOwner(row):row);}catch{valid=false;}
  }
  const memories=rows.filter(r=>r.kind==='memory');
  for(const r of memories){

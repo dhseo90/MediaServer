@@ -14,6 +14,28 @@ const input=()=>({stdout:text(),stderr:'650000000 maximum resident set size\n',c
 const root=()=>{const p=fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()),'media-server-catalog-cost.'));fs.chmodSync(p,0o700);return p;};
 function finish(p){const result=cleanupOwned(p);console.log('[selftest-cleanup] '+JSON.stringify(result));assert(result.removed);}
 
+const ownerColumns='records samples fileSamples mappings stringBytes stringCapacity vectorCapacityBytes jobs segments bindings tombstones accessUnits uniqueEnvelopes sharedEnvelopeReferences logicalEnvelopeBytes uniqueBindingObjects sharedBindingReferences logicalBindingSamples uniqueJobObjects sharedJobReferences logicalLinkCount logicalEnvelopeChargeBytes weakLinkCount residentFallbackLinkCount coldEnvelopes residentBindings coldBindings residentJobs coldJobs entryStorageBytes locationStorageBytes'.split(' ');
+const packed=()=>({kind:'owner-packed',version:1,stage:'after-commit',owner:'live',values:ownerColumns.map((_,i)=>i===30?Number.MAX_SAFE_INTEGER:i)});
+const withOwner=row=>text().replace(line({kind:'owner',owner:'live',stage:'after-commit',samples:64}),line(row));
+test('LP19-H01 계측 손실 없는 왕복',()=>{
+ const p=packed(),r=observations(withOwner(p),expected);
+ assert(r.valid);assert.deepEqual(r.owners,[{kind:'owner',stage:p.stage,owner:p.owner,...Object.fromEntries(ownerColumns.map((k,i)=>[k,p.values[i]]))}]);
+ assert(observations(text(),expected).valid);
+ const cpp=fs.readFileSync(new URL('./recording_catalog_comparison_ownership.h',import.meta.url),'utf8');
+ const emit=cpp.slice(cpp.indexOf('inline void Emit('),cpp.indexOf('// 정의는 복제 journal.cpp'));
+ assert.deepEqual([...emit.matchAll(/n\.([A-Za-z]+)/g)].map(m=>m[1]),ownerColumns);
+ assert.match(emit,/owner-packed/);
+});
+test('LP19-H02 잘못된 축약 표현 거부',()=>{
+ const p=packed();
+ // 잘못된 packed가 정상 owner 옆에 있어도 무시되어서는 안 된다.
+ for(const row of [{...p,version:2},{...p,version:undefined},{...p,values:p.values.slice(1)},
+  {...p,values:[...p.values,0]},{...p,records:0},{...p,unknown:0},{...p,owner:'unknown'},
+  {...p,stage:'bad stage'},{...p,kind:'owner',values:p.values},
+  ...[-1,0.5,Number.MAX_SAFE_INTEGER+1,null,'1'].map(v=>({...p,values:[v,...p.values.slice(1)]}))])
+  assert(!observations(text()+line(row),expected).valid);
+});
+
 test('LP17-H01 기존 RSS 실패와 유효 진단 분리',()=>{
  const r=classify(input());assert.equal(r.historicalRssPass,false);assert.equal(r.diagnosticPass,true);
  assert.equal(r.semanticPass,true);assert.equal(r.observationValid,true);

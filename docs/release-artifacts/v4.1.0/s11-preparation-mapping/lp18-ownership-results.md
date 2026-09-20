@@ -1,5 +1,199 @@
 # LP18 공유 소유 focused 개별 결과
 
+## LP19 누적 검사 준비 결과
+
+손실 없는 owner 표현과 위치 재읽기 계측의 관련 기록이다. 실행 정의와 판정은 중앙 LP19를 따른다.
+
+### lp19-owner-red-01.txt
+
+[원출력](lp19-owner-red-01.txt), 3105B, SHA256 `b95c58f58fc67c3eca1d39809fab7a325167dc6df703e4830267d66d86d0595f`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| LP19-H01 계측 손실 없는 왕복 | 원출력1행  | FAIL | 사전 정의된 H01/H02 RED는 기능 PASS 아님 |
+| LP19-H02 잘못된 축약 표현 거부 | 원출력2행  | FAIL | 사전 정의된 H01/H02 RED는 기능 PASS 아님 |
+| LP17-H01 기존 RSS 실패와 유효 진단 분리 | 원출력3행  | PASS | 사전 정의된 H01/H02 RED는 기능 PASS 아님 |
+| LP17-H02 관측 누락·손상·역행·잘못된 owner 거부 | 원출력4행  | PASS | 사전 정의된 H01/H02 RED는 기능 PASS 아님 |
+| LP17-H03 완료 summary 누락·중복·다른 작업·실패 거부 | 원출력5행  | PASS | 사전 정의된 H01/H02 RED는 기능 PASS 아님 |
+| LP17-H04 process group 단위와 외부·zombie 제외 | 원출력6행  | PASS | 사전 정의된 H01/H02 RED는 기능 PASS 아님 |
+| LP17-H05 실행 안전 상한·기능 실패·정리 실패 분리 | 원출력7행  | PASS | 사전 정의된 H01/H02 RED는 기능 PASS 아님 |
+| LP17-H06 실제 소유 자식 exit0/7와 그룹 종료 확인 | 원출력9행  | PASS | 사전 정의된 H01/H02 RED는 기능 PASS 아님 |
+| LP17-H07 실제 timeout 자식 종료와 뒤 단계 차단 | 원출력11행  | PASS | 사전 정의된 H01/H02 RED는 기능 PASS 아님 |
+| LP17-H08 출력 초과 종료와 보존량 상한 | 원출력16행  | PASS | 사전 정의된 H01/H02 RED는 기능 PASS 아님 |
+| LP17-H09 정리 소유권·symlink target 보존 | 원출력17행  | PASS | 사전 정의된 H01/H02 RED는 기능 PASS 아님 |
+| LP17-H10 입력 manifest 변조와 symlink 거부 | 원출력18행  | PASS | 사전 정의된 H01/H02 RED는 기능 PASS 아님 |
+| LP17-H11 자식만 남긴 종료를 정상 완료로 오인하지 않음 | 원출력20행  | PASS | 사전 정의된 H01/H02 RED는 기능 PASS 아님 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| <owned-root> | 격리 검증 산출물 | 0B | 소유 확인 후 삭제 | removed=true | 원출력8행 |
+| <owned-root> | 격리 검증 산출물 | 0B | 소유 확인 후 삭제 | removed=true | 원출력10행 |
+| <owned-root> | 격리 검증 산출물 | 0B | 소유 확인 후 삭제 | removed=true | 원출력12행 |
+| <owned-root> | 격리 검증 산출물 | 89B | 소유 확인 후 삭제 | removed=true | 원출력13행 |
+| <owned-root> | 격리 검증 산출물 | 9B | 소유 확인 후 삭제 | removed=true | 원출력14행 |
+| <owned-root> | 격리 검증 산출물 | 101B | 소유 확인 후 삭제 | removed=true | 원출력15행 |
+| <owned-root> | 격리 검증 산출물 | 0B | 소유 확인 후 삭제 | removed=true | 원출력19행 |
+
+### lp19-owner-green-01.txt
+
+[원출력](lp19-owner-green-01.txt), 2814B, SHA256 `3175b567485879703ef8bc95d56834e09c731b8d60880c6bbdaa334fe522b1fd`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| LP19-H01 계측 손실 없는 왕복 | 원출력3행  | PASS | 실제 개별 assertion |
+| LP19-H02 잘못된 축약 표현 거부 | 원출력9행  | PASS | 실제 개별 assertion |
+| LP17-H01 기존 RSS 실패와 유효 진단 분리 | 원출력15행  | PASS | 실제 개별 assertion |
+| LP17-H02 관측 누락·손상·역행·잘못된 owner 거부 | 원출력21행  | PASS | 실제 개별 assertion |
+| LP17-H03 완료 summary 누락·중복·다른 작업·실패 거부 | 원출력27행  | PASS | 실제 개별 assertion |
+| LP17-H04 process group 단위와 외부·zombie 제외 | 원출력33행  | PASS | 실제 개별 assertion |
+| LP17-H05 실행 안전 상한·기능 실패·정리 실패 분리 | 원출력39행  | PASS | 실제 개별 assertion |
+| LP17-H06 실제 소유 자식 exit0/7와 그룹 종료 확인 | 원출력46행  | PASS | 실제 개별 assertion |
+| LP17-H07 실제 timeout 자식 종료와 뒤 단계 차단 | 원출력53행  | PASS | 실제 개별 assertion |
+| LP17-H08 출력 초과 종료와 보존량 상한 | 원출력63행  | PASS | 실제 개별 assertion |
+| LP17-H09 정리 소유권·symlink target 보존 | 원출력69행  | PASS | 실제 개별 assertion |
+| LP17-H10 입력 manifest 변조와 symlink 거부 | 원출력75행  | PASS | 실제 개별 assertion |
+| LP17-H11 자식만 남긴 종료를 정상 완료로 오인하지 않음 | 원출력82행  | PASS | 실제 개별 assertion |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| <owned-root> | 격리 검증 산출물 | 0B | 소유 확인 후 삭제 | removed=true | 원출력44행 |
+| <owned-root> | 격리 검증 산출물 | 0B | 소유 확인 후 삭제 | removed=true | 원출력51행 |
+| <owned-root> | 격리 검증 산출물 | 0B | 소유 확인 후 삭제 | removed=true | 원출력58행 |
+| <owned-root> | 격리 검증 산출물 | 89B | 소유 확인 후 삭제 | removed=true | 원출력59행 |
+| <owned-root> | 격리 검증 산출물 | 9B | 소유 확인 후 삭제 | removed=true | 원출력60행 |
+| <owned-root> | 격리 검증 산출물 | 101B | 소유 확인 후 삭제 | removed=true | 원출력61행 |
+| <owned-root> | 격리 검증 산출물 | 0B | 소유 확인 후 삭제 | removed=true | 원출력80행 |
+
+### lp17-small-lp19-01.txt
+
+[원출력](lp17-small-lp19-01.txt), 200478B, SHA256 `2f9e0f395e631a6af1cc899d6a88993517b6f996946ae9349b0497b32b875004`.
+
+run-result: `{"kind":"run-result","mode":"small","id":"lp19-01","diagnosticPass":true,"failure":null,"phases":12,"elapsedMs":10227,"productPass":false,"tokenConsumed":null}`. packed 관측201행 복원, 재읽기 비용18행 보존.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| runtime-freshness | 원출력22행, exit0, 409ms | PASS | cleanup=true |
+| compile | 원출력54행, exit0, 4714ms | PASS | cleanup=true |
+| prepare | 원출력84행, exit0, 2065ms | PASS | cleanup=true |
+| scale-A | 원출력389행, exit0, 286ms | PASS | cleanup=true |
+| reopen-A-sqlite | 원출력471행, exit0, 276ms | PASS | cleanup=true |
+| reopen-A-jsonl | 원출력545행, exit0, 257ms | PASS | cleanup=true |
+| scale-B | 원출력850행, exit0, 287ms | PASS | cleanup=true |
+| reopen-B-sqlite | 원출력932행, exit0, 277ms | PASS | cleanup=true |
+| reopen-B-jsonl | 원출력1006행, exit0, 273ms | PASS | cleanup=true |
+| scale-C | 원출력1321행, exit0, 289ms | PASS | cleanup=true |
+| reopen-C-sqlite | 원출력1403행, exit0, 277ms | PASS | cleanup=true |
+| reopen-C-jsonl | 원출력1477행, exit0, 273ms | PASS | cleanup=true |
+| FC01 exact insertion checks count=97 | 원출력28행 compile | PASS | 실제 개별 assertion |
+| recorded FE02 writer start | 원출력57행 prepare | PASS | 실제 개별 assertion |
+| recorded FE04 bound finalized mutation segment0 | 원출력58행 prepare | PASS | 실제 개별 assertion |
+| LP17/prepare LP02.actual4096-prerequisite | 원출력60행 prepare | PASS | 실제 개별 assertion |
+| LP17/prepare seed.input-count | 원출력61행 prepare | PASS | 실제 개별 assertion |
+| LP17/prepare seed.input-identity-all-samples | 원출력62행 prepare | PASS | 실제 개별 assertion |
+| LP17/prepare seed.physical-evidence | 원출력63행 prepare | PASS | 실제 개별 assertion |
+| LP17/commit1 LP02.reserve | 원출력102행 scale-A | PASS | 실제 개별 assertion |
+| LP17/commit1 LP02.actual-file-outside-catalog | 원출력103행 scale-A | PASS | 실제 개별 assertion |
+| LP17/commit1 LP02.commit | 원출력144행 scale-A | PASS | 실제 개별 assertion |
+| LP17/commit2 LP02.reserve | 원출력159행 scale-A | PASS | 실제 개별 assertion |
+| LP17/commit2 LP02.actual-file-outside-catalog | 원출력160행 scale-A | PASS | 실제 개별 assertion |
+| LP17/commit2 LP02.commit | 원출력201행 scale-A | PASS | 실제 개별 assertion |
+| LP17/snapshot2 LP02.snapshot-exact-count | 원출력230행 scale-A | PASS | 실제 개별 assertion |
+| LP17/snapshot2 snapshot.canonical-all | 원출력243행 scale-A | PASS | 실제 개별 assertion |
+| LP17/snapshot2 LP02.explicit-checkpoint | 원출력280행 scale-A | PASS | 실제 개별 assertion |
+| LP17/snapshot2 LP02.reservation-bound-mutation-count | 원출력286행 scale-A | PASS | 실제 개별 assertion |
+| LP17/delete delete.original-canonical | 원출력295행 scale-A | PASS | 실제 개별 assertion |
+| LP17/delete delete.pending | 원출력311행 scale-A | PASS | 실제 개별 assertion |
+| LP17/delete delete.unlink | 원출력312행 scale-A | PASS | 실제 개별 assertion |
+| LP17/delete delete.tombstone | 원출력327행 scale-A | PASS | 실제 개별 assertion |
+| LP17/delete delete.checkpoint | 원출력352행 scale-A | PASS | 실제 개별 assertion |
+| LP17/delete delete.binding-preserved | 원출력353행 scale-A | PASS | 실제 개별 assertion |
+| LP17/delete deleted.public-hidden | 원출력354행 scale-A | PASS | 실제 개별 assertion |
+| LP17/reopen/sqlite LP02.journal-reopen | 원출력403행 reopen-A-sqlite | PASS | 실제 개별 assertion |
+| LP17/reopen/sqlite LP02.catalog-reopen | 원출력426행 reopen-A-sqlite | PASS | 실제 개별 assertion |
+| LP17/reopen/sqlite/0 LP02.exact-source | 원출력432행 reopen-A-sqlite | PASS | 실제 개별 assertion |
+| LP17/reopen/sqlite/0 deleted.public-hidden | 원출력433행 reopen-A-sqlite | PASS | 실제 개별 assertion |
+| LP17/reopen/sqlite/0 reopen.deleted-state | 원출력435행 reopen-A-sqlite | PASS | 실제 개별 assertion |
+| LP17/reopen/sqlite/1 LP02.exact-source | 원출력436행 reopen-A-sqlite | PASS | 실제 개별 assertion |
+| LP17/reopen/sqlite/1 reopen.remaining-media | 원출력438행 reopen-A-sqlite | PASS | 실제 개별 assertion |
+| LP17/reopen/jsonl LP02.journal-reopen | 원출력485행 reopen-A-jsonl | PASS | 실제 개별 assertion |
+| LP17/reopen/jsonl LP02.catalog-reopen | 원출력500행 reopen-A-jsonl | PASS | 실제 개별 assertion |
+| LP17/reopen/jsonl/0 LP02.exact-source | 원출력506행 reopen-A-jsonl | PASS | 실제 개별 assertion |
+| LP17/reopen/jsonl/0 deleted.public-hidden | 원출력507행 reopen-A-jsonl | PASS | 실제 개별 assertion |
+| LP17/reopen/jsonl/0 reopen.deleted-state | 원출력509행 reopen-A-jsonl | PASS | 실제 개별 assertion |
+| LP17/reopen/jsonl/1 LP02.exact-source | 원출력510행 reopen-A-jsonl | PASS | 실제 개별 assertion |
+| LP17/reopen/jsonl/1 reopen.remaining-media | 원출력512행 reopen-A-jsonl | PASS | 실제 개별 assertion |
+| LP17/commit1 LP02.reserve | 원출력563행 scale-B | PASS | 실제 개별 assertion |
+| LP17/commit1 LP02.actual-file-outside-catalog | 원출력564행 scale-B | PASS | 실제 개별 assertion |
+| LP17/commit1 LP02.commit | 원출력605행 scale-B | PASS | 실제 개별 assertion |
+| LP17/commit2 LP02.reserve | 원출력620행 scale-B | PASS | 실제 개별 assertion |
+| LP17/commit2 LP02.actual-file-outside-catalog | 원출력621행 scale-B | PASS | 실제 개별 assertion |
+| LP17/commit2 LP02.commit | 원출력662행 scale-B | PASS | 실제 개별 assertion |
+| LP17/snapshot2 LP02.snapshot-exact-count | 원출력691행 scale-B | PASS | 실제 개별 assertion |
+| LP17/snapshot2 snapshot.canonical-all | 원출력704행 scale-B | PASS | 실제 개별 assertion |
+| LP17/snapshot2 LP02.explicit-checkpoint | 원출력741행 scale-B | PASS | 실제 개별 assertion |
+| LP17/snapshot2 LP02.reservation-bound-mutation-count | 원출력747행 scale-B | PASS | 실제 개별 assertion |
+| LP17/delete delete.original-canonical | 원출력756행 scale-B | PASS | 실제 개별 assertion |
+| LP17/delete delete.pending | 원출력772행 scale-B | PASS | 실제 개별 assertion |
+| LP17/delete delete.unlink | 원출력773행 scale-B | PASS | 실제 개별 assertion |
+| LP17/delete delete.tombstone | 원출력788행 scale-B | PASS | 실제 개별 assertion |
+| LP17/delete delete.checkpoint | 원출력813행 scale-B | PASS | 실제 개별 assertion |
+| LP17/delete delete.binding-preserved | 원출력814행 scale-B | PASS | 실제 개별 assertion |
+| LP17/delete deleted.public-hidden | 원출력815행 scale-B | PASS | 실제 개별 assertion |
+| LP17/reopen/sqlite LP02.journal-reopen | 원출력858행 reopen-B-sqlite | PASS | 실제 개별 assertion |
+| LP17/reopen/sqlite LP02.catalog-reopen | 원출력881행 reopen-B-sqlite | PASS | 실제 개별 assertion |
+| LP17/reopen/sqlite/0 LP02.exact-source | 원출력890행 reopen-B-sqlite | PASS | 실제 개별 assertion |
+| LP17/reopen/sqlite/0 deleted.public-hidden | 원출력891행 reopen-B-sqlite | PASS | 실제 개별 assertion |
+| LP17/reopen/sqlite/0 reopen.deleted-state | 원출력893행 reopen-B-sqlite | PASS | 실제 개별 assertion |
+| LP17/reopen/sqlite/1 LP02.exact-source | 원출력897행 reopen-B-sqlite | PASS | 실제 개별 assertion |
+| LP17/reopen/sqlite/1 reopen.remaining-media | 원출력899행 reopen-B-sqlite | PASS | 실제 개별 assertion |
+| LP17/reopen/jsonl LP02.journal-reopen | 원출력940행 reopen-B-jsonl | PASS | 실제 개별 assertion |
+| LP17/reopen/jsonl LP02.catalog-reopen | 원출력955행 reopen-B-jsonl | PASS | 실제 개별 assertion |
+| LP17/reopen/jsonl/0 LP02.exact-source | 원출력964행 reopen-B-jsonl | PASS | 실제 개별 assertion |
+| LP17/reopen/jsonl/0 deleted.public-hidden | 원출력965행 reopen-B-jsonl | PASS | 실제 개별 assertion |
+| LP17/reopen/jsonl/0 reopen.deleted-state | 원출력967행 reopen-B-jsonl | PASS | 실제 개별 assertion |
+| LP17/reopen/jsonl/1 LP02.exact-source | 원출력971행 reopen-B-jsonl | PASS | 실제 개별 assertion |
+| LP17/reopen/jsonl/1 reopen.remaining-media | 원출력973행 reopen-B-jsonl | PASS | 실제 개별 assertion |
+| LP17/commit1 LP02.reserve | 원출력1024행 scale-C | PASS | 실제 개별 assertion |
+| LP17/commit1 LP02.actual-file-outside-catalog | 원출력1025행 scale-C | PASS | 실제 개별 assertion |
+| LP17/commit1 LP02.commit | 원출력1066행 scale-C | PASS | 실제 개별 assertion |
+| LP17/commit2 LP02.reserve | 원출력1081행 scale-C | PASS | 실제 개별 assertion |
+| LP17/commit2 LP02.actual-file-outside-catalog | 원출력1082행 scale-C | PASS | 실제 개별 assertion |
+| LP17/commit2 LP02.commit | 원출력1123행 scale-C | PASS | 실제 개별 assertion |
+| LP17/snapshot2 LP02.snapshot-exact-count | 원출력1152행 scale-C | PASS | 실제 개별 assertion |
+| LP17/snapshot2 snapshot.canonical-all | 원출력1165행 scale-C | PASS | 실제 개별 assertion |
+| LP17/snapshot2 LP02.explicit-checkpoint | 원출력1204행 scale-C | PASS | 실제 개별 assertion |
+| LP17/snapshot2 LP02.reservation-bound-mutation-count | 원출력1210행 scale-C | PASS | 실제 개별 assertion |
+| LP17/delete delete.original-canonical | 원출력1219행 scale-C | PASS | 실제 개별 assertion |
+| LP17/delete delete.pending | 원출력1235행 scale-C | PASS | 실제 개별 assertion |
+| LP17/delete delete.unlink | 원출력1236행 scale-C | PASS | 실제 개별 assertion |
+| LP17/delete delete.tombstone | 원출력1251행 scale-C | PASS | 실제 개별 assertion |
+| LP17/delete delete.checkpoint | 원출력1284행 scale-C | PASS | 실제 개별 assertion |
+| LP17/delete delete.binding-preserved | 원출력1285행 scale-C | PASS | 실제 개별 assertion |
+| LP17/delete deleted.public-hidden | 원출력1286행 scale-C | PASS | 실제 개별 assertion |
+| LP17/reopen/sqlite LP02.journal-reopen | 원출력1329행 reopen-C-sqlite | PASS | 실제 개별 assertion |
+| LP17/reopen/sqlite LP02.catalog-reopen | 원출력1352행 reopen-C-sqlite | PASS | 실제 개별 assertion |
+| LP17/reopen/sqlite/0 LP02.exact-source | 원출력1361행 reopen-C-sqlite | PASS | 실제 개별 assertion |
+| LP17/reopen/sqlite/0 deleted.public-hidden | 원출력1362행 reopen-C-sqlite | PASS | 실제 개별 assertion |
+| LP17/reopen/sqlite/0 reopen.deleted-state | 원출력1364행 reopen-C-sqlite | PASS | 실제 개별 assertion |
+| LP17/reopen/sqlite/1 LP02.exact-source | 원출력1368행 reopen-C-sqlite | PASS | 실제 개별 assertion |
+| LP17/reopen/sqlite/1 reopen.remaining-media | 원출력1370행 reopen-C-sqlite | PASS | 실제 개별 assertion |
+| LP17/reopen/jsonl LP02.journal-reopen | 원출력1411행 reopen-C-jsonl | PASS | 실제 개별 assertion |
+| LP17/reopen/jsonl LP02.catalog-reopen | 원출력1426행 reopen-C-jsonl | PASS | 실제 개별 assertion |
+| LP17/reopen/jsonl/0 LP02.exact-source | 원출력1435행 reopen-C-jsonl | PASS | 실제 개별 assertion |
+| LP17/reopen/jsonl/0 deleted.public-hidden | 원출력1436행 reopen-C-jsonl | PASS | 실제 개별 assertion |
+| LP17/reopen/jsonl/0 reopen.deleted-state | 원출력1438행 reopen-C-jsonl | PASS | 실제 개별 assertion |
+| LP17/reopen/jsonl/1 LP02.exact-source | 원출력1442행 reopen-C-jsonl | PASS | 실제 개별 assertion |
+| LP17/reopen/jsonl/1 reopen.remaining-media | 원출력1444행 reopen-C-jsonl | PASS | 실제 개별 assertion |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| <owned-root>/store-A | 격리 검증 산출물 | 256627B | 소유 확인 후 삭제 | removed=true | 원출력546행 |
+| <owned-root>/store-B | 격리 검증 산출물 | 256627B | 소유 확인 후 삭제 | removed=true | 원출력1007행 |
+| <owned-root>/store-C | 격리 검증 산출물 | 256627B | 소유 확인 후 삭제 | removed=true | 원출력1478행 |
+| <owned-root> | 격리 검증 산출물 | 19663635B | 소유 확인 후 삭제 | removed=true | 원출력1480행 |
+
+
+
 ### lp17-jobs-typed-01.txt
 
 [원출력](lp17-jobs-typed-01.txt), 253916B, SHA256 `38641fe37ecae78a1b8a967f117ada9d9d9884e6df5ed01f66e632512fd2b6af`.

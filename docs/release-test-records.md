@@ -1,5 +1,77 @@
 # Release Test Records
 
+## 2026-09-20 LP19 누적 비용 → 실제 HTTP → 실제 이벤트 통합
+
+사용자 승인: 1~3번 순차 개발·관련 단기 검증·분할 커밋, 전체 범위가 푸시 가능하면 마지막 푸시.
+시작 HEAD `2ad4869f115013e09311a09772a4fe69fb5ad4ad`, clean, 추적 원격 대비 ahead33/behind0.
+이번 승인은 미완료 중간 저장 푸시가 아니며 S11 최종 검증·브라우저·장시간·릴리즈 외부 작업은 포함하지 않는다.
+메인은 단계 판정·기록·실제 증거 대조, 기존 단일 Astra/medium 담당자는 범위가 고정된 검증 도구 작업만 담당한다. 하위 위임 금지.
+제품 바이트·저장/시간/ID/보존·공개 API·HTTP4000ms·검사 자원 상한을 유지한다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 누적16/32 비용 판정 | 착수 | 기존 LP17-D01~07에 현재 typed 수명 구현 적용. 준비/제품 비용 분리 | LP17 비교 계약·LP18-R·아래 실행 전 정의 |
+| 2 | 실제 HTTP 지연 확인 | 대기 | 1번 통과 후 `--latency-only`, 실패 시 진단/종료/정리 보존 | LP11-02·기존4000ms |
+| 3 | 실제 이벤트 통합 마감 | 대기 | 2번 통과 후 현행5단계 suite의 마지막 실제 앱 검사에서2출력·재기동 확인. 같은 실제 앱 검사를 독립 실행으로 중복하지 않음 | S11-CI07~11 |
+| 4 | 분할 커밋·최종 푸시·후속 보고 | 대기 | 각 통과 단위 커밋, 전체 승인 범위 실패/미커밋 없을 때 푸시 판정 | AGENTS3/5 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 위1~3 명시 승인, 기존 비교·API/실제 앱 의미/정리 검사 | LP17-D01~08, LP18-R, LP11-02, S11-CI07~11 | 이번 관련 단기 승인 |
+| 30분 | 미진행 | 개발 중 최종cut 아님 | AGENTS7.6.2 | 이번 실행 제외 |
+| 120분 | 미진행 | 개발 중 최종cut 아님. 최종 필요성 유지 | AGENTS7.6.2 | 이번 실행 제외 |
+| UI | 미진행 | 브라우저 제외 유지, API로 UI PASS 대체 금지 | AGENTS7.6.3 | 이번 실행 제외 |
+
+### 1번 실행 전 준비와 정의
+
+현재 계측은 owner 관측마다31개 수치 필드를 반복 출력한다. 이전 큰 비교 원출력2074051B(옛 owner 평균262B),
+현재 작은 비교 owner 평균682B이므로 같은 큰 관측 수에서 원출력2MiB 상한 초과가 예상된다.
+아직 큰 검사를 실행하지 않았고 제품 실패로 판정하지 않는다. 필드명 중복만 제거하는 손실 없는 고정 필드 배열 표현을
+검증 도구에 적용한다. 모든 수치·stage·owner를 유지하고 잘못된 형식/길이/값은 거부한다. 기존 원출력도 읽는다.
+출력/RSS/디스크/시간 상한은 유지하며 축약 표현의 자체검사→작은 전체 의미 검사 후 큰 검사를 실행한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP19-H01 계측 손실 없는 왕복 | owner 고정 필드 배열 복원 | 31개 서로 다른 값과0, 허용 최대 정수까지 exact 복원. stage/owner 보존, 기존 객체 표현 유지 | v4.1.0 |
+| LP19-H02 잘못된 축약 표현 거부 | 형식·길이·숫자 오류 | version/추가·누락 열/음수/소수/unsafe integer/부적절한 혼용은 유효 관측으로 인정하지 않음 | v4.1.0 |
+| LP19-H03 실제 계측 연결 | 작은2원본 전체 비교 | 기존small 100개 의미·9개 비교/복구phase·입력/제품 불변·정리 PASS, 새 표현 실제 발생·복원 확인 | v4.1.0 |
+| LP19-H04 원장 재읽기 계측 | 검사 복제본의 성공한 위치 읽기 | 실제 ReadAt·raw SHA 대조 성공 뒤 calls/bytes만 누적. 작은 비교에서 commit/checkpoint/복구 수치 확보, 제품/원문 변경 없음 | v4.1.0 |
+| LP19-01 현재16/32 누적 | `node scripts/internal/recording_catalog_comparison_run.mjs sources lp19-01` | 기존4096sample·A/B/C·1/16/32·삭제·새프로세스SQLite/JSONL. 기존LP17-D 전수 case 재사용 | v4.1.0 |
+| LP19-02 수명/비용 판정 | 준비와 제품 비용, 현재/peak RSS, 소유량, 잠금·CP 재읽기 | 비활성 상세 resident/재open 잔존 및 같은변경량/증가이력 비용을 구분. 진단 PASS만으로 제품 비용 PASS 아님 | v4.1.0 |
+
+기존 작은32sample/2원본100개와 실제2-job122개 및 typed/저장/복구 영향 회귀는 `2ad4869f` 제품 코드에 유효하다.
+검증 표현 변경은 작은 비교를 재실행하되 무관한 제품 회귀·전체 빌드를 자동 반복하지 않는다.
+모든 실행의 token start/end/consumed는 개별 집계 제공 부재로 미집계이며 source/명령/exit/elapsed/정리는 실제 출력으로 남긴다.
+실행 전 상태이므로 아직 PASS·커밋 가능 판정이 아니다.
+
+읽기 사전점검에서 후속3번의 기존 불일치를 확인했다. `recording_current_integration_suite.mjs`의
+actual-app 종료 oracle는 `graceful===true`를 요구하지만 실제 `recording_process_cleanup.mjs`는
+`normalExitPass/normalShutdownPass/archiveSafe/forcedTermination`를 반환한다. 현재 정상 실행도
+잘못 거부될 수 있다. 1·2 통과 후3번 준비 시 정상/비정상 반례를 등록하고 현재 종료 계약을 엄격히
+소비하도록 고친다. HTTP fixture의 별도 graceful 반환은 현재 유효하므로 함께 바꾸지 않는다.
+이는 실제 앱 종료 실패를 확인한 결과가 아니며 후속 실행·제품 수정은 아직 없다.
+
+### 1번 준비 단위 결과
+
+사전 H01/H02 RED는 신규2FAIL/기존11PASS, exit1/413.252ms로 정확한 assertion과 일치했다.
+`node --test --test-reporter=tap scripts/internal/recording_catalog_comparison.test.mjs` GREEN은13PASS/0FAIL,
+exit0/410.187ms다. C++와 JS의31열 순서·모든 값 복원·손상 거부·과거 형식 유지와 기존 runner 안전 검사를 확인했다.
+메인이 실제 diff와 두 원출력을 대조했으며 제품 코드·상한·기존 기능 assertion은 바꾸지 않았다.
+
+`node scripts/internal/recording_catalog_comparison_run.mjs small lp19-01`: exit0/10227ms,
+12phase 통과·개별100PASS, packed201행 복원, 실제 재읽기18개 비용 행을 보존했다.
+2원본 snapshot은 실제2행/19272B, explicit checkpoint는4행/19950B, 삭제후checkpoint는6행/21614B를 읽었다.
+원출력200478B, 입력/제품 source 불변·각 프로세스 그룹 종료·root 삭제 모두 확인했다.
+이 결과는 준비 도구 PASS이며 누적16/32 비용 판정·실제 HTTP/통합 PASS가 아니다.
+
+개별 RED13/GREEN13/작은비교100개와12phase 및 정리18행은
+[개별 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md#lp19-누적-검사-준비-결과)에 보존했다.
+자체검사마다 소유 root7개/199B, 작은 비교 store3개 각256627B와 최종root19663635B를 삭제·부재 확인했다.
+raw3개 총206397B는 비민감 숫자·검사/소스 hash·정리 근거 보존 목적이며 credential/실제 영상은 없다.
+토큰 미집계 사유는 위와 같고 elapsed/source는 원출력에 보존했다.
+문서 링크 검사 `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links` exit0/0.029초,
+md285·links8977·images22·anchors117·failures0. 준비 단위만 커밋하며 실제 누적 비용 판정은 다음이다.
+
 ## 2026-09-20 LP18 기준 검증 분리 후 위치·RAM 수명 순차 마감
 
 사용자 승인: 기준 검증 보완 → 통과 후 위치 재획득 마감 → 상세 RAM 수명 적용, 단계별 분할 커밋.
