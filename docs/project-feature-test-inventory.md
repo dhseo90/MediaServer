@@ -1,5 +1,29 @@
 # Project Feature Test Inventory
 
+## LP24 복구 호출 내 중복 처리 사전등록
+
+중앙 LP24-R의 exact 제목/반례가 실행 정의다. 등록은 PASS가 아니다.
+
+| ID | 기능 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| LP24-R01 | 최초 strict 검증 | parse/손상 거부 | S11 최종cut | S11 최종cut | 비대상: 내부 저장 |
+| LP24-R02 | 적용 재사용 | parse 감소·전이 유지 | S11 최종cut | S11 최종cut | 비대상: 내부 저장 |
+| LP24-R03 | SQLite 재투영 재사용 | exact 내용·canonical | S11 최종cut | S11 최종cut | 비대상: 내부 저장 |
+| LP24-R04 | 저장 동등성 | SQLite/JSONL/파일 bytes | S11 최종cut | S11 최종cut | 비대상: 내부 저장 |
+| LP24-R05 | 새 Open | fresh strict 검증 | S11 최종cut | S11 최종cut | 비대상: 내부 저장 |
+| LP24-R06 | envelope 결박 | 모든 필드별 변조 거부 | S11 최종cut | S11 최종cut | 비대상: 내부 저장 |
+| LP24-R07 | ordinal/중복 | 충돌·물리 순서 | S11 최종cut | S11 최종cut | 비대상: 내부 저장 |
+| LP24-R08 | 과거 상태 보존 | Ready/Complete 치환 거부 | S11 최종cut | S11 최종cut | 비대상: 내부 저장 |
+| LP24-R09 | 상태·보호 | 예약/source/삭제/hold | S11 최종cut | S11 최종cut | 비대상: 내부 저장 |
+| LP24-R10 | 원장 변경 | 무효화·strict 손상 거부 | S11 최종cut | S11 최종cut | 비대상: 내부 저장 |
+| LP24-R11 | pending | strict 복구 유지 | S11 최종cut | S11 최종cut | 비대상: 내부 저장 |
+| LP24-R12 | 상한/할당 | bounded admission·strict fallback | S11 최종cut | S11 최종cut | 비대상: 내부 저장 |
+| LP24-R13 | 호출 수명 | 성공/실패/예외 해제 | S11 최종cut | S11 최종cut | 비대상: 내부 저장 |
+| LP24-R14 | noncanonical | 기존 SQL bytes | S11 최종cut | S11 최종cut | 비대상: 내부 저장 |
+| LP24-R15 | 실제 크기 | 6source/4job 출력 증거 | 비대상: 단기 fixture | 비대상: 단기 fixture | 비대상: 내부 검사 |
+| LP24-R16 | 15초 cold 진단 | 실제 비용·RSS·정리 | 비대상: 단기 비용 | 비대상: 단기 비용 | 비대상: 내부 검사 |
+| LP24-RH01 | RED 판정 도구 | 제목/합계/counter·거짓 RED 거부 | 비대상: 단기 도구 | 비대상: 단기 도구 | 비대상: 내부 검사 |
+
 ## LP23 사후 진단·원인 분석 사전등록
 
 | ID | 기능 | 안정화 | 30분 | 120분 | UI |

@@ -12,6 +12,20 @@
 
 ## 0. LP18 공통 소유·검증 경계
 
+### LP24 복구 호출 내부의 제한된 내용 재사용
+
+후속1~6 승인 중1번은 Open의 반복 preflight/apply/SQLite 재투영 내용 비용을 대상으로 한다.
+아래 LP18의 신규/복구 입력 strict 검증은 **첫 입력 검증**에 그대로 적용한다. 같은 Open 안에서 엄격 검증과
+상태 적용까지 통과한 불변 기록은 별도 RecoveryContentContext로 내용만 재사용할 수 있다.
+기존 정상 전이의 Prepared/ContentProof를 recovery로 넘기거나 opened 상태를 거짓으로 만들지 않는다.
+64항목/논리64MiB 이내, 호출 종료/실패/예외 시 전부 해제하는 admission 정책으로 무제한 O(H) typed 캐시를 금지한다.
+초과·admission 할당 실패는 정상 입력 거부가 아니라 strict fallback이며 실제 heap/RSS는 별도 측정한다.
+전체 envelope/payload·물리 ordinal·owner/Open 수명을 대조하고 과거 전이를 최신 상태로 치환하지 않는다.
+재읽기 불일치·pending checkpoint에는 재사용을 폐기한다. 상태 전이·예약·source/삭제/보호·중복과
+SQLite accepted ordinal gate는 생략하지 않는다. 새 Open은 다시 strict 검증한다.
+검증된 typed 내용과 기존 serializer의 canonical을 함께 소유할 수 있지만 영속 바이트/공개API는 바꾸지 않는다.
+후속 LP24-R의 동등성·손상·수명·15초 cold 진단은 구현 후 별도 판정이며 이 설계만으로 PASS가 아니다.
+
 ### LP20 공동 합격 기준과 순차 구현 경계
 
 2026-09-20 승인 범위는 기존 증적 정리와 다음 1~4번 개발이다. 실제 HTTP/전체 통합 실행은 후속5번이며

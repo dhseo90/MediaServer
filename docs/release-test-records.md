@@ -1,5 +1,80 @@
 # Release Test Records
 
+## 2026-09-20 LP24 복구·시간 표출·완료 관측 순차 마감
+
+사용자 승인: 재산정1~6 순차 개발, 단기 영향 검증, 통과 단위 분할 커밋, 최종 푸시 가능할 때 푸시.
+시작 HEAD246b77a94, 추적 origin 대비 ahead48/behind0(원격 재조회 전). 기존 LP22 제품5/검사4 파일을 보존한다.
+메인이 계약·원인·diff·완료 판단, 기존 단일 Astra/medium 담당자가 확정된 구현을 수행한다. 하위 위임 금지.
+Superpowers 설치 스킬은 제공되지 않아 설계·TDD·원인 분석·검토 절차를 직접 적용한다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과/완료 기준 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 복구·SQLite 재투영 중복 제거 | 진행 중 | 첫 엄격 검증·전이·손상 거부 유지, 기존15초 진단 | LP23-D, 아래 LP24-R |
+| 2 | 시간 정확도와 표출 단위 분리 | 대기 | unknown·원본 증거·불연속·재생 식별 보존 | LP23-U, 1번 통과 후 구현 |
+| 3 | 완료 관측과 페이지 전수 검사 분리 | 대기 | 지속 변경 중 완료 관측과 별도 누락/중복 검사를 모두 유지 | LP22-O, 기존30초 관측 |
+| 4 | 기존 LP22 제품5/검사4 및 영향 회귀 | 대기 | 미완료 변경의 직접 diff·현재 코드 회귀 마감 | LP22-R |
+| 5 | 실제 HTTP·현행 통합 | 대기 | HTTP4000ms·완전2출력·파일 hash·재기동·5단계 | P0-HTTP02, S11-CI |
+| 6 | 분할 커밋·푸시 판단 | 대기 | 통과 단위만 커밋, 미완료/실패/cleanup 남으면 푸시 불가 | AGENTS3/5/6 |
+
+반복 방지: 원인과 예상 assertion을 먼저 고정한다. 기능 단위 focused→영향 회귀를 완료하고 다음 단계로 간다.
+같은 코드/환경의 유효 증거는 재사용한다. 실제 앱은1~4 통과 후 실행하며 실패하면 보존 진단으로 원인을 구분한다.
+timeout 확대·검사 삭제·unknown 자동 승격·API/영속 형식 임의 변경으로 통과시키지 않는다.
+새 근거 없는 동일 실패 재시도와 매 수정마다30분/UI 재실행을 하지 않는다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 요청1~6 제품/검증기 개발·관련 단기 검증 | LP24-R, LP22-R/O, S11-CI | 이번 승인 |
+| 30분 | 미진행 | 현재 단기 개발 묶음 밖, 최종cut blocker는 유지 | AGENTS7.6.2 | 이번 비범위 |
+| 120분 | 미진행 | 최종cut 필요성 폐기 아님 | AGENTS7.6.2 | 이번 비범위 |
+| UI | 미진행 | 기존 브라우저 제외, 최종suite PASS로 확대 금지 | AGENTS7.6.3 | 이번 비범위 |
+
+### LP24-R 실행 전 정의
+
+Open 호출 안에서만 bounded 내용 증명을 사용한다. 첫 preflight의 엄격 parse와 상태 적용 후 생성하며,
+동일 owner/Open·물리 ordinal·전체 envelope/payload가 일치할 때 내용 parse/직렬화만 재사용한다.
+상태·예약·source·삭제·중복 canonical/accepted ordinal 검사는 매번 유지한다. 과거 전이를 최신 작업값으로 치환하지 않는다.
+64항목/논리64MiB admission 상한은 최적화 예산이며 실제 RSS 상한이 아니다. 초과·admission 할당 실패는 strict fallback,
+Open 종료/실패/예외에 전부 해제한다. 무제한 O(H) typed 캐시·영속 PASS·기존 live proof 재활용은 금지한다.
+pending checkpoint 또는 입력 변경이면 재사용을 폐기한다. 새 Open·신규 입력은 처음부터 엄격 검증한다.
+영속 바이트·공개 반환값·SQLite optional/JSONL fallback·비활성 상세 비상주를 유지한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP24-R01 recovery first preflight retains strict content validation | 최초 검증 | 원본/작업 parse 실제 호출 및 손상 거부 | v4.1.0 |
+| LP24-R02 recovery actual apply reuses validated content and preserves transitions | 적용 재사용 | 중복 parse 감소와 같은 상태 전이; 예상 RED 대상 | v4.1.0 |
+| LP24-R03 recovery sqlite preflight and projection reuse exact validated content | 재투영 재사용 | 중복 parse/serialize 감소; 예상 RED 대상 | v4.1.0 |
+| LP24-R04 recovery sqlite and jsonl return identical public values and durable bytes | 저장 동등성 | 전체 canonical/바이트/파일 hash 대조 | v4.1.0 |
+| LP24-R05 recovery new open performs fresh strict validation | 재open | 이전 증명 재사용 금지 | v4.1.0 |
+| LP24-R06 recovery proof rejects changed envelope identity and payload | 내용 결박 | 전체 envelope 필드별 변경 반례 | v4.1.0 |
+| LP24-R07 recovery proof preserves physical ordinal and duplicate collision rules | 순서/중복 | 동일 ID 충돌·물리 위치 검증 | v4.1.0 |
+| LP24-R08 recovery proof never substitutes latest job for historical transition | 과거 전이 | Ready/Complete 서로 치환 금지 | v4.1.0 |
+| LP24-R09 recovery reused content preserves reservation source deletion and hold checks | 현재 안전 상태 | 예약/source/삭제/보호 반례 | v4.1.0 |
+| LP24-R10 recovery journal change invalidates reuse and retains strict corruption rejection | 입력 변경 | 재읽기 내용 변경과 손상 거부 | v4.1.0 |
+| LP24-R11 recovery pending checkpoint uses strict fallback | pending | pending 복구 의무 유지 | v4.1.0 |
+| LP24-R12 recovery budget exhaustion and admission exception preserve strict results | 최적화 상한 | 초과·할당 실패에도 정상 입력 strict 수용 | v4.1.0 |
+| LP24-R13 recovery proof ownership ends on success failure and exception | 수명 | owned/weak 및 예외 정리 | v4.1.0 |
+| LP24-R14 recovery noncanonical binding preserves existing sqlite canonical bytes | 비정규 입력 | 기존 수용·정규 SQL 저장 바이트 유지 | v4.1.0 |
+| LP24-R15 recovery realistic six-source four-complete-job fixture preserves output evidence | 실제 크기 fixture | 6원본/4작업·250샘플·다수 mapping·2출력씩 독립 기대값 | v4.1.0 |
+| LP24-R16 recovery realistic cold open completes within unchanged fifteen-second limit | 비용 판정 | 같은 fixture cold Open/진단15초, RSS/실행조건/정리 보존 | v4.1.0 |
+
+R16 시간초과는 예상 RED가 아니라 실제 성능 실패다. 삭제된 LP23 원장의 동일 바이트 재현이라고 주장하지 않는다.
+첫 focused 명령: `node scripts/internal/verify_recording_recovery_content.mjs red lp24-recovery-01`.
+R01~05만 실행하며 예상 R02/R03 FAIL·나머지3 PASS, R06~16 미실행을 별도 출력한다.
+compile/run 각각60초·RSS1GiB·disk512MiB·출력2MiB, 제품 소스/기존 build 불변·작업 소유 temp/GST registry 정리.
+최소 환경에는 이미 확인한 HOMEBREW_PREFIX=/opt/homebrew를 명시해 LP23-U의 같은 준비 실패를 방지한다.
+소스/build/플래그/binary hash·각 phase시간·원출력은 lp24-recovery-01-red.txt에 보존한다. 이 검사는 실제규모15초 판정이 아니다.
+실행 전 runner 판정 자체검사를 먼저 통과해야 한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP24-RH01 RED 판정 자체검사 | 원출력과 정확한 예상 실패 결박 | 5개 제목/합계/카운터·다른실패·누락/중복·timeout/signal/group 불명 거부, `node --test scripts/internal/recording_recovery_content.test.mjs` | v4.1.0 |
+
+현재 결과: 미실행. token start/end/consumed는 전용 집계 미제공으로 미집계, elapsed는 실제 명령에서 수집한다.
+
+LP24 실행 전 계약 문서 검증: `git diff --check` exit0(출력없음), `./server.sh verify-docs-links` exit0,
+285문서/9082링크/130anchor·실패0. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp24-contract-checks-01.txt).
+자산/이미지 변경이 없어 기존 LP23 assets10 PASS를 유지한다. 임시 산출물 없음. 제품/단기 검사는 아직 미실행이다.
+
 ## 2026-09-20 LP23 사후 진단·정리와 UTC unknown 원인 분석
 
 사용자 승인: 잔여1~2 순차 수행, 통과 단위 분할 커밋, 분석 결과와 후속 이슈 재산정. 푸시는 이번 요청에 포함하지 않는다.
