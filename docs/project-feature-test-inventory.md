@@ -1,5 +1,20 @@
 # Project Feature Test Inventory
 
+## LP20 저장·조회 비용과 종료 판정 사전등록
+
+| 기능 ID | 항목 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| LP20-C01 | 적격 자동 checkpoint | 과거 Parse/Serialize 생략·raw 검증·bytes/투영 동등 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP20-C02 | 원문·권한 거부 | 같은 크기 변조/잘림/교체/오래된 owner·참조 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP20-C03 | 엄격 fallback | noncanonical/빈줄/중복/receipt/pending/미적용/crypto-off/큰 행 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP20-C04 | 공동 비용·수명 | 작은/2-job/16·32·삭제/재open, 비상주·RSS·잠금·raw 읽기 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP20-Q01 | 전체 관련 조회 | 모든 binding·canonical 반환 및 중복 검증 비용 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP20-Q02 | 조회 보호 | 변조/삭제/lease·출력 초기화·독립 값·무관 후보 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 내부 저장 |
+| LP20-X01 | actual-app 종료 | 실제 정상 producer2개·2포트씩·강제없음 수용 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 검증기 |
+| LP20-X02 | 잘못된 종료 거부 | legacy-only·누락·비정상/강제/포트/archive 실패 | S11 최종cut 판정 | S11 최종cut 판정 | 비대상: 검증기 |
+
+실행 전 정의·세부 명령·실제 결과는 중앙 `release-test-records.md` LP20을 따른다. 등록은 PASS가 아니다.
+
 ## LP18 typed 상세 자동 수명 사전등록
 
 | 기능 ID | 항목 | 안정화 | 30분 | 120분 | UI |
