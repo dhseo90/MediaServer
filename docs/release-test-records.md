@@ -1,5 +1,65 @@
 # Release Test Records
 
+## 2026-09-20 LP21 누적·동시 비용 → 실제 HTTP → 현행 통합
+
+최신 승인: 권장 순서1~3을 순차 실행하고 통과한 단위는 분할 커밋한다. 마지막에는 푸시 가능 여부와
+현재 단계 잔여를 보고한다. 시작 HEAD `7162135df`, clean, 추적 origin/v4.1.0 대비 ahead40/behind0.
+이번 마지막 요청은 푸시 가능 여부 검토·보고이며 외부 푸시를 자동 실행하지 않는다. 과거 미완료 중간 저장 금지도 유지한다.
+메인은 계약·비용/실행 판정·증적, 기존 단일 Astra/medium 담당자는 검증 도구 보완을 맡는다. 하위 생성 금지.
+제품 API/저장bytes/시간·ID/보호8개 cap/HTTP4000ms/검사 자원 상한을 바꾸지 않는다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 누적·동시 비용 확인 | 준비 중 | 기존sources/2-job과 신규 대기보호 동시 검사 분리 | 아래 실행 전 계약 |
+| 2 | 실제 HTTP 단기 확인 | 미실행 | 1번 선수 충족 후 latency-only | P0-HTTP02 |
+| 3 | 현행 통합 한 번 실행 | 미실행 | 2번 이후 기존5단계 안에서 실제 앱·재기동 확인 | S11-CI01/07~11 |
+| 4 | 분할 커밋 | 미실행 | 검증·기록을 마친 단위만 수행 | AGENTS3/5 |
+| 5 | 푸시 가능 판정·잔여 보고 | 미완료 | 위 단계 결과와 누적 미해소를 직접 대조 | AGENTS5.2/6 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 사용자 권장 순차 실행 | LP20-C04/Q01/Q02, LP21-Q, P0-HTTP02, S11-CI07~11 | 이번 승인 |
+| 30분 | 미진행 | 개발 단기 범위 밖 | AGENTS7.6.2 | 이번 제외 |
+| 120분 | 미진행 | 최종 검증과 분리, 필요성 폐기 아님 | AGENTS7.6.2 | 이번 제외 |
+| UI | 미진행 | 기존 브라우저 제외 유지 | AGENTS7.6.3 | 이번 제외 |
+
+### 1번 실행 전 합격·측정 경계
+
+1. 기존 LP20 단위/안전 회귀는 같은 제품 코드의 유효 증거를 재사용한다. 새 계측과 실제 크기·동시 부하만 추가한다.
+2. 기존 sources의 4096sample·원본32개(16/32 관측)·A/B/C·삭제·SQLite/JSONL 재open을 유지한다.
+   일반 조회의 후보 전수를 반환하며 fixture의 객체 보관/독립 예상값 준비와 제품 비용을 분리한다.
+3. 실제 worker의 WithWaitLease를 별도 검사한다. 같은sample 복제32개에 같은observed를 넣으면 기존 보호8개
+   상한을 초과하므로, 정상 비용 검사는 전체16/32 중 관련2개/비관련 나머지의 명시적 fixture를 사용한다.
+   일반 all32 결과를 대체하지 않으며 synthetic catalog 검사와 실제 녹화 입력도 구분한다.
+4. 무변경 조회와 쓰기가 겹친 조회를 구분한다. public 무관 Apply·유한 횟수·실제 변경수/복귀수/조회수와
+   thread별 비용을 보존한다. 인위적 barrier 대기는 성능값에 섞지 않고 안전 반례와 자연 동시 부하를 분리한다.
+5. 저장 bytes/반환canonical/복구·손상 거부/상세 비상주/보호 의미가 유지되어야 한다. 적격 자동CP의 과거
+   Parse/Serialize 제거를 확인하고, 원문 전체 읽기 O(H)와 수동CP/복구 strict 비용을 별도로 남긴다.
+6. 잠금 합계·최장 점유·대기·전체 요청을 구별한다. 이전 비용 원인이 남거나 새 증가를 설명하지 못하면
+   실제 앱으로 진행하지 않는다. HTTP4초를 위협하는 긴 동일mutex 점유를 발견하면 해당 원인을 먼저 판정한다.
+   독립 검사4초를 새 제품 SLO나 실제 HTTP FAIL로 이름 바꾸지 않는다. 새로운 전역RSS/채널SLO는 만들지 않는다.
+7. 비용/안전 문제 확인 시 원인과 동일 단계 수정 권한을 확인한다. 원인 불명·계약 변경·같은 실패의 무근거 반복은 중단한다.
+   실제 기능FAIL 뒤 다른 검사를 PASS 대체로 실행하지 않는다. 진단 성공과 제품 비용 합격은 별개다.
+
+기존비교: `node scripts/internal/recording_catalog_comparison_run.mjs sources lp21-01`, 필요2-job은
+`node scripts/internal/recording_catalog_comparison_run.mjs jobs lp21-01`이다. 순차/동시의 구체 실행은 도구 동결 후 기록한다.
+guard는 compile60초/phase180초·RSS1GiB·disk512MiB·output2MiB, 고유ID·소유root·그룹종료·source불변 그대로다.
+동일 파일 변경 중 실행하지 않는다. 새/변경 검사 사전등록 후 자체검사→실행 순서이며 준비/계측 실패를 제품FAIL로 바꾸지 않는다.
+
+### 2~3번 실행 전 조건
+
+2번은 `node scripts/internal/verify_recording_current_app.mjs --latency-only`이다. 동일reference의 내구 전이·
+timeline HTTP4000ms·작업 진단·정상 종료/port/root/evidence 정리가 모두 유효해야 한다. partial 출력 허용은
+기존 latency 범위이며 complete2개 통과를 뜻하지 않는다. 실패 원문/비밀을 출력하지 않고 기존 고정코드와 hash 증거만 보존한다.
+3번은 `node scripts/internal/recording_current_integration_suite.mjs`의 현행5단계다. 별도 전체 actual-app 후
+통합에서 같은 검사를 다시 수행하지 않는다. API35/auth38/lifecycle12/default46/actual25와 두기동 출력·해시·보존·정리를 확인한다.
+각 단계의 exit·모든case·원출력·source/환경·cleanup을 보존하고 한 단계 실패 후 다음은 미실행이다.
+auth는 기존 격리 프로세스의 자동 임시값 생성과 정리를 유지한다. 운영계정/외부 서비스/실기기를 사용하지 않는다.
+token start/end/consumed는 전용 집계 부재로 미집계, elapsed/명령/exit/source는 각 실제 출력에서 기록한다.
+
+준비 문서 검증: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links` exit0/0.052855초,
+md285·links9015·images22·anchors122·failures0. 신규 임시물/서버/포트 없음. 준비 계약·사전등록만 분할 커밋하며 제품/측정 PASS가 아니다.
+
 ## 2026-09-20 LP20 미커밋 정리·비용/조회/종료 계약 보완
 
 최신 승인: 미커밋 분류·정리·커밋 후 1 공동 합격 기준 → 2 정상 저장 비용 → 3 조회 잠금 →
