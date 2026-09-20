@@ -1,0 +1,50 @@
+[source] {"name":"include/recording/recording_catalog.h","sha256":"6cf4dc3b39b3a1fb438bc5ee5871cc9436fa517a7e581f196d5cee54e9be11e0"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"5fa8025a627640eb67b09d71f66d698118c923472e8581e2835b018656362233"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"}
+[source] {"name":"scripts/internal/recording_checkpoint_cache_smoke.cpp","sha256":"ec5c30913f69774a11d5190f9afb694e223b6a84a06c6c11e4f989c79d643549"}
+[source] {"name":"scripts/internal/verify_recording_checkpoint_cache.sh","sha256":"1fc323396b73025af73b1af72239257f8d2122a5c9306832085be9b14bb58397"}
+[environment] ownedCache=true ownedRegistry=true productFilesUnchanged=true instrumentation=checkpoint-scope-apply-count
+[pass] LP15-C01 cold full applied=1 expected=1
+[pass] LP15-C01 unchanged prefix applied=0 expected=0
+[pass] LP15-C01 exact prefix suffix only applied=1 expected=1
+[pass] LP15-C01 independent prefix shadow/full projection equality
+[pass] LP15-C01 full fallback schema applied=2 expected=2
+[pass] LP15-C01 full fallback type applied=2 expected=2
+[pass] LP15-C01 full fallback id applied=2 expected=2
+[pass] LP15-C01 full fallback entity applied=2 expected=2
+[pass] LP15-C01 full fallback time applied=2 expected=2
+[pass] LP15-C01 full fallback payload applied=2 expected=2
+[pass] LP15-C01 full fallback reorder applied=2 expected=2
+[pass] LP15-C01 full fallback shrink applied=2 expected=2
+[pass] LP15-C01 full fallback null-shadow applied=2 expected=2
+[pass] LP15-C01 full fallback null-handle applied=2 expected=2
+[pass] LP15-C01 Open clears cache applied=2 expected=2
+[pass] LP15-C03 recover full/no-cache
+[pass] LP15-C03 after recover full applied=2 expected=2
+[pass] LP15-C03 injected commit refusal discards cache
+[pass] LP15-C03 after commit refusal full applied=2 expected=2
+[fail] LP15-C03 suffix exception discards cache
+[setup-or-oracle-fail] LP15 fixture unavailable
+        1.54 real         1.03 user         0.16 sys
+           138788864  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               64514  page reclaims
+                  76  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   2  messages sent
+                   0  messages received
+                   0  signals received
+                  51  voluntary context switches
+                1854  involuntary context switches
+          2529143847  instructions retired
+           630780706  cycles elapsed
+            10207856  peak memory footprint
+[pass] LP15-C04 peakRSS bytes=138788864 cap=536870912
+[bounded] {"code":2,"signal":null,"limit":false,"outputBytes":1954,"runtimeCapSeconds":60,"diskCapBytes":536870912,"peakRssBytes":138788864}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.gSMS6E","bytes":8937916,"removed":true}
+[exit] code=2 elapsed_seconds=4 source=bash-SECONDS
+[exit] code=2 elapsed_seconds=4 source=bash-SECONDS

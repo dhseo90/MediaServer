@@ -1,0 +1,63 @@
+{"kind":"start","utc":"2026-09-19T23:46:20.602Z","mode":"red","id":"typed-lifetime-01","suite":"typed-lifetime","source":[{"name":"include/recording/recording_catalog.h","sha256":"341761d7b66efd06ad094bb76df1a9798489a2b05695f4de9e0b10d438617037"},{"name":"include/recording/recording_journal.h","sha256":"fe603e9dfa21cafa1bcfab4242b245adb7cff9d992fafd130cd7da3a21c0c944"},{"name":"src/recording/recording_catalog.cpp","sha256":"816345f71b506cde4c561fca1067a038ee12d618f3588b3d36fda5381680e0b0"},{"name":"src/recording/recording_journal.cpp","sha256":"00947f13a4fdc68f9d1a0396f39438fbb96d53808420b6bd857aa76c1c0b7067"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"1e6d6190e701ab82a0dd07060b018a546a6e61ab55ab59d648a1e7cce9e38d79"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"990562dc139d952b894cb9d698d4d8ee4a95574fd63e220edc7a13a36e557d77"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"bb1d0d8ba4a0b63921c9b8372d3369795dae9f45f2e9248def441e44ebefaeda"},{"name":"scripts/internal/recording_typed_lifetime_smoke.cpp","sha256":"bacb0cb7cef0eb0796bf9af48f70397d74d4db513891e631cd21948bb9ea7f9a"},{"name":"src/recording/recording_timeline_projection.cpp","sha256":"88c1b064d5ce595ea21c615ed8dce0cb14e54ad8030a420943b2d558daeba203"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>","typed-lifetime"],"seconds":60}
+[source] {"name":"scripts/internal/recording_typed_lifetime_smoke.cpp","sha256":"bacb0cb7cef0eb0796bf9af48f70397d74d4db513891e631cd21948bb9ea7f9a"}
+[source] {"name":"src/recording/recording_timeline_projection.cpp","sha256":"88c1b064d5ce595ea21c615ed8dce0cb14e54ad8030a420943b2d558daeba203"}
+[instrument] catalog_sha256=b864ea20c98837c62d91db276b44a0b4e417db0699e746f5b262ba703165adb0 binding_exact_insertions=1 job_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"fe603e9dfa21cafa1bcfab4242b245adb7cff9d992fafd130cd7da3a21c0c944"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"341761d7b66efd06ad094bb76df1a9798489a2b05695f4de9e0b10d438617037"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"00947f13a4fdc68f9d1a0396f39438fbb96d53808420b6bd857aa76c1c0b7067"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"816345f71b506cde4c561fca1067a038ee12d618f3588b3d36fda5381680e0b0"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"1e6d6190e701ab82a0dd07060b018a546a6e61ab55ab59d648a1e7cce9e38d79"}
+        3.22 real         2.78 user         0.19 sys
+           310591488  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               68054  page reclaims
+                3851  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   9  messages sent
+                   0  messages received
+                   2  signals received
+                 942  voluntary context switches
+                4021  involuntary context switches
+            79059941  instructions retired
+            35701476  cycles elapsed
+             2048408  peak memory footprint
+{"kind":"phase","label":"build","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":3242,"groupPeakRssBytes":328220672}
+{"kind":"command","label":"focused","command":"<owned-root>/check","args":["<owned-root>"],"seconds":60}
+[fail] LP18-R01 inactive binding releases resident detail after durable append
+[pass] LP18-R02 active job retains owned detail and source protection
+[pass] LP18-R03 durable journal preserves complete canonical bytes
+[pass] LP18-R03 public job value mutation remains isolated
+[pass] LP18-R02 previously returned owned reader survives terminal publication
+[fail] LP18-R01 terminal live and historical active shadow release resident detail
+[fail] LP18-R01 normal append releases reloadable journal envelope resident
+[pass] LP18-R03 owned reads do not rewrite durable evidence
+[summary] LP18 pass=5 fail=3
+        0.67 real         0.15 user         0.03 sys
+            37175296  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                4001  page reclaims
+                 434  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                  24  voluntary context switches
+                 421  involuntary context switches
+          3257512251  instructions retired
+           740148692  cycles elapsed
+             5751456  peak memory footprint
+{"kind":"phase","label":"focused","exit":1,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":689,"groupPeakRssBytes":2359296}
+{"kind":"oracle","mode":"red","expectedRed":true,"productPass":false,"matched":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":6436834,"removed":true}
+{"kind":"result","utc":"2026-09-19T23:46:24.549Z","mode":"red","matched":true,"productPass":false,"elapsedMs":3948}

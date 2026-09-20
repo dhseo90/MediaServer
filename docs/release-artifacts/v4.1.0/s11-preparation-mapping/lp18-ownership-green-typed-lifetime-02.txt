@@ -1,0 +1,98 @@
+{"kind":"start","utc":"2026-09-20T00:13:20.801Z","mode":"green","id":"typed-lifetime-02","suite":"typed-lifetime","source":[{"name":"include/recording/recording_catalog.h","sha256":"6cf4dc3b39b3a1fb438bc5ee5871cc9436fa517a7e581f196d5cee54e9be11e0"},{"name":"include/recording/recording_journal.h","sha256":"3e69ad86519622da961b37073337b30c9441bd2255b92e1831d33273878afe7a"},{"name":"src/recording/recording_catalog.cpp","sha256":"5fa8025a627640eb67b09d71f66d698118c923472e8581e2835b018656362233"},{"name":"src/recording/recording_journal.cpp","sha256":"78a901c97fb5b47a02d0ea5722389e834dc79814e66b6b93e9eeebf9afad196b"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"f152ee045683840e898da182548b5bcb33d4eed98d9cc4ea4c85a330180674cd"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"3dcd83f07987320ff26709d9801996d731e462595f98d1fac7cec4135a9e7236"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"d46d3371812736845721ee1c5edfd411b8d20989161954686097d4bd35ab5922"},{"name":"scripts/internal/recording_typed_lifetime_smoke.cpp","sha256":"0d7220ae118181ca1db87cda4b79dcf60746ef44a0cd7497c73b53fb200031ef"},{"name":"src/recording/recording_timeline_projection.cpp","sha256":"7ec0b822f8b85be8be0d32e6b24e0ff79967c65740d0ae055121bbe4906b9493"},{"name":"scripts/internal/recording_catalog_comparison_ownership.h","sha256":"82050b6638654138bc232ba08dbe32e79616657da4d39b51d35f75e651565da8"},{"name":"scripts/internal/recording_process_memory_probe.h","sha256":"8b5775d1bda029b3a00d3a9c5100fdec43e4007f02f3cae31193ff7bdb2764ba"},{"name":"scripts/internal/recording_journal_location_counter.h","sha256":"d9f0a0297b87c655b762bbba3779061f6ac975b3219e2e471fbcf690021390c9"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>","typed-lifetime"],"seconds":60}
+[instrument] typed_resident_release_visit_exact_insertions=1
+[instrument] location_exception_exact_insertions=2
+[instrument] logical_ref_exception_exact_insertions=1
+[instrument] location_journal_original_sha256=78a901c97fb5b47a02d0ea5722389e834dc79814e66b6b93e9eeebf9afad196b location_journal_instrumented_sha256=265dd7e57c35ff4d3d469958f4bd6234ec47b7b0dc9e1096285732293e950dcc
+[source] {"name":"scripts/internal/recording_typed_lifetime_smoke.cpp","sha256":"0d7220ae118181ca1db87cda4b79dcf60746ef44a0cd7497c73b53fb200031ef"}
+[source] {"name":"src/recording/recording_timeline_projection.cpp","sha256":"7ec0b822f8b85be8be0d32e6b24e0ff79967c65740d0ae055121bbe4906b9493"}
+[instrument] location_declarations=1,1 location_header_sha256=3e69ad86519622da961b37073337b30c9441bd2255b92e1831d33273878afe7a
+[instrument] catalog_sha256=5029735c74b4ef1ab5eadd251c36e9d136219366faa678d26d184d0d7f058598 binding_exact_insertions=1 job_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"3e69ad86519622da961b37073337b30c9441bd2255b92e1831d33273878afe7a"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"6cf4dc3b39b3a1fb438bc5ee5871cc9436fa517a7e581f196d5cee54e9be11e0"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"78a901c97fb5b47a02d0ea5722389e834dc79814e66b6b93e9eeebf9afad196b"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"5fa8025a627640eb67b09d71f66d698118c923472e8581e2835b018656362233"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"f152ee045683840e898da182548b5bcb33d4eed98d9cc4ea4c85a330180674cd"}
+[source] {"name":"scripts/internal/recording_journal_location_smoke.cpp","sha256":"18e501374a0d1bc3584917e90001438f60a2525e0b002f3650d480661dc77d0e"}
+[source] {"name":"scripts/internal/recording_journal_location_counter.h","sha256":"d9f0a0297b87c655b762bbba3779061f6ac975b3219e2e471fbcf690021390c9"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"3dcd83f07987320ff26709d9801996d731e462595f98d1fac7cec4135a9e7236"}
+        3.25 real         2.98 user         0.20 sys
+           307658752  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               72889  page reclaims
+                 670  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  17  messages sent
+                   0  messages received
+                   3  signals received
+                 149  voluntary context switches
+                2703  involuntary context switches
+            79831651  instructions retired
+            37218507  cycles elapsed
+             2064792  peak memory footprint
+{"kind":"phase","label":"build","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":3265,"groupPeakRssBytes":319684608}
+{"kind":"command","label":"focused","command":"<owned-root>/check","args":["<owned-root>"],"seconds":60}
+[pass] LP18-R01 inactive binding releases resident detail after durable append
+[pass] LP18-R10 cold binding metrics retain logical samples without strong ownership
+[pass] LP18-R02 active job retains owned detail and source protection
+[pass] LP18-R10 active job metrics count resident ownership
+[pass] LP18-R03 durable journal preserves complete canonical bytes
+[pass] LP18-R03 public job value mutation remains isolated
+[pass] LP18-R02 previously returned owned reader survives terminal publication
+[pass] LP18-R10 terminal job metrics exclude external reader ownership
+[pass] LP18-R01 terminal live and historical active shadow release resident detail
+[pass] LP18-R01 normal append releases reloadable journal envelope resident
+[pass] LP18-R03 owned reads do not rewrite durable evidence
+[pass] LP18-R04 cold binding reacquires complete canonical detail transiently
+[pass] LP18-R04 cold terminal job reacquires complete canonical detail transiently
+[pass] LP18-R04 external owned reader does not bypass cold durable validation
+[pass] LP18-R04 full public snapshot owns independent values without resident refill
+[pass] LP18-R05 original lookup acquires only matching binding metadata
+[pass] LP18-R05 job lookup acquires only requested terminal record
+[pass] LP18-R05 protection and reservation filters avoid terminal detail reads
+[pass] LP18-R08 counts cold checkpoint durable reacquisition without semantic change
+[typed-observation] cold_checkpoint_raw_reads=8
+[pass] LP18-R06 SQLite reopen leaves inactive typed detail nonresident
+[pass] LP18-R06 JSONL fallback reopen leaves inactive typed detail nonresident
+[pass] LP18-R06 reopen retains active job detail and protection
+[pass] LP18-R06 deleted binding remains internally reacquirable and publicly hidden
+[pass] LP18-R07 detached authority clears typed output and marks uncertainty
+[pass] LP18-R07 cold binding corruption returns no value and marks uncertainty
+[pass] LP18-R07 cold job corruption clears public snapshot and marks uncertainty
+[pass] LP18-R07 cold acquisition exception clears output and marks uncertainty
+[pass] LP18-R07 public checkpoint cold projection failure returns false without escaping exception
+[pass] LP18-R08 repeated resident release visits no previously checked rows
+[pass] LP18-R08 append resident release visits only new suffix rows
+[fail] LP18-R08 checkpoint replacement resets release cursor for new generation
+[pass] LP18-R11 timeline collector limit does not poison catalog or block subsequent append
+[pass] LP18-R09 raw Apply preserves typed resident fallback
+[pass] LP18-R09 oversized physical row preserves typed resident fallback
+[summary] LP18 pass=33 fail=1
+        2.21 real         1.52 user         0.14 sys
+           249774080  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               17265  page reclaims
+                 436  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                 423  voluntary context switches
+                1028  involuntary context switches
+         34109828478  instructions retired
+          7080220718  cycles elapsed
+           218219360  peak memory footprint
+{"kind":"phase","label":"focused","exit":1,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":2223,"groupPeakRssBytes":225935360}
+{"kind":"oracle","mode":"green","expectedRed":false,"productPass":false,"matched":false}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":27947450,"removed":true}
+{"kind":"result","utc":"2026-09-20T00:13:26.313Z","mode":"green","matched":false,"productPass":false,"elapsedMs":5513}

@@ -93,6 +93,37 @@ void ChangedCandidate(const std::filesystem::path& root){
  const bool mismatch=!store.catalog.Checkpoint(&error);cache_probe::mismatch=false;
  Check(mismatch&&!store.catalog.checkpoint_cache_,"LP15-C03 forced projection mismatch discards cache");
 }
+std::string ProjectionBytes(const std::filesystem::path& path){
+ std::ifstream file(path,std::ios::binary);Need(static_cast<bool>(file));return {std::istreambuf_iterator<char>(file),{}};
+}
+void ProjectionExceptions(const std::filesystem::path& root){
+ for(unsigned mode:{1U,2U}){
+  Store store(root/(mode==1?"ordinary":"uncertain"));Suffix(store,"projection-prime");std::string error;
+  Need(store.catalog.Checkpoint(&error)&&store.catalog.checkpoint_cache_);
+  EventRecordingLinkV1 link;link.link_id="projection-link";link.event_id="projection-event";link.source_id=link.channel_id="probe-channel";
+  link.time_basis="utc-ms";link.status=EventRecordingLinkStatus::Pending;link.created_at_ms=1000;link.requested_range={1000,2000};
+  for(int i=0;i<3;++i){link.updated_at_ms=1000+i;link.completeness_reason=std::string(2000,'x');Need(store.catalog.PutEventLink(link,&error));}
+  const auto before=ProjectionBytes(store.journal.path());RecordingMutationHandles candidate;
+  Need(store.journal.PrepareCheckpoint(&store.catalog,&candidate,&error));std::string expected;std::size_t receipts=0;
+  for(const auto& record:candidate){Need(bool(record));receipts+=record->mutation_type==RecordingMutationType::EventLinkReceipt;expected+=SerializeRecordingMutationV1(*record)+"\n";}
+  // 서로 독립된 실제 변경 후보만 사용한다. 주입은 복제본 projection 진입 한 번에 한정한다.
+  Need(receipts==2&&expected!=before&&expected.size()<before.size());
+  cache_probe::projection_exceptions=0;cache_probe::projection_exception=mode;bool threw=false,ok=false;
+  try{ok=store.catalog.Checkpoint(&error);}catch(...){threw=true;}
+  cache_probe::projection_exception=0;
+  const bool intact=ProjectionBytes(store.journal.path())==before&&!store.catalog.checkpoint_cache_&&cache_probe::projection_exceptions==1;
+  if(mode==1){
+   const bool authority=store.catalog.derived_job_state_authoritative_;bool retry=false,retry_threw=false;
+   try{retry=store.catalog.Checkpoint(&error);}catch(...){retry_threw=true;}
+   Check(threw&&intact&&authority&&!retry_threw&&retry&&store.catalog.derived_job_state_authoritative_&&
+         store.catalog.checkpoint_cache_&&ProjectionBytes(store.journal.path())==expected,
+         "LP18-R07 ordinary projection exception preserves authority and retry eligibility");
+  }else{
+   Check(!threw&&!ok&&intact&&!store.catalog.derived_job_state_authoritative_,
+         "LP18-R07 uncertain projection returns false and preserves durable bytes");
+  }
+ }
+}
 void OverRecordLimit(const std::filesystem::path& root){
  Store store(root);Suffix(store,"limit-first");CheckCount(store,"LP15-C04 overlimit prime",1);
  for(std::size_t i=0;i<8192;++i)Suffix(store,("limit-"+std::to_string(i)).c_str());
@@ -135,7 +166,7 @@ void ActualCases(const std::filesystem::path& root){
 int main(int argc,char** argv){
  if(argc!=2)return 2;
  try{
-  gst_init(nullptr,nullptr);const std::filesystem::path root=argv[1];PrefixCases(root/"independent");Bounds();ChangedCandidate(root/"changed");OverRecordLimit(root/"overlimit");ActualCases(root/"actual-jobs");
+  gst_init(nullptr,nullptr);const std::filesystem::path root=argv[1];PrefixCases(root/"independent");Bounds();ChangedCandidate(root/"changed");ProjectionExceptions(root/"projection-exceptions");OverRecordLimit(root/"overlimit");ActualCases(root/"actual-jobs");
   std::cout<<"[summary] LP15 pass="<<passed<<" fail="<<failed<<'\n';return failed?1:0;
  }catch(...){std::cerr<<"[setup-or-oracle-fail] LP15 fixture unavailable\n";return 2;}
 }

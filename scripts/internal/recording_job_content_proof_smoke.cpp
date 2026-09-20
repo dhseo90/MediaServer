@@ -25,7 +25,7 @@ void Inspect(const RecordingCatalog::DerivedJobContentProof& minted){
  }
  Need(static_cast<bool>(prior));
  const auto seed=[&](RecordingCatalog& out){out.derived_jobs_.emplace(id,prior);out.segments_v2_=live.segments_v2_;out.source_bindings_=live.source_bindings_;out.orders_v2_=live.orders_v2_;out.media_relpaths_=live.media_relpaths_;out.states_v2_=live.states_v2_;};
- const auto canonical=[&](const RecordingCatalog& out){const auto at=out.derived_jobs_.find(id);return at==out.derived_jobs_.end()?std::string{}:SerializeDerivedJobRecord(*at->second);};
+ const auto canonical=[&](const RecordingCatalog& out){const auto at=out.derived_jobs_.find(id);if(at==out.derived_jobs_.end())return std::string{};const auto owned=at->second.WarmOwned();Need(bool(owned));return SerializeDerivedJobRecord(*owned);};
  const auto fallback=[&](const RecordingMutationV1& input,const RecordingCatalog::DerivedJobContentProof& altered,const char* label,bool must_reject=false){
   RecordingCatalog expected(live.journal_,live.options_),actual(live.journal_,live.options_);seed(expected);seed(actual);phase=Phase::None;
   const bool old_ok=expected.ApplyMutationLocked(input,false,nullptr);const auto old_value=canonical(expected);
@@ -35,7 +35,7 @@ void Inspect(const RecordingCatalog::DerivedJobContentProof& minted){
  };
  if(complete){
   {RecordingCatalog out(live.journal_,live.options_);seed(out);target=mutation.payload_json;phase=Phase::Negative;const auto before=negative_parses;
-   ProofCheck(out.ApplyMutationLocked(mutation,false,nullptr,nullptr,{},nullptr,nullptr,&minted)&&out.derived_jobs_.at(id)==minted.record&&negative_parses==before,"LP18-V02 minted proof reuses owned content after state validation");}
+   ProofCheck(out.ApplyMutationLocked(mutation,false,nullptr,nullptr,{},nullptr,nullptr,&minted)&&out.derived_jobs_.at(id).WarmOwned()==minted.record&&negative_parses==before,"LP18-V02 minted proof reuses owned content after state validation");}
   for(int field=0;field<6;++field){auto changed=mutation;
    switch(field){case 0:changed.schema="fixture-other-schema";break;case 1:changed.mutation_type=RecordingMutationType::DerivedJobReady;break;case 2:changed.mutation_id+="-other";break;case 3:changed.entity_id+="-other";break;case 4:++changed.occurred_at_ms;break;default:changed.payload_json=" "+changed.payload_json;break;}
    const char* labels[]={"LP18-V02 schema mismatch retains strict outcome","LP18-V02 type mismatch retains strict outcome","LP18-V02 mutation ID mismatch retains strict outcome","LP18-V02 entity mismatch retains strict outcome","LP18-V02 time mismatch retains strict outcome","LP18-V02 payload bytes mismatch retains strict outcome"};fallback(changed,minted,labels[field]);
@@ -45,7 +45,7 @@ void Inspect(const RecordingCatalog::DerivedJobContentProof& minted){
    switch(field){case 0:changed.owner=nullptr;break;case 1:changed.envelope.reset();break;case 2:changed.record.reset();break;default:changed.owner=&foreign;break;}
    const char* labels[]={"LP18-V02 null owner retains strict outcome","LP18-V02 null envelope retains strict outcome","LP18-V02 null record retains strict outcome","LP18-V02 foreign owner retains strict outcome"};fallback(mutation,changed,labels[field]);
   }
-  {const auto saved=live.derived_jobs_.at(id);live.derived_jobs_.at(id)=std::make_shared<const DerivedJobRecordV1>(*saved);fallback(mutation,minted,"LP18-V02 equal-content replacement invalidates current proof ownership");live.derived_jobs_.at(id)=saved;}
+  {const auto saved=live.derived_jobs_.at(id);const auto owned=saved.WarmOwned();Need(bool(owned));live.derived_jobs_.at(id)=std::make_shared<const DerivedJobRecordV1>(*owned);fallback(mutation,minted,"LP18-V02 equal-content replacement invalidates current proof ownership");live.derived_jobs_.at(id)=saved;}
   {auto& slot=live.accepted_segment_state_mutations_.at(mutation.mutation_id);const auto saved=slot;RecordingMutationHandle owned;
    if(!live.journal_.AcquireMutationLink(saved,&owned,nullptr)||!live.journal_.MakeMutationLink({},*owned,std::make_shared<const RecordingMutationV1>(*owned),&slot,nullptr))throw std::runtime_error("PROOF_LINK");
    fallback(mutation,minted,"LP18-V02 equal-envelope replacement invalidates accepted proof ownership");slot=saved;}
@@ -55,7 +55,7 @@ void Inspect(const RecordingCatalog::DerivedJobContentProof& minted){
   for(int guard=0;guard<3;++guard){RecordingCatalog out(live.journal_,live.options_);seed(out);const auto source=minted.record->intent.sources.front().segment.segment_id;
    if(guard==0)out.orders_v2_.clear();else if(guard==1)out.states_v2_[source].lifecycle=RecordingLifecycle::DeletionPending;else out.media_relpaths_.erase(source);
    target=mutation.payload_json;phase=Phase::Negative;const auto before=negative_parses;
-   const bool rejected=!out.ApplyMutationLocked(mutation,false,nullptr,nullptr,{},nullptr,nullptr,&minted)&&out.derived_jobs_.at(id)==prior&&negative_parses==before;
+   const bool rejected=!out.ApplyMutationLocked(mutation,false,nullptr,nullptr,{},nullptr,nullptr,&minted)&&out.derived_jobs_.at(id).WarmOwned()==prior&&negative_parses==before;
    const char* labels[]={"LP18-V03 valid content proof cannot bypass output reservation","LP18-V03 valid content proof cannot bypass source deletion state","LP18-V03 valid content proof cannot bypass source media binding"};ProofCheck(rejected,labels[guard]);
   }
  }

@@ -91,7 +91,13 @@ owner 재연결/append/예약/receipt swap 뒤에는 strict fallback이며 후�
 논리 ref는 `121d711e`로 커밋했다. 다음 accepted/prefix 소비 단위는 같은 Read/Append의 봉인된 view를
 thin 참조로 연결하고 cold 획득·전체값/ordinal·손상/권한·cache fallback을 유지했다. focused30·계측3·
 envelope34/accepted55/content25/logical26/snapshot28·cache47/prepared11/catalog246·2job 기능120/계측1/입력동일1·전체build 통과.
-기록·계측은 메인이 직접 대조했고 기존 논리량의 의미를 유지했다. typed 상세/자동 해제와 실제RAM/HTTP 판정은 남는다.
+기록·계측은 메인이 직접 대조했고 기존 논리량의 의미를 유지했다. accepted/prefix 단위는 `66dedb3f`로 커밋했다.
+typed binding/job의 얇은 색인·명시 owned 재획득과 자동 resident 해제를 연결했다.
+활성 작업/반환 reader·삭제 이력·strict 복구/fallback을 유지하고 정상 append는 변경 entry/원장 suffix만 해제한다.
+focused34·crypto1·cache49·proof25·기존 public/retention/service/catalog 회귀·전체build 통과.
+소규모 원본2개·삭제/SQLite·JSONL 재open100개,2-job 기능120/계측1/입력동일1도 통과했다.
+fixture의 무변경 후보 오판과 광범위 catch 회귀는 각각 수정·동일 검사 재통과했으며 최초 실패를 중앙에 보존했다.
+이번1~3의 구현/단기 회귀는 완료다. 누적16/32 메모리·실제 HTTP4초·하드웨어 영향·S11 최종 판정은 아직 남는다.
 
 ### LP17 판정 기준 비교 설계 저장 계약
 

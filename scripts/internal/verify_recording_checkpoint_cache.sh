@@ -36,8 +36,10 @@ fs.mkdirSync(path.join(out,'include/recording'),{recursive:true});
 fs.writeFileSync(path.join(out,'include/recording/recording_catalog.h'),exact(fs.readFileSync(path.join(repo,'include/recording/recording_catalog.h'),'utf8'),'private:','public: // owned test copy'));
 fs.writeFileSync(path.join(out,'include/recording/recording_journal.h'),exact(fs.readFileSync(path.join(repo,'include/recording/recording_journal.h'),'utf8'),'private:','public: // owned test copy'));
 let source=exact(original,'bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error,const DerivedJobContentProof* proof) {','bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error,const DerivedJobContentProof* proof) { cache_probe::Scope cache_scope;');
-source=exact(source,'    if(!journal_.ReadCheckpointRecords(this,&original,error,&read_snapshot,&views))return false;','    if(!journal_.ReadCheckpointRecords(this,&original,error,&read_snapshot,&views))return false;if(cache_probe::bad_suffix){original.push_back(std::make_shared<const RecordingMutationV1>(*cache_probe::bad_suffix));views.push_back({});}');
+const readCurrent='        if(!journal_.ReadCheckpointRecords(this,&original,error,&read_snapshot,&views)){\n            if(!journal_.OwnsCatalog(this))derived_job_state_authoritative_=false;\n            return false;\n        }';
+source=exact(source,readCurrent,readCurrent+'if(cache_probe::bad_suffix){original.push_back(std::make_shared<const RecordingMutationV1>(*cache_probe::bad_suffix));views.push_back({});}');
 source=exact(source,'if(before->ProjectionSignatureLocked()!=after->ProjectionSignatureLocked())','if(cache_probe::mismatch||before->ProjectionSignatureLocked()!=after->ProjectionSignatureLocked())');
+source=exact(source,'std::vector<std::string> RecordingCatalog::ProjectionSignatureLocked() const {','std::vector<std::string> RecordingCatalog::ProjectionSignatureLocked() const {\n    if(cache_probe::depth&&cache_probe::projection_exception){const auto mode=cache_probe::projection_exception;cache_probe::projection_exception=0;++cache_probe::projection_exceptions;if(mode==2)derived_job_state_authoritative_=false;throw std::runtime_error("owned-projection-injection");}');
 source=exact(source,'    const auto first=reuse?cached->prefix.size():0;','    const auto first=reuse?cached->prefix.size():0; cache_scope.first=first;cache_scope.records=original.size();');
 source=exact(source,'    if(!journal_.CommitCheckpoint(this,candidate,recover_only,error,read_snapshot))return false;','    if(cache_probe::fail_commit||!journal_.CommitCheckpoint(this,candidate,recover_only,error,read_snapshot))return false;');
 source=exact(source,'bool RecordingCatalog::UpdateDerivedJob(const void* owner,const DerivedJobRecordV1& record,std::string* error) {\n    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__);','bool RecordingCatalog::UpdateDerivedJob(const void* owner,const DerivedJobRecordV1& record,std::string* error) {\n    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__); cache_probe::Hold hold_scope;');
@@ -54,6 +56,7 @@ namespace cache_probe {
 using Clock=std::chrono::steady_clock;
 inline thread_local std::size_t depth=0,applied=0;
 inline bool fail_commit=false,throw_apply=false,mismatch=false;
+inline unsigned projection_exception=0,projection_exceptions=0;
 inline std::optional<recording::RecordingMutationV1> bad_suffix;
 struct Row{std::size_t records,first,applied;long long us;};
 inline std::array<Row,128> rows{};inline std::size_t count=0,dropped=0,holds=0;inline long long max_hold_us=0;
@@ -61,9 +64,11 @@ struct Scope{std::size_t before=applied,first=0,records=0;Clock::time_point star
 struct Hold{Clock::time_point start=Clock::now();~Hold(){++holds;const auto us=std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-start).count();if(us>max_hold_us)max_hold_us=us;}};
 }
 `);
-fs.writeFileSync(path.join(out,'recording_catalog.cpp'),'#include "recording_checkpoint_cache_counter.h"\n'+source);
+const instrumented='#include "recording_checkpoint_cache_counter.h"\n'+source;
+fs.writeFileSync(path.join(out,'recording_catalog.cpp'),instrumented);
 for(const name of ['include/recording/recording_catalog.h','src/recording/recording_catalog.cpp','src/recording/recording_checkpoint_validation.h','scripts/internal/recording_checkpoint_cache_smoke.cpp','scripts/internal/verify_recording_checkpoint_cache.sh'])console.log('[source] '+JSON.stringify({name,sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(repo,name))).digest('hex')}));
-console.log('[environment] ownedCache=true ownedRegistry=true productFilesUnchanged=true instrumentation=checkpoint-scope-apply-count');
+console.log('[environment] ownedCache=true ownedRegistry=true productFilesUnchanged=true instrumentation=checkpoint-scope-apply-count projectionExceptionExactInsertions=1');
+console.log('[instrument] catalog_original_sha256='+crypto.createHash('sha256').update(original).digest('hex')+' catalog_instrumented_sha256='+crypto.createHash('sha256').update(instrumented).digest('hex'));
 NODE
 read -r -a ORIGINAL_LINK < "$BUILD_DIR/CMakeFiles/media_server.dir/link.txt"
 LINK_LIBS=();found=0

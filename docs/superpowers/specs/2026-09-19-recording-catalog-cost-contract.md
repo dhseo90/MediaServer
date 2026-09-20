@@ -124,8 +124,8 @@ checkpoint 파일 교체 시 기존 reader의 FD/불변 값 수명은 보존하�
 - Open의 전체 strict 검증과 SQLite fallback/재구축은 유지한다. 성공 종료 뒤 비활성 상세가 계속 상주하지 않아야
   하며 전체 replay의 일시 peak와 정상 운용 보관량은 별도 측정한다. crypto-off/대형 행은 기존 resident fallback이다.
 
-위 소비 구현은 미완료다. 실제 자동 해제 전 active reader·변조·삭제·재open·선택 조회 재획득 수 반례와
-기존 의미/보호/복구 회귀를 등록하고 검증한다. 메모리 수치나 실제 HTTP 합격을 설계만으로 주장하지 않는다.
+아래 소비 구현과 active reader·변조·삭제·재open·선택 조회 재획득 수 반례 및 관련 단기 회귀는
+2026-09-20 중앙 LP18 기록에서 완료했다. 누적 메모리 수치와 실제 HTTP 합격은 별도 판정이며 설계/단기 PASS로 주장하지 않는다.
 
 첫 소비 단위는 accepted/prefix다. journal 내부 sealed owned view 하나로 같은 Append/Read mutex 안의
 envelope·논리ref·attachment를 결박한다. catalog는 view의 전체값과 입력이 같을 때만 thin link를 추출한다.
@@ -137,6 +137,30 @@ prefix는 현재 sealed snapshot과 같은 불변 ref의 검증된 계보를 이
 외부 candidate 전체 필드·projection 비교와 accepted duplicate의 전체 canonical 비교는 생략하지 않는다.
 authority/ref 불일치는 cache full fallback, 실제 cold 변조/I/O 오류는 fail-closed다. 변경 receipt는 작은 resident
 fallback으로 유지할 수 있다. 이 단위에서는 typed 상세와 자동 journal 해제를 아직 바꾸지 않는다.
+
+다음 소비 단위는 typed binding/job과 자동 해제를 함께 연결한다. 얇은 entry는 같은 엄격 Apply에서
+생성한 검색·보호 metadata, sealed mutation link, weak typed 값과 필요한 strong resident만 보관한다.
+작업 상태/출력·원본 ID/예약량과 binding의 channel/source/generation/order/track은 상세를 읽기 전에
+대상을 좁히는 데만 쓴다. 새 외부 입력의 검증 증명이 아니며 cold 획득은 현재 원장 strict 읽기 후
+typed Parse·원래 segment 결박·metadata 일치를 확인한다. warm 공유 후보만 기존 pool에서 재사용한다.
+raw owner나 이전 FD를 entry에 넣지 않고 포인터 반환/암묵적 역참조 대신 호출-local owned 값을 사용한다.
+
+활성 live 작업과 Prepared/반환 reader는 strong 수명을 유지한다. 이전 checkpoint shadow의 작업도
+같은 ID의 live 작업이 현재 활성인 동안만 resident로 유지하며, live가 terminal로 바뀌면 양쪽의
+비활성 상세를 내린다. binding은 삭제 이력까지 재획득 가능해야 한다. durable 참조가 없는 raw 입력과
+crypto-off/대형 행의 fallback은 그대로 resident를 유지한다. 내구 내용 삭제·변환이나 새 입력 상한은 없다.
+정상 append는 SQL/자동 checkpoint 성공 뒤 변경 entry만 처리한다. Open/새 checkpoint의 sweep과
+매 append의 처리를 구분하며, journal 해제도 현재 세대의 신규 suffix만 방문해 과거 행 전체를 반복하지 않는다.
+checkpoint 교체는 해제 cursor를 새 세대로 재설정하고 이전 reader 소유는 유지한다.
+
+선택 조회는 thin metadata로 먼저 필터링하고 선택된 상세만 읽는다. 공개 전체 snapshot의 일시 값 사본은
+허용하지만 조회가 cache를 자동 재가열하지 않는다. cold 오류는 catalog 불확실 상태로 유지하고
+보호는 보수적으로 처리한다. 조회 출력은 초기화하고 projection 실패/빈 직렬화는 동등한 정상값이 아니다.
+일반 Apply/projection 예외는 기존 unwind·cache 폐기·full 재시도 계약을 유지한다. 실제 cold 획득 실패로
+불확실해진 shadow만 live로 전파하고 false로 닫으며, 정상 조회 상한 실패를 catalog 손상으로 취급하지 않는다.
+Open의 strict replay·SQLite 재구축/fallback 후 비활성 resident를 해제하되, Open 중 일시 peak까지
+없어졌다고 주장하지 않는다. 얇은 entry와 fallback의 실제 보관량도 계측에 포함한다.
+이 계약의 구현 PASS와 누적16/32·실제 HTTP/하드웨어 영향·S11 최종 검증 완료는 별개다.
 
 #### 4번 첫 단위: 기존 JSONL 위치 재획득
 

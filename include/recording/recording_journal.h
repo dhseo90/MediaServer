@@ -140,6 +140,7 @@ private:
     bool MatchMutationLinkView(const RecordingMutationLink& link, const RecordingJournalOwnedViewHandle& view,
                               bool* matches, std::string* error) const;
     bool MutationLinkOwns(const RecordingMutationLink& link, const RecordingMutationHandle& record) const;
+    bool CanReleaseMutationLink(const RecordingMutationLink& link) const;
     bool OwnedViewMatchesLocked(const RecordingJournalOwnedViewHandle& view) const;
     bool ReadRecordLocations(const void* owner, RecordingJournalRecordLocations* records, std::string* error) const;
     bool ReadRecordRefs(const void* owner, RecordingJournalRecordRefs* refs, std::string* error) const;

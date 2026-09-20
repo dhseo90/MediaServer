@@ -1,0 +1,99 @@
+[source] {"name":"include/recording/recording_catalog.h","sha256":"6cf4dc3b39b3a1fb438bc5ee5871cc9436fa517a7e581f196d5cee54e9be11e0"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"ec6db428c9962a0050168f7700120d68de47b6fe891c4608460f9c9300bb18af"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"}
+[source] {"name":"scripts/internal/recording_checkpoint_cache_smoke.cpp","sha256":"9ceb67124b6bec62a7e7a9537862daca0ce3e514f4bef3973b01cca8789fc68a"}
+[source] {"name":"scripts/internal/verify_recording_checkpoint_cache.sh","sha256":"5cb6d17040ce5c96decdc9956f1f0daab5dc1d138e7c69bdc7d92d182df3bd7a"}
+[environment] ownedCache=true ownedRegistry=true productFilesUnchanged=true instrumentation=checkpoint-scope-apply-count projectionExceptionExactInsertions=1
+[instrument] catalog_original_sha256=ec6db428c9962a0050168f7700120d68de47b6fe891c4608460f9c9300bb18af catalog_instrumented_sha256=6cd0ba2c49f44ed535ad16a2a36e7df4e8eb880e321280da63bd6a444a8950f7
+[pass] LP15-C01 cold full applied=1 expected=1
+[pass] LP15-C01 unchanged prefix applied=0 expected=0
+[pass] LP15-C01 exact prefix suffix only applied=1 expected=1
+[pass] LP15-C01 independent prefix shadow/full projection equality
+[pass] LP15-C01 full fallback schema applied=2 expected=2
+[pass] LP15-C01 full fallback type applied=2 expected=2
+[pass] LP15-C01 full fallback id applied=2 expected=2
+[pass] LP15-C01 full fallback entity applied=2 expected=2
+[pass] LP15-C01 full fallback time applied=2 expected=2
+[pass] LP15-C01 full fallback payload applied=2 expected=2
+[pass] LP15-C01 full fallback reorder applied=2 expected=2
+[pass] LP15-C01 full fallback shrink applied=2 expected=2
+[pass] LP15-C01 full fallback null-shadow applied=2 expected=2
+[pass] LP15-C01 full fallback null-handle applied=2 expected=2
+[pass] LP15-C01 Open clears cache applied=2 expected=2
+[pass] LP15-C03 recover full/no-cache
+[pass] LP15-C03 after recover full applied=2 expected=2
+[pass] LP15-C03 injected commit refusal discards cache
+[pass] LP15-C03 after commit refusal full applied=2 expected=2
+[pass] LP15-C03 suffix exception discards cache
+[pass] LP15-C03 after exception full applied=3 expected=3
+[pass] LP15-C03 public poisoned entry discards cache
+[pass] LP15-C03 after restored fixture full applied=3 expected=3
+[pass] LP15-C04 exact byte charge boundary
+[pass] LP15-C04 overflow charge rejected
+[pass] LP15-C04 8192 records admitted
+[pass] LP15-C04 8193 records rejected
+[pass] LP15-C04 64MiB record charge admitted
+[pass] LP15-C04 64MiB plus one rejected
+[pass] LP15-C03 changed candidate prime applied=1 expected=1
+[pass] LP15-C03 changed candidate suffix12 plus full candidate13 applied=25 expected=25
+[pass] LP15-C03 changed candidate cache equals independent full projection
+[pass] LP15-C03 compacted candidate prefix reused applied=0 expected=0
+[pass] LP15-C03 forced projection mismatch discards cache
+[pass] LP18-R07 ordinary projection exception preserves authority and retry eligibility
+[pass] LP18-R07 uncertain projection returns false and preserves durable bytes
+[pass] LP15-C04 overlimit prime applied=1 expected=1
+[pass] LP15-C04 existing cache ignored for oversized original applied=8193 expected=8193
+[pass] LP15-C04 oversized candidate not retained
+[pass] LP15-C04 next oversized checkpoint full applied=8193 expected=8193
+[shape] state=1 bytes=319533 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=462c18a6d91a41606f19728d12e1712da28c0815e549f12dc570635649402734
+[record-cost] iteration=1 serialize_us=29466 parse_us=78038
+[record-cost] iteration=2 serialize_us=29389 parse_us=79379
+[record-cost] iteration=3 serialize_us=29231 parse_us=77593
+[shape] state=3 bytes=319548 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=e8fec68c687e8f2e0d0a037b343aa640937b3486907b528a31ac12ed03d7341a
+[record-cost] iteration=1 serialize_us=29108 parse_us=77642
+[record-cost] iteration=2 serialize_us=29065 parse_us=77647
+[record-cost] iteration=3 serialize_us=29351 parse_us=78283
+[shape] state=1 bytes=319533 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=7c853b6a5e3c1d21249d1911d588c7deb850acccbda7a81c4206b4575a2ac398
+[record-cost] iteration=1 serialize_us=29471 parse_us=77654
+[record-cost] iteration=2 serialize_us=28930 parse_us=77708
+[record-cost] iteration=3 serialize_us=29013 parse_us=77691
+[shape] state=3 bytes=319548 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=9a3e9d78ad8ee45df56a93008f5a303437806a7c0a9c338df390ea33b99aab84
+[record-cost] iteration=1 serialize_us=29622 parse_us=78269
+[record-cost] iteration=2 serialize_us=29019 parse_us=78232
+[record-cost] iteration=3 serialize_us=28966 parse_us=77403
+[pass] CP01 actual Ready Complete shape canonical files reservation
+[pass] CP02 bounded two jobs over 1MiB canonical transitions
+[automatic-checkpoint] index=0 original_records=11 reused_prefix=0 original_applied=11 total_applied=11 duration_us=225251
+[automatic-checkpoint] index=1 original_records=17 reused_prefix=11 original_applied=6 total_applied=6 duration_us=464374
+[transition-hold] count=8 max_us=627143 scope=UpdateDerivedJob-lock-acquired-to-before-unlock
+[pass] LP15-C02 bounded automatic checkpoint and whole transition measurement
+[shape] LP15-C02 records=18 bytes=2843063 ready=2 committed=2 complete=2
+[pass] LP15-C02 reopened full applied=18 expected=18
+[pass] LP15-C02 actual unchanged prefix applied=0 expected=0
+[pass] LP15-C02 actual suffix only applied=1 expected=1
+[pass] LP15-C02 actual job shadow/full projection equality
+[pass] LP15-C03 illegal Ready after Complete suffix rejected by cached/full paths
+[summary] LP15 pass=46 fail=0
+       17.04 real        13.46 user         2.94 sys
+           163577856  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               71485  page reclaims
+                4086  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                 110  messages sent
+                  91  messages received
+                   0  signals received
+                9036  voluntary context switches
+               16287  involuntary context switches
+        310167883120  instructions retired
+         65795955622  cycles elapsed
+           137298688  peak memory footprint
+[pass] LP15-C04 peakRSS bytes=163577856 cap=536870912
+[bounded] {"code":0,"signal":null,"limit":false,"outputBytes":5400,"runtimeCapSeconds":60,"diskCapBytes":536870912,"peakRssBytes":163577856}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.QhQlG5","bytes":17500679,"removed":true}
+[exit] code=0 elapsed_seconds=20 source=bash-SECONDS
+[exit] code=0 elapsed_seconds=20 source=bash-SECONDS

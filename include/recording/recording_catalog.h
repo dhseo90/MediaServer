@@ -215,11 +215,43 @@ public:
 
 private:
     using SourceBindingHandle = std::shared_ptr<const RecordingSourceBindingV1>;
-    using SourceBindingPool = std::unordered_map<std::string, SourceBindingHandle>;
+    struct SourceBindingEntry {
+        std::string id,channel,source,generation,track;
+        std::uint64_t order{0};
+        std::size_t sample_count{0};
+        RecordingMutationLink mutation;
+        mutable std::weak_ptr<const RecordingSourceBindingV1> weak;
+        SourceBindingHandle resident;
+        SourceBindingEntry()=default;
+        SourceBindingEntry(SourceBindingHandle value,RecordingMutationLink link={});
+        SourceBindingHandle WarmOwned() const {return resident?resident:weak.lock();}
+        SourceBindingHandle ResidentOwned() const {return resident;}
+        explicit operator bool() const {return !id.empty();}
+    };
+    using SourceBindingPool = std::unordered_map<std::string, SourceBindingEntry>;
     static SourceBindingHandle FindSourceBindingOwned(const SourceBindingPool& pool,const std::string& id);
     SourceBindingHandle FindSourceBindingOwnedLocked(const std::string& id) const;
+    bool AcquireSourceBindingOwnedLocked(const std::string& id,SourceBindingHandle* out,std::string* error) const;
     using DerivedJobHandle = std::shared_ptr<const DerivedJobRecordV1>;
-    using DerivedJobPool = std::unordered_map<std::string, DerivedJobHandle>;
+    struct DerivedJobEntry {
+        std::string id,channel,reference;
+        DerivedJobState state{DerivedJobState::Intent};
+        std::size_t files{0};
+        std::uint64_t reserved_bytes{0};
+        std::vector<std::string> output_ids,source_ids;
+        RecordingMutationLink mutation;
+        mutable std::weak_ptr<const DerivedJobRecordV1> weak;
+        DerivedJobHandle resident;
+        DerivedJobEntry()=default;
+        DerivedJobEntry(DerivedJobHandle value,RecordingMutationLink link={});
+        DerivedJobHandle WarmOwned() const {return resident?resident:weak.lock();}
+        DerivedJobHandle ResidentOwned() const {return resident;}
+        bool Active() const {return state!=DerivedJobState::Complete&&state!=DerivedJobState::Failed;}
+        explicit operator bool() const {return !id.empty();}
+    };
+    using DerivedJobPool = std::unordered_map<std::string, DerivedJobEntry>;
+    bool AcquireDerivedJobOwnedLocked(const std::string& id,DerivedJobHandle* out,std::string* error) const;
+    bool ReleaseInactiveDetailsLocked(const std::string* changed,std::string* error);
     static DerivedJobHandle ShareValidatedJob(DerivedJobRecordV1 record,const DerivedJobPool* pool);
     friend class RetentionCoordinator;
     friend class DerivedJobService;
@@ -270,7 +302,7 @@ private:
         DerivedJobContentProof& operator=(const DerivedJobContentProof&)=default;
     };
     DerivedJobHandle ContentProofRecordLocked(const RecordingMutationV1&,const DerivedJobContentProof*) const;
-    bool ApplyDerivedJobMutationLocked(const RecordingMutationV1&,std::string*,bool apply=true,PreparedDerivedMutation* prepared=nullptr,const DerivedJobPool* job_pool=nullptr,const DerivedJobContentProof* proof=nullptr);
+    bool ApplyDerivedJobMutationLocked(const RecordingMutationV1&,std::string*,bool apply=true,PreparedDerivedMutation* prepared=nullptr,const DerivedJobPool* job_pool=nullptr,const DerivedJobContentProof* proof=nullptr,const RecordingMutationLink* link=nullptr);
     RecordingLifecycle EffectiveLifecycleV2Locked(const std::string& id) const;
     bool OpenLocked(std::string* error);
     bool CanWriteLocked(std::string* error) const;
@@ -317,7 +349,7 @@ private:
     Options options_;
     mutable std::mutex mu_;
     bool opened_{false};
-    bool derived_job_state_authoritative_{true};
+    mutable bool derived_job_state_authoritative_{true};
     std::string catalog_mode_{"jsonl-fallback"};
     RecordingCatalogRecoveryReport recovery_report_;
     std::unordered_set<std::string> mutation_ids_;

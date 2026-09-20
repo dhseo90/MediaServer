@@ -19,7 +19,29 @@ for(const name of ['recording_catalog.cpp','recording_journal.cpp']){
   s=exact(s,'if(!recover_only&&detail::CheckpointCacheAdmissible(candidate)){','if(!lp17::cache_off&&!recover_only&&detail::CheckpointCacheAdmissible(candidate)){');
   s=exact(s,'const auto first=reuse?cached->prefix.size():0;','fc::Event(reuse?"cache.reused":"cache.fullReplay"); const auto first=reuse?cached->prefix.size():0;');
  } else {
-  s+='\nnamespace lp17 {\nOwned Journal(const recording::RecordingJournal& j,EnvelopeOwners* seen){Owned n;if(j.managed_state_){Mutations(n,j.managed_state_->records,seen);for(const auto& v:j.managed_state_->identities){String(n,v.first);String(n,v.second);}}return n;}\nvoid Provenance(const recording::RecordingJournal& j){if(!j.managed_state_)return;std::size_t i=0;for(const auto& handle:j.managed_state_->records){if(!handle)throw std::runtime_error("LP18_NULL_ENVELOPE");const auto& m=*handle;std::cout<<"[lp17] {\\"kind\\":\\"mutation\\",\\"index\\":"<<i++<<",\\"mutationId\\":\\""<<m.mutation_id<<"\\",\\"occurredAtMs\\":"<<m.occurred_at_ms<<",\\"type\\":"<<static_cast<int>(m.mutation_type)<<"}\\n";}}\n}\n';
+  s+=String.raw`
+namespace lp17 {
+Owned Journal(const recording::RecordingJournal& j,EnvelopeOwners* seen){
+ Owned n;EnvelopeOwners local;if(!seen)seen=&local;if(!j.managed_state_)return n;
+ const auto& state=*j.managed_state_;
+ if(state.records.size()!=state.locations.size())throw std::runtime_error("LP18_JOURNAL_METRIC_INDEX");
+ Vector(n,state.records);Vector(n,state.locations);Vector(n,state.refs);
+ for(std::size_t i=0;i<state.records.size();++i){
+  const auto& location=state.locations[i];if(!location||location->ordinal!=i)throw std::runtime_error("LP18_JOURNAL_METRIC_LOCATION");
+  n.locationStorageBytes+=sizeof(*location);
+  for(const auto* s:{&location->raw_sha256,&location->record_identity,&location->schema,&location->mutation_id,&location->entity_id})String(n,*s);
+  if(state.records[i])Envelope(n,state.records[i],*seen);
+  else{++n.records;++n.coldEnvelopes;n.logicalEnvelopeBytes+=location->logical_charge;}
+ }
+ for(const auto& v:state.identities){String(n,v.first);String(n,v.second);}return n;
+}
+void Provenance(const recording::RecordingJournal& j){
+ if(!j.managed_state_)return;std::size_t i=0;
+ for(const auto& row:j.managed_state_->locations){if(!row||row->ordinal!=i)throw std::runtime_error("LP18_JOURNAL_METRIC_LOCATION");
+  std::cout<<"[lp17] {\"kind\":\"mutation\",\"index\":"<<i++<<",\"mutationId\":\""<<row->mutation_id<<"\",\"occurredAtMs\":"<<row->occurred_at_ms<<",\"type\":"<<static_cast<int>(row->type)<<"}\n";}
+}
+}
+`;
  }
  s='#include "recording_catalog_comparison_ownership.h"\n'+s;
  fs.writeFileSync(file,s);console.log('[lp17] '+JSON.stringify({kind:'instrument',file:name,originalSha256:hash(original),instrumentedSha256:hash(s)}));

@@ -1,5 +1,1365 @@
 # LP18 공유 소유 focused 개별 결과
 
+### lp17-jobs-typed-01.txt
+
+[원출력](lp17-jobs-typed-01.txt), 253916B, SHA256 `38641fe37ecae78a1b8a967f117ada9d9d9884e6df5ed01f66e632512fd2b6af`.
+실행 결과: `{"kind":"run-result","mode":"jobs","id":"typed-01","diagnosticPass":true,"failure":null,"phases":4,"elapsedMs":17989,"productPass":false,"tokenConsumed":null,"line":1245}`. RED matched는 기능 PASS가 아니며 실제 실패 행을 유지한다.
+
+명령/단계: `cmake --build <repo>/build-gst-onnx --target media_server_runtime --parallel 2` → `bash <repo>/scripts/internal/recording_catalog_comparison_build.sh <owned-root>` → `<owned-root>/comparison-job <owned-root>/job-B B` → `<owned-root>/comparison-job <owned-root>/job-C C`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| runtime-freshness | 원출력 22행, exit0, 359ms | PASS | process cleanup=true |
+| compile | 원출력 54행, exit0, 4768ms | PASS | process cleanup=true |
+| job-B | 원출력 646행, exit0, 7045ms | PASS | process cleanup=true |
+| job-C | 원출력 1240행, exit0, 5563ms | PASS | process cleanup=true |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| <owned-root>/job-B | 격리 검증 store/빌드·registry | 5147594B | runner 소유 확인 후 삭제 | 삭제·부재 확인 | 원출력 647행 |
+| <owned-root>/job-C | 격리 검증 store/빌드·registry | 5147594B | runner 소유 확인 후 삭제 | 삭제·부재 확인 | 원출력 1241행 |
+| <owned-root> | 격리 검증 store/빌드·registry | 19364219B | runner 소유 확인 후 삭제 | 삭제·부재 확인 | 원출력 1244행 |
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| FC01 exact insertion checks count=97 | 원출력 28행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.input-keyframes | 원출력 57행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.source-shape | 원출력 59행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.selection-complete | 원출력 60행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.expected-intent-built | 원출력 61행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.admission | 원출력 62행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.expected-state | 원출력 115행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-intent | 원출력 116행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-record-roundtrip | 원출력 117행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.expected-state | 원출력 153행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-intent | 원출력 154행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.files-receipt | 원출력 155행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-record-roundtrip | 원출력 156행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.expected-state | 원출력 199행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-intent | 원출력 200행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.files-receipt | 원출력 201행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-record-roundtrip | 원출력 202행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.ready-verified-proof | 원출력 203행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.expected-state | 원출력 280행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-intent | 원출력 281행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.files-receipt | 원출력 282행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-record-roundtrip | 원출력 283행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-ready-preserved | 원출력 284행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.expected-state | 원출력 314행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-intent | 원출력 315행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.files-receipt | 원출력 316행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-record-roundtrip | 원출력 317행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-ready-preserved | 원출력 318행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.protection-released | 원출력 319행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.run-complete | 원출력 327행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.actual-output-hash | 원출력 328행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.selection-complete | 원출력 329행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.expected-intent-built | 원출력 330행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.admission | 원출력 331행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.expected-state | 원출력 384행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-intent | 원출력 385행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-record-roundtrip | 원출력 386행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.expected-state | 원출력 422행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-intent | 원출력 423행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.files-receipt | 원출력 424행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-record-roundtrip | 원출력 425행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.expected-state | 원출력 468행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-intent | 원출력 469행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.files-receipt | 원출력 470행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-record-roundtrip | 원출력 471행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.ready-verified-proof | 원출력 472행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.expected-state | 원출력 552행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-intent | 원출력 553행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.files-receipt | 원출력 554행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-record-roundtrip | 원출력 555행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-ready-preserved | 원출력 556행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.expected-state | 원출력 586행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-intent | 원출력 587행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.files-receipt | 원출력 588행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-record-roundtrip | 원출력 589행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-ready-preserved | 원출력 590행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.protection-released | 원출력 591행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.run-complete | 원출력 599행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.actual-output-hash | 원출력 600행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| CP01.actual-ready-complete-shape-canonical-files-reservation | 원출력 601행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| CP02.two-jobs-over-1MiB-canonical-transitions | 원출력 602행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.input-keyframes | 원출력 650행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.source-shape | 원출력 652행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.selection-complete | 원출력 653행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.expected-intent-built | 원출력 654행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.admission | 원출력 655행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.expected-state | 원출력 708행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-intent | 원출력 709행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-record-roundtrip | 원출력 710행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.expected-state | 원출력 746행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-intent | 원출력 747행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.files-receipt | 원출력 748행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-record-roundtrip | 원출력 749행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.expected-state | 원출력 792행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-intent | 원출력 793행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.files-receipt | 원출력 794행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-record-roundtrip | 원출력 795행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.ready-verified-proof | 원출력 796행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.expected-state | 원출력 875행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-intent | 원출력 876행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.files-receipt | 원출력 877행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-record-roundtrip | 원출력 878행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-ready-preserved | 원출력 879행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.expected-state | 원출력 909행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-intent | 원출력 910행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.files-receipt | 원출력 911행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-record-roundtrip | 원출력 912행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-ready-preserved | 원출력 913행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.protection-released | 원출력 914행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.run-complete | 원출력 922행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.actual-output-hash | 원출력 923행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.selection-complete | 원출력 924행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.expected-intent-built | 원출력 925행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.admission | 원출력 926행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.expected-state | 원출력 979행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-intent | 원출력 980행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-record-roundtrip | 원출력 981행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.expected-state | 원출력 1017행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-intent | 원출력 1018행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.files-receipt | 원출력 1019행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-record-roundtrip | 원출력 1020행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.expected-state | 원출력 1063행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-intent | 원출력 1064행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.files-receipt | 원출력 1065행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-record-roundtrip | 원출력 1066행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.ready-verified-proof | 원출력 1067행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.expected-state | 원출력 1146행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-intent | 원출력 1147행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.files-receipt | 원출력 1148행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-record-roundtrip | 원출력 1149행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-ready-preserved | 원출력 1150행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.expected-state | 원출력 1180행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-intent | 원출력 1181행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.files-receipt | 원출력 1182행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-record-roundtrip | 원출력 1183행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.canonical-ready-preserved | 원출력 1184행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.protection-released | 원출력 1185행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.run-complete | 원출력 1193행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D08.actual-output-hash | 원출력 1194행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| CP01.actual-ready-complete-shape-canonical-files-reservation | 원출력 1195행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| CP02.two-jobs-over-1MiB-canonical-transitions | 원출력 1196행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| B/C 입력 동일성 | 원출력 1242행, canonical SHA 일치 | PASS | 두 비교 입력 직접 대조 |
+
+### lp17-small-typed-01.txt
+
+[원출력](lp17-small-typed-01.txt), 302959B, SHA256 `76f7c0feae7a42c078977b96063761310bee055ee7b3d40e5d9647cbb24b3da5`.
+실행 결과: `{"kind":"run-result","mode":"small","id":"typed-01","diagnosticPass":true,"failure":null,"phases":12,"elapsedMs":10172,"productPass":false,"tokenConsumed":null,"line":1470}`. RED matched는 기능 PASS가 아니며 실제 실패 행을 유지한다.
+
+명령/단계: `cmake --build <repo>/build-gst-onnx --target media_server_runtime --parallel 2` → `bash <repo>/scripts/internal/recording_catalog_comparison_build.sh <owned-root>` → `<owned-root>/comparison prepare <owned-root>/seed 32 2` → `<owned-root>/comparison scale <owned-root>/seed <owned-root>/store-A A 32 2` → `<owned-root>/comparison reopen <owned-root>/seed <owned-root>/store-A A 32 2 sqlite` → `<owned-root>/comparison reopen <owned-root>/seed <owned-root>/store-A A 32 2 jsonl` → `<owned-root>/comparison scale <owned-root>/seed <owned-root>/store-B B 32 2` → `<owned-root>/comparison reopen <owned-root>/seed <owned-root>/store-B B 32 2 sqlite` → `<owned-root>/comparison reopen <owned-root>/seed <owned-root>/store-B B 32 2 jsonl` → `<owned-root>/comparison scale <owned-root>/seed <owned-root>/store-C C 32 2` → `<owned-root>/comparison reopen <owned-root>/seed <owned-root>/store-C C 32 2 sqlite` → `<owned-root>/comparison reopen <owned-root>/seed <owned-root>/store-C C 32 2 jsonl`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| runtime-freshness | 원출력 22행, exit0, 609ms | PASS | process cleanup=true |
+| compile | 원출력 61행, exit0, 4754ms | PASS | process cleanup=true |
+| prepare | 원출력 91행, exit0, 1713ms | PASS | process cleanup=true |
+| scale-A | 원출력 390행, exit0, 291ms | PASS | process cleanup=true |
+| reopen-A-sqlite | 원출력 472행, exit0, 276ms | PASS | process cleanup=true |
+| reopen-A-jsonl | 원출력 546행, exit0, 275ms | PASS | process cleanup=true |
+| scale-B | 원출력 845행, exit0, 290ms | PASS | process cleanup=true |
+| reopen-B-sqlite | 원출력 927행, exit0, 276ms | PASS | process cleanup=true |
+| reopen-B-jsonl | 원출력 1001행, exit0, 276ms | PASS | process cleanup=true |
+| scale-C | 원출력 1310행, exit0, 294ms | PASS | process cleanup=true |
+| reopen-C-sqlite | 원출력 1392행, exit0, 276ms | PASS | process cleanup=true |
+| reopen-C-jsonl | 원출력 1466행, exit0, 276ms | PASS | process cleanup=true |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| <owned-root>/store-A | 격리 검증 store/빌드·registry | 256627B | runner 소유 확인 후 삭제 | 삭제·부재 확인 | 원출력 547행 |
+| <owned-root>/store-B | 격리 검증 store/빌드·registry | 256627B | runner 소유 확인 후 삭제 | 삭제·부재 확인 | 원출력 1002행 |
+| <owned-root>/store-C | 격리 검증 store/빌드·registry | 256627B | runner 소유 확인 후 삭제 | 삭제·부재 확인 | 원출력 1467행 |
+| <owned-root> | 격리 검증 store/빌드·registry | 19663009B | runner 소유 확인 후 삭제 | 삭제·부재 확인 | 원출력 1469행 |
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| FC01 exact insertion checks count=97 | 원출력 28행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| recorded FE02 writer start | 원출력 64행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| recorded FE04 bound finalized mutation segment0 | 원출력 65행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/prepare LP02.actual4096-prerequisite | 원출력 67행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/prepare seed.input-count | 원출력 68행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/prepare seed.input-identity-all-samples | 원출력 69행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/prepare seed.physical-evidence | 원출력 70행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/commit1 LP02.reserve | 원출력 109행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/commit1 LP02.actual-file-outside-catalog | 원출력 110행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/commit1 LP02.commit | 원출력 151행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/commit2 LP02.reserve | 원출력 166행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/commit2 LP02.actual-file-outside-catalog | 원출력 167행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/commit2 LP02.commit | 원출력 208행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/snapshot2 LP02.snapshot-exact-count | 원출력 235행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/snapshot2 snapshot.canonical-all | 원출력 248행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/snapshot2 LP02.explicit-checkpoint | 원출력 283행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/snapshot2 LP02.reservation-bound-mutation-count | 원출력 289행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/delete delete.original-canonical | 원출력 298행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/delete delete.pending | 원출력 314행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/delete delete.unlink | 원출력 315행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/delete delete.tombstone | 원출력 330행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/delete delete.checkpoint | 원출력 353행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/delete delete.binding-preserved | 원출력 354행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/delete deleted.public-hidden | 원출력 355행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/sqlite LP02.journal-reopen | 원출력 404행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/sqlite LP02.catalog-reopen | 원출력 427행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/sqlite/0 LP02.exact-source | 원출력 433행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/sqlite/0 deleted.public-hidden | 원출력 434행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/sqlite/0 reopen.deleted-state | 원출력 436행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/sqlite/1 LP02.exact-source | 원출력 437행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/sqlite/1 reopen.remaining-media | 원출력 439행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/jsonl LP02.journal-reopen | 원출력 486행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/jsonl LP02.catalog-reopen | 원출력 501행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/jsonl/0 LP02.exact-source | 원출력 507행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/jsonl/0 deleted.public-hidden | 원출력 508행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/jsonl/0 reopen.deleted-state | 원출력 510행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/jsonl/1 LP02.exact-source | 원출력 511행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/jsonl/1 reopen.remaining-media | 원출력 513행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/commit1 LP02.reserve | 원출력 564행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/commit1 LP02.actual-file-outside-catalog | 원출력 565행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/commit1 LP02.commit | 원출력 606행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/commit2 LP02.reserve | 원출력 621행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/commit2 LP02.actual-file-outside-catalog | 원출력 622행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/commit2 LP02.commit | 원출력 663행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/snapshot2 LP02.snapshot-exact-count | 원출력 690행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/snapshot2 snapshot.canonical-all | 원출력 703행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/snapshot2 LP02.explicit-checkpoint | 원출력 738행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/snapshot2 LP02.reservation-bound-mutation-count | 원출력 744행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/delete delete.original-canonical | 원출력 753행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/delete delete.pending | 원출력 769행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/delete delete.unlink | 원출력 770행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/delete delete.tombstone | 원출력 785행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/delete delete.checkpoint | 원출력 808행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/delete delete.binding-preserved | 원출력 809행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/delete deleted.public-hidden | 원출력 810행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/sqlite LP02.journal-reopen | 원출력 853행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/sqlite LP02.catalog-reopen | 원출력 876행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/sqlite/0 LP02.exact-source | 원출력 885행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/sqlite/0 deleted.public-hidden | 원출력 886행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/sqlite/0 reopen.deleted-state | 원출력 888행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/sqlite/1 LP02.exact-source | 원출력 892행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/sqlite/1 reopen.remaining-media | 원출력 894행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/jsonl LP02.journal-reopen | 원출력 935행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/jsonl LP02.catalog-reopen | 원출력 950행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/jsonl/0 LP02.exact-source | 원출력 959행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/jsonl/0 deleted.public-hidden | 원출력 960행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/jsonl/0 reopen.deleted-state | 원출력 962행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/jsonl/1 LP02.exact-source | 원출력 966행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/jsonl/1 reopen.remaining-media | 원출력 968행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/commit1 LP02.reserve | 원출력 1019행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/commit1 LP02.actual-file-outside-catalog | 원출력 1020행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/commit1 LP02.commit | 원출력 1061행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/commit2 LP02.reserve | 원출력 1076행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/commit2 LP02.actual-file-outside-catalog | 원출력 1077행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/commit2 LP02.commit | 원출력 1118행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/snapshot2 LP02.snapshot-exact-count | 원출력 1145행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/snapshot2 snapshot.canonical-all | 원출력 1158행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/snapshot2 LP02.explicit-checkpoint | 원출력 1195행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/snapshot2 LP02.reservation-bound-mutation-count | 원출력 1201행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/delete delete.original-canonical | 원출력 1210행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/delete delete.pending | 원출력 1226행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/delete delete.unlink | 원출력 1227행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/delete delete.tombstone | 원출력 1242행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/delete delete.checkpoint | 원출력 1273행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/delete delete.binding-preserved | 원출력 1274행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/delete deleted.public-hidden | 원출력 1275행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/sqlite LP02.journal-reopen | 원출력 1318행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/sqlite LP02.catalog-reopen | 원출력 1341행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/sqlite/0 LP02.exact-source | 원출력 1350행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/sqlite/0 deleted.public-hidden | 원출력 1351행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/sqlite/0 reopen.deleted-state | 원출력 1353행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/sqlite/1 LP02.exact-source | 원출력 1357행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/sqlite/1 reopen.remaining-media | 원출력 1359행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/jsonl LP02.journal-reopen | 원출력 1400행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/jsonl LP02.catalog-reopen | 원출력 1415행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/jsonl/0 LP02.exact-source | 원출력 1424행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/jsonl/0 deleted.public-hidden | 원출력 1425행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/jsonl/0 reopen.deleted-state | 원출력 1427행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/jsonl/1 LP02.exact-source | 원출력 1431행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP17/reopen/jsonl/1 reopen.remaining-media | 원출력 1433행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+
+
+### lp18-typed-build-01.txt
+
+[원출력](lp18-typed-build-01.txt), 13879B, SHA256 `d750f4f59bb9de69c3364dccab27fc8bf04e1bb96a01d02626e137c611318c4b`.
+
+종료/정리: `[exit] code=0 elapsed_seconds=52 source=bash-SECONDS`.
+
+### lp18-typed-build-02.txt
+
+[원출력](lp18-typed-build-02.txt), 785B, SHA256 `1417882316a39c0ec7e61aa0a50c48aba0f7ee6d281dcb6027034dfda482e5e9`.
+
+종료/정리: `[exit] code=0 elapsed_seconds=3 source=bash-SECONDS`.
+
+### lp18-typed-build-03.txt
+
+[원출력](lp18-typed-build-03.txt), 672B, SHA256 `6a9fd7da3a7f88c9c85b9b74963f4d750765ad455f03519b6654ada23c7cc7cf`.
+
+종료/정리: `[exit] code=0 elapsed_seconds=3 source=bash-SECONDS`.
+
+### lp18-typed-build-04.txt
+
+[원출력](lp18-typed-build-04.txt), 672B, SHA256 `53b2d1ecf67ec716ac1e3277bd100c6105562ce9f9c0b31fff8e0067b1c016de`.
+
+종료/정리: `[exit] code=0 elapsed_seconds=3 source=bash-SECONDS`.
+
+### lp18-typed-build-05.txt
+
+[원출력](lp18-typed-build-05.txt), 672B, SHA256 `6a9fd7da3a7f88c9c85b9b74963f4d750765ad455f03519b6654ada23c7cc7cf`.
+
+종료/정리: `[exit] code=0 elapsed_seconds=3 source=bash-SECONDS`.
+
+### lp18-typed-cache-01.txt
+
+[원출력](lp18-typed-cache-01.txt), 3230B, SHA256 `2a21c0bc59194d0061f3447c58db1acfc06b843dfae2e40c26d02cc0be45fc08`.
+
+종료/정리: `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.gSMS6E","bytes":8937916,"removed":true}`; `[exit] code=2 elapsed_seconds=4 source=bash-SECONDS`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| LP15-C01 cold full applied=1 expected=1 | 원출력 7행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 unchanged prefix applied=0 expected=0 | 원출력 8행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 exact prefix suffix only applied=1 expected=1 | 원출력 9행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 independent prefix shadow/full projection equality | 원출력 10행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 full fallback schema applied=2 expected=2 | 원출력 11행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 full fallback type applied=2 expected=2 | 원출력 12행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 full fallback id applied=2 expected=2 | 원출력 13행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 full fallback entity applied=2 expected=2 | 원출력 14행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 full fallback time applied=2 expected=2 | 원출력 15행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 full fallback payload applied=2 expected=2 | 원출력 16행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 full fallback reorder applied=2 expected=2 | 원출력 17행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 full fallback shrink applied=2 expected=2 | 원출력 18행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 full fallback null-shadow applied=2 expected=2 | 원출력 19행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 full fallback null-handle applied=2 expected=2 | 원출력 20행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 Open clears cache applied=2 expected=2 | 원출력 21행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C03 recover full/no-cache | 원출력 22행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C03 after recover full applied=2 expected=2 | 원출력 23행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C03 injected commit refusal discards cache | 원출력 24행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C03 after commit refusal full applied=2 expected=2 | 원출력 25행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C03 suffix exception discards cache | 원출력 26행의 실제 개별 assertion | FAIL | 최초 실패 보존; 수정/재검증은 중앙 기록 |
+| LP15-C04 peakRSS bytes=138788864 cap=536870912 | 원출력 46행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+
+### lp18-typed-cache-02.txt
+
+[원출력](lp18-typed-cache-02.txt), 6911B, SHA256 `7952b53f4ca445ef3f3ab57a3c7a1c4d87e00b7e3a6ebfc05aa025f18ec3b66d`.
+
+종료/정리: `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-checkpoint-cache.QhQlG5","bytes":17500679,"removed":true}`; `[exit] code=0 elapsed_seconds=20 source=bash-SECONDS`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| LP15-C01 cold full applied=1 expected=1 | 원출력 8행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 unchanged prefix applied=0 expected=0 | 원출력 9행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 exact prefix suffix only applied=1 expected=1 | 원출력 10행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 independent prefix shadow/full projection equality | 원출력 11행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 full fallback schema applied=2 expected=2 | 원출력 12행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 full fallback type applied=2 expected=2 | 원출력 13행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 full fallback id applied=2 expected=2 | 원출력 14행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 full fallback entity applied=2 expected=2 | 원출력 15행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 full fallback time applied=2 expected=2 | 원출력 16행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 full fallback payload applied=2 expected=2 | 원출력 17행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 full fallback reorder applied=2 expected=2 | 원출력 18행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 full fallback shrink applied=2 expected=2 | 원출력 19행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 full fallback null-shadow applied=2 expected=2 | 원출력 20행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 full fallback null-handle applied=2 expected=2 | 원출력 21행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C01 Open clears cache applied=2 expected=2 | 원출력 22행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C03 recover full/no-cache | 원출력 23행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C03 after recover full applied=2 expected=2 | 원출력 24행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C03 injected commit refusal discards cache | 원출력 25행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C03 after commit refusal full applied=2 expected=2 | 원출력 26행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C03 suffix exception discards cache | 원출력 27행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C03 after exception full applied=3 expected=3 | 원출력 28행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C03 public poisoned entry discards cache | 원출력 29행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C03 after restored fixture full applied=3 expected=3 | 원출력 30행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C04 exact byte charge boundary | 원출력 31행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C04 overflow charge rejected | 원출력 32행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C04 8192 records admitted | 원출력 33행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C04 8193 records rejected | 원출력 34행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C04 64MiB record charge admitted | 원출력 35행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C04 64MiB plus one rejected | 원출력 36행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C03 changed candidate prime applied=1 expected=1 | 원출력 37행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C03 changed candidate suffix12 plus full candidate13 applied=25 expected=25 | 원출력 38행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C03 changed candidate cache equals independent full projection | 원출력 39행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C03 compacted candidate prefix reused applied=0 expected=0 | 원출력 40행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C03 forced projection mismatch discards cache | 원출력 41행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R07 ordinary projection exception preserves authority and retry eligibility | 원출력 42행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R07 uncertain projection returns false and preserves durable bytes | 원출력 43행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C04 overlimit prime applied=1 expected=1 | 원출력 44행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C04 existing cache ignored for oversized original applied=8193 expected=8193 | 원출력 45행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C04 oversized candidate not retained | 원출력 46행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C04 next oversized checkpoint full applied=8193 expected=8193 | 원출력 47행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| CP01 actual Ready Complete shape canonical files reservation | 원출력 64행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| CP02 bounded two jobs over 1MiB canonical transitions | 원출력 65행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C02 bounded automatic checkpoint and whole transition measurement | 원출력 69행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C02 reopened full applied=18 expected=18 | 원출력 71행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C02 actual unchanged prefix applied=0 expected=0 | 원출력 72행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C02 actual suffix only applied=1 expected=1 | 원출력 73행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C02 actual job shadow/full projection equality | 원출력 74행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C03 illegal Ready after Complete suffix rejected by cached/full paths | 원출력 75행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP15-C04 peakRSS bytes=163577856 cap=536870912 | 원출력 95행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+
+### lp18-typed-catalog-01.txt
+
+[원출력](lp18-typed-catalog-01.txt), 14388B, SHA256 `9abb942172ab275e7ee63693315dc27fbf3d7a315433cef43677221f904e76df`.
+
+종료/정리: `[cleanup] path=/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T//media-server-typed-catalog.RB2HQf bytes=27371342 removed=true`; `[exit] code=0 elapsed_seconds=15 source=bash-SECONDS`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| journal open: | 원출력 1행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| fallback catalog open: | 원출력 2행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| SQLite off mode 표시 | 원출력 3행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| segment finalize journal+projection: | 원출력 4행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| fallback range query | 원출력 5행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| event link FK 위반 거부 | 원출력 6행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| FK 위반 transaction/journal 전체 rollback | 원출력 7행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| 최초 durable mutation 1개 | 원출력 8행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| 동일 mutation 중복 append | 원출력 9행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| 손상 사이 정상 durable mutation 보존 | 원출력 10행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| 중간 corrupt line count | 원출력 11행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| 마지막 truncated line skip | 원출력 12행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| fallback replay open | 원출력 13행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| 같은 mutation idempotent replay | 원출력 14행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| 재시작 시 nonce로 소유한 partial만 정리하고 foreign partial/final은 보존 | 원출력 15행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| 중복 replay row/합계 불증가 | 원출력 16행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| 추적 final은 보존하고 v2가 지목한 잔여 partial과 marker만 복구: | 원출력 17행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| writer cleanup marker 안전 제거 실패는 catalog open을 fail-closed | 원출력 18행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| v2 marker가 지목해도 다중 link partial은 보존하고 catalog open을 fail-closed | 원출력 19행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| SQLite catalog open/rebuild: | 원출력 20행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| SQLite primary mode 표시 | 원출력 21행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| SQLite on/off range query ID·순서 parity | 원출력 22행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| journal 없는 정상 media와 소유권 불명 cleanup final을 orphan으로 구분 | 원출력 23행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| journal 없는 손상 media orphan 구분 | 원출력 24행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| projection failover journal open: | 원출력 25행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| projection failover catalog open: | 원출력 26행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| 실제 SQLite INSERT 실패 trigger 설치 | 원출력 27행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| SQLite 투영 실패 뒤 journal+memory finalize 유지: | 원출력 28행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| SQLite 투영 실패 즉시 JSONL fallback 전환 | 원출력 29행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| 재시작 rebuild 전 실패 trigger 제거 | 원출력 30행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| 투영 실패 직후 in-memory query 정합성 유지 | 원출력 31행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| projection failover 재시작 journal rebuild: | 원출력 32행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| 재시작 후 journal에서 누락 SQLite projection 복구 | 원출력 33행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| 재시작 후 SQLite primary 복귀 | 원출력 34행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| 재시작 journal rebuild가 실제 SQLite row 복원 | 원출력 35행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| tombstone journal open: | 원출력 36행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| tombstone catalog open: | 원출력 37행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| tombstone 대상 segment finalize: | 원출력 38행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| tombstone 대상 deletion request: | 원출력 39행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| tombstone 완료 기록: | 원출력 40행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| catalog finalize가 tombstone segment ID 재사용을 거부해야 함 | 원출력 41행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| 손상 SQLite 격리 후 journal rebuild: | 원출력 42행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| 손상 SQLite 원본 격리 | 원출력 43행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| 격리 SQLite 파일 보존 | 원출력 44행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| 격리 후 journal rebuild 결과 | 원출력 45행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A future-schema journal read open | 원출력 46행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A future-schema unsupported classification | 원출력 47행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A future-schema catalog open denied | 원출력 48행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A future-schema catalog retry denied | 원출력 49행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A future-schema journal bytes preserved | 원출력 50행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A future-schema SQLite bytes preserved | 원출력 51행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A future-schema writer cleanup untouched | 원출력 52행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A arbitrary-schema journal read open | 원출력 53행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A arbitrary-schema unsupported classification | 원출력 54행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A arbitrary-schema catalog open denied | 원출력 55행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A arbitrary-schema catalog retry denied | 원출력 56행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A arbitrary-schema journal bytes preserved | 원출력 57행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A arbitrary-schema SQLite bytes preserved | 원출력 58행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A arbitrary-schema writer cleanup untouched | 원출력 59행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A empty-schema journal read open | 원출력 60행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A empty-schema unsupported classification | 원출력 61행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A empty-schema catalog open denied | 원출력 62행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A empty-schema catalog retry denied | 원출력 63행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A empty-schema journal bytes preserved | 원출력 64행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A empty-schema SQLite bytes preserved | 원출력 65행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A empty-schema writer cleanup untouched | 원출력 66행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A future-type journal read open | 원출력 67행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A future-type unsupported classification | 원출력 68행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A future-type catalog open denied | 원출력 69행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A future-type catalog retry denied | 원출력 70행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A future-type journal bytes preserved | 원출력 71행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A future-type SQLite bytes preserved | 원출력 72행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A future-type writer cleanup untouched | 원출력 73행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A malformed journal open | 원출력 74행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-3A malformed JSON missing fields and wrong types remain corrupt | 원출력 75행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O01 reservation journal open | 원출력 76행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O01 first reservation returns four IDs and sequence one | 원출력 77행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O01 versioned reservation payload replays | 원출력 78행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O01 new reservation records actual occurred time | 원출력 79행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O02 identical retry preserves sequence and bytes | 원출력 80행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O03 reopened instance allocates next sequence | 원출력 81행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O03 new process resumes durable sequence | 원출력 82행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O04 different store rejected | 원출력 83행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O04 reused request with different segment rejected | 원출력 84행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O04 reused request with different channel rejected | 원출력 85행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O04 reused segment with different request rejected | 원출력 86행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O04 conflicts preserve original bytes | 원출력 87행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O05/O06 reject and preserve corrupt | 원출력 88행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O05/O06 reject and preserve unsupported-schema | 원출력 89행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O05/O06 reject and preserve unsupported-type | 원출력 90행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O05/O06 reject and preserve tail | 원출력 91행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O05/O06 reject and preserve payload-zero | 원출력 92행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O05/O06 reject and preserve payload-negative | 원출력 93행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O05/O06 reject and preserve payload-fraction | 원출력 94행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O05/O06 reject and preserve payload-overflow | 원출력 95행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O05/O06 reject and preserve duplicate-sequence | 원출력 96행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O05/O06 reject and preserve decreasing-sequence | 원출력 97행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O05/O06 reject and preserve duplicate-request | 원출력 98행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O05/O06 reject and preserve duplicate-segment | 원출력 99행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O05/O06 reject and preserve store-conflict | 원출력 100행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O05/O06 reject and preserve ordinary-before | 원출력 101행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O05/O06 reject and preserve ordinary-after | 원출력 102행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O05/O06 reject and preserve line-cap | 원출력 103행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O05 reservation entity envelope binding rejects mismatch | 원출력 104행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O05 reservation request envelope binding rejects mismatch | 원출력 105행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O01 strict reservation parser accepts versioned literal | 원출력 106행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 원출력 107행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 원출력 108행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 원출력 109행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O05 strict reservation parser rejects invalid schema fields or duplicate keys | 원출력 110행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O06 INT64_MAX identical retry remains valid | 원출력 111행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O06 sequence overflow rejected without write | 원출력 112행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O02 identical durable reservation duplicates remain idempotent | 원출력 113행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O06 sequence gaps remain valid and allocate above maximum | 원출력 114행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O07 four simultaneous processes finish reservations | 원출력 115행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O07 concurrent sequences are unique and complete | 원출력 116행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O07 next sequence follows concurrent reservations | 원출력 117행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O08 ordinary Append cannot reserve orders | 원출력 118행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O08 unopened journal rejected | 원출력 119행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O08 null result rejected | 원출력 120행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O08 invalid opaque ID rejected | 원출력 121행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O08 failed reservation does not expose tentative result | 원출력 122행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O09 unsafe file binding rejected and original preserved inode | 원출력 123행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O09 unsafe file binding rejected and original preserved parent | 원출력 124행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O09 unsafe file binding rejected and original preserved symlink | 원출력 125행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O09 unsafe file binding rejected and original preserved hardlink | 원출력 126행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O10 reservation and normal segment coexist in catalog | 원출력 127행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O04 reserve then finalize permits identical retry | 원출력 128행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O10 reservation survives catalog rebuild without changing segment query | 원출력 129행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-O04 legacy segment cannot acquire retroactive reservation | 원출력 130행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M06 opened catalog accepts fresh exact reservation V2 finalize | 원출력 131행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M07 V2 find preserves complete metadata | 원출력 132행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M07 identical V2 recovery is idempotent | 원출력 133행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M07 V2 is absent from V1 range query | 원출력 134행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M07 V2 registered path is not orphan | 원출력 135행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M07 SQLite exact V2 JSON and path match | 원출력 136행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M07 JSONL restart preserves V2 exact payload | 원출력 137행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M06 wrong reservation tuple rejected store | 원출력 138행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M06 wrong reservation tuple rejected request | 원출력 139행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M06 wrong reservation tuple rejected segment | 원출력 140행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M06 wrong reservation tuple rejected channel | 원출력 141행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M06 wrong reservation tuple rejected sequence | 원출력 142행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M09 immutable V2 mapping mismatch rejected | 원출력 143행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M09 bad V2 startup retry preserves original state bad-payload | 원출력 144행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M09 bad V2 startup retry preserves original state missing-order | 원출력 145행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M09 bad V2 startup retry preserves original state bad-order | 원출력 146행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M09 bad V2 startup retry preserves original state conflicting-order | 원출력 147행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M09 bad V2 startup retry preserves original state tail | 원출력 148행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M09 bad V2 startup retry preserves original state corrupt | 원출력 149행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M09 bad V2 startup retry preserves original state unsafe-path | 원출력 150행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M09 default off rejects V2 before SQLite changes | 원출력 151행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M09 V2 replay namespace and deletion duplicate | 원출력 152행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M09 V2 replay namespace and deletion deleted | 원출력 153행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M09 V2 replay namespace and deletion v1-before | 원출력 154행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M09 V2 replay namespace and deletion v1-after | 원출력 155행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M09 V2 replay namespace and deletion deleted-before | 원출력 156행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M09 V2 replay namespace and deletion resurrection | 원출력 157행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M09 V2 replay namespace and deletion mutation-collision | 원출력 158행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M09 V2 finalize rejects missing media | 원출력 159행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M09 V2 finalize rejects directory media | 원출력 160행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M09 fresh candidate rejects mapping | 원출력 161행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M09 fresh candidate rejects path | 원출력 162행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-M09 fresh candidate rejects tombstone | 원출력 163행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SW01 managed empty root opens with lifetime lease | 원출력 164행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SW02 same process second managed owner denied | 원출력 165행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SW03 different process owner and inherited use denied | 원출력 166행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SW12 managed duplicate descriptors are close-on-exec | 원출력 167행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SW05 managed reserve append replay use owned descriptor | 원출력 168행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SW06 raw managed access and legacy default path denied | 원출력 169행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SW01 managed Reserve rejects different store identity | 원출력 170행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SW10 catalog connection can inspect managed lease | 원출력 171행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SW04 owner destruction releases lease | 원출력 172행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SW01 managed reopen rejects different store identity | 원출력 173행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SW11 managed incomplete tail rejects append without changing bytes | 원출력 174행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SW07 legacy nonempty root preserved without conversion | 원출력 175행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SW08 partial initialization retry validates exact state lease | 원출력 176행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SW08 partial initialization retry validates exact state init | 원출력 177행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SW08 partial initialization retry validates exact state barrier | 원출력 178행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SW08 partial initialization retry validates exact state journal | 원출력 179행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SW08 partial initialization retry validates exact state incomplete | 원출력 180행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SW08 partial initialization retry validates exact state unknown | 원출력 181행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SW09 symlink inode and malformed marker rejected journal | 원출력 182행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SW09 symlink inode and malformed marker rejected marker | 원출력 183행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SW09 symlink inode and malformed marker rejected barrier | 원출력 184행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SW09 symlink inode and malformed marker rejected root-symlink | 원출력 185행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SB01 second managed catalog is denied | 원출력 186행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SB02 failed catalog cannot mutate journal or holds | 원출력 187행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SB03 attached catalog blocks unowned append but permits reservation | 원출력 188행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SB04 catalog destruction releases attachment | 원출력 189행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SB05 managed catalog rejects unsafe options outside | 원출력 190행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SB05 managed catalog rejects unsafe options dotdot | 원출력 191행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SB05 managed catalog rejects unsafe options media-symlink | 원출력 192행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SB05 managed catalog rejects unsafe options sqlite-symlink | 원출력 193행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SB05 managed catalog rejects unsafe options sqlite-hardlink | 원출력 194행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SB05 managed catalog rejects unsafe options disabled | 원출력 195행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SB06 failed open releases catalog attachment | 원출력 196행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SB07 managed SQLite sidecar rejected -wal symlink | 원출력 197행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SB07 managed SQLite sidecar rejected -wal hardlink | 원출력 198행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SB07 managed SQLite sidecar rejected -shm symlink | 원출력 199행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SB07 managed SQLite sidecar rejected -shm hardlink | 원출력 200행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SB07 managed SQLite sidecar rejected -journal symlink | 원출력 201행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SB07 managed SQLite sidecar rejected -journal hardlink | 원출력 202행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC01 managed repeated event fixture is valid | 원출력 203행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC02 managed reservations avoid history reads | 원출력 204행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC03 managed V2 finalize avoids full replay | 원출력 205행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC04 checkpoint reduces superseded event payload bytes | 원출력 206행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC05 checkpoint preserves latest event and all record identities | 원출력 207행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC06 checkpoint is idempotent and preserves V2 | 원출력 208행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC08 receipt preserves retry identity and rejects direct append | 원출력 209행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC09 checkpoint restart preserves SQLite and JSONL state sqlite | 원출력 210행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC09 managed checkpoint SQL V2 payload and path | 원출력 211행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC09 checkpoint restart preserves SQLite and JSONL state jsonl | 원출력 212행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC10 checkpoint prefix recovers before writes | 원출력 213행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC11 checkpoint mismatch preserves bytes and poisons owner | 원출력 214행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC12 first accepted mutation controls latest event | 원출력 215행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC16 automatic checkpoint uses accumulated growth | 원출력 216행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC07 raw checkpoint is rejected | 원출력 217행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC18 checkpoint syscall failure poisons and reopens write | 원출력 218행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC21 poison rejects hold mutation write | 원출력 219행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC18 checkpoint syscall failure poisons and reopens file-fsync | 원출력 220행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC21 poison rejects hold mutation file-fsync | 원출력 221행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC18 checkpoint syscall failure poisons and reopens rename | 원출력 222행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC21 poison rejects hold mutation rename | 원출력 223행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC18 checkpoint syscall failure poisons and reopens dir-fsync | 원출력 224행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC21 poison rejects hold mutation dir-fsync | 원출력 225행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC17 checkpoint preserves holds observations and deletion | 원출력 226행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC17 checkpoint SQL hold observation tombstone | 원출력 227행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC17 checkpoint preserves holds observations and deletion restart sqlite | 원출력 228행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC17 checkpoint SQL restart observation tombstone | 원출력 229행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC17 checkpoint preserves holds observations and deletion restart jsonl | 원출력 230행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC19 invalid managed history remains unchanged malformed | 원출력 231행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC19 invalid managed history remains unchanged unsupported | 원출력 232행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC19 invalid managed history remains unchanged conflict | 원출력 233행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC20 raw catalog rejects receipt before side effects | 원출력 234행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC13 crypto off raw remains usable | 원출력 236행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC14 crypto off checkpoint is rejected | 원출력 237행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| S10-SC15 crypto off receipt reopen is rejected | 원출력 238행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| source 저장 callback reconcile 연결 | 원출력 239행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| policy revision idempotency | 원출력 240행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| 5초 safety reconcile | 원출력 241행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| composition root 관리 저장소 선행 open | 원출력 242행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| composition helper journal 다음 catalog rebuild/open | 원출력 243행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| 서버 전 supervisor 시작 | 원출력 244행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| ingress 전 event bridge 등록 | 원출력 245행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| ingress 종료 뒤 recorder finalize | 원출력 246행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| composition root 시작/종료 순서 | 원출력 247행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+
+### lp18-typed-media-01.txt
+
+[원출력](lp18-typed-media-01.txt), 2793B, SHA256 `d29cc50b3b8830926e8e982105aab007cc85d584ab389451498ab1f16a967ea2`.
+
+종료/정리: `[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-public-media.JEOSRI bytes=9004996 removed=true`; `[exit] code=0 elapsed_seconds=3 source=bash-SECONDS`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| D3A-05 미완료 출력 거부 | 원출력 4행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-05 미완료 출력 거부 | 원출력 5행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-05 미완료 출력 거부 | 원출력 6행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-05 미완료 출력 거부 | 원출력 7행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-02 요청 충족 상태 구분 | 원출력 8행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-01 실제 검증된 Event 출력 제공 | 원출력 9행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-03 권한/다른 채널 거부 | 원출력 10행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-01 application V2 채널 권한 후 제공 | 원출력 11행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-06 제공 중 삭제 거부 | 원출력 12행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-06 fd 해제 후 hold0 | 원출력 13행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-01 실제 검증된 Event 출력 제공 | 원출력 14행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-03 권한/다른 채널 거부 | 원출력 15행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-01 application V2 채널 권한 후 제공 | 원출력 16행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-06 제공 중 삭제 거부 | 원출력 17행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-06 fd 해제 후 hold0 | 원출력 18행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-04 실제 파일 있는 manual Event 거부 | 원출력 19행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-07 immutable metadata 다른 결박 거부 | 원출력 20행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-08 원본 보존 삭제 완료 | 원출력 21행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-08 원본 보존 삭제 완료 | 원출력 22행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-08 원본 삭제 뒤 검증된 출력 제공 | 원출력 23행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-07 실제 파일 크기 변조 거부·hold0 | 원출력 24행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-07 동일 크기 파일 내용 변조 거부·hold0 | 원출력 25행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-06 hold 해제 후 삭제 전이·새 제공 거부 | 원출력 26행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-05 미완료 출력 거부 | 원출력 30행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-05 미완료 출력 거부 | 원출력 31행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-05 미완료 출력 거부 | 원출력 32행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-05 미완료 출력 거부 | 원출력 33행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-02 요청 충족 상태 구분 | 원출력 34행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-02 partial 출력 제공 | 원출력 35행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-03 권한/다른 채널 거부 | 원출력 36행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-01 application V2 채널 권한 후 제공 | 원출력 37행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-06 제공 중 삭제 거부 | 원출력 38행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-06 fd 해제 후 hold0 | 원출력 39행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-02 partial 출력 제공 | 원출력 40행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-03 권한/다른 채널 거부 | 원출력 41행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-01 application V2 채널 권한 후 제공 | 원출력 42행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-06 제공 중 삭제 거부 | 원출력 43행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-06 fd 해제 후 hold0 | 원출력 44행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-04 실제 파일 있는 manual Event 거부 | 원출력 45행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-07 immutable metadata 다른 결박 거부 | 원출력 46행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-08 원본 보존 삭제 완료 | 원출력 47행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-08 원본 보존 삭제 완료 | 원출력 48행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-08 원본 삭제 뒤 검증된 출력 제공 | 원출력 49행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-07 실제 파일 크기 변조 거부·hold0 | 원출력 50행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-07 동일 크기 파일 내용 변조 거부·hold0 | 원출력 51행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3A-06 hold 해제 후 삭제 전이·새 제공 거부 | 원출력 52행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+
+### lp18-typed-prepared-01.txt
+
+[원출력](lp18-typed-prepared-01.txt), 1740B, SHA256 `61876bb61dd1bfa77250b22f97848cca6dc5c0af0d01559034d416db484d12ce`.
+
+종료/정리: `[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-transition-reuse.AS7QJp","bytes":9283482,"removed":true}`; `[exit] code=0 elapsed_seconds=5 source=bash-SECONDS`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| LP14-C01 state=1 updates=1 full_parse=1 expected=1 | 원출력 8행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP14-C01 state=2 updates=1 full_parse=1 expected=1 | 원출력 9행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP14-C01 state=3 updates=1 full_parse=1 expected=1 | 원출력 10행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP14-C03 memory/sqlite canonical bytes and CompletedOracle | 원출력 11행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP14-C02 binding=payload rejected without apply | 원출력 15행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP14-C02 binding=type rejected without apply | 원출력 16행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP14-C02 binding=entity rejected without apply | 원출력 17행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP14-C02 binding=owner rejected without apply | 원출력 18행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP14-C02 binding=prior rejected without apply | 원출력 19행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP14-C02 duplicate envelope no-apply/conflict rejection | 원출력 20행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP14-C02 one-shot apply/reuse rejection | 원출력 21행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+
+### lp18-typed-retention-01.txt
+
+[원출력](lp18-typed-retention-01.txt), 2053B, SHA256 `4b22d98f10fee045e2b2d4e02a42534b4bd0fc7ccfe687148317f822d8eb4ad4`.
+
+종료/정리: `[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-retention-v2.ZhqKMh bytes=13616196 removed=true`; `[exit] code=0 elapsed_seconds=16 source=bash-SECONDS`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| B01 V2 tombstone preserves immutable segment without legacy UTC range | 원출력 1행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| B02 V2 state records reject malformed payload entity and duplicate conflicts | 원출력 2행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| B03 V2 pending corrupt and deleted overlays never mutate finalized payload | 원출력 3행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| B04 V2 invalid transitions and finalize retries cannot resurrect state | 원출력 4행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| B05 V2 checkpoint and restart preserve overlay tombstone and SQLite parity | 원출력 5행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| B06 V2 capacity deletion follows durable order despite reversed UTC | 원출력 6행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| B07 mixed legacy and multiple stores use deterministic nonchronological ordering | 원출력 7행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| B08 V2 age expiry uses all known mapping ends plus uncertainty rounded upward | 원출력 8행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| B09 V2 unknown or overflowing age remains capacity eligible | 원출력 9행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| B10 V2 class quotas and disk reserve remain separated | 원출력 10행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| B11 V2 pin and hold protect deletion and corruption | 원출력 11행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| B12 V2 pending and corrupt bytes remain charged but are not automatic victims | 원출력 12행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| B13 V2 apply persists pending before unlink and tombstone after unlink | 원출력 13행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| B14 V2 interrupted deletion recovers without resurrection | 원출력 14행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| B15 V2 corrupt cleanup requires explicit manual reason | 원출력 15행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| B16 V2 continuous media with unknown UTC resolves a healthy held fd | 원출력 16행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| B17 V2 wrong channel event and fallback collision cannot expose media | 원출력 17행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| B18 V2 missing symlink and multiple hardlink media reject without hold leak | 원출력 18행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| B19 V2 same size corruption and invalid container reject without hold leak | 원출력 19행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| B20 V2 deletion and playback hold races have one safe winner | 원출력 20행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| B21 borrowed fd inspection preserves caller ownership and detects file changes | 원출력 21행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| B23 legacy store port refuses unsupported V2 deletion | 원출력 22행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| B22 V2 playback is unavailable without GStreamer | 원출력 24행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| B23 legacy store port refuses unsupported V2 deletion | 원출력 25행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+
+### lp18-typed-service-01.txt
+
+[원출력](lp18-typed-service-01.txt), 14504B, SHA256 `e9b4cedc5141950b9282c1579a4072a4bfd3110c1b6ef8b089b1ef565760f0da`.
+
+종료/정리: `[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-derived-job-service.boAZMn bytes=18253812 removed=true`; `[exit] code=0 elapsed_seconds=18 source=bash-SECONDS`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| F12 실제 remux의 다른 selection 결박 거부 | 원출력 150행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F12 실제 remux provenance의 요청 범위 위조 거부 | 원출력 151행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F12 실제 remux의 foreign unfulfilled 범위 거부 | 원출력 152행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F01 실제 writer→선택→Intent→파생 파일→게시→Complete | 원출력 153행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F01 실제 catalog/file/hash/단일 commit/hold 해제/cleanup 및 직접 decode | 원출력 157행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F15 단일 service·동시 Run·외부 terminal release 거부 | 원출력 158행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F16 active source 삭제 거부·동일 사유 비보호 원본 삭제 positive control | 원출력 159행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F02 두 출력 독립 epoch·unknown UTC·실제 AU/visible 출처 보존 | 원출력 160행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F12 Complete 출처 전수 canonical roundtrip | 원출력 161행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F12 Ready 포함 Intent 잘못된 상태 거부 | 원출력 162행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F12 미지원 필드 엄격 거부 | 원출력 163행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F14 Ready JSON 4MiB 명시 상한 거부 | 원출력 164행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F12 출력 receipt inode 별칭 거부 | 원출력 165행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F03 Intent 생성 전 프로세스 중단 | 원출력 167행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F04 receipt 전 실물의 소유권 미확인 보호 유지 | 원출력 168행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F05 receipt 이후 Intent 중단 소유물 정리 | 원출력 169행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F06 Ready 중단 뒤 재렌더 없이 완료 | 원출력 170행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F07 첫 출력 link 중단 쌍 복구 | 원출력 171행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F07 두 번째 출력 link 중단 쌍 복구 | 원출력 172행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F08 전체 publish 후 commit 전 중단 | 원출력 173행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F09 원자 commit 후 cleanup 전 중단 | 원출력 174행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F10 첫 temp 삭제 중단 | 원출력 175행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F10 두 번째 temp 삭제 중단 | 원출력 176행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F10 attempt 디렉터리 삭제 중단 | 원출력 177행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F10 job 디렉터리 삭제 중단 | 원출력 178행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F10 Complete mutation 직전 중단 | 원출력 179행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F10 Failed cleanup attempt 삭제 중단 | 원출력 180행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F10 Failed cleanup job 삭제 중단 | 원출력 181행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F10 Failed mutation 직전 중단 | 원출력 182행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F11 hash 오류 거부·보호/예약 유지 | 원출력 183행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F11 missing 오류 거부·보호/예약 유지 | 원출력 184행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F11 foreign 오류 거부·보호/예약 유지 | 원출력 185행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F11 symlink 오류 거부·보호/예약 유지 | 원출력 186행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F11 fifo 오류 거부·보호/예약 유지 | 원출력 187행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F11 hardlink 오류 거부·보호/예약 유지 | 원출력 188행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F11 parent 오류 거부·보호/예약 유지 | 원출력 189행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F14 cancel-before-create 생성 중단·소유 cleanup·예약 해제 | 원출력 190행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F14 cancel 생성 중단·소유 cleanup·예약 해제 | 원출력 191행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F14 small 생성 중단·소유 cleanup·예약 해제 | 원출력 192행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F14 deadline 생성 중단·소유 cleanup·예약 해제 | 원출력 193행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F12 SQLite projection·journal fallback job/output 일치 | 원출력 194행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F12 SQLite rebuild·checkpoint 재개방 job/output 일치 | 원출력 195행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| F13 Complete output tombstone 뒤 재생성 없음 | 원출력 196행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+
+### lp18-typed-timeline-01.txt
+
+[원출력](lp18-typed-timeline-01.txt), 3127B, SHA256 `bc75f9af56383ca876b93c594809b3f6d00510d74544db0928c63fcbaf9b4592`.
+
+종료/정리: `[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-public-timeline.PrwFtZ bytes=35136795 removed=true`; `[exit] code=0 elapsed_seconds=12 source=bash-SECONDS`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| D3B-01 actual V2 원본·문자열 UTC·독립 unplaced 응답 | 원출력 3행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-14 mismatch/nonintegral mapping은 unplaced | 원출력 4행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-14 mismatch/nonintegral mapping은 unplaced | 원출력 5행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-02 문법/범위 오류400 | 원출력 6행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-02 문법/범위 오류400 | 원출력 7행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-02 문법/범위 오류400 | 원출력 8행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-02 문법/범위 오류400 | 원출력 9행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-02 문법/범위 오류400 | 원출력 10행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-02 문법/범위 오류400 | 원출력 11행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-02 권한 거부403 | 원출력 12행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-13 Intent placeholder no file/null time | 원출력 16행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-13 accepted/no-job 상태 보존 | 원출력 17행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-05 Ready 출력 시간과 재생불가 분리 | 원출력 18행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-05 Committed 출력 시간과 재생불가 분리 | 원출력 19행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-05 실제 검증된 파생2출력 시간/파일 독립 | 원출력 20행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-07 같은 UTC 다른 segment/epoch는 원본 숨김 없음 | 원출력 21행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-13 출력 생성 뒤 job placeholder 없음 | 원출력 22행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-07 page 밖 이벤트도 원본 전체 충족 판정 | 원출력 23행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-06 일부 중첩 원본은 보존 | 원출력 24행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-04 재조회 stable itemId/order | 원출력 25행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-12 요청축/문자열/공개 whitelist | 원출력 26행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-08 동일 size 변조 출력은 비재생 | 원출력 27행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-08 파일 누락 Complete와 재생불가/숨김 분리 | 원출력 28행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-08 실제 tombstone 출력 deleted 보존 | 원출력 29행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-09 source tombstone 뒤 durable UTC 투영 | 원출력 30행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-05 partial 요청 실제 출력 jobComplete | 원출력 34행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-14 actual 출력 mismatch mapping은 unplaced·partial 파일 제공 분리 | 원출력 35행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-13 Failed placeholder no file/null time | 원출력 39행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-03/04 UTC0와 same-file 다중 mapping 독립 ID | 원출력 40행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-03 int64 최대 UTC ns 문자열 정밀도 | 원출력 41행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-11 관련 없는 known4352 누적은 짧은 질의 허용 | 원출력 42행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-11 실제 관련4352 상한 명시 실패 | 원출력 43행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-02/11 관련 상한503 | 원출력 44행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-10/11 unknown4354 count와 bounded 첫 페이지 | 원출력 45행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-10 known/unplaced 독립 동일 offset 페이지 | 원출력 46행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-11 offset+limit overflow 명시 실패 | 원출력 47행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-11 전체 unknown deep-copy 없이35074 첫 페이지 허용 | 원출력 48행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| D3B-11 deep offset64MiB workspace 초과는 결과 없이 명시 실패 | 원출력 49행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+
+
+### lp18-ownership-green-typed-binding-01.txt
+
+[원출력](lp18-ownership-green-typed-binding-01.txt), 9855B, SHA256 `ab6d2b93d8078c9e259a7312fe4e4f4de1ee7707e5865ccd8decc727664e1ede`.
+실행 결과: `{"kind":"result","utc":"2026-09-20T00:17:43.335Z","mode":"green","matched":true,"productPass":true,"elapsedMs":3378,"line":130}`. RED matched는 기능 PASS가 아니며 실제 실패 행을 유지한다.
+
+명령/단계: `bash <repo>/scripts/internal/recording_immutable_ownership_build.sh <owned-root>` → `<owned-root>/check <owned-root> binding`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| build | 원출력 28행, exit0, 2633ms | PASS | process cleanup=true |
+| focused | 원출력 126행, exit0, 728ms | PASS | process cleanup=true |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| <owned-root> | 격리 검증 store/빌드·registry | 6343360B | runner 소유 확인 후 삭제 | 삭제·부재 확인 | 원출력 129행 |
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| LP18-O01 owner checked read view shares journal envelope | 원출력 30행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O01 shared journal original candidate envelopes | 원출력 31행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O01 public Replay value mutation remains isolated | 원출력 32행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O01 retained prefix preserves sealed journal lineage and canonical value | 원출력 33행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O01 full canonical and projection oracle | 원출력 34행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O03 stale candidate after reservation rejected | 원출력 35행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O03 foreign owner candidate rejected | 원출력 36행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O04 exact field order or prefix mutation rejected schema | 원출력 37행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O04 standalone candidate fields rejected without disk change schema | 원출력 38행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O04 exact field order or prefix mutation rejected type | 원출력 39행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O04 standalone candidate fields rejected without disk change type | 원출력 40행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O04 exact field order or prefix mutation rejected id | 원출력 41행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O04 standalone candidate fields rejected without disk change id | 원출력 42행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O04 exact field order or prefix mutation rejected entity | 원출력 43행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O04 standalone candidate fields rejected without disk change entity | 원출력 44행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O04 exact field order or prefix mutation rejected time | 원출력 45행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O04 standalone candidate fields rejected without disk change time | 원출력 46행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O04 exact field order or prefix mutation rejected payload | 원출력 47행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O04 standalone candidate fields rejected without disk change payload | 원출력 48행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O04 exact field order or prefix mutation rejected reorder | 원출력 49행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O04 standalone candidate fields rejected without disk change reorder | 원출력 50행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O04 exact field order or prefix mutation rejected shrink | 원출력 51행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O04 standalone candidate fields rejected without disk change shrink | 원출력 52행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O04 null envelope safely rejected | 원출력 53행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O02 only transformed receipts own new envelopes | 원출력 54행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O02 prepared receipts preserve original canonical bytes | 원출력 55행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O02 publication bytes and prior owned snapshot remain exact | 원출력 56행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O02 published prefix preserves receipt evidence and unchanged row lineage | 원출력 57행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O02 receipt independent full projection equality | 원출력 58행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O03 stale candidate after ordinary append rejected | 원출력 59행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O05 8192 logical records admitted | 원출력 60행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O05 8193 aliases still rejected | 원출력 61행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O05 64MiB logical bytes admitted | 원출력 62행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O05 64MiB plus one rejected | 원출력 63행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O07 append accepted preserves sealed journal lineage | 원출력 64행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O09 successful append retry returns exact input envelope | 원출력 65행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O09 failed append clears prior output handle | 원출력 66행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O09 borrowed input survives aliased output reset | 원출력 67행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O07 checkpoint accepted preserves sealed journal lineage | 원출력 68행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O07 accepted full canonical and durable bytes unchanged | 원출력 69행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O08 reopen accepted preserves sealed journal lineage sqlite | 원출력 70행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O08 reopen canonical ordinal and projection preserved sqlite | 원출력 71행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O08 SQLite rebuild requires canonical and ordinal gates | 원출력 72행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O08 reopen accepted preserves sealed journal lineage fallback | 원출력 73행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O08 reopen canonical ordinal and projection preserved fallback | 원출력 74행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O09 supplied envelope mismatch rejected schema | 원출력 75행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O09 supplied envelope mismatch rejected type | 원출력 76행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O09 supplied envelope mismatch rejected id | 원출력 77행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O09 supplied envelope mismatch rejected entity | 원출력 78행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O09 supplied envelope mismatch rejected time | 원출력 79행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O09 supplied envelope mismatch rejected payload | 원출력 80행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O09 failed apply registers no accepted envelope | 원출력 81행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O09 supplied exact envelope is retained | 원출력 82행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O09 duplicate full canonical acceptance and collision rejection preserved | 원출력 83행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O09 compacted receipt retry returns original input envelope | 원출력 84행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O11 bound journal identity and canonical bytes preserved | 원출력 85행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O11 public binding value mutation remains isolated | 원출력 86행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O11 source snapshot binding mutation remains isolated | 원출력 87행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O12 same ID changed binding rejected without mutation | 원출력 88행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O12 strict bound identity rejection preserved | 원출력 89행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O10 checkpoint shadow shares warm owned binding reader | 원출력 90행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O13 independent full replay binding projection preserved | 원출력 91행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O12 unusable binding pool falls back to independent strict value null | 원출력 92행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O12 unusable binding pool falls back to independent strict value different-content | 원출력 93행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O12 unusable binding pool falls back to independent strict value different-id | 원출력 94행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O12 matching pool cannot bypass invalid binding input | 원출력 95행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O12 matching pool cannot bypass missing order | 원출력 96행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O10 binding survives source pool owner destruction | 원출력 97행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O10 no-op checkpoint preserves owned readers without binding comparisons | 원출력 98행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O10 duplicate mutation does not recompare existing binding | 원출력 99행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O10 new bound ID compares only its matching pool entry | 원출력 100행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O12 deleted source hidden with internal binding preserved | 원출력 101행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O10 deleted checkpoint preserves independently owned canonical binding evidence | 원출력 102행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O13 reopen deleted canonical binding preserved sqlite | 원출력 103행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O10 reopened checkpoint shares warm owned binding reader sqlite | 원출력 104행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O13 reopen deleted canonical binding preserved fallback | 원출력 105행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-O10 reopened checkpoint shares warm owned binding reader fallback | 원출력 106행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+
+### lp18-ownership-green-typed-content-01.txt
+
+[원출력](lp18-ownership-green-typed-content-01.txt), 9321B, SHA256 `4427fcc288396b040de9534c50ffa8d452f3dd1d5dc8e65a7419c27848465c43`.
+실행 결과: `{"kind":"result","utc":"2026-09-20T00:18:05.521Z","mode":"green","matched":true,"productPass":true,"elapsedMs":18320,"line":101}`. RED matched는 기능 PASS가 아니며 실제 실패 행을 유지한다.
+
+명령/단계: `bash <repo>/scripts/internal/recording_immutable_ownership_build.sh <owned-root> content` → `<owned-root>/check <owned-root>`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| build | 원출력 34행, exit0, 4083ms | PASS | process cleanup=true |
+| focused | 원출력 97행, exit0, 14222ms | PASS | process cleanup=true |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| <owned-root> | 격리 검증 store/빌드·registry | 13916364B | runner 소유 확인 후 삭제 | 삭제·부재 확인 | 원출력 100행 |
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| LP18-V03 valid content proof cannot bypass output reservation | 원출력 36행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V03 valid content proof cannot bypass source deletion state | 원출력 37행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V03 valid content proof cannot bypass source media binding | 원출력 38행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 minted proof reuses owned content after state validation | 원출력 39행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 schema mismatch retains strict outcome | 원출력 40행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 type mismatch retains strict outcome | 원출력 41행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 mutation ID mismatch retains strict outcome | 원출력 42행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 entity mismatch retains strict outcome | 원출력 43행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 time mismatch retains strict outcome | 원출력 44행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 payload bytes mismatch retains strict outcome | 원출력 45행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V03 invalid content rejects through strict fallback | 원출력 46행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 null owner retains strict outcome | 원출력 47행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 null envelope retains strict outcome | 원출력 48행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 null record retains strict outcome | 원출력 49행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 foreign owner retains strict outcome | 원출력 50행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 equal-content replacement invalidates current proof ownership | 원출력 51행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 equal-envelope replacement invalidates accepted proof ownership | 원출력 52행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V03 valid content proof cannot bypass missing prior transition | 원출력 53행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| CP01 actual Ready Complete shape canonical files reservation | 원출력 70행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| CP02 bounded two jobs over 1MiB canonical transitions | 원출력 71행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V01 every normal update strictly parses content once | 원출력 72행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V01 automatic checkpoint applies current update payload | 원출력 73행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V01 automatic checkpoint reuses current validated content without parsing | 원출력 74행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V04 managed reopen retains strict content parsing | 원출력 75행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V04 manual checkpoint retains strict content parsing | 원출력 76행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+
+### lp18-ownership-green-typed-content-02.txt
+
+[원출력](lp18-ownership-green-typed-content-02.txt), 9321B, SHA256 `be4c4741159bf43186ad5d4be1a390c2ee1f9710331388b39185aa8184d984fd`.
+실행 결과: `{"kind":"result","utc":"2026-09-20T00:27:49.374Z","mode":"green","matched":true,"productPass":true,"elapsedMs":18326,"line":101}`. RED matched는 기능 PASS가 아니며 실제 실패 행을 유지한다.
+
+명령/단계: `bash <repo>/scripts/internal/recording_immutable_ownership_build.sh <owned-root> content` → `<owned-root>/check <owned-root>`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| build | 원출력 34행, exit0, 4108ms | PASS | process cleanup=true |
+| focused | 원출력 97행, exit0, 14202ms | PASS | process cleanup=true |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| <owned-root> | 격리 검증 store/빌드·registry | 13916697B | runner 소유 확인 후 삭제 | 삭제·부재 확인 | 원출력 100행 |
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| LP18-V03 valid content proof cannot bypass output reservation | 원출력 36행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V03 valid content proof cannot bypass source deletion state | 원출력 37행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V03 valid content proof cannot bypass source media binding | 원출력 38행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 minted proof reuses owned content after state validation | 원출력 39행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 schema mismatch retains strict outcome | 원출력 40행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 type mismatch retains strict outcome | 원출력 41행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 mutation ID mismatch retains strict outcome | 원출력 42행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 entity mismatch retains strict outcome | 원출력 43행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 time mismatch retains strict outcome | 원출력 44행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 payload bytes mismatch retains strict outcome | 원출력 45행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V03 invalid content rejects through strict fallback | 원출력 46행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 null owner retains strict outcome | 원출력 47행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 null envelope retains strict outcome | 원출력 48행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 null record retains strict outcome | 원출력 49행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 foreign owner retains strict outcome | 원출력 50행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 equal-content replacement invalidates current proof ownership | 원출력 51행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V02 equal-envelope replacement invalidates accepted proof ownership | 원출력 52행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V03 valid content proof cannot bypass missing prior transition | 원출력 53행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| CP01 actual Ready Complete shape canonical files reservation | 원출력 70행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| CP02 bounded two jobs over 1MiB canonical transitions | 원출력 71행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V01 every normal update strictly parses content once | 원출력 72행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V01 automatic checkpoint applies current update payload | 원출력 73행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V01 automatic checkpoint reuses current validated content without parsing | 원출력 74행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V04 managed reopen retains strict content parsing | 원출력 75행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-V04 manual checkpoint retains strict content parsing | 원출력 76행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+
+### lp18-ownership-green-typed-intent-comparison-01.txt
+
+[원출력](lp18-ownership-green-typed-intent-comparison-01.txt), 11202B, SHA256 `a8a24e7a05d6d675de8ebbd30a0aebe531efa71edde8d49f2e3398c9ea1ffec5`.
+실행 결과: `{"kind":"result","utc":"2026-09-20T00:18:12.415Z","mode":"green","matched":true,"productPass":true,"elapsedMs":6867,"line":111}`. RED matched는 기능 PASS가 아니며 실제 실패 행을 유지한다.
+
+명령/단계: `bash <repo>/scripts/internal/recording_immutable_ownership_build.sh <owned-root> intent-comparison` → `<owned-root>/check <owned-root>`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| build | 원출력 39행, exit0, 4767ms | PASS | process cleanup=true |
+| focused | 원출력 107행, exit0, 2083ms | PASS | process cleanup=true |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| <owned-root> | 격리 검증 store/빌드·registry | 9209930B | runner 소유 확인 후 삭제 | 삭제·부재 확인 | 원출력 110행 |
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| LP18-T01 actual Complete retains file hash commit and protection release | 원출력 42행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-T01 five normal updates retain exactly one public Parse each | 원출력 48행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-T02 normal Update serializes only incoming record | 원출력 49행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-T02 normal Apply skips impossible duplicate Record serialization | 원출력 50행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-C01 normal transitions validate and restore incoming Intent once | 원출력 56행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-C01 normal transitions retain three full Intent canonical generations | 원출력 57행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-T03 identical cold public retry retains strict reacquisition and full comparison without append | 원출력 58행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-T03 cold same-shape terminal conflict remains rejected after strict reacquisition | 원출력 59행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-T03 cold Ready after Complete rejects without canonical or bytes change | 원출력 60행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-T03 malformed receipt closure rejected by incoming strict serialization | 원출력 61행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-T03 direct identical Apply keeps prior owner and strict Parse | 원출력 62행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-T02 identical Apply serializes only prior record | 원출력 63행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-T03 direct changed-state Apply preserves full terminal canonical | 원출력 65행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-T02 changed-state direct Apply performs zero Record serializations | 원출력 66행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-C01 changed-state direct Apply validates and restores incoming Intent once | 원출력 68행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-C01 changed-state direct Apply retains three full Intent canonical generations | 원출력 69행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-T03 different-state pool preserves incoming canonical | 원출력 71행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-T02 different-state pool performs zero Record serializations | 원출력 72행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-T03 different-files pool preserves incoming canonical | 원출력 74행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-T02 different-files pool performs zero Record serializations | 원출력 75행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-T03 equal-shape identical pool retains full canonical comparison and alias | 원출력 77행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-T03 equal-shape changed pool retains full comparison without alias | 원출력 78행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-T03 null and absent pool entries remain independent without serialization | 원출력 79행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-T03 malformed direct payload still passes through strict rejection | 원출력 80행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-T03 cold prefilter cannot bypass immutable Intent collision after strict reacquisition | 원출력 81행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-C02 noncanonical payload rejects without owner or durable byte change | 원출력 82행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-C02 modified public Intent copy cannot change immutable current job | 원출력 83행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-C02 null prior rejects after incoming strict Parse without publication | 원출력 84행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+
+### lp18-ownership-green-typed-job-01.txt
+
+[원출력](lp18-ownership-green-typed-job-01.txt), 6858B, SHA256 `d895a30357b83c539a8abf5deb9e5f29b7cef8f17869d91446f3455a26272717`.
+실행 결과: `{"kind":"result","utc":"2026-09-20T00:17:47.178Z","mode":"green","matched":true,"productPass":true,"elapsedMs":3817,"line":79}`. RED matched는 기능 PASS가 아니며 실제 실패 행을 유지한다.
+
+명령/단계: `bash <repo>/scripts/internal/recording_immutable_ownership_build.sh <owned-root> job` → `<owned-root>/check <owned-root>`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| build | 원출력 30행, exit0, 3178ms | PASS | process cleanup=true |
+| focused | 원출력 75행, exit0, 624ms | PASS | process cleanup=true |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| <owned-root> | 격리 검증 store/빌드·registry | 6482489B | runner 소유 확인 후 삭제 | 삭제·부재 확인 | 원출력 78행 |
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| LP18-J03 initial canonical and active source protection preserved | 원출력 32행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-J03 FindDerivedJob returns independent value | 원출력 33행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-J03 full and active snapshots return independent values | 원출력 34행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-J03 foreign Prepared owner rejected without transition | 원출력 35행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-J02 validated record is published as the same owned object | 원출력 36행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-J02 Prepared prior retains pre-publication canonical value | 원출력 37행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-J03 consumed Prepared cannot apply twice | 원출력 38행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-J03 invalid terminal transition preserves state and bytes | 원출력 39행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-J03 terminal protection and service owner released | 원출력 40행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-J01 checkpoint shares warm owned job reader | 원출력 41행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-J03 null job pool uses independent strict value | 원출력 42행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-J03 different-content job pool uses independent strict value | 원출력 43행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-J03 different-id job pool uses independent strict value | 원출력 44행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-J02 equal-content replacement invalidates Prepared prior ownership | 원출력 45행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-J01 shared job survives pool owner destruction | 원출력 46행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-J01 no-op checkpoint preserves owned readers without pool comparisons | 원출력 47행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-J01 newly applied job compares only matching current pool entry | 원출력 48행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-J01 duplicate job mutation performs no pool comparison | 원출력 49행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-J03 latest terminal pool cannot replace historical Intent | 원출력 50행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-J03 matching job pool cannot bypass strict state validation | 원출력 51행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-J03 null resident job rejects snapshots and retention authority | 원출력 52행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-J04 full journal bytes and terminal record roundtrip preserved | 원출력 53행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-J04 SQLite reopen preserves terminal canonical and release | 원출력 54행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-J04 JSONL reopen preserves terminal canonical and release | 원출력 55행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+
+### lp18-ownership-green-typed-lifetime-02.txt
+
+[원출력](lp18-ownership-green-typed-lifetime-02.txt), 9255B, SHA256 `ce872af80fb3f7683563f01e8459f6bae23e2bb2c77dfb433bcf9aa600451201`.
+실행 결과: `{"kind":"result","utc":"2026-09-20T00:13:26.313Z","mode":"green","matched":false,"productPass":false,"elapsedMs":5513,"line":98}`. RED matched는 기능 PASS가 아니며 실제 실패 행을 유지한다.
+
+명령/단계: `bash <repo>/scripts/internal/recording_immutable_ownership_build.sh <owned-root> typed-lifetime` → `<owned-root>/check <owned-root>`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| build | 원출력 38행, exit0, 3265ms | PASS | process cleanup=true |
+| focused | 원출력 94행, exit1, 2223ms | FAIL | process cleanup=true |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| <owned-root> | 격리 검증 store/빌드·registry | 27947450B | runner 소유 확인 후 삭제 | 삭제·부재 확인 | 원출력 97행 |
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| LP18-R01 inactive binding releases resident detail after durable append | 원출력 40행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R10 cold binding metrics retain logical samples without strong ownership | 원출력 41행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R02 active job retains owned detail and source protection | 원출력 42행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R10 active job metrics count resident ownership | 원출력 43행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R03 durable journal preserves complete canonical bytes | 원출력 44행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R03 public job value mutation remains isolated | 원출력 45행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R02 previously returned owned reader survives terminal publication | 원출력 46행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R10 terminal job metrics exclude external reader ownership | 원출력 47행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R01 terminal live and historical active shadow release resident detail | 원출력 48행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R01 normal append releases reloadable journal envelope resident | 원출력 49행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R03 owned reads do not rewrite durable evidence | 원출력 50행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R04 cold binding reacquires complete canonical detail transiently | 원출력 51행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R04 cold terminal job reacquires complete canonical detail transiently | 원출력 52행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R04 external owned reader does not bypass cold durable validation | 원출력 53행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R04 full public snapshot owns independent values without resident refill | 원출력 54행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R05 original lookup acquires only matching binding metadata | 원출력 55행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R05 job lookup acquires only requested terminal record | 원출력 56행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R05 protection and reservation filters avoid terminal detail reads | 원출력 57행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R08 counts cold checkpoint durable reacquisition without semantic change | 원출력 58행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R06 SQLite reopen leaves inactive typed detail nonresident | 원출력 60행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R06 JSONL fallback reopen leaves inactive typed detail nonresident | 원출력 61행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R06 reopen retains active job detail and protection | 원출력 62행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R06 deleted binding remains internally reacquirable and publicly hidden | 원출력 63행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R07 detached authority clears typed output and marks uncertainty | 원출력 64행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R07 cold binding corruption returns no value and marks uncertainty | 원출력 65행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R07 cold job corruption clears public snapshot and marks uncertainty | 원출력 66행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R07 cold acquisition exception clears output and marks uncertainty | 원출력 67행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R07 public checkpoint cold projection failure returns false without escaping exception | 원출력 68행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R08 repeated resident release visits no previously checked rows | 원출력 69행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R08 append resident release visits only new suffix rows | 원출력 70행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R08 checkpoint replacement resets release cursor for new generation | 원출력 71행의 실제 개별 assertion | FAIL | 최초 실패 보존; 수정/재검증은 중앙 기록 |
+| LP18-R11 timeline collector limit does not poison catalog or block subsequent append | 원출력 72행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R09 raw Apply preserves typed resident fallback | 원출력 73행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R09 oversized physical row preserves typed resident fallback | 원출력 74행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+
+### lp18-ownership-green-typed-lifetime-03.txt
+
+[원출력](lp18-ownership-green-typed-lifetime-03.txt), 9251B, SHA256 `6b8b2c3cefd6f5074b357c2d5e4d064a068e26f9dab8c193fb50c21eb2fba6ec`.
+실행 결과: `{"kind":"result","utc":"2026-09-20T00:15:03.575Z","mode":"green","matched":true,"productPass":true,"elapsedMs":5416,"line":98}`. RED matched는 기능 PASS가 아니며 실제 실패 행을 유지한다.
+
+명령/단계: `bash <repo>/scripts/internal/recording_immutable_ownership_build.sh <owned-root> typed-lifetime` → `<owned-root>/check <owned-root>`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| build | 원출력 38행, exit0, 3269ms | PASS | process cleanup=true |
+| focused | 원출력 94행, exit0, 2124ms | PASS | process cleanup=true |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| <owned-root> | 격리 검증 store/빌드·registry | 27949786B | runner 소유 확인 후 삭제 | 삭제·부재 확인 | 원출력 97행 |
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| LP18-R01 inactive binding releases resident detail after durable append | 원출력 40행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R10 cold binding metrics retain logical samples without strong ownership | 원출력 41행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R02 active job retains owned detail and source protection | 원출력 42행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R10 active job metrics count resident ownership | 원출력 43행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R03 durable journal preserves complete canonical bytes | 원출력 44행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R03 public job value mutation remains isolated | 원출력 45행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R02 previously returned owned reader survives terminal publication | 원출력 46행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R10 terminal job metrics exclude external reader ownership | 원출력 47행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R01 terminal live and historical active shadow release resident detail | 원출력 48행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R01 normal append releases reloadable journal envelope resident | 원출력 49행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R03 owned reads do not rewrite durable evidence | 원출력 50행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R04 cold binding reacquires complete canonical detail transiently | 원출력 51행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R04 cold terminal job reacquires complete canonical detail transiently | 원출력 52행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R04 external owned reader does not bypass cold durable validation | 원출력 53행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R04 full public snapshot owns independent values without resident refill | 원출력 54행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R05 original lookup acquires only matching binding metadata | 원출력 55행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R05 job lookup acquires only requested terminal record | 원출력 56행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R05 protection and reservation filters avoid terminal detail reads | 원출력 57행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R08 counts cold checkpoint durable reacquisition without semantic change | 원출력 58행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R06 SQLite reopen leaves inactive typed detail nonresident | 원출력 60행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R06 JSONL fallback reopen leaves inactive typed detail nonresident | 원출력 61행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R06 reopen retains active job detail and protection | 원출력 62행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R06 deleted binding remains internally reacquirable and publicly hidden | 원출력 63행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R07 detached authority clears typed output and marks uncertainty | 원출력 64행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R07 cold binding corruption returns no value and marks uncertainty | 원출력 65행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R07 cold job corruption clears public snapshot and marks uncertainty | 원출력 66행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R07 cold acquisition exception clears output and marks uncertainty | 원출력 67행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R07 public checkpoint cold projection failure returns false without escaping exception | 원출력 68행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R08 repeated resident release visits no previously checked rows | 원출력 69행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R08 append resident release visits only new suffix rows | 원출력 70행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R08 checkpoint replacement resets release cursor for new generation | 원출력 71행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R11 timeline collector limit does not poison catalog or block subsequent append | 원출력 72행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R09 raw Apply preserves typed resident fallback | 원출력 73행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R09 oversized physical row preserves typed resident fallback | 원출력 74행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+
+### lp18-ownership-green-typed-lifetime-04.txt
+
+[원출력](lp18-ownership-green-typed-lifetime-04.txt), 9251B, SHA256 `a1fb67bd28b1454788bccbd544a025a250ca7c76e547940423f3e7b34bebd5a1`.
+실행 결과: `{"kind":"result","utc":"2026-09-20T00:27:00.561Z","mode":"green","matched":true,"productPass":true,"elapsedMs":5482,"line":98}`. RED matched는 기능 PASS가 아니며 실제 실패 행을 유지한다.
+
+명령/단계: `bash <repo>/scripts/internal/recording_immutable_ownership_build.sh <owned-root> typed-lifetime` → `<owned-root>/check <owned-root>`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| build | 원출력 38행, exit0, 3302ms | PASS | process cleanup=true |
+| focused | 원출력 94행, exit0, 2156ms | PASS | process cleanup=true |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| <owned-root> | 격리 검증 store/빌드·registry | 27950167B | runner 소유 확인 후 삭제 | 삭제·부재 확인 | 원출력 97행 |
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| LP18-R01 inactive binding releases resident detail after durable append | 원출력 40행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R10 cold binding metrics retain logical samples without strong ownership | 원출력 41행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R02 active job retains owned detail and source protection | 원출력 42행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R10 active job metrics count resident ownership | 원출력 43행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R03 durable journal preserves complete canonical bytes | 원출력 44행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R03 public job value mutation remains isolated | 원출력 45행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R02 previously returned owned reader survives terminal publication | 원출력 46행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R10 terminal job metrics exclude external reader ownership | 원출력 47행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R01 terminal live and historical active shadow release resident detail | 원출력 48행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R01 normal append releases reloadable journal envelope resident | 원출력 49행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R03 owned reads do not rewrite durable evidence | 원출력 50행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R04 cold binding reacquires complete canonical detail transiently | 원출력 51행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R04 cold terminal job reacquires complete canonical detail transiently | 원출력 52행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R04 external owned reader does not bypass cold durable validation | 원출력 53행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R04 full public snapshot owns independent values without resident refill | 원출력 54행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R05 original lookup acquires only matching binding metadata | 원출력 55행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R05 job lookup acquires only requested terminal record | 원출력 56행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R05 protection and reservation filters avoid terminal detail reads | 원출력 57행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R08 counts cold checkpoint durable reacquisition without semantic change | 원출력 58행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R06 SQLite reopen leaves inactive typed detail nonresident | 원출력 60행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R06 JSONL fallback reopen leaves inactive typed detail nonresident | 원출력 61행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R06 reopen retains active job detail and protection | 원출력 62행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R06 deleted binding remains internally reacquirable and publicly hidden | 원출력 63행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R07 detached authority clears typed output and marks uncertainty | 원출력 64행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R07 cold binding corruption returns no value and marks uncertainty | 원출력 65행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R07 cold job corruption clears public snapshot and marks uncertainty | 원출력 66행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R07 cold acquisition exception clears output and marks uncertainty | 원출력 67행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R07 public checkpoint cold projection failure returns false without escaping exception | 원출력 68행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R08 repeated resident release visits no previously checked rows | 원출력 69행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R08 append resident release visits only new suffix rows | 원출력 70행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R08 checkpoint replacement resets release cursor for new generation | 원출력 71행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R11 timeline collector limit does not poison catalog or block subsequent append | 원출력 72행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R09 raw Apply preserves typed resident fallback | 원출력 73행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R09 oversized physical row preserves typed resident fallback | 원출력 74행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+
+### lp18-ownership-green-typed-lifetime-crypto-01.txt
+
+[원출력](lp18-ownership-green-typed-lifetime-crypto-01.txt), 6735B, SHA256 `b9f5da3ee87c2cd56a1b59381a0987c0bc1339558c9350748d1bd7a60f77697d`.
+실행 결과: `{"kind":"result","utc":"2026-09-20T00:15:20.502Z","mode":"green","matched":true,"productPass":true,"elapsedMs":3762,"line":64}`. RED matched는 기능 PASS가 아니며 실제 실패 행을 유지한다.
+
+명령/단계: `bash <repo>/scripts/internal/recording_immutable_ownership_build.sh <owned-root> typed-lifetime-crypto-off` → `<owned-root>/check <owned-root>`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| build | 원출력 38행, exit0, 3184ms | PASS | process cleanup=true |
+| focused | 원출력 60행, exit0, 563ms | PASS | process cleanup=true |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| <owned-root> | 격리 검증 store/빌드·registry | 6436799B | runner 소유 확인 후 삭제 | 삭제·부재 확인 | 원출력 63행 |
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| LP18-R09 crypto-off preserves typed resident fallback and checkpoint rejection | 원출력 40행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+
+### lp18-ownership-green-typed-lifetime-crypto-02.txt
+
+[원출력](lp18-ownership-green-typed-lifetime-crypto-02.txt), 6735B, SHA256 `69ee5aec93a196f5927633a5260ab0d26f57f022000ba25e2ce75693117f372a`.
+실행 결과: `{"kind":"result","utc":"2026-09-20T00:27:21.208Z","mode":"green","matched":true,"productPass":true,"elapsedMs":3773,"line":64}`. RED matched는 기능 PASS가 아니며 실제 실패 행을 유지한다.
+
+명령/단계: `bash <repo>/scripts/internal/recording_immutable_ownership_build.sh <owned-root> typed-lifetime-crypto-off` → `<owned-root>/check <owned-root>`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| build | 원출력 38행, exit0, 3207ms | PASS | process cleanup=true |
+| focused | 원출력 60행, exit0, 551ms | PASS | process cleanup=true |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| <owned-root> | 격리 검증 store/빌드·registry | 6437196B | runner 소유 확인 후 삭제 | 삭제·부재 확인 | 원출력 63행 |
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| LP18-R09 crypto-off preserves typed resident fallback and checkpoint rejection | 원출력 40행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+
+### lp18-ownership-red-typed-lifetime-01.txt
+
+[원출력](lp18-ownership-red-typed-lifetime-01.txt), 5807B, SHA256 `00af4d5e182cdd9a543e5fc085faccb5cf2fd011f70b39345f8eeaef4428ca09`.
+실행 결과: `{"kind":"result","utc":"2026-09-19T23:46:24.549Z","mode":"red","matched":true,"productPass":false,"elapsedMs":3948,"line":63}`. RED matched는 기능 PASS가 아니며 실제 실패 행을 유지한다.
+
+명령/단계: `bash <repo>/scripts/internal/recording_immutable_ownership_build.sh <owned-root> typed-lifetime` → `<owned-root>/check <owned-root>`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| build | 원출력 30행, exit0, 3242ms | PASS | process cleanup=true |
+| focused | 원출력 59행, exit1, 689ms | FAIL | process cleanup=true |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| <owned-root> | 격리 검증 store/빌드·registry | 6436834B | runner 소유 확인 후 삭제 | 삭제·부재 확인 | 원출력 62행 |
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| LP18-R01 inactive binding releases resident detail after durable append | 원출력 32행의 실제 개별 assertion | FAIL | 최초 실패 보존; 수정/재검증은 중앙 기록 |
+| LP18-R02 active job retains owned detail and source protection | 원출력 33행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R03 durable journal preserves complete canonical bytes | 원출력 34행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R03 public job value mutation remains isolated | 원출력 35행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R02 previously returned owned reader survives terminal publication | 원출력 36행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+| LP18-R01 terminal live and historical active shadow release resident detail | 원출력 37행의 실제 개별 assertion | FAIL | 최초 실패 보존; 수정/재검증은 중앙 기록 |
+| LP18-R01 normal append releases reloadable journal envelope resident | 원출력 38행의 실제 개별 assertion | FAIL | 최초 실패 보존; 수정/재검증은 중앙 기록 |
+| LP18-R03 owned reads do not rewrite durable evidence | 원출력 39행의 실제 개별 assertion | PASS | 동일 제목도 실제 실행별 독립 행 |
+
+
 ### lp17-jobs-thin-01.txt
 
 [원출력](lp17-jobs-thin-01.txt), 225838B. exit0·16538ms, 기능120/계측1·입력동일1 PASS. product 전체 PASS 아님.

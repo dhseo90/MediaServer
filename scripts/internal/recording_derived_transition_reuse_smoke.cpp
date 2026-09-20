@@ -5,7 +5,7 @@
 #include "recording_derived_transition_counter.h"
 bool BindingOracle(Store& store,const recording::DerivedJobIntentV1& intent){
  std::lock_guard lock(store.catalog.mu_);std::string error;
- auto next=*store.catalog.derived_jobs_.at(intent.job_id);next.state=recording::DerivedJobState::Failed;next.failure_reason="fixture";next.cleaned_at_ms=20;
+ const auto current_owned=store.catalog.derived_jobs_.at(intent.job_id).WarmOwned();if(!current_owned)throw std::runtime_error("prepared-current");auto next=*current_owned;next.state=recording::DerivedJobState::Failed;next.failure_reason="fixture";next.cleaned_at_ms=20;
  const auto payload=recording::SerializeDerivedJobRecord(next);
  recording::RecordingMutationV1 mutation;mutation.mutation_type=recording::RecordingMutationType::DerivedJobFailed;mutation.entity_id=intent.job_id;mutation.payload_json=payload;
  bool ok=true;
@@ -18,10 +18,10 @@ bool BindingOracle(Store& store,const recording::DerivedJobIntentV1& intent){
   if(test=="entity")changed.entity_id="foreign";
   if(test=="owner")prepared.owner=nullptr;
   const auto prior=store.catalog.derived_jobs_.at(intent.job_id);
-  if(test=="prior"){auto changed_prior=*prior;changed_prior.state=recording::DerivedJobState::Ready;store.catalog.derived_jobs_.at(intent.job_id)=std::make_shared<const recording::DerivedJobRecordV1>(std::move(changed_prior));}
+  if(test=="prior"){const auto prior_owned=prior.WarmOwned();if(!prior_owned)throw std::runtime_error("prepared-prior");auto changed_prior=*prior_owned;changed_prior.state=recording::DerivedJobState::Ready;store.catalog.derived_jobs_.at(intent.job_id)=std::make_shared<const recording::DerivedJobRecordV1>(std::move(changed_prior));}
   const bool rejected=!store.catalog.ApplyDerivedJobMutationLocked(changed,&error,true,&prepared);
   if(test=="prior")store.catalog.derived_jobs_.at(intent.job_id)=prior;
-  const bool pass=rejected&&store.catalog.derived_jobs_.at(intent.job_id)->state==recording::DerivedJobState::Intent;
+  const bool pass=rejected&&store.catalog.derived_jobs_.at(intent.job_id).state==recording::DerivedJobState::Intent;
   std::cout<<(pass?"[pass] ":"[fail] ")<<"LP14-C02 binding="<<test<<" rejected without apply\n";ok=ok&&pass;
  }
  // 이미 수락한 envelope의 duplicate bookkeeping은 context를 적용하지 않는다.
@@ -34,7 +34,7 @@ bool BindingOracle(Store& store,const recording::DerivedJobIntentV1& intent){
  store.catalog.accepted_segment_state_mutations_[mutation.mutation_id]=std::move(duplicate_link);
  const bool duplicate_ok=store.catalog.ApplyMutationLocked(mutation,false,&error,&duplicate)&&
   duplicate.phase==recording::RecordingCatalog::PreparedDerivedMutation::Phase::Validated&&
-  store.catalog.derived_jobs_.at(intent.job_id)->state==recording::DerivedJobState::Intent;
+  store.catalog.derived_jobs_.at(intent.job_id).state==recording::DerivedJobState::Intent;
  auto conflicting=mutation;conflicting.occurred_at_ms=21;
  const bool conflict=!store.catalog.ApplyMutationLocked(conflicting,false,&error,&duplicate);
  store.catalog.mutation_ids_.erase(mutation.mutation_id);store.catalog.accepted_segment_state_mutations_.erase(mutation.mutation_id);

@@ -7,6 +7,7 @@
 namespace lp17 {
 inline bool cache_off=false;
 struct Owned {
+ std::uint64_t coldEnvelopes=0,residentBindings=0,coldBindings=0,residentJobs=0,coldJobs=0,entryStorageBytes=0,locationStorageBytes=0;
  std::uint64_t logicalLinkCount=0,logicalEnvelopeChargeBytes=0,weakLinkCount=0,residentFallbackLinkCount=0;
  std::uint64_t records=0,samples=0,fileSamples=0,mappings=0,stringBytes=0,stringCapacity=0,vectorCapacityBytes=0,jobs=0,segments=0,bindings=0,tombstones=0,accessUnits=0,uniqueEnvelopes=0,sharedEnvelopeReferences=0,logicalEnvelopeBytes=0,uniqueBindingObjects=0,sharedBindingReferences=0,logicalBindingSamples=0,uniqueJobObjects=0,sharedJobReferences=0;
 };
@@ -26,8 +27,31 @@ inline void Envelope(Owned& n,const recording::RecordingMutationHandle& handle,E
 inline void Envelope(Owned& n,const recording::RecordingMutationLink& link,EnvelopeOwners& seen){++n.logicalLinkCount;n.logicalEnvelopeChargeBytes+=link.LogicalCharge();if(link.IsWeakLink()){++n.weakLinkCount;++n.records;n.logicalEnvelopeBytes+=link.LogicalCharge();}else{const auto owned=link.ResidentOwned();if(!owned)throw std::runtime_error("LP18_NULL_LINK");++n.residentFallbackLinkCount;Envelope(n,owned,seen);}}
 inline void Mutations(Owned& n,const recording::RecordingMutationLinks& v,EnvelopeOwners* seen=nullptr){EnvelopeOwners local;if(!seen)seen=&local;Vector(n,v);for(const auto& link:v)Envelope(n,link,*seen);}
 inline void Mutations(Owned& n,const recording::RecordingMutationHandles& v,EnvelopeOwners* seen=nullptr){EnvelopeOwners local;if(!seen)seen=&local;Vector(n,v);for(const auto& handle:v)Envelope(n,handle,*seen);}
-inline void Catalog(Owned& n,const recording::RecordingCatalog& c,EnvelopeOwners* seen=nullptr,BindingOwners* bindings=nullptr,JobOwners* jobs=nullptr){EnvelopeOwners local;if(!seen)seen=&local;BindingOwners local_bindings;if(!bindings)bindings=&local_bindings;JobOwners local_jobs;if(!jobs)jobs=&local_jobs;for(const auto& e:c.segments_v2_)Segment(n,e.second);for(const auto& e:c.source_bindings_)SharedBinding(n,e.second,*bindings);for(const auto& id:c.mutation_ids_)String(n,id);for(const auto& e:c.accepted_segment_state_mutations_){String(n,e.first);Envelope(n,e.second,*seen);}n.tombstones=c.tombstones_v2_.size();for(const auto& e:c.tombstones_v2_){String(n,e.first);String(n,e.second.tombstone_id);String(n,e.second.deletion_reason);Segment(n,e.second.segment);}for(const auto& e:c.derived_jobs_)SharedJob(n,e.second,*jobs);}
-inline void Emit(const char* stage,const char* owner,const Owned& n){std::cout<<"[lp17] {\"kind\":\"owner\",\"stage\":\""<<stage<<"\",\"owner\":\""<<owner<<"\",\"records\":"<<n.records<<",\"samples\":"<<n.samples<<",\"fileSamples\":"<<n.fileSamples<<",\"mappings\":"<<n.mappings<<",\"stringBytes\":"<<n.stringBytes<<",\"stringCapacity\":"<<n.stringCapacity<<",\"vectorCapacityBytes\":"<<n.vectorCapacityBytes<<",\"jobs\":"<<n.jobs<<",\"segments\":"<<n.segments<<",\"bindings\":"<<n.bindings<<",\"tombstones\":"<<n.tombstones<<",\"accessUnits\":"<<n.accessUnits<<",\"uniqueEnvelopes\":"<<n.uniqueEnvelopes<<",\"sharedEnvelopeReferences\":"<<n.sharedEnvelopeReferences<<",\"logicalEnvelopeBytes\":"<<n.logicalEnvelopeBytes<<",\"uniqueBindingObjects\":"<<n.uniqueBindingObjects<<",\"sharedBindingReferences\":"<<n.sharedBindingReferences<<",\"logicalBindingSamples\":"<<n.logicalBindingSamples<<",\"uniqueJobObjects\":"<<n.uniqueJobObjects<<",\"sharedJobReferences\":"<<n.sharedJobReferences<<",\"logicalLinkCount\":"<<n.logicalLinkCount<<",\"logicalEnvelopeChargeBytes\":"<<n.logicalEnvelopeChargeBytes<<",\"weakLinkCount\":"<<n.weakLinkCount<<",\"residentFallbackLinkCount\":"<<n.residentFallbackLinkCount<<"}\n";}
+inline void Catalog(Owned& n,const recording::RecordingCatalog& c,EnvelopeOwners* seen=nullptr,BindingOwners* bindings=nullptr,JobOwners* jobs=nullptr){
+ EnvelopeOwners local;if(!seen)seen=&local;BindingOwners local_bindings;if(!bindings)bindings=&local_bindings;JobOwners local_jobs;if(!jobs)jobs=&local_jobs;
+ for(const auto& e:c.segments_v2_)Segment(n,e.second);
+ for(const auto& e:c.source_bindings_){
+  const auto& v=e.second;if(!v)throw std::runtime_error("LP18_NULL_BINDING_ENTRY");
+  String(n,e.first);n.entryStorageBytes+=sizeof(v);
+  for(const auto* s:{&v.id,&v.channel,&v.source,&v.generation,&v.track})String(n,*s);
+  if(v.mutation.LogicalCharge())Envelope(n,v.mutation,*seen);
+  // 외부 reader가 weak를 살려 놓아도 이 entry의 strong 보관으로 세지 않는다.
+  if(const auto resident=v.ResidentOwned()){++n.residentBindings;SharedBinding(n,resident,*bindings);}
+  else{++n.coldBindings;++n.bindings;n.logicalBindingSamples+=v.sample_count;}
+ }
+ for(const auto& id:c.mutation_ids_)String(n,id);
+ for(const auto& e:c.accepted_segment_state_mutations_){String(n,e.first);Envelope(n,e.second,*seen);}
+ n.tombstones=c.tombstones_v2_.size();for(const auto& e:c.tombstones_v2_){String(n,e.first);String(n,e.second.tombstone_id);String(n,e.second.deletion_reason);Segment(n,e.second.segment);}
+ for(const auto& e:c.derived_jobs_){
+  const auto& v=e.second;if(!v)throw std::runtime_error("LP18_NULL_JOB_ENTRY");
+  String(n,e.first);n.entryStorageBytes+=sizeof(v);for(const auto* s:{&v.id,&v.channel,&v.reference})String(n,*s);
+  Vector(n,v.source_ids);Vector(n,v.output_ids);for(const auto& s:v.source_ids)String(n,s);for(const auto& s:v.output_ids)String(n,s);
+  if(v.mutation.LogicalCharge())Envelope(n,v.mutation,*seen);
+  if(const auto resident=v.ResidentOwned()){++n.residentJobs;SharedJob(n,resident,*jobs);}
+  else{++n.coldJobs;++n.jobs;}
+ }
+}
+inline void Emit(const char* stage,const char* owner,const Owned& n){std::cout<<"[lp17] {\"kind\":\"owner\",\"stage\":\""<<stage<<"\",\"owner\":\""<<owner<<"\",\"records\":"<<n.records<<",\"samples\":"<<n.samples<<",\"fileSamples\":"<<n.fileSamples<<",\"mappings\":"<<n.mappings<<",\"stringBytes\":"<<n.stringBytes<<",\"stringCapacity\":"<<n.stringCapacity<<",\"vectorCapacityBytes\":"<<n.vectorCapacityBytes<<",\"jobs\":"<<n.jobs<<",\"segments\":"<<n.segments<<",\"bindings\":"<<n.bindings<<",\"tombstones\":"<<n.tombstones<<",\"accessUnits\":"<<n.accessUnits<<",\"uniqueEnvelopes\":"<<n.uniqueEnvelopes<<",\"sharedEnvelopeReferences\":"<<n.sharedEnvelopeReferences<<",\"logicalEnvelopeBytes\":"<<n.logicalEnvelopeBytes<<",\"uniqueBindingObjects\":"<<n.uniqueBindingObjects<<",\"sharedBindingReferences\":"<<n.sharedBindingReferences<<",\"logicalBindingSamples\":"<<n.logicalBindingSamples<<",\"uniqueJobObjects\":"<<n.uniqueJobObjects<<",\"sharedJobReferences\":"<<n.sharedJobReferences<<",\"logicalLinkCount\":"<<n.logicalLinkCount<<",\"logicalEnvelopeChargeBytes\":"<<n.logicalEnvelopeChargeBytes<<",\"weakLinkCount\":"<<n.weakLinkCount<<",\"residentFallbackLinkCount\":"<<n.residentFallbackLinkCount<<",\"coldEnvelopes\":"<<n.coldEnvelopes<<",\"residentBindings\":"<<n.residentBindings<<",\"coldBindings\":"<<n.coldBindings<<",\"residentJobs\":"<<n.residentJobs<<",\"coldJobs\":"<<n.coldJobs<<",\"entryStorageBytes\":"<<n.entryStorageBytes<<",\"locationStorageBytes\":"<<n.locationStorageBytes<<"}\n";}
 // 정의는 복제 journal.cpp의 ManagedJournalState 정의 뒤에 삽입한다. Replay/복사/직렬화 없음.
 Owned Journal(const recording::RecordingJournal&,EnvelopeOwners* seen=nullptr);
 void Provenance(const recording::RecordingJournal&);

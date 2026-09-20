@@ -486,6 +486,7 @@ struct RecordingJournalRecordLocation {
     std::shared_ptr<const char> generation;
     std::size_t ordinal{0};
     std::uint64_t offset{0},length{0};
+    std::size_t logical_charge{0};
     std::string raw_sha256,record_identity,schema,mutation_id,entity_id;
     RecordingMutationType type{RecordingMutationType::Unknown};
     std::int64_t occurred_at_ms{0};
@@ -515,6 +516,7 @@ public:
 struct ManagedJournalState {
     OrderHistoryIndex order;
     RecordingMutationHandles records;
+    std::size_t resident_checked{0};
     std::shared_ptr<const char> generation{std::make_shared<const char>(0)};
     RecordingJournalRecordLocations locations;
     std::shared_ptr<const char> lineage{std::make_shared<const char>(0)};
@@ -576,6 +578,7 @@ RecordingJournalRecordLocationHandle MakeLocation(const std::shared_ptr<const ch
     location->generation=generation;location->ordinal=ordinal;location->offset=offset;location->length=raw.size();
     location->schema=record->schema;location->mutation_id=record->mutation_id;location->entity_id=record->entity_id;
     location->type=record->mutation_type;location->occurred_at_ms=record->occurred_at_ms;
+    location->logical_charge=sizeof(RecordingMutationV1)+record->schema.size()+record->mutation_id.size()+record->entity_id.size()+record->payload_json.size();
     // 기존 Append에는 16MiB 제한이 없다. 기존 수용 입력/crypto-off를 새로 거부하지 않는다.
     if(!MEDIA_SERVER_USE_OPENSSL||raw.size()>16*1024*1024+1)location->resident_fallback=record;
     else {
@@ -1070,6 +1073,17 @@ bool RecordingJournal::MatchMutationLinkView(const RecordingMutationLink& link,c
     else *matches=link.resident_&&SameOwnedEnvelope(*link.resident_,*view->record);
     return true;
 }
+bool RecordingJournal::CanReleaseMutationLink(const RecordingMutationLink& link) const {
+#if !defined(_WIN32)
+    if(managed_&&owner_pid_!=::getpid())return false;
+#endif
+    std::lock_guard lock(mu_);
+    const auto& ref=link.ref_;
+    return ref&&CheckManagedStateLocked(nullptr)&&catalog_attachment_&&link.authority_==catalog_attachment_&&
+        ref->lineage==managed_state_->lineage&&ref->ordinal<managed_state_->refs.size()&&managed_state_->refs[ref->ordinal]==ref&&
+        ref->ordinal<managed_state_->locations.size()&&managed_state_->locations[ref->ordinal]&&
+        !managed_state_->locations[ref->ordinal]->resident_fallback;
+}
 bool RecordingJournal::MutationLinkOwns(const RecordingMutationLink& link,const RecordingMutationHandle& record) const {
     if(!record)return false;
     if(!link.ref_)return link.resident_==record;
@@ -1177,16 +1191,18 @@ bool RecordingJournal::ReleaseRecordResidents(const void* owner,std::string* err
     if(!managed_||!owner||owner!=catalog_owner_)return Fail(error,"resident release owner 거부");
     if(!CheckManagedStateLocked(error))return false;
     if(managed_state_->records.size()!=managed_state_->locations.size()){poisoned_=true;return Fail(error,"resident index 불일치");}
-    // 모든 slot의 재획득 근거를 먼저 확인한다. 해제 자체는 할당·파일 쓰기가 없다.
-    for(std::size_t i=0;i<managed_state_->locations.size();++i){
+    // 같은 세대에서 이미 확인한 행은 재방문하지 않는다. 새 suffix를 전부 확인한 뒤 해제한다.
+    if(managed_state_->resident_checked>managed_state_->locations.size()){poisoned_=true;return Fail(error,"resident cursor 불일치");}
+    for(std::size_t i=managed_state_->resident_checked;i<managed_state_->locations.size();++i){
         const auto& location=managed_state_->locations[i];
         if(!location||location->generation!=managed_state_->generation||location->ordinal!=i||
            (!location->resident_fallback&&(location->raw_sha256.empty()||location->record_identity.empty()))){
             poisoned_=true;return Fail(error,"resident 위치 불일치");
         }
     }
-    for(std::size_t i=0;i<managed_state_->records.size();++i)
+    for(std::size_t i=managed_state_->resident_checked;i<managed_state_->records.size();++i)
         if(!managed_state_->locations[i]->resident_fallback)managed_state_->records[i].reset();
+    managed_state_->resident_checked=managed_state_->records.size();
     if(error)error->clear();return true;
 }
 bool RecordingJournal::AcquireCheckpointRecordsLocked(RecordingMutationHandles* records,std::string* error) const {
@@ -1305,7 +1321,7 @@ bool RecordingJournal::CommitCheckpoint(const void* owner,const RecordingMutatio
     if(::renameat(parent.value,temporary,parent.value,io_path_.filename().c_str())!=0){poisoned_=true;return Fail(error,"checkpoint rename 실패");}
     if(!Sync(parent.value)){poisoned_=true;return Fail(error,"checkpoint directory fsync 불확실");}
     ::close(managed_fd_);managed_fd_=stage.value;stage.value=-1;device_=static_cast<std::uint64_t>(staged.st_dev);inode_=staged.st_ino;
-    managed_state_->records=std::move(published);managed_state_->locations=std::move(locations);managed_state_->generation=generation;
+    managed_state_->records=std::move(published);managed_state_->locations=std::move(locations);managed_state_->generation=generation;managed_state_->resident_checked=0;
     managed_state_->refs=std::move(refs);
     managed_state_->bytes=bytes.size();checkpoint_checked_bytes_=bytes.size();return true;
 #else

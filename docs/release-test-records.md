@@ -13,8 +13,8 @@ Superpowers 스킬은 현재 제공되지 않아 사용을 주장하지 않으�
 | --- | --- | --- | --- | --- |
 | 1 | 저장 기준 검증 보완 | 완료 | 순수14·실제46 PASS, 예상 RED2건 보존. HW 해결 아님 | 아래 WR 결과 |
 | 2 | 위치 재획득 마감 | 완료 | 기존 위치 증거37SHA 일치·service43·2job 기능120/계측1 통과 | LP18-L01~10·아래 결과 |
-| 3 | 실제 RAM 수명 적용 | 진행 중 | cold·호출-local checkpoint·논리ref·accepted/prefix 소비 연결 검증 완료. typed/자동 해제는 아직 없음 | 누적 비용 계약0절·아래 결과 |
-| 4 | 분할 커밋·보고 | 단계별 수행 | 기준·위치·cold·snapshot·논리ref 커밋 완료, accepted/prefix 단위 커밋 준비. 단계3 전체는 미완료 | AGENTS3/5 |
+| 3 | 실제 RAM 수명 적용 | 완료 | typed 자동 해제·선택 재획득·엄격 복구 및 관련 단기 회귀 완료. 누적 비용/HTTP 최종 판정은 별도 | LP18-R01~11·아래 최종 결과 |
+| 4 | 분할 커밋·보고 | 마지막 단위 마감 | 앞선6개와 본 기록의 typed 단위를 별도 커밋으로 분리. 최종 hash·상태는 사용자 보고에서 확인 | AGENTS3/5·아래 마감 |
 
 | 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
 | --- | --- | --- | --- | --- |
@@ -539,6 +539,316 @@ build는 기존 build-gst-onnx 산출물을 갱신했고 삭제 대상 임시 ro
 해당 원출력의 줄끝 공백만 제거했으며 명령·수치·판정·행 순서는 불변이다. 15479→15464B.
 정규화 전 SHA `8b1d1bd8c632079a0645fc34c0a56aff93c6023eb69524d271e41402160c6737`, 후 SHA `4c267ac818ac0002200d8f4579e5df26f6380f25201ef84b025e02b031b65cae`. 원출력 형식 정규화를 기록하고 staged 검사를 다시 확인한다.
 동일 `git diff --cached --check` 재검증 exit0. 테스트 재실행 없이 보존물 형식 결함만 마감했다.
+
+### 3번 typed 상세 자동 수명 초기 RED 사전등록
+
+기준 `66dedb3f`, 제품 수정 전 현재 strong 상주를 실제 weak 만료 여부로 관측한다.
+명령 `node scripts/internal/verify_recording_immutable_ownership.mjs red typed-lifetime-01 typed-lifetime`.
+아래8개 중 R01 세 행만 예상 FAIL, 나머지5 PASS, focused exit1과 정확한 실패 목록이 맞아야 예상 RED다.
+build/준비/환경 실패는 RED가 아니다. 기존60초/1GiB RSS/512MiB disk/2MiB 출력 guard와
+소유 root·프로세스 정리를 유지한다. 새 값/수명 기능의 GREEN과 추가 반례는 등록 뒤 실행한다.
+fixture의 이전 reader/history/임시 getter owned는 만료 관측 전에 scope 종료하며 제품 소유와 혼동하지 않는다.
+토큰 집계는 도구 부재로 미집계, elapsed/exit/cleanup/source hash는 원출력에 보존한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-R01 inactive binding releases resident detail after durable append | binding 비상주 | 정상 finalize 후 reader 해제 시 weak 만료 | v4.1.0 |
+| LP18-R02 active job retains owned detail and source protection | active 보호 | Intent owned 생존·원본 보호·예약1개 | v4.1.0 |
+| LP18-R03 durable journal preserves complete canonical bytes | 저장 내용 | Replay 전체 canonical과 파일 bytes 동일 | v4.1.0 |
+| LP18-R03 public job value mutation remains isolated | 반환 독립 | 외부 값 변경 후 내부 canonical 동일 | v4.1.0 |
+| LP18-R02 previously returned owned reader survives terminal publication | 기존 reader | terminal 게시 후 이전 Intent 값 생존 | v4.1.0 |
+| LP18-R01 terminal live and historical active shadow release resident detail | terminal 수명 | 이전 reader 해제 후 live·shadow·terminal weak 만료 | v4.1.0 |
+| LP18-R01 normal append releases reloadable journal envelope resident | journal 수명 | 마지막 mutation owned 해제 후 weak 만료 | v4.1.0 |
+| LP18-R03 owned reads do not rewrite durable evidence | 조회 불변 | Find job/binding 전후 원장 bytes 동일 | v4.1.0 |
+
+### typed 초기 RED 실제 결과
+
+`typed-lifetime-01`: build exit0/3242ms, focused exit1/689ms, 5PASS/3FAIL은 위 R01 세 행과 정확히 일치했다.
+runner exit0/3948ms는 예상 RED 판정 성공이며 제품 PASS가 아니다. source unchanged=true, guard 위반 없음.
+원출력 [초기 RED](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-red-typed-lifetime-01.txt)의8행을 아래에 보존한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18-R01 inactive binding releases resident detail after durable append | strong 상주가 남아 weak 미만료, 예상 RED | fail |
+| LP18-R02 active job retains owned detail and source protection | Intent 보관·원본 보호·예약 | pass |
+| LP18-R03 durable journal preserves complete canonical bytes | 전체 canonical/file 동일 | pass |
+| LP18-R03 public job value mutation remains isolated | 외부 값 변경 격리 | pass |
+| LP18-R02 previously returned owned reader survives terminal publication | 이전 owned 값 유지 | pass |
+| LP18-R01 terminal live and historical active shadow release resident detail | live/shadow strong 상주, 예상 RED | fail |
+| LP18-R01 normal append releases reloadable journal envelope resident | journal strong 상주, 예상 RED | fail |
+| LP18-R03 owned reads do not rewrite durable evidence | 조회 전후 원장 불변 | pass |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| 실행 소유 media-server-immutable-ownership root | binary/격리 저장소 | 6436834B | runner 정리 | removed=true·프로세스 groupClean | RED 원출력 |
+| 위 저장소 원출력 | 비민감 명령·SHA·개별 결과 | 실제 파일 | 보존 | 정상 | 실패 이력 보존 |
+
+서버/포트 실행 없음. GREEN·제품 자동 해제·이후 회귀는 미실행이며 RED를 기능 완료로 사용하지 않는다.
+
+### typed GREEN·오류·선택·복구 사전등록
+
+위8개+아래기본22개=30개 GREEN과 별도 crypto-off1개를 구현 전에 등록한다.
+이어 계측 자체검사3개와 메인 검토의 조회상한 반례1개를 실행 전 추가하여 GREEN 기준은 기본34개+crypto-off1개다. RED8개 결과는 변경하지 않는다.
+현재 원장 strict 획득 후 불변 payload/metadata를 대조하고, 현재 lifecycle은 기존 소비자에서 검사한다.
+명령은 기존 runner의 `green typed-lifetime-02 typed-lifetime`과 별도 `typed-lifetime-crypto-off` 모드다.
+전체 build를 먼저 갱신한 뒤 실행한다. 기존60초/메모리·출력·정리 guard와 fail-closed를 유지한다.
+추가 CP 재사용계층·timeout 확대·상한 완화는 하지 않는다. CP 추가읽기는 관측값이며 추정0회 목표가 아니다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-R04 cold binding reacquires complete canonical detail transiently | binding cold 조회 | 전체 canonical 동일·조회 후 resident 미복구 | v4.1.0 |
+| LP18-R04 cold terminal job reacquires complete canonical detail transiently | terminal cold 조회 | strict Parse·전체 canonical 동일·일시 owned | v4.1.0 |
+| LP18-R04 external owned reader does not bypass cold durable validation | 외부 reader와 손상 | 기존 reader 생존해도 새 cold 조회의 파일 검증 유지 | v4.1.0 |
+| LP18-R04 full public snapshot owns independent values without resident refill | 전체 snapshot | 독립값·상주 재가열 없음 | v4.1.0 |
+| LP18-R05 original lookup acquires only matching binding metadata | 원본 선택 | channel/source/generation/order/track 필터 뒤 해당 행만 획득 | v4.1.0 |
+| LP18-R05 job lookup acquires only requested terminal record | job 선택 | 요청 ID만 cold 읽기 | v4.1.0 |
+| LP18-R05 protection and reservation filters avoid terminal detail reads | 보호 색인 | active metadata로 보호/예약 판단·terminal 상세 읽기 없음 | v4.1.0 |
+| LP18-R06 SQLite reopen leaves inactive typed detail nonresident | SQLite 재open | 전체 strict 복구 후 inactive resident 없음 | v4.1.0 |
+| LP18-R06 JSONL fallback reopen leaves inactive typed detail nonresident | fallback 재open | 전체 strict 복구 후 inactive resident 없음 | v4.1.0 |
+| LP18-R06 reopen retains active job detail and protection | active 복구 | 활성 detail·예약·보호 유지 | v4.1.0 |
+| LP18-R06 deleted binding remains internally reacquirable and publicly hidden | 삭제 이력 | 내부 historical evidence 보존·public 없음 | v4.1.0 |
+| LP18-R07 detached authority clears typed output and marks uncertainty | detach 거부 | out 초기화·불확실·보수적 보호 | v4.1.0 |
+| LP18-R07 cold binding corruption returns no value and marks uncertainty | binding 변조 | 동일 파일 변조를 정상 부재로 처리하지 않음 | v4.1.0 |
+| LP18-R07 cold job corruption clears public snapshot and marks uncertainty | job 변조 | public snapshot 초기화·불확실 | v4.1.0 |
+| LP18-R07 cold acquisition exception clears output and marks uncertainty | 획득 예외 | 안전한 고정 실패·출력 초기화 | v4.1.0 |
+| LP18-R07 public checkpoint cold projection failure returns false without escaping exception | 투영 실패 | 빈값 동등 금지·checkpoint false·cache 폐기 | v4.1.0 |
+| LP18-R08 repeated resident release visits no previously checked rows | 반복 해제 비용 | 동일 세대 기확인 행 반복 방문 없음 | v4.1.0 |
+| LP18-R08 append resident release visits only new suffix rows | append 해제 비용 | 신규 행만 방문 | v4.1.0 |
+| LP18-R08 checkpoint replacement resets release cursor for new generation | 세대 변경 | 새 위치표 전체 적격 확인 후 cursor 게시 | v4.1.0 |
+| LP18-R08 counts cold checkpoint durable reacquisition without semantic change | CP 비용 관측 | 읽기 횟수 보고·canonical/투영 유지. 새 수치 합격선 없음 | v4.1.0 |
+| LP18-R09 raw Apply preserves typed resident fallback | raw fallback | 내구 capability 없는 입력은 resident 유지 | v4.1.0 |
+| LP18-R09 oversized physical row preserves typed resident fallback | 기존 대형 append fallback | 기존 Append/strict Apply가 수용하는 실제 입력만 사용; Load 행 상한 우회 금지 | v4.1.0 |
+| LP18-R09 crypto-off preserves typed resident fallback and checkpoint rejection | crypto-off | 별도 빌드의 기존 resident·CP 거부 계약 유지 | v4.1.0 |
+| LP18-R10 cold binding metrics retain logical samples without strong ownership | cold 계측 | binding cold1/resident0/logical samples2·unique object0·entry 비용 포함 | v4.1.0 |
+| LP18-R10 active job metrics count resident ownership | active 계측 | residentJobs1/coldJobs0, 관측을 위한 재획득 없음 | v4.1.0 |
+| LP18-R10 terminal job metrics exclude external reader ownership | terminal 계측 | 외부 reader 생존 중에도 coldJobs1/residentJobs0/unique0 | v4.1.0 |
+| LP18-R11 timeline collector limit does not poison catalog or block subsequent append | 조회 상한과 저장 상태 분리 | valid source/mapping으로 실제 Collector4096행 상한 초과·outclear·authority 유지·후속 정상 append. 영상 디코딩 증거 아님 | v4.1.0 |
+
+LP17 계측도 함께 적응한다. journal null slot은 실패가 아닌 cold 기록으로 세고 location에 최초 저장한
+logical charge/metadata를 사용한다. 관측 때문에 Replay/Parse/재획득하지 않는다. binding logical samples는
+얇은 sample_count로 유지하며 weak.lock은 strong 소유량에 포함하지 않는다. resident/cold binding·job 수,
+entry sizeof·location sizeof·metadata 문자열/vector capacity를 따로 표시한다. map node/allocator까지의
+정확한 heap 합계는 아니며 일부 항목의 중복/공유 관계를 유지한다. typed entry가 추가로 소유하는 mutation link도
+논리 참조 수에 포함하므로 이전 accepted-only records와 무조건 같은 수치라고 비교하지 않는다.
+
+사전 정적 검사: `node --check scripts/internal/recording_catalog_comparison_instrument.cjs`와 후속 변경한
+`node --check scripts/internal/recording_catalog_cost_probe_instrument.cjs`는 계측 생성기 문법만 검사한다.
+제품·runtime 실행/메모리 PASS로 사용하지 않는다. 임시 산출물 없음.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18 typed 계측 생성기 문법 | 위 node --check exit0, stdout/stderr 없음, tool wall0.008초. runtime 미실행 | pass |
+| LP18 typed 비용 생성기 문법 | cost_probe_instrument.cjs node --check exit0, stdout/stderr 없음, tool wall0.007초. runtime 미실행 | pass |
+
+영향 회귀는 typed 소비를 직접 포함하는 binding/job/proof·prepared·catalog·timeline/media/retention/service·cache·2-job다.
+기존 개별 정의와 합격 의미를 유지하고 private pool 표현에 따른 helper 변경은 실행 전에 별도로 기록한다.
+Header layout 변경이므로 전체 build가 선수다. 반복 인계만을 이유로 이미 유효한 무관 writer/HW 검증을 재실행하지 않는다.
+브라우저/30분/120분/실제 HTTP/누적16·32 최종 검증과 푸시는 비범위다. 현재는 등록/구현 준비이지 PASS가 아니다.
+
+### typed 구현 중 메인 검토·빌드
+
+첫 전체 `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build` exit0/52초.
+원출력 `lp18-typed-build-01.txt`, 기존 build-gst-onnx 산출물 유지, 서버·임시 root 없음.
+이후 메인 정적 검토에서 timeline의 일반 catch가 정상 조회 상한 초과까지 catalog 불확실로 만드는
+과도한 변경을 발견해 제거했다. cold 획득 실패 자체에서만 불확실 상태를 남긴다. checkpoint는
+shadow의 실제 cold 실패 상태를 live에 전달하되 정상 조건 거부를 일괄 poison하지 않는다.
+이 두 파일 보완으로 build-01은 변경 전 빌드 증거이며 다음 incremental build와 관련 반례가 필요하다.
+기능 GREEN/메모리 성능은 아직 미실행이다.
+
+build-02 증분 빌드도 exit0/3초. 이후 CP 원장 읽기 실패에서 현재 journal 소유권/건강성이
+깨진 경우만 live 불확실로 전달하는 보완을 추가했으므로 다음 빌드로 최종 소스를 확인한다.
+R11은 기존 `recording_public_timeline_smoke.cpp`의 D3B-11 유효17×256=4352행 상한 입력을
+재사용하며, 이미 있던 상한/503 확인에 authority·후속 append 건강성을 추가한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP18 typed 첫 전체 빌드 | 위 명령 exit0·52초, 메인 보완 전 소스 범위만 유효 | pass |
+| LP18 typed 두 번째 빌드 | 동일 build 명령 exit0·3초, CP 원장 오류 전파 추가 전 소스 범위 | pass |
+| LP18 typed 세 번째 빌드 | 동일 build 명령 exit0·3초, CP 원장 오류의 제한된 전파까지 포함. 원출력 `lp18-typed-build-03.txt` | pass |
+
+기존 소유 검사 적응 원칙: cold 재조회는 외부 reader가 있어도 엄격한 파일 검증을 하므로 새 객체의 주소를
+기존 resident 주소와 같다고 요구하지 않는다. accepted/prefix는 동일 Read의 sealed 출처와 전체 canonical을
+검사하고, pool 공유는 호출 동안 명시적으로 보유한 warm reader에 대해서만 확인한다. 공개 독립값·충돌/손상
+거부·상태 전이·원장 bytes 조건은 유지한다. cold 해제 자체는 별도 R01~R11로 검사한다.
+변경 exact 제목은 실행 전에 아래에 등록하며 과거 주소 공유 PASS/RED 기록을 소급 변경하지 않는다.
+
+### typed GREEN02 최초 실패와 같은 단계 보완
+
+`green typed-lifetime-02 typed-lifetime`: build0/3265ms, focused1/2223ms, 33PASS/1FAIL,
+runner1/5513ms. 실패는 R08 `checkpoint replacement resets release cursor for new generation` 한 행이다.
+입력 EventLinkCreated payload `{}`보다 변환 receipt가 커서 기존 `CommitCheckpoint`의
+`bytes.size()>=managed_state_->bytes` 분기로 파일을 교체하지 않았다. 세대가 바뀌지 않았으므로
+해제 cursor 재방문0은 정상이고 fixture의2회 기대가 잘못됐다. 실제 제품 회귀/예상 RED로 바꾸지 않는다.
+기존 위치 검사의 충분한 journal payload를 사용하고, 후보가 실제 더 작음·파일 교체/세대 변경을
+먼저 확인한 뒤 신규 세대2행 방문을 판정하도록 같은 R08을 보완한다. journal 계층 검사이며
+EventLink 제품 payload 검증 PASS가 아니다. 제품·시간제한·상한 변경 없음.
+crypto와 이후 회귀는 해당 재검증 전 보류한다. 원출력의33개 PASS·1개 FAIL은 보존한다.
+source unchanged=true, 두 process group 정리=true, 소유 root27947450B 삭제·부재 확인.
+원출력 `lp18-ownership-green-typed-lifetime-02.txt` 보존; 토큰 미집계, elapsed는 위 runner 실측이다.
+
+재검증 `typed-lifetime-03`: build0/3269ms, focused0/2124ms,34PASS, 총5416ms.
+crypto別 `typed-lifetime-crypto-01`: build0/3184ms, focused0/563ms,1PASS, 총3762ms.
+각각 source unchanged·group cleanup true, 소유 root27949786B/6436799B 삭제·부재 확인.
+일반 fixture의 cold checkpoint 물리 읽기는8회로 직접 관측했다. 비용0/누적 성능 PASS를 뜻하지 않는다.
+원출력의 현재 제품 SHA는 catalog `5fa8025a627640eb67b09d71f66d698118c923472e8581e2835b018656362233`,
+journal `78a901c97fb5b47a02d0ea5722389e834dc79814e66b6b93e9eeebf9afad196b`다.
+제품은 GREEN02→03에서 바뀌지 않았고 R08 fixture만 보완했다.
+
+관련 기존 단기 회귀는 public timeline38→public media46→retention24→service43부터 순차 실행한다.
+이어 ownership binding/job/proof·prepared/catalog/cache와 기존 LP17 `small`(32samples·원본2개,
+삭제/SQLite·JSONL 재open) 및 `jobs`(501samples·2job)를 실행한다. 기존 각 exact 정의를 유지하며
+LP17 sources 모드(4096samples·32원본)/실제HTTP는 실행하지 않는다. small과jobs는 별도 원출력·
+서로 다른 관측으로 유지하고, 단기 성공을 최종 누적 자원 합격으로 사용하지 않는다.
+
+### typed 이후 기존 소유 검사의 변경 정의(실행 전)
+
+기존 suite별 행수는 유지한다. 아래 주소/상주 전제만 현재 비상주 계약에 맞춰 구체화한다.
+정상5전이 incoming Parse1·직렬화 감소6개 조건, prepared11·proof25의 기존 조건은 불변이다.
+T03의 cold public retry는 strict 재획득 Parse1, 불법 전이/immutable 충돌은 prior 두 경계와
+incoming을 합친 Parse3을 검사한다. 이 읽기를 생략하여 옛 Parse0/1을 맞추지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-O01 retained prefix preserves sealed journal lineage and canonical value | prefix 소유 | 동일 Read view·MatchMutationLinkView·전체 canonical | v4.1.0 |
+| LP18-O02 published prefix preserves receipt evidence and unchanged row lineage | receipt 게시 | 변경 receipt 값·불변 행 sealed lineage | v4.1.0 |
+| LP18-O07 append accepted preserves sealed journal lineage | accepted 출처 | append 뒤 봉인된 참조/전체값 | v4.1.0 |
+| LP18-O07 checkpoint accepted preserves sealed journal lineage | accepted 출처 | live/shadow 현재 원장 결박/전체값 | v4.1.0 |
+| LP18-O08 reopen accepted preserves sealed journal lineage sqlite | SQL 복구 | 동일 Read view와 accepted 결박/전체값 | v4.1.0 |
+| LP18-O08 reopen accepted preserves sealed journal lineage fallback | fallback 복구 | 동일 Read view와 accepted 결박/전체값 | v4.1.0 |
+| LP18-O10 no-op checkpoint preserves owned readers without binding comparisons | binding no-op | 명시 owned reader 유지·pool 비교0 | v4.1.0 |
+| LP18-O10 checkpoint shadow shares warm owned binding reader | 최초 CP 공유 | 호출 전 보유한 warm reader 공유 | v4.1.0 |
+| LP18-O10 deleted checkpoint preserves independently owned canonical binding evidence | 삭제 이력 | live/shadow 독립 owned canonical·public 숨김; 무변경 CP에 재결박 강요 안 함 | v4.1.0 |
+| LP18-O10 reopened checkpoint shares warm owned binding reader sqlite | 복구 후 공유 | 명시 reader를 보유한 CP의 주소·canonical | v4.1.0 |
+| LP18-O10 reopened checkpoint shares warm owned binding reader fallback | 복구 후 공유 | 명시 reader를 보유한 CP의 주소·canonical | v4.1.0 |
+| LP18-J01 no-op checkpoint preserves owned readers without pool comparisons | job no-op | 명시 owned reader 유지·pool 비교0 | v4.1.0 |
+| LP18-J01 checkpoint shares warm owned job reader | job 최초 CP | 호출 전 warm reader 공유·canonical | v4.1.0 |
+| LP18-T03 identical cold public retry retains strict reacquisition and full comparison without append | terminal retry | Parse1·전체값/저장 bytes 불변 | v4.1.0 |
+| LP18-T03 cold same-shape terminal conflict remains rejected after strict reacquisition | terminal 충돌 | Parse3·거부·전체값/저장 bytes 불변 | v4.1.0 |
+| LP18-T03 cold Ready after Complete rejects without canonical or bytes change | 역전 전이 | Parse3·거부·전체값/저장 bytes 불변 | v4.1.0 |
+| LP18-T03 cold prefilter cannot bypass immutable Intent collision after strict reacquisition | immutable 충돌 | Parse3·고정 오류·전체값/저장 bytes 불변 | v4.1.0 |
+
+실행 명령은 ownership runner GREEN의 `binding`, `job`, `content`, `intent-comparison` 모드다.
+binding77은 envelope34·accepted55 조건을 함께 포함하므로 중복 별도 실행을 요구하지 않는다.
+intent-comparison28은 transition-comparison21을 포함한다. exact 원출력 전수 행수로 이를 대조한다.
+
+### typed 영향 회귀의 실제 결과와 체크포인트 예외 보완
+
+public timeline38/12초·media46/3초·retention24/16초·service43/18초 모두exit0.
+binding77(3378ms)·job24(3817ms)·content25(18320ms)·intent-comparison28(6867ms) 모두exit0.
+prepared11/5초·catalog246/15초도exit0. 원출력과 정리는 아래 개별 결과 파일에 전수 보존한다.
+
+cache01은 focused exit2: LP15-C03 `suffix exception discards cache` FAIL 뒤 다음 full 검사가
+선수조건 거부로 중단했다. 기존 fixture는 Apply에 주입한 일반 예외가 unwind하면서 cache를 버리고,
+다음 호출은 full 검증으로 재시도하는 계약이다. 이번 광범위한 CheckpointLocked catch가 이 예외까지
+삼키고 live authoritative=false로 바꿨다. typed 소비 보완의 실제 회귀이며 예상 RED/환경 탓으로 바꾸지 않는다.
+해당 소유 root8937916B 삭제·부재 확인, RSS138788864B/상한536870912B·시간상한60초 위반 없음.
+기능19PASS/1FAIL 및 RSS1PASS 후 실행되지 않은 후반26개는 미실행이다. 뒤 small/jobs는 보류했다.
+
+수정 범위는 메인이 회수한다. broad catch를 제거하고 cold 상세를 사용하여 예외를 발생시키는
+before/after 투영 비교만 명시 실패로 변환한다. 실제 cold 실패가 설정한 shadow 불확실은 live로 전달하고,
+일반 Apply 예외는 기존 unwind/cache 폐기·재시도 계약을 유지한다. 이미 구현한 Read/Apply의 bool 실패
+전파는 유지한다. 기존 LP15-C03 oracle를 완화하지 않으며 제품 저장/API/시간제한 변경은 없다.
+재빌드→동일 cache→typed 일반/crypto·content 회귀 순서다. 정상 public·prepared/catalog·binding/job/Intent
+경로는 변경되지 않으므로 앞선 증거를 유지한다. 예외 관련 증거만 다음 실행으로 갱신한다.
+
+담당자 읽기 검토와 메인 대조 결과, 투영 비교의 일반 예외도 권위 상태가 정상이라면 rethrow하여
+기존 재시도 의미를 유지한다. 실제 불확실이 확인된 경우만 false로 닫는다. R07 기존 파일 손상은
+최초 Read에서 주로 실패하므로 projection catch 자체의 직접 증거로 확대하지 않는다.
+이를 구분하는 아래2개를 기존 cache suite에 사전등록하여 기존47개+추가2개=49개로 확인한다.
+검증 복제본의 투영 진입점에서만 일반/불확실 예외를 주입하며 제품에 주입 코드는 넣지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP18-R07 ordinary projection exception preserves authority and retry eligibility | 일반 투영 예외 | 실제 변경 후보 검증에서 일반 throw·cache 폐기·authority/원장 보존 및 후속 재시도 | v4.1.0 |
+| LP18-R07 uncertain projection returns false and preserves durable bytes | 불확실 투영 예외 | shadow 불확실 주입→live 전파·외부 예외 없음·false/cache 폐기/원장 보존 | v4.1.0 |
+
+cache02 exit0/20초·49PASS, 최종 전체build05 exit0/3초. 일반/불확실 투영 예외2개와 기존 suffix 예외를 모두 통과했다.
+typed04(34PASS/5482ms), crypto02(1PASS/3773ms), content02(25PASS/18326ms)도 exit0·source 불변·정리true다.
+small typed01은 exit0/10172ms·100PASS, 준비/원본2개/삭제/SQLite·JSONL 재개방 총12phase 통과했다.
+단, 검증 복제본 계측 코드의 `for` 뒤 `return true` 배치에서 misleading-indentation 경고1건이 나왔다.
+계측 생성문의 for 본문에 명시 중괄호를 넣어 의미를 바꾸지 않고 정리한다. 제품코드/계측범위/합격식은 불변이다.
+small 기능 증거는 유지하며 후속 jobs typed01의 동일 compile 단계로 경고 해소를 확인한다.
+
+### typed 자동 수명 최종 판정·정리
+
+제품 `SourceBindingEntry`/`DerivedJobEntry`에 얇은 조회·보호 정보와 봉인된 원장 참조를 두고,
+`AcquireSourceBindingOwnedLocked`/`AcquireDerivedJobOwnedLocked`에서 cold 입력을 엄격 재획득한다.
+`ReleaseInactiveDetailsLocked`는 정상 append 뒤 변경 entry, Open/Checkpoint 뒤 live/shadow를 정리한다.
+원장의 `ReleaseRecordResidents`는 같은 세대에서 신규 suffix만 방문하며 실제 파일 교체 후 cursor를 초기화한다.
+timeline/media/active snapshot/보존·예약 경로는 상세 읽기 전에 얇은 정보를 사용하고 실제 반환에는 owned 수명을 유지한다.
+저장 바이트·공개 API·시간/ID·보존 정책·손상 거부·기존 입력 상한·timeout은 변경하지 않았다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| typed 최종 전체 빌드 | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh build`, build04/05 각각 exit0·3초. 최종은05 소스 | PASS |
+| typed 정상/오류/경계 | `node scripts/internal/verify_recording_immutable_ownership.mjs green typed-lifetime-04 typed-lifetime`,34개·exit0/5482ms | PASS |
+| typed crypto fallback | 같은 runner `green typed-lifetime-crypto-02 typed-lifetime-crypto-off`,1개·exit0/3773ms | PASS |
+| typed 체크포인트 회귀 | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_checkpoint_cache.sh`, cache02의 기능46+실제형상2+RSS1=49개·exit0/20초 | PASS |
+| typed proof 최종 회귀 | ownership runner `green typed-content-02 content`,25개·exit0/18326ms | PASS |
+| typed binding 회귀 | ownership runner `green typed-binding-01 binding`,77개·exit0/3378ms | PASS |
+| typed job 회귀 | ownership runner `green typed-job-01 job`,24개·exit0/3817ms | PASS |
+| typed 전이 회귀 | ownership runner `green typed-intent-comparison-01 intent-comparison`,28개·exit0/6867ms | PASS |
+| typed prepared 회귀 | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_derived_transition_reuse.sh`,11개·exit0/5초 | PASS |
+| typed catalog 회귀 | 소유 mktemp root를 `MEDIA_SERVER_VERIFY_V410_RECORDING_CATALOG_BUILD_DIR`로 전달하여 `bash scripts/internal/verify_v410_recording_catalog.sh`,234+crypto3+static9=246개·exit0/15초 | PASS |
+| typed timeline 회귀 | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_public_timeline.sh`,38개·exit0/12초 | PASS |
+| typed media 회귀 | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_public_media.sh`,46개·exit0/3초 | PASS |
+| typed retention 회귀 | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_retention_v2.sh`,GST22+비GST2=24개·exit0/16초 | PASS |
+| typed service 회귀 | `MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_derived_job_service.sh`,43개·exit0/18초 | PASS |
+| typed 소규모 저장·재open | `node scripts/internal/recording_catalog_comparison_run.mjs small typed-01`,100개·12phase·exit0/10172ms | PASS |
+| typed 실제 크기2-job | 같은 runner `jobs typed-01`, B60/C60+계측1+입력동일1=122개·4phase·exit0/17989ms | PASS |
+
+각 명령의 원출력/개별 결과/phase별 exit·elapsed·정리값은
+[LP18 전수 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md)의 typed26개 파일 구간에 보존했다.
+원출력 실제 assertion990개와 job입력동일1개=991행을 대조했다. 최초 RED3개·fixture1개·cache1개 FAIL도
+삭제하지 않았다. 이991은 재실행까지 포함한 이력 행수이며 독립 기능 수/현재 suite PASS 개수가 아니다.
+build·준비 phase도 별도 결과 행이다. build04/05와 앞선 build01~03 원출력을 모두 유지했다.
+
+jobs의 runtime359ms·compile4768ms·B7045ms·C5563ms 모두exit0, 최종 compile 경고0.
+small/jobs의 `comparison` 및 `comparison-job` 바이너리 SHA가 각각 동일하여 계측 생성문 중괄호 보완은
+빌드 산출물에도 영향을 주지 않았음을 확인했다. small 최초 경고 이력은 남기며 무관 검사를 재시작하지 않는다.
+B/C의 동일 입력 canonical SHA `f8de1cd44038e7433d0c24b3f250f63704b80ba86b468178beb607f0e68ce82e`를 직접 대조했다.
+2-job peak RSS는 B157368320B/C104054784B로 이번 기존 관측 기준536870912B 이내지만,
+이 값은16/32 누적 증가 추세·실제 HTTP4초·전체 제품 자원 합격을 대신하지 않는다.
+
+소유 계측에서 small의 SQLite/JSONL 재open 후 live binding은 resident0/cold2,
+2-job 최종 live는 resident binding0/job0, cold binding3/job2다.
+캐시를 유지하는 B의 shadow도 resident binding0/job0·cold binding3/job2이며 journal18행은 cold다.
+외부 reader/fixture·allocator 보관과 실제 프로세스 RSS는 별개다. 전체 Open strict replay의 일시 peak,
+기존 fallback·얇은 색인/삭제 이력의 누적 보관이 사라졌다고 주장하지 않는다.
+cold checkpoint 원장 재읽기8회 관측을 숨기지 않으며 후속 누적 비용 판정 대상으로 유지한다.
+
+메인 최종 검토: 변경된 product5파일과 typed/header, 검증 어댑터의 실제 diff·바이트/손상/전이 합격식을
+대조했다. 기존 pool의 암묵적 역참조는 명시 owned 획득으로 바꿨고 반환 reader와 Prepared의 강한 소유를
+유지한다. 공개 조회 상한과 실제 증거 불확실을 분리했으며 실제 검증 실패2건은 위 최초 실패→수정→재검증으로 남겼다.
+일반 예외 보완 전 정상 public/prepared/catalog/binding/job/Intent 증거는 경로 불변으로 유지하고,
+예외 관련 typed/crypto/content/cache는 최종 소스로 재실행했다. 전체30분/UI를 반복하지 않았다.
+
+cleanup: 모든 소유 root/store·프로세스는 wrapper/runner에서 삭제·부재와 종료를 확인했다.
+최종 typed/crypto/content root는27950167B/6437196B/13916697B,
+cache17500679B, small3store 각256627B+최종root19663009B,
+jobs2store 각5147594B+최종root19364219B였다. root 값은 먼저 삭제한 store를 포함하지 않는다.
+그 외 각 root 크기와 결과는 전수 결과 표에 보존했다. 새 서버/리스닝 포트는 기동하지 않았고 cleanup blocker 없음.
+최소 비민감 수치·소스/바이너리 SHA·실패/통과 원출력만 보존하고 영상·registry·임시 빌드는 삭제했다.
+기존 build-gst-onnx는 제품 빌드 디렉터리로 유지한다. token start/end/consumed 미집계 사유는 이 절 상단과 같고
+elapsed는 wrapper의 bash-SECONDS 또는 runner의 Date.now 실측이다.
+
+catalog 원출력의 줄끝 공백15개만 정규화했다. 정규화 전14403B의 SHA256은
+`28fd980b4dde157881ab62f2ea519fd3e97a8c7026edf919bc3e3bfe0a75d910`이며 판정/내용 변경은 없다.
+현재26개 원출력의 각각 크기·SHA와 보존 이유는 위 전수 결과 파일에 명시했다.
+이번1~3 구현/관련 단기 범위는 완료이며 최종 문서 링크·staged diff 검사 후 마지막 단위를 커밋한다.
+푸시 승인 없음으로 미수행. 누적16/32 비용·실제 HTTP·하드웨어 영향 및 S11/릴리즈는 미실행/미완료 상태다.
+
+마감 문서 검사: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links` exit0,
+md285/links8973/images22/anchors116/실패0, tool wall0.06511775초.
+`git diff --check` exit0·출력없음(tool wall0.000007458초).
+원출력→개별 표 대조는26개/715892B/991행·누락/중복구간0·exit0(tool wall0.00000625초).
+단기 실패 이력을 포함한 비민감 원출력 보존량이며 이 크기를 미디어/장시간 결과로 확대하지 않는다.
+위 정적 대조/문서 검사는 임시 산출물·서버·계정이 없다. 최종 staged diff도 커밋 직전 확인한다.
+추가 읽기 전용 마감 확인: Node 임시 인라인 조회문의 닫는 괄호 누락으로 최초 exit1(SyntaxError,
+tool wall0.000007375초, 파일/제품 미실행). 문법만 보완한 동일 조회는 exit0/0.000007584초였다.
+26개 기록 중 실제 절대 cleanup 경로8개의 부재를 재확인했고 제한된 credential 패턴 검출0이었다.
+익명화 root의 삭제는 각 runner의 removed/groupClean 증거를 사용한다. 보안 전수 감사 PASS로 확대하지 않는다.
+staged diffcheck exit0/출력없음(tool wall0.000007167초). 이 마감 보충도 동일 커밋에 포함한다.
 
 ## 2026-09-20 LP18 잔여 1~3 순차 실행
 

@@ -22,8 +22,8 @@ void Exact(RecordingCatalog& c,const Output& o,const char* label){
  diagnostic_stage="canonical_compare";DiagnosticCheck(label);const auto t=Clock::now();const auto& id=o.segment.segment_id;
  const auto s=c.FindSegmentV2ById(id);const auto b=c.FindSourceBinding(id);const bool deleted=c.IsDeletedSegmentId(id);
  if(deleted){
-  const auto tombstone=c.tombstones_v2_.find(id);const auto retained=c.source_bindings_.find(id);
-  Check(tombstone!=c.tombstones_v2_.end()&&retained!=c.source_bindings_.end()&&retained->second&&SerializeRecordingSegmentV2(tombstone->second.segment)==SerializeRecordingSegmentV2(o.segment)&&SerializeRecordingSourceBindingV1(*retained->second)==SerializeRecordingSourceBindingV1(o.binding),label);
+  const auto tombstone=c.tombstones_v2_.find(id);const auto retained=c.FindSourceBindingOwnedLocked(id);
+  Check(tombstone!=c.tombstones_v2_.end()&&retained&&SerializeRecordingSegmentV2(tombstone->second.segment)==SerializeRecordingSegmentV2(o.segment)&&SerializeRecordingSourceBindingV1(*retained)==SerializeRecordingSourceBindingV1(o.binding),label);
   Check(!s&&!b&&!c.FindSegmentMediaLocation(id)&&!c.FindSegmentMediaPath(id),"deleted.public-hidden");
  }else Check(s&&b&&SerializeRecordingSegmentV2(*s)==SerializeRecordingSegmentV2(o.segment)&&SerializeRecordingSourceBindingV1(*b)==SerializeRecordingSourceBindingV1(o.binding),label);
  Timing("canonical_compare","oracle",Us(t));
