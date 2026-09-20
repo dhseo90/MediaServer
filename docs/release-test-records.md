@@ -10,9 +10,9 @@ realistic06 당시 상세 코드는 미보존이며07의 같은 생성 조건에
 
 | 번호 | 사용자 지시 | 상태 | 완료 기준 | 근거 |
 | --- | --- | --- | --- | --- |
-| 1-A | 검증 준비·진단 보완 | 완료·커밋 준비 | 준비 분리/안전진단 자체검사5PASS, legacy 원인 확인, native4작업/8출력·미충족 대조 통과 | LP24-RH02~05, R15 및10 원출력 |
-| 1-B | 복구 개선 판정 | 선수 대기 | SQL/JSONL 각각15초·내용/파일 동등성·손상/수명 회귀, 제품 복구 변경 별도 커밋 | LP24-R01~16 |
-| 보고 | 종합 보고·후속 재산정 | 예정 | 실패/미실행/미커밋 구분, 현재 스텝 내부 후속만 제시 | AGENTS3/5/6/13 |
+| 1-A | 검증 준비·진단 보완 | 완료·커밋 | cb7d93e2, 자체검사5PASS·native4작업/8출력·미충족 대조 | LP24-RH02~05, R15 및10 원출력 |
+| 1-B | 복구 개선 판정 | 완료·커밋 준비 | SQL4.635075초/JSONL4.160455초, 14반례/전수 내용·파일 동등성 통과 | LP24-R01~16 및11/12 원출력 |
+| 보고 | 종합 보고·후속 재산정 | 작성 완료 | 아래 현재 단계 후속 표. 실제 커밋 hash는 Git/최종 보고에서 확인 | AGENTS3/5/6/13 |
 
 불변: 영속 바이트·ID·UTC/unknown·미디어/권한 계약·검증 시간제한 유지. 기존14/214·build의 source와 영향 경계를 대조하며 무관 검증은 재실행하지 않는다.
 준비 실패 때 result의 complete/blocked/job state/ready/verified/output 수와 고정 허용 오류만 기록한다. 임의 reason·경로·비밀 원문은 출력하지 않는다.
@@ -108,6 +108,95 @@ R15-N의 이 보완은 재실행 전에 등록했으며 테스트 준비만 수�
 문서 링크 최초검사 exit1: 신규 중앙 링크의 수동 anchor 불일치1건. 파일 링크+최상단 절 안내로 보완했다. 제품/검사 실패가 아니다.
 수정 후 `./server.sh verify-docs-links` exit0(285문서/9109링크/실패0), `git diff --check` exit0. 이미지 변경 없어 자산 검사는 미실행이다.
 stage 후 공백검사에서 새 자체검사 로그의 EOF 빈 행1건을 발견해 제거했다(실제 결과 값은 불변).
+
+### 1-B 실행 전 보완
+
+R16에서 시간초과 때도 재실행 없이 중단 경계를 알 수 있도록 Open/Preflight/RebuildPreflight/SQL Projection/Rebuild/Query 고정 enum과 steady elapsed만 최대128행 기록한다.
+계측은 소유 복제 TU 전용이며 제품/실행 상한은 불변이다. TraceSession에서만 활성화하고 각 행을 flush한다. 초과는 truncation1행으로 표시한다.
+14개 focused 반례를 현재 준비 코드로 확인한 후 realistic 묶음을1회 실행한다. SQL/JSONL15초, strict15초 비교, 전수 의미 대조60초를 구분한다.
+앞 단계10의 임시 저장소는 정리됐으므로 같은 규모를 새 소유 root에서 다시 준비한다. 기존 입력의 동일 바이트 재현을 주장하지 않는다.
+제품/관련 모듈 hash는05/영향214/build 당시와 동일하여 무관214·전체build는 자동 반복하지 않는다. 새로운 실패는 뒤 단계로 넘기지 않는다.
+
+### 1-B 최종 결과
+
+명령: `node scripts/internal/verify_recording_recovery_content.mjs green lp24-recovery-11 full`,
+`node scripts/internal/verify_recording_recovery_content.mjs green lp24-recovery-12 realistic`; 둘 다 exit0.
+원출력: [11 focused](release-artifacts/v4.1.0/s11-preparation-mapping/lp24-recovery-11-green.txt), [12 실제 크기](release-artifacts/v4.1.0/s11-preparation-mapping/lp24-recovery-12-green.txt).
+11 compile3993ms/focused3865ms, 12 compile3940ms/준비14813ms. native 준비는4Complete/8파일·3fullySatisfied/1partial,954mapping·24전이·원장12161669B다.
+
+| 모드 | Open µs | 진단 total µs | 프로세스 elapsed ms | group peak RSS B | 판정·경계 |
+| --- | --- | --- | --- | --- | --- |
+| SQL 최적화 |4440464 |4635075 |4882 |118472704 |15초 기준 PASS |
+| JSONL 최적화 |3966968 |4160455 |4406 |105119744 |15초 기준 PASS |
+| SQL strict 비교 |13209018 |13402579 |13647 |112705536 |15초 비교 완료; 과거 삭제 자료 재현 아님 |
+| 전수 의미 비교3모드 |4431016/3916221/13200866 |6523035/6008802/15330541 |28109 |141426688 |별도60초 oracle PASS;15초 진단과 다른 검사 |
+
+SQL 최초 preflight parse24회는 유지, actual apply/rebuild preflight/SQLprojection 추가parse는0/0/0(진단 대상조회1회 별도), projection serialize0이다.
+strict 비교는 actual25(조회1포함)/rebuild24/projection24·serialize24였다. 최초 엄격검증과 상태/예약/삭제 검증은 유지한다.
+이 입력에서 SQL 진단은 약65.4% 감소했다. SQL peak RSS는 strict보다5767168B 높으므로 메모리 감소로 보고하지 않는다.
+64항목/논리64MiB admission과 실행RSS1GiB는 서로 다른 기준이며, 전 구간 실행 상한 내이고 복구 종료 뒤6binding/4job 상세 비상주 및 proof해제를 확인했다.
+이 결과로 과거15초 실패 자료의 동일 바이트 재현·실제HTTP4초·전체 운영규모 성능을 주장하지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP24-R01 | 최초 preflight strict 검증 | PASS |11, 최초 parse6 유지 |
+| LP24-R02 | 실제 apply 중복 parse 제거·상태 유지 | PASS |11, actual0 |
+| LP24-R03 | SQL preflight/projection 재사용 | PASS |11, 재parse/serialize0 |
+| LP24-R04 | SQL/JSONL 공개 값·내구 바이트 동등 | PASS |11 |
+| LP24-R05 | 새 Open 최초 검증 | PASS |11 |
+| LP24-R06 | 전체 envelope/내용 변경 거부 | PASS |11 |
+| LP24-R07 | physical ordinal/중복 충돌 | PASS |11 |
+| LP24-R08 | 과거 전이를 최신 job으로 치환 금지 | PASS |11 |
+| LP24-R09 | 예약/source/삭제/hold 유지 | PASS |11 |
+| LP24-R10 | 재읽기 변경 시 strict/손상 거부 | PASS |11 |
+| LP24-R11 | pending checkpoint strict 복귀 | PASS |11, 이전03 무효 이력 보존 |
+| LP24-R12 | admission 상한/할당 실패 정상 fallback | PASS |11 |
+| LP24-R13 | 성공/실패/예외 proof 수명 | PASS |11 |
+| LP24-R14 | noncanonical SQL 기존 바이트 | PASS |11 |
+| LP24-R15 compile | 현실규모 compile | PASS |12 exit0 |
+| LP24-R15 job0 | 2출력·canonical/파일 SHA·full | PASS |12 |
+| LP24-R15 job1 | 2출력·canonical/파일 SHA·full | PASS |12 |
+| LP24-R15 job2 | 2출력·canonical/파일 SHA·partial/미충족 | PASS |12,2/3ns unknown 보존 |
+| LP24-R15 job3 | 2출력·canonical/파일 SHA·full | PASS |12 |
+| LP24-R15 shape | 6원본/4job/8출력/24전이 | PASS |12 |
+| LP24-R16 SQL | Open+대상 작업 상태·내용 식별 진단15초 | PASS |12, intent SHA 동일 |
+| LP24-R16 JSONL | optional SQLite 없이 같은 진단15초 | PASS |12, intent SHA 동일 |
+| LP24-R16 strict 비교 | 재사용 비활성 대조 | PASS |12, 진단용이며 제품 fallback 삭제 안 함 |
+| LP24-R16 SQL 의미 |4job canonical/SQL row/14file SHA/원장 SHA | PASS |12, 준비 기대값과 일치 |
+| LP24-R16 JSONL 의미 |4job canonical/14file SHA/원장 SHA | PASS |12, 준비 기대값과 일치 |
+| LP24-R16 strict 의미 |4job canonical/SQL row/14file SHA/원장 SHA | PASS |12, 준비 기대값과 일치 |
+| LP24-R16 수명 |6binding/4job cold, proof 해제, 예약 없음 | PASS |12,3모드 모두 |
+| LP24-R16 계측 |고정 단계·bounded 기록/flush | PASS |12, 원출력 단계 경계, truncation 없음 |
+| LP24-R 정리 | source불변/group종료/temp삭제 | PASS |11/12 |
+
+기존 영향 회귀 content25/binding77/job24/thin30/lifetime34/noop24=214와 build02는 제품 source/환경 동일해 유지한다.
+테스트 준비/계측 변경은 현재11/12로 재검증했고 기존 증거를 새 실행으로 세지 않는다. 기존 경고3행은11에도 보존했으며 새 경고 없음.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR/media-server-catalog-cost.Jd78BQ |11 복제소스·binary·영상·DB·registry |11427041B |삭제 |removed=true,groupClean=true |11 원출력의 절대경로/cleanup |
+| TMPDIR/media-server-catalog-cost.8RPiEu |12 같은 종류·전수 기대값 |31118756B |삭제 |removed=true,groupClean=true |12 원출력 |
+| /private/tmp/media-server-lp24-stage.L5qeRT/lp22-only.patch |index 분리 보조패치 |14090B |파일·빈부모 삭제 |완료 |apply_patch/rmdir exit0, 실제 LP22 작업파일 불변 |
+
+제품 diff: recording_catalog.h/cpp의 Open-local RecoveryContentContext/Scope, Remember/Acquire, Preflight/Apply/Rebuild/Project 경로만1-B stage했다.
+기존LP22 JobReadContext 부분은 index에서만 제외했고, 남은catalog 추가/삭제행이 최초LP22와 동일함과 작업파일SHA불변을 확인했다.
+검증은 기존LP22가 함께 있는 작업파일에서 수행됐으며 source hash를 남겼다. LP22 제외한 별도 clean checkout 실행을 주장하지 않는다.
+원본/운영데이터 삭제 없음. 이번 시험 영상·DB·registry는 정리됐고 최소 로그만 저장소에 보존한다. 서버/포트/인증/외부 호출 없음.
+
+### 현재 단계 후속 재산정
+
+| 순서 | 중요도 | 제목·해야 할 일 | 완료 기준·예상 검증 | 범위 근거 |
+| --- | --- | --- | --- | --- |
+| 1 |P0 |시간 정확도와 표출 단위 분리; 공개 그룹/구성원 반환 범위를 먼저 확정 |unknown·원본 증거·불연속·재생 대상 보존, LP23-U/타임라인 회귀 |기존LP24 2번; 공개 계약 변경은 승인 필요 |
+| 2 |P0 |작업 완료 관측과 페이지 전수 검사 분리 |동시 변경 중 완료30초 관측, 전수 누락/중복 oracle 별도 유지 |기존LP24 3번/LP22-O |
+| 3 |P0 |기존LP22 제품5/검사4 마감·영향 회귀·커밋 |현재 미커밋 JobReadContext의 메모리/손상/권한/수명 회귀 |기존LP24 4번/LP22-R |
+| 4 |P0 |실제HTTP·이벤트 통합 |HTTP4초·완전2출력·전체hash·두 번째기동 보존/새녹화·현행5단계 |기존LP24 5번/S11-CI |
+| 5 |마감 |전체 기록·diff·커밋/푸시 재판정 |미커밋/실패 없는 승인 범위 확정 후 조건부 푸시 |기존LP24 6번/AGENTS5 |
+
+1-A/1-B 이후 위 단계는 실행하지 않았다. 현재 푸시 가능: 아니오; 기존LP22 미완료5제품/4검사와 실제HTTP/통합 판정이 남아 있다. 푸시 미수행, 원격 재조회 없음.
+S10 코드고정/S11 최종 안정화·30분/UI·필요120분/릴리즈 판정은 별도 남아 있으며 이번 단기PASS로 대체하지 않는다. 이번 표는 현재 개발 묶음 후속이며 릴리즈 전수 감사가 아니다.
+1-B 문서 링크검사 exit0(285문서/9111링크/실패0), 작업/index 공백 검사 모두 exit0. 이미지 미변경으로 자산 검사는 미실행이다.
+07~12 소유root6개와 index분리 임시root1개의 부재를 커밋 직전 직접 재확인했다(7개 모두 absent=true, exit0).
 
 ## 2026-09-20 LP24 복구·시간 표출·완료 관측 순차 마감
 

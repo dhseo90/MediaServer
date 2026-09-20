@@ -309,6 +309,38 @@ private:
         DerivedJobContentProof& operator=(const DerivedJobContentProof&)=default;
     };
     DerivedJobHandle ContentProofRecordLocked(const RecordingMutationV1&,const DerivedJobContentProof*) const;
+    // 소유는 Open의 stack에만 둔다. 복구 scratch는 호출-local 비소유 결박만 빌린다.
+    class RecoveryContentContext {
+        friend class RecordingCatalog;
+        struct Entry {
+            std::size_t ordinal;
+            RecordingMutationHandle envelope;
+            DerivedJobHandle job;
+            SourceBindingHandle binding;
+            RecordingSegmentV2 segment;
+            std::string relative,segment_json,binding_json;
+        };
+        const RecordingCatalog* owner;
+        const RecordingMutationHandles* original{nullptr};
+        std::vector<Entry> entries;
+        std::size_t charge{0},budget{64U*1024U*1024U},limit{64};
+        bool collecting{true},valid{true};
+        explicit RecoveryContentContext(const RecordingCatalog* value):owner(value){}
+    };
+    struct RecoveryContentScope {
+        RecordingCatalog& target;
+        RecoveryContentContext* previous;
+        std::size_t previous_ordinal;
+        RecordingMutationHandle previous_envelope;
+        RecoveryContentScope(RecordingCatalog&,RecoveryContentContext*,std::size_t,RecordingMutationHandle);
+        ~RecoveryContentScope();
+        RecoveryContentScope(const RecoveryContentScope&)=delete;
+    };
+    RecoveryContentContext* recovery_content_{nullptr};
+    std::size_t recovery_ordinal_{0};
+    RecordingMutationHandle recovery_envelope_;
+    const RecoveryContentContext::Entry* RecoveryContentLocked(const RecordingMutationV1&) const;
+    void RememberRecoveryContentLocked(const RecordingMutationV1&) noexcept;
     bool ApplyDerivedJobMutationLocked(const RecordingMutationV1&,std::string*,bool apply=true,PreparedDerivedMutation* prepared=nullptr,const DerivedJobPool* job_pool=nullptr,const DerivedJobContentProof* proof=nullptr,const RecordingMutationLink* link=nullptr);
     RecordingLifecycle EffectiveLifecycleV2Locked(const std::string& id) const;
     bool OpenLocked(std::string* error);

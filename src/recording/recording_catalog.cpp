@@ -483,6 +483,61 @@ RecordingCatalog::DerivedJobHandle RecordingCatalog::ShareValidatedJob(DerivedJo
     }
     return std::make_shared<const DerivedJobRecordV1>(std::move(record));
 }
+RecordingCatalog::RecoveryContentScope::RecoveryContentScope(RecordingCatalog& catalog,RecoveryContentContext* context,
+        std::size_t ordinal,RecordingMutationHandle envelope)
+    :target(catalog),previous(catalog.recovery_content_),previous_ordinal(catalog.recovery_ordinal_),
+     previous_envelope(std::move(catalog.recovery_envelope_)) {
+    target.recovery_content_=context;target.recovery_ordinal_=ordinal;target.recovery_envelope_=std::move(envelope);
+}
+RecordingCatalog::RecoveryContentScope::~RecoveryContentScope(){
+    target.recovery_content_=previous;target.recovery_ordinal_=previous_ordinal;target.recovery_envelope_=std::move(previous_envelope);
+}
+const RecordingCatalog::RecoveryContentContext::Entry* RecordingCatalog::RecoveryContentLocked(const RecordingMutationV1& mutation) const {
+    const auto* context=recovery_content_;
+    if(!context||!context->valid||context->collecting||!context->owner||
+       &context->owner->journal_!=&journal_||context->owner->recovery_content_!=context||
+       !journal_.OwnsCatalog(context->owner)||!recovery_envelope_)return nullptr;
+    const auto same=[&](const RecordingMutationV1& value){return value.schema==mutation.schema&&value.mutation_type==mutation.mutation_type&&
+        value.mutation_id==mutation.mutation_id&&value.entity_id==mutation.entity_id&&value.occurred_at_ms==mutation.occurred_at_ms&&value.payload_json==mutation.payload_json;};
+    if(!same(*recovery_envelope_))return nullptr;
+    for(const auto& entry:context->entries)
+        if(entry.ordinal==recovery_ordinal_&&entry.envelope&&same(*entry.envelope))return &entry;
+    return nullptr;
+}
+void RecordingCatalog::RememberRecoveryContentLocked(const RecordingMutationV1& mutation) noexcept {
+    auto* context=recovery_content_;
+    if(!context||!context->valid||!context->collecting||!context->owner||!recovery_envelope_||
+       context->owner->recovery_content_!=context||&context->owner->journal_!=&journal_||
+       context->entries.size()>=context->limit)return;
+    // 최적화 소유 admission의 할당/직렬화 실패는 원래 성공한 strict 적용을 실패로 바꾸지 않는다.
+    try {
+        const auto& envelope=*recovery_envelope_;
+        if(envelope.schema!=mutation.schema||envelope.mutation_type!=mutation.mutation_type||envelope.mutation_id!=mutation.mutation_id||
+           envelope.entity_id!=mutation.entity_id||envelope.occurred_at_ms!=mutation.occurred_at_ms||envelope.payload_json!=mutation.payload_json)return;
+        const auto payload=mutation.payload_json.size();
+        if(payload>context->budget/2||context->charge>context->budget)return;
+        const auto minimum=sizeof(RecoveryContentContext::Entry)+sizeof(RecordingMutationV1)+payload*2+
+            mutation.schema.size()+mutation.mutation_id.size()+mutation.entity_id.size();
+        if(minimum>context->budget-context->charge)return;
+        RecoveryContentContext::Entry entry;entry.ordinal=recovery_ordinal_;entry.envelope=recovery_envelope_;
+        if(IsDerivedJobMutation(mutation.mutation_type)){
+            const auto found=derived_jobs_.find(mutation.entity_id);if(found==derived_jobs_.end())return;
+            entry.job=found->second.WarmOwned();if(!entry.job)return;
+        }else if(mutation.mutation_type==RecordingMutationType::SegmentV2BoundFinalized){
+            const auto found=source_bindings_.find(mutation.entity_id);const auto segment=segments_v2_.find(mutation.entity_id);
+            const auto relative=media_relpaths_.find(mutation.entity_id);
+            if(found==source_bindings_.end()||segment==segments_v2_.end()||relative==media_relpaths_.end())return;
+            entry.binding=found->second.WarmOwned();if(!entry.binding)return;
+            entry.segment=segment->second;entry.relative=relative->second;
+            entry.segment_json=SerializeRecordingSegmentV2(entry.segment);entry.binding_json=SerializeRecordingSourceBindingV1(*entry.binding);
+            if(entry.segment_json.empty()||entry.binding_json.empty())return;
+        }else return;
+        // 논리 admission 양은 실제 heap/RSS 추정치가 아니다. typed 내용과 canonical 사본을 보수적으로 함께 청구한다.
+        const auto charge=minimum+entry.relative.size()+entry.segment_json.size()+entry.binding_json.size();
+        if(context->charge>context->budget||charge>context->budget-context->charge)return;
+        context->entries.push_back(std::move(entry));context->charge+=charge;
+    }catch(...){return;}
+}
 RecordingCatalog::DerivedJobHandle RecordingCatalog::ContentProofRecordLocked(const RecordingMutationV1& mutation,const DerivedJobContentProof* proof) const {
     if(!proof||!proof->owner||!proof->envelope||!proof->record)return {};
     const auto& owner=*proof->owner;
@@ -519,7 +574,8 @@ bool RecordingCatalog::ApplyDerivedJobMutationLocked(const RecordingMutationV1& 
     if(prepared&&(prepared->phase!=PreparedDerivedMutation::Phase::Empty||prepared->owner!=this||prepared->payload!=mutation.payload_json))
         return Fail(error,"derived prepared 초기 결박 거부");
     DerivedJobRecordV1 parsed_record;
-    const auto content=ContentProofRecordLocked(mutation,proof);
+    const auto* recovery=RecoveryContentLocked(mutation);
+    const auto content=recovery&&recovery->job?recovery->job:ContentProofRecordLocked(mutation,proof);
     if(!journal_.managed_||!options_.enable_v2_storage||
        (!content&&!ParseDerivedJobRecord(mutation.payload_json,&parsed_record,error)))return Fail(error,"derived job mutation 계약 거부");
     const auto& record=content?*content:parsed_record;
@@ -754,18 +810,24 @@ bool RecordingCatalog::ReadCatalogReplay(RecordingMutationHandles* owned,Recordi
 }
 
 bool RecordingCatalog::OpenLocked(std::string* error) {
+    RecoveryContentContext recovery(this);
+    RecoveryContentScope recovery_scope(*this,&recovery,0,{});
     RecordingMutationHandles owned;
     RecordingJournalOwnedViews views;
     RecordingJournalReplayResult replay;
     if(!ReadCatalogReplay(&owned,&replay,error,&views))return false;
+    recovery.original=&owned;
     if (replay.io_error_count != 0) return Fail(error, "journal replay I/O 오류로 catalog open 거부");
     if (replay.unsupported_record_count != 0) return Fail(error, "미지원 journal record로 catalog open 거부");
     if (!PreflightV2Locked(replay,error,nullptr,{},nullptr,owned,views)) return false;
+    recovery.collecting=false;
+    if(journal_.managed_&&journal_.CheckpointPending()){recovery.valid=false;recovery.entries.clear();recovery.charge=0;}
     if(journal_.managed_&&journal_.CheckpointPending()&&!CheckpointLocked(true,error))return false;
     recovery_report_.corrupt_line_count = replay.corrupt_line_count;
     recovery_report_.truncated_tail_count = replay.truncated_tail_count;
     for (std::size_t ordinal = 0; ordinal < replay.mutations.size(); ++ordinal) {
         const auto& mutation = replay.mutations[ordinal];
+        RecoveryContentScope recovery_row(*this,&recovery,ordinal,owned.empty()?RecordingMutationHandle{}:owned[ordinal]);
         const bool already_applied = mutation_ids_.count(mutation.mutation_id) != 0;
         std::string apply_error;
         if (!ApplyMutationLocked(mutation, true, &apply_error,nullptr,owned.empty()?RecordingMutationHandle{}:owned[ordinal],nullptr,nullptr,nullptr,views.empty()?RecordingJournalOwnedViewHandle{}:views[ordinal])) ++recovery_report_.projection_error_count;
@@ -1148,13 +1210,16 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
         case RecordingMutationType::SegmentV2Finalized:
         case RecordingMutationType::SegmentV2BoundFinalized: {
             const bool bound=mutation.mutation_type==RecordingMutationType::SegmentV2BoundFinalized;
+            const auto* recovery=RecoveryContentLocked(mutation);
+            const bool recovered=bound&&recovery&&recovery->binding;
             ingress::StrictJsonObjectDocument payload;
-            const bool parsed=ingress::ParseStrictJsonObjectDocument(mutation.payload_json,&payload,error);
+            const bool parsed=recovered||ingress::ParseStrictJsonObjectDocument(mutation.payload_json,&payload,error);
             const auto segment_json=ingress::StrictJsonObjectField(payload,"segment");
-            const auto relative=ingress::StrictJsonStringField(payload,"mediaRelpath");
+            const auto relative=recovered?std::optional<std::string>(recovery->relative):ingress::StrictJsonStringField(payload,"mediaRelpath");
             RecordingSegmentV2 v;
-            ok=parsed && payload.members.size()==(bound?3U:2U) &&
-               segment_json && relative && ParseRecordingSegmentV2(*segment_json,&v,error) && v.segment_id==mutation.entity_id &&
+            if(recovered)v=recovery->segment;
+            ok=parsed && (recovered||payload.members.size()==(bound?3U:2U)) &&
+               relative && (recovered||(segment_json&&ParseRecordingSegmentV2(*segment_json,&v,error))) && v.segment_id==mutation.entity_id &&
                ValidateV2Locked(v,*relative,error);
             const auto order=orders_v2_.find(v.order_request_id);
             if (ok && (order==orders_v2_.end() || order->second.store_id!=v.store_id || order->second.segment_id!=v.segment_id ||
@@ -1162,15 +1227,18 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
             RecordingSourceBindingV1 binding;
             if(ok&&bound) {
                 const auto json=ingress::StrictJsonObjectField(payload,"sourceBinding");
-                ok=json&&ParseRecordingSourceBindingV1(*json,&binding,error)&&
-                   !segments_v2_.count(v.segment_id)&&ValidateRecordingSourceBindingForSegment(binding,v,error);
+                ok=(recovered||(json&&ParseRecordingSourceBindingV1(*json,&binding,error)))&&
+                   !segments_v2_.count(v.segment_id)&&ValidateRecordingSourceBindingForSegment(recovered?*recovery->binding:binding,v,error);
             }
             if(ok&&!bound&&source_bindings_.count(v.segment_id))ok=Fail(error,"bound downgrade 거부");
             SourceBindingHandle shared_binding;
             if(ok&&bound){
+                if(recovered)shared_binding=recovery->binding;
                 // 새 bound ID에 대해서만 조회한다. 풀은 이 호출의 최적화 후보이며 검증 증명이 아니다.
-                if(binding_pool)shared_binding=FindSourceBindingOwned(*binding_pool,v.segment_id);
-                if(shared_binding&&SerializeRecordingSourceBindingV1(*shared_binding)!=SerializeRecordingSourceBindingV1(binding))
+                if(!recovered){
+                    if(binding_pool)shared_binding=FindSourceBindingOwned(*binding_pool,v.segment_id);
+                }
+                if(!recovered&&shared_binding&&SerializeRecordingSourceBindingV1(*shared_binding)!=SerializeRecordingSourceBindingV1(binding))
                     shared_binding.reset();
                 if(!shared_binding)shared_binding=std::make_shared<const RecordingSourceBindingV1>(std::move(binding));
             }
@@ -1218,8 +1286,10 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
             break;
     }
     if (!ok) mutation_ids_.erase(mutation.mutation_id);
-    else if (segment_state) accepted_segment_state_mutations_.emplace(
-        mutation.mutation_id, std::move(accepted_link));
+    else {
+        if (segment_state) accepted_segment_state_mutations_.emplace(mutation.mutation_id, std::move(accepted_link));
+        RememberRecoveryContentLocked(mutation);
+    }
     return ok;
 }
 
@@ -1296,6 +1366,7 @@ bool RecordingCatalog::PreflightV2Locked(const RecordingJournalReplayResult& rep
     std::unordered_map<std::string,RecordingMutationV1> seen;
     for(std::size_t ordinal=0;ordinal<replay.mutations.size();++ordinal) {
         const auto& m=replay.mutations[ordinal];
+        RecoveryContentScope recovery_row(scratch,recovery_content_,ordinal,owned.empty()?RecordingMutationHandle{}:owned[ordinal]);
         if(!owned.empty()&&!owned[ordinal])return Fail(error,"preflight null envelope 거부");
         const auto old=seen.find(m.mutation_id);
         if(old!=seen.end()&&(m.mutation_type==RecordingMutationType::ReferencedObservationPut||
@@ -2948,12 +3019,24 @@ bool RecordingCatalog::RebuildSqliteLocked(std::string* error) {
     RecordingJournalOwnedViews views;
     RecordingJournalReplayResult replay;
     if(!ReadCatalogReplay(&owned,&replay,error,&views))return false;
+    if(recovery_content_&&recovery_content_->valid){
+        const auto* original=recovery_content_->original;
+        bool same=original&&original->size()==owned.size();
+        for(std::size_t i=0;same&&i<owned.size();++i){
+            if(!(*original)[i]||!owned[i]){same=false;break;}
+            const auto& a=*(*original)[i];const auto& b=*owned[i];
+            same=a.schema==b.schema&&a.mutation_type==b.mutation_type&&a.mutation_id==b.mutation_id&&
+                a.entity_id==b.entity_id&&a.occurred_at_ms==b.occurred_at_ms&&a.payload_json==b.payload_json;
+        }
+        if(!same){recovery_content_->valid=false;recovery_content_->entries.clear();recovery_content_->charge=0;}
+    }
     if (replay.io_error_count != 0) return Fail(error, "journal replay I/O 오류로 SQLite rebuild 거부");
     if (replay.unsupported_record_count != 0) return Fail(error, "미지원 journal record로 SQLite rebuild 거부");
     if (!PreflightV2Locked(replay,error,nullptr,{},nullptr,owned,views)) return false;
     if (!Exec(sqlite_db_, "BEGIN; DELETE FROM recording_derived_accepted_references; DELETE FROM recording_derived_jobs; DELETE FROM recording_referenced_observations; DELETE FROM recording_consumer_references; DELETE FROM recording_source_bindings; DELETE FROM recording_event_link_segments; DELETE FROM recording_event_links; DELETE FROM recording_observations; DELETE FROM recording_observations_v2; DELETE FROM recording_segment_states_v2; DELETE FROM recording_segments_v2; DELETE FROM recording_segments; DELETE FROM recording_tombstones; DELETE FROM recording_mutations; COMMIT;", error)) return false;
     for (std::size_t ordinal = 0; ordinal < replay.mutations.size(); ++ordinal) {
         const auto& mutation = replay.mutations[ordinal];
+        RecoveryContentScope recovery_row(*this,recovery_content_,ordinal,owned.empty()?RecordingMutationHandle{}:owned[ordinal]);
         if (mutation.mutation_type == RecordingMutationType::SegmentFinalized ||
             mutation.mutation_type == RecordingMutationType::SegmentV2State ||
             mutation.mutation_type == RecordingMutationType::SegmentV2Deleted ||
@@ -2998,11 +3081,13 @@ bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mu
     }
     if (!inserted) return Exec(sqlite_db_, "COMMIT", error);
     if(IsDerivedJobMutation(mutation.mutation_type)) {
+        const auto* recovery=RecoveryContentLocked(mutation);
+        const auto recovered=recovery?recovery->job:DerivedJobHandle{};
         DerivedJobRecordV1 parsed_job;
-        if((!prepared&&!ParseDerivedJobRecord(mutation.payload_json,&parsed_job,error))||
+        if((!prepared&&!recovered&&!ParseDerivedJobRecord(mutation.payload_json,&parsed_job,error))||
            sqlite3_prepare_v2(sqlite_db_,"INSERT OR REPLACE INTO recording_derived_jobs VALUES(?,?)",-1,&statement,nullptr)!=SQLITE_OK){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
-        const auto& job=prepared?*prepared->applied:parsed_job;
-        BindText(statement,1,job.intent.job_id);BindText(statement,2,prepared?prepared->payload:SerializeDerivedJobRecord(job));
+        const auto& job=prepared?*prepared->applied:recovered?*recovered:parsed_job;
+        BindText(statement,1,job.intent.job_id);BindText(statement,2,prepared?prepared->payload:recovered?mutation.payload_json:SerializeDerivedJobRecord(job));
         const bool ok=sqlite3_step(statement)==SQLITE_DONE;sqlite3_finalize(statement);
         if(!ok){Exec(sqlite_db_,"ROLLBACK",nullptr);return Fail(error,"derived job SQLite projection 실패");}
         if(mutation.mutation_type==RecordingMutationType::DerivedJobCommitted) {
@@ -3056,13 +3141,16 @@ bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mu
         sqlite3_finalize(statement);
     } else if (mutation.mutation_type == RecordingMutationType::SegmentV2Finalized ||
                mutation.mutation_type == RecordingMutationType::SegmentV2BoundFinalized) {
+        const auto* recovery=RecoveryContentLocked(mutation);
+        const bool recovered=recovery&&recovery->binding&&mutation.mutation_type==RecordingMutationType::SegmentV2BoundFinalized;
         ingress::StrictJsonObjectDocument payload;
-        if(!ingress::ParseStrictJsonObjectDocument(mutation.payload_json,&payload,error)){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+        if(!recovered&&!ingress::ParseStrictJsonObjectDocument(mutation.payload_json,&payload,error)){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
         const auto json=ingress::StrictJsonObjectField(payload,"segment");
-        const auto relative=ingress::StrictJsonStringField(payload,"mediaRelpath");RecordingSegmentV2 v;
-        if(!json||!relative||!ParseRecordingSegmentV2(*json,&v,error)||
+        const auto relative=recovered?std::optional<std::string>(recovery->relative):ingress::StrictJsonStringField(payload,"mediaRelpath");RecordingSegmentV2 v;
+        if(recovered)v=recovery->segment;
+        if(!relative||(!recovered&&(!json||!ParseRecordingSegmentV2(*json,&v,error)))||
            sqlite3_prepare_v2(sqlite_db_,"INSERT OR IGNORE INTO recording_segments_v2 VALUES(?,?,?)",-1,&statement,nullptr)!=SQLITE_OK){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
-        BindText(statement,1,v.segment_id);BindText(statement,2,SerializeRecordingSegmentV2(v));BindText(statement,3,*relative);
+        BindText(statement,1,v.segment_id);BindText(statement,2,recovered?recovery->segment_json:SerializeRecordingSegmentV2(v));BindText(statement,3,*relative);
         const bool ok=sqlite3_step(statement)==SQLITE_DONE;sqlite3_finalize(statement);
         if(!ok){Exec(sqlite_db_,"ROLLBACK",nullptr);return Fail(error,"V2 SQLite INSERT 실패");}
         if(sqlite3_prepare_v2(sqlite_db_,"INSERT OR IGNORE INTO recording_segment_states_v2 VALUES(?,'finalized','','',0)",-1,&statement,nullptr)!=SQLITE_OK){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
@@ -3070,9 +3158,9 @@ bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mu
         if(!state_ok){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
         if(mutation.mutation_type==RecordingMutationType::SegmentV2BoundFinalized) {
             const auto json=ingress::StrictJsonObjectField(payload,"sourceBinding");RecordingSourceBindingV1 binding;
-            if(!json||!ParseRecordingSourceBindingV1(*json,&binding,error)||
+            if((!recovered&&(!json||!ParseRecordingSourceBindingV1(*json,&binding,error)))||
                sqlite3_prepare_v2(sqlite_db_,"INSERT INTO recording_source_bindings VALUES(?,?)",-1,&statement,nullptr)!=SQLITE_OK){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
-            BindText(statement,1,v.segment_id);BindText(statement,2,SerializeRecordingSourceBindingV1(binding));
+            BindText(statement,1,v.segment_id);BindText(statement,2,recovered?recovery->binding_json:SerializeRecordingSourceBindingV1(binding));
             const bool binding_ok=sqlite3_step(statement)==SQLITE_DONE;sqlite3_finalize(statement);
             if(!binding_ok){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
         }

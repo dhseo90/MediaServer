@@ -139,17 +139,22 @@ using Catalog=recording::RecordingCatalog;
 using Context=Catalog::RecoveryContentContext;
 using Scope=Catalog::RecoveryContentScope;
 void DiagnoseRealistic(const std::filesystem::path& root,bool strict,bool sqlite){
+    recovery_content_probe::TraceSession trace;
     const auto started=std::chrono::steady_clock::now();const auto reference=Bytes(root.parent_path()/"expected/target-reference");
     std::string intent_hash;std::size_t outputs=0;std::int64_t open_us=0;
     {
         Reopened store(root,sqlite);std::string error;recovery_content_probe::strict_only=strict;
         recovery_content_probe::Reset();recovery_content_probe::enabled=true;
+        recovery_content_probe::Trace(recovery_content_probe::TracePoint::Open,true);
         NeedRecovery(store.journal.Open(&error)&&store.catalog.Open(&error));
+        recovery_content_probe::Trace(recovery_content_probe::TracePoint::Open,false);
         open_us=std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now()-started).count();
         bool cold=true;for(const auto& [id,entry]:store.catalog.source_bindings_){(void)id;cold=cold&&!entry.resident;}
         for(const auto& [id,entry]:store.catalog.derived_jobs_){(void)id;cold=cold&&!entry.resident;}
         NeedRecovery(cold&&!store.catalog.recovery_content_&&!store.catalog.recovery_envelope_);
+        recovery_content_probe::Trace(recovery_content_probe::TracePoint::Query,true);
         recording::RecordingDerivedReferenceResult result;NeedRecovery(store.catalog.QueryDerivedReferenceResult(reference,&result,&error)&&!result.truncated&&result.jobs.size()==1);
+        recovery_content_probe::Trace(recovery_content_probe::TracePoint::Query,false);
         const auto& item=result.jobs.front();NeedRecovery(item.job.state==recording::DerivedJobState::Complete&&item.job.ready&&item.job.ready->verified_output);
         intent_hash=Hash(recording::SerializeDerivedJobIntent(item.job.intent));outputs=item.outputs.size();NeedRecovery(outputs==2&&intent_hash==Bytes(root.parent_path()/"expected/target-intent.sha256"));
         recovery_content_probe::enabled=false;recovery_content_probe::strict_only=false;

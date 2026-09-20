@@ -1,0 +1,391 @@
+{"kind":"preflight","mode":"green","id":"lp24-recovery-12","suite":"realistic","plan":["compile","prepare-realistic","recover-realistic","jsonl-realistic","strict-realistic","verify-realistic"],"source":[{"file":"include/recording/recording_catalog.h","sha256":"bde3f884cda391fe971654cd66b2592a51aa084b5a0c76634890bf34ed066705"},{"file":"include/recording/recording_journal.h","sha256":"44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5"},{"file":"include/recording/recording_read_service.h","sha256":"d734267d8a83851d45f188467c22c1f3f3319b5adb87d2de1bc3075738dc2d90"},{"file":"src/recording/recording_catalog.cpp","sha256":"3e295748699d737e31a2812d5a4d97280241a29ba83600b38ea425c89f314146"},{"file":"src/recording/recording_read_service.cpp","sha256":"c37210ae7c0f363420c0924f6c4cd67872d776936af8a11275ffcd044f334f4c"},{"file":"src/recording/recording_timeline_projection.cpp","sha256":"fb946f8672c75104c9d3fc8f36b636ef406f987135b8e1ac6e70b5d092fa78a7"},{"file":"src/recording/recording_derived_job_ready.cpp","sha256":"74f304446afb62c9abc48c2f13fa65281f9c942becabfbbbb3612458eac3f184"},{"file":"src/recording/recording_derived_job_context.h","sha256":"10f047b9718e22dddc1a7b59d478af10ad2a828ddf256f3a14792ae7365e4891"},{"file":"scripts/internal/recording_recovery_content_smoke.cpp","sha256":"45e5871d5fc591880d1d5c65a30187093f3c8743cbac412bb16412963d399a02"},{"file":"scripts/internal/recording_recovery_content_counter.h","sha256":"bf2af24e7717ac6c986608530f07106c82d40310a05d756cf2334fa2962161c2"},{"file":"scripts/internal/recording_recovery_content.test.mjs","sha256":"ef9065b328cf2613066357d3517b8b49c6d7293768c035820f1ef8d0f56316e2"},{"file":"scripts/internal/verify_recording_recovery_content.mjs","sha256":"0857d46d1a205fc51f33aa51c188aa0822591836de222d31d9acece6e6afdc0b"},{"file":"scripts/internal/recording_public_media_smoke.cpp","sha256":"759037f3287bd76578dfb4471f14d1c61888e567efb31d8894227d0cd1e1af2e"},{"file":"scripts/internal/recording_checkpoint_reproduction_smoke.cpp","sha256":"bd17fd384eb18c076891e31c3cfcf3950122e14a068775c2cffb4a63f6c3bcf3"},{"file":"scripts/internal/recording_media_test_fixture.h","sha256":"404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6"},{"file":"scripts/internal/recording_catalog_comparison_guard.mjs","sha256":"a018b80c06f6679e75b973181e3188cda8431b84a1e4d356c4f7b6bb5699f432"},{"file":"scripts/internal/env_common.sh","sha256":"4ebe528dd90c10cc340211e77de9746df78fa4fd599cb3b01289ebf6ccadd3d8"}],"limits":{"compileSeconds":60,"focusedSeconds":60,"realisticRecoverySeconds":15,"rss":1073741824,"disk":536870912,"output":2097152},"notRun":14}
+{"kind":"build-fingerprint","archiveSha256":"1fd6317f446f6208ce52369cdc814a09f16f70cc8c9a67903cedcbcfbb8c87ee","archiveMtimeMs":1789888936264.057,"linkSha256":"5d12a03a5881afda98a824de697ff6828ecfece7e5fea9664a9b90ffe6d5f563","flagsSha256":"d2999733c56ba98545ed715da5865b7ed350f5fddb5411b31f115936d4a7a37a","serverSha256":"96ae889595a4f60aaf919dedd085f3fcc313a071bf7303345a04f8e558acf361","platform":"darwin","arch":"arm64","node":"v24.13.0"}
+{"kind":"copy","file":"recording_catalog.cpp","insertions":5,"originalSha256":"3e295748699d737e31a2812d5a4d97280241a29ba83600b38ea425c89f314146","instrumentedSha256":"4a0a62acaa5dfd585bf6f923c1d6fe866a4e32eb5109c9f1cab884ac2bb6b2da"}
+{"kind":"copy","file":"recording_read_service.cpp","insertions":0,"originalSha256":"c37210ae7c0f363420c0924f6c4cd67872d776936af8a11275ffcd044f334f4c","instrumentedSha256":"c37210ae7c0f363420c0924f6c4cd67872d776936af8a11275ffcd044f334f4c"}
+{"kind":"copy","file":"recording_timeline_projection.cpp","insertions":0,"originalSha256":"fb946f8672c75104c9d3fc8f36b636ef406f987135b8e1ac6e70b5d092fa78a7","instrumentedSha256":"fb946f8672c75104c9d3fc8f36b636ef406f987135b8e1ac6e70b5d092fa78a7"}
+{"kind":"copy","file":"recording_derived_job_ready.cpp","insertions":2,"originalSha256":"74f304446afb62c9abc48c2f13fa65281f9c942becabfbbbb3612458eac3f184","instrumentedSha256":"8579f1a9c1f7498d1619a78e2222b659a7894d932e273337c60c55579b7c116e"}
+{"kind":"command","name":"compile","command":"c++","args":["-std=c++17","-Wall","-Wextra","-Werror","-pthread","-DMEDIA_SERVER_USE_GSTREAMER=1","-DMEDIA_SERVER_USE_OPENSSL=1","-DMEDIA_SERVER_USE_SQLITE3=1","-I/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu/include","-I/Users/dhseo/Workspace/mediaServer/include","-I/Users/dhseo/Workspace/mediaServer/src/recording","-I/Users/dhseo/Workspace/mediaServer/scripts/internal","-include","/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_recovery_content_counter.h","-I/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0","-I/opt/homebrew/Cellar/glib/2.86.4/include","-I/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi","-I/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0","-I/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include","-I/opt/homebrew/opt/gettext/include","-I/opt/homebrew/Cellar/pcre2/10.47_1/include","-I/opt/homebrew/Cellar/openssl@3/3.6.2/include","-DLP24_RECOVERY_CONTENT=1","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu/recording_catalog.cpp","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu/recording_read_service.cpp","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu/recording_timeline_projection.cpp","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu/recording_derived_job_ready.cpp","/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_recovery_content_smoke.cpp","/Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib","/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib","/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib","/opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib","/opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib","/opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib","/opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib","/opt/homebrew/opt/gettext/lib/libintl.dylib","/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd","/opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib","/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib","/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib","/opt/homebrew/lib/libonnxruntime.dylib","-o","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu/check"]}
+
+        3.92 real         3.71 user         0.23 sys
+           322912256  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               85116  page reclaims
+                1003  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                 192  voluntary context switches
+                3283  involuntary context switches
+           100259091  instructions retired
+            46548779  cycles elapsed
+             3162496  peak memory footprint
+
+{"kind":"phase","name":"compile","expected":true,"code":0,"signal":null,"stopReason":null,"groupClean":true,"groupPeakRssBytes":329859072,"observationFailure":null,"outputBytes":777,"elapsedMs":3940}
+{"kind":"focused-binary","sha256":"f8068ca826ed7a73119e7e073b7491c735677a724b1409e93e9fc647353edd11","bytes":7345608}
+{"kind":"command","name":"prepare-realistic","command":"/bin/bash","args":["-c","set -euo pipefail; source \"$1\"; export MEDIA_SERVER_GST_CACHE_DIR=\"$2/gst-cache\" MEDIA_SERVER_GST_PLUGIN_PROFILE=headless GST_REGISTRY=\"$2/registry.bin\" GST_REGISTRY_1_0=\"$2/registry.bin\"; unset GST_PLUGIN_PATH GST_PLUGIN_PATH_1_0 GST_PLUGIN_SYSTEM_PATH GST_PLUGIN_SYSTEM_PATH_1_0 MEDIA_SERVER_GST_MANAGED_REGISTRY MEDIA_SERVER_GST_MANAGED_PLUGIN_PATH MEDIA_SERVER_GST_INPUT_PLUGIN_PATH; media_server_apply_homebrew_gst_env; shift 3; exec \"$@\"","recovery-content","/Users/dhseo/Workspace/mediaServer/scripts/internal/env_common.sh","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu/check","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu/check","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu","prepare-realistic"],"seconds":60}
+[recovery-selection] {"index":0,"ok":true,"native":true,"complete":true,"confirmed":32,"unknown":0,"other":0,"unplaced":0}
+[recovery-prepare-diagnostic] {"phase":"before","index":0,"profile":"native","selectionNative":true,"selectedSources":2,"plannedOutputs":2,"bindingProofs":2,"complete":null,"blocked":null,"hasJob":null,"state":null,"hasReady":null,"verifiedOutput":null,"outputCount":null,"requestFullySatisfied":null,"reason":null}
+[recovery-prepare-diagnostic] {"phase":"after","index":0,"profile":"native","selectionNative":true,"selectedSources":2,"plannedOutputs":2,"bindingProofs":2,"complete":true,"blocked":false,"hasJob":true,"state":"complete","hasReady":true,"verifiedOutput":true,"outputCount":2,"requestFullySatisfied":true,"reason":"none"}
+[recovery-job-proof] {"index":0,"state":"complete","verifiedOutput":true,"outputs":2,"requestFullySatisfied":true,"unfulfilled":0,"canonicalBytes":631381,"canonicalSha256":"aa6fc87526f4246af13844a97212bda9d77634e5d1f4e3b83fda2814abddd052"}
+[recovery-selection] {"index":1,"ok":true,"native":true,"complete":true,"confirmed":32,"unknown":0,"other":0,"unplaced":0}
+[recovery-prepare-diagnostic] {"phase":"before","index":1,"profile":"native","selectionNative":true,"selectedSources":2,"plannedOutputs":2,"bindingProofs":2,"complete":null,"blocked":null,"hasJob":null,"state":null,"hasReady":null,"verifiedOutput":null,"outputCount":null,"requestFullySatisfied":null,"reason":null}
+[recovery-prepare-diagnostic] {"phase":"after","index":1,"profile":"native","selectionNative":true,"selectedSources":2,"plannedOutputs":2,"bindingProofs":2,"complete":true,"blocked":false,"hasJob":true,"state":"complete","hasReady":true,"verifiedOutput":true,"outputCount":2,"requestFullySatisfied":true,"reason":"none"}
+[recovery-job-proof] {"index":1,"state":"complete","verifiedOutput":true,"outputs":2,"requestFullySatisfied":true,"unfulfilled":0,"canonicalBytes":633929,"canonicalSha256":"fc8393a3b372e81363e85e467cf50a83f02ceb2e797489e48528b3b90672a01e"}
+[recovery-selection] {"index":2,"ok":true,"native":true,"complete":false,"confirmed":31,"unknown":1,"other":0,"unplaced":0}
+[recovery-selection-missing] {"index":2,"startNs":24999999999,"startNumerator":1,"startDenominator":3,"endNs":25000000000,"endNumerator":0,"endDenominator":1}
+[recovery-prepare-diagnostic] {"phase":"before","index":2,"profile":"native","selectionNative":true,"selectedSources":2,"plannedOutputs":2,"bindingProofs":2,"complete":null,"blocked":null,"hasJob":null,"state":null,"hasReady":null,"verifiedOutput":null,"outputCount":null,"requestFullySatisfied":null,"reason":null}
+[recovery-prepare-diagnostic] {"phase":"after","index":2,"profile":"native","selectionNative":true,"selectedSources":2,"plannedOutputs":2,"bindingProofs":2,"complete":true,"blocked":false,"hasJob":true,"state":"complete","hasReady":true,"verifiedOutput":true,"outputCount":2,"requestFullySatisfied":false,"reason":"none"}
+[recovery-job-proof] {"index":2,"state":"complete","verifiedOutput":true,"outputs":2,"requestFullySatisfied":false,"unfulfilled":1,"canonicalBytes":634302,"canonicalSha256":"ad3fe98b95e8e6708d1c18cdec537f98f4315d9e4ece04f970acf396cccab191"}
+[recovery-selection] {"index":3,"ok":true,"native":true,"complete":true,"confirmed":32,"unknown":0,"other":0,"unplaced":0}
+[recovery-prepare-diagnostic] {"phase":"before","index":3,"profile":"native","selectionNative":true,"selectedSources":2,"plannedOutputs":2,"bindingProofs":2,"complete":null,"blocked":null,"hasJob":null,"state":null,"hasReady":null,"verifiedOutput":null,"outputCount":null,"requestFullySatisfied":null,"reason":null}
+[recovery-prepare-diagnostic] {"phase":"after","index":3,"profile":"native","selectionNative":true,"selectedSources":2,"plannedOutputs":2,"bindingProofs":2,"complete":true,"blocked":false,"hasJob":true,"state":"complete","hasReady":true,"verifiedOutput":true,"outputCount":2,"requestFullySatisfied":true,"reason":"none"}
+[recovery-job-proof] {"index":3,"state":"complete","verifiedOutput":true,"outputs":2,"requestFullySatisfied":true,"unfulfilled":0,"canonicalBytes":635111,"canonicalSha256":"c694a552c3fa6329641efa4d884edc7aa813cbbdd830e4d9a2f5d87a03dcd547"}
+[recovery-realistic-shape] {"inputAU":1500,"sources":6,"samplesPerSource":250,"sourceSamples":1500,"sourceMappings":954,"sourceFileEvidence":6,"completeJobs":4,"outputFiles":8,"outputAccessUnits":2000,"fullySatisfiedJobs":3,"jobTransitions":24,"journalRows":44,"journalBytes":12161669,"historicalByteReproduction":false}
+[pass] recovery realistic six-source four-complete-job fixture preserves output evidence
+[summary] pass=1 fail=0
+
+       14.80 real        14.17 user         0.41 sys
+           157401088  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               71943  page reclaims
+                4381  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                 296  messages sent
+                 282  messages received
+                   0  signals received
+                 316  voluntary context switches
+               33685  involuntary context switches
+        278933448554  instructions retired
+         57788629459  cycles elapsed
+            85820208  peak memory footprint
+
+{"kind":"preparation-diagnostic","profile":"native","prepared":true,"diagnosticsPreserved":true,"productPass":false}
+{"kind":"phase","name":"prepare-realistic","expected":true,"code":0,"signal":null,"stopReason":null,"groupClean":true,"groupPeakRssBytes":194691072,"observationFailure":null,"outputBytes":5373,"elapsedMs":14813}
+{"kind":"command","name":"recover-realistic","command":"/bin/bash","args":["-c","set -euo pipefail; source \"$1\"; export MEDIA_SERVER_GST_CACHE_DIR=\"$2/gst-cache\" MEDIA_SERVER_GST_PLUGIN_PROFILE=headless GST_REGISTRY=\"$2/registry.bin\" GST_REGISTRY_1_0=\"$2/registry.bin\"; unset GST_PLUGIN_PATH GST_PLUGIN_PATH_1_0 GST_PLUGIN_SYSTEM_PATH GST_PLUGIN_SYSTEM_PATH_1_0 MEDIA_SERVER_GST_MANAGED_REGISTRY MEDIA_SERVER_GST_MANAGED_PLUGIN_PATH MEDIA_SERVER_GST_INPUT_PLUGIN_PATH; media_server_apply_homebrew_gst_env; shift 3; exec \"$@\"","recovery-content","/Users/dhseo/Workspace/mediaServer/scripts/internal/env_common.sh","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu/check","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu/check","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu","recover-realistic"],"seconds":15}
+[recovery-phase-trace] {"point":0,"begin":true,"us":45}
+[recovery-phase-trace] {"point":1,"begin":true,"us":426868}
+[recovery-phase-trace] {"point":1,"begin":false,"us":3541310}
+[recovery-phase-trace] {"point":4,"begin":true,"us":3927349}
+[recovery-phase-trace] {"point":2,"begin":true,"us":3927983}
+[recovery-phase-trace] {"point":2,"begin":false,"us":4418425}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4418764}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4418790}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4418930}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4419134}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4419137}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4419152}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4419233}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4419425}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4419427}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4419441}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4419521}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4419700}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4419702}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4419715}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4419794}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4419973}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4419974}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4419987}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4420066}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4420248}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4420250}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4420264}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4420351}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4420533}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4420535}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4420826}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4420827}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4421120}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4421122}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4421413}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4421414}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4421430}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4421432}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4421442}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4421444}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4421947}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4421949}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4422502}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4422503}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4422993}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4422994}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4426542}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4426544}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4427388}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4427391}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4427702}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4427704}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4427722}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4427724}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4427736}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4427738}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4428222}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4428224}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4428771}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4428773}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4429355}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4429359}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4429672}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4429674}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4429967}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4429969}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4430253}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4430255}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4430266}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4430268}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4430288}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4430290}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4433107}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4433109}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4434154}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4434156}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4434659}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4434661}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4434933}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4434934}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4435213}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4435214}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4435496}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4435498}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4435512}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4435514}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4435525}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4435527}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4435983}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4435985}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4436501}
+[recovery-phase-trace] {"point":3,"begin":true,"us":4436503}
+[recovery-phase-trace] {"point":3,"begin":false,"us":4439015}
+[recovery-phase-trace] {"point":4,"begin":false,"us":4439031}
+[recovery-phase-trace] {"point":0,"begin":false,"us":4440462}
+[recovery-phase-trace] {"point":5,"begin":true,"us":4440465}
+[recovery-phase-trace] {"point":5,"begin":false,"us":4608296}
+[recovery-realistic-result] {"strictBaseline":false,"sqlite":true,"openUs":4440464,"totalUs":4635075,"coldBindings":6,"coldJobs":4,"proofReleased":true,"jobCount":1,"state":"complete","outputs":2,"intentSha256":"958deb8cd11fe705b84cc61b1ed9a28717fe30ef70759154705287fd6d900567","fullSemanticOracle":false}
+[recovery-realistic-cost] {"phase":0,"parses":1,"serializes":0,"calls":0}
+[recovery-realistic-cost] {"phase":1,"parses":24,"serializes":0,"calls":1}
+[recovery-realistic-cost] {"phase":2,"parses":0,"serializes":0,"calls":1}
+[recovery-realistic-cost] {"phase":3,"parses":0,"serializes":0,"calls":44}
+[diagnostic] bounded state read only; full semantic oracle is separate
+[summary] pass=0 fail=0
+
+        4.86 real         4.70 user         0.06 sys
+           117112832  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                9667  page reclaims
+                  44  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  99  messages sent
+                   0  messages received
+                   0  signals received
+                  82  voluntary context switches
+                2133  involuntary context switches
+        100048159137  instructions retired
+         20570043548  cycles elapsed
+            83280616  peak memory footprint
+
+{"kind":"phase","name":"recover-realistic","expected":true,"code":0,"signal":null,"stopReason":null,"groupClean":true,"groupPeakRssBytes":118472704,"observationFailure":null,"outputBytes":7497,"elapsedMs":4882}
+{"kind":"command","name":"jsonl-realistic","command":"/bin/bash","args":["-c","set -euo pipefail; source \"$1\"; export MEDIA_SERVER_GST_CACHE_DIR=\"$2/gst-cache\" MEDIA_SERVER_GST_PLUGIN_PROFILE=headless GST_REGISTRY=\"$2/registry.bin\" GST_REGISTRY_1_0=\"$2/registry.bin\"; unset GST_PLUGIN_PATH GST_PLUGIN_PATH_1_0 GST_PLUGIN_SYSTEM_PATH GST_PLUGIN_SYSTEM_PATH_1_0 MEDIA_SERVER_GST_MANAGED_REGISTRY MEDIA_SERVER_GST_MANAGED_PLUGIN_PATH MEDIA_SERVER_GST_INPUT_PLUGIN_PATH; media_server_apply_homebrew_gst_env; shift 3; exec \"$@\"","recovery-content","/Users/dhseo/Workspace/mediaServer/scripts/internal/env_common.sh","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu/check","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu/check","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu","jsonl-realistic"],"seconds":15}
+[recovery-phase-trace] {"point":0,"begin":true,"us":35}
+[recovery-phase-trace] {"point":1,"begin":true,"us":421235}
+[recovery-phase-trace] {"point":1,"begin":false,"us":3535944}
+[recovery-phase-trace] {"point":0,"begin":false,"us":3966958}
+[recovery-phase-trace] {"point":5,"begin":true,"us":3966968}
+[recovery-phase-trace] {"point":5,"begin":false,"us":4133890}
+[recovery-realistic-result] {"strictBaseline":false,"sqlite":false,"openUs":3966968,"totalUs":4160455,"coldBindings":6,"coldJobs":4,"proofReleased":true,"jobCount":1,"state":"complete","outputs":2,"intentSha256":"958deb8cd11fe705b84cc61b1ed9a28717fe30ef70759154705287fd6d900567","fullSemanticOracle":false}
+[recovery-realistic-cost] {"phase":0,"parses":1,"serializes":0,"calls":0}
+[recovery-realistic-cost] {"phase":1,"parses":24,"serializes":0,"calls":1}
+[recovery-realistic-cost] {"phase":2,"parses":0,"serializes":0,"calls":0}
+[recovery-realistic-cost] {"phase":3,"parses":0,"serializes":0,"calls":0}
+[diagnostic] bounded state read only; full semantic oracle is separate
+[summary] pass=0 fail=0
+
+        4.39 real         4.23 user         0.04 sys
+           104005632  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                8845  page reclaims
+                  44  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   7  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+                2286  involuntary context switches
+         89031146324  instructions retired
+         18390153130  cycles elapsed
+            70894288  peak memory footprint
+
+{"kind":"phase","name":"jsonl-realistic","expected":true,"code":0,"signal":null,"stopReason":null,"groupClean":true,"groupPeakRssBytes":105119744,"observationFailure":null,"outputBytes":1839,"elapsedMs":4406}
+{"kind":"command","name":"strict-realistic","command":"/bin/bash","args":["-c","set -euo pipefail; source \"$1\"; export MEDIA_SERVER_GST_CACHE_DIR=\"$2/gst-cache\" MEDIA_SERVER_GST_PLUGIN_PROFILE=headless GST_REGISTRY=\"$2/registry.bin\" GST_REGISTRY_1_0=\"$2/registry.bin\"; unset GST_PLUGIN_PATH GST_PLUGIN_PATH_1_0 GST_PLUGIN_SYSTEM_PATH GST_PLUGIN_SYSTEM_PATH_1_0 MEDIA_SERVER_GST_MANAGED_REGISTRY MEDIA_SERVER_GST_MANAGED_PLUGIN_PATH MEDIA_SERVER_GST_INPUT_PLUGIN_PATH; media_server_apply_homebrew_gst_env; shift 3; exec \"$@\"","recovery-content","/Users/dhseo/Workspace/mediaServer/scripts/internal/env_common.sh","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu/check","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu/check","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu","strict-realistic"],"seconds":15}
+[recovery-phase-trace] {"point":0,"begin":true,"us":38}
+[recovery-phase-trace] {"point":1,"begin":true,"us":426058}
+[recovery-phase-trace] {"point":1,"begin":false,"us":3523566}
+[recovery-phase-trace] {"point":4,"begin":true,"us":6520089}
+[recovery-phase-trace] {"point":2,"begin":true,"us":6520523}
+[recovery-phase-trace] {"point":2,"begin":false,"us":9632454}
+[recovery-phase-trace] {"point":3,"begin":true,"us":9632832}
+[recovery-phase-trace] {"point":3,"begin":false,"us":9632859}
+[recovery-phase-trace] {"point":3,"begin":true,"us":9633009}
+[recovery-phase-trace] {"point":3,"begin":false,"us":9645782}
+[recovery-phase-trace] {"point":3,"begin":true,"us":9645787}
+[recovery-phase-trace] {"point":3,"begin":false,"us":9645806}
+[recovery-phase-trace] {"point":3,"begin":true,"us":9645910}
+[recovery-phase-trace] {"point":3,"begin":false,"us":9658766}
+[recovery-phase-trace] {"point":3,"begin":true,"us":9658769}
+[recovery-phase-trace] {"point":3,"begin":false,"us":9658786}
+[recovery-phase-trace] {"point":3,"begin":true,"us":9658889}
+[recovery-phase-trace] {"point":3,"begin":false,"us":9671724}
+[recovery-phase-trace] {"point":3,"begin":true,"us":9671730}
+[recovery-phase-trace] {"point":3,"begin":false,"us":9671749}
+[recovery-phase-trace] {"point":3,"begin":true,"us":9671860}
+[recovery-phase-trace] {"point":3,"begin":false,"us":9684748}
+[recovery-phase-trace] {"point":3,"begin":true,"us":9684752}
+[recovery-phase-trace] {"point":3,"begin":false,"us":9684772}
+[recovery-phase-trace] {"point":3,"begin":true,"us":9684876}
+[recovery-phase-trace] {"point":3,"begin":false,"us":9697619}
+[recovery-phase-trace] {"point":3,"begin":true,"us":9697622}
+[recovery-phase-trace] {"point":3,"begin":false,"us":9697638}
+[recovery-phase-trace] {"point":3,"begin":true,"us":9697728}
+[recovery-phase-trace] {"point":3,"begin":false,"us":9710580}
+[recovery-phase-trace] {"point":3,"begin":true,"us":9710583}
+[recovery-phase-trace] {"point":3,"begin":false,"us":9800112}
+[recovery-phase-trace] {"point":3,"begin":true,"us":9800120}
+[recovery-phase-trace] {"point":3,"begin":false,"us":9890461}
+[recovery-phase-trace] {"point":3,"begin":true,"us":9890468}
+[recovery-phase-trace] {"point":3,"begin":false,"us":9980959}
+[recovery-phase-trace] {"point":3,"begin":true,"us":9980968}
+[recovery-phase-trace] {"point":3,"begin":false,"us":9981000}
+[recovery-phase-trace] {"point":3,"begin":true,"us":9981001}
+[recovery-phase-trace] {"point":3,"begin":false,"us":9981017}
+[recovery-phase-trace] {"point":3,"begin":true,"us":9981018}
+[recovery-phase-trace] {"point":3,"begin":false,"us":10180207}
+[recovery-phase-trace] {"point":3,"begin":true,"us":10180217}
+[recovery-phase-trace] {"point":3,"begin":false,"us":10380747}
+[recovery-phase-trace] {"point":3,"begin":true,"us":10380754}
+[recovery-phase-trace] {"point":3,"begin":false,"us":10580040}
+[recovery-phase-trace] {"point":3,"begin":true,"us":10580051}
+[recovery-phase-trace] {"point":3,"begin":false,"us":10673861}
+[recovery-phase-trace] {"point":3,"begin":true,"us":10673870}
+[recovery-phase-trace] {"point":3,"begin":false,"us":10764696}
+[recovery-phase-trace] {"point":3,"begin":true,"us":10764706}
+[recovery-phase-trace] {"point":3,"begin":false,"us":10855133}
+[recovery-phase-trace] {"point":3,"begin":true,"us":10855140}
+[recovery-phase-trace] {"point":3,"begin":false,"us":10855165}
+[recovery-phase-trace] {"point":3,"begin":true,"us":10855166}
+[recovery-phase-trace] {"point":3,"begin":false,"us":10855179}
+[recovery-phase-trace] {"point":3,"begin":true,"us":10855180}
+[recovery-phase-trace] {"point":3,"begin":false,"us":11055267}
+[recovery-phase-trace] {"point":3,"begin":true,"us":11055277}
+[recovery-phase-trace] {"point":3,"begin":false,"us":11257067}
+[recovery-phase-trace] {"point":3,"begin":true,"us":11257077}
+[recovery-phase-trace] {"point":3,"begin":false,"us":11457373}
+[recovery-phase-trace] {"point":3,"begin":true,"us":11457381}
+[recovery-phase-trace] {"point":3,"begin":false,"us":11547538}
+[recovery-phase-trace] {"point":3,"begin":true,"us":11547547}
+[recovery-phase-trace] {"point":3,"begin":false,"us":11638027}
+[recovery-phase-trace] {"point":3,"begin":true,"us":11638035}
+[recovery-phase-trace] {"point":3,"begin":false,"us":11728425}
+[recovery-phase-trace] {"point":3,"begin":true,"us":11728435}
+[recovery-phase-trace] {"point":3,"begin":false,"us":11728459}
+[recovery-phase-trace] {"point":3,"begin":true,"us":11728460}
+[recovery-phase-trace] {"point":3,"begin":false,"us":11728484}
+[recovery-phase-trace] {"point":3,"begin":true,"us":11728486}
+[recovery-phase-trace] {"point":3,"begin":false,"us":11931369}
+[recovery-phase-trace] {"point":3,"begin":true,"us":11931378}
+[recovery-phase-trace] {"point":3,"begin":false,"us":12132065}
+[recovery-phase-trace] {"point":3,"begin":true,"us":12132073}
+[recovery-phase-trace] {"point":3,"begin":false,"us":12332542}
+[recovery-phase-trace] {"point":3,"begin":true,"us":12332553}
+[recovery-phase-trace] {"point":3,"begin":false,"us":12423124}
+[recovery-phase-trace] {"point":3,"begin":true,"us":12423133}
+[recovery-phase-trace] {"point":3,"begin":false,"us":12513794}
+[recovery-phase-trace] {"point":3,"begin":true,"us":12513803}
+[recovery-phase-trace] {"point":3,"begin":false,"us":12604349}
+[recovery-phase-trace] {"point":3,"begin":true,"us":12604357}
+[recovery-phase-trace] {"point":3,"begin":false,"us":12604382}
+[recovery-phase-trace] {"point":3,"begin":true,"us":12604383}
+[recovery-phase-trace] {"point":3,"begin":false,"us":12604396}
+[recovery-phase-trace] {"point":3,"begin":true,"us":12604397}
+[recovery-phase-trace] {"point":3,"begin":false,"us":12804324}
+[recovery-phase-trace] {"point":3,"begin":true,"us":12804333}
+[recovery-phase-trace] {"point":3,"begin":false,"us":13004619}
+[recovery-phase-trace] {"point":3,"begin":true,"us":13004629}
+[recovery-phase-trace] {"point":3,"begin":false,"us":13208034}
+[recovery-phase-trace] {"point":4,"begin":false,"us":13208059}
+[recovery-phase-trace] {"point":0,"begin":false,"us":13209014}
+[recovery-phase-trace] {"point":5,"begin":true,"us":13209018}
+[recovery-phase-trace] {"point":5,"begin":false,"us":13375741}
+[recovery-realistic-result] {"strictBaseline":true,"sqlite":true,"openUs":13209018,"totalUs":13402579,"coldBindings":6,"coldJobs":4,"proofReleased":true,"jobCount":1,"state":"complete","outputs":2,"intentSha256":"958deb8cd11fe705b84cc61b1ed9a28717fe30ef70759154705287fd6d900567","fullSemanticOracle":false}
+[recovery-realistic-cost] {"phase":0,"parses":25,"serializes":0,"calls":0}
+[recovery-realistic-cost] {"phase":1,"parses":24,"serializes":0,"calls":1}
+[recovery-realistic-cost] {"phase":2,"parses":24,"serializes":0,"calls":1}
+[recovery-realistic-cost] {"phase":3,"parses":24,"serializes":24,"calls":44}
+[diagnostic] bounded state read only; full semantic oracle is separate
+[summary] pass=0 fail=0
+
+       13.63 real        13.42 user         0.09 sys
+           111329280  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                9314  page reclaims
+                  44  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  99  messages sent
+                   0  messages received
+                   0  signals received
+                  78  voluntary context switches
+                6146  involuntary context switches
+        280651041838  instructions retired
+         58233498113  cycles elapsed
+            77415120  peak memory footprint
+
+{"kind":"phase","name":"strict-realistic","expected":true,"code":0,"signal":null,"stopReason":null,"groupClean":true,"groupPeakRssBytes":112705536,"observationFailure":null,"outputBytes":7559,"elapsedMs":13647}
+{"kind":"command","name":"verify-realistic","command":"/bin/bash","args":["-c","set -euo pipefail; source \"$1\"; export MEDIA_SERVER_GST_CACHE_DIR=\"$2/gst-cache\" MEDIA_SERVER_GST_PLUGIN_PROFILE=headless GST_REGISTRY=\"$2/registry.bin\" GST_REGISTRY_1_0=\"$2/registry.bin\"; unset GST_PLUGIN_PATH GST_PLUGIN_PATH_1_0 GST_PLUGIN_SYSTEM_PATH GST_PLUGIN_SYSTEM_PATH_1_0 MEDIA_SERVER_GST_MANAGED_REGISTRY MEDIA_SERVER_GST_MANAGED_PLUGIN_PATH MEDIA_SERVER_GST_INPUT_PLUGIN_PATH; media_server_apply_homebrew_gst_env; shift 3; exec \"$@\"","recovery-content","/Users/dhseo/Workspace/mediaServer/scripts/internal/env_common.sh","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu/check","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu/check","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.8RPiEu","verify-realistic"],"seconds":60}
+[recovery-realistic-verification] {"strictBaseline":false,"sqlite":true,"openUs":4431016,"totalUs":6523035,"coldBindings":6,"coldJobs":4,"canonicalAndBytesEqual":true,"proofReleased":true}
+[recovery-realistic-verification] {"strictBaseline":false,"sqlite":false,"openUs":3916221,"totalUs":6008802,"coldBindings":6,"coldJobs":4,"canonicalAndBytesEqual":true,"proofReleased":true}
+[recovery-realistic-verification] {"strictBaseline":true,"sqlite":true,"openUs":13200866,"totalUs":15330541,"coldBindings":6,"coldJobs":4,"canonicalAndBytesEqual":true,"proofReleased":true}
+[semantic-oracle] all four job canonical values and fourteen media hashes match prepared bytes
+[summary] pass=0 fail=0
+
+       28.09 real        27.72 user         0.18 sys
+           140050432  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               11294  page reclaims
+                  44  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                 181  voluntary context switches
+               12283  involuntary context switches
+        581000788940  instructions retired
+        120201749180  cycles elapsed
+           106234600  peak memory footprint
+
+{"kind":"phase","name":"verify-realistic","expected":true,"code":0,"signal":null,"stopReason":null,"groupClean":true,"groupPeakRssBytes":141426688,"observationFailure":null,"outputBytes":1465,"elapsedMs":28109}
+[pass] recovery realistic cold open completes within unchanged fifteen-second limit
+{"kind":"source-check","unchanged":true}
+{"kind":"cleanup","bytes":31118756,"removed":true}
