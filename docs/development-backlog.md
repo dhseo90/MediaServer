@@ -20,7 +20,8 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 - 현재 source 개발 로드맵: [`v4.1.0 Recording Foundation`](./v410-v49-recording-search-roadmap.md).
   S00~S08의 단계 구현·검증 이력을 유지한다. S09 통합 검증은 2026-09-12 종료·대체했으며,
   현재 S10 설계 보강·구현 마감과 S11 최종 검증 준비 단계다. 2026-09-21 LP25의 시간 표시/완료 관측/
-  요청 내 검증 재사용 및 실제5단계 통합156검사를 마쳤다. 구형 검증 연결·정리와 S10 코드 고정은 남아 있다.
+  요청 내 검증 재사용 및 실제5단계 통합156검사를 마쳤다. LP26에서는 현행 관측기/장시간 준비·managed UI seed와 실행 연결 대조를 보완했다.
+  초기 기능ID/복합 요구·실환경 검사 준비, HW 영향 판정·구형 정리와 S10 코드 고정은 남아 있다.
   S06 조회·재생 UI, S07 분석 관측·FrameLocator, S08 최종화·손상·시작 복구를 포함한다.
   S08은 `11953256`까지 커밋·푸시했다. 단계별 실패·수정·검증 기록은 전용 evidence와
   release-test-records를 따르며, 버전 전체 UI·장시간·릴리즈 완료를 뜻하지 않는다.
@@ -404,7 +405,9 @@ page-owner/bundle drift는 REVIEW4 결속 때문에 recorded-not-fixed다.
 | V410-S06 | Priority timeline | P0 | 단계 구현·검증 완료 | RecordingReadService·HTTP runtime·Ops events의 event 우선 timeline, GET/HEAD·Range·권한·안전 전송. 버전 전체 UI 풀테스트 완료는 아님 |
 | V410-S07 | Search-ready metadata | P1 | 단계 구현·검증 완료 | AnalysisObservationProjector·catalog V2 관측과 bounded 선정·FrameLocator·이벤트 참조. 실제 검색 엔진 구현은 후속 버전 |
 | V410-S08 | Recovery/compatibility gate | P0 | 단계 구현·검증 완료 | journal 꼬리·corrupt 상태·실제 media 검사·ready 최종화 복구·application 시작 전 동기 복구, V1 golden 호환성. `11953256`까지 푸시 |
-| V410-S09 | Stabilization/readiness | P0 | 구현·부분 검증 중 | 실제 runtime 및 비인증 앱의 source/event/보존/재시작/관측/종료 부분 검증 통과. 인증 실행 준비와 자원·원장 관측기 구현, 기본 통합 실행 연결 진행 중. 실제 인증·장시간 runner 연결과 버전 최종 검증은 미완료. UI·30분·녹화 직접120은 별도 실행 승인 필요 |
+| V410-S09 | Stabilization/readiness | P0 | 종료·대체(성공 완료 아님) | 당시 개선·실패 이력을 보존. 설계 보완은 S10, 최종 검증은 S11로 분리 |
+| V410-S10 | 시간·식별·저장 기반 보강 | P0 | 부분 완료 | 현행 생산·소비·저장/복구·실제 이벤트 통합 및 LP26 검증 준비 보완. HW 영향·legacy 정리·코드 고정은 남음 |
+| V410-S11 | 최종 검증·버전 완료 | P0 | 미실행 | 코드/증거 고정 뒤 승인된 최종 안정화·30분·실제 UI·필수120분과 cleanup 판정 |
 
 ### v4.1.0 선행 인벤토리 정합성 부채 정리
 

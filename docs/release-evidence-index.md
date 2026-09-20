@@ -1,5 +1,13 @@
 # Release Evidence Index
 
+## 2026-09-21 LP26 현행 검증 준비
+
+- [중앙 기록](release-test-records.md#lp26-현행-검증-준비): 관측·UI seed·관련 단기 결과와 실패 이력.
+- [실행 전 정의·개별 결과·정리](release-artifacts/v4.1.0/s11-preparation-mapping/lp26-verifier-preparation.md).
+- [기능별 현행 실행 연결](release-artifacts/v4.1.0/s11-preparation-mapping/lp26-current-execution-map.md).
+- [릴리즈 잔여 전수 대조](release-artifacts/v4.1.0/s11-preparation-mapping/release-readiness-20260916.md#2026-09-21-lp26-최신-전수-대조).
+- 검증 준비는 S10 전체·S11 최종 안정화/30분/UI/120분·릴리즈 완료가 아니다. 과거 LP17 등의 실패는 당시 이력으로 보존한다.
+
 ## 2026-09-19 LP17 누적 비용 원인 비교
 
 - [중앙 기록](release-test-records.md#2026-09-19-lp17-비교-도구-구현과-원인-측정): 비교 도구·최초 실패/수정·원본32와2-job 진단. 제품 자원/HTTP 해결과 구분.

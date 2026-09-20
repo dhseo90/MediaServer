@@ -1,5 +1,109 @@
 # v4.1.0 릴리즈 잔여 확인 — 보완 진단 시점
 
+## 2026-09-21 LP26 최신 전수 대조
+
+독자: 현재 개발·릴리즈 담당자. 수명: LP26 종료 시점의 잔여 감사. 정책은 AGENTS.md,
+실행 결과는 중앙 테스트 기록이다. 아래 LP12 이전 실패 목록은 당시 이력이며 현재 blocker 목록이 아니다.
+이번 감사는 관련 구현·등록·실행 연결의 대조이며 저장소 전체 문서 전문 리뷰나 릴리즈 실행 승인이 아니다.
+
+### 지시 전수
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 관측기·UI 데이터·실행 연결 현행화 | 요청한 구현·단기 검증 완료 | managed C++ 관측, order/monotonic, 실제 UI seed, 현행5단계와 분리 연결. S11 준비 전체는 아래 잔여와 구분 | [LP26 실행 기록](lp26-verifier-preparation.md) |
+| 2 | 커밋·푸시 | 승인·분할 커밋 마감 | 구현/실행기록 `bda1ea25`. 이 잔여 대조의 별도 문서 커밋 및 개발 브랜치 push 결과는 Git 이력·최종 보고에서 확인 | AGENTS5, git 대조 |
+| 3 | 종합 보고·릴리즈까지 잔여 전수 | 대조 | 아래8표. 준비·실행·공개 승인 분리 | AGENTS2/6 |
+
+### 기준
+
+| 항목 | 기준 값 | 직접 확인 결과 | 근거 |
+| --- | --- | --- | --- |
+| 버전·build metadata | 4.1.0 | VERSION, CMake project, build-gst-onnx cache 일치 | VERSION:1/CMakeLists:3/CMakeCache:140 |
+| branch/upstream | v4.1.0/origin/v4.1.0 | 시작 ee1b7c4d15054da95d884c406dce020e875f5541, clean·ahead0/behind0 | git status/rev-list |
+| main 최신 원격 | 431397d9b86af69f1690aff6fa6f3e61ea4fbe03 | ls-remote exit0 | [원격 읽기 기록](lp26-release-remote.log) |
+| tag/Release | latest v4.0.0 | v4.1.0 원격tag 없음, latest API v4.0.0·draft=false/prerelease=false | 같은 원격 기록 |
+| PR·CI | 릴리즈 대상 PR/check 필요 | open head=v4.1.0 PR0, branch workflow run0. CI PASS 아님 | gh pr list/run list |
+| CHANGELOG/NEWS | 실제 파일 확인 | 제품 루트에 없음; test fixture CHANGELOG만 존재 | rg --files |
+| 이번 diff | 검증 준비/기록만 | src/include/CMake/VERSION 제품 변경 없음 | git diff 및 최종 source fingerprint |
+
+### 로드맵 대조
+
+| roadmap 항목 | 문서상 상태 | 직접 확인 상태 | 불일치 여부 | 근거 |
+| --- | --- | --- | --- | --- |
+| S00 | 기존 조사·설계 완료 | 외부코드·패키지·특허 자료 추가 없음 | 새 법적 적합성 보증 아님 | 이번 diff·roadmap 독립 구현 원칙 |
+| S01~04 | 기존 계약/writer/catalog/보존 완료 | 현재 managed writer·catalog·order 보존 구현, 초기 요구별 고정 등록은 별도 대조 | 초기 V1 설명을 현행 완료 판정으로 그대로 사용 불가 | [현행 실행 매핑](lp26-current-execution-map.md), retention_coordinator.cpp |
+| S05~08 | 단계 구현·단기 완료 | 현재 이벤트/조회/관측/복구 존재; LP25 실제 통합156PASS | 과거 S06 UI를 현재 전체UI로 확대 불가 | 중앙 LP25, recording_current_integration_suite.mjs |
+| S09 | 종료·대체 | 성공 완료 아님. 실패/개선 이력 보존 | 이번 backlog 단계 표는 종료·대체로 정렬 | roadmap S09·backlog 단계 표 |
+| S10 | 부분 완료 | LP25 통합 마감, LP26 준비 보완. HW 영향·legacy 정리·코드고정 남음 | 전체 완료 아님 | 현재 구현계획/중앙 기록 |
+| S11 | 계획·미실행 | 단기 준비436검사와 최종 안정화/30분/UI/120분은 별개 | 일치 | LP26 결과·AGENTS7 |
+
+### 구현·검증 연결
+
+| 확인 대상 | 실제 파일·route·함수·API·UI·verifier | 확인 결과 | 근거 |
+| --- | --- | --- | --- |
+| 원장 관측 | recording_current_observer_native.cpp Normalize, CurrentRecordingObserver.poll | 제품 parser 재사용. 상세 payload 미노출·checkpoint prefix·합산 bounded 읽기 | LP26-O01/02, 자체60 |
+| 시간·진행·재기동 | CurrentLongrunProgress, verify_recording_current_longrun.mjs | UTC 아닌 order/ID와 monotonic, 두 채널순환·비활성/재활성·복제복구 | 실제 단기71, 30.155초 녹화 phase |
+| 공개 실행 진입점 | server.sh verify-v410-recording-longrun → current observer; foundation --app-observe | 기존120분 인자/4초 HTTP 유지. 구형 --all은 최종대상으로 선택하지 않음 | wrapper 코드/LP26-M01 |
+| UI 준비 | recording_current_ui_seed.cpp/.mjs, UI contract --ui-auth-direct | managed 원본·실제2파생·known/unknown·페이지·손상/삭제·seek 원본 MP4 | LP26-U01~08. 브라우저 TS/시각 결과 미확인 |
+| HTTP·통합 | currentSteps/completedCurrentStep, /ops/api/recordings/{status,timeline,media/:id} | 실제 API35/auth40/lifecycle10/default46/app25=156 기존 직접PASS. 자체50 재확인 | LP25 실행로그·LP26 통합자체 로그 |
+| HW 자동 디코딩 | source_factory.cpp uridecodebin, gst_pipeline_builder.cpp decodebin | WR01/05의 vtdec_hw 입력20→출력19,30→29 이력·제품 영향 미확인 | 중앙 WD05/08. SW PASS로 해소 안 함 |
+| 환경 실제 검사 | V410-ENV-12, verify_gst_environment.sh | 환경 fixture20과 실제44factory/READY/decode는 별개. 실제 영속 runner 공백 | [매핑](lp26-current-execution-map.md), 20260904 환경 evidence |
+| 구형 코드·자료 | test/fixtures/recording/v1, foundation runtime/timeline legacy | 구형8 fixture와 소비 경로 존재. 삭제는 아직 하지 않음 | rg --files/현행 실행 매핑 |
+
+### 근거 분류
+
+| 항목 | 근거 유형 | 근거 | 릴리즈 영향 |
+| --- | --- | --- | --- |
+| 30분/UI 필수·120분 판정 | AGENTS 직접 규칙 | 7.6/7.6.2, roadmap S11 | 현재 미실행은 blocker |
+| LP25 통합/LP26 준비 | 프로젝트 직접 확인 | 실제 로그·코드·cleanup | 각 단기 범위만 PASS |
+| ENV12/초기ID/HW/legacy 잔여 | 프로젝트 직접 확인 | 현재 runner·등록·과거 실패와 연결 코드 | 동작/검증 공백 판정 후 마감 필요 |
+| 아래 순서 | 추론/제안 | 이미 확인된 의존관계+실패 반복 방지 | 관련 focused 뒤 고정된 최종 묶음1회 |
+| PR/merge/tag/Release | AGENTS 직접 규칙 | 4/5 | 개발push 승인으로 외부 공개 불가 |
+
+### 테스트 필요성
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일·행·기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 이번 단기 준비/영향 회귀 | 진행 대상 | 사용자1번 개발 | LP26-O01~05/U01~08/M01 | 승인·실행. 개별 결과 별도 |
+| 제품 build/실제5단계 재반복 | 미진행 | 이번 제품·HTTPseed 로직 불변 | LP25 source/실행156, 이번diff | 이번 수정만으로 반복하지 않음 |
+| 최종 안정화 | 진행 대상 | S10 완료 후 S11 | 현재 기능 매핑+build/Auth/media/entry/metadata/docs/inventory/closeout | 이번 전체실행 미승인·범위고정 선행 |
+| 30분 | 진행 대상 | 버전 필수 | AGENTS7.6/7.6.2·roadmap S11 | 별도 실행 승인. predev/공통 runner 역할정합 먼저 |
+| UI 풀테스트 | 진행 대상 | 버전 필수·현행 D08 미실행 | Policy v4 exact ID/role/theme/viewport/재생·overlay | 이번 제외는 개발 단계 한정, 릴리즈 면제 아님 |
+| 120분 | 진행 대상 | writer/보존/재기동/lifecycle 직접변경·로드맵 | S10/LP26-O05·공개 recording-longrun | 공통 장시간과 녹화 전용을 구분해 별도 실행승인 |
+| 환경 실제44factory/READY/decode | 진행 대상 | V410-ENV-12 등록 및 패키징 우려 | ENV12·실제 환경 기록 | 실행 절차/runner 정합 후 단기 실행 |
+| 외부 실기기/TURN/WHEP/ONVIF/VLM/provider | 조건부 진행 | endpoint/credential/실기기 필요 | AGENTS4/7, release policy | 미제공·미승인. 기본PASS 대체 안 함 |
+
+### 릴리즈까지 잔여 순서
+
+| 순서 | 우선순위 | 잔여 이슈 | 해야 할 일 | 성격 | 근거 유형 | release action 전·후 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | P0 | HW 자동 디코딩 영향 판정 | 재현 자료/자동선택 경계에서 누락 프레임·PTS의 실제 제품 영향을 확정. 필요한 경로만 보완하고 기존 저장/분석 회귀 | 원인 판정·필요시 개발 | 직접 확인+제안 | 전 |
+| 2 | P0 | 남은 기능 등록·환경 실행 준비 | 초기 S01~04 요구별 고정ID 및 현행 검사 결박, ENV12 영속 실행 절차, exact UI/장시간 대상 누락 정리. 등록만으로 PASS 금지 | 준비 마감 | 직접 확인 | 전 |
+| 3 | P0 | legacy 코드·개발 데이터 정리 | 소유/사용처/대체검사 확인 후 불필요 부분만 제거. 현행 이름 V1 소비 계약·음성 fixture·과거 실패는 무조건 삭제하지 않음 | 정리 개발 | 사용자 기존원칙+직접확인 | 전 |
+| 4 | P0/P1 | 문서·S10 코드/증거 고정 | 상태 오래된 backlog/versioning 및 실제 UI/API/운영 설명·한국어·출처/NOTICE/source-only 점검. existing 증거 유지/부분무효/전체무효표, 장시간 공통/전용과 자원 판정 기준 확정 | 릴리즈 준비 | 정책+직접확인 | 전 |
+| 5 | P0 | S11 최종 안정화 | 고정 source의 build·관련 기능/Auth/media·현행통합·ENV/entry/metadata/docs/assets/feature/script/closeout dry-run. 실패면 해당기능/영향만 보완하고 증거 재판정 | 최종 실행 | AGENTS 직접규칙 | 전 |
+| 6 | P0 | S11 필수 장시간·실제 UI | 안정화 뒤 승인된30분→실제UI→필수120분(공통/녹화 각각). 자원/RSS·FD·drift·실재생·권한·반응형/시각·cleanup 판정. 짧은 준비나 과거 PASS 대체 금지 | 최종 실행/판정 | 정책+로드맵 | 전 |
+| 7 | P0 | 공개 절차 | 최종 커밋·push/PR·required CI→main merge→대상hash확인→서명 annotated tag 전후검증→source-only Release→published metadata. 각 행위 별도승인 | 외부 변경 | AGENTS 직접규칙 | 필수gate 후 |
+| 8 | P2 | 외부 조건 확인 | 제공·승인된 endpoint/실기기/provider만 field smoke. 조건 없는 항목은 이유·제외 범위 명시 | 조건부 | 정책+환경 | 승인/환경 충족시, 필수 로컬gate 대체불가 |
+
+다음 버전 구현·새 검색 기능·후속 브랜치 생성은 이 릴리즈 잔여 개발 목록에 넣지 않는다.
+
+### 미해소 상태
+
+| 항목 | 상태 | 사유 | 완료 evidence 사용 가능 여부 | 다음 조건 |
+| --- | --- | --- | --- | --- |
+| HW WR01/WR05 | 원인 경계 확인·제품 영향 미확인 | 자동선택 decoder 입력/출력 차이 | SW 정상/LP26 원장 관측으로 대체 불가 | 영향 판정 |
+| ENV12·초기 고정ID | 준비 잔여 | 과거 직접검사 존재와 현행 영속실행 연결 구분 | 현행 전수 coverage PASS 불가 | 매핑·선정·실행절차 확정 |
+| S10 전체 | 미완료 | 위 정리·코드/문서고정 남음 | LP25/26 부분범위만 유효 | 잔여1~4 |
+| 최종30분/UI/120분·자원추세 | 미실행/미판정 | 준비 결과와 별개 | 불가 | 고정 source/승인 후 실행 |
+| 실제 UI 이벤트 TS/seek | 미확인 | 새 seed는 실제 TS와 원본MP4 구분만 검증 | 브라우저 codec·조작PASS 불가 | 실제UI exact재생/오류/seek 확인 |
+| 현재cleanup | 실행결과별 확인 | LP26 소유root/서버/포트 삭제·반환 | 단기범위 가능 | 로그·최종 부재 대조 |
+| PR·CI·v4.1.0 tag/Release | 미수행 | PR/run0, tag없음 | 불가 | 필수gate+각각 승인 |
+| 외부 실기기/서비스 | 조건부 | 환경/자격증명 없음 | 기본PASS 아님 | 제공·승인 |
+
+토큰 start/end/consumed는 전용 집계 없음으로 미집계. 읽기 감사 elapsed는 별도 전체집계 없음.
+원격 상태 조회는 git ls-remote·gh api/pr/run, 모두 exit0이며 external write는 하지 않았다.
+
 ## 2026-09-19 최신 중단 지점
 
 아래 9월17일/16일 대조는 당시 이력이다. 현재 기준 HEAD795b3c15a, 원격 추적 대비ahead1와 LP11/LP12 미커밋 변경이 남아 있다. LP12 입력 AVC framing 수정은 단위7/capture50/기존FE193/Node110 및 build PASS이며 source/build SHA가 유지됐다. 실제 앱 F05 재개는 exit1/39222ms, timeline HTTP header4003ms timeout으로 실패했다. writer 오류0·원본2개 complete 선택 trace는 관측했지만 마지막 대상 상태intent/출력0 이후 완료는 미확인이다. 기존 `file-original-timestamp-mismatch` 해결의 실제 통합 PASS를 주장하지 않는다.
