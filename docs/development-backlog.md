@@ -18,7 +18,9 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 - 최신 published baseline: `v4.0.0 Local Operations Policy and Stabilization`
 - 직전 published baseline: `v3.9.1 Release Correctness and Public Repository Hygiene`
 - 현재 source 개발 로드맵: [`v4.1.0 Recording Foundation`](./v410-v49-recording-search-roadmap.md).
-  2026-09-11 기준 S00~S08 단계 구현·검증 완료, S09 통합 검증 구현·부분 검증 진행 중이다.
+  S00~S08의 단계 구현·검증 이력을 유지한다. S09 통합 검증은 2026-09-12 종료·대체했으며,
+  현재 S10 설계 보강·구현 마감과 S11 최종 검증 준비 단계다. 2026-09-21 LP25의 시간 표시/완료 관측/
+  요청 내 검증 재사용 및 실제5단계 통합156검사를 마쳤다. 구형 검증 연결·정리와 S10 코드 고정은 남아 있다.
   S06 조회·재생 UI, S07 분석 관측·FrameLocator, S08 최종화·손상·시작 복구를 포함한다.
   S08은 `11953256`까지 커밋·푸시했다. 단계별 실패·수정·검증 기록은 전용 evidence와
   release-test-records를 따르며, 버전 전체 UI·장시간·릴리즈 완료를 뜻하지 않는다.

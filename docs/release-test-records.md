@@ -12,7 +12,50 @@
 | 2 | 완료 관측·전수 페이지 분리 | 완료 | 신규/기존/계측112PASS, 원래 시간제한 유지 | LP25-O01~04 |
 | 3 | LP22 마감 | 완료 | 자체2/focused21/media46 PASS·정리 확인 | LP22-R |
 | 4 | 실제 앱·현행 통합 | 완료 | 156PASS·HTTP최대1.613초·완전2출력·hash/재기동 | P0-HTTP02/S11-CI |
-| 5 | 기록·커밋·푸시 | 대기 | 앞 단계 통과, 승인 범위 clean 확인 후 푸시 | AGENTS5 |
+| 5 | 기록·커밋·푸시 | 로컬 마감 완료 | 문서·source 정합 통과, 최종커밋 후 푸시·동기 확인 | AGENTS5 |
+
+### 5번 마감 범위와 다음 경계
+
+이번 분할 커밋: `e1817593`(1번 제품), `8a3c7eef`(사용 설명), `da45fd51`(2번 관측),
+`e5dfe718`(3번 LP22), `f194dfa1`(4번 통합). 기존 미완료 LP22 제품5/검사4는 이제 커밋됐다.
+원격 `git fetch origin v4.1.0` exit0 후 behind0/ahead57을 확인했다. 대상은 같은 개발 브랜치뿐이며
+main/PR/tag/Release 변경은 없다. 마지막 문서 커밋 후 승인된 푸시와 원격 hash 동기를 확인한다.
+이 기록 시점에는 푸시 미수행이며 실제 수행 여부·최종 hash는 최종 보고에서 구분한다.
+
+현재 범위 후속(이번 자동 착수 없음):
+
+| 순서 | 중요도 | 잔여 작업 | 완료 기준·근거 |
+| --- | --- | --- | --- |
+| 1 | P0 | 현행 S11 검증 연결·구형 준비 정합 | observer/longrun·UI seed·미결박 기능 ID를 현행 계약과 재대조. 과거 준비 목록을 현재 결함으로 그대로 전재하지 않음 |
+| 2 | P0 | HW 자동 디코딩 제품 영향 판정 | 기존 WR01/WR05 frame/PTS 실패와 실제 자동선택 경로 영향 분리. SW 기준 PASS로 HW 문제를 해소하지 않음 |
+| 3 | P0 | legacy 사용처·개발 데이터 정리 및 S10 코드 고정 | 소유·의존·대체 검증 확인 후 불필요한 부분만 승인 범위에서 정리. 필요한 음성 fixture/실패 이력 유지 |
+| 4 | P0 | S11 최종 검증 | 최종 diff에 따른 기존 증거 유효성 판정, 승인된 안정화·필수30분/UI·필요120분. 이번 단기156PASS로 대체하지 않음 |
+
+로드맵/구현계획/백로그 현재 상태를 실제1~4 결과에 맞춘다. LP22·과거 S09 실패는 보존하되
+현재 통합/cleanup blocker인 것처럼 반복하지 않는다. 이는 전체 릴리즈 잔여 전수 감사가 아니라 현재 단계 후속 정리다.
+최종 문서 검증은 `verify-docs-links`, `verify-docs-ui-assets`, `git diff --check`와 stage후 공백 검사다.
+문서만 바뀌므로 이미 통과한 동일 제품/테스트 소스의 build·기능·통합을 인계/커밋 이유로 반복하지 않는다.
+
+최종 문서 검사: 링크285md/9129links/실패0, 자산10PASS/0FAIL, 작업트리 공백 검사 exit0.
+실제02 실행 fingerprint14파일(제품7·실행/지원5·archive/binary2)을 다시 대조해 변경0을 확인했다.
+자산 검사는 문서 파일 검증일 뿐 현재 화면의 실제 UI PASS가 아니다. 새 서버/포트/임시 산출물 없음.
+아래 결과는 모두 실제 실행이며 문서 검사 elapsed는 별도 집계하지 않았다. 토큰 미집계 이유는 앞 절과 같다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 최종 문서 링크 | ./server.sh verify-docs-links, exit0·285/9129/0 | PASS | 5번 문서 변경 |
+| 자산: README uses only representative product UI screenshots | ./server.sh verify-docs-ui-assets 개별 출력, exit0 | PASS | 실제 UI 실행 아님 |
+| 자산: English README uses English UI screenshots | ./server.sh verify-docs-ui-assets 개별 출력, exit0 | PASS | 실제 UI 실행 아님 |
+| 자산: UI guide keeps product screenshots in the shared asset set | ./server.sh verify-docs-ui-assets 개별 출력, exit0 | PASS | 실제 UI 실행 아님 |
+| 자산: docs UI asset policy documents capture rules | ./server.sh verify-docs-ui-assets 개별 출력, exit0 | PASS | 실제 UI 실행 아님 |
+| 자산: managed UI asset manifest stays complete | ./server.sh verify-docs-ui-assets 개별 출력, exit0 | PASS | 실제 UI 실행 아님 |
+| 자산: capture script owns every documented UI asset | ./server.sh verify-docs-ui-assets 개별 출력, exit0 | PASS | 실제 UI 실행 아님 |
+| 자산: docs capture covers current screenshots | ./server.sh verify-docs-ui-assets 개별 출력, exit0 | PASS | 실제 UI 실행 아님 |
+| 자산: representative screenshot docs do not point at stale visual baselines | ./server.sh verify-docs-ui-assets 개별 출력, exit0 | PASS | 실제 UI 실행 아님 |
+| 자산: docs UI asset directory contains managed PNG files | ./server.sh verify-docs-ui-assets 개별 출력, exit0 | PASS | 실제 UI 실행 아님 |
+| 자산: VA documentation images keep full video frame bounds | ./server.sh verify-docs-ui-assets 개별 출력, exit0 | PASS | 실제 UI 실행 아님 |
+| 최종 source 대조 | 실행02 manifest14파일 SHA256 일치, exit0 | PASS | 제품 검증 반복 없이 유효성 유지 |
+| 최종 작업트리 공백 | git diff --check, exit0 | PASS | stage 뒤 재확인 |
 
 ### 1번 반환 계약과 비범위
 
