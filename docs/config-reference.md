@@ -766,6 +766,16 @@ itemId 오름차순이다. 미확인 목록은 채널 전체의 시간 귀속 �
 속한다고 주장하지 않는다. 해당 목록은 안정된 itemId 오름차순이다. itemId는 표시 구간을,
 segmentId는 실제 파일을 식별하므로 같은 파일에 여러 항목이 있을 수 있다.
 
+`unplacedUnit`은 선택 입력이며 기본값 `mapping`은 위 계약을 유지한다. `file`을 명시하면
+미확인 목록만 동일 파일·작업의 컨테이너 단위로 반환한다. 이때 `unplacedTotal`과 offset/limit는
+그룹/출력 없는 상태 행 기준이다. 시간 확인 목록은 그대로다. 다른 값은400이며 권한 검사가 우선한다.
+`rangeBasis=file-group` 행의 `members`에는 기존 itemId, mappingId, mappingProvenance, uncertaintyNs,
+mediaRange와 sourceSegmentId/sourceMappingRange를 보존한다. reason은 공개 가능한 고정 코드 또는
+`unclassified`이며 저장된 임의 원문을 노출하지 않는다. 바깥 mediaRange는 파일 범위이지 구성원들의
+연속 구간 합집합이나 UTC 정확도 보증이 아니다. 미확정 끝은 null, UTC는 null, hideByEvent는 false다.
+재생 URL/complete·partial 판정은 변하지 않으며 원본·출력·작업 사이의 그룹 병합은 하지 않는다.
+이 옵션은 API 소비자의 명시 선택이며 현재 Ops 화면이 자동으로 파일 단위 표시로 바뀌는 것은 아니다.
+
 startTimeMs/endTimeMs는 십진 문자열 또는 null이다. 유효 UTC0은 날짜이며 null과 다르다.
 utcRange의 ns·mediaRange의 PTS/timebase·orderSequence도 십진 문자열이다. requestedRange는
 timeBasis(utc-ms 또는 media-pts-ms)를 명시하며 서로 다른 축을 날짜로 바꾸어 해석하면 안 된다.
