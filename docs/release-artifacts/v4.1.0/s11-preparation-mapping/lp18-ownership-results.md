@@ -1,5 +1,918 @@
 # LP18 공유 소유 focused 개별 결과
 
+## LP21 누적 저장소와 작업 전이 개별 결과
+
+### lp17-sources-lp21-01
+
+[원출력](lp17-sources-lp21-01.txt), 1328373B, SHA256 `bc0a95fa54b908f8bb038cdffc14570df7f7a0a33eb754d25f55a76855ebc401`. 비민감 cost·hash·assertion만 보존하며 media/credential 원문은 없다. 토큰은 전용집계 부재로 미집계다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| runtime-freshness 실행 | exit0 · 367ms · raw 22행 | PASS | process group cleanup=true |
+| compile · FC01 exact insertion checks count=102 | 원출력 28행 직접 assertion | PASS | 실제 결과 |
+| compile 실행 | exit0 · 4640ms · raw 54행 | PASS | process group cleanup=true |
+| prepare · recorded FE02 writer start | 원출력 57행 직접 assertion | PASS | 실제 결과 |
+| prepare · recorded FE04 bound finalized mutation segment0 | 원출력 58행 직접 assertion | PASS | 실제 결과 |
+| prepare · LP17/prepare LP02.actual4096-prerequisite | 원출력 60행 직접 assertion | PASS | 실제 결과 |
+| prepare · LP17/prepare seed.input-count | 원출력 61행 직접 assertion | PASS | 실제 결과 |
+| prepare · LP17/prepare seed.input-identity-all-samples | 원출력 62행 직접 assertion | PASS | 실제 결과 |
+| prepare · LP17/prepare seed.physical-evidence | 원출력 63행 직접 assertion | PASS | 실제 결과 |
+| prepare 실행 | exit0 · 4684ms · raw 84행 | PASS | process group cleanup=true |
+| scale-A · LP17/commit1 LP02.reserve | 원출력 101행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit1 LP02.actual-file-outside-catalog | 원출력 102행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit1 LP02.commit | 원출력 145행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit2 LP02.reserve | 원출력 159행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit2 LP02.actual-file-outside-catalog | 원출력 160행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit2 LP02.commit | 원출력 203행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit3 LP02.reserve | 원출력 217행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit3 LP02.actual-file-outside-catalog | 원출력 218행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit3 LP02.commit | 원출력 261행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit4 LP02.reserve | 원출력 275행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit4 LP02.actual-file-outside-catalog | 원출력 276행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit4 LP02.commit | 원출력 319행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit5 LP02.reserve | 원출력 333행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit5 LP02.actual-file-outside-catalog | 원출력 334행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit5 LP02.commit | 원출력 377행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit6 LP02.reserve | 원출력 391행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit6 LP02.actual-file-outside-catalog | 원출력 392행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit6 LP02.commit | 원출력 435행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit7 LP02.reserve | 원출력 449행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit7 LP02.actual-file-outside-catalog | 원출력 450행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit7 LP02.commit | 원출력 493행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit8 LP02.reserve | 원출력 507행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit8 LP02.actual-file-outside-catalog | 원출력 508행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit8 LP02.commit | 원출력 551행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit9 LP02.reserve | 원출력 565행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit9 LP02.actual-file-outside-catalog | 원출력 566행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit9 LP02.commit | 원출력 609행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit10 LP02.reserve | 원출력 623행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit10 LP02.actual-file-outside-catalog | 원출력 624행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit10 LP02.commit | 원출력 667행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit11 LP02.reserve | 원출력 681행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit11 LP02.actual-file-outside-catalog | 원출력 682행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit11 LP02.commit | 원출력 725행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit12 LP02.reserve | 원출력 739행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit12 LP02.actual-file-outside-catalog | 원출력 740행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit12 LP02.commit | 원출력 783행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit13 LP02.reserve | 원출력 797행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit13 LP02.actual-file-outside-catalog | 원출력 798행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit13 LP02.commit | 원출력 841행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit14 LP02.reserve | 원출력 855행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit14 LP02.actual-file-outside-catalog | 원출력 856행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit14 LP02.commit | 원출력 899행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit15 LP02.reserve | 원출력 913행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit15 LP02.actual-file-outside-catalog | 원출력 914행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit15 LP02.commit | 원출력 957행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit16 LP02.reserve | 원출력 971행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit16 LP02.actual-file-outside-catalog | 원출력 972행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit16 LP02.commit | 원출력 1015행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/snapshot16 LP02.snapshot-exact-count | 원출력 1044행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/snapshot16 snapshot.canonical-all | 원출력 1099행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/snapshot16 LP02.explicit-checkpoint | 원출력 1136행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/snapshot16 LP02.reservation-bound-mutation-count | 원출력 1142행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit17 LP02.reserve | 원출력 1150행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit17 LP02.actual-file-outside-catalog | 원출력 1151행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit17 LP02.commit | 원출력 1194행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit18 LP02.reserve | 원출력 1208행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit18 LP02.actual-file-outside-catalog | 원출력 1209행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit18 LP02.commit | 원출력 1252행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit19 LP02.reserve | 원출력 1266행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit19 LP02.actual-file-outside-catalog | 원출력 1267행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit19 LP02.commit | 원출력 1310행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit20 LP02.reserve | 원출력 1324행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit20 LP02.actual-file-outside-catalog | 원출력 1325행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit20 LP02.commit | 원출력 1368행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit21 LP02.reserve | 원출력 1382행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit21 LP02.actual-file-outside-catalog | 원출력 1383행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit21 LP02.commit | 원출력 1426행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit22 LP02.reserve | 원출력 1440행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit22 LP02.actual-file-outside-catalog | 원출력 1441행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit22 LP02.commit | 원출력 1484행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit23 LP02.reserve | 원출력 1498행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit23 LP02.actual-file-outside-catalog | 원출력 1499행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit23 LP02.commit | 원출력 1542행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit24 LP02.reserve | 원출력 1556행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit24 LP02.actual-file-outside-catalog | 원출력 1557행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit24 LP02.commit | 원출력 1600행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit25 LP02.reserve | 원출력 1614행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit25 LP02.actual-file-outside-catalog | 원출력 1615행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit25 LP02.commit | 원출력 1658행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit26 LP02.reserve | 원출력 1672행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit26 LP02.actual-file-outside-catalog | 원출력 1673행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit26 LP02.commit | 원출력 1716행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit27 LP02.reserve | 원출력 1730행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit27 LP02.actual-file-outside-catalog | 원출력 1731행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit27 LP02.commit | 원출력 1774행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit28 LP02.reserve | 원출력 1788행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit28 LP02.actual-file-outside-catalog | 원출력 1789행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit28 LP02.commit | 원출력 1832행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit29 LP02.reserve | 원출력 1846행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit29 LP02.actual-file-outside-catalog | 원출력 1847행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit29 LP02.commit | 원출력 1890행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit30 LP02.reserve | 원출력 1904행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit30 LP02.actual-file-outside-catalog | 원출력 1905행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit30 LP02.commit | 원출력 1948행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit31 LP02.reserve | 원출력 1962행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit31 LP02.actual-file-outside-catalog | 원출력 1963행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit31 LP02.commit | 원출력 2006행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit32 LP02.reserve | 원출력 2020행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit32 LP02.actual-file-outside-catalog | 원출력 2021행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/commit32 LP02.commit | 원출력 2064행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/snapshot32 LP02.snapshot-exact-count | 원출력 2093행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/snapshot32 snapshot.canonical-all | 원출력 2196행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/snapshot32 LP02.explicit-checkpoint | 원출력 2233행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/snapshot32 LP02.reservation-bound-mutation-count | 원출력 2239행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/delete delete.original-canonical | 원출력 2248행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/delete delete.pending | 원출력 2263행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/delete delete.unlink | 원출력 2264행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/delete delete.tombstone | 원출력 2278행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/delete delete.checkpoint | 원출력 2303행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/delete delete.binding-preserved | 원출력 2304행 직접 assertion | PASS | 실제 결과 |
+| scale-A · LP17/delete deleted.public-hidden | 원출력 2305행 직접 assertion | PASS | 실제 결과 |
+| scale-A 실행 | exit0 · 37550ms · raw 2400행 | PASS | process group cleanup=true |
+| reopen-A-sqlite · LP17/reopen/sqlite LP02.journal-reopen | 원출력 2503행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite LP02.catalog-reopen | 원출력 2526행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/0 LP02.exact-source | 원출력 2532행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/0 deleted.public-hidden | 원출력 2533행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/0 reopen.deleted-state | 원출력 2535행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/1 LP02.exact-source | 원출력 2536행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/1 reopen.remaining-media | 원출력 2538행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/2 LP02.exact-source | 원출력 2539행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/2 reopen.remaining-media | 원출력 2541행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/3 LP02.exact-source | 원출력 2542행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/3 reopen.remaining-media | 원출력 2544행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/4 LP02.exact-source | 원출력 2545행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/4 reopen.remaining-media | 원출력 2547행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/5 LP02.exact-source | 원출력 2548행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/5 reopen.remaining-media | 원출력 2550행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/6 LP02.exact-source | 원출력 2551행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/6 reopen.remaining-media | 원출력 2553행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/7 LP02.exact-source | 원출력 2554행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/7 reopen.remaining-media | 원출력 2556행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/8 LP02.exact-source | 원출력 2557행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/8 reopen.remaining-media | 원출력 2559행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/9 LP02.exact-source | 원출력 2560행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/9 reopen.remaining-media | 원출력 2562행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/10 LP02.exact-source | 원출력 2563행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/10 reopen.remaining-media | 원출력 2565행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/11 LP02.exact-source | 원출력 2566행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/11 reopen.remaining-media | 원출력 2568행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/12 LP02.exact-source | 원출력 2569행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/12 reopen.remaining-media | 원출력 2571행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/13 LP02.exact-source | 원출력 2572행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/13 reopen.remaining-media | 원출력 2574행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/14 LP02.exact-source | 원출력 2575행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/14 reopen.remaining-media | 원출력 2577행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/15 LP02.exact-source | 원출력 2578행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/15 reopen.remaining-media | 원출력 2580행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/16 LP02.exact-source | 원출력 2581행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/16 reopen.remaining-media | 원출력 2583행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/17 LP02.exact-source | 원출력 2584행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/17 reopen.remaining-media | 원출력 2586행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/18 LP02.exact-source | 원출력 2587행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/18 reopen.remaining-media | 원출력 2589행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/19 LP02.exact-source | 원출력 2590행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/19 reopen.remaining-media | 원출력 2592행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/20 LP02.exact-source | 원출력 2593행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/20 reopen.remaining-media | 원출력 2595행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/21 LP02.exact-source | 원출력 2596행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/21 reopen.remaining-media | 원출력 2598행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/22 LP02.exact-source | 원출력 2599행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/22 reopen.remaining-media | 원출력 2601행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/23 LP02.exact-source | 원출력 2602행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/23 reopen.remaining-media | 원출력 2604행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/24 LP02.exact-source | 원출력 2605행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/24 reopen.remaining-media | 원출력 2607행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/25 LP02.exact-source | 원출력 2608행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/25 reopen.remaining-media | 원출력 2610행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/26 LP02.exact-source | 원출력 2611행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/26 reopen.remaining-media | 원출력 2613행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/27 LP02.exact-source | 원출력 2614행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/27 reopen.remaining-media | 원출력 2616행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/28 LP02.exact-source | 원출력 2617행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/28 reopen.remaining-media | 원출력 2619행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/29 LP02.exact-source | 원출력 2620행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/29 reopen.remaining-media | 원출력 2622행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/30 LP02.exact-source | 원출력 2623행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/30 reopen.remaining-media | 원출력 2625행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/31 LP02.exact-source | 원출력 2626행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite · LP17/reopen/sqlite/31 reopen.remaining-media | 원출력 2628행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-sqlite 실행 | exit0 · 27920ms · raw 2721행 | PASS | process group cleanup=true |
+| reopen-A-jsonl · LP17/reopen/jsonl LP02.journal-reopen | 원출력 2824행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl LP02.catalog-reopen | 원출력 2839행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/0 LP02.exact-source | 원출력 2845행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/0 deleted.public-hidden | 원출력 2846행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/0 reopen.deleted-state | 원출력 2848행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/1 LP02.exact-source | 원출력 2849행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/1 reopen.remaining-media | 원출력 2851행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/2 LP02.exact-source | 원출력 2852행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/2 reopen.remaining-media | 원출력 2854행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/3 LP02.exact-source | 원출력 2855행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/3 reopen.remaining-media | 원출력 2857행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/4 LP02.exact-source | 원출력 2858행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/4 reopen.remaining-media | 원출력 2860행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/5 LP02.exact-source | 원출력 2861행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/5 reopen.remaining-media | 원출력 2863행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/6 LP02.exact-source | 원출력 2864행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/6 reopen.remaining-media | 원출력 2866행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/7 LP02.exact-source | 원출력 2867행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/7 reopen.remaining-media | 원출력 2869행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/8 LP02.exact-source | 원출력 2870행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/8 reopen.remaining-media | 원출력 2872행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/9 LP02.exact-source | 원출력 2873행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/9 reopen.remaining-media | 원출력 2875행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/10 LP02.exact-source | 원출력 2876행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/10 reopen.remaining-media | 원출력 2878행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/11 LP02.exact-source | 원출력 2879행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/11 reopen.remaining-media | 원출력 2881행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/12 LP02.exact-source | 원출력 2882행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/12 reopen.remaining-media | 원출력 2884행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/13 LP02.exact-source | 원출력 2885행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/13 reopen.remaining-media | 원출력 2887행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/14 LP02.exact-source | 원출력 2888행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/14 reopen.remaining-media | 원출력 2890행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/15 LP02.exact-source | 원출력 2891행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/15 reopen.remaining-media | 원출력 2893행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/16 LP02.exact-source | 원출력 2894행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/16 reopen.remaining-media | 원출력 2896행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/17 LP02.exact-source | 원출력 2897행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/17 reopen.remaining-media | 원출력 2899행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/18 LP02.exact-source | 원출력 2900행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/18 reopen.remaining-media | 원출력 2902행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/19 LP02.exact-source | 원출력 2903행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/19 reopen.remaining-media | 원출력 2905행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/20 LP02.exact-source | 원출력 2906행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/20 reopen.remaining-media | 원출력 2908행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/21 LP02.exact-source | 원출력 2909행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/21 reopen.remaining-media | 원출력 2911행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/22 LP02.exact-source | 원출력 2912행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/22 reopen.remaining-media | 원출력 2914행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/23 LP02.exact-source | 원출력 2915행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/23 reopen.remaining-media | 원출력 2917행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/24 LP02.exact-source | 원출력 2918행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/24 reopen.remaining-media | 원출력 2920행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/25 LP02.exact-source | 원출력 2921행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/25 reopen.remaining-media | 원출력 2923행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/26 LP02.exact-source | 원출력 2924행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/26 reopen.remaining-media | 원출력 2926행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/27 LP02.exact-source | 원출력 2927행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/27 reopen.remaining-media | 원출력 2929행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/28 LP02.exact-source | 원출력 2930행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/28 reopen.remaining-media | 원출력 2932행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/29 LP02.exact-source | 원출력 2933행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/29 reopen.remaining-media | 원출력 2935행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/30 LP02.exact-source | 원출력 2936행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/30 reopen.remaining-media | 원출력 2938행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/31 LP02.exact-source | 원출력 2939행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl · LP17/reopen/jsonl/31 reopen.remaining-media | 원출력 2941행 직접 assertion | PASS | 실제 결과 |
+| reopen-A-jsonl 실행 | exit0 · 20440ms · raw 3034행 | PASS | process group cleanup=true |
+| scale-B · LP17/commit1 LP02.reserve | 원출력 3051행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit1 LP02.actual-file-outside-catalog | 원출력 3052행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit1 LP02.commit | 원출력 3095행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit2 LP02.reserve | 원출력 3109행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit2 LP02.actual-file-outside-catalog | 원출력 3110행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit2 LP02.commit | 원출력 3153행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit3 LP02.reserve | 원출력 3167행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit3 LP02.actual-file-outside-catalog | 원출력 3168행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit3 LP02.commit | 원출력 3211행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit4 LP02.reserve | 원출력 3225행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit4 LP02.actual-file-outside-catalog | 원출력 3226행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit4 LP02.commit | 원출력 3269행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit5 LP02.reserve | 원출력 3283행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit5 LP02.actual-file-outside-catalog | 원출력 3284행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit5 LP02.commit | 원출력 3327행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit6 LP02.reserve | 원출력 3341행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit6 LP02.actual-file-outside-catalog | 원출력 3342행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit6 LP02.commit | 원출력 3385행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit7 LP02.reserve | 원출력 3399행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit7 LP02.actual-file-outside-catalog | 원출력 3400행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit7 LP02.commit | 원출력 3443행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit8 LP02.reserve | 원출력 3457행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit8 LP02.actual-file-outside-catalog | 원출력 3458행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit8 LP02.commit | 원출력 3501행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit9 LP02.reserve | 원출력 3515행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit9 LP02.actual-file-outside-catalog | 원출력 3516행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit9 LP02.commit | 원출력 3559행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit10 LP02.reserve | 원출력 3573행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit10 LP02.actual-file-outside-catalog | 원출력 3574행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit10 LP02.commit | 원출력 3617행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit11 LP02.reserve | 원출력 3631행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit11 LP02.actual-file-outside-catalog | 원출력 3632행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit11 LP02.commit | 원출력 3675행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit12 LP02.reserve | 원출력 3689행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit12 LP02.actual-file-outside-catalog | 원출력 3690행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit12 LP02.commit | 원출력 3733행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit13 LP02.reserve | 원출력 3747행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit13 LP02.actual-file-outside-catalog | 원출력 3748행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit13 LP02.commit | 원출력 3791행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit14 LP02.reserve | 원출력 3805행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit14 LP02.actual-file-outside-catalog | 원출력 3806행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit14 LP02.commit | 원출력 3849행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit15 LP02.reserve | 원출력 3863행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit15 LP02.actual-file-outside-catalog | 원출력 3864행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit15 LP02.commit | 원출력 3907행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit16 LP02.reserve | 원출력 3921행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit16 LP02.actual-file-outside-catalog | 원출력 3922행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit16 LP02.commit | 원출력 3965행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/snapshot16 LP02.snapshot-exact-count | 원출력 3994행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/snapshot16 snapshot.canonical-all | 원출력 4049행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/snapshot16 LP02.explicit-checkpoint | 원출력 4086행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/snapshot16 LP02.reservation-bound-mutation-count | 원출력 4092행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit17 LP02.reserve | 원출력 4100행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit17 LP02.actual-file-outside-catalog | 원출력 4101행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit17 LP02.commit | 원출력 4144행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit18 LP02.reserve | 원출력 4158행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit18 LP02.actual-file-outside-catalog | 원출력 4159행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit18 LP02.commit | 원출력 4202행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit19 LP02.reserve | 원출력 4216행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit19 LP02.actual-file-outside-catalog | 원출력 4217행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit19 LP02.commit | 원출력 4260행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit20 LP02.reserve | 원출력 4274행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit20 LP02.actual-file-outside-catalog | 원출력 4275행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit20 LP02.commit | 원출력 4318행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit21 LP02.reserve | 원출력 4332행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit21 LP02.actual-file-outside-catalog | 원출력 4333행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit21 LP02.commit | 원출력 4376행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit22 LP02.reserve | 원출력 4390행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit22 LP02.actual-file-outside-catalog | 원출력 4391행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit22 LP02.commit | 원출력 4434행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit23 LP02.reserve | 원출력 4448행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit23 LP02.actual-file-outside-catalog | 원출력 4449행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit23 LP02.commit | 원출력 4492행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit24 LP02.reserve | 원출력 4506행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit24 LP02.actual-file-outside-catalog | 원출력 4507행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit24 LP02.commit | 원출력 4550행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit25 LP02.reserve | 원출력 4564행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit25 LP02.actual-file-outside-catalog | 원출력 4565행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit25 LP02.commit | 원출력 4608행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit26 LP02.reserve | 원출력 4622행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit26 LP02.actual-file-outside-catalog | 원출력 4623행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit26 LP02.commit | 원출력 4666행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit27 LP02.reserve | 원출력 4680행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit27 LP02.actual-file-outside-catalog | 원출력 4681행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit27 LP02.commit | 원출력 4724행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit28 LP02.reserve | 원출력 4738행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit28 LP02.actual-file-outside-catalog | 원출력 4739행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit28 LP02.commit | 원출력 4782행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit29 LP02.reserve | 원출력 4796행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit29 LP02.actual-file-outside-catalog | 원출력 4797행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit29 LP02.commit | 원출력 4840행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit30 LP02.reserve | 원출력 4854행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit30 LP02.actual-file-outside-catalog | 원출력 4855행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit30 LP02.commit | 원출력 4898행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit31 LP02.reserve | 원출력 4912행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit31 LP02.actual-file-outside-catalog | 원출력 4913행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit31 LP02.commit | 원출력 4956행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit32 LP02.reserve | 원출력 4970행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit32 LP02.actual-file-outside-catalog | 원출력 4971행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/commit32 LP02.commit | 원출력 5014행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/snapshot32 LP02.snapshot-exact-count | 원출력 5043행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/snapshot32 snapshot.canonical-all | 원출력 5146행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/snapshot32 LP02.explicit-checkpoint | 원출력 5183행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/snapshot32 LP02.reservation-bound-mutation-count | 원출력 5189행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/delete delete.original-canonical | 원출력 5198행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/delete delete.pending | 원출력 5213행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/delete delete.unlink | 원출력 5214행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/delete delete.tombstone | 원출력 5228행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/delete delete.checkpoint | 원출력 5253행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/delete delete.binding-preserved | 원출력 5254행 직접 assertion | PASS | 실제 결과 |
+| scale-B · LP17/delete deleted.public-hidden | 원출력 5255행 직접 assertion | PASS | 실제 결과 |
+| scale-B 실행 | exit0 · 37614ms · raw 5350행 | PASS | process group cleanup=true |
+| reopen-B-sqlite · LP17/reopen/sqlite LP02.journal-reopen | 원출력 5357행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite LP02.catalog-reopen | 원출력 5380행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/0 LP02.exact-source | 원출력 5389행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/0 deleted.public-hidden | 원출력 5390행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/0 reopen.deleted-state | 원출력 5392행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/1 LP02.exact-source | 원출력 5396행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/1 reopen.remaining-media | 원출력 5398행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/2 LP02.exact-source | 원출력 5402행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/2 reopen.remaining-media | 원출력 5404행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/3 LP02.exact-source | 원출력 5408행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/3 reopen.remaining-media | 원출력 5410행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/4 LP02.exact-source | 원출력 5414행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/4 reopen.remaining-media | 원출력 5416행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/5 LP02.exact-source | 원출력 5420행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/5 reopen.remaining-media | 원출력 5422행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/6 LP02.exact-source | 원출력 5426행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/6 reopen.remaining-media | 원출력 5428행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/7 LP02.exact-source | 원출력 5432행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/7 reopen.remaining-media | 원출력 5434행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/8 LP02.exact-source | 원출력 5438행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/8 reopen.remaining-media | 원출력 5440행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/9 LP02.exact-source | 원출력 5444행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/9 reopen.remaining-media | 원출력 5446행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/10 LP02.exact-source | 원출력 5450행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/10 reopen.remaining-media | 원출력 5452행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/11 LP02.exact-source | 원출력 5456행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/11 reopen.remaining-media | 원출력 5458행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/12 LP02.exact-source | 원출력 5462행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/12 reopen.remaining-media | 원출력 5464행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/13 LP02.exact-source | 원출력 5468행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/13 reopen.remaining-media | 원출력 5470행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/14 LP02.exact-source | 원출력 5474행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/14 reopen.remaining-media | 원출력 5476행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/15 LP02.exact-source | 원출력 5480행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/15 reopen.remaining-media | 원출력 5482행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/16 LP02.exact-source | 원출력 5486행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/16 reopen.remaining-media | 원출력 5488행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/17 LP02.exact-source | 원출력 5492행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/17 reopen.remaining-media | 원출력 5494행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/18 LP02.exact-source | 원출력 5498행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/18 reopen.remaining-media | 원출력 5500행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/19 LP02.exact-source | 원출력 5504행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/19 reopen.remaining-media | 원출력 5506행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/20 LP02.exact-source | 원출력 5510행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/20 reopen.remaining-media | 원출력 5512행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/21 LP02.exact-source | 원출력 5516행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/21 reopen.remaining-media | 원출력 5518행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/22 LP02.exact-source | 원출력 5522행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/22 reopen.remaining-media | 원출력 5524행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/23 LP02.exact-source | 원출력 5528행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/23 reopen.remaining-media | 원출력 5530행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/24 LP02.exact-source | 원출력 5534행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/24 reopen.remaining-media | 원출력 5536행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/25 LP02.exact-source | 원출력 5540행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/25 reopen.remaining-media | 원출력 5542행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/26 LP02.exact-source | 원출력 5546행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/26 reopen.remaining-media | 원출력 5548행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/27 LP02.exact-source | 원출력 5552행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/27 reopen.remaining-media | 원출력 5554행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/28 LP02.exact-source | 원출력 5558행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/28 reopen.remaining-media | 원출력 5560행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/29 LP02.exact-source | 원출력 5564행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/29 reopen.remaining-media | 원출력 5566행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/30 LP02.exact-source | 원출력 5570행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/30 reopen.remaining-media | 원출력 5572행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/31 LP02.exact-source | 원출력 5576행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite · LP17/reopen/sqlite/31 reopen.remaining-media | 원출력 5578행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-sqlite 실행 | exit0 · 27845ms · raw 5671행 | PASS | process group cleanup=true |
+| reopen-B-jsonl · LP17/reopen/jsonl LP02.journal-reopen | 원출력 5678행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl LP02.catalog-reopen | 원출력 5693행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/0 LP02.exact-source | 원출력 5702행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/0 deleted.public-hidden | 원출력 5703행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/0 reopen.deleted-state | 원출력 5705행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/1 LP02.exact-source | 원출력 5709행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/1 reopen.remaining-media | 원출력 5711행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/2 LP02.exact-source | 원출력 5715행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/2 reopen.remaining-media | 원출력 5717행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/3 LP02.exact-source | 원출력 5721행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/3 reopen.remaining-media | 원출력 5723행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/4 LP02.exact-source | 원출력 5727행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/4 reopen.remaining-media | 원출력 5729행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/5 LP02.exact-source | 원출력 5733행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/5 reopen.remaining-media | 원출력 5735행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/6 LP02.exact-source | 원출력 5739행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/6 reopen.remaining-media | 원출력 5741행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/7 LP02.exact-source | 원출력 5745행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/7 reopen.remaining-media | 원출력 5747행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/8 LP02.exact-source | 원출력 5751행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/8 reopen.remaining-media | 원출력 5753행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/9 LP02.exact-source | 원출력 5757행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/9 reopen.remaining-media | 원출력 5759행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/10 LP02.exact-source | 원출력 5763행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/10 reopen.remaining-media | 원출력 5765행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/11 LP02.exact-source | 원출력 5769행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/11 reopen.remaining-media | 원출력 5771행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/12 LP02.exact-source | 원출력 5775행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/12 reopen.remaining-media | 원출력 5777행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/13 LP02.exact-source | 원출력 5781행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/13 reopen.remaining-media | 원출력 5783행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/14 LP02.exact-source | 원출력 5787행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/14 reopen.remaining-media | 원출력 5789행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/15 LP02.exact-source | 원출력 5793행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/15 reopen.remaining-media | 원출력 5795행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/16 LP02.exact-source | 원출력 5799행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/16 reopen.remaining-media | 원출력 5801행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/17 LP02.exact-source | 원출력 5805행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/17 reopen.remaining-media | 원출력 5807행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/18 LP02.exact-source | 원출력 5811행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/18 reopen.remaining-media | 원출력 5813행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/19 LP02.exact-source | 원출력 5817행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/19 reopen.remaining-media | 원출력 5819행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/20 LP02.exact-source | 원출력 5823행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/20 reopen.remaining-media | 원출력 5825행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/21 LP02.exact-source | 원출력 5829행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/21 reopen.remaining-media | 원출력 5831행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/22 LP02.exact-source | 원출력 5835행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/22 reopen.remaining-media | 원출력 5837행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/23 LP02.exact-source | 원출력 5841행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/23 reopen.remaining-media | 원출력 5843행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/24 LP02.exact-source | 원출력 5847행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/24 reopen.remaining-media | 원출력 5849행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/25 LP02.exact-source | 원출력 5853행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/25 reopen.remaining-media | 원출력 5855행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/26 LP02.exact-source | 원출력 5859행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/26 reopen.remaining-media | 원출력 5861행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/27 LP02.exact-source | 원출력 5865행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/27 reopen.remaining-media | 원출력 5867행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/28 LP02.exact-source | 원출력 5871행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/28 reopen.remaining-media | 원출력 5873행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/29 LP02.exact-source | 원출력 5877행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/29 reopen.remaining-media | 원출력 5879행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/30 LP02.exact-source | 원출력 5883행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/30 reopen.remaining-media | 원출력 5885행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/31 LP02.exact-source | 원출력 5889행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl · LP17/reopen/jsonl/31 reopen.remaining-media | 원출력 5891행 직접 assertion | PASS | 실제 결과 |
+| reopen-B-jsonl 실행 | exit0 · 20378ms · raw 5984행 | PASS | process group cleanup=true |
+| scale-C · LP17/commit1 LP02.reserve | 원출력 6001행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit1 LP02.actual-file-outside-catalog | 원출력 6002행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit1 LP02.commit | 원출력 6045행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit2 LP02.reserve | 원출력 6059행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit2 LP02.actual-file-outside-catalog | 원출력 6060행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit2 LP02.commit | 원출력 6103행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit3 LP02.reserve | 원출력 6117행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit3 LP02.actual-file-outside-catalog | 원출력 6118행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit3 LP02.commit | 원출력 6161행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit4 LP02.reserve | 원출력 6175행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit4 LP02.actual-file-outside-catalog | 원출력 6176행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit4 LP02.commit | 원출력 6219행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit5 LP02.reserve | 원출력 6233행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit5 LP02.actual-file-outside-catalog | 원출력 6234행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit5 LP02.commit | 원출력 6277행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit6 LP02.reserve | 원출력 6291행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit6 LP02.actual-file-outside-catalog | 원출력 6292행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit6 LP02.commit | 원출력 6335행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit7 LP02.reserve | 원출력 6349행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit7 LP02.actual-file-outside-catalog | 원출력 6350행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit7 LP02.commit | 원출력 6393행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit8 LP02.reserve | 원출력 6407행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit8 LP02.actual-file-outside-catalog | 원출력 6408행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit8 LP02.commit | 원출력 6451행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit9 LP02.reserve | 원출력 6465행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit9 LP02.actual-file-outside-catalog | 원출력 6466행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit9 LP02.commit | 원출력 6509행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit10 LP02.reserve | 원출력 6523행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit10 LP02.actual-file-outside-catalog | 원출력 6524행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit10 LP02.commit | 원출력 6567행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit11 LP02.reserve | 원출력 6581행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit11 LP02.actual-file-outside-catalog | 원출력 6582행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit11 LP02.commit | 원출력 6625행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit12 LP02.reserve | 원출력 6639행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit12 LP02.actual-file-outside-catalog | 원출력 6640행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit12 LP02.commit | 원출력 6683행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit13 LP02.reserve | 원출력 6697행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit13 LP02.actual-file-outside-catalog | 원출력 6698행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit13 LP02.commit | 원출력 6741행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit14 LP02.reserve | 원출력 6755행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit14 LP02.actual-file-outside-catalog | 원출력 6756행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit14 LP02.commit | 원출력 6799행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit15 LP02.reserve | 원출력 6813행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit15 LP02.actual-file-outside-catalog | 원출력 6814행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit15 LP02.commit | 원출력 6857행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit16 LP02.reserve | 원출력 6871행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit16 LP02.actual-file-outside-catalog | 원출력 6872행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit16 LP02.commit | 원출력 6915행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/snapshot16 LP02.snapshot-exact-count | 원출력 6944행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/snapshot16 snapshot.canonical-all | 원출력 6999행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/snapshot16 LP02.explicit-checkpoint | 원출력 7038행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/snapshot16 LP02.reservation-bound-mutation-count | 원출력 7044행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit17 LP02.reserve | 원출력 7052행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit17 LP02.actual-file-outside-catalog | 원출력 7053행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit17 LP02.commit | 원출력 7096행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit18 LP02.reserve | 원출력 7110행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit18 LP02.actual-file-outside-catalog | 원출력 7111행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit18 LP02.commit | 원출력 7154행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit19 LP02.reserve | 원출력 7168행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit19 LP02.actual-file-outside-catalog | 원출력 7169행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit19 LP02.commit | 원출력 7212행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit20 LP02.reserve | 원출력 7226행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit20 LP02.actual-file-outside-catalog | 원출력 7227행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit20 LP02.commit | 원출력 7270행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit21 LP02.reserve | 원출력 7284행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit21 LP02.actual-file-outside-catalog | 원출력 7285행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit21 LP02.commit | 원출력 7328행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit22 LP02.reserve | 원출력 7342행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit22 LP02.actual-file-outside-catalog | 원출력 7343행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit22 LP02.commit | 원출력 7386행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit23 LP02.reserve | 원출력 7400행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit23 LP02.actual-file-outside-catalog | 원출력 7401행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit23 LP02.commit | 원출력 7444행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit24 LP02.reserve | 원출력 7458행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit24 LP02.actual-file-outside-catalog | 원출력 7459행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit24 LP02.commit | 원출력 7502행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit25 LP02.reserve | 원출력 7516행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit25 LP02.actual-file-outside-catalog | 원출력 7517행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit25 LP02.commit | 원출력 7560행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit26 LP02.reserve | 원출력 7574행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit26 LP02.actual-file-outside-catalog | 원출력 7575행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit26 LP02.commit | 원출력 7618행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit27 LP02.reserve | 원출력 7632행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit27 LP02.actual-file-outside-catalog | 원출력 7633행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit27 LP02.commit | 원출력 7676행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit28 LP02.reserve | 원출력 7690행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit28 LP02.actual-file-outside-catalog | 원출력 7691행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit28 LP02.commit | 원출력 7734행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit29 LP02.reserve | 원출력 7748행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit29 LP02.actual-file-outside-catalog | 원출력 7749행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit29 LP02.commit | 원출력 7792행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit30 LP02.reserve | 원출력 7806행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit30 LP02.actual-file-outside-catalog | 원출력 7807행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit30 LP02.commit | 원출력 7850행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit31 LP02.reserve | 원출력 7864행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit31 LP02.actual-file-outside-catalog | 원출력 7865행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit31 LP02.commit | 원출력 7908행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit32 LP02.reserve | 원출력 7922행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit32 LP02.actual-file-outside-catalog | 원출력 7923행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/commit32 LP02.commit | 원출력 7966행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/snapshot32 LP02.snapshot-exact-count | 원출력 7995행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/snapshot32 snapshot.canonical-all | 원출력 8098행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/snapshot32 LP02.explicit-checkpoint | 원출력 8137행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/snapshot32 LP02.reservation-bound-mutation-count | 원출력 8143행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/delete delete.original-canonical | 원출력 8152행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/delete delete.pending | 원출력 8167행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/delete delete.unlink | 원출력 8168행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/delete delete.tombstone | 원출력 8182행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/delete delete.checkpoint | 원출력 8215행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/delete delete.binding-preserved | 원출력 8216행 직접 assertion | PASS | 실제 결과 |
+| scale-C · LP17/delete deleted.public-hidden | 원출력 8217행 직접 assertion | PASS | 실제 결과 |
+| scale-C 실행 | exit0 · 43154ms · raw 8312행 | PASS | process group cleanup=true |
+| reopen-C-sqlite · LP17/reopen/sqlite LP02.journal-reopen | 원출력 8319행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite LP02.catalog-reopen | 원출력 8342행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/0 LP02.exact-source | 원출력 8351행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/0 deleted.public-hidden | 원출력 8352행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/0 reopen.deleted-state | 원출력 8354행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/1 LP02.exact-source | 원출력 8358행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/1 reopen.remaining-media | 원출력 8360행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/2 LP02.exact-source | 원출력 8364행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/2 reopen.remaining-media | 원출력 8366행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/3 LP02.exact-source | 원출력 8370행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/3 reopen.remaining-media | 원출력 8372행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/4 LP02.exact-source | 원출력 8376행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/4 reopen.remaining-media | 원출력 8378행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/5 LP02.exact-source | 원출력 8382행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/5 reopen.remaining-media | 원출력 8384행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/6 LP02.exact-source | 원출력 8388행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/6 reopen.remaining-media | 원출력 8390행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/7 LP02.exact-source | 원출력 8394행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/7 reopen.remaining-media | 원출력 8396행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/8 LP02.exact-source | 원출력 8400행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/8 reopen.remaining-media | 원출력 8402행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/9 LP02.exact-source | 원출력 8406행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/9 reopen.remaining-media | 원출력 8408행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/10 LP02.exact-source | 원출력 8412행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/10 reopen.remaining-media | 원출력 8414행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/11 LP02.exact-source | 원출력 8418행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/11 reopen.remaining-media | 원출력 8420행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/12 LP02.exact-source | 원출력 8424행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/12 reopen.remaining-media | 원출력 8426행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/13 LP02.exact-source | 원출력 8430행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/13 reopen.remaining-media | 원출력 8432행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/14 LP02.exact-source | 원출력 8436행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/14 reopen.remaining-media | 원출력 8438행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/15 LP02.exact-source | 원출력 8442행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/15 reopen.remaining-media | 원출력 8444행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/16 LP02.exact-source | 원출력 8448행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/16 reopen.remaining-media | 원출력 8450행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/17 LP02.exact-source | 원출력 8454행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/17 reopen.remaining-media | 원출력 8456행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/18 LP02.exact-source | 원출력 8460행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/18 reopen.remaining-media | 원출력 8462행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/19 LP02.exact-source | 원출력 8466행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/19 reopen.remaining-media | 원출력 8468행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/20 LP02.exact-source | 원출력 8472행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/20 reopen.remaining-media | 원출력 8474행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/21 LP02.exact-source | 원출력 8478행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/21 reopen.remaining-media | 원출력 8480행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/22 LP02.exact-source | 원출력 8484행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/22 reopen.remaining-media | 원출력 8486행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/23 LP02.exact-source | 원출력 8490행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/23 reopen.remaining-media | 원출력 8492행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/24 LP02.exact-source | 원출력 8496행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/24 reopen.remaining-media | 원출력 8498행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/25 LP02.exact-source | 원출력 8502행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/25 reopen.remaining-media | 원출력 8504행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/26 LP02.exact-source | 원출력 8508행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/26 reopen.remaining-media | 원출력 8510행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/27 LP02.exact-source | 원출력 8514행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/27 reopen.remaining-media | 원출력 8516행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/28 LP02.exact-source | 원출력 8520행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/28 reopen.remaining-media | 원출력 8522행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/29 LP02.exact-source | 원출력 8526행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/29 reopen.remaining-media | 원출력 8528행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/30 LP02.exact-source | 원출력 8532행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/30 reopen.remaining-media | 원출력 8534행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/31 LP02.exact-source | 원출력 8538행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite · LP17/reopen/sqlite/31 reopen.remaining-media | 원출력 8540행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-sqlite 실행 | exit0 · 27866ms · raw 8633행 | PASS | process group cleanup=true |
+| reopen-C-jsonl · LP17/reopen/jsonl LP02.journal-reopen | 원출력 8640행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl LP02.catalog-reopen | 원출력 8655행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/0 LP02.exact-source | 원출력 8664행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/0 deleted.public-hidden | 원출력 8665행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/0 reopen.deleted-state | 원출력 8667행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/1 LP02.exact-source | 원출력 8671행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/1 reopen.remaining-media | 원출력 8673행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/2 LP02.exact-source | 원출력 8677행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/2 reopen.remaining-media | 원출력 8679행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/3 LP02.exact-source | 원출력 8683행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/3 reopen.remaining-media | 원출력 8685행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/4 LP02.exact-source | 원출력 8689행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/4 reopen.remaining-media | 원출력 8691행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/5 LP02.exact-source | 원출력 8695행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/5 reopen.remaining-media | 원출력 8697행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/6 LP02.exact-source | 원출력 8701행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/6 reopen.remaining-media | 원출력 8703행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/7 LP02.exact-source | 원출력 8707행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/7 reopen.remaining-media | 원출력 8709행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/8 LP02.exact-source | 원출력 8713행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/8 reopen.remaining-media | 원출력 8715행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/9 LP02.exact-source | 원출력 8719행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/9 reopen.remaining-media | 원출력 8721행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/10 LP02.exact-source | 원출력 8725행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/10 reopen.remaining-media | 원출력 8727행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/11 LP02.exact-source | 원출력 8731행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/11 reopen.remaining-media | 원출력 8733행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/12 LP02.exact-source | 원출력 8737행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/12 reopen.remaining-media | 원출력 8739행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/13 LP02.exact-source | 원출력 8743행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/13 reopen.remaining-media | 원출력 8745행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/14 LP02.exact-source | 원출력 8749행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/14 reopen.remaining-media | 원출력 8751행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/15 LP02.exact-source | 원출력 8755행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/15 reopen.remaining-media | 원출력 8757행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/16 LP02.exact-source | 원출력 8761행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/16 reopen.remaining-media | 원출력 8763행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/17 LP02.exact-source | 원출력 8767행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/17 reopen.remaining-media | 원출력 8769행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/18 LP02.exact-source | 원출력 8773행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/18 reopen.remaining-media | 원출력 8775행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/19 LP02.exact-source | 원출력 8779행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/19 reopen.remaining-media | 원출력 8781행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/20 LP02.exact-source | 원출력 8785행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/20 reopen.remaining-media | 원출력 8787행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/21 LP02.exact-source | 원출력 8791행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/21 reopen.remaining-media | 원출력 8793행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/22 LP02.exact-source | 원출력 8797행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/22 reopen.remaining-media | 원출력 8799행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/23 LP02.exact-source | 원출력 8803행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/23 reopen.remaining-media | 원출력 8805행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/24 LP02.exact-source | 원출력 8809행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/24 reopen.remaining-media | 원출력 8811행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/25 LP02.exact-source | 원출력 8815행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/25 reopen.remaining-media | 원출력 8817행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/26 LP02.exact-source | 원출력 8821행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/26 reopen.remaining-media | 원출력 8823행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/27 LP02.exact-source | 원출력 8827행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/27 reopen.remaining-media | 원출력 8829행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/28 LP02.exact-source | 원출력 8833행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/28 reopen.remaining-media | 원출력 8835행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/29 LP02.exact-source | 원출력 8839행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/29 reopen.remaining-media | 원출력 8841행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/30 LP02.exact-source | 원출력 8845행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/30 reopen.remaining-media | 원출력 8847행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/31 LP02.exact-source | 원출력 8851행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl · LP17/reopen/jsonl/31 reopen.remaining-media | 원출력 8853행 직접 assertion | PASS | 실제 결과 |
+| reopen-C-jsonl 실행 | exit0 · 20502ms · raw 8946행 | PASS | process group cleanup=true |
+| source-unchanged | raw 8948행 · 해당 없음ms | PASS | 비용·HTTP 최종 판정과 분리 |
+| run-result | raw 8950행 · 273589ms | PASS | 비용·HTTP 최종 판정과 분리 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| <owned-root>/store-A | 격리 검증 소유물 | 184356502B | 삭제 | removed=true | 원출력 3035행; group 종료 후 실행 |
+| <owned-root>/store-B | 격리 검증 소유물 | 184356502B | 삭제 | removed=true | 원출력 5985행; group 종료 후 실행 |
+| <owned-root>/store-C | 격리 검증 소유물 | 184356502B | 삭제 | removed=true | 원출력 8947행; group 종료 후 실행 |
+| <owned-root> | 격리 검증 소유물 | 65406430B | 삭제 | removed=true | 원출력 8949행; group 종료 후 실행 |
+
+### lp17-jobs-lp21-01
+
+[원출력](lp17-jobs-lp21-01.txt), 168977B, SHA256 `cddeaf74f8b8fdd87ff2f27021f1536550dde91025a00ee6a7c27120ca549dd9`. 비민감 cost·hash·assertion만 보존하며 media/credential 원문은 없다. 토큰은 전용집계 부재로 미집계다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| runtime-freshness 실행 | exit0 · 373ms · raw 22행 | PASS | process group cleanup=true |
+| compile · FC01 exact insertion checks count=102 | 원출력 28행 직접 assertion | PASS | 실제 결과 |
+| compile 실행 | exit0 · 4885ms · raw 54행 | PASS | process group cleanup=true |
+| job-B · D08.input-keyframes | 원출력 57행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.source-shape | 원출력 59행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.selection-complete | 원출력 60행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.expected-intent-built | 원출력 61행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.admission | 원출력 62행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.expected-state | 원출력 116행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.canonical-intent | 원출력 117행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.canonical-record-roundtrip | 원출력 118행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.expected-state | 원출력 153행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.canonical-intent | 원출력 154행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.files-receipt | 원출력 155행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.canonical-record-roundtrip | 원출력 156행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.expected-state | 원출력 199행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.canonical-intent | 원출력 200행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.files-receipt | 원출력 201행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.canonical-record-roundtrip | 원출력 202행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.ready-verified-proof | 원출력 203행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.expected-state | 원출력 256행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.canonical-intent | 원출력 257행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.files-receipt | 원출력 258행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.canonical-record-roundtrip | 원출력 259행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.canonical-ready-preserved | 원출력 260행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.expected-state | 원출력 289행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.canonical-intent | 원출력 290행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.files-receipt | 원출력 291행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.canonical-record-roundtrip | 원출력 292행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.canonical-ready-preserved | 원출력 293행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.protection-released | 원출력 294행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.run-complete | 원출력 302행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.actual-output-hash | 원출력 303행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.selection-complete | 원출력 304행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.expected-intent-built | 원출력 305행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.admission | 원출력 306행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.expected-state | 원출력 360행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.canonical-intent | 원출력 361행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.canonical-record-roundtrip | 원출력 362행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.expected-state | 원출력 397행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.canonical-intent | 원출력 398행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.files-receipt | 원출력 399행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.canonical-record-roundtrip | 원출력 400행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.expected-state | 원출력 443행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.canonical-intent | 원출력 444행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.files-receipt | 원출력 445행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.canonical-record-roundtrip | 원출력 446행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.ready-verified-proof | 원출력 447행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.expected-state | 원출력 500행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.canonical-intent | 원출력 501행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.files-receipt | 원출력 502행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.canonical-record-roundtrip | 원출력 503행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.canonical-ready-preserved | 원출력 504행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.expected-state | 원출력 533행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.canonical-intent | 원출력 534행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.files-receipt | 원출력 535행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.canonical-record-roundtrip | 원출력 536행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.canonical-ready-preserved | 원출력 537행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.protection-released | 원출력 538행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.run-complete | 원출력 546행 직접 assertion | PASS | 실제 결과 |
+| job-B · D08.actual-output-hash | 원출력 547행 직접 assertion | PASS | 실제 결과 |
+| job-B · CP01.actual-ready-complete-shape-canonical-files-reservation | 원출력 548행 직접 assertion | PASS | 실제 결과 |
+| job-B · CP02.two-jobs-over-1MiB-canonical-transitions | 원출력 549행 직접 assertion | PASS | 실제 결과 |
+| job-B 실행 | exit0 · 6499ms · raw 593행 | PASS | process group cleanup=true |
+| job-C · D08.input-keyframes | 원출력 597행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.source-shape | 원출력 599행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.selection-complete | 원출력 600행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.expected-intent-built | 원출력 601행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.admission | 원출력 602행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.expected-state | 원출력 656행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.canonical-intent | 원출력 657행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.canonical-record-roundtrip | 원출력 658행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.expected-state | 원출력 693행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.canonical-intent | 원출력 694행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.files-receipt | 원출력 695행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.canonical-record-roundtrip | 원출력 696행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.expected-state | 원출력 739행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.canonical-intent | 원출력 740행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.files-receipt | 원출력 741행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.canonical-record-roundtrip | 원출력 742행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.ready-verified-proof | 원출력 743행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.expected-state | 원출력 796행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.canonical-intent | 원출력 797행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.files-receipt | 원출력 798행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.canonical-record-roundtrip | 원출력 799행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.canonical-ready-preserved | 원출력 800행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.expected-state | 원출력 829행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.canonical-intent | 원출력 830행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.files-receipt | 원출력 831행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.canonical-record-roundtrip | 원출력 832행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.canonical-ready-preserved | 원출력 833행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.protection-released | 원출력 834행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.run-complete | 원출력 842행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.actual-output-hash | 원출력 843행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.selection-complete | 원출력 844행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.expected-intent-built | 원출력 845행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.admission | 원출력 846행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.expected-state | 원출력 900행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.canonical-intent | 원출력 901행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.canonical-record-roundtrip | 원출력 902행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.expected-state | 원출력 937행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.canonical-intent | 원출력 938행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.files-receipt | 원출력 939행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.canonical-record-roundtrip | 원출력 940행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.expected-state | 원출력 983행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.canonical-intent | 원출력 984행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.files-receipt | 원출력 985행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.canonical-record-roundtrip | 원출력 986행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.ready-verified-proof | 원출력 987행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.expected-state | 원출력 1040행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.canonical-intent | 원출력 1041행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.files-receipt | 원출력 1042행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.canonical-record-roundtrip | 원출력 1043행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.canonical-ready-preserved | 원출력 1044행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.expected-state | 원출력 1073행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.canonical-intent | 원출력 1074행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.files-receipt | 원출력 1075행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.canonical-record-roundtrip | 원출력 1076행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.canonical-ready-preserved | 원출력 1077행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.protection-released | 원출력 1078행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.run-complete | 원출력 1086행 직접 assertion | PASS | 실제 결과 |
+| job-C · D08.actual-output-hash | 원출력 1087행 직접 assertion | PASS | 실제 결과 |
+| job-C · CP01.actual-ready-complete-shape-canonical-files-reservation | 원출력 1088행 직접 assertion | PASS | 실제 결과 |
+| job-C · CP02.two-jobs-over-1MiB-canonical-transitions | 원출력 1089행 직접 assertion | PASS | 실제 결과 |
+| job-C 실행 | exit0 · 4749ms · raw 1133행 | PASS | process group cleanup=true |
+| job-input-equality | raw 1135행 · 해당 없음ms | PASS | 비용·HTTP 최종 판정과 분리 |
+| source-unchanged | raw 1136행 · 해당 없음ms | PASS | 비용·HTTP 최종 판정과 분리 |
+| run-result | raw 1138행 · 16755ms | PASS | 비용·HTTP 최종 판정과 분리 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| <owned-root>/job-B | 격리 검증 소유물 | 5147594B | 삭제 | removed=true | 원출력 594행; group 종료 후 실행 |
+| <owned-root>/job-C | 격리 검증 소유물 | 5147594B | 삭제 | removed=true | 원출력 1134행; group 종료 후 실행 |
+| <owned-root> | 격리 검증 소유물 | 19646420B | 삭제 | removed=true | 원출력 1137행; group 종료 후 실행 |
+
 ## LP21 동시 조회 도구와 측정 결과
 
 실제 HTTP/카메라32개 검증이 아닌 격리 catalog 비교다. 제품 수정 없음. token 집계 미제공, 명령·source/exit/elapsed는 원출력에 보존한다.

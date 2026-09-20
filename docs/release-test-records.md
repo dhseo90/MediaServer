@@ -10,10 +10,10 @@
 
 | 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
 | --- | --- | --- | --- | --- |
-| 1 | 누적·동시 비용 확인 | 준비 중 | 기존sources/2-job과 신규 대기보호 동시 검사 분리 | 아래 실행 전 계약 |
+| 1 | 누적·동시 비용 확인 | 완료 | sources742·jobs121·동시query19 및 도구 자체18 PASS, 한계 명시 | 아래 LP21 비용 판정 |
 | 2 | 실제 HTTP 단기 확인 | 미실행 | 1번 선수 충족 후 latency-only | P0-HTTP02 |
 | 3 | 현행 통합 한 번 실행 | 미실행 | 2번 이후 기존5단계 안에서 실제 앱·재기동 확인 | S11-CI01/07~11 |
-| 4 | 분할 커밋 | 미실행 | 검증·기록을 마친 단위만 수행 | AGENTS3/5 |
+| 4 | 분할 커밋 | 진행 중 | 준비38b32a3a·query a807e828, 비용 증적은 후속 커밋 | AGENTS3/5 |
 | 5 | 푸시 가능 판정·잔여 보고 | 미완료 | 위 단계 결과와 누적 미해소를 직접 대조 | AGENTS5.2/6 |
 
 | 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/기능 ID | 실행 승인 상태 |
@@ -111,6 +111,36 @@ query32는284.232/433.230ms. 최장잠금16은24.999/298.813ms,32는24.842/298.1
 커밋 전 staged diffcheck는 원출력 파일 끝의 빈 줄1개로 exit2였다. 그 빈 줄만 제거했으며
 원출력1~41행·실행 결과는 그대로다. 정규화 전 SHA256은 `a6788d035e86d09e044b3ccdfe5c8d26935d2eefab0d6e2f35d3427e8a7467ba`였다.
 개별assertion/phase/원출력hash 및 소유정리15행은 [LP21 도구 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md#lp21-동시-조회-도구와-측정-결과)에 보존했다.
+
+### LP21 비용 판정과 실제 HTTP 진입
+
+`sources lp21-01` exit0/273589ms·12phase·742 직접assertion, `jobs lp21-01` exit0/16755ms·4phase·121 직접assertion PASS.
+둘 다 HEAD a807e828, source manifest `c9e566fcd40006b6e605634b70b4df84f2942346a84fd5e048be548b447d1ad7` 불변이다.
+runtime freshness/계측복제본 빌드와 process group·소유root 정리 PASS. 통계상 productPass:false는
+진단 runner가 제품/HTTP 최종 판정을 대신하지 않는 고정 필드이며 기능 실패가 아니다. 메인은 아래 근거로 이번 독립 비용 범위를 닫는다.
+
+| 대상 | 16개 | 32개 | 판정·한계 |
+| --- | ---: | ---: | --- |
+| B 정상commit 잠금1회 | 295.210ms | 300.691ms | LP19의817.120/1221.201ms 대비 감소. 동일 신입력 검증은 유지 |
+| B 자동no-op | 6.835ms / 17261179B 읽기 | 12.813ms / 34522475B 읽기 | 과거 Parse/Serialize 없음. 원문 읽기 O(H)는 남으며 무한 scale 보장 아님 |
+| B all-source snapshot wall | 2190.809ms | 4231.835ms | 모든16/32개 반환·canonical 동일. HTTP 응답시간이 아님 |
+| B snapshot 잠금 합계/횟수 | 397.142ms /18 | 768.068ms /34 | 전체wall과 단일최장 점유로 오독하지 않음. 보호조회 max는 앞선query에서 별도 계측 |
+| B explicit CP 잠금1회 | 2132.244ms | 2522.828ms | 수동 strict 경계의 비용. 자동no-op가 shadow를 갱신하지 않아32개 시 지난16원본32행 검증1730.202ms가 포함됨 |
+| B commit 이후 RSS | 77381632B | 130170880B | fixture·allocator 포함. 제품만의 상주량으로 확대하지 않음 |
+
+B 32개 전체phase peak RSS272400384B, 재개방SQLite311574528B/JSONL217907200B. A/C까지 모두 기존512MiB 관찰 기준 이내다.
+typed 상세 비상주·원본/hash·삭제/tombstone·재개방의 기존 개별assertion을 유지했다. 총 메모리 감소율이나 누수 부재를 이 단기 검사만으로 주장하지 않는다.
+`jobs`는 B/C 각각60개+계측1=121개, 동일501AU 입력hash·두작업 canonical·Ready/Complete·실제 output hash를 확인했다.
+B Ready 단일잠금138.357/137.339ms, Complete124.591/124.253ms이며 자동no-op는0.629/1.095ms다.
+이 결과는 실제 앱 이벤트 두기동/HTTP·장시간·하드웨어 decode 판정을 대신하지 않는다.
+
+수동 CP32의 LP19 805.027ms→2522.828ms 증가는 미확정 증가로 숨기지 않는다. LP21 원출력5153~5171의 strict suffix 적용과
+제품 `AppendAndApplyLocked`의 적격no-op/부적격strict 분기로 설명된다. 같은 입력의 임의 반복이나 timeout 변경 없이
+이번 비용 조건에서 실제HTTP 단기 확인으로 진입 가능하다고 판정한다. 후보변경·복구 strict 경계는 기존 LP20 안전 회귀와 이 재개방 결과를 함께 사용한다.
+개별 결과884행·소유정리7행과 원출력 hash는 [누적·작업 전이 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md#lp21-누적-저장소와-작업-전이-개별-결과)에 보존했다.
+2번 HTTP와3번 실제 통합은 아직 미실행이며, 실패 시 이 단기 비용 PASS를 대체 근거로 쓰지 않는다.
+비용 기록의 문서검증: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links` exit0/0.038575초,
+md285·links9023·images22·anchors124·failures0. `git diff --check` exit0. 문서검증 신규 임시물 없음.
 
 ## 2026-09-20 LP20 미커밋 정리·비용/조회/종료 계약 보완
 
