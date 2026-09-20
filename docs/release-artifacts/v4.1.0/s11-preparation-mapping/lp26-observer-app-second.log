@@ -1,0 +1,5 @@
+[pass] LP26-O05 original bounded retention fixture
+[fail] current observation: server-start-failed
+[process-cleanup] {"schema":"recording-process-cleanup-v1","attemptCount":1,"pid":53910,"exitCode":1,"signalCode":null,"exitedObserved":true,"stopCode":"abnormal-exit","forcedTermination":"unknown","normalExitPass":false,"normalShutdownPass":false,"archiveSafe":true,"ports":[{"kind":"http","port":51254,"status":"pass","code":"closed","closed":true},{"kind":"rtsp","port":51255,"status":"pass","code":"closed","closed":true}]}
+{"mode":"current-app-observe-short","passed":1,"failed":2,"elapsedMs":1634,"verifiedDurationMs":null,"longrunObservationCompleted":false,"shortPreparationPass":false,"resourceTrendPass":false,"reviewRequired":true,"uiFulltestPass":false,"phase":null,"resources":null,"processCount":1,"processesClosed":false,"udpClosed":true,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음"}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-mamQxV","bytes":69871547,"absent":true}

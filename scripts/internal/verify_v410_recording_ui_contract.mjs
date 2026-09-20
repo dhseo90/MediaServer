@@ -9,6 +9,7 @@ import crypto from "node:crypto";
 import { spawn, execFileSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import {startRecordingUiRangeProxy,finishRecordingUiProxy} from './recording_ui_range_proxy.mjs';
+import {validateCurrentUiSeed} from './recording_current_ui_seed.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -646,6 +647,7 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
   if (!uiAuth && process.argv.slice(3).includes('--ui-seek-fixture')) throw new Error('seek fixture requires UI auth direct mode');
   const httpPasswords=mode==='--http-auth'?createUiAuthPasswords():null;
   let httpSeed=null;
+  let currentUiSeed=null;
 
   let root = "";
   let rtspPort = 0;
@@ -683,8 +685,14 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
       httpSeed=validateHttpSeedManifest(root,JSON.parse(fs.readFileSync(manifest,'utf8')));
       console.log('[seed-subcheck] PASS D3D-01 generated2출력 manifest/containment/hash');
     } else if (mode === '--ui-direct' || uiAuth) {
-      execFileSync('bash', [path.join(repo, 'scripts/internal/verify_v410_recording_timeline.sh'), (mode === '--ui-direct' || uiAuth) ? '--seed-ui' : '--seed-http', path.join(root, 'recordings'), fixture], { cwd: repo, stdio: 'inherit',
-        env: uiSeedEnvironment(uiAuth ? uiAuth.anchor : null,process.env,seekFixture?.file??null) });
+      const manifest=path.join(root,'ui-seed-manifest.json');
+      execFileSync('bash', [path.join(repo, 'scripts/internal/verify_recording_current_ui_seed.sh'), path.join(root, 'recordings'),manifest,
+        uiAuth?String(uiAuth.anchor):'unknown',seekFixture?.file??'none'], { cwd: repo, stdio: 'inherit',env:uiSeedEnvironment() });
+      currentUiSeed=JSON.parse(fs.readFileSync(manifest,'utf8'));
+      validateCurrentUiSeed(root,currentUiSeed);
+      console.log('[ui-seed] current-managed; mapping units; seek=original-MP4; events=derived-TS; actualUiPass=false');
+      console.log('[ui-seed-selection] '+JSON.stringify({seekSegmentId:currentUiSeed.seek?.id??null,
+        eventOutputIds:currentUiSeed.jobs.filter(job=>['full','partial'].includes(job.name)).map(job=>({scenario:job.name,ids:job.outputs.map(output=>output.id)})),actualUiPass:false}));
     }
     rtspPort = await reservePort();
     httpPort = await reservePort();

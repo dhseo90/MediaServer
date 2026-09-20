@@ -7,30 +7,50 @@ import crypto from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {uiAuthPreparationOptions,createUiAuthPasswords,writeUiLoginHandoff,bootstrapRecordingUiAuth,uiLiveSource,uiSeedEnvironment,createUiSeekFixture,validateUiSeekProbe} from './verify_v410_recording_ui_contract.mjs';
+import {validateCurrentUiSeed} from './recording_current_ui_seed.mjs';
 const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
-const root=fs.mkdtempSync(path.join(os.tmpdir(),'s09-ui-auth-prep-test-'));
+const startedAt=Date.now();
+if(process.argv.includes('--lp26-contract-only')) {
+  const current=fs.existsSync(path.join(repo,'scripts/internal/recording_current_ui_seed.mjs'))&&
+    fs.readFileSync(path.join(repo,'scripts/internal/verify_v410_recording_ui_contract.mjs'),'utf8').includes("'scripts/internal/verify_recording_current_ui_seed.sh'");
+  console.log(`${current?'PASS':'FAIL'}: LP26-U01 current managed UI seed entry contract`);
+  process.exit(current?0:1);
+}
+const root=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'media-server-current-ui-seed.')));
 let pass=0,fail=0;
 function check(name,fn){try{fn();pass++;console.log('PASS: '+name);}catch{fail++;console.log('FAIL: '+name);}}
 function assert(x){if(!x)throw Error('assertion');}
 function checkSeedCleanup(result, label) {
   check(label, () => {
     const lines = String(result.stdout || '').split(/\r?\n/);
-    const sizes = lines.map(line => /^(\d+)\t(.+)$/.exec(line)).filter(Boolean);
-    const removed = lines.filter(line => line.startsWith('[pass] read-model 임시 root 삭제 확인: '));
-    assert(result.status === 0 && sizes.length === 1 && removed.length === 1);
-    const target = sizes[0][2];
+    const cleanup = lines.filter(line => line.startsWith('[cleanup] ')).map(line=>JSON.parse(line.slice(10)));
+    assert(result.status === 0 && cleanup.length === 1);
+    const target = cleanup[0].path;
     assert(path.isAbsolute(target) && path.normalize(target) === target &&
       path.dirname(target) === fs.realpathSync(os.tmpdir()) &&
-      /^media-server-s06-read\.[A-Za-z0-9]+$/.test(path.basename(target)) &&
-      Number.isSafeInteger(Number(sizes[0][1])));
-    assert(removed[0] === `[pass] read-model 임시 root 삭제 확인: ${target}`);
-    // 전체 seed 출력은 전달하지 않는다. 검증된 소유 경로·KiB·삭제행만 보존한다.
-    console.log(sizes[0][0]);
-    console.log(removed[0]);
+      /^media-server-current-ui-seed\.[A-Za-z0-9]+$/.test(path.basename(target)) &&
+      Number.isSafeInteger(cleanup[0].bytes)&&cleanup[0].removed===true);
+    console.log('[cleanup] '+JSON.stringify(cleanup[0]));
     let absent = false;
     try { fs.lstatSync(target); } catch (error) { absent = error.code === 'ENOENT'; }
     assert(absent);
   });
+}
+function seedCase(name,anchor,seek='none'){
+  const caseRoot=path.join(root,'media-server-current-ui-seed.'+name);fs.mkdirSync(caseRoot);
+  // seek 입력은 반드시 seed 소유 parent 아래에만 둔다.
+  let input='none';if(seek!=='none'){fs.mkdirSync(path.join(caseRoot,'input'));input=path.join(caseRoot,'input/seek-event.mp4');fs.copyFileSync(seek,input);}
+  const manifest=path.join(caseRoot,'manifest.json');
+  const run=spawnSync('bash',[path.join(repo,'scripts/internal/verify_recording_current_ui_seed.sh'),path.join(caseRoot,'recordings'),manifest,anchor===null?'unknown':String(anchor),input],
+    {cwd:repo,encoding:'utf8',timeout:120000,env:uiSeedEnvironment()});
+  for(const line of String(run.stdout||'').split(/\r?\n/).filter(Boolean))console.log(`[seed-${name}] ${line}`);
+  const warnings=String(run.stderr||'').split(/\r?\n/).filter(Boolean);
+  for(const line of warnings)if(line==='[recording] file evidence unavailable: file evidence profile/bound 오류')console.log(`[seed-${name}] ${line}`);
+  checkSeedCleanup(run,`UA08-${name} current seed compile root cleanup`);
+  if(run.status!==0){console.log(JSON.stringify({seedCase:name,seedExit:run.status,signal:run.signal,diagnostics:(run.stderr||'').split('\n').filter(x=>/^FAIL:|error:|warning:/.test(x)).slice(0,8)}));throw Error('current seed preparation failed');}
+  if(warnings.some(line=>line!=='[recording] file evidence unavailable: file evidence profile/bound 오류'))throw Error('unexpected seed diagnostics: private raw output not emitted');
+  const seed=JSON.parse(fs.readFileSync(manifest,'utf8'));const summary=validateCurrentUiSeed(caseRoot,seed);
+  console.log('[ui-seed-summary] '+JSON.stringify({case:name,...summary}));return {root:caseRoot,seed};
 }
 try {
   check('SF01 optional seek fixture is accepted only with explicit UI anchor',()=>{
@@ -49,7 +69,7 @@ try {
     assert(uiAuthPreparationOptions(['--ui-anchor-utc-ms','1789084800000']).holdMs===3600000);
   });
   const passwords=createUiAuthPasswords();
-  check('UA05 inherited anchor and auth values are removed from legacy seed environment',()=>{
+  check('UA05 inherited anchor and auth values are removed from seed environment',()=>{
     const e=uiSeedEnvironment(null,{PATH:'local',MEDIA_SERVER_VERIFY_RECORDING_UI_EVENT_MEDIA:'foreign',MEDIA_SERVER_VERIFY_RECORDING_UI_ANCHOR_UTC_MS:'1789084800000',MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD:passwords[0]});
     assert(!Object.hasOwn(e,'MEDIA_SERVER_VERIFY_RECORDING_UI_EVENT_MEDIA'));
     assert(e.PATH==='local'&&!Object.hasOwn(e,'MEDIA_SERVER_VERIFY_RECORDING_UI_ANCHOR_UTC_MS')&&!Object.hasOwn(e,'MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD'));
@@ -84,23 +104,15 @@ try {
     const r=spawnSync(process.execPath,[path.join(repo,'scripts/internal/verify_v410_recording_ui_contract.mjs'),'--ui-auth-direct'],{encoding:'utf8'});
     assert(r.status!==0 && r.stderr.includes('UI anchor required'));
   });
-  const seed=spawnSync('bash',[path.join(repo,'scripts/internal/verify_v410_recording_timeline.sh'),'--seed-ui',root,path.join(repo,'video/sample_h264_video_only.mp4')],{cwd:repo,encoding:'utf8',timeout:120000,env:{...process.env,MEDIA_SERVER_VERIFY_RECORDING_UI_ANCHOR_UTC_MS:'1789084800000'}});
-  checkSeedCleanup(seed, 'UA08-A anchored seed compile root cleanup');
-  if(seed.status!==0)console.log(JSON.stringify({seedExit:seed.status,signal:seed.signal,compilerDiagnostics:(seed.stderr||'').split('\n').filter(x=>/error:|warning:/.test(x)).slice(0,8),seedStages:(seed.stderr||'').split('\n').filter(x=>/^\[seed-failure\] [a-z-]+$/.test(x))}));
-  check('UA06 actual seed command completes',()=>assert(seed.status===0));
-  check('UA06 actual catalog preserves anchored corrupt deleted and pending states',()=>{
-    const rows=fs.readFileSync(path.join(root,'recording-mutations.jsonl'),'utf8');
-    assert(rows.includes('1789084801000')&&rows.includes('ui-corrupt')&&rows.includes('ui-deleted')&&rows.includes('ui-incomplete')&&rows.includes('deletion_completed'));
-    assert(seed.stdout.includes('anchored corrupt/deleted media blocked'));
-    assert(!fs.existsSync(path.join(root,'channel-1/ui-deleted.mp4')));
+  const anchored=seedCase('anchored',1789084800000);
+  check('UA06 LP26-U02~06 actual managed catalog anchored scenarios and reopen',()=>assert(validateCurrentUiSeed(anchored.root,anchored.seed).known>100));
+  const unanchored=seedCase('unknown',null);
+  check('UA05 LP26-U02 no anchor remains unknown rather than fake 1970 UTC',()=>{
+    const result=validateCurrentUiSeed(unanchored.root,unanchored.seed);assert(result.known===0&&result.unknown>100&&unanchored.seed.anchorUtcMs===null);
   });
-  const legacy=path.join(root,'legacy');fs.mkdirSync(legacy);
-  const env={...process.env};delete env.MEDIA_SERVER_VERIFY_RECORDING_UI_ANCHOR_UTC_MS;
-  const old=spawnSync('bash',[path.join(repo,'scripts/internal/verify_v410_recording_timeline.sh'),'--seed-ui',legacy,path.join(repo,'video/sample_h264_video_only.mp4')],{cwd:repo,encoding:'utf8',timeout:120000,env});
-  checkSeedCleanup(old, 'UA08-B legacy seed compile root cleanup');
-  check('UA05 legacy UI seed retains original time and excludes new states',()=>{
-    assert(old.status===0);const rows=fs.readFileSync(path.join(legacy,'recording-mutations.jsonl'),'utf8');
-    assert(rows.includes('1000')&&!rows.includes('1789084801000')&&!rows.includes('ui-incomplete')&&!rows.includes('ui-corrupt'));
+  check('LP26-U01~05 invalid anchor duplicate row hash and completeness rejected',()=>{
+    const invalid=[s=>{s.anchorUtcMs='1000';},s=>{s.pages[0].items[1]=s.pages[0].items[0];},s=>{s.original.sha256='0'.repeat(64);},s=>{s.jobs[0].outputs.pop();}];
+    for(const change of invalid){const seed=structuredClone(anchored.seed);change(seed);let rejected=false;try{validateCurrentUiSeed(anchored.root,seed);}catch{rejected=true;}assert(rejected);}
   });
   fs.mkdirSync(path.join(root,'input'));fs.mkdirSync(path.join(root,'tmp'));
   const seek=createUiSeekFixture(root);
@@ -112,24 +124,20 @@ try {
     for(const bad of [{...good,streams:[]},{...good,streams:[...good.streams,{codec_type:'audio'}]},{...good,format:{duration:'11'}},{...good,packets:[{flags:'__'}]}]){let rejected=false;try{validateUiSeekProbe(bad);}catch{rejected=true;}assert(rejected);}
     const badRoot=path.join(root,'bad');fs.mkdirSync(badRoot);fs.symlinkSync(path.join(root,'input'),path.join(badRoot,'input'));let rejected=false;try{createUiSeekFixture(badRoot);}catch{rejected=true;}assert(rejected);fs.unlinkSync(path.join(badRoot,'input'));fs.rmdirSync(badRoot);
   });
-  const seekRoot=path.join(root,'seek-catalog');fs.mkdirSync(seekRoot);
-  const override=spawnSync('bash',[path.join(repo,'scripts/internal/verify_v410_recording_timeline.sh'),'--seed-ui',seekRoot,path.join(repo,'video/sample_h264_video_only.mp4')],{cwd:repo,encoding:'utf8',timeout:120000,env:uiSeedEnvironment(1789084800000,process.env,seek.file)});
-  checkSeedCleanup(override, 'UA08-C seek seed compile root cleanup');
-  const hash=file=>crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
-  check('SF04 only http-event catalog binds actual seek fixture size and SHA',()=>{
-    assert(override.status===0);const event=path.join(seekRoot,'channel-1/http-event.mp4');assert(hash(event)===hash(seek.file));
-    const rows=fs.readFileSync(path.join(seekRoot,'recording-mutations.jsonl'),'utf8').split('\n').filter(Boolean).map(JSON.parse);
-    const finalized=rows.find(row=>row.mutationType==='segment_finalized'&&row.payload.segment.segment_id==='http-event');
-    assert(finalized.payload.segment.size_bytes===seek.sizeBytes&&finalized.payload.segment.checksum_sha256===hash(seek.file));
+  const withSeek=seedCase('seek',1789084800000,seek.file);
+  check('SF04 LP26-U08 managed original seek file actual size SHA and duration',()=>{
+    const info=withSeek.seed.seek;assert(info&&info.contentType==='video/mp4');
+    const file=path.join(withSeek.root,'recordings',info.relativePath);
+    assert(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')===info.sha256);
+    const probe=spawnSync('ffprobe',['-v','error','-show_entries','format=duration:stream=codec_type,codec_name,width,height','-read_intervals','%+#1','-show_packets','-of','json',file],{encoding:'utf8',timeout:30000});
+    assert(probe.status===0);validateUiSeekProbe(JSON.parse(probe.stdout));
   });
-  check('SF05 other seeded media retain small original bytes',()=>{
-    assert(override.status===0);const expected=hash(path.join(repo,'video/sample_h264_video_only.mp4'));
-    const files=fs.readdirSync(path.join(seekRoot,'channel-1')).filter(name=>!['http-event.mp4','ui-corrupt.mp4'].includes(name));assert(files.length===102);
-    assert(files.every(name=>hash(path.join(seekRoot,'channel-1',name))===expected));
+  check('SF05 LP26-U08 other originals remain short and actual derived outputs remain TS',()=>{
+    const seed=withSeek.seed;assert(seed.original.sizeBytes<seed.seek.sizeBytes&&seed.jobs.every(j=>j.outputs.every(o=>o.contentType==='video/mp2t'&&o.id!==seed.seek.id)));
   });
 } finally {
   let bytes=0;function count(p){for(const e of fs.readdirSync(p,{withFileTypes:true})){const f=path.join(p,e.name);if(e.isDirectory())count(f);else bytes+=fs.lstatSync(f).size;}}count(root);
   fs.rmSync(root,{recursive:true});let absent=false;try{fs.lstatSync(root);}catch(e){absent=e.code==='ENOENT';}
   check('UA08 test root cleanup',()=>assert(absent));console.log(`[cleanup] ${root} bytes=${bytes} absent=${absent}`);
 }
-console.log(JSON.stringify({pass,fail,actualUi:false}));process.exitCode=fail?1:0;
+console.log(JSON.stringify({pass,fail,actualUi:false,elapsedMs:Date.now()-startedAt,elapsedSource:'Date.now verifier duration'}));process.exitCode=fail?1:0;

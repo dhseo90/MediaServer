@@ -1,0 +1,12 @@
+FAIL RP01 fixed loopback upstream and origin-form target only code=EPERM
+FAIL RP01 same-origin POST preserves proxy Host and external Origin rejection code=EPERM
+FAIL RP02 streaming preserves 206 bytes and Range headers code=EPERM
+FAIL RP03 cookie forwarded but absent from observation code=EPERM
+FAIL RP04 nonmedia and invalid metadata never expose payload code=EPERM
+FAIL RP05 upstream failure records incomplete safely code=EPERM
+FAIL RP06 client disconnect closes upstream and records incomplete code=EPERM
+FAIL RP07 close drains or destroys sockets and releases port code=EPERM
+FAIL RP08 private log mode0600 bounded failure is latched code=ASSERT_OR_BOUNDARY
+PASS RP09 harness proxy cleanup failure still runs owned server cleanup
+[cleanup] {"root":"/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-range-proxy-test-xhuqE1","bytes":0,"absent":true}
+{"pass":1,"fail":9,"elapsedMs":9,"actualUi":false}

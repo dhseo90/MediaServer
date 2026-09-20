@@ -1,0 +1,29 @@
+PASS: SF01 optional seek fixture is accepted only with explicit UI anchor
+PASS: UA01 anchor bounds and unknown options are rejected
+PASS: UA05 inherited anchor and auth values are removed from seed environment
+PASS: UA02 random temporary passwords are distinct with sufficient length
+PASS: UA03 actual bootstrap function orders setup five logins and four users
+PASS: UA04 one-time handoff is mode0600 and refuses overwrite
+PASS: UA07 live source payload distinguishes active quota from blocked reservation
+PASS: UA01 new auth direct mode rejects missing anchor before preparation
+[cleanup] {"path":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.Hj6Xnz","bytes":6810184,"removed":true}
+PASS: UA08-anchored current seed compile root cleanup
+[ui-seed-summary] {"case":"anchored","rows":145,"known":114,"unknown":31,"pages":2,"actualUiPass":false}
+PASS: UA06 LP26-U02~06 actual managed catalog anchored scenarios and reopen
+[cleanup] {"path":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.G9xiSl","bytes":6810184,"removed":true}
+PASS: UA08-unknown current seed compile root cleanup
+[ui-seed-summary] {"case":"unknown","rows":1181,"known":0,"unknown":1181,"pages":12,"actualUiPass":false}
+PASS: UA05 LP26-U02 no anchor remains unknown rather than fake 1970 UTC
+PASS: LP26-U01~05 invalid anchor duplicate row hash and completeness rejected
+PASS: SF02 bounded owned seek fixture generation completes
+PASS: SF03 actual H264 silent 1280x720 ten-second first-keyframe fixture
+[seek-fixture] {"sizeBytes":5357069,"duration":10,"codec":"h264","width":1280,"height":720,"audio":false,"firstKeyframe":true}
+PASS: SF06 malformed media metadata and symlink input directory are rejected
+[cleanup] {"path":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.CZEDcy","bytes":6810184,"removed":true}
+PASS: UA08-seek current seed compile root cleanup
+[ui-seed-summary] {"case":"seek","rows":146,"known":115,"unknown":31,"pages":2,"actualUiPass":false}
+PASS: SF04 LP26-U08 managed original seek file actual size SHA and duration
+PASS: SF05 LP26-U08 other originals remain short and actual derived outputs remain TS
+PASS: UA08 test root cleanup
+[cleanup] /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.oBy2Kn bytes=25828245 absent=true
+{"pass":20,"fail":0,"actualUi":false}

@@ -50,7 +50,7 @@ export function completedCurrentStep(step,result){
 }
 export async function runCurrentIntegration(execute){
   const stages=[];
-  const base={mode:'--current-integration',fullFoundationPass:false,resourceTrendPass:false,uiFulltestPass:false,remaining:['observer-longrun-transition','30min','120min','UI']};
+  const base={mode:'--current-integration',fullFoundationPass:false,resourceTrendPass:false,uiFulltestPass:false,remaining:['final-scope-and-evidence-freeze','30min','120min','UI','resource-trend']};
   for(let i=0;i<currentSteps.length;i++){
     const step=currentSteps[i];
     try{stages.push(completedCurrentStep(step,await execute(step)));}

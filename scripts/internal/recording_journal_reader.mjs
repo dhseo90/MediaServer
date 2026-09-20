@@ -29,7 +29,7 @@ function directories(target) {
   return output;
 }
 export class RecordingJournalReader {
-  constructor(root,file,{chunkBytes=65536,pollBytes=4194304,lineBytes=1048576}={}) {
+  constructor(root,file,{chunkBytes=65536,pollBytes=4194304,lineBytes=1048576,nativeLines=false}={}) {
     this.offset=0;
     this.error=null;
     this.fd=null;
@@ -39,7 +39,9 @@ export class RecordingJournalReader {
     this.file=path.resolve(this.root,file);
     if(this.file===this.root||!this.file.startsWith(this.root+path.sep)) throw fail('root-escape');
     if(![chunkBytes,pollBytes,lineBytes].every(Number.isSafeInteger)||chunkBytes<1||chunkBytes>65536||
-      pollBytes<chunkBytes||pollBytes>4194304||lineBytes<1||lineBytes>1048576||lineBytes>=pollBytes) throw fail('invalid-limits');
+      typeof nativeLines!=='boolean'||pollBytes<chunkBytes||pollBytes>(nativeLines?33554432:4194304)||
+      lineBytes<1||lineBytes>(nativeLines?16777216:1048576)||lineBytes>=pollBytes) throw fail('invalid-limits');
+    this.nativeLines=nativeLines;
     this.chunkBytes=chunkBytes;
     this.pollBytes=pollBytes;
     this.lineBytes=lineBytes;
@@ -85,7 +87,7 @@ export class RecordingJournalReader {
         let start=0;
         for(let lf=data.indexOf(10,start);lf>=0;lf=data.indexOf(10,start)) {
           if(lf-start>this.lineBytes) throw fail('line-limit');
-          if(lf>start) batch.push(envelope(data.subarray(start,lf)));
+          if(lf>start) batch.push(this.nativeLines?new TextDecoder('utf-8',{fatal:true}).decode(data.subarray(start,lf)):envelope(data.subarray(start,lf)));
           lineCount++;
           consumed+=lf-start+1;
           start=lf+1;

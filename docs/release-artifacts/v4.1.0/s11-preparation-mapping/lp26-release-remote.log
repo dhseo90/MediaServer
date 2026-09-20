@@ -1,0 +1,13 @@
+읽기 조회 2026-09-21 KST, 시작 HEAD ee1b7c4d15054da95d884c406dce020e875f5541
+git ls-remote --heads --tags origin refs/heads/main refs/heads/v4.1.0 refs/tags/v4.1.0 refs/tags/v4.1.0^{} refs/tags/v4.0.0 refs/tags/v4.0.0^{} ; exit0
+431397d9b86af69f1690aff6fa6f3e61ea4fbe03 refs/heads/main
+ee1b7c4d15054da95d884c406dce020e875f5541 refs/heads/v4.1.0
+a739712d742ad6c747d7b3a4456726d60f93dbbf refs/tags/v4.0.0
+431397d9b86af69f1690aff6fa6f3e61ea4fbe03 refs/tags/v4.0.0^{}
+v4.1.0 tag matching rows: 0
+gh api repos/dhseo90/MediaServer/releases/latest --jq '{tag_name,html_url,draft,prerelease,target_commitish}' ; exit0
+{"draft":false,"html_url":"https://github.com/dhseo90/MediaServer/releases/tag/v4.0.0","prerelease":false,"tag_name":"v4.0.0","target_commitish":"main"}
+gh pr list --repo dhseo90/MediaServer --head v4.1.0 --state open --json number,title,url,headRefOid,baseRefName,statusCheckRollup ; exit0
+[]
+gh run list --repo dhseo90/MediaServer --branch v4.1.0 --limit 5 --json databaseId,headSha,status,conclusion,workflowName ; exit0
+[]

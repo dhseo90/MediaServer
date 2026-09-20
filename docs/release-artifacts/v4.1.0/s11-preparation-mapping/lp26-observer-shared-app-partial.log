@@ -1,0 +1,30 @@
+[pass] LP26-O05 fixed current executable
+Warning: truncated output (original token count: 3486)
+Total output lines: 89
+
+[pass] LP26-O05 original bounded retention fixture
+[pass] LP26-O05 distinct canonical sources
+[pass] LP26-O05 isolated server healthy
+[pass] LP26-O05 independent initial channels
+[current-observation] {"pid":56590,"startIdentity":"macos:1789947132:847190","sampledAt":1789947134625,"phaseAt":3320.302083,"rssBytes":91258880,"threadCount":29,"fdCount":31,"mutationCount":2,"typeCounts":{"recording_order_reserved":2},"identityBytes":346,"combinedLogicalIds":4,"combinedLogicalBytes":346,"rotations":0,"partialBytes":0,"progress":{"elapsedMs":291.58295799999996,"channels":{"9101":{"finalized":0,"deleted":0,"lastAt":3028.719125,"order":"0","store":null,"knownMappings":0,"unknownMappings":0},"9201":{"finalized":0,"deleted":0,"lastAt":3028.719125,"order":"0","store":null,"knownMappings":0,"unknownMappings":0}},"records":0,"logicalBytes":0},"resourceTrendPass":false}
+[pass] LP26-O05 active 9101
+[pass] LP26-O05 active 9201
+[current-observation] {"pid":56590,"startIdentity":"macos:1789947132:847190","sampledAt":1789947139819,"phaseAt":8514.053041,"rssBytes":216793088,"threadCount":26,"fdCount":31,"mutationCount":10,"typeCounts":{"recording_order_reserved":6,"segment_v2_bound_finalized":4},"identityBytes":1670,"combinedLogicalIds":24,"combinedLogicalBytes":4060,"rotations":0,"partialBytes":0,"progress":{"elapsedMs":5485.333916,"channels":{"9101":{"finalized":2,"deleted":0,"lastAt":8514.053041,"order":"4","store":"c11cf882420aa48669485dcfd5134723c6c60ddb1a26e3930725077f678388f7","knownMappings":2,"unknownMappings":90},"9201":{"finalized":2,"deleted":0,"lastAt":8514.053041,"order":"3","store":"c11cf882420aa48669485dcfd5134723c6c60ddb1a26e3930725077f678388f7","knownMappings":1,"unknownMappings":76}},"records":4,"logicalBytes":2390},"resourceTrendPass":false}
+[pass] LP26-O05 active 9101
+[pass] LP26-O05 active 9201
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O03 deleted media absent
+[current-observation] {"pid":56590,"startIdentity":"macos:1789947132:847190","sampledAt":1789947144935,"phaseAt":13629.658125,"rssBytes":217563136,"threadCount":25,"fdCount":21,"mutationCount":26,"typeCounts":{"recording_order_reserved":10,"segment_v2_bound_finalized":8,"segment_v2_state":4,"segment_v2_deleted":4},"identityBytes":4193,"combinedLogicalIds":60,"combinedLogicalBytes":8973,"rotations":0,"partialBytes":0,"progress":{"elapsedMs":10600.939,"channels":{"9101":{"finalized":4,"deleted":2,"lastAt":13629.658125,"order":"7","store":"c11cf882420aa48669485dcfd5134723c6c60ddb1a26e3930725077f678388f7","knownMappings":3,"unknownMappings":120},"9201":{"finalized":4,"deleted":2,"lastAt":13629.658125,"order":"8","store":"c11cf882420aa48669485dcfd5134723c6c60ddb1a26e3930725077f678388f7","knownMappings":3,"unknownMappings":152}},"records":8,"logicalBytes":4780},"resourceTrendPass":false}
+[pass] LP26-O05 active 9101
+[pass] LP26-O05 active 9201
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O03 deleted media absent
+…1986 tokens truncated…}
+[pass] LP26-O05 recovery copy cleanup
+[server-diagnostic] {"pid":56590,"bytes":1398,"capturedBytes":1398,"sha256":"21e807d8482314ba57db6c4a86015f556d04691ee7a3b6766810c61e63c61a62","overflow":false,"categories":[{"code":"file evidence unavailable","count":0},{"code":"storageBlocked","count":0},{"code":"shutdown","count":0},{"code":"ERROR","count":0},{"code":"WARNING","count":0}],"rawBodyPublished":false,"privateCaptureRemovedWithRoot":true}
+[server-diagnostic] {"pid":56667,"bytes":1398,"capturedBytes":1398,"sha256":"87b7faf323bbe2b76e0d0803d1ae28218ad6e4062d0a39f4509964a336311c8f","overflow":false,"categories":[{"code":"file evidence unavailable","count":0},{"code":"storageBlocked","count":0},{"code":"shutdown","count":0},{"code":"ERROR","count":0},{"code":"WARNING","count":0}],"rawBodyPublished":false,"privateCaptureRemovedWithRoot":true}
+[server-diagnostic] {"pid":56711,"bytes":1398,"capturedBytes":1398,"sha256":"8972d3ed972e0d5af747bccec29e84c674d767f577cfee27771b20455fa206b1","overflow":false,"categories":[{"code":"file evidence unavailable","count":0},{"code":"storageBlocked","count":0},{"code":"shutdown","count":0},{"code":"ERROR","count":0},{"code":"WARNING","count":0}],"rawBodyPublished":false,"privateCaptureRemovedWithRoot":true}
+{"mode":"current-app-observe-short","passed":71,"failed":0,"elapsedMs":46638,"verifiedDurationMs":30124.58325,"longrunObservationCompleted":false,"shortPreparationPass":true,"resourceTrendPass":false,"reviewRequired":true,"uiFulltestPass":false,"phase":{"elapsedMs":30124.58325,"channels":{"9101":{"finalized":14,"deleted":12,"lastAt":33032.158833,"order":"27","store":"c11cf882420aa48669485dcfd5134723c6c60ddb1a26e3930725077f678388f7","knownMappings":10,"unknownMappings":516},"9201":{"finalized":14,"deleted":12,"lastAt":33032.158833,"order":"28","store":"c11cf882420aa48669485dcfd5134723c6c60ddb1a26e3930725077f678388f7","knownMappings":9,"unknownMappings":424}},"records":28,"logicalBytes":16749},"resources":{"resourceTrendPass":false,"reviewRequired":true,"sampleCount":7,"groups":[{"pid":56590,"startIdentity":"macos:1789947132:847190","sampleCount":7,"first":{"phaseAt":3320.302083,"sampledAt":1789947134625,"rssBytes":91258880,"threadCount":29,"fdCount":31,"mutationCount":2},"last":{"phaseAt":33032.158833,"sampledAt":1789947164338,"rssBytes":220168192,"threadCount":25,"fdCount":31,"mutationCount":106},"max":{"rssBytes":220168192,"threadCount":29,"fdCount":31},"delta":{"rssBytes":128909312,"threadCount":-4,"fdCount":0,"mutationCount":104},"elapsedMs":29711.856750000003,"maxGapMs":5193.750957999999,"warmupMs":300000,"postWarmup":{"status":"insufficient","sampleCount":0,"delta":null,"elapsedMs":null,"rssMiBPerMinute":null}}]},"processCount":3,"processesClosed":true,"udpClosed":true,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음"}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-4s2VCX","bytes":293560500,"absent":true}

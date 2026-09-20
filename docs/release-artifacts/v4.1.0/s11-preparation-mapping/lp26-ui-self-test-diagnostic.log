@@ -1,0 +1,8 @@
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+FAIL: current UI seed manifest-location
+[cleanup] {"path":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.NrNl1X","bytes":9319103,"removed":true}
+[elapsed] seconds=2 source=bash-SECONDS actualUiPass=false

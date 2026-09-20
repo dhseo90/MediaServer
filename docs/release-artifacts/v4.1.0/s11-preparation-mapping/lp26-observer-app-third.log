@@ -1,0 +1,7 @@
+[pass] LP26-O05 fixed current executable
+[pass] LP26-O05 original bounded retention fixture
+[pass] LP26-O05 isolated server healthy
+[fail] current observation: http-status-409
+[process-cleanup] {"schema":"recording-process-cleanup-v1","attemptCount":1,"pid":54402,"exitCode":0,"signalCode":null,"exitedObserved":true,"stopCode":"complete","forcedTermination":"not-used","normalExitPass":true,"normalShutdownPass":true,"archiveSafe":true,"ports":[{"kind":"http","port":51350,"status":"pass","code":"closed","closed":true},{"kind":"rtsp","port":51351,"status":"pass","code":"closed","closed":true}]}
+{"mode":"current-app-observe-short","passed":3,"failed":1,"elapsedMs":4345,"verifiedDurationMs":null,"longrunObservationCompleted":false,"shortPreparationPass":false,"resourceTrendPass":false,"reviewRequired":true,"uiFulltestPass":false,"phase":null,"resources":null,"processCount":1,"processesClosed":true,"udpClosed":true,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음"}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-zYHYjw","bytes":84086407,"absent":true}

@@ -1,0 +1,16 @@
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+PASS: LP26-U06-A managed Catalog reopen public timeline and journal unchanged
+PASS: LP26-U01-A current managed UI seed oracle
+PASS: LP26-U02-A current managed UI seed oracle
+PASS: LP26-U03-A current managed UI seed oracle
+PASS: LP26-U04-A current managed UI seed oracle
+PASS: LP26-U05-A current managed UI seed oracle
+[ui-seed-summary] {"rows":145,"known":114,"unknown":31,"pages":2,"actualUiPass":false}
+PASS: LP26-U01-A owned initialized root and manifest refuse overwrite
+PASS: LP26-U01-A invalid owned target rejected without new artifacts
+[cleanup] {"path":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-ui-seed.RytJPI","bytes":9477024,"removed":true}
+[elapsed] seconds=4 source=bash-SECONDS actualUiPass=false

@@ -1,0 +1,90 @@
+[pass] LP26-O05 fixed current executable
+[pass] LP26-O05 original bounded retention fixture
+[pass] LP26-O05 distinct canonical sources
+[pass] LP26-O05 isolated server healthy
+[pass] LP26-O05 independent initial channels
+[current-observation] {"pid":55516,"startIdentity":"macos:1789946492:254329","sampledAt":1789946493754,"phaseAt":3016.856625,"rssBytes":91947008,"threadCount":29,"fdCount":31,"mutationCount":2,"identityBytes":346,"rotations":0,"partialBytes":0,"progress":{"elapsedMs":131.27208299999984,"channels":{"9101":{"finalized":0,"deleted":0,"lastAt":2885.584542,"order":"0","store":null,"knownMappings":0,"unknownMappings":0},"9201":{"finalized":0,"deleted":0,"lastAt":2885.584542,"order":"0","store":null,"knownMappings":0,"unknownMappings":0}},"records":0,"logicalBytes":0},"resourceTrendPass":false}
+[pass] LP26-O05 active 9101
+[pass] LP26-O05 active 9201
+[current-observation] {"pid":55516,"startIdentity":"macos:1789946492:254329","sampledAt":1789946498947,"phaseAt":8209.531917,"rssBytes":212598784,"threadCount":26,"fdCount":25,"mutationCount":6,"identityBytes":1008,"rotations":0,"partialBytes":0,"progress":{"elapsedMs":5323.947375,"channels":{"9101":{"finalized":1,"deleted":0,"lastAt":8209.531917,"order":"1","store":"25f61bd0e4e6ceae6fec3f6f43dd2ff28f28f21623b69f4daa46ce8cdbd751d4","knownMappings":0,"unknownMappings":44},"9201":{"finalized":1,"deleted":0,"lastAt":8209.531917,"order":"2","store":"25f61bd0e4e6ceae6fec3f6f43dd2ff28f28f21623b69f4daa46ce8cdbd751d4","knownMappings":0,"unknownMappings":42}},"records":2,"logicalBytes":1186},"resourceTrendPass":false}
+[pass] LP26-O05 active 9101
+[pass] LP26-O05 active 9201
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O03 deleted media absent
+[current-observation] {"pid":55516,"startIdentity":"macos:1789946492:254329","sampledAt":1789946504063,"phaseAt":13324.828333,"rssBytes":216137728,"threadCount":25,"fdCount":21,"mutationCount":26,"identityBytes":4193,"rotations":0,"partialBytes":0,"progress":{"elapsedMs":10439.243790999999,"channels":{"9101":{"finalized":4,"deleted":2,"lastAt":13324.828333,"order":"7","store":"25f61bd0e4e6ceae6fec3f6f43dd2ff28f28f21623b69f4daa46ce8cdbd751d4","knownMappings":3,"unknownMappings":132},"9201":{"finalized":4,"deleted":2,"lastAt":13324.828333,"order":"8","store":"25f61bd0e4e6ceae6fec3f6f43dd2ff28f28f21623b69f4daa46ce8cdbd751d4","knownMappings":1,"unknownMappings":164}},"records":8,"logicalBytes":4780},"resourceTrendPass":false}
+[pass] LP26-O05 active 9101
+[pass] LP26-O05 active 9201
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O03 deleted media absent
+[current-observation] {"pid":55516,"startIdentity":"macos:1789946492:254329","sampledAt":1789946509202,"phaseAt":18464.397125,"rssBytes":219414528,"threadCount":25,"fdCount":31,"mutationCount":50,"identityBytes":7985,"rotations":0,"partialBytes":0,"progress":{"elapsedMs":15578.812582999999,"channels":{"9101":{"finalized":7,"deleted":5,"lastAt":18464.397125,"order":"13","store":"25f61bd0e4e6ceae6fec3f6f43dd2ff28f28f21623b69f4daa46ce8cdbd751d4","knownMappings":4,"unknownMappings":244},"9201":{"finalized":7,"deleted":5,"lastAt":18464.397125,"order":"14","store":"25f61bd0e4e6ceae6fec3f6f43dd2ff28f28f21623b69f4daa46ce8cdbd751d4","knownMappings":3,"unknownMappings":256}},"records":14,"logicalBytes":8361},"resourceTrendPass":false}
+[pass] LP26-O05 active 9101
+[pass] LP26-O05 active 9201
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O03 deleted media absent
+[current-observation] {"pid":55516,"startIdentity":"macos:1789946492:254329","sampledAt":1789946514348,"phaseAt":23610.341708,"rssBytes":223002624,"threadCount":25,"fdCount":25,"mutationCount":66,"identityBytes":10513,"rotations":0,"partialBytes":0,"progress":{"elapsedMs":20724.757166,"channels":{"9101":{"finalized":9,"deleted":7,"lastAt":23610.341708,"order":"17","store":"25f61bd0e4e6ceae6fec3f6f43dd2ff28f28f21623b69f4daa46ce8cdbd751d4","knownMappings":5,"unknownMappings":298},"9201":{"finalized":9,"deleted":7,"lastAt":23610.341708,"order":"18","store":"25f61bd0e4e6ceae6fec3f6f43dd2ff28f28f21623b69f4daa46ce8cdbd751d4","knownMappings":5,"unknownMappings":286}},"records":18,"logicalBytes":10755},"resourceTrendPass":false}
+[pass] LP26-O05 active 9101
+[pass] LP26-O05 active 9201
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O03 deleted media absent
+[current-observation] {"pid":55516,"startIdentity":"macos:1789946492:254329","sampledAt":1789946519473,"phaseAt":28735.542667,"rssBytes":223657984,"threadCount":25,"fdCount":31,"mutationCount":90,"identityBytes":14305,"rotations":0,"partialBytes":0,"progress":{"elapsedMs":25849.958125,"channels":{"9101":{"finalized":12,"deleted":10,"lastAt":28735.542667,"order":"23","store":"25f61bd0e4e6ceae6fec3f6f43dd2ff28f28f21623b69f4daa46ce8cdbd751d4","knownMappings":8,"unknownMappings":378},"9201":{"finalized":12,"deleted":10,"lastAt":28735.542667,"order":"24","store":"25f61bd0e4e6ceae6fec3f6f43dd2ff28f28f21623b69f4daa46ce8cdbd751d4","knownMappings":8,"unknownMappings":392}},"records":24,"logicalBytes":14355},"resourceTrendPass":false}
+[pass] LP26-O05 active 9101
+[pass] LP26-O05 active 9201
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O03 deleted media absent
+[current-observation] {"pid":55516,"startIdentity":"macos:1789946492:254329","sampledAt":1789946523627,"phaseAt":32889.006292,"rssBytes":224034816,"threadCount":25,"fdCount":31,"mutationCount":106,"identityBytes":16833,"rotations":0,"partialBytes":0,"progress":{"elapsedMs":30003.421749999998,"channels":{"9101":{"finalized":14,"deleted":12,"lastAt":32889.006292,"order":"27","store":"25f61bd0e4e6ceae6fec3f6f43dd2ff28f28f21623b69f4daa46ce8cdbd751d4","knownMappings":10,"unknownMappings":466},"9201":{"finalized":14,"deleted":12,"lastAt":32889.006292,"order":"28","store":"25f61bd0e4e6ceae6fec3f6f43dd2ff28f28f21623b69f4daa46ce8cdbd751d4","knownMappings":9,"unknownMappings":486}},"records":28,"logicalBytes":16749},"resourceTrendPass":false}
+[pass] LP26-O04 sample coverage
+[pass] LP26-O05 both channels retained and progressed
+[pass] LP26-O05 setting 9101 false
+[pass] LP26-O05 setting 9201 false
+[process-cleanup] {"schema":"recording-process-cleanup-v1","attemptCount":1,"pid":55516,"exitCode":0,"signalCode":null,"exitedObserved":true,"stopCode":"complete","forcedTermination":"not-used","normalExitPass":true,"normalShutdownPass":true,"archiveSafe":true,"ports":[{"kind":"http","port":51571,"status":"pass","code":"closed","closed":true},{"kind":"rtsp","port":51572,"status":"pass","code":"closed","closed":true}]}
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O02 closed journal no partial tail
+[pass] LP26-O05 stopped copy native catalog recovery
+[pass] LP26-O05 native surviving and deleted states
+[pass] LP26-O05 original journal bytes unchanged
+[copy-cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-copy-n72U3v","bytes":129908999,"copied":true,"absent":true,"reason":null}
+[pass] LP26-O05 recovery copy cleanup
+[pass] LP26-O05 isolated server healthy
+[channel-observation] {"expectedIds":["1","2","3","4","5","9101","9201"],"channels":[{"id":"1","enabled":false,"active":false},{"id":"2","enabled":false,"active":false},{"id":"3","enabled":false,"active":false},{"id":"4","enabled":false,"active":false},{"id":"5","enabled":false,"active":false},{"id":"9101","enabled":false,"active":false},{"id":"9201","enabled":false,"active":false}]}
+[pass] LP26-O05 disabled restart
+[process-cleanup] {"schema":"recording-process-cleanup-v1","attemptCount":1,"pid":55633,"exitCode":0,"signalCode":null,"exitedObserved":true,"stopCode":"complete","forcedTermination":"not-used","normalExitPass":true,"normalShutdownPass":true,"archiveSafe":true,"ports":[{"kind":"http","port":51625,"status":"pass","code":"closed","closed":true},{"kind":"rtsp","port":51626,"status":"pass","code":"closed","closed":true}]}
+[pass] LP26-O05 stopped copy native catalog recovery
+[pass] LP26-O05 native surviving and deleted states
+[pass] LP26-O05 original journal bytes unchanged
+[copy-cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-copy-FjoSzq","bytes":129908999,"copied":true,"absent":true,"reason":null}
+[pass] LP26-O05 recovery copy cleanup
+[pass] LP26-O05 restart exact catalog media state
+[pass] LP26-O05 isolated server healthy
+[pass] LP26-O05 setting 9101 true
+[pass] LP26-O05 setting 9201 true
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O05 reenabled recording after restart
+[process-cleanup] {"schema":"recording-process-cleanup-v1","attemptCount":1,"pid":55677,"exitCode":0,"signalCode":null,"exitedObserved":true,"stopCode":"complete","forcedTermination":"not-used","normalExitPass":true,"normalShutdownPass":true,"archiveSafe":true,"ports":[{"kind":"http","port":51641,"status":"pass","code":"closed","closed":true},{"kind":"rtsp","port":51642,"status":"pass","code":"closed","closed":true}]}
+[pass] LP26-O03 deleted media absent
+[pass] LP26-O02 final restart closed journal no partial tail
+[pass] LP26-O05 stopped copy native catalog recovery
+[pass] LP26-O05 native surviving and deleted states
+[pass] LP26-O05 original journal bytes unchanged
+[copy-cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-copy-7L0Iib","bytes":154600157,"copied":true,"absent":true,"reason":null}
+[pass] LP26-O05 recovery copy cleanup
+[server-diagnostic] {"pid":55516,"bytes":1398,"capturedBytes":1398,"sha256":"07da0dad710e3a2b786b81a0e12aebcdf62e0f25389dfc2aadcd07552802b466","overflow":false,"categories":[{"code":"file evidence unavailable","count":0},{"code":"storageBlocked","count":0},{"code":"shutdown","count":0},{"code":"ERROR","count":0},{"code":"WARNING","count":0}],"rawBodyPublished":false,"privateCaptureRemovedWithRoot":true}
+[server-diagnostic] {"pid":55633,"bytes":1398,"capturedBytes":1398,"sha256":"2090e7f43abcecd44fc86fa4c8293cba0b3b22e9f8054df2f078e5e5260bd784","overflow":false,"categories":[{"code":"file evidence unavailable","count":0},{"code":"storageBlocked","count":0},{"code":"shutdown","count":0},{"code":"ERROR","count":0},{"code":"WARNING","count":0}],"rawBodyPublished":false,"privateCaptureRemovedWithRoot":true}
+[server-diagnostic] {"pid":55677,"bytes":1398,"capturedBytes":1398,"sha256":"5ff20e555cadf748ce65e8bffb698daff945871bfce9e166b79b35b304c0b38e","overflow":false,"categories":[{"code":"file evidence unavailable","count":0},{"code":"storageBlocked","count":0},{"code":"shutdown","count":0},{"code":"ERROR","count":0},{"code":"WARNING","count":0}],"rawBodyPublished":false,"privateCaptureRemovedWithRoot":true}
+{"mode":"current-app-observe-short","passed":71,"failed":0,"elapsedMs":46673,"verifiedDurationMs":30126.421458,"longrunObservationCompleted":false,"shortPreparationPass":true,"resourceTrendPass":false,"reviewRequired":true,"uiFulltestPass":false,"phase":{"elapsedMs":30126.421458,"channels":{"9101":{"finalized":14,"deleted":12,"lastAt":32889.006292,"order":"27","store":"25f61bd0e4e6ceae6fec3f6f43dd2ff28f28f21623b69f4daa46ce8cdbd751d4","knownMappings":10,"unknownMappings":466},"9201":{"finalized":14,"deleted":12,"lastAt":32889.006292,"order":"28","store":"25f61bd0e4e6ceae6fec3f6f43dd2ff28f28f21623b69f4daa46ce8cdbd751d4","knownMappings":9,"unknownMappings":486}},"records":28,"logicalBytes":16749},"resources":{"resourceTrendPass":false,"reviewRequired":true,"sampleCount":7,"groups":[{"pid":55516,"startIdentity":"macos:1789946492:254329","sampleCount":7,"first":{"phaseAt":3016.856625,"sampledAt":1789946493754,"rssBytes":91947008,"threadCount":29,"fdCount":31,"mutationCount":2},"last":{"phaseAt":32889.006292,"sampledAt":1789946523627,"rssBytes":224034816,"threadCount":25,"fdCount":31,"mutationCount":106},"max":{"rssBytes":224034816,"threadCount":29,"fdCount":31},"elapsedMs":29872.149666999998,"postWarmup":{"status":"insufficient"}}]},"processCount":3,"processesClosed":true,"udpClosed":true,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음"}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-buJsHR","bytes":288348469,"absent":true}

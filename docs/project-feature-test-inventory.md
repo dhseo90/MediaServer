@@ -1,5 +1,27 @@
 # Project Feature Test Inventory
 
+## LP26 현행 검증 준비 사전등록
+
+개별 정의: [LP26 준비 기록](release-artifacts/v4.1.0/s11-preparation-mapping/lp26-verifier-preparation.md).
+등록은 PASS가 아니며 도구 준비와 실제 영역 실행을 분리한다.
+
+| ID | 기능 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| LP26-O01 | 현행 원장 compact 관측 | native parser/반례 | 비대상: 도구 자체검사 | 현행 관측 준비, 실행 별도 | 비대상: UI 없음 |
+| LP26-O02 | bounded 읽기/교체 | 경로·부분행·prefix/손상 | 비대상: 도구 자체검사 | 현행 관측 준비, 실행 별도 | 비대상: UI 없음 |
+| LP26-O03 | 영속 순서 진행 | ID/epoch/UTC 역행·unknown/삭제 | 비대상: 도구 자체검사 | 현행 관측 준비, 실행 별도 | 비대상: UI 없음 |
+| LP26-O04 | 시간/자원 관측 | duration/stall/PID/표본 반례 | 비대상: 도구 자체검사 | 현행 관측 준비, 실행 별도 | 비대상: UI 없음 |
+| LP26-O05 | 장시간 실행 연결 | 단기/120분 구분·정리 | 비대상: 도구 자체검사 | 실제 실행 별도 | 비대상: UI 없음 |
+| LP26-U01 | UI seed 소유/옵션 | 준비 자체검사 | 비대상: seed | 비대상: seed | 실제 실행 별도 |
+| LP26-U02 | UI 시각 근거 | 문자열/null/불연속 | 비대상: seed | 비대상: seed | 실제 실행 별도 |
+| LP26-U03 | 파생 다중출력 | complete/partial/hash | 비대상: seed | 비대상: seed | 실제 실행 별도 |
+| LP26-U04 | 페이지/우선순위 | 100초과/겹침 | 비대상: seed | 비대상: seed | 실제 실행 별도 |
+| LP26-U05 | 오류 상태 | 손상/삭제/미생성 | 비대상: seed | 비대상: seed | 실제 실행 별도 |
+| LP26-U06 | seed 복구 | 재개방/원장 불변 | 비대상: seed | 비대상: seed | 실제 실행 별도 |
+| LP26-U07 | 인증 준비 | UA01~08 | 비대상: seed | 비대상: seed | 실제 실행 별도 |
+| LP26-U08 | seek 준비 | SF01~06/실제 MP4 | 비대상: seed | 비대상: seed | 실제 실행 별도 |
+| LP26-M01 | 기능 실행 연결 | 매핑·명령·oracle 대조 | S11 확정 후 | S11 확정 후 | S11 확정 후 |
+
 ## LP25 시간 표시 단위·완료 관측 순차 마감
 
 LP25-C10: 현행 통합 HTTP producer 총계(auth40/lifecycle10) 수용·구형/부정확 총계 거부.

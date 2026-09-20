@@ -8,6 +8,11 @@ if [[ "${1:-}" == --current-integration ]]; then
 fi
 if [[ "${1:-}" == --app-longrun ]]; then
   [[ $# == 3 && "${2:-}" == --duration-minutes && "${3:-}" == 120 ]] || { echo 'invalid longrun arguments' >&2; exit 2; }
+  exec bash "${SCRIPT_DIR}/verify_recording_current_observer.sh" --duration-minutes 120
+fi
+if [[ "${1:-}" == --app-observe ]]; then
+  [[ $# == 1 ]] || exit 2
+  exec bash "${SCRIPT_DIR}/verify_recording_current_observer.sh" --app-observe
 fi
 if [[ "${1:---all}" == "--all" ]]; then
   exec node "${SCRIPT_DIR}/recording_foundation_suite.mjs"

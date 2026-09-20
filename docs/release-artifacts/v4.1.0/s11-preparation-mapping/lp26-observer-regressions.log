@@ -1,0 +1,182 @@
+## journal exit=0
+[pass] JR01 complete LF row emitted
+[pass] JR01 repeated poll no duplicate
+[pass] JR01 byte offset includes UTF8 bytes
+[pass] JR01 append next row only
+[pass] JR01 empty regular file
+[pass] JR02 complete JSON without LF unconsumed
+[pass] JR02 tail replacement reread without old concatenation
+[pass] JR02 split UTF8 no premature decode
+[pass] JR02 split UTF8 append recovered
+[pass] JR02 repair after consumed prefix
+[pass] JR03 poll byte budget and backlog
+[pass] JR03 poll boundary partial distinguished from EOF
+[pass] JR03 bounded poll progress and completion
+[pass] JR03 bounded multi poll no missing duplicate
+[pass] JR03 default 4MiB read ceiling
+[pass] JR03 default ceiling complete second batch
+[pass] JR03 default line bound
+[pass] JR03 line error latched after file repaired
+[pass] JR03 invalid limits rejected
+[pass] JR04 seven known types accepted
+[pass] JR04 json rejected
+[pass] JR04 schema rejected
+[pass] JR04 type rejected
+[pass] JR04 field rejected
+[pass] JR04 payload rejected
+[pass] JR04 integer rejected
+[pass] JR04 invalid UTF8 rejected
+[pass] JR05 inode replacement latched
+[pass] JR05 consumed prefix truncate rejected
+[pass] JR05 truncate latch prevents reset
+[pass] JR05 leaf symlink rejected
+[pass] JR05 parent symlink rejected
+[pass] JR05 symlink root rejected
+[pass] JR05 parent replacement rejected
+[pass] JR05 root escape rejected
+[pass] JR05 nonregular directory rejected
+[pass] JR05 absent file rejected
+[pass] JR05 hardlink rejected
+[pass] JR05 read path error latch
+[pass] JR05 closed poll rejected
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-journal-reader-TpUZ3k bytes=4545807 absent=true
+{"passed":40,"failed":0,"elapsedMs":48,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"하위작업별자동집계없음"}
+
+## observer-regression exit=0
+[pass] OBS01 first mutation counted
+[pass] OBS01 no duplicate poll count
+[pass] OBS02 raw rows distinct from unique IDs
+[pass] OBS03 new PID distinct group same cursor
+[pass] OBS01 all seven type counts
+[pass] OBS04 initial absent journal pending not zero
+[pass] OBS04 journal created later observed
+[pass] OBS04 final unmeasured rejected
+[pass] OBS04 final pending rejected
+[pass] OBS02 total ID count bound
+[pass] OBS02 UTF8 byte bound
+[pass] OBS03 missing collector binary fails
+[pass] OBS03 null sample rejected
+[pass] OBS03 invalid sample rejected
+[pass] OBS03 wrongpid sample rejected
+[pass] OBS03 missingfd sample rejected
+[pass] OBS03 rsszero sample rejected
+[pass] OBS03 live identity change rejected
+[pass] OBS03 identity error latched
+[pass] OBS03 reader error not empty archive
+[pass] OBS04 duplicate tick not launched
+[pass] OBS04 pause waits active tick
+[pass] OBS04 measured close returns groups not resource pass
+[pass] OBS04 closed tick rejected
+[pass] OBS04 live partial observed without consuming tail
+[pass] OBS04 final partial rejected and reader closed
+[pass] OBS04 failure cleanup closes reader
+[pass] OBS04 complete observation predicate positive
+[pass] OBS04 failure completion rejected
+[pass] OBS04 process-unclosed completion rejected
+[pass] OBS04 no-final completion rejected
+[pass] OBS04 error completion rejected
+[pass] OBS04 disabled completion rejected
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/s09-observer-h9qsX3 bytes=1932 absent=true
+{"passed":33,"failed":0,"elapsedMs":6,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"하위작업별자동집계없음","scope":"observer-unit-only"}
+
+## progress-regression exit=0
+[pass] explicit 120 minutes accepted
+[pass] invalid CLI []
+[pass] invalid CLI ["120"]
+[pass] invalid CLI ["--duration-minutes","30"]
+[pass] invalid CLI ["--duration-minutes","120","extra"]
+[pass] invalid CLI ["--unknown","120"]
+[pass] two channels progress and ordered deletion
+[pass] stall rejected
+[pass] duplicate rejected
+[pass] UTC regression rejected
+[pass] completion without request rejected
+[pass] invalid media metadata rejected
+[pass] duration cannot be shortened
+[pass] unknown channel cannot satisfy progress
+[pass] backward clock rejected
+[pass] sample continuous accepted
+[pass] sample gap rejected
+[pass] sample wrong PID rejected
+[pass] sample wrong identity rejected
+[pass] sample missing beginning rejected
+[pass] sample missing end rejected
+[pass] sample insufficient rejected
+[pass] actual golden schema accepted
+[pass] full duration distributed progress accepted
+[pass] last moment only cannot pass
+[pass] ID limit rejected
+[pass] UTF8 byte limit rejected
+[pass] queried revision advanced disable
+[pass] missing source rejected
+[pass] duplicate source rejected
+[pass] invalid revision rejected
+[pass] public CLI rejects []
+[pass] public CLI rejects ["120"]
+[pass] public CLI rejects ["--duration-minutes","30"]
+[pass] public CLI rejects ["--duration-minutes","120","extra"]
+[pass] public CLI rejects ["--unknown","120"]
+[pass] completed batch returns media path once
+[pass] missing media path rejected
+[pass] media path byte limit rejected
+[pass] ENOENT media absent
+[pass] regular media present rejected
+[pass] dangling symlink present rejected
+[pass] media permission error rejected
+[pass] S09-LD01 invalid segment diagnostics are specific and redacted
+[pass] S09-LD01 missing timestamp diagnostics remain specific and redacted
+[summary] passed=45 failed=0 elapsedMs=81
+
+## summary-regression exit=0
+[pass] LS01 separate restart PID groups
+[pass] LS01 literal first last max delta elapsed
+[pass] LS01 postwarmup negative rate literal
+[pass] LS01 new PID warmup resets and insufficient null
+[pass] LS01 zero warmup rate separate PIDs
+[pass] LS03 same PID gap explicitly measured
+[pass] LS03 one sample gap and trend insufficient
+[pass] LS02 FD zero valid
+[pass] LS03 no resource or longrun pass
+[pass] LS03 workload delta not reset by PID
+[pass] LS03 raw input excluded from output
+[pass] LS02 missing-rss rejected
+[pass] LS02 zero-rss rejected
+[pass] LS02 negative-rss rejected
+[pass] LS02 infinite-rss rejected
+[pass] LS02 nan-rss rejected
+[pass] LS02 zero-thread rejected
+[pass] LS02 negative-fd rejected
+[pass] LS02 missing-fd rejected
+[pass] LS02 zero-pid rejected
+[pass] LS02 zero-time rejected
+[pass] LS02 invalid-identity rejected
+[pass] LS02 missing-counter rejected
+[pass] LS02 missing-types rejected
+[pass] LS02 pending-journal rejected
+[pass] LS02 duplicate time rejected
+[pass] LS02 backward time rejected
+[pass] LS02 same PID identity change rejected
+[pass] LS02 global counters cannot reset at restart
+[pass] LS02 cumulative segment_finalized decrease rejected
+[pass] LS02 cumulative event_link_created decrease rejected
+[pass] LS02 cumulative observation_put decrease rejected
+[pass] LS02 cumulative observation_v2_put decrease rejected
+[pass] LS02 cumulative deletion_requested decrease rejected
+[pass] LS02 cumulative deletion_completed decrease rejected
+[pass] LS02 cumulative corruption_detected decrease rejected
+[pass] LS02 cumulative mutationCount decrease rejected
+[pass] LS02 cumulative uniqueMutationIds decrease rejected
+[pass] LS02 cumulative uniqueEntityIds decrease rejected
+[pass] LS02 cumulative storedIdCount decrease rejected
+[pass] LS02 cumulative idUtf8Bytes decrease rejected
+[pass] LS02 cumulative consumedOffset decrease rejected
+[pass] LS02 invalid warmup undefined
+[pass] LS02 invalid warmup -1
+[pass] LS02 invalid warmup 0.5
+[pass] LS02 invalid warmup Infinity
+[pass] LS02 empty input rejected
+[pass] LS02 10000 samples accepted
+[pass] LS02 over 10000 samples rejected
+[pass] LS02 64 PID groups accepted
+[pass] LS02 over 64 groups rejected
+{"passed":51,"failed":0,"elapsedMs":17,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"하위작업별자동집계없음","scope":"synthetic-summary-unit","cleanup":"no-temp-no-child"}
