@@ -319,6 +319,397 @@ LP13-T05의66→70 원인은 cd7172a28이며 현재는 입력↔변환70쌍/한�
 | lp22-observation-red-01.txt | 1183 / `398fdc1bd02a15f94f3f478cf5efd4dbc7fabe07b943e519a0f2ce09b7f6cd11` | 1178 / `a46908881e6666e7d8dceb91245992a80cd3d988a4a37d400c4fba88b54f26fd` |
 | lp22-selection-trace-01.txt | 1605 / `9b2c9f064d04f617b2af639752d71908e143bea1d41b76a0e40abd5b34f2d482` | 1604 / `31c7ede756a9cd014ba049467d2ef84e647b2a999cb8b31384217a395adb6c36` |
 
+## LP22 실제 완료 관측·HTTP 원인 분리
+
+명령 `node scripts/internal/verify_recording_current_app.mjs --latency-only`, source25946e73, exit1/75610ms.
+개별5PASS/1FAIL이며 HTTP단계 FAIL이다. 진단은 정상 수집돼4번 최소 보완의 근거로 사용한다.
+토큰 start/end/consumed는 전용 집계 없어 미집계. 환경/제품fingerprint는 위LP22 자체검증과동일하다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| S11-CI09 product-1 healthy isolated ICE | 원출력32행 | PASS | 해당 직접 결과 |
+| S11-CI07 run1 actual tuple EventRecord reference | 원출력364행 | PASS | 해당 직접 결과 |
+| current actual app: http-header-timeout | 원출력739행 | FAIL | HTTP214 header4002ms timeout, 기준4000ms 유지 |
+| S11-CI08 product-1 exit0 ports returned | 원출력743행 | PASS | 해당 직접 결과 |
+| LP03-B diagnostic copy bytes/hash exact | 원출력1704행 | PASS | 해당 직접 결과 |
+| LP03-B original unchanged after diagnostic | 원출력1707행 | PASS | 해당 직접 결과 |
+
+### 요청/작업 시간 상관
+
+서버steady같은축에서만비교했다. 대상job complete23.387874초, 이후request207(25.982555초시작)의첫페이지에complete99행이있다.
+전체스캔은cycle178에서ready99/committed63혼합,179와180에서총계변경으로다시시작했다.
+cycle181 request214는4초를넘겨실패했다. 사후complete를HTTP/완전출력/재기동PASS로승격하지않는다.
+대상작업submitted10.143697→queued18.737→started18.737→admitted19.018→ready22.790→committed23.121→complete23.387874초.
+나머지3참조 complete29.164/35.363/42.032초, render직렬실행. 모든참조각8진단행·최종complete이다.
+
+| request214 구간 | 직접 관측 | 해석 |
+| --- | ---: | --- |
+| HTTP client header timeout | 4002ms | 전체완료아님 |
+| server Timeline | 4117.539916ms | request순번214로연결 |
+| Snapshot mutex | 789.247ms | 단일점유 |
+| Finish | 3327.497083ms | 중첩시간 |
+| Finish Media | 3327.427333ms | 아래Acquire/Validate포함 |
+| AcquireMediaV2 8회 | 1604.024998ms | 기존job내용재획득/검증반복 |
+| ValidateMediaV2 8회 | 1604.526708ms | 같은내용재획득/검증반복 |
+| overlap/sort/page | 0.027792/0.032333/0.006583ms | 주원인아님 |
+
+Acquire+Validate합계3208.551706ms는전체Media의대부분이다. 각각Parse/Serialize의exclusive시간은계측하지않았으므로
+어느하나에합계전부를귀속하지않는다. 파일SHA/demux를뺀새판정으로PASS를만들지않는다.
+
+### HTTP 전수 직접 관측
+
+초기health error는기동polling의관측이지독립기능FAIL이아니다. timeline214개중213응답200/ok,1개timeout.
+
+| 순서 | 수행내용 | 직접 관측 | 소요 | 근거 |
+| --- | --- | --- | ---: | --- |
+| 1 | GET health · timeline- | status=null / error / 0B | 3ms | raw5행 |
+| 2 | GET health · timeline- | status=null / error / 0B | 1ms | raw6행 |
+| 3 | GET health · timeline- | status=null / error / 0B | 1ms | raw7행 |
+| 4 | GET health · timeline- | status=null / error / 0B | 1ms | raw8행 |
+| 5 | GET health · timeline- | status=null / error / 0B | 1ms | raw9행 |
+| 6 | GET health · timeline- | status=null / error / 0B | 1ms | raw10행 |
+| 7 | GET health · timeline- | status=null / error / 0B | 2ms | raw11행 |
+| 8 | GET health · timeline- | status=null / error / 0B | 1ms | raw12행 |
+| 9 | GET health · timeline- | status=null / error / 0B | 2ms | raw13행 |
+| 10 | GET health · timeline- | status=null / error / 0B | 2ms | raw14행 |
+| 11 | GET health · timeline- | status=null / error / 0B | 1ms | raw15행 |
+| 12 | GET health · timeline- | status=null / error / 0B | 1ms | raw16행 |
+| 13 | GET health · timeline- | status=null / error / 0B | 0ms | raw17행 |
+| 14 | GET health · timeline- | status=null / error / 0B | 0ms | raw18행 |
+| 15 | GET health · timeline- | status=null / error / 0B | 0ms | raw19행 |
+| 16 | GET health · timeline- | status=null / error / 0B | 0ms | raw20행 |
+| 17 | GET health · timeline- | status=null / error / 0B | 0ms | raw21행 |
+| 18 | GET health · timeline- | status=null / error / 0B | 0ms | raw22행 |
+| 19 | GET health · timeline- | status=null / error / 0B | 0ms | raw23행 |
+| 20 | GET health · timeline- | status=null / error / 0B | 0ms | raw24행 |
+| 21 | GET health · timeline- | status=null / error / 0B | 0ms | raw25행 |
+| 22 | GET health · timeline- | status=null / error / 0B | 0ms | raw26행 |
+| 23 | GET health · timeline- | status=null / error / 0B | 0ms | raw27행 |
+| 24 | GET health · timeline- | status=null / error / 0B | 0ms | raw28행 |
+| 25 | GET health · timeline- | status=null / error / 0B | 0ms | raw29행 |
+| 26 | GET health · timeline- | status=200 / ok / 15B | 6ms | raw30행 |
+| 27 | GET ice · timeline- | status=200 / ok / 222B | 1ms | raw31행 |
+| 28 | POST source · timeline- | status=201 / ok / 428B | 80ms | raw33행 |
+| 29 | POST tap-create · timeline- | status=200 / ok / 1187B | 46ms | raw34행 |
+| 30 | GET tap · timeline- | status=200 / ok / 4030B | 23ms | raw35행 |
+| 31 | GET tap · timeline- | status=200 / ok / 5971B | 1ms | raw36행 |
+| 32 | GET timeline · timeline1 | status=200 / ok / 82B | 1ms | raw37행 |
+| 33 | GET tap · timeline- | status=200 / ok / 5968B | 1ms | raw40행 |
+| 34 | GET timeline · timeline2 | status=200 / ok / 82B | 1ms | raw41행 |
+| 35 | GET tap · timeline- | status=200 / ok / 6153B | 1ms | raw44행 |
+| 36 | GET timeline · timeline3 | status=200 / ok / 82B | 1ms | raw45행 |
+| 37 | GET tap · timeline- | status=200 / ok / 6278B | 1ms | raw48행 |
+| 38 | GET timeline · timeline4 | status=200 / ok / 82B | 0ms | raw49행 |
+| 39 | GET tap · timeline- | status=200 / ok / 6414B | 1ms | raw52행 |
+| 40 | GET timeline · timeline5 | status=200 / ok / 82B | 1ms | raw53행 |
+| 41 | GET tap · timeline- | status=200 / ok / 6545B | 1ms | raw56행 |
+| 42 | GET timeline · timeline6 | status=200 / ok / 82B | 1ms | raw57행 |
+| 43 | GET tap · timeline- | status=200 / ok / 6548B | 1ms | raw60행 |
+| 44 | GET timeline · timeline7 | status=200 / ok / 82B | 1ms | raw61행 |
+| 45 | GET tap · timeline- | status=200 / ok / 6683B | 1ms | raw64행 |
+| 46 | GET timeline · timeline8 | status=200 / ok / 82B | 1ms | raw65행 |
+| 47 | GET tap · timeline- | status=200 / ok / 6814B | 1ms | raw68행 |
+| 48 | GET timeline · timeline9 | status=200 / ok / 82B | 0ms | raw69행 |
+| 49 | GET tap · timeline- | status=200 / ok / 6953B | 1ms | raw72행 |
+| 50 | GET timeline · timeline10 | status=200 / ok / 82B | 1ms | raw73행 |
+| 51 | GET tap · timeline- | status=200 / ok / 6955B | 1ms | raw76행 |
+| 52 | GET timeline · timeline11 | status=200 / ok / 82B | 1ms | raw77행 |
+| 53 | GET tap · timeline- | status=200 / ok / 7091B | 1ms | raw80행 |
+| 54 | GET timeline · timeline12 | status=200 / ok / 82B | 1ms | raw81행 |
+| 55 | GET tap · timeline- | status=200 / ok / 7228B | 1ms | raw84행 |
+| 56 | GET timeline · timeline13 | status=200 / ok / 82B | 1ms | raw85행 |
+| 57 | GET tap · timeline- | status=200 / ok / 7368B | 1ms | raw88행 |
+| 58 | GET timeline · timeline14 | status=200 / ok / 82B | 0ms | raw89행 |
+| 59 | GET tap · timeline- | status=200 / ok / 7496B | 6ms | raw92행 |
+| 60 | GET timeline · timeline15 | status=200 / ok / 82B | 1ms | raw93행 |
+| 61 | GET tap · timeline- | status=200 / ok / 7497B | 1ms | raw96행 |
+| 62 | GET timeline · timeline16 | status=200 / ok / 82B | 1ms | raw97행 |
+| 63 | GET tap · timeline- | status=200 / ok / 7634B | 1ms | raw100행 |
+| 64 | GET timeline · timeline17 | status=200 / ok / 82B | 1ms | raw101행 |
+| 65 | GET tap · timeline- | status=200 / ok / 7757B | 1ms | raw104행 |
+| 66 | GET timeline · timeline18 | status=200 / ok / 82B | 1ms | raw105행 |
+| 67 | GET tap · timeline- | status=200 / ok / 7894B | 1ms | raw108행 |
+| 68 | GET timeline · timeline19 | status=200 / ok / 82B | 0ms | raw109행 |
+| 69 | GET tap · timeline- | status=200 / ok / 8033B | 3ms | raw112행 |
+| 70 | GET timeline · timeline20 | status=200 / ok / 82B | 0ms | raw113행 |
+| 71 | GET tap · timeline- | status=200 / ok / 8033B | 1ms | raw116행 |
+| 72 | GET timeline · timeline21 | status=200 / ok / 82B | 0ms | raw117행 |
+| 73 | GET tap · timeline- | status=200 / ok / 8163B | 1ms | raw120행 |
+| 74 | GET timeline · timeline22 | status=200 / ok / 82B | 1ms | raw121행 |
+| 75 | GET tap · timeline- | status=200 / ok / 8303B | 1ms | raw124행 |
+| 76 | GET timeline · timeline23 | status=200 / ok / 82B | 1ms | raw125행 |
+| 77 | GET tap · timeline- | status=200 / ok / 8438B | 1ms | raw128행 |
+| 78 | GET timeline · timeline24 | status=200 / ok / 82B | 1ms | raw129행 |
+| 79 | GET tap · timeline- | status=200 / ok / 8568B | 2ms | raw132행 |
+| 80 | GET timeline · timeline25 | status=200 / ok / 82B | 0ms | raw133행 |
+| 81 | GET tap · timeline- | status=200 / ok / 8571B | 1ms | raw136행 |
+| 82 | GET timeline · timeline26 | status=200 / ok / 82B | 0ms | raw137행 |
+| 83 | GET tap · timeline- | status=200 / ok / 8710B | 1ms | raw140행 |
+| 84 | GET timeline · timeline27 | status=200 / ok / 82B | 1ms | raw141행 |
+| 85 | GET tap · timeline- | status=200 / ok / 8841B | 1ms | raw144행 |
+| 86 | GET timeline · timeline28 | status=200 / ok / 82B | 1ms | raw145행 |
+| 87 | GET tap · timeline- | status=200 / ok / 8977B | 1ms | raw148행 |
+| 88 | GET timeline · timeline29 | status=200 / ok / 82B | 0ms | raw149행 |
+| 89 | GET tap · timeline- | status=200 / ok / 9112B | 2ms | raw152행 |
+| 90 | GET timeline · timeline30 | status=200 / ok / 82B | 2ms | raw153행 |
+| 91 | GET tap · timeline- | status=200 / ok / 9113B | 1ms | raw156행 |
+| 92 | GET timeline · timeline31 | status=200 / ok / 82B | 1ms | raw157행 |
+| 93 | GET tap · timeline- | status=200 / ok / 9249B | 1ms | raw160행 |
+| 94 | GET timeline · timeline32 | status=200 / ok / 82B | 1ms | raw161행 |
+| 95 | GET tap · timeline- | status=200 / ok / 9386B | 1ms | raw164행 |
+| 96 | GET timeline · timeline33 | status=200 / ok / 82B | 1ms | raw165행 |
+| 97 | GET tap · timeline- | status=200 / ok / 9518B | 1ms | raw168행 |
+| 98 | GET timeline · timeline34 | status=200 / ok / 82B | 0ms | raw169행 |
+| 99 | GET tap · timeline- | status=200 / ok / 9651B | 3ms | raw172행 |
+| 100 | GET timeline · timeline35 | status=200 / ok / 82B | 0ms | raw173행 |
+| 101 | GET tap · timeline- | status=200 / ok / 9648B | 1ms | raw176행 |
+| 102 | GET timeline · timeline36 | status=200 / ok / 82B | 1ms | raw177행 |
+| 103 | GET tap · timeline- | status=200 / ok / 10195B | 1ms | raw180행 |
+| 104 | GET timeline · timeline37 | status=200 / ok / 82B | 0ms | raw181행 |
+| 105 | GET tap · timeline- | status=200 / ok / 10387B | 1ms | raw184행 |
+| 106 | GET timeline · timeline38 | status=200 / ok / 82B | 0ms | raw185행 |
+| 107 | GET tap · timeline- | status=200 / ok / 10565B | 1ms | raw188행 |
+| 108 | GET timeline · timeline39 | status=200 / ok / 82B | 1ms | raw189행 |
+| 109 | GET tap · timeline- | status=200 / ok / 10561B | 1ms | raw192행 |
+| 110 | GET timeline · timeline40 | status=200 / ok / 82B | 0ms | raw193행 |
+| 111 | GET tap · timeline- | status=200 / ok / 10753B | 1ms | raw196행 |
+| 112 | GET timeline · timeline41 | status=200 / ok / 82B | 0ms | raw197행 |
+| 113 | GET tap · timeline- | status=200 / ok / 10817B | 1ms | raw200행 |
+| 114 | GET timeline · timeline42 | status=200 / ok / 82B | 1ms | raw201행 |
+| 115 | GET tap · timeline- | status=200 / ok / 10866B | 1ms | raw204행 |
+| 116 | GET timeline · timeline43 | status=200 / ok / 82B | 1ms | raw205행 |
+| 117 | GET tap · timeline- | status=200 / ok / 10920B | 1ms | raw208행 |
+| 118 | GET timeline · timeline44 | status=200 / ok / 82B | 1ms | raw209행 |
+| 119 | GET tap · timeline- | status=200 / ok / 10920B | 1ms | raw212행 |
+| 120 | GET timeline · timeline45 | status=200 / ok / 82B | 1ms | raw213행 |
+| 121 | GET tap · timeline- | status=200 / ok / 10968B | 1ms | raw216행 |
+| 122 | GET timeline · timeline46 | status=200 / ok / 82B | 0ms | raw217행 |
+| 123 | GET tap · timeline- | status=200 / ok / 11014B | 1ms | raw220행 |
+| 124 | GET timeline · timeline47 | status=200 / ok / 82B | 1ms | raw221행 |
+| 125 | GET tap · timeline- | status=200 / ok / 11067B | 1ms | raw224행 |
+| 126 | GET timeline · timeline48 | status=200 / ok / 82B | 1ms | raw225행 |
+| 127 | GET tap · timeline- | status=200 / ok / 11118B | 1ms | raw228행 |
+| 128 | GET timeline · timeline49 | status=200 / ok / 82B | 0ms | raw229행 |
+| 129 | GET tap · timeline- | status=200 / ok / 11118B | 1ms | raw232행 |
+| 130 | GET timeline · timeline50 | status=200 / ok / 82B | 0ms | raw233행 |
+| 131 | GET tap · timeline- | status=200 / ok / 11147B | 1ms | raw236행 |
+| 132 | GET timeline · timeline51 | status=200 / ok / 82B | 1ms | raw237행 |
+| 133 | GET tap · timeline- | status=200 / ok / 11202B | 1ms | raw240행 |
+| 134 | GET timeline · timeline52 | status=200 / ok / 82B | 1ms | raw241행 |
+| 135 | GET tap · timeline- | status=200 / ok / 11247B | 1ms | raw244행 |
+| 136 | GET timeline · timeline53 | status=200 / ok / 82B | 1ms | raw245행 |
+| 137 | GET tap · timeline- | status=200 / ok / 11248B | 1ms | raw248행 |
+| 138 | GET timeline · timeline54 | status=200 / ok / 82B | 1ms | raw249행 |
+| 139 | GET tap · timeline- | status=200 / ok / 11296B | 1ms | raw252행 |
+| 140 | GET timeline · timeline55 | status=200 / ok / 82B | 1ms | raw253행 |
+| 141 | GET tap · timeline- | status=200 / ok / 11334B | 1ms | raw256행 |
+| 142 | GET timeline · timeline56 | status=200 / ok / 82B | 1ms | raw257행 |
+| 143 | GET tap · timeline- | status=200 / ok / 11381B | 1ms | raw260행 |
+| 144 | GET timeline · timeline57 | status=200 / ok / 82B | 1ms | raw261행 |
+| 145 | GET tap · timeline- | status=200 / ok / 11385B | 1ms | raw264행 |
+| 146 | GET timeline · timeline58 | status=200 / ok / 82B | 1ms | raw265행 |
+| 147 | GET tap · timeline- | status=200 / ok / 11435B | 1ms | raw268행 |
+| 148 | GET timeline · timeline59 | status=200 / ok / 82B | 0ms | raw269행 |
+| 149 | GET tap · timeline- | status=200 / ok / 11481B | 1ms | raw272행 |
+| 150 | GET timeline · timeline60 | status=200 / ok / 82B | 1ms | raw273행 |
+| 151 | GET tap · timeline- | status=200 / ok / 11524B | 1ms | raw276행 |
+| 152 | GET timeline · timeline61 | status=200 / ok / 82B | 0ms | raw277행 |
+| 153 | GET tap · timeline- | status=200 / ok / 11567B | 3ms | raw280행 |
+| 154 | GET timeline · timeline62 | status=200 / ok / 82B | 0ms | raw281행 |
+| 155 | GET tap · timeline- | status=200 / ok / 11567B | 1ms | raw284행 |
+| 156 | GET timeline · timeline63 | status=200 / ok / 82B | 1ms | raw285행 |
+| 157 | GET tap · timeline- | status=200 / ok / 11609B | 1ms | raw288행 |
+| 158 | GET timeline · timeline64 | status=200 / ok / 82B | 0ms | raw289행 |
+| 159 | GET tap · timeline- | status=200 / ok / 11651B | 1ms | raw292행 |
+| 160 | GET timeline · timeline65 | status=200 / ok / 82B | 0ms | raw293행 |
+| 161 | GET tap · timeline- | status=200 / ok / 11701B | 1ms | raw296행 |
+| 162 | GET timeline · timeline66 | status=200 / ok / 82B | 1ms | raw297행 |
+| 163 | GET tap · timeline- | status=200 / ok / 11749B | 6ms | raw300행 |
+| 164 | GET timeline · timeline67 | status=200 / ok / 82B | 1ms | raw301행 |
+| 165 | GET tap · timeline- | status=200 / ok / 11749B | 1ms | raw304행 |
+| 166 | GET timeline · timeline68 | status=200 / ok / 82B | 1ms | raw305행 |
+| 167 | GET tap · timeline- | status=200 / ok / 11782B | 1ms | raw308행 |
+| 168 | GET timeline · timeline69 | status=200 / ok / 82B | 1ms | raw309행 |
+| 169 | GET tap · timeline- | status=200 / ok / 11834B | 1ms | raw312행 |
+| 170 | GET timeline · timeline70 | status=200 / ok / 82B | 1ms | raw313행 |
+| 171 | GET tap · timeline- | status=200 / ok / 11875B | 1ms | raw316행 |
+| 172 | GET timeline · timeline71 | status=200 / ok / 82B | 0ms | raw317행 |
+| 173 | GET tap · timeline- | status=200 / ok / 11931B | 3ms | raw320행 |
+| 174 | GET timeline · timeline72 | status=200 / ok / 82B | 1ms | raw321행 |
+| 175 | GET tap · timeline- | status=200 / ok / 11929B | 1ms | raw324행 |
+| 176 | GET timeline · timeline73 | status=200 / ok / 82B | 0ms | raw325행 |
+| 177 | GET tap · timeline- | status=200 / ok / 11968B | 1ms | raw328행 |
+| 178 | GET timeline · timeline74 | status=200 / ok / 82B | 0ms | raw329행 |
+| 179 | GET tap · timeline- | status=200 / ok / 12015B | 1ms | raw332행 |
+| 180 | GET timeline · timeline75 | status=200 / ok / 82B | 1ms | raw333행 |
+| 181 | GET tap · timeline- | status=200 / ok / 12058B | 1ms | raw336행 |
+| 182 | GET timeline · timeline76 | status=200 / ok / 82B | 0ms | raw337행 |
+| 183 | GET tap · timeline- | status=200 / ok / 12063B | 4ms | raw340행 |
+| 184 | GET timeline · timeline77 | status=200 / ok / 82B | 0ms | raw341행 |
+| 185 | GET tap · timeline- | status=200 / ok / 12059B | 1ms | raw344행 |
+| 186 | GET timeline · timeline78 | status=200 / ok / 82B | 1ms | raw345행 |
+| 187 | GET tap · timeline- | status=200 / ok / 12059B | 1ms | raw348행 |
+| 188 | GET timeline · timeline79 | status=200 / ok / 82B | 1ms | raw349행 |
+| 189 | GET tap · timeline- | status=200 / ok / 12051B | 1ms | raw352행 |
+| 190 | GET timeline · timeline80 | status=200 / ok / 57094B | 11ms | raw353행 |
+| 191 | GET tap · timeline- | status=200 / ok / 12048B | 1ms | raw356행 |
+| 192 | GET timeline · timeline81 | status=200 / ok / 57094B | 12ms | raw357행 |
+| 193 | PUT rule · timeline- | status=200 / ok / 520B | 2ms | raw361행 |
+| 194 | GET tap-events · timeline- | status=200 / ok / 9892B | 10ms | raw362행 |
+| 195 | PUT rule · timeline- | status=200 / ok / 521B | 2ms | raw365행 |
+| 196 | GET timeline · timeline82 | status=200 / ok / 60326B | 25ms | raw367행 |
+| 197 | GET timeline · timeline83 | status=200 / ok / 60326B | 13ms | raw372행 |
+| 198 | GET timeline · timeline84 | status=200 / ok / 60326B | 11ms | raw375행 |
+| 199 | GET timeline · timeline85 | status=200 / ok / 60326B | 11ms | raw378행 |
+| 200 | GET timeline · timeline86 | status=200 / ok / 60326B | 11ms | raw381행 |
+| 201 | GET timeline · timeline87 | status=200 / ok / 60326B | 11ms | raw384행 |
+| 202 | GET timeline · timeline88 | status=200 / ok / 60326B | 11ms | raw387행 |
+| 203 | GET timeline · timeline89 | status=200 / ok / 60326B | 11ms | raw390행 |
+| 204 | GET timeline · timeline90 | status=200 / ok / 60326B | 11ms | raw393행 |
+| 205 | GET timeline · timeline91 | status=200 / ok / 60326B | 12ms | raw396행 |
+| 206 | GET timeline · timeline92 | status=200 / ok / 60326B | 11ms | raw399행 |
+| 207 | GET timeline · timeline93 | status=200 / ok / 60326B | 11ms | raw402행 |
+| 208 | GET timeline · timeline94 | status=200 / ok / 60326B | 11ms | raw405행 |
+| 209 | GET timeline · timeline95 | status=200 / ok / 60326B | 11ms | raw408행 |
+| 210 | GET timeline · timeline96 | status=200 / ok / 60326B | 12ms | raw411행 |
+| 211 | GET timeline · timeline97 | status=200 / ok / 60326B | 11ms | raw414행 |
+| 212 | GET timeline · timeline98 | status=200 / ok / 60326B | 11ms | raw417행 |
+| 213 | GET timeline · timeline99 | status=200 / ok / 60326B | 11ms | raw420행 |
+| 214 | GET timeline · timeline100 | status=200 / ok / 60326B | 11ms | raw423행 |
+| 215 | GET timeline · timeline101 | status=200 / ok / 60326B | 11ms | raw426행 |
+| 216 | GET timeline · timeline102 | status=200 / ok / 60326B | 11ms | raw429행 |
+| 217 | GET timeline · timeline103 | status=200 / ok / 60326B | 11ms | raw432행 |
+| 218 | GET timeline · timeline104 | status=200 / ok / 60326B | 11ms | raw435행 |
+| 219 | GET timeline · timeline105 | status=200 / ok / 60326B | 11ms | raw438행 |
+| 220 | GET timeline · timeline106 | status=200 / ok / 60326B | 11ms | raw441행 |
+| 221 | GET timeline · timeline107 | status=200 / ok / 60326B | 11ms | raw444행 |
+| 222 | GET timeline · timeline108 | status=200 / ok / 60326B | 11ms | raw447행 |
+| 223 | GET timeline · timeline109 | status=200 / ok / 60326B | 11ms | raw450행 |
+| 224 | GET timeline · timeline110 | status=200 / ok / 60326B | 11ms | raw453행 |
+| 225 | GET timeline · timeline111 | status=200 / ok / 60326B | 11ms | raw456행 |
+| 226 | GET timeline · timeline112 | status=200 / ok / 60326B | 11ms | raw459행 |
+| 227 | GET timeline · timeline113 | status=200 / ok / 60326B | 11ms | raw462행 |
+| 228 | GET timeline · timeline114 | status=200 / ok / 60326B | 12ms | raw465행 |
+| 229 | GET timeline · timeline115 | status=200 / ok / 60326B | 11ms | raw468행 |
+| 230 | GET timeline · timeline116 | status=200 / ok / 60326B | 11ms | raw471행 |
+| 231 | GET timeline · timeline117 | status=200 / ok / 60326B | 11ms | raw474행 |
+| 232 | GET timeline · timeline118 | status=200 / ok / 60326B | 11ms | raw477행 |
+| 233 | GET timeline · timeline119 | status=200 / ok / 60326B | 11ms | raw480행 |
+| 234 | GET timeline · timeline120 | status=200 / ok / 60326B | 12ms | raw483행 |
+| 235 | GET timeline · timeline121 | status=200 / ok / 60326B | 11ms | raw486행 |
+| 236 | GET timeline · timeline122 | status=200 / ok / 60326B | 12ms | raw489행 |
+| 237 | GET timeline · timeline123 | status=200 / ok / 60326B | 12ms | raw492행 |
+| 238 | GET timeline · timeline124 | status=200 / ok / 60326B | 11ms | raw495행 |
+| 239 | GET timeline · timeline125 | status=200 / ok / 60326B | 11ms | raw498행 |
+| 240 | GET timeline · timeline126 | status=200 / ok / 60326B | 11ms | raw501행 |
+| 241 | GET timeline · timeline127 | status=200 / ok / 60326B | 11ms | raw504행 |
+| 242 | GET timeline · timeline128 | status=200 / ok / 60326B | 11ms | raw507행 |
+| 243 | GET timeline · timeline129 | status=200 / ok / 60326B | 11ms | raw510행 |
+| 244 | GET timeline · timeline130 | status=200 / ok / 60326B | 11ms | raw513행 |
+| 245 | GET timeline · timeline131 | status=200 / ok / 60326B | 11ms | raw516행 |
+| 246 | GET timeline · timeline132 | status=200 / ok / 60326B | 12ms | raw519행 |
+| 247 | GET timeline · timeline133 | status=200 / ok / 60326B | 11ms | raw522행 |
+| 248 | GET timeline · timeline134 | status=200 / ok / 60326B | 14ms | raw525행 |
+| 249 | GET timeline · timeline135 | status=200 / ok / 60326B | 11ms | raw528행 |
+| 250 | GET timeline · timeline136 | status=200 / ok / 60326B | 11ms | raw531행 |
+| 251 | GET timeline · timeline137 | status=200 / ok / 60326B | 21ms | raw534행 |
+| 252 | GET timeline · timeline138 | status=200 / ok / 60326B | 11ms | raw537행 |
+| 253 | GET timeline · timeline139 | status=200 / ok / 60326B | 11ms | raw540행 |
+| 254 | GET timeline · timeline140 | status=200 / ok / 60326B | 11ms | raw543행 |
+| 255 | GET timeline · timeline141 | status=200 / ok / 60326B | 11ms | raw546행 |
+| 256 | GET timeline · timeline142 | status=200 / ok / 60326B | 11ms | raw549행 |
+| 257 | GET timeline · timeline143 | status=200 / ok / 60326B | 12ms | raw552행 |
+| 258 | GET timeline · timeline144 | status=200 / ok / 60326B | 11ms | raw555행 |
+| 259 | GET timeline · timeline145 | status=200 / ok / 60326B | 13ms | raw558행 |
+| 260 | GET timeline · timeline146 | status=200 / ok / 60326B | 15ms | raw561행 |
+| 261 | GET timeline · timeline147 | status=200 / ok / 60326B | 11ms | raw564행 |
+| 262 | GET timeline · timeline148 | status=200 / ok / 60326B | 11ms | raw567행 |
+| 263 | GET timeline · timeline149 | status=200 / ok / 60326B | 11ms | raw570행 |
+| 264 | GET timeline · timeline150 | status=200 / ok / 60326B | 13ms | raw573행 |
+| 265 | GET timeline · timeline151 | status=200 / ok / 60326B | 11ms | raw576행 |
+| 266 | GET timeline · timeline152 | status=200 / ok / 60326B | 11ms | raw579행 |
+| 267 | GET timeline · timeline153 | status=200 / ok / 84601B | 22ms | raw582행 |
+| 268 | GET timeline · timeline154 | status=200 / ok / 52798B | 23ms | raw584행 |
+| 269 | GET timeline · timeline155 | status=200 / ok / 84601B | 26ms | raw588행 |
+| 270 | GET timeline · timeline156 | status=200 / ok / 52798B | 45ms | raw590행 |
+| 271 | GET timeline · timeline157 | status=200 / ok / 84601B | 308ms | raw593행 |
+| 272 | GET timeline · timeline158 | status=200 / ok / 52798B | 27ms | raw595행 |
+| 273 | GET timeline · timeline159 | status=200 / ok / 84642B | 133ms | raw598행 |
+| 274 | GET timeline · timeline160 | status=200 / ok / 52798B | 25ms | raw600행 |
+| 275 | GET timeline · timeline161 | status=200 / ok / 84642B | 42ms | raw604행 |
+| 276 | GET timeline · timeline162 | status=200 / ok / 52798B | 26ms | raw606행 |
+| 277 | GET timeline · timeline163 | status=200 / ok / 84642B | 39ms | raw609행 |
+| 278 | GET timeline · timeline164 | status=200 / ok / 52798B | 22ms | raw611행 |
+| 279 | GET timeline · timeline165 | status=200 / ok / 84642B | 22ms | raw614행 |
+| 280 | GET timeline · timeline166 | status=200 / ok / 52798B | 23ms | raw616행 |
+| 281 | GET timeline · timeline167 | status=200 / ok / 84642B | 22ms | raw619행 |
+| 282 | GET timeline · timeline168 | status=200 / ok / 52798B | 22ms | raw621행 |
+| 283 | GET timeline · timeline169 | status=200 / ok / 84642B | 22ms | raw624행 |
+| 284 | GET timeline · timeline170 | status=200 / ok / 52798B | 23ms | raw626행 |
+| 285 | GET timeline · timeline171 | status=200 / ok / 84642B | 23ms | raw629행 |
+| 286 | GET timeline · timeline172 | status=200 / ok / 52798B | 23ms | raw631행 |
+| 287 | GET timeline · timeline173 | status=200 / ok / 84642B | 23ms | raw634행 |
+| 288 | GET timeline · timeline174 | status=200 / ok / 52798B | 23ms | raw636행 |
+| 289 | GET timeline · timeline175 | status=200 / ok / 84642B | 23ms | raw639행 |
+| 290 | GET timeline · timeline176 | status=200 / ok / 52798B | 23ms | raw641행 |
+| 291 | GET timeline · timeline177 | status=200 / ok / 84642B | 23ms | raw644행 |
+| 292 | GET timeline · timeline178 | status=200 / ok / 52798B | 23ms | raw646행 |
+| 293 | GET timeline · timeline179 | status=200 / ok / 84642B | 23ms | raw649행 |
+| 294 | GET timeline · timeline180 | status=200 / ok / 52798B | 22ms | raw651행 |
+| 295 | GET timeline · timeline181 | status=200 / ok / 84642B | 25ms | raw654행 |
+| 296 | GET timeline · timeline182 | status=200 / ok / 52798B | 22ms | raw656행 |
+| 297 | GET timeline · timeline183 | status=200 / ok / 84642B | 23ms | raw659행 |
+| 298 | GET timeline · timeline184 | status=200 / ok / 52798B | 23ms | raw661행 |
+| 299 | GET timeline · timeline185 | status=200 / ok / 84642B | 22ms | raw664행 |
+| 300 | GET timeline · timeline186 | status=200 / ok / 52798B | 23ms | raw666행 |
+| 301 | GET timeline · timeline187 | status=200 / ok / 84642B | 23ms | raw669행 |
+| 302 | GET timeline · timeline188 | status=200 / ok / 52798B | 24ms | raw671행 |
+| 303 | GET timeline · timeline189 | status=200 / ok / 84642B | 23ms | raw674행 |
+| 304 | GET timeline · timeline190 | status=200 / ok / 52798B | 23ms | raw676행 |
+| 305 | GET timeline · timeline191 | status=200 / ok / 84642B | 23ms | raw679행 |
+| 306 | GET timeline · timeline192 | status=200 / ok / 52798B | 22ms | raw681행 |
+| 307 | GET timeline · timeline193 | status=200 / ok / 84642B | 23ms | raw684행 |
+| 308 | GET timeline · timeline194 | status=200 / ok / 52798B | 24ms | raw686행 |
+| 309 | GET timeline · timeline195 | status=200 / ok / 84642B | 23ms | raw689행 |
+| 310 | GET timeline · timeline196 | status=200 / ok / 52798B | 23ms | raw691행 |
+| 311 | GET timeline · timeline197 | status=200 / ok / 84642B | 24ms | raw694행 |
+| 312 | GET timeline · timeline198 | status=200 / ok / 52798B | 22ms | raw696행 |
+| 313 | GET timeline · timeline199 | status=200 / ok / 84642B | 22ms | raw699행 |
+| 314 | GET timeline · timeline200 | status=200 / ok / 52798B | 23ms | raw701행 |
+| 315 | GET timeline · timeline201 | status=200 / ok / 84642B | 22ms | raw704행 |
+| 316 | GET timeline · timeline202 | status=200 / ok / 52798B | 24ms | raw706행 |
+| 317 | GET timeline · timeline203 | status=200 / ok / 114811B | 486ms | raw709행 |
+| 318 | GET timeline · timeline204 | status=200 / ok / 100983B | 283ms | raw711행 |
+| 319 | GET timeline · timeline205 | status=200 / ok / 82548B | 1328ms | raw713행 |
+| 320 | GET timeline · timeline206 | status=200 / ok / 19037B | 1135ms | raw715행 |
+| 321 | GET timeline · timeline207 | status=200 / ok / 125945B | 1087ms | raw719행 |
+| 322 | GET timeline · timeline208 | status=200 / ok / 107535B | 1072ms | raw721행 |
+| 323 | GET timeline · timeline209 | status=200 / ok / 119267B | 1956ms | raw724행 |
+| 324 | GET timeline · timeline210 | status=200 / ok / 122062B | 2293ms | raw726행 |
+| 325 | GET timeline · timeline211 | status=200 / ok / 122090B | 2633ms | raw728행 |
+| 326 | GET timeline · timeline212 | status=200 / ok / 134012B | 3676ms | raw731행 |
+| 327 | GET timeline · timeline213 | status=200 / ok / 122060B | 3943ms | raw733행 |
+| 328 | GET timeline · timeline214 | status=null / timeout / 0B | 4002ms | raw735행 |
+| 329 | DELETE tap · timeline- | status=200 / ok / 26B | 8ms | raw738행 |
+
+### 보존과 정리
+
+| 파일 | 크기 | SHA256 | 보존 이유 |
+| --- | ---: | --- | --- |
+| [lp22-http-01.txt](lp22-http-01.txt) | 466809B | `40b972e940ca6e0f3eea38899a03dad01c0822b0e9662248c5fca08544dda415` | 고정스키마/시간/hash/정상종료/사후상태, 원본영상·credential 없음 |
+| [latency-eabc3c5d-db1b-444a-ae85-4ce39ea9c452.json](latency-eabc3c5d-db1b-444a-ae85-4ce39ea9c452.json) | 268857B | `e6a3f38979bfe81422e48d32261b5b679660f2668add46bafd93a8d3242306e9` | 고정스키마/시간/hash/정상종료/사후상태, 원본영상·credential 없음 |
+| [process-672188c5-396e-4e28-96e8-47cdc695f258.json](process-672188c5-396e-4e28-96e8-47cdc695f258.json) | 404B | `e889109269f97c7ac9bf8570b6b4ed0ab90cf459ac0a58740f201e12200aab32` | 고정스키마/시간/hash/정상종료/사후상태, 원본영상·credential 없음 |
+| [state-d59dfd08-83e4-440d-9b0e-320f938a5af2.json](state-d59dfd08-83e4-440d-9b0e-320f938a5af2.json) | 433B | `1dcbd23bb96d7151f113106bd7f73b766d650c2f5d68d57f3e8f8d9594a92480` | 고정스키마/시간/hash/정상종료/사후상태, 원본영상·credential 없음 |
+| [state-d59dfd08-83e4-440d-9b0e-320f938a5af2.json.detail.json](state-d59dfd08-83e4-440d-9b0e-320f938a5af2.json.detail.json) | 175986B | `d38a71360992e8628712a670c18a9c2bb5ea544396926d83ca6db45057be8482` | 고정스키마/시간/hash/정상종료/사후상태, 원본영상·credential 없음 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-hnvXc5` | 입력·녹화·복제본·registry·검증binary | 177501967B | 원본불변/사후진단·비민감증거보존후삭제 | rootAbsent=true·failureCount0 | cleanup원출력 |
+
+서버PID19611 exit0/signal없음/강제종료없음. HTTP49187·RTSP49188닫힘,UDPclosed=true.
+완료진단888행/손실0, latency1921행/요청214전부·미누락. 보존복제본자료는사후관측임을표기했다.
+4번최소수정·관련회귀·동일HTTP와5번실제통합은이실패뒤아직미실행이다.
+
 ## LP21 실제 HTTP 1회 실패 기록
 
 명령 `node scripts/internal/verify_recording_current_app.mjs --latency-only`, exit1/59575ms. HEAD1c65b1a6, 제품 무변경.

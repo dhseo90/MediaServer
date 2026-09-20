@@ -11,10 +11,10 @@
 | --- | --- | --- | --- | --- |
 | 1 | 진단 기준·누락 보완 | 구현 완료 | worker→catalog 내구전이, projection4단계, 페이지/wait/사후진단 연결 | 아래 고정계약·직접diff |
 | 2 | 진단 도구 자체검증 | 완료 | 최종168PASS·전체build exit0, 최초RED/기대치오류 보존 | LP22-T/O·상세결과 |
-| 3 | 원인 구분 단기1회 | 미실행 | 앞단계통과후 실제앱, 단일서버시계/요청순번으로 원인분리 | P0-HTTP02 |
-| 4 | 확인 원인 최소수정·회귀 | 미착수 | 독립재현/영향회귀→동일 실제HTTP; 불변조건 유지 | 원인확정이 선수 |
+| 3 | 원인 구분 단기1회 | 진단 완료·실제 HTTP FAIL | 5PASS1FAIL, 대상job 실행중Complete·HTTP214 반복검증3.209초 확인 | 아래 LP22 실제1회·원출력 |
+| 4 | 확인 원인 최소수정·회귀 | 진행 중 | 요청내 불변job 재사용 계약·focused 사전등록. 제품수정/재검증은 남음 | 아래 LP22-R |
 | 5 | 현행5단계 통합 | 미실행 | 완전2출력·hash·재기동·정리 전수통과 | S11-CI01/07~11 |
-| 6 | 분할커밋·조건부푸시 | 미수행 | 통과단위만커밋, 실패/미확인/cleanup없을때푸시 | 사용자명시·AGENTS5 |
+| 6 | 분할커밋·조건부푸시 | 일부 수행 | 4462a252·25946e73 커밋, 푸시보류. 실패한HTTP는완료커밋아님 | 사용자명시·AGENTS5 |
 
 ### 실행 전 계약
 
@@ -116,6 +116,58 @@ LP13-T05 재검사 input/pair/wait/hold=70·잔존0, 누락/복제 반례 거부
 FinishTimelineV2; JS createTimelineObservation/observeTransitionWait/boundedUntil/allTimelinePages 및 실제앱 사후진단.
 전수결과·정리·환경·fingerprint: [LP22 상세 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md#lp22-진단-구현-자체검증).
 첫 준비커밋4462a252 이후 이단위 분할커밋을 진행한다. 실제HTTP/통합 미실행이므로 푸시가능은 아직아니오다.
+
+### LP22 실제 1회 결과와 4번 수정 계약
+
+1~2번 commit25946e73 이후 `node scripts/internal/verify_recording_current_app.mjs --latency-only` 1회,
+exit1/75610ms·5PASS1FAIL. HTTP214는4002ms header-timeout, 서버4117.540ms였다. 과거LP21의 전이관측timeout과
+같은 실패라고 뭉뚱그리지 않는다. 이번 대상job은 서버steady23.387874초에Complete를실제로저장했다.
+cycle178 ready/committed혼합,179·180총계변경,181 HTTP실패다. 따라서 대상job미완료가 이번실패의원인이아니다.
+214의 Snapshot잠금789.247ms, Finish3327.497ms 중media3327.427ms;
+AcquireMediaV2 8회1604.025ms와 ValidateMediaV2 8회1604.527ms가3208.552ms를차지한다.
+각경로의 MediaV2EligibleLocked는동일cold job획득/Parse와SerializeDerivedJobRecord전체검증을반복한다.
+이합계를개별Parse 또는Serialize만의exclusive비용이라고주장하지않는다. overlap/sort/page는각0.04ms미만이다.
+기존4참조모두출력2개로Complete, target사후상세보존. 실제25항목/재기동/완전HTTP 파일해시는아직미검증이다.
+원출력 [lp22-http-01.txt](release-artifacts/v4.1.0/s11-preparation-mapping/lp22-http-01.txt), 진단1921행/214요청,
+completion888행 모두누락없음. 정상exit0·HTTP49187/RTSP49188반환·UDP종료·소유root177501967B삭제부재.
+
+4번은이확인된반복비용만보완한다. QueryTimeline한호출안의private컨텍스트로strict획득한불변job내용을공유한다.
+공개DTO/signature·저장bytes·타임라인정렬/페이지·완전성/시간/ID·파일검사/hold순서는변경하지않는다.
+재사용 전 journal의현행authority/FD/원문획득과동일성대조를유지한다. weak pointer만으로재사용하지않으며,
+현재job/state/중복output owner/source index/현재segment/source전체값/경로/삭제상태는매번확인한다.
+resident도기존전체strict검증을최소한번통과한내용만공유한다. Cold는strict parse검증의기원을봉인한다.
+불일치/컨텍스트부적격/내부재사용예산초과는기존strict경로로돌아가며정상입력을새로거부하지않는다.
+요청끝에상세자료를해제하고catalog resident를되살리지않는다. 영속캐시·다른HTTP요청간재사용은금지한다.
+추가된컨텍스트의메모리보관량/수명과성공·실패·예외의hold반환을직접검증한뒤동일HTTP를실행한다.
+파일SHA/demux검사를캐시하거나원장변조검사를생략하는것은이번승인범위가아니다.
+
+4번 내부 재사용 예산은 최대8 job/원문 logical charge 합계8MiB로 제한한다. typed객체의실측RSS와동일한단위라고주장하지않는다.
+초과·crypto-off·reloadable기원부적격은strict fallback이며제품지원/입력상한을줄이지않는다. weak link의원래주소를
+cold재획득주소와같다고가정하지않는다. 현행entry원문을매번strict획득하고전체envelope/원본link authority·lineage를대조한다.
+reloadable link는현재CanReleaseMutationLink로기원을확인하고resident fallback link는MutationLinkOwns로확인한다.
+기원검증실패를false PASS로재사용하지않는다. 공개journal API는추가하지않는다.
+
+LP22-R 초기 focused 실행 전 정의(제품 수정 전 예상 RED):
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP22-R01 fixture actual Complete two outputs | 실제자료 선수 | 기존PrepareMedia의Encode/실제writer/파생2출력 fixture 재사용 | v4.1.0 |
+| LP22-R02 public timeline canonical and media bytes unchanged | 결과 동등 | 기존strict 경로와전수DTO/canonical·파일 hash 대조 | v4.1.0 |
+| LP22-R03 same job two outputs parse strictly once per request | 중복 비용 RED | QueryTimeline 구간의 실제 ParseDerivedJobRecord 호출수: baseline예상5, 기대1에서유일FAIL | v4.1.0 |
+| LP22-R04 next request revalidates cold job | 요청 수명 | 다음호출은새strict획득; 요청간캐시없음 | v4.1.0 |
+| LP22-R05 context and media holds released after request | 정리 | 객체/hold잔존없음·원래파일불변 | v4.1.0 |
+
+신규 `recording_job_read_context_smoke.cpp`와 `verify_recording_job_read_context.mjs`는기존bounded 실행guard/소유root를재사용한다.
+catalog/read/timeline/recording_derived_job_ready.cpp의소유복제본에서실제Parse횟수를계수하며제품에는test hook을넣지않는다.
+compile60초/focused60초·RSS1GiB/disk512MiB/output2MiB·정리기준 유지.
+초기RED 명령은 `node scripts/internal/verify_recording_job_read_context.mjs red lp22-media-01`이며
+R03만5회 대1회로FAIL하는4PASS1FAIL을예상한다. R05초기RED는hold0만직접확인하며상세객체해제는GREEN추가검사다.
+도구자체검사와나머지상태/변조/예산반례는실행전추가한다. 빌드/환경오류는예상RED가아니다.
+
+3번 진단결과·4번 사전계약 문서 단위: `git diff --check` exit0,
+`MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links` exit0/0.00498125초,
+md285·links9045·images22·anchors126·failures0. 새실행없음·제품미수정, 진단완료와HTTP FAIL을구분해분할커밋한다.
+raw/진단자료5개와문서만대상이며작성중focused테스트는이커밋에서제외한다.
 
 ## 2026-09-20 LP21 누적·동시 비용 → 실제 HTTP → 현행 통합
 
