@@ -13,6 +13,14 @@ export const currentSteps=Object.freeze([
 ]);
 function requireValue(ok,reason){if(!ok)throw Error(reason);}
 function one(lines,prefix){const selected=lines.filter(l=>l.startsWith(prefix));requireValue(selected.length===1,'summary-count');return selected[0];}
+function normalActualProcess(p){
+  // 실제 createProcessCleanup의 증거를 확인한다. HTTP fixture의 graceful 형식과 섞지 않는다.
+  return p?.schema==='recording-process-cleanup-v1'&&p.attemptCount===1&&Number.isSafeInteger(p.pid)&&p.pid>0&&p.pid<=2147483647&&
+    p.exitedObserved===true&&p.exitCode===0&&p.signalCode===null&&p.stopCode==='complete'&&p.forcedTermination==='not-used'&&
+    p.normalExitPass===true&&p.normalShutdownPass===true&&p.archiveSafe===true&&Array.isArray(p.ports)&&p.ports.length===2&&
+    ['http','rtsp'].every(kind=>p.ports.filter(v=>v?.kind===kind&&Number.isSafeInteger(v.port)&&v.port>0&&v.port<=65535&&
+      v.status==='pass'&&v.code==='closed'&&v.closed===true).length===1);
+}
 export function completedCurrentStep(step,result){
   requireValue(currentSteps.some(s=>s.id===step.id),'unknown-stage');
   requireValue(result.exit===0&&!result.signal&&!result.error,'child-execution');
@@ -37,7 +45,7 @@ export function completedCurrentStep(step,result){
   const s=JSON.parse(one(lines,'{"mode":"current-actual-app"'));
   requireValue(s.actualEventPass===true&&s.restartPass===true&&s.expectedOutputCount===2&&Array.isArray(s.observedOutputCounts)&&s.observedOutputCounts.length===2&&s.observedOutputCounts.every(n=>n===2)&&s.failed===0&&s.passed===25,'actual-app-summary');
   requireValue(s.cleanup?.rootAbsent===true&&s.cleanup?.failureCount===0,'actual-app-cleanup');
-  requireValue(Array.isArray(s.cleanup.processes)&&s.cleanup.processes.length===2&&s.cleanup.processes.every(p=>p.exitCode===0&&p.signalCode===null&&p.graceful===true&&Array.isArray(p.ports)&&p.ports.length===2&&['http','rtsp'].every(k=>p.ports.filter(v=>v.kind===k&&v.closed===true).length===1)),'actual-app-process-cleanup');
+  requireValue(Array.isArray(s.cleanup.processes)&&s.cleanup.processes.length===2&&s.cleanup.processes.every(normalActualProcess),'actual-app-process-cleanup');
   return {id:step.id,checks:s.passed,exit:0,cleanup:true};
 }
 export async function runCurrentIntegration(execute){

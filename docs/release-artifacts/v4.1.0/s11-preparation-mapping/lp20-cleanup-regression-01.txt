@@ -1,0 +1,104 @@
+command=node --test --test-reporter=tap scripts/internal/recording_process_cleanup.test.mjs
+exit=0; TAP duration_ms=82.302875
+source=tool output; token start/end/consumed unavailable
+cleanup=two owned Node children exited; injected ports/no listeners; no temp files
+16d22abf33efaca8b44b593d59a044291c3a3ebef25db7bab239fc23de32f45a  scripts/internal/recording_process_cleanup.mjs
+ad56378ffe44f5225678c7733d5350d8cae2d9ba46c51728e899cd11134e32b4  scripts/internal/recording_process_cleanup.test.mjs
+ecf6f947367be661df1c28c2407eae36c685351579380839fbf286efe582fe48  scripts/internal/recording_current_integration_suite.mjs
+
+TAP version 13
+# Subtest: LP14-D01 종료 관측 helper 존재
+ok 1 - LP14-D01 종료 관측 helper 존재
+  ---
+  duration_ms: 0.31125
+  type: 'test'
+  ...
+# Subtest: LP14-D01 정상 exit0·두port·중복/동시호출 최초결과
+ok 2 - LP14-D01 정상 exit0·두port·중복/동시호출 최초결과
+  ---
+  duration_ms: 0.405542
+  type: 'test'
+  ...
+# Subtest: LP14-D02 exit7 FAIL과archiveSafe 분리
+ok 3 - LP14-D02 exit7 FAIL과archiveSafe 분리
+  ---
+  duration_ms: 0.101125
+  type: 'test'
+  ...
+# Subtest: LP14-D02 signal FAIL과archiveSafe 분리
+ok 4 - LP14-D02 signal FAIL과archiveSafe 분리
+  ---
+  duration_ms: 0.074833
+  type: 'test'
+  ...
+# Subtest: LP14-D02 forced SIGKILL은실패지만관측종료/port확인 보존
+ok 5 - LP14-D02 forced SIGKILL은실패지만관측종료/port확인 보존
+  ---
+  duration_ms: 0.081625
+  type: 'test'
+  ...
+# Subtest: LP14-D02 미관측 timeout·중복stop 무한재시도금지
+ok 6 - LP14-D02 미관측 timeout·중복stop 무한재시도금지
+  ---
+  duration_ms: 0.080042
+  type: 'test'
+  ...
+# Subtest: LP14-D03 http port실패에도다른port독립검사
+ok 7 - LP14-D03 http port실패에도다른port독립검사
+  ---
+  duration_ms: 0.08575
+  type: 'test'
+  ...
+# Subtest: LP14-D03 rtsp port실패에도다른port독립검사
+ok 8 - LP14-D03 rtsp port실패에도다른port독립검사
+  ---
+  duration_ms: 0.05175
+  type: 'test'
+  ...
+# Subtest: LP14-D03 canary원문미노출·최초실패유지·종료뒤port오류별도보존
+ok 9 - LP14-D03 canary원문미노출·최초실패유지·종료뒤port오류별도보존
+  ---
+  duration_ms: 0.104208
+  type: 'test'
+  ...
+# Subtest: LP14-D03 서버 SIGTERM 전달 실패 고정코드
+ok 10 - LP14-D03 서버 SIGTERM 전달 실패 고정코드
+  ---
+  duration_ms: 0.093291
+  type: 'test'
+  ...
+# Subtest: LP14-D03 서버 SIGKILL 전달 실패 고정코드
+ok 11 - LP14-D03 서버 SIGKILL 전달 실패 고정코드
+  ---
+  duration_ms: 0.042334
+  type: 'test'
+  ...
+# Subtest: LP14-D03 porttimeout 및 비표준 signal원문거부
+ok 12 - LP14-D03 porttimeout 및 비표준 signal원문거부
+  ---
+  duration_ms: 0.092917
+  type: 'test'
+  ...
+# [child-cleanup] {"pid":11902,"exitCode":0,"signalCode":null,"exited":true,"ports":"injected-no-listeners","tempFiles":"none"}
+# Subtest: LP14-D04 소유실제Node자식 SIGTERM→exit0
+ok 13 - LP14-D04 소유실제Node자식 SIGTERM→exit0
+  ---
+  duration_ms: 21.890208
+  type: 'test'
+  ...
+# [child-cleanup] {"pid":11903,"exitCode":7,"signalCode":null,"exited":true,"ports":"injected-no-listeners","tempFiles":"none"}
+# Subtest: LP14-D04 소유실제Node자식 SIGTERM→exit7
+ok 14 - LP14-D04 소유실제Node자식 SIGTERM→exit7
+  ---
+  duration_ms: 19.826417
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 82.302875

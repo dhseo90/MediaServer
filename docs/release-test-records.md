@@ -194,6 +194,60 @@ typed34회귀는 exit0/5469ms·source 불변·root28047328B 삭제 확인. 이�
 빌드는 [build02](release-artifacts/v4.1.0/s11-preparation-mapping/lp20-build-02.txt)다.
 후보 전체·256cap·정렬·독립값·손상 거부/보호를 유지한 조회 단위 구현은 완료했다. 비용 총량·실제 HTTP는 후속에 남긴다.
 
+### 4번 actual-app 종료 판정 실행 전 정의
+
+3번 커밋 `cd7172a2` 후 메인이 소규모 검증기 변경을 직접 수행한다. 실제 producer createProcessCleanup의
+schema/attempt/pid/관측exit/정상종료/강제없음/archiveSafe/두포트 status·code·closed를 그대로 소비한다.
+HTTP fixture의 graceful 계약·제품 종료 정책·timeout·actual-app25개 합격 기준은 바꾸지 않는다.
+LP20-X01은 실제 producer helper로 생성한2개 정상 종료 결과(실제 서버를 켜지는 않음)가 통합 oracle에 수용돼야 한다.
+먼저 이 검사만 추가한 RED(1FAIL/기존17PASS)를 확인하고 구현한다.
+LP20-X02는 정상결과의 schema/attempt/pid/exit/signal/관측/stop/force/정상flag/archive/port 필드 누락·모순 및
+legacy graceful-only를 개별 반례로 거부한다. 세부 제목은 테스트에 각각 선언한 뒤 실행한다.
+명령은 `node --test --test-reporter=tap scripts/internal/recording_current_integration.test.mjs`와
+GREEN 후 `scripts/internal/recording_process_cleanup.test.mjs`의 기존14개 회귀다.
+테스트용 Node 자식2개는 종료 확인하고 포트는 주입 fixture(실제 listener 없음), 임시 파일 없음이다.
+실제 현행5단계 통합/서버 재기동·UI·장시간은 여기서 실행하지 않는다.
+
+RED01은 예상대로 X01 한 항목만 actual-app-process-cleanup으로 실패(17PASS/1FAIL·exit1/41.437292ms)했다.
+GREEN 등록은 기존17+정상1+비정상22=40개다. 비정상22개 exact 제목은 test의 invalidProcessCases에 등록했고
+각각 별도 test/result 행으로 보존한다. second process를 변조해 두 프로세스 모두 검사하는지도 확인한다.
+
+GREEN40개 exit0/45.020791ms, 기존 process cleanup14개 exit0/82.302875ms로4번54PASS다.
+메인이 actual-app producer→consumer 필드와 실제 diff를 대조했다. 실제 Node 자식2개는 각각 기대 exit0/7,
+종료 확인 완료, listener/임시 파일 없음. C++ 제품 변경이 없으므로 build02 증거를 유지한다.
+검증기 PASS는 실제 앱 정상 종료·HTTP·현행5단계 통합 실행 PASS가 아니다.
+[54개 및 최초RED·정리 전수](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md#lp20-종료-판정-개별-결과).
+
+마감 정적 대조: 원출력3개의 실제 bytes/SHA256·개별 제목·전수 결과 행·민감 패턴 검사 exit0.
+`MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links` exit0, md285·links9015·images22·anchors122·failures0.
+`git diff --check` exit0. 이 대조로 제품 검증을 재실행하거나 실제 앱 PASS를 추가하지 않았다.
+
+### 요청 대조·푸시 판정·현재 단계 잔여 이슈
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 0 | 미커밋 커밋/삭제 판단 | 완료 | 기존4문서는 유효 증적이므로 삭제 없이8b269dd1로 보존 | 선행 분류·hash·전수 대조 |
+| 1 | 공동 합격 계약 | 완료 | 94282278 | LP20 안전/비용 계약 |
+| 2 | 정상 저장·자동CP | 단위 구현 완료 | 9e9adea2·신규25/회귀141·작은100/도구15·빌드0 | 2번 원출력·반례 |
+| 3 | 전체 조회 잠금 | 단위 구현 완료 | cd7172a2·299PASS·빌드0 | 3번 원출력·동시 변경/보호 |
+| 4 | 실제 종료 oracle 연결 | 단위 구현 완료 | 54PASS, 이 단위 별도 커밋 | 실제 producer 형식·비정상22개 거부 |
+| 5 | 마지막 푸시 가능 여부 | 보류·미수행 | 기존 누적 비용/HTTP 미완료를 허용한 중간 저장 승인은 없음 | 아래 판정, AGENTS5.2·이전 사용자 미완료 정리 지시 |
+| 6 | 잔여 재산정 | 완료 | 현재 단계3개로 구분, 아래 순서 | 구현·검증 경계 직접 대조 |
+
+이번1~4의 focused 실패는 모두 보완·재검증됐지만, 누적 커밋 전체에 걸린 과거 비용/실제 HTTP 실패는
+현재 코드의 후속 측정 없이 해소됐다고 판정할 수 없다. 따라서 **푸시 가능: 아니오 / 수행하지 않음**이다.
+이는 코드의 새 실패를 발견했다는 뜻이 아니며 전체 미완료를 중간 저장으로 푸시하지 말라는 지시를 유지한 판정이다.
+미커밋을 계속 방치하는 대신 이번 승인 단위는 모두 분할 커밋하고 작업 트리는 정리한다.
+
+| 순서 | 중요도 | 잔여 이슈 | 해야 할 일·완료 기준 | 근거 유형 | 범위·실행 상태 |
+| --- | --- | --- | --- | --- | --- |
+| 1 | P0 | 현재 코드 공동 비용 판정 | 16/32 원본·삭제/재open에서 raw 읽기·과거 Parse/Serialize·RAM·잠금/체크포인트 측정. 무관 Apply 중 fallback 빈도도 분리하여 추가 보완 필요성 판단 | LP19 직접 실패 + LP20 코드 직접 확인/후속 측정 제안 | S10 저장·조회, 이번 미실행 |
+| 2 | P0 | 실제 HTTP 지연 해소 확인 | 1 통과 후 실제 앱의 기존4000ms 기준. 실패 시 작업 상태·종료·원인·정리 증거 보존 | 기존 실제 HTTP 실패 + AGENTS 중단 순서 | S11 준비, 이번 미실행 |
+| 3 | P0 | 실제 이벤트 통합 마감 | 완전 출력2개·HTTP/파일hash·두 번째 기동 기존 데이터/새 녹화·현행5단계, 이번 종료 oracle를 실제 결과로 확인. 누적 커밋 푸시 조건 재판정 | 기존 통합 구현/등록 직접 확인 | S11 준비, 이번 미실행 |
+
+현재 목록은 승인된 저장·조회·통합 준비의 잔여다. 하드웨어 기준 차이 및 S11 최종 안정화/30분/120분/UI,
+릴리즈 외부 작업은 별도 미완료이며 이번 작업이 전체 릴리즈 전수 감사/실행을 대신하지 않는다.
+
 ## 2026-09-20 LP19 누적 비용 → 실제 HTTP → 실제 이벤트 통합
 
 사용자 승인: 1~3번 순차 개발·관련 단기 검증·분할 커밋, 전체 범위가 푸시 가능하면 마지막 푸시.

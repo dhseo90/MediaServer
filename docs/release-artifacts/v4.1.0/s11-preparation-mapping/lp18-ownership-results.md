@@ -1,5 +1,110 @@
 # LP18 공유 소유 focused 개별 결과
 
+## LP20 종료 판정 개별 결과
+
+실제 앱 서버 실행이 아니라 실제 producer helper의 주입 fixture/검증기 자체검사다. 제품 C++는3번 이후 변경 없음.
+
+### lp20-cleanup-red-01
+
+[원출력](lp20-cleanup-red-01.txt), 5021B, SHA256 `7e5f29f478f5d08d76ed43aae06dee4a12525a22d24ef499e67b6e07d5fe95ac`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박 | 원출력11행 | PASS | 직접 assertion |
+| LP20-X01 실제 종료 producer의 정상 두 결과를 수용 | 원출력17행 | FAIL | 예상 RED·GREEN에서 통과 |
+| S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부 | 원출력33행 | PASS | 직접 assertion |
+| S11-CI02 nonzero 실패 후 나머지 미실행 | 원출력39행 | PASS | 직접 assertion |
+| S11-CI02 signal 실패 후 나머지 미실행 | 원출력45행 | PASS | 직접 assertion |
+| S11-CI02 output-limit 실패 후 나머지 미실행 | 원출력51행 | PASS | 직접 assertion |
+| S11-CI02 summary-missing 실패 후 나머지 미실행 | 원출력57행 | PASS | 직접 assertion |
+| S11-CI02 summary-duplicate 실패 후 나머지 미실행 | 원출력63행 | PASS | 직접 assertion |
+| S11-CI02 cleanup-failed 실패 후 나머지 미실행 | 원출력69행 | PASS | 직접 assertion |
+| S11-CI02 port-missing 실패 후 나머지 미실행 | 원출력75행 | PASS | 직접 assertion |
+| S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리 | 원출력81행 | PASS | 직접 assertion |
+| S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부 | 원출력87행 | PASS | 직접 assertion |
+| S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup | 원출력93행 | PASS | 직접 assertion |
+| S11-CI05 누락·중복item·불안정total·truncated·cap 거부 | 원출력99행 | PASS | 직접 assertion |
+| S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부 | 원출력105행 | PASS | 직접 assertion |
+| S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 | 원출력111행 | PASS | 직접 assertion |
+| S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리 | 원출력117행 | PASS | 직접 assertion |
+| S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 | 원출력123행 | PASS | 직접 assertion |
+
+### lp20-cleanup-green-01
+
+[원출력](lp20-cleanup-green-01.txt), 8769B, SHA256 `225c4ea116b7ca9ecbad78244f43ccfee60eb35d51deb2f813ceb4f2b7f07866`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박 | 원출력11행 | PASS | 직접 assertion |
+| LP20-X01 실제 종료 producer의 정상 두 결과를 수용 | 원출력17행 | PASS | 직접 assertion |
+| LP20-X02 schema 누락는 정상 종료로 승인하지 않음 | 원출력23행 | PASS | 직접 assertion |
+| LP20-X02 schema 불일치는 정상 종료로 승인하지 않음 | 원출력29행 | PASS | 직접 assertion |
+| LP20-X02 반복 종료는 정상 종료로 승인하지 않음 | 원출력35행 | PASS | 직접 assertion |
+| LP20-X02 PID 누락는 정상 종료로 승인하지 않음 | 원출력41행 | PASS | 직접 assertion |
+| LP20-X02 exit 비정상는 정상 종료로 승인하지 않음 | 원출력47행 | PASS | 직접 assertion |
+| LP20-X02 signal 관측는 정상 종료로 승인하지 않음 | 원출력53행 | PASS | 직접 assertion |
+| LP20-X02 종료 미관측는 정상 종료로 승인하지 않음 | 원출력59행 | PASS | 직접 assertion |
+| LP20-X02 stop 오류는 정상 종료로 승인하지 않음 | 원출력65행 | PASS | 직접 assertion |
+| LP20-X02 강제 종료는 정상 종료로 승인하지 않음 | 원출력71행 | PASS | 직접 assertion |
+| LP20-X02 강제 여부 미확인는 정상 종료로 승인하지 않음 | 원출력77행 | PASS | 직접 assertion |
+| LP20-X02 normalExit 실패는 정상 종료로 승인하지 않음 | 원출력83행 | PASS | 직접 assertion |
+| LP20-X02 normalShutdown 실패는 정상 종료로 승인하지 않음 | 원출력89행 | PASS | 직접 assertion |
+| LP20-X02 archive 불가는 정상 종료로 승인하지 않음 | 원출력95행 | PASS | 직접 assertion |
+| LP20-X02 ports 누락는 정상 종료로 승인하지 않음 | 원출력101행 | PASS | 직접 assertion |
+| LP20-X02 port 수 부족는 정상 종료로 승인하지 않음 | 원출력107행 | PASS | 직접 assertion |
+| LP20-X02 port kind 중복는 정상 종료로 승인하지 않음 | 원출력113행 | PASS | 직접 assertion |
+| LP20-X02 port 미해제는 정상 종료로 승인하지 않음 | 원출력119행 | PASS | 직접 assertion |
+| LP20-X02 port 상태 모순는 정상 종료로 승인하지 않음 | 원출력125행 | PASS | 직접 assertion |
+| LP20-X02 port 코드 모순는 정상 종료로 승인하지 않음 | 원출력131행 | PASS | 직접 assertion |
+| LP20-X02 port 범위 오류는 정상 종료로 승인하지 않음 | 원출력137행 | PASS | 직접 assertion |
+| LP20-X02 graceful-only 구형 결과는 정상 종료로 승인하지 않음 | 원출력143행 | PASS | 직접 assertion |
+| LP20-X02 정상 flag 누락는 정상 종료로 승인하지 않음 | 원출력149행 | PASS | 직접 assertion |
+| S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부 | 원출력155행 | PASS | 직접 assertion |
+| S11-CI02 nonzero 실패 후 나머지 미실행 | 원출력161행 | PASS | 직접 assertion |
+| S11-CI02 signal 실패 후 나머지 미실행 | 원출력167행 | PASS | 직접 assertion |
+| S11-CI02 output-limit 실패 후 나머지 미실행 | 원출력173행 | PASS | 직접 assertion |
+| S11-CI02 summary-missing 실패 후 나머지 미실행 | 원출력179행 | PASS | 직접 assertion |
+| S11-CI02 summary-duplicate 실패 후 나머지 미실행 | 원출력185행 | PASS | 직접 assertion |
+| S11-CI02 cleanup-failed 실패 후 나머지 미실행 | 원출력191행 | PASS | 직접 assertion |
+| S11-CI02 port-missing 실패 후 나머지 미실행 | 원출력197행 | PASS | 직접 assertion |
+| S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리 | 원출력203행 | PASS | 직접 assertion |
+| S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부 | 원출력209행 | PASS | 직접 assertion |
+| S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup | 원출력215행 | PASS | 직접 assertion |
+| S11-CI05 누락·중복item·불안정total·truncated·cap 거부 | 원출력221행 | PASS | 직접 assertion |
+| S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부 | 원출력227행 | PASS | 직접 assertion |
+| S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 | 원출력233행 | PASS | 직접 assertion |
+| S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리 | 원출력239행 | PASS | 직접 assertion |
+| S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 | 원출력245행 | PASS | 직접 assertion |
+
+### lp20-cleanup-regression-01
+
+[원출력](lp20-cleanup-regression-01.txt), 3482B, SHA256 `c242ea4071dedf89d16c0bdc8eb177e0699b6c7d95450d7654d61e5069751f2a`.
+
+| 제목 | 수행내용 | 결과(pass/fail) | 비고 |
+| --- | --- | --- | --- |
+| LP14-D01 종료 관측 helper 존재 | 원출력11행 | PASS | 직접 assertion |
+| LP14-D01 정상 exit0·두port·중복/동시호출 최초결과 | 원출력17행 | PASS | 직접 assertion |
+| LP14-D02 exit7 FAIL과archiveSafe 분리 | 원출력23행 | PASS | 직접 assertion |
+| LP14-D02 signal FAIL과archiveSafe 분리 | 원출력29행 | PASS | 직접 assertion |
+| LP14-D02 forced SIGKILL은실패지만관측종료/port확인 보존 | 원출력35행 | PASS | 직접 assertion |
+| LP14-D02 미관측 timeout·중복stop 무한재시도금지 | 원출력41행 | PASS | 직접 assertion |
+| LP14-D03 http port실패에도다른port독립검사 | 원출력47행 | PASS | 직접 assertion |
+| LP14-D03 rtsp port실패에도다른port독립검사 | 원출력53행 | PASS | 직접 assertion |
+| LP14-D03 canary원문미노출·최초실패유지·종료뒤port오류별도보존 | 원출력59행 | PASS | 직접 assertion |
+| LP14-D03 서버 SIGTERM 전달 실패 고정코드 | 원출력65행 | PASS | 직접 assertion |
+| LP14-D03 서버 SIGKILL 전달 실패 고정코드 | 원출력71행 | PASS | 직접 assertion |
+| LP14-D03 porttimeout 및 비표준 signal원문거부 | 원출력77행 | PASS | 직접 assertion |
+| LP14-D04 소유실제Node자식 SIGTERM→exit0 | 원출력84행 | PASS | 직접 assertion |
+| LP14-D04 소유실제Node자식 SIGTERM→exit7 | 원출력91행 | PASS | 직접 assertion |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| 없음 | unit 임시 파일·서버 listener | 0B | 생성하지 않음 | 정리 대상 없음 | raw RED/GREEN metadata |
+| PID11902/11903 | 소유 Node 회귀 자식 | 파일 비대상 | SIGTERM 뒤 exit 관측 | exit0/7 기대값·각 exited=true | regression raw child-cleanup |
+| 위 raw3개 | 비민감 테스트 증거 | 각 hash 옆 실제 크기 | 보존 | Git 증적, 실제 영상/자격증명 없음 | 개별 결과·최초 실패 보존 목적 |
+
+토큰 start/end/consumed: 전용 집계 미제공. 실제 TAP elapsed/명령/exit/source는 각 원출력에 있다.
+
 ## LP20 조회 잠금 개별 결과
 
 ### LP20 2~3번 임시 산출물 정리 전수

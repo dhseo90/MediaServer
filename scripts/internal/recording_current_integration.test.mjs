@@ -1,20 +1,52 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {runCurrentIntegration} from './recording_current_integration_suite.mjs';
+import {runCurrentIntegration,completedCurrentStep,currentSteps} from './recording_current_integration_suite.mjs';
+import {createProcessCleanup} from './recording_process_cleanup.mjs';
 import {allTimelinePages,eventOutputs,verifyRestart} from './recording_current_app_helpers.mjs';
 import {dispatchTuple,correlatedEvent} from './recording_event_correlation.mjs';
 const ids=['http-api','http-auth','http-lifecycle','default-composition','actual-app'];
+async function producedCleanup(pid){
+  const child={pid,exitCode:null,signalCode:null};
+  return createProcessCleanup({child,ports:[{kind:'http',port:52300},{kind:'rtsp',port:52301}],
+    stopServer:async c=>{c.exitCode=0;return {forced:false};},assertPortClosed:async()=>({closed:true})})();
+}
+const actualProcesses=await Promise.all([producedCleanup(1001),producedCleanup(1002)]);
 const cleanup='[cleanup] PASS {"rootAbsent":true,"failureCount":0,"process":{"exitCode":0,"signalCode":null,"graceful":true},"ports":[{"kind":"http","closed":true},{"kind":"rtsp","closed":true}]}\n';
 const outputs={
   'http-api':'[S06 HTTP API] checks=35 fail=0 authMode=off roleTests=NOT_RUN\n'+cleanup,
   'http-auth':'[S06 HTTP AUTH] checks=38 fail=0 actualUiActions=NOT_RUN\n'+cleanup,
   'http-lifecycle':'[S06 HTTP lifecycle] checks=12 fail=0 codecPlayback=NOT_RUN\n'+cleanup,
   'default-composition':'[summary] pass=24 fail=0\n[summary] pass=16 fail=0\n[summary] pass=1 fail=0\n'+Array.from({length:46},(_,i)=>`[pass] case-${i}`).join('\n')+'\n[process] committed child exit=23 expected=23\n[process] blocked child exit=23 expected=23\n[cleanup] path=/unit bytes=1 removed=true\n',
-  'actual-app':JSON.stringify({mode:'current-actual-app',passed:25,failed:0,actualEventPass:true,restartPass:true,expectedOutputCount:2,observedOutputCounts:[2,2],cleanup:{rootAbsent:true,failureCount:0,processes:[1,2].map(()=>({exitCode:0,signalCode:null,graceful:true,ports:[{kind:'http',closed:true},{kind:'rtsp',closed:true}]}))}})+'\n'
+  'actual-app':JSON.stringify({mode:'current-actual-app',passed:25,failed:0,actualEventPass:true,restartPass:true,expectedOutputCount:2,observedOutputCounts:[2,2],cleanup:{rootAbsent:true,failureCount:0,processes:actualProcesses}})+'\n'
 };
 test('S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박',async()=>{
   const called=[];const r=await runCurrentIntegration(async step=>{called.push(step.id);return {exit:0,stdout:outputs[step.id]};});
   assert.deepEqual(called,ids);assert.equal(r.currentIntegrationExecutionPass,true);assert.equal(r.stages.length,5);
+});
+test('LP20-X01 실제 종료 producer의 정상 두 결과를 수용',async()=>{
+  const summary=JSON.parse(outputs['actual-app']);
+  summary.cleanup.processes=await Promise.all([producedCleanup(1001),producedCleanup(1002)]);
+  assert.equal(completedCurrentStep(currentSteps.at(-1),{exit:0,stdout:JSON.stringify(summary)}).cleanup,true);
+});
+const invalidProcessCases=[
+  ['schema 누락',p=>{delete p.schema;}],['schema 불일치',p=>{p.schema='unknown';}],
+  ['반복 종료',p=>{p.attemptCount=2;}],['PID 누락',p=>{p.pid=null;}],
+  ['exit 비정상',p=>{p.exitCode=7;}],['signal 관측',p=>{p.signalCode='SIGTERM';}],
+  ['종료 미관측',p=>{p.exitedObserved=false;}],['stop 오류',p=>{p.stopCode='stop-error';}],
+  ['강제 종료',p=>{p.forcedTermination='used';}],['강제 여부 미확인',p=>{p.forcedTermination='unknown';}],
+  ['normalExit 실패',p=>{p.normalExitPass=false;}],['normalShutdown 실패',p=>{p.normalShutdownPass=false;}],
+  ['archive 불가',p=>{p.archiveSafe=false;}],['ports 누락',p=>{delete p.ports;}],
+  ['port 수 부족',p=>{p.ports.pop();}],['port kind 중복',p=>{p.ports[1].kind='http';}],
+  ['port 미해제',p=>{p.ports[0].closed=false;}],['port 상태 모순',p=>{p.ports[0].status='fail';}],
+  ['port 코드 모순',p=>{p.ports[0].code='port-open';}],['port 범위 오류',p=>{p.ports[0].port=0;}],
+  ['graceful-only 구형 결과',p=>{for(const k of Object.keys(p))if(!['exitCode','signalCode','ports'].includes(k))delete p[k];p.graceful=true;}],
+  ['정상 flag 누락',p=>{delete p.normalShutdownPass;}]
+];
+for(const [name,change] of invalidProcessCases)test(`LP20-X02 ${name}는 정상 종료로 승인하지 않음`,async()=>{
+  const calls=[];const summary=JSON.parse(outputs['actual-app']);change(summary.cleanup.processes[1]);
+  const result=await runCurrentIntegration(async step=>{calls.push(step.id);return {exit:0,stdout:step.id==='actual-app'?JSON.stringify(summary):outputs[step.id]};});
+  assert.deepEqual(calls,ids);assert.equal(result.currentIntegrationExecutionPass,false);assert.equal(result.failedStage,'actual-app');
+  assert.equal(result.error,'actual-app-process-cleanup');assert.equal(result.stages.length,4);assert.deepEqual(result.notRun,[]);
 });
 test('S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부',()=>{
   const tap={tapId:'tap',streamKey:'raw-stream'},response={tapId:'tap',result:{sourceKey:'raw-stream',pts:2000000000},events:[{ruleId:'9102',type:'presence',object:{trackId:2}}]};

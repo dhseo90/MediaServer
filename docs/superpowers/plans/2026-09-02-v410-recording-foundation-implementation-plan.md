@@ -114,7 +114,8 @@ fixture의 무변경 후보 오판과 광범위 catch 회귀는 각각 수정·�
 3번 전체 조회 잠금 개선은 신규23·기존252·자동CP교차24=299PASS 및 전체빌드로 단위 마감했다.
 모든 후보를 보존하고 잠금 밖 상세 파싱 뒤 revision/owner/authority를 확인한다. 변동 시 locked1회 fallback하며
 wait lease 최종 보호 검증은 잠금 안에 유지한다. 지속 쓰기에서 fallback 빈도·총 지연은 미측정이다.
-4번 actual-app 종료 oracle 보완은 다음이다. 16/32 공동 비용·실제 HTTP4000ms·
+4번 actual-app 종료 oracle는 실제 producer 형식과 연결했고40+14개 단기 검증으로 마감했다.
+기존 HTTP fixture의 graceful/제품 종료 정책은 유지한다. 16/32 공동 비용·실제 HTTP4000ms·
 완전 출력2개/재기동/현행5단계 통합은 아직 미완료다. 단위 구현 PASS를 이 결과로 확대하지 않는다.
 
 ### LP17 판정 기준 비교 설계 저장 계약
