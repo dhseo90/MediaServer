@@ -6,7 +6,9 @@
 
 ### lp19-owner-red-01.txt
 
-[원출력](lp19-owner-red-01.txt), 3105B, SHA256 `b95c58f58fc67c3eca1d39809fab7a325167dc6df703e4830267d66d86d0595f`.
+[보존 출력](lp19-owner-red-01.txt), 3097B, SHA256 `f6d8b20e04843c94c1d612a2971267af5d1b89dbe1851f4b36e97297c1c8ca0d`.
+최초3105B/SHA256 `b95c58f58fc67c3eca1d39809fab7a325167dc6df703e4830267d66d86d0595f`에서
+빈 줄4개의 뒤 공백8B만 정리했다. 행수·실패 assertion·실제 결과는 그대로다.
 
 | 제목 | 수행내용 | 결과(pass/fail) | 비고 |
 | --- | --- | --- | --- |

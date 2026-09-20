@@ -32,9 +32,9 @@
 test at scripts/internal/recording_catalog_comparison.test.mjs:20:1
 ✖ LP19-H01 계측 손실 없는 왕복 (3.94075ms)
   AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
-  
+
     assert(r.valid)
-  
+
       at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_comparison.test.mjs:22:2)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)
@@ -51,9 +51,9 @@ test at scripts/internal/recording_catalog_comparison.test.mjs:20:1
 test at scripts/internal/recording_catalog_comparison.test.mjs:29:1
 ✖ LP19-H02 잘못된 축약 표현 거부 (0.275ms)
   AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
-  
+
     assert(!observations(text()+line(row),expected).valid)
-  
+
       at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_catalog_comparison.test.mjs:36:3)
       at Test.runInAsyncScope (node:async_hooks:214:14)
       at Test.run (node:internal/test_runner/test:1106:25)

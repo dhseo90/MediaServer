@@ -67,10 +67,16 @@ exit0/410.187ms다. C++와 JS의31열 순서·모든 값 복원·손상 거부·
 개별 RED13/GREEN13/작은비교100개와12phase 및 정리18행은
 [개별 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md#lp19-누적-검사-준비-결과)에 보존했다.
 자체검사마다 소유 root7개/199B, 작은 비교 store3개 각256627B와 최종root19663635B를 삭제·부재 확인했다.
-raw3개 총206397B는 비민감 숫자·검사/소스 hash·정리 근거 보존 목적이며 credential/실제 영상은 없다.
+raw3개 총206389B(RED 공백 정리 전206397B)는 비민감 숫자·검사/소스 hash·정리 근거 보존 목적이며 credential/실제 영상은 없다.
 토큰 미집계 사유는 위와 같고 elapsed/source는 원출력에 보존했다.
 문서 링크 검사 `MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links` exit0/0.029초,
 md285·links8977·images22·anchors117·failures0. 준비 단위만 커밋하며 실제 누적 비용 판정은 다음이다.
+
+준비 커밋 `b6b5c7a2` 실행 때 `git diff --cached --check`가 새 RED 출력 빈 줄4곳의 뒤 공백을 검출했으나,
+메인이 종료코드 연동 없이 다음 커밋을 실행한 절차 위반이 있었다. 해당 명령의 개별exit는 묶음에서 분리되지 않았고
+전체 명령exit0은 공백 검사 PASS가 아니다. 사용자에게 즉시 정정하고 누적 검사/후속 단계는 시작하지 않았다.
+실패 내용·행수를 유지한 채 공백8B만 정리하고 최초/보존 hash를 개별 기록에 남긴다.
+이후 검증·stage·staged검사·commit을 개별 호출하고 성공을 직접 확인한다. 기존 커밋 이력은 덮어쓰지 않는다.
 
 ## 2026-09-20 LP18 기준 검증 분리 후 위치·RAM 수명 순차 마감
 
