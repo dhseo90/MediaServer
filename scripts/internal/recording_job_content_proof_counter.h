@@ -12,10 +12,15 @@ inline Phase phase=Phase::None;
 inline std::string target,last_complete;
 inline std::size_t updates=0,live_parses=0,automatic_checkpoints=0,automatic_applications=0,automatic_parses=0,reopen_parses=0,manual_parses=0,checkpoint_depth=0;
 inline std::size_t negative_parses=0;
+inline recording::RecordingCatalog* fallback_owner=nullptr;
+inline bool fallback_prior=false;
+inline std::size_t fallback_forced=0,fallback_restored=0;
 struct Update {
  bool active;std::size_t before;
  explicit Update(const recording::DerivedJobRecordV1& record):active(enabled),before(live_parses){if(active){target=recording::SerializeDerivedJobRecord(record);phase=Phase::Update;++updates;if(record.state==recording::DerivedJobState::Complete)last_complete=target;}}
- ~Update(){if(active){live_once=live_once&&live_parses==before+1;phase=Phase::None;target.clear();}}
+ ~Update(){if(active){
+   if(fallback_owner){fallback_owner->automatic_noop_eligible_=fallback_prior;fallback_owner=nullptr;++fallback_restored;}
+   live_once=live_once&&live_parses==before+1;phase=Phase::None;target.clear();}}
 };
 struct Checkpoint {
  bool active;

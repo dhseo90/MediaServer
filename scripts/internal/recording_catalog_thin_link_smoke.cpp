@@ -57,7 +57,14 @@ void ThinCases(const std::filesystem::path& root){
   Check(ok&&location_probe::raw_reads==count&&Bytes(s.journal.path())==before&&s.catalog.checkpoint_cache_&&s.catalog.checkpoint_cache_->shadow&&s.catalog.checkpoint_cache_->shadow->ProjectionSignatureLocked()==projection,"LP18-L30 primed cold prefix reuses current read once with exact bytes and projection");
  }
  {Store s(root/"main");Seed(s);RecordingMutationHandles owned;Views views;Read(s,&owned,&views);Need(owned.size()==1&&views.size()==1);durable=*owned[0];std::string error;
-  auto link=Bind(s,views[0],durable,owned[0]);Check(Acquire(s,link)==owned[0],"LP18-L26 same-read sealed view binds exact owned envelope");
+  auto link=Bind(s,views[0],durable,owned[0]);bool current_view=false;
+  // cold Acquire는 파일을 엄격히 다시 읽으므로 새 객체일 수 있다. 같은 읽기의
+  // 원본 포인터 결박은 Owns로, 물리 출처는 sealed view로 각각 확인한다.
+  const auto equal_copy=std::make_shared<const RecordingMutationV1>(durable);
+  Check(s.journal.MutationLinkOwns(link,owned[0])&&!s.journal.MutationLinkOwns(link,equal_copy)&&
+        s.journal.MatchMutationLinkView(link,views[0],&current_view,&error)&&current_view&&
+        SerializeRecordingMutationV1(*Acquire(s,link))==SerializeRecordingMutationV1(durable),
+        "LP18-L26 same-read sealed view binds exact owned envelope");
   auto next=durable;next.mutation_id="thin-new-row";RecordingMutationHandle appended;View appended_view;Need(s.journal.AppendOwned(next,&s.catalog,&error,&appended,&appended_view));
   Check(appended_view&&Acquire(s,Bind(s,appended_view,next,appended))==appended,"LP18-L26 same-append sealed view binds exact new envelope");
   // 직접 append는 아직 live에 적용하지 않았으므로 이 검사에서만 보관한 뒤 닫는다.

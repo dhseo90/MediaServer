@@ -69,11 +69,116 @@ compile/run 각각60초·RSS1GiB·disk512MiB·출력2MiB, 제품 소스/기존 b
 | --- | --- | --- | --- |
 | LP24-RH01 RED 판정 자체검사 | 원출력과 정확한 예상 실패 결박 | 5개 제목/합계/카운터·다른실패·누락/중복·timeout/signal/group 불명 거부, `node --test scripts/internal/recording_recovery_content.test.mjs` | v4.1.0 |
 
-현재 결과: 미실행. token start/end/consumed는 전용 집계 미제공으로 미집계, elapsed는 실제 명령에서 수집한다.
+GREEN 전 RH01은 `LP24-RH01 RED와 GREEN 판정 자체검사`로 확장한다. 기존 RED 기준에 더해
+5PASS/0FAIL·first strict6/actual0/rebuild0/projection0·신호/상한/정리 거부를 검사한다. 과거 RED 결과는 보존한다.
+ABI 변경 뒤 `./server.sh build` exit0과 현재 header/archive 신선도를 확인한 다음 같은 최소 fixture의 GREEN을 실행한다.
+이 초기5 GREEN은 R06~16 반례·실제15초·최종 영향 회귀의 대체가 아니다.
+
+현재 결과: RH01 자체검사·최초 RED·최소5 GREEN과 기존 영향 회귀214개 완료. 신규 R06~16/실제규모는 미실행이며1번 전체 완료가 아니다.
+token start/end/consumed는 전용 집계 미제공으로 미집계, elapsed는 실제 명령에서 수집한다.
+
+### LP24-R 최초 RED 결과
+
+메인이 실제 diff/판정·정리 경계를 확인한 후 실행했다. 자체검사 [RH01](release-artifacts/v4.1.0/s11-preparation-mapping/lp24-recovery-selftest-01.txt)
+exit0/1PASS/34.477ms, 실제 [RED 원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp24-recovery-01-red.txt)의 runner exit0,
+native exit1/3PASS2FAIL은 사전 특정한 중복 parse assertion과 정확히 일치한다. 제품 PASS가 아니다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP24-RH01 | 5title/summary/counter·누락/중복/거짓실패/timeout/signal/group 거부 | PASS | exit0,1개 묶음; 임시 산출물 없음 |
+| LP24-R compile | 소유 복제 TU·현재 runtime archive, c++17/Wall/Wextra/Werror | PASS | exit0,3895ms |
+| LP24-R01 | job mutation6개 첫 preflight parse6회 | PASS | strict 검증 유지 |
+| LP24-R02 | actual Apply parse0회 기대·6회 관측 | FAIL | 사전등록 예상 RED, 구현 전 |
+| LP24-R03 | rebuild/preprojection parse0 기대·각6회, SQL serialize6회 | FAIL | 사전등록 예상 RED, 구현 전 |
+| LP24-R04 | SQLite/JSONL public job canonical·journal/영상 바이트 동일 | PASS | 최소 fixture, 현실 크기 성능 판정 아님 |
+| LP24-R05 | 새 Open의 첫 strict parse6회 | PASS | 이전 호출 증명 없음 |
+| LP24-R 정리 | source 불변·자식 종료·temp 부재 | PASS | groupClean=true, 소유9070521B 삭제 |
+
+focused2501ms, Open151844µs. compile group peak331153408B, focused177111040B.
+stderr `file evidence profile/bound 오류`3행을 보존했다. fixture의 Complete 상태와 요청 전체 충족을 같은 것으로 판정하지 않는다.
+R06~16은 미실행이며 실제15초 진단·전체 통합 evidence로 사용할 수 없다. 후속 구현 후 같은 focused 및 해당 반례를 검증한다.
+
+### LP24-R 최소 GREEN과 영향 회귀 사전등록
+
+동일 최소 fixture GREEN: [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp24-recovery-02-green.txt), runner exit0,
+compile3776ms·focused2367ms/5PASS. first strict parse6, actual/rebuild/projection parse0·projection serialize0,
+Open51350µs. source불변·groupClean, 소유9112168B 제거. 이는 작은 fixture 결과이며 R06~16은 아직 미실행이다.
+R02/R03 최초 예상 RED는 위 표에 유지하고 현재는 PASS다. RH01 RED/GREEN 확장도1PASS/36.680ms.
+첫 build exit0 출력 일부가 도구 응답에서 잘려 원출력 완전성을 주장하지 않는다. 후속 안전 결박 보완 뒤
+`./server.sh build` exit0 전체 출력은 [build02](release-artifacts/v4.1.0/s11-preparation-mapping/lp24-build-02.txt)에 보존했다.
+
+1번 제품 파일을 고정한 상태에서 아래 기존 검사들을 순차 실행한다. 첫 실패 뒤 묶음은 보류하고 같은 단계 원인부터 확인한다.
+명령은 `node scripts/internal/verify_recording_immutable_ownership.mjs green <id> <suite>`이며 각각 compile/run60초,
+기존 RSS1GiB/disk512MiB/출력2MiB·소유 temp 정리를 유지한다. 기존 개별 정의를 재사용하고 전수 실제 결과는 원출력과 대조한다.
+
+| 순서 | id / suite | 직접 영향·합격 조건 | 기존 기능 ID |
+| --- | --- | --- | --- |
+| 1 | lp24-content-01 / content | 기존 정상 전이 proof와 recovery proof 분리,25PASS | LP18-V01~V08 |
+| 2 | lp24-binding-01 / binding | 불변 binding 공유/손상/재open,77PASS | LP18-O10~O11 |
+| 3 | lp24-job-01 / job | 과거/현재 job 수명·전이,24PASS | LP18-J01~J05 |
+| 4 | lp24-thin-01 / catalog-thin | accepted envelope·ordinal·재open,30PASS | LP18-L26~L31 |
+| 5 | lp24-lifetime-01 / typed-lifetime | 비활성 상세 비상주·cold 오류,34PASS | LP18-R01~R11 |
+| 6 | lp24-noop-01 / automatic-noop | 정상 checkpoint 적격/엄격 fallback,24PASS | LP20-C01~C03 |
+
+대형 R15/R16은 별도 신규 fixture:30fps/GOP250·1500AU/6원본,4개 경계 요청·작업당2출력.
+mapping 수·원장 크기·Complete 상태와 request_fully_satisfied를 따로 기록하고 SQL/JSONL/기준 canonical·파일hash와 대조한다.
+입력 준비와 복구 비용을 분리한다. strict/reuse는 같은 자료·새 프로세스에서 각각 기존15초 guard로 측정하고,
+상한 초과를 전체 PASS로 바꾸지 않는다. 삭제된 LP23 원장과 동일 바이트/모든 성능 조건이라고 주장하지 않는다.
+
+영향 회귀 최초 content01은24PASS/1FAIL(exit1): `automatic checkpoint applies current update payload`.
+updates8/liveParses8이지만 automaticCheckpoints/applications0이었다. HEAD와 수정본의 AppendAndApplyLocked를
+직접 대조하여 기존 LP20 `TryAutomaticCheckpointNoop`가 적격 checkpoint를 처리하는 같은 분기를 확인했다.
+이 검사는 자동 checkpoint의 엄격 fallback에서 현재 proof 적용을 검증하려는 검사인데, 그 분기 진입 조건을 설정하지 않았다.
+현재 assertion을 삭제/완화하지 않고 **소유 시험 fixture 안에서만** Ready/Complete 관측 시 해당 Update 동안
+`automatic_noop_eligible_`를 false로 만들고 Update scope 종료 시 원래 값을 복원한다. 강제 횟수2와 복원도 assertion에 결박한다.
+정상 no-op은 기존 LP20-C01~03의 별도24검사에서 계속 검증한다. 제품 기본·checkpoint 주기는 바꾸지 않는다.
+재검증 id는 lp24-content-02, 나머지 영향 회귀는 이 검사 통과 후 재개한다.
+
+content02도24PASS/1FAIL(exit1), forced/restored2이지만 automatic0이었다. 앞선 no-op 원인 설명은
+실제 `CheckpointDue` 선수조건까지 확인하지 않아 불충분했으며 이를 정정한다. 메인이 회수해 읽기 재검토했다.
+`recording_journal.cpp`의 due는 총크기가 아니라 마지막 확인 이후1MiB 증가량이며, LP20 커밋9e9adea2f는
+적격 no-op에서도 checked bytes를 갱신한다. 첫 Ready/Complete만 no-op을 끄는 fixture는 실제 due 전이를
+지나칠 수 있다. 새 근거에 따른 같은 단계 보완은 **모든 Update에서 실제 due를 관측하고 그 경우만**
+현재 Update의 strict fallback을 유도한다. due/상태를 비민감 카운터로 보존하며
+automatic checkpoint 수=강제 수=복원 수>0, 실제 payload 적용>0, 중복 parse0을 모두 요구한다.
+제품 due 주기·timeout·합격 assertion은 완화하지 않는다. content03만 동일60초 guard로 재검증한다.
+content02 compile4033ms/focused11532ms, source불변/groupClean, 소유14106402B 제거.
+
+content03은25PASS(exit0): 실제 due는 두 job의 Committed(state2)에서만 true였다.
+automatic/applications2,parse0,forced/restored2로 원인을 확인했다. compile4150ms/focused12266ms,
+source불변/groupClean·소유14106402B 제거. binding77/job24 PASS 뒤 thin01은29PASS/1FAIL로 뒤 회귀를 보류했다.
+실패는 `LP18-L26 same-read sealed view binds exact owned envelope`의 `Acquire(link)==owned[0]`였다.
+메인이 Read→MakeMutationLink→AcquireLocatedRecord 경로와 HEAD를 대조했다. 비상주 해제 후 Read와 Acquire는
+각각 엄격 재읽기로 새 객체를 만들 수 있다. 새 recovery 내용 증명이 아닌 기존 비상주 수명 변경과 구검사 포인터 oracle의 불일치다.
+동일 읽기 원본 객체 결박은 `MutationLinkOwns(link,owned)` true와 같은내용 다른객체 false,
+물리 출처는 `MatchMutationLinkView` true, 재획득 결과는 전체 canonical 동일로 각각 검증하도록 시험만 보완한다.
+원본 포인터 결박·권한·전체 내용 검사를 유지하며 제품 비상주/손상 거부를 변경하지 않는다.
+thin01 compile2560ms/focused610ms,source불변/groupClean·소유7978813B 제거.
+thin02 동일30개·60초 guard 통과 전 lifetime/noop를 실행하지 않는다.
+
+thin02 30PASS 후 lifetime34/noop24도 PASS, 최종 영향 회귀214개 PASS다.
+[개별214행·최초 실패·정리 전수](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-results.md)의 LP24절에
+각 실행 exit/시간/RSS·source/원출력·소유 temp 삭제를 보존했다. 이 시험 준비 보완3파일은 제품 변경과 분리하여 커밋한다.
+기존 비상주 메모리·손상 거부·원본 포인터/물리 권한과 strict checkpoint proof 기준을 유지한다.
+분리 커밋 전 `git diff --check` exit0, 문서 링크285개/9097링크/130anchor·실패0(exit0).
+원출력은 아래 기록이며 자산·이미지 변경은 없다.
+staged 공백검사 첫 실행은 build02 원출력의 EOF 빈 줄1건으로 exit2였다. 원출력을 자르지 않고
+기록 종료 표시를 덧붙여 보완했으며 staged 공백검사를 다시 확인한 후에만 커밋한다.
+
+```text
+== Docs link verification summary ==
+- markdown files: 285
+- local links: 9097
+- local images: 22
+- local anchors: 130
+- indexed docs: 76
+- index coverage exclusions: 201
+- failures: 0
+```
 
 LP24 실행 전 계약 문서 검증: `git diff --check` exit0(출력없음), `./server.sh verify-docs-links` exit0,
 285문서/9082링크/130anchor·실패0. [원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp24-contract-checks-01.txt).
-자산/이미지 변경이 없어 기존 LP23 assets10 PASS를 유지한다. 임시 산출물 없음. 제품/단기 검사는 아직 미실행이다.
+자산/이미지 변경이 없어 기존 LP23 assets10 PASS를 유지한다. 해당 문서 검사 임시 산출물은 없음. 이 문서 검사 당시에는 제품/단기 검사가 미실행이었다.
 
 ## 2026-09-20 LP23 사후 진단·정리와 UTC unknown 원인 분석
 

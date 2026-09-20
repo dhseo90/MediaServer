@@ -1,0 +1,101 @@
+{"kind":"start","utc":"2026-09-20T07:26:44.526Z","mode":"green","id":"lp24-content-02","suite":"content","source":[{"name":"include/recording/recording_catalog.h","sha256":"bde3f884cda391fe971654cd66b2592a51aa084b5a0c76634890bf34ed066705"},{"name":"include/recording/recording_journal.h","sha256":"44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5"},{"name":"src/recording/recording_catalog.cpp","sha256":"3e295748699d737e31a2812d5a4d97280241a29ba83600b38ea425c89f314146"},{"name":"src/recording/recording_journal.cpp","sha256":"1c8732f4641440494296b172f2a97d8b094c2b750214abeb29b206baa5b4350d"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"26ae55a98948bff3b23473b6f187c13c0699e9b75e6979ef127293c6b4804e7c"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"a4f8fbbcbd54e4598318dd5c3e4c9ac954da5cd485493c468714378358c34122"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"465856e8b6fc5eb805f6a16c2e52a0d8c144261fcbc445accfb2c977e0490c3a"},{"name":"scripts/internal/recording_job_content_proof_smoke.cpp","sha256":"962fe703beb1dcfb74d9454005ed14ffa011933bfea5349b47c77bd943d1416f"},{"name":"scripts/internal/recording_job_content_proof_counter.h","sha256":"765110edf16a87ba8ba704b6854e980ad5d7fae3e3ae2457605869c41b786a27"},{"name":"scripts/internal/recording_checkpoint_reproduction_smoke.cpp","sha256":"bd17fd384eb18c076891e31c3cfcf3950122e14a068775c2cffb4a63f6c3bcf3"},{"name":"src/recording/recording_derived_job_ready.cpp","sha256":"74f304446afb62c9abc48c2f13fa65281f9c942becabfbbbb3612458eac3f184"},{"name":"src/recording/recording_timeline_projection.cpp","sha256":"fb946f8672c75104c9d3fc8f36b636ef406f987135b8e1ac6e70b5d092fa78a7"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>","content"],"seconds":60}
+[instrument] proof_exact_insertions=5 proof_header_exact_insertions=1 ready_sha256=05dc04c7a1b82870796dc4b9d527414202c8b8e210a8866558096b5915cdb916
+[instrument] catalog_sha256=43426a97b5b5839f149a88019c3f47068f938669c6390cb127b5a221bc5c77ca binding_exact_insertions=1 job_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"bde3f884cda391fe971654cd66b2592a51aa084b5a0c76634890bf34ed066705"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"1c8732f4641440494296b172f2a97d8b094c2b750214abeb29b206baa5b4350d"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"3e295748699d737e31a2812d5a4d97280241a29ba83600b38ea425c89f314146"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"8d592581f0e656441380fc44a36c1556a6deabc4ba8a4573cb0c4e3efdfb7edc"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"26ae55a98948bff3b23473b6f187c13c0699e9b75e6979ef127293c6b4804e7c"}
+[source] {"name":"scripts/internal/recording_job_content_proof_smoke.cpp","sha256":"962fe703beb1dcfb74d9454005ed14ffa011933bfea5349b47c77bd943d1416f"}
+[source] {"name":"scripts/internal/recording_job_content_proof_counter.h","sha256":"765110edf16a87ba8ba704b6854e980ad5d7fae3e3ae2457605869c41b786a27"}
+[source] {"name":"scripts/internal/recording_checkpoint_reproduction_smoke.cpp","sha256":"bd17fd384eb18c076891e31c3cfcf3950122e14a068775c2cffb4a63f6c3bcf3"}
+[source] {"name":"src/recording/recording_derived_job_ready.cpp","sha256":"74f304446afb62c9abc48c2f13fa65281f9c942becabfbbbb3612458eac3f184"}
+[source] {"name":"src/recording/recording_timeline_projection.cpp","sha256":"fb946f8672c75104c9d3fc8f36b636ef406f987135b8e1ac6e70b5d092fa78a7"}
+        4.02 real         3.72 user         0.26 sys
+           323190784  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               89524  page reclaims
+                 922  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  13  messages sent
+                   0  messages received
+                   3  signals received
+                  34  voluntary context switches
+                3161  involuntary context switches
+            80081188  instructions retired
+            35973876  cycles elapsed
+             2097560  peak memory footprint
+{"kind":"phase","label":"build","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":4033,"groupPeakRssBytes":334184448}
+{"kind":"command","label":"focused","command":"<owned-root>/check","args":["<owned-root>"],"seconds":60}
+[pass] LP18-V03 valid content proof cannot bypass output reservation
+[pass] LP18-V03 valid content proof cannot bypass source deletion state
+[pass] LP18-V03 valid content proof cannot bypass source media binding
+[pass] LP18-V02 minted proof reuses owned content after state validation
+[pass] LP18-V02 schema mismatch retains strict outcome
+[pass] LP18-V02 type mismatch retains strict outcome
+[pass] LP18-V02 mutation ID mismatch retains strict outcome
+[pass] LP18-V02 entity mismatch retains strict outcome
+[pass] LP18-V02 time mismatch retains strict outcome
+[pass] LP18-V02 payload bytes mismatch retains strict outcome
+[pass] LP18-V03 invalid content rejects through strict fallback
+[pass] LP18-V02 null owner retains strict outcome
+[pass] LP18-V02 null envelope retains strict outcome
+[pass] LP18-V02 null record retains strict outcome
+[pass] LP18-V02 foreign owner retains strict outcome
+[pass] LP18-V02 equal-content replacement invalidates current proof ownership
+[pass] LP18-V02 equal-envelope replacement invalidates accepted proof ownership
+[pass] LP18-V03 valid content proof cannot bypass missing prior transition
+[shape] state=1 bytes=319533 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=7df767258137f4fc0669a26154758fa2e3bc61ac84c49e134a7ad65627345124
+[record-cost] iteration=1 serialize_us=28663 parse_us=77173
+[record-cost] iteration=2 serialize_us=28729 parse_us=76111
+[record-cost] iteration=3 serialize_us=28740 parse_us=78447
+[shape] state=3 bytes=319548 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=a39070a169faec0dbee06245c085efa3c9bef38811eea4529f70b5487a1cac29
+[record-cost] iteration=1 serialize_us=36526 parse_us=77014
+[record-cost] iteration=2 serialize_us=29460 parse_us=78145
+[record-cost] iteration=3 serialize_us=29391 parse_us=77450
+[shape] state=1 bytes=319533 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=af86487b1af576d786efe19a58d00408481c51b37d91557bd77a7ee25a5c0f9f
+[record-cost] iteration=1 serialize_us=28744 parse_us=77073
+[record-cost] iteration=2 serialize_us=28653 parse_us=76710
+[record-cost] iteration=3 serialize_us=28871 parse_us=76354
+[shape] state=3 bytes=319548 sources=1 samples=250 mappings=250 slices=45 aus=250 hash=ef8a629e5fb44867090068804f1d48eeb883bf3fb43b25c7dcf9926eada45cb7
+[record-cost] iteration=1 serialize_us=28748 parse_us=76275
+[record-cost] iteration=2 serialize_us=28668 parse_us=76830
+[record-cost] iteration=3 serialize_us=28940 parse_us=76624
+[pass] CP01 actual Ready Complete shape canonical files reservation
+[pass] CP02 bounded two jobs over 1MiB canonical transitions
+[pass] LP18-V01 every normal update strictly parses content once
+[fail] LP18-V01 automatic checkpoint applies current update payload
+[pass] LP18-V01 automatic checkpoint reuses current validated content without parsing
+[pass] LP18-V04 managed reopen retains strict content parsing
+[pass] LP18-V04 manual checkpoint retains strict content parsing
+[proof-counts] updates=8 liveParses=8 automaticCheckpoints=0 automaticApplications=0 automaticParses=0 reopenParses=1 manualParses=1 fallbackForced=2 fallbackRestored=2
+[summary] LP18 pass=24 fail=1
+       11.51 real        10.80 user         0.26 sys
+           157007872  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               75011  page reclaims
+                  86  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                 112  messages sent
+                  93  messages received
+                   0  signals received
+                 145  voluntary context switches
+               11932  involuntary context switches
+        208952293683  instructions retired
+         43133700019  cycles elapsed
+            72991536  peak memory footprint
+{"kind":"phase","label":"focused","exit":1,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":11532,"groupPeakRssBytes":179765248}
+{"kind":"oracle","mode":"green","expectedRed":false,"productPass":false,"matched":false}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":14106402,"removed":true}
+{"kind":"result","utc":"2026-09-20T07:27:00.106Z","mode":"green","matched":false,"productPass":false,"elapsedMs":15582}

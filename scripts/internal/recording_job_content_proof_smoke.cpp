@@ -8,6 +8,15 @@ void ProofCheck(bool ok,const char* name){++(ok?proof_pass:proof_fail);std::cout
 }
 namespace proof_probe {
 void Inspect(const RecordingCatalog::DerivedJobContentProof& minted){
+ // 실행 조건은 총 원장 크기가 아니라 마지막 확인 이후 증가량이다. 실제 due인
+ // Update에서만 no-op을 비적격으로 하여 제품의 주기·상한을 그대로 둔다.
+ if(phase==Phase::Update){
+  auto& live=*const_cast<RecordingCatalog*>(minted.owner);
+  const bool due=live.journal_.CheckpointDue(&live);
+  std::cout<<"[proof-boundary] state="<<static_cast<int>(minted.record->state)<<" due="<<due<<'\n';
+  if(due){Need(fallback_owner==nullptr);fallback_owner=&live;fallback_prior=live.automatic_noop_eligible_;
+   live.automatic_noop_eligible_=false;++fallback_forced;}
+ }
  static bool checked_ready=false,checked_complete=false;
  const bool ready=minted.record->state==DerivedJobState::Ready;
  const bool complete=minted.record->state==DerivedJobState::Complete;
@@ -66,11 +75,14 @@ int main(int argc,char** argv){if(argc!=2)return 2;gst_init(nullptr,nullptr);try
  const auto root=std::filesystem::path(argv[1])/"proof";auto input=Encode(501,false,false,160,90,30,250);Shift(input,0);Need(input.packets[250].is_key_frame&&input.packets[500].is_key_frame);
  proof_probe::enabled=true;CheckpointCase(root,input);
  ProofCheck(proof_probe::updates>0&&proof_probe::live_once&&proof_probe::live_parses==proof_probe::updates,"LP18-V01 every normal update strictly parses content once");
- ProofCheck(proof_probe::automatic_checkpoints>0&&proof_probe::automatic_applications>0,"LP18-V01 automatic checkpoint applies current update payload");
+ ProofCheck(proof_probe::automatic_checkpoints>0&&proof_probe::automatic_applications>0&&
+     proof_probe::automatic_checkpoints==proof_probe::fallback_forced&&
+     proof_probe::fallback_forced==proof_probe::fallback_restored&&proof_probe::fallback_owner==nullptr,
+     "LP18-V01 automatic checkpoint applies current update payload");
  ProofCheck(proof_probe::automatic_parses==0,"LP18-V01 automatic checkpoint reuses current validated content without parsing");
  Need(!proof_probe::last_complete.empty());proof_probe::target=proof_probe::last_complete;proof_probe::phase=proof_probe::Phase::Reopen;
  {Store reopened(root);ProofCheck(proof_probe::reopen_parses>0,"LP18-V04 managed reopen retains strict content parsing");proof_probe::phase=proof_probe::Phase::Manual;std::string error;Need(reopened.catalog.Checkpoint(&error));ProofCheck(proof_probe::manual_parses>0,"LP18-V04 manual checkpoint retains strict content parsing");}
  proof_probe::enabled=false;proof_probe::phase=proof_probe::Phase::None;proof_probe::target.clear();
- std::cout<<"[proof-counts] updates="<<proof_probe::updates<<" liveParses="<<proof_probe::live_parses<<" automaticCheckpoints="<<proof_probe::automatic_checkpoints<<" automaticApplications="<<proof_probe::automatic_applications<<" automaticParses="<<proof_probe::automatic_parses<<" reopenParses="<<proof_probe::reopen_parses<<" manualParses="<<proof_probe::manual_parses<<'\n';
+ std::cout<<"[proof-counts] updates="<<proof_probe::updates<<" liveParses="<<proof_probe::live_parses<<" automaticCheckpoints="<<proof_probe::automatic_checkpoints<<" automaticApplications="<<proof_probe::automatic_applications<<" automaticParses="<<proof_probe::automatic_parses<<" reopenParses="<<proof_probe::reopen_parses<<" manualParses="<<proof_probe::manual_parses<<" fallbackForced="<<proof_probe::fallback_forced<<" fallbackRestored="<<proof_probe::fallback_restored<<'\n';
  std::cout<<"[summary] LP18 pass="<<proof_pass<<" fail="<<proof_fail<<'\n';return proof_fail?1:0;
  }catch(...){std::cout<<"[setup-or-oracle-fail] LP18 fixed-proof-fixture-error\n";return 2;}}

@@ -1,5 +1,260 @@
 # LP18 공유 소유 focused 개별 결과
 
+## LP24 복구 변경 영향 회귀와 기존 검사 준비 보완
+
+제품 recovery 변경의 실제 규모/반례 마감 전 영향 회귀다. 기존 content 검사의 no-op/due 선수조건과 thin 검사의 cold 재획득 oracle를 보완했다. 첫 실패를 예상 RED로 바꾸지 않는다. 제품 주기·저장 바이트·권한·손상 거부·시간제한은 변경하지 않았다.
+
+명령: `node scripts/internal/verify_recording_immutable_ownership.mjs green <id> <suite>`. 각 실행 compile/run60초, RSS1GiB/disk512MiB/output2MiB. 원출력은 아래 링크이며 token start/end/consumed는 집계 미제공(null), elapsed와 source hash는 각 원출력이다. 서버/포트는 사용하지 않았다.
+
+| 실행 ID / suite | build exit / ms | focused exit / ms / peak RSS B | 실제 결과 | 원출력 |
+| --- | --- | --- | --- | --- |
+| lp24-content-01 / content | 0 / 4056 | 1 / 11450 / 180994048 | pass=24 fail=1 | [lp24-content-01](lp18-ownership-green-lp24-content-01.txt) |
+| lp24-content-02 / content | 0 / 4033 | 1 / 11532 / 179765248 | pass=24 fail=1 | [lp24-content-02](lp18-ownership-green-lp24-content-02.txt) |
+| lp24-content-03 / content | 0 / 4150 | 0 / 12266 / 175931392 | pass=25 fail=0 | [lp24-content-03](lp18-ownership-green-lp24-content-03.txt) |
+| lp24-binding-01 / binding | 0 / 2551 | 0 / 713 / 3899392 | pass=77 fail=0 | [lp24-binding-01](lp18-ownership-green-lp24-binding-01.txt) |
+| lp24-job-01 / job | 0 / 3184 | 0 / 614 / 6914048 | pass=24 fail=0 | [lp24-job-01](lp18-ownership-green-lp24-job-01.txt) |
+| lp24-thin-01 / catalog-thin | 0 / 2560 | 1 / 610 / 29622272 | pass=29 fail=1 | [lp24-thin-01](lp18-ownership-green-lp24-thin-01.txt) |
+| lp24-thin-02 / catalog-thin | 0 / 2520 | 0 / 661 / 4227072 | pass=30 fail=0 | [lp24-thin-02](lp18-ownership-green-lp24-thin-02.txt) |
+| lp24-lifetime-01 / typed-lifetime | 0 / 3276 | 0 / 2042 / 225902592 | pass=34 fail=0 | [lp24-lifetime-01](lp18-ownership-green-lp24-lifetime-01.txt) |
+| lp24-noop-01 / automatic-noop | 0 / 3328 | 0 / 2336 / 240959488 | pass=24 fail=0 | [lp24-noop-01](lp18-ownership-green-lp24-noop-01.txt) |
+
+최종 유효 영향 회귀는 214개 PASS다. content01/02의24PASS1FAIL와 thin01의29PASS1FAIL는 아래 동일 제목의 이력 및 원출력에 유지한다. content03 관측은 실제 Committed due2회/strict checkpoint2회/현재 payload 적용2회/중복 parse0/fixture 설정·복원2회다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| LP18-V03 valid content proof cannot bypass output reservation | content 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-content-01:PASS → lp24-content-02:PASS → lp24-content-03:PASS |
+| LP18-V03 valid content proof cannot bypass source deletion state | content 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-content-01:PASS → lp24-content-02:PASS → lp24-content-03:PASS |
+| LP18-V03 valid content proof cannot bypass source media binding | content 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-content-01:PASS → lp24-content-02:PASS → lp24-content-03:PASS |
+| LP18-V02 minted proof reuses owned content after state validation | content 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-content-01:PASS → lp24-content-02:PASS → lp24-content-03:PASS |
+| LP18-V02 schema mismatch retains strict outcome | content 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-content-01:PASS → lp24-content-02:PASS → lp24-content-03:PASS |
+| LP18-V02 type mismatch retains strict outcome | content 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-content-01:PASS → lp24-content-02:PASS → lp24-content-03:PASS |
+| LP18-V02 mutation ID mismatch retains strict outcome | content 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-content-01:PASS → lp24-content-02:PASS → lp24-content-03:PASS |
+| LP18-V02 entity mismatch retains strict outcome | content 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-content-01:PASS → lp24-content-02:PASS → lp24-content-03:PASS |
+| LP18-V02 time mismatch retains strict outcome | content 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-content-01:PASS → lp24-content-02:PASS → lp24-content-03:PASS |
+| LP18-V02 payload bytes mismatch retains strict outcome | content 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-content-01:PASS → lp24-content-02:PASS → lp24-content-03:PASS |
+| LP18-V03 invalid content rejects through strict fallback | content 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-content-01:PASS → lp24-content-02:PASS → lp24-content-03:PASS |
+| LP18-V02 null owner retains strict outcome | content 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-content-01:PASS → lp24-content-02:PASS → lp24-content-03:PASS |
+| LP18-V02 null envelope retains strict outcome | content 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-content-01:PASS → lp24-content-02:PASS → lp24-content-03:PASS |
+| LP18-V02 null record retains strict outcome | content 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-content-01:PASS → lp24-content-02:PASS → lp24-content-03:PASS |
+| LP18-V02 foreign owner retains strict outcome | content 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-content-01:PASS → lp24-content-02:PASS → lp24-content-03:PASS |
+| LP18-V02 equal-content replacement invalidates current proof ownership | content 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-content-01:PASS → lp24-content-02:PASS → lp24-content-03:PASS |
+| LP18-V02 equal-envelope replacement invalidates accepted proof ownership | content 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-content-01:PASS → lp24-content-02:PASS → lp24-content-03:PASS |
+| LP18-V03 valid content proof cannot bypass missing prior transition | content 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-content-01:PASS → lp24-content-02:PASS → lp24-content-03:PASS |
+| CP01 actual Ready Complete shape canonical files reservation | content 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-content-01:PASS → lp24-content-02:PASS → lp24-content-03:PASS |
+| CP02 bounded two jobs over 1MiB canonical transitions | content 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-content-01:PASS → lp24-content-02:PASS → lp24-content-03:PASS |
+| LP18-V01 every normal update strictly parses content once | content 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-content-01:PASS → lp24-content-02:PASS → lp24-content-03:PASS |
+| LP18-V01 automatic checkpoint applies current update payload | content 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-content-01:FAIL → lp24-content-02:FAIL → lp24-content-03:PASS |
+| LP18-V01 automatic checkpoint reuses current validated content without parsing | content 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-content-01:PASS → lp24-content-02:PASS → lp24-content-03:PASS |
+| LP18-V04 managed reopen retains strict content parsing | content 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-content-01:PASS → lp24-content-02:PASS → lp24-content-03:PASS |
+| LP18-V04 manual checkpoint retains strict content parsing | content 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-content-01:PASS → lp24-content-02:PASS → lp24-content-03:PASS |
+| LP18-O01 owner checked read view shares journal envelope | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O01 shared journal original candidate envelopes | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O01 public Replay value mutation remains isolated | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O01 retained prefix preserves sealed journal lineage and canonical value | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O01 full canonical and projection oracle | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O03 stale candidate after reservation rejected | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O03 foreign owner candidate rejected | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O04 exact field order or prefix mutation rejected schema | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O04 standalone candidate fields rejected without disk change schema | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O04 exact field order or prefix mutation rejected type | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O04 standalone candidate fields rejected without disk change type | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O04 exact field order or prefix mutation rejected id | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O04 standalone candidate fields rejected without disk change id | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O04 exact field order or prefix mutation rejected entity | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O04 standalone candidate fields rejected without disk change entity | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O04 exact field order or prefix mutation rejected time | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O04 standalone candidate fields rejected without disk change time | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O04 exact field order or prefix mutation rejected payload | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O04 standalone candidate fields rejected without disk change payload | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O04 exact field order or prefix mutation rejected reorder | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O04 standalone candidate fields rejected without disk change reorder | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O04 exact field order or prefix mutation rejected shrink | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O04 standalone candidate fields rejected without disk change shrink | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O04 null envelope safely rejected | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O02 only transformed receipts own new envelopes | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O02 prepared receipts preserve original canonical bytes | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O02 publication bytes and prior owned snapshot remain exact | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O02 published prefix preserves receipt evidence and unchanged row lineage | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O02 receipt independent full projection equality | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O03 stale candidate after ordinary append rejected | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O05 8192 logical records admitted | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O05 8193 aliases still rejected | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O05 64MiB logical bytes admitted | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O05 64MiB plus one rejected | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O07 append accepted preserves sealed journal lineage | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O09 successful append retry returns exact input envelope | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O09 failed append clears prior output handle | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O09 borrowed input survives aliased output reset | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O07 checkpoint accepted preserves sealed journal lineage | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O07 accepted full canonical and durable bytes unchanged | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O08 reopen accepted preserves sealed journal lineage sqlite | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O08 reopen canonical ordinal and projection preserved sqlite | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O08 SQLite rebuild requires canonical and ordinal gates | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O08 reopen accepted preserves sealed journal lineage fallback | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O08 reopen canonical ordinal and projection preserved fallback | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O09 supplied envelope mismatch rejected schema | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O09 supplied envelope mismatch rejected type | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O09 supplied envelope mismatch rejected id | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O09 supplied envelope mismatch rejected entity | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O09 supplied envelope mismatch rejected time | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O09 supplied envelope mismatch rejected payload | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O09 failed apply registers no accepted envelope | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O09 supplied exact envelope is retained | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O09 duplicate full canonical acceptance and collision rejection preserved | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O09 compacted receipt retry returns original input envelope | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O11 bound journal identity and canonical bytes preserved | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O11 public binding value mutation remains isolated | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O11 source snapshot binding mutation remains isolated | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O12 same ID changed binding rejected without mutation | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O12 strict bound identity rejection preserved | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O10 checkpoint shadow shares warm owned binding reader | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O13 independent full replay binding projection preserved | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O12 unusable binding pool falls back to independent strict value null | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O12 unusable binding pool falls back to independent strict value different-content | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O12 unusable binding pool falls back to independent strict value different-id | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O12 matching pool cannot bypass invalid binding input | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O12 matching pool cannot bypass missing order | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O10 binding survives source pool owner destruction | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O10 no-op checkpoint preserves owned readers without binding comparisons | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O10 duplicate mutation does not recompare existing binding | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O10 new bound ID compares only its matching pool entry | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O12 deleted source hidden with internal binding preserved | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O10 deleted checkpoint preserves independently owned canonical binding evidence | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O13 reopen deleted canonical binding preserved sqlite | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O10 reopened checkpoint shares warm owned binding reader sqlite | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O13 reopen deleted canonical binding preserved fallback | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-O10 reopened checkpoint shares warm owned binding reader fallback | binding 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-binding-01:PASS |
+| LP18-J03 initial canonical and active source protection preserved | job 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-job-01:PASS |
+| LP18-J03 FindDerivedJob returns independent value | job 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-job-01:PASS |
+| LP18-J03 full and active snapshots return independent values | job 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-job-01:PASS |
+| LP18-J03 foreign Prepared owner rejected without transition | job 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-job-01:PASS |
+| LP18-J02 validated record is published as the same owned object | job 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-job-01:PASS |
+| LP18-J02 Prepared prior retains pre-publication canonical value | job 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-job-01:PASS |
+| LP18-J03 consumed Prepared cannot apply twice | job 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-job-01:PASS |
+| LP18-J03 invalid terminal transition preserves state and bytes | job 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-job-01:PASS |
+| LP18-J03 terminal protection and service owner released | job 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-job-01:PASS |
+| LP18-J01 checkpoint shares warm owned job reader | job 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-job-01:PASS |
+| LP18-J03 null job pool uses independent strict value | job 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-job-01:PASS |
+| LP18-J03 different-content job pool uses independent strict value | job 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-job-01:PASS |
+| LP18-J03 different-id job pool uses independent strict value | job 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-job-01:PASS |
+| LP18-J02 equal-content replacement invalidates Prepared prior ownership | job 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-job-01:PASS |
+| LP18-J01 shared job survives pool owner destruction | job 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-job-01:PASS |
+| LP18-J01 no-op checkpoint preserves owned readers without pool comparisons | job 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-job-01:PASS |
+| LP18-J01 newly applied job compares only matching current pool entry | job 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-job-01:PASS |
+| LP18-J01 duplicate job mutation performs no pool comparison | job 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-job-01:PASS |
+| LP18-J03 latest terminal pool cannot replace historical Intent | job 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-job-01:PASS |
+| LP18-J03 matching job pool cannot bypass strict state validation | job 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-job-01:PASS |
+| LP18-J03 null resident job rejects snapshots and retention authority | job 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-job-01:PASS |
+| LP18-J04 full journal bytes and terminal record roundtrip preserved | job 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-job-01:PASS |
+| LP18-J04 SQLite reopen preserves terminal canonical and release | job 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-job-01:PASS |
+| LP18-J04 JSONL reopen preserves terminal canonical and release | job 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-job-01:PASS |
+| LP18-L26 thin-link baseline preserves complete canonical journal bytes | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L26 sealed view and thin-link capability exists | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L26 same-read views preserve physical duplicate order and resist external owned-vector mutation | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L30 cold Read exception clears prefilled owned and view outputs and poisons | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L30 primed cold prefix reuses current read once with exact bytes and projection | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L26 same-read sealed view binds exact owned envelope | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:FAIL → lp24-thin-02:PASS |
+| LP18-L26 same-append sealed view binds exact new envelope | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L27 accepted live shadow and prefix release detailed envelope ownership | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L27 accepted cold acquisition preserves canonical and durable bytes | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L27 accepted cold acquisition remains transient | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L28 shadow reads through current attachment authority | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L27 prefix cold acquisition preserves full envelope | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L29 accepted duplicate retains full canonical collision rejection | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L30 prefix mismatch falls back to full replay without rejecting valid input | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L26 mismatched sealed view rejects before registration schema | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L26 mismatched sealed view rejects before registration type | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L26 mismatched sealed view rejects before registration id | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L26 mismatched sealed view rejects before registration entity | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L26 mismatched sealed view rejects before registration time | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L26 mismatched sealed view rejects before registration payload | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L26 raw Apply without view preserves resident fallback | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L28 foreign sealed authority cannot become fallback provenance | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L28 detached authority blocks cold read while owned reader survives | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L28 same-address reattach does not revive old authority | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L29 reopen preserves thin canonical ordinal and projection sqlite | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L29 SQLite rebuild keeps ordinal gate with thin links | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L29 SQLite rebuild keeps full canonical gate with thin links | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L29 reopen preserves thin canonical ordinal and projection fallback | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L26 receipt retry returns original without binding receipt view | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-L30 cold thin-link corruption fails closed instead of cache fallback | catalog-thin 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-thin-01:PASS → lp24-thin-02:PASS |
+| LP18-R01 inactive binding releases resident detail after durable append | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R10 cold binding metrics retain logical samples without strong ownership | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R02 active job retains owned detail and source protection | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R10 active job metrics count resident ownership | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R03 durable journal preserves complete canonical bytes | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R03 public job value mutation remains isolated | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R02 previously returned owned reader survives terminal publication | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R10 terminal job metrics exclude external reader ownership | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R01 terminal live and historical active shadow release resident detail | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R01 normal append releases reloadable journal envelope resident | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R03 owned reads do not rewrite durable evidence | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R04 cold binding reacquires complete canonical detail transiently | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R04 cold terminal job reacquires complete canonical detail transiently | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R04 external owned reader does not bypass cold durable validation | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R04 full public snapshot owns independent values without resident refill | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R05 original lookup acquires only matching binding metadata | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R05 job lookup acquires only requested terminal record | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R05 protection and reservation filters avoid terminal detail reads | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R08 counts cold checkpoint durable reacquisition without semantic change | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R06 SQLite reopen leaves inactive typed detail nonresident | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R06 JSONL fallback reopen leaves inactive typed detail nonresident | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R06 reopen retains active job detail and protection | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R06 deleted binding remains internally reacquirable and publicly hidden | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R07 detached authority clears typed output and marks uncertainty | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R07 cold binding corruption returns no value and marks uncertainty | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R07 cold job corruption clears public snapshot and marks uncertainty | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R07 cold acquisition exception clears output and marks uncertainty | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R07 public checkpoint cold projection failure returns false without escaping exception | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R08 repeated resident release visits no previously checked rows | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R08 append resident release visits only new suffix rows | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R08 checkpoint replacement resets release cursor for new generation | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R11 timeline collector limit does not poison catalog or block subsequent append | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R09 raw Apply preserves typed resident fallback | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP18-R09 oversized physical row preserves typed resident fallback | typed-lifetime 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-lifetime-01:PASS |
+| LP20-C01 automatic checkpoint preserves exact bytes and full projection | automatic-noop 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-noop-01:PASS |
+| LP20-C01 automatic checkpoint still reads durable raw evidence | automatic-noop 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-noop-01:PASS |
+| LP20-C04 automatic checkpoint leaves inactive binding detail nonresident | automatic-noop 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-noop-01:PASS |
+| LP20-C01 canonical automatic checkpoint skips historical envelope Parse and Serialize | automatic-noop 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-noop-01:PASS |
+| LP20-C02 same-size raw tamper rejects automatic no-op | automatic-noop 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-noop-01:PASS |
+| LP20-C02 truncated raw evidence rejects automatic no-op | automatic-noop 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-noop-01:PASS |
+| LP20-C02 replaced inode rejects automatic no-op | automatic-noop 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-noop-01:PASS |
+| LP20-C02 foreign owner cannot claim automatic no-op | automatic-noop 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-noop-01:PASS |
+| LP20-C02 detached owner cannot claim automatic no-op | automatic-noop 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-noop-01:PASS |
+| LP20-C03 durable but unapplied mutation requires strict fallback | automatic-noop 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-noop-01:PASS |
+| LP20-C03 noncanonical envelope retains strict rewrite | automatic-noop 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-noop-01:PASS |
+| LP20-C03 blank lines retain strict rewrite | automatic-noop 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-noop-01:PASS |
+| LP20-C03 identical duplicate physical rows preserve ordinal bytes | automatic-noop 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-noop-01:PASS |
+| LP20-C03 latest single EventLink remains no-op eligible | automatic-noop 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-noop-01:PASS |
+| LP20-C03 superseded EventLink requires strict receipt candidate | automatic-noop 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-noop-01:PASS |
+| LP20-C03 committed receipt and latest EventLink regain no-op eligibility | automatic-noop 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-noop-01:PASS |
+| LP20-C03 pending prefix uses existing strict recovery | automatic-noop 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-noop-01:PASS |
+| LP20-C03 mismatched pending prefix preserves original and rejects | automatic-noop 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-noop-01:PASS |
+| LP20-C03 manual checkpoint remains strict | automatic-noop 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-noop-01:PASS |
+| LP20-C03 Apply exception preserves authority but disables automatic no-op | automatic-noop 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-noop-01:PASS |
+| LP20-C03 failed Apply disables automatic no-op without changing authority | automatic-noop 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-noop-01:PASS |
+| LP20-C03 failed Open retry remains strict on the same catalog instance | automatic-noop 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-noop-01:PASS |
+| LP20-C03 exceptional Open retry remains strict on the same catalog instance | automatic-noop 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-noop-01:PASS |
+| LP20-C03 oversized accepted row preserves resident strict fallback | automatic-noop 개별 assertion; 위 명령·원출력 대조 | PASS | lp24-noop-01:PASS |
+
+### 정리 전수
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| lp24-content-01 소유 temp | 격리 바이너리·fixture·registry | 14089362B | 삭제 | 부재 확인 | source불변=true, groupClean=true |
+| lp24-content-02 소유 temp | 격리 바이너리·fixture·registry | 14106402B | 삭제 | 부재 확인 | source불변=true, groupClean=true |
+| lp24-content-03 소유 temp | 격리 바이너리·fixture·registry | 14106402B | 삭제 | 부재 확인 | source불변=true, groupClean=true |
+| lp24-binding-01 소유 temp | 격리 바이너리·fixture·registry | 6526166B | 삭제 | 부재 확인 | source불변=true, groupClean=true |
+| lp24-job-01 소유 temp | 격리 바이너리·fixture·registry | 6671711B | 삭제 | 부재 확인 | source불변=true, groupClean=true |
+| lp24-thin-01 소유 temp | 격리 바이너리·fixture·registry | 7978813B | 삭제 | 부재 확인 | source불변=true, groupClean=true |
+| lp24-thin-02 소유 temp | 격리 바이너리·fixture·registry | 7978813B | 삭제 | 부재 확인 | source불변=true, groupClean=true |
+| lp24-lifetime-01 소유 temp | 격리 바이너리·fixture·registry | 28138800B | 삭제 | 부재 확인 | source불변=true, groupClean=true |
+| lp24-noop-01 소유 temp | 격리 바이너리·fixture·registry | 29968531B | 삭제 | 부재 확인 | source불변=true, groupClean=true |
+
+### 범위와 남은 조건
+
+회귀 검사 준비 보완만 별도 커밋한다. 새 복구 제품 구현, R06~16의 신규 반례/실제15초, 기존 LP22 제품 변경, 시간 표출·완료 관측·실제 HTTP/통합·최종 푸시는 이 기록만으로 완료하지 않는다. 장시간30/120분과 UI는 미실행이며 현재 묶음의 대체 evidence가 아니다.
+
 ## LP23 UTC unknown 분석과 보존 계약
 
 범위: 기존 시간 판정의 원인 구분·정확도/보존 경계 설계. 제품 수정/타임라인 축약/완료 관측 변경은 후속이다.
