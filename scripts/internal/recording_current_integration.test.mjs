@@ -14,14 +14,22 @@ const actualProcesses=await Promise.all([producedCleanup(1001),producedCleanup(1
 const cleanup='[cleanup] PASS {"rootAbsent":true,"failureCount":0,"process":{"exitCode":0,"signalCode":null,"graceful":true},"ports":[{"kind":"http","closed":true},{"kind":"rtsp","closed":true}]}\n';
 const outputs={
   'http-api':'[S06 HTTP API] checks=35 fail=0 authMode=off roleTests=NOT_RUN\n'+cleanup,
-  'http-auth':'[S06 HTTP AUTH] checks=38 fail=0 actualUiActions=NOT_RUN\n'+cleanup,
-  'http-lifecycle':'[S06 HTTP lifecycle] checks=12 fail=0 codecPlayback=NOT_RUN\n'+cleanup,
+  'http-auth':'[S06 HTTP AUTH] checks=40 fail=0 actualUiActions=NOT_RUN\n'+cleanup,
+  'http-lifecycle':'[S06 HTTP lifecycle] checks=10 fail=0 codecPlayback=NOT_RUN\n'+cleanup,
   'default-composition':'[summary] pass=24 fail=0\n[summary] pass=16 fail=0\n[summary] pass=1 fail=0\n'+Array.from({length:46},(_,i)=>`[pass] case-${i}`).join('\n')+'\n[process] committed child exit=23 expected=23\n[process] blocked child exit=23 expected=23\n[cleanup] path=/unit bytes=1 removed=true\n',
   'actual-app':JSON.stringify({mode:'current-actual-app',passed:25,failed:0,actualEventPass:true,restartPass:true,expectedOutputCount:2,observedOutputCounts:[2,2],cleanup:{rootAbsent:true,failureCount:0,processes:actualProcesses}})+'\n'
 };
 test('S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박',async()=>{
   const called=[];const r=await runCurrentIntegration(async step=>{called.push(step.id);return {exit:0,stdout:outputs[step.id]};});
   assert.deepEqual(called,ids);assert.equal(r.currentIntegrationExecutionPass,true);assert.equal(r.stages.length,5);
+});
+for(const [id,tag,expected,obsolete] of [['http-auth','AUTH',40,38],['http-lifecycle','lifecycle',10,12]])
+test(`LP25-C10 ${id} 실제 producer 총계 수용·구형 및 불일치 거부`,()=>{
+  const step=currentSteps.find(s=>s.id===id);
+  const actual=count=>({exit:0,stdout:`[S06 HTTP ${tag}] checks=${count} fail=0 actualUiActions=NOT_RUN\n`+cleanup});
+  assert.equal(completedCurrentStep(step,actual(expected)).checks,expected);
+  for(const wrong of [obsolete,expected-1,expected+1])
+    assert.throws(()=>completedCurrentStep(step,actual(wrong)),/^Error: http-summary$/);
 });
 test('LP20-X01 실제 종료 producer의 정상 두 결과를 수용',async()=>{
   const summary=JSON.parse(outputs['actual-app']);

@@ -1,0 +1,94 @@
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] D3D-01 actual managed 원본과 jobComplete2출력·physical 검증
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-http-seed.oxaO4o bytes=6677832 removed=true
+[elapsed] seconds=2 source=bash-SECONDS
+[seed-subcheck] PASS D3D-01 generated2출력 manifest/containment/hash
+[http-subcheck] PASS I01 실제 status projection
+[http-subcheck] PASS I03/I06 실제 HTTP generated2출력·jobComplete timeline
+[http-subcheck] PASS I07 HTTP 전체/부분 중첩 원본 구별
+[http-subcheck] PASS D3D-02 accepted 미확인 독립 목록
+[http-subcheck] PASS D3D-02 문자열 시간·요청축 보존
+[http-subcheck] PASS D3D-04 actual Event output 전체 byte/hash·MIME
+[http-subcheck] PASS D3D-04 actual Event output 전체 byte/hash·MIME
+[http-subcheck] PASS I17 HTTP 내부 path 비노출
+[http-subcheck] PASS I04 HTTP 잘못된 query 거부 8
+[http-subcheck] PASS I04 HTTP 잘못된 query 거부 9
+[http-subcheck] PASS I04 HTTP 잘못된 query 거부 10
+[http-subcheck] PASS I04 HTTP 잘못된 query 거부 11
+[http-subcheck] PASS I04 HTTP 잘못된 query 거부 12
+[http-subcheck] PASS I20 Range status expected=206 actual=206
+[http-subcheck] PASS I20 Range Content-Range 일치
+[http-subcheck] PASS I20 Range body expected=4 actual=4 byte 일치
+[http-subcheck] PASS I20 range status expected=206 actual=206
+[http-subcheck] PASS I20 range Content-Range 일치
+[http-subcheck] PASS I20 range body expected=4 actual=4 byte 일치
+[http-subcheck] PASS I20 rAnGe status expected=206 actual=206
+[http-subcheck] PASS I20 rAnGe Content-Range 일치
+[http-subcheck] PASS I20 rAnGe body expected=4 actual=4 byte 일치
+[http-subcheck] PASS I20/I21 실제 Range bytes=2-5
+[http-subcheck] PASS I20/I21 실제 Range bytes=10-
+[http-subcheck] PASS I20/I21 실제 Range bytes=-7
+[http-subcheck] PASS I24 HTTP 전체 byte 일치
+[http-subcheck] PASS I22 HTTP 범위 거부 bytes=1-0
+[http-subcheck] PASS I22 HTTP 범위 거부 bytes=-0
+[http-subcheck] PASS I22 HTTP 범위 거부 bytes=0-1,3-4
+[http-subcheck] PASS I22 HTTP 범위 거부 bytes=18446744073709551616-
+[http-subcheck] PASS I22 HTTP 범위 거부 bytes=0-14476
+[http-subcheck] PASS I22 HTTP 범위 거부 invalid
+[http-subcheck] PASS I23 실제 HEAD full
+[http-subcheck] PASS I23 실제 HEAD bytes=2-5
+[http-subcheck] PASS I17 HTTP 없는 opaque ID 거부
+[S06 HTTP API] checks=35 fail=0 authMode=off roleTests=NOT_RUN
+[cleanup] PASS {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-iJapDg","rootBeforeBytes":2181571,"rootBeforeEntries":311,"rootSymlinksNotFollowed":277,"rootAbsent":true,"process":{"pid":49805,"exitCode":0,"signalCode":null,"graceful":true},"ports":[{"kind":"rtsp","port":49541,"closed":true,"evidence":"ECONNREFUSED"},{"kind":"http","port":49542,"closed":true,"evidence":"ECONNREFUSED"}],"attempted":6,"failureCount":0,"cleanupElapsedMs":533,"verifierElapsedMs":4368}
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[pass] D3D-01 actual managed 원본과 jobComplete2출력·physical 검증
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-http-seed.SuPRtr bytes=6677832 removed=true
+[elapsed] seconds=1 source=bash-SECONDS
+[seed-subcheck] PASS D3D-01 generated2출력 manifest/containment/hash
+[auth-subcheck] PASS I12~I16 principal 0 route 0 expected=200 actual=200
+[auth-subcheck] PASS I02 principal 0 허용 채널만 status 반환
+[auth-subcheck] PASS I01 principal 0 실제 비녹화 상태
+[auth-subcheck] PASS S07-http-observations-global
+[auth-subcheck] PASS I02/I17 principal 0 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 0 route 1 expected=200 actual=200
+[auth-subcheck] PASS I02/I17 principal 0 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 0 route 2 expected=200 actual=200
+[auth-subcheck] PASS I12~I16 principal 1 route 0 expected=200 actual=200
+[auth-subcheck] PASS I02 principal 1 허용 채널만 status 반환
+[auth-subcheck] PASS I01 principal 1 실제 비녹화 상태
+[auth-subcheck] PASS S07-http-observations-limited principal 1
+[auth-subcheck] PASS I02/I17 principal 1 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 1 route 1 expected=200 actual=200
+[auth-subcheck] PASS I02/I17 principal 1 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 1 route 2 expected=200 actual=200
+[auth-subcheck] PASS I12~I16 principal 2 route 0 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 2 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 2 route 1 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 2 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 2 route 2 expected=403 actual=403
+[auth-subcheck] PASS I12~I16 principal 3 route 0 expected=200 actual=200
+[auth-subcheck] PASS I02 principal 3 허용 채널만 status 반환
+[auth-subcheck] PASS I01 principal 3 실제 비녹화 상태
+[auth-subcheck] PASS S07-http-observations-limited principal 3
+[auth-subcheck] PASS I02/I17 principal 3 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 3 route 1 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 3 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 3 route 2 expected=404 actual=404
+[auth-subcheck] PASS I12~I16 principal 4 route 0 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 4 route 0 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 4 route 1 expected=403 actual=403
+[auth-subcheck] PASS I02/I17 principal 4 route 1 민감 field 비노출
+[auth-subcheck] PASS I12~I16 principal 4 route 2 expected=403 actual=403
+[auth-subcheck] PASS I15 미인증 API expected=401 actual=401
+[auth-subcheck] PASS I15 미인증 API expected=401 actual=401
+[auth-subcheck] PASS I15 미인증 API expected=401 actual=401
+[auth-subcheck] PASS I16 operator의 다른 채널 조회 거부
+[auth-subcheck] PASS I34 viewer 녹화 화면 거부 status=403
+[auth-subcheck] PASS I17 인증 fixture plaintext 저장 없음
+[S06 HTTP AUTH] checks=40 fail=0 actualUiActions=NOT_RUN
+[cleanup] PASS {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-oa3WTY","rootBeforeBytes":2453757,"rootBeforeEntries":314,"rootSymlinksNotFollowed":277,"rootAbsent":true,"process":{"pid":49889,"exitCode":0,"signalCode":null,"graceful":true},"ports":[{"kind":"rtsp","port":49589,"closed":true,"evidence":"ECONNREFUSED"},{"kind":"http","port":49590,"closed":true,"evidence":"ECONNREFUSED"}],"attempted":6,"failureCount":0,"cleanupElapsedMs":360,"verifierElapsedMs":3638}
+{"mode":"--current-integration","fullFoundationPass":false,"resourceTrendPass":false,"uiFulltestPass":false,"remaining":["observer-longrun-transition","30min","120min","UI"],"currentIntegrationExecutionPass":false,"stages":[{"id":"http-api","checks":35,"exit":0,"cleanup":true}],"failedStage":"http-auth","error":"http-summary","notRun":["http-lifecycle","default-composition","actual-app"],"elapsedMs":8091,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용집계없음"}

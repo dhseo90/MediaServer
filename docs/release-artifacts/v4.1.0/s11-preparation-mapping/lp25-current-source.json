@@ -1,0 +1,65 @@
+{
+  "head": "e5dfe718db1ed3d0499ab9613629b90c73bf0721",
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "v24.13.0",
+  "sourceNote": "4번02 실행 후 fingerprint; 제품 source는 빌드 이후 불변. 통합 총계 consumer와 test는 미커밋",
+  "files": [
+    {
+      "file": "include/recording/recording_catalog.h",
+      "sha256": "bde3f884cda391fe971654cd66b2592a51aa084b5a0c76634890bf34ed066705"
+    },
+    {
+      "file": "include/recording/recording_read_service.h",
+      "sha256": "d734267d8a83851d45f188467c22c1f3f3319b5adb87d2de1bc3075738dc2d90"
+    },
+    {
+      "file": "include/recording/recording_timeline.h",
+      "sha256": "1c737d60e4bc8926e5fad7ce2b33e0a7133bc3375c5fc70ccf5c67e584d12b2a"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "sha256": "3e295748699d737e31a2812d5a4d97280241a29ba83600b38ea425c89f314146"
+    },
+    {
+      "file": "src/recording/recording_read_service.cpp",
+      "sha256": "c37210ae7c0f363420c0924f6c4cd67872d776936af8a11275ffcd044f334f4c"
+    },
+    {
+      "file": "src/recording/recording_timeline_projection.cpp",
+      "sha256": "7b2085dbd356a7617b780d6dd6f565172b4fa0778606782859ba0bbe4db0331c"
+    },
+    {
+      "file": "src/ingress/recording_application_service.cpp",
+      "sha256": "f5a1908fbad927cdf3e246d38ab4f76153daeabca3b34a3a4f88f34c5e7d1d2e"
+    },
+    {
+      "file": "scripts/internal/recording_current_integration_suite.mjs",
+      "sha256": "9a6e655c08bd3c9126882eae57985d4b23977e3afe91ca393b5482a06ac0db80"
+    },
+    {
+      "file": "scripts/internal/verify_recording_current_app.mjs",
+      "sha256": "8fa38e36d6048758a984eeb22d0f0bb83daa8750f0115652bd1483ff3db0bece"
+    },
+    {
+      "file": "scripts/internal/recording_current_app_helpers.mjs",
+      "sha256": "db9e9e526fb6902ea98d5bade4a9c8101b0c8330aa8e1400e2558d243c5cabe9"
+    },
+    {
+      "file": "scripts/internal/verify_v410_recording_ui_contract.mjs",
+      "sha256": "bd166aa64ed429862524f420b8b8b0bc076724c4053dcff5e5b317636f0a1633"
+    },
+    {
+      "file": "scripts/internal/recording_current_archive_probe.cpp",
+      "sha256": "ee1347ea1f82194ad9f6b62b8b5a911f5a14bbffa36f9206ae52d138171408d4"
+    },
+    {
+      "file": "build-gst-onnx/libmedia_server_runtime.a",
+      "sha256": "408366261ba29cb2a510b8b6c6077615058ea4790696414658a223927b1c739f"
+    },
+    {
+      "file": "build-gst-onnx/media_server",
+      "sha256": "6e844231f21de76cc08aa5148fcb7ddd878d7e8c72c962a85bc2f861e19020f8"
+    }
+  ]
+}

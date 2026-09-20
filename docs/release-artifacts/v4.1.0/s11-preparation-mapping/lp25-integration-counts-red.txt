@@ -1,0 +1,36 @@
+✖ LP25-C10 http-auth 실제 producer 총계 수용·구형 및 불일치 거부 (0.485625ms)
+✖ LP25-C10 http-lifecycle 실제 producer 총계 수용·구형 및 불일치 거부 (0.034417ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 37.937041
+
+✖ failing tests:
+
+test at scripts/internal/recording_current_integration.test.mjs:27:1
+✖ LP25-C10 http-auth 실제 producer 총계 수용·구형 및 불일치 거부 (0.485625ms)
+  Error: http-summary
+      at requireValue (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_integration_suite.mjs:14:47)
+      at completedCurrentStep (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_integration_suite.mjs:32:5)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_integration.test.mjs:30:16)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17)
+
+test at scripts/internal/recording_current_integration.test.mjs:27:1
+✖ LP25-C10 http-lifecycle 실제 producer 총계 수용·구형 및 불일치 거부 (0.034417ms)
+  Error: http-summary
+      at requireValue (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_integration_suite.mjs:14:47)
+      at completedCurrentStep (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_integration_suite.mjs:32:5)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_integration.test.mjs:30:16)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3)

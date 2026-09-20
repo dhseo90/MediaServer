@@ -6,8 +6,8 @@ import {boundedOutput} from './recording_foundation_suite.mjs';
 const directory=path.dirname(fileURLToPath(import.meta.url));
 export const currentSteps=Object.freeze([
   {id:'http-api',file:'verify_v410_recording_ui_contract.mjs',args:['--http-api'],checks:35},
-  {id:'http-auth',file:'verify_v410_recording_ui_contract.mjs',args:['--http-auth'],checks:38},
-  {id:'http-lifecycle',file:'verify_v410_recording_ui_contract.mjs',args:['--http-lifecycle'],checks:12},
+  {id:'http-auth',file:'verify_v410_recording_ui_contract.mjs',args:['--http-auth'],checks:40},
+  {id:'http-lifecycle',file:'verify_v410_recording_ui_contract.mjs',args:['--http-lifecycle'],checks:10},
   {id:'default-composition',file:'verify_recording_default_composition.sh',args:[],checks:46},
   {id:'actual-app',file:'verify_recording_current_app.mjs',args:[]}
 ]);

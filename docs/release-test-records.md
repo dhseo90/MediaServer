@@ -11,7 +11,7 @@
 | 1 | 시간 정확도·표시 단위 분리 | 완료 | 기본 mapping 호환, opt-in 그룹·66검사/빌드 통과 | LP25-T01~08 |
 | 2 | 완료 관측·전수 페이지 분리 | 완료 | 신규/기존/계측112PASS, 원래 시간제한 유지 | LP25-O01~04 |
 | 3 | LP22 마감 | 완료 | 자체2/focused21/media46 PASS·정리 확인 | LP22-R |
-| 4 | 실제 앱·현행 통합 | 대기 | HTTP4초·완전2출력·hash·재기동·5단계 | P0-HTTP02/S11-CI |
+| 4 | 실제 앱·현행 통합 | 완료 | 156PASS·HTTP최대1.613초·완전2출력·hash/재기동 | P0-HTTP02/S11-CI |
 | 5 | 기록·커밋·푸시 | 대기 | 앞 단계 통과, 승인 범위 clean 확인 후 푸시 | AGENTS5 |
 
 ### 1번 반환 계약과 비범위
@@ -339,6 +339,760 @@ actual-app의 요청별 HTTP4초, 작업대기30초, 총180초를 유지하고 �
 현재 HTTP-auth 실행 경로는 지정5환경변수 주입 방식이 아니며 운영 계정 변경/비밀번호 원문 저장은 하지 않는다.
 전체 출력은 소유 임시 로그에 보존한 뒤 안전한 수치·개별 결과·정리 증거를 저장소로 이관한다.
 브라우저/장시간/릴리즈 작업은 실행하지 않는다.
+
+### 4번 첫 통합 실패·동일 단계 보완
+
+`--current-integration` 첫 실행은 exit1/8091ms, API35·auth40개 검사 자체는 전부 통과했다.
+통합 consumer가 auth38을 기대하여 `http-summary`로 중단했다. lifecycle/composition/actual-app은 미실행이다.
+[원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp25-current-integration-01.txt).
+API/auth 서버 exit0·포트4개 해제·각 root2181571/2453757B 및 seed 각6677832B 삭제 확인.
+제품·인증 회귀가 아니라 기존 통합 총계의 정합 오류다. 실행 전 총계를 원 producer와 충분히 대조하지 못했다.
+
+같은 원인으로 다음 단계를 다시 실패시키지 않도록 전체5단계의 producer를 읽기 대조했다.
+auth는5principal×(3status+2redaction)=25, 허용status3principal×3조건=9, 미인증3+별도scope/viewer/plaintext3으로40이다.
+lifecycle는 전체전송/Range4와 disconnect/종료6으로10이다. API35·composition46·actual25는 기존과 동일하다.
+앞선 예정의 auth38/lifecycle12는 정정하며 실제 전체 합계156은 유지된다. 검사 삭제나 기준 완화가 아니다.
+LP25-C10 사전등록: 실제 producer 총계40/10을 수용, 구형38/12·잘못된 총계를 거부하는 focused2개를 먼저 RED로 확인한다.
+예상 RED는 `node --test --test-name-pattern=LP25-C10 scripts/internal/recording_current_integration.test.mjs`,
+exit1/0PASS/2FAIL/37.937041ms로 두 정상 총계 수용 assertion의 `http-summary`만 실패했다.
+이후 consumer와 자체검사 fixture만 정합화하고 integration Node 전체 회귀 → 동일 실제5단계 재검증 순서다.
+HTTP/작업대기/진단/cleanup 상한과 제품 코드는 변경하지 않는다.
+보완 후 Node integration 전체50PASS/0FAIL/exit0/44.60125ms이며
+[RED](release-artifacts/v4.1.0/s11-preparation-mapping/lp25-integration-counts-red.txt)와
+[GREEN](release-artifacts/v4.1.0/s11-preparation-mapping/lp25-integration-counts-green.txt)에 개별 결과를 보존한다.
+서버/포트/임시물 없는 자체검사이며 통합 자체의 완료 증거가 아니다. 동일5단계02를 실행한다.
+
+### 4번 최종 결과
+
+동일 명령02는 exit0/104877ms, 현행5단계156개 모두 통과했다. 실제 앱 부분은25개/61733ms다.
+[통합02 원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp25-current-integration-02.txt)619510B,
+SHA256 `a2f26b60c5f6d64c2c1950450014440c68ddaae7e8dadaa9f91252429ab25569`.
+도구 표시에는 잘림이 있었으나 tee 파일 원문2160행은 손실 없이 보존하고 동일 hash를 확인했다.
+제품/build·실행기 [source manifest](release-artifacts/v4.1.0/s11-preparation-mapping/lp25-current-source.json)와 함께
+메인이 실제 결과를 직접 대조했다. 서버/계정/미디어/registry는 모두 작업 소유 격리 자료이며 정리했다.
+
+- API35/auth40/lifecycle10/default46/actual25 PASS. 인증 조건·scope·시간제한 유지.
+- timeline229건 모두200/outcome=ok/4000ms 이내. 1차185건 최대785ms, 2차44건 최대1613ms.
+- 기동별 완전2출력, 작업대기13903.672/15307.775ms(30초 이내), 전체 페이지 판정 통과.
+- HTTP bytes/hash와 소유 파일 일치, 복제본 Open 뒤 원본 불변, 재기동 기존ID/hash 보존·새ID 분리.
+- timeout 확대·partial 승격·누락 허용·장시간 반복 없음. 통합01 총계 실패는 이력으로 유지.
+- HTTP fixture 서버3개·실제 앱2개 모두 exit0·각HTTP/RTSP해제. 실제앱171388521B와 UDP 정리.
+- `latencyPass=false`는 별도 latency-only 미실행이다. 이번229건4초 대조는 실제02 원출력으로 별도 판정했다.
+- `fullFoundationPass/resourceTrendPass/uiFulltestPass=false` 유지: S11 전체·자원 추세·UI 완료가 아니다.
+- completion 요약의1차 `selected.observation-missing`은 전역 최종 참조(2차)를1차 프로세스에 조회한 진단 범위다.
+  각 기동의 올바른 reference hash로 원시 행을 대조하면 각각8행/동일job의Complete(event8)가 존재한다.
+  terminal 관측만이 아니라 전수 완전2출력 oracle가 별도로 통과했다.
+- 비밀 할당/password/cookie/token·외부URL 없음 확인. 격리 fixture의 opaque ID/hash/수치만 증거로 보존한다.
+  기록표 작성 보조의 첫 문자열 파싱 오류는 파일 수정 전 발생했고 파서만 수정했다. 제품/테스트 재실행 없음.
+
+[1차 지연](release-artifacts/v4.1.0/s11-preparation-mapping/latency-bb1cae27-0768-43d1-8b2c-7730ad591e38.json)187430B,
+[2차 지연](release-artifacts/v4.1.0/s11-preparation-mapping/latency-cbe93d2b-698d-4120-a87e-801cb7ee827b.json)148356B,
+[1차 종료](release-artifacts/v4.1.0/s11-preparation-mapping/process-efc2ef18-afd4-4e4b-8b4d-286ca81968af.json)404B,
+[2차 종료](release-artifacts/v4.1.0/s11-preparation-mapping/process-e4ab9c2c-e5c9-45c6-99c1-f511708636e7.json)404B를 보존한다.
+기동1/2 지연 trace는 expected/observed185/185와44/44, status=complete다.
+token start/end/consumed 미집계(전용 집계 없음), elapsed는 각 원출력 실제값이다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 통합01 전체 | exit1·auth summary38 기대/실제40 | FAIL | 뒤3단계 미실행 |
+| LP25-C10 auth RED | 정확40 수용 assertion http-summary/exit1 | FAIL | 사전 정의한 RED |
+| LP25-C10 lifecycle RED | 정확10 수용 assertion http-summary/exit1 | FAIL | 사전 정의한 RED |
+| 통합01 L4 | D3D-01 actual managed 원본과 jobComplete2출력·physical 검증 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L7 | D3D-01 generated2출력 manifest/containment/hash | PASS | 개별 성공·전체는FAIL |
+| 통합01 L8 | I01 실제 status projection | PASS | 개별 성공·전체는FAIL |
+| 통합01 L9 | I03/I06 실제 HTTP generated2출력·jobComplete timeline | PASS | 개별 성공·전체는FAIL |
+| 통합01 L10 | I07 HTTP 전체/부분 중첩 원본 구별 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L11 | D3D-02 accepted 미확인 독립 목록 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L12 | D3D-02 문자열 시간·요청축 보존 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L13 | D3D-04 actual Event output 전체 byte/hash·MIME | PASS | 개별 성공·전체는FAIL |
+| 통합01 L14 | D3D-04 actual Event output 전체 byte/hash·MIME | PASS | 개별 성공·전체는FAIL |
+| 통합01 L15 | I17 HTTP 내부 path 비노출 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L16 | I04 HTTP 잘못된 query 거부 8 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L17 | I04 HTTP 잘못된 query 거부 9 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L18 | I04 HTTP 잘못된 query 거부 10 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L19 | I04 HTTP 잘못된 query 거부 11 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L20 | I04 HTTP 잘못된 query 거부 12 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L21 | I20 Range status expected=206 actual=206 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L22 | I20 Range Content-Range 일치 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L23 | I20 Range body expected=4 actual=4 byte 일치 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L24 | I20 range status expected=206 actual=206 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L25 | I20 range Content-Range 일치 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L26 | I20 range body expected=4 actual=4 byte 일치 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L27 | I20 rAnGe status expected=206 actual=206 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L28 | I20 rAnGe Content-Range 일치 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L29 | I20 rAnGe body expected=4 actual=4 byte 일치 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L30 | I20/I21 실제 Range bytes=2-5 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L31 | I20/I21 실제 Range bytes=10- | PASS | 개별 성공·전체는FAIL |
+| 통합01 L32 | I20/I21 실제 Range bytes=-7 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L33 | I24 HTTP 전체 byte 일치 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L34 | I22 HTTP 범위 거부 bytes=1-0 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L35 | I22 HTTP 범위 거부 bytes=-0 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L36 | I22 HTTP 범위 거부 bytes=0-1,3-4 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L37 | I22 HTTP 범위 거부 bytes=18446744073709551616- | PASS | 개별 성공·전체는FAIL |
+| 통합01 L38 | I22 HTTP 범위 거부 bytes=0-14476 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L39 | I22 HTTP 범위 거부 invalid | PASS | 개별 성공·전체는FAIL |
+| 통합01 L40 | I23 실제 HEAD full | PASS | 개별 성공·전체는FAIL |
+| 통합01 L41 | I23 실제 HEAD bytes=2-5 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L42 | I17 HTTP 없는 opaque ID 거부 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L48 | D3D-01 actual managed 원본과 jobComplete2출력·physical 검증 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L51 | D3D-01 generated2출력 manifest/containment/hash | PASS | 개별 성공·전체는FAIL |
+| 통합01 L52 | I12~I16 principal 0 route 0 expected=200 actual=200 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L53 | I02 principal 0 허용 채널만 status 반환 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L54 | I01 principal 0 실제 비녹화 상태 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L55 | S07-http-observations-global | PASS | 개별 성공·전체는FAIL |
+| 통합01 L56 | I02/I17 principal 0 route 0 민감 field 비노출 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L57 | I12~I16 principal 0 route 1 expected=200 actual=200 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L58 | I02/I17 principal 0 route 1 민감 field 비노출 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L59 | I12~I16 principal 0 route 2 expected=200 actual=200 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L60 | I12~I16 principal 1 route 0 expected=200 actual=200 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L61 | I02 principal 1 허용 채널만 status 반환 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L62 | I01 principal 1 실제 비녹화 상태 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L63 | S07-http-observations-limited principal 1 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L64 | I02/I17 principal 1 route 0 민감 field 비노출 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L65 | I12~I16 principal 1 route 1 expected=200 actual=200 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L66 | I02/I17 principal 1 route 1 민감 field 비노출 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L67 | I12~I16 principal 1 route 2 expected=200 actual=200 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L68 | I12~I16 principal 2 route 0 expected=403 actual=403 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L69 | I02/I17 principal 2 route 0 민감 field 비노출 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L70 | I12~I16 principal 2 route 1 expected=403 actual=403 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L71 | I02/I17 principal 2 route 1 민감 field 비노출 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L72 | I12~I16 principal 2 route 2 expected=403 actual=403 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L73 | I12~I16 principal 3 route 0 expected=200 actual=200 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L74 | I02 principal 3 허용 채널만 status 반환 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L75 | I01 principal 3 실제 비녹화 상태 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L76 | S07-http-observations-limited principal 3 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L77 | I02/I17 principal 3 route 0 민감 field 비노출 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L78 | I12~I16 principal 3 route 1 expected=403 actual=403 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L79 | I02/I17 principal 3 route 1 민감 field 비노출 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L80 | I12~I16 principal 3 route 2 expected=404 actual=404 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L81 | I12~I16 principal 4 route 0 expected=403 actual=403 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L82 | I02/I17 principal 4 route 0 민감 field 비노출 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L83 | I12~I16 principal 4 route 1 expected=403 actual=403 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L84 | I02/I17 principal 4 route 1 민감 field 비노출 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L85 | I12~I16 principal 4 route 2 expected=403 actual=403 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L86 | I15 미인증 API expected=401 actual=401 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L87 | I15 미인증 API expected=401 actual=401 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L88 | I15 미인증 API expected=401 actual=401 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L89 | I16 operator의 다른 채널 조회 거부 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L90 | I34 viewer 녹화 화면 거부 status=403 | PASS | 개별 성공·전체는FAIL |
+| 통합01 L91 | I17 인증 fixture plaintext 저장 없음 | PASS | 개별 성공·전체는FAIL |
+| 통합02 L4 | D3D-01 actual managed 원본과 jobComplete2출력·physical 검증 | PASS | 해당 범위 실제 결과 |
+| 통합02 L7 | D3D-01 generated2출력 manifest/containment/hash | PASS | 해당 범위 실제 결과 |
+| 통합02 L8 | I01 실제 status projection | PASS | 해당 범위 실제 결과 |
+| 통합02 L9 | I03/I06 실제 HTTP generated2출력·jobComplete timeline | PASS | 해당 범위 실제 결과 |
+| 통합02 L10 | I07 HTTP 전체/부분 중첩 원본 구별 | PASS | 해당 범위 실제 결과 |
+| 통합02 L11 | D3D-02 accepted 미확인 독립 목록 | PASS | 해당 범위 실제 결과 |
+| 통합02 L12 | D3D-02 문자열 시간·요청축 보존 | PASS | 해당 범위 실제 결과 |
+| 통합02 L13 | D3D-04 actual Event output 전체 byte/hash·MIME | PASS | 해당 범위 실제 결과 |
+| 통합02 L14 | D3D-04 actual Event output 전체 byte/hash·MIME | PASS | 해당 범위 실제 결과 |
+| 통합02 L15 | I17 HTTP 내부 path 비노출 | PASS | 해당 범위 실제 결과 |
+| 통합02 L16 | I04 HTTP 잘못된 query 거부 8 | PASS | 해당 범위 실제 결과 |
+| 통합02 L17 | I04 HTTP 잘못된 query 거부 9 | PASS | 해당 범위 실제 결과 |
+| 통합02 L18 | I04 HTTP 잘못된 query 거부 10 | PASS | 해당 범위 실제 결과 |
+| 통합02 L19 | I04 HTTP 잘못된 query 거부 11 | PASS | 해당 범위 실제 결과 |
+| 통합02 L20 | I04 HTTP 잘못된 query 거부 12 | PASS | 해당 범위 실제 결과 |
+| 통합02 L21 | I20 Range status expected=206 actual=206 | PASS | 해당 범위 실제 결과 |
+| 통합02 L22 | I20 Range Content-Range 일치 | PASS | 해당 범위 실제 결과 |
+| 통합02 L23 | I20 Range body expected=4 actual=4 byte 일치 | PASS | 해당 범위 실제 결과 |
+| 통합02 L24 | I20 range status expected=206 actual=206 | PASS | 해당 범위 실제 결과 |
+| 통합02 L25 | I20 range Content-Range 일치 | PASS | 해당 범위 실제 결과 |
+| 통합02 L26 | I20 range body expected=4 actual=4 byte 일치 | PASS | 해당 범위 실제 결과 |
+| 통합02 L27 | I20 rAnGe status expected=206 actual=206 | PASS | 해당 범위 실제 결과 |
+| 통합02 L28 | I20 rAnGe Content-Range 일치 | PASS | 해당 범위 실제 결과 |
+| 통합02 L29 | I20 rAnGe body expected=4 actual=4 byte 일치 | PASS | 해당 범위 실제 결과 |
+| 통합02 L30 | I20/I21 실제 Range bytes=2-5 | PASS | 해당 범위 실제 결과 |
+| 통합02 L31 | I20/I21 실제 Range bytes=10- | PASS | 해당 범위 실제 결과 |
+| 통합02 L32 | I20/I21 실제 Range bytes=-7 | PASS | 해당 범위 실제 결과 |
+| 통합02 L33 | I24 HTTP 전체 byte 일치 | PASS | 해당 범위 실제 결과 |
+| 통합02 L34 | I22 HTTP 범위 거부 bytes=1-0 | PASS | 해당 범위 실제 결과 |
+| 통합02 L35 | I22 HTTP 범위 거부 bytes=-0 | PASS | 해당 범위 실제 결과 |
+| 통합02 L36 | I22 HTTP 범위 거부 bytes=0-1,3-4 | PASS | 해당 범위 실제 결과 |
+| 통합02 L37 | I22 HTTP 범위 거부 bytes=18446744073709551616- | PASS | 해당 범위 실제 결과 |
+| 통합02 L38 | I22 HTTP 범위 거부 bytes=0-14476 | PASS | 해당 범위 실제 결과 |
+| 통합02 L39 | I22 HTTP 범위 거부 invalid | PASS | 해당 범위 실제 결과 |
+| 통합02 L40 | I23 실제 HEAD full | PASS | 해당 범위 실제 결과 |
+| 통합02 L41 | I23 실제 HEAD bytes=2-5 | PASS | 해당 범위 실제 결과 |
+| 통합02 L42 | I17 HTTP 없는 opaque ID 거부 | PASS | 해당 범위 실제 결과 |
+| 통합02 L48 | D3D-01 actual managed 원본과 jobComplete2출력·physical 검증 | PASS | 해당 범위 실제 결과 |
+| 통합02 L51 | D3D-01 generated2출력 manifest/containment/hash | PASS | 해당 범위 실제 결과 |
+| 통합02 L52 | I12~I16 principal 0 route 0 expected=200 actual=200 | PASS | 해당 범위 실제 결과 |
+| 통합02 L53 | I02 principal 0 허용 채널만 status 반환 | PASS | 해당 범위 실제 결과 |
+| 통합02 L54 | I01 principal 0 실제 비녹화 상태 | PASS | 해당 범위 실제 결과 |
+| 통합02 L55 | S07-http-observations-global | PASS | 해당 범위 실제 결과 |
+| 통합02 L56 | I02/I17 principal 0 route 0 민감 field 비노출 | PASS | 해당 범위 실제 결과 |
+| 통합02 L57 | I12~I16 principal 0 route 1 expected=200 actual=200 | PASS | 해당 범위 실제 결과 |
+| 통합02 L58 | I02/I17 principal 0 route 1 민감 field 비노출 | PASS | 해당 범위 실제 결과 |
+| 통합02 L59 | I12~I16 principal 0 route 2 expected=200 actual=200 | PASS | 해당 범위 실제 결과 |
+| 통합02 L60 | I12~I16 principal 1 route 0 expected=200 actual=200 | PASS | 해당 범위 실제 결과 |
+| 통합02 L61 | I02 principal 1 허용 채널만 status 반환 | PASS | 해당 범위 실제 결과 |
+| 통합02 L62 | I01 principal 1 실제 비녹화 상태 | PASS | 해당 범위 실제 결과 |
+| 통합02 L63 | S07-http-observations-limited principal 1 | PASS | 해당 범위 실제 결과 |
+| 통합02 L64 | I02/I17 principal 1 route 0 민감 field 비노출 | PASS | 해당 범위 실제 결과 |
+| 통합02 L65 | I12~I16 principal 1 route 1 expected=200 actual=200 | PASS | 해당 범위 실제 결과 |
+| 통합02 L66 | I02/I17 principal 1 route 1 민감 field 비노출 | PASS | 해당 범위 실제 결과 |
+| 통합02 L67 | I12~I16 principal 1 route 2 expected=200 actual=200 | PASS | 해당 범위 실제 결과 |
+| 통합02 L68 | I12~I16 principal 2 route 0 expected=403 actual=403 | PASS | 해당 범위 실제 결과 |
+| 통합02 L69 | I02/I17 principal 2 route 0 민감 field 비노출 | PASS | 해당 범위 실제 결과 |
+| 통합02 L70 | I12~I16 principal 2 route 1 expected=403 actual=403 | PASS | 해당 범위 실제 결과 |
+| 통합02 L71 | I02/I17 principal 2 route 1 민감 field 비노출 | PASS | 해당 범위 실제 결과 |
+| 통합02 L72 | I12~I16 principal 2 route 2 expected=403 actual=403 | PASS | 해당 범위 실제 결과 |
+| 통합02 L73 | I12~I16 principal 3 route 0 expected=200 actual=200 | PASS | 해당 범위 실제 결과 |
+| 통합02 L74 | I02 principal 3 허용 채널만 status 반환 | PASS | 해당 범위 실제 결과 |
+| 통합02 L75 | I01 principal 3 실제 비녹화 상태 | PASS | 해당 범위 실제 결과 |
+| 통합02 L76 | S07-http-observations-limited principal 3 | PASS | 해당 범위 실제 결과 |
+| 통합02 L77 | I02/I17 principal 3 route 0 민감 field 비노출 | PASS | 해당 범위 실제 결과 |
+| 통합02 L78 | I12~I16 principal 3 route 1 expected=403 actual=403 | PASS | 해당 범위 실제 결과 |
+| 통합02 L79 | I02/I17 principal 3 route 1 민감 field 비노출 | PASS | 해당 범위 실제 결과 |
+| 통합02 L80 | I12~I16 principal 3 route 2 expected=404 actual=404 | PASS | 해당 범위 실제 결과 |
+| 통합02 L81 | I12~I16 principal 4 route 0 expected=403 actual=403 | PASS | 해당 범위 실제 결과 |
+| 통합02 L82 | I02/I17 principal 4 route 0 민감 field 비노출 | PASS | 해당 범위 실제 결과 |
+| 통합02 L83 | I12~I16 principal 4 route 1 expected=403 actual=403 | PASS | 해당 범위 실제 결과 |
+| 통합02 L84 | I02/I17 principal 4 route 1 민감 field 비노출 | PASS | 해당 범위 실제 결과 |
+| 통합02 L85 | I12~I16 principal 4 route 2 expected=403 actual=403 | PASS | 해당 범위 실제 결과 |
+| 통합02 L86 | I15 미인증 API expected=401 actual=401 | PASS | 해당 범위 실제 결과 |
+| 통합02 L87 | I15 미인증 API expected=401 actual=401 | PASS | 해당 범위 실제 결과 |
+| 통합02 L88 | I15 미인증 API expected=401 actual=401 | PASS | 해당 범위 실제 결과 |
+| 통합02 L89 | I16 operator의 다른 채널 조회 거부 | PASS | 해당 범위 실제 결과 |
+| 통합02 L90 | I34 viewer 녹화 화면 거부 status=403 | PASS | 해당 범위 실제 결과 |
+| 통합02 L91 | I17 인증 fixture plaintext 저장 없음 | PASS | 해당 범위 실제 결과 |
+| 통합02 L97 | D3D-01 actual managed 원본과 jobComplete2출력·physical 검증 | PASS | 해당 범위 실제 결과 |
+| 통합02 L98 | D3D-07 valid MP4 free atom64MiB·최종 physical/hash 검증 | PASS | 해당 범위 실제 결과 |
+| 통합02 L101 | D3D-01 generated2출력 manifest/containment/hash | PASS | 해당 범위 실제 결과 |
+| 통합02 L102 | I24 큰 파일 status/길이 | PASS | 해당 범위 실제 결과 |
+| 통합02 L103 | I24 64MiB 전체 streaming hash 일치 | PASS | 해당 범위 실제 결과 |
+| 통합02 L104 | I25 전체 응답 뒤 hold0 | PASS | 해당 범위 실제 결과 |
+| 통합02 L105 | I24 256KiB 경계 Range byte 일치 | PASS | 해당 범위 실제 결과 |
+| 통합02 L106 | I26 disconnect 전 실제 hold1 | PASS | 해당 범위 실제 결과 |
+| 통합02 L107 | I26 disconnect 뒤 실제 hold0 | PASS | 해당 범위 실제 결과 |
+| 통합02 L108 | I26 disconnect 뒤 서버 health200 | PASS | 해당 범위 실제 결과 |
+| 통합02 L109 | I26 서버 종료 전 실제 hold1 | PASS | 해당 범위 실제 결과 |
+| 통합02 L110 | I26 활성 전송 중 정상 종료 | PASS | 해당 범위 실제 결과 |
+| 통합02 L111 | I26 정상 종료 후 영속 hold0 | PASS | 해당 범위 실제 결과 |
+| 통합02 L114 | D02-03 동일 source/channel/ns immutable snapshot 전달 | PASS | 해당 범위 실제 결과 |
+| 통합02 L115 | D02-03 다른 channel 증거 혼합 거부 | PASS | 해당 범위 실제 결과 |
+| 통합02 L116 | D02-03 stop namespace 증거 삭제 | PASS | 해당 범위 실제 결과 |
+| 통합02 L117 | D02-03 cache capacity 이전 namespace eviction | PASS | 해당 범위 실제 결과 |
+| 통합02 L118 | D02-03 전체 stop 후 publication/query 거부 | PASS | 해당 범위 실제 결과 |
+| 통합02 L119 | D02-01 신규 root 자동 내구 store identity | PASS | 해당 범위 실제 결과 |
+| 통합02 L120 | D02-01 재개방 동일 store identity | PASS | 해당 범위 실제 결과 |
+| 통합02 L121 | D02-01 서로 다른 root 난수 identity 구별 | PASS | 해당 범위 실제 결과 |
+| 통합02 L122 | D02-02 managed lease 동시 소유 거부 | PASS | 해당 범위 실제 결과 |
+| 통합02 L123 | D02-01 명시 ID 기존 계약 유지 | PASS | 해당 범위 실제 결과 |
+| 통합02 L124 | D02-02 명시 ID 충돌 원본 marker 보존 | PASS | 해당 범위 실제 결과 |
+| 통합02 L125 | D02-02 같은 init 내구 ID 복구 | PASS | 해당 범위 실제 결과 |
+| 통합02 L126 | D02-02 legacy nonempty 변환·삭제 거부 | PASS | 해당 범위 실제 결과 |
+| 통합02 L127 | D02-02 손상/unknown marker 덮어쓰기 거부 | PASS | 해당 범위 실제 결과 |
+| 통합02 L128 | D02-06 실제 H264 입력 준비 | PASS | 해당 범위 실제 결과 |
+| 통합02 L131 | D02-05 실제 V2 finalized startup 미디어 전수 검사 | PASS | 해당 범위 실제 결과 |
+| 통합02 L132 | D02-05 실제 V2 size/hash 손상 감지·catalog Mark | PASS | 해당 범위 실제 결과 |
+| 통합02 L133 | D02-10 default 준비16s·500ms·33회 예산 | PASS | 해당 범위 실제 결과 |
+| 통합02 L134 | D02-10 overflow 요청은60s/121회 capped 사유 보존 | PASS | 해당 범위 실제 결과 |
+| 통합02 L135 | D02-06 on 구성의 동일 managed store/catalog writer 결박 | PASS | 해당 범위 실제 결과 |
+| 통합02 L136 | D02-07 빈 저장소 runtime 복구 함수 | PASS | 해당 범위 실제 결과 |
+| 통합02 L137 | D02-06 off managed 형식 유지·미디어 비생산 | PASS | 해당 범위 실제 결과 |
+| 통합02 L138 | D02-04/11 raw key→numeric 참조·history null provider 접수·공개 record 불변 | PASS | 해당 범위 실제 결과 |
+| 통합02 L139 | D02-11 raw stream/channel/sourcecontext 모순은 신규 저장·접수 없음 | PASS | 해당 범위 실제 결과 |
+| 통합02 L142 | D02-06 off/on 재개방 동일 store identity | PASS | 해당 범위 실제 결과 |
+| 통합02 L143 | D02-07 실제 producer 시작 전 runtime 복구 | PASS | 해당 범위 실제 결과 |
+| 통합02 L144 | D02-06 실제 supervisor/session off 생산0·기존 segment 보존 | PASS | 해당 범위 실제 결과 |
+| 통합02 L145 | D02-08 실제 source/session 종료 owner0 | PASS | 해당 범위 실제 결과 |
+| 통합02 L146 | D02-06 off/on 재개방 동일 store identity | PASS | 해당 범위 실제 결과 |
+| 통합02 L147 | D02-07 실제 producer 시작 전 runtime 복구 | PASS | 해당 범위 실제 결과 |
+| 통합02 L149 | D02-06 실제 supervisor/session on 숫자 채널 V2 파일 생성 | PASS | 해당 범위 실제 결과 |
+| 통합02 L150 | D02-08 실제 source/session 종료 owner0 | PASS | 해당 범위 실제 결과 |
+| 통합02 L151 | D02-06 off/on 재개방 동일 store identity | PASS | 해당 범위 실제 결과 |
+| 통합02 L152 | D02-07 실제 producer 시작 전 runtime 복구 | PASS | 해당 범위 실제 결과 |
+| 통합02 L153 | D02-06 실제 supervisor/session off 생산0·기존 segment 보존 | PASS | 해당 범위 실제 결과 |
+| 통합02 L154 | D02-08 실제 source/session 종료 owner0 | PASS | 해당 범위 실제 결과 |
+| 통합02 L155 | D02-06 off/on 재개방 동일 store identity | PASS | 해당 범위 실제 결과 |
+| 통합02 L156 | D02-07 실제 producer 시작 전 runtime 복구 | PASS | 해당 범위 실제 결과 |
+| 통합02 L158 | D02-06 실제 supervisor/session on 숫자 채널 V2 파일 생성 | PASS | 해당 범위 실제 결과 |
+| 통합02 L159 | D02-08 실제 source/session 종료 owner0 | PASS | 해당 범위 실제 결과 |
+| 통합02 L167 | D02-04/10 실제 default10s+post5s 후행 finalize·동시 실제decoder cache·2출력 decode | PASS | 해당 범위 실제 결과 |
+| 통합02 L169 | D02-01 crypto-off OS CSPRNG 생성/재개방 identity | PASS | 해당 범위 실제 결과 |
+| 통합02 L170 | D02-08 provider 조회 재진입·동시 멱등·Stop 후 Submit 재검사 | PASS | 해당 범위 실제 결과 |
+| 통합02 L173 | D02-07 runtime startup committed-parent recovery/보호/물리검사 순서 | PASS | 해당 범위 실제 결과 |
+| 통합02 L176 | D02-07 runtime startup blocked-parent recovery/보호/물리검사 순서 | PASS | 해당 범위 실제 결과 |
+| 통합02 L178 | D02-07 runtime startup intent recovery/보호/물리검사 순서 | PASS | 해당 범위 실제 결과 |
+| 통합02 L198 | S11-CI09 product-1 healthy isolated ICE | PASS | 해당 범위 실제 결과 |
+| 통합02 L530 | S11-CI07 run1 actual tuple EventRecord reference | PASS | 해당 범위 실제 결과 |
+| 통합02 L853 | S11-CI07 run1 literal two output files all pages | PASS | 해당 범위 실제 결과 |
+| 통합02 L855 | S11-CI07 run1 output1 HTTP200 | PASS | 해당 범위 실제 결과 |
+| 통합02 L857 | S11-CI07 run1 output2 HTTP200 | PASS | 해당 범위 실제 결과 |
+| 통합02 L862 | S11-CI08 product-1 exit0 ports returned | PASS | 해당 범위 실제 결과 |
+| 통합02 L863 | S11-CI11 copy1 bytes/hash exact before Open | PASS | 해당 범위 실제 결과 |
+| 통합02 L864 | S11-CI11 copy1 same-axis request two sources typed proof | PASS | 해당 범위 실제 결과 |
+| 통합02 L865 | S11-CI11 original1 unchanged by copy recovery | PASS | 해당 범위 실제 결과 |
+| 통합02 L866 | S11-CI07 output owned regular hash dj-adcfcd03e670ca5da30fa3db4c34ef798f2533eca7e19dc3f800313bdba1bd1f-o0 | PASS | 해당 범위 실제 결과 |
+| 통합02 L867 | S11-CI07 output owned regular hash dj-adcfcd03e670ca5da30fa3db4c34ef798f2533eca7e19dc3f800313bdba1bd1f-o1 | PASS | 해당 범위 실제 결과 |
+| 통합02 L889 | S11-CI09 product-2 healthy isolated ICE | PASS | 해당 범위 실제 결과 |
+| 통합02 L894 | S11-CI08 retained output HTTP200 | PASS | 해당 범위 실제 결과 |
+| 통합02 L896 | S11-CI08 retained output HTTP200 | PASS | 해당 범위 실제 결과 |
+| 통합02 L971 | S11-CI07 run2 actual tuple EventRecord reference | PASS | 해당 범위 실제 결과 |
+| 통합02 L1059 | S11-CI07 run2 literal two output files all pages | PASS | 해당 범위 실제 결과 |
+| 통합02 L1061 | S11-CI07 run2 output1 HTTP200 | PASS | 해당 범위 실제 결과 |
+| 통합02 L1063 | S11-CI07 run2 output2 HTTP200 | PASS | 해당 범위 실제 결과 |
+| 통합02 L1065 | S11-CI08 retained IDs/hash and new event/reference/job/output separated | PASS | 해당 범위 실제 결과 |
+| 통합02 L1069 | S11-CI08 product-2 exit0 ports returned | PASS | 해당 범위 실제 결과 |
+| 통합02 L1070 | S11-CI11 copy2 bytes/hash exact before Open | PASS | 해당 범위 실제 결과 |
+| 통합02 L1071 | S11-CI11 copy2 same-axis request two sources typed proof | PASS | 해당 범위 실제 결과 |
+| 통합02 L1072 | S11-CI11 original2 unchanged by copy recovery | PASS | 해당 범위 실제 결과 |
+| 통합02 L1073 | S11-CI07 output owned regular hash dj-edd154076ed29b6a86c6053b91a3c47ca6ecc8498cea9b13ff2bdfbb5cf87306-o0 | PASS | 해당 범위 실제 결과 |
+| 통합02 L1074 | S11-CI07 output owned regular hash dj-edd154076ed29b6a86c6053b91a3c47ca6ecc8498cea9b13ff2bdfbb5cf87306-o1 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L1 | S11-CI01 현행 다섯 단계 순서·실제 child 결과 결박 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L2 | LP25-C10 http-auth 실제 producer 총계 수용·구형 및 불일치 거부 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L3 | LP25-C10 http-lifecycle 실제 producer 총계 수용·구형 및 불일치 거부 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L4 | LP20-X01 실제 종료 producer의 정상 두 결과를 수용 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L5 | LP20-X02 schema 누락는 정상 종료로 승인하지 않음 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L6 | LP20-X02 schema 불일치는 정상 종료로 승인하지 않음 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L7 | LP20-X02 반복 종료는 정상 종료로 승인하지 않음 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L8 | LP20-X02 PID 누락는 정상 종료로 승인하지 않음 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L9 | LP20-X02 exit 비정상는 정상 종료로 승인하지 않음 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L10 | LP20-X02 signal 관측는 정상 종료로 승인하지 않음 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L11 | LP20-X02 종료 미관측는 정상 종료로 승인하지 않음 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L12 | LP20-X02 stop 오류는 정상 종료로 승인하지 않음 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L13 | LP20-X02 강제 종료는 정상 종료로 승인하지 않음 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L14 | LP20-X02 강제 여부 미확인는 정상 종료로 승인하지 않음 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L15 | LP20-X02 normalExit 실패는 정상 종료로 승인하지 않음 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L16 | LP20-X02 normalShutdown 실패는 정상 종료로 승인하지 않음 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L17 | LP20-X02 archive 불가는 정상 종료로 승인하지 않음 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L18 | LP20-X02 ports 누락는 정상 종료로 승인하지 않음 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L19 | LP20-X02 port 수 부족는 정상 종료로 승인하지 않음 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L20 | LP20-X02 port kind 중복는 정상 종료로 승인하지 않음 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L21 | LP20-X02 port 미해제는 정상 종료로 승인하지 않음 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L22 | LP20-X02 port 상태 모순는 정상 종료로 승인하지 않음 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L23 | LP20-X02 port 코드 모순는 정상 종료로 승인하지 않음 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L24 | LP20-X02 port 범위 오류는 정상 종료로 승인하지 않음 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L25 | LP20-X02 graceful-only 구형 결과는 정상 종료로 승인하지 않음 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L26 | LP20-X02 정상 flag 누락는 정상 종료로 승인하지 않음 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L27 | S11-CI04 기존 실제 dispatch 상관 정상·오래된ID·다른조건·복수ID 거부 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L28 | S11-CI02 nonzero 실패 후 나머지 미실행 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L29 | S11-CI02 signal 실패 후 나머지 미실행 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L30 | S11-CI02 output-limit 실패 후 나머지 미실행 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L31 | S11-CI02 summary-missing 실패 후 나머지 미실행 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L32 | S11-CI02 summary-duplicate 실패 후 나머지 미실행 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L33 | S11-CI02 cleanup-failed 실패 후 나머지 미실행 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L34 | S11-CI02 port-missing 실패 후 나머지 미실행 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L35 | S11-CI03 legacy 완료 필드 없음·전체 S11/UI/자원 PASS 분리 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L36 | S11-CI07 기대 출력 수만 있거나 한 기동 관측 누락이면 완료 거부 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L37 | S11-CI05 페이지 전체·unplaced 별도 total·동일file mapping dedup | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L38 | S11-CI05 누락·중복item·불안정total·truncated·cap 거부 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L39 | S11-CI05 첫출력/partial/다른reference/job/unsafe숫자 거부 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L40 | S11-CI07 정확한 accepted placeholder만 미완료로 분류하고 lineage 모순은 거부 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L41 | S11-CI06 기존ID/hash 보존과 새event/reference/job/output 분리 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L42 | S11-CI05 점 이벤트 equal+padding 허용·역전/빈확장 거부 | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L43 | LP25-O04 group members survive full collection and literal two output validation | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L44 | LP25-O04 within group duplicate rejects grouped page before completion consumer | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L45 | LP25-O04 across groups duplicate rejects grouped page before completion consumer | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L46 | LP25-O04 member collides with outer ID rejects grouped page before completion consumer | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L47 | LP25-O04 missing members rejects grouped page before completion consumer | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L48 | LP25-O04 empty members rejects grouped page before completion consumer | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L49 | LP25-O04 leaf cap rejects grouped page before completion consumer | PASS | 해당 범위 실제 결과 |
+| 총계 GREEN L50 | LP25-O04 members byte cap rejects grouped page before completion consumer | PASS | 해당 범위 실제 결과 |
+| 통합02 전체 | exit0·156검사·5단계·정리 | PASS | 전체S11 아님 |
+| P0-HTTP02 대조 | timeline229건/최대1613ms/200/4초 | PASS | 실제02 원출력 |
+
+### 통합02 HTTP 개별 결과
+
+원문 sequence 전수 대응. opaque/query는 route template으로 표기한다. 준비 health polling 오류는 별도 표이며 성공 응답으로 바꾸지 않는다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| HTTP14/기동1 | GET /health → 200, 7ms, 15B | PASS | 원문 sequence |
+| HTTP15/기동1 | GET /webrtc/config → 200, 1ms, 222B | PASS | 원문 sequence |
+| HTTP16/기동1 | POST /ops/api/sources → 201, 76ms, 428B | PASS | 원문 sequence |
+| HTTP17/기동1 | POST /lab/analysis/taps → 200, 48ms, 1187B | PASS | 원문 sequence |
+| HTTP18/기동1 | GET /lab/analysis/taps/<id> → 200, 22ms, 4030B | PASS | 원문 sequence |
+| HTTP19/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 5972B | PASS | 원문 sequence |
+| HTTP20/기동1 | GET /ops/api/recordings/timeline → 200, 1ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP21/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 5972B | PASS | 원문 sequence |
+| HTTP22/기동1 | GET /ops/api/recordings/timeline → 200, 1ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP23/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 6145B | PASS | 원문 sequence |
+| HTTP24/기동1 | GET /ops/api/recordings/timeline → 200, 1ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP25/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 6278B | PASS | 원문 sequence |
+| HTTP26/기동1 | GET /ops/api/recordings/timeline → 200, 1ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP27/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 6409B | PASS | 원문 sequence |
+| HTTP28/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP29/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 6413B | PASS | 원문 sequence |
+| HTTP30/기동1 | GET /ops/api/recordings/timeline → 200, 1ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP31/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 6544B | PASS | 원문 sequence |
+| HTTP32/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP33/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 6669B | PASS | 원문 sequence |
+| HTTP34/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP35/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 6805B | PASS | 원문 sequence |
+| HTTP36/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP37/기동1 | GET /lab/analysis/taps/<id> → 200, 4ms, 6950B | PASS | 원문 sequence |
+| HTTP38/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP39/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 6948B | PASS | 원문 sequence |
+| HTTP40/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP41/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 7081B | PASS | 원문 sequence |
+| HTTP42/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP43/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 7219B | PASS | 원문 sequence |
+| HTTP44/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP45/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 7358B | PASS | 원문 sequence |
+| HTTP46/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP47/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 7494B | PASS | 원문 sequence |
+| HTTP48/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP49/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 7495B | PASS | 원문 sequence |
+| HTTP50/기동1 | GET /ops/api/recordings/timeline → 200, 1ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP51/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 7631B | PASS | 원문 sequence |
+| HTTP52/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP53/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 7757B | PASS | 원문 sequence |
+| HTTP54/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP55/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 7895B | PASS | 원문 sequence |
+| HTTP56/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP57/기동1 | GET /lab/analysis/taps/<id> → 200, 5ms, 8028B | PASS | 원문 sequence |
+| HTTP58/기동1 | GET /ops/api/recordings/timeline → 200, 2ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP59/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 8028B | PASS | 원문 sequence |
+| HTTP60/기동1 | GET /ops/api/recordings/timeline → 200, 1ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP61/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 8157B | PASS | 원문 sequence |
+| HTTP62/기동1 | GET /ops/api/recordings/timeline → 200, 1ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP63/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 8299B | PASS | 원문 sequence |
+| HTTP64/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP65/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 8434B | PASS | 원문 sequence |
+| HTTP66/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP67/기동1 | GET /lab/analysis/taps/<id> → 200, 3ms, 8565B | PASS | 원문 sequence |
+| HTTP68/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP69/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 8567B | PASS | 원문 sequence |
+| HTTP70/기동1 | GET /ops/api/recordings/timeline → 200, 1ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP71/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 8705B | PASS | 원문 sequence |
+| HTTP72/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP73/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 8839B | PASS | 원문 sequence |
+| HTTP74/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP75/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 8974B | PASS | 원문 sequence |
+| HTTP76/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP77/기동1 | GET /lab/analysis/taps/<id> → 200, 5ms, 9106B | PASS | 원문 sequence |
+| HTTP78/기동1 | GET /ops/api/recordings/timeline → 200, 2ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP79/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 9110B | PASS | 원문 sequence |
+| HTTP80/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP81/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 9239B | PASS | 원문 sequence |
+| HTTP82/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP83/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 9381B | PASS | 원문 sequence |
+| HTTP84/기동1 | GET /ops/api/recordings/timeline → 200, 1ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP85/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 9513B | PASS | 원문 sequence |
+| HTTP86/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP87/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 9645B | PASS | 원문 sequence |
+| HTTP88/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP89/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 9644B | PASS | 원문 sequence |
+| HTTP90/기동1 | GET /ops/api/recordings/timeline → 200, 1ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP91/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 10195B | PASS | 원문 sequence |
+| HTTP92/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP93/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 10383B | PASS | 원문 sequence |
+| HTTP94/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP95/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 10560B | PASS | 원문 sequence |
+| HTTP96/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP97/기동1 | GET /lab/analysis/taps/<id> → 200, 6ms, 10745B | PASS | 원문 sequence |
+| HTTP98/기동1 | GET /ops/api/recordings/timeline → 200, 2ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP99/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 10748B | PASS | 원문 sequence |
+| HTTP100/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP101/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 10810B | PASS | 원문 sequence |
+| HTTP102/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP103/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 10861B | PASS | 원문 sequence |
+| HTTP104/기동1 | GET /ops/api/recordings/timeline → 200, 1ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP105/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 10915B | PASS | 원문 sequence |
+| HTTP106/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP107/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 10964B | PASS | 원문 sequence |
+| HTTP108/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP109/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 10962B | PASS | 원문 sequence |
+| HTTP110/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP111/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11013B | PASS | 원문 sequence |
+| HTTP112/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP113/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11064B | PASS | 원문 sequence |
+| HTTP114/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP115/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11115B | PASS | 원문 sequence |
+| HTTP116/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP117/기동1 | GET /lab/analysis/taps/<id> → 200, 4ms, 11147B | PASS | 원문 sequence |
+| HTTP118/기동1 | GET /ops/api/recordings/timeline → 200, 2ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP119/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11147B | PASS | 원문 sequence |
+| HTTP120/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP121/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11191B | PASS | 원문 sequence |
+| HTTP122/기동1 | GET /ops/api/recordings/timeline → 200, 1ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP123/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11243B | PASS | 원문 sequence |
+| HTTP124/기동1 | GET /ops/api/recordings/timeline → 200, 1ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP125/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11297B | PASS | 원문 sequence |
+| HTTP126/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP127/기동1 | GET /lab/analysis/taps/<id> → 200, 5ms, 11338B | PASS | 원문 sequence |
+| HTTP128/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP129/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11340B | PASS | 원문 sequence |
+| HTTP130/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP131/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11386B | PASS | 원문 sequence |
+| HTTP132/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP133/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11433B | PASS | 원문 sequence |
+| HTTP134/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP135/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11433B | PASS | 원문 sequence |
+| HTTP136/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP137/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11470B | PASS | 원문 sequence |
+| HTTP138/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP139/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11515B | PASS | 원문 sequence |
+| HTTP140/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP141/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11565B | PASS | 원문 sequence |
+| HTTP142/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP143/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11559B | PASS | 원문 sequence |
+| HTTP144/기동1 | GET /ops/api/recordings/timeline → 200, 1ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP145/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11608B | PASS | 원문 sequence |
+| HTTP146/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP147/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11660B | PASS | 원문 sequence |
+| HTTP148/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP149/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11697B | PASS | 원문 sequence |
+| HTTP150/기동1 | GET /ops/api/recordings/timeline → 200, 1ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP151/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11748B | PASS | 원문 sequence |
+| HTTP152/기동1 | GET /ops/api/recordings/timeline → 200, 1ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP153/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11748B | PASS | 원문 sequence |
+| HTTP154/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP155/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11777B | PASS | 원문 sequence |
+| HTTP156/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP157/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11834B | PASS | 원문 sequence |
+| HTTP158/기동1 | GET /ops/api/recordings/timeline → 200, 1ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP159/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11874B | PASS | 원문 sequence |
+| HTTP160/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP161/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11926B | PASS | 원문 sequence |
+| HTTP162/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP163/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11918B | PASS | 원문 sequence |
+| HTTP164/기동1 | GET /ops/api/recordings/timeline → 200, 1ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP165/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 11965B | PASS | 원문 sequence |
+| HTTP166/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP167/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 12012B | PASS | 원문 sequence |
+| HTTP168/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP169/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 12056B | PASS | 원문 sequence |
+| HTTP170/기동1 | GET /ops/api/recordings/timeline → 200, 1ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP171/기동1 | GET /lab/analysis/taps/<id> → 200, 5ms, 12060B | PASS | 원문 sequence |
+| HTTP172/기동1 | GET /ops/api/recordings/timeline → 200, 1ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP173/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 12062B | PASS | 원문 sequence |
+| HTTP174/기동1 | GET /ops/api/recordings/timeline → 200, 0ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP175/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 12058B | PASS | 원문 sequence |
+| HTTP176/기동1 | GET /ops/api/recordings/timeline → 200, 1ms, 82B | PASS | 4초 기준·body완료 |
+| HTTP177/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 12052B | PASS | 원문 sequence |
+| HTTP178/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 46204B | PASS | 4초 기준·body완료 |
+| HTTP179/기동1 | GET /lab/analysis/taps/<id> → 200, 1ms, 12054B | PASS | 원문 sequence |
+| HTTP180/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 46204B | PASS | 4초 기준·body완료 |
+| HTTP181/기동1 | PUT /lab/analysis/rules/<id> → 200, 1ms, 520B | PASS | 원문 sequence |
+| HTTP182/기동1 | GET /lab/analysis/taps/<id>/events → 200, 10ms, 9900B | PASS | 원문 sequence |
+| HTTP183/기동1 | PUT /lab/analysis/rules/<id> → 200, 1ms, 521B | PASS | 원문 sequence |
+| HTTP184/기동1 | GET /ops/api/recordings/timeline → 200, 25ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP185/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP186/기동1 | GET /ops/api/recordings/timeline → 200, 12ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP187/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP188/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP189/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP190/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP191/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP192/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP193/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP194/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP195/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP196/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP197/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP198/기동1 | GET /ops/api/recordings/timeline → 200, 13ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP199/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP200/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP201/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP202/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP203/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP204/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP205/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP206/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP207/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP208/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP209/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP210/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP211/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP212/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP213/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP214/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP215/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP216/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP217/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP218/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP219/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP220/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP221/기동1 | GET /ops/api/recordings/timeline → 200, 12ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP222/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP223/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP224/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP225/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP226/기동1 | GET /ops/api/recordings/timeline → 200, 12ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP227/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP228/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP229/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP230/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP231/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP232/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP233/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP234/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP235/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP236/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP237/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP238/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP239/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP240/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP241/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP242/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP243/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP244/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP245/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP246/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP247/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP248/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP249/기동1 | GET /ops/api/recordings/timeline → 200, 23ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP250/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP251/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP252/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP253/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP254/기동1 | GET /ops/api/recordings/timeline → 200, 11ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP255/기동1 | GET /ops/api/recordings/timeline → 200, 10ms, 49436B | PASS | 4초 기준·body완료 |
+| HTTP256/기동1 | GET /ops/api/recordings/timeline → 200, 21ms, 104506B | PASS | 4초 기준·body완료 |
+| HTTP257/기동1 | GET /ops/api/recordings/timeline → 200, 21ms, 104506B | PASS | 4초 기준·body완료 |
+| HTTP258/기동1 | GET /ops/api/recordings/timeline → 200, 21ms, 104506B | PASS | 4초 기준·body완료 |
+| HTTP259/기동1 | GET /ops/api/recordings/timeline → 200, 299ms, 104506B | PASS | 4초 기준·body완료 |
+| HTTP260/기동1 | GET /ops/api/recordings/timeline → 200, 159ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP261/기동1 | GET /ops/api/recordings/timeline → 200, 48ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP262/기동1 | GET /ops/api/recordings/timeline → 200, 50ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP263/기동1 | GET /ops/api/recordings/timeline → 200, 22ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP264/기동1 | GET /ops/api/recordings/timeline → 200, 21ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP265/기동1 | GET /ops/api/recordings/timeline → 200, 22ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP266/기동1 | GET /ops/api/recordings/timeline → 200, 22ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP267/기동1 | GET /ops/api/recordings/timeline → 200, 22ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP268/기동1 | GET /ops/api/recordings/timeline → 200, 23ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP269/기동1 | GET /ops/api/recordings/timeline → 200, 22ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP270/기동1 | GET /ops/api/recordings/timeline → 200, 23ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP271/기동1 | GET /ops/api/recordings/timeline → 200, 22ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP272/기동1 | GET /ops/api/recordings/timeline → 200, 22ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP273/기동1 | GET /ops/api/recordings/timeline → 200, 22ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP274/기동1 | GET /ops/api/recordings/timeline → 200, 22ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP275/기동1 | GET /ops/api/recordings/timeline → 200, 22ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP276/기동1 | GET /ops/api/recordings/timeline → 200, 21ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP277/기동1 | GET /ops/api/recordings/timeline → 200, 22ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP278/기동1 | GET /ops/api/recordings/timeline → 200, 22ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP279/기동1 | GET /ops/api/recordings/timeline → 200, 21ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP280/기동1 | GET /ops/api/recordings/timeline → 200, 22ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP281/기동1 | GET /ops/api/recordings/timeline → 200, 22ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP282/기동1 | GET /ops/api/recordings/timeline → 200, 22ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP283/기동1 | GET /ops/api/recordings/timeline → 200, 21ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP284/기동1 | GET /ops/api/recordings/timeline → 200, 21ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP285/기동1 | GET /ops/api/recordings/timeline → 200, 22ms, 104547B | PASS | 4초 기준·body완료 |
+| HTTP286/기동1 | GET /ops/api/recordings/timeline → 200, 498ms, 213996B | PASS | 4초 기준·body완료 |
+| HTTP287/기동1 | GET /ops/api/recordings/timeline → 200, 785ms, 214278B | PASS | 4초 기준·body완료 |
+| HTTP288/기동1 | GET /ops/api/recordings/media/<opaque-id> → 200, 408ms, 4245416B | PASS | 원문 sequence |
+| HTTP289/기동1 | GET /ops/api/recordings/media/<opaque-id> → 200, 413ms, 4977112B | PASS | 원문 sequence |
+| HTTP290/기동1 | DELETE /lab/analysis/taps/<id> → 200, 19ms, 26B | PASS | 원문 sequence |
+| HTTP308/기동2 | GET /health → 200, 1ms, 15B | PASS | 원문 sequence |
+| HTTP309/기동2 | GET /webrtc/config → 200, 0ms, 222B | PASS | 원문 sequence |
+| HTTP310/기동2 | GET /ops/api/recordings/timeline → 200, 351ms, 274553B | PASS | 4초 기준·body완료 |
+| HTTP311/기동2 | GET /ops/api/recordings/media/<opaque-id> → 200, 397ms, 4245416B | PASS | 원문 sequence |
+| HTTP312/기동2 | GET /ops/api/recordings/media/<opaque-id> → 200, 400ms, 4977112B | PASS | 원문 sequence |
+| HTTP313/기동2 | POST /lab/analysis/taps → 200, 23ms, 1187B | PASS | 원문 sequence |
+| HTTP314/기동2 | GET /lab/analysis/taps/<id> → 200, 22ms, 4030B | PASS | 원문 sequence |
+| HTTP315/기동2 | GET /lab/analysis/taps/<id> → 200, 1ms, 5973B | PASS | 원문 sequence |
+| HTTP316/기동2 | GET /ops/api/recordings/timeline → 200, 359ms, 274553B | PASS | 4초 기준·body완료 |
+| HTTP317/기동2 | GET /lab/analysis/taps/<id> → 200, 1ms, 6434B | PASS | 원문 sequence |
+| HTTP318/기동2 | GET /ops/api/recordings/timeline → 200, 358ms, 274553B | PASS | 4초 기준·body완료 |
+| HTTP319/기동2 | GET /lab/analysis/taps/<id> → 200, 1ms, 6842B | PASS | 원문 sequence |
+| HTTP320/기동2 | GET /ops/api/recordings/timeline → 200, 358ms, 274553B | PASS | 4초 기준·body완료 |
+| HTTP321/기동2 | GET /lab/analysis/taps/<id> → 200, 1ms, 7386B | PASS | 원문 sequence |
+| HTTP322/기동2 | GET /ops/api/recordings/timeline → 200, 358ms, 274553B | PASS | 4초 기준·body완료 |
+| HTTP323/기동2 | GET /lab/analysis/taps/<id> → 200, 1ms, 7791B | PASS | 원문 sequence |
+| HTTP324/기동2 | GET /ops/api/recordings/timeline → 200, 358ms, 274553B | PASS | 4초 기준·body완료 |
+| HTTP325/기동2 | GET /lab/analysis/taps/<id> → 200, 1ms, 8333B | PASS | 원문 sequence |
+| HTTP326/기동2 | GET /ops/api/recordings/timeline → 200, 360ms, 274553B | PASS | 4초 기준·body완료 |
+| HTTP327/기동2 | GET /lab/analysis/taps/<id> → 200, 1ms, 9189B | PASS | 원문 sequence |
+| HTTP328/기동2 | GET /ops/api/recordings/timeline → 200, 358ms, 274553B | PASS | 4초 기준·body완료 |
+| HTTP329/기동2 | GET /lab/analysis/taps/<id> → 200, 1ms, 9906B | PASS | 원문 sequence |
+| HTTP330/기동2 | GET /ops/api/recordings/timeline → 200, 362ms, 274553B | PASS | 4초 기준·body완료 |
+| HTTP331/기동2 | GET /lab/analysis/taps/<id> → 200, 1ms, 10463B | PASS | 원문 sequence |
+| HTTP332/기동2 | GET /ops/api/recordings/timeline → 200, 357ms, 274553B | PASS | 4초 기준·body완료 |
+| HTTP333/기동2 | GET /lab/analysis/taps/<id> → 200, 1ms, 11183B | PASS | 원문 sequence |
+| HTTP334/기동2 | GET /ops/api/recordings/timeline → 200, 363ms, 274553B | PASS | 4초 기준·body완료 |
+| HTTP335/기동2 | GET /lab/analysis/taps/<id> → 200, 1ms, 11343B | PASS | 원문 sequence |
+| HTTP336/기동2 | GET /ops/api/recordings/timeline → 200, 357ms, 274553B | PASS | 4초 기준·body완료 |
+| HTTP337/기동2 | GET /lab/analysis/taps/<id> → 200, 1ms, 11519B | PASS | 원문 sequence |
+| HTTP338/기동2 | GET /ops/api/recordings/timeline → 200, 359ms, 274553B | PASS | 4초 기준·body완료 |
+| HTTP339/기동2 | GET /lab/analysis/taps/<id> → 200, 1ms, 11655B | PASS | 원문 sequence |
+| HTTP340/기동2 | GET /ops/api/recordings/timeline → 200, 356ms, 274553B | PASS | 4초 기준·body완료 |
+| HTTP341/기동2 | GET /lab/analysis/taps/<id> → 200, 1ms, 11832B | PASS | 원문 sequence |
+| HTTP342/기동2 | GET /ops/api/recordings/timeline → 200, 357ms, 274553B | PASS | 4초 기준·body완료 |
+| HTTP343/기동2 | GET /lab/analysis/taps/<id> → 200, 1ms, 11971B | PASS | 원문 sequence |
+| HTTP344/기동2 | GET /ops/api/recordings/timeline → 200, 361ms, 274553B | PASS | 4초 기준·body완료 |
+| HTTP345/기동2 | GET /lab/analysis/taps/<id> → 200, 1ms, 12054B | PASS | 원문 sequence |
+| HTTP346/기동2 | GET /ops/api/recordings/timeline → 200, 399ms, 274553B | PASS | 4초 기준·body완료 |
+| HTTP347/기동2 | GET /lab/analysis/taps/<id> → 200, 1ms, 12057B | PASS | 원문 sequence |
+| HTTP348/기동2 | GET /ops/api/recordings/timeline → 200, 369ms, 391252B | PASS | 4초 기준·body완료 |
+| HTTP349/기동2 | PUT /lab/analysis/rules/<id> → 200, 2ms, 520B | PASS | 원문 sequence |
+| HTTP350/기동2 | GET /lab/analysis/taps/<id>/events → 200, 12ms, 9897B | PASS | 원문 sequence |
+| HTTP351/기동2 | PUT /lab/analysis/rules/<id> → 200, 2ms, 521B | PASS | 원문 sequence |
+| HTTP352/기동2 | GET /ops/api/recordings/timeline → 200, 397ms, 394485B | PASS | 4초 기준·body완료 |
+| HTTP353/기동2 | GET /ops/api/recordings/timeline → 200, 379ms, 394485B | PASS | 4초 기준·body완료 |
+| HTTP354/기동2 | GET /ops/api/recordings/timeline → 200, 372ms, 394485B | PASS | 4초 기준·body완료 |
+| HTTP355/기동2 | GET /ops/api/recordings/timeline → 200, 370ms, 394485B | PASS | 4초 기준·body완료 |
+| HTTP356/기동2 | GET /ops/api/recordings/timeline → 200, 399ms, 394485B | PASS | 4초 기준·body완료 |
+| HTTP357/기동2 | GET /ops/api/recordings/timeline → 200, 385ms, 394485B | PASS | 4초 기준·body완료 |
+| HTTP358/기동2 | GET /ops/api/recordings/timeline → 200, 421ms, 394485B | PASS | 4초 기준·body완료 |
+| HTTP359/기동2 | GET /ops/api/recordings/timeline → 200, 379ms, 394485B | PASS | 4초 기준·body완료 |
+| HTTP360/기동2 | GET /ops/api/recordings/timeline → 200, 371ms, 394485B | PASS | 4초 기준·body완료 |
+| HTTP361/기동2 | GET /ops/api/recordings/timeline → 200, 371ms, 394485B | PASS | 4초 기준·body완료 |
+| HTTP362/기동2 | GET /ops/api/recordings/timeline → 200, 374ms, 394485B | PASS | 4초 기준·body완료 |
+| HTTP363/기동2 | GET /ops/api/recordings/timeline → 200, 380ms, 394485B | PASS | 4초 기준·body완료 |
+| HTTP364/기동2 | GET /ops/api/recordings/timeline → 200, 378ms, 394485B | PASS | 4초 기준·body완료 |
+| HTTP365/기동2 | GET /ops/api/recordings/timeline → 200, 376ms, 394485B | PASS | 4초 기준·body완료 |
+| HTTP366/기동2 | GET /ops/api/recordings/timeline → 200, 369ms, 394485B | PASS | 4초 기준·body완료 |
+| HTTP367/기동2 | GET /ops/api/recordings/timeline → 200, 395ms, 394485B | PASS | 4초 기준·body완료 |
+| HTTP368/기동2 | GET /ops/api/recordings/timeline → 200, 384ms, 514444B | PASS | 4초 기준·body완료 |
+| HTTP369/기동2 | GET /ops/api/recordings/timeline → 200, 1055ms, 514444B | PASS | 4초 기준·body완료 |
+| HTTP370/기동2 | GET /ops/api/recordings/timeline → 200, 493ms, 514485B | PASS | 4초 기준·body완료 |
+| HTTP371/기동2 | GET /ops/api/recordings/timeline → 200, 439ms, 514485B | PASS | 4초 기준·body완료 |
+| HTTP372/기동2 | GET /ops/api/recordings/timeline → 200, 394ms, 514485B | PASS | 4초 기준·body완료 |
+| HTTP373/기동2 | GET /ops/api/recordings/timeline → 200, 395ms, 514485B | PASS | 4초 기준·body완료 |
+| HTTP374/기동2 | GET /ops/api/recordings/timeline → 200, 390ms, 514485B | PASS | 4초 기준·body완료 |
+| HTTP375/기동2 | GET /ops/api/recordings/timeline → 200, 394ms, 514485B | PASS | 4초 기준·body완료 |
+| HTTP376/기동2 | GET /ops/api/recordings/timeline → 200, 1613ms, 514485B | PASS | 4초 기준·body완료 |
+| HTTP377/기동2 | GET /ops/api/recordings/timeline → 200, 999ms, 771407B | PASS | 4초 기준·body완료 |
+| HTTP378/기동2 | GET /ops/api/recordings/media/<opaque-id> → 200, 536ms, 4245416B | PASS | 원문 sequence |
+| HTTP379/기동2 | GET /ops/api/recordings/media/<opaque-id> → 200, 520ms, 4977112B | PASS | 원문 sequence |
+| HTTP380/기동2 | DELETE /lab/analysis/taps/<id> → 200, 88ms, 26B | PASS | 원문 sequence |
+
+| 항목 | 실행 상태 | 관측 | 완료 evidence 경계 |
+| --- | --- | --- | --- |
+| HTTP1/기동1 | health 준비 polling | GET /health status=null error, 3ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP2/기동1 | health 준비 polling | GET /health status=null error, 1ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP3/기동1 | health 준비 polling | GET /health status=null error, 1ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP4/기동1 | health 준비 polling | GET /health status=null error, 1ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP5/기동1 | health 준비 polling | GET /health status=null error, 1ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP6/기동1 | health 준비 polling | GET /health status=null error, 1ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP7/기동1 | health 준비 polling | GET /health status=null error, 1ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP8/기동1 | health 준비 polling | GET /health status=null error, 0ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP9/기동1 | health 준비 polling | GET /health status=null error, 1ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP10/기동1 | health 준비 polling | GET /health status=null error, 1ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP11/기동1 | health 준비 polling | GET /health status=null error, 1ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP12/기동1 | health 준비 polling | GET /health status=null error, 0ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP13/기동1 | health 준비 polling | GET /health status=null error, 0ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP291/기동2 | health 준비 polling | GET /health status=null error, 0ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP292/기동2 | health 준비 polling | GET /health status=null error, 0ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP293/기동2 | health 준비 polling | GET /health status=null error, 0ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP294/기동2 | health 준비 polling | GET /health status=null error, 0ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP295/기동2 | health 준비 polling | GET /health status=null error, 0ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP296/기동2 | health 준비 polling | GET /health status=null error, 0ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP297/기동2 | health 준비 polling | GET /health status=null error, 0ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP298/기동2 | health 준비 polling | GET /health status=null error, 0ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP299/기동2 | health 준비 polling | GET /health status=null error, 0ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP300/기동2 | health 준비 polling | GET /health status=null error, 0ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP301/기동2 | health 준비 polling | GET /health status=null error, 0ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP302/기동2 | health 준비 polling | GET /health status=null error, 0ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP303/기동2 | health 준비 polling | GET /health status=null error, 0ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP304/기동2 | health 준비 polling | GET /health status=null error, 0ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP305/기동2 | health 준비 polling | GET /health status=null error, 0ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP306/기동2 | health 준비 polling | GET /health status=null error, 0ms | 성공응답 PASS로 사용하지 않음 |
+| HTTP307/기동2 | health 준비 polling | GET /health status=null error, 0ms | 성공응답 PASS로 사용하지 않음 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-http-seed.l0Dn6T | seed/기본구성 fixture |6677832B |삭제 |removed=true |trap 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-M9Au7b | HTTP root |2181571B |삭제 |rootAbsent=true |exit0·포트해제 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-http-seed.a87hPu | seed/기본구성 fixture |6677832B |삭제 |removed=true |trap 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-IU7FcP | HTTP root |2453757B |삭제 |rootAbsent=true |exit0·포트해제 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-http-seed.l6syHt | seed/기본구성 fixture |6677832B |삭제 |removed=true |trap 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-BilvS2 | HTTP root |69292320B |삭제 |rootAbsent=true |exit0·포트해제 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-default-composition.C6SyNn | seed/기본구성 fixture |15224825B |삭제 |removed=true |trap 원출력 |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-integration-FPkTMB | 실제앱 root |171388521B |삭제 |rootAbsent=true |기동2개·UDP 종료 |
+| /private/tmp/media-server-lp25-integration.u9QLPj | 임시 로그2개 |627010B |저장소 byte/hash 일치 후 삭제 |removed=true |원문 이관 |
 
 ### 1번 직접 검증 결과
 
