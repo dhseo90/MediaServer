@@ -61,6 +61,23 @@ VERSION/CMake4.1.0, published 문서 기준4.0.0을 유지한다. LP28 빌드·�
 
 ## 실행 상태
 
+### 실제30분 마감 — 현재 결과
+
+주석 단계는 `b9454076`으로 분할 커밋했다. 그 clean source에서 등록한 실제 명령을 1회 재개했다.
+UTC 2026-09-21T20:01:20.619Z~20:41:23.380Z, exit0/signal없음, monotonic2402.756초.
+통합 사전검사569초 후 실제30분 loop20회, 상위108PASS/0FAIL/skip2/notRun0이다.
+기존 duration validator eligible=true, iteration validator 오류0이며 run_soak_loop의1800초 deadline을
+유지했다. 순수 soak 전용 시작/끝 timestamp는 원 도구가 별도로 수집하지 않으므로 전체2402초를
+순수 관측 시간이라고 부르지 않는다. integrated21PASS/0FAIL/skip9와 상위집계를 혼합하지 않는다.
+
+[개별 결과·미실행·정리](lp29-30-pass-items.md), [시간·원장·명령 요약](lp29-30-pass-summary.json),
+[원출력308개·자식결과1254행](lp29-30-pass-outputs.json.gz)을 보존했다.
+압축66,735B/해제1,208,873B, SHA256 `5c3ba9d573595b364d838bb4854ceb92164e7e9155aa57bfad287655edea11a1`.
+로컬 RTSP 입력URL14개를 제거했고 계정/원본영상은 이관하지 않았다.
+소유3root의16,655,992B를 삭제하고 부재·PID4개종료·TCP2/UDP1재바인딩을 확인했다.
+277개 임시 플러그인 링크의 실제 시스템 대상은 삭제하지 않았다. 서버 wait exit/signal은 미수집이다.
+처음 주석 FAIL 기록은 유지한다. 다음은 현재 결과를 커밋한 clean source에서 실제UI·browser 실행이다.
+
 ### 주석 보완 마감 — 현재 판정
 
 LP29-C01~04를 완료했다. 160파일의 주석만 수정했고 154상단 형식·23영문 전용 행 지적은

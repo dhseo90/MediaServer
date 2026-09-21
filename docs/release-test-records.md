@@ -11,7 +11,10 @@ UI 미실행. [전수 결과·정리](release-artifacts/v4.1.0/s11-preparation-m
 기존985결속 승계/MEDIA-003 재검토·재결속이며 실제 UI PASS가 아니다.
 [주석 전수 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json)와
 [원출력·검토·실패 이력](release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-outputs.json.gz)을 보존한다.
-주석 단계 분할 커밋 후 실제30분→통과 시UI를 실행한다. 전체 승인 범위 완료 전 푸시 판정은 보류한다.
+주석 단계 `b9454076` 커밋 후 실제30분을 재개하여 exit0,전체2402.756초/20반복/108PASS·0FAIL·skip2를 확인했다.
+[실제30분 결과·정리](release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-pass-items.md)를 보존했다.
+시간/원장 검사와 PID·port·소유3root 정리가 완료됐다. 다음은 이 결과의 분할 커밋 후 실제UI·browser다.
+전체 승인 범위 완료 전 푸시 판정은 보류한다.
 
 ## 현재 작업: LP28 위치 일관성·PREP 마감 및 S11 단기 검증
 
