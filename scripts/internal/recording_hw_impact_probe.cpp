@@ -1,6 +1,7 @@
 // 실제 RTSP builder graph 경계 검사. 네트워크/클라이언트 end-to-end 검사가 아니다.
 #include "recording_media_test_fixture.h"
 #include "ingress/gst_pipeline_builder.h"
+#include "core/gst_decode_compatibility.h"
 #include <gst/app/gstappsrc.h>
 #include <array>
 #include <chrono>
@@ -13,8 +14,16 @@
 #include <thread>
 #include <memory>
 #include <atomic>
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
 
 namespace {
+#if defined(__APPLE__) && TARGET_OS_OSX
+constexpr bool kHostMacos=true;
+#else
+constexpr bool kHostMacos=false;
+#endif
 using Points = std::vector<guint64>;
 enum class DrainKind { Ignore,Unsupported,DrainCall,SetDraining,WaitStart,ClearDraining,CallbackFrame,PushFrame,PushReturn,FinishFrame,Decreasing,SessionCreateError,RequestEos,BoundaryBuffer,BoundaryEos };
 struct DrainRow { DrainKind kind=DrainKind::Ignore;guint64 a=0,b=0;unsigned boundary=0;bool after_request=false;guint64 c=0,d=0,e=0; };
@@ -508,7 +517,7 @@ Points Input(const Encoded& input,const char* name) {
     std::cout<<"[input] case="<<name<<" count="<<expected.size()<<" bytes="<<bytes
         <<" sha256="<<g_checksum_get_string(sum)<<'\n';g_checksum_free(sum);return expected;
 }
-int Observe(const Encoded& input,const Points& expected,const char* name,unsigned round,bool diagnosis=false,bool paced=false) {
+int Observe(const Encoded& input,const Points& expected,const char* name,unsigned round,bool diagnosis=false,bool paced=false,bool mitigate=false) {
     Graph graph;if(!graph.pipeline)return 2;
     auto parsed=CreateProductBranch();auto* branch=parsed.bin;
     if(!branch)return 2;
@@ -518,6 +527,7 @@ int Observe(const Encoded& input,const Points& expected,const char* name,unsigne
         <<" external_ghost_sinks="<<facts.external_ghost_sinks<<" occupied_queue_ghost_targets="<<facts.occupied_queue_ghost_targets
         <<" waiting_queue_sinks="<<facts.waiting_queue_sinks<<" pay_link="<<facts.pay_link<<" inspected="<<facts.complete<<'\n';
     if(!parsed.linked||!facts.complete||!facts.pay_link||facts.external_ghost_sinks!=0||facts.occupied_queue_ghost_targets!=0||facts.waiting_queue_sinks!=1)return 2;
+    if(mitigate&&!core::InstallDecodeCompatibility(branch))return 2;
     auto* overlay=gst_bin_get_by_name(GST_BIN(branch),"analysis_overlay");
     graph.src=gst_bin_get_by_name(GST_BIN(branch),"video_src");
     if(!overlay||!graph.src) { if(overlay)gst_object_unref(overlay);return 2; }
@@ -528,7 +538,7 @@ int Observe(const Encoded& input,const Points& expected,const char* name,unsigne
     if(diagnosis)capture=std::make_unique<DrainCapture>();
     Trace trace(graph.pipeline,capture.get());trace.Attach(2,overlay,"sink");gst_object_unref(overlay);
     if(capture)capture->Install();
-    std::cout<<"[attempt] case="<<name<<" round="<<round<<" pacing="<<(paced?"dts-steady":"burst")<<" scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset\n";
+    std::cout<<"[attempt] case="<<name<<" round="<<round<<" pacing="<<(paced?"dts-steady":"burst")<<" mitigation="<<mitigate<<" scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset\n";
     bool preparation=gst_element_set_state(graph.pipeline,GST_STATE_PLAYING)!=GST_STATE_CHANGE_FAILURE;
     std::size_t pushed=0;
     const auto pacing_start=std::chrono::steady_clock::now();
@@ -593,7 +603,14 @@ int Observe(const Encoded& input,const Points& expected,const char* name,unsigne
     const bool output_ok=Matches(expected,trace.boundaries[1]);
     const bool overlay_ok=Matches(expected,trace.boundaries[2]);
     const auto product_verdict=Judge(expected,trace.boundaries,preparation,visible,eos,errors,warnings);
-    const auto verdict=capture&&!capture->Complete()?Verdict{2,"drain-observation-incomplete"}:product_verdict;
+    auto verdict=capture&&!capture->Complete()?Verdict{2,"drain-observation-incomplete"}:product_verdict;
+    if(mitigate) {
+        const bool selected=visible&&!(kHostMacos&&trace.plugin=="applemedia"&&trace.version=="1.28.1"&&
+            (trace.factory=="vtdec"||trace.factory=="vtdec_hw"));
+        std::cout<<(product_verdict.code==0?"[pass] ":"[fail] ")<<name<<" exact full PTS and EOS\n";
+        std::cout<<(selected?"[pass] ":"[fail] ")<<name<<" selected factory respects exact compatibility tuple\n";
+        if(!selected&&verdict.code==0)verdict={1,"mitigation-factory-selection"};
+    }
     trace.Report(diagnosis||verdict.code!=0);
     if(capture)capture->Report();
     std::cout<<"[result] case="<<name<<" pushed="<<pushed<<" successful_push_flows="<<pushed<<" end_flow="<<static_cast<int>(end)<<" eos="<<eos
@@ -698,6 +715,121 @@ int SelfTest() {
     const auto create_error=ParseDrain("vtdec","error: VTDecompressionSessionCreate returned -12913");
     check(create_error.kind==DrainKind::SessionCreateError&&create_error.a==12913&&create_error.b==1,"HW-DP19 session-create error retains only signed numeric code");
     check(ParseDrain("vtdec","error: VTDecompressionSessionCreate returned -12913 secret://private").kind==DrainKind::Unsupported,"HW-DP20 session-create error rejects arbitrary suffix");
+    using core::ShouldSkipAppleH264Decoder;
+    check(ShouldSkipAppleH264Decoder(true,true,"video/x-h264","vtdec_hw","applemedia","1.28.1"),"HW-MP01 exact macOS H264 vtdec_hw tuple skips");
+    check(ShouldSkipAppleH264Decoder(true,true,"video/x-h264","vtdec","applemedia","1.28.1"),"HW-MP02 exact macOS H264 vtdec tuple skips");
+    check(!ShouldSkipAppleH264Decoder(false,true,"video/x-h264","vtdec_hw","applemedia","1.28.1"),"HW-MP03 other platform preserves selection");
+    check(!ShouldSkipAppleH264Decoder(true,false,"video/x-h264","vtdec_hw","applemedia","1.28.1"),"HW-MP04 nonfixed ANY or ambiguous caps preserve selection");
+    check(!ShouldSkipAppleH264Decoder(true,true,"","vtdec_hw","applemedia","1.28.1"),"HW-MP05 empty caps preserve selection");
+    check(!ShouldSkipAppleH264Decoder(true,true,"video/x-h265","vtdec_hw","applemedia","1.28.1"),"HW-MP06 H265 input preserves selection");
+    check(!ShouldSkipAppleH264Decoder(true,true,"video/x-vp8","vtdec_hw","applemedia","1.28.1"),"HW-MP07 VP8 input preserves selection");
+    check(!ShouldSkipAppleH264Decoder(true,true,"video/x-h264","avdec_h264","applemedia","1.28.1"),"HW-MP08 other factory preserves selection");
+    check(!ShouldSkipAppleH264Decoder(true,true,"video/x-h264","vtdec_hw","other","1.28.1"),"HW-MP09 other plugin preserves selection");
+    check(!ShouldSkipAppleH264Decoder(true,true,"video/x-h264","vtdec_hw","applemedia","1.28.0"),"HW-MP10 older version preserves selection");
+    check(!ShouldSkipAppleH264Decoder(true,true,"video/x-h264","vtdec_hw","applemedia","1.28.2"),"HW-MP11 newer version preserves selection");
+    check(!ShouldSkipAppleH264Decoder(true,true,"video/x-h264","vtdec_hw","applemedia",""),"HW-MP12 unknown version preserves selection");
+    check(!ShouldSkipAppleH264Decoder(true,true,"video/x-h264","","applemedia","1.28.1"),"HW-MP13 unknown factory preserves selection");
+    check(!ShouldSkipAppleH264Decoder(true,true,"video/x-h264","vtdec_hw","","1.28.1"),"HW-MP14 unknown plugin preserves selection");
+    check(!ShouldSkipAppleH264Decoder(true,true,"video/x-raw","vtdec_hw","applemedia","1.28.1"),"HW-MP15 raw input preserves selection");
+    const auto ranks=[] {
+        std::array<gint64,3> result{};constexpr const char* names[]={"vtdec_hw","vtdec","avdec_h264"};
+        for(unsigned i=0;i<3;++i) {
+            auto* factory=gst_element_factory_find(names[i]);
+            result[i]=factory?static_cast<gint64>(gst_plugin_feature_get_rank(GST_PLUGIN_FEATURE(factory))):-1;
+            if(factory)gst_object_unref(factory);
+        }
+        return result;
+    };
+    const auto initial_ranks=ranks();
+    auto* root=gst_bin_new(nullptr);auto* existing=gst_element_factory_make("decodebin",nullptr);
+    auto* nested=gst_bin_new(nullptr);auto* dynamic=gst_element_factory_make("decodebin",nullptr);
+    const auto handler_count=[](GstElement* element) {
+        if(!element)return 0u;
+        const auto id=g_signal_lookup("autoplug-select",G_OBJECT_TYPE(element));
+        if(!id)return 0u;
+        const guint count=g_signal_handlers_block_matched(element,G_SIGNAL_MATCH_ID,id,0,nullptr,nullptr,nullptr);
+        g_signal_handlers_unblock_matched(element,G_SIGNAL_MATCH_ID,id,0,nullptr,nullptr,nullptr);return count;
+    };
+    unsigned finalized=0;
+    const auto finalized_callback=+[](gpointer data,GObject*){++*static_cast<unsigned*>(data);};
+    bool attached=false,dynamic_attached=false;guint once=0,twice=0;
+    std::array<bool,4> emitted{};
+    if(root&&existing&&nested&&dynamic) {
+        g_object_weak_ref(G_OBJECT(root),finalized_callback,&finalized);
+        g_object_weak_ref(G_OBJECT(existing),finalized_callback,&finalized);
+        g_object_weak_ref(G_OBJECT(dynamic),finalized_callback,&finalized);
+        gst_bin_add(GST_BIN(root),existing);core::InstallDecodeCompatibility(root);
+        once=handler_count(existing);attached=once==(kHostMacos?1u:0u);
+        core::InstallDecodeCompatibility(root);twice=handler_count(existing);
+        // helper와 독립적으로 실제 signal enum nick을 읽고 호출 ABI/선택 결과를 대조한다.
+        GSignalQuery query{};g_signal_query(g_signal_lookup("autoplug-select",G_OBJECT_TYPE(existing)),&query);
+        auto* enum_class=G_TYPE_IS_ENUM(query.return_type)?G_ENUM_CLASS(g_type_class_ref(query.return_type)):nullptr;
+        const auto* attempt=enum_class?g_enum_get_value_by_nick(enum_class,"try"):nullptr;
+        const auto* skip=enum_class?g_enum_get_value_by_nick(enum_class,"skip"):nullptr;
+        auto* target=gst_element_factory_find("vtdec_hw");
+        if(!target)target=gst_element_factory_find("vtdec");
+        auto* software=gst_element_factory_find("avdec_h264");
+        if(!target&&software)target=GST_ELEMENT_FACTORY(gst_object_ref(software));
+        auto* plugin=target?gst_plugin_feature_get_plugin(GST_PLUGIN_FEATURE(target)):nullptr;
+        const auto target_name=target?std::string_view(gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(target))):std::string_view{};
+        const bool expected_skip=kHostMacos&&plugin&&(target_name=="vtdec_hw"||target_name=="vtdec")&&
+            std::string_view(gst_plugin_get_name(plugin))=="applemedia"&&std::string_view(gst_plugin_get_version(plugin))=="1.28.1";
+        auto* pad=gst_pad_new(nullptr,GST_PAD_SRC);
+        auto* h264=gst_caps_new_empty_simple("video/x-h264");auto* any=gst_caps_new_any();auto* h265=gst_caps_new_empty_simple("video/x-h265");
+        if(attempt&&skip&&target&&software&&pad) {
+            gint answer=-1;
+            g_signal_emit_by_name(existing,"autoplug-select",pad,h264,target,&answer);emitted[0]=answer==(expected_skip?skip->value:attempt->value);
+            answer=-1;g_signal_emit_by_name(existing,"autoplug-select",pad,any,target,&answer);emitted[1]=answer==attempt->value;
+            answer=-1;g_signal_emit_by_name(existing,"autoplug-select",pad,h265,target,&answer);emitted[2]=answer==attempt->value;
+            answer=-1;g_signal_emit_by_name(existing,"autoplug-select",pad,h264,software,&answer);emitted[3]=answer==attempt->value;
+        }
+        gst_caps_unref(h264);gst_caps_unref(any);gst_caps_unref(h265);
+        if(pad)gst_object_unref(pad);
+        if(plugin)gst_object_unref(plugin);
+        if(target)gst_object_unref(target);
+        if(software)gst_object_unref(software);
+        if(enum_class)g_type_class_unref(enum_class);
+        gst_bin_add(GST_BIN(root),nested);gst_bin_add(GST_BIN(nested),dynamic);
+        dynamic_attached=handler_count(dynamic)==(kHostMacos?1u:0u);
+        gst_object_unref(root);root=nullptr;existing=nullptr;nested=nullptr;dynamic=nullptr;
+    }
+    check(attached,"HW-MH01 existing decodebin hook follows platform gate");
+    check(once==(kHostMacos?1u:0u)&&twice==once,"HW-MH02 repeated installation does not duplicate hooks");
+    check(dynamic_attached,"HW-MH03 dynamically nested decodebin hook follows platform gate");
+    check(initial_ranks==ranks(),"HW-MH04 installation leaves global factory ranks unchanged");
+    check(finalized==3,"HW-MH05 root and decoder lifetimes retain no external references");
+    check(emitted[0],"HW-MH09 actual H264 signal returns SKIP only for installed affected tuple");
+    check(emitted[1],"HW-MH10 actual ANY caps signal returns TRY");
+    check(emitted[2],"HW-MH11 actual H265 caps signal returns TRY");
+    check(emitted[3],"HW-MH12 actual avdec_h264 candidate signal returns TRY");
+    if(root)gst_object_unref(root);
+    if(existing)gst_object_unref(existing);
+    if(nested)gst_object_unref(nested);
+    if(dynamic)gst_object_unref(dynamic);
+    const auto marker=g_quark_from_static_string("media-server-decode-compatibility-installed-v1");
+    auto* marked=gst_bin_new(nullptr);
+    g_object_set_qdata(G_OBJECT(marked),marker,GINT_TO_POINTER(1));
+    check(core::InstallDecodeCompatibility(marked)==!kHostMacos&&g_object_get_qdata(G_OBJECT(marked),marker)==GINT_TO_POINTER(1),
+        "HW-MH06 in-progress marker is not completion on macOS and untouched elsewhere");
+    g_object_set_qdata(G_OBJECT(marked),marker,GINT_TO_POINTER(3));
+    check(core::InstallDecodeCompatibility(marked)==!kHostMacos&&core::InstallDecodeCompatibility(marked)==!kHostMacos&&g_object_get_qdata(G_OBJECT(marked),marker)==GINT_TO_POINTER(3),
+        "HW-MH07 failed marker remains failed across repeated installation");
+    gst_object_unref(marked);
+    auto* failed_pipeline=gst_pipeline_new(nullptr);auto* failed_child=gst_bin_new(nullptr);
+    core::InstallDecodeCompatibility(failed_pipeline);
+    g_object_set_qdata(G_OBJECT(failed_child),marker,GINT_TO_POINTER(3));
+    auto* failed_bus=gst_element_get_bus(failed_pipeline);
+    gst_bin_add(GST_BIN(failed_pipeline),failed_child);
+    auto* failure_message=gst_bus_pop_filtered(failed_bus,GST_MESSAGE_ERROR);
+    bool fixed_error=false;
+    if(failure_message) {
+        GError* issue=nullptr;gst_message_parse_error(failure_message,&issue,nullptr);
+        fixed_error=issue&&issue->domain==GST_CORE_ERROR&&issue->code==GST_CORE_ERROR_FAILED;
+        if(issue)g_error_free(issue);
+        gst_message_unref(failure_message);
+    }
+    check(kHostMacos?fixed_error:!failure_message,"HW-MH08 dynamic installation failure posts bus ERROR only on macOS");
+    gst_object_unref(failed_bus);gst_object_unref(failed_pipeline);
     std::cout<<"[summary] pass="<<pass<<" fail="<<fail<<'\n';return fail?1:0;
 }
 } // namespace
@@ -714,7 +846,7 @@ static bool OwnedRoot(const char* value) {
 int main(int argc,char** argv) {
     if(argc!=3) return 2;
     const std::string mode=argv[2];
-    if(mode!="--self-test"&&mode!="--rtsp-impact"&&mode!="--drain-diagnosis")return 2;
+    if(mode!="--self-test"&&mode!="--rtsp-impact"&&mode!="--drain-diagnosis"&&mode!="--mitigation-impact")return 2;
     if(!OwnedRoot(argv[1])) { std::cout<<"[result] reason=unowned-root exit=2\n";return 2; }
     gst_init(nullptr,nullptr);
     if(mode=="--self-test")return SelfTest();
@@ -723,6 +855,18 @@ int main(int argc,char** argv) {
         auto normal=Encode(20,false,false),reordered=Encode(30,true,false);
         Shift(normal,0);Shift(reordered,0);
         const auto a=Input(normal,"normal20"),b=Input(reordered,"bframe30");
+        if(mode=="--mitigation-impact") {
+            constexpr const char* names[]={"HW-MI01-normal20-burst","HW-MI02-normal20-paced","HW-MI03-bframe30-burst","HW-MI04-bframe30-paced"};
+            for(unsigned cell=0;cell<4;++cell) {
+                current_case=names[cell];current_round=1;++attempts;
+                const auto& input=cell<2?normal:reordered;const auto& expected=cell<2?a:b;
+                const int result=Observe(input,expected,current_case,1,false,(cell%2)==1,true);
+                if(result) {
+                    std::cout<<"[mitigation-summary] cells="<<attempts<<" productPass=0 stopped_case="<<current_case<<" exit="<<result<<'\n';return result;
+                }
+            }
+            std::cout<<"[mitigation-summary] cells=4 assertions=8 productPass=1 scope=h264-input-finite-rtsp-builder-4cells releasePass=0 exit=0\n";return 0;
+        }
         if(mode=="--drain-diagnosis") {
             unsigned mismatches=0;
             constexpr const char* names[]={"HW-DG01-normal20-burst","HW-DG02-normal20-paced","HW-DG03-bframe30-burst","HW-DG04-bframe30-paced"};

@@ -18,6 +18,10 @@
 | LP27-D04 | 일반 입력 paced | normal20 DTS 간격·EOS/PTS/내부 순서 | 비대상: 단기 진단 | S11 영향 판정 별도 | 비대상: UI 없음 |
 | LP27-D05 | B-frame burst | bframe30 PTS 누락/중복과 clamp 대응 | 비대상: 단기 진단 | S11 영향 판정 별도 | 비대상: UI 없음 |
 | LP27-D06 | B-frame paced | bframe30 DTS 간격·EOS 전후 구분 | 비대상: 단기 진단 | S11 영향 판정 별도 | 비대상: UI 없음 |
+| LP27-M01 | 한정 디코더 후보 제외 | HW-MP01~15·MH01~12, exact platform/plugin/version/codec | S11 media cut | S11 source lifecycle | 비대상: 내부 선택 |
+| LP27-M02 | 일반 입력 보존 | HW-MI01/02 PTS·선택·EOS 별도 | S11 media cut | S11 source lifecycle | 실제 UI는 별도 |
+| LP27-M03 | B-frame 시간 보존 | HW-MI03/04 PTS·선택·EOS 별도 | S11 media cut | S11 source lifecycle | 실제 UI는 별도 |
+| LP27-M04 | 빌드 경계 | 전체 build·GST OFF 컴파일 | 비대상: 빌드 | 비대상: 빌드 | 비대상: UI 없음 |
 
 ## LP26 현행 검증 준비 사전등록
 

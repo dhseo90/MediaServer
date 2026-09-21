@@ -9,6 +9,7 @@
 
 #include "app_config.h"
 #include "core/runtime_debug_counters.h"
+#include "core/gst_decode_compatibility.h"
 #include "ingress/gst_pipeline_builder.h"
 #include "core/source_request_parser.h"
 #include "ingress/rtsp_egress_session.h"
@@ -208,6 +209,11 @@ void OnMediaConfigure(GstRTSPMediaFactory* /*factory*/, GstRTSPMedia* media, gpo
     GstElement* media_element = gst_rtsp_media_get_element(media);
     if (media_element == nullptr) {
         std::cerr << "[gst] media element is null\n";
+        return;
+    }
+    if (!core::InstallDecodeCompatibility(media_element)) {
+        std::cerr << "[gst] decoder compatibility setup failed\n";
+        gst_object_unref(media_element);
         return;
     }
 

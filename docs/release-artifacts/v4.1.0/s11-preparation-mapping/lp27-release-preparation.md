@@ -13,7 +13,7 @@
 | 번호 | 사용자 지시 | 처리 상태 | 결과/완료 기준 | 근거 |
 | --- | --- | --- | --- | --- |
 | 1 | HW-01 원인·영향 확정 | 완료 | burst/paced 모두 EOS 뒤 늦은 callback→역순 finish→시간값 보정 직접 확인 | 진단03·자체07 |
-| 2 | HW-02 한정 해결책 | 미실행 | 확인된 플랫폼/입력/경로에 한정, 입력 코덱 지원·정확한 시간 대응 유지 | HW-01 판정 후 |
+| 2 | HW-02 한정 해결책 | 구현·관련 단기 확인 완료 | exact tuple의 객체별 선택 제한, 자체78·4셀8·build/GST OFF 확인 | HW-02 결과, 영향 마감은 HW-03 |
 | 3 | HW-03 반례·영향 회귀 | 미실행 | 전체 PTS/EOS·일반 입력 손실 반례·변경 코덱/자원 범위 검증 | HW-02 diff 후 |
 | 4 | PREP-01 검증 연결 | 미실행 | 초기 exact ID·복합 요구·ENV12·UI/장시간 manifest 연결 | LP26 현행 실행 매핑 |
 | 5 | CLOSE-01 정리·코드 고정 | 미실행 | 구형 사용처/소유 확인, 문서·증거 유효성 대조 | 앞 단계 완료 후 |
@@ -263,6 +263,222 @@ invalid와 overflow bool을 쉼표로 함께 초기화하는 선언을 오탐했
 | 등록03: VA EventRecord dispatch verifier fails early and dispatches every poll by default | 해당 명령 exit0, [등록03 로그](lp27-hw01-script-inventory-03.log) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
 | 등록03: critical verifier pass output avoids grouped feature-result wording | 해당 명령 exit0, [등록03 로그](lp27-hw01-script-inventory-03.log) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
 | 등록03: user-facing JS option parsers reject unknown options | 해당 명령 exit0, [등록03 로그](lp27-hw01-script-inventory-03.log) | PASS | 등록 최초11/1 → 최종12/0 이력 별도 보존 |
+
+## HW-02 실행 전 계약과 한정 보완
+
+HW-01 진단 커밋: `d3d0dbc6`. 확정 구현 담당은 기존 단일 Astra/medium이며 하위 위임 금지다.
+메인은 실제 diff·합격 기준·최종 판정을 담당한다. 적용은 macOS + applemedia 정확한1.28.1 +
+실제 fixed `video/x-h264` 입력 + `vtdec_hw`/`vtdec` 후보의 교집합이다. plugin/version/codec
+미확인은 대상이라고 추정하지 않으며, Linux·다른 버전·H265/VP8/audio 선택은 유지한다.
+해당 객체의 autoplug-select에서만 후보를 SKIP하고 나머지는 TRY한다. 후보 부재는 기존 실패로 남기며
+무조건 avdec_h264 성공을 보장하지 않는다. 출력 route codec으로 입력 decoder를 결정하지 않는다.
+
+공통 helper는 RTSP media root 준비 전과 URI uridecodebin PLAYING 전에 설치한다.
+동적 child 관측 연결을 먼저 만들고 기존 tree를 순회하며 중복 설치·객체 해제·iterator 변경을 처리한다.
+외부 callback 상태/root ref를 계속 보유하지 않는다. GStreamer OFF 컴파일 경계를 유지한다.
+전역 rank·패키지·기존 payload/schema·녹화/ID/시간값·미디어 blocking·timeout은 불변이다.
+공식 [decodebin autoplug-select](https://gstreamer.freedesktop.org/documentation/playback/decodebin.html#autoplug-select)의
+TRY/SKIP·handler 누적 규칙을 사용한다. 버전 업그레이드 또는 upstream 소스 복사는 이번 범위가 아니다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| HW-MP01~15 | 순수 선택 조건별 반례 | 두 대상·플랫폼·fixed/empty·codec·factory·plugin·version을 독립 assertion으로 확인, 실행 전 정확 목록 결박 | v4.1.0 |
+| HW-MH01 | 기존 decodebin | 실제 signal에 설치 후 대상 SKIP, 나머지 TRY | v4.1.0 |
+| HW-MH02 | 재설치 | 동일 객체 반복 설치 뒤 handler 중복 없음 | v4.1.0 |
+| HW-MH03 | 동적 nested | 설치 뒤 추가된 bin/decodebin에도 정책 적용 | v4.1.0 |
+| HW-MH04 | 전역 rank | 모든 대상/대조 factory rank 전후 불변 | v4.1.0 |
+| HW-MH05 | 객체 수명 | root/child 해제·약한 참조 소멸, 외부 보유 없음 | v4.1.0 |
+| HW-MH06 | 미완료 설치 | in-progress marker를 완료로 처리하지 않고 false, Linux는 무변경 no-op | v4.1.0 |
+| HW-MH07 | 실패 설치 | 실패 marker 재호출도 false, Linux는 무변경 no-op | v4.1.0 |
+| HW-MH08 | 동적 설치 실패 전달 | child 설치 실패를 고정문구 bus ERROR로 전달, 경고만으로 계속하지 않음 | v4.1.0 |
+| HW-MH09 | 실제 H264 선택 신호 | 실제 factory/caps로 signal emit, 확인 tuple이면 SKIP·나머지 TRY | v4.1.0 |
+| HW-MH10 | 실제 ANY 선택 신호 | ANY caps signal emit은 TRY | v4.1.0 |
+| HW-MH11 | 실제 H265 선택 신호 | H265 caps signal emit은 TRY | v4.1.0 |
+| HW-MH12 | 실제 SW 선택 신호 | avdec_h264 후보 signal emit은 TRY | v4.1.0 |
+| HW-MI01-PTS | normal20 burst 정확도 | 제품 helper 적용한 실제 RTSP builder, 전체 입력/출력/overlay PTS·EOS | v4.1.0 |
+| HW-MI01-SELECT | normal20 burst 선택 | 실제 관측 factory에서 해당 vtdec 후보 제외 | v4.1.0 |
+| HW-MI02-PTS | normal20 paced 정확도 | DTS 간격, 동일 oracle·5초 EOS 유지 | v4.1.0 |
+| HW-MI02-SELECT | normal20 paced 선택 | 실제 관측 factory 확인 | v4.1.0 |
+| HW-MI03-PTS | B-frame30 burst 정확도 | 같은 HW-01 입력, 전체PTS multiset·EOS 유지 | v4.1.0 |
+| HW-MI03-SELECT | B-frame30 burst 선택 | 실제 관측 factory 확인 | v4.1.0 |
+| HW-MI04-PTS | B-frame30 paced 정확도 | 실제 간격 입력·동일 oracle, 보정 없이 원값 보존 | v4.1.0 |
+| HW-MI04-SELECT | B-frame30 paced 선택 | 실제 관측 factory 확인 | v4.1.0 |
+| HW-BUILD | 현재 전체 빌드 | 격리 GStreamer cache, local override 제외, ./server.sh build | v4.1.0 |
+| HW-NOGST | GST OFF 경계 | 새 helper의 GST OFF 컴파일, GST header/symbol 의존 없음 | v4.1.0 |
+
+메인 중간 검토로 Linux 실제 설치 no-op·동적 설치 실패 전달/marker 반례와 실제 signal 반환값을 보완했다.
+반환 diff 검토에서 선택 oracle도 exact tuple만 거부하도록 맞췄다(다른 버전 vtdec를 무조건 거부하지 않음).
+wrapper는 mitigation exit0이어도 완결 summary가 없으면 exit2이며 IO02로 직접 반례를 확인한다.
+최종 자체 예상은 기존50+MP15+MH12+IO02=78이다. MP의 실행 전 정확 항목은 다음과 같다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| HW-MP01 | exact macOS H264 vtdec_hw tuple skips | 선택 predicate의 독립 참/거짓 assertion | v4.1.0 |
+| HW-MP02 | exact macOS H264 vtdec tuple skips | 선택 predicate의 독립 참/거짓 assertion | v4.1.0 |
+| HW-MP03 | other platform preserves selection | 선택 predicate의 독립 참/거짓 assertion | v4.1.0 |
+| HW-MP04 | nonfixed ANY or ambiguous caps preserve selection | 선택 predicate의 독립 참/거짓 assertion | v4.1.0 |
+| HW-MP05 | empty caps preserve selection | 선택 predicate의 독립 참/거짓 assertion | v4.1.0 |
+| HW-MP06 | H265 input preserves selection | 선택 predicate의 독립 참/거짓 assertion | v4.1.0 |
+| HW-MP07 | VP8 input preserves selection | 선택 predicate의 독립 참/거짓 assertion | v4.1.0 |
+| HW-MP08 | other factory preserves selection | 선택 predicate의 독립 참/거짓 assertion | v4.1.0 |
+| HW-MP09 | other plugin preserves selection | 선택 predicate의 독립 참/거짓 assertion | v4.1.0 |
+| HW-MP10 | older version preserves selection | 선택 predicate의 독립 참/거짓 assertion | v4.1.0 |
+| HW-MP11 | newer version preserves selection | 선택 predicate의 독립 참/거짓 assertion | v4.1.0 |
+| HW-MP12 | unknown version preserves selection | 선택 predicate의 독립 참/거짓 assertion | v4.1.0 |
+| HW-MP13 | unknown factory preserves selection | 선택 predicate의 독립 참/거짓 assertion | v4.1.0 |
+| HW-MP14 | unknown plugin preserves selection | 선택 predicate의 독립 참/거짓 assertion | v4.1.0 |
+| HW-MP15 | raw input preserves selection | 선택 predicate의 독립 참/거짓 assertion | v4.1.0 |
+| HW-IO02 | 미완결 결과의 거짓 PASS 방지 | mitigation exit0+summary 부재→2, 정상/실패/자체 모드 원 exit 유지 | v4.1.0 |
+`--mitigation-impact`만 제품 정책을 적용하고 기존 `--drain-diagnosis`/`--rtsp-impact`는 보존한다.
+관측 불완전/제품FAIL을 즉시 실패로 유지하고 다음 단계로 넘어가지 않는다.
+미디어 기본 회귀7.4 중 실제 브라우저 metadata는 사용자 제외에 따라 이번 실행하지 않는다.
+codec/ICE의 기존 명령은 외부/기존 서버에 연결하지 않도록 격리 선수조건을 확인한 뒤 HW-03에서 판정한다.
+HW-03의 실제 코덱·URI 경계·자원 영향과 S11 최종 묶음을 이 자체검사 PASS로 대체하지 않는다.
+
+기존 증거 유지 판단(이 helper/두 호출부 외 제품 변경이 없을 때): LP25 실제 앱은
+`verify_recording_current_app.mjs`의 source9101 `kind:file`/identity.mp4를 사용하고,
+LP26 장시간 준비도 `verify_recording_current_longrun.mjs`의 file source다. 두 경로는
+UriSourceWorker와 RTSP egress 자동 decoder를 사용하지 않는다. API/Auth/managed 저장·파생 구현도
+변경하지 않으므로 LP25 156/LP26 436의 해당 단기 증거를 이번 인계만으로 재실행하지 않는다.
+URI/RTSP 회귀 및 S11 최종 cut PASS로 확장하지 않으며, 실제 diff가 이 경계를 넘으면 재판정한다.
+
+### HW-02 구현·실행 결과
+
+제품 변경은 공통 `core::ShouldSkipAppleH264Decoder`/`InstallDecodeCompatibility`,
+UriSourceWorker::Start/OnMediaConfigure의 설치 호출과 CMake 등록이다. 기존 입력/출력 codec,
+PTS/DTS·저장·공개 API·전역 rank는 변경하지 않았다. 설치된 VideoToolbox를 고친 것이 아니라
+확인된 조합의 제품 자동선택을 회피한 해결책이다. 다른 OS/버전은 이번 macOS 실행으로 검증했다고 주장하지 않는다.
+메인이 실제 diff를 검토하고 반환 뒤 exact tuple oracle와 미완결 summary 거부를 직접 보완했다.
+
+`./server.sh build` exit0(전체 runtime/server), 새 helper의 `c++ -std=c++17 -Wall -Wextra -Werror
+-Iinclude -DMEDIA_SERVER_USE_GSTREAMER=0 -fsyntax-only src/core/gst_decode_compatibility.cpp` exit0.
+빌드/GST OFF elapsed는 명령에 타이머가 없어 미계측이며 token 집계도 미제공이다. Linux 실기기 실행은 아니다.
+`bash scripts/internal/verify_recording_hw_impact.sh --self-test` 자체01은78PASS·exit0·1871ms/3초,
+`--mitigation-impact` 보완01은4셀/8PASS·exit0·6292ms/7초, stderr0·EOS/입력/decoder/overlay 모두 일치.
+둘은 같은 archive `de62559c57ea2ed918615990af970ef10cb5df29d8a9d7fe226b4eab5655f585`에 결박했다.
+일반/B-frame 모든 셀의 실제 decoder는 avdec_h264/libav1.28.1이었다. 원래 HW-01 실패는 여전히 유효한 과거 반례다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| HW-BUILD | 격리 cache·local override 제외, 전체 configure/build exit0 | PASS | [빌드 출력](lp27-hw02-build.log) |
+| HW-NOGST | 위 GST OFF helper 컴파일 exit0, 원출력 없음 | PASS | 전체 Linux 실행 아님 |
+| `HW-IO01 pipe output and exit status preserved` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-IO02 incomplete mitigation summary cannot pass` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-OR01 reorder accepted` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-OR02 same-count duplicate omission rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-OR02 same-count omission replacement rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-OR03 legitimate duplicate preserved` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-OR04 missing frame rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-OR05 invalid PTS rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-OR06 missing EOS rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-OR07 overflow rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-OR08 duplicate EOS rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-OR09 missing SEGMENT rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-OR10 non-TIME SEGMENT rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-OR11 complete oracle accepted` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-OR12 input mismatch is inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-OR13 decoder mismatch is failure` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-OR14 overlay mismatch is failure` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-OR15 invalid observation is inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-OR16 overflow is inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-OR17 missing probe is inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-OR18 missing bus EOS is inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-OR19 bus ERROR is inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-OR20 known error classification excludes raw text` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-OR21 unknown error classification excludes raw text` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-OR22 CAPS fixed allowlist rejects arbitrary values` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-GR01 actual product parse-launch PLACE_IN_BIN creates inspectable bin` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-GR02 no generated ghost sink occupies pending links` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-GR03 pay0 src connects directly to owned sink` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-GR04 dynamic downstream queue sink remains unoccupied` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-GR05 legacy automatic ghost occupies queue sink before PLAYING` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-OR23 delayed-link has fixed classification` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-DP01 callback retains decode number without pointers` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-DP02 push retains independent system number` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-DP03 decreasing warning preserves exact nanoseconds` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-DP04 malicious pointer token rejected without disclosure` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-DP05 trailing injected field rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-DP06 invalid timestamp rejected` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-DP07 unknown warning makes diagnosis inconclusive without raw retention` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-DP08 debug array overflow makes diagnosis inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-DP09 known decreasing warning completes diagnosis without product PASS` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-DP10 absent source log is not fabricated as wait completion` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-DP11 finish frame preserves pre-clamp PTS and unknown DTS without pointer` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-DP12 numeric overflow rejected before conversion` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-DP13 unrelated long LOG ignored before selected-prefix bound` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-DP14 selected-prefix oversized message is inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-DP15 callback exception boundary makes diagnosis inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-DP16 malformed DTS rejected without inventing source formats` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-DP17 missing finish-frame observation is inconclusive` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-DP18 official entry-only finish log is not pre-clamp evidence` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-DP19 session-create error retains only signed numeric code` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-DP20 session-create error rejects arbitrary suffix` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MP01 exact macOS H264 vtdec_hw tuple skips` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MP02 exact macOS H264 vtdec tuple skips` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MP03 other platform preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MP04 nonfixed ANY or ambiguous caps preserve selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MP05 empty caps preserve selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MP06 H265 input preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MP07 VP8 input preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MP08 other factory preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MP09 other plugin preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MP10 older version preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MP11 newer version preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MP12 unknown version preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MP13 unknown factory preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MP14 unknown plugin preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MP15 raw input preserves selection` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MH01 existing decodebin hook follows platform gate` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MH02 repeated installation does not duplicate hooks` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MH03 dynamically nested decodebin hook follows platform gate` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MH04 installation leaves global factory ranks unchanged` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MH05 root and decoder lifetimes retain no external references` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MH09 actual H264 signal returns SKIP only for installed affected tuple` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MH10 actual ANY caps signal returns TRY` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MH11 actual H265 caps signal returns TRY` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MH12 actual avdec_h264 candidate signal returns TRY` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MH06 in-progress marker is not completion on macOS and untouched elsewhere` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MH07 failed marker remains failed across repeated installation` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MH08 dynamic installation failure posts bus ERROR only on macOS` | 자체01의 해당 assertion, 명령 exit0 | PASS | [자체01](lp27-hw02-self-01.log)의 개별 행 대조 |
+| `HW-MI01-normal20-burst exact full PTS and EOS` | 보완01의 해당 assertion, 명령 exit0 | PASS | [보완01](lp27-hw02-impact-01.log)의 개별 행 대조 |
+| `HW-MI01-normal20-burst selected factory respects exact compatibility tuple` | 보완01의 해당 assertion, 명령 exit0 | PASS | [보완01](lp27-hw02-impact-01.log)의 개별 행 대조 |
+| `HW-MI02-normal20-paced exact full PTS and EOS` | 보완01의 해당 assertion, 명령 exit0 | PASS | [보완01](lp27-hw02-impact-01.log)의 개별 행 대조 |
+| `HW-MI02-normal20-paced selected factory respects exact compatibility tuple` | 보완01의 해당 assertion, 명령 exit0 | PASS | [보완01](lp27-hw02-impact-01.log)의 개별 행 대조 |
+| `HW-MI03-bframe30-burst exact full PTS and EOS` | 보완01의 해당 assertion, 명령 exit0 | PASS | [보완01](lp27-hw02-impact-01.log)의 개별 행 대조 |
+| `HW-MI03-bframe30-burst selected factory respects exact compatibility tuple` | 보완01의 해당 assertion, 명령 exit0 | PASS | [보완01](lp27-hw02-impact-01.log)의 개별 행 대조 |
+| `HW-MI04-bframe30-paced exact full PTS and EOS` | 보완01의 해당 assertion, 명령 exit0 | PASS | [보완01](lp27-hw02-impact-01.log)의 개별 행 대조 |
+| `HW-MI04-bframe30-paced selected factory respects exact compatibility tuple` | 보완01의 해당 assertion, 명령 exit0 | PASS | [보완01](lp27-hw02-impact-01.log)의 개별 행 대조 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| /private/tmp/media-server-hw-build.ZkXWIf | build cache/symlink mirror | 62691B | 실제 소유/0700/정규경로 확인 후 삭제 | 부재 | 메인 cleanup exit0 |
+| media-server-hw-impact.EzPd0G | 자체01 binary/cache/registry | 1886868B | 자식 종료 후 삭제 | 부재 | 자체01 cleanup |
+| media-server-hw-impact.HYcKB3 | 보완01 binary/cache/registry | 1886868B | 자식 종료 후 삭제 | 부재 | 보완01 cleanup |
+
+새 서버/포트/계정은 사용하지 않았다. 빌드 산출물은 기존 build-gst-onnx에 유지한다.
+HW-03 영향·PREP/CLOSE 및 S11 최종 검증은 아직 미실행이며 이번 PASS 범위 밖이다.
+
+HW-02 마감: 문서 링크288개/9455링크/135anchor·실패0, 등록12/0·exit0, bash구문/diffcheck exit0.
+이미지·자산 참조 변경은 없어 HW-01 자산10PASS의 유효 범위를 유지했다.
+출력이 없는 GST OFF 컴파일의 빈 로그 파일은 불필요하여 제거했으며 실제 command/exit는 위에 보존했다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| HW-02 문서 링크 | 위288문서/9455링크/135anchor·exit0 | PASS | [문서 출력](lp27-hw02-docs-links.log) |
+| HW-02 bash 구문 | bash -n scripts/internal/verify_recording_hw_impact.sh exit0 | PASS | 실제 실행 전/마감 확인 |
+| HW-02 공백 | git diff --check 및 --cached --check exit0 | PASS | stage 범위 확인 |
+| dispatch parser recognizes explicit bash and node interpreters | HW-02 등록검사 exit0 | PASS | [등록 출력](lp27-hw02-script-inventory.log) |
+| server.sh dispatch targets exist and are executable | HW-02 등록검사 exit0 | PASS | [등록 출력](lp27-hw02-script-inventory.log) |
+| documented server.sh commands resolve to dispatch table | HW-02 등록검사 exit0 | PASS | [등록 출력](lp27-hw02-script-inventory.log) |
+| tracked scripts are classified and referenced | HW-02 등록검사 exit0 | PASS | [등록 출력](lp27-hw02-script-inventory.log) |
+| project inventory delegates script file inventory to this verifier | HW-02 등록검사 exit0 | PASS | [등록 출력](lp27-hw02-script-inventory.log) |
+| project inventory maps verifier families without duplicating dispatch details | HW-02 등록검사 exit0 | PASS | [등록 출력](lp27-hw02-script-inventory.log) |
+| CMake does not define a separate untracked CTest registry | HW-02 등록검사 exit0 | PASS | [등록 출력](lp27-hw02-script-inventory.log) |
+| test entry scripts are reachable from test_all | HW-02 등록검사 exit0 | PASS | [등록 출력](lp27-hw02-script-inventory.log) |
+| auth verifier has no hardcoded test password defaults | HW-02 등록검사 exit0 | PASS | [등록 출력](lp27-hw02-script-inventory.log) |
+| VA EventRecord dispatch verifier fails early and dispatches every poll by default | HW-02 등록검사 exit0 | PASS | [등록 출력](lp27-hw02-script-inventory.log) |
+| critical verifier pass output avoids grouped feature-result wording | HW-02 등록검사 exit0 | PASS | [등록 출력](lp27-hw02-script-inventory.log) |
+| user-facing JS option parsers reject unknown options | HW-02 등록검사 exit0 | PASS | [등록 출력](lp27-hw02-script-inventory.log) |
 
 ## 이전 승인 범위와 순서
 

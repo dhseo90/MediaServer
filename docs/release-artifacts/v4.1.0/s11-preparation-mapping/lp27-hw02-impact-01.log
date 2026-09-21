@@ -1,0 +1,112 @@
+[source] CMakeLists.txt sha256=3534c5e0bbbcfebaaff85d46cf46008d05b995cc04d5dfcf830f30dcf0394f3b
+[source] src/core/gst_decode_compatibility.cpp sha256=8f5c7ec6d671bf9c38369bbeb518560bd06f9a6d4f03956d3bdb7f6dc41a1db5
+[source] include/core/gst_decode_compatibility.h sha256=2ded3020d7be5f69476b26f031614a74acf760c1559dd4da726c14a5c2ddedef
+[source] src/core/source_factory.cpp sha256=95bedfb3d8f4f91fae03cc2cf9705f6b45d8430408ff49597dd28b7bd18bf38f
+[source] src/ingress/gstreamer_rtsp_server.cpp sha256=b2aefad7acb3c404008c7136e449802956e1c24dfb2f1916ffbbdafc70151ff0
+[source] src/ingress/gst_pipeline_builder.cpp sha256=65c4976f05644f538c8713b86c7121270ef08673fec13116bf6e9d9004649ee6
+[source] src/ingress/rtsp_egress_session.cpp sha256=25cba9e1fac1d81c14aec5d36e121b8b895fa607ea2b2f783fbb23ac42540b29
+[source] include/ingress/gst_pipeline_builder.h sha256=cd505e31bf74a1768274d23c2c592fe0856431d4962f279d6f1d7f5c50977163
+[source] scripts/internal/recording_hw_impact_probe.cpp sha256=b9916acd28c5f6474403311d0ea9066c92e6f48e9231b9eb410b4918b2679b68
+[source] scripts/internal/verify_recording_hw_impact.sh sha256=177bed85ba331d45a9031e1db459e7e109cf70696a22deaacf5eb63fb987c970
+[source] scripts/internal/recording_media_test_fixture.h sha256=404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6
+[source] build-gst-onnx/libmedia_server_runtime.a sha256=de62559c57ea2ed918615990af970ef10cb5df29d8a9d7fe226b4eab5655f585
+[environment] utc=2026-09-21T10:14:23Z platform=Darwin machine=arm64 head=d3d0dbc65cb3f1334966d4c1e0487053ff04e78f
+1.28.1
+1.28.1
+[au] case=normal20 index=0 pts=0 dts=0 duration=100000000 key=1 bytes=2820
+[au] case=normal20 index=1 pts=100000000 dts=100000000 duration=100000000 key=0 bytes=882
+[au] case=normal20 index=2 pts=200000000 dts=200000000 duration=100000000 key=0 bytes=686
+[au] case=normal20 index=3 pts=300000000 dts=300000000 duration=100000000 key=0 bytes=796
+[au] case=normal20 index=4 pts=400000000 dts=400000000 duration=100000000 key=0 bytes=778
+[au] case=normal20 index=5 pts=500000000 dts=500000000 duration=100000000 key=0 bytes=827
+[au] case=normal20 index=6 pts=600000000 dts=600000000 duration=100000000 key=0 bytes=673
+[au] case=normal20 index=7 pts=700000000 dts=700000000 duration=100000000 key=0 bytes=836
+[au] case=normal20 index=8 pts=800000000 dts=800000000 duration=100000000 key=0 bytes=798
+[au] case=normal20 index=9 pts=900000000 dts=900000000 duration=100000000 key=0 bytes=816
+[au] case=normal20 index=10 pts=1000000000 dts=1000000000 duration=100000000 key=1 bytes=1935
+[au] case=normal20 index=11 pts=1100000000 dts=1100000000 duration=100000000 key=0 bytes=839
+[au] case=normal20 index=12 pts=1200000000 dts=1200000000 duration=100000000 key=0 bytes=864
+[au] case=normal20 index=13 pts=1300000000 dts=1300000000 duration=100000000 key=0 bytes=911
+[au] case=normal20 index=14 pts=1400000000 dts=1400000000 duration=100000000 key=0 bytes=888
+[au] case=normal20 index=15 pts=1500000000 dts=1500000000 duration=100000000 key=0 bytes=882
+[au] case=normal20 index=16 pts=1600000000 dts=1600000000 duration=100000000 key=0 bytes=938
+[au] case=normal20 index=17 pts=1700000000 dts=1700000000 duration=100000000 key=0 bytes=928
+[au] case=normal20 index=18 pts=1800000000 dts=1800000000 duration=100000000 key=0 bytes=861
+[au] case=normal20 index=19 pts=1900000000 dts=1900000000 duration=100000000 key=0 bytes=873
+[input] case=normal20 count=20 bytes=19831 sha256=0becff0184318c981f79e3be56dfa0aa25246665d27e74e87adc2cbb6d87cd62
+[au] case=bframe30 index=0 pts=200000000 dts=0 duration=100000000 key=1 bytes=1853
+[au] case=bframe30 index=1 pts=400000000 dts=100000000 duration=100000000 key=0 bytes=704
+[au] case=bframe30 index=2 pts=300000000 dts=200000000 duration=100000000 key=0 bytes=453
+[au] case=bframe30 index=3 pts=700000000 dts=300000000 duration=100000000 key=0 bytes=835
+[au] case=bframe30 index=4 pts=500000000 dts=400000000 duration=100000000 key=0 bytes=489
+[au] case=bframe30 index=5 pts=600000000 dts=500000000 duration=100000000 key=0 bytes=343
+[au] case=bframe30 index=6 pts=1000000000 dts=600000000 duration=100000000 key=0 bytes=820
+[au] case=bframe30 index=7 pts=800000000 dts=700000000 duration=100000000 key=0 bytes=503
+[au] case=bframe30 index=8 pts=900000000 dts=800000000 duration=100000000 key=0 bytes=506
+[au] case=bframe30 index=9 pts=1100000000 dts=900000000 duration=100000000 key=0 bytes=676
+[au] case=bframe30 index=10 pts=1200000000 dts=1000000000 duration=100000000 key=1 bytes=1002
+[au] case=bframe30 index=11 pts=1400000000 dts=1100000000 duration=100000000 key=0 bytes=850
+[au] case=bframe30 index=12 pts=1300000000 dts=1200000000 duration=100000000 key=0 bytes=480
+[au] case=bframe30 index=13 pts=1600000000 dts=1300000000 duration=100000000 key=0 bytes=653
+[au] case=bframe30 index=14 pts=1500000000 dts=1400000000 duration=100000000 key=0 bytes=610
+[au] case=bframe30 index=15 pts=1900000000 dts=1500000000 duration=100000000 key=0 bytes=765
+[au] case=bframe30 index=16 pts=1700000000 dts=1600000000 duration=100000000 key=0 bytes=611
+[au] case=bframe30 index=17 pts=1800000000 dts=1700000000 duration=100000000 key=0 bytes=621
+[au] case=bframe30 index=18 pts=2100000000 dts=1800000000 duration=100000000 key=0 bytes=628
+[au] case=bframe30 index=19 pts=2000000000 dts=1900000000 duration=100000000 key=0 bytes=587
+[au] case=bframe30 index=20 pts=2200000000 dts=2000000000 duration=100000000 key=1 bytes=1077
+[au] case=bframe30 index=21 pts=2500000000 dts=2100000000 duration=100000000 key=0 bytes=828
+[au] case=bframe30 index=22 pts=2300000000 dts=2200000000 duration=100000000 key=0 bytes=703
+[au] case=bframe30 index=23 pts=2400000000 dts=2300000000 duration=100000000 key=0 bytes=651
+[au] case=bframe30 index=24 pts=2800000000 dts=2400000000 duration=100000000 key=0 bytes=672
+[au] case=bframe30 index=25 pts=2600000000 dts=2500000000 duration=100000000 key=0 bytes=647
+[au] case=bframe30 index=26 pts=2700000000 dts=2600000000 duration=100000000 key=0 bytes=585
+[au] case=bframe30 index=27 pts=3100000000 dts=2700000000 duration=100000000 key=0 bytes=708
+[au] case=bframe30 index=28 pts=2900000000 dts=2800000000 duration=100000000 key=0 bytes=630
+[au] case=bframe30 index=29 pts=3000000000 dts=2900000000 duration=100000000 key=0 bytes=583
+[input] case=bframe30 count=30 bytes=21073 sha256=3d4812dae067addeda75ef77dc44cf0faf8a48b49606b1dc04788756d0ce3650
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-MI01-normal20-burst round=1 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[pass] HW-MI01-normal20-burst exact full PTS and EOS
+[pass] HW-MI01-normal20-burst selected factory respects exact compatibility tuple
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=20 eos=1 events=14 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-MI01-normal20-burst pushed=20 successful_push_flows=20 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-MI02-normal20-paced round=1 pacing=dts-steady mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[pass] HW-MI02-normal20-paced exact full PTS and EOS
+[pass] HW-MI02-normal20-paced selected factory respects exact compatibility tuple
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=20 eos=1 events=14 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-MI02-normal20-paced pushed=20 successful_push_flows=20 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-MI03-bframe30-burst round=1 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[pass] HW-MI03-bframe30-burst exact full PTS and EOS
+[pass] HW-MI03-bframe30-burst selected factory respects exact compatibility tuple
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=30 eos=1 events=16 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-MI03-bframe30-burst pushed=30 successful_push_flows=30 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-MI04-bframe30-paced round=1 pacing=dts-steady mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[pass] HW-MI04-bframe30-paced exact full PTS and EOS
+[pass] HW-MI04-bframe30-paced selected factory respects exact compatibility tuple
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=30 eos=1 events=16 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-MI04-bframe30-paced pushed=30 successful_push_flows=30 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[mitigation-summary] cells=4 assertions=8 productPass=1 scope=h264-input-finite-rtsp-builder-4cells releasePass=0 exit=0
+[diagnostic-stderr] {"bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","critical":0,"warning":0,"rawPublished":false}
+[execution] {"mode":"--mitigation-impact","exit":0,"signal":null,"error":null,"elapsedMs":6292,"productPass":true,"productScope":"h264-input-finite-rtsp-builder-4cells","releasePass":false,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음"}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-impact.HYcKB3","bytes":1886868,"absent":true}
+[elapsed] seconds=7 source=bash-SECONDS

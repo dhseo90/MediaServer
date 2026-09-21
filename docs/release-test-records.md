@@ -3,6 +3,9 @@
 ## LP27 릴리즈 선행 1~4 순차 작업
 
 후속 승인: HW-01→HW-02→HW-03→PREP-01→CLOSE-01 순차 개발·분할 커밋·조건 충족 시 마지막 push.
+HW-01은 `d3d0dbc6`으로 커밋했다. HW-02는 exact macOS/applemedia1.28.1/H264 자동선택 후보만
+객체별 제한했고 전체 build/GST OFF helper·자체78·동일 입력4셀8검사 PASS를 확인했다.
+원래 디코더 결함을 고친 것은 아니며 제품 경로의 한정 보완이다. HW-03 및 최종 검증 완료가 아니다.
 [후속 실행 전 계약](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#hw-01-실행-전-계약)의
 D01~06을 등록하고 HW-01 원인 구분을 완료했다. 자체07은50검사 PASS, 진단03은 네 셀 관측 완료·제품 B-frame 두 셀 FAIL이다.
 EOS drain→늦은 callback→역순 finish→기저 디코더의 시간값 보정을 burst/paced 양쪽에서 직접 확인했다.

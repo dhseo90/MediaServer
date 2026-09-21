@@ -52,6 +52,7 @@ add_library(media_server_runtime STATIC
     src/app_config.cpp
     src/core/analysis_runtime_port.cpp
     src/core/command_runner.cpp
+    src/core/gst_decode_compatibility.cpp
     src/core/shared_stream.cpp
     src/core/source_factory.cpp
     src/core/stream_registry.cpp

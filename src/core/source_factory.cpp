@@ -2,6 +2,7 @@
 // 동작 요약: GStreamer 기반 source pipeline, descriptor discovery, packet 변환, URI pad 선택을 구현한다.
 // 동작 요약: 다양한 원본 source를 SharedStream으로 공급하는 핵심 factory다.
 #include "core/source_factory.h"
+#include "core/gst_decode_compatibility.h"
 
 #include <algorithm>
 #include <atomic>
@@ -1575,6 +1576,11 @@ public:
 
         // HTTP/HLS playable URI는 uridecodebin으로 raw pad를 얻고, 내부 표준 H264/AAC 패킷으로 재인코딩한다.
         gst_bin_add(GST_BIN(pipeline_), source_);
+        if (!core::InstallDecodeCompatibility(source_)) {
+            if (error_message != nullptr) *error_message = "URI decoder compatibility setup failed";
+            Stop();
+            return false;
+        }
         g_object_set(source_, "uri", source_spec_.uri.c_str(), nullptr);
         pad_added_handler_id_ =
             g_signal_connect(source_, "pad-added", G_CALLBACK(&UriSourceWorker::OnPadAdded), this);

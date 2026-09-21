@@ -1,0 +1,98 @@
+[source] CMakeLists.txt sha256=3534c5e0bbbcfebaaff85d46cf46008d05b995cc04d5dfcf830f30dcf0394f3b
+[source] src/core/gst_decode_compatibility.cpp sha256=8f5c7ec6d671bf9c38369bbeb518560bd06f9a6d4f03956d3bdb7f6dc41a1db5
+[source] include/core/gst_decode_compatibility.h sha256=2ded3020d7be5f69476b26f031614a74acf760c1559dd4da726c14a5c2ddedef
+[source] src/core/source_factory.cpp sha256=95bedfb3d8f4f91fae03cc2cf9705f6b45d8430408ff49597dd28b7bd18bf38f
+[source] src/ingress/gstreamer_rtsp_server.cpp sha256=b2aefad7acb3c404008c7136e449802956e1c24dfb2f1916ffbbdafc70151ff0
+[source] src/ingress/gst_pipeline_builder.cpp sha256=65c4976f05644f538c8713b86c7121270ef08673fec13116bf6e9d9004649ee6
+[source] src/ingress/rtsp_egress_session.cpp sha256=25cba9e1fac1d81c14aec5d36e121b8b895fa607ea2b2f783fbb23ac42540b29
+[source] include/ingress/gst_pipeline_builder.h sha256=cd505e31bf74a1768274d23c2c592fe0856431d4962f279d6f1d7f5c50977163
+[source] scripts/internal/recording_hw_impact_probe.cpp sha256=b9916acd28c5f6474403311d0ea9066c92e6f48e9231b9eb410b4918b2679b68
+[source] scripts/internal/verify_recording_hw_impact.sh sha256=177bed85ba331d45a9031e1db459e7e109cf70696a22deaacf5eb63fb987c970
+[source] scripts/internal/recording_media_test_fixture.h sha256=404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6
+[source] build-gst-onnx/libmedia_server_runtime.a sha256=de62559c57ea2ed918615990af970ef10cb5df29d8a9d7fe226b4eab5655f585
+[environment] utc=2026-09-21T10:14:02Z platform=Darwin machine=arm64 head=d3d0dbc65cb3f1334966d4c1e0487053ff04e78f
+1.28.1
+1.28.1
+[pass] HW-IO01 pipe output and exit status preserved
+[pass] HW-IO02 incomplete mitigation summary cannot pass
+[pass] HW-OR01 reorder accepted
+[pass] HW-OR02 same-count duplicate omission rejected
+[pass] HW-OR02 same-count omission replacement rejected
+[pass] HW-OR03 legitimate duplicate preserved
+[pass] HW-OR04 missing frame rejected
+[pass] HW-OR05 invalid PTS rejected
+[pass] HW-OR06 missing EOS rejected
+[pass] HW-OR07 overflow rejected
+[pass] HW-OR08 duplicate EOS rejected
+[pass] HW-OR09 missing SEGMENT rejected
+[pass] HW-OR10 non-TIME SEGMENT rejected
+[pass] HW-OR11 complete oracle accepted
+[pass] HW-OR12 input mismatch is inconclusive
+[pass] HW-OR13 decoder mismatch is failure
+[pass] HW-OR14 overlay mismatch is failure
+[pass] HW-OR15 invalid observation is inconclusive
+[pass] HW-OR16 overflow is inconclusive
+[pass] HW-OR17 missing probe is inconclusive
+[pass] HW-OR18 missing bus EOS is inconclusive
+[pass] HW-OR19 bus ERROR is inconclusive
+[pass] HW-OR20 known error classification excludes raw text
+[pass] HW-OR21 unknown error classification excludes raw text
+[pass] HW-OR22 CAPS fixed allowlist rejects arbitrary values
+[pass] HW-GR01 actual product parse-launch PLACE_IN_BIN creates inspectable bin
+[pass] HW-GR02 no generated ghost sink occupies pending links
+[pass] HW-GR03 pay0 src connects directly to owned sink
+[pass] HW-GR04 dynamic downstream queue sink remains unoccupied
+[pass] HW-GR05 legacy automatic ghost occupies queue sink before PLAYING
+[pass] HW-OR23 delayed-link has fixed classification
+[pass] HW-DP01 callback retains decode number without pointers
+[pass] HW-DP02 push retains independent system number
+[pass] HW-DP03 decreasing warning preserves exact nanoseconds
+[pass] HW-DP04 malicious pointer token rejected without disclosure
+[pass] HW-DP05 trailing injected field rejected
+[pass] HW-DP06 invalid timestamp rejected
+[pass] HW-DP07 unknown warning makes diagnosis inconclusive without raw retention
+[pass] HW-DP08 debug array overflow makes diagnosis inconclusive
+[pass] HW-DP09 known decreasing warning completes diagnosis without product PASS
+[pass] HW-DP10 absent source log is not fabricated as wait completion
+[pass] HW-DP11 finish frame preserves pre-clamp PTS and unknown DTS without pointer
+[pass] HW-DP12 numeric overflow rejected before conversion
+[pass] HW-DP13 unrelated long LOG ignored before selected-prefix bound
+[pass] HW-DP14 selected-prefix oversized message is inconclusive
+[pass] HW-DP15 callback exception boundary makes diagnosis inconclusive
+[pass] HW-DP16 malformed DTS rejected without inventing source formats
+[pass] HW-DP17 missing finish-frame observation is inconclusive
+[pass] HW-DP18 official entry-only finish log is not pre-clamp evidence
+[pass] HW-DP19 session-create error retains only signed numeric code
+[pass] HW-DP20 session-create error rejects arbitrary suffix
+[pass] HW-MP01 exact macOS H264 vtdec_hw tuple skips
+[pass] HW-MP02 exact macOS H264 vtdec tuple skips
+[pass] HW-MP03 other platform preserves selection
+[pass] HW-MP04 nonfixed ANY or ambiguous caps preserve selection
+[pass] HW-MP05 empty caps preserve selection
+[pass] HW-MP06 H265 input preserves selection
+[pass] HW-MP07 VP8 input preserves selection
+[pass] HW-MP08 other factory preserves selection
+[pass] HW-MP09 other plugin preserves selection
+[pass] HW-MP10 older version preserves selection
+[pass] HW-MP11 newer version preserves selection
+[pass] HW-MP12 unknown version preserves selection
+[pass] HW-MP13 unknown factory preserves selection
+[pass] HW-MP14 unknown plugin preserves selection
+[pass] HW-MP15 raw input preserves selection
+[pass] HW-MH01 existing decodebin hook follows platform gate
+[pass] HW-MH02 repeated installation does not duplicate hooks
+[pass] HW-MH03 dynamically nested decodebin hook follows platform gate
+[pass] HW-MH04 installation leaves global factory ranks unchanged
+[pass] HW-MH05 root and decoder lifetimes retain no external references
+[pass] HW-MH09 actual H264 signal returns SKIP only for installed affected tuple
+[pass] HW-MH10 actual ANY caps signal returns TRY
+[pass] HW-MH11 actual H265 caps signal returns TRY
+[pass] HW-MH12 actual avdec_h264 candidate signal returns TRY
+[pass] HW-MH06 in-progress marker is not completion on macOS and untouched elsewhere
+[pass] HW-MH07 failed marker remains failed across repeated installation
+[pass] HW-MH08 dynamic installation failure posts bus ERROR only on macOS
+[summary] pass=76 fail=0
+[diagnostic-stderr] {"bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","critical":0,"warning":0,"rawPublished":false}
+[execution] {"mode":"--self-test","exit":0,"signal":null,"error":null,"elapsedMs":1871,"productPass":false,"productScope":null,"releasePass":false,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음"}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-impact.EzPd0G","bytes":1886868,"absent":true}
+[elapsed] seconds=3 source=bash-SECONDS
