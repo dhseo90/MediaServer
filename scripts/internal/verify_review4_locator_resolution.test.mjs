@@ -7,12 +7,13 @@ import test from 'node:test';
 import { validateSemanticItem, semanticDigest, SEMANTIC_CLOSURE_SCHEMA, REVIEW3_CALL_CHAIN_SCHEMA } from './feature_semantic_evidence_lib.mjs';
 import { buildReview4SemanticObligation, buildReview4TrustBindings, parseVerifiedReview4Dispatch, review4SourceFlowDigest, sha256, REVIEW4_APPROVAL_SOURCE, REVIEW4_APPROVAL_REVIEWER_SOURCE } from './feature_semantic_review4_trust_lib.mjs';
 
-function fixture(run) {
+function fixture(run, options = {}) {
   const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), 'review4-locator-'));
   fs.chmodSync(rootDir, 0o700);
   const write = (file, text) => { fs.mkdirSync(path.dirname(path.join(rootDir, file)), { recursive: true }); fs.writeFileSync(path.join(rootDir, file), text); };
   const product = '// padding\n'.repeat(40) + 'void Owner() {\n  Dispatch();\n  Action();\n  ScopedToken();\n\n\n  Unbound();\n}\n';
-  const readback = '// padding\n'.repeat(40) + 'function Readback() {\n  const response = requestJson();\n  const ScopedToken = response.value;\n  if (ScopedToken !== 1) {\n\n\n    throw new Error("mismatch");\n  }\n}\n';
+  let readback = '// padding\n'.repeat(40) + 'function Readback() {\n  const response = requestJson();\n  const ScopedToken = response.value;\n  if (ScopedToken !== 1) {\n\n\n    throw new Error("mismatch");\n  }\n}\n';
+  if (options.duplicateWithin) readback = readback.replace('\n}\n', '\n  const ScopedToken = response.value;\n  if (ScopedToken !== 1) {\n\n    throw new Error("again");\n  }\n}\n');
   const server = 'case "$command" in\n  verify-alpha)\n    require_internal alpha.mjs\n    exec "${INTERNAL_DIR}/alpha.mjs" "$@"\n    ;;\nesac\n';
   write('src/bound.cpp', product); write('scripts/internal/child.mjs', readback);
   write('scripts/internal/alpha.mjs', 'exec "${SCRIPT_DIR}/child.mjs" "$@"\n'); write('server.sh', server);
@@ -22,6 +23,7 @@ function fixture(run) {
     return { file, symbol, anchor, line, contextSha256: sha256(lines.slice(Math.max(0, line - 2), line + 1).join('\n')) };
   };
   const row = { id: 'UI-999', feature: 'ScopedToken read', pass: 'ScopedToken observed' };
+  if (options.optional) row.feature += ' `/ops/optional-route`';
   const roles = {
     owner: locator('src/bound.cpp', 'Owner', 'void Owner() {'),
     dispatch: locator('src/bound.cpp', 'Owner', 'Dispatch();'),
@@ -30,6 +32,13 @@ function fixture(run) {
     readback: locator('scripts/internal/child.mjs', 'Readback', 'if (ScopedToken !== 1) {'),
     verifier: locator('server.sh', 'server-dispatch:verify-alpha', 'verify-alpha)'),
   };
+  const optional = 'void Optional() {\n  route("/ops/optional-route");\n  control();\n  controlReadback();\n\n\n  Other();\n}\n';
+  if (options.optional) {
+    write('src/optional.cpp', optional);
+    for (const [name, anchor] of [['route', 'route("/ops/optional-route");'], ['control', 'control();'], ['controlReadback', 'controlReadback();']]) {
+      roles[name] = locator('src/optional.cpp', 'Optional', anchor);
+    }
+  }
   const pairs = [['owner', 'dispatch', 'function-containment'], ['dispatch', 'action', 'function-containment'], ['action', 'state', 'function-containment'], ['state', 'readback', 'runtime-readback'], ['readback', 'verifier', 'verifier-dispatch']];
   const obligation = buildReview4SemanticObligation(row, { rootDir });
   const proof = { schema: 'media-server.feature-reviewed-source-flow.v1', id: row.id, featureContractSha256: sha256(`${row.feature}\n${row.pass}`), flowKind: 'read-model', requirement: obligation.requirement, evidenceMode: 'contract', evidenceToken: 'ScopedToken', sharedContract: null, semanticObligation: obligation, verifier: { command: 'verify-alpha', file: 'scripts/internal/alpha.mjs' }, roles,
@@ -44,7 +53,7 @@ function fixture(run) {
     stateOracle: { expectedBehavior: row.pass, expectedBehaviorSha256: sha256(`${row.feature} ${row.pass}`) }, verifierAssertion: { file: roles.readback.file, assertionAnchor: roles.readback.anchor, command: proof.verifier.command } };
   const digest = semanticDigest(row, evidence); evidence.verifierAssertion.assertedSemanticDigest = digest;
   const item = { status: 'semantic-reviewed', semanticEvidence: evidence, sourceEvidence: roles.owner, verifierEvidence: { ...roles.readback, command: proof.verifier.command }, review: { decision: 'approved', approvalSource: REVIEW4_APPROVAL_SOURCE, reviewer: REVIEW4_APPROVAL_REVIEWER_SOURCE, sourceFlowDigest: proof.sourceFlowDigest, approvalDigest: proof.approvalDigest, semanticDigest: digest } };
-  try { run({ rootDir, write, product, readback, item, check: () => validateSemanticItem({ rootDir, row, item }) }); }
+  try { run({ rootDir, write, product, readback, optional, item, check: () => validateSemanticItem({ rootDir, row, item }) }); }
   finally {
     const bytes = directoryBytes(rootDir);
     fs.rmSync(rootDir, { recursive: true, force: true });
@@ -100,4 +109,34 @@ test('R4L14 same-process corpus sees source token addition and removal', () => f
   assert.equal(tokens().includes('FreshScopedToken'), true);
   fs.unlinkSync(path.join(f.rootDir, 'src/fresh.cpp'));
   assert.equal(tokens().includes('FreshScopedToken'), false);
+}));
+
+test('R4L15 optional roles retained relocated and validated', () => fixture(f => {
+  const original = structuredClone(f.item);
+  assert.deepEqual(f.check(), []);
+  f.write('src/optional.cpp', '// moved\n'.repeat(37) + f.optional);
+  assert.deepEqual(f.check(), []);
+  f.write('src/optional.cpp', f.optional.replace('Other();', 'Changed();'));
+  assert.ok(f.check().some(e => /(?:route|control).*trust binding drift/.test(e)));
+  f.write('src/optional.cpp', f.optional.replace('control();', 'changed();'));
+  assert.ok(f.check().some(e => /control.*context/.test(e)));
+  assert.deepEqual(f.item, original);
+}, { optional: true }));
+
+test('R4L16 duplicate statement in different function resolves approved body', () => fixture(f => {
+  f.write('scripts/internal/child.mjs', f.readback.replace('Readback()', 'Different()') + f.readback);
+  assert.deepEqual(f.check(), []);
+}));
+
+test('R4L17 same approved body with multiple candidates stays ambiguous', () => {
+  fixture(f => assert.ok(f.check().some(e => /readback.*context/.test(e))), { duplicateWithin: true });
+  fixture(f => { f.write('scripts/internal/child.mjs', f.readback + f.readback); assert.ok(f.check().some(e => /readback.*context/.test(e))); });
+});
+
+test('R4L18 no approved body match cannot fall back to stored line', () => fixture(f => {
+  const original = structuredClone(f.item);
+  const changed = f.readback.replace('requestJson()', 'changedRequest()');
+  f.write('scripts/internal/child.mjs', changed + changed.replace('Readback()', 'Different()'));
+  assert.ok(f.check().some(e => /readback.*context/.test(e)));
+  assert.deepEqual(f.item, original);
 }));

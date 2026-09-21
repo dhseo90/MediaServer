@@ -146,3 +146,93 @@ red `db5b24962da946b293984286d611e171d85adb94dd2402393a2e9bbf8384d4ed`.
 
 제품 실행·port·운영 데이터는1번에서 사용하지 않는다. 필요한 임시 fixture만 작업 소유 root에 생성·정리한다.
 token start/end/consumed는 전용 집계 부재로 미집계. elapsed와source는 실제 결과로 기록한다.
+
+## 2번 실행 전 정의 — 실제 변경과 검사 공백
+
+1번 `f8ed4546` 커밋 완료. 아래는 전체 inventory PASS를 시도하는 반복 실행이 아니라
+기존 FAIL의 원인별 진단이다. 원장 쓰기/자동 승인 없이 현재 오류와 candidate 상태를 한 번씩 수집한다.
+기존 inventory SHA/함수 변경 결속은 남는 것이 예상 상태이며 실제 검사 실패와 분리한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP28-D01 | 현행 결속 진단 | parseFeatureRows/loadImplementationManifest/validateImplementationManifest 1회,986행·전체 errors·elapsed JSON. exit0은 수집 성공일 뿐 ok:false는 FAIL 유지 | v4.1.0 |
+| LP28-D02 | 현재 source 후보 | source-audit --emit-candidate, 승인 없는 candidate986행의 unresolved·역할/edge 대조 | v4.1.0 |
+| LP28-D03 | 변경 원인 대조 | S07 기준부터 소스10파일 diff·공통 함수 영향·새 위치 해석을 오류 ID와 연결. unresolved를 검사 부재로 단정하지 않음 | v4.1.0 |
+
+영역은 안정화 진단만이며30분/120분/UI 비대상이다. 전체 manifest/PREP gate PASS는4번에서 별도로 판정한다.
+
+### 현재 source 대조로 발견한 판정 보완
+
+D01은986행/705오류·35,452.814ms: inventory1/trust540/locator158/semantic6, 영향372ID다.
+수집 exit0은 PASS가 아니다. 이전1067과 분류 조건이 달라 단순 감소율을 품질 수치로 쓰지 않는다.
+D02의 승인 없는 candidate986행 중33개 unresolved. 이 후보로 approval을 생성하지 않았다.
+1번의13개 합성 반례에는 선택 role와 타 함수의 같은 문장이 없었다. 실제 대조에서 다음을 발견했다.
+
+- 고정6개 resolvedRoles만 구성해 기존 route/control/controlReadback이 누락: UI039/043/044와RULE001~003의 route 근거 오류.
+- 서로 다른 승인 함수의 동일 anchor/context를 전체 파일 수준으로 모두 모호하다고 거부.
+  기존 enclosing body scope/symbol/hash까지 결합해 단1개이면 위치가 결정되며, 동일 body 안/복제 body의 복수 후보는 계속 거부해야 한다.
+
+메인이 새 근거를 직접 확인하고 같은 단계에서 보완한다. 제품·원장·합격 의미는 바꾸지 않는다.
+1번 focused PASS를 실제986행 정합 PASS로 확대하지 않는다. 아래 실행 전 정의는1번 보완의 영향 반례다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| R4L15 | 선택 role 보존 | route/control/controlReadback의 현재 위치·obligation,37행 이동PASS·context/body변경거부·원proof불변 | v4.1.0 |
+| R4L16 | 타 함수 동일문장 | 승인 scope/symbol/body hash에 맞는 단1후보만 해석 | v4.1.0 |
+| R4L17 | 실제 모호성 | 동일 함수 안 두 후보·동일 함수 통째 복제는 거부, R4L04 유지 | v4.1.0 |
+| R4L18 | 불일치 fallback 금지 | 모든 후보body가 다르면 기존line이 일치해도 거부·approval불변 | v4.1.0 |
+
+RED: `node --test --test-name-pattern='R4L15|R4L16' scripts/internal/verify_review4_locator_resolution.test.mjs`.
+예상은 선택 role route 근거 누락 및 타 함수 문맥 모호성 오류다. GREEN은 동일 파일 전체와 기존M/A 영향 회귀다.
+
+### 선택 role·승인 함수 구분 보완 결과
+
+메인 실제 diff/원출력 대조: 필수6개와 선택 role 전체를 현재 view에 포함한다.
+복수 문맥 후보는 기존 승인 file/symbol/scope/body SHA로 단1개가 입증되는 경우만 해석한다.
+새 hash를 승인 자료에 넣지 않으며 최종 hard trust 비교도 유지한다. 동일 함수 내 중복·함수 복제는 거부한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| R4L15 보완 RED | 선택3role 및 route obligation 누락, 기대[] 불일치·exit1 | FAIL |
+| R4L16 보완 RED | 다른 함수의 동일 문맥을 모호성으로 거부·exit1 | FAIL |
+| R4L01 보완 회귀 | baseline exact | PASS |
+| R4L02 보완 회귀 | 삽입 이동 | PASS |
+| R4L03 보완 회귀 | 삭제 이동 | PASS |
+| R4L04 보완 회귀 | 원위치 포함 중복 거부 | PASS |
+| R4L05 보완 회귀 | 문맥 변경 거부 | PASS |
+| R4L06 보완 회귀 | 본문 변경 거부 | PASS |
+| R4L07 보완 회귀 | assertion 삭제 거부 | PASS |
+| R4L08 보완 회귀 | verifier 변경 거부 | PASS |
+| R4L09 보완 회귀 | 동일 프로세스 이동 | PASS |
+| R4L10 보완 회귀 | 동일 프로세스 문맥/본문 변경 | PASS |
+| R4L11 보완 회귀 | 승인 원본 불변 | PASS |
+| R4L12 보완 회귀 | 옛 범위 decoy 거부 | PASS |
+| R4L14 보완 회귀 | 현재 source token 변경 반영 | PASS |
+| R4L15 선택 role | 기존 위치/37행 이동 허용·context/body변경 거부·원proof불변 | PASS |
+| R4L16 함수 구분 | 기존 승인 본문으로 단1후보 식별 | PASS |
+| R4L17 실제 모호성 | 같은 함수 안2후보와 동일 함수 통째 복제 각각 거부 | PASS |
+| R4L18 fallback 금지 | 승인 body에 맞는 후보가 없으면 옛line으로 돌아가지 않음 | PASS |
+| R4L13 보완 정리 |18개 fixture·26,881B 제거/부재 개별 확인 | PASS |
+| R4L-M 보완 회귀 | 기존30계약·0FAIL, exit0·0.179초 | PASS |
+| R4L-A 보완 회귀 | 기존11반례·0FAIL, exit0·0.051초·gate not-run | PASS |
+
+[RED](lp28-locator-followup-red.log) 2FAIL·52.494ms,
+[GREEN](lp28-locator-followup-green.log)17PASS·90.318ms,
+[migration](lp28-locator-followup-migration.log), [approval](lp28-locator-followup-approval.log).
+RED 로그의 Node 빈 줄 끝 공백만 보존 형식에 맞춰 제거하며 오류/수치/판정을 변경하지 않는다.
+운영 데이터·제품 실행·port 없음. 새 source 후보/원장 자동 갱신 없음.
+
+현재 소스 진단은 보완 전 [705오류](lp28-current-diagnostic.json), 보완 후
+[604오류](lp28-current-diagnostic-02.json)를 따로 보존한다. 후자는39,177.203ms,
+inventory1/trust575/locator28/semantic0이다. 진단 수집 exit0은 완료 PASS가 아니다.
+나머지 위치 오류는 변경된 실제 context 또는 같은 큰 함수 안 중복이며2번에서 검토할 대상이다.
+추적된 기존 승인 원장은 그대로 두었다. source 후보의33개 미해석도 아직 닫지 않았다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| 보완 실행별 TMPDIR/review4-locator-* | 격리 합성 소스18개 |26,881B | 실행 finally 제거 |18개 부재 | 보완GREEN R4L13 |
+| lp28-locator-followup-*.log | 비민감 자체검사4개 | 소형text | 저장소 보존 | 최초실패/수정/회귀 | 위 링크 |
+| lp28-current-diagnostic*.json | 실제 전체 오류2개 | source·고정오류만 | 저장소 보존 | 미완료 원인 분류 | 원장/제품PASS 아님 |
+
+진단 중 프로세스 상태 조회 `ps`는 sandbox에서 exit1이었다. 승인된 읽기 전용 승격 조회 exit0,
+명령 인자/환경은 읽지 않았다. 실제 진단 명령은 별도 정상 exit0으로 종료했다.

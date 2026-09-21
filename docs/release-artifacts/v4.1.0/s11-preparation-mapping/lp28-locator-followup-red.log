@@ -1,0 +1,69 @@
+[R4L13 cleanup] owned=true bytes=1372 removed=true
+[R4L13 cleanup] owned=true bytes=1876 removed=true
+✖ R4L15 optional roles retained relocated and validated (11.958833ms)
+✖ R4L16 duplicate statement in different function resolves approved body (2.455583ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 52.494
+
+✖ failing tests:
+
+test at scripts/internal/verify_review4_locator_resolution.test.mjs:114:1
+✖ R4L15 optional roles retained relocated and validated (11.958833ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+  + [
+  +   'UI-999 REVIEW4 route blob/enclosing-body trust binding drift',
+  +   'UI-999 REVIEW4 control blob/enclosing-body trust binding drift',
+  +   'UI-999 REVIEW4 controlReadback blob/enclosing-body trust binding drift',
+  +   'UI-999 REVIEW4 obligation-route-token-unbound'
+  + ]
+  - []
+
+      at fixture.optional (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:116:10)
+      at fixture (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:56:9)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:114:69)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'UI-999 REVIEW4 route blob/enclosing-body trust binding drift', 'UI-999 REVIEW4 control blob/enclosing-body trust binding drift', 'UI-999 REVIEW4 controlReadback blob/enclosing-body trust binding drift', 'UI-999 REVIEW4 obligation-route-token-unbound' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/verify_review4_locator_resolution.test.mjs:126:1
+✖ R4L16 duplicate statement in different function resolves approved body (2.455583ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+  + [
+  +   'UI-999 REVIEW4 readback context drift'
+  + ]
+  - []
+
+      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:128:10
+      at fixture (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:56:9)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:126:86)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'UI-999 REVIEW4 readback context drift' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

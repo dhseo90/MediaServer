@@ -1352,6 +1352,19 @@ function semanticToken(token) {
   return !/^(?:필요|비대상|안정화|확인|표시|적용|설정|검증|성공|실패|화면|목록|상세|조회|유지|일치|반영|관리|source|status|result|response|current|actual|pass|fail|true|false|ops|runtime|event|events|view|viewer|client|media|rule|profile|schema|payload|field|type|baseline|HTTP|HTTPS|JSON|UI|API|URI|CRUD|SHA|VA|GET|POST|PUT|PATCH|DELETE|S\d+|V\d+)$/i.test(value);
 }
 
+// 후보 해석용 비교일 뿐 승인 hash를 갱신하지 않는다. 최종 hard trust 검사는 별도 유지한다.
+export function review4LocatorMatchesApprovedBody(rootDir, locator, approved) {
+  if (!approved || !/^[a-f0-9]{64}$/.test(String(approved.enclosingBodySha256 || ''))) return false;
+  try {
+    const current = roleTrustBinding(rootDir, locator);
+    return current.file === approved.file && current.symbol === approved.symbol &&
+      current.enclosingBodyScope === approved.enclosingBodyScope &&
+      current.enclosingBodySha256 === approved.enclosingBodySha256;
+  } catch {
+    return false;
+  }
+}
+
 function roleTrustBinding(rootDir, locator) {
   if (!locator?.file || !Number.isInteger(locator.line)) throw new Error('REVIEW4 role locator incomplete');
   const absolute = path.resolve(rootDir, locator.file);

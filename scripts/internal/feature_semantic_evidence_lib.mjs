@@ -11,6 +11,7 @@ import {
   review4InventoryDigest,
   buildReview4SemanticObligation,
   buildReview4TrustBindings,
+  review4LocatorMatchesApprovedBody,
   parseVerifiedReview4Dispatch,
   review4SourceFlowDigest,
   stableStringify,
@@ -321,9 +322,10 @@ function validateReview4AppliedItem({ rootDir, row, item, evidence, errors }) {
       sha256(JSON.stringify(proof.approval)) !== proof.approvalDigest) {
     errors.push(`${row.id} REVIEW4 embedded approval drift`);
   }
-  const resolvedRoles = {};
-  for (const role of ["owner", "dispatch", "action", "state", "readback", "verifier"]) {
-    resolvedRoles[role] = validateReview4DirectLocator(rootDir, row.id, role, proof.roles?.[role], errors);
+  const resolvedRoles = Object.create(null);
+  const roleNames = new Set(["owner", "dispatch", "action", "state", "readback", "verifier", ...Object.keys(proof.roles || {})]);
+  for (const role of roleNames) {
+    resolvedRoles[role] = validateReview4DirectLocator(rootDir, row.id, role, proof.roles?.[role], errors, proof.trustBindings?.roles?.[role]);
   }
   const trustItem = {
     id: row.id,
@@ -408,7 +410,7 @@ function validateReview4AppliedItem({ rootDir, row, item, evidence, errors }) {
   return errors;
 }
 
-function validateReview4DirectLocator(rootDir, id, role, locator, errors) {
+function validateReview4DirectLocator(rootDir, id, role, locator, errors, approvedBinding) {
   if (!locator?.file || !locator?.anchor || !Number.isInteger(locator?.line) || !locator?.contextSha256) {
     errors.push(`${id} REVIEW4 ${role} locator missing`);
     return;
@@ -421,7 +423,8 @@ function validateReview4DirectLocator(rootDir, id, role, locator, errors) {
 
   // 줄 삽입/삭제만으로 동일한 승인 anchor가 이동한 경우에는 절대 line 번호를
   // semantic 변경으로 취급하지 않는다. anchor와 로컬 context가 함께 일치하는
-  // 위치가 단 하나일 때만 기존 승인을 유지하며, 중복 또는 내용 변경은 계속 FAIL한다.
+  // 위치가 단 하나이거나 승인 enclosing body로 구별되는 단 하나일 때만 해석한다.
+  // 승인 함수 자체의 복제/동일 함수 내부 중복은 위치를 추측하지 않고 FAIL한다.
   const relocatedLines = [];
   for (let index = 0; index < source.lines.length; index += 1) {
     if (source.lines[index].trim() !== anchor) continue;
@@ -430,6 +433,10 @@ function validateReview4DirectLocator(rootDir, id, role, locator, errors) {
     }
   }
   if (relocatedLines.length === 1) return { ...locator, line: relocatedLines[0] };
+  if (relocatedLines.length > 1) {
+    const bound = relocatedLines.filter(line => review4LocatorMatchesApprovedBody(rootDir, { ...locator, line }, approvedBinding));
+    if (bound.length === 1) return { ...locator, line: bound[0] };
+  }
   if (lineText !== anchor) errors.push(`${id} REVIEW4 ${role} line drift`);
   errors.push(`${id} REVIEW4 ${role} context drift`);
 }
