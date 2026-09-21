@@ -2589,6 +2589,102 @@ check("dashboard marker response projection keeps only digests and fails closed"
   "dashboard marker response projection retained raw response material");
 });
 
+// 실제 메서드 본문을 실행하되 브라우저·시계·요청 저장소만 격리 대역으로 제공한다.
+function navigationSettlingHarness({ waitFailure = false } = {}) {
+  const start = adapterSource.indexOf("    navigate: async (");
+  const end = adapterSource.indexOf("    setCorrelationId:", start);
+  assert(start >= 0 && end > start, "navigate source boundary missing");
+  let release;
+  const calls = [];
+  const gate = new Promise(resolve => { release = resolve; });
+  const navigate = new Function("waitForPendingRequestSnapshot", "documentNavigationLedger",
+    "networkEntries", "performNavigation", "buildNavigationEvidence", "urlTarget", "httpBase",
+    `return ({${adapterSource.slice(start, end)}}).navigate;`)(
+    async options => { calls.push({kind: "wait", options}); await gate;
+      if (waitFailure) throw new Error("pending request snapshot timeout");
+      return {unresolvedRequestCount: 0}; },
+    [], [], async () => { calls.push({kind: "goto"}); return {invocationId: "test"}; },
+    value => value, value => value, "http://fixture.invalid");
+  return {navigate, calls, release};
+}
+
+check("NAV01 auxiliary readback navigation awaits pending snapshot before goto", async () => {
+  for (const kind of ["catalog-source-navigation", "catalog-restore-navigation"]) {
+    const h = navigationSettlingHarness();
+    const running = h.navigate("/ops/events", {kind});
+    await Promise.resolve();
+    assert(h.calls.length === 1 && h.calls[0].kind === "wait" && h.calls[0].options.seal === false,
+      "auxiliary goto occurred before an unsealed pending snapshot completed");
+    h.release();
+    const result = await running;
+    assert(h.calls[1]?.kind === "goto" && result.pendingRequestSnapshot?.unresolvedRequestCount === 0 &&
+      result.pendingRequestSnapshot.captureSealed === false,
+      "completed snapshot attestation or goto missing");
+  }
+});
+
+check("NAV02 auxiliary snapshot timeout prevents goto", async () => {
+  for (const kind of ["catalog-source-navigation", "catalog-restore-navigation"]) {
+    const h = navigationSettlingHarness({waitFailure: true});
+    const running = h.navigate("/ops/events", {kind}); h.release();
+    let rejected = false;
+    try { await running; } catch (error) { rejected = error.message === "pending request snapshot timeout"; }
+    assert(rejected && !h.calls.some(c => c.kind === "goto"), "timeout allowed auxiliary goto");
+  }
+});
+check("NAV03 user navigation bypasses auxiliary snapshot wait", async () => {
+  for (const kind of ["explicit-navigation", "local-link-document-navigation", "logout", "form-navigation", "catalog-source-navigation-extra"]) {
+    const h = navigationSettlingHarness();
+    const result = await h.navigate("/ops/events", {kind});
+    assert(h.calls.length === 1 && h.calls[0].kind === "goto" && !result.pendingRequestSnapshot,
+      "non-auxiliary navigation policy changed");
+  }
+});
+function pendingSnapshotHarness() {
+  const start = adapterSource.indexOf("  const waitForPendingRequestSnapshot = async (");
+  const end = adapterSource.indexOf("  const sealRequestCaptureBoundary =", start);
+  assert(start >= 0 && end > start, "private pending snapshot source boundary missing");
+  let now = 0, seals = 0;
+  const pending = new Map(), entries = [], reads = new Set(), failures = [];
+  const h = {pending, entries, reads, failures, tick: () => {}, get seals() { return seals; }, get now() { return now; }};
+  h.wait = new Function("pendingRequests", "networkEntries", "pendingSafeResponseReads",
+    "safeResponseReadFailures", "sealRequestCaptureBoundary", "formatSafeResponseReadFailure",
+    "page", "Date", "timeoutMs", `${adapterSource.slice(start, end)}return waitForPendingRequestSnapshot;`)(
+    pending, entries, reads, failures, () => { seals++; }, () => "safe response read failure",
+    {waitForTimeout: async ms => { now += ms; h.tick(now); }}, {now: () => now}, 30000);
+  return h;
+}
+check("NAV04 missing response and unfinished safe body remain failures", async () => {
+  for (const mode of ["missing-response", "pending-body", "failed-body"]) {
+    const h = pendingSnapshotHarness(); h.pending.set("a", {requestId: "a"});
+    if (mode !== "missing-response") h.entries.push({phase: "response", requestId: "a"});
+    if (mode === "pending-body") h.reads.add("body");
+    if (mode === "failed-body") h.failures.push("failure");
+    let rejected = false;
+    try { await h.wait({seal: false}); } catch { rejected = true; }
+    assert(rejected && h.seals === 0 && h.pending.size === 1, "incomplete evidence accepted or removed");
+  }
+});
+check("NAV05 unsealed auxiliary snapshot preserves next document capture and cleanup seal", async () => {
+  const h = pendingSnapshotHarness(); h.pending.set("a", {requestId: "a"}); h.reads.add("body");
+  h.tick = now => { if (now === 300) { h.entries.push({phase: "response", requestId: "a"}); h.reads.clear(); } };
+  const first = await h.wait({seal: false});
+  assert(first.capturedRequestCount === 1 && h.seals === 0 && h.pending.size === 1, "auxiliary wait sealed or erased ledger");
+  h.pending.set("b", {requestId: "b"});
+  h.entries.push({phase: "response", requestId: "b"});
+  const cleanup = await h.wait();
+  assert(cleanup.capturedRequestCount === 2 && h.seals === 1 && h.pending.size === 2,
+    "new document request lost or default cleanup seal missing");
+});
+check("NAV06 snapshot preserves default observation quiet period and timeout", async () => {
+  const h = pendingSnapshotHarness(); const result = await h.wait({seal: false});
+  assert(result.observedMs >= 275 && result.unresolvedQuietMs >= 25 && h.seals === 0,
+    "default 250ms observation plus 25ms quiet period changed");
+  const missing = pendingSnapshotHarness(); missing.pending.set("a", {requestId: "a"});
+  try { await missing.wait({seal: false}); } catch {}
+  assert(missing.now === 30000 && missing.seals === 0, "existing timeout changed");
+});
+
 let pass = 0;
 let fail = 0;
 for (const item of checks) {

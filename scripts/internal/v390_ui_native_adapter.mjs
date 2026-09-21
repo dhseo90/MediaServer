@@ -2186,6 +2186,55 @@ async function openNativePlaywrightPage(playwright, {
       ? structuredClone(initialRouteSettlingAttestation.navigation)
       : buildNavigationEvidence();
   };
+  const waitForPendingRequestSnapshot = async ({
+      seal = true,
+      minimumObservationMs = 250,
+      unresolvedQuietMs = 25,
+    } = {}) => {
+      const startedAt = Date.now();
+      const deadline = startedAt + timeoutMs;
+      const capturedRequestIds = new Set();
+      let unresolvedQuietStartedAt = null;
+      while (Date.now() < deadline) {
+        for (const request of pendingRequests.values()) {
+          const requestId = String(request.requestId || "");
+          if (requestId) capturedRequestIds.add(requestId);
+        }
+        const pendingRequestIds = new Set([...pendingRequests.values()]
+          .map(request => String(request.requestId || ""))
+          .filter(Boolean));
+        const terminalRequestIds = new Set(networkEntries
+          .filter(entry => entry.phase === "response")
+          .map(entry => String(entry.requestId || ""))
+          .filter(Boolean));
+        const unresolvedRequestIds = [...capturedRequestIds].filter(requestId =>
+          pendingRequestIds.has(requestId) && !terminalRequestIds.has(requestId));
+        const observationComplete = Date.now() - startedAt >= minimumObservationMs;
+        if (observationComplete && unresolvedRequestIds.length === 0 &&
+            pendingSafeResponseReads.size === 0) {
+          unresolvedQuietStartedAt ??= Date.now();
+        } else {
+          unresolvedQuietStartedAt = null;
+        }
+        if (unresolvedQuietStartedAt !== null &&
+            Date.now() - unresolvedQuietStartedAt >= unresolvedQuietMs) {
+          if (safeResponseReadFailures.length > 0) {
+            throw new Error(formatSafeResponseReadFailure(safeResponseReadFailures));
+          }
+          if (seal) sealRequestCaptureBoundary();
+          return {
+            capturedRequestCount: capturedRequestIds.size,
+            unresolvedRequestCount: 0,
+            observedMs: Date.now() - startedAt,
+            unresolvedQuietMs: Date.now() - unresolvedQuietStartedAt,
+          };
+        }
+        await page.waitForTimeout(10);
+      }
+      throw new Error(
+        `pending request snapshot timeout: ${pendingRequests.size}`,
+      );
+    };
   const sealRequestCaptureBoundary = () => {
     if (requestCaptureSealed) return;
     requestLifecycleLedger.noteRequestCaptureSeal();
@@ -2410,6 +2459,9 @@ async function openNativePlaywrightPage(playwright, {
       kind = "explicit-navigation",
       lifecycleScope = "operation",
     } = {}) => {
+      // 독립 readback 보조 이동만 기다리며 사용자 이동과 요청 캡처 수명은 변경하지 않는다.
+      const pendingRequestSnapshot = kind === "catalog-source-navigation" || kind === "catalog-restore-navigation"
+        ? await waitForPendingRequestSnapshot({ seal: false }) : null;
       const ledgerStart = documentNavigationLedger.length;
       const networkStart = networkEntries.length;
       const response = await performNavigation(nextPagePath, {
@@ -2418,13 +2470,16 @@ async function openNativePlaywrightPage(playwright, {
         allowCorrelation: false,
       });
       const observedInvocationId = response.invocationId;
-      return buildNavigationEvidence({
+      const navigationEvidence = buildNavigationEvidence({
         requestedPath: urlTarget(new URL(nextPagePath, `${httpBase}/`).toString()),
         invocationId: observedInvocationId,
         response,
         ledger: lifecycleScope === "case" ? documentNavigationLedger : documentNavigationLedger.slice(ledgerStart),
         scopedNetworkEntries: networkEntries.slice(networkStart),
       });
+      return pendingRequestSnapshot
+        ? { ...navigationEvidence, pendingRequestSnapshot: { ...pendingRequestSnapshot, captureSealed: false } }
+        : navigationEvidence;
     },
     setCorrelationId: async (
       correlationId,
@@ -3058,54 +3113,7 @@ async function openNativePlaywrightPage(playwright, {
       }
       throw new Error(`network quiet timeout for correlation ${correlationId || "(any)"}`);
     },
-    waitForPendingRequestSnapshot: async ({
-      minimumObservationMs = 250,
-      unresolvedQuietMs = 25,
-    } = {}) => {
-      const startedAt = Date.now();
-      const deadline = startedAt + timeoutMs;
-      const capturedRequestIds = new Set();
-      let unresolvedQuietStartedAt = null;
-      while (Date.now() < deadline) {
-        for (const request of pendingRequests.values()) {
-          const requestId = String(request.requestId || "");
-          if (requestId) capturedRequestIds.add(requestId);
-        }
-        const pendingRequestIds = new Set([...pendingRequests.values()]
-          .map(request => String(request.requestId || ""))
-          .filter(Boolean));
-        const terminalRequestIds = new Set(networkEntries
-          .filter(entry => entry.phase === "response")
-          .map(entry => String(entry.requestId || ""))
-          .filter(Boolean));
-        const unresolvedRequestIds = [...capturedRequestIds].filter(requestId =>
-          pendingRequestIds.has(requestId) && !terminalRequestIds.has(requestId));
-        const observationComplete = Date.now() - startedAt >= minimumObservationMs;
-        if (observationComplete && unresolvedRequestIds.length === 0 &&
-            pendingSafeResponseReads.size === 0) {
-          unresolvedQuietStartedAt ??= Date.now();
-        } else {
-          unresolvedQuietStartedAt = null;
-        }
-        if (unresolvedQuietStartedAt !== null &&
-            Date.now() - unresolvedQuietStartedAt >= unresolvedQuietMs) {
-          if (safeResponseReadFailures.length > 0) {
-            throw new Error(formatSafeResponseReadFailure(safeResponseReadFailures));
-          }
-          sealRequestCaptureBoundary();
-          return {
-            capturedRequestCount: capturedRequestIds.size,
-            unresolvedRequestCount: 0,
-            observedMs: Date.now() - startedAt,
-            unresolvedQuietMs: Date.now() - unresolvedQuietStartedAt,
-          };
-        }
-        await page.waitForTimeout(10);
-      }
-      throw new Error(
-        `pending request snapshot timeout: ${pendingRequests.size}`,
-      );
-    },
+    waitForPendingRequestSnapshot,
     click: async (selector) => {
       await revealClosedDetailsForSelector(page, selector, {
         state: "visible",

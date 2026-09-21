@@ -89,6 +89,16 @@ waitForPendingRequestSnapshot/close 경계를 조사하며, 기록에 최초 예
 | LP30-D01 | 원본 보존·소스 대조 | tar의 EVT058 summary/policy/trace만 소유tmp에 복원,조작/시각/정리 단계와 runner 제어흐름 대조 | v4.1.0 |
 | LP30-D02 | 기존 단일 실제 UI 진단 | run-v390-ui-native-diagnostic-sweep --case-id EVT-058·현재빌드·실제Chrome·30초기준. 최초예외/응답관측·정리 보존. 진단 PASS는 canonical UI 전체 PASS 아님 | v4.1.0 |
 | LP30-D03 | 원인 한정 보완 | 확정 원인만 구현 전 반례 정의·예상RED→GREEN·관련 단기 회귀. 미확정/교차계약은 뒤단계 중단 | v4.1.0 |
+| LP30-D04 | 문서 이동·요청 중계 한정 비교 | 소유 loopback fixture/실제Chrome에서 중계없음·중계중이동·중계응답후이동 각1회. 고정2요청의 browser start/response/finished/failed와 server 수신/send/close를 분리. 인위적 hold·최대60초는 원인 비교 조건이며 제품/UI PASS나 기존30초 완화가 아님 | v4.1.0 |
+| LP30-NAV01 | 보조 이동 전 응답 정리 | catalog-source-navigation·catalog-restore-navigation 각각 기존 요청 정리 완료 전 goto 금지, 완료 후 이동·근거 기록 | v4.1.0 |
+| LP30-NAV02 | 정리 실패 시 이동 금지 | 기존 timeout이면 goto 0회·실패 유지, timeout 연장 없음 | v4.1.0 |
+| LP30-NAV03 | 실제 사용자 이동 불변 | 두 보조 kind 이외 이동에는 새 대기 적용 없음 | v4.1.0 |
+| LP30-NAV04 | 미확인 응답·본문 거부 | 응답 누락·safe-body 읽기 미완료/실패를 성공 처리하거나 pending에서 삭제하지 않음 | v4.1.0 |
+| LP30-NAV05 | 캡처 수명 유지 | 보조 이동 전 대기는 seal하지 않음·새 문서 요청도 후속 캡처, 최종 cleanup의 seal 유지 | v4.1.0 |
+| LP30-NAV06 | 기존 시간 기준 유지 | 최소 관측250ms·quiet25ms·poll10ms·기존 timeoutMs 유지 | v4.1.0 |
+| LP30-R01 | 조회 실행 계약 회귀 | node scripts/internal/verify_v390_ui_exact_oracle_runtime_contract.mjs, 기존 보조 이동·readback 의미와 오류 거부 | v4.1.0 |
+| LP30-R02 | 문서 소유 요청 회귀 | node scripts/internal/verify_v390_ui_page_owned_request_lifecycle_contract.mjs, 문서/요청 소유·종료 경계 | v4.1.0 |
+| LP30-R03 | 요청·조작 소유 회귀 | node scripts/internal/verify_v390_ui_request_action_ownership_scope_contract.mjs, 요청 소유/범위 및 오결속 거부 | v4.1.0 |
 | LP30-U01 | 현행 UI 마감 | LP29-U01~04 그대로, source-bound424/visual80/Policy와 녹화실UI/browser를 구분 | v4.1.0 |
 | LP30-C01 | 증거·정리·분할 커밋 | 명령/exit/전체항목/hash/소유PID/port/temp,통과단위 커밋·최종push조건 | v4.1.0 |
 
@@ -98,6 +108,46 @@ waitForPendingRequestSnapshot/close 경계를 조사하며, 기록에 최초 예
 기존 진단 entry는 clean current-source를 요구한다. 최신 분할 커밋 승인에 따라 무결성 검증을 마친
 LP29 증거 보존·정리 기록과 LP30 실행 전 정의를 문서 준비 단위로 먼저 커밋한다. UI 실패 단계의
 구현 완료/검증 PASS 커밋이 아니며 실제 실패·미실행을 유지한다. 이후 runtime 진단 source는 이 커밋이다.
+
+첫 진단 source는 `a0a95a04`이며 실제 EVT058 단일 실행은 exit0/8.639초·1PASS/0FAIL,
+서버 PID76706·HTTP50459/RTSP50460·임시 역할root273,211B 정리 PASS다. 자동 재시도0,
+diagnosticOnly=true/releaseEvidenceEligible=false/uiFulltestPass=false를 유지한다. 바이너리는 LP29와 동일하다.
+이 결과는 최초 원인 해결이 아니라 미재현이다. 기존 실패의 누락2요청은 최초dashboard의
+background-refresh(request57/58)이고 다음request60이 `/ops/events`로의 readback 이동이다.
+복귀 후 같은2endpoint(object253/254)의 응답은200이었다. 서버의 지속적인 무응답으로 단정하지 않는다.
+LP30-D04로 요청 중계/문서 이동의 관측 경계를 한정 비교한 뒤 수정 필요성을 판단한다.
+
+LP30-D04 첫 비교는3조건 중2조건을 관측했으나 마지막 조건의 fixture가 응답 본문을 소비하지 않아
+requestfinished 대기가 끝나지 않았다(exit2/6.643초). 제품 실패나 예상 RED가 아니다.
+본문 소비를 추가한 동일3조건 비교는 exit0/1.994초다. 중계 없는 이동은 서버가2요청 수신·취소를
+확인했지만 브라우저 response/finished/failed가 없었고, 중계 보류 중 이동은 서버 수신0·브라우저
+종료 관측0이었다. 응답 완료 뒤 이동한 대조군은2요청 모두 response/finished가 남았다.
+각 조건1회·명시적 인위 hold를 사용했으므로 과거 요청57/58의 서버 수신 여부나 최초 예외 원문까지
+확정한 것은 아니다. 확인한 결함은 검증기의 보조 readback 이동이 진행 중 요청의 terminal 관측을
+유실시킬 수 있다는 점이다. 제품 API/사용자 이동을 바꾸지 않고 두 보조 이동만 기존 정리 기준을
+충족한 뒤 수행하도록 한정한다. 기존 LP29 실패를 PASS로 승격하지 않는다.
+
+NAV01의 첫 예상 RED와 첫83개 GREEN은 LP30-D03 포괄 정의 이후지만 NAV 개별 등록 전에 실행됐다.
+기존77PASS·신규1FAIL/exit1 및83PASS/exit0을 이력으로만 남기고 사전등록된 TDD 증거로 사용하지 않는다.
+위 NAV01~06 등록 후 기존 소스 반례와 변경 소스 검증을 다시 수행한다. 무관한 제품·30분 증거는 유지한다.
+
+등록 후 HEAD 본문의 NAV01만 메모리에서 재실행하여 동일 assertion의 예상 RED(exit1/38.4ms)를
+확인했다. 현재 소스는83PASS/0FAIL(exit0/596.5ms), 구문2개·diffcheck 각각 exit0다.
+관련 R01 조회 실행67개·R02 문서 소유 요청11개·R03 요청/조작 소유4개도 exit0다.
+메인이 실제 diff·원출력·외부 호출을 검토했고, 공개 snapshot 호출은 기존 runner 한 곳에서
+250ms/25ms만 전달하며 기본 seal을 유지한다. 두 보조 이동은 seal=false로 관측을 계속하고
+기존 deadline 안에서 응답/본문 증거가 부족하면 이동 전에 실패한다. 제품 파일 변경은 없다.
+
+[165개 등록 후 단기 검사·정리 전수](lp30-navigation-items.md),
+[구조화 진단·명령 결과](lp30-navigation-result.json),
+[진단·3조건 비교·최초 오류·도구·전체 원출력](lp30-navigation-evidence.json.gz)을 보존했다.
+압축1,244,864B/48파일 복원 해시 일치, 소유 PID4개 부재·TCP50459/50460·UDP51896 재바인딩,
+두 임시root 삭제·277cache 링크 대상 보존을 확인했다. 큰14MB 생성 manifest는 압축물 안에만
+있으며 별도 소스 파일로 복제하지 않는다. 이 커밋 단위는 검증기 한정 수정·단기 회귀 완료다.
+실제 수정 후 EVT058·canonical424·visual80·Policy·녹화UI·브라우저미디어는 뒤의 실행 단계에서
+판정하며 아직 완료하지 않았다. LP29 실제30분은 동일 제품 바이너리 증거로 유지한다.
+문서 마감 `./server.sh verify-docs-links` exit0:299문서/9692링크/22이미지/164anchor,
+indexed76·제외214·오류0. `git diff --check` exit0. 기존 UI 이미지·30분 증거를 수정하지 않았다.
 
 ### 실제 UI 실패 — 현재 최종 판정
 

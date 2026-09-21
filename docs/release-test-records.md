@@ -8,6 +8,12 @@
 기존 단일 case 진단을 수행한다. UI 실패를 완료로 커밋하는 것이 아니며 원인 해결·실제UI 마감은 아직 미완료다.
 아래 LP29의 미커밋/푸시 보류 문구는 해당 실행 종료 당시 상태다.120분·외부release·외부서비스/실기기는 실행하지 않는다.
 
+원인 비교에서 보조 readback의 문서 이동 중 진행 요청의 브라우저 종료 관측 유실을 확인했다.
+두 보조 이동만 기존 기준으로 응답/본문 정리 뒤 수행하도록 검증기를 보완했다. 제품은 변경하지 않았다.
+[등록 후 단기165개·정리 전수](release-artifacts/v4.1.0/s11-preparation-mapping/lp30-navigation-items.md),
+[단일 실UI 미재현·비교·실패 이력·원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp30-navigation-result.json)을 보존했다.
+이 수정·단기 검증 단위만 완료했으며, 수정 후 실제 UI 마감과 푸시는 아직 미완료다.
+
 ## 현재 작업: LP29 30분 통과·실제 UI 1건 실패
 
 사용자1·2번 실행·분할커밋·조건부푸시 승인. [정의·상태](release-artifacts/v4.1.0/s11-preparation-mapping/lp29-final-validation.md)를 따른다.
