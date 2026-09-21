@@ -1315,7 +1315,6 @@ export function review4SelfDeclaredRuntimeReadback(rootDir, role, trust) {
 }
 
 function semanticSourceCorpus(rootDir) {
-  if (semanticSourceCorpusCache.has(rootDir)) return semanticSourceCorpusCache.get(rootDir);
   const files = [];
   for (const directory of ['src', 'include', 'config', 'scripts/internal']) {
     const absolute = path.join(rootDir, directory);
@@ -1323,10 +1322,19 @@ function semanticSourceCorpus(rootDir) {
     collectSourceFiles(absolute, files);
   }
   if (fs.existsSync(path.join(rootDir, 'server.sh'))) files.push(path.join(rootDir, 'server.sh'));
+  // 프로세스 재사용 중 수정/추가/삭제된 source를 이전 corpus로 판정하지 않는다.
+  // mtime만 복원한 같은 크기 수정도 ctime(ns)로 구분한다.
+  files.sort();
+  const fingerprint = files.map(file => {
+    const stat = fs.statSync(file, { bigint: true });
+    return `${file}:${stat.dev}:${stat.ino}:${stat.size}:${stat.mtimeNs}:${stat.ctimeNs}`;
+  }).join('\n');
+  const cached = semanticSourceCorpusCache.get(rootDir);
+  if (cached?.fingerprint === fingerprint) return cached.corpus;
   const corpus = files.map(file => {
     try { return fs.readFileSync(file, 'utf8'); } catch { return ''; }
   }).join('\n');
-  semanticSourceCorpusCache.set(rootDir, corpus);
+  semanticSourceCorpusCache.set(rootDir, { fingerprint, corpus });
   return corpus;
 }
 

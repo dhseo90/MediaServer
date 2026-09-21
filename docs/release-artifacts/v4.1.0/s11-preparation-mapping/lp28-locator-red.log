@@ -1,0 +1,39 @@
+✖ R4L02 unique insertion relocation preserves approved semantics (10.551125ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 49.072209
+
+✖ failing tests:
+
+test at scripts/internal/verify_review4_locator_resolution.test.mjs:52:1
+✖ R4L02 unique insertion relocation preserves approved semantics (10.551125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+  + [
+  +   'UI-999 REVIEW4 readback blob/enclosing-body trust binding drift',
+  +   'UI-999 REVIEW4 edge-3:readback-is-not-assertion',
+  +   'UI-999 REVIEW4 edge-3:runtime-readback-observation-missing',
+  +   'UI-999 REVIEW4 state oracle drift'
+  + ]
+  - []
+
+      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:52:180
+      at fixture (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:47:9)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:52:78)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'UI-999 REVIEW4 readback blob/enclosing-body trust binding drift', 'UI-999 REVIEW4 edge-3:readback-is-not-assertion', 'UI-999 REVIEW4 edge-3:runtime-readback-observation-missing', 'UI-999 REVIEW4 state oracle drift' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

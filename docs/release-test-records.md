@@ -1,5 +1,11 @@
 # Release Test Records
 
+## 현재 작업: 검증기 위치 일관성 및 PREP 재결속
+
+사용자 승인1~5 순차 개발·분할커밋·조건부푸시. 외부 서비스·실기기는 명시 제외하며 PASS가 아니다.
+[최신 범위·실행 전 정의·결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp28-locator-closure.md)를 따른다.
+아래 LP27의 중단·완료는 이전 실행 이력이다. 실제30분/UI/120분과 외부 릴리즈 동작은 이번 범위 밖이다.
+
 ## LP27 릴리즈 선행 1~4 순차 작업
 
 최신 승인: 진단 신뢰성·미재현 기준→HW03마감→PREP→CLOSE→S11단기 1~5 순차개발·분할커밋·조건부push.
