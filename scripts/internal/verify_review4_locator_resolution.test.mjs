@@ -4,6 +4,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import vm from 'node:vm';
+import * as trustLibrary from './feature_semantic_review4_trust_lib.mjs';
 import { validateSemanticItem, semanticDigest, SEMANTIC_CLOSURE_SCHEMA, REVIEW3_CALL_CHAIN_SCHEMA } from './feature_semantic_evidence_lib.mjs';
 import { buildReview4SemanticObligation, buildReview4TrustBindings, parseVerifiedReview4Dispatch, review4SourceFlowDigest, sha256, REVIEW4_APPROVAL_SOURCE, REVIEW4_APPROVAL_REVIEWER_SOURCE } from './feature_semantic_review4_trust_lib.mjs';
 
@@ -14,6 +16,7 @@ function fixture(run, options = {}) {
   const product = '// padding\n'.repeat(40) + 'void Owner() {\n  Dispatch();\n  Action();\n  ScopedToken();\n\n\n  Unbound();\n}\n';
   let readback = '// padding\n'.repeat(40) + 'function Readback() {\n  const response = requestJson();\n  const ScopedToken = response.value;\n  if (ScopedToken !== 1) {\n\n\n    throw new Error("mismatch");\n  }\n}\n';
   if (options.duplicateWithin) readback = readback.replace('\n}\n', '\n  const ScopedToken = response.value;\n  if (ScopedToken !== 1) {\n\n    throw new Error("again");\n  }\n}\n');
+  if (options.shellBody) readback = `Readback() {\n${options.shellBody}\n}\n`;
   const server = 'case "$command" in\n  verify-alpha)\n    require_internal alpha.mjs\n    exec "${INTERNAL_DIR}/alpha.mjs" "$@"\n    ;;\nesac\n';
   write('src/bound.cpp', product); write('scripts/internal/child.mjs', readback);
   write('scripts/internal/alpha.mjs', 'exec "${SCRIPT_DIR}/child.mjs" "$@"\n'); write('server.sh', server);
@@ -29,7 +32,7 @@ function fixture(run, options = {}) {
     dispatch: locator('src/bound.cpp', 'Owner', 'Dispatch();'),
     action: locator('src/bound.cpp', 'Owner', 'Action();'),
     state: locator('src/bound.cpp', 'ScopedToken', 'ScopedToken();'),
-    readback: locator('scripts/internal/child.mjs', 'Readback', 'if (ScopedToken !== 1) {'),
+    readback: locator('scripts/internal/child.mjs', 'Readback', options.shellBody ? shellAnchor : 'if (ScopedToken !== 1) {'),
     verifier: locator('server.sh', 'server-dispatch:verify-alpha', 'verify-alpha)'),
   };
   const optional = 'void Optional() {\n  route("/ops/optional-route");\n  control();\n  controlReadback();\n\n\n  Other();\n}\n';
@@ -139,4 +142,40 @@ test('R4L18 no approved body match cannot fall back to stored line', () => fixtu
   f.write('scripts/internal/child.mjs', changed + changed.replace('Readback()', 'Different()'));
   assert.ok(f.check().some(e => /readback.*context/.test(e)));
   assert.deepEqual(f.item, original);
+}));
+
+const shellAnchor = 'if ! output="$(probe_rtsp_url "${url}" "${timeout_us}" 2>&1)"; then';
+const shellBranch = `${shellAnchor}\n  if [[ -n "${'${DIAG_DIR}'}" ]]; then\n    log_fail "diagnostic only"\n  else\n    log_fail "ScopedToken probe failure"\n  fi\n  echo "$output"\n  return 1\nfi`;
+test('R4L19 nested shell failure branch preserves exact oracle', () => fixture(f => assert.deepEqual(f.check(), []), { shellBody: shellBranch }));
+test('R4L20 closed fi excludes outside token and failure decoys', () => fixture(f => {
+  const errors = f.check();
+  assert.ok(errors.some(e => /readback-token-unbound/.test(e)));
+  assert.ok(errors.some(e => /readback-is-not-assertion/.test(e)));
+}, { shellBody: `${shellAnchor}\n  echo "no assertion"\nfi\nlog_fail "ScopedToken"\nreturn 1` }));
+test('R4L21 incomplete bounded and success-only shell branches rejected', () => {
+  for (const shellBody of [shellBranch.slice(0, -2), `${shellAnchor}\n${'# padding\n'.repeat(130)}log_fail "ScopedToken"\nreturn 1\nfi`, `${shellAnchor}\n#${'x'.repeat(32768)}\nreturn 1\nfi`, `${shellAnchor}\n${'if test 1; then\n'.repeat(16)}return 1\n${'fi\n'.repeat(17)}`, `${shellAnchor}\n  echo "failure unobserved"\nelse\n  log_fail "ScopedToken"\n  return 1\nfi`]) {
+    fixture(f => assert.ok(f.check().some(e => /readback-is-not-assertion/.test(e))), { shellBody });
+  }
+});
+test('R4L22 generator and consumer use same bounded branch reader', () => fixture(f => {
+  const source = fs.readFileSync(new URL('./verify_v390_review4_feature_semantic_source_audit.mjs', import.meta.url), 'utf8');
+  const start = source.indexOf('function rawAssertionBranchText(role) {');
+  const end = source.indexOf('\nfunction locatorContains(', start);
+  assert.ok(start >= 0 && end > start);
+  const role = f.item.semanticEvidence.review4Proof.roles.readback;
+  const context = vm.createContext({ rootDir: f.rootDir, review4AssertionBranchText: trustLibrary.review4AssertionBranchText });
+  vm.runInContext(source.slice(start, end), context);
+  const generated = context.rawAssertionBranchText(role);
+  assert.equal(generated, trustLibrary.review4AssertionBranchText(f.rootDir, role));
+  assert.ok(generated.includes('ScopedToken'));
+  assert.deepEqual(f.check(), []);
+}, { shellBody: shellBranch }));
+
+test('R4L23 Python heredoc condition retains non-shell branch reader', () => fixture(f => {
+  const source = 'width = int(payload.get("width") or 0)\nheight = int(payload.get("height") or 0)\nif width <= 0 or height <= 0:\n    raise SystemExit("invalid image size")\n\n';
+  f.write('scripts/internal/embedded.sh', source);
+  const role = { file: 'scripts/internal/embedded.sh', line: 3, anchor: 'if width <= 0 or height <= 0:' };
+  const branch = trustLibrary.review4AssertionBranchText(f.rootDir, role);
+  assert.ok(branch.includes('raise SystemExit("invalid image size")'));
+  assert.ok(branch.includes(role.anchor));
 }));

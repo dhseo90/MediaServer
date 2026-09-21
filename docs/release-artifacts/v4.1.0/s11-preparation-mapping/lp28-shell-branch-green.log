@@ -1,0 +1,249 @@
+[R4L13 cleanup] owned=true bytes=1273 removed=true
+[R4L13 cleanup] owned=true bytes=1717 removed=true
+[R4L13 cleanup] owned=true bytes=943 removed=true
+[R4L13 cleanup] owned=true bytes=1875 removed=true
+[R4L13 cleanup] owned=true bytes=1273 removed=true
+[R4L13 cleanup] owned=true bytes=1273 removed=true
+[R4L13 cleanup] owned=true bytes=1260 removed=true
+[R4L13 cleanup] owned=true bytes=1283 removed=true
+[R4L13 cleanup] owned=true bytes=1273 removed=true
+[R4L13 cleanup] owned=true bytes=1273 removed=true
+[R4L13 cleanup] owned=true bytes=1606 removed=true
+[R4L13 cleanup] owned=true bytes=1848 removed=true
+[R4L13 cleanup] owned=true bytes=1273 removed=true
+[R4L13 cleanup] owned=true bytes=1372 removed=true
+[R4L13 cleanup] owned=true bytes=1876 removed=true
+[R4L13 cleanup] owned=true bytes=1373 removed=true
+[R4L13 cleanup] owned=true bytes=1875 removed=true
+[R4L13 cleanup] owned=true bytes=1882 removed=true
+[R4L13 cleanup] owned=true bytes=903 removed=true
+[R4L13 cleanup] owned=true bytes=811 removed=true
+[R4L13 cleanup] owned=true bytes=901 removed=true
+[R4L13 cleanup] owned=true bytes=2089 removed=true
+[R4L13 cleanup] owned=true bytes=826 removed=true
+[R4L13 cleanup] owned=true bytes=903 removed=true
+✖ R4L01 baseline exact source (10.211292ms)
+✖ R4L02 unique insertion relocation preserves approved semantics (3.126333ms)
+✖ R4L03 unique deletion relocation (3.202583ms)
+✔ R4L04 duplicate context even at original location rejected (2.224833ms)
+✔ R4L05 changed local context rejected (2.105459ms)
+✔ R4L06 changed enclosing body rejected (2.692542ms)
+✔ R4L07 assertion removal rejected (2.059833ms)
+✔ R4L08 verifier body change rejected (2.412583ms)
+✖ R4L09 same-process source relocation is fresh (2.195834ms)
+✖ R4L10 same-process context and body mutation rejected (2.479834ms)
+✔ R4L11 validation never mutates proof or approval digests (2.454042ms)
+✔ R4L12 stale-range decoy cannot conceal actual readback mutation (2.176833ms)
+✔ R4L14 same-process corpus sees source token addition and removal (1.986875ms)
+✖ R4L15 optional roles retained relocated and validated (2.898708ms)
+✖ R4L16 duplicate statement in different function resolves approved body (2.33525ms)
+✔ R4L17 same approved body with multiple candidates stays ambiguous (3.0805ms)
+✔ R4L18 no approved body match cannot fall back to stored line (1.985208ms)
+✔ R4L19 nested shell failure branch preserves exact oracle (2.660042ms)
+✔ R4L20 closed fi excludes outside token and failure decoys (2.352958ms)
+✔ R4L21 incomplete bounded and success-only shell branches rejected (6.747875ms)
+✔ R4L22 generator and consumer use same bounded branch reader (2.848917ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 14
+ℹ fail 7
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 101.050042
+
+✖ failing tests:
+
+test at scripts/internal/verify_review4_locator_resolution.test.mjs:76:1
+✖ R4L01 baseline exact source (10.211292ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+  + [
+  +   'UI-999 REVIEW4 edge-3:readback-is-not-assertion',
+  +   'UI-999 REVIEW4 edge-3:runtime-readback-observation-missing'
+  + ]
+  - []
+
+      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:76:63
+      at fixture (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:59:9)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:76:43)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'UI-999 REVIEW4 edge-3:readback-is-not-assertion', 'UI-999 REVIEW4 edge-3:runtime-readback-observation-missing' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/verify_review4_locator_resolution.test.mjs:77:1
+✖ R4L02 unique insertion relocation preserves approved semantics (3.126333ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+  + [
+  +   'UI-999 REVIEW4 edge-3:readback-is-not-assertion',
+  +   'UI-999 REVIEW4 edge-3:runtime-readback-observation-missing'
+  + ]
+  - []
+
+      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:77:180
+      at fixture (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:59:9)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:77:78)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'UI-999 REVIEW4 edge-3:readback-is-not-assertion', 'UI-999 REVIEW4 edge-3:runtime-readback-observation-missing' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/verify_review4_locator_resolution.test.mjs:78:1
+✖ R4L03 unique deletion relocation (3.202583ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+  + [
+  +   'UI-999 REVIEW4 edge-3:readback-is-not-assertion',
+  +   'UI-999 REVIEW4 edge-3:runtime-readback-observation-missing'
+  + ]
+  - []
+
+      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:78:154
+      at fixture (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:59:9)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:78:48)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'UI-999 REVIEW4 edge-3:readback-is-not-assertion', 'UI-999 REVIEW4 edge-3:runtime-readback-observation-missing' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/verify_review4_locator_resolution.test.mjs:84:1
+✖ R4L09 same-process source relocation is fresh (2.195834ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+  + [
+  +   'UI-999 REVIEW4 edge-3:readback-is-not-assertion',
+  +   'UI-999 REVIEW4 edge-3:runtime-readback-observation-missing'
+  + ]
+  - []
+
+      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:84:83
+      at fixture (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:59:9)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:84:61)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'UI-999 REVIEW4 edge-3:readback-is-not-assertion', 'UI-999 REVIEW4 edge-3:runtime-readback-observation-missing' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/verify_review4_locator_resolution.test.mjs:85:1
+✖ R4L10 same-process context and body mutation rejected (2.479834ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+  + [
+  +   'UI-999 REVIEW4 edge-3:readback-is-not-assertion',
+  +   'UI-999 REVIEW4 edge-3:runtime-readback-observation-missing'
+  + ]
+  - []
+
+      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:86:10
+      at fixture (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:59:9)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:85:69)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'UI-999 REVIEW4 edge-3:readback-is-not-assertion', 'UI-999 REVIEW4 edge-3:runtime-readback-observation-missing' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/verify_review4_locator_resolution.test.mjs:117:1
+✖ R4L15 optional roles retained relocated and validated (2.898708ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+  + [
+  +   'UI-999 REVIEW4 edge-3:readback-is-not-assertion',
+  +   'UI-999 REVIEW4 edge-3:runtime-readback-observation-missing'
+  + ]
+  - []
+
+      at fixture.optional (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:119:10)
+      at fixture (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:59:9)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:117:69)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'UI-999 REVIEW4 edge-3:readback-is-not-assertion', 'UI-999 REVIEW4 edge-3:runtime-readback-observation-missing' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/verify_review4_locator_resolution.test.mjs:129:1
+✖ R4L16 duplicate statement in different function resolves approved body (2.33525ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+  + [
+  +   'UI-999 REVIEW4 edge-3:readback-is-not-assertion',
+  +   'UI-999 REVIEW4 edge-3:runtime-readback-observation-missing'
+  + ]
+  - []
+
+      at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:131:10
+      at fixture (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:59:9)
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/verify_review4_locator_resolution.test.mjs:129:86)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'UI-999 REVIEW4 edge-3:readback-is-not-assertion', 'UI-999 REVIEW4 edge-3:runtime-readback-observation-missing' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

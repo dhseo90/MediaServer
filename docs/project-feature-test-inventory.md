@@ -2,7 +2,7 @@
 
 ## LP28 검토 위치 처리 사전등록
 
-[R4L01~14/M/A 개별 정의](release-artifacts/v4.1.0/s11-preparation-mapping/lp28-locator-closure.md#실행-전-정의).
+[R4L01~23/M/A·P01/02 개별 정의](release-artifacts/v4.1.0/s11-preparation-mapping/lp28-locator-closure.md#실행-전-정의).
 안정화: `node --test scripts/internal/verify_review4_locator_resolution.test.mjs` 및 migration/approval 자체검사.
 30분·120분: 검증기 자체 비대상. UI: 비대상(UI 없어야 정상). 기존986개 제품 기능 총계에 합산하지 않는다.
 외부 서비스·실기기는 이번 버전 사용자 명시 제외이며 PASS로 사용하지 않는다.

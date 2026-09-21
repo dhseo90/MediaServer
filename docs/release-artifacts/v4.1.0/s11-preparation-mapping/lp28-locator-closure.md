@@ -236,3 +236,126 @@ inventory1/trust575/locator28/semantic0이다. 진단 수집 exit0은 완료 PAS
 
 진단 중 프로세스 상태 조회 `ps`는 sandbox에서 exit1이었다. 승인된 읽기 전용 승격 조회 exit0,
 명령 인자/환경은 읽지 않았다. 실제 진단 명령은 별도 정상 exit0으로 종료했다.
+
+### 2번 후보 대조 실행 정의
+
+33개 미해석 후보는 기존 승인 checkpoint `ea9f11e46`의 실제 행과 현재 diff를 먼저 대조했다.
+변경 없는 문장의 이동과 실제 문맥 변경을 구분했다. UI005/018·AUTH029/041은 Start 계측으로 문맥/캡처가 바뀌었다.
+MEDIA001은 ffprobe 실패 조건 자체는 같지만 진단 분기가 들어가 고정5행 창에서 원래 실패 의미를
+읽지 못한다. 기존 코덱 판정은 바꾸지 않으며 실제 shell 조건문 범위로 source 증거를 읽어야 한다.
+후보는 승인 자료가 아니다. 단순 이동은 실제 old/new 문장과 git hunk를 확인해 좌표를 보정하고,
+같은 큰 함수의 중복 문장은 실제 해당 route/동작의 더 정확한 anchor 또는 실제 지역 함수 범위로
+분리한다. 없는 assertion이나 제품 문자열을 검사를 위해 추가하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP28-P01 | 후보 위치 대조 |33ID 원본 checkpoint anchor와 현재 hunk·동작·edge 연결, 승인 없는 후보 재생성 | v4.1.0 |
+| LP28-P02 | 후보 전체 strict 대조 |986개 후보의 exact anchor·typed proof·trust·shared flow, 원장 불변 확인 | v4.1.0 |
+| R4L19 | shell 중첩 실패 분기 | ffprobe 실제 조건의 중첩 진단/else/return까지 읽어 원래 실패 oracle 확인 | v4.1.0 |
+| R4L20 | shell 바깥 decoy | fi 이후의 token/assertion으로 실패 의미를 보충하지 않음 | v4.1.0 |
+| R4L21 | shell 분기 손상 | 종료fi 누락·성공 분기의 무관문자열로 유효한 실패 oracle 생성 금지 | v4.1.0 |
+| R4L22 | 생성/소비 일치 | 후보 생성기와 적용 validator가 같은 bounded assertion 추출 사용 | v4.1.0 |
+| R4L23 | heredoc Python 구분 | shell 파일 안 Python if 콜론 문장을 shell if로 오분류하지 않음. 기존 Python branch 읽기 유지 및 실제 LAB014 후보 재대조 | v4.1.0 |
+
+R4L19 예상 RED는 유효한 중첩 실패 branch가5행을 넘어 token을 읽지 못하는 것이다.
+새/기존 source·approval 전체 검증 경계는 유지한다. 합성 focused→M/A→실제 후보 대조 순이며
+제품/media 실행·UI·장시간을 이 진단에 끼워 넣지 않는다.
+
+### 실제 변경·검사 공백 대조
+
+다음은 새 실행 PASS가 아니라 소스/assertion과 기존 결과의 직접 연결이다. 현재 코드 고정 후
+S11 최종 단기와 별도 실제UI·장시간 필요성은 그대로다. 모든435ID가 별도 제품 결함이라는
+이전 해석은 하지 않는다. 기존 assertion을 삭제하거나 성공 기준을 완화한 변경은 확인되지 않았다.
+
+| 변경 | 실제 검사·assertion | 보존 증거 | 미해소/한계 |
+| --- | --- | --- | --- |
+| Start 안전 계측 | site_operations_request_diagnostic_smoke.cpp SD01~05; verify_site_operations_request_diagnostic.mjs SD06~08 | 중앙 SD unit6·실제loopback18 | 실제끊긴socket SendAll 실패는 미실행, false주입과 구분 |
+| 사건 녹화 증거 전달 | recording_application_evidence_smoke.cpp EV01~06; projection/storage bridge spy | integration-preparation EV focused15/read4/rule4/storage7/consumer22; 후속 LP25 통합156 | spy 단독으로 실제bridge 전체PASS 아님; 당시 timeline 실패 보존 |
+| unknown 시간 UI | recording_playback_status.test.mjs D3C02/08/15/17 | lp26-ui-playback.log29 PASS·actualBrowser:false | DOM/CSS wrapping/clipping 실제 시각 검증은 잔여 |
+| decoder 선택 | recording_hw_impact_probe.cpp MP/MH/MI/RP/CC/UC | LP27 self99/native81/codec67/ICE8 | 과거 실패 원인미확정 보존; 단기 CPU 결과는 장시간/용량PASS 아님 |
+| 종료 수명 | stream_shutdown_lifecycle_smoke.cpp LC01~06 | S09 closeout 전용6PASS·원래 SIGSEGV/RED 이력 | 현행 장시간은 별도 |
+| auth 임시값·격리 | AUTH-P01~09 및 실제3mode workflow | auth-preparation 준비17/summary19·72·146·출력239 | double과 실제 구분, visual=0·UI 대체 아님 |
+| codec 진단 | codec_probe_diagnostics_test.py CPD01~24; codec shell 실제 exact codec 비교 | LP27 CPD24/HTTP8/codec67/ICE8 | 첫RTP/제품준비 단계 인과는 미관측 |
+
+현재 proof 후보만 보정한33ID는 `LP28-P01` 대상이다. 기존 승인 checkpoint의 각 anchor를
+실제 source와 먼저 대조하고 git hunk로 현재 행을 연결했다. edge 좌표도 같은 현재 role에서 계산한다.
+첫 patch 생성은 JSON 항목 말미 쉼표를 누락해 적용 거부됐고 변경0이었다. 쉼표를 포함해
+동일33항목만 apply_patch로 보정했다. 승인 audit/approval/implementation manifest는 수정하지 않았다.
+
+| 대상 | 실제 대응 보완 | 보존 조건 |
+| --- | --- | --- |
+| UI005/018, AUTH029/041 | 현재 thread capture/HandlerBegin 인접 문맥 | 원래 logout/권한/요청 흐름 유지, 실제 변화로 독립검토 |
+| SRC001 dispatch | sources POST의 RegistryHttpResponse 호출행 | 바로 다음 CreateSource 결과 전달·POST/권한 guard 그대로 |
+| EVT016 action | 상태응답을 생성하는 실제 QueryEventRecordsForApplication 호출 | 오류500·성공 ops-events 결과의 실제 대응 |
+| CLIENT002 dispatch | client_session_limit_reached 초기화 후 잠금/삽입 분기 | 제한 재확인·삽입 상태/readback 동일 |
+| MEDIA003 action | WHEP route_path 입력 요청 구성 | 이후 SetRemoteOffer/CreateAnswer·실패정리 그대로 |
+| MEDIA019 dispatch | 실제 create_webrtc_session_response 지역 lambda 범위 | 동일 AttachWebRtcAnalysisOverlay 호출·metadata readback |
+| LAB026/027 state | snapshot/overlay의 서로 다른 실제 응답 블록 | 같은 body.assign 문장을 구분; JPEG/비어있지않음 검사 유지 |
+| MEDIA001 readback | 동일 ffprobe 실패조건의 현재 문맥 | 원래 timeout/exit/codec oracle 불변; 중첩 branch 읽기 보완 |
+| 그 외 이동 항목 | 동일 anchor의 현재 행/3행 문맥·edge | 역할·토큰·검사/assertion 불변 |
+
+### 2번 판정
+
+후보 생성 첫 대조에서 LAB014의 heredoc Python 조건을 shell로 오분류한1개 오류를 확인했다.
+제품 실패가 아니며 뒤 단계는 실행하지 않았다. 메인이 명확한 `if ...; then` 구문만 shell
+분기 읽기에 보내도록 보완했다. Python/JS의 기존 처리 경계를 바꾸지 않았다.
+이후 승인 없는 후보986개 전수에서 unresolved0, exact anchor/위치 모호성/trust/typed proof/
+shared flow 오류0을 확인했다([전수 결과](lp28-candidate-check.json),12,355.053ms, exit0).
+후보 digest `5cb513e6298bb0469a24144b71312e1c42d147a7afd1323b19c1e75c2cef7f9e`.
+정식 migration 비교는679개 strict 동등·307개 독립 검토 필요, exit0이었다.
+이는4번 독립 검토/승인이나 현재 전체 inventory PASS가 아니다. 승인 원장은 아직 원본이다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| R4L19 최초 RED |5행 창으로 중첩 실패 분기의 token을 못 읽음·exit1·44.164ms | FAIL |
+| shell 첫 GREEN | JS if를 shell로 오분류,14PASS/7FAIL·101.050ms | FAIL |
+| shell 중간 GREEN | JS 경계 분리 후21PASS·127.985ms | PASS |
+| shell 상한 반례 추가 |21PASS·111.918ms, 26root67,921B 정리 | PASS |
+| P01 첫 후보 |986개 중 LAB014 Python 조건 오분류1개·별도 전수 명령exit1 | FAIL |
+| R4L23 RED | Python 분기 읽기 빈 문자열·exit1·41.704ms | FAIL |
+| R4L01 최종 | baseline exact | PASS |
+| R4L02 최종 | 삽입 이동 | PASS |
+| R4L03 최종 | 삭제 이동 | PASS |
+| R4L04 최종 | 동일 문맥 모호성 거부 | PASS |
+| R4L05 최종 | context 변경 거부 | PASS |
+| R4L06 최종 | body 변경 거부 | PASS |
+| R4L07 최종 | assertion 삭제 거부 | PASS |
+| R4L08 최종 | verifier 변경 거부 | PASS |
+| R4L09 최종 | 프로세스 내 위치 변경 | PASS |
+| R4L10 최종 | 프로세스 내 문맥/본문 변경 | PASS |
+| R4L11 최종 | 승인 원본 불변 | PASS |
+| R4L12 최종 | 옛 범위 decoy 거부 | PASS |
+| R4L14 최종 | source token 추가/수정/삭제 | PASS |
+| R4L15 최종 | 선택role 이동/변경/보존 | PASS |
+| R4L16 최종 | 승인 함수 단1후보 | PASS |
+| R4L17 최종 | 같은 함수/복제 모호성 거부 | PASS |
+| R4L18 최종 | 불일치 old-line fallback 금지 | PASS |
+| R4L19 최종 | 실제 닫힌 중첩 shell 실패 분기 | PASS |
+| R4L20 최종 | fi 밖 token/return decoy 거부 | PASS |
+| R4L21 최종 | 미완성·128행/32KiB/깊이16 상한·성공branch 거부 | PASS |
+| R4L22 최종 | 생성기/소비자 공통 추출 실행 대조 | PASS |
+| R4L23 최종 | heredoc Python 기존 읽기 유지 | PASS |
+| R4L13 최종 |27root69,348B·모두 부재 | PASS |
+| R4L-M 최종 | 기존 migration30계약0FAIL·exit0 | PASS |
+| R4L-A 최종 | 기존 approval11반례0FAIL·exit0·gate not-run | PASS |
+| P01 수정 후 |986 후보 unresolved0·digest 일치 | PASS |
+| P02 strict |986행 및 전체 shared flow 오류0·exit0 | PASS |
+| P02 delta |679 strict동등/307 독립검토 필요·986순서/총계·exit0 | PASS |
+
+원출력: [shell RED](lp28-shell-branch-red.log), [최초 GREEN 실패](lp28-shell-branch-green.log),
+[중간 GREEN](lp28-shell-branch-green-02.log), [상한 보완](lp28-shell-branch-green-final.log),
+[Python RED](lp28-python-branch-red.log), [최종22PASS](lp28-python-branch-green.log),
+[최종 migration](lp28-shell-final-migration.log), [최종 approval](lp28-shell-final-approval.log).
+최종 focused165.848ms. 새 증거는 소형 비민감 로그/고정 오류/ID만 보존한다.
+Node assertion 출력의 끝 공백만 정리하며 최초 FAIL은 그대로다.
+각 focused fixture는 finally에서 삭제·부재를 확인했다. 후보/이관 입력은 소유 임시 root에
+4번 인계를 위해 보관 중이며 최종 증거가 아니다. 생성·검증은 원장 쓰기 없이 수행했다.
+
+1번 `f8ed4546`·보완 `4a213d5b` 커밋 완료.2번 구현/관련 focused/후보 대조 완료,
+독립 승인과 PREP 전체gate는4번에서만 판정한다. 제품·공개 API·저장·시간·timeout 변경0.
+추가 실제 제품 검사 누락으로 확정한 항목은 없다. 실제 socket 실패는 기존 진단의 한계이며
+새 필수 제품 요구로 자동 추가하지 않는다. 실제UI/장시간의 기존 필수 검증은 잔여다.
+
+마감 문서 링크289개/9573링크/22이미지/160anchor·exit0, tracked/cached 공백exit0.
+선택 stage는 최초 잘못된 patch 입력(exit128)·zero-context 옵션 누락(exit1)을 거쳐
+정확한 기존 한 줄과 `--unidiff-zero`로 성공했다. 실패 두 명령은 파일/index를 변경하지 않았다.

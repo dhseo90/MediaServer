@@ -802,42 +802,42 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t port, std::string* error_message) {",
-          "line": 333,
+          "line": 335,
           "contextSha256": "34a480c2088df2e8bb0c9a1ad6fd869c820bb9617c893b497422162161ba021d"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
-          "anchor": "std::thread([this, client_fd, recording_gate, recording_service] {",
-          "line": 411,
-          "contextSha256": "aacd6adaf967702a3e7d2a63beea0934aa8bf059cab1ac1962dbb1db128717fb"
+          "anchor": "std::thread([this, client_fd, recording_gate, recording_service,",
+          "line": 418,
+          "contextSha256": "24660812bbf36688cc9b7dc04e1d1c2c88467ec9a7723a9bd315c61d63b72856"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "response = [&]() -> HttpResponse {",
-          "line": 433,
-          "contextSha256": "a32bb47e8efd1a2cf15f9df7f5c0972a682df9b0cbe336fcfa65e9f3e363c0f4"
+          "line": 447,
+          "contextSha256": "944f25eb477429412e1eeeb314445f43332721c24a7d9bbc97d0f34b8af6b3c5"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "destroy_auth_session();",
-          "line": 1087,
+          "line": 1174,
           "contextSha256": "1fd24aa20eef71e4e2359de30f7891aebbab336e25018c9700ec8e61976dd796"
         },
         "readback": {
           "file": "scripts/internal/verify_auth_workflow.sh",
           "symbol": "runtime-oracle:logout-session",
           "anchor": "expect_eq \"${whoami_code}\" \"401\" \"logout invalidates session\"",
-          "line": 1507,
+          "line": 1544,
           "contextSha256": "675f59a23ea4d62f2e688de8317069faacd65757dd575bb6c026d02f274faf52"
         },
         "verifier": {
           "file": "server.sh",
           "symbol": "server-dispatch:verify-auth-bootstrap",
           "anchor": "verify-auth-bootstrap)",
-          "line": 2917,
+          "line": 3284,
           "contextSha256": "5a854005f90ec30c672ea7c833fc03c00525b77cc7dad14ffe5ccfe5c1dbd6a0"
         }
       },
@@ -847,40 +847,40 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "WebRtcHttpServer::Start contains POST /logout session destruction",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:333",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:411"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:335",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:418"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "logout destroys server auth session",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:411",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:433"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:418",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:447"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "logout redirect branch invokes destroy_auth_session",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:433",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:1087"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:447",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:1174"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "session logout followed by whoami rejection",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:1087",
-          "target": "scripts/internal/verify_auth_workflow.sh:1507"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:1174",
+          "target": "scripts/internal/verify_auth_workflow.sh:1544"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-auth-bootstrap",
-          "source": "scripts/internal/verify_auth_workflow.sh:1507",
-          "target": "server.sh:2917"
+          "source": "scripts/internal/verify_auth_workflow.sh:1544",
+          "target": "server.sh:3284"
         }
       ],
       "rationale": "UI-005 actual product state is bound to a direct browser assertion."
@@ -2076,42 +2076,42 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t port, std::string* error_message) {",
-          "line": 333,
+          "line": 335,
           "contextSha256": "34a480c2088df2e8bb0c9a1ad6fd869c820bb9617c893b497422162161ba021d"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "client-request-thread",
-          "anchor": "std::thread([this, client_fd, recording_gate, recording_service] {",
-          "line": 411,
-          "contextSha256": "aacd6adaf967702a3e7d2a63beea0934aa8bf059cab1ac1962dbb1db128717fb"
+          "anchor": "std::thread([this, client_fd, recording_gate, recording_service,",
+          "line": 418,
+          "contextSha256": "24660812bbf36688cc9b7dc04e1d1c2c88467ec9a7723a9bd315c61d63b72856"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "request-dispatch-lambda",
           "anchor": "response = [&]() -> HttpResponse {",
-          "line": 433,
-          "contextSha256": "a32bb47e8efd1a2cf15f9df7f5c0972a682df9b0cbe336fcfa65e9f3e363c0f4"
+          "line": 447,
+          "contextSha256": "944f25eb477429412e1eeeb314445f43332721c24a7d9bbc97d0f34b8af6b3c5"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "unmatched-route-fallback",
           "anchor": "return HttpResponse{404, \"Not Found\", \"text/plain; charset=utf-8\", {}, \"not found\"};",
-          "line": 4967,
+          "line": 5054,
           "contextSha256": "0f6a18d0c26ea11ab19c3ed26d5b3672e1dffad4157b363a7b0ec31b715986d2"
         },
         "readback": {
           "file": "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs",
           "symbol": "negative-route-oracle:UI-018",
           "anchor": "assert(JSON.stringify(item.oracle.allowedStatuses) === JSON.stringify([404]), \"UI-018 must accept exactly status 404\");",
-          "line": 164,
+          "line": 2228,
           "contextSha256": "a18fba69e869e75408b5f49a39b41047ca63b733a3e50a016fef5f184d6f98e4"
         },
         "verifier": {
           "file": "server.sh",
           "symbol": "server-dispatch:verify-v390-ui-native-exact-cases-contract",
           "anchor": "verify-v390-ui-native-exact-cases-contract)",
-          "line": 2301,
+          "line": 2447,
           "contextSha256": "b0170a042e42a7a324aa86268002314df3f4f1fe8214f5c1467794d903e4494b"
         }
       },
@@ -2121,40 +2121,40 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "WebRtcHttpServer::Start owns the accepted-client request thread",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:333",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:411"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:335",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:418"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "the accepted-client thread contains the HTTP request dispatch lambda",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:411",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:433"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:418",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:447"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "the request dispatch lambda falls through unmatched product routes to the explicit 404 response",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:433",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:4967"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:447",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:5054"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "the unmatched-route 404 producer is bound to the exact UI-018 negative status oracle",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:4967",
-          "target": "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs:164"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:5054",
+          "target": "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs:2228"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v390-ui-native-exact-cases-contract",
-          "source": "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs:164",
-          "target": "server.sh:2301"
+          "source": "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs:2228",
+          "target": "server.sh:2447"
         }
       ],
       "rationale": "제품 route dispatch의 unmatched 404 producer를 UI-018 exact negative-route 404 oracle과 직접 결속했다."
@@ -14484,42 +14484,42 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "response = [&]() -> HttpResponse {",
-          "line": 433,
-          "contextSha256": "a32bb47e8efd1a2cf15f9df7f5c0972a682df9b0cbe336fcfa65e9f3e363c0f4"
+          "line": 447,
+          "contextSha256": "944f25eb477429412e1eeeb314445f43332721c24a7d9bbc97d0f34b8af6b3c5"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "auto require_scope_principal =",
-          "line": 771,
+          "line": 858,
           "contextSha256": "977d42eea0aee34eaaa44ad133a5ba78048e0ae9e1bfc40430cfe568bddc8ffe"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "auto require_source_write_principal = [&]() -> std::optional<HttpResponse> {",
-          "line": 785,
+          "line": 872,
           "contextSha256": "31d627794f62571f302acbf9345b27ec130c6052997599fc720ecf728095d257"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "return require_scope_principal(\"source:write\", \"source:write scope required\");",
-          "line": 786,
+          "line": 873,
           "contextSha256": "27f35a9d6665e860ef1a546b879cb7c5568209269f0743ffb415a9f007fa7cfc"
         },
         "readback": {
           "file": "scripts/internal/verify_auth_workflow.sh",
           "symbol": "assert_auth_role_scope_authoritative_runtime",
           "anchor": "assert (operator_source.get(\"status\") == \"created\" and operator_source_record.get(\"sourceId\") == \"30\" and operator_rule_code == \"200\" and readonly_source_write_code == \"403\" and readonly_rule_write_code == \"403\" and other_write_performed is False and unrelated_mutation_changed is False), \"source:write rule:write scoped mutation and other write/no-mutation boundary failed\"",
-          "line": 826,
+          "line": 862,
           "contextSha256": "619e49a28539769156f072b69537f537db347ec052dde68df411b5cbe1c67a1a"
         },
         "verifier": {
           "file": "server.sh",
           "symbol": "server-dispatch:verify-auth-routes",
           "anchor": "verify-auth-routes)",
-          "line": 2925,
+          "line": 3292,
           "contextSha256": "7957f9e3037cfb6c21c09ffd6f15387e56c831f6785b9213f24b823ca09bd68b"
         }
       },
@@ -14529,40 +14529,40 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "owner state return require_scope_principal(\"source:write\" reaches executable dispatch",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:433",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:771"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:447",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:858"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "dispatch reaches require_source_write_principal",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:771",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:785"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:858",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:872"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "branch-containment",
           "witness": "action enforces source:write authoritative state/rejection",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:785",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:786"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:872",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:873"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "source:write authoritative runtime/API/store assertion",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:786",
-          "target": "scripts/internal/verify_auth_workflow.sh:826"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:873",
+          "target": "scripts/internal/verify_auth_workflow.sh:862"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-auth-routes",
-          "source": "scripts/internal/verify_auth_workflow.sh:826",
-          "target": "server.sh:2925"
+          "source": "scripts/internal/verify_auth_workflow.sh:862",
+          "target": "server.sh:3292"
         }
       ],
       "rationale": "제품/auth/source action→source:write state/reject/redaction→독립 assertion을 결속했다.",
@@ -15676,42 +15676,42 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "response = [&]() -> HttpResponse {",
-          "line": 433,
-          "contextSha256": "a32bb47e8efd1a2cf15f9df7f5c0972a682df9b0cbe336fcfa65e9f3e363c0f4"
+          "line": 447,
+          "contextSha256": "944f25eb477429412e1eeeb314445f43332721c24a7d9bbc97d0f34b8af6b3c5"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "auto require_admin_principal = [&]() -> std::optional<HttpResponse> {",
-          "line": 804,
+          "line": 818,
           "contextSha256": "f88ef41513c7a5ff9b1b296ed6d4e21f00fd85bc676add53eef9dee2fd808a82"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (!auth::IsAdmin(principal_result.principal)) {",
-          "line": 738,
+          "line": 825,
           "contextSha256": "4c19fd976d13ce48c4ba48fb54ef44e1de609bc7b677da0b74e3fd33769bd29f"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "return JsonResponse(403, \"Forbidden\", \"{\\\"error\\\":\\\"admin role required\\\"}\");",
-          "line": 739,
+          "line": 826,
           "contextSha256": "5602b7e7961b5935c5a3f8253c73d242cbab734ce529bb73222354cb7cd6d282"
         },
         "readback": {
           "file": "scripts/internal/verify_auth_workflow.sh",
           "symbol": "assert_auth_role_scope_authoritative_runtime",
           "anchor": "assert (unauth_code == \"401\" and forbidden_code == \"403\" and all(token not in forbidden_serialized for token in (\"passwordHash\", \"passwordHistory\", \"tokenHash\", \"sessionId\", \"credential\"))), \"403 unauthorized/forbidden API payload redaction failed\"",
-          "line": 833,
+          "line": 869,
           "contextSha256": "2ae2b76f61937fdfdee639e8313956ec8984298300cf1ca40457e4f6f094da64"
         },
         "verifier": {
           "file": "server.sh",
           "symbol": "server-dispatch:verify-auth-routes",
           "anchor": "verify-auth-routes)",
-          "line": 2925,
+          "line": 3292,
           "contextSha256": "7957f9e3037cfb6c21c09ffd6f15387e56c831f6785b9213f24b823ca09bd68b"
         }
       },
@@ -15721,40 +15721,40 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "owner state return JsonResponse(403 reaches executable dispatch",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:433",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:804"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:447",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:818"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "function-containment",
           "witness": "dispatch reaches require_ops_principal",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:804",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:738"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:818",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:825"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "branch-containment",
           "witness": "action enforces 403 authoritative state/rejection",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:738",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:739"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:825",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:826"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
           "witness": "403 authoritative runtime/API/store assertion",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:739",
-          "target": "scripts/internal/verify_auth_workflow.sh:833"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:826",
+          "target": "scripts/internal/verify_auth_workflow.sh:869"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-auth-routes",
-          "source": "scripts/internal/verify_auth_workflow.sh:833",
-          "target": "server.sh:2925"
+          "source": "scripts/internal/verify_auth_workflow.sh:869",
+          "target": "server.sh:3292"
         }
       ],
       "rationale": "제품/auth/source action→403 state/reject/redaction→독립 assertion을 결속했다.",
@@ -15874,21 +15874,21 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path == \"/ops/api/sources\") {",
-          "line": 3088,
+          "line": 3175,
           "contextSha256": "0b1096baab53bfbe619178d4dbbcb0848304fa50fffa1fd71e84a312c7b4152a"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
-          "anchor": "if (request.method == \"POST\") {",
-          "line": 3168,
-          "contextSha256": "05ed0dd4b9c221ba22cd11fdb803bd90410c0dc6471d1794bc415a2e97caf613"
+          "anchor": "return RegistryHttpResponse(",
+          "line": 3187,
+          "contextSha256": "e21c67c8a0066ca39ca6abe2843b6e65573d6a8b97333350dca47bc412203f64"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "SourceViewApplicationService::CreateSource",
           "anchor": "SourceViewApplicationService::Instance().CreateSource(request.body));",
-          "line": 3101,
+          "line": 3188,
           "contextSha256": "c6b8e5315c16df3583d6dea5e30995b0c115fded21d51bfce8434ae053fe4e96"
         },
         "state": {
@@ -15909,7 +15909,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1631,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -15918,24 +15918,24 @@
           "from": "owner",
           "to": "dispatch",
           "kind": "branch-containment",
-          "witness": "the exact /ops/api/sources route contains the POST dispatch",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:3088",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:3168"
+          "witness": "sources POST 분기 안의 RegistryHttpResponse 호출이 CreateSource 결과를 전달한다.",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:3175",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:3187"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "branch-containment",
-          "witness": "the POST dispatch invokes SourceViewApplicationService::CreateSource",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:3168",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:3101"
+          "witness": "응답 래퍼 호출은 다음 행의 실제 CreateSource 호출 결과를 소비한다.",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:3187",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:3188"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "direct-callsite",
           "witness": "SourceViewApplicationService::CreateSource reaches the registry created state producer",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:3101",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:3188",
           "target": "src/ingress/source_view_registry.cpp:2205"
         },
         {
@@ -15952,7 +15952,7 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:242",
-          "target": "server.sh:1631"
+          "target": "server.sh:1663"
         }
       ],
       "rationale": "64번 application service 경계를 포함해 runtime→SourceViewApplicationService::CreateSource→SourceViewRegistry 상태→독립 oracle을 재결속했다.",
