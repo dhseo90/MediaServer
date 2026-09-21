@@ -169,11 +169,37 @@ gate 실패 또는 미확인으로 보고하며 제품 runtime/media 회귀와 �
 
 ## GitHub Releases 운영
 
+### v4.1.0 Release Close-out Runbook
+
+현재 개발 소스는 `4.1.0`이며 공개 기준은 여전히 `v4.0.0`입니다. v4.1.0의
+상시·이벤트 녹화 구현과 S10 보강을 고정한 뒤 S11 최종 검증으로 공개 여부를 판단합니다.
+이 절은 실행 순서 안내이며 완료 증거 또는 외부 변경 승인이 아닙니다. 작업 정책은
+AGENTS.md가 기준이며 PR, 병합, 서명 태그, GitHub Release는 각각 승인 후 수동으로만 진행합니다.
+
+- Dry-run checklist: `./server.sh verify-release-closeout-helper --dry-run`은 문서·명령과
+  수동 승인 경계만 확인합니다. 실제 릴리즈나 장시간·UI 검증을 대신하지 않습니다.
+- Real close-out checklist: 고정 소스의 단기 안정화 → 실제 30분 → 실제 UI·브라우저 미디어 →
+  공통 및 녹화 전용 120분 결과를 각각 확인합니다. 변경분의 증거 유효성은 AGENTS.md 7.6.2로
+  판단하며 이미 유효한 동일 검사를 인계 때문에 다시 실행하지 않습니다.
+- 최종 문서·출처·source-only 공개 범위·정리·커밋을 대조하고, 승인된 푸시 이후 PR merge와
+  Main fast-forward/sync의 실제 대상 해시를 확인합니다. public-readiness, bundle policy,
+  Actions status check는 실행 결과가 있는 항목만 완료로 기록합니다.
+- Tag 전략은 main의 승인된 릴리즈 커밋에 대한 signed annotated tag입니다. 로컬 서명 검증과
+  원격 Verified 확인 뒤 승인된 GitHub Release, Latest 확인, published metadata 검증을 진행합니다.
+  바이너리·런타임·모델 묶음을 소스 공개에 임의로 추가하지 않습니다.
+- Branch close는 기록·태그 대상의 정합 확인입니다. release branch 삭제 또는 Next branch sync를
+  자동 실행하지 않으며 각각 사용자 별도 승인이 필요합니다.
+- 이번 v4.1.0의 외부 서비스·실기기 검증은 사용자 명시 제외입니다. 미실행을 PASS로 기록하지 않고,
+  해당 환경의 동작 보장을 릴리즈 설명에 포함하지 않습니다. 로컬 필수 검증은 그대로 유지합니다.
+
+실패 이후 단계는 중단하고 최초 실패·보완·재검증을 보존합니다. 단기 검증 통과만으로 30분·UI·120분,
+CI 또는 릴리즈 완료를 선언하지 않습니다. 상세 실행 결과는 중앙 테스트 기록에서 연결합니다.
+
 ### v4.0.0 Release Close-out Runbook
 
 아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
 순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
-v4.0.0은 현재 source이며 latest published metadata 기준도 `v4.0.0`입니다.
+아래는 v4.0.0 당시 실행 이력입니다. 현재 개발 소스는 `4.1.0`이며 latest published metadata 기준은 `v4.0.0`입니다.
 compact handoff boundary `09436674`를 포함한
 동일 clean source `b96f74ab`에서 fresh 30분/UI는 PASS했습니다. 120분은 재판정 후
 `conditional-not-run`입니다.
@@ -407,11 +433,11 @@ published metadata, release branch 삭제, Next branch sync는 각각 실행 evi
 close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 삭제 승인이 없으면
 수행하지 않습니다.
 
-## v4.0.0 Current Source Roadmap Scope
+## v4.0.0 Published Source Roadmap Scope
 
-현재 `4.0.0` source tree는 로컬 운영 정책화 및 안정화 major입니다. v4.0.0 (1)
-baseline 정렬은 current source `4.0.0`과 published `v4.0.0`를 맞춥니다. 신규 기능은
-`v4.1.0`부터 넣습니다. Binary/runtime/model bundle과 external field smoke는 공개
+공개된 `4.0.0` source tree는 로컬 운영 정책화 및 안정화 major입니다. 당시 v4.0.0 (1)
+baseline 정렬은 source `4.0.0`과 published `v4.0.0`를 맞췄습니다. 현재 개발 소스
+`v4.1.0`의 녹화 기능과 최종 검증 상태는 해당 로드맵·실행 기록으로 구분합니다. Binary/runtime/model bundle과 external field smoke는 공개
 asset 또는 실행 PASS로 승격하지 않습니다.
 
 ## v3.9.1 Previous Published Source Roadmap Scope

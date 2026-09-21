@@ -1,0 +1,633 @@
+{
+  "schema": "media-server.lp28-final-short.v1",
+  "source": "fa5afd8da3c029b114f3e4ecf228f0b76705846a",
+  "scope": "S11 최종 단기만, 실제 UI/장시간/외부 릴리즈 아님",
+  "results": [
+    {
+      "name": "final-assets-01.log",
+      "artifact": "lp28-final-assets-01.log.gz",
+      "command": [
+        "./server.sh",
+        "verify-docs-ui-assets"
+      ],
+      "source": "fa5afd8da3c029b114f3e4ecf228f0b76705846a",
+      "started": "2026-09-21T15:40:53.604Z",
+      "platform": "darwin",
+      "release": "27.0.0",
+      "node": "v24.13.0",
+      "tokenStart": null,
+      "tokenEnd": null,
+      "tokenConsumed": null,
+      "tokenReason": "전용 작업 집계 없음",
+      "exit": 0,
+      "signal": null,
+      "elapsedMs": 57,
+      "ended": "2026-09-21T15:40:53.661Z",
+      "outputBytes": 636,
+      "rawBytes": 1027,
+      "rawSha256": "476ce6dad38b3dda9a43befb9200d1dbde8acdc9353fac31403fa167cb893498",
+      "storedBytes": 603,
+      "storedSha256": "bd7b5b66371be5f6b641aea04c62e3533e0ba1b085fbb3c4aaa6ffe06c0cda6b"
+    },
+    {
+      "name": "final-auth-bootstrap-01.log",
+      "artifact": "lp28-final-auth-bootstrap-01.log.gz",
+      "command": [
+        "env",
+        "MEDIA_SERVER_VERIFY_AUTH_VISUAL=0",
+        "./server.sh",
+        "verify-auth-bootstrap"
+      ],
+      "source": "fa5afd8da3c029b114f3e4ecf228f0b76705846a",
+      "started": "2026-09-21T15:24:09.723Z",
+      "platform": "darwin",
+      "release": "27.0.0",
+      "node": "v24.13.0",
+      "tokenStart": null,
+      "tokenEnd": null,
+      "tokenConsumed": null,
+      "tokenReason": "전용 작업 집계 없음",
+      "exit": 0,
+      "signal": null,
+      "elapsedMs": 6905,
+      "ended": "2026-09-21T15:24:16.628Z",
+      "outputBytes": 1437,
+      "rawBytes": 1873,
+      "rawSha256": "0b6accee9a691de380fdcd92bc3176f8561408d30ccdf072bdb77adba3660b99",
+      "storedBytes": 896,
+      "storedSha256": "15d24d5c919b7012fdee8cfa332b3bf4d9bb9861f5e189361ccd58ec9049f334"
+    },
+    {
+      "name": "final-auth-routes-01.log",
+      "artifact": "lp28-final-auth-routes-01.log.gz",
+      "command": [
+        "env",
+        "MEDIA_SERVER_VERIFY_AUTH_VISUAL=0",
+        "./server.sh",
+        "verify-auth-routes"
+      ],
+      "source": "fa5afd8da3c029b114f3e4ecf228f0b76705846a",
+      "started": "2026-09-21T15:25:29.191Z",
+      "platform": "darwin",
+      "release": "27.0.0",
+      "node": "v24.13.0",
+      "tokenStart": null,
+      "tokenEnd": null,
+      "tokenConsumed": null,
+      "tokenReason": "전용 작업 집계 없음",
+      "exit": 0,
+      "signal": null,
+      "elapsedMs": 18001,
+      "ended": "2026-09-21T15:25:47.192Z",
+      "outputBytes": 8223,
+      "rawBytes": 8657,
+      "rawSha256": "536e3892f90a72b13a8fdbc2b9e4e2460ba10751ac069d535e1ebd208830ed2d",
+      "storedBytes": 2402,
+      "storedSha256": "3fea88b875e12c64c9f7570298579258ded2786cf6923ba00171338939e97f7c"
+    },
+    {
+      "name": "final-auth-users-01.log",
+      "artifact": "lp28-final-auth-users-01.log.gz",
+      "command": [
+        "env",
+        "MEDIA_SERVER_VERIFY_AUTH_VISUAL=0",
+        "./server.sh",
+        "verify-auth-users"
+      ],
+      "source": "fa5afd8da3c029b114f3e4ecf228f0b76705846a",
+      "started": "2026-09-21T15:24:52.190Z",
+      "platform": "darwin",
+      "release": "27.0.0",
+      "node": "v24.13.0",
+      "tokenStart": null,
+      "tokenEnd": null,
+      "tokenConsumed": null,
+      "tokenReason": "전용 작업 집계 없음",
+      "exit": 0,
+      "signal": null,
+      "elapsedMs": 9868,
+      "ended": "2026-09-21T15:25:02.058Z",
+      "outputBytes": 3797,
+      "rawBytes": 4229,
+      "rawSha256": "bcf11ad86e491a268bc5632c2499dfd00f8e767a5a639f083afc2791be95ab2d",
+      "storedBytes": 1650,
+      "storedSha256": "49ef829a560427d7b91d9d7c7ef13dae713b4a83de37e1eca6fa2573ad5ac3f2"
+    },
+    {
+      "name": "final-build-01.log",
+      "artifact": "lp28-final-build-01.log.gz",
+      "command": [
+        "env",
+        "MEDIA_SERVER_SKIP_LOCAL_ENV=1",
+        "MEDIA_SERVER_ENABLE_AI=1",
+        "MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0",
+        "MEDIA_SERVER_BUILD_DIR=/Users/dhseo/Workspace/mediaServer/build-gst-onnx",
+        "MEDIA_SERVER_GST_CACHE_DIR=/private/tmp/media-server-lp28.K2YANY/s11-build-cache",
+        "./server.sh",
+        "build"
+      ],
+      "source": "fa5afd8da3c029b114f3e4ecf228f0b76705846a",
+      "started": "2026-09-21T15:23:46.909Z",
+      "platform": "darwin",
+      "release": "27.0.0",
+      "node": "v24.13.0",
+      "tokenStart": null,
+      "tokenEnd": null,
+      "tokenConsumed": null,
+      "tokenReason": "전용 작업 집계 없음",
+      "exit": 0,
+      "signal": null,
+      "elapsedMs": 850,
+      "ended": "2026-09-21T15:23:47.759Z",
+      "outputBytes": 416,
+      "rawBytes": 1054,
+      "rawSha256": "6df389d064158df2c87ee342130dd0b9e25deae58c599352f5c740bc5428d13c",
+      "storedBytes": 613,
+      "storedSha256": "3955cc98c9d4275d4d93b0d3f38f7fe31865a8c9f6e897158d9407d45ab55a21"
+    },
+    {
+      "name": "final-closeout-01.log",
+      "artifact": "lp28-final-closeout-01.log.gz",
+      "command": [
+        "./server.sh",
+        "verify-release-closeout-helper",
+        "--dry-run"
+      ],
+      "source": "fa5afd8da3c029b114f3e4ecf228f0b76705846a",
+      "started": "2026-09-21T15:29:50.976Z",
+      "platform": "darwin",
+      "release": "27.0.0",
+      "node": "v24.13.0",
+      "tokenStart": null,
+      "tokenEnd": null,
+      "tokenConsumed": null,
+      "tokenReason": "전용 작업 집계 없음",
+      "exit": 1,
+      "signal": null,
+      "elapsedMs": 104,
+      "ended": "2026-09-21T15:29:51.080Z",
+      "outputBytes": 589,
+      "rawBytes": 1002,
+      "rawSha256": "4ebd24a332a08ef0134de3f3db6e9d70948c0397301c5869416e0ee05e4accc0",
+      "storedBytes": 612,
+      "storedSha256": "f0a7be14384c32d1addd4342479c807cbe8ef39af9fbee19fab9156876439fad"
+    },
+    {
+      "name": "final-closeout-02.log",
+      "artifact": "lp28-final-closeout-02.log.gz",
+      "command": [
+        "./server.sh",
+        "verify-release-closeout-helper",
+        "--dry-run"
+      ],
+      "source": "fa5afd8da3c029b114f3e4ecf228f0b76705846a",
+      "started": "2026-09-21T15:34:25.756Z",
+      "platform": "darwin",
+      "release": "27.0.0",
+      "node": "v24.13.0",
+      "tokenStart": null,
+      "tokenEnd": null,
+      "tokenConsumed": null,
+      "tokenReason": "전용 작업 집계 없음",
+      "exit": 0,
+      "signal": null,
+      "elapsedMs": 86,
+      "ended": "2026-09-21T15:34:25.842Z",
+      "outputBytes": 523,
+      "rawBytes": 935,
+      "rawSha256": "4ca7032bfacdfefa2053fdf63965d27dcebc0919e05c71ac2187e1ac38019c2e",
+      "storedBytes": 571,
+      "storedSha256": "1c5732475f874c90f8b9929950c2ccc42ba18c09795c8a583a498faf05f08410"
+    },
+    {
+      "name": "final-diff-01.log",
+      "artifact": "lp28-final-diff-01.log.gz",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "source": "fa5afd8da3c029b114f3e4ecf228f0b76705846a",
+      "started": "2026-09-21T15:41:16.879Z",
+      "platform": "darwin",
+      "release": "27.0.0",
+      "node": "v24.13.0",
+      "tokenStart": null,
+      "tokenEnd": null,
+      "tokenConsumed": null,
+      "tokenReason": "전용 작업 집계 없음",
+      "exit": 0,
+      "signal": null,
+      "elapsedMs": 46,
+      "ended": "2026-09-21T15:41:16.925Z",
+      "outputBytes": 0,
+      "rawBytes": 374,
+      "rawSha256": "8a6feb146b8da40a248e3c89e229516a276b68fdfb0f3b32a91cb10c90a95cac",
+      "storedBytes": 292,
+      "storedSha256": "5d28c810b560fb8d509ee1f7961ba5f75c188ef911dd15f8ad2dbcd07706d1a8"
+    },
+    {
+      "name": "final-docs-01.log",
+      "artifact": "lp28-final-docs-01.log.gz",
+      "command": [
+        "./server.sh",
+        "verify-docs-links"
+      ],
+      "source": "fa5afd8da3c029b114f3e4ecf228f0b76705846a",
+      "started": "2026-09-21T15:40:40.148Z",
+      "platform": "darwin",
+      "release": "27.0.0",
+      "node": "v24.13.0",
+      "tokenStart": null,
+      "tokenEnd": null,
+      "tokenConsumed": null,
+      "tokenReason": "전용 작업 집계 없음",
+      "exit": 0,
+      "signal": null,
+      "elapsedMs": 161,
+      "ended": "2026-09-21T15:40:40.309Z",
+      "outputBytes": 186,
+      "rawBytes": 574,
+      "rawSha256": "7511de57ee319d368debcb6fa5a16b2c5ee9cecb7e21b17e1096bee872464dcc",
+      "storedBytes": 419,
+      "storedSha256": "608f45d209b50585e3c96ebda470c1fc79586f14868d646923a528378252d8ea"
+    },
+    {
+      "name": "final-entry-01.log",
+      "artifact": "lp28-final-entry-01.log.gz",
+      "command": [
+        "./server.sh",
+        "verify-v410-entry-baseline"
+      ],
+      "source": "fa5afd8da3c029b114f3e4ecf228f0b76705846a",
+      "started": "2026-09-21T15:29:50.672Z",
+      "platform": "darwin",
+      "release": "27.0.0",
+      "node": "v24.13.0",
+      "tokenStart": null,
+      "tokenEnd": null,
+      "tokenConsumed": null,
+      "tokenReason": "전용 작업 집계 없음",
+      "exit": 0,
+      "signal": null,
+      "elapsedMs": 92,
+      "ended": "2026-09-21T15:29:50.764Z",
+      "outputBytes": 1190,
+      "rawBytes": 1587,
+      "rawSha256": "44350f97e7db2c3ae5182c5f281b0ca534ade3f8b38fe4796b9a4f93bb6e56e6",
+      "storedBytes": 626,
+      "storedSha256": "e8bc114cac037be4bed1a330ac25a6a71b99ef359006aca19c575930fbeebdd8"
+    },
+    {
+      "name": "final-entry-02.log",
+      "artifact": "lp28-final-entry-02.log.gz",
+      "command": [
+        "./server.sh",
+        "verify-v410-entry-baseline"
+      ],
+      "source": "fa5afd8da3c029b114f3e4ecf228f0b76705846a",
+      "started": "2026-09-21T15:36:01.830Z",
+      "platform": "darwin",
+      "release": "27.0.0",
+      "node": "v24.13.0",
+      "tokenStart": null,
+      "tokenEnd": null,
+      "tokenConsumed": null,
+      "tokenReason": "전용 작업 집계 없음",
+      "exit": 0,
+      "signal": null,
+      "elapsedMs": 107,
+      "ended": "2026-09-21T15:36:01.937Z",
+      "outputBytes": 1190,
+      "rawBytes": 1588,
+      "rawSha256": "782272b865b2dc536e51dc4dd8f097069ba83ab607954bac63ea09840736185b",
+      "storedBytes": 625,
+      "storedSha256": "1f6908ccc5a23e5f938248d239e7ecd5eeb677cae53d72c32469caeeb6926b70"
+    },
+    {
+      "name": "final-env-fixture-01.log",
+      "artifact": "lp28-final-env-fixture-01.log.gz",
+      "command": [
+        "bash",
+        "scripts/internal/verify_gst_environment.sh"
+      ],
+      "source": "fa5afd8da3c029b114f3e4ecf228f0b76705846a",
+      "started": "2026-09-21T15:29:18.166Z",
+      "platform": "darwin",
+      "release": "27.0.0",
+      "node": "v24.13.0",
+      "tokenStart": null,
+      "tokenEnd": null,
+      "tokenConsumed": null,
+      "tokenReason": "전용 작업 집계 없음",
+      "exit": 0,
+      "signal": null,
+      "elapsedMs": 4386,
+      "ended": "2026-09-21T15:29:22.552Z",
+      "outputBytes": 5248,
+      "rawBytes": 5656,
+      "rawSha256": "dec4ab4f9017546b2dbcdfe138ac284421d4cae6ed968302faed346b5046130e",
+      "storedBytes": 1075,
+      "storedSha256": "876f756b8d9fab30be41c8f0caa9a493862d0720d70a8be0bc98787ac2482e7c"
+    },
+    {
+      "name": "final-metadata-01.log",
+      "artifact": "lp28-final-metadata-01.log.gz",
+      "command": [
+        "./server.sh",
+        "verify-release-metadata"
+      ],
+      "source": "fa5afd8da3c029b114f3e4ecf228f0b76705846a",
+      "started": "2026-09-21T15:29:50.823Z",
+      "platform": "darwin",
+      "release": "27.0.0",
+      "node": "v24.13.0",
+      "tokenStart": null,
+      "tokenEnd": null,
+      "tokenConsumed": null,
+      "tokenReason": "전용 작업 집계 없음",
+      "exit": 0,
+      "signal": null,
+      "elapsedMs": 76,
+      "ended": "2026-09-21T15:29:50.899Z",
+      "outputBytes": 1347,
+      "rawBytes": 1741,
+      "rawSha256": "5446c88cb78aadc8475d78bd5854766605dab6ca8c2799ef7ad6681ea2cf988a",
+      "storedBytes": 787,
+      "storedSha256": "4014e8a65c9d0279b3b2e544cb754bad11475f23339788d6e923d8f33fd2d484"
+    },
+    {
+      "name": "final-metadata-02.log",
+      "artifact": "lp28-final-metadata-02.log.gz",
+      "command": [
+        "./server.sh",
+        "verify-release-metadata"
+      ],
+      "source": "fa5afd8da3c029b114f3e4ecf228f0b76705846a",
+      "started": "2026-09-21T15:36:02.027Z",
+      "platform": "darwin",
+      "release": "27.0.0",
+      "node": "v24.13.0",
+      "tokenStart": null,
+      "tokenEnd": null,
+      "tokenConsumed": null,
+      "tokenReason": "전용 작업 집계 없음",
+      "exit": 0,
+      "signal": null,
+      "elapsedMs": 78,
+      "ended": "2026-09-21T15:36:02.105Z",
+      "outputBytes": 1347,
+      "rawBytes": 1741,
+      "rawSha256": "ad823113e1f29b5ef68127e527944b6da7b82aae4d9fdc5c2fc2e8a018eb1c05",
+      "storedBytes": 787,
+      "storedSha256": "7db3081b74a0eedbdfdf2b02b693d14e2dfb887695a9ee72da1943e95c420333"
+    },
+    {
+      "name": "final-recording-01.log",
+      "artifact": "lp28-final-recording-01.log.gz",
+      "command": [
+        "bash",
+        "scripts/internal/verify_v410_recording_foundation.sh",
+        "--current-integration"
+      ],
+      "source": "fa5afd8da3c029b114f3e4ecf228f0b76705846a",
+      "started": "2026-09-21T15:26:07.288Z",
+      "platform": "darwin",
+      "release": "27.0.0",
+      "node": "v24.13.0",
+      "tokenStart": null,
+      "tokenEnd": null,
+      "tokenConsumed": null,
+      "tokenReason": "전용 작업 집계 없음",
+      "exit": 0,
+      "signal": null,
+      "elapsedMs": 125422,
+      "ended": "2026-09-21T15:28:12.710Z",
+      "outputBytes": 621334,
+      "rawBytes": 621780,
+      "rawSha256": "d06e23a1cb26ad53cdbc6325f150313eb6f8c2217751ac75ab74977aff2edef1",
+      "storedBytes": 41583,
+      "storedSha256": "a0d688233e1d5367c83a8e85166ce3d1ef6cb58ca9ef88f7dcb41dd973f2a7e8"
+    }
+  ],
+  "casesCount": 546,
+  "cleanupRows": 31,
+  "recording": {
+    "suite": {
+      "mode": "--current-integration",
+      "fullFoundationPass": false,
+      "resourceTrendPass": false,
+      "uiFulltestPass": false,
+      "remaining": [
+        "final-scope-and-evidence-freeze",
+        "30min",
+        "120min",
+        "UI",
+        "resource-trend"
+      ],
+      "currentIntegrationExecutionPass": true,
+      "stages": [
+        {
+          "id": "http-api",
+          "checks": 35,
+          "exit": 0,
+          "cleanup": true
+        },
+        {
+          "id": "http-auth",
+          "checks": 40,
+          "exit": 0,
+          "cleanup": true
+        },
+        {
+          "id": "http-lifecycle",
+          "checks": 10,
+          "exit": 0,
+          "cleanup": true
+        },
+        {
+          "id": "default-composition",
+          "checks": 46,
+          "exit": 0,
+          "cleanup": true
+        },
+        {
+          "id": "actual-app",
+          "checks": 25,
+          "exit": 0,
+          "cleanup": true
+        }
+      ],
+      "notRun": [],
+      "elapsedMs": 125384,
+      "tokenStart": null,
+      "tokenEnd": null,
+      "tokenConsumed": null,
+      "tokenSource": "전용집계없음"
+    },
+    "app": {
+      "mode": "current-actual-app",
+      "timelineUnplacedUnit": "file",
+      "terminalObservations": [
+        {
+          "processOrdinal": 1,
+          "referenceSha256": "93b938b30d7829ecd0cd11b06875b8265fabbe254d6ddb4d9e664f9db77e1ce1",
+          "unplacedUnit": "file",
+          "terminalObserved": true,
+          "firstObservedMs": 26088.503083,
+          "firstPageOffset": 0,
+          "firstTimelineOrdinal": 187,
+          "mixedStates": true,
+          "observedOutputCount": 2,
+          "fullOutputPass": false,
+          "invalid": false,
+          "fullPageStatus": "complete",
+          "changedCycles": 0,
+          "waitOutcome": "complete"
+        },
+        {
+          "processOrdinal": 2,
+          "referenceSha256": "94d6aa71e5d4267e312d0a3be8cccdfe4bff337af8908999ac25b7ee2a808130",
+          "unplacedUnit": "file",
+          "terminalObserved": true,
+          "firstObservedMs": 71893.418541,
+          "firstPageOffset": 0,
+          "firstTimelineOrdinal": 43,
+          "mixedStates": true,
+          "observedOutputCount": 2,
+          "fullOutputPass": false,
+          "invalid": false,
+          "fullPageStatus": "complete",
+          "changedCycles": 0,
+          "waitOutcome": "complete"
+        }
+      ],
+      "passed": 25,
+      "failed": 0,
+      "latencyPass": false,
+      "actualEventPass": true,
+      "restartPass": true,
+      "expectedOutputCount": 2,
+      "observedOutputCounts": [
+        2,
+        2
+      ],
+      "cleanup": {
+        "rootAbsent": true,
+        "failureCount": 0,
+        "processes": [
+          {
+            "schema": "recording-process-cleanup-v1",
+            "attemptCount": 1,
+            "pid": 99520,
+            "exitCode": 0,
+            "signalCode": null,
+            "exitedObserved": true,
+            "stopCode": "complete",
+            "forcedTermination": "not-used",
+            "normalExitPass": true,
+            "normalShutdownPass": true,
+            "archiveSafe": true,
+            "ports": [
+              {
+                "kind": "http",
+                "port": 65365,
+                "status": "pass",
+                "code": "closed",
+                "closed": true
+              },
+              {
+                "kind": "rtsp",
+                "port": 65366,
+                "status": "pass",
+                "code": "closed",
+                "closed": true
+              }
+            ]
+          },
+          {
+            "schema": "recording-process-cleanup-v1",
+            "attemptCount": 1,
+            "pid": 99586,
+            "exitCode": 0,
+            "signalCode": null,
+            "exitedObserved": true,
+            "stopCode": "complete",
+            "forcedTermination": "not-used",
+            "normalExitPass": true,
+            "normalShutdownPass": true,
+            "archiveSafe": true,
+            "ports": [
+              {
+                "kind": "http",
+                "port": 49281,
+                "status": "pass",
+                "code": "closed",
+                "closed": true
+              },
+              {
+                "kind": "rtsp",
+                "port": 49282,
+                "status": "pass",
+                "code": "closed",
+                "closed": true
+              }
+            ]
+          }
+        ],
+        "evidencePreservedOrNotRequired": true
+      },
+      "elapsedMs": 81669
+    },
+    "http": {
+      "total": 383,
+      "nonHealth": 346,
+      "maxNonHealthMs": 2882,
+      "nonHealthNotOk": 0
+    },
+    "extra": [
+      {
+        "file": "latency-83a2da29-d85a-4158-b310-7d82ddaf5410.json",
+        "bytes": 219441,
+        "sha256": "f2b2320ba3ee401be887156c9fa727d461fe698104e03067d41a3c1a92906bdf",
+        "reason": "실제 앱 두 기동의 잠금 계측/종료 증거 원본"
+      },
+      {
+        "file": "latency-e3f2ac1b-8944-4b85-b205-d9ae03d45089.json",
+        "bytes": 210455,
+        "sha256": "abb3850c4deb54dfc3aeaf6d9bcc668a874b6d392adb33f8238817a7f5bd0390",
+        "reason": "실제 앱 두 기동의 잠금 계측/종료 증거 원본"
+      },
+      {
+        "file": "process-77a1916f-a9fc-4a48-86f7-a52d170a0655.json",
+        "bytes": 404,
+        "sha256": "3966ca3954ea88d0f8b8dc67e20fdfa604f82097a842f4b8da7fccc06d54466c",
+        "reason": "실제 앱 두 기동의 잠금 계측/종료 증거 원본"
+      },
+      {
+        "file": "process-78fab2de-4ccc-4c9f-9667-f9517192bb21.json",
+        "bytes": 404,
+        "sha256": "34c30bd2bada4f2fea64d2cc4150525d1a6185a90e1016f1ef274cd4a3a9c96d",
+        "reason": "실제 앱 두 기동의 잠금 계측/종료 증거 원본"
+      }
+    ]
+  },
+  "notRun": [
+    "30분",
+    "실제 UI·브라우저 미디어",
+    "공통120분",
+    "녹화120분",
+    "PR/CI/main/tag/Release"
+  ],
+  "excluded": [
+    "외부 서비스",
+    "실기기"
+  ],
+  "tokens": {
+    "start": null,
+    "end": null,
+    "consumed": null,
+    "reason": "전용 작업 집계 없음"
+  },
+  "rawRetention": "모든 원출력은 gzip 무손실 보존. stdout/stderr 안전 출력 및 비밀 부재 검토. 공개 API payload/로그 원문 미수집. 문서 표는 읽기 위해 끝 공백만 정규화하며 raw SHA는 미변경."
+}

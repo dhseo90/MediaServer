@@ -1,6 +1,6 @@
 # Release Evidence Index
 
-- [현재 위치 판정·CLOSE·PREP 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp28-locator-closure.md#prep-최종-판정): 독립307/동등679 재결속, 실제 WHEP/소스/목록 계약 마감. S11 단기 미실행, 외부 서비스/실기기 명시 제외. 아래는 기존 실행 이력이다.
+- [현재 위치 판정·CLOSE·PREP·S11 단기 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp28-locator-closure.md#s11-최종-단기-실행): 독립307/동등679 재결속 및 단기 빌드·인증·녹화156·환경·버전 마감. 실제 UI·30/120분은 잔여, 외부 서비스/실기기는 명시 제외. 아래는 기존 실행 이력이다.
 
 ## 2026-09-21 LP27 HW 영향 보완·회귀
 

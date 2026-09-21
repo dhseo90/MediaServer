@@ -1,10 +1,13 @@
 # Release Test Records
 
-## 현재 작업: 검증기 위치 일관성 및 PREP 재결속
+## 현재 작업: LP28 위치 일관성·PREP 마감 및 S11 단기 검증
 
 사용자 승인1~5 순차 개발·분할커밋·조건부푸시. 외부 서비스·실기기는 명시 제외하며 PASS가 아니다.
 [최신 범위·실행 전 정의·결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp28-locator-closure.md)를 따른다.
-LP28 위치/실제 연결 보완·CLOSE/제품 고정·PREP 독립 재결속을 마감했다. S11 최종 단기는 다음 승인 단계다.
+LP28 위치/실제 연결 보완·CLOSE/제품 고정·PREP 독립 재결속을 마감했다. S11 최종 단기도 빌드,
+인증19/72/146·현행 녹화156·환경20·버전·close-out을 통과했다. close-out 최초 문서 실패와 보완을 보존한다.
+[단기 개별 결과·원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp28-final-item-results.md),
+[릴리즈 잔여 전수표](release-artifacts/v4.1.0/s11-preparation-mapping/release-readiness-20260916.md#lp28-승인-15-전수-대조)를 따른다.
 원장986행 정합과 UI 목록 계약 PASS는 실제 기능986개/UI424개 실행 PASS가 아니다.
 아래 LP27의 중단·완료는 이전 실행 이력이다. 실제30분/UI/120분과 외부 릴리즈 동작은 이번 범위 밖이다.
 

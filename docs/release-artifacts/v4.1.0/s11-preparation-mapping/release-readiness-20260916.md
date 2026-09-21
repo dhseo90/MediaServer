@@ -2,7 +2,8 @@
 
 ## LP28 승인 1~5 전수 대조
 
-이 절은 아래 LP27/이전 진단표보다 최신이다. 1~4번 범위를 마감했고5번 단기 검증 전이다. 릴리즈/푸시 완료 판정은 아니다.
+이 절은 아래 LP27/이전 진단표보다 최신이다. 1~5번 구현·검증·기록·정리를 마쳤다. Git 값은 마지막
+기록 커밋 직전의 스냅샷이며 실제 최종 커밋/푸시 해시는 Git과 최종 보고를 따른다. 릴리즈 완료 판정은 아니다.
 직접 근거와 실행 전수는 [LP28](lp28-locator-closure.md), 과거 실패는 원기록으로 보존한다.
 
 ### 지시 전수
@@ -10,11 +11,11 @@
 | 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
 | --- | --- | --- | --- | --- |
 | 1 | 위치 처리 일관성 | 완료·커밋 | 현재 위치 일관 판정·중복/변경/삭제 거부 | f8ed4546/4a213d5b |
-| 2 | 실제 영향·공백 | 완료 | 오류 serializer25/UI11/WHEP1 보완·재검토. 최초 무공백 판단 정정 | 13d82e46·독립 검토02/WHEP13·12 |
+| 2 | 실제 영향·공백 | 완료·커밋 | 오류 serializer25/UI11/WHEP1 보완·재검토. 최초 무공백 판단 정정 | 13d82e46/fa5afd8d·독립 검토02/WHEP13·12 |
 | 3 | CLOSE·S10 고정 | 완료·커밋 | 제품287파일 고정·출처/공개 설명 정합·구형 소비자 보존 | 5e5f45d7·source-freeze |
-| 4 | 독립 검토·재결속/PREP | 완료·커밋 전 | 307행 승인/679동등 승계·986정합·반례15/core17/combined3/native60 | 독립 판정02·LP28 PREP 결과 |
-| 5 | S11 단기 | 미실행 | 4번 통과 후 FINAL manifest 실행 | LP27 manifest |
-| 6 | 분할 커밋·조건부푸시 | 일부 | 신규4커밋; PREP 커밋/5번 검증·마감 후 push 판정 | Git/LP28 |
+| 4 | 독립 검토·재결속/PREP | 완료·커밋 | 307행 승인/679동등 승계·986정합·반례15/core17/combined3/native60 | fa5afd8d·독립 판정02·LP28 PREP 결과 |
+| 5 | S11 단기 | 실행 완료·PASS | 빌드/인증19·72·146/녹화156/환경20/버전33·18/close-out6. 최초문서FAIL→보완PASS | LP28 단기 원출력/개별 결과 |
+| 6 | 분할 커밋·조건부푸시 | 분할 커밋 진행·최종 푸시 판정 대기 | 1~4 신규5커밋,5번 마감 커밋 직전. 실패/정리 잔여 없음·원격behind0,최종clean 후 승인된 개발 브랜치 push | Git/LP28 |
 | 7 | 외부 서비스/실기기 안 함 | 반영 | 사용자 명시 제외, 조건부 후속에서 제거, PASS 아님 | 최신 요청 |
 | 8 | 릴리즈 잔여 전수 | 계속 갱신 | 개발·최종검증·외부 release action 분리 | 아래 전수표 |
 
@@ -24,8 +25,8 @@
 | --- | --- | --- | --- |
 | branch/VERSION/CMake | v4.1.0/4.1.0 | 일치 | entry33·metadata18/소스 |
 | published 기준 | v4.0.0 | 공개 문서 기준 유지, 실시간 published 조회 아님 | metadata local |
-| HEAD/upstream | 현재개발브랜치 | 5e5f45d7, 추적origin 대비ahead9; 마지막 푸시 전 재확인 | git status/log |
-| main/tag/PR/CI | 릴리즈 직전 직접 확인 | 이번 외부 변경 미수행, fresh 원격 미확인 | 승인 범위 |
+| HEAD/upstream | 현재개발브랜치 | 단기 실행fa5afd8d, fresh fetch 뒤ahead10/behind0; 마지막 기록 커밋 제외 스냅샷 | git fetch/rev-list exit0 |
+| main/tag/PR/CI | 릴리즈 직전 직접 확인 | fresh origin/main431397d9,local4.1tag없음. PR/CI/원격tag·published는 이번 미조회,외부변경 없음 | 승인 범위·git |
 | 제품 내용 | 고정287파일 | 새 변경 없음 | lp28-source-freeze.json·git diff src/include/CMake |
 | CHANGELOG/NEWS | 루트 문서 | 없음, fixture CHANGELOG는 비대상 | 기존 파일 조사 |
 
@@ -37,7 +38,7 @@
 | S01~S08 | 단계 구현 완료 | 현행 recorder/catalog/retention/event/query/UI/metrics 경로 존재, 과거 통합156 증거 | 현재 전체 릴리즈 PASS 아님 | LP25/26·FINAL manifest |
 | S09 | 종료·대체 | 최초 실패·수정·증거 보존 | 없음 | roadmap S09 |
 | S10 | 제품 고정/PREP 마감 | CLOSE·독립승인·현재검사연결 완료 | 최신요약 반영 | LP28 |
-| S11 | 최종검증 미완료 | 단기·30분·실제UI·120분 미실행 | 없음 | 실행 상태표 |
+| S11 | 단기완료·전체미완료 | 단기PASS,30분·실제UI·공통/녹화120분 미실행 | 없음 | LP28 단기 원출력/실행 상태표 |
 
 ### 구현 대조
 
@@ -48,7 +49,7 @@
 | UI 연결 | product_ui scripts·verify_ops_ui_click_e2e | 별도API 별칭 대신 실제조작의 DOM/API helper 연결; 실제실행 아님 | SRC009/RULE10 |
 | WHEP | POST /whep·CreateAnswer·session/ice/DELETE | 로컬 검증13self/12actual PASS; RTP/UI/외부 연결 PASS 아님 | MEDIA003/WLS/WLR |
 | 복합요구·환경 | recording_preparation_contracts.cpp/gst_environment_actual_probe.cpp | native8/actual94 결과와 현재 source/archive 대조 | LP27 원출력 |
-| 현행 녹화 통합 | recording_current_integration_suite.mjs | 5단계156,2출력/HTTP/hash/두기동 실행경로 | FINAL-recording |
+| 현행 녹화 통합 | recording_current_integration_suite.mjs·eventOutputs | 5단계156PASS,각2완전출력/HTTP/hash/두기동/복제본복구·정리,실제요청최대2882ms | FINAL-recording |
 | 장시간·UI | current observer/managed seed/exact native browser | 준비 소스 있음, 최종 실행 PASS 없음 | LP26/current observer |
 
 ### 근거 분류
@@ -66,7 +67,7 @@
 | 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일·행·기능 ID | 실행 승인 상태 |
 | --- | --- | --- | --- | --- |
 | 안정화 focused/PREP | 진행 대상 | 위치/37공백/준비 수정 | LP28 R4L/PREP/WLS/WLR | 이번 승인 |
-| S11 단기 | 진행 대상 | 5번·고정 코드 최종 묶음 | LP27 FINAL manifest | 이번 승인,PREP 마감 뒤 실행 |
+| S11 단기 | 진행 대상 | 5번·고정 코드 최종 묶음 | LP27 FINAL manifest/LP28 결과 | 이번 승인·실행PASS |
 | 30분 | 진행 대상 | 버전 필수 | AGENTS7.6/roadmap S11 | 이번 실행 범위 밖 |
 | 실제 UI·browser media | 진행 대상 | exact UI/영상·metadata 변경 | AGENTS7.6.3/7.9·MEDIA003·D08 | 이번 실행 범위 밖 |
 | 공통120분 | 진행 대상 | source lifecycle/media/cleanup 직접변경·기존명시승인 | AGENTS7.6.2·gst_decode_compatibility/RTSP paths | 이번 실행 범위 밖 |
@@ -77,14 +78,12 @@
 
 | 순서 | 우선순위 | 잔여 이슈 | 해야 할 일 | 성격 | 근거 유형 | release action 전·후 |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | 마감 | PREP 완료분 커밋 | 실제 연결·독립 재검토·동등승계·원장/inventory 검증 결과 기록·커밋 | 검증기/증적 | 직접 확인 | 전 |
-| 2 | P0 | S11 단기 | build/auth/현행156/env/docs/version·기존 미디어증거유효성·정리 | 최종단기 | 승인/로드맵 | 전 |
-| 3 | P0 | 30분 | 고정코드 실제duration/iteration/cleanup | 장시간 | AGENTS/S11 | 전 |
-| 4 | P0 | 실제 UI/브라우저 미디어 | exactID·role/viewport/theme/시각/영상/metadata,대표이미지의 실제UI대조 | UI | AGENTS/S11 | 전 |
-| 5 | P0 | 공통·녹화120분 | 자원/지속영상/보존/복구/drift/cleanup.각 결과별판정 | 장시간 | 직접매핑/규칙 | 전 |
-| 6 | P0/P1 | 최종정합 | 문서/출처/source-only/증거유효성·cleanup·commit/push | 마감 | AGENTS/release policy | 전 |
-| 7 | P0 | 승인된 PR·CI·main | 별도 승인 후 PR/필수CI·merge 대상hash확인 | 외부변경 | AGENTS4 | 로컬gate뒤 |
-| 8 | P0 | 서명tag·Release | 별도 승인·signed annotated/검증·published확인 | 외부변경 | AGENTS4 | merge뒤 |
+| 1 | P0 | 30분 | 고정코드 실제duration/iteration/cleanup | 장시간 | AGENTS/S11 | 전 |
+| 2 | P0 | 실제 UI/브라우저 미디어 | exactID·role/viewport/theme/시각/영상/metadata,대표이미지의 실제UI대조 | UI | AGENTS/S11 | 전 |
+| 3 | P0 | 공통·녹화120분 | 자원/지속영상/보존/복구/drift/cleanup.각 결과별판정 | 장시간 | 직접매핑/규칙 | 전 |
+| 4 | P0/P1 | 최종정합 | v4.1 릴리즈노트/출처/source-only/증거유효성·최종cleanup·commit/push | 마감 | AGENTS/release policy | 전 |
+| 5 | P0 | 승인된 PR·CI·main | 별도 승인 후 PR/필수CI·merge 대상hash확인 | 외부변경 | AGENTS4 | 로컬gate뒤 |
+| 6 | P0 | 서명tag·Release | 별도 승인·signed annotated/검증·published확인 | 외부변경 | AGENTS4 | merge뒤 |
 
 30/120 공통 실행은 `verify-v390-server-longrun`의 실제 `verify-predev --soak-minutes`
 위임(해당 runner397행)과 원출력/summary를 함께 남기는 방식으로 다음 실행 시 명령을 확정한다.
@@ -95,7 +94,7 @@ wrapper 자체나 fixture PASS로 duration을 대체하지 않고 두 runner를 
 | 항목 | 상태 | 사유 | 완료 evidence 사용 가능 여부 | 다음 조건 |
 | --- | --- | --- | --- | --- |
 | PREP 원장 | 완료 | 기각 보완·독립검토·gate 통과 | 해당 source 결속에만 가능 | 실제 UI/장시간으로 확대 금지 |
-| S11 단기 | 미실행 | PREP 커밋 뒤 실행 | 불가 | 4번 커밋 |
+| S11 단기 | 완료 | 승인FINAL manifest 실행,문서실패보완·소유93,498,346B정리 | 단기 범위만 가능 | 후속 장시간·UI와 구분 |
 | UI/30/120 | 미실행 | 이번 단기범위 밖 | 불가 | 고정코드·실행순서확인 |
 | 외부 서비스/실기기 | 명시 제외 | 사용자 실행 안 함 | 불가 | 임의 후속조건으로 되살리지 않음 |
 | PR/CI/main/tag/Release | 미실행·미확인 | 각각 실행승인 필요 | 불가 | 로컬gate·별도승인 |

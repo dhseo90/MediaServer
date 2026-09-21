@@ -721,3 +721,273 @@ stage는 신규 소스 추적 준비일 뿐 실패 단계 커밋이 아니었으
 
 stage 후 신규파일까지 포함한 공백 검사에서 이관한 검토 md3개의 여분 EOF 빈 줄을 발견해 정리했다.
 독립 판정 JSON/근거 내용/승인 digest는 변경하지 않았으며 staged 공백 검사로 다시 확인한다.
+
+## S11 최종 단기 실행
+
+PREP 커밋 `fa5afd8d` 이후 FINAL manifest의 빌드·격리 인증·녹화 통합·환경·entry·metadata가
+통과했다. 첫 close-out dry-run은 `release policy missing snippet: v4.1.0 Release Close-out Runbook`으로
+exit1이며 6개 검사 중 문서 경계1개만 실패했다. 실제 문서에 v4.0.0을 현재 소스로 설명하는 낡은 절이
+남아 있는 원인을 확인했다. 제품 실패나 명령 부재가 아니다.
+
+같은 FINAL-closeout 단계 안에서 현재 v4.1.0 순서를 기존 승인·검증 정책에 맞춰 추가하고,
+v4.0.0 절을 과거 공개 이력으로 정정한다. 기존 검증기의 문자열·합격 기준은 바꾸지 않는다.
+동일 dry-run과 문서·버전 영향 검사 후 후속 마감을 진행한다. 제품/인증/녹화 코드는 바뀌지 않으므로
+이미 통과한 단기 실행은 유지한다. 최초 실패 원출력도 최종 증적에 함께 보존한다.
+
+### S11 단기 결과와 해석
+
+제품 소스는 `13d82e46`의287파일/digest 고정을 유지하며 실제 실행 HEAD는 `fa5afd8d`다.
+새 인증값5개는 검증 프로세스에만 전달했고 `MEDIA_SERVER_VERIFY_AUTH_VISUAL=0`을 사용했다.
+운영 계정·외부 서비스·실기기를 사용하지 않았다. [실행 명령·UTC·exit·전체 로그 SHA](lp28-final-short-summary.json),
+[개별 판정 및 정리 전수](lp28-final-item-results.md)를 보존한다. 원출력은 끝 공백도 유지한 무손실 gzip이다.
+
+| 실행 | 직접 결과 | 범위/한계 |
+| --- | --- | --- |
+| 전체 빌드 | exit0/850ms, AI on·YouTube off, 기존 archive/binary SHA 유지 | 이번 제품 변경 없음 |
+| 인증 bootstrap/users/routes | exit0,19/72/146 PASS, 각6.905/9.868/18.001초 | 격리 HTTP/HTML, 실제 시각 검사 아님; routes 보조 포함 출력148행과 요약146 구분 |
+| 현행 녹화 5단계 | exit0/125.422초,35+40+10+46+25=156 PASS | API/auth/lifecycle/default/실제 앱 |
+| 실제 앱 두 기동 | 각각 완전 출력2개, HTTP200·파일 크기/hash·기존ID 유지·새ID 생산·복제복구 원본불변 | app25 PASS/81.669초, 두 프로세스 exit0·강제종료 없음 |
+| HTTP 관측 | health 제외346건·최대2882ms·실패0 | 기존4초 이내 관측, 별도 latency-only 모드 새 실행 PASS 아님 |
+| GStreamer 환경 fixture | exit0/4.386초,20검사 PASS·20root 정리 | 기존 actual94의 대체가 아님 |
+| entry/metadata | 각각33/18 PASS; 문서 보완 후 동일 검사도 통과 | local consistency, 원격 published 조회 아님 |
+| close-out dry-run | 최초5PASS/1FAIL→문서 보완 후6PASS/exit0/86ms | 실제 push/PR/merge/tag/Release 없음 |
+| 기존 증거 유지 | 현재 codec67·ICE8, 실제 ENV12 94 및 native 복합8 | [소스·바이너리·환경 대조](lp28-final-evidence-reuse.json)의 한정 범위, 새 실행으로 집계 안 함 |
+
+`eventOutputs()`는 전체 페이지에서 같은 참조/job·`jobState=complete`·`completeness=complete`·두 파일을
+검사한 뒤 파일 응답/hash를 대조한다. 중간 `terminalObservations.fullOutputPass=false`는 관측만으로
+전체 합격을 만들지 않는 고정값이며 이 최종 판정을 대신하지 않는다. `mixedStates=true`는 실행 동안
+intent 등 여러 전이 상태를 관측했다는 뜻이다. `latencyPass=false`도 actual-app과 별도 latency-only
+모드 구분이다. `fullFoundationPass/resourceTrendPass/uiFulltestPass=false`는 그대로 보존한다.
+
+첫 페이지 준비 중 health 연결 거부는 준비 polling이며 실제 요청 오류로 확대하지 않는다. 정상/손상
+fixture의 예상 file evidence 거부 로그는 해당 반례와 함께 보존했다. timeout·assertion·제품 정책을
+완화하지 않았다. 제품 불변에 따라 이번 문서 보완 뒤 인증/녹화 전체를 다시 실행하지 않았다.
+
+메인의 원출력/코드 대조와 단일 담당자의 읽기 검토에서 계약 완화·UI/장시간 승격을 발견하지 않았다.
+임시 빌드 캐시가 남아 있음을 확인하여 마지막 소유 정리 대상에 포함했다. 최종 삭제 결과는 아래에 기록한다.
+
+### 미실행·명시 제외
+
+| 제목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| 30분 | 공통 runner의 실제 duration/iteration | 이번1~5는 단기 범위 | 릴리즈 필수, 단기/fixture로 대체 불가 |
+| 실제 UI·브라우저 미디어 | exact controls/role/scope/viewport/theme/시각/metadata | 이번 실행 범위 밖 | source proof986/native424는 실행 PASS 아님 |
+| 공통120분·녹화120분 | 자원·drift·지속영상·보존/복구 | 이번 단기 범위 밖 | 서로 또는30분으로 대체 불가 |
+| 외부 서비스·실기기 | 실제 외부 endpoint/장치 | 사용자 명시 제외 | PASS나 조건부 후속으로 되살리지 않음 |
+| PR·CI·main·서명tag·Release | 외부 릴리즈 동작 | 별도 승인·최종 로컬 gate 필요 | 이번 개발 브랜치 push와 구분 |
+
+이번 세션 전용 token start/end/consumed 집계는 없으며 미집계다. 개별 elapsed/source/UTC는
+각 원출력 첫/마지막 JSON에 있다. 과거 실패와 현재 PASS를 함께 보존하며 릴리즈 완료라고 하지 않는다.
+
+### 최종 임시 자료 정리
+
+[파일·링크 소유/크기/SHA 전수](lp28-cleanup-manifest.json)를 먼저 보존하고 삭제했다.
+첫 목록 수집은 symlink 안전 guard에서 exit1로 중단했으며 삭제는 수행하지 않았다. 읽기 확인으로
+빌드 cache의 GStreamer 링크277개임을 확정한 뒤 링크 대상을 추적하지 않는 목록/삭제를 사용했다.
+시스템 패키지나 원본 미디어를 삭제하지 않았다. `lsof +D`는 exit1/출력 없음으로 열린 핸들이 없었다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| `/private/tmp/media-server-lp28.K2YANY` | 후보/검토/원출력/빌드cache, 일반파일75·링크277 | 93,498,346B(링크 대상 제외) | 최소 증적 이관 후 정확 경로 삭제 | `rm -rf` exit0, root 부재 확인 exit0 | cleanup manifest |
+| `lp28-final-*.log.gz`15개 | 비민감 전체 명령 출력 | 원본653,818B→보존53,541B | gzip 무손실 이관·SHA/해제 일치 | 보존 | 단기 summary의 개별SHA |
+| 실제 앱 latency/process4파일 | 요청/잠금 계측·두기동 종료 | 430,704B | 기존 runner 원형 보존 | 보존 | 단기 summary extra |
+| 이전 audit/approval·최종 원장 | Git 추적 fixture·독립검토 | 원본 크기는 cleanup manifest | 중간 생성본만 삭제 | 이전5e5f45d7·최종fa5afd8d 및 LP28 artifacts로 복원 | Git/독립판정 |
+
+개별 인증3·환경20·녹화8개 root 정리는 단기 개별 결과의31행에 있다. 각 원출력의 size/absence/port
+확인을 보존했고 actual 앱은 두 프로세스 정상종료·TCP/UDP 해제를 확인했다. 이번 작업 소유 정리 blocker는 없다.
+원출력15개는 압축 파일에서 복원 가능하며 중간 후보·캐시 생성본은 삭제되어 필요하면 재생성해야 한다.
+
+### 최종 문서 마감 검사
+
+아래에는 정리 결과와 최신 표를 반영한 뒤의 실제 원출력을 보존한다.
+
+명령은 순서대로 실행했고 실패 뒤 다음 명령을 실행하지 않는 방식이다. source `fa5afd8d`와 이번 문서 diff, token start/end/consumed는 전용 집계 부재로 미집계다.
+
+명령: `./server.sh verify-docs-links`, exit=0, 도구 elapsed=0.021757042초.
+
+```text
+
+== Docs link verification summary ==
+- markdown files: 294
+- local links: 9647
+- local images: 22
+- local anchors: 163
+- indexed docs: 76
+- index coverage exclusions: 209
+- failures: 0
+```
+
+명령: `./server.sh verify-docs-ui-assets`, exit=0, 도구 elapsed=0.000006916초.
+
+```text
+[pass] README uses only representative product UI screenshots
+[pass] English README uses English UI screenshots
+[pass] UI guide keeps product screenshots in the shared asset set
+[pass] docs UI asset policy documents capture rules
+[pass] managed UI asset manifest stays complete
+[pass] capture script owns every documented UI asset
+[pass] docs capture covers current screenshots
+[pass] representative screenshot docs do not point at stale visual baselines
+[pass] docs UI asset directory contains managed PNG files
+[pass] VA documentation images keep full video frame bounds
+
+== Docs UI asset verification summary ==
+- pass: 10
+- fail: 0
+```
+
+명령: `./server.sh verify-v410-entry-baseline`, exit=0, 도구 elapsed=0.0000055초.
+
+```text
+[PASS] VERSION=4.1.0
+[PASS] branch context=v4.1.0
+[PASS] CMake source version
+[PASS] README source version
+[PASS] README current roadmap
+[PASS] README published tag
+[PASS] README published baseline
+[PASS] English README source version
+[PASS] English README current roadmap
+[PASS] docs index source version
+[PASS] docs index current roadmap
+[PASS] English docs index source version
+[PASS] English docs index current roadmap
+[PASS] versioning policy source version
+[PASS] versioning policy current roadmap
+[PASS] release policy source version
+[PASS] release policy current roadmap
+[PASS] public review source version
+[PASS] UI guide source version
+[PASS] UI assets source version
+[PASS] UI asset manifest source version
+[PASS] UI asset manifest published baseline
+[PASS] UI asset verifier published baseline
+[PASS] backlog source version
+[PASS] backlog current roadmap
+[PASS] roadmap source version
+[PASS] roadmap S00 status
+[PASS] latest published baseline remains v4.0.0
+[PASS] release evidence exists
+[PASS] research gate dispatch
+[PASS] entry baseline dispatch
+[PASS] release metadata current tag
+[PASS] release metadata current roadmap
+== v4.1.0 entry baseline summary ==
+pass=33 fail=0
+```
+
+명령: `./server.sh verify-release-metadata`, exit=0, 도구 elapsed=0.000005917초.
+
+```text
+[pass] VERSION matches CMake project VERSION
+[pass] README.md points to the current published release
+[pass] README.md keeps release source-of-truth links lightweight
+[pass] README.en.md points to the current published release
+[pass] README.en.md keeps release source-of-truth links lightweight
+[pass] historical v2.9 source-of-truth remains distinct from latest published v2.8
+[pass] default mode records published metadata verification as external gate
+[pass] versioning policy separates source version and published release
+[pass] versioning policy pins semver source fields
+[pass] release policy separates source version and published release
+[pass] release policy preserves latest published release note source
+[pass] release policies require future signed tags
+[pass] development backlog pins current source roadmap and public release boundary
+[pass] docs index points to backlog as current release source of truth
+[pass] public entry docs keep release evidence source-of-truth deduped
+[pass] public review pins current release wording
+[pass] UI guide pins current release wording
+[pass] UI asset policy pins current source and published baseline wording
+
+== Release metadata consistency summary ==
+- current version: 4.1.0
+- current tag: v4.1.0
+- latest published tag: v4.0.0
+- published metadata: external-not-checked
+- pass: 18
+- fail: 0
+```
+
+명령: `git diff --check`, exit=0, 도구 elapsed=0.000005208초.
+
+```text
+(출력 없음)
+```
+
+
+최종 문서 실행의 개별 판정은 다음과 같다. 앞선 실행과 분리해 보존한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| README uses only representative product UI screenshots | 정리 후 `./server.sh verify-docs-ui-assets` 최종 실행·위 원출력 | PASS |
+| English README uses English UI screenshots | 정리 후 `./server.sh verify-docs-ui-assets` 최종 실행·위 원출력 | PASS |
+| UI guide keeps product screenshots in the shared asset set | 정리 후 `./server.sh verify-docs-ui-assets` 최종 실행·위 원출력 | PASS |
+| docs UI asset policy documents capture rules | 정리 후 `./server.sh verify-docs-ui-assets` 최종 실행·위 원출력 | PASS |
+| managed UI asset manifest stays complete | 정리 후 `./server.sh verify-docs-ui-assets` 최종 실행·위 원출력 | PASS |
+| capture script owns every documented UI asset | 정리 후 `./server.sh verify-docs-ui-assets` 최종 실행·위 원출력 | PASS |
+| docs capture covers current screenshots | 정리 후 `./server.sh verify-docs-ui-assets` 최종 실행·위 원출력 | PASS |
+| representative screenshot docs do not point at stale visual baselines | 정리 후 `./server.sh verify-docs-ui-assets` 최종 실행·위 원출력 | PASS |
+| docs UI asset directory contains managed PNG files | 정리 후 `./server.sh verify-docs-ui-assets` 최종 실행·위 원출력 | PASS |
+| VA documentation images keep full video frame bounds | 정리 후 `./server.sh verify-docs-ui-assets` 최종 실행·위 원출력 | PASS |
+| VERSION=4.1.0 | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| branch context=v4.1.0 | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| CMake source version | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| README source version | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| README current roadmap | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| README published tag | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| README published baseline | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| English README source version | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| English README current roadmap | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| docs index source version | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| docs index current roadmap | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| English docs index source version | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| English docs index current roadmap | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| versioning policy source version | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| versioning policy current roadmap | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| release policy source version | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| release policy current roadmap | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| public review source version | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| UI guide source version | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| UI assets source version | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| UI asset manifest source version | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| UI asset manifest published baseline | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| UI asset verifier published baseline | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| backlog source version | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| backlog current roadmap | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| roadmap source version | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| roadmap S00 status | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| latest published baseline remains v4.0.0 | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| release evidence exists | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| research gate dispatch | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| entry baseline dispatch | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| release metadata current tag | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| release metadata current roadmap | 정리 후 `./server.sh verify-v410-entry-baseline` 최종 실행·위 원출력 | PASS |
+| VERSION matches CMake project VERSION | 정리 후 `./server.sh verify-release-metadata` 최종 실행·위 원출력 | PASS |
+| README.md points to the current published release | 정리 후 `./server.sh verify-release-metadata` 최종 실행·위 원출력 | PASS |
+| README.md keeps release source-of-truth links lightweight | 정리 후 `./server.sh verify-release-metadata` 최종 실행·위 원출력 | PASS |
+| README.en.md points to the current published release | 정리 후 `./server.sh verify-release-metadata` 최종 실행·위 원출력 | PASS |
+| README.en.md keeps release source-of-truth links lightweight | 정리 후 `./server.sh verify-release-metadata` 최종 실행·위 원출력 | PASS |
+| historical v2.9 source-of-truth remains distinct from latest published v2.8 | 정리 후 `./server.sh verify-release-metadata` 최종 실행·위 원출력 | PASS |
+| default mode records published metadata verification as external gate | 정리 후 `./server.sh verify-release-metadata` 최종 실행·위 원출력 | PASS |
+| versioning policy separates source version and published release | 정리 후 `./server.sh verify-release-metadata` 최종 실행·위 원출력 | PASS |
+| versioning policy pins semver source fields | 정리 후 `./server.sh verify-release-metadata` 최종 실행·위 원출력 | PASS |
+| release policy separates source version and published release | 정리 후 `./server.sh verify-release-metadata` 최종 실행·위 원출력 | PASS |
+| release policy preserves latest published release note source | 정리 후 `./server.sh verify-release-metadata` 최종 실행·위 원출력 | PASS |
+| release policies require future signed tags | 정리 후 `./server.sh verify-release-metadata` 최종 실행·위 원출력 | PASS |
+| development backlog pins current source roadmap and public release boundary | 정리 후 `./server.sh verify-release-metadata` 최종 실행·위 원출력 | PASS |
+| docs index points to backlog as current release source of truth | 정리 후 `./server.sh verify-release-metadata` 최종 실행·위 원출력 | PASS |
+| public entry docs keep release evidence source-of-truth deduped | 정리 후 `./server.sh verify-release-metadata` 최종 실행·위 원출력 | PASS |
+| public review pins current release wording | 정리 후 `./server.sh verify-release-metadata` 최종 실행·위 원출력 | PASS |
+| UI guide pins current release wording | 정리 후 `./server.sh verify-release-metadata` 최종 실행·위 원출력 | PASS |
+| UI asset policy pins current source and published baseline wording | 정리 후 `./server.sh verify-release-metadata` 최종 실행·위 원출력 | PASS |
+| 문서 링크 전수 | 정리 후 294문서/9647링크·오류0 | PASS |
+| 공백 최종 | 정리 후 git diff --check exit0 | PASS |
+
+### 커밋·푸시 판단
+
+1번 `f8ed4546`·`4a213d5b`, 2번 `13d82e46`, 3번 `5e5f45d7`, 4번 `fa5afd8d`로
+분할했다. 이 기록을 포함한5번 마감은 문서 보완·단기 증거·정리 결과만 별도 커밋한다.
+이번1~5의 미해결 실패/제품 변경/cleanup 잔여는 없으며 최종 stage 공백·범위 확인 후 커밋 가능하다.
+fresh fetch에서 개발브랜치 behind0/ahead10(이 기록 커밋 전), main `431397d9`를 확인했다.
+앞선 HW 작업5커밋도 누적 push 대상이며 이번에 판정·기존 유효 증거를 마감한 범위다.
+최종 커밋 뒤 clean과 원격 관계가 유지되면 사용자 승인대로 개발브랜치만 non-force push한다.
+PR·병합·태그·Release는 수행하지 않는다. 최종 실제 hash/원격동기는 Git과 최종 응답에서 보고한다.
