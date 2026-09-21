@@ -1,0 +1,12 @@
+[environment] {"mode":"--providers","utc":"2026-09-21T11:36:41.368Z","platform":"darwin","arch":"arm64","node":"v24.13.0","root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-media-DCGIE0","rtspPort":60502,"httpPort":60503,"udpPort":null,"configSha256":"dffa840c99e44acd49bffda8065c7030bab7df5a06a47d3e4b220c1fe5c7d462","binarySha256":"2ce43399ce33fd6863a9aa8d0e21e65ae32975ee52ad08d065b09e065aca9fd7","runnerSha256":"0725118b519032fc348bb11c8c15e9a608b15ccefa1d01b82c40745ce44682ac"}
+[pass] codec provider=1 preparation ready (productPass=false)
+[pass] codec provider=2 preparation ready (productPass=false)
+[command] {"command":"verify-codecs","code":0,"signal":null,"spawnError":false,"bounded":true,"timedOut":false,"elapsedMs":1633,"pass":2,"fail":0,"skip":0,"rawSha256":"80e786ba2b98fdeea2e422c402e5d95a396c562ad1b3066b819588aad6a72f90","rawBytes":510}
+[port] {"port":60502,"closed":true}
+[port] {"port":60503,"closed":true}
+[port] {"port":60504,"closed":true}
+[port] {"port":60505,"closed":true}
+[udp] {"used":false,"closed":true,"messages":0}
+[server-diagnostics] {"events":[],"overflow":false,"clock":"runner-monotonic-receipt","firstRtpObserved":false}
+[retained] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-media-DCGIE0","owned":["/private/tmp/media-server-hw-media-DCGIE0-http_local_h264_aac.http.log","/private/tmp/media-server-hw-media-DCGIE0-http_local_h264_video_only.http.log"],"bytes":66801,"reason":"diagnostics-before-cleanup"}
+[execution] {"exit":0,"elapsedMs":1657,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음","browser":false,"releasePass":false}

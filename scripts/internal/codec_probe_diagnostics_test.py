@@ -2,12 +2,14 @@
 """격리 파일/자식 Python만 사용한다. 서버·포트·ffprobe 실행 없음."""
 import copy
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
 import sys
 import tempfile
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
 SPEC = importlib.util.spec_from_file_location("codec_diag", Path(__file__).with_name("codec_probe_diagnostics.py"))
@@ -146,6 +148,63 @@ class DiagnosticsTests(unittest.TestCase):
             data = copy.deepcopy(self.config);data["sources"][0].update(change)
             with self.assertRaises(ValueError):
                 diag.provider_config("1", self.root, data)
+
+    def test_CPD19_actual_wrapped_responses(self):
+        trace = diag.Trace()
+        trace.feed(b"[rtsp @ 0x1234] line='RTSP/1.0 200 OK'\nline='RTSP/1.0 404 Not Found'\nline='RTSP/1.0 503 Service Unavailable'\n")
+        facts = trace.finish()
+        self.assertEqual([facts["response_classes"][key] for key in ("2xx", "4xx", "5xx")], [1, 1, 1])
+        self.assertEqual(facts["response_observation"], "observed")
+
+    def test_CPD20_chunk_boundaries_and_truncation(self):
+        raw = b"[rtsp @ 0x1234] line='RTSP/1.0 200 OK'\r\n"
+        for cut in range(len(raw) + 1):
+            trace = diag.Trace();trace.feed(raw[:cut]);trace.feed(raw[cut:])
+            self.assertEqual(trace.finish()["response_classes"]["2xx"], 1)
+        trace = diag.Trace()
+        for value in raw:
+            trace.feed(bytes([value]))
+        self.assertEqual(trace.finish()["response_classes"]["2xx"], 1)
+        trace = diag.Trace();trace.feed(raw[:-3])
+        facts = trace.finish()
+        self.assertEqual(facts["response_classes"]["2xx"], 0)
+        self.assertEqual(facts["response_observation"], "incomplete")
+
+    def test_CPD21_observation_states_distinct(self):
+        self.assertEqual(diag.Trace().finish()["response_observation"], "not-observed")
+        trace = diag.Trace();trace.feed(b"unregistered harmless log\n")
+        self.assertEqual(trace.finish()["response_observation"], "not-observed")
+        trace = diag.Trace();trace.feed(b"line='RTSP/1.0 200 OK'\n" + b"x" * 4097 + b"\n")
+        self.assertEqual(trace.finish()["response_observation"], "incomplete")
+
+    def test_CPD22_malicious_wrapper_and_redaction(self):
+        trace = diag.Trace()
+        trace.feed(b"prefix line='RTSP/1.0 200 OK'\nline='RTSP/1.0 200 OK' secret\nline='RTSP/1.0 200 'nested''\nline='RTSP/1.0 40x secret'\n")
+        facts = trace.finish()
+        self.assertEqual(sum(facts["response_classes"].values()), 0)
+        diag.append(self.root, dict(facts, kind="probe", phase="finish", case=1, route=1))
+        text = Path(self.root, "codec-diagnostics.jsonl").read_text()
+        self.assertNotIn("secret", text)
+        self.assertNotIn("nested", text)
+
+    def test_CPD23_compact_stdout_counts_and_preservation(self):
+        raw = b"0|h264|video\n1|aac|audio\n2|opus|audio\ninvalid|video\n"
+        output, code, facts = self.run_child("import sys;sys.stdout.buffer.write(" + repr(raw) + ")")
+        self.assertEqual((output, code), (raw, 0))
+        self.assertEqual(facts["stdout_stream_lines"], {"audio": 2, "video": 1})
+        self.assertEqual(facts["discovered_stream_lines"], {"audio": 0, "video": 0})
+
+    def test_CPD24_original_exit_and_timeout_contract(self):
+        for micros, expected in ((8000000, 18), (10000000, 20), (1, 11), (999000000, 120)):
+            output = io.BytesIO()
+            with patch.object(diag, "collect", return_value=(b"0|h264|video\n", 7, {})) as collect, \
+                    patch.object(diag.sys, "stdout", SimpleNamespace(buffer=output)), patch.object(diag.sys, "stderr", io.StringIO()):
+                self.assertEqual(diag.probe(self.root, 1, 1, micros, "rtsp://private"), 7)
+            command, deadline = collect.call_args.args
+            self.assertEqual(deadline, expected)
+            self.assertEqual(command[:-1], ["ffprobe", "-v", "trace", "-rtsp_transport", "tcp", "-rw_timeout", str(micros),
+                                           "-show_entries", "stream=index,codec_name,codec_type", "-of", "compact=p=0:nk=1"])
+            self.assertEqual(output.getvalue(), b"0|h264|video\n")
 
 
 if __name__ == "__main__":

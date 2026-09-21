@@ -1,0 +1,7 @@
+{"kind":"diagnostic","monotonic_ns":523803933147958,"phase":"initialized","schema":1}
+{"alive":-1,"attempt":0,"case":1,"kind":"launcher","listening":-1,"monotonic_ns":523804327260458,"phase":"start","pid":75158,"readiness_curl_exit":-1,"schema":1,"wait_signal_candidate":null,"wait_signal_confirmed":false,"wait_status":-1}
+{"alive":1,"attempt":2,"case":1,"kind":"launcher","listening":1,"monotonic_ns":523804756371875,"phase":"ready","pid":75158,"readiness_curl_exit":0,"schema":1,"wait_signal_candidate":null,"wait_signal_confirmed":false,"wait_status":-1}
+{"alive":1,"attempt":0,"case":1,"kind":"launcher","listening":-1,"monotonic_ns":523804824738333,"phase":"stop","pid":75158,"readiness_curl_exit":-1,"schema":1,"wait_signal_candidate":15,"wait_signal_confirmed":false,"wait_status":143}
+{"alive":-1,"attempt":0,"case":2,"kind":"launcher","listening":-1,"monotonic_ns":523805112239875,"phase":"start","pid":75179,"readiness_curl_exit":-1,"schema":1,"wait_signal_candidate":null,"wait_signal_confirmed":false,"wait_status":-1}
+{"alive":1,"attempt":1,"case":2,"kind":"launcher","listening":1,"monotonic_ns":523805206068875,"phase":"ready","pid":75179,"readiness_curl_exit":0,"schema":1,"wait_signal_candidate":null,"wait_signal_confirmed":false,"wait_status":-1}
+{"alive":1,"attempt":0,"case":2,"kind":"launcher","listening":-1,"monotonic_ns":523805266132708,"phase":"stop","pid":75179,"readiness_curl_exit":-1,"schema":1,"wait_signal_candidate":15,"wait_signal_confirmed":false,"wait_status":143}

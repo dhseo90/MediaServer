@@ -41,12 +41,14 @@ def append(root, record):
                "wait_status", "wait_signal_candidate", "wait_signal_confirmed", "requests", "response_classes",
                "sdp_media_lines", "discovered_stream_lines", "unknown_lines", "partial_line",
                "request_response_correlation", "product_prepare_stage", "outcome", "output_bytes",
-               "process_returncode", "elapsed_ns", "original_exit"}
+               "process_returncode", "elapsed_ns", "original_exit", "response_observation", "stdout_stream_lines"}
     enums = {"kind": ("launcher", "probe", "diagnostic"), "phase": ("initialized", "start", "ready", "failure", "stop", "finish"),
              "outcome": ("completed", "timeout", "output-limit", "spawn-error"),
-             "request_response_correlation": ("unknown",), "product_prepare_stage": ("unknown",)}
+             "request_response_correlation": ("unknown",), "product_prepare_stage": ("unknown",),
+             "response_observation": ("observed", "not-observed", "incomplete")}
     mappings = {"requests": set(METHODS), "response_classes": {"1xx", "2xx", "3xx", "4xx", "5xx", "other"},
-                "sdp_media_lines": {"audio", "video"}, "discovered_stream_lines": {"audio", "video"}}
+                "sdp_media_lines": {"audio", "video"}, "discovered_stream_lines": {"audio", "video"},
+                "stdout_stream_lines": {"audio", "video"}}
     if not isinstance(record, dict) or set(record) - allowed:
         raise ValueError("record-fields")
     for key, value in record.items():
@@ -106,13 +108,18 @@ class Trace:
         self.streams = {"audio": 0, "video": 0}
         self.unknown = 0
         self.partial = False
+        self.incomplete = False
 
     def line(self, raw):
         text = raw.decode("ascii", "replace").strip()
         # FFmpeg category/object prefix는 제거만 하며 저장하지 않는다.
         text = re.sub(r"^\[[A-Za-z0-9_]+ @ 0x[0-9a-fA-F]+\]\s*", "", text)
         request = re.fullmatch(r"(OPTIONS|DESCRIBE|SETUP|PLAY|TEARDOWN) [^\s]+ RTSP/1\.0", text)
-        response = re.fullmatch(r"RTSP/1\.0 ([0-9]{3})(?: [^\r\n]*)?", text)
+        # FFmpeg 8.0.1 rtsp.c의 line='%s' 바깥 wrapper만 제거한다.
+        # 임의 prefix/suffix, 중첩 quote, 잘린 wrapper를 응답으로 복구하지 않는다.
+        wrapped = re.fullmatch(r"line='([^'\r\n]*)'", text)
+        response_text = wrapped[1] if wrapped else text
+        response = re.fullmatch(r"RTSP/1\.0 ([0-9]{3})(?: [\x20-\x7e]*)?", response_text)
         media = re.match(r"m=(audio|video) [0-9]+ [^\s]+(?: |$)", text)
         stream = re.match(r"Stream #[0-9]+:[0-9]+(?:\([^)]*\))?(?:\[[^]]*\])?: (Audio|Video):", text)
         if request:
@@ -127,6 +134,8 @@ class Trace:
             self.streams[stream[1].lower()] += 1
         elif text:
             self.unknown += 1
+            if "RTSP/" in text:
+                self.incomplete = True
 
     def feed(self, chunk):
         for part in chunk.splitlines(keepends=True):
@@ -139,20 +148,32 @@ class Trace:
             if ending:
                 if self.discard:
                     self.unknown += 1
+                    self.incomplete = True
                 else:
                     self.line(self.pending)
                 self.pending = b""
                 self.discard = False
 
-    def finish(self):
+    def finish(self, complete=True):
         if self.pending or self.discard:
             self.partial = True
             self.unknown += 1
         self.pending = b""
+        observation = ("incomplete" if self.partial or self.incomplete or not complete else
+                       "observed" if sum(self.responses.values()) else "not-observed")
         return {"requests": self.requests, "response_classes": self.responses,
+                "response_observation": observation,
                 "sdp_media_lines": self.sdp, "discovered_stream_lines": self.streams,
                 "unknown_lines": self.unknown, "partial_line": self.partial,
                 "request_response_correlation": "unknown", "product_prepare_stage": "unknown"}
+
+
+def stdout_stream_lines(output):
+    # codec stdout 자체는 변경하지 않는다. 이 계수는 stderr의 발견 로그와 별개다.
+    counts = {"audio": 0, "video": 0}
+    for row in re.finditer(rb"(?m)^[0-9]+\|[a-zA-Z0-9_]{1,64}\|(audio|video)\r?$", output):
+        counts[row[1].decode("ascii")] += 1
+    return counts
 
 
 def collect(command, timeout, limit=LIMIT):
@@ -206,7 +227,8 @@ def collect(command, timeout, limit=LIMIT):
         process.stdout.close()
         process.stderr.close()
     code = 124 if status == "timeout" else 2 if status == "output-limit" else code
-    return bytes(output), code, dict(trace.finish(), outcome=status, output_bytes=total,
+    return bytes(output), code, dict(trace.finish(complete=status == "completed"),
+                                   stdout_stream_lines=stdout_stream_lines(output), outcome=status, output_bytes=total,
                                    process_returncode=process.returncode,
                                    elapsed_ns=time.monotonic_ns() - started)
 

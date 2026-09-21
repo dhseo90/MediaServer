@@ -4,6 +4,127 @@
 정책은 AGENTS.md, 결과는 중앙 테스트 기록이 기준이다. LP26의 과거 결과는 덮어쓰지 않는다.
 시작 branch `v4.1.0`, HEAD `f4e58b9cb2efbeec43a7e1132da940fce6afd521`, clean/sync.
 
+## 현재 승인: 진단 신뢰성부터 S11 단기 안정화까지 1~5
+
+사용자 최신 요청은 아래 1~5 순차 개발·분할 커밋·조건 충족 시 푸시다. 이전 1~6 표는
+과거 실행 상태로 보존한다. `330e48ad`의 진단 자체검사 통과는 실제 로그 형식 전체 대응을
+입증하지 못했다. 실제 FFmpeg 8.0.1은 `line='RTSP/1.0 …'`로 출력하지만 기존 parser와
+CPD04 fixture는 bare status만 처리했다. 따라서 이전 **진단 완료** 표현을 **부분 완료**로 정정한다.
+응답 계수 0은 관측 실패이며 실제 서버 무응답의 증거가 아니다. 과거 제품 실패 원인은 여전히 미확정이다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과/완료 기준 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 진단 신뢰성·미재현 기준 | 완료 | CPD24·AST2·실제HTTP8 PASS, RTSP6개 응답/stream 대응·정리 | 아래 진단 신뢰성 결과 |
+| 2 | HW-03 마감 | 미실행 | 현재 codec67·ICE8, 정상 종료·정리. 과거 실패 이력은 유지 | HW-A04 |
+| 3 | PREP-01 | 미실행 | 초기 ID·복합 요구·ENV12·최종 실행 연결 | LP26 |
+| 4 | CLOSE-01·S10 고정 | 미실행 | 구형 사용처·대체 증거·문서 정합·증거 유효성 판정 | roadmap S10 |
+| 5 | S11 단기 안정화 | 미실행 | 고정 source의 최종 단기 목록 실제 실행 | roadmap S11·AGENTS7 |
+
+### 미재현 실패의 진행 기준
+
+1. 과거 HTTP `/h264` timeout과 무음 제공기 준비 실패는 historical FAIL/원인 미확정으로 보존한다.
+   사용자 권한창 종류를 기억하지 못한 것 자체는 다음 검사 착수의 필수 선수조건이 아니다.
+2. 진단의 실제 형식·잘림·오류·비밀 반례와 원래 stdout/exit/deadline을 검증하고,
+   실제 HTTP8 한정 검사에서 응답 관측 및 stdout stream 계수가 원래 codec 판정과 대응하는지 확인한다.
+   CPD만으로 실제 진단 경로 완료라고 하지 않는다. 이미 유효한 제공기2·prefix28은 반복하지 않는다.
+3. 이후 동일 제품/환경의 codec67→ICE8 정식 회귀를 실행한다. 현재 회귀와 종료·정리 통과는
+   현재 HW-03 영향 범위를 닫는 근거이며 과거 미재현 원인을 고쳤다는 주장이 아니다.
+4. 새 실패는 확보된 진단으로 원인과 영향이 확인된 같은 단계만 보완한다. 원인 미확정·교차 계약이면
+   AGENTS8에 따라 중단한다. timeout 확대·검사 삭제·무제한 재실행을 하지 않는다.
+5. responseObservation의 not-observed는 **관측 없음**이지 **서버 응답 없음**이 아니다.
+   잘림/상한/중단은 incomplete다. request-response correlation·제품 prepare 원인·첫 RTP는
+   증거가 없는 한 unknown/미관측으로 유지한다. 진단 trace 모드의 timing 영향도 한계로 남긴다.
+
+CPD19~24는 아래 사전등록 후 실행한다. 먼저 CPD19의 wrapped 200/404/503 계수
+`[0,0,0] != [1,1,1]`만 예상 RED로 특정한다. 이외 준비 오류는 예상 RED가 아니다.
+단일 Astra/medium 담당자는 Python helper/test만 소유하며 하위 위임 금지다.
+main은 정책·실행기·실제 검사·증거·커밋·최종 판정을 맡는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| CPD19 | 실제 응답 형식 | FFmpeg wrapped 200/404/503와 prefix를 고정 class로 집계 | v4.1.0 |
+| CPD20 | 분할·잘림 | 모든 chunk 경계와 종료 미완성·행 상한을 구분 | v4.1.0 |
+| CPD21 | 관측 부재 | observed/not-observed/incomplete와 실제 무응답 구분 | v4.1.0 |
+| CPD22 | 악성 형식 | 임의 wrapper·원문 URL/비밀 반례 거부·비노출 | v4.1.0 |
+| CPD23 | stdout stream | 실제 compact stdout의 고정 codec/type 계수, 원래 bytes 보존 | v4.1.0 |
+| CPD24 | 원래 판정 | 비0/timeout 및 deadline 유지, 실패를 진단 PASS로 대체 금지 | v4.1.0 |
+
+테스트 영역은 안정화만이다. 30분·실제 UI·120분·외부 릴리즈 작업은 이번 실행 범위 밖이며
+릴리즈 필요성은 유지한다. 실제 한정 검사와 전체 회귀는 기존 소유 root·loopback·정리 경계를 사용한다.
+
+### 진단 신뢰성 보완 결과
+
+메인 직접 diff 검토 후 CPD19 예상 RED(exit1·0.080초) → 구현 → CPD01~24 PASS(exit0·0.317초)를 확인했다.
+[RED](lp27-response-red.log)·[GREEN](lp27-response-green.log)·[AST](lp27-response-ast.log)는 원본 SHA 동일하게 이관했다.
+Python 테스트는 격리 자식만 사용했고 24개 fixture 삭제·부재를 각 행으로 확인했다.
+실제 `node scripts/internal/verify_recording_media_impact.mjs --http`는 exit0, 명령25,110ms/전체27,472ms.
+[실제 출력](lp27-http-02.log)·[고정 진단](lp27-http-diagnostic-02.jsonl)에 개별 결과·환경·source hash를 보존한다.
+6개 RTSP 모두 응답2xx 각각5개, observed, stdout audio/video 각각1, 잘림false, 원래 exit0이다.
+이전 인식0이 실제 무응답이 아니라 parser 누락임을 확인했다. 과거20초 실패 원인 해결을 주장하지 않는다.
+request-response 상관·첫 RTP·prepare 원인은 여전히 미확정이며 libnice 경고2는 별도 관측이다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| CPD01 normal_stdout_exit | Python 전체24개·exit0 | PASS | 현재 구현 회귀; fixture 삭제·부재 |
+| CPD02 timeout_124 | Python 전체24개·exit0 | PASS | 현재 구현 회귀; fixture 삭제·부재 |
+| CPD03 abnormal_exit_preserved | Python 전체24개·exit0 | PASS | 현재 구현 회귀; fixture 삭제·부재 |
+| CPD04 fixed_trace_fields | Python 전체24개·exit0 | PASS | 현재 구현 회귀; fixture 삭제·부재 |
+| CPD05 unregistered_trace_unknown | Python 전체24개·exit0 | PASS | 현재 구현 회귀; fixture 삭제·부재 |
+| CPD06 malicious_material_not_persisted | Python 전체24개·exit0 | PASS | 현재 구현 회귀; fixture 삭제·부재 |
+| CPD07 output_cap_preparation_failure | Python 전체24개·exit0 | PASS | 현재 구현 회귀; fixture 삭제·부재 |
+| CPD08 owned_jsonl | Python 전체24개·exit0 | PASS | 현재 구현 회귀; fixture 삭제·부재 |
+| CPD09 symlink_directory_rejected | Python 전체24개·exit0 | PASS | 현재 구현 회귀; fixture 삭제·부재 |
+| CPD10 directory_mode_uid_rejected | Python 전체24개·exit0 | PASS | 현재 구현 회귀; fixture 삭제·부재 |
+| CPD11 file_symlink_mode_rejected | Python 전체24개·exit0 | PASS | 현재 구현 회귀; fixture 삭제·부재 |
+| CPD12 fields_ordinals_rejected | Python 전체24개·exit0 | PASS | 현재 구현 회귀; fixture 삭제·부재 |
+| CPD13 diagnostic_failure_preserves_original_exit | Python 전체24개·exit0 | PASS | 현재 구현 회귀; fixture 삭제·부재 |
+| CPD14 launcher_wait_distinction | Python 전체24개·exit0 | PASS | 현재 구현 회귀; fixture 삭제·부재 |
+| CPD15 partial_ambiguous_trace_unknown | Python 전체24개·exit0 | PASS | 현재 구현 회귀; fixture 삭제·부재 |
+| CPD16 default_shell_path_unchanged | Python 전체24개·exit0 | PASS | 현재 구현 회귀; fixture 삭제·부재 |
+| CPD17 provider_only_valid_config | Python 전체24개·exit0 | PASS | 현재 구현 회귀; fixture 삭제·부재 |
+| CPD18 provider_only_invalid_mode_config | Python 전체24개·exit0 | PASS | 현재 구현 회귀; fixture 삭제·부재 |
+| CPD19 actual_wrapped_responses | Python 전체24개·exit0 | PASS | 예상 RED→수정 후 PASS; fixture 삭제·부재 |
+| CPD20 chunk_boundaries_and_truncation | Python 전체24개·exit0 | PASS | 현재 구현 회귀; fixture 삭제·부재 |
+| CPD21 observation_states_distinct | Python 전체24개·exit0 | PASS | 현재 구현 회귀; fixture 삭제·부재 |
+| CPD22 malicious_wrapper_and_redaction | Python 전체24개·exit0 | PASS | 현재 구현 회귀; fixture 삭제·부재 |
+| CPD23 compact_stdout_counts_and_preservation | Python 전체24개·exit0 | PASS | 현재 구현 회귀; fixture 삭제·부재 |
+| CPD24 original_exit_and_timeout_contract | Python 전체24개·exit0 | PASS | 현재 구현 회귀; fixture 삭제·부재 |
+| AST helper | ast.parse 실제 코드 | PASS | exit0 |
+| AST tests | ast.parse 실제 테스트 | PASS | exit0 |
+| HW-MEDIA03 owned server ready, loopback ICE only | 실제 --http·exit0 | PASS | 실제 브라우저 아님 |
+| http_local_h264_aac: RTSP /default -> h264/aac | 실제 --http·exit0 | PASS | 실제 브라우저 아님 |
+| http_local_h264_aac: RTSP /h264 -> h264/aac | 실제 --http·exit0 | PASS | 실제 브라우저 아님 |
+| http_local_h264_aac: RTSP /opus -> h264/opus | 실제 --http·exit0 | PASS | 실제 브라우저 아님 |
+| http_local_h264_aac: WebRTC signaling session created (<redacted>) | 실제 --http·exit0 | PASS | 실제 브라우저 아님 |
+| http_local_h264_video_only: RTSP /default -> h264/aac | 실제 --http·exit0 | PASS | 실제 브라우저 아님 |
+| http_local_h264_video_only: RTSP /h264 -> h264/aac | 실제 --http·exit0 | PASS | 실제 브라우저 아님 |
+| http_local_h264_video_only: RTSP /h265 -> hevc/aac | 실제 --http·exit0 | PASS | 실제 브라우저 아님 |
+| http_local_h264_video_only: WebRTC signaling session created (<redacted>) | 실제 --http·exit0 | PASS | 실제 브라우저 아님 |
+| 응답·stdout case1/route1 | 2xx5, observed, audio1/video1, 1.931초 | PASS | 고정 계수만 보존·기존20초 유지 |
+| 응답·stdout case1/route2 | 2xx5, observed, audio1/video1, 2.338초 | PASS | 고정 계수만 보존·기존20초 유지 |
+| 응답·stdout case1/route3 | 2xx5, observed, audio1/video1, 1.863초 | PASS | 고정 계수만 보존·기존20초 유지 |
+| 응답·stdout case2/route1 | 2xx5, observed, audio1/video1, 3.536초 | PASS | 고정 계수만 보존·기존20초 유지 |
+| 응답·stdout case2/route2 | 2xx5, observed, audio1/video1, 3.573초 | PASS | 고정 계수만 보존·기존20초 유지 |
+| 응답·stdout case2/route3 | 2xx5, observed, audio1/video1, 3.376초 | PASS | 고정 계수만 보존·기존20초 유지 |
+| 제품 정상 종료 | exit0·signal null·forced false | PASS | 기존 종료 기준 |
+| RTSP port | TCP61302 closed | PASS | 실제 확인 |
+| HTTP port | TCP61303 closed | PASS | 실제 확인 |
+| 유음 제공기 port | TCP61304 closed | PASS | 실제 확인 |
+| 무음 제공기 port | TCP61305 closed | PASS | 실제 확인 |
+| STUN 정리 | UDP50281 closed, messages2 | PASS | ICE suite 아님 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR/media-server-hw-media-GZPXg9 | 실행 소유root0700·UID501 | 1,822,390B | 최소 안전증거 이관 후 삭제 | rm0·부재 확인0 | server17005B SHA5d161389c7a6bfb7d2ecc53cd678a12e146b916ad93244bd69d4a1b748e5fd2e |
+| /private/tmp/media-server-hw-media-GZPXg9-http_local_h264_aac.http.log | 원시 로그0600·UID501 | 427B | 삭제 | rm0·부재 확인0 | SHA f3795a3d37dd5386bfc105c2db685d8b022929b219b966f7fc661e66763c2eb7 |
+| /private/tmp/media-server-hw-media-GZPXg9-http_local_h264_video_only.http.log | 원시 로그0600·UID501 | 471B | 삭제 | rm0·부재 확인0 | SHA9ef251a4f0229774b654c68a2855e2c55b6b213008f9671b86edb65723080d57 |
+| TMPDIR/media-server-codec-response-evidence.iv_ccp0o | unit 로그0700·UID501 | 4,534B | RED/GREEN/AST 원본 해시 대조 후 삭제 | rm0·부재 확인0 | 986/3471/77B, 저장소 세 파일과 SHA 동일 |
+
+token start/end/consumed: 전용 집계 없어 미집계. elapsed는 명령 측정치, 실제 UI/장시간/제품수정 없음.
+
+문서 검사: `./server.sh verify-docs-links` exit0·0.046초, md288/link9529/image22/anchor149/fail0.
+`git diff --check` exit0·출력0. 테스트 raw 원문 대신 안전한 결과와 해시만 보존했다.
+
 ## 최신 승인: 진단 보완부터 S11 단기 안정화까지
 
 사용자1~6 순차 개발·분할커밋·조건충족시push 승인. main은 계약/원인/최종판정,
@@ -13,13 +134,13 @@ main은 실행기/사전등록/증거와 실제 로컬검사를 맡는다. Super
 
 | 번호 | 사용자 지시 | 처리 상태 | 결과/완료 기준 | 근거 |
 | --- | --- | --- | --- | --- |
-| 1 | 검증 준비·진단 보완 | 완료 | CPD18·HWD4·구문·등록12·문서링크·공백 통과 | 아래 CPD/HWD 결과 |
-| 2 | 한정 원인 구분 | 대기 | 제공기단독→HTTP경로→필요시직전순서,같은결과맹목반복금지 | HW-A01~03 |
-| 3 | 확정원인 보완·HW03마감 | 대기 | 제품/도구중확인된경로만보완·codec/ICE영향 | HW-A04 |
-| 4 | PREP-01 | 대기 | 초기ID/복합요구/ENV12/최종manifest | LP26 매핑 |
-| 5 | CLOSE-01 | 대기 | 사용처/소유/대체검사·문서·증거·S10고정 | S10 |
-| 6 | S11 최종 단기 안정화 | 대기 | 고정source·최종확정묶음·전수결과 | AGENTS7 |
-| 7 | 분할commit·조건부push·잔여보고 | 대기 | 통과한단계만commit,미해소/미커밋범위push금지 | AGENTS3/5/6 |
+| 1 | 검증 준비·진단 보완 | 당시 완료 보고→부분 완료 정정 | CPD18·HWD4 통과는 실제 wrapped 응답 대응을 입증하지 못함 | 현재 승인·CPD19~24 |
+| 2 | 한정 원인 구분 | 한정 실행 완료·원인 미확정 | 제공기2/HTTP8/직전순서28 PASS, 과거 실패 미재현 | HW-A01~03·아래 판정 |
+| 3 | 확정원인 보완·HW03마감 | 건너뜀 | 2번 판단 미해소, 추정 제품수정·전체 반복 없음 | HW-A04 |
+| 4 | PREP-01 | 건너뜀 | 초기ID/복합요구/ENV12/최종manifest 잔여 | LP26 매핑 |
+| 5 | CLOSE-01 | 건너뜀 | 사용처/소유/대체검사·문서·증거·S10고정 잔여 | S10 |
+| 6 | S11 최종 단기 안정화 | 건너뜀 | 승인 유지, 선수조건 미충족 | AGENTS7 |
+| 7 | 분할commit·조건부push·잔여보고 | 부분 수행 | 1번330e48ad, 이후 미해소/미커밋 보존·push불가 | AGENTS3/5/6 |
 
 불변: ffprobe 인자/codec stdout 판정·원래 timeout(HTTP20초)·launcher40회/0.25초/curl2초 유지.
 진단 opt-in에서만 ffprobe trace를 수집해 고정 method/status/track 계수로 변환한다.
@@ -139,6 +260,124 @@ Node 자체검사4개는 준비정리 경계 이동 전후 두 번 실행, 모�
 
 1번의 실제 서버·포트 생성은 없었다. 위 임시 원본 삭제는 복구 대상으로 남기지 않았으나
 필요한 최초 실패/최종 성공 기록은 저장소 로그2개로 보존했다.
+
+### 한정 비교 2번 중간 결과
+
+1번은 `330e48ad`로 커밋했다. 다음 검사는 외부접속·실제브라우저 없이 소유 loopback에서 실행했다.
+제공기 단독 2개 PASS 후 HTTP 전용8개 PASS이므로 사전등록된 직전순서 비교 조건을 충족했다.
+제품/binary는 HW02와 동일(SHA `2ce43399ce33fd6863a9aa8d0e21e65ae32975ee52ad08d065b09e065aca9fd7`)이다.
+과거 두 실패를 현재 단기 PASS만으로 폐기하거나 원인 해결로 처리하지 않는다.
+제공기 실행 후 확인된 기존 /tmp launcher log의0644 생성은 실행 프로세스의 umask077로 제한했다.
+HTTP 실행에서는 두 로그0600 확인. 사용자 전역 설정·timeout·성공조건은 그대로이며 제품 변경은 없다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| HW-A01 유음 제공기 | --providers, 준비·LISTEN·HTTP0·stop wait143, 실제command exit0·1,633ms | PASS | 첫 준비2회, 제품서버 없음·제품PASS 아님 |
+| HW-A01 무음 제공기 | 같은 실행, 준비·LISTEN·HTTP0·stop wait143 | PASS | 첫 준비1회, 과거 준비실패 원인 확정 아님 |
+| HW-A02 유음 /default | --http, RTSP codec h264/aac, command exit0·24,653ms | PASS | ffprobe 약1.900초 |
+| HW-A02 유음 /h264 | 같은 실행, RTSP codec h264/aac | PASS | ffprobe 약1.845초, 과거20초 실패 미재현 |
+| HW-A02 유음 /opus | 같은 실행, RTSP codec h264/opus | PASS | ffprobe 약1.862초 |
+| HW-A02 유음 WebRTC | 같은 실행, signaling session 생성·정리 | PASS | 실제 브라우저 영상/ICE PASS 아님 |
+| HW-A02 무음 /default | 같은 실행, RTSP codec h264/aac | PASS | ffprobe 약3.550초, 제품 무음입력 처리 |
+| HW-A02 무음 /h264 | 같은 실행, RTSP codec h264/aac | PASS | ffprobe 약3.581초 |
+| HW-A02 무음 /h265 | 같은 실행, RTSP codec hevc/aac | PASS | ffprobe 약3.358초 |
+| HW-A02 무음 WebRTC | 같은 실행, signaling session 생성·정리 | PASS | 실제 브라우저 영상/ICE PASS 아님 |
+| HW-A01 포트·정리 | TCP4개 폐쇄·UDP/제품서버 미생성·소유3경로 삭제/부재 exit0 | PASS | 아래 cleanup 표 |
+| HW-A02 종료·정리 | 제품 exit0/강제종료false·TCP4개 폐쇄·UDP종료·소유3경로 삭제/부재 exit0 | PASS | 아래 cleanup 표 |
+
+[제공기 원출력](lp27-providers-01.log)·[고정 진단](lp27-providers-diagnostic-01.jsonl),
+[HTTP 원출력](lp27-http-01.log)·[고정 진단](lp27-http-diagnostic-01.jsonl)에 모든 결과와 clock·경과·해시를 보존했다.
+전체 elapsed는 제공기1,657ms/HTTP26,776ms, token start/end/consumed 전용집계 없음이다.
+현재 ffprobe trace에서 method/SDP는 인식했지만 response/stream-line 수는0이다. 이것을 응답없음으로
+해석하지 않는다. codec stdout 판정은 별개이며 trace의 미등록 형식은 unknown으로 남았다.
+서버 lifecycle은 수신시각+실행내 ordinal이며 첫RTP 직접증거가 아니다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR/media-server-hw-media-DCGIE0 | 제공기 실행소유root | 66,801B | 안전JSONL·출력·해시 보존 후 삭제 | rm0·부재0 | root0700, 제품미기동·TCP60502~60505 폐쇄 |
+| /private/tmp/media-server-hw-media-DCGIE0-http_local_h264_aac.http.log | 제공기 원시로그 | 127B | 삭제 | 부재0 | 실행prefix 소유·wait143 |
+| /private/tmp/media-server-hw-media-DCGIE0-http_local_h264_video_only.http.log | 제공기 원시로그 | 127B | 삭제 | 부재0 | 실행prefix 소유·wait143 |
+| TMPDIR/media-server-hw-media-eWOhuy | HTTP 실행소유root/registry | 1,821,542B | 안전진단·출력·해시 보존 후 삭제 | rm0·부재0 | server16625B SHA915c12e5189384fc2f3417a1c50dd86dc87a91fe8003b8433b4c0b1756151d45 |
+| /private/tmp/media-server-hw-media-eWOhuy-http_local_h264_aac.http.log | HTTP 원시로그0600 | 427B | 삭제 | 부재0 | SHA f7e8913403b504813c0f5656afb5294cd3c488525479989f6e23a5593d458c76 |
+| /private/tmp/media-server-hw-media-eWOhuy-http_local_h264_video_only.http.log | HTTP 원시로그0600 | 471B | 삭제 | 부재0 | SHA50b2762f839731253718d120f9eb98a574761c7e008005e470691e28fd96431d |
+
+### 2번 판정: 한정 비교 통과와 과거 원인 미확정
+
+[직전순서 비교 원출력](lp27-prefix-01.log)·[RTSP/제공기 고정 진단](lp27-prefix-diagnostic-01.jsonl).
+총28개·exit0, 전체90,949ms, 서버정상종료·포트/UDP해제·임시삭제 확인.
+같은 binary에서 HTTP /h264는 단독1.845초, 파일검사후2.018초로 기존20초 안에 끝났다.
+무음 제공기는 단독/HTTP/직전순서 모두 준비 성공했다. 별도 제품 수정은 하지 않았다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| HW-A03 file_local_h264_aac: RTSP /default -> h264/aac | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 file_local_h264_aac: RTSP /h264 -> h264/aac | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 file_local_h264_aac: RTSP /h265 -> hevc/aac | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 file_local_h264_aac: RTSP /opus -> h264/opus | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 file_local_h264_aac: RTSP /h265/opus -> hevc/opus | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 file_local_h264_aac: RTSP /pcmu -> h264/pcm_mulaw | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 file_local_h264_aac: RTSP /h265/pcmu -> hevc/pcm_mulaw | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 file_local_h264_aac: RTSP /pcma -> h264/pcm_alaw | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 file_local_h264_aac: RTSP /h265/pcma -> hevc/pcm_alaw | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 file_local_h264_aac: WebRTC signaling session created (<redacted>) | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 file_local_h265_aac: RTSP /default -> h264/aac | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 file_local_h265_aac: RTSP /h264 -> h264/aac | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 file_local_h265_aac: RTSP /h265 -> hevc/aac | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 file_local_h265_aac: RTSP /opus -> h264/opus | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 file_local_h265_aac: RTSP /h265/opus -> hevc/opus | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 file_local_h265_aac: RTSP /pcmu -> h264/pcm_mulaw | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 file_local_h265_aac: RTSP /h265/pcmu -> hevc/pcm_mulaw | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 file_local_h265_aac: RTSP /pcma -> h264/pcm_alaw | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 file_local_h265_aac: RTSP /h265/pcma -> hevc/pcm_alaw | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 file_local_h265_aac: WebRTC signaling session created (<redacted>) | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 http_local_h264_aac: RTSP /default -> h264/aac | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 http_local_h264_aac: RTSP /h264 -> h264/aac | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 http_local_h264_aac: RTSP /opus -> h264/opus | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 http_local_h264_aac: WebRTC signaling session created (<redacted>) | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 http_local_h264_video_only: RTSP /default -> h264/aac | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 http_local_h264_video_only: RTSP /h264 -> h264/aac | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 http_local_h264_video_only: RTSP /h265 -> hevc/aac | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A03 http_local_h264_video_only: WebRTC signaling session created (<redacted>) | --prefix, command exit0·88,641ms | PASS | 기존 파일20개→HTTP8개, 실패 재현 없음 |
+| HW-A02 제품 준비 | --http health ready, 소유 loopback 서버 | PASS | 원출력 HW-MEDIA03 |
+| HW-A03 제품 준비 | --prefix health ready, 소유 loopback 서버 | PASS | 원출력 HW-MEDIA03 |
+| HW-A03 제품 종료 | exitCode0·signal null·forced false | PASS | 기존 stopServer 기준 |
+| HW-A03 RTSP 포트 | TCP60630 closed=true | PASS | assertPortClosed |
+| HW-A03 HTTP 포트 | TCP60631 closed=true | PASS | assertPortClosed |
+| HW-A03 유음 제공기 포트 | TCP60632 closed=true | PASS | 준비PID75880·wait143 |
+| HW-A03 무음 제공기 포트 | TCP60633 closed=true | PASS | 준비PID75983·wait143 |
+| HW-A03 STUN | 소유 UDP54245 종료, message4 | PASS | ICE suite PASS 아님 |
+| HW-A03 임시 정리 | 아래 소유3경로 삭제·부재 exit0 | PASS | 최소 진단 보존 후 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR/media-server-hw-media-xtVPFe | 실행소유root/registry | 1,865,643B | 안전진단·출력 보존 후 삭제 | rm0·부재0 | server35721B SHA24bd362e7fdddfb2b276e3e6d7f55d7019df3f1f677c760b5b4115bc9bd11073 |
+| /private/tmp/media-server-hw-media-xtVPFe-http_local_h264_aac.http.log | HTTP 원시로그0600 | 427B | 삭제 | 부재0 | SHA821c45b8c9b96629939c6b3f9974f511270e298473a8416164e957bd4ee9fa17 |
+| /private/tmp/media-server-hw-media-xtVPFe-http_local_h264_video_only.http.log | HTTP 원시로그0600 | 471B | 삭제 | 부재0 | SHA97b325740f7219c1433081273fde999fa73549394c7025cd28ea6a224b0c4e1f |
+
+결론은 **원인 해결이 아닌 미재현**이다. 직전 파일 순서를 실행했다는 조건만으로 항상 실패하는 것도 아니다.
+당시 누락된 PID/LISTEN·RTSP 단계는 사후 복원할 수 없다. 이번 trace opt-in은 실행 시점을 바꿀 수 있으므로
+비계측 실행의 타이밍 의존성을 배제하지 못한다. 사용자가 뒤늦게 승인한 시스템 권한창의 앱/권한 종류도
+아직 확인되지 않아 권한이 원인이라고 단정하지 않는다. 기억 여부를 비차단 질문으로 요청했다.
+HTTP/prefix에서 libnice 경고2/4는 정상결과와 함께 관측됐지만 과거 bad-fd53과 인과는 미확정이다.
+
+AGENTS3.3/8의 원인 미확정 경계에서 2번을 보류한다. 추가 반복·timeout변경·추정 제품 수정 없이
+3번 HW03 마감/ICE, 4번 PREP, 5번 CLOSE, 6번 S11 최종안정화는 건너뜀이다.
+미재현 상태를 기록한 채 진단을 켠 정식 HW03 회귀로 진행할지, 환경 당시정보를 먼저 확보할지는
+사용자 판단 후 정한다. 미재현을 해결완료로 승격하는 조건 변경을 자동 적용하지 않는다.
+기존 저장소/이벤트 통합의 PASS는 그대로 해당범위 증거이며 무관한 재검증을 다시 시작하지 않았다.
+이번 actual 명령의 token start/end/consumed는 전용집계 미제공, elapsed/source는 각 보존로그다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 결과 문서 링크 최초 | verify-docs-links, exit1·anchor3개 오류 | FAIL | 제목의 가운데점과 링크 slug 불일치, 제품검사 아님 |
+| 결과 문서 링크 재검증 | 제목/링크를 같은 한글 문구로 정정 후 verify-docs-links exit0·288md/9521links/22images/146anchors·오류0 | PASS | 최초 실패 보존 |
+| 결과 공백 확인 | git diff --check exit0 | PASS | 최초 링크FAIL 직후에도 공백검사를 실행한 순서 누락은 인정. 이후 exit 확인 뒤 순차 실행으로 정정 |
+
+최종 git 직접대조: HEAD330e48ad, origin/v4.1.0=f4e58b9c·ahead3/behind0,
+remote main431397d9·v4.1.0 tag없음(이번 ls-remote exit0). 이번 새 커밋은1개이며 기존2개를 포함해3개 미푸시다.
+미커밋은 기존 native 회귀2파일, 현재 runner의 소유로그권한 보완, 최신 진단/기록이다.
+원인미확정 단계의 완료커밋으로 묶지 않고 보존했다. 푸시 가능: 아니오 / 수행하지 않음.
+제품/API/저장/시간/입력지원 변경 없음. 30분/UI/120분과 공개action 미실행.
 
 ## 후속 승인: HW-01 → HW-02 → HW-03 → PREP-01 → CLOSE-01
 

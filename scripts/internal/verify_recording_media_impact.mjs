@@ -80,6 +80,8 @@ function selfTest(){
 }
 async function main(mode){
 if(mode==='--self-test'){selfTest();return;}
+// 실행 전용 자식의 기존 /tmp launcher 로그도 0600으로 생성한다. 사용자 전역 설정은 바꾸지 않는다.
+process.umask(0o077);
 const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const assert=(ok,code)=>{if(!ok)throw Error(code);};
 const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');

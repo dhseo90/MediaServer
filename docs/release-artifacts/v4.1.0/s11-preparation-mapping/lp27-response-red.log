@@ -1,0 +1,23 @@
+test_CPD19_actual_wrapped_responses (__main__.DiagnosticsTests.test_CPD19_actual_wrapped_responses) ... FAIL
+
+======================================================================
+FAIL: test_CPD19_actual_wrapped_responses (__main__.DiagnosticsTests.test_CPD19_actual_wrapped_responses)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/dhseo/Workspace/mediaServer/scripts/internal/codec_probe_diagnostics_test.py", line 156, in test_CPD19_actual_wrapped_responses
+    self.assertEqual([facts["response_classes"][key] for key in ("2xx", "4xx", "5xx")], [1, 1, 1])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [0, 0, 0] != [1, 1, 1]
+
+First differing element 0:
+0
+1
+
+- [0, 0, 0]
++ [1, 1, 1]
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (failures=1)
+[cleanup] CPD19 absent=true

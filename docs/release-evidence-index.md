@@ -2,7 +2,9 @@
 
 ## 2026-09-21 LP27 HW 영향 보완·회귀
 
-- [진단 보완 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#진단-보완-1번-결과): CPD18/HWD4 통과·최초 준비 오류/정리 보존. 실제 원인 구분 전.
+- [현재 승인·완료 표현 정정](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#현재-승인-진단-신뢰성부터-s11-단기-안정화까지-15): 실제 형식 대응·미재현 진행 기준부터 1~5 순차 실행. 아래는 이전 실행 이력이다.
+- [진단 보완 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#진단-보완-1번-결과): CPD18/HWD4 통과·330e48ad 커밋.
+- [한정 비교 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#2번-판정-한정-비교-통과와-과거-원인-미확정): provider2/HTTP8/prefix28 PASS, 과거 원인 미확정·3~6 건너뜀. 정리 완료.
 
 - [중앙 기록](release-test-records.md#lp27-릴리즈-선행-14-순차-작업): HW01/02 커밋, HW03 실제 미디어 실패·정리.
 - [개별 결과·실패 이력·정리](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#hw-03-실제-미디어-회귀-중단-판정).

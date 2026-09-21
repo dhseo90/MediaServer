@@ -2,14 +2,21 @@
 
 ## LP27 릴리즈 선행 1~4 순차 작업
 
-최신 승인: 진단준비→한정원인구분→HW03마감→PREP→CLOSE→S11단기 순차개발.
-사전등록 CPD01~18/HWD01~04/HW-A01~04와 실행권한·비범위는
-[LP27 최신 승인](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#최신-승인-진단-보완부터-s11-단기-안정화까지)을 따른다.
+최신 승인: 진단 신뢰성·미재현 기준→HW03마감→PREP→CLOSE→S11단기 1~5 순차개발·분할커밋·조건부push.
+사전등록 CPD01~24/HWD01~04/HW-A01~04와 실행권한·비범위는
+[LP27 현재 승인](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#현재-승인-진단-신뢰성부터-s11-단기-안정화까지-15)을 따른다.
+기존 진단 완료 보고는 실제 wrapped 응답 parser 공백 때문에 부분 완료로 정정했다.
+CPD19~24 및 실제 경로 대응 확인 후 현재 전체 회귀로 진행하며, 과거 미재현 실패 원인은 확정하지 않는다.
+현재 1번은 CPD24·AST2·실제HTTP8 및 응답/stream6개 대응·정리를 통과했다.
+[진단 신뢰성 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#진단-신뢰성-보완-결과).
 아래중단판정은직전실행이력이며새로운실행PASS를의미하지않는다.
 
 최신1번 진단 보완은 CPD18/HWD4·구문·등록12·링크/공백 통과. 최초 unit3ERROR와
 수정/재검증·임시 정리는 [진단 보완 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#진단-보완-1번-결과)에 보존한다.
-이는 실제 두 실패 해결/HW03/S11 완료가 아니다. 2번 한정 실제 원인 구분은 다음 단계다.
+1번은330e48ad로 커밋했다. 2번은 provider2/HTTP8/직전순서28 PASS이나 과거 실패 원인은 미확정이다.
+두 서버 exit0·소유 TCP/UDP 및 임시자료 정리 완료. 제품수정·동일검사 추가반복·3~6 실행은 하지 않았다.
+[미재현 판정과 전수 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#2번-판정-한정-비교-통과와-과거-원인-미확정)를 따른다.
+현재 HW03/S11 미완료·미커밋 보존·push불가/미수행이며 아래 내용은 이전 실행 시점의 기록이다.
 
 후속 승인: HW-01→HW-02→HW-03→PREP-01→CLOSE-01 순차 개발·분할 커밋·조건 충족 시 마지막 push.
 최신 판정: HW-01 `d3d0dbc6`·HW-02 `d5a0710b` 커밋, HW-03 부분 완료·FAIL.
