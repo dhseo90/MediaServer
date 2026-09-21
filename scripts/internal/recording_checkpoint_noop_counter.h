@@ -1,3 +1,4 @@
+// 파일 용도: 체크포인트 무변경 경로 검사용 파싱·직렬화·읽기 계수와 예외 주입을 제공한다.
 #pragma once
 #include <cstddef>
 #include <stdexcept>

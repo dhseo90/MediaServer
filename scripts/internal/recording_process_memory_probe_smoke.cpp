@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 검사 프로세스 메모리 관측의 유효 값과 잘못된 입력 거부를 검증한다.
 #include "recording_process_memory_probe.h"
 #include <limits>
 using namespace recording_memory_probe;

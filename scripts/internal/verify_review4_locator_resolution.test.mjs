@@ -1,4 +1,4 @@
-// REVIEW4 승인 원본은 메모리 fixture에만 두고 현재 source 위치 읽기를 검사한다.
+// 파일 용도: REVIEW4 승인 원본은 메모리 fixture에만 두고 현재 source 위치 읽기를 검사한다.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';

@@ -1,4 +1,4 @@
-// LP24 복구 내용 비용의 격리 RED 준비. 제품/보존 자료는 열지 않는다.
+// 파일 용도: LP24 복구 내용 비용의 격리 RED 준비. 제품/보존 자료는 열지 않는다.
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';

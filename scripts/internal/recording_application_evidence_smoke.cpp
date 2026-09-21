@@ -1,4 +1,4 @@
-// application 분석 결과 왕복의 동일 녹화 증거를 검사한다.
+// 파일 용도: application 분석 결과 왕복의 동일 녹화 증거를 검사한다.
 #include "analysis/decoded_interval_evidence.h"
 #include "analysis_session_application_mapping.h"
 #include "ingress/event_rule_application_service.h"

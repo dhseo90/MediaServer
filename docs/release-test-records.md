@@ -1,10 +1,23 @@
 # Release Test Records
 
+## 현재 작업: LP29 30분 다음 실제 UI 순차 검증
+
+사용자1·2번 실행·분할커밋·조건부푸시 승인. [정의·상태](release-artifacts/v4.1.0/s11-preparation-mapping/lp29-final-validation.md)를 따른다.
+외부 서비스/실기기는 명시 제외,120분과외부릴리즈는이번범위밖이다.
+직접30분 승인 후 실제 실행41.067초·exit1: 공통 주석 검사(상단154/영문23,고유160파일) FAIL로 관측0회,
+UI 미실행. [전수 결과·정리](release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-item-results.md)를 보존했다.
+아래 LP28 개별 PASS는 유지하지만 공통 주석 검사 누락으로 `S11 최종 단기 완료` 전체 표현은 부분 완료로 정정한다.
+후속 명시 승인으로 주석160파일을 보완했다. 비주석 동등성160·구문71·주석 정책0/0·등록·UI목록계약60을 통과했다.
+기존985결속 승계/MEDIA-003 재검토·재결속이며 실제 UI PASS가 아니다.
+[주석 전수 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-summary.json)와
+[원출력·검토·실패 이력](release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-outputs.json.gz)을 보존한다.
+주석 단계 분할 커밋 후 실제30분→통과 시UI를 실행한다. 전체 승인 범위 완료 전 푸시 판정은 보류한다.
+
 ## 현재 작업: LP28 위치 일관성·PREP 마감 및 S11 단기 검증
 
 사용자 승인1~5 순차 개발·분할커밋·조건부푸시. 외부 서비스·실기기는 명시 제외하며 PASS가 아니다.
 [최신 범위·실행 전 정의·결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp28-locator-closure.md)를 따른다.
-LP28 위치/실제 연결 보완·CLOSE/제품 고정·PREP 독립 재결속을 마감했다. S11 최종 단기도 빌드,
+LP28 위치/실제 연결 보완·CLOSE/제품 고정·PREP 독립 재결속을 마감했다. S11 단기 중 실행한 빌드,
 인증19/72/146·현행 녹화156·환경20·버전·close-out을 통과했다. close-out 최초 문서 실패와 보완을 보존한다.
 [단기 개별 결과·원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp28-final-item-results.md),
 [릴리즈 잔여 전수표](release-artifacts/v4.1.0/s11-preparation-mapping/release-readiness-20260916.md#lp28-승인-15-전수-대조)를 따른다.

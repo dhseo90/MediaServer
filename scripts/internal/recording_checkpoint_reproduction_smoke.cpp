@@ -1,3 +1,4 @@
+// 파일 용도: 실제 녹화 작업의 체크포인트 전이와 부분 구간 판정을 제한된 입력으로 재현한다.
 #include "recording_media_test_fixture.h"
 #include "recording/recording_derived_job_service.h"
 #include "recording/recording_derived_event_worker.h"

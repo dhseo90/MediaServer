@@ -1,5 +1,5 @@
 #pragma once
-// 파일 증거의 원점/native tick을 위한 정확한 내부 구간. 원본 식별 인증은 호출자 책임이다.
+// 파일 용도: 파일 증거의 원점/native tick을 위한 정확한 내부 구간. 원본 식별 인증은 호출자 책임이다.
 #include <cstdint>
 #include <algorithm>
 #include <limits>

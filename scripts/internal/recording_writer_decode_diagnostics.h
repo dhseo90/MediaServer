@@ -1,5 +1,5 @@
 #pragma once
-// 검사 소유 관측만 수행한다. probe는 buffer/event를 변경하거나 판정하지 않는다.
+// 파일 용도: 검사 소유 관측만 수행한다. probe는 buffer/event를 변경하거나 판정하지 않는다.
 #include <gst/gst.h>
 #include <algorithm>
 #include <array>

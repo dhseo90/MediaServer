@@ -1,4 +1,4 @@
-// LP18-O01~05: 값/공유 핸들 표현 모두 컴파일 가능한 검사 소유 adapter.
+// 파일 용도: LP18-O01~05: 값/공유 핸들 표현 모두 컴파일 가능한 검사 소유 adapter.
 #include "recording/recording_catalog.h"
 #include "recording_checkpoint_validation.h"
 #include <fstream>

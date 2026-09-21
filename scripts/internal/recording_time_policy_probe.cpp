@@ -1,4 +1,4 @@
-// 실제 mux/파일/복구를 모사하지 않는 S10-2 판정 모델의 결정적 검증.
+// 파일 용도: 실제 mux/파일/복구를 모사하지 않는 S10-2 판정 모델의 결정적 검증.
 #include "recording_time_policy_probe.h"
 #include <iostream>
 

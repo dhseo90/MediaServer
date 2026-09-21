@@ -1,4 +1,4 @@
-// LP18 accepted/prefix 소비 연결만 검사한다. typed/자동 해제는 이 검사의 범위가 아니다.
+// 파일 용도: LP18 accepted/prefix 소비 연결만 검사한다. typed/자동 해제는 이 검사의 범위가 아니다.
 #include "recording/recording_catalog.h"
 #include "recording_journal_location_counter.h"
 #include <fstream>

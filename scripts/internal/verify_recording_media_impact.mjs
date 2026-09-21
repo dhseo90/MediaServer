@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// HW-03: 기존 codec/ICE 검사만 소유 loopback 환경에서 재사용한다. 실제 브라우저 검사가 아니다.
+// 파일 용도: HW-03: 기존 codec/ICE 검사만 소유 loopback 환경에서 재사용한다. 실제 브라우저 검사가 아니다.
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';

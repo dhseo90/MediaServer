@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 원장 위치·참조 취득 검사용 읽기 계수와 할당 실패 주입을 제공한다.
 #pragma once
 #include <new>
 #include <cstddef>

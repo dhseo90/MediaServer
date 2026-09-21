@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# AVC framing 전용 단기 실제 writer 검사. 공개 저장/API는 바꾸지 않는다.
+# 파일 용도: AVC framing 전용 단기 실제 writer 검사. 공개 저장/API는 바꾸지 않는다.
 set -euo pipefail
 avc_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 avc_repo="$(cd "$avc_script/../.." && pwd)"

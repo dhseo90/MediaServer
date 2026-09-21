@@ -1,4 +1,4 @@
-// LP17-D08: 기존 CP01/CP02의 실제 2-job 입력·파일·보호 해제 oracle을 유지한다.
+// 파일 용도: LP17-D08: 기존 CP01/CP02의 실제 2-job 입력·파일·보호 해제 oracle을 유지한다.
 #define main recording_checkpoint_reproduction_unused_main
 #include "recording_checkpoint_reproduction_smoke.cpp"
 #undef main

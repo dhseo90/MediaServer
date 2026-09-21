@@ -1,4 +1,4 @@
-// 실제 앱 없이 현재 소스의 소유 복제본만 빌드하는 LP22 focused runner.
+// 파일 용도: 실제 앱 없이 현재 소스의 소유 복제본만 빌드하는 LP22 focused runner.
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';

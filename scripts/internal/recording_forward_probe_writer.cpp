@@ -1,4 +1,4 @@
-// 검증 전용 wrapper: 제품 writer의 설정과 buffer를 변경하지 않는다.
+// 파일 용도: 검증 전용 wrapper: 제품 writer의 설정과 buffer를 변경하지 않는다.
 #include <gst/app/gstappsrc.h>
 #include <gst/gst.h>
 #include <filesystem>

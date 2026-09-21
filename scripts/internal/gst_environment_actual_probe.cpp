@@ -1,4 +1,4 @@
-// ENV12: 필수 객체·상태·무음 파일 디코드를 실제 설치 환경에서만 확인한다.
+// 파일 용도: ENV12: 필수 객체·상태·무음 파일 디코드를 실제 설치 환경에서만 확인한다.
 #include <gst/gst.h>
 #include <array>
 #include <atomic>

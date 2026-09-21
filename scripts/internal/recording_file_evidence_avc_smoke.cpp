@@ -1,4 +1,4 @@
-// 실제 AVC 입력을 기존 writer/typed 저장/최종 파일 검증에 연결한다.
+// 파일 용도: 실제 AVC 입력을 기존 writer/typed 저장/최종 파일 검증에 연결한다.
 #define main recording_file_evidence_unused_main
 #include "recording_file_evidence_smoke.cpp"
 #undef main

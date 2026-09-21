@@ -1,4 +1,4 @@
-// 실제 RTSP builder 및 로컬 uridecodebin 경계 검사. 네트워크/전체 worker 검사가 아니다.
+// 파일 용도: 실제 RTSP builder 및 로컬 uridecodebin 경계 검사. 네트워크/전체 worker 검사가 아니다.
 #include "recording_media_test_fixture.h"
 #include "ingress/gst_pipeline_builder.h"
 #include "core/gst_decode_compatibility.h"

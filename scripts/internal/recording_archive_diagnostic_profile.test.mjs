@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 보관소 진단의 단계 관측·소유 복제·원본 보존·정리 경계를 검증한다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

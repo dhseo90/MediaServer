@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 검사 프로세스의 정상 종료·강제 종료·포트 정리 판정을 검증한다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as cleanup from './recording_process_cleanup.mjs';

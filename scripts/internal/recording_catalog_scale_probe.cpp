@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 카탈로그 누적 규모별 실제 파일·체크포인트 비용과 프로세스 메모리를 관측한다.
 #define main recording_file_evidence_unused_main
 #include "recording_file_evidence_smoke.cpp"
 #undef main

@@ -1,4 +1,4 @@
-// 보존 원본은 파일로만 읽고, 별도 소유 복제본에서만 기존 archive 진단을 실행한다.
+// 파일 용도: 보존 원본은 파일로만 읽고, 별도 소유 복제본에서만 기존 archive 진단을 실행한다.
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';

@@ -1,4 +1,4 @@
-// 합성 metadata의 canonical 검증 비용과 거부 계약만 측정한다. 실제 media 검증이 아니다.
+// 파일 용도: 합성 metadata의 canonical 검증 비용과 거부 계약만 측정한다. 실제 media 검증이 아니다.
 #include "recording/recording_derived_job.h"
 #include "recording/recording_derived_selection.h"
 #include "recording/recording_native_coverage.h"

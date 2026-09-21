@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 실제 writer 경계 계측. 기존 mux 설정을 바꾸지 않으며 실행 전 등록된 FW01~04만 수행한다.
+# 파일 용도: 실제 writer 경계 계측. 기존 mux 설정을 바꾸지 않으며 실행 전 등록된 FW01~04만 수행한다.
 set -euo pipefail
 probe_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 probe_repo="$(cd "$probe_script/../.." && pwd)"

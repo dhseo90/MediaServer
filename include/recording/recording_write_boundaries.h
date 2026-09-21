@@ -1,5 +1,5 @@
 #pragma once
-// 내부 수락 상태와 내구 최종화 순서. 공개 route/저장 계약이 아니다.
+// 파일 용도: 내부 수락 상태와 내구 최종화 순서. 공개 route/저장 계약이 아니다.
 #include "recording/recording_contracts.h"
 namespace recording::detail {
 // 호출자는 현재 segment의 generation/track과 증가 ordinal을 검증한 뒤 전달한다.

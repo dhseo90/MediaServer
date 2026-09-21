@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 실패 관측의 고정 오류 분류·출력 제한·민감 원문 비노출을 검증한다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

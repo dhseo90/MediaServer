@@ -1,4 +1,4 @@
-// LP09-S03b/c: 실제 파일 증거와 새 파생 profile의 생성·저장·재개방 계약.
+// 파일 용도: LP09-S03b/c: 실제 파일 증거와 새 파생 profile의 생성·저장·재개방 계약.
 #include "recording_media_test_fixture.h"
 #include "recording/recording_derived_selection.h"
 #include "recording/recording_derived_job_service.h"

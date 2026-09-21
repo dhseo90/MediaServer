@@ -1,4 +1,4 @@
-// FC02: 실제 strict parser 호출 횟수와 두 catalog 분기의 수락/거부 동등성.
+// 파일 용도: FC02: 실제 strict parser 호출 횟수와 두 catalog 분기의 수락/거부 동등성.
 #define main recording_file_evidence_unused_main
 #include "recording_file_evidence_smoke.cpp"
 #undef main

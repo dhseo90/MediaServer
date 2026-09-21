@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 독립 canonical validation 기준 측정. 서버/catalog/media 생성 없음.
+# 파일 용도: 독립 canonical validation 기준 측정. 서버/catalog/media 생성 없음.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"

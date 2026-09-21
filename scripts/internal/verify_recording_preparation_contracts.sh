@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# PREP-C01~08 전용 격리 native 검사. 실제 서버/네트워크/모델 실행 없음.
+# 파일 용도: PREP-C01~08 전용 격리 native 검사. 실제 서버/네트워크/모델 실행 없음.
 set -euo pipefail
 [[ $# == 0 ]] || exit 2
 prep_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

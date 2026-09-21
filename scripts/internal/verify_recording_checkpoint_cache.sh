@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# LP15 소유 source 복제본 계측. 제품 파일/원장은 변경하지 않는다.
+# 파일 용도: LP15 소유 source 복제본 계측. 제품 파일/원장은 변경하지 않는다.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"

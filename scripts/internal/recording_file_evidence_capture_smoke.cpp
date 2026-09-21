@@ -1,4 +1,4 @@
-// 제품 collector의 실제 경로와 같은 TU 내부 진단 함수를 검증한다. 공개 API 추가 없음.
+// 파일 용도: 제품 collector의 실제 경로와 같은 TU 내부 진단 함수를 검증한다. 공개 API 추가 없음.
 #include "../../src/recording/recording_file_evidence.cpp"
 #include <iostream>
 #include <thread>

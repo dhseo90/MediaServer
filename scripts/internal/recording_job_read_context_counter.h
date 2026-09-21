@@ -1,4 +1,4 @@
-// 소유 복제본의 실제 public Parse만 Query 호출 구간에서 계수한다.
+// 파일 용도: 소유 복제본의 실제 public Parse만 Query 호출 구간에서 계수한다.
 #pragma once
 #include <cstddef>
 #include <memory>

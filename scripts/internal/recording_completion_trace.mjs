@@ -1,4 +1,4 @@
-// 검증 전용: 원문은 반환하지 않고 고정 스키마와 hash만 보존한다.
+// 파일 용도: 검증 전용: 원문은 반환하지 않고 고정 스키마와 hash만 보존한다.
 const prefix='[recording-completion] ';
 const integer=x=>Number.isSafeInteger(x)&&x>=0;
 const hash=x=>x===null||(typeof x==='string'&&/^[a-f0-9]{64}$/.test(x));

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 종료 archive 복제 관측용 test adapter만 빌드한다. 제품 서버를 실행하지 않는다.
+# 파일 용도: 종료 archive 복제 관측용 test adapter만 빌드한다. 제품 서버를 실행하지 않는다.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"

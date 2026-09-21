@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# FE01~08 제품 파일 증거 검증. 원출력만 보존하고 소유 임시 media/store를 정리한다.
+# 파일 용도: FE01~08 제품 파일 증거 검증. 원출력만 보존하고 소유 임시 media/store를 정리한다.
 set -euo pipefail
 fe_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 fe_repo="$(cd "$fe_script/../.." && pwd)"

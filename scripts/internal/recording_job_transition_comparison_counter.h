@@ -1,3 +1,4 @@
+// 파일 용도: 파생 녹화 상태 전이의 단계별 직렬화·파싱·검증 횟수를 제한된 배열에 계측한다.
 #pragma once
 #include "recording/recording_derived_job.h"
 #include <array>

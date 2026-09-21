@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 내용 복구 검사의 예상 결과·준비 계획·안전한 증거 판정을 검증한다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {expectedRed,expectedRecovery,expectedRealistic,baselineTimedOut} from './verify_recording_recovery_content.mjs';

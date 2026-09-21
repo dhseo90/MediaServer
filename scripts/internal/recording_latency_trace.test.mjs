@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 지연 추적 수집의 집계 정확성과 제한·오류 판정을 검증한다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as trace from './recording_latency_trace.mjs';

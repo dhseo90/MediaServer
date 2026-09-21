@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 스냅샷 잠금 밖 처리 검사용 동기화·파싱 계수·취득 실패 주입을 제공한다.
 #pragma once
 #include <chrono>
 #include <condition_variable>

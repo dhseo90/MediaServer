@@ -1,4 +1,4 @@
-// 첫 RED는 기존 실제 파일/완료 job fixture의 복구 내용 재검증만 관측한다.
+// 파일 용도: 첫 RED는 기존 실제 파일/완료 job fixture의 복구 내용 재검증만 관측한다.
 // 대형 합성 복구 및 새 private 반례는 이 baseline과 구분하여 추가한다.
 #define main recovery_public_media_unused_main
 #include "recording_public_media_smoke.cpp"

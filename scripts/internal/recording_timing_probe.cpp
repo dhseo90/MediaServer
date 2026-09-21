@@ -1,4 +1,4 @@
-// 검증 전용: writer 입력과 qtdemux/h264parse 경계를 계측한다. 제품 판정은 변경하지 않는다.
+// 파일 용도: 검증 전용: writer 입력과 qtdemux/h264parse 경계를 계측한다. 제품 판정은 변경하지 않는다.
 #include "recording_media_test_fixture.h"
 #include <fstream>
 #include <gst/app/gstappsrc.h>

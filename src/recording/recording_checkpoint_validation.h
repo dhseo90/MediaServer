@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 체크포인트 캐시의 입장 상한과 원장 레코드 동일성을 판정한다.
 #pragma once
 #include "recording/recording_journal.h"
 namespace recording::detail {

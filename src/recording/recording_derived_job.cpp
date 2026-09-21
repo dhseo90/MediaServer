@@ -571,4 +571,4 @@ namespace recording {
         return record.state!=DerivedJobState::Complete&&record.state!=DerivedJobState::Failed;
     }
 }
-// namespace recording
+// recording 네임스페이스

@@ -1,3 +1,4 @@
+// 파일 용도: 실제 파생 녹화 전이에서 내용 증명의 유효성과 대체 검증 경계를 확인한다.
 #include "recording_job_content_proof_counter.h"
 #define main recording_proof_unused_reproduction_main
 #include "recording_checkpoint_reproduction_smoke.cpp"

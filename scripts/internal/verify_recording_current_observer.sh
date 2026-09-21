@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 현행 관측 준비/120분 실행 연결. 기본 실행이나 짧은 시간을 120분으로 승격하지 않는다.
+# 파일 용도: 현행 관측 준비/120분 실행 연결. 기본 실행이나 짧은 시간을 120분으로 승격하지 않는다.
 set -euo pipefail
 case "$*" in
   --self-test|--app-observe|"--duration-minutes 120") ;;

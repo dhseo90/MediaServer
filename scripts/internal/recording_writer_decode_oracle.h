@@ -4,7 +4,7 @@
 #include <vector>
 namespace writer_decode_oracle {
 inline std::vector<std::uint64_t> Presentation(std::vector<std::uint64_t> input){std::sort(input.begin(),input.end());return input;}
-// 입력에서 산출한 전체 presentation과 대조한다. 합법적인 중복 PTS도 그대로 보존한다.
+// 파일 용도: 입력에서 산출한 전체 presentation과 대조한다. 합법적인 중복 PTS도 그대로 보존한다.
 inline bool MatchesPresentation(const std::vector<std::uint64_t>& expected,const std::vector<std::uint64_t>& observed){
  return !expected.empty()&&expected==observed;
 }

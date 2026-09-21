@@ -1,4 +1,4 @@
-// LP18 locator 기반만 검사한다. resident 해제나 전체 RAM 절감을 주장하지 않는다.
+// 파일 용도: LP18 locator 기반만 검사한다. resident 해제나 전체 RAM 절감을 주장하지 않는다.
 #include "recording/recording_journal.h"
 #include "recording/recording_catalog.h"
 #include "recording_journal_location_counter.h"

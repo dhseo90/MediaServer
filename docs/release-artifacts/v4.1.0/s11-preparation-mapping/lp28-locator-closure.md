@@ -724,6 +724,10 @@ stage 후 신규파일까지 포함한 공백 검사에서 이관한 검토 md3�
 
 ## S11 최종 단기 실행
 
+후속 LP29 정정: 아래 개별 실행 PASS는 유효하지만 공통 `verify-code-comments`가 이 실행 묶음에서
+누락됐고 LP29 실제 predev에서 FAIL했다. 따라서 S11 최종 단기 전체 완료 표현은 부분 완료다.
+[실제 실패·판정 경계](lp29-final-validation.md#명시-승인-후-실제-실행-결과)를 따르며 과거 결과는 보존한다.
+
 PREP 커밋 `fa5afd8d` 이후 FINAL manifest의 빌드·격리 인증·녹화 통합·환경·entry·metadata가
 통과했다. 첫 close-out dry-run은 `release policy missing snippet: v4.1.0 Release Close-out Runbook`으로
 exit1이며 6개 검사 중 문서 경계1개만 실패했다. 실제 문서에 v4.0.0을 현재 소스로 설명하는 낡은 절이

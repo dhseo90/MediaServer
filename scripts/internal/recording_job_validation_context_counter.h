@@ -1,5 +1,5 @@
 #pragma once
-// 검사 복제본 전용: private strict 작업을 관측할 뿐 결과/분기를 변경하지 않는다.
+// 파일 용도: 검사 복제본 전용: private strict 작업을 관측할 뿐 결과/분기를 변경하지 않는다.
 #include <cstddef>
 namespace intent_context_probe {
 struct Counts {std::size_t validate=0,restore=0,json=0;};

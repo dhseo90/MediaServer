@@ -1,4 +1,4 @@
-// 기본 writer MP4의 제한된 native 표와 실제 AU를 연결한다. decode/완전성 판정은 별도다.
+// 파일 용도: 기본 writer MP4의 제한된 native 표와 실제 AU를 연결한다. decode/완전성 판정은 별도다.
 #include "recording/recording_file_evidence.h"
 #include <algorithm>
 #include <atomic>

@@ -1,4 +1,4 @@
-// 실제 소형 writer/service에서 얻은 증거를 사용한다. 전체 service fault 묶음은 실행하지 않는다.
+// 파일 용도: 실제 소형 writer/service에서 얻은 증거를 사용한다. 전체 service fault 묶음은 실행하지 않는다.
 #define main recording_context_unused_service_main
 #include "recording_derived_job_service_smoke.cpp"
 #undef main

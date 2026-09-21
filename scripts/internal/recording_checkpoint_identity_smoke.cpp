@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 체크포인트 레코드의 동일성 판정과 변경 필드 거부를 검증한다.
 #include "../../src/recording/recording_checkpoint_validation.h"
 #include <iostream>
 int main(){

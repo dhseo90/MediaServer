@@ -246,7 +246,7 @@ void DerivedEventWorker::Loop() {
             if(result!=Evaluation::Done) {
                 std::lock_guard lock(mu_);
                 if(!stopped_) {
-                    // Allocation must succeed before the only owner of ID/lease moves.
+                    // ID와 임대의 유일한 소유자가 이동하기 전에 할당이 성공해야 한다.
                     static_assert(std::is_nothrow_move_assignable_v<Pending>);
                     static_assert(std::is_nothrow_move_assignable_v<DerivedJobIntentV1>);
                     if(result==Evaluation::Retry){queue_.emplace_back();queue_.back()=std::move(pending);}
@@ -281,7 +281,7 @@ void DerivedEventWorker::RenderLoop() {
                 if(!admission.accepted)Status(id,"derived-admission-rejected:"+admission.message);
                 else {
                     completion::Point(completion::Event::Admitted,id,ready.intent.job_id);
-                    // The durable Intent now protects sources before this runtime token is released.
+                    // 이제 영속 Intent가 원본을 보호하므로 이 런타임 토큰을 해제할 수 있다.
                     std::string error;
                     if(!catalog_.ReleaseDerivedWaitLease(ready.pending.lease,&error))throw std::runtime_error("derived-wait-lease-release");
                     ready.pending.lease=0;
@@ -301,7 +301,7 @@ DerivedEventWorker::Evaluation DerivedEventWorker::Process(Pending& pending,Deri
     {
         const auto attempt=pending.attempts++;
         if(stopped_) {Status(pending.reference.reference_id,"derived-worker-stopped");return Evaluation::Done;}
-        // Refresh before every decision, including an already-expired queued request.
+        // 대기열에서 이미 만료된 요청을 포함해 모든 판정 전에 갱신한다.
         // callback은 어떤 worker/catalog 잠금도 잡지 않은 상태에서만 실행한다.
         if(options_.latest_evidence) {
             DerivedEventEvidenceUpdate update;
@@ -369,8 +369,8 @@ DerivedEventWorker::Evaluation DerivedEventWorker::Process(Pending& pending,Deri
         const bool deadline_exhausted=decision_time>=deadline;
         const bool exhausted=attempt_exhausted||deadline_exhausted;
         if(options_.diagnostic)try {
-            // Existing finalized binding validation is reused. Only unavailable lifecycle
-            // candidates need a separate validity check, and only for opt-in diagnostics.
+            // 기존 확정 바인딩 검증을 재사용한다. 수명 상태상 이용 불가능한 후보만
+            // 별도 유효성 검사가 필요하며 명시적으로 활성화한 진단에서만 수행한다.
             std::vector<bool> valid;valid.reserve(snapshot.size());
             for(std::size_t i=0;i<snapshot.size();++i){const auto& entry=snapshot[i];
                 valid.push_back((entry.lifecycle==RecordingLifecycle::Finalized||entry.deleted)?sources[i].available_for_selection:

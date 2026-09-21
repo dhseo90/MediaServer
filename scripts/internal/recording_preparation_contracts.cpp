@@ -1,4 +1,4 @@
-// PREP 복합 경계의 격리 native 검사. 네트워크/모델 추론/앱 재기동 검사가 아니다.
+// 파일 용도: PREP 복합 경계의 격리 native 검사. 네트워크/모델 추론/앱 재기동 검사가 아니다.
 #include "recording_media_test_fixture.h"
 #include "core/shared_stream.h"
 #include <sqlite3.h>

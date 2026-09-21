@@ -1,4 +1,4 @@
-// LP18 checkpoint envelope 비용: encoder 없는 기존 managed Store와 oracle helper 재사용.
+// 파일 용도: LP18 checkpoint envelope 비용: encoder 없는 기존 managed Store와 oracle helper 재사용.
 // 계측은 빌더가 소유한 journal 복제본에서만 제공하며 제품 분기를 바꾸지 않는다.
 #define main recording_envelope_unused_ownership_main
 #include "recording_immutable_ownership_smoke.cpp"

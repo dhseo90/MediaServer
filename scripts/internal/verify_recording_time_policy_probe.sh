@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# S10-2 순수 설계 모델만 컴파일·실행한다. 서버·포트·실제 미디어는 만들지 않는다.
+# 파일 용도: S10-2 순수 설계 모델만 컴파일·실행한다. 서버·포트·실제 미디어는 만들지 않는다.
 set -euo pipefail
 probe_source_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 probe_temp_root="${TMPDIR:-/tmp}"

@@ -1,5 +1,5 @@
 #pragma once
-// 구현 전용. 입력 Intent는 생성부터 마지막 소비까지 변경되지 않아야 한다.
+// 파일 용도: 구현 전용. 입력 Intent는 생성부터 마지막 소비까지 변경되지 않아야 한다.
 // 공개 API/보관 cache가 아니며 호출의 지역 입력보다 오래 살아서는 안 된다.
 #include "recording/recording_derived_job.h"
 #include "recording/recording_derived_selection.h"

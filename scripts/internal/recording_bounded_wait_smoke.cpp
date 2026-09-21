@@ -1,4 +1,4 @@
-// 실제 writer/catalog/service를 사용하는 제한 대기 정책 fixture.
+// 파일 용도: 실제 writer/catalog/service를 사용하는 제한 대기 정책 fixture.
 #define main existing_event_integration_main
 #include "recording_derived_event_integration_smoke.cpp"
 #undef main
@@ -166,7 +166,7 @@ int main(int argc,char** argv){
             {std::unique_lock lock(mu);cv.wait_for(lock,std::chrono::seconds(1),[&]{return entered;});}
             auto utc=Ref("utc");utc.original.reset();utc.association_quality="unavailable";utc.request=RecordingConsumerRequestV1{"utc-ms",100000,100500,0,0};f.Submit(w,utc,f.empty);
             {std::unique_lock lock(mu);cv.wait_for(lock,std::chrono::seconds(1),[&]{return evaluated;});}
-            // The diagnostic callback precedes ready-lease transfer; wait for a second evaluation turn.
+            // 진단 콜백은 준비 임대 이전보다 먼저 호출되므로 두 번째 평가 차례를 기다린다.
             std::this_thread::sleep_for(std::chrono::milliseconds(30));
             const bool pending=w.Query("utc").state=="pending"&&w.Query("utc").jobs.empty();
             const bool protected_now=!f.store.catalog.RequestDeletion(segment.segment_id,"continuous-capacity",&error);

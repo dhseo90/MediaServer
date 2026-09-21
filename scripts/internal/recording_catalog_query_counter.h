@@ -1,5 +1,5 @@
 #pragma once
-// 자연 비용과 강제 복귀의 안전 검사를 분리한다. 제품에는 연결하지 않는다.
+// 파일 용도: 자연 비용과 강제 복귀의 안전 검사를 분리한다. 제품에는 연결하지 않는다.
 #include "recording_catalog_cost_probe_timer.h"
 #include <condition_variable>
 #include <mutex>

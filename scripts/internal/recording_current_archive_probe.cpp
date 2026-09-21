@@ -1,4 +1,4 @@
-// 검증 소유 종료 archive 복제본을 Catalog로 연다. 복제본에는 복구 쓰기가 발생할 수 있다.
+// 파일 용도: 검증 소유 종료 archive 복제본을 Catalog로 연다. 복제본에는 복구 쓰기가 발생할 수 있다.
 #include "recording/recording_catalog.h"
 #include "recording/recording_derived_selection.h"
 #include "recording/recording_derived_remux.h"
@@ -238,7 +238,7 @@ int main(int argc,char** argv){
             if(completeness){std::cout<<Completeness(record)<<'\n';return 0;}
             Require(record.state==recording::DerivedJobState::Failed,"failed-job");
             if(replay){std::cout<<Replay(catalog,root,record)<<'\n';return 0;}
-            // Basic capture must precede any GStreamer/media inspection or replay.
+            // 기본 캡처는 모든 GStreamer·미디어 검사나 재생보다 먼저 수행해야 한다.
             const auto evidence=basic?",\"capturedIntentSha256\":"+Quote(Sha(recording::SerializeDerivedJobIntent(intent))):DiagnoseEvidence(catalog,record);
             std::cout<<"{\"state\":\"failed\",\"failureReason\":"<<Quote(FailureCode(record.failure_reason))
                 <<",\"sourceCount\":"<<intent.sources.size()

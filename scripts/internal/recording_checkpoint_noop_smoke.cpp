@@ -1,4 +1,4 @@
-// 기존 유효 bound fixture를 재사용하고 자동 checkpoint 비용만 별도로 계수한다.
+// 파일 용도: 기존 유효 bound fixture를 재사용하고 자동 checkpoint 비용만 별도로 계수한다.
 #define main lp20_unused_typed_main
 #include "recording_typed_lifetime_smoke.cpp"
 #undef main

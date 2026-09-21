@@ -1,4 +1,4 @@
-// 인증 검증 전용: 비밀은 stdin으로만 전달하며 자식 환경을 제한한다.
+// 파일 용도: 인증 검증 전용: 비밀은 stdin으로만 전달하며 자식 환경을 제한한다.
 import fs from 'node:fs';
 import {randomBytes} from 'node:crypto';
 import {spawnSync} from 'node:child_process';

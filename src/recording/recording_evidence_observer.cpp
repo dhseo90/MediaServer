@@ -1,3 +1,4 @@
+// 파일 용도: 분석 결과의 디코딩 구간 증거를 제한된 최신 스냅샷으로 보관하고 녹화 참조에 제공한다.
 #include "recording/recording_evidence_observer.h"
 #include "analysis/decoded_interval_evidence.h"
 #include <algorithm>

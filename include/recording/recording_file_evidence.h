@@ -1,5 +1,5 @@
 #pragma once
-// 내부 녹화 file_evidence 발급/재검증. unsupported는 기존 녹화를 실패시키지 않는다.
+// 파일 용도: 내부 녹화 file_evidence 발급/재검증. unsupported는 기존 녹화를 실패시키지 않는다.
 #include "recording/recording_contracts.h"
 #include "recording/segment_writer.h"
 #include <filesystem>

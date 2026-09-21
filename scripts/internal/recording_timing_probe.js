@@ -1,4 +1,4 @@
-// 검증용 제한 MP4 파서: 단일 비분할 video track의 실제 box/tick을 읽는다.
+// 파일 용도: 검증용 제한 MP4 파서: 단일 비분할 video track의 실제 box/tick을 읽는다.
 // 제품 입력 검증이나 일반 MP4 지원을 제공하지 않는다. 범위 밖 형식은 오류다.
 const fs=require('fs'),path=require('path'),crypto=require('crypto');
 const root=process.argv[2];

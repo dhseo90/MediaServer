@@ -1,3 +1,4 @@
+// 파일 용도: 실제 녹화 증거로 카탈로그 체크포인트 압축의 비용과 원장 의미 보존을 관측한다.
 #define main recording_file_evidence_unused_main
 #include "recording_file_evidence_smoke.cpp"
 #undef main

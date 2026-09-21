@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 계측의 컴파일러·실행 메모리 분리와 단계별 상한 판정을 검증한다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {phaseSummary,combinedPhaseSummary,expectedStages,validateMemoryStages} from './recording_memory_phase.mjs';

@@ -1,4 +1,4 @@
-// WHEP 신호협상 oracle 자체검사. 네트워크/서버/native process를 시작하지 않는다.
+// 파일 용도: WHEP 신호협상 oracle 자체검사. 네트워크/서버/native process를 시작하지 않는다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {validateOffer, validateCreated, validateIce, validateDeleted, validateMalformed,

@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 타임라인 페이지 수집과 독립 완료 관측의 검증·오류 전파 경계를 검증한다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {allTimelinePages} from './recording_current_app_helpers.mjs';

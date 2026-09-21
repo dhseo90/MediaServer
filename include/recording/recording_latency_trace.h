@@ -1,4 +1,4 @@
-// 내부 검증 전용: 원본 mutex/제품 계약을 바꾸지 않는 bounded steady-clock 계측.
+// 파일 용도: 내부 검증 전용: 원본 mutex/제품 계약을 바꾸지 않는 bounded steady-clock 계측.
 #pragma once
 #include <array>
 #include <atomic>
@@ -14,7 +14,7 @@ enum class Source : unsigned { Catalog=1, Projection=2, Read=3, Application=4, T
 enum class Operation : unsigned { Lock=1, Timeline=2, Query=3, Finish=4, Serialize=5, Checkpoint=6, Append=7, ApplyJob=8, Sqlite=9, ValidateSources=10 };
 inline bool Enabled() noexcept {static const bool enabled=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE");return p&&std::strcmp(p,"1")==0;}();return enabled;}
 inline std::uint64_t Now() noexcept {static const auto epoch=std::chrono::steady_clock::now();return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now()-epoch).count());}
-// k: 0=lock span, 1=phase span, 2=fast aggregate, 3=diagnostic loss.
+// k: 0=잠금 구간, 1=단계 구간, 2=빠른 집계, 3=진단 손실.
 struct Row {std::uint64_t k=0,o=0,s=0,l=0,m=0,t=0,r=0,b=0,a=0,e=0,n=0,w=0,h=0,x=0,y=0;};
 inline std::atomic<unsigned> next_thread{0},next_request{0},emitted{0};
 inline std::atomic<std::size_t> emitted_bytes{0};

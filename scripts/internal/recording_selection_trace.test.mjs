@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 선택 추적의 안전한 행 수집·입력 상한·시도 순서 판정을 검증한다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as trace from './recording_selection_trace.mjs';

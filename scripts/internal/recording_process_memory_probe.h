@@ -1,5 +1,5 @@
 #pragma once
-// 테스트 전용 macOS 자기 프로세스 관측. peak는 누적 high-water이며 구간 할당량이 아니다.
+// 파일 용도: 테스트 전용 macOS 자기 프로세스 관측. peak는 누적 high-water이며 구간 할당량이 아니다.
 #include <cstdint>
 #include <iostream>
 #if defined(__APPLE__)

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# collector 진단 전용 단기 검사. 소유 cache/media/temp는 EXIT에서 전부 정리한다.
+# 파일 용도: collector 진단 전용 단기 검사. 소유 cache/media/temp는 EXIT에서 전부 정리한다.
 set -euo pipefail
 capture_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 capture_repo="$(cd "$capture_script/../.." && pwd)"

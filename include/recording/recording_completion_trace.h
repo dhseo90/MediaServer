@@ -1,4 +1,4 @@
-// 내부 진단 전용. 업무 결과/시계/공개 스키마와 독립된 유한 출력이다.
+// 파일 용도: 내부 진단 전용. 업무 결과/시계/공개 스키마와 독립된 유한 출력이다.
 #pragma once
 #include "recording/recording_latency_trace.h"
 #include <string>

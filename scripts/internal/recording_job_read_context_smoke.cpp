@@ -1,4 +1,4 @@
-// 실제 원본/파생 파일 fixture를 재사용한다. 기존 public media main은 실행하지 않는다.
+// 파일 용도: 실제 원본/파생 파일 fixture를 재사용한다. 기존 public media main은 실행하지 않는다.
 #define main lp22_public_media_unused_main
 #include "recording_public_media_smoke.cpp"
 #undef main

@@ -1,4 +1,4 @@
-// 인증 준비 경계 자체검사. 제품 서버·네트워크는 실행하지 않는다.
+// 파일 용도: 인증 준비 경계 자체검사. 제품 서버·네트워크는 실행하지 않는다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

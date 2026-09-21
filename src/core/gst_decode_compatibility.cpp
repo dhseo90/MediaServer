@@ -1,3 +1,4 @@
+// 파일 용도: 확인된 applemedia H264 조합의 객체별 자동 디코더 선택 호환 처리를 구현한다.
 #include "core/gst_decode_compatibility.h"
 
 #if MEDIA_SERVER_USE_GSTREAMER

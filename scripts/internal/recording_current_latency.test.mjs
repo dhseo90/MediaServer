@@ -1,4 +1,4 @@
-// 지연 관측과 요청 완전성 판정의 경계를 구분한다.
+// 파일 용도: 지연 관측과 요청 완전성 판정의 경계를 구분한다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as helpers from './recording_current_app_helpers.mjs';

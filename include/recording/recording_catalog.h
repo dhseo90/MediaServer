@@ -185,7 +185,7 @@ public:
     bool IsDerivedReferenceAccepted(const std::string& reference_id, bool* accepted, std::string* error) const;
     bool SnapshotDerivedSources(const RecordingConsumerReferenceV1&,
         std::vector<RecordingDerivedSourceSnapshotEntry>*, std::string* error) const;
-    // Runtime-only token: snapshot and bounded protection are acquired under the same lock.
+    // 런타임 전용 토큰: 스냅샷과 크기가 제한된 보호를 같은 잠금 안에서 획득한다.
     bool SnapshotDerivedSourcesWithWaitLease(const RecordingConsumerReferenceV1&,
         const std::vector<RecordingConsumerOriginalV1>& observed,std::uint64_t* token,
         std::vector<RecordingDerivedSourceSnapshotEntry>*,std::string* error,

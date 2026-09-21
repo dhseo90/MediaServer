@@ -1,5 +1,5 @@
 #pragma once
-// 테스트 전용. 중첩 scope의 inclusive/exclusive ns를 분리하며 제품에는 연결하지 않는다.
+// 파일 용도: 테스트 전용. 중첩 scope의 inclusive/exclusive ns를 분리하며 제품에는 연결하지 않는다.
 #include <chrono>
 #include <cstdint>
 #include <iostream>

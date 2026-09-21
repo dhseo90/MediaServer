@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 소유 임시 디렉터리에서 제품 내부 수락/최종화 단위검증을 실행한다.
+# 파일 용도: 소유 임시 디렉터리에서 제품 내부 수락/최종화 단위검증을 실행한다.
 set -euo pipefail
 boundary_repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 boundary_parent="$(cd "${TMPDIR:-/tmp}" && pwd -P)"

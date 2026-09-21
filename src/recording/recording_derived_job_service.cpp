@@ -1,3 +1,4 @@
+// 파일 용도: 파생 녹화 작업의 소유 저장소·원본 보호·파일 생성·상태 전이와 복구를 조정한다.
 #include "recording/recording_derived_job_service.h"
 #include "recording/recording_catalog.h"
 #include "recording/recording_derived_remux.h"

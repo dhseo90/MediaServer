@@ -1,4 +1,4 @@
-// 현행 통합 실행 전용. legacy --all의 완료 의미와 분리한다.
+// 파일 용도: 현행 통합 실행 전용. legacy --all의 완료 의미와 분리한다.
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawn} from 'node:child_process';

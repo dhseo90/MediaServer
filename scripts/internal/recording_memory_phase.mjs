@@ -1,4 +1,4 @@
-// 검증 전용. compiler와 fixture의 측정 경계를 분리한다.
+// 파일 용도: 검증 전용. compiler와 fixture의 측정 경계를 분리한다.
 import {spawn} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
 export const expectedStages=Object.freeze([

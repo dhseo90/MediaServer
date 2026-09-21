@@ -1,4 +1,4 @@
-// 공개 DTO 관측 helper. 원장 replay/parser를 구현하지 않는다.
+// 파일 용도: 공개 DTO 관측 helper. 원장 replay/parser를 구현하지 않는다.
 import {createHash} from 'node:crypto';
 export function summarizeOverlappingSources(page,eventMs,{unplacedUnit='mapping'}={}){
   need(['mapping','file'].includes(unplacedUnit),'source-diagnostic-unit');

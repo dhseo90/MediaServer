@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# application evidence 실제 adapter를 runtime archive와 동일 ABI로 검사한다.
+# 파일 용도: application evidence 실제 adapter를 runtime archive와 동일 ABI로 검사한다.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"

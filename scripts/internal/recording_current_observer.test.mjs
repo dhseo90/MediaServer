@@ -1,4 +1,4 @@
-// LP26 O01~04: 실제 제품 writer/parser + 관측기 자체검사. 장시간/실제 UI PASS가 아니다.
+// 파일 용도: LP26 O01~04: 실제 제품 writer/parser + 관측기 자체검사. 장시간/실제 UI PASS가 아니다.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';

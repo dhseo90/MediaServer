@@ -1,5 +1,5 @@
 #pragma once
-// 검사 복제본 전용. payload 원문은 출력하지 않는다.
+// 파일 용도: 검사 복제본 전용. payload 원문은 출력하지 않는다.
 #include "recording/recording_derived_job.h"
 #include "recording/recording_catalog.h"
 #include <cstddef>

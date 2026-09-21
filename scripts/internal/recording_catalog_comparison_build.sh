@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# LP17 검사 복제본만 빌드한다. runtime freshness/자원 상한/cleanup은 호출 runner 소유다.
+# 파일 용도: LP17 검사 복제본만 빌드한다. runtime freshness/자원 상한/cleanup은 호출 runner 소유다.
 set -euo pipefail
 lp_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 lp_repo="$(cd "$lp_script/../.." && pwd)"

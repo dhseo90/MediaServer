@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 호출자가 생성·정리하는 소유 root에서만 빌드. 실행은 별도 승인한다.
+# 파일 용도: 호출자가 생성·정리하는 소유 root에서만 빌드. 실행은 별도 승인한다.
 set -euo pipefail
 lp_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 lp_repo="$(cd "$lp_script/../.." && pwd)"

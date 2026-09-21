@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 파일 증거 유무에 따른 카탈로그 확정·조회 비용을 비교 관측한다.
 #define main recording_file_evidence_unused_main
 #include "recording_file_evidence_smoke.cpp"
 #undef main

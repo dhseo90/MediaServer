@@ -1,4 +1,4 @@
-// LP17 진단 전용. 기존 LP16 RSS 판정/제품 경로를 변경하지 않는다.
+// 파일 용도: LP17 진단 전용. 기존 LP16 RSS 판정/제품 경로를 변경하지 않는다.
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';

@@ -1,4 +1,4 @@
-// 내부 opt-in 이벤트 작업 실행기. 공개 route/default 구성과 독립적이다.
+// 파일 용도: 내부 opt-in 이벤트 작업 실행기. 공개 route/default 구성과 독립적이다.
 #pragma once
 #include "analysis/analysis_types.h"
 #include "recording/recording_catalog.h"
@@ -31,7 +31,7 @@ struct DerivedEventSourceDiagnostic {
     bool deleted{false},binding_present{false},binding_valid{false},available_for_selection{false};
 };
 struct DerivedEventDecodedDiagnostic {
-    // UTC request coordinates cannot be compared to decoded media PTS here.
+    // 여기서는 UTC 요청 좌표와 디코딩된 미디어 PTS를 비교할 수 없다.
     bool namespace_valid{false},range_comparable{false},incomplete{false},frames_truncated{false};
     std::size_t frame_count{0},relevant_count{0},identity_matched{0},identity_rejected{0},
         generation_mismatch{0},pts_mismatch{0},duration_invalid{0};
@@ -42,7 +42,7 @@ struct DerivedEventUnknownDiagnostic {
     DerivedEventDiagnosticReason reason{DerivedEventDiagnosticReason::Other};
 };
 struct DerivedEventAttemptDiagnostic {
-    // Decision-time snapshot. Callback duration is not included and is not added to the wait budget.
+    // 판정 시점 스냅샷. 콜백 시간은 포함하지 않으며 대기 예산에도 더하지 않는다.
     std::size_t attempt{0},attempt_limit{0};std::int64_t elapsed_ms{0},wait_ms{0};
     bool deadline_exhausted{false},attempt_exhausted{false},selection_complete{false};
     std::int64_t expanded_start_ns{0},expanded_end_ns{0};
@@ -53,7 +53,7 @@ struct DerivedEventAttemptDiagnostic {
     std::array<std::size_t,static_cast<std::size_t>(DerivedEventDiagnosticReason::Count)> reason_counts{};
     std::vector<DerivedEventUnknownDiagnostic> unknown_ranges;
 };
-// Bounded value-only summary, not an admission API. IDs stay internal; external formatters must hash them.
+// 크기가 제한된 값 전용 요약이며 입장 API가 아니다. ID는 내부에 남기고 외부 출력기는 해시해야 한다.
 DerivedEventAttemptDiagnostic BuildDerivedEventAttemptDiagnostic(
     const std::vector<RecordingDerivedSourceSnapshotEntry>&,
     const std::vector<DerivedSourceEvidence>&,const std::vector<bool>& binding_valid,
@@ -69,8 +69,8 @@ struct DerivedEventWorkerOptions {
     std::function<DerivedEventEvidenceUpdate(const RecordingConsumerReferenceV1&)> latest_evidence;
     std::function<std::int64_t()> now_ms;
     std::string budget_reason;
-    // Opt-in; all aggregation/callback exceptions are isolated. Must be thread-safe/nonblocking.
-    // Invoked outside worker/catalog locks with the exact selection decision inputs.
+    // 명시적 활성화 전용이며 집계·콜백 예외를 모두 격리한다. 스레드 안전하며 비차단이어야 한다.
+    // 작업자·카탈로그 잠금 밖에서 실제 선택 판정 입력 그대로 호출한다.
     std::function<void(const RecordingConsumerReferenceV1&,const DerivedEventAttemptDiagnostic&)> diagnostic{};
     std::int64_t source_wait_ms{0};
     std::size_t source_max_attempts{121};

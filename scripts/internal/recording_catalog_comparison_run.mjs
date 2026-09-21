@@ -1,4 +1,4 @@
-// LP17 승인된 단기 진단 실행. 제품·기존 verifier는 수정하지 않는다.
+// 파일 용도: LP17 승인된 단기 진단 실행. 제품·기존 verifier는 수정하지 않는다.
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';

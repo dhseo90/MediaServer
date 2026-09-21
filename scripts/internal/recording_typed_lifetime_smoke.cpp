@@ -1,4 +1,4 @@
-// 상세 typed/journal 상주의 자동 종료를 관측한다. encoder 없는 기존 job fixture 입력을 재사용한다.
+// 파일 용도: 상세 typed/journal 상주의 자동 종료를 관측한다. encoder 없는 기존 job fixture 입력을 재사용한다.
 #include "recording/recording_derived_job.h"
 #include "recording/recording_derived_selection.h"
 #include "recording/recording_catalog.h"

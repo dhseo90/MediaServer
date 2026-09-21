@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 검증 전용 shell 경계. 기존 role/scope/history 본문은 변경하지 않는다.
+# 파일 용도: 검증 전용 shell 경계. 기존 role/scope/history 본문은 변경하지 않는다.
 set +x
 set +a
 unset BASH_ENV ENV SHELLOPTS BASHOPTS 2>/dev/null || true

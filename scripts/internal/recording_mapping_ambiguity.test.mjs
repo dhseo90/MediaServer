@@ -1,4 +1,4 @@
-// 설계 특성화 전용: 서로 다른 시간 변환 후보의 존재를 보인다.
+// 파일 용도: 설계 특성화 전용: 서로 다른 시간 변환 후보의 존재를 보인다.
 // 후보 fitting은 원천 변환 증명이나 제품의 완전 녹화 판정이 아니다.
 import test from 'node:test';
 import assert from 'node:assert/strict';

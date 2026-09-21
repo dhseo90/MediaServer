@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ENV12 실제 플랫폼 검사. fixture/브라우저/장시간 검사를 대체하지 않는다.
+# 파일 용도: ENV12 실제 플랫폼 검사. fixture/브라우저/장시간 검사를 대체하지 않는다.
 set -euo pipefail
 [[ $# == 0 ]] || { echo '[fail] ENV12 arguments'; exit 2; }
 env12_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

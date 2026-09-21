@@ -1,4 +1,4 @@
-// 제품 캐시의 존재를 가정하지 않는 행위 검증. 계측은 runner 소유 복제본에만 삽입한다.
+// 파일 용도: 제품 캐시의 존재를 가정하지 않는 행위 검증. 계측은 runner 소유 복제본에만 삽입한다.
 #define main recording_checkpoint_reproduction_unused_main
 #include "recording_checkpoint_reproduction_smoke.cpp"
 #undef main

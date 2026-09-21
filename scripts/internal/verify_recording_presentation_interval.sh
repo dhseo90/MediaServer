@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 내부 정확 구간의 결정적 산술 검사. 파일 인증/실제 앱 통합 검사가 아니다.
+# 파일 용도: 내부 정확 구간의 결정적 산술 검사. 파일 인증/실제 앱 통합 검사가 아니다.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"

@@ -1,4 +1,4 @@
-// 격리 프로세스에서 실제 header의 off/예산/원문 비노출을 확인한다.
+// 파일 용도: 격리 프로세스에서 실제 header의 off/예산/원문 비노출을 확인한다.
 #define RECORDING_COMPLETION_TRACE_TEST
 #include "recording/recording_completion_trace.h"
 #include <iostream>

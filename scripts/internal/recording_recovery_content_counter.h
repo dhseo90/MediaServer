@@ -1,5 +1,5 @@
 #pragma once
-// 소유 복제 TU에서만 활성화한다. 복구 단계의 내용 비용과 실제 호출 수를 분리한다.
+// 파일 용도: 소유 복제 TU에서만 활성화한다. 복구 단계의 내용 비용과 실제 호출 수를 분리한다.
 #include <array>
 #include <cstdint>
 #include <new>

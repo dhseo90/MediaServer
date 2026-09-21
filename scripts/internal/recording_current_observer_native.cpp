@@ -1,4 +1,4 @@
-// 검증 전용: 현행 제품 parser의 bounded 관측 투영. catalog 수용/내구성 판정이 아니다.
+// 파일 용도: 검증 전용: 현행 제품 parser의 bounded 관측 투영. catalog 수용/내구성 판정이 아니다.
 #include "recording/recording_journal.h"
 #include "recording/recording_contracts.h"
 #include "recording/recording_catalog.h"

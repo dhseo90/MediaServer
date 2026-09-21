@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# FC01 임시 계측만 수행한다. 제품 source/저장 계약과 최적화 flags는 변경하지 않는다.
+# 파일 용도: FC01 임시 계측만 수행한다. 제품 source/저장 계약과 최적화 flags는 변경하지 않는다.
 set -euo pipefail
 fc_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 fc_repo="$(cd "$fc_script/../.." && pwd)"

@@ -1,4 +1,4 @@
-// 동일 TP01~04 fixture와 실제 writer를 재사용한다. 기존 계측은 수정하지 않는다.
+// 파일 용도: 동일 TP01~04 fixture와 실제 writer를 재사용한다. 기존 계측은 수정하지 않는다.
 #define main TimingProbeOriginalMain
 #include "recording_timing_probe.cpp"
 #undef main

@@ -1,4 +1,4 @@
-// 내부 격리 검증기의 선택 시도 진단 파서. 공개 API가 아니다.
+// 파일 용도: 내부 격리 검증기의 선택 시도 진단 파서. 공개 API가 아니다.
 const count=x=>Number.isSafeInteger(x)&&x>=0;
 const int32=x=>Number.isInteger(x)&&x>=-2147483648&&x<=2147483647;
 const decimal=x=>typeof x==='string'&&/^-?\d{1,20}$/.test(x);

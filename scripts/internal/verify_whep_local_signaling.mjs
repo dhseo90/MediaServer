@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 실제 /whep 신호협상과 세션 수명만 검사한다. RTP 수신/ICE 연결/브라우저 PASS가 아니다.
+// 파일 용도: 실제 /whep 신호협상과 세션 수명만 검사한다. RTP 수신/ICE 연결/브라우저 PASS가 아니다.
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';

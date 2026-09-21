@@ -1,4 +1,4 @@
-// 기존 실제 앱 dispatch/EventRecord 상관 규칙을 공유한다. 원장·시간축 변환 없음.
+// 파일 용도: 기존 실제 앱 dispatch/EventRecord 상관 규칙을 공유한다. 원장·시간축 변환 없음.
 export function dispatchTuple(response, tap, ruleId) {
   if (response.tapId !== tap.tapId || response.result?.sourceKey !== tap.streamKey ||
       !Number.isSafeInteger(response.result?.pts)) return null;

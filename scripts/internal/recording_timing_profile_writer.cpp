@@ -1,4 +1,4 @@
-// 테스트 전용 translation unit: 실제 writer의 mp4mux factory 생성만 감싼다.
+// 파일 용도: 테스트 전용 translation unit: 실제 writer의 mp4mux factory 생성만 감싼다.
 // 제품 소스/제품 API/test hook은 변경하지 않는다.
 #include <gst/gst.h>
 #include <cstring>

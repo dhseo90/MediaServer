@@ -1,4 +1,4 @@
-// query 전용 관측 검증. 기존 sources/owner/RSS 판정은 바꾸지 않는다.
+// 파일 용도: query 전용 관측 검증. 기존 sources/owner/RSS 판정은 바꾸지 않는다.
 const integer=n=>Number.isSafeInteger(n)&&n>=0;
 export const queryCases=[
  'LP21-Q01 fixture separates total sources from two relevant 4096-sample bindings',

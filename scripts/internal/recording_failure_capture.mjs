@@ -1,4 +1,4 @@
-// 내부 검증기 전용. 최초 진단은 독립 재현보다 먼저 별도 불변 파일로 보존한다.
+// 파일 용도: 내부 검증기 전용. 최초 진단은 독립 재현보다 먼저 별도 불변 파일로 보존한다.
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';

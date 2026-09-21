@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 실제 RTSP builder의 디코더 경계 진단·한정 보완 검사. 전체 제품/릴리즈 PASS가 아니다.
+# 파일 용도: 실제 RTSP builder의 디코더 경계 진단·한정 보완 검사. 전체 제품/릴리즈 PASS가 아니다.
 set -euo pipefail
 if [[ $# != 1 || ( $1 != --self-test && $1 != --rtsp-impact && $1 != --drain-diagnosis && $1 != --mitigation-impact && $1 != --regression-impact ) ]]; then
   echo '[fail] 허용 인자: --self-test, --rtsp-impact, --drain-diagnosis, --mitigation-impact 또는 --regression-impact' >&2

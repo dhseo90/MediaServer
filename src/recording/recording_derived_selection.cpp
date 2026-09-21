@@ -138,7 +138,7 @@ bool Media(const RecordingConsumerReferenceV1& r,const analysis::DecodedInterval
 }
 bool NativeMedia(const RecordingConsumerReferenceV1& r,const analysis::DecodedIntervalSnapshot& evidence,
                  const std::vector<DerivedSourceEvidence>& sources,DerivedRecordingSelection& out) {
-    // A proof-less eligible source keeps the entire request on the legacy profile.
+    // 증명이 없는 적격 원본이 있으면 전체 요청을 기존 프로필로 유지한다.
     bool any_proof=false;
     for(const auto& s:sources) {
         if(s.segment.source_id!=r.source_id||s.segment.channel_id!=r.channel_id)continue;
@@ -208,7 +208,7 @@ bool NativeMedia(const RecordingConsumerReferenceV1& r,const analysis::DecodedIn
     std::sort(cuts.begin(),cuts.end(),less);
     cuts.erase(std::unique(cuts.begin(),cuts.end(),[](const auto& a,const auto& b){return ComparePresentationTime(a,b)==0;}),cuts.end());
     if(cuts.size()>4097)return false; // At most 4096 exact atoms, including unknown intervals.
-    // Sweep starts/ends instead of rescanning all observations at every atom.
+    // 구간 조각마다 모든 관측을 다시 훑지 않고 시작·끝 경계를 순회한다.
     std::vector<std::size_t> starts,ends;
     for(std::size_t i=0;i<intervals.size();++i){starts.push_back(i);ends.push_back(i);}
     std::sort(starts.begin(),starts.end(),[&](auto a,auto b){return less(intervals[a].time.start,intervals[b].time.start);});
@@ -232,7 +232,7 @@ bool NativeMedia(const RecordingConsumerReferenceV1& r,const analysis::DecodedIn
         DerivedSelectionSlice slice;slice.presentation=PresentationInterval{a,b};
         if(!PresentationEnvelope(*slice.presentation,&slice.start_ns,&slice.end_ns))return false;
         const bool discarded=evidence.incomplete&&(!evidence.discarded_end_ns||less(a,PresentationTime{*evidence.discarded_end_ns,0,1}));
-        // Unknown observation length cannot justify recovering a later suffix.
+        // 관측 길이가 미상이면 뒤쪽 구간을 복구할 근거가 될 수 없다.
         const bool uncertain=uncertain_from&&!less(a,PresentationTime{*uncertain_from,0,1});
         if(ambiguous){slice.state=DerivedSliceState::Ambiguous;slice.reason="multiple-time-or-recording-candidates";}
         else if(unknown||uncertain||discarded||active.empty()){slice.state=DerivedSliceState::Unknown;slice.reason="unconfirmed-interval-no-trusted-watermark";}

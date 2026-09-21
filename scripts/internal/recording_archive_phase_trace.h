@@ -1,5 +1,5 @@
 #pragma once
-// 소유 진단 복제본 전용. phase 종료는 성공을 뜻하지 않으며 원문은 받지 않는다.
+// 파일 용도: 소유 진단 복제본 전용. phase 종료는 성공을 뜻하지 않으며 원문은 받지 않는다.
 #include <chrono>
 #include <cstdio>
 #include <cstdint>

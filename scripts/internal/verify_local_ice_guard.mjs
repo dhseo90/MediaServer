@@ -1,4 +1,4 @@
-// 검증 전용: 외부 ICE 서버가 섞이면 미디어 명령 실행 전에 거부한다.
+// 파일 용도: 검증 전용: 외부 ICE 서버가 섞이면 미디어 명령 실행 전에 거부한다.
 function validatePort(port) {
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw Error('검증 소유 UDP port 필요');
 }

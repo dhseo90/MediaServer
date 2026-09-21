@@ -1,4 +1,4 @@
-// 내부 검증 전용 bounded latency parser.
+// 파일 용도: 내부 검증 전용 bounded latency parser.
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';

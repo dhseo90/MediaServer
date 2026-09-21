@@ -1,4 +1,4 @@
-// LP18 단기 공유 소유 검사: 기존 bounded guard를 재사용하고 원출력/정리를 보존한다.
+// 파일 용도: LP18 단기 공유 소유 검사: 기존 bounded guard를 재사용하고 원출력/정리를 보존한다.
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';

@@ -1,4 +1,4 @@
-// 진단 검증 전용: 실제 writer와 typed Catalog admission/failure API만 사용한다.
+// 파일 용도: 진단 검증 전용: 실제 writer와 typed Catalog admission/failure API만 사용한다.
 #define main recording_service_fixture_unused_main
 #include "recording_derived_job_service_smoke.cpp"
 #undef main
@@ -12,7 +12,7 @@ static void CompletenessFixture(const std::filesystem::path& root,const std::str
  std::vector<recording::DerivedSourceEvidence> sources;for(const auto& s:store.Segments())sources.push_back({s,store.catalog.FindSourceBinding(s.segment_id),false});
  analysis::DecodedIntervalCollector collector;
  for(std::size_t i=0;i<input.packets.size();++i){if((mode=="selection"||mode=="redacted")&&i==5)continue;const auto& p=input.packets[i];analysis::DecodedIntervalEvidence e;e.analysis_pts_ns=p.pts;e.duration_ns=p.observation->duration_ns;
-  // Synthetic direct interval control isolates native file-duration coverage, not a decoder observation.
+  // 합성 직접 구간은 디코더 관측이 아닌 네이티브 파일 길이 충족 범위를 독립적으로 검사한다.
   if(fractional&&i+1<input.packets.size())e.duration_ns=input.packets[i+1].pts-p.pts;
   e.association={analysis::SourceAssociationQuality::TimestampMatch,analysis::OriginalSampleIdentity{p.observation->source_generation,p.observation->generation_order,p.observation->ordinal,p.track_id,*p.observation->pts_ns}};collector.Append(std::move(e));}
  recording::RecordingConsumerReferenceV1 ref;ref.reference_id="job-service-ref";ref.kind="event";ref.owner_id="job-service-event";ref.source_id="probe-channel";ref.channel_id="probe-channel";ref.analysis_namespace="complete-control";ref.analysis_track_id="track-1";ref.association_quality="timestamp-match";ref.original=recording::RecordingConsumerOriginalV1{"probe-generation-a",1,1,"video-0",7000000000ULL};ref.request=recording::RecordingConsumerRequestV1{"media-pts-ms",7000,fractional?8001:8500,0,0};

@@ -1,4 +1,4 @@
-// 기본 application과 격리 fixture가 같은 관리 저장소/복구 구성을 사용한다.
+// 파일 용도: 기본 application과 격리 fixture가 같은 관리 저장소/복구 구성을 사용한다.
 #pragma once
 #include "recording/recording_catalog.h"
 #include "recording/gstreamer_segment_writer.h"

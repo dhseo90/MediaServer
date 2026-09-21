@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# 파일 용도: 코덱 검사의 선택적 진단을 원문 노출 없이 고정 상태 JSONL로 기록한다.
 """검사 전용 opt-in 진단. URL/debug 원문 대신 고정 상태만 소유 JSONL에 남긴다."""
 import json
 import math

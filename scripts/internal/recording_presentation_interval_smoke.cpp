@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 표시 시간 구간의 계산과 경계·오버플로 거부를 검증한다.
 #include "recording/recording_presentation_interval.h"
 #include <climits>
 #include <iostream>

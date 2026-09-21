@@ -1,4 +1,4 @@
-// 제품 내부 수락·최종화 순서의 실패 상태를 검증한다. 라이브러리/OS 장애 주입이 아니다.
+// 파일 용도: 제품 내부 수락·최종화 순서의 실패 상태를 검증한다. 라이브러리/OS 장애 주입이 아니다.
 #include "recording/recording_write_boundaries.h"
 #include <filesystem>
 #include <fstream>

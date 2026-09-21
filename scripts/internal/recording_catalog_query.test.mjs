@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 카탈로그 조회 계측의 스레드별 집계와 누락·중복 거부 조건을 검증한다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

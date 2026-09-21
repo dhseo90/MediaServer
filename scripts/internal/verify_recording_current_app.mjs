@@ -1,4 +1,4 @@
-// 실제 제품 두 기동의 이벤트/출력 상관. 공개 이벤트 JSONL 외 원장 JSON을 읽지 않는다.
+// 파일 용도: 실제 제품 두 기동의 이벤트/출력 상관. 공개 이벤트 JSONL 외 원장 JSON을 읽지 않는다.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';

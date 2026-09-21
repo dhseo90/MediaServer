@@ -1,4 +1,4 @@
-// LP18-J01~04: encoder 없는 기존 source/selection/Intent→Failed 계약의 소유 검사.
+// 파일 용도: LP18-J01~04: encoder 없는 기존 source/selection/Intent→Failed 계약의 소유 검사.
 #include "recording/recording_derived_job.h"
 #include "recording/recording_derived_selection.h"
 #include "recording/recording_catalog.h"

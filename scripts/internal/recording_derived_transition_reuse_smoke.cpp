@@ -1,4 +1,4 @@
-// 실제 writer/job fixture를 재사용한다. 계측/접근 노출은 runner의 격리 복제본에만 존재한다.
+// 파일 용도: 실제 writer/job fixture를 재사용한다. 계측/접근 노출은 runner의 격리 복제본에만 존재한다.
 #define main recording_service_reuse_unused_main
 #include "recording_derived_job_service_smoke.cpp"
 #undef main

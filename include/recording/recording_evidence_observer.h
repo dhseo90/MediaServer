@@ -1,4 +1,4 @@
-// 내부 분석 observer: sampling/history 복사 전 최신 immutable decoded 증거를 bounded 보관한다.
+// 파일 용도: 내부 분석 observer: sampling/history 복사 전 최신 immutable decoded 증거를 bounded 보관한다.
 #pragma once
 #include "recording/recording_derived_event_worker.h"
 

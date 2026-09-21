@@ -1,4 +1,4 @@
-// 실제 앱 검증기의 종료 관측/복제본 안전 조건. 제품 종료 정책을 변경하지 않는다.
+// 파일 용도: 실제 앱 검증기의 종료 관측/복제본 안전 조건. 제품 종료 정책을 변경하지 않는다.
 const signals=new Set(['SIGHUP','SIGINT','SIGQUIT','SIGILL','SIGTRAP','SIGABRT','SIGIOT','SIGBUS','SIGFPE','SIGKILL','SIGUSR1','SIGSEGV','SIGUSR2','SIGPIPE','SIGALRM','SIGTERM','SIGSTKFLT','SIGCHLD','SIGCONT','SIGSTOP','SIGTSTP','SIGTTIN','SIGTTOU','SIGURG','SIGXCPU','SIGXFSZ','SIGVTALRM','SIGPROF','SIGWINCH','SIGIO','SIGPOLL','SIGPWR','SIGSYS','SIGEMT','SIGINFO']);
 const integer=(v,max)=>Number.isSafeInteger(v)&&v>=0&&v<=max;
 function observation(child){

@@ -1,4 +1,4 @@
-// 제품 시간 판정을 그대로 관측하는 단기 진단. 절대 시각/파일 경로/원본 식별자는 출력하지 않는다.
+// 파일 용도: 제품 시간 판정을 그대로 관측하는 단기 진단. 절대 시각/파일 경로/원본 식별자는 출력하지 않는다.
 #include "recording/recording_writer_time_state.h"
 #include "media/gstreamer_sample_observation.h"
 #include <gst/app/gstappsink.h>

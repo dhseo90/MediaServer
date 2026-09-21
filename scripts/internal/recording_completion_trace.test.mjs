@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 완료 추적의 활성화 조건·식별자 해시·안전한 출력 판정을 검증한다.
 import test,{before,after} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

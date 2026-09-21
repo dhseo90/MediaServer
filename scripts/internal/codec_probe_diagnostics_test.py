@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# 파일 용도: 격리 파일과 자식 프로세스로 코덱 진단의 안전한 추출·기록 경계를 검증한다.
 """격리 파일/자식 Python만 사용한다. 서버·포트·ffprobe 실행 없음."""
 import copy
 import importlib.util

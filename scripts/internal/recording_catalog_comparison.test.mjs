@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 카탈로그 비교 실행의 계측 판정·프로세스 종료·소유 경로 정리 조건을 검증한다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

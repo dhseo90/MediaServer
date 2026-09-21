@@ -1,4 +1,4 @@
-// 검증 준비가 외부 ICE 기본값을 허용하는 회귀를 검사한다.
+// 파일 용도: 검증 준비가 외부 ICE 기본값을 허용하는 회귀를 검사한다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {assertLocalIceEnvironment as envCheck, assertLocalIceConfig as configCheck} from './verify_local_ice_guard.mjs';

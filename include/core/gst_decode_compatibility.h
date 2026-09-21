@@ -1,5 +1,5 @@
 #pragma once
-// 확인된 applemedia/H264 조합에만 적용하는 객체별 자동 디코더 선택 호환 경계.
+// 파일 용도: 확인된 applemedia/H264 조합에만 적용하는 객체별 자동 디코더 선택 호환 경계.
 #include <string_view>
 
 struct _GstElement;

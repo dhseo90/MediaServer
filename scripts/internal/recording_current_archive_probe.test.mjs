@@ -1,3 +1,4 @@
+// 파일 용도: 현행 녹화 보관소 복제 진단의 증거 정합성·완전성·원본 불변을 검증한다.
 import test,{before,after} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -17,7 +18,7 @@ function setup(mode){const dir=fs.mkdtempSync(path.join(root,'media-server-curre
 function diagnose(f,args=['--diagnose-failed']){return run(probe,[f.dir,'1','job-service-ref',...args]);}
 before(()=>{
  const seed={...process.env,MEDIA_SERVER_GST_CACHE_DIR:path.join(root,'gst-cache'),MEDIA_SERVER_GST_PLUGIN_PROFILE:'headless'};
- // Never inherit a registry or managed/plugin search path from another run.
+ // 다른 실행의 레지스트리나 관리형 플러그인 검색 경로를 상속하지 않는다.
  for(const key of ['GST_REGISTRY','GST_REGISTRY_1_0','GST_PLUGIN_PATH','GST_PLUGIN_PATH_1_0','GST_PLUGIN_SYSTEM_PATH','GST_PLUGIN_SYSTEM_PATH_1_0','MEDIA_SERVER_GST_MANAGED_REGISTRY','MEDIA_SERVER_GST_MANAGED_PLUGIN_PATH','MEDIA_SERVER_GST_INPUT_PLUGIN_PATH'])delete seed[key];
  seed.GST_REGISTRY=seed.GST_REGISTRY_1_0=path.join(root,'registry.bin');
  const environment=execFileSync('bash',['-c','set -e; source "$1"; media_server_apply_homebrew_gst_env; env -0','probe-env',path.join(here,'env_common.sh')],{env:seed,encoding:'utf8',maxBuffer:1024*1024});

@@ -2304,8 +2304,8 @@ bool RecordingCatalog::SnapshotDerivedSourcesWithWaitLease(const RecordingConsum
             return found!=binding.samples.end()&&found->ordinal==o.ordinal&&found->pts_ns==o.pts_ns;
         };
         bool matched=std::any_of(observed.begin(),observed.end(),bound);
-        // Missing decoded duration never invents source-wait coverage. This list only
-        // protects already proven native intervals under the same snapshot lock.
+        // 디코딩된 길이가 없으면 원본 대기 충족 범위를 만들어내지 않는다. 이 목록은
+        // 이미 입증된 네이티브 구간만 같은 스냅샷 잠금 안에서 보호한다.
         if(!matched&&binding.file_evidence&&reference.request&&reference.request->time_basis=="media-pts-ms") {
             const auto& r=*reference.request;
             const __int128 a=(static_cast<__int128>(r.start_ms)-r.pre_ms)*1000000,b=(static_cast<__int128>(r.end_ms)+r.post_ms)*1000000;

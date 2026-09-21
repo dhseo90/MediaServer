@@ -1,5 +1,5 @@
 #pragma once
-// LP17 검사 복제본 전용. 아래 수치는 부분 payload/capacity이며 heap/RSS 귀속 합계가 아니다.
+// 파일 용도: LP17 검사 복제본 전용. 아래 수치는 부분 payload/capacity이며 heap/RSS 귀속 합계가 아니다.
 #include "recording/recording_catalog.h"
 #include "recording_process_memory_probe.h"
 #include <iostream>

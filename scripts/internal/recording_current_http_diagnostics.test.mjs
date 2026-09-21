@@ -1,3 +1,4 @@
+// 파일 용도: 현행 녹화 HTTP 관측의 시간 계측·실패 유지·비밀 비노출을 검증한다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {measuredHttpResponse} from './recording_current_app_helpers.mjs';

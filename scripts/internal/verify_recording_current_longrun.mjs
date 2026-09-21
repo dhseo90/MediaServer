@@ -1,4 +1,4 @@
-// 현행 2채널 녹화·보존·재기동 관측. 짧은 준비 실행은 장시간/자원/UI PASS가 아니다.
+// 파일 용도: 현행 2채널 녹화·보존·재기동 관측. 짧은 준비 실행은 장시간/자원/UI PASS가 아니다.
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';

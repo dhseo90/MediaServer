@@ -1,4 +1,4 @@
-// FE01~08: 실제 파일·저장·복구 경계의 단기 검증.
+// 파일 용도: FE01~08: 실제 파일·저장·복구 경계의 단기 검증.
 #include "recording_media_test_fixture.h"
 #include "recording/recording_file_evidence.h"
 #include "recording/recording_finalize_recovery.h"

@@ -1,5 +1,5 @@
 #pragma once
-// 새 내부 profile의 remux/Ready 공통 판정. 표시용 정수 범위는 coverage 근거가 아니다.
+// 파일 용도: 새 내부 profile의 remux/Ready 공통 판정. 표시용 정수 범위는 coverage 근거가 아니다.
 #include "recording/recording_derived_selection.h"
 #include "recording/recording_derived_provenance.h"
 #include <map>

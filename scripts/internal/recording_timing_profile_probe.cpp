@@ -1,4 +1,4 @@
-// 실제 writer 계측 재사용. 기존 TP fixture/판정/제품 파일은 수정하지 않는다.
+// 파일 용도: 실제 writer 계측 재사용. 기존 TP fixture/판정/제품 파일은 수정하지 않는다.
 #define main TimingBaselineMain
 #include "recording_timing_probe.cpp"
 #undef main

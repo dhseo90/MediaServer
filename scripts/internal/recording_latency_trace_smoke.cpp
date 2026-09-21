@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 지연 추적의 집계·잠금·동시성 관측을 검증하는 실행 입력을 제공한다.
 #define RECORDING_LATENCY_TRACE_TEST 1
 #include "recording/recording_latency_trace.h"
 #include <thread>

@@ -1,3 +1,4 @@
+// 파일 용도: 녹화 런타임의 관리 원장·카탈로그·작성기 옵션과 시작 복구 구성을 연결한다.
 #include "recording/recording_runtime_composition.h"
 #include "recording/recording_derived_job_service.h"
 namespace recording {

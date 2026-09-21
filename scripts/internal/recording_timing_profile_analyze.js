@@ -1,4 +1,4 @@
-// 검증 전용: 기존 제한 native reader만 재사용하고 NP 특성화 결과를 보존한다.
+// 파일 용도: 검증 전용: 기존 제한 native reader만 재사용하고 NP 특성화 결과를 보존한다.
 const fs=require('fs'),path=require('path'),vm=require('vm');
 const root=process.argv[2],source=fs.readFileSync(path.join(__dirname,'recording_timing_probe.js'),'utf8');
 const marker='for(let c=1;c<=4;c++)';if(source.split(marker).length!==2)throw Error('reader source boundary');

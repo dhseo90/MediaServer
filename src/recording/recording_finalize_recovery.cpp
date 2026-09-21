@@ -123,7 +123,7 @@ bool Parse(const std::string& text,FinalizeReadyTicket* t,std::string* error){
     const auto partial=ingress::StrictJsonStringField(d,"partial"),final=ingress::StrictJsonStringField(d,"final");
     if(!version||version->type!=ingress::StrictJsonType::Number||(version->raw!="1"&&version->raw!="2"&&version->raw!="3")||!segment||!partial||!final||!d.Find("eventLink"))return Fail(error,"ready version/필수필드 실패");
     const bool bound=version->raw=="3";
-    // evidence binding <=2MiB + segment <=1MiB + bounded path/field overhead.
+    // 증거 바인딩 2MiB 이하 + 세그먼트 1MiB 이하 + 제한된 경로·필드 부가 용량.
     if(d.members.size()!=(bound?6U:5U)||text.size()>(bound?3U*1024*1024+16U*1024:1024U*1024))
         return Fail(error,"ready version별 field/크기 오류");
     *t=FinalizeReadyTicket{};

@@ -1,4 +1,4 @@
-// S10-2 설계 검증용 순수 모델. 제품 writer/저장/API에는 연결하지 않는다.
+// 파일 용도: S10-2 설계 검증용 순수 모델. 제품 writer/저장/API에는 연결하지 않는다.
 #pragma once
 #include <cmath>
 #include <cstddef>

@@ -1,3 +1,4 @@
+// 파일 용도: 현행 녹화 상태와 중첩 원본 요약의 정확성·미상 분리·비밀 비노출을 검증한다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {summarizeEventState,eventOutputs} from './recording_current_app_helpers.mjs';

@@ -1,4 +1,4 @@
-// 실제 소형 job과 독립 전이 입력으로 비교 최적화의 비용/의미를 분리한다.
+// 파일 용도: 실제 소형 job과 독립 전이 입력으로 비교 최적화의 비용/의미를 분리한다.
 #define main recording_comparison_unused_service_main
 #include "recording_derived_job_service_smoke.cpp"
 #undef main

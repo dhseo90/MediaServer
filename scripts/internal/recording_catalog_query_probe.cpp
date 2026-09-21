@@ -1,4 +1,4 @@
-// 기존 prepare의 실제 AU/native 증거 seed를 읽는다. 원본 cpp는 수정하지 않는다.
+// 파일 용도: 기존 prepare의 실제 AU/native 증거 seed를 읽는다. 원본 cpp는 수정하지 않는다.
 #include "recording_catalog_query_seed.h"
 #undef Check
 #include "recording_catalog_query_counter.h"

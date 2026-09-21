@@ -1,4 +1,4 @@
-// 검증 전용 recvonly H264 offer. stdout은 부모의 bounded memory pipe이며 공개 로그가 아니다.
+// 파일 용도: 검증 전용 recvonly H264 offer. stdout은 부모의 bounded memory pipe이며 공개 로그가 아니다.
 #include <gst/gst.h>
 #include <gst/sdp/sdp.h>
 #include <gst/webrtc/webrtc.h>

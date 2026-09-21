@@ -1,4 +1,4 @@
-// LP17 독립 seed/기대값을 사용하는 비교 전용 실행 파일. 제품/기존 LP16 판정은 변경하지 않는다.
+// 파일 용도: LP17 독립 seed/기대값을 사용하는 비교 전용 실행 파일. 제품/기존 LP16 판정은 변경하지 않는다.
 #define main recording_file_evidence_unused_main
 #include "recording_file_evidence_smoke.cpp"
 #undef main

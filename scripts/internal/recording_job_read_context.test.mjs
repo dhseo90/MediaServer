@@ -1,3 +1,4 @@
+// 파일 용도: 파생 녹화 읽기 문맥 검사의 개별 결과·파싱 횟수·종료 판정을 검증한다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {classifyReadContext,readContextLabels,readContextNegativeLabels} from './verify_recording_job_read_context.mjs';
