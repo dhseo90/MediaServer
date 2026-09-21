@@ -4,6 +4,11 @@
 
 [실행 전 정의](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md). 등록은 PASS가 아니다.
 
+후속 진단 준비: CPD01~18(안전수집·기본검사불변·제공기단독), HWD01~04(실행선택·진단/정리),
+HW-A01~04(실제한정비교/영향마감)를 위 문서에 각각 사전등록했다.
+CPD/HWD는 안정화 도구 자체검사이며30분/120분/UI 비대상이다.
+HW-A는 안정화 실제미디어 검사이며30분/120분은 S11 media/lifecycle 매핑, 실제UI는별도다.
+
 | ID | 기능 | 안정화 | 30분 | 120분 | UI |
 | --- | --- | --- | --- | --- | --- |
 | LP27-H01 | 진단 입력/제품 source 결박 | 동일 AU·SHA·factory/builder | 비대상: 단기 진단 | 비대상: 단기 진단 | 비대상: UI 없음 |
@@ -22,6 +27,12 @@
 | LP27-M02 | 일반 입력 보존 | HW-MI01/02 PTS·선택·EOS 별도 | S11 media cut | S11 source lifecycle | 실제 UI는 별도 |
 | LP27-M03 | B-frame 시간 보존 | HW-MI03/04 PTS·선택·EOS 별도 | S11 media cut | S11 source lifecycle | 실제 UI는 별도 |
 | LP27-M04 | 빌드 경계 | 전체 build·GST OFF 컴파일 | 비대상: 빌드 | 비대상: 빌드 | 비대상: UI 없음 |
+| LP27-R01 | 유한 EOS 반복 반례 | HW-RP01~16 N/B 전체 대응·선택64 | S11 media cut | S11 source lifecycle | 실제 UI 별도 |
+| LP27-R02 | 타 코덱 지원 | HW-CC01~03 입력3종/출력 H264·H265 | S11 media cut | S11 source lifecycle | 실제 UI 별도 |
+| LP27-R03 | URI 자동 선택 | HW-UC01~03 실제 uridecodebin | S11 source lifecycle | S11 source lifecycle | 실제 UI 별도 |
+| LP27-R04 | 선택 정책 자원 영향 | HW-RS01~05 동일 입력 단기 비교 | S11 자원 | S11 자원·유지 | 비대상: 내부 비용 |
+| LP27-R05 | 영향 검사 판정 반례 | HW-RF01~12·DC01~08·IO03, RTP 계수·fallback 관측 | 비대상: 검사 자체 | 비대상: 검사 자체 | 비대상: UI 없음 |
+| LP27-R06 | 기존 미디어 관련 회귀 | HW-MEDIA01~03 codec67·ICE8·격리/정리 | S11 media cut | S11 source lifecycle | 이번 브라우저 제외, 릴리즈 별도 |
 
 ## LP26 현행 검증 준비 사전등록
 

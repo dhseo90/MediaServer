@@ -1,0 +1,517 @@
+[source] CMakeLists.txt sha256=3534c5e0bbbcfebaaff85d46cf46008d05b995cc04d5dfcf830f30dcf0394f3b
+[source] src/core/gst_decode_compatibility.cpp sha256=8f5c7ec6d671bf9c38369bbeb518560bd06f9a6d4f03956d3bdb7f6dc41a1db5
+[source] include/core/gst_decode_compatibility.h sha256=2ded3020d7be5f69476b26f031614a74acf760c1559dd4da726c14a5c2ddedef
+[source] src/core/source_factory.cpp sha256=95bedfb3d8f4f91fae03cc2cf9705f6b45d8430408ff49597dd28b7bd18bf38f
+[source] src/ingress/gstreamer_rtsp_server.cpp sha256=b2aefad7acb3c404008c7136e449802956e1c24dfb2f1916ffbbdafc70151ff0
+[source] src/ingress/gst_pipeline_builder.cpp sha256=65c4976f05644f538c8713b86c7121270ef08673fec13116bf6e9d9004649ee6
+[source] src/ingress/rtsp_egress_session.cpp sha256=25cba9e1fac1d81c14aec5d36e121b8b895fa607ea2b2f783fbb23ac42540b29
+[source] include/ingress/gst_pipeline_builder.h sha256=cd505e31bf74a1768274d23c2c592fe0856431d4962f279d6f1d7f5c50977163
+[source] scripts/internal/recording_hw_impact_probe.cpp sha256=4bfbeb705b0192dd18e5c20cefb19a58620760ebe02118a1a9231ca55de516d9
+[source] scripts/internal/verify_recording_hw_impact.sh sha256=1f18e1bc0dfcb37565aa342e5d37ebf0d15554d2280b7cb16e5d6cac1cf05161
+[source] scripts/internal/recording_media_test_fixture.h sha256=404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6
+[source] scripts/internal/recording_process_memory_probe.h sha256=8b5775d1bda029b3a00d3a9c5100fdec43e4007f02f3cae31193ff7bdb2764ba
+[source] scripts/internal/recording_writer_decode_diagnostics.h sha256=85c9b13154e978af252f2757a3a9c83ef09b09db2306d15807e5cba3a5399ee5
+[source] build-gst-onnx/libmedia_server_runtime.a sha256=de62559c57ea2ed918615990af970ef10cb5df29d8a9d7fe226b4eab5655f585
+[environment] utc=2026-09-21T10:34:20Z platform=Darwin machine=arm64 head=d5a0710bb6b042d232ae33bc076c6fa6550b8ca1
+1.28.1
+1.28.1
+[au] case=normal20 index=0 pts=0 dts=0 duration=100000000 key=1 bytes=2820
+[au] case=normal20 index=1 pts=100000000 dts=100000000 duration=100000000 key=0 bytes=882
+[au] case=normal20 index=2 pts=200000000 dts=200000000 duration=100000000 key=0 bytes=686
+[au] case=normal20 index=3 pts=300000000 dts=300000000 duration=100000000 key=0 bytes=796
+[au] case=normal20 index=4 pts=400000000 dts=400000000 duration=100000000 key=0 bytes=778
+[au] case=normal20 index=5 pts=500000000 dts=500000000 duration=100000000 key=0 bytes=827
+[au] case=normal20 index=6 pts=600000000 dts=600000000 duration=100000000 key=0 bytes=673
+[au] case=normal20 index=7 pts=700000000 dts=700000000 duration=100000000 key=0 bytes=836
+[au] case=normal20 index=8 pts=800000000 dts=800000000 duration=100000000 key=0 bytes=798
+[au] case=normal20 index=9 pts=900000000 dts=900000000 duration=100000000 key=0 bytes=816
+[au] case=normal20 index=10 pts=1000000000 dts=1000000000 duration=100000000 key=1 bytes=1935
+[au] case=normal20 index=11 pts=1100000000 dts=1100000000 duration=100000000 key=0 bytes=839
+[au] case=normal20 index=12 pts=1200000000 dts=1200000000 duration=100000000 key=0 bytes=864
+[au] case=normal20 index=13 pts=1300000000 dts=1300000000 duration=100000000 key=0 bytes=911
+[au] case=normal20 index=14 pts=1400000000 dts=1400000000 duration=100000000 key=0 bytes=888
+[au] case=normal20 index=15 pts=1500000000 dts=1500000000 duration=100000000 key=0 bytes=882
+[au] case=normal20 index=16 pts=1600000000 dts=1600000000 duration=100000000 key=0 bytes=938
+[au] case=normal20 index=17 pts=1700000000 dts=1700000000 duration=100000000 key=0 bytes=928
+[au] case=normal20 index=18 pts=1800000000 dts=1800000000 duration=100000000 key=0 bytes=861
+[au] case=normal20 index=19 pts=1900000000 dts=1900000000 duration=100000000 key=0 bytes=873
+[input] case=normal20 count=20 bytes=19831 sha256=0becff0184318c981f79e3be56dfa0aa25246665d27e74e87adc2cbb6d87cd62
+[au] case=bframe30 index=0 pts=200000000 dts=0 duration=100000000 key=1 bytes=1853
+[au] case=bframe30 index=1 pts=400000000 dts=100000000 duration=100000000 key=0 bytes=704
+[au] case=bframe30 index=2 pts=300000000 dts=200000000 duration=100000000 key=0 bytes=453
+[au] case=bframe30 index=3 pts=700000000 dts=300000000 duration=100000000 key=0 bytes=835
+[au] case=bframe30 index=4 pts=500000000 dts=400000000 duration=100000000 key=0 bytes=489
+[au] case=bframe30 index=5 pts=600000000 dts=500000000 duration=100000000 key=0 bytes=343
+[au] case=bframe30 index=6 pts=1000000000 dts=600000000 duration=100000000 key=0 bytes=820
+[au] case=bframe30 index=7 pts=800000000 dts=700000000 duration=100000000 key=0 bytes=503
+[au] case=bframe30 index=8 pts=900000000 dts=800000000 duration=100000000 key=0 bytes=506
+[au] case=bframe30 index=9 pts=1100000000 dts=900000000 duration=100000000 key=0 bytes=676
+[au] case=bframe30 index=10 pts=1200000000 dts=1000000000 duration=100000000 key=1 bytes=1002
+[au] case=bframe30 index=11 pts=1400000000 dts=1100000000 duration=100000000 key=0 bytes=850
+[au] case=bframe30 index=12 pts=1300000000 dts=1200000000 duration=100000000 key=0 bytes=480
+[au] case=bframe30 index=13 pts=1600000000 dts=1300000000 duration=100000000 key=0 bytes=653
+[au] case=bframe30 index=14 pts=1500000000 dts=1400000000 duration=100000000 key=0 bytes=610
+[au] case=bframe30 index=15 pts=1900000000 dts=1500000000 duration=100000000 key=0 bytes=765
+[au] case=bframe30 index=16 pts=1700000000 dts=1600000000 duration=100000000 key=0 bytes=611
+[au] case=bframe30 index=17 pts=1800000000 dts=1700000000 duration=100000000 key=0 bytes=621
+[au] case=bframe30 index=18 pts=2100000000 dts=1800000000 duration=100000000 key=0 bytes=628
+[au] case=bframe30 index=19 pts=2000000000 dts=1900000000 duration=100000000 key=0 bytes=587
+[au] case=bframe30 index=20 pts=2200000000 dts=2000000000 duration=100000000 key=1 bytes=1077
+[au] case=bframe30 index=21 pts=2500000000 dts=2100000000 duration=100000000 key=0 bytes=828
+[au] case=bframe30 index=22 pts=2300000000 dts=2200000000 duration=100000000 key=0 bytes=703
+[au] case=bframe30 index=23 pts=2400000000 dts=2300000000 duration=100000000 key=0 bytes=651
+[au] case=bframe30 index=24 pts=2800000000 dts=2400000000 duration=100000000 key=0 bytes=672
+[au] case=bframe30 index=25 pts=2600000000 dts=2500000000 duration=100000000 key=0 bytes=647
+[au] case=bframe30 index=26 pts=2700000000 dts=2600000000 duration=100000000 key=0 bytes=585
+[au] case=bframe30 index=27 pts=3100000000 dts=2700000000 duration=100000000 key=0 bytes=708
+[au] case=bframe30 index=28 pts=2900000000 dts=2800000000 duration=100000000 key=0 bytes=630
+[au] case=bframe30 index=29 pts=3000000000 dts=2900000000 duration=100000000 key=0 bytes=583
+[input] case=bframe30 count=30 bytes=21073 sha256=3d4812dae067addeda75ef77dc44cf0faf8a48b49606b1dc04788756d0ce3650
+[regression-stage] scope=repeat
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP01-N round=1 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=20 eos=1 events=14 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP01-N pushed=20 successful_push_flows=20 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP01-N exact full PTS and EOS
+[pass] HW-RP01-N selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP01-B round=1 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=30 eos=1 events=16 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP01-B pushed=30 successful_push_flows=30 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP01-B exact full PTS and EOS
+[pass] HW-RP01-B selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP02-N round=2 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=20 eos=1 events=14 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP02-N pushed=20 successful_push_flows=20 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP02-N exact full PTS and EOS
+[pass] HW-RP02-N selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP02-B round=2 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=30 eos=1 events=16 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP02-B pushed=30 successful_push_flows=30 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP02-B exact full PTS and EOS
+[pass] HW-RP02-B selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP03-N round=3 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=20 eos=1 events=14 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP03-N pushed=20 successful_push_flows=20 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP03-N exact full PTS and EOS
+[pass] HW-RP03-N selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP03-B round=3 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=30 eos=1 events=16 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP03-B pushed=30 successful_push_flows=30 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP03-B exact full PTS and EOS
+[pass] HW-RP03-B selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP04-N round=4 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=20 eos=1 events=14 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP04-N pushed=20 successful_push_flows=20 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP04-N exact full PTS and EOS
+[pass] HW-RP04-N selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP04-B round=4 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=30 eos=1 events=16 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP04-B pushed=30 successful_push_flows=30 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP04-B exact full PTS and EOS
+[pass] HW-RP04-B selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP05-N round=5 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=20 eos=1 events=14 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP05-N pushed=20 successful_push_flows=20 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP05-N exact full PTS and EOS
+[pass] HW-RP05-N selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP05-B round=5 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=30 eos=1 events=16 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP05-B pushed=30 successful_push_flows=30 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP05-B exact full PTS and EOS
+[pass] HW-RP05-B selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP06-N round=6 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=20 eos=1 events=14 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP06-N pushed=20 successful_push_flows=20 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP06-N exact full PTS and EOS
+[pass] HW-RP06-N selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP06-B round=6 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=30 eos=1 events=16 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP06-B pushed=30 successful_push_flows=30 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP06-B exact full PTS and EOS
+[pass] HW-RP06-B selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP07-N round=7 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=20 eos=1 events=14 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP07-N pushed=20 successful_push_flows=20 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP07-N exact full PTS and EOS
+[pass] HW-RP07-N selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP07-B round=7 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=30 eos=1 events=16 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP07-B pushed=30 successful_push_flows=30 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP07-B exact full PTS and EOS
+[pass] HW-RP07-B selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP08-N round=8 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=20 eos=1 events=14 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP08-N pushed=20 successful_push_flows=20 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP08-N exact full PTS and EOS
+[pass] HW-RP08-N selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP08-B round=8 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=30 eos=1 events=16 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP08-B pushed=30 successful_push_flows=30 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP08-B exact full PTS and EOS
+[pass] HW-RP08-B selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP09-N round=9 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=20 eos=1 events=14 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP09-N pushed=20 successful_push_flows=20 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP09-N exact full PTS and EOS
+[pass] HW-RP09-N selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP09-B round=9 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=30 eos=1 events=16 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP09-B pushed=30 successful_push_flows=30 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP09-B exact full PTS and EOS
+[pass] HW-RP09-B selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP10-N round=10 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=20 eos=1 events=14 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP10-N pushed=20 successful_push_flows=20 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP10-N exact full PTS and EOS
+[pass] HW-RP10-N selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP10-B round=10 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=30 eos=1 events=16 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP10-B pushed=30 successful_push_flows=30 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP10-B exact full PTS and EOS
+[pass] HW-RP10-B selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP11-N round=11 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=20 eos=1 events=14 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP11-N pushed=20 successful_push_flows=20 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP11-N exact full PTS and EOS
+[pass] HW-RP11-N selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP11-B round=11 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=30 eos=1 events=16 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP11-B pushed=30 successful_push_flows=30 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP11-B exact full PTS and EOS
+[pass] HW-RP11-B selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP12-N round=12 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=20 eos=1 events=14 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP12-N pushed=20 successful_push_flows=20 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP12-N exact full PTS and EOS
+[pass] HW-RP12-N selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP12-B round=12 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=30 eos=1 events=16 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP12-B pushed=30 successful_push_flows=30 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP12-B exact full PTS and EOS
+[pass] HW-RP12-B selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP13-N round=13 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=20 eos=1 events=14 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP13-N pushed=20 successful_push_flows=20 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP13-N exact full PTS and EOS
+[pass] HW-RP13-N selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP13-B round=13 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=30 eos=1 events=16 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP13-B pushed=30 successful_push_flows=30 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP13-B exact full PTS and EOS
+[pass] HW-RP13-B selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP14-N round=14 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=20 eos=1 events=14 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP14-N pushed=20 successful_push_flows=20 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP14-N exact full PTS and EOS
+[pass] HW-RP14-N selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP14-B round=14 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=30 eos=1 events=16 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP14-B pushed=30 successful_push_flows=30 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP14-B exact full PTS and EOS
+[pass] HW-RP14-B selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP15-N round=15 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=20 eos=1 events=14 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP15-N pushed=20 successful_push_flows=20 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP15-N exact full PTS and EOS
+[pass] HW-RP15-N selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP15-B round=15 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=30 eos=1 events=16 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP15-B pushed=30 successful_push_flows=30 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP15-B exact full PTS and EOS
+[pass] HW-RP15-B selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP16-N round=16 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=20 eos=1 events=14 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP16-N pushed=20 successful_push_flows=20 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP16-N exact full PTS and EOS
+[pass] HW-RP16-N selected factory respects exact compatibility tuple
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-RP16-B round=16 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=30 eos=1 events=16 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[boundary] name=decoder-src factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[boundary] name=overlay-sink factory=avdec_h264 count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[result] case=HW-RP16-B pushed=30 successful_push_flows=30 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[pass] HW-RP16-B exact full PTS and EOS
+[pass] HW-RP16-B selected factory respects exact compatibility tuple
+[regression-stage] scope=codec-fixtures
+[au] case=vp8-normal20 index=0 pts=0 dts=0 duration=100000000 key=1 bytes=662
+[au] case=vp8-normal20 index=1 pts=100000000 dts=100000000 duration=100000000 key=0 bytes=319
+[au] case=vp8-normal20 index=2 pts=200000000 dts=200000000 duration=100000000 key=0 bytes=302
+[au] case=vp8-normal20 index=3 pts=300000000 dts=300000000 duration=100000000 key=0 bytes=290
+[au] case=vp8-normal20 index=4 pts=400000000 dts=400000000 duration=100000000 key=0 bytes=276
+[au] case=vp8-normal20 index=5 pts=500000000 dts=500000000 duration=100000000 key=0 bytes=282
+[au] case=vp8-normal20 index=6 pts=600000000 dts=600000000 duration=100000000 key=0 bytes=246
+[au] case=vp8-normal20 index=7 pts=700000000 dts=700000000 duration=100000000 key=0 bytes=196
+[au] case=vp8-normal20 index=8 pts=800000000 dts=800000000 duration=100000000 key=0 bytes=287
+[au] case=vp8-normal20 index=9 pts=900000000 dts=900000000 duration=100000000 key=0 bytes=243
+[au] case=vp8-normal20 index=10 pts=1000000000 dts=1000000000 duration=100000000 key=1 bytes=586
+[au] case=vp8-normal20 index=11 pts=1100000000 dts=1100000000 duration=100000000 key=0 bytes=224
+[au] case=vp8-normal20 index=12 pts=1200000000 dts=1200000000 duration=100000000 key=0 bytes=238
+[au] case=vp8-normal20 index=13 pts=1300000000 dts=1300000000 duration=100000000 key=0 bytes=293
+[au] case=vp8-normal20 index=14 pts=1400000000 dts=1400000000 duration=100000000 key=0 bytes=223
+[au] case=vp8-normal20 index=15 pts=1500000000 dts=1500000000 duration=100000000 key=0 bytes=326
+[au] case=vp8-normal20 index=16 pts=1600000000 dts=1600000000 duration=100000000 key=0 bytes=373
+[au] case=vp8-normal20 index=17 pts=1700000000 dts=1700000000 duration=100000000 key=0 bytes=333
+[au] case=vp8-normal20 index=18 pts=1800000000 dts=1800000000 duration=100000000 key=0 bytes=380
+[au] case=vp8-normal20 index=19 pts=1900000000 dts=1900000000 duration=100000000 key=0 bytes=304
+[input] case=vp8-normal20 count=20 bytes=6383 sha256=4f1dd44636aef52d543494614011bcb67bd46bb6221973eb01661f55efb625d6
+[au] case=h265-normal20 index=0 pts=0 dts=0 duration=100000000 key=1 bytes=4572
+[au] case=h265-normal20 index=1 pts=100000000 dts=100000000 duration=100000000 key=0 bytes=1264
+[au] case=h265-normal20 index=2 pts=200000000 dts=200000000 duration=100000000 key=0 bytes=1060
+[au] case=h265-normal20 index=3 pts=300000000 dts=300000000 duration=100000000 key=0 bytes=1056
+[au] case=h265-normal20 index=4 pts=400000000 dts=400000000 duration=100000000 key=0 bytes=986
+[au] case=h265-normal20 index=5 pts=500000000 dts=500000000 duration=100000000 key=0 bytes=1021
+[au] case=h265-normal20 index=6 pts=600000000 dts=600000000 duration=100000000 key=0 bytes=931
+[au] case=h265-normal20 index=7 pts=700000000 dts=700000000 duration=100000000 key=0 bytes=1104
+[au] case=h265-normal20 index=8 pts=800000000 dts=800000000 duration=100000000 key=0 bytes=1200
+[au] case=h265-normal20 index=9 pts=900000000 dts=900000000 duration=100000000 key=0 bytes=1184
+[au] case=h265-normal20 index=10 pts=1000000000 dts=1000000000 duration=100000000 key=1 bytes=1731
+[au] case=h265-normal20 index=11 pts=1100000000 dts=1100000000 duration=100000000 key=0 bytes=218
+[au] case=h265-normal20 index=12 pts=1200000000 dts=1200000000 duration=100000000 key=0 bytes=368
+[au] case=h265-normal20 index=13 pts=1300000000 dts=1300000000 duration=100000000 key=0 bytes=635
+[au] case=h265-normal20 index=14 pts=1400000000 dts=1400000000 duration=100000000 key=0 bytes=785
+[au] case=h265-normal20 index=15 pts=1500000000 dts=1500000000 duration=100000000 key=0 bytes=980
+[au] case=h265-normal20 index=16 pts=1600000000 dts=1600000000 duration=100000000 key=0 bytes=1440
+[au] case=h265-normal20 index=17 pts=1700000000 dts=1700000000 duration=100000000 key=0 bytes=1557
+[au] case=h265-normal20 index=18 pts=1800000000 dts=1800000000 duration=100000000 key=0 bytes=1530
+[au] case=h265-normal20 index=19 pts=1900000000 dts=1900000000 duration=100000000 key=0 bytes=1541
+[input] case=h265-normal20 count=20 bytes=25163 sha256=e8b4362c4553b8737872522df1a0af9d097aadf11241e60c188631d52446cb4b
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-CC01-H264-to-H265 round=1 pacing=burst mitigation=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[rtp] encoding=H265 caps=1 eos=1 invalid=1 matched=0 events=17 event_overflow=1 caps_shape_invalid=0 media_name_matches=1
+[decoder] factory=avdec_h264 plugin=libav version=1.28.1 rank=256
+[decoder-candidate] ordinal=0 factory=avdec_h264
+[boundary] name=decoder-sink factory=avdec_h264 count=20 eos=1 events=14 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[caps] boundary=decoder-sink index=0 media=video/x-h264 format=absent width=160 height=90 system_memory=1 gl_memory=0 cv_pixel_buffer=0 dma_buf=0 vulkan_image=0 any_memory=0 unknown_feature=0
+[caps] boundary=decoder-sink index=1 media=video/x-h264 format=absent width=160 height=90 system_memory=1 gl_memory=0 cv_pixel_buffer=0 dma_buf=0 vulkan_image=0 any_memory=0 unknown_feature=0
+[segment] boundary=decoder-sink index=0 format=3 start=0 stop=18446744073709551615 time=0 base=0 offset=0 rate=1 applied_rate=1
+[pts] boundary=decoder-sink index=0 pts=0 dts=0 duration=100000000 flags=1600
+[pts] boundary=decoder-sink index=1 pts=100000000 dts=100000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=2 pts=200000000 dts=200000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=3 pts=300000000 dts=300000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=4 pts=400000000 dts=400000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=5 pts=500000000 dts=500000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=6 pts=600000000 dts=600000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=7 pts=700000000 dts=700000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=8 pts=800000000 dts=800000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=9 pts=900000000 dts=900000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=10 pts=1000000000 dts=1000000000 duration=100000000 flags=1536
+[pts] boundary=decoder-sink index=11 pts=1100000000 dts=1100000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=12 pts=1200000000 dts=1200000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=13 pts=1300000000 dts=1300000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=14 pts=1400000000 dts=1400000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=15 pts=1500000000 dts=1500000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=16 pts=1600000000 dts=1600000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=17 pts=1700000000 dts=1700000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=18 pts=1800000000 dts=1800000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=19 pts=1900000000 dts=1900000000 duration=100000000 flags=8704
+[boundary] name=decoder-src factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[caps] boundary=decoder-src index=0 media=video/x-raw format=other-unknown width=160 height=90 system_memory=1 gl_memory=0 cv_pixel_buffer=0 dma_buf=0 vulkan_image=0 any_memory=0 unknown_feature=0
+[segment] boundary=decoder-src index=0 format=3 start=0 stop=18446744073709551615 time=0 base=0 offset=0 rate=1 applied_rate=1
+[pts] boundary=decoder-src index=0 pts=0 dts=18446744073709551615 duration=100000000 flags=64
+[pts] boundary=decoder-src index=1 pts=100000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=decoder-src index=2 pts=200000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=decoder-src index=3 pts=300000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=decoder-src index=4 pts=400000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=decoder-src index=5 pts=500000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=decoder-src index=6 pts=600000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=decoder-src index=7 pts=700000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=decoder-src index=8 pts=800000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=decoder-src index=9 pts=900000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=decoder-src index=10 pts=1000000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=decoder-src index=11 pts=1100000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=decoder-src index=12 pts=1200000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=decoder-src index=13 pts=1300000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=decoder-src index=14 pts=1400000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=decoder-src index=15 pts=1500000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=decoder-src index=16 pts=1600000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=decoder-src index=17 pts=1700000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=decoder-src index=18 pts=1800000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=decoder-src index=19 pts=1900000000 dts=18446744073709551615 duration=100000000 flags=0
+[boundary] name=overlay-sink factory=avdec_h264 count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[caps] boundary=overlay-sink index=0 media=video/x-raw format=RGB width=160 height=90 system_memory=1 gl_memory=0 cv_pixel_buffer=0 dma_buf=0 vulkan_image=0 any_memory=0 unknown_feature=0
+[segment] boundary=overlay-sink index=0 format=3 start=0 stop=18446744073709551615 time=0 base=0 offset=0 rate=1 applied_rate=1
+[pts] boundary=overlay-sink index=0 pts=0 dts=18446744073709551615 duration=100000000 flags=64
+[pts] boundary=overlay-sink index=1 pts=100000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=2 pts=200000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=3 pts=300000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=4 pts=400000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=5 pts=500000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=6 pts=600000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=7 pts=700000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=8 pts=800000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=9 pts=900000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=10 pts=1000000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=11 pts=1100000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=12 pts=1200000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=13 pts=1300000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=14 pts=1400000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=15 pts=1500000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=16 pts=1600000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=17 pts=1700000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=18 pts=1800000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=19 pts=1900000000 dts=18446744073709551615 duration=100000000 flags=0
+[result] case=HW-CC01-H264-to-H265 pushed=20 successful_push_flows=20 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=rtp-observation-overflow product_oracle_exit=0 product_oracle_reason=bounded-match exit=2
+[pass] HW-CC01-H264-to-H265 exact input decoder consumer PTS and EOS
+[pass] HW-CC01-H264-to-H265 input-scoped decoder policy
+[fail] HW-CC01-H264-to-H265 actual pay0 RTP encoding-name and EOS
+[regression-summary] assertions=67 stopped_scope=codec productPass=0 exit=2
+[diagnostic-stderr] {"bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","critical":0,"warning":0,"rawPublished":false}
+[execution] {"mode":"--regression-impact","exit":2,"signal":null,"error":null,"elapsedMs":1691,"productPass":false,"productScope":"bounded-hw03-native","resourceTrendPass":false,"releasePass":false,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음"}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-impact.eGnISu","bytes":1940132,"absent":true}
+[elapsed] seconds=2 source=bash-SECONDS

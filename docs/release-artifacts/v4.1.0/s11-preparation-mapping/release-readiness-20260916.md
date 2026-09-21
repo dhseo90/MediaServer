@@ -1,5 +1,123 @@
 # v4.1.0 릴리즈 잔여 확인 — 보완 진단 시점
 
+## LP27 HW-03 중단 후 현재 전수 대조
+
+최신 승인1~6 중 1번 진단 보완은 자체/구문/등록·문서 검증을 통과했다.
+2번 실제 한정 비교는 다음 단계이며 아래 원인 미확정·HW03/PREP/CLOSE/S11 미완료 판정은 유지한다.
+이전 실패 기록도 1번 진단 근거로 보존·커밋하되, HW03 제품 영향 회귀의 완료 커밋과 구분한다.
+
+독자: 현재 개발·릴리즈 담당자. 수명: HW-03 두 실패의 해결과 PREP/CLOSE 재개까지.
+정책은 AGENTS.md, 실행 사실은 [LP27 전수 기록](lp27-release-preparation.md#hw-03-실제-미디어-회귀-중단-판정)과
+중앙 테스트 기록을 따른다. 아래 이전 절들은 당시 상태이며 현재 이슈 목록과 혼합하지 않는다.
+이번에는 S11 최종 검증·실제 브라우저·의존성 설치/교체·전역 rank·외부 release action을 하지 않았다.
+
+### 현재 사용자 지시 전수
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | HW-01 원인·영향 확정 | 완료·커밋 | EOS drain→늦은 callback→역순 finish→시간값 보정. burst/paced 분리 관측 | d3d0dbc6·진단03 |
+| 2 | HW-02 한정 해결책 | 구현·단기 완료·커밋 | exact macOS/applemedia1.28.1/H264 후보만 객체별 제외. 입력 지원·시간값 보존 | d5a0710b·build·자체78·4셀8 |
+| 3 | HW-03 반례·영향 회귀 | 부분 완료·FAIL | native81·자체99 PASS, 실제 codec23 PASS/2 FAIL, 기존 ICE건너뜀 | HW03 원출력·진단JSON |
+| 4 | PREP-01 연결 마감 | 건너뜀 | 정식ID/복합요구·ENV12·최종manifest 잔여 | HW03 선수 미충족 |
+| 5 | CLOSE-01 정리·코드 고정 | 건너뜀 | 이번 임시정리와 제품legacy 정리는 다름. S10 고정 아님 | HW03 선수 미충족 |
+| 6 | 분할 커밋·조건부 푸시·종합 보고 | 부분 수행 | 두 커밋 유지, 실패 단계 도구/증거 미커밋 보존, 푸시불가·미수행 | AGENTS3.1/5·git 대조 |
+| 7 | 릴리즈 잔여 재산정 | 대조 | 아래8표로 개발·최종실행·외부변경 분리 | AGENTS2/6 |
+
+### 현재 기준
+
+| 항목 | 기준 값 | 직접 확인 결과 | 근거 |
+| --- | --- | --- | --- |
+| branch/HEAD | v4.1.0 | d5a0710bb6b042d232ae33bc076c6fa6550b8ca1·dirty | git status/log |
+| upstream/원격 | origin/v4.1.0 | f4e58b9cb2efbeec43a7e1132da940fce6afd521·ahead2/behind0 | git ls-remote exit0·rev-list |
+| 버전/build metadata | 4.1.0 | VERSION:1·CMakeLists:3·build-gst-onnx/CMakeCache:140 일치 | 직접 읽기 |
+| 원격main/tag | main431397d9 | v4.1.0 remote tag 없음 | git ls-remote exit0. 첫 sandbox DNS 실패는 환경 제한으로 별도 기록 |
+| 제품/binary | HW02 commit 바이트 | HW03 제품diff0, 실제binary SHA2ce43399…9fd7 | git diff src/include/CMake·실행 environment |
+| Release/PR/CI | 공개 승인 별도 | 앞 감사 latestv4.0.0/PR0/run0, 이번 API 재조회 안 함 | 과거 LP27 전수표. 현재 CI PASS 아님 |
+| CHANGELOG/NEWS | 제품 공개기록 파일 | 루트 없음, test fixture CHANGELOG만 있음 | rg --files 직접 확인 |
+
+### 현재 로드맵 대조
+
+| roadmap 항목 | 문서상 상태 | 직접 확인 상태 | 불일치 여부 | 근거 |
+| --- | --- | --- | --- | --- |
+| S00 | 기존 조사/설계 | 이번 새 패키지·외부코드 도입 없음 | 새 법적 보증 아님 | HW02 diff |
+| S01~04 | 기존 계약/writer/catalog/보존 | 제품 변경 없음, 초기 요구와 현행 exact 검사 연결은 PREP 잔여 | 과거완료와 현재전수 검증 구분 | LP26 실행 매핑 |
+| S05~08 | 구현·단계검증 | LP25 실제통합156·LP26 준비436은 해당당시 범위 | 현재 HW·S11 전체PASS로 확대 금지 | 중앙 기록·currentSteps |
+| S09 | 종료·대체 | 과거 실패/개선 보존, 성공완료 아님 | 일치 | roadmap238행 |
+| S10 | 부분 완료 | HW02 한정보완, HW03 실패·정리·고정 남음 | 일치 | roadmap239행·본 기록 |
+| S11 | 계획·미실행 | 최종 안정화/30분/UI/120분 미실행 | 일치 | roadmap240/313행 이후 |
+
+### 현재 구현·검증 연결
+
+| 확인 대상 | 실제 파일·route·함수·API·UI·verifier | 확인 결과 | 근거 |
+| --- | --- | --- | --- |
+| 한정 선택 | gst_decode_compatibility.cpp ShouldSkipAppleH264Decoder/InstallDecodeCompatibility | fixed H264·macOS·applemedia1.28.1·vtdec/vtdec_hw만 제외; 전역rank 불변 | 13~14행·HW02 자체 |
+| 실제 경계 | source_factory.cpp:1579 / gstreamer_rtsp_server.cpp:214 | URI 및 RTSP media 자동선택에 객체별 hook | committed diff |
+| 동일 반례·지원 | recording_hw_impact_probe.cpp --regression-impact | normal/B-frame32graph·3codec·URI·자원 합계81 PASS | impact04 |
+| 실제 codec 영향 | verify_recording_media_impact.mjs → verify_codec_matrix.sh | local67 예상 중23 PASS/2 FAIL, 전체완료 아님 | media01·safe JSON25행 |
+| 실패1 경계 | HTTP H264/AAC → /dhseo/h264 | ffprobe20초 timeout. /default 동일codec PASS; 첫 RTP 미관측 | routes374~375·media 진단 |
+| 실패2 경계 | verify_codec_matrix.sh:793 → start_local_http_launcher | 제공기 준비에서 반환, 해당 source 제품요청 전 | launcher로그0B·GET0·함수293~323 |
+| 실제 ICE | verify-webrtc-ice | codec 실패로 미실행. ISO7은 외부접근 방지 자체검사 | HW03 ice-guard·runner 순서 |
+| 실제 이벤트 통합 | recording_current_integration_suite.mjs currentSteps:7~12 | 이전 HTTP35/auth40/lifecycle10/default46/app25, 이번 재실행 안 함 | LP25 156·현행 runner |
+| 준비 연결 | lp26-current-execution-map.md·verify_gst_environment.sh | 초기 요구 exactID·복합 검사·실제ENV12 영속 연결 공백 | LP26 매핑, 환경wrapper fixture전용 |
+| 구형 자료·UI/장시간 | recording/v1·timeline --seed-ui·current observer/UI seed | 사용처 정리/최종manifest·실행 잔여, 이번삭제 없음 | LP26 매핑·CLOSE 미실행 |
+
+### 현재 근거 분류
+
+| 항목 | 근거 유형 | 근거 | 릴리즈 영향 |
+| --- | --- | --- | --- |
+| HW01 drain 시간값 보정 원인 | 프로젝트 직접 확인 | burst/paced 내부·외부 경계 로그 | 한정 보완의 근거, 모든코덱 결함 아님 |
+| HW02/native 회귀 | 프로젝트 직접 확인 | build·자체·actual native | 실제 codec 전체영향 마감 전 완료 아님 |
+| HTTP/제공기 두 실패 | 프로젝트 직접 확인 | code1·원출력·안전진단·실행 위치 | 현재 P0 |
+| 두 실패/GLib경고/helper 간 인과 | 미확정 추론 | 세션별 첫 RTP와 제공기 상태증거 부족 | 원인으로 단정·자동 제품수정 금지 |
+| 중단·커밋/푸시보류 | AGENTS 직접 규칙 | 3.1/3.3/5/8 | 뒤 단계·실패커밋·푸시 보류 |
+| 자원 영향 | 프로젝트 직접 확인+한계 판단 | 동일90frame whole-graph CPU 약+42.9%,wall약2.99초; 순차샘플 | decoder 단독/장시간/다채널 capacity 판정 아님, S11자원 잔여 |
+| 아래 진행순서 | 추론/제안 | 현재 실패의 층 분리·선수조건 | 저장소전체 재설계·무관검증 재시작 아님 |
+
+### 현재 테스트 필요성 판정
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일·행·기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| HW01/02·HW03 native | 진행 대상 | 사용자1~3 | LP27-H/D/M/R01~05·실행기록 | 이번실행,유효증거 재사용·무조건 반복 안 함 |
+| 실패 미디어 원인 구분/영향 | 진행 대상 | HW03 실제2FAIL·media경계 변경 | LP27-R06/HW-MEDIA01~03 | 이번codec 실행,원인미확정 중단; 재개범위 확정 필요 |
+| ICE/metadata 미디어 영향 | 진행 대상 | HW02 자동decode 경계 변경·AGENTS7.4 | source_factory/RTSP·HW-MEDIA02 | ICE건너뜀,실제브라우저 metadata 이번제외·최종대상 |
+| 기록/문서/스크립트 정합 | 진행 대상 | 현재 도구·기록 변경 | HW03 guard7/script12·docs/diff | 승인,마감검사 별도 실제값 기록 |
+| S11 최종 안정화 | 진행 대상 | S10고정 후 필수 | build/Auth/media/currentIntegration/ENV/metadata/inventory/closeout | 이번최종묶음 미실행·별도승인 |
+| 30분 | 진행 대상 | 버전필수 | AGENTS7.6·roadmap S11 | 최종실행 별도승인 |
+| UI 풀테스트 | 진행 대상 | 버전필수 | S10-D08·exactcontrol/role/viewport/theme/영상 | 이번제외,릴리즈 면제 아님 |
+| 공통·녹화120분 | 진행 대상 | media/lifecycle 직접변경·녹화 로드맵 | LP27-M/R·LP26-O05·S11 | 서로대체불가·최종실행 별도승인 |
+| 외부서비스/실기기 | 조건부 진행 | endpoint/credential 필요 | AGENTS4/7 | 미제공·미승인,기본PASS 아님 |
+
+### 현재 릴리즈 잔여 순서
+
+| 순서 | 우선순위 | 잔여 이슈 | 해야 할 일 | 성격 | 근거 유형 | release action 전·후 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | P0 | HW03 두 실패의 층별 원인 확정 | 실패RTSP세션 prepare/source-ready/첫RTP와 제공기PID/LISTEN/HTTP/exit 분리. 로그경고·helper와 인과판정,기준/timeout유지 | 최소관측·원인분석 | 직접확인+제안 | 전 |
+| 2 | P0 | HW03 영향 마감 | 확정원인만 보완,동일실패case→관련codec/ICE 회귀·자원/정리 확인. 실제브라우저 제외분은 S11목록에 남김 | 관련개발·회귀 | 직접확인+정책 | 전 |
+| 3 | P0 | PREP-01 검증 연결 | 초기 exactID·복합요구·ENV12 실제runner·최종UI/장시간manifest. 기존LP26준비 재작성 안 함 | 준비 개발 | 직접확인 | 전 |
+| 4 | P0/P1 | CLOSE-01 정리·고정 | 구형 사용처·소유·대체검사 확인후 불필요분만 제거,문서·출처/NOTICE/source-only·기존증거 유효범위·S10코드 고정 | 정리·마감 | 직접확인+정책 | 전 |
+| 5 | P0 | S11 최종 안정화 | 고정source build/Auth/media/현재통합/ENV·entry/metadata/docs/inventory/closeout,실패범위만 재검증 | 최종실행 | 정책+로드맵 | 전 |
+| 6 | P0 | S11 필수30분·UI·120분 | 안정화후30분→실제UI→공통/녹화120분. 자원·재생·종료·정리 증거 마감 | 승인된최종실행 | 정책+로드맵 | 전 |
+| 7 | P0 | 개발 마감·공개 절차 | 통과단위커밋·조건충족 개발push,각별도승인 PR/CI→mainmerge→서명tag→source-onlyRelease→published검증 | 외부 변경 | AGENTS 직접규칙 | 필수gate 뒤,개발push는해당범위조건 |
+| 8 | P2 | 외부 조건 | 실기기/endpoint/provider 제공·승인시검증,미제공은명시적제외 | 조건부 | 정책+환경 | 조건충족시,필수로컬gate 대체금지 |
+
+### 현재 미해소 상태
+
+| 항목 | 상태 | 사유 | 완료 evidence 사용 가능 여부 | 다음 조건 |
+| --- | --- | --- | --- | --- |
+| HW01/HW02 | 개별완료·커밋 | 제한원인/해결책의 직접증거 | 해당범위만 가능 | 전체영향은HW03 |
+| HW03 | 부분완료·FAIL | codec23/2,ICE미실행 | native81·self99만 각각가능 | 실패층별원인·관련회귀 |
+| PREP/CLOSE | 건너뜀 | 선수HW03미완료 | 불가 | HW03마감 |
+| LP25/26 | 기존한정증거 유지 | 이번storage/API/auth바이트불변,HW제품경계는변경 | 과거범위가능·최종binary전수PASS불가 | 고정시diff기반유효성표 |
+| 임시자료·서버/포트 | 정리완료 | 정상exit0·TCP8/UDP1폐쇄·소유root/로그삭제 | 이번cleanup가능 | 다음실행별도소유 |
+| 현재dirty | 유효회귀도구·실패기록 보존 | 실패단계라commit하지않음,불필요자료아님 | 완료commit으로사용불가 | 원인/회귀마감후분할커밋 |
+| push | 불가·미수행 | 미해소실패·미커밋;로컬2개만추가 | 원격반영완료아님 | 승인범위조건충족 |
+| 최종4영역 | 미실행 | 코드미고정·준비잔여 | 불가 | 최종범위·실행승인 |
+| PR/CI/merge/tag/Release | 미수행/CI미확인 | gate/각승인미충족 | 불가 | 필수gate와각승인 |
+| 외부조건 | 조건부 | 환경·자격증명미제공 | 기본PASS아님 | 조건제공·승인 |
+
+토큰 start/end/consumed: 전용집계 미제공. elapsed/source는 LP27 실제로그.
+전체문서 전문리뷰·버전전체 테스트를 했다는 보고가 아니다. 최신원격조회는 읽기만 수행했고 푸시는하지 않았다.
+
 ## LP27 후속 승인 — HW-01 원인 판정 완료
 
 최신 승인 순서는 HW-01 → HW-02 → HW-03 → PREP-01 → CLOSE-01이며, 통과 단위 분할 커밋과

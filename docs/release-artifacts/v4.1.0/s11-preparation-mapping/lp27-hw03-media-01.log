@@ -1,0 +1,39 @@
+[environment] {"utc":"2026-09-21T10:41:11.845Z","platform":"darwin","arch":"arm64","node":"v24.13.0","root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-media-qD95Ha","rtspPort":59636,"httpPort":59637,"udpPort":62165,"configSha256":"dffa840c99e44acd49bffda8065c7030bab7df5a06a47d3e4b220c1fe5c7d462","binarySha256":"2ce43399ce33fd6863a9aa8d0e21e65ae32975ee52ad08d065b09e065aca9fd7","runnerSha256":"eb393cc76850b9bdb99c37e480b4328a4b6b7f37a05ddd9200c224729002c8c3"}
+[pass] HW-MEDIA03 owned server ready, loopback ICE only
+[pass] file_local_h264_aac: RTSP /default -> h264/aac
+[pass] file_local_h264_aac: RTSP /h264 -> h264/aac
+[pass] file_local_h264_aac: RTSP /h265 -> hevc/aac
+[pass] file_local_h264_aac: RTSP /opus -> h264/opus
+[pass] file_local_h264_aac: RTSP /h265/opus -> hevc/opus
+[pass] file_local_h264_aac: RTSP /pcmu -> h264/pcm_mulaw
+[pass] file_local_h264_aac: RTSP /h265/pcmu -> hevc/pcm_mulaw
+[pass] file_local_h264_aac: RTSP /pcma -> h264/pcm_alaw
+[pass] file_local_h264_aac: RTSP /h265/pcma -> hevc/pcm_alaw
+[pass] file_local_h264_aac: WebRTC signaling session created (<redacted>)
+[pass] file_local_h265_aac: RTSP /default -> h264/aac
+[pass] file_local_h265_aac: RTSP /h264 -> h264/aac
+[pass] file_local_h265_aac: RTSP /h265 -> hevc/aac
+[pass] file_local_h265_aac: RTSP /opus -> h264/opus
+[pass] file_local_h265_aac: RTSP /h265/opus -> hevc/opus
+[pass] file_local_h265_aac: RTSP /pcmu -> h264/pcm_mulaw
+[pass] file_local_h265_aac: RTSP /h265/pcmu -> hevc/pcm_mulaw
+[pass] file_local_h265_aac: RTSP /pcma -> h264/pcm_alaw
+[pass] file_local_h265_aac: RTSP /h265/pcma -> hevc/pcm_alaw
+[pass] file_local_h265_aac: WebRTC signaling session created (<redacted>)
+[pass] http_local_h264_aac: RTSP /default -> h264/aac
+[pass] http_local_h264_aac: RTSP /opus -> h264/opus
+[pass] http_local_h264_aac: WebRTC signaling session created (<redacted>)
+[command] {"command":"verify-codecs","code":1,"signal":null,"spawnError":false,"bounded":true,"timedOut":false,"elapsedMs":98989,"pass":23,"fail":2,"skip":0,"rawSha256":"2d2614fa1f028bb6bb1c444cb1a7466628db285c0dbdff7114981f5fa96b3f7d","rawBytes":3713}
+[failure] {"code":"media-command-failed","rawPublished":false}
+[server-exit] {"exited":true,"forced":false,"exitCode":0,"signalCode":null}
+[port] {"port":59636,"closed":true}
+[port] {"port":59637,"closed":true}
+[port] {"port":59638,"closed":true}
+[port] {"port":59639,"closed":true}
+[port] {"port":59640,"closed":true}
+[port] {"port":59641,"closed":true}
+[port] {"port":59642,"closed":true}
+[port] {"port":59643,"closed":true}
+[udp] {"closed":true,"messages":3}
+[retained] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-media-qD95Ha","owned":["/private/tmp/media-server-hw-media-qD95Ha-http_local_h264_aac.http.log","/private/tmp/media-server-hw-media-qD95Ha-http_local_h264_video_only.http.log","/private/tmp/media-server-hw-media-qD95Ha-hls_local_h264_aac.hls.log","/private/tmp/media-server-hw-media-qD95Ha-hls_local_h264_aac_hls","/private/tmp/media-server-hw-media-qD95Ha-rtsp_local_h265_opus.launcher.log","/private/tmp/media-server-hw-media-qD95Ha-rtsp_local_h264_pcmu.launcher.log","/private/tmp/media-server-hw-media-qD95Ha-rtsp_local_h264_pcma.launcher.log","/private/tmp/media-server-hw-media-qD95Ha-webrtc_local_publish_h264_opus.publisher.log"],"reason":"failure-diagnostics-before-cleanup"}
+[execution] {"exit":1,"elapsedMs":101535,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음","browser":false,"releasePass":false}

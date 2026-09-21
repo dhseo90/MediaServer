@@ -2,7 +2,25 @@
 
 ## LP27 릴리즈 선행 1~4 순차 작업
 
+최신 승인: 진단준비→한정원인구분→HW03마감→PREP→CLOSE→S11단기 순차개발.
+사전등록 CPD01~18/HWD01~04/HW-A01~04와 실행권한·비범위는
+[LP27 최신 승인](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#최신-승인-진단-보완부터-s11-단기-안정화까지)을 따른다.
+아래중단판정은직전실행이력이며새로운실행PASS를의미하지않는다.
+
+최신1번 진단 보완은 CPD18/HWD4·구문·등록12·링크/공백 통과. 최초 unit3ERROR와
+수정/재검증·임시 정리는 [진단 보완 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#진단-보완-1번-결과)에 보존한다.
+이는 실제 두 실패 해결/HW03/S11 완료가 아니다. 2번 한정 실제 원인 구분은 다음 단계다.
+
 후속 승인: HW-01→HW-02→HW-03→PREP-01→CLOSE-01 순차 개발·분할 커밋·조건 충족 시 마지막 push.
+최신 판정: HW-01 `d3d0dbc6`·HW-02 `d5a0710b` 커밋, HW-03 부분 완료·FAIL.
+HW-03 최종 자체99/native81 PASS 뒤 기존 실제 codec23 PASS/2 FAIL이다. HTTP 입력의 특정
+RTSP probe timeout과 별도 무음 HTTP 제공기 준비 실패의 원인은 미확정이다.
+기존 ICE·PREP/CLOSE·S11은 건너뛰었고 추가 제품 수정/반복 실행은 하지 않았다.
+정상 서버 종료·포트 해제·소유 임시자료 삭제를 확인했다. 전수 결과·최초 실패·정리는
+[HW-03 중단 판정](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#hw-03-실제-미디어-회귀-중단-판정),
+릴리즈 잔여는 [현재 전수 대조](release-artifacts/v4.1.0/s11-preparation-mapping/release-readiness-20260916.md#lp27-hw-03-중단-후-현재-전수-대조)를 따른다.
+HW-03은 필요한 회귀 도구/증거로 보존하되 미완료 단계 커밋을 하지 않는다. 푸시 가능: 아니오 / 미수행.
+아래 HW-01/02 설명과 정책 대기 문단은 단계별 이력이며 현재 미완료 원인은 위 HW-03 두 실패다.
 HW-01은 `d3d0dbc6`으로 커밋했다. HW-02는 exact macOS/applemedia1.28.1/H264 자동선택 후보만
 객체별 제한했고 전체 build/GST OFF helper·자체78·동일 입력4셀8검사 PASS를 확인했다.
 원래 디코더 결함을 고친 것은 아니며 제품 경로의 한정 보완이다. HW-03 및 최종 검증 완료가 아니다.

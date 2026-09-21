@@ -4,6 +4,142 @@
 정책은 AGENTS.md, 결과는 중앙 테스트 기록이 기준이다. LP26의 과거 결과는 덮어쓰지 않는다.
 시작 branch `v4.1.0`, HEAD `f4e58b9cb2efbeec43a7e1132da940fce6afd521`, clean/sync.
 
+## 최신 승인: 진단 보완부터 S11 단기 안정화까지
+
+사용자1~6 순차 개발·분할커밋·조건충족시push 승인. main은 계약/원인/최종판정,
+기존 단일 Astra/medium 담당자는 shell/Python 진단부만 소유하며 하위위임 금지다.
+main은 실행기/사전등록/증거와 실제 로컬검사를 맡는다. Superpowers 도구는 이번 환경에 없어
+설계·반례검사·원인분리·직접diff검토로 절차를 수행한다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과/완료 기준 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 검증 준비·진단 보완 | 완료 | CPD18·HWD4·구문·등록12·문서링크·공백 통과 | 아래 CPD/HWD 결과 |
+| 2 | 한정 원인 구분 | 대기 | 제공기단독→HTTP경로→필요시직전순서,같은결과맹목반복금지 | HW-A01~03 |
+| 3 | 확정원인 보완·HW03마감 | 대기 | 제품/도구중확인된경로만보완·codec/ICE영향 | HW-A04 |
+| 4 | PREP-01 | 대기 | 초기ID/복합요구/ENV12/최종manifest | LP26 매핑 |
+| 5 | CLOSE-01 | 대기 | 사용처/소유/대체검사·문서·증거·S10고정 | S10 |
+| 6 | S11 최종 단기 안정화 | 대기 | 고정source·최종확정묶음·전수결과 | AGENTS7 |
+| 7 | 분할commit·조건부push·잔여보고 | 대기 | 통과한단계만commit,미해소/미커밋범위push금지 | AGENTS3/5/6 |
+
+불변: ffprobe 인자/codec stdout 판정·원래 timeout(HTTP20초)·launcher40회/0.25초/curl2초 유지.
+진단 opt-in에서만 ffprobe trace를 수집해 고정 method/status/track 계수로 변환한다.
+첫 RTP를 직접 관측하지 못하면 그 단계를 확정하지 않는다. 내부prepare나디코더원인으로 추정승격금지.
+RTSP/GStreamer 기존 lifecycle trace는 검증소유 원시로그 안에서만 읽고 고정진단으로 바꾼다.
+공개API/schema/auth/시간/저장/제품선택정책은1번에서 바꾸지 않는다.
+진단 파일은 소유0700/0600/no-symlink, 원문URL/session/credential·caps/debug 공개금지.
+실패 후 필수진단은cleanup 전확보하고 정리성공으로기능실패를가리지 않는다.
+원인이미확정·교차계약이면해당단계에서중단; 새해결정책을자동추가하지 않는다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 진단도구 자체·한정실제 | 진행 대상 | 사용자1~3 | CPD01~18/HWD01~04/HW-A01~04 | 이번승인,순차 |
+| PREP/CLOSE 관련단기 | 진행 대상 | 사용자4~5 | LP26 실행매핑 | 선수통과후정확목록등록 |
+| S11 최종안정화 | 진행 대상 | 사용자6 | roadmap S11/AGENTS7 | 이번단기승인,코드고정·최종목록확정후 |
+| 30분/실제UI/120분 | 미진행 | 이번1~6밖,릴리즈필수판정유지 | S11/AGENTS7.6 | 이번실행안함·별도승인 |
+| 외부서비스/릴리즈action | 미진행 | 이번비범위 | AGENTS4 | 미승인 |
+
+### 진단 준비 사전등록
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| CPD01 | 정상 probe | 원래 codec stdout/exit 보존 | v4.1.0 |
+| CPD02 | probe 시간상한 | 기존 deadline/timeout124 유지 | v4.1.0 |
+| CPD03 | 비정상 종료 | 원래 비0 exit 보존 | v4.1.0 |
+| CPD04 | RTSP 단계 | 허용 method/status·SDP/stream 계수. 요청/응답 대응은 unknown 유지 | v4.1.0 |
+| CPD05 | 미등록 trace | unknown으로 남기고 원문미노출 | v4.1.0 |
+| CPD06 | 비밀 포함 trace | URL/session/credential canary 비노출 | v4.1.0 |
+| CPD07 | 출력 상한 | bounded 준비 실패·미완전결과 PASS금지 | v4.1.0 |
+| CPD08 | 정상 진단 경로 | 소유0700 dir/0600 file JSONL | v4.1.0 |
+| CPD09 | directory symlink | 거부 | v4.1.0 |
+| CPD10 | directory 권한/UID | 거부 | v4.1.0 |
+| CPD11 | file symlink/권한 | 거부 | v4.1.0 |
+| CPD12 | 진단 입력 형식 | 고정필드·ordinal외 거부 | v4.1.0 |
+| CPD13 | 진단 오류 | 기존 비0/timeout 가리지 않음 | v4.1.0 |
+| CPD14 | 제공기 상태 | 생존/listen/http/stop wait상태 분리 | v4.1.0 |
+| CPD15 | 부분 trace | 모호한순서 unknown | v4.1.0 |
+| CPD16 | 기본 경로 불변 | 진단 opt-in 외 기존 probe 인자/기준 | v4.1.0 |
+| CPD17 | 제공기 단독 mode | 허용local_http 전용config 수용 | v4.1.0 |
+| CPD18 | 제공기 mode 반례 | 잘못된mode/dir누락/외부·혼합config 거부 | v4.1.0 |
+| HWD01 | 실행 mode 선택 | providers/http/prefix/run/self-test, 미등록옵션 거부 | v4.1.0 |
+| HWD02 | 실행 목록 | provider2·HTTP8·prefix28·full67/ICE8, 외부3 별도 | v4.1.0 |
+| HWD03 | 서버 관측 redaction | 고정event/숫자계수만, URL/session/debug본문 비노출 | v4.1.0 |
+| HWD04 | 불완전 관측·판정 분리 | 관측상한 명시·첫RTP 추정금지·제공기PASS와제품PASS 분리. 실제 종료/정리는 HW-A에서 확인 | v4.1.0 |
+| HW-A01 | 실제 제공기 단독 | 서버 미기동·동일함수로 유음/무음2개 준비와종료 | v4.1.0 |
+| HW-A02 | 실제HTTP입력 격리 | 새서버에서HTTP2개 RTSP각3+signaling각1, 총8 | v4.1.0 |
+| HW-A03 | 직전 순서 비교 | 필요시 새서버 file2개20→HTTP2개8, 총28. 조건부1회 | v4.1.0 |
+| HW-A04 | 관련회귀 마감 | 원인판정후기존codec67/ICE8. 실패하면뒷명령중단 | v4.1.0 |
+
+자체명령: `python3 -B scripts/internal/codec_probe_diagnostics_test.py`,
+`bash -n scripts/internal/verify_codec_matrix.sh`,
+`node scripts/internal/verify_recording_media_impact.mjs --self-test`.
+실제명령: 같은 Node의 `--providers`→`--http`→조건부`--prefix`→마감`--run`.
+전체실제마감은원인판정후만진행하고단독PASS로원래실패를폐기하지않는다.
+원시증거/registry는소유root에만보관,안전진단·해시·환경·개별결과이관후정리한다.
+token start/end/consumed는실제전용집계없으면미집계로남기며각명령elapsed/exit를기록한다.
+
+### 진단 보완 1번 결과
+
+메인이 shell/Python/Node diff를 직접 검토했다. 제품 바이트·검증 timeout·codec 성공 조건은 유지했다.
+Node 준비 실패도 finally에서 소유 root를 보고하도록 port 할당을 try 안으로 옮겼다.
+18개 CPD fixture는 두 실행 모두 삭제·부재 확인. 보존용 로그 2개는 원본 SHA와 일치한다.
+최초 오류는 실제 실패로 보존하며 예상 RED로 바꾸지 않았다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| CPD01 정상 stdout·exit | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
+| CPD02 timeout124 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
+| CPD03 비정상 exit | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
+| CPD04 고정 RTSP 계수 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
+| CPD05 unknown trace | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
+| CPD06 비밀 비노출 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초 ERROR: macOS 별칭 fixture→realpath 정정; 제품·보안조건 불변 |
+| CPD07 출력 상한 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
+| CPD08 소유 JSONL | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초 ERROR: macOS 별칭 fixture→realpath 정정; 제품·보안조건 불변 |
+| CPD09 directory symlink | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
+| CPD10 directory 권한·UID | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
+| CPD11 file symlink·권한 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초 ERROR: macOS 별칭 fixture→realpath 정정; 제품·보안조건 불변 |
+| CPD12 필드·ordinal | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
+| CPD13 진단 오류와 원래 exit | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
+| CPD14 제공기 종료 구분 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
+| CPD15 부분·모호 trace | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
+| CPD16 기본 shell 경로 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
+| CPD17 제공기 전용 정상 구성 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
+| CPD18 제공기 잘못된 구성 | Python 자체검사 최종 exit0·18검사·0.300초; [원출력](lp27-diag-self-02.log) | PASS | 최초/최종 PASS |
+| HWD01 mode | node --self-test, exit0 | PASS | 미등록 옵션 거부 |
+| HWD02 목록 | 같은 자체검사 | PASS | 2/8/28/67+8 구분 |
+| HWD03 redaction | 같은 자체검사 | PASS | URL/session canary 비노출 |
+| HWD04 관측 한계 | 같은 자체검사 | PASS | overflow·첫RTP unknown·provider 판정 분리 |
+| Python AST | agent가 두 파일 ast.parse, exit0 | PASS | import 실행 아님 |
+| shell 구문 | bash -n scripts/internal/verify_codec_matrix.sh, exit0·0.005초 | PASS | 최초/최종 모두 정상 |
+| Node 구문 | node --check scripts/internal/verify_recording_media_impact.mjs, exit0 | PASS | 실제 실행 아님 |
+| 등록: dispatch parser recognizes explicit bash and node interpreters | verify-script-inventory, 신규 파일 stage 전후 두 번·각 exit0 | PASS | 각12/0, stage 뒤 신규 Python/Node 포함 |
+| 등록: server.sh dispatch targets exist and are executable | verify-script-inventory, 신규 파일 stage 전후 두 번·각 exit0 | PASS | 각12/0, stage 뒤 신규 Python/Node 포함 |
+| 등록: documented server.sh commands resolve to dispatch table | verify-script-inventory, 신규 파일 stage 전후 두 번·각 exit0 | PASS | 각12/0, stage 뒤 신규 Python/Node 포함 |
+| 등록: tracked scripts are classified and referenced | verify-script-inventory, 신규 파일 stage 전후 두 번·각 exit0 | PASS | 각12/0, stage 뒤 신규 Python/Node 포함 |
+| 등록: project inventory delegates script file inventory to this verifier | verify-script-inventory, 신규 파일 stage 전후 두 번·각 exit0 | PASS | 각12/0, stage 뒤 신규 Python/Node 포함 |
+| 등록: project inventory maps verifier families without duplicating dispatch details | verify-script-inventory, 신규 파일 stage 전후 두 번·각 exit0 | PASS | 각12/0, stage 뒤 신규 Python/Node 포함 |
+| 등록: CMake does not define a separate untracked CTest registry | verify-script-inventory, 신규 파일 stage 전후 두 번·각 exit0 | PASS | 각12/0, stage 뒤 신규 Python/Node 포함 |
+| 등록: test entry scripts are reachable from test_all | verify-script-inventory, 신규 파일 stage 전후 두 번·각 exit0 | PASS | 각12/0, stage 뒤 신규 Python/Node 포함 |
+| 등록: auth verifier has no hardcoded test password defaults | verify-script-inventory, 신규 파일 stage 전후 두 번·각 exit0 | PASS | 각12/0, stage 뒤 신규 Python/Node 포함 |
+| 등록: VA EventRecord dispatch verifier fails early and dispatches every poll by default | verify-script-inventory, 신규 파일 stage 전후 두 번·각 exit0 | PASS | 각12/0, stage 뒤 신규 Python/Node 포함 |
+| 등록: critical verifier pass output avoids grouped feature-result wording | verify-script-inventory, 신규 파일 stage 전후 두 번·각 exit0 | PASS | 각12/0, stage 뒤 신규 Python/Node 포함 |
+| 등록: user-facing JS option parsers reject unknown options | verify-script-inventory, 신규 파일 stage 전후 두 번·각 exit0 | PASS | 각12/0, stage 뒤 신규 Python/Node 포함 |
+| 문서 링크 | verify-docs-links 최초 exit0·288md/9511links/22images/142anchors; 결과 링크 추가 후 exit0·9513links/144anchors·실패0 | PASS | 파일/앵커 정합, 실제 UI 아님 |
+| 공백 | git diff --check 및 --cached --check exit0 | PASS | 변경·stage 모두 확인 |
+
+Node 자체검사4개는 준비정리 경계 이동 전후 두 번 실행, 모두4/0·exit0이다. 별도 wall집계는 없으며
+전용 token start/end/consumed도 미제공이다. CPD 원출력은 [최초](lp27-diag-self-01.log)·[최종](lp27-diag-self-02.log).
+최초 CPD06/08/11은 canonical directory 양성fixture가 macOS /var 별칭이라 거부된 것이고,
+제품 코드나 보안조건을 완화하지 않고 unit root만 realpath로 정정했다.
+실제 trace 형식·제공기·RTSP 경로는 다음 2번에서 확인하며 자체검사 PASS로 대체하지 않는다.
+보조 프로세스 목록 읽기는 sandbox에서 ps 권한거부(exit127)였으며 제품 검사 FAIL로 분류하지 않았다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR/media-server-codec-diag-evidence.2287azw8 | 소유0700·unit 원출력4개 | 7,868B·할당12KiB | 두 비어있지 않은 로그 이관·동일 SHA 확인 후 삭제 | rm exit0·test ! -e exit0 | 최종18 fixture 정리도 각 원출력에 보존 |
+
+1번의 실제 서버·포트 생성은 없었다. 위 임시 원본 삭제는 복구 대상으로 남기지 않았으나
+필요한 최초 실패/최종 성공 기록은 저장소 로그2개로 보존했다.
+
 ## 후속 승인: HW-01 → HW-02 → HW-03 → PREP-01 → CLOSE-01
 
 사용자는 원인 재검토 뒤 위 다섯 항목의 순차 개발·분할 커밋·조건 충족 시 마지막 push를 승인했다.
@@ -14,10 +150,531 @@
 | --- | --- | --- | --- | --- |
 | 1 | HW-01 원인·영향 확정 | 완료 | burst/paced 모두 EOS 뒤 늦은 callback→역순 finish→시간값 보정 직접 확인 | 진단03·자체07 |
 | 2 | HW-02 한정 해결책 | 구현·관련 단기 확인 완료 | exact tuple의 객체별 선택 제한, 자체78·4셀8·build/GST OFF 확인 | HW-02 결과, 영향 마감은 HW-03 |
-| 3 | HW-03 반례·영향 회귀 | 미실행 | 전체 PTS/EOS·일반 입력 손실 반례·변경 코덱/자원 범위 검증 | HW-02 diff 후 |
-| 4 | PREP-01 검증 연결 | 미실행 | 초기 exact ID·복합 요구·ENV12·UI/장시간 manifest 연결 | LP26 현행 실행 매핑 |
-| 5 | CLOSE-01 정리·코드 고정 | 미실행 | 구형 사용처/소유 확인, 문서·증거 유효성 대조 | 앞 단계 완료 후 |
-| 6 | 분할 커밋·조건부 push·잔여 재산정 | 미실행 | 통과 단위만 커밋, 전체 승인 범위 실패/미커밋 없음 확인 후 push | AGENTS3/5/6 |
+| 3 | HW-03 반례·영향 회귀 | 부분 완료·FAIL | 자체99·native81 PASS, 기존 codec23 PASS/2 FAIL, ICE건너뜀 | HW-03 실제 미디어 중단 판정 |
+| 4 | PREP-01 검증 연결 | 건너뜀 | 초기 exact ID·복합 요구·ENV12·UI/장시간 manifest 연결 잔여 | HW-03 미해소·LP26 현행 매핑 |
+| 5 | CLOSE-01 정리·코드 고정 | 건너뜀 | 구형 사용처/소유 확인, 문서·증거 유효성 대조 잔여 | 앞 단계 미완료 |
+| 6 | 분할 커밋·조건부 push·잔여 재산정 | 부분 수행 | HW01 d3d0dbc6·HW02 d5a0710b 커밋. HW03미커밋·푸시불가, 잔여표 갱신 | AGENTS3/5/6·현재 readiness |
+
+### HW-03 실제 미디어 회귀 중단 판정
+
+최신 native 자체04는99 PASS, 실제04는81 PASS다. 보완한 선택 경계의 전체 PTS/EOS·반복32 graph·
+H264/H265/VP8·URI MP4 검사를 통과했지만 기존 미디어 회귀 마감과 동일하지 않다.
+HW-02 제품 변경은 `d5a0710b`로 커밋됐으며 HW-03 수행 중 제품 바이트는 바꾸지 않았다.
+
+`node scripts/internal/verify_recording_media_impact.mjs --run`은 기존 codec/ICE 명령을
+소유 loopback 서버·HTTP 제공기·UDP STUN으로 격리한다. 기존 codec timeout/판정은 그대로다.
+[실행 원출력](lp27-hw03-media-01.log), [안전 진단·25개 전수 결과·원문 해시](lp27-hw03-media-diagnostic.json)를 보존했다.
+실행 101,535ms, codec 98,989ms/exit1·23 PASS·2 FAIL·skip0이다.
+outer runner600초 상한은 발생하지 않았고, 첫 실패는 ffprobe20초다. 새 재실행은 하지 않았다.
+
+| 실패 | 확정된 사실 | 미확정·금지할 단정 |
+| --- | --- | --- |
+| HTTP H264/AAC → /dhseo/h264 | ffprobe20초 timeout. 같은 입력 /default·/opus·WebRTC signaling은 PASS. 서버 URI ready4회(833/821/823/816ms) | 입력 준비는 첫 RTP 전달 완료 증거가 아님. decoder 선택 보완과 인과 미확정 |
+| HTTP H264 무음 제공기 | launcher readiness 실패·로그0B·GET0·early-exit 메시지0. verify_codec_matrix.sh의 제품 요청 이전 반환 | Python 시작/리스닝 실패 원인은 미확정. 앞의 제품 요청 실패와 같은 원인으로 묶지 않음 |
+| 관련 경고 | GLib bad-fd53, libnice missing-component3. helper 설치/신호계약/동적설치 실패·CRITICAL·not-negotiated 각0 | 경고가 원인이라고도 무관하다고도 확정하지 않음 |
+
+원인 불명 상태에서 timeout 확대·제품 추가 수정·전체 matrix 반복을 하지 않는다(AGENTS3.3/8).
+다음의 최소 원인 구분은 **실패 세션의 prepare→source-ready→첫 video/audio RTP 관측**과
+**제공기 PID 생존·LISTEN·HTTP 준비·종료코드**를 분리하는 것이다.
+안전한 고정 코드/계수만 추가하고 공개 schema·기존 성공 기준·외부 환경은 유지하는 범위부터 재개해야 한다.
+다음 ICE·PREP-01·CLOSE-01은 건너뜀이다. 기존 저장소 비용/이벤트 통합 실패를 다시 열 근거는 없다.
+HW-03 변경은 회귀 도구·실패 증거로 필요하므로 보존하되 미완료 단계 커밋을 하지 않는다.
+푸시 가능: 아니오(이번 범위 실제 회귀 실패·미커밋). 푸시 미수행. 앞선 유효한 두 커밋은 유지한다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| file_local_h264_aac: RTSP /default -> h264/aac | 기존 verify-codecs 개별 결과; exit1 묶음·전체98,989ms | PASS | 안전 진단 JSON과 대조, 실제 브라우저 아님 |
+| file_local_h264_aac: RTSP /h264 -> h264/aac | 기존 verify-codecs 개별 결과; exit1 묶음·전체98,989ms | PASS | 안전 진단 JSON과 대조, 실제 브라우저 아님 |
+| file_local_h264_aac: RTSP /h265 -> hevc/aac | 기존 verify-codecs 개별 결과; exit1 묶음·전체98,989ms | PASS | 안전 진단 JSON과 대조, 실제 브라우저 아님 |
+| file_local_h264_aac: RTSP /opus -> h264/opus | 기존 verify-codecs 개별 결과; exit1 묶음·전체98,989ms | PASS | 안전 진단 JSON과 대조, 실제 브라우저 아님 |
+| file_local_h264_aac: RTSP /h265/opus -> hevc/opus | 기존 verify-codecs 개별 결과; exit1 묶음·전체98,989ms | PASS | 안전 진단 JSON과 대조, 실제 브라우저 아님 |
+| file_local_h264_aac: RTSP /pcmu -> h264/pcm_mulaw | 기존 verify-codecs 개별 결과; exit1 묶음·전체98,989ms | PASS | 안전 진단 JSON과 대조, 실제 브라우저 아님 |
+| file_local_h264_aac: RTSP /h265/pcmu -> hevc/pcm_mulaw | 기존 verify-codecs 개별 결과; exit1 묶음·전체98,989ms | PASS | 안전 진단 JSON과 대조, 실제 브라우저 아님 |
+| file_local_h264_aac: RTSP /pcma -> h264/pcm_alaw | 기존 verify-codecs 개별 결과; exit1 묶음·전체98,989ms | PASS | 안전 진단 JSON과 대조, 실제 브라우저 아님 |
+| file_local_h264_aac: RTSP /h265/pcma -> hevc/pcm_alaw | 기존 verify-codecs 개별 결과; exit1 묶음·전체98,989ms | PASS | 안전 진단 JSON과 대조, 실제 브라우저 아님 |
+| file_local_h264_aac: WebRTC signaling session created (<redacted>) | 기존 verify-codecs 개별 결과; exit1 묶음·전체98,989ms | PASS | 안전 진단 JSON과 대조, 실제 브라우저 아님 |
+| file_local_h265_aac: RTSP /default -> h264/aac | 기존 verify-codecs 개별 결과; exit1 묶음·전체98,989ms | PASS | 안전 진단 JSON과 대조, 실제 브라우저 아님 |
+| file_local_h265_aac: RTSP /h264 -> h264/aac | 기존 verify-codecs 개별 결과; exit1 묶음·전체98,989ms | PASS | 안전 진단 JSON과 대조, 실제 브라우저 아님 |
+| file_local_h265_aac: RTSP /h265 -> hevc/aac | 기존 verify-codecs 개별 결과; exit1 묶음·전체98,989ms | PASS | 안전 진단 JSON과 대조, 실제 브라우저 아님 |
+| file_local_h265_aac: RTSP /opus -> h264/opus | 기존 verify-codecs 개별 결과; exit1 묶음·전체98,989ms | PASS | 안전 진단 JSON과 대조, 실제 브라우저 아님 |
+| file_local_h265_aac: RTSP /h265/opus -> hevc/opus | 기존 verify-codecs 개별 결과; exit1 묶음·전체98,989ms | PASS | 안전 진단 JSON과 대조, 실제 브라우저 아님 |
+| file_local_h265_aac: RTSP /pcmu -> h264/pcm_mulaw | 기존 verify-codecs 개별 결과; exit1 묶음·전체98,989ms | PASS | 안전 진단 JSON과 대조, 실제 브라우저 아님 |
+| file_local_h265_aac: RTSP /h265/pcmu -> hevc/pcm_mulaw | 기존 verify-codecs 개별 결과; exit1 묶음·전체98,989ms | PASS | 안전 진단 JSON과 대조, 실제 브라우저 아님 |
+| file_local_h265_aac: RTSP /pcma -> h264/pcm_alaw | 기존 verify-codecs 개별 결과; exit1 묶음·전체98,989ms | PASS | 안전 진단 JSON과 대조, 실제 브라우저 아님 |
+| file_local_h265_aac: RTSP /h265/pcma -> hevc/pcm_alaw | 기존 verify-codecs 개별 결과; exit1 묶음·전체98,989ms | PASS | 안전 진단 JSON과 대조, 실제 브라우저 아님 |
+| file_local_h265_aac: WebRTC signaling session created (<redacted>) | 기존 verify-codecs 개별 결과; exit1 묶음·전체98,989ms | PASS | 안전 진단 JSON과 대조, 실제 브라우저 아님 |
+| http_local_h264_aac: RTSP /default -> h264/aac | 기존 verify-codecs 개별 결과; exit1 묶음·전체98,989ms | PASS | 안전 진단 JSON과 대조, 실제 브라우저 아님 |
+| http_local_h264_aac: OnMediaConfigure RTSP probe failed (route=/dhseo/h264, sourceKind=http) | 기존 verify-codecs 개별 결과; exit1 묶음·전체98,989ms | FAIL | 안전 진단 JSON과 대조, 실제 브라우저 아님 |
+| http_local_h264_aac: RTSP /opus -> h264/opus | 기존 verify-codecs 개별 결과; exit1 묶음·전체98,989ms | PASS | 안전 진단 JSON과 대조, 실제 브라우저 아님 |
+| http_local_h264_aac: WebRTC signaling session created (<redacted>) | 기존 verify-codecs 개별 결과; exit1 묶음·전체98,989ms | PASS | 안전 진단 JSON과 대조, 실제 브라우저 아님 |
+| http_local_h264_video_only: local HTTP launcher did not become ready | 기존 verify-codecs 개별 결과; exit1 묶음·전체98,989ms | FAIL | 안전 진단 JSON과 대조, 실제 브라우저 아님 |
+| ISO01 explicit owned loopback accepted | node --test scripts/internal/verify_local_ice_guard.test.mjs, exit0·전체30.333833ms | PASS | 실제 ICE 회귀가 아닌 격리 자체검사 |
+| ISO02 empty STUN rejected | node --test scripts/internal/verify_local_ice_guard.test.mjs, exit0·전체30.333833ms | PASS | 실제 ICE 회귀가 아닌 격리 자체검사 |
+| ISO03 external STUN rejected | node --test scripts/internal/verify_local_ice_guard.test.mjs, exit0·전체30.333833ms | PASS | 실제 ICE 회귀가 아닌 격리 자체검사 |
+| ISO04 mixed server ICE rejected | node --test scripts/internal/verify_local_ice_guard.test.mjs, exit0·전체30.333833ms | PASS | 실제 ICE 회귀가 아닌 격리 자체검사 |
+| ISO05 TURN rejected | node --test scripts/internal/verify_local_ice_guard.test.mjs, exit0·전체30.333833ms | PASS | 실제 ICE 회귀가 아닌 격리 자체검사 |
+| ISO06 unowned port rejected | node --test scripts/internal/verify_local_ice_guard.test.mjs, exit0·전체30.333833ms | PASS | 실제 ICE 회귀가 아닌 격리 자체검사 |
+| ISO07 unexpected credentials rejected | node --test scripts/internal/verify_local_ice_guard.test.mjs, exit0·전체30.333833ms | PASS | 실제 ICE 회귀가 아닌 격리 자체검사 |
+| 새 실행기 구문 | node --check scripts/internal/verify_recording_media_impact.mjs, exit0 | PASS | 전체 실행 PASS 아님 |
+| HW-MEDIA03 서버 준비 | owned loopback 서버 health·ICE 환경/config 확인 | PASS | 실제 codec 실행 전 |
+| HW-MEDIA03 서버 종료 | exit0·signal없음·forced=false | PASS | 실패 후 정상 정리 |
+| HW-MEDIA03 TCP 59636 | assertPortClosed | PASS | 종료 후 해당 listener 없음 |
+| HW-MEDIA03 TCP 59637 | assertPortClosed | PASS | 종료 후 해당 listener 없음 |
+| HW-MEDIA03 TCP 59638 | assertPortClosed | PASS | 종료 후 해당 listener 없음 |
+| HW-MEDIA03 TCP 59639 | assertPortClosed | PASS | 종료 후 해당 listener 없음 |
+| HW-MEDIA03 TCP 59640 | assertPortClosed | PASS | 종료 후 해당 listener 없음 |
+| HW-MEDIA03 TCP 59641 | assertPortClosed | PASS | 종료 후 해당 listener 없음 |
+| HW-MEDIA03 TCP 59642 | assertPortClosed | PASS | 종료 후 해당 listener 없음 |
+| HW-MEDIA03 TCP 59643 | assertPortClosed | PASS | 종료 후 해당 listener 없음 |
+| HW-MEDIA03 UDP62165 | 소유 socket close, 메시지3; lsof exit1/output0 | PASS | 외부 STUN/TURN 없음 |
+| HW-MEDIA03 열린 파일 | lsof +D 소유 root, exit1/output0 | PASS | 삭제 전 접근 없음 |
+| HW-MEDIA03 안전 증거 대조 | 25행·원시5파일 길이/SHA256 일치, exit0 | PASS | URL/session/caps/debug 원문 제외 |
+| HW-MEDIA03 임시 정리 | 아래3개 소유 경로 삭제·부재 확인, exit0 | PASS | 정리는 기능 실패를 대체하지 않음 |
+
+| 항목 | 실행 상태 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| codec 남은 local matrix | 미완료 | 앞 두 실패 뒤 기존 runner 조기 종료 | 전체67 PASS 아님, 남은44개 성공을 추정하지 않음 |
+| 외부 source3개 | 제외·실행 전 중단 | 원래 config 비활성·외부승인 없음 | 출력 skip0을 실행/통과로 승격하지 않음 |
+| 기존 ICE8 | 건너뜀 | codec 실패 | ISO7 자체 PASS로 대체 불가 |
+| 실제 브라우저·30분·120분 | 미실행 | 이번 HW-03 범위 밖·최종 묶음 별도 | 릴리즈 면제 아님 |
+| PREP-01/CLOSE-01 | 건너뜀 | HW-03 영향 마감 실패 | 준비/코드 고정 완료 아님 |
+
+소유 자료 삭제 전 원출력 hash5개·명령·source/binary fingerprint·환경·개별25행·고정 진단값을
+위 안전 JSON/원출력으로 보존했다. 원시 session/URL/debug·registry는 최종 증거로 복사하지 않았다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-media-qD95Ha | 실행root·registry·원시로그·설정 | 1,814,763B | manifest 소유·realpath·해시 확인 후 삭제 | 부재 확인 | execution manifest·safe JSON·lsof |
+| /private/tmp/media-server-hw-media-qD95Ha-http_local_h264_aac.http.log | 임시 HTTP로그 | 427B | 원문 해시·진단 보존 후 삭제 | 부재 확인 | owned manifest |
+| /private/tmp/media-server-hw-media-qD95Ha-http_local_h264_video_only.http.log | 임시 HTTP로그 | 0B | 비어 있음·hash 보존 후 삭제 | 부재 확인 | owned manifest |
+
+manifest의 나머지 HLS로그/HLS디렉터리·RTSP로그3개·WHIP로그는 생성되지 않아 각각 부재를 확인했다.
+삭제한 원시 임시자료는 복구되지 않으며 비민감 최소 증거는 저장소에 보존한다.
+token start/end/consumed: 전용 집계 미제공으로 미집계. source: 실제 도구 출력, elapsed는 각 로그.
+마감 문서 검사는 제품 재실행이 아니며 뒤 개발 단계 착수도 아니다.
+
+### HW-03 중단 기록 마감 검사
+
+제품 실패 뒤 뒤 개발 단계를 실행한 것이 아니라 실행 증거·문서·정리의 정합성을 확인했다.
+문서 링크288개md/9490links/22images/141anchors/실패0, 자산10 PASS, script inventory12 PASS,
+작업트리 공백검사exit0이다. elapsed는 문서검사 별도집계 없음, token 미집계(전용 집계 미제공).
+최종binary SHA `2ce43399ce33fd6863a9aa8d0e21e65ae32975ee52ad08d065b09e065aca9fd7`,
+미디어 runner SHA `eb393cc76850b9bdb99c37e480b4328a4b6b7f37a05ddd9200c224729002c8c3`로
+실제 media01과 동일하다. 두 소스의 유효성 확인이며 제품검증 재실행이 아니다.
+읽기 전용 원격조회 첫 sandbox DNS실패(exit128) 후 승인된 네트워크 조회exit0으로
+origin/v4.1.0=f4e58b9c, main431397d9, v4.1.0 remote tag없음을 확인했다.
+로컬d5a0710b는ahead2/behind0이고, 현재 HW03 도구/증거·중앙/색인/잔여 문서는 미커밋이다.
+이 소유 변경은 유효한 개발/실패 기록이어서 삭제하지 않았으며 제품파일 미커밋은 없다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| 스크립트: dispatch parser recognizes explicit bash and node interpreters | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-script-inventory, exit0 | PASS | 자체/등록 검사 |
+| 스크립트: server.sh dispatch targets exist and are executable | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-script-inventory, exit0 | PASS | 자체/등록 검사 |
+| 스크립트: documented server.sh commands resolve to dispatch table | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-script-inventory, exit0 | PASS | 자체/등록 검사 |
+| 스크립트: tracked scripts are classified and referenced | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-script-inventory, exit0 | PASS | 자체/등록 검사 |
+| 스크립트: project inventory delegates script file inventory to this verifier | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-script-inventory, exit0 | PASS | 자체/등록 검사 |
+| 스크립트: project inventory maps verifier families without duplicating dispatch details | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-script-inventory, exit0 | PASS | 자체/등록 검사 |
+| 스크립트: CMake does not define a separate untracked CTest registry | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-script-inventory, exit0 | PASS | 자체/등록 검사 |
+| 스크립트: test entry scripts are reachable from test_all | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-script-inventory, exit0 | PASS | 자체/등록 검사 |
+| 스크립트: auth verifier has no hardcoded test password defaults | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-script-inventory, exit0 | PASS | 자체/등록 검사 |
+| 스크립트: VA EventRecord dispatch verifier fails early and dispatches every poll by default | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-script-inventory, exit0 | PASS | 자체/등록 검사 |
+| 스크립트: critical verifier pass output avoids grouped feature-result wording | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-script-inventory, exit0 | PASS | 자체/등록 검사 |
+| 스크립트: user-facing JS option parsers reject unknown options | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-script-inventory, exit0 | PASS | 자체/등록 검사 |
+| 자산: README uses only representative product UI screenshots | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-ui-assets, exit0 | PASS | 실제 화면 확인 아님 |
+| 자산: English README uses English UI screenshots | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-ui-assets, exit0 | PASS | 실제 화면 확인 아님 |
+| 자산: UI guide keeps product screenshots in the shared asset set | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-ui-assets, exit0 | PASS | 실제 화면 확인 아님 |
+| 자산: docs UI asset policy documents capture rules | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-ui-assets, exit0 | PASS | 실제 화면 확인 아님 |
+| 자산: managed UI asset manifest stays complete | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-ui-assets, exit0 | PASS | 실제 화면 확인 아님 |
+| 자산: capture script owns every documented UI asset | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-ui-assets, exit0 | PASS | 실제 화면 확인 아님 |
+| 자산: docs capture covers current screenshots | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-ui-assets, exit0 | PASS | 실제 화면 확인 아님 |
+| 자산: representative screenshot docs do not point at stale visual baselines | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-ui-assets, exit0 | PASS | 실제 화면 확인 아님 |
+| 자산: docs UI asset directory contains managed PNG files | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-ui-assets, exit0 | PASS | 실제 화면 확인 아님 |
+| 자산: VA documentation images keep full video frame bounds | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-ui-assets, exit0 | PASS | 실제 화면 확인 아님 |
+| HW03 문서 링크 | MEDIA_SERVER_SKIP_LOCAL_ENV=1 ./server.sh verify-docs-links, exit0·288md/9490links/실패0 | PASS | 원출력 집계와 대조 |
+| HW03 공백 검사 | git diff --check, exit0 | PASS | stage/commit 미수행 |
+| HW03 실행 바이트 대조 | shasum -a 256 binary/runner, exit0·두 hash동일 | PASS | 실패 실행 이후 바이트 보존 |
+
+미완료: HTTP RTSP/launcher 원인·기존 codec/ICE 마감·PREP/CLOSE·S11·외부release.
+공개 API/schema·입력 시간값·녹화/보존/저장·auth는 이번 제품 보완에서 변경하지 않았다.
+제품 영향은 객체별 decoder 선택뿐이며 CPU 증가의 실제 다채널/장시간 판정은 남아 있다.
+푸시 가능: 아니오. 이유: 실제 미디어 회귀 미해소 및 HW03 미커밋. 수행: 아니오.
+
+### HW-03 실행 전 계약과 개별 정의
+
+HW-02 제품 바이트를 고정하고 기존 단일 담당자가 native 회귀 도구 두 파일만 확장한다.
+메인은 기존 codec/ICE 검사를 로컬 격리해 실행한다. 실제 브라우저·외부 STUN/TURN·장시간은 포함하지 않는다.
+입력 PTS/DTS·전체 대응 oracle·EOS 5초·paced 3초·native 180초·고정 배열 상한을 유지한다.
+반복 검사는 재현될 때까지 재시도하는 방식이 아니라 실행 전에 고정한 16회×2종 한 묶음이다.
+URI는 실제 uridecodebin 경계 확인이며 전체 HLS/HTTP/source worker 검증으로 확대하지 않는다.
+자원 비교는 같은 1280×720/30fps/90frame 입력의 미보완/보완 1회씩이다. 준비 비용을 제외한 graph 수명
+CPU·wall 및 현재 RSS 전후를 기록한다. peak RSS는 프로세스 누적값이며 순간 할당·장시간 누수로 해석하지 않는다.
+미보완의 알려진 시간값 불일치는 진단으로 보존하고, 준비 오류 또는 보완 경로 실패에는 뒤 검사를 중단한다.
+새 임의 CPU/RAM 제품 상한을 만들지 않고 실제 차이와 한계를 판단한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| HW-RP01-N | 일반20 회차1 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP01-B | B-frame30 회차1 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP02-N | 일반20 회차2 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP02-B | B-frame30 회차2 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP03-N | 일반20 회차3 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP03-B | B-frame30 회차3 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP04-N | 일반20 회차4 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP04-B | B-frame30 회차4 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP05-N | 일반20 회차5 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP05-B | B-frame30 회차5 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP06-N | 일반20 회차6 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP06-B | B-frame30 회차6 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP07-N | 일반20 회차7 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP07-B | B-frame30 회차7 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP08-N | 일반20 회차8 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP08-B | B-frame30 회차8 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP09-N | 일반20 회차9 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP09-B | B-frame30 회차9 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP10-N | 일반20 회차10 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP10-B | B-frame30 회차10 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP11-N | 일반20 회차11 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP11-B | B-frame30 회차11 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP12-N | 일반20 회차12 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP12-B | B-frame30 회차12 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP13-N | 일반20 회차13 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP13-B | B-frame30 회차13 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP14-N | 일반20 회차14 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP14-B | B-frame30 회차14 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP15-N | 일반20 회차15 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP15-B | B-frame30 회차15 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP16-N | 일반20 회차16 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-RP16-B | B-frame30 회차16 | fresh graph의 전체 PTS·EOS와 exact 후보 제외 각각 확인 | v4.1.0 |
+| HW-CC01 | H264→H265 | 전체 PTS/EOS, 후보 선택, RTP H265/EOS 세 assertion | v4.1.0 |
+| HW-CC02 | VP8→H264 | unknown DTS 유지, 전체 PTS/EOS·선택·RTP H264/EOS | v4.1.0 |
+| HW-CC03 | H265→H264 | 전체 PTS/EOS·선택·RTP H264/EOS | v4.1.0 |
+| HW-UC01 | URI 입력 독립 기준 | MP4 입력 origin0/100ms 간격을 원본 AU로 대조 | v4.1.0 |
+| HW-UC02 | URI decoder 대응 | 실제 uridecodebin의 전체 PTS·EOS | v4.1.0 |
+| HW-UC03 | URI 선택과 downstream | 한정 제외와 consumer PTS·EOS 보존 | v4.1.0 |
+| HW-RS01 | 기준 자원 관측 | baseline CPU/wall·current RSS 유효성, 알려진 제품 반례와 준비 오류 구분 | v4.1.0 |
+| HW-RS02 | 보완 자원 관측 | corrected CPU/wall·current RSS 유효성, peak는 process lifetime으로 명시 | v4.1.0 |
+| HW-RS03 | 자원 입력 동등성 | 두 graph에 같은90frame AU·PTS/DTS·SHA, 원시각 그대로 | v4.1.0 |
+| HW-RS04 | 자원 비교 중 기능 | corrected 전체 PTS·EOS 대응 | v4.1.0 |
+| HW-RS05 | 자원 비교 중 선택 | corrected exact 후보 정책 준수, 새 자원 합격 상한 없음 | v4.1.0 |
+| HW-RF01 | VP8 unknown DTS | 허용 입력, 임의 보충 금지 | v4.1.0 |
+| HW-RF02 | 비VP8 unknown DTS | 준비 오류 거부 | v4.1.0 |
+| HW-RF03 | MP4 원본 기준 | origin0/100ms 간격 수용 | v4.1.0 |
+| HW-RF04 | 잘못된 MP4 기준 | origin 변경 거부 | v4.1.0 |
+| HW-RF05 | RTP 출력 증거 | 올바른 encoding-name·EOS 수용 | v4.1.0 |
+| HW-RF06 | RTP 반례 | 잘못된 encoding-name·EOS 누락 거부 | v4.1.0 |
+| HW-RF07 | 자원 정상 표본 | 유효한 단조 CPU/wall 차이 수용 | v4.1.0 |
+| HW-RF08 | 자원 반례 | 감소 CPU 등 무효 표본 거부 | v4.1.0 |
+| HW-IO03 | 요약 누락 거부 | regression exit0이라도 완전 summary 없으면 exit2 | v4.1.0 |
+| HW-MEDIA01 | 기존 codec 회귀 | 기존 config의 로컬67개, 외부 비활성3개는 제외 그대로 | v4.1.0 |
+| HW-MEDIA02 | 기존 ICE 회귀 | 기존8개, owned UDP STUN·TURN 없음·환경/config guard | v4.1.0 |
+| HW-MEDIA03 | 격리·정리 | owned server/launcher/UDP/port/temp, 실패 자료 보존 후 정리·기존ISO01~07 자체검사 | v4.1.0 |
+
+명령: `bash scripts/internal/verify_recording_hw_impact.sh --self-test` (예정87 assertion)
+→ `--regression-impact` (예정81 assertion) → 격리된 기존 `./server.sh verify-codecs`
+→ `./server.sh verify-webrtc-ice`. 기존 media gate의 case별 정의는 codec config·중앙 S10 미디어 기록을
+재사용하며 개별 결과를 이번 원출력과 대조한다. test 자체검사와 실제 제품 영향 결과를 합산해 제품 PASS로 만들지 않는다.
+실행 순서·시간상한은 기존 기준 그대로이며 실제 브라우저 metadata는 이번 사용자 제외에 따라 미실행이다.
+문서·스크립트 검사는 마감 시 실행한다. token 집계 미제공, elapsed는 실행 로그의 실측값을 쓴다.
+
+### HW-03 최초 실제 검사와 관측 진단 보완
+
+자체01은 native84+IO3=87 PASS, exit0/1792ms, stderr0, root1940068B 삭제·부재다.
+실제01은 반복64와 CC01 시간/선택2 PASS 뒤 RTP 관측1 FAIL(exit1/1722ms)이다.
+encoding H265·CAPS1·EOS1·invalid1, decoder/consumer20개 시간값 모두 정상·bus/경고0이었다.
+실제 실패를 RED 또는 제품 통과로 바꾸지 않는다. CC02 이후·codec/ICE·PREP/CLOSE는 건너뛰었다.
+원출력: [자체01](lp27-hw03-self-01.log), [실제01](lp27-hw03-impact-01.log).
+
+메인·단일 담당자의 읽기 검토에서 CAPS fixed 검사는 이미 통과했으며, 이벤트16 초과와 media name
+불일치의 원인 구분 필드가 빠져 있음을 확인했다. 같은 단계 검증 준비 결함으로 고정 숫자/boolean
+진단 필드만 추가하고 관측 overflow를 제품 오류와 분리한다. 기존16 상한·PTS/EOS·제품코드는 유지한다.
+미확인 상태를 PASS시키지 않으며 아래 자체 반례 후 동일 단기 검사1회로 실제 원인을 구별한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| HW-RF09 | RTP 관측 초과 | events17에서 overflow·PASS 거부 | v4.1.0 |
+| HW-RF10 | 오류 종류 분리 | media name mismatch를 overflow와 구분, PASS 거부 | v4.1.0 |
+
+이후 자체검사 예정89(native86+IO3)다. 실제01의 소유root1940068B 삭제·부재이며 서버/포트 없음.
+
+### HW-03 관측 원인 확정과 수정
+
+자체02는89 PASS(exit0/1575ms), 실제02는 같은CC01까지66 PASS/1 FAIL(exit2/1691ms)이다.
+`events17/caps1/eos1/event_overflow1/caps_shape_invalid0/media_name_matches1`로
+RTP 총 제어 이벤트16 제한이 원인임을 확정했다. 이 한계는 새 관측기에 잘못 붙인 조건이며
+제품 RTP 형식/시간/EOS 실패가 아니다. 최초exit1의 제품 오류처럼 보이는 분류를 정정한다.
+제품·영상128행·기존Trace의CAPS/SEGMENT16·EOS5초·프로세스180초는 변경하지 않는다.
+RTP 관측은 payload를 저장하지 않으므로 총 이벤트 수가 메모리 사용량과 비례하지 않는다.
+고정6종 enum counter로 **모든** 이벤트를 계수하고 정수 초과는 포화·FAIL 처리한다.
+RTP CAPS16 상한·형태·encoding·EOS1 검사는 유지한다. 기록/검사 삭제나 제품 합격 기준 완화가 아니다.
+기존RF09는 잘못된 전체event 상한 반례에서 실제CAPS 관측 상한 반례로 교정하며 과거실패는 보존한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| HW-RF09 현행 | CAPS 상한 유지 | CAPS17 overflow·PASS 거부 | v4.1.0 |
+| HW-RF11 | 정상 반복 제어 이벤트 | TAG17개를 모두 계수, payload 저장 없이 RTP 계약 유지 | v4.1.0 |
+| HW-RF12 | 계수 overflow | 최대값 뒤 증가를 포화·FAIL 처리, wrap 금지 | v4.1.0 |
+
+다음 자체 예정91(native88+IO3). 원출력 [자체02](lp27-hw03-self-02.log),
+[실제02](lp27-hw03-impact-02.log), 각1940132B 소유root 삭제·부재, 서버/포트 없음.
+
+### HW-03 H265 fallback 관측 보완
+
+자체03은91 PASS(exit0/1575ms), 실제03은RP64와CC01/02·CC03 RTP의71 PASS 및
+CC03 입력/선택2 FAIL(exit2/1784ms)이다. RTP 총17개는 CAPS1/EOS1/stream-start1/segment1/TAG12/other1로
+모두 집계됐다. 앞의 RTP 관측 결함은 해결됐으나 HW-03 전체 PASS는 아니다.
+H265는 첫 후보vtdec_hw에CAPS만 전달된 뒤 avdec_h265로 fallback했고 consumer20프레임·PTS·EOS는
+정상이었다. 관측기가 첫 decoder만 추적하고 생성후보1개를 전제한 준비 결함을 확인했다.
+제품 후보 선택이나 입력을 바꾸지 않고 기존8개 후보 상한 내 각각 고정128frame/16event 경계를 관측한다.
+NULL 완료 뒤 실제 버퍼를 처리한 유일후보만 전체 대응 판정에 사용하고, 둘 이상/초과/없음/부분 관측은 거부한다.
+CAPS만 받은 미선택 후보의 계수도 보존한다. 메인 판단 후 기존 단일 담당자에게 이 관측부만 위임했다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| HW-DC01 | 실제 fallback 선택 | CAPS-only 첫 후보+실제 버퍼 둘째 후보 수용 | v4.1.0 |
+| HW-DC02 | 두 실처리 후보 | 모호한 동시 처리 거부 | v4.1.0 |
+| HW-DC03 | 후보 상한 | 8개 초과 거부 | v4.1.0 |
+| HW-DC04 | 실제 관측 없음 | 버퍼 없는 후보만 있을 때 거부 | v4.1.0 |
+| HW-DC05 | 일부 경계 누락 | sink/src 한쪽만 존재하면 거부 | v4.1.0 |
+
+같은 원인 전수 대조에서 기존Trace도 총 이벤트 횟수를16개 저장량으로 잘못 취급함을 확인했다.
+90프레임 자원 입력 등 정상TAG 반복에도 같은 준비 실패가 생길 수 있으므로 같은 수정 묶음에서
+전체계수는 포화 scalar, 실제CAPS/SEGMENT 저장배열은16개 그대로 유지한다. 제품의 합격 조건은 동일하다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| HW-DC06 | Trace 정상 제어 반복 | 17개 이벤트 계수는 정상, 동적 payload 저장 없음 | v4.1.0 |
+| HW-DC07 | 실제 배열 상한 | CAPS17개 저장 시 overflow·판정 거부 | v4.1.0 |
+| HW-DC08 | 총계 포화 | scalar overflow는 포화·관측 불완전 거부 | v4.1.0 |
+
+다음 자체 예정99(native96+IO3). 원출력 [자체03](lp27-hw03-self-03.log),
+[실제03](lp27-hw03-impact-03.log), 각1956756B 소유root 삭제·부재, 서버/포트 없음.
+URI/자원·기존codec/ICE·PREP/CLOSE는 아직 건너뜀이다. 제품HW-02 바이트는 그대로다.
+
+### HW-03 native 실행 전수 결과
+
+아래는 각 원출력의 모든 pass/fail 행을 제목별로 대조한 것이다. 각 회차의 실제 판정을 비고에 보존하며,
+후속 실행에서 없는 항목은 실행하지 않은 것으로 해석한다. 실제03 이전의 URI/자원 검사는 미실행이다.
+RF09의 옛 총계 제한 자체검사는 폐기된 관측 방식의 역사적 결과이며 현행 제품 증거로 쓰지 않는다.
+코드 고정 후 최종 유효 native 결과는 self04의99·impact04의81이다.
+
+| 제목 | 테스트내용 | pass/fail | 비고(실패 후 pass됨 등을 기록) |
+| --- | --- | --- | --- |
+| HW-IO01 pipe output and exit status preserved | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-IO02 incomplete mitigation summary cannot pass | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-IO03 incomplete regression summary cannot pass | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-OR01 reorder accepted | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-OR02 same-count duplicate omission rejected | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-OR02 same-count omission replacement rejected | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-OR03 legitimate duplicate preserved | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-OR04 missing frame rejected | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-OR05 invalid PTS rejected | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-OR06 missing EOS rejected | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-OR07 overflow rejected | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-OR08 duplicate EOS rejected | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-OR09 missing SEGMENT rejected | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-OR10 non-TIME SEGMENT rejected | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-OR11 complete oracle accepted | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-OR12 input mismatch is inconclusive | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-OR13 decoder mismatch is failure | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-OR14 overlay mismatch is failure | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-OR15 invalid observation is inconclusive | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-OR16 overflow is inconclusive | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-OR17 missing probe is inconclusive | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-OR18 missing bus EOS is inconclusive | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-OR19 bus ERROR is inconclusive | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-OR20 known error classification excludes raw text | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-OR21 unknown error classification excludes raw text | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-OR22 CAPS fixed allowlist rejects arbitrary values | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-GR01 actual product parse-launch PLACE_IN_BIN creates inspectable bin | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-GR02 no generated ghost sink occupies pending links | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-GR03 pay0 src connects directly to owned sink | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-GR04 dynamic downstream queue sink remains unoccupied | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-GR05 legacy automatic ghost occupies queue sink before PLAYING | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-OR23 delayed-link has fixed classification | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-DP01 callback retains decode number without pointers | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-DP02 push retains independent system number | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-DP03 decreasing warning preserves exact nanoseconds | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-DP04 malicious pointer token rejected without disclosure | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-DP05 trailing injected field rejected | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-DP06 invalid timestamp rejected | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-DP07 unknown warning makes diagnosis inconclusive without raw retention | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-DP08 debug array overflow makes diagnosis inconclusive | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-DP09 known decreasing warning completes diagnosis without product PASS | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-DP10 absent source log is not fabricated as wait completion | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-DP11 finish frame preserves pre-clamp PTS and unknown DTS without pointer | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-DP12 numeric overflow rejected before conversion | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-DP13 unrelated long LOG ignored before selected-prefix bound | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-DP14 selected-prefix oversized message is inconclusive | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-DP15 callback exception boundary makes diagnosis inconclusive | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-DP16 malformed DTS rejected without inventing source formats | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-DP17 missing finish-frame observation is inconclusive | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-DP18 official entry-only finish log is not pre-clamp evidence | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-DP19 session-create error retains only signed numeric code | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-DP20 session-create error rejects arbitrary suffix | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MP01 exact macOS H264 vtdec_hw tuple skips | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MP02 exact macOS H264 vtdec tuple skips | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MP03 other platform preserves selection | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MP04 nonfixed ANY or ambiguous caps preserve selection | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MP05 empty caps preserve selection | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MP06 H265 input preserves selection | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MP07 VP8 input preserves selection | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MP08 other factory preserves selection | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MP09 other plugin preserves selection | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MP10 older version preserves selection | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MP11 newer version preserves selection | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MP12 unknown version preserves selection | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MP13 unknown factory preserves selection | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MP14 unknown plugin preserves selection | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MP15 raw input preserves selection | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MH01 existing decodebin hook follows platform gate | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MH02 repeated installation does not duplicate hooks | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MH03 dynamically nested decodebin hook follows platform gate | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MH04 installation leaves global factory ranks unchanged | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MH05 root and decoder lifetimes retain no external references | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MH09 actual H264 signal returns SKIP only for installed affected tuple | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MH10 actual ANY caps signal returns TRY | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MH11 actual H265 caps signal returns TRY | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MH12 actual avdec_h264 candidate signal returns TRY | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MH06 in-progress marker is not completion on macOS and untouched elsewhere | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MH07 failed marker remains failed across repeated installation | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-MH08 dynamic installation failure posts bus ERROR only on macOS | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-RF01 VP8 observed unknown DTS is retained and allowed for burst fixture | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-RF02 unknown DTS permission does not extend to H264 | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-RF03 normal MP4 independent zero origin and exact 100ms premise accepted | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-RF04 altered MP4 PTS origin rejected without oracle adjustment | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-RF05 exact RTP encoding-name and single EOS accepted | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-RF06 wrong RTP encoding or missing EOS rejected | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-RF07 monotonic CPU wall and available RSS observations accepted without performance target | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-RF08 decreasing process CPU invalidates resource observation | HW03 self01·self02·self03·self04 실제 assertion | pass | self01=pass, self02=pass, self03=pass, self04=pass |
+| HW-RF09 RTP observation overflow cannot become product PASS | HW03 self02 실제 assertion | pass | self02=pass |
+| HW-RF10 media mismatch and observation overflow remain distinct | HW03 self02·self03·self04 실제 assertion | pass | self02=pass, self03=pass, self04=pass |
+| HW-RF09 RTP CAPS observation overflow cannot become product PASS | HW03 self03·self04 실제 assertion | pass | self03=pass, self04=pass |
+| HW-RF11 repeated TAG counted without payload allocation or RTP contract rejection | HW03 self03·self04 실제 assertion | pass | self03=pass, self04=pass |
+| HW-RF12 counter overflow is saturated and cannot pass | HW03 self03·self04 실제 assertion | pass | self03=pass, self04=pass |
+| HW-DC01 caps-only first and sole active second decoder selected | HW03 self04 실제 assertion | pass | self04=pass |
+| HW-DC02 multiple data-processing decoders rejected | HW03 self04 실제 assertion | pass | self04=pass |
+| HW-DC03 more than eight decoder candidates rejected | HW03 self04 실제 assertion | pass | self04=pass |
+| HW-DC04 no data-processing decoder rejected | HW03 self04 실제 assertion | pass | self04=pass |
+| HW-DC05 partial or incomplete decoder observation rejected | HW03 self04 실제 assertion | pass | self04=pass |
+| HW-DC06 seventeen TAG events use bounded scalar count without false overflow | HW03 self04 실제 assertion | pass | self04=pass |
+| HW-DC07 seventeenth CAPS still rejects fixed-array overflow | HW03 self04 실제 assertion | pass | self04=pass |
+| HW-DC08 total event counter saturates and rejects arithmetic overflow | HW03 self04 실제 assertion | pass | self04=pass |
+| HW-RP01-N exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP01-N selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP01-B exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP01-B selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP02-N exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP02-N selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP02-B exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP02-B selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP03-N exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP03-N selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP03-B exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP03-B selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP04-N exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP04-N selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP04-B exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP04-B selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP05-N exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP05-N selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP05-B exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP05-B selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP06-N exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP06-N selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP06-B exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP06-B selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP07-N exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP07-N selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP07-B exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP07-B selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP08-N exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP08-N selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP08-B exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP08-B selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP09-N exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP09-N selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP09-B exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP09-B selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP10-N exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP10-N selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP10-B exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP10-B selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP11-N exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP11-N selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP11-B exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP11-B selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP12-N exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP12-N selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP12-B exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP12-B selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP13-N exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP13-N selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP13-B exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP13-B selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP14-N exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP14-N selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP14-B exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP14-B selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP15-N exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP15-N selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP15-B exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP15-B selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP16-N exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP16-N selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP16-B exact full PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-RP16-B selected factory respects exact compatibility tuple | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-CC01-H264-to-H265 exact input decoder consumer PTS and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-CC01-H264-to-H265 input-scoped decoder policy | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=pass, impact02=pass, impact03=pass, impact04=pass |
+| HW-CC01-H264-to-H265 actual pay0 RTP encoding-name and EOS | HW03 impact01·impact02·impact03·impact04 실제 assertion | pass | impact01=fail, impact02=fail, impact03=pass, impact04=pass |
+| HW-CC02-VP8-to-H264 exact input decoder consumer PTS and EOS | HW03 impact03·impact04 실제 assertion | pass | impact03=pass, impact04=pass |
+| HW-CC02-VP8-to-H264 input-scoped decoder policy | HW03 impact03·impact04 실제 assertion | pass | impact03=pass, impact04=pass |
+| HW-CC02-VP8-to-H264 actual pay0 RTP encoding-name and EOS | HW03 impact03·impact04 실제 assertion | pass | impact03=pass, impact04=pass |
+| HW-CC03-H265-to-H264 exact input decoder consumer PTS and EOS | HW03 impact03·impact04 실제 assertion | pass | impact03=fail, impact04=pass |
+| HW-CC03-H265-to-H264 input-scoped decoder policy | HW03 impact03·impact04 실제 assertion | pass | impact03=fail, impact04=pass |
+| HW-CC03-H265-to-H264 actual pay0 RTP encoding-name and EOS | HW03 impact03·impact04 실제 assertion | pass | impact03=pass, impact04=pass |
+| HW-UC01 independent normal MP4 fixture and immutable file | HW03 impact04 실제 assertion | pass | impact04=pass |
+| HW-UC02 uridecodebin exact input decoder consumer PTS and EOS | HW03 impact04 실제 assertion | pass | impact04=pass |
+| HW-UC03 local URI policy selection and downstream exact PTS EOS | HW03 impact04 실제 assertion | pass | impact04=pass |
+| HW-RS01 baseline process CPU wall and RSS observations valid | HW03 impact04 실제 assertion | pass | impact04=pass |
+| HW-RS02 corrected process CPU wall and RSS observations valid | HW03 impact04 실제 assertion | pass | impact04=pass |
+| HW-RS03 identical AU bytes and PTS DTS used for both graphs | HW03 impact04 실제 assertion | pass | impact04=pass |
+| HW-RS04 corrected normal90 exact full PTS and EOS | HW03 impact04 실제 assertion | pass | impact04=pass |
+| HW-RS05 corrected normal90 selected factory respects exact compatibility tuple | HW03 impact04 실제 assertion | pass | impact04=pass |
+
+| 명령 회차 | 실제 실행·판정 | elapsed/source | 원출력 |
+| --- | --- | --- | --- |
+| self01 | exit0, pass87/fail0 | 1792ms/Node 실행 계측 | [로그](lp27-hw03-self-01.log) |
+| self02 | exit0, pass89/fail0 | 1575ms/Node 실행 계측 | [로그](lp27-hw03-self-02.log) |
+| self03 | exit0, pass91/fail0 | 1575ms/Node 실행 계측 | [로그](lp27-hw03-self-03.log) |
+| self04 | exit0, pass99/fail0 | 1570ms/Node 실행 계측 | [로그](lp27-hw03-self-04.log) |
+| impact01 | exit1, pass66/fail1 | 1722ms/Node 실행 계측 | [로그](lp27-hw03-impact-01.log) |
+| impact02 | exit2, pass66/fail1 | 1691ms/Node 실행 계측 | [로그](lp27-hw03-impact-02.log) |
+| impact03 | exit2, pass71/fail2 | 1784ms/Node 실행 계측 | [로그](lp27-hw03-impact-03.log) |
+| impact04 | exit0, pass81/fail0 | 8135ms/Node 실행 계측 | [로그](lp27-hw03-impact-04.log) |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | ---: | --- | --- | --- |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-impact.vGwD7c | 소유 probe/cache | 1940068B | wrapper 삭제 | 부재true | self01 cleanup |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-impact.MjW3p6 | 소유 probe/cache | 1940132B | wrapper 삭제 | 부재true | self02 cleanup |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-impact.b0msCh | 소유 probe/cache | 1956756B | wrapper 삭제 | 부재true | self03 cleanup |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-impact.MnXt90 | 소유 probe/cache | 1958276B | wrapper 삭제 | 부재true | self04 cleanup |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-impact.jXfRhj | 소유 probe/cache | 1940068B | wrapper 삭제 | 부재true | impact01 cleanup |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-impact.eGnISu | 소유 probe/cache | 1940132B | wrapper 삭제 | 부재true | impact02 cleanup |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-impact.b62Lgk | 소유 probe/cache | 1956756B | wrapper 삭제 | 부재true | impact03 cleanup |
+| /private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-impact.fXYbaJ | 소유 probe/cache/MP4 | 1979115B | wrapper 삭제 | 부재true | impact04 cleanup |
+
+현재 macOS arm64/GStreamer1.28.1에서 일반20·B30×16회의 전체 PTS·EOS, H264→H265/VP8→H264/H265→H264,
+로컬 MP4 uridecodebin 경계가 통과했다. H265의 CAPS-only vtdec_hw 후보와 실제 avdec_h265 fallback을 구분했다.
+URI 파일20839B의 SHA가 전후 일치했다. 이는 네트워크/브라우저/전체worker 장시간 검증이 아니다.
+
+동일720p/30fps/90frame의 graph 전체(디코더만이 아님) 순차 비교:
+기준wall2994986us/CPU855069us, 보완wall2985322us/CPU1221883us.
+프로세스 CPU는 약42.9% 증가했으나 입력 실시간 간격의wall은 약2.99초로 유사했다.
+RSS 기준152403968→161792000B, 보완161792000→162643968B.
+뒤의 보완 실행은 캐시가 데워진 상태이므로 RSS증가량을 메모리 우위·장시간 누수 없음으로 해석하지 않는다.
+새 자원 상한·성능 보장을 만들지 않고 소프트웨어 전환 비용을 공개한다. S11 다채널/장시간 자원판정은 남는다.
+원출력stderr0·소유root 정리완료다. 관련 기존codec/ICE 실행은 별도 결과이며 아직 전체HW-03 완료로 쓰지 않는다.
+token start/end/consumed는 도구 전용 집계 미제공으로 미집계다.
 
 ### HW-01 실행 전 계약
 

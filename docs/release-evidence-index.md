@@ -1,5 +1,14 @@
 # Release Evidence Index
 
+## 2026-09-21 LP27 HW 영향 보완·회귀
+
+- [진단 보완 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#진단-보완-1번-결과): CPD18/HWD4 통과·최초 준비 오류/정리 보존. 실제 원인 구분 전.
+
+- [중앙 기록](release-test-records.md#lp27-릴리즈-선행-14-순차-작업): HW01/02 커밋, HW03 실제 미디어 실패·정리.
+- [개별 결과·실패 이력·정리](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#hw-03-실제-미디어-회귀-중단-판정).
+- [현재 릴리즈 잔여 전수 대조](release-artifacts/v4.1.0/s11-preparation-mapping/release-readiness-20260916.md#lp27-hw-03-중단-후-현재-전수-대조).
+- native 회귀 통과는 기존 codec/ICE·S11·릴리즈 완료가 아니다. PREP/CLOSE는 선수 미충족으로 건너뛰었다.
+
 ## 2026-09-21 LP26 현행 검증 준비
 
 - [중앙 기록](release-test-records.md#lp26-현행-검증-준비): 관측·UI seed·관련 단기 결과와 실패 이력.

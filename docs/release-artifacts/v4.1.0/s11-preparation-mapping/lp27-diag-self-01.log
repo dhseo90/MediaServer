@@ -1,0 +1,80 @@
+test_CPD01_normal_stdout_exit (__main__.DiagnosticsTests.test_CPD01_normal_stdout_exit) ... ok
+test_CPD02_timeout_124 (__main__.DiagnosticsTests.test_CPD02_timeout_124) ... ok
+test_CPD03_abnormal_exit_preserved (__main__.DiagnosticsTests.test_CPD03_abnormal_exit_preserved) ... ok
+test_CPD04_fixed_trace_fields (__main__.DiagnosticsTests.test_CPD04_fixed_trace_fields) ... ok
+test_CPD05_unregistered_trace_unknown (__main__.DiagnosticsTests.test_CPD05_unregistered_trace_unknown) ... ok
+test_CPD06_malicious_material_not_persisted (__main__.DiagnosticsTests.test_CPD06_malicious_material_not_persisted) ... ERROR
+test_CPD07_output_cap_preparation_failure (__main__.DiagnosticsTests.test_CPD07_output_cap_preparation_failure) ... ok
+test_CPD08_owned_jsonl (__main__.DiagnosticsTests.test_CPD08_owned_jsonl) ... ERROR
+test_CPD09_symlink_directory_rejected (__main__.DiagnosticsTests.test_CPD09_symlink_directory_rejected) ... ok
+test_CPD10_directory_mode_uid_rejected (__main__.DiagnosticsTests.test_CPD10_directory_mode_uid_rejected) ... ok
+test_CPD11_file_symlink_mode_rejected (__main__.DiagnosticsTests.test_CPD11_file_symlink_mode_rejected) ... ERROR
+test_CPD12_fields_ordinals_rejected (__main__.DiagnosticsTests.test_CPD12_fields_ordinals_rejected) ... ok
+test_CPD13_diagnostic_failure_preserves_original_exit (__main__.DiagnosticsTests.test_CPD13_diagnostic_failure_preserves_original_exit) ... ok
+test_CPD14_launcher_wait_distinction (__main__.DiagnosticsTests.test_CPD14_launcher_wait_distinction) ... ok
+test_CPD15_partial_ambiguous_trace_unknown (__main__.DiagnosticsTests.test_CPD15_partial_ambiguous_trace_unknown) ... ok
+test_CPD16_default_shell_path_unchanged (__main__.DiagnosticsTests.test_CPD16_default_shell_path_unchanged) ... ok
+test_CPD17_provider_only_valid_config (__main__.DiagnosticsTests.test_CPD17_provider_only_valid_config) ... ok
+test_CPD18_provider_only_invalid_mode_config (__main__.DiagnosticsTests.test_CPD18_provider_only_invalid_mode_config) ... ok
+
+======================================================================
+ERROR: test_CPD06_malicious_material_not_persisted (__main__.DiagnosticsTests.test_CPD06_malicious_material_not_persisted)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/dhseo/Workspace/mediaServer/scripts/internal/codec_probe_diagnostics_test.py", line 67, in test_CPD06_malicious_material_not_persisted
+    diag.append(self.root, dict(trace.finish(), kind="probe", phase="finish", case=1, route=1))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/dhseo/Workspace/mediaServer/scripts/internal/codec_probe_diagnostics.py", line 67, in append
+    directory = owned_dir(root)
+  File "/Users/dhseo/Workspace/mediaServer/scripts/internal/codec_probe_diagnostics.py", line 26, in owned_dir
+    raise ValueError("directory")
+ValueError: directory
+
+======================================================================
+ERROR: test_CPD08_owned_jsonl (__main__.DiagnosticsTests.test_CPD08_owned_jsonl)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/dhseo/Workspace/mediaServer/scripts/internal/codec_probe_diagnostics_test.py", line 78, in test_CPD08_owned_jsonl
+    diag.append(self.root, {"kind": "diagnostic", "phase": "initialized"})
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/dhseo/Workspace/mediaServer/scripts/internal/codec_probe_diagnostics.py", line 67, in append
+    directory = owned_dir(root)
+  File "/Users/dhseo/Workspace/mediaServer/scripts/internal/codec_probe_diagnostics.py", line 26, in owned_dir
+    raise ValueError("directory")
+ValueError: directory
+
+======================================================================
+ERROR: test_CPD11_file_symlink_mode_rejected (__main__.DiagnosticsTests.test_CPD11_file_symlink_mode_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/dhseo/Workspace/mediaServer/scripts/internal/codec_probe_diagnostics_test.py", line 100, in test_CPD11_file_symlink_mode_rejected
+    diag.append(self.root, {"kind": "diagnostic", "phase": "initialized"})
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/dhseo/Workspace/mediaServer/scripts/internal/codec_probe_diagnostics.py", line 67, in append
+    directory = owned_dir(root)
+  File "/Users/dhseo/Workspace/mediaServer/scripts/internal/codec_probe_diagnostics.py", line 26, in owned_dir
+    raise ValueError("directory")
+ValueError: directory
+
+----------------------------------------------------------------------
+Ran 18 tests in 0.229s
+
+FAILED (errors=3)
+[cleanup] CPD01 absent=true
+[cleanup] CPD02 absent=true
+[cleanup] CPD03 absent=true
+[cleanup] CPD04 absent=true
+[cleanup] CPD05 absent=true
+[cleanup] CPD06 absent=true
+[cleanup] CPD07 absent=true
+[cleanup] CPD08 absent=true
+[cleanup] CPD09 absent=true
+[cleanup] CPD10 absent=true
+[cleanup] CPD11 absent=true
+[cleanup] CPD12 absent=true
+[cleanup] CPD13 absent=true
+[cleanup] CPD14 absent=true
+[cleanup] CPD15 absent=true
+[cleanup] CPD16 absent=true
+[cleanup] CPD17 absent=true
+[cleanup] CPD18 absent=true

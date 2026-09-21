@@ -1,0 +1,285 @@
+{
+  "scope": "HW03 기존 codec 실제 영향, 브라우저 제외",
+  "command": "node scripts/internal/verify_recording_media_impact.mjs --run",
+  "exit": 1,
+  "commands": [
+    {
+      "command": "verify-codecs",
+      "code": 1,
+      "signal": null,
+      "spawnError": false,
+      "bounded": true,
+      "timedOut": false,
+      "elapsedMs": 98989,
+      "pass": 23,
+      "fail": 2,
+      "skip": 0,
+      "rawSha256": "2d2614fa1f028bb6bb1c444cb1a7466628db285c0dbdff7114981f5fa96b3f7d",
+      "rawBytes": 3713
+    }
+  ],
+  "assertions": [
+    {
+      "title": "file_local_h264_aac: RTSP /default -> h264/aac",
+      "status": "pass"
+    },
+    {
+      "title": "file_local_h264_aac: RTSP /h264 -> h264/aac",
+      "status": "pass"
+    },
+    {
+      "title": "file_local_h264_aac: RTSP /h265 -> hevc/aac",
+      "status": "pass"
+    },
+    {
+      "title": "file_local_h264_aac: RTSP /opus -> h264/opus",
+      "status": "pass"
+    },
+    {
+      "title": "file_local_h264_aac: RTSP /h265/opus -> hevc/opus",
+      "status": "pass"
+    },
+    {
+      "title": "file_local_h264_aac: RTSP /pcmu -> h264/pcm_mulaw",
+      "status": "pass"
+    },
+    {
+      "title": "file_local_h264_aac: RTSP /h265/pcmu -> hevc/pcm_mulaw",
+      "status": "pass"
+    },
+    {
+      "title": "file_local_h264_aac: RTSP /pcma -> h264/pcm_alaw",
+      "status": "pass"
+    },
+    {
+      "title": "file_local_h264_aac: RTSP /h265/pcma -> hevc/pcm_alaw",
+      "status": "pass"
+    },
+    {
+      "title": "file_local_h264_aac: WebRTC signaling session created (<redacted>)",
+      "status": "pass"
+    },
+    {
+      "title": "file_local_h265_aac: RTSP /default -> h264/aac",
+      "status": "pass"
+    },
+    {
+      "title": "file_local_h265_aac: RTSP /h264 -> h264/aac",
+      "status": "pass"
+    },
+    {
+      "title": "file_local_h265_aac: RTSP /h265 -> hevc/aac",
+      "status": "pass"
+    },
+    {
+      "title": "file_local_h265_aac: RTSP /opus -> h264/opus",
+      "status": "pass"
+    },
+    {
+      "title": "file_local_h265_aac: RTSP /h265/opus -> hevc/opus",
+      "status": "pass"
+    },
+    {
+      "title": "file_local_h265_aac: RTSP /pcmu -> h264/pcm_mulaw",
+      "status": "pass"
+    },
+    {
+      "title": "file_local_h265_aac: RTSP /h265/pcmu -> hevc/pcm_mulaw",
+      "status": "pass"
+    },
+    {
+      "title": "file_local_h265_aac: RTSP /pcma -> h264/pcm_alaw",
+      "status": "pass"
+    },
+    {
+      "title": "file_local_h265_aac: RTSP /h265/pcma -> hevc/pcm_alaw",
+      "status": "pass"
+    },
+    {
+      "title": "file_local_h265_aac: WebRTC signaling session created (<redacted>)",
+      "status": "pass"
+    },
+    {
+      "title": "http_local_h264_aac: RTSP /default -> h264/aac",
+      "status": "pass"
+    },
+    {
+      "title": "http_local_h264_aac: OnMediaConfigure RTSP probe failed (route=/dhseo/h264, sourceKind=http)",
+      "status": "fail"
+    },
+    {
+      "title": "http_local_h264_aac: RTSP /opus -> h264/opus",
+      "status": "pass"
+    },
+    {
+      "title": "http_local_h264_aac: WebRTC signaling session created (<redacted>)",
+      "status": "pass"
+    },
+    {
+      "title": "http_local_h264_video_only: local HTTP launcher did not become ready",
+      "status": "fail"
+    }
+  ],
+  "sourceCases": [
+    {
+      "name": "file_local_h264_aac",
+      "enabled": true,
+      "kind": "file",
+      "network": false,
+      "launcherPort": null
+    },
+    {
+      "name": "file_local_h265_aac",
+      "enabled": true,
+      "kind": "file",
+      "network": false,
+      "launcherPort": null
+    },
+    {
+      "name": "http_local_h264_aac",
+      "enabled": true,
+      "kind": "http",
+      "network": false,
+      "launcherPort": 59638
+    },
+    {
+      "name": "http_local_h264_video_only",
+      "enabled": true,
+      "kind": "http",
+      "network": false,
+      "launcherPort": 59639
+    },
+    {
+      "name": "hls_local_h264_aac",
+      "enabled": true,
+      "kind": "hls",
+      "network": false,
+      "launcherPort": 59640
+    },
+    {
+      "name": "youtube_upload_h264_aac",
+      "enabled": false,
+      "kind": "youtube",
+      "network": true,
+      "launcherPort": null
+    },
+    {
+      "name": "youtube_live_h264_aac",
+      "enabled": false,
+      "kind": "youtube",
+      "network": true,
+      "launcherPort": null
+    },
+    {
+      "name": "rtsp_local_h265_opus",
+      "enabled": true,
+      "kind": "rtsp",
+      "network": false,
+      "launcherPort": 59641
+    },
+    {
+      "name": "rtsp_local_h264_pcmu",
+      "enabled": true,
+      "kind": "rtsp",
+      "network": false,
+      "launcherPort": 59642
+    },
+    {
+      "name": "rtsp_local_h264_pcma",
+      "enabled": true,
+      "kind": "rtsp",
+      "network": false,
+      "launcherPort": 59643
+    },
+    {
+      "name": "webrtc_local_publish_h264_opus",
+      "enabled": true,
+      "kind": "webrtc",
+      "network": false,
+      "launcherPort": null
+    },
+    {
+      "name": "rtsp_external_wowza_h264_aac",
+      "enabled": false,
+      "kind": "rtsp",
+      "network": true,
+      "launcherPort": null
+    }
+  ],
+  "diagnostics": {
+    "ffprobeTimedOut20s": true,
+    "glibBadFd": 53,
+    "niceMissingComponent": 3,
+    "uriReady": [
+      {
+        "kind": "http",
+        "tracks": 2,
+        "elapsedMs": 833
+      },
+      {
+        "kind": "http",
+        "tracks": 2,
+        "elapsedMs": 821
+      },
+      {
+        "kind": "http",
+        "tracks": 2,
+        "elapsedMs": 823
+      },
+      {
+        "kind": "http",
+        "tracks": 2,
+        "elapsedMs": 816
+      }
+    ],
+    "videoOnlyLauncherLogEmpty": true,
+    "compatibilitySetupFailure": 0,
+    "compatibilitySignalContractChanged": 0,
+    "compatibilityDynamicSetupFailure": 0,
+    "critical": 0,
+    "notNegotiated": 0,
+    "httpAacGet200": 5,
+    "httpAacBindErrorOrTraceback": 0,
+    "httpVideoOnlyGet": 0,
+    "launcherEarlyExitMessage": 0,
+    "httpVideoOnlyFailedBeforeProductRequest": true,
+    "causeConfirmed": false
+  },
+  "rawFiles": [
+    {
+      "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-media-qD95Ha/server.log",
+      "bytes": 14198,
+      "sha256": "9c83e2c2fe956043ed117801322c7be3814b247d5fb65472dcbb8e10b24ec051"
+    },
+    {
+      "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-media-qD95Ha/verify-codecs.log",
+      "bytes": 3713,
+      "sha256": "2d2614fa1f028bb6bb1c444cb1a7466628db285c0dbdff7114981f5fa96b3f7d"
+    },
+    {
+      "path": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-media-qD95Ha/codec-sources.json",
+      "bytes": 6493,
+      "sha256": "3d8d047e4df5c60d4752fa2a70249d9cc0205b86f590508343185b3eb5a511a6"
+    },
+    {
+      "path": "/private/tmp/media-server-hw-media-qD95Ha-http_local_h264_aac.http.log",
+      "bytes": 427,
+      "sha256": "744a76fb22a657032ca3cd163453ca0b5526eba55a5c3e1bbb84253199cf1512"
+    },
+    {
+      "path": "/private/tmp/media-server-hw-media-qD95Ha-http_local_h264_video_only.http.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "redaction": "원문 URL/session/caps/debug 제외, 고정 오류 계수·명령/기대/관측 및 원문 hash 보존",
+  "cleanupReady": true,
+  "processCleanup": {
+    "serverExitCode": 0,
+    "forced": false,
+    "closedTcpPorts": [59636, 59637, 59638, 59639, 59640, 59641, 59642, 59643],
+    "closedUdpPort": 62165,
+    "udpMessages": 3,
+    "openFilesUnderRoot": 0
+  }
+}
