@@ -9,6 +9,8 @@
 CPD19~24 및 실제 경로 대응 확인 후 현재 전체 회귀로 진행하며, 과거 미재현 실패 원인은 확정하지 않는다.
 현재 1번은 CPD24·AST2·실제HTTP8 및 응답/stream6개 대응·정리를 통과했다.
 [진단 신뢰성 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#진단-신뢰성-보완-결과).
+2번 현재 HW03은 codec67·ICE8 PASS 및 소유14경로 정리를 확인했다. native99/81은 동일 source hash 증거를 유지했다.
+[현재 회귀 전수 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#hw-03-현재-회귀-마감-결과).
 아래중단판정은직전실행이력이며새로운실행PASS를의미하지않는다.
 
 최신1번 진단 보완은 CPD18/HWD4·구문·등록12·링크/공백 통과. 최초 unit3ERROR와

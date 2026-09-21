@@ -15,7 +15,7 @@ CPD04 fixture는 bare status만 처리했다. 따라서 이전 **진단 완료**
 | 번호 | 사용자 지시 | 처리 상태 | 결과/완료 기준 | 근거 |
 | --- | --- | --- | --- | --- |
 | 1 | 진단 신뢰성·미재현 기준 | 완료 | CPD24·AST2·실제HTTP8 PASS, RTSP6개 응답/stream 대응·정리 | 아래 진단 신뢰성 결과 |
-| 2 | HW-03 마감 | 미실행 | 현재 codec67·ICE8, 정상 종료·정리. 과거 실패 이력은 유지 | HW-A04 |
+| 2 | HW-03 마감 | 완료 | 현재 codec67·ICE8 PASS, 정상 종료·정리. 과거 실패 이력 유지 | HW-A04·현재 회귀 결과 |
 | 3 | PREP-01 | 미실행 | 초기 ID·복합 요구·ENV12·최종 실행 연결 | LP26 |
 | 4 | CLOSE-01·S10 고정 | 미실행 | 구형 사용처·대체 증거·문서 정합·증거 유효성 판정 | roadmap S10 |
 | 5 | S11 단기 안정화 | 미실행 | 고정 source의 최종 단기 목록 실제 실행 | roadmap S11·AGENTS7 |
@@ -124,6 +124,142 @@ token start/end/consumed: 전용 집계 없어 미집계. elapsed는 명령 측�
 
 문서 검사: `./server.sh verify-docs-links` exit0·0.046초, md288/link9529/image22/anchor149/fail0.
 `git diff --check` exit0·출력0. 테스트 raw 원문 대신 안전한 결과와 해시만 보존했다.
+
+### HW-03 현재 회귀 마감 결과
+
+1번 `05fb43ef` 후 `node scripts/internal/verify_recording_media_impact.mjs --run`을 한 번 실행했다.
+codec67 PASS/0FAIL·외부3 미실행(exit0·339,836ms) → ICE8 PASS/0FAIL(exit0·17,866ms).
+전체359,828ms·exit0이며 제품 SHA2ce43399…9fd7은 이전과 동일하다.
+[안전 원출력](lp27-hw03-media-02.log)·[고정 진단](lp27-hw03-diagnostic-02.jsonl)을 보존한다.
+58개 RTSP 모두 exit0·response_observation=observed·stdout audio/video 각각1이다.
+서버 exit0·forced false, TCP8·UDP63936 종료를 확인했다.
+기존 native self99/실제81의 두 파일 SHA(6dca697b…9ff/1f18e1bc…161)가 현재와 같아 증거를 유지했다.
+메인이 native diff와 출력/후보선택/NULL 이후 관측·상한을 직접 검토했다. 동일 검사를 인계 때문에 반복하지 않았다.
+과거 두 미재현 실패는 historical FAIL/원인 미확정 그대로다. 이번 결과는 **현재 HW03 회귀 마감**이지 원인 수정 입증이 아니다.
+resourceTrendPass/UI/full release는 false다. CPU의 기존 단기 증가 관측을 장시간 성능 보장으로 바꾸지 않는다.
+서버 고정 관측 계수: {"rtsp.egress.started":58,"rtsp.media.configured":58,"rtsp.media.unprepared":58,"rtsp.egress.stopped":58,"rtsp.egress.destroyed":58,"nice-missing-component":11,"uri-sample-ready":20,"uri-ready":12}. overflow=false; 첫RTP는 직접 관측하지 않았다.
+
+| 제목 | 테스트내용 | pass/fail | 비고 |
+| --- | --- | --- | --- |
+| HW-MEDIA03 owned server ready, loopback ICE only | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| file_local_h264_aac: RTSP /default -> h264/aac | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| file_local_h264_aac: RTSP /h264 -> h264/aac | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| file_local_h264_aac: RTSP /h265 -> hevc/aac | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| file_local_h264_aac: RTSP /opus -> h264/opus | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| file_local_h264_aac: RTSP /h265/opus -> hevc/opus | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| file_local_h264_aac: RTSP /pcmu -> h264/pcm_mulaw | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| file_local_h264_aac: RTSP /h265/pcmu -> hevc/pcm_mulaw | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| file_local_h264_aac: RTSP /pcma -> h264/pcm_alaw | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| file_local_h264_aac: RTSP /h265/pcma -> hevc/pcm_alaw | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| file_local_h264_aac: WebRTC signaling session created (<redacted>) | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| file_local_h265_aac: RTSP /default -> h264/aac | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| file_local_h265_aac: RTSP /h264 -> h264/aac | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| file_local_h265_aac: RTSP /h265 -> hevc/aac | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| file_local_h265_aac: RTSP /opus -> h264/opus | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| file_local_h265_aac: RTSP /h265/opus -> hevc/opus | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| file_local_h265_aac: RTSP /pcmu -> h264/pcm_mulaw | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| file_local_h265_aac: RTSP /h265/pcmu -> hevc/pcm_mulaw | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| file_local_h265_aac: RTSP /pcma -> h264/pcm_alaw | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| file_local_h265_aac: RTSP /h265/pcma -> hevc/pcm_alaw | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| file_local_h265_aac: WebRTC signaling session created (<redacted>) | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| http_local_h264_aac: RTSP /default -> h264/aac | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| http_local_h264_aac: RTSP /h264 -> h264/aac | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| http_local_h264_aac: RTSP /opus -> h264/opus | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| http_local_h264_aac: WebRTC signaling session created (<redacted>) | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| http_local_h264_video_only: RTSP /default -> h264/aac | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| http_local_h264_video_only: RTSP /h264 -> h264/aac | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| http_local_h264_video_only: RTSP /h265 -> hevc/aac | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| http_local_h264_video_only: WebRTC signaling session created (<redacted>) | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| hls_local_h264_aac: RTSP /default -> h264/aac | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| hls_local_h264_aac: RTSP /h264 -> h264/aac | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| hls_local_h264_aac: RTSP /opus -> h264/opus | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| hls_local_h264_aac: WebRTC signaling session created (<redacted>) | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h265_opus: RTSP /default -> h264/aac | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h265_opus: RTSP /h264 -> h264/aac | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h265_opus: RTSP /h265 -> hevc/aac | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h265_opus: RTSP /opus -> h264/opus | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h265_opus: RTSP /h265/opus -> hevc/opus | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h265_opus: RTSP /pcmu -> h264/pcm_mulaw | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h265_opus: RTSP /h265/pcmu -> hevc/pcm_mulaw | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h265_opus: RTSP /pcma -> h264/pcm_alaw | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h265_opus: RTSP /h265/pcma -> hevc/pcm_alaw | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h265_opus: WebRTC signaling session created (<redacted>) | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h264_pcmu: RTSP /default -> h264/aac | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h264_pcmu: RTSP /h264 -> h264/aac | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h264_pcmu: RTSP /h265 -> hevc/aac | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h264_pcmu: RTSP /opus -> h264/opus | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h264_pcmu: RTSP /h265/opus -> hevc/opus | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h264_pcmu: RTSP /pcmu -> h264/pcm_mulaw | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h264_pcmu: RTSP /h265/pcmu -> hevc/pcm_mulaw | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h264_pcmu: RTSP /pcma -> h264/pcm_alaw | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h264_pcmu: RTSP /h265/pcma -> hevc/pcm_alaw | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h264_pcmu: WebRTC signaling session created (<redacted>) | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h264_pcma: RTSP /default -> h264/aac | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h264_pcma: RTSP /h264 -> h264/aac | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h264_pcma: RTSP /h265 -> hevc/aac | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h264_pcma: RTSP /opus -> h264/opus | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h264_pcma: RTSP /h265/opus -> hevc/opus | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h264_pcma: RTSP /pcmu -> h264/pcm_mulaw | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h264_pcma: RTSP /h265/pcmu -> hevc/pcm_mulaw | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h264_pcma: RTSP /pcma -> h264/pcm_alaw | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h264_pcma: RTSP /h265/pcma -> hevc/pcm_alaw | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| rtsp_local_h264_pcma: WebRTC signaling session created (<redacted>) | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| webrtc_local_publish_h264_opus: WebRTC signaling session created (<redacted>) | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| webrtc_local_publish_h264_opus: RTSP /default -> h264/aac | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| webrtc_local_publish_h264_opus: RTSP /h264 -> h264/aac | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| webrtc_local_publish_h264_opus: RTSP /h265 -> hevc/aac | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| webrtc_local_publish_h264_opus: RTSP /opus -> h264/opus | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| STUN URI 형식 확인 | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| TURN URI 형식 확인 | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| HTTP health ok | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| WebRTC browser ICE config 확인 | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| WebRTC session 생성: <redacted> | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| ICE candidate 수집 확인 | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| ICE transport policy 확인: all | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| WHIP publish -> WebRTC signaling 확인 | --run의 해당 명령 exit0 | PASS | codec/ICE 두 명령 원출력에 각각 보존 |
+| 제품 정상 종료 | exit0·signal null·forced false | PASS | 기존 기준 |
+| TCP61436 정리 | closed=true | PASS | 실행 소유 port |
+| TCP61437 정리 | closed=true | PASS | 실행 소유 port |
+| TCP61438 정리 | closed=true | PASS | 실행 소유 port |
+| TCP61439 정리 | closed=true | PASS | 실행 소유 port |
+| TCP61440 정리 | closed=true | PASS | 실행 소유 port |
+| TCP61441 정리 | closed=true | PASS | 실행 소유 port |
+| TCP61442 정리 | closed=true | PASS | 실행 소유 port |
+| TCP61443 정리 | closed=true | PASS | 실행 소유 port |
+| UDP63936 정리 | closed=true·messages20 | PASS | 외부 STUN 사용 안 함 |
+
+| 미실행/제외 항목 | 사유 | 완료 evidence 사용 |
+| --- | --- | --- |
+| youtube_upload_h264_aac: disabled in config | 기존 외부 비활성 config | 불가 |
+| youtube_live_h264_aac: disabled in config | 기존 외부 비활성 config | 불가 |
+| rtsp_external_wowza_h264_aac: disabled in config | 기존 외부 비활성 config | 불가 |
+| 실제 브라우저·장시간 | 이번 단계 범위 밖 | 불가 |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| TMPDIR/media-server-hw-media-DYYJKi | 실행 소유 700·UID501 | 2006484B | 최소 안전증거 이관 후 삭제 | rm0·부재 확인0 | execution.json 소유 manifest·symlink false |
+| /private/tmp/media-server-hw-media-DYYJKi-http_local_h264_aac.http.log | 실행 소유 600·UID501 | 427B | 최소 안전증거 이관 후 삭제 | rm0·부재 확인0 | execution.json 소유 manifest·symlink false |
+| /private/tmp/media-server-hw-media-DYYJKi-http_local_h264_video_only.http.log | 실행 소유 600·UID501 | 471B | 최소 안전증거 이관 후 삭제 | rm0·부재 확인0 | execution.json 소유 manifest·symlink false |
+| /private/tmp/media-server-hw-media-DYYJKi-hls_local_h264_aac.hls.log | 실행 소유 600·UID501 | 2488B | 최소 안전증거 이관 후 삭제 | rm0·부재 확인0 | execution.json 소유 manifest·symlink false |
+| /private/tmp/media-server-hw-media-DYYJKi-hls_local_h264_aac_hls | 실행 소유 700·UID501 | 1418800B | 최소 안전증거 이관 후 삭제 | rm0·부재 확인0 | execution.json 소유 manifest·symlink false |
+| /private/tmp/media-server-hw-media-DYYJKi-rtsp_local_h265_opus.launcher.log | 실행 소유 600·UID501 | 74B | 최소 안전증거 이관 후 삭제 | rm0·부재 확인0 | execution.json 소유 manifest·symlink false |
+| /private/tmp/media-server-hw-media-DYYJKi-rtsp_local_h264_pcmu.launcher.log | 실행 소유 600·UID501 | 74B | 최소 안전증거 이관 후 삭제 | rm0·부재 확인0 | execution.json 소유 manifest·symlink false |
+| /private/tmp/media-server-hw-media-DYYJKi-rtsp_local_h264_pcma.launcher.log | 실행 소유 600·UID501 | 74B | 최소 안전증거 이관 후 삭제 | rm0·부재 확인0 | execution.json 소유 manifest·symlink false |
+| /private/tmp/media-server-hw-media-DYYJKi-webrtc_local_publish_h264_opus.publisher.log | 실행 소유 600·UID501 | 175B | 최소 안전증거 이관 후 삭제 | rm0·부재 확인0 | execution.json 소유 manifest·symlink false |
+| /private/tmp/media_server_webrtc-ice-1789994086-79058_candidates.ndjson | 실행 소유 600·UID501 | 3918B | 최소 안전증거 이관 후 삭제 | rm0·부재 확인0 | execution.json 소유 manifest·symlink false |
+| /private/tmp/media_server_webrtc-ice-1789994086-79058_session.json | 실행 소유 600·UID501 | 1200B | 최소 안전증거 이관 후 삭제 | rm0·부재 확인0 | execution.json 소유 manifest·symlink false |
+| /private/tmp/media_server_webrtc-ice-1789994086-79058_summary.json | 실행 소유 600·UID501 | 287B | 최소 안전증거 이관 후 삭제 | rm0·부재 확인0 | execution.json 소유 manifest·symlink false |
+| /private/tmp/media_server_webrtc-ice-1789994086-79058_webrtc_config.json | 실행 소유 600·UID501 | 222B | 최소 안전증거 이관 후 삭제 | rm0·부재 확인0 | execution.json 소유 manifest·symlink false |
+| /private/tmp/media_server_webrtc-ice-1789994086-79058_whip.log | 실행 소유 600·UID501 | 2299B | 최소 안전증거 이관 후 삭제 | rm0·부재 확인0 | execution.json 소유 manifest·symlink false |
+
+- 원문 server.log: 114303B·SHA256 c1f04ec6656fe96774ebb482d36d6a8486b105b14c7ef2213b3aba39c3711915. 원문은 소유 root 밖에 보존하지 않음.
+- 원문 verify-codecs.log: 11310B·SHA256 d409e5b59dec049870ce2702996bfe94699f06be67fc5fb8e92ea3ca296b115a. 원문은 소유 root 밖에 보존하지 않음.
+- 원문 verify-webrtc-ice.log: 1609B·SHA256 f633f0005a2c8156ebca159127559a1f3ddb506ec33f3a8bec23ad1d5b35e204. 원문은 소유 root 밖에 보존하지 않음.
+
+token start/end/consumed: 전용 집계 없어 미집계, elapsed/source는 위 actual 로그.
+
+HW03 커밋 전 `verify-docs-links` exit0·0.042초(md288/link9533/image22/anchor151/fail0),
+`git diff --check` exit0. 현재 제품 변경 없음. 1번 커밋05fb43ef와 분리해 native 회귀 두 파일·이 결과만 커밋한다.
 
 ## 최신 승인: 진단 보완부터 S11 단기 안정화까지
 

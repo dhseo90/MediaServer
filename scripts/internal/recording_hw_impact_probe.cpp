@@ -1,7 +1,9 @@
-// 실제 RTSP builder graph 경계 검사. 네트워크/클라이언트 end-to-end 검사가 아니다.
+// 실제 RTSP builder 및 로컬 uridecodebin 경계 검사. 네트워크/전체 worker 검사가 아니다.
 #include "recording_media_test_fixture.h"
 #include "ingress/gst_pipeline_builder.h"
 #include "core/gst_decode_compatibility.h"
+#include "recording_process_memory_probe.h"
+#include "recording_writer_decode_diagnostics.h"
 #include <gst/app/gstappsrc.h>
 #include <array>
 #include <chrono>
@@ -14,6 +16,8 @@
 #include <thread>
 #include <memory>
 #include <atomic>
+#include <sys/resource.h>
+#include <limits>
 #if defined(__APPLE__)
 #include <TargetConditionals.h>
 #endif
@@ -219,6 +223,17 @@ struct Boundary {
     std::size_t count=0, events=0, eos=0, qos=0;
     bool invalid=false;
     bool overflow=false;
+    void Increment(std::size_t& value) {
+        if(value==std::numeric_limits<std::size_t>::max())overflow=true;
+        else ++value;
+    }
+    void Event(GstEventType type) {
+        // 저장되는 event payload는 CAPS/SEGMENT의 고정 배열뿐이다.
+        // TAG 등 전체 횟수는 scalar로 포화 계수하며 배열 상한과 혼동하지 않는다.
+        Increment(events);
+        if(type==GST_EVENT_EOS)Increment(eos);
+        if(type==GST_EVENT_QOS)Increment(qos);
+    }
     void ObserveCaps(GstCaps* value) {
         if(caps_count==caps.size()) { overflow=true;return; }
         auto& c=caps[caps_count++];
@@ -278,8 +293,27 @@ std::string Safe(const char* value) {
     for(unsigned char c:result) if(!g_ascii_isalnum(c)&&c!='_'&&c!='-'&&c!='.') return "invalid";
     return result;
 }
+struct DecoderActivity {std::size_t sink=0,src=0;bool incomplete=false;};
+int SelectDecoder(const std::array<DecoderActivity,8>& candidates,unsigned count) {
+    if(count>candidates.size())return -1;
+    int selected=-1;
+    for(unsigned i=0;i<count;++i) {
+        const auto& c=candidates[i];
+        if(c.incomplete)return -1;
+        if(!c.sink&&!c.src)continue;
+        if(!c.sink||!c.src||selected!=-1)return -1;
+        selected=static_cast<int>(i);
+    }
+    return selected;
+}
 struct Trace {
-    struct Context { Trace* owner=nullptr; unsigned index=0; GstPad* pad=nullptr; gulong id=0; };
+    struct Context { Trace* owner=nullptr; unsigned index=0; GstPad* pad=nullptr; gulong id=0; Boundary* boundary=nullptr; };
+    struct Candidate {
+        std::array<Boundary,2> boundaries{};
+        std::array<Context,2> contexts{};
+        std::string factory="none",plugin="none",version="none";
+        guint rank=0;
+    };
     std::mutex mutex;
     std::array<Boundary,3> boundaries{};
     std::array<Context,3> contexts{};
@@ -287,18 +321,21 @@ struct Trace {
     std::string plugin="none",version="none";
     guint rank=0;
     unsigned decoders=0;
-    std::array<std::string,8> candidate_factories{};
+    std::array<Candidate,8> candidates{};
+    int selected_decoder=-1;
     bool unavailable=false;
     GstElement* pipeline=nullptr;
     DrainCapture* drain=nullptr;
     gulong handler=0;
     explicit Trace(GstElement* p,DrainCapture* capture=nullptr):pipeline(p),drain(capture) {
-        for(unsigned i=0;i<contexts.size();++i) contexts[i]={this,i,nullptr,0};
+        for(unsigned i=0;i<contexts.size();++i) contexts[i]={this,i,nullptr,0,&boundaries[i]};
+        for(auto& candidate:candidates)for(unsigned i=0;i<2;++i)
+            candidate.contexts[i]={this,i,nullptr,0,&candidate.boundaries[i]};
         handler=g_signal_connect(p,"deep-element-added",G_CALLBACK(Added),this);
     }
     static GstPadProbeReturn Probe(GstPad*,GstPadProbeInfo* info,gpointer data) {
         auto& context=*static_cast<Context*>(data);auto& trace=*context.owner;
-        std::lock_guard<std::mutex> lock(trace.mutex);auto& b=trace.boundaries[context.index];
+        std::lock_guard<std::mutex> lock(trace.mutex);auto& b=*context.boundary;
         const auto type=GST_PAD_PROBE_INFO_TYPE(info);
         const auto before=b.count;
         if(type&GST_PAD_PROBE_TYPE_BUFFER) b.Buffer(GST_PAD_PROBE_INFO_BUFFER(info));
@@ -309,13 +346,11 @@ struct Trace {
         }
         if(trace.drain)for(std::size_t i=before;i<b.count;++i)trace.drain->Record({DrainKind::BoundaryBuffer,b.rows[i].pts,b.rows[i].dts,context.index});
         if(type&(GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM|GST_PAD_PROBE_TYPE_EVENT_UPSTREAM)) {
-            if(++b.events>16) b.overflow=true;
             auto* event=GST_PAD_PROBE_INFO_EVENT(info);
+            b.Event(event?GST_EVENT_TYPE(event):GST_EVENT_UNKNOWN);
             if(event&&GST_EVENT_TYPE(event)==GST_EVENT_EOS) {
-                ++b.eos;
                 if(trace.drain)trace.drain->Record({DrainKind::BoundaryEos,0,0,context.index});
             }
-            if(event&&GST_EVENT_TYPE(event)==GST_EVENT_QOS) ++b.qos;
             if(event&&GST_EVENT_TYPE(event)==GST_EVENT_CAPS) {
                 GstCaps* caps=nullptr;gst_event_parse_caps(event,&caps);b.ObserveCaps(caps);
             }
@@ -330,7 +365,9 @@ struct Trace {
         return GST_PAD_PROBE_OK;
     }
     void Attach(unsigned index,GstElement* element,const char* name) {
-        auto& c=contexts[index];
+        AttachContext(contexts[index],element,name);
+    }
+    void AttachContext(Context& c,GstElement* element,const char* name) {
         if(c.pad) { unavailable=true;return; }
         c.pad=gst_element_get_static_pad(element,name);
         if(!c.pad) { unavailable=true;return; }
@@ -345,17 +382,37 @@ struct Trace {
         const char* klass=gst_element_factory_get_metadata(f,GST_ELEMENT_METADATA_KLASS);
         if(!klass||!g_strrstr(klass,"Decoder")||!g_strrstr(klass,"Video"))return;
         std::lock_guard<std::mutex> lock(t.mutex);
-        if(t.decoders<t.candidate_factories.size())t.candidate_factories[t.decoders]=Safe(gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(f)));
-        if(++t.decoders!=1) { t.unavailable=true;return; }
-        t.factory=Safe(gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(f)));
-        t.rank=gst_plugin_feature_get_rank(GST_PLUGIN_FEATURE(f));
+        if(t.decoders>=t.candidates.size()) {t.decoders=9;t.unavailable=true;return;}
+        auto& candidate=t.candidates[t.decoders++];
+        // drain debug는 인스턴스별 구분이 없으므로 복수 후보의 원인 추적을 합치지 않는다.
+        if(t.drain&&t.decoders>1)t.drain->callback_failed.store(true);
+        candidate.factory=Safe(gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(f)));
+        candidate.rank=gst_plugin_feature_get_rank(GST_PLUGIN_FEATURE(f));
         auto* plugin=gst_plugin_feature_get_plugin(GST_PLUGIN_FEATURE(f));
         if(plugin) {
-            t.plugin=Safe(gst_plugin_get_name(plugin));t.version=Safe(gst_plugin_get_version(plugin));
+            candidate.plugin=Safe(gst_plugin_get_name(plugin));candidate.version=Safe(gst_plugin_get_version(plugin));
             gst_object_unref(plugin);
         }
-        t.Attach(0,element,"sink");t.Attach(1,element,"src");
+        t.AttachContext(candidate.contexts[0],element,"sink");t.AttachContext(candidate.contexts[1],element,"src");
         } catch(...) { std::lock_guard<std::mutex> lock(t.mutex);t.unavailable=true; }
+    }
+    bool Select() {
+        // 호출자는 NULL 완료 후에만 호출한다. callbacks와 판정용 복사본은 겹치지 않는다.
+        std::array<DecoderActivity,8> activity{};
+        for(unsigned i=0;i<decoders&&i<candidates.size();++i) {
+            const auto& c=candidates[i];
+            activity[i]={c.boundaries[0].count,c.boundaries[1].count,
+                !c.contexts[0].id||!c.contexts[1].id||c.boundaries[0].invalid||c.boundaries[1].invalid||
+                c.boundaries[0].overflow||c.boundaries[1].overflow};
+        }
+        selected_decoder=SelectDecoder(activity,decoders);
+        // 실패 시 첫 후보 관측도 버리지 않는다. 이를 선택 성공으로 취급하지 않는다.
+        if(decoders) {
+            const auto& c=candidates[selected_decoder<0?0:static_cast<unsigned>(selected_decoder)];
+            boundaries[0]=c.boundaries[0];boundaries[1]=c.boundaries[1];
+            factory=c.factory;plugin=c.plugin;version=c.version;rank=c.rank;
+        }
+        return !unavailable&&selected_decoder>=0&&contexts[2].id;
     }
     void Stop() noexcept {
         const auto stopped=gst_element_set_state(pipeline,GST_STATE_NULL);
@@ -373,11 +430,22 @@ struct Trace {
             if(c.id)gst_pad_remove_probe(c.pad,c.id);
             gst_object_unref(c.pad);
         }
+        for(auto& candidate:candidates)for(auto& c:candidate.contexts)if(c.pad) {
+            if(c.id)gst_pad_remove_probe(c.pad,c.id);
+            gst_object_unref(c.pad);
+        }
     }
     void Report(bool full_rows) const {
         constexpr const char* names[]={"decoder-sink","decoder-src","overlay-sink"};
         std::cout<<"[decoder] factory="<<factory<<" plugin="<<plugin<<" version="<<version<<" rank="<<rank<<'\n';
-        for(unsigned i=0;i<decoders&&i<candidate_factories.size();++i)std::cout<<"[decoder-candidate] ordinal="<<i<<" factory="<<candidate_factories[i]<<'\n';
+        for(unsigned i=0;i<decoders&&i<candidates.size();++i) {
+            const auto& c=candidates[i];
+            std::cout<<"[decoder-candidate] ordinal="<<i<<" factory="<<c.factory<<" selected="<<(selected_decoder==static_cast<int>(i))
+                <<" sink_count="<<c.boundaries[0].count<<" src_count="<<c.boundaries[1].count
+                <<" sink_caps="<<c.boundaries[0].caps_count<<" src_caps="<<c.boundaries[1].caps_count
+                <<" sink_eos="<<c.boundaries[0].eos<<" src_eos="<<c.boundaries[1].eos
+                <<" overflow="<<(c.boundaries[0].overflow||c.boundaries[1].overflow)<<'\n';
+        }
         for(unsigned n=0;n<boundaries.size();++n) {
             const auto& b=boundaries[n];
             std::cout<<"[boundary] name="<<names[n]<<" factory="<<factory<<" count="<<b.count
@@ -416,8 +484,8 @@ struct ParsedBranch {
     GstElement* bin=nullptr; // 반환 ref는 호출자가 소유하거나 pipeline으로 이전한다.
     bool linked=false;
 };
-ParsedBranch CreateProductBranch() {
-    const auto launch=ingress::BuildFactoryLaunch(ingress::VideoCodec::H264,media::CodecId::Unknown);
+ParsedBranch CreateProductBranch(ingress::VideoCodec output=ingress::VideoCodec::H264) {
+    const auto launch=ingress::BuildFactoryLaunch(output,media::CodecId::Unknown);
     GError* error=nullptr;
     // GStreamer 1.28.1 rtsp-media-factory.c default_create_element(1991)와 같은 방식.
     // gstutils.c의 parse_bin(..., TRUE) 자동 ghost는 동적 연결 대기 queue sink도
@@ -502,11 +570,14 @@ StructureFacts InspectProductBranch(GstElement* branch) {
     if(pay)gst_object_unref(pay);
     return facts;
 }
-Points Input(const Encoded& input,const char* name) {
+bool ValidInputTimestamp(const media::Packet& p,bool allow_unknown_dts) {
+    return p.pts>=0&&(p.dts>=0||(allow_unknown_dts&&p.codec==media::CodecId::VP8&&p.dts==-1))&&p.observation&&p.observation->duration_ns;
+}
+Points Input(const Encoded& input,const char* name,bool allow_unknown_dts=false) {
     Points expected;auto* sum=g_checksum_new(G_CHECKSUM_SHA256);std::size_t bytes=0;
     for(std::size_t i=0;i<input.packets.size();++i) {
         const auto& p=input.packets[i];
-        if(p.pts<0||p.dts<0||!p.observation||!p.observation->duration_ns) {
+        if(!ValidInputTimestamp(p,allow_unknown_dts)) {
             g_checksum_free(sum);throw std::runtime_error("input-invalid");
         }
         expected.push_back(static_cast<guint64>(p.pts));bytes+=p.payload.size();
@@ -517,9 +588,61 @@ Points Input(const Encoded& input,const char* name) {
     std::cout<<"[input] case="<<name<<" count="<<expected.size()<<" bytes="<<bytes
         <<" sha256="<<g_checksum_get_string(sum)<<'\n';g_checksum_free(sum);return expected;
 }
-int Observe(const Encoded& input,const Points& expected,const char* name,unsigned round,bool diagnosis=false,bool paced=false,bool mitigate=false) {
+struct RtpFacts {
+    unsigned events=0,caps=0,eos=0,encoding=0;bool invalid=false;
+    bool caps_shape_invalid=false,media_name_matches=true;
+    bool counter_overflow=false;
+    // TAG의 정상 반복은 저장량 증가가 아니다. 원문 없이 고정 enum별 횟수만 센다.
+    std::array<unsigned,6> event_counts{};
+    void Event(GstEventType type) {
+        const unsigned bucket=type==GST_EVENT_CAPS?0:type==GST_EVENT_EOS?1:
+            type==GST_EVENT_STREAM_START?2:type==GST_EVENT_SEGMENT?3:type==GST_EVENT_TAG?4:5;
+        if(events==G_MAXUINT||event_counts[bucket]==G_MAXUINT){counter_overflow=true;invalid=true;return;}
+        ++events;++event_counts[bucket];
+    }
+    bool Overflow() const {return counter_overflow||caps>16;}
+    bool Matches(unsigned expected) const {return !invalid&&!Overflow()&&caps>0&&eos==1&&encoding==expected;}
+};
+struct RtpCapture {
+    Trace& owner;GstPad* pad=nullptr;gulong id=0;std::mutex mutex;RtpFacts facts;
+    explicit RtpCapture(Trace& trace,GstElement* branch):owner(trace) {
+        auto* pay=gst_bin_get_by_name(GST_BIN(branch),"pay0");
+        if(pay) {pad=gst_element_get_static_pad(pay,"src");gst_object_unref(pay);}
+        if(pad)id=gst_pad_add_probe(pad,GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM,Probe,this,nullptr);
+    }
+    static GstPadProbeReturn Probe(GstPad*,GstPadProbeInfo* info,gpointer data) noexcept {
+        auto& self=*static_cast<RtpCapture*>(data);
+        try {
+            std::lock_guard<std::mutex> lock(self.mutex);auto& f=self.facts;
+            auto* event=GST_PAD_PROBE_INFO_EVENT(info);
+            if(!event){f.invalid=true;return GST_PAD_PROBE_OK;}
+            f.Event(GST_EVENT_TYPE(event));
+            if(f.counter_overflow)return GST_PAD_PROBE_OK;
+            if(GST_EVENT_TYPE(event)==GST_EVENT_EOS)++f.eos;
+            if(event&&GST_EVENT_TYPE(event)==GST_EVENT_CAPS) {
+                if(f.caps>16)return GST_PAD_PROBE_OK;
+                ++f.caps;GstCaps* caps=nullptr;gst_event_parse_caps(event,&caps);
+                if(!caps||!gst_caps_is_fixed(caps)||gst_caps_get_size(caps)!=1) {f.invalid=true;f.caps_shape_invalid=true;return GST_PAD_PROBE_OK;}
+                const auto* s=gst_caps_get_structure(caps,0);const char* encoding=gst_structure_get_string(s,"encoding-name");
+                const unsigned code=encoding&&std::string_view(encoding)=="H264"?1:encoding&&std::string_view(encoding)=="H265"?2:0;
+                f.media_name_matches=f.media_name_matches&&gst_structure_has_name(s,"application/x-rtp");
+                if(!f.media_name_matches||!code||(f.encoding&&f.encoding!=code))f.invalid=true;
+                f.encoding=code;
+            }
+        } catch(...) {std::_Exit(2);}
+        return GST_PAD_PROBE_OK;
+    }
+    ~RtpCapture(){owner.Stop();if(pad){if(id)gst_pad_remove_probe(pad,id);gst_object_unref(pad);}}
+};
+struct Observation {bool full=false,selected=false,rtp=false;int result=2;const char* reason="preparation";bool eos=false;};
+struct ObserveOptions {
+    ingress::VideoCodec output=ingress::VideoCodec::H264;
+    bool emit_checks=true,collect_rtp=false;
+    Observation* observation=nullptr;
+};
+int Observe(const Encoded& input,const Points& expected,const char* name,unsigned round,bool diagnosis=false,bool paced=false,bool mitigate=false,ObserveOptions options={}) {
     Graph graph;if(!graph.pipeline)return 2;
-    auto parsed=CreateProductBranch();auto* branch=parsed.bin;
+    auto parsed=CreateProductBranch(options.output);auto* branch=parsed.bin;
     if(!branch)return 2;
     if(!gst_bin_add(GST_BIN(graph.pipeline),branch)) { gst_object_unref(branch);return 2; }
     const auto facts=InspectProductBranch(branch);
@@ -537,6 +660,8 @@ int Observe(const Encoded& input,const Points& expected,const char* name,unsigne
     std::unique_ptr<DrainCapture> capture;
     if(diagnosis)capture=std::make_unique<DrainCapture>();
     Trace trace(graph.pipeline,capture.get());trace.Attach(2,overlay,"sink");gst_object_unref(overlay);
+    std::unique_ptr<RtpCapture> rtp;
+    if(options.collect_rtp) {rtp=std::make_unique<RtpCapture>(trace,branch);if(!rtp->id)return 2;}
     if(capture)capture->Install();
     std::cout<<"[attempt] case="<<name<<" round="<<round<<" pacing="<<(paced?"dts-steady":"burst")<<" mitigation="<<mitigate<<" scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset\n";
     bool preparation=gst_element_set_state(graph.pipeline,GST_STATE_PLAYING)!=GST_STATE_CHANGE_FAILURE;
@@ -551,7 +676,7 @@ int Observe(const Encoded& input,const Points& expected,const char* name,unsigne
         auto* b=gst_buffer_new_allocate(nullptr,p.payload.size(),nullptr);
         if(!b) { preparation=false;break; }
         gst_buffer_fill(b,0,p.payload.data(),p.payload.size());
-        GST_BUFFER_PTS(b)=static_cast<guint64>(p.pts);GST_BUFFER_DTS(b)=static_cast<guint64>(p.dts);
+        GST_BUFFER_PTS(b)=static_cast<guint64>(p.pts);GST_BUFFER_DTS(b)=p.dts==-1?GST_CLOCK_TIME_NONE:static_cast<guint64>(p.dts);
         // EgressSession::PushToAppSrc와 동일하게 duration은 설정하지 않는다.
         if(!p.is_key_frame)GST_BUFFER_FLAG_SET(b,GST_BUFFER_FLAG_DELTA_UNIT);
         const auto flow=gst_app_src_push_buffer(GST_APP_SRC(graph.src),b);
@@ -598,19 +723,34 @@ int Observe(const Encoded& input,const Points& expected,const char* name,unsigne
     gst_object_unref(bus);
     trace.Stop();
     if(capture)capture->Remove();
-    const bool visible=!trace.unavailable&&trace.decoders==1&&trace.contexts[0].id&&trace.contexts[1].id&&trace.contexts[2].id;
+    const bool visible=trace.Select();
     const bool input_ok=Matches(expected,trace.boundaries[0]);
     const bool output_ok=Matches(expected,trace.boundaries[1]);
     const bool overlay_ok=Matches(expected,trace.boundaries[2]);
     const auto product_verdict=Judge(expected,trace.boundaries,preparation,visible,eos,errors,warnings);
     auto verdict=capture&&!capture->Complete()?Verdict{2,"drain-observation-incomplete"}:product_verdict;
-    if(mitigate) {
-        const bool selected=visible&&!(kHostMacos&&trace.plugin=="applemedia"&&trace.version=="1.28.1"&&
+    const bool h264_input=input.descriptor.tracks.front().codec==media::CodecId::H264;
+    const bool selected=visible&&!(h264_input&&kHostMacos&&trace.plugin=="applemedia"&&trace.version=="1.28.1"&&
             (trace.factory=="vtdec"||trace.factory=="vtdec_hw"));
-        std::cout<<(product_verdict.code==0?"[pass] ":"[fail] ")<<name<<" exact full PTS and EOS\n";
-        std::cout<<(selected?"[pass] ":"[fail] ")<<name<<" selected factory respects exact compatibility tuple\n";
+    if(mitigate) {
+        if(options.emit_checks) {
+            std::cout<<(product_verdict.code==0?"[pass] ":"[fail] ")<<name<<" exact full PTS and EOS\n";
+            std::cout<<(selected?"[pass] ":"[fail] ")<<name<<" selected factory respects exact compatibility tuple\n";
+        }
         if(!selected&&verdict.code==0)verdict={1,"mitigation-factory-selection"};
     }
+    const bool rtp_ok=rtp&&rtp->facts.Matches(options.output==ingress::VideoCodec::H264?1:2);
+    if(rtp) {
+        std::cout<<"[rtp] encoding="<<(rtp->facts.encoding==1?"H264":rtp->facts.encoding==2?"H265":"unknown")
+            <<" caps="<<rtp->facts.caps<<" eos="<<rtp->facts.eos<<" invalid="<<rtp->facts.invalid<<" matched="<<rtp_ok
+            <<" events="<<rtp->facts.events<<" event_overflow="<<rtp->facts.Overflow()
+            <<" caps_shape_invalid="<<rtp->facts.caps_shape_invalid<<" media_name_matches="<<rtp->facts.media_name_matches
+            <<" event_caps="<<rtp->facts.event_counts[0]<<" event_eos="<<rtp->facts.event_counts[1]
+            <<" event_stream_start="<<rtp->facts.event_counts[2]<<" event_segment="<<rtp->facts.event_counts[3]
+            <<" event_tag="<<rtp->facts.event_counts[4]<<" event_other="<<rtp->facts.event_counts[5]<<'\n';
+        if(!rtp_ok&&verdict.code==0)verdict=rtp->facts.Overflow()?Verdict{2,"rtp-observation-overflow"}:Verdict{1,"rtp-contract"};
+    }
+    if(options.observation)*options.observation={product_verdict.code==0,selected,rtp_ok,verdict.code,verdict.reason,eos};
     trace.Report(diagnosis||verdict.code!=0);
     if(capture)capture->Report();
     std::cout<<"[result] case="<<name<<" pushed="<<pushed<<" successful_push_flows="<<pushed<<" end_flow="<<static_cast<int>(end)<<" eos="<<eos
@@ -620,6 +760,216 @@ int Observe(const Encoded& input,const Points& expected,const char* name,unsigne
         <<" reason="<<verdict.reason<<" product_oracle_exit="<<product_verdict.code<<" product_oracle_reason="<<product_verdict.reason
         <<" exit="<<verdict.code<<'\n';
     return verdict.code;
+}
+Encoded EncodeOther(media::CodecId codec) {
+    const bool vp8=codec==media::CodecId::VP8;
+    if(!vp8&&codec!=media::CodecId::H265)throw std::runtime_error("fixture-codec");
+    const std::string encoder=vp8?"vp8enc deadline=1 keyframe-max-dist=10 ! video/x-vp8":
+        "x265enc tune=zerolatency speed-preset=ultrafast key-int-max=10 ! video/x-h265,stream-format=byte-stream,alignment=au";
+    Pipeline pipe("videotestsrc num-buffers=20 pattern=ball ! video/x-raw,width=160,height=90,framerate=10/1 ! "+encoder+" ! appsink name=out sync=false");
+    Encoded out;guint64 origin=0;
+    for(unsigned i=0;i<20;++i) {
+        std::unique_ptr<GstSample,decltype(&gst_sample_unref)> sample(gst_app_sink_try_pull_sample(GST_APP_SINK(pipe.sink),3*GST_SECOND),gst_sample_unref);
+        if(!sample)throw std::runtime_error("fixture-sample");
+        auto* buffer=gst_sample_get_buffer(sample.get());
+        if(!GST_BUFFER_PTS_IS_VALID(buffer)||!GST_BUFFER_DURATION_IS_VALID(buffer)||(!vp8&&!GST_BUFFER_DTS_IS_VALID(buffer)))throw std::runtime_error("fixture-time");
+        if(i==0)origin=GST_BUFFER_DTS_IS_VALID(buffer)?std::min(GST_BUFFER_PTS(buffer),GST_BUFFER_DTS(buffer)):GST_BUFFER_PTS(buffer);
+        if(GST_BUFFER_PTS(buffer)<origin||(GST_BUFFER_DTS_IS_VALID(buffer)&&GST_BUFFER_DTS(buffer)<origin))throw std::runtime_error("fixture-origin");
+        media::Packet packet;packet.kind=media::MediaKind::Video;packet.codec=codec;packet.track_id="video-0";
+        packet.pts=static_cast<std::int64_t>(GST_BUFFER_PTS(buffer)-origin);
+        packet.dts=GST_BUFFER_DTS_IS_VALID(buffer)?static_cast<std::int64_t>(GST_BUFFER_DTS(buffer)-origin):-1;
+        packet.is_key_frame=!GST_BUFFER_FLAG_IS_SET(buffer,GST_BUFFER_FLAG_DELTA_UNIT);
+        packet.payload.resize(gst_buffer_get_size(buffer));gst_buffer_extract(buffer,0,packet.payload.data(),packet.payload.size());
+        media::SampleObservation observation;observation.pts_ns=packet.pts;
+        if(packet.dts>=0)observation.dts_ns=packet.dts;
+        observation.duration_ns=GST_BUFFER_DURATION(buffer);packet.observation=observation;
+        if(out.descriptor.tracks.empty()) {
+            gchar* caps=gst_caps_to_string(gst_sample_get_caps(sample.get()));
+            out.descriptor.tracks.push_back({"video-0",media::MediaKind::Video,codec,vp8?"vp8":"h265",caps,0,0});g_free(caps);
+        }
+        out.packets.push_back(std::move(packet));
+    }
+    auto* extra=gst_app_sink_try_pull_sample(GST_APP_SINK(pipe.sink),3*GST_SECOND);
+    const bool exact=!extra&&gst_app_sink_is_eos(GST_APP_SINK(pipe.sink));if(extra)gst_sample_unref(extra);
+    auto* bus=gst_element_get_bus(pipe.pipeline);auto* failure=gst_bus_pop_filtered(bus,GST_MESSAGE_ERROR);
+    const bool clean=failure==nullptr;if(failure)gst_message_unref(failure);gst_object_unref(bus);
+    if(!exact||!clean)throw std::runtime_error("fixture-eos");
+    return out;
+}
+struct BusEnd {bool eos=false;unsigned errors=0,warnings=0;};
+BusEnd WaitOwnedBus(GstElement* pipeline,const char* phase) {
+    BusEnd result;auto* bus=gst_element_get_bus(pipeline);
+    const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(5);
+    while(!result.eos&&!result.errors) {
+        const auto left=deadline-std::chrono::steady_clock::now();if(left<=std::chrono::nanoseconds::zero())break;
+        auto* m=gst_bus_timed_pop(bus,static_cast<GstClockTime>(std::chrono::duration_cast<std::chrono::nanoseconds>(left).count()));
+        if(!m)break;
+        if(GST_MESSAGE_TYPE(m)==GST_MESSAGE_EOS)result.eos=true;
+        if(GST_MESSAGE_TYPE(m)==GST_MESSAGE_ERROR||GST_MESSAGE_TYPE(m)==GST_MESSAGE_WARNING) {
+            const bool warning=GST_MESSAGE_TYPE(m)==GST_MESSAGE_WARNING;warning?++result.warnings:++result.errors;
+            GError* error=nullptr;gchar* debug=nullptr;
+            if(warning)gst_message_parse_warning(m,&error,&debug);else gst_message_parse_error(m,&error,&debug);
+            if(result.warnings+result.errors<=16)std::cout<<"[owned-bus] phase="<<phase<<" warning="<<warning
+                <<" domain="<<Safe(error?g_quark_to_string(error->domain):nullptr)<<" code="<<(error?error->code:0)
+                <<" classification="<<ClassifyError(error?error->domain:0,error?error->code:0,error?error->message:nullptr,debug)<<'\n';
+            if(error)g_error_free(error);
+            g_free(debug);
+        }
+        gst_message_unref(m);
+    }
+    gst_object_unref(bus);return result;
+}
+bool NormalMp4Input(const Encoded& input) {
+    if(input.packets.size()!=20)return false;
+    for(std::size_t i=0;i<20;++i) {
+        const auto& p=input.packets[i];const auto expected=static_cast<std::int64_t>(i*100000000ULL);
+        if(p.codec!=media::CodecId::H264||!ValidInputTimestamp(p,false)||p.pts!=expected||p.dts!=expected||*p.observation->duration_ns!=100000000)return false;
+    }
+    return true;
+}
+bool MakeNormalMp4(const Encoded& input,const std::filesystem::path& path) {
+    if(!NormalMp4Input(input)||std::filesystem::exists(path))return false;
+    GError* error=nullptr;
+    auto* pipeline=gst_parse_launch("appsrc name=owned_in format=time block=false ! h264parse ! mp4mux ! filesink name=owned_file sync=false",&error);
+    if(error||!pipeline) {if(error)g_error_free(error);if(pipeline)gst_object_unref(pipeline);return false;}
+    Graph graph;gst_object_unref(graph.pipeline);graph.pipeline=pipeline;
+    graph.src=gst_bin_get_by_name(GST_BIN(pipeline),"owned_in");auto* file=gst_bin_get_by_name(GST_BIN(pipeline),"owned_file");
+    if(!graph.src||!file) {if(file)gst_object_unref(file);return false;}
+    g_object_set(file,"location",path.c_str(),nullptr);gst_object_unref(file);
+    auto* caps=gst_caps_from_string(input.descriptor.tracks.front().caps_string.c_str());
+    if(!caps)return false;
+    gst_app_src_set_caps(GST_APP_SRC(graph.src),caps);gst_caps_unref(caps);
+    Trace lifetime(pipeline);
+    bool ok=gst_element_set_state(pipeline,GST_STATE_PLAYING)!=GST_STATE_CHANGE_FAILURE;
+    if(ok)for(const auto& p:input.packets) {
+        auto* buffer=gst_buffer_new_allocate(nullptr,p.payload.size(),nullptr);if(!buffer){ok=false;break;}
+        gst_buffer_fill(buffer,0,p.payload.data(),p.payload.size());GST_BUFFER_PTS(buffer)=p.pts;GST_BUFFER_DTS(buffer)=p.dts;
+        GST_BUFFER_DURATION(buffer)=*p.observation->duration_ns;
+        if(!p.is_key_frame)GST_BUFFER_FLAG_SET(buffer,GST_BUFFER_FLAG_DELTA_UNIT);
+        if(gst_app_src_push_buffer(GST_APP_SRC(graph.src),buffer)!=GST_FLOW_OK){ok=false;break;}
+    }
+    ok=ok&&gst_app_src_end_of_stream(GST_APP_SRC(graph.src))==GST_FLOW_OK;
+    const auto end=ok?WaitOwnedBus(pipeline,"normal-mp4-fixture"):BusEnd{};lifetime.Stop();
+    return ok&&end.eos&&!end.errors&&!end.warnings&&chmod(path.c_str(),0600)==0;
+}
+Observation ObserveUri(const std::filesystem::path& file,const Points& expected) {
+    GError* error=nullptr;
+    auto* pipeline=gst_parse_launch("uridecodebin name=owned_uri ! identity name=analysis_overlay silent=true ! fakesink sync=false",&error);
+    if(error||!pipeline) {if(error)g_error_free(error);if(pipeline)gst_object_unref(pipeline);return {};}
+    Graph graph;gst_object_unref(graph.pipeline);graph.pipeline=pipeline;
+    graph.src=gst_bin_get_by_name(GST_BIN(pipeline),"owned_uri");auto* consumer=gst_bin_get_by_name(GST_BIN(pipeline),"analysis_overlay");
+    if(!graph.src||!consumer){if(consumer)gst_object_unref(consumer);return {};}
+    if(!core::InstallDecodeCompatibility(graph.src)){gst_object_unref(consumer);return {};}
+    gchar* uri=g_filename_to_uri(file.c_str(),nullptr,nullptr);if(!uri){gst_object_unref(consumer);return {};}
+    g_object_set(graph.src,"uri",uri,nullptr);g_free(uri);
+    Trace trace(pipeline);trace.Attach(2,consumer,"sink");gst_object_unref(consumer);
+    const bool started=gst_element_set_state(pipeline,GST_STATE_PLAYING)!=GST_STATE_CHANGE_FAILURE;
+    const auto end=started?WaitOwnedBus(pipeline,"local-uri"):BusEnd{};trace.Stop();
+    const bool visible=trace.Select();
+    const auto verdict=Judge(expected,trace.boundaries,started,visible,end.eos,end.errors,end.warnings);
+    const bool selected=visible&&!(kHostMacos&&trace.plugin=="applemedia"&&trace.version=="1.28.1"&&(trace.factory=="vtdec"||trace.factory=="vtdec_hw"));
+    trace.Report(verdict.code!=0||!selected);
+    std::cout<<"[uri-scope] local_file=1 full_worker=0 http_hls_network=0 raw_consumer=1 eos="<<end.eos<<" result="<<verdict.code<<'\n';
+    return {verdict.code==0,selected,false,verdict.code==0&&!selected?1:verdict.code,verdict.reason,end.eos};
+}
+struct ResourcePoint {std::uint64_t wall=0,cpu=0,rss=0,peak=0;};
+bool ReadResource(ResourcePoint& point) {
+    rusage usage{};recording_memory_probe::Sample memory;
+    if(getrusage(RUSAGE_SELF,&usage)!=0||!recording_memory_probe::Read(&memory)||usage.ru_utime.tv_sec<0||usage.ru_stime.tv_sec<0)return false;
+    point.wall=static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());
+    point.cpu=static_cast<std::uint64_t>(usage.ru_utime.tv_sec)*1000000+static_cast<std::uint64_t>(usage.ru_utime.tv_usec)+
+        static_cast<std::uint64_t>(usage.ru_stime.tv_sec)*1000000+static_cast<std::uint64_t>(usage.ru_stime.tv_usec);
+    point.rss=memory.current;point.peak=memory.peak;return true;
+}
+bool ResourceValid(const ResourcePoint& before,const ResourcePoint& after) {
+    return before.wall&&after.wall>=before.wall&&after.cpu>=before.cpu&&before.rss&&after.rss&&before.peak&&after.peak;
+}
+void ReportResource(const char* name,const ResourcePoint& before,const ResourcePoint& after) {
+    const bool valid=ResourceValid(before,after);
+    std::cout<<"[resource] case="<<name<<" valid="<<valid<<" wall_us="<<(valid?after.wall-before.wall:0)
+        <<" process_cpu_us="<<(valid?after.cpu-before.cpu:0)<<" rss_before_bytes="<<before.rss<<" rss_after_bytes="<<after.rss
+        <<" peak_before_bytes="<<before.peak<<" peak_after_bytes="<<after.peak
+        <<" peak_scope=process-lifetime gpu_cpu_included=0 sequential_cache_effect=1 resourceTrendPass=0 performanceGuarantee=0\n";
+}
+std::string InputHash(const Encoded& input) {
+    auto* sum=g_checksum_new(G_CHECKSUM_SHA256);
+    for(const auto& p:input.packets) {
+        g_checksum_update(sum,p.payload.data(),static_cast<gssize>(p.payload.size()));
+        g_checksum_update(sum,reinterpret_cast<const guchar*>(&p.pts),sizeof(p.pts));
+        g_checksum_update(sum,reinterpret_cast<const guchar*>(&p.dts),sizeof(p.dts));
+    }
+    const std::string value=g_checksum_get_string(sum);g_checksum_free(sum);return value;
+}
+int Regression(const std::filesystem::path& root,const Encoded& normal,const Encoded& reordered,const Points& normal_pts,const Points& reordered_pts) {
+    unsigned assertions=0;
+    const auto check=[&](bool ok,const std::string& id){++assertions;std::cout<<(ok?"[pass] ":"[fail] ")<<id<<'\n';return ok;};
+    const auto stop=[&](int code,const char* scope){std::cout<<"[regression-summary] assertions="<<assertions<<" stopped_scope="<<scope<<" productPass=0 exit="<<code<<'\n';return code;};
+    std::cout<<"[regression-stage] scope=repeat\n";
+    for(unsigned round=1;round<=16;++round)for(unsigned kind=0;kind<2;++kind) {
+        const auto id=std::string("HW-RP")+(round<10?"0":"")+std::to_string(round)+(kind?"-B":"-N");
+        Observation observation;ObserveOptions options;options.emit_checks=false;options.observation=&observation;
+        const int result=Observe(kind?reordered:normal,kind?reordered_pts:normal_pts,id.c_str(),round,false,false,true,options);
+        check(observation.full,id+" exact full PTS and EOS");check(observation.selected,id+" selected factory respects exact compatibility tuple");
+        if(result)return stop(result,"repeat");
+    }
+    std::cout<<"[regression-stage] scope=codec-fixtures\n";
+    auto vp8=EncodeOther(media::CodecId::VP8),h265=EncodeOther(media::CodecId::H265);
+    const auto vp8_pts=Input(vp8,"vp8-normal20",true),h265_pts=Input(h265,"h265-normal20");
+    for(unsigned cell=0;cell<3;++cell) {
+        constexpr const char* ids[]={"HW-CC01-H264-to-H265","HW-CC02-VP8-to-H264","HW-CC03-H265-to-H264"};
+        const auto& input=cell==0?normal:cell==1?vp8:h265;const auto& expected=cell==0?normal_pts:cell==1?vp8_pts:h265_pts;
+        Observation observation;ObserveOptions options;options.emit_checks=false;options.collect_rtp=true;options.observation=&observation;
+        options.output=cell==0?ingress::VideoCodec::H265:ingress::VideoCodec::H264;
+        const int result=Observe(input,expected,ids[cell],1,false,false,true,options);
+        check(observation.full,std::string(ids[cell])+" exact input decoder consumer PTS and EOS");
+        check(observation.selected,std::string(ids[cell])+" input-scoped decoder policy");
+        check(observation.rtp,std::string(ids[cell])+" actual pay0 RTP encoding-name and EOS");
+        if(result)return stop(result,"codec");
+    }
+    std::cout<<"[regression-stage] scope=local-uri\n";
+    const auto path=root/"normal20-uri.mp4";
+    if(!MakeNormalMp4(normal,path)) {check(false,"HW-UC01 independent normal MP4 fixture and immutable file");return stop(2,"uri-fixture");}
+    const auto before=writer_decode_diagnostics::File(path);
+    if(!before.hashed) {check(false,"HW-UC01 independent normal MP4 fixture and immutable file");return stop(2,"uri-file");}
+    const auto uri=ObserveUri(path,normal_pts);const auto after=writer_decode_diagnostics::File(path);
+    const bool file_ok=NormalMp4Input(normal)&&after.hashed&&before.sha==after.sha&&before.bytes==after.bytes;
+    std::cout<<"[uri-file] bytes="<<before.bytes<<" sha256="<<before.sha<<" unchanged="<<file_ok<<" expected_origin=0 expected_step_ns=100000000\n";
+    check(file_ok,"HW-UC01 independent normal MP4 fixture and immutable file");
+    check(uri.full,"HW-UC02 uridecodebin exact input decoder consumer PTS and EOS");
+    check(uri.selected&&uri.full,"HW-UC03 local URI policy selection and downstream exact PTS EOS");
+    if(!file_ok||uri.result)return stop(uri.result?uri.result:2,"uri");
+    std::cout<<"[regression-stage] scope=resource\n";
+    const auto preparation_start=std::chrono::steady_clock::now();
+    auto large=Encode(90,false,false,1280,720,30);Shift(large,0);const auto large_pts=Input(large,"resource-normal90");
+    const auto input_hash=InputHash(large);
+    for(const char* name:{"decodebin","vtdec_hw","vtdec","avdec_h264","x264enc","rtph264pay"}) {
+        auto* factory=gst_element_factory_find(name);if(factory)gst_object_unref(factory);
+    }
+    std::cout<<"[resource-preparation] input_registry_us="<<std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now()-preparation_start).count()
+        <<" excluded_from_graph_measurement=1 input_sha256="<<input_hash<<" width=1280 height=720 fps=30 frames=90\n";
+    ResourcePoint baseline_before,baseline_after,corrected_before,corrected_after;
+    if(!ReadResource(baseline_before))return stop(2,"resource-read");
+    Observation baseline;ObserveOptions options;options.emit_checks=false;options.observation=&baseline;
+    const int baseline_result=Observe(large,large_pts,"resource-baseline",1,false,true,false,options);
+    const bool baseline_read=ReadResource(baseline_after);ReportResource("baseline",baseline_before,baseline_after);
+    const bool known_mismatch=baseline_result==1&&baseline.eos&&(std::string_view(baseline.reason)=="decoder-pts-mismatch"||std::string_view(baseline.reason)=="overlay-pts-mismatch");
+    std::cout<<"[resource-baseline-diagnostic] oracle_exit="<<baseline_result<<" known_unmitigated_mismatch="<<known_mismatch<<" baselineProductPass=0\n";
+    if(baseline_result&&!known_mismatch)return stop(baseline_result,"resource-baseline");
+    check(baseline_read&&ResourceValid(baseline_before,baseline_after),"HW-RS01 baseline process CPU wall and RSS observations valid");
+    if(!baseline_read||!ResourceValid(baseline_before,baseline_after))return stop(2,"resource-baseline-read");
+    if(!ReadResource(corrected_before))return stop(2,"resource-read");
+    Observation corrected;options.observation=&corrected;
+    const int corrected_result=Observe(large,large_pts,"resource-corrected",1,false,true,true,options);
+    const bool corrected_read=ReadResource(corrected_after);ReportResource("corrected",corrected_before,corrected_after);
+    check(corrected_read&&ResourceValid(corrected_before,corrected_after),"HW-RS02 corrected process CPU wall and RSS observations valid");
+    const bool same_input=InputHash(large)==input_hash;
+    check(same_input,"HW-RS03 identical AU bytes and PTS DTS used for both graphs");
+    check(corrected.full,"HW-RS04 corrected normal90 exact full PTS and EOS");
+    check(corrected.selected,"HW-RS05 corrected normal90 selected factory respects exact compatibility tuple");
+    if(corrected_result)return stop(corrected_result,"resource-corrected");
+    if(!corrected_read||!ResourceValid(corrected_before,corrected_after)||!same_input)return stop(2,"resource-observation");
+    std::cout<<"[regression-summary] assertions="<<assertions<<" repeat_graphs=32 codec_graphs=3 uri_graphs=1 resource_graphs=2 productPass=1 scope=bounded-hw03-native resourceTrendPass=0 releasePass=0 exit=0\n";
+    return 0;
 }
 int SelfTest() {
     unsigned pass=0,fail=0;
@@ -830,6 +1180,53 @@ int SelfTest() {
     }
     check(kHostMacos?fixed_error:!failure_message,"HW-MH08 dynamic installation failure posts bus ERROR only on macOS");
     gst_object_unref(failed_bus);gst_object_unref(failed_pipeline);
+    media::Packet unknown_dts;unknown_dts.codec=media::CodecId::VP8;unknown_dts.pts=0;unknown_dts.dts=-1;
+    media::SampleObservation observed_time;observed_time.duration_ns=100000000;unknown_dts.observation=observed_time;
+    check(ValidInputTimestamp(unknown_dts,true),"HW-RF01 VP8 observed unknown DTS is retained and allowed for burst fixture");
+    unknown_dts.codec=media::CodecId::H264;
+    check(!ValidInputTimestamp(unknown_dts,true),"HW-RF02 unknown DTS permission does not extend to H264");
+    Encoded normal_fixture;
+    for(unsigned i=0;i<20;++i) {
+        auto packet=unknown_dts;packet.pts=packet.dts=static_cast<std::int64_t>(i)*100000000;
+        normal_fixture.packets.push_back(std::move(packet));
+    }
+    check(NormalMp4Input(normal_fixture),"HW-RF03 normal MP4 independent zero origin and exact 100ms premise accepted");
+    normal_fixture.packets[0].pts=1;
+    check(!NormalMp4Input(normal_fixture),"HW-RF04 altered MP4 PTS origin rejected without oracle adjustment");
+    RtpFacts rtp;rtp.events=4;rtp.caps=1;rtp.eos=1;rtp.encoding=1;
+    check(rtp.Matches(1),"HW-RF05 exact RTP encoding-name and single EOS accepted");
+    const bool wrong_encoding=!rtp.Matches(2);rtp.eos=0;
+    check(wrong_encoding&&!rtp.Matches(1),"HW-RF06 wrong RTP encoding or missing EOS rejected");
+    rtp.eos=1;rtp.caps=17;
+    check(rtp.Overflow()&&!rtp.Matches(1),"HW-RF09 RTP CAPS observation overflow cannot become product PASS");
+    rtp.caps=1;rtp.invalid=true;rtp.media_name_matches=false;
+    check(!rtp.Overflow()&&!rtp.Matches(1),"HW-RF10 media mismatch and observation overflow remain distinct");
+    RtpFacts event_counter;event_counter.caps=1;event_counter.eos=1;event_counter.encoding=2;
+    for(unsigned i=0;i<17;++i)event_counter.Event(GST_EVENT_TAG);
+    check(event_counter.events==17&&event_counter.event_counts[4]==17&&event_counter.Matches(2),"HW-RF11 repeated TAG counted without payload allocation or RTP contract rejection");
+    event_counter.events=G_MAXUINT;event_counter.Event(GST_EVENT_TAG);
+    check(event_counter.events==G_MAXUINT&&event_counter.Overflow()&&!event_counter.Matches(2),"HW-RF12 counter overflow is saturated and cannot pass");
+    const ResourcePoint first{100,10,1000,2000};ResourcePoint last{200,20,1000,2000};
+    check(ResourceValid(first,last),"HW-RF07 monotonic CPU wall and available RSS observations accepted without performance target");
+    last.cpu=9;
+    check(!ResourceValid(first,last),"HW-RF08 decreasing process CPU invalidates resource observation");
+    std::array<DecoderActivity,8> activity{};activity[1]={20,20,false};
+    check(SelectDecoder(activity,2)==1,"HW-DC01 caps-only first and sole active second decoder selected");
+    activity[0]={20,20,false};
+    check(SelectDecoder(activity,2)==-1,"HW-DC02 multiple data-processing decoders rejected");
+    activity[0]={};
+    check(SelectDecoder(activity,9)==-1,"HW-DC03 more than eight decoder candidates rejected");
+    activity[1]={};
+    check(SelectDecoder(activity,2)==-1,"HW-DC04 no data-processing decoder rejected");
+    activity[1]={20,0,false};const bool partial=SelectDecoder(activity,2)==-1;
+    activity[1]={20,20,true};
+    check(partial&&SelectDecoder(activity,2)==-1,"HW-DC05 partial or incomplete decoder observation rejected");
+    Boundary counted;for(unsigned i=0;i<17;++i)counted.Event(GST_EVENT_TAG);
+    check(counted.events==17&&!counted.overflow,"HW-DC06 seventeen TAG events use bounded scalar count without false overflow");
+    for(unsigned i=0;i<17;++i)counted.ObserveCaps(nullptr);
+    check(counted.caps_count==16&&counted.overflow,"HW-DC07 seventeenth CAPS still rejects fixed-array overflow");
+    Boundary saturated;saturated.events=std::numeric_limits<std::size_t>::max();saturated.Event(GST_EVENT_TAG);
+    check(saturated.events==std::numeric_limits<std::size_t>::max()&&saturated.overflow,"HW-DC08 total event counter saturates and rejects arithmetic overflow");
     std::cout<<"[summary] pass="<<pass<<" fail="<<fail<<'\n';return fail?1:0;
 }
 } // namespace
@@ -846,7 +1243,7 @@ static bool OwnedRoot(const char* value) {
 int main(int argc,char** argv) {
     if(argc!=3) return 2;
     const std::string mode=argv[2];
-    if(mode!="--self-test"&&mode!="--rtsp-impact"&&mode!="--drain-diagnosis"&&mode!="--mitigation-impact")return 2;
+    if(mode!="--self-test"&&mode!="--rtsp-impact"&&mode!="--drain-diagnosis"&&mode!="--mitigation-impact"&&mode!="--regression-impact")return 2;
     if(!OwnedRoot(argv[1])) { std::cout<<"[result] reason=unowned-root exit=2\n";return 2; }
     gst_init(nullptr,nullptr);
     if(mode=="--self-test")return SelfTest();
@@ -855,6 +1252,7 @@ int main(int argc,char** argv) {
         auto normal=Encode(20,false,false),reordered=Encode(30,true,false);
         Shift(normal,0);Shift(reordered,0);
         const auto a=Input(normal,"normal20"),b=Input(reordered,"bframe30");
+        if(mode=="--regression-impact")return Regression(argv[1],normal,reordered,a,b);
         if(mode=="--mitigation-impact") {
             constexpr const char* names[]={"HW-MI01-normal20-burst","HW-MI02-normal20-paced","HW-MI03-bframe30-burst","HW-MI04-bframe30-paced"};
             for(unsigned cell=0;cell<4;++cell) {

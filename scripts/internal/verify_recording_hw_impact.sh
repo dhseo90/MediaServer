@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # 실제 RTSP builder의 디코더 경계 진단·한정 보완 검사. 전체 제품/릴리즈 PASS가 아니다.
 set -euo pipefail
-if [[ $# != 1 || ( $1 != --self-test && $1 != --rtsp-impact && $1 != --drain-diagnosis && $1 != --mitigation-impact ) ]]; then
-  echo '[fail] 허용 인자: --self-test, --rtsp-impact, --drain-diagnosis 또는 --mitigation-impact' >&2
+if [[ $# != 1 || ( $1 != --self-test && $1 != --rtsp-impact && $1 != --drain-diagnosis && $1 != --mitigation-impact && $1 != --regression-impact ) ]]; then
+  echo '[fail] 허용 인자: --self-test, --rtsp-impact, --drain-diagnosis, --mitigation-impact 또는 --regression-impact' >&2
   exit 2
 fi
 impact_script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -38,7 +38,7 @@ media_server_apply_homebrew_gst_env
 node - "$impact_repo" "$impact_build" <<'NODE'
 const fs=require('fs'),path=require('path'),crypto=require('crypto'),repo=process.argv[2],build=process.argv[3];
 const archive=path.join(build,'libmedia_server_runtime.a'),stamp=fs.statSync(archive).mtimeMs;
-const files=['CMakeLists.txt','src/core/gst_decode_compatibility.cpp','include/core/gst_decode_compatibility.h','src/core/source_factory.cpp','src/ingress/gstreamer_rtsp_server.cpp','src/ingress/gst_pipeline_builder.cpp','src/ingress/rtsp_egress_session.cpp','include/ingress/gst_pipeline_builder.h','scripts/internal/recording_hw_impact_probe.cpp','scripts/internal/verify_recording_hw_impact.sh','scripts/internal/recording_media_test_fixture.h'];
+const files=['CMakeLists.txt','src/core/gst_decode_compatibility.cpp','include/core/gst_decode_compatibility.h','src/core/source_factory.cpp','src/ingress/gstreamer_rtsp_server.cpp','src/ingress/gst_pipeline_builder.cpp','src/ingress/rtsp_egress_session.cpp','include/ingress/gst_pipeline_builder.h','scripts/internal/recording_hw_impact_probe.cpp','scripts/internal/verify_recording_hw_impact.sh','scripts/internal/recording_media_test_fixture.h','scripts/internal/recording_process_memory_probe.h','scripts/internal/recording_writer_decode_diagnostics.h'];
 for(const name of files){const p=path.join(repo,name);if(!name.startsWith('scripts/')&&fs.statSync(p).mtimeMs>stamp)throw Error('stale-product-build');console.log('[source] '+name+' sha256='+crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex'));}
 console.log('[source] build-gst-onnx/libmedia_server_runtime.a sha256='+crypto.createHash('sha256').update(fs.readFileSync(archive)).digest('hex'));
 NODE
@@ -64,7 +64,7 @@ function emitResult(stdout,reports,code){
   for(const report of reports)console.log(report);
   process.exitCode=code;
 }
-function scopeExit(mode,code,complete){return mode==='--mitigation-impact'&&code===0&&!complete?2:code;}
+function scopeExit(mode,code,complete){return ['--mitigation-impact','--regression-impact'].includes(mode)&&code===0&&!complete?2:code;}
 function main(){
 if(mode==='--self-test'){
   const large=spawnSync(process.execPath,['-e',`(${emitResult.toString()})('x'.repeat(262144),['[io-tail]'],7)`],{encoding:'utf8',timeout:5000,maxBuffer:1024*1024});
@@ -74,14 +74,21 @@ if(mode==='--self-test'){
   const exitPass=scopeExit('--mitigation-impact',0,false)===2&&scopeExit('--mitigation-impact',0,true)===0&&scopeExit('--mitigation-impact',1,false)===1&&scopeExit('--self-test',0,false)===0;
   if(!exitPass){emitResult('',['[fail] HW-IO02 incomplete mitigation summary cannot pass'],2);return;}
   console.log('[pass] HW-IO02 incomplete mitigation summary cannot pass');
+  const regressionExit=scopeExit('--regression-impact',0,false)===2&&scopeExit('--regression-impact',0,true)===0&&scopeExit('--regression-impact',1,false)===1&&scopeExit('--drain-diagnosis',3,false)===3;
+  if(!regressionExit){emitResult('',['[fail] HW-IO03 incomplete regression summary cannot pass'],2);return;}
+  console.log('[pass] HW-IO03 incomplete regression summary cannot pass');
 }
 const result=spawnSync(path.join(root,'probe'),[root,mode],{encoding:'utf8',timeout:180000,killSignal:'SIGKILL',maxBuffer:8*1024*1024});
 const stderr=result.stderr??'',critical=(stderr.match(/CRITICAL/g)||[]).length,warning=(stderr.match(/WARNING/g)||[]).length;
-const productPass=mode==='--mitigation-impact'&&result.status===0&&!result.error&&!result.signal&&!critical&&!warning&&
-  (result.stdout??'').includes('[mitigation-summary] cells=4 assertions=8 productPass=1 scope=h264-input-finite-rtsp-builder-4cells releasePass=0 exit=0');
+const summaries={
+  '--mitigation-impact':'[mitigation-summary] cells=4 assertions=8 productPass=1 scope=h264-input-finite-rtsp-builder-4cells releasePass=0 exit=0',
+  '--regression-impact':'[regression-summary] assertions=81 repeat_graphs=32 codec_graphs=3 uri_graphs=1 resource_graphs=2 productPass=1 scope=bounded-hw03-native resourceTrendPass=0 releasePass=0 exit=0'
+};
+const productPass=!!summaries[mode]&&result.status===0&&!result.error&&!result.signal&&!critical&&!warning&&
+  (result.stdout??'').split('\n').includes(summaries[mode]);
 emitResult(result.stdout??'',[
   '[diagnostic-stderr] '+JSON.stringify({bytes:Buffer.byteLength(stderr),sha256:crypto.createHash('sha256').update(stderr).digest('hex'),critical,warning,rawPublished:false}),
-  '[execution] '+JSON.stringify({mode,exit:result.status,signal:result.signal,error:result.error?.code??null,elapsedMs:Date.now()-started,productPass,productScope:mode==='--mitigation-impact'?'h264-input-finite-rtsp-builder-4cells':null,releasePass:false,tokenStart:null,tokenEnd:null,tokenConsumed:null,tokenSource:'전용 집계 없음'})
+  '[execution] '+JSON.stringify({mode,exit:result.status,signal:result.signal,error:result.error?.code??null,elapsedMs:Date.now()-started,productPass,productScope:mode==='--mitigation-impact'?'h264-input-finite-rtsp-builder-4cells':mode==='--regression-impact'?'bounded-hw03-native':null,resourceTrendPass:false,releasePass:false,tokenStart:null,tokenEnd:null,tokenConsumed:null,tokenSource:'전용 집계 없음'})
 ],scopeExit(mode,result.error||result.signal||critical||warning?2:result.status??2,productPass));
 }
 main();
