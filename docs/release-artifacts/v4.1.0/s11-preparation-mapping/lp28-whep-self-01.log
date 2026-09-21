@@ -1,0 +1,3 @@
+missing internal script: /Users/dhseo/Workspace/mediaServer/scripts/internal/verify_whep_local_signaling.mjs
+
+[execution] {"command":"bash server.sh verify-whep-local-signaling --self-test","utc":"2026-09-21T14:35:55.160Z","exit":1,"signal":null,"elapsedMs":9,"sha256":"381bf2b9e43e34e8755db8194cdf7725406e2f8a73be67dccb40205bd434b769","bytes":109}

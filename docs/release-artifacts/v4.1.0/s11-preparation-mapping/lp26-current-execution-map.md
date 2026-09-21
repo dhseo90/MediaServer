@@ -8,6 +8,22 @@
 
 ## 1. 판독 기준과 실제 실행 상태
 
+### LP27 현재 보완
+
+아래 LP26 시점의 공백과 실행 상태는 역사적 기록이다. LP27에서 2절의 41개 위치 키를
+[inventory 고정 요구 ID](../../../project-feature-test-inventory.md#초기-녹화-요구의-고정-식별-등록)로 등록했다.
+기존 제품 기능 총계나 S10 중복 번호를 재번호화하지 않는다. 실행 연결·예상 oracle는 아래 표를 사용한다.
+S02/policy는 PREP-C01/02, S02/GOP는 C03, S04/blocked는 C04~06,
+S04/projection은 C07/08의 `bash scripts/internal/verify_recording_preparation_contracts.sh`로 보완했다.
+이들8개는 LP27 현재 실행에서 PASS이며 모델 추론·실제 앱 재기동·UI 완료는 아니다.
+S03/sqlite는 기존 `recording_retention_v2_smoke.cpp` B05(on/off deleted/pending/corrupt/hold reset),
+`recording_catalog_smoke.cpp` M07(finalized payload·SQLite/JSONL)의 정확 검사에 연결한다.
+legacy live INSERT 실패→동일 journal 재개방 검사는 catalog_smoke 1034~1120행에 이미 존재한다.
+따라서 아래 S04/projection의 “exact 연결 공백”은 **managed 동일 시나리오**로 한정해 정정한다.
+ENV12 영속 경로는 `bash scripts/internal/verify_gst_environment_actual.sh`이며 실제94개 PASS를 확보했다.
+현재 최종 실행 선택은 [LP27 manifest](lp27-release-preparation.md#최종-실행-manifest)다.
+상세 원출력·각 결과·정리는 [LP27 현재 기록](lp27-release-preparation.md)에 보존한다.
+
 - 아래 `S01/…` 같은 이름은 **이 문서의 요구 위치 키**다. 중앙에 정식 등록된 신규 고정 ID가 아니다.
 - 소스 행은 LP26 작성 시점 locator이며 assertion 문구/함수와 함께 찾는다. 한 줄의 조건·파일 존재는 복합 요구 전체 PASS가 아니다.
 - 직접 focused runner 존재, 5단계 통합 포함, 실제 장시간/UI 실행을 별도 열로 취급한다.

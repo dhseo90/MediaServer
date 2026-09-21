@@ -10193,6 +10193,7 @@
     },
     {
       "id": "OPS-135",
+      "sharedContract": {"id":"media-server.actual-contract.cross-site-safe-apply-readiness","facet":"ops-gate"},
       "status": "source-resolved-reviewed-proof",
       "featureContractSha256": "e7955b84d06bb8238ae824e9d1de3be31c980d792a3621b14ff2679845e60c16",
       "evidenceMode": "runtime-http-registry-before-after-readback",

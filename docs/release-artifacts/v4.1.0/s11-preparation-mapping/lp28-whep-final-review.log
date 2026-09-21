@@ -1,0 +1,9 @@
+{"command":["node","--check","scripts/internal/verify_whep_local_signaling.mjs"],"exit":0,"output":""}
+{"command":["node","--check","scripts/internal/verify_whep_local_signaling.test.mjs"],"exit":0,"output":""}
+{"command":["bash","-n","server.sh"],"exit":0,"output":""}
+{"command":["git","diff","--check","--","server.sh"],"exit":0,"output":""}
+{"file":"scripts/internal/verify_whep_local_signaling.mjs","bytes":18842,"sha256":"f587a6749d7026cfa5f83f4088f57fbbe281d7407379a7933d9dd22fe5d767c7"}
+{"file":"scripts/internal/verify_whep_local_signaling.test.mjs","bytes":5895,"sha256":"353b115065b8e01a7df764d9f462f3f995bc4463aabb1a87014d4b9d294313fc"}
+{"file":"scripts/internal/whep_local_offer.cpp","bytes":2893,"sha256":"8885ca0c8a18d2560b64dfcea41363de772b02eaa3202aec9550f21655e9a4ea"}
+{"file":"server.sh","bytes":200290,"sha256":"6f278359c5218a0e9cf6e424158d040b0fec9f8968ea774a7d94cbce3c9de29a"}
+{"elapsedMs":60,"testsRerun":false,"exit":0}

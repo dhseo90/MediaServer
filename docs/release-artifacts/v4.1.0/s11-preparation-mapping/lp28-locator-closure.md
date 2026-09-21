@@ -471,3 +471,253 @@ S10 제품 코드 고정은 S11 PASS나 PREP 전체 완료가 아니다. 독립 
 원출력: [notice](lp28-close-notice.log), [링크](lp28-close-docs.log),
 [자산](lp28-close-assets.log), [entry](lp28-close-entry.log), [metadata](lp28-close-metadata.log).
 이 단계 제품 실행/port/임시 runtime 산출물 없음. 실제 테스트 토큰 집계는 도구 부재로 미집계다.
+
+## 4·5번 실행 정의
+
+3번 커밋 `5e5f45d7` 완료. 링크 최종 재검사는289문서/9579링크/22이미지/160anchor·exit0이다.
+아래 정의 후 source candidate·snapshot을 고정한다. 메인이 후보 생성과 패키지를 작성하고,
+기존 단일 담당자(Astra/medium, 하위 위임 금지)가307개 변경 행을 직접 검토한다.
+이 담당자는 위치 검증기 보완에 참여했으나 candidate/proof 재연결/승인 생성자는 아니다.
+679개 엄격 동등 행만 자동 승계하며, 변경 행은 개별 판단 없이 hash만 갱신하지 않는다.
+검토 중 source/snapshot이 바뀌면 해당 검토 결속을 다시 확인한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| PREP-R01 | 현행 후보 | source audit 후보986개·미해결0, 기존/신규 hard contract 대조 | v4.1.0 |
+| PREP-R02 | 독립 검토 | 변경307개 각 기능/dispatch/role/assertion/소스 의미와 승인 근거,679개 strict 승계 | v4.1.0 |
+| PREP-R03 | 원자 재결속 | migration producer·4JSON readback 및 approval/evidence/native/inventory 검사 | v4.1.0 |
+| PREP-R04 | 준비 소스 검토 | 기존 native8·actualENV94 소스/로그/정리와 등록 대조, 수정 없으면 재실행 안 함 | v4.1.0 |
+| FINAL-S01 | 단기 안정화 | LP27 최종 실행 manifest의 build/auth/recording/env/entry/metadata/inventory/docs/closeout | v4.1.0 |
+| FINAL-S02 | 증거 유효성 | 제품287파일 digest·binary/환경 대조 후 기존 codec67/ICE8·ENV94 유지 여부 확정 | v4.1.0 |
+| FINAL-S03 | 정리 | 각 runner 소유 프로세스/port/temp·후보 검토root 최소자료 보존 후 정리 | v4.1.0 |
+
+개별 실행 정의는 LP27 `최종 실행 manifest`와 중앙 기록/각 runner의 기존 case를 사용한다.
+승인 범위는 단기만이며30분·실제 UI·120분은 이번 미진행이다. 외부 서비스·실기기는
+사용자 명시 제외로 기록하며 PASS로 쓰지 않는다. PR/merge/tag/Release 실행 권한은 없다.
+후속 결과에는 원출력 전체·개별 행·실패/정리·token start/end/consumed/elapsed/source를 남긴다.
+
+### 독립 검토 1차: 기각과 보완 정의
+
+[전수 검토](lp28-independent-review-01.md), [판정](lp28-independent-decisions-01.json),
+[고정 입력 결속](lp28-review-package-01.json):307행 중270행은 소스 연결 범위 한정 인정,
+37행 기각이다. 승인 producer는 실행하지 않았다. 이전2번의 추가 검사 공백 없음은 정정한다.
+25행은 성공 검사를 오류 serializer에 연결했고, SRC-009/RULE10행은 UI 관측 대신 별도 API 객체를
+연결했다. 기존 실제 UI helper로 재연결하며 실제 UI 실행 PASS를 뜻하지 않는다.
+MEDIA-003은 generic client offer를 WHEP answer로 오인했다. 로컬 WHEP 성공 협상 검사를 추가한다.
+제품 코드는 변경하지 않으며 S10 제품 고정은 유지한다. 아래 등록 뒤 보완/단기 검사한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| PREP-R05 | 기각37행 보완 | 성공 serializer25·실제UI 관측11·WHEP1 연결, 후보/의미/독립 재검토. 전체 UI PASS 아님 | v4.1.0 |
+| WHEP-L01 | oracle 자체검사 | 정상 SDP answer, 잘못된 status/type/offer/codec/mid/Location/민감 출력 거부 | v4.1.0 |
+| WHEP-L02 | 로컬 offer/answer | 격리 loopback 서버·무음H264, native offer→POST /whep 201/application-sdp/answer/sendonly/mid | v4.1.0 |
+| WHEP-L03 | 세션 수명 | 로컬 Location·ICE 읽기·DELETE·재삭제404, malformed offer 거부 | v4.1.0 |
+| WHEP-L04 | 격리·정리 | 외부STUN/TURN 없음, 입력hash 불변, SDP/capability 비출력, 정상종료·port/temp 정리 | v4.1.0 |
+
+WHEP-L은 안정화 signaling 전용이다. RTP/시각/브라우저/30분/120분/외부 WHEP PASS가 아니다.
+HTTP4초와 기존 native 실행 상한을 유지한다. 실제 browser 실행은 이번 범위 밖이다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| WLS01 | 정상 offer/answer | 독립 SDP oracle 기대값 | v4.1.0 |
+| WLS02 | status/type 거부 | 201/application-sdp 아닌 응답 | v4.1.0 |
+| WLS03 | offer echo 거부 | DTLS/direction 및 원문 echo | v4.1.0 |
+| WLS04 | codec/mid 거부 | H264/mid/rejected media | v4.1.0 |
+| WLS05 | Location 거부 | origin/path escape·capability | v4.1.0 |
+| WLS06 | SDP 경계 | 잘림/중복/크기상한 | v4.1.0 |
+| WLS07 | ICE oracle | 정상/잘못된 shape | v4.1.0 |
+| WLS08 | 삭제 oracle | DELETE/재삭제 | v4.1.0 |
+| WLS09 | malformed oracle | 400 및 session 비생성 | v4.1.0 |
+| WLS10 | local ICE | 외부STUN/TURN 거부 | v4.1.0 |
+| WLS11 | child 종료 | timeout/overflow/signal | v4.1.0 |
+| WLS12 | 출력 경계 | redaction/CLI | v4.1.0 |
+| WLR01 | 격리 입력 | 소유root·무음H264 복사 | v4.1.0 |
+| WLR02 | native helper | recvonly offer 메모리 전달 | v4.1.0 |
+| WLR03 | 서버 준비 | 소유 서버 ready | v4.1.0 |
+| WLR04 | ICE 설정 | localSTUN/빈TURN | v4.1.0 |
+| WLR05 | 실제 협상 | POST→201 answer | v4.1.0 |
+| WLR06 | Location | 로컬 session 경로 | v4.1.0 |
+| WLR07 | ICE 읽기 | 실제 생성session response | v4.1.0 |
+| WLR08 | 삭제 | 실제session DELETE | v4.1.0 |
+| WLR09 | 재삭제 | 404 유지 | v4.1.0 |
+| WLR10 | malformed | 400/Location 없음 | v4.1.0 |
+| WLR11 | 정상 종료 | 서버 exit·port 해제 | v4.1.0 |
+| WLR12 | 정리 | 입력불변·소유임시root 제거 | v4.1.0 |
+
+실행 명령은 새 `verify-whep-local-signaling`과 `node --test scripts/internal/verify_whep_local_signaling.test.mjs`다.
+compile30초/native10초/HTTP4초/전체180초 상한이며 미충족을 연장으로 처리하지 않는다.
+
+WLS13 사전등록: listener 준비 실패의 고정 phase·허용 errno만 수집하며, 미등록 오류는 unknown,
+경로·원문·SDP/capability는 출력하지 않는 반례. 안정화 자체검사이며 장시간/UI 비대상이다.
+실제1차는 서버/native 시작 전 loopback 준비 실패였다. 아직 제품 실패로 분류하지 않는다.
+실제 재실행 전에 해당 고정 진단을 보완하고, EPERM/EACCES 확인 시 승인된 로컬 검증의 실행 권한만 요청한다.
+
+보완 후보1은 SRC-059/OPS-135가 같은 성공 상태·검사를 공유하여 facet 미지정2행,
+RULE-012는 leaf helper의 직접 관측 식별 한계1행으로 미해결이었다. 공통 계약의 안전/운영 관점을
+명시하고 실제 UI 생성 흐름의 geometry assertion 호출로 연결했다. 검사 의미나 정책을 완화하지 않았다.
+별도 즉석 검증 호출은 dispatch parser 인자 순서를 뒤집어986개의 가짜 dispatch 오류를 만들었다.
+이는 제품/후보 오류가 아닌 메인 호출 오류다. 인자를 바로잡은 `check-candidate.mjs`가
+후보2의986개 semantic·shared 검사를 오류0으로 확인했다. 이 결과는 독립 승인/실제 UI PASS가 아니다.
+최초 호출/후보/오류 결과를 최종 안전 증거에 함께 보존한다.
+
+### WHEP 한정 보완 결과
+
+신규 `verify_whep_local_signaling.mjs`/`.test.mjs`/`whep_local_offer.cpp`와 server dispatch,
+MEDIA-003 source proof를 연결했다. 최초 self01은 신규파일 -x 준비 오류로 개별검사 미진입,
+self02 이후 통과했다. local01/02는 서버 기동 전 reserve-http EPERM, 환경 권한 오류다.
+진단 고정 errno/phase 보완 후 권한 경계를 명시한 local03은12/12 PASS였다.
+실제 answer 비교를 표준 assert로 명시한 최종 코드에서 self05(13/13,exit0,157ms),
+local04(12/12,exit0,3371ms/runner3324ms)를 재확인했다. 조건·HTTP4초·native10초는 불변이다.
+메인이 전체 신규 소스와 실제 원출력, 정상종료/입력hash/정리를 대조했다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| WLS 실행준비01 | -x 미설정으로 명령 exit1; 검사 미진입, 이후 수정 | FAIL |
+| WLR01 최초 준비 | local01/02 포트 예약 EPERM·서버/native 미시작, 이후 권한 실행 통과 | FAIL |
+| WLR11 최초 종료판정 | local01/02 서버 미시작으로 runner가 FAIL; 실제 기동서버 종료 실패를 뜻하지 않음 | FAIL |
+| WLS01 | 정상 offer/answer oracle self05 exit0 | PASS |
+| WLS02 | 생성status/type 반례 self05 exit0 | PASS |
+| WLS03 | echo/DTLS/direction 반례 self05 exit0 | PASS |
+| WLS04 | codec/mid/rejected media 반례 self05 exit0 | PASS |
+| WLS05 | Location escape 반례 self05 exit0 | PASS |
+| WLS06 | SDP 잘림/중복/상한 self05 exit0 | PASS |
+| WLS07 | ICE shape self05 exit0 | PASS |
+| WLS08 | DELETE/재삭제 구분 self05 exit0 | PASS |
+| WLS09 | malformed400·Location 없음 self05 exit0 | PASS |
+| WLS10 | 외부 ICE 거부 self05 exit0 | PASS |
+| WLS11 | native timeout/overflow/signal 거부 self05 exit0 | PASS |
+| WLS12 | 안전 출력/exact CLI self05 exit0 | PASS |
+| WLS13 | 고정 phase/errno/reason·unknown 원문 비출력 self05 exit0 | PASS |
+| WLR01 | 격리 fixture/input SHA local04 exit0; 최초 권한실패 이력 보존 | PASS |
+| WLR02 | native offer -Werror compile/recvonlyH264 local04 exit0 | PASS |
+| WLR03 | 실제 서버 /health200 local04 exit0 | PASS |
+| WLR04 | /webrtc/config localSTUN/빈TURN local04 exit0 | PASS |
+| WLR05 | /whep POST201 SDP sendonly·H264·mid local04 exit0 | PASS |
+| WLR06 | 상대 WHEP Location 범위 local04 exit0 | PASS |
+| WLR07 | /ice200 후보shape local04 exit0; 연결성 미판정 | PASS |
+| WLR08 | DELETE200/ok:true local04 exit0 | PASS |
+| WLR09 | 재DELETE404 local04 exit0 | PASS |
+| WLR10 | malformed400/Location없음 local04 exit0 | PASS |
+| WLR11 | 서버exit0/signal없음/forcedfalse·TCP2/UDP닫힘 local04 exit0 | PASS |
+| WLR12 | 입력/binary불변·root부재 local04 exit0 | PASS |
+
+원출력: [self01](lp28-whep-self-01.log), [02](lp28-whep-self-02.log), [03](lp28-whep-self-03.log),
+[04](lp28-whep-self-04.log), [최종05](lp28-whep-self-05.log),
+[local01](lp28-whep-local-01.log), [02](lp28-whep-local-02.log), [03](lp28-whep-local-03.log),
+[최종04](lp28-whep-local-04.log), [구문/검토](lp28-whep-final-review.log).
+SDP/session/capability 원문은 로그/저장소에 보존하지 않았다. source/binary SHA와 소형 결과만 보존했다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| local01/02 각 소유 media-server-whep-local root | 입력복사/빈저장소 | 각135694B | runner 종료·소유확인 삭제 | 입력불변·부재 | 각 log cleanup |
+| local03 root | helper/registry/input | 1965195B | 정상종료·port해제 뒤 삭제 | 입력불변·부재 | local03 |
+| local04 root4qfYTB | helper/registry/input | 1965195B | 정상종료·port해제 뒤 삭제 | 입력불변·부재 | local04 |
+| lp28-whep-*.log | 비민감 소형원출력 | 각 로그실제 bytes | 최소 실패/성공 이력 보존 | 저장소이관 | 위10개 링크 |
+
+한계: 제품mtime guard는 명시4파일만, 전체 제품 내용은 메인 freeze digest와 비교한다.
+authoff 격리 실행이므로 capability 권한·RTP/ICE연결·실제UI PASS가 아니다.
+token start/end/consumed=null(전용집계없음), elapsed/source는 각 실행 원출력에 기록했다.
+최종 후보986개 semantic/shared 오류0이며, 공통 SRC059/OPS135 facet1쌍도 독립 재검토 대상이다.
+
+### 독립 재검토·승인 재결속
+
+고정 후보 `ef61a2337087aac2af1620d4deb6f099f0e86f7e83a6c28368d49f0cd2f3baa7`에 대해
+최초 기각37개와 OPS135 공통 facet1개를 재검토했다. 나머지269개는 이전 심사 입력의 hard 내용과
+동일함을 ID별 대조하여 기존 개별 판단을 유지했다. 새 기각0, 선택 소스/readback 결속307개 승인이다.
+검토 담당자는 locator/WHEP 검사 구현에 참여했으나 후보/proof는 메인이 작성했고 메인이 실제 diff와
+실행 증거를 별도 대조했다. 완전히 분리된 제3자 검토라고 주장하지 않는다.
+
+- [재검토 전수](lp28-independent-review-02.md), [기계 판정307개](lp28-independent-decisions-02.json),
+  [고정 패키지](lp28-review-package-02.json), [679개 엄격 동등 승계](lp28-migration-evidence-02.json).
+- [최종 후보986개 검사](lp28-final-candidate-check.json), [승인 producer 원출력](lp28-prep-producer.log),
+  [원장 독립 재검증](lp28-prep-approvals.log).
+- producer는 현재 tree/diff·후보·검토 SHA를 직접 대조한 뒤 audit/approval/implementation/native 네 파일을
+  원자적으로 반영했다(exit0,80.567초). 승인 검사986개도 exit0/18.732초, 오류0이다.
+- 이전 audit/approval 원본은 `5e5f45d7`의 동일 fixture에서 복원 가능하며 해시는 새 승인 원장에 있다.
+  최초37기각·LP27 1067오류/435ID 기록을 삭제하거나 현재 PASS로 덮어쓰지 않았다.
+
+한계: RULE013은 점 개수 표시, RULE015는 tbody 상태 문구, RULE016은 생성ID 표시를 관측한다.
+이것만으로 좌표 전체·행별 독점 상태·ID 배정 정책의 전수 실행을 주장하지 않는다. 실제 exact UI 및
+visual/role/scope/viewport/theme 판정은 최종 UI 영역에서 닫는다. MEDIA003 로컬 signaling도 RTP/브라우저
+PASS가 아니다. 소스 승인 원장과 실행 결과는 별개이며 기능 전수 실행 완료로 승격하지 않는다.
+
+진행 중 상태 진단의 일반 `ps`는 sandbox EPERM으로 거부됐고, 승인된 읽기 전용 PID/시간/CPU 확인은
+성공했다. 프로세스 인자·환경은 출력하지 않았다. 제품/테스트 실패가 아닌 상태 조회 권한 경계다.
+
+정합 검사 첫 실행은 exit1/633.266초였다. 오류는 `MEDIA-003 verifierEvidence file is not tracked` 1개,
+global 오류0, 오류 반례15/15 PASS다. 신규 검증 소스를 Git 추적 등록하기 전에 검사한 메인 준비 누락이다.
+제품/검증 assertion 변경 없이 승인 범위 신규 검증 파일7개만 stage하여 추적 선수조건을 보완한다.
+커밋은 아직 하지 않으며 같은 정합 검사를 재실행한다. 첫 결과를 [원출력](lp28-prep-feature-01.log)과
+[정합 보고](lp28-prep-feature-01.json)에 보존했다. 이전 즉석 parser 인자 오류는
+[별도 진단](lp28-candidate-invocation-error.json)이며 실제 제품/정합 검사 실패와 구분한다.
+
+동일4번 수정 범위에서 신규파일 등록 뒤 project inventory 전수 검사는 exit0/42.678초로 통과했다
+([잘리지 않은 전체 원출력](lp28-prep-inventory.log)). native exact 계약 검사는 import 경계에서
+`core canonical/source semantic binding drift`로 exit1/138ms, 개별 계약검사 미진입이었다
+([원출력](lp28-prep-native-01.log)). runtime UI 실패나 PASS가 아니다.
+producer가 변경한 승인 증적과 독립 runtime oracle의 보호 projection을 직접 대조한 뒤에만
+재결속 여부를 판단한다. hash를 자동 갱신하거나 보호 assertion을 제거하지 않는다.
+스크립트 인벤토리 후속 명령은 fail-stop으로 미실행이며 S11 단기도 아직 시작하지 않았다.
+
+같은 PREP-R03 내부 보완의 실행 전 정의:
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| PREP-R03 core 결속 | 승인된14행 projection과 상수2개 연결 | canonical/route/role/selector/expectedBehavior 불변을 직접 대조하고 core 계약 검사 | v4.1.0 |
+| PREP-R03 combined 결속 | core→combined→native 연결 | 기존 combined catalog 계약 및 native exact 계약을 fail-stop 순서로 실행; 새 UI 실행/PASS 아님 | v4.1.0 |
+
+이 guard는 sourceSemanticDigest 하나가 아니라 canonical5·semantic7필드를 직접 hash한다.
+현재14행 차이는 앞선 승인된 연결이며,11행의 evidenceToken/action symbol도 runtime semanticTokens로
+전달되므로 단순히 “내용 무변경”이라고 하지 않는다. 새 제품 정책·assertion 완화·자동 증거 재생성은 없다.
+native manifest에 실행 결과 기준(method/route/status/selector/expectedBehavior) 변경은 없고,
+코어/통합 소비자 연결만 해당 검증으로 다시 판단한다. S11/실제 UI 후속 단계는 계속 보류한다.
+
+### PREP 최종 판정
+
+메인이 projection12필드의 이전/현재 hash와 변경14ID, 현재986개 proof의 core 모듈 직접 참조0을
+재대조했다. 읽기 보조 명령의 최초 Git JSON 출력은 기본 버퍼 부족(ENOBUFS)으로 미진입했고,
+파일 크기를 수용하는 읽기 버퍼로 재호출하여 동일14ID·digest를 확인했다. 검증 timeout 변경은 아니다.
+[독립 읽기 검토](lp28-core-binding-review.md)와 [14행/소비자15파일 전수](lp28-core-binding-review.json)를 보존했다.
+수정은 core library·core 자체검사의 고정 기대값2개뿐이며 guard/assertion을 유지했다.
+
+- [구현 증적 재검증](lp28-prep-feature-02.log): exit0/627.113초,986행·오류0·반례15/15.
+  [구조화 결과](lp28-prep-feature-02.json). 최초 미추적 실패는 위에 보존한다.
+- [core 계약](lp28-prep-core.log): exit0/2.061초,288case의 계약17개 PASS.
+- [통합 oracle 계약](lp28-prep-combined.log): exit0/356ms,424case의 계약3개 PASS.
+- [native 실행 목록 계약](lp28-prep-native-02.log): exit0/16.294초,424case(positive423/negative1)의 계약60개 PASS.
+  실제 브라우저 실행은 아니다. producer 이후 추가 fixture 자동 재생성은 없었다.
+- 제품 소스/시간·ID·저장·보존·API/권한 계약은 이번 보완으로 변경하지 않았다.
+  core 소비자 상수2개는986개 source proof의 직접 역할/dispatch에 포함되지 않으므로 해당 정합 결과를 유지하고,
+  영향은 core→combined→native 검사로 확인했다. 원장 검사/기능 전수/실제 UI PASS를 혼용하지 않는다.
+
+## PREP 개별 실행 결과
+
+[개별 판정 전수표](lp28-prep-item-results.md)는 원출력 5204행을 보존한다.
+inventory 상위check18개와 내부assert5081행을 구분한다. 최초 미추적 실패와 최종 재검증을 함께 남겼다.
+스크립트 인벤토리12개도 exit0/33.836초로 통과하여 PREP 검토·결속·실행 연결을 마감했다.
+전체UI/30분/120분은 미실행이며 S11 단기 검증은 다음 단계다.
+
+문서 마감 검사: `verify-docs-links` exit0(293문서/9620링크/오류0),
+`verify-docs-ui-assets`10개 exit0, `git diff --check` exit0.
+기존 candidate-check 역사 파일과 최종 후보 검사 파일을 분리 보존했다.
+stage는 신규 소스 추적 준비일 뿐 실패 단계 커밋이 아니었으며 위 검증 통과 뒤 PREP 범위를 커밋한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| docs links | [원출력](lp28-prep-docs.log),293문서·9620링크·오류0·exit0 | PASS |
+| 대표 제품 이미지 | [자산 원출력](lp28-prep-assets.log),README 대표 UI | PASS |
+| 영문 이미지 | 같은 명령·영문 README UI | PASS |
+| 공유 이미지 집합 | 같은 명령·UI guide | PASS |
+| 캡처 정책 | 같은 명령·capture rules | PASS |
+| 관리 manifest | 같은 명령·asset manifest | PASS |
+| 캡처 소유 | 같은 명령·모든 documented asset | PASS |
+| 현재 캡처 연결 | 같은 명령·current screenshots | PASS |
+| 오래된 baseline 참조 거부 | 같은 명령·대표 이미지 링크 | PASS |
+| PNG 존재 | 같은 명령·관리 asset directory | PASS |
+| VA frame bounds | 같은 명령·full video frame bounds | PASS |
+| 공백 검사 | [원출력](lp28-prep-diff.log),exit0 | PASS |
+
+자산 정책/존재 검사이며 실제 시각·모바일 품질 검토 PASS를 의미하지 않는다.
+
+stage 후 신규파일까지 포함한 공백 검사에서 이관한 검토 md3개의 여분 EOF 빈 줄을 발견해 정리했다.
+독립 판정 JSON/근거 내용/승인 digest는 변경하지 않았으며 staged 공백 검사로 다시 확인한다.

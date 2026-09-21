@@ -1,0 +1,7 @@
+[fail] WLR01 preparation-or-signaling-contract rawPublished=false
+[fail] WLR11 shutdown-or-port-cleanup rawPublished=false
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-whep-local-snIvJo","bytes":135694,"absent":true,"inputsUnchanged":true}
+[pass] WLR12 original inputs unchanged and owned root absent
+[summary] {"pass":1,"fail":2,"complete":false,"scope":"local-whep-signaling-lifecycle","rtpPass":false,"uiPass":false,"releasePass":false,"elapsedMs":31,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음"}
+
+[execution] {"command":"bash server.sh verify-whep-local-signaling --run","utc":"2026-09-21T14:36:30.255Z","exit":1,"signal":null,"elapsedMs":75,"sha256":"2264cac92478da9d852ac2b5ceb22695bb1275f0eaab45bd98358b4a482b15a0","bytes":591}

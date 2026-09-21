@@ -1,0 +1,26 @@
+{"command":["./server.sh","verify-v390-ui-exact-core-oracles-contract"],"source":"5e5f45d788b4a370e545ecf0a0a7d50a55dfb59f","started":"2026-09-21T15:16:29.538Z","platform":"darwin","release":"27.0.0","node":"v24.13.0","tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenReason":"전용 작업 집계 없음"}
+[pass] catalog covers every canonical UI/AUTH/SRC/RULE case in exact order
+[pass] catalog and every returned oracle are deeply immutable
+[pass] approval-envelope-only drift leaves every runtime oracle projection unchanged
+[pass] row-local semantic inputs invalidate exactly their affected runtime oracle
+[pass] runtime semantic binding contains only functional row-local inputs
+[pass] runner-facing route/role/control/request/DOM/network/state/cleanup shape is exact
+[pass] owner/action anchors and visible controls resolve in product source
+[pass] runtime response paths/tokens resolve to product JSON or HTML output anchors
+[pass] every exact API path is owned by ingress source and has semantic body assertions
+[pass] negative boundaries use the same structured-material rule for response and DOM
+[pass] state mutations bind exact request bodies, changed state, and authoritative cleanup
+[pass] read, preview POST, and negative cases forbid writes and require independent before/after readback
+[pass] corrected AUTH disable and client-view bindings match executable product routes
+[pass] RULE-092~104 and RULE-111 delegate to existing specialized exact oracles
+[pass] validator rejects missing, duplicate, route/role drift, and weak source ownership
+[pass] validator rejects generic GET200, exists-only DOM, uncorrelated network, and state self-comparison
+[pass] validator rejects absent API payload, forbidden fields, cleanup, and specialized link
+
+== v3.9.0 UI exact core oracle contract summary ==
+- cases: 288
+- pass: 17
+- fail: 0
+- actualBrowserExecution: not-run-by-this-contract
+
+{"exit":0,"signal":null,"elapsedMs":2061,"ended":"2026-09-21T15:16:31.599Z","outputBytes":1589}

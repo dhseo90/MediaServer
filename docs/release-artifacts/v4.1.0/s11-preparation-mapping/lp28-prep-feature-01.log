@@ -1,0 +1,36 @@
+{"command":["./server.sh","verify-feature-implementation-evidence","--json-report","/private/tmp/media-server-lp28.K2YANY/prep-feature-report.json"],"source":"5e5f45d788b4a370e545ecf0a0a7d50a55dfb59f","started":"2026-09-21T14:53:49.138Z","platform":"darwin","release":"27.0.0","node":"v24.13.0","tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenReason":"전용 작업 집계 없음"}
+[fail] MEDIA-003 verifierEvidence file is not tracked: scripts/internal/verify_whep_local_signaling.mjs
+[pass] negative fixture missing-id
+[pass] negative fixture duplicate-id
+[pass] negative fixture wrong-section-prefix
+[pass] negative fixture missing-source-file
+[pass] negative fixture missing-source-anchor
+[pass] negative fixture missing-ui-control-anchor
+[pass] negative fixture missing-ui-screen-route
+[pass] negative fixture unknown-verifier-command
+[pass] negative fixture missing-verifier-assertion
+[pass] negative fixture legacy-longrun-command
+[pass] negative fixture inventory-hash-drift
+[pass] negative fixture missing-reviewed-call-chain
+[pass] negative fixture bulk-review-reason
+[pass] negative fixture safe-140-unrelated-owner
+[pass] negative fixture rule-017-generic-json-owner
+
+== Feature implementation evidence summary ==
+- expectedFeatureRows: 986
+- inventoryRows: 986
+- manifestRows: 986
+- sourceEvidenceRows: 986
+- uiEvidenceRows: 441
+- verifierEvidenceRows: 986
+- manualUiCaseRows: 424
+- semanticReviewedRows: 986
+- uniqueSemanticDigests: 986
+- reviewedCallChains: 986
+- uniqueReviewReasons: 986
+- validationErrors: 1
+- review4GlobalErrors: 0
+- negativeFixtures: 15/15
+- executionEvidenceStatus: not-execution-evidence
+
+{"exit":1,"signal":null,"elapsedMs":633266,"ended":"2026-09-21T15:04:22.404Z","outputBytes":1245}

@@ -1,0 +1,146 @@
+[environment] {"utc":"2026-09-21T12:44:09.744Z","platform":"darwin","arch":"arm64","node":"v24.13.0","sampleSha256":"b1d90231de3c6b816e58715c9b12ba54bd31583301d08e943e678e46b02ad18b","probeSourceSha256":"ad5cca54f628f11ad9487f8ec4315bd91e3ffa55ad73224edadd12e31440827d","runnerSha256":"e1b3f46747f0c4a3dae45da6cb3b62c89dfe298c2c4b23144e7904b48dbfa631"}
+[pass] ENV12 cold registry absent
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 cold scan writes owned registry with zero stderr
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 warm exact features and counts with zero stderr
+[registry] {"plugins":277,"blacklist":1,"features":1525,"featureSha256":"f9cd1d5f251d5ea7c5c399ec59a9adac1850d52701a32ff1f0175179c62d7873","blacklistIsRequiredFactoryFailure":false}
+[process] {"command":"probe","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect appsrc
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect appsink
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect filesrc
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect filesink
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect fdsink
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect queue
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect identity
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect fakesink
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect concat
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect qtdemux
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect qtmux
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect mp4mux
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect matroskamux
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect matroskademux
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect h264parse
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect mpegtsmux
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect tsdemux
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect avdec_h264
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect videoconvert
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect videoscale
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect videorate
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect jpegenc
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect rtspsrc
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect rtph264pay
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect rtph264depay
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect rtph265pay
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect rtph265depay
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect h265parse
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect webrtcbin
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect nicesrc
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect nicesink
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect dtlsenc
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect dtlsdec
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect srtpenc
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect srtpdec
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect rtpbin
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect vp8enc
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect vp8dec
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect opusenc
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect opusdec
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect audioconvert
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect audioresample
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect rtpopuspay
+[process] {"command":"gst-inspect-1.0","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 inspect rtpopusdepay
+[process] {"command":"probe","exit":0,"signal":null,"error":null,"stderrBytes":0,"stderrSha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[pass] ENV12 make appsrc
+[pass] ENV12 make appsink
+[pass] ENV12 make filesrc
+[pass] ENV12 make filesink
+[pass] ENV12 make fdsink
+[pass] ENV12 make queue
+[pass] ENV12 make identity
+[pass] ENV12 make fakesink
+[pass] ENV12 make concat
+[pass] ENV12 make qtdemux
+[pass] ENV12 make qtmux
+[pass] ENV12 make mp4mux
+[pass] ENV12 make matroskamux
+[pass] ENV12 make matroskademux
+[pass] ENV12 make h264parse
+[pass] ENV12 make mpegtsmux
+[pass] ENV12 make tsdemux
+[pass] ENV12 make avdec_h264
+[pass] ENV12 make videoconvert
+[pass] ENV12 make videoscale
+[pass] ENV12 make videorate
+[pass] ENV12 make jpegenc
+[pass] ENV12 make rtspsrc
+[pass] ENV12 make rtph264pay
+[pass] ENV12 make rtph264depay
+[pass] ENV12 make rtph265pay
+[pass] ENV12 make rtph265depay
+[pass] ENV12 make h265parse
+[pass] ENV12 make webrtcbin
+[pass] ENV12 make nicesrc
+[pass] ENV12 make nicesink
+[pass] ENV12 make dtlsenc
+[pass] ENV12 make dtlsdec
+[pass] ENV12 make srtpenc
+[pass] ENV12 make srtpdec
+[pass] ENV12 make rtpbin
+[pass] ENV12 make vp8enc
+[pass] ENV12 make vp8dec
+[pass] ENV12 make opusenc
+[pass] ENV12 make opusdec
+[pass] ENV12 make audioconvert
+[pass] ENV12 make audioresample
+[pass] ENV12 make rtpopuspay
+[pass] ENV12 make rtpopusdepay
+[pass] ENV12 webrtc READY and NULL
+[pass] ENV12 silent H264 decode EOS buffers=300
+[pass] ENV12 sample unchanged
+[summary] {"checks":94,"failed":0,"elapsedMs":6176,"browser":false,"longrun":false,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음"}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-env12.3UWPW7","bytes":1641924,"absent":true}

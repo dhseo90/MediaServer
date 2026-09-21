@@ -1,11 +1,233 @@
 # v4.1.0 릴리즈 잔여 확인 — 보완 진단 시점
 
+## LP28 승인 1~5 전수 대조
+
+이 절은 아래 LP27/이전 진단표보다 최신이다. 1~4번 범위를 마감했고5번 단기 검증 전이다. 릴리즈/푸시 완료 판정은 아니다.
+직접 근거와 실행 전수는 [LP28](lp28-locator-closure.md), 과거 실패는 원기록으로 보존한다.
+
+### 지시 전수
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 위치 처리 일관성 | 완료·커밋 | 현재 위치 일관 판정·중복/변경/삭제 거부 | f8ed4546/4a213d5b |
+| 2 | 실제 영향·공백 | 완료 | 오류 serializer25/UI11/WHEP1 보완·재검토. 최초 무공백 판단 정정 | 13d82e46·독립 검토02/WHEP13·12 |
+| 3 | CLOSE·S10 고정 | 완료·커밋 | 제품287파일 고정·출처/공개 설명 정합·구형 소비자 보존 | 5e5f45d7·source-freeze |
+| 4 | 독립 검토·재결속/PREP | 완료·커밋 전 | 307행 승인/679동등 승계·986정합·반례15/core17/combined3/native60 | 독립 판정02·LP28 PREP 결과 |
+| 5 | S11 단기 | 미실행 | 4번 통과 후 FINAL manifest 실행 | LP27 manifest |
+| 6 | 분할 커밋·조건부푸시 | 일부 | 신규4커밋; PREP 커밋/5번 검증·마감 후 push 판정 | Git/LP28 |
+| 7 | 외부 서비스/실기기 안 함 | 반영 | 사용자 명시 제외, 조건부 후속에서 제거, PASS 아님 | 최신 요청 |
+| 8 | 릴리즈 잔여 전수 | 계속 갱신 | 개발·최종검증·외부 release action 분리 | 아래 전수표 |
+
+### 기준
+
+| 항목 | 기준 값 | 직접 확인 결과 | 근거 |
+| --- | --- | --- | --- |
+| branch/VERSION/CMake | v4.1.0/4.1.0 | 일치 | entry33·metadata18/소스 |
+| published 기준 | v4.0.0 | 공개 문서 기준 유지, 실시간 published 조회 아님 | metadata local |
+| HEAD/upstream | 현재개발브랜치 | 5e5f45d7, 추적origin 대비ahead9; 마지막 푸시 전 재확인 | git status/log |
+| main/tag/PR/CI | 릴리즈 직전 직접 확인 | 이번 외부 변경 미수행, fresh 원격 미확인 | 승인 범위 |
+| 제품 내용 | 고정287파일 | 새 변경 없음 | lp28-source-freeze.json·git diff src/include/CMake |
+| CHANGELOG/NEWS | 루트 문서 | 없음, fixture CHANGELOG는 비대상 | 기존 파일 조사 |
+
+### 로드맵 대조
+
+| roadmap 항목 | 문서상 상태 | 직접 확인 상태 | 불일치 여부 | 근거 |
+| --- | --- | --- | --- | --- |
+| S00 | 출처·독립 설계 | SQLite 기존사용 notice 정합, 새 외부코드 반입없음 | 없음; 법적 보증 아님 | THIRD_PARTY_NOTICES |
+| S01~S08 | 단계 구현 완료 | 현행 recorder/catalog/retention/event/query/UI/metrics 경로 존재, 과거 통합156 증거 | 현재 전체 릴리즈 PASS 아님 | LP25/26·FINAL manifest |
+| S09 | 종료·대체 | 최초 실패·수정·증거 보존 | 없음 | roadmap S09 |
+| S10 | 제품 고정/PREP 마감 | CLOSE·독립승인·현재검사연결 완료 | 최신요약 반영 | LP28 |
+| S11 | 최종검증 미완료 | 단기·30분·실제UI·120분 미실행 | 없음 | 실행 상태표 |
+
+### 구현 대조
+
+| 확인 대상 | 실제 파일·route·함수·API·UI·verifier | 확인 결과 | 근거 |
+| --- | --- | --- | --- |
+| 위치 일관성 | feature_semantic_evidence_lib/feature_semantic_review4_trust_lib/source_audit | 동일 anchor/context의 현재 위치, 내용/중복/손상 거부 | R4L22·M30·A11 |
+| serializer 연결 | OpsSourceHealthJson 등25함수 | 오류분기 대신 성공 schema/실제 HTTP 관측 연결 보완 | PREP-R05 |
+| UI 연결 | product_ui scripts·verify_ops_ui_click_e2e | 별도API 별칭 대신 실제조작의 DOM/API helper 연결; 실제실행 아님 | SRC009/RULE10 |
+| WHEP | POST /whep·CreateAnswer·session/ice/DELETE | 로컬 검증13self/12actual PASS; RTP/UI/외부 연결 PASS 아님 | MEDIA003/WLS/WLR |
+| 복합요구·환경 | recording_preparation_contracts.cpp/gst_environment_actual_probe.cpp | native8/actual94 결과와 현재 source/archive 대조 | LP27 원출력 |
+| 현행 녹화 통합 | recording_current_integration_suite.mjs | 5단계156,2출력/HTTP/hash/두기동 실행경로 | FINAL-recording |
+| 장시간·UI | current observer/managed seed/exact native browser | 준비 소스 있음, 최종 실행 PASS 없음 | LP26/current observer |
+
+### 근거 분류
+
+| 항목 | 근거 유형 | 근거 | 릴리즈 영향 |
+| --- | --- | --- | --- |
+| 승인·실패·정리·최종 evidence | AGENTS 직접 규칙 | 3/4/5/7/8장 | 통과 전 release 불가 |
+| 검토 결함37·로컬 준비 | 프로젝트 직접 확인 | 독립 판정/실제 원출력 | PREP 선행 보완 |
+| 제품·기존 미디어 증거 | 프로젝트 직접 확인 | source digest/binary/hash/codec67·ICE8 | 같은 경계만 유지, 새 전체 PASS 아님 |
+| 좁은 보완 후 최종실행 | 추론/제안·승인 순서 | 승인1~5·기존 계약 | 의미 변경 없이 확인된 공백만 보완 |
+| 외부검증 제외 | 사용자 직접 지시 | 최신 요청 | 미실행·명시 제외; 릴리즈 기능 증거로 사용 불가 |
+
+### 테스트 필요성 판정
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일·행·기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 focused/PREP | 진행 대상 | 위치/37공백/준비 수정 | LP28 R4L/PREP/WLS/WLR | 이번 승인 |
+| S11 단기 | 진행 대상 | 5번·고정 코드 최종 묶음 | LP27 FINAL manifest | 이번 승인,PREP 마감 뒤 실행 |
+| 30분 | 진행 대상 | 버전 필수 | AGENTS7.6/roadmap S11 | 이번 실행 범위 밖 |
+| 실제 UI·browser media | 진행 대상 | exact UI/영상·metadata 변경 | AGENTS7.6.3/7.9·MEDIA003·D08 | 이번 실행 범위 밖 |
+| 공통120분 | 진행 대상 | source lifecycle/media/cleanup 직접변경·기존명시승인 | AGENTS7.6.2·gst_decode_compatibility/RTSP paths | 이번 실행 범위 밖 |
+| 녹화120분 | 진행 대상 | 보존/복구·장시간 관측 직접매핑 | verify_v410_recording_longrun.sh·S11 | 이번 실행 범위 밖 |
+| 외부 서비스·실기기 | 미진행 | 사용자 명시 제외 | 최신 요청 | 실행하지 않음 |
+
+### 공개까지의 순서
+
+| 순서 | 우선순위 | 잔여 이슈 | 해야 할 일 | 성격 | 근거 유형 | release action 전·후 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | 마감 | PREP 완료분 커밋 | 실제 연결·독립 재검토·동등승계·원장/inventory 검증 결과 기록·커밋 | 검증기/증적 | 직접 확인 | 전 |
+| 2 | P0 | S11 단기 | build/auth/현행156/env/docs/version·기존 미디어증거유효성·정리 | 최종단기 | 승인/로드맵 | 전 |
+| 3 | P0 | 30분 | 고정코드 실제duration/iteration/cleanup | 장시간 | AGENTS/S11 | 전 |
+| 4 | P0 | 실제 UI/브라우저 미디어 | exactID·role/viewport/theme/시각/영상/metadata,대표이미지의 실제UI대조 | UI | AGENTS/S11 | 전 |
+| 5 | P0 | 공통·녹화120분 | 자원/지속영상/보존/복구/drift/cleanup.각 결과별판정 | 장시간 | 직접매핑/규칙 | 전 |
+| 6 | P0/P1 | 최종정합 | 문서/출처/source-only/증거유효성·cleanup·commit/push | 마감 | AGENTS/release policy | 전 |
+| 7 | P0 | 승인된 PR·CI·main | 별도 승인 후 PR/필수CI·merge 대상hash확인 | 외부변경 | AGENTS4 | 로컬gate뒤 |
+| 8 | P0 | 서명tag·Release | 별도 승인·signed annotated/검증·published확인 | 외부변경 | AGENTS4 | merge뒤 |
+
+30/120 공통 실행은 `verify-v390-server-longrun`의 실제 `verify-predev --soak-minutes`
+위임(해당 runner397행)과 원출력/summary를 함께 남기는 방식으로 다음 실행 시 명령을 확정한다.
+wrapper 자체나 fixture PASS로 duration을 대체하지 않고 두 runner를 같은 시간으로 중복 실행하지 않는다.
+
+### 미해소·제외
+
+| 항목 | 상태 | 사유 | 완료 evidence 사용 가능 여부 | 다음 조건 |
+| --- | --- | --- | --- | --- |
+| PREP 원장 | 완료 | 기각 보완·독립검토·gate 통과 | 해당 source 결속에만 가능 | 실제 UI/장시간으로 확대 금지 |
+| S11 단기 | 미실행 | PREP 커밋 뒤 실행 | 불가 | 4번 커밋 |
+| UI/30/120 | 미실행 | 이번 단기범위 밖 | 불가 | 고정코드·실행순서확인 |
+| 외부 서비스/실기기 | 명시 제외 | 사용자 실행 안 함 | 불가 | 임의 후속조건으로 되살리지 않음 |
+| PR/CI/main/tag/Release | 미실행·미확인 | 각각 실행승인 필요 | 불가 | 로컬gate·별도승인 |
+| 새 검색 기능 | 비범위 | v4.2 이후 로드맵 | 불가 | 후속버전 지시 |
+
+최신 승인 순서는 [LP28](lp28-locator-closure.md)의 위치 판정→실제 변경/공백→CLOSE·고정→
+독립 재결속/PREP→S11 단기다. 외부 서비스·실기기 검증은 사용자 명시 제외이며 완료 PASS가 아니다.
+아래 LP27 전수표는 이전 실행 결과를 보존한다. 그 표의435ID 선행 재결속·외부 조건부 실행 제안은
+최신 순서가 아니다. 일반 role의 파일 해시는 hard 비교에서 제외되며 함수/블록 변경과 낡은 위치를
+분리해야 한다. 이번 상태와 최종 전수표는 LP28 결과로 갱신한다.
+
 최신 사용자 승인으로 진단 신뢰성→HW03→PREP→CLOSE→S11단기 1~5를 진행한다.
 [현재 계약·결과](lp27-release-preparation.md#현재-승인-진단-신뢰성부터-s11-단기-안정화까지-15)가 아래 이전 전수표보다 최신이다.
 1번은 실제 FFmpeg wrapper 인식 결함을 보완하고 CPD24·HTTP8·응답/stream6개 대응 및 정리를 통과했다.
 2번은 codec67·ICE8·정상종료/정리를 통과해 현재 HW03 영향 범위를 마감했다. native99/81은 동일 source hash로 유지했다.
 과거 미재현 실패는 그대로 보존하며 현재 정식 회귀가 통과하면 HW03 영향 범위로 닫기로 기준을 확정했다.
 아래 **진단 완료·재개 판단 대기·3~6 건너뜀**은 이전 시점 상태이며 최신 완료/승인 판정이 아니다.
+
+## LP27 1~5 승인 작업의 최신 전수 대조
+
+이 절이 아래 과거 표보다 최신이다. 독자: 개발/릴리즈 담당자. 수명: PREP 검토 원장 재결속부터
+v4.1.0 공개 전까지. 실행 근거는 [LP27 기록](lp27-release-preparation.md), 정책은 AGENTS.md다.
+이번 읽기 상세 판독은 approval을 생성하거나 기존 실패를 PASS로 바꾸지 않았다.
+
+### 사용자 지시 전수
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 진단 신뢰성·미재현 기준 | 완료·커밋 | CPD24/AST2/실제HTTP8, wrapped 응답6건 대응, 원래 deadline·stdout 유지 | 05fb43ef |
+| 2 | HW03 영향 마감 | 완료·커밋 | 실제 codec67/ICE8, 정상 종료·소유14경로 정리; native99/81 동일 source 증거 유지 | 76af0602 |
+| 3 | PREP01 | 부분 완료·중단 | 복합8/환경94 PASS·41요구 고정등록/manifest. 기존 독립 증적 결속435ID 실패 | lp27-inventory-drift.json |
+| 4 | CLOSE01·S10 고정 | 건너뜀 | 3번 선수조건 실패. 구형 삭제·고정 하지 않음 | AGENTS3/8 |
+| 5 | S11 단기 안정화 | 건너뜀 | 3·4 미완료, final manifest만 준비 | LP27 manifest |
+| 6 | 분할 커밋·조건부푸시·종합/잔여 | 부분 수행 | 신규2커밋. 미해결3번 미커밋, 조건부push 불가/미수행. 전수보고 작성 | git/아래 표 |
+
+### 기준
+
+| 항목 | 기준 값 | 직접 확인 결과 | 근거 |
+| --- | --- | --- | --- |
+| branch/HEAD | v4.1.0 | 76af0602d, 3번 소스/기록 dirty | git status/log |
+| upstream | origin/v4.1.0 | f4e58b9cb2efbeec43a7e1132da940fce6afd521, ahead5/behind0 | 이번 git ls-remote exit0 |
+| source/build | 4.1.0 | VERSION:1/CMake:3/cache:140 일치 | 직접 읽기 |
+| main/tag | 별도 release action | main431397d9b86af69f1690aff6fa6f3e61ea4fbe03, local/remote v4.1.0 tag 없음 | git tag/ls-remote |
+| 제품 불변 | HW02 이후 | 이번 src/include/CMake 변경0, media binary SHA2ce43399…9fd7 | diff/실제 run environment |
+| release/CI/PR | 최신 공개·검사 분리 | 문서상 v4.0.0. 이번 GitHub API/CI 미조회, CI PASS 아님 | release-policy/미실행 |
+| source-only/CHANGELOG | 현행 공개 정책 | source-only, 루트 CHANGELOG/NEWS 없음; test용 fixture CHANGELOG는 릴리즈 문서 아님 | release-policy·rg --files |
+| 지침/모델 | 메인 책임·단일 담당 | Astra/medium 단일 담당 재사용, 하위 없음. 실제 모델 변경 주장 안 함 | AGENTS1.3·위임 기록 |
+
+### 로드맵 대조
+
+| roadmap 항목 | 문서상 상태 | 직접 확인 상태 | 불일치 여부 | 근거 |
+| --- | --- | --- | --- | --- |
+| S00 | 조사/계약 | 이번 외부 코드·패키지·특허 도입 없음 | 새 법적 보증 아님 | 변경목록 |
+| S01~04 | 기존 단계 구현 | 41요구→정확 assertion 연결, 부족 복합8 보완. 기존986 검토 원장 실패 | 단계 이력과 최종 gate 분리 | LP26 최신 보완·PREP |
+| S05~08 | 기존 단계 구현/검증 | 기존 LP25 통합156·LP26 준비436는 해당 source/범위의 과거 증거 | 최종 새 PASS 아님 | 기존 원출력 |
+| S09 | 종료·대체 | 실패·수정 이력 보존 | 일치 | roadmap S09 |
+| S10 | 부분 완료 | HW03 마감, PREP 원장 재결속·CLOSE/고정 남음 | 최신 요약 정합 반영 | LP27/roadmap |
+| S11 | 미실행 | final 실행 목록 준비, 실제 최종 묶음/30/UI/120 미실행 | 일치 | manifest·AGENTS7 |
+
+### 구현 대조
+
+| 확인 대상 | 실제 파일·route·함수·API·UI·verifier | 확인 결과 | 근거 |
+| --- | --- | --- | --- |
+| 실제 RTSP 진단 | codec_probe_diagnostics.py Trace/collect; verify_codec_matrix.sh | wrapped/bare·불완전·stdout 계수 분리. 응답 없음으로 오해하지 않음 | CPD24/HTTP8 |
+| 현재 미디어 회귀 | verify_recording_media_impact.mjs --run | codec67→ICE8 PASS. timeout 불변·정리, 외부3 미실행 | lp27-hw03-media-02.log |
+| 초기/중복 ID | lp26-current-execution-map.md 2/3절·inventory | 41개 요구 고정등록; D/J qualified context 유지 | 읽기 대조·문서 |
+| 복합 녹화 경계 | recording_preparation_contracts.cpp Unwritable/Cached/Blocked/Failover | 실제 권한·SharedStream·managed writer·SQLite→동일archive8PASS | lp27-prep-contracts.log |
+| 실제 환경 | verify_gst_environment_actual.sh/gst_environment_actual_probe.cpp | 실제 cold/warm·44inspect·44make·READY·decode94PASS | lp27-env12-actual.log |
+| 기존 검토 기준 | project_feature_implementation_evidence.json/feature_semantic_evidence_lib.mjs | 986행 중435 영향, 전체1,067오류. 제품 기능 실패 개수 아님 | lp27-inventory-drift.json |
+| UI-001 범위 | WebRtcHttpServer::Start·RoleLandingPath·verify_auth_workflow.sh | auth assertion1427은 내용 유지, 단순 이동 허용. blob 변경과 구분 필요 | agent 읽기 대조·6ab2f61ce |
+| actual 앱 통합 | recording_current_integration_suite.mjs currentSteps | 35/40/10/46/25 oracle 준비, 이번 최종 실행 안 함 | LP26 4절·LP27 manifest |
+| 장시간/UI | current observer/longrun/current UI seed | 준비 완료 범위 유지. 실제 브라우저·duration evidence 미실행 | LP26 5절 |
+| 구형 fixture | test/fixtures/recording/v1 8개 | compatibility/longrun legacy/S05 registry 참조 존재. 이번 삭제 안 함 | rg 참조, CLOSE는 건너뜀 |
+
+### 근거 분류
+
+| 항목 | 근거 유형 | 근거 | 릴리즈 영향 |
+| --- | --- | --- | --- |
+| 실제 진단·HW03/PREP 단기 | 프로젝트 직접 확인 | 개별 원출력/환경/source/exit/정리 | 각 범위만 PASS |
+| 기존 원장 drift | 프로젝트 직접 확인 | 상세validator ok:false·435ID·1067오류 | 최종 인벤토리 gate blocker |
+| 과거 HTTP/제공기 실패 | 미확정 이력 | 현재 정식 회귀 통과, 당시 원인 자료 불충분 | 과거 해결 주장 금지; 정한 진행 기준으로 HW03 현재 마감 |
+| 권한창과 과거 실패 인과 | 추론 후보 | 사용자 설명만, 정확 앱/권한 미확인 | 권한 탓 확정 금지 |
+| 중단·커밋/푸시 보류 | AGENTS 직접 규칙 | 1.2/3.3/5/8, 기존 독립 승인 자동 생성 금지 | 3번 확대 범위 결정 전 뒤 단계 금지 |
+| 변경 행 독립 재검토 | 추론/제안+기존 절차 | strict-equivalence carry-forward와 independent decision producer | 기존 승인 대량 덮어쓰기 대신 exact delta 검토 |
+| 자원 영향 | 직접 확인+한계 | native whole-graph CPU 약+42.9%/90frames | 채널capacity·누수/장시간PASS 아님 |
+
+### 테스트 판정
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일·행·기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 진단/미디어/PREP focused | 진행 대상 | 요청1~3 | CPD01~24/HW-A04/PREP-C01~08/ENV12 | 실행 완료, 해당 PASS |
+| 검토 원장 정합 | 진행 대상 | PREP 연결·최종 gate | verify-project-inventory·986 manifest | 기존 gate 실행 FAIL;435행 독립 재결속은 확대 범위 판단 필요 |
+| CLOSE 정리/기록 | 진행 대상 | 요청4 | roadmap S10·기존 fixture 사용처 | 승인 유지,3번 미충족으로 건너뜀 |
+| S11 단기 | 진행 대상 | 요청5·로드맵 | LP27 FINAL-build/auth/recording/entry/metadata/docs 등 | 승인 유지, 선수 미충족 |
+| 30분 | 진행 대상 | 버전 필수 | AGENTS7.6/S11·verify-predev30 | 이번 실행 제외, 필수 blocker |
+| 실제 UI/브라우저 media | 진행 대상 | 버전 필수·S10-D08·media변경 | Policy v4 exact case·verify-webrtc-va-metadata | 이번 명시 제외, 면제 아님 |
+| 공통120분 | 진행 대상 | media/lifecycle 변경·이전 명시승인 | LP27-M/R·AGENTS7.6.2 | 이번 미실행, 재개 시 범위/유효승인 확인 |
+| 녹화120분 | 진행 대상 | 녹화/보존/복구 직접 매핑 | LP26-O05·current longrun runner | 이번 미실행, 공통과 대체 불가 |
+| 외부TURN/WHEP/cloud/실기기 | 조건부 진행 | 환경·credential·endpoint 필요 | AGENTS4/7 | 미제공·미실행, 기본PASS 아님 |
+| PR/CI/tag/Release | 미진행 | 로컬 필수gate 미완료·각승인 없음 | AGENTS4 | 별도 승인 대상 |
+
+### 릴리즈 잔여 개발 순서
+
+| 순서 | 우선순위 | 잔여 이슈 | 해야 할 일 | 성격 | 근거 유형 | release action 전·후 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | P0 | PREP 독립 검토 원장 재결속 | 승인된 확대 범위에서435ID exact delta와 나머지 엄격 동등성 분리. locator/oracle94건 원인별 대조→단일 독립 검토→원자 migration. 단순hash치환 금지 | 증적/검증 준비 | 직접확인+제안 | 전 |
+| 2 | P0 | PREP 마감 | 동일 inventory gate를 완전 로그 보존 방식으로 재검증, script/doc gate, 요구41·기능986·UI424 경계 확인, 해당 커밋 | 관련 단기검증/기록 | 직접확인+규칙 | 전 |
+| 3 | P0/P1 | CLOSE01·S10 고정 | 구형 코드/데이터 소유·실제 소비자·대체 검사 확인 후 필요한 반례/이력 보존, 불필요 부분만 제거, 문서·출처/NOTICE·evidence validity 고정 | 정리/고정 | roadmap+규칙 | 전 |
+| 4 | P0 | S11 최종 단기 안정화 | 고정source build/auth/현행156통합/환경/entry/metadata/inventory/docs/closeout; 동일 HW03 결과는 hash/환경 유지 시 재사용 | 최종 단기 | roadmap+요청5 | 전 |
+| 5 | P0 | 실제30분·UI | 단기통과 후30분→실제UI. auth/viewport/theme/재생·overlay·시각·metadata 브라우저 잔여와 cleanup 확인 | 필수 최종검증 | AGENTS7·S11 | 전 |
+| 6 | P0 | 공통/녹화120분 | 두 목적의 실제duration·resource/drift·녹화순환/재기동/종료. CPU 상승·자원review 마감 | 필수 장시간 | 직접변경+로드맵 | 전 |
+| 7 | P0 | 버전·문서·증거 최종 마감 | 최종 결과/실패·제외·cleanup/버전metadata 일치, 승인 범위 커밋·push. 공개이미지는 실제UI검토 후 | 준비/개발push | AGENTS4/5/12 | PR/공개 전 |
+| 8 | P0 | 공개 절차 | 별도 승인된 PR/CI→main merge→hash확인→서명annotated tag/Verified→source-only Release→published검증 | 외부 변경 | AGENTS4 | gate/각승인 이후 |
+| 9 | P2 | 외부 환경·실기기 | 제공된 환경/자격증명·명시승인 있을 때 수행, 없으면 이유와범위제외. 로컬필수gate 대체 금지 | 조건부 | AGENTS4/7 | 조건 충족 시 |
+
+### 미해소 상태
+
+| 항목 | 상태 | 사유 | 완료 evidence 사용 가능 여부 | 다음 조건 |
+| --- | --- | --- | --- | --- |
+| 1/2 신규커밋 | 완료 | 05fb43ef·76af0602 | 해당 범위만 가능 | 보존 |
+| 3 준비8/환경94 | 실행PASS·미커밋 | 인벤토리전체gate 실패와 구분 | 해당 exact scope 가능, PREP전체불가 | 재결속/관련gate |
+| 인벤토리 | FAIL | 435ID 결속불일치, 일부oracle미결속 | 불가 | 범위결정/독립검토/재검증 |
+| CLOSE·S11 단기 | 건너뜀 | 3번 선수 미충족 | 불가 | 위 순서 |
+| 30/UI/120 | 미실행 | 이번 범위밖, release 필수 | 불가 | 단기통과/승인확인 |
+| cleanup | 완료 | 모든 이번 실제검사root/port 및 이관root 부재 확인 | 각실행정리 가능 | 다음실행은별도 |
+| dirty/push | 보류 | 필요한3번 소스/기록 미커밋, ahead5 | push가능 아니오/미수행 | 승인 범위 마감 |
+| PR/CI/main/tag/Release | 미실행/미확인 | gate·각승인 미충족 | 불가 | 최종gate와별도승인 |
+| 과거 실패 | 이력보존·원인미확정 | 현재회귀PASS가 과거원인증명은아님 | 과거PASS로불가 | 새근거생길때해당경로분석 |
+| 원출력 상한 | 일부출력미보존 | 최초inventory 도구출력잘림 | 전수PASS증거로불가 | 재실행때파일수집/전수행대조 |
+
+token start/end/consumed는 전용 집계 없어 미집계다. 각 실제elapsed/source는 LP27 원출력 참조.
+이번 감사는 관련 문서/소스 대조이며 전체 저장소 모든 문서 전문 리뷰가 아니다.
 
 ## LP27 HW-03 중단 후 현재 전수 대조
 

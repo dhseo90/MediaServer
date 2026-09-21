@@ -1,0 +1,8 @@
+[failure-facts] {"phase":"reserve-http","errno":"EPERM","reason":"unknown","rawPublished":false}
+[fail] WLR01 unknown rawPublished=false
+[fail] WLR11 shutdown-or-port-cleanup rawPublished=false
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-whep-local-IUQG3L","bytes":135694,"absent":true,"inputsUnchanged":true}
+[pass] WLR12 original inputs unchanged and owned root absent
+[summary] {"pass":1,"fail":2,"complete":false,"scope":"local-whep-signaling-lifecycle","rtpPass":false,"uiPass":false,"releasePass":false,"elapsedMs":31,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음"}
+
+[execution] {"command":"bash server.sh verify-whep-local-signaling --run","utc":"2026-09-21T14:39:09.511Z","exit":1,"signal":null,"elapsedMs":76,"sha256":"ee4dea94338272a69ce8de1f3c91833dbdfb1d8a366ca6b856f67b3bedce8137","bytes":662}

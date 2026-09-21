@@ -7,6 +7,10 @@
 30분·120분: 검증기 자체 비대상. UI: 비대상(UI 없어야 정상). 기존986개 제품 기능 총계에 합산하지 않는다.
 외부 서비스·실기기는 이번 버전 사용자 명시 제외이며 PASS로 사용하지 않는다.
 
+PREP-R05/WHEP-L01~04는 같은 LP28 문서의 독립 검토 보완 정의에 등록한다.
+안정화=소스 결속 및 로컬 WHEP signaling/lifecycle,30분·120분=기존 MEDIA-003 영역에서 별도,
+UI=검증기 자체 비대상(실제 browser/media 품질을 대체하지 않음). 신규 제품 기능 총계에는 합산하지 않는다.
+
 ## LP27 릴리즈 선행 작업 사전등록
 
 [실행 전 정의](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md). 등록은 PASS가 아니다.
@@ -15,6 +19,11 @@
 HW-A01~04(실제한정비교/영향마감)를 위 문서에 각각 사전등록했다.
 CPD/HWD는 안정화 도구 자체검사이며30분/120분/UI 비대상이다.
 HW-A는 안정화 실제미디어 검사이며30분/120분은 S11 media/lifecycle 매핑, 실제UI는별도다.
+PREP-C01~08은 같은 실행 전 정의의 복합 요구 검사다. 안정화=preparation-contracts runner,
+30분/120분=기존 S11 source/recording 영역에서 실제 실행, UI=백엔드 검사 자체 비대상(제품 UI는 별도)이다.
+ENV12는 `bash scripts/internal/verify_gst_environment_actual.sh`가 실제 플랫폼94개+cleanup을 연결한다.
+정의는 LP27 ENV12 절에 전수 등록했다. 안정화=실제 cold/warm·44inspect/44make·READY/decode,
+30분/120분=실행 환경 선수조건(장시간 자체를 대체하지 않음), UI=환경 도구 비대상이다.
 
 | ID | 기능 | 안정화 | 30분 | 120분 | UI |
 | --- | --- | --- | --- | --- | --- |
@@ -40,6 +49,57 @@ HW-A는 안정화 실제미디어 검사이며30분/120분은 S11 media/lifecycl
 | LP27-R04 | 선택 정책 자원 영향 | HW-RS01~05 동일 입력 단기 비교 | S11 자원 | S11 자원·유지 | 비대상: 내부 비용 |
 | LP27-R05 | 영향 검사 판정 반례 | HW-RF01~12·DC01~08·IO03, RTP 계수·fallback 관측 | 비대상: 검사 자체 | 비대상: 검사 자체 | 비대상: UI 없음 |
 | LP27-R06 | 기존 미디어 관련 회귀 | HW-MEDIA01~03 codec67·ICE8·격리/정리 | S11 media cut | S11 source lifecycle | 이번 브라우저 제외, 릴리즈 별도 |
+
+## 초기 녹화 요구의 고정 식별 등록
+
+LP27부터 아래 41개 qualified requirement ID를 고정한다. 기존 기능의 세부 요구 식별이며
+986개 legacy 기능 총계에 새 제품 기능으로 합산하지 않는다. 원문·정확 assertion/명령은
+[현행 실행 연결 2절](release-artifacts/v4.1.0/s11-preparation-mapping/lp26-current-execution-map.md)이 유일한 매핑 본문이다.
+등록은 과거 실행 증거 소급 복원이나 전체 PASS가 아니다. 최초 실패/legacy 한계는 보존한다.
+
+| 요구 ID | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- |
+| S01/opaque | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S01/time | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S01/additive | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S01/lifecycle | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S01/golden | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S01/tombstone | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S02/disabled | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S02/policy | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S02/H264 | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S02/VP8 | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S02/GOP | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S02/split | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S02/rollback | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S02/queue | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S02/partial | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S03/idempotency | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S03/tail | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S03/corruption | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S03/sqlite | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S03/FK | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S03/orphan | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S03/rebuild | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S04/oldest | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S04/class | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S04/protection | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S04/unlink | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S04/journal | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S04/free | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S04/blocked | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S04/resume | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S04/tombstone | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S04/expected | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S04/inflight | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S04/retry | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S04/path | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S04/invalid | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S04/dirfd | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S04/isolation | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S04/partial-reserve | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S04/event-admission | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
+| S04/projection | 현행 실행 연결 2절의 exact runner·oracle | S11 공통 녹화/수명 관측 | 공통 및 녹화 전용 유지·보존/복구 | 내부 계약 비대상; 표출은 S06/3D exact UI 별도 |
 
 ## LP26 현행 검증 준비 사전등록
 

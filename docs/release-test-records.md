@@ -4,6 +4,8 @@
 
 사용자 승인1~5 순차 개발·분할커밋·조건부푸시. 외부 서비스·실기기는 명시 제외하며 PASS가 아니다.
 [최신 범위·실행 전 정의·결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp28-locator-closure.md)를 따른다.
+LP28 위치/실제 연결 보완·CLOSE/제품 고정·PREP 독립 재결속을 마감했다. S11 최종 단기는 다음 승인 단계다.
+원장986행 정합과 UI 목록 계약 PASS는 실제 기능986개/UI424개 실행 PASS가 아니다.
 아래 LP27의 중단·완료는 이전 실행 이력이다. 실제30분/UI/120분과 외부 릴리즈 동작은 이번 범위 밖이다.
 
 ## LP27 릴리즈 선행 1~4 순차 작업
@@ -18,6 +20,15 @@ CPD19~24 및 실제 경로 대응 확인 후 현재 전체 회귀로 진행하�
 2번 현재 HW03은 codec67·ICE8 PASS 및 소유14경로 정리를 확인했다. native99/81은 동일 source hash 증거를 유지했다.
 [현재 회귀 전수 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#hw-03-현재-회귀-마감-결과).
 아래중단판정은직전실행이력이며새로운실행PASS를의미하지않는다.
+
+3번 PREP는 복합 경계8개·실제 ENV12 94개를 통과했다. 초기41개 요구 ID/중복 문맥/최종 실행 목록은
+[현행 연결](release-artifacts/v4.1.0/s11-preparation-mapping/lp26-current-execution-map.md#lp27-현재-보완),
+[manifest·개별 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#최종-실행-manifest)에 연결했다.
+등록·선택은 제품 전체PASS가 아니며 실제 장시간·UI는 여전히 미실행이다.
+PREP 마감의 project inventory는17/1 FAIL이다. 상세 판독에서 기존435ID의1067개 결속 오류를 확인했다.
+이를 제품435개 고장으로 해석하지 않는다. 3번은 부분 완료·미커밋,4/5는 건너뜀이며 푸시 불가/미수행이다.
+[중단 원인](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md)과
+[최신 전수표](release-artifacts/v4.1.0/s11-preparation-mapping/release-readiness-20260916.md#lp27-15-승인-작업의-최신-전수-대조)를 따른다.
 
 최신1번 진단 보완은 CPD18/HWD4·구문·등록12·링크/공백 통과. 최초 unit3ERROR와
 수정/재검증·임시 정리는 [진단 보완 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#진단-보완-1번-결과)에 보존한다.

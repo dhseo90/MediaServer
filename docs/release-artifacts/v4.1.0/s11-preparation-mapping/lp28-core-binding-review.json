@@ -1,0 +1,215 @@
+{
+  "schema": "media-server.lp28-core-binding-readonly-review.v1",
+  "reviewedAt": "2026-09-22",
+  "scope": "HEAD implementation/canonical와 당시 worktree의 정적 JSON projection·source 소비자 대조. 테스트 실행 아님.",
+  "projection": {
+    "definition": "scripts/internal/v390_ui_exact_core_oracles.mjs:671-683",
+    "fields": [
+      "testId",
+      "route",
+      "accountRole",
+      "controlAction.selector",
+      "controlAction.actionAnchor",
+      "semantic.handler.contextSha256",
+      "semantic.actionHandler.contextSha256",
+      "semantic.stateOracle.expectedBehaviorSha256",
+      "semantic.verifierAssertion.file",
+      "semantic.verifierAssertion.symbol",
+      "semantic.verifierAssertion.assertionAnchor",
+      "semantic.verifierAssertion.command"
+    ],
+    "sourceSemanticDigestDirectlyHashed": false,
+    "headSha256": "64f441ae53250a422fef39a14c09c7631f7a54b33c1a10bb1e117c1c13123727",
+    "currentSha256": "6bbf050884a51536572a6f243e63be22c74ebb33848f549e42e5135790a24305",
+    "changedRows": [
+      {
+        "id": "UI-005",
+        "fields": [
+          "action.context"
+        ]
+      },
+      {
+        "id": "UI-018",
+        "fields": [
+          "action.context"
+        ]
+      },
+      {
+        "id": "AUTH-029",
+        "fields": [
+          "handler.context"
+        ]
+      },
+      {
+        "id": "SRC-009",
+        "fields": [
+          "action.context",
+          "verifier.file",
+          "verifier.symbol",
+          "verifier.anchor",
+          "verifier.command"
+        ]
+      },
+      {
+        "id": "RULE-001",
+        "fields": [
+          "action.context",
+          "verifier.file",
+          "verifier.symbol",
+          "verifier.anchor",
+          "verifier.command"
+        ]
+      },
+      {
+        "id": "RULE-002",
+        "fields": [
+          "action.context",
+          "verifier.file",
+          "verifier.symbol",
+          "verifier.anchor",
+          "verifier.command"
+        ]
+      },
+      {
+        "id": "RULE-003",
+        "fields": [
+          "action.context",
+          "verifier.file",
+          "verifier.symbol",
+          "verifier.anchor",
+          "verifier.command"
+        ]
+      },
+      {
+        "id": "RULE-008",
+        "fields": [
+          "verifier.file",
+          "verifier.symbol",
+          "verifier.anchor",
+          "verifier.command"
+        ]
+      },
+      {
+        "id": "RULE-011",
+        "fields": [
+          "verifier.file",
+          "verifier.symbol",
+          "verifier.anchor",
+          "verifier.command"
+        ]
+      },
+      {
+        "id": "RULE-012",
+        "fields": [
+          "verifier.file",
+          "verifier.symbol",
+          "verifier.anchor",
+          "verifier.command"
+        ]
+      },
+      {
+        "id": "RULE-013",
+        "fields": [
+          "handler.context",
+          "action.context",
+          "verifier.file",
+          "verifier.symbol",
+          "verifier.anchor",
+          "verifier.command"
+        ]
+      },
+      {
+        "id": "RULE-014",
+        "fields": [
+          "handler.context",
+          "action.context",
+          "verifier.file",
+          "verifier.symbol",
+          "verifier.anchor",
+          "verifier.command"
+        ]
+      },
+      {
+        "id": "RULE-015",
+        "fields": [
+          "verifier.file",
+          "verifier.symbol",
+          "verifier.anchor",
+          "verifier.command"
+        ]
+      },
+      {
+        "id": "RULE-016",
+        "fields": [
+          "handler.context",
+          "action.context",
+          "verifier.file",
+          "verifier.symbol",
+          "verifier.anchor",
+          "verifier.command"
+        ]
+      }
+    ]
+  },
+  "additionalStaleExpectation": {
+    "file": "scripts/internal/verify_v390_ui_exact_core_oracles_contract.mjs",
+    "line": 28,
+    "sha256": "ba1b213deb7df36c0615333cf3edbe535a0ac5147d63b079f0b482142f729e9d",
+    "finding": "현재 projection뿐 아니라 HEAD core 고정값과도 불일치했다."
+  },
+  "unchanged": [
+    "canonical JSON 전체",
+    "core semantic.controlSelector",
+    "proof.requirement",
+    "proof.flowKind",
+    "proof.semanticObligation",
+    "projection의 expectedBehaviorSha256",
+    "native HEAD/worktree leaf diff에서 route/method/status/selector/expectedBehavior 실행 결과 기준 변경 없음"
+  ],
+  "approvedReconnectionsConsumed": [
+    "SRC-009",
+    "RULE-001",
+    "RULE-002",
+    "RULE-003",
+    "RULE-008",
+    "RULE-011",
+    "RULE-012",
+    "RULE-013",
+    "RULE-014",
+    "RULE-015",
+    "RULE-016"
+  ],
+  "limitation": "의미 무변경 주장이 아니다. 승인된 11행 evidenceToken/action/readback 재연결을 semanticTokens 및 runtimeSemanticBinding이 소비한다. 선택 source 결속 승인과 실제 UI/requiredOutcome 전체 실행 성공은 별개다.",
+  "propagation": {
+    "runtimeBinding": "core:230-244 sourceFlowDigest/verifier/state context → runtimeSemanticBindingSha256",
+    "combined": "v390_ui_exact_oracle_catalog.mjs:73-75 전체 catalog SHA",
+    "native": "v390_ui_native_exact_cases_lib.mjs:2814/2816 생성 projection/catalog SHA,2839/2841 exact 비교",
+    "nativeChangedCases": 176,
+    "nativeExactSpecHashChangedCases": 130,
+    "nativeStateReadbackIdentityChangedCases": 11,
+    "otherCatalogs": "event/client-safe는 별도 고정 catalog이며 같은 implementation 직접 hash guard 없음. combined SHA를 통한 파급은 있음.",
+    "indirectConsumers": "native fixture를 읽는 policy producer/qualifier/acceptance/current evidence 계열은 freshness 결속으로 간접 영향"
+  },
+  "directConsumers": [
+    "scripts/internal/verify_v390_ui_native_exact_cases_contract.mjs",
+    "scripts/internal/v390_ui_policy_v4_independent_qualifier.mjs",
+    "scripts/internal/verify_v390_ui_exact_core_oracles_contract.mjs",
+    "scripts/internal/v390_ui_native_exact_cases_lib.mjs",
+    "scripts/internal/run_v390_ui_native_diagnostic_sweep.mjs",
+    "scripts/internal/run_v390_ui_native_exact_cases.mjs",
+    "scripts/internal/v390_ui_exact_event_oracle_evaluator.mjs",
+    "scripts/internal/v390_ui_request_navigation_lifecycle.mjs",
+    "scripts/internal/verify_v390_ui_exact_oracle_catalog_contract.mjs",
+    "scripts/internal/v390_ui_console_evidence.mjs",
+    "scripts/internal/v390_ui_exact_oracle_runtime.mjs",
+    "scripts/internal/verify_v390_ui_completion_oracle_contract.mjs",
+    "scripts/internal/verify_v390_ui_native_diagnostic_sweep_contract.mjs",
+    "scripts/internal/v390_ui_case_runtime.mjs",
+    "scripts/internal/v390_ui_exact_oracle_catalog.mjs"
+  ],
+  "decision": "고정 상수 2개를 검토된 projection에 명시 재결속하는 한정 보완 후보. 수정 및 core/native/combined 계약 재검증은 메인 책임. 자동 hash·candidate·proof 재작성 안 함.",
+  "repositoryModified": false,
+  "testExecuted": false,
+  "producerExecuted": false,
+  "browserExecuted": false
+}

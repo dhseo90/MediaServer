@@ -16656,59 +16656,59 @@
       "featureContractSha256": "573552d1dd986a939a6442ceed804092c2fd6a58bc4de2c225dd2edcd8b02476",
       "status": "source-resolved-reviewed-proof",
       "evidenceMode": "product-ui-action-api-authoritative-mutation-readback",
-      "evidenceToken": "sourcePayload",
+      "evidenceToken": "displayName",
       "verifier": {
-        "command": "verify-ops-source-registry-api",
-        "file": "scripts/internal/verify_ops_source_registry_api.mjs"
+        "command": "verify-ops-click-e2e",
+        "file": "scripts/internal/verify_ops_ui_click_e2e.mjs"
       },
       "roles": {
         "owner": {
           "file": "src/ingress/product_ui_ops_sources_script.cpp",
           "symbol": "AppendOpsSourcesPageScript",
           "anchor": "channelForm.addEventListener('submit', async event => {",
-          "line": 1344,
+          "line": 1389,
           "contextSha256": "236f0e0ed3d879a605309f0dc9d74808eaacae2a3e7b321d483e279cf2f8a64f"
         },
         "dispatch": {
           "file": "src/ingress/product_ui_ops_sources_script.cpp",
           "symbol": "AppendOpsSourcesPageScript",
-          "anchor": "await saveChannelSourceViewPair(channelId, sourcePayload, viewPayload);",
-          "line": 1359,
-          "contextSha256": "cce1bb978b372b7b83e2e2c6b78340700540a9f570cdb4363f29a4a2d73cb311"
+          "anchor": "const { channelId, sourcePayload, viewPayload } = channelPayloadsFromFormData(data);",
+          "line": 1400,
+          "contextSha256": "fe8169ea55a10ea1d7fed076b79297d7a25e7928820dd1b7fcf81aa236069584"
         },
         "action": {
           "file": "src/ingress/product_ui_ops_sources_script.cpp",
-          "symbol": "saveChannelSourceViewPair",
-          "anchor": "async function saveChannelSourceViewPair(channelId, sourcePayload, viewPayload) {",
-          "line": 1283,
-          "contextSha256": "5cc3b8519bcbcdafae62544197f8491c871fb81eef3f64c45eca00745fc81922"
+          "symbol": "channelPayloadsFromFormData",
+          "anchor": "function channelPayloadsFromFormData(data) {",
+          "line": 1276,
+          "contextSha256": "6924cc7012740cdf0dff96d778c9886095a338455c84a0afae39542b75e9cc9d"
         },
         "state": {
           "file": "src/ingress/product_ui_ops_sources_script.cpp",
-          "symbol": "saveChannelSourceViewPair",
-          "anchor": "body: JSON.stringify(sourcePayload)",
-          "line": 1294,
-          "contextSha256": "df5398676ef8ddd24b518a936553d9e4b6d57bf6c03273b5a511c33af894147d"
+          "symbol": "channelPayloadsFromFormData:displayName",
+          "anchor": "displayName: data.displayName,",
+          "line": 1283,
+          "contextSha256": "fa6e87a32b81c3679c9d95aba693717f38308f00c2dedc9bd30fd6fa2f26b7e2"
         },
         "readback": {
-          "file": "scripts/internal/verify_ops_source_registry_api.mjs",
-          "symbol": "assertSourceUpdateReadback",
-          "anchor": "assert(response.status === \"updated\" && sourcePayloadReadback?.displayName === \"File Source Updated\" && sourcePayloadReadback?.zone === \"South\" && disk?.displayName === sourcePayloadReadback.displayName && disk?.zone === sourcePayloadReadback.zone, \"SRC-009 source PUT/list/storage update readback failed\");",
-          "line": 268,
-          "contextSha256": "f8dc9762bf1bd937a1069c7039386847a39a6c73e427f33276a1c84f777f8f17"
+          "file": "scripts/internal/verify_ops_ui_click_e2e.mjs",
+          "symbol": "updateFileChannelViaUi",
+          "anchor": "await assertSourceApiRecord(sourceId, source => source.displayName === updatedName && source.zone === \"South\", \"source CRUD source API update\");",
+          "line": 649,
+          "contextSha256": "4ab409ece9660a469b8ffca0f340635f7f6f7f2f02669691f3ab3dfe0091ae3d"
         },
         "verifier": {
           "file": "server.sh",
-          "symbol": "server-dispatch:verify-ops-source-registry-api",
-          "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
-          "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
+          "symbol": "server-dispatch:verify-ops-click-e2e",
+          "anchor": "verify-ops-click-e2e)",
+          "line": 1631,
+          "contextSha256": "fd2e3e945f4ae182d42b610b65cc65240eb04c121abaeb066a73aaf7736879c3"
         },
         "route": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.method == \"GET\" && request.path == \"/ops/sources\") {",
-          "line": 1144,
+          "line": 1231,
           "contextSha256": "b27440ad9553111592da8102f4f76fad63f5cef60c8ff26c28aa28ed1539a89a"
         }
       },
@@ -16717,44 +16717,44 @@
           "from": "owner",
           "to": "dispatch",
           "kind": "function-containment",
-          "witness": "/ops/sources channel submit contains the source/view paired save dispatch",
-          "source": "src/ingress/product_ui_ops_sources_script.cpp:1344",
-          "target": "src/ingress/product_ui_ops_sources_script.cpp:1359"
+          "witness": "SRC-009 owner에서 dispatch 실제 호출/포함",
+          "source": "src/ingress/product_ui_ops_sources_script.cpp:1389",
+          "target": "src/ingress/product_ui_ops_sources_script.cpp:1400"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
-          "witness": "await saveChannelSourceViewPair(channelId, sourcePayload, viewPayload);",
-          "source": "src/ingress/product_ui_ops_sources_script.cpp:1359",
-          "target": "src/ingress/product_ui_ops_sources_script.cpp:1283"
+          "witness": "SRC-009 dispatch에서 action 실제 호출/포함",
+          "source": "src/ingress/product_ui_ops_sources_script.cpp:1400",
+          "target": "src/ingress/product_ui_ops_sources_script.cpp:1276"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
-          "witness": "saveChannelSourceViewPair sends sourcePayload through the PUT source API",
-          "source": "src/ingress/product_ui_ops_sources_script.cpp:1283",
-          "target": "src/ingress/product_ui_ops_sources_script.cpp:1294"
+          "witness": "SRC-009 action에서 state 실제 호출/포함",
+          "source": "src/ingress/product_ui_ops_sources_script.cpp:1276",
+          "target": "src/ingress/product_ui_ops_sources_script.cpp:1283"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "sourcePayload PUT is independently read back from list API and registry storage",
-          "source": "src/ingress/product_ui_ops_sources_script.cpp:1294",
-          "target": "scripts/internal/verify_ops_source_registry_api.mjs:268"
+          "witness": "SRC-009 실제 UI 조작 후 해당 DOM/API 관측; 실행 PASS는 별도",
+          "source": "src/ingress/product_ui_ops_sources_script.cpp:1283",
+          "target": "scripts/internal/verify_ops_ui_click_e2e.mjs:649"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
-          "witness": "verify-ops-source-registry-api",
-          "source": "scripts/internal/verify_ops_source_registry_api.mjs:268",
-          "target": "server.sh:1525"
+          "witness": "verify-ops-click-e2e",
+          "source": "scripts/internal/verify_ops_ui_click_e2e.mjs:649",
+          "target": "server.sh:1631"
         }
       ],
-      "rationale": "SRC-009 /ops/sources form submit의 saveChannelSourceViewPair sourcePayload PUT과 독립 API/storage readback을 결속한다.",
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님.",
       "failureReason": ""
     },
     {
@@ -16970,7 +16970,7 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "OpsSourceHealthJson(impl_->analysis_session_reads.Snapshots(),",
-          "line": 1366,
+          "line": 1453,
           "contextSha256": "d1b1ec57adb3f1ba6a8ac68bcc432c26935860beefe2a424d637a305aed154e8"
         },
         "dispatch": {
@@ -16990,9 +16990,9 @@
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
           "symbol": "OpsSourceHealthJson",
-          "anchor": "return \"{\\\"ok\\\":false,\\\"schema\\\":\\\"media-server.ops.source-health.v1\\\",\\\"error\\\":\\\"\" +",
-          "line": 3176,
-          "contextSha256": "4d64bccdd929b429d76ef9d8d04ba02669948dc25535260b2ce8cf23462f6436"
+          "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.source-health.v1\\\",\"",
+          "line": 3186,
+          "contextSha256": "e058cd2d5dd6e1610f942da5f7a76adebcd41bd9ee90ea4c99ce5667debdb5fb"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -17005,7 +17005,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -17015,7 +17015,7 @@
           "to": "dispatch",
           "kind": "direct-callsite",
           "witness": "SRC-012 owner dispatch",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:1366",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:1453",
           "target": "src/ingress/webrtc_http_server_ops_foundation.cpp:3166"
         },
         {
@@ -17032,14 +17032,14 @@
           "kind": "function-containment",
           "witness": "SRC-012 action state",
           "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:3173",
-          "target": "src/ingress/webrtc_http_server_ops_foundation.cpp:3176"
+          "target": "src/ingress/webrtc_http_server_ops_foundation.cpp:3186"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "SRC-012 product state independent API/storage readback",
-          "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:3176",
+          "witness": "SRC-012 성공 serializer의 실제 HTTP readback",
+          "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:3186",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:288"
         },
         {
@@ -17048,10 +17048,10 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:288",
-          "target": "server.sh:1525"
+          "target": "server.sh:1663"
         }
       ],
-      "rationale": "SRC-012 actual product flow and canonical readback",
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님.",
       "failureReason": ""
     },
     {
@@ -17069,7 +17069,7 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "OpsSourceHealthBulkJson(request.body,",
-          "line": 1384,
+          "line": 1471,
           "contextSha256": "bdf96b9457f8578d6fb411c37c45540198c305b5d4de9a55ba7ad0e75b2a8765"
         },
         "dispatch": {
@@ -17089,9 +17089,9 @@
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
           "symbol": "OpsSourceHealthBulkJson",
-          "anchor": "return \"{\\\"ok\\\":false,\\\"schema\\\":\\\"media-server.ops.source-health.bulk.v1\\\",\\\"error\\\":\\\"\" +",
-          "line": 3224,
-          "contextSha256": "7d6f25ca17ad09543cc8200b330b635494c4c25c6b1e558323dd06c00f332d0d"
+          "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.source-health.bulk.v1\\\",\"",
+          "line": 3325,
+          "contextSha256": "d84a5443c5f8dbf9040f22848eff7ee05d5636dbc17525275683e1a72451680a"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -17104,7 +17104,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -17114,7 +17114,7 @@
           "to": "dispatch",
           "kind": "direct-callsite",
           "witness": "SRC-013 owner dispatch",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:1384",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:1471",
           "target": "src/ingress/webrtc_http_server_ops_foundation.cpp:3212"
         },
         {
@@ -17131,14 +17131,14 @@
           "kind": "function-containment",
           "witness": "SRC-013 action state",
           "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:3221",
-          "target": "src/ingress/webrtc_http_server_ops_foundation.cpp:3224"
+          "target": "src/ingress/webrtc_http_server_ops_foundation.cpp:3325"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "SRC-013 product state independent API/storage readback",
-          "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:3224",
+          "witness": "SRC-013 성공 serializer의 실제 HTTP readback",
+          "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:3325",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:292"
         },
         {
@@ -17147,10 +17147,10 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:292",
-          "target": "server.sh:1525"
+          "target": "server.sh:1663"
         }
       ],
-      "rationale": "SRC-013 actual product flow and canonical readback",
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님.",
       "failureReason": ""
     },
     {
@@ -19246,29 +19246,29 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path == \"/ops/api/source-registry/reliability-timeline\") {",
-          "line": 2518,
+          "line": 2605,
           "contextSha256": "4c52ab7a4af3321969c330add8eefd5f9c265477628c587c4adab30c0d0037d6"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "OpsV330ReliabilityTimelineHealthHistoryJson(config, source_health_snapshot));",
-          "line": 2532,
+          "line": 2619,
           "contextSha256": "f0a219a244eb38d548b25845ec2f8951068145f081a3afa58cd893f98247b2e7"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
           "symbol": "OpsV330ReliabilityTimelineHealthHistoryJson",
           "anchor": "std::string OpsV330ReliabilityTimelineHealthHistoryJson(",
-          "line": 5971,
+          "line": 6084,
           "contextSha256": "a95192789434f0d30c63e8e9e9e9e3ab2b080ddd077b18c1f7431671d3037af1"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
           "symbol": "OpsV330ReliabilityTimelineHealthHistoryJson",
-          "anchor": "return \"{\\\"ok\\\":false,\\\"schema\\\":\\\"media-server.ops.v330-reliability-timeline-health-history.v1\\\",\\\"error\\\":\\\"\" +",
-          "line": 5975,
-          "contextSha256": "7a89560f56eef8b2c7262aa587635d3227365607bbf84aab85829ac0f71b98f7"
+          "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.v330-reliability-timeline-health-history.v1\\\",\"",
+          "line": 6097,
+          "contextSha256": "10c5a8f1d1d662e1ea512b03e2ccf8c13ce83fbc3885bd2ebe7fc8bfbed3672c"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -19281,7 +19281,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -19291,31 +19291,31 @@
           "to": "dispatch",
           "kind": "branch-containment",
           "witness": "/ops/api/source-registry/reliability-timeline branch contains exact OpsV330ReliabilityTimelineHealthHistoryJson response producer call",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2518",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:2532"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:2605",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:2619"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "OpsV330ReliabilityTimelineHealthHistoryJson(config, source_health_snapshot));",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2532",
-          "target": "src/ingress/webrtc_http_server_ops_foundation.cpp:5971"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:2619",
+          "target": "src/ingress/webrtc_http_server_ops_foundation.cpp:6084"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "OpsV330ReliabilityTimelineHealthHistoryJson contains exact v330-reliability-timeline-health-history schema/control emission",
-          "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:5971",
-          "target": "src/ingress/webrtc_http_server_ops_foundation.cpp:5975"
+          "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:6084",
+          "target": "src/ingress/webrtc_http_server_ops_foundation.cpp:6097"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "v330-reliability-timeline-health-history product response is independently compared by SRC-035 runtime assertion",
-          "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:5975",
+          "witness": "SRC-035 성공 serializer의 실제 HTTP readback",
+          "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:6097",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:549"
         },
         {
@@ -19324,10 +19324,10 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:549",
-          "target": "server.sh:1525"
+          "target": "server.sh:1663"
         }
       ],
-      "rationale": "SRC-035 product route/producer state를 격리 서버의 실제 HTTP 응답과 registry 파일 readback으로 독립 비교한다."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "SRC-036",
@@ -19638,29 +19638,29 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path == \"/ops/api/source-registry/reliability-search-metrics\") {",
-          "line": 2538,
+          "line": 2625,
           "contextSha256": "751fed9b6e974b7b45cc7d21e2d78801d4e6081da5ae93ccc8f86c72c331f3f8"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "OpsV330SourceReliabilitySearchMetricsJson(config, source_health_snapshot));",
-          "line": 2552,
+          "line": 2639,
           "contextSha256": "1ede96cb82efb4054cd47d3f878d5d9ce2f72ff7e874806905c3738f4ca7212f"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
           "symbol": "OpsV330SourceReliabilitySearchMetricsJson",
           "anchor": "std::string OpsV330SourceReliabilitySearchMetricsJson(",
-          "line": 6294,
+          "line": 6407,
           "contextSha256": "352d61388a69d493b125c64123077c9b9a5b041db8cd7d656a8dd593273b0853"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
           "symbol": "OpsV330SourceReliabilitySearchMetricsJson",
-          "anchor": "return \"{\\\"ok\\\":false,\\\"schema\\\":\\\"media-server.ops.v330-source-reliability-search-metrics.v1\\\",\\\"error\\\":\\\"\" +",
-          "line": 6298,
-          "contextSha256": "cf0097ada405d20b0a5dd537b0a9205272263054bb2b258b53eacedc256c24af"
+          "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.v330-source-reliability-search-metrics.v1\\\",\"",
+          "line": 6424,
+          "contextSha256": "1fd48031361cf831567d2095a22adb2712c48aba2e22f9695e87474bd6b4a5fb"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -19673,7 +19673,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -19683,31 +19683,31 @@
           "to": "dispatch",
           "kind": "branch-containment",
           "witness": "reliability search GET branch calls its read model",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2538",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:2552"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:2625",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:2639"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "route directly calls search metrics producer",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2552",
-          "target": "src/ingress/webrtc_http_server_ops_foundation.cpp:6294"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:2639",
+          "target": "src/ingress/webrtc_http_server_ops_foundation.cpp:6407"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "producer emits canonical schema and boundaries",
-          "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:6294",
-          "target": "src/ingress/webrtc_http_server_ops_foundation.cpp:6298"
+          "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:6407",
+          "target": "src/ingress/webrtc_http_server_ops_foundation.cpp:6424"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "v330-source-reliability-search-metrics product response is independently compared by SRC-039 runtime assertion",
-          "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:6298",
+          "witness": "SRC-039 성공 serializer의 실제 HTTP readback",
+          "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:6424",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:558"
         },
         {
@@ -19716,10 +19716,10 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:558",
-          "target": "server.sh:1525"
+          "target": "server.sh:1663"
         }
       ],
-      "rationale": "SRC-039 product route/producer state를 격리 서버의 실제 HTTP 응답과 registry 파일 readback으로 독립 비교한다."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "SRC-040",
@@ -19932,29 +19932,29 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path == \"/ops/api/source-registry/source-health-replay-drift-diff\") {",
-          "line": 2918,
+          "line": 3005,
           "contextSha256": "1f6af71f9c4e1efbe1291b7ec4e01f990181aaec5e7a2b9f510bb12826bc5fe4"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "OpsV340SourceHealthReplayDriftDiffJson(source_health_snapshot));",
-          "line": 2932,
+          "line": 3019,
           "contextSha256": "5de276295916e99db665bdd71e7a3f8b545353b1ee5b49418888a360b741fe78"
         },
         "action": {
           "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
           "symbol": "OpsV340SourceHealthReplayDriftDiffJson",
           "anchor": "std::string OpsV340SourceHealthReplayDriftDiffJson(",
-          "line": 6479,
+          "line": 6592,
           "contextSha256": "430df24664d86ea934463ccf82be0b6ce591b7e7a54fa6708dccef9308c10b36"
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
           "symbol": "OpsV340SourceHealthReplayDriftDiffJson",
-          "anchor": "return \"{\\\"ok\\\":false,\\\"schema\\\":\\\"media-server.ops.v340-source-health-replay-drift-diff.v1\\\",\\\"error\\\":\\\"\" +",
-          "line": 6482,
-          "contextSha256": "415a4e506d79c3a2125b668f70fe0de7044804f311eda7f3f8725983e1576e2c"
+          "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.v340-source-health-replay-drift-diff.v1\\\",\"",
+          "line": 6608,
+          "contextSha256": "dfd9085eee05f8da5b42fa39d3aa7e718e8fda325c363151bf69bb68ed23918b"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -19967,7 +19967,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -19977,31 +19977,31 @@
           "to": "dispatch",
           "kind": "branch-containment",
           "witness": "/ops/api/source-registry/source-health-replay-drift-diff branch contains exact OpsV340SourceHealthReplayDriftDiffJson response producer call",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2918",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:2932"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:3005",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:3019"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "OpsV340SourceHealthReplayDriftDiffJson(source_health_snapshot));",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2932",
-          "target": "src/ingress/webrtc_http_server_ops_foundation.cpp:6479"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:3019",
+          "target": "src/ingress/webrtc_http_server_ops_foundation.cpp:6592"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "OpsV340SourceHealthReplayDriftDiffJson contains exact v340-source-health-replay-drift-diff schema/control emission",
-          "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:6479",
-          "target": "src/ingress/webrtc_http_server_ops_foundation.cpp:6482"
+          "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:6592",
+          "target": "src/ingress/webrtc_http_server_ops_foundation.cpp:6608"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "v340-source-health-replay-drift-diff product response is independently compared by SRC-042 runtime assertion",
-          "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:6482",
+          "witness": "SRC-042 성공 serializer의 실제 HTTP readback",
+          "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:6608",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:561"
         },
         {
@@ -20010,10 +20010,10 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:561",
-          "target": "server.sh:1525"
+          "target": "server.sh:1663"
         }
       ],
-      "rationale": "SRC-042 product route/producer state를 격리 서버의 실제 HTTP 응답과 registry 파일 readback으로 독립 비교한다."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "SRC-043",
@@ -20128,14 +20128,14 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path == \"/ops/api/live-operations/graph\") {",
-          "line": 2558,
+          "line": 2645,
           "contextSha256": "9717bfb783398cc9d51499629549bf2da2289c474d398ed3b47d2ebb1db0a5a5"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "OpsV350LiveOperationsGraphJson(config, source_health_snapshot));",
-          "line": 2572,
+          "line": 2659,
           "contextSha256": "26ee46ff6d27307a84f2a34d994490b112da584ca9780862c74ec335d06dd1e1"
         },
         "action": {
@@ -20148,9 +20148,9 @@
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
           "symbol": "OpsV350LiveOperationsGraphJson",
-          "anchor": "return \"{\\\"ok\\\":false,\\\"schema\\\":\\\"media-server.ops.v350-live-operations-graph.v1\\\",\\\"error\\\":\\\"\" +",
-          "line": 322,
-          "contextSha256": "16332ecd97b47a03a1ff41489d48fd74929e18e2b362f63b56432ffcc99fffd8"
+          "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.v350-live-operations-graph.v1\\\",\"",
+          "line": 333,
+          "contextSha256": "344bc5395a06bf82f6fc5106f533eac1381cdb8bd954f1d89afda472d1ebc5a4"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -20163,7 +20163,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -20173,15 +20173,15 @@
           "to": "dispatch",
           "kind": "branch-containment",
           "witness": "/ops/api/live-operations/graph branch contains exact OpsV350LiveOperationsGraphJson response producer call",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2558",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:2572"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:2645",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:2659"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "OpsV350LiveOperationsGraphJson(config, source_health_snapshot));",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2572",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:2659",
           "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:317"
         },
         {
@@ -20190,14 +20190,14 @@
           "kind": "function-containment",
           "witness": "OpsV350LiveOperationsGraphJson contains exact v350-live-operations-graph schema/control emission",
           "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:317",
-          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:322"
+          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:333"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "v350-live-operations-graph product response is independently compared by SRC-044 runtime assertion",
-          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:322",
+          "witness": "SRC-044 성공 serializer의 실제 HTTP readback",
+          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:333",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:563"
         },
         {
@@ -20206,10 +20206,10 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:563",
-          "target": "server.sh:1525"
+          "target": "server.sh:1663"
         }
       ],
-      "rationale": "SRC-044 product route/producer state를 격리 서버의 실제 HTTP 응답과 registry 파일 readback으로 독립 비교한다."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "SRC-045",
@@ -20226,14 +20226,14 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path == \"/ops/api/live-operations/command-plan\") {",
-          "line": 2578,
+          "line": 2665,
           "contextSha256": "2038ccfebe8bb9ff25ff8d2b55a6aaf8c94cf9ce23ae066d8f84d69b1eae1a83"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "OpsV350CommandPlanJson(config, source_health_snapshot));",
-          "line": 2592,
+          "line": 2679,
           "contextSha256": "60e29ac64cd2866e9fd4b93cf4ac2b07921bafed0875252f6a0a9ea3a1a86af9"
         },
         "action": {
@@ -20246,9 +20246,9 @@
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
           "symbol": "OpsV350CommandPlanJson",
-          "anchor": "return \"{\\\"ok\\\":false,\\\"schema\\\":\\\"media-server.ops.v350-command-plan.v1\\\",\\\"error\\\":\\\"\" +",
-          "line": 1012,
-          "contextSha256": "4d4488296886d96ec100116a5439e8605371031e3f1f92a7c5b8cbd8b997c54d"
+          "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.v350-command-plan.v1\\\",\"",
+          "line": 1021,
+          "contextSha256": "f19eab6fbf0c01443ca8ac8758d0712ef7e68daf181dcb1ad8f693fe65b69560"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -20261,7 +20261,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -20271,15 +20271,15 @@
           "to": "dispatch",
           "kind": "branch-containment",
           "witness": "/ops/api/live-operations/command-plan branch contains exact OpsV350CommandPlanJson response producer call",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2578",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:2592"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:2665",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:2679"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "OpsV350CommandPlanJson(config, source_health_snapshot));",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2592",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:2679",
           "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:1007"
         },
         {
@@ -20288,14 +20288,14 @@
           "kind": "function-containment",
           "witness": "OpsV350CommandPlanJson contains exact v350-command-plan schema/control emission",
           "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:1007",
-          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:1012"
+          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:1021"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "v350-command-plan product response is independently compared by SRC-045 runtime assertion",
-          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:1012",
+          "witness": "SRC-045 성공 serializer의 실제 HTTP readback",
+          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:1021",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:564"
         },
         {
@@ -20304,10 +20304,10 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:564",
-          "target": "server.sh:1525"
+          "target": "server.sh:1663"
         }
       ],
-      "rationale": "SRC-045 product route/producer state를 격리 서버의 실제 HTTP 응답과 registry 파일 readback으로 독립 비교한다."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "SRC-046",
@@ -20324,14 +20324,14 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path == \"/ops/api/live-operations/staged-change-plan-impact-preview\") {",
-          "line": 2598,
+          "line": 2685,
           "contextSha256": "dde3a872d829b4d8c90bc4ccd5948b57315cdcdbb5decd73fac534617990f5a3"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "OpsV350StagedChangePlanImpactPreviewJson(config, source_health_snapshot));",
-          "line": 2612,
+          "line": 2699,
           "contextSha256": "d7059b31e89d4f3fab33032f58686ea8c1e8100f4126139585519f1bc8bc004b"
         },
         "action": {
@@ -20344,9 +20344,9 @@
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
           "symbol": "OpsV350StagedChangePlanImpactPreviewJson",
-          "anchor": "return \"{\\\"ok\\\":false,\\\"schema\\\":\\\"media-server.ops.v350-staged-change-plan-impact-preview.v1\\\",\\\"error\\\":\\\"\" +",
-          "line": 1337,
-          "contextSha256": "ffaa0e4f4bd6b9a5688d023bb08971e194a7a3ef9734d36e865e27f2fd36a3b2"
+          "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.v350-staged-change-plan-impact-preview.v1\\\",\"",
+          "line": 1348,
+          "contextSha256": "9c5157dae7c05aa874605738f96fde5e4df0cf4a8c0a8f41ffabc0c5461e7ce8"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -20359,7 +20359,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -20369,15 +20369,15 @@
           "to": "dispatch",
           "kind": "branch-containment",
           "witness": "/ops/api/live-operations/staged-change-plan-impact-preview GET branch contains exact OpsV350StagedChangePlanImpactPreviewJson response call",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2598",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:2612"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:2685",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:2699"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "route directly calls OpsV350StagedChangePlanImpactPreviewJson",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2612",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:2699",
           "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:1332"
         },
         {
@@ -20386,14 +20386,14 @@
           "kind": "function-containment",
           "witness": "OpsV350StagedChangePlanImpactPreviewJson emits media-server.ops.v350-staged-change-plan-impact-preview.v1 and feature boundary flags",
           "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:1332",
-          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:1337"
+          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:1348"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "media-server.ops.v350-staged-change-plan-impact-preview.v1 product response is independently compared by SRC-046 runtime assertion",
-          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:1337",
+          "witness": "SRC-046 성공 serializer의 실제 HTTP readback",
+          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:1348",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:565"
         },
         {
@@ -20402,10 +20402,10 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:565",
-          "target": "server.sh:1525"
+          "target": "server.sh:1663"
         }
       ],
-      "rationale": "SRC-046 product route/producer state를 격리 서버의 실제 HTTP 응답과 registry 파일 readback으로 독립 비교한다."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "SRC-047",
@@ -20422,14 +20422,14 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path == \"/ops/api/live-operations/field-evidence-intake\") {",
-          "line": 2658,
+          "line": 2745,
           "contextSha256": "e56c2d5bc537da067612d8725a40de920a64a7f07e5af079d9b030815f20cbb9"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "OpsV350FieldEvidenceIntakeJson(source_health_snapshot));",
-          "line": 2672,
+          "line": 2759,
           "contextSha256": "1a857c00a5eb41fe6165b4888c7fca1feb6bfd910382e75de5e594afb98ae6c8"
         },
         "action": {
@@ -20442,9 +20442,9 @@
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
           "symbol": "OpsV350FieldEvidenceIntakeJson",
-          "anchor": "return \"{\\\"ok\\\":false,\\\"schema\\\":\\\"media-server.ops.v350-field-evidence-intake.v1\\\",\\\"error\\\":\\\"\" +",
-          "line": 2209,
-          "contextSha256": "36b1479ae0db8b08359fc24a2fe3e7cf344207bc2d94af0359d9125b52af967b"
+          "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.v350-field-evidence-intake.v1\\\",\"",
+          "line": 2224,
+          "contextSha256": "0bb49992a26a1bcdbfcafe816fb40ea4385f45387a63d03a4cf515deff1106a2"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -20457,7 +20457,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -20467,15 +20467,15 @@
           "to": "dispatch",
           "kind": "branch-containment",
           "witness": "/ops/api/live-operations/field-evidence-intake GET branch contains exact OpsV350FieldEvidenceIntakeJson response call",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2658",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:2672"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:2745",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:2759"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "route directly calls OpsV350FieldEvidenceIntakeJson",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2672",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:2759",
           "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:2206"
         },
         {
@@ -20484,14 +20484,14 @@
           "kind": "function-containment",
           "witness": "OpsV350FieldEvidenceIntakeJson emits media-server.ops.v350-field-evidence-intake.v1 and feature boundary flags",
           "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:2206",
-          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:2209"
+          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:2224"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "media-server.ops.v350-field-evidence-intake.v1 product response is independently compared by SRC-047 runtime assertion",
-          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:2209",
+          "witness": "SRC-047 성공 serializer의 실제 HTTP readback",
+          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:2224",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:566"
         },
         {
@@ -20500,10 +20500,10 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:566",
-          "target": "server.sh:1525"
+          "target": "server.sh:1663"
         }
       ],
-      "rationale": "SRC-047 product route/producer state를 격리 서버의 실제 HTTP 응답과 registry 파일 readback으로 독립 비교한다."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "SRC-048",
@@ -20520,14 +20520,14 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path == \"/ops/api/live-operations/vlm-assisted-explanation\") {",
-          "line": 2678,
+          "line": 2765,
           "contextSha256": "7d957e23f1bf80f07b991d6edb6e11afad5c2e82662a935915f48cbc67e3dd3e"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "OpsV350VlmAssistedOpsExplanationJson(config, source_health_snapshot));",
-          "line": 2692,
+          "line": 2779,
           "contextSha256": "0a2c96213b8885b9532a9811fbe2b87e5931e9e9de33e58fe7ac01ac7927fa13"
         },
         "action": {
@@ -20540,9 +20540,9 @@
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
           "symbol": "OpsV350VlmAssistedOpsExplanationJson",
-          "anchor": "return \"{\\\"ok\\\":false,\\\"schema\\\":\\\"media-server.ops.v350-vlm-assisted-explanation.v1\\\",\\\"error\\\":\\\"\" +",
-          "line": 2487,
-          "contextSha256": "40798864c1c3d1ee85082ae2a42687b4d025103f119cc9d387b19ed1aab63ce6"
+          "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.v350-vlm-assisted-explanation.v1\\\",\"",
+          "line": 2498,
+          "contextSha256": "adec6d2234aee95179cb485f139f8ca9e9006e25947f5fa175adcf9f89ae9fff"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -20555,7 +20555,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -20565,15 +20565,15 @@
           "to": "dispatch",
           "kind": "branch-containment",
           "witness": "/ops/api/live-operations/vlm-assisted-explanation branch contains exact OpsV350VlmAssistedOpsExplanationJson response producer call",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2678",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:2692"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:2765",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:2779"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "OpsV350VlmAssistedOpsExplanationJson(config, source_health_snapshot));",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2692",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:2779",
           "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:2482"
         },
         {
@@ -20582,14 +20582,14 @@
           "kind": "function-containment",
           "witness": "OpsV350VlmAssistedOpsExplanationJson contains exact v350-vlm-assisted-explanation schema/control emission",
           "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:2482",
-          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:2487"
+          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:2498"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "v350-vlm-assisted-explanation product response is independently compared by SRC-048 runtime assertion",
-          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:2487",
+          "witness": "SRC-048 성공 serializer의 실제 HTTP readback",
+          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:2498",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:567"
         },
         {
@@ -20598,10 +20598,10 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:567",
-          "target": "server.sh:1525"
+          "target": "server.sh:1663"
         }
       ],
-      "rationale": "SRC-048 product route/producer state를 격리 서버의 실제 HTTP 응답과 registry 파일 readback으로 독립 비교한다."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "SRC-049",
@@ -20618,14 +20618,14 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path == \"/ops/api/live-operations/simulation/input-pack\") {",
-          "line": 2698,
+          "line": 2785,
           "contextSha256": "f4f1e95cf90e1212ed3a8e3a5ac837448f70f0b2cf45a6ac57846f810e6e84f1"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "OpsV360SimulationInputPackJson(config, source_health_snapshot));",
-          "line": 2712,
+          "line": 2799,
           "contextSha256": "5eb57cf21422fe7c9aba34d7c9f25829c8ba28317d34c80a26b453440beff4b5"
         },
         "action": {
@@ -20638,9 +20638,9 @@
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
           "symbol": "OpsV360SimulationInputPackJson",
-          "anchor": "return \"{\\\"ok\\\":false,\\\"schema\\\":\\\"media-server.ops.v360-simulation-input-pack.v1\\\",\\\"error\\\":\\\"\" +",
-          "line": 2670,
-          "contextSha256": "e417692ca3de30a98f9ffdac5269b3895c44dd9d9cdaf1e955ca509d849e88ba"
+          "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.v360-simulation-input-pack.v1\\\",\"",
+          "line": 2682,
+          "contextSha256": "0825173cb174480ea2fd03b0d5c7affeed6dd5327e5341393d4d15eb88e228e6"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -20653,7 +20653,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -20663,15 +20663,15 @@
           "to": "dispatch",
           "kind": "branch-containment",
           "witness": "/ops/api/live-operations/simulation/input-pack GET branch contains exact OpsV360SimulationInputPackJson response call",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2698",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:2712"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:2785",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:2799"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "route directly calls OpsV360SimulationInputPackJson",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2712",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:2799",
           "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:2665"
         },
         {
@@ -20680,14 +20680,14 @@
           "kind": "function-containment",
           "witness": "OpsV360SimulationInputPackJson emits media-server.ops.v360-simulation-input-pack.v1 and feature boundary flags",
           "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:2665",
-          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:2670"
+          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:2682"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "media-server.ops.v360-simulation-input-pack.v1 product response is independently compared by SRC-049 runtime assertion",
-          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:2670",
+          "witness": "SRC-049 성공 serializer의 실제 HTTP readback",
+          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:2682",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:568"
         },
         {
@@ -20696,10 +20696,10 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:568",
-          "target": "server.sh:1525"
+          "target": "server.sh:1663"
         }
       ],
-      "rationale": "SRC-049 product route/producer state를 격리 서버의 실제 HTTP 응답과 registry 파일 readback으로 독립 비교한다."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "SRC-050",
@@ -20716,14 +20716,14 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path == \"/ops/api/live-operations/simulation/command-plan-dry-run\") {",
-          "line": 2738,
+          "line": 2825,
           "contextSha256": "6591605798333a15e5fca5628333b9145bc9150a984697cd935ffce280f51cfb"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "OpsV360CommandPlanDryRunSimulatorJson(config, source_health_snapshot));",
-          "line": 2752,
+          "line": 2839,
           "contextSha256": "09f504275301705bf2dc6eb06a09ee02275409e8ee813ae156af4602f6f63173"
         },
         "action": {
@@ -20736,9 +20736,9 @@
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
           "symbol": "OpsV360CommandPlanDryRunSimulatorJson",
-          "anchor": "return \"{\\\"ok\\\":false,\\\"schema\\\":\\\"media-server.ops.v360-command-plan-dry-run.v1\\\",\\\"error\\\":\\\"\" +",
-          "line": 3354,
-          "contextSha256": "539590624fad3fd3d6fcda1534025fd0128e2fb41297f24bcb8b8356812041a2"
+          "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.v360-command-plan-dry-run.v1\\\",\"",
+          "line": 3364,
+          "contextSha256": "94293be348642ca3813a1e3e1757add00cc2bf49106df3efc879a5817c059bdb"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -20751,7 +20751,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -20761,15 +20761,15 @@
           "to": "dispatch",
           "kind": "branch-containment",
           "witness": "/ops/api/live-operations/simulation/command-plan-dry-run GET branch contains exact OpsV360CommandPlanDryRunSimulatorJson response call",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2738",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:2752"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:2825",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:2839"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "route directly calls OpsV360CommandPlanDryRunSimulatorJson",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2752",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:2839",
           "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:3349"
         },
         {
@@ -20778,14 +20778,14 @@
           "kind": "function-containment",
           "witness": "OpsV360CommandPlanDryRunSimulatorJson emits media-server.ops.v360-command-plan-dry-run.v1 and feature boundary flags",
           "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:3349",
-          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:3354"
+          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:3364"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "media-server.ops.v360-command-plan-dry-run.v1 product response is independently compared by SRC-050 runtime assertion",
-          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:3354",
+          "witness": "SRC-050 성공 serializer의 실제 HTTP readback",
+          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:3364",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:569"
         },
         {
@@ -20794,10 +20794,10 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:569",
-          "target": "server.sh:1525"
+          "target": "server.sh:1663"
         }
       ],
-      "rationale": "SRC-050 product route/producer state를 격리 서버의 실제 HTTP 응답과 registry 파일 readback으로 독립 비교한다."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "SRC-051",
@@ -20814,14 +20814,14 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path == \"/ops/api/live-operations/simulation/impact-diff\") {",
-          "line": 2758,
+          "line": 2845,
           "contextSha256": "7042fb4054d7fe1b1ed9e44184b235f18be99c60cfc53aa7831b6c49c29bd49d"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "OpsV360SourceRuleImpactDiffJson(config, source_health_snapshot));",
-          "line": 2772,
+          "line": 2859,
           "contextSha256": "0399ac0fb086af7ab736c191060eb3dd85d8c2d9bf614d9375518c9013a9fa79"
         },
         "action": {
@@ -20834,9 +20834,9 @@
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
           "symbol": "OpsV360SourceRuleImpactDiffJson",
-          "anchor": "return \"{\\\"ok\\\":false,\\\"schema\\\":\\\"media-server.ops.v360-source-rule-impact-diff.v1\\\",\\\"error\\\":\\\"\" +",
-          "line": 3527,
-          "contextSha256": "a5dda552e889b86225f6ab334193245b3da1ee762f20b7e9bab746eceaee8da6"
+          "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.v360-source-rule-impact-diff.v1\\\",\"",
+          "line": 3539,
+          "contextSha256": "41134314f11b186daf05012340b08ef5064359c8a2316658a3e588afda8f7bba"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -20849,7 +20849,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -20859,15 +20859,15 @@
           "to": "dispatch",
           "kind": "branch-containment",
           "witness": "/ops/api/live-operations/simulation/impact-diff GET branch contains exact OpsV360SourceRuleImpactDiffJson response call",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2758",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:2772"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:2845",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:2859"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "route directly calls OpsV360SourceRuleImpactDiffJson",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2772",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:2859",
           "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:3522"
         },
         {
@@ -20876,14 +20876,14 @@
           "kind": "function-containment",
           "witness": "OpsV360SourceRuleImpactDiffJson emits media-server.ops.v360-source-rule-impact-diff.v1 and feature boundary flags",
           "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:3522",
-          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:3527"
+          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:3539"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "media-server.ops.v360-source-rule-impact-diff.v1 product response is independently compared by SRC-051 runtime assertion",
-          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:3527",
+          "witness": "SRC-051 성공 serializer의 실제 HTTP readback",
+          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:3539",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:619"
         },
         {
@@ -20892,10 +20892,10 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:619",
-          "target": "server.sh:1525"
+          "target": "server.sh:1663"
         }
       ],
-      "rationale": "SRC-051 actual product route/state is bound to the isolated token-auth source registry runtime response and independent no-write/redaction/provider/field assertion."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "SRC-052",
@@ -20912,14 +20912,14 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path == \"/ops/api/live-operations/simulation/field-evidence-adapter\") {",
-          "line": 2878,
+          "line": 2965,
           "contextSha256": "b3a52a73cb52e63779d5f6b8995f251e0836c5df6bad23483f693374b143d018"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "OpsV360FieldEvidenceSimulationAdapterJson(config, source_health_snapshot));",
-          "line": 2892,
+          "line": 2979,
           "contextSha256": "0952aefed385d1f3f04ba915b6c737665d32c4613d3b6b1b863d4a9747137bbd"
         },
         "action": {
@@ -20932,9 +20932,9 @@
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
           "symbol": "OpsV360FieldEvidenceSimulationAdapterJson",
-          "anchor": "return \"{\\\"ok\\\":false,\\\"schema\\\":\\\"media-server.ops.v360-field-evidence-simulation-adapter.v1\\\",\\\"error\\\":\\\"\" +",
-          "line": 9821,
-          "contextSha256": "f2dd4a5663713dc4505fed4a62693cdf30d107f3eafedda69a9f4d65c58e7a04"
+          "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.v360-field-evidence-simulation-adapter.v1\\\",\"",
+          "line": 9844,
+          "contextSha256": "bbcfb687102aff0fcff5e85e54436c15488d32cc896794ab703db28ccc3abc41"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -20947,7 +20947,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -20957,15 +20957,15 @@
           "to": "dispatch",
           "kind": "branch-containment",
           "witness": "/ops/api/live-operations/simulation/field-evidence-adapter branch contains exact OpsV360FieldEvidenceSimulationAdapterJson response producer call",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2878",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:2892"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:2965",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:2979"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "OpsV360FieldEvidenceSimulationAdapterJson(config, source_health_snapshot));",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2892",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:2979",
           "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:9816"
         },
         {
@@ -20974,14 +20974,14 @@
           "kind": "function-containment",
           "witness": "OpsV360FieldEvidenceSimulationAdapterJson contains exact v360-field-evidence-simulation-adapter schema/control emission",
           "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:9816",
-          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:9821"
+          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:9844"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "media-server.ops.v360-field-evidence-simulation-adapter.v1 product response is independently compared by SRC-052 runtime assertion",
-          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:9821",
+          "witness": "SRC-052 성공 serializer의 실제 HTTP readback",
+          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:9844",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:625"
         },
         {
@@ -20990,10 +20990,10 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:625",
-          "target": "server.sh:1525"
+          "target": "server.sh:1663"
         }
       ],
-      "rationale": "SRC-052 actual product route/state is bound to the isolated token-auth source registry runtime response and independent no-write/redaction/provider/field assertion."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "SRC-053",
@@ -21010,14 +21010,14 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path == \"/ops/api/live-operations/simulation/vlm-assisted-explanation\") {",
-          "line": 2898,
+          "line": 2985,
           "contextSha256": "5aed85dbd153ab8717dbd202d86a9589e0c70196f6fe7d53872fe2c0296c32a4"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "OpsV360VlmAssistedSimulationExplanationJson(config, source_health_snapshot));",
-          "line": 2912,
+          "line": 2999,
           "contextSha256": "384edb77e98b80943a92c04e1c3b42c1611b889d275518a1045490c6970e1133"
         },
         "action": {
@@ -21030,9 +21030,9 @@
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
           "symbol": "OpsV360VlmAssistedSimulationExplanationJson",
-          "anchor": "return \"{\\\"ok\\\":false,\\\"schema\\\":\\\"media-server.ops.v360-vlm-assisted-simulation-explanation.v1\\\",\\\"error\\\":\\\"\" +",
-          "line": 10067,
-          "contextSha256": "fd8504542d4d4eae91d81d83d01272b6dac6c14e15d41e9b461ec79f37f15356"
+          "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.v360-vlm-assisted-simulation-explanation.v1\\\",\"",
+          "line": 10092,
+          "contextSha256": "c9866219f344f691f14434348b4c8c5deff7fa111885cd101c6296956e5b2cc9"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -21045,7 +21045,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -21055,15 +21055,15 @@
           "to": "dispatch",
           "kind": "branch-containment",
           "witness": "/ops/api/live-operations/simulation/vlm-assisted-explanation branch contains exact OpsV360VlmAssistedSimulationExplanationJson response producer call",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2898",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:2912"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:2985",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:2999"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "OpsV360VlmAssistedSimulationExplanationJson(config, source_health_snapshot));",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:2912",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:2999",
           "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:10062"
         },
         {
@@ -21072,14 +21072,14 @@
           "kind": "function-containment",
           "witness": "OpsV360VlmAssistedSimulationExplanationJson contains exact v360-vlm-assisted-simulation-explanation schema/control emission",
           "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:10062",
-          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:10067"
+          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:10092"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "media-server.ops.v360-vlm-assisted-simulation-explanation.v1 product response is independently compared by SRC-053 runtime assertion",
-          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:10067",
+          "witness": "SRC-053 성공 serializer의 실제 HTTP readback",
+          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:10092",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:627"
         },
         {
@@ -21088,10 +21088,10 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:627",
-          "target": "server.sh:1525"
+          "target": "server.sh:1663"
         }
       ],
-      "rationale": "SRC-053 actual product route/state is bound to the isolated token-auth source registry runtime response and independent no-write/redaction/provider/field assertion."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "SRC-054",
@@ -21206,14 +21206,14 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path == \"/ops/api/site-operations/source-registry-projection\") {",
-          "line": 1636,
+          "line": 1723,
           "contextSha256": "817e543e0e3c1ea2c0f5d2d8125049f3df40bd0a579a3620cbd14f1411f9ebd3"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "OpsV370SiteAwareSourceRegistryProjectionJson());",
-          "line": 1644,
+          "line": 1731,
           "contextSha256": "16cfffd77914c879c83c0a8c82d5621bd09fd19bcf4bd32bbece15353ad5ba86"
         },
         "action": {
@@ -21226,9 +21226,9 @@
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
           "symbol": "OpsV370SiteAwareSourceRegistryProjectionJson",
-          "anchor": "return \"{\\\"ok\\\":false,\\\"schema\\\":\\\"media-server.ops.v370-site-aware-source-registry-projection.v1\\\",\\\"error\\\":\\\"\" +",
-          "line": 2900,
-          "contextSha256": "b61e3bc07d3f7d76c1dee352a46917b9787d954d32c73d9fc7f9633e3e9a7a7b"
+          "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.v370-site-aware-source-registry-projection.v1\\\",\"",
+          "line": 2909,
+          "contextSha256": "9409b66e3a9ee9a441fa193de8acf3694751cac09927aa2fd604367332185ab3"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -21241,7 +21241,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -21251,15 +21251,15 @@
           "to": "dispatch",
           "kind": "branch-containment",
           "witness": "/ops/api/site-operations/source-registry-projection branch contains exact OpsV370SiteAwareSourceRegistryProjectionJson response producer call",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:1636",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:1644"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:1723",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:1731"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "OpsV370SiteAwareSourceRegistryProjectionJson());",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:1644",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:1731",
           "target": "src/ingress/webrtc_http_server_ops_foundation.cpp:2895"
         },
         {
@@ -21268,14 +21268,14 @@
           "kind": "function-containment",
           "witness": "OpsV370SiteAwareSourceRegistryProjectionJson contains exact v370-site-aware-source-registry-projection schema/control emission",
           "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:2895",
-          "target": "src/ingress/webrtc_http_server_ops_foundation.cpp:2900"
+          "target": "src/ingress/webrtc_http_server_ops_foundation.cpp:2909"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "media-server.ops.v370-site-aware-source-registry-projection.v1 product response is independently compared by SRC-055 runtime assertion",
-          "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:2900",
+          "witness": "SRC-055 성공 serializer의 실제 HTTP readback",
+          "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:2909",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:631"
         },
         {
@@ -21284,10 +21284,10 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:631",
-          "target": "server.sh:1525"
+          "target": "server.sh:1663"
         }
       ],
-      "rationale": "SRC-055 actual product route/state is bound to the isolated token-auth source registry runtime response and independent no-write/redaction/provider/field assertion."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "SRC-056",
@@ -21304,14 +21304,14 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path == \"/ops/api/site-operations/health-rollup\") {",
-          "line": 1650,
+          "line": 1737,
           "contextSha256": "0a0614c110096ba5a6da9134d3ec26466d59b3942c91f1623276106e3419c0f0"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "OpsV370SiteHealthRollupJson(source_health_snapshot));",
-          "line": 1664,
+          "line": 1751,
           "contextSha256": "21025a69e1dbac01a05ecc012d39552a29ba8723c241c2f533476c3171f82e5a"
         },
         "action": {
@@ -21324,9 +21324,9 @@
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
           "symbol": "OpsV370SiteHealthRollupJson",
-          "anchor": "return \"{\\\"ok\\\":false,\\\"schema\\\":\\\"media-server.ops.v370-site-health-rollup.v1\\\",\\\"error\\\":\\\"\" +",
-          "line": 3110,
-          "contextSha256": "3dd5652d533471f1d4bafc7929000ef373490495fd51069da5ed3b660d8b58c4"
+          "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.v370-site-health-rollup.v1\\\",\"",
+          "line": 3127,
+          "contextSha256": "8c52d61d3c7ed93a9ba83aa6bd405bce67f12d1a81f3942be042514dab19e41f"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -21339,7 +21339,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -21349,15 +21349,15 @@
           "to": "dispatch",
           "kind": "branch-containment",
           "witness": "/ops/api/site-operations/health-rollup branch contains exact OpsV370SiteHealthRollupJson response producer call",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:1650",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:1664"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:1737",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:1751"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "OpsV370SiteHealthRollupJson(source_health_snapshot));",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:1664",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:1751",
           "target": "src/ingress/webrtc_http_server_ops_foundation.cpp:3108"
         },
         {
@@ -21366,14 +21366,14 @@
           "kind": "function-containment",
           "witness": "OpsV370SiteHealthRollupJson contains exact v370-site-health-rollup schema/control emission",
           "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:3108",
-          "target": "src/ingress/webrtc_http_server_ops_foundation.cpp:3110"
+          "target": "src/ingress/webrtc_http_server_ops_foundation.cpp:3127"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "media-server.ops.v370-site-health-rollup.v1 product response is independently compared by SRC-056 runtime assertion",
-          "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:3110",
+          "witness": "SRC-056 성공 serializer의 실제 HTTP readback",
+          "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:3127",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:633"
         },
         {
@@ -21382,10 +21382,10 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:633",
-          "target": "server.sh:1525"
+          "target": "server.sh:1663"
         }
       ],
-      "rationale": "SRC-056 actual product route/state is bound to the isolated token-auth source registry runtime response and independent no-write/redaction/provider/field assertion."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "SRC-057",
@@ -21402,14 +21402,14 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path == \"/ops/api/site-operations/impact-graph\") {",
-          "line": 1670,
+          "line": 1757,
           "contextSha256": "3af7cbc2c5e6f934f557cf07db7737adf414097051da4098b197ca3b1df00ca3"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "OpsV370SiteImpactGraphJson(config, source_health_snapshot));",
-          "line": 1684,
+          "line": 1771,
           "contextSha256": "83ec3241e89cbd884fdb78199470f3b102ca476b396d125ad21e9b0c35425dcb"
         },
         "action": {
@@ -21422,9 +21422,9 @@
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
           "symbol": "OpsV370SiteImpactGraphJson",
-          "anchor": "return \"{\\\"ok\\\":false,\\\"schema\\\":\\\"media-server.ops.v370-site-impact-graph.v1\\\",\\\"error\\\":\\\"\" +",
-          "line": 781,
-          "contextSha256": "5dbde6e08508e5c76ad3ceb4633f938b15f68c2f02b49bf8e775f317a973457b"
+          "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.v370-site-impact-graph.v1\\\",\"",
+          "line": 795,
+          "contextSha256": "25e3819a9d7a3ed8cca483f65c08fc40c205e1c9f42434b464aa153805033c48"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -21437,7 +21437,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -21447,15 +21447,15 @@
           "to": "dispatch",
           "kind": "branch-containment",
           "witness": "/ops/api/site-operations/impact-graph GET branch contains exact OpsV370SiteImpactGraphJson response call",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:1670",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:1684"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:1757",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:1771"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "route directly calls OpsV370SiteImpactGraphJson",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:1684",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:1771",
           "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:776"
         },
         {
@@ -21464,14 +21464,14 @@
           "kind": "function-containment",
           "witness": "OpsV370SiteImpactGraphJson emits media-server.ops.v370-site-impact-graph.v1 and feature boundary flags",
           "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:776",
-          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:781"
+          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:795"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "media-server.ops.v370-site-impact-graph.v1 product response is independently compared by SRC-057 runtime assertion",
-          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:781",
+          "witness": "SRC-057 성공 serializer의 실제 HTTP readback",
+          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:795",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:638"
         },
         {
@@ -21480,10 +21480,10 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:638",
-          "target": "server.sh:1525"
+          "target": "server.sh:1663"
         }
       ],
-      "rationale": "SRC-057 actual product route/state is bound to the isolated token-auth source registry runtime response and independent no-write/redaction/provider/field assertion."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "SRC-058",
@@ -21500,14 +21500,14 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path == \"/ops/api/site-operations/simulation-input-pack\") {",
-          "line": 1690,
+          "line": 1777,
           "contextSha256": "952533659c31c46ebb2682509a49ae21a061a3ee7d74a86160d4b78d3a296491"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "OpsV370SiteSimulationInputPackJson(config, source_health_snapshot));",
-          "line": 1704,
+          "line": 1791,
           "contextSha256": "dd45ca8477576352e8b6952b234174a855523f76ed2abeec68535a387d5ed5d9"
         },
         "action": {
@@ -21520,9 +21520,9 @@
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
           "symbol": "OpsV370SiteSimulationInputPackJson",
-          "anchor": "return \"{\\\"ok\\\":false,\\\"schema\\\":\\\"media-server.ops.v370-site-simulation-input-pack.v1\\\",\\\"error\\\":\\\"\" +",
-          "line": 3135,
-          "contextSha256": "ff8f0b95bba7e9b4418f5a8f48fdf39d0ca3e908e568dfa5386a23f537561dd7"
+          "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.v370-site-simulation-input-pack.v1\\\",\"",
+          "line": 3168,
+          "contextSha256": "c3f40729ea7bd8b22480bf76af0ce4433d91a1a4ad4ae897236fc1212d9beab2"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -21535,7 +21535,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -21545,15 +21545,15 @@
           "to": "dispatch",
           "kind": "branch-containment",
           "witness": "/ops/api/site-operations/simulation-input-pack branch contains exact OpsV370SiteSimulationInputPackJson response producer call",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:1690",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:1704"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:1777",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:1791"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "OpsV370SiteSimulationInputPackJson(config, source_health_snapshot));",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:1704",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:1791",
           "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:3130"
         },
         {
@@ -21562,14 +21562,14 @@
           "kind": "function-containment",
           "witness": "OpsV370SiteSimulationInputPackJson contains exact v370-site-simulation-input-pack schema/control emission",
           "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:3130",
-          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:3135"
+          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:3168"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "media-server.ops.v370-site-simulation-input-pack.v1 product response is independently compared by SRC-058 runtime assertion",
-          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:3135",
+          "witness": "SRC-058 성공 serializer의 실제 HTTP readback",
+          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:3168",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:640"
         },
         {
@@ -21578,13 +21578,14 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:640",
-          "target": "server.sh:1525"
+          "target": "server.sh:1663"
         }
       ],
-      "rationale": "SRC-058 actual product route/state is bound to the isolated token-auth source registry runtime response and independent no-write/redaction/provider/field assertion."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "SRC-059",
+      "sharedContract": {"id":"media-server.actual-contract.cross-site-safe-apply-readiness","facet":"safety-invariant"},
       "featureContractSha256": "79a7ba6a2f2deb18712583f5a1139a6f48f63a84cb5677f37cc35a0b8dd28716",
       "status": "source-resolved-reviewed-proof",
       "evidenceMode": "static-production-contract",
@@ -21598,14 +21599,14 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path == \"/ops/api/site-operations/cross-site-safe-apply-readiness\") {",
-          "line": 1710,
+          "line": 1797,
           "contextSha256": "d861a4a0ad50cb4fcd292ae6e13bba5695cd217f68c6ab799495f1d8d8d29a33"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "OpsV370CrossSiteSafeApplyReadinessJson(config, source_health_snapshot));",
-          "line": 1724,
+          "line": 1811,
           "contextSha256": "7e2a37d026afb0994f3e19ce547ff07cf5e689d26c4b46b71f39faca42c23c3b"
         },
         "action": {
@@ -21618,9 +21619,9 @@
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
           "symbol": "OpsV370CrossSiteSafeApplyReadinessJson",
-          "anchor": "return \"{\\\"ok\\\":false,\\\"schema\\\":\\\"media-server.ops.v370-cross-site-safe-apply-readiness.v1\\\",\\\"error\\\":\\\"\" +",
-          "line": 3970,
-          "contextSha256": "9c55b947391f1c7fee9e5dc87129230a60273233159074859917c2d259a56b80"
+          "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.v370-cross-site-safe-apply-readiness.v1\\\",\"",
+          "line": 4006,
+          "contextSha256": "d6dee62821af3db184bc2949e4dfb5e3fdabc9bdc6f1fb2b4b2ccfac6b97c7dd"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -21633,7 +21634,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -21643,15 +21644,15 @@
           "to": "dispatch",
           "kind": "branch-containment",
           "witness": "/ops/api/site-operations/cross-site-safe-apply-readiness GET branch contains exact OpsV370CrossSiteSafeApplyReadinessJson response call",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:1710",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:1724"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:1797",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:1811"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "route directly calls OpsV370CrossSiteSafeApplyReadinessJson",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:1724",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:1811",
           "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:3965"
         },
         {
@@ -21660,14 +21661,14 @@
           "kind": "function-containment",
           "witness": "OpsV370CrossSiteSafeApplyReadinessJson emits media-server.ops.v370-cross-site-safe-apply-readiness.v1 and feature boundary flags",
           "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:3965",
-          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:3970"
+          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:4006"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "media-server.ops.v370-cross-site-safe-apply-readiness.v1 product response is independently compared by SRC-059 runtime assertion",
-          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:3970",
+          "witness": "SRC-059 성공 serializer의 실제 HTTP readback",
+          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:4006",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:643"
         },
         {
@@ -21676,10 +21677,10 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:643",
-          "target": "server.sh:1525"
+          "target": "server.sh:1663"
         }
       ],
-      "rationale": "SRC-059 actual product route/state is bound to the isolated token-auth source registry runtime response and independent no-write/redaction/provider/field assertion."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "SRC-060",
@@ -21696,14 +21697,14 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path == \"/ops/api/site-operations/field-evidence-attachment\") {",
-          "line": 1830,
+          "line": 1917,
           "contextSha256": "751dcd7815e76211829a4703ec0fea0d662248d5a6ced3949a53e1816bc65943"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "OpsV370FieldEvidenceAttachmentJson(config, source_health_snapshot));",
-          "line": 1844,
+          "line": 1931,
           "contextSha256": "53386a1f14a5c3bae006d09f3a8627cc1bfb7bd481b0a4b9c2cb4eaf18a231e0"
         },
         "action": {
@@ -21716,9 +21717,9 @@
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
           "symbol": "OpsV370FieldEvidenceAttachmentJson",
-          "anchor": "return \"{\\\"ok\\\":false,\\\"schema\\\":\\\"media-server.ops.v370-field-evidence-attachment.v1\\\",\\\"error\\\":\\\"\" +",
-          "line": 6172,
-          "contextSha256": "059cb6ff538cae24bd334ee1f140b8a6a499606c2ce2010873fb23ee1778b932"
+          "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.v370-field-evidence-attachment.v1\\\",\"",
+          "line": 6245,
+          "contextSha256": "5ef087b2f3d63bfdeb24a2bbfea41339f0e295f2149dd3fd8ee4ff5b9eea4e64"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -21731,7 +21732,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -21741,15 +21742,15 @@
           "to": "dispatch",
           "kind": "branch-containment",
           "witness": "/ops/api/site-operations/field-evidence-attachment branch contains exact OpsV370FieldEvidenceAttachmentJson response producer call",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:1830",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:1844"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:1917",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:1931"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "OpsV370FieldEvidenceAttachmentJson(config, source_health_snapshot));",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:1844",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:1931",
           "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:6167"
         },
         {
@@ -21758,14 +21759,14 @@
           "kind": "function-containment",
           "witness": "OpsV370FieldEvidenceAttachmentJson contains exact v370-field-evidence-attachment schema/control emission",
           "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:6167",
-          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:6172"
+          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:6245"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "media-server.ops.v370-field-evidence-attachment.v1 product response is independently compared by SRC-060 runtime assertion",
-          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:6172",
+          "witness": "SRC-060 성공 serializer의 실제 HTTP readback",
+          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:6245",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:645"
         },
         {
@@ -21774,10 +21775,10 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:645",
-          "target": "server.sh:1525"
+          "target": "server.sh:1663"
         }
       ],
-      "rationale": "SRC-060 actual product route/state is bound to the isolated token-auth source registry runtime response and independent no-write/redaction/provider/field assertion."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "SRC-061",
@@ -21794,14 +21795,14 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path == \"/ops/api/site-operations/limited-safe-execution-pilot\") {",
-          "line": 1850,
+          "line": 1937,
           "contextSha256": "1edd2e5d9dce5589b0635a25469f15d641622e787e9106b0c4c6a8143846b83a"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "OpsV370LimitedSafeExecutionPilotJson(config, source_health_snapshot));",
-          "line": 1864,
+          "line": 1951,
           "contextSha256": "b7932206d0f11b5d322a8a337d1c5b55e35eb5cf5f499a8f3bdb516e3376330d"
         },
         "action": {
@@ -21814,9 +21815,9 @@
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
           "symbol": "OpsV370LimitedSafeExecutionPilotJson",
-          "anchor": "return \"{\\\"ok\\\":false,\\\"schema\\\":\\\"media-server.ops.v370-limited-safe-execution-pilot.v1\\\",\\\"error\\\":\\\"\" +",
-          "line": 7939,
-          "contextSha256": "f8f03d7c2107d0f873fb841dd720b0f109eaa4d74d328f4a54d6af59e16091ad"
+          "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.v370-limited-safe-execution-pilot.v1\\\",\"",
+          "line": 8023,
+          "contextSha256": "6a158dc96c999fd15e909e999589a9e5005af564ee3959a5fb913c906b1b610b"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -21829,7 +21830,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -21839,15 +21840,15 @@
           "to": "dispatch",
           "kind": "branch-containment",
           "witness": "/ops/api/site-operations/limited-safe-execution-pilot branch contains exact OpsV370LimitedSafeExecutionPilotJson response producer call",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:1850",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:1864"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:1937",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:1951"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "OpsV370LimitedSafeExecutionPilotJson(config, source_health_snapshot));",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:1864",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:1951",
           "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:7934"
         },
         {
@@ -21856,14 +21857,14 @@
           "kind": "function-containment",
           "witness": "OpsV370LimitedSafeExecutionPilotJson contains exact v370-limited-safe-execution-pilot schema/control emission",
           "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:7934",
-          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:7939"
+          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:8023"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "media-server.ops.v370-limited-safe-execution-pilot.v1 product response is independently compared by SRC-061 runtime assertion",
-          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:7939",
+          "witness": "SRC-061 성공 serializer의 실제 HTTP readback",
+          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:8023",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:647"
         },
         {
@@ -21872,10 +21873,10 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:647",
-          "target": "server.sh:1525"
+          "target": "server.sh:1663"
         }
       ],
-      "rationale": "SRC-061 actual product route/state is bound to the isolated token-auth source registry runtime response and independent no-write/redaction/provider/field assertion."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "SRC-062",
@@ -21892,14 +21893,14 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path == \"/ops/api/site-operations/outcome-reconciliation\") {",
-          "line": 1870,
+          "line": 1957,
           "contextSha256": "77a8d55752bff3d2f90b7a28edaec38b67704add6488217f32ed70d8d8fcdde5"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "OpsV370OutcomeReconciliationJson(config, source_health_snapshot));",
-          "line": 1884,
+          "line": 1971,
           "contextSha256": "4dc4386de68bee28617053ce7e496cd18b2ca034842077956a5259ae189306dd"
         },
         "action": {
@@ -21912,9 +21913,9 @@
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
           "symbol": "OpsV370OutcomeReconciliationJson",
-          "anchor": "return \"{\\\"ok\\\":false,\\\"schema\\\":\\\"media-server.ops.v370-outcome-reconciliation.v1\\\",\\\"error\\\":\\\"\" +",
-          "line": 8402,
-          "contextSha256": "0f6e44a79dcccbb8f22022a57e6f47a8890dfe2f6c17e9006b18c9349651701d"
+          "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.v370-outcome-reconciliation.v1\\\",\"",
+          "line": 8492,
+          "contextSha256": "38e9f138db94ca70f295b043b01ac1b9c083c51bf17666646ae8dcb0811859fd"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -21927,7 +21928,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -21937,15 +21938,15 @@
           "to": "dispatch",
           "kind": "branch-containment",
           "witness": "/ops/api/site-operations/outcome-reconciliation branch contains exact OpsV370OutcomeReconciliationJson response producer call",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:1870",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:1884"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:1957",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:1971"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "OpsV370OutcomeReconciliationJson(config, source_health_snapshot));",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:1884",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:1971",
           "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:8397"
         },
         {
@@ -21954,14 +21955,14 @@
           "kind": "function-containment",
           "witness": "OpsV370OutcomeReconciliationJson contains exact v370-outcome-reconciliation schema/control emission",
           "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:8397",
-          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:8402"
+          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:8492"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "media-server.ops.v370-outcome-reconciliation.v1 product response is independently compared by SRC-062 runtime assertion",
-          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:8402",
+          "witness": "SRC-062 성공 serializer의 실제 HTTP readback",
+          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:8492",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:652"
         },
         {
@@ -21970,10 +21971,10 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:652",
-          "target": "server.sh:1525"
+          "target": "server.sh:1663"
         }
       ],
-      "rationale": "SRC-062 actual product route/state is bound to the isolated token-auth source registry runtime response and independent no-write/redaction/provider/field assertion."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "SRC-063",
@@ -21990,14 +21991,14 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path == \"/ops/api/actions/field-connector-evidence-package\") {",
-          "line": 1536,
+          "line": 1623,
           "contextSha256": "b2a2125de40926f6c45e3b9888fe2d306b9777a369ab61ef4ac0b175e6a3cc97"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "OpsV380FieldConnectorEvidencePackageJson(config, source_health_snapshot));",
-          "line": 1550,
+          "line": 1637,
           "contextSha256": "54fce80d4397c1805c1591da1358461920eea0f1aa21bbd9263fbb4821cbe581"
         },
         "action": {
@@ -22010,9 +22011,9 @@
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
           "symbol": "OpsV380FieldConnectorEvidencePackageJson",
-          "anchor": "return \"{\\\"ok\\\":false,\\\"schema\\\":\\\"media-server.ops.v380-field-connector-evidence-package.v1\\\",\\\"error\\\":\\\"\" +",
-          "line": 6530,
-          "contextSha256": "d5fca582c9bd0dcebe58a40e86486201a65bbbe0853d24c8a2e866e89fa9530f"
+          "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.v380-field-connector-evidence-package.v1\\\",\"",
+          "line": 6615,
+          "contextSha256": "66c158d8234d0a3613ee5b6fbad26d9f3649b51c0c329dee6e5cd870402aef58"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -22025,7 +22026,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -22035,15 +22036,15 @@
           "to": "dispatch",
           "kind": "branch-containment",
           "witness": "/ops/api/actions/field-connector-evidence-package GET branch contains exact OpsV380FieldConnectorEvidencePackageJson response call",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:1536",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:1550"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:1623",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:1637"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "route directly calls OpsV380FieldConnectorEvidencePackageJson",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:1550",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:1637",
           "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:6525"
         },
         {
@@ -22052,14 +22053,14 @@
           "kind": "function-containment",
           "witness": "OpsV380FieldConnectorEvidencePackageJson emits media-server.ops.v380-field-connector-evidence-package.v1 and feature boundary flags",
           "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:6525",
-          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:6530"
+          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:6615"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "media-server.ops.v380-field-connector-evidence-package.v1 product response is independently compared by SRC-063 runtime assertion",
-          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:6530",
+          "witness": "SRC-063 성공 serializer의 실제 HTTP readback",
+          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:6615",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:658"
         },
         {
@@ -22068,10 +22069,10 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:658",
-          "target": "server.sh:1525"
+          "target": "server.sh:1663"
         }
       ],
-      "rationale": "SRC-063 actual product route/state is bound to the isolated token-auth source registry runtime response and independent no-write/redaction/provider/field assertion."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "SRC-064",
@@ -22088,14 +22089,14 @@
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "if (request.path == \"/ops/api/actions/default-off-explanation\") {",
-          "line": 1602,
+          "line": 1689,
           "contextSha256": "c8bc291b95da6d08d055a6fc1706777dddff306792fbea5bba154e07090e43e8"
         },
         "dispatch": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start",
           "anchor": "OpsV380DefaultOffActionExplanationJson(config, source_health_snapshot));",
-          "line": 1616,
+          "line": 1703,
           "contextSha256": "184a0a343485f04f8d017f1203098cb054bb8da96e544c191997aa5f2c025128"
         },
         "action": {
@@ -22108,9 +22109,9 @@
         "state": {
           "file": "src/ingress/webrtc_http_server_ops_workflows.cpp",
           "symbol": "OpsV380DefaultOffActionExplanationJson",
-          "anchor": "return \"{\\\"ok\\\":false,\\\"schema\\\":\\\"media-server.ops.v380-default-off-action-explanation.v1\\\",\\\"error\\\":\\\"\" +",
-          "line": 7142,
-          "contextSha256": "d579977ec82be4e3e88dd3c116fa61362f50e4fc0da0d4fc45e29ed2a09bfe84"
+          "anchor": "<< \"\\\"schema\\\":\\\"media-server.ops.v380-default-off-action-explanation.v1\\\",\"",
+          "line": 7234,
+          "contextSha256": "b3803869f76ee8ed8b5d0a3cde308de3a18add3035a41877ade1666dbe603280"
         },
         "readback": {
           "file": "scripts/internal/verify_ops_source_registry_api.mjs",
@@ -22123,7 +22124,7 @@
           "file": "server.sh",
           "symbol": "server-dispatch:verify-ops-source-registry-api",
           "anchor": "verify-ops-source-registry-api)",
-          "line": 1525,
+          "line": 1663,
           "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
         }
       },
@@ -22133,15 +22134,15 @@
           "to": "dispatch",
           "kind": "branch-containment",
           "witness": "/ops/api/actions/default-off-explanation GET branch contains exact OpsV380DefaultOffActionExplanationJson response call",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:1602",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:1616"
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:1689",
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:1703"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "route directly calls OpsV380DefaultOffActionExplanationJson",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:1616",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:1703",
           "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:7137"
         },
         {
@@ -22150,14 +22151,14 @@
           "kind": "function-containment",
           "witness": "OpsV380DefaultOffActionExplanationJson emits media-server.ops.v380-default-off-action-explanation.v1 and feature boundary flags",
           "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:7137",
-          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:7142"
+          "target": "src/ingress/webrtc_http_server_ops_workflows.cpp:7234"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "media-server.ops.v380-default-off-action-explanation.v1 product response is independently compared by SRC-064 runtime assertion",
-          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:7142",
+          "witness": "SRC-064 성공 serializer의 실제 HTTP readback",
+          "source": "src/ingress/webrtc_http_server_ops_workflows.cpp:7234",
           "target": "scripts/internal/verify_ops_source_registry_api.mjs:663"
         },
         {
@@ -22166,10 +22167,10 @@
           "kind": "verifier-dispatch",
           "witness": "verify-ops-source-registry-api",
           "source": "scripts/internal/verify_ops_source_registry_api.mjs:663",
-          "target": "server.sh:1525"
+          "target": "server.sh:1663"
         }
       ],
-      "rationale": "SRC-064 actual product route/state is bound to the isolated token-auth source registry runtime response and independent no-write/redaction/provider/field assertion."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "SRC-065",
@@ -22568,59 +22569,59 @@
       "featureContractSha256": "51ada1dfe649aeb4fc8ad3354e6266bf6de463c052e37d5d85dfd24056a03acc",
       "status": "source-resolved-reviewed-proof",
       "evidenceMode": "actual-product-runtime-independent-readback",
-      "evidenceToken": "vaRules",
+      "evidenceToken": "opsVaRuleRows",
       "verifier": {
-        "command": "verify-ops-rules-roundtrip",
-        "file": "scripts/internal/verify_ops_rules_roundtrip.mjs"
+        "command": "verify-ops-click-e2e",
+        "file": "scripts/internal/verify_ops_ui_click_e2e.mjs"
       },
       "roles": {
         "owner": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "refreshRules",
           "anchor": "async function refreshRules() {",
-          "line": 9898,
+          "line": 10088,
           "contextSha256": "e118bf92f74ffca7dc319ffeeea97c534ead510add47aeed4262b5c1a44b34c1"
         },
         "dispatch": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "refreshRules",
-          "anchor": "const [catalog, profilesPayload, sourcesPayload, views, capabilities] = await Promise.all([",
-          "line": 9901,
-          "contextSha256": "86f67bb269f60d8092cd9c0f83dcaba62080eb27df6c4d9c102dd3898904a8a9"
+          "anchor": "renderOpsVaRules(filteredVaRules);",
+          "line": 10145,
+          "contextSha256": "be64dff3db8dc4f916268358302273a267cb1a782ae2b66a351d6530655db604"
         },
         "action": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
-          "symbol": "refreshRules:vaRules-assignment",
-          "anchor": "const vaRules = Array.isArray(catalog.vaRules) ? catalog.vaRules : [];",
-          "line": 9910,
-          "contextSha256": "43662e3c9aa6f4196a0e14bcf400eccbcf622d89b951b97581fa937bbda8038e"
+          "symbol": "renderOpsVaRules",
+          "anchor": "function renderOpsVaRules(items) {",
+          "line": 9671,
+          "contextSha256": "c64338361c63e2866fe2cf433461d4d2e01f9706fa8c51ea5753443607ce6bfd"
         },
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
-          "symbol": "refreshRules:vaRules-state",
-          "anchor": "opsCatalogVaRules = vaRules;",
-          "line": 9915,
-          "contextSha256": "8da740406768fffced0e457edd55342df6ea3325b243721f934f495b048cdae8"
+          "symbol": "renderOpsVaRules",
+          "anchor": "const body = document.getElementById('opsVaRuleRows');",
+          "line": 9672,
+          "contextSha256": "5007bdd91a3f725a54237f436f7736f8830669c1a74a96bc5d7fac8177999e30"
         },
         "readback": {
-          "file": "scripts/internal/verify_ops_rules_roundtrip.mjs",
-          "symbol": "runtime-oracle:RULE-001",
-          "anchor": "assertEqual(Array.isArray(vaRules), true, \"RULE-001 channel analysis rule catalog list\");",
-          "line": 493,
-          "contextSha256": "0e7a0c979d5d06c66eb58b6b6f57f86f243c6f372595671b872faf9f3f2b67a5"
+          "file": "scripts/internal/verify_ops_ui_click_e2e.mjs",
+          "symbol": "createVaRuleViaUi",
+          "anchor": "await assertTableContains(browser, \"#opsVaRuleRows\", vaRuleId, \"VA rule row id\");",
+          "line": 1545,
+          "contextSha256": "fc545badd1590f0a1a1c661638193a25a45871b51a81c46c2fadc851392af7b6"
         },
         "verifier": {
           "file": "server.sh",
-          "symbol": "server-dispatch:verify-ops-rules-roundtrip",
-          "anchor": "verify-ops-rules-roundtrip)",
-          "line": 1501,
-          "contextSha256": "21ef75814abb7e5f6f023dc66d8381668d44a4455a1e98bdf48b99041114afea"
+          "symbol": "server-dispatch:verify-ops-click-e2e",
+          "anchor": "verify-ops-click-e2e)",
+          "line": 1631,
+          "contextSha256": "fd2e3e945f4ae182d42b610b65cc65240eb04c121abaeb066a73aaf7736879c3"
         },
         "route": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start:/ops/rules",
           "anchor": "if (request.method == \"GET\" && request.path == \"/ops/rules\") {",
-          "line": 1176,
+          "line": 1263,
           "contextSha256": "c289a46dd54373d75b1f66ad31f50153f658502b1de3038e0d10e60a6ae67d6d"
         }
       },
@@ -22629,103 +22630,103 @@
           "from": "owner",
           "to": "dispatch",
           "kind": "function-containment",
-          "witness": "RULE-001 refreshRules owns its catalog read",
-          "source": "src/ingress/product_ui_page_scripts.cpp:9898",
-          "target": "src/ingress/product_ui_page_scripts.cpp:9901"
+          "witness": "RULE-001 owner에서 dispatch 실제 호출/포함",
+          "source": "src/ingress/product_ui_page_scripts.cpp:10088",
+          "target": "src/ingress/product_ui_page_scripts.cpp:10145"
         },
         {
           "from": "dispatch",
           "to": "action",
-          "kind": "function-containment",
-          "witness": "RULE-001 catalog read is projected inside refreshRules",
-          "source": "src/ingress/product_ui_page_scripts.cpp:9901",
-          "target": "src/ingress/product_ui_page_scripts.cpp:9910"
+          "kind": "direct-callsite",
+          "witness": "RULE-001 dispatch에서 action 실제 호출/포함",
+          "source": "src/ingress/product_ui_page_scripts.cpp:10145",
+          "target": "src/ingress/product_ui_page_scripts.cpp:9671"
         },
         {
           "from": "action",
           "to": "state",
-          "kind": "assignment-def-use",
-          "witness": "vaRules is assigned to the authoritative UI catalog state",
-          "source": "src/ingress/product_ui_page_scripts.cpp:9910",
-          "target": "src/ingress/product_ui_page_scripts.cpp:9915"
+          "kind": "function-containment",
+          "witness": "RULE-001 action에서 state 실제 호출/포함",
+          "source": "src/ingress/product_ui_page_scripts.cpp:9671",
+          "target": "src/ingress/product_ui_page_scripts.cpp:9672"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "AnalysisVaRulesJson product state is independently read back through HTTP/list/detail/storage assertions",
-          "source": "src/ingress/product_ui_page_scripts.cpp:9915",
-          "target": "scripts/internal/verify_ops_rules_roundtrip.mjs:493"
+          "witness": "RULE-001 실제 UI 조작 후 해당 DOM/API 관측; 실행 PASS는 별도",
+          "source": "src/ingress/product_ui_page_scripts.cpp:9672",
+          "target": "scripts/internal/verify_ops_ui_click_e2e.mjs:1545"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
-          "witness": "verify-ops-rules-roundtrip",
-          "source": "scripts/internal/verify_ops_rules_roundtrip.mjs:493",
-          "target": "server.sh:1501"
+          "witness": "verify-ops-click-e2e",
+          "source": "scripts/internal/verify_ops_ui_click_e2e.mjs:1545",
+          "target": "server.sh:1631"
         }
       ],
-      "rationale": "RULE-001 제품 call-flow를 verify-ops-rules-roundtrip의 독립 HTTP readback에 결속한다."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "RULE-002",
       "featureContractSha256": "a21ba019281d1273a46877789f545199b0bff252fbee863ce3ee2267a6b71985",
       "status": "source-resolved-reviewed-proof",
       "evidenceMode": "actual-product-runtime-independent-readback",
-      "evidenceToken": "rules",
+      "evidenceToken": "opsEventRuleRows",
       "verifier": {
-        "command": "verify-ops-rules-roundtrip",
-        "file": "scripts/internal/verify_ops_rules_roundtrip.mjs"
+        "command": "verify-ops-click-e2e",
+        "file": "scripts/internal/verify_ops_ui_click_e2e.mjs"
       },
       "roles": {
         "owner": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "refreshRules",
           "anchor": "async function refreshRules() {",
-          "line": 9898,
+          "line": 10088,
           "contextSha256": "e118bf92f74ffca7dc319ffeeea97c534ead510add47aeed4262b5c1a44b34c1"
         },
         "dispatch": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "refreshRules",
-          "anchor": "const [catalog, profilesPayload, sourcesPayload, views, capabilities] = await Promise.all([",
-          "line": 9901,
-          "contextSha256": "86f67bb269f60d8092cd9c0f83dcaba62080eb27df6c4d9c102dd3898904a8a9"
+          "anchor": "renderOpsEventRules(filteredRules);",
+          "line": 10146,
+          "contextSha256": "5dcdaa2bb94a5af18184d6cf0bfa8a7fb3996e4dd24dde754c6d7c379e1ad24f"
         },
         "action": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
-          "symbol": "refreshRules:rules-assignment",
-          "anchor": "const rules = Array.isArray(catalog.rules) ? catalog.rules : [];",
-          "line": 9909,
-          "contextSha256": "a1490002303d796e6ea284a1c46956f112b4d4a62ef76e87f5629f50b9cd1874"
+          "symbol": "renderOpsEventRules",
+          "anchor": "function renderOpsEventRules(items) {",
+          "line": 9698,
+          "contextSha256": "2a89323c1fc704101bfb79e0d781d88ba15dcb0113be8fdaabeaa7b26b855dfe"
         },
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
-          "symbol": "refreshRules:rules-state",
-          "anchor": "opsCatalogEventTemplates = rules;",
-          "line": 9914,
-          "contextSha256": "5d3a007acfa009b5ed9b50a0fa6fe97a9a19276eb917c105f71e8180b8a3eb68"
+          "symbol": "renderOpsEventRules",
+          "anchor": "const body = document.getElementById('opsEventRuleRows');",
+          "line": 9699,
+          "contextSha256": "78c58aa19b2fd6fea7c5624ef8bac846e62e95e2def02c59cf61e432c4692d81"
         },
         "readback": {
-          "file": "scripts/internal/verify_ops_rules_roundtrip.mjs",
-          "symbol": "runtime-oracle:RULE-002",
-          "anchor": "assertEqual(Array.isArray(rules), true, \"RULE-002 event template catalog list\");",
-          "line": 494,
-          "contextSha256": "ec96f32bb5f78496f44c6e93b2bbb4a52fb129f81911bf2013458c3e1ac620f9"
+          "file": "scripts/internal/verify_ops_ui_click_e2e.mjs",
+          "symbol": "createEventTemplateViaUi",
+          "anchor": "await assertTableContains(browser, \"#opsEventRuleRows\", eventRuleId, `${spec.type} event template row id`);",
+          "line": 1259,
+          "contextSha256": "02c25d57071c0a0670c74383862698bc9438c2102a6cd900eb34974ebd509626"
         },
         "verifier": {
           "file": "server.sh",
-          "symbol": "server-dispatch:verify-ops-rules-roundtrip",
-          "anchor": "verify-ops-rules-roundtrip)",
-          "line": 1501,
-          "contextSha256": "21ef75814abb7e5f6f023dc66d8381668d44a4455a1e98bdf48b99041114afea"
+          "symbol": "server-dispatch:verify-ops-click-e2e",
+          "anchor": "verify-ops-click-e2e)",
+          "line": 1631,
+          "contextSha256": "fd2e3e945f4ae182d42b610b65cc65240eb04c121abaeb066a73aaf7736879c3"
         },
         "route": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start:/ops/rules",
           "anchor": "if (request.method == \"GET\" && request.path == \"/ops/rules\") {",
-          "line": 1176,
+          "line": 1263,
           "contextSha256": "c289a46dd54373d75b1f66ad31f50153f658502b1de3038e0d10e60a6ae67d6d"
         }
       },
@@ -22734,103 +22735,103 @@
           "from": "owner",
           "to": "dispatch",
           "kind": "function-containment",
-          "witness": "RULE-002 refreshRules owns its catalog read",
-          "source": "src/ingress/product_ui_page_scripts.cpp:9898",
-          "target": "src/ingress/product_ui_page_scripts.cpp:9901"
+          "witness": "RULE-002 owner에서 dispatch 실제 호출/포함",
+          "source": "src/ingress/product_ui_page_scripts.cpp:10088",
+          "target": "src/ingress/product_ui_page_scripts.cpp:10146"
         },
         {
           "from": "dispatch",
           "to": "action",
-          "kind": "function-containment",
-          "witness": "RULE-002 catalog read is projected inside refreshRules",
-          "source": "src/ingress/product_ui_page_scripts.cpp:9901",
-          "target": "src/ingress/product_ui_page_scripts.cpp:9909"
+          "kind": "direct-callsite",
+          "witness": "RULE-002 dispatch에서 action 실제 호출/포함",
+          "source": "src/ingress/product_ui_page_scripts.cpp:10146",
+          "target": "src/ingress/product_ui_page_scripts.cpp:9698"
         },
         {
           "from": "action",
           "to": "state",
-          "kind": "assignment-def-use",
-          "witness": "rules is assigned to the authoritative UI catalog state",
-          "source": "src/ingress/product_ui_page_scripts.cpp:9909",
-          "target": "src/ingress/product_ui_page_scripts.cpp:9914"
+          "kind": "function-containment",
+          "witness": "RULE-002 action에서 state 실제 호출/포함",
+          "source": "src/ingress/product_ui_page_scripts.cpp:9698",
+          "target": "src/ingress/product_ui_page_scripts.cpp:9699"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "AnalysisRulesJson product state is independently read back through HTTP/list/detail/storage assertions",
-          "source": "src/ingress/product_ui_page_scripts.cpp:9914",
-          "target": "scripts/internal/verify_ops_rules_roundtrip.mjs:494"
+          "witness": "RULE-002 실제 UI 조작 후 해당 DOM/API 관측; 실행 PASS는 별도",
+          "source": "src/ingress/product_ui_page_scripts.cpp:9699",
+          "target": "scripts/internal/verify_ops_ui_click_e2e.mjs:1259"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
-          "witness": "verify-ops-rules-roundtrip",
-          "source": "scripts/internal/verify_ops_rules_roundtrip.mjs:494",
-          "target": "server.sh:1501"
+          "witness": "verify-ops-click-e2e",
+          "source": "scripts/internal/verify_ops_ui_click_e2e.mjs:1259",
+          "target": "server.sh:1631"
         }
       ],
-      "rationale": "RULE-002 제품 call-flow를 verify-ops-rules-roundtrip의 독립 HTTP readback에 결속한다."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "RULE-003",
       "featureContractSha256": "efa7c90642161ab89d255f4e14a14b930148856b1ce74fae117fee484038e90f",
       "status": "source-resolved-reviewed-proof",
       "evidenceMode": "actual-product-runtime-independent-readback",
-      "evidenceToken": "profiles",
+      "evidenceToken": "opsProfileRows",
       "verifier": {
-        "command": "verify-ops-rules-roundtrip",
-        "file": "scripts/internal/verify_ops_rules_roundtrip.mjs"
+        "command": "verify-ops-click-e2e",
+        "file": "scripts/internal/verify_ops_ui_click_e2e.mjs"
       },
       "roles": {
         "owner": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "refreshRules",
           "anchor": "async function refreshRules() {",
-          "line": 9898,
+          "line": 10088,
           "contextSha256": "e118bf92f74ffca7dc319ffeeea97c534ead510add47aeed4262b5c1a44b34c1"
         },
         "dispatch": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "refreshRules",
-          "anchor": "const [catalog, profilesPayload, sourcesPayload, views, capabilities] = await Promise.all([",
-          "line": 9901,
-          "contextSha256": "86f67bb269f60d8092cd9c0f83dcaba62080eb27df6c4d9c102dd3898904a8a9"
+          "anchor": "renderOpsProfiles(filteredProfiles);",
+          "line": 10147,
+          "contextSha256": "4ffc0e967989c20dd748dc0f821e221833ec87c5e97bc0b2db62039cfab5df49"
         },
         "action": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
-          "symbol": "refreshRules:profiles-assignment",
-          "anchor": "const profiles = Array.isArray(catalog.profiles) ? catalog.profiles : [];",
-          "line": 9908,
-          "contextSha256": "48116136cd0af10ea728eec26c30c3219221ab3630ee37a5652b0ed9e9fe0c96"
+          "symbol": "renderOpsProfiles",
+          "anchor": "function renderOpsProfiles(items) {",
+          "line": 9730,
+          "contextSha256": "bc4bc489a89647871a50cf4bd198e97e45529796f5ef628897cca2b07f89e3f9"
         },
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
-          "symbol": "refreshRules:profiles-state",
-          "anchor": "opsCatalogProfiles = profiles;",
-          "line": 9913,
-          "contextSha256": "6f3ae660df5a9c62dc0b32c0e18fd834bc329ce11f55b771284879c38f9a9ca0"
+          "symbol": "renderOpsProfiles",
+          "anchor": "const body = document.getElementById('opsProfileRows');",
+          "line": 9731,
+          "contextSha256": "9ee9d68a1d8a8f28a5c264286536bd9943f3eee6d6d43627cdfa04696c6bc6d3"
         },
         "readback": {
-          "file": "scripts/internal/verify_ops_rules_roundtrip.mjs",
-          "symbol": "runtime-oracle:RULE-003",
-          "anchor": "assertEqual(Array.isArray(profiles), true, \"RULE-003 analysis profile catalog list\");",
-          "line": 495,
-          "contextSha256": "c7d06121236807a2c2f2143e0446094effa56ed051fc0731beb1f38de512bd5b"
+          "file": "scripts/internal/verify_ops_ui_click_e2e.mjs",
+          "symbol": "createAnalysisProfileViaUi",
+          "anchor": "await assertTableContains(browser, \"#opsProfileRows\", profileId, \"analysis profile row id\");",
+          "line": 1178,
+          "contextSha256": "bb9f9704c03d71cf70d2efa411ce3851b18ffb1c2e430fba3e112285d134f6e5"
         },
         "verifier": {
           "file": "server.sh",
-          "symbol": "server-dispatch:verify-ops-rules-roundtrip",
-          "anchor": "verify-ops-rules-roundtrip)",
-          "line": 1501,
-          "contextSha256": "21ef75814abb7e5f6f023dc66d8381668d44a4455a1e98bdf48b99041114afea"
+          "symbol": "server-dispatch:verify-ops-click-e2e",
+          "anchor": "verify-ops-click-e2e)",
+          "line": 1631,
+          "contextSha256": "fd2e3e945f4ae182d42b610b65cc65240eb04c121abaeb066a73aaf7736879c3"
         },
         "route": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start:/ops/rules",
           "anchor": "if (request.method == \"GET\" && request.path == \"/ops/rules\") {",
-          "line": 1176,
+          "line": 1263,
           "contextSha256": "c289a46dd54373d75b1f66ad31f50153f658502b1de3038e0d10e60a6ae67d6d"
         }
       },
@@ -22839,44 +22840,44 @@
           "from": "owner",
           "to": "dispatch",
           "kind": "function-containment",
-          "witness": "RULE-003 refreshRules owns its catalog read",
-          "source": "src/ingress/product_ui_page_scripts.cpp:9898",
-          "target": "src/ingress/product_ui_page_scripts.cpp:9901"
+          "witness": "RULE-003 owner에서 dispatch 실제 호출/포함",
+          "source": "src/ingress/product_ui_page_scripts.cpp:10088",
+          "target": "src/ingress/product_ui_page_scripts.cpp:10147"
         },
         {
           "from": "dispatch",
           "to": "action",
-          "kind": "function-containment",
-          "witness": "RULE-003 catalog read is projected inside refreshRules",
-          "source": "src/ingress/product_ui_page_scripts.cpp:9901",
-          "target": "src/ingress/product_ui_page_scripts.cpp:9908"
+          "kind": "direct-callsite",
+          "witness": "RULE-003 dispatch에서 action 실제 호출/포함",
+          "source": "src/ingress/product_ui_page_scripts.cpp:10147",
+          "target": "src/ingress/product_ui_page_scripts.cpp:9730"
         },
         {
           "from": "action",
           "to": "state",
-          "kind": "assignment-def-use",
-          "witness": "profiles is assigned to the authoritative UI catalog state",
-          "source": "src/ingress/product_ui_page_scripts.cpp:9908",
-          "target": "src/ingress/product_ui_page_scripts.cpp:9913"
+          "kind": "function-containment",
+          "witness": "RULE-003 action에서 state 실제 호출/포함",
+          "source": "src/ingress/product_ui_page_scripts.cpp:9730",
+          "target": "src/ingress/product_ui_page_scripts.cpp:9731"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "AnalysisProfilesJson product state is independently read back through HTTP/list/detail/storage assertions",
-          "source": "src/ingress/product_ui_page_scripts.cpp:9913",
-          "target": "scripts/internal/verify_ops_rules_roundtrip.mjs:495"
+          "witness": "RULE-003 실제 UI 조작 후 해당 DOM/API 관측; 실행 PASS는 별도",
+          "source": "src/ingress/product_ui_page_scripts.cpp:9731",
+          "target": "scripts/internal/verify_ops_ui_click_e2e.mjs:1178"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
-          "witness": "verify-ops-rules-roundtrip",
-          "source": "scripts/internal/verify_ops_rules_roundtrip.mjs:495",
-          "target": "server.sh:1501"
+          "witness": "verify-ops-click-e2e",
+          "source": "scripts/internal/verify_ops_ui_click_e2e.mjs:1178",
+          "target": "server.sh:1631"
         }
       ],
-      "rationale": "RULE-003 제품 call-flow를 verify-ops-rules-roundtrip의 독립 HTTP readback에 결속한다."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "RULE-004",
@@ -23303,59 +23304,59 @@
       "featureContractSha256": "fac30f528bcfee2c41d05122e37dad51e4237f1f53b9b30c675f0382768c5c4e",
       "status": "source-resolved-reviewed-proof",
       "evidenceMode": "actual-product-runtime-independent-readback",
-      "evidenceToken": "enabled",
+      "evidenceToken": "opsVaRuleEnabledInput",
       "verifier": {
-        "command": "verify-ops-rules-roundtrip",
-        "file": "scripts/internal/verify_ops_rules_roundtrip.mjs"
+        "command": "verify-ops-click-e2e",
+        "file": "scripts/internal/verify_ops_ui_click_e2e.mjs"
       },
       "roles": {
         "owner": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "opsRulesSaveNativeRecord",
           "anchor": "async function opsRulesSaveNativeRecord(mode) {",
-          "line": 8753,
+          "line": 8927,
           "contextSha256": "17a190f886396ae40177a4a68beb8032fad0809ef9521e10629c6eab7a195979"
         },
         "dispatch": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "opsRulesSaveNativeRecord:read-va-rule-form",
           "anchor": "const { payload, channel } = opsRulesReadVaRuleForm(current, forcedId);",
-          "line": 8758,
+          "line": 8932,
           "contextSha256": "e655ddafa258eab3c41208bf7c42cbef543b92284756f32eea48fd2632bbc2a6"
         },
         "action": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "opsRulesReadVaRuleForm",
           "anchor": "function opsRulesReadVaRuleForm(baseRecord = {}, forcedId = '') {",
-          "line": 8570,
+          "line": 8744,
           "contextSha256": "c0b14c642eb4e2d47191c29180a3ac23b8a24b1eb708e2cce3aca9171160ce1b"
         },
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "opsRulesReadVaRuleForm:enabled",
           "anchor": "enabled: String(document.getElementById('opsVaRuleEnabledInput')?.value || 'true') !== 'false',",
-          "line": 8585,
+          "line": 8759,
           "contextSha256": "49655d9c114fe6204f1acfd13eea7622f87650eaa8f230f6bbf678df89975029"
         },
         "readback": {
-          "file": "scripts/internal/verify_ops_rules_roundtrip.mjs",
-          "symbol": "runtime-oracle:RULE-008",
-          "anchor": "assertEqual(UpsertVaRule.actual?.enabled, false, \"RULE-008 channel analysis setting inactive state\");",
-          "line": 554,
-          "contextSha256": "ac5d06ab3f0411b82aeada3850c3bb4aa60c6fe58ec525e3c9ac50323837ed8f"
+          "file": "scripts/internal/verify_ops_ui_click_e2e.mjs",
+          "symbol": "createVaRuleViaUi",
+          "anchor": "await assertFormValue(browser, \"#opsVaRuleEnabledInput\", spec.enabled ? \"true\" : \"false\", \"VA rule detail enabled select\");",
+          "line": 1542,
+          "contextSha256": "802566528b17c33bfab9423f9ac2fd94b83141723c347c80e03add44f5e111bf"
         },
         "verifier": {
           "file": "server.sh",
-          "symbol": "server-dispatch:verify-ops-rules-roundtrip",
-          "anchor": "verify-ops-rules-roundtrip)",
-          "line": 1501,
-          "contextSha256": "21ef75814abb7e5f6f023dc66d8381668d44a4455a1e98bdf48b99041114afea"
+          "symbol": "server-dispatch:verify-ops-click-e2e",
+          "anchor": "verify-ops-click-e2e)",
+          "line": 1631,
+          "contextSha256": "fd2e3e945f4ae182d42b610b65cc65240eb04c121abaeb066a73aaf7736879c3"
         },
         "route": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start:/ops/rules",
           "anchor": "if (request.method == \"GET\" && request.path == \"/ops/rules\") {",
-          "line": 1176,
+          "line": 1263,
           "contextSha256": "c289a46dd54373d75b1f66ad31f50153f658502b1de3038e0d10e60a6ae67d6d"
         }
       },
@@ -23365,43 +23366,43 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "opsRulesSaveNativeRecord owns the VA rule form read dispatch",
-          "source": "src/ingress/product_ui_page_scripts.cpp:8753",
-          "target": "src/ingress/product_ui_page_scripts.cpp:8758"
+          "source": "src/ingress/product_ui_page_scripts.cpp:8927",
+          "target": "src/ingress/product_ui_page_scripts.cpp:8932"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "opsRulesSaveNativeRecord directly calls opsRulesReadVaRuleForm",
-          "source": "src/ingress/product_ui_page_scripts.cpp:8758",
-          "target": "src/ingress/product_ui_page_scripts.cpp:8570"
+          "source": "src/ingress/product_ui_page_scripts.cpp:8932",
+          "target": "src/ingress/product_ui_page_scripts.cpp:8744"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "opsRulesReadVaRuleForm produces enabled",
-          "source": "src/ingress/product_ui_page_scripts.cpp:8570",
-          "target": "src/ingress/product_ui_page_scripts.cpp:8585"
+          "source": "src/ingress/product_ui_page_scripts.cpp:8744",
+          "target": "src/ingress/product_ui_page_scripts.cpp:8759"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "UpsertVaRule product state is independently read back through HTTP/list/detail/storage assertions",
-          "source": "src/ingress/product_ui_page_scripts.cpp:8585",
-          "target": "scripts/internal/verify_ops_rules_roundtrip.mjs:554"
+          "witness": "RULE-008 실제 UI 조작 후 해당 DOM/API 관측; 실행 PASS는 별도",
+          "source": "src/ingress/product_ui_page_scripts.cpp:8759",
+          "target": "scripts/internal/verify_ops_ui_click_e2e.mjs:1542"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
-          "witness": "verify-ops-rules-roundtrip",
-          "source": "scripts/internal/verify_ops_rules_roundtrip.mjs:554",
-          "target": "server.sh:1501"
+          "witness": "verify-ops-click-e2e",
+          "source": "scripts/internal/verify_ops_ui_click_e2e.mjs:1542",
+          "target": "server.sh:1631"
         }
       ],
-      "rationale": "RULE-008 제품 call-flow를 verify-ops-rules-roundtrip의 독립 HTTP readback에 결속한다."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "RULE-009",
@@ -23618,59 +23619,59 @@
       "featureContractSha256": "5a81249c3a09023f6c210ca5e6e9755ee2092a429d1778eccca350deebbe33f2",
       "status": "source-resolved-reviewed-proof",
       "evidenceMode": "actual-product-runtime-independent-readback",
-      "evidenceToken": "profileId",
+      "evidenceToken": "opsVaRuleProfileSelect",
       "verifier": {
-        "command": "verify-ops-rules-roundtrip",
-        "file": "scripts/internal/verify_ops_rules_roundtrip.mjs"
+        "command": "verify-ops-click-e2e",
+        "file": "scripts/internal/verify_ops_ui_click_e2e.mjs"
       },
       "roles": {
         "owner": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "opsRulesSaveNativeRecord",
           "anchor": "async function opsRulesSaveNativeRecord(mode) {",
-          "line": 8753,
+          "line": 8927,
           "contextSha256": "17a190f886396ae40177a4a68beb8032fad0809ef9521e10629c6eab7a195979"
         },
         "dispatch": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "opsRulesSaveNativeRecord:read-va-rule-form",
           "anchor": "const { payload, channel } = opsRulesReadVaRuleForm(current, forcedId);",
-          "line": 8758,
+          "line": 8932,
           "contextSha256": "e655ddafa258eab3c41208bf7c42cbef543b92284756f32eea48fd2632bbc2a6"
         },
         "action": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "opsRulesReadVaRuleForm",
           "anchor": "function opsRulesReadVaRuleForm(baseRecord = {}, forcedId = '') {",
-          "line": 8570,
+          "line": 8744,
           "contextSha256": "c0b14c642eb4e2d47191c29180a3ac23b8a24b1eb708e2cce3aca9171160ce1b"
         },
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "opsRulesReadVaRuleForm:profileId",
           "anchor": "profileId: String(document.getElementById('opsVaRuleProfileSelect')?.value || opsRulesPreferredProfileId()),",
-          "line": 8589,
+          "line": 8763,
           "contextSha256": "2ff6c8b915989b6164aea82aa5bf3c4a0b0ca63f4fe67ff311b442779793812a"
         },
         "readback": {
-          "file": "scripts/internal/verify_ops_rules_roundtrip.mjs",
-          "symbol": "runtime-oracle:RULE-011",
-          "anchor": "assertEqual(UpsertVaRule?.analysis?.profileId, expected.analysis.profileId, \"RULE-011 analysis profile binding\");",
-          "line": 542,
-          "contextSha256": "7e05b501b1bf4c748911fa2cad8d6fb41e71abb99450505112fc59a2924e3450"
+          "file": "scripts/internal/verify_ops_ui_click_e2e.mjs",
+          "symbol": "createVaRuleViaUi",
+          "anchor": "await assertFormValue(browser, \"#opsVaRuleProfileSelect\", spec.profileId, \"VA rule detail profile select\");",
+          "line": 1541,
+          "contextSha256": "19c186400ec656acb8007d07cc612dbba6cc5f464bdddae29f6b2db9dbfd744c"
         },
         "verifier": {
           "file": "server.sh",
-          "symbol": "server-dispatch:verify-ops-rules-roundtrip",
-          "anchor": "verify-ops-rules-roundtrip)",
-          "line": 1501,
-          "contextSha256": "21ef75814abb7e5f6f023dc66d8381668d44a4455a1e98bdf48b99041114afea"
+          "symbol": "server-dispatch:verify-ops-click-e2e",
+          "anchor": "verify-ops-click-e2e)",
+          "line": 1631,
+          "contextSha256": "fd2e3e945f4ae182d42b610b65cc65240eb04c121abaeb066a73aaf7736879c3"
         },
         "route": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start:/ops/rules",
           "anchor": "if (request.method == \"GET\" && request.path == \"/ops/rules\") {",
-          "line": 1176,
+          "line": 1263,
           "contextSha256": "c289a46dd54373d75b1f66ad31f50153f658502b1de3038e0d10e60a6ae67d6d"
         }
       },
@@ -23680,102 +23681,102 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "opsRulesSaveNativeRecord owns the VA rule form read dispatch",
-          "source": "src/ingress/product_ui_page_scripts.cpp:8753",
-          "target": "src/ingress/product_ui_page_scripts.cpp:8758"
+          "source": "src/ingress/product_ui_page_scripts.cpp:8927",
+          "target": "src/ingress/product_ui_page_scripts.cpp:8932"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "opsRulesSaveNativeRecord directly calls opsRulesReadVaRuleForm",
-          "source": "src/ingress/product_ui_page_scripts.cpp:8758",
-          "target": "src/ingress/product_ui_page_scripts.cpp:8570"
+          "source": "src/ingress/product_ui_page_scripts.cpp:8932",
+          "target": "src/ingress/product_ui_page_scripts.cpp:8744"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "opsRulesReadVaRuleForm produces profileId",
-          "source": "src/ingress/product_ui_page_scripts.cpp:8570",
-          "target": "src/ingress/product_ui_page_scripts.cpp:8589"
+          "source": "src/ingress/product_ui_page_scripts.cpp:8744",
+          "target": "src/ingress/product_ui_page_scripts.cpp:8763"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "UpsertVaRule product state is independently read back through HTTP/list/detail/storage assertions",
-          "source": "src/ingress/product_ui_page_scripts.cpp:8589",
-          "target": "scripts/internal/verify_ops_rules_roundtrip.mjs:542"
+          "witness": "RULE-011 실제 UI 조작 후 해당 DOM/API 관측; 실행 PASS는 별도",
+          "source": "src/ingress/product_ui_page_scripts.cpp:8763",
+          "target": "scripts/internal/verify_ops_ui_click_e2e.mjs:1541"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
-          "witness": "verify-ops-rules-roundtrip",
-          "source": "scripts/internal/verify_ops_rules_roundtrip.mjs:542",
-          "target": "server.sh:1501"
+          "witness": "verify-ops-click-e2e",
+          "source": "scripts/internal/verify_ops_ui_click_e2e.mjs:1541",
+          "target": "server.sh:1631"
         }
       ],
-      "rationale": "RULE-011 제품 call-flow를 verify-ops-rules-roundtrip의 독립 HTTP readback에 결속한다."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "RULE-012",
       "featureContractSha256": "512f3abb21218c39ee304011c70624e7fe255cd5da291784c37a41fddc01321a",
       "status": "source-resolved-reviewed-proof",
       "evidenceMode": "actual-product-runtime-independent-readback",
-      "evidenceToken": "geometryType",
+      "evidenceToken": "Geometry",
       "verifier": {
-        "command": "verify-ops-rules-roundtrip",
-        "file": "scripts/internal/verify_ops_rules_roundtrip.mjs"
+        "command": "verify-ops-click-e2e",
+        "file": "scripts/internal/verify_ops_ui_click_e2e.mjs"
       },
       "roles": {
         "owner": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "opsRulesSaveNativeRecord",
           "anchor": "async function opsRulesSaveNativeRecord(mode) {",
-          "line": 8753,
+          "line": 8927,
           "contextSha256": "17a190f886396ae40177a4a68beb8032fad0809ef9521e10629c6eab7a195979"
         },
         "dispatch": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "opsRulesSaveNativeRecord:read-va-rule-form",
           "anchor": "const { payload, channel } = opsRulesReadVaRuleForm(current, forcedId);",
-          "line": 8758,
+          "line": 8932,
           "contextSha256": "e655ddafa258eab3c41208bf7c42cbef543b92284756f32eea48fd2632bbc2a6"
         },
         "action": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "opsRulesReadVaRuleForm",
           "anchor": "function opsRulesReadVaRuleForm(baseRecord = {}, forcedId = '') {",
-          "line": 8570,
+          "line": 8744,
           "contextSha256": "c0b14c642eb4e2d47191c29180a3ac23b8a24b1eb708e2cce3aca9171160ce1b"
         },
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "opsRulesReadVaRuleForm:geometryType",
-          "anchor": "type: geometryType,",
-          "line": 8612,
-          "contextSha256": "88faddaa4d1f9f77ee97968d04b633db9f950ca491b8c5cb783ccaa8a0963702"
+          "anchor": "const geometryType = String(document.getElementById('opsVaRuleGeometryKindText')?.value || '영역') === '라인' ? 'line' : 'polygon';",
+          "line": 8750,
+          "contextSha256": "0acd3f205cd466088e6c9024d3b6229b4edea057c33a5e4aa2da83868bdfbdba"
         },
         "readback": {
-          "file": "scripts/internal/verify_ops_rules_roundtrip.mjs",
-          "symbol": "runtime-oracle:RULE-012",
-          "anchor": "assertEqual(geometryType, \"line\", \"RULE-012 region geometry setting\");",
-          "line": 543,
-          "contextSha256": "27413a8b1a484e50ac620121fce4e293dbe202280672088fdd2ae5a120737081"
+          "file": "scripts/internal/verify_ops_ui_click_e2e.mjs",
+          "symbol": "createVaRuleViaUi",
+          "anchor": "await assertVaGeometryKind(browser, spec.expectedGeometryType, \"VA rule geometry kind\");",
+          "line": 1536,
+          "contextSha256": "14ad7c31ef27cecd3e3c8d724d81aa5e2b0246800672224322d7f52c81de8538"
         },
         "verifier": {
           "file": "server.sh",
-          "symbol": "server-dispatch:verify-ops-rules-roundtrip",
-          "anchor": "verify-ops-rules-roundtrip)",
-          "line": 1501,
-          "contextSha256": "21ef75814abb7e5f6f023dc66d8381668d44a4455a1e98bdf48b99041114afea"
+          "symbol": "server-dispatch:verify-ops-click-e2e",
+          "anchor": "verify-ops-click-e2e)",
+          "line": 1631,
+          "contextSha256": "fd2e3e945f4ae182d42b610b65cc65240eb04c121abaeb066a73aaf7736879c3"
         },
         "route": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start:/ops/rules",
           "anchor": "if (request.method == \"GET\" && request.path == \"/ops/rules\") {",
-          "line": 1176,
+          "line": 1263,
           "contextSha256": "c289a46dd54373d75b1f66ad31f50153f658502b1de3038e0d10e60a6ae67d6d"
         }
       },
@@ -23785,102 +23786,102 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "opsRulesSaveNativeRecord owns the VA rule form read dispatch",
-          "source": "src/ingress/product_ui_page_scripts.cpp:8753",
-          "target": "src/ingress/product_ui_page_scripts.cpp:8758"
+          "source": "src/ingress/product_ui_page_scripts.cpp:8927",
+          "target": "src/ingress/product_ui_page_scripts.cpp:8932"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "opsRulesSaveNativeRecord directly calls opsRulesReadVaRuleForm",
-          "source": "src/ingress/product_ui_page_scripts.cpp:8758",
-          "target": "src/ingress/product_ui_page_scripts.cpp:8570"
+          "source": "src/ingress/product_ui_page_scripts.cpp:8932",
+          "target": "src/ingress/product_ui_page_scripts.cpp:8744"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "opsRulesReadVaRuleForm produces geometryType",
-          "source": "src/ingress/product_ui_page_scripts.cpp:8570",
-          "target": "src/ingress/product_ui_page_scripts.cpp:8612"
+          "source": "src/ingress/product_ui_page_scripts.cpp:8744",
+          "target": "src/ingress/product_ui_page_scripts.cpp:8750"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "UpsertVaRule product state is independently read back through HTTP/list/detail/storage assertions",
-          "source": "src/ingress/product_ui_page_scripts.cpp:8612",
-          "target": "scripts/internal/verify_ops_rules_roundtrip.mjs:543"
+          "witness": "RULE-012 실제 UI 조작 후 해당 DOM/API 관측; 실행 PASS는 별도",
+          "source": "src/ingress/product_ui_page_scripts.cpp:8750",
+          "target": "scripts/internal/verify_ops_ui_click_e2e.mjs:1536"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
-          "witness": "verify-ops-rules-roundtrip",
-          "source": "scripts/internal/verify_ops_rules_roundtrip.mjs:543",
-          "target": "server.sh:1501"
+          "witness": "verify-ops-click-e2e",
+          "source": "scripts/internal/verify_ops_ui_click_e2e.mjs:1536",
+          "target": "server.sh:1631"
         }
       ],
-      "rationale": "RULE-012 제품 call-flow를 verify-ops-rules-roundtrip의 독립 HTTP readback에 결속한다."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "RULE-013",
       "featureContractSha256": "b7f60f443abf3a27d7ddb1adfeffd874a0616e65d243a3eaf160aac7a791ccf1",
       "status": "source-resolved-reviewed-proof",
       "evidenceMode": "actual-product-runtime-independent-readback",
-      "evidenceToken": "points",
+      "evidenceToken": "opsVaRuleGeometryPointCountText",
       "verifier": {
-        "command": "verify-ops-rules-roundtrip",
-        "file": "scripts/internal/verify_ops_rules_roundtrip.mjs"
+        "command": "verify-ops-click-e2e",
+        "file": "scripts/internal/verify_ops_ui_click_e2e.mjs"
       },
       "roles": {
         "owner": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
-          "symbol": "opsRulesSaveNativeRecord",
-          "anchor": "async function opsRulesSaveNativeRecord(mode) {",
-          "line": 8753,
-          "contextSha256": "17a190f886396ae40177a4a68beb8032fad0809ef9521e10629c6eab7a195979"
+          "symbol": "opsRulesRenderVaGeometryPreview",
+          "anchor": "function opsRulesRenderVaGeometryPreview() {",
+          "line": 8253,
+          "contextSha256": "05b12467c619b79c5a6db5876fbef4fffa6e6724194ea061ce680540e4d96f01"
         },
         "dispatch": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
-          "symbol": "opsRulesSaveNativeRecord:read-va-rule-form",
-          "anchor": "const { payload, channel } = opsRulesReadVaRuleForm(current, forcedId);",
-          "line": 8758,
-          "contextSha256": "e655ddafa258eab3c41208bf7c42cbef543b92284756f32eea48fd2632bbc2a6"
+          "symbol": "opsRulesRenderVaGeometryPreview",
+          "anchor": "opsRulesUpdateGeometryStatus(points);",
+          "line": 8295,
+          "contextSha256": "c4c671cc50fdbe0aa473a430025597faf71920380afaf4f3ab67ce661ad15e70"
         },
         "action": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
-          "symbol": "opsRulesReadVaRuleForm",
-          "anchor": "function opsRulesReadVaRuleForm(baseRecord = {}, forcedId = '') {",
-          "line": 8570,
-          "contextSha256": "c0b14c642eb4e2d47191c29180a3ac23b8a24b1eb708e2cce3aca9171160ce1b"
+          "symbol": "opsRulesUpdateGeometryStatus",
+          "anchor": "function opsRulesUpdateGeometryStatus(points = opsRulesCurrentGeometryPoints()) {",
+          "line": 8235,
+          "contextSha256": "3aa7043291ae9a4b2e223a0c0c45e0b009c68db4cb9f167f5dcff2ddb55b6a7a"
         },
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
-          "symbol": "opsRulesReadVaRuleForm:points",
-          "anchor": "points",
-          "line": 8613,
-          "contextSha256": "6542619dc3013ae437aa8a0ebce0c6448d20c89d1f014ffb64bbdc08c8967157"
+          "symbol": "opsRulesUpdateGeometryStatus",
+          "anchor": "setText('opsVaRuleGeometryPointCountText', `${points.length}/${status.maxPoints}`);",
+          "line": 8238,
+          "contextSha256": "9f7d73c4c98a77753765e0757c7e5b7a91cebcf6598cb85d3eff3cbd9144a512"
         },
         "readback": {
-          "file": "scripts/internal/verify_ops_rules_roundtrip.mjs",
-          "symbol": "runtime-oracle:RULE-013",
-          "anchor": "assertEqual(UpsertVaRule?.event?.region?.points?.length, 2, \"RULE-013 line geometry points\");",
-          "line": 544,
-          "contextSha256": "03a42e6844caae812ccc8ffad86c79e2948165f504ca7bfadf40f0f1636a4def"
+          "file": "scripts/internal/verify_ops_ui_click_e2e.mjs",
+          "symbol": "createVaRuleViaUi",
+          "anchor": "await assertText(browser, \"#opsVaRuleGeometryPointCountText\", spec.expectedGeometryType === \"line\" ? \"2/\" : \"4/\", \"VA rule detail geometry point count\");",
+          "line": 1543,
+          "contextSha256": "fc108bc84e7ca244b184470a6f09609d6d55df348cca3de69c42c59b0c16aaae"
         },
         "verifier": {
           "file": "server.sh",
-          "symbol": "server-dispatch:verify-ops-rules-roundtrip",
-          "anchor": "verify-ops-rules-roundtrip)",
-          "line": 1501,
-          "contextSha256": "21ef75814abb7e5f6f023dc66d8381668d44a4455a1e98bdf48b99041114afea"
+          "symbol": "server-dispatch:verify-ops-click-e2e",
+          "anchor": "verify-ops-click-e2e)",
+          "line": 1631,
+          "contextSha256": "fd2e3e945f4ae182d42b610b65cc65240eb04c121abaeb066a73aaf7736879c3"
         },
         "route": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start:/ops/rules",
           "anchor": "if (request.method == \"GET\" && request.path == \"/ops/rules\") {",
-          "line": 1176,
+          "line": 1263,
           "contextSha256": "c289a46dd54373d75b1f66ad31f50153f658502b1de3038e0d10e60a6ae67d6d"
         }
       },
@@ -23889,103 +23890,103 @@
           "from": "owner",
           "to": "dispatch",
           "kind": "function-containment",
-          "witness": "opsRulesSaveNativeRecord owns the VA rule form read dispatch",
-          "source": "src/ingress/product_ui_page_scripts.cpp:8753",
-          "target": "src/ingress/product_ui_page_scripts.cpp:8758"
+          "witness": "RULE-013 owner에서 dispatch 실제 호출/포함",
+          "source": "src/ingress/product_ui_page_scripts.cpp:8253",
+          "target": "src/ingress/product_ui_page_scripts.cpp:8295"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
-          "witness": "opsRulesSaveNativeRecord directly calls opsRulesReadVaRuleForm",
-          "source": "src/ingress/product_ui_page_scripts.cpp:8758",
-          "target": "src/ingress/product_ui_page_scripts.cpp:8570"
+          "witness": "RULE-013 dispatch에서 action 실제 호출/포함",
+          "source": "src/ingress/product_ui_page_scripts.cpp:8295",
+          "target": "src/ingress/product_ui_page_scripts.cpp:8235"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
-          "witness": "opsRulesReadVaRuleForm produces points",
-          "source": "src/ingress/product_ui_page_scripts.cpp:8570",
-          "target": "src/ingress/product_ui_page_scripts.cpp:8613"
+          "witness": "RULE-013 action에서 state 실제 호출/포함",
+          "source": "src/ingress/product_ui_page_scripts.cpp:8235",
+          "target": "src/ingress/product_ui_page_scripts.cpp:8238"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "UpsertVaRule product state is independently read back through HTTP/list/detail/storage assertions",
-          "source": "src/ingress/product_ui_page_scripts.cpp:8613",
-          "target": "scripts/internal/verify_ops_rules_roundtrip.mjs:544"
+          "witness": "RULE-013 실제 UI 조작 후 해당 DOM/API 관측; 실행 PASS는 별도",
+          "source": "src/ingress/product_ui_page_scripts.cpp:8238",
+          "target": "scripts/internal/verify_ops_ui_click_e2e.mjs:1543"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
-          "witness": "verify-ops-rules-roundtrip",
-          "source": "scripts/internal/verify_ops_rules_roundtrip.mjs:544",
-          "target": "server.sh:1501"
+          "witness": "verify-ops-click-e2e",
+          "source": "scripts/internal/verify_ops_ui_click_e2e.mjs:1543",
+          "target": "server.sh:1631"
         }
       ],
-      "rationale": "RULE-013 제품 call-flow를 verify-ops-rules-roundtrip의 독립 HTTP readback에 결속한다."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "RULE-014",
       "featureContractSha256": "c9bdd6122ec2d52af3d75c640e33619f74216f9803214442e7ef342988b22e7f",
       "status": "source-resolved-reviewed-proof",
       "evidenceMode": "actual-product-runtime-independent-readback",
-      "evidenceToken": "opsRulesVaOutputButtonsHtml",
+      "evidenceToken": "whep",
       "verifier": {
-        "command": "verify-ops-rules-roundtrip",
-        "file": "scripts/internal/verify_ops_rules_roundtrip.mjs"
+        "command": "verify-ops-click-e2e",
+        "file": "scripts/internal/verify_ops_ui_click_e2e.mjs"
       },
       "roles": {
         "owner": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
-          "symbol": "refreshRules",
-          "anchor": "async function refreshRules() {",
-          "line": 9898,
-          "contextSha256": "e118bf92f74ffca7dc319ffeeea97c534ead510add47aeed4262b5c1a44b34c1"
+          "symbol": "renderOpsVaRules",
+          "anchor": "function renderOpsVaRules(items) {",
+          "line": 9671,
+          "contextSha256": "c64338361c63e2866fe2cf433461d4d2e01f9706fa8c51ea5753443607ce6bfd"
         },
         "dispatch": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
-          "symbol": "refreshRules:renderOpsVaRules",
-          "anchor": "renderOpsVaRules(filteredVaRules);",
-          "line": 9955,
-          "contextSha256": "be64dff3db8dc4f916268358302273a267cb1a782ae2b66a351d6530655db604"
+          "symbol": "renderOpsVaRules",
+          "anchor": "tableCellHtml('출력', opsRulesVaOutputButtonsHtml(item)),",
+          "line": 9692,
+          "contextSha256": "6d5876989245fe9dd1b91f0faec2210a3bcdda9eb2436fc373cc5227f70f233f"
         },
         "action": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
-          "symbol": "renderOpsVaRules",
-          "anchor": "function renderOpsVaRules(items) {",
-          "line": 9481,
-          "contextSha256": "c64338361c63e2866fe2cf433461d4d2e01f9706fa8c51ea5753443607ce6bfd"
+          "symbol": "opsRulesVaOutputButtonsHtml",
+          "anchor": "function opsRulesVaOutputButtonsHtml(item) {",
+          "line": 9565,
+          "contextSha256": "b76bb9f409d9c94541dab9f2a9419b4e41580ad56e2d3ea96e095a2003a3647a"
         },
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
-          "symbol": "renderOpsVaRules:opsRulesVaOutputButtonsHtml",
-          "anchor": "tableCellHtml('출력', opsRulesVaOutputButtonsHtml(item)),",
-          "line": 9502,
-          "contextSha256": "6d5876989245fe9dd1b91f0faec2210a3bcdda9eb2436fc373cc5227f70f233f"
+          "symbol": "opsRulesVaOutputButtonsHtml",
+          "anchor": "<button type=\"button\" class=\"secondary\" data-ops-rule-copy-kind=\"whep\" data-ops-rule-copy-id=\"${escapeHtml(ruleId)}\" data-ops-rule-copy-view=\"${escapeHtml(viewId)}\" title=\"${prefix}이 채널 분석 설정의 WHEP URL 복사\" aria-label=\"${prefix}이 채널 분석 설정의 WHEP URL 복사\">${isOnvif ? 'ONVIF WHEP' : 'WHEP'}</button>",
+          "line": 9573,
+          "contextSha256": "425349206368d5785c4168de351d37b786d34aa1e30fdd3e33c3a5d116d6791c"
         },
         "readback": {
-          "file": "scripts/internal/verify_ops_rules_roundtrip.mjs",
-          "symbol": "runtime-oracle:RULE-014",
-          "anchor": "assertEqual(opsRulesVaOutputButtonsHtml?.binding?.urlMode, `vaRule=${expected.id}`, \"RULE-014 output URL mode\");",
-          "line": 545,
-          "contextSha256": "a02eba56ca61a63ebbf674e5f9aa0ce637f1d0056d97e156b54ef1892bfa857b"
+          "file": "scripts/internal/verify_ops_ui_click_e2e.mjs",
+          "symbol": "assertRulesNativeCrudAndPolicyFlow",
+          "anchor": "await assertOpsRuleCopyPayload(browser, \"whep\", vaRuleId, [\"/whep\", `vaRule=${vaRuleId}`], \"VA rule WHEP copy\");",
+          "line": 1070,
+          "contextSha256": "f2b76b76e864eb68dcc2693e3d3b17771a370d2a760ce313c5e561431faab253"
         },
         "verifier": {
           "file": "server.sh",
-          "symbol": "server-dispatch:verify-ops-rules-roundtrip",
-          "anchor": "verify-ops-rules-roundtrip)",
-          "line": 1501,
-          "contextSha256": "21ef75814abb7e5f6f023dc66d8381668d44a4455a1e98bdf48b99041114afea"
+          "symbol": "server-dispatch:verify-ops-click-e2e",
+          "anchor": "verify-ops-click-e2e)",
+          "line": 1631,
+          "contextSha256": "fd2e3e945f4ae182d42b610b65cc65240eb04c121abaeb066a73aaf7736879c3"
         },
         "route": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start:/ops/rules",
           "anchor": "if (request.method == \"GET\" && request.path == \"/ops/rules\") {",
-          "line": 1176,
+          "line": 1263,
           "contextSha256": "c289a46dd54373d75b1f66ad31f50153f658502b1de3038e0d10e60a6ae67d6d"
         }
       },
@@ -23994,103 +23995,103 @@
           "from": "owner",
           "to": "dispatch",
           "kind": "function-containment",
-          "witness": "refreshRules contains the VA rule renderer dispatch",
-          "source": "src/ingress/product_ui_page_scripts.cpp:9898",
-          "target": "src/ingress/product_ui_page_scripts.cpp:9955"
+          "witness": "RULE-014 owner에서 dispatch 실제 호출/포함",
+          "source": "src/ingress/product_ui_page_scripts.cpp:9671",
+          "target": "src/ingress/product_ui_page_scripts.cpp:9692"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
-          "witness": "refreshRules directly calls renderOpsVaRules",
-          "source": "src/ingress/product_ui_page_scripts.cpp:9955",
-          "target": "src/ingress/product_ui_page_scripts.cpp:9481"
+          "witness": "RULE-014 dispatch에서 action 실제 호출/포함",
+          "source": "src/ingress/product_ui_page_scripts.cpp:9692",
+          "target": "src/ingress/product_ui_page_scripts.cpp:9565"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
-          "witness": "renderOpsVaRules produces opsRulesVaOutputButtonsHtml",
-          "source": "src/ingress/product_ui_page_scripts.cpp:9481",
-          "target": "src/ingress/product_ui_page_scripts.cpp:9502"
+          "witness": "RULE-014 action에서 state 실제 호출/포함",
+          "source": "src/ingress/product_ui_page_scripts.cpp:9565",
+          "target": "src/ingress/product_ui_page_scripts.cpp:9573"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "VaRuleJson product state is independently read back through HTTP/list/detail/storage assertions",
-          "source": "src/ingress/product_ui_page_scripts.cpp:9502",
-          "target": "scripts/internal/verify_ops_rules_roundtrip.mjs:545"
+          "witness": "RULE-014 실제 UI 조작 후 해당 DOM/API 관측; 실행 PASS는 별도",
+          "source": "src/ingress/product_ui_page_scripts.cpp:9573",
+          "target": "scripts/internal/verify_ops_ui_click_e2e.mjs:1070"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
-          "witness": "verify-ops-rules-roundtrip",
-          "source": "scripts/internal/verify_ops_rules_roundtrip.mjs:545",
-          "target": "server.sh:1501"
+          "witness": "verify-ops-click-e2e",
+          "source": "scripts/internal/verify_ops_ui_click_e2e.mjs:1070",
+          "target": "server.sh:1631"
         }
       ],
-      "rationale": "RULE-014 제품 call-flow를 verify-ops-rules-roundtrip의 독립 HTTP readback에 결속한다."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "RULE-015",
       "featureContractSha256": "0a70252dbca56e8aca5e6c1e8b5256302b44382cf74f83854677d0f04554eb8e",
       "status": "source-resolved-reviewed-proof",
       "evidenceMode": "actual-product-runtime-independent-readback",
-      "evidenceToken": "opsRulesStatusBadge",
+      "evidenceToken": "enabled",
       "verifier": {
-        "command": "verify-ops-rules-roundtrip",
-        "file": "scripts/internal/verify_ops_rules_roundtrip.mjs"
+        "command": "verify-ops-click-e2e",
+        "file": "scripts/internal/verify_ops_ui_click_e2e.mjs"
       },
       "roles": {
         "owner": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "refreshRules",
           "anchor": "async function refreshRules() {",
-          "line": 9898,
+          "line": 10088,
           "contextSha256": "e118bf92f74ffca7dc319ffeeea97c534ead510add47aeed4262b5c1a44b34c1"
         },
         "dispatch": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "refreshRules:renderOpsVaRules",
           "anchor": "renderOpsVaRules(filteredVaRules);",
-          "line": 9955,
+          "line": 10145,
           "contextSha256": "be64dff3db8dc4f916268358302273a267cb1a782ae2b66a351d6530655db604"
         },
         "action": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderOpsVaRules",
           "anchor": "function renderOpsVaRules(items) {",
-          "line": 9481,
+          "line": 9671,
           "contextSha256": "c64338361c63e2866fe2cf433461d4d2e01f9706fa8c51ea5753443607ce6bfd"
         },
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
           "symbol": "renderOpsVaRules:opsRulesStatusBadge",
           "anchor": "const statusHtml = opsRulesStatusBadge(item?.enabled !== false);",
-          "line": 9489,
+          "line": 9679,
           "contextSha256": "5cf6c9b2848281d24a52dc5ad9484323b50a3337475e3ddd7cd7657799124798"
         },
         "readback": {
-          "file": "scripts/internal/verify_ops_rules_roundtrip.mjs",
-          "symbol": "runtime-oracle:RULE-015",
-          "anchor": "assertEqual(opsRulesStatusBadge?.enabled, true, \"RULE-015 channel analysis setting active status\");",
-          "line": 546,
-          "contextSha256": "30c40fd140d91befcb49164b2bbbe1157f7c78b6203c269ed65eb2ea8253fbb6"
+          "file": "scripts/internal/verify_ops_ui_click_e2e.mjs",
+          "symbol": "createVaRuleViaUi",
+          "anchor": "await assertText(browser, \"#opsVaRuleRows\", spec.enabled ? \"활성\" : \"비활성\", \"VA rule row status\");",
+          "line": 1546,
+          "contextSha256": "e8eb57f2dbacfe76ec212da5e74902cfb4324e2e97bf6fc208e517b080299b28"
         },
         "verifier": {
           "file": "server.sh",
-          "symbol": "server-dispatch:verify-ops-rules-roundtrip",
-          "anchor": "verify-ops-rules-roundtrip)",
-          "line": 1501,
-          "contextSha256": "21ef75814abb7e5f6f023dc66d8381668d44a4455a1e98bdf48b99041114afea"
+          "symbol": "server-dispatch:verify-ops-click-e2e",
+          "anchor": "verify-ops-click-e2e)",
+          "line": 1631,
+          "contextSha256": "fd2e3e945f4ae182d42b610b65cc65240eb04c121abaeb066a73aaf7736879c3"
         },
         "route": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start:/ops/rules",
           "anchor": "if (request.method == \"GET\" && request.path == \"/ops/rules\") {",
-          "line": 1176,
+          "line": 1263,
           "contextSha256": "c289a46dd54373d75b1f66ad31f50153f658502b1de3038e0d10e60a6ae67d6d"
         }
       },
@@ -24100,102 +24101,102 @@
           "to": "dispatch",
           "kind": "function-containment",
           "witness": "refreshRules contains the VA rule renderer dispatch",
-          "source": "src/ingress/product_ui_page_scripts.cpp:9898",
-          "target": "src/ingress/product_ui_page_scripts.cpp:9955"
+          "source": "src/ingress/product_ui_page_scripts.cpp:10088",
+          "target": "src/ingress/product_ui_page_scripts.cpp:10145"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
           "witness": "refreshRules directly calls renderOpsVaRules",
-          "source": "src/ingress/product_ui_page_scripts.cpp:9955",
-          "target": "src/ingress/product_ui_page_scripts.cpp:9481"
+          "source": "src/ingress/product_ui_page_scripts.cpp:10145",
+          "target": "src/ingress/product_ui_page_scripts.cpp:9671"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
           "witness": "renderOpsVaRules produces opsRulesStatusBadge",
-          "source": "src/ingress/product_ui_page_scripts.cpp:9481",
-          "target": "src/ingress/product_ui_page_scripts.cpp:9489"
+          "source": "src/ingress/product_ui_page_scripts.cpp:9671",
+          "target": "src/ingress/product_ui_page_scripts.cpp:9679"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "VaRuleJson product state is independently read back through HTTP/list/detail/storage assertions",
-          "source": "src/ingress/product_ui_page_scripts.cpp:9489",
-          "target": "scripts/internal/verify_ops_rules_roundtrip.mjs:546"
+          "witness": "RULE-015 실제 UI 조작 후 해당 DOM/API 관측; 실행 PASS는 별도",
+          "source": "src/ingress/product_ui_page_scripts.cpp:9679",
+          "target": "scripts/internal/verify_ops_ui_click_e2e.mjs:1546"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
-          "witness": "verify-ops-rules-roundtrip",
-          "source": "scripts/internal/verify_ops_rules_roundtrip.mjs:546",
-          "target": "server.sh:1501"
+          "witness": "verify-ops-click-e2e",
+          "source": "scripts/internal/verify_ops_ui_click_e2e.mjs:1546",
+          "target": "server.sh:1631"
         }
       ],
-      "rationale": "RULE-015 제품 call-flow를 verify-ops-rules-roundtrip의 독립 HTTP readback에 결속한다."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "RULE-016",
       "featureContractSha256": "4f1e28b1e49e68d5d84887d0c45ecaedb363ae0fc6b1fb1131c82080bf1e75be",
       "status": "source-resolved-reviewed-proof",
       "evidenceMode": "actual-product-runtime-independent-readback",
-      "evidenceToken": "candidate",
+      "evidenceToken": "opsVaRuleIdDisplay",
       "verifier": {
-        "command": "verify-ops-rules-roundtrip",
-        "file": "scripts/internal/verify_ops_rules_roundtrip.mjs"
+        "command": "verify-ops-click-e2e",
+        "file": "scripts/internal/verify_ops_ui_click_e2e.mjs"
       },
       "roles": {
         "owner": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
-          "symbol": "opsRulesSaveNativeRecord",
-          "anchor": "async function opsRulesSaveNativeRecord(mode) {",
-          "line": 8753,
-          "contextSha256": "17a190f886396ae40177a4a68beb8032fad0809ef9521e10629c6eab7a195979"
+          "symbol": "opsRulesFillNativeForm",
+          "anchor": "function opsRulesFillNativeForm(mode, item, detailMode) {",
+          "line": 8642,
+          "contextSha256": "58d36ae3f2137326ac5245cc333df79fe72da086d7f7d30ddfd0298868c7f4cd"
         },
         "dispatch": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
-          "symbol": "opsRulesSaveNativeRecord:numeric-id",
-          "anchor": "const forcedId = String(document.getElementById('opsVaRuleIdInput')?.value || '').trim() || opsRulesNextNumericId(opsCatalogVaRules, 1);",
-          "line": 8756,
-          "contextSha256": "78b1986643eb3969f066ca75430e36277c38ddb08553463fe80390e639f12965"
+          "symbol": "opsRulesFillNativeForm",
+          "anchor": "opsRulesFillVaRuleForm(item, detailMode);",
+          "line": 8644,
+          "contextSha256": "d196a0dd8c1b35f04f574f56e7a90c88ca71bc21d2c40279bd16d1647b40da82"
         },
         "action": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
-          "symbol": "opsRulesNextNumericId",
-          "anchor": "function opsRulesNextNumericId(items = [], start = 1) {",
-          "line": 7120,
-          "contextSha256": "1ab136aec3e72f061a47321c5c441242918a51c98ba2762b850e5bfe807f77a2"
+          "symbol": "opsRulesFillVaRuleForm",
+          "anchor": "function opsRulesFillVaRuleForm(item, detailMode) {",
+          "line": 8564,
+          "contextSha256": "f39116e04d69c87d2579a1cca017d6cc136a2ab44c75ea59b9a480cbf6ff3ecc"
         },
         "state": {
           "file": "src/ingress/product_ui_page_scripts.cpp",
-          "symbol": "opsRulesNextNumericId:candidate",
-          "anchor": "if (!used.has(candidate)) return String(candidate);",
-          "line": 7133,
-          "contextSha256": "7727d790b3031d05c55f755e400dfbbf0b12bfb2d3269540d244fe5065435717"
+          "symbol": "opsRulesFillVaRuleForm",
+          "anchor": "setOpsGeneratedId('opsVaRuleIdInput', 'opsVaRuleIdDisplay', item?.id || '');",
+          "line": 8571,
+          "contextSha256": "624467fefe6c0a227108c1ac70252356b81317b5fad04e1e02de29681c97b03f"
         },
         "readback": {
-          "file": "scripts/internal/verify_ops_rules_roundtrip.mjs",
-          "symbol": "runtime-oracle:RULE-016",
-          "anchor": "assertEqual(candidate, true, \"RULE-016 vaRule numeric id automatic generation\");",
-          "line": 496,
-          "contextSha256": "e925a0c9f2b1628d2a8909d5c7bd4260cc9b1185155b6aa322644bb1081b6b03"
+          "file": "scripts/internal/verify_ops_ui_click_e2e.mjs",
+          "symbol": "createVaRuleViaUi",
+          "anchor": "await assertTextNotEqual(browser, \"#opsVaRuleIdDisplay\", \"자동 배정\", \"VA rule generated id display\");",
+          "line": 1518,
+          "contextSha256": "d2b9c341e6fa419f9c9e2cf4aaab5cd75b4670a1243e6cd8eecc982dee8af15b"
         },
         "verifier": {
           "file": "server.sh",
-          "symbol": "server-dispatch:verify-ops-rules-roundtrip",
-          "anchor": "verify-ops-rules-roundtrip)",
-          "line": 1501,
-          "contextSha256": "21ef75814abb7e5f6f023dc66d8381668d44a4455a1e98bdf48b99041114afea"
+          "symbol": "server-dispatch:verify-ops-click-e2e",
+          "anchor": "verify-ops-click-e2e)",
+          "line": 1631,
+          "contextSha256": "fd2e3e945f4ae182d42b610b65cc65240eb04c121abaeb066a73aaf7736879c3"
         },
         "route": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
           "symbol": "WebRtcHttpServer::Start:/ops/rules",
           "anchor": "if (request.method == \"GET\" && request.path == \"/ops/rules\") {",
-          "line": 1176,
+          "line": 1263,
           "contextSha256": "c289a46dd54373d75b1f66ad31f50153f658502b1de3038e0d10e60a6ae67d6d"
         }
       },
@@ -24204,44 +24205,44 @@
           "from": "owner",
           "to": "dispatch",
           "kind": "function-containment",
-          "witness": "opsRulesSaveNativeRecord owns numeric id allocation",
-          "source": "src/ingress/product_ui_page_scripts.cpp:8753",
-          "target": "src/ingress/product_ui_page_scripts.cpp:8756"
+          "witness": "RULE-016 owner에서 dispatch 실제 호출/포함",
+          "source": "src/ingress/product_ui_page_scripts.cpp:8642",
+          "target": "src/ingress/product_ui_page_scripts.cpp:8644"
         },
         {
           "from": "dispatch",
           "to": "action",
           "kind": "direct-callsite",
-          "witness": "forcedId directly calls opsRulesNextNumericId",
-          "source": "src/ingress/product_ui_page_scripts.cpp:8756",
-          "target": "src/ingress/product_ui_page_scripts.cpp:7120"
+          "witness": "RULE-016 dispatch에서 action 실제 호출/포함",
+          "source": "src/ingress/product_ui_page_scripts.cpp:8644",
+          "target": "src/ingress/product_ui_page_scripts.cpp:8564"
         },
         {
           "from": "action",
           "to": "state",
           "kind": "function-containment",
-          "witness": "opsRulesNextNumericId returns the first unused numeric candidate",
-          "source": "src/ingress/product_ui_page_scripts.cpp:7120",
-          "target": "src/ingress/product_ui_page_scripts.cpp:7133"
+          "witness": "RULE-016 action에서 state 실제 호출/포함",
+          "source": "src/ingress/product_ui_page_scripts.cpp:8564",
+          "target": "src/ingress/product_ui_page_scripts.cpp:8571"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "opsRulesNextNumericId product state is independently read back through HTTP/list/detail/storage assertions",
-          "source": "src/ingress/product_ui_page_scripts.cpp:7133",
-          "target": "scripts/internal/verify_ops_rules_roundtrip.mjs:496"
+          "witness": "RULE-016 실제 UI 조작 후 해당 DOM/API 관측; 실행 PASS는 별도",
+          "source": "src/ingress/product_ui_page_scripts.cpp:8571",
+          "target": "scripts/internal/verify_ops_ui_click_e2e.mjs:1518"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
-          "witness": "verify-ops-rules-roundtrip",
-          "source": "scripts/internal/verify_ops_rules_roundtrip.mjs:496",
-          "target": "server.sh:1501"
+          "witness": "verify-ops-click-e2e",
+          "source": "scripts/internal/verify_ops_ui_click_e2e.mjs:1518",
+          "target": "server.sh:1631"
         }
       ],
-      "rationale": "RULE-016 제품 call-flow를 verify-ops-rules-roundtrip의 독립 HTTP readback에 결속한다."
+      "rationale": "LP28 독립 기각 보완: 실제 생산 상태와 해당 관측 연결만. 전체 기능/실제 UI 실행 PASS 아님."
     },
     {
       "id": "RULE-017",

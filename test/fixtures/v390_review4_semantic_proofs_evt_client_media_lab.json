@@ -13120,11 +13120,11 @@
       "featureContractSha256": "ccb3730431ff3919fcb9aa7911052ddc9e25fe82f862f40655624795817e71c5",
       "status": "source-resolved-reviewed-proof",
       "failureReason": "",
-      "evidenceMode": "runtime-local-whep-source-lifecycle",
-      "evidenceToken": "CreateAnswer",
+      "evidenceMode": "runtime-local-whep-signaling-lifecycle",
+      "evidenceToken": "answer",
       "verifier": {
-        "command": "verify-ops-click-e2e",
-        "file": "scripts/internal/verify_ops_ui_click_e2e.mjs",
+        "command": "verify-whep-local-signaling",
+        "file": "scripts/internal/verify_whep_local_signaling.mjs",
         "dispatchFile": "server.sh"
       },
       "roles": {
@@ -13151,24 +13151,24 @@
         },
         "state": {
           "file": "src/ingress/webrtc_http_server_runtime.cpp",
-          "symbol": "WebRtcHttpServer::Start:WHEP-CreateAnswer",
-          "anchor": "if (!bridge->CreateAnswer(&answer, &error_message)) {",
-          "line": 4800,
-          "contextSha256": "5311b7399071b058bb58c3c719d816aa54222e97ad02e6e1d8e7cec6390ec081"
+          "symbol": "WebRtcHttpServer::Start:WHEP-answer",
+          "anchor": "created.body = answer;",
+          "line": 4830,
+          "contextSha256": "735f4428619e51d908c5b7260acc6fb91af0ffa447517660fcedc477d3f8bc8e"
         },
         "readback": {
-          "file": "scripts/internal/verify_ops_ui_click_e2e.mjs",
-          "symbol": "MEDIA-003:canonical-readback",
-          "anchor": "if (!CreateAnswerObserved) {",
-          "line": 900,
-          "contextSha256": "d6fe9c0e7c9e6c2fc1994fdcff065449ede3866b7234a6149e14a9c9b34facc0"
+          "file": "scripts/internal/verify_whep_local_signaling.mjs",
+          "symbol": "validateCreated",
+          "anchor": "assert(answer.mid===offer.mid&&answer.payload===offer.payload,'whep-answer-offer-mismatch');",
+          "line": 47,
+          "contextSha256": "2748168b6a216ba534f1dae487b6ff98034b997f3b9cf7ef1f3737a9c28f0bfc"
         },
         "verifier": {
           "file": "server.sh",
-          "symbol": "server.sh:verify-ops-click-e2e",
-          "anchor": "verify-ops-click-e2e)",
-          "line": 1631,
-          "contextSha256": "fd2e3e945f4ae182d42b610b65cc65240eb04c121abaeb066a73aaf7736879c3"
+          "symbol": "server-dispatch:verify-whep-local-signaling",
+          "anchor": "verify-whep-local-signaling)",
+          "line": 1555,
+          "contextSha256": "04aa9426059b7c37d6f90246879a6a5418d4ca1e81b0fae80ea3132e1dfce059"
         }
       },
       "edges": [
@@ -13192,28 +13192,28 @@
           "from": "action",
           "to": "state",
           "kind": "function-containment",
-          "witness": "같은 WHEP 경로의 입력 시작과 SetRemoteOffer 성공 뒤 CreateAnswer를 수행한다.",
+          "witness": "WHEP 입력/offer/answer 성공 경로에서 실제 response body를 반환한다.",
           "source": "src/ingress/webrtc_http_server_runtime.cpp:4758",
-          "target": "src/ingress/webrtc_http_server_runtime.cpp:4800"
+          "target": "src/ingress/webrtc_http_server_runtime.cpp:4830"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "runtime-readback",
-          "witness": "verify-ops-click-e2e independently observes CreateAnswer through a runtime condition and fails on mismatch.",
-          "source": "src/ingress/webrtc_http_server_runtime.cpp:4800",
-          "target": "scripts/internal/verify_ops_ui_click_e2e.mjs:900"
+          "witness": "실제 POST /whep 201 응답 SDP를 parsing해 offer mid/H264 payload/sendonly를 대조한다. RTP/UI/인증 PASS 아님.",
+          "source": "src/ingress/webrtc_http_server_runtime.cpp:4830",
+          "target": "scripts/internal/verify_whep_local_signaling.mjs:47"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
-          "witness": "verify-ops-click-e2e",
-          "source": "scripts/internal/verify_ops_ui_click_e2e.mjs:900",
-          "target": "server.sh:1631"
+          "witness": "verify-whep-local-signaling",
+          "source": "scripts/internal/verify_whep_local_signaling.mjs:47",
+          "target": "server.sh:1555"
         }
       ],
-      "rationale": "Local WHEP offer/answer and consume lifecycle are tied to an actual end-to-end source session condition."
+      "rationale": "격리 loopback WHEP offer→answer/ICE read/DELETE/재삭제를 검증한다. generic client offer, RTP 수신, 실제 UI, capability 인증 검증으로 확대하지 않는다."
     },
     {
       "id": "MEDIA-004",

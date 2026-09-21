@@ -1,0 +1,35 @@
+[source] CMakeLists.txt sha256=3534c5e0bbbcfebaaff85d46cf46008d05b995cc04d5dfcf830f30dcf0394f3b
+[source] src/core/shared_stream.cpp sha256=93863481700a20a5492e6e960677243289f33a21317e8239803a7c01abfec0a1
+[source] include/core/shared_stream.h sha256=cc64459c7a8d6d1bf3aa13613b0ef707344e1daa26652697ecb9caedb251f18e
+[source] include/media_types.h sha256=4c7ed4b29cd3385f109d55ed3bea47e1792f38198d11896840b3b0c8b8f9c54a
+[source] src/recording/gstreamer_segment_writer.cpp sha256=56f49d6a7af30dc7ea5a3bb2fd023778035892c474d07cbfc67edf5e57b8cd43
+[source] src/recording/recording_catalog.cpp sha256=3e295748699d737e31a2812d5a4d97280241a29ba83600b38ea425c89f314146
+[source] src/recording/recording_journal.cpp sha256=1c8732f4641440494296b172f2a97d8b094c2b750214abeb29b206baa5b4350d
+[source] src/recording/recording_contracts.cpp sha256=960635a08aa900bebfae961cd9e534ab6b91fbace213e1a7416227e7292ec890
+[source] src/recording/recording_file_evidence.cpp sha256=85db9367ae66d997330cb8f9febe24febb2b5ff76b6363c6de3ccadc3fea0a71
+[source] src/recording/recording_media_inspector.cpp sha256=64906ef59b651800c009ab84174ee58d8aabfbb5ac95f0d5f7fb7b858e5dbbcf
+[source] include/recording/gstreamer_segment_writer.h sha256=7b80fd26b4c1bef3f8582001fd07d33e47e37f273ede2b497f1965d5e2c96504
+[source] include/recording/recording_catalog.h sha256=bde3f884cda391fe971654cd66b2592a51aa084b5a0c76634890bf34ed066705
+[source] include/recording/recording_journal.h sha256=44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5
+[source] include/recording/recording_contracts.h sha256=666a153c91bb0ce3975f414a8e1b050bf35d570faff4682ebe84dca3f8dec3b4
+[source] scripts/internal/recording_media_test_fixture.h sha256=404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6
+[source] scripts/internal/recording_preparation_contracts.cpp sha256=461d2f2d2ea20658d618122e977f11ceb8f74105bc2ff30f7530508a490a3dbb
+[source] scripts/internal/verify_recording_preparation_contracts.sh sha256=f0268981f34ca6cf0c50f6573d039f95b32bd85a08bf4f81e86495ff85701296
+[archive] sha256=de62559c57ea2ed918615990af970ef10cb5df29d8a9d7fe226b4eab5655f585
+[environment] {"utc":"2026-09-21T12:49:05.948Z","platform":"darwin","arch":"arm64","uid":501,"network":false}
+[permission] nonroot=1 denied_errno=13
+[pass] PREP-C01 owned root really denies writes
+[pass] PREP-C02 managed Open fails without artifacts and permissions restored
+[gop] input=20 keyframes=2 expected_first_ordinal=11 expected_count=10
+[pass] PREP-C03 recorder gets only latest GOP exact packets and observations
+[pass] PREP-C04 actual Client Analysis Recorder roles on one SharedStream
+[blocked] admissions=2 finalized=0 media_files=0 dropped=0 input=20 modelInferencePass=0
+[pass] PREP-C05 actual writer admission denied and finalized media zero
+[pass] PREP-C06 blocked recording leaves exact Client Analysis delivery progressing
+[pass] PREP-C07 managed SQLite INSERT fault preserves journal memory and fallback
+[pass] PREP-C08 same managed archive exact payload SQL rebuild and no duplicate
+[summary] pass=8 fail=0 scope=preparation-contracts network=0 modelInferencePass=0 applicationRestartPass=0
+[stderr] {"bytes":74,"sha256":"219f0ef2740c4624b0a00771ab07b79197f55c7f8cc16333726fbea9765cb23e","critical":0,"warning":0,"rawPublished":false}
+[execution] {"exit":0,"nativeExit":0,"signal":null,"error":null,"elapsedMs":1664.464917,"complete":true,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음"}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-preparation.YmyKe1","bytes":7806572,"absent":true}
+[elapsed] seconds=3

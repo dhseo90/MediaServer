@@ -1,0 +1,16 @@
+{"command":["./server.sh","verify-v390-ui-native-exact-cases-contract"],"source":"5e5f45d788b4a370e545ecf0a0a7d50a55dfb59f","started":"2026-09-21T15:09:17.591Z","platform":"darwin","release":"27.0.0","node":"v24.13.0","tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenReason":"전용 작업 집계 없음"}
+file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v390_ui_exact_core_oracles.mjs:690
+  if (!condition) throw new Error(message);
+                        ^
+
+Error: core canonical/source semantic binding drift; review and update the independent oracle catalog explicitly
+    at assert (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v390_ui_exact_core_oracles.mjs:690:25)
+    at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/v390_ui_exact_core_oracles.mjs:133:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:413:25)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.13.0
+
+{"exit":1,"signal":null,"elapsedMs":138,"ended":"2026-09-21T15:09:17.729Z","outputBytes":833}

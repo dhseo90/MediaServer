@@ -1552,6 +1552,10 @@ case "${cmd}" in
     require_internal verify_webrtc_ice_config.sh
     exec "${INTERNAL_DIR}/verify_webrtc_ice_config.sh" "$@"
     ;;
+  verify-whep-local-signaling)
+    require_internal verify_whep_local_signaling.mjs
+    exec "${INTERNAL_DIR}/verify_whep_local_signaling.mjs" "$@"
+    ;;
   verify-external-turn-whep-field-gate)
     require_internal verify_external_turn_whep_field_gate.mjs
     exec "${INTERNAL_DIR}/verify_external_turn_whep_field_gate.mjs" "$@"

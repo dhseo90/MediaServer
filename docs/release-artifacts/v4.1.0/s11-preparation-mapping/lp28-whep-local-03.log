@@ -1,0 +1,20 @@
+[environment] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-whep-local-ovtM3Z","platform":"darwin","arch":"arm64","node":"v24.13.0","sourceSha256":"b1d90231de3c6b816e58715c9b12ba54bd31583301d08e943e678e46b02ad18b","binarySha256":"2ce43399ce33fd6863a9aa8d0e21e65ae32975ee52ad08d065b09e065aca9fd7","runnerSha256":"f587a6749d7026cfa5f83f4088f57fbbe281d7407379a7933d9dd22fe5d767c7","httpTimeoutMs":4000,"nativeTimeoutMs":10000,"totalTimeoutMs":180000,"rawPublished":false}
+[pass] WLR01 owned loopback fixture and original hashes captured
+[process] {"code":0,"signal":null,"bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+[process] {"code":0,"signal":null,"bytes":578,"sha256":"39f95b821082af3886dc04de7fa83e66f7754453f57adc77350a490bff3f4bee"}
+[pass] WLR02 native recvonly H264 offer bounded and validated
+[pass] WLR03 owned server ready
+[pass] WLR04 advertised ICE is owned loopback STUN and empty TURN
+[pass] WLR05 POST offer receives 201 application/sdp compatible H264 sendonly answer
+[pass] WLR06 relative WHEP Location is safe before follow-up
+[pass] WLR07 ICE candidate readback shape accepted count=30 connectivityNotClaimed=true
+[pass] WLR08 DELETE reports ok true
+[pass] WLR09 second DELETE is exactly 404
+[pass] WLR10 malformed offer is rejected with 400
+[server-exit] {"code":0,"signal":null,"bytes":3075,"sha256":"c57c6985b3eedd8598804021a1114af5d2e182f231bd059c7f433b4a09bdf34c","forced":false}
+[pass] WLR11 normal server shutdown and owned TCP/UDP closure
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-whep-local-ovtM3Z","bytes":1965195,"absent":true,"inputsUnchanged":true}
+[pass] WLR12 original inputs unchanged and owned root absent
+[summary] {"pass":12,"fail":0,"complete":true,"scope":"local-whep-signaling-lifecycle","rtpPass":false,"uiPass":false,"releasePass":false,"elapsedMs":3871,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음"}
+
+[execution] {"command":"bash server.sh verify-whep-local-signaling --run","permissionBoundary":"escalated-for-confirmed-loopback-EPERM","utc":"2026-09-21T14:40:29.487Z","exit":0,"signal":null,"elapsedMs":3920,"sha256":"757f0cd4036000e64d6598b33e2305024d4d25c8b4422d8b72ef5672915c08e3","bytes":2009}

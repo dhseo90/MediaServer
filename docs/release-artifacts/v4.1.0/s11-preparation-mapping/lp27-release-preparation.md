@@ -4,6 +4,45 @@
 정책은 AGENTS.md, 결과는 중앙 테스트 기록이 기준이다. LP26의 과거 결과는 덮어쓰지 않는다.
 시작 branch `v4.1.0`, HEAD `f4e58b9cb2efbeec43a7e1132da940fce6afd521`, clean/sync.
 
+## 최신 승인: 위치 판정 보완부터 S11 단기까지
+
+독자·수명은 이 문서와 같다. 아래 이전 승인/실패 기록은 이력이며 이번 상태로 덮어쓰지 않는다.
+시작 HEAD `76af0602d`, 추적 branch 대비 ahead5/behind0, 이전 PREP 소스·증적 미커밋을 보존한다.
+사용자는 위치 처리→실제 변경/검사 공백→CLOSE·고정→독립 재결속/PREP→S11 단기의
+순차 개발과 분할 커밋, 모두 조건 충족 시 푸시를 승인했다. 외부 서비스·실기기 검증은 명시 제외다.
+이번에는 30분·실제 브라우저/UI·120분·PR/병합/tag/Release를 실행하지 않는다.
+
+메인이 계약·독립 검토·최종 판정, 기존 단일 Astra/medium 담당자가 확정된 검증기 구현을 맡는다.
+하위 위임 금지. 제품/API/schema/녹화·복구·보존 정책과 timeout은 불변이다.
+일반 role의 trackedBlobSha256은 hard 비교에서 제외되므로 파일 변경만으로972건을 설명하지 않는다.
+기존1067건은 inventory1/trust972/locator74/oracle20, 영향435ID이며 제품 결함 개수가 아니다.
+UI-006 readback1392→1429, 함수1387~1396→1424~1433의 본문 SHA는 동일하다.
+위치 이동 허용 뒤 옛 role.line/body 범위를 소비하는 문제를 먼저 보완한다.
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과/완료 기준 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | 검증기 위치 일관성 | 진행 중 | resolved 위치 공통 사용·기존 hard trust 유지·반례 회귀 | LP28-L 정의 |
+| 2 | 실제 변경·검사 공백 | 미실행 | 최신 진단/공통 함수 diff로 영향 분리·확인된 누락만 보완 | 기존1067건 |
+| 3 | CLOSE·S10 고정 | 미실행 | 소비자/대체 검사·정리·문서/출처·고정 source | roadmap S10 |
+| 4 | 독립 재결속·PREP | 미실행 | 변경분 독립 판단·엄격 동등성·원자 적용·전체 로그 | REVIEW4 계약 |
+| 5 | S11 단기 안정화 | 미실행 | 고정 source의 아래 FINAL manifest | roadmap S11 |
+| 6 | 분할 커밋·조건부 푸시 | 미실행 | 각 단계 PASS 후 커밋·전체 조건 충족 시 push | 사용자 승인·AGENTS5 |
+| 7 | 외부 서비스·실기기 제외 | 반영 | 실행하지 않음·PASS로 승격하지 않음 | 사용자 최신 명시 |
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 위치/승인 focused | 진행 대상 | 검증기 현재 위치 불일치 | LP28-L, semantic migration/approval selftest | 이번 승인 |
+| 변경분·CLOSE·PREP | 진행 대상 | 요청2~4 | inventory986·기존41요구·LP27 PREP | 선수 통과 후 |
+| S11 최종 단기 | 진행 대상 | 요청5 | 아래 FINAL manifest | 선수 통과 후 |
+| 30분·실제 UI·120분 | 진행 대상 | 릴리즈 필수·media/lifecycle 변경 | AGENTS7/S11 | 이번 실행 범위 밖 |
+| 외부 서비스·실기기 | 미진행 | 사용자 명시 제외 | 외부 TURN/WHEP/cloud/ONVIF·장치 | 실행 금지·PASS 아님 |
+
+1번 실행은 격리 fixture의 예상 RED→동일 계약 GREEN→migration/approval 영향 회귀 순서다.
+기존 실제 제품/환경 검사 PASS는 동일 source/환경일 때 유지하고 이번 자체검사로 대체하지 않는다.
+원장·approval·제품 소스는1번에서 변경하지 않는다. 전체 inventory의 기존 결속 FAIL은4번에서 닫는다.
+각 하위 결과는 원출력과 개별 행을 보존하며 단계 결과 전에는 완료로 표기하지 않는다.
+token start/end/consumed는 전용 집계 부재로 미집계이며 실제 명령 elapsed/source는 결과에 기록한다.
+
 ## 현재 승인: 진단 신뢰성부터 S11 단기 안정화까지 1~5
 
 사용자 최신 요청은 아래 1~5 순차 개발·분할 커밋·조건 충족 시 푸시다. 이전 1~6 표는
@@ -16,9 +55,232 @@ CPD04 fixture는 bare status만 처리했다. 따라서 이전 **진단 완료**
 | --- | --- | --- | --- | --- |
 | 1 | 진단 신뢰성·미재현 기준 | 완료 | CPD24·AST2·실제HTTP8 PASS, RTSP6개 응답/stream 대응·정리 | 아래 진단 신뢰성 결과 |
 | 2 | HW-03 마감 | 완료 | 현재 codec67·ICE8 PASS, 정상 종료·정리. 과거 실패 이력 유지 | HW-A04·현재 회귀 결과 |
-| 3 | PREP-01 | 미실행 | 초기 ID·복합 요구·ENV12·최종 실행 연결 | LP26 |
-| 4 | CLOSE-01·S10 고정 | 미실행 | 구형 사용처·대체 증거·문서 정합·증거 유효성 판정 | roadmap S10 |
-| 5 | S11 단기 안정화 | 미실행 | 고정 source의 최종 단기 목록 실제 실행 | roadmap S11·AGENTS7 |
+| 3 | PREP-01 | 부분 완료·중단 | 복합8/ENV94 PASS·41요구 연결. 기존 검토 결속435ID 불일치 | 아래 마감 중단·상세 오류 |
+| 4 | CLOSE-01·S10 고정 | 건너뜀 | 3번 독립 검토 재결속 범위 판단 필요 | roadmap S10 |
+| 5 | S11 단기 안정화 | 건너뜀 | 3·4번 선수조건 미충족 | roadmap S11·AGENTS7 |
+
+### PREP-01 마감 중단 — 기존 독립 검토 결속 불일치
+
+`./server.sh verify-project-inventory` exit1, 최상위17PASS/1FAIL. 986개 기능 총계는 그대로지만
+구현 증적 manifest 대조가 실패했다. 최초 도구 출력은 5,087행 중 도구 반환 상한으로 잘렸으므로
+그 출력의 모든 개별 PASS행을 보존했다고 주장하지 않는다. 실패·미완료 판정은 그대로 유지한다.
+이후 **수정·재실행 없이** 동일 라이브러리의 read-only 상세 판독으로 전체 오류를 수집했다.
+상세 판독 명령 자체 exit0은 보고서 작성 성공이고 `ok:false`가 실제 판정이다.
+[전체1,067건](lp27-inventory-drift.json): 문서 SHA1 + source trust972 + locator/oracle94, 영향 ID435.
+435개 제품 기능이 고장났다는 뜻이 아니다. 파일 전체/큰 함수의 변경이 여러 기존 행에 공통 영향을 준다.
+
+확정된 근거:
+
+- 현재 inventory 등록으로 최상위 SHA가 달라졌다. 이는 새 기능 총계 변화와 별개다.
+- 기존 승인 proof는 2026-09-09 source-flow/snapshot에 결속돼 있다.
+- 이후 `b0fc2ea7d`의 HTTP 안전 계측/스레드 capture, `6ab2f61ce`의 인증 격리·비밀번호 전달
+  등으로 source/blob·일부 anchor와 readback이 달라졌다. 이번 PREP 제품 변경은 0이다.
+- 기존 `--refresh-manifest`는 달라진 행을 자동 승인하지 않는다. 기존 프로듀서도 새 후보와
+  독립 판정 없이 approval을 만들 수 없다. 해시만 갱신·판정 완화·435행 일괄 승인은 하지 않았다.
+- UI-001은 첫5오류에 나온 **예시**였으며 전체 범위가 아니다. 94건의 문맥/관측 불일치도 있어
+  단순 문서 SHA 치환으로 닫을 수 없다.
+
+다음 필요한 범위는 기존986행을 변경/불변으로 분리하고 변경435행의 실제 semantic delta를
+독립 검토해 정식 migration/approval로 재결속하는 작업이다. 초기 S01~04 요구·ENV12 준비보다
+넓은 기존 검토 원장 변경이므로 자동 확장하지 않았다. AGENTS1.2/3.3/8에 따라 사용자 범위 판단을
+기다린다. 기존 승인자를 사칭하거나 이전 승인 날짜/근거를 재사용하지 않는다.
+
+단일 담당자의 auth 읽기 대조: UI-001 readback1390→현재1427 이동에서도 assertion과
+앞뒤3행은 동일하다. validator(feature_semantic_evidence_lib.mjs383~410)는 유일 anchor와
+동일 context의 이동을 허용하므로 이 이동 자체를 실패 원인으로 단정하지 않는다.
+auth 실제 변경은 난수 준비·cleanup/fail·서버수명·json_quote stdin 전달·setup 후 ICE이며
+435행 전체 의미 변화의 원인/승인 범위는 개별 delta로 판단해야 한다.
+상세 조회는 Node ESM에서 parseFeatureRows(현재 inventory), loadImplementationManifest,
+validateImplementationManifest(rootDir, inventoryText, rows, manifest)의 summary/errors를
+JSON으로 출력했다. 보고서 전체1,067오류가 도구 반환과 동일하게 저장됐으며 추가 assertion 실행은 없다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| PREP 문서 링크 최초 | 존재하지 않는 2절 anchor1개, exit1 | FAIL |
+| PREP 문서 링크 수정 후 | 288문서/9542링크/22이미지/156anchor, exit0 | PASS |
+| PREP 인벤토리 총계 | 기존986개·UI400/간접36/비대상550 등 기존 총계 보존 | PASS |
+| PREP 구현 증적 결속 | 최상위17/1, 상세1,067오류·435ID, ok:false | FAIL |
+| PREP 공백 | git diff --check exit0(중단 기록 전 diff) | PASS |
+| 중단 보고 문서 링크 | 기록 갱신 후288문서/9547링크/22이미지/158anchor, exit0 | PASS |
+
+4번 CLOSE·5번 S11은 건너뜀이다. 통과한 앞 단계2개 커밋은 유지하지만 미해결3번은 커밋하지 않았다.
+현재 HEAD `76af0602`, 원격 `f4e58b9c`, ahead5/behind0이며 원격main431397d9, v4.1.0 tag 없음
+(`git ls-remote` exit0). 푸시 가능: 아니오 / 미수행. 제품/API/저장 계약·timeout 변경 없음.
+모든 실제 검사 소유 root/port와 PREP 이관 임시물은 정리했다. 남는 것은 필요한 미커밋 소스/문서/안전 증거다.
+
+### ENV12 실제 실행 결과
+
+`bash -n scripts/internal/verify_gst_environment_actual.sh` exit0 뒤 실제 동일 runner exit0.
+2026-09-21T12:44:09.744Z, darwin/arm64, Node24.13.0, 관측6,176ms.
+[원출력](lp27-env12-actual.log)에 source·sample SHA와 subprocess exit/stderr/hash를 보존했다.
+cold/warm 모두277 plugins·blacklist1·1525 features이며 feature SHA가 같다.
+blacklist1을 필수 factory 실패로 해석하지 않는다. 44inspect/44make 모두 성공,
+webrtc READY→NULL, 무음 H264300 buffers/EOS, sample 불변을 확인했다.
+token start/end/consumed는 미집계(null), source는 전용 집계 없음이다.
+실제 브라우저·장시간·운영 서비스 검증은 아니다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| ENV12 cold registry absent | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 cold scan writes owned registry with zero stderr | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 warm exact features and counts with zero stderr | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect appsrc | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect appsink | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect filesrc | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect filesink | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect fdsink | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect queue | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect identity | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect fakesink | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect concat | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect qtdemux | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect qtmux | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect mp4mux | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect matroskamux | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect matroskademux | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect h264parse | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect mpegtsmux | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect tsdemux | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect avdec_h264 | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect videoconvert | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect videoscale | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect videorate | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect jpegenc | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect rtspsrc | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect rtph264pay | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect rtph264depay | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect rtph265pay | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect rtph265depay | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect h265parse | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect webrtcbin | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect nicesrc | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect nicesink | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect dtlsenc | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect dtlsdec | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect srtpenc | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect srtpdec | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect rtpbin | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect vp8enc | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect vp8dec | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect opusenc | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect opusdec | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect audioconvert | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect audioresample | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect rtpopuspay | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 inspect rtpopusdepay | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make appsrc | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make appsink | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make filesrc | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make filesink | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make fdsink | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make queue | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make identity | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make fakesink | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make concat | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make qtdemux | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make qtmux | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make mp4mux | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make matroskamux | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make matroskademux | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make h264parse | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make mpegtsmux | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make tsdemux | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make avdec_h264 | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make videoconvert | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make videoscale | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make videorate | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make jpegenc | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make rtspsrc | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make rtph264pay | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make rtph264depay | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make rtph265pay | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make rtph265depay | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make h265parse | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make webrtcbin | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make nicesrc | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make nicesink | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make dtlsenc | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make dtlsdec | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make srtpenc | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make srtpdec | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make rtpbin | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make vp8enc | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make vp8dec | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make opusenc | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make opusdec | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make audioconvert | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make audioresample | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make rtpopuspay | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 make rtpopusdepay | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 webrtc READY and NULL | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 silent H264 decode EOS buffers=300 | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+| ENV12 sample unchanged | 실제 환경 runner; 아래 원출력과 동일 순서 | PASS |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| 소유 TMPDIR/media-server-env12.3UWPW7 | compile binary·cold registry·cache | 1,641,924B | UID/부모/0700 확인 후 제거 | 부재 확인 PASS | 원출력 cleanup |
+| lp27-env12-actual.log | 비민감 고정 결과/환경/hash | 저장소 소형 text | 보존 | 94행·실제 exit/정리 판정 | 위 링크 |
+
+### PREP-01 결과
+
+문서 최초검사 exit1: inventory의 2절 anchor1개가 존재하지 않았다. 링크를 실제 파일/명시2절로
+정정하고 동일 링크 검사부터 재실행했다. 제품 실패가 아니며 후속 검사는 최초 실패 뒤 실행하지 않았다.
+
+`bash scripts/internal/verify_recording_preparation_contracts.sh` 1회 exit0,8PASS/0FAIL.
+전체2.578초/native1.664초, -Werror 빌드 성공. [원출력](lp27-prep-contracts.log)에 source/archive SHA를 보존했다.
+직접 diff 검토·결과 대조: UID501/EACCES13, keyframe2개 중 ordinal11부터10개,
+admission 거부2·media/finalized0·drop0·동일20개 전달, INSERT 실패 후 동일 archive SQL1행/원본 불변.
+stderr74B는 고정 hash만 보존(critical0/warning0), 모델 추론·앱 재기동·UI PASS 아님.
+token start/end/consumed는 전용 집계 없어 null이다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| PREP-C01 owned root really denies writes | 실제 native, exit0 | PASS |
+| PREP-C02 managed Open fails without artifacts and permissions restored | 실제 native, exit0 | PASS |
+| PREP-C03 recorder gets only latest GOP exact packets and observations | 실제 native, exit0 | PASS |
+| PREP-C04 actual Client Analysis Recorder roles on one SharedStream | 실제 native, exit0 | PASS |
+| PREP-C05 actual writer admission denied and finalized media zero | 실제 native, exit0 | PASS |
+| PREP-C06 blocked recording leaves exact Client Analysis delivery progressing | 실제 native, exit0 | PASS |
+| PREP-C07 managed SQLite INSERT fault preserves journal memory and fallback | 실제 native, exit0 | PASS |
+| PREP-C08 same managed archive exact payload SQL rebuild and no duplicate | 실제 native, exit0 | PASS |
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| 소유 TMPDIR/media-server-preparation.YmyKe1 | binary·registry·격리 저장소 | 7,806,572B | 소유 확인 후 삭제 | 부재 PASS | 원출력 cleanup |
+| 소유 TMPDIR/media-server-prep-evidence.mfg8gq5l | 이관용 safe log | 3,625B | 저장소 이관·hash 대조 후 삭제 | SHA c01f1d6e012a247a1ff101c6acb7c6534d30866046e63e26e6fef5f627a196c0 동일·부재 확인 | lp27-prep-contracts.log |
+
+### 최종 실행 manifest
+
+문서 manifest는 기존 runner를 새로 구현하지 않는다. 요구41개→LP26 2절, 중복 D/J는 3절의
+qualified context, S05~08/S10 전체 mapping은 기존 두 매핑표, 실행 결과는 중앙 기록으로 연결한다.
+이번 변경이 없는 legacy 호환 단위·LP25 저장 비용/HTTP/LP26 관측 준비 증거는 **해당 경계에 한정해 유지**한다.
+새 ID 등록만으로 과거 미등록 결과를 현재 PASS로 바꾸지 않는다.
+S11 결과는 아래 실제 실행 및 동일 source 유효성 대조 이후에만 적는다.
+
+| 실행 키 | 정확한 명령/증거 | 독립 oracle와 범위 | 선택·승인 |
+| --- | --- | --- | --- |
+| FINAL-build | `./server.sh build` | 실제 전체 build exit0/source·binary hash | 5번 진행 대상 |
+| FINAL-auth-bootstrap | `./server.sh verify-auth-bootstrap` | setup·policy·login/logout/session, 격리 난수5개 | 5번 진행 대상, visual=0 |
+| FINAL-auth-users | `./server.sh verify-auth-users` | role/계정·invite·권한, 실제 HTTP/cleanup | 5번 진행 대상, visual=0 |
+| FINAL-auth-routes | `./server.sh verify-auth-routes` | route별401/403/허용/ICE config, cleanup | 5번 진행 대상, visual=0 |
+| FINAL-recording | `bash scripts/internal/verify_v410_recording_foundation.sh --current-integration` | http35/auth40/lifecycle10/composition46/app25=156, 실제2출력·hash·두기동 | 5번 진행 대상 |
+| FINAL-media | `node scripts/internal/verify_recording_media_impact.mjs --run`의 현재 HW03 결과 | codec67·ICE8, binary/source 같으면 유지; external3 제외 | 이미 실행, 중복 실행 안 함 |
+| FINAL-env-fixture | `bash scripts/internal/verify_gst_environment.sh` | ENV01~11/13 fixture; ENV12 대체 아님 | 5번 진행 대상 |
+| FINAL-env-actual | ENV12 현재94 결과 | cold/warm44inspect/44make/READY/decode | 이미 실행, 환경 같으면 유지 |
+| FINAL-entry | `./server.sh verify-v410-entry-baseline` | 버전/roadmap/inventory/승인경계 | 5번 진행 대상 |
+| FINAL-metadata | `./server.sh verify-release-metadata` | local source/version/current release 설명 | 5번 진행 대상, published 아님 |
+| FINAL-inventory | `./server.sh verify-script-inventory`, `./server.sh verify-project-inventory` | dispatch/reference·기존 feature 총계/준비 등록 | 3번/마지막 diff 영향 시 재확인 |
+| FINAL-docs | `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `git diff --check` | 링크/자산 존재·위생. 실제 시각 확인 아님 | 각 문서 커밋·최종 진행 대상 |
+| FINAL-closeout | `./server.sh verify-release-closeout-helper --dry-run` | 로컬 명령/수동 릴리즈 경계. 외부 변경 없음 | 5번 진행 대상 |
+| FINAL-30 | `./server.sh verify-predev --soak-minutes 30` | 실제duration/iteration/resource/cleanup | 이번 미진행, 릴리즈 필수 |
+| FINAL-UI | LP26 UI 준비 명령+정책 exact UI 전수 | 실제 control/action/시각·role/scope/viewport/theme | 이번 명시 제외, 릴리즈 blocker |
+| FINAL-120-common | `./server.sh verify-predev --soak-minutes 120` | 공통 media/lifecycle 실제120분 | 이번 미진행, 직접 변경+기존승인/필수 |
+| FINAL-120-recording | `bash scripts/internal/verify_v410_recording_longrun.sh --duration-minutes 120` | 현행 observer 보존·재기동·자원 review | 이번 미진행, 녹화 직접 매핑 |
+| FINAL-browser-media | `./server.sh verify-webrtc-va-metadata` | 실제 Chrome/RTCPeerConnection; 정적 대체 금지 | 실제 브라우저 제외로 잔여, UI 단계에 함께 실행 |
+| FINAL-external | 외부 TURN/WHEP/cloud/실기기 | 사용자 최신 명시 제외; 로컬 모의/fixture 검사는 별도 | 미진행·명시 제외·PASS 아님 |
+
+실행 전 세부 case 정의는 기존 각 runner의 inventory/중앙 전수 정의를 사용하고 결과에서 모든 실제
+pass/fail 행·미실행·원출력·정리를 별도 보존한다. 30분/UI/120분은 단기 PASS로 대체하지 않는다.
 
 ### 미재현 실패의 진행 기준
 
@@ -260,6 +522,145 @@ token start/end/consumed: 전용 집계 없어 미집계, elapsed/source는 위 
 
 HW03 커밋 전 `verify-docs-links` exit0·0.042초(md288/link9533/image22/anchor151/fail0),
 `git diff --check` exit0. 현재 제품 변경 없음. 1번 커밋05fb43ef와 분리해 native 회귀 두 파일·이 결과만 커밋한다.
+
+### PREP-01 실행 전 계약
+
+HW03은 `76af0602`로 커밋했다. 읽기 대조 결과 기존 SQLite on/off 상태 parity는
+retention_v2의 B05 및 catalog M07에 존재하므로 재구현하지 않는다. legacy Catalog의 실제
+projection INSERT 실패→fallback→같은 archive 재개방도 catalog_smoke1034~1120에 존재했다.
+LP26의 연결 공백 설명은 legacy 범위에 한해 정정한다. managed archive 동일 시나리오는 별도 확인한다.
+
+3번의 비범위는 제품 API/schema·녹화/보존/시간 정책 변경, 실제 UI·장시간·외부 서비스다.
+기존 검사에 매핑되지 않은 네 복합 요구만 격리 단기 검사로 보완한다. main은 계약·판정·문서/ENV를,
+단일 Astra/medium 담당자는 아래 두 preparation-contracts 파일만 맡으며 하위 위임 금지다.
+새 검사는 기존 기능의 증거 보완이라 제품 미구현 RED를 가정하지 않는다. 준비 오류는 같은 단계에서
+원인 확인 후 보완하되 제품 안전 계약의 새 결함·미확정 원인은 자동 확장하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| PREP-C01 | 쓰기불가 소유 root 조건 | 비root UID, 소유 디렉터리 쓰기 거부 실제 확인·복원/정리 | v4.1.0 |
+| PREP-C02 | managed 초기화 실패 | 같은 root 실제 Open 실패·저장 산출물 미생성, 권한만 다시 복원 | v4.1.0 |
+| PREP-C03 | 최신 GOP 재전달 | 복수 GOP 입력 뒤 실제 Recorder subscriber에 마지막 keyframe/delta 정확 순서·관측 원본 보존, 이전 GOP 제외 | v4.1.0 |
+| PREP-C04 | 구독자 역할 분리 | 같은 SharedStream의 실제 Client/Analysis/Recorder 역할·독립 delivery를 사용 | v4.1.0 |
+| PREP-C05 | 저장 차단 유지 | 실제 writer admission 거부 관측·finalized/media 생산0 | v4.1.0 |
+| PREP-C06 | 차단 중 fanout 진행 | 동일 입력을 Client/Analysis consumer가 정확히 계속 소비. 모델 추론·브라우저 영상 전체 PASS로 확대 금지 | v4.1.0 |
+| PREP-C07 | managed SQLite runtime 실패 | 소유 DB에 고정 INSERT 실패 주입, 실제 finalize의 journal/memory 보존·fallback 관측 | v4.1.0 |
+| PREP-C08 | 같은 managed archive 재개방 | 정상 재개방 뒤 동일 payload/ID·SQLite 재투영·중복 없음. 앱 전체 재기동은 기존 통합5 별도 | v4.1.0 |
+
+예정 명령: `bash scripts/internal/verify_recording_preparation_contracts.sh`.
+본체 `scripts/internal/recording_preparation_contracts.cpp`는 기존 제품 C++을 사용하며 저장 계약을 JS로 재구현하지 않는다.
+소유 root/registry/입력만 사용하고 출력은 고정 코드·수치, 원문 URL·비밀 없음. 실패·성공 모두 크기/정리를 보존한다.
+ENV12의 정확한 플랫폼 명령과 최종 영역별 manifest는 실행 전 추가 등록한다. CPD/HW 회귀는 단지
+인계/문서 변경 때문에 다시 실행하지 않는다. token 수치는 전용 집계가 없으면 미집계로 기록한다.
+
+### ENV12 실제 실행 사전등록
+
+명령 `bash scripts/internal/verify_gst_environment_actual.sh`. 기존 fixture 환경 검사와 별도다.
+owned0700 cache/registry·child 환경만 사용한다. 설치 패키지·사용자 cache·global rank·운영 서버는 바꾸지 않는다.
+기존 PKG-F 44개 목록을 그대로 사용한다. cold/warm의 실제 전체 feature 목록과 개수를 비교하며,
+과거 1525를 현재 관측값으로 복사하지 않는다. blacklist는 별도 숫자이며 필수 factory 실패를 대체하지 않는다.
+gst-inspect 각30초, 실제 READY5초/디코드EOS10초, probe20초 상한이다. stderr는0이어야 하며 원문 대신 SHA/크기만 출력한다.
+94개 assertion 및 cleanup을 각각 기록한다. compile/준비 오류는 RED가 아니며 같은 준비 범위에서 원인을 확인한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| ENV12 cold registry absent | 새 cache | 첫 gst 실행 전 registry 부재 | v4.1.0 |
+| ENV12 cold scan | 실제 검색 | exit0/stderr0/owned registry 생성·feature 행수와 Total 일치 | v4.1.0 |
+| ENV12 warm scan | 동일 설치 재검색 | exit0/stderr0/cold와 전체 목록·개수 동일 | v4.1.0 |
+| ENV12 inspect appsrc | 실제 개별 조회 | gst-inspect-1.0 appsrc, exit0/stderr0 | v4.1.0 |
+| ENV12 make appsrc | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect appsink | 실제 개별 조회 | gst-inspect-1.0 appsink, exit0/stderr0 | v4.1.0 |
+| ENV12 make appsink | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect filesrc | 실제 개별 조회 | gst-inspect-1.0 filesrc, exit0/stderr0 | v4.1.0 |
+| ENV12 make filesrc | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect filesink | 실제 개별 조회 | gst-inspect-1.0 filesink, exit0/stderr0 | v4.1.0 |
+| ENV12 make filesink | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect fdsink | 실제 개별 조회 | gst-inspect-1.0 fdsink, exit0/stderr0 | v4.1.0 |
+| ENV12 make fdsink | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect queue | 실제 개별 조회 | gst-inspect-1.0 queue, exit0/stderr0 | v4.1.0 |
+| ENV12 make queue | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect identity | 실제 개별 조회 | gst-inspect-1.0 identity, exit0/stderr0 | v4.1.0 |
+| ENV12 make identity | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect fakesink | 실제 개별 조회 | gst-inspect-1.0 fakesink, exit0/stderr0 | v4.1.0 |
+| ENV12 make fakesink | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect concat | 실제 개별 조회 | gst-inspect-1.0 concat, exit0/stderr0 | v4.1.0 |
+| ENV12 make concat | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect qtdemux | 실제 개별 조회 | gst-inspect-1.0 qtdemux, exit0/stderr0 | v4.1.0 |
+| ENV12 make qtdemux | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect qtmux | 실제 개별 조회 | gst-inspect-1.0 qtmux, exit0/stderr0 | v4.1.0 |
+| ENV12 make qtmux | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect mp4mux | 실제 개별 조회 | gst-inspect-1.0 mp4mux, exit0/stderr0 | v4.1.0 |
+| ENV12 make mp4mux | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect matroskamux | 실제 개별 조회 | gst-inspect-1.0 matroskamux, exit0/stderr0 | v4.1.0 |
+| ENV12 make matroskamux | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect matroskademux | 실제 개별 조회 | gst-inspect-1.0 matroskademux, exit0/stderr0 | v4.1.0 |
+| ENV12 make matroskademux | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect h264parse | 실제 개별 조회 | gst-inspect-1.0 h264parse, exit0/stderr0 | v4.1.0 |
+| ENV12 make h264parse | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect mpegtsmux | 실제 개별 조회 | gst-inspect-1.0 mpegtsmux, exit0/stderr0 | v4.1.0 |
+| ENV12 make mpegtsmux | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect tsdemux | 실제 개별 조회 | gst-inspect-1.0 tsdemux, exit0/stderr0 | v4.1.0 |
+| ENV12 make tsdemux | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect avdec_h264 | 실제 개별 조회 | gst-inspect-1.0 avdec_h264, exit0/stderr0 | v4.1.0 |
+| ENV12 make avdec_h264 | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect videoconvert | 실제 개별 조회 | gst-inspect-1.0 videoconvert, exit0/stderr0 | v4.1.0 |
+| ENV12 make videoconvert | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect videoscale | 실제 개별 조회 | gst-inspect-1.0 videoscale, exit0/stderr0 | v4.1.0 |
+| ENV12 make videoscale | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect videorate | 실제 개별 조회 | gst-inspect-1.0 videorate, exit0/stderr0 | v4.1.0 |
+| ENV12 make videorate | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect jpegenc | 실제 개별 조회 | gst-inspect-1.0 jpegenc, exit0/stderr0 | v4.1.0 |
+| ENV12 make jpegenc | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect rtspsrc | 실제 개별 조회 | gst-inspect-1.0 rtspsrc, exit0/stderr0 | v4.1.0 |
+| ENV12 make rtspsrc | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect rtph264pay | 실제 개별 조회 | gst-inspect-1.0 rtph264pay, exit0/stderr0 | v4.1.0 |
+| ENV12 make rtph264pay | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect rtph264depay | 실제 개별 조회 | gst-inspect-1.0 rtph264depay, exit0/stderr0 | v4.1.0 |
+| ENV12 make rtph264depay | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect rtph265pay | 실제 개별 조회 | gst-inspect-1.0 rtph265pay, exit0/stderr0 | v4.1.0 |
+| ENV12 make rtph265pay | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect rtph265depay | 실제 개별 조회 | gst-inspect-1.0 rtph265depay, exit0/stderr0 | v4.1.0 |
+| ENV12 make rtph265depay | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect h265parse | 실제 개별 조회 | gst-inspect-1.0 h265parse, exit0/stderr0 | v4.1.0 |
+| ENV12 make h265parse | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect webrtcbin | 실제 개별 조회 | gst-inspect-1.0 webrtcbin, exit0/stderr0 | v4.1.0 |
+| ENV12 make webrtcbin | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect nicesrc | 실제 개별 조회 | gst-inspect-1.0 nicesrc, exit0/stderr0 | v4.1.0 |
+| ENV12 make nicesrc | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect nicesink | 실제 개별 조회 | gst-inspect-1.0 nicesink, exit0/stderr0 | v4.1.0 |
+| ENV12 make nicesink | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect dtlsenc | 실제 개별 조회 | gst-inspect-1.0 dtlsenc, exit0/stderr0 | v4.1.0 |
+| ENV12 make dtlsenc | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect dtlsdec | 실제 개별 조회 | gst-inspect-1.0 dtlsdec, exit0/stderr0 | v4.1.0 |
+| ENV12 make dtlsdec | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect srtpenc | 실제 개별 조회 | gst-inspect-1.0 srtpenc, exit0/stderr0 | v4.1.0 |
+| ENV12 make srtpenc | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect srtpdec | 실제 개별 조회 | gst-inspect-1.0 srtpdec, exit0/stderr0 | v4.1.0 |
+| ENV12 make srtpdec | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect rtpbin | 실제 개별 조회 | gst-inspect-1.0 rtpbin, exit0/stderr0 | v4.1.0 |
+| ENV12 make rtpbin | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect vp8enc | 실제 개별 조회 | gst-inspect-1.0 vp8enc, exit0/stderr0 | v4.1.0 |
+| ENV12 make vp8enc | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect vp8dec | 실제 개별 조회 | gst-inspect-1.0 vp8dec, exit0/stderr0 | v4.1.0 |
+| ENV12 make vp8dec | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect opusenc | 실제 개별 조회 | gst-inspect-1.0 opusenc, exit0/stderr0 | v4.1.0 |
+| ENV12 make opusenc | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect opusdec | 실제 개별 조회 | gst-inspect-1.0 opusdec, exit0/stderr0 | v4.1.0 |
+| ENV12 make opusdec | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect audioconvert | 실제 개별 조회 | gst-inspect-1.0 audioconvert, exit0/stderr0 | v4.1.0 |
+| ENV12 make audioconvert | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect audioresample | 실제 개별 조회 | gst-inspect-1.0 audioresample, exit0/stderr0 | v4.1.0 |
+| ENV12 make audioresample | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect rtpopuspay | 실제 개별 조회 | gst-inspect-1.0 rtpopuspay, exit0/stderr0 | v4.1.0 |
+| ENV12 make rtpopuspay | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 inspect rtpopusdepay | 실제 개별 조회 | gst-inspect-1.0 rtpopusdepay, exit0/stderr0 | v4.1.0 |
+| ENV12 make rtpopusdepay | 실제 개별 객체 | gst_element_factory_make 성공·unref | v4.1.0 |
+| ENV12 READY | webrtcbin | 실제 READY 도달 후 NULL, network/ICE/browser PASS 아님 | v4.1.0 |
+| ENV12 decode | 무음 H264 | 기존 파일 qtdemux/h264parse/avdec_h264→fakesink buffer>0/EOS/NULL | v4.1.0 |
+| ENV12 원본 불변 | 소유 외 sample 보호 | 실제 SHA 전후 동일 | v4.1.0 |
+| ENV12 cleanup | 소유 임시자료 | 크기·삭제·부재, 원본 증거 이관 | v4.1.0 |
+
+안정화 준비 검사이며 30분/120분/UI PASS와 별개다. 미실행을 준비 완료로 승격하지 않는다.
 
 ## 최신 승인: 진단 보완부터 S11 단기 안정화까지
 

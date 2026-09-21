@@ -1,6 +1,12 @@
 # Release Evidence Index
 
+- [현재 위치 판정·CLOSE·PREP 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp28-locator-closure.md#prep-최종-판정): 독립307/동등679 재결속, 실제 WHEP/소스/목록 계약 마감. S11 단기 미실행, 외부 서비스/실기기 명시 제외. 아래는 기존 실행 이력이다.
+
 ## 2026-09-21 LP27 HW 영향 보완·회귀
+
+- [최신 1~5 결과·릴리즈 잔여 전수표](release-artifacts/v4.1.0/s11-preparation-mapping/release-readiness-20260916.md#lp27-15-승인-작업의-최신-전수-대조): 1/2 완료·커밋,3 기존검토결속FAIL로부분완료,4/5건너뜀. 아래 이전 중단기록과 구분.
+
+- [PREP 복합 경계·ENV12·최종 manifest](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#prep-01-결과): native8/실제환경94, 초기41요구 고정 연결. 장시간·UI 미실행.
 
 - [현재 승인·완료 표현 정정](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#현재-승인-진단-신뢰성부터-s11-단기-안정화까지-15): 실제 형식 대응·미재현 진행 기준부터 1~5 순차 실행. 아래는 이전 실행 이력이다.
 - [현재 HW03 마감](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#hw-03-현재-회귀-마감-결과): codec67·ICE8·종료/정리 PASS. 과거 미재현 원인 해결 주장 아님.
