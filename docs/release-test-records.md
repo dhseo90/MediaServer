@@ -14,6 +14,13 @@
 [단일 실UI 미재현·비교·실패 이력·원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp30-navigation-result.json)을 보존했다.
 이 수정·단기 검증 단위만 완료했으며, 수정 후 실제 UI 마감과 푸시는 아직 미완료다.
 
+수정 후 EVT058 단일 실UI PASS와 실제424개 조작 PASS를 확인했으나 마지막 Policy에서 기존
+canonical 참조7개 불일치로 전체 FAIL이었다. 원 실패 자료를 보존하며 참조 정합·실행 전 검사를 보완했다.
+[준비 단기217개·실패 전수](release-artifacts/v4.1.0/s11-preparation-mapping/lp30-ui-preflight-items.md) 및
+[전체986/424 소스 결속](release-artifacts/v4.1.0/s11-preparation-mapping/lp30-ui-preflight-result.json)은 PASS다.
+이 준비 단위만 분할 커밋하며 clean source 실제UI·시각 적격·녹화8개·브라우저미디어는 다음 판정이다.
+제품 바이너리 불변으로 LP29 실제30분 결과를 유지한다. 전체 UI/푸시 완료로 확대하지 않는다.
+
 ## 현재 작업: LP29 30분 통과·실제 UI 1건 실패
 
 사용자1·2번 실행·분할커밋·조건부푸시 승인. [정의·상태](release-artifacts/v4.1.0/s11-preparation-mapping/lp29-final-validation.md)를 따른다.

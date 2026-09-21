@@ -2,12 +2,12 @@
   "schema": "media-server.v390-ui-native-exact-cases.v2",
   "sourceBindings": {
     "canonicalSchema": "media-server.ui-fulltest-canonical-case-manifest.v1",
-    "canonicalSha256": "20e9b6da23c5c6568fbe3872dab140697bd979cbe2a784dc2564c98d53fae640",
+    "canonicalSha256": "81e6814fdc6d1a9769d338d03c8f24a2afb4bae92ab50662fb9f1eea1e258ba7",
     "implementationSchema": "media-server.feature-implementation-evidence.v2",
     "implementationBindingSchema": "media-server.v390-ui-native-generated-case-projection.v1",
-    "implementationProjectionSha256": "2b4b7bcaae7121c33e05529470d1f4fb3da98f6c402e32a358e12191e28cbfad",
+    "implementationProjectionSha256": "20b1d8e48ccfcd1148e7d80ce00bf10d57dfeb5f166af629627bbf5d89199b69",
     "runtimeOracleCatalogSchema": "media-server.v390-ui-exact-runtime-oracle-catalog-validation.v1",
-    "runtimeOracleCatalogSha256": "0cd15696bce334faaacba0873b048a5a0d17e6782138636b4f2e8af9100c5ac3",
+    "runtimeOracleCatalogSha256": "04d68778764c81fac22e6e497b9b18b10cd799859fc23bc466719eb6f2d6f921",
     "selection": "canonical-exact-ordered-test-id"
   },
   "counts": {
@@ -102891,7 +102891,7 @@
         "requestedSelector": null,
         "canonicalSelector": null,
         "selectorSource": "review4-mutation-control-override",
-        "actionAnchor": "saveChannelSourceViewPair",
+        "actionAnchor": "channelPayloadsFromFormData",
         "actionRoute": "/ops/sources",
         "targetSelector": "#channel-save-selected"
       },
@@ -103232,7 +103232,7 @@
             "text": "`/ops/sources` edit save가 `PUT /ops/api/sources/{sourceId}`로 반영되고 source API와 table row가 같은 displayName/zone을 표시",
             "sha256": "20361e435161232703956dcf89fda0eabcd80d57edfff0fe4d7f5bc3cf1c569d"
           },
-          "specSha256": "cc86e065cea61200fc4a055571015a0300ca902dfebf4888ce6b21c5cb6367df",
+          "specSha256": "3f92fd10590c2fb6d665bc463a130cc70bcd8a96e4fd4e9cfccf009eff992585",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -103610,7 +103610,7 @@
         "theme": "light",
         "controlAction": {
           "selector": null,
-          "actionAnchor": "saveChannelSourceViewPair"
+          "actionAnchor": "channelPayloadsFromFormData"
         }
       },
       "observedProjection": {
@@ -124285,7 +124285,7 @@
         "requestedSelector": "#v320ActionReadinessChecklistGrid",
         "canonicalSelector": "#v320ActionReadinessChecklistGrid",
         "selectorSource": "review4-read-model-control-override",
-        "actionAnchor": "refreshRules:vaRules-assignment",
+        "actionAnchor": "renderOpsVaRules",
         "actionRoute": "/ops/rules",
         "targetSelector": "#opsVaRuleRows > tr:first-child"
       },
@@ -124577,7 +124577,7 @@
             "text": "list count/status/source/type/profile이 표시됨",
             "sha256": "031e36b2cc37dff6cb705a6ce5aad82cb1e13094aa789948d9ce3dc58754733d"
           },
-          "specSha256": "1c94036fa1b70f6fe715a584393c8d96e739a6fd7f45a325f1ca4192773a78da",
+          "specSha256": "6d14b0a5f818f4c9296326607ab7329018f3ca03f8af8c16ebdcc127dcba4e41",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -124880,7 +124880,7 @@
         "theme": "light",
         "controlAction": {
           "selector": "#v320ActionReadinessChecklistGrid",
-          "actionAnchor": "refreshRules:vaRules-assignment"
+          "actionAnchor": "renderOpsVaRules"
         }
       },
       "observedProjection": {
@@ -124926,7 +124926,7 @@
         "requestedSelector": null,
         "canonicalSelector": null,
         "selectorSource": "review4-read-model-control-override",
-        "actionAnchor": "refreshRules:rules-assignment",
+        "actionAnchor": "renderOpsEventRules",
         "actionRoute": "/ops/rules",
         "targetSelector": "#opsEventRuleRows > tr:first-child"
       },
@@ -125218,7 +125218,7 @@
             "text": "template 목록과 type/scenario summary 표시",
             "sha256": "322211a6c4377b0144ff5a173cc55369698ce5c1c85d776a990029a24a0e43d1"
           },
-          "specSha256": "1e1b2bff76886a6798efa67e05265d2936dc1b9510a83edce398247f658dd5a0",
+          "specSha256": "d82b6e0e60433d8dc351cf596b7bfdc954edfdfaf44cc7f3bc1be03a71f6b441",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -125521,7 +125521,7 @@
         "theme": "light",
         "controlAction": {
           "selector": null,
-          "actionAnchor": "refreshRules:rules-assignment"
+          "actionAnchor": "renderOpsEventRules"
         }
       },
       "observedProjection": {
@@ -125567,7 +125567,7 @@
         "requestedSelector": "#v320ActionReadinessChecklistGrid",
         "canonicalSelector": "#v320ActionReadinessChecklistGrid",
         "selectorSource": "review4-read-model-control-override",
-        "actionAnchor": "refreshRules:profiles-assignment",
+        "actionAnchor": "renderOpsProfiles",
         "actionRoute": "/ops/rules",
         "targetSelector": "#opsProfileRows > tr:first-child"
       },
@@ -125859,7 +125859,7 @@
             "text": "profile 목록과 detector/FPS/tracking summary 표시",
             "sha256": "d6fd26f6d857df6e5164f40a82b53a31632ecdaeaf5db19a2bb03dd68257496b"
           },
-          "specSha256": "43e9f42976a667fd356b6d6ddbeea10cc3256620c8419ef6bdf4455e7d510b98",
+          "specSha256": "6c0b6cd0702e694ddeaf23c3ac5bacc2853ff48388cfe872493b8e99e7cbb4ef",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -126162,7 +126162,7 @@
         "theme": "light",
         "controlAction": {
           "selector": "#v320ActionReadinessChecklistGrid",
-          "actionAnchor": "refreshRules:profiles-assignment"
+          "actionAnchor": "renderOpsProfiles"
         }
       },
       "observedProjection": {
@@ -132591,7 +132591,7 @@
         "requestedSelector": "#opsVaRuleGeometryMinimumText",
         "canonicalSelector": "#opsVaRuleGeometryMinimumText",
         "selectorSource": "review4-read-model-control-override",
-        "actionAnchor": "opsRulesReadVaRuleForm",
+        "actionAnchor": "opsRulesUpdateGeometryStatus",
         "actionRoute": "/ops/rules",
         "targetSelector": "#opsVaRuleGeometrySummary"
       },
@@ -132886,7 +132886,7 @@
             "text": "line points/direction 입력/저장",
             "sha256": "e2ba7859e15d53a38b30ed71e27ef687339cef8db607c1e98a33474bfc0526da"
           },
-          "specSha256": "3cc2360b34a30130d5702572b7c76618c6bf5f28b7f6d85f44d7b1aea77f9f28",
+          "specSha256": "d2840ea8ebbdb483bd4f0cdff9bf89beb3e4e0f8279a630f378259e4d1790fe8",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -133195,7 +133195,7 @@
         "theme": "light",
         "controlAction": {
           "selector": "#opsVaRuleGeometryMinimumText",
-          "actionAnchor": "opsRulesReadVaRuleForm"
+          "actionAnchor": "opsRulesUpdateGeometryStatus"
         }
       },
       "observedProjection": {
@@ -133241,7 +133241,7 @@
         "requestedSelector": null,
         "canonicalSelector": null,
         "selectorSource": "review4-explicit-control-not-applicable",
-        "actionAnchor": "renderOpsVaRules",
+        "actionAnchor": "opsRulesVaOutputButtonsHtml",
         "actionRoute": "/ops/rules",
         "targetSelector": null
       },
@@ -133534,7 +133534,7 @@
             "text": "output URL/copy 표시가 role 정책과 일치",
             "sha256": "f522c0dac5283ded3ac3317a29a8634c931a064659d994b32260b4d55b70162b"
           },
-          "specSha256": "fbc6feb9bae9f67e25d16e75b2b6eabcb36632f54801e8474a5f9ae2b3bef236",
+          "specSha256": "098f200342d2474663089cb7faa57cecb844acdb8a89af7e2a982a9f3989341d",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -133830,7 +133830,7 @@
         "theme": "light",
         "controlAction": {
           "selector": null,
-          "actionAnchor": "renderOpsVaRules"
+          "actionAnchor": "opsRulesVaOutputButtonsHtml"
         }
       },
       "observedProjection": {
@@ -134511,7 +134511,7 @@
         "requestedSelector": null,
         "canonicalSelector": null,
         "selectorSource": "review4-mutation-control-override",
-        "actionAnchor": "opsRulesNextNumericId",
+        "actionAnchor": "opsRulesFillVaRuleForm",
         "actionRoute": "/ops/rules",
         "targetSelector": "#opsRulesComposerSave"
       },
@@ -134835,7 +134835,7 @@
             "text": "사용자가 직접 id 입력하지 않고 다음 번호가 부여",
             "sha256": "c9aa8da7877735211182dbe0e05268def96dcb1bb14a35ed589317e2772f7660"
           },
-          "specSha256": "c5ae8536bc23bef8a3021b377ac929aa7604693ff028d89518b625b87e200b20",
+          "specSha256": "460a9fa40def4ba883caa8ef23f4a769954b97d717e4ecdc7590af937547779f",
           "requestCount": 1,
           "domAssertionCount": 1,
           "stateSnapshotCount": 2,
@@ -135198,7 +135198,7 @@
         "theme": "light",
         "controlAction": {
           "selector": null,
-          "actionAnchor": "opsRulesNextNumericId"
+          "actionAnchor": "opsRulesFillVaRuleForm"
         }
       },
       "observedProjection": {

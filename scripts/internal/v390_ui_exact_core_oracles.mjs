@@ -129,7 +129,7 @@ const jsonResponsePaths = Object.freeze({
 });
 
 const coreCases = canonical.cases.filter(item => corePrefixes.has(item.testId.split("-")[0]));
-const coreBindingSha256 = "6bbf050884a51536572a6f243e63be22c74ebb33848f549e42e5135790a24305";
+const coreBindingSha256 = "cd5a649a55c60d2b3b4278c1fbe7cf22a0da4ba956e98d140ae3428be0b85695";
 assert(coreProjectionSha256(coreCases) === coreBindingSha256,
   "core canonical/source semantic binding drift; review and update the independent oracle catalog explicitly");
 const catalog = buildCoreExactOracleCatalog(implementation);

@@ -149,6 +149,81 @@ NAV01의 첫 예상 RED와 첫83개 GREEN은 LP30-D03 포괄 정의 이후지만
 문서 마감 `./server.sh verify-docs-links` exit0:299문서/9692링크/22이미지/164anchor,
 indexed76·제외214·오류0. `git diff --check` exit0. 기존 UI 이미지·30분 증거를 수정하지 않았다.
 
+### LP30 실제 UI 재검증·기준 참조 불일치
+
+`1ab70939` 커밋 후 EVT058 단일 실제 Chrome 진단은 exit0/9.001초·1PASS/0FAIL,
+runtime PID78664·HTTP50993/RTSP50994·273303B 정리 PASS다. 이어 같은 clean source에서
+`./test_ui.sh`를 실행했다(UTC22:34:47.211~23:01:00.479,2026-09-21,exit1/1573.274초).
+424개 전부PASS·미실행0·자동재시도0, EVT058은 요청131/응답131·오류0·3.013초다.
+시각80개 수집도 PASS·비밀검사/서버정리PASS지만 최종 qualifier는 다음2이유로 FAIL이다.
+`canonical-case-manifest-implementation-controlAction-drift`,
+`canonical-implementation-evidence-projection-drift`. 개별 qualifiedCaseCount424를 전체PASS로 바꾸지 않는다.
+final-integrity의2오류는 해당 qualifier 실패와 firstFailure 보존에 따른 후속 판정이다.
+녹화8개·별도 브라우저미디어는 실행하지 않았다.
+
+원인은 LP28 `fa5afd8d`의 승인 구현 증적7행 actionAnchor 변경을 canonical 목록에 동기화하지 않은 것이다.
+대상은 SRC009,RULE001/002/003/013/014/016이며 ID·route·selector·role·viewport·theme는 동일하다.
+메인과 단일 담당자가 원본·현재 projection·native 실행 소비처를 읽어 대조했다. 실제 조작/예상값
+변경 근거는 없지만 canonical/native/source hash는 엄격히 묶여 있으므로 원 실행물을 새 값으로 덮어쓰지 않는다.
+같은 승인2번 검증 준비 결함으로 목록7행을 정합화하고 기존 Policy의 동일한 입력 정합 검사를
+실제 실행 전에도 적용한다. Policy 의미·제품 코드·timeout 변경은 금지한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP30-PF01 | 기준 목록 정합 보완 |7개 anchor·projection hash만 현행 승인 증적과 대조,424 ID/route/selector/role/viewport/theme 불변 및 native 동작 projection 동등성 확인 | v4.1.0 |
+| LP30-PF02 | 실행 전 동일 정합 검사 | 실제 qualifier와 공통 입력 검사 사용; stale anchor·projection·누락/순서/route drift를 거부하고 서버/빌드 전에 중단, 정상 현재목록 허용 | v4.1.0 |
+| LP30-PF03 | 단기 영향 회귀 | Policy v4 contract·acceptance bundle contract·native manifest contract 및 구문·공백·문서검사, 최초 실패 이력 보존 | v4.1.0 |
+| LP30-PF04 | 수정 후 실제 UI | PF01~03 통과·clean commit 후 현행 ./test_ui.sh, 기존 source-bound 전수 절차 유지. 원424PASS/80수집을 새source PASS로 자동 승격하지 않음 | v4.1.0 |
+| LP30-PF05 | 독립 oracle 재결속 검토 | canonical7행의 core12필드와 core288개 출력 차이를 전수 대조. 실행 route/method/status/selector/expectedBehavior·상태/정리 조건을 유지하는 참조 갱신만 명시 승인, core→combined→native 영향 계약 순차 검사. hash 자동 승인·guard 제거 금지 | v4.1.0 |
+| LP30-PF06 | 현재·공개 버전 기대값 정합 | 기존 seed dry-run의 고정 과거 버전 대신 독립 VERSION 및 공개 docs policy 기준을 대조. current와published 역할·잘못된 fixture 거부 유지. bundle 동일 검사·후속 runtime 계약 실행 | v4.1.0 |
+| LP30-PF07 | 변경된 검증 소스 결속 | 변경 mjs 참조4ID(SAFE202/OPS169/SAFE212/OPS179)의 현재 역할·본문·assertion 대조. 후보·이전승인·독립검토 분리, 동등행만 승계하고 실제변경은 별도 검토. 원장/manifest·native 입력정합 및 기존 반례 검증 | v4.1.0 |
+
+PF 준비의 최초 RED는 신규 validator 부재3건 외 기존 stale binding4건도 실패했다. 후자는 예상 RED가
+아니라 이미 확인한 준비 실패다. 목록의7개 anchor·참조 hash를 기존 생성기로 갱신한 뒤 Policy 검사
+재개는 core 독립 binding guard에서 import 실패(exit1/91.6ms)하여 개별 검사에 진입하지 못했다.
+후속 검사는 중단했고 메인이 재결속 경계를 회수했다. 이 guard는 canonical anchor도 직접 보호하므로,
+일치시키기 위해 값을 무조건 바꾸지 않고 위 PF05의 전수 차이·소비처를 검토한다.
+canonical 갱신 명령 내부 import는 갱신 이전 파일을 읽기 때문에 같은 프로세스의 성공만으로
+다음 프로세스의 독립 core 결속까지 검증됐다고 볼 수 없다. 별도 core/native/Policy 검사를 유지한다.
+
+PF05에서 core288개 중281개 동등·7개 변경을 확인했다. anchor뿐 아니라 semanticTokens에 포함된
+과거 anchor 토큰1개도 제거된다(새 actionHandler 심볼은 이미 포함). SRC009/RULE016의
+requests.body.requiredFields에도 반영되므로 단순 주석·hash 변경으로 표현하지 않는다.
+메인은 observeRequest 전체와 primary endpoint 실행을 대조했다. 전자는 method/path/status 및
+requiredJsonPaths/requiredBodyTokens/forbidden/response 정책을 소비하며 설명용 body.requiredFields를
+제품 전송 payload나 응답 assertion으로 사용하지 않는다. 후자의 body는 별도 caseRuntimeOwner가
+만든 endpointActionRequest이며 core의 설명 payload와 다르다. 실제 기대 결과·필드·권한·DOM·
+상태/cleanup 조건은 바뀌지 않고 검토된 소스 참조만 일치시킨다. 독립 guard·반례 검사를 유지하며
+상수2개를 `cd5a649a…85695`로 명시 재결속한다. 후속 native는 새 core catalog hash를 반영하여
+다시 생성·차이를 검토한다. 과거 UI source/hash는 그대로 유지한다.
+
+명시 재결속·native 재생성 후 core17/combined3/native60/Policy32개는 PASS였다.
+다음 bundle은37PASS/1FAIL(exit1/9.089초)로 중단했다. 기존 seed 검사634~636행이
+current=v4.0.0/published=v3.9.1을 고정 기대하는 오류이며 신규 PF04는 PASS다.
+원출력은 그대로 보존하고 PF06 범위에서 버전 기준만 보완한다. 후속 runtime·실제 UI는 아직 미실행이다.
+
+PF06 보완 후 bundle38개·runtime67개, 수정6파일 구문·공백검사 모두 exit0다. 메인은 추가한
+사전검사가 참조하는4개 기능의 source proof 영향도 확인했다. 변경 없는 소스 본문과 행 이동은
+실제 변화를 구분하고, runRealStage의 사전검사 추가를 내용 동등으로 승계하지 않는다.
+이 영향 결속까지 닫은 뒤 clean source 실제 UI로 진행한다. 30분/제품 실행물은 불변이다.
+
+PF07의 현재 후보986행은 미해소0, 이전과 동등한982행을 승계하고 SAFE-202/SAFE-212/OPS-169/OPS-179
+네 행은 고정 diff·임시 index tree와 현재 본문을 대조해 재검토했다. 후보 생성자는 메인이고 검토자는
+기존 단일 담당자다. 검토자의 일부 구현 참여를 공개했으며 별도 제3자 검토로 표현하지 않는다.
+메인이 실제 diff·판정 근거를 확인한 뒤 기존 producer를 실행했다(exit0/78.030초).
+전체986행 구현/검토 원장·canonical 입력·native424의 기존 검증 함수는 exit0/39.592초·오류0이다.
+기본 source-audit CLI의 반례15개를 이번에 다시 실행한 것은 아니다. 해당 검증기 본문과 기준은
+변경하지 않아 기존 유효 반례 증거를 유지하고, 변경된 현재 전체행 결속은 직접 확인했다.
+
+[217개 단기 개별 결과와 최초 실패](lp30-ui-preflight-items.md),
+[986/424 결속 결과](lp30-ui-preflight-result.json),
+[전체 원출력·명령·diff·독립 검토 압축물](lp30-ui-preflight-evidence.json.gz)을 보존했다.
+압축2,170,029B/61파일·복원 해시 일치다. 준비 변경은 실제 UI 전체 PASS가 아니다.
+준비 단위의 실행은 종료됐으며 관련 단기 fixture는 각 검증기가 정리했다. 기존 실제UI 원본 root와
+이번 소유 작업 root는 다음 실제UI의 증거 보존·최종 정리까지 유지한다. 삭제·전체 cleanup 완료로
+표현하지 않는다. 실제UI 실패 원본은 덮어쓰지 않고 작업 root 안으로 이동 보존한 뒤 새 실행한다.
+token start/end/consumed는 실측 집계가 없어 미집계, 명령별 elapsed/UTC/exit는 압축 원출력에 있다.
+
 ### 실제 UI 실패 — 현재 최종 판정
 
 주석 단계 `b9454076`, 실제30분 단계 `9c5b4316`을 각각 커밋한 뒤 clean source

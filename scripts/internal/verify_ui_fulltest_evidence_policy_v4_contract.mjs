@@ -19,6 +19,7 @@ import {
   validatePolicy,
 } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
 import { expandVisualMatrixPlan } from "./v390_ui_visual_evidence.mjs";
+import * as policyLibrary from "./ui_fulltest_evidence_policy_v4_lib.mjs";
 import { qualifyRawCase } from "./v390_ui_policy_v4_independent_qualifier.mjs";
 import { materializeComposedClientPostconditions } from "./v390_ui_completion_oracle_lib.mjs";
 
@@ -57,6 +58,44 @@ const crossQualificationCache = new Map();
 
 try {
   const base = makeCandidate(tempRoot, policy, 1, "scoped-change");
+  check("PF01 canonical input preflight reuses qualifier validation", () => {
+    assert(typeof policyLibrary.validateCanonicalCaseInputs === "function",
+      "canonical input preflight validator missing");
+    assert(policyLibrary.validateCanonicalCaseInputs({policy, rootDir: tempRoot}).length === 0,
+      "valid canonical inputs rejected");
+  });
+  check("PF02 stale anchor selector and projection hash reject before execution", () => {
+    const file = path.join(tempRoot, policy.sourceBinding.canonicalCaseManifestPath);
+    const original = fs.readFileSync(file, "utf8");
+    try {
+      for (const field of ["actionAnchor", "selector", "projectionSha256"]) {
+        const value = JSON.parse(original);
+        if (field === "projectionSha256") value.implementationEvidence[field] = "0".repeat(64);
+        else value.cases[0].controlAction[field] = "stale-fixture";
+        fs.writeFileSync(file, JSON.stringify(value));
+        const reasons = policyLibrary.validateCanonicalCaseInputs({policy, rootDir: tempRoot});
+        assert(reasons.includes(field === "projectionSha256"
+          ? "canonical-implementation-evidence-projection-drift"
+          : "canonical-case-manifest-implementation-controlAction-drift"), `${field} drift accepted`);
+      }
+    } finally { fs.writeFileSync(file, original); }
+  });
+  check("PF03 missing order and route drift reject before execution", () => {
+    const file = path.join(tempRoot, policy.sourceBinding.nativeExactManifestPath);
+    const original = fs.readFileSync(file, "utf8");
+    try {
+      for (const mode of ["missing", "order", "route"]) {
+        const value = JSON.parse(original);
+        if (mode === "missing") value.cases.pop();
+        if (mode === "order") [value.cases[0], value.cases[1]] = [value.cases[1], value.cases[0]];
+        if (mode === "route") value.cases[0].canonicalRoute = "/wrong-fixture";
+        fs.writeFileSync(file, JSON.stringify(value));
+        const reasons = policyLibrary.validateCanonicalCaseInputs({policy, rootDir: tempRoot});
+        assert(reasons.includes(mode === "route" ? "canonical-case-manifest-native-canonical-route-drift"
+          : "native-exact-manifest-case-order-mismatch"), `${mode} drift accepted`);
+      }
+    } finally { fs.writeFileSync(file, original); }
+  });
   let fullBase = null;
   const fullCandidate = () => {
     if (!fullBase) fullBase = makeCandidate(tempRoot, policy, 424, "full-suite");

@@ -18,7 +18,7 @@ import {
   sha256Text,
 } from "./evidence_integrity_lib.mjs";
 import { evaluateV390FullSuiteEligibility } from "./v390_full_suite_eligibility_lib.mjs";
-import { evaluateEvidence } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
+import { evaluateEvidence, validateCanonicalCaseInputs } from "./ui_fulltest_evidence_policy_v4_lib.mjs";
 import {
   nativeExactPreExecutionFailureStatus,
   validateCanonicalFinalIntegrityBindings,
@@ -272,6 +272,14 @@ async function runRealStage(stageId) {
       return;
     }
     try {
+      const canonicalInputErrors = validateCanonicalCaseInputs({
+        policy: readJson(path.join(rootDir, "test/fixtures/ui_fulltest_evidence_policy_v4.json")),
+        rootDir,
+      });
+      if (canonicalInputErrors.length > 0) {
+        recordFailure(stageId, "preflight", `canonical UI inputs invalid: ${canonicalInputErrors.join("; ")}`);
+        return;
+      }
       assertPolicyV4ArtifactRoot({ rootDir, outputDir: path.join(runDir, "ui-exact-424") });
     } catch (error) {
       recordFailure(stageId, "preflight", error instanceof Error ? error.message : String(error));

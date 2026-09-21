@@ -196189,7 +196189,7 @@
           "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
           "symbol": "check:requested observed aliases missing fields and copied control claims are rejected",
           "anchor": "assert(result.uiFulltestPass === false, \"requested/observed defect became UI fulltest PASS\");",
-          "line": 128,
+          "line": 167,
           "contextSha256": "24afc4f54a800961e6659b18e7d04f7e51ab4dc9a8ef74e512053b9542075154"
         },
         "verifier": {
@@ -196231,14 +196231,14 @@
           "kind": "structural-producer-assertion",
           "witness": "SAFE-202 state-readback",
           "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:212",
-          "target": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs:128"
+          "target": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs:167"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-ui-fulltest-evidence-policy-v4-contract",
-          "source": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs:128",
+          "source": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs:167",
           "target": "server.sh:2539"
         }
       ],
@@ -196300,14 +196300,14 @@
           "sha256": "f8e6a3b2a46a1a5917cc912afe7ee42f3434503f92752c93a2a8341ca23ba925"
         }
       },
-      "sourceFlowDigest": "e0bac19970dc5c1b8c4d2de3525fa837c2bd1c719f134c218618f8b65ee173e2",
+      "sourceFlowDigest": "1dd81114b6e5b927ae054e458573c5f59167bafb5b2e90394f9395994ef6b7df",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "fe112699c1c8f9b38da37e9d207ec89aa42984617b74547997aefc4c19f0fdf2",
+            "trackedBlobSha256": "1e376a7d75833775cf7bcbf6b6523a5ce83245e7de7896a6e80002b5b81a0ccb",
             "enclosingBodySha256": "7fc9cda4a472cb531e82d951a5ae60f50981c449aba9844fdb20c1537cf3b377",
             "enclosingBodyStartLine": 92,
             "enclosingBodyEndLine": 214,
@@ -196316,7 +196316,7 @@
           "dispatch": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "fe112699c1c8f9b38da37e9d207ec89aa42984617b74547997aefc4c19f0fdf2",
+            "trackedBlobSha256": "1e376a7d75833775cf7bcbf6b6523a5ce83245e7de7896a6e80002b5b81a0ccb",
             "enclosingBodySha256": "7fc9cda4a472cb531e82d951a5ae60f50981c449aba9844fdb20c1537cf3b377",
             "enclosingBodyStartLine": 92,
             "enclosingBodyEndLine": 214,
@@ -196325,7 +196325,7 @@
           "action": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "fe112699c1c8f9b38da37e9d207ec89aa42984617b74547997aefc4c19f0fdf2",
+            "trackedBlobSha256": "1e376a7d75833775cf7bcbf6b6523a5ce83245e7de7896a6e80002b5b81a0ccb",
             "enclosingBodySha256": "7fc9cda4a472cb531e82d951a5ae60f50981c449aba9844fdb20c1537cf3b377",
             "enclosingBodyStartLine": 92,
             "enclosingBodyEndLine": 214,
@@ -196334,7 +196334,7 @@
           "state": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "fe112699c1c8f9b38da37e9d207ec89aa42984617b74547997aefc4c19f0fdf2",
+            "trackedBlobSha256": "1e376a7d75833775cf7bcbf6b6523a5ce83245e7de7896a6e80002b5b81a0ccb",
             "enclosingBodySha256": "7fc9cda4a472cb531e82d951a5ae60f50981c449aba9844fdb20c1537cf3b377",
             "enclosingBodyStartLine": 92,
             "enclosingBodyEndLine": 214,
@@ -196343,10 +196343,10 @@
           "readback": {
             "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
             "symbol": "check:requested observed aliases missing fields and copied control claims are rejected",
-            "trackedBlobSha256": "70d63bb24c11a6f344d00b028f96de96b2685073d8e29bb1d230b9375b943ca1",
+            "trackedBlobSha256": "3af43430963cb428f7d3951881c9014290708460e154a824533dd21e5ff43c2d",
             "enclosingBodySha256": "ad6ce4d9144b106f83d3faeea30e4634e180d0fd320f4c6e92deec81132c11dc",
-            "enclosingBodyStartLine": 119,
-            "enclosingBodyEndLine": 129,
+            "enclosingBodyStartLine": 158,
+            "enclosingBodyEndLine": 168,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -196358,7 +196358,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "70d63bb24c11a6f344d00b028f96de96b2685073d8e29bb1d230b9375b943ca1",
+        "verifierFileSha256": "3af43430963cb428f7d3951881c9014290708460e154a824533dd21e5ff43c2d",
         "dispatch": {
           "command": "verify-ui-fulltest-evidence-policy-v4-contract",
           "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
@@ -198792,14 +198792,14 @@
           "sha256": "1c49e8ba6cadcb15b24932e3fac0cdea09064b7d32e960a3a36ac4c60a20f1b6"
         }
       },
-      "sourceFlowDigest": "b58ef9c16abce82a7008c50029cf0611139365b8670608cb59f050671db0201f",
+      "sourceFlowDigest": "066fd42b1b04d906f9bf2a9e7e5e4b46645c0889339634005b0604dc284a3e5e",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "owner:SAFE-212",
-            "trackedBlobSha256": "8fd30a1af873136de42b5fab741960aa27c7a1402d47e869fdbe90a054978e1d",
+            "trackedBlobSha256": "ebc0d4578c6d4524caefad6574035bb791a9917ecdd9be326d1200f7eecf9def",
             "enclosingBodySha256": "c8eb495508bda43ce740f886043a089011491a78ecf0090d83693a0b3ffd80e8",
             "enclosingBodyStartLine": 240,
             "enclosingBodyEndLine": 249,
@@ -198808,7 +198808,7 @@
           "dispatch": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "dispatch:SAFE-212",
-            "trackedBlobSha256": "8fd30a1af873136de42b5fab741960aa27c7a1402d47e869fdbe90a054978e1d",
+            "trackedBlobSha256": "ebc0d4578c6d4524caefad6574035bb791a9917ecdd9be326d1200f7eecf9def",
             "enclosingBodySha256": "c8eb495508bda43ce740f886043a089011491a78ecf0090d83693a0b3ffd80e8",
             "enclosingBodyStartLine": 240,
             "enclosingBodyEndLine": 249,
@@ -198817,7 +198817,7 @@
           "action": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "action:SAFE-212",
-            "trackedBlobSha256": "8fd30a1af873136de42b5fab741960aa27c7a1402d47e869fdbe90a054978e1d",
+            "trackedBlobSha256": "ebc0d4578c6d4524caefad6574035bb791a9917ecdd9be326d1200f7eecf9def",
             "enclosingBodySha256": "c8eb495508bda43ce740f886043a089011491a78ecf0090d83693a0b3ffd80e8",
             "enclosingBodyStartLine": 240,
             "enclosingBodyEndLine": 249,
@@ -198826,7 +198826,7 @@
           "state": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "state:laterStagesNotRun",
-            "trackedBlobSha256": "8fd30a1af873136de42b5fab741960aa27c7a1402d47e869fdbe90a054978e1d",
+            "trackedBlobSha256": "ebc0d4578c6d4524caefad6574035bb791a9917ecdd9be326d1200f7eecf9def",
             "enclosingBodySha256": "c8eb495508bda43ce740f886043a089011491a78ecf0090d83693a0b3ffd80e8",
             "enclosingBodyStartLine": 240,
             "enclosingBodyEndLine": 249,
@@ -198835,7 +198835,7 @@
           "readback": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "readback:SAFE-212",
-            "trackedBlobSha256": "8fd30a1af873136de42b5fab741960aa27c7a1402d47e869fdbe90a054978e1d",
+            "trackedBlobSha256": "ebc0d4578c6d4524caefad6574035bb791a9917ecdd9be326d1200f7eecf9def",
             "enclosingBodySha256": "c8eb495508bda43ce740f886043a089011491a78ecf0090d83693a0b3ffd80e8",
             "enclosingBodyStartLine": 240,
             "enclosingBodyEndLine": 249,
@@ -198850,7 +198850,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "8fd30a1af873136de42b5fab741960aa27c7a1402d47e869fdbe90a054978e1d",
+        "verifierFileSha256": "ebc0d4578c6d4524caefad6574035bb791a9917ecdd9be326d1200f7eecf9def",
         "dispatch": {
           "command": "verify-v390-test-acceptance-bundle",
           "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
@@ -231558,7 +231558,7 @@
           "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
           "symbol": "check:contract-only exact 424 closure satisfies suite algorithm",
           "anchor": "assert(result.uiFulltestPass === true, \"exact 424 closure should satisfy contract algorithm\");",
-          "line": 92,
+          "line": 131,
           "contextSha256": "9c796962b794bc0007cd2b646ee6a1115663dfff8f66320f6966ae9145276593"
         },
         "verifier": {
@@ -231600,14 +231600,14 @@
           "kind": "structural-producer-assertion",
           "witness": "OPS-169 state-readback",
           "source": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs:212",
-          "target": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs:92"
+          "target": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs:131"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-ui-fulltest-evidence-policy-v4-contract",
-          "source": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs:92",
+          "source": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs:131",
           "target": "server.sh:2539"
         }
       ],
@@ -231657,14 +231657,14 @@
           "sha256": "f264fc72bb125ca03576d7091059fac0288a873b42a63c564f19ec8348609158"
         }
       },
-      "sourceFlowDigest": "2a9343a75ebc0838ff99624683cf11b9bc6551a3d770ace0d6240baa5bd0b4ee",
+      "sourceFlowDigest": "bc053d0183a903b5eb0e67cd3c71a725f5ae49cb549dba0450662e40b5192635",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "fe112699c1c8f9b38da37e9d207ec89aa42984617b74547997aefc4c19f0fdf2",
+            "trackedBlobSha256": "1e376a7d75833775cf7bcbf6b6523a5ce83245e7de7896a6e80002b5b81a0ccb",
             "enclosingBodySha256": "7fc9cda4a472cb531e82d951a5ae60f50981c449aba9844fdb20c1537cf3b377",
             "enclosingBodyStartLine": 92,
             "enclosingBodyEndLine": 214,
@@ -231673,7 +231673,7 @@
           "dispatch": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "fe112699c1c8f9b38da37e9d207ec89aa42984617b74547997aefc4c19f0fdf2",
+            "trackedBlobSha256": "1e376a7d75833775cf7bcbf6b6523a5ce83245e7de7896a6e80002b5b81a0ccb",
             "enclosingBodySha256": "7fc9cda4a472cb531e82d951a5ae60f50981c449aba9844fdb20c1537cf3b377",
             "enclosingBodyStartLine": 92,
             "enclosingBodyEndLine": 214,
@@ -231682,7 +231682,7 @@
           "action": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "fe112699c1c8f9b38da37e9d207ec89aa42984617b74547997aefc4c19f0fdf2",
+            "trackedBlobSha256": "1e376a7d75833775cf7bcbf6b6523a5ce83245e7de7896a6e80002b5b81a0ccb",
             "enclosingBodySha256": "7fc9cda4a472cb531e82d951a5ae60f50981c449aba9844fdb20c1537cf3b377",
             "enclosingBodyStartLine": 92,
             "enclosingBodyEndLine": 214,
@@ -231691,7 +231691,7 @@
           "state": {
             "file": "scripts/internal/ui_fulltest_evidence_policy_v4_lib.mjs",
             "symbol": "evaluateEvidence",
-            "trackedBlobSha256": "fe112699c1c8f9b38da37e9d207ec89aa42984617b74547997aefc4c19f0fdf2",
+            "trackedBlobSha256": "1e376a7d75833775cf7bcbf6b6523a5ce83245e7de7896a6e80002b5b81a0ccb",
             "enclosingBodySha256": "7fc9cda4a472cb531e82d951a5ae60f50981c449aba9844fdb20c1537cf3b377",
             "enclosingBodyStartLine": 92,
             "enclosingBodyEndLine": 214,
@@ -231700,10 +231700,10 @@
           "readback": {
             "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
             "symbol": "check:contract-only exact 424 closure satisfies suite algorithm",
-            "trackedBlobSha256": "70d63bb24c11a6f344d00b028f96de96b2685073d8e29bb1d230b9375b943ca1",
+            "trackedBlobSha256": "3af43430963cb428f7d3951881c9014290708460e154a824533dd21e5ff43c2d",
             "enclosingBodySha256": "efa13ba70d3d1b6499e00fc72b76befdb14fc74a27ab691298bb861bf72aab35",
-            "enclosingBodyStartLine": 87,
-            "enclosingBodyEndLine": 93,
+            "enclosingBodyStartLine": 126,
+            "enclosingBodyEndLine": 132,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -231715,7 +231715,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "70d63bb24c11a6f344d00b028f96de96b2685073d8e29bb1d230b9375b943ca1",
+        "verifierFileSha256": "3af43430963cb428f7d3951881c9014290708460e154a824533dd21e5ff43c2d",
         "dispatch": {
           "command": "verify-ui-fulltest-evidence-policy-v4-contract",
           "file": "scripts/internal/verify_ui_fulltest_evidence_policy_v4_contract.mjs",
@@ -233969,14 +233969,14 @@
           "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
           "symbol": "runRealStage",
           "anchor": "if (stageId === \"server-longrun-120\") {",
-          "line": 487,
+          "line": 495,
           "contextSha256": "9076c980368dfe995329b3a4eef97034f5885824a519a405604b7f82062263c5"
         },
         "readback": {
           "file": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs",
           "symbol": "check:actual-mode-fixture-order",
           "anchor": "assert(summary.stages.find(item => item.id === \"server-longrun-120\")?.status === \"not-run\", \"120 stage must be not-run without trigger\");",
-          "line": 907,
+          "line": 909,
           "contextSha256": "99a58fdc0a75623fcb160ad21075ffe6aa7cd6e3177c9b93f59a00b81fe9c3ca"
         },
         "verifier": {
@@ -234010,22 +234010,22 @@
           "kind": "function-containment",
           "witness": "OPS-179 action-state",
           "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:251",
-          "target": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:487"
+          "target": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:495"
         },
         {
           "from": "state",
           "to": "readback",
           "kind": "structural-producer-assertion",
           "witness": "OPS-179 state-readback",
-          "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:487",
-          "target": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs:907"
+          "source": "scripts/internal/verify_v390_test_acceptance_bundle.mjs:495",
+          "target": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs:909"
         },
         {
           "from": "readback",
           "to": "verifier",
           "kind": "verifier-dispatch",
           "witness": "verify-v390-test-acceptance-bundle-contract",
-          "source": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs:907",
+          "source": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs:909",
           "target": "server.sh:2587"
         }
       ],
@@ -234071,14 +234071,14 @@
           "sha256": "87351b8299314422d265153ec0ef3714914f164428cc7d403a1ea59b00cae7ae"
         }
       },
-      "sourceFlowDigest": "4bccfeb7dea57615c5f126ed443bbd9b1eed62257c47969b293fe5c8fb57da05",
+      "sourceFlowDigest": "448f7cb9fc58d226c1cef7aa38ec5e566c172fcd5f231cbdcff6fa117f6f06f7",
       "trustBindings": {
         "schema": "media-server.review4-source-trust-bindings.v1",
         "roles": {
           "owner": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "runActualBundle",
-            "trackedBlobSha256": "8fd30a1af873136de42b5fab741960aa27c7a1402d47e869fdbe90a054978e1d",
+            "trackedBlobSha256": "ebc0d4578c6d4524caefad6574035bb791a9917ecdd9be326d1200f7eecf9def",
             "enclosingBodySha256": "8c0dbda930e036b59abc640f45d380395d318148ad6fa92d9a5c3c39d1d53c39",
             "enclosingBodyStartLine": 200,
             "enclosingBodyEndLine": 238,
@@ -234087,7 +234087,7 @@
           "dispatch": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "runActualBundle",
-            "trackedBlobSha256": "8fd30a1af873136de42b5fab741960aa27c7a1402d47e869fdbe90a054978e1d",
+            "trackedBlobSha256": "ebc0d4578c6d4524caefad6574035bb791a9917ecdd9be326d1200f7eecf9def",
             "enclosingBodySha256": "8c0dbda930e036b59abc640f45d380395d318148ad6fa92d9a5c3c39d1d53c39",
             "enclosingBodyStartLine": 200,
             "enclosingBodyEndLine": 238,
@@ -234096,28 +234096,28 @@
           "action": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "runRealStage",
-            "trackedBlobSha256": "8fd30a1af873136de42b5fab741960aa27c7a1402d47e869fdbe90a054978e1d",
-            "enclosingBodySha256": "09bd942412114cf7301b6b3545776621917bd3530e6aedd8be83d334653f3510",
+            "trackedBlobSha256": "ebc0d4578c6d4524caefad6574035bb791a9917ecdd9be326d1200f7eecf9def",
+            "enclosingBodySha256": "5bc5fd59f1c5ab81e06468f34336e3e3e2833790292c651e50332c414e42150e",
             "enclosingBodyStartLine": 251,
-            "enclosingBodyEndLine": 567,
+            "enclosingBodyEndLine": 575,
             "enclosingBodyScope": "declared-symbol"
           },
           "state": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle.mjs",
             "symbol": "runRealStage",
-            "trackedBlobSha256": "8fd30a1af873136de42b5fab741960aa27c7a1402d47e869fdbe90a054978e1d",
-            "enclosingBodySha256": "09bd942412114cf7301b6b3545776621917bd3530e6aedd8be83d334653f3510",
+            "trackedBlobSha256": "ebc0d4578c6d4524caefad6574035bb791a9917ecdd9be326d1200f7eecf9def",
+            "enclosingBodySha256": "5bc5fd59f1c5ab81e06468f34336e3e3e2833790292c651e50332c414e42150e",
             "enclosingBodyStartLine": 251,
-            "enclosingBodyEndLine": 567,
+            "enclosingBodyEndLine": 575,
             "enclosingBodyScope": "declared-symbol"
           },
           "readback": {
             "file": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs",
             "symbol": "check:actual-mode-fixture-order",
-            "trackedBlobSha256": "7a567c1f946d8c1bee46e5523517dcbf227d4ab08c797eda1f37e1f9eb37d2af",
+            "trackedBlobSha256": "e44d3a60b2098f068b770c18bba66a361f900d90f11dbe4567bcc807af2494bb",
             "enclosingBodySha256": "61a562f6ab95ec51d3108f2761ec100e6b6d9b9eac495ffd410354cd45958829",
-            "enclosingBodyStartLine": 843,
-            "enclosingBodyEndLine": 925,
+            "enclosingBodyStartLine": 845,
+            "enclosingBodyEndLine": 927,
             "enclosingBodyScope": "semantic-enclosing-function"
           },
           "verifier": {
@@ -234129,7 +234129,7 @@
             "enclosingBodyScope": "exact-dispatch-arm"
           }
         },
-        "verifierFileSha256": "7a567c1f946d8c1bee46e5523517dcbf227d4ab08c797eda1f37e1f9eb37d2af",
+        "verifierFileSha256": "e44d3a60b2098f068b770c18bba66a361f900d90f11dbe4567bcc807af2494bb",
         "dispatch": {
           "command": "verify-v390-test-acceptance-bundle-contract",
           "file": "scripts/internal/verify_v390_test_acceptance_bundle_contract.mjs",
@@ -235289,5 +235289,5 @@
       }
     }
   ],
-  "candidateDigest": "f9e524278de8f434b91c81857df6bda97ea70c63e7c61e78aa968906849de977"
+  "candidateDigest": "9b575981e70a1deb2e845aef209371c07e162691dcd5bc850f77d745853a6967"
 }

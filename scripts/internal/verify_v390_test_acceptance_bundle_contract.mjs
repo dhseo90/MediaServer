@@ -626,14 +626,17 @@ check("canonical actual command owns the complete throwaway UI environment", () 
 check("published seed baseline is explicit, policy-bound, and rejects mismatched fixtures", () => {
   const outputDir = fixtureDir("published-seed-baseline");
   const fixturePath = path.join(rootDir, "test/fixtures/manual_ui_fulltest_va_seed_matrix.json");
+  const expectedCurrent = `v${readText("VERSION").trim().replace(/^v/, "")}`;
+  const policy = readJson(path.join(rootDir, "config/docs_ui_assets.json"));
+  const expectedPublished = policy.baseline.publishedRelease;
   const defaultResult = spawnSync(path.join(rootDir, "server.sh"), [
     "prepare-manual-ui-fulltest-seed", "--dry-run", "--emit-plan", path.join(outputDir, "current-seed-plan.json"),
   ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
   assert(defaultResult.status === 0, `current-source seed preparation failed: ${defaultResult.stderr}`);
   const currentPlan = readJson(path.join(outputDir, "current-seed-plan.json"));
-  assert(currentPlan.releaseTarget === "v4.0.0" &&
-    currentPlan.fixtureReleaseTargets?.currentSource === "v4.0.0" &&
-    currentPlan.fixtureReleaseTargets?.latestPublishedBaseline === "v3.9.1",
+  assert(currentPlan.releaseTarget === expectedCurrent &&
+    currentPlan.fixtureReleaseTargets?.currentSource === expectedCurrent &&
+    currentPlan.fixtureReleaseTargets?.latestPublishedBaseline === expectedPublished,
   "default seed preparation is not bound to the current source and published baseline");
 
   const planPath = path.join(outputDir, "seed-plan.json");
@@ -644,7 +647,6 @@ check("published seed baseline is explicit, policy-bound, and rejects mismatched
   ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
   assert(publishedResult.status === 0, `published seed preparation failed: ${publishedResult.stderr}`);
   const plan = readJson(planPath);
-  const policy = readJson(path.join(rootDir, "config/docs_ui_assets.json"));
   const fixture = readJson(fixturePath);
   assert(plan.releaseTarget === fixture.publishedReleaseTarget &&
     plan.releaseTarget === policy.baseline.publishedRelease,
@@ -689,7 +691,7 @@ check("published seed baseline is explicit, policy-bound, and rejects mismatched
     "prepare-manual-ui-fulltest-seed", "--dry-run", "--published-seed-baseline",
     "--fixture", mismatchedFixturePath,
   ], { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
-  assert(mismatchResult.status !== 0 && mismatchResult.stderr.includes("seed fixture must pin v3.9.1"),
+  assert(mismatchResult.status !== 0 && mismatchResult.stderr.includes(`seed fixture must pin ${expectedPublished}`),
     "published seed preparation accepted a current-source fixture outside the published baseline");
 });
 
@@ -1221,6 +1223,32 @@ check("docs and release evidence record R3 without overclaiming gated tests", ()
     "UI 풀테스트 직접 조작 PASS",
   ]) {
     assertIncludes(files.releaseEvidence, snippet, "R3 release evidence");
+  }
+});
+
+check("PF04 actual preflight rejects canonical drift before artifact setup or later stages", () => {
+  const source = readText("scripts/internal/verify_v390_test_acceptance_bundle.mjs");
+  const start = source.indexOf('  if (stageId === "preflight") {');
+  const end = source.indexOf('  if (stageId === "build") {', start);
+  assert(start >= 0 && end > start, "actual preflight source boundary missing");
+  for (const errors of [[], ["canonical-case-manifest-implementation-controlAction-drift"],
+    ["canonical-implementation-evidence-projection-drift"], ["native-exact-manifest-case-order-mismatch"],
+    ["canonical-case-manifest-native-canonical-route-drift"]]) {
+    const stages = [], failures = [];
+    let validated = 0, artifacts = 0;
+    const context = vm.createContext({stageId: "preflight", rootDir: "/fixture", path,
+      fs: {existsSync: () => true}, executionMode: "actual-ui-only", outputDir: "/fixture/output",
+      canonicalUiOutputDir: "/fixture/output", canonicalReleaseOutputDir: "/fixture/release", runDir: "/fixture/output/run",
+      readJson: () => ({}), validateCanonicalCaseInputs: () => { validated++; return errors; },
+      recordFailure: (...args) => failures.push(args), assertPolicyV4ArtifactRoot: () => { artifacts++; },
+      fixtureMode: false, sourceProvenance: {sourceWorktreeClean: true}, stages,
+      passStage: () => ({status: "PASS"}), featureCommands: [], inheritedSecretDisposition: "discarded",
+      options: {run120: false}});
+    vm.runInContext(`(function(){${source.slice(start, end)}})()`, context);
+    assert(validated === 1, "canonical validation not called by actual preflight");
+    assert(errors.length ? failures.length === 1 && stages.length === 0 && artifacts === 0
+      : failures.length === 0 && stages.length === 1 && artifacts === 1,
+    "canonical preflight allowed drift or rejected valid input");
   }
 });
 

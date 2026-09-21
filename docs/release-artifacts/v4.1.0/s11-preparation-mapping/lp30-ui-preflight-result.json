@@ -1,0 +1,61 @@
+{
+  "schema": "media-server.lp30-focused-source-binding-validation.v1",
+  "result": {
+    "ok": true,
+    "errors": [],
+    "summary": {
+      "inventoryRows": 986,
+      "manifestRows": 986,
+      "sourceEvidenceRows": 986,
+      "uiEvidenceRows": 441,
+      "verifierEvidenceRows": 986,
+      "manualUiCaseRows": 424,
+      "semanticReviewedRows": 986,
+      "uniqueSemanticDigests": 986,
+      "uniqueReviewReasons": 986,
+      "reviewedCallChains": 986,
+      "errors": 0
+    }
+  },
+  "globalErrors": [],
+  "canonicalErrors": [],
+  "native": {
+    "caseCount": 424,
+    "positiveNative": 423,
+    "negativeRoute": 1,
+    "unsupported": 0,
+    "workflowClassCounts": {
+      "actionable": 28,
+      "form-submit": 16,
+      "persisted-mutation": 102,
+      "read-only-state": 233,
+      "hidden-disabled": 42,
+      "negative-route": 3
+    }
+  },
+  "boundary": "기존 검증 함수의 현재 전체행 결속 확인이다. 제품/UI 실행 및 기본 CLI의 반례15개 재실행은 아니다.",
+  "archive": {
+    "file": "lp30-ui-preflight-evidence.json.gz",
+    "bytes": 2170029,
+    "sha256": "dc847d2d72dcfb9683f3c61f72af7251efa2aa62d9246ba04ad489216a6b3f02",
+    "files": 61,
+    "readbackPass": true
+  },
+  "checks": {
+    "finalPass": 217,
+    "finalFail": 0,
+    "earlierRows": 70,
+    "importFailure": 1,
+    "syntaxAndDiff": 7
+  },
+  "independentReview": {
+    "strictCarry": 982,
+    "reviewedIds": [
+      "SAFE-202",
+      "OPS-169",
+      "SAFE-212",
+      "OPS-179"
+    ],
+    "participantDisclosure": true
+  }
+}

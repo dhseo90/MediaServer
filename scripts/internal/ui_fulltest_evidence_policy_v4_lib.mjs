@@ -464,6 +464,16 @@ function validateSourceBinding(policy, summary, rootDir, reasons, { verifyCurren
   }
 }
 
+// 실제 실행 전에도 qualifier와 같은 canonical 입력 정합 기준만 적용한다.
+export function validateCanonicalCaseInputs({ policy, rootDir }) {
+  const reasons = [];
+  loadCanonicalCaseBinding(policy, { sourceBinding: {
+    caseManifestPath: policy.sourceBinding?.canonicalCaseManifestPath,
+    nativeExactManifestPath: policy.sourceBinding?.nativeExactManifestPath,
+  } }, rootDir, reasons);
+  return [...new Set(reasons)];
+}
+
 function loadCanonicalCaseBinding(policy, summary, rootDir, reasons) {
   const empty = { orderedTestIds: [], byTestId: new Map(), nativeByTestId: new Map() };
   const binding = summary.sourceBinding || {};

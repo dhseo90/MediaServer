@@ -5,7 +5,7 @@
     "path": "test/fixtures/project_feature_implementation_evidence.json",
     "schema": "media-server.feature-implementation-evidence.v2",
     "bindingSchema": "media-server.ui-fulltest-canonical-implementation-projection.v1",
-    "projectionSha256": "27f7d69501d6886a0657158af219286f41fee05df0938bc72faff28c8a1c3367"
+    "projectionSha256": "d58db764ba4b7b3b086a73bd7b1a26b4eea393eaa3b59420722087d0cdf2fb85"
   },
   "caseCount": 424,
   "cases": [
@@ -2909,7 +2909,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "saveChannelSourceViewPair"
+        "actionAnchor": "channelPayloadsFromFormData"
       },
       "routeBinding": {
         "screenRoute": "/ops/sources",
@@ -3517,7 +3517,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#v320ActionReadinessChecklistGrid",
-        "actionAnchor": "refreshRules:vaRules-assignment"
+        "actionAnchor": "renderOpsVaRules"
       },
       "routeBinding": {
         "screenRoute": "/ops/rules",
@@ -3536,7 +3536,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "refreshRules:rules-assignment"
+        "actionAnchor": "renderOpsEventRules"
       },
       "routeBinding": {
         "screenRoute": "/ops/rules",
@@ -3555,7 +3555,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#v320ActionReadinessChecklistGrid",
-        "actionAnchor": "refreshRules:profiles-assignment"
+        "actionAnchor": "renderOpsProfiles"
       },
       "routeBinding": {
         "screenRoute": "/ops/rules",
@@ -3745,7 +3745,7 @@
       "theme": "light",
       "controlAction": {
         "selector": "#opsVaRuleGeometryMinimumText",
-        "actionAnchor": "opsRulesReadVaRuleForm"
+        "actionAnchor": "opsRulesUpdateGeometryStatus"
       },
       "routeBinding": {
         "screenRoute": "/ops/rules",
@@ -3764,7 +3764,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "renderOpsVaRules"
+        "actionAnchor": "opsRulesVaOutputButtonsHtml"
       },
       "routeBinding": {
         "screenRoute": "/ops/rules",
@@ -3802,7 +3802,7 @@
       "theme": "light",
       "controlAction": {
         "selector": null,
-        "actionAnchor": "opsRulesNextNumericId"
+        "actionAnchor": "opsRulesFillVaRuleForm"
       },
       "routeBinding": {
         "screenRoute": "/ops/rules",
