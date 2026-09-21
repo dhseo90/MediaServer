@@ -5,26 +5,30 @@
 최신 후속 승인으로 주석 단계 C01~04를 마감했다. [실행 정의·이력](lp29-final-validation.md),
 [주석 전수 결과](lp29-comments-summary.json)를 따른다. 최초30분은41.067초·exit1/soak0으로 실패했고
 그 원인이던 주석 정책은 보완·재검증 통과했다. `b9454076` 후 실제30분은 exit0/2402.756초,
-20반복/108PASS·0FAIL·skip2로 완료했다. [결과·정리](lp29-30-pass-items.md). 실제UI는 아직 미실행이다.
+20반복/108PASS·0FAIL·skip2로 완료했고 `9c5b4316`으로 커밋했다. [결과·정리](lp29-30-pass-items.md).
+후속 실제UI는424개 실행/423PASS·1FAIL(EVT-058), exit1이었다. [전수 결과](lp29-ui-items.md).
+원인 미확정으로 후속 검증을 중단했고, 사용자 승인 전체19MB 증거 보존·정리는 완료했다.
 
 ### 지시 전수
 
 | 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
 | --- | --- | --- | --- | --- |
 | 1 | 주석만 보완·정적·기존 증거 영향 확인 | 완료 | 주석160파일·비주석 동일·결속985승계/1재검토 | LP29-C01~04 |
-| 2 | 실제30분→통과 후UI·browser | 30분완료·UI대기 | 실제20반복·종료/정리확인 | LP29-L/U |
-| 3 | 분할 커밋·조건 충족 시push | 주석b9454076·30분기록커밋준비 | UI완료 전push보류 | 변경목록·실제Git |
+| 2 | 실제30분→통과 후UI·browser | 30분완료·UI실행FAIL·뒤단계보류 | 20반복PASS; actual424중1FAIL,원인미확정·정리완료 | LP29-L/U·UI구조화결과 |
+| 3 | 분할 커밋·조건 충족 시push | 주석b9454076·30분9c5b4316 커밋 | UI실패단계 미커밋·push불가/미수행 | 변경목록·실제Git |
 | 4 | 종합·릴리즈 잔여 | 아래 전수 대조 | 실측과 제안 구분 | 이 표 |
 | 5 | 외부서비스·실기기 제외 | 유지 | 제외·PASS 아님 | 사용자 명시 지시 |
+| 6 | 전체 UI 약19MB 보존 | 완료 | 19,045,901B·1852파일 복원일치/비밀검사·임시정리 | fullArchive/cleanup·사용자응답 |
 
 ### 기준
 
 | 항목 | 기준 값 | 직접 확인 결과 | 근거 |
 | --- | --- | --- | --- |
-| branch/source | v4.1.0 / VERSION4.1.0 | 시작2055ed9b/upstream동기 | Git·LP28 |
-| 제품/build | LP28실행물 유지 | 주석 raw hash변경·비주석 동일·binary hash불변 | LP29-C02 |
+| branch/source | v4.1.0 / VERSION4.1.0 | 현재9c5b4316, 추적origin대비ahead2/behind0; 이번최종원격재조회안함 | Git·LP29 |
+| VERSION/CMake | 4.1.0 | VERSION 4.1.0·CMake project VERSION4.1.0 일치 | 직접파일확인 |
+| 제품/build | LP28실행물 의미 유지 | UI실행전 전체빌드PASS·binary SHA256 앞선30분과동일 | LP29-C02·UI build binding |
 | published/main/tag | 이번 외부release범위밖 | 문서4.0.0유지,현재원격release/CI조회안함 | release policy·범위 |
-| 커밋 | 승인된 단계별 분할 | 주석/결속/기록 마감 후 수행 | Git최종보고 |
+| 커밋 | 승인된 단계별 분할 | 성공2단계완료,UI기록미커밋 | Git최종보고 |
 
 ### 로드맵 대조
 
@@ -33,7 +37,7 @@
 | S00~08 | 구현·과거검증 | 관련 LP28증거유지 | 없음 | 실제diff |
 | S09 | 종료·대체 | 실패이력보존 | 없음 | roadmap |
 | S10 | 구현·고정 | 주석 hash변경,동작불변판정 | 원문hash새값주의 | LP29-C02 |
-| S11 | 단기/장시간/UI | 주석보완·실제30분PASS,UI/120잔여 | 최초실패유지 | LP29 |
+| S11 | 단기/장시간/UI | 주석보완·실제30분PASS,UI1FAIL·잔여UI/120미완료 | 전체완료아님·실패유지 | LP29 |
 
 ### 구현 대조
 
@@ -42,7 +46,8 @@
 | 주석 | verify_code_comments.mjs·160소스 | 1161파일 상단0/영문0,비주석160동일·구문71 | C01~03 |
 | 결속 | review4 migration/producer·3fixture | audit1항목/WHEP주석만,985승계·1검토 | C04 |
 | 실제30분 | verify_predev_stability.sh main/run_soak_loop | 시간/ledger validator통과·20회·정리완료 | L01~03 |
-| UI | test_ui.sh/native424/finalizer visual80 | 계약60PASS·실제실행전 | U01/02 |
+| UI | test_ui.sh/native424/finalizer visual80 | 실제423PASS/1FAIL; finalizer/Policy미실행·uiFulltestPass=false | U01/02·lp29-ui-result |
+| 실패 관측 | EVT-058·dashboard read-model/control·request lifecycle | action3PASS·generic실패·요청131/응답129,원인미확정 | case326 trace/policy-input/summary |
 | 녹화UI | verify_v410_recording_ui_contract.mjs | managed seed는준비,실제I27~34·seek별도 | U03 |
 | browser media | verify-webrtc-va-metadata | 실제video/ICE/DataChannel/metadata필요 | U04 |
 
@@ -54,6 +59,8 @@
 | 주석 보완/결속 | 프로젝트 직접 확인 | diff·전수정적·실행로그 | C단계마감 |
 | 기존 단기 유지 | 프로젝트 직접 확인+범위판정 | 비주석/실행물 불변 | 새30분/UI PASS아님 |
 | 다음 실행 순서 | 사용자 지시·AGENTS | 30분통과후UI | 순서준수 |
+| UI 실패원인 | 프로젝트 직접 확인 / 추론 분리 | 응답2건 관측누락은사실; 서버무응답·화면전환/관측기여는미확정 | 원인확정전제품수정·반복금지 |
+| 전체증거보존 | 사용자 직접 승인·프로젝트 직접 확인 | 19MB승인·1852해시/크기복원일치·정리 | 후속재사용검토가능,적격PASS자동승격불가 |
 
 ### 테스트 판정
 
@@ -61,7 +68,7 @@
 | --- | --- | --- | --- | --- |
 | 안정화 | 진행 대상 | 주석·증거결속 영향 | LP29-C01~04 | 완료·기존 기능증거 유지 |
 | 30분 | 진행 대상 | 사용자·버전필수 | AGENTS7.6·FINAL-30 | 승인·실제완료 |
-| 실제UI/browser | 진행 대상 | 사용자·버전필수 | AGENTS7.6.3/7.9·LP29-U | 승인·30분통과후 |
+| 실제UI/browser | 진행 대상 | 사용자·버전필수 | AGENTS7.6.3/7.9·LP29-U·EVT058 | 실행FAIL·뒤단계중단; 원인미확정조치판단필요 |
 | 공통·녹화120분 | 진행 대상 | media/보존·복구 직접매핑 | S11·AGENTS7.6.2 | 이번범위밖 |
 | 외부서비스·실기기 | 미진행 | 사용자명시제외 | 최신지시 | 제외·PASS아님 |
 
@@ -69,8 +76,8 @@
 
 | 순서 | 우선순위 | 잔여 이슈 | 해야 할 일 | 성격 | 근거 유형 | release action 전·후 |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | 마감 | 실제30분 기록 | 검증·정리완료,분할커밋 | 기록 | 직접확인 | 전 |
-| 2 | P0 | 실제UI·browser | exact424·visual80·녹화/seek·metadata·정리 | UI | 사용자/실행연결 | 전 |
+| 1 | P0 | EVT-058 최초 실패 원인 확정·한정 보완 | 저장trace의action완료→후속시각assertion/marker/요청수명을대조. generic예외/응답미관측과서버무응답구분. 필요한한정진단을먼저설계하고확정경로만보완·반례검사 | 분석·필요시검증기/제품수정 | 직접관측+제안 | 전 |
+| 2 | P0 | 실제UI·browser 마감 | 영향판정후실패case/회귀,기존423증거재사용여부검토·visual80/Policy·녹화I27~34/seek·metadata·정리.30분자동재시작금지 | UI | 사용자/실행연결·AGENTS7.6.2 | 전 |
 | 3 | P0 | 공통·녹화120분 | 각각 자원/drift·보존/복구·정리 | 장시간 | S11/직접매핑 | 전 |
 | 4 | P0/P1 | 최종문서·증적 | 릴리즈노트/출처/대표이미지·증거유효성·커밋/push | 마감 | AGENTS/release policy | 전 |
 | 5 | P0 | PR·CI·main | 별도승인·필수CI·병합hash확인 | 외부변경 | AGENTS4 | 로컬gate후 |
@@ -81,12 +88,15 @@
 | 항목 | 상태 | 사유 | 완료 evidence 사용 가능 여부 | 다음 조건 |
 | --- | --- | --- | --- | --- |
 | 최초30분 | 실패이력보존 | 주석FAIL·soak0 | 불가 | 보완후별도재실행 |
-| 현재UI | 미실행 | 30분완료·기록커밋후실행 | 불가 | 승인된순서실행 |
-| 전체push | 보류 | 승인범위30분/UI잔여 | 불가 | 검증/기록/정리/clean |
+| 현재UI | 실행FAIL·원인미확정 | EVT058 generic실패·RESPONSE_MISSING2,최초예외상세부족 | 전체불가;423개도적격판정미완료 | 원인확정·영향검증·최종UI마감 |
+| visual80/녹화UI/browser | 미실행 | UI실패뒤단계보류 | 불가 | 선수실패해결후범위확인 |
+| 전체push | 불가·미수행 | UI실패·미커밋증거/기록 | 불가 | 해당실패해결·검증/기록/clean |
 | 120분/외부release | 미실행 | 이번범위밖 | 불가 | 선수gate·해당승인 |
 | 외부서비스·실기기 | 명시제외 | 사용자판단 | 불가 | 이번릴리즈잔여로재추가안함 |
 | 최초실패정리 | 완료 | PID부재/port재바인딩/소유root삭제 | 정리증거만 | 서버wait exit는미수집 |
 | 주석정리 | 완료 | 증거이관 후46파일21,809,115B삭제·root부재 | 정적정리증거 | runtime생성없음 |
+| 현재30분 | 완료·커밋 | 108PASS/20회·9c5b4316 | 해당경계유효 | 향후변경영향으로판정·자동전체무효금지 |
+| UI 증거/정리 | 완료 | 전체19MB보존·소유root2개382,501,415B삭제,별도runtime1,668,883B삭제·PID/port확인 | 실패분석/정리증거로가능 | 시스템플러그인277대상유지·준비오류2회보존 |
 
 ## LP28 승인 1~5 전수 대조
 

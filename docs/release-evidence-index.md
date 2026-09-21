@@ -1,6 +1,7 @@
 # Release Evidence Index
 
-- [현재 위치 판정·CLOSE·PREP·S11 단기 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp28-locator-closure.md#s11-최종-단기-실행): 독립307/동등679 재결속 및 단기 빌드·인증·녹화156·환경·버전 마감. 실제 UI·30/120분은 잔여, 외부 서비스/실기기는 명시 제외. 아래는 기존 실행 이력이다.
+- [현재 LP29 실제30분·UI 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp29-final-validation.md): 주석 보완 후30분108PASS/20반복·커밋, 실제UI423PASS/1FAIL(EVT-058)·원인미확정. 전체19MB 증거 승인 보존·정리 완료. visual/녹화UI/browser·120분 잔여, 외부 서비스/실기기 명시 제외. UI 실패 기록 미커밋·푸시 불가/미수행.
+- [LP28 위치 판정·CLOSE·PREP·단기 개별 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp28-locator-closure.md#s11-최종-단기-실행): 독립307/동등679 재결속 및 단기 빌드·인증·녹화156·환경·버전 결과. 공통 주석 검사 누락에 따른 전체 완료 표현 정정과 후속 보완은 LP29를 따른다. 아래는 기존 실행 이력이다.
 
 ## 2026-09-21 LP27 HW 영향 보완·회귀
 

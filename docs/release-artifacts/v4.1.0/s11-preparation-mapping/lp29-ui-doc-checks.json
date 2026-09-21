@@ -1,0 +1,62 @@
+{
+  "schema": "media-server.lp29-ui-record-doc-checks.v1",
+  "source": "9c5b4316b741dbd2cda2d2d4f7b246b51549826f",
+  "scope": "UI 실패·보존·정리 기록의 문서 검사. 제품/UI 재실행 아님.",
+  "finalRecordChecks": {
+    "diff": {
+      "chunk_id": "7c3889",
+      "wall_time_seconds": 0.000007125,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    },
+    "links": {
+      "chunk_id": "fe8aef",
+      "wall_time_seconds": 0.019717292,
+      "exit_code": 0,
+      "original_token_count": 47,
+      "output": "\n== Docs link verification summary ==\n- markdown files: 298\n- local links: 9684\n- local images: 22\n- local anchors: 164\n- indexed docs: 76\n- index coverage exclusions: 213\n- failures: 0\n"
+    },
+    "census": {
+      "chunk_id": "7247d3",
+      "wall_time_seconds": 0.000011417,
+      "exit_code": 0,
+      "original_token_count": 91,
+      "output": "{\"caseRows\":424,\"uniqueIds\":424,\"censusMatches\":true,\"pass\":423,\"fail\":[\"EVT-058\"],\"actions\":1089,\"archiveHashMatches\":true,\"wrapperHashMatches\":true,\"cleanup\":[{\"path\":\"/Users/dhseo/Workspace/mediaServer/.media_server.test/v4.1.0/ui-acceptance-current\",\"absent\":true},{\"path\":\"/private/tmp/media-server-lp29-ui.Ti6USB\",\"absent\":true}],\"binaryHashMatches\":true}\n"
+    }
+  },
+  "records": [
+    {
+      "command": "git diff --check",
+      "chunk_id": "b2664b",
+      "wall_time_seconds": 0.000005458,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    },
+    {
+      "command": "./server.sh verify-docs-links (first)",
+      "chunk_id": "b70740",
+      "wall_time_seconds": 0.052103375,
+      "exit_code": 1,
+      "original_token_count": 104,
+      "output": "[fail] 문서 로컬 링크/이미지 참조 오류\n  - docs/release-evidence-index.md: 존재하지 않는 anchor: release-artifacts/v4.1.0/s11-preparation-mapping/lp29-final-validation.md#실제-ui-실패--현재-최종-판정\n\n== Docs link verification summary ==\n- markdown files: 298\n- local links: 9683\n- local images: 22\n- local anchors: 165\n- indexed docs: 76\n- index coverage exclusions: 213\n- failures: 1\n"
+    },
+    {
+      "command": "./server.sh verify-docs-links (corrected link)",
+      "chunk_id": "b7322e",
+      "wall_time_seconds": 0.010416333,
+      "exit_code": 0,
+      "original_token_count": 47,
+      "output": "\n== Docs link verification summary ==\n- markdown files: 298\n- local links: 9683\n- local images: 22\n- local anchors: 164\n- indexed docs: 76\n- index coverage exclusions: 213\n- failures: 0\n"
+    },
+    {
+      "command": "./server.sh verify-docs-ui-assets",
+      "chunk_id": "a669af",
+      "wall_time_seconds": 0.000009292,
+      "exit_code": 0,
+      "original_token_count": 159,
+      "output": "[pass] README uses only representative product UI screenshots\n[pass] English README uses English UI screenshots\n[pass] UI guide keeps product screenshots in the shared asset set\n[pass] docs UI asset policy documents capture rules\n[pass] managed UI asset manifest stays complete\n[pass] capture script owns every documented UI asset\n[pass] docs capture covers current screenshots\n[pass] representative screenshot docs do not point at stale visual baselines\n[pass] docs UI asset directory contains managed PNG files\n[pass] VA documentation images keep full video frame bounds\n\n== Docs UI asset verification summary ==\n- pass: 10\n- fail: 0\n"
+    }
+  ]
+}

@@ -1,6 +1,14 @@
 # Release Test Records
 
-## 현재 작업: LP29 30분 다음 실제 UI 순차 검증
+## 현재 작업: LP30 EVT-058 원인 확인·UI 마감 승인
+
+잔여1~2번과 분할 커밋·조건 충족 시 푸시를 승인받았다. 실행 전 정의·불변 계약은
+[LP30 승인 범위](release-artifacts/v4.1.0/s11-preparation-mapping/lp29-final-validation.md)를 따른다.
+기존 실패·423개 증거 보존/정리의 무결성 확인과 진단 준비를 문서 단위로 커밋한 뒤 clean source에서
+기존 단일 case 진단을 수행한다. UI 실패를 완료로 커밋하는 것이 아니며 원인 해결·실제UI 마감은 아직 미완료다.
+아래 LP29의 미커밋/푸시 보류 문구는 해당 실행 종료 당시 상태다.120분·외부release·외부서비스/실기기는 실행하지 않는다.
+
+## 현재 작업: LP29 30분 통과·실제 UI 1건 실패
 
 사용자1·2번 실행·분할커밋·조건부푸시 승인. [정의·상태](release-artifacts/v4.1.0/s11-preparation-mapping/lp29-final-validation.md)를 따른다.
 외부 서비스/실기기는 명시 제외,120분과외부릴리즈는이번범위밖이다.
@@ -13,8 +21,16 @@ UI 미실행. [전수 결과·정리](release-artifacts/v4.1.0/s11-preparation-m
 [원출력·검토·실패 이력](release-artifacts/v4.1.0/s11-preparation-mapping/lp29-comments-outputs.json.gz)을 보존한다.
 주석 단계 `b9454076` 커밋 후 실제30분을 재개하여 exit0,전체2402.756초/20반복/108PASS·0FAIL·skip2를 확인했다.
 [실제30분 결과·정리](release-artifacts/v4.1.0/s11-preparation-mapping/lp29-30-pass-items.md)를 보존했다.
-시간/원장 검사와 PID·port·소유3root 정리가 완료됐다. 다음은 이 결과의 분할 커밋 후 실제UI·browser다.
-전체 승인 범위 완료 전 푸시 판정은 보류한다.
+시간/원장 검사와 PID·port·소유3root 정리가 완료됐고 `9c5b4316`으로 커밋했다.
+해당 clean source에서 실제 `./test_ui.sh` 실행: exit1/1566.522초,424개 중423PASS/1FAIL(EVT-058).
+조작 trace3개 PASS와 요청2개의 RESPONSE_MISSING이 함께 기록됐으나 최초 예외 상세가 없어 원인은 미확정이다.
+[UI 개별 전수·미실행·정리](release-artifacts/v4.1.0/s11-preparation-mapping/lp29-ui-items.md),
+[UI 구조화 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp29-ui-result.json)를 보존했다.
+사용자 승인으로 [전체 UI 증거19,045,901B](release-artifacts/v4.1.0/s11-preparation-mapping/lp29-ui-full-evidence.tar.gz)를
+저장했다.1852파일 복원 일치·비밀검사와 PID/port/temp 정리 PASS다. 정리 helper 오류2회·보완 이력도 보존한다.
+423개 개별 PASS는 Policy 적격/UI 전체 PASS가 아니다. visual80·녹화실UI·별도browser 검증은 뒤 단계여서 보류했다.
+주석/30분 커밋2개 유지, UI 실패 기록은 미커밋. 푸시 가능: 아니오 / 수행하지 않음.
+전체30분 증거는 동일 실행물과 변경 범위상 유지하며, 원인 없이 전체검증을 반복하지 않는다.
 
 ## 현재 작업: LP28 위치 일관성·PREP 마감 및 S11 단기 검증
 

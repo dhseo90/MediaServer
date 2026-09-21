@@ -61,6 +61,94 @@ VERSION/CMake4.1.0, published 문서 기준4.0.0을 유지한다. LP28 빌드·�
 
 ## 실행 상태
 
+### LP30 승인: 실패 원인 확인부터 UI 마감까지
+
+사용자는 잔여1번 EVT-058 원인 확정·한정 보완/검증, 2번 시각 교차·Policy·녹화 실UI·브라우저미디어
+마감, 분할 커밋과 조건 충족 시 push를 승인했다. 공통/녹화120분·외부 release action은 이번 범위 밖이다.
+외부서비스·실기기 제외를 유지한다. 제품 시간/저장/권한/API/미디어 계약·timeout·PASS 기준은 바꾸지 않는다.
+메인이 원인·계약·최종 판정을 맡으며 기존 단일 Astra/medium 담당자는 읽기 경로 검토 후 확정 구현만 위임받는다.
+하위 생성 금지. 이미 보존한 LP29 실패·423개 증거는 덮어쓰거나 현재 PASS로 바꾸지 않는다.
+
+기존 trace의 postActionVisualRoleEvidence·정상 workflow cleanup은 존재한다. 호출 순서상 그 뒤
+waitForPendingRequestSnapshot/close 경계를 조사하며, 기록에 최초 예외가 없어 대기 timeout으로 아직 단정하지 않는다.
+기존 diagnostic sweep의 명시 case 선택과 안전한 failureDetail을 사용해 EVT-058만1회 실행한다.
+관측 실패의 원인을 확보하기 전 전수 UI나 제품 변경으로 넘어가지 않는다. 서로 다른 sourceBinding/run을
+합성하는 재개 기능은 현행 canonical runner/Policy에 없으므로 423개를 새 해시로 다시 쓰지 않는다.
+한정 원인 해결·영향 검증 뒤 현행 전체 UI entry1회를 수행하는 순서다. 기존30분은 자동 재실행하지 않는다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일·행·기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화·한정 진단 | 진행 대상 | EVT058 최초 예외 미확정·원인 확정 승인 | LP29 case326·native diagnostic/adapter | 이번 승인 |
+| 실제 UI·browser | 진행 대상 | 사용자2번·버전필수 | LP29-U01~04·native424/visual80·I27~34/seek | 이번 승인,1번통과후 |
+| 30분 | 미진행 | 현재 바이너리/제품 불변·LP29 PASS 유지 | LP29-L01~03·build SHA | 재실행하지 않음,향후diff 영향판정 |
+| 공통·녹화120분 | 진행 대상 | 버전필수·미디어/보존 직접매핑 | S11·AGENTS7.6.2 | 이번 실행 범위 밖 |
+| 외부서비스·실기기 | 미진행 | 사용자 명시 제외 | 최신 지시 | 제외·PASS 아님 |
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP30-D01 | 원본 보존·소스 대조 | tar의 EVT058 summary/policy/trace만 소유tmp에 복원,조작/시각/정리 단계와 runner 제어흐름 대조 | v4.1.0 |
+| LP30-D02 | 기존 단일 실제 UI 진단 | run-v390-ui-native-diagnostic-sweep --case-id EVT-058·현재빌드·실제Chrome·30초기준. 최초예외/응답관측·정리 보존. 진단 PASS는 canonical UI 전체 PASS 아님 | v4.1.0 |
+| LP30-D03 | 원인 한정 보완 | 확정 원인만 구현 전 반례 정의·예상RED→GREEN·관련 단기 회귀. 미확정/교차계약은 뒤단계 중단 | v4.1.0 |
+| LP30-U01 | 현행 UI 마감 | LP29-U01~04 그대로, source-bound424/visual80/Policy와 녹화실UI/browser를 구분 | v4.1.0 |
+| LP30-C01 | 증거·정리·분할 커밋 | 명령/exit/전체항목/hash/소유PID/port/temp,통과단위 커밋·최종push조건 | v4.1.0 |
+
+진단 소유root는 `/private/tmp/media-server-lp30.lgFabk`다. 비밀값은 기존 환경 준비기가 실행마다 생성하고
+운영/상속 계정은 쓰지 않는다. 출력 전용 root·cache/state/TMPDIR·local ICE만 사용한다.
+실측 token start/end/consumed는 집계 도구 미제공으로 미집계, elapsed/source는 실제값을 기록한다.
+기존 진단 entry는 clean current-source를 요구한다. 최신 분할 커밋 승인에 따라 무결성 검증을 마친
+LP29 증거 보존·정리 기록과 LP30 실행 전 정의를 문서 준비 단위로 먼저 커밋한다. UI 실패 단계의
+구현 완료/검증 PASS 커밋이 아니며 실제 실패·미실행을 유지한다. 이후 runtime 진단 source는 이 커밋이다.
+
+### 실제 UI 실패 — 현재 최종 판정
+
+주석 단계 `b9454076`, 실제30분 단계 `9c5b4316`을 각각 커밋한 뒤 clean source
+`9c5b4316b741dbd2cda2d2d4f7b246b51549826f`에서 `./test_ui.sh`를 실행했다.
+UTC 2026-09-21T20:47:38.535Z~21:13:45.056Z, exit1/signal없음, elapsed1566.522초다.
+실제 Chrome152.0.7977.83·Playwright1.62.1로 exact424개를 실행하여 423PASS/1FAIL,
+notRun/unsupported/runnerAbort0이다. **UI 전체 FAIL이며 Policy v4 적격 판정·uiFulltestPass는 미충족이다.**
+사전 준비·전체 빌드·임시 역할 bootstrap·서버/브라우저 정리·실패 census 정합은 PASS다.
+새 빌드 실행물 SHA256은 앞선30분과 같아, 현재 실패만으로30분 증거를 무효화하지 않는다.
+제품/검증기 로직·합격 기준·timeout 변경이나 같은 UI 반복 실행은 하지 않았다.
+
+실패는 `EVT-058`(operator, `/ops/dashboard`, 390×844/light, `#dashRuntimeTrendSparkline`)이다.
+trace의 wait-visible/assert-visible-read-model/verify-independent-readback은 모두 PASS이나,
+case-execution의 `CASE_EXECUTION_FAILED`가 기록됐다. 함께 관측한 `RESPONSE_MISSING` 두 건은
+GET `/ops/api/site-operations/impact-graph`, GET `/ops/api/site-operations/runbook-instance-ledger`다.
+요청131/응답129, 분류누락0/중복0/captureErrors0이며 해당 두 요청의 response/finished/failed가 없다.
+primaryFailureEvidence는 null, marker lifecycle은 not-reached다. **응답 관측 부재가 실제 서버
+무응답 또는 최초 예외의 원인이라는 근거는 아직 없다.** 브라우저 console은 비어 있고 실패 화면은
+메인이 직접 보았으나 이것으로 시각 전수 PASS나 원인 확정을 주장하지 않는다.
+
+기존 canonical parent는 개별 case 실패 뒤에도 같은 배치의 나머지 case 결과를 수집한다.
+이번424전수 수집은 그 기존 동작이며 새 후속 단계 실행이 아니다. aggregate FAIL 뒤 visual80/finalizer,
+Policy qualification, 별도 녹화 I27~34/seek 실제UI와 브라우저미디어 검증은 진행하지 않았다.
+423개 결과를 자동화 적격423개로 승격하지 않으며, 향후 변경 영향·증거 경계로 재사용 여부를 판정한다.
+
+사용자는 **전체 증거 약19MB 보존**을 승인했다. [전체 압축물](lp29-ui-full-evidence.tar.gz)은
+19,045,901B/1,852파일/해제180,909,290B, SHA256
+`963679bb8c63c5a78dfda63f7620cdc9f718ddd7de43226420095f41cddbc9cd`다.
+경로 containment·전체 파일 해시/크기 복원 일치·기존 비밀 스캔 PASS를 확인했다.
+이는 생성된 전체 자료 보존이지 모든 적격 증거가 충족됐다는 뜻은 아니다.
+[424개·1089action·실행/미실행·정리 전수](lp29-ui-items.md), [구조화 요약](lp29-ui-result.json),
+[실행/정리 도구·원출력](lp29-ui-run-outputs.json.gz)을 연결한다.
+token start/end/consumed는 실측 집계 제공 도구가 없어 미집계이며 elapsed/source는 실측이다.
+
+UI runtime/임시계정1,668,883B는 runner가 삭제했다. 서버 PID42523 및 wrapper40896/41958 부재,
+TCP59853/59854·UDP60030 재바인딩을 확인했다. canonical180,909,290B와 외부temp201,592,125B는
+증거 이관 후 삭제·부재 확인했다. temp 크기에는 복원 대조 사본과 압축물 중복이 포함된다.
+정리 helper는 처음 cache 링크를 거부했고, 다음 한정 경로식이 validate 하위4개를 빠뜨려 삭제 전
+중단했다. 실제277개 위치와 두 Cellar 버전 대상을 확인한 뒤 임시 링크만 삭제했고 대상은 유지했다.
+두 준비 오류와 보완 결과는 cleanupHistory에 보존한다. 제품/UI 실패와 구분하며 최종 cleanup PASS다.
+
+분할 커밋2개는 유지한다. 현재 UI 실패·후속 미실행 때문에 이 실패 단계를 커밋하지 않았고,
+증거/기록만 미커밋으로 남긴다. **푸시 가능: 아니오 / 푸시 수행: 없음.**
+기록 마감의 링크 검사는 새 색인의 anchor1건 오류(exit1)를 보존한 뒤 파일 링크로 정정하여
+exit0/오류0을 확인했다. 문서 자산10PASS·공백검사exit0이며 UI 재검증이 아니다.
+[문서 명령·원출력·최초 실패](lp29-ui-doc-checks.json)를 보존한다.
+다음은 보존한 실패 자료에서 최초 예외·후속 화면 전환·요청 수명 관측의 경계를 확정하고,
+확인된 원인만 보완·한정 검증한 뒤 UI 마감 순서로 복귀하는 것이다. 원인 없이 timeout 확대,
+UI/30분 전체 재시작, 제품 경로 수정은 하지 않는다. [릴리즈 전수표](release-readiness-20260916.md)를 따른다.
+
 ### 실제30분 마감 — 현재 결과
 
 주석 단계는 `b9454076`으로 분할 커밋했다. 그 clean source에서 등록한 실제 명령을 1회 재개했다.
@@ -76,9 +164,9 @@ UTC 2026-09-21T20:01:20.619Z~20:41:23.380Z, exit0/signal없음, monotonic2402.75
 로컬 RTSP 입력URL14개를 제거했고 계정/원본영상은 이관하지 않았다.
 소유3root의16,655,992B를 삭제하고 부재·PID4개종료·TCP2/UDP1재바인딩을 확인했다.
 277개 임시 플러그인 링크의 실제 시스템 대상은 삭제하지 않았다. 서버 wait exit/signal은 미수집이다.
-처음 주석 FAIL 기록은 유지한다. 다음은 현재 결과를 커밋한 clean source에서 실제UI·browser 실행이다.
+처음 주석 FAIL 기록은 유지한다. 이 결과는 `9c5b4316`으로 커밋했고 후속 실제UI 결과는 위에 기록했다.
 
-### 주석 보완 마감 — 현재 판정
+### 주석 보완 마감 — 당시 판정
 
 LP29-C01~04를 완료했다. 160파일의 주석만 수정했고 154상단 형식·23영문 전용 행 지적은
 기존 검사1161파일에서 각각0이 됐다. 비주석160파일 동일, shell20/JS49/Python2 구문71개,
