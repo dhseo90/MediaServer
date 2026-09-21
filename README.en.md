@@ -8,9 +8,11 @@
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
 video analytics overlays and rule/scenario live events when analytics are enabled.
 
-The current product boundary is **live source onboarding, live source health, and
-live VA event quality**. Long-term recording, VMS/NVR, playback/archive search,
-and runtime/model bundle distribution are outside the default public release.
+The published v4.0.0 boundary is **live source onboarding, live source health, and
+live VA event quality**. The development v4.1.0 source implements continuous/event
+recording, circular retention, and timeline/playback foundations. Final validation
+and release remain incomplete; this is not a complete VMS/NVR, natural-language
+archive search, or runtime/model bundle distribution.
 
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
@@ -18,7 +20,7 @@ and runtime/model bundle distribution are outside the default public release.
 - Current source version: `4.1.0`
 - v4.0.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
 - Current source roadmap: `v4.1.0 Recording Foundation`
-- v4.1.0 status: S00 research and design guardrails complete. Recording implementation starts at S01.
+- v4.1.0 status: S01-S08 are implemented and S10 strengthens recording time, identity, and storage. Verification preparation is being finalized. S09 was superseded by S10/S11; S11 final validation and release remain incomplete.
 - Latest published baseline: v4.0.0 Local Operations Policy and Stabilization
 - Previous published baseline: v3.9.1 Release Correctness and Public Repository Hygiene
 

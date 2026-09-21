@@ -12,7 +12,7 @@ points to the current public sources.
 - Current source version: `4.1.0`
 - v4.0.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
 - Current source roadmap: `v4.1.0 Recording Foundation`
-- v4.1.0 status: S00 research and design guardrails complete. S01-S09 are not implemented.
+- v4.1.0 status: S01-S08 are implemented and S10 strengthens recording time, identity, and storage. Verification preparation is being finalized. S09 was superseded by S10/S11; S11 final validation and release remain incomplete.
 - Default public distribution: source-only
 - Representative screenshots were recaptured on 2026-08-31 for source `4.0.0` /
   then-published `v3.9.1`, using the v3.8.0 uncropped composition. They are managed

@@ -1,0 +1,30 @@
+{
+  "schema": "media-server.v410-lp28-source-freeze.v1",
+  "head": "13d82e4655370c222a8996edb6e2fd9c4b207a20",
+  "productFiles": 287,
+  "productContentDigest": "cdfb3cbfee742c3363ed174e6085a0f9393dc5bb0d9bc80cb2e823532771db67",
+  "productChanged": false,
+  "pendingPreparation": [
+    {
+      "path": "scripts/internal/gst_environment_actual_probe.cpp",
+      "sha256": "ad5cca54f628f11ad9487f8ec4315bd91e3ffa55ad73224edadd12e31440827d"
+    },
+    {
+      "path": "scripts/internal/recording_preparation_contracts.cpp",
+      "sha256": "461d2f2d2ea20658d618122e977f11ceb8f74105bc2ff30f7530508a490a3dbb"
+    },
+    {
+      "path": "scripts/internal/verify_gst_environment_actual.sh",
+      "sha256": "e1b3f46747f0c4a3dae45da6cb3b62c89dfe298c2c4b23144e7904b48dbfa631"
+    },
+    {
+      "path": "scripts/internal/verify_recording_preparation_contracts.sh",
+      "sha256": "f0268981f34ca6cf0c50f6573d039f95b32bd85a08bf4f81e86495ff85701296"
+    }
+  ],
+  "exclusions": [
+    "external services",
+    "physical devices"
+  ],
+  "purpose": "S10 code input freeze; not S11 pass"
+}

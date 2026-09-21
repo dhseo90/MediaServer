@@ -359,3 +359,115 @@ Node assertion 출력의 끝 공백만 정리하며 최초 FAIL은 그대로다.
 마감 문서 링크289개/9573링크/22이미지/160anchor·exit0, tracked/cached 공백exit0.
 선택 stage는 최초 잘못된 patch 입력(exit128)·zero-context 옵션 누락(exit1)을 거쳐
 정확한 기존 한 줄과 `--unidiff-zero`로 성공했다. 실패 두 명령은 파일/index를 변경하지 않았다.
+
+## 3번 CLOSE·코드 고정 실행 정의
+
+2번 `13d82e46` 커밋 후 진행한다. 삭제할 실제 미사용 항목은 확인되지 않았으므로 이름만으로
+호환 fixture/현재 소비 모듈을 지우지 않는다. 공개 문서4개의 S00/S01 상태를 현재 구현/미검증
+경계로 정정하고 CMake가 실제 사용하는 SQLite의 공식 출처를 attribution에 추가한다.
+SQLite 원문/특허·외부 repository 코드를 도입하지 않고 [공식 저작권 설명](https://sqlite.org/copyright.html)의
+public-domain 표기만 출처와 함께 기록한다. 특허 무위험·전역 라이선스 적합을 보증하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| CLOSE-L01 | 구형 소비자 | recording/v1 8파일45,204B 및 reader/observer/wrapper import·dispatch 직접 대조 | v4.1.0 |
+| CLOSE-D01 | 공개 현재 상태 | README 한/영·docs 한/영 source4.1/published4.0·녹화 구현/미완료 구분 | v4.1.0 |
+| CLOSE-N01 | 출처 일치 | SQLite pkg-config CMake 사용·공식 출처·write-dependency-notice --check | v4.1.0 |
+| CLOSE-G01 | 문서/기준 | docs-links·docs-ui-assets·v410-entry-baseline·release-metadata·diffcheck | v4.1.0 |
+| CLOSE-F01 | 고정 인계 | src/include/CMake·검사/proof source hash, 잔여PREP 변경 소유 확인.4번에는 승인자료만 재결속 | v4.1.0 |
+
+| 대상 | 현재 소비자·크기 | 조치 | 이유 |
+| --- | --- | --- | --- |
+| v1/segments.jsonl |1352B·recording_contract_smoke/compatibility | 보존 | 이전바이트·필수필드 반례 |
+| v1/event-links.jsonl |728B·동일 검사 | 보존 | 연결 호환 반례 |
+| v1/observations.jsonl |672B·동일 검사 | 보존 | 관측 호환 반례 |
+| v1/tombstones.jsonl |393B·동일 검사 | 보존 | 삭제 증거 반례 |
+| compatibility-manifest.json |456B·compatibility verifier 고정SHA | 보존 | 승인 digest 경계 |
+| s05-action-inventory.json |35831B·v410_s05_inventory.mjs | 보존 | 현재 등록/assertion 연결 |
+| recovery manifest2개 |2766/3006B·recovery/corruption wrapper | 보존 |17/14 정의 |
+| current fixture 디렉터리 | 존재하지 않음 | 생성하지 않음 | 현행 runner가 managed 임시 root에 생성 |
+| journal reader/observer/progress | current observer/longrun에서 실제 import | 보존 | 이름만 구형이며 현재 소비 |
+| foundation/longrun wrapper | server.sh의 실제 dispatch | 보존 | 현재 호환 진입점·동등 대체 미확인 |
+
+삭제0·제품 수정0을 기본으로 한다. 새로운 기능이나 별도 legacy 제거 재설계는 이번 CLOSE에 추가하지 않는다.
+
+### 3번 결과·고정
+
+공개4문서의 상태·언어별 경계를 맞추고 실제 선택 의존성 SQLite만 attribution에 추가했다.
+notice는 기존 생성기로 재생성 후 --check 통과했다. 특허 자료/새 library/외부코드를 추가하지 않았다.
+아래 모든 명령exit0. 문서 links289개/9573링크(첫 원출력 기준), 자산10·entry33·metadata18이다.
+links/자산은 시각검수·published/Release 검증을 대체하지 않는다.
+제품 src/include/CMake diff0, [고정 입력](lp28-source-freeze.json)에 실제 제품 내용digest와
+기존 PREP4소스 hash를 보존한다.4번은 이 소스에 대한 독립 검토·승인 원장 연결이며 제품 변경은 하지 않는다.
+구형 소비자 조사 대상에서 삭제0. 운영/개발 저장 데이터의 소유 불명확 경로에는 접근/삭제하지 않았다.
+S10 제품 코드 고정은 S11 PASS나 PREP 전체 완료가 아니다. 독립 결속은 다음 단계다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| CLOSE 문서링크 | verify-docs-links exit0·전체 로그 | PASS |
+| CLOSE notice dependency notice is current: THIRD_PARTY_NOTICES.md | 해당 원출력·명령exit0 | PASS |
+| CLOSE assets README uses only representative product UI screenshots | 해당 원출력·명령exit0 | PASS |
+| CLOSE assets English README uses English UI screenshots | 해당 원출력·명령exit0 | PASS |
+| CLOSE assets UI guide keeps product screenshots in the shared asset set | 해당 원출력·명령exit0 | PASS |
+| CLOSE assets docs UI asset policy documents capture rules | 해당 원출력·명령exit0 | PASS |
+| CLOSE assets managed UI asset manifest stays complete | 해당 원출력·명령exit0 | PASS |
+| CLOSE assets capture script owns every documented UI asset | 해당 원출력·명령exit0 | PASS |
+| CLOSE assets docs capture covers current screenshots | 해당 원출력·명령exit0 | PASS |
+| CLOSE assets representative screenshot docs do not point at stale visual baselines | 해당 원출력·명령exit0 | PASS |
+| CLOSE assets docs UI asset directory contains managed PNG files | 해당 원출력·명령exit0 | PASS |
+| CLOSE assets VA documentation images keep full video frame bounds | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry VERSION=4.1.0 | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry branch context=v4.1.0 | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry CMake source version | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry README source version | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry README current roadmap | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry README published tag | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry README published baseline | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry English README source version | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry English README current roadmap | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry docs index source version | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry docs index current roadmap | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry English docs index source version | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry English docs index current roadmap | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry versioning policy source version | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry versioning policy current roadmap | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry release policy source version | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry release policy current roadmap | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry public review source version | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry UI guide source version | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry UI assets source version | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry UI asset manifest source version | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry UI asset manifest published baseline | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry UI asset verifier published baseline | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry backlog source version | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry backlog current roadmap | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry roadmap source version | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry roadmap S00 status | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry latest published baseline remains v4.0.0 | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry release evidence exists | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry research gate dispatch | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry entry baseline dispatch | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry release metadata current tag | 해당 원출력·명령exit0 | PASS |
+| CLOSE entry release metadata current roadmap | 해당 원출력·명령exit0 | PASS |
+| CLOSE metadata VERSION matches CMake project VERSION | 해당 원출력·명령exit0 | PASS |
+| CLOSE metadata README.md points to the current published release | 해당 원출력·명령exit0 | PASS |
+| CLOSE metadata README.md keeps release source-of-truth links lightweight | 해당 원출력·명령exit0 | PASS |
+| CLOSE metadata README.en.md points to the current published release | 해당 원출력·명령exit0 | PASS |
+| CLOSE metadata README.en.md keeps release source-of-truth links lightweight | 해당 원출력·명령exit0 | PASS |
+| CLOSE metadata historical v2.9 source-of-truth remains distinct from latest published v2.8 | 해당 원출력·명령exit0 | PASS |
+| CLOSE metadata default mode records published metadata verification as external gate | 해당 원출력·명령exit0 | PASS |
+| CLOSE metadata versioning policy separates source version and published release | 해당 원출력·명령exit0 | PASS |
+| CLOSE metadata versioning policy pins semver source fields | 해당 원출력·명령exit0 | PASS |
+| CLOSE metadata release policy separates source version and published release | 해당 원출력·명령exit0 | PASS |
+| CLOSE metadata release policy preserves latest published release note source | 해당 원출력·명령exit0 | PASS |
+| CLOSE metadata release policies require future signed tags | 해당 원출력·명령exit0 | PASS |
+| CLOSE metadata development backlog pins current source roadmap and public release boundary | 해당 원출력·명령exit0 | PASS |
+| CLOSE metadata docs index points to backlog as current release source of truth | 해당 원출력·명령exit0 | PASS |
+| CLOSE metadata public entry docs keep release evidence source-of-truth deduped | 해당 원출력·명령exit0 | PASS |
+| CLOSE metadata public review pins current release wording | 해당 원출력·명령exit0 | PASS |
+| CLOSE metadata UI guide pins current release wording | 해당 원출력·명령exit0 | PASS |
+| CLOSE metadata UI asset policy pins current source and published baseline wording | 해당 원출력·명령exit0 | PASS |
+
+원출력: [notice](lp28-close-notice.log), [링크](lp28-close-docs.log),
+[자산](lp28-close-assets.log), [entry](lp28-close-entry.log), [metadata](lp28-close-metadata.log).
+이 단계 제품 실행/port/임시 runtime 산출물 없음. 실제 테스트 토큰 집계는 도구 부재로 미집계다.

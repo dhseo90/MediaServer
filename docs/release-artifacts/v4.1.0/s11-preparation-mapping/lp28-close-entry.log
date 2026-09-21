@@ -1,0 +1,35 @@
+[PASS] VERSION=4.1.0
+[PASS] branch context=v4.1.0
+[PASS] CMake source version
+[PASS] README source version
+[PASS] README current roadmap
+[PASS] README published tag
+[PASS] README published baseline
+[PASS] English README source version
+[PASS] English README current roadmap
+[PASS] docs index source version
+[PASS] docs index current roadmap
+[PASS] English docs index source version
+[PASS] English docs index current roadmap
+[PASS] versioning policy source version
+[PASS] versioning policy current roadmap
+[PASS] release policy source version
+[PASS] release policy current roadmap
+[PASS] public review source version
+[PASS] UI guide source version
+[PASS] UI assets source version
+[PASS] UI asset manifest source version
+[PASS] UI asset manifest published baseline
+[PASS] UI asset verifier published baseline
+[PASS] backlog source version
+[PASS] backlog current roadmap
+[PASS] roadmap source version
+[PASS] roadmap S00 status
+[PASS] latest published baseline remains v4.0.0
+[PASS] release evidence exists
+[PASS] research gate dispatch
+[PASS] entry baseline dispatch
+[PASS] release metadata current tag
+[PASS] release metadata current roadmap
+== v4.1.0 entry baseline summary ==
+pass=33 fail=0

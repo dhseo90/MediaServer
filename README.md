@@ -8,9 +8,9 @@
 RTSP/WebRTC live stream을 받아 다시 내보내고, 필요할 때 YOLO/ONNX 영상 분석
 overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다.
 
-현재 제품 경계는 **live source onboarding, live source health, live VA event 품질**입니다.
-장기 녹화, VMS/NVR, playback/archive search, runtime/model bundle 배포는 기본 공개
-릴리즈 범위가 아닙니다.
+현재 공개 v4.0.0의 제품 경계는 **live source onboarding, live source health, live VA event 품질**입니다.
+개발 중인 v4.1.0 소스에는 상시·이벤트 녹화, 순환 보존, 타임라인·재생 기반이 구현되어 있습니다.
+최종 검증·릴리즈는 아직 완료되지 않았으며, VMS/NVR 완성 제품·자연어 영상 검색·runtime/model bundle 배포를 뜻하지 않습니다.
 
 - English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 - 전체 문서 색인: [docs/README.md](docs/README.md)
@@ -18,7 +18,7 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 - 현재 소스 버전: `4.1.0`
 - v4.0.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
 - 현재 source roadmap: `v4.1.0 Recording Foundation`
-- v4.1.0 상태: S00 조사·설계 차단선 완료. 녹화 기능 구현은 S01부터 순서대로 진행
+- v4.1.0 상태: S01~S08 구현과 S10 시간·식별·저장 기반 보강 후 검증 준비 마감 중. S09는 S10·S11로 대체했으며 S11 최종 검증·릴리즈는 미완료
 - 최신 공개 기준: v4.0.0 Local Operations Policy and Stabilization
 - 직전 공개 기준: v3.9.1 Release Correctness and Public Repository Hygiene
 
