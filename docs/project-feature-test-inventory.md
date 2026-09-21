@@ -1,5 +1,24 @@
 # Project Feature Test Inventory
 
+## LP27 릴리즈 선행 작업 사전등록
+
+[실행 전 정의](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md). 등록은 PASS가 아니다.
+
+| ID | 기능 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| LP27-H01 | 진단 입력/제품 source 결박 | 동일 AU·SHA·factory/builder | 비대상: 단기 진단 | 비대상: 단기 진단 | 비대상: UI 없음 |
+| LP27-H02 | HW decoder 실제 경계 | sink/src PTS/EOS/누락 계수 | 비대상: 단기 진단 | 실제 영향에 따라 S11 판정 | 비대상: UI 없음 |
+| LP27-H03 | downstream 영향 | URI encoder/RTSP overlay 앞 PTS | 비대상: 단기 진단 | 실제 영향에 따라 S11 판정 | 실제 UI 대체 아님 |
+| LP27-H04 | 관측 반례 oracle | 중간 누락/중복·EOS·관측 부재 | 비대상: 도구 | 비대상: 도구 | 비대상: UI 없음 |
+| LP27-H05 | 진단 종료/격리 | 소유 root·thread·port/probe | 비대상: 도구 | 비대상: 도구 | 비대상: UI 없음 |
+| LP27-H06 | 미재현/실패 판정 | 관측과 제품PASS 구분 | 비대상: 도구 | 비대상: 도구 | 비대상: UI 없음 |
+| LP27-D01 | 내부 로그 안전 분류 | drain/frame/clamp 숫자·미등록/악성 반례 | 비대상: 단기 도구 | 비대상: 단기 도구 | 비대상: UI 없음 |
+| LP27-D02 | 진단 관측 수명/상한 | overflow·미확인·NULL/handler 정리 | 비대상: 단기 도구 | 비대상: 단기 도구 | 비대상: UI 없음 |
+| LP27-D03 | 일반 입력 burst | normal20 동일 AU·EOS/PTS/내부 순서 | 비대상: 단기 진단 | S11 영향 판정 별도 | 비대상: UI 없음 |
+| LP27-D04 | 일반 입력 paced | normal20 DTS 간격·EOS/PTS/내부 순서 | 비대상: 단기 진단 | S11 영향 판정 별도 | 비대상: UI 없음 |
+| LP27-D05 | B-frame burst | bframe30 PTS 누락/중복과 clamp 대응 | 비대상: 단기 진단 | S11 영향 판정 별도 | 비대상: UI 없음 |
+| LP27-D06 | B-frame paced | bframe30 DTS 간격·EOS 전후 구분 | 비대상: 단기 진단 | S11 영향 판정 별도 | 비대상: UI 없음 |
+
 ## LP26 현행 검증 준비 사전등록
 
 개별 정의: [LP26 준비 기록](release-artifacts/v4.1.0/s11-preparation-mapping/lp26-verifier-preparation.md).

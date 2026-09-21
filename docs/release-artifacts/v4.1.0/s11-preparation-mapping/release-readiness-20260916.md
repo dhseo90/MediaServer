@@ -1,5 +1,124 @@
 # v4.1.0 릴리즈 잔여 확인 — 보완 진단 시점
 
+## LP27 후속 승인 — HW-01 원인 판정 완료
+
+최신 승인 순서는 HW-01 → HW-02 → HW-03 → PREP-01 → CLOSE-01이며, 통과 단위 분할 커밋과
+조건 충족 후 개발 브랜치 push다. 아래 전수표의 `선택 정책 결정 대기`·`1~4 건너뜀`은 이전 실행 이력이다.
+HW-01은 진단03에서 normal burst/paced 정상과 B-frame burst/paced 실패를 모두 완전하게 관측했다.
+EOS drain 중 늦은 callback → 낮은 PTS의 finish → 기저 디코더 시간값 보정 → overlay 전달까지
+직접 연결했다. 이는 원인 진단 완료이며 제품 해결 완료가 아니다. 자체07의 50개 assertion은 PASS다.
+HW-02는 macOS/applemedia1.28.1/H264의 해당 자동선택 후보에 한정한 보완을 적용하고,
+HW-03에서 반례·다른 입력 코덱·자원 영향을 확인할 예정이다. 전역 rank·설치 패키지·입력 시간값은 바꾸지 않는다.
+PREP-01/CLOSE-01과 S11 최종 묶음은 아직 미실행이다. 상세 원인·한계·모든 실행/실패/정리는
+[LP27 HW-01 최종 판정](lp27-release-preparation.md#hw-01-최종-판정과-개별-결과)을 따른다.
+
+## 2026-09-21 LP27 이전 전수 대조
+
+독자: 현재 개발·릴리즈 담당자. 수명: LP27 중단 및 재개 범위 결정까지.
+AGENTS.md가 정책, 중앙 테스트 기록이 결과 기준이다. 아래 LP26 이하 표는 당시 이력이다.
+제품 전체 전문 재감사나 실제 최종 검증이 아니라 승인된1~4의 진행 결과와 릴리즈 잔여 대조다.
+상세 실행·처음 실패·수정·정리는 [LP27 기록](lp27-release-preparation.md)에 보존한다.
+
+### 지시 전수
+
+| 번호 | 사용자 지시 | 처리 상태 | 결과 | 근거 |
+| --- | --- | --- | --- | --- |
+| 1 | HW 영향 판정·필요 경로 보완 | 부분 완료 | 실제 RTSP builder graph에서 B-frame PTS 불일치와 overlay 전달 확인. 선택 정책 변경 여부 판단 대기 | LP27 자체04·영향03 |
+| 2 | 검증 준비 마감 | 건너뜀 | 1번 미해소로 초기ID·복합 요구·ENV12 실행 연결·최종 manifest 남음 | LP26 현행 매핑 |
+| 3 | 구형 코드·개발 자료 정리 | 건너뜀 | 사용처·대체 검사·소유권 검토 후 정리할 예정 | 현재 v1 fixture8개·legacy 소비 경로 |
+| 4 | 문서·S10 코드/증거 고정 | 건너뜀 | 이번 실패 기록은 코드고정 완료가 아님 | 제품 diff 없음·로드맵 S10 |
+| 5 | 분할 커밋·마지막 푸시 | 미수행 | 승인 유지, 실패 단계/미커밋으로 조건 미충족 | AGENTS3/5 |
+| 6 | 종합 보고·릴리즈 잔여 재산정 | 대조 완료 | 아래 전수표, 실제 릴리즈 완료 아님 | AGENTS2/6 |
+
+### 기준
+
+| 항목 | 기준 값 | 직접 확인 결과 | 근거 |
+| --- | --- | --- | --- |
+| branch/HEAD | v4.1.0 | f4e58b9cb2efbeec43a7e1132da940fce6afd521 | git status/rev-parse |
+| upstream/원격 | origin/v4.1.0 | 앞뒤0·원격 HEAD 동일, 이번 변경 미커밋 | git rev-list/ls-remote |
+| 버전/build | 4.1.0 | VERSION:1/CMakeLists:3/CMakeCache:140 일치 | 직접 파일 확인 |
+| 제품 source | src/include 불변 | 제품/build archive SHA 유지; 진단 도구와 기록만 변경 | diff·각 실행 source hash |
+| main/tag | main431397d9 / 현재 소스4.1.0 | 원격main동일,v4.1.0 local/remote tag 없음 | git tag/ls-remote |
+| 공개/PR/CI | latestv4.0.0 | release v4.0.0,draft/prerelease false; v4.1.0 openPR0/run0 | gh 읽기,CI PASS 아님 |
+| CHANGELOG/NEWS | 제품 공개 변경 기록 | LP26의 루트 파일 없음 판정 유지, 이번 생성 없음 | LP26 파일 조사·이번 diff |
+
+### 로드맵 대조
+
+| roadmap 항목 | 문서상 상태 | 직접 확인 상태 | 불일치 여부 | 근거 |
+| --- | --- | --- | --- | --- |
+| S00 | 기존 조사/설계 | 새 의존성·외부 코드 도입/특허 참고 없음 | 일치,새 법적 보증 아님 | 이번 diff |
+| S01~04 | 기존 단계 완료 | managed writer/catalog/보존 유지, 초기 exact 요구 연결 잔여 | 당시 구현과 현재 전수 검증 구분 필요 | LP26 매핑·현재 코드 |
+| S05~08 | 기존 단계 완료 | 실제 통합156PASS 및 준비436개는 해당 범위의 기존 증거 | 현재 HW/전체 UI까지 확장 불가 | LP25/26 로그·동일 제품 source |
+| S09 | 종료·대체 | 실패 이력 보존,새 성공 판정 없음 | 일치 | 로드맵238행 |
+| S10 | 부분 완료 | HW 영향 확인,보완 방침·정리·고정 남음 | 일치 | 로드맵239행·LP27 |
+| S11 | 계획·미실행 | 최종 안정화/30분/UI/120분 미실행 | 일치 | 로드맵240/313행 이후 |
+
+### 구현·검증 연결
+
+| 확인 대상 | 실제 파일·route·함수·API·UI·verifier | 확인 결과 | 근거 |
+| --- | --- | --- | --- |
+| HW 자동선택 RTSP | gst_pipeline_builder.cpp BuildFactoryLaunch, ConfigureFactory | 실제 생성 함수를 재사용한 graph에서 decoder PTS 불일치. 네트워크 end-to-end 아님 | lp27-hw-impact-03.log |
+| 영향 전달 | decoder sink/src,analysis_overlay sink | 입력30개/PTS정상,출력30개지만2.6/2.7초누락·2.8초3개,overlay동일 | 같은 로그·자체oracle29 |
+| URI 입력 | source_factory.cpp UriSourceWorker/uridecodebin | 자동선택 코드 있음,실제 HTTP/HLS 영향은 미측정 | source_factory:1562/1943 |
+| 녹화/분석 | BuildFilePipelineLaunch,raw_video_decoder.cpp,recording_derived_remux.cpp | 압축 원본 writer 및 명시 SW H264 분석/파생 경로는 이번 변경 없음 | source_factory:390/raw_decoder:58/derived_remux:205 |
+| 관측/장시간 준비 | current observer/longrun 공개 wrapper | LP26 실제단기71·자체60,장시간 실행은 별도 | LP26 실행 매핑·동일 소스 |
+| UI 준비 | current_ui_seed/verify_v410_recording_ui_contract.mjs | managed seed/실제2파생·auth·seek 준비,실제UI미실행 | LP26 준비86 |
+| 실제 이벤트 통합 | currentSteps의HTTP/API/auth/lifecycle/default/actual-app | 이전156PASS 유지,이번 HW 실패를 저장/HTTP 재실패로 바꾸지 않음 | current_integration_suite:7~12·LP25 |
+| 환경 검사 | verify_gst_environment.sh → gst_environment_test.py | fixture 실행만 연결,실제44factory/READY/decode 절차 마감 필요 | wrapper 첫25행·ENV12 |
+| 구형 코드/자료 | recording/v1 fixture8개,recording_timeline_smoke --seed-ui | 존재/소비 경로 확인,아직 삭제하지 않음 | 파일 목록·timeline_smoke:203 |
+
+### 근거 분류
+
+| 항목 | 근거 유형 | 근거 | 릴리즈 영향 |
+| --- | --- | --- | --- |
+| HW PTS→overlay 전달 | 프로젝트 직접 확인 | 실제 제품 builder graph·고정 AU·경계별 PTS/EOS | 현재 해결 전 blocker |
+| vtdec drain와의 인과 | 추론/제안 | 공식1.28.1 drain/output 코드,내부 callback 미계측 | 내부 근본 원인 확정으로 사용 금지 |
+| H264 SW 우선 보완 | 추론/제안 | 확인된경계·기존 SW 경로,전역rank/package유지 | 사용자 선택 정책 결정 후 구현 |
+| 2~4 선수조건 및 실패 중단 | AGENTS 직접 규칙 | 3.3/8 | 1번 미해소 상태로 다음 개발 금지 |
+| 30분/UI/120분·공개 | AGENTS 직접 규칙 | 4/7.6/7.6.2 및 S11 | 필수 evidence/각각 승인 |
+
+### 테스트 필요성 판정
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일·행·기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| HW 자체/단기 영향 | 진행 대상 | 사용자1번 | LP27-H01~06·실행 로그 | 승인·실행,실패 보존·추가 맹목 반복 안 함 |
+| 제품 보완/영향 회귀 | 조건부 진행 | 선택 정책 보완 결정 필요 | source_factory/gst_pipeline_builder | 범위 확인 대기,현재 미실행 |
+| 문서/진단 정합 | 진행 대상 | 이번 도구/기록 변경 | bash구문/diff/docs/assets/script | 승인·실행. 제품 실패 대체 불가 |
+| S11 최종 안정화 | 진행 대상 | S10 고정 후필수 | build/Auth/media/현행통합/ENV/metadata/closeout | 이번 전체실행 미승인,준비 선행 |
+| 30분 | 진행 대상 | 버전 필수 | AGENTS7.6·S11 | 최종묶음 별도 실행 승인 |
+| 실제 UI | 진행 대상 | 버전 필수·현재D08미실행 | exactID/role/viewport/theme/재생/overlay | 이번 실행 제외,릴리즈 면제 아님 |
+| 120분 | 진행 대상 | writer/보존/복구/lifecycle·로드맵 | S10·LP26-O05·S11 | 공통/녹화전용 분리,별도 실행 승인 |
+| 외부 실기기/서비스 | 조건부 진행 | 환경·자격증명 필요 | AGENTS4/7 | 미제공·미승인,기본PASS 아님 |
+
+### 릴리즈까지 남은 개발·실행 순서
+
+| 순서 | 우선순위 | 잔여 이슈 | 해야 할 일 | 성격 | 근거 유형 | release action 전·후 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | P0 | HW 디코더 보완 방침·영향 마감 | H264 로컬 선택 정책 결정 후 구현/반례·PTS/EOS·영향 회귀. URI/RTSP 적용 범위를 구분,기존 HW 실패 숨기지 않음 | 사용자 결정→개발 | 직접확인+제안 | 전 |
+| 2 | P0 | 현행 검증 준비 마감 | S01~04 고정ID/복합요구·ENV12 실제 절차·최종UI/장시간manifest 결박,단기 자체검사 | 준비 개발 | 직접확인 | 전 |
+| 3 | P0 | 구형 경로/개발 자료 정리 | 소유·사용처·대체검사 확인 후 불필요분 제거,유효 호환성/음성fixture·실패기록 유지 | 정리 개발 | 직접확인+기존지시 | 전 |
+| 4 | P0/P1 | 문서·S10 코드/증거 고정 | 오래된설명·출처/NOTICE·source-only·자원판정기준,증거유지/부분무효/전체무효표,분할커밋·개발push | 준비 마감 | 정책+직접확인 | 전 |
+| 5 | P0 | S11 최종 안정화 | 고정source build·Auth/media/관련기능·현행통합·ENV·entry/metadata/docs/inventory/closeout | 최종 실행 | 정책+로드맵 | 전 |
+| 6 | P0 | S11 필수 장시간·실제 UI | 안정화 후30분→실제UI→공통/녹화전용120분,자원·종료·정리 판정. 부분FAIL은 영향 범위만보완 | 최종 실행 | 정책+로드맵 | 전 |
+| 7 | P0 | 공개 절차 | 각승인 후push/PR·requiredCI→mainmerge→서명tag→source-onlyRelease→published검증 | 외부 변경 | AGENTS 직접규칙 | 필수gate 뒤 |
+| 8 | P2 | 외부 조건 확인 | 제공·승인된실기기/endpoint/provider 확인 또는 제외경계 명시 | 조건부 | 정책+환경 | 조건충족시,필수gate 대체불가 |
+
+### 미해소 상태
+
+| 항목 | 상태 | 사유 | 완료 evidence 사용 가능 여부 | 다음 조건 |
+| --- | --- | --- | --- | --- |
+| HW 영향1번 | 부분완료/제품보완미실행 | decoder 선택 정책 결정 필요 | 원인 경계의 직접증거만 가능 | 사용자 결정·보완·영향검증 |
+| 2~4 | 건너뜀 | 앞단계 미해소 | 불가 | 1번 완료 |
+| LP25/26 과거 증거 | 해당범위 유지 | 이번제품source불변 | 그당시 단기범위 한정 | 제품변경후diff기준재판정 |
+| 최종 안정화/30분/UI/120분 | 미실행 | 코드미고정·준비잔여 | 불가 | 최종범위·승인 |
+| 임시정리 | 완료 |7개 소유root삭제·부재,서버/포트 생성없음 | 이번실행 cleanup 가능 | 다음실행 별도소유 |
+| 커밋/푸시 | 미수행 | 승인유지하나실패단계·미커밋 | 불가 | 해결·관련검증·기록조건 |
+| PR/CI/tag/Release | 미수행/CI미확인 | currentPR/run0·tag없음 | 불가 | 필수gate·각승인 |
+| 외부조건 | 조건부 | 미제공/미승인 | 기본PASS아님 | 조건제공 |
+
+토큰 start/end/consumed는 전용 집계 미제공으로 미집계. elapsed는 LP27 각 원출력에 기록했다.
+원격 조회는 읽기만 수행했으며 최신 개발 원격은 로컬 HEAD와 같고 작업트리는 dirty다.
+
 ## 2026-09-21 LP26 최신 전수 대조
 
 독자: 현재 개발·릴리즈 담당자. 수명: LP26 종료 시점의 잔여 감사. 정책은 AGENTS.md,

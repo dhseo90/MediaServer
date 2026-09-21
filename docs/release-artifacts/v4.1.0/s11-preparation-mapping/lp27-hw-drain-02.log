@@ -1,0 +1,627 @@
+[source] src/ingress/gst_pipeline_builder.cpp sha256=65c4976f05644f538c8713b86c7121270ef08673fec13116bf6e9d9004649ee6
+[source] src/ingress/rtsp_egress_session.cpp sha256=25cba9e1fac1d81c14aec5d36e121b8b895fa607ea2b2f783fbb23ac42540b29
+[source] include/ingress/gst_pipeline_builder.h sha256=cd505e31bf74a1768274d23c2c592fe0856431d4962f279d6f1d7f5c50977163
+[source] scripts/internal/recording_hw_impact_probe.cpp sha256=c9cf58414c6facaa20a6e19af320895ef4d1a6da82b1393ca669ce626fe21b8b
+[source] scripts/internal/verify_recording_hw_impact.sh sha256=ab114f8a5bd96c150c78416f79e1f72d57c0bba30101ce0e7cce3c629d852dde
+[source] scripts/internal/recording_media_test_fixture.h sha256=404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6
+[source] build-gst-onnx/libmedia_server_runtime.a sha256=408366261ba29cb2a510b8b6c6077615058ea4790696414658a223927b1c739f
+[environment] utc=2026-09-21T09:49:35Z platform=Darwin machine=arm64 head=f4e58b9cb2efbeec43a7e1132da940fce6afd521
+1.28.1
+1.28.1
+[au] case=normal20 index=0 pts=0 dts=0 duration=100000000 key=1 bytes=2820
+[au] case=normal20 index=1 pts=100000000 dts=100000000 duration=100000000 key=0 bytes=882
+[au] case=normal20 index=2 pts=200000000 dts=200000000 duration=100000000 key=0 bytes=686
+[au] case=normal20 index=3 pts=300000000 dts=300000000 duration=100000000 key=0 bytes=796
+[au] case=normal20 index=4 pts=400000000 dts=400000000 duration=100000000 key=0 bytes=778
+[au] case=normal20 index=5 pts=500000000 dts=500000000 duration=100000000 key=0 bytes=827
+[au] case=normal20 index=6 pts=600000000 dts=600000000 duration=100000000 key=0 bytes=673
+[au] case=normal20 index=7 pts=700000000 dts=700000000 duration=100000000 key=0 bytes=836
+[au] case=normal20 index=8 pts=800000000 dts=800000000 duration=100000000 key=0 bytes=798
+[au] case=normal20 index=9 pts=900000000 dts=900000000 duration=100000000 key=0 bytes=816
+[au] case=normal20 index=10 pts=1000000000 dts=1000000000 duration=100000000 key=1 bytes=1935
+[au] case=normal20 index=11 pts=1100000000 dts=1100000000 duration=100000000 key=0 bytes=839
+[au] case=normal20 index=12 pts=1200000000 dts=1200000000 duration=100000000 key=0 bytes=864
+[au] case=normal20 index=13 pts=1300000000 dts=1300000000 duration=100000000 key=0 bytes=911
+[au] case=normal20 index=14 pts=1400000000 dts=1400000000 duration=100000000 key=0 bytes=888
+[au] case=normal20 index=15 pts=1500000000 dts=1500000000 duration=100000000 key=0 bytes=882
+[au] case=normal20 index=16 pts=1600000000 dts=1600000000 duration=100000000 key=0 bytes=938
+[au] case=normal20 index=17 pts=1700000000 dts=1700000000 duration=100000000 key=0 bytes=928
+[au] case=normal20 index=18 pts=1800000000 dts=1800000000 duration=100000000 key=0 bytes=861
+[au] case=normal20 index=19 pts=1900000000 dts=1900000000 duration=100000000 key=0 bytes=873
+[input] case=normal20 count=20 bytes=19831 sha256=0becff0184318c981f79e3be56dfa0aa25246665d27e74e87adc2cbb6d87cd62
+[au] case=bframe30 index=0 pts=200000000 dts=0 duration=100000000 key=1 bytes=1853
+[au] case=bframe30 index=1 pts=400000000 dts=100000000 duration=100000000 key=0 bytes=704
+[au] case=bframe30 index=2 pts=300000000 dts=200000000 duration=100000000 key=0 bytes=453
+[au] case=bframe30 index=3 pts=700000000 dts=300000000 duration=100000000 key=0 bytes=835
+[au] case=bframe30 index=4 pts=500000000 dts=400000000 duration=100000000 key=0 bytes=489
+[au] case=bframe30 index=5 pts=600000000 dts=500000000 duration=100000000 key=0 bytes=343
+[au] case=bframe30 index=6 pts=1000000000 dts=600000000 duration=100000000 key=0 bytes=820
+[au] case=bframe30 index=7 pts=800000000 dts=700000000 duration=100000000 key=0 bytes=503
+[au] case=bframe30 index=8 pts=900000000 dts=800000000 duration=100000000 key=0 bytes=506
+[au] case=bframe30 index=9 pts=1100000000 dts=900000000 duration=100000000 key=0 bytes=676
+[au] case=bframe30 index=10 pts=1200000000 dts=1000000000 duration=100000000 key=1 bytes=1002
+[au] case=bframe30 index=11 pts=1400000000 dts=1100000000 duration=100000000 key=0 bytes=850
+[au] case=bframe30 index=12 pts=1300000000 dts=1200000000 duration=100000000 key=0 bytes=480
+[au] case=bframe30 index=13 pts=1600000000 dts=1300000000 duration=100000000 key=0 bytes=653
+[au] case=bframe30 index=14 pts=1500000000 dts=1400000000 duration=100000000 key=0 bytes=610
+[au] case=bframe30 index=15 pts=1900000000 dts=1500000000 duration=100000000 key=0 bytes=765
+[au] case=bframe30 index=16 pts=1700000000 dts=1600000000 duration=100000000 key=0 bytes=611
+[au] case=bframe30 index=17 pts=1800000000 dts=1700000000 duration=100000000 key=0 bytes=621
+[au] case=bframe30 index=18 pts=2100000000 dts=1800000000 duration=100000000 key=0 bytes=628
+[au] case=bframe30 index=19 pts=2000000000 dts=1900000000 duration=100000000 key=0 bytes=587
+[au] case=bframe30 index=20 pts=2200000000 dts=2000000000 duration=100000000 key=1 bytes=1077
+[au] case=bframe30 index=21 pts=2500000000 dts=2100000000 duration=100000000 key=0 bytes=828
+[au] case=bframe30 index=22 pts=2300000000 dts=2200000000 duration=100000000 key=0 bytes=703
+[au] case=bframe30 index=23 pts=2400000000 dts=2300000000 duration=100000000 key=0 bytes=651
+[au] case=bframe30 index=24 pts=2800000000 dts=2400000000 duration=100000000 key=0 bytes=672
+[au] case=bframe30 index=25 pts=2600000000 dts=2500000000 duration=100000000 key=0 bytes=647
+[au] case=bframe30 index=26 pts=2700000000 dts=2600000000 duration=100000000 key=0 bytes=585
+[au] case=bframe30 index=27 pts=3100000000 dts=2700000000 duration=100000000 key=0 bytes=708
+[au] case=bframe30 index=28 pts=2900000000 dts=2800000000 duration=100000000 key=0 bytes=630
+[au] case=bframe30 index=29 pts=3000000000 dts=2900000000 duration=100000000 key=0 bytes=583
+[input] case=bframe30 count=30 bytes=21073 sha256=3d4812dae067addeda75ef77dc44cf0faf8a48b49606b1dc04788756d0ce3650
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-DG01-normal20-burst round=1 pacing=burst scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=vtdec_hw plugin=applemedia version=1.28.1 rank=257
+[decoder-candidate] ordinal=0 factory=vtdec_hw
+[boundary] name=decoder-sink factory=vtdec_hw count=20 eos=1 events=14 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[caps] boundary=decoder-sink index=0 media=video/x-h264 format=absent width=160 height=90 system_memory=1 gl_memory=0 cv_pixel_buffer=0 dma_buf=0 vulkan_image=0 any_memory=0 unknown_feature=0
+[caps] boundary=decoder-sink index=1 media=video/x-h264 format=absent width=160 height=90 system_memory=1 gl_memory=0 cv_pixel_buffer=0 dma_buf=0 vulkan_image=0 any_memory=0 unknown_feature=0
+[segment] boundary=decoder-sink index=0 format=3 start=0 stop=18446744073709551615 time=0 base=0 offset=0 rate=1 applied_rate=1
+[pts] boundary=decoder-sink index=0 pts=0 dts=0 duration=100000000 flags=1600
+[pts] boundary=decoder-sink index=1 pts=100000000 dts=100000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=2 pts=200000000 dts=200000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=3 pts=300000000 dts=300000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=4 pts=400000000 dts=400000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=5 pts=500000000 dts=500000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=6 pts=600000000 dts=600000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=7 pts=700000000 dts=700000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=8 pts=800000000 dts=800000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=9 pts=900000000 dts=900000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=10 pts=1000000000 dts=1000000000 duration=100000000 flags=1536
+[pts] boundary=decoder-sink index=11 pts=1100000000 dts=1100000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=12 pts=1200000000 dts=1200000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=13 pts=1300000000 dts=1300000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=14 pts=1400000000 dts=1400000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=15 pts=1500000000 dts=1500000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=16 pts=1600000000 dts=1600000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=17 pts=1700000000 dts=1700000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=18 pts=1800000000 dts=1800000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=19 pts=1900000000 dts=1900000000 duration=100000000 flags=8704
+[boundary] name=decoder-src factory=vtdec_hw count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[caps] boundary=decoder-src index=0 media=video/x-raw format=NV12 width=160 height=90 system_memory=1 gl_memory=0 cv_pixel_buffer=0 dma_buf=0 vulkan_image=0 any_memory=0 unknown_feature=0
+[segment] boundary=decoder-src index=0 format=3 start=0 stop=18446744073709551615 time=0 base=0 offset=0 rate=1 applied_rate=1
+[pts] boundary=decoder-src index=0 pts=0 dts=18446744073709551615 duration=100000000 flags=16448
+[pts] boundary=decoder-src index=1 pts=100000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=2 pts=200000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=3 pts=300000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=4 pts=400000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=5 pts=500000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=6 pts=600000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=7 pts=700000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=8 pts=800000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=9 pts=900000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=10 pts=1000000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=11 pts=1100000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=12 pts=1200000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=13 pts=1300000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=14 pts=1400000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=15 pts=1500000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=16 pts=1600000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=17 pts=1700000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=18 pts=1800000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=19 pts=1900000000 dts=18446744073709551615 duration=100000000 flags=16384
+[boundary] name=overlay-sink factory=vtdec_hw count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[caps] boundary=overlay-sink index=0 media=video/x-raw format=RGB width=160 height=90 system_memory=1 gl_memory=0 cv_pixel_buffer=0 dma_buf=0 vulkan_image=0 any_memory=0 unknown_feature=0
+[segment] boundary=overlay-sink index=0 format=3 start=0 stop=18446744073709551615 time=0 base=0 offset=0 rate=1 applied_rate=1
+[pts] boundary=overlay-sink index=0 pts=0 dts=18446744073709551615 duration=100000000 flags=64
+[pts] boundary=overlay-sink index=1 pts=100000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=2 pts=200000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=3 pts=300000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=4 pts=400000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=5 pts=500000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=6 pts=600000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=7 pts=700000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=8 pts=800000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=9 pts=900000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=10 pts=1000000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=11 pts=1100000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=12 pts=1200000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=13 pts=1300000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=14 pts=1400000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=15 pts=1500000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=16 pts=1600000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=17 pts=1700000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=18 pts=1800000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=19 pts=1900000000 dts=18446744073709551615 duration=100000000 flags=0
+[drain-row] order=0 kind=eos-request a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=1 kind=drain-call a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=2 kind=drain-call a=1 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=3 kind=drain-call a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=4 kind=set-draining a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=5 kind=async-wait-start a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=6 kind=clear-after-wait-and-pause a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=7 kind=drain-call a=1 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=8 kind=async-wait-start a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=9 kind=boundary-buffer a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=10 kind=drain-call a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=11 kind=set-draining a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=12 kind=async-wait-start a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=13 kind=clear-after-wait-and-pause a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=14 kind=boundary-buffer a=100000000 b=100000000 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=15 kind=boundary-buffer a=200000000 b=200000000 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=16 kind=boundary-buffer a=300000000 b=300000000 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=17 kind=boundary-buffer a=400000000 b=400000000 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=18 kind=callback-decode-frame a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=19 kind=boundary-buffer a=500000000 b=500000000 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=20 kind=boundary-buffer a=600000000 b=600000000 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=21 kind=callback-decode-frame a=1 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=22 kind=push-system-frame a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=23 kind=finish-system-frame-before-clamp a=0 b=0 c=0 d=0 e=1 boundary=0 after_eos_request=1
+[drain-row] order=24 kind=boundary-buffer a=0 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=1
+[drain-row] order=25 kind=push-return a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=26 kind=boundary-buffer a=700000000 b=700000000 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=27 kind=callback-decode-frame a=2 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=28 kind=push-system-frame a=1 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=29 kind=finish-system-frame-before-clamp a=1 b=100000000 c=100000000 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=30 kind=boundary-buffer a=100000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=1
+[drain-row] order=31 kind=push-return a=1 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=32 kind=boundary-buffer a=800000000 b=800000000 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=33 kind=boundary-buffer a=900000000 b=900000000 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=34 kind=callback-decode-frame a=3 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=35 kind=push-system-frame a=2 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=36 kind=finish-system-frame-before-clamp a=2 b=200000000 c=200000000 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=37 kind=boundary-buffer a=200000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=1
+[drain-row] order=38 kind=push-return a=2 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=39 kind=callback-decode-frame a=4 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=40 kind=boundary-buffer a=1000000000 b=1000000000 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=41 kind=push-system-frame a=3 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=42 kind=finish-system-frame-before-clamp a=3 b=300000000 c=300000000 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=43 kind=boundary-buffer a=300000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=1
+[drain-row] order=44 kind=push-return a=3 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=45 kind=boundary-buffer a=1100000000 b=1100000000 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=46 kind=callback-decode-frame a=5 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=47 kind=push-system-frame a=4 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=48 kind=finish-system-frame-before-clamp a=4 b=400000000 c=400000000 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=49 kind=boundary-buffer a=400000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=1
+[drain-row] order=50 kind=push-return a=4 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=51 kind=boundary-buffer a=1200000000 b=1200000000 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=52 kind=callback-decode-frame a=6 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=53 kind=push-system-frame a=5 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=54 kind=finish-system-frame-before-clamp a=5 b=500000000 c=500000000 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=55 kind=boundary-buffer a=500000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=1
+[drain-row] order=56 kind=push-return a=5 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=57 kind=boundary-buffer a=1300000000 b=1300000000 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=58 kind=callback-decode-frame a=7 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=59 kind=push-system-frame a=6 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=60 kind=finish-system-frame-before-clamp a=6 b=600000000 c=600000000 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=61 kind=boundary-buffer a=600000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=1
+[drain-row] order=62 kind=push-return a=6 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=63 kind=boundary-buffer a=1400000000 b=1400000000 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=64 kind=callback-decode-frame a=8 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=65 kind=push-system-frame a=7 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=66 kind=finish-system-frame-before-clamp a=7 b=700000000 c=700000000 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=67 kind=boundary-buffer a=700000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=1
+[drain-row] order=68 kind=push-return a=7 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=69 kind=boundary-buffer a=1500000000 b=1500000000 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=70 kind=callback-decode-frame a=9 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=71 kind=push-system-frame a=8 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=72 kind=finish-system-frame-before-clamp a=8 b=800000000 c=800000000 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=73 kind=boundary-buffer a=800000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=1
+[drain-row] order=74 kind=push-return a=8 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=75 kind=boundary-buffer a=1600000000 b=1600000000 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=76 kind=callback-decode-frame a=10 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=77 kind=push-system-frame a=9 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=78 kind=finish-system-frame-before-clamp a=9 b=900000000 c=900000000 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=79 kind=boundary-buffer a=900000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=1
+[drain-row] order=80 kind=push-return a=9 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=81 kind=boundary-buffer a=1700000000 b=1700000000 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=82 kind=callback-decode-frame a=11 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=83 kind=push-system-frame a=10 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=84 kind=finish-system-frame-before-clamp a=10 b=1000000000 c=1000000000 d=0 e=1 boundary=0 after_eos_request=1
+[drain-row] order=85 kind=boundary-buffer a=1000000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=1
+[drain-row] order=86 kind=push-return a=10 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=87 kind=boundary-buffer a=0 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=1
+[drain-row] order=88 kind=boundary-buffer a=1800000000 b=1800000000 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=89 kind=callback-decode-frame a=12 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=90 kind=push-system-frame a=11 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=91 kind=finish-system-frame-before-clamp a=11 b=1100000000 c=1100000000 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=92 kind=boundary-buffer a=1100000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=1
+[drain-row] order=93 kind=callback-decode-frame a=13 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=94 kind=push-return a=11 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=95 kind=push-system-frame a=12 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=96 kind=finish-system-frame-before-clamp a=12 b=1200000000 c=1200000000 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=97 kind=callback-decode-frame a=14 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=98 kind=boundary-buffer a=1200000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=1
+[drain-row] order=99 kind=boundary-buffer a=100000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=1
+[drain-row] order=100 kind=push-return a=12 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=101 kind=push-system-frame a=13 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=102 kind=finish-system-frame-before-clamp a=13 b=1300000000 c=1300000000 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=103 kind=boundary-buffer a=1300000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=1
+[drain-row] order=104 kind=boundary-buffer a=200000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=1
+[drain-row] order=105 kind=push-return a=13 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=106 kind=callback-decode-frame a=15 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=107 kind=boundary-buffer a=1900000000 b=1900000000 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=108 kind=boundary-buffer a=300000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=1
+[drain-row] order=109 kind=push-system-frame a=14 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=110 kind=finish-system-frame-before-clamp a=14 b=1400000000 c=1400000000 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=111 kind=boundary-buffer a=1400000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=1
+[drain-row] order=112 kind=push-return a=14 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=113 kind=boundary-eos a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=114 kind=drain-call a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=115 kind=set-draining a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=116 kind=async-wait-start a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=117 kind=push-system-frame a=15 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=118 kind=finish-system-frame-before-clamp a=15 b=1500000000 c=1500000000 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=119 kind=boundary-buffer a=1500000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=1
+[drain-row] order=120 kind=boundary-buffer a=400000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=1
+[drain-row] order=121 kind=callback-decode-frame a=16 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=122 kind=push-return a=15 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=123 kind=push-system-frame a=16 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=124 kind=finish-system-frame-before-clamp a=16 b=1600000000 c=1600000000 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=125 kind=boundary-buffer a=1600000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=1
+[drain-row] order=126 kind=boundary-buffer a=500000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=1
+[drain-row] order=127 kind=push-return a=16 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=128 kind=boundary-buffer a=600000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=1
+[drain-row] order=129 kind=callback-decode-frame a=17 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=130 kind=push-system-frame a=17 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=131 kind=finish-system-frame-before-clamp a=17 b=1700000000 c=1700000000 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=132 kind=boundary-buffer a=1700000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=1
+[drain-row] order=133 kind=push-return a=17 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=134 kind=boundary-buffer a=700000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=1
+[drain-row] order=135 kind=boundary-buffer a=800000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=1
+[drain-row] order=136 kind=callback-decode-frame a=18 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=137 kind=push-system-frame a=18 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=138 kind=finish-system-frame-before-clamp a=18 b=1800000000 c=1800000000 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=139 kind=boundary-buffer a=1800000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=1
+[drain-row] order=140 kind=push-return a=18 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=141 kind=boundary-buffer a=900000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=1
+[drain-row] order=142 kind=boundary-buffer a=1000000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=1
+[drain-row] order=143 kind=boundary-buffer a=1100000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=1
+[drain-row] order=144 kind=callback-decode-frame a=19 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=145 kind=push-system-frame a=19 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=146 kind=finish-system-frame-before-clamp a=19 b=1900000000 c=1900000000 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=147 kind=boundary-buffer a=1900000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=1
+[drain-row] order=148 kind=push-return a=19 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=149 kind=clear-after-wait-and-pause a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=150 kind=boundary-eos a=0 b=0 c=0 d=0 e=0 boundary=1 after_eos_request=1
+[drain-row] order=151 kind=boundary-buffer a=1200000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=1
+[drain-row] order=152 kind=boundary-buffer a=1300000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=1
+[drain-row] order=153 kind=boundary-buffer a=1400000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=1
+[drain-row] order=154 kind=boundary-buffer a=1500000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=1
+[drain-row] order=155 kind=boundary-buffer a=1600000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=1
+[drain-row] order=156 kind=boundary-buffer a=1700000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=1
+[drain-row] order=157 kind=boundary-buffer a=1800000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=1
+[drain-row] order=158 kind=boundary-buffer a=1900000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=1
+[drain-row] order=159 kind=boundary-eos a=0 b=0 c=0 d=0 e=0 boundary=2 after_eos_request=1
+[drain-row] order=160 kind=drain-call a=1 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=161 kind=async-wait-start a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-boundary] boundary=0 before_eos_request=0 after_eos_request=20
+[drain-boundary] boundary=1 before_eos_request=0 after_eos_request=20
+[drain-boundary] boundary=2 before_eos_request=0 after_eos_request=20
+[drain-debug] rows=162 callback_failed=0 overflow=0 unsupported=0 unknown_debug_warning=0 decreasing_debug_warning=0 callbacks=20 pushes=20 finishes=20 sets=3 waits=5 clears=3 async_wait_end_observable=0 frame_number_domains_equal_assumed=0 complete=1
+[result] case=HW-DG01-normal20-burst pushed=20 successful_push_flows=20 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-DG02-normal20-paced round=1 pacing=dts-steady scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=vtdec_hw plugin=applemedia version=1.28.1 rank=257
+[decoder-candidate] ordinal=0 factory=vtdec_hw
+[boundary] name=decoder-sink factory=vtdec_hw count=20 eos=1 events=14 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[caps] boundary=decoder-sink index=0 media=video/x-h264 format=absent width=160 height=90 system_memory=1 gl_memory=0 cv_pixel_buffer=0 dma_buf=0 vulkan_image=0 any_memory=0 unknown_feature=0
+[caps] boundary=decoder-sink index=1 media=video/x-h264 format=absent width=160 height=90 system_memory=1 gl_memory=0 cv_pixel_buffer=0 dma_buf=0 vulkan_image=0 any_memory=0 unknown_feature=0
+[segment] boundary=decoder-sink index=0 format=3 start=0 stop=18446744073709551615 time=0 base=0 offset=0 rate=1 applied_rate=1
+[pts] boundary=decoder-sink index=0 pts=0 dts=0 duration=100000000 flags=1600
+[pts] boundary=decoder-sink index=1 pts=100000000 dts=100000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=2 pts=200000000 dts=200000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=3 pts=300000000 dts=300000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=4 pts=400000000 dts=400000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=5 pts=500000000 dts=500000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=6 pts=600000000 dts=600000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=7 pts=700000000 dts=700000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=8 pts=800000000 dts=800000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=9 pts=900000000 dts=900000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=10 pts=1000000000 dts=1000000000 duration=100000000 flags=1536
+[pts] boundary=decoder-sink index=11 pts=1100000000 dts=1100000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=12 pts=1200000000 dts=1200000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=13 pts=1300000000 dts=1300000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=14 pts=1400000000 dts=1400000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=15 pts=1500000000 dts=1500000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=16 pts=1600000000 dts=1600000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=17 pts=1700000000 dts=1700000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=18 pts=1800000000 dts=1800000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=19 pts=1900000000 dts=1900000000 duration=100000000 flags=8704
+[boundary] name=decoder-src factory=vtdec_hw count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[caps] boundary=decoder-src index=0 media=video/x-raw format=NV12 width=160 height=90 system_memory=1 gl_memory=0 cv_pixel_buffer=0 dma_buf=0 vulkan_image=0 any_memory=0 unknown_feature=0
+[segment] boundary=decoder-src index=0 format=3 start=0 stop=18446744073709551615 time=0 base=0 offset=0 rate=1 applied_rate=1
+[pts] boundary=decoder-src index=0 pts=0 dts=18446744073709551615 duration=100000000 flags=16448
+[pts] boundary=decoder-src index=1 pts=100000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=2 pts=200000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=3 pts=300000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=4 pts=400000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=5 pts=500000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=6 pts=600000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=7 pts=700000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=8 pts=800000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=9 pts=900000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=10 pts=1000000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=11 pts=1100000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=12 pts=1200000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=13 pts=1300000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=14 pts=1400000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=15 pts=1500000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=16 pts=1600000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=17 pts=1700000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=18 pts=1800000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=19 pts=1900000000 dts=18446744073709551615 duration=100000000 flags=16384
+[boundary] name=overlay-sink factory=vtdec_hw count=20 eos=1 events=12 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[caps] boundary=overlay-sink index=0 media=video/x-raw format=RGB width=160 height=90 system_memory=1 gl_memory=0 cv_pixel_buffer=0 dma_buf=0 vulkan_image=0 any_memory=0 unknown_feature=0
+[segment] boundary=overlay-sink index=0 format=3 start=0 stop=18446744073709551615 time=0 base=0 offset=0 rate=1 applied_rate=1
+[pts] boundary=overlay-sink index=0 pts=0 dts=18446744073709551615 duration=100000000 flags=64
+[pts] boundary=overlay-sink index=1 pts=100000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=2 pts=200000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=3 pts=300000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=4 pts=400000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=5 pts=500000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=6 pts=600000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=7 pts=700000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=8 pts=800000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=9 pts=900000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=10 pts=1000000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=11 pts=1100000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=12 pts=1200000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=13 pts=1300000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=14 pts=1400000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=15 pts=1500000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=16 pts=1600000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=17 pts=1700000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=18 pts=1800000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=19 pts=1900000000 dts=18446744073709551615 duration=100000000 flags=0
+[drain-row] order=0 kind=drain-call a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=1 kind=drain-call a=1 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=2 kind=drain-call a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=3 kind=set-draining a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=4 kind=async-wait-start a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=5 kind=clear-after-wait-and-pause a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=6 kind=drain-call a=1 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=7 kind=async-wait-start a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=8 kind=boundary-buffer a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=9 kind=drain-call a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=10 kind=set-draining a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=11 kind=async-wait-start a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=12 kind=clear-after-wait-and-pause a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=13 kind=callback-decode-frame a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=14 kind=boundary-buffer a=100000000 b=100000000 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=15 kind=callback-decode-frame a=1 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=16 kind=push-system-frame a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=17 kind=finish-system-frame-before-clamp a=0 b=0 c=0 d=0 e=1 boundary=0 after_eos_request=0
+[drain-row] order=18 kind=boundary-buffer a=0 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=0
+[drain-row] order=19 kind=push-return a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=20 kind=boundary-buffer a=0 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=0
+[drain-row] order=21 kind=boundary-buffer a=200000000 b=200000000 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=22 kind=callback-decode-frame a=2 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=23 kind=push-system-frame a=1 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=24 kind=finish-system-frame-before-clamp a=1 b=100000000 c=100000000 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=25 kind=boundary-buffer a=100000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=0
+[drain-row] order=26 kind=push-return a=1 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=27 kind=boundary-buffer a=100000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=0
+[drain-row] order=28 kind=boundary-buffer a=300000000 b=300000000 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=29 kind=callback-decode-frame a=3 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=30 kind=push-system-frame a=2 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=31 kind=finish-system-frame-before-clamp a=2 b=200000000 c=200000000 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=32 kind=boundary-buffer a=200000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=0
+[drain-row] order=33 kind=push-return a=2 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=34 kind=boundary-buffer a=200000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=0
+[drain-row] order=35 kind=boundary-buffer a=400000000 b=400000000 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=36 kind=callback-decode-frame a=4 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=37 kind=push-system-frame a=3 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=38 kind=finish-system-frame-before-clamp a=3 b=300000000 c=300000000 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=39 kind=boundary-buffer a=300000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=0
+[drain-row] order=40 kind=push-return a=3 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=41 kind=boundary-buffer a=300000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=0
+[drain-row] order=42 kind=boundary-buffer a=500000000 b=500000000 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=43 kind=callback-decode-frame a=5 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=44 kind=push-system-frame a=4 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=45 kind=finish-system-frame-before-clamp a=4 b=400000000 c=400000000 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=46 kind=boundary-buffer a=400000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=0
+[drain-row] order=47 kind=push-return a=4 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=48 kind=boundary-buffer a=400000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=0
+[drain-row] order=49 kind=boundary-buffer a=600000000 b=600000000 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=50 kind=callback-decode-frame a=6 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=51 kind=push-system-frame a=5 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=52 kind=finish-system-frame-before-clamp a=5 b=500000000 c=500000000 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=53 kind=boundary-buffer a=500000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=0
+[drain-row] order=54 kind=push-return a=5 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=55 kind=boundary-buffer a=500000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=0
+[drain-row] order=56 kind=boundary-buffer a=700000000 b=700000000 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=57 kind=callback-decode-frame a=7 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=58 kind=push-system-frame a=6 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=59 kind=finish-system-frame-before-clamp a=6 b=600000000 c=600000000 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=60 kind=boundary-buffer a=600000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=0
+[drain-row] order=61 kind=push-return a=6 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=62 kind=boundary-buffer a=600000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=0
+[drain-row] order=63 kind=boundary-buffer a=800000000 b=800000000 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=64 kind=callback-decode-frame a=8 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=65 kind=push-system-frame a=7 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=66 kind=finish-system-frame-before-clamp a=7 b=700000000 c=700000000 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=67 kind=boundary-buffer a=700000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=0
+[drain-row] order=68 kind=push-return a=7 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=69 kind=boundary-buffer a=700000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=0
+[drain-row] order=70 kind=boundary-buffer a=900000000 b=900000000 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=71 kind=callback-decode-frame a=9 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=72 kind=push-system-frame a=8 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=73 kind=finish-system-frame-before-clamp a=8 b=800000000 c=800000000 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=74 kind=boundary-buffer a=800000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=0
+[drain-row] order=75 kind=push-return a=8 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=76 kind=boundary-buffer a=800000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=0
+[drain-row] order=77 kind=boundary-buffer a=1000000000 b=1000000000 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=78 kind=callback-decode-frame a=10 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=79 kind=push-system-frame a=9 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=80 kind=finish-system-frame-before-clamp a=9 b=900000000 c=900000000 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=81 kind=boundary-buffer a=900000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=0
+[drain-row] order=82 kind=push-return a=9 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=83 kind=boundary-buffer a=900000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=0
+[drain-row] order=84 kind=boundary-buffer a=1100000000 b=1100000000 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=85 kind=callback-decode-frame a=11 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=86 kind=push-system-frame a=10 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=87 kind=finish-system-frame-before-clamp a=10 b=1000000000 c=1000000000 d=0 e=1 boundary=0 after_eos_request=0
+[drain-row] order=88 kind=boundary-buffer a=1000000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=0
+[drain-row] order=89 kind=push-return a=10 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=90 kind=boundary-buffer a=1000000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=0
+[drain-row] order=91 kind=boundary-buffer a=1200000000 b=1200000000 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=92 kind=callback-decode-frame a=12 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=93 kind=push-system-frame a=11 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=94 kind=finish-system-frame-before-clamp a=11 b=1100000000 c=1100000000 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=95 kind=boundary-buffer a=1100000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=0
+[drain-row] order=96 kind=push-return a=11 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=97 kind=boundary-buffer a=1100000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=0
+[drain-row] order=98 kind=boundary-buffer a=1300000000 b=1300000000 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=99 kind=callback-decode-frame a=13 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=100 kind=push-system-frame a=12 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=101 kind=finish-system-frame-before-clamp a=12 b=1200000000 c=1200000000 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=102 kind=boundary-buffer a=1200000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=0
+[drain-row] order=103 kind=push-return a=12 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=104 kind=boundary-buffer a=1200000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=0
+[drain-row] order=105 kind=boundary-buffer a=1400000000 b=1400000000 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=106 kind=callback-decode-frame a=14 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=107 kind=push-system-frame a=13 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=108 kind=finish-system-frame-before-clamp a=13 b=1300000000 c=1300000000 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=109 kind=boundary-buffer a=1300000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=0
+[drain-row] order=110 kind=push-return a=13 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=111 kind=boundary-buffer a=1300000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=0
+[drain-row] order=112 kind=boundary-buffer a=1500000000 b=1500000000 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=113 kind=callback-decode-frame a=15 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=114 kind=push-system-frame a=14 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=115 kind=finish-system-frame-before-clamp a=14 b=1400000000 c=1400000000 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=116 kind=boundary-buffer a=1400000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=0
+[drain-row] order=117 kind=push-return a=14 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=118 kind=boundary-buffer a=1400000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=0
+[drain-row] order=119 kind=boundary-buffer a=1600000000 b=1600000000 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=120 kind=callback-decode-frame a=16 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=121 kind=push-system-frame a=15 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=122 kind=finish-system-frame-before-clamp a=15 b=1500000000 c=1500000000 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=123 kind=boundary-buffer a=1500000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=0
+[drain-row] order=124 kind=push-return a=15 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=125 kind=boundary-buffer a=1500000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=0
+[drain-row] order=126 kind=boundary-buffer a=1700000000 b=1700000000 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=127 kind=callback-decode-frame a=17 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=128 kind=push-system-frame a=16 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=129 kind=finish-system-frame-before-clamp a=16 b=1600000000 c=1600000000 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=130 kind=boundary-buffer a=1600000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=0
+[drain-row] order=131 kind=push-return a=16 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=132 kind=boundary-buffer a=1600000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=0
+[drain-row] order=133 kind=boundary-buffer a=1800000000 b=1800000000 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=134 kind=callback-decode-frame a=18 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=135 kind=push-system-frame a=17 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=136 kind=finish-system-frame-before-clamp a=17 b=1700000000 c=1700000000 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=137 kind=boundary-buffer a=1700000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=0
+[drain-row] order=138 kind=push-return a=17 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=139 kind=boundary-buffer a=1700000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=0
+[drain-row] order=140 kind=eos-request a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=0
+[drain-row] order=141 kind=boundary-buffer a=1900000000 b=1900000000 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=142 kind=boundary-eos a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=143 kind=drain-call a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=144 kind=set-draining a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=145 kind=async-wait-start a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=146 kind=push-system-frame a=18 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=147 kind=finish-system-frame-before-clamp a=18 b=1800000000 c=1800000000 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=148 kind=boundary-buffer a=1800000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=1
+[drain-row] order=149 kind=push-return a=18 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=150 kind=boundary-buffer a=1800000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=1
+[drain-row] order=151 kind=callback-decode-frame a=19 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=152 kind=push-system-frame a=19 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=153 kind=finish-system-frame-before-clamp a=19 b=1900000000 c=1900000000 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=154 kind=boundary-buffer a=1900000000 b=18446744073709551615 c=0 d=0 e=0 boundary=1 after_eos_request=1
+[drain-row] order=155 kind=push-return a=19 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=156 kind=clear-after-wait-and-pause a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=157 kind=boundary-eos a=0 b=0 c=0 d=0 e=0 boundary=1 after_eos_request=1
+[drain-row] order=158 kind=boundary-buffer a=1900000000 b=18446744073709551615 c=0 d=0 e=0 boundary=2 after_eos_request=1
+[drain-row] order=159 kind=boundary-eos a=0 b=0 c=0 d=0 e=0 boundary=2 after_eos_request=1
+[drain-row] order=160 kind=drain-call a=1 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-row] order=161 kind=async-wait-start a=0 b=0 c=0 d=0 e=0 boundary=0 after_eos_request=1
+[drain-boundary] boundary=0 before_eos_request=19 after_eos_request=1
+[drain-boundary] boundary=1 before_eos_request=18 after_eos_request=2
+[drain-boundary] boundary=2 before_eos_request=18 after_eos_request=2
+[drain-debug] rows=162 callback_failed=0 overflow=0 unsupported=0 unknown_debug_warning=0 decreasing_debug_warning=0 callbacks=20 pushes=20 finishes=20 sets=3 waits=5 clears=3 async_wait_end_observable=0 frame_number_domains_equal_assumed=0 complete=1
+[result] case=HW-DG02-normal20-paced pushed=20 successful_push_flows=20 end_flow=0 eos=1 errors=0 warnings=0 bus_diagnostic_rows_dropped=0 qos=0 visible=1 input_match=1 decoder_match=1 overlay_match=1 reason=bounded-match product_oracle_exit=0 product_oracle_reason=bounded-match exit=0
+[graph] parse=launch-full-place-in-bin ghost_sinks=1 external_ghost_sinks=0 occupied_queue_ghost_targets=0 waiting_queue_sinks=1 pay_link=1 inspected=1
+[attempt] case=HW-DG03-bframe30-burst round=1 pacing=burst scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=vtdec_hw plugin=applemedia version=1.28.1 rank=257
+[decoder-candidate] ordinal=0 factory=vtdec_hw
+[boundary] name=decoder-sink factory=vtdec_hw count=30 eos=1 events=16 segments=1 caps=2 qos=0 invalid=0 overflow=0
+[caps] boundary=decoder-sink index=0 media=video/x-h264 format=absent width=160 height=90 system_memory=1 gl_memory=0 cv_pixel_buffer=0 dma_buf=0 vulkan_image=0 any_memory=0 unknown_feature=0
+[caps] boundary=decoder-sink index=1 media=video/x-h264 format=absent width=160 height=90 system_memory=1 gl_memory=0 cv_pixel_buffer=0 dma_buf=0 vulkan_image=0 any_memory=0 unknown_feature=0
+[segment] boundary=decoder-sink index=0 format=3 start=0 stop=18446744073709551615 time=0 base=0 offset=0 rate=1 applied_rate=1
+[pts] boundary=decoder-sink index=0 pts=200000000 dts=0 duration=100000000 flags=1600
+[pts] boundary=decoder-sink index=1 pts=400000000 dts=100000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=2 pts=300000000 dts=200000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=3 pts=700000000 dts=300000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=4 pts=500000000 dts=400000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=5 pts=600000000 dts=500000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=6 pts=1000000000 dts=600000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=7 pts=800000000 dts=700000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=8 pts=900000000 dts=800000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=9 pts=1100000000 dts=900000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=10 pts=1200000000 dts=1000000000 duration=100000000 flags=1536
+[pts] boundary=decoder-sink index=11 pts=1400000000 dts=1100000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=12 pts=1300000000 dts=1200000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=13 pts=1600000000 dts=1300000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=14 pts=1500000000 dts=1400000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=15 pts=1900000000 dts=1500000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=16 pts=1700000000 dts=1600000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=17 pts=1800000000 dts=1700000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=18 pts=2100000000 dts=1800000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=19 pts=2000000000 dts=1900000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=20 pts=2200000000 dts=2000000000 duration=100000000 flags=1536
+[pts] boundary=decoder-sink index=21 pts=2500000000 dts=2100000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=22 pts=2300000000 dts=2200000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=23 pts=2400000000 dts=2300000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=24 pts=2800000000 dts=2400000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=25 pts=2600000000 dts=2500000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=26 pts=2700000000 dts=2600000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=27 pts=3100000000 dts=2700000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=28 pts=2900000000 dts=2800000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=29 pts=3000000000 dts=2900000000 duration=100000000 flags=8704
+[boundary] name=decoder-src factory=vtdec_hw count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[caps] boundary=decoder-src index=0 media=video/x-raw format=NV12 width=160 height=90 system_memory=1 gl_memory=0 cv_pixel_buffer=0 dma_buf=0 vulkan_image=0 any_memory=0 unknown_feature=0
+[segment] boundary=decoder-src index=0 format=3 start=0 stop=18446744073709551615 time=0 base=0 offset=0 rate=1 applied_rate=1
+[pts] boundary=decoder-src index=0 pts=200000000 dts=18446744073709551615 duration=100000000 flags=16448
+[pts] boundary=decoder-src index=1 pts=300000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=2 pts=400000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=3 pts=500000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=4 pts=600000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=5 pts=700000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=6 pts=800000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=7 pts=900000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=8 pts=1000000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=9 pts=1100000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=10 pts=1200000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=11 pts=1300000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=12 pts=1400000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=13 pts=1500000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=14 pts=1600000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=15 pts=1700000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=16 pts=1800000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=17 pts=1900000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=18 pts=2000000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=19 pts=2100000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=20 pts=2200000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=21 pts=2300000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=22 pts=2400000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=23 pts=2500000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=24 pts=2800000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=25 pts=2800000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=26 pts=2800000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=27 pts=2900000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=28 pts=3000000000 dts=18446744073709551615 duration=100000000 flags=16384
+[pts] boundary=decoder-src index=29 pts=3100000000 dts=18446744073709551615 duration=100000000 flags=16384
+[boundary] name=overlay-sink factory=vtdec_hw count=30 eos=1 events=14 segments=1 caps=1 qos=0 invalid=0 overflow=0
+[caps] boundary=overlay-sink index=0 media=video/x-raw format=RGB width=160 height=90 system_memory=1 gl_memory=0 cv_pixel_buffer=0 dma_buf=0 vulkan_image=0 any_memory=0 unknown_feature=0
+[segment] boundary=overlay-sink index=0 format=3 start=0 stop=18446744073709551615 time=0 base=0 offset=0 rate=1 applied_rate=1
+[pts] boundary=overlay-sink index=0 pts=200000000 dts=18446744073709551615 duration=100000000 flags=64
+[pts] boundary=overlay-sink index=1 pts=300000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=2 pts=400000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=3 pts=500000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=4 pts=600000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=5 pts=700000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=6 pts=800000000 dts=18446744073709551615 duration=100000000 flags=0
+[pts] boundary=overlay-sink index=7 pts=900000000 dts=1844674407370[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-impact.oUQq9k","bytes":1865156,"absent":true}
+[elapsed] seconds=7 source=bash-SECONDS

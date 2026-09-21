@@ -1,5 +1,20 @@
 # Release Test Records
 
+## LP27 릴리즈 선행 1~4 순차 작업
+
+후속 승인: HW-01→HW-02→HW-03→PREP-01→CLOSE-01 순차 개발·분할 커밋·조건 충족 시 마지막 push.
+[후속 실행 전 계약](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md#hw-01-실행-전-계약)의
+D01~06을 등록하고 HW-01 원인 구분을 완료했다. 자체07은50검사 PASS, 진단03은 네 셀 관측 완료·제품 B-frame 두 셀 FAIL이다.
+EOS drain→늦은 callback→역순 finish→기저 디코더의 시간값 보정을 burst/paced 양쪽에서 직접 확인했다.
+준비 실패와 출력 유실 및 수정 이력을 보존했다. 아래 정책 판단 대기 문단은 이전 실행 종료 상태다.
+이번 승인으로 소프트웨어 우선 방안을 이미 선택한 것은 아니며, 원인·영향 확인 후 한정 해결책을 결정한다.
+
+사용자 승인: HW 영향 판정→검증 준비 마감→구형 정리→문서/S10 고정, 단계별 커밋·마지막 푸시.
+[LP27 실행 전 정의·결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md)를 따른다.
+1번은 자체04의29개 검사를 통과한 도구로 실제 RTSP builder graph의 B-frame PTS 불일치를 확인했다.
+입력30/출력30이어도2.6·2.7초가 없고2.8초가3개이며 overlay 입력에 그대로 전달됐다. 원출력·초기 준비 실패·수정 이력은 위 기록에 보존한다.
+제품 디코더 선택 정책의 보완 여부는 사용자 판단 대기다. 제품 수정·2~4·장시간·실제 UI·커밋·푸시는 미수행이다.
+
 ## LP26 현행 검증 준비
 
 최신 승인 범위와 실행 전 개별 정의는 [LP26 준비 기록](release-artifacts/v4.1.0/s11-preparation-mapping/lp26-verifier-preparation.md)을 따른다.

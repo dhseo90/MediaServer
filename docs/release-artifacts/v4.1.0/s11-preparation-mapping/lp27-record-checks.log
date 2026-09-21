@@ -1,0 +1,69 @@
+$ bash -n scripts/internal/verify_recording_hw_impact.sh
+[exit] 0
+
+$ git diff --check
+[exit] 0
+
+$ ./server.sh verify-docs-links
+
+== Docs link verification summary ==
+- markdown files: 288
+- local links: 9334
+- local images: 22
+- local anchors: 132
+- indexed docs: 76
+- index coverage exclusions: 203
+- failures: 0
+[exit] 0
+
+$ ./server.sh verify-docs-ui-assets
+[pass] README uses only representative product UI screenshots
+[pass] English README uses English UI screenshots
+[pass] UI guide keeps product screenshots in the shared asset set
+[pass] docs UI asset policy documents capture rules
+[pass] managed UI asset manifest stays complete
+[pass] capture script owns every documented UI asset
+[pass] docs capture covers current screenshots
+[pass] representative screenshot docs do not point at stale visual baselines
+[pass] docs UI asset directory contains managed PNG files
+[pass] VA documentation images keep full video frame bounds
+
+== Docs UI asset verification summary ==
+- pass: 10
+- fail: 0
+[exit] 0
+
+$ git diff --check (LP27 최종 잔여표 반영 후)
+[exit] 0
+
+$ ./server.sh verify-docs-links (LP27 최종 잔여표 반영 후)
+
+== Docs link verification summary ==
+- markdown files: 288
+- local links: 9337
+- local images: 22
+- local anchors: 133
+- indexed docs: 76
+- index coverage exclusions: 203
+- failures: 0
+[exit] 0
+[pass] 신규 소유 파일11개 범위·행말 공백 검사 exit0
+
+$ ./server.sh verify-script-inventory
+[pass] dispatch parser recognizes explicit bash and node interpreters
+[pass] server.sh dispatch targets exist and are executable
+[pass] documented server.sh commands resolve to dispatch table
+[pass] tracked scripts are classified and referenced
+[pass] project inventory delegates script file inventory to this verifier
+[pass] project inventory maps verifier families without duplicating dispatch details
+[pass] CMake does not define a separate untracked CTest registry
+[pass] test entry scripts are reachable from test_all
+[pass] auth verifier has no hardcoded test password defaults
+[pass] VA EventRecord dispatch verifier fails early and dispatches every poll by default
+[pass] critical verifier pass output avoids grouped feature-result wording
+[pass] user-facing JS option parsers reject unknown options
+
+== Script inventory verification summary ==
+- pass: 12
+- fail: 0
+[exit] 0

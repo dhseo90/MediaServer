@@ -1,0 +1,84 @@
+[source] src/ingress/gst_pipeline_builder.cpp sha256=65c4976f05644f538c8713b86c7121270ef08673fec13116bf6e9d9004649ee6
+[source] src/ingress/rtsp_egress_session.cpp sha256=25cba9e1fac1d81c14aec5d36e121b8b895fa607ea2b2f783fbb23ac42540b29
+[source] include/ingress/gst_pipeline_builder.h sha256=cd505e31bf74a1768274d23c2c592fe0856431d4962f279d6f1d7f5c50977163
+[source] scripts/internal/recording_hw_impact_probe.cpp sha256=1a622a06d8402cb39e628e41eec2511c1d11bd2b5b3025a78b6b6653b06ab77c
+[source] scripts/internal/verify_recording_hw_impact.sh sha256=0a735b8bbbf6c22d12471669188aabeb94d89b6ea267aa590e0d6ab421c80d13
+[source] scripts/internal/recording_media_test_fixture.h sha256=404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6
+[source] build-gst-onnx/libmedia_server_runtime.a sha256=408366261ba29cb2a510b8b6c6077615058ea4790696414658a223927b1c739f
+[environment] utc=2026-09-21T08:44:39Z platform=Darwin machine=arm64 head=f4e58b9cb2efbeec43a7e1132da940fce6afd521
+1.28.1
+1.28.1
+[au] case=normal20 index=0 pts=0 dts=0 duration=100000000 key=1 bytes=2820
+[au] case=normal20 index=1 pts=100000000 dts=100000000 duration=100000000 key=0 bytes=882
+[au] case=normal20 index=2 pts=200000000 dts=200000000 duration=100000000 key=0 bytes=686
+[au] case=normal20 index=3 pts=300000000 dts=300000000 duration=100000000 key=0 bytes=796
+[au] case=normal20 index=4 pts=400000000 dts=400000000 duration=100000000 key=0 bytes=778
+[au] case=normal20 index=5 pts=500000000 dts=500000000 duration=100000000 key=0 bytes=827
+[au] case=normal20 index=6 pts=600000000 dts=600000000 duration=100000000 key=0 bytes=673
+[au] case=normal20 index=7 pts=700000000 dts=700000000 duration=100000000 key=0 bytes=836
+[au] case=normal20 index=8 pts=800000000 dts=800000000 duration=100000000 key=0 bytes=798
+[au] case=normal20 index=9 pts=900000000 dts=900000000 duration=100000000 key=0 bytes=816
+[au] case=normal20 index=10 pts=1000000000 dts=1000000000 duration=100000000 key=1 bytes=1935
+[au] case=normal20 index=11 pts=1100000000 dts=1100000000 duration=100000000 key=0 bytes=839
+[au] case=normal20 index=12 pts=1200000000 dts=1200000000 duration=100000000 key=0 bytes=864
+[au] case=normal20 index=13 pts=1300000000 dts=1300000000 duration=100000000 key=0 bytes=911
+[au] case=normal20 index=14 pts=1400000000 dts=1400000000 duration=100000000 key=0 bytes=888
+[au] case=normal20 index=15 pts=1500000000 dts=1500000000 duration=100000000 key=0 bytes=882
+[au] case=normal20 index=16 pts=1600000000 dts=1600000000 duration=100000000 key=0 bytes=938
+[au] case=normal20 index=17 pts=1700000000 dts=1700000000 duration=100000000 key=0 bytes=928
+[au] case=normal20 index=18 pts=1800000000 dts=1800000000 duration=100000000 key=0 bytes=861
+[au] case=normal20 index=19 pts=1900000000 dts=1900000000 duration=100000000 key=0 bytes=873
+[input] case=normal20 count=20 bytes=19831 sha256=0becff0184318c981f79e3be56dfa0aa25246665d27e74e87adc2cbb6d87cd62
+[au] case=bframe30 index=0 pts=200000000 dts=0 duration=100000000 key=1 bytes=1853
+[au] case=bframe30 index=1 pts=400000000 dts=100000000 duration=100000000 key=0 bytes=704
+[au] case=bframe30 index=2 pts=300000000 dts=200000000 duration=100000000 key=0 bytes=453
+[au] case=bframe30 index=3 pts=700000000 dts=300000000 duration=100000000 key=0 bytes=835
+[au] case=bframe30 index=4 pts=500000000 dts=400000000 duration=100000000 key=0 bytes=489
+[au] case=bframe30 index=5 pts=600000000 dts=500000000 duration=100000000 key=0 bytes=343
+[au] case=bframe30 index=6 pts=1000000000 dts=600000000 duration=100000000 key=0 bytes=820
+[au] case=bframe30 index=7 pts=800000000 dts=700000000 duration=100000000 key=0 bytes=503
+[au] case=bframe30 index=8 pts=900000000 dts=800000000 duration=100000000 key=0 bytes=506
+[au] case=bframe30 index=9 pts=1100000000 dts=900000000 duration=100000000 key=0 bytes=676
+[au] case=bframe30 index=10 pts=1200000000 dts=1000000000 duration=100000000 key=1 bytes=1002
+[au] case=bframe30 index=11 pts=1400000000 dts=1100000000 duration=100000000 key=0 bytes=850
+[au] case=bframe30 index=12 pts=1300000000 dts=1200000000 duration=100000000 key=0 bytes=480
+[au] case=bframe30 index=13 pts=1600000000 dts=1300000000 duration=100000000 key=0 bytes=653
+[au] case=bframe30 index=14 pts=1500000000 dts=1400000000 duration=100000000 key=0 bytes=610
+[au] case=bframe30 index=15 pts=1900000000 dts=1500000000 duration=100000000 key=0 bytes=765
+[au] case=bframe30 index=16 pts=1700000000 dts=1600000000 duration=100000000 key=0 bytes=611
+[au] case=bframe30 index=17 pts=1800000000 dts=1700000000 duration=100000000 key=0 bytes=621
+[au] case=bframe30 index=18 pts=2100000000 dts=1800000000 duration=100000000 key=0 bytes=628
+[au] case=bframe30 index=19 pts=2000000000 dts=1900000000 duration=100000000 key=0 bytes=587
+[au] case=bframe30 index=20 pts=2200000000 dts=2000000000 duration=100000000 key=1 bytes=1077
+[au] case=bframe30 index=21 pts=2500000000 dts=2100000000 duration=100000000 key=0 bytes=828
+[au] case=bframe30 index=22 pts=2300000000 dts=2200000000 duration=100000000 key=0 bytes=703
+[au] case=bframe30 index=23 pts=2400000000 dts=2300000000 duration=100000000 key=0 bytes=651
+[au] case=bframe30 index=24 pts=2800000000 dts=2400000000 duration=100000000 key=0 bytes=672
+[au] case=bframe30 index=25 pts=2600000000 dts=2500000000 duration=100000000 key=0 bytes=647
+[au] case=bframe30 index=26 pts=2700000000 dts=2600000000 duration=100000000 key=0 bytes=585
+[au] case=bframe30 index=27 pts=3100000000 dts=2700000000 duration=100000000 key=0 bytes=708
+[au] case=bframe30 index=28 pts=2900000000 dts=2800000000 duration=100000000 key=0 bytes=630
+[au] case=bframe30 index=29 pts=3000000000 dts=2900000000 duration=100000000 key=0 bytes=583
+[input] case=bframe30 count=30 bytes=21073 sha256=3d4812dae067addeda75ef77dc44cf0faf8a48b49606b1dc04788756d0ce3650
+[attempt] case=normal20 round=1 scope=actual-builder-graph network_e2e=0 input_duration_policy=product-unset
+[decoder] factory=vtdec_hw plugin=applemedia version=1.28.1 rank=257
+[boundary] name=decoder-sink factory=vtdec_hw count=8 eos=0 events=6 segments=1 qos=0 invalid=0 overflow=0
+[segment] boundary=decoder-sink index=0 format=3 start=0 stop=18446744073709551615 time=0 base=0 offset=0 rate=1 applied_rate=1
+[pts] boundary=decoder-sink index=0 pts=0 dts=0 duration=100000000 flags=1600
+[pts] boundary=decoder-sink index=1 pts=100000000 dts=100000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=2 pts=200000000 dts=200000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=3 pts=300000000 dts=300000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=4 pts=400000000 dts=400000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=5 pts=500000000 dts=500000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=6 pts=600000000 dts=600000000 duration=100000000 flags=8704
+[pts] boundary=decoder-sink index=7 pts=700000000 dts=700000000 duration=100000000 flags=8704
+[boundary] name=decoder-src factory=vtdec_hw count=1 eos=0 events=4 segments=1 qos=0 invalid=0 overflow=0
+[segment] boundary=decoder-src index=0 format=3 start=0 stop=18446744073709551615 time=0 base=0 offset=0 rate=1 applied_rate=1
+[pts] boundary=decoder-src index=0 pts=0 dts=18446744073709551615 duration=100000000 flags=16448
+[boundary] name=overlay-sink factory=vtdec_hw count=0 eos=0 events=0 segments=0 qos=0 invalid=0 overflow=0
+[result] case=normal20 pushed=20 successful_push_flows=20 end_flow=0 eos=0 errors=1 warnings=1 qos=0 visible=1 input_match=0 decoder_match=0 overlay_match=0 reason=incomplete-observation exit=2
+[summary] attempts=1 first_failure_case=normal20 first_failure_round=1 exit=2
+[diagnostic-stderr] {"bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","critical":0,"warning":0,"rawPublished":false}
+[execution] {"mode":"--rtsp-impact","exit":2,"signal":null,"error":null,"elapsedMs":1669,"productPass":false,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음"}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-impact.gcANKq","bytes":1819636,"absent":true}
+[elapsed] seconds=2 source=bash-SECONDS

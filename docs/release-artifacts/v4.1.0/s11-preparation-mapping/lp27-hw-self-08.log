@@ -1,0 +1,65 @@
+[source] src/ingress/gst_pipeline_builder.cpp sha256=65c4976f05644f538c8713b86c7121270ef08673fec13116bf6e9d9004649ee6
+[source] src/ingress/rtsp_egress_session.cpp sha256=25cba9e1fac1d81c14aec5d36e121b8b895fa607ea2b2f783fbb23ac42540b29
+[source] include/ingress/gst_pipeline_builder.h sha256=cd505e31bf74a1768274d23c2c592fe0856431d4962f279d6f1d7f5c50977163
+[source] scripts/internal/recording_hw_impact_probe.cpp sha256=d766b44931ace6752bb46797a8f7ed74033375ecd7d3d3f95eaef6356e214d13
+[source] scripts/internal/verify_recording_hw_impact.sh sha256=3ee74234eeeb7c2ba26a0eab18eb8603a3f483b2878481ffa5b944d5ac46ef07
+[source] scripts/internal/recording_media_test_fixture.h sha256=404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6
+[source] build-gst-onnx/libmedia_server_runtime.a sha256=408366261ba29cb2a510b8b6c6077615058ea4790696414658a223927b1c739f
+[environment] utc=2026-09-21T10:00:40Z platform=Darwin machine=arm64 head=f4e58b9cb2efbeec43a7e1132da940fce6afd521
+1.28.1
+1.28.1
+[pass] HW-IO01 pipe output and exit status preserved
+[pass] HW-OR01 reorder accepted
+[pass] HW-OR02 same-count duplicate omission rejected
+[pass] HW-OR02 same-count omission replacement rejected
+[pass] HW-OR03 legitimate duplicate preserved
+[pass] HW-OR04 missing frame rejected
+[pass] HW-OR05 invalid PTS rejected
+[pass] HW-OR06 missing EOS rejected
+[pass] HW-OR07 overflow rejected
+[pass] HW-OR08 duplicate EOS rejected
+[pass] HW-OR09 missing SEGMENT rejected
+[pass] HW-OR10 non-TIME SEGMENT rejected
+[pass] HW-OR11 complete oracle accepted
+[pass] HW-OR12 input mismatch is inconclusive
+[pass] HW-OR13 decoder mismatch is failure
+[pass] HW-OR14 overlay mismatch is failure
+[pass] HW-OR15 invalid observation is inconclusive
+[pass] HW-OR16 overflow is inconclusive
+[pass] HW-OR17 missing probe is inconclusive
+[pass] HW-OR18 missing bus EOS is inconclusive
+[pass] HW-OR19 bus ERROR is inconclusive
+[pass] HW-OR20 known error classification excludes raw text
+[pass] HW-OR21 unknown error classification excludes raw text
+[pass] HW-OR22 CAPS fixed allowlist rejects arbitrary values
+[pass] HW-GR01 actual product parse-launch PLACE_IN_BIN creates inspectable bin
+[pass] HW-GR02 no generated ghost sink occupies pending links
+[pass] HW-GR03 pay0 src connects directly to owned sink
+[pass] HW-GR04 dynamic downstream queue sink remains unoccupied
+[pass] HW-GR05 legacy automatic ghost occupies queue sink before PLAYING
+[pass] HW-OR23 delayed-link has fixed classification
+[pass] HW-DP01 callback retains decode number without pointers
+[pass] HW-DP02 push retains independent system number
+[pass] HW-DP03 decreasing warning preserves exact nanoseconds
+[pass] HW-DP04 malicious pointer token rejected without disclosure
+[pass] HW-DP05 trailing injected field rejected
+[pass] HW-DP06 invalid timestamp rejected
+[pass] HW-DP07 unknown warning makes diagnosis inconclusive without raw retention
+[pass] HW-DP08 debug array overflow makes diagnosis inconclusive
+[pass] HW-DP09 known decreasing warning completes diagnosis without product PASS
+[pass] HW-DP10 absent source log is not fabricated as wait completion
+[pass] HW-DP11 finish frame preserves pre-clamp PTS and unknown DTS without pointer
+[pass] HW-DP12 numeric overflow rejected before conversion
+[pass] HW-DP13 unrelated long LOG ignored before selected-prefix bound
+[pass] HW-DP14 selected-prefix oversized message is inconclusive
+[pass] HW-DP15 callback exception boundary makes diagnosis inconclusive
+[pass] HW-DP16 malformed DTS rejected without inventing source formats
+[pass] HW-DP17 missing finish-frame observation is inconclusive
+[pass] HW-DP18 official entry-only finish log is not pre-clamp evidence
+[pass] HW-DP19 session-create error retains only signed numeric code
+[pass] HW-DP20 session-create error rejects arbitrary suffix
+[summary] pass=49 fail=0
+[diagnostic-stderr] {"bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","critical":0,"warning":0,"rawPublished":false}
+[execution] {"mode":"--self-test","exit":0,"signal":null,"error":null,"elapsedMs":1840,"productPass":false,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음"}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-impact.y2sYkV","bytes":1865156,"absent":true}
+[elapsed] seconds=3 source=bash-SECONDS

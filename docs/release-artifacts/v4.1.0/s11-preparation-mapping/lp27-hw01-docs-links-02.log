@@ -1,0 +1,11 @@
+[fail] 문서 로컬 링크/이미지 참조 오류
+  - docs/release-artifacts/v4.1.0/s11-preparation-mapping/lp27-release-preparation.md: 존재하지 않는 anchor: release-readiness-20260916.md#2026-09-21-lp27-최신-전수-대조
+
+== Docs link verification summary ==
+- markdown files: 288
+- local links: 9346
+- local images: 22
+- local anchors: 135
+- indexed docs: 76
+- index coverage exclusions: 204
+- failures: 1
