@@ -1,5 +1,10 @@
 # Release Evidence Index
 
+- [LP31 최신 실제 UI 보존·개별 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp31-ui-final-items.md):
+  source8fa98a99의 baseline424/424·시각80·Policy 적격 PASS, 전체4,565파일 압축·복원 일치.
+  직전 Policy 실패는 별도 보존. 녹화UI8개/31조작·브라우저미디어·공통/녹화120분은 잔여다.
+  아래 LP30/LP29는 이전 실행 이력이다.
+
 - [현재 LP30 UI 준비 보완](release-artifacts/v4.1.0/s11-preparation-mapping/lp29-final-validation.md): 보조 이동 보완 후424개 조작PASS, 최종참조 불일치FAIL. 참조 정합/사전검사217개·986/424 소스 결속PASS. 실제 최종UI·녹화UI·브라우저미디어 및 푸시는 미완료다. 아래 LP29는 과거 실행 결과다.
 
 - [현재 LP29 실제30분·UI 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp29-final-validation.md): 주석 보완 후30분108PASS/20반복·커밋, 실제UI423PASS/1FAIL(EVT-058)·원인미확정. 전체19MB 증거 승인 보존·정리 완료. visual/녹화UI/browser·120분 잔여, 외부 서비스/실기기 명시 제외. UI 실패 기록 미커밋·푸시 불가/미수행.

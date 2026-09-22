@@ -1,5 +1,39 @@
 # Release Test Records
 
+## LP31 최신 실제 UI 전수 증거 보존
+
+2026-09-23 사용자 승인 잔여 1~5 중 1번이다. source `8fa98a99`의 `./test_ui.sh`는
+2026-09-21T23:37:14.645Z~2026-09-22T00:02:47.668Z 실제 실행에서 exit0,
+1,533.026초, baseline424개 PASS·FAIL0·미실행0·unsupported0, 개별 조작1,089행,
+시각 교차80개 PASS, Policy v4 적격 PASS·uiFulltestPass=true였다. 브라우저와 서버가 포함된
+실제 실행으로, 이번 이관 작업은 UI를 다시 실행하지 않았다. 바이너리 SHA256은
+`2ce43399ce33fd6863a9aa8d0e21e65ae32975ee52ad08d065b09e065aca9fd7`이며
+기존30분 제품 바이너리와 동일하다. 실행 안의 서버/port/runtime cleanup·비밀 검사는 PASS다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP31-E01 최신 UI 전체 | exact424·조작1,089·visual80·Policy 적격, 전체압축4,565파일 복원·해시·바이트 일치 | PASS |
+| LP31-E02 직전 실패 별도 보존 | source1ab의424개 관측 후 Policy 이유2개 FAIL 이력과 최소26파일 해시·바이트 일치 | PASS |
+| LP31-E03 소유 중복 정리 | 최신/직전 소유 root 및 작업 중복8파일의 크기·소유·hash 대조 후 삭제·부재 확인 | PASS |
+
+개별 case·조작·시각·단계 전수 행은 [LP31 개별 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp31-ui-final-items.md)에,
+전체 원출력·파일별 hash는 [압축본](release-artifacts/v4.1.0/s11-preparation-mapping/lp31-ui-final-full.tar.xz)과
+[구조화 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp31-ui-final-result.json)에 보존했다.
+압축본16,666,968B/SHA256 `7082dad712c3b8dc445b61dc7c5970d6e4d3e55a2675e1ec26885cae598cb3ef`.
+직전 실패 [최소 원출력](release-artifacts/v4.1.0/s11-preparation-mapping/lp30-ui-first-minimum.json.gz)과
+[전수 관측·실패 이유](release-artifacts/v4.1.0/s11-preparation-mapping/lp30-ui-first-result.json)는
+현재 PASS로 소급 승격하지 않는다.
+
+| 제목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| 녹화 UI I27~34 | 기존31개 실제 action | 별도 실행 잔여 | 기본424 PASS로 대체 불가 |
+| 브라우저 미디어 | 실제 Chrome 미디어/metadata | 별도 실행 잔여 | UI424 PASS로 대체 불가 |
+| 공통·녹화120분 | 두 장시간 명령 | 별도 실행 잔여 | 단기·30분·UI로 대체 불가 |
+
+정리한 원본과 후속 작업에 아직 필요한 임시 root의 경계, token 미집계 이유·후속 상태는
+[LP31 실행 기록](release-artifacts/v4.1.0/s11-preparation-mapping/lp29-final-validation.md#lp31-승인-잔여-15-순차-마감)에 남긴다.
+아래 LP30/LP29의 실패·미완료 문구는 각 실행 당시 이력이다.
+
 ## 현재 작업: LP30 EVT-058 원인 확인·UI 마감 승인
 
 잔여1~2번과 분할 커밋·조건 충족 시 푸시를 승인받았다. 실행 전 정의·불변 계약은
