@@ -162,8 +162,8 @@ async function main(){
     if(!preflight||preflight.length!==1)throw Error('recovery-preflight-anchor');
     text=exact(text,preflight[0],preflight[0]+' recovery_content_probe::Scope recovery_scope(recovery_content_probe::rebuilding?recovery_content_probe::Phase::RebuildPreflight:recovery_content_probe::Phase::Preflight);');
     text=exact(text,'bool RecordingCatalog::RebuildSqliteLocked(std::string* error) {','bool RecordingCatalog::RebuildSqliteLocked(std::string* error) { recovery_content_probe::Rebuild recovery_rebuild;');
-    text=exact(text,'bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mutation, std::string* error,PreparedDerivedMutation* prepared) {',
-     'bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mutation, std::string* error,PreparedDerivedMutation* prepared) { recovery_content_probe::Scope recovery_scope(recovery_content_probe::Phase::Projection);');insertions=3;
+    const projection='bool RecordingCatalog::ProjectMutationSqliteInTransactionLocked(const RecordingMutationV1& mutation,\n        std::string* error,PreparedDerivedMutation* prepared,bool own_transaction,\n        RecordingJournalOwnedViewHandle view) {';
+    text=exact(text,projection,projection+' recovery_content_probe::Scope recovery_scope(recovery_content_probe::Phase::Projection);');insertions=3;
     if(recovery){
      text=exact(text,'RecoveryContentContext recovery(this);','RecoveryContentContext recovery(this); if(recovery_content_probe::strict_only)recovery.valid=false;');
      text=exact(text,'context->entries.push_back(std::move(entry));context->charge+=charge;','recovery_content_probe::Admission();context->entries.push_back(std::move(entry));context->charge+=charge;');insertions+=2;

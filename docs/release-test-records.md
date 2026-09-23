@@ -2,11 +2,59 @@
 
 ## v4.1.0 S11 LP26-O10 격리 누적 선행 진단
 
+### LP26-O10 stage2 bounded focused 최종 결과
+
+동일원장 strict 재사전검증 생략·SQLite 재구축 batch·원장 view/link 결박 live binding 재사용과
+관측기5초 start-to-start 목표를 보완했다. source는 HEAD dbdfcba2 위 미커밋 변경이다.
+기존 O10/LP24 정의의 승인된 재실행이며 새로운 제품 사전등록이 있었다고 소급하지 않는다.
+[구현·개별 전수·최초/중간 실패·cleanup·증거 한계](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/results.md#stage2-bounded-focused-최종-기록)를 따른다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| stage2 build | ./server.sh build exit0,메인 직접관측·이번raw미보존 | pass |
+| stage2 LP15 | bash scripts/internal/verify_recording_checkpoint_cache.sh exit0,46/46 메인 직접관측·이번raw미보존 | pass |
+| stage2 LP24 준비 | sandbox EPERM compile중단,초기cleanup 미확정 뒤 소유root 사후삭제 | fail |
+| stage2 LP24 중간2회 | 계측위치/예상호출 불일치 각13/14,exit1 이력보존 | fail |
+| stage2 LP24 최종 | full14/14 exit0,변경/손상/순서/권한/예산·canonical 회귀 raw확인 | pass |
+| stage22049 batch 중간 | 복구15초 FAIL·뒤단계 건너뜀,exit1 | fail |
+| stage21020 batch 중간 | 복구7.520초·cp4.131/2.406초,exit0;최종bound-proof 이전소스 | pass |
+| stage22049 최종 | 복구12.127초·cp7.837/8.427초,initial11.256초·회전10.802초,full fallback8196행,exit0 | pass |
+| stage2 실제앱 준비 | --app-observe 관측30.140초,71/71,3프로세스 종료·UDP종료·root삭제,exit0 | pass |
+| stage2 문서 마감 | verify-docs-links318md/12065links/174anchors fail0,verify-docs-ui-assets10/10,diffcheck 모두exit0 | pass |
+
+stage2는 **bounded focused 통과**다. build/LP15 raw미보존은 명시적 증거 한계이며 과거로그로 대체하지 않는다.
+초기/중간 성능은 최종 구현의 성능증거로 사용하지 않고 실패 역사로 유지한다.
+누적1020 동시 HTTP·120분·전체통합은4번 잔여다. 실제앱30초는 관측 약106행의 준비 실행으로
+누적HTTP/장시간/resourceTrend/UI PASS가 아니다. preflight-only2049 실패는 메인보고뿐이며 raw미보존이다.
+
+현재 stage2는 [bounded focused 최종 결과](#lp26-o10-stage2-bounded-focused-최종-결과)까지 진행했다.
+아래 최초 진단/G01 시점의2049 FAIL·제품 미수정 표기는 당시 이력이며, 최종 제품 보완과 구분한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP26-O10-DOC | stage2 기록 마감 | 승인된 verify-docs-links·verify-docs-ui-assets·git diff --check, 개별 원출력/exit 및 기록 경계 대조 |v4.1.0|
+
 독자: S11 원인 분석 담당자. lifecycle: 선행진단 단회 실행/실패를 보존한다. 정책은 AGENTS.md다.
 시작 기준 HEAD dccd425f, v4.1.0 clean을 직접 확인했다. 제품 코드는 수정하지 않는다.
 실행 준비 중 메인 담당이 LP15 계측 wrapper 호환 보완을 별도 커밋한 HEAD 4f39b2f6을 측정 provenance로 사용한다.
 해당 호환 검사의 최초 sysctl 실패→getrusage-self 보완→기능46/46·peak179,994,624bytes·exit0·cleanup 근거는
 [LP26-O09 결과 추가기록](release-artifacts/v4.1.0/lp26-o09-diagnostics-20260923/results.md)에 보존돼 있다.
+
+### LP26-O10-G01 관측 cadence 보완 실행 전 정의
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP26-O10-G01 |5초 시작간격 목표 | 순수 helper에서 phaseAt+5000-now와 종료 잔여시간의 작은 양수만 대기; 처리5초 이상/정확15초는0,15초 초과는기존 sample-gap FAIL. 잘못된 시간 거부 |v4.1.0|
+| LP26-O10-G02 |연속성·실패근거 회귀 | recording_longrun_progress.test.mjs, recording_current_longrun_diagnostics.test.mjs, recording_longrun_summary.test.mjs, recording_current_http_diagnostics.test.mjs 단기 실행 |v4.1.0|
+
+안정화만 승인된 진행 대상이다. 새 helper export 미구현으로 G01 계산 assertion이 실패하는 예상 RED를
+먼저 실행한다. HTTP4초/native3초/표본15초·조기FAIL·실패 resource summary는 유지한다.
+실제30분/120분/UI와2049 복구 재실행은 미실행이며2049 recovery FAIL은 별도 미해결이다.
+
+G01 구현 결과: `phaseAt` 기준5초 목표에서 처리시간을 차감하고,5초 이상 처리 시 추가대기는0이다.
+예상RED4건(exit1)→GREEN4건(exit0), G02 회귀45+6+51+5건 모두 exit0; 전체 GREEN111개.
+문법/diffcheck exit0, 임시root·서버·port 생성 없음. [개별 결과·원출력·정리](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/results.md#lp26-o10-g-관측기-시작간격-보완).
+이는 실제 장시간 성공/HTTP timeout 해결 증거가 아니며2049 복구 FAIL은 유지한다.
 
 | 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
 | --- | --- | --- | --- | --- |

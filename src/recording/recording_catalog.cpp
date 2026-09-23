@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <cstring>
 #include <fstream>
 #include <limits>
 #include <sstream>
@@ -838,8 +839,11 @@ bool RecordingCatalog::OpenLocked(std::string* error) {
     if (replay.io_error_count != 0) return Fail(error, "journal replay I/O 오류로 catalog open 거부");
     if (replay.unsupported_record_count != 0) return Fail(error, "미지원 journal record로 catalog open 거부");
     if (!PreflightV2Locked(replay,error,nullptr,{},nullptr,owned,views)) return false;
+    recovery.strict_preflight_validated=journal_.managed_&&options_.enable_v2_storage;
     recovery.collecting=false;
-    if(journal_.managed_&&journal_.CheckpointPending()){recovery.valid=false;recovery.entries.clear();recovery.charge=0;}
+    if(journal_.managed_&&journal_.CheckpointPending()){
+        recovery.valid=false;recovery.strict_preflight_validated=false;recovery.entries.clear();recovery.charge=0;
+    }
     if(journal_.managed_&&journal_.CheckpointPending()&&!CheckpointLocked(true,error))return false;
     recovery_report_.corrupt_line_count = replay.corrupt_line_count;
     recovery_report_.truncated_tail_count = replay.truncated_tail_count;
@@ -3114,6 +3118,7 @@ bool RecordingCatalog::RebuildSqliteLocked(std::string* error) {
     RecordingJournalOwnedViews views;
     RecordingJournalReplayResult replay;
     if(!ReadCatalogReplay(&owned,&replay,error,&views))return false;
+    bool same_preflight_snapshot=false;
     if(recovery_content_&&recovery_content_->valid){
         const auto* original=recovery_content_->original;
         bool same=original&&original->size()==owned.size();
@@ -3123,12 +3128,26 @@ bool RecordingCatalog::RebuildSqliteLocked(std::string* error) {
             same=a.schema==b.schema&&a.mutation_type==b.mutation_type&&a.mutation_id==b.mutation_id&&
                 a.entity_id==b.entity_id&&a.occurred_at_ms==b.occurred_at_ms&&a.payload_json==b.payload_json;
         }
-        if(!same){recovery_content_->valid=false;recovery_content_->entries.clear();recovery_content_->charge=0;}
+        if(!same){
+            recovery_content_->valid=false;recovery_content_->strict_preflight_validated=false;
+            recovery_content_->entries.clear();recovery_content_->charge=0;
+        }else same_preflight_snapshot=recovery_content_->strict_preflight_validated;
     }
     if (replay.io_error_count != 0) return Fail(error, "journal replay I/O 오류로 SQLite rebuild 거부");
     if (replay.unsupported_record_count != 0) return Fail(error, "미지원 journal record로 SQLite rebuild 거부");
-    if (!PreflightV2Locked(replay,error,nullptr,{},nullptr,owned,views)) return false;
-    if (!Exec(sqlite_db_, "BEGIN; DELETE FROM recording_derived_accepted_references; DELETE FROM recording_derived_jobs; DELETE FROM recording_referenced_observations; DELETE FROM recording_consumer_references; DELETE FROM recording_source_bindings; DELETE FROM recording_event_link_segments; DELETE FROM recording_event_links; DELETE FROM recording_observations; DELETE FROM recording_observations_v2; DELETE FROM recording_segment_states_v2; DELETE FROM recording_segments_v2; DELETE FROM recording_segments; DELETE FROM recording_tombstones; DELETE FROM recording_mutations; COMMIT;", error)) return false;
+    // Open의 strict 사전 검증과 동일한 전체 원장일 때만 두 번째 scratch replay를 생략한다.
+    // 변경·pending·독립 Rebuild는 기존 strict 경로를 유지한다.
+    if(same_preflight_snapshot){
+        if(replay.corrupt_line_count||replay.truncated_tail_count||!journal_.OwnsCatalog(this))
+            return Fail(error,"V2/order 원장 불완전 상태");
+    }else if (!PreflightV2Locked(replay,error,nullptr,{},nullptr,owned,views)) return false;
+    if (!Exec(sqlite_db_, "BEGIN", error)) return false;
+    struct RebuildRollback {
+        sqlite3* db;
+        bool active{true};
+        ~RebuildRollback(){if(active)Exec(db,"ROLLBACK",nullptr);}
+    } rollback{sqlite_db_};
+    if (!Exec(sqlite_db_, "DELETE FROM recording_derived_accepted_references; DELETE FROM recording_derived_jobs; DELETE FROM recording_referenced_observations; DELETE FROM recording_consumer_references; DELETE FROM recording_source_bindings; DELETE FROM recording_event_link_segments; DELETE FROM recording_event_links; DELETE FROM recording_observations; DELETE FROM recording_observations_v2; DELETE FROM recording_segment_states_v2; DELETE FROM recording_segments_v2; DELETE FROM recording_segments; DELETE FROM recording_tombstones; DELETE FROM recording_mutations;", error)) return false;
     for (std::size_t ordinal = 0; ordinal < replay.mutations.size(); ++ordinal) {
         const auto& mutation = replay.mutations[ordinal];
         RecoveryContentScope recovery_row(*this,recovery_content_,ordinal,owned.empty()?RecordingMutationHandle{}:owned[ordinal]);
@@ -3148,21 +3167,34 @@ bool RecordingCatalog::RebuildSqliteLocked(std::string* error) {
             else if(!journal_.AcquireMutationLink(accepted->second,&accepted_owned,error))return false;
             if(SerializeRecordingMutationV1(*accepted_owned)!=SerializeRecordingMutationV1(mutation))continue;
         }
-        if (!ProjectMutationSqliteLocked(mutation, error)) return false;
+        if (!ProjectMutationSqliteInTransactionLocked(mutation,error,nullptr,false,
+                views.empty()?RecordingJournalOwnedViewHandle{}:views[ordinal])) return false;
     }
+    if(!Exec(sqlite_db_,"COMMIT",error))return false;
+    rollback.active=false;
     return true;
 #endif
 }
 
 bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mutation, std::string* error,PreparedDerivedMutation* prepared) {
+    return ProjectMutationSqliteInTransactionLocked(mutation,error,prepared,true);
+}
+
+bool RecordingCatalog::ProjectMutationSqliteInTransactionLocked(const RecordingMutationV1& mutation,
+        std::string* error,PreparedDerivedMutation* prepared,bool own_transaction,
+        RecordingJournalOwnedViewHandle view) {
     recording::latency::Scope latency_scope(recording::latency::Operation::Sqlite,recording::latency::Source::Catalog,__LINE__,false);
 #if !MEDIA_SERVER_USE_SQLITE3
-    (void)mutation; (void)error; (void)prepared; return true;
+    (void)mutation; (void)error; (void)prepared; (void)own_transaction; (void)view; return true;
 #else
+    const auto ProjectionExec=[own_transaction](sqlite3* db,const char* sql,std::string* err){
+        if(!own_transaction&&(std::strcmp(sql,"BEGIN")==0||std::strcmp(sql,"COMMIT")==0))return true;
+        return Exec(db,sql,err);
+    };
     if(prepared){if(!PreparedDerivedMatchesLocked(mutation,*prepared,true,error))return false;prepared->phase=PreparedDerivedMutation::Phase::Consumed;}
-    if (!Exec(sqlite_db_, "BEGIN", error)) return false;
+    if (!ProjectionExec(sqlite_db_, "BEGIN", error)) return false;
     sqlite3_stmt* statement = nullptr;
-    if (sqlite3_prepare_v2(sqlite_db_, "INSERT OR IGNORE INTO recording_mutations VALUES(?,?,?,?)", -1, &statement, nullptr) != SQLITE_OK) { Exec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, sqlite3_errmsg(sqlite_db_)); }
+    if (sqlite3_prepare_v2(sqlite_db_, "INSERT OR IGNORE INTO recording_mutations VALUES(?,?,?,?)", -1, &statement, nullptr) != SQLITE_OK) { ProjectionExec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, sqlite3_errmsg(sqlite_db_)); }
     BindText(statement, 1, mutation.mutation_id); BindText(statement, 2, RecordingMutationTypeName(mutation.mutation_type));
     sqlite3_bind_int64(statement, 3, mutation.occurred_at_ms); BindText(statement, 4, mutation.entity_id);
     const int mutation_step = sqlite3_step(statement);
@@ -3171,44 +3203,44 @@ bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mu
         mutation_step == SQLITE_DONE ? std::string() : sqlite3_errmsg(sqlite_db_);
     sqlite3_finalize(statement);
     if (mutation_step != SQLITE_DONE) {
-        Exec(sqlite_db_, "ROLLBACK", nullptr);
+        ProjectionExec(sqlite_db_, "ROLLBACK", nullptr);
         return Fail(error, mutation_error);
     }
-    if (!inserted) return Exec(sqlite_db_, "COMMIT", error);
+    if (!inserted) return ProjectionExec(sqlite_db_, "COMMIT", error);
     if(IsDerivedJobMutation(mutation.mutation_type)) {
         const auto* recovery=RecoveryContentLocked(mutation);
         const auto recovered=recovery?recovery->job:DerivedJobHandle{};
         DerivedJobRecordV1 parsed_job;
         if((!prepared&&!recovered&&!ParseDerivedJobRecord(mutation.payload_json,&parsed_job,error))||
-           sqlite3_prepare_v2(sqlite_db_,"INSERT OR REPLACE INTO recording_derived_jobs VALUES(?,?)",-1,&statement,nullptr)!=SQLITE_OK){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+           sqlite3_prepare_v2(sqlite_db_,"INSERT OR REPLACE INTO recording_derived_jobs VALUES(?,?)",-1,&statement,nullptr)!=SQLITE_OK){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;}
         const auto& job=prepared?*prepared->applied:recovered?*recovered:parsed_job;
         BindText(statement,1,job.intent.job_id);BindText(statement,2,prepared?prepared->payload:recovered?mutation.payload_json:SerializeDerivedJobRecord(job));
         const bool ok=sqlite3_step(statement)==SQLITE_DONE;sqlite3_finalize(statement);
-        if(!ok){Exec(sqlite_db_,"ROLLBACK",nullptr);return Fail(error,"derived job SQLite projection 실패");}
+        if(!ok){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return Fail(error,"derived job SQLite projection 실패");}
         if(mutation.mutation_type==RecordingMutationType::DerivedJobCommitted) {
             for(std::size_t i=0;i<job.ready->outputs.size();++i) {
                 const auto& s=job.ready->outputs[i].segment;
-                if(sqlite3_prepare_v2(sqlite_db_,"INSERT OR IGNORE INTO recording_segments_v2 VALUES(?,?,?)",-1,&statement,nullptr)!=SQLITE_OK){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+                if(sqlite3_prepare_v2(sqlite_db_,"INSERT OR IGNORE INTO recording_segments_v2 VALUES(?,?,?)",-1,&statement,nullptr)!=SQLITE_OK){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;}
                 BindText(statement,1,s.segment_id);BindText(statement,2,SerializeRecordingSegmentV2(s));BindText(statement,3,job.intent.outputs[i].final_relpath);
                 const bool inserted=sqlite3_step(statement)==SQLITE_DONE;sqlite3_finalize(statement);
-                if(!inserted){Exec(sqlite_db_,"ROLLBACK",nullptr);return Fail(error,"derived output SQLite 원자 INSERT 실패");}
-                if(sqlite3_prepare_v2(sqlite_db_,"INSERT OR IGNORE INTO recording_segment_states_v2 VALUES(?,'finalized','','',0)",-1,&statement,nullptr)!=SQLITE_OK){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+                if(!inserted){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return Fail(error,"derived output SQLite 원자 INSERT 실패");}
+                if(sqlite3_prepare_v2(sqlite_db_,"INSERT OR IGNORE INTO recording_segment_states_v2 VALUES(?,'finalized','','',0)",-1,&statement,nullptr)!=SQLITE_OK){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;}
                 BindText(statement,1,s.segment_id);const bool state=sqlite3_step(statement)==SQLITE_DONE;sqlite3_finalize(statement);
-                if(!state){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+                if(!state){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;}
             }
         }
     } else if (mutation.mutation_type == RecordingMutationType::ReferencedObservationPut) {
         ReferencedObservationV1 pair;
-        if(!ParseReferencedObservationV1(mutation.payload_json,&pair,error)) {Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+        if(!ParseReferencedObservationV1(mutation.payload_json,&pair,error)) {ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;}
         const auto merged=referenced_observations_.find(pair.observation.observation_id);
         if(merged!=referenced_observations_.end())pair=merged->second;
         if(
            sqlite3_prepare_v2(sqlite_db_,"INSERT OR REPLACE INTO recording_referenced_observations VALUES(?,?)",-1,&statement,nullptr)!=SQLITE_OK) {
-            Exec(sqlite_db_,"ROLLBACK",nullptr);return false;
+            ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;
         }
         BindText(statement,1,pair.observation.observation_id);BindText(statement,2,SerializeReferencedObservationV1(pair));
         const bool ok=sqlite3_step(statement)==SQLITE_DONE;sqlite3_finalize(statement);
-        if(!ok){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+        if(!ok){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;}
     } else if (mutation.mutation_type == RecordingMutationType::ConsumerReferencePut ||
                mutation.mutation_type == RecordingMutationType::DerivedReferenceAccepted) {
         const auto json=ObjectField(mutation.payload_json,"reference");RecordingConsumerReferenceV1 reference;
@@ -3217,95 +3249,118 @@ bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mu
             : "INSERT OR IGNORE INTO recording_consumer_references VALUES(?,?)";
         if(!json||!ParseRecordingConsumerReferenceV1(*json,&reference,error)||
            sqlite3_prepare_v2(sqlite_db_,sql,-1,&statement,nullptr)!=SQLITE_OK) {
-            Exec(sqlite_db_,"ROLLBACK",nullptr);return false;
+            ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;
         }
         BindText(statement,1,reference.reference_id);BindText(statement,2,SerializeRecordingConsumerReferenceV1(reference));
         const bool ok=sqlite3_step(statement)==SQLITE_DONE;sqlite3_finalize(statement);
-        if(!ok){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+        if(!ok){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;}
     } else if (mutation.mutation_type == RecordingMutationType::SegmentFinalized) {
         const auto segment_json = ObjectField(mutation.payload_json, "segment");
         const auto relpath = StringField(mutation.payload_json, "mediaRelpath");
         RecordingSegmentV1 s;
-        if (!segment_json || !relpath || !ParseRecordingSegmentV1(*segment_json, &s, error)) { Exec(sqlite_db_, "ROLLBACK", nullptr); return false; }
+        if (!segment_json || !relpath || !ParseRecordingSegmentV1(*segment_json, &s, error)) { ProjectionExec(sqlite_db_, "ROLLBACK", nullptr); return false; }
         const char* sql = "INSERT OR IGNORE INTO recording_segments VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0,?,?,?)";
-        if (sqlite3_prepare_v2(sqlite_db_, sql, -1, &statement, nullptr) != SQLITE_OK) { Exec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, sqlite3_errmsg(sqlite_db_)); }
+        if (sqlite3_prepare_v2(sqlite_db_, sql, -1, &statement, nullptr) != SQLITE_OK) { ProjectionExec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, sqlite3_errmsg(sqlite_db_)); }
         int i=1; BindText(statement,i++,s.segment_id); BindText(statement,i++,s.source_id); BindText(statement,i++,s.channel_id); BindText(statement,i++,s.stream_epoch_id);
         sqlite3_bind_int64(statement,i++,s.start.utc_ms); sqlite3_bind_int64(statement,i++,s.end.utc_ms); sqlite3_bind_int64(statement,i++,s.start.pts); sqlite3_bind_int64(statement,i++,s.end.pts); sqlite3_bind_int(statement,i++,s.start.time_base_num); sqlite3_bind_int(statement,i++,s.start.time_base_den);
         BindText(statement,i++,s.container); BindText(statement,i++,SerializeRecordingSegmentV1(s)); sqlite3_bind_int64(statement,i++,static_cast<sqlite3_int64>(s.size_bytes)); BindText(statement,i++,s.checksum_sha256); BindText(statement,i++,RetentionName(s.retention_class)); BindText(statement,i++,LifecycleName(s.lifecycle)); sqlite3_bind_int(statement,i++,s.pinned?1:0); BindText(statement,i++,*relpath); sqlite3_bind_int64(statement,i++,s.created_at_ms); sqlite3_bind_int64(statement,i++,s.finalized_at_ms);
-        if (sqlite3_step(statement) != SQLITE_DONE) { const std::string message=sqlite3_errmsg(sqlite_db_); sqlite3_finalize(statement); Exec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error,message); }
+        if (sqlite3_step(statement) != SQLITE_DONE) { const std::string message=sqlite3_errmsg(sqlite_db_); sqlite3_finalize(statement); ProjectionExec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error,message); }
         sqlite3_finalize(statement);
     } else if (mutation.mutation_type == RecordingMutationType::SegmentV2Finalized ||
                mutation.mutation_type == RecordingMutationType::SegmentV2BoundFinalized) {
         const auto* recovery=RecoveryContentLocked(mutation);
         const bool recovered=recovery&&recovery->binding&&mutation.mutation_type==RecordingMutationType::SegmentV2BoundFinalized;
+        SourceBindingHandle live_binding;
+        const RecordingSegmentV2* live_segment=nullptr;
+        const std::string* live_relative=nullptr;
+        if(!recovered&&view&&mutation.mutation_type==RecordingMutationType::SegmentV2BoundFinalized){
+            const auto binding=source_bindings_.find(mutation.entity_id);
+            const auto segment=segments_v2_.find(mutation.entity_id);
+            const auto relative=media_relpaths_.find(mutation.entity_id);
+            if(binding!=source_bindings_.end()&&segment!=segments_v2_.end()&&relative!=media_relpaths_.end()){
+                bool exact_view=false;
+                if(!journal_.MatchMutationLinkView(binding->second.mutation,view,&exact_view,error)){
+                    ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;
+                }
+                if(exact_view){
+                    live_binding=binding->second.WarmOwned();
+                    if(live_binding){live_segment=&segment->second;live_relative=&relative->second;}
+                }
+            }
+        }
+        // 같은 Open에서 strict 적용한 불변 bound와 원장의 동일 view가 결박될 때만 재사용한다.
+        // 다른 세대·중복 행·비상주 입력은 기존 strict parse로 되돌린다.
+        const bool reused=recovered||bool(live_binding);
         ingress::StrictJsonObjectDocument payload;
-        if(!recovered&&!ingress::ParseStrictJsonObjectDocument(mutation.payload_json,&payload,error)){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+        if(!reused&&!ingress::ParseStrictJsonObjectDocument(mutation.payload_json,&payload,error)){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;}
         const auto json=ingress::StrictJsonObjectField(payload,"segment");
-        const auto relative=recovered?std::optional<std::string>(recovery->relative):ingress::StrictJsonStringField(payload,"mediaRelpath");RecordingSegmentV2 v;
-        if(recovered)v=recovery->segment;
-        if(!relative||(!recovered&&(!json||!ParseRecordingSegmentV2(*json,&v,error)))||
-           sqlite3_prepare_v2(sqlite_db_,"INSERT OR IGNORE INTO recording_segments_v2 VALUES(?,?,?)",-1,&statement,nullptr)!=SQLITE_OK){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+        const auto relative=recovered?std::optional<std::string>(recovery->relative):live_relative?
+            std::optional<std::string>(*live_relative):ingress::StrictJsonStringField(payload,"mediaRelpath");RecordingSegmentV2 v;
+        if(recovered)v=recovery->segment;else if(live_segment)v=*live_segment;
+        if(!relative||(!reused&&(!json||!ParseRecordingSegmentV2(*json,&v,error)))||
+           sqlite3_prepare_v2(sqlite_db_,"INSERT OR IGNORE INTO recording_segments_v2 VALUES(?,?,?)",-1,&statement,nullptr)!=SQLITE_OK){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;}
         BindText(statement,1,v.segment_id);BindText(statement,2,recovered?recovery->segment_json:SerializeRecordingSegmentV2(v));BindText(statement,3,*relative);
         const bool ok=sqlite3_step(statement)==SQLITE_DONE;sqlite3_finalize(statement);
-        if(!ok){Exec(sqlite_db_,"ROLLBACK",nullptr);return Fail(error,"V2 SQLite INSERT 실패");}
-        if(sqlite3_prepare_v2(sqlite_db_,"INSERT OR IGNORE INTO recording_segment_states_v2 VALUES(?,'finalized','','',0)",-1,&statement,nullptr)!=SQLITE_OK){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+        if(!ok){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return Fail(error,"V2 SQLite INSERT 실패");}
+        if(sqlite3_prepare_v2(sqlite_db_,"INSERT OR IGNORE INTO recording_segment_states_v2 VALUES(?,'finalized','','',0)",-1,&statement,nullptr)!=SQLITE_OK){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;}
         BindText(statement,1,v.segment_id);const bool state_ok=sqlite3_step(statement)==SQLITE_DONE;sqlite3_finalize(statement);
-        if(!state_ok){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+        if(!state_ok){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;}
         if(mutation.mutation_type==RecordingMutationType::SegmentV2BoundFinalized) {
             const auto json=ingress::StrictJsonObjectField(payload,"sourceBinding");RecordingSourceBindingV1 binding;
-            if((!recovered&&(!json||!ParseRecordingSourceBindingV1(*json,&binding,error)))||
-               sqlite3_prepare_v2(sqlite_db_,"INSERT INTO recording_source_bindings VALUES(?,?)",-1,&statement,nullptr)!=SQLITE_OK){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
-            BindText(statement,1,v.segment_id);BindText(statement,2,recovered?recovery->binding_json:SerializeRecordingSourceBindingV1(binding));
+            if((!reused&&(!json||!ParseRecordingSourceBindingV1(*json,&binding,error)))||
+               sqlite3_prepare_v2(sqlite_db_,"INSERT INTO recording_source_bindings VALUES(?,?)",-1,&statement,nullptr)!=SQLITE_OK){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+            BindText(statement,1,v.segment_id);BindText(statement,2,recovered?recovery->binding_json:
+                live_binding?SerializeRecordingSourceBindingV1(*live_binding):SerializeRecordingSourceBindingV1(binding));
             const bool binding_ok=sqlite3_step(statement)==SQLITE_DONE;sqlite3_finalize(statement);
-            if(!binding_ok){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+            if(!binding_ok){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;}
         }
     } else if(mutation.mutation_type==RecordingMutationType::SegmentV2State ||
               mutation.mutation_type==RecordingMutationType::SegmentV2Deleted) {
         const bool deleted=mutation.mutation_type==RecordingMutationType::SegmentV2Deleted;
         RecordingSegmentStateV2 state;RecordingTombstoneV2 tombstone;
         if((deleted&&!ParseRecordingTombstoneV2(mutation.payload_json,&tombstone,error))||
-           (!deleted&&!ParseRecordingSegmentStateV2(mutation.payload_json,&state,error))){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
-        if(sqlite3_prepare_v2(sqlite_db_,"UPDATE recording_segment_states_v2 SET lifecycle=?,reason=?,tombstone_json=? WHERE segment_id=?",-1,&statement,nullptr)!=SQLITE_OK){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+           (!deleted&&!ParseRecordingSegmentStateV2(mutation.payload_json,&state,error))){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+        if(sqlite3_prepare_v2(sqlite_db_,"UPDATE recording_segment_states_v2 SET lifecycle=?,reason=?,tombstone_json=? WHERE segment_id=?",-1,&statement,nullptr)!=SQLITE_OK){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;}
         BindText(statement,1,deleted?"deleted":LifecycleName(state.lifecycle));
         BindText(statement,2,deleted?tombstone.deletion_reason:state.reason);
         // 전체 tombstone은 원장에 남고 SQLite는 재구축 가능한 현재 상태 투영이다.
         BindText(statement,3,deleted?SqliteDeletionReceipt(tombstone):"");BindText(statement,4,mutation.entity_id);
         const bool state_ok=sqlite3_step(statement)==SQLITE_DONE&&sqlite3_changes(sqlite_db_)==1;sqlite3_finalize(statement);
-        if(!state_ok){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+        if(!state_ok){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;}
         if(deleted) {
-            if(sqlite3_prepare_v2(sqlite_db_,"DELETE FROM recording_segments_v2 WHERE segment_id=?",-1,&statement,nullptr)!=SQLITE_OK){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+            if(sqlite3_prepare_v2(sqlite_db_,"DELETE FROM recording_segments_v2 WHERE segment_id=?",-1,&statement,nullptr)!=SQLITE_OK){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;}
             BindText(statement,1,mutation.entity_id);const bool ok=sqlite3_step(statement)==SQLITE_DONE;sqlite3_finalize(statement);
-            if(!ok){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+            if(!ok){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;}
             // SQLite는 JSONL의 재구축 가능한 투영이다. 삭제된 원본의 상세 결박은
             // journal에서 검증·재획득하되, 투영에는 동일한 큰 payload를 중복 보관하지 않는다.
-            if(sqlite3_prepare_v2(sqlite_db_,"DELETE FROM recording_source_bindings WHERE segment_id=?",-1,&statement,nullptr)!=SQLITE_OK){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+            if(sqlite3_prepare_v2(sqlite_db_,"DELETE FROM recording_source_bindings WHERE segment_id=?",-1,&statement,nullptr)!=SQLITE_OK){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;}
             BindText(statement,1,mutation.entity_id);const bool binding_ok=sqlite3_step(statement)==SQLITE_DONE;sqlite3_finalize(statement);
-            if(!binding_ok){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+            if(!binding_ok){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;}
         }
     } else if (mutation.mutation_type == RecordingMutationType::EventLinkCreated) {
         const auto link_json=ObjectField(mutation.payload_json,"link"); EventRecordingLinkV1 link;
-        if(!link_json||!ParseEventRecordingLinkV1(*link_json,&link,error)){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+        if(!link_json||!ParseEventRecordingLinkV1(*link_json,&link,error)){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;}
         const char* sql="INSERT OR REPLACE INTO recording_event_links VALUES(?,?,?,?,?,?,?,?,?,0)";
         sqlite3_prepare_v2(sqlite_db_,sql,-1,&statement,nullptr); int i=1; BindText(statement,i++,link.link_id); BindText(statement,i++,link.event_id); BindText(statement,i++,link.channel_id); sqlite3_bind_int64(statement,i++,link.requested_range.has_value()?link.requested_range->start_ms:0); sqlite3_bind_int64(statement,i++,link.requested_range.has_value()?link.requested_range->end_ms:0); BindText(statement,i++,link.derived_segment_id.value_or("")); BindText(statement,i++,link.fallback_evidence_id.value_or("")); BindText(statement,i++,EventStatusName(link.status)); BindText(statement,i++,SerializeEventRecordingLinkV1(link));
-        if(sqlite3_step(statement)!=SQLITE_DONE){const std::string message=sqlite3_errmsg(sqlite_db_);sqlite3_finalize(statement);Exec(sqlite_db_,"ROLLBACK",nullptr);return Fail(error,message);} sqlite3_finalize(statement);
-        if(sqlite3_prepare_v2(sqlite_db_,"DELETE FROM recording_event_link_segments WHERE link_id=?",-1,&statement,nullptr)!=SQLITE_OK){Exec(sqlite_db_,"ROLLBACK",nullptr);return Fail(error,sqlite3_errmsg(sqlite_db_));}BindText(statement,1,link.link_id);if(sqlite3_step(statement)!=SQLITE_DONE){const std::string message=sqlite3_errmsg(sqlite_db_);sqlite3_finalize(statement);Exec(sqlite_db_,"ROLLBACK",nullptr);return Fail(error,message);}sqlite3_finalize(statement);
-        for(const auto& overlap:link.ordered_overlaps){sqlite3_prepare_v2(sqlite_db_,"INSERT INTO recording_event_link_segments VALUES(?,?,?,?)",-1,&statement,nullptr);BindText(statement,1,link.link_id);BindText(statement,2,overlap.segment_id);sqlite3_bind_int64(statement,3,overlap.range.start_ms);sqlite3_bind_int64(statement,4,overlap.range.end_ms);if(sqlite3_step(statement)!=SQLITE_DONE){const std::string message=sqlite3_errmsg(sqlite_db_);sqlite3_finalize(statement);Exec(sqlite_db_,"ROLLBACK",nullptr);return Fail(error,message);}sqlite3_finalize(statement);}
+        if(sqlite3_step(statement)!=SQLITE_DONE){const std::string message=sqlite3_errmsg(sqlite_db_);sqlite3_finalize(statement);ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return Fail(error,message);} sqlite3_finalize(statement);
+        if(sqlite3_prepare_v2(sqlite_db_,"DELETE FROM recording_event_link_segments WHERE link_id=?",-1,&statement,nullptr)!=SQLITE_OK){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return Fail(error,sqlite3_errmsg(sqlite_db_));}BindText(statement,1,link.link_id);if(sqlite3_step(statement)!=SQLITE_DONE){const std::string message=sqlite3_errmsg(sqlite_db_);sqlite3_finalize(statement);ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return Fail(error,message);}sqlite3_finalize(statement);
+        for(const auto& overlap:link.ordered_overlaps){sqlite3_prepare_v2(sqlite_db_,"INSERT INTO recording_event_link_segments VALUES(?,?,?,?)",-1,&statement,nullptr);BindText(statement,1,link.link_id);BindText(statement,2,overlap.segment_id);sqlite3_bind_int64(statement,3,overlap.range.start_ms);sqlite3_bind_int64(statement,4,overlap.range.end_ms);if(sqlite3_step(statement)!=SQLITE_DONE){const std::string message=sqlite3_errmsg(sqlite_db_);sqlite3_finalize(statement);ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return Fail(error,message);}sqlite3_finalize(statement);}
     } else if (mutation.mutation_type == RecordingMutationType::ObservationV2Put) {
         const auto json = ObjectField(mutation.payload_json, "observation");
         AnalysisObservationV2 observation;
         if (!json || !ParseAnalysisObservationV2(*json, &observation, error)) {
-            Exec(sqlite_db_, "ROLLBACK", nullptr); return false;
+            ProjectionExec(sqlite_db_, "ROLLBACK", nullptr); return false;
         }
         // V2 projection은 Apply가 identity검증·사유병합을 마친 유효상태에서만 생성한다.
         // 재구축 중 거부된 원장행을 다시 신뢰해 memory와 다른 SQLite행을 만들지 않는다.
         const auto valid = observations_v2_.find(mutation.entity_id);
         if (valid == observations_v2_.end()) {
-            return Exec(sqlite_db_, "COMMIT", error);
+            return ProjectionExec(sqlite_db_, "COMMIT", error);
         }
         observation = valid->second;
         if (sqlite3_prepare_v2(sqlite_db_, "INSERT OR REPLACE INTO recording_observations_v2 VALUES(?,?,?,?,?)", -1,
                               &statement, nullptr) != SQLITE_OK) {
-            Exec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, sqlite3_errmsg(sqlite_db_));
+            ProjectionExec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, sqlite3_errmsg(sqlite_db_));
         }
         BindText(statement, 1, observation.observation_id);
         BindText(statement, 2, observation.channel_id);
@@ -3315,16 +3370,16 @@ bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mu
         BindText(statement, 5, SerializeAnalysisObservationV2(observation));
         const bool ok = sqlite3_step(statement) == SQLITE_DONE;
         sqlite3_finalize(statement); statement = nullptr;
-        if (!ok) { Exec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, sqlite3_errmsg(sqlite_db_)); }
+        if (!ok) { ProjectionExec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, sqlite3_errmsg(sqlite_db_)); }
     } else if (mutation.mutation_type == RecordingMutationType::ObservationPut) {
         const auto observation_json = ObjectField(mutation.payload_json, "observation");
         AnalysisObservationV1 observation;
         if (!observation_json || !ParseAnalysisObservationV1(*observation_json, &observation, error)) {
-            Exec(sqlite_db_, "ROLLBACK", nullptr); return false;
+            ProjectionExec(sqlite_db_, "ROLLBACK", nullptr); return false;
         }
         const char* sql = "INSERT OR REPLACE INTO recording_observations VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)";
         if (sqlite3_prepare_v2(sqlite_db_, sql, -1, &statement, nullptr) != SQLITE_OK) {
-            Exec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, sqlite3_errmsg(sqlite_db_));
+            ProjectionExec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, sqlite3_errmsg(sqlite_db_));
         }
         int i = 1;
         BindText(statement, i++, observation.observation_id);
@@ -3346,30 +3401,30 @@ bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mu
         BindText(statement, i++, *observation_json);
         if (sqlite3_step(statement) != SQLITE_DONE) {
             const std::string message = sqlite3_errmsg(sqlite_db_);
-            sqlite3_finalize(statement); Exec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, message);
+            sqlite3_finalize(statement); ProjectionExec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, message);
         }
         sqlite3_finalize(statement);
     } else if (mutation.mutation_type == RecordingMutationType::CorruptionDetected) {
         if (sqlite3_prepare_v2(sqlite_db_,
             "UPDATE recording_segments SET lifecycle='corrupt' WHERE segment_id=? AND lifecycle='finalized'",
             -1, &statement, nullptr) != SQLITE_OK) {
-            Exec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, sqlite3_errmsg(sqlite_db_));
+            ProjectionExec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, sqlite3_errmsg(sqlite_db_));
         }
         BindText(statement, 1, mutation.entity_id);
         if (sqlite3_step(statement) != SQLITE_DONE) {
             const std::string message = sqlite3_errmsg(sqlite_db_);
-            sqlite3_finalize(statement); Exec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, message);
+            sqlite3_finalize(statement); ProjectionExec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, message);
         }
         sqlite3_finalize(statement);
     } else if (mutation.mutation_type == RecordingMutationType::DeletionRequested) {
         if (sqlite3_prepare_v2(sqlite_db_,
                                "UPDATE recording_segments SET lifecycle='deletion_pending' WHERE segment_id=?",
                                -1, &statement, nullptr) != SQLITE_OK) {
-            Exec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, sqlite3_errmsg(sqlite_db_));
+            ProjectionExec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, sqlite3_errmsg(sqlite_db_));
         }
         BindText(statement, 1, mutation.entity_id);
         if (sqlite3_step(statement) != SQLITE_DONE || sqlite3_changes(sqlite_db_) != 1) {
-            sqlite3_finalize(statement); Exec(sqlite_db_, "ROLLBACK", nullptr);
+            sqlite3_finalize(statement); ProjectionExec(sqlite_db_, "ROLLBACK", nullptr);
             return Fail(error, "SQLite 삭제 요청 대상 segment가 없음");
         }
         sqlite3_finalize(statement);
@@ -3377,11 +3432,11 @@ bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mu
         const auto tombstone_json = ObjectField(mutation.payload_json, "tombstone");
         RecordingTombstoneV1 tombstone;
         if (!tombstone_json || !ParseRecordingTombstoneV1(*tombstone_json, &tombstone, error)) {
-            Exec(sqlite_db_, "ROLLBACK", nullptr); return false;
+            ProjectionExec(sqlite_db_, "ROLLBACK", nullptr); return false;
         }
         const char* sql = "INSERT OR REPLACE INTO recording_tombstones VALUES(?,?,?,?,?,?,?,?,?)";
         if (sqlite3_prepare_v2(sqlite_db_, sql, -1, &statement, nullptr) != SQLITE_OK) {
-            Exec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, sqlite3_errmsg(sqlite_db_));
+            ProjectionExec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, sqlite3_errmsg(sqlite_db_));
         }
         BindText(statement, 1, tombstone.segment_id);
         BindText(statement, 2, "segment");
@@ -3394,24 +3449,24 @@ bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mu
         BindText(statement, 9, tombstone.checksum_sha256);
         if (sqlite3_step(statement) != SQLITE_DONE) {
             const std::string message = sqlite3_errmsg(sqlite_db_);
-            sqlite3_finalize(statement); Exec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, message);
+            sqlite3_finalize(statement); ProjectionExec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, message);
         }
         sqlite3_finalize(statement);
-        if(sqlite3_prepare_v2(sqlite_db_,"DELETE FROM recording_segments_v2 WHERE segment_id=?",-1,&statement,nullptr)!=SQLITE_OK){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+        if(sqlite3_prepare_v2(sqlite_db_,"DELETE FROM recording_segments_v2 WHERE segment_id=?",-1,&statement,nullptr)!=SQLITE_OK){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;}
         BindText(statement,1,tombstone.segment_id);
         const bool v2_deleted=sqlite3_step(statement)==SQLITE_DONE;sqlite3_finalize(statement);
-        if(!v2_deleted){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+        if(!v2_deleted){ProjectionExec(sqlite_db_,"ROLLBACK",nullptr);return false;}
         sqlite3_prepare_v2(sqlite_db_,
                            "UPDATE recording_segments SET lifecycle='deleted', media_relpath='' WHERE segment_id=?",
                            -1, &statement, nullptr);
         BindText(statement, 1, tombstone.segment_id);
         if (sqlite3_step(statement) != SQLITE_DONE) {
             const std::string message = sqlite3_errmsg(sqlite_db_);
-            sqlite3_finalize(statement); Exec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, message);
+            sqlite3_finalize(statement); ProjectionExec(sqlite_db_, "ROLLBACK", nullptr); return Fail(error, message);
         }
         sqlite3_finalize(statement);
     }
-    return Exec(sqlite_db_, "COMMIT", error);
+    return ProjectionExec(sqlite_db_, "COMMIT", error);
 #endif
 }
 

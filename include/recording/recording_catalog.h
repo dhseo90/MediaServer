@@ -340,7 +340,7 @@ private:
         const RecordingMutationHandles* original{nullptr};
         std::vector<Entry> entries;
         std::size_t charge{0},budget{64U*1024U*1024U},limit{64};
-        bool collecting{true},valid{true};
+        bool collecting{true},valid{true},strict_preflight_validated{false};
         explicit RecoveryContentContext(const RecordingCatalog* value):owner(value){}
     };
     struct RecoveryContentScope {
@@ -390,6 +390,9 @@ private:
     bool InitializeSqliteSchemaLocked(std::string* error);
     bool RebuildSqliteLocked(std::string* error);
     bool ProjectMutationSqliteLocked(const RecordingMutationV1& mutation, std::string* error,PreparedDerivedMutation* prepared=nullptr);
+    bool ProjectMutationSqliteInTransactionLocked(const RecordingMutationV1& mutation,
+        std::string* error,PreparedDerivedMutation* prepared,bool own_transaction,
+        RecordingJournalOwnedViewHandle view={});
     bool RecoverWriterCleanupMarkersLocked(std::string* error);
     bool FinalizeSegmentLocked(const RecordingSegmentV1& segment,
                                const std::string& media_path,

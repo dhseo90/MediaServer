@@ -381,7 +381,8 @@ int main(int argc,char** argv){
             if(!opened)throw std::runtime_error("fixture-open-catalog");sql_result=Job(store.catalog,job_id);
             check(job_mutations>0&&first[1].calls==1&&first[1].parses==job_mutations,"recovery first preflight retains strict content validation");
             check(sql_result==expected&&first[0].parses==0,"recovery actual apply reuses validated content and preserves transitions");
-            check(first[2].calls==1&&first[3].calls>0&&first[2].parses==0&&first[3].parses==0&&first[3].serializes==0,
+            // 같은 Open의 strict 입력과 동일 원장이므로 재투영의 두 번째 scratch 호출은 없어야 한다.
+            check(first[2].calls==0&&first[3].calls>0&&first[2].parses==0&&first[3].parses==0&&first[3].serializes==0,
                   "recovery sqlite preflight and projection reuse exact validated content");
             if(Bytes(store.journal.path())!=journal_before)throw std::runtime_error("fixture-bytes");
         }

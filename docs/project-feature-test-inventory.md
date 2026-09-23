@@ -2,6 +2,11 @@
 
 ## LP26-O10 격리 누적 선행 진단 사전등록
 
+LP26-O10-G01 관측 cadence 보완: 표본 `phaseAt` 기준5초 start-to-start 목표에서
+처리시간을 차감한다. 안정화: 순수시간 helper RED→GREEN·15초 연속성/실패 summary 회귀;
+30분/120분: 이번 미실행(기존 장시간 기준 불변); UI: 비대상(UI 없어야 정상).
+G01 결과: 예상RED4→GREEN4, 관련 회귀107개 통과. 당시2049 복구 미해결 상태는 아래 stage2 최종 결과와 구분한다.
+
 제품 기능 추가가 아닌 synthetic 관측이다. 기존 serializer로 ID/order/segment/binding/tombstone을 다시 결박한다.
 정의·실제 결과는 [중앙 기록](release-test-records.md#v410-s11-lp26-o10-격리-누적-선행-진단)을 따른다.
 
@@ -13,9 +18,17 @@
 | LP26-O10-D | 64MiB·8192 exact/plus1 | 메모리 내 입장경계 검사, 저장 성공과 분리 | 미실행 | 미실행 | 비대상 |
 | LP26-O10-E | RSS·디스크·손상·정리 | 소유root448MiB·프로세스1GiB·출력4MiB 및 시간제한 | 미실행 | 미실행 | 비대상 |
 
-선행진단 결과: small16와1020은 명시된 strict/count/cache/rotation oracle 통과,
-2049는 initial8196행 관측 후 독립 recovery15초 FAIL이다. 뒤 단계는 미실행이며 제품 해결로 표기하지 않는다.
+선행진단 당시: small16와1020은 명시된 strict/count/cache/rotation oracle 통과,
+2049는 initial8196행 관측 후 독립 recovery15초 FAIL이며 해당 실행의 뒤 단계는 미실행이다. 최초 실패는 보존한다.
 [결과·실패 이력·정리](release-test-records.md#lp26-o10-선행-진단-결과)를 참조한다.
+
+후속 stage2 최종 범위는 **bounded focused 통과**다. 동일원장 재사전검증 생략·SQLite batch·원장 view에
+결박된 live binding 재사용 후2049 복구12.127초, 두 checkpoint7.837/8.427초, 실제 앱30초 준비 실행이 통과했다.
+기존 LP24 recovery14/14·LP15 checkpoint46/46 회귀와 실패/cleanup은 [stage2 기록](release-test-records.md#lp26-o10-stage2-bounded-focused-최종-결과)을 따른다.
+누적1020 동시 HTTP부하·120분·전체통합은4번 잔여이며 위 수치로 PASS를 대신하지 않는다.
+
+문서 마감 검증 사전정의: `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`,
+`git diff --check`만 실행한다. 안정화: 문서 연결/자산/공백;30분/120분/UI: 미실행(문서검사로 대체 불가).
 
 ## LP26-O09 누적 규모 진단·조기 실패 사전등록
 
