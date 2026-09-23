@@ -4,6 +4,52 @@ import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {RecordingJournalReader} from './recording_journal_reader.mjs';
 const need=(ok,code)=>{if(!ok)throw Error(code);};
+export const CURRENT_ROOT_CAP_BYTES=448*1024*1024;
+export function summarizeFixtureGeneration(result,{elapsedMs,outputBytes=null}){
+  const errorCode=result?.error?.code??null,signal=result?.signal??null,stderr=String(result?.stderr??'');
+  return {status:Number.isInteger(result?.status)?result.status:null,
+    signal:signal===null?null:(['SIGTERM','SIGKILL','SIGABRT','SIGSEGV','SIGBUS','SIGINT'].includes(signal)?signal:'other'),
+    errorCode:errorCode===null?null:(['ETIMEDOUT','ENOENT','EACCES','ENOBUFS'].includes(errorCode)?errorCode:'other'),
+    elapsedMs,timeoutMs:30000,stdoutBytes:Buffer.byteLength(String(result?.stdout??'')),stderrBytes:Buffer.byteLength(stderr),outputBytes,
+    categories:{missingElement:/no element|no such element/i.test(stderr),negotiation:/not-negotiated|could not link/i.test(stderr),
+      pluginScanner:/plugin.scanner|plugin loader/i.test(stderr),permission:/permission denied|operation not permitted/i.test(stderr),
+      resource:/no space left|resource unavailable|resource temporarily unavailable/i.test(stderr)},rawBodyPublished:false};
+}
+// 고정 범주만 내보낸다. 파일명/경로/본문은 비민감 관측 결과에 포함하지 않는다.
+export function measureCurrentRoot(root){
+  const categories=Object.fromEntries(['input','media','mediaPartial','journal','checkpoint','sqlite','wal','sqliteAux','tmp','log','state','events','cache','tools','recordingsOther','other'].map(k=>[k,{bytes:0,files:0}]));
+  let totalBytes=0,entries=0;
+  function category(parts){
+    const top=parts[0],name=parts.at(-1);
+    if(top==='input')return 'input';
+    if(top==='tmp')return 'tmp';
+    if(top==='gst-cache'||top==='registry.bin')return 'cache';
+    if(top==='state'||top==='events')return top;
+    if(parts.length===1&&/^server-\d+\.private\.log$/.test(name))return 'log';
+    if(parts.length===1&&['normalize','process-metrics'].includes(name))return 'tools';
+    if(top==='recordings'){
+      if(name==='.recording-checkpoint.tmp')return 'checkpoint';
+      if(name==='recording-catalog.sqlite3')return 'sqlite';
+      if(name==='recording-catalog.sqlite3-wal')return 'wal';
+      if(['recording-catalog.sqlite3-shm','recording-catalog.sqlite3-journal'].includes(name))return 'sqliteAux';
+      if(/^recording(?:-v2)?-mutations\.jsonl$/.test(name))return 'journal';
+      if(/^.+\.(mp4|webm)\.partial\.[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(name))return 'mediaPartial';
+      if(/\.(mp4|m4s|ts|mkv|webm)$/.test(name))return 'media';
+      return 'recordingsOther';
+    }
+    return 'other';
+  }
+  function visit(file,parts){
+    const stat=fs.lstatSync(file);need(++entries<=100000,'root-entry-bound');
+    if(stat.isSymbolicLink())need(parts.length>1&&parts[0]==='gst-cache','root-unsafe-symlink');
+    else if(stat.isDirectory()){for(const name of fs.readdirSync(file))visit(path.join(file,name),[...parts,name]);return;}
+    else need(stat.isFile()&&stat.nlink===1,'root-unsafe-file');
+    need(Number.isSafeInteger(stat.size)&&stat.size>=0&&Number.isSafeInteger(totalBytes+stat.size),'root-size-bound');
+    const item=categories[category(parts)];item.bytes+=stat.size;item.files++;totalBytes+=stat.size;
+  }
+  need(fs.lstatSync(root).isDirectory()&&!fs.lstatSync(root).isSymbolicLink(),'root-unsafe-directory');visit(root,[]);
+  return {totalBytes,capBytes:CURRENT_ROOT_CAP_BYTES,capExceeded:totalBytes>=CURRENT_ROOT_CAP_BYTES,entries,categories,measurement:'logical-file-bytes-nonatomic',rawPathsPublished:false};
+}
 export function closedJournalComplete(result){return result?.partialBytes===0&&result.backlog===false;}
 export function disabledChannelsExact(status,expected){
   const channels=status?.channels;if(!Array.isArray(channels)||!Array.isArray(expected))return false;

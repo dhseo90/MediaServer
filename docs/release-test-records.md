@@ -1,5 +1,113 @@
 # Release Test Records
 
+## v4.1.0 S11 LP26-O06 저장량 진단 — 실행 전 정의
+
+녹화 전용 120분 최초 `observation-root-cap` 실패의 원인을 분리하기 위해, 동일한
+448MiB 상한에서 격리 root의 입력·녹화 매체·journal·SQLite 본파일/WAL·임시 자료·로그·기타
+구성별 크기와 합계를 관측한다. 오류 순간에도 마지막 유효 관측을 비민감 구조화 결과로
+남긴다. 경로 원문·영상 내용·자격증명은 출력하지 않는다. 아래 등록은 실행 또는 PASS가 아니다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP26-O06-A | root 구성별 합계 | 같은 root의 구성별 크기 합과 전체 크기 일치, 448MiB 경계 전후 판정, 알 수 없는 항목 별도 계상 | v4.1.0 |
+| LP26-O06-B | 안전·출력 반례 | symlink/hardlink·경로 이탈 거부, 민감 경로/내용 미출력, 실패·정상 정리에서 마지막 관측 보존 | v4.1.0 |
+| LP26-O06-C | 장시간 관측 연결 | 기존 영상 삭제·진행·복구·HTTP 시간제한을 변경하지 않고 정기 표본과 실패 진단에 계측 연결 | v4.1.0 |
+| LP26-O07-A | fixture 생성 원인 분류 | 생성기 성공·시간초과·명령 부재·출력 상한을 status/signal/errorCode/바이트의 고정 필드로 구분하고 원문 출력은 금지 | v4.1.0 |
+| LP26-O07-B | 짧은 실행 선수조건 | 실제 입력 생성 실패가 제품 녹화 또는 장시간 실패로 잘못 표시되지 않고 정리 결과와 함께 보존되는지 확인 | v4.1.0 |
+
+O06 자체검사 5/5·O07 자체검사 7/7은 exit 0이었다. 짧은 실제 앱 진단은
+71/71·exit 0, 두 채널의 녹화·삭제·재기동 및 소유 자료 정리를 확인했다.
+[개별 판정·수치·한계](release-artifacts/v4.1.0/s11-recording-ui-20260923/recording-root-diagnostic.md)를 따른다.
+샌드박스 내부의 최초 입력 생성 시간초과는 제품 녹화 전 실패로 유지한다.
+새 계측으로 녹화 120분을 재실행하지 않았으며 이전 `observation-root-cap` FAIL은 그대로다.
+
+## v4.1.0 S11-I30 이벤트 우선 재생 형식 보완 — 실행 전 정의
+
+2026-09-23 실제 브라우저 I30 FAIL의 원인은 이벤트 파생 `video/mp2t`가 기본 선택된
+상태에서 영상 크기 0·readyState 0·재생 오류가 된 것이다. 이 결함만으로 기존
+UI424/424·시각80 결과를 성공으로 소급하거나 자동 무효화하지 않는다. 사용자 승인
+범위는 현재 제품에서 사용하는 managed DerivedJob 신규 이벤트 출력의 브라우저 호환 형식과
+그 저장·복구·제공 계약이다. V1 단일 파일 경로는 현재 제품 조립에서 실행되지 않으며
+기존 TS 다중 원본·복구 계약을 유지한다.
+기존 원본 H.264의 재인코딩, 외부 라이브러리 추가, 시간·ID·권한·보존 정책 변경은
+비범위다. 아래 검사는 구현·실행 전에 등록하며 현재 PASS가 아니다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| S11-I30-R01 | 현재 제품 managed 파생 출력의 MP4와 V1 불변 | 격리 H.264 입력에서 신규 DerivedJob의 원본별 MP4 파일·AU/디코딩 동일·checksum·크기·FD 소유권을 확인한다. 제품 조립에서 V1 deriver 비실행과 별도 기존 V1 TS 다중 원본·복구 회귀를 확인한다 | v4.1.0 |
+| S11-I30-R02 | 준비·중단·복구·보존 | intent/Ready/Complete, 원자 확정·취소·부분 출력·재시작 복구·삭제/pin/hold가 변경한 확장자와 container에 일치하고 손상·경로 교차를 거부하는지 확인 | v4.1.0 |
+| S11-I30-R03 | 조회·권한·브라우저 재생 | 관리 API의 event 우선 선택·`video/mp4`/Range·역할 scope·실제 브라우저 play/pause/seek·영상 크기/시간 진행을 확인; continuous 원본 성공으로 대체하지 않음 | v4.1.0 |
+| S11-I30-R04 | 시간·증거·자원 영향 | 원본/출력 프레임 식별·PTS/DTS·구간 충족·B-frame/복수 원본·최대 크기·잠금 비용을 동일 조건으로 비교. 근거 없는 complete 승격 없음 | v4.1.0 |
+
+실패한 단계에서 다음 단계로 넘어가지 않고, 최초 실패·수정·재검증과 미실행을 분리한다.
+공통/녹화120분은 최종 코드 고정과 I30 실제 재생 통과 뒤에만 기존 승인 범위로 실행한다.
+
+## v4.1.0 S11-I30 수정 후 범위 한정 결과
+
+신규 managed 파생 출력을 fMP4로 바꾸고 기존 TS 작업의 복구 경로는 유지했다.
+[I30 수정 후 실행·브라우저 관측](release-artifacts/v4.1.0/s11-recording-ui-20260923/i30-mp4-revalidation.md)에
+R01~R04의 명령·수치·초기 실패·정리를 구분해 기록했다. 실제 브라우저에서 이벤트 우선 자동 선택과
+같은 job의 두 MP4 출력 재생은 확인했다. 아래 이전 I30 FAIL은 수정 전 TS 출력의 이력이며 삭제하지 않는다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| S11-I30-R01 | 신규 MP4 출력·B-frame·AU/디코딩 대응, 구형 TS 독립 유지 | pass |
+| S11-I30-R02 | job 저장·원자 확정·복구·손상 거부의 관련 단기 회귀 | pass |
+| S11-I30-R03 | HTTP·권한·Range와 실제 브라우저 이벤트 우선 두 출력 재생 | pass |
+| S11-I30-R04 | 복수 원본·시간/증거·부분/취소/byte 상한의 단기 영향 검사 | pass |
+
+이번 짧은 브라우저 재검증의 새 screenshot/trace 영속 파일은 없다. 녹화 UI 31개 action 전수의
+새 소스 Policy v4 적격과 버전 완료는 아직 판정하지 않는다.
+
+수정 후 승인된 30분 검증은 `verify-predev --soak-minutes 30 --fail-fast --heartbeat-interval 60`
+실제 실행으로 종료 코드 0, 경과 2,415초, 20회 soak·109 pass·0 fail·0 notRun이었다.
+외부 TURN 1건은 사용자 명시 제외이며 완료 증거로 쓰지 않는다. 개별 110행과 원출력,
+포트·PID 정리는 [I30 재검증과 30분 기록](release-artifacts/v4.1.0/s11-recording-ui-20260923/i30-mp4-revalidation.md),
+[전수 요약](release-artifacts/v4.1.0/s11-recording-ui-20260923/predev-30-summary.json)을 따른다.
+기존 이전 30분 결과와 실패 이력은 이 새 실행으로 소급 변경하지 않는다.
+
+공통 120분 1차는 동일 바이너리에서 통합 미디어 smoke의 무음 HTTP `/h264` probe
+20초 시간초과로 exit1·4 pass·1 fail·6 notRun이었다. 120분 반복 미시작이며 완료 증거가 아니다.
+원인 확정 전 제품을 수정하거나 timeout을 늘리지 않았다. 한정 소유 서버 진단은 HTTP 입력
+2종·8개 출력과 RTSP 응답을 통과했지만 최초 실패를 소급 통과시키지 않는다.
+[실패·한정 진단·정리](release-artifacts/v4.1.0/s11-recording-ui-20260923/common-120-attempt1.md)에
+각 판정과 미확인을 기록했다. [재실행·정리 기록](release-artifacts/v4.1.0/s11-recording-ui-20260923/common-120-pass.md)의
+안전 RTSP 단계 계수만 추가한 동일 기준 재실행은 exit0,
+실제 7,859초·80회 soak·409 pass·0 fail·0 notRun·외부 TURN 1건 제외로 통과했다.
+보존 압축본의 1,059개 항목에는 비밀 URL 가능성이 있는 서버 원문 로그를 제외했으며,
+[전수 요약](release-artifacts/v4.1.0/s11-recording-ui-20260923/predev-120-pass-summary.json),
+[보고서](release-artifacts/v4.1.0/s11-recording-ui-20260923/predev-120-pass-report.md),
+[안전 진단](release-artifacts/v4.1.0/s11-recording-ui-20260923/predev-120-pass-codec-diagnostics.jsonl)을 보존했다.
+최초 시간초과 원인은 여전히 미확정이며 재실행 PASS가 이를 소급 삭제하지 않는다.
+녹화 전용120분 1차는 실제 약 37분 38초에 격리 root 448MiB 안전 상한으로 exit1이었다.
+채널당 확정 1,123개·삭제 1,121개와 정상 종료·정리는 확인했지만 재기동·120분 완료·자원 합격은
+미실행/FAIL이다. [원출력·크기 분해·미확인](release-artifacts/v4.1.0/s11-recording-ui-20260923/recording-120-attempt1.md)을
+보존했으며, 상한을 늘리거나 제품 메타데이터의 증가를 묵인해 PASS로 바꾸지 않는다.
+새 화면의 전체 Policy v4 적격도 별도 판정한다.
+
+## v4.1.0 S11 녹화 UI·브라우저 미디어 직접 검증 (2026-09-23, 진행 중)
+
+아래는 MP4 수정 전 당시의 실패·미커밋 상태 기록이며 위 수정 후 결과로 소급 변경하지 않는다.
+
+기준 source는 `32f8ac77311791bd0d7e039dc5555f7bba209a74`이고, 녹화 UI 검증 중
+I31 공백 오인 재생을 수정한 작업 트리는 아직 미커밋이다. 기존 baseline424/424·visual80·Policy v4
+적격 결과는 아래 녹화 action의 결과와 별개로 보존한다. 새 소스의 전체432 UI PASS가 아니다.
+[녹화 UI 31개 action 전수·실패 이력·정리](release-artifacts/v4.1.0/s11-recording-ui-20260923/README.md)와
+[브라우저 보존 증거](release-artifacts/v4.1.0/s11-recording-ui-20260923/browser-evidence.tar.xz)를 따른다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| S11-I27~I34 실제 녹화 UI | 실제 브라우저의 8개 ID·31개 action 중 30개 직접 판정 PASS, 이벤트 기본 선택 영상의 실제 재생 I30 FAIL. 최초 I31 공백 FAIL→제품 수정·재검증 PASS, run2 hold 종료 FAIL→run3~5 정상 종료 이력 모두 보존 | FAIL |
+| S11 녹화 API·역할·반응형 | quota GET200의 4채널 값과 UI 대조, channel3 활성 전이, 4개 역할, 320/390/760/1180×light/dark 영상·입력·초점 직접 대조. 독립 WCAG 수치·스크린리더로 확대하지 않음 | PASS |
+| S11 별도 브라우저 미디어 | Chrome 실제 video track, ICE connected, DataChannel open, metadata 수신·동기 등 `verify-webrtc-va-metadata` 8/8, 서버·port·UDP 정리 | PASS |
+
+I30은 파생 이벤트가 MPEG-TS `video/mp2t`로 제공되고 Chrome native video에서 실제 재생
+실패한 제품 경계다. 상시녹화 MP4 재생 성공이나 별도 WebRTC 브라우저 미디어 8/8로
+대체하지 않는다. 신규 120분 두 명령은 이 blocker가 해결되지 않아 미실행이며 완료 evidence가
+아니다. 외부 서비스·실기기 검증은 사용자 명시 제외다. 실행 token 사용량은 집계 도구가 없어
+start/end/consumed 미집계, elapsed는 각 실행 기록을 따른다. 미커밋 수정과 상위 작업 root
+정리가 남아 있으므로 S11 최종 완료·푸시 가능 판정은 보류한다.
+
 ## LP31 최신 실제 UI 전수 증거 보존
 
 2026-09-23 사용자 승인 잔여 1~5 중 1번이다. source `8fa98a99`의 `./test_ui.sh`는
