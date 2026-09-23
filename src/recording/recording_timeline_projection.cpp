@@ -9,6 +9,7 @@
 #include <queue>
 #include <stdexcept>
 #include <tuple>
+#include <unordered_set>
 namespace recording {
 namespace {
 using Wide=__int128;
@@ -247,10 +248,17 @@ bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery&
     if(!result->v2_projection)return true;
     try {
         Collector collector(query);
+        // 출력/참조 소유권은 이 catalog snapshot 안에서 한 번만 색인한다.
+        // 세그먼트마다 모든 작업을 재탐색하면 누적 원본·이벤트가 같은 잠금을 오래 점유한다.
+        std::unordered_set<std::string> owned_outputs,owned_references;
+        for(const auto& entry:derived_jobs_){
+            if(!entry.second)throw std::runtime_error("timeline-job-unavailable");
+            owned_references.insert(entry.second.reference);
+            for(const auto& id:entry.second.output_ids)owned_outputs.insert(id);
+        }
         for(const auto& entry:segments_v2_){const auto& segment=entry.second;if(segment.channel_id!=query.channel_id)continue;
             if(segment.retention_class==RecordingRetentionClass::Continuous){collector.Source(segment,EffectiveLifecycleV2Locked(entry.first));continue;}
-            bool owned=false;for(const auto& job:derived_jobs_){if(!job.second)throw std::runtime_error("timeline-job-unavailable");for(const auto& output:job.second.output_ids)if(output==entry.first)owned=true;}
-            if(!owned){auto row=Base(segment,EffectiveLifecycleV2Locked(entry.first));row.item_id="orphan-event:"+Key(entry.first);
+            if(!owned_outputs.count(entry.first)){auto row=Base(segment,EffectiveLifecycleV2Locked(entry.first));row.item_id="orphan-event:"+Key(entry.first);
                 row.completeness="unknown";row.unavailable_reason="output-binding-unavailable";collector.Add(std::move(row));}
         }
         for(const auto& entry:derived_jobs_){if(!entry.second)throw std::runtime_error("timeline-job-unavailable");if(entry.second.channel!=query.channel_id)continue;
@@ -267,8 +275,7 @@ bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery&
         }
         for(const auto& id:derived_accepted_references_){const auto ref=consumer_references_.find(id);
             if(ref==consumer_references_.end()||ref->second.channel_id!=query.channel_id)continue;
-            bool has_job=false;for(const auto& entry:derived_jobs_){if(!entry.second)throw std::runtime_error("timeline-job-unavailable");if(entry.second.reference==id){has_job=true;break;}}
-            if(!has_job)collector.Reference(ref->second,nullptr);
+            if(!owned_references.count(id))collector.Reference(ref->second,nullptr);
         }
         collector.Finish(result);if(error)error->clear();return true;
     }catch(const std::exception&){*result={};if(error)*error="timeline-projection-unavailable";return false;}
