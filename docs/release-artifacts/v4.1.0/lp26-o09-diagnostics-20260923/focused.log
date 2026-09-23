@@ -1,0 +1,135 @@
+✔ LP26-O09-B01 status/source-item 안전 분류 (1.68875ms)
+✔ LP26-O09-B02 지정4MiB 초과는 body 실패 (0.26575ms)
+✔ P0-DIAG01 정상 header/body 시간·안전 route 분류와 비밀 미노출 (0.349958ms)
+✔ P0-DIAG02 header timeout 고정 진단과 실패 유지 (0.1635ms)
+✔ P0-DIAG03 body timeout 부분 수신 측정·완료 거부 (0.140917ms)
+✔ LP26-O09-A01 15초 첫/중간 경계와 즉시 실패 (0.437792ms)
+✔ LP26-O09-A02 identity·clock·pid 불일치 (0.838416ms)
+✔ LP26-O09-D01 실패 표본도 자원 요약에 보존하고 PASS 금지 (0.388042ms)
+✔ LP26-O09-D02 부족 표본과 잘못된 표본은 명시 상태 (0.086917ms)
+✔ LP26-O09-C02 slow 숫자행·완료/미완료·비밀 거부 (0.298958ms)
+✔ LP22-O01 optional page observation preserves values and captures every page (1.703ms)
+✔ LP22-O02 callback exceptions do not replace original page failure (0.967041ms)
+✔ LP22-O03 same total ready complete mixture retains individual page states (0.345ms)
+✔ LP22-O04 changed totals fail then a fresh cycle fetches every page again (0.570417ms)
+✔ LP22-O05 late complete observation cannot erase the original transition timeout (0.195375ms)
+✔ LP22-O04 wait keeps late successful return and reports its client deadline overrun (0.071292ms)
+✔ LP22-O06 diagnostic report failure remains explicit without hiding primary error (0.307667ms)
+✔ LP25-O01 complete page survives later total change while full collection fails (0.240709ms)
+✔ LP25-O01 changed page is independently validated and observed before total mismatch (0.101542ms)
+✔ LP25-O01 cross-page duplicate with stable total remains fatal (0.146625ms)
+✔ LP25-O01 cross-page duplicate with total change retains retry reason (0.069334ms)
+✔ LP25-O02 ready complete mixture is observed but never promoted to complete full page (0.157542ms)
+✔ LP25-O02 strict consumer exceptions propagate independently of swallowed diagnostic errors (0.068625ms)
+✔ LP25-O02 reference conflict after complete cannot disappear behind prior terminal observation (0.069083ms)
+✔ LP25-O02 job conflict after complete cannot disappear behind prior terminal observation (0.206375ms)
+✔ LP25-O02 state conflict after complete cannot disappear behind prior terminal observation (0.147792ms)
+✔ LP25-O02 failed conflict after complete cannot disappear behind prior terminal observation (0.092209ms)
+✔ LP25-O02 media conflict after complete cannot disappear behind prior terminal observation (0.105ms)
+✔ LP25-O03 complete observation cannot erase a following HTTP failure (0.19125ms)
+✔ LP25-O03 no terminal state retains original thirty second wait timeout (0.101959ms)
+✔ LP25-O02 terminal retention stays bounded across cycles and does not retain group members (0.122833ms)
+✔ LP25-O04 invalid offset page is rejected before strict consumer (0.060292ms)
+✔ LP25-O04 invalid limit page is rejected before strict consumer (0.034583ms)
+✔ LP25-O04 invalid count page is rejected before strict consumer (0.052375ms)
+✔ LP25-O04 invalid duplicate page is rejected before strict consumer (0.04ms)
+✔ LP25-O04 invalid truncated page is rejected before strict consumer (0.035625ms)
+[load] {"requests":600,"locks":15000,"rows":3622,"bytes":496232,"sha256":"52c46642a8b985b75689c8ebabfba51601905617978a58220fab277f33586f85"}
+[load] {"requests":1800,"locks":34200,"rows":10822,"bytes":1488335,"sha256":"4ac618ef9e36c0d172627fd02e37101d790b61b411207c16cd69548cb527617b"}
+[wrapper-pairs] {"input":70,"pairs":70,"wait":70,"hold":70,"remaining":0}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-nnxazq","bytes":517634,"removed":true}
+✔ LP26-O09-C01 slow-only 초기20000행 생략·마지막64·33KiB 상한 (310.202917ms)
+✔ LP26-O09-C03 slow flag만으로 trace 활성화 금지 (5.109709ms)
+✔ LP13-T01 collector 존재 (0.191ms)
+✔ LP13-T01 disabled/invalid null 무출력 (45.391875ms)
+✔ LP13-T01 disabled/invalid "" 무출력 (47.112084ms)
+✔ LP13-T01 disabled/invalid "0" 무출력 (43.841958ms)
+✔ LP13-T01 disabled/invalid "true" 무출력 (41.327334ms)
+✔ LP13-T01 disabled/invalid "01" 무출력 (46.074208ms)
+✔ LP13-T01 disabled/invalid "1 " 무출력 (36.27975ms)
+✔ LP13-T02 fast aggregate count/sum/max 정확 (5.274625ms)
+✔ LP13-T04 부분증거 parent/target 실패와 phase누락 미완료 (21.139291ms)
+✔ LP13-T02 실제 동일 mutex 경합·다른 mutex·unlock 후 sink (46.331166ms)
+✔ LP13-T03 600 poll·15fastlocks/poll·5400worker 합성 예산 (70.817458ms)
+✔ LP13-T03 1800 poll·15fastlocks/poll·5400worker 합성 예산 (298.776833ms)
+✔ LP13-T03 tls-cap 손실 명시 (2.102125ms)
+✔ LP13-T03 cap 손실 명시 (24.834ms)
+✔ LP13-T04 split·safe부분보존·순번누락 (11.546708ms)
+✔ LP13-T04 enum 거부 (0.115ms)
+✔ LP13-T04 numeric 거부 (0.036042ms)
+✔ LP13-T04 time 거부 (0.02325ms)
+✔ LP13-T04 count 거부 (0.022333ms)
+✔ LP13-T04 linecap 거부 (0.018916ms)
+✔ LP13-T04 incomplete 거부 (0.0165ms)
+✔ LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거부 (59.475541ms)
+[pass] explicit 120 minutes accepted
+[pass] invalid CLI []
+[pass] invalid CLI ["120"]
+[pass] invalid CLI ["--duration-minutes","30"]
+[pass] invalid CLI ["--duration-minutes","120","extra"]
+[pass] invalid CLI ["--unknown","120"]
+[pass] two channels progress and ordered deletion
+[pass] stall rejected
+[pass] duplicate rejected
+[pass] UTC regression rejected
+[pass] completion without request rejected
+[pass] invalid media metadata rejected
+[pass] duration cannot be shortened
+[pass] unknown channel cannot satisfy progress
+[pass] backward clock rejected
+[pass] sample continuous accepted
+[pass] sample gap rejected
+[pass] sample wrong PID rejected
+[pass] sample wrong identity rejected
+[pass] sample missing beginning rejected
+[pass] sample missing end rejected
+[pass] sample insufficient rejected
+[pass] actual golden schema accepted
+[pass] full duration distributed progress accepted
+[pass] last moment only cannot pass
+[pass] ID limit rejected
+[pass] UTF8 byte limit rejected
+[pass] queried revision advanced disable
+[pass] missing source rejected
+[pass] duplicate source rejected
+[pass] invalid revision rejected
+[pass] public CLI rejects []
+[pass] public CLI rejects ["120"]
+[pass] public CLI rejects ["--duration-minutes","30"]
+[pass] public CLI rejects ["--duration-minutes","120","extra"]
+[pass] public CLI rejects ["--unknown","120"]
+[pass] completed batch returns media path once
+[pass] missing media path rejected
+[pass] media path byte limit rejected
+[pass] ENOENT media absent
+[pass] regular media present rejected
+[pass] dangling symlink present rejected
+[pass] media permission error rejected
+[pass] S09-LD01 invalid segment diagnostics are specific and redacted
+[pass] S09-LD01 missing timestamp diagnostics remain specific and redacted
+[summary] passed=45 failed=0 elapsedMs=71
+✔ scripts/internal/recording_longrun_progress.test.mjs (102.751458ms)
+✔ LP14-D01 종료 관측 helper 존재 (0.644041ms)
+✔ LP14-D01 정상 exit0·두port·중복/동시호출 최초결과 (0.480125ms)
+✔ LP14-D02 exit7 FAIL과archiveSafe 분리 (0.113833ms)
+✔ LP14-D02 signal FAIL과archiveSafe 분리 (0.072167ms)
+✔ LP14-D02 forced SIGKILL은실패지만관측종료/port확인 보존 (0.081541ms)
+✔ LP14-D02 미관측 timeout·중복stop 무한재시도금지 (0.075958ms)
+✔ LP14-D03 http port실패에도다른port독립검사 (0.088417ms)
+✔ LP14-D03 rtsp port실패에도다른port독립검사 (0.046459ms)
+✔ LP14-D03 canary원문미노출·최초실패유지·종료뒤port오류별도보존 (0.09675ms)
+✔ LP14-D03 서버 SIGTERM 전달 실패 고정코드 (0.099667ms)
+✔ LP14-D03 서버 SIGKILL 전달 실패 고정코드 (0.128167ms)
+✔ LP14-D03 porttimeout 및 비표준 signal원문거부 (0.371167ms)
+[child-cleanup] {"pid":54432,"exitCode":0,"signalCode":null,"exited":true,"ports":"injected-no-listeners","tempFiles":"none"}
+✔ LP14-D04 소유실제Node자식 SIGTERM→exit0 (28.740417ms)
+[child-cleanup] {"pid":54434,"exitCode":7,"signalCode":null,"exited":true,"ports":"injected-no-listeners","tempFiles":"none"}
+✔ LP14-D04 소유실제Node자식 SIGTERM→exit7 (24.353917ms)
+ℹ tests 75
+ℹ suites 0
+ℹ pass 75
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1433.155459

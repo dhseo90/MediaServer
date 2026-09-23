@@ -16,6 +16,18 @@ after(()=>{let bytes=0;function size(p){const s=fs.lstatSync(p);if(s.isDirectory
 function run(mode,env='1'){const r=spawnSync(binary,[mode],{encoding:'utf8',timeout:15000,maxBuffer:3*1024*1024,env:{PATH:process.env.PATH,...(env===null?{}:{MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:env})}});assert.equal(r.status,0,r.stderr);assert.equal(r.stderr,'');const c=trace.createLatencyTraceCollector();c.append(r.stdout);return {raw:r.stdout,result:c.finish()};}
 const row=()=>({k:0,o:1,s:1,l:300,m:1,t:1,r:1,b:10,a:20,e:30,n:1,w:10,h:10,x:10,y:10});
 const line=v=>'[recording-latency] '+JSON.stringify(v)+'\n';
+test('LP26-O09-C01 slow-only 초기20000행 생략·마지막64·33KiB 상한',()=>{
+  const r=spawnSync(binary,['slow-tail'],{encoding:'utf8',timeout:15000,maxBuffer:3*1024*1024,
+    env:{PATH:process.env.PATH,MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:'1',MEDIA_SERVER_VERIFY_RECORDING_LATENCY_SLOW_ONLY:'1'}});
+  assert.equal(r.status,0);assert.equal(r.stdout,'');
+  const rows=r.stderr.split('\n').filter(l=>l.startsWith('[recording-latency] ')).map(l=>JSON.parse(l.slice('[recording-latency] '.length)));
+  assert.equal(rows.length,64);assert.deepEqual(rows.map(r=>r.l),Array.from({length:64},(_,i)=>i+17));
+  assert(Buffer.byteLength(r.stderr)<=64*512+512);assert.match(r.stderr,/\[recording-slow-summary\]/);
+});
+test('LP26-O09-C03 slow flag만으로 trace 활성화 금지',()=>{
+  const r=spawnSync(binary,['slow-tail'],{encoding:'utf8',timeout:15000,env:{PATH:process.env.PATH,MEDIA_SERVER_VERIFY_RECORDING_LATENCY_SLOW_ONLY:'1'}});
+  assert.equal(r.status,0);assert.equal(r.stdout,'');assert.equal(r.stderr,'');
+});
 test('LP13-T01 collector 존재',()=>assert.equal(typeof trace.createLatencyTraceCollector,'function'));
 for(const env of [null,'','0','true','01','1 '])test(`LP13-T01 disabled/invalid ${JSON.stringify(env)} 무출력`,()=>assert.equal(run('contention',env).raw,''));
 test('LP13-T02 fast aggregate count/sum/max 정확',()=>{const {result}=run('aggregate');assert.equal(result.status,'complete');const [r]=result.rows;assert.equal(result.rows.length,1);assert.deepEqual([r.k,r.o,r.m,r.n,r.w,r.h,r.x,r.y],[2,1,1,2,15,40,10,30]);});

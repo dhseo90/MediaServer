@@ -1,0 +1,187 @@
+✖ LP26-O09-B01 status/source-item 안전 분류 (1.032375ms)
+✖ LP26-O09-B02 지정4MiB 초과는 body 실패 (0.713792ms)
+✔ P0-DIAG01 정상 header/body 시간·안전 route 분류와 비밀 미노출 (0.347208ms)
+✔ P0-DIAG02 header timeout 고정 진단과 실패 유지 (0.166083ms)
+✔ P0-DIAG03 body timeout 부분 수신 측정·완료 거부 (0.114375ms)
+✖ LP26-O09-A01 15초 첫/중간 경계와 즉시 실패 (0.604584ms)
+✖ LP26-O09-A02 identity·clock·pid 불일치 (0.084833ms)
+✖ LP26-O09-D01 실패 표본도 자원 요약에 보존하고 PASS 금지 (0.063458ms)
+✖ LP26-O09-D02 부족 표본과 잘못된 표본은 명시 상태 (0.060334ms)
+[load] {"requests":600,"locks":15000,"rows":3622,"bytes":493421,"sha256":"b4d4dbddc96ca739beed4d16d23513e9ea0c8a7fc1dc9289ddce1358a4c0ff8b"}
+[load] {"requests":1800,"locks":34200,"rows":10822,"bytes":1484542,"sha256":"ee863b4aea20763a2d2575f38b76302e07c8622b2aa9e49f74e5461766bdaf70"}
+[wrapper-pairs] {"input":70,"pairs":70,"wait":70,"hold":70,"remaining":0}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-3iC4Cx","bytes":515050,"removed":true}
+✖ LP26-O09-C01 slow-only 초기20000행 생략·마지막64·33KiB 상한 (343.506917ms)
+✔ LP13-T01 collector 존재 (0.178709ms)
+✔ LP13-T01 disabled/invalid null 무출력 (37.219208ms)
+✔ LP13-T01 disabled/invalid "" 무출력 (39.707333ms)
+✔ LP13-T01 disabled/invalid "0" 무출력 (33.1815ms)
+✔ LP13-T01 disabled/invalid "true" 무출력 (33.402708ms)
+✔ LP13-T01 disabled/invalid "01" 무출력 (39.766583ms)
+✔ LP13-T01 disabled/invalid "1 " 무출력 (35.111209ms)
+✔ LP13-T02 fast aggregate count/sum/max 정확 (2.429959ms)
+✔ LP13-T04 부분증거 parent/target 실패와 phase누락 미완료 (12.021458ms)
+✔ LP13-T02 실제 동일 mutex 경합·다른 mutex·unlock 후 sink (42.462167ms)
+✔ LP13-T03 600 poll·15fastlocks/poll·5400worker 합성 예산 (45.69125ms)
+✔ LP13-T03 1800 poll·15fastlocks/poll·5400worker 합성 예산 (289.291625ms)
+✔ LP13-T03 tls-cap 손실 명시 (2.164542ms)
+✔ LP13-T03 cap 손실 명시 (24.7865ms)
+✔ LP13-T04 split·safe부분보존·순번누락 (12.412875ms)
+✔ LP13-T04 enum 거부 (0.092625ms)
+✔ LP13-T04 numeric 거부 (0.032417ms)
+✔ LP13-T04 time 거부 (0.024458ms)
+✔ LP13-T04 count 거부 (0.02325ms)
+✔ LP13-T04 linecap 거부 (0.019ms)
+✔ LP13-T04 incomplete 거부 (0.01825ms)
+✔ LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거부 (56.568834ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 25
+ℹ fail 7
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1339.82175
+
+✖ failing tests:
+
+test at scripts/internal/recording_current_http_diagnostics.test.mjs:6:1
+✖ LP26-O09-B01 status/source-item 안전 분류 (1.032375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'other'
+  - 'recording-status'
+
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_http_diagnostics.test.mjs:10:12)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'other',
+    expected: 'recording-status',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_http_diagnostics.test.mjs:13:1
+✖ LP26-O09-B02 지정4MiB 초과는 body 실패 (0.713792ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_http_diagnostics.test.mjs:15:3)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /http-body-error/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_longrun_diagnostics.test.mjs:6:1
+✖ LP26-O09-A01 15초 첫/중간 경계와 즉시 실패 (0.604584ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'undefined'
+  - 'function'
+
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_longrun_diagnostics.test.mjs:7:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_longrun_diagnostics.test.mjs:13:1
+✖ LP26-O09-A02 identity·clock·pid 불일치 (0.084833ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'undefined'
+  - 'function'
+
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_longrun_diagnostics.test.mjs:14:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_longrun_diagnostics.test.mjs:18:1
+✖ LP26-O09-D01 실패 표본도 자원 요약에 보존하고 PASS 금지 (0.063458ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'undefined'
+  - 'function'
+
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_longrun_diagnostics.test.mjs:19:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_current_longrun_diagnostics.test.mjs:23:1
+✖ LP26-O09-D02 부족 표본과 잘못된 표본은 명시 상태 (0.060334ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'undefined'
+  - 'function'
+
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_longrun_diagnostics.test.mjs:24:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at scripts/internal/recording_latency_trace.test.mjs:19:1
+✖ LP26-O09-C01 slow-only 초기20000행 생략·마지막64·33KiB 상한 (343.506917ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  16385 !== 64
+
+      at TestContext.<anonymous> (file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_latency_trace.test.mjs:24:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 16385,
+    expected: 64,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

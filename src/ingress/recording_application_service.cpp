@@ -124,8 +124,13 @@ std::optional<RecordingByteRange> ParseRecordingByteRange(const std::string& hea
 }
 
 ApplicationServiceResult RecordingApplicationService::Status(const ChannelAuthorizer& authorize, bool include_global_observations) const {
+    recording::latency::Scope status_scope(recording::latency::Operation::Query,recording::latency::Source::Application,__LINE__);
     std::vector<RecordingChannelStatus> channels;
-    if (!authorize || !status_provider_ || !status_provider_(&channels))
+    const auto available=[&]{
+        recording::latency::Scope provider_scope(recording::latency::Operation::Finish,recording::latency::Source::Application,__LINE__);
+        return authorize && status_provider_ && status_provider_(&channels);
+    }();
+    if (!available)
         return {503, "Service Unavailable", "{\"error\":\"recording status unavailable\"}"};
     const auto recovery = catalog_.recovery_report();
     std::ostringstream out;
@@ -149,6 +154,7 @@ ApplicationServiceResult RecordingApplicationService::Status(const ChannelAuthor
     }
     out << ']';
     if (include_global_observations && observation_status_provider_) {
+        recording::latency::Scope provider_scope(recording::latency::Operation::Finish,recording::latency::Source::Application,__LINE__);
         const auto status = observation_status_provider_();
         out << ",\"observations\":{\"queued\":" << status.queued << ",\"pending\":" << status.pending
             << ",\"activeTracks\":" << status.tracks << ",\"stored\":" << status.stored

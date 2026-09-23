@@ -1,4 +1,36 @@
 // 파일 용도: 장시간 관측용 최소 상태. 제품 catalog 수용/내구성 또는 누수를 판정하지 않는다.
+import {summarizeCurrentSamples} from './recording_current_observer.mjs';
+import {validateLatencyRow} from './recording_latency_trace.mjs';
+export function slowTraceSummary(text,normalShutdown) {
+  const rows=[];let summary=null;
+  try{
+    if(Buffer.byteLength(text)>4*1024*1024)throw Error();
+    for(const line of text.split('\n')){
+      if(line.startsWith('[recording-latency] ')){
+        if(rows.length===64||Buffer.byteLength(line)>512)throw Error();
+        const row=validateLatencyRow(JSON.parse(line.slice('[recording-latency] '.length)));
+        if(row.k>1||(row.w<10000000&&row.h<10000000))throw Error();rows.push(row);
+      }else if(line.startsWith('[recording-slow-summary] ')){
+        if(summary)throw Error();
+        const value=JSON.parse(line.slice('[recording-slow-summary] '.length));
+        if(Object.keys(value).sort().join(',')!=='retained,seen,thresholdNs'||!Number.isSafeInteger(value.seen)||value.seen<0||
+           value.retained!==Math.min(value.seen,64)||value.thresholdNs!==10000000)throw Error();summary=value;
+      }
+    }
+    if(!summary||summary.retained!==rows.length)throw Error();
+    return {status:normalShutdown?'captured':'incomplete',...summary,rows,completedSpansOnly:true,rawBodyPublished:false};
+  }catch{return {status:'unavailable',seen:null,retained:0,thresholdNs:10000000,rows:[],completedSpansOnly:true,rawBodyPublished:false};}
+}
+export function assertSampleStep(previous,current,start,pid) {
+  if(!Number.isFinite(start)||!Number.isFinite(current?.phaseAt)||current.phaseAt<start||current.pid!==pid||
+     (previous&&(current.phaseAt<=previous.phaseAt||current.startIdentity!==previous.startIdentity)))throw Error('sample-identity-clock');
+  if(current.phaseAt-(previous?.phaseAt??start)>15000)throw Error('sample-gap');
+}
+export function summarizeAvailableSamples(samples) {
+  const unavailable=status=>({status,sampleCount:samples.length,resourceTrendPass:false,reviewRequired:true,groups:[]});
+  if(samples.length<2)return unavailable('insufficient');
+  try{return {status:'observed',...summarizeCurrentSamples(samples)};}catch{return unavailable('invalid');}
+}
 export function parseLongrunArgs(args) {
   if(args.length!==2||args[0]!=='--duration-minutes'||args[1]!=='120')throw Error('longrun requires --duration-minutes 120');
   return 7200000;

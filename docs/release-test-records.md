@@ -1,5 +1,55 @@
 # Release Test Records
 
+## v4.1.0 S11 LP26-O09 누적 규모 진단 — 실행 전 정의
+
+독자: S11 검증 담당자. lifecycle: 이번 변경의 실행 정의/결과를 보존한다. 정책 source-of-truth는 AGENTS.md다.
+기존 120분 실패와 15초 초과 간격 5건은 그대로 실패이며 이번 단기 결과로 대체하지 않는다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 잔여이슈1 진단 helper/계측 변경 | LP26-O09-A~D | 개발 관련 단기 승인 |
+| 30분 | 미진행 | 이번 요청은 진단 보완만 | LP26-O09-A~D | 이번 실행 없음 |
+| 120분 | 미진행 | 재실행은 이번 범위 밖 | LP26-O09-A~D | 이번 실행 없음 |
+| UI | 미진행 | UI 변경 없음 | LP26-O09-A~D | 이번 실행 없음 |
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP26-O09-A | 첫 표본/표본 간 15초 경계 | 기존15000ms 통과·15001ms 즉시 실패, identity/clock 불일치 거부. helper 부재가 예상 RED | v4.1.0 |
+| LP26-O09-B | HTTP 상태·source item·4MiB | header/body timeout 구분·query/ID canary 미출력·기존4MiB 상한. 미등록 route class가 예상 RED | v4.1.0 |
+| LP26-O09-C | slow-only 마지막64·출력 상한 | 빠른20000행 생략 후 느린80행에서 마지막64 유지, 비활성무출력, 기존trace 회귀. 모드 미구현이 예상 RED | v4.1.0 |
+| LP26-O09-D | 실패 자원·단계 계측 연결 | finally 자원요약·metrics/drain/root elapsed·stop후 trace 수집 직접 대조 및 관측 helper 회귀 | v4.1.0 |
+| LP26-O09-C02 | slow 요약 decoder | 숫자행/고정열만 허용, 비정상 종료·누락/추가 필드/원문 canary 거부,64행 상한 | v4.1.0 |
+| LP26-O09-C03 | slow flag만으로 계측 활성화 금지 | 기존 trace flag 미설정이면 stderr/stdout 무출력 | v4.1.0 |
+| LP26-O09-A03 | 보존 attempt3 간격 재판정 | 원출력 current-observation 숫자 표본에서 기존15초 초과5건 확인·첫 초과에서 중단 | v4.1.0 |
+| LP26-O09-REG | 관련 단기 회귀 | `./server.sh build`, longrun progress·current observation·process cleanup·HTTP·trace helper unit, `node --check`, `git diff --check` | v4.1.0 |
+
+각 실제 test 제목은 원출력과 결과표로 보존한다. 완료되지 않은 span·강제 종료에서는 slow trace를 미확인으로 남긴다.
+
+### LP26-O09 실행 결과와 제한
+
+2026-09-23 Stage 1 진단 보완의 [개별 결과·명령·cleanup 전수표](release-artifacts/v4.1.0/lp26-o09-diagnostics-20260923/results.md)에
+RED32행(예상실패7 포함)·최초GREEN32행·관련focused119행·최종focused120행을 모두 보존했다.
+최종 harness76/76은 legacy script1개를 포함하므로 실제 개별 검사는120개다.
+`./server.sh build` exit0, 두 `node --check` 및 `git diff --check` exit0이다.
+token start/end/consumed는 전용집계 없음으로 미집계이며 실제 elapsed/source는 상세 기록에 있다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP26-O09-A | 첫/중간15000ms 경계·identity·보존attempt3 초과5건 중 첫 초과 실패 | pass |
+| LP26-O09-B | status/source-item 고정분류·4MiB body·header/body timeout·비밀 미노출 | pass |
+| LP26-O09-C | 빠른20000행 뒤 느린80행 마지막64 보존·숫자 decoder·비활성무출력 | pass |
+| LP26-O09-D | 실패 resource 요약·부족/invalid 구분·단계 timing·종료뒤 로그 연결 직접 확인 | pass |
+| LP26-O09-REG | C++ build 및 관련 단기120개·문법·공백 | pass |
+
+slow-only ring은 메모리64행이며 정상 종료시 최대33280bytes/process를 기존 private stderr로 배출한다.
+기존 stdout/stderr4MiB cap과 HTTP4초·표본15초·native3초·복제15초 상한은 유지한다.
+완료되지 않은 span·강제 종료 trace는 unavailable/incomplete로 남고, 자원추세·장시간·UI PASS를 만들지 않는다.
+
+| 제목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| 장시간/실앱/UI | 이번 변경 후 제품 실행 | 이번1번은 focused/build만 수행 | 기존120분 실패·실앱 진단 회수·UI 미확인 유지 |
+| 다음 잔여이슈 | 누적 synthetic fixture/제품 성능 원인 수정 | 이번1번 범위 밖 | 미착수 |
+
 ## v4.1.0 S11 LP26-O08 native 관측 실패 구분 — 실행 전 정의
 
 녹화 전용 120분 2차는 약 394초에 `observer-native-rejected`로 실패했다.

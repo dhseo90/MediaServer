@@ -3,6 +3,19 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {measuredHttpResponse} from './recording_current_app_helpers.mjs';
 const clock=values=>()=>{assert.ok(values.length);return values.shift();};
+test('LP26-O09-B01 status/source-item 안전 분류',async()=>{
+  for(const [route,routeClass] of [['/ops/api/recordings/status?secret=DO_NOT_REPORT','recording-status'],['/ops/api/sources/DO_NOT_REPORT','source-item']]){
+    let report;
+    await measuredHttpResponse({route,report:r=>{report=r;},request:async()=>({status:200,headers:{},body:(async function*(){})()})});
+    assert.equal(report.routeClass,routeClass);assert(!JSON.stringify(report).includes('DO_NOT_REPORT'));
+  }
+});
+test('LP26-O09-B02 지정4MiB 초과는 body 실패',async()=>{
+  let report;
+  await assert.rejects(()=>measuredHttpResponse({route:'/ops/api/recordings/status',maxBytes:4*1024*1024,report:r=>{report=r;},
+    request:async()=>({status:200,headers:{},body:(async function*(){yield Buffer.alloc(4*1024*1024+1);})()})}),/http-body-error/);
+  assert.equal(report.outcome,'error');
+});
 test('P0-DIAG01 정상 header/body 시간·안전 route 분류와 비밀 미노출',async()=>{
   const reports=[];
   const value=await measuredHttpResponse({route:'/ops/api/recordings/timeline?secret=DO_NOT_REPORT',method:'GET',

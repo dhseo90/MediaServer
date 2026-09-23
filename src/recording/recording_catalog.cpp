@@ -722,6 +722,10 @@ std::vector<std::string> RecordingCatalog::ProjectionSignatureLocked() const {
 bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error,const DerivedJobContentProof* proof) {
     if(recover_only)proof=nullptr;
     recording::latency::Scope latency_scope(recording::latency::Operation::Checkpoint,recording::latency::Source::Catalog,__LINE__,false);
+    const auto measured=[](unsigned line,auto&& call){
+        recording::latency::Scope phase(recording::latency::Operation::Checkpoint,recording::latency::Source::Catalog,line);
+        return call();
+    };
     // 모든 실패/예외는 지역 cache를 폐기한다. live catalog를 shadow로 사용하지 않는다.
     auto cached=std::move(checkpoint_cache_);
     if(recover_only)cached.reset();
@@ -735,11 +739,13 @@ bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error,con
     {
         RecordingMutationHandles original;
         RecordingJournalOwnedViews views;
-        if(!journal_.ReadCheckpointRecords(this,&original,error,&read_snapshot,&views)){
+        if(!measured(__LINE__,[&]{return journal_.ReadCheckpointRecords(this,&original,error,&read_snapshot,&views);})){ // read
             if(!journal_.OwnsCatalog(this))derived_job_state_authoritative_=false;
             return false;
         }
-        if(!journal_.PrepareCheckpoint(this,&candidate,error,read_snapshot))return false;
+        if(!measured(__LINE__,[&]{return journal_.PrepareCheckpoint(this,&candidate,error,read_snapshot);}))return false; // prepare
+        {
+        recording::latency::Scope phase(recording::latency::Operation::Checkpoint,recording::latency::Source::Catalog,__LINE__); // replay/cache
         bool reuse=cached&&cached->shadow&&detail::CheckpointCacheAdmissible(original)&&cached->prefix.size()<=original.size();
         if(reuse)for(std::size_t i=0;i<cached->prefix.size();++i){
             bool matches=false;
@@ -763,10 +769,12 @@ bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error,con
             if(a.schema==b.schema&&a.mutation_type==b.mutation_type&&a.mutation_id==b.mutation_id&&
                a.entity_id==b.entity_id&&a.occurred_at_ms==b.occurred_at_ms&&a.payload_json==b.payload_json)candidate_views[i]=views[i];
         }
+        }
     } // 원본 핸들 vector는 이후 후보 검증/commit에 필요하지 않다.
     // 변경 후보는 전체 semantic replay와 양쪽 projection 비교를 유지한다.
     std::unique_ptr<RecordingCatalog> after;
     if(!identical){
+        recording::latency::Scope phase(recording::latency::Operation::Checkpoint,recording::latency::Source::Catalog,__LINE__); // candidate/projection
         after=std::make_unique<RecordingCatalog>(journal_,options_);
         for(std::size_t i=0;i<candidate.size();++i){const auto& m=candidate[i];
             if(!m||!after->ApplyMutationLocked(*m,false,error,nullptr,m,&source_bindings_,&derived_jobs_,proof,candidate_views[i])){
@@ -786,6 +794,7 @@ bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error,con
     // original 초과는 full 검증, compact candidate가 상한 내이면 다음 호출용 보관 가능.
     std::unique_ptr<CheckpointProjectionCache> next;
     if(!recover_only&&detail::CheckpointCacheAdmissible(candidate)){
+        recording::latency::Scope phase(recording::latency::Operation::Checkpoint,recording::latency::Source::Catalog,__LINE__); // cache links
         next=std::make_unique<CheckpointProjectionCache>();
         next->shadow=identical?std::move(before):std::move(after);
         next->prefix.reserve(candidate.size());
@@ -797,9 +806,9 @@ bool RecordingCatalog::CheckpointLocked(bool recover_only,std::string* error,con
     }
     // 최종 비교가 끝난 비선택 shadow는 commit의 사본/직렬화와 겹치지 않는다.
     before.reset();after.reset();
-    if(!journal_.CommitCheckpoint(this,candidate,recover_only,error,read_snapshot))return false;
+    if(!measured(__LINE__,[&]{return journal_.CommitCheckpoint(this,candidate,recover_only,error,read_snapshot);}))return false; // commit
     if(next)checkpoint_cache_=std::move(next);
-    if(!ReleaseInactiveDetailsLocked(nullptr,error)){checkpoint_cache_.reset();return false;}return true;
+    if(!measured(__LINE__,[&]{return ReleaseInactiveDetailsLocked(nullptr,error);})){checkpoint_cache_.reset();return false;}return true; // release
 }
 
 bool RecordingCatalog::ReadCatalogReplay(RecordingMutationHandles* owned,RecordingJournalReplayResult* replay,

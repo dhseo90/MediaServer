@@ -13,6 +13,7 @@ namespace recording::latency {
 enum class Source : unsigned { Catalog=1, Projection=2, Read=3, Application=4, Test=5 };
 enum class Operation : unsigned { Lock=1, Timeline=2, Query=3, Finish=4, Serialize=5, Checkpoint=6, Append=7, ApplyJob=8, Sqlite=9, ValidateSources=10 };
 inline bool Enabled() noexcept {static const bool enabled=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE");return p&&std::strcmp(p,"1")==0;}();return enabled;}
+inline bool SlowOnly() noexcept {static const bool enabled=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_RECORDING_LATENCY_SLOW_ONLY");return p&&std::strcmp(p,"1")==0;}();return enabled;}
 inline std::uint64_t Now() noexcept {static const auto epoch=std::chrono::steady_clock::now();return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now()-epoch).count());}
 // k: 0=잠금 구간, 1=단계 구간, 2=빠른 집계, 3=진단 손실.
 struct Row {std::uint64_t k=0,o=0,s=0,l=0,m=0,t=0,r=0,b=0,a=0,e=0,n=0,w=0,h=0,x=0,y=0;};
@@ -33,9 +34,30 @@ inline void SinkLine(const char* text,std::size_t bytes) noexcept {
 #endif
     (void)std::fwrite(text,1,bytes,stderr);
 }
-inline void Emit(const Row& v) noexcept {
-    char text[512];const int size=std::snprintf(text,sizeof(text),"[recording-latency] {\"k\":%llu,\"o\":%llu,\"s\":%llu,\"l\":%llu,\"m\":%llu,\"t\":%llu,\"r\":%llu,\"b\":%llu,\"a\":%llu,\"e\":%llu,\"n\":%llu,\"w\":%llu,\"h\":%llu,\"x\":%llu,\"y\":%llu}\n",
+inline int FormatRow(char (&text)[512],const Row& v) noexcept {
+    return std::snprintf(text,sizeof(text),"[recording-latency] {\"k\":%llu,\"o\":%llu,\"s\":%llu,\"l\":%llu,\"m\":%llu,\"t\":%llu,\"r\":%llu,\"b\":%llu,\"a\":%llu,\"e\":%llu,\"n\":%llu,\"w\":%llu,\"h\":%llu,\"x\":%llu,\"y\":%llu}\n",
         (unsigned long long)v.k,(unsigned long long)v.o,(unsigned long long)v.s,(unsigned long long)v.l,(unsigned long long)v.m,(unsigned long long)v.t,(unsigned long long)v.r,(unsigned long long)v.b,(unsigned long long)v.a,(unsigned long long)v.e,(unsigned long long)v.n,(unsigned long long)v.w,(unsigned long long)v.h,(unsigned long long)v.x,(unsigned long long)v.y);
+}
+// 장시간 전용: 빠른 구간은 버리고 마지막 느린 완료 구간64개만 메모리에 보존한다.
+// 종료 시 한번 배출: 최대64*512+512 bytes. 비정상 종료/진행 중 span은 증거가 아니다.
+struct SlowRing {
+    std::mutex mutex;std::array<Row,64> rows{};std::uint64_t seen=0;
+    void Add(const Row& row) noexcept {
+        if(row.w<10000000&&row.h<10000000)return;
+        std::lock_guard<std::mutex> lock(mutex);rows[seen%rows.size()]=row;++seen;
+    }
+    ~SlowRing() {
+        std::lock_guard<std::mutex> lock(mutex);
+        const auto count=seen<rows.size()?seen:rows.size();
+        for(std::uint64_t i=seen-count;i<seen;++i){char text[512];const auto size=FormatRow(text,rows[i%rows.size()]);
+            if(size>0&&size<static_cast<int>(sizeof(text)))(void)std::fwrite(text,1,static_cast<std::size_t>(size),stderr);}
+        (void)std::fprintf(stderr,"[recording-slow-summary] {\"seen\":%llu,\"retained\":%llu,\"thresholdNs\":10000000}\n",
+            (unsigned long long)seen,(unsigned long long)count);
+    }
+};
+inline SlowRing& SlowTail() noexcept {static SlowRing ring;return ring;}
+inline void Emit(const Row& v) noexcept {
+    char text[512];const int size=FormatRow(text,v);
     if(size<=0||size>=static_cast<int>(sizeof(text))){local.loss=true;return;}
     if(v.k!=3&&(emitted.fetch_add(1)>=16384||emitted_bytes.fetch_add(static_cast<std::size_t>(size))>2*1024*1024-512-static_cast<std::size_t>(size))){local.loss=true;return;}
     SinkLine(text,static_cast<std::size_t>(size));
@@ -47,6 +69,7 @@ inline void Flush() noexcept {
 }
 inline void Append(Row row,bool always=false) noexcept {
     row.t=local.thread;row.r=local.request;row.n=1;row.w=row.a-row.b;row.h=row.e-row.a;row.x=row.w;row.y=row.h;
+    if(SlowOnly()){SlowTail().Add(row);return;}
     if(!always&&row.w<1000000&&row.h<1000000){
         for(auto& value:local.fast)if(value.n==0||(value.o==row.o&&value.m==row.m)){
             if(!value.n){value=row;value.k=2;value.s=0;value.l=0;}else{value.e=row.e;value.n++;value.w+=row.w;value.h+=row.h;if(row.w>value.x)value.x=row.w;if(row.h>value.y)value.y=row.h;}

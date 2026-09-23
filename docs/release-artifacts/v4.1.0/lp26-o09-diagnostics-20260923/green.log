@@ -1,0 +1,44 @@
+✔ LP26-O09-B01 status/source-item 안전 분류 (0.788583ms)
+✔ LP26-O09-B02 지정4MiB 초과는 body 실패 (0.21025ms)
+✔ P0-DIAG01 정상 header/body 시간·안전 route 분류와 비밀 미노출 (0.303625ms)
+✔ P0-DIAG02 header timeout 고정 진단과 실패 유지 (0.136417ms)
+✔ P0-DIAG03 body timeout 부분 수신 측정·완료 거부 (0.117042ms)
+✔ LP26-O09-A01 15초 첫/중간 경계와 즉시 실패 (0.395541ms)
+✔ LP26-O09-A02 identity·clock·pid 불일치 (0.54025ms)
+✔ LP26-O09-D01 실패 표본도 자원 요약에 보존하고 PASS 금지 (0.246541ms)
+✔ LP26-O09-D02 부족 표본과 잘못된 표본은 명시 상태 (0.059709ms)
+[load] {"requests":600,"locks":15000,"rows":3622,"bytes":497017,"sha256":"14e2bc7a263dadaf71d5373cf9e98ff86c5b189b000b0307c6dda574d07068e7"}
+[load] {"requests":1800,"locks":34200,"rows":10822,"bytes":1487754,"sha256":"0209b113048126c8b64e14f3657ad9ee2a1d0b88ebfc2c06a763b96cb95a7dda"}
+[wrapper-pairs] {"input":70,"pairs":70,"wait":70,"hold":70,"remaining":0}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-latency-SBdb6d","bytes":517634,"removed":true}
+✔ LP26-O09-C01 slow-only 초기20000행 생략·마지막64·33KiB 상한 (309.531125ms)
+✔ LP13-T01 collector 존재 (0.222292ms)
+✔ LP13-T01 disabled/invalid null 무출력 (42.794459ms)
+✔ LP13-T01 disabled/invalid "" 무출력 (45.448208ms)
+✔ LP13-T01 disabled/invalid "0" 무출력 (46.055666ms)
+✔ LP13-T01 disabled/invalid "true" 무출력 (42.331875ms)
+✔ LP13-T01 disabled/invalid "01" 무출력 (43.178083ms)
+✔ LP13-T01 disabled/invalid "1 " 무출력 (47.723792ms)
+✔ LP13-T02 fast aggregate count/sum/max 정확 (6.396208ms)
+✔ LP13-T04 부분증거 parent/target 실패와 phase누락 미완료 (15.444625ms)
+✔ LP13-T02 실제 동일 mutex 경합·다른 mutex·unlock 후 sink (45.2145ms)
+✔ LP13-T03 600 poll·15fastlocks/poll·5400worker 합성 예산 (72.130875ms)
+✔ LP13-T03 1800 poll·15fastlocks/poll·5400worker 합성 예산 (296.306417ms)
+✔ LP13-T03 tls-cap 손실 명시 (2.477375ms)
+✔ LP13-T03 cap 손실 명시 (25.513375ms)
+✔ LP13-T04 split·safe부분보존·순번누락 (10.692333ms)
+✔ LP13-T04 enum 거부 (0.1115ms)
+✔ LP13-T04 numeric 거부 (0.049958ms)
+✔ LP13-T04 time 거부 (0.026625ms)
+✔ LP13-T04 count 거부 (0.024667ms)
+✔ LP13-T04 linecap 거부 (0.020584ms)
+✔ LP13-T04 incomplete 거부 (0.019375ms)
+✔ LP13-T05 cost instrumentation 신규wrapper 단일치환·trace중복거부 (62.243333ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1398.218917

@@ -90,10 +90,12 @@ export function summarizeEventState(page,eventId,referenceId,reason){
     outputCount:new Set(matched.map(r=>r.segmentId).filter(x=>typeof x==='string'&&x.length)).size,
     referenceMatches:matched.every(r=>r.referenceId===referenceId),truncated:matched.length>8,rows};
 }
-export async function measuredHttpResponse({route,method='GET',request,report,now=()=>performance.now()}) {
+export async function measuredHttpResponse({route,method='GET',request,report,maxBytes=64*1024*1024,now=()=>performance.now()}) {
+  need(Number.isSafeInteger(maxBytes)&&maxBytes>0&&maxBytes<=64*1024*1024,'http-body-limit');
   const pathname=route.split('?')[0];
   const routes=[[/^\/health$/,'health'],[/^\/webrtc\/config$/,'ice'],
     [/^\/ops\/api\/recordings\/timeline$/,'timeline'],[/^\/ops\/api\/recordings\/media\/[^/]+$/,'media'],
+    [/^\/ops\/api\/recordings\/status$/,'recording-status'],[/^\/ops\/api\/sources\/[^/]+$/,'source-item'],
     [/^\/ops\/api\/sources$/,'source'],[/^\/lab\/analysis\/taps$/,'tap-create'],
     [/^\/lab\/analysis\/taps\/[^/]+\/events$/,'tap-events'],[/^\/lab\/analysis\/taps\/[^/]+$/,'tap'],
     [/^\/lab\/analysis\/rules\/[^/]+$/,'rule']];
@@ -101,7 +103,7 @@ export async function measuredHttpResponse({route,method='GET',request,report,no
   try {
     const response=await request();header=now();phase='body';status=response.status;
     const chunks=[];
-    for await(const chunk of response.body){bytes+=chunk.length;if(bytes>64*1024*1024)throw Error('http-body-cap');chunks.push(chunk);}
+    for await(const chunk of response.body){bytes+=chunk.length;if(bytes>maxBytes)throw Error('http-body-cap');chunks.push(chunk);}
     phase='complete';outcome='ok';
     return {status:response.status,headers:response.headers,bytes:Buffer.concat(chunks)};
   } catch(error) {
