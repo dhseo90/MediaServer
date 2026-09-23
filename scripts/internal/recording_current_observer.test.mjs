@@ -19,6 +19,23 @@ try{
   const fixture=spawnSync(binary,['--fixture',path.join(root,'recordings')],{encoding:'utf8',timeout:15000,maxBuffer:33554432});
   check('LP26-O01 actual managed writer fixture',()=>assert.equal(fixture.status,0));
   const raw=fixture.stdout.trim().split('\n'),rows=normalizeCurrentRows(binary,raw),segments=rows.filter(r=>r.type==='segment_v2_bound_finalized'||r.type==='segment_v2_finalized');
+  check('LP26-O08 physical archive fixture and logical native rows',()=>{
+    assert(raw.some(value=>value.includes('media-server.recording-compressed-mutation.v1')));
+    assert.equal(rows.length,raw.length);
+  });
+  const physicalInput=raw.join('\n')+'\n',copies=Math.max(1,Math.ceil(20*1024*1024/Buffer.byteLength(physicalInput)));
+  const scaleInput=physicalInput.repeat(copies),scaleStart=performance.now();
+  const scale=spawnSync(binary,['--normalize'],{input:scaleInput,encoding:'utf8',timeout:3000,maxBuffer:33554432,env:{PATH:process.env.PATH}});
+  console.log('[native-scale-diagnostic] '+JSON.stringify({inputBytes:Buffer.byteLength(scaleInput),rowCount:raw.length*copies,elapsedMs:Math.round(performance.now()-scaleStart),exitCode:scale.status,signal:scale.signal,errorCode:scale.error?.code??null,outputBytes:Buffer.byteLength(scale.stdout??''),rawBodyPublished:false}));
+  check('LP26-O08 bounded normalization retains count and order under accumulated physical input',()=>{
+    const normalized=normalizeCurrentRows(binary,Array(copies).fill(raw).flat());
+    assert.equal(normalized.length,raw.length*copies);
+    for(let i=0;i<normalized.length;i++)assert.equal(normalized[i].identity,rows[i%rows.length].identity);
+  });
+  check('LP26-O08 later invalid row rejects the whole batch result',()=>{
+    const valid=Array(Math.ceil(1024*1024/Buffer.byteLength(physicalInput))).fill(raw).flat();
+    assert.throws(()=>normalizeCurrentRows(binary,[...valid,'{"schema":"unexpected"}']),/observer-native-rejected/);
+  });
   check('LP26-O01 native exact row count and two channel segments',()=>{assert.equal(rows.length,raw.length);assert(segments.filter(r=>r.segment.channel==='9101').length>=2);assert(segments.filter(r=>r.segment.channel==='9201').length>=2);});
   check('LP26-O01 compact excludes binding samples source URL and payload',()=>{const json=JSON.stringify(rows);for(const key of ['payload','samples','source_id','observed_utc_ns'])assert(!json.includes('"'+key+'"'));});
   const original=path.join(root,'recordings/recording-v2-mutations.jsonl'),before=hash(fs.readFileSync(original));

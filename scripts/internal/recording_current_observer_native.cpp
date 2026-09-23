@@ -10,6 +10,7 @@
 #include <sstream>
 #include <iomanip>
 #include <filesystem>
+#include <fstream>
 #include <stdexcept>
 
 namespace {
@@ -88,8 +89,10 @@ int main(int argc,char** argv){try{
         recording::RecordingTombstoneV2 tombstone;tombstone.tombstone_id=std::string("observer-deleted-")+channel;tombstone.segment=*it;tombstone.deletion_reason="continuous-capacity";tombstone.deleted_at_ms=1;
         Require(store.catalog.CompleteDeletionV2(tombstone,&error));
       }
+      Require(store.catalog.Checkpoint(&error));
       const auto replay=store.journal.Replay();Require(replay.io_error_count==0&&!replay.mutations.empty());
-      for(const auto& m:replay.mutations)std::cout<<recording::SerializeRecordingMutationV1(m)<<'\n';return 0;
+      std::ifstream physical(store.journal.path(),std::ios::binary);Require(bool(physical));
+      std::cout<<physical.rdbuf();Require(bool(std::cout));return 0;
     }
     Require(argc==2&&std::string(argv[1])=="--normalize");
     std::string line;line.reserve(65536);std::size_t total=0;char c;

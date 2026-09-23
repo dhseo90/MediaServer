@@ -85,10 +85,29 @@ export class CurrentObservationBudget {
 }
 export function normalizeCurrentRows(binary,rows){
   if(!rows.length)return [];
-  const input=rows.join('\n')+'\n';need(Buffer.byteLength(input)<=33554432,'observer-input-cap');
-  const result=spawnSync(binary,['--normalize'],{input,encoding:'utf8',timeout:3000,maxBuffer:33554432,env:{PATH:process.env.PATH}});
-  need(!result.error&&!result.signal&&result.status===0,'observer-native-rejected');
-  const output=result.stdout.trim().split('\n').map(JSON.parse);need(output.length===rows.length,'observer-native-count');return output;
+  const inputLimit=33554432,batchLimit=524288,rowLimit=128;
+  let totalInput=0,totalOutput=0;const output=[];let batch=[],batchBytes=0;
+  const flush=()=>{
+    if(!batch.length)return;
+    const input=batch.join('\n')+'\n';
+    const result=spawnSync(binary,['--normalize'],{input,encoding:'utf8',timeout:3000,maxBuffer:inputLimit,env:{PATH:process.env.PATH}});
+    if(result.error?.code==='ETIMEDOUT')throw Error('observer-native-timeout');
+    if(result.error?.code==='ENOBUFS')throw Error('observer-native-output-cap');
+    if(result.error)throw Error('observer-native-spawn-error');
+    need(!result.signal&&result.status===0,'observer-native-rejected');
+    need(typeof result.stdout==='string'&&result.stdout.endsWith('\n'),'observer-native-output-invalid');
+    totalOutput+=Buffer.byteLength(result.stdout);need(totalOutput<=inputLimit,'observer-native-output-cap');
+    const lines=result.stdout.slice(0,-1).split('\n');need(lines.length===batch.length,'observer-native-count');
+    try{output.push(...lines.map(JSON.parse));}catch{throw Error('observer-native-output-invalid');}
+    batch=[];batchBytes=0;
+  };
+  for(const row of rows){
+    const bytes=Buffer.byteLength(row)+1;totalInput+=bytes;need(totalInput<=inputLimit,'observer-input-cap');
+    if(batch.length&&(batchBytes+bytes>batchLimit||batch.length>=rowLimit))flush();
+    batch.push(row);batchBytes+=bytes;
+    if(bytes>batchLimit)flush();
+  }
+  flush();need(output.length===rows.length,'observer-native-count');return output;
 }
 export class CurrentRecordingObserver {
   constructor(root,binary,budget=new CurrentObservationBudget()){this.root=root;this.binary=binary;this.budget=budget;this.reader=null;this.prefix=[];this.ids=new Set();this.bytes=0;this.cursor=0;this.replaying=false;this.rotations=0;this.error=null;this.typeCounts=Object.fromEntries(CURRENT_JOURNAL_MUTATION_TYPES.map(type=>[type,0]));}
