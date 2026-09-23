@@ -1,0 +1,95 @@
+[manifest] 14 state transition definitions validated
+[pass] journal open
+[pass] catalog seed open
+[pass] seed finalized
+[pass] corruption durable append
+[pass] catalog replay open
+[pass] corruption replay lifecycle is Corrupt
+[pass] fallback journal open
+[pass] fallback catalog open
+[pass] fallback seed base
+[pass] fallback resolved locator literal segment UTC PTS
+[pass] fallback observation stored before corruption
+[pass] fallback observation locator initially available
+[pass] fallback unknown ID and reason refused noappend
+[pass] fallback acquire hold
+[pass] fallback held corruption refused noappend
+[pass] fallback release hold
+[pass] fallback mark corruption
+[pass] fallback repeat corruption noappend
+[pass] fallback only lifecycle changed bytes identity preserved
+[pass] fallback corrupt media location blocked
+[pass] fallback V2 locator revoked
+[pass] fallback pending link segments seed
+[pass] fallback pending link seed
+[pass] fallback pending source output refused noappend
+[pass] fallback event link metadata preserved
+[pass] fallback deletion-pending deletion seed
+[pass] fallback deletion-pending mark rejected noappend
+[pass] fallback deletion-done deletion seed
+[pass] fallback tombstone seed
+[pass] fallback deletion-done mark rejected noappend
+[pass] fallback identical finalized replay seed
+[pass] fallback conflicting finalized seed
+[pass] fallback entity mismatch seed
+[pass] fallback invalid first valid later same mutation ID seed
+[pass] fallback malformed and deletion-priority seed
+[pass] fallback same mutation ID different payload seed
+[pass] fallback restart
+[pass] fallback restart never resurrects corrupt identity
+[pass] fallback query keeps corrupt pending excludes deleted
+[pass] fallback deletion priority and unknown no creation
+[pass] fallback invalid mutations diagnosed exact count
+[pass] sqlite journal open
+[pass] sqlite catalog open
+[pass] sqlite seed base
+[pass] sqlite resolved locator literal segment UTC PTS
+[pass] sqlite observation stored before corruption
+[pass] sqlite observation locator initially available
+[pass] sqlite unknown ID and reason refused noappend
+[pass] sqlite acquire hold
+[pass] sqlite held corruption refused noappend
+[pass] sqlite release hold
+[pass] sqlite mark corruption
+[pass] sqlite repeat corruption noappend
+[pass] sqlite only lifecycle changed bytes identity preserved
+[pass] sqlite corrupt media location blocked
+[pass] sqlite V2 locator revoked
+[pass] sqlite SQL lifecycle corrupt
+[pass] sqlite SQL codecs_json original metadata
+[pass] sqlite pending link segments seed
+[pass] sqlite pending link seed
+[pass] sqlite pending source output refused noappend
+[pass] sqlite event link metadata preserved
+[pass] sqlite deletion-pending deletion seed
+[pass] sqlite deletion-pending mark rejected noappend
+[pass] sqlite deletion-done deletion seed
+[pass] sqlite tombstone seed
+[pass] sqlite deletion-done mark rejected noappend
+[pass] sqlite identical finalized replay seed
+[pass] sqlite conflicting finalized seed
+[pass] sqlite entity mismatch seed
+[pass] sqlite invalid first valid later same mutation ID seed
+[pass] sqlite malformed and deletion-priority seed
+[pass] sqlite same mutation ID different payload seed
+[pass] sqlite restart
+[pass] sqlite restart never resurrects corrupt identity
+[pass] sqlite query keeps corrupt pending excludes deleted
+[pass] sqlite deletion priority and unknown no creation
+[pass] sqlite invalid mutations diagnosed exact count
+[pass] sqlite restart SQL lifecycle parity
+[pass] sqlite SQL deletion precedence
+[pass] sqlite rebuild excludes rejected envelopes
+[pass] sqlite invalid first valid later SQL exact binding
+[pass] sqlite projection failover seed
+[pass] sqlite SQLite failure trigger
+[pass] sqlite projection failure keeps durable memory state
+[pass] sqlite remove projection trigger
+[pass] sqlite fallback restart SQL repaired
+[pass] order journal open
+[pass] order corruption-before-create-after seed
+[pass] order catalog open
+[pass] order memory corrupt
+[pass] identical envelope accepted ordinal SQL parity
+[recording-corruption] pass=92 fail=0
+[cleanup] path=/private/tmp/media-server-s08-b2a-wsY3yI bytes=5207207 removed=true

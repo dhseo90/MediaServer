@@ -1,0 +1,6 @@
+[manifest] 17 registered recovery definitions validated
+/Users/dhseo/Workspace/mediaServer/src/recording/recording_catalog.cpp:66:13: error: unused function 'SqliteDeletionReceipt' [-Werror,-Wunused-function]
+   66 | std::string SqliteDeletionReceipt(const RecordingTombstoneV2& value) {
+      |             ^~~~~~~~~~~~~~~~~~~~~
+1 error generated.
+[cleanup] path=/private/tmp/media-server-s08-b1-h9P4yG bytes=0 removed=true

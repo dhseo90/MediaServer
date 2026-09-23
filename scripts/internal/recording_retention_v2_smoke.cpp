@@ -108,9 +108,12 @@ int main(int argc,char** argv) {
         if(!completed)std::cout<<"[diagnostic] B05 complete: "<<s.error<<'\n';
         const bool checkpoint=completed&&s.catalog.Checkpoint(&s.error);
         if(completed&&!checkpoint)std::cout<<"[diagnostic] B05 checkpoint: "<<s.error<<'\n';
-        bool restart_ok=true;std::string deleted_json;
+        bool restart_ok=true;std::string deleted_json,deleted_full_json;
         {
-            Store restart(root/"restart");const auto value=restart.Add("restart-deleted");deleted_json=SerializeRecordingTombstoneV2(Tomb(value));
+            Store restart(root/"restart");const auto value=restart.Add("restart-deleted");const auto deletion=Tomb(value);
+            deleted_full_json=SerializeRecordingTombstoneV2(deletion);
+            deleted_json="{\"schema\":\"media-server.recording-deletion-receipt.v1\",\"segmentId\":\""+value.segment_id+
+                "\",\"tombstoneId\":\""+deletion.tombstone_id+"\",\"reason\":\"continuous-capacity\",\"deletedAtMs\":10}";
             restart_ok=restart.catalog.RequestDeletion(value.segment_id,"continuous-capacity",&restart.error);
             std::filesystem::remove(restart.root/"restart-deleted.mp4");
             restart_ok=restart.catalog.CompleteDeletionV2(Tomb(value),&restart.error)&&restart_ok;
@@ -125,6 +128,10 @@ int main(int argc,char** argv) {
             restart_ok=restart_ok&&restart.catalog.IsDeletedSegmentId("restart-deleted")&&
                 restart.catalog.SegmentLifecycleV2("restart-pending")==RecordingLifecycle::DeletionPending&&
                 restart.catalog.SegmentLifecycleV2("restart-corrupt")==RecordingLifecycle::Corrupt&&restart.Hold("restart-held")==0;
+            const auto replay=restart.journal.Replay();
+            restart_ok=restart_ok&&std::any_of(replay.mutations.begin(),replay.mutations.end(),[&](const auto& mutation){
+                return mutation.mutation_type==RecordingMutationType::SegmentV2Deleted&&mutation.entity_id=="restart-deleted"&&mutation.payload_json==deleted_full_json;
+            });
             if(sql)restart_ok=restart_ok&&SqlText(restart.root/"recording-catalog.sqlite3","SELECT tombstone_json FROM recording_segment_states_v2 WHERE segment_id='restart-deleted'")==deleted_json&&
                 SqlText(restart.root/"recording-catalog.sqlite3","SELECT lifecycle FROM recording_segment_states_v2 WHERE segment_id='restart-corrupt'")=="corrupt";
         }

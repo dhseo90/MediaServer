@@ -413,7 +413,8 @@ bool ExpandArchive(const std::string& json,const ingress::StrictJsonObjectDocume
         return Fail(error,"압축 원장 중첩/스키마 오류");
     RecordingMutationV1 expanded;
     if(!ParseRecordingMutationV1(logical,&expanded,error)||!expanded.physical_json.empty()||
-       expanded.mutation_type!=RecordingMutationType::SegmentV2BoundFinalized||
+       (expanded.mutation_type!=RecordingMutationType::SegmentV2BoundFinalized&&
+        expanded.mutation_type!=RecordingMutationType::SegmentV2Deleted)||
        SerializeRecordingMutationV1(expanded)!=logical)return Fail(error,"압축 원장 논리 행 오류");
     expanded.physical_json=std::move(physical);*value=std::move(expanded);
     if(error)error->clear();return true;
@@ -734,7 +735,8 @@ bool CompactRecords(const RecordingMutationHandles& original,RecordingMutationHa
         receipt.payload_json="{\"schema\":\"media-server.recording-receipt.v1\",\"originalType\":\"event_link_created\",\"originalSha256\":\""+digest+"\"}";
         handle=std::make_shared<const RecordingMutationV1>(std::move(receipt));
     }
-    for(auto& handle:*result)if(handle->mutation_type==RecordingMutationType::SegmentV2BoundFinalized&&
+    for(auto& handle:*result)if((handle->mutation_type==RecordingMutationType::SegmentV2BoundFinalized||
+        handle->mutation_type==RecordingMutationType::SegmentV2Deleted)&&
         deleted.count(handle->entity_id)&&handle->physical_json.empty()){
         auto copy=*handle;copy.physical_json=CompressArchive(SerializeRecordingMutationV1(copy));
         if(!copy.physical_json.empty())handle=std::make_shared<const RecordingMutationV1>(std::move(copy));
@@ -1395,7 +1397,8 @@ bool RecordingJournal::TryAutomaticCheckpointNoop(const void* owner,
             if(row->type==RecordingMutationType::EventLinkCreated&&
                (receipts.count(row->mutation_id)||latest.at(row->entity_id)!=row->mutation_id))return true;
         for(const auto& row:state.locations)
-            if(row->type==RecordingMutationType::SegmentV2BoundFinalized&&deleted.count(row->entity_id)&&
+            if((row->type==RecordingMutationType::SegmentV2BoundFinalized||
+                row->type==RecordingMutationType::SegmentV2Deleted)&&deleted.count(row->entity_id)&&
                !row->compressed_storage)return true;
         // 같은 잠금/attachment/세대 안에서 원문 전체를 다시 읽는다. hash만 받은 외부
         // 입력을 신뢰하는 API가 아니며, 새 입력·복구의 strict Parse는 생략하지 않는다.

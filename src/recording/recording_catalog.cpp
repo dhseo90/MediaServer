@@ -63,6 +63,15 @@ std::string Escape(const std::string& value) {
     return out;
 }
 
+#if MEDIA_SERVER_USE_SQLITE3
+std::string SqliteDeletionReceipt(const RecordingTombstoneV2& value) {
+    return "{\"schema\":\"media-server.recording-deletion-receipt.v1\",\"segmentId\":\""+
+        Escape(value.segment.segment_id)+"\",\"tombstoneId\":\""+Escape(value.tombstone_id)+
+        "\",\"reason\":\""+Escape(value.deletion_reason)+"\",\"deletedAtMs\":"+
+        std::to_string(value.deleted_at_ms)+"}";
+}
+#endif
+
 std::string NextMutationId() {
     static std::atomic<std::uint64_t> sequence{0};
     return "mut-" + std::to_string(NowMs()) + "-" + std::to_string(++sequence);
@@ -3250,7 +3259,8 @@ bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mu
         if(sqlite3_prepare_v2(sqlite_db_,"UPDATE recording_segment_states_v2 SET lifecycle=?,reason=?,tombstone_json=? WHERE segment_id=?",-1,&statement,nullptr)!=SQLITE_OK){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
         BindText(statement,1,deleted?"deleted":LifecycleName(state.lifecycle));
         BindText(statement,2,deleted?tombstone.deletion_reason:state.reason);
-        BindText(statement,3,deleted?SerializeRecordingTombstoneV2(tombstone):"");BindText(statement,4,mutation.entity_id);
+        // 전체 tombstone은 원장에 남고 SQLite는 재구축 가능한 현재 상태 투영이다.
+        BindText(statement,3,deleted?SqliteDeletionReceipt(tombstone):"");BindText(statement,4,mutation.entity_id);
         const bool state_ok=sqlite3_step(statement)==SQLITE_DONE&&sqlite3_changes(sqlite_db_)==1;sqlite3_finalize(statement);
         if(!state_ok){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
         if(deleted) {

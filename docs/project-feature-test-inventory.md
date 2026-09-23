@@ -128,6 +128,7 @@ LP27부터 아래 41개 qualified requirement ID를 고정한다. 기존 기능�
 | LP26-O06 | 녹화 장시간 저장량 원인 구분 | 격리 root의 제품·입력·도구 비용 분리, 상한 직전/실패 측정, SQLite 페이지 관측, symlink·hardlink 거부와 비민감 출력 자체검사 | 비대상: 도구 자체검사 | 동일 120분의 측정 근거로 사용, 실행 별도 | 비대상: UI 없음 |
 | LP26-R01 | 삭제된 bound 원본의 SQLite 중복 투영 회수 | 삭제 완료와 같은 SQL 전이에서 SQLite binding 행을 제거하고, JSONL·내부 상세 증거와 ID·재시도·복구 의미를 유지. SQLite/JSONL 재기동 및 checkpoint 반례 | 관련 저장 회귀·build | 기존 30분 영향 판정 필요 | 녹화 120분 재실행 대상 | 비대상: 내부 저장 |
 | LP26-R02 | 삭제된 bound 원장 행의 가역 물리 압축 | 삭제 완료된 상세 행만 checkpoint에서 zlib로 압축, 논리 ID·순서·원본 증거와 재생성·손상 거부 유지. macOS/Linux 필수 의존성과 기존 원장 호환 확인 | 압축/복원·손상·crypto-off·checkpoint/복구 회귀·build | 기존 30분 영향 판정 필요 | 녹화 120분 재실행 대상 | 비대상: 내부 저장 |
+| LP26-R03 | 삭제 영수증의 중복 투영 회수·가역 압축 | 원장 논리 tombstone을 유지하고 checkpoint 물리 행만 압축. SQLite에는 ID·사유·시각의 최소 영수증만 저장하며 재구축·중복/손상 거부 유지 | 삭제 전후 SQLite/원장 바이트·논리 동일성·재기동·손상·checkpoint 및 기존 보존 회귀 | 기존 30분 영향 판정 필요 | 녹화 120분 재실행 대상 | 비대상: 내부 저장 |
 | LP26-O07 | 입력 fixture 생성 실패 진단 | 생성기 exit·signal·timeout·출력 상한·오류 종류를 비민감하게 구분하는 자체검사 | 비대상: 검증 준비 | 실제 실행 전 입력 선수조건, 장시간 PASS 아님 | 비대상: UI 없음 |
 | LP26-U01 | UI seed 소유/옵션 | 준비 자체검사 | 비대상: seed | 비대상: seed | 실제 실행 별도 |
 | LP26-U02 | UI 시각 근거 | 문자열/null/불연속 | 비대상: seed | 비대상: seed | 실제 실행 별도 |

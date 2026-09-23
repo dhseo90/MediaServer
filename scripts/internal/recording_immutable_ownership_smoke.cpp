@@ -218,13 +218,24 @@ void BindingSharing(const std::filesystem::path& root){
   Need(s.catalog.RequestDeletion(segment.segment_id,"continuous-capacity",&error));Need(std::filesystem::remove(root/"typed.mp4"));RecordingTombstoneV2 tombstone;tombstone.tombstone_id="typed-deleted";tombstone.segment=segment;tombstone.deletion_reason="continuous-capacity";tombstone.deleted_at_ms=9;Need(s.catalog.CompleteDeletionV2(tombstone,&error));
   Check(!SqlBindingExists(s.catalog),"LP26-R01 deleted SQLite duplicate removed atomically");
   Check(!s.catalog.FindSourceBinding(segment.segment_id)&&s.catalog.SegmentLifecycleV2(segment.segment_id)==RecordingLifecycle::Deleted&&BindingBytes(s.catalog,segment.segment_id)==canonical,"LP18-O12 deleted source hidden with internal binding preserved");
+  const auto deleted_before=s.journal.Replay();const auto deleted_record=std::find_if(deleted_before.mutations.begin(),deleted_before.mutations.end(),[](const auto& mutation){return mutation.mutation_type==RecordingMutationType::SegmentV2Deleted;});Need(deleted_record!=deleted_before.mutations.end());
   const auto before_compaction=Bytes(s.journal.path());
   const auto warm_reader_2=s.catalog.FindSourceBindingOwnedLocked(segment.segment_id);Need(bool(warm_reader_2));Need(s.catalog.Checkpoint(&error));Need(s.catalog.checkpoint_cache_&&s.catalog.checkpoint_cache_->shadow);
   const auto after_compaction=Bytes(s.journal.path());
   const auto archive_start=after_compaction.find("{\"schema\":\"media-server.recording-compressed-mutation.v1\"");
   const auto archive_end=archive_start==std::string::npos?std::string::npos:after_compaction.find('\n',archive_start);
+  const auto deleted_archive_start=archive_end==std::string::npos?std::string::npos:after_compaction.find("{\"schema\":\"media-server.recording-compressed-mutation.v1\"",archive_end+1);
+  const auto deleted_archive_end=deleted_archive_start==std::string::npos?std::string::npos:after_compaction.find('\n',deleted_archive_start);
   Check(archive_start!=std::string::npos&&archive_end!=std::string::npos&&after_compaction.size()<before_compaction.size()&&
    std::count(after_compaction.begin(),after_compaction.end(),'\n')==std::count(before_compaction.begin(),before_compaction.end(),'\n'),"LP26-R02 deleted bound journal physical bytes shrink without dropping a row");
+  Check(deleted_archive_end!=std::string::npos,"LP26-R03 deleted tombstone physical row archived");
+  if(deleted_archive_end!=std::string::npos){
+   const auto archived=after_compaction.substr(deleted_archive_start,deleted_archive_end-deleted_archive_start);RecordingMutationV1 restored;
+   Check(ParseRecordingMutationV1(archived,&restored,&error)&&restored.mutation_type==RecordingMutationType::SegmentV2Deleted&&
+    SerializeRecordingMutationV1(restored)==SerializeRecordingMutationV1(*deleted_record),"LP26-R03 deleted tombstone logical evidence restored");
+   auto corrupt=archived;const auto data_start=corrupt.find("\"data\":\"");Need(data_start!=std::string::npos);corrupt[data_start+8]='!';
+   Check(!ParseRecordingMutationV1(corrupt,&restored,&error),"LP26-R03 deleted tombstone archive damage rejected");
+  }
   if(archive_end!=std::string::npos){
    const auto archived=after_compaction.substr(archive_start,archive_end-archive_start);
    RecordingMutationV1 restored;Check(ParseRecordingMutationV1(archived,&restored,&error)&&restored.physical_json==archived&&SerializeRecordingMutationV1(restored)==SerializeRecordingMutationV1(records.mutations.back()),"LP26-R02 archive restores exact logical bound envelope");

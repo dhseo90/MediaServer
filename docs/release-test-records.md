@@ -1,5 +1,46 @@
 # Release Test Records
 
+## v4.1.0 S11 LP26-R03 삭제 영수증 중복 투영 회수 — 실행 전 정의
+
+R01·R02 뒤에도 삭제 tombstone의 전체 segment JSON은 원장과 SQLite에 중복 보관된다.
+원장의 논리 tombstone·ID·순서·재시도·복구·손상 거부는 유지한다. checkpoint 물리 행만
+가역 압축하며 SQLite의 재구축 가능한 `recording_segment_states_v2.tombstone_json`에는
+segment 전체 대신 segment ID·tombstone ID·사유·삭제 시각의 최소 영수증을 기록한다.
+기존 삭제 이력도 재시작 투영에서 같은 영수증으로 재구축한다. 공개 API·원장 논리
+직렬화·녹화/삭제 정책은 변경하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP26-R03-A | SQL 중복 회수 | 삭제 전후 full tombstone 투영 대신 최소 영수증, 내부 상세·ID·재시도 유지 | v4.1.0 |
+| LP26-R03-B | 원장 물리 압축 | 삭제 tombstone checkpoint 물리 축소, 논리 envelope·순서·행 수 유지 | v4.1.0 |
+| LP26-R03-C | 재기동·손상 | SQLite/JSONL 재구축, 구형 일반 행, 압축 손상·ID 충돌·pending 복구 | v4.1.0 |
+| LP26-R03-D | 비용·실제 실행 | 영향 회귀·build, 같은 448MiB/HTTP 4초 단기 관측 후 녹화 120분 판정 | v4.1.0 |
+
+현재는 실행 전 정의이며 PASS가 아니다. 앞선 `observation-root-cap` FAIL을 보존한다.
+
+### LP26-R03 단기 실행 결과
+
+[개별 결과 668행](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-r03-results.md)과
+원출력을 대조했다. 삭제 tombstone 물리 행의 가역 압축·논리 복원·손상 거부 88/88,
+자동 checkpoint 24/24, checkpoint 스냅샷 28/28, crypto-off 3/3,
+catalog/정적 연결 246/246, 보존 56/56, 복구 40/40, 원본 결박 20/20,
+손상·SQLite fallback 92/92,
+실제 앱 단기 71/71이다. 실제 앱의 두 채널 삭제·정지·재기동·재활성화와
+HTTP/RTSP 포트·임시 root 정리를 확인했다. build도 exit 0이다.
+
+복구 첫 시도는 SQLite 비활성 분기의 미사용 함수 경고로 빌드 실패했다.
+[실패 로그](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-r03-recovery.log)를
+보존하고 SQLite 조건부 컴파일로 범위를 고친 뒤 [40/40 재검사](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-r03-recovery-rerun.log)를
+수행했다. 단기 실제 앱의 최종 표본은 journal 646,191B, SQLite 본파일 364,544B,
+WAL 0B, root 294,815,327B였다. 직전 R02 단기 실행과 media 파일 크기·시점이 달라
+이 두 실행값만으로 120분 증가 추세나 정량 개선율을 단정하지 않는다.
+`token start/end/consumed`는 명령별 집계가 없어 미집계, `source=미제공`이다.
+
+| 제목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| LP26-R03 녹화 장시간 | 변경 후 실제 120분 | 미실행 | 단기 표본으로 448MiB 상한·RSS 추세·120분 완료를 대체할 수 없음 |
+| LP26-R03 UI | 영향받는 재생·탐색 실제 브라우저 | 최종 제품 변경 전 | 앞선 UI PASS를 무조건 승계하거나 무효화하지 않음 |
+
 ## v4.1.0 S11 LP26-R02 삭제 bound 원장 행 가역 압축 — 실행 전 정의
 
 LP26-R01은 SQLite 중복 행만 회수했으며, 원장 자체의 누적 증가는 남아 있다.
