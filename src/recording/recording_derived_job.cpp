@@ -220,7 +220,7 @@ namespace recording {
                 "schema","start","end","complete","reason","segments","slices","unplaced"
             }
             );
-            const bool native=job.profile=="h264-mp4-native-to-mpegts-video-only-v1";
+            const bool native=job.profile=="h264-mp4-native-to-mpegts-video-only-v1"||job.profile=="h264-mp4-native-to-fmp4-video-only-v1";
             Need(S(d,"schema")==std::string(native?"media-server.derived-selection-compact.v2":"media-server.derived-selection-compact.v1"),"job-selection-schema");
             DerivedRecordingSelection result;
             result.native_file_intervals=native;
@@ -345,8 +345,9 @@ namespace recording {
         }
         struct IntentAnalysis {DerivedRecordingSelection selection;std::string canonical;};
         IntentAnalysis Validate(const DerivedJobIntentV1& job){
-            const bool native=job.profile=="h264-mp4-native-to-mpegts-video-only-v1";
-            Need(job.schema=="media-server.derived-job-intent.v1"&&(native||job.profile=="h264-mp4-to-mpegts-video-only-v1"),"job-schema-profile");
+            const bool native=job.profile=="h264-mp4-native-to-mpegts-video-only-v1"||job.profile=="h264-mp4-native-to-fmp4-video-only-v1";
+            const bool mp4=job.profile=="h264-mp4-native-to-fmp4-video-only-v1"||job.profile=="h264-mp4-to-fmp4-video-only-v1";
+            Need(job.schema=="media-server.derived-job-intent.v1"&&(native||mp4||job.profile=="h264-mp4-to-mpegts-video-only-v1"),"job-schema-profile");
             Need(job.reserved_bytes>0&&job.reserved_bytes<=256*1024*1024&&job.created_at_ms>0&&!job.sources.empty()&&job.sources.size()<=8&&job.outputs.size()==job.sources.size(),"job-resource-cap");
             Need(ValidateRecordingConsumerReferenceV1(job.reference,nullptr)&&job.reference.request,"job-reference-invalid");
             auto selection=Restore(job);
@@ -397,7 +398,8 @@ namespace recording {
             ++i){
                 const auto& o=job.outputs[i];
                 const auto id=job.job_id+"-o"+std::to_string(i);
-                Need(o.source_index==i&&o.output_id==id&&o.order_request_id==id+"-order"&&o.temporary_relpath==".derived-jobs/"+job.job_id+"/"+job.attempt_id+"/"+id+".partial.ts"&&o.final_relpath==job.reference.channel_id+"/"+id+".ts","job-output-ownership-plan");
+                const auto extension=mp4?".mp4":".ts";
+                Need(o.source_index==i&&o.output_id==id&&o.order_request_id==id+"-order"&&o.temporary_relpath==".derived-jobs/"+job.job_id+"/"+job.attempt_id+"/"+id+".partial"+extension&&o.final_relpath==job.reference.channel_id+"/"+id+extension,"job-output-ownership-plan");
             }
             auto canonical=Json(job);Need(canonical.size()<=kCap,"job-json-cap");
             return {std::move(selection),std::move(canonical)};
@@ -435,7 +437,7 @@ namespace recording {
         return Guard(error,[&]{
             Need(out,"job-output-null");
             DerivedJobIntentV1 job;
-            if(selection.native_file_intervals)job.profile="h264-mp4-native-to-mpegts-video-only-v1";
+            if(selection.native_file_intervals)job.profile="h264-mp4-native-to-fmp4-video-only-v1";
             job.reference=selection.reference;
             job.selection_json=Compact(selection,sources);
             job.reserved_bytes=bytes;
@@ -475,8 +477,8 @@ namespace recording {
                 o.source_index=i;
                 o.output_id=job.job_id+"-o"+std::to_string(i);
                 o.order_request_id=o.output_id+"-order";
-                o.temporary_relpath=".derived-jobs/"+job.job_id+"/"+job.attempt_id+"/"+o.output_id+".partial.ts";
-                o.final_relpath=job.reference.channel_id+"/"+o.output_id+".ts";
+                o.temporary_relpath=".derived-jobs/"+job.job_id+"/"+job.attempt_id+"/"+o.output_id+".partial.mp4";
+                o.final_relpath=job.reference.channel_id+"/"+o.output_id+".mp4";
                 job.outputs.push_back(std::move(o));
             }
             Validate(job);

@@ -40,7 +40,7 @@ export function validateCurrentUiSeed(root,seed){
     for(const [index,output] of job.outputs.entries()){
       const state=index===0&&['corrupt','deleted'].includes(job.name)?job.name:'healthy';file(output,state);
       const matches=rows.filter(r=>r.segmentId===output.id&&r.jobId===job.jobId);
-      requireValue(output.contentType==='video/mp2t'&&matches.length>0&&matches.every(r=>r.kind==='event'&&r.jobState==='complete'),'LP26-U03 complete actual TS output');
+      requireValue(output.contentType==='video/mp4'&&matches.length>0&&matches.every(r=>r.kind==='event'&&r.jobState==='complete'),'S11-I30-R03 complete actual MP4 output');
       requireValue(matches.every(r=>state==='healthy'?r.playable&&r.playbackUrl===`/ops/api/recordings/media/${output.id}`:!r.playable&&!r.playbackUrl),'LP26-U05 playback binding');
       if(job.name==='deleted'&&index===0)requireValue(matches.every(r=>r.catalogState==='deleted'),'LP26-U05 deleted state');
       if(job.name==='corrupt'&&index===0)requireValue(matches.every(r=>r.catalogState==='corrupt'),'LP26-U05 corrupt state');

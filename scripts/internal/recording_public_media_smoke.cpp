@@ -52,8 +52,10 @@ int main(int argc,char** argv){
         check(job&&job->ready&&job->ready->request_fully_satisfied!=partial,"D3A-02 요청 충족 상태 구분");
         for(const auto& output:job->ready->outputs){
             const auto& id=output.segment.segment_id;auto media=reader.ResolveMedia("probe-channel",id);
-            unsigned char sync=0;
-            check(media&&::pread(media->fd(),&sync,1,0)==1&&sync==0x47&&media->size_bytes()==output.segment.size_bytes&&media->content_type()=="video/mp2t",partial?"D3A-02 partial 출력 제공":"D3A-01 실제 검증된 Event 출력 제공");
+            unsigned char header[8]{};
+            check(media&&::pread(media->fd(),header,sizeof(header),0)==sizeof(header)&&
+                std::equal(header+4,header+8,"ftyp")&&media->size_bytes()==output.segment.size_bytes&&
+                media->content_type()=="video/mp4",partial?"S11-I30-R03 partial MP4 출력 제공":"S11-I30-R03 실제 검증된 Event MP4 출력 제공");
             check(!application.Media(id,[](const auto&){return false;})&&!reader.ResolveMedia("other-channel",id),"D3A-03 권한/다른 채널 거부");
             auto public_media=application.Media(id,[](const auto& channel){return channel=="probe-channel";});
             check(bool(public_media),"D3A-01 application V2 채널 권한 후 제공");
@@ -67,7 +69,7 @@ int main(int argc,char** argv){
         recording::RecordingOrderReservationV1 order;
         if(!store.journal.ReserveRecordingOrder("probe-store",manual.order_request_id,manual.segment_id,"probe-channel",&order,&error))throw std::runtime_error(error);
         manual.order_sequence=order.sequence;
-        const auto manual_path=store.root/"probe-channel/manual-event.ts";
+        const auto manual_path=store.root/"probe-channel/manual-event.mp4";
         std::filesystem::copy_file(first_path,manual_path);
         check(store.catalog.FinalizeSegmentV2(manual,manual_path.string(),&error)&&!reader.ResolveMedia("probe-channel",manual.segment_id)&&Holds(store.catalog,manual.segment_id)==0,"D3A-04 실제 파일 있는 manual Event 거부");
         auto changed=first;changed.checksum_sha256=std::string(64,'a');

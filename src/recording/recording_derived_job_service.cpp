@@ -224,6 +224,7 @@ struct DerivedJobService::Impl {
         std::string error;Require(catalog.ValidateManagedWriterBinding(journal,options.root,record.intent.sources.front().segment.store_id,&error),"job-store-binding: "+error);
         RecordingReadService read(catalog);std::vector<std::unique_ptr<ResolvedRecordingMedia>> inputs;std::vector<Fd> outputs;
         DerivedRemuxRequest request;Require(RestoreDerivedJobSelection(record.intent,&request.selection,&error),error);
+        request.output_container=record.intent.profile.find("-to-mpegts-")!=std::string::npos?"mpegts":"mp4";
         for(const auto& source:record.intent.sources){budget.Check();auto media=read.ResolveMedia(source.segment.channel_id,source.segment.segment_id);Require(media!=nullptr,"job-source-unavailable");inputs.push_back(std::move(media));}
         budget.Check();RootCheck();Progress(DerivedJobProgress::BeforeCreate);budget.Check();
         auto shared=Walk(root.value,".derived-jobs",true);

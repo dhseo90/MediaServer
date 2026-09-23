@@ -24,6 +24,12 @@ void Dump(const char* name,const recording::DerivedRemuxResult& result) {
     for(const auto& gap:result.unfulfilled)std::cout<<"[unfulfilled] axis="<<gap.axis<<" range="<<gap.start<<':'<<gap.end<<" reason="<<gap.reason<<'\n';
 }
 
+bool Mp4Header(int fd) {
+    unsigned char header[8]{};
+    return ::pread(fd,header,sizeof(header),0)==static_cast<ssize_t>(sizeof(header))&&
+        header[4]=='f'&&header[5]=='t'&&header[6]=='y'&&header[7]=='p';
+}
+
 recording::DerivedRemuxResult BFrameCase(const std::filesystem::path& root) {
     auto encoded=Encode(40,true,false,162,94);Shift(encoded,9000000000ULL);
     Store store(root);recording::GStreamerSegmentWriter::Options options(store.root,10000);
@@ -49,7 +55,7 @@ recording::DerivedRemuxResult BFrameCase(const std::filesystem::path& root) {
     recording::DerivedRemuxRequest request;request.max_output_bytes=8*1024*1024;
     if(!recording::SelectDerivedRecording(ref,*collector.Snapshot("bframe-r0"),{{segments[0],binding,false}},nullptr,&request.selection,&error))throw std::runtime_error(error);
     const int input=::open((store.root/"probe-channel"/(segments[0].segment_id+".mp4")).c_str(),O_RDONLY|O_CLOEXEC|O_NOFOLLOW);
-    const int output=::open((store.root/"bframe.ts").c_str(),O_RDWR|O_CREAT|O_EXCL|O_CLOEXEC|O_NOFOLLOW,0600);
+    const int output=::open((store.root/"bframe.mp4").c_str(),O_RDWR|O_CREAT|O_EXCL|O_CLOEXEC|O_NOFOLLOW,0600);
     if(input<0||output<0)throw std::runtime_error("bframe-fd");
     request.sources={{segments[0],*binding,input,output}};auto result=recording::DeriveRecordingH264Remux(request);
     Dump("bframe",result);::close(input);::close(output);return result;
@@ -150,7 +156,7 @@ int main(int argc,char** argv) {
         std::cout<<(selected?"[pass] ":"[fail] ")<<"D22 실제 분수frame 요청 선택\n";
         const auto source_path=store.root/"probe-channel"/(segments[0].segment_id+".mp4");
         const int source_fd=::open(source_path.c_str(),O_RDONLY|O_CLOEXEC|O_NOFOLLOW);
-        const int output_fd=::open((store.root/"output.ts").c_str(),O_RDWR|O_CREAT|O_EXCL|O_CLOEXEC|O_NOFOLLOW,0600);
+        const int output_fd=::open((store.root/"output.mp4").c_str(),O_RDWR|O_CREAT|O_EXCL|O_CLOEXEC|O_NOFOLLOW,0600);
         if(source_fd<0||output_fd<0)throw std::runtime_error("fixture-fd-open");
         recording::DerivedRemuxRequest request;request.selection=selection;
         request.sources={{segments[0],*source.binding,source_fd,output_fd}};request.max_output_bytes=8*1024*1024;
@@ -159,7 +165,17 @@ int main(int argc,char** argv) {
         const bool generated=remux.verified_output&&remux.outputs.size()==1&&!remux.outputs[0].access_units.empty()&&
             !remux.outputs[0].source_decoded_sha256.empty()&&remux.outputs[0].source_decoded_sha256==remux.outputs[0].output_decoded_sha256;
         std::cout<<"[detail] remux_error="<<remux.error<<" outputs="<<remux.outputs.size()<<'\n';
-        std::cout<<(generated?"[pass] ":"[fail] ")<<"R01 실제 source-AU→TS-AU payload·decode 일치\n";
+        std::cout<<(generated?"[pass] ":"[fail] ")<<"R01 실제 source-AU→출력-AU payload·decode 일치\n";
+        const bool browser_container=generated&&Mp4Header(output_fd);
+        std::cout<<(browser_container?"[pass] ":"[fail] ")<<"S11-I30-R01 출력 MP4 ftyp 서명\n";
+        if(::ftruncate(output_fd,0)!=0)throw std::runtime_error("fixture-output-reset");
+        auto legacy_request=request;legacy_request.output_container="mpegts";
+        const auto legacy=recording::DeriveRecordingH264Remux(legacy_request);
+        unsigned char sync=0;
+        const bool legacy_ts=legacy.verified_output&&legacy.outputs.size()==1&&
+            legacy.outputs[0].source_decoded_sha256==legacy.outputs[0].output_decoded_sha256&&
+            ::pread(output_fd,&sync,1,0)==1&&sync==0x47;
+        std::cout<<(legacy_ts?"[pass] ":"[fail] ")<<"S11-I30-R02 영속 TS profile remux 유지\n";
         if(::ftruncate(output_fd,0)!=0)throw std::runtime_error("fixture-output-reset");
         auto incomplete=request;auto missing=incomplete.selection.slices.back();
         missing.candidates[0].segment.segment_id="missing-source";incomplete.selection.slices.push_back(missing);
@@ -167,7 +183,7 @@ int main(int argc,char** argv) {
         struct stat output_stat{};const bool missing_rejected=!missing_result.verified_output&&!missing_result.error.empty()&&
             ::fstat(output_fd,&output_stat)==0&&output_stat.st_size==0;
         std::cout<<(missing_rejected?"[pass] ":"[fail] ")<<"R11 confirmed source 누락은 생성전 거부\n";
-        int passed=(selected?1:0)+(generated?1:0)+(missing_rejected?1:0),failed=3-passed;
+        int passed=(selected?1:0)+(generated?1:0)+(browser_container?1:0)+(legacy_ts?1:0)+(missing_rejected?1:0),failed=5-passed;
         auto check=[&](const char* title,bool ok){std::cout<<(ok?"[pass] ":"[fail] ")<<title<<'\n';ok?++passed:++failed;};
         auto reset=[&]{if(::ftruncate(output_fd,0))throw std::runtime_error("fixture-reset");};
         auto reject=[&](recording::DerivedRemuxRequest bad){reset();auto result=recording::DeriveRecordingH264Remux(bad);struct stat st{};

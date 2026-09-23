@@ -75,7 +75,18 @@ int main(int argc,char** argv) {
         Measure("restore-selection",[&]{DerivedRecordingSelection out;Need(RestoreDerivedJobSelection(job,&out,&error));Need(out.complete&&out.slices.size()==45);});
         DerivedJobRecordV1 parsed;
         check(ParseDerivedJobRecord(canonical,&parsed,&error)&&SerializeDerivedJobRecord(parsed)==canonical,"P0-PERF01 canonical record roundtrip unchanged");
-        check(Hash(canonical)=="529aff50132395c790a05ad68d735381b174966dc3099f00ba022a8ead494d5b","P0-PERF02 baseline canonical hash literal unchanged");
+        check(Hash(canonical)=="33b12851db250b8f5491f98db4a90f926fbcb80ed189671e5bbcf6005db5eb0c","S11-I30-R02 신규 MP4 intent canonical hash 고정");
+        // 과거 영속 TS intent는 profile 의미와 소유 경로를 바꾸지 않고 읽어야 한다.
+        auto old=job;old.profile="h264-mp4-to-mpegts-video-only-v1";
+        std::string source_rows="[";
+        for(std::size_t i=0;i<old.sources.size();++i){if(i)source_rows+=',';source_rows+="{\"segment\":"+SerializeRecordingSegmentV2(old.sources[i].segment)+",\"binding\":"+SerializeRecordingSourceBindingV1(old.sources[i].binding)+"}";}
+        source_rows+=']';
+        const auto old_identity="{\"profile\":\""+old.profile+"\",\"reference\":"+SerializeRecordingConsumerReferenceV1(old.reference)+",\"selection\":"+old.selection_json+",\"sources\":"+source_rows+"}";
+        old.job_id="dj-"+Hash(old_identity);old.attempt_id=old.job_id+"-a1";old.protection_token=old.attempt_id+"-protect";
+        for(std::size_t i=0;i<old.outputs.size();++i){auto& output=old.outputs[i];output.output_id=old.job_id+"-o"+std::to_string(i);output.order_request_id=output.output_id+"-order";output.temporary_relpath=".derived-jobs/"+old.job_id+"/"+old.attempt_id+"/"+output.output_id+".partial.ts";output.final_relpath=old.reference.channel_id+"/"+output.output_id+".ts";}
+        DerivedJobIntentV1 old_roundtrip;DerivedRecordingSelection old_restored;
+        const auto old_json=SerializeDerivedJobIntent(old);
+        check(!old_json.empty()&&ParseDerivedJobIntent(old_json,&old_roundtrip,&error)&&SerializeDerivedJobIntent(old_roundtrip)==old_json&&RestoreDerivedJobSelection(old_roundtrip,&old_restored,&error)&&!old_restored.native_file_intervals,"S11-I30-R02 영속 TS intent profile·경로·선택 불변");
         if(performance)check(record_median<=60000,"P0-PERF02 host-scoped serialize-record median <=60000us");
         auto bad=job;bad.sources[0].segment.mappings[0].utc_start_ns=100000001;
         check(SerializeDerivedJobIntent(bad).empty(),"P0-PERF01 source mapping conflict rejected");
@@ -98,7 +109,7 @@ int main(int argc,char** argv) {
         for(int i=0;i<3;++i){DerivedSelectionSlice sl;sl.presentation=PresentationInterval{endpoints[i],endpoints[i+1]};sl.start_ns=endpoints[i].ns;sl.end_ns=endpoints[i+1].ns+(endpoints[i+1].numerator?1:0);sl.state=DerivedSliceState::Confirmed;sl.reason="observed-native-file-interval";DerivedSelectionCandidate c;c.segment=ns.segment;c.media_start_pts=sl.start_ns;c.media_end_pts=sl.end_ns;c.original=RecordingConsumerOriginalV1{"gen",1,static_cast<std::uint64_t>(i+1),"video/0",ns.binding->samples[i].pts_ns};sl.candidates.push_back(c);native.slices.push_back(sl);}
         DerivedJobIntentV1 nj;const bool built=BuildDerivedJobIntent(native,{ns},4096,10,&nj,&error);
         DerivedRecordingSelection restored;
-        check(built&&nj.profile=="h264-mp4-native-to-mpegts-video-only-v1"&&nj.sources[0].binding.file_evidence&&RestoreDerivedJobSelection(nj,&restored,&error)&&restored.native_file_intervals&&restored.complete&&restored.slices[0].presentation&&restored.slices[0].presentation->end.numerator==1,"LP09-S03a native exact selection and proof survive job roundtrip");
+        check(built&&nj.profile=="h264-mp4-native-to-fmp4-video-only-v1"&&nj.outputs[0].final_relpath=="channel/"+nj.outputs[0].output_id+".mp4"&&nj.sources[0].binding.file_evidence&&RestoreDerivedJobSelection(nj,&restored,&error)&&restored.native_file_intervals&&restored.complete&&restored.slices[0].presentation&&restored.slices[0].presentation->end.numerator==1,"S11-I30-R02 native MP4 profile·path·proof roundtrip");
         auto corrupt_native=native;corrupt_native.slices[0].presentation->end.numerator=2;
         check(!BuildDerivedJobIntent(corrupt_native,{ns},4096,10,&nj,&error),"LP09-S03a noncontiguous exact slices rejected");
         corrupt_native=native;corrupt_native.slices[1].candidates[0].original->ordinal=1;

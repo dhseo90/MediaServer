@@ -106,7 +106,8 @@ void Reidentify(DerivedJobIntentV1& job) {
  std::string sources="[";for(std::size_t i=0;i<job.sources.size();++i){if(i)sources+=',';sources+="{\"segment\":"+SerializeRecordingSegmentV2(job.sources[i].segment)+",\"binding\":"+SerializeRecordingSourceBindingV1(job.sources[i].binding)+"}";}sources+=']';
  const auto logical="{\"profile\":\""+job.profile+"\",\"reference\":"+SerializeRecordingConsumerReferenceV1(job.reference)+",\"selection\":"+job.selection_json+",\"sources\":"+sources+"}";
  job.job_id="dj-"+Digest(logical);job.attempt_id=job.job_id+"-a1";job.protection_token=job.attempt_id+"-protect";
- for(std::size_t i=0;i<job.outputs.size();++i){auto& out=job.outputs[i];out.output_id=job.job_id+"-o"+std::to_string(i);out.order_request_id=out.output_id+"-order";out.temporary_relpath=".derived-jobs/"+job.job_id+"/"+job.attempt_id+"/"+out.output_id+".partial.ts";out.final_relpath=job.reference.channel_id+"/"+out.output_id+".ts";}
+ const auto extension=job.profile.find("-to-mpegts-")!=std::string::npos?".ts":".mp4";
+ for(std::size_t i=0;i<job.outputs.size();++i){auto& out=job.outputs[i];out.output_id=job.job_id+"-o"+std::to_string(i);out.order_request_id=out.output_id+"-order";out.temporary_relpath=".derived-jobs/"+job.job_id+"/"+job.attempt_id+"/"+out.output_id+".partial"+extension;out.final_relpath=job.reference.channel_id+"/"+out.output_id+extension;}
 }
 void Compatibility(const Output& o) {
  context="cap4096/legacy-job";auto projected=Job(o);auto legacy_input=o;legacy_input.binding.file_evidence.reset();const auto legacy=Job(legacy_input);

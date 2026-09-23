@@ -114,7 +114,7 @@ static std::string CatalogEvidence(recording::RecordingCatalog& catalog,const re
             <<",\"lifecycle\":"<<static_cast<int>(entry.lifecycle)<<",\"deleted\":"<<entry.deleted<<",\"eligible\":"<<eligible
             <<",\"startPts\":"<<Quote(std::to_string(s.media_start_pts))<<",\"endPts\":"<<(s.media_end_pts?Quote(std::to_string(*s.media_end_pts)):"null")<<",\"timeBaseNum\":"<<s.time_base_num<<",\"timeBaseDen\":"<<s.time_base_den<<'}';}
     candidates<<"]}";const auto& p=intent.profile;
-    return ",\"intentProfile\":"+Quote(p=="h264-mp4-to-mpegts-video-only-v1"||p=="h264-mp4-native-to-mpegts-video-only-v1"?p:"unknown")+
+    return ",\"intentProfile\":"+Quote(p=="h264-mp4-to-mpegts-video-only-v1"||p=="h264-mp4-native-to-mpegts-video-only-v1"||p=="h264-mp4-to-fmp4-video-only-v1"||p=="h264-mp4-native-to-fmp4-video-only-v1"?p:"unknown")+
         ",\"catalogEvidenceBasis\":\"offline-copy-catalog\",\"failureTimeEquivalent\":false,\"proofValidationBasis\":\"strict-structure-only\",\"catalogSourceEvidence\":"+selected.str()+
         ",\"catalogCandidateScope\":\"request-related-snapshot\",\"catalogCandidates\":"+candidates.str();
 }
@@ -164,6 +164,7 @@ static std::string Replay(recording::RecordingCatalog& catalog,const fs::path& r
             <<",\"deleted\":"<<(source.deleted?"true":"false")<<",\"selected\":"<<(selected.count(s.segment_id)?"true":"false")<<'}';
     }evidence<<']';
     recording::DerivedRemuxRequest request;Require(recording::RestoreDerivedJobSelection(intent,&request.selection,&error),"stored-selection");request.max_work_ms=30000;request.max_output_bytes=intent.reserved_bytes;
+    request.output_container=intent.profile.find("-to-mpegts-")!=std::string::npos?"mpegts":"mp4";
     recording::RecordingReadService read(catalog);std::vector<std::unique_ptr<recording::ResolvedRecordingMedia>> inputs;ReplayFiles outputs(root);std::ostringstream hashes;hashes<<'[';comma=false;bool available=true;
     for(const auto& source:intent.sources){auto media=read.ResolveMedia(source.segment.channel_id,source.segment.segment_id);if(!media){available=false;break;}const auto actual=FdSha(media->fd());const auto& expected=source.segment.checksum_sha256;
         Require(expected.size()==64&&std::all_of(expected.begin(),expected.end(),[](char c){return(c>='0'&&c<='9')||(c>='a'&&c<='f');}),"expected-hash");

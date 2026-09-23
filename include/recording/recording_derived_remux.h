@@ -14,6 +14,8 @@ struct DerivedRemuxSource {
 struct DerivedRemuxRequest {
     DerivedRecordingSelection selection;
     std::vector<DerivedRemuxSource> sources;
+    // 저장된 구형 TS intent는 복구 시 그대로 처리한다. 새 작업은 브라우저 재생용 MP4다.
+    std::string output_container{"mp4"};
     std::uint64_t max_output_bytes{0};
     std::uint32_t max_work_ms{30000};
     // 여러 내부 읽기 스레드에서 호출될 수 있다. caller가 thread-safe·비차단 callback을 제공한다.

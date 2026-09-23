@@ -3,6 +3,7 @@
 
 import fs from "node:fs";
 import net from "node:net";
+import dgram from "node:dgram";
 import os from "node:os";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -10,6 +11,7 @@ import { spawn, execFileSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import {startRecordingUiRangeProxy,finishRecordingUiProxy} from './recording_ui_range_proxy.mjs';
 import {validateCurrentUiSeed} from './recording_current_ui_seed.mjs';
+import {assertLocalIceEnvironment,assertLocalIceConfig} from './verify_local_ice_guard.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -371,7 +373,7 @@ export function validateHttpSeedManifest(root,seed){
     const file=path.resolve(mediaRoot,item.relativePath);assert(file.startsWith(mediaRoot+path.sep)&&fs.realpathSync(file)===file&&!paths.has(file),'seed containment');paths.add(file);
     const stat=fs.lstatSync(file);assert(stat.isFile()&&!stat.isSymbolicLink()&&stat.nlink===1&&Number.isSafeInteger(item.sizeBytes)&&
       item.sizeBytes>0&&item.sizeBytes<=64*1024*1024&&stat.size===item.sizeBytes,'seed regular size');
-    assert(item.contentType===(index<2?'video/mp2t':'video/mp4')&&/^[a-f0-9]{64}$/.test(item.sha256),'seed type/hash');
+    assert(item.contentType==='video/mp4'&&/^[a-f0-9]{64}$/.test(item.sha256),'seed type/hash');
     const fd=fs.openSync(file,'r'),hash=crypto.createHash('sha256'),chunk=Buffer.alloc(65536);
     try{let n;while((n=fs.readSync(fd,chunk,0,chunk.length,null))>0)hash.update(chunk.subarray(0,n));}finally{fs.closeSync(fd);}
     assert(hash.digest('hex')===item.sha256,'seed file hash');
@@ -644,7 +646,8 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
   const allowedModes = new Set(["--red-status", "--red-http-baseline", "--full", "--http-api", "--http-auth", "--ui-direct", "--ui-auth-direct", "--http-lifecycle"]);
   if (!allowedModes.has(mode)) throw new Error(`지원하지 않는 mode: ${mode}`);
   const uiAuth = mode === '--ui-auth-direct' ? uiAuthPreparationOptions(process.argv.slice(3)) : null;
-  if (!uiAuth && process.argv.slice(3).includes('--ui-seek-fixture')) throw new Error('seek fixture requires UI auth direct mode');
+  const uiDirect = mode === '--ui-direct' && process.argv.length > 3 ? uiAuthPreparationOptions(process.argv.slice(3)) : null;
+  if (!uiAuth && !uiDirect && process.argv.slice(3).includes('--ui-seek-fixture')) throw new Error('seek fixture requires UI anchor');
   const httpPasswords=mode==='--http-auth'?createUiAuthPasswords():null;
   let httpSeed=null;
   let currentUiSeed=null;
@@ -657,6 +660,9 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
   let cleanupError;
   let cleanupResult;
   let uiProxy;
+  let uiUdp;
+  let uiUdpPort = 0;
+  let uiUdpClosed = true;
   let uiStage = 'seed';
   const uiLogReport = {truncated:false,droppedBytes:0,writeFailed:false};
 
@@ -677,7 +683,7 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
     if (uiAuth) for (const id of ['3','4']) fs.copyFileSync(fixture,path.join(root,'input',`s06-channel-${id}.mp4`));
     fs.writeFileSync(path.join(root, "data/sources.json"), JSON.stringify({ sources }));
     fs.writeFileSync(path.join(root, "data/views.json"), JSON.stringify({ views: [] }));
-    const seekFixture = uiAuth?.seekFixture ? createUiSeekFixture(root) : null;
+    const seekFixture = (uiAuth || uiDirect)?.seekFixture ? createUiSeekFixture(root) : null;
     if(['--http-api','--http-auth','--http-lifecycle'].includes(mode)){
       const manifest=path.join(root,'seed-manifest.json');
       execFileSync('bash',[path.join(repo,'scripts/internal/verify_recording_http_seed.sh'),path.join(root,'recordings'),manifest,mode==='--http-lifecycle'?'1':'0'],
@@ -687,10 +693,10 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
     } else if (mode === '--ui-direct' || uiAuth) {
       const manifest=path.join(root,'ui-seed-manifest.json');
       execFileSync('bash', [path.join(repo, 'scripts/internal/verify_recording_current_ui_seed.sh'), path.join(root, 'recordings'),manifest,
-        uiAuth?String(uiAuth.anchor):'unknown',seekFixture?.file??'none'], { cwd: repo, stdio: 'inherit',env:uiSeedEnvironment() });
+        uiAuth?String(uiAuth.anchor):uiDirect?String(uiDirect.anchor):'unknown',seekFixture?.file??'none'], { cwd: repo, stdio: 'inherit',env:uiSeedEnvironment() });
       currentUiSeed=JSON.parse(fs.readFileSync(manifest,'utf8'));
       validateCurrentUiSeed(root,currentUiSeed);
-      console.log('[ui-seed] current-managed; mapping units; seek=original-MP4; events=derived-TS; actualUiPass=false');
+      console.log('[ui-seed] current-managed; mapping units; seek=original-MP4; events=derived-fMP4; actualUiPass=false');
       console.log('[ui-seed-selection] '+JSON.stringify({seekSegmentId:currentUiSeed.seek?.id??null,
         eventOutputIds:currentUiSeed.jobs.filter(job=>['full','partial'].includes(job.name)).map(job=>({scenario:job.name,ids:job.outputs.map(output=>output.id)})),actualUiPass:false}));
     }
@@ -703,11 +709,22 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
     assert(fs.realpathSync(binary) === path.join(repo, "build-gst-onnx/media_server"),
       "검증 binary가 고정 제품 경로와 다름");
     const isolatedEnv = isolatedEnvironment(root, binary, rtspPort, httpPort);
+    if (uiAuth) {
+      uiUdp = dgram.createSocket('udp4');
+      uiUdpClosed = false;
+      await new Promise((resolve, reject) => {
+        uiUdp.once('error', reject);
+        uiUdp.bind(0, '127.0.0.1', resolve);
+      });
+      uiUdpPort = uiUdp.address().port;
+    }
     const env = (mode === '--http-auth' || uiAuth)
-      ? Object.freeze({ ...isolatedEnv, MEDIA_SERVER_AUTH_MODE: 'auto' })
+      ? Object.freeze({ ...isolatedEnv, MEDIA_SERVER_AUTH_MODE: 'auto',
+        ...(uiAuth ? {MEDIA_SERVER_WEBRTC_STUN_SERVER:`stun://127.0.0.1:${uiUdpPort}`,MEDIA_SERVER_WEBRTC_TURN_SERVER:''} : {}) })
       : mode === '--ui-direct'
         ? Object.freeze({ ...isolatedEnv, MEDIA_SERVER_ENABLE_LAB: '1' })
         : isolatedEnv;
+    if (uiAuth) assertLocalIceEnvironment(env, uiUdpPort);
     const logState = { lineCount: 0, processErrorCode: "" };
     uiStage = 'spawn';
     const privateLog = uiAuth ? path.join(root,'server-private.log') : null;
@@ -762,6 +779,10 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
       if (uiAuth) {
         uiStage = 'bootstrap';
         const auth = await bootstrapRecordingUiAuth(baseUrl, createUiAuthPasswords());
+        uiStage = 'ice';
+        const iceResponse = await auth.call('/webrtc/config', {headers:{Cookie:auth.cookies[0]}});
+        assert(iceResponse.ok, 'UI local ICE response failed');
+        assertLocalIceConfig(await iceResponse.json(), uiUdpPort);
         uiStage = 'source';
         for (const id of ['3','4']) {
           const response = await auth.call('/ops/api/sources',{method:'POST',headers:{Cookie:auth.cookies[0],'Content-Type':'application/json'},
@@ -826,6 +847,18 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
     cleanupError = error;
     cleanupResult = error.cleanupReport;
   }
+  if (uiUdp) {
+    try {
+      await new Promise((resolve, reject) => {
+        try { uiUdp.close(resolve); } catch (error) {
+          if (error.code === 'ERR_SOCKET_DGRAM_NOT_RUNNING') resolve(); else reject(error);
+        }
+      });
+      uiUdpClosed = true;
+    } catch {
+      cleanupError = cleanupError || new Error('UI UDP cleanup failed');
+    }
+  }
   const cleanupPayload = {
     root: cleanupResult?.root || root || null,
     rootBeforeBytes: cleanupResult?.rootBefore?.bytes ?? null,
@@ -838,6 +871,7 @@ export async function runVerifier(requestedMode = process.argv[2] || "--full") {
     failureCount: cleanupResult?.failureCount ?? 1,
     cleanupElapsedMs: Date.now() - cleanupStartedAt,
     verifierElapsedMs: Date.now() - startedAt,
+    ...(uiAuth ? {uiUdpClosed} : {}),
   };
   if (cleanupError) {
     console.error(`[cleanup] FAIL ${JSON.stringify(cleanupPayload)}`);

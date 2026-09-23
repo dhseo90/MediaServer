@@ -22,7 +22,8 @@ std::string FileDigest(const std::filesystem::path& path){
 bool DecodeFile(const std::filesystem::path& path){
     const int fd=::open(path.c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC);if(fd<0)return false;
     GError* error=nullptr;
-    auto* pipeline=gst_parse_launch(("fdsrc fd="+std::to_string(fd)+" ! tsdemux ! h264parse ! avdec_h264 ! appsink name=sink sync=false").c_str(),&error);
+    const auto demux=path.extension()==".mp4"?"qtdemux":"tsdemux";
+    auto* pipeline=gst_parse_launch(("fdsrc fd="+std::to_string(fd)+" ! "+demux+" ! h264parse ! avdec_h264 ! appsink name=sink sync=false").c_str(),&error);
     if(!pipeline||error){if(error)g_error_free(error);if(pipeline)gst_object_unref(pipeline);::close(fd);return false;}
     auto* sink=GST_APP_SINK(gst_bin_get_by_name(GST_BIN(pipeline),"sink"));auto* bus=gst_element_get_bus(pipeline);
     gst_element_set_state(pipeline,GST_STATE_PLAYING);int count=0;bool ok=true,eos=false;
@@ -318,7 +319,7 @@ int main(int argc,char** argv) {
         for(std::size_t i=0;i<intent.sources.size();++i) {
             const auto& source=intent.sources[i];
             const int input_fd=::open((store.root/"probe-channel"/(source.segment.segment_id+".mp4")).c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC);
-            const int output_fd=::open((store.root/("contract-"+std::to_string(i)+".ts")).c_str(),O_RDWR|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600);
+            const int output_fd=::open((store.root/("contract-"+std::to_string(i)+".mp4")).c_str(),O_RDWR|O_CREAT|O_EXCL|O_NOFOLLOW|O_CLOEXEC,0600);
             if(input_fd<0||output_fd<0)throw std::runtime_error("contract fd fixture");
             request.sources.push_back({source.segment,source.binding,input_fd,output_fd});
         }

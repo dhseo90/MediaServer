@@ -251,7 +251,8 @@ void RecordContext::Validate() const {
         const bool native=selection.native_file_intervals;
         Need(p.actual_range_basis==(native?"verified-native-presentation-interval":"file-duration-on-source-pts-axis")&&p.original_association_quality==(native?"observed-identity-file-proof-vcl":"complete-file-pts-to-binding-timestamp-match"),"job-profile-output-quality");
         Need(output.source_index==i&&s.segment_id==plan.output_id&&s.order_request_id==plan.order_request_id&&s.order_sequence>previous_order&&s.store_id==source.segment.store_id&&s.source_id==source.segment.source_id&&s.channel_id==source.segment.channel_id,"job-output-identity");previous_order=s.order_sequence;
-        Need(s.media_epoch_id==plan.output_id+"-epoch"&&s.media_epoch_id!=source.segment.media_epoch_id&&s.time_base_num==1&&s.time_base_den==1000000000&&s.retention_class==RecordingRetentionClass::Event&&s.container=="mpegts"&&s.video_codecs==std::vector<std::string>{"h264"}&&s.audio_codecs.empty()&&!s.pinned&&s.audio_omitted_reason==p.audio_omitted_reason&&s.size_bytes==p.size_bytes&&s.checksum_sha256==p.checksum_sha256,"job-output-independent-media");
+        const auto container=record.intent.profile.find("-to-mpegts-")!=std::string::npos?"mpegts":"mp4";
+        Need(s.media_epoch_id==plan.output_id+"-epoch"&&s.media_epoch_id!=source.segment.media_epoch_id&&s.time_base_num==1&&s.time_base_den==1000000000&&s.retention_class==RecordingRetentionClass::Event&&s.container==container&&s.video_codecs==std::vector<std::string>{"h264"}&&s.audio_codecs.empty()&&!s.pinned&&s.audio_omitted_reason==p.audio_omitted_reason&&s.size_bytes==p.size_bytes&&s.checksum_sha256==p.checksum_sha256,"job-output-independent-media");
         Need(p.segment_id==source.segment.segment_id&&p.store_id==source.segment.store_id&&p.source_id==source.segment.source_id&&p.media_epoch_id==source.segment.media_epoch_id,"job-provenance-source");
         std::vector<std::pair<std::int64_t,std::int64_t>> requested,actual;
         for(const auto& slice:selection.slices)if(slice.state==DerivedSliceState::Confirmed){
@@ -336,7 +337,7 @@ bool BuildDerivedJobReady(const DerivedJobRecordV1& input,const DerivedRemuxResu
             s.segment_id=plan.output_id;s.order_request_id=plan.order_request_id;s.order_sequence=orders[i];s.source_id=source.source_id;s.channel_id=source.channel_id;s.store_id=source.store_id;s.media_epoch_id=plan.output_id+"-epoch";
             s.media_start_pts=std::numeric_limits<std::int64_t>::max();std::int64_t end=0;
             for(const auto& au:p.access_units){s.media_start_pts=std::min(s.media_start_pts,au.output_pts_ns);end=std::max(end,End(au.output_pts_ns,au.output_duration_ns));}s.media_end_pts=end;
-            s.container="mpegts";s.video_codecs={"h264"};s.audio_omitted_reason=p.audio_omitted_reason;s.size_bytes=p.size_bytes;s.checksum_sha256=p.checksum_sha256;s.retention_class=RecordingRetentionClass::Event;s.created_at_ms=now;s.finalized_at_ms=now;
+            s.container=record.intent.profile.find("-to-mpegts-")!=std::string::npos?"mpegts":"mp4";s.video_codecs={"h264"};s.audio_omitted_reason=p.audio_omitted_reason;s.size_bytes=p.size_bytes;s.checksum_sha256=p.checksum_sha256;s.retention_class=RecordingRetentionClass::Event;s.created_at_ms=now;s.finalized_at_ms=now;
             s.mappings={{"media-server.recording-utc-mapping.v1",plan.output_id+"-utc-unavailable",s.media_start_pts,s.media_end_pts,"unknown",std::nullopt,std::nullopt,std::nullopt,"derived-output-utc-unavailable"}};
             ready.outputs.push_back(std::move(output));
         }

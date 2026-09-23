@@ -14,7 +14,7 @@ struct DerivedJobOutputPlanV1 {
 struct DerivedJobIntentV1 {
     std::string schema{"media-server.derived-job-intent.v1"};
     std::string job_id,attempt_id,protection_token;
-    std::string profile{"h264-mp4-to-mpegts-video-only-v1"};
+    std::string profile{"h264-mp4-to-fmp4-video-only-v1"};
     RecordingConsumerReferenceV1 reference;
     // 엄격 검증된 compact selection JSON. segment table을 slice마다 복제하지 않는다.
     std::string selection_json;

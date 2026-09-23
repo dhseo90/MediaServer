@@ -58,7 +58,7 @@ try {
     assert(uiAuthPreparationOptions(['--ui-anchor-utc-ms','1789084800000']).seekFixture===false);
     for(const mode of ['--ui-direct','--http-auth']){
       const r=spawnSync(process.execPath,[path.join(repo,'scripts/internal/verify_v410_recording_ui_contract.mjs'),mode,'--ui-seek-fixture'],{encoding:'utf8'});
-      assert(r.status===1&&r.stderr.includes('seek fixture requires UI auth direct mode'));
+      assert(r.status===1&&/UI anchor required|seek fixture requires UI anchor/.test(r.stderr));
     }
   });
   check('UA01 anchor bounds and unknown options are rejected',()=>{
@@ -132,8 +132,8 @@ try {
     const probe=spawnSync('ffprobe',['-v','error','-show_entries','format=duration:stream=codec_type,codec_name,width,height','-read_intervals','%+#1','-show_packets','-of','json',file],{encoding:'utf8',timeout:30000});
     assert(probe.status===0);validateUiSeekProbe(JSON.parse(probe.stdout));
   });
-  check('SF05 LP26-U08 other originals remain short and actual derived outputs remain TS',()=>{
-    const seed=withSeek.seed;assert(seed.original.sizeBytes<seed.seek.sizeBytes&&seed.jobs.every(j=>j.outputs.every(o=>o.contentType==='video/mp2t'&&o.id!==seed.seek.id)));
+  check('SF05 LP26-U08 other originals remain short and actual derived outputs remain MP4',()=>{
+    const seed=withSeek.seed;assert(seed.original.sizeBytes<seed.seek.sizeBytes&&seed.jobs.every(j=>j.outputs.every(o=>o.contentType==='video/mp4'&&o.id!==seed.seek.id)));
   });
 } finally {
   let bytes=0;function count(p){for(const e of fs.readdirSync(p,{withFileTypes:true})){const f=path.join(p,e.name);if(e.isDirectory())count(f);else bytes+=fs.lstatSync(f).size;}}count(root);

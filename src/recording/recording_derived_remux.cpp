@@ -225,8 +225,10 @@ std::vector<std::string> Decode(const std::vector<Au>& aus,const Budget& budget)
     }
     Require(result.size()==aus.size(),"decoded-count-mismatch");return result;
 }
-void WriteTs(int fd,const std::vector<Au>& aus,std::uint64_t limit,const Budget& budget,DerivedRemuxOutput& out) {
-    Pipeline pipe("appsrc name=in format=time block=false ! h264parse config-interval=-1 ! mpegtsmux alignment=7 ! appsink name=out sync=false max-buffers=4 drop=false");
+void WriteOutput(int fd,const std::vector<Au>& aus,std::uint64_t limit,const Budget& budget,DerivedRemuxOutput& out,bool ts) {
+    Pipeline pipe(std::string("appsrc name=in format=time block=false ! h264parse config-interval=-1 ! ")+
+        (ts?"mpegtsmux alignment=7":"mp4mux fragment-duration=1000 streamable=true")+
+        " ! appsink name=out sync=false max-buffers=4 drop=false");
     PushAus(pipe,aus,budget);
     while(GstSample* sample=pipe.Pull(budget)) {
         GstBuffer* buffer=gst_sample_get_buffer(sample);GstMapInfo map{};
@@ -281,6 +283,8 @@ DerivedRemuxResult DeriveRecordingH264Remux(const DerivedRemuxRequest& request) 
     const Budget budget{Clock::now()+std::chrono::milliseconds(request.max_work_ms),request.cancelled};
     try {
         Require(request.max_work_ms>0&&request.max_work_ms<=30000,"invalid-work-budget");budget.Check();
+        Require(request.output_container=="mp4"||request.output_container=="mpegts","unsupported-output-container");
+        const bool ts_output=request.output_container=="mpegts";
         Require(request.max_output_bytes>0&&request.max_output_bytes<=256*1024*1024,"invalid-output-budget");
         Require(!request.sources.empty()&&request.sources.size()<=8&&request.selection.slices.size()<=4096,"source-or-selection-cap");
         Require(ValidateRecordingConsumerReferenceV1(request.selection.reference,nullptr),"invalid-request-reference");
@@ -381,9 +385,9 @@ DerivedRemuxResult DeriveRecordingH264Remux(const DerivedRemuxRequest& request) 
                 output.actual_original_start_ns=selected.front().original;output.actual_original_end_ns=selected.front().original;
                 for(const auto& au:selected){output.actual_original_start_ns=std::min(output.actual_original_start_ns,au.original);output.actual_original_end_ns=std::max(output.actual_original_end_ns,Checked(static_cast<__int128>(au.original)+au.duration));}
                 output.source_decoded_sha256=Decode(selected,budget);
-                WriteTs(source.output_fd,selected,request.max_output_bytes-total_bytes,budget,output);total_bytes+=output.size_bytes;
+                WriteOutput(source.output_fd,selected,request.max_output_bytes-total_bytes,budget,output,ts_output);total_bytes+=output.size_bytes;
                 output.checksum_sha256=FileHash(source.output_fd,output.size_bytes,budget);
-                auto emitted=ReadAus(source.output_fd,output.size_bytes,true,budget);
+                auto emitted=ReadAus(source.output_fd,output.size_bytes,ts_output,budget);
                 Require(emitted.size()==selected.size(),"output-au-count-mismatch");
                 for(std::size_t i=0;i<selected.size();++i) {
                     const auto& a=selected[i];const auto& b=emitted[i];Require(a.vcl==b.vcl,"output-au-payload-mismatch");

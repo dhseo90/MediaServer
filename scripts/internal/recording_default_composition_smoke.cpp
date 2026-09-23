@@ -202,7 +202,8 @@ bool DecodeRuntimeOutput(const std::filesystem::path& path) {
     const int fd=::open(path.c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC);if(fd<0)return false;
     bool eos=false;std::size_t frames=0;
     {
-        Pipeline pipeline("fdsrc fd="+std::to_string(fd)+" ! tsdemux ! h264parse ! avdec_h264 ! appsink name=out sync=false");
+        const auto demux=path.extension()==".mp4"?"qtdemux":"tsdemux";
+        Pipeline pipeline("fdsrc fd="+std::to_string(fd)+" ! "+demux+" ! h264parse ! avdec_h264 ! appsink name=out sync=false");
         auto* bus=gst_element_get_bus(pipeline.pipeline);
         const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(5);
         while(std::chrono::steady_clock::now()<deadline) {

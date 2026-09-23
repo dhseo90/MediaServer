@@ -46,8 +46,10 @@ const char* SafeRecoveryState(recording::DerivedJobState state){
 void PrepareDiagnostic(int index,const recording::DerivedRecordingSelection& selection,const recording::DerivedJobIntentV1& intent,
     const recording::DerivedJobRunResult* result,bool after,bool exception=false){
     std::size_t proofs=0;for(const auto& source:intent.sources)proofs+=source.binding.file_evidence.has_value();
-    const char* profile=intent.profile=="h264-mp4-native-to-mpegts-video-only-v1"?"native":
-        intent.profile=="h264-mp4-to-mpegts-video-only-v1"?"legacy":"unknown";
+    const char* profile=(intent.profile=="h264-mp4-native-to-fmp4-video-only-v1"||
+        intent.profile=="h264-mp4-native-to-mpegts-video-only-v1")?"native":
+        (intent.profile=="h264-mp4-to-fmp4-video-only-v1"||
+        intent.profile=="h264-mp4-to-mpegts-video-only-v1")?"legacy":"unknown";
     const auto* job=result&&result->job?&*result->job:nullptr;const auto* ready=job&&job->ready?&*job->ready:nullptr;
     std::cout<<"[recovery-prepare-diagnostic] {\"phase\":\""<<(after?"after":"before")<<"\",\"index\":"<<index
         <<",\"profile\":\""<<profile<<"\",\"selectionNative\":"<<(selection.native_file_intervals?"true":"false")
@@ -99,7 +101,7 @@ void PrepareRealistic(const std::filesystem::path& root,bool native=true){
         recovery_stage="prepare-run";
         PrepareDiagnostic(index,selected,intent,nullptr,false);
         if(native){std::size_t proofs=0;for(const auto& source:intent.sources)proofs+=source.binding.file_evidence.has_value();
-            NeedRecovery(selected.native_file_intervals&&intent.profile=="h264-mp4-native-to-mpegts-video-only-v1"&&intent.sources.size()==2&&intent.outputs.size()==2&&proofs==2);}
+            NeedRecovery(selected.native_file_intervals&&intent.profile=="h264-mp4-native-to-fmp4-video-only-v1"&&intent.sources.size()==2&&intent.outputs.size()==2&&proofs==2);}
         recording::DerivedJobRunResult result;
         try{result=service.Run(intent.job_id);}catch(...){PrepareDiagnostic(index,selected,intent,nullptr,true,true);throw;}
         PrepareDiagnostic(index,selected,intent,&result,true);
