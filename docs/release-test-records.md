@@ -1,5 +1,52 @@
 # Release Test Records
 
+## v4.1.0 S11 LP26-O08 native 관측 실패 구분 — 실행 전 정의
+
+녹화 전용 120분 2차는 약 394초에 `observer-native-rejected`로 실패했다.
+[원출력](release-artifacts/v4.1.0/s11-recording-ui-20260923/recording-120-attempt2.log)에
+515 pass·1 fail, root 약 272MiB/448MiB, 제품 서버 정상 종료·포트/임시 root 정리를 보존한다.
+이 코드는 native 파서 거부·3초 실행 시간초과·실행 오류를 같은 문자열로 묶으므로
+제품 손상이라고 단정할 수 없다. 아래 진단은 원문 영상·URL·payload를 출력하지 않는다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP26-O08-A | native 실패 분류 | exit·signal·timeout·stdout 상한을 고정 코드로 구분하고 기존 3초/32MiB 한도 유지 | v4.1.0 |
+| LP26-O08-B | 누적 입력 반례 | 실제 writer 원장의 물리 압축 행을 포함해 누적 규모·회전 재읽기·손상 행을 재현. 원문 미노출 | v4.1.0 |
+| LP26-O08-C | 확인 원인만 보완 | 관측기 보완 뒤 같은 단기/장시간 조건 재검증. 제품 원장 변경은 원인 확인 전 금지 | v4.1.0 |
+
+현재 등록은 실행·PASS가 아니다. 120분 2차 FAIL과 처음 `observation-root-cap`
+FAIL은 각각 유지하며, 완료 근거로 사용하지 않는다.
+
+### LP26-O08 진단·단기 결과
+
+물리 압축 행을 포함한 자기검사 [63/63](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-o08-selftest.log)과
+격리 실제 앱 [71/71](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-o08-short-app.log)이
+통과했다. [개별 결과 134행](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-o08-results.md)을
+원출력에 연결했다. 단일 native 호출은 누적 물리 입력 약 20MiB에서 3초 `ETIMEDOUT`가
+재현됐고, 입력을 제한된 묶음으로 처리하면 동일 행 수·순서와 후반 손상 거부를 유지한다.
+시간제한·전체 입력/출력 상한은 늘리지 않았다. 원래 120분 실패의 세부 종료 사유는 당시
+분류되지 않았으므로 **동일 원인이라고 확정하지 않는다**. 이 보완은 관측기 한정이다.
+
+실제 앱 첫 단기 시도는 macOS 서비스 접근 제한에서 GStreamer 입력 생성이 30초에
+시간초과됐다. 제품 서버 시작 전 실패이며 원출력은 보존되지 않았다. 권한을 맞춘
+재실행에서 입력 생성 1.4초·검사 71/71·서버/포트/임시 root 정리를 확인했다.
+`token start/end/consumed`는 실행별 집계가 없어 미집계(`source=전용 집계 없음`)이다.
+O08 변경 뒤 120분과 UI 영향 판정은 아직 완료하지 않았다.
+
+### LP26-O08 녹화 120분 재실행 실패
+
+O08 수정 뒤 동일 120분 조건의 [3차 원출력](release-artifacts/v4.1.0/s11-recording-ui-20260923/recording-120-attempt3.log)은
+1,338 pass·1 fail, 약 1,055초에서 `The operation was aborted due to timeout`으로 끝났다.
+[2·3차 개별 결과 1,855행](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-o08-long-results.md)을
+보존했다. 마지막 완료 표본 뒤 `GET /ops/api/recordings/status` 요청의 기존 4초
+`AbortSignal.timeout`에서 실패했음은 검증기 실행 순서와 경과 시간으로 확인된다.
+이 요청 내부에서 catalog 잠금 대기·체크포인트·상태 조회 중 어느 단계가 4초를
+차지했는지는 아직 직접 계측되지 않았다. 따라서 앞선 native 실패와 동일 원인으로
+합치거나 timeout을 확대하지 않는다. 실패 시 root는 338,741,538B/469,762,048B,
+서버 정상 exit 0, HTTP/RTSP 포트 해제, 격리 root 삭제였다.
+RSS는 18분 시점 약 596MiB였으나 120분 추세 판정은 불가하다.
+장시간·UI 최종 PASS, 푸시 가능 판정은 모두 보류한다.
+
 ## v4.1.0 S11 LP26-R03 삭제 영수증 중복 투영 회수 — 실행 전 정의
 
 R01·R02 뒤에도 삭제 tombstone의 전체 segment JSON은 원장과 SQLite에 중복 보관된다.
@@ -38,7 +85,7 @@ WAL 0B, root 294,815,327B였다. 직전 R02 단기 실행과 media 파일 크기
 
 | 제목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
 | --- | --- | --- | --- |
-| LP26-R03 녹화 장시간 | 변경 후 실제 120분 | 미실행 | 단기 표본으로 448MiB 상한·RSS 추세·120분 완료를 대체할 수 없음 |
+| LP26-R03 녹화 장시간 | 변경 후 실제 120분 | 2·3차 실행 FAIL | 각각 native 관측 실패·HTTP 4초 timeout. 120분 완료와 자원 판정에 사용할 수 없음 |
 | LP26-R03 UI | 영향받는 재생·탐색 실제 브라우저 | 최종 제품 변경 전 | 앞선 UI PASS를 무조건 승계하거나 무효화하지 않음 |
 
 ## v4.1.0 S11 LP26-R02 삭제 bound 원장 행 가역 압축 — 실행 전 정의

@@ -1,0 +1,66 @@
+[pass] LP26-O02 final stopped tail must be complete and fully drained
+[pass] LP26-O05 initial plus added channels exact disabled on restart
+[pass] LP26-O01 actual managed writer fixture
+[pass] LP26-O08 physical archive fixture and logical native rows
+[native-scale-diagnostic] {"inputBytes":20974722,"rowCount":20816,"elapsedMs":3015,"exitCode":null,"signal":"SIGTERM","errorCode":"ETIMEDOUT","outputBytes":7318430,"rawBodyPublished":false}
+[pass] LP26-O08 bounded normalization retains count and order under accumulated physical input
+[pass] LP26-O08 later invalid row rejects the whole batch result
+[pass] LP26-O01 native exact row count and two channel segments
+[pass] LP26-O01 compact excludes binding samples source URL and payload
+[pass] LP26-O02 actual store read preserves original bytes
+[pass] LP26-O05 actual deleted and survivor Catalog recovery twice
+[pass] LP26-O01 known envelope segment_finalized
+[pass] LP26-O01 known envelope event_link_created
+[pass] LP26-O01 known envelope observation_put
+[pass] LP26-O01 known envelope observation_v2_put
+[pass] LP26-O01 known envelope deletion_requested
+[pass] LP26-O01 known envelope deletion_completed
+[pass] LP26-O01 known envelope corruption_detected
+[pass] LP26-O01 known envelope consumer_reference_put
+[pass] LP26-O01 known envelope derived_reference_accepted
+[pass] LP26-O01 known envelope referenced_observation_put
+[pass] LP26-O01 known envelope derived_job_intent
+[pass] LP26-O01 known envelope derived_job_files
+[pass] LP26-O01 known envelope derived_job_ready
+[pass] LP26-O01 known envelope derived_job_committed
+[pass] LP26-O01 known envelope derived_job_complete
+[pass] LP26-O01 known envelope derived_job_failed
+[pass] LP26-O01 reject unknown
+[pass] LP26-O01 reject duplicate-key
+[pass] LP26-O01 reject invalid-json
+[pass] LP26-O01 reject unsafe-id
+[pass] LP26-O01 reject bad-segment
+[pass] LP26-O01 reject bad-state
+[pass] LP26-O01 reject bad-deleted
+[pass] LP26-O02 partial line not consumed
+[pass] LP26-O02 partial append consumed once
+[pass] LP26-O02 exact checkpoint receipt prefix and suffix
+[pass] LP26-O02 checkpoint changed refused
+[pass] LP26-O02 checkpoint missing refused
+[pass] LP26-O02 truncation latched
+[pass] LP26-O02 duplicate mutation rejected
+[pass] LP26-O02 symlink rejected
+[pass] LP26-O02 observer and progress share one total identity budget
+[pass] LP26-O02 total byte cap and invalid cap cannot be increased
+[pass] LP26-O03 actual native order advances independent of UTC
+[pass] LP26-O03 huge order unknown UTC new epoch PTS reset accepted
+[pass] LP26-O03 duplicate segment rejected
+[pass] LP26-O03 persistent order regression rejected
+[pass] LP26-O03 completion without pending rejected
+[pass] LP26-O03 pending completed physical target once
+[pass] LP26-O03 changed tombstone rejected
+[pass] LP26-O04 stall clock and shortened finish rejected
+[pass] LP26-O04 exactly120 argument only
+[pass] LP26-O04 monotonic sample independent wallclock
+[pass] LP26-O04 pause time cannot satisfy 120 minutes
+[pass] LP26-O04 current resources use monotonic not wallclock
+[pass] LP26-O04 literal delta gap and insufficient warmup statistics
+[pass] LP26-O04 invalid resource rss
+[pass] LP26-O04 invalid resource fd
+[pass] LP26-O04 invalid resource pid
+[pass] LP26-O04 invalid resource identity
+[pass] LP26-O04 invalid resource counter
+[pass] LP26-O04 invalid resource clock
+[pass] LP26-O05 current public dispatch avoids legacy longrun prelude
+{"scope":"current-observer-short-self-test","passed":63,"failed":0,"elapsedMs":28245,"longrunPass":false,"uiFulltestPass":false,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음"}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-yK3iRB","bytes":7740771,"absent":true}
