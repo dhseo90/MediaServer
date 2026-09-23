@@ -1,5 +1,57 @@
 # Release Test Records
 
+## v4.1.0 S11 LP26-R01 삭제 binding의 SQLite 중복 투영 회수 — 실행 전 정의
+
+SQLite는 JSONL 원장에서 재구축하는 투영이다. `SegmentV2Deleted`가 성공하면
+`recording_source_bindings`의 해당 상세 행만 같은 트랜잭션에서 회수한다.
+원장·내부 source binding·tombstone·중복 ID 판정은 유지한다. 새 저장 형식,
+삭제된 상세 증거의 영구 폐기, SQLite 기존 파일의 즉시 축소는 이번 단위의 완료 주장이 아니다.
+기존 LP18-O13 검사의 SQL 원문 사본 기대값은 이 변경 이후 `행 부재 + catalog 상세 동일`로 바뀐다.
+과거 LP18-O13 실행 결과는 당시 소스의 결과로 보존한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP26-R01-A | 삭제 직후 투영·원장 경계 | 정상 삭제 뒤 SQLite binding 행 부재, 내부 canonical 상세 유지, 공개 숨김·Deleted 확인 | v4.1.0 |
+| LP26-R01-B | 복구·checkpoint | SQLite/JSONL 재open과 checkpoint 후 상세 재획득, SQL 중복 재생성 없음 | v4.1.0 |
+| LP26-R01-C | 영향 회귀 | 기존 binding·복구·삭제·ID 충돌 집중 검사와 build; 실패 이력·정리 보존 | v4.1.0 |
+
+현재 실행 전 정의이며 PASS가 아니다. 기존 120분 `observation-root-cap`은 계속 FAIL이다.
+
+### LP26-R01 단기 실행 결과
+
+실행 소스는 `v4.1.0`의 미커밋 LP26-R01 변경이다. 집중 소유 검사는 최초
+격리 환경의 `ps` 관측 불가로 빌드 도중 중단됐다. 이는 제품 assertion 실패가 아니며
+[최초 실패 로그](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-r01.txt)를
+보존한다. 해당 PID가 없고 검증 소유 root임을 확인한 뒤 416KiB 임시 디렉터리를
+삭제해 부재를 확인했다. 같은 검사를 권한 있는 로컬 실행으로 재개해
+[79/79·exit 0 및 자체 정리](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-r01-2.txt)를
+확인했다. 신규 LP26-R01 두 assertion은 정상 행 존재→삭제 직후 행 부재를 검사한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP26-R01-A/B | 집중 소유·삭제·checkpoint·SQLite/JSONL 재open 79개, exit 0, 소유 root 6,526,838B 삭제 | pass |
+| LP26-R01-C/원본 | source binding 20개, exit 0, 임시 root 7,026,832B 삭제 | pass |
+| LP26-R01-C/복구 | journal·복구 40개, exit 0, 임시 root 23,207,191B 삭제 | pass |
+| LP26-R01-C/보존 | retention 56개, exit 0, 임시 root 5,244,092B 삭제 | pass |
+| LP26-R01-C/catalog | catalog 234개와 crypto-off 3개·정적 연결 9개, exit 0, 임시 root 27,525,470B 삭제 | pass |
+| LP26-R01-C/build | `./server.sh build`, exit 0, runtime와 media_server 100% | pass |
+| LP26-R01-C/docs | `./server.sh verify-docs-links` 실패 0, `verify-docs-ui-assets` 10/10, `git diff --check` exit 0 | pass |
+
+개별 실행 항목 441행은 [전수 결과표](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-r01-results.md)와
+[source 원출력](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-r01-source-binding.log),
+[복구 원출력](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-r01-recovery.log),
+[보존 원출력](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-r01-retention.log),
+[catalog 원출력](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-r01-catalog.log)에 보존한다.
+네 `.log`는 테스트가 출력한 각 행과 순서를 보존하되 Git 공백 검사를 위해 행 끝 공백만 정규화했다.
+동일 제품 소스·환경의 이전 통과를 새 결과로 소급하지 않고, 위 명령의 재실행을 별도로 기록했다.
+`token start/end/consumed`는 명령별 자동 집계가 없어 미집계, `source=미제공`이다.
+기존 SQLite 파일의 물리적 축소·JSONL 상세 증거 회수·실제 120분 완료는 이번 결과가 아니다.
+
+| 제목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| LP26-R01 실제 장시간 | 변경 후 녹화 120분 | 제품 원장 회수 계약과 영향 검증 미완료 | 단기 PASS로 기존 `observation-root-cap` FAIL 대체 불가 |
+| LP26-R01 실제 UI | 영향받는 재생·탐색 실제 브라우저 | 최종 제품 변경 전 | 이전 UI 증거의 유효 범위 별도 판정 필요 |
+
 ## v4.1.0 S11 LP26-O06 저장량 진단 — 실행 전 정의
 
 녹화 전용 120분 최초 `observation-root-cap` 실패의 원인을 분리하기 위해, 동일한

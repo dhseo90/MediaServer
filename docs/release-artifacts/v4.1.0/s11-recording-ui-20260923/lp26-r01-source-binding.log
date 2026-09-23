@@ -1,0 +1,26 @@
+명령: MEDIA_SERVER_SKIP_LOCAL_ENV=1 bash scripts/internal/verify_recording_source_binding.sh
+exit: 0
+
+[pass] S10-C301 결박 schema 왕복
+[pass] S10-C302 식별·ordinal 검증
+[pass] S10-C303 PTS 재정렬 보존
+[pass] S10-C304 미디어 범위·timebase
+[pass] S10-C305 색인 상한·미색인 꼬리
+[pass] S10-C306 단일 bound mutation
+[pass] S10-C307 source·저장 identity 결박
+[pass] S10-C308 불변·멱등
+[pass] S10-C309 소급·다운그레이드 금지
+[pass] S10-C310 정확한 원본 tuple 조회
+[pass] S10-C311 미색인·실제 부재 구분
+[pass] S10-C312 복수 segment 후보
+[pass] S10-C313 삭제·corrupt·pending 차단
+[pass] S10-C314 채널·조회 오류 경계
+[pass] S10-C315 SQL·JSONL 재시작 동등
+[pass] S10-C316 checkpoint 보존
+[pass] S10-C317 손상 원장 선차단
+[pass] S10-C318 예약·옵트인 경계
+[pass] S10-C319 기존 segment·조회 불변
+[pass] S10-C320 실제 finalize 수락 경계
+[summary] pass=20 fail=0
+[cleanup] path=/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-binding.22b4qp bytes=7026832 removed=true
+[elapsed] seconds=7 source=bash-SECONDS

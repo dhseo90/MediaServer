@@ -167,7 +167,7 @@ RecordingSegmentV2 PrepareBinding(Store& store){
  RecordingOrderReservationV1 order;std::string error;Need(store.journal.ReserveRecordingOrder(s.store_id,s.order_request_id,s.segment_id,s.channel_id,&order,&error));s.order_sequence=order.sequence;
  std::ofstream out(store.root/"typed.mp4",std::ios::binary);out.write("\0\0\0\x0c" "ftypisom",12);Need(static_cast<bool>(out));return s;
 }
-std::string SqlBinding(RecordingCatalog& catalog){sqlite3_stmt* stmt=nullptr;Need(sqlite3_prepare_v2(catalog.sqlite_db_,"SELECT payload_json FROM recording_source_bindings WHERE segment_id='typed-source'",-1,&stmt,nullptr)==SQLITE_OK);Need(sqlite3_step(stmt)==SQLITE_ROW);const auto* text=sqlite3_column_text(stmt,0);Need(text!=nullptr);std::string result(reinterpret_cast<const char*>(text));sqlite3_finalize(stmt);return result;}
+bool SqlBindingExists(RecordingCatalog& catalog){sqlite3_stmt* stmt=nullptr;Need(sqlite3_prepare_v2(catalog.sqlite_db_,"SELECT 1 FROM recording_source_bindings WHERE segment_id='typed-source'",-1,&stmt,nullptr)==SQLITE_OK);const bool found=sqlite3_step(stmt)==SQLITE_ROW;sqlite3_finalize(stmt);return found;}
 #if LP18_BINDING_SHARED
 void BindingPoolSafety(Store& store,const RecordingMutationV1& order,const RecordingMutationV1& mutation,const RecordingSegmentV2& segment,const RecordingSourceBindingV1& binding){
  using Pool=RecordingCatalog::SourceBindingPool;using Handle=RecordingCatalog::SourceBindingHandle;std::string error;const auto canonical=SerializeRecordingSourceBindingV1(binding);const auto input=std::make_shared<const RecordingMutationV1>(mutation);
@@ -214,14 +214,16 @@ void BindingSharing(const std::filesystem::path& root){
 #if LP18_BINDING_SHARED
   BindingPoolSafety(s,records.mutations.front(),records.mutations.back(),segment,binding);
 #endif
+  Check(SqlBindingExists(s.catalog),"LP26-R01 live SQLite binding retained before deletion");
   Need(s.catalog.RequestDeletion(segment.segment_id,"continuous-capacity",&error));Need(std::filesystem::remove(root/"typed.mp4"));RecordingTombstoneV2 tombstone;tombstone.tombstone_id="typed-deleted";tombstone.segment=segment;tombstone.deletion_reason="continuous-capacity";tombstone.deleted_at_ms=9;Need(s.catalog.CompleteDeletionV2(tombstone,&error));
+  Check(!SqlBindingExists(s.catalog),"LP26-R01 deleted SQLite duplicate removed atomically");
   Check(!s.catalog.FindSourceBinding(segment.segment_id)&&s.catalog.SegmentLifecycleV2(segment.segment_id)==RecordingLifecycle::Deleted&&BindingBytes(s.catalog,segment.segment_id)==canonical,"LP18-O12 deleted source hidden with internal binding preserved");
   const auto warm_reader_2=s.catalog.FindSourceBindingOwnedLocked(segment.segment_id);Need(bool(warm_reader_2));Need(s.catalog.Checkpoint(&error));Need(s.catalog.checkpoint_cache_&&s.catalog.checkpoint_cache_->shadow);
   const auto deleted_shadow=s.catalog.checkpoint_cache_->shadow->FindSourceBindingOwnedLocked(segment.segment_id);
   Check(deleted_shadow&&SerializeRecordingSourceBindingV1(*deleted_shadow)==canonical&&SerializeRecordingSourceBindingV1(*warm_reader_2)==canonical&&!s.catalog.FindSourceBinding(segment.segment_id),"LP18-O10 deleted checkpoint preserves independently owned canonical binding evidence");
  }
  for(bool sql:{true,false}){RecordingJournal journal(RecordingJournal::ManagedOptions{root,"probe-store"});Need(journal.Open(&error));auto options=Store::Options(root);options.prefer_sqlite=sql;RecordingCatalog catalog(journal,options);Need(catalog.Open(&error));const std::string mode=sql?"sqlite":"fallback";
-  Check(catalog.catalog_mode_==(sql?"sqlite-primary":"jsonl-fallback")&&!catalog.FindSourceBinding(segment.segment_id)&&catalog.SegmentLifecycleV2(segment.segment_id)==RecordingLifecycle::Deleted&&BindingBytes(catalog,segment.segment_id)==canonical&&(!sql||SqlBinding(catalog)==canonical),"LP18-O13 reopen deleted canonical binding preserved "+mode);
+  Check(catalog.catalog_mode_==(sql?"sqlite-primary":"jsonl-fallback")&&!catalog.FindSourceBinding(segment.segment_id)&&catalog.SegmentLifecycleV2(segment.segment_id)==RecordingLifecycle::Deleted&&BindingBytes(catalog,segment.segment_id)==canonical&&(!sql||!SqlBindingExists(catalog)),"LP18-O13 reopen deleted canonical binding preserved without SQLite duplicate "+mode);
   const auto warm_reader=catalog.FindSourceBindingOwnedLocked(segment.segment_id);Need(bool(warm_reader));Need(catalog.Checkpoint(&error));Need(catalog.checkpoint_cache_&&catalog.checkpoint_cache_->shadow);
   Check(catalog.source_bindings_.at(segment.segment_id).WarmOwned()==warm_reader&&catalog.checkpoint_cache_->shadow->source_bindings_.at(segment.segment_id).WarmOwned()==warm_reader,"LP18-O10 reopened checkpoint shares warm owned binding reader "+mode);
  }

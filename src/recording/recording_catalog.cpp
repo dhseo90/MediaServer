@@ -3257,6 +3257,11 @@ bool RecordingCatalog::ProjectMutationSqliteLocked(const RecordingMutationV1& mu
             if(sqlite3_prepare_v2(sqlite_db_,"DELETE FROM recording_segments_v2 WHERE segment_id=?",-1,&statement,nullptr)!=SQLITE_OK){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
             BindText(statement,1,mutation.entity_id);const bool ok=sqlite3_step(statement)==SQLITE_DONE;sqlite3_finalize(statement);
             if(!ok){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+            // SQLite는 JSONL의 재구축 가능한 투영이다. 삭제된 원본의 상세 결박은
+            // journal에서 검증·재획득하되, 투영에는 동일한 큰 payload를 중복 보관하지 않는다.
+            if(sqlite3_prepare_v2(sqlite_db_,"DELETE FROM recording_source_bindings WHERE segment_id=?",-1,&statement,nullptr)!=SQLITE_OK){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
+            BindText(statement,1,mutation.entity_id);const bool binding_ok=sqlite3_step(statement)==SQLITE_DONE;sqlite3_finalize(statement);
+            if(!binding_ok){Exec(sqlite_db_,"ROLLBACK",nullptr);return false;}
         }
     } else if (mutation.mutation_type == RecordingMutationType::EventLinkCreated) {
         const auto link_json=ObjectField(mutation.payload_json,"link"); EventRecordingLinkV1 link;
