@@ -33,7 +33,7 @@ read -r -a probe_flags <<< "$(pkg-config --cflags --libs gstreamer-1.0 gstreamer
   "$probe_repo/src/recording/recording_catalog.cpp" "$probe_repo/src/recording/recording_journal.cpp" \
   "$probe_repo/src/recording/recording_finalize_recovery.cpp" "$probe_repo/src/recording/recording_file_evidence.cpp" "$probe_repo/src/recording/recording_media_inspector.cpp" \
   "$probe_repo/src/recording/recording_derived_job.cpp" "$probe_repo/src/recording/recording_derived_job_ready.cpp" "$probe_repo/src/recording/recording_contracts.cpp" "$probe_repo/src/recording/retention_coordinator.cpp" \
-  "$probe_repo/src/domain/strict_json.cpp" "${probe_flags[@]}" -o "$probe_run/probe"
+  "$probe_repo/src/domain/strict_json.cpp" "${probe_flags[@]}" -lz -o "$probe_run/probe"
 set +e
 GST_DEBUG_NO_COLOR=1 GST_DEBUG=2 "$probe_run/probe" "$probe_run" 2>&1 | tee "$probe_run/capture.log"
 profile_capture_exit=${PIPESTATUS[0]}

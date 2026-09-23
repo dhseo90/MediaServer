@@ -19,7 +19,7 @@ if [[ ${1:-} == --limits ]]; then
  "${ROOT_DIR}/src/recording/recording_finalize_recovery.cpp" "${ROOT_DIR}/src/recording/recording_file_evidence.cpp" \
   "${ROOT_DIR}/src/recording/recording_derived_job.cpp" "${ROOT_DIR}/src/recording/recording_derived_job_ready.cpp" "${ROOT_DIR}/src/recording/recording_contracts.cpp" "${ROOT_DIR}/src/recording/retention_coordinator.cpp" \
   "${ROOT_DIR}/src/domain/strict_json.cpp" -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_SQLITE3=0 \
-  "${GST_FLAGS[@]}" -o "$RUN_DIR/limits-smoke"
+  "${GST_FLAGS[@]}" -lz -o "$RUN_DIR/limits-smoke"
  "$RUN_DIR/limits-smoke" "$RUN_DIR"
  exit 0
 fi
@@ -29,7 +29,7 @@ fi
  "${ROOT_DIR}/src/recording/recording_finalize_recovery.cpp" "${ROOT_DIR}/src/recording/recording_file_evidence.cpp" \
  "${ROOT_DIR}/src/recording/recording_derived_job.cpp" "${ROOT_DIR}/src/recording/recording_derived_job_ready.cpp" "${ROOT_DIR}/src/recording/recording_contracts.cpp" "${ROOT_DIR}/src/recording/retention_coordinator.cpp" \
  "${ROOT_DIR}/src/domain/strict_json.cpp" -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_SQLITE3=0 \
- "${GST_FLAGS[@]}" -o "$RUN_DIR/smoke"
+ "${GST_FLAGS[@]}" -lz -o "$RUN_DIR/smoke"
 "$RUN_DIR/smoke" "$RUN_DIR" "$@"
 if [[ $# -eq 0 ]]; then
  "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"${ROOT_DIR}/include" \

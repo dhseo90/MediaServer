@@ -60,7 +60,7 @@ read -r -a fc_flags <<< "$(pkg-config --cflags --libs gstreamer-1.0 gstreamer-ap
  "$fc_root/recording_catalog.cpp" "$fc_root/recording_journal.cpp" "$fc_root/recording_contracts.cpp" \
  "$fc_repo/src/recording/recording_finalize_recovery.cpp" "$fc_repo/src/recording/recording_file_evidence.cpp" "$fc_repo/src/recording/recording_media_inspector.cpp" \
  "$fc_repo/src/recording/recording_derived_job.cpp" "$fc_repo/src/recording/recording_derived_job_ready.cpp" \
- "$fc_repo/src/recording/retention_coordinator.cpp" "$fc_json" "${fc_flags[@]}" -o "$fc_root/check"
+ "$fc_repo/src/recording/retention_coordinator.cpp" "$fc_json" "${fc_flags[@]}" -lz -o "$fc_root/check"
 if [[ "$fc_label" == scale-32* ]]; then
  node "$fc_script/recording_catalog_cost_bounded.cjs" 180 node "$fc_script/recording_memory_phase.mjs" fixture "$fc_root/check" "$fc_root"
 else

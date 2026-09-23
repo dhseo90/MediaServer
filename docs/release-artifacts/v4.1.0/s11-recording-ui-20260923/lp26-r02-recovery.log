@@ -1,0 +1,43 @@
+[manifest] 17 registered recovery definitions validated
+[pass] truncated open
+[pass] truncated uncommitted before append
+[pass] truncated append:
+[pass] truncated valid2 and next ID preserved
+[pass] truncated quarantine byte exact
+[pass] truncated restart no mutation
+[pass] truncated second append retained
+[pass] truncated no redundant archive
+[pass] complete-no-lf open
+[pass] complete-no-lf uncommitted before append
+[pass] complete-no-lf append:
+[pass] complete-no-lf valid2 and next ID preserved
+[pass] complete-no-lf quarantine byte exact
+[pass] complete-no-lf restart no mutation
+[pass] complete-no-lf second append retained
+[pass] complete-no-lf no redundant archive
+[pass] empty journal is valid
+[pass] empty append retained
+[pass] large newline prefix byte preserved
+[pass] middle corrupt line preserved and valid entries read
+[pass] directory quarantine journal open
+[pass] directory quarantine failure original unchanged
+[pass] symlink quarantine journal open
+[pass] symlink quarantine failure original unchanged
+[pass] hardlink quarantine journal open
+[pass] hardlink quarantine failure original unchanged
+[pass] exact quarantine journal open
+[pass] existing exact quarantine restart reuse
+[pass] journal symlink refused
+[pass] journal hardlink refused
+[pass] inode pin open
+[pass] replacement inode append/reopen/replay refused
+[pass] catalog refuses failed journal Replay
+[pass] user parent symlink refused
+[pass] parent traversal refused
+[pass] deleted journal initial open
+[pass] deleted journal reopen does not recreate
+[pass] deleted parent reopen does not recreate
+[pass] macOS tmp system alias allowed
+[pass] oversized tail fails closed with original bytes
+[recording-recovery] pass=40 fail=0
+[cleanup] path=/private/tmp/media-server-s08-b1-3ELEQb bytes=23226055 removed=true

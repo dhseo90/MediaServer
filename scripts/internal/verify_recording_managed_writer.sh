@@ -45,5 +45,5 @@ read -r -a writer_flags <<< "$(pkg-config --cflags --libs gstreamer-1.0 gstreame
   "$writer_repo/src/recording/recording_catalog.cpp" "$writer_repo/src/recording/recording_journal.cpp" \
   "$writer_repo/src/recording/recording_finalize_recovery.cpp" "$writer_repo/src/recording/recording_file_evidence.cpp" "$writer_repo/src/recording/recording_media_inspector.cpp" \
   "$writer_repo/src/recording/recording_derived_job.cpp" "$writer_repo/src/recording/recording_derived_job_ready.cpp" "$writer_repo/src/recording/recording_contracts.cpp" "$writer_repo/src/recording/retention_coordinator.cpp" \
-  "$writer_repo/src/domain/strict_json.cpp" "${writer_flags[@]}" -o "$writer_run/probe"
+  "$writer_repo/src/domain/strict_json.cpp" "${writer_flags[@]}" -lz -o "$writer_run/probe"
 "$writer_run/probe" "$writer_run" "$@"

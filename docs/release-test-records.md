@@ -1,5 +1,57 @@
 # Release Test Records
 
+## v4.1.0 S11 LP26-R02 삭제 bound 원장 행 가역 압축 — 실행 전 정의
+
+LP26-R01은 SQLite 중복 행만 회수했으며, 원장 자체의 누적 증가는 남아 있다.
+이 단위는 삭제 완료된 `SegmentV2BoundFinalized`의 **물리 행**을 checkpoint에서만
+zlib-base64 형식으로 압축한다. 읽기는 길이·CRC·정규 포맷과 원래 논리 envelope를
+검사해 완전히 복원한다. 공개 `SerializeRecordingMutationV1`·Replay, mutation ID,
+순서, source binding, tombstone, 같은 ID 충돌 거부는 바꾸지 않는다.
+활성/미삭제 원본과 원본 증거가 없는 기존 행은 억지 압축하지 않는다.
+압축이 더 크거나 16MiB 논리 상한을 넘으면 기존 물리 행을 유지한다.
+원자 checkpoint·pending 복구·crypto-off 읽기 경계와 Linux 빌드 연결도 검사한다.
+압축 형식은 [zlib 라이선스](https://zlib.net/zlib_license.html)와
+[RFC 1951](https://www.rfc-editor.org/info/rfc1951/)를 검토한 가역 형식이다.
+이 참고는 개별 특허 부재에 관한 법적 보증이 아니다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP26-R02-A | 삭제 행 물리 축소 | 삭제 전 일반 원장, 삭제 뒤 checkpoint에서 정확히 한 bound 행의 물리 압축과 전체 행 수·논리 ID·순서·바이트 절약 확인 | v4.1.0 |
+| LP26-R02-B | 복원·손상 거부 | 압축 행 roundtrip에서 논리 원문 동일, 길이/CRC/본문 손상·중첩 스키마 거부 | v4.1.0 |
+| LP26-R02-C | 영향 회귀 | 재open/SQLite·JSONL, checkpoint/pending·cold reader·ID 충돌·crypto-off·기존 일반 journal 및 CMake/direct helper 연결 | v4.1.0 |
+| LP26-R02-D | 비용·실제 앱 | 저장량 상한·HTTP 4초를 유지한 실제 앱 단기 관측, 통과 뒤 녹화 120분 판정 | v4.1.0 |
+
+실행 전 정의이며 이 문구 자체는 PASS가 아니다. 앞선 120분 `observation-root-cap`
+FAIL과 LP26-R01의 별도 PASS 이력을 유지한다.
+
+### LP26-R02 단기 실행 결과
+
+삭제된 bound 행만 가역 압축하는 변경에 대해 [개별 결과 482행](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-r02-results.md)을
+원출력과 대조했다. 최초 [집중 검사](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-r02-2.txt)는
+검증기의 원장 행 수 고정 기대 때문에 84 pass·1 fail이었고, 실제 행 수와 삭제 후 순서로
+보완한 [재검사](release-artifacts/v4.1.0/s11-preparation-mapping/lp18-ownership-green-lp26-r02-3.txt)는
+85 pass·0 fail이다. 기존 실패는 삭제하지 않았다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP26-R02-A/B | 삭제 bound 물리 압축·논리 원문 복원·행 수/순서·손상 거부, 85/85 | pass |
+| LP26-R02-C/checkpoint | 자동 checkpoint 24/24, snapshot 28/28, crypto-off 3/3 | pass |
+| LP26-R02-C/영향 | catalog 234/234, 복구 40/40, 보존 56/56, 직결 shell 구문 검사, build | pass |
+| LP26-R02-D/단기 | [실제 앱 원출력](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-r02-short-app.log)의 71/71, 두 채널·삭제·재기동·포트/임시 root 정리 | pass |
+
+원출력은 [catalog](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-r02-catalog.log),
+[복구](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-r02-recovery.log),
+[보존](release-artifacts/v4.1.0/s11-recording-ui-20260923/lp26-r02-retention.log) 및
+위 개별 결과표에서 연결한다. `token start/end/consumed`는 명령별 집계가 없어 미집계,
+`source=미제공`이다. 원출력의 행 순서는 유지했고 Git 공백 검사를 위해 `.log`의 행 끝 공백만 정규화했다.
+이 단기 결과는 녹화 120분 및 UI 전체 PASS가 아니며 최초
+`observation-root-cap` FAIL은 그대로 유지한다.
+
+| 제목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| LP26-R02 녹화 장시간 | 변경 후 실제 120분 | 미실행 | 단기 저장량 표본으로 자원 추세·448MiB 상한 통과를 대체할 수 없음 |
+| LP26-R02 UI | 영향받는 재생·탐색 실제 브라우저 | 최종 제품 변경 전 | 이전 UI 증거의 영향 범위 재판정 필요 |
+
 ## v4.1.0 S11 LP26-R01 삭제 binding의 SQLite 중복 투영 회수 — 실행 전 정의
 
 SQLite는 JSONL 원장에서 재구축하는 투영이다. `SegmentV2Deleted`가 성공하면

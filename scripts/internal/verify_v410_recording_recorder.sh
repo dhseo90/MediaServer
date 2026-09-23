@@ -37,7 +37,7 @@ fi
   "${ROOT_DIR}/src/recording/recording_derived_job.cpp" "${ROOT_DIR}/src/recording/recording_derived_job_ready.cpp" "${ROOT_DIR}/src/recording/recording_contracts.cpp" \
   "${ROOT_DIR}/src/domain/strict_json.cpp" \
   -DMEDIA_SERVER_USE_GSTREAMER="${GST_DEFINE}" \
-  "${GST_LIBS[@]}" \
+  "${GST_LIBS[@]}" -lz \
   -o "${BUILD_DIR}/recording_segment_writer_smoke"
 
 MEDIA_SERVER_SOURCE_REGISTRY="${BUILD_DIR}/sources.json" \

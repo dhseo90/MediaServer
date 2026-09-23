@@ -21,5 +21,5 @@ echo '[build-profile] optimization=compiler-default NDEBUG=0 gstreamer=0 direct-
  "$ROOT_DIR/src/recording/recording_catalog.cpp" "$ROOT_DIR/src/recording/recording_journal.cpp" \
  "$ROOT_DIR/src/recording/recording_finalize_recovery.cpp" "$ROOT_DIR/src/recording/recording_file_evidence.cpp" "$ROOT_DIR/src/recording/recording_media_inspector.cpp" \
  "$ROOT_DIR/src/recording/recording_contracts.cpp" "$ROOT_DIR/src/recording/retention_coordinator.cpp" \
- "$ROOT_DIR/src/domain/strict_json.cpp" "${LIBS[@]}" -o "$RUN_DIR/check"
+ "$ROOT_DIR/src/domain/strict_json.cpp" "${LIBS[@]}" -lz -o "$RUN_DIR/check"
 "$RUN_DIR/check" "$@"

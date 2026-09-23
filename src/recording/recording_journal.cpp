@@ -14,6 +14,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <sys/stat.h>
+#include <zlib.h>
 
 #include "domain/strict_json.h"
 #include "recording/recording_contracts.h"
@@ -335,6 +336,93 @@ RecordingMutationType ParseRecordingMutationType(const std::string& value) {
     return RecordingMutationType::Unknown;
 }
 
+namespace {
+constexpr std::size_t kArchiveLogicalLimit=16U*1024*1024;
+constexpr char kArchiveSchema[]="media-server.recording-compressed-mutation.v1";
+constexpr char kBase64[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+std::string Base64Encode(std::string_view source) {
+    std::string result;result.reserve(((source.size()+2)/3)*4);
+    for(std::size_t i=0;i<source.size();i+=3){
+        const auto a=static_cast<unsigned char>(source[i]);
+        const auto b=i+1<source.size()?static_cast<unsigned char>(source[i+1]):0;
+        const auto c=i+2<source.size()?static_cast<unsigned char>(source[i+2]):0;
+        result.push_back(kBase64[a>>2]);result.push_back(kBase64[((a&3)<<4)|(b>>4)]);
+        result.push_back(i+1<source.size()?kBase64[((b&15)<<2)|(c>>6)]:'=');
+        result.push_back(i+2<source.size()?kBase64[c&63]:'=');
+    }
+    return result;
+}
+bool Base64Decode(std::string_view source,std::string* result) {
+    if(!result||source.empty()||source.size()%4)return false;
+    std::string decoded;decoded.reserve(source.size()/4*3);
+    const auto value=[](char c)->int {
+        if(c>='A'&&c<='Z')return c-'A';if(c>='a'&&c<='z')return c-'a'+26;
+        if(c>='0'&&c<='9')return c-'0'+52;if(c=='+')return 62;if(c=='/')return 63;return -1;
+    };
+    for(std::size_t i=0;i<source.size();i+=4){
+        const int a=value(source[i]),b=value(source[i+1]);
+        const bool last=i+4==source.size(),pad2=source[i+2]=='=',pad3=source[i+3]=='=';
+        if(a<0||b<0||(!last&&(pad2||pad3))||(pad2&&!pad3))return false;
+        const int c=pad2?0:value(source[i+2]),d=pad3?0:value(source[i+3]);
+        if(c<0||d<0)return false;
+        decoded.push_back(static_cast<char>((a<<2)|(b>>4)));
+        if(!pad2)decoded.push_back(static_cast<char>(((b&15)<<4)|(c>>2)));
+        if(!pad3)decoded.push_back(static_cast<char>(((c&3)<<6)|d));
+    }
+    if(Base64Encode(decoded)!=source)return false;
+    *result=std::move(decoded);return true;
+}
+std::string ArchiveWrapper(std::size_t size,uLong checksum,std::string_view base64) {
+    return std::string("{\"schema\":\"")+kArchiveSchema+"\",\"codec\":\"zlib-base64\",\"length\":"+
+        std::to_string(size)+",\"crc32\":"+std::to_string(checksum)+",\"data\":\""+std::string(base64)+"\"}";
+}
+[[maybe_unused]] std::string CompressArchive(std::string_view logical) {
+    if(logical.size()<512||logical.size()>kArchiveLogicalLimit)return {};
+    std::string compressed(compressBound(static_cast<uLong>(logical.size())),'\0');
+    uLongf size=compressed.size();
+    if(compress2(reinterpret_cast<Bytef*>(compressed.data()),&size,
+        reinterpret_cast<const Bytef*>(logical.data()),static_cast<uLong>(logical.size()),Z_DEFAULT_COMPRESSION)!=Z_OK)return {};
+    compressed.resize(size);
+    const auto checksum=crc32(crc32(0,Z_NULL,0),reinterpret_cast<const Bytef*>(logical.data()),static_cast<uInt>(logical.size()));
+    auto wrapper=ArchiveWrapper(logical.size(),checksum,Base64Encode(compressed));
+    return wrapper.size()<logical.size()?wrapper:std::string{};
+}
+bool ExpandArchive(const std::string& json,const ingress::StrictJsonObjectDocument& document,
+                   RecordingMutationV1* value,std::string* error) {
+    const auto codec=ingress::StrictJsonStringField(document,"codec");
+    const auto length=Int64Field(document,"length"),checksum=Int64Field(document,"crc32");
+    const auto data=ingress::StrictJsonStringField(document,"data");
+    if(document.members.size()!=5||codec!="zlib-base64"||!length||*length<=0||
+       *length>static_cast<std::int64_t>(kArchiveLogicalLimit)||!checksum||*checksum<0||
+       *checksum>std::numeric_limits<std::uint32_t>::max()||!data||data->size()>kArchiveLogicalLimit)
+        return Fail(error,"압축 원장 형식/상한 오류");
+    auto physical=json;if(!physical.empty()&&physical.back()=='\n')physical.pop_back();
+    if(physical!=ArchiveWrapper(static_cast<std::size_t>(*length),static_cast<uLong>(*checksum),*data))
+        return Fail(error,"압축 원장 비정규 형식");
+    std::string bytes;if(!Base64Decode(*data,&bytes))return Fail(error,"압축 원장 base64 오류");
+    std::string logical(static_cast<std::size_t>(*length),'\0');uLongf output=logical.size();
+    if(uncompress(reinterpret_cast<Bytef*>(logical.data()),&output,
+        reinterpret_cast<const Bytef*>(bytes.data()),bytes.size())!=Z_OK||output!=logical.size())
+        return Fail(error,"압축 원장 복원 오류");
+    const auto actual=crc32(crc32(0,Z_NULL,0),reinterpret_cast<const Bytef*>(logical.data()),static_cast<uInt>(logical.size()));
+    if(actual!=static_cast<uLong>(*checksum))return Fail(error,"압축 원장 무결성 오류");
+    ingress::StrictJsonObjectDocument inner;
+    if(!ingress::ParseStrictJsonObjectDocument(logical,&inner,error)||
+       ingress::StrictJsonStringField(inner,"schema")!="media-server.recording-mutation.v1")
+        return Fail(error,"압축 원장 중첩/스키마 오류");
+    RecordingMutationV1 expanded;
+    if(!ParseRecordingMutationV1(logical,&expanded,error)||!expanded.physical_json.empty()||
+       expanded.mutation_type!=RecordingMutationType::SegmentV2BoundFinalized||
+       SerializeRecordingMutationV1(expanded)!=logical)return Fail(error,"압축 원장 논리 행 오류");
+    expanded.physical_json=std::move(physical);*value=std::move(expanded);
+    if(error)error->clear();return true;
+}
+std::string PhysicalRecordingMutation(const RecordingMutationV1& value) {
+    return value.physical_json.empty()?SerializeRecordingMutationV1(value):value.physical_json;
+}
+}
+
 std::string SerializeRecordingMutationV1(const RecordingMutationV1& value) {
     std::ostringstream out;
     out << "{\"schema\":\"media-server.recording-mutation.v1\","
@@ -353,6 +441,7 @@ bool ParseRecordingMutationV1(const std::string& json,
     ingress::StrictJsonObjectDocument document;
     if (!ingress::ParseStrictJsonObjectDocument(json, &document, error)) return false;
     const auto schema = ingress::StrictJsonStringField(document, "schema");
+    if(schema==kArchiveSchema)return ExpandArchive(json,document,value,error);
     const auto mutation_id = ingress::StrictJsonStringField(document, "mutationId");
     const auto mutation_type = ingress::StrictJsonStringField(document, "mutationType");
     const auto occurred_at_ms = Int64Field(document, "occurredAtMs");
@@ -391,7 +480,7 @@ bool ParseRecordingMutationV1(const std::string& json,
         if(!digest||digest->size()!=64||!std::all_of(digest->begin(),digest->end(),[](char c){return (c>='0'&&c<='9')||(c>='a'&&c<='f');}))
             return Fail(error,"receipt digest 오류");
     }
-    *value = RecordingMutationV1{*schema, *mutation_id, parsed_type, *occurred_at_ms, *entity_id, *payload};
+    *value = RecordingMutationV1{*schema, *mutation_id, parsed_type, *occurred_at_ms, *entity_id, *payload, {}};
     if (error != nullptr) error->clear();
     return true;
 }
@@ -492,6 +581,7 @@ struct RecordingJournalRecordLocation {
     std::int64_t occurred_at_ms{0};
     RecordingMutationHandle resident_fallback;
     bool canonical_raw{false};
+    bool compressed_storage{false};
 };
 // 논리 참조는 원장 수명과 물리 순서만 식별한다. 내용/물리 위치/소유자 포인터를 보관하지 않는다.
 class RecordingJournalRecordRef {
@@ -581,6 +671,7 @@ RecordingJournalRecordLocationHandle MakeLocation(const std::shared_ptr<const ch
     location->schema=record->schema;location->mutation_id=record->mutation_id;location->entity_id=record->entity_id;
     location->type=record->mutation_type;location->occurred_at_ms=record->occurred_at_ms;
     location->canonical_raw=canonical_raw;
+    location->compressed_storage=!record->physical_json.empty();
     location->logical_charge=sizeof(RecordingMutationV1)+record->schema.size()+record->mutation_id.size()+record->entity_id.size()+record->payload_json.size();
     // 기존 Append에는 16MiB 제한이 없다. 기존 수용 입력/crypto-off를 새로 거부하지 않는다.
     if(!MEDIA_SERVER_USE_OPENSSL||raw.size()>16*1024*1024+1)location->resident_fallback=record;
@@ -610,7 +701,8 @@ bool IndexRecord(ManagedJournalState* state,const RecordingMutationV1& mutation,
     const auto old=state->identities.find(mutation.mutation_id);
     if(old!=state->identities.end()&&old->second!=identity)return Fail(error,"managed mutation ID 충돌");
     if(!owned)owned=std::make_shared<const RecordingMutationV1>(mutation);
-    const bool canonical_raw=raw.size()==canonical.size()+1&&raw.back()=='\n'&&raw.substr(0,canonical.size())==canonical;
+    const auto physical=PhysicalRecordingMutation(mutation);
+    const bool canonical_raw=raw.size()==physical.size()+1&&raw.back()=='\n'&&raw.substr(0,physical.size())==physical;
     const auto location=MakeLocation(state->generation,state->records.size(),offset,raw,owned,digest,canonical_raw);
     if(!location)return Fail(error,"managed 위치 생성 실패");
     const auto ref=ManagedJournalState::MakeRef(state->lineage,state->records.size());
@@ -624,13 +716,14 @@ bool CompactRecords(const RecordingMutationHandles& original,RecordingMutationHa
 #if !MEDIA_SERVER_USE_OPENSSL
     (void)original;(void)result;return Fail(error,"managed checkpoint crypto 미지원");
 #else
-    std::unordered_set<std::string> seen,receipts;std::unordered_map<std::string,std::string> latest;
+    std::unordered_set<std::string> seen,receipts,deleted;std::unordered_map<std::string,std::string> latest;
     if(!result)return Fail(error,"checkpoint 후보 output 없음");
     for(const auto& handle:original) {
         if(!handle)return Fail(error,"checkpoint null 기록 거부");
         const auto& m=*handle;if(seen.insert(m.mutation_id).second) {
         if(m.mutation_type==RecordingMutationType::EventLinkCreated)latest[m.entity_id]=m.mutation_id;
         if(m.mutation_type==RecordingMutationType::EventLinkReceipt)receipts.insert(m.mutation_id);
+        if(m.mutation_type==RecordingMutationType::SegmentV2Deleted)deleted.insert(m.entity_id);
         }
     }
     *result=original;
@@ -641,13 +734,18 @@ bool CompactRecords(const RecordingMutationHandles& original,RecordingMutationHa
         receipt.payload_json="{\"schema\":\"media-server.recording-receipt.v1\",\"originalType\":\"event_link_created\",\"originalSha256\":\""+digest+"\"}";
         handle=std::make_shared<const RecordingMutationV1>(std::move(receipt));
     }
+    for(auto& handle:*result)if(handle->mutation_type==RecordingMutationType::SegmentV2BoundFinalized&&
+        deleted.count(handle->entity_id)&&handle->physical_json.empty()){
+        auto copy=*handle;copy.physical_json=CompressArchive(SerializeRecordingMutationV1(copy));
+        if(!copy.physical_json.empty())handle=std::make_shared<const RecordingMutationV1>(std::move(copy));
+    }
     return true;
 #endif
 }
 std::string JournalBytes(const RecordingMutationHandles& records,std::vector<std::pair<std::size_t,std::size_t>>* spans=nullptr) {
     if(spans){spans->clear();spans->reserve(records.size());}
     std::string bytes;for(const auto& m:records){if(!m)return {};const auto offset=bytes.size();
-        bytes+=SerializeRecordingMutationV1(*m)+"\n";if(spans)spans->emplace_back(offset,bytes.size()-offset);}
+        bytes+=PhysicalRecordingMutation(*m)+"\n";if(spans)spans->emplace_back(offset,bytes.size()-offset);}
     return bytes;
 }
 }
@@ -1272,7 +1370,7 @@ bool RecordingJournal::TryAutomaticCheckpointNoop(const void* owner,
         if(state.locations.size()!=state.records.size()||state.refs.size()!=state.records.size()){
             poisoned_=true;return Fail(error,"automatic checkpoint index 불일치");
         }
-        std::unordered_set<std::string> seen,receipts;
+        std::unordered_set<std::string> seen,receipts,deleted;
         std::unordered_map<std::string,std::string> latest;
         std::uint64_t offset=0;
         for(std::size_t i=0;i<state.locations.size();++i){
@@ -1289,12 +1387,16 @@ bool RecordingJournal::TryAutomaticCheckpointNoop(const void* owner,
             if(seen.insert(row->mutation_id).second){
                 if(row->type==RecordingMutationType::EventLinkCreated)latest[row->entity_id]=row->mutation_id;
                 if(row->type==RecordingMutationType::EventLinkReceipt)receipts.insert(row->mutation_id);
+                if(row->type==RecordingMutationType::SegmentV2Deleted)deleted.insert(row->entity_id);
             }
         }
         if(offset!=state.bytes)return true;
         for(const auto& row:state.locations)
             if(row->type==RecordingMutationType::EventLinkCreated&&
                (receipts.count(row->mutation_id)||latest.at(row->entity_id)!=row->mutation_id))return true;
+        for(const auto& row:state.locations)
+            if(row->type==RecordingMutationType::SegmentV2BoundFinalized&&deleted.count(row->entity_id)&&
+               !row->compressed_storage)return true;
         // 같은 잠금/attachment/세대 안에서 원문 전체를 다시 읽는다. hash만 받은 외부
         // 입력을 신뢰하는 API가 아니며, 새 입력·복구의 strict Parse는 생략하지 않는다.
         for(const auto& row:state.locations){
@@ -1348,6 +1450,8 @@ bool RecordingJournal::CommitCheckpoint(const void* owner,const RecordingMutatio
         if(!AcquireCheckpointRecordsLocked(&original,error)||!CompactRecords(original,&expected,error))return false;
     }
     if(expected.size()!=candidate.size()||!detail::SameCheckpointPrefix(expected,candidate))return Fail(error,"checkpoint 후보 필드 불일치");
+    for(std::size_t i=0;i<expected.size();++i)
+        if(expected[i]->physical_json!=candidate[i]->physical_json)return Fail(error,"checkpoint 물리 행 후보 불일치");
     // 현재 원장으로 재구성한 expected와 후보의 모든 필드가 같다. 같은 serializer의
     // 결과를 다시 만들지 않고 이 bytes를 pending 검증·축소 판단·원자 쓰기에 함께 쓴다.
     std::vector<std::pair<std::size_t,std::size_t>> spans;
@@ -1374,8 +1478,7 @@ bool RecordingJournal::CommitCheckpoint(const void* owner,const RecordingMutatio
     locations.reserve(published.size());refs.reserve(published.size());
     for(std::size_t i=0;i<published.size();++i){
         const auto raw=std::string_view(bytes).substr(spans[i].first,spans[i].second);
-        const auto identity=published[i]->mutation_type==RecordingMutationType::EventLinkReceipt?
-            EnvelopeIdentity(*published[i]):RawHash(raw.substr(0,raw.size()-1));
+        const auto identity=EnvelopeIdentity(*published[i]);
         const auto location=MakeLocation(generation,i,spans[i].first,raw,published[i],identity,true);
         if(!location)return Fail(error,"checkpoint 위치 준비 실패");
         locations.push_back(location);

@@ -36,5 +36,5 @@ read -r -a PKG_LIBS <<<"$(pkg-config --libs sqlite3 openssl)"
   "${ROOT_DIR}/src/core/source_request_parser.cpp" \
   "${ROOT_DIR}/src/core/stream_key.cpp" \
   "${ROOT_DIR}/src/app_config.cpp" \
-  "${PKG_LIBS[@]}" -o "${BUILD_DIR}/identity-smoke"
+  "${PKG_LIBS[@]}" -lz -o "${BUILD_DIR}/identity-smoke"
 "${BUILD_DIR}/identity-smoke" "${BUILD_DIR}"

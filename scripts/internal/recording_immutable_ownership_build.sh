@@ -194,4 +194,4 @@ if [[ "$lp_mode" == automatic-noop || "$lp_mode" == automatic-noop-crypto-off ]]
 if [[ "$lp_mode" == snapshot-offload ]];then read -r lp_snapshot_flag < "$lp_root/snapshot_flags" || [[ -n "$lp_snapshot_flag" ]];lp_flags+=("$lp_snapshot_flag" -DLP18_TYPED_LIFETIME=1);lp_sources=("$lp_script/recording_snapshot_offload_smoke.cpp" "$lp_repo/src/recording/recording_timeline_projection.cpp");fi
 "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$lp_root/include" -I"$lp_repo/include" -I"$lp_script" -I"$lp_repo/src/recording" "${lp_flags[@]}" "${lp_shared[@]}" \
  "${lp_accepted[@]}" "${lp_binding[@]}" "${lp_job[@]}" -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_SQLITE3=1 \
- "${lp_location_crypto[@]}" "${lp_sources[@]}" "$lp_root/recording_journal.cpp" "$lp_root/recording_catalog.cpp" "${lp_libs[@]}" -o "$lp_root/check"
+ "${lp_location_crypto[@]}" "${lp_sources[@]}" "$lp_root/recording_journal.cpp" "$lp_root/recording_catalog.cpp" "${lp_libs[@]}" -lz -o "$lp_root/check"

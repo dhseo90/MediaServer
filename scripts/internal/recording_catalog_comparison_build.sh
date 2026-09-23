@@ -25,7 +25,7 @@ const objects=[];
 for(const file of ['recording_catalog.cpp','recording_journal.cpp','recording_contracts.cpp']){const obj=path.join(out,file+'.o');run([...args,'-c',path.join(out,file),'-o',obj]);objects.push(obj);}
 const targets=mode==='query'?[['recording_catalog_comparison_probe.cpp','comparison'],['recording_catalog_query_probe.cpp','comparison-query']]:[['recording_catalog_comparison_probe.cpp','comparison'],['recording_catalog_comparison_job_probe.cpp','comparison-job']];
 for(const [file,target] of targets){
- const main=path.join(repo,'scripts/internal',file);run([...args,main,...objects,archive,...tokens.slice(at+1),'-o',path.join(out,target)]);
+ const main=path.join(repo,'scripts/internal',file);run([...args,main,...objects,archive,...tokens.slice(at+1),'-lz','-o',path.join(out,target)]);
  console.log('[lp17] '+JSON.stringify({kind:'binary',name:target,sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(out,target))).digest('hex')}));
 }
 NODE

@@ -1,0 +1,63 @@
+{"kind":"start","utc":"2026-09-23T07:02:29.047Z","mode":"green","id":"lp26-r02-5","suite":"journal-location-crypto-off","source":[{"name":"include/recording/recording_catalog.h","sha256":"e077d5c98ae5cad3197e94c91d28129cf876076c781d8f9a37bf5bf80b0269d7"},{"name":"include/recording/recording_journal.h","sha256":"a3dfde8cb4c0e8ab09fd89255836935ff8cabcd92a2cea02764221ff3783ec7f"},{"name":"src/recording/recording_catalog.cpp","sha256":"cc98c986458bc747402ec9b1c9059c7079250c328ad4610eb9be7858265cf679"},{"name":"src/recording/recording_journal.cpp","sha256":"c7804a2fd46b88799d7693431771a93a7596e8020e585a5c9617ed6e3a9b859e"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"0162fc707fb89f23e7fa251c960b4f1d87a736524cfc89c2f49163c177e9487a"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"38fe695a2cbcbaaf01b0539f13da7de1bbe95d1f3ea7a10c804fb05d2175ed87"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"acd5f2bfdaec236c768b9776fd63a1871f18612fc6672ef06103dff57ea7bfec"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"8d47fd89099f19c99f41b44773c3b4179d570e0fea03a13538083f3bdcfc008a"},{"name":"scripts/internal/recording_journal_location_smoke.cpp","sha256":"047921299150eb41435bd9a85b42b05e844d4cb8319a665c702d5bf747a83e00"},{"name":"scripts/internal/recording_journal_location_counter.h","sha256":"9b4457a869a1097d1130256ed176415026f3c082b3c76394382959e07a8c1d63"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>","journal-location-crypto-off"],"seconds":60}
+[instrument] location_exception_exact_insertions=2
+[instrument] logical_ref_exception_exact_insertions=1
+[instrument] location_journal_original_sha256=c7804a2fd46b88799d7693431771a93a7596e8020e585a5c9617ed6e3a9b859e location_journal_instrumented_sha256=7f24cbd395a946a85b74ca0652b06f37fbf90beba719420e1c61ade5dfdf3cbd
+[instrument] location_declarations=1,1 location_header_sha256=a3dfde8cb4c0e8ab09fd89255836935ff8cabcd92a2cea02764221ff3783ec7f
+[instrument] catalog_sha256=94837cd442c96b8733e8eab5eba5e01aac998c877b58a1946be404df77e3070b binding_exact_insertions=1 job_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"a3dfde8cb4c0e8ab09fd89255836935ff8cabcd92a2cea02764221ff3783ec7f"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"e077d5c98ae5cad3197e94c91d28129cf876076c781d8f9a37bf5bf80b0269d7"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"c7804a2fd46b88799d7693431771a93a7596e8020e585a5c9617ed6e3a9b859e"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"cc98c986458bc747402ec9b1c9059c7079250c328ad4610eb9be7858265cf679"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"0162fc707fb89f23e7fa251c960b4f1d87a736524cfc89c2f49163c177e9487a"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"38fe695a2cbcbaaf01b0539f13da7de1bbe95d1f3ea7a10c804fb05d2175ed87"}
+[source] {"name":"scripts/internal/recording_journal_location_smoke.cpp","sha256":"047921299150eb41435bd9a85b42b05e844d4cb8319a665c702d5bf747a83e00"}
+[source] {"name":"scripts/internal/recording_journal_location_counter.h","sha256":"9b4457a869a1097d1130256ed176415026f3c082b3c76394382959e07a8c1d63"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"acd5f2bfdaec236c768b9776fd63a1871f18612fc6672ef06103dff57ea7bfec"}
+        2.41 real         2.22 user         0.14 sys
+           318406656  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               57569  page reclaims
+                 515  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                  14  messages sent
+                   0  messages received
+                   2  signals received
+                  15  voluntary context switches
+                3073  involuntary context switches
+            81408347  instructions retired
+            39075587  cycles elapsed
+             2146712  peak memory footprint
+{"kind":"phase","label":"build","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":2425,"groupPeakRssBytes":331137024}
+{"kind":"command","label":"focused","command":"<owned-root>/check","args":["<owned-root>"],"seconds":60}
+[pass] LP18-L10 crypto-off managed append acquires exact resident value only
+[pass] LP18-L10 crypto-off retry preserves resident value and physical row count
+[pass] LP18-L10 crypto-off checkpoint remains rejected with owner and resident value intact
+[summary] LP18 pass=3 fail=0
+        0.61 real         0.14 user         0.02 sys
+            32702464  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                4078  page reclaims
+                  22  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                   2  voluntary context switches
+                 241  involuntary context switches
+          2958060280  instructions retired
+           661065950  cycles elapsed
+             5259936  peak memory footprint
+{"kind":"phase","label":"focused","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":627,"groupPeakRssBytes":2490368}
+{"kind":"oracle","mode":"green","expectedRed":false,"productPass":true,"matched":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":5429340,"removed":true}
+{"kind":"result","utc":"2026-09-23T07:02:32.113Z","mode":"green","matched":true,"productPass":true,"elapsedMs":3067}

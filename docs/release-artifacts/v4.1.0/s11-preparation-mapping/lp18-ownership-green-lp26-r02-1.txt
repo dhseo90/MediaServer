@@ -1,0 +1,135 @@
+{"kind":"start","utc":"2026-09-23T06:53:51.058Z","mode":"green","id":"lp26-r02-1","suite":"binding","source":[{"name":"include/recording/recording_catalog.h","sha256":"e077d5c98ae5cad3197e94c91d28129cf876076c781d8f9a37bf5bf80b0269d7"},{"name":"include/recording/recording_journal.h","sha256":"a3dfde8cb4c0e8ab09fd89255836935ff8cabcd92a2cea02764221ff3783ec7f"},{"name":"src/recording/recording_catalog.cpp","sha256":"cc98c986458bc747402ec9b1c9059c7079250c328ad4610eb9be7858265cf679"},{"name":"src/recording/recording_journal.cpp","sha256":"c7804a2fd46b88799d7693431771a93a7596e8020e585a5c9617ed6e3a9b859e"},{"name":"src/recording/recording_checkpoint_validation.h","sha256":"0162fc707fb89f23e7fa251c960b4f1d87a736524cfc89c2f49163c177e9487a"},{"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"30189ab6440c29b53649c5f62d4358d03dc59c9e67a7d9ca270896bb7a5154aa"},{"name":"scripts/internal/recording_immutable_ownership_build.sh","sha256":"acd5f2bfdaec236c768b9776fd63a1871f18612fc6672ef06103dff57ea7bfec"},{"name":"scripts/internal/verify_recording_immutable_ownership.mjs","sha256":"c55dd566a9cea1d25bbf320dd9c7560c62d1485852c20d74bfec9b7e1239b736"}],"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"unavailable"}
+{"kind":"command","label":"build","command":"bash","args":["<repo>/scripts/internal/recording_immutable_ownership_build.sh","<owned-root>"],"seconds":60}
+[instrument] catalog_sha256=94837cd442c96b8733e8eab5eba5e01aac998c877b58a1946be404df77e3070b binding_exact_insertions=1 job_exact_insertions=1
+[source] {"name":"include/recording/recording_journal.h","sha256":"a3dfde8cb4c0e8ab09fd89255836935ff8cabcd92a2cea02764221ff3783ec7f"}
+[source] {"name":"include/recording/recording_catalog.h","sha256":"e077d5c98ae5cad3197e94c91d28129cf876076c781d8f9a37bf5bf80b0269d7"}
+[source] {"name":"src/recording/recording_journal.cpp","sha256":"c7804a2fd46b88799d7693431771a93a7596e8020e585a5c9617ed6e3a9b859e"}
+[source] {"name":"src/recording/recording_catalog.cpp","sha256":"cc98c986458bc747402ec9b1c9059c7079250c328ad4610eb9be7858265cf679"}
+[source] {"name":"src/recording/recording_checkpoint_validation.h","sha256":"0162fc707fb89f23e7fa251c960b4f1d87a736524cfc89c2f49163c177e9487a"}
+[source] {"name":"scripts/internal/recording_immutable_ownership_smoke.cpp","sha256":"30189ab6440c29b53649c5f62d4358d03dc59c9e67a7d9ca270896bb7a5154aa"}
+        2.54 real         2.34 user         0.15 sys
+           323895296  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               59788  page reclaims
+                 516  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   7  messages sent
+                   0  messages received
+                   3  signals received
+                  15  voluntary context switches
+                2306  involuntary context switches
+            79315788  instructions retired
+            36245652  cycles elapsed
+             2113944  peak memory footprint
+{"kind":"phase","label":"build","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":2554,"groupPeakRssBytes":334823424}
+{"kind":"command","label":"focused","command":"<owned-root>/check","args":["<owned-root>","binding"],"seconds":60}
+[pass] LP18-O01 owner checked read view shares journal envelope
+[pass] LP18-O01 shared journal original candidate envelopes
+[pass] LP18-O01 public Replay value mutation remains isolated
+[pass] LP18-O01 retained prefix preserves sealed journal lineage and canonical value
+[pass] LP18-O01 full canonical and projection oracle
+[pass] LP18-O03 stale candidate after reservation rejected
+[pass] LP18-O03 foreign owner candidate rejected
+[pass] LP18-O04 exact field order or prefix mutation rejected schema
+[pass] LP18-O04 standalone candidate fields rejected without disk change schema
+[pass] LP18-O04 exact field order or prefix mutation rejected type
+[pass] LP18-O04 standalone candidate fields rejected without disk change type
+[pass] LP18-O04 exact field order or prefix mutation rejected id
+[pass] LP18-O04 standalone candidate fields rejected without disk change id
+[pass] LP18-O04 exact field order or prefix mutation rejected entity
+[pass] LP18-O04 standalone candidate fields rejected without disk change entity
+[pass] LP18-O04 exact field order or prefix mutation rejected time
+[pass] LP18-O04 standalone candidate fields rejected without disk change time
+[pass] LP18-O04 exact field order or prefix mutation rejected payload
+[pass] LP18-O04 standalone candidate fields rejected without disk change payload
+[pass] LP18-O04 exact field order or prefix mutation rejected reorder
+[pass] LP18-O04 standalone candidate fields rejected without disk change reorder
+[pass] LP18-O04 exact field order or prefix mutation rejected shrink
+[pass] LP18-O04 standalone candidate fields rejected without disk change shrink
+[pass] LP18-O04 null envelope safely rejected
+[pass] LP18-O02 only transformed receipts own new envelopes
+[pass] LP18-O02 prepared receipts preserve original canonical bytes
+[pass] LP18-O02 publication bytes and prior owned snapshot remain exact
+[pass] LP18-O02 published prefix preserves receipt evidence and unchanged row lineage
+[pass] LP18-O02 receipt independent full projection equality
+[pass] LP18-O03 stale candidate after ordinary append rejected
+[pass] LP18-O05 8192 logical records admitted
+[pass] LP18-O05 8193 aliases still rejected
+[pass] LP18-O05 64MiB logical bytes admitted
+[pass] LP18-O05 64MiB plus one rejected
+[pass] LP18-O07 append accepted preserves sealed journal lineage
+[pass] LP18-O09 successful append retry returns exact input envelope
+[pass] LP18-O09 failed append clears prior output handle
+[pass] LP18-O09 borrowed input survives aliased output reset
+[pass] LP18-O07 checkpoint accepted preserves sealed journal lineage
+[pass] LP18-O07 accepted full canonical and durable bytes unchanged
+[pass] LP18-O08 reopen accepted preserves sealed journal lineage sqlite
+[pass] LP18-O08 reopen canonical ordinal and projection preserved sqlite
+[pass] LP18-O08 SQLite rebuild requires canonical and ordinal gates
+[pass] LP18-O08 reopen accepted preserves sealed journal lineage fallback
+[pass] LP18-O08 reopen canonical ordinal and projection preserved fallback
+[pass] LP18-O09 supplied envelope mismatch rejected schema
+[pass] LP18-O09 supplied envelope mismatch rejected type
+[pass] LP18-O09 supplied envelope mismatch rejected id
+[pass] LP18-O09 supplied envelope mismatch rejected entity
+[pass] LP18-O09 supplied envelope mismatch rejected time
+[pass] LP18-O09 supplied envelope mismatch rejected payload
+[pass] LP18-O09 failed apply registers no accepted envelope
+[pass] LP18-O09 supplied exact envelope is retained
+[pass] LP18-O09 duplicate full canonical acceptance and collision rejection preserved
+[pass] LP18-O09 compacted receipt retry returns original input envelope
+[pass] LP18-O11 bound journal identity and canonical bytes preserved
+[pass] LP18-O11 public binding value mutation remains isolated
+[pass] LP18-O11 source snapshot binding mutation remains isolated
+[pass] LP18-O12 same ID changed binding rejected without mutation
+[pass] LP18-O12 strict bound identity rejection preserved
+[pass] LP18-O10 checkpoint shadow shares warm owned binding reader
+[pass] LP18-O13 independent full replay binding projection preserved
+[pass] LP18-O12 unusable binding pool falls back to independent strict value null
+[pass] LP18-O12 unusable binding pool falls back to independent strict value different-content
+[pass] LP18-O12 unusable binding pool falls back to independent strict value different-id
+[pass] LP18-O12 matching pool cannot bypass invalid binding input
+[pass] LP18-O12 matching pool cannot bypass missing order
+[pass] LP18-O10 binding survives source pool owner destruction
+[pass] LP18-O10 no-op checkpoint preserves owned readers without binding comparisons
+[pass] LP18-O10 duplicate mutation does not recompare existing binding
+[pass] LP18-O10 new bound ID compares only its matching pool entry
+[pass] LP26-R01 live SQLite binding retained before deletion
+[pass] LP26-R01 deleted SQLite duplicate removed atomically
+[pass] LP18-O12 deleted source hidden with internal binding preserved
+[pass] LP26-R02 deleted bound journal physical bytes shrink without dropping a row
+[pass] LP26-R02 archive restores exact logical bound envelope
+[pass] LP26-R02 changed compressed bytes rejected
+[pass] LP18-O10 deleted checkpoint preserves independently owned canonical binding evidence
+[pass] LP18-O13 reopen deleted canonical binding preserved without SQLite duplicate sqlite
+[pass] LP18-O10 reopened checkpoint shares warm owned binding reader sqlite
+[pass] LP18-O13 reopen deleted canonical binding preserved without SQLite duplicate fallback
+[pass] LP18-O10 reopened checkpoint shares warm owned binding reader fallback
+[summary] LP18 pass=82 fail=0
+        0.72 real         0.18 user         0.07 sys
+           173408256  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               12791  page reclaims
+                  40  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   0  messages received
+                   0  signals received
+                 126  voluntary context switches
+                 181  involuntary context switches
+          4406572448  instructions retired
+          1030161774  cycles elapsed
+           142607128  peak memory footprint
+{"kind":"phase","label":"focused","exit":0,"signal":null,"stopReason":null,"cleanup":true,"elapsedMs":737,"groupPeakRssBytes":2375680}
+{"kind":"oracle","mode":"green","expectedRed":false,"productPass":true,"matched":true}
+{"kind":"source-unchanged","unchanged":true}
+{"kind":"cleanup","bytes":6535390,"removed":true}
+{"kind":"result","utc":"2026-09-23T06:53:54.364Z","mode":"green","matched":true,"productPass":true,"elapsedMs":3307}

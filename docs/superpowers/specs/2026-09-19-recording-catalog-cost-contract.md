@@ -368,6 +368,27 @@ pending finalize/삭제/복구 및 event/analysis/consumer의 **실제 재생·�
 선정 완료한 것으로 보고하지 않는다. 비교 증거 없이 확정할 수 없는 항목은 다음 제품 구현의 진입 조건으로 남긴다.
 외부 코드/새 기술을 채택한다면 기존 Apache-2.0·출처·IP 검토 원칙을 적용한다. 이번에는 외부 코드 반입이 없다.
 
+### LP26-R02 삭제 bound 행의 가역 물리 표현
+
+위 수명 계약의 영구 삭제 조건은 아직 충족되지 않았다. 따라서 이번 S11 보완은
+상세 프레임/파일 증거를 지우는 최소 영수증으로 승격하지 않는다. 대신 삭제가
+확정된 `SegmentV2BoundFinalized` 한 행의 **물리 표현만** checkpoint에서
+`media-server.recording-compressed-mutation.v1`로 바꿀 수 있다. 독립 파일이나
+SQLite 필수화 없이 기존 JSONL 한 행·동일 위치·동일 mutation ID와 순서를 유지한다.
+압축 전 논리 envelope는 변경하지 않으며 공개 serializer·Replay·catalog·consumer는
+항상 검증 후 원문을 본다. 예전 원장은 그대로 열 수 있다. 더 커지는 입력은 기존 행으로
+유지한다. 원자 checkpoint와 pending 복구는 기존 경계를 쓴다.
+
+물리 행은 codec, 논리 길이(16MiB 이하), CRC32, 정규 base64의 zlib 압축 본문만
+포함한다. 복원은 제한된 크기의 버퍼에서 수행하고 원래 mutation schema·정규
+직렬화·bound type까지 재검증한다. 원문/압축문 손상, 길이·CRC·base64·중첩 wrapper
+불일치와 기존 ID/순서/참조 충돌은 거부한다. CRC는 우발 손상 검출이며 암호학적
+서명은 아니다. managed crypto가 있는 위치 검증의 SHA-256 경계는 그대로 유지한다.
+이 형식은 영구 데이터 폐기나 디스크 총량 상수 보장이 아니다. SQLite의 삭제된
+binding 투영 중복 제거는 LP26-R01로 분리하고, 기존 SQLite 파일의 물리 회수와
+120분 상한/잠금·복구 비용은 LP26-R02 통과 후 별도 실측한다. 직접 링크 검증기와
+제품 모두 zlib을 필수로 결박해 다른 PC에서 읽기 기능이 달라지지 않게 한다.
+
 ## 6. 계약의 반례와 구현 완료 증거
 
 | ID | 반례/대상 | 합격 기준 |

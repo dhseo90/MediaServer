@@ -57,7 +57,7 @@ fi
   -DMEDIA_SERVER_USE_SQLITE3="${SQLITE_DEFINE}" \
   -DMEDIA_SERVER_USE_GSTREAMER="${GST_DEFINE}" \
   -DMEDIA_SERVER_USE_OPENSSL="${OPENSSL_DEFINE}" \
-  ${SQLITE_LIBS[*]-} ${GST_LIBS[*]-} ${OPENSSL_LIBS[*]-} \
+  ${SQLITE_LIBS[*]-} ${GST_LIBS[*]-} ${OPENSSL_LIBS[*]-} -lz \
   -o "${BUILD_DIR}/event_recording_link_smoke"
 
 if [[ -n "$FOCUSED_MODE" ]]; then

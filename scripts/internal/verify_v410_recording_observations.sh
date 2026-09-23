@@ -24,7 +24,7 @@ fi
   "${ROOT_DIR}/src/analysis/category_tokens.cpp" \
   "${ROOT_DIR}/src/recording/retention_coordinator.cpp" \
   "${ROOT_DIR}/src/domain/strict_json.cpp" \
-  -DMEDIA_SERVER_USE_SQLITE3="${SQLITE_DEFINE}" ${SQLITE_FLAGS[*]-} -o "${RUN_DIR}/smoke"
+  -DMEDIA_SERVER_USE_SQLITE3="${SQLITE_DEFINE}" ${SQLITE_FLAGS[*]-} -lz -o "${RUN_DIR}/smoke"
 "${RUN_DIR}/smoke" "${RUN_DIR}"
 "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"${ROOT_DIR}/include" \
   "${SCRIPT_DIR}/recording_time_snapshot_smoke.cpp" -o "${RUN_DIR}/time-smoke"

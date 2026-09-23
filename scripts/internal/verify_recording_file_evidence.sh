@@ -33,5 +33,5 @@ read -r -a fe_flags <<< "$(pkg-config --cflags --libs gstreamer-1.0 gstreamer-ap
   "$fe_repo/src/recording/recording_finalize_recovery.cpp" "$fe_repo/src/recording/recording_file_evidence.cpp" "$fe_repo/src/recording/recording_media_inspector.cpp" \
   "$fe_repo/src/recording/recording_derived_job.cpp" "$fe_repo/src/recording/recording_derived_job_ready.cpp" \
   "$fe_repo/src/recording/recording_contracts.cpp" "$fe_repo/src/recording/retention_coordinator.cpp" \
-  "$fe_repo/src/domain/strict_json.cpp" "${fe_flags[@]}" -o "$fe_root/check"
+  "$fe_repo/src/domain/strict_json.cpp" "${fe_flags[@]}" -lz -o "$fe_root/check"
 "$fe_root/check" "$fe_root"

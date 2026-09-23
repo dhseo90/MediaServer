@@ -48,7 +48,7 @@ test "$prep_found" = 1
 read -r -a prep_flags <<<"$(pkg-config --cflags gstreamer-app-1.0 openssl sqlite3)"
 "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$prep_repo/include" "${prep_flags[@]}" \
   -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_SQLITE3=1 \
-  "$prep_script/recording_preparation_contracts.cpp" "${prep_libs[@]}" -o "$prep_root/probe"
+  "$prep_script/recording_preparation_contracts.cpp" "${prep_libs[@]}" -lz -o "$prep_root/probe"
 node - "$prep_root" <<'NODE'
 const {spawnSync}=require('child_process'),path=require('path'),crypto=require('crypto');
 const root=process.argv[2],start=performance.now();

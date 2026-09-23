@@ -54,6 +54,8 @@ struct RecordingMutationV1 {
     std::int64_t occurred_at_ms{0};
     std::string entity_id;
     std::string payload_json{"{}"};
+    // 관리 원장의 checkpoint 물리 행만 사용한다. 공개 직렬화/Replay 의미에는 포함되지 않는다.
+    std::string physical_json;
 };
 
 // 내부 checkpoint 소유 핸들. 공개 mutation/Replay는 기존 독립 값 반환을 유지한다.

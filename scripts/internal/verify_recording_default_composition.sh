@@ -44,7 +44,7 @@ MEDIA_SERVER_ANALYSIS_EVENT_PRE_EVENT_MS=5000 MEDIA_SERVER_ANALYSIS_EVENT_POST_E
 "$RUN_DIR/check" "$RUN_DIR" default-budget
 "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$ROOT_DIR/include" -DMEDIA_SERVER_USE_OPENSSL=0 \
  "$SCRIPT_DIR/recording_auto_identity_crypto_off_smoke.cpp" "$ROOT_DIR/src/recording/recording_journal.cpp" \
- "$ROOT_DIR/src/recording/recording_contracts.cpp" "$ROOT_DIR/src/domain/strict_json.cpp" -o "$RUN_DIR/crypto-off"
+ "$ROOT_DIR/src/recording/recording_contracts.cpp" "$ROOT_DIR/src/domain/strict_json.cpp" -lz -o "$RUN_DIR/crypto-off"
 "$RUN_DIR/crypto-off" "$RUN_DIR/crypto-off-store"
 "$RUN_DIR/check" "$RUN_DIR" provider-locks
 fi

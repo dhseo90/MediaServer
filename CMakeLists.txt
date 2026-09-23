@@ -12,6 +12,9 @@ option(MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE "Enable lab-only experimental YouTube 
 set(MEDIA_SERVER_ONNXRUNTIME_ROOT "" CACHE PATH "ONNX Runtime installation root")
 
 find_package(PkgConfig QUIET)
+# 삭제된 녹화의 상세 원장 행을 가역 압축·복구하기 위한 필수 의존성.
+# 라이선스 원문: https://zlib.net/zlib_license.html (zlib License).
+find_package(ZLIB REQUIRED)
 
 add_library(media_server_runtime STATIC
     src/analysis/analysis_manager.cpp
@@ -148,6 +151,7 @@ add_executable(media_server
 )
 
 target_include_directories(media_server_runtime PUBLIC include)
+target_link_libraries(media_server_runtime PUBLIC ZLIB::ZLIB)
 target_link_libraries(media_server PRIVATE media_server_runtime)
 
 if(MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE)

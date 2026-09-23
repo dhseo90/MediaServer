@@ -40,7 +40,7 @@ compile_catalog() {
   "${ROOT_DIR}/src/recording/recording_derived_job.cpp" "${ROOT_DIR}/src/recording/recording_derived_job_ready.cpp" "${ROOT_DIR}/src/recording/recording_contracts.cpp" \
   "${ROOT_DIR}/src/domain/strict_json.cpp" \
   -DMEDIA_SERVER_USE_SQLITE3="${SQLITE_DEFINE}" \
-  ${SQLITE_LIBS[*]-} ${CRYPTO_LIBS[*]-} \
+  ${SQLITE_LIBS[*]-} ${CRYPTO_LIBS[*]-} -lz \
   -o "${BUILD_DIR}/recording_catalog_smoke"
 }
 compile_catalog
