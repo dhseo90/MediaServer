@@ -140,6 +140,6 @@
 | LP26-O05 recovery copy cleanup | 격리 실제 앱 단기 검증 | pass | lp26-o08-short-app.log 원출력 |
 
 | 녹화 120분 2차 | 누적 저장량·관측 | fail | `recording-120-attempt2.log`, 약 394초에서 `observer-native-rejected`; 용량 초과 아님 |
-| 격리 실제 앱 첫 시도 | 입력 영상 생성 | fail | macOS 서비스 접근 제한에서 30초 timeout; 원출력 미보존, 실제 제품 서버 미기동. 권한을 맞춘 재검증은 위의 `lp26-o08-short-app.log` |
+| 격리 실제 앱 첫 시도 | 입력 영상 생성 | fail | 30초 timeout, 원출력 미보존으로 원인 미확정·제품 서버 미기동. 별도 진단에서 macOS 서비스 연결 오류 관찰. 권한을 맞춘 재검증은 위의 `lp26-o08-short-app.log` |
 
 미완료·미확인: O08 변경 뒤 120분 장시간은 3차에서 FAIL, 영향받는 UI와 릴리즈 최종 판정은 미실행.
