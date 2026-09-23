@@ -4,6 +4,7 @@
 #undef main
 #include "recording_checkpoint_cache_counter.h"
 #include "recording_checkpoint_validation.h"
+#include <sys/resource.h>
 
 namespace {
 int passed=0,failed=0;
@@ -170,6 +171,16 @@ int main(int argc,char** argv){
  if(argc!=2)return 2;
  try{
   gst_init(nullptr,nullptr);const std::filesystem::path root=argv[1];PrefixCases(root/"independent");Bounds();ChangedCandidate(root/"changed");ProjectionExceptions(root/"projection-exceptions");OverRecordLimit(root/"overlimit");ActualCases(root/"actual-jobs");
-  std::cout<<"[summary] LP15 pass="<<passed<<" fail="<<failed<<'\n';return failed?1:0;
+  std::cout<<"[summary] LP15 pass="<<passed<<" fail="<<failed<<'\n';
+  struct rusage usage{};
+  if(::getrusage(RUSAGE_SELF,&usage)!=0||usage.ru_maxrss<=0)throw std::runtime_error("peak-rss-unavailable");
+  const auto peak=static_cast<std::uint64_t>(usage.ru_maxrss)
+#if defined(__APPLE__)
+      ;
+#else
+      *1024ULL;
+#endif
+  std::cout<<"[peak-rss] bytes="<<peak<<" source=getrusage-self\n";
+  return failed?1:0;
  }catch(...){std::cerr<<"[setup-or-oracle-fail] LP15 fixture unavailable\n";return 2;}
 }

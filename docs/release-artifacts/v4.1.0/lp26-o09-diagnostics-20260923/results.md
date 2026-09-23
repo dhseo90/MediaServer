@@ -385,3 +385,17 @@ build 경과 약4초는 로그 생성/수정 시각 기준(17:54:03~17:54:07 KST
 | 실제 앱/브라우저 | 제품 server·UI 실행 | 이번 Stage 1은 focused/build로 제한 | 실제 프로세스 장시간 trace 회수와 UI는 미확인 |
 | 다음 잔여이슈 | 누적 규모 synthetic fixture·제품 원인 수정 | 이번1번 범위 밖 | 미착수 |
 | 커밋/푸시 | 외부 변경 | 메인 담당 별도 처리 | 이 담당자 미수행 |
+
+## 1번 계측 이후 기존 LP15 검사 연결 보완
+
+CheckpointLocked에 단계 계측을 넣으면서 소유 복제본 검사기의 정확한 문자열 삽입 위치가 달라졌다.
+검사기만 현행 호출식에 다시 결박했다. 최초 실행은 기능 assertion 46개가 통과했지만 macOS
+/usr/bin/time -l의 sysctl kern.clockrate 접근이 실행 환경에서 거부되어 peak RSS가
+미집계였고 최종 exit 2였다. 이를 제품 실패나 PASS로 바꾸지 않았다.
+
+검사 실행파일 자체의 getrusage(RUSAGE_SELF) 최대 RSS를 사용하도록 검사기만 보완했다.
+동일 명령 bash scripts/internal/verify_recording_checkpoint_cache.sh를 다시 실행한 결과,
+LP15 기능 46/46, peak RSS 179,994,624B ≤ 536,870,912B, 전체 exit 0, 17초였다.
+원출력 전체는 [cache-compatibility-full.log](cache-compatibility-full.log)에 보존했다.
+소유 임시 root 약 17.6MB 삭제와 부재를 확인했다. 별도 bash -n과 git diff --check도 exit 0이다.
+이는 검사기 호환 회귀와 자원 측정의 PASS이지 1,020개 누적·실제 HTTP·120분 PASS는 아니다.
