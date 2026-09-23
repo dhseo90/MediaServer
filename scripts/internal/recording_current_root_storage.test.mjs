@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {CURRENT_ROOT_CAP_BYTES,measureCurrentRoot} from './recording_current_observer.mjs';
+import {CURRENT_ROOT_CAP_BYTES,measureCurrentRoot,measureCurrentSqlitePages} from './recording_current_observer.mjs';
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'media-server-root-storage-test-'));
 fs.chmodSync(root,0o700);
 const start=performance.now();let passed=0,failed=0;
@@ -17,7 +17,12 @@ try{
       ['events/private-event','events'],['gst-cache/plugin','cache'],['normalize','tools'],['recordings/unknown-private-file','recordingsOther'],['private-unknown','other']];
     let expected=0;for(const [i,[file]] of files.entries()){write(file,i+1);expected+=i+1;}
     const result=measureCurrentRoot(root);assert.equal(result.totalBytes,expected);assert.equal(result.capExceeded,false);
+    assert.equal(Object.hasOwn(result,'sqlitePages'),false);assert.equal(Object.hasOwn(measureCurrentRoot(root,{sqlitePages:true}),'sqlitePages'),true);
     assert.equal(Object.values(result.categories).reduce((n,c)=>n+c.bytes,0),expected);
+    assert.deepEqual(result.ownership.productRecording,{bytes:2+3+4+5+6+7+14,files:7});
+    assert.deepEqual(result.ownership.fixtureInput,{bytes:1,files:1});assert.deepEqual(result.ownership.observerTools,{bytes:13,files:1});
+    assert.deepEqual(result.ownership.cache,{bytes:12,files:1});assert.deepEqual(result.ownership.runtimeSupport,{bytes:9+10+11,files:3});
+    assert.equal(Object.values(result.ownership).reduce((n,c)=>n+c.bytes,0),expected);
     for(const [i,[,category]] of files.entries())assert.deepEqual(result.categories[category],{bytes:i+1,files:1});
     const output=JSON.stringify(result);assert(!output.includes(root));for(const [file] of files)assert(!output.includes(file));assert.equal(result.rawPathsPublished,false);
   });
@@ -47,10 +52,19 @@ try{
     const unsafe=path.join(root,'tmp/link');fs.symlinkSync('/nonexistent/private-target',unsafe);assert.throws(()=>measureCurrentRoot(root),/root-unsafe-symlink/);fs.unlinkSync(unsafe);
     const hardlink=path.join(root,'tmp/hardlink');fs.linkSync(path.join(root,'normalize'),hardlink);assert.throws(()=>measureCurrentRoot(root),/root-unsafe-file/);fs.unlinkSync(hardlink);
   });
+  check('LP26-O06-D SQLite page observation uses bounded read-only numeric PRAGMA and fails closed',()=>{
+    // Existing fixture catalog is intentionally not a SQLite database; replace only the runner result to validate safe projection.
+    const sqlite=path.join(root,'recordings/recording-catalog.sqlite3');assert(fs.existsSync(sqlite));
+    const observed=measureCurrentSqlitePages(root,(_binary,args,options)=>{assert.equal(_binary,'sqlite3');assert.deepEqual(args.slice(0,2),['-readonly',sqlite]);assert(options.timeout<=3000&&options.maxBuffer<=1024);return {status:0,stdout:'4096\n10\n3\n'};});
+    assert.deepEqual(observed,{status:'observed',mainBytes:5,walBytes:6,pageSize:4096,pageCount:10,freePageCount:3,livePageCount:7,liveBytes:28672,freeBytes:12288});
+    assert.equal(measureCurrentSqlitePages(root,()=>({status:0,stdout:'4096\n10\n11\n'})).status,'unavailable');
+    assert.equal(measureCurrentSqlitePages(root,()=>{throw Error('runner unavailable');}).status,'unavailable');
+  });
   check('LP26-O06-C runner retains timeout and emits periodic and failure measurements',()=>{
     const runner=fs.readFileSync(new URL('./verify_recording_current_longrun.mjs',import.meta.url),'utf8');
-    assert(runner.includes('AbortSignal.timeout(4000)'));assert(runner.includes("rootDiagnostic('sample')"));assert(runner.includes("rootDiagnostic('failure')"));
-    assert(runner.includes("rootDiagnostic('root-cap',storage);throw Error('observation-root-cap')"));
+    assert(runner.includes('AbortSignal.timeout(4000)'));assert(runner.includes("rootDiagnostic('sample')"));assert(runner.includes("rootDiagnostic('failure',measureCurrentRoot(root,{sqlitePages:true}),true)"));
+    assert(runner.includes("const storage=measureCurrentRoot(root);if(storage.capExceeded){rootDiagnostic('root-cap')"));
+    assert(runner.includes("rootDiagnostic('final',measureCurrentRoot(root,{sqlitePages:true}),true)"));assert(runner.includes('journalMutationTypesCoverage'));
   });
 }catch{if(!failed){failed++;console.log('[fail] LP26-O06 setup/runtime');}}
 finally{

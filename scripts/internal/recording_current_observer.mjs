@@ -5,6 +5,22 @@ import {spawnSync} from 'node:child_process';
 import {RecordingJournalReader} from './recording_journal_reader.mjs';
 const need=(ok,code)=>{if(!ok)throw Error(code);};
 export const CURRENT_ROOT_CAP_BYTES=448*1024*1024;
+// 공개 로그에 원문 mutation type을 반영하지 않도록 제품 enum의 알려진 이름만 누적한다.
+export const CURRENT_JOURNAL_MUTATION_TYPES=Object.freeze(['segment_finalized','event_link_created','observation_put','observation_v2_put','deletion_requested','deletion_completed','corruption_detected','recording_order_reserved','segment_v2_finalized','segment_v2_bound_finalized','consumer_reference_put','derived_reference_accepted','referenced_observation_put','derived_job_intent','derived_job_files','derived_job_ready','derived_job_committed','derived_job_complete','derived_job_failed','segment_v2_state','segment_v2_deleted']);
+const categoryTotal=(categories,names)=>names.reduce((total,name)=>({bytes:total.bytes+categories[name].bytes,files:total.files+categories[name].files}),{bytes:0,files:0});
+// sqlite3는 read-only PRAGMA만 수행한다. 실행기를 찾지 못하거나 live DB를 읽지 못하면 관측을 실패로 만들지 않고 unavailable로 남긴다.
+export function measureCurrentSqlitePages(root,run=spawnSync){
+  const main=path.join(root,'recordings','recording-catalog.sqlite3'),wal=path.join(root,'recordings','recording-catalog.sqlite3-wal');
+  const mainBytes=fs.existsSync(main)?fs.lstatSync(main).size:0,walBytes=fs.existsSync(wal)?fs.lstatSync(wal).size:0;
+  if(mainBytes===0)return {status:'absent',mainBytes,walBytes,pageSize:null,pageCount:null,freePageCount:null,livePageCount:null,liveBytes:null,freeBytes:null};
+  let result;try{result=run('sqlite3',['-readonly',main,'PRAGMA page_size; PRAGMA page_count; PRAGMA freelist_count;'],{encoding:'utf8',timeout:3000,maxBuffer:1024,env:{PATH:process.env.PATH}});}catch{return {status:'unavailable',mainBytes,walBytes,pageSize:null,pageCount:null,freePageCount:null,livePageCount:null,liveBytes:null,freeBytes:null};}
+  if(result.error||result.signal||result.status!==0)return {status:'unavailable',mainBytes,walBytes,pageSize:null,pageCount:null,freePageCount:null,livePageCount:null,liveBytes:null,freeBytes:null};
+  const values=String(result.stdout).trim().split(/\s+/).filter(Boolean);
+  if(values.length!==3||!values.every(value=>/^(0|[1-9]\d{0,15})$/.test(value)))return {status:'unavailable',mainBytes,walBytes,pageSize:null,pageCount:null,freePageCount:null,livePageCount:null,liveBytes:null,freeBytes:null};
+  const [pageSize,pageCount,freePageCount]=values.map(Number),livePageCount=pageCount-freePageCount;
+  if(!Number.isSafeInteger(pageSize)||!Number.isSafeInteger(pageCount)||!Number.isSafeInteger(freePageCount)||pageSize<=0||pageCount<0||freePageCount<0||freePageCount>pageCount||!Number.isSafeInteger(pageSize*pageCount))return {status:'unavailable',mainBytes,walBytes,pageSize:null,pageCount:null,freePageCount:null,livePageCount:null,liveBytes:null,freeBytes:null};
+  return {status:'observed',mainBytes,walBytes,pageSize,pageCount,freePageCount,livePageCount,liveBytes:pageSize*livePageCount,freeBytes:pageSize*freePageCount};
+}
 export function summarizeFixtureGeneration(result,{elapsedMs,outputBytes=null}){
   const errorCode=result?.error?.code??null,signal=result?.signal??null,stderr=String(result?.stderr??'');
   return {status:Number.isInteger(result?.status)?result.status:null,
@@ -16,7 +32,7 @@ export function summarizeFixtureGeneration(result,{elapsedMs,outputBytes=null}){
       resource:/no space left|resource unavailable|resource temporarily unavailable/i.test(stderr)},rawBodyPublished:false};
 }
 // 고정 범주만 내보낸다. 파일명/경로/본문은 비민감 관측 결과에 포함하지 않는다.
-export function measureCurrentRoot(root){
+export function measureCurrentRoot(root,{sqlitePages=false}={}){
   const categories=Object.fromEntries(['input','media','mediaPartial','journal','checkpoint','sqlite','wal','sqliteAux','tmp','log','state','events','cache','tools','recordingsOther','other'].map(k=>[k,{bytes:0,files:0}]));
   let totalBytes=0,entries=0;
   function category(parts){
@@ -48,7 +64,12 @@ export function measureCurrentRoot(root){
     const item=categories[category(parts)];item.bytes+=stat.size;item.files++;totalBytes+=stat.size;
   }
   need(fs.lstatSync(root).isDirectory()&&!fs.lstatSync(root).isSymbolicLink(),'root-unsafe-directory');visit(root,[]);
-  return {totalBytes,capBytes:CURRENT_ROOT_CAP_BYTES,capExceeded:totalBytes>=CURRENT_ROOT_CAP_BYTES,entries,categories,measurement:'logical-file-bytes-nonatomic',rawPathsPublished:false};
+  const ownership={productRecording:categoryTotal(categories,['media','mediaPartial','journal','checkpoint','sqlite','wal','sqliteAux','recordingsOther']),
+    fixtureInput:categoryTotal(categories,['input']),observerTools:categoryTotal(categories,['tools']),cache:categoryTotal(categories,['cache']),temporary:categoryTotal(categories,['tmp']),
+    runtimeSupport:categoryTotal(categories,['log','state','events']),other:categoryTotal(categories,['other'])};
+  need(Object.values(ownership).reduce((sum,item)=>sum+item.bytes,0)===totalBytes,'root-category-aggregate');
+  return {totalBytes,capBytes:CURRENT_ROOT_CAP_BYTES,capExceeded:totalBytes>=CURRENT_ROOT_CAP_BYTES,entries,categories,ownership,
+    ...(sqlitePages?{sqlitePages:measureCurrentSqlitePages(root)}:{}),measurement:'logical-file-bytes-nonatomic',rawPathsPublished:false};
 }
 export function closedJournalComplete(result){return result?.partialBytes===0&&result.backlog===false;}
 export function disabledChannelsExact(status,expected){
@@ -70,7 +91,7 @@ export function normalizeCurrentRows(binary,rows){
   const output=result.stdout.trim().split('\n').map(JSON.parse);need(output.length===rows.length,'observer-native-count');return output;
 }
 export class CurrentRecordingObserver {
-  constructor(root,binary,budget=new CurrentObservationBudget()){this.root=root;this.binary=binary;this.budget=budget;this.reader=null;this.prefix=[];this.ids=new Set();this.bytes=0;this.cursor=0;this.replaying=false;this.rotations=0;this.error=null;this.typeCounts={};}
+  constructor(root,binary,budget=new CurrentObservationBudget()){this.root=root;this.binary=binary;this.budget=budget;this.reader=null;this.prefix=[];this.ids=new Set();this.bytes=0;this.cursor=0;this.replaying=false;this.rotations=0;this.error=null;this.typeCounts=Object.fromEntries(CURRENT_JOURNAL_MUTATION_TYPES.map(type=>[type,0]));}
   open(){return new RecordingJournalReader(this.root,'recording-v2-mutations.jsonl',{nativeLines:true,lineBytes:16777216,pollBytes:33554432});}
   poll(){
     if(this.error)throw this.error;
@@ -93,7 +114,8 @@ export class CurrentRecordingObserver {
           need(this.prefix.length<100000&&this.bytes+Buffer.byteLength(token)<=33554432,'observer-id-cap');
           this.budget.reserve(2,Buffer.byteLength(token)); // mutation/entity 두 위치를 반복도 포함해 보수적으로 계상
           this.ids.add(row.id);this.prefix.push(token);this.bytes+=Buffer.byteLength(token);
-          this.typeCounts[canonicalType]=(this.typeCounts[canonicalType]??0)+1;fresh.push(row);
+        need(Object.hasOwn(this.typeCounts,canonicalType),'observer-unknown-mutation-type');
+        this.typeCounts[canonicalType]++;fresh.push(row);
         }
         this.cursor++;
       }

@@ -1,0 +1,8 @@
+[pass] LP26-O06-A disjoint categories preserve exact aggregate and redact names
+[pass] LP26-O06-A partial media and cleanup markers remain disjoint in aggregate
+[pass] LP26-O06-B exact 448 MiB logical cap remains inclusive
+[pass] LP26-O06-C cache symlink counts link only and unsafe links fail closed
+[pass] LP26-O06-D SQLite page observation uses bounded read-only numeric PRAGMA and fails closed
+[pass] LP26-O06-C runner retains timeout and emits periodic and failure measurements
+[cleanup] {"root":"/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-root-storage-test-RK4ays","bytes":33124,"absent":true}
+{"scope":"root-storage-short-self-test","passed":6,"failed":0,"elapsedMs":14,"longrunPass":false,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"전용 집계 없음"}
