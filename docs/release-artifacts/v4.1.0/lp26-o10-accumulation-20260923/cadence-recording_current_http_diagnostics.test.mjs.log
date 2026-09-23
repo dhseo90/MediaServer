@@ -1,0 +1,13 @@
+✔ LP26-O09-B01 status/source-item 안전 분류 (1.356334ms)
+✔ LP26-O09-B02 지정4MiB 초과는 body 실패 (0.245583ms)
+✔ P0-DIAG01 정상 header/body 시간·안전 route 분류와 비밀 미노출 (0.332209ms)
+✔ P0-DIAG02 header timeout 고정 진단과 실패 유지 (0.415625ms)
+✔ P0-DIAG03 body timeout 부분 수신 측정·완료 거부 (0.513292ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5.722542

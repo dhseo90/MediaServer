@@ -26,6 +26,12 @@ export function assertSampleStep(previous,current,start,pid) {
      (previous&&(current.phaseAt<=previous.phaseAt||current.startIdentity!==previous.startIdentity)))throw Error('sample-identity-clock');
   if(current.phaseAt-(previous?.phaseAt??start)>15000)throw Error('sample-gap');
 }
+export function nextSampleDelay(phaseAt,now,end) {
+  if(![phaseAt,now,end].every(x=>Number.isFinite(x)&&x>=0)||now<phaseAt)throw Error('sample-cadence-clock');
+  if(now-phaseAt>15000)throw Error('sample-gap');
+  // 처리시간을 포함한 5초 시작간격 목표다. 느린 표본 뒤에는 추가 지연을 넣지 않는다.
+  return Math.max(0,Math.min(5000-(now-phaseAt),end-now));
+}
 export function summarizeAvailableSamples(samples) {
   const unavailable=status=>({status,sampleCount:samples.length,resourceTrendPass:false,reviewRequired:true,groups:[]});
   if(samples.length<2)return unavailable('insufficient');

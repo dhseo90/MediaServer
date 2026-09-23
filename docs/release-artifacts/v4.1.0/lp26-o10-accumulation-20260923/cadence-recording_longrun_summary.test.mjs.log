@@ -1,0 +1,52 @@
+[pass] LS01 separate restart PID groups
+[pass] LS01 literal first last max delta elapsed
+[pass] LS01 postwarmup negative rate literal
+[pass] LS01 new PID warmup resets and insufficient null
+[pass] LS01 zero warmup rate separate PIDs
+[pass] LS03 same PID gap explicitly measured
+[pass] LS03 one sample gap and trend insufficient
+[pass] LS02 FD zero valid
+[pass] LS03 no resource or longrun pass
+[pass] LS03 workload delta not reset by PID
+[pass] LS03 raw input excluded from output
+[pass] LS02 missing-rss rejected
+[pass] LS02 zero-rss rejected
+[pass] LS02 negative-rss rejected
+[pass] LS02 infinite-rss rejected
+[pass] LS02 nan-rss rejected
+[pass] LS02 zero-thread rejected
+[pass] LS02 negative-fd rejected
+[pass] LS02 missing-fd rejected
+[pass] LS02 zero-pid rejected
+[pass] LS02 zero-time rejected
+[pass] LS02 invalid-identity rejected
+[pass] LS02 missing-counter rejected
+[pass] LS02 missing-types rejected
+[pass] LS02 pending-journal rejected
+[pass] LS02 duplicate time rejected
+[pass] LS02 backward time rejected
+[pass] LS02 same PID identity change rejected
+[pass] LS02 global counters cannot reset at restart
+[pass] LS02 cumulative segment_finalized decrease rejected
+[pass] LS02 cumulative event_link_created decrease rejected
+[pass] LS02 cumulative observation_put decrease rejected
+[pass] LS02 cumulative observation_v2_put decrease rejected
+[pass] LS02 cumulative deletion_requested decrease rejected
+[pass] LS02 cumulative deletion_completed decrease rejected
+[pass] LS02 cumulative corruption_detected decrease rejected
+[pass] LS02 cumulative mutationCount decrease rejected
+[pass] LS02 cumulative uniqueMutationIds decrease rejected
+[pass] LS02 cumulative uniqueEntityIds decrease rejected
+[pass] LS02 cumulative storedIdCount decrease rejected
+[pass] LS02 cumulative idUtf8Bytes decrease rejected
+[pass] LS02 cumulative consumedOffset decrease rejected
+[pass] LS02 invalid warmup undefined
+[pass] LS02 invalid warmup -1
+[pass] LS02 invalid warmup 0.5
+[pass] LS02 invalid warmup Infinity
+[pass] LS02 empty input rejected
+[pass] LS02 10000 samples accepted
+[pass] LS02 over 10000 samples rejected
+[pass] LS02 64 PID groups accepted
+[pass] LS02 over 64 groups rejected
+{"passed":51,"failed":0,"elapsedMs":21,"tokenStart":null,"tokenEnd":null,"tokenConsumed":null,"tokenSource":"하위작업별자동집계없음","scope":"synthetic-summary-unit","cleanup":"no-temp-no-child"}

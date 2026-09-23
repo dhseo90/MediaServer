@@ -1,0 +1,14 @@
+✔ LP26-O09-A01 15초 첫/중간 경계와 즉시 실패 (0.515625ms)
+✔ LP26-O09-A02 identity·clock·pid 불일치 (0.110208ms)
+✔ LP26-O09-A03 보존 attempt3의 초과5건 중 첫 간격에서 실패 (1.396583ms)
+✔ LP26-O09-D01 실패 표본도 자원 요약에 보존하고 PASS 금지 (0.594875ms)
+✔ LP26-O09-D02 부족 표본과 잘못된 표본은 명시 상태 (0.157833ms)
+✔ LP26-O09-C02 slow 숫자행·완료/미완료·비밀 거부 (0.466833ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6.23725

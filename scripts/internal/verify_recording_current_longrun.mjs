@@ -8,7 +8,7 @@ import {spawn,spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {CurrentRecordingObserver,CurrentLongrunProgress,CurrentObservationBudget,summarizeCurrentSamples,closedJournalComplete,disabledChannelsExact,measureCurrentRoot,summarizeFixtureGeneration} from './recording_current_observer.mjs';
 import {collectProcess} from './recording_foundation_observer.mjs';
-import {parseLongrunArgs,sampleContinuity,nextRecordingSettings,mediaAbsent,assertSampleStep,summarizeAvailableSamples,slowTraceSummary} from './recording_longrun_progress.mjs';
+import {parseLongrunArgs,sampleContinuity,nextRecordingSettings,mediaAbsent,assertSampleStep,summarizeAvailableSamples,slowTraceSummary,nextSampleDelay} from './recording_longrun_progress.mjs';
 import {measuredHttpResponse} from './recording_current_app_helpers.mjs';
 import {reservePort,stopServer,assertPortClosed} from './verify_v410_recording_ui_contract.mjs';
 import {createProcessCleanup} from './recording_process_cleanup.mjs';
@@ -120,10 +120,8 @@ try{
   while(performance.now()-begin<duration){await sample(first);const status=await request(first,'GET','/ops/api/recordings/status');
     for(const id of ['9101','9201']){const c=status.channels?.filter(c=>c.channelId===id);check(c?.length===1&&c[0].enabled&&c[0].active&&!c[0].storageBlocked,'LP26-O05 active '+id);}
     cadence();
-    const sleepMs=Math.min(5000,Math.max(0,duration-(performance.now()-begin)));
-    // 정상5초 간격은 유지하고, 이미15초 경계를 넘길 대기는 해당 경계에서 실패시킨다.
-    const remaining=15000-(performance.now()-samples.at(-1).phaseAt);
-    await pause(Math.max(0,Math.min(sleepMs,Math.ceil(remaining)+1)));cadence();}
+    const sleepMs=nextSampleDelay(samples.at(-1).phaseAt,performance.now(),begin+duration);
+    if(sleepMs>0)await pause(sleepMs);cadence();}
   await sample(first);const end=performance.now();check(sampleContinuity(samples,begin,end,first.child.pid,samples[0].startIdentity),'LP26-O04 sample coverage');
   phaseResult=short?progress.status(end):progress.finish(end);check(Object.values(phaseResult.channels).every(c=>c.finalized>0&&c.deleted>0),'LP26-O05 both channels retained and progressed');
   summary=summarizeCurrentSamples(samples);observationStart=null;progress.setActive(performance.now(),false);await settings(first,false);await stop(first);
