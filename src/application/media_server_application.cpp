@@ -468,10 +468,10 @@ int RunMediaServerApplication(int argc, char** argv) {
                 status.continuous_max_bytes = source.recording.continuous_max_bytes;
                 status.event_max_bytes = source.recording.event_max_bytes;
                 for (const auto& candidate : snapshot.candidates) {
-                    if (candidate.segment.channel_id != source.source_id) continue;
-                    auto& bytes = candidate.segment.retention_class == recording::RecordingRetentionClass::Event
+                    if (candidate.Channel() != source.source_id) continue;
+                    auto& bytes = candidate.Class() == recording::RecordingRetentionClass::Event
                                       ? status.event_bytes : status.continuous_bytes;
-                    bytes += std::min(candidate.segment.size_bytes, std::numeric_limits<std::uint64_t>::max() - bytes);
+                    bytes += std::min(candidate.Size(), std::numeric_limits<std::uint64_t>::max() - bytes);
                 }
                 output->push_back(std::move(status));
             }

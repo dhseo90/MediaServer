@@ -680,3 +680,243 @@ token start/end/consumed는 모두 미집계(하위작업 usage 집계 미제공
 
 커밋·푸시 미수행. 이 보완의 직접 증거는 순수 시간계산·기존 실패/연속성/요약 회귀이며
 실제 HTTP·장시간 증거의 대체나2049 복구 해결 증거가 아니다.
+
+## LP26-O11 상태 용량 집계 독립 기록
+
+독자: S11 3번 용량 집계 검토 담당자. lifecycle: 최초환경실패·제품RED·수정후GREEN·집중화면 대조를 보존한다.
+기존 O10 진단과 별개이며, 중앙 O11 실행전 정의를 따른다. 문서작성 시 HEAD는
+`7018d4670b6810e09024200615c71cccefb7f6f1`; 그 위 메인의 제품 수정은
+`src/application/media_server_application.cpp` 상태공급자의 v1직접필드 대신
+RetentionCandidate `Channel()/Class()/Size()` 사용이다. v1/v2 보존 후보를 올바르게 합산하며
+기존 포화합산·quota·API JSON/UI 문자열을 바꾸지 않는다.
+
+### 실패·실행·증거 경계
+
+| 명령/환경 | exit | 결과·원출력 |
+| --- | --- | --- |
+| `bash scripts/internal/verify_recording_current_observer.sh --app-observe` 비승격 |1|[status-usage-red](status-usage-red.log),fixture생성ETIMEDOUT/SIGTERM30010ms,Node30025ms,1pass/1fail,process0 |
+| 동일 명령 승격 제품RED |1|[status-usage-product-red](status-usage-product-red.log),fixture1338ms로 생성성공,9101 independent status usage FAIL,53pass/1fail,Node38193ms,process2 |
+| `./server.sh build` 메인 수행 |0|메인 직접관측,이번 원출력 미보존 |
+| 동일 앱 명령 수정후 승격GREEN |0|[status-usage-green](status-usage-green.log),73pass/0fail,Node47028ms,관측30155.139ms,process3 |
+| `node scripts/internal/verify_v410_recording_ui_contract.mjs --ui-direct` elevated PTY |0|메인 직접관측;raw/screenshot/trace 미보존 |
+
+비승격 첫 실행은 fixture 준비 실패이지 예상제품RED가 아니다. GStreamer sandbox 관련 실패로 분류하되
+원출력 자체는ETIMEDOUT/SIGTERM이며 내부 상세 원인은 확인하지 않았다. 같은30초 제한을 유지한
+승격 준비성공 뒤 실제9101 assertion 실패가 제품RED다. 최초실패를 최종PASS로 덮어쓰지 않는다.
+후속 UI는 별도 소규모 fixture이므로 API GREEN의 대용량 수치와 동일 실행이라고 합치지 않는다.
+
+### 독립 용량 oracle
+
+| 채널 | 남은 실제 원본 bytes | 역사적 총 bytes | 삭제완료 개수 | API continuous/event bytes | 결과 |
+| --- | ---: | ---: | ---: | --- | --- |
+|9101|62,855,707|468,034,566|13|62,855,707 /0|pass|
+|9201|67,010,843|472,189,702|13|67,010,843 /0|pass|
+
+GREEN의 `[status-usage]` 행은 physicalFilesChecked=true다. 삭제된13개를 현재량에서 제외하고
+현재 남은 파일과 원장 예상량/API를 일치시켰다. 30초 관측 phase의deleted12와 재기동뒤 usage의deleted13은
+시점이 다르므로 같은 시점 개수로 혼동하지 않는다. 장시간 자원/성능 PASS는 아니다.
+
+### 실제 브라우저 집중 대조
+
+메인이 IAB 임시탭의 `http://127.0.0.1:63025/ops/events` AX에서 상태문자열을 직접 읽고,
+같은 격리 서버의 `GET /ops/api/recordings/status` HTTP200과 대조했다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| O11-UI ch1 상시 | AX1,192,771B = API continuous1,192,771B | pass |
+| O11-UI ch1 이벤트 | AX77,038B = API event77,038B | pass |
+| O11-UI ch2 상시 | AX0B = API continuous0B | pass |
+| O11-UI ch2 이벤트 | AX0B = API event0B | pass |
+| O11-UI GET | 같은 격리 API HTTP200,위 값 exact 일치 | pass |
+| O11-UI cleanup | 임시탭닫음·서버종료·RTSP63024/HTTP63025 closed·root삭제 | pass |
+
+이 표는 메인 직접관측 보고이며 문서담당의 재실행/직접 브라우저 확인이 아니다.
+screenshot/trace/raw 미보존으로 전체 시각품질·동작·정책 적격성을 증명하지 않는다.
+**UI full424 PASS가 아닌 집중 표시 대조**다.
+
+### 원출력 개별 결과
+
+3로그의 실제 assertion1+53+73=127pass와2fail을 아래129행으로 대조했다.
+제품RED 뒤 9201 usage 등 후속 검사는 그 실행에서 미실행이고GREEN에서만 인정한다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| status-usage-red.log #1 | LP26-O05 fixed current executable ([raw](status-usage-red.log)) | pass |
+| status-usage-red.log #2 | current observation: LP26-O05 original bounded retention fixture ([raw](status-usage-red.log)) | fail |
+| status-usage-product-red.log #1 | LP26-O05 fixed current executable ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #2 | LP26-O05 original bounded retention fixture ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #3 | LP26-O05 distinct canonical sources ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #4 | LP26-O05 isolated server healthy ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #5 | LP26-O05 independent initial channels ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #6 | LP26-O05 active 9101 ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #7 | LP26-O05 active 9201 ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #8 | LP26-O05 active 9101 ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #9 | LP26-O05 active 9201 ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #10 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #11 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #12 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #13 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #14 | LP26-O05 active 9101 ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #15 | LP26-O05 active 9201 ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #16 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #17 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #18 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #19 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #20 | LP26-O05 active 9101 ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #21 | LP26-O05 active 9201 ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #22 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #23 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #24 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #25 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #26 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #27 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #28 | LP26-O05 active 9101 ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #29 | LP26-O05 active 9201 ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #30 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #31 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #32 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #33 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #34 | LP26-O05 active 9101 ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #35 | LP26-O05 active 9201 ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #36 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #37 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #38 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #39 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #40 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #41 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #42 | LP26-O04 sample coverage ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #43 | LP26-O05 both channels retained and progressed ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #44 | LP26-O05 setting 9101 false ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #45 | LP26-O05 setting 9201 false ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #46 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #47 | LP26-O03 deleted media absent ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #48 | LP26-O02 closed journal no partial tail ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #49 | LP26-O05 stopped copy native catalog recovery ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #50 | LP26-O05 native surviving and deleted states ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #51 | LP26-O05 original journal bytes unchanged ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #52 | LP26-O05 recovery copy cleanup ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #53 | LP26-O05 isolated server healthy ([raw](status-usage-product-red.log)) | pass |
+| status-usage-product-red.log #54 | current observation: LP26-O11 independent status usage 9101 ([raw](status-usage-product-red.log)) | fail |
+| status-usage-green.log #1 | LP26-O05 fixed current executable ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #2 | LP26-O05 original bounded retention fixture ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #3 | LP26-O05 distinct canonical sources ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #4 | LP26-O05 isolated server healthy ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #5 | LP26-O05 independent initial channels ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #6 | LP26-O05 active 9101 ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #7 | LP26-O05 active 9201 ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #8 | LP26-O05 active 9101 ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #9 | LP26-O05 active 9201 ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #10 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #11 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #12 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #13 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #14 | LP26-O05 active 9101 ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #15 | LP26-O05 active 9201 ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #16 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #17 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #18 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #19 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #20 | LP26-O05 active 9101 ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #21 | LP26-O05 active 9201 ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #22 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #23 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #24 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #25 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #26 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #27 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #28 | LP26-O05 active 9101 ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #29 | LP26-O05 active 9201 ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #30 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #31 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #32 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #33 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #34 | LP26-O05 active 9101 ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #35 | LP26-O05 active 9201 ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #36 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #37 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #38 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #39 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #40 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #41 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #42 | LP26-O04 sample coverage ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #43 | LP26-O05 both channels retained and progressed ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #44 | LP26-O05 setting 9101 false ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #45 | LP26-O05 setting 9201 false ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #46 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #47 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #48 | LP26-O02 closed journal no partial tail ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #49 | LP26-O05 stopped copy native catalog recovery ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #50 | LP26-O05 native surviving and deleted states ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #51 | LP26-O05 original journal bytes unchanged ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #52 | LP26-O05 recovery copy cleanup ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #53 | LP26-O05 isolated server healthy ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #54 | LP26-O11 independent status usage 9101 ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #55 | LP26-O11 independent status usage 9201 ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #56 | LP26-O05 disabled restart ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #57 | LP26-O05 stopped copy native catalog recovery ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #58 | LP26-O05 native surviving and deleted states ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #59 | LP26-O05 original journal bytes unchanged ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #60 | LP26-O05 recovery copy cleanup ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #61 | LP26-O05 restart exact catalog media state ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #62 | LP26-O05 isolated server healthy ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #63 | LP26-O05 setting 9101 true ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #64 | LP26-O05 setting 9201 true ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #65 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #66 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #67 | LP26-O05 reenabled recording after restart ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #68 | LP26-O03 deleted media absent ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #69 | LP26-O02 final restart closed journal no partial tail ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #70 | LP26-O05 stopped copy native catalog recovery ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #71 | LP26-O05 native surviving and deleted states ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #72 | LP26-O05 original journal bytes unchanged ([raw](status-usage-green.log)) | pass |
+| status-usage-green.log #73 | LP26-O05 recovery copy cleanup ([raw](status-usage-green.log)) | pass |
+
+### 정리·보존
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-ssh599` |격리 app소유root|6019579B|자식종료 뒤 삭제|absent=true|[raw](status-usage-red.log)|
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-Bi5Eb4` |격리 app소유root|265074108B|자식종료 뒤 삭제|absent=true|[raw](status-usage-product-red.log)|
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-current-observer-7X3Rr3` |격리 app소유root|291199559B|자식종료 뒤 삭제|absent=true|[raw](status-usage-green.log)|
+| `/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-v410-s06-vxz6tD` |UI 격리root|6,268,038B|서버종료 뒤삭제|absent=true,63024/63025 closed|메인 직접관측,raw미보존 |
+| status-usage-*.log3개 |비민감 실패/성공 요약|94128B|저장소 보존|보존|최초실패/제품RED/GREEN/cleanup 감사 |
+
+제품RED의process2·GREEN의process3 모두processesClosed=true/udpClosed=true다.
+raw 원문영상·private stderr·임시계정은 root와 함께 제거됐으며 보존 로그는 안전요약이다.
+token start/end/consumed는미집계(하위작업 집계없음),elapsed는 위 Node/fixture 실제summary 기준이다.
+UI/build의 정확한elapsed·token은 미집계, source는메인 직접관측이다.
+
+### 미실행/증거 유효 범위
+
+| 제목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| 환경실패뒤 앱검사 |첫 실행 실제 API/녹화|fixture 준비 실패|제품 정상/비정상 판정 아님 |
+| 제품RED뒤 후속검사 |9201 usage·재활성화 등|9101 실패에서 중단|GREEN 재실행 결과만 사용 |
+| 실제 누적1020 HTTP/전체통합 |장시간보존과 병행 상태부하|4번 잔여|이번소규모 focused로 대체불가 |
+|30분/120분|최종장시간실행|이번3번범위밖|30초 준비는30분/120분이 아님 |
+|UI full424/시각품질|전수 control/action·screenshot/trace|미실행/미보존|집중 AX값 대조와 다름 |
+
+기존 잘못된 상태용량을 전제로 한 제품증거는 수정후 상태량 검증을 대체할 수 없다.
+기존저장/복구 원출력은 역사적 근거로 유지하되 신규 제품변경의 전체통합PASS로 확대하지 않는다.
+기록담당은 문서만 수정했고제품/검증기/로그를 수정하거나실험을재실행하지 않았다. 커밋/푸시 미수행.
+
+### O11 문서 마감 결과
+
+`./server.sh verify-docs-links` exit0(318md/12202links/176anchors/22images/fail0),
+`./server.sh verify-docs-ui-assets` exit0(10/10), `git diff --check` exit0.
+도구 wall 합계0.093초,전용token미집계. 임시root/childserver/port 생성 없음.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| O11 docs links | local links/anchors 전수, O11 상세 anchor 포함 | pass |
+| O11 assets1 | README 대표 제품 screenshot | pass |
+| O11 assets2 | 영문 README 영문 screenshot | pass |
+| O11 assets3 | UI guide 공용 제품 asset | pass |
+| O11 assets4 | UI asset capture 정책 | pass |
+| O11 assets5 | managed manifest 완결성 | pass |
+| O11 assets6 | capture script 소유 asset | pass |
+| O11 assets7 | 현재 screenshot capture coverage | pass |
+| O11 assets8 | stale visual baseline 링크 부재 | pass |
+| O11 assets9 | managed PNG 존재 | pass |
+| O11 assets10 | VA full video frame bounds | pass |
+| O11 diffcheck | git diff --check | pass |

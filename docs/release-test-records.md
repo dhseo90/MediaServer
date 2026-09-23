@@ -1,5 +1,32 @@
 # Release Test Records
 
+## v4.1.0 S11 LP26-O11 상태 용량 집계
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP26-O11-01 | 실제 녹화 상태 용량 대조 | 격리 앱의 재기동 후 안정 상태에서 원장 정상/삭제 원본과 실제 파일 크기를 독립 합산하고 채널별 상태 API의 상시·이벤트 bytes와 비교. 삭제 원본은 총량에서 빠져야 함 | v4.1.0 |
+| LP26-O11-02 | 화면 반영 경계 | `/ops/events`의 상태 문자열이 API 수치를 표시하는지 실제 화면에서 확인; API-only 증거로 UI PASS 처리 금지 | v4.1.0 |
+
+결과는 상태용량 API 집중검사와 실제 화면 표시 대조까지다. 제품 변경은
+`src/application/media_server_application.cpp`의 RetentionCandidate Channel/Class/Size 접근자 적용이며
+기존 공개 JSON/UI 문자열·quota·포화합산 정책을 유지한다.
+[O11 독립 상세·raw 전수·cleanup](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/results.md#lp26-o11-상태-용량-집계-독립-기록)을 따른다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| O11 fixture 준비 최초 | 비승격 sandbox GStreamer 생성30초 SIGTERM,exit1,1pass/1fail;예상제품 RED 아님 | fail |
+| O11 제품 RED | 승격 동일fixture1.338초 성공 뒤9101 independent status usage assertion 실패,exit1,53pass/1fail | fail |
+| O11 수정/build | 후보 Channel/Class/Size 적용,./server.sh build exit0 메인관측(raw미보존) | pass |
+| O11 API GREEN | 승격 앱73/73 exit0,9101 현재62855707B/이벤트0,9201 현재67010843B/이벤트0,실제파일 대조·삭제각13제외 | pass |
+| O11 집중 UI | IAB /ops/events AX와 같은 격리 API GET200 대조,ch1 1192771/77038B,ch2 0/0B;메인직접관측 | pass |
+| O11 cleanup | API실행root3개 absent,UI별도root absent/63024·63025 closed/임시탭닫음 | pass |
+
+UI verifier `node scripts/internal/verify_v410_recording_ui_contract.mjs --ui-direct`는 elevated PTY exit0이나
+raw/screenshot/trace 미보존이다. 직접표시 관측만 인정하며 UI full424 PASS가 아니다.
+30분/120분/누적1020 동시부하/전체통합은 미실행·4번 잔여이고 이번30초 준비로 대체하지 않는다.
+문서 마감은 verify-docs-links·verify-docs-ui-assets·git diff --check만 사전등록해 실행한다.
+실제 문서마감 결과: links318md/12202local links/176anchors·실패0,assets10/10,diffcheck 모두exit0.
+
 ## v4.1.0 S11 LP26-O10 격리 누적 선행 진단
 
 ### LP26-O10 stage2 bounded focused 최종 결과

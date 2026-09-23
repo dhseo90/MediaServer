@@ -1,5 +1,21 @@
 # Project Feature Test Inventory
 
+## LP26-O11 상태 용량 집계 대조 (3번)
+
+실행 전 범위: 현재 보존 후보의 채널·등급·크기로 상태 API를 집계한다. 기존 v1/v2
+보존 후보 접근자를 사용하고 공개 JSON 이름·UI 문자열·quota 정책은 바꾸지 않는다.
+안정화: 실제 앱 격리 실행에서 확정된 녹화 파일 크기·삭제 원장 상태를 독립 예상값으로
+합산하여 재기동 뒤 `/ops/api/recordings/status`와 대조한다. 삭제된 영상은 합계에서
+빠져 역사적 총량보다 감소해야 한다. 30분/120분: 이번 집중검사에서는 미실행;
+UI: 현재 `/ops/events`의 상태 문자열이 같은 API 값을 표시하는지 후속 실제 화면에서 대조한다.
+API-focused 통과를 실제 UI 풀테스트 PASS로 사용하지 않는다.
+
+실제 결과: 비승격 fixture30초 timeout(환경 실패)→승격 실행의9101 API 용량 assertion FAIL→
+RetentionCandidate Channel/Class/Size 접근자 보완 뒤73/73·exit0. 실제파일/원장과 API 용량 일치,
+삭제13개씩은 현재 사용량에서 제외됐다. IAB `/ops/events` AX와 동일 격리서버 API200의 채널별
+상시/이벤트 값도 직접 대조했다. screenshot/trace 미보존으로 집중표시 확인에 한정하며 UI full424 PASS는 아니다.
+[개별 실패/성공·cleanup](release-test-records.md#v410-s11-lp26-o11-상태-용량-집계)을 따른다.
+
 ## LP26-O10 격리 누적 선행 진단 사전등록
 
 LP26-O10-G01 관측 cadence 보완: 표본 `phaseAt` 기준5초 start-to-start 목표에서

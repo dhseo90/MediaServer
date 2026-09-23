@@ -78,6 +78,29 @@ async function sample(app){const begin=performance.now();let metricsMs=null,drai
   }finally{console.log('[sample-timing] '+JSON.stringify({sampleIndex:samples.length,metricsMs,drainMs,storageMs,totalMs:performance.now()-begin}));}
 }
 function fileHash(file){const h=crypto.createHash('sha256'),fd=fs.openSync(file,fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW);try{const chunk=Buffer.alloc(65536);let n;while((n=fs.readSync(fd,chunk,0,chunk.length,null)))h.update(chunk.subarray(0,n));return h.digest('hex');}finally{fs.closeSync(fd);}}
+function verifyStatusUsage(status){
+  const mediaRoot=path.join(root,'recordings'),expected=new Map(['9101','9201'].map(id=>[id,{alive:0n,history:0n,deleted:0}]));
+  for(const record of progress.records.values()){
+    const usage=expected.get(record.channel);if(!usage)continue;
+    const bytes=BigInt(record.sizeBytes);usage.history+=bytes;
+    const file=path.resolve(mediaRoot,record.mediaRelpath);
+    if(!file.startsWith(mediaRoot+path.sep))throw Error('status-media-containment');
+    if(record.state==='deleted'){
+      usage.deleted++;if(fs.existsSync(file))throw Error('status-deleted-media-present');continue;
+    }
+    if(record.state!=='finalized')throw Error('status-unsettled-segment');
+    const stat=fs.lstatSync(file,{bigint:true});
+    if(!stat.isFile()||stat.isSymbolicLink()||stat.nlink!==1n||stat.size!==bytes)throw Error('status-physical-size-mismatch');
+    usage.alive+=bytes;
+  }
+  for(const [id,usage] of expected){
+    const rows=status.channels?.filter(channel=>channel.channelId===id),row=rows?.[0];
+    console.log('[status-usage] '+JSON.stringify({channelId:id,aliveBytes:String(usage.alive),historicalBytes:String(usage.history),deleted:usage.deleted,
+      apiContinuousBytes:row?.continuousBytes??null,apiEventBytes:row?.eventBytes??null,physicalFilesChecked:true}));
+    check(rows?.length===1&&Number.isSafeInteger(row.continuousBytes)&&row.continuousBytes===Number(usage.alive)&&
+      row.eventBytes===0&&usage.deleted>0&&usage.history>usage.alive,'LP26-O11 independent status usage '+id);
+  }
+}
 function snapshot(){
   if(processes.some(p=>!p.result?.archiveSafe))throw Error('snapshot-live-owner');
   const original=path.join(root,'recordings'),file=path.join(original,'recording-v2-mutations.jsonl'),before=fileHash(file);
@@ -127,6 +150,7 @@ try{
   summary=summarizeCurrentSamples(samples);observationStart=null;progress.setActive(performance.now(),false);await settings(first,false);await stop(first);
   const tail=drain(performance.now());check(closedJournalComplete(tail),'LP26-O02 closed journal no partial tail');const before=snapshot();
   const second=await launch(stun);const s=await request(second,'GET','/ops/api/recordings/status');
+  verifyStatusUsage(s);
   console.log('[channel-observation] '+JSON.stringify({expectedIds,channels:s.channels?.map(c=>({id:c.channelId,enabled:c.enabled,active:c.active}))}));
   check(disabledChannelsExact(s,expectedIds),'LP26-O05 disabled restart');
   await stop(second);const after=snapshot();check(JSON.stringify(before)===JSON.stringify(after),'LP26-O05 restart exact catalog media state');
