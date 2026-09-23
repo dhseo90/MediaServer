@@ -1,0 +1,26 @@
+{
+  "mode": "--http",
+  "root": "/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-hw-media-ejKt3c",
+  "owned": [
+    "/private/tmp/media-server-hw-media-ejKt3c-http_local_h264_aac.http.log",
+    "/private/tmp/media-server-hw-media-ejKt3c-http_local_h264_video_only.http.log"
+  ],
+  "commands": [
+    {
+      "command": "verify-codecs",
+      "code": 0,
+      "signal": null,
+      "spawnError": false,
+      "bounded": true,
+      "timedOut": false,
+      "elapsedMs": 24562,
+      "pass": 8,
+      "fail": 0,
+      "skip": 0,
+      "rawSha256": "6339dcfa3f29a5d9c9c9dfa10dd505c88e0e8f33d5b2256b49beb841916a6808",
+      "rawBytes": 2124
+    }
+  ],
+  "cleanupReady": true,
+  "exit": 0
+}

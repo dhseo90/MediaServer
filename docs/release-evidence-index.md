@@ -1,5 +1,29 @@
 # Release Evidence Index
 
+- [S11 녹화 장시간 저장량·입력 생성 진단](release-artifacts/v4.1.0/s11-recording-ui-20260923/recording-root-diagnostic.md):
+  범주별 계측 자체검사 5/5·입력 진단 7/7·짧은 실제 앱 71/71을 확인했다.
+  120분 1차의 격리 root 상한 FAIL과 제품 저장 수명 계약 미해결은 그대로다.
+
+- [S11-I30 이벤트 MP4 수정 후 재검증](release-artifacts/v4.1.0/s11-recording-ui-20260923/i30-mp4-revalidation.md):
+  관리형 파생 녹화의 관련 단기·HTTP 인증/Range와 실제 브라우저 이벤트 우선 두 출력 재생을 확인했다.
+  수정 전 TS 실패는 아래 이력으로 보존한다. 새 화면 screenshot/trace 영속 파일이 없어 전체 UI Policy 적격·
+  릴리즈 PASS는 아직 아니다. 수정 후 30분은 별도 실제 실행으로 109 PASS·0 FAIL이며
+  [전수 결과](release-artifacts/v4.1.0/s11-recording-ui-20260923/predev-30-summary.json)를 보존했다.
+  [공통 120분 첫 실행 중단](release-artifacts/v4.1.0/s11-recording-ui-20260923/common-120-attempt1.md)은
+  통합 미디어 smoke의 무음 HTTP `/h264` RTSP probe 시간초과로 120분 반복에 들어가지 못한 별도 FAIL 이력이다.
+  [공통 120분 재실행·정리](release-artifacts/v4.1.0/s11-recording-ui-20260923/common-120-pass.md)와
+  [전수 요약](release-artifacts/v4.1.0/s11-recording-ui-20260923/predev-120-pass-summary.json)은
+  동일 기준에서 80회·409 PASS·0 FAIL·외부 TURN 1건 제외로 통과했다. 최초 시간초과 원인은 미확정이며
+  녹화 전용 120분과 새 화면 전체 적격을 대체하지 않는다.
+  [녹화 전용 120분 1차 실패](release-artifacts/v4.1.0/s11-recording-ui-20260923/recording-120-attempt1.md)는
+  약 37분 38초에 격리 root 상한으로 중단됐다. 삭제·정리 성공과 120분 PASS는 구분한다.
+
+- [S11 수정 전 녹화 UI 직접 검증과 실패 이력](release-artifacts/v4.1.0/s11-recording-ui-20260923/README.md):
+  8개 ID·31개 action 중 30 PASS·1 FAIL. I31 공백 오인 재생은 수정 후 재검증했고,
+  이벤트 우선 선택 영상의 Chrome 실제 재생 I30이 FAIL이다. 별도 브라우저 미디어 8/8은
+  [구조화 요약](release-artifacts/v4.1.0/s11-recording-ui-20260923/browser-media-summary.json)에 보존했다.
+  공통·녹화 120분은 미실행이며 전체432 UI·S11·릴리즈 PASS가 아니다.
+
 - [LP31 최신 실제 UI 보존·개별 결과](release-artifacts/v4.1.0/s11-preparation-mapping/lp31-ui-final-items.md):
   source8fa98a99의 baseline424/424·시각80·Policy 적격 PASS, 전체4,565파일 압축·복원 일치.
   직전 Policy 실패는 별도 보존. 녹화UI8개/31조작·브라우저미디어·공통/녹화120분은 잔여다.

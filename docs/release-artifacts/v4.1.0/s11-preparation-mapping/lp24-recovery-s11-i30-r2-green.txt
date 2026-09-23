@@ -1,0 +1,66 @@
+{"kind":"preflight","mode":"green","id":"lp24-recovery-s11-i30-r2","suite":"initial","plan":["compile","focused"],"source":[{"file":"include/recording/recording_catalog.h","sha256":"e077d5c98ae5cad3197e94c91d28129cf876076c781d8f9a37bf5bf80b0269d7"},{"file":"include/recording/recording_journal.h","sha256":"44f054c5a725af079caf4a68fd7eb4f44c4b61264673639f22d17b8eeb7c35b5"},{"file":"include/recording/recording_read_service.h","sha256":"d734267d8a83851d45f188467c22c1f3f3319b5adb87d2de1bc3075738dc2d90"},{"file":"src/recording/recording_catalog.cpp","sha256":"703a4696297447335befd30f555c2fa2ee52e6e60349bfbb8613117ec041f378"},{"file":"src/recording/recording_read_service.cpp","sha256":"c37210ae7c0f363420c0924f6c4cd67872d776936af8a11275ffcd044f334f4c"},{"file":"src/recording/recording_timeline_projection.cpp","sha256":"7b2085dbd356a7617b780d6dd6f565172b4fa0778606782859ba0bbe4db0331c"},{"file":"src/recording/recording_derived_job_ready.cpp","sha256":"a004836054fccb266884b00df06b06316050a7ae164d7e79ebdae835738479e9"},{"file":"src/recording/recording_derived_job_context.h","sha256":"e6711094671a581428a405c930fe3cdf2558ea0cd86ba222249984dd672785f8"},{"file":"scripts/internal/recording_recovery_content_smoke.cpp","sha256":"f20f2616be609935d8c85efccd4b55316abe95a5a3069a73221c3c1811f807dd"},{"file":"scripts/internal/recording_recovery_content_counter.h","sha256":"54dad3ca8f7cf89a6d3576c5149f05c129c5302cc890d8fdf53d9d8ff854b1ba"},{"file":"scripts/internal/recording_recovery_content.test.mjs","sha256":"27d6ecfa380bea38d4b4f8e7f9b460798c37484ac6e2756b5c51482cb21e5261"},{"file":"scripts/internal/verify_recording_recovery_content.mjs","sha256":"3f0fad9d455f2e163519303f5d1ef0fb313bef8cd97e4c6a3e068dff6fd6361c"},{"file":"scripts/internal/recording_public_media_smoke.cpp","sha256":"d50d4ee0a44e7193a8381a100da0e04f0ca83deec243713e03e160e8d2e7872e"},{"file":"scripts/internal/recording_checkpoint_reproduction_smoke.cpp","sha256":"e1f92fc601fb1e897168e3944cd353e3c22f2b31c76b7af60e6bc9e2b3a3072c"},{"file":"scripts/internal/recording_media_test_fixture.h","sha256":"404784ececbb74556fa2e32975f879e2632a96311bc7ed0e41bce069d167b8a6"},{"file":"scripts/internal/recording_catalog_comparison_guard.mjs","sha256":"f54db6d13c1b1d8018ccfd14ce8ea824f5530164ebb9179fa6db1e568850eae4"},{"file":"scripts/internal/env_common.sh","sha256":"4ebe528dd90c10cc340211e77de9746df78fa4fd599cb3b01289ebf6ccadd3d8"}],"limits":{"compileSeconds":60,"focusedSeconds":60,"realisticRecoverySeconds":15,"rss":1073741824,"disk":536870912,"output":2097152},"notRun":11}
+{"kind":"build-fingerprint","archiveSha256":"8b96921f8487f5010c2c4a02a41fbb556ded42702958a19598c95bb07d3bba17","archiveMtimeMs":1790124208361.566,"linkSha256":"1e2b4ed6e612a927e5965049634799ea546a0869f9d8ecaf7badfba666541c7d","flagsSha256":"035cb1549ab5df42717fc63eb0bfad495b5aca0649824b982086dc2c278e0ca2","serverSha256":"beca63166d0db227adbac8036149947b22516127d5d213b02f231046f9c9a35e","platform":"darwin","arch":"arm64","node":"v24.13.0"}
+{"kind":"copy","file":"recording_catalog.cpp","insertions":5,"originalSha256":"703a4696297447335befd30f555c2fa2ee52e6e60349bfbb8613117ec041f378","instrumentedSha256":"a4444c93f7d6c27286626a7aab566ec839ad8295ee9d5696af8fbffbda801836"}
+{"kind":"copy","file":"recording_read_service.cpp","insertions":0,"originalSha256":"c37210ae7c0f363420c0924f6c4cd67872d776936af8a11275ffcd044f334f4c","instrumentedSha256":"c37210ae7c0f363420c0924f6c4cd67872d776936af8a11275ffcd044f334f4c"}
+{"kind":"copy","file":"recording_timeline_projection.cpp","insertions":0,"originalSha256":"7b2085dbd356a7617b780d6dd6f565172b4fa0778606782859ba0bbe4db0331c","instrumentedSha256":"7b2085dbd356a7617b780d6dd6f565172b4fa0778606782859ba0bbe4db0331c"}
+{"kind":"copy","file":"recording_derived_job_ready.cpp","insertions":2,"originalSha256":"a004836054fccb266884b00df06b06316050a7ae164d7e79ebdae835738479e9","instrumentedSha256":"958cf415de166e80e62d5404d9c38854dbee3c0a9d20196ed547f4cf22e5fff1"}
+{"kind":"command","name":"compile","command":"c++","args":["-std=c++17","-Wall","-Wextra","-Werror","-pthread","-DMEDIA_SERVER_USE_GSTREAMER=1","-DMEDIA_SERVER_USE_OPENSSL=1","-DMEDIA_SERVER_USE_SQLITE3=1","-I/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.3IrzHG/include","-I/Users/dhseo/Workspace/mediaServer/include","-I/Users/dhseo/Workspace/mediaServer/src/recording","-I/Users/dhseo/Workspace/mediaServer/scripts/internal","-include","/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_recovery_content_counter.h","-I/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0","-I/opt/homebrew/Cellar/glib/2.86.4/include","-I/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi","-I/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0","-I/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include","-I/opt/homebrew/opt/gettext/include","-I/opt/homebrew/Cellar/pcre2/10.47_1/include","-I/opt/homebrew/Cellar/openssl@3/3.6.2/include","-DLP24_RECOVERY_CONTENT=1","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.3IrzHG/recording_catalog.cpp","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.3IrzHG/recording_read_service.cpp","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.3IrzHG/recording_timeline_projection.cpp","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.3IrzHG/recording_derived_job_ready.cpp","/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_recovery_content_smoke.cpp","/Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib","/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib","/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib","/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib","/opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib","/opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib","/opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib","/opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib","/opt/homebrew/opt/gettext/lib/libintl.dylib","/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd","/opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib","/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib","/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib","/opt/homebrew/lib/libonnxruntime.dylib","-o","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.3IrzHG/check"]}
+
+        4.07 real         3.86 user         0.24 sys
+           322813952  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               85694  page reclaims
+                 813  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   7  voluntary context switches
+                3557  involuntary context switches
+           110091751  instructions retired
+            49607824  cycles elapsed
+             3211624  peak memory footprint
+
+{"kind":"phase","name":"compile","expected":true,"code":0,"signal":null,"stopReason":null,"groupClean":true,"groupPeakRssBytes":333381632,"observationFailure":null,"outputBytes":777,"elapsedMs":4089}
+{"kind":"focused-binary","sha256":"0dcaee0c08cdde94238ca68ec124de6056f6a87183ad1e18f1e402edb6484446","bytes":7394200}
+{"kind":"command","name":"focused","command":"/bin/bash","args":["-c","set -euo pipefail; source \"$1\"; export MEDIA_SERVER_GST_CACHE_DIR=\"$2/gst-cache\" MEDIA_SERVER_GST_PLUGIN_PROFILE=headless GST_REGISTRY=\"$2/registry.bin\" GST_REGISTRY_1_0=\"$2/registry.bin\"; unset GST_PLUGIN_PATH GST_PLUGIN_PATH_1_0 GST_PLUGIN_SYSTEM_PATH GST_PLUGIN_SYSTEM_PATH_1_0 MEDIA_SERVER_GST_MANAGED_REGISTRY MEDIA_SERVER_GST_MANAGED_PLUGIN_PATH MEDIA_SERVER_GST_INPUT_PLUGIN_PATH; media_server_apply_homebrew_gst_env; shift 3; exec \"$@\"","recovery-content","/Users/dhseo/Workspace/mediaServer/scripts/internal/env_common.sh","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.3IrzHG","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.3IrzHG/check","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.3IrzHG/check","/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.3IrzHG"]}
+[recovery-small-shape] {"state":"complete","verifiedOutput":true,"outputs":2,"requestFullySatisfied":true,"unfulfilled":0}
+[pass] recovery first preflight retains strict content validation
+[pass] recovery actual apply reuses validated content and preserves transitions
+[pass] recovery sqlite preflight and projection reuse exact validated content
+[pass] recovery sqlite and jsonl return identical public values and durable bytes
+[pass] recovery new open performs fresh strict validation
+[recovery-count] {"jobMutations":6,"firstPreflightParses":6,"actualApplyParses":0,"rebuildPreflightParses":0,"projectionParses":0,"projectionSerializes":0}
+[recovery-cost] {"openUs":52911,"firstPreflightSerializes":0,"actualApplySerializes":0,"rebuildPreflightSerializes":0,"projectionSerializes":0,"realisticFixture":false}
+[not-run] private recovery counterexamples and realistic fifteen-second fixture: 11
+[summary] pass=5 fail=0
+
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+[recording] file evidence unavailable: file evidence profile/bound 오류
+        2.15 real         1.46 user         0.18 sys
+           157368320  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               72258  page reclaims
+                  89  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                 103  messages sent
+                  93  messages received
+                   0  signals received
+                 140  voluntary context switches
+                2408  involuntary context switches
+         10002103572  instructions retired
+          2296772048  cycles elapsed
+            34390808  peak memory footprint
+
+{"kind":"phase","name":"focused","expected":true,"code":0,"signal":null,"stopReason":null,"groupClean":true,"groupPeakRssBytes":194969600,"observationFailure":null,"outputBytes":1919,"elapsedMs":2167}
+{"kind":"source-check","unchanged":true}
+{"kind":"cleanup","bytes":9759404,"removed":true}
