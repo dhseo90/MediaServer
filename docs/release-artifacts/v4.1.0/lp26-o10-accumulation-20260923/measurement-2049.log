@@ -1,0 +1,37 @@
+4f39b2f6cf5e31c78f55e3291ade962e2b653f84
+Darwin arm64
+Apple clang version 21.0.0 (clang-2100.3.34.2)
+Target: arm64-apple-darwin27.0.0
+Thread model: posix
+InstalledDir: /Library/Developer/CommandLineTools/usr/bin
+1.28.1
+3.51.0
+3.6.2
+df79621f6ff235945f800317cd951f1739a1fad9c0837caf2a6ea5b6cd2396dc  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_accumulation_probe.cpp
+c29aaf6e49f1ae4c5fe8555461d14d24096c4323cb4896df037a65e5f4c0974c  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_accumulation_run.mjs
+4f0fde3cf381bc0d4d545b87589e5f0c5a7ee5ea35dbdb894a90a44db5545ea5  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_accumulation_prepare.mjs
+6b6ee5472a144564b35ce7b933a5f791b9b4a7f8c8aef64f67559e3349e3cf51  /Users/dhseo/Workspace/mediaServer/scripts/internal/recording_current_observer.mjs
+[source] file=recording_catalog.cpp original_sha256=d8ff265421ae544ed41ad7ab0e7f63b1990e22d19db06b6a48f67ae296f1a649 instrumented_sha256=578450ca5b12df2fcf0c0e098e7a103274af740118f3834fc27562cdc45bdd7d
+[source] file=recording_journal.cpp original_sha256=5aee2cf6d7a8e23a3d3965f2f7d4bb8715e33462924723f6c4a17fafcae4c8ef instrumented_sha256=447d85259724b2464337933d14eefe2506aa610d9251c3acda49debd97eaf972
+[source] file=recording_contracts.cpp original_sha256=960635a08aa900bebfae961cd9e534ab6b91fbace213e1a7416227e7292ec890 instrumented_sha256=a99bc03ee76dbbd7342d06ea2db70258451d371889eacd384be541bee574e1c6
+[source] file=recording_checkpoint_validation.h original_sha256=0162fc707fb89f23e7fa251c960b4f1d87a736524cfc89c2f49163c177e9487a instrumented_sha256=92354b974d664c88be430781853811b0f67dee67813667b3bf0fca7b2204b707
+[pass] FC01 exact insertion checks count=102
+[probe-instrument] {"catalogSha256":"eb7911c830ff25368cd158e047141e0ca9d8818e863ff62e9f110b6608add8bf","exactCacheInsertion":1,"productFilesChanged":false}
+[bounded-exit] code=0 signal=none timeout=false
+[bounded-exit] code=0 signal=none timeout=false
+[bounded-exit] code=0 signal=none timeout=false
+[pass] seed FE02 writer start
+[pass] seed FE04 bound finalized mutation segment0
+[measure] writer_push_finalize_us=25056 input_aus=60 segments=1
+[fixture-shape] {"sources":2049,"records":8196,"journalBytes":38420091,"cacheChargeBytes":38526639,"expectedCacheAdmission":false,"mediaFiles":0,"samplesPerSource":60}
+[pass] LP26-O10-A02 typed segment binding tombstone serialization and seed file verification
+[probe-rss] {"stage":"generated","currentBytes":43499520,"peakBytes":43696128}
+[probe-process] {"mode":"--generate","exit":0,"signal":null,"stopped":null,"elapsedMs":3609.1351670000004,"peakObservedRssBytes":43499520,"metricsUnavailable":0,"stageLimitMs":null,"technicalCapMs":60000,"diskBytes":52440523,"parentRssBytes":67813376}
+[pass] LP26-O10-B 2049 initial exact-count-prefix
+[probe-drain] {"sources":2049,"phase":"initial","elapsedMs":11223.839291999999,"polls":2,"fresh":8196,"rotations":0,"before":{"diskBytes":52440523,"parentRssBytes":67944448},"after":{"diskBytes":52440523,"parentRssBytes":174948352},"nativeTimeoutMs":3000,"observationLimitMs":15000,"performancePass":false}
+[probe-stage] recovery begin
+[probe-process] {"mode":"--catalog","exit":null,"signal":"SIGTERM","stopped":"stage-time-cap","elapsedMs":15043.929042,"peakObservedRssBytes":333676544,"metricsUnavailable":0,"stageLimitMs":15000,"technicalCapMs":65000,"diskBytes":55913499,"parentRssBytes":195788800}
+[fail] LP26-O10 stage-time-cap
+[probe-reader-cleanup] {"readers":1,"closed":true,"elapsedMs":29882.0485,"diskBytes":55913499,"parentRssBytes":196427776}
+[cleanup] {"root":"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-catalog-cost.QyQTUO","bytes":55913499,"absent":true}
+[exit] code=1 elapsed_seconds=38 source=bash-SECONDS token_usage=unavailable

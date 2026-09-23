@@ -1,5 +1,22 @@
 # Project Feature Test Inventory
 
+## LP26-O10 격리 누적 선행 진단 사전등록
+
+제품 기능 추가가 아닌 synthetic 관측이다. 기존 serializer로 ID/order/segment/binding/tombstone을 다시 결박한다.
+정의·실제 결과는 [중앙 기록](release-test-records.md#v410-s11-lp26-o10-격리-누적-선행-진단)을 따른다.
+
+| ID | 확인 항목 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| LP26-O10-A | 작은16·실패근접1020·record초과2049 원본의4N행 독립 oracle | 새 fixture unit/실제 strict Open | 미실행 | 미실행 | 비대상 |
+| LP26-O10-B | 관측 전체 drain·native3초·교체 prefix 재검증 | 각 규모 단회 측정 | 미실행 | 미실행 | 비대상 |
+| LP26-O10-C | checkpoint wait/hold·cache admission/reuse/full fallback·cold binding | 소유 코드복제본 숫자계측 | 미실행 | 미실행 | 비대상 |
+| LP26-O10-D | 64MiB·8192 exact/plus1 | 메모리 내 입장경계 검사, 저장 성공과 분리 | 미실행 | 미실행 | 비대상 |
+| LP26-O10-E | RSS·디스크·손상·정리 | 소유root448MiB·프로세스1GiB·출력4MiB 및 시간제한 | 미실행 | 미실행 | 비대상 |
+
+선행진단 결과: small16와1020은 명시된 strict/count/cache/rotation oracle 통과,
+2049는 initial8196행 관측 후 독립 recovery15초 FAIL이다. 뒤 단계는 미실행이며 제품 해결로 표기하지 않는다.
+[결과·실패 이력·정리](release-test-records.md#lp26-o10-선행-진단-결과)를 참조한다.
+
 ## LP26-O09 누적 규모 진단·조기 실패 사전등록
 
 검증 전용이며 제품 기능 총계에 합산하지 않는다. UI는 비대상(UI 없어야 정상).

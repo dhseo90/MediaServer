@@ -1,5 +1,83 @@
 # Release Test Records
 
+## v4.1.0 S11 LP26-O10 격리 누적 선행 진단
+
+독자: S11 원인 분석 담당자. lifecycle: 선행진단 단회 실행/실패를 보존한다. 정책은 AGENTS.md다.
+시작 기준 HEAD dccd425f, v4.1.0 clean을 직접 확인했다. 제품 코드는 수정하지 않는다.
+실행 준비 중 메인 담당이 LP15 계측 wrapper 호환 보완을 별도 커밋한 HEAD 4f39b2f6을 측정 provenance로 사용한다.
+해당 호환 검사의 최초 sysctl 실패→getrusage-self 보완→기능46/46·peak179,994,624bytes·exit0·cleanup 근거는
+[LP26-O09 결과 추가기록](release-artifacts/v4.1.0/lp26-o09-diagnostics-20260923/results.md)에 보존돼 있다.
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 | 진행 대상 | 잔여2번의 bounded synthetic 선행진단 | LP26-O10-A~E | 관련 단기 승인 |
+| 30분 | 미진행 | 이번 선행진단 범위 밖 | LP26-O10 | 미실행 |
+| 120분 | 미진행 | 이번 선행진단 범위 밖 | LP26-O10 | 미실행 |
+| UI | 미진행 | UI 변경/제품 브라우저 없음 | LP26-O10 | 미실행 |
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP26-O10-A01 | 독립 규모 정의 |16/1020/2049 원본마다 reserve·bound·pending·deleted 각1건, 총64/4080/8196행. 제품 실측4071행과의9행 차이 공개 | v4.1.0 |
+| LP26-O10-A02 | binding/tombstone 재결박 | 실제60 AU writer 원본에서 각 segment/binding ID와 order를 typed struct로 갱신, serializer와 strict catalog Open/count가 독립 oracle | v4.1.0 |
+| LP26-O10-B01 | drain 전체시간 | 현행 CurrentRecordingObserver 원출력 prefix/count/type 대조, 전체wall 및 RSS/디스크 측정. native 호출3초 유지 | v4.1.0 |
+| LP26-O10-B02 | inode교체 후 재읽기 | 실제 checkpoint 교체 또는 동일bytes 소유 복사본 inode교체 후 동일 identity prefix·fresh0·회전1 이상 확인 | v4.1.0 |
+| LP26-O10-C01 | catalog 비용 | 소유 복제본 fc 계측의 wait/hold·checkpoint nested inclusive/exclusive·원본행/재사용prefix 숫자 분리 | v4.1.0 |
+| LP26-O10-C02 | cold·cache | 비활성 binding resident 수·테스트전용 cold획득·두 checkpoint cache입장/재사용/fallback 대조 | v4.1.0 |
+| LP26-O10-D01 | 입장 경계 |8192/8193행,64MiB/64MiB+1 논리charge 검증. 큰 유효저장 fixture 성공과 혼동 금지 | v4.1.0 |
+| LP26-O10-E01 | 실패·자원·손상 | 원문 payload 비노출, 마지막 손상행 normalize거부, root448MiB·각프로세스1GiB·출력4MiB·compile60초/generate60초/catalog 단계별15초·정리용 전체65초 제한 | v4.1.0 |
+| LP26-O10-E02 | cleanup | 종료확인 뒤 소유 root 종류/크기·필요 로그 보존·삭제·부재 확인 | v4.1.0 |
+
+예상 RED는 새 fixture 계획/판정 helper 미존재 assertion이다. 새 도구의 불변식은 정확한4N행과 삭제N,
+strict Open zero recovery errors, cache 허용 시 두번째 originalApplied=0/초과 시 full,
+관측 교체 fresh0/동일prefix이다. 시간 측정은 성능 합격 판정이 아니며 임계 초과도 별도 기록한다.
+후속 실패 시 뒤 규모는 건너뛰고 원인 미확정이면 재실행하지 않는다. 제품 누적 쓰기 경로 성능은 측정하지 않는다.
+
+### LP26-O10 최초 실행의 fixture 시간 경계 정정
+
+첫 실행 `--run`은 exit1/34초이며 1020원본의 두번째 checkpoint 도중 중단했다.
+이는 복구+두 checkpoint를 **합산15초**로 묶은 fixture 정의 오류다. 실제 복구9.803초·첫checkpoint4.197초는
+각15초 안에 완료했고, 두번째 checkpoint는 미측정이다. 제품 복구실패나 기존4초HTTP timeout 재현으로 해석하지 않는다.
+원출력은 `lp26-o10-accumulation-20260923/measurement-attempt1.log`에 보존한다.
+메인 담당의 지시에 따라 recovery/cold-binding/각checkpoint를 순서가 검증된 독립15초 watchdog으로 분리하며,
+전체65초는 cleanup용 기술적 상한으로만 사용한다. 단순 합산 제한 연장으로 PASS를 만들지 않는다.
+동일1020규모만1회 재검증하며, 그 결과를 보고한 뒤2049 진행을 판단한다.
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| LP26-O10-F01 | 독립 단계 시간경계 | 단계begin/wall 정확순서·각15000000us 허용/15000001us 거부·누락거부. 최초 합산15초 오류 이력 보존 | v4.1.0 |
+
+### LP26-O10 선행 진단 결과
+
+[원출력·개별 pass/fail·계측 전수·cleanup](release-artifacts/v4.1.0/lp26-o10-accumulation-20260923/results.md)에
+최초 RED·fixture 합산15초 오류·교정·1020 단회 재검증·2049 독립15초 중단을 모두 보존했다.
+제품 수정/실제 HTTP/장시간/UI는 미수행이며, **진단 산출물을 제품 해결 PASS로 사용하지 않는다**.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| LP26-O10-A01/B01/B02 | unit helper 예상RED3개→GREEN3개 | pass |
+| LP26-O10-D01 |8192/8193행 및64MiB/64MiB+1 논리입장경계4개 | pass |
+| LP26-O10 small |16원본/64행 strict복구·cold/warm checkpoint·실제회전 후동일prefix | pass |
+| LP26-O10 최초1020 |복구9.803초·첫cp4.197초 뒤 두번째cp에서 잘못된 합산15초 fixture중단 | fail |
+| LP26-O10-F01 |독립15초 단계 watchdog·순서/누락/nullwall 거부4개 unit | pass |
+| LP26-O10 1020 재검증 |4080행 strict복구9.932초·coldcp4.180초·warmcp2.435초·cache4080재사용/원본적용0 | pass |
+| LP26-O10 1020 관측 |초기drain5.590초·실제회전 재읽기5.340초,exact4080/fresh0 | pass |
+| LP26-O10 2049 initial |8196행 initial drain11.224초·2poll·정확한type/count | pass |
+| LP26-O10 2049 recovery |독립15초 watchdog 도달·SIGTERM close·뒤단계 건너뜀 | fail |
+| LP26-O10-E02 |실행소유root3개 삭제와 부재,reader/child 종료확인 | pass |
+
+1020에서는 논리charge19,167,033bytes·4080행으로 cache 입장이 허용되고 실제 warm재사용도 확인돼
+입장상한 초과가 해당 synthetic 비용의 원인이라는 주장은 성립하지 않는다. warm에서도 ReadCheckpointRecords1.923초가 남는다.
+2049는charge38,526,639bytes로64MiB를 넘지 않으나8196행이 record상한을 넘는다. recovery가 중단돼
+그 규모의 actual cache fallback/checkpoint 비용은 미확인이다.
+계측은 소유복제본·최적화플래그 없음·단일스레드이므로 cold hold4초 초과와 실제 HTTP timeout은 별개다.
+1020 회전drain5.340+기존pause5=10.340초,2049 initial11.224+pause5=16.224초라는 합산은
+실제루프의 관측간격 위험을 설명하는 가설이며 기존15초 gap의 원인 확정이 아니다.
+
+| 제목 | 수행내용 | 사유 | 완료 evidence로 사용할 수 없는 경계 |
+| --- | --- | --- | --- |
+| 2049 후속 |strict Open oracle·cold binding·두cp·회전drain |recovery15초 실패 뒤 미실행/미완료 |실제 fallback 성능·저장복구 PASS 없음 |
+| 제품 해결 |cadence/catalog/status/media 변경 |메인 담당 판단 전 미수행 |진단 결과는 해결/HTTP/장시간/릴리즈 PASS가 아님 |
+
 ## v4.1.0 S11 LP26-O09 누적 규모 진단 — 실행 전 정의
 
 독자: S11 검증 담당자. lifecycle: 이번 변경의 실행 정의/결과를 보존한다. 정책 source-of-truth는 AGENTS.md다.
