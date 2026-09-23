@@ -39,6 +39,7 @@ export async function startRecordingUiRangeProxy({root, upstreamPort,maxBytes=4*
   assert(fs.lstatSync(root).isDirectory()&&!fs.lstatSync(root).isSymbolicLink(),'invalid proxy root');
   for(const [value,limit] of [[maxBytes,4*1024*1024],[maxRows,4096],[closeMs,2000]])assert(Number.isInteger(value)&&value>0&&value<=limit,'invalid proxy bound');
   const logPath = path.join(fs.realpathSync(root), 'range-observation.jsonl');
+  const faultPath = path.join(fs.realpathSync(root), 'timeline-fault-once');
   const fd = fs.openSync(logPath, 'wx', 0o600);
   const sockets = new Set(), active = new Set();
   let failure=null,bytes=0,rows=0,seq=0,closing=false,closePromise;
@@ -56,6 +57,22 @@ export async function startRecordingUiRangeProxy({root, upstreamPort,maxBytes=4*
     if(String(req.headers.connection||'').split(',').some(name=>['host','origin'].includes(name.trim().toLowerCase()))){res.writeHead(400).end();return;}
     if(typeof req.url!=='string'||!req.url.startsWith('/')||req.url.startsWith('//')||req.url.includes('\\')||req.url.includes('#')){res.writeHead(400).end();return;}
     const pathname=req.url.split('?')[0];
+    // 실제 브라우저 오류 전이 검증 전용: 소유 fixture의 0600 표식 한 번만 소비한다.
+    if(req.method==='GET' && pathname==='/ops/api/recordings/timeline' && fs.existsSync(faultPath)) {
+      let marker;
+      try {
+        const faultFd=fs.openSync(faultPath,fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW);
+        try {
+          const stat=fs.fstatSync(faultFd);
+          assert(stat.isFile() && stat.uid===process.getuid() && (stat.mode&0o777)===0o600 && stat.size===13);
+          marker=fs.readFileSync(faultFd,'utf8');
+        } finally { fs.closeSync(faultFd); }
+        assert.equal(marker,'timeline-503\n');
+        fs.unlinkSync(faultPath);
+      } catch { latch('invalid timeline fault marker');res.writeHead(503).end();return; }
+      res.writeHead(503,{'content-type':'application/json','cache-control':'no-store'}).end('{"error":"test-only"}');
+      return;
+    }
     const media=req.method==='GET'&&/^\/ops\/api\/recordings\/media\/([A-Za-z0-9._:-]{1,128})$/.exec(pathname);
     const observation=media?{seq:++seq,startedAtMs:Date.now(),opaqueId:media[1],range:safeRange(req.headers.range),status:null,contentRange:null,completed:false}:null;
     let terminal=false,upResponse;

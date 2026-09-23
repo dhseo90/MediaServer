@@ -10291,8 +10291,8 @@ void AppendOpsShellScript(std::ostringstream& out,
             // 전체 관련 출력과 실제 파일을 확인한 서버 판정만 사용한다. 부분·미확인 원본은 숨기지 않는다.
             const visible = items.filter(item => field('opsRecordingOriginalView').checked || item.kind === 'event' || item.hideByEvent !== true);
             if (![...visible, ...unplacedItems].some(item => item.itemId === selected)) {
-              const initial = visible.find(item => item.kind === 'event' && item.playable) || visible.find(item => item.playable) ||
-                unplacedItems.find(item => item.playable);
+              // 시간 귀속 미확인 항목은 조회 구간 밖의 영상일 수 있으므로 명시 선택 전에는 재생하지 않는다.
+              const initial = visible.find(item => item.kind === 'event' && item.playable) || visible.find(item => item.playable);
               if (initial) select(initial); else clearPlayer();
             }
             const appendRow = (target, item, unplaced) => {

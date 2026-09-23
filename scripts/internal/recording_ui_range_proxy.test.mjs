@@ -99,6 +99,18 @@ await check('RP09 harness proxy cleanup failure still runs owned server cleanup'
   try{await finishRecordingUiProxy({async close(){order.push('proxy');throw Error('safe failure');}},async()=>{order.push('harness');return {rootAbsent:true};});}catch(e){error=e;}
   assert.deepEqual(order,['proxy','harness']);assert.equal(error?.cleanupReport?.rootAbsent,true);
 });
+await check('RP10 one-shot timeline fault clears after one browser request',async()=>{
+  let upstreamCalls=0;
+  await fixture((_req,res)=>{upstreamCalls++;res.writeHead(200,{'content-type':'application/json'});res.end('{"items":[]}');},async p=>{
+    const marker=path.join(path.dirname(p.logPath),'timeline-fault-once');
+    fs.writeFileSync(marker,'timeline-503\n',{flag:'wx',mode:0o600});
+    assert.equal((await request(p,'/ops/api/recordings/timeline?channelId=1',{})).status,503);
+    assert.equal(fs.existsSync(marker),false);
+    assert.equal((await request(p,'/ops/api/recordings/timeline?channelId=1',{})).status,200);
+    assert.equal(upstreamCalls,1);
+    assert.equal(rows(p).length,0);
+  });
+});
 }finally{
   const size=dir=>fs.readdirSync(dir).reduce((sum,name)=>{const file=path.join(dir,name),s=fs.lstatSync(file);return sum+(s.isDirectory()?size(file):s.size);},0);
   const bytes=size(root);fs.rmSync(root,{recursive:true});console.log('[cleanup] '+JSON.stringify({root,bytes,absent:!fs.existsSync(root)}));

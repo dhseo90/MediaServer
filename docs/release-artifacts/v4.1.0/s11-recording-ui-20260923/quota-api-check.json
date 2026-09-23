@@ -1,0 +1,17 @@
+{
+  "kind": "v4.1.0-s11-recording-status-independent-readback",
+  "method": "GET",
+  "route": "/ops/api/recordings/status",
+  "role": "admin",
+  "httpStatus": 200,
+  "enabled": true,
+  "degraded": false,
+  "channels": [
+    {"channelId": "1", "active": false, "storageBlocked": false, "continuousBytes": 0, "continuousMaxBytes": 10737418240, "eventBytes": 0, "eventMaxBytes": 10737418240},
+    {"channelId": "2", "active": false, "storageBlocked": false, "continuousBytes": 0, "continuousMaxBytes": 10737418240, "eventBytes": 0, "eventMaxBytes": 10737418240},
+    {"channelId": "3", "active": true, "storageBlocked": false, "continuousBytes": 0, "continuousMaxBytes": 134217728, "eventBytes": 0, "eventMaxBytes": 134217728},
+    {"channelId": "4", "active": true, "storageBlocked": true, "continuousBytes": 0, "continuousMaxBytes": 1048576, "eventBytes": 0, "eventMaxBytes": 134217728}
+  ],
+  "uiReadback": "S06 channel 1/2 녹화 중 아님, S09 UI 3 녹화 중, S09 UI 4 녹화 중·저장 공간 차단; 각 사용량·상한이 위 응답과 일치",
+  "credentialOrCookiePreserved": false
+}
