@@ -163,6 +163,19 @@ SQLite Open 불가 시 새 권위 상태에서 fallback한다. SQLite Open 후 �
 남기고 원본을 보존한다. pending finalize, pin·hold, ID 재사용 거부, 기존 시간·ID/API 의미는
 변경하지 않는다.
 
+**구형 writer 차단과 전환 지점.** 현재 `.recording-store-format`의 v1 내용은 구형 실행
+파일의 쓰기 허가이기도 하다. manifest만 추가해서는 구형 실행 파일이 옛 원장에 계속 쓸
+수 있다. 독점 managed lease 아래 새 세대 파일 준비·의미 대조와 구형 원장 내구 확인을
+마친 다음, marker를 `{"format":"media-server.managed-recording-store.v2","storeId":"<기존 ID>","manifest":"recording-generation.json"}\n`의
+정확한 필드 순서·바이트로 원자 교체하고 디렉터리를 fsync한다. 그 뒤에만
+manifest를 게시한다. 구형 실행 파일은 marker의 정확한 v1 bytes가 아니면 열기를 거부한다.
+v2 marker와 유효한 manifest가 함께 있으면 B만 열며, manifest 손상·누락 구성 파일은
+구형 원장으로 자동 fallback하지 않는다. v2 marker인데 manifest가 아직 없는 중단 상태는
+lease 아래 manifest의 확실한 부재, 온전한 구형 원장, 소유된 준비 파일의 상태를 대조해
+v1 marker 복구가 안전함이 입증될 때만 원자 복구한다. 존재 불명·손상·게시 내구 불확실은
+수동 판단 전 쓰기를 막는다. v1 marker인데 manifest가 있는 모순도 쓰기 금지다. 구형
+원본은 별도 삭제 승인 없이 보존하며 v2 선택 뒤 두 원장을 동시에 권위로 쓰지 않는다.
+
 **비용 합격 기준.** 활성 자료·이번 증분량을 고정하고 과거 상세 이력만 늘리는 비교에서
 정상 저장·조회·세대 회전의 과거 상세 읽기·파싱·직렬화가 역사 크기와 함께 증가하지 않아야
 한다. 재기동은 현재 상태·최소 identity 색인·이번 증분에 비례할 수 있으며, 전체 감사와

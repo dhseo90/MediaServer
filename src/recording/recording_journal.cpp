@@ -141,6 +141,7 @@ constexpr const char* kManagedLease=".recording-store-lease";
 constexpr const char* kManagedInit=".recording-store-init";
 constexpr const char* kManagedFormat=".recording-store-format";
 constexpr const char* kManagedJournal="recording-v2-mutations.jsonl";
+constexpr const char* kGenerationManifest="recording-generation.json";
 constexpr const char* kLegacyBarrier="recording-mutations.jsonl";
 std::string ManagedFormat(const std::string& id) {
     return "{\"format\":\"media-server.managed-recording-store.v1\",\"storeId\":\""+Escape(id)+
@@ -813,7 +814,9 @@ bool RecordingJournal::CheckManagedFdStateLocked(std::string* error) const {
     if(!managed_)return true;
 #if !defined(_WIN32)
     struct stat status{};
-    if(poisoned_||!managed_state_||managed_fd_<0||::fstat(managed_fd_,&status)!=0||!S_ISREG(status.st_mode)||status.st_nlink!=1||
+    OwnedFd parent(OpenParent(io_path_,false));
+    if(parent.value<0||Present(parent.value,kGenerationManifest)||
+       poisoned_||!managed_state_||managed_fd_<0||::fstat(managed_fd_,&status)!=0||!S_ISREG(status.st_mode)||status.st_nlink!=1||
        static_cast<std::uint64_t>(status.st_dev)!=device_||status.st_ino!=inode_||status.st_size<0||
        static_cast<std::uint64_t>(status.st_size)!=managed_state_->bytes){poisoned_=true;return Fail(error,"managed 원장 변경/불확실 상태: 재open 필요");}
     return true;
@@ -850,7 +853,8 @@ bool RecordingJournal::ManagedBindingLocked() const {
 #if !defined(_WIN32)
     if(!opened_||owner_pid_!=::getpid()||managed_fd_<0||lease_fd_<0)return false;
     OwnedFd parent(OpenParent(io_path_,false));struct stat p{},j{},l{},m{},b{};
-    if(parent.value<0||::fstat(parent.value,&p)!=0||static_cast<std::uint64_t>(p.st_dev)!=parent_device_||p.st_ino!=parent_inode_||
+    if(parent.value<0||Present(parent.value,kGenerationManifest)||
+       ::fstat(parent.value,&p)!=0||static_cast<std::uint64_t>(p.st_dev)!=parent_device_||p.st_ino!=parent_inode_||
        !Regular(managed_fd_,&j)||static_cast<std::uint64_t>(j.st_dev)!=device_||j.st_ino!=inode_||!Same(parent.value,kManagedJournal,managed_fd_,j)||
        !Regular(lease_fd_,&l)||l.st_ino!=lease_inode_||static_cast<std::uint64_t>(l.st_dev)!=parent_device_||!Same(parent.value,kManagedLease,lease_fd_,l)||
        !ExactFile(parent.value,kManagedFormat,ManagedFormat(managed_store_id_),&m)||m.st_ino!=marker_inode_||
@@ -867,6 +871,8 @@ bool RecordingJournal::OpenManagedLocked(std::string* error) {
     if(managed_root_.empty()||(!managed_store_id_.empty()&&!ValidateOpaqueId(managed_store_id_,error))||!SafePath(path_,&io_path_))return Fail(error,"managed root/store ID 거부");
     OwnedFd parent(OpenParent(io_path_,true));struct stat p{};
     if(parent.value<0||::fstat(parent.value,&p)!=0)return Fail(error,"managed root 열기 실패");
+    // B manifest의 유효성 판단은 B backend 책임이다. v1은 존재/조회 불확실만으로 거부한다.
+    if(Present(parent.value,kGenerationManifest))return Fail(error,"generation manifest 존재: v1 fallback 거부");
     const bool committed=Present(parent.value,kManagedFormat);
     const bool pending=Present(parent.value,kManagedInit);
     if(committed) {
@@ -879,7 +885,7 @@ bool RecordingJournal::OpenManagedLocked(std::string* error) {
     if(lease.value<0||!Regular(lease.value,&l)||l.st_size!=0||!Lock(lease.value,LOCK_EX|LOCK_NB)||!Same(parent.value,kManagedLease,lease.value,l))
         return Fail(error,"managed store 다른 소유자/lease 거부");
     if(!Sync(lease.value)||!Sync(parent.value))return Fail(error,"managed lease fsync 실패");
-    if(Present(parent.value,kManagedFormat)!=committed||Present(parent.value,kManagedInit)!=pending)
+    if(Present(parent.value,kGenerationManifest)||Present(parent.value,kManagedFormat)!=committed||Present(parent.value,kManagedInit)!=pending)
         return Fail(error,"managed 초기 상태 변경: 재시도 필요");
     // ID 조회/생성은 lease 획득 뒤다. marker 이름 존재만으로 값을 신뢰하지 않는다.
     if(committed||pending) {
@@ -911,7 +917,7 @@ bool RecordingJournal::OpenManagedLocked(std::string* error) {
             return Fail(error,"managed format 원자확정 실패: 보존");
     }
     struct stat m{};
-    if(!ExactFile(parent.value,kManagedFormat,format,&m))return Fail(error,"managed format 확정 검증 실패");
+    if(Present(parent.value,kGenerationManifest)||!ExactFile(parent.value,kManagedFormat,format,&m))return Fail(error,"managed format 확정 검증 실패");
     managed_fd_=journal.value;journal.value=-1;lease_fd_=lease.value;lease.value=-1;
     owner_pid_=::getpid();device_=j.st_dev;inode_=j.st_ino;parent_device_=p.st_dev;parent_inode_=p.st_ino;
     lease_inode_=l.st_ino;marker_inode_=m.st_ino;barrier_inode_=b.st_ino;opened_=true;

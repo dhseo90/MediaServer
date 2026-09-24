@@ -94,6 +94,13 @@ payload의 serializer 동등성·map 사이 참조·cold 상세의 의미 검증
 | B02-S05 | 암호화 미지원 | crypto-off 값 코덱·구조 결박, chain digest 검증과 구분 | v4.1.0 |
 | B02-SR01 | 실행 연결 | `./server.sh verify-v410-recording-catalog-snapshot`, S01~S05·exit·임시 정리 | v4.1.0 |
 
+### B-02 형식 전환 충돌 차단 구현 전 검사 정의
+
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+| B02-G01 | 초기 열기 충돌 | v1 원본 불변·정상 reopen, manifest 이름 공존과 v2/손상 marker의 Open 거부 | v4.1.0 |
+| B02-G02 | 열기 후 변조 차단 | 열린 v1의 manifest 출현/marker 교체 후 lease·append·replay 거부와 원본 불변 | v4.1.0 |
+
 ### B-02 현재 catalog snapshot 값 형식 단위 결과
 
 실행 전 위의 S01~S05·SR01을 등록했다. `./server.sh verify-v410-recording-catalog-snapshot`은
@@ -120,6 +127,38 @@ H01~H06 exit0, `./server.sh verify-v410-recording-order-snapshot` O01~O06 exit0,
 프로젝트 인벤토리 원출력은 실행 도구 표시 한도에서 잘렸으므로 전체 로그 보존이나 개별 986개
 출력 검토를 주장하지 않는다. token start/end/consumed의 계측 source가 없어 미집계다.
 테스트 소유 임시 root는 runner 종료 때 삭제했다. 실제 서버·계정·포트·영상 데이터는 생성하지 않았다.
+
+### B-02 v1 형식 충돌 차단 단위 결과
+
+처음 focused 실행은 G01/G02 모두 pass였으나 사전등록에 적힌 v2 marker 교체 반례가
+신규 G01/G02에 빠져 있었다. smoke 범위만 보완하고 같은 명령을 재실행했다. 최종 원출력은
+[focused.log.gz.b64](release-artifacts/v4.1.0/b02-format-guard-20260925/focused.log.gz.b64)에
+gzip/base64로 보존했다. decode한 원출력의
+SHA-256은 `a1c3bc142b24b79fd4c3c1abcbe3612cc118188a2718aca02fe239e23cd28a15`,
+14,555바이트다. `./server.sh verify-v410-recording-catalog` exit0, 기본 smoke pass236/fail0,
+crypto-off 3개·runner 정적 검사 9개 PASS였다. 이 확인은 v1 fallback 충돌 차단만 증명하며
+v2 backend Open/Append/세대 회전은 아직 미구현이다.
+메인의 diff·원출력 대조 뒤 `./server.sh build` exit0, `./server.sh verify-docs-links`
+markdown 328개·local links 12,781개·failures0, `./server.sh verify-docs-ui-assets`
+10/10, `./server.sh verify-project-inventory` 18/18(기능 행 986개), `git diff --check`
+exit0을 확인했다. 인벤토리 원출력은 도구 표시 한도에서 잘렸으므로 전수 원문 검토로
+승격하지 않는다.
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| B02-G01 | 정상 v1 reopen 및 manifest 5형태·정확한 v2 marker 단독 Open 거부, 원장·marker bytes 보존 | pass |
+| B02-G02 | 열린 v1의 manifest 출현 또는 v2 marker 교체 뒤 append/reserve/replay/lease/reopen 독립 거부와 bytes 불변 | pass |
+
+검증 build root `/private/tmp/media-server-b02-guard-build.0lY4uq` 27,676,116바이트는
+runner가 삭제하고 부재를 확인했다. 실제 서버·계정·포트는 생성하지 않았다.
+첫 실행·재실행 임시 로그 디렉터리는 중앙 이관 뒤 소유권·내용 확인 후 정리했다.
+token start/end/consumed는 집계 source가 없어 미집계다.
+
+| 경로 | 종류 | 삭제 전 크기 | 조치 | 삭제/보존 결과 | 근거 |
+| --- | --- | --- | --- | --- | --- |
+| `/private/tmp/media-server-b02-guard-run.j5WH3N` | 첫 focused 로그 전용 root | 로그 14,508바이트 | 첫 결과 count 기록 후 로그 삭제·빈 root 제거 | 부재 확인 | 첫 실행 G01/G02 pass, 보완 전 세부 반례 누락을 기록 |
+| `/private/tmp/media-server-b02-guard-recheck.Ux4Liu` | 재검증 로그 전용 root | 로그 14,555바이트 | SHA 일치 중앙 원출력 보존 후 로그 삭제·빈 root 제거 | 부재 확인 | 최종 원출력은 위 artifact |
+| `/private/tmp/media-server-b02-guard-build.0lY4uq` | runner build root | 27,676,116바이트 | runner 자체 정리 | 부재 확인 | 최종 focused 로그 cleanup 행 |
 
 ### B-02 manifest 첫 구현 단위 결과
 

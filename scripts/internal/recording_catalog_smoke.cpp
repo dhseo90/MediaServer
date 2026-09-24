@@ -514,6 +514,83 @@ void V2CatalogCases(const std::filesystem::path& root) {
         }
     }
 }
+void GenerationFallbackGuardCases(const std::filesystem::path& root) {
+    using recording::RecordingJournal;
+    std::string error;
+    // 저장 계약 spec의 미래 v2 marker literal이다. 이 fixture는 제품 v2 Open을 허용하지 않는다.
+    const std::string v2_marker="{\"format\":\"media-server.managed-recording-store.v2\",\"storeId\":\"guard-store\",\"manifest\":\"recording-generation.json\"}\n";
+    const auto seed=[](RecordingJournal& journal,std::string* message) {
+        recording::RecordingMutationV1 mutation;
+        mutation.mutation_id="guard-original";mutation.entity_id="guard-entity";
+        mutation.mutation_type=recording::RecordingMutationType::EventLinkCreated;
+        mutation.occurred_at_ms=1;mutation.payload_json="{}";
+        return journal.Open(message)&&journal.Append(mutation,message);
+    };
+    bool initial=true;
+    for(const std::string mode:{"valid-shaped","malformed","empty","directory","dangling-symlink","marker-v2"}) {
+        const auto dir=root/mode;
+        const auto options=RecordingJournal::ManagedOptions{dir,"guard-store"};
+        bool ready=false;
+        {RecordingJournal journal(options);ready=seed(journal,&error);}
+        const auto path=dir/"recording-v2-mutations.jsonl", marker=dir/".recording-store-format";
+        const auto before=ReadBytes(path);
+        auto format=ReadBytes(marker);
+        {RecordingJournal normal(options);ready=normal.Open(&error)&&ready;}
+        const auto manifest=dir/"recording-generation.json";
+        std::error_code ec;
+        if(mode=="marker-v2") {
+            std::ofstream out(marker,std::ios::binary|std::ios::trunc);out<<v2_marker;out.close();
+            ready=static_cast<bool>(out)&&!std::filesystem::exists(manifest)&&ready;
+            format=v2_marker;
+        } else if(mode=="directory")std::filesystem::create_directory(manifest,ec);
+        else if(mode=="dangling-symlink")std::filesystem::create_symlink("missing-target",manifest,ec);
+        else {
+            std::ofstream out(manifest);
+            if(mode=="malformed")out<<"{broken";
+            if(mode=="valid-shaped")out<<"{\"schema\":\"media-server.recording-generation.v1\",\"storeId\":\"guard-store\",\"generation\":1,\"cutOrdinal\":1,\"snapshot\":{\"name\":\"snapshot-1.jsonl\",\"size\":0,\"sha256\":\""<<std::string(64,'a')<<"\"},\"active\":{\"name\":\"active-1.jsonl\",\"size\":0,\"sha256\":\""<<std::string(64,'a')<<"\"},\"evidence\":[]}\n";
+            ready=static_cast<bool>(out)&&ready;
+        }
+        RecordingJournal denied(options);
+        const bool ok=ready&&!ec&&!denied.Open(&error)&&ReadBytes(path)==before&&ReadBytes(marker)==format;
+        if(!ok)std::cerr<<"B02-G01 assertion: "<<mode<<'\n';
+        initial=ok&&initial;
+    }
+    Expect(initial,"B02-G01 manifest presence or exact v2 marker rejects v1 fallback and preserves bytes; normal v1 reopen retained");
+    bool live=true;
+    for(const std::string replacement:{"manifest","marker-v2"}) {
+    for(const std::string operation:{"append","reserve","replay","lease","reopen"}) {
+        const auto dir=root/("live-"+replacement+"-"+operation);
+        RecordingJournal journal(RecordingJournal::ManagedOptions{dir,"guard-store"});
+        bool ready=seed(journal,&error);
+        const auto before=ReadBytes(journal.path());
+        auto format=ReadBytes(dir/".recording-store-format");
+        if(replacement=="marker-v2") {
+            std::ofstream out(dir/".recording-store-format",std::ios::binary|std::ios::trunc);
+            out<<v2_marker;out.close();ready=static_cast<bool>(out)&&ready;format=v2_marker;
+            ready=!std::filesystem::exists(dir/"recording-generation.json")&&ready;
+        } else {
+            std::ofstream out(dir/"recording-generation.json");out<<"{broken";out.close();
+            ready=static_cast<bool>(out)&&ready;
+        }
+        bool denied=false;
+        if(operation=="append") {
+            recording::RecordingMutationV1 mutation;mutation.mutation_id="guard-new";mutation.entity_id="guard-entity";
+            mutation.mutation_type=recording::RecordingMutationType::EventLinkCreated;mutation.payload_json="{}";
+            denied=!journal.Append(mutation,&error);
+        } else if(operation=="reserve") {
+            recording::RecordingOrderReservationV1 reservation;
+            denied=!journal.ReserveRecordingOrder("guard-store","guard-request","guard-segment","channel",&reservation,&error);
+        } else if(operation=="replay")denied=journal.Replay().io_error_count!=0;
+        else if(operation=="lease")denied=!journal.HasManagedLease()&&journal.ManagedStoreId().empty();
+        else denied=!journal.Open(&error);
+        const bool ok=ready&&denied&&ReadBytes(journal.path())==before&&ReadBytes(dir/".recording-store-format")==format;
+        if(!ok)std::cerr<<"B02-G02 assertion: "<<replacement<<'/'<<operation<<'\n';
+        live=ok&&live;
+    }
+    }
+    Expect(live,"B02-G02 live v1 read/write/binding reject manifest appearance or exact v2 marker replacement without byte changes");
+}
+
 void ManagedStoreCases(const std::filesystem::path& root) {
     using recording::RecordingJournal;using recording::RecordingOrderReservationV1;
     std::string error;const auto dir=root/"owned";
@@ -1166,6 +1243,7 @@ int main(int argc, char** argv) {
     OrderReservationCases(root / "order-reservations");
     V2CatalogCases(root / "v2-catalog");
     ManagedStoreCases(root/"managed");
+    GenerationFallbackGuardCases(root/"generation-guard");
     ManagedCatalogCases(root/"managed-catalog");
     ManagedGrowthCases(root/"managed-growth");
     CheckpointSafetyCases(root/"checkpoint-safety");
